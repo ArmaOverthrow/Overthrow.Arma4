@@ -1,0 +1,13 @@
+SCR_FactionManager : "{4A188E44289B9A50}Prefabs/MP/Managers/Factions/FactionManager_Editor.et" {
+ ID "56B2B4776E6E4499"
+ coords 4415.315 1.595 11078.508
+ Factions {
+  OVT_OverthrowFaction "{56DEAC40D3C2E623}" {
+  }
+  OVT_OverthrowFaction "{56DEAC40D2DBC8B1}" {
+  }
+  OVT_OverthrowFaction "{56DEAC40D132400B}" {
+   m_bIsPlayable 1
+  }
+ }
+}

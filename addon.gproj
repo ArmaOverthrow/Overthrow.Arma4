@@ -1,0 +1,8 @@
+GameProject {
+ ID "Overthrow"
+ GUID "5968C809248324AE"
+ TITLE "Overthrow"
+ Dependencies {
+  "58D0FB3206B6F859"
+ }
+}

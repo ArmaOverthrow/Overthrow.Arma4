@@ -1,0 +1,54 @@
+SCR_AIWorld : "{E0A05C76552E7F58}Prefabs/AI/SCR_AIWorld.et" {
+ components {
+  NavmeshWorldComponent "{5584F30E67F617AD}" {
+   NavmeshSettings NavmeshWorld "{50FC63BEBE3973C5}" {
+    NavmeshFile "{AD5F99CD7C59D5E0}worlds/GameMaster/Navmeshes/GM_Eden.nmn"
+   }
+  }
+ }
+ coords 4421.922 1.595 11079.681
+}
+PerceptionManager PerceptionManager1 : "{028DAEAD63E056BE}Prefabs/World/Game/PerceptionManager.et" {
+ coords 4437.452 1.581 11067.485
+}
+SCR_FactionManager FactionManager_Overthrow : "{4A188E44289B9A50}Prefabs/MP/Managers/Factions/FactionManager_Editor.et" {
+ coords 4477.324 4.749 11037.735
+}
+OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4A1A823A403873C4}Prefabs/MP/Modes/OVT_OverthrowGameMode.et" {
+ components {
+  SCR_AutomaticRespawnHandlerComponent "{596EE3866C643202}" {
+   m_iForcedFaction 1
+   m_iForcedLoadout 0
+  }
+ }
+ coords 4435.291 1.567 11069.104
+}
+ScriptedChatEntity : "{F69BC912AC8236F9}Prefabs/MP/ScriptedChatEntity.et" {
+ coords 4406.048 1.636 11072.589
+}
+SCR_SpawnPoint : "{2B1758F237E4820E}Prefabs/MP/Spawning/SpawnPoint_FIA.et" {
+ coords 4404.953 1.61 11054.485
+}
+SCR_AIGroup : "{30ED11AA4F0D41E5}Prefabs/Groups/OPFOR/Group_USSR_FireGroup.et" {
+ coords 4478.681 5.223 11033.423
+}
+SCR_LoadoutManager : "{AA4E7419A1FF65B0}Prefabs/MP/Managers/Loadouts/LoadoutManager_Base.et" {
+ coords 4419.596 1.605 11073.322
+ m_aPlayerLoadouts {
+  SCR_FactionPlayerLoadout "{5968C8BCD347882D}" {
+   m_sLoadoutResource "{3A99A99836F6B3DC}Prefabs/Characters/Factions/INDFOR/FIA/Character_FIA_Unarmed.et"
+   m_sAffiliatedFaction "FIA"
+  }
+ }
+}
+SCR_ChimeraCharacter : "{DCB41B3746FDD1BE}Prefabs/Characters/Factions/OPFOR/USSR_Army/Character_USSR_Rifleman.et" {
+ components {
+ }
+ coords 4444.443 1.712 11058.32
+}
+GenericEntity : "{FA5C25BF66A53DCF}Prefabs/Weapons/Rifles/AK74/Rifle_AK74.et" {
+ coords 4415.107 1.77 11055.303
+ angleX 0.439
+ angleY 8.092
+ angleZ -93.213
+}

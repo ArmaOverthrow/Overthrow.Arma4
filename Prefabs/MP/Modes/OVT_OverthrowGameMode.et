@@ -1,0 +1,24 @@
+OVT_OverthrowGameMode {
+ ID "596EE386FCEE04EC"
+ components {
+  OVT_RespawnSystemComponent "{5970A113BE715BEB}" {
+  }
+  SCR_AutomaticRespawnHandlerComponent "{596EE3866C643202}" {
+  }
+  SCR_CallsignManagerComponent "{596EE3861E813BD3}" {
+  }
+  SCR_DestructionManagerComponent "{596EE38615C70622}" {
+  }
+  SCR_HintManagerComponent "{596EE3860721E3B1}" {
+  }
+  SCR_NametagConfigComponent "{596EE386299671F3}" {
+  }
+  SCR_PlayerProfileManagerComponent "{596EE38632D1613E}" {
+  }
+  SCR_SaveLoadComponent "{596EE38645C810FA}" {
+  }
+  RplComponent "{596EE38643A3EB3F}" {
+  }
+ }
+ coords 4434.077 1.573 11068.962
+}
