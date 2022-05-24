@@ -29,8 +29,10 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		return s_Instance;
 	}
 	
-	override void OnInit(IEntity owner)
+	override void OnPostInit(IEntity owner)
 	{
+		super.OnPostInit(owner);
+		
 		OVT_OverthrowGameMode gameMode = OVT_OverthrowGameMode.Cast(owner);
 		if (!gameMode)
 			// If parent is not gamemode, print an error

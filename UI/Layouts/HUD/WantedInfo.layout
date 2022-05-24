@@ -1,0 +1,75 @@
+OverlayWidgetClass {
+ Name "root"
+ Clipping False
+ components {
+  SCR_WidgetExportRuleRoot "{5970CDAF8DD975FB}" {
+   DestinationPath "{EC9B6EE4FCC71C2F}Scripts/Game/UI/HUD"
+   ScriptAddon "$Overthrow:"
+   GenerateFullWidgetPath 0
+   ScriptClassNamePrefix "OVT_"
+  }
+ }
+ {
+  FrameWidgetClass "{5970CDADB3F0CA54}" {
+   Name "Frame0"
+   Slot OverlayWidgetSlot "{5872F8E8D1711656}" {
+    HorizontalAlign 3
+    VerticalAlign 3
+   }
+   Opacity 0.9
+   {
+    VerticalLayoutWidgetClass "{5970CDADB3F0CA55}" {
+     Name "m_WantedInfoPanel"
+     Slot FrameWidgetSlot "{56E0F185ADC1E20E}" {
+      Anchor 1 0 1 0
+      PositionX -16
+      OffsetLeft -16
+      PositionY 16
+      OffsetTop 16
+      SizeX 100
+      OffsetRight -84
+      SizeY 23.8
+      OffsetBottom -39.8
+      Alignment 1 0
+      SizeToContent 1
+     }
+     "Inherit Color" 1
+     {
+      HorizontalLayoutWidgetClass "{5970CDADB3F0CA52}" {
+       Name "m_WantedLevel"
+       Slot LayoutSlot "{5870C1D380D38B81}" {
+        HorizontalAlign 2
+        Padding 0 2 0 0
+       }
+       "Inherit Color" 1
+       {
+        RichTextWidgetClass "{5970CDADB3F0CA53}" {
+         Name "m_WantedText"
+         Slot LayoutSlot "{56E0F189AA8E9CDB}" {
+          HorizontalAlign 2
+          VerticalAlign 1
+          Padding 0 0 10 0
+         }
+         Clipping False
+         Color 1 1 1 1
+         "Inherit Color" 1
+         Text "*****"
+         "Font Size" 60
+         "Min Font Size" 20
+         "Horizontal Alignment" Right
+         "Vertical Alignment" Center
+         FontProperties FontProperties "{55F8C56F794D79A5}" {
+          Font "{EABA4FE9D014CCEF}UI/Fonts/RobotoCondensed/RobotoCondensed_Bold.fnt"
+          ShadowSize 10
+          ShadowOffset 0 0
+          ShadowOpacity 0.7
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

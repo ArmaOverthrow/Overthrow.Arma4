@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{472DF3D2F7500FEB}UI/Layouts/HUD/OVT_WantedInfoLayout.layout"
+ Configurations {
+  LayoutResourceClass PC {
+  }
+  LayoutResourceClass XBOX_ONE : PC {
+  }
+  LayoutResourceClass XBOX_SERIES : PC {
+  }
+  LayoutResourceClass PS4 : PC {
+  }
+  LayoutResourceClass HEADLESS : PC {
+  }
+ }
+}
