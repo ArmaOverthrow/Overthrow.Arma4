@@ -5,15 +5,17 @@ class OVT_PlayerWantedComponentClass: ScriptComponentClass
 class OVT_PlayerWantedComponent: ScriptComponent
 {
 	[Attribute("0", params: "0 5 1", desc: "The current wanted level of this character")]
-	protected int m_iWantedLevel = 0;
+	protected int m_iWantedLevel;
 	protected bool m_bIsSeen = false;	
 	protected int m_iWantedTimer = 0;
+	protected int m_iLastSeen;
 	
-	protected const int LAST_SEEN_MAX = 10000;	
+	protected const int LAST_SEEN_MAX = 15;	
 	protected const int WANTED_TIMEOUT = 15000;
 	protected const int WANTED_SYSTEM_FREQUENCY = 1000;
 	
 	protected FactionAffiliationComponent m_Faction;
+	protected BaseWeaponManagerComponent m_Weapon;
 	
 	void SetWantedLevel(int level)
 	{
@@ -25,19 +27,30 @@ class OVT_PlayerWantedComponent: ScriptComponent
 		return m_iWantedLevel;
 	}
 	
+	bool IsSeen()
+	{
+		return m_bIsSeen;
+	}
+	
 	void CheckUpdate()
 	{		
 		m_bIsSeen = false;
+		m_iLastSeen = LAST_SEEN_MAX;
+		
 		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), 1000, CheckEntity, FilterEntities, EQueryEntitiesFlags.ALL);
 				
 		Faction currentFaction = m_Faction.GetAffiliatedFaction();
 		
+		//Print("Last seen is: " + m_iLastSeen);
+		
 		if(m_iWantedLevel > 0 && !m_bIsSeen)
 		{
 			m_iWantedTimer -= WANTED_SYSTEM_FREQUENCY;
+			//Print("Wanted timeout tick -1");
 			if(m_iWantedTimer <= 0)
-			{
+			{				
 				m_iWantedLevel -= 1;
+				Print("Downgrading wanted level to " + m_iWantedLevel);
 				m_iWantedTimer = WANTED_TIMEOUT;
 			}
 		}
@@ -70,14 +83,22 @@ class OVT_PlayerWantedComponent: ScriptComponent
 		
 		if (realEnt && realEnt == GetOwner())
 		{
-			m_bIsSeen = true;
+			
+			int lastSeen = possibleTarget.GetTimeSinceSeen();
+			
+			if(lastSeen < m_iLastSeen) m_iLastSeen = lastSeen;
 			if(m_iWantedLevel > 1) return false;
 			
-			BaseWeaponManagerComponent wpnMgr = BaseWeaponManagerComponent.Cast(realEnt.FindComponent(BaseWeaponManagerComponent));		
-			if (wpnMgr && wpnMgr.GetCurrentWeapon())
-			{
-				m_iWantedLevel = 2;
-			}	
+			if(TraceLOS(entity, GetOwner())){
+				//Player can be seen with direct Line of sight
+				m_bIsSeen = true;
+								
+				if (m_Weapon && m_Weapon.GetCurrentWeapon())
+				{
+					//Player is brandishing a weapon
+					m_iWantedLevel = 2;
+				}	
+			}
 			return false;		
 		}
 		
@@ -142,6 +163,7 @@ class OVT_PlayerWantedComponent: ScriptComponent
 		m_iWantedTimer = WANTED_TIMEOUT;
 		
 		m_Faction = FactionAffiliationComponent.Cast(owner.FindComponent(FactionAffiliationComponent));
+		m_Weapon = BaseWeaponManagerComponent.Cast(owner.FindComponent(BaseWeaponManagerComponent));
 		
 		GetGame().GetCallqueue().CallLater(CheckUpdate, WANTED_SYSTEM_FREQUENCY, true, owner);		
 	}
