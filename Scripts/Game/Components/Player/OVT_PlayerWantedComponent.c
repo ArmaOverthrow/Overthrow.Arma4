@@ -1,8 +1,8 @@
-[ComponentEditorProps(category: "GameScripted/GameMode/Components", description: "")]
-class OVT_PlayerWantedComponentClass: ScriptComponentClass
+[ComponentEditorProps(category: "Overthrow/Components", description: "")]
+class OVT_PlayerWantedComponentClass: OVT_ComponentClass
 {}
 
-class OVT_PlayerWantedComponent: ScriptComponent
+class OVT_PlayerWantedComponent: OVT_Component
 {
 	[Attribute("0", params: "0 5 1", desc: "The current wanted level of this character")]
 	protected int m_iWantedLevel;
@@ -59,7 +59,7 @@ class OVT_PlayerWantedComponent: ScriptComponent
 		if(m_iWantedLevel > 1 && !currentFaction)
 		{
 			Print("You are wanted now");
-			m_Faction.SetAffiliatedFactionByKey("FIA");
+			m_Faction.SetAffiliatedFactionByKey(m_Config.m_sPlayerFaction);
 		}
 		
 		if(m_iWantedLevel < 2 && currentFaction)
@@ -149,7 +149,7 @@ class OVT_PlayerWantedComponent: ScriptComponent
 			
 			Faction currentFaction = faction.GetAffiliatedFaction();
 			
-			if(currentFaction && currentFaction.GetFactionKey() == "USSR")
+			if(currentFaction && currentFaction.GetFactionKey() == m_Config.m_sOccupyingFaction)
 				return true;
 		}
 				
