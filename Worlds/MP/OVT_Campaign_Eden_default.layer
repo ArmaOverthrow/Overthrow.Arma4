@@ -17,6 +17,10 @@ SCR_FactionManager FactionManager_Overthrow : "{4A188E44289B9A50}Prefabs/MP/Mana
 OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4A1A823A403873C4}Prefabs/MP/Modes/OVT_OverthrowGameMode.et" {
  components {
   OVT_OverthrowConfigComponent "{5970CD94556FCD33}" {
+   components {
+    OVT_TownManagerComponent "{59724C81DA030519}" {
+    }
+   }
   }
   SCR_AutomaticRespawnHandlerComponent "{596EE3866C643202}" {
    m_iForcedFaction 1
