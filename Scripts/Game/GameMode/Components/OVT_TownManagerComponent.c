@@ -2,7 +2,7 @@ class OVT_TownManagerComponentClass: OVT_ComponentClass
 {
 };
 
-class OVT_TownData
+class OVT_TownData : Managed
 {
 	EntityID markerID;
 	string name;
@@ -12,7 +12,7 @@ class OVT_TownData
 	string faction;
 }
 
-class OVT_VillageData
+class OVT_VillageData : Managed
 {
 	EntityID markerID;
 	string name;
@@ -38,10 +38,12 @@ class OVT_TownManagerComponent: OVT_Component
 	[Attribute( defvalue: "5", desc: "Occupants per town house")]
 	int m_iTownOccupants;
 	
-	ref array<OVT_TownData> m_Towns;
-	ref array<OVT_VillageData> m_Villages;
+	ref array<ref OVT_TownData> m_Towns;
+	ref array<ref OVT_VillageData> m_Villages;
 	
 	protected OVT_TownData m_CheckTown;
+	
+	protected ref array<ref EntityID> m_Houses;
 	
 	override void OnPostInit(IEntity owner)
 	{	
@@ -52,12 +54,23 @@ class OVT_TownManagerComponent: OVT_Component
 		InitializeTowns();
 	}
 	
+	IEntity GetRandomHouse()
+	{
+		m_Houses = new array<ref EntityID>;
+		OVT_VillageData village = m_Villages.GetRandomElement();
+		IEntity marker = GetGame().GetWorld().FindEntityByID(village.markerID);
+		
+		GetGame().GetWorld().QueryEntitiesBySphere(marker.GetOrigin(), m_iVillageRange, CheckHouseAddToArray, FilterHouseEntities, EQueryEntitiesFlags.STATIC);
+		
+		return GetGame().GetWorld().FindEntityByID(m_Houses.GetRandomElement());
+	}
+	
 	protected void InitializeTowns()
 	{
 		Print("Finding cities, towns and villages");
 		
-		m_Towns = new array<OVT_TownData>;
-		m_Villages = new array<OVT_VillageData>;
+		m_Towns = new array<ref OVT_TownData>;
+		m_Villages = new array<ref OVT_VillageData>;
 		
 		
 		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, CheckCityTownAddPopulation, FilterCityTownEntities, EQueryEntitiesFlags.STATIC);
@@ -141,6 +154,13 @@ class OVT_TownManagerComponent: OVT_Component
 		return true;
 	}
 	
+	protected bool CheckHouseAddToArray(IEntity entity)
+	{
+		m_Houses.Insert(entity.GetID());
+				
+		return true;
+	}
+	
 	protected bool FilterHouseEntities(IEntity entity) 
 	{
 		if(entity.ClassName() == "SCR_DestructibleBuildingEntity"){
@@ -148,8 +168,12 @@ class OVT_TownManagerComponent: OVT_Component
 			
 			if(mesh){
 				string res = mesh.GetResourceName();
-				if(res.IndexOf("/Houses/") > -1)
+				if(res.IndexOf("/Houses/") > -1){
+					if(res.IndexOf("/Shed/") > -1) return false;
+					if(res.IndexOf("/Garage/") > -1) return false;
 					return true;
+				}
+					
 			}
 		}
 		return false;

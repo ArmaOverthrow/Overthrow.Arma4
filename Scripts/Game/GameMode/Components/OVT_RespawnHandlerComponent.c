@@ -1,0 +1,150 @@
+class OVT_RespawnHandlerComponentClass : SCR_RespawnHandlerComponentClass {}
+
+class OVT_RespawnHandlerComponent : SCR_RespawnHandlerComponent
+{
+	[Attribute("-1", uiwidget: UIWidgets.EditComboBox, category: "Respawn", desc: "Faction index to spawn player(s) with. Only applied when greater or equal to 0.")]
+	protected int m_iForcedFaction;
+	
+	[Attribute("-1", uiwidget: UIWidgets.EditComboBox, category: "Respawn", desc: "Loadout index to spawn player(s) with. Only applied when greater or equal to 0.")]
+	protected int m_iForcedLoadout;
+	
+	/*!
+		Batch of players that are supposed to spawn.
+		Used to prevent modifying collection we're iterating through.
+	*/
+	private ref array<int> m_aSpawningBatch = {};
+	
+	override bool CanPlayerSpawn(int playerId)
+	{
+		SCR_RespawnSystemComponent respawnSystem = m_pGameMode.GetRespawnSystemComponent();
+
+		if (!respawnSystem.GetPlayerLoadout(playerId))
+			return false;
+
+		return true;
+	}
+	
+	protected override bool RandomizePlayerSpawnPoint(int playerId)
+	{
+		if (!m_pGameMode.IsMaster())
+			return false;
+		
+		return true;
+	}
+
+	/*!
+		When player is enqueued, randomize their loadout.
+	*/
+	override void OnPlayerEnqueued(int playerId)
+	{
+		super.OnPlayerEnqueued(playerId);
+
+		if (m_iForcedFaction >= 0)
+		{
+			if (SCR_RespawnSystemComponent.GetInstance().CanSetFaction(playerId, m_iForcedFaction))
+				SCR_RespawnSystemComponent.GetInstance().DoSetPlayerFaction(playerId, m_iForcedFaction);
+			else
+				Print(string.Format("Cannot set faction %1 to player %2! Is faction index valid?", m_iForcedFaction, playerId), LogLevel.ERROR);
+		}
+		else 
+			RandomizePlayerFaction(playerId);
+		
+		if (m_iForcedLoadout >= 0)
+		{
+			if (SCR_RespawnSystemComponent.GetInstance().CanSetLoadout(playerId, m_iForcedLoadout))
+				SCR_RespawnSystemComponent.GetInstance().DoSetPlayerLoadout(playerId, m_iForcedLoadout);
+			else
+				Print(string.Format("Cannot set loadout %1 to player %2! Is loadout index valid?", m_iForcedLoadout, playerId), LogLevel.ERROR);
+		}
+		else
+			RandomizePlayerLoadout(playerId);
+		
+		RandomizePlayerSpawnPoint(playerId);
+	}
+
+	/*!
+		Ticks every frame. Handles automatic player respawn.
+	*/
+	override void EOnFrame(IEntity owner, float timeSlice)
+	{
+		// Authority only
+		if (!m_pGameMode.IsMaster())
+			return;
+
+		// Clear batch
+		m_aSpawningBatch.Clear();
+
+		// Find players eligible for respawn
+		foreach (int playerId : m_sEnqueuedPlayers)
+		{
+			if (m_pGameMode.CanPlayerRespawn(playerId))
+				m_aSpawningBatch.Insert(playerId);
+		}
+
+		// Respawn eligible players
+		PlayerManager playerManager = GetGame().GetPlayerManager();
+		foreach (int playerId : m_aSpawningBatch)
+		{
+			PlayerController playerController = playerManager.GetPlayerController(playerId);
+			
+			if(playerController)
+				playerController.RequestRespawn();
+		}
+
+		super.EOnFrame(owner, timeSlice);
+	}
+
+	#ifdef WORKBENCH
+	//! Possibility to get variable value choices dynamically
+	override array<ref ParamEnum> _WB_GetUserEnums(string varName, IEntity owner, IEntityComponentSource src)
+	{
+		if (varName == "m_iForcedFaction")
+		{
+			FactionManager factionManager = GetGame().GetFactionManager();
+			if (factionManager)
+			{
+				ref array<ref ParamEnum> factionEnums = new array<ref ParamEnum>();
+				factionEnums.Insert(new ParamEnum("Disabled", "-1"));
+
+				Faction faction;
+				string name;
+				int factionCount = factionManager.GetFactionsCount();
+				for (int i = 0; i < factionCount; i++)
+				{
+					faction = factionManager.GetFactionByIndex(i);
+					name = faction.GetFactionKey();
+					factionEnums.Insert(new ParamEnum(name, i.ToString()));
+				}
+
+				return factionEnums;
+			}
+		}
+		
+		if (varName == "m_iForcedLoadout")
+		{
+			SCR_LoadoutManager loadoutManager = GetGame().GetLoadoutManager();
+			if (loadoutManager)
+			{
+				ref array<ref ParamEnum> loadoutEnums = new array<ref ParamEnum>();
+				loadoutEnums.Insert(new ParamEnum("Disabled", "-1"));
+				
+				array<SCR_BasePlayerLoadout> loadouts = {};
+				for (int i = 0, count = loadoutManager.GetLoadoutCount(); i < count; i++)
+					loadouts.Insert(loadoutManager.GetLoadoutByIndex(i));
+				
+				SCR_BasePlayerLoadout loadout;
+				for (int i = 0, count = loadouts.Count(); i < count; i++)
+				{
+					loadout = loadouts[i];
+					int loadoutIndex = loadoutManager.GetLoadoutIndex(loadout);
+					loadoutEnums.Insert(new ParamEnum(loadout.GetLoadoutName(), loadoutIndex.ToString()));
+				}
+
+				return loadoutEnums;
+			}
+		}
+
+		return super._WB_GetUserEnums(varName, owner, src);
+	}
+	#endif
+}
