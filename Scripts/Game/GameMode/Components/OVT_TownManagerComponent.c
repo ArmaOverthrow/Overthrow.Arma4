@@ -10,12 +10,7 @@ class OVT_TownData : Managed
 	int stability;
 	int support;
 	string faction;
-}
-
-class OVT_VillageData : Managed
-{
-	EntityID markerID;
-	string name;
+	int size;
 }
 
 class OVT_TownManagerComponent: OVT_Component
@@ -39,11 +34,24 @@ class OVT_TownManagerComponent: OVT_Component
 	int m_iTownOccupants;
 	
 	ref array<ref OVT_TownData> m_Towns;
-	ref array<ref OVT_VillageData> m_Villages;
 	
 	protected OVT_TownData m_CheckTown;
 	
 	protected ref array<ref EntityID> m_Houses;
+	 
+	static OVT_TownManagerComponent s_Instance;
+	
+	static OVT_TownManagerComponent GetInstance()
+	{
+		if (!s_Instance)
+		{
+			BaseGameMode pGameMode = GetGame().GetGameMode();
+			if (pGameMode)
+				s_Instance = OVT_TownManagerComponent.Cast(pGameMode.FindComponent(OVT_TownManagerComponent));
+		}
+
+		return s_Instance;
+	}
 	
 	override void OnPostInit(IEntity owner)
 	{	
@@ -57,21 +65,35 @@ class OVT_TownManagerComponent: OVT_Component
 	IEntity GetRandomHouse()
 	{
 		m_Houses = new array<ref EntityID>;
-		OVT_VillageData village = m_Villages.GetRandomElement();
-		IEntity marker = GetGame().GetWorld().FindEntityByID(village.markerID);
+		OVT_TownData town = m_Towns.GetRandomElement();
+		IEntity marker = GetGame().GetWorld().FindEntityByID(town.markerID);
 		
-		GetGame().GetWorld().QueryEntitiesBySphere(marker.GetOrigin(), m_iVillageRange, CheckHouseAddToArray, FilterHouseEntities, EQueryEntitiesFlags.STATIC);
+		GetGame().GetWorld().QueryEntitiesBySphere(marker.GetOrigin(), m_iCityRange, CheckHouseAddToArray, FilterHouseEntities, EQueryEntitiesFlags.STATIC);
 		
 		return GetGame().GetWorld().FindEntityByID(m_Houses.GetRandomElement());
+	}
+	
+	OVT_TownData GetNearestTown(vector pos)
+	{
+		OVT_TownData nearestTown;
+		float nearest = 9999999;
+		foreach(OVT_TownData town : m_Towns)
+		{
+			IEntity marker = GetGame().GetWorld().FindEntityByID(town.markerID);
+			float distance = vector.Distance(marker.GetOrigin(), pos);
+			if(distance < nearest){
+				nearest = distance;
+				nearestTown = town;
+			}
+		}
+		return nearestTown;
 	}
 	
 	protected void InitializeTowns()
 	{
 		Print("Finding cities, towns and villages");
 		
-		m_Towns = new array<ref OVT_TownData>;
-		m_Villages = new array<ref OVT_VillageData>;
-		
+		m_Towns = new array<ref OVT_TownData>;		
 		
 		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, CheckCityTownAddPopulation, FilterCityTownEntities, EQueryEntitiesFlags.STATIC);
 		
@@ -81,28 +103,12 @@ class OVT_TownManagerComponent: OVT_Component
 	{	
 		MapDescriptorComponent mapdesc = MapDescriptorComponent.Cast(entity.FindComponent(MapDescriptorComponent));
 		if (mapdesc){
-			if(mapdesc.GetBaseType() == EMapDescriptorType.MDT_NAME_VILLAGE)
-			{
-				ProcessVillage(entity, mapdesc);
-			}else{
-				ProcessCityTown(entity, mapdesc);
-			}
+			ProcessTown(entity, mapdesc);
 		}
 		return true;
 	}
 	
-	protected void ProcessVillage(IEntity entity, MapDescriptorComponent mapdesc)
-	{
-		OVT_VillageData village = new OVT_VillageData();
-			
-		village.markerID = entity.GetID();
-		village.name = mapdesc.Item().GetDisplayName();
-		
-		Print(village.name);
-		m_Villages.Insert(village);
-	}
-	
-	protected void ProcessCityTown(IEntity entity, MapDescriptorComponent mapdesc)
+	protected void ProcessTown(IEntity entity, MapDescriptorComponent mapdesc)
 	{
 		OVT_TownData town = new OVT_TownData();
 			
@@ -113,10 +119,16 @@ class OVT_TownManagerComponent: OVT_Component
 		town.support = 0;
 		town.faction = m_Config.m_sOccupyingFaction;
 		
+		if(mapdesc.GetBaseType() == EMapDescriptorType.MDT_NAME_VILLAGE) town.size = 1;
+		if(mapdesc.GetBaseType() == EMapDescriptorType.MDT_NAME_TOWN) town.size = 2;
+		if(mapdesc.GetBaseType() == EMapDescriptorType.MDT_NAME_CITY) town.size = 3;
+		
 		m_CheckTown = town;
 		
 		int range = m_iTownRange;
-		if(mapdesc.GetBaseType() == 59) range = m_iCityRange;
+		if(town.size == 1) range = m_iVillageRange;
+		if(town.size == 3) range = m_iCityRange;
+		
 		
 		GetGame().GetWorld().QueryEntitiesBySphere(entity.GetOrigin(), range, CheckHouseAddPopulation, FilterHouseEntities, EQueryEntitiesFlags.STATIC);
 		
@@ -171,6 +183,7 @@ class OVT_TownManagerComponent: OVT_Component
 				if(res.IndexOf("/Houses/") > -1){
 					if(res.IndexOf("/Shed/") > -1) return false;
 					if(res.IndexOf("/Garage/") > -1) return false;
+					if(res.IndexOf("/HouseAddon/") > -1) return false;
 					return true;
 				}
 					

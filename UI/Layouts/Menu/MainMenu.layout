@@ -1,0 +1,130 @@
+FrameWidgetClass {
+ Name "rootFrame"
+ components {
+  SCR_WidgetExportRuleRoot "{5972827C9595AF92}" {
+   DestinationPath "{ED5BC5B77E275488}Scripts/Game/UI/Menu"
+   ScriptAddon "$Overthrow:"
+   ScriptClassNamePrefix "OVT_"
+  }
+ }
+ {
+  PanelWidgetClass "{597282644EB209FB}" {
+   Name "Panel0"
+   Slot FrameWidgetSlot "{597282644EB209C6}" {
+    Anchor 0 0 0 1
+    PositionX 0
+    OffsetLeft 0
+    PositionY -1
+    OffsetTop -1
+    SizeX 380
+    OffsetRight -380
+    SizeY 0
+    OffsetBottom 1
+   }
+   {
+    BlurWidgetClass "{5976AE11C10B7F60}" : "{352322057FD78AE1}UI/layouts/WidgetLibrary/BaseElements/WLib_Blur.layout" {
+     Name "BackgroundBlur"
+     Slot FrameWidgetSlot {
+      Anchor 0 0 1 1
+      PositionX 0
+      OffsetLeft 0
+      PositionY 0
+      OffsetTop 0
+      SizeX -200
+      OffsetRight 0
+      SizeY -1050
+      OffsetBottom 0
+     }
+     Color 0.127 0.127 0.127 1
+     Intensity 0.8
+    }
+    VerticalLayoutWidgetClass "{59728267ECC217A3}" {
+     Name "VerticalLayout0"
+     Slot FrameWidgetSlot "{59728267ECC2178F}" {
+      Anchor 0 0 1 1
+      PositionX 0
+      OffsetLeft 0
+      PositionY 0
+      OffsetTop 0
+      SizeX 200
+      OffsetRight 0
+      SizeY 0
+      OffsetBottom 0
+     }
+     {
+      FrameWidgetClass "{5972827FE545845B}" {
+       Name "LogoFrame"
+       Slot LayoutSlot "{5972827FE545843A}" {
+        Padding 0 15 0 15
+       }
+       {
+        ImageWidgetClass "{5972827EB0F40801}" {
+         Name "OverthrowLogo"
+         Slot FrameWidgetSlot "{5972827FE023E3B6}" {
+          Anchor 0.5 0.5 0.5 0.5
+          PositionX -140
+          OffsetLeft -140
+          PositionY -140
+          OffsetTop -140
+          SizeX 280
+          OffsetRight -140
+          SizeY 280
+          OffsetBottom -140
+         }
+         Texture "{4A7D823D7914A85A}UI/Textures/logo_overthrow.edds"
+         Image ""
+         Size 150 300
+        }
+       }
+      }
+      VerticalLayoutWidgetClass "{5972827C494E4C70}" {
+       Name "TownInfo"
+       Slot LayoutSlot "{5972827C494E4C5D}" {
+        Padding 30 10 30 10
+       }
+       {
+        TextWidgetClass "{5972827C5ECF75A7}" {
+         Name "m_TownNameText"
+         Slot LayoutSlot "{5972827C5ECF7585}" {
+         }
+         Text "St Phillipe"
+         FontProperties FontProperties "{5972827C3D02D175}" {
+         }
+        }
+        TextWidgetClass "{5972827C15CF7A9F}" {
+         Name "m_TownInfoText"
+         Slot LayoutSlot "{5972827C15CF7B61}" {
+          Padding 0 10 0 0
+         }
+         Text "pop. 875"\
+         "Stability: 100%"\
+         "Support: 0%"
+         "Font Size" 15
+         "Min Font Size" 12
+        }
+       }
+      }
+      ButtonWidgetClass "{5972827AE7C02F6B}" {
+       Name "m_MapInfoButton"
+       Slot LayoutSlot "{5972827AE7C02F36}" {
+        Padding 10 10 10 10
+       }
+       Color 0.004 0.004 0.004 1
+       {
+        TextWidgetClass "{5972827AD5920E0C}" {
+         Name "Text0"
+         Slot ButtonWidgetSlot "{5972827AD5920EEB}" {
+          Padding 0 20 0 20
+         }
+         Text "#OVT-MainMenu_MapInfo"
+         "Font Size" 20
+         "Min Font Size" 20
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

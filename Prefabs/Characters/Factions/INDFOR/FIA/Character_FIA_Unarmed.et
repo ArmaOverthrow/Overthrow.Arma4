@@ -5,6 +5,8 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
   }
   OVT_PlayerWantedComponent "{596EE382181C58FB}" {
   }
+  OVT_UIManagerComponent "{597282FDAEED0B0D}" {
+  }
   SCR_BaseHUDComponent "{520EA1D2DB118134}" {
    InfoDisplays {
     OVT_WantedInfo "{5970CDA89486F650}" {

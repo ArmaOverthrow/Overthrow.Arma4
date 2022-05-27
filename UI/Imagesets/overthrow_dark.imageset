@@ -1,0 +1,1722 @@
+ImageSetClass {
+ RefSize 256 256
+ Textures {
+  ImageSetTextureClass {
+   mpix 1
+   path "UI/Imagesets/default.edds"
+  }
+ }
+ Images {
+  ImageSetDefClass Cursor {
+   Name "Cursor"
+   Pos 1 142
+   Size 17 24
+   Flags 0
+  }
+  ImageSetDefClass ScrollBackground {
+   Name "ScrollBackground"
+   Pos 69 15
+   Size 2 2
+   Flags 0
+  }
+ }
+ Groups {
+  ImageSetGroupClass Window_normal_ {
+   Name "Window_normal_"
+   Images {
+    ImageSetDefClass Window_normal_LeftTop {
+     Name "Window_normal_LeftTop"
+     Pos 86 11
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass Window_normal_Top {
+     Name "Window_normal_Top"
+     Pos 90 11
+     Size 1 4
+     Flags 0
+    }
+    ImageSetDefClass Window_normal_RightTop {
+     Name "Window_normal_RightTop"
+     Pos 102 11
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass Window_normal_Right {
+     Name "Window_normal_Right"
+     Pos 102 17
+     Size 4 1
+     Flags 0
+    }
+    ImageSetDefClass Window_normal_RightBottom {
+     Name "Window_normal_RightBottom"
+     Pos 102 18
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass Window_normal_Bottom {
+     Name "Window_normal_Bottom"
+     Pos 90 18
+     Size 1 4
+     Flags 0
+    }
+    ImageSetDefClass Window_normal_LeftBottom {
+     Name "Window_normal_LeftBottom"
+     Pos 86 18
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass Window_normal_Center {
+     Name "Window_normal_Center"
+     Pos 90 17
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Window_normal_Left {
+     Name "Window_normal_Left"
+     Pos 86 17
+     Size 4 1
+     Flags 0
+    }
+    ImageSetDefClass Window_normal_TitleLeftTop {
+     Name "Window_normal_TitleLeftTop"
+     Pos 86 2
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass Window_normal_TitleTop {
+     Name "Window_normal_TitleTop"
+     Pos 90 2
+     Size 1 4
+     Flags 0
+    }
+    ImageSetDefClass Window_normal_TitleRightTop {
+     Name "Window_normal_TitleRightTop"
+     Pos 102 2
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass Window_normal_TitleRight {
+     Name "Window_normal_TitleRight"
+     Pos 102 6
+     Size 4 1
+     Flags 0
+    }
+    ImageSetDefClass Window_normal_TitleRightBottom {
+     Name "Window_normal_TitleRightBottom"
+     Pos 102 9
+     Size 4 2
+     Flags 0
+    }
+    ImageSetDefClass Window_normal_TitleBottom {
+     Name "Window_normal_TitleBottom"
+     Pos 101 9
+     Size 1 2
+     Flags 0
+    }
+    ImageSetDefClass Window_normal_TitleLeftBottom {
+     Name "Window_normal_TitleLeftBottom"
+     Pos 86 9
+     Size 4 2
+     Flags 0
+    }
+    ImageSetDefClass Window_normal_TitleCenter {
+     Name "Window_normal_TitleCenter"
+     Pos 90 6
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Window_normal_TitleLeft {
+     Name "Window_normal_TitleLeft"
+     Pos 86 6
+     Size 4 1
+     Flags 0
+    }
+   }
+  }
+  ImageSetGroupClass Window_disabled_ {
+   Name "Window_disabled_"
+   Images {
+    ImageSetDefClass Window_disabled_LeftTop {
+     Name "Window_disabled_LeftTop"
+     Pos 108 11
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass Window_disabled_Top {
+     Name "Window_disabled_Top"
+     Pos 112 11
+     Size 1 4
+     Flags 0
+    }
+    ImageSetDefClass Window_disabled_RightTop {
+     Name "Window_disabled_RightTop"
+     Pos 124 11
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass Window_disabled_Right {
+     Name "Window_disabled_Right"
+     Pos 124 17
+     Size 4 1
+     Flags 0
+    }
+    ImageSetDefClass Window_disabled_RightBottom {
+     Name "Window_disabled_RightBottom"
+     Pos 124 18
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass Window_disabled_Bottom {
+     Name "Window_disabled_Bottom"
+     Pos 112 18
+     Size 1 4
+     Flags 0
+    }
+    ImageSetDefClass Window_disabled_LeftBottom {
+     Name "Window_disabled_LeftBottom"
+     Pos 108 18
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass Window_disabled_Center {
+     Name "Window_disabled_Center"
+     Pos 112 17
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Window_disabled_Left {
+     Name "Window_disabled_Left"
+     Pos 108 17
+     Size 4 1
+     Flags 0
+    }
+    ImageSetDefClass Window_disabled_TitleLeftTop {
+     Name "Window_disabled_TitleLeftTop"
+     Pos 108 2
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass Window_disabled_TitleTop {
+     Name "Window_disabled_TitleTop"
+     Pos 112 2
+     Size 1 4
+     Flags 0
+    }
+    ImageSetDefClass Window_disabled_TitleRightTop {
+     Name "Window_disabled_TitleRightTop"
+     Pos 124 2
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass Window_disabled_TitleRight {
+     Name "Window_disabled_TitleRight"
+     Pos 124 6
+     Size 4 1
+     Flags 0
+    }
+    ImageSetDefClass Window_disabled_TitleRightBottom {
+     Name "Window_disabled_TitleRightBottom"
+     Pos 124 9
+     Size 4 2
+     Flags 0
+    }
+    ImageSetDefClass Window_disabled_TitleBottom {
+     Name "Window_disabled_TitleBottom"
+     Pos 123 9
+     Size 1 2
+     Flags 0
+    }
+    ImageSetDefClass Window_disabled_TitleLeftBottom {
+     Name "Window_disabled_TitleLeftBottom"
+     Pos 108 9
+     Size 4 2
+     Flags 0
+    }
+    ImageSetDefClass Window_disabled_TitleCenter {
+     Name "Window_disabled_TitleCenter"
+     Pos 112 6
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Window_disabled_TitleLeft {
+     Name "Window_disabled_TitleLeft"
+     Pos 108 6
+     Size 4 1
+     Flags 0
+    }
+   }
+  }
+  ImageSetGroupClass ListBox_normal_ {
+   Name "ListBox_normal_"
+   Images {
+    ImageSetDefClass ListBox_normal_BottomCenter {
+     Name "ListBox_normal_BottomCenter"
+     Pos 5 39
+     Size 1 9
+     Flags 0
+    }
+    ImageSetDefClass ListBox_normal_BottomSeparator {
+     Name "ListBox_normal_BottomSeparator"
+     Pos 5 30
+     Size 1 4
+     Flags 0
+    }
+    ImageSetDefClass ListBox_normal_Center {
+     Name "ListBox_normal_Center"
+     Pos 5 37
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass ListBox_normal_HeaderBottomCenter {
+     Name "ListBox_normal_HeaderBottomCenter"
+     Pos 5 30
+     Size 1 4
+     Flags 0
+    }
+    ImageSetDefClass ListBox_normal_HeaderCenter {
+     Name "ListBox_normal_HeaderCenter"
+     Pos 5 28
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass ListBox_normal_HeaderLeftBottom {
+     Name "ListBox_normal_HeaderLeftBottom"
+     Pos 1 29
+     Size 4 1
+     Flags 0
+    }
+    ImageSetDefClass ListBox_normal_HeaderLeftCenter {
+     Name "ListBox_normal_HeaderLeftCenter"
+     Pos 1 28
+     Size 4 1
+     Flags 0
+    }
+    ImageSetDefClass ListBox_normal_HeaderLeftTop {
+     Name "ListBox_normal_HeaderLeftTop"
+     Pos 1 24
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass ListBox_normal_HeaderRightBottom {
+     Name "ListBox_normal_HeaderRightBottom"
+     Pos 12 29
+     Size 9 1
+     Flags 0
+    }
+    ImageSetDefClass ListBox_normal_HeaderRightCenter {
+     Name "ListBox_normal_HeaderRightCenter"
+     Pos 12 28
+     Size 9 1
+     Flags 0
+    }
+    ImageSetDefClass ListBox_normal_HeaderRightTop {
+     Name "ListBox_normal_HeaderRightTop"
+     Pos 12 24
+     Size 9 4
+     Flags 0
+    }
+    ImageSetDefClass ListBox_normal_HeaderTopCenter {
+     Name "ListBox_normal_HeaderTopCenter"
+     Pos 5 24
+     Size 1 4
+     Flags 0
+    }
+    ImageSetDefClass ListBox_normal_Highlight {
+     Name "ListBox_normal_Highlight"
+     Pos 5 28
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass ListBox_normal_LeftBottom {
+     Name "ListBox_normal_LeftBottom"
+     Pos 1 39
+     Size 4 9
+     Flags 0
+    }
+    ImageSetDefClass ListBox_normal_LeftCenter {
+     Name "ListBox_normal_LeftCenter"
+     Pos 1 37
+     Size 4 1
+     Flags 0
+    }
+    ImageSetDefClass ListBox_normal_LeftTop {
+     Name "ListBox_normal_LeftTop"
+     Pos 1 24
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass ListBox_normal_LeftTopWithTitle {
+     Name "ListBox_normal_LeftTopWithTitle"
+     Pos 1 30
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass ListBox_normal_RightBottom {
+     Name "ListBox_normal_RightBottom"
+     Pos 12 39
+     Size 9 9
+     Flags 0
+    }
+    ImageSetDefClass ListBox_normal_RightCenter {
+     Name "ListBox_normal_RightCenter"
+     Pos 12 37
+     Size 9 1
+     Flags 0
+    }
+    ImageSetDefClass ListBox_normal_RightTop {
+     Name "ListBox_normal_RightTop"
+     Pos 12 24
+     Size 9 4
+     Flags 0
+    }
+    ImageSetDefClass ListBox_normal_RightTopWithTitle {
+     Name "ListBox_normal_RightTopWithTitle"
+     Pos 12 30
+     Size 9 4
+     Flags 0
+    }
+    ImageSetDefClass ListBox_normal_ScrollBarBottom {
+     Name "ListBox_normal_ScrollBarBottom"
+     Pos 22 45
+     Size 6 3
+     Flags 0
+    }
+    ImageSetDefClass ListBox_normal_ScrollBarCenter {
+     Name "ListBox_normal_ScrollBarCenter"
+     Pos 22 44
+     Size 6 1
+     Flags 0
+    }
+    ImageSetDefClass ListBox_normal_ScrollBarTop {
+     Name "ListBox_normal_ScrollBarTop"
+     Pos 22 41
+     Size 6 3
+     Flags 0
+    }
+    ImageSetDefClass ListBox_normal_Separator {
+     Name "ListBox_normal_Separator"
+     Pos 5 30
+     Size 1 4
+     Flags 0
+    }
+    ImageSetDefClass ListBox_normal_TitleCenter {
+     Name "ListBox_normal_TitleCenter"
+     Pos 1 24
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass ListBox_normal_TitleCenterSeparator {
+     Name "ListBox_normal_TitleCenterSeparator"
+     Pos 1 24
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass ListBox_normal_TitleLeftCenter {
+     Name "ListBox_normal_TitleLeftCenter"
+     Pos 1 24
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass ListBox_normal_TitleRightCenter {
+     Name "ListBox_normal_TitleRightCenter"
+     Pos 1 24
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass ListBox_normal_TopCenter {
+     Name "ListBox_normal_TopCenter"
+     Pos 5 30
+     Size 1 4
+     Flags 0
+    }
+    ImageSetDefClass ListBox_normal_TopSeparator {
+     Name "ListBox_normal_TopSeparator"
+     Pos 5 30
+     Size 1 4
+     Flags 0
+    }
+   }
+  }
+  ImageSetGroupClass ListBox_disabled_ {
+   Name "ListBox_disabled_"
+   Images {
+    ImageSetDefClass ListBox_disabled_BottomCenter {
+     Name "ListBox_disabled_BottomCenter"
+     Pos 47 39
+     Size 1 9
+     Flags 0
+    }
+    ImageSetDefClass ListBox_disabled_BottomSeparator {
+     Name "ListBox_disabled_BottomSeparator"
+     Pos 47 30
+     Size 1 4
+     Flags 0
+    }
+    ImageSetDefClass ListBox_disabled_Center {
+     Name "ListBox_disabled_Center"
+     Pos 47 37
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass ListBox_disabled_HeaderBottomCenter {
+     Name "ListBox_disabled_HeaderBottomCenter"
+     Pos 47 30
+     Size 1 4
+     Flags 0
+    }
+    ImageSetDefClass ListBox_disabled_HeaderCenter {
+     Name "ListBox_disabled_HeaderCenter"
+     Pos 47 28
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass ListBox_disabled_HeaderLeftBottom {
+     Name "ListBox_disabled_HeaderLeftBottom"
+     Pos 43 29
+     Size 4 1
+     Flags 0
+    }
+    ImageSetDefClass ListBox_disabled_HeaderLeftCenter {
+     Name "ListBox_disabled_HeaderLeftCenter"
+     Pos 43 28
+     Size 4 1
+     Flags 0
+    }
+    ImageSetDefClass ListBox_disabled_HeaderLeftTop {
+     Name "ListBox_disabled_HeaderLeftTop"
+     Pos 43 24
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass ListBox_disabled_HeaderRightBottom {
+     Name "ListBox_disabled_HeaderRightBottom"
+     Pos 54 29
+     Size 9 1
+     Flags 0
+    }
+    ImageSetDefClass ListBox_disabled_HeaderRightCenter {
+     Name "ListBox_disabled_HeaderRightCenter"
+     Pos 54 28
+     Size 9 1
+     Flags 0
+    }
+    ImageSetDefClass ListBox_disabled_HeaderRightTop {
+     Name "ListBox_disabled_HeaderRightTop"
+     Pos 54 24
+     Size 9 4
+     Flags 0
+    }
+    ImageSetDefClass ListBox_disabled_HeaderTopCenter {
+     Name "ListBox_disabled_HeaderTopCenter"
+     Pos 47 24
+     Size 1 4
+     Flags 0
+    }
+    ImageSetDefClass ListBox_disabled_Highlight {
+     Name "ListBox_disabled_Highlight"
+     Pos 47 28
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass ListBox_disabled_LeftBottom {
+     Name "ListBox_disabled_LeftBottom"
+     Pos 43 39
+     Size 4 9
+     Flags 0
+    }
+    ImageSetDefClass ListBox_disabled_LeftCenter {
+     Name "ListBox_disabled_LeftCenter"
+     Pos 43 37
+     Size 4 1
+     Flags 0
+    }
+    ImageSetDefClass ListBox_disabled_LeftTop {
+     Name "ListBox_disabled_LeftTop"
+     Pos 43 24
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass ListBox_disabled_LeftTopWithTitle {
+     Name "ListBox_disabled_LeftTopWithTitle"
+     Pos 43 30
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass ListBox_disabled_RightBottom {
+     Name "ListBox_disabled_RightBottom"
+     Pos 54 39
+     Size 9 9
+     Flags 0
+    }
+    ImageSetDefClass ListBox_disabled_RightCenter {
+     Name "ListBox_disabled_RightCenter"
+     Pos 54 37
+     Size 9 1
+     Flags 0
+    }
+    ImageSetDefClass ListBox_disabled_RightTop {
+     Name "ListBox_disabled_RightTop"
+     Pos 54 24
+     Size 9 4
+     Flags 0
+    }
+    ImageSetDefClass ListBox_disabled_RightTopWithTitle {
+     Name "ListBox_disabled_RightTopWithTitle"
+     Pos 54 30
+     Size 9 4
+     Flags 0
+    }
+    ImageSetDefClass ListBox_disabled_ScrollBarBottom {
+     Name "ListBox_disabled_ScrollBarBottom"
+     Pos 64 45
+     Size 6 3
+     Flags 0
+    }
+    ImageSetDefClass ListBox_disabled_ScrollBarCenter {
+     Name "ListBox_disabled_ScrollBarCenter"
+     Pos 64 44
+     Size 6 1
+     Flags 0
+    }
+    ImageSetDefClass ListBox_disabled_ScrollBarTop {
+     Name "ListBox_disabled_ScrollBarTop"
+     Pos 64 41
+     Size 6 3
+     Flags 0
+    }
+    ImageSetDefClass ListBox_disabled_Separator {
+     Name "ListBox_disabled_Separator"
+     Pos 47 30
+     Size 1 4
+     Flags 0
+    }
+    ImageSetDefClass ListBox_disabled_TitleCenter {
+     Name "ListBox_disabled_TitleCenter"
+     Pos 43 24
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass ListBox_disabled_TitleCenterSeparator {
+     Name "ListBox_disabled_TitleCenterSeparator"
+     Pos 43 24
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass ListBox_disabled_TitleLeftCenter {
+     Name "ListBox_disabled_TitleLeftCenter"
+     Pos 43 24
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass ListBox_disabled_TitleRightCenter {
+     Name "ListBox_disabled_TitleRightCenter"
+     Pos 43 24
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass ListBox_disabled_TopCenter {
+     Name "ListBox_disabled_TopCenter"
+     Pos 47 30
+     Size 1 4
+     Flags 0
+    }
+    ImageSetDefClass ListBox_disabled_TopSeparator {
+     Name "ListBox_disabled_TopSeparator"
+     Pos 47 30
+     Size 1 4
+     Flags 0
+    }
+   }
+  }
+  ImageSetGroupClass Panel_normal_ {
+   Name "Panel_normal_"
+   Images {
+    ImageSetDefClass Panel_normal_LeftTop {
+     Name "Panel_normal_LeftTop"
+     Pos 1 72
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass Panel_normal_Left {
+     Name "Panel_normal_Left"
+     Pos 1 76
+     Size 4 1
+     Flags 0
+    }
+    ImageSetDefClass Panel_normal_LeftBottom {
+     Name "Panel_normal_LeftBottom"
+     Pos 1 88
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass Panel_normal_Top {
+     Name "Panel_normal_Top"
+     Pos 16 72
+     Size 1 4
+     Flags 0
+    }
+    ImageSetDefClass Panel_normal_Center {
+     Name "Panel_normal_Center"
+     Pos 5 76
+     Size 12 12
+     Flags 0
+    }
+    ImageSetDefClass Panel_normal_Bottom {
+     Name "Panel_normal_Bottom"
+     Pos 5 88
+     Size 1 4
+     Flags 0
+    }
+    ImageSetDefClass Panel_normal_RightTop {
+     Name "Panel_normal_RightTop"
+     Pos 17 72
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass Panel_normal_Right {
+     Name "Panel_normal_Right"
+     Pos 17 87
+     Size 4 1
+     Flags 0
+    }
+    ImageSetDefClass Panel_normal_RightBottom {
+     Name "Panel_normal_RightBottom"
+     Pos 17 88
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass Panel_normal_ArrowLeft {
+     Name "Panel_normal_ArrowLeft"
+     Pos 43 72
+     Size 10 20
+     Flags 0
+    }
+    ImageSetDefClass Panel_normal_ArrowRight {
+     Name "Panel_normal_ArrowRight"
+     Pos 53 72
+     Size 10 20
+     Flags 0
+    }
+   }
+  }
+  ImageSetGroupClass Panel_disabled_ {
+   Name "Panel_disabled_"
+   Images {
+    ImageSetDefClass Panel_disabled_LeftTop {
+     Name "Panel_disabled_LeftTop"
+     Pos 22 72
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass Panel_disabled_Left {
+     Name "Panel_disabled_Left"
+     Pos 22 76
+     Size 4 1
+     Flags 0
+    }
+    ImageSetDefClass Panel_disabled_LeftBottom {
+     Name "Panel_disabled_LeftBottom"
+     Pos 22 88
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass Panel_disabled_Top {
+     Name "Panel_disabled_Top"
+     Pos 37 72
+     Size 1 4
+     Flags 0
+    }
+    ImageSetDefClass Panel_disabled_Center {
+     Name "Panel_disabled_Center"
+     Pos 26 76
+     Size 12 12
+     Flags 0
+    }
+    ImageSetDefClass Panel_disabled_Bottom {
+     Name "Panel_disabled_Bottom"
+     Pos 26 88
+     Size 1 4
+     Flags 0
+    }
+    ImageSetDefClass Panel_disabled_RightTop {
+     Name "Panel_disabled_RightTop"
+     Pos 38 72
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass Panel_disabled_Right {
+     Name "Panel_disabled_Right"
+     Pos 38 87
+     Size 4 1
+     Flags 0
+    }
+    ImageSetDefClass Panel_disabled_RightBottom {
+     Name "Panel_disabled_RightBottom"
+     Pos 38 88
+     Size 4 4
+     Flags 0
+    }
+    ImageSetDefClass Panel_disabled_ArrowLeft {
+     Name "Panel_disabled_ArrowLeft"
+     Pos 64 72
+     Size 10 20
+     Flags 0
+    }
+    ImageSetDefClass Panel_disabled_ArrowRight {
+     Name "Panel_disabled_ArrowRight"
+     Pos 74 72
+     Size 10 20
+     Flags 0
+    }
+   }
+  }
+  ImageSetGroupClass ProgressBar_normal_ {
+   Name "ProgressBar_normal_"
+   Images {
+    ImageSetDefClass ProgressBar_normal_LeftTop {
+     Name "ProgressBar_normal_LeftTop"
+     Pos 1 2
+     Size 5 5
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_normal_Left {
+     Name "ProgressBar_normal_Left"
+     Pos 1 16
+     Size 5 1
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_normal_LeftBottom {
+     Name "ProgressBar_normal_LeftBottom"
+     Pos 1 17
+     Size 5 5
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_normal_Top {
+     Name "ProgressBar_normal_Top"
+     Pos 6 2
+     Size 1 5
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_normal_Center {
+     Name "ProgressBar_normal_Center"
+     Pos 6 7
+     Size 10 10
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_normal_Bottom {
+     Name "ProgressBar_normal_Bottom"
+     Pos 6 17
+     Size 1 5
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_normal_RightTop {
+     Name "ProgressBar_normal_RightTop"
+     Pos 16 2
+     Size 5 5
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_normal_Right {
+     Name "ProgressBar_normal_Right"
+     Pos 16 16
+     Size 5 1
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_normal_RightBottom {
+     Name "ProgressBar_normal_RightBottom"
+     Pos 16 17
+     Size 5 5
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_normal_BarLeftTop {
+     Name "ProgressBar_normal_BarLeftTop"
+     Pos 22 2
+     Size 5 5
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_normal_BarLeft {
+     Name "ProgressBar_normal_BarLeft"
+     Pos 22 16
+     Size 5 1
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_normal_BarLeftBottom {
+     Name "ProgressBar_normal_BarLeftBottom"
+     Pos 22 17
+     Size 5 5
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_normal_BarTop {
+     Name "ProgressBar_normal_BarTop"
+     Pos 27 2
+     Size 1 5
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_normal_BarCenter {
+     Name "ProgressBar_normal_BarCenter"
+     Pos 27 7
+     Size 10 10
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_normal_BarBottom {
+     Name "ProgressBar_normal_BarBottom"
+     Pos 27 17
+     Size 1 5
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_normal_BarRightTop {
+     Name "ProgressBar_normal_BarRightTop"
+     Pos 37 2
+     Size 5 5
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_normal_BarRight {
+     Name "ProgressBar_normal_BarRight"
+     Pos 37 16
+     Size 5 1
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_normal_BarRightBottom {
+     Name "ProgressBar_normal_BarRightBottom"
+     Pos 37 17
+     Size 5 5
+     Flags 0
+    }
+   }
+  }
+  ImageSetGroupClass ProgressBar_disabled_ {
+   Name "ProgressBar_disabled_"
+   Images {
+    ImageSetDefClass ProgressBar_disabled_LeftTop {
+     Name "ProgressBar_disabled_LeftTop"
+     Pos 43 2
+     Size 5 5
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_disabled_Left {
+     Name "ProgressBar_disabled_Left"
+     Pos 43 16
+     Size 5 1
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_disabled_LeftBottom {
+     Name "ProgressBar_disabled_LeftBottom"
+     Pos 43 17
+     Size 5 5
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_disabled_Top {
+     Name "ProgressBar_disabled_Top"
+     Pos 48 2
+     Size 1 5
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_disabled_Center {
+     Name "ProgressBar_disabled_Center"
+     Pos 48 7
+     Size 10 10
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_disabled_Bottom {
+     Name "ProgressBar_disabled_Bottom"
+     Pos 48 17
+     Size 1 5
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_disabled_RightTop {
+     Name "ProgressBar_disabled_RightTop"
+     Pos 58 2
+     Size 5 5
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_disabled_Right {
+     Name "ProgressBar_disabled_Right"
+     Pos 58 16
+     Size 5 1
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_disabled_RightBottom {
+     Name "ProgressBar_disabled_RightBottom"
+     Pos 58 17
+     Size 5 5
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_disabled_BarLeftTop {
+     Name "ProgressBar_disabled_BarLeftTop"
+     Pos 64 2
+     Size 5 5
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_disabled_BarLeft {
+     Name "ProgressBar_disabled_BarLeft"
+     Pos 64 16
+     Size 5 1
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_disabled_BarLeftBottom {
+     Name "ProgressBar_disabled_BarLeftBottom"
+     Pos 64 17
+     Size 5 5
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_disabled_BarTop {
+     Name "ProgressBar_disabled_BarTop"
+     Pos 69 2
+     Size 1 5
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_disabled_BarCenter {
+     Name "ProgressBar_disabled_BarCenter"
+     Pos 69 7
+     Size 10 10
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_disabled_BarBottom {
+     Name "ProgressBar_disabled_BarBottom"
+     Pos 69 17
+     Size 1 5
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_disabled_BarRightTop {
+     Name "ProgressBar_disabled_BarRightTop"
+     Pos 79 2
+     Size 5 5
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_disabled_BarRight {
+     Name "ProgressBar_disabled_BarRight"
+     Pos 79 16
+     Size 5 1
+     Flags 0
+    }
+    ImageSetDefClass ProgressBar_disabled_BarRightBottom {
+     Name "ProgressBar_disabled_BarRightBottom"
+     Pos 79 17
+     Size 5 5
+     Flags 0
+    }
+   }
+  }
+  ImageSetGroupClass Slider_normal_ {
+   Name "Slider_normal_"
+   Images {
+    ImageSetDefClass Slider_normal_LeftTop {
+     Name "Slider_normal_LeftTop"
+     Pos 1 116
+     Size 5 14
+     Flags 0
+    }
+    ImageSetDefClass Slider_normal_Left {
+     Name "Slider_normal_Left"
+     Pos 1 130
+     Size 5 1
+     Flags 0
+    }
+    ImageSetDefClass Slider_normal_LeftBottom {
+     Name "Slider_normal_LeftBottom"
+     Pos 1 131
+     Size 5 5
+     Flags 0
+    }
+    ImageSetDefClass Slider_normal_Top {
+     Name "Slider_normal_Top"
+     Pos 6 116
+     Size 1 14
+     Flags 0
+    }
+    ImageSetDefClass Slider_normal_Center {
+     Name "Slider_normal_Center"
+     Pos 6 130
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Slider_normal_Bottom {
+     Name "Slider_normal_Bottom"
+     Pos 6 131
+     Size 1 5
+     Flags 0
+    }
+    ImageSetDefClass Slider_normal_RightTop {
+     Name "Slider_normal_RightTop"
+     Pos 7 116
+     Size 14 14
+     Flags 0
+    }
+    ImageSetDefClass Slider_normal_Right {
+     Name "Slider_normal_Right"
+     Pos 7 130
+     Size 14 1
+     Flags 0
+    }
+    ImageSetDefClass Slider_normal_RightBottom {
+     Name "Slider_normal_RightBottom"
+     Pos 7 131
+     Size 14 5
+     Flags 0
+    }
+    ImageSetDefClass Slider_normal_BarLeftTop {
+     Name "Slider_normal_BarLeftTop"
+     Pos 22 116
+     Size 5 14
+     Flags 0
+    }
+    ImageSetDefClass Slider_normal_BarLeft {
+     Name "Slider_normal_BarLeft"
+     Pos 22 130
+     Size 5 1
+     Flags 0
+    }
+    ImageSetDefClass Slider_normal_BarLeftBottom {
+     Name "Slider_normal_BarLeftBottom"
+     Pos 22 131
+     Size 5 5
+     Flags 0
+    }
+    ImageSetDefClass Slider_normal_BarTop {
+     Name "Slider_normal_BarTop"
+     Pos 27 116
+     Size 1 14
+     Flags 0
+    }
+    ImageSetDefClass Slider_normal_BarCenter {
+     Name "Slider_normal_BarCenter"
+     Pos 27 130
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Slider_normal_BarBottom {
+     Name "Slider_normal_BarBottom"
+     Pos 27 131
+     Size 1 5
+     Flags 0
+    }
+    ImageSetDefClass Slider_normal_BarRightTop {
+     Name "Slider_normal_BarRightTop"
+     Pos 28 116
+     Size 14 14
+     Flags 0
+    }
+    ImageSetDefClass Slider_normal_BarRight {
+     Name "Slider_normal_BarRight"
+     Pos 28 130
+     Size 14 1
+     Flags 0
+    }
+    ImageSetDefClass Slider_normal_BarRightBottom {
+     Name "Slider_normal_BarRightBottom"
+     Pos 28 131
+     Size 14 5
+     Flags 0
+    }
+   }
+  }
+  ImageSetGroupClass Slider_disabled_ {
+   Name "Slider_disabled_"
+   Images {
+    ImageSetDefClass Slider_disabled_LeftTop {
+     Name "Slider_disabled_LeftTop"
+     Pos 43 116
+     Size 5 14
+     Flags 0
+    }
+    ImageSetDefClass Slider_disabled_Left {
+     Name "Slider_disabled_Left"
+     Pos 43 130
+     Size 5 1
+     Flags 0
+    }
+    ImageSetDefClass Slider_disabled_LeftBottom {
+     Name "Slider_disabled_LeftBottom"
+     Pos 43 131
+     Size 5 5
+     Flags 0
+    }
+    ImageSetDefClass Slider_disabled_Top {
+     Name "Slider_disabled_Top"
+     Pos 48 116
+     Size 1 14
+     Flags 0
+    }
+    ImageSetDefClass Slider_disabled_Center {
+     Name "Slider_disabled_Center"
+     Pos 48 130
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Slider_disabled_Bottom {
+     Name "Slider_disabled_Bottom"
+     Pos 48 131
+     Size 1 5
+     Flags 0
+    }
+    ImageSetDefClass Slider_disabled_RightTop {
+     Name "Slider_disabled_RightTop"
+     Pos 49 116
+     Size 14 14
+     Flags 0
+    }
+    ImageSetDefClass Slider_disabled_Right {
+     Name "Slider_disabled_Right"
+     Pos 49 130
+     Size 14 1
+     Flags 0
+    }
+    ImageSetDefClass Slider_disabled_RightBottom {
+     Name "Slider_disabled_RightBottom"
+     Pos 49 131
+     Size 14 5
+     Flags 0
+    }
+    ImageSetDefClass Slider_disabled_BarLeftTop {
+     Name "Slider_disabled_BarLeftTop"
+     Pos 64 116
+     Size 5 14
+     Flags 0
+    }
+    ImageSetDefClass Slider_disabled_BarLeft {
+     Name "Slider_disabled_BarLeft"
+     Pos 64 130
+     Size 5 1
+     Flags 0
+    }
+    ImageSetDefClass Slider_disabled_BarLeftBottom {
+     Name "Slider_disabled_BarLeftBottom"
+     Pos 64 131
+     Size 5 5
+     Flags 0
+    }
+    ImageSetDefClass Slider_disabled_BarTop {
+     Name "Slider_disabled_BarTop"
+     Pos 69 116
+     Size 1 14
+     Flags 0
+    }
+    ImageSetDefClass Slider_disabled_BarCenter {
+     Name "Slider_disabled_BarCenter"
+     Pos 69 130
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Slider_disabled_BarBottom {
+     Name "Slider_disabled_BarBottom"
+     Pos 69 131
+     Size 1 5
+     Flags 0
+    }
+    ImageSetDefClass Slider_disabled_BarRightTop {
+     Name "Slider_disabled_BarRightTop"
+     Pos 70 116
+     Size 14 14
+     Flags 0
+    }
+    ImageSetDefClass Slider_disabled_BarRight {
+     Name "Slider_disabled_BarRight"
+     Pos 70 130
+     Size 14 1
+     Flags 0
+    }
+    ImageSetDefClass Slider_disabled_BarRightBottom {
+     Name "Slider_disabled_BarRightBottom"
+     Pos 70 131
+     Size 14 5
+     Flags 0
+    }
+   }
+  }
+  ImageSetGroupClass Button_normal_ {
+   Name "Button_normal_"
+   Images {
+    ImageSetDefClass Button_normal_LeftTop {
+     Name "Button_normal_LeftTop"
+     Pos 1 94
+     Size 6 6
+     Flags 0
+    }
+    ImageSetDefClass Button_normal_Left {
+     Name "Button_normal_Left"
+     Pos 1 100
+     Size 6 1
+     Flags 0
+    }
+    ImageSetDefClass Button_normal_LeftBottom {
+     Name "Button_normal_LeftBottom"
+     Pos 1 108
+     Size 6 6
+     Flags 0
+    }
+    ImageSetDefClass Button_normal_Top {
+     Name "Button_normal_Top"
+     Pos 14 94
+     Size 1 6
+     Flags 0
+    }
+    ImageSetDefClass Button_normal_Center {
+     Name "Button_normal_Center"
+     Pos 7 100
+     Size 8 8
+     Flags 0
+    }
+    ImageSetDefClass Button_normal_Bottom {
+     Name "Button_normal_Bottom"
+     Pos 7 108
+     Size 1 6
+     Flags 0
+    }
+    ImageSetDefClass Button_normal_RightTop {
+     Name "Button_normal_RightTop"
+     Pos 15 94
+     Size 6 6
+     Flags 0
+    }
+    ImageSetDefClass Button_normal_Right {
+     Name "Button_normal_Right"
+     Pos 15 107
+     Size 6 1
+     Flags 0
+    }
+    ImageSetDefClass Button_normal_RightBottom {
+     Name "Button_normal_RightBottom"
+     Pos 15 108
+     Size 6 6
+     Flags 0
+    }
+   }
+  }
+  ImageSetGroupClass Button_hover_ {
+   Name "Button_hover_"
+   Images {
+    ImageSetDefClass Button_hover_LeftTop {
+     Name "Button_hover_LeftTop"
+     Pos 22 94
+     Size 6 6
+     Flags 0
+    }
+    ImageSetDefClass Button_hover_Left {
+     Name "Button_hover_Left"
+     Pos 22 100
+     Size 6 1
+     Flags 0
+    }
+    ImageSetDefClass Button_hover_LeftBottom {
+     Name "Button_hover_LeftBottom"
+     Pos 22 108
+     Size 6 6
+     Flags 0
+    }
+    ImageSetDefClass Button_hover_Top {
+     Name "Button_hover_Top"
+     Pos 35 94
+     Size 1 6
+     Flags 0
+    }
+    ImageSetDefClass Button_hover_Center {
+     Name "Button_hover_Center"
+     Pos 28 100
+     Size 8 8
+     Flags 0
+    }
+    ImageSetDefClass Button_hover_Bottom {
+     Name "Button_hover_Bottom"
+     Pos 28 108
+     Size 1 6
+     Flags 0
+    }
+    ImageSetDefClass Button_hover_RightTop {
+     Name "Button_hover_RightTop"
+     Pos 36 94
+     Size 6 6
+     Flags 0
+    }
+    ImageSetDefClass Button_hover_Right {
+     Name "Button_hover_Right"
+     Pos 36 107
+     Size 6 1
+     Flags 0
+    }
+    ImageSetDefClass Button_hover_RightBottom {
+     Name "Button_hover_RightBottom"
+     Pos 36 108
+     Size 6 6
+     Flags 0
+    }
+   }
+  }
+  ImageSetGroupClass Button_pushed_ {
+   Name "Button_pushed_"
+   Images {
+    ImageSetDefClass Button_pushed_LeftTop {
+     Name "Button_pushed_LeftTop"
+     Pos 43 94
+     Size 6 6
+     Flags 0
+    }
+    ImageSetDefClass Button_pushed_Left {
+     Name "Button_pushed_Left"
+     Pos 43 100
+     Size 6 1
+     Flags 0
+    }
+    ImageSetDefClass Button_pushed_LeftBottom {
+     Name "Button_pushed_LeftBottom"
+     Pos 43 108
+     Size 6 6
+     Flags 0
+    }
+    ImageSetDefClass Button_pushed_Top {
+     Name "Button_pushed_Top"
+     Pos 56 94
+     Size 1 6
+     Flags 0
+    }
+    ImageSetDefClass Button_pushed_Center {
+     Name "Button_pushed_Center"
+     Pos 49 100
+     Size 8 8
+     Flags 0
+    }
+    ImageSetDefClass Button_pushed_Bottom {
+     Name "Button_pushed_Bottom"
+     Pos 49 108
+     Size 1 6
+     Flags 0
+    }
+    ImageSetDefClass Button_pushed_RightTop {
+     Name "Button_pushed_RightTop"
+     Pos 57 94
+     Size 6 6
+     Flags 0
+    }
+    ImageSetDefClass Button_pushed_Right {
+     Name "Button_pushed_Right"
+     Pos 57 107
+     Size 6 1
+     Flags 0
+    }
+    ImageSetDefClass Button_pushed_RightBottom {
+     Name "Button_pushed_RightBottom"
+     Pos 57 108
+     Size 6 6
+     Flags 0
+    }
+   }
+  }
+  ImageSetGroupClass Button_disabled_ {
+   Name "Button_disabled_"
+   Images {
+    ImageSetDefClass Button_disabled_LeftTop {
+     Name "Button_disabled_LeftTop"
+     Pos 64 94
+     Size 6 6
+     Flags 0
+    }
+    ImageSetDefClass Button_disabled_Left {
+     Name "Button_disabled_Left"
+     Pos 64 100
+     Size 6 1
+     Flags 0
+    }
+    ImageSetDefClass Button_disabled_LeftBottom {
+     Name "Button_disabled_LeftBottom"
+     Pos 64 108
+     Size 6 6
+     Flags 0
+    }
+    ImageSetDefClass Button_disabled_Top {
+     Name "Button_disabled_Top"
+     Pos 77 94
+     Size 1 6
+     Flags 0
+    }
+    ImageSetDefClass Button_disabled_Center {
+     Name "Button_disabled_Center"
+     Pos 70 100
+     Size 8 8
+     Flags 0
+    }
+    ImageSetDefClass Button_disabled_Bottom {
+     Name "Button_disabled_Bottom"
+     Pos 70 108
+     Size 1 6
+     Flags 0
+    }
+    ImageSetDefClass Button_disabled_RightTop {
+     Name "Button_disabled_RightTop"
+     Pos 78 94
+     Size 6 6
+     Flags 0
+    }
+    ImageSetDefClass Button_disabled_Right {
+     Name "Button_disabled_Right"
+     Pos 78 107
+     Size 6 1
+     Flags 0
+    }
+    ImageSetDefClass Button_disabled_RightBottom {
+     Name "Button_disabled_RightBottom"
+     Pos 78 108
+     Size 6 6
+     Flags 0
+    }
+   }
+  }
+  ImageSetGroupClass Checkbox_ {
+   Name "Checkbox_"
+   Images {
+    ImageSetDefClass Checkbox_Normal {
+     Name "Checkbox_Normal"
+     Pos 1 50
+     Size 20 20
+     Flags 0
+    }
+    ImageSetDefClass Checkbox_Mark {
+     Name "Checkbox_Mark"
+     Pos 22 50
+     Size 20 20
+     Flags 0
+    }
+    ImageSetDefClass Checkbox_Highlight {
+     Name "Checkbox_Highlight"
+     Pos 1 50
+     Size 20 20
+     Flags 0
+    }
+    ImageSetDefClass Checkbox_Disabled {
+     Name "Checkbox_Disabled"
+     Pos 43 50
+     Size 20 20
+     Flags 0
+    }
+   }
+  }
+  ImageSetGroupClass Pixel_ {
+   Name "Pixel_"
+   Images {
+    ImageSetDefClass Pixel_100 {
+     Name "Pixel_100"
+     Pos 3 138
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Pixel_90 {
+     Name "Pixel_90"
+     Pos 4 138
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Pixel_80 {
+     Name "Pixel_80"
+     Pos 5 138
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Pixel_70 {
+     Name "Pixel_70"
+     Pos 6 138
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Pixel_60 {
+     Name "Pixel_60"
+     Pos 7 138
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Pixel_50 {
+     Name "Pixel_50"
+     Pos 8 138
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Pixel_40 {
+     Name "Pixel_40"
+     Pos 9 138
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Pixel_30 {
+     Name "Pixel_30"
+     Pos 10 138
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Pixel_20 {
+     Name "Pixel_20"
+     Pos 11 138
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Pixel_10 {
+     Name "Pixel_10"
+     Pos 12 138
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Pixel_0 {
+     Name "Pixel_0"
+     Pos 13 138
+     Size 1 1
+     Flags 0
+    }
+   }
+  }
+  ImageSetGroupClass Pixel_Alpha_ {
+   Name "Pixel_Alpha_"
+   Images {
+    ImageSetDefClass Pixel_Alpha_100 {
+     Name "Pixel_Alpha_100"
+     Pos 3 139
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Pixel_Alpha_90 {
+     Name "Pixel_Alpha_90"
+     Pos 4 139
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Pixel_Alpha_80 {
+     Name "Pixel_Alpha_80"
+     Pos 5 139
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Pixel_Alpha_70 {
+     Name "Pixel_Alpha_70"
+     Pos 6 139
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Pixel_Alpha_60 {
+     Name "Pixel_Alpha_60"
+     Pos 7 139
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Pixel_Alpha_50 {
+     Name "Pixel_Alpha_50"
+     Pos 8 139
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Pixel_Alpha_40 {
+     Name "Pixel_Alpha_40"
+     Pos 9 139
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Pixel_Alpha_30 {
+     Name "Pixel_Alpha_30"
+     Pos 10 139
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Pixel_Alpha_20 {
+     Name "Pixel_Alpha_20"
+     Pos 11 139
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Pixel_Alpha_10 {
+     Name "Pixel_Alpha_10"
+     Pos 12 139
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Pixel_Alpha_0 {
+     Name "Pixel_Alpha_0"
+     Pos 13 139
+     Size 1 1
+     Flags 0
+    }
+   }
+  }
+  ImageSetGroupClass Pixel2_Alpha_ {
+   Name "Pixel2_Alpha_"
+   Images {
+    ImageSetDefClass Pixel2_Alpha_100 {
+     Name "Pixel2_Alpha_100"
+     Pos 3 140
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Pixel2_Alpha_90 {
+     Name "Pixel2_Alpha_90"
+     Pos 4 140
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Pixel2_Alpha_80 {
+     Name "Pixel2_Alpha_80"
+     Pos 5 140
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Pixel2_Alpha_70 {
+     Name "Pixel2_Alpha_70"
+     Pos 6 140
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Pixel2_Alpha_60 {
+     Name "Pixel2_Alpha_60"
+     Pos 7 140
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Pixel2_Alpha_50 {
+     Name "Pixel2_Alpha_50"
+     Pos 8 140
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Pixel2_Alpha_40 {
+     Name "Pixel2_Alpha_40"
+     Pos 9 140
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Pixel2_Alpha_30 {
+     Name "Pixel2_Alpha_30"
+     Pos 10 140
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Pixel2_Alpha_20 {
+     Name "Pixel2_Alpha_20"
+     Pos 11 140
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Pixel2_Alpha_10 {
+     Name "Pixel2_Alpha_10"
+     Pos 12 140
+     Size 1 1
+     Flags 0
+    }
+    ImageSetDefClass Pixel2_Alpha_0 {
+     Name "Pixel2_Alpha_0"
+     Pos 13 140
+     Size 1 1
+     Flags 0
+    }
+   }
+  }
+  ImageSetGroupClass Panel_Outlines {
+   Name "Panel_Outlines"
+   Images {
+    ImageSetDefClass Panel_Outline_2 {
+     Name "Panel_Outline_2"
+     Pos 27 129
+     Size 2 2
+     Flags 0
+    }
+    ImageSetDefClass Panel_Outline_4 {
+     Name "Panel_Outline_4"
+     Pos 27 127
+     Size 4 4
+     Flags 0
+    }
+   }
+  }
+ }
+}

@@ -5,4 +5,29 @@ GameProject {
  Dependencies {
   "58D0FB3206B6F859"
  }
+ Configurations {
+  GameProjectConfig PC {
+   WidgetManagerSettings WidgetManagerSettings "{AC4BE58770485E02}" {
+    StringTables {
+     StringTableDefinition "{59728273C78F3EE2}" {
+      StringTableSource "{91E0F6253032266F}Language/localization_Overthrow.st"
+      Languages {
+       LanguageDefinition "{59728273B5E77218}" {
+        Code "en_us"
+        StringTableRuntime "{DA665909AFF44C34}Language/localization_Overthrow.en-us.conf"
+       }
+      }
+     }
+    }
+   }
+  }
+  GameProjectConfig XBOX_ONE {
+  }
+  GameProjectConfig XBOX_SERIES {
+  }
+  GameProjectConfig PS4 {
+  }
+  GameProjectConfig HEADLESS {
+  }
+ }
 }

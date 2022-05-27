@@ -1,0 +1,94 @@
+WSWidget {
+ Name "PanelWidget"
+ Styles {
+  WSStyle {
+   Name "overthrow_dark"
+   Font "{3E7733BAC8C831F6}UI/Fonts/RobotoCondensed/RobotoCondensed_Regular.fnt"
+   ImageSet "{5847E5248BD69FA0}UI/Imagesets/overthrow_dark.imageset"
+   States {
+    WSState {
+     Name "Disabled"
+     Items {
+      WSItem {
+       Name "Bottom"
+       Image "ProgressBar_disabled_Bottom"
+      }
+      WSItem {
+       Name "Center"
+       Image "ProgressBar_disabled_Center"
+      }
+      WSItem {
+       Name "Left"
+       Image "ProgressBar_disabled_Left"
+      }
+      WSItem {
+       Name "LeftBottom"
+       Image "ProgressBar_disabled_LeftBottom"
+      }
+      WSItem {
+       Name "LeftTop"
+       Image "ProgressBar_disabled_LeftTop"
+      }
+      WSItem {
+       Name "Right"
+       Image "ProgressBar_disabled_Right"
+      }
+      WSItem {
+       Name "RightBottom"
+       Image "ProgressBar_disabled_RightBottom"
+      }
+      WSItem {
+       Name "RightTop"
+       Image "ProgressBar_disabled_RightTop"
+      }
+      WSItem {
+       Name "Top"
+       Image "ProgressBar_disabled_Top"
+      }
+     }
+    }
+    WSState {
+     Name "Normal"
+     Items {
+      WSItem {
+       Name "Bottom"
+       Image "ProgressBar_normal_Bottom"
+      }
+      WSItem {
+       Name "Center"
+       Image "ProgressBar_normal_Center"
+      }
+      WSItem {
+       Name "Left"
+       Image "ProgressBar_normal_Left"
+      }
+      WSItem {
+       Name "LeftBottom"
+       Image "ProgressBar_normal_LeftBottom"
+      }
+      WSItem {
+       Name "LeftTop"
+       Image "ProgressBar_normal_LeftTop"
+      }
+      WSItem {
+       Name "Right"
+       Image "ProgressBar_normal_Right"
+      }
+      WSItem {
+       Name "RightBottom"
+       Image "ProgressBar_normal_RightBottom"
+      }
+      WSItem {
+       Name "RightTop"
+       Image "ProgressBar_normal_RightTop"
+      }
+      WSItem {
+       Name "Top"
+       Image "ProgressBar_normal_Top"
+      }
+     }
+    }
+   }
+  }
+ }
+}

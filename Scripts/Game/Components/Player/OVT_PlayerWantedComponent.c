@@ -1,4 +1,4 @@
-[ComponentEditorProps(category: "Overthrow/Components", description: "")]
+[ComponentEditorProps(category: "Overthrow/Components/Player", description: "")]
 class OVT_PlayerWantedComponentClass: OVT_ComponentClass
 {}
 
@@ -30,6 +30,18 @@ class OVT_PlayerWantedComponent: OVT_Component
 	bool IsSeen()
 	{
 		return m_bIsSeen;
+	}
+	
+	override void OnPostInit(IEntity owner)
+	{
+		super.OnPostInit(owner);
+		
+		m_iWantedTimer = WANTED_TIMEOUT;
+		
+		m_Faction = FactionAffiliationComponent.Cast(owner.FindComponent(FactionAffiliationComponent));
+		m_Weapon = BaseWeaponManagerComponent.Cast(owner.FindComponent(BaseWeaponManagerComponent));
+		
+		GetGame().GetCallqueue().CallLater(CheckUpdate, WANTED_SYSTEM_FREQUENCY, true, owner);		
 	}
 	
 	void CheckUpdate()
@@ -154,19 +166,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		}
 				
 		return false;		
-	}
-	
-	override void OnPostInit(IEntity owner)
-	{
-		super.OnPostInit(owner);
-		
-		m_iWantedTimer = WANTED_TIMEOUT;
-		
-		m_Faction = FactionAffiliationComponent.Cast(owner.FindComponent(FactionAffiliationComponent));
-		m_Weapon = BaseWeaponManagerComponent.Cast(owner.FindComponent(BaseWeaponManagerComponent));
-		
-		GetGame().GetCallqueue().CallLater(CheckUpdate, WANTED_SYSTEM_FREQUENCY, true, owner);		
-	}
+	}	
 	
 	override void OnDelete(IEntity owner)
 	{
