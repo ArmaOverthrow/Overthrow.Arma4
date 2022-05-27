@@ -22,7 +22,7 @@ Updates will be pushed to github often (sometimes multiple times a day).
 1. "Watch" this repository in the top right to get email notifications when updates are made
 1. Before updating Overthrow, exit game mode in World Editor
 1. In Github Desktop, make sure "Current Repository" top left is this one
-1. Click "Fetch Origin"
+1. Click "Fetch Origin" and then "Pull Remote"
 
 ## Playing
 The key to open the Overthrow menu is not "Y", its now "U" (due to key binding conflicts in Arma Reforger). But there really isnt much to do just yet. This section will update with more info as features are implmented and the wiki will start to be filled out.
