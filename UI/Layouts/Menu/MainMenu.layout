@@ -24,7 +24,7 @@ FrameWidgetClass {
    {
     BlurWidgetClass "{5976AE11C10B7F60}" : "{352322057FD78AE1}UI/layouts/WidgetLibrary/BaseElements/WLib_Blur.layout" {
      Name "BackgroundBlur"
-     Slot FrameWidgetSlot {
+     Slot FrameWidgetSlot "{5982E26F6316DE4F}" {
       Anchor 0 0 1 1
       PositionX 0
       OffsetLeft 0
@@ -42,12 +42,12 @@ FrameWidgetClass {
      Name "VerticalLayout0"
      Slot FrameWidgetSlot "{59728267ECC2178F}" {
       Anchor 0 0 1 1
-      PositionX 0
-      OffsetLeft 0
+      PositionX 1
+      OffsetLeft 1
       PositionY 0
       OffsetTop 0
-      SizeX 200
-      OffsetRight 0
+      SizeX 0
+      OffsetRight -1
       SizeY 0
       OffsetBottom 0
      }
