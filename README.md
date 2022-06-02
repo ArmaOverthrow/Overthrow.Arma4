@@ -29,4 +29,4 @@ Updates will be pushed to github often (sometimes multiple times a day).
 The key to open the Overthrow menu is not "Y", its now "U" (due to key binding conflicts in Arma Reforger). But there really isnt much to do just yet. This section will update with more info as features are implemented and the wiki will start to be filled out.
 
 ## Contributing
-Just [join our Discord](https://discord.gg/j6CvmFfZ95) and participate in the `#overthrow-arma4` channel. Report any bugs you find or join the discussion about features or suggest your own. If you are comfortable with github and Enfusion development then please do make pull requests or ask to help out.
+Just [join our Discord](https://discord.gg/j6CvmFfZ95) and participate in the `#overthrow-reforger` channel. Report any bugs you find or join the discussion about features or suggest your own. If you are comfortable with github and Enfusion development then please do make pull requests or ask to help out.
