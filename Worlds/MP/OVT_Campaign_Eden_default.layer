@@ -21,6 +21,9 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode {
    m_pWaitWaypointPrefab "{531EC45063C1F57B}Prefabs/AI/Waypoints/AIWaypoint_Wait.et"
    m_pCycleWaypointPrefab "{35BD6541CBB8AC08}Prefabs/AI/Waypoints/AIWaypoint_Cycle.et"
    m_pSearchAndDestroyWaypointPrefab "{B3E7B8DC2BAB8ACC}Prefabs/AI/Waypoints/AIWaypoint_SearchAndDestroy.et"
+   m_pGetInWaypointPrefab "{712F4795CF8B91C7}Prefabs/AI/Waypoints/AIWaypoint_GetIn.et"
+   m_pSmartActionWaypointPrefab "{04A06A6742FB0AF8}Prefabs/AI/Waypoints/AIWaypoint_UserAction.et"
+   m_pMapMarkerPrefab "{2911B855ECA72354}Prefabs/OVT_MapMarker.et"
   }
   OVT_RealEstateManagerComponent "{59724C983E7EF811}" {
   }
@@ -29,7 +32,6 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode {
    m_iForcedLoadout 0
   }
   OVT_RespawnSystemComponent "{59724C8C935D8E47}" {
-   m_bSpawnHere 1
   }
   OVT_TownManagerComponent "{59724C983BF56C3B}" {
   }
@@ -76,8 +78,8 @@ SCR_FactionManager FactionManager_Overthrow : "{4A188E44289B9A50}Prefabs/MP/Mana
    m_aGroupSpecialPrefabSlots {
     "{D807C7047E818488}Prefabs/Groups/BLUFOR/Group_US_SniperTeam.et"
    }
-   m_aSniperPrefab "{0F6689B491641155}Prefabs/Characters/Factions/BLUFOR/US_Army/Character_US_Sniper.et"
-   m_aSpotterPrefab "{1CA3D30464EE4674}Prefabs/Characters/Factions/BLUFOR/US_Army/Character_US_Spotter.et"
+   m_aGroupSniperPrefab "{CA824A43ABA2DA97}Prefabs/Groups/Group_US_Sniper.et"
+   m_aFlagPolePrefab "{E55FC02F8C1518A2}Prefabs/Structures/Military/Flags/FlagPole_02_V1_US.et"
   }
   OVT_Faction "{56DEAC40D3C2E623}" {
    m_aGroupPrefabSlots {
@@ -95,30 +97,19 @@ SCR_FactionManager FactionManager_Overthrow : "{4A188E44289B9A50}Prefabs/MP/Mana
    m_aGroupSpecialPrefabSlots {
     "{1A5F0D93609DA5DA}Prefabs/Groups/OPFOR/Group_USSR_ManeuverGroup.et"
    }
-   m_aSniperPrefab "{976AC400219898FA}Prefabs/Characters/Factions/OPFOR/USSR_Army/Character_USSR_Sharpshooter.et"
-   m_aSpotterPrefab "{DCB41B3746FDD1BE}Prefabs/Characters/Factions/OPFOR/USSR_Army/Character_USSR_Rifleman.et"
+   m_aGroupSniperPrefab "{65D8CD7BA7CB6B8A}Prefabs/Groups/Group_USSR_Sniper.et"
+   m_aFlagPolePrefab "{651E545B53BBD034}Prefabs/Structures/Military/Flags/FlagPole_02_V1_USSR.et"
   }
   OVT_Faction "{56DEAC40D132400B}" {
    m_aGroupPrefabSlots {
     "{5BEA04939D148B1D}Prefabs/Groups/INDFOR/Group_FIA_FireTeam.et" "{22F33D3EC8F281AB}Prefabs/Groups/INDFOR/Group_FIA_MachineGunTeam.et" "{2E9C920C3ACA2C6F}Prefabs/Groups/INDFOR/Group_FIA_ReconTeam.et" "{CE41AF625D05D0F0}Prefabs/Groups/INDFOR/Group_FIA_RifleSquad.et" "{6307F42403E9B8A4}Prefabs/Groups/INDFOR/Group_FIA_SharpshooterTeam.et" "{2CC26054775FBA2C}Prefabs/Groups/INDFOR/Group_FIA_Team_AT.et"
    }
+   m_aFlagPolePrefab "{A4D90CAA4F220CBE}Prefabs/Structures/Military/Flags/FlagPole_02_V2_FIA.et"
   }
  }
 }
 ScriptedChatEntity : "{F69BC912AC8236F9}Prefabs/MP/ScriptedChatEntity.et" {
  coords 4406.048 1.636 11072.589
-}
-SCR_AIGroup : "{657590C1EC9E27D3}Prefabs/Groups/OPFOR/Group_USSR_LightFireTeam.et" {
- coords 4449.128 -2.779 11056.859
-}
-Vehicle M151A2_MERDC1 : "{86D830868F026D54}Prefabs/Vehicles/Wheeled/M151A2/M151A2_MERDC.et" {
- components {
-  SCR_VehicleDamageManagerComponent "{141326E9FD94FE40}" {
-   m_fVehicleDestroyDamage 10408.7
-  }
- }
- coords 4424.288 1.636 11067.975
- angleY 116.708
 }
 SCR_LoadoutManager : "{AA4E7419A1FF65B0}Prefabs/MP/Managers/Loadouts/LoadoutManager_Base.et" {
  coords 4419.596 1.605 11073.322

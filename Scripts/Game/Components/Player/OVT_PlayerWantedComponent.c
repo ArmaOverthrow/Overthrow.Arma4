@@ -10,8 +10,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 	protected int m_iWantedTimer = 0;
 	protected int m_iLastSeen;
 	
-	protected const int LAST_SEEN_MAX = 15;	
-	protected const int WANTED_TIMEOUT = 15000;
+	protected const int LAST_SEEN_MAX = 15;
 	protected const int WANTED_SYSTEM_FREQUENCY = 1000;
 	
 	protected FactionAffiliationComponent m_Faction;
@@ -42,7 +41,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 	{
 		super.OnPostInit(owner);
 		
-		m_iWantedTimer = WANTED_TIMEOUT;
+		m_iWantedTimer = m_Config.m_Difficulty.wantedTimeout;
 		
 		m_Faction = FactionAffiliationComponent.Cast(owner.FindComponent(FactionAffiliationComponent));
 		m_Weapon = BaseWeaponManagerComponent.Cast(owner.FindComponent(BaseWeaponManagerComponent));
@@ -69,20 +68,27 @@ class OVT_PlayerWantedComponent: OVT_Component
 			{				
 				m_iWantedLevel -= 1;
 				Print("Downgrading wanted level to " + m_iWantedLevel);
-				m_iWantedTimer = WANTED_TIMEOUT;
+				if(m_iWantedLevel > 1)
+				{
+					m_iWantedTimer = m_Config.m_Difficulty.wantedTimeout;
+				}else{
+					m_iWantedTimer = m_Config.m_Difficulty.wantedOneTimeout;
+				}
 			}
+		}else if(m_iWantedLevel == 1 && m_bIsSeen) {
+			m_iWantedLevel = 2;
 		}
 		
 		
 		if(m_iWantedLevel > 1 && !currentFaction)
 		{
-			Print("You are wanted now");
+			//Print("You are wanted now");
 			m_Faction.SetAffiliatedFactionByKey(m_Config.m_sPlayerFaction);
 		}
 		
 		if(m_iWantedLevel < 2 && currentFaction)
 		{
-			Print("You are no longer wanted");
+			//Print("You are no longer wanted");
 			m_Faction.SetAffiliatedFactionByKey("");
 		}
 	}

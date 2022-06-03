@@ -25,6 +25,10 @@ class OVT_BaseControllerComponent: OVT_Component
 	ref array<ref EntityID> m_SmallRoadSlots;
 	ref array<ref EntityID> m_MediumRoadSlots;
 	
+	ref array<ref EntityID> m_Towers;
+	ref map<EntityID,EntityID> m_TowerGuards;
+	
+	EntityID m_Flag;	
 	
 	override void OnPostInit(IEntity owner)
 	{	
@@ -48,11 +52,56 @@ class OVT_BaseControllerComponent: OVT_Component
 		m_SmallRoadSlots = new array<ref EntityID>;
 		m_MediumRoadSlots = new array<ref EntityID>;
 		
-		FindSlots();
+		m_Towers = new array<ref EntityID>;
+		m_TowerGuards = new map<EntityID,EntityID>;
 		
+		FindSlots();
+		FindTowers();
+		
+		//Spawn a flag
+		
+		vector pos = GetOwner().GetOrigin();
+		
+		float groundHeight = GetGame().GetWorld().GetSurfaceY(pos[0], pos[2]);
+		if (pos[1] < groundHeight)
+			pos[1] = groundHeight;
+		
+		EntitySpawnParams params = EntitySpawnParams();
+		params.TransformMode = ETransformMode.WORLD;
+		params.Transform[3] = pos;
+		IEntity flag = GetGame().SpawnEntityPrefab(Resource.Load(m_Config.GetOccupyingFaction().m_aFlagPolePrefab), null, params);
+		
+		m_Config.SpawnMarker(pos,EMapDescriptorType.MDT_BASE);
+		
+		//Spend testing resources (if any)
 		if(m_iTestingResources > 0){
 			SpendResources(m_iTestingResources);
 		}
+	}
+	
+	void FindTowers()
+	{
+		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), m_iRange, CheckTowerAddToArray, FilterTowerEntities, EQueryEntitiesFlags.ALL);
+	}
+	
+	bool FilterTowerEntities(IEntity entity)
+	{			
+		if(entity.ClassName() == "SCR_DestructibleBuildingEntity") {
+			
+			SCR_MapDescriptorComponent mapdesc = SCR_MapDescriptorComponent.Cast(entity.FindComponent(SCR_MapDescriptorComponent));
+			if(mapdesc)
+			{
+				EMapDescriptorType type = mapdesc.GetBaseType();
+				if(type == EMapDescriptorType.MDT_TOWER) return true;
+			}
+		}
+		return false;
+	}
+	
+	bool CheckTowerAddToArray(IEntity entity)
+	{
+		m_Towers.Insert(entity.GetID());
+		return true;
 	}
 	
 	void FindSlots()
@@ -93,36 +142,10 @@ class OVT_BaseControllerComponent: OVT_Component
 		int defenseRes = GetDefenseResources();
 		int reserveRes = GetReserveResources();
 		
-		OVT_Faction faction = m_Config.GetOccupyingFaction();
-		BaseWorld world = GetGame().GetWorld();
-		
 		while(defenseRes < m_iDefenseAllocation && resources > 0)
-		{
+		{			
+			int newres = BuyDefensePatrol();
 			
-			ResourceName res = faction.m_aGroupInfantryPrefabSlots.GetRandomElement();
-			
-			EntitySpawnParams spawnParams = new EntitySpawnParams;
-			spawnParams.TransformMode = ETransformMode.WORLD;
-			
-			vector pos = GetOwner().GetOrigin();
-			
-			float surfaceY = world.GetSurfaceY(pos[0], pos[2]);
-			if (pos[1] < surfaceY)
-			{
-				pos[1] = surfaceY;
-			}
-			
-			spawnParams.Transform[3] = pos;
-			IEntity group = GetGame().SpawnEntityPrefab(Resource.Load(res), world, spawnParams);
-			
-			m_DefenseGroups.Insert(group.GetID());
-			
-			SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
-			
-			AddDefensePatrolWaypoints(aigroup);
-			
-			int newres = aigroup.m_aUnitPrefabSlots.Count() * m_Config.m_Difficulty.resourcesPerSoldier;
-				
 			if(newres > resources){
 				newres = resources;
 				//todo: delete some soldiers when overspending
@@ -133,8 +156,87 @@ class OVT_BaseControllerComponent: OVT_Component
 			resources -= newres;
 		}
 		
+		foreach(EntityID id : m_Towers)
+		{
+			if(resources < m_Config.m_Difficulty.resourcesPerSoldier) break;
+			
+			bool needsGuard = false;
+			if(!m_TowerGuards.Contains(id))
+			{
+				needsGuard = true;
+			}else{
+				//Check if still alive
+				IEntity guard = GetGame().GetWorld().FindEntityByID(m_TowerGuards[id]);
+				if(guard)
+				{
+					SCR_AIGroup group = SCR_AIGroup.Cast(guard);
+					if(!group)
+					{
+						needsGuard = true;
+					}else{
+						if(group.GetAgentsCount() == 0) needsGuard = true;
+					}
+				}else{
+					needsGuard = true;
+				}
+			}
+			if(needsGuard)
+			{
+				BuyTowerGuard(id);
+				resources -= m_Config.m_Difficulty.resourcesPerSoldier;
+				spent += m_Config.m_Difficulty.resourcesPerSoldier;
+			}
+		}
+		
 		return spent;
-	}	
+	}
+	
+	void BuyTowerGuard(EntityID towerID)
+	{
+		EntitySpawnParams params = EntitySpawnParams();
+		params.TransformMode = ETransformMode.WORLD;
+		params.Transform[3] = GetOwner().GetOrigin();
+		SCR_AIGroup group = SCR_AIGroup.Cast(GetGame().SpawnEntityPrefab(Resource.Load(m_Config.GetOccupyingFaction().m_aGroupSniperPrefab), null, params));
+		
+		IEntity tower = GetGame().GetWorld().FindEntityByID(towerID);
+				
+		AIWaypoint wp = SpawnActionWaypoint(tower, "CoverPost");
+		group.AddWaypoint(wp);
+		
+		m_TowerGuards[towerID] = group.GetID();
+	}
+	
+	int BuyDefensePatrol()
+	{
+		OVT_Faction faction = m_Config.GetOccupyingFaction();
+		BaseWorld world = GetGame().GetWorld();
+		
+		ResourceName res = faction.m_aGroupInfantryPrefabSlots.GetRandomElement();
+			
+		EntitySpawnParams spawnParams = new EntitySpawnParams;
+		spawnParams.TransformMode = ETransformMode.WORLD;
+		
+		vector pos = GetOwner().GetOrigin();
+		
+		float surfaceY = world.GetSurfaceY(pos[0], pos[2]);
+		if (pos[1] < surfaceY)
+		{
+			pos[1] = surfaceY;
+		}
+		
+		spawnParams.Transform[3] = pos;
+		IEntity group = GetGame().SpawnEntityPrefab(Resource.Load(res), world, spawnParams);
+		
+		m_DefenseGroups.Insert(group.GetID());
+		
+		SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
+		
+		AddDefensePatrolWaypoints(aigroup);
+		
+		int newres = aigroup.m_aUnitPrefabSlots.Count() * m_Config.m_Difficulty.resourcesPerSoldier;
+			
+		return newres;
+	}
 	
 	void AddDefensePatrolWaypoints(SCR_AIGroup aigroup)
 	{
@@ -190,7 +292,31 @@ class OVT_BaseControllerComponent: OVT_Component
 		EntitySpawnParams params = EntitySpawnParams();
 		params.TransformMode = ETransformMode.WORLD;
 		params.Transform[3] = pos;
-		AIWaypoint wp = AIWaypoint.Cast(GetGame().SpawnEntityPrefabLocal(Resource.Load(res), null, params));
+		AIWaypoint wp = AIWaypoint.Cast(GetGame().SpawnEntityPrefab(Resource.Load(res), null, params));
+		return wp;
+	}
+	
+	protected SCR_EntityWaypoint SpawnGetInWaypoint(IEntity target)
+	{
+		EntitySpawnParams params = EntitySpawnParams();
+		params.TransformMode = ETransformMode.WORLD;
+		params.Transform[3] = target.GetOrigin();
+		SCR_EntityWaypoint wp = SCR_EntityWaypoint.Cast(GetGame().SpawnEntityPrefab(Resource.Load(m_Config.m_pGetInWaypointPrefab), null, params));
+		
+		wp.SetEntity(target);
+		
+		return wp;
+	}
+	
+	protected SCR_SmartActionWaypoint SpawnActionWaypoint(IEntity target, string action)
+	{
+		EntitySpawnParams params = EntitySpawnParams();
+		params.TransformMode = ETransformMode.WORLD;
+		params.Transform[3] = target.GetOrigin();
+		SCR_SmartActionWaypoint wp = SCR_SmartActionWaypoint.Cast(GetGame().SpawnEntityPrefab(Resource.Load(m_Config.m_pSmartActionWaypointPrefab), null, params));
+		
+		wp.SetSmartActionEntity(target, action);
+		
 		return wp;
 	}
 }

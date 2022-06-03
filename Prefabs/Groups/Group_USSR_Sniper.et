@@ -1,0 +1,163 @@
+SCR_AIGroup {
+ ID "598739095B4DE6EC"
+ components {
+  AIBehaviorTreeComponent "{59873909638CF11E}" {
+   BehaviorTree "{082D5B0D5D33DB1D}AI/BehaviorTrees/Chimera/Group/Group.bt"
+  }
+  AIFormationComponent "{59873909638CF1F5}" {
+   DefaultFormation "Wedge"
+   "Min Distance to Raytrace an Offset" 1
+  }
+  AIGroupMovementComponent "{59873909638CF1FB}" {
+  }
+  AIGroupSteeringComponent "{59873909638CF1EE}" {
+   "Using Railroad" 0
+  }
+  AIPathfindingComponent "{59873909638CF1D9}" {
+   NavmeshProject "Soldiers"
+  }
+  SCR_AIConfigComponent "{59873909638CF2E6}" {
+   m_aDefaultReactions {
+    SCR_AIIdleReaction "{59873909638CF186}" {
+    }
+   }
+   m_aGoalReactions {
+    SCR_AIGoalReaction_Attack "{59873909638CF188}" {
+     m_eType ATTACK
+    }
+    SCR_AIGoalReaction_GetInVehicle "{59873909638CF27A}" {
+     m_eType GET_IN_VEHICLE
+    }
+    SCR_AIGoalReaction_GetOutVehicle "{59873909638CF26F}" {
+     m_eType GET_OUT_VEHICLE
+    }
+    SCR_AIGoalReaction_Heal "{59873909638CF257}" {
+     m_eType HEAL
+    }
+    SCR_AIGoalReaction_Defend "{59873909638CF25D}" {
+     m_eType DEFEND
+    }
+    SCR_AIGoalReaction_Move "{59873909638CF243}" {
+     m_eType MOVE
+    }
+    SCR_AIGoalReaction_SeekAndDestroy "{59873909638CF236}" {
+     m_eType SEEK_DESTROY
+    }
+    SCR_AIGoalReaction_PerformAction "{59873909638CF23E}" {
+     m_eType PERFORM_ACTION
+    }
+    SCR_AIGoalReaction_Cancel "{59873909638CF227}" {
+     m_eType CANCEL
+    }
+    SCR_AIGoalReaction_Follow "{59873909638CF217}" {
+     m_eType FOLLOW
+    }
+   }
+   m_aInfoReactions {
+    SCR_AIInfoReaction_Contact "{59873909638CF21E}" {
+     m_eType CONTACT
+    }
+    SCR_AIInfoReaction_TargetEliminated "{59873909638CF207}" {
+     m_eType TARGET_ELIMINATED
+    }
+    SCR_AIInfoReaction_Wounded "{59873909638CF20D}" {
+     m_eType WOUNDED
+    }
+    SCR_AIInfoReaction_TargetLost "{59873909638CF2F5}" {
+     m_eType TARGET_LOST
+    }
+    SCR_AIInfoReaction_NoAmmo "{59873909638CF2F8}" {
+     m_eType NO_AMMO
+    }
+   }
+  }
+  SCR_AIGroupInfoComponent "{59873909638CF2ED}" {
+  }
+  SCR_AIGroupUtilityComponent "{59873909638CF2D4}" {
+  }
+  SCR_CallsignGroupComponent "{59873909638CF2DF}" {
+  }
+  SCR_EditableGroupComponent "{59873909638CEC0C}" {
+   m_EntityType GROUP
+   m_UIInfo SCR_EditableGroupUIInfo "{59873909638CF3A1}" {
+    Name "#AR-Group_Squad"
+    m_Image "{46D0DCAB6C9B3C74}UI/Textures/EditorPreviews/Groups/OPFOR/Group_USSR_SentryTeam.edds"
+    m_sFaction "USSR"
+    m_aAuthoredLabels {
+     4 10
+    }
+    m_aAutoLabels {
+     70
+    }
+    m_EntityChildrenBudgetCost {
+     SCR_EntityBudgetValue "{59873909638CF366}" {
+      m_BudgetType AI
+      m_Value 2
+     }
+    }
+    m_MilitarySymbol SCR_MilitarySymbol "{59873909638CF352}" {
+     m_Identity OPFOR
+     m_Dimension LAND
+     m_Icons 32769
+     m_Amplifier TEAM
+    }
+   }
+   m_bAutoRegister ALWAYS
+   m_vIconPos 0 5 0
+   m_Flags 9541
+  }
+  SCR_GroupIdentityComponent "{59873909638CECC2}" {
+   m_MilitarySymbol SCR_MilitarySymbol "{59873909638CECDA}" {
+    m_Identity OPFOR
+    m_Icons 32769
+    m_Amplifier TEAM
+   }
+  }
+  SCR_MailboxComponent "{59873909638CECCB}" {
+  }
+  SCR_PreviewEntityComponent "{59873909638CED75}" {
+   m_bRuntime 0
+   m_aEntries {
+    SCR_BasePreviewEntry "{59873909638CEC9F}" {
+     m_iParentID -1
+     m_Mesh ""
+     m_Flags 3
+     m_Shape MESH
+     m_iPivotID ""
+     m_fScale 1
+     m_vPosition 0 0 0
+     m_vAngles 0 0 0
+    }
+    SCR_BasePreviewEntry "{59873909638CEC82}" {
+     m_iParentID 0
+     m_Mesh "{7B2420C8BC72373A}Prefabs/Characters/Core/Character_Base_Preview.et"
+     m_Flags 0
+     m_Shape PREFAB
+     m_iPivotID ""
+     m_fScale 1
+     m_vPosition 0 0 0
+     m_vAngles 0 0 0
+    }
+    SCR_BasePreviewEntry "{59873909638CEC8B}" {
+     m_iParentID 0
+     m_Mesh "{7B2420C8BC72373A}Prefabs/Characters/Core/Character_Base_Preview.et"
+     m_Flags 0
+     m_Shape PREFAB
+     m_iPivotID ""
+     m_fScale 1
+     m_vPosition 3 0 -3
+     m_vAngles 0 0 0
+    }
+   }
+  }
+  RplComponent "{59873909638CED7C}" {
+   Streamable Disabled
+  }
+ }
+ coords 7538.632 5.962 6755.33
+ DangerEventRange 200
+ m_faction "USSR"
+ m_aUnitPrefabSlots {
+  "{976AC400219898FA}Prefabs/Characters/Factions/OPFOR/USSR_Army/Character_USSR_Sharpshooter.et"
+ }
+}

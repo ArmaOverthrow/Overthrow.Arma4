@@ -15,10 +15,10 @@ class OVT_Faction : SCR_Faction
 	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Faction groups (Special Forces)", params: "et", category: "Faction Groups")]
 	ref array<ResourceName> m_aGroupSpecialPrefabSlots;
 	
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Sniper or Sharpshooter Prefab", params: "et", category: "Faction Soldiers")]
-	ResourceName m_aSniperPrefab;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Spotter Prefab", params: "et", category: "Faction Soldiers")]
-	ResourceName m_aSpotterPrefab;
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (Sniper)", params: "et", category: "Faction Groups")]
+	ResourceName m_aGroupSniperPrefab;
+		
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Flag Pole Prefab", params: "et", category: "Faction Objects")]
+	ResourceName m_aFlagPolePrefab;
 	
 }

@@ -4,11 +4,18 @@ class OVT_OverthrowConfigComponentClass: OVT_ComponentClass
 
 class OVT_DifficultySettings : Managed
 {
+	//Wanted system
+	int wantedTimeout = 30000;		//Timeout for wanted levels 2-5 (per level)
+	int wantedOneTimeout = 120000;	//Timeout for wanted level 1
+	
+	//OF
 	int startingResources = 5000; 	//OF starting resources
 	int baseResourcesPerTick = 500;//OF resources per 6 hrs
 	int resourcesPerTick = 1000;	//Additional OF resources per 6 hrs (* threat)
 	int resourcesPerSoldier = 10;	//Resource cost per soldier
 	int initialResourcesPerBase = 300; //Initial starting resources per base;
+	
+	//RF
 	int startingCash = 250;			//Player starting cash
 	int baseThreat = 0;				//Base RF threat
 }
@@ -51,6 +58,15 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Search and Destroy Waypoint Prefab", params: "et", category: "Waypoints")]
 	ResourceName m_pSearchAndDestroyWaypointPrefab;
 	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Get In Waypoint Prefab", params: "et", category: "Waypoints")]
+	ResourceName m_pGetInWaypointPrefab;
+	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Smart Action Waypoint Prefab", params: "et", category: "Waypoints")]
+	ResourceName m_pSmartActionWaypointPrefab;
+	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Map Marker Prefab", params: "et")]
+	ResourceName m_pMapMarkerPrefab;
+	
 	[Attribute(defvalue: "4", UIWidgets.EditBox, desc: "Time multiplier")]
 	int m_iTimeMultiplier;
 	
@@ -79,6 +95,28 @@ class OVT_OverthrowConfigComponent: OVT_Component
 			Print("OVT_OverthrowConfigComponent has to be attached to a OVT_OverthrowGameMode (or inherited) entity!", LogLevel.ERROR);
 			
 		
+	}
+	
+	void SpawnMarkerLocal(vector pos, EMapDescriptorType type, string name = "")
+	{
+		EntitySpawnParams params = EntitySpawnParams();
+		params.TransformMode = ETransformMode.WORLD;
+		params.Transform[3] = pos;
+		IEntity ent = GetGame().SpawnEntityPrefabLocal(Resource.Load(m_pMapMarkerPrefab), null, params);
+		SCR_MapDescriptorComponent mapdesc = SCR_MapDescriptorComponent.Cast(ent.FindComponent(SCR_MapDescriptorComponent));
+		mapdesc.Item().SetBaseType(type);
+		mapdesc.Item().SetDisplayName(name);
+	}
+	
+	void SpawnMarker(vector pos, EMapDescriptorType type, string name = "")
+	{
+		EntitySpawnParams params = EntitySpawnParams();
+		params.TransformMode = ETransformMode.WORLD;
+		params.Transform[3] = pos;
+		IEntity ent = GetGame().SpawnEntityPrefab(Resource.Load(m_pMapMarkerPrefab), null, params);
+		SCR_MapDescriptorComponent mapdesc = SCR_MapDescriptorComponent.Cast(ent.FindComponent(SCR_MapDescriptorComponent));
+		mapdesc.Item().SetBaseType(type);
+		mapdesc.Item().SetDisplayName(name);
 	}
 	
 	OVT_Faction GetOccupyingFaction()

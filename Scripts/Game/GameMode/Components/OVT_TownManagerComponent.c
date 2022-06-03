@@ -177,6 +177,8 @@ class OVT_TownManagerComponent: OVT_Component
 			if(mesh){
 				string res = mesh.GetResourceName();
 				if(res.IndexOf("/Military/") > -1) return false;
+				if(res.IndexOf("/Industrial/") > -1) return false;
+				if(res.IndexOf("/Recreation/") > -1) return false;
 				
 				if(res.IndexOf("/Houses/") > -1){
 					if(res.IndexOf("/Shed/") > -1) return false;

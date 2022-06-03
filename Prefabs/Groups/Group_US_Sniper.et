@@ -1,0 +1,161 @@
+SCR_AIGroup {
+ ID "598739095E14F9B5"
+ components {
+  AIBehaviorTreeComponent "{598739094D660B81}" {
+   BehaviorTree "{082D5B0D5D33DB1D}AI/BehaviorTrees/Chimera/Group/Group.bt"
+  }
+  AIFormationComponent "{598739094D66047A}" {
+   DefaultFormation "Wedge"
+   "Min Distance to Raytrace an Offset" 1
+  }
+  AIGroupMovementComponent "{598739094D660463}" {
+  }
+  AIGroupSteeringComponent "{598739094D660456}" {
+   "Using Railroad" 0
+  }
+  AIPathfindingComponent "{598739094D660459}" {
+   NavmeshProject "Soldiers"
+  }
+  SCR_AIConfigComponent "{598739094D660487}" {
+   m_aDefaultReactions {
+    SCR_AIIdleReaction "{598739094D66041D}" {
+    }
+   }
+   m_aGoalReactions {
+    SCR_AIGoalReaction_Attack "{598739094D660403}" {
+     m_eType ATTACK
+    }
+    SCR_AIGoalReaction_GetInVehicle "{598739094D6604F6}" {
+     m_eType GET_IN_VEHICLE
+    }
+    SCR_AIGoalReaction_GetOutVehicle "{598739094D6604FE}" {
+     m_eType GET_OUT_VEHICLE
+    }
+    SCR_AIGoalReaction_Heal "{598739094D6604F8}" {
+     m_eType HEAL
+    }
+    SCR_AIGoalReaction_Defend "{598739094D6604E0}" {
+     m_eType DEFEND
+    }
+    SCR_AIGoalReaction_Move "{598739094D6604EA}" {
+     m_eType MOVE
+    }
+    SCR_AIGoalReaction_SeekAndDestroy "{598739094D6604DF}" {
+     m_eType SEEK_DESTROY
+    }
+    SCR_AIGoalReaction_PerformAction "{598739094D6604B4}" {
+     m_eType PERFORM_ACTION
+    }
+    SCR_AIGoalReaction_Cancel "{598739094D6604BE}" {
+     m_eType CANCEL
+    }
+    SCR_AIGoalReaction_Follow "{598739094D6604A7}" {
+     m_eType FOLLOW
+    }
+   }
+   m_aInfoReactions {
+    SCR_AIInfoReaction_Contact "{598739094D6604AF}" {
+     m_eType CONTACT
+    }
+    SCR_AIInfoReaction_TargetEliminated "{598739094D6604AA}" {
+     m_eType TARGET_ELIMINATED
+    }
+    SCR_AIInfoReaction_Wounded "{598739094D660493}" {
+     m_eType WOUNDED
+    }
+    SCR_AIInfoReaction_TargetLost "{598739094D66049E}" {
+     m_eType TARGET_LOST
+    }
+    SCR_AIInfoReaction_NoAmmo "{598739094D660498}" {
+     m_eType NO_AMMO
+    }
+   }
+  }
+  SCR_AIGroupInfoComponent "{598739094D660480}" {
+  }
+  SCR_AIGroupUtilityComponent "{598739094D66048B}" {
+  }
+  SCR_CallsignGroupComponent "{598739094D660488}" {
+  }
+  SCR_EditableGroupComponent "{598739094D66059A}" {
+   m_EntityType GROUP
+   m_UIInfo SCR_EditableGroupUIInfo "{598739094D66050E}" {
+    Name "#AR-Group_SniperTeam"
+    Icon "{BAC8DDD536E23946}UI/Textures/Editor/EditableEntities/Groups/EditableEntity_Group_Blufor_Infantry.edds"
+    m_Image "{BC3B6D475EFE3C31}UI/Textures/EditorPreviews/Groups/BLUFOR/Group_US_SniperTeam.edds"
+    m_sFaction "US"
+    m_aAuthoredLabels {
+     4 11 70 33 35 38
+    }
+    m_aAutoLabels {
+    }
+    m_EntityChildrenBudgetCost {
+     SCR_EntityBudgetValue "{598739094D660527}" {
+      m_BudgetType AI
+      m_Value 2
+     }
+    }
+    m_MilitarySymbol SCR_MilitarySymbol "{598739094D660529}" {
+     m_Identity BLUFOR
+     m_Dimension LAND
+     m_Icons 0
+     m_Amplifier NONE
+    }
+   }
+   m_bAutoRegister ALWAYS
+   m_vIconPos 0 5 0
+   m_Flags 9541
+  }
+  SCR_GroupIdentityComponent "{598739094D66067D}" {
+   m_MilitarySymbol SCR_MilitarySymbol "{598739094D660673}" {
+    m_Identity BLUFOR
+   }
+  }
+  SCR_MailboxComponent "{598739094D660678}" {
+  }
+  SCR_PreviewEntityComponent "{598739094D660635}" {
+   m_bRuntime 0
+   m_aEntries {
+    SCR_BasePreviewEntry "{598739094D660653}" {
+     m_iParentID -1
+     m_Mesh ""
+     m_Flags 3
+     m_Shape MESH
+     m_iPivotID ""
+     m_fScale 1
+     m_vPosition 0 0 0
+     m_vAngles 0 0 0
+    }
+    SCR_BasePreviewEntry "{598739094D660645}" {
+     m_iParentID 0
+     m_Mesh "{7B2420C8BC72373A}Prefabs/Characters/Core/Character_Base_Preview.et"
+     m_Flags 0
+     m_Shape PREFAB
+     m_iPivotID ""
+     m_fScale 1
+     m_vPosition 0 0 0
+     m_vAngles 0 0 0
+    }
+    SCR_BasePreviewEntry "{598739094D660649}" {
+     m_iParentID 0
+     m_Mesh "{7B2420C8BC72373A}Prefabs/Characters/Core/Character_Base_Preview.et"
+     m_Flags 0
+     m_Shape PREFAB
+     m_iPivotID ""
+     m_fScale 1
+     m_vPosition 3 0 -3
+     m_vAngles 0 0 0
+    }
+   }
+  }
+  RplComponent "{598739094D66063C}" {
+   Streamable Disabled
+  }
+ }
+ coords 7530.649 6.251 6743.6
+ DangerEventRange 200
+ m_faction "US"
+ m_aUnitPrefabSlots {
+  "{0F6689B491641155}Prefabs/Characters/Factions/BLUFOR/US_Army/Character_US_Sniper.et"
+ }
+}
