@@ -22,6 +22,12 @@ class OVT_PlayerWantedComponent: OVT_Component
 		m_iWantedLevel = level;
 	}
 	
+	void SetBaseWantedLevel(int level)
+	{
+		if(m_iWantedLevel < level)
+			m_iWantedLevel = level;
+	}
+	
 	int GetWantedLevel()
 	{
 		return m_iWantedLevel;
@@ -49,7 +55,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		m_bIsSeen = false;
 		m_iLastSeen = LAST_SEEN_MAX;
 		
-		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), 1000, CheckEntity, FilterEntities, EQueryEntitiesFlags.ALL);
+		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), 250, CheckEntity, FilterEntities, EQueryEntitiesFlags.ALL);
 				
 		Faction currentFaction = m_Faction.GetAffiliatedFaction();
 		

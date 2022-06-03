@@ -30,7 +30,15 @@ class OVT_RealEstateManagerComponent: OVT_Component
 		{
 			IEntity newHome = m_Town.GetRandomHouse();
 			SetHome(playerId, newHome.GetID());
+			SpawnStartingCar(newHome.GetOrigin());
 		}
 		return GetGame().GetWorld().FindEntityByID(m_mHomes[playerId]);
+	}
+	
+	void SpawnStartingCar(vector pos)
+	{
+		vector roadPos = OVT_NearestRoad.Find(pos);
+		
+		Print(roadPos);
 	}
 }

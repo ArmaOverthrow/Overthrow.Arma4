@@ -8,6 +8,16 @@ class OVT_RespawnSystemComponentClass : SCR_RespawnSystemComponentClass
 [ComponentEditorProps(icon: HYBRID_COMPONENT_ICON)]
 class OVT_RespawnSystemComponent : SCR_RespawnSystemComponent
 {
+	[Attribute(defvalue: "0", desc: "Respawn here only (for testing)")]
+	bool m_bSpawnHere;
+	IEntity m_Owner;
+	
+	override void OnInit(IEntity owner)
+	{
+		super.OnInit(owner);
+		m_Owner = owner;
+	}
+	
 	protected override GenericEntity RequestSpawn(int playerId)
 	{
 		SCR_BaseGameMode gameMode = SCR_BaseGameMode.Cast(GetGame().GetGameMode());
@@ -34,6 +44,19 @@ class OVT_RespawnSystemComponent : SCR_RespawnSystemComponent
 				
 		vector spawnPosition = home.GetOrigin();
 		vector spawnRotation = vector.Zero;
+		
+		if(m_bSpawnHere) spawnPosition = m_Owner.GetOrigin();
+		
+		BaseWorld world = GetGame().GetWorld();
+		
+		//Snap to the nearest navmesh point
+		AIPathfindingComponent pathFindindingComponent = AIPathfindingComponent.Cast(this.FindComponent(AIPathfindingComponent));
+		if (pathFindindingComponent && pathFindindingComponent.GetClosestPositionOnNavmesh(spawnPosition, "10 10 10", spawnPosition))
+		{
+			float groundHeight = world.GetSurfaceY(spawnPosition[0], spawnPosition[2]);
+			if (spawnPosition[1] < groundHeight)
+				spawnPosition[1] = groundHeight;
+		}
 		
 		GenericEntity spawned = DoSpawn(loadout.GetLoadoutResource(), spawnPosition, spawnRotation);
 		loadout.OnLoadoutSpawned(spawned, playerId);

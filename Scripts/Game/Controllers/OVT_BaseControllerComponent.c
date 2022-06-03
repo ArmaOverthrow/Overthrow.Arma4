@@ -99,7 +99,7 @@ class OVT_BaseControllerComponent: OVT_Component
 		while(defenseRes < m_iDefenseAllocation && resources > 0)
 		{
 			
-			ResourceName res = faction.m_aGroupPrefabSlots.GetRandomElement();
+			ResourceName res = faction.m_aGroupInfantryPrefabSlots.GetRandomElement();
 			
 			EntitySpawnParams spawnParams = new EntitySpawnParams;
 			spawnParams.TransformMode = ETransformMode.WORLD;
