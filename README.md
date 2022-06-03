@@ -3,6 +3,8 @@
 # Overthrow
 A dynamic and persistent revolution platform for Arma Reforger (and eventually Arma 4)
 
+Read the [Wiki](https://github.com/ArmaOverthrow/Overthrow.Arma4/wiki) for ideas and concepts planned.
+
 ## Installing
 Overthrow is not yet available in the Reforger workshop, but you are able to follow along with early development, help test or even create it by using this github
 
