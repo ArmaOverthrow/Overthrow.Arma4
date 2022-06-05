@@ -7,8 +7,8 @@ class OVT_PlayerWantedComponent: OVT_Component
 	[Attribute("0", params: "0 5 1", desc: "The current wanted level of this character")]
 	protected int m_iWantedLevel;
 	protected bool m_bIsSeen = false;	
-	protected int m_iWantedTimer = 0;
-	protected int m_iLastSeen;
+	int m_iWantedTimer = 0;
+	int m_iLastSeen;
 	
 	protected const int LAST_SEEN_MAX = 15;
 	protected const int WANTED_SYSTEM_FREQUENCY = 1000;
@@ -40,6 +40,9 @@ class OVT_PlayerWantedComponent: OVT_Component
 	override void OnPostInit(IEntity owner)
 	{
 		super.OnPostInit(owner);
+		
+		if(SCR_Global.IsEditMode())
+			return;		
 		
 		m_iWantedTimer = m_Config.m_Difficulty.wantedTimeout;
 		
@@ -110,12 +113,12 @@ class OVT_PlayerWantedComponent: OVT_Component
 			
 			int lastSeen = possibleTarget.GetTimeSinceSeen();
 			
-			if(lastSeen < m_iLastSeen) m_iLastSeen = lastSeen;
-			if(m_iWantedLevel > 1) return false;
+			if(lastSeen < m_iLastSeen) m_iLastSeen = lastSeen;			
 			
 			if(TraceLOS(entity, GetOwner())){
 				//Player can be seen with direct Line of sight
 				m_bIsSeen = true;
+				if(m_iWantedLevel > 1) return false;
 								
 				if (m_Weapon && m_Weapon.GetCurrentWeapon())
 				{

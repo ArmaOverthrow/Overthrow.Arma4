@@ -106,7 +106,7 @@ class OVT_BaseControllerComponent: OVT_Component
 	
 	void FindSlots()
 	{
-		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), m_iRange, CheckSlotAddToArray, FilterSlotEntities, EQueryEntitiesFlags.STATIC);
+		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), m_iRange, CheckSlotAddToArray, FilterSlotEntities, EQueryEntitiesFlags.ALL);
 	}
 	
 	bool FilterSlotEntities(IEntity entity)
@@ -182,28 +182,39 @@ class OVT_BaseControllerComponent: OVT_Component
 			}
 			if(needsGuard)
 			{
-				BuyTowerGuard(id);
-				resources -= m_Config.m_Difficulty.resourcesPerSoldier;
-				spent += m_Config.m_Difficulty.resourcesPerSoldier;
+				if(BuyTowerGuard(id))
+				{
+					resources -= m_Config.m_Difficulty.resourcesPerSoldier;
+					spent += m_Config.m_Difficulty.resourcesPerSoldier;
+				}
 			}
 		}
 		
 		return spent;
 	}
 	
-	void BuyTowerGuard(EntityID towerID)
+	bool BuyTowerGuard(EntityID towerID)
 	{
+		IEntity tower = GetGame().GetWorld().FindEntityByID(towerID);
+		SCR_AISmartActionSentinelComponent sentinel = SCR_AISmartActionSentinelComponent.Cast(tower.FindComponent(SCR_AISmartActionSentinelComponent));
+		if(!sentinel) return false;
+		
+		vector wTrans[4];
+		tower.GetWorldTransform(wTrans);
+		
+		vector actionPos = sentinel.GetActionOffset().Multiply4(wTrans);		
+		
 		EntitySpawnParams params = EntitySpawnParams();
 		params.TransformMode = ETransformMode.WORLD;
-		params.Transform[3] = GetOwner().GetOrigin();
+		params.Transform[3] = actionPos;
 		SCR_AIGroup group = SCR_AIGroup.Cast(GetGame().SpawnEntityPrefab(Resource.Load(m_Config.GetOccupyingFaction().m_aGroupSniperPrefab), null, params));
-		
-		IEntity tower = GetGame().GetWorld().FindEntityByID(towerID);
-				
-		AIWaypoint wp = SpawnActionWaypoint(tower, "CoverPost");
+						
+		AIWaypoint wp = SpawnActionWaypoint(actionPos, tower, "CoverPost");
 		group.AddWaypoint(wp);
 		
 		m_TowerGuards[towerID] = group.GetID();
+		
+		return true;
 	}
 	
 	int BuyDefensePatrol()
@@ -251,6 +262,9 @@ class OVT_BaseControllerComponent: OVT_Component
 				AIWaypoint wp = SpawnWaypoint(m_Config.m_pPatrolWaypointPrefab, randomSlot.GetOrigin());
 				if(i==0) firstWP = wp;
 				queueOfWaypoints.Insert(wp);
+				
+				AIWaypoint wait = SpawnWaitWaypoint(randomSlot.GetOrigin(), s_AIRandomGenerator.RandFloatXY(45, 75));								
+				queueOfWaypoints.Insert(wait);
 			}
 			AIWaypointCycle cycle = AIWaypointCycle.Cast(SpawnWaypoint(m_Config.m_pCycleWaypointPrefab, firstWP.GetOrigin()));
 			cycle.SetWaypoints(queueOfWaypoints);
@@ -308,11 +322,21 @@ class OVT_BaseControllerComponent: OVT_Component
 		return wp;
 	}
 	
-	protected SCR_SmartActionWaypoint SpawnActionWaypoint(IEntity target, string action)
+	protected SCR_TimedWaypoint SpawnWaitWaypoint(vector pos, float time)
 	{
 		EntitySpawnParams params = EntitySpawnParams();
 		params.TransformMode = ETransformMode.WORLD;
-		params.Transform[3] = target.GetOrigin();
+		params.Transform[3] = pos;
+		SCR_TimedWaypoint wp = SCR_TimedWaypoint.Cast(GetGame().SpawnEntityPrefab(Resource.Load(m_Config.m_pWaitWaypointPrefab), null, params));
+		
+		return wp;
+	}
+	
+	protected SCR_SmartActionWaypoint SpawnActionWaypoint(vector pos, IEntity target, string action)
+	{
+		EntitySpawnParams params = EntitySpawnParams();
+		params.TransformMode = ETransformMode.WORLD;
+		params.Transform[3] = pos;
 		SCR_SmartActionWaypoint wp = SCR_SmartActionWaypoint.Cast(GetGame().SpawnEntityPrefab(Resource.Load(m_Config.m_pSmartActionWaypointPrefab), null, params));
 		
 		wp.SetSmartActionEntity(target, action);

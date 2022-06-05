@@ -2,22 +2,53 @@ class OVT_OverthrowConfigComponentClass: OVT_ComponentClass
 {	
 };
 
-class OVT_DifficultySettings : Managed
-{
+class OVT_DifficultySettings : ScriptAndConfig
+{	
+	[Attribute()]
+	string name;
+	
 	//Wanted system
-	int wantedTimeout = 30000;		//Timeout for wanted levels 2-5 (per level)
-	int wantedOneTimeout = 120000;	//Timeout for wanted level 1
+	[Attribute(defvalue: "30000", desc: "Timeout in ms for wanted levels 2-5 (per level)")]
+	int wantedTimeout;
+	[Attribute(defvalue: "120000", desc: "Timeout in ms for wanted level 1")]
+	int wantedOneTimeout;
 	
 	//OF
-	int startingResources = 5000; 	//OF starting resources
-	int baseResourcesPerTick = 500;//OF resources per 6 hrs
-	int resourcesPerTick = 1000;	//Additional OF resources per 6 hrs (* threat)
-	int resourcesPerSoldier = 10;	//Resource cost per soldier
-	int initialResourcesPerBase = 300; //Initial starting resources per base;
+	[Attribute(defvalue: "5000", desc: "OF starting resources")]
+	int startingResources;
+	[Attribute(defvalue: "500", desc: "OF resources per 6 hrs")]
+	int baseResourcesPerTick;
+	[Attribute(defvalue: "1000", desc: "Additional OF resources per 6 hrs (* threat)")]
+	int resourcesPerTick;
+	[Attribute(defvalue: "10", desc: "Resource cost per soldier")]
+	int resourcesPerSoldier;
+	[Attribute(defvalue: "300", desc: "Initial starting resources per base")]
+	int initialResourcesPerBase;
 	
 	//RF
-	int startingCash = 250;			//Player starting cash
-	int baseThreat = 0;				//Base RF threat
+	[Attribute(defvalue: "100", desc: "Player starting cash")]
+	int startingCash;
+	[Attribute(defvalue: "0", desc: "Base RF threat")]
+	int baseThreat;	
+	[Attribute(defvalue: "5", desc: "Money taken from player per respawn")]
+	int respawnCost;
+	[Attribute(defvalue: "1", desc: "Cost of placeables is multiplied by this value")]
+	float placeableCostMultiplier;
+}
+
+class OVT_Placeable : ScriptAndConfig
+{
+	[Attribute()]
+	string name;
+		
+	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Object Prefabs", params: "et")]
+	ref array<ResourceName> m_aPrefabs;
+	
+	[Attribute("", UIWidgets.ResourceNamePicker, "", "edds")]
+	ResourceName m_tPreview;
+	
+	[Attribute(defvalue: "100", desc: "Cost (multiplied by difficulty)")]
+	int m_iCost;
 }
 
 
@@ -38,7 +69,16 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Players starting car", params: "et", category: "Vehicles")]
 	ResourceName m_pStartingCarPrefab;
 	
+	[Attribute()]
 	ref OVT_DifficultySettings m_Difficulty;
+		
+	[Attribute("", UIWidgets.Object)]
+	ref array<ref OVT_DifficultySettings> m_aDifficultyPresets;
+	ref array<ref OVT_DifficultySettings> m_aDifficultyPresetsPacked = new array<ref OVT_DifficultySettings>();
+	
+	[Attribute("", UIWidgets.Object)]
+	ref array<ref OVT_Placeable> m_aPlaceables;
+	ref array<ref OVT_Placeable> m_aPlaceablesPacked = new array<ref OVT_Placeable>();
 	
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Move Waypoint Prefab", params: "et", category: "Waypoints")]
 	ResourceName m_pMoveWaypointPrefab;
@@ -119,13 +159,13 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		mapdesc.Item().SetDisplayName(name);
 	}
 	
+	int GetPlaceableCost(OVT_Placeable placeable)
+	{
+		return Math.Round(m_Difficulty.placeableCostMultiplier * placeable.m_iCost);
+	}
+	
 	OVT_Faction GetOccupyingFaction()
 	{
 		return OVT_Faction.Cast(GetGame().GetFactionManager().GetFactionByKey(m_sOccupyingFaction));
-	}
-	
-	void OVT_OverthrowConfigComponent(IEntityComponentSource src, IEntity ent, IEntity parent)
-	{
-		m_Difficulty = new OVT_DifficultySettings();
 	}
 }

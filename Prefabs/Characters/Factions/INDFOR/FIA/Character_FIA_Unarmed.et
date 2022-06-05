@@ -11,6 +11,8 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
    InfoDisplays {
     OVT_WantedInfo "{5970CDA89486F650}" {
     }
+    OVT_EconomyInfo "{5988DB0A05162D4F}" {
+    }
    }
   }
   SCR_EditableCharacterComponent "{520EA1D2F659C85C}" {

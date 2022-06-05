@@ -10,31 +10,12 @@ class OVT_MainMenuWidgets
 
 	TextWidget m_TownInfoText;
 
-	ButtonWidget m_MapInfoButton;
-	
-	OVT_TownManagerComponent m_TownManager;
-
 	bool Init(Widget root)
 	{
 		m_TownNameText = TextWidget.Cast(root.FindWidget("Panel0.VerticalLayout0.TownInfo.m_TownNameText"));
 
 		m_TownInfoText = TextWidget.Cast(root.FindWidget("Panel0.VerticalLayout0.TownInfo.m_TownInfoText"));
 
-		m_MapInfoButton = ButtonWidget.Cast(root.FindWidget("Panel0.VerticalLayout0.m_MapInfoButton"));
-		
-		m_TownManager = OVT_TownManagerComponent.GetInstance();
-		
-
 		return true;
-	}
-		
-	void OnUpdate(IEntity player)
-	{
-		if(!m_TownManager) return;
-		
-		OVT_TownData town = m_TownManager.GetNearestTown(player.GetOrigin());
-		
-		m_TownNameText.SetText(town.name);
-		m_TownInfoText.SetTextFormat("#OVT-Population:%1\n#OVT-Stability: %2%\n#OVT-Support: %3%", town.population, town.stability, town.support);
 	}
 }

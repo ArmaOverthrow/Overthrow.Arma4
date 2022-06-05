@@ -2,13 +2,11 @@
 
 */
 
-class OVT_WantedInfo : SCR_InfoDisplayExtended {
-	ref OVT_WantedInfoWidgets widgets;
+class OVT_EconomyInfo : SCR_InfoDisplayExtended {
+	ref OVT_EconomyInfoWidgets widgets;
 	
-	OVT_PlayerWantedComponent m_Wanted = null;
-	
-	protected const string LEVEL_INDICATOR = "*";
-	protected const string SEEN_INDICATOR = "o_o";
+	OVT_EconomyManagerComponent m_Economy = null;
+	int m_playerId;
 	
 	//------------------------------------------------------------------------------------------------
 	override bool DisplayStartDrawInit(IEntity owner)
@@ -19,19 +17,16 @@ class OVT_WantedInfo : SCR_InfoDisplayExtended {
 		if (!character)
 			return false;
 		
+		m_Economy = OVT_EconomyManagerComponent.GetInstance();
 		
-		
-		m_Wanted = OVT_PlayerWantedComponent.Cast(character.FindComponent(OVT_PlayerWantedComponent));
-		if (!m_Wanted)
-			return false;
+		m_playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(character);
 	
 		return true;
 	}
 		
 	override void DisplayUpdate(IEntity owner, float timeSlice)
 	{	
-		UpdateWantedLevel();
-		UpdateSeen();
+		UpdateMoney();
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -45,12 +40,12 @@ class OVT_WantedInfo : SCR_InfoDisplayExtended {
 		// Create weapon info layout
 		SCR_HUDManagerComponent manager = SCR_HUDManagerComponent.GetHUDManager();
 		if (manager)
-			m_wRoot = manager.CreateLayout(OVT_WantedInfoWidgets.s_sLayout, m_eLayer);
+			m_wRoot = manager.CreateLayout(OVT_EconomyInfoWidgets.s_sLayout, m_eLayer);
 
 		if (!m_wRoot)
 			return;
 		
-		widgets = new OVT_WantedInfoWidgets();
+		widgets = new OVT_EconomyInfoWidgets();
 		widgets.Init(m_wRoot);
 	}
 	
@@ -66,38 +61,13 @@ class OVT_WantedInfo : SCR_InfoDisplayExtended {
 	}	
 			
 	//------------------------------------------------------------------------------------------------
-	// Update Wanted Level Indicator
+	// Update Money
 	//------------------------------------------------------------------------------------------------
-	void UpdateWantedLevel()
+	void UpdateMoney()
 	{
-		if (!m_Wanted)
+		if (!m_Economy)
 			return;
-		
-		string text = "";
-		for(int i=0; i<m_Wanted.GetWantedLevel(); i++){
-			text += LEVEL_INDICATOR;
-		}
-		
-		widgets.m_WantedText.SetText(text);
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	// Update Seen Indicator
-	//------------------------------------------------------------------------------------------------
-	void UpdateSeen()
-	{
-		if (!m_Wanted)
-			return;
-		
-		string text = "";
-		
-		if(m_Wanted.IsSeen())
-		{
-			text += SEEN_INDICATOR;
-		}
-		
-		text += " " + m_Wanted.m_iLastSeen + " " + m_Wanted.m_iWantedTimer;
-		
-		widgets.m_SeenText.SetText(text);
+						
+		widgets.m_MoneyText.SetText("$" + m_Economy.GetPlayerMoney(m_playerId));
 	}
 }

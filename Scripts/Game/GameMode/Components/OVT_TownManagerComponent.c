@@ -181,6 +181,7 @@ class OVT_TownManagerComponent: OVT_Component
 				if(res.IndexOf("/Recreation/") > -1) return false;
 				
 				if(res.IndexOf("/Houses/") > -1){
+					if(res.IndexOf("_ruin") > -1) return false;
 					if(res.IndexOf("/Shed/") > -1) return false;
 					if(res.IndexOf("/Garage/") > -1) return false;
 					if(res.IndexOf("/HouseAddon/") > -1) return false;

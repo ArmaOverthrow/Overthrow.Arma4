@@ -3,7 +3,7 @@ OverlayWidgetClass {
  Clipping False
  components {
   SCR_WidgetExportRuleRoot "{5970CDAF8DD975FB}" {
-   DestinationPath "{EC9B6EE4FCC71C2F}Scripts/Game/UI/HUD"
+   DestinationPath "{EC9B6EE4FCC71C2E}Scripts/Game/UI/HUD"
    ScriptAddon "$Overthrow:"
    GenerateFullWidgetPath 0
    ScriptClassNamePrefix "OVT_"
@@ -18,53 +18,84 @@ OverlayWidgetClass {
    }
    Opacity 0.9
    {
-    VerticalLayoutWidgetClass "{5970CDADB3F0CA55}" {
-     Name "m_WantedInfoPanel"
-     Slot FrameWidgetSlot "{56E0F185ADC1E20E}" {
+    HorizontalLayoutWidgetClass "{5970CDADB3F0CA52}" {
+     Name "m_WantedLevel"
+     Slot FrameWidgetSlot "{5988DB08DC69F5F6}" {
       Anchor 1 0 1 0
-      PositionX -16
-      OffsetLeft -16
-      PositionY 16
-      OffsetTop 16
+      PositionX -20
+      OffsetLeft -20
+      PositionY 50
+      OffsetTop 50
       SizeX 100
-      OffsetRight -84
-      SizeY 23.8
-      OffsetBottom -39.8
+      OffsetRight -80
+      SizeY 30
+      OffsetBottom -80
       Alignment 1 0
       SizeToContent 1
      }
      "Inherit Color" 1
      {
-      HorizontalLayoutWidgetClass "{5970CDADB3F0CA52}" {
-       Name "m_WantedLevel"
-       Slot LayoutSlot "{5870C1D380D38B81}" {
+      RichTextWidgetClass "{5970CDADB3F0CA53}" {
+       Name "m_WantedText"
+       Slot LayoutSlot "{56E0F189AA8E9CDB}" {
         HorizontalAlign 2
-        Padding 0 2 0 0
+        VerticalAlign 1
+        Padding 0 0 10 0
        }
+       Clipping False
+       Color 1 1 1 1
        "Inherit Color" 1
-       {
-        RichTextWidgetClass "{5970CDADB3F0CA53}" {
-         Name "m_WantedText"
-         Slot LayoutSlot "{56E0F189AA8E9CDB}" {
-          HorizontalAlign 2
-          VerticalAlign 1
-          Padding 0 0 10 0
-         }
-         Clipping False
-         Color 1 1 1 1
-         "Inherit Color" 1
-         Text "*****"
-         "Font Size" 60
-         "Min Font Size" 20
-         "Horizontal Alignment" Right
-         "Vertical Alignment" Center
-         FontProperties FontProperties "{55F8C56F794D79A5}" {
-          Font "{EABA4FE9D014CCEF}UI/Fonts/RobotoCondensed/RobotoCondensed_Bold.fnt"
-          ShadowSize 10
-          ShadowOffset 0 0
-          ShadowOpacity 0.7
-         }
-        }
+       Text "*****"
+       "Font Size" 60
+       "Min Font Size" 20
+       "Horizontal Alignment" Right
+       "Vertical Alignment" Center
+       FontProperties FontProperties "{55F8C56F794D79A5}" {
+        Font "{EABA4FE9D014CCEF}UI/Fonts/RobotoCondensed/RobotoCondensed_Bold.fnt"
+        ShadowSize 10
+        ShadowOffset 0 0
+        ShadowOpacity 0.7
+       }
+      }
+     }
+    }
+    HorizontalLayoutWidgetClass "{5988DB0B2183F428}" {
+     Name "m_Seen"
+     Slot FrameWidgetSlot "{5988DB08DC69F5CF}" {
+      Anchor 1 0 1 0
+      PositionX -20
+      OffsetLeft -20
+      PositionY 96
+      OffsetTop 96
+      SizeX 100
+      OffsetRight -80
+      SizeY 30
+      OffsetBottom -126
+      Alignment 1 0
+      SizeToContent 1
+     }
+     "Inherit Color" 1
+     {
+      RichTextWidgetClass "{5988DB0B2183F416}" {
+       Name "m_SeenText"
+       Slot LayoutSlot "{56E0F189AA8E9CDB}" {
+        HorizontalAlign 2
+        VerticalAlign 1
+        Padding 0 0 10 0
+       }
+       Clipping False
+       Color 1 1 1 1
+       "Inherit Color" 1
+       Text "o_o"
+       "Font Size" 30
+       "Min Font Size" 20
+       "Horizontal Alignment" Right
+       "Vertical Alignment" Center
+       FontProperties FontProperties "{55F8C56F794D79A5}" {
+        Font "{EABA4FE9D014CCEF}UI/Fonts/RobotoCondensed/RobotoCondensed_Bold.fnt"
+        ShadowSize 10
+        ShadowOffset 0 0
+        ShadowOpacity 0.7
        }
       }
      }

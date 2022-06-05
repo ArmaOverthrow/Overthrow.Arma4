@@ -13,8 +13,80 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode {
   AIPathfindingComponent "{59862DE9BF0C1544}" {
    NavmeshProject "Soldiers"
   }
+  OVT_EconomyManagerComponent "{5988DB0008700592}" {
+  }
   OVT_OverthrowConfigComponent "{59724C8C935D8E5D}" {
    m_pBaseControllerPrefab "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.et"
+   m_Difficulty OVT_DifficultySettings "{598AD54E1DA56EB1}" {
+   }
+   m_aDifficultyPresets {
+    OVT_DifficultySettings "{598AD54F821FB8D9}" {
+     name "#OVT_Difficulty-Easy"
+     wantedTimeout 20000
+     wantedOneTimeout 60000
+     startingResources 2500
+     baseResourcesPerTick 250
+     resourcesPerTick 500
+     resourcesPerSoldier 20
+     initialResourcesPerBase 150
+     startingCash 250
+     respawnCost 0
+     placeableCostMultiplier 0.5
+    }
+    OVT_DifficultySettings "{598AD54F805D7FB1}" {
+     name "#OVT_Difficulty-Normal"
+    }
+    OVT_DifficultySettings "{598AD54F803D9AE8}" {
+     name "#OVT_Difficulty-Hard"
+     wantedTimeout 60000
+     wantedOneTimeout 240000
+     startingResources 10000
+     baseResourcesPerTick 1000
+     resourcesPerTick 2000
+     resourcesPerSoldier 5
+     initialResourcesPerBase 600
+     startingCash 0
+     respawnCost 10
+     placeableCostMultiplier 2
+    }
+   }
+   m_aPlaceables {
+    OVT_Placeable "{598AD54C9B13C3A3}" {
+     name "#OVT-Place_EquipmentBoxes"
+     m_tPreview "{432F18FA92479D4A}UI/Textures/EditorPreviews/Auto/Props/Military/AmmoBoxes/US/E_EquipmentBoxWooden_Weapon_01_US.edds"
+     m_iCost 50
+    }
+    OVT_Placeable "{598AD5569481B870}" {
+     name "#OVT-Place_Sandbags"
+     m_tPreview "{77C7A90EF8056F63}UI/Textures/EditorPreviews/Auto/Props/Military/Sandbags/E_Sandbag_01_long_high_plastic.edds"
+     m_iCost 20
+    }
+    OVT_Placeable "{598AD5547CEB1365}" {
+     name "#OVT-Place_Hedgehog"
+     m_tPreview "{A840828B93D0E956}UI/Textures/EditorPreviews/Auto/Props/Military/Fortification/E_CzechHedgehog_01_painted.edds"
+     m_iCost 60
+    }
+    OVT_Placeable "{598AD554D020B240}" {
+     name "#OVT-Place_Floodlights"
+     m_tPreview "{68AA4388FBCD56BA}UI/Textures/EditorPreviews/Auto/Props/Military/Generators/E_GeneratorFloodlight_US_01.edds"
+     m_iCost 250
+    }
+    OVT_Placeable "{598AD5522F9ED86E}" {
+     name "#OVT-Place_Signs"
+     m_tPreview "{BB66D6FDBA126EA2}UI/Textures/EditorPreviews/Auto/Structures/Signs/Military/E_Sign_AmmoStorage_US_01.edds"
+     m_iCost 50
+    }
+    OVT_Placeable "{598AD5520FB4AD9E}" {
+     name "#OVT_Place-Camp"
+     m_tPreview "{65134F624B2FE2B6}UI/Textures/EditorPreviews/Auto/Structures/Military/Camps/TentSmallUS_01/E_TentSmallUS_01.edds"
+     m_iCost 150
+    }
+    OVT_Placeable "{598AD552E7A55104}" {
+     name "#OVT_Place-FOB"
+     m_tPreview "{511D7FCF61C4D6B3}UI/Textures/EditorPreviews/Auto/Structures/Military/Flags/E_FlagPole_02_V1_FIA.edds"
+     m_iCost 1000
+    }
+   }
    m_pMoveWaypointPrefab "{750A8D1695BD6998}Prefabs/AI/Waypoints/AIWaypoint_Move.et"
    m_pDefendWaypointPrefab "{93291E72AC23930F}Prefabs/AI/Waypoints/AIWaypoint_Defend.et"
    m_pPatrolWaypointPrefab "{22A875E30470BD4F}Prefabs/AI/Waypoints/AIWaypoint_Patrol.et"

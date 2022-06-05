@@ -80,7 +80,7 @@ FrameWidgetClass {
       VerticalLayoutWidgetClass "{5972827C494E4C70}" {
        Name "TownInfo"
        Slot LayoutSlot "{5972827C494E4C5D}" {
-        Padding 30 10 30 10
+        Padding 40 10 40 10
        }
        {
         TextWidgetClass "{5972827C5ECF75A7}" {
@@ -94,7 +94,7 @@ FrameWidgetClass {
         TextWidgetClass "{5972827C15CF7A9F}" {
          Name "m_TownInfoText"
          Slot LayoutSlot "{5972827C15CF7B61}" {
-          Padding 0 10 0 0
+          Padding 0 10 0 20
          }
          Text "pop. 875"\
          "Stability: 100%"\
@@ -104,21 +104,323 @@ FrameWidgetClass {
         }
        }
       }
-      ButtonWidgetClass "{5972827AE7C02F6B}" {
-       Name "m_MapInfoButton"
-       Slot LayoutSlot "{5972827AE7C02F36}" {
-        Padding 10 10 10 10
+      ButtonWidgetClass "{598AB670C1F2839C}" : "{9ECCD201BCF07E95}UI/layouts/Menus/PauseMenu/PauseMenuButton.layout" {
+       Name "Map Info"
+       Slot LayoutSlot "{557478C3F0230865}" {
        }
-       Color 0.004 0.004 0.004 1
+       components {
+        SCR_ButtonTextComponent "{5548F0143AE99095}" {
+         m_BackgroundSelected 1 1 1 0.196
+         m_BackgroundSelectedHovered 1 1 1 0.196
+         m_BackgroundClicked 1 1 1 0.196
+         m_sText "#OVT-MainMenu_MapInfo"
+        }
+       }
        {
-        TextWidgetClass "{5972827AD5920E0C}" {
-         Name "Text0"
-         Slot ButtonWidgetSlot "{5972827AD5920EEB}" {
-          Padding 0 20 0 20
+        SizeLayoutWidgetClass "{557098260F312277}" {
+         Prefab "{557098260F312277}"
+         {
+          OverlayWidgetClass "{557098260F312272}" {
+           Prefab "{557098260F312272}"
+           {
+            HorizontalLayoutWidgetClass "{557098267862A738}" {
+             Prefab "{557098267862A738}"
+             {
+              ScaleWidgetClass "{557478C2A0AF4E50}" {
+               Prefab "{557478C2A0AF4E50}"
+               {
+                ImageWidgetClass "{557098267D2A9494}" {
+                 Prefab "{557098267D2A9494}"
+                 Image "scenarios"
+                 Size 64 64
+                }
+               }
+              }
+             }
+            }
+           }
+          }
          }
-         Text "#OVT-MainMenu_MapInfo"
-         "Font Size" 20
-         "Min Font Size" 20
+        }
+       }
+      }
+      ButtonWidgetClass "{598AB6734AADE219}" : "{9ECCD201BCF07E95}UI/layouts/Menus/PauseMenu/PauseMenuButton.layout" {
+       Name "Fast Travel"
+       Slot LayoutSlot "{557478C3F0230865}" {
+       }
+       components {
+        SCR_ButtonTextComponent "{5548F0143AE99095}" {
+         m_BackgroundSelected 1 1 1 0.196
+         m_BackgroundSelectedHovered 1 1 1 0.196
+         m_BackgroundClicked 1 1 1 0.196
+         m_sText "#OVT-MainMenu_FastTravel"
+        }
+       }
+       {
+        SizeLayoutWidgetClass "{557098260F312277}" {
+         Prefab "{557098260F312277}"
+         {
+          OverlayWidgetClass "{557098260F312272}" {
+           Prefab "{557098260F312272}"
+           {
+            HorizontalLayoutWidgetClass "{557098267862A738}" {
+             Prefab "{557098267862A738}"
+             {
+              ScaleWidgetClass "{557478C2A0AF4E50}" {
+               Prefab "{557478C2A0AF4E50}"
+               {
+                ImageWidgetClass "{557098267D2A9494}" {
+                 Prefab "{557098267D2A9494}"
+                 Image "vehicles"
+                 Size 64 64
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+      ButtonWidgetClass "{598AB673492ACA11}" : "{9ECCD201BCF07E95}UI/layouts/Menus/PauseMenu/PauseMenuButton.layout" {
+       Name "Resistance"
+       Slot LayoutSlot "{557478C3F0230865}" {
+       }
+       components {
+        SCR_ButtonTextComponent "{5548F0143AE99095}" {
+         m_BackgroundSelected 1 1 1 0.196
+         m_BackgroundSelectedHovered 1 1 1 0.196
+         m_BackgroundClicked 1 1 1 0.196
+         m_sText "#OVT-MainMenu_Resistance"
+        }
+       }
+       {
+        SizeLayoutWidgetClass "{557098260F312277}" {
+         Prefab "{557098260F312277}"
+         {
+          OverlayWidgetClass "{557098260F312272}" {
+           Prefab "{557098260F312272}"
+           {
+            HorizontalLayoutWidgetClass "{557098267862A738}" {
+             Prefab "{557098267862A738}"
+             {
+              ScaleWidgetClass "{557478C2A0AF4E50}" {
+               Prefab "{557478C2A0AF4E50}"
+               {
+                ImageWidgetClass "{557098267D2A9494}" {
+                 Prefab "{557098267D2A9494}"
+                 Image "weapons"
+                 Size 64 64
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+      ButtonWidgetClass "{598AB67349EB2885}" : "{9ECCD201BCF07E95}UI/layouts/Menus/PauseMenu/PauseMenuButton.layout" {
+       Name "Place"
+       Slot LayoutSlot "{557478C3F0230865}" {
+       }
+       components {
+        SCR_ButtonTextComponent "{5548F0143AE99095}" {
+         m_BackgroundSelected 1 1 1 0.196
+         m_BackgroundSelectedHovered 1 1 1 0.196
+         m_BackgroundClicked 1 1 1 0.196
+         m_sText "#OVT-MainMenu_Place"
+        }
+       }
+       {
+        SizeLayoutWidgetClass "{557098260F312277}" {
+         Prefab "{557098260F312277}"
+         {
+          OverlayWidgetClass "{557098260F312272}" {
+           Prefab "{557098260F312272}"
+           {
+            HorizontalLayoutWidgetClass "{557098267862A738}" {
+             Prefab "{557098267862A738}"
+             {
+              ScaleWidgetClass "{557478C2A0AF4E50}" {
+               Prefab "{557478C2A0AF4E50}"
+               {
+                ImageWidgetClass "{557098267D2A9494}" {
+                 Prefab "{557098267D2A9494}"
+                 Image "down"
+                 Size 64 64
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+      ButtonWidgetClass "{598AB67349A970B3}" : "{9ECCD201BCF07E95}UI/layouts/Menus/PauseMenu/PauseMenuButton.layout" {
+       Name "Build"
+       Slot LayoutSlot "{557478C3F0230865}" {
+       }
+       components {
+        SCR_ButtonTextComponent "{5548F0143AE99095}" {
+         m_BackgroundSelected 1 1 1 0.196
+         m_BackgroundSelectedHovered 1 1 1 0.196
+         m_BackgroundClicked 1 1 1 0.196
+         m_sText "#OVT-MainMenu_Build"
+        }
+       }
+       {
+        SizeLayoutWidgetClass "{557098260F312277}" {
+         Prefab "{557098260F312277}"
+         {
+          OverlayWidgetClass "{557098260F312272}" {
+           Prefab "{557098260F312272}"
+           {
+            HorizontalLayoutWidgetClass "{557098267862A738}" {
+             Prefab "{557098267862A738}"
+             {
+              ScaleWidgetClass "{557478C2A0AF4E50}" {
+               Prefab "{557478C2A0AF4E50}"
+               {
+                ImageWidgetClass "{557098267D2A9494}" {
+                 Prefab "{557098267D2A9494}"
+                 Image "structures"
+                 Size 64 64
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+      ButtonWidgetClass "{598AB6734867328F}" : "{9ECCD201BCF07E95}UI/layouts/Menus/PauseMenu/PauseMenuButton.layout" {
+       Name "Manage Recruits"
+       Slot LayoutSlot "{557478C3F0230865}" {
+       }
+       components {
+        SCR_ButtonTextComponent "{5548F0143AE99095}" {
+         m_BackgroundSelected 1 1 1 0.196
+         m_BackgroundSelectedHovered 1 1 1 0.196
+         m_BackgroundClicked 1 1 1 0.196
+         m_sText "#OVT-MainMenu_ManageRecruits"
+        }
+       }
+       {
+        SizeLayoutWidgetClass "{557098260F312277}" {
+         Prefab "{557098260F312277}"
+         {
+          OverlayWidgetClass "{557098260F312272}" {
+           Prefab "{557098260F312272}"
+           {
+            HorizontalLayoutWidgetClass "{557098267862A738}" {
+             Prefab "{557098267862A738}"
+             {
+              ScaleWidgetClass "{557478C2A0AF4E50}" {
+               Prefab "{557478C2A0AF4E50}"
+               {
+                ImageWidgetClass "{557098267D2A9494}" {
+                 Prefab "{557098267D2A9494}"
+                 Image "players"
+                 Size 64 64
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+      ButtonWidgetClass "{598AB67322881B47}" : "{9ECCD201BCF07E95}UI/layouts/Menus/PauseMenu/PauseMenuButton.layout" {
+       Name "Character Sheet"
+       Slot LayoutSlot "{557478C3F0230865}" {
+       }
+       components {
+        SCR_ButtonTextComponent "{5548F0143AE99095}" {
+         m_BackgroundSelected 1 1 1 0.196
+         m_BackgroundSelectedHovered 1 1 1 0.196
+         m_BackgroundClicked 1 1 1 0.196
+         m_sText "#OVT-MainMenu_CharacterSheet"
+        }
+       }
+       {
+        SizeLayoutWidgetClass "{557098260F312277}" {
+         Prefab "{557098260F312277}"
+         {
+          OverlayWidgetClass "{557098260F312272}" {
+           Prefab "{557098260F312272}"
+           {
+            HorizontalLayoutWidgetClass "{557098267862A738}" {
+             Prefab "{557098267862A738}"
+             {
+              ScaleWidgetClass "{557478C2A0AF4E50}" {
+               Prefab "{557478C2A0AF4E50}"
+               {
+                ImageWidgetClass "{557098267D2A9494}" {
+                 Prefab "{557098267D2A9494}"
+                 Image "characters"
+                 Size 64 64
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+      ButtonWidgetClass "{598AB673215B9E90}" : "{9ECCD201BCF07E95}UI/layouts/Menus/PauseMenu/PauseMenuButton.layout" {
+       Name "Options"
+       Slot LayoutSlot "{557478C3F0230865}" {
+       }
+       components {
+        SCR_ButtonTextComponent "{5548F0143AE99095}" {
+         m_BackgroundSelected 1 1 1 0.196
+         m_BackgroundSelectedHovered 1 1 1 0.196
+         m_BackgroundClicked 1 1 1 0.196
+         m_sText "#OVT-MainMenu_Options"
+        }
+       }
+       {
+        SizeLayoutWidgetClass "{557098260F312277}" {
+         Prefab "{557098260F312277}"
+         {
+          OverlayWidgetClass "{557098260F312272}" {
+           Prefab "{557098260F312272}"
+           {
+            HorizontalLayoutWidgetClass "{557098267862A738}" {
+             Prefab "{557098267862A738}"
+             {
+              ScaleWidgetClass "{557478C2A0AF4E50}" {
+               Prefab "{557478C2A0AF4E50}"
+               {
+                ImageWidgetClass "{557098267D2A9494}" {
+                 Prefab "{557098267D2A9494}"
+                 Image "settings"
+                 Size 64 64
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
         }
        }
       }
