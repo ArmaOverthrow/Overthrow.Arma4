@@ -11,6 +11,8 @@ ButtonWidgetClass {
    m_BackgroundHovered 1 1 1 0
    m_bShowBorderOnHover 1
   }
+  OVT_PlaceMenuCardComponent "{598C247DD3E876BA}" {
+  }
  }
  {
   SizeLayoutWidgetClass "{598AD54923D455AD}" {

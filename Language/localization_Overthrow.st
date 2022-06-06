@@ -2,6 +2,13 @@ StringTable {
  TargetPrefix "Target_"
  ItemClassName "CustomStringTableItem"
  Items {
+  CustomStringTableItem "{598C5127A5D2149E}" {
+   Id "OVT-CannotAfford"
+   Target_en_us "You cannot afford that"
+   Modified 1502371140
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{598AB67692AD5DBB}" {
    Id "OVT-MainMenu_Build"
    Target_en_us "Build"
@@ -62,6 +69,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{598AD5529A3EEA5D}" {
+   Id "OVT-Place_Camp"
+   Target_en_us "Camp"
+   Modified 1502371117
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{598AD55D632ED8B6}" {
    Id "OVT-Place_EquipmentBoxes"
    Target_en_us "Equipment Boxes"
@@ -73,6 +87,13 @@ StringTable {
    Id "OVT-Place_Floodlights"
    Target_en_us "Floodlights"
    Modified 1502284055
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{598AD553667F76AF}" {
+   Id "OVT-Place_FOB"
+   Target_en_us "FOB"
+   Modified 1502371108
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -115,20 +136,6 @@ StringTable {
    Id "OVT-Support"
    Target_en_us "Support"
    Modified 1501355613
-   Author "Aaron Static"
-   LastChanged "Aaron Static"
-  }
-  CustomStringTableItem "{598AD5529A3EEA5D}" {
-   Id "OVT_Place-Camp"
-   Target_en_us "Camp"
-   Modified 1502284944
-   Author "Aaron Static"
-   LastChanged "Aaron Static"
-  }
-  CustomStringTableItem "{598AD553667F76AF}" {
-   Id "OVT_Place-FOB"
-   Target_en_us "FOB"
-   Modified 1502284932
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

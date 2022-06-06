@@ -1,29 +1,28 @@
-class OVT_MainMenu
+class OVT_MainMenuContext : OVT_UIContext
 {
-	OVT_MainMenuWidgets m_Widgets;
+	ref OVT_MainMenuWidgets m_Widgets;
 	OVT_TownManagerComponent m_TownManager;
-	OVT_UIManagerComponent m_UIManager;
-	
-	void OnUpdate(IEntity player)
-	{
-		if(!m_TownManager) return;
 		
-		OVT_TownData town = m_TownManager.GetNearestTown(player.GetOrigin());
+	override void PostInit()
+	{		
+		m_TownManager = OVT_TownManagerComponent.GetInstance();
+		m_Widgets = new OVT_MainMenuWidgets();
+	}
+	
+	override void OnShow()
+	{		
+		m_Widgets.Init(m_wRoot);
+		
+		OVT_TownData town = m_TownManager.GetNearestTown(m_Owner.GetOrigin());
 		
 		m_Widgets.m_TownNameText.SetText(town.name);
 		m_Widgets.m_TownInfoText.SetTextFormat("#OVT-Population:%1\n#OVT-Stability: %2%\n#OVT-Support: %3%", town.population, town.stability, town.support);
-	}
-	
-	void OVT_MainMenu(OVT_MainMenuWidgets widgets, Widget root, OVT_UIManagerComponent uimanager)
-	{
-		m_TownManager = OVT_TownManagerComponent.GetInstance();
-		m_Widgets = widgets;
-		m_UIManager = uimanager;
+		
 		
 		SCR_ButtonTextComponent comp;
 
 		// Map Info
-		comp = SCR_ButtonTextComponent.GetButtonText("Map Info", root);
+		comp = SCR_ButtonTextComponent.GetButtonText("Map Info", m_wRoot);
 		if (comp)
 		{
 			GetGame().GetWorkspace().SetFocusedWidget(comp.GetRootWidget());
@@ -31,7 +30,7 @@ class OVT_MainMenu
 		}
 		
 		// Place
-		comp = SCR_ButtonTextComponent.GetButtonText("Place", root);
+		comp = SCR_ButtonTextComponent.GetButtonText("Place", m_wRoot);
 		if (comp)
 		{
 			comp.m_OnClicked.Insert(Place);
@@ -45,6 +44,7 @@ class OVT_MainMenu
 	
 	private void Place()
 	{
-		m_UIManager.OpenPlaceMenu();		
+		CloseLayout();
+		m_UIManager.ShowContext(OVT_PlaceContext);		
 	}
 }

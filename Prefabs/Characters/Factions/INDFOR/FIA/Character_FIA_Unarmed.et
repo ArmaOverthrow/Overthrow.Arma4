@@ -6,6 +6,20 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
   OVT_PlayerWantedComponent "{596EE382181C58FB}" {
   }
   OVT_UIManagerComponent "{597282FDAEED0B0D}" {
+   m_aContexts {
+    OVT_MainMenuContext "{598C51330A237566}" {
+     m_Layout "{5201CB56B09FB27A}UI/Layouts/Menu/MainMenu.layout"
+     m_sContextName "OverthrowMainMenuContext"
+     m_sOpenAction "OverthrowMainMenu"
+     m_sCloseAction "OverthrowMainMenuEsc"
+    }
+    OVT_PlaceContext "{598C5166834EC2A0}" {
+     m_Layout "{02AA5A91E0DD49DF}UI/Layouts/Menu/PlaceMenu.layout"
+     m_sContextName "OverthrowPlaceMenuContext"
+     m_sOpenAction "OverthrowPlaceMenu"
+     m_sCloseAction "OverthrowPlaceMenuEsc"
+    }
+   }
   }
   SCR_BaseHUDComponent "{520EA1D2DB118134}" {
    InfoDisplays {
