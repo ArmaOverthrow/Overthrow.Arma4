@@ -2,10 +2,43 @@ class OVT_EconomyManagerComponentClass: OVT_ComponentClass
 {
 };
 
+class OVT_ShopInventoryItem : ScriptAndConfig
+{
+	[Attribute("Item Prefab", UIWidgets.ResourceNamePicker)]
+	ResourceName prefab;
+	
+	[Attribute("50")]
+	int cost;
+	
+	[Attribute("10")]
+	int maxAtStart;
+	
+	[Attribute(defvalue: "0.1", desc: "Demand Per Population Per Day")]
+	float demand;
+}
+
+class OVT_ShopInventoryConfig : ScriptAndConfig
+{
+	[Attribute("1", UIWidgets.ComboBox, "Shop type", "", ParamEnumArray.FromEnum(OVT_ShopType) )]
+	OVT_ShopType type;
+	
+	[Attribute("", UIWidgets.Object)]
+	ref array<ref OVT_ShopInventoryItem> m_aInventoryItems;
+	ref array<ref OVT_ShopInventoryItem> m_aInventoryItemsPacked = new array<ref OVT_ShopInventoryItem>();
+
+}
+
 class OVT_EconomyManagerComponent: OVT_Component
 {
+	[Attribute("", UIWidgets.Object)]
+	ref array<ref OVT_ShopInventoryConfig> m_aShopConfigs;
+	ref array<ref OVT_ShopInventoryConfig> m_aShopConfigsPacked = new array<ref OVT_ShopInventoryConfig>();
+
+	protected ref map<ResourceName, int> m_mItemCosts;
 	protected ref map<int, int> m_mMoney;
 	protected int m_iResistanceMoney = 0;
+	
+	protected ref array<EntityID> m_aAllShops;
 	
 	static OVT_EconomyManagerComponent s_Instance;
 	
@@ -19,6 +52,27 @@ class OVT_EconomyManagerComponent: OVT_Component
 		}
 
 		return s_Instance;
+	}
+	
+	void SetPrice(ResourceName res, int cost)
+	{
+		m_mItemCosts[res] = cost;
+	}
+	
+	int GetPrice(ResourceName res)
+	{
+		if(!m_mItemCosts.Contains(res)) return 0;
+		
+		return m_mItemCosts[res];
+	}
+	
+	OVT_ShopInventoryConfig GetShopConfig(OVT_ShopType shopType)
+	{
+		foreach(OVT_ShopInventoryConfig config : m_aShopConfigs)
+		{
+			if(config.type == shopType) return config;
+		}
+		return new OVT_ShopInventoryConfig();
 	}
 	
 	int GetPlayerMoney(int playerId)
@@ -70,5 +124,52 @@ class OVT_EconomyManagerComponent: OVT_Component
 	void Init(IEntity owner)
 	{		
 		m_mMoney = new map<int, int>;
+		
+		InitializeShops();
 	}
+	
+	protected void InitializeShops()
+	{
+		Print("Finding shops");
+		
+		m_aAllShops = new array<EntityID>;	
+		m_mItemCosts = new map<ResourceName, int>;	
+		
+		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, CheckShopInit, FilterShopEntities, EQueryEntitiesFlags.STATIC);
+		
+	}
+	
+	protected bool CheckShopInit(IEntity entity)
+	{	
+		Print("Found Shop");
+		m_aAllShops.Insert(entity.GetID());
+		
+		OVT_ShopComponent shop = OVT_ShopComponent.Cast(entity.FindComponent(OVT_ShopComponent));
+		
+		OVT_ShopInventoryConfig config = GetShopConfig(shop.m_ShopType);
+		foreach(OVT_ShopInventoryItem item : config.m_aInventoryItems)
+		{
+			if(!m_mItemCosts.Contains(item.prefab))
+			{
+				SetPrice(item.prefab, item.cost);
+			}
+			int num = Math.Round(s_AIRandomGenerator.RandFloatXY(1,item.maxAtStart));
+			
+			shop.AddToInventory(item.prefab, num);
+		}
+		
+		return true;
+	}
+	
+	protected bool FilterShopEntities(IEntity entity)
+	{	
+		if(entity.ClassName() == "SCR_DestructibleBuildingEntity")
+		{
+			OVT_ShopComponent shop = OVT_ShopComponent.Cast(entity.FindComponent(OVT_ShopComponent));
+			if(shop) return true;
+		}
+		return false;
+	}
+	
+	
 }

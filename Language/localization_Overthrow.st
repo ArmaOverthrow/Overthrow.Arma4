@@ -125,6 +125,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{598EF98DD5C74403}" {
+   Id "OVT-Shop_Open"
+   Target_en_us "Open Shop"
+   Modified 1502542544
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5976AC6DA44FAA95}" {
    Id "OVT-Stability"
    Target_en_us "Stability"

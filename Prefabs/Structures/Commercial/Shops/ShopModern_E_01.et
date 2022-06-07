@@ -1,0 +1,43 @@
+SCR_DestructibleBuildingEntity : "{9ABD5AF92E43D2AA}Prefabs/Structures/Commercial/Shops/ShopModern_E_01_Base.et" {
+ ID "F0DBA538AC2A0552"
+ components {
+  OVT_ShopComponent "{598EDB5A1677FEA3}" {
+   m_ShopType SHOP_GENERAL
+  }
+ }
+ {
+  GenericEntity {
+   ID "58C87C53F5FFC64D"
+   components {
+    Hierarchy "{598EF98F877E945F}" {
+    }
+    ActionsManagerComponent "{598EDB5A1DD01F4E}" {
+     ActionContexts {
+      UserActionContext "{598EDB5A1CF52A48}" {
+       UIInfo UIInfo "{598EDB5A19245051}" {
+        Name "#OVT-Shop_Open"
+       }
+       ContextName "default"
+       Position PointInfo "{598EDB5AE46E9127}" {
+       }
+       Radius 0.65
+      }
+     }
+     additionalActions {
+      OVT_ShopAction "{598EDB5AE06224EB}" {
+       ParentContextList {
+        "default"
+       }
+       UIInfo UIInfo "{598EDB5AEA41B6C4}" {
+        Name "#OVT-Shop_Open"
+       }
+      }
+     }
+    }
+    RplComponent "{5624A88DC2D9928D}" {
+     Enabled 1
+    }
+   }
+  }
+ }
+}
