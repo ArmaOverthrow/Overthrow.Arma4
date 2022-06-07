@@ -29,6 +29,13 @@ class OVT_MainMenuContext : OVT_UIContext
 			comp.m_OnClicked.Insert(MapInfo);
 		}
 		
+		// Fast Travel
+		comp = SCR_ButtonTextComponent.GetButtonText("Fast Travel", m_wRoot);
+		if (comp)
+		{
+			comp.m_OnClicked.Insert(FastTravel);
+		}
+		
 		// Place
 		comp = SCR_ButtonTextComponent.GetButtonText("Place", m_wRoot);
 		if (comp)
@@ -39,7 +46,14 @@ class OVT_MainMenuContext : OVT_UIContext
 	
 	private void MapInfo()
 	{
-		Print("Map Info button was clicked");
+		CloseLayout();
+		OVT_MapContext.Cast(m_UIManager.GetContext(OVT_MapContext)).EnableMapInfo();		
+	}
+	
+	private void FastTravel()
+	{
+		CloseLayout();
+		OVT_MapContext.Cast(m_UIManager.GetContext(OVT_MapContext)).EnableFastTravel();		
 	}
 	
 	private void Place()

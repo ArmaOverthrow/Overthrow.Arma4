@@ -8,6 +8,20 @@ class OVT_RealEstateManagerComponent: OVT_Component
 	
 	protected OVT_TownManagerComponent m_Town;
 	
+	static OVT_RealEstateManagerComponent s_Instance;
+	
+	static OVT_RealEstateManagerComponent GetInstance()
+	{
+		if (!s_Instance)
+		{
+			BaseGameMode pGameMode = GetGame().GetGameMode();
+			if (pGameMode)
+				s_Instance = OVT_RealEstateManagerComponent.Cast(pGameMode.FindComponent(OVT_RealEstateManagerComponent));
+		}
+
+		return s_Instance;
+	}
+	
 	override void OnPostInit(IEntity owner)
 	{	
 		super.OnPostInit(owner);

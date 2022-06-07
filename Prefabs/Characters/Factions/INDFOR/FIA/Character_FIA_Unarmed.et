@@ -19,6 +19,10 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      m_sOpenAction "OverthrowPlaceMenu"
      m_sCloseAction "OverthrowPlaceMenuEsc"
     }
+    OVT_MapContext "{598E83B6A7175CBE}" {
+     m_bOpenActionCloses 0
+     m_bHideHUDOnShow 0
+    }
    }
   }
   SCR_BaseHUDComponent "{520EA1D2DB118134}" {

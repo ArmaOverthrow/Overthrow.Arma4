@@ -40,6 +40,19 @@ class OVT_UIManagerComponent: OVT_Component
 			}
 		}
 	}
+	
+	OVT_UIContext GetContext(typename typeName)
+	{
+		foreach(OVT_UIContext context : m_aContexts)
+		{
+			if(context.ClassName() == typeName.ToString())
+			{
+				return context;
+			}
+		}
+		
+		return null;
+	}
 			
 	override void EOnFrame(IEntity owner, float timeSlice)
 	{
