@@ -44,7 +44,7 @@ class OVT_ShopContext : OVT_UIContext
 		{			
 			OVT_ShopInventoryItem item = m_Shop.m_aInventoryItems[i];
 			
-			if(wi == 0){
+			if(wi == 0 && !m_SelectedResource){
 				SelectItem(item.prefab);
 			}
 			

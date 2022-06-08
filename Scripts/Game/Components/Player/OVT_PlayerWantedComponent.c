@@ -61,6 +61,13 @@ class OVT_PlayerWantedComponent: OVT_Component
 				
 		Faction currentFaction = m_Faction.GetAffiliatedFaction();
 		
+		OVT_BaseControllerComponent base = OVT_OccupyingFactionManager.GetInstance().GetNearestBase(GetOwner().GetOrigin());
+		float distanceToBase = vector.Distance(base.GetOwner().GetOrigin(), GetOwner().GetOrigin());
+		if(m_iWantedLevel < 2 && distanceToBase < base.m_iCloseRange && m_bIsSeen)
+		{
+			SetBaseWantedLevel(2);
+		}		
+		
 		//Print("Last seen is: " + m_iLastSeen);
 		
 		if(m_iWantedLevel > 0 && !m_bIsSeen)

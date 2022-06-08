@@ -130,7 +130,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	protected void InitializeShops()
 	{
+		#ifdef OVERTHROW_DEBUG
 		Print("Finding shops");
+		#endif
 		
 		m_aAllShops = new array<EntityID>;	
 		m_mItemCosts = new map<ResourceName, int>;	
@@ -141,7 +143,10 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	protected bool CheckShopInit(IEntity entity)
 	{	
+		#ifdef OVERTHROW_DEBUG
 		Print("Found Shop");
+		#endif
+		
 		m_aAllShops.Insert(entity.GetID());
 		
 		OVT_ShopComponent shop = OVT_ShopComponent.Cast(entity.FindComponent(OVT_ShopComponent));

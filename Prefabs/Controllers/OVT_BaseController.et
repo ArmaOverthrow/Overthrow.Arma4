@@ -2,6 +2,17 @@ GenericEntity {
  ID "59845E6E8A2A6A0B"
  components {
   OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
+   m_aBaseUpgrades {
+    OVT_BaseUpgradeDefensePatrol "{599083983B065EC0}" {
+    }
+    OVT_BaseUpgradeTowerGuard "{599083983840DDC7}" {
+     m_iResourceAllocation -1
+    }
+    OVT_BaseUpgradeTownPatrol "{5990839679E96556}" {
+     m_iResourceAllocation -1
+     m_iPriority 2
+    }
+   }
   }
  }
  coords 7504.101 165.761 4282.453

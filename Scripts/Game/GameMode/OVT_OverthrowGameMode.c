@@ -40,7 +40,9 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			faction.SetAffiliatedFactionByKey("");
 		}
 		
+		#ifdef OVERTHROW_DEBUG
 		Print("Player spawned");
+		#endif
 	}
 	
 	override void EOnInit(IEntity owner) //!EntityEvent.INIT
@@ -50,7 +52,9 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		if(SCR_Global.IsEditMode())
 			return;		
 		
+		#ifdef OVERTHROW_DEBUG
 		Print("Initializing Overthrow");
+		#endif
 		
 		m_Config = OVT_OverthrowConfigComponent.GetInstance();
 		
@@ -59,21 +63,30 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		m_TownManager = OVT_TownManagerComponent.Cast(FindComponent(OVT_TownManagerComponent));		
 		if(m_TownManager)
 		{
+			#ifdef OVERTHROW_DEBUG
 			Print("Initializing Towns");
+			#endif
+			
 			m_TownManager.Init(this);
 		}
 		
 		m_OccupyingFactionManager = OVT_OccupyingFactionManager.Cast(FindComponent(OVT_OccupyingFactionManager));		
 		if(m_OccupyingFactionManager)
 		{
+			#ifdef OVERTHROW_DEBUG
 			Print("Initializing Occupying Faction");
+			#endif
+			
 			m_OccupyingFactionManager.Init(this);
 		}
 		
 		m_EconomyManager = OVT_EconomyManagerComponent.Cast(FindComponent(OVT_EconomyManagerComponent));		
 		if(m_EconomyManager)
 		{
+			#ifdef OVERTHROW_DEBUG
 			Print("Initializing Economy");
+			#endif
+			
 			m_EconomyManager.Init(this);
 		}
 	}

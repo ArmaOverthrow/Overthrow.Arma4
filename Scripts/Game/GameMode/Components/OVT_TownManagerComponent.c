@@ -85,9 +85,23 @@ class OVT_TownManagerComponent: OVT_Component
 		return nearestTown;
 	}
 	
+	void GetTownsWithinDistance(vector pos, float maxDistance, out array<ref OVT_TownData> towns)
+	{
+		foreach(OVT_TownData town : m_Towns)
+		{
+			IEntity marker = GetGame().GetWorld().FindEntityByID(town.markerID);
+			float distance = vector.Distance(marker.GetOrigin(), pos);
+			if(distance < maxDistance){
+				towns.Insert(town);
+			}
+		}
+	}
+	
 	protected void InitializeTowns()
 	{
+		#ifdef OVERTHROW_DEBUG
 		Print("Finding cities, towns and villages");
+		#endif
 		
 		m_Towns = new array<ref OVT_TownData>;		
 		
@@ -128,7 +142,10 @@ class OVT_TownManagerComponent: OVT_Component
 		
 		GetGame().GetWorld().QueryEntitiesBySphere(entity.GetOrigin(), range, CheckHouseAddPopulation, FilterHouseEntities, EQueryEntitiesFlags.STATIC);
 		
+		#ifdef OVERTHROW_DEBUG
 		Print(town.name + ": pop. " + town.population.ToString());
+		#endif
+		
 		m_Towns.Insert(town);
 	}
 	
