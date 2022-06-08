@@ -1,0 +1,543 @@
+FrameWidgetClass {
+ Name "rootFrame"
+ {
+  HorizontalLayoutWidgetClass "{598EF9FB202ECA6A}" {
+   Name "Window"
+   Slot FrameWidgetSlot "{56EEDE05AD6DF1E2}" {
+    Anchor 0 0 1 1
+    PositionX 0
+    OffsetLeft 0
+    PositionY 0
+    OffsetTop 0
+    SizeX -1820
+    OffsetRight 0
+    SizeY -1050
+    OffsetBottom 0
+   }
+   {
+    OverlayWidgetClass "{598EF9FB202ECA69}" {
+     Name "Content"
+     Slot LayoutSlot "{56EEDE05BFED5D35}" {
+      SizeMode Fill
+     }
+     {
+      ImageWidgetClass "{598EF9FB202ECA68}" {
+       Name "Background"
+       Slot OverlayWidgetSlot "{56EEDE05C871C02C}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       Opacity 0.5
+       Color 0 0 0 1
+      }
+      BlurWidgetClass "{598EF9FB202ECA56}" {
+       Name "Blur"
+       Slot OverlayWidgetSlot "{56EEDE05D754F42B}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       Color 0.305 0.305 0.305 1
+       Intensity 0.7
+      }
+      HorizontalLayoutWidgetClass "{598EF9FB202E31D6}" {
+       Name "SpaceLayout"
+       Slot OverlayWidgetSlot "{5720DE53ABB7CBED}" {
+        Padding 0 72 0 72
+       }
+       {
+        FrameWidgetClass "{598EF9FB202E31D0}" {
+         Name "SpaceLeft"
+         Slot LayoutSlot "{5720ECBBBD66ED2B}" {
+          SizeMode Fill
+          FillWeight 0.025
+         }
+        }
+        SizeLayoutWidgetClass "{598EF9FB202E31D1}" {
+         Name "Alignment"
+         Slot LayoutSlot "{5720DE53A848E0CC}" {
+          SizeMode Fill
+         }
+         AllowWidthOverride 1
+         WidthOverride 1344
+         AllowHeightOverride 1
+         HeightOverride 936
+         {
+          VerticalLayoutWidgetClass "{598EF9FB202E31D2}" {
+           Name "ContentLayout"
+           Slot AlignableSlot "{56EEDE0403BED8AE}" {
+            HorizontalAlign 3
+            VerticalAlign 3
+           }
+           "Fill Origin" Center
+           {
+            HorizontalLayoutWidgetClass "{599083DDE2349E5E}" {
+             Name "HorizontalLayout0"
+             Slot LayoutSlot "{599083DDE2349E32}" {
+             }
+             {
+              TextWidgetClass "{598EF9FB202E31DD}" : "{9D643D214767D616}UI/layouts/WidgetLibrary/TextWidgets/Text_Heading2.layout" {
+               Name "Title"
+               Slot LayoutSlot "{56EEDE046853BD3D}" {
+                Padding 0 0 0 12
+                SizeMode Fill
+               }
+               Text "#OVT-Shop"
+              }
+              TextWidgetClass "{599083DDFA910137}" : "{9D643D214767D616}UI/layouts/WidgetLibrary/TextWidgets/Text_Heading2.layout" {
+               Name "PlayerMoney"
+               Slot LayoutSlot "{56EEDE046853BD3D}" {
+                Padding 0 0 0 12
+               }
+               Text "$100"
+               "Min Font Size" 20
+               "Vertical Alignment" Center
+              }
+             }
+            }
+            ImageWidgetClass "{598EF9FB202E402D}" {
+             Name "UpperStripe"
+             Slot LayoutSlot "{56EEDE07C9F827C2}" {
+              Padding 0 0 0 12
+             }
+             Color 0.761 0.392 0.08 1
+             Image ""
+             Size 128 2
+            }
+            OverlayWidgetClass "{598EF9FB202E402E}" {
+             Name "ContentSegment"
+             Slot LayoutSlot "{56EF0B1E79FE7342}" {
+              Padding 0 12 0 0
+              SizeMode Fill
+             }
+             {
+              UniformGridLayoutWidgetClass "{598EF9FB202E4028}" {
+               Name "BrowserGrid"
+               Slot OverlayWidgetSlot "{56EF0B1E7E5700F5}" {
+                HorizontalAlign 3
+                VerticalAlign 3
+               }
+               {
+                ButtonWidgetClass "{598EF9F79451864E}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
+                 Name "ShopMenu_Card0"
+                 Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
+                 }
+                 {
+                 }
+                }
+                ButtonWidgetClass "{598EF9F63483038F}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
+                 Name "ShopMenu_Card1"
+                 Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
+                  Column 1
+                 }
+                 {
+                 }
+                }
+                ButtonWidgetClass "{598EF9F633D06051}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
+                 Name "ShopMenu_Card2"
+                 Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
+                  Column 2
+                 }
+                 {
+                 }
+                }
+                ButtonWidgetClass "{598EF9F633BFEF00}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
+                 Name "ShopMenu_Card3"
+                 Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
+                  Column 3
+                 }
+                 {
+                 }
+                }
+                ButtonWidgetClass "{598EF9F6325378D2}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
+                 Name "ShopMenu_Card4"
+                 Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
+                  Column 4
+                 }
+                 {
+                 }
+                }
+                ButtonWidgetClass "{598EF9F60F337705}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
+                 Name "ShopMenu_Card5"
+                 Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
+                  Row 1
+                 }
+                 {
+                 }
+                }
+                ButtonWidgetClass "{598EF9F60F36BA40}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
+                 Name "ShopMenu_Card6"
+                 Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
+                  Row 1
+                  Column 1
+                 }
+                 {
+                 }
+                }
+                ButtonWidgetClass "{598EF9F60F35E940}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
+                 Name "ShopMenu_Card7"
+                 Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
+                  Row 1
+                  Column 2
+                 }
+                 {
+                 }
+                }
+                ButtonWidgetClass "{598EF9F60F3896BA}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
+                 Name "ShopMenu_Card8"
+                 Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
+                  Row 1
+                  Column 3
+                 }
+                 {
+                 }
+                }
+                ButtonWidgetClass "{598EF9F60F3FBB18}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
+                 Name "ShopMenu_Card9"
+                 Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
+                  Row 1
+                  Column 4
+                 }
+                 {
+                 }
+                }
+                ButtonWidgetClass "{598EF9F613CB2661}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
+                 Name "ShopMenu_Card10"
+                 Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
+                  Row 2
+                 }
+                 {
+                 }
+                }
+                ButtonWidgetClass "{598EF9F613CFA83A}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
+                 Name "ShopMenu_Card11"
+                 Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
+                  Row 2
+                  Column 1
+                 }
+                 {
+                 }
+                }
+                ButtonWidgetClass "{598EF9F613B3F901}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
+                 Name "ShopMenu_Card12"
+                 Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
+                  Row 2
+                  Column 2
+                 }
+                 {
+                 }
+                }
+                ButtonWidgetClass "{598EF9F613B7C75F}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
+                 Name "ShopMenu_Card13"
+                 Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
+                  Row 2
+                  Column 3
+                 }
+                 {
+                 }
+                }
+                ButtonWidgetClass "{598EF9F613BBC135}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
+                 Name "ShopMenu_Card14"
+                 Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
+                  Row 2
+                  Column 4
+                 }
+                 {
+                 }
+                }
+               }
+              }
+             }
+            }
+            ImageWidgetClass "{598EF9FB202E405B}" {
+             Name "LowerStripe"
+             Slot LayoutSlot "{56EEDE06187FACF9}" {
+              Padding 0 12 0 24
+             }
+             Opacity 0.1
+             Size 2 2
+            }
+            OverlayWidgetClass "{598EF9FB202E4064}" {
+             Name "Footer"
+             Slot LayoutSlot "{56EEDE03DE14A911}" {
+             }
+             {
+              HorizontalLayoutWidgetClass "{598EF9FB202E4065}" {
+               Name "Buttons"
+               Slot OverlayWidgetSlot "{56EEDE03DED9A743}" {
+                HorizontalAlign 3
+               }
+               {
+                ButtonWidgetClass "{599070D31AD02ECE}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+                 Name "CloseButton"
+                 Slot LayoutSlot "{56EEDE01982D053A}" {
+                  Padding 0 0 10 0
+                 }
+                 components {
+                  SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+                   m_sSoundClicked "SOUND_FE_BUTTON_CANCEL"
+                   m_sLabel "#AR-Editor_ContentBrowser_ButtonClose"
+                   m_sActionName "MenuBack"
+                  }
+                  ButtonActionComponent "{56EEDE01BE93EE7D}" {
+                   m_bActionName "MenuBack"
+                  }
+                 }
+                 {
+                  SizeLayoutWidgetClass "{5562AD435529FB36}" {
+                   Prefab "{5562AD435529FB36}"
+                   {
+                    OverlayWidgetClass "{000000005E70868E}" {
+                     Prefab "{000000005E70868E}"
+                     {
+                      HorizontalLayoutWidgetClass "{00000000E3602307}" {
+                       Prefab "{00000000E3602307}"
+                       Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
+                        Padding 10 10 16 10
+                       }
+                       {
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+                ButtonWidgetClass "{599070D31AD02F11}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+                 Name "SelectButton"
+                 Slot LayoutSlot "{56EEDE01982D053A}" {
+                  Padding 0 0 10 0
+                 }
+                 components {
+                  SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+                   m_sLabel "#AR-Editor_ContentBrowser_ButtonSelect"
+                   m_sActionName "MenuSelect"
+                  }
+                  SCR_DeviceSpecificComponent "{56EEDE01335EDAD4}" {
+                   m_bControllerOnly 1
+                  }
+                 }
+                 {
+                  SizeLayoutWidgetClass "{5562AD435529FB36}" {
+                   Prefab "{5562AD435529FB36}"
+                   {
+                    OverlayWidgetClass "{000000005E70868E}" {
+                     Prefab "{000000005E70868E}"
+                     {
+                      HorizontalLayoutWidgetClass "{00000000E3602307}" {
+                       Prefab "{00000000E3602307}"
+                       Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
+                        Padding 10 10 16 10
+                       }
+                       {
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+              HorizontalLayoutWidgetClass "{598EF9FB202E4068}" : "{D0FC6BB2485677C4}UI/layouts/Common/Buttons/PagingButtons.layout" {
+               Name "Pagination"
+               Slot OverlayWidgetSlot "{56EEDE03221863B0}" {
+                VerticalAlign 3
+               }
+               {
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+        FrameWidgetClass "{598EF9FB202E4074}" {
+         Name "SpaceRight"
+         Slot LayoutSlot "{5720ECBBBD66ED2B}" {
+          SizeMode Fill
+          FillWeight 0.025
+         }
+        }
+       }
+      }
+     }
+    }
+    OverlayWidgetClass "{598EF9FB202E4075}" {
+     Name "Details"
+     Slot LayoutSlot "{56EEDE05C3B3A932}" {
+     }
+     {
+      ImageWidgetClass "{598EF9FB202E4076}" {
+       Name "Background"
+       Slot OverlayWidgetSlot "{56EEDE05C99AA714}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       Color 0.005 0.005 0.005 1
+      }
+      SizeLayoutWidgetClass "{598EF9FB202E4077}" {
+       Name "Alignment"
+       Slot OverlayWidgetSlot "{56EEDE0485B98294}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+        Padding 48 72 48 72
+       }
+       AllowWidthOverride 1
+       WidthOverride 384
+       AllowHeightOverride 1
+       HeightOverride 936
+       {
+        VerticalLayoutWidgetClass "{598EF9FB202E4070}" {
+         Name "DetailLayout"
+         Slot AlignableSlot "{56EEDE0403BED8AE}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+         }
+         {
+          OverlayWidgetClass "{598EF9F521ECFF60}" {
+           Name "DetailContent"
+           Slot LayoutSlot "{598EF9F521ECFF8D}" {
+            SizeMode Fill
+           }
+           {
+            VerticalLayoutWidgetClass "{598EF9F5311402C4}" {
+             Name "DetailContentLayout"
+             Slot OverlayWidgetSlot "{598EF9F5311402ED}" {
+              HorizontalAlign 3
+              VerticalAlign 3
+             }
+             {
+              TextWidgetClass "{598EF9FB202E4071}" : "{9D643D214767D616}UI/layouts/WidgetLibrary/TextWidgets/Text_Heading2.layout" {
+               Name "SelectedTypeName"
+               Slot LayoutSlot "{598EF9F53F730301}" {
+                Padding 10 10 10 30
+               }
+               Text "Type Name"
+               "Font Size" 28
+               "Min Font Size" 25
+              }
+              TextWidgetClass "{598EF9FA18B4802B}" : "{9D643D214767D616}UI/layouts/WidgetLibrary/TextWidgets/Text_Heading2.layout" {
+               Name "SelectedDetails"
+               Slot LayoutSlot "{598EF9F53F730347}" {
+                Padding 10 0 10 30
+               }
+               Text "$100"\
+               "Qty in stock: 12"
+               "Font Size" 25
+               "Min Font Size" 20
+              }
+              TextWidgetClass "{598EF9FB92953C65}" : "{9D643D214767D616}UI/layouts/WidgetLibrary/TextWidgets/Text_Heading2.layout" {
+               Name "SelectedDescription"
+               Slot LayoutSlot "{598EF9F53F73034B}" {
+                Padding 10 0 10 12
+               }
+               Text "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In dapibus ipsum vulputate posuere consequat. Suspendisse bibendum lectus a lacus posuere, a rutrum massa dictum. Praesent posuere lectus sit amet magna feugiat, vitae egestas dui sagittis. Quisque mi elit, varius quis justo eget, lobortis congue nibh. Fusce fringilla urna eu neque commodo condimentum. Vestibulum placerat sapien non scelerisque tristique. Aliquam erat volutpat. Sed nisl risus, imperdiet accumsan lectus a, dignissim egestas velit. Suspendisse potenti. Morbi vel mi fringilla, lacinia lectus id, molestie magna. Etiam faucibus justo purus, vitae faucibus est vehicula id. Suspendisse nec nunc mattis, fringilla tortor et, ullamcorper magna."
+               "Font Size" 20
+               "Min Font Size" 12
+               Wrap 1
+               FontProperties FontProperties "{546AF489DFD25402}" {
+                Font "{E2CBA6F76AAA42AF}UI/Fonts/Roboto/Roboto_Regular.fnt"
+               }
+              }
+             }
+            }
+           }
+          }
+          OverlayWidgetClass "{598EF9FAA74260BE}" {
+           Name "Footer"
+           Slot LayoutSlot "{598EF9FA81791653}" {
+           }
+           {
+            HorizontalLayoutWidgetClass "{598EF9FAA74260B8}" {
+             Name "Buttons"
+             Slot OverlayWidgetSlot "{56EEDE03DED9A743}" {
+              HorizontalAlign 3
+             }
+             {
+              ButtonWidgetClass "{598EF9F5FCDCA1CC}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+               Name "BuyButton"
+               Slot LayoutSlot "{56EEDE01982D053A}" {
+                Padding 0 0 0 0
+               }
+               components {
+                SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+                 m_sLabel "#OVT-Shop_Buy 1"
+                 m_sActionName "OverthrowShopBuy"
+                }
+                ButtonActionComponent "{56EEDE0026B19E2C}" {
+                 m_bActionName "OverthrowShopBuy"
+                }
+               }
+               {
+                SizeLayoutWidgetClass "{5562AD435529FB36}" {
+                 Prefab "{5562AD435529FB36}"
+                 {
+                  OverlayWidgetClass "{000000005E70868E}" {
+                   Prefab "{000000005E70868E}"
+                   {
+                    HorizontalLayoutWidgetClass "{00000000E3602307}" {
+                     Prefab "{00000000E3602307}"
+                     Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
+                      Padding 10 10 16 10
+                     }
+                     {
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+              ButtonWidgetClass "{598EF9F445B82AF4}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+               Name "SellButton"
+               Slot LayoutSlot "{56EEDE01982D053A}" {
+                Padding 0 0 0 0
+               }
+               components {
+                SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+                 m_sLabel "#OVT-Shop_Sell 1"
+                 m_sActionName "OverthrowShopSell"
+                }
+                ButtonActionComponent "{56EEDE0026B19E2C}" {
+                 m_bActionName "OverthrowShopSell"
+                }
+               }
+               {
+                SizeLayoutWidgetClass "{5562AD435529FB36}" {
+                 Prefab "{5562AD435529FB36}"
+                 {
+                  OverlayWidgetClass "{000000005E70868E}" {
+                   Prefab "{000000005E70868E}"
+                   {
+                    HorizontalLayoutWidgetClass "{00000000E3602307}" {
+                     Prefab "{00000000E3602307}"
+                     Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
+                      Padding 10 10 16 10
+                     }
+                     {
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

@@ -24,13 +24,25 @@ class OVT_ShopAction : ScriptedUserAction
 		if ( !genericInventoryManager )
 			return;
 		
-		PerformActionInternal( genericInventoryManager, pOwnerEntity, pUserEntity);
+		OVT_ShopComponent shop = GetShop();
+		if (!shop)
+			return;
+		
+		PerformActionInternal( shop, genericInventoryManager, pOwnerEntity, pUserEntity);
 		
  	}
 	
-	protected void PerformActionInternal(SCR_InventoryStorageManagerComponent manager, IEntity pOwnerEntity, IEntity pUserEntity)
+	protected void PerformActionInternal(OVT_ShopComponent shop, SCR_InventoryStorageManagerComponent manager, IEntity pOwnerEntity, IEntity pUserEntity)
 	{
-		Print("opening shop");
+		OVT_UIManagerComponent uimanager = OVT_UIManagerComponent.Cast(pUserEntity.FindComponent(OVT_UIManagerComponent));
+		if(!uimanager) return;
+		
+		OVT_ShopContext context = OVT_ShopContext.Cast(uimanager.GetContext(OVT_ShopContext));
+		if(!context) return;
+		
+		context.SetShop(shop);
+		
+		uimanager.ShowContext(OVT_ShopContext);
 	}
 	
 	override bool GetActionNameScript(out string outName)

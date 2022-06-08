@@ -156,6 +156,8 @@ class OVT_EconomyManagerComponent: OVT_Component
 			int num = Math.Round(s_AIRandomGenerator.RandFloatXY(1,item.maxAtStart));
 			
 			shop.AddToInventory(item.prefab, num);
+			
+			shop.m_aInventoryItems.Insert(item);
 		}
 		
 		return true;

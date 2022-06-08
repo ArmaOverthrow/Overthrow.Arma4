@@ -125,6 +125,9 @@ class OVT_UIContext : ScriptAndConfig
 	
 	void CloseLayout()
 	{
+		if(!m_wRoot) return;
+		if(!m_bIsActive) return;
+		
 		m_wRoot.RemoveFromHierarchy();
 		
 		if(m_bHideHUDOnShow){	

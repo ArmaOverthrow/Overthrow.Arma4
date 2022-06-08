@@ -1,0 +1,167 @@
+ButtonWidgetClass {
+ Name "ShopMenu_Card"
+ Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
+ }
+ Clipping False
+ Color 1 1 1 0
+ components {
+  SCR_ButtonComponent "{56FAC701265C74AA}" {
+   m_bMouseOverToFocus 1
+   m_BackgroundDefault 1 1 1 0
+   m_BackgroundHovered 1 1 1 0
+   m_bShowBorderOnHover 1
+  }
+  OVT_ShopMenuCardComponent "{598EF9F6FF18AF88}" {
+  }
+ }
+ {
+  SizeLayoutWidgetClass "{598EF9F4DEC53A2B}" {
+   Name "SizeSetter"
+   Slot ButtonWidgetSlot "{56EF0B168C2D88EA}" {
+    Padding 0 0 0 0
+   }
+   AllowWidthOverride 1
+   WidthOverride 264
+   AllowHeightOverride 1
+   HeightOverride 240
+   MinDesiredWidth 160
+   MinDesiredHeight 160
+   MaxDesiredWidth 240
+   MaxDesiredHeight 240
+   AllowAspectRatioForce 1
+   {
+    OverlayWidgetClass "{598EF9F4DEC53A35}" {
+     Name "Overlay"
+     Slot AlignableSlot "{56EF0B16AB7E10D1}" {
+      HorizontalAlign 3
+      Padding 8 0 8 0
+     }
+     {
+      VerticalLayoutWidgetClass "{598EF9F4DEC53A36}" {
+       Name "Layout"
+       Slot OverlayWidgetSlot "{56EF0B18C4F3CA37}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       {
+        SizeLayoutWidgetClass "{598EF9F4DEC53A37}" {
+         Name "AssetImage"
+         Slot LayoutSlot "{56EF0B18C4AC3F95}" {
+          SizeMode Fill
+         }
+         AllowWidthOverride 1
+         WidthOverride 240
+         AllowHeightOverride 1
+         HeightOverride 180
+         {
+          OverlayWidgetClass "{598EF9F4DEC53A30}" {
+           Name "ImageOverlay"
+           Slot AlignableSlot "{56EF0B162CD61F4A}" {
+            HorizontalAlign 3
+            VerticalAlign 3
+           }
+           {
+            ItemPreviewWidgetClass "{598EF9F4DEC53A31}" {
+             Name "Image"
+             Slot OverlayWidgetSlot "{56EF0B19288B21F6}" {
+              HorizontalAlign 3
+              VerticalAlign 3
+             }
+            }
+            ImageWidgetClass "{598EF9F4DEC53A32}" {
+             Name "Splatter"
+             Slot OverlayWidgetSlot "{56EF0B19288B21F6}" {
+              HorizontalAlign 3
+              VerticalAlign 3
+             }
+             Texture "{7168533FAFDE2158}UI/Textures/Editor/Effects/Effect_AssetCard_Splatter_01.edds"
+             Image ""
+             Size 400 300
+            }
+            TextWidgetClass "{598EF9F4DEC53A33}" {
+             Name "Cost"
+             Slot OverlayWidgetSlot "{598AD558E38C3D42}" {
+              HorizontalAlign 2
+              VerticalAlign 0
+              Padding 10 10 10 10
+             }
+             Text "$10000000"
+             FontProperties FontProperties "{598AD558CB805630}" {
+              Font "{CD2634D279AB011A}UI/Fonts/Roboto/Roboto_Bold.fnt"
+             }
+            }
+            TextWidgetClass "{598EF9F4B711B387}" {
+             Name "Stock"
+             Slot OverlayWidgetSlot "{598AD558E38C3D42}" {
+              HorizontalAlign 0
+              VerticalAlign 0
+              Padding 10 10 10 10
+             }
+             Text "100"
+             FontProperties FontProperties "{598AD558CB805630}" {
+              Font "{CD2634D279AB011A}UI/Fonts/Roboto/Roboto_Bold.fnt"
+             }
+            }
+           }
+          }
+         }
+        }
+        OverlayWidgetClass "{598EF9F4DEC53A3C}" {
+         Name "AssetInfo"
+         Slot LayoutSlot "{5720FBE423A1A211}" {
+          Padding 0 0 0 0
+          SizeMode Fill
+          FillWeight 0.275
+         }
+         {
+          ImageWidgetClass "{598EF9F4DEC53A3D}" {
+           Name "AssetCardBackground"
+           Slot OverlayWidgetSlot "{56EF0B16B4F85E84}" {
+            HorizontalAlign 3
+            VerticalAlign 3
+           }
+           Color 0.005 0.005 0.005 1
+           Image ""
+           Size 64 64
+          }
+          HorizontalLayoutWidgetClass "{598EF9F4DEC53A3E}" {
+           Name "InfoLayout"
+           Slot OverlayWidgetSlot "{5720FBE423AF7170}" {
+            HorizontalAlign 3
+            VerticalAlign 3
+            Padding 8 4 12 4
+           }
+           {
+            TextWidgetClass "{598EF9F4DEC53A3F}" : "{B537936D5B7E2BA1}UI/layouts/WidgetLibrary/TextWidgets/Text_BodySmall.layout" {
+             Name "EntityName"
+             Slot LayoutSlot "{56EF0B1828174F0C}" {
+              Padding 8 4 0 4
+              SizeMode Fill
+             }
+             Text "Very long entity name that barely fits"
+             "Font Size" 20
+             "Min Font Size" 8
+             "Vertical Alignment" Center
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+      PanelWidgetClass "{598EF9F4DEC53A38}" {
+       Name "Border"
+       Slot OverlayWidgetSlot "{56EF0B195DBB5E79}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+        Padding -2 -2 -2 -2
+       }
+       Color 0.761 0.392 0.08 1
+       style outline_2px
+      }
+     }
+    }
+   }
+  }
+ }
+}

@@ -45,7 +45,7 @@ class OVT_PlaceContext : OVT_UIContext
 		for(int i=done; i < 15; i++)
 		{
 			Widget w = m_Widgets.m_BrowserGrid.FindWidget("PlaceMenu_Card" + i);
-			w.SetVisible(false);
+			w.SetOpacity(0);
 		}
 	}
 	

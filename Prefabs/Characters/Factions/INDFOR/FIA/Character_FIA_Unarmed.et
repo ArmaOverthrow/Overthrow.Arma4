@@ -23,6 +23,11 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      m_bOpenActionCloses 0
      m_bHideHUDOnShow 0
     }
+    OVT_ShopContext "{598EF9F13B9F3106}" {
+     m_Layout "{846B87563CCE7DA1}UI/Layouts/Menu/ShopMenu.layout"
+     m_sContextName "OverthrowShopContext"
+     m_bOpenActionCloses 0
+    }
    }
   }
   SCR_BaseHUDComponent "{520EA1D2DB118134}" {

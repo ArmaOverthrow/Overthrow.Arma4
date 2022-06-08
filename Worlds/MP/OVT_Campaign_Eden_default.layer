@@ -23,18 +23,40 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode {
        cost 1
        maxAtStart 50
       }
-      OVT_ShopInventoryItem "{598EDB5C845CF5F1}" {
+      OVT_ShopInventoryItem "{599083DC8CDAF7F2}" {
+       prefab "{CDCC313B2FB76FE7}Prefabs/Items/Medicine/Gauze_01.et"
+       cost 8
+       maxAtStart 50
+      }
+      OVT_ShopInventoryItem "{599083DF2A7D37AF}" {
+       prefab "{70BC751317551D9B}Prefabs/Items/Equipment/Canteens/Canteen_Soviet_01.et"
+       cost 25
+       demand 0.05
+      }
+      OVT_ShopInventoryItem "{599083DF31BBD6F1}" {
+       prefab "{630FB4AD4A735264}Prefabs/Items/Equipment/Canteens/Canteen_US_01.et"
+       cost 25
+       maxAtStart 15
+       demand 0.05
+      }
+      OVT_ShopInventoryItem "{599083DF01183217}" {
+       prefab "{7CEF68E2BC68CE71}Prefabs/Items/Equipment/Compass/Compass_Adrianov.et"
+       demand 0.01
+      }
+      OVT_ShopInventoryItem "{599083DF13422B7E}" {
+       prefab "{61D4F80E49BF9B12}Prefabs/Items/Equipment/Compass/Compass_SY183.et"
+       maxAtStart 15
+       demand 0.01
+      }
+      OVT_ShopInventoryItem "{599083DFE62D8BE7}" {
        prefab "{F2539FA5706E51E4}Prefabs/Items/Equipment/Binoculars/Binoculars_B12.et"
        cost 200
        demand 0.01
       }
-      OVT_ShopInventoryItem "{598EDB5D719343F9}" {
-       prefab "{70BC751317551D9B}Prefabs/Items/Equipment/Canteens/Canteen_Soviet_01.et"
-       cost 15
-      }
-      OVT_ShopInventoryItem "{598EDB5D4342D2CD}" {
-       prefab "{7CEF68E2BC68CE71}Prefabs/Items/Equipment/Compass/Compass_Adrianov.et"
-       demand 0.02
+      OVT_ShopInventoryItem "{599083DFEE42DE7C}" {
+       prefab "{0CF54B9A85D8E0D4}Prefabs/Items/Equipment/Binoculars/Binoculars_M22.et"
+       cost 200
+       demand 0.01
       }
      }
     }

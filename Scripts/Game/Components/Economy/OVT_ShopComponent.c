@@ -17,12 +17,14 @@ class OVT_ShopComponent: OVT_Component
 	OVT_ShopType m_ShopType;
 	
 	protected ref map<ResourceName,int> m_aInventory;
+	ref array<ref OVT_ShopInventoryItem> m_aInventoryItems;
 	
 	override void OnPostInit(IEntity owner)
 	{
 		super.OnPostInit(owner);	
 		
 		m_aInventory = new map<ResourceName,int>;
+		m_aInventoryItems = new array<ref OVT_ShopInventoryItem>;
 	}
 	
 	void AddToInventory(ResourceName resource, int num)
@@ -42,5 +44,11 @@ class OVT_ShopComponent: OVT_Component
 		m_aInventory[resource] = m_aInventory[resource] - num;
 		
 		if(m_aInventory[resource] < 0) m_aInventory[resource] = 0;
+	}
+	
+	int GetStock(ResourceName resource)
+	{
+		if(!m_aInventory.Contains(resource)) return 0;
+		return m_aInventory[resource];
 	}
 }

@@ -125,10 +125,38 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{598EF9FA0D65B880}" {
+   Id "OVT-Shop"
+   Target_en_us "Shop"
+   Modified 1502633282
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{598EF9F5BEC520FE}" {
+   Id "OVT-Shop_Buy"
+   Target_en_us "Buy"
+   Modified 1502634194
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{599070D91BB49BFF}" {
+   Id "OVT-Shop_InStock"
+   Target_en_us "In Stock"
+   Modified 1502639900
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{598EF98DD5C74403}" {
    Id "OVT-Shop_Open"
    Target_en_us "Open Shop"
    Modified 1502542544
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{598EF9F4548C4AF0}" {
+   Id "OVT-Shop_Sell"
+   Target_en_us "Sell"
+   Modified 1502634353
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
