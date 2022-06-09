@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{17295EF80DC38D53}Configs/FieldManual/FieldManualConfigRoot.conf"
+ Configurations {
+  CONFResourceClass PC {
+  }
+  CONFResourceClass XBOX_ONE : PC {
+  }
+  CONFResourceClass XBOX_SERIES : PC {
+  }
+  CONFResourceClass PS4 : PC {
+  }
+  CONFResourceClass HEADLESS : PC {
+  }
+ }
+}

@@ -301,14 +301,6 @@ SCR_FactionManager FactionManager_Overthrow : "{4A188E44289B9A50}Prefabs/MP/Mana
 ScriptedChatEntity : "{F69BC912AC8236F9}Prefabs/MP/ScriptedChatEntity.et" {
  coords 4406.048 1.636 11072.589
 }
-GenericEntity : "{2911B855ECA72354}Prefabs/OVT_MapMarker.et" {
- components {
-  SCR_MapDescriptorComponent "{598723BE07A459CD}" {
-   MainType "Icon (generic)"
-  }
- }
- coords 5479.928 95.852 6086.542
-}
 SCR_LoadoutManager : "{AA4E7419A1FF65B0}Prefabs/MP/Managers/Loadouts/LoadoutManager_Base.et" {
  coords 4419.596 1.605 11073.322
  m_aPlayerLoadouts {

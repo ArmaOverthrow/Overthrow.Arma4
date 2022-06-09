@@ -9,6 +9,48 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5990833697321087}" {
+   Id "OVT-FieldManual_Category_Overthrow_Title"
+   Target_en_us "Overthrow"
+   Modified 1502791196
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5992D5041850CA26}" {
+   Id "OVT-FieldManual_FastTravel_Text"
+   Target_en_us "You must have a map in your inventory to use \"Fast Travel\". The map will open and you can click on any owned house, camp, FOB or base that the resistance currently controls to instantly travel there. You will be charged a small fee for this service according to the difficulty level."
+   Modified 1502795360
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{599083306EFCACF6}" {
+   Id "OVT-FieldManual_MainMenu_Text"
+   Target_en_us "The Overthrow Main Menu (default key: U) is how to access most of the features of Overthrow."
+   Modified 1502792059
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5990833199C7A051}" {
+   Id "OVT-FieldManual_MainMenu_Title"
+   Target_en_us "Main Menu"
+   Modified 1502791674
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5992D5044118B4C5}" {
+   Id "OVT-FieldManual_MapInfo_Text"
+   Target_en_us "You must have a map in your inventory to use \"Map Info\". Clicking on this in the main menu will open the map, then you can click anywhere on the map to show info about that location, including any intel known about the area."
+   Modified 1502795168
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5992D5049E68387B}" {
+   Id "OVT-FieldManual_Resistance_Text"
+   Target_en_us "Opens a menu allowing you to see info or change settings about the resistance. Officers can assign other officers here or set a tax rate (Default is 0%) that will deposit an amount of the regular income directly to the Resistance Funds instead. Officers can withdraw money from resistance funds here or send it to another player. Any player can donate money to the resistance efforts here as well."
+   Modified 1502795643
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59908363B46DA2C7}" {
    Id "OVT-GunDealer"
    Target_en_us "Gun Dealer"
