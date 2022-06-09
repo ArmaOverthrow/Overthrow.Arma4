@@ -38,6 +38,12 @@ class OVT_BaseUpgradeTowerGuard : OVT_BasePatrolUpgrade
 		return true;
 	}
 	
+	protected override void CheckUpdate()
+	{
+		//Disable despawning for now
+		return;
+	}
+	
 	override int Spend(int resources)
 	{
 		int spent = 0;

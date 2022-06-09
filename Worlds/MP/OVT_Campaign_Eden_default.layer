@@ -78,9 +78,39 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode {
      }
     }
    }
+   m_aGunDealerItems {
+    OVT_ShopInventoryItem "{59908364950495F9}" {
+     prefab "{1353C6EAD1DCFE43}Prefabs/Weapons/Handguns/M9/Handgun_M9.et"
+     cost 700
+    }
+    OVT_ShopInventoryItem "{599083677DB68E47}" {
+     prefab "{C0F7DD85A86B2900}Prefabs/Weapons/Handguns/PM/Handgun_PM.et"
+     cost 650
+    }
+    OVT_ShopInventoryItem "{59908367E3985A8C}" {
+     prefab "{9C05543A503DB80E}Prefabs/Weapons/Magazines/Magazine_9x19_M9_15rnd_Ball.et"
+     maxAtStart 50
+    }
+    OVT_ShopInventoryItem "{59908367F9456BFB}" {
+     prefab "{8B853CDD11BA916E}Prefabs/Weapons/Magazines/Magazine_9x18_PM_8rnd_Ball.et"
+     cost 35
+     maxAtStart 50
+    }
+    OVT_ShopInventoryItem "{59908367A773F3CB}" {
+     prefab "{E8F00BF730225B00}Prefabs/Weapons/Grenades/Grenade_M67.et"
+     cost 45
+     maxAtStart 30
+    }
+    OVT_ShopInventoryItem "{59908367A86FB67B}" {
+     prefab "{645C73791ECA1698}Prefabs/Weapons/Grenades/Grenade_RGD5.et"
+     cost 35
+     maxAtStart 30
+    }
+   }
   }
   OVT_OverthrowConfigComponent "{59724C8C935D8E5D}" {
    m_pBaseControllerPrefab "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.et"
+   m_pTownControllerPrefab "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.et"
    m_Difficulty OVT_DifficultySettings "{598AD54E1DA56EB1}" {
    }
    m_aDifficultyPresets {
@@ -172,6 +202,7 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode {
      m_iCost 1000
     }
    }
+   m_pGunDealerPrefab "{59929550D81A3045}Prefabs/Characters/Factions/INDFOR/FIA/Character_FIA_GunDealer.et"
    m_pMoveWaypointPrefab "{750A8D1695BD6998}Prefabs/AI/Waypoints/AIWaypoint_Move.et"
    m_pDefendWaypointPrefab "{93291E72AC23930F}Prefabs/AI/Waypoints/AIWaypoint_Defend.et"
    m_pPatrolWaypointPrefab "{22A875E30470BD4F}Prefabs/AI/Waypoints/AIWaypoint_Patrol.et"
@@ -236,6 +267,7 @@ SCR_FactionManager FactionManager_Overthrow : "{4A188E44289B9A50}Prefabs/MP/Mana
     "{D807C7047E818488}Prefabs/Groups/BLUFOR/Group_US_SniperTeam.et"
    }
    m_aGroupSniperPrefab "{CA824A43ABA2DA97}Prefabs/Groups/Group_US_Sniper.et"
+   m_aLightTownPatrolPrefab "{3BF36BDEEB33AEC9}Prefabs/Groups/BLUFOR/Group_US_SentryTeam.et"
    m_aFlagPolePrefab "{E55FC02F8C1518A2}Prefabs/Structures/Military/Flags/FlagPole_02_V1_US.et"
   }
   OVT_Faction "{56DEAC40D3C2E623}" {
@@ -255,6 +287,7 @@ SCR_FactionManager FactionManager_Overthrow : "{4A188E44289B9A50}Prefabs/MP/Mana
     "{1A5F0D93609DA5DA}Prefabs/Groups/OPFOR/Group_USSR_ManeuverGroup.et"
    }
    m_aGroupSniperPrefab "{65D8CD7BA7CB6B8A}Prefabs/Groups/Group_USSR_Sniper.et"
+   m_aLightTownPatrolPrefab "{CB58D90EA14430AD}Prefabs/Groups/OPFOR/Group_USSR_SentryTeam.et"
    m_aFlagPolePrefab "{651E545B53BBD034}Prefabs/Structures/Military/Flags/FlagPole_02_V1_USSR.et"
   }
   OVT_Faction "{56DEAC40D132400B}" {
@@ -267,6 +300,14 @@ SCR_FactionManager FactionManager_Overthrow : "{4A188E44289B9A50}Prefabs/MP/Mana
 }
 ScriptedChatEntity : "{F69BC912AC8236F9}Prefabs/MP/ScriptedChatEntity.et" {
  coords 4406.048 1.636 11072.589
+}
+GenericEntity : "{2911B855ECA72354}Prefabs/OVT_MapMarker.et" {
+ components {
+  SCR_MapDescriptorComponent "{598723BE07A459CD}" {
+   MainType "Icon (generic)"
+  }
+ }
+ coords 5479.928 95.852 6086.542
 }
 SCR_LoadoutManager : "{AA4E7419A1FF65B0}Prefabs/MP/Managers/Loadouts/LoadoutManager_Base.et" {
  coords 4419.596 1.605 11073.322

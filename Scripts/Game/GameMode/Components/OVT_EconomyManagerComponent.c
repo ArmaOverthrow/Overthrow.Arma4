@@ -34,6 +34,10 @@ class OVT_EconomyManagerComponent: OVT_Component
 	ref array<ref OVT_ShopInventoryConfig> m_aShopConfigs;
 	ref array<ref OVT_ShopInventoryConfig> m_aShopConfigsPacked = new array<ref OVT_ShopInventoryConfig>();
 
+	[Attribute("", UIWidgets.Object)]
+	ref array<ref OVT_ShopInventoryItem> m_aGunDealerItems;
+	ref array<ref OVT_ShopInventoryItem> m_aGunDealerItemsPacked = new array<ref OVT_ShopInventoryItem>();
+	
 	protected ref map<ResourceName, int> m_mItemCosts;
 	protected ref map<int, int> m_mMoney;
 	protected int m_iResistanceMoney = 0;
@@ -67,7 +71,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	}
 	
 	OVT_ShopInventoryConfig GetShopConfig(OVT_ShopType shopType)
-	{
+	{		
 		foreach(OVT_ShopInventoryConfig config : m_aShopConfigs)
 		{
 			if(config.type == shopType) return config;
@@ -141,6 +145,11 @@ class OVT_EconomyManagerComponent: OVT_Component
 		
 	}
 	
+	bool HasPrice(ResourceName res)
+	{
+		return m_mItemCosts.Contains(res);
+	}
+	
 	protected bool CheckShopInit(IEntity entity)
 	{	
 		#ifdef OVERTHROW_DEBUG
@@ -154,7 +163,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		OVT_ShopInventoryConfig config = GetShopConfig(shop.m_ShopType);
 		foreach(OVT_ShopInventoryItem item : config.m_aInventoryItems)
 		{
-			if(!m_mItemCosts.Contains(item.prefab))
+			if(!HasPrice(item.prefab))
 			{
 				SetPrice(item.prefab, item.cost);
 			}

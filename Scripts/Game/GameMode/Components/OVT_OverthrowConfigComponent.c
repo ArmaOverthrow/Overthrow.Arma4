@@ -66,6 +66,9 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Base Controller Prefab", params: "et", category: "Controllers")]
 	ResourceName m_pBaseControllerPrefab;
 	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Town Controller Prefab", params: "et", category: "Controllers")]
+	ResourceName m_pTownControllerPrefab;
+	
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Players starting car", params: "et", category: "Vehicles")]
 	ResourceName m_pStartingCarPrefab;
 	
@@ -79,6 +82,9 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	[Attribute("", UIWidgets.Object)]
 	ref array<ref OVT_Placeable> m_aPlaceables;
 	ref array<ref OVT_Placeable> m_aPlaceablesPacked = new array<ref OVT_Placeable>();
+	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Gun Dealer Prefab", params: "et")]
+	ResourceName m_pGunDealerPrefab;
 	
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Move Waypoint Prefab", params: "et", category: "Waypoints")]
 	ResourceName m_pMoveWaypointPrefab;

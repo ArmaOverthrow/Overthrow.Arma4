@@ -69,6 +69,16 @@ class OVT_TownManagerComponent: OVT_Component
 		return GetGame().GetWorld().FindEntityByID(m_Houses.GetRandomElement());
 	}
 	
+	IEntity GetRandomHouseInTown(OVT_TownData town)
+	{
+		m_Houses = new array<ref EntityID>;		
+		IEntity marker = GetGame().GetWorld().FindEntityByID(town.markerID);
+		
+		GetGame().GetWorld().QueryEntitiesBySphere(marker.GetOrigin(), m_iTownRange, CheckHouseAddToArray, FilterHouseEntities, EQueryEntitiesFlags.STATIC);
+		
+		return GetGame().GetWorld().FindEntityByID(m_Houses.GetRandomElement());
+	}
+	
 	OVT_TownData GetNearestTown(vector pos)
 	{
 		OVT_TownData nearestTown;
@@ -147,6 +157,13 @@ class OVT_TownManagerComponent: OVT_Component
 		#endif
 		
 		m_Towns.Insert(town);
+		
+		EntitySpawnParams spawnParams = new EntitySpawnParams;
+		spawnParams.TransformMode = ETransformMode.WORLD;		
+		spawnParams.Transform[3] = entity.GetOrigin();
+		
+		IEntity dealer = GetGame().SpawnEntityPrefab(Resource.Load(m_Config.m_pTownControllerPrefab), GetGame().GetWorld(), spawnParams);
+
 	}
 	
 	protected bool FilterCityTownEntities(IEntity entity) 

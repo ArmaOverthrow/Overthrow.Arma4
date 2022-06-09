@@ -1,10 +1,116 @@
 class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 {
+	[Attribute("1", desc: "Deactivate patrols when noone around")]
+	bool m_bDeactivate;
+	
 	ref array<ref EntityID> m_Groups;
+	ref array<ResourceName> m_ProxiedGroups;
+	ref array<ref vector> m_ProxiedPositions;
+	int m_iProxedResources = 0;
+	
+	protected const int DEACTIVATE_FREQUENCY = 10000;
+	protected const int DEACTIVATE_RANGE = 4000;
 	
 	override void PostInit()
 	{
 		m_Groups = new array<ref EntityID>;
+		m_ProxiedGroups = new array<ResourceName>;
+		m_ProxiedPositions = new array<ref vector>;
+		
+		if(m_bDeactivate)
+		{
+			//Stagger these updates
+			float freq = s_AIRandomGenerator.RandFloatXY(DEACTIVATE_FREQUENCY - 1000, DEACTIVATE_FREQUENCY + 1000);
+			
+			GetGame().GetCallqueue().CallLater(CheckUpdate, freq, true, m_BaseController.GetOwner());	
+		}
+	}
+	
+	protected void CheckUpdate()
+	{
+		if(PlayerInRange())
+		{
+			foreach(int i, ResourceName res : m_ProxiedGroups)
+			{
+				BuyPatrol(res, m_ProxiedPositions[i]);
+			}
+			m_ProxiedGroups.Clear();
+			m_ProxiedPositions.Clear();
+			m_iProxedResources = 0;
+		}else{
+			foreach(EntityID id : m_Groups)
+			{
+				SCR_AIGroup group = GetGroup(id);
+				m_iProxedResources += group.GetAgentsCount() * m_Config.m_Difficulty.resourcesPerSoldier;
+				m_ProxiedGroups.Insert(group.GetPrefabData().GetPrefabName());
+				m_ProxiedPositions.Insert(group.GetOrigin());
+				SCR_Global.DeleteEntityAndChildren(group);
+			}
+			m_Groups.Clear();
+		}
+	}
+	
+	protected bool PlayerInRange()
+	{		
+		bool active = false;
+		array<int> players = new array<int>;
+		PlayerManager mgr = GetGame().GetPlayerManager();
+		int numplayers = mgr.GetPlayers(players);
+		
+		if(numplayers > 0)
+		{
+			foreach(int playerID : players)
+			{
+				IEntity player = mgr.GetPlayerControlledEntity(playerID);
+				float distance = vector.Distance(player.GetOrigin(), m_BaseController.GetOwner().GetOrigin());
+				if(distance < DEACTIVATE_RANGE)
+				{
+					active = true;
+				}
+			}
+		}
+		
+		return active;
+	}
+	
+	protected int BuyPatrol(ResourceName res = "", vector pos = "0 0 0")
+	{
+		OVT_Faction faction = m_Config.GetOccupyingFaction();
+				
+		if(res == "")
+			res = faction.m_aGroupInfantryPrefabSlots.GetRandomElement();
+		
+		BaseWorld world = GetGame().GetWorld();
+			
+		EntitySpawnParams spawnParams = new EntitySpawnParams;
+		spawnParams.TransformMode = ETransformMode.WORLD;
+		
+		if(pos[0] == 0)
+			pos = m_BaseController.GetOwner().GetOrigin();
+		
+		float surfaceY = world.GetSurfaceY(pos[0], pos[2]);
+		if (pos[1] < surfaceY)
+		{
+			pos[1] = surfaceY;
+		}
+		
+		spawnParams.Transform[3] = pos;
+		IEntity group = GetGame().SpawnEntityPrefab(Resource.Load(res), world, spawnParams);
+		
+		m_Groups.Insert(group.GetID());
+		
+		SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
+		
+		AddWaypoints(aigroup);
+		
+		int newres = aigroup.m_aUnitPrefabSlots.Count() * m_Config.m_Difficulty.resourcesPerSoldier;
+			
+		return newres;
+	}
+	
+	protected void AddWaypoints(SCR_AIGroup aigroup)
+	{
+		
 	}
 	
 	override int GetResources()
@@ -15,12 +121,7 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 			SCR_AIGroup group = GetGroup(id);
 			res += group.GetAgentsCount() * m_Config.m_Difficulty.resourcesPerSoldier;			
 		}
-		return res;
-	}
-	
-	int BuyPatrol()
-	{
-		return 0;
+		return res + m_iProxedResources;
 	}
 	
 	override int Spend(int resources)

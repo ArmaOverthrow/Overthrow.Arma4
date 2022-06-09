@@ -60,6 +60,16 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		
 		GetGame().GetTimeAndWeatherManager().SetDayDuration(86400 / m_Config.m_iTimeMultiplier);
 		
+		m_EconomyManager = OVT_EconomyManagerComponent.Cast(FindComponent(OVT_EconomyManagerComponent));		
+		if(m_EconomyManager)
+		{
+			#ifdef OVERTHROW_DEBUG
+			Print("Initializing Economy");
+			#endif
+			
+			m_EconomyManager.Init(this);
+		}
+		
 		m_TownManager = OVT_TownManagerComponent.Cast(FindComponent(OVT_TownManagerComponent));		
 		if(m_TownManager)
 		{
@@ -80,15 +90,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			m_OccupyingFactionManager.Init(this);
 		}
 		
-		m_EconomyManager = OVT_EconomyManagerComponent.Cast(FindComponent(OVT_EconomyManagerComponent));		
-		if(m_EconomyManager)
-		{
-			#ifdef OVERTHROW_DEBUG
-			Print("Initializing Economy");
-			#endif
-			
-			m_EconomyManager.Init(this);
-		}
 	}
 	
 	//------------------------------------------------------------------------------------------------

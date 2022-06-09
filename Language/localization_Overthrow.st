@@ -9,6 +9,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{59908363B46DA2C7}" {
+   Id "OVT-GunDealer"
+   Target_en_us "Gun Dealer"
+   Modified 1502769244
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{598AB67692AD5DBB}" {
    Id "OVT-MainMenu_Build"
    Target_en_us "Build"

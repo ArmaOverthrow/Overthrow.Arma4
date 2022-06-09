@@ -18,6 +18,9 @@ class OVT_Faction : SCR_Faction
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (Sniper)", params: "et", category: "Faction Groups")]
 	ResourceName m_aGroupSniperPrefab;
 	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (Light Town Patrol)", params: "et", category: "Faction Groups")]
+	ResourceName m_aLightTownPatrolPrefab;
+	
 	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Faction vehicles (all)", params: "et", category: "Faction Vehicles")]
 	ref array<ResourceName> m_aVehiclePrefabSlots;
 	

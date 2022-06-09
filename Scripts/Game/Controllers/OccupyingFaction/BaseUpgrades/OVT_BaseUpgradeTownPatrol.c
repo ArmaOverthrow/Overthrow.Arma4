@@ -25,7 +25,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 			if(resources <= 0) break;
 			if(!m_Patrols.Contains(town.markerID))
 			{
-				int newres = BuyPatrol(town);
+				int newres = BuyTownPatrol(town);
 				
 				spent += newres;
 				resources -= newres;
@@ -43,7 +43,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 					SCR_Global.DeleteEntityAndChildren(aigroup);	
 					
 					//send another one
-					int newres = BuyPatrol(town);
+					int newres = BuyTownPatrol(town);
 				
 					spent += newres;
 					resources -= newres;			
@@ -54,16 +54,13 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		return spent;
 	}
 	
-	protected int BuyPatrol(OVT_TownData town)
+	protected int BuyTownPatrol(OVT_TownData town)
 	{
-		#ifdef OVERTHROW_DEBUG
-		Print("Sending patrol to " + town.name);
-		#endif
-		
 		OVT_Faction faction = m_Config.GetOccupyingFaction();
-		BaseWorld world = GetGame().GetWorld();
+				
+		ResourceName res = faction.m_aLightTownPatrolPrefab;
 		
-		ResourceName res = faction.m_aGroupInfantryPrefabSlots.GetRandomElement();
+		BaseWorld world = GetGame().GetWorld();
 			
 		EntitySpawnParams spawnParams = new EntitySpawnParams;
 		spawnParams.TransformMode = ETransformMode.WORLD;
@@ -84,7 +81,6 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
 		
 		AddWaypoints(aigroup, town);
-		m_Patrols[town.markerID] = aigroup.GetID();
 		
 		int newres = aigroup.m_aUnitPrefabSlots.Count() * m_Config.m_Difficulty.resourcesPerSoldier;
 			

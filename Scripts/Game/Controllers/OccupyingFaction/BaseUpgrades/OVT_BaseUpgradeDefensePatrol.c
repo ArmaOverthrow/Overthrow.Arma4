@@ -1,38 +1,8 @@
 class OVT_BaseUpgradeDefensePatrol : OVT_BasePatrolUpgrade
 {
-	protected override int BuyPatrol()
-	{
-		OVT_Faction faction = m_Config.GetOccupyingFaction();
-		BaseWorld world = GetGame().GetWorld();
-		
-		ResourceName res = faction.m_aGroupInfantryPrefabSlots.GetRandomElement();
-			
-		EntitySpawnParams spawnParams = new EntitySpawnParams;
-		spawnParams.TransformMode = ETransformMode.WORLD;
-		
-		vector pos = m_BaseController.GetOwner().GetOrigin();
-		
-		float surfaceY = world.GetSurfaceY(pos[0], pos[2]);
-		if (pos[1] < surfaceY)
-		{
-			pos[1] = surfaceY;
-		}
-		
-		spawnParams.Transform[3] = pos;
-		IEntity group = GetGame().SpawnEntityPrefab(Resource.Load(res), world, spawnParams);
-		
-		m_Groups.Insert(group.GetID());
-		
-		SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
-		
-		AddWaypoints(aigroup);
-		
-		int newres = aigroup.m_aUnitPrefabSlots.Count() * m_Config.m_Difficulty.resourcesPerSoldier;
-			
-		return newres;
-	}
 	
-	protected void AddWaypoints(SCR_AIGroup aigroup)
+	
+	protected override void AddWaypoints(SCR_AIGroup aigroup)
 	{
 		array<AIWaypoint> queueOfWaypoints = new array<AIWaypoint>();
 		

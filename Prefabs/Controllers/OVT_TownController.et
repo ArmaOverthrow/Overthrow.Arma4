@@ -1,0 +1,11 @@
+GenericEntity {
+ ID "59908365F7966578"
+ components {
+  AIPathfindingComponent "{59908365908A92AD}" {
+   NavmeshProject "Soldiers"
+  }
+  OVT_TownControllerComponent "{59908365ED5E1344}" {
+  }
+ }
+ coords 5484.924 96.098 6096.409
+}
