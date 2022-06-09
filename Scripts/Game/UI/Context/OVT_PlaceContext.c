@@ -6,12 +6,19 @@ class OVT_PlaceContext : OVT_UIContext
 	protected ResourceName m_pPlacingPrefab;
 	protected OVT_Placeable m_Placeable;
 	
+	protected const float TRACE_DIS = 50;
+	protected const float MAX_PREVIEW_DIS = 50;
+	protected const float MAX_HOUSE_PLACE_DIS = 30;
+	
+	protected OVT_RealEstateManagerComponent m_RealEstate;
+	
 	bool m_bPlacing = false;
 	int m_iPrefabIndex = 0;
 		
 	override void PostInit()
 	{
 		m_Widgets = new OVT_PlaceMenuWidgets();
+		m_RealEstate = OVT_RealEstateManagerComponent.GetInstance();
 	}
 	
 	override void OnFrame(float timeSlice)
@@ -54,8 +61,8 @@ class OVT_PlaceContext : OVT_UIContext
 		super.RegisterInputs();
 		
 		m_InputManager.AddActionListener("OverthrowPlace", EActionTrigger.DOWN, DoPlace);
-		m_InputManager.AddActionListener("OverthrowRotateLeft", EActionTrigger.DOWN, RotateLeft);
-		m_InputManager.AddActionListener("OverthrowRotateRight", EActionTrigger.DOWN, RotateRight);
+		m_InputManager.AddActionListener("OverthrowRotateLeft", EActionTrigger.PRESSED, RotateLeft);
+		m_InputManager.AddActionListener("OverthrowRotateRight", EActionTrigger.PRESSED, RotateRight);
 		m_InputManager.AddActionListener("OverthrowNextItem", EActionTrigger.DOWN, NextItem);
 		m_InputManager.AddActionListener("OverthrowPrevItem", EActionTrigger.DOWN, NextItem);
 		m_InputManager.AddActionListener("OverthrowPlaceCancel", EActionTrigger.DOWN, Cancel);
@@ -66,8 +73,8 @@ class OVT_PlaceContext : OVT_UIContext
 		super.UnregisterInputs();
 		
 		m_InputManager.RemoveActionListener("OverthrowPlace", EActionTrigger.DOWN, DoPlace);
-		m_InputManager.RemoveActionListener("OverthrowRotateLeft", EActionTrigger.DOWN, RotateLeft);
-		m_InputManager.RemoveActionListener("OverthrowRotateRight", EActionTrigger.DOWN, RotateRight);
+		m_InputManager.RemoveActionListener("OverthrowRotateLeft", EActionTrigger.PRESSED, RotateLeft);
+		m_InputManager.RemoveActionListener("OverthrowRotateRight", EActionTrigger.PRESSED, RotateRight);
 		m_InputManager.RemoveActionListener("OverthrowNextItem", EActionTrigger.DOWN, NextItem);
 		m_InputManager.RemoveActionListener("OverthrowPrevItem", EActionTrigger.DOWN, NextItem);
 		m_InputManager.RemoveActionListener("OverthrowPlaceCancel", EActionTrigger.DOWN, Cancel);
@@ -79,8 +86,29 @@ class OVT_PlaceContext : OVT_UIContext
 		RemoveGhost();
 	}
 	
+	bool CanPlace(vector pos)
+	{
+		IEntity house = m_RealEstate.GetNearestOwned(m_iPlayerID, pos);
+		float dist = vector.Distance(house.GetOrigin(), pos);
+		
+		if(dist < MAX_HOUSE_PLACE_DIS) return true;
+		
+		return false;
+	}
+	
 	void StartPlace(OVT_Placeable placeable)
 	{
+		if(m_bIsActive) CloseLayout();
+		
+		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(m_iPlayerID);
+		
+		if(!CanPlace(player.GetOrigin()))
+		{
+			ShowHint("#OVT-CannotPlaceHere");
+			SCR_UISoundEntity.SoundEvent(UISounds.ERROR);
+			return;
+		}
+		
 		if(!m_Economy.PlayerHasMoney(m_iPlayerID, m_Config.GetPlaceableCost(placeable)))
 		{
 			ShowHint("#OVT-CannotAfford");
@@ -88,7 +116,7 @@ class OVT_PlaceContext : OVT_UIContext
 			return;
 		}
 		
-		if(m_bIsActive) CloseLayout();
+		
 		
 		m_bPlacing = true;
 		m_Placeable = placeable;
@@ -107,7 +135,7 @@ class OVT_PlaceContext : OVT_UIContext
 		params.Transform[3] = pos;
 		m_pPlacingPrefab = m_Placeable.m_aPrefabs[m_iPrefabIndex];
 		m_ePlacingEntity = GetGame().SpawnEntityPrefabLocal(Resource.Load(m_pPlacingPrefab), null, params);
-		SCR_Global.SetMaterial(m_ePlacingEntity, "{E0FECF0FE7457A54}Assets/Editor/PlacingPreview/Preview_03.emat", true);
+		//SCR_Global.SetMaterial(m_ePlacingEntity, "{E0FECF0FE7457A54}Assets/Editor/PlacingPreview/Preview_03.emat", true);
 	}
 	
 	protected void RemoveGhost()
@@ -125,6 +153,13 @@ class OVT_PlaceContext : OVT_UIContext
 			vector mat[4];
 			m_ePlacingEntity.GetTransform(mat);
 			RemoveGhost();
+			
+			if(!CanPlace(mat[3]))
+			{
+				ShowHint("#OVT-CannotPlaceHere");
+				SCR_UISoundEntity.SoundEvent(UISounds.ERROR);
+				return;
+			}
 			
 			if(!m_Economy.PlayerHasMoney(m_iPlayerID, m_Config.GetPlaceableCost(m_Placeable)))
 			{
@@ -178,8 +213,8 @@ class OVT_PlaceContext : OVT_UIContext
 	{
 		if(m_ePlacingEntity)
 		{
-			vector angles = m_ePlacingEntity.GetAngles();
-			angles[1] = angles[1] - 1;
+			vector angles = m_ePlacingEntity.GetYawPitchRoll();
+			angles[0] = angles[0] - 1;
 			m_ePlacingEntity.SetYawPitchRoll(angles);
 		}
 	}
@@ -188,8 +223,8 @@ class OVT_PlaceContext : OVT_UIContext
 	{
 		if(m_ePlacingEntity)
 		{
-			vector angles = m_ePlacingEntity.GetAngles();
-			angles[1] = angles[1] + 1;
+			vector angles = m_ePlacingEntity.GetYawPitchRoll();
+			angles[0] = angles[0] + 1;
 			m_ePlacingEntity.SetYawPitchRoll(angles);
 		}
 	}
@@ -201,24 +236,34 @@ class OVT_PlaceContext : OVT_UIContext
 		
 		float screenW, screenH;
 		workspace.GetScreenSize(screenW, screenH);
-		vector outDir;
-		vector startPos = workspace.ProjScreenToWorldNative(screenW / 2, screenH / 2, outDir, world, -1);
-		outDir *= 50;
-
-		autoptr TraceParam trace = new TraceParam();
-		trace.Start = startPos;
-		trace.End = startPos + outDir;
-		trace.Flags = TraceFlags.WORLD | TraceFlags.ENTS;
-		trace.LayerMask = TRACE_LAYER_CAMERA;
-		trace.Exclude = m_Owner;
+		vector cameraDir;
+		vector cameraPos = workspace.ProjScreenToWorldNative(screenW / 2, screenH / 2, cameraDir, world, -1);
 		
-		if (startPos[1] > world.GetOceanBaseHeight())
-			trace.Flags = trace.Flags | TraceFlags.OCEAN;
+		//--- Find object/ground intersection, or use maximum distance when none is found
+		float traceDis = GetTraceDis(cameraPos, cameraDir * TRACE_DIS, cameraPos[1]);
+		if (traceDis == 1)
+			traceDis = MAX_PREVIEW_DIS;
+		else
+			traceDis *= TRACE_DIS;
 		
-		float traceDis = world.TraceMove(trace, null);
-		
-		vector endPos = startPos + outDir * traceDis;
+		vector endPos = cameraPos + cameraDir * traceDis;
 		
 		return endPos;
+	}
+	
+	protected float GetTraceDis(vector pos, vector dir, float cameraHeight)
+	{
+		BaseWorld world = GetGame().GetWorld();
+		autoptr TraceParam trace = new TraceParam();
+		trace.Start = pos;
+		trace.End = trace.Start + dir;
+		if (cameraHeight >= world.GetOceanBaseHeight())
+			trace.Flags = TraceFlags.WORLD | TraceFlags.OCEAN;
+		else
+			trace.Flags = TraceFlags.WORLD; //--- Don't check for water intersection when under water
+		trace.LayerMask = EPhysicsLayerDefs.Static | EPhysicsLayerDefs.Terrain;
+		trace.Exclude = m_Owner;
+		
+		return world.TraceMove(trace, null);
 	}
 }

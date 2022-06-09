@@ -1,0 +1,57 @@
+GenericEntity {
+ ID "5992E2EECFF48DDE"
+ components {
+  MeshObject "{5992E2ED4AE6FC55}" {
+   Object "{B8A18DA1DEC04635}Assets/Props/Military/AmmoBox/EquipmentBoxStack/EquipmentBoxStack_01_V4.xob"
+   LODFactors {
+    0
+   }
+   ObjectHeightmapBias 0
+  }
+  Hierarchy "{5992E2EE7F601AE1}" {
+  }
+  RigidBody "{5992E2EE7DCDF9DF}" {
+   Mass 10
+   AngularSleepingThreashold 1
+   ResponseIndex "HugeDestructible"
+   ModelGeometry 1
+   Static 1
+  }
+  SCR_UniversalInventoryStorageComponent "{5992E2EDFB55B309}" {
+   Attributes SCR_ItemAttributeCollection "{5992E2EDD04C359E}" {
+    ItemDisplayName UIInfo "{5992E2EDDE65CA48}" {
+     Name "#AR-Ammobox_Name"
+     Description "#AR-Ammobox_Name"
+    }
+    m_Size SLOT_3x3
+   }
+   UseCapacityCoefficient 0
+   MaxCumulativeVolume 30000
+   m_fMaxWeight 1000
+  }
+  ActionsManagerComponent "{5992E2EE5A9EEC18}" {
+   ActionContexts {
+    UserActionContext "{5992E2EE277DD41C}" {
+     ContextName "default"
+     Position PointInfo "{5992E2E821434D1E}" {
+      Offset 0 1 0
+     }
+     Radius 0.65
+    }
+   }
+   additionalActions {
+    OVT_OpenStorageAction "{5992E2EE0BF1FF35}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{5992E2EE10E48C60}" {
+      Name "#AR-Inventory_OpenStorage"
+     }
+    }
+   }
+  }
+  RplComponent "{5992E2EEFC6E557E}" {
+  }
+ }
+ coords 5597.396 97.994 6046.079
+}
