@@ -20,7 +20,8 @@ class OVT_TownControllerComponent: OVT_Component
 		m_Economy = OVT_EconomyManagerComponent.GetInstance();
 		m_Town = m_TownManager.GetNearestTown(GetOwner().GetOrigin());
 		
-		SpawnGunDealer();
+		if(m_Town.size > 1)
+			SpawnGunDealer();
 	}
 	
 	protected void SpawnGunDealer()
@@ -49,8 +50,6 @@ class OVT_TownControllerComponent: OVT_Component
 		
 		m_GunDealerID = dealer.GetID();
 		
-		m_Config.SpawnMarker(dealer.GetOrigin(), EMapDescriptorType.MDT_ICON);
-		
 		OVT_ShopComponent shop = OVT_ShopComponent.Cast(dealer.FindComponent(OVT_ShopComponent));
 		
 		foreach(OVT_ShopInventoryItem item : m_Economy.m_aGunDealerItems)
@@ -65,5 +64,7 @@ class OVT_TownControllerComponent: OVT_Component
 			
 			shop.m_aInventoryItems.Insert(item);
 		}
+		
+		m_Economy.RegisterGunDealer(m_GunDealerID);
 	}
 }

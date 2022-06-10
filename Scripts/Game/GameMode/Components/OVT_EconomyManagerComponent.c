@@ -43,6 +43,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	protected int m_iResistanceMoney = 0;
 	
 	protected ref array<EntityID> m_aAllShops;
+	protected ref array<EntityID> m_aGunDealers;
 	
 	static OVT_EconomyManagerComponent s_Instance;
 	
@@ -68,6 +69,16 @@ class OVT_EconomyManagerComponent: OVT_Component
 		if(!m_mItemCosts.Contains(res)) return 0;
 		
 		return m_mItemCosts[res];
+	}
+	
+	array<EntityID> GetAllShops()
+	{
+		return m_aAllShops;
+	}
+	
+	array<EntityID> GetGunDealers()
+	{
+		return m_aGunDealers;
 	}
 	
 	OVT_ShopInventoryConfig GetShopConfig(OVT_ShopType shopType)
@@ -125,9 +136,15 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return m_iResistanceMoney;
 	}
 	
+	void RegisterGunDealer(EntityID id)
+	{
+		m_aGunDealers.Insert(id);
+	}
+	
 	void Init(IEntity owner)
 	{		
 		m_mMoney = new map<int, int>;
+		m_aGunDealers = new array<EntityID>;	
 		
 		InitializeShops();
 	}

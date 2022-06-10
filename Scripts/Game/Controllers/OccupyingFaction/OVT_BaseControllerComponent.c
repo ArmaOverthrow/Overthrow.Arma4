@@ -66,8 +66,6 @@ class OVT_BaseControllerComponent: OVT_Component
 		params.Transform[3] = pos;
 		IEntity flag = GetGame().SpawnEntityPrefab(Resource.Load(m_Config.GetOccupyingFaction().m_aFlagPolePrefab), null, params);
 		
-		m_Config.SpawnMarker(pos,EMapDescriptorType.MDT_BASE);
-		
 		foreach(OVT_BaseUpgrade upgrade : m_aBaseUpgrades)
 		{
 			upgrade.Init(this, m_occupyingFactionManager, m_Config);

@@ -31,28 +31,7 @@ class OVT_RealEstateManagerComponent: OVT_Component
 		
 		m_mHomes = new map<int, EntityID>;
 		m_mOwned = new map<int, ref set<EntityID>>;
-		m_Town = OVT_TownManagerComponent.Cast(GetOwner().FindComponent(OVT_TownManagerComponent));
-		
-		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, CheckPubDisableMarker, FilterPubEntities, EQueryEntitiesFlags.STATIC);
-	}
-	
-	protected bool CheckPubDisableMarker(IEntity entity)
-	{
-		MapDescriptorComponent mapdesc = MapDescriptorComponent.Cast(entity.FindComponent(MapDescriptorComponent));
-		if (mapdesc){
-			mapdesc.Item().SetVisible(false);
-		}
-		return true;
-	}
-	
-	protected bool FilterPubEntities(IEntity entity)
-	{
-		MapDescriptorComponent mapdesc = MapDescriptorComponent.Cast(entity.FindComponent(MapDescriptorComponent));
-		if (mapdesc){
-			if(mapdesc.GetBaseType() == EMapDescriptorType.MDT_PUB) return true;
-		}
-				
-		return false;	
+		m_Town = OVT_TownManagerComponent.Cast(GetOwner().FindComponent(OVT_TownManagerComponent));	
 	}
 	
 	void SetHome(int playerId, EntityID entityId)
@@ -72,6 +51,12 @@ class OVT_RealEstateManagerComponent: OVT_Component
 		if(!m_mOwned.Contains(playerId)) return false;
 		set<EntityID> owner = m_mOwned[playerId];
 		return owner.Contains(entityId);
+	}
+	
+	set<EntityID> GetOwned(int playerId)
+	{
+		if(!m_mOwned.Contains(playerId)) return new set<EntityID>;
+		return m_mOwned[playerId];
 	}
 	
 	IEntity GetNearestOwned(int playerId, vector pos)
@@ -107,8 +92,6 @@ class OVT_RealEstateManagerComponent: OVT_Component
 			SetOwner(playerId, newHome.GetID());
 			SetHome(playerId, newHome.GetID());			
 			SpawnStartingCar(newHome.GetOrigin());
-			
-			m_Config.SpawnMarkerLocal(newHome.GetOrigin(),EMapDescriptorType.MDT_PUB);
 		}
 		return GetGame().GetWorld().FindEntityByID(m_mHomes[playerId]);
 	}

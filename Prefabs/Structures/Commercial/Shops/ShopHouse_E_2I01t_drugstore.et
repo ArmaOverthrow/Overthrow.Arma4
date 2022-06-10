@@ -1,16 +1,15 @@
 SCR_DestructibleBuildingEntity : "{9064E65F34097C8F}Prefabs/Structures/Commercial/Shops/ShopHouse_E_2I01t_Base.et" {
  ID "F0DBA538AC2A0552"
  components {
-  OVT_ShopComponent "{598EDB579A99025A}" {
-   m_ShopType SHOP_ELECTRONIC
+  OVT_ShopComponent "{5994FB7902F1492B}" {
   }
  }
  {
   GenericEntity {
-   ID "58C2D70AB8E22575"
+   ID "56F2E0B9FD01B0E5"
    {
     GenericEntity {
-     ID "58C2D708C842393C"
+     ID "56F2D931A16E6DD0"
      components {
       MeshObject "{5872F0EB7FA40561}" {
       }

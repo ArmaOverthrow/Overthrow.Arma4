@@ -77,6 +77,92 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode {
       }
      }
     }
+    OVT_ShopInventoryConfig "{59953E645BFCDAB7}" {
+     m_aInventoryItems {
+      OVT_ShopInventoryItem "{59953E642701BD4B}" {
+       prefab "{A81F501D3EF6F38E}Prefabs/Items/Medicine/FieldDressing_US_01.et"
+       cost 15
+       maxAtStart 100
+       demand 0.05
+      }
+      OVT_ShopInventoryItem "{59953E6407547097}" {
+       prefab "{C3F1FA1E2EC2B345}Prefabs/Items/Medicine/FieldDressing_USSR_01.et"
+       cost 15
+       maxAtStart 100
+       demand 0.05
+      }
+      OVT_ShopInventoryItem "{59953E640DED5A9D}" {
+       prefab "{CDCC313B2FB76FE7}Prefabs/Items/Medicine/Gauze_01.et"
+       cost 8
+       maxAtStart 200
+      }
+      OVT_ShopInventoryItem "{59953E6411321F17}" {
+       prefab "{C98FCC6CA6C56069}Prefabs/Items/Medicine/AspirinBottle.et"
+       cost 18
+       maxAtStart 50
+       demand 0.04
+      }
+     }
+    }
+    OVT_ShopInventoryConfig "{59953E64E1FAC553}" {
+     type SHOP_CLOTHES
+     m_aInventoryItems {
+      OVT_ShopInventoryItem "{59953E64ED7BC6BE}" {
+       prefab "{06B68C58B72EAAC6}Prefabs/Items/Equipment/Backpacks/Backpack_ALICE_Medium.et"
+       cost 150
+       maxAtStart 20
+       demand 0.01
+      }
+      OVT_ShopInventoryItem "{59953E64A40688D3}" {
+       prefab "{41A9C55B61F375F0}Prefabs/Items/Equipment/Backpacks/Backpack_Kolobok.et"
+       cost 80
+       maxAtStart 20
+       demand 0.01
+      }
+      OVT_ShopInventoryItem "{59953E64829FC381}" {
+       prefab "{FDA7B6630DB87991}Prefabs/Items/Equipment/Backpacks/Backpack_M70_Swiss.et"
+       cost 45
+       maxAtStart 20
+       demand 0.01
+      }
+      OVT_ShopInventoryItem "{59953E6493473AF4}" {
+       prefab "{6A39B5843B3F36DA}Prefabs/Items/Equipment/Backpacks/Backpack_RPG_Assistant.et"
+       cost 65
+       maxAtStart 20
+       demand 0.01
+      }
+      OVT_ShopInventoryItem "{59953E656544CDED}" {
+       prefab "{0D39750E5695B9D8}Prefabs/Items/Equipment/Backpacks/Backpack_RPG_Gunner.et"
+       cost 65
+       maxAtStart 20
+       demand 0.01
+      }
+      OVT_ShopInventoryItem "{59953E6568B17E87}" {
+       prefab "{3DE0155EC9767B98}Prefabs/Items/Equipment/Backpacks/Backpack_Veshmeshok.et"
+       cost 110
+       maxAtStart 20
+       demand 0.01
+      }
+      OVT_ShopInventoryItem "{59953E652839645B}" {
+       prefab "{BE5A1F7A2EDE094E}Prefabs/Characters/Eyewear/Goggles_PASGT_01.et"
+       cost 25
+       maxAtStart 20
+       demand 0.01
+      }
+      OVT_ShopInventoryItem "{59953E6502250D5E}" {
+       prefab "{E12126CDE731EED5}Prefabs/Characters/HeadGear/Hat_Boonie_US_01/Hat_Boonie_US_01.et"
+       cost 35
+       maxAtStart 20
+       demand 0.01
+      }
+      OVT_ShopInventoryItem "{59953E65F56FFB18}" {
+       prefab "{793EEE2C133176F9}Prefabs/Characters/HeadGear/Hat_Panama_Soviet/Hat_Panama_Soviet_01_v1.et"
+       cost 35
+       maxAtStart 20
+       demand 0.01
+      }
+     }
+    }
    }
    m_aGunDealerItems {
     OVT_ShopInventoryItem "{59908364950495F9}" {

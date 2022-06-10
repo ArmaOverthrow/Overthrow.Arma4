@@ -1,0 +1,38 @@
+FrameWidgetClass {
+ Name "rootFrame"
+ "Z Order" 8
+ Clipping False
+ {
+  SizeLayoutWidgetClass "{5994FB77FD289DB6}" {
+   Name "ImageLayout"
+   Slot FrameWidgetSlot "{566E7A663B359583}" {
+    Anchor 0 0 0 0
+    PositionX 0
+    OffsetLeft 0
+    PositionY 0
+    OffsetTop 0
+    SizeX 44
+    OffsetRight -44
+    SizeY 44
+    OffsetBottom -44
+    Alignment 0.5 0.5
+   }
+   {
+    ImageWidgetClass "{5994FB77FD289DB5}" {
+     Name "Image"
+     Slot AlignableSlot "{59945480BE60B0C7}" {
+      HorizontalAlign 1
+      VerticalAlign 1
+      Padding 0 0 0 0
+     }
+     Color 0 0 0 1
+     Texture "{C7691945DE01FB28}UI/Imagesets/overthrow_mapicons.imageset"
+     Image "house"
+     Size 128 128
+     "Blend Mode" Blend
+     Range 0.414
+    }
+   }
+  }
+ }
+}

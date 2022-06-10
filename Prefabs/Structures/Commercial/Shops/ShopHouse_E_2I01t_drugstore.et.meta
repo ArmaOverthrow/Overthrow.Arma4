@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{FF48B5059EB0AC65}Prefabs/Structures/Commercial/Shops/ShopHouse_E_2I01t_drugstore.et"
+ Configurations {
+  EntityTemplateResourceClass PC {
+  }
+  EntityTemplateResourceClass XBOX_ONE : PC {
+  }
+  EntityTemplateResourceClass XBOX_SERIES : PC {
+  }
+  EntityTemplateResourceClass PS4 : PC {
+  }
+  EntityTemplateResourceClass HEADLESS : PC {
+  }
+ }
+}

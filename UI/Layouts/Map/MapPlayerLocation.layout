@@ -1,0 +1,37 @@
+FrameWidgetClass {
+ Name "rootFrame"
+ "Z Order" 9
+ Clipping False
+ {
+  SizeLayoutWidgetClass "{59945480850665E7}" {
+   Name "ImageLayout"
+   Slot FrameWidgetSlot "{566E7A663B359583}" {
+    Anchor 0 0 0 0
+    PositionX 0
+    OffsetLeft 0
+    PositionY 0
+    OffsetTop 0
+    SizeX 44
+    OffsetRight -44
+    SizeY 44
+    OffsetBottom -44
+    Alignment 0.5 0.5
+   }
+   {
+    ImageWidgetClass "{59945480850665E6}" {
+     Name "Image"
+     Slot AlignableSlot "{59945480BE60B0C7}" {
+      HorizontalAlign 1
+      VerticalAlign 1
+      Padding 0 0 0 0
+     }
+     Texture "{E88973F47D8B7A98}UI/Textures/Map/unit.edds"
+     Image ""
+     Size 44 44
+     "Blend Mode" Blend
+     Range 0.414
+    }
+   }
+  }
+ }
+}
