@@ -135,7 +135,6 @@ class OVT_TownManagerComponent: OVT_Component
 		town.markerID = entity.GetID();
 		town.name = mapdesc.Item().GetDisplayName();
 		town.population = 0;
-		town.stability = 100;
 		town.support = 0;
 		town.faction = m_Config.m_sOccupyingFaction;
 		
@@ -149,6 +148,21 @@ class OVT_TownManagerComponent: OVT_Component
 		if(town.size == 1) range = m_iVillageRange;
 		if(town.size == 3) range = m_iCityRange;
 		
+		//Randomize stability
+		int stability = 100;
+		if(town.size == 3)
+		{
+			stability = s_AIRandomGenerator.RandFloatXY(90, 100);
+		}
+		if(town.size == 2)
+		{
+			stability = s_AIRandomGenerator.RandFloatXY(80, 100);
+		}
+		if(town.size == 1)
+		{
+			stability = s_AIRandomGenerator.RandFloatXY(65, 100);
+		}
+		town.stability = stability;
 		
 		GetGame().GetWorld().QueryEntitiesBySphere(entity.GetOrigin(), range, CheckHouseAddPopulation, FilterHouseEntities, EQueryEntitiesFlags.STATIC);
 		

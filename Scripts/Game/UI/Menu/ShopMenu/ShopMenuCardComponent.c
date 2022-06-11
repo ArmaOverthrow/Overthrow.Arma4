@@ -19,6 +19,7 @@ class OVT_ShopMenuCardComponent : SCR_ScriptedWidgetComponent
 		qtyWidget.SetText(qty.ToString());
 		
 		ItemPreviewWidget img = ItemPreviewWidget.Cast(m_wRoot.FindAnyWidget("Image"));
+		ImageWidget tex = ImageWidget.Cast(m_wRoot.FindAnyWidget("Texture"));
 		
 		IEntity spawnedItem = GetGame().SpawnEntityPrefabLocal(Resource.Load(res));
 		
@@ -27,18 +28,37 @@ class OVT_ShopMenuCardComponent : SCR_ScriptedWidgetComponent
 			return;
 		
 		// Set rendering and preview properties 
-		manager.SetPreviewItem(img, spawnedItem);
+		
 		img.SetResolutionScale(1, 1);
 		
-		InventoryItemComponent inv = InventoryItemComponent.Cast(spawnedItem.FindComponent(InventoryItemComponent));
-		if(inv){
-			SCR_ItemAttributeCollection attr = SCR_ItemAttributeCollection.Cast(inv.GetAttributes());
-			if(attr)
+		SCR_EditableVehicleComponent veh = SCR_EditableVehicleComponent.Cast(spawnedItem.FindComponent(SCR_EditableVehicleComponent));
+		if(veh){
+			SCR_EditableEntityUIInfo info = SCR_EditableEntityUIInfo.Cast(veh.GetInfo());
+			if(info)
 			{
-				UIInfo info = attr.GetUIInfo();
 				text.SetText(info.GetName());
+				img.SetVisible(false);
+				tex.SetVisible(true);
+				tex.LoadImageTexture(0, info.GetImage());
 			}
-		}
+		}else{
+			InventoryItemComponent inv = InventoryItemComponent.Cast(spawnedItem.FindComponent(InventoryItemComponent));
+			if(inv){
+				PreviewRenderAttributes previewAttr = PreviewRenderAttributes.Cast(inv.GetAttributes().FindAttribute(PreviewRenderAttributes));
+				if(previewAttr){
+					manager.SetPreviewItem(img, spawnedItem, previewAttr);
+				}else{
+					manager.SetPreviewItem(img, spawnedItem);
+				}				
+				
+				SCR_ItemAttributeCollection attr = SCR_ItemAttributeCollection.Cast(inv.GetAttributes());
+				if(attr)
+				{
+					UIInfo info = attr.GetUIInfo();
+					text.SetText(info.GetName());
+				}
+			}
+		}	
 		
 		SCR_Global.DeleteEntityAndChildren(spawnedItem);
 	}

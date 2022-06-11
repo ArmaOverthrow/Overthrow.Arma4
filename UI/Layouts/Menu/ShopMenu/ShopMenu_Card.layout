@@ -68,6 +68,15 @@ ButtonWidgetClass {
               VerticalAlign 3
              }
             }
+            ImageWidgetClass "{59968CDFF05D0A59}" {
+             Name "Texture"
+             Slot OverlayWidgetSlot "{59968CDFF05D0A2C}" {
+             }
+             "Is Visible" 0
+             Texture "{0853023FFB197DB8}UI/Textures/EditorPreviews/Vehicles/Wheeled/M923A1/M923A1.edds"
+             Image ""
+             Size 800 600
+            }
             ImageWidgetClass "{598EF9F4DEC53A32}" {
              Name "Splatter"
              Slot OverlayWidgetSlot "{56EF0B19288B21F6}" {

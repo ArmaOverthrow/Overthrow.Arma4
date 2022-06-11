@@ -64,11 +64,29 @@ class OVT_EconomyManagerComponent: OVT_Component
 		m_mItemCosts[res] = cost;
 	}
 	
-	int GetPrice(ResourceName res)
+	int GetPrice(ResourceName res, vector pos = "0 0 0")
 	{
 		if(!m_mItemCosts.Contains(res)) return 0;
 		
-		return m_mItemCosts[res];
+		int price = m_mItemCosts[res];
+		if(pos[0] != 0)
+		{
+			OVT_TownData town = OVT_TownManagerComponent.GetInstance().GetNearestTown(pos);
+			if(town)
+			{
+				//price should go up as stability goes down				
+				float stability = town.stability / 100;
+				price = Math.Round(price + (price * 0.1 * (1 - stability)));				
+				
+				//smaller towns slightly more expensive
+				if(town.size < 3)
+				{
+					price = Math.Round(price * 1.05);
+				}
+			}
+		}
+		
+		return price;
 	}
 	
 	array<EntityID> GetAllShops()

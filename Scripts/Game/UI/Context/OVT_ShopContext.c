@@ -18,6 +18,16 @@ class OVT_ShopContext : OVT_UIContext
 		
 		action.GetOnAction().Insert(Buy);
 		
+		Widget sellButton = m_wRoot.FindAnyWidget("SellButton");
+		if(m_Shop.m_ShopType == OVT_ShopType.SHOP_GUNDEALER || m_Shop.m_ShopType == OVT_ShopType.SHOP_VEHICLE)
+		{
+			sellButton.SetVisible(false);
+		}else{
+			ButtonActionComponent sellAction = ButtonActionComponent.Cast(sellButton.FindHandler(ButtonActionComponent));
+		
+			sellAction.GetOnAction().Insert(Sell);
+		}
+		
 		Refresh();		
 	}
 	
@@ -52,7 +62,7 @@ class OVT_ShopContext : OVT_UIContext
 			w.SetOpacity(1);
 			OVT_ShopMenuCardComponent card = OVT_ShopMenuCardComponent.Cast(w.FindHandler(OVT_ShopMenuCardComponent));
 			
-			int cost = m_Economy.GetPrice(item.prefab);
+			int cost = m_Economy.GetPrice(item.prefab, m_Shop.GetOwner().GetOrigin());
 			int qty = m_Shop.GetStock(item.prefab);
 			
 			card.Init(item.prefab, cost, qty, this);
@@ -75,19 +85,31 @@ class OVT_ShopContext : OVT_UIContext
 		TextWidget details = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedDetails"));
 		TextWidget desc = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedDescription"));
 		
-		int cost = m_Economy.GetPrice(res);
+		int cost = m_Economy.GetPrice(res, m_Shop.GetOwner().GetOrigin());
 		int qty = m_Shop.GetStock(res);
 				
 		IEntity spawnedItem = GetGame().SpawnEntityPrefabLocal(Resource.Load(res));
-		InventoryItemComponent inv = InventoryItemComponent.Cast(spawnedItem.FindComponent(InventoryItemComponent));
-		if(inv){
-			SCR_ItemAttributeCollection attr = SCR_ItemAttributeCollection.Cast(inv.GetAttributes());
-			if(attr)
+		
+		SCR_EditableVehicleComponent veh = SCR_EditableVehicleComponent.Cast(spawnedItem.FindComponent(SCR_EditableVehicleComponent));
+		if(veh){
+			SCR_EditableEntityUIInfo info = SCR_EditableEntityUIInfo.Cast(veh.GetInfo());
+			if(info)
 			{
-				UIInfo info = attr.GetUIInfo();
 				typeName.SetText(info.GetName());
 				details.SetText("$" + cost + "\n" + qty + " #OVT-Shop_InStock");
 				desc.SetText(info.GetDescription());
+			}
+		}else{		
+			InventoryItemComponent inv = InventoryItemComponent.Cast(spawnedItem.FindComponent(InventoryItemComponent));
+			if(inv){
+				SCR_ItemAttributeCollection attr = SCR_ItemAttributeCollection.Cast(inv.GetAttributes());
+				if(attr)
+				{
+					UIInfo info = attr.GetUIInfo();
+					typeName.SetText(info.GetName());
+					details.SetText("$" + cost + "\n" + qty + " #OVT-Shop_InStock");
+					desc.SetText(info.GetDescription());
+				}
 			}
 		}
 		
@@ -122,12 +144,24 @@ class OVT_ShopContext : OVT_UIContext
 		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(m_iPlayerID);
 		if(!player) return;
 		
-		int cost = m_Economy.GetPrice(m_SelectedResource);
+		int cost = m_Economy.GetPrice(m_SelectedResource, m_Shop.GetOwner().GetOrigin());
 		
 		if(!m_Economy.PlayerHasMoney(m_iPlayerID, cost)) return;
 				
 		SCR_InventoryStorageManagerComponent inventory = SCR_InventoryStorageManagerComponent.Cast(player.FindComponent( SCR_InventoryStorageManagerComponent ));
 		if(!inventory) return;
+		
+		if(m_Shop.m_ShopType == OVT_ShopType.SHOP_VEHICLE)
+		{
+			if(OVT_VehicleManagerComponent.GetInstance().SpawnVehicleBehind(m_SelectedResource, player, m_iPlayerID))
+			{
+				m_Economy.TakePlayerMoney(m_iPlayerID, cost);
+				m_Shop.TakeFromInventory(m_SelectedResource, 1);
+				Refresh();
+				SelectItem(m_SelectedResource);
+			}
+			return;
+		}
 		
 		IEntity item = GetGame().SpawnEntityPrefabLocal(Resource.Load(m_SelectedResource));
 		
@@ -137,6 +171,35 @@ class OVT_ShopContext : OVT_UIContext
 			m_Shop.TakeFromInventory(m_SelectedResource, 1);
 			Refresh();
 			SelectItem(m_SelectedResource);
+		}
+	}
+	
+	void Sell(Widget src, float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
+	{
+		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(m_iPlayerID);
+		if(!player) return;
+		
+		int cost = m_Economy.GetPrice(m_SelectedResource, m_Shop.GetOwner().GetOrigin());
+		
+		SCR_InventoryStorageManagerComponent inventory = SCR_InventoryStorageManagerComponent.Cast(player.FindComponent( SCR_InventoryStorageManagerComponent ));
+		if(!inventory) return;
+		
+		array<IEntity> items = new array<IEntity>;
+		inventory.GetItems(items);
+		
+		foreach(IEntity ent : items)
+		{
+			if(ent.GetPrefabData().GetPrefabName() == m_SelectedResource)
+			{
+				if(inventory.TryDeleteItem(ent))
+				{
+					m_Economy.AddPlayerMoney(m_iPlayerID, cost);
+					m_Shop.AddToInventory(m_SelectedResource, 1);
+					Refresh();
+					SelectItem(m_SelectedResource);
+					break;
+				}
+			}
 		}
 	}
 }

@@ -43,5 +43,17 @@ ImageSetClass {
    Size 128 128
    Flags 0
   }
+  ImageSetDefClass vehicles {
+   Name "vehicles"
+   Pos 2 132
+   Size 128 128
+   Flags 0
+  }
+  ImageSetDefClass vehicle {
+   Name "vehicle"
+   Pos 132 132
+   Size 128 128
+   Flags 0
+  }
  }
 }

@@ -7,6 +7,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	protected OVT_OverthrowConfigComponent m_Config;
 	protected OVT_TownManagerComponent m_TownManager;
 	protected OVT_OccupyingFactionManager m_OccupyingFactionManager;
+	protected OVT_VehicleManagerComponent m_VehicleManager;
 	protected OVT_EconomyManagerComponent m_EconomyManager;
 	
 	ref array<int> m_aInitializedPlayers;
@@ -88,6 +89,16 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			#endif
 			
 			m_OccupyingFactionManager.Init(this);
+		}
+		
+		m_VehicleManager = OVT_VehicleManagerComponent.Cast(FindComponent(OVT_VehicleManagerComponent));		
+		if(m_VehicleManager)
+		{
+			#ifdef OVERTHROW_DEBUG
+			Print("Initializing Vehicles");
+			#endif
+			
+			m_VehicleManager.Init(this);
 		}
 		
 	}

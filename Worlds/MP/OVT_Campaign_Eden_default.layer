@@ -28,17 +28,6 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode {
        cost 8
        maxAtStart 50
       }
-      OVT_ShopInventoryItem "{599083DF2A7D37AF}" {
-       prefab "{70BC751317551D9B}Prefabs/Items/Equipment/Canteens/Canteen_Soviet_01.et"
-       cost 25
-       demand 0.05
-      }
-      OVT_ShopInventoryItem "{599083DF31BBD6F1}" {
-       prefab "{630FB4AD4A735264}Prefabs/Items/Equipment/Canteens/Canteen_US_01.et"
-       cost 25
-       maxAtStart 15
-       demand 0.05
-      }
       OVT_ShopInventoryItem "{599083DF01183217}" {
        prefab "{7CEF68E2BC68CE71}Prefabs/Items/Equipment/Compass/Compass_Adrianov.et"
        demand 0.01
@@ -69,10 +58,42 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode {
        maxAtStart 5
        demand 0.01
       }
-      OVT_ShopInventoryItem "{598EF98C9C161E18}" {
+      OVT_ShopInventoryItem "{599698B66916C38B}" {
+       prefab "{6FD6C96121905202}Prefabs/Items/Equipment/Watches/Watch_Vostok.et"
+       cost 125
+       maxAtStart 5
+       demand 0.01
+      }
+      OVT_ShopInventoryItem "{599698B67DB2BF9D}" {
        prefab "{73950FBA2D7DB5C5}Prefabs/Items/Equipment/Radios/Radio_ANPRC68.et"
        cost 225
-       maxAtStart 5
+       demand 0.01
+      }
+      OVT_ShopInventoryItem "{599698B64DD50188}" {
+       prefab "{9B6B61BB3FE3DFB0}Prefabs/Items/Equipment/Radios/Radio_ANPRC77.et"
+       cost 350
+       demand 0.001
+      }
+      OVT_ShopInventoryItem "{599698B65258C0A9}" {
+       prefab "{54C68E438DD34265}Prefabs/Items/Equipment/Radios/Radio_R107M.et"
+       cost 280
+       demand 0.01
+      }
+      OVT_ShopInventoryItem "{599698B625E6A3AA}" {
+       prefab "{E1A5D4B878AA8980}Prefabs/Items/Equipment/Radios/Radio_R148.et"
+       cost 100
+       demand 0.01
+      }
+      OVT_ShopInventoryItem "{599698B63FA9B003}" {
+       prefab "{3A421547BC29F679}Prefabs/Items/Equipment/Flashlights/Flashlight_MX991.et"
+       cost 60
+       maxAtStart 25
+       demand 0.01
+      }
+      OVT_ShopInventoryItem "{599698B60F1FC377}" {
+       prefab "{575EA58E67448C2A}Prefabs/Items/Equipment/Flashlights/Flashlight_Soviet_01.et"
+       cost 25
+       maxAtStart 30
        demand 0.01
       }
      }
@@ -160,6 +181,56 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode {
        cost 35
        maxAtStart 20
        demand 0.01
+      }
+     }
+    }
+    OVT_ShopInventoryConfig "{599680393904D480}" {
+     type SHOP_VEHICLE
+     m_aInventoryItems {
+      OVT_ShopInventoryItem "{599680390843E336}" {
+       prefab "{F649585ABB3706C4}Prefabs/Vehicles/Wheeled/M151A2/M151A2.et"
+       cost 2500
+       demand 0.001
+      }
+      OVT_ShopInventoryItem "{59968039ABA96510}" {
+       prefab "{9A0D72816DFFDB7F}Prefabs/Vehicles/Wheeled/M923A1/M923A1.et"
+       cost 8000
+       demand 0.001
+      }
+      OVT_ShopInventoryItem "{59968039B1A4C8BB}" {
+       prefab "{F1FBD0972FA5FE09}Prefabs/Vehicles/Wheeled/M923A1/M923A1_transport.et"
+       cost 9000
+       demand 0.001
+      }
+      OVT_ShopInventoryItem "{59968039955B641E}" {
+       prefab "{81FDAD5EB644CC3D}Prefabs/Vehicles/Wheeled/M923A1/M923A1_transport_covered.et"
+       cost 9000
+       demand 0.01
+      }
+      OVT_ShopInventoryItem "{59968038784A2AA4}" {
+       prefab "{2BE1F8B9299B67C1}Prefabs/Vehicles/Wheeled/M923A1/M923A1_tanker.et"
+       cost 11000
+       demand 0.001
+      }
+      OVT_ShopInventoryItem "{59968038279F49E0}" {
+       prefab "{4597626AF36C0858}Prefabs/Vehicles/Wheeled/Ural4320/Ural4320.et"
+       cost 6000
+       demand 0.001
+      }
+      OVT_ShopInventoryItem "{59968038368166BF}" {
+       prefab "{16C1F16C9B053801}Prefabs/Vehicles/Wheeled/Ural4320/Ural4320_transport.et"
+       cost 7000
+       demand 0.001
+      }
+      OVT_ShopInventoryItem "{5996803807D8CCFF}" {
+       prefab "{D9B91FAB817A6033}Prefabs/Vehicles/Wheeled/Ural4320/Ural4320_transport_covered.et"
+       cost 7000
+       demand 0.001
+      }
+      OVT_ShopInventoryItem "{5996803817DA7828}" {
+       prefab "{4C81D7ED8F8C0D87}Prefabs/Vehicles/Wheeled/Ural4320/Ural4320_tanker.et"
+       cost 9000
+       demand 0.001
       }
      }
     }
@@ -310,6 +381,9 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode {
   OVT_TownManagerComponent "{59724C983BF56C3B}" {
   }
   OVT_OccupyingFactionManager "{59845E732755785F}" {
+  }
+  OVT_VehicleManagerComponent "{59953E39CBC3659D}" {
+   m_pStartingCarPrefab "{259EE7B78C51B624}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469.et"
   }
   SCR_CallsignManagerComponent "{59724C8C935D8E23}" {
   }

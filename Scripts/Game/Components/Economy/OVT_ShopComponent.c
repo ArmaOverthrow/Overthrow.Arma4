@@ -9,7 +9,8 @@ enum OVT_ShopType
 	SHOP_CLOTHES,
 	SHOP_FOOD,
 	SHOP_ELECTRONIC,
-	SHOP_GUNDEALER
+	SHOP_GUNDEALER,
+	SHOP_VEHICLE
 }
 
 class OVT_ShopComponent: OVT_Component

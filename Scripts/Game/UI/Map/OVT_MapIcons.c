@@ -45,6 +45,7 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 		OVT_RealEstateManagerComponent realEstate = OVT_RealEstateManagerComponent.GetInstance();
 		OVT_EconomyManagerComponent economy = OVT_EconomyManagerComponent.GetInstance();
 		OVT_OverthrowConfigComponent otconfig = OVT_OverthrowConfigComponent.GetInstance();
+		OVT_VehicleManagerComponent vehicles = OVT_VehicleManagerComponent.GetInstance();
 		
 		ChimeraCharacter playerEntity = ChimeraCharacter.Cast(SCR_PlayerController.GetLocalControlledEntity());
 		if (!playerEntity)
@@ -103,9 +104,28 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 				case OVT_ShopType.SHOP_DRUG:
 					icon = "pharmacy";
 					break;
+				case OVT_ShopType.SHOP_VEHICLE:
+					icon = "vehicles";
+					break;
 			}
 			
 			image.LoadImageFromSet(0, m_Imageset, icon);
+			
+			m_Widgets.Insert(w);
+		}
+		
+		foreach(EntityID id : vehicles.GetOwned(playerID))
+		{
+			IEntity ent = world.FindEntityByID(id);
+			m_Centers.Insert(ent.GetOrigin());
+			
+			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
+			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
+			image.LoadImageFromSet(0, m_Imageset, "vehicle");
+			
+			vector angles = ent.GetYawPitchRoll();
+			
+			image.SetRotation(angles[0]);
 			
 			m_Widgets.Insert(w);
 		}
