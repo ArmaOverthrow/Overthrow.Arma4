@@ -12,7 +12,9 @@ class OVT_UIManagerComponent: OVT_Component
 					
 	override void OnPostInit(IEntity owner)
 	{
-		super.OnPostInit(owner);		
+		super.OnPostInit(owner);	
+		
+		if(SCR_Global.IsEditMode()) return;	
 		
 		SCR_CharacterControllerComponent controller = SCR_CharacterControllerComponent.Cast( owner.FindComponent(SCR_CharacterControllerComponent) );		
 				
@@ -97,12 +99,15 @@ class OVT_UIManagerComponent: OVT_Component
 			}
 			
 			OVT_OverthrowGameMode gameMode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
-			if(gameMode) gameMode.OnPlayerSpawnedLocal(GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(owner));
+			int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(owner);
+			
+			if(gameMode) gameMode.OnPlayerSpawnedLocal(OVT_PlayerIdentityComponent.GetPersistentIDFromPlayerID(playerId));
 		}
 	}
 	
 	void ~OVT_UIManagerComponent()
-	{			
+	{
+		if(SCR_Global.IsEditMode()) return;			
 		foreach(OVT_UIContext context : m_aContexts)
 		{
 			context.UnregisterInputs();

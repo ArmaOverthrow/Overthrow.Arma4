@@ -40,7 +40,7 @@ class OVT_RespawnSystemComponent : SCR_RespawnSystemComponent
 			return null;
 		}
 		
-		IEntity home = re.GetHome(playerId);
+		IEntity home = re.GetHome(OVT_PlayerIdentityComponent.GetPersistentIDFromPlayerID(playerId));
 				
 		vector spawnPosition = home.GetOrigin();
 		vector spawnRotation = vector.Zero;

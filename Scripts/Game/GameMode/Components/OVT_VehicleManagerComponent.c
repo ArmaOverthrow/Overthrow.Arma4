@@ -1,8 +1,8 @@
-class OVT_VehicleManagerComponentClass: OVT_ComponentClass
+class OVT_VehicleManagerComponentClass: OVT_OwnerManagerComponentClass
 {
 };
 
-class OVT_VehicleManagerComponent: OVT_Component
+class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 {	
 	[Attribute("", UIWidgets.Object)]
 	ref array<ref OVT_ShopInventoryConfig> m_aVehicleShopConfigs;
@@ -11,7 +11,7 @@ class OVT_VehicleManagerComponent: OVT_Component
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Players starting car", params: "et", category: "Vehicles")]
 	ResourceName m_pStartingCarPrefab;
 	
-	ref map<int, ref set<RplId>> m_mOwned;
+	
 	ref array<EntityID> m_aAllVehicleShops;
 	
 	ref array<EntityID> m_aEntitySearch;
@@ -34,41 +34,14 @@ class OVT_VehicleManagerComponent: OVT_Component
 	
 	void Init(IEntity owner)
 	{		
-		m_mOwned = new map<int, ref set<RplId>>;
+		m_mOwned = new map<string, ref set<RplId>>;
 		m_aAllVehicleShops = new array<EntityID>;	
 		m_aEntitySearch = new array<EntityID>;
 		
 		m_RealEstate = OVT_RealEstateManagerComponent.GetInstance();
 	}
 	
-	void SetOwner(int playerId, IEntity vehicle)
-	{
-		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
-		Rpc(RpcAsk_SetOwner, playerId, rpl.Id());	
-	}
-	
-	bool IsOwner(int playerId, EntityID entityId)
-	{
-		if(!m_mOwned.Contains(playerId)) return false;
-		IEntity vehicle = GetGame().GetWorld().FindEntityByID(entityId);
-		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
-		set<RplId> owner = m_mOwned[playerId];
-		return owner.Contains(rpl.Id());
-	}
-	
-	set<EntityID> GetOwned(int playerId)
-	{
-		if(!m_mOwned.Contains(playerId)) return new set<EntityID>;
-		set<EntityID> entities = new set<EntityID>;
-		foreach(RplId id : m_mOwned[playerId])
-		{
-			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
-			entities.Insert(rpl.GetEntity().GetID());
-		}
-		return entities;
-	}
-	
-	void SpawnStartingCar(IEntity home, int playerId)
+	void SpawnStartingCar(IEntity home, string playerId)
 	{		
 		vector mat[4];
 		
@@ -152,7 +125,7 @@ class OVT_VehicleManagerComponent: OVT_Component
 		
 	}
 	
-	IEntity SpawnVehicleBehind(ResourceName prefab, IEntity entity, int ownerId)
+	IEntity SpawnVehicleBehind(ResourceName prefab, IEntity entity, string ownerId="")
 	{
 		vector mat[4];
 			
@@ -168,7 +141,7 @@ class OVT_VehicleManagerComponent: OVT_Component
 		return SpawnVehicleMatrix(prefab, mat, ownerId);
 	}
 	
-	IEntity SpawnVehicleMatrix(ResourceName prefab, vector mat[4], int ownerId = -1)
+	IEntity SpawnVehicleMatrix(ResourceName prefab, vector mat[4], string ownerId = "")
 	{
 		EntitySpawnParams spawnParams = new EntitySpawnParams;
 		spawnParams.TransformMode = ETransformMode.WORLD;		
@@ -181,70 +154,8 @@ class OVT_VehicleManagerComponent: OVT_Component
 			return null;
 		}
 		
-		if(ownerId > -1) SetOwner(ownerId, ent);
+		if(ownerId != "") SetOwner(ownerId, ent);
 		
 		return ent;
-	}
-	
-	//RPC Methods
-	override bool RplSave(ScriptBitWriter writer)
-	{		
-		//Send JIP owned vehicles
-		writer.Write(m_mOwned.Count(), 32); 
-		for(int i; i<m_mOwned.Count(); i++)
-		{		
-			set<RplId> ownedArray = m_mOwned.GetElement(i);
-			
-			writer.Write(m_mOwned.GetKey(i),32);
-			writer.Write(ownedArray.Count(),32);
-			for(int t; t<ownedArray.Count(); t++)
-			{	
-				writer.WriteRplId(ownedArray[t]);
-			}
-		}
-		
-		return true;
-	}
-	
-	override bool RplLoad(ScriptBitReader reader)
-	{	
-		int length, playerId, ownedlength;
-		RplId id;
-			
-		//Recieve JIP owned vehicles
-		if (!reader.Read(length, 32)) return false;
-		for(int i; i<length; i++)
-		{
-			if (!reader.Read(playerId, 32)) return false;
-			m_mOwned[playerId] = new set<RplId>;
-			
-			if (!reader.Read(ownedlength, 32)) return false;
-			for(int t; t<ownedlength; t++)
-			{
-				if (!reader.ReadRplId(id)) return false;
-				m_mOwned[playerId].Insert(id);
-			}			
-		}
-		return true;
-	}
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	void RpcAsk_SetOwner(int playerId, RplId id)
-	{
-		DoSetOwner(playerId, id);		
-		Rpc(RpcDo_SetOwner, playerId, id);		
-	}
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_SetOwner(int playerId, RplId id)
-	{
-		DoSetOwner(playerId, id);	
-	}
-	
-	void DoSetOwner(int playerId, RplId id)
-	{
-		if(!m_mOwned.Contains(playerId)) m_mOwned[playerId] = new set<RplId>;
-		set<RplId> owner = m_mOwned[playerId];
-		owner.Insert(id);
 	}
 }

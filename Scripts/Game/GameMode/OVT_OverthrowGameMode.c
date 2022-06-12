@@ -10,24 +10,26 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	protected OVT_VehicleManagerComponent m_VehicleManager;
 	protected OVT_EconomyManagerComponent m_EconomyManager;
 	
-	ref set<int> m_aInitializedPlayers;
-	ref set<int> m_aHintedPlayers;
+	ref set<string> m_aInitializedPlayers;
+	ref set<string> m_aHintedPlayers;
 	
 	protected override void OnPlayerSpawned(int playerId, IEntity controlledEntity)
 	{
 		super.OnPlayerSpawned(playerId, controlledEntity);
 		
-		if(m_aInitializedPlayers.Contains(playerId))
+		string persId = OVT_PlayerIdentityComponent.GetPersistentIDFromPlayerID(playerId);
+		
+		if(m_aInitializedPlayers.Contains(persId))
 		{
 			//Existing player
 			//(note this playerId isnt persistent between connections until we get a steam ID or something)
 			int cost = OVT_OverthrowConfigComponent.GetInstance().m_Difficulty.respawnCost;
-			OVT_EconomyManagerComponent.GetInstance().TakePlayerMoney(playerId, cost);
+			OVT_EconomyManagerComponent.GetInstance().TakePlayerMoney(persId, cost);
 		}else{
 			int cash = OVT_OverthrowConfigComponent.GetInstance().m_Difficulty.startingCash;
-			OVT_EconomyManagerComponent.GetInstance().AddPlayerMoney(playerId, cash);
+			OVT_EconomyManagerComponent.GetInstance().AddPlayerMoney(persId, cash);
 			
-			m_aInitializedPlayers.Insert(playerId);
+			m_aInitializedPlayers.Insert(persId);
 		}
 		
 		OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(controlledEntity.FindComponent(OVT_PlayerWantedComponent));
@@ -106,7 +108,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		
 	}
 	
-	void OnPlayerSpawnedLocal(int playerId)
+	void OnPlayerSpawnedLocal(string playerId)
 	{
 		if(!m_aHintedPlayers.Contains(playerId))
 		{
@@ -118,7 +120,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	//------------------------------------------------------------------------------------------------
 	void OVT_OverthrowGameMode(IEntitySource src, IEntity parent)
 	{
-		m_aInitializedPlayers = new set<int>;
-		m_aHintedPlayers = new set<int>;
+		m_aInitializedPlayers = new set<string>;
+		m_aHintedPlayers = new set<string>;
 	}
 }

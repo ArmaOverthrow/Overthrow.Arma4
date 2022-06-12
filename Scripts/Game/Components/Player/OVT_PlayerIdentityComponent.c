@@ -5,7 +5,7 @@ class OVT_PlayerIdentityComponentClass: OVT_ComponentClass
 class OVT_PlayerIdentityComponent: OVT_Component
 {		
 	SCR_CharacterControllerComponent m_Controller;
-	protected string m_sPersistentID;
+	protected string m_sPersistentID = "";
 	
 	protected const string PERSISTENT_ID_FILE_PATH = "$profile:overthrowPersistentID.txt";
 	
@@ -40,7 +40,8 @@ class OVT_PlayerIdentityComponent: OVT_Component
 	}
 	
 	protected void OnControlledByPlayer(IEntity owner, bool controlled)
-	{		
+	{	
+		if(m_sPersistentID != "") return;	
 		if (controlled)
 		{			
 			//Check for a saved persistent player ID			
@@ -54,13 +55,38 @@ class OVT_PlayerIdentityComponent: OVT_Component
 				}
 			}else{
 				//File doesnt exist, generate one
-				m_sPersistentID = "20956230975549sodkfkjdfn"; //To-Do: Generate a random string
+				m_sPersistentID = GenerateID(); //To-Do: Generate a random string
 				FileHandle f = FileIO.OpenFile(PERSISTENT_ID_FILE_PATH, FileMode.WRITE);
 				f.FPrint(m_sPersistentID);
 				f.CloseFile();
 			}
 			Rpc(RpcAsk_SetID, m_sPersistentID);
 		}
+	}
+	
+	protected string GenerateID()
+	{
+			
+		int year = 0;
+		int month = 0;
+		int day = 0;	
+		System.GetYearMonthDayUTC(year, month, day);
+	
+		int hour = 0;
+		int minute = 0;
+		int second = 0;			
+		System.GetHourMinuteSecondUTC(hour, minute, second);
+		
+		string s = ""+year+month+day+hour+minute+second;
+	
+		//Add some random numbers (Reference: https://eager.io/blog/how-long-does-an-id-need-to-be/)
+		int i = s_AIRandomGenerator.RandFloatXY(0, 16777215);
+		s += i.ToString();
+	
+		i = s_AIRandomGenerator.RandFloatXY(0, 16777215);
+		s += i.ToString();
+		
+		return s;
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -90,6 +116,8 @@ class OVT_PlayerIdentityComponent: OVT_Component
 	
 	void ~OVT_PlayerIdentityComponent()
 	{		
+		if(!m_Controller) return;
+		
 		m_Controller.m_OnControlledByPlayer.Remove(this.OnControlledByPlayer);
 	}
 }

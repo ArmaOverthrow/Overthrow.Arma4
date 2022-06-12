@@ -6,7 +6,7 @@ class OVT_EconomyInfo : SCR_InfoDisplayExtended {
 	ref OVT_EconomyInfoWidgets widgets;
 	
 	OVT_EconomyManagerComponent m_Economy = null;
-	int m_playerId;
+	string m_playerId;
 	
 	//------------------------------------------------------------------------------------------------
 	override bool DisplayStartDrawInit(IEntity owner)
@@ -19,7 +19,8 @@ class OVT_EconomyInfo : SCR_InfoDisplayExtended {
 		
 		m_Economy = OVT_EconomyManagerComponent.GetInstance();
 		
-		m_playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(character);
+		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(character);
+		m_playerId = OVT_PlayerIdentityComponent.GetPersistentIDFromPlayerID(playerId);
 	
 		return true;
 	}

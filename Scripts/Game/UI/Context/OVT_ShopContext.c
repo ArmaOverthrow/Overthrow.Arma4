@@ -10,9 +10,9 @@ class OVT_ShopContext : OVT_UIContext
 		m_Economy.m_OnPlayerMoneyChanged.Insert(OnPlayerMoneyChanged);
 	}
 	
-	protected void OnPlayerMoneyChanged(int playerId, int amount)
+	protected void OnPlayerMoneyChanged(string playerId, int amount)
 	{
-		if(playerId == m_iPlayerID && m_bIsActive)
+		if(playerId == m_sPlayerID && m_bIsActive)
 		{
 			TextWidget money = TextWidget.Cast(m_wRoot.FindAnyWidget("PlayerMoney"));		
 			money.SetText("$" + amount);
@@ -47,7 +47,7 @@ class OVT_ShopContext : OVT_UIContext
 		
 		TextWidget money = TextWidget.Cast(m_wRoot.FindAnyWidget("PlayerMoney"));
 		
-		money.SetText("$" + m_Economy.GetPlayerMoney(m_iPlayerID));
+		money.SetText("$" + m_Economy.GetPlayerMoney(m_sPlayerID));
 		
 		TextWidget pages = TextWidget.Cast(m_wRoot.FindAnyWidget("Pages"));
 		
@@ -153,21 +153,22 @@ class OVT_ShopContext : OVT_UIContext
 	{
 		if(m_Shop.GetStock(m_SelectedResource) < 1) return;
 		
-		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(m_iPlayerID);
+		int playerId = OVT_PlayerIdentityComponent.GetPlayerIDFromPersistentID(m_sPlayerID);
+		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
 		if(!player) return;
 		
 		int cost = m_Economy.GetPrice(m_SelectedResource, m_Shop.GetOwner().GetOrigin());
 		
-		if(!m_Economy.PlayerHasMoney(m_iPlayerID, cost)) return;
+		if(!m_Economy.PlayerHasMoney(m_sPlayerID, cost)) return;
 				
 		SCR_InventoryStorageManagerComponent inventory = SCR_InventoryStorageManagerComponent.Cast(player.FindComponent( SCR_InventoryStorageManagerComponent ));
 		if(!inventory) return;
 		
 		if(m_Shop.m_ShopType == OVT_ShopType.SHOP_VEHICLE)
 		{
-			if(OVT_VehicleManagerComponent.GetInstance().SpawnVehicleBehind(m_SelectedResource, player, m_iPlayerID))
+			if(OVT_VehicleManagerComponent.GetInstance().SpawnVehicleBehind(m_SelectedResource, player, m_sPlayerID))
 			{
-				m_Economy.TakePlayerMoney(m_iPlayerID, cost);
+				m_Economy.TakePlayerMoney(m_sPlayerID, cost);
 				m_Shop.TakeFromInventory(m_SelectedResource, 1);
 				Refresh();
 				SelectItem(m_SelectedResource);
@@ -179,14 +180,15 @@ class OVT_ShopContext : OVT_UIContext
 		
 		if(inventory.TryInsertItem(item))
 		{
-			m_Economy.TakePlayerMoney(m_iPlayerID, cost);
+			m_Economy.TakePlayerMoney(m_sPlayerID, cost);
 			m_Shop.TakeFromInventory(m_SelectedResource, 1);
 		}
 	}
 	
 	void Sell(Widget src, float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
 	{
-		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(m_iPlayerID);
+		int playerId = OVT_PlayerIdentityComponent.GetPlayerIDFromPersistentID(m_sPlayerID);
+		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
 		if(!player) return;
 		
 		int cost = m_Economy.GetPrice(m_SelectedResource, m_Shop.GetOwner().GetOrigin());
@@ -203,7 +205,7 @@ class OVT_ShopContext : OVT_UIContext
 			{
 				if(inventory.TryDeleteItem(ent))
 				{
-					m_Economy.AddPlayerMoney(m_iPlayerID, cost);
+					m_Economy.AddPlayerMoney(m_sPlayerID, cost);
 					m_Shop.AddToInventory(m_SelectedResource, 1);
 					break;
 				}

@@ -88,7 +88,7 @@ class OVT_PlaceContext : OVT_UIContext
 	
 	bool CanPlace(vector pos)
 	{
-		IEntity house = m_RealEstate.GetNearestOwned(m_iPlayerID, pos);
+		IEntity house = m_RealEstate.GetNearestOwned(m_sPlayerID, pos);
 		float dist = vector.Distance(house.GetOrigin(), pos);
 		
 		if(dist < MAX_HOUSE_PLACE_DIS) return true;
@@ -100,7 +100,8 @@ class OVT_PlaceContext : OVT_UIContext
 	{
 		if(m_bIsActive) CloseLayout();
 		
-		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(m_iPlayerID);
+		int playerId = OVT_PlayerIdentityComponent.GetPlayerIDFromPersistentID(m_sPlayerID);		
+		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
 		
 		if(!CanPlace(player.GetOrigin()))
 		{
@@ -109,7 +110,7 @@ class OVT_PlaceContext : OVT_UIContext
 			return;
 		}
 		
-		if(!m_Economy.PlayerHasMoney(m_iPlayerID, m_Config.GetPlaceableCost(placeable)))
+		if(!m_Economy.PlayerHasMoney(m_sPlayerID, m_Config.GetPlaceableCost(placeable)))
 		{
 			ShowHint("#OVT-CannotAfford");
 			SCR_UISoundEntity.SoundEvent(UISounds.ERROR);
@@ -161,7 +162,7 @@ class OVT_PlaceContext : OVT_UIContext
 				return;
 			}
 			
-			if(!m_Economy.PlayerHasMoney(m_iPlayerID, m_Config.GetPlaceableCost(m_Placeable)))
+			if(!m_Economy.PlayerHasMoney(m_sPlayerID, m_Config.GetPlaceableCost(m_Placeable)))
 			{
 				ShowHint("#OVT-CannotAfford");
 				SCR_UISoundEntity.SoundEvent(UISounds.ERROR);
@@ -172,7 +173,7 @@ class OVT_PlaceContext : OVT_UIContext
 			params.TransformMode = ETransformMode.WORLD;
 			params.Transform = mat;
 			GetGame().SpawnEntityPrefab(Resource.Load(m_pPlacingPrefab), null, params);
-			m_Economy.TakePlayerMoney(m_iPlayerID, m_Config.GetPlaceableCost(m_Placeable));
+			m_Economy.TakePlayerMoney(m_sPlayerID, m_Config.GetPlaceableCost(m_Placeable));
 			SCR_UISoundEntity.SoundEvent(UISounds.CLICK);
 		}
 	}

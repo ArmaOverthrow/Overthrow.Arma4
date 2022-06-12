@@ -54,10 +54,11 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 		}
 		
 		int playerID = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(playerEntity);
+		string persId = OVT_PlayerIdentityComponent.GetPersistentIDFromPlayerID(playerID);
 			
 		BaseWorld world = GetGame().GetWorld();
 		
-		set<EntityID> houses = realEstate.GetOwned(playerID);
+		set<EntityID> houses = realEstate.GetOwned(persId);
 		
 		foreach(EntityID id : houses)
 		{
@@ -114,7 +115,7 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 			m_Widgets.Insert(w);
 		}
 		
-		foreach(EntityID id : vehicles.GetOwned(playerID))
+		foreach(EntityID id : vehicles.GetOwned(persId))
 		{
 			IEntity ent = world.FindEntityByID(id);
 			m_Centers.Insert(ent.GetOrigin());

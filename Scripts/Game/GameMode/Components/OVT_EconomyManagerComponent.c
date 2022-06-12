@@ -43,7 +43,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	//Streamed to clients..
 	protected ref map<ResourceName, int> m_mItemCosts;		
-	protected ref map<int, int> m_mMoney;
+	protected ref map<string, int> m_mMoney;
 	protected int m_iResistanceMoney = 0;
 	
 	//Events
@@ -112,24 +112,24 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return new OVT_ShopInventoryConfig();
 	}
 	
-	int GetPlayerMoney(int playerId)
+	int GetPlayerMoney(string playerId)
 	{
 		if(!m_mMoney.Contains(playerId)) return 0;
 		return m_mMoney[playerId];
 	}
 	
-	bool PlayerHasMoney(int playerId, int amount)
+	bool PlayerHasMoney(string playerId, int amount)
 	{
 		if(!m_mMoney.Contains(playerId)) return false;
 		return m_mMoney[playerId] >= amount;
 	}
 	
-	void AddPlayerMoney(int playerId, int amount)
+	void AddPlayerMoney(string playerId, int amount)
 	{
 		Rpc(RpcAsk_AddPlayerMoney, playerId, amount);
 	}
 	
-	void TakePlayerMoney(int playerId, int amount)
+	void TakePlayerMoney(string playerId, int amount)
 	{
 		Rpc(RpcAsk_TakePlayerMoney, playerId, amount);
 	}
@@ -161,7 +161,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	void Init(IEntity owner)
 	{		
-		m_mMoney = new map<int, int>;
+		m_mMoney = new map<string, int>;
 		m_aGunDealers = new array<EntityID>;	
 		
 		if(!Replication.IsServer()) return;
@@ -231,9 +231,8 @@ class OVT_EconomyManagerComponent: OVT_Component
 		writer.Write(m_mItemCosts.Count(), 32); 
 		for(int i; i<m_mItemCosts.Count(); i++)
 		{
-			string key = m_mItemCosts.GetKey(i);			
-			writer.Write(key.Length(),32);
-			writer.Write(key, 8 * key.Length());
+			string key = m_mItemCosts.GetKey(i);
+			RPL_WriteString(writer, key);
 			writer.Write(m_mItemCosts[key],32);
 		}
 		
@@ -241,7 +240,8 @@ class OVT_EconomyManagerComponent: OVT_Component
 		writer.Write(m_mMoney.Count(), 32); 
 		for(int i; i<m_mMoney.Count(); i++)
 		{		
-			writer.Write(m_mMoney.GetKey(i),32);
+			string key = m_mItemCosts.GetKey(i);
+			RPL_WriteString(writer, key);
 			writer.Write(m_mMoney.GetElement(i), 32);
 		}
 		writer.Write(m_iResistanceMoney, 32);
@@ -252,15 +252,14 @@ class OVT_EconomyManagerComponent: OVT_Component
 	override bool RplLoad(ScriptBitReader reader)
 	{
 		//Recieve JIP price list
-		int length, keylength, price, playerId;
+		int length, keylength, price;
+		string playerId;
 		string key;
 		
 		if (!reader.Read(length, 32)) return false;
 		for(int i; i<length; i++)
 		{
-			if (!reader.Read(keylength, 32)) return false;
-			key = "";
-			if (!reader.Read(key, keylength)) return false;			
+			if(!RPL_ReadString(reader, key)) return false;
 			if (!reader.Read(price, 32)) return false;
 			m_mItemCosts[key] = price;
 		}
@@ -269,7 +268,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		if (!reader.Read(length, 32)) return false;
 		for(int i; i<length; i++)
 		{
-			if (!reader.Read(playerId, 32)) return false;			
+			if(!RPL_ReadString(reader, playerId)) return false;
 			if (!reader.Read(price, 32)) return false;
 			m_mMoney[playerId] = price;
 		}
@@ -277,13 +276,13 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return true;
 	}
 	
-	protected void StreamPlayerMoney(int playerId)
+	protected void StreamPlayerMoney(string playerId)
 	{
 		Rpc(RpcDo_SetPlayerMoney, playerId, m_mMoney[playerId]);
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_SetPlayerMoney(int playerId, int amount)
+	protected void RpcDo_SetPlayerMoney(string playerId, int amount)
 	{
 		m_mMoney[playerId] = amount;
 		m_OnPlayerMoneyChanged.Invoke(playerId, m_mMoney[playerId]);
@@ -302,7 +301,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_AddPlayerMoney(int playerId, int amount)
+	protected void RpcAsk_AddPlayerMoney(string playerId, int amount)
 	{
 		if(!m_mMoney.Contains(playerId)) m_mMoney[playerId] = 0;
 		m_mMoney[playerId] = m_mMoney[playerId] + amount;
@@ -312,7 +311,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_TakePlayerMoney(int playerId, int amount)
+	protected void RpcAsk_TakePlayerMoney(string playerId, int amount)
 	{
 		if(!m_mMoney.Contains(playerId)) return;
 		m_mMoney[playerId] = m_mMoney[playerId] - amount;
