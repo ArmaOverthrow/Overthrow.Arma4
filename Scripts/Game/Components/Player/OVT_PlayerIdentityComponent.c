@@ -108,7 +108,7 @@ class OVT_PlayerIdentityComponent: OVT_Component
 		m_mPlayerIDs[id] = playerId;
 	}
 	
-	void OVT_PlayerIdentityComponent()
+	static void OVT_PlayerIdentityComponent()
 	{
 		m_mPersistentIDs = new map<int, string>;
 		m_mPlayerIDs = new map<string, int>;
