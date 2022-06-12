@@ -95,6 +95,20 @@ class OVT_UIManagerComponent: OVT_Component
 				context.OnControlledByPlayer();
 				context.RegisterInputs();				
 			}
+			
+			OVT_OverthrowGameMode gameMode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
+			if(gameMode) gameMode.OnPlayerSpawnedLocal(GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(owner));
 		}
+	}
+	
+	void ~OVT_UIManagerComponent()
+	{			
+		foreach(OVT_UIContext context : m_aContexts)
+		{
+			context.UnregisterInputs();
+		}
+		
+		m_Controller.m_OnControlledByPlayer.Remove(this.OnControlledByPlayer);
+		m_Controller.m_OnPlayerDeath.Remove(this.OnPlayerDeath);
 	}
 }

@@ -198,4 +198,13 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 		
 		return wp;
 	}
+	
+	void ~OVT_BasePatrolUpgrade()
+	{
+		GetGame().GetCallqueue().Remove(CheckUpdate);	
+		m_Groups.Clear();
+		m_ProxiedGroups.Clear();
+		m_ProxiedPositions.Clear();
+		
+	}
 }

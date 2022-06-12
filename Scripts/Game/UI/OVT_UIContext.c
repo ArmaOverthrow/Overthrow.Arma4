@@ -53,6 +53,7 @@ class OVT_UIContext : ScriptAndConfig
 	
 	void RegisterInputs()
 	{
+		if(!m_InputManager) return;
 		if(m_sOpenAction != "")
 		{
 			m_InputManager.AddActionListener(m_sOpenAction, EActionTrigger.DOWN, ShowLayout);
@@ -65,6 +66,7 @@ class OVT_UIContext : ScriptAndConfig
 	
 	void UnregisterInputs()
 	{
+		if(!m_InputManager) return;
 		if(m_sOpenAction != "")
 		{
 			m_InputManager.RemoveActionListener(m_sOpenAction, EActionTrigger.DOWN, ShowLayout);

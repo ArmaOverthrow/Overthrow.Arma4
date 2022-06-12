@@ -3,6 +3,8 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
  components {
   FactionAffiliationComponent "{555C98D1CD949F3E}" {
   }
+  OVT_PlayerIdentityComponent "{5996E8D1EA142C43}" {
+  }
   OVT_PlayerWantedComponent "{596EE382181C58FB}" {
   }
   OVT_UIManagerComponent "{597282FDAEED0B0D}" {

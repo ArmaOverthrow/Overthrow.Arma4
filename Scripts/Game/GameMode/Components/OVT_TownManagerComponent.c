@@ -55,6 +55,7 @@ class OVT_TownManagerComponent: OVT_Component
 	
 	void Init(IEntity owner)
 	{		
+		if(!Replication.IsServer()) return;
 		InitializeTowns();
 	}
 	

@@ -73,6 +73,15 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{59969DFBF96C7EF4}" {
+   Id "OVT-IntroHint"
+   Target_en_us "Welcome to Overthrow! This is your home, you own it, will respawn here and can fast travel here any time you want for a small fee by opening the main menu (Default Key: U)"\
+   ""\
+   "For more info on Overthrow's features and gameplay just have a look at the \"Field Manual\""
+   Modified 1503061408
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{598AB67692AD5DBB}" {
    Id "OVT-MainMenu_Build"
    Target_en_us "Build"

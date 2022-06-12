@@ -191,10 +191,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 	}	
 	
 	override void OnDelete(IEntity owner)
-	{
-		if (!Replication.IsServer())
-			return;
-		
+	{		
 		GetGame().GetCallqueue().Remove(CheckUpdate);
 	}
 }

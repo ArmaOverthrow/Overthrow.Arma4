@@ -10,7 +10,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	protected OVT_VehicleManagerComponent m_VehicleManager;
 	protected OVT_EconomyManagerComponent m_EconomyManager;
 	
-	ref array<int> m_aInitializedPlayers;
+	ref set<int> m_aInitializedPlayers;
+	ref set<int> m_aHintedPlayers;
 	
 	protected override void OnPlayerSpawned(int playerId, IEntity controlledEntity)
 	{
@@ -25,6 +26,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		}else{
 			int cash = OVT_OverthrowConfigComponent.GetInstance().m_Difficulty.startingCash;
 			OVT_EconomyManagerComponent.GetInstance().AddPlayerMoney(playerId, cash);
+			
+			m_aInitializedPlayers.Insert(playerId);
 		}
 		
 		OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(controlledEntity.FindComponent(OVT_PlayerWantedComponent));
@@ -103,9 +106,19 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		
 	}
 	
+	void OnPlayerSpawnedLocal(int playerId)
+	{
+		if(!m_aHintedPlayers.Contains(playerId))
+		{
+			SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-IntroHint","#OVT-Overthrow",20);
+			m_aHintedPlayers.Insert(playerId);
+		}		
+	}
+	
 	//------------------------------------------------------------------------------------------------
 	void OVT_OverthrowGameMode(IEntitySource src, IEntity parent)
 	{
-		m_aInitializedPlayers = new array<int>;
+		m_aInitializedPlayers = new set<int>;
+		m_aHintedPlayers = new set<int>;
 	}
 }

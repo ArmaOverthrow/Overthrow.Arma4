@@ -168,4 +168,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 		
 		Print ("OF Distributing Resources: " + newResources.ToString());
 	}
+	
+	void ~OVT_OccupyingFactionManager()
+	{
+		GetGame().GetCallqueue().Remove(CheckUpdate);				
+	}
 }

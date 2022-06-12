@@ -6,7 +6,17 @@ class OVT_ShopContext : OVT_UIContext
 		
 	override void PostInit()
 	{
-		
+		if(SCR_Global.IsEditMode()) return;
+		m_Economy.m_OnPlayerMoneyChanged.Insert(OnPlayerMoneyChanged);
+	}
+	
+	protected void OnPlayerMoneyChanged(int playerId, int amount)
+	{
+		if(playerId == m_iPlayerID && m_bIsActive)
+		{
+			TextWidget money = TextWidget.Cast(m_wRoot.FindAnyWidget("PlayerMoney"));		
+			money.SetText("$" + amount);
+		}
 	}
 	
 	override void OnShow()
@@ -43,29 +53,31 @@ class OVT_ShopContext : OVT_UIContext
 		
 		Widget grid = m_wRoot.FindAnyWidget("BrowserGrid");
 		
-		int numPages = Math.Ceil(m_Shop.m_aInventoryItems.Count() / 15);
+		int numPages = Math.Ceil(m_Shop.m_aInventory.Count() / 15);
 		if(m_iPageNum >= numPages) m_iPageNum = 0;
 		string pageNumText = (m_iPageNum + 1).ToString();
 		
 		pages.SetText(pageNumText + "/" + numPages);
 		
 		int wi = 0;
-		for(int i = m_iPageNum * 15; i < (m_iPageNum + 1) * 15 && i < m_Shop.m_aInventoryItems.Count(); i++)
+		
+		//We only read m_Shop.m_aInventory because m_Shop.m_aInventoryItems is not replicated
+		for(int i = m_iPageNum * 15; i < (m_iPageNum + 1) * 15 && i < m_Shop.m_aInventory.Count(); i++)
 		{			
-			OVT_ShopInventoryItem item = m_Shop.m_aInventoryItems[i];
-			
+			ResourceName prefab = m_Shop.m_aInventory.GetKey(i);
+						
 			if(wi == 0 && !m_SelectedResource){
-				SelectItem(item.prefab);
+				SelectItem(prefab);
 			}
 			
 			Widget w = grid.FindWidget("ShopMenu_Card" + wi);
 			w.SetOpacity(1);
 			OVT_ShopMenuCardComponent card = OVT_ShopMenuCardComponent.Cast(w.FindHandler(OVT_ShopMenuCardComponent));
 			
-			int cost = m_Economy.GetPrice(item.prefab, m_Shop.GetOwner().GetOrigin());
-			int qty = m_Shop.GetStock(item.prefab);
+			int cost = m_Economy.GetPrice(prefab, m_Shop.GetOwner().GetOrigin());
+			int qty = m_Shop.GetStock(prefab);
 			
-			card.Init(item.prefab, cost, qty, this);
+			card.Init(prefab, cost, qty, this);
 			
 			wi++;
 		}
@@ -169,8 +181,6 @@ class OVT_ShopContext : OVT_UIContext
 		{
 			m_Economy.TakePlayerMoney(m_iPlayerID, cost);
 			m_Shop.TakeFromInventory(m_SelectedResource, 1);
-			Refresh();
-			SelectItem(m_SelectedResource);
 		}
 	}
 	
@@ -195,11 +205,15 @@ class OVT_ShopContext : OVT_UIContext
 				{
 					m_Economy.AddPlayerMoney(m_iPlayerID, cost);
 					m_Shop.AddToInventory(m_SelectedResource, 1);
-					Refresh();
-					SelectItem(m_SelectedResource);
 					break;
 				}
 			}
 		}
+	}
+	
+	void ~OVT_ShopContext()
+	{
+		if(!m_Economy) return;
+		m_Economy.m_OnPlayerMoneyChanged.Remove(OnPlayerMoneyChanged);
 	}
 }

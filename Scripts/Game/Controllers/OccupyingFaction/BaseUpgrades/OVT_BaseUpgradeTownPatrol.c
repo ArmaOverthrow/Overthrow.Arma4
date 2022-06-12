@@ -103,4 +103,10 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 			
 		}
 	}
+	
+	void ~OVT_BaseUpgradeTownPatrol()
+	{
+		m_Patrols.Clear();
+		m_TownsInRange.Clear();		
+	}
 }
