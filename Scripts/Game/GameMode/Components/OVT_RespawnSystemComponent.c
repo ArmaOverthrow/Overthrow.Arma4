@@ -46,7 +46,7 @@ class OVT_RespawnSystemComponent : SCR_RespawnSystemComponent
 		if(home){
 			spawnPosition = home.GetOrigin();
 		}else{
-			home = OVT_Global.GetTowns().GetRandomHouse();
+			home = OVT_Global.GetTowns().GetRandomStartingHouse();
 			spawnPosition = home.GetOrigin();
 		}
 		vector spawnRotation = vector.Zero;

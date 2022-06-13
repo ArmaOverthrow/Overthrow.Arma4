@@ -45,27 +45,34 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 	{		
 		vector mat[4];
 		
-		//Try to find a nice kerb to park next to
-		if(FindNearestKerbParking(home.GetOrigin(), 20, mat))
-		{
-			Print("Spawning car next to kerb");
-			SpawnVehicleMatrix(m_pStartingCarPrefab, mat, playerId);
-		}else{
-			Print("Spawned car next to house");
-			//try to spawn next to the house
-			vector outMat[4];
-			
-			home.GetTransform(mat);
-			mat[3] = mat[3] + (mat[2] * 10);
-			vector pos = mat[3];
+		//Find us a parking spot
 		
-			vector angles = Math3D.MatrixToAngles(mat);
-			angles[0] = angles[0] - 90;
-			Math3D.AnglesToMatrix(angles, outMat);
-			outMat[3] = pos;
+		if(GetParkingSpot(home, mat))
+		{
+			SpawnVehicleMatrix(m_pStartingCarPrefab, mat, playerId);
 			
-			SpawnVehicleMatrix(m_pStartingCarPrefab, outMat, playerId);
+		}else if(FindNearestKerbParking(home.GetOrigin(), 20, mat))
+		{
+			Print("Unable to find OVT_ParkingSpot in starting house prefab. Trying to spawn car next to a kerb.");
+			SpawnVehicleMatrix(m_pStartingCarPrefab, mat, playerId);
+			
+		}else{
+			Print("Failure to spawn player's starting car. Add OVT_ParkingSpotEntity to all starting house prefabs in config");			
 		}
+	}
+	
+	bool GetParkingSpot(IEntity building, out vector outMat[4])
+	{
+		OVT_ParkingComponent parking = OVT_ParkingComponent.Cast(building.FindComponent(OVT_ParkingComponent));
+		if(parking && parking.m_aParkingSpots.Count() > 0)
+		{
+			// offset the item locally with building rotation
+			building.GetWorldTransform(outMat);			
+			outMat[3] = parking.m_aParkingSpots[0].Multiply4(outMat);
+			
+			return true;
+		}
+		return false;		
 	}
 	
 	bool FindNearestKerbParking(vector pos, float range, out vector outMat[4])
@@ -118,6 +125,14 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 				if(res.IndexOf("Pavement_") > -1) m_aEntitySearch.Insert(entity.GetID());
 				if(res.IndexOf("Kerb_") > -1) m_aEntitySearch.Insert(entity.GetID());				
 			}
+		}
+		return false;
+	}
+	
+	bool FilterParkingAddToArray(IEntity entity)
+	{
+		if(entity.FindComponent(OVT_ParkingComponent)){
+			m_aEntitySearch.Insert(entity.GetID());
 		}
 		return false;
 	}

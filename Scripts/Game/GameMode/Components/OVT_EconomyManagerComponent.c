@@ -169,7 +169,10 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	void RegisterGunDealer(EntityID id)
 	{
-		m_aGunDealers.Insert(id);
+		IEntity entity = GetGame().GetWorld().FindEntityByID(id);
+		RplComponent rpl = RplComponent.Cast(entity.FindComponent(RplComponent));
+		if(rpl)
+			m_aGunDealers.Insert(rpl.Id());
 	}
 	
 	void Init(IEntity owner)
@@ -215,9 +218,11 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	protected void InitShopInventory()
 	{
-		foreach(EntityID entid : m_aAllShops)
+		foreach(RplId shopId : m_aAllShops)
 		{
-			IEntity entity = GetGame().GetWorld().FindEntityByID(entid);
+			RplComponent rpl = RplComponent.Cast(Replication.FindItem(shopId));
+			if(!rpl) continue;
+			IEntity entity = rpl.GetEntity();
 			OVT_ShopComponent shop = OVT_ShopComponent.Cast(entity.FindComponent(OVT_ShopComponent));
 		
 			OVT_ShopInventoryConfig config = GetShopConfig(shop.m_ShopType);
@@ -243,7 +248,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 		Print("Found Shop");
 		#endif
 		
-		m_aAllShops.Insert(entity.GetID());
+		RplComponent rpl = RplComponent.Cast(entity.FindComponent(RplComponent));
+		if(rpl)
+			m_aAllShops.Insert(rpl.Id());
 		
 		return true;
 	}

@@ -112,8 +112,36 @@ class OVT_MapContext : OVT_UIContext
 			
 			HideMap();
 			DisableFastTravel();
-			SCR_Global.TeleportPlayer(spawnPosition);
-		}		
+			
+			IEntity player = SCR_PlayerController.GetLocalControlledEntity();
+			if(player)
+			{
+				//If in a vehicle, make sure we are the driver first
+				ChimeraCharacter character = ChimeraCharacter.Cast(player);
+				if(character && character.IsInVehicle())
+				{
+					CompartmentAccessComponent compartmentAccess = character.GetCompartmentAccessComponent();
+					if (compartmentAccess)
+					{
+						BaseCompartmentSlot slot = compartmentAccess.GetCompartment();
+						if(SCR_CompartmentAccessComponent.GetCompartmentType(slot) == ECompartmentType.Pilot)
+						{
+							SCR_Global.TeleportPlayer(spawnPosition);
+						}else{
+							ShowHint("#OVT-MustBeDriver");
+						}
+					}
+				}else{
+					SCR_Global.TeleportPlayer(spawnPosition);
+				}				
+			}			
+		}	
+		
+		if(m_bMapInfoActive)
+		{
+			HideMap();
+			DisableMapInfo();
+		}	
 	}
 
 }

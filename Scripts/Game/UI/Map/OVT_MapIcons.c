@@ -75,6 +75,7 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 		foreach(RplId id : economy.GetGunDealers())
 		{
 			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+			if(!rpl) continue;
 			IEntity ent = rpl.GetEntity();
 			m_Centers.Insert(ent.GetOrigin());
 			
@@ -88,6 +89,7 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 		foreach(RplId id : economy.GetAllShops())
 		{
 			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+			if(!rpl) continue;
 			IEntity ent = rpl.GetEntity();
 			m_Centers.Insert(ent.GetOrigin());
 			

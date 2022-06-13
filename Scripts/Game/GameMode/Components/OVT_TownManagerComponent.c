@@ -41,6 +41,8 @@ class OVT_TownManagerComponent: OVT_Component
 	protected OVT_TownData m_CheckTown;
 	
 	protected ref array<ref EntityID> m_Houses;
+	
+	OVT_RealEstateManagerComponent m_RealEstate;
 	 
 	static OVT_TownManagerComponent s_Instance;
 	
@@ -63,6 +65,8 @@ class OVT_TownManagerComponent: OVT_Component
 	
 	void Init(IEntity owner)
 	{		
+		m_RealEstate = OVT_Global.GetRealEstate();
+		
 		if(!Replication.IsServer()) return;
 		InitializeTowns();
 	}
@@ -80,11 +84,21 @@ class OVT_TownManagerComponent: OVT_Component
 	IEntity GetRandomStartingHouse()
 	{
 		m_Houses = new array<ref EntityID>;
-		OVT_TownData town = m_Towns.GetRandomElement();
+		OVT_TownData town;
+		IEntity house;
+		int i = 0;
 		
-		GetGame().GetWorld().QueryEntitiesBySphere(town.location, m_iCityRange, CheckHouseAddToArray, FilterStartingHouseEntities, EQueryEntitiesFlags.STATIC);
-		
-		return GetGame().GetWorld().FindEntityByID(m_Houses.GetRandomElement());
+		while(!house && i < 20)
+		{
+			i++;
+			town = m_Towns.GetRandomElement();
+			GetGame().GetWorld().QueryEntitiesBySphere(town.location, m_iCityRange, CheckHouseAddToArray, FilterStartingHouseEntities, EQueryEntitiesFlags.STATIC);
+			if(m_Houses.Count() == 0) continue;
+			house = GetGame().GetWorld().FindEntityByID(m_Houses.GetRandomElement());
+			if(m_RealEstate.IsOwned(house.GetID())) house = null;			
+		}
+				
+		return house;
 	}
 	
 	IEntity GetNearestHouse(vector pos)
@@ -316,12 +330,11 @@ class OVT_TownManagerComponent: OVT_Component
 	protected bool FilterStartingHouseEntities(IEntity entity) 
 	{
 		if(entity.ClassName() == "SCR_DestructibleBuildingEntity"){
-			VObject mesh = entity.GetVObject();
-			
-			if(mesh){
-				ResourceName res = mesh.GetResourceName();
-				if(m_Config.m_aStartingHousePrefabs.Contains(res)) return true;
-			}
+			ResourceName res = entity.GetPrefabData().GetPrefabName();
+			foreach(string s : m_Config.m_aStartingHouseFilters)
+			{
+				if(res.IndexOf(s) > -1) return true;
+			}			
 		}
 		return false;
 	}

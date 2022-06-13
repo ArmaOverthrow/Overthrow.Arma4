@@ -1,12 +1,12 @@
 class OVT_Global {
 	static OVT_OverthrowConfigComponent GetConfig()
 	{
-		return OVT_Global.GetConfig();
+		return OVT_OverthrowConfigComponent.GetInstance();
 	}
 	
 	static OVT_EconomyManagerComponent GetEconomy()
 	{
-		return OVT_Global.GetEconomy();
+		return OVT_EconomyManagerComponent.GetInstance();
 	}
 	
 	static OVT_PlayerManagerComponent GetPlayers()
@@ -16,21 +16,21 @@ class OVT_Global {
 	
 	static OVT_RealEstateManagerComponent GetRealEstate()
 	{
-		return OVT_Global.GetRealEstate();
+		return OVT_RealEstateManagerComponent.GetInstance();
 	}
 	
 	static OVT_VehicleManagerComponent GetVehicles()
 	{
-		return OVT_Global.GetVehicles();
+		return OVT_VehicleManagerComponent.GetInstance();
 	}
 	
 	static OVT_TownManagerComponent GetTowns()
 	{
-		return OVT_Global.GetTowns();
+		return OVT_TownManagerComponent.GetInstance();
 	}
 	
 	static OVT_OccupyingFactionManager GetOccupyingFaction()
 	{
-		return OVT_Global.GetOccupyingFaction();
+		return OVT_OccupyingFactionManager.GetInstance();
 	}
 }

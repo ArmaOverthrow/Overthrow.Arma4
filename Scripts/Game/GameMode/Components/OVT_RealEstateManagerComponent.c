@@ -78,16 +78,6 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		return null;
 	}
 	
-	IEntity CreateHome(string playerId)
-	{
-		int intid = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(playerId);
-		IEntity newHome = m_Town.GetRandomHouse();
-		SetOwner(intid, newHome);
-		SetHome(intid, newHome);			
-		OVT_Global.GetVehicles().SpawnStartingCar(newHome, playerId);
-		return newHome;		
-	}
-	
 	//RPC Methods
 	
 	override bool RplSave(ScriptBitWriter writer)

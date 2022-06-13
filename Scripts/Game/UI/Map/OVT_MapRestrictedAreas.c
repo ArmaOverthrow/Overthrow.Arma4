@@ -27,9 +27,10 @@ class OVT_MapRestrictedAreas : OVT_MapCanvasLayer
 		OVT_OverthrowConfigComponent otconfig = OVT_Global.GetConfig();
 		
 		
-		foreach(EntityID id : factionMgr.m_Bases)
+		foreach(RplId id : factionMgr.m_Bases)
 		{
-			IEntity ent = GetGame().GetWorld().FindEntityByID(id);
+			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+			IEntity ent = rpl.GetEntity();
 			OVT_BaseControllerComponent base = OVT_BaseControllerComponent.Cast(ent.FindComponent(OVT_BaseControllerComponent));
 			
 			m_Centers.Insert(ent.GetOrigin());

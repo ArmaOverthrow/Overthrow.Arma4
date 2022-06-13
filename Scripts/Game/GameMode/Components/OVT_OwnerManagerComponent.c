@@ -27,6 +27,21 @@ class OVT_OwnerManagerComponent: OVT_Component
 		return owner.Contains(rpl.Id());
 	}
 	
+	bool IsOwned(EntityID entityId)
+	{
+		IEntity building = GetGame().GetWorld().FindEntityByID(entityId);
+		RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
+		for(int i=0; i< m_mOwned.Count(); i++)
+		{
+			set<RplId> owner = m_mOwned.GetElement(i);
+			if(owner.Contains(rpl.Id()))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	set<EntityID> GetOwned(string playerId)
 	{
 		if(!m_mOwned.Contains(playerId)) return new set<EntityID>;

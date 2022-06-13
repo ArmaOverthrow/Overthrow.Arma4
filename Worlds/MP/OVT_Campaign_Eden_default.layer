@@ -370,6 +370,9 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode {
    m_pGetInWaypointPrefab "{712F4795CF8B91C7}Prefabs/AI/Waypoints/AIWaypoint_GetIn.et"
    m_pSmartActionWaypointPrefab "{04A06A6742FB0AF8}Prefabs/AI/Waypoints/AIWaypoint_UserAction.et"
    m_pMapMarkerPrefab "{2911B855ECA72354}Prefabs/OVT_MapMarker.et"
+   m_aStartingHouseFilters {
+    "House_Mountain_E_1I01.et"
+   }
   }
   OVT_PlayerManagerComponent "{599AA74940529C1C}" {
   }

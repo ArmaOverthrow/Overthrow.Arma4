@@ -150,6 +150,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{599B1780E41380D7}" {
+   Id "OVT-MustBeDriver"
+   Target_en_us "You must be the driver of the vehicle to fast travel all occupants"
+   Modified 1503337948
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{599A1C5F66015FAB}" {
    Id "OVT-Overthrow"
    Target_en_us "Overthrow"
