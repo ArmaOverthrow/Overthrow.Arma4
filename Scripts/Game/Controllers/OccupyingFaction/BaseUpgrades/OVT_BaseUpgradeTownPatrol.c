@@ -4,14 +4,14 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 	float m_fRange;
 	
 	protected ref array<ref OVT_TownData> m_TownsInRange;
-	protected ref map<EntityID, EntityID> m_Patrols;
+	protected ref map<int, EntityID> m_Patrols;
 		
 	override void PostInit()
 	{
 		super.PostInit();
 		
 		m_TownsInRange = new array<ref OVT_TownData>;
-		m_Patrols = new map<EntityID, EntityID>;
+		m_Patrols = new map<int, EntityID>;
 		
 		OVT_TownManagerComponent.GetInstance().GetTownsWithinDistance(m_BaseController.GetOwner().GetOrigin(), m_fRange, m_TownsInRange);
 	}
@@ -23,7 +23,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		foreach(OVT_TownData town : m_TownsInRange)
 		{
 			if(resources <= 0) break;
-			if(!m_Patrols.Contains(town.markerID))
+			if(!m_Patrols.Contains(town.id))
 			{
 				int newres = BuyTownPatrol(town);
 				
@@ -31,7 +31,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 				resources -= newres;
 			}else{
 				//Check if theyre back
-				SCR_AIGroup aigroup = GetGroup(m_Patrols[town.markerID]);
+				SCR_AIGroup aigroup = GetGroup(m_Patrols[town.id]);
 				float distance = vector.Distance(aigroup.GetOrigin(), m_BaseController.GetOwner().GetOrigin());
 				int agentCount = aigroup.GetAgentsCount();
 				if(distance < 20 || agentCount == 0)
@@ -39,7 +39,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 					//Recover any resources
 					m_occupyingFactionManager.RecoverResources(agentCount * m_Config.m_Difficulty.resourcesPerSoldier);
 					
-					m_Patrols.Remove(town.markerID);
+					m_Patrols.Remove(town.id);
 					SCR_Global.DeleteEntityAndChildren(aigroup);	
 					
 					//send another one
@@ -88,16 +88,14 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 	}
 	
 	protected void AddWaypoints(SCR_AIGroup aigroup, OVT_TownData town)
-	{
-		IEntity marker = GetGame().GetWorld().FindEntityByID(town.markerID);
-		
+	{		
 		array<AIWaypoint> queueOfWaypoints = new array<AIWaypoint>();
 		
 		if(m_BaseController.m_AllCloseSlots.Count() > 2)
 		{						
-			aigroup.AddWaypoint(SpawnPatrolWaypoint(marker.GetOrigin()));
+			aigroup.AddWaypoint(SpawnPatrolWaypoint(town.location));
 			
-			aigroup.AddWaypoint(SpawnWaitWaypoint(marker.GetOrigin(), s_AIRandomGenerator.RandFloatXY(45, 75)));								
+			aigroup.AddWaypoint(SpawnWaitWaypoint(town.location, s_AIRandomGenerator.RandFloatXY(45, 75)));								
 			
 			aigroup.AddWaypoint(SpawnPatrolWaypoint(m_BaseController.GetOwner().GetOrigin()));
 			

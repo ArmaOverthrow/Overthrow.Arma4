@@ -99,9 +99,8 @@ class OVT_PlaceContext : OVT_UIContext
 	void StartPlace(OVT_Placeable placeable)
 	{
 		if(m_bIsActive) CloseLayout();
-		
-		int playerId = OVT_PlayerIdentityComponent.GetPlayerIDFromPersistentID(m_sPlayerID);		
-		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+				
+		IEntity player = SCR_PlayerController.GetLocalControlledEntity();
 		
 		if(!CanPlace(player.GetOrigin()))
 		{
@@ -173,7 +172,7 @@ class OVT_PlaceContext : OVT_UIContext
 			params.TransformMode = ETransformMode.WORLD;
 			params.Transform = mat;
 			GetGame().SpawnEntityPrefab(Resource.Load(m_pPlacingPrefab), null, params);
-			m_Economy.TakePlayerMoney(m_sPlayerID, m_Config.GetPlaceableCost(m_Placeable));
+			m_Economy.TakePlayerMoney(m_iPlayerID, m_Config.GetPlaceableCost(m_Placeable));
 			SCR_UISoundEntity.SoundEvent(UISounds.CLICK);
 		}
 	}

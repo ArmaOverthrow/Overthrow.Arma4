@@ -6,6 +6,8 @@ GenericEntity {
   }
   OVT_TownControllerComponent "{59908365ED5E1344}" {
   }
+  RplComponent "{599AA7491CA2D761}" {
+  }
  }
  coords 5484.924 96.098 6096.409
 }

@@ -9,18 +9,6 @@ class OVT_PlayerIdentityComponent: OVT_Component
 	
 	protected const string PERSISTENT_ID_FILE_PATH = "$profile:overthrowPersistentID.txt";
 	
-	static ref map<int, string> m_mPersistentIDs;
-	static ref map<string, int> m_mPlayerIDs;
-	
-	static string GetPersistentIDFromPlayerID(int playerId)
-	{
-		return m_mPersistentIDs[playerId];
-	}
-	
-	static int GetPlayerIDFromPersistentID(string id)
-	{
-		return m_mPlayerIDs[id];
-	}
 	
 	string GetPersistentID()
 	{
@@ -60,7 +48,10 @@ class OVT_PlayerIdentityComponent: OVT_Component
 				f.FPrint(m_sPersistentID);
 				f.CloseFile();
 			}
-			Rpc(RpcAsk_SetID, m_sPersistentID);
+			Print(m_sPersistentID);
+			int int1,int2,int3;
+			OVT_PlayerManagerComponent.EncodeIDAsInts(m_sPersistentID, int1, int2, int3);
+			Rpc(RpcAsk_SetID, int1, int2, int3);
 		}
 	}
 	
@@ -88,31 +79,15 @@ class OVT_PlayerIdentityComponent: OVT_Component
 		
 		return s;
 	}
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	void RpcAsk_SetID(string id)
-	{
-		m_sPersistentID = id;
-		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(GetOwner());
-		m_mPersistentIDs[playerId] = id;
-		m_mPlayerIDs[id] = playerId;
 		
-		//Broadcast this to all players
-		Rpc(RpcDo_SetID, playerId, id);
-	}
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_SetID(int playerId, string id)
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	void RpcAsk_SetID(int id1, int id2, int id3)
 	{
-		m_mPersistentIDs[playerId] = id;
-		m_mPlayerIDs[id] = playerId;
-	}
-	
-	static void OVT_PlayerIdentityComponent()
-	{
-		m_mPersistentIDs = new map<int, string>;
-		m_mPlayerIDs = new map<string, int>;
-	}
+		m_sPersistentID = ""+id1+id2+id3;
+		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(GetOwner());
+				
+		OVT_PlayerManagerComponent.GetInstance().RegisterPlayer(playerId, m_sPersistentID);
+	}	
 	
 	void ~OVT_PlayerIdentityComponent()
 	{		

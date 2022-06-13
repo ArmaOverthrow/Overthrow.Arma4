@@ -150,6 +150,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{599A1C5F66015FAB}" {
+   Id "OVT-Overthrow"
+   Target_en_us "Overthrow"
+   Modified 1503304714
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{598AD5529A3EEA5D}" {
    Id "OVT-Place_Camp"
    Target_en_us "Camp"

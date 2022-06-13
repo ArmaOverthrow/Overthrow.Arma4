@@ -41,8 +41,8 @@ class OVT_RespawnHandlerComponent : SCR_RespawnHandlerComponent
 
 		if (m_iForcedFaction >= 0)
 		{
-			if (SCR_RespawnSystemComponent.GetInstance().CanSetFaction(playerId, m_iForcedFaction))
-				SCR_RespawnSystemComponent.GetInstance().DoSetPlayerFaction(playerId, m_iForcedFaction);
+			if (OVT_RespawnSystemComponent.GetInstance().CanSetFaction(playerId, m_iForcedFaction))
+				OVT_RespawnSystemComponent.GetInstance().DoSetPlayerFaction(playerId, m_iForcedFaction);
 			else
 				Print(string.Format("Cannot set faction %1 to player %2! Is faction index valid?", m_iForcedFaction, playerId), LogLevel.ERROR);
 		}
@@ -51,8 +51,8 @@ class OVT_RespawnHandlerComponent : SCR_RespawnHandlerComponent
 		
 		if (m_iForcedLoadout >= 0)
 		{
-			if (SCR_RespawnSystemComponent.GetInstance().CanSetLoadout(playerId, m_iForcedLoadout))
-				SCR_RespawnSystemComponent.GetInstance().DoSetPlayerLoadout(playerId, m_iForcedLoadout);
+			if (OVT_RespawnSystemComponent.GetInstance().CanSetLoadout(playerId, m_iForcedLoadout))
+				OVT_RespawnSystemComponent.GetInstance().DoSetPlayerLoadout(playerId, m_iForcedLoadout);
 			else
 				Print(string.Format("Cannot set loadout %1 to player %2! Is loadout index valid?", m_iForcedLoadout, playerId), LogLevel.ERROR);
 		}

@@ -19,12 +19,15 @@ class OVT_PlayerWantedComponent: OVT_Component
 	void SetWantedLevel(int level)
 	{
 		m_iWantedLevel = level;
+		Rpc(RpcAsk_SetWantedLevel, level);		
 	}
 	
 	void SetBaseWantedLevel(int level)
 	{
-		if(m_iWantedLevel < level)
+		if(m_iWantedLevel < level){
 			m_iWantedLevel = level;
+			Rpc(RpcAsk_SetWantedLevel, level);
+		}
 	}
 	
 	int GetWantedLevel()
@@ -48,6 +51,8 @@ class OVT_PlayerWantedComponent: OVT_Component
 		
 		m_Faction = FactionAffiliationComponent.Cast(owner.FindComponent(FactionAffiliationComponent));
 		m_Weapon = BaseWeaponManagerComponent.Cast(owner.FindComponent(BaseWeaponManagerComponent));
+				
+		if(!GetRpl().IsOwner()) return;
 		
 		GetGame().GetCallqueue().CallLater(CheckUpdate, WANTED_SYSTEM_FREQUENCY, true, owner);		
 	}
@@ -59,14 +64,17 @@ class OVT_PlayerWantedComponent: OVT_Component
 		
 		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), 250, CheckEntity, FilterEntities, EQueryEntitiesFlags.ALL);
 				
-		Faction currentFaction = m_Faction.GetAffiliatedFaction();
+		
 		
 		OVT_BaseControllerComponent base = OVT_OccupyingFactionManager.GetInstance().GetNearestBase(GetOwner().GetOrigin());
-		float distanceToBase = vector.Distance(base.GetOwner().GetOrigin(), GetOwner().GetOrigin());
-		if(m_iWantedLevel < 2 && distanceToBase < base.m_iCloseRange && m_bIsSeen)
+		if(base)
 		{
-			SetBaseWantedLevel(2);
-		}		
+			float distanceToBase = vector.Distance(base.GetOwner().GetOrigin(), GetOwner().GetOrigin());
+			if(m_iWantedLevel < 2 && distanceToBase < base.m_iCloseRange && m_bIsSeen)
+			{
+				SetBaseWantedLevel(2);
+			}		
+		}
 		
 		//Print("Last seen is: " + m_iLastSeen);
 		
@@ -86,20 +94,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 				}
 			}
 		}else if(m_iWantedLevel == 1 && m_bIsSeen) {
-			m_iWantedLevel = 2;
-		}
-		
-		
-		if(m_iWantedLevel > 1 && !currentFaction)
-		{
-			//Print("You are wanted now");
-			m_Faction.SetAffiliatedFactionByKey(m_Config.m_sPlayerFaction);
-		}
-		
-		if(m_iWantedLevel < 2 && currentFaction)
-		{
-			//Print("You are no longer wanted");
-			m_Faction.SetAffiliatedFactionByKey("");
+			SetWantedLevel(2);			
 		}
 	}
 	
@@ -194,4 +189,23 @@ class OVT_PlayerWantedComponent: OVT_Component
 	{		
 		GetGame().GetCallqueue().Remove(CheckUpdate);
 	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	void RpcAsk_SetWantedLevel(int level)
+	{
+		m_iWantedLevel = level;		
+		
+		Faction currentFaction = m_Faction.GetAffiliatedFaction();
+		if(m_iWantedLevel > 1 && !currentFaction)
+		{
+			//Print("You are wanted now");
+			m_Faction.SetAffiliatedFactionByKey(m_Config.m_sPlayerFaction);
+		}
+		
+		if(m_iWantedLevel < 2 && currentFaction)
+		{
+			//Print("You are no longer wanted");
+			m_Faction.SetAffiliatedFactionByKey("");
+		}
+	}	
 }

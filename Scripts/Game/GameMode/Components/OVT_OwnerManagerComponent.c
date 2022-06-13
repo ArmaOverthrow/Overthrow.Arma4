@@ -7,7 +7,12 @@ class OVT_OwnerManagerComponent: OVT_Component
 {
 	protected ref map<string, ref set<RplId>> m_mOwned;
 	
-	void SetOwner(string playerId, IEntity building)
+	void OVT_OwnerManagerComponent()
+	{
+		m_mOwned = new map<string, ref set<RplId>>;
+	}
+	
+	void SetOwner(int playerId, IEntity building)
 	{
 		RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
 		Rpc(RpcAsk_SetOwner, playerId, rpl.Id());	
@@ -35,6 +40,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 	}
 	
 	//RPC Methods
+	
 	override bool RplSave(ScriptBitWriter writer)
 	{		
 		//Send JIP owned
@@ -42,7 +48,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 		for(int i; i<m_mOwned.Count(); i++)
 		{		
 			set<RplId> ownedArray = m_mOwned.GetElement(i);
-			RPL_WriteString(writer, m_mOwned.GetKey(i));			
+			RPL_WritePlayerID(writer, m_mOwned.GetKey(i));			
 			writer.Write(ownedArray.Count(),32);
 			for(int t; t<ownedArray.Count(); t++)
 			{	
@@ -63,7 +69,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 		if (!reader.Read(length, 32)) return false;
 		for(int i; i<length; i++)
 		{
-			if (!RPL_ReadString(reader, playerId)) return false;
+			if (!RPL_ReadPlayerID(reader, playerId)) return false;
 			m_mOwned[playerId] = new set<RplId>;
 			
 			if (!reader.Read(ownedlength, 32)) return false;
@@ -77,27 +83,23 @@ class OVT_OwnerManagerComponent: OVT_Component
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	void RpcAsk_SetOwner(string playerId, RplId id)
+	void RpcAsk_SetOwner(int playerId, RplId id)
 	{
 		DoSetOwner(playerId, id);		
 		Rpc(RpcDo_SetOwner, playerId, id);		
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_SetOwner(string playerId, RplId id)
+	protected void RpcDo_SetOwner(int playerId, RplId id)
 	{
 		DoSetOwner(playerId, id);	
 	}
 	
-	void DoSetOwner(string playerId, RplId id)
+	void DoSetOwner(int playerId, RplId id)
 	{
-		if(!m_mOwned.Contains(playerId)) m_mOwned[playerId] = new set<RplId>;
-		set<RplId> owner = m_mOwned[playerId];
+		string persId = OVT_PlayerManagerComponent.GetInstance().GetPersistentIDFromPlayerID(playerId);
+		if(!m_mOwned.Contains(persId)) m_mOwned[persId] = new set<RplId>;
+		set<RplId> owner = m_mOwned[persId];
 		owner.Insert(id);
-	}
-	
-	void OVT_OwnerManagerComponent()
-	{
-		m_mOwned = new map<string, ref set<RplId>>;
 	}
 }

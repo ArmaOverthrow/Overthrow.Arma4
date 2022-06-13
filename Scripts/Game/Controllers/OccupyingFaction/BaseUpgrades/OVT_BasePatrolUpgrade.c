@@ -62,6 +62,7 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 			foreach(int playerID : players)
 			{
 				IEntity player = mgr.GetPlayerControlledEntity(playerID);
+				if(!player) continue;
 				float distance = vector.Distance(player.GetOrigin(), m_BaseController.GetOwner().GetOrigin());
 				if(distance < DEACTIVATE_RANGE)
 				{

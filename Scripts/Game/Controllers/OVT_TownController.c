@@ -21,12 +21,12 @@ class OVT_TownControllerComponent: OVT_Component
 		m_Town = m_TownManager.GetNearestTown(GetOwner().GetOrigin());
 		
 		if(m_Town.size > 1)
-			SpawnGunDealer();
+			GetGame().GetCallqueue().CallLater(SpawnGunDealer, 0);
 	}
 	
 	protected void SpawnGunDealer()
 	{
-		//Print("Spawning gun dealer in " + m_Town.name);
+		
 		IEntity house = m_TownManager.GetRandomHouseInTown(m_Town);
 		
 		vector spawnPosition = house.GetOrigin();
@@ -54,13 +54,14 @@ class OVT_TownControllerComponent: OVT_Component
 		
 		foreach(OVT_ShopInventoryItem item : m_Economy.m_aGunDealerItems)
 		{
-			if(!m_Economy.HasPrice(item.prefab))
+			RplId id = m_Economy.GetInventoryId(item.prefab);
+			if(!m_Economy.HasPrice(id))
 			{
-				m_Economy.SetPrice(item.prefab, item.cost);
+				m_Economy.SetPrice(id, item.cost);
 			}
 			int num = Math.Round(s_AIRandomGenerator.RandFloatXY(1,item.maxAtStart));
 			
-			shop.AddToInventory(item.prefab, num);
+			shop.AddToInventory(id, num);
 			
 			shop.m_aInventoryItems.Insert(item);
 		}

@@ -269,6 +269,7 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode {
    m_pBaseControllerPrefab "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.et"
    m_pTownControllerPrefab "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.et"
    m_Difficulty OVT_DifficultySettings "{598AD54E1DA56EB1}" {
+    startingCash 20000
    }
    m_aDifficultyPresets {
     OVT_DifficultySettings "{598AD54F821FB8D9}" {
@@ -370,6 +371,8 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode {
    m_pSmartActionWaypointPrefab "{04A06A6742FB0AF8}Prefabs/AI/Waypoints/AIWaypoint_UserAction.et"
    m_pMapMarkerPrefab "{2911B855ECA72354}Prefabs/OVT_MapMarker.et"
   }
+  OVT_PlayerManagerComponent "{599AA74940529C1C}" {
+  }
   OVT_RealEstateManagerComponent "{59724C983E7EF811}" {
   }
   OVT_RespawnHandlerComponent "{59724C8C9A6408EE}" {
@@ -402,7 +405,10 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode {
   RplComponent "{59724C8C935D8E18}" {
   }
  }
- coords 4424.943 1.87 11071.67
+ coords 3207.214 1.87 11071.67
+}
+RadioManagerEntity {
+ coords 4425.153 1.598 11073.29
 }
 PerceptionManager PerceptionManager1 : "{028DAEAD63E056BE}Prefabs/World/Game/PerceptionManager.et" {
  coords 4437.452 1.581 11067.485
@@ -451,6 +457,7 @@ SCR_FactionManager FactionManager_Overthrow : "{4A188E44289B9A50}Prefabs/MP/Mana
    m_aFlagPolePrefab "{651E545B53BBD034}Prefabs/Structures/Military/Flags/FlagPole_02_V1_USSR.et"
   }
   OVT_Faction "{56DEAC40D132400B}" {
+   m_bIsPlayable 1
    m_aGroupPrefabSlots {
     "{5BEA04939D148B1D}Prefabs/Groups/INDFOR/Group_FIA_FireTeam.et" "{22F33D3EC8F281AB}Prefabs/Groups/INDFOR/Group_FIA_MachineGunTeam.et" "{2E9C920C3ACA2C6F}Prefabs/Groups/INDFOR/Group_FIA_ReconTeam.et" "{CE41AF625D05D0F0}Prefabs/Groups/INDFOR/Group_FIA_RifleSquad.et" "{6307F42403E9B8A4}Prefabs/Groups/INDFOR/Group_FIA_SharpshooterTeam.et" "{2CC26054775FBA2C}Prefabs/Groups/INDFOR/Group_FIA_Team_AT.et"
    }

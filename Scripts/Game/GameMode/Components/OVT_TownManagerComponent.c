@@ -4,12 +4,12 @@ class OVT_TownManagerComponentClass: OVT_ComponentClass
 
 class OVT_TownData : Managed
 {
-	EntityID markerID;
-	string name;
+	int id;
+	vector location;
 	int population;
 	int stability;
 	int support;
-	string faction;
+	int faction;
 	int size;
 }
 
@@ -33,7 +33,10 @@ class OVT_TownManagerComponent: OVT_Component
 	[Attribute( defvalue: "5", desc: "Occupants per town house")]
 	int m_iTownOccupants;
 	
+	protected int m_iTownCount=0;
+	
 	ref array<ref OVT_TownData> m_Towns;
+	protected IEntity m_EntitySearched;
 	
 	protected OVT_TownData m_CheckTown;
 	
@@ -53,6 +56,11 @@ class OVT_TownManagerComponent: OVT_Component
 		return s_Instance;
 	}
 	
+	void OVT_TownManagerComponent()
+	{
+		m_Towns = new array<ref OVT_TownData>;
+	}
+	
 	void Init(IEntity owner)
 	{		
 		if(!Replication.IsServer()) return;
@@ -63,19 +71,39 @@ class OVT_TownManagerComponent: OVT_Component
 	{
 		m_Houses = new array<ref EntityID>;
 		OVT_TownData town = m_Towns.GetRandomElement();
-		IEntity marker = GetGame().GetWorld().FindEntityByID(town.markerID);
 		
-		GetGame().GetWorld().QueryEntitiesBySphere(marker.GetOrigin(), m_iCityRange, CheckHouseAddToArray, FilterHouseEntities, EQueryEntitiesFlags.STATIC);
+		GetGame().GetWorld().QueryEntitiesBySphere(town.location, m_iCityRange, CheckHouseAddToArray, FilterHouseEntities, EQueryEntitiesFlags.STATIC);
 		
 		return GetGame().GetWorld().FindEntityByID(m_Houses.GetRandomElement());
+	}
+	
+	IEntity GetNearestHouse(vector pos)
+	{
+		m_Houses = new array<ref EntityID>;		
+		GetGame().GetWorld().QueryEntitiesBySphere(pos, 25, CheckHouseAddToArray, FilterHouseEntities, EQueryEntitiesFlags.STATIC);
+		
+		float nearest = 26;
+		IEntity nearestEnt;		
+		
+		foreach(EntityID id : m_Houses)
+		{			
+			IEntity ent = GetGame().GetWorld().FindEntityByID(id);
+			float dist = vector.Distance(ent.GetOrigin(), pos);
+			if(dist < nearest)
+			{
+				nearest = dist;
+				nearestEnt = ent;
+			}
+		}
+		
+		return nearestEnt;
 	}
 	
 	IEntity GetRandomHouseInTown(OVT_TownData town)
 	{
 		m_Houses = new array<ref EntityID>;		
-		IEntity marker = GetGame().GetWorld().FindEntityByID(town.markerID);
 		
-		GetGame().GetWorld().QueryEntitiesBySphere(marker.GetOrigin(), m_iTownRange, CheckHouseAddToArray, FilterHouseEntities, EQueryEntitiesFlags.STATIC);
+		GetGame().GetWorld().QueryEntitiesBySphere(town.location, m_iTownRange, CheckHouseAddToArray, FilterHouseEntities, EQueryEntitiesFlags.STATIC);
 		
 		return GetGame().GetWorld().FindEntityByID(m_Houses.GetRandomElement());
 	}
@@ -86,8 +114,7 @@ class OVT_TownManagerComponent: OVT_Component
 		float nearest = 9999999;
 		foreach(OVT_TownData town : m_Towns)
 		{
-			IEntity marker = GetGame().GetWorld().FindEntityByID(town.markerID);
-			float distance = vector.Distance(marker.GetOrigin(), pos);
+			float distance = vector.Distance(town.location, pos);
 			if(distance < nearest){
 				nearest = distance;
 				nearestTown = town;
@@ -96,12 +123,20 @@ class OVT_TownManagerComponent: OVT_Component
 		return nearestTown;
 	}
 	
+	SCR_MapDescriptorComponent GetNearestTownMarker(vector pos)
+	{	
+		m_EntitySearched = null;	
+		GetGame().GetWorld().QueryEntitiesBySphere(pos, 5, null, FindTownMarker, EQueryEntitiesFlags.STATIC);
+		if(!m_EntitySearched) return null;
+		
+		return SCR_MapDescriptorComponent.Cast(m_EntitySearched.FindComponent(SCR_MapDescriptorComponent));
+	}
+	
 	void GetTownsWithinDistance(vector pos, float maxDistance, out array<ref OVT_TownData> towns)
 	{
 		foreach(OVT_TownData town : m_Towns)
 		{
-			IEntity marker = GetGame().GetWorld().FindEntityByID(town.markerID);
-			float distance = vector.Distance(marker.GetOrigin(), pos);
+			float distance = vector.Distance(town.location, pos);
 			if(distance < maxDistance){
 				towns.Insert(town);
 			}
@@ -112,12 +147,21 @@ class OVT_TownManagerComponent: OVT_Component
 	{
 		#ifdef OVERTHROW_DEBUG
 		Print("Finding cities, towns and villages");
-		#endif
-		
-		m_Towns = new array<ref OVT_TownData>;		
+		#endif	
 		
 		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, CheckCityTownAddPopulation, FilterCityTownEntities, EQueryEntitiesFlags.STATIC);
-		
+		GetGame().GetCallqueue().CallLater(SpawnTownControllers, 0);
+	}
+	
+	protected void SpawnTownControllers()
+	{
+		foreach(OVT_TownData town : m_Towns)
+		{
+			EntitySpawnParams spawnParams = new EntitySpawnParams;
+			spawnParams.TransformMode = ETransformMode.WORLD;		
+			spawnParams.Transform[3] = town.location;
+			IEntity controller = GetGame().SpawnEntityPrefab(Resource.Load(m_Config.m_pTownControllerPrefab), GetGame().GetWorld(), spawnParams);
+		}
 	}
 	
 	protected bool CheckCityTownAddPopulation(IEntity entity)
@@ -132,12 +176,16 @@ class OVT_TownManagerComponent: OVT_Component
 	protected void ProcessTown(IEntity entity, MapDescriptorComponent mapdesc)
 	{
 		OVT_TownData town = new OVT_TownData();
+		
+		Faction faction = GetGame().GetFactionManager().GetFactionByKey(m_Config.m_sOccupyingFaction);
 			
-		town.markerID = entity.GetID();
-		town.name = mapdesc.Item().GetDisplayName();
+		town.id = m_iTownCount;
+		town.location = entity.GetOrigin();
 		town.population = 0;
 		town.support = 0;
-		town.faction = m_Config.m_sOccupyingFaction;
+		town.faction = GetGame().GetFactionManager().GetFactionIndex(faction);
+		
+		m_iTownCount++;
 		
 		if(mapdesc.GetBaseType() == EMapDescriptorType.MDT_NAME_VILLAGE) town.size = 1;
 		if(mapdesc.GetBaseType() == EMapDescriptorType.MDT_NAME_TOWN) town.size = 2;
@@ -173,12 +221,6 @@ class OVT_TownManagerComponent: OVT_Component
 		
 		m_Towns.Insert(town);
 		
-		EntitySpawnParams spawnParams = new EntitySpawnParams;
-		spawnParams.TransformMode = ETransformMode.WORLD;		
-		spawnParams.Transform[3] = entity.GetOrigin();
-		
-		IEntity dealer = GetGame().SpawnEntityPrefab(Resource.Load(m_Config.m_pTownControllerPrefab), GetGame().GetWorld(), spawnParams);
-
 	}
 	
 	protected bool FilterCityTownEntities(IEntity entity) 
@@ -189,6 +231,25 @@ class OVT_TownManagerComponent: OVT_Component
 			if(type == EMapDescriptorType.MDT_NAME_CITY) return true;
 			if(type == EMapDescriptorType.MDT_NAME_VILLAGE) return true;
 			if(type == EMapDescriptorType.MDT_NAME_TOWN) return true;
+		}
+				
+		return false;		
+	}
+	
+	protected bool FindTownMarker(IEntity entity) 
+	{		
+		bool got = false;
+		MapDescriptorComponent mapdesc = MapDescriptorComponent.Cast(entity.FindComponent(MapDescriptorComponent));
+		if (mapdesc){	
+			int type = mapdesc.GetBaseType();
+			if(type == EMapDescriptorType.MDT_NAME_CITY) got = true;
+			if(type == EMapDescriptorType.MDT_NAME_VILLAGE) got = true;
+			if(type == EMapDescriptorType.MDT_NAME_TOWN) got = true;
+		}
+		
+		if(got)
+		{
+			m_EntitySearched = entity;
 		}
 				
 		return false;		
@@ -240,5 +301,49 @@ class OVT_TownManagerComponent: OVT_Component
 			}
 		}
 		return false;
+	}
+	
+	//RPC Methods
+	
+	override bool RplSave(ScriptBitWriter writer)
+	{		
+		//Send JIP towns
+		writer.Write(m_Towns.Count(), 32); 
+		for(int i; i<m_Towns.Count(); i++)
+		{
+			OVT_TownData town = m_Towns[i];
+			writer.Write(town.id, 32);
+			writer.WriteVector(town.location);
+			writer.Write(town.population, 32);
+			writer.Write(town.stability, 32);
+			writer.Write(town.support, 32);
+			writer.Write(town.faction, 32);
+			writer.Write(town.size, 32);
+		}
+		
+		return true;
+	}
+	
+	override bool RplLoad(ScriptBitReader reader)
+	{				
+		//Recieve JIP towns
+		int length;
+		
+		if (!reader.Read(length, 32)) return false;
+		for(int i; i<length; i++)
+		{
+			OVT_TownData town = new OVT_TownData();
+			
+			if (!reader.Read(town.id, 32)) return false;
+			if (!reader.ReadVector(town.location)) return false;		
+			if (!reader.Read(town.population, 32)) return false;		
+			if (!reader.Read(town.stability, 32)) return false;		
+			if (!reader.Read(town.support, 32)) return false;		
+			if (!reader.Read(town.faction, 32)) return false;		
+			if (!reader.Read(town.size, 32)) return false;		
+			
+			m_Towns.Insert(town);
+		}
+		return true;
 	}
 }

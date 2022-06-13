@@ -12,7 +12,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 {	
 	int m_iResources;
 	float m_iThreat;
-	ref array<ref EntityID> m_Bases;
+	ref array<RplId> m_Bases;
+	ref array<vector> m_BasesToSpawn;
 	
 	const int OF_UPDATE_FREQUENCY = 60000;
 	
@@ -30,6 +31,12 @@ class OVT_OccupyingFactionManager: OVT_Component
 		return s_Instance;
 	}
 	
+	void OVT_OccupyingFactionManager()
+	{
+		m_Bases = new array<RplId>;	
+		m_BasesToSpawn = new array<vector>;	
+	}
+	
 	void Init(IEntity owner)
 	{		
 		m_iThreat = m_Config.m_Difficulty.baseThreat;
@@ -45,9 +52,10 @@ class OVT_OccupyingFactionManager: OVT_Component
 	{
 		IEntity nearestBase;
 		float nearest = 9999999;
-		foreach(EntityID id : m_Bases)
+		foreach(RplId id : m_Bases)
 		{
-			IEntity marker = GetGame().GetWorld().FindEntityByID(id);
+			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+			IEntity marker = rpl.GetEntity();
 			float distance = vector.Distance(marker.GetOrigin(), pos);
 			if(distance < nearest){
 				nearest = distance;
@@ -60,9 +68,10 @@ class OVT_OccupyingFactionManager: OVT_Component
 	
 	void GetBasesWithinDistance(vector pos, float maxDistance, out array<OVT_BaseControllerComponent> bases)
 	{
-		foreach(EntityID id : m_Bases)
+		foreach(RplId id : m_Bases)
 		{
-			IEntity marker = GetGame().GetWorld().FindEntityByID(id);
+			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+			IEntity marker = rpl.GetEntity();
 			float distance = vector.Distance(marker.GetOrigin(), pos);
 			if(distance < maxDistance){
 				OVT_BaseControllerComponent base = OVT_BaseControllerComponent.Cast(marker.FindComponent(OVT_BaseControllerComponent));
@@ -82,13 +91,28 @@ class OVT_OccupyingFactionManager: OVT_Component
 		Print("Finding bases");
 		#endif
 		
-		m_Bases = new array<ref EntityID>;		
-		
 		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, CheckBaseAdd, FilterBaseEntities, EQueryEntitiesFlags.STATIC);
 		
-		//Distribute initial resources
-		
-		foreach(EntityID id : m_Bases)
+		GetGame().GetCallqueue().CallLater(SpawnBaseControllers, 0);
+	}
+	
+	protected void SpawnBaseControllers()
+	{
+		foreach(vector pos : m_BasesToSpawn)
+		{		
+			IEntity baseEntity = SpawnBaseController(pos);
+			
+			OVT_BaseControllerComponent base = OVT_BaseControllerComponent.Cast(baseEntity.FindComponent(OVT_BaseControllerComponent));
+			
+			m_Bases.Insert(base.GetRpl().Id());
+		}
+		GetGame().GetCallqueue().CallLater(DistributeInitialResources, 100);
+	}
+	
+	protected void DistributeInitialResources()
+	{
+		//Distribute initial resources		
+		foreach(RplId id : m_Bases)
 		{
 			OVT_BaseControllerComponent base = GetBase(id);
 			m_iResources -= base.SpendResources(m_Config.m_Difficulty.initialResourcesPerBase, m_iThreat);			
@@ -97,27 +121,22 @@ class OVT_OccupyingFactionManager: OVT_Component
 		}
 	}
 	
-	OVT_BaseControllerComponent GetBase(EntityID id)
+	OVT_BaseControllerComponent GetBase(RplId id)
 	{
-		return OVT_BaseControllerComponent.Cast(GetGame().GetWorld().FindEntityByID(id).FindComponent(OVT_BaseControllerComponent));
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+		IEntity marker = rpl.GetEntity();
+		return OVT_BaseControllerComponent.Cast(marker.FindComponent(OVT_BaseControllerComponent));
 	}
 	
 	bool CheckBaseAdd(IEntity ent)
-	{
-		OVT_TownManagerComponent townManager = OVT_TownManagerComponent.GetInstance();
-		
-		OVT_TownData closestTown = townManager.GetNearestTown(ent.GetOrigin());
-		
+	{		
 		#ifdef OVERTHROW_DEBUG
+		OVT_TownManagerComponent townManager = OVT_TownManagerComponent.GetInstance();
+		OVT_TownData closestTown = townManager.GetNearestTown(ent.GetOrigin());
 		Print("Adding base near " + closestTown.name);
 		#endif
 		
-		IEntity baseEntity = SpawnBaseController(ent.GetOrigin());
-		
-		OVT_BaseControllerComponent base = OVT_BaseControllerComponent.Cast(baseEntity.FindComponent(OVT_BaseControllerComponent));
-
-		m_Bases.Insert(baseEntity.GetID());
-		
+		m_BasesToSpawn.Insert(ent.GetOrigin());		
 		return true;
 	}
 	
@@ -167,6 +186,35 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_iResources += newResources;
 		
 		Print ("OF Distributing Resources: " + newResources.ToString());
+	}
+	
+	//RPC Methods
+	
+	override bool RplSave(ScriptBitWriter writer)
+	{		
+		//Send JIP bases
+		writer.Write(m_Bases.Count(), 32); 
+		for(int i; i<m_Bases.Count(); i++)
+		{
+			writer.WriteRplId(m_Bases[i]);
+		}
+		
+		return true;
+	}
+	
+	override bool RplLoad(ScriptBitReader reader)
+	{				
+		//Recieve JIP towns
+		int length;
+		RplId id;
+		
+		if (!reader.Read(length, 32)) return false;
+		for(int i; i<length; i++)
+		{			
+			if (!reader.ReadRplId(id)) return false;
+			m_Bases.Insert(id);
+		}
+		return true;
 	}
 	
 	void ~OVT_OccupyingFactionManager()

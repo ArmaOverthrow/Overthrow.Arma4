@@ -7,29 +7,39 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	protected OVT_OverthrowConfigComponent m_Config;
 	protected OVT_TownManagerComponent m_TownManager;
 	protected OVT_OccupyingFactionManager m_OccupyingFactionManager;
+	protected OVT_RealEstateManagerComponent m_RealEstate;
 	protected OVT_VehicleManagerComponent m_VehicleManager;
 	protected OVT_EconomyManagerComponent m_EconomyManager;
+	protected OVT_PlayerManagerComponent m_PlayerManager;
 	
 	ref set<string> m_aInitializedPlayers;
 	ref set<string> m_aHintedPlayers;
 	
-	protected override void OnPlayerSpawned(int playerId, IEntity controlledEntity)
+	protected void OnPlayerIDRegistered(int playerId, string persistentId)
 	{
-		super.OnPlayerSpawned(playerId, controlledEntity);
+		IEntity controlledEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
 		
-		string persId = OVT_PlayerIdentityComponent.GetPersistentIDFromPlayerID(playerId);
-		
-		if(m_aInitializedPlayers.Contains(persId))
+		if(m_aInitializedPlayers.Contains(persistentId))
 		{
-			//Existing player
-			//(note this playerId isnt persistent between connections until we get a steam ID or something)
-			int cost = OVT_OverthrowConfigComponent.GetInstance().m_Difficulty.respawnCost;
-			OVT_EconomyManagerComponent.GetInstance().TakePlayerMoney(persId, cost);
+			//Existing player			
+			int cost = m_Config.m_Difficulty.respawnCost;
+			m_EconomyManager.TakePlayerMoney(playerId, cost);
 		}else{
-			int cash = OVT_OverthrowConfigComponent.GetInstance().m_Difficulty.startingCash;
-			OVT_EconomyManagerComponent.GetInstance().AddPlayerMoney(persId, cash);
+			//New player
+			int cash = m_Config.m_Difficulty.startingCash;
+			m_EconomyManager.AddPlayerMoney(playerId, cash);
 			
-			m_aInitializedPlayers.Insert(persId);
+			IEntity home = m_RealEstate.GetHome(persistentId);
+			if(!home)
+			{
+				//spawn system already assigned them a house, so make nearest house their home
+				IEntity house = m_TownManager.GetNearestHouse(controlledEntity.GetOrigin());
+				m_RealEstate.SetOwner(playerId, house);
+				m_RealEstate.SetHome(playerId, house);
+				m_VehicleManager.SpawnStartingCar(house, persistentId);
+			}
+			
+			m_aInitializedPlayers.Insert(persistentId);
 		}
 		
 		OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(controlledEntity.FindComponent(OVT_PlayerWantedComponent));
@@ -45,10 +55,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		}else{
 			faction.SetAffiliatedFactionByKey("");
 		}
-		
-		#ifdef OVERTHROW_DEBUG
-		Print("Player spawned");
-		#endif
 	}
 	
 	override void EOnInit(IEntity owner) //!EntityEvent.INIT
@@ -57,14 +63,21 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		
 		if(SCR_Global.IsEditMode())
 			return;		
-		
+				
 		#ifdef OVERTHROW_DEBUG
 		Print("Initializing Overthrow");
 		#endif
 		
 		m_Config = OVT_OverthrowConfigComponent.GetInstance();
 		
+		if(!Replication.IsServer()) return;
+		
 		GetGame().GetTimeAndWeatherManager().SetDayDuration(86400 / m_Config.m_iTimeMultiplier);
+		
+		m_PlayerManager = OVT_PlayerManagerComponent.GetInstance();		
+		m_PlayerManager.m_OnPlayerRegistered.Insert(OnPlayerIDRegistered);
+		
+		m_RealEstate = OVT_RealEstateManagerComponent.GetInstance();
 		
 		m_EconomyManager = OVT_EconomyManagerComponent.Cast(FindComponent(OVT_EconomyManagerComponent));		
 		if(m_EconomyManager)
@@ -122,5 +135,11 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	{
 		m_aInitializedPlayers = new set<string>;
 		m_aHintedPlayers = new set<string>;
+	}
+	
+	void ~OVT_OverthrowGameMode()
+	{
+		if(!m_PlayerManager) return;
+		m_PlayerManager.m_OnPlayerRegistered.Remove(OnPlayerRegistered);
 	}
 }

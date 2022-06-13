@@ -2,7 +2,7 @@ class OVT_ShopContext : OVT_UIContext
 {	
 	protected OVT_ShopComponent m_Shop;
 	protected int m_iPageNum = 0;
-	protected ResourceName m_SelectedResource;
+	protected RplId m_SelectedResource;
 		
 	override void PostInit()
 	{
@@ -64,20 +64,20 @@ class OVT_ShopContext : OVT_UIContext
 		//We only read m_Shop.m_aInventory because m_Shop.m_aInventoryItems is not replicated
 		for(int i = m_iPageNum * 15; i < (m_iPageNum + 1) * 15 && i < m_Shop.m_aInventory.Count(); i++)
 		{			
-			ResourceName prefab = m_Shop.m_aInventory.GetKey(i);
+			RplId id = m_Shop.m_aInventory.GetKey(i);
 						
 			if(wi == 0 && !m_SelectedResource){
-				SelectItem(prefab);
+				SelectItem(id);
 			}
 			
 			Widget w = grid.FindWidget("ShopMenu_Card" + wi);
 			w.SetOpacity(1);
 			OVT_ShopMenuCardComponent card = OVT_ShopMenuCardComponent.Cast(w.FindHandler(OVT_ShopMenuCardComponent));
 			
-			int cost = m_Economy.GetPrice(prefab, m_Shop.GetOwner().GetOrigin());
-			int qty = m_Shop.GetStock(prefab);
+			int cost = m_Economy.GetPrice(id, m_Shop.GetOwner().GetOrigin());
+			int qty = m_Shop.GetStock(id);
 			
-			card.Init(prefab, cost, qty, this);
+			card.Init(id, cost, qty, this);
 			
 			wi++;
 		}
@@ -90,17 +90,18 @@ class OVT_ShopContext : OVT_UIContext
 		
 	}
 	
-	void SelectItem(ResourceName res)
+	void SelectItem(RplId id)
 	{
-		m_SelectedResource = res;
+		m_SelectedResource = id;
 		TextWidget typeName = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedTypeName"));
 		TextWidget details = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedDetails"));
 		TextWidget desc = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedDescription"));
 		
-		int cost = m_Economy.GetPrice(res, m_Shop.GetOwner().GetOrigin());
-		int qty = m_Shop.GetStock(res);
+		int cost = m_Economy.GetPrice(id, m_Shop.GetOwner().GetOrigin());
+		int qty = m_Shop.GetStock(id);
 				
-		IEntity spawnedItem = GetGame().SpawnEntityPrefabLocal(Resource.Load(res));
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+		IEntity spawnedItem = rpl.GetEntity();
 		
 		SCR_EditableVehicleComponent veh = SCR_EditableVehicleComponent.Cast(spawnedItem.FindComponent(SCR_EditableVehicleComponent));
 		if(veh){
@@ -124,8 +125,6 @@ class OVT_ShopContext : OVT_UIContext
 				}
 			}
 		}
-		
-		SCR_Global.DeleteEntityAndChildren(spawnedItem);
 	}
 	
 	void SetShop(OVT_ShopComponent shop)
@@ -153,7 +152,7 @@ class OVT_ShopContext : OVT_UIContext
 	{
 		if(m_Shop.GetStock(m_SelectedResource) < 1) return;
 		
-		int playerId = OVT_PlayerIdentityComponent.GetPlayerIDFromPersistentID(m_sPlayerID);
+		int playerId = OVT_PlayerManagerComponent.GetInstance().GetPlayerIDFromPersistentID(m_sPlayerID);
 		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
 		if(!player) return;
 		
@@ -168,7 +167,7 @@ class OVT_ShopContext : OVT_UIContext
 		{
 			if(OVT_VehicleManagerComponent.GetInstance().SpawnVehicleBehind(m_SelectedResource, player, m_sPlayerID))
 			{
-				m_Economy.TakePlayerMoney(m_sPlayerID, cost);
+				m_Economy.TakePlayerMoney(m_iPlayerID, cost);
 				m_Shop.TakeFromInventory(m_SelectedResource, 1);
 				Refresh();
 				SelectItem(m_SelectedResource);
@@ -176,18 +175,21 @@ class OVT_ShopContext : OVT_UIContext
 			return;
 		}
 		
-		IEntity item = GetGame().SpawnEntityPrefabLocal(Resource.Load(m_SelectedResource));
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(m_SelectedResource));
+		IEntity spawnedItem = rpl.GetEntity();
+		
+		IEntity item = GetGame().SpawnEntityPrefab(Resource.Load(spawnedItem.GetPrefabData().GetPrefabName()));
 		
 		if(inventory.TryInsertItem(item))
 		{
-			m_Economy.TakePlayerMoney(m_sPlayerID, cost);
+			m_Economy.TakePlayerMoney(m_iPlayerID, cost);
 			m_Shop.TakeFromInventory(m_SelectedResource, 1);
 		}
 	}
 	
 	void Sell(Widget src, float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
 	{
-		int playerId = OVT_PlayerIdentityComponent.GetPlayerIDFromPersistentID(m_sPlayerID);
+		int playerId = OVT_PlayerManagerComponent.GetInstance().GetPlayerIDFromPersistentID(m_sPlayerID);
 		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
 		if(!player) return;
 		
@@ -199,13 +201,16 @@ class OVT_ShopContext : OVT_UIContext
 		array<IEntity> items = new array<IEntity>;
 		inventory.GetItems(items);
 		
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(m_SelectedResource));
+		IEntity spawnedItem = rpl.GetEntity();
+		
 		foreach(IEntity ent : items)
 		{
-			if(ent.GetPrefabData().GetPrefabName() == m_SelectedResource)
+			if(ent.GetPrefabData().GetPrefabName() == spawnedItem.GetPrefabData().GetPrefabName())
 			{
 				if(inventory.TryDeleteItem(ent))
 				{
-					m_Economy.AddPlayerMoney(m_sPlayerID, cost);
+					m_Economy.AddPlayerMoney(m_iPlayerID, cost);
 					m_Shop.AddToInventory(m_SelectedResource, 1);
 					break;
 				}

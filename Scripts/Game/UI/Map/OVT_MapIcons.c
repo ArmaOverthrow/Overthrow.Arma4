@@ -54,7 +54,7 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 		}
 		
 		int playerID = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(playerEntity);
-		string persId = OVT_PlayerIdentityComponent.GetPersistentIDFromPlayerID(playerID);
+		string persId = OVT_PlayerManagerComponent.GetInstance().GetPersistentIDFromPlayerID(playerID);
 			
 		BaseWorld world = GetGame().GetWorld();
 		
@@ -72,9 +72,10 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 			m_Widgets.Insert(w);
 		}
 		
-		foreach(EntityID id : economy.GetGunDealers())
+		foreach(RplId id : economy.GetGunDealers())
 		{
-			IEntity ent = world.FindEntityByID(id);
+			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+			IEntity ent = rpl.GetEntity();
 			m_Centers.Insert(ent.GetOrigin());
 			
 			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
@@ -84,9 +85,10 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 			m_Widgets.Insert(w);
 		}
 		
-		foreach(EntityID id : economy.GetAllShops())
+		foreach(RplId id : economy.GetAllShops())
 		{
-			IEntity ent = world.FindEntityByID(id);
+			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+			IEntity ent = rpl.GetEntity();
 			m_Centers.Insert(ent.GetOrigin());
 			
 			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);

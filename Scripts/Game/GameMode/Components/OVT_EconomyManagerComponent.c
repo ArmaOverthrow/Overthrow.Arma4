@@ -38,11 +38,15 @@ class OVT_EconomyManagerComponent: OVT_Component
 	ref array<ref OVT_ShopInventoryItem> m_aGunDealerItems;
 	ref array<ref OVT_ShopInventoryItem> m_aGunDealerItemsPacked = new array<ref OVT_ShopInventoryItem>();
 		
-	protected ref array<EntityID> m_aAllShops;
-	protected ref array<EntityID> m_aGunDealers;
+	protected ref array<RplId> m_aAllShops;
+	protected ref array<RplId> m_aGunDealers;
+	
+	protected InventoryStorageManagerComponent m_Storage;
+	
+	protected ref map<ResourceName,EntityID> m_mSpawnedItems;
 	
 	//Streamed to clients..
-	protected ref map<ResourceName, int> m_mItemCosts;		
+	protected ref map<RplId, int> m_mItemCosts;		
 	protected ref map<string, int> m_mMoney;
 	protected int m_iResistanceMoney = 0;
 	
@@ -63,16 +67,25 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return s_Instance;
 	}
 	
-	void SetPrice(ResourceName res, int cost)
+	void OVT_EconomyManagerComponent()
 	{
-		m_mItemCosts[res] = cost;
+		m_aAllShops = new array<RplId>;	
+		m_mItemCosts = new map<RplId, int>;
+		m_mMoney = new map<string, int>;
+		m_aGunDealers = new array<RplId>;
+		m_mSpawnedItems = new map<ResourceName,EntityID>;
 	}
 	
-	int GetPrice(ResourceName res, vector pos = "0 0 0")
+	void SetPrice(RplId id, int cost)
 	{
-		if(!m_mItemCosts.Contains(res)) return 0;
+		m_mItemCosts[id] = cost;
+	}
+	
+	int GetPrice(RplId id, vector pos = "0 0 0")
+	{
+		if(!m_mItemCosts.Contains(id)) return 0;
 		
-		int price = m_mItemCosts[res];
+		int price = m_mItemCosts[id];
 		if(pos[0] != 0)
 		{
 			OVT_TownData town = OVT_TownManagerComponent.GetInstance().GetNearestTown(pos);
@@ -93,12 +106,12 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return price;
 	}
 	
-	array<EntityID> GetAllShops()
+	array<RplId> GetAllShops()
 	{
 		return m_aAllShops;
 	}
 	
-	array<EntityID> GetGunDealers()
+	array<RplId> GetGunDealers()
 	{
 		return m_aGunDealers;
 	}
@@ -124,12 +137,12 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return m_mMoney[playerId] >= amount;
 	}
 	
-	void AddPlayerMoney(string playerId, int amount)
+	void AddPlayerMoney(int playerId, int amount)
 	{
 		Rpc(RpcAsk_AddPlayerMoney, playerId, amount);
 	}
 	
-	void TakePlayerMoney(string playerId, int amount)
+	void TakePlayerMoney(int playerId, int amount)
 	{
 		Rpc(RpcAsk_TakePlayerMoney, playerId, amount);
 	}
@@ -160,11 +173,11 @@ class OVT_EconomyManagerComponent: OVT_Component
 	}
 	
 	void Init(IEntity owner)
-	{		
-		m_mMoney = new map<string, int>;
-		m_aGunDealers = new array<EntityID>;	
+	{	
 		
 		if(!Replication.IsServer()) return;
+		
+		m_Storage = InventoryStorageManagerComponent.Cast(GetOwner().FindComponent(InventoryStorageManagerComponent));
 		
 		InitializeShops();
 	}
@@ -175,16 +188,53 @@ class OVT_EconomyManagerComponent: OVT_Component
 		Print("Finding shops");
 		#endif
 		
-		m_aAllShops = new array<EntityID>;	
-		m_mItemCosts = new map<ResourceName, int>;	
-		
 		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, CheckShopInit, FilterShopEntities, EQueryEntitiesFlags.STATIC);
-		
+		GetGame().GetCallqueue().CallLater(InitShopInventory, 0);
 	}
 	
-	bool HasPrice(ResourceName res)
+	bool HasPrice(RplId id)
 	{
-		return m_mItemCosts.Contains(res);
+		return m_mItemCosts.Contains(id);
+	}
+	
+	RplId GetInventoryId(ResourceName res)
+	{
+		IEntity spawnedItem;
+		RplComponent rpl;
+		if(!m_mSpawnedItems.Contains(res))
+		{			
+			spawnedItem = GetGame().SpawnEntityPrefab(Resource.Load(res));		
+			rpl = RplComponent.Cast(spawnedItem.FindComponent(RplComponent));			
+			m_mSpawnedItems[res] = spawnedItem.GetID();
+		}else{
+			spawnedItem = GetGame().GetWorld().FindEntityByID(m_mSpawnedItems[res]);
+			rpl = RplComponent.Cast(spawnedItem.FindComponent(RplComponent));
+		}
+		return rpl.Id();
+	}
+	
+	protected void InitShopInventory()
+	{
+		foreach(EntityID entid : m_aAllShops)
+		{
+			IEntity entity = GetGame().GetWorld().FindEntityByID(entid);
+			OVT_ShopComponent shop = OVT_ShopComponent.Cast(entity.FindComponent(OVT_ShopComponent));
+		
+			OVT_ShopInventoryConfig config = GetShopConfig(shop.m_ShopType);
+			foreach(OVT_ShopInventoryItem item : config.m_aInventoryItems)
+			{
+				RplId id = GetInventoryId(item.prefab);
+				if(!HasPrice(id)){
+					SetPrice(id, item.cost);
+				}
+				
+				int num = Math.Round(s_AIRandomGenerator.RandFloatXY(1,item.maxAtStart));
+				
+				shop.AddToInventory(id, num);
+				
+				shop.m_aInventoryItems.Insert(item);
+			}
+		}
 	}
 	
 	protected bool CheckShopInit(IEntity entity)
@@ -194,22 +244,6 @@ class OVT_EconomyManagerComponent: OVT_Component
 		#endif
 		
 		m_aAllShops.Insert(entity.GetID());
-		
-		OVT_ShopComponent shop = OVT_ShopComponent.Cast(entity.FindComponent(OVT_ShopComponent));
-		
-		OVT_ShopInventoryConfig config = GetShopConfig(shop.m_ShopType);
-		foreach(OVT_ShopInventoryItem item : config.m_aInventoryItems)
-		{
-			if(!HasPrice(item.prefab))
-			{
-				SetPrice(item.prefab, item.cost);
-			}
-			int num = Math.Round(s_AIRandomGenerator.RandFloatXY(1,item.maxAtStart));
-			
-			shop.AddToInventory(item.prefab, num);
-			
-			shop.m_aInventoryItems.Insert(item);
-		}
 		
 		return true;
 	}
@@ -225,26 +259,40 @@ class OVT_EconomyManagerComponent: OVT_Component
 	}
 	
 	//RPC Methods
+	
+	
 	override bool RplSave(ScriptBitWriter writer)
 	{
 		//Send JIP price list
 		writer.Write(m_mItemCosts.Count(), 32); 
 		for(int i; i<m_mItemCosts.Count(); i++)
-		{
-			string key = m_mItemCosts.GetKey(i);
-			RPL_WriteString(writer, key);
-			writer.Write(m_mItemCosts[key],32);
+		{			
+			writer.WriteRplId(m_mItemCosts.GetKey(i));
+			writer.Write(m_mItemCosts.GetElement(i),32);
 		}
 		
 		//Send JIP money map
 		writer.Write(m_mMoney.Count(), 32); 
 		for(int i; i<m_mMoney.Count(); i++)
-		{		
-			string key = m_mItemCosts.GetKey(i);
-			RPL_WriteString(writer, key);
+		{			
+			RPL_WritePlayerID(writer, m_mMoney.GetKey(i));
 			writer.Write(m_mMoney.GetElement(i), 32);
 		}
 		writer.Write(m_iResistanceMoney, 32);
+		
+		//Send JIP Shops
+		writer.Write(m_aAllShops.Count(), 32); 
+		for(int i; i<m_aAllShops.Count(); i++)
+		{
+			writer.WriteRplId(m_aAllShops[i]);
+		}
+		
+		//Send JIP Gun Dealers
+		writer.Write(m_aGunDealers.Count(), 32); 
+		for(int i; i<m_aGunDealers.Count(); i++)
+		{
+			writer.WriteRplId(m_aGunDealers[i]);
+		}
 		
 		return true;
 	}
@@ -254,12 +302,12 @@ class OVT_EconomyManagerComponent: OVT_Component
 		//Recieve JIP price list
 		int length, keylength, price;
 		string playerId;
-		string key;
+		RplId key;
 		
 		if (!reader.Read(length, 32)) return false;
 		for(int i; i<length; i++)
 		{
-			if(!RPL_ReadString(reader, key)) return false;
+			if (!reader.ReadRplId(key)) return false;
 			if (!reader.Read(price, 32)) return false;
 			m_mItemCosts[key] = price;
 		}
@@ -268,24 +316,44 @@ class OVT_EconomyManagerComponent: OVT_Component
 		if (!reader.Read(length, 32)) return false;
 		for(int i; i<length; i++)
 		{
-			if(!RPL_ReadString(reader, playerId)) return false;
+			if(!RPL_ReadPlayerID(reader, playerId)) return false;
 			if (!reader.Read(price, 32)) return false;
 			m_mMoney[playerId] = price;
 		}
 		if (!reader.Read(m_iResistanceMoney, 32)) return false;
+		
+		//Recieve JIP shops		
+		if (!reader.Read(length, 32)) return false;
+		for(int i; i<length; i++)
+		{			
+			if (!reader.ReadRplId(key)) return false;
+			m_aAllShops.Insert(key);
+		}
+		
+		//Recieve JIP gun dealers		
+		if (!reader.Read(length, 32)) return false;
+		for(int i; i<length; i++)
+		{			
+			if (!reader.ReadRplId(key)) return false;
+			m_aGunDealers.Insert(key);
+		}
+		
 		return true;
 	}
 	
-	protected void StreamPlayerMoney(string playerId)
+	
+	protected void StreamPlayerMoney(int playerId)
 	{
-		Rpc(RpcDo_SetPlayerMoney, playerId, m_mMoney[playerId]);
+		string persId = OVT_PlayerManagerComponent.GetInstance().GetPersistentIDFromPlayerID(playerId);
+		Rpc(RpcDo_SetPlayerMoney, playerId, m_mMoney[persId]);
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_SetPlayerMoney(string playerId, int amount)
+	protected void RpcDo_SetPlayerMoney(int playerId, int amount)
 	{
-		m_mMoney[playerId] = amount;
-		m_OnPlayerMoneyChanged.Invoke(playerId, m_mMoney[playerId]);
+		string persId = OVT_PlayerManagerComponent.GetInstance().GetPersistentIDFromPlayerID(playerId);
+		m_mMoney[persId] = amount;
+		m_OnPlayerMoneyChanged.Invoke(persId, m_mMoney[persId]);
 	}
 	
 	protected void StreamResistanceMoney()
@@ -301,23 +369,25 @@ class OVT_EconomyManagerComponent: OVT_Component
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_AddPlayerMoney(string playerId, int amount)
+	protected void RpcAsk_AddPlayerMoney(int playerId, int amount)
 	{
-		if(!m_mMoney.Contains(playerId)) m_mMoney[playerId] = 0;
-		m_mMoney[playerId] = m_mMoney[playerId] + amount;
+		string persId = OVT_PlayerManagerComponent.GetInstance().GetPersistentIDFromPlayerID(playerId);
+		if(!m_mMoney.Contains(persId)) m_mMoney[persId] = 0;
+		m_mMoney[persId] = m_mMoney[persId] + amount;
 		StreamPlayerMoney(playerId);
-		m_OnPlayerMoneyChanged.Invoke(playerId, m_mMoney[playerId]);
+		m_OnPlayerMoneyChanged.Invoke(persId, m_mMoney[persId]);
 	}
 	
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_TakePlayerMoney(string playerId, int amount)
+	protected void RpcAsk_TakePlayerMoney(int playerId, int amount)
 	{
-		if(!m_mMoney.Contains(playerId)) return;
-		m_mMoney[playerId] = m_mMoney[playerId] - amount;
-		if(m_mMoney[playerId] < 0) m_mMoney[playerId] = 0;
+		string persId = OVT_PlayerManagerComponent.GetInstance().GetPersistentIDFromPlayerID(playerId);
+		if(!m_mMoney.Contains(persId)) return;
+		m_mMoney[persId] = m_mMoney[persId] - amount;
+		if(m_mMoney[persId] < 0) m_mMoney[persId] = 0;
 		StreamPlayerMoney(playerId);	
-		m_OnPlayerMoneyChanged.Invoke(playerId, m_mMoney[playerId]);
+		m_OnPlayerMoneyChanged.Invoke(persId, m_mMoney[persId]);
 	}
 	
 	protected void RpcAsk_AddResistanceMoney(int amount)

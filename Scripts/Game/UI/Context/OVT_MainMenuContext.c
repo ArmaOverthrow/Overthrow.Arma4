@@ -14,8 +14,9 @@ class OVT_MainMenuContext : OVT_UIContext
 		m_Widgets.Init(m_wRoot);
 		
 		OVT_TownData town = m_TownManager.GetNearestTown(m_Owner.GetOrigin());
+		SCR_MapDescriptorComponent desc = m_TownManager.GetNearestTownMarker(town.location);
 		
-		m_Widgets.m_TownNameText.SetText(town.name);
+		m_Widgets.m_TownNameText.SetText(desc.Item().GetDisplayName());
 		m_Widgets.m_TownInfoText.SetTextFormat("#OVT-Population:%1\n#OVT-Stability: %2%\n#OVT-Support: %3%", town.population, town.stability, town.support);
 		
 		

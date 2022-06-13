@@ -89,6 +89,8 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 			}
 		}
 		
+		if(!nearest) return false;
+		
 		vector mat[4];
 		
 		nearest.GetTransform(mat);
@@ -125,8 +127,11 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 		
 	}
 	
-	IEntity SpawnVehicleBehind(ResourceName prefab, IEntity entity, string ownerId="")
+	IEntity SpawnVehicleBehind(RplId id, IEntity entity, string ownerId="")
 	{
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+		IEntity spawnedItem = rpl.GetEntity();
+		
 		vector mat[4];
 			
 		entity.GetTransform(mat);
@@ -138,7 +143,7 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 		Math3D.AnglesToMatrix(angles, mat);
 		mat[3] = pos;
 		
-		return SpawnVehicleMatrix(prefab, mat, ownerId);
+		return SpawnVehicleMatrix(spawnedItem.GetPrefabData().GetPrefabName(), mat, ownerId);
 	}
 	
 	IEntity SpawnVehicleMatrix(ResourceName prefab, vector mat[4], string ownerId = "")
@@ -154,7 +159,9 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 			return null;
 		}
 		
-		if(ownerId != "") SetOwner(ownerId, ent);
+		int playerId = OVT_PlayerManagerComponent.GetInstance().GetPlayerIDFromPersistentID(ownerId);
+		
+		if(ownerId != "") SetOwner(playerId, ent);
 		
 		return ent;
 	}

@@ -22,18 +22,21 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		return s_Instance;
 	}
 	
+	void OVT_RealEstateManagerComponent()
+	{
+		m_mHomes = new map<string, RplId>;
+	}
+	
 	override void OnPostInit(IEntity owner)
 	{	
 		super.OnPostInit(owner);
 		
-		if (SCR_Global.IsEditMode()) return;
+		if (SCR_Global.IsEditMode()) return;		
 		
-		m_mHomes = new map<string, RplId>;
-		m_mOwned = new map<string, ref set<RplId>>;
 		m_Town = OVT_TownManagerComponent.Cast(GetOwner().FindComponent(OVT_TownManagerComponent));	
 	}
 	
-	void SetHome(string playerId, IEntity building)
+	void SetHome(int playerId, IEntity building)
 	{	
 		RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
 		Rpc(RpcAsk_SetHome, playerId, rpl.Id());		
@@ -65,17 +68,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	}
 	
 	IEntity GetHome(string playerId)
-	{
-		
-		if(!m_mHomes.Contains(playerId))
-		{
-			IEntity newHome = m_Town.GetRandomHouse();
-			SetOwner(playerId, newHome);
-			SetHome(playerId, newHome);			
-			OVT_VehicleManagerComponent.GetInstance().SpawnStartingCar(newHome, playerId);
-			return newHome;
-		}
-		
+	{				
 		RplComponent rpl = RplComponent.Cast(Replication.FindItem(m_mHomes[playerId]));
 		if(rpl)
 		{
@@ -85,7 +78,18 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		return null;
 	}
 	
+	IEntity CreateHome(string playerId)
+	{
+		int intid = OVT_PlayerManagerComponent.GetInstance().GetPlayerIDFromPersistentID(playerId);
+		IEntity newHome = m_Town.GetRandomHouse();
+		SetOwner(intid, newHome);
+		SetHome(intid, newHome);			
+		OVT_VehicleManagerComponent.GetInstance().SpawnStartingCar(newHome, playerId);
+		return newHome;		
+	}
+	
 	//RPC Methods
+	
 	override bool RplSave(ScriptBitWriter writer)
 	{
 		super.RplSave(writer);
@@ -94,7 +98,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		writer.Write(m_mHomes.Count(), 32); 
 		for(int i; i<m_mHomes.Count(); i++)
 		{			
-			writer.Write(m_mHomes.GetKey(i),32);
+			RPL_WritePlayerID(writer, m_mHomes.GetKey(i));
 			writer.WriteRplId(m_mHomes.GetElement(i));
 		}
 		
@@ -113,7 +117,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		if (!reader.Read(length, 32)) return false;
 		for(int i; i<length; i++)
 		{
-			if (!RPL_ReadString(reader, playerId)) return false;
+			if (!RPL_ReadPlayerID(reader, playerId)) return false;
 			if (!reader.ReadRplId(id)) return false;		
 			
 			m_mHomes[playerId] = id;
@@ -122,20 +126,21 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	void RpcAsk_SetHome(string playerId, RplId id)
+	void RpcAsk_SetHome(int playerId, RplId id)
 	{
 		DoSetHome(playerId, id);		
 		Rpc(RpcDo_SetHome, playerId, id);		
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_SetHome(string playerId, RplId id)
+	protected void RpcDo_SetHome(int playerId, RplId id)
 	{
 		DoSetHome(playerId, id);	
 	}
 	
-	void DoSetHome(string playerId, RplId id)
+	void DoSetHome(int playerId, RplId id)
 	{
-		m_mHomes[playerId] = id;
+		string persId = OVT_PlayerManagerComponent.GetInstance().GetPersistentIDFromPlayerID(playerId);
+		m_mHomes[persId] = id;
 	}
 }

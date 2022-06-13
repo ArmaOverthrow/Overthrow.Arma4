@@ -27,6 +27,7 @@ class OVT_UIContext : ScriptAndConfig
 	protected OVT_UIManagerComponent m_UIManager;
 	protected Widget m_wRoot;
 	protected string m_sPlayerID;
+	protected int m_iPlayerID;
 	
 	void Init(IEntity owner, OVT_UIManagerComponent uimanager)
 	{
@@ -44,7 +45,8 @@ class OVT_UIContext : ScriptAndConfig
 	void OnControlledByPlayer()
 	{
 		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(m_Owner);
-		m_sPlayerID = OVT_PlayerIdentityComponent.GetPersistentIDFromPlayerID(playerId);
+		m_sPlayerID = OVT_PlayerManagerComponent.GetInstance().GetPersistentIDFromPlayerID(playerId);
+		m_iPlayerID = playerId;
 	}
 	
 	void PostInit()

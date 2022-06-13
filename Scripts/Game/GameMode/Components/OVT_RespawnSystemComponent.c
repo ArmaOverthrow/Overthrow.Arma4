@@ -40,9 +40,15 @@ class OVT_RespawnSystemComponent : SCR_RespawnSystemComponent
 			return null;
 		}
 		
-		IEntity home = re.GetHome(OVT_PlayerIdentityComponent.GetPersistentIDFromPlayerID(playerId));
-				
-		vector spawnPosition = home.GetOrigin();
+		IEntity home = re.GetHome(OVT_PlayerManagerComponent.GetInstance().GetPersistentIDFromPlayerID(playerId));
+		vector spawnPosition = m_Owner.GetOrigin();
+		
+		if(home){
+			spawnPosition = home.GetOrigin();
+		}else{
+			home = OVT_TownManagerComponent.GetInstance().GetRandomHouse();
+			spawnPosition = home.GetOrigin();
+		}
 		vector spawnRotation = vector.Zero;
 		
 		if(m_bSpawnHere) spawnPosition = m_Owner.GetOrigin();
@@ -62,5 +68,32 @@ class OVT_RespawnSystemComponent : SCR_RespawnSystemComponent
 		loadout.OnLoadoutSpawned(spawned, playerId);
 		
 		return spawned;
+	}
+	
+	override bool CanSetFaction(int playerId, int factionIndex)
+	{
+		if (factionIndex == SCR_PlayerRespawnInfo.RESPAWN_INFO_INVALID_INDEX)
+			return true;
+
+		// Disallow invalid factions
+		Faction faction = GetFactionByIndex(factionIndex);
+		if (!faction)
+			return false;
+
+		SCR_Faction scriptedFaction = SCR_Faction.Cast(faction);	
+			
+		//Verify that faction is playable Faction. If not then it checks if the spawned player has GM rights
+		if (scriptedFaction && !scriptedFaction.IsPlayable())
+		{
+			SCR_EditorManagerCore core = SCR_EditorManagerCore.Cast(SCR_EditorManagerCore.GetInstance(SCR_EditorManagerCore));
+			if (!core)
+				return false;
+		
+			//Check if has GM rights if not return false
+			SCR_EditorManagerEntity editorManager = core.GetEditorManager(playerId);
+			return editorManager && !editorManager.IsLimited(); 
+		}
+
+		return true;
 	}
 }
