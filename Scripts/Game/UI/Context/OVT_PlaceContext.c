@@ -18,7 +18,7 @@ class OVT_PlaceContext : OVT_UIContext
 	override void PostInit()
 	{
 		m_Widgets = new OVT_PlaceMenuWidgets();
-		m_RealEstate = OVT_RealEstateManagerComponent.GetInstance();
+		m_RealEstate = OVT_Global.GetRealEstate();
 	}
 	
 	override void OnFrame(float timeSlice)

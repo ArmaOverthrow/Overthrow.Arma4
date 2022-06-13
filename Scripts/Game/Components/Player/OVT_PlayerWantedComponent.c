@@ -63,10 +63,8 @@ class OVT_PlayerWantedComponent: OVT_Component
 		m_iLastSeen = LAST_SEEN_MAX;
 		
 		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), 250, CheckEntity, FilterEntities, EQueryEntitiesFlags.ALL);
-				
-		
-		
-		OVT_BaseControllerComponent base = OVT_OccupyingFactionManager.GetInstance().GetNearestBase(GetOwner().GetOrigin());
+						
+		OVT_BaseControllerComponent base = OVT_Global.GetOccupyingFaction().GetNearestBase(GetOwner().GetOrigin());
 		if(base)
 		{
 			float distanceToBase = vector.Distance(base.GetOwner().GetOrigin(), GetOwner().GetOrigin());
@@ -85,7 +83,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 			if(m_iWantedTimer <= 0)
 			{				
 				m_iWantedLevel -= 1;
-				Print("Downgrading wanted level to " + m_iWantedLevel);
+				//Print("Downgrading wanted level to " + m_iWantedLevel);
 				if(m_iWantedLevel > 1)
 				{
 					m_iWantedTimer = m_Config.m_Difficulty.wantedTimeout;

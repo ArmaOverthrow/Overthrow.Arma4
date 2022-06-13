@@ -97,7 +97,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 	
 	void DoSetOwner(int playerId, RplId id)
 	{
-		string persId = OVT_PlayerManagerComponent.GetInstance().GetPersistentIDFromPlayerID(playerId);
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		if(!m_mOwned.Contains(persId)) m_mOwned[persId] = new set<RplId>;
 		set<RplId> owner = m_mOwned[persId];
 		owner.Insert(id);

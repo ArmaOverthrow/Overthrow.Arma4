@@ -131,7 +131,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 	bool CheckBaseAdd(IEntity ent)
 	{		
 		#ifdef OVERTHROW_DEBUG
-		OVT_TownManagerComponent townManager = OVT_TownManagerComponent.GetInstance();
+		OVT_TownManagerComponent townManager = OVT_Global.GetTowns();
 		OVT_TownData closestTown = townManager.GetNearestTown(ent.GetOrigin());
 		Print("Adding base near " + closestTown.name);
 		#endif

@@ -77,6 +77,16 @@ class OVT_TownManagerComponent: OVT_Component
 		return GetGame().GetWorld().FindEntityByID(m_Houses.GetRandomElement());
 	}
 	
+	IEntity GetRandomStartingHouse()
+	{
+		m_Houses = new array<ref EntityID>;
+		OVT_TownData town = m_Towns.GetRandomElement();
+		
+		GetGame().GetWorld().QueryEntitiesBySphere(town.location, m_iCityRange, CheckHouseAddToArray, FilterStartingHouseEntities, EQueryEntitiesFlags.STATIC);
+		
+		return GetGame().GetWorld().FindEntityByID(m_Houses.GetRandomElement());
+	}
+	
 	IEntity GetNearestHouse(vector pos)
 	{
 		m_Houses = new array<ref EntityID>;		
@@ -298,6 +308,19 @@ class OVT_TownManagerComponent: OVT_Component
 					return true;
 				}
 					
+			}
+		}
+		return false;
+	}
+	
+	protected bool FilterStartingHouseEntities(IEntity entity) 
+	{
+		if(entity.ClassName() == "SCR_DestructibleBuildingEntity"){
+			VObject mesh = entity.GetVObject();
+			
+			if(mesh){
+				ResourceName res = mesh.GetResourceName();
+				if(m_Config.m_aStartingHousePrefabs.Contains(res)) return true;
 			}
 		}
 		return false;

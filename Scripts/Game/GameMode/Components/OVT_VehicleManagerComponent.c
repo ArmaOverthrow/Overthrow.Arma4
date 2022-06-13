@@ -38,7 +38,7 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 		m_aAllVehicleShops = new array<EntityID>;	
 		m_aEntitySearch = new array<EntityID>;
 		
-		m_RealEstate = OVT_RealEstateManagerComponent.GetInstance();
+		m_RealEstate = OVT_Global.GetRealEstate();
 	}
 	
 	void SpawnStartingCar(IEntity home, string playerId)
@@ -159,7 +159,7 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 			return null;
 		}
 		
-		int playerId = OVT_PlayerManagerComponent.GetInstance().GetPlayerIDFromPersistentID(ownerId);
+		int playerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(ownerId);
 		
 		if(ownerId != "") SetOwner(playerId, ent);
 		

@@ -8,8 +8,8 @@ class OVT_MapContext : OVT_UIContext
 	
 	override void PostInit()
 	{		
-		m_TownManager = OVT_TownManagerComponent.GetInstance();
-		m_RealEstate = OVT_RealEstateManagerComponent.GetInstance();
+		m_TownManager = OVT_Global.GetTowns();
+		m_RealEstate = OVT_Global.GetRealEstate();
 		
 		SCR_MapEntity.GetOnMapClose().Insert(DisableMapInfo);
 		SCR_MapEntity.GetOnMapClose().Insert(DisableFastTravel);

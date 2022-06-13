@@ -23,8 +23,8 @@ class OVT_MapRestrictedAreas : OVT_MapCanvasLayer
 		m_Centers = new array<vector>;
 		m_Ranges = new array<int>;
 		
-		OVT_OccupyingFactionManager factionMgr = OVT_OccupyingFactionManager.GetInstance();
-		OVT_OverthrowConfigComponent otconfig = OVT_OverthrowConfigComponent.GetInstance();
+		OVT_OccupyingFactionManager factionMgr = OVT_Global.GetOccupyingFaction();
+		OVT_OverthrowConfigComponent otconfig = OVT_Global.GetConfig();
 		
 		
 		foreach(EntityID id : factionMgr.m_Bases)

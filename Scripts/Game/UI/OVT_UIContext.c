@@ -33,8 +33,8 @@ class OVT_UIContext : ScriptAndConfig
 	{
 		m_Owner = owner;
 		m_InputManager = GetGame().GetInputManager();
-		m_Economy = OVT_EconomyManagerComponent.GetInstance();
-		m_Config = OVT_OverthrowConfigComponent.GetInstance();
+		m_Economy = OVT_Global.GetEconomy();
+		m_Config = OVT_Global.GetConfig();
 		m_UIManager = uimanager;		
 		
 		m_Controller = SCR_CharacterControllerComponent.Cast(owner.FindComponent(SCR_CharacterControllerComponent));
@@ -45,7 +45,7 @@ class OVT_UIContext : ScriptAndConfig
 	void OnControlledByPlayer()
 	{
 		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(m_Owner);
-		m_sPlayerID = OVT_PlayerManagerComponent.GetInstance().GetPersistentIDFromPlayerID(playerId);
+		m_sPlayerID = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		m_iPlayerID = playerId;
 	}
 	

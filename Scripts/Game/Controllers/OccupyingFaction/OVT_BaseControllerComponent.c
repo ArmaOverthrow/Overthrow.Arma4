@@ -35,7 +35,7 @@ class OVT_BaseControllerComponent: OVT_Component
 		
 		if (SCR_Global.IsEditMode()) return;
 		
-		m_occupyingFactionManager = OVT_OccupyingFactionManager.GetInstance();
+		m_occupyingFactionManager = OVT_Global.GetOccupyingFaction();
 		
 		InitializeBase();
 	}

@@ -16,8 +16,8 @@ class OVT_TownControllerComponent: OVT_Component
 		
 		if (SCR_Global.IsEditMode()) return;
 		
-		m_TownManager = OVT_TownManagerComponent.GetInstance();
-		m_Economy = OVT_EconomyManagerComponent.GetInstance();
+		m_TownManager = OVT_Global.GetTowns();
+		m_Economy = OVT_Global.GetEconomy();
 		m_Town = m_TownManager.GetNearestTown(GetOwner().GetOrigin());
 		
 		if(m_Town.size > 1)

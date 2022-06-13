@@ -68,16 +68,16 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		Print("Initializing Overthrow");
 		#endif
 		
-		m_Config = OVT_OverthrowConfigComponent.GetInstance();
+		m_Config = OVT_Global.GetConfig();
 		
 		if(!Replication.IsServer()) return;
 		
 		GetGame().GetTimeAndWeatherManager().SetDayDuration(86400 / m_Config.m_iTimeMultiplier);
 		
-		m_PlayerManager = OVT_PlayerManagerComponent.GetInstance();		
+		m_PlayerManager = OVT_Global.GetPlayers();		
 		m_PlayerManager.m_OnPlayerRegistered.Insert(OnPlayerIDRegistered);
 		
-		m_RealEstate = OVT_RealEstateManagerComponent.GetInstance();
+		m_RealEstate = OVT_Global.GetRealEstate();
 		
 		m_EconomyManager = OVT_EconomyManagerComponent.Cast(FindComponent(OVT_EconomyManagerComponent));		
 		if(m_EconomyManager)

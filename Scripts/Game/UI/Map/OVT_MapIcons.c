@@ -42,10 +42,10 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 		m_Centers = new array<vector>;
 		m_Widgets = new array<ref Widget>;
 		
-		OVT_RealEstateManagerComponent realEstate = OVT_RealEstateManagerComponent.GetInstance();
-		OVT_EconomyManagerComponent economy = OVT_EconomyManagerComponent.GetInstance();
-		OVT_OverthrowConfigComponent otconfig = OVT_OverthrowConfigComponent.GetInstance();
-		OVT_VehicleManagerComponent vehicles = OVT_VehicleManagerComponent.GetInstance();
+		OVT_RealEstateManagerComponent realEstate = OVT_Global.GetRealEstate();
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		OVT_OverthrowConfigComponent otconfig = OVT_Global.GetConfig();
+		OVT_VehicleManagerComponent vehicles = OVT_Global.GetVehicles();
 		
 		ChimeraCharacter playerEntity = ChimeraCharacter.Cast(SCR_PlayerController.GetLocalControlledEntity());
 		if (!playerEntity)
@@ -54,7 +54,7 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 		}
 		
 		int playerID = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(playerEntity);
-		string persId = OVT_PlayerManagerComponent.GetInstance().GetPersistentIDFromPlayerID(playerID);
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerID);
 			
 		BaseWorld world = GetGame().GetWorld();
 		

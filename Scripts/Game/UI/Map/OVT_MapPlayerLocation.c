@@ -43,7 +43,7 @@ class OVT_MapPlayerLocation : SCR_MapUIBaseComponent
 		}
 		
 		FactionManager faction = GetGame().GetFactionManager();
-		OVT_OverthrowConfigComponent otconfig = OVT_OverthrowConfigComponent.GetInstance();
+		OVT_OverthrowConfigComponent otconfig = OVT_Global.GetConfig();
 		
 		Faction fac = faction.GetFactionByKey(otconfig.m_sPlayerFaction);
 		if(!fac) return;

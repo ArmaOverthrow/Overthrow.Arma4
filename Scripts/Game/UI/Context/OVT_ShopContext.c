@@ -152,7 +152,7 @@ class OVT_ShopContext : OVT_UIContext
 	{
 		if(m_Shop.GetStock(m_SelectedResource) < 1) return;
 		
-		int playerId = OVT_PlayerManagerComponent.GetInstance().GetPlayerIDFromPersistentID(m_sPlayerID);
+		int playerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(m_sPlayerID);
 		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
 		if(!player) return;
 		
@@ -165,7 +165,7 @@ class OVT_ShopContext : OVT_UIContext
 		
 		if(m_Shop.m_ShopType == OVT_ShopType.SHOP_VEHICLE)
 		{
-			if(OVT_VehicleManagerComponent.GetInstance().SpawnVehicleBehind(m_SelectedResource, player, m_sPlayerID))
+			if(OVT_Global.GetVehicles().SpawnVehicleBehind(m_SelectedResource, player, m_sPlayerID))
 			{
 				m_Economy.TakePlayerMoney(m_iPlayerID, cost);
 				m_Shop.TakeFromInventory(m_SelectedResource, 1);
@@ -189,7 +189,7 @@ class OVT_ShopContext : OVT_UIContext
 	
 	void Sell(Widget src, float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
 	{
-		int playerId = OVT_PlayerManagerComponent.GetInstance().GetPlayerIDFromPersistentID(m_sPlayerID);
+		int playerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(m_sPlayerID);
 		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
 		if(!player) return;
 		

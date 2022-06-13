@@ -12,7 +12,7 @@ class OVT_Component: ScriptComponent
 	{
 		super.OnPostInit(owner);
 		
-		m_Config = OVT_OverthrowConfigComponent.GetInstance();
+		m_Config = OVT_Global.GetConfig();
 		m_Time = GetGame().GetTimeAndWeatherManager();
 	}
 	

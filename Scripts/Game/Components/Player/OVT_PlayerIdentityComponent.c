@@ -86,7 +86,7 @@ class OVT_PlayerIdentityComponent: OVT_Component
 		m_sPersistentID = ""+id1+id2+id3;
 		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(GetOwner());
 				
-		OVT_PlayerManagerComponent.GetInstance().RegisterPlayer(playerId, m_sPersistentID);
+		OVT_Global.GetPlayers().RegisterPlayer(playerId, m_sPersistentID);
 	}	
 	
 	void ~OVT_PlayerIdentityComponent()

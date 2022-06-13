@@ -110,6 +110,9 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Map Marker Prefab", params: "et")]
 	ResourceName m_pMapMarkerPrefab;
 	
+	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Starting Houses", params: "et", category: "Faction Vehicles")]
+	ref array<ResourceName> m_aStartingHousePrefabs;
+	
 	[Attribute(defvalue: "4", UIWidgets.EditBox, desc: "Time multiplier")]
 	int m_iTimeMultiplier;
 	

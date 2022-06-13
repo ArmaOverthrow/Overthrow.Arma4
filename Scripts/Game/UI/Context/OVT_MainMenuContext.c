@@ -5,7 +5,7 @@ class OVT_MainMenuContext : OVT_UIContext
 		
 	override void PostInit()
 	{		
-		m_TownManager = OVT_TownManagerComponent.GetInstance();
+		m_TownManager = OVT_Global.GetTowns();
 		m_Widgets = new OVT_MainMenuWidgets();
 	}
 	

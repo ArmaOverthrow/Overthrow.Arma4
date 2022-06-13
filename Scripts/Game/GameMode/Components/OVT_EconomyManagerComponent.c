@@ -88,7 +88,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		int price = m_mItemCosts[id];
 		if(pos[0] != 0)
 		{
-			OVT_TownData town = OVT_TownManagerComponent.GetInstance().GetNearestTown(pos);
+			OVT_TownData town = OVT_Global.GetTowns().GetNearestTown(pos);
 			if(town)
 			{
 				//price should go up as stability goes down				
@@ -344,14 +344,14 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	protected void StreamPlayerMoney(int playerId)
 	{
-		string persId = OVT_PlayerManagerComponent.GetInstance().GetPersistentIDFromPlayerID(playerId);
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		Rpc(RpcDo_SetPlayerMoney, playerId, m_mMoney[persId]);
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_SetPlayerMoney(int playerId, int amount)
 	{
-		string persId = OVT_PlayerManagerComponent.GetInstance().GetPersistentIDFromPlayerID(playerId);
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		m_mMoney[persId] = amount;
 		m_OnPlayerMoneyChanged.Invoke(persId, m_mMoney[persId]);
 	}
@@ -371,7 +371,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_AddPlayerMoney(int playerId, int amount)
 	{
-		string persId = OVT_PlayerManagerComponent.GetInstance().GetPersistentIDFromPlayerID(playerId);
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		if(!m_mMoney.Contains(persId)) m_mMoney[persId] = 0;
 		m_mMoney[persId] = m_mMoney[persId] + amount;
 		StreamPlayerMoney(playerId);
@@ -382,7 +382,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_TakePlayerMoney(int playerId, int amount)
 	{
-		string persId = OVT_PlayerManagerComponent.GetInstance().GetPersistentIDFromPlayerID(playerId);
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		if(!m_mMoney.Contains(persId)) return;
 		m_mMoney[persId] = m_mMoney[persId] - amount;
 		if(m_mMoney[persId] < 0) m_mMoney[persId] = 0;

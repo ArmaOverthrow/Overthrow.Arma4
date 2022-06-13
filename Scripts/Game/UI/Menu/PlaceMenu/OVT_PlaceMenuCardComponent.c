@@ -8,7 +8,7 @@ class OVT_PlaceMenuCardComponent : SCR_ScriptedWidgetComponent
 		m_Placeable = placeable;
 		m_Context = context;
 		
-		OVT_OverthrowConfigComponent config = OVT_OverthrowConfigComponent.GetInstance();
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
 		
 		TextWidget text = TextWidget.Cast(m_wRoot.FindAnyWidget("EntityName"));
 		text.SetText(placeable.name);

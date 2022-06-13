@@ -11,7 +11,7 @@ class OVT_ShopMenuCardComponent : SCR_ScriptedWidgetComponent
 		m_Resource = id;
 		m_Context = context;
 		
-		OVT_OverthrowConfigComponent config = OVT_OverthrowConfigComponent.GetInstance();
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
 		
 		TextWidget text = TextWidget.Cast(m_wRoot.FindAnyWidget("EntityName"));
 		

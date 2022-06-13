@@ -17,10 +17,10 @@ class OVT_EconomyInfo : SCR_InfoDisplayExtended {
 		if (!character)
 			return false;
 		
-		m_Economy = OVT_EconomyManagerComponent.GetInstance();
+		m_Economy = OVT_Global.GetEconomy();
 		
 		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(character);
-		m_playerId = OVT_PlayerManagerComponent.GetInstance().GetPersistentIDFromPlayerID(playerId);
+		m_playerId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 	
 		return true;
 	}

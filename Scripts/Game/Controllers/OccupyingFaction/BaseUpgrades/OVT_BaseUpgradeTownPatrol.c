@@ -13,7 +13,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		m_TownsInRange = new array<ref OVT_TownData>;
 		m_Patrols = new map<int, EntityID>;
 		
-		OVT_TownManagerComponent.GetInstance().GetTownsWithinDistance(m_BaseController.GetOwner().GetOrigin(), m_fRange, m_TownsInRange);
+		OVT_Global.GetTowns().GetTownsWithinDistance(m_BaseController.GetOwner().GetOrigin(), m_fRange, m_TownsInRange);
 	}
 	
 	override int Spend(int resources)

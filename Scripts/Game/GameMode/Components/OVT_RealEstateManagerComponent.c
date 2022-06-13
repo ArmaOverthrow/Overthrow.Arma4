@@ -80,11 +80,11 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	
 	IEntity CreateHome(string playerId)
 	{
-		int intid = OVT_PlayerManagerComponent.GetInstance().GetPlayerIDFromPersistentID(playerId);
+		int intid = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(playerId);
 		IEntity newHome = m_Town.GetRandomHouse();
 		SetOwner(intid, newHome);
 		SetHome(intid, newHome);			
-		OVT_VehicleManagerComponent.GetInstance().SpawnStartingCar(newHome, playerId);
+		OVT_Global.GetVehicles().SpawnStartingCar(newHome, playerId);
 		return newHome;		
 	}
 	
@@ -140,7 +140,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	
 	void DoSetHome(int playerId, RplId id)
 	{
-		string persId = OVT_PlayerManagerComponent.GetInstance().GetPersistentIDFromPlayerID(playerId);
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		m_mHomes[persId] = id;
 	}
 }
