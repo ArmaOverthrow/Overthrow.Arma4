@@ -24,6 +24,11 @@ class OVT_BaseUpgrade : ScriptAndConfig
 	
 	}
 	
+	void OnUpdate(int timeSlice)
+	{
+	
+	}
+	
 	int GetResources()
 	{
 		return 0;

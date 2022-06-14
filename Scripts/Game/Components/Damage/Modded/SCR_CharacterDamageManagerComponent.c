@@ -29,6 +29,8 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 	{
 		super.Kill(instigator);
 		
+		OVT_Global.GetOccupyingFaction().m_OnAIKilled.Invoke(GetOwner());
+		
 		if(instigator)
 		{
 			OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(instigator.FindComponent(OVT_PlayerWantedComponent));
@@ -46,6 +48,8 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 		super.OnDamageStateChanged(state);
 		
 		UpdateBloodyFace();
+		
+		OVT_Global.GetOccupyingFaction().m_OnAIKilled.Invoke(GetOwner());
 		
 		//Check immediate surrounds for a vehicle (hoping for a better way soon pls BI)
 		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), 5, CheckVehicleSetWanted, FilterVehicleEntities, EQueryEntitiesFlags.ALL);

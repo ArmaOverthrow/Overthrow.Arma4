@@ -11,6 +11,11 @@ class OVT_TownData : Managed
 	int support;
 	int faction;
 	int size;
+	ref array<int> stabilityModifiers = new array<int>;
+	ref array<int> supportModifiers = new array<int>;
+	
+	ref array<int> stabilityModifierTimers = new array<int>;
+	ref array<int> supportModifierTimers = new array<int>;
 }
 
 class OVT_TownManagerComponent: OVT_Component
@@ -43,9 +48,12 @@ class OVT_TownManagerComponent: OVT_Component
 	protected ref array<ref EntityID> m_Houses;
 	
 	OVT_RealEstateManagerComponent m_RealEstate;
-	 
-	static OVT_TownManagerComponent s_Instance;
 	
+	ref OVT_StabilityModifiersConfig m_StabilityModifiers;
+	
+	protected const int MODIFIER_FREQUENCY = 10000;
+	 
+	static OVT_TownManagerComponent s_Instance;	
 	static OVT_TownManagerComponent GetInstance()
 	{
 		if (!s_Instance)
@@ -67,8 +75,153 @@ class OVT_TownManagerComponent: OVT_Component
 	{		
 		m_RealEstate = OVT_Global.GetRealEstate();
 		
+		LoadConfig();
+		
+		GetGame().GetCallqueue().CallLater(CheckUpdateModifiers, MODIFIER_FREQUENCY, true, owner);		
+		
 		if(!Replication.IsServer()) return;
 		InitializeTowns();
+	}
+	
+	protected void CheckUpdateModifiers()
+	{
+		foreach(OVT_TownData town : m_Towns)
+		{
+			bool recalc = false;
+			array<int> remove = new array<int>;
+			foreach(int i, int index : town.stabilityModifiers)
+			{
+				town.stabilityModifierTimers[i] = town.stabilityModifierTimers[i] - MODIFIER_FREQUENCY / 1000;
+				if(town.stabilityModifierTimers[i] <= 0)
+				{
+					recalc = true;
+					remove.Insert(i);
+				}
+			}
+			
+			foreach(int i : remove)
+			{
+				town.stabilityModifierTimers.Remove(i);
+				town.stabilityModifiers.Remove(i);
+			}
+			if(recalc && Replication.IsServer()) RecalculateStability(town.id);
+		}
+	}
+	
+	protected void LoadConfig()
+	{
+		Resource holder = BaseContainerTools.LoadContainer("{FD430627EAC5BDBC}Configs/Modifiers/stabilityModifiers.conf");
+		if (holder)		
+		{
+			OVT_StabilityModifiersConfig obj = OVT_StabilityModifiersConfig.Cast(BaseContainerTools.CreateInstanceFromContainer(holder.GetResource().ToBaseContainer()));
+			if(obj)
+			{
+				m_StabilityModifiers = obj;
+				InitStability();
+			}
+		}
+	}
+	
+	protected void InitStability()
+	{
+		if(!Replication.IsServer()) return;
+		foreach(int i, OVT_StabilityModifierConfig config : m_StabilityModifiers.m_aStabilityModifiers)
+		{
+			if(config.handler)
+			{
+				config.handler.m_sName = config.name;
+				config.handler.m_iIndex = i;
+				config.handler.Init();
+				config.handler.OnPostInit();
+			}
+		}
+	}
+	
+	void TryAddStabilityModifierByName(int townId, string name)
+	{
+		foreach(int i, OVT_StabilityModifierConfig config : m_StabilityModifiers.m_aStabilityModifiers)
+		{
+			if(config.name == name)
+			{
+				TryAddStabilityModifier(townId, i);
+				return;
+			}
+		}
+	}
+	
+	void RemoveStabilityModifierByName(int townId, string name)
+	{
+		foreach(int i, OVT_StabilityModifierConfig config : m_StabilityModifiers.m_aStabilityModifiers)
+		{
+			if(config.name == name)
+			{
+				RemoveStabilityModifier(townId, i);
+				return;
+			}
+		}
+	}
+	
+	void RemoveStabilityModifier(int townId, int index)
+	{
+		OVT_TownData town = m_Towns[townId];		
+		int i = town.stabilityModifiers.Find(index);
+		if(i > -1)
+		{
+			town.stabilityModifierTimers.Remove(i);
+			town.stabilityModifiers.Remove(i);
+			Rpc(RpcDo_RemoveStabilityModifier, townId, index);
+		}		
+	}
+	
+	void TryAddStabilityModifier(int townId, int index)
+	{
+		OVT_TownData town = m_Towns[townId];
+		OVT_StabilityModifierConfig mod = m_StabilityModifiers.m_aStabilityModifiers[index];
+		//if(!(mod.flags & OVT_StabilityModifierFlags.ACTIVE)) return;
+		if(!town.stabilityModifiers.Contains(index))
+		{
+			AddStabilityModifier(townId, index);
+		}else if(mod.flags & OVT_StabilityModifierFlags.STACKABLE)
+		{
+			//Is stackable, so stack it
+			AddStabilityModifier(townId, index);
+		}else{
+			//Is not stackable, reset timer
+			int i = town.stabilityModifiers.Find(index);
+			town.stabilityModifierTimers[i] = mod.timeout;
+			Rpc(RpcDo_ResetStabilityModifier, townId, index);
+		}
+	}
+	
+	void AddStabilityModifier(int townId, int index)
+	{
+		OVT_TownData town = m_Towns[townId];
+		OVT_StabilityModifierConfig mod = m_StabilityModifiers.m_aStabilityModifiers[index];
+		town.stabilityModifiers.Insert(index);
+		town.stabilityModifierTimers.Insert(mod.timeout);
+		
+		RecalculateStability(townId);		
+		Rpc(RpcDo_AddStabilityModifier, townId, index, mod.timeout);
+	}
+	
+	protected void RecalculateStability(int townId)
+	{
+		OVT_TownData town = m_Towns[townId];
+		float newStability = 100;
+		foreach(int index : town.stabilityModifiers)
+		{
+			OVT_StabilityModifierConfig mod = m_StabilityModifiers.m_aStabilityModifiers[index];
+			newStability += mod.baseEffect;
+		}
+		if(newStability > 100) newStability = 100;
+		if(newStability < 0) newStability = 0;
+		int stab = Math.Round(newStability);
+		
+		if(stab != town.stability)
+		{
+			town.stability = stab;
+			Rpc(RpcDo_SetStability, townId, stab);
+		}		
 	}
 	
 	IEntity GetRandomHouse()
@@ -147,6 +300,21 @@ class OVT_TownManagerComponent: OVT_Component
 		return nearestTown;
 	}
 	
+	OVT_TownData GetNearestTownInRange(vector pos)
+	{
+		foreach(OVT_TownData town : m_Towns)
+		{
+			float distance = vector.Distance(town.location, pos);
+			int range = m_iCityRange;
+			if(town.size == 2) range = m_iTownRange;
+			if(town.size == 1) range = m_iVillageRange;
+			if(distance <= range){
+				return town;
+			}
+		}
+		return null;
+	}
+	
 	SCR_MapDescriptorComponent GetNearestTownMarker(vector pos)
 	{	
 		m_EntitySearched = null;	
@@ -221,21 +389,7 @@ class OVT_TownManagerComponent: OVT_Component
 		if(town.size == 1) range = m_iVillageRange;
 		if(town.size == 3) range = m_iCityRange;
 		
-		//Randomize stability
-		int stability = 100;
-		if(town.size == 3)
-		{
-			stability = s_AIRandomGenerator.RandFloatXY(90, 100);
-		}
-		if(town.size == 2)
-		{
-			stability = s_AIRandomGenerator.RandFloatXY(80, 100);
-		}
-		if(town.size == 1)
-		{
-			stability = s_AIRandomGenerator.RandFloatXY(65, 100);
-		}
-		town.stability = stability;
+		town.stability = 100;
 		
 		GetGame().GetWorld().QueryEntitiesBySphere(entity.GetOrigin(), range, CheckHouseAddPopulation, FilterHouseEntities, EQueryEntitiesFlags.STATIC);
 		
@@ -355,6 +509,28 @@ class OVT_TownManagerComponent: OVT_Component
 			writer.Write(town.support, 32);
 			writer.Write(town.faction, 32);
 			writer.Write(town.size, 32);
+			
+			writer.Write(town.stabilityModifiers.Count(), 32);
+			for(int t; t<town.stabilityModifiers.Count(); i++)
+			{
+				writer.Write(town.stabilityModifiers[t], 32);
+			}
+			writer.Write(town.supportModifiers.Count(), 32);
+			for(int t; t<town.supportModifiers.Count(); i++)
+			{
+				writer.Write(town.supportModifiers[t], 32);
+			}
+			
+			writer.Write(town.stabilityModifierTimers.Count(), 32);
+			for(int t; t<town.stabilityModifierTimers.Count(); i++)
+			{
+				writer.Write(town.stabilityModifierTimers[t], 32);
+			}
+			writer.Write(town.supportModifierTimers.Count(), 32);
+			for(int t; t<town.supportModifierTimers.Count(); i++)
+			{
+				writer.Write(town.supportModifierTimers[t], 32);
+			}
 		}
 		
 		return true;
@@ -363,7 +539,7 @@ class OVT_TownManagerComponent: OVT_Component
 	override bool RplLoad(ScriptBitReader reader)
 	{				
 		//Recieve JIP towns
-		int length;
+		int length, modlength, mod;
 		
 		if (!reader.Read(length, 32)) return false;
 		for(int i; i<length; i++)
@@ -376,10 +552,107 @@ class OVT_TownManagerComponent: OVT_Component
 			if (!reader.Read(town.stability, 32)) return false;		
 			if (!reader.Read(town.support, 32)) return false;		
 			if (!reader.Read(town.faction, 32)) return false;		
-			if (!reader.Read(town.size, 32)) return false;		
+			if (!reader.Read(town.size, 32)) return false;	
+				
+			if (!reader.Read(modlength, 32)) return false;
+			for(int t = 0; t<modlength; t++)
+			{
+				if (!reader.Read(mod, 32)) return false;
+				town.stabilityModifiers.Insert(mod);
+			}	
+			if (!reader.Read(modlength, 32)) return false;
+			for(int t = 0; t<modlength; t++)
+			{
+				if (!reader.Read(mod, 32)) return false;
+				town.supportModifiers.Insert(mod);
+			}
+			
+			if (!reader.Read(modlength, 32)) return false;
+			for(int t = 0; t<modlength; t++)
+			{
+				if (!reader.Read(mod, 32)) return false;
+				town.stabilityModifierTimers.Insert(mod);
+			}	
+			if (!reader.Read(modlength, 32)) return false;
+			for(int t = 0; t<modlength; t++)
+			{
+				if (!reader.Read(mod, 32)) return false;
+				town.supportModifierTimers.Insert(mod);
+			}
 			
 			m_Towns.Insert(town);
 		}
 		return true;
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_SetStability(int townId, int value)
+	{
+		OVT_TownData town = m_Towns[townId];
+		town.stability = value;
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_AddStabilityModifier(int townId, int index, int timer)
+	{
+		OVT_TownData town = m_Towns[townId];
+		town.stabilityModifiers.Insert(index);
+		town.stabilityModifierTimers.Insert(timer);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_AddSupportModifier(int townId, int index, int timer)
+	{
+		OVT_TownData town = m_Towns[townId];
+		town.supportModifiers.Insert(index);
+		town.supportModifierTimers.Insert(timer);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_RemoveStabilityModifier(int townId, int index)
+	{
+		OVT_TownData town = m_Towns[townId];		
+		int i = town.stabilityModifiers.Find(index);
+		if(i > -1)
+		{
+			town.stabilityModifierTimers.Remove(i);
+			town.stabilityModifiers.Remove(i);
+		}
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_RemoveSupportModifier(int townId, int index)
+	{
+		OVT_TownData town = m_Towns[townId];		
+		int i = town.supportModifiers.Find(index);
+		if(i > -1)
+		{
+			town.supportModifierTimers.Remove(i);
+			town.supportModifiers.Remove(i);
+		}
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_ResetStabilityModifier(int townId, int index)
+	{
+		OVT_TownData town = m_Towns[townId];
+		OVT_StabilityModifierConfig mod = m_StabilityModifiers.m_aStabilityModifiers[index];
+		int i = town.stabilityModifiers.Find(index);
+		if(i > -1)
+		{
+			town.stabilityModifierTimers[i] = mod.timeout;
+		}
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_ResetSupportModifier(int townId, int index)
+	{
+		OVT_TownData town = m_Towns[townId];
+		OVT_StabilityModifierConfig mod = m_StabilityModifiers.m_aStabilityModifiers[index];
+		int i = town.stabilityModifiers.Find(index);
+		if(i > -1)
+		{
+			town.stabilityModifierTimers[i] = mod.timeout;
+		}
 	}
 }

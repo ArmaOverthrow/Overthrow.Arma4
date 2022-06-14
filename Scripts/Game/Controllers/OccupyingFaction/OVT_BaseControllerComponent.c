@@ -27,17 +27,30 @@ class OVT_BaseControllerComponent: OVT_Component
 		
 	protected OVT_OccupyingFactionManager m_occupyingFactionManager;
 	
+	protected const int UPGRADE_UPDATE_FREQUENCY = 10000;
+	
 	EntityID m_Flag;	
 	
 	override void OnPostInit(IEntity owner)
 	{	
 		super.OnPostInit(owner);
 		
+		if(!Replication.IsServer()) return;
 		if (SCR_Global.IsEditMode()) return;
 		
 		m_occupyingFactionManager = OVT_Global.GetOccupyingFaction();
 		
 		InitializeBase();
+		
+		GetGame().GetCallqueue().CallLater(UpdateUpgrades, UPGRADE_UPDATE_FREQUENCY, true, owner);		
+	}
+	
+	protected void UpdateUpgrades()
+	{
+		foreach(OVT_BaseUpgrade upgrade : m_aBaseUpgrades)
+		{
+			upgrade.OnUpdate(UPGRADE_UPDATE_FREQUENCY);
+		}
 	}
 	
 	void InitializeBase()

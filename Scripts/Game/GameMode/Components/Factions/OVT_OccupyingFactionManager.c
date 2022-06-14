@@ -17,6 +17,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 	
 	const int OF_UPDATE_FREQUENCY = 60000;
 	
+	ref ScriptInvoker<IEntity> m_OnAIKilled = new ScriptInvoker<IEntity>;
+	
 	static OVT_OccupyingFactionManager s_Instance;
 	
 	static OVT_OccupyingFactionManager GetInstance()

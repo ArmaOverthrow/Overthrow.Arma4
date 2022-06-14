@@ -3,6 +3,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 	[Attribute("2000", desc: "Max range of towns to patrol")]
 	float m_fRange;
 	
+	protected OVT_TownManagerComponent m_Towns;
 	protected ref array<ref OVT_TownData> m_TownsInRange;
 	protected ref map<int, EntityID> m_Patrols;
 		
@@ -10,10 +11,42 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 	{
 		super.PostInit();
 		
+		m_Towns = OVT_Global.GetTowns();
 		m_TownsInRange = new array<ref OVT_TownData>;
 		m_Patrols = new map<int, EntityID>;
 		
 		OVT_Global.GetTowns().GetTownsWithinDistance(m_BaseController.GetOwner().GetOrigin(), m_fRange, m_TownsInRange);
+	}
+	
+	override void OnUpdate(int timeSlice)
+	{
+		//Check on our patrols and update stability/support
+		for(int i; i< m_Patrols.Count(); i++)
+		{
+			int townId = m_Patrols.GetKey(i);
+			EntityID id = m_Patrols.GetElement(i);
+			IEntity ent = GetGame().GetWorld().FindEntityByID(id);
+			if(ent)
+			{
+				SCR_AIGroup group = SCR_AIGroup.Cast(ent);
+				if(group.GetAgentsCount() > 0)
+				{
+					OVT_TownData town = m_Towns.m_Towns[townId];
+					float dist = vector.Distance(town.location, group.GetOrigin());
+					if(dist < 50)
+					{
+						if(town.support >= 75)
+						{
+							m_Towns.TryAddStabilityModifierByName(townId, "RecentPatrolNegative");
+							m_Towns.RemoveStabilityModifierByName(townId, "RecentPatrolPositive");
+						}else{
+							m_Towns.TryAddStabilityModifierByName(townId, "RecentPatrolPositive");
+							m_Towns.RemoveStabilityModifierByName(townId, "RecentPatrolNegative");
+						}						
+					}
+				}
+			}
+		}
 	}
 	
 	override int Spend(int resources)
