@@ -22,8 +22,12 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      m_sCloseAction "OverthrowPlaceMenuEsc"
     }
     OVT_MapContext "{598E83B6A7175CBE}" {
+     m_Layout "{0EC60966C99CE954}UI/Layouts/Map/MapInfo.layout"
      m_bOpenActionCloses 0
      m_bHideHUDOnShow 0
+     m_ModLayout "{7BAC7637E5744768}UI/Layouts/Map/MapInfo/Modifier.layout"
+     m_NegativeModifierColor 0.502 0 0 1
+     m_PositiveModifierColor 0 0.376 0.098 1
     }
     OVT_ShopContext "{598EF9F13B9F3106}" {
      m_Layout "{846B87563CCE7DA1}UI/Layouts/Menu/ShopMenu.layout"
@@ -69,4 +73,5 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
    }
   }
  }
+ coords 0 0 0
 }

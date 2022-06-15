@@ -11,11 +11,11 @@ class OVT_TownData : Managed
 	int support;
 	int faction;
 	int size;
-	ref array<int> stabilityModifiers = new array<int>;
-	ref array<int> supportModifiers = new array<int>;
+	ref array<ref int> stabilityModifiers = new array<ref int>;
+	ref array<ref int> supportModifiers = new array<ref int>;
 	
-	ref array<int> stabilityModifierTimers = new array<int>;
-	ref array<int> supportModifierTimers = new array<int>;
+	ref array<ref int> stabilityModifierTimers = new array<ref int>;
+	ref array<ref int> supportModifierTimers = new array<ref int>;
 }
 
 class OVT_TownManagerComponent: OVT_Component
@@ -73,14 +73,17 @@ class OVT_TownManagerComponent: OVT_Component
 	
 	void Init(IEntity owner)
 	{		
-		m_RealEstate = OVT_Global.GetRealEstate();
-		
+		m_RealEstate = OVT_Global.GetRealEstate();		
 		LoadConfig();
-		
-		GetGame().GetCallqueue().CallLater(CheckUpdateModifiers, MODIFIER_FREQUENCY, true, owner);		
 		
 		if(!Replication.IsServer()) return;
 		InitializeTowns();
+	}
+	
+	void PostGameStart()
+	{
+		GetGame().GetCallqueue().CallLater(CheckUpdateModifiers, MODIFIER_FREQUENCY, true, GetOwner());		
+		GetGame().GetCallqueue().CallLater(SpawnTownControllers, 0);
 	}
 	
 	protected void CheckUpdateModifiers()
@@ -96,6 +99,23 @@ class OVT_TownManagerComponent: OVT_Component
 				{
 					recalc = true;
 					remove.Insert(i);
+				}else{
+					OVT_StabilityModifierConfig mod = m_StabilityModifiers.m_aStabilityModifiers[index];
+					if(mod.handler){
+						if(!mod.handler.OnActiveTick(town))
+						{
+							remove.Insert(i);
+							recalc = true;
+						}
+					}
+				}
+			}
+			
+			foreach(int i, OVT_StabilityModifierConfig config : m_StabilityModifiers.m_aStabilityModifiers)
+			{
+				if(config.handler)
+				{
+					config.handler.OnTick(town);
 				}
 			}
 			
@@ -133,6 +153,11 @@ class OVT_TownManagerComponent: OVT_Component
 				config.handler.m_iIndex = i;
 				config.handler.Init();
 				config.handler.OnPostInit();
+				
+				foreach(OVT_TownData town : m_Towns)
+				{
+					config.handler.OnStart(town);
+				}
 			}
 		}
 	}
@@ -342,7 +367,7 @@ class OVT_TownManagerComponent: OVT_Component
 		#endif	
 		
 		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, CheckCityTownAddPopulation, FilterCityTownEntities, EQueryEntitiesFlags.STATIC);
-		GetGame().GetCallqueue().CallLater(SpawnTownControllers, 0);
+		
 	}
 	
 	protected void SpawnTownControllers()
@@ -653,6 +678,20 @@ class OVT_TownManagerComponent: OVT_Component
 		if(i > -1)
 		{
 			town.stabilityModifierTimers[i] = mod.timeout;
+		}
+	}
+	
+	void ~OVT_TownManagerComponent()
+	{
+		if(m_Towns)
+		{
+			m_Towns.Clear();
+			m_Towns = null;
+		}
+		if(m_Houses)
+		{
+			m_Houses.Clear();
+			m_Houses = null;
 		}
 	}
 }

@@ -1,9 +1,12 @@
 SubScene {
  Parent "worlds/Eden/Eden.ent"
 }
-Layer default {
+Layer managers {
  Index 0
 }
 Layer slots {
  Index 1
+}
+Layer bases {
+ Index 2
 }

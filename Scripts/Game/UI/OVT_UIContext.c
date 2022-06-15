@@ -42,6 +42,11 @@ class OVT_UIContext : ScriptAndConfig
 		PostInit();
 	}
 	
+	bool IsActive()
+	{
+		return m_bIsActive;
+	}
+	
 	void OnControlledByPlayer()
 	{
 		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(m_Owner);

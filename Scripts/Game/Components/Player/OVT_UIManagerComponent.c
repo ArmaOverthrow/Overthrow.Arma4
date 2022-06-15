@@ -6,7 +6,6 @@ class OVT_UIManagerComponent: OVT_Component
 {
 	[Attribute("", UIWidgets.Object)]
 	ref array<ref OVT_UIContext> m_aContexts;
-	ref array<ref OVT_UIContext> m_aContextsPacked = new array<ref OVT_UIContext>();
 	
 	SCR_CharacterControllerComponent m_Controller;
 					
@@ -107,13 +106,21 @@ class OVT_UIManagerComponent: OVT_Component
 	
 	void ~OVT_UIManagerComponent()
 	{
-		if(SCR_Global.IsEditMode()) return;			
-		foreach(OVT_UIContext context : m_aContexts)
+		if(m_aContexts)
+		{	
+			foreach(OVT_UIContext context : m_aContexts)
+			{
+				context.UnregisterInputs();
+			}
+			m_aContexts.Clear();
+			m_aContexts = null;
+		}
+		if(m_Controller)
 		{
-			context.UnregisterInputs();
+			m_Controller.m_OnControlledByPlayer.Remove(this.OnControlledByPlayer);
+			m_Controller.m_OnPlayerDeath.Remove(this.OnPlayerDeath);
 		}
 		
-		m_Controller.m_OnControlledByPlayer.Remove(this.OnControlledByPlayer);
-		m_Controller.m_OnPlayerDeath.Remove(this.OnPlayerDeath);
+		
 	}
 }

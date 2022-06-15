@@ -45,4 +45,14 @@ class OVT_MapRestrictedAreas : OVT_MapCanvasLayer
 		
 		
 	}
+	
+	override void OnMapClose(MapConfiguration config)
+	{	
+		super.OnMapClose(config);
+			
+		m_Ranges.Clear();
+		m_Ranges = null;
+		m_Centers.Clear();
+		m_Centers = null;
+	}
 }

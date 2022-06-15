@@ -24,24 +24,20 @@ class OVT_ShopInventoryConfig : ScriptAndConfig
 	
 	[Attribute("", UIWidgets.Object)]
 	ref array<ref OVT_ShopInventoryItem> m_aInventoryItems;
-	ref array<ref OVT_ShopInventoryItem> m_aInventoryItemsPacked = new array<ref OVT_ShopInventoryItem>();
-
 }
 
 class OVT_EconomyManagerComponent: OVT_Component
 {
 	[Attribute("", UIWidgets.Object)]
 	ref array<ref OVT_ShopInventoryConfig> m_aShopConfigs;
-	ref array<ref OVT_ShopInventoryConfig> m_aShopConfigsPacked = new array<ref OVT_ShopInventoryConfig>();
-
+	
 	[Attribute("", UIWidgets.Object)]
 	ref array<ref OVT_ShopInventoryItem> m_aGunDealerItems;
-	ref array<ref OVT_ShopInventoryItem> m_aGunDealerItemsPacked = new array<ref OVT_ShopInventoryItem>();
-		
+			
 	protected ref array<RplId> m_aAllShops;
 	protected ref array<RplId> m_aGunDealers;
 	
-	protected InventoryStorageManagerComponent m_Storage;
+	protected OVT_TownManagerComponent m_Towns;
 	
 	protected ref map<ResourceName,EntityID> m_mSpawnedItems;
 	
@@ -116,6 +112,21 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return m_aGunDealers;
 	}
 	
+	array<RplId> GetAllShopsInTown(OVT_TownData town)
+	{
+		int range = m_Towns.m_iCityRange;
+		if(town.size == 2) range = m_Towns.m_iTownRange;
+		if(town.size == 1) range = m_Towns.m_iVillageRange;
+		array<RplId> shops = new array<RplId>;
+		foreach(RplId id : m_aAllShops)
+		{
+			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+			float dist = vector.Distance(town.location, rpl.GetEntity().GetOrigin());
+			if(dist <= range) shops.Insert(id);
+		}
+		return shops;
+	}
+	
 	OVT_ShopInventoryConfig GetShopConfig(OVT_ShopType shopType)
 	{		
 		foreach(OVT_ShopInventoryConfig config : m_aShopConfigs)
@@ -176,13 +187,16 @@ class OVT_EconomyManagerComponent: OVT_Component
 	}
 	
 	void Init(IEntity owner)
-	{	
+	{			
+		m_Towns = OVT_Global.GetTowns();
 		
-		if(!Replication.IsServer()) return;
-		
-		m_Storage = InventoryStorageManagerComponent.Cast(GetOwner().FindComponent(InventoryStorageManagerComponent));
-		
+		if(!Replication.IsServer()) return;		
 		InitializeShops();
+	}
+	
+	void PostGameStart()
+	{
+		GetGame().GetCallqueue().CallLater(InitShopInventory, 0);
 	}
 	
 	protected void InitializeShops()
@@ -192,7 +206,6 @@ class OVT_EconomyManagerComponent: OVT_Component
 		#endif
 		
 		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, CheckShopInit, FilterShopEntities, EQueryEntitiesFlags.STATIC);
-		GetGame().GetCallqueue().CallLater(InitShopInventory, 0);
 	}
 	
 	bool HasPrice(RplId id)
@@ -409,5 +422,24 @@ class OVT_EconomyManagerComponent: OVT_Component
 		m_iResistanceMoney -= amount;
 		if(m_iResistanceMoney < 0) m_iResistanceMoney = 0;
 		StreamResistanceMoney();
+	}
+	
+	void ~OVT_EconomyManagerComponent()
+	{
+		if(m_aAllShops)
+		{
+			m_aAllShops.Clear();
+			m_aAllShops = null;
+		}
+		if(m_aGunDealers)
+		{
+			m_aGunDealers.Clear();
+			m_aGunDealers = null;
+		}
+		if(m_mSpawnedItems)
+		{
+			m_mSpawnedItems.Clear();
+			m_mSpawnedItems = null;
+		}
 	}
 }

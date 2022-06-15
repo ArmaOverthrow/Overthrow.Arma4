@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{4A7A8EED9F6F2A92}UI/Layouts/Menu/StartGameMenu.layout"
+ Configurations {
+  LayoutResourceClass PC {
+  }
+  LayoutResourceClass XBOX_ONE : PC {
+  }
+  LayoutResourceClass XBOX_SERIES : PC {
+  }
+  LayoutResourceClass PS4 : PC {
+  }
+  LayoutResourceClass HEADLESS : PC {
+  }
+ }
+}

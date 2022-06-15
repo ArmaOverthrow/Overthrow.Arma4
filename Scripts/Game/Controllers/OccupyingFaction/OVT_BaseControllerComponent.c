@@ -9,9 +9,7 @@ class OVT_BaseControllerComponent: OVT_Component
 	
 	[Attribute("", UIWidgets.Object)]
 	ref array<ref OVT_BaseUpgrade> m_aBaseUpgrades;
-	ref array<ref OVT_BaseUpgrade> m_aBaseUpgradesPacked = new array<ref OVT_BaseUpgrade>();
-	
-				
+					
 	int m_iRange = 250;
 	int m_iCloseRange = 150;
 	
@@ -162,5 +160,47 @@ class OVT_BaseControllerComponent: OVT_Component
 		return spent;
 	}
 	
-	
+	void ~OVT_BaseControllerComponent()
+	{
+		if(m_aBaseUpgrades)
+		{
+			m_aBaseUpgrades.Clear();
+			m_aBaseUpgrades = null;
+		}
+		if(m_AllSlots)
+		{
+			m_AllSlots.Clear();
+			m_AllSlots = null;
+		}
+		if(m_AllCloseSlots)
+		{
+			m_AllCloseSlots.Clear();
+			m_AllCloseSlots = null;
+		}
+		if(m_SmallSlots)
+		{
+			m_SmallSlots.Clear();
+			m_SmallSlots = null;
+		}
+		if(m_MediumSlots)
+		{
+			m_MediumSlots.Clear();
+			m_MediumSlots = null;
+		}
+		if(m_LargeSlots)
+		{
+			m_LargeSlots.Clear();
+			m_LargeSlots = null;
+		}
+		if(m_SmallRoadSlots)
+		{
+			m_SmallRoadSlots.Clear();
+			m_SmallRoadSlots = null;
+		}
+		if(m_MediumRoadSlots)
+		{
+			m_MediumRoadSlots.Clear();
+			m_MediumRoadSlots = null;
+		}
+	}
 }

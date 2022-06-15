@@ -103,4 +103,18 @@ class OVT_BaseUpgradeTowerGuard : OVT_BasePatrolUpgrade
 		
 		return true;
 	}
+	
+	void ~OVT_BaseUpgradeTowerGuard()
+	{
+		if(m_Towers)
+		{
+			m_Towers.Clear();
+			m_Towers = null;
+		}
+		if(m_TowerGuards)
+		{
+			m_TowerGuards.Clear();
+			m_TowerGuards = null;
+		}
+	}
 }

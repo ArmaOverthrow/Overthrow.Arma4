@@ -203,9 +203,21 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 	void ~OVT_BasePatrolUpgrade()
 	{
 		GetGame().GetCallqueue().Remove(CheckUpdate);	
-		m_Groups.Clear();
-		m_ProxiedGroups.Clear();
-		m_ProxiedPositions.Clear();
 		
+		if(m_Groups)
+		{
+			m_Groups.Clear();
+			m_Groups = null;
+		}
+		if(m_ProxiedGroups)
+		{
+			m_ProxiedGroups.Clear();
+			m_ProxiedGroups = null;
+		}
+		if(m_ProxiedPositions)
+		{
+			m_ProxiedPositions.Clear();
+			m_ProxiedPositions = null;
+		}		
 	}
 }

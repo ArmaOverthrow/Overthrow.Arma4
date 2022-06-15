@@ -1,0 +1,313 @@
+FrameWidgetClass {
+ Name "rootFrame"
+ "Z Order" 9
+ {
+  PanelWidgetClass "{599D597C1CE47A1F}" {
+   Name "Panel0"
+   Slot FrameWidgetSlot "{597282644EB209C6}" {
+    Anchor 1 1 1 1
+    PositionX -500
+    OffsetLeft -500
+    PositionY -500
+    OffsetTop -500
+    SizeX 400
+    OffsetRight 100
+    SizeY 380
+    OffsetBottom 120
+    Alignment 0 0
+   }
+   {
+    BlurWidgetClass "{599D597C1CE47A1D}" : "{352322057FD78AE1}UI/layouts/WidgetLibrary/BaseElements/WLib_Blur.layout" {
+     Name "BackgroundBlur"
+     Slot FrameWidgetSlot "{5982E26F6316DE4F}" {
+      Anchor 0 0 1 1
+      PositionX 0
+      OffsetLeft 0
+      PositionY 0
+      OffsetTop 0
+      SizeX -200
+      OffsetRight 0
+      SizeY -1050
+      OffsetBottom 0
+     }
+     Color 0.127 0.127 0.127 1
+     Intensity 0.8
+    }
+    VerticalLayoutWidgetClass "{599D597C1CE47A1C}" {
+     Name "VerticalLayout0"
+     Slot FrameWidgetSlot "{59728267ECC2178F}" {
+      Anchor 0 0 1 1
+      PositionX 1
+      OffsetLeft 1
+      PositionY 0
+      OffsetTop 0
+      SizeX 0
+      OffsetRight -1
+      SizeY 0
+      OffsetBottom 0
+     }
+     {
+      TextWidgetClass "{599D5973F64E498C}" {
+       Name "TownName"
+       Slot LayoutSlot "{599D5973F64E4A59}" {
+        Padding 5 5 5 5
+       }
+       Text "#ar-maplocation_stphillipe"
+       "Font Size" 40
+       "Min Font Size" 40
+       "Horizontal Alignment" Center
+      }
+      HorizontalLayoutWidgetClass "{599D5970B9AE5D84}" {
+       Name "Statistics"
+       Slot LayoutSlot "{599D5970B9AE5E6C}" {
+        HorizontalAlign 1
+       }
+       {
+        FrameWidgetClass "{599D59705A44A5BF}" {
+         Name "Item"
+         Slot LayoutSlot "{599D59708511F846}" {
+          Padding 0 0 5 0
+         }
+         {
+          HorizontalLayoutWidgetClass "{599D59721FB41A7F}" {
+           Name "Layout"
+           Slot FrameWidgetSlot "{599D5970212AC99D}" {
+            OffsetLeft 0
+            OffsetTop 0
+            SizeX 0
+            OffsetRight 0
+            SizeY 0
+            OffsetBottom 0
+            SizeToContent 1
+           }
+           {
+            ImageWidgetClass "{599D5971CDC4D9B3}" {
+             Name "Icon"
+             Slot LayoutSlot "{599D5971CDC4D980}" {
+              Padding 0 0 5 0
+             }
+             Texture "{D17288006833490F}UI/Textures/Icons/icons_wrapperUI-32.imageset"
+             Image "scenarios"
+             Size 32 32
+            }
+            TextWidgetClass "{599D59739B6E8B94}" {
+             Name "Distance"
+             Slot LayoutSlot "{599D5973F64E4A59}" {
+              VerticalAlign 1
+              Padding 0 0 0 0
+             }
+             Text "5km"
+             "Font Size" 22
+             "Min Font Size" 22
+             "Horizontal Alignment" Center
+            }
+           }
+          }
+         }
+        }
+        FrameWidgetClass "{599D5970EEF04853}" {
+         Name "Item0"
+         Slot LayoutSlot "{599D59708511F811}" {
+          Padding 10 0 5 0
+         }
+         {
+          HorizontalLayoutWidgetClass "{599D5970EEF04852}" {
+           Name "Layout"
+           Slot FrameWidgetSlot "{599D5970212AC99D}" {
+            OffsetLeft 0
+            OffsetTop 0
+            SizeX 0
+            OffsetRight 0
+            SizeY 0
+            OffsetBottom 0
+            SizeToContent 1
+           }
+           {
+            ImageWidgetClass "{599D5970EEF04850}" {
+             Name "Icon"
+             Slot LayoutSlot "{599D5971CDC4D980}" {
+              Padding 0 0 5 0
+             }
+             Texture "{D17288006833490F}UI/Textures/Icons/icons_wrapperUI-32.imageset"
+             Image "players"
+             Size 32 32
+            }
+            TextWidgetClass "{599D5970EEF0485F}" {
+             Name "Population"
+             Slot LayoutSlot "{599D5973F64E4A59}" {
+              VerticalAlign 1
+              Padding 0 0 0 0
+             }
+             Text "123"
+             "Font Size" 22
+             "Min Font Size" 22
+             "Horizontal Alignment" Center
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+      OverlayWidgetClass "{599D59771F18D9CA}" {
+       Name "StabilityHeader"
+       Slot LayoutSlot "{599D59771F18D990}" {
+        Padding 0 10 0 0
+       }
+       {
+        PanelWidgetClass "{599D5977F1E3F8C0}" {
+         Name "BG"
+         Slot OverlayWidgetSlot "{599D5977F1E3F8A8}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+         }
+         Color 1 1 1 0.035
+         style debugUI
+        }
+        HorizontalLayoutWidgetClass "{599D597725AE9B72}" {
+         Name "Layout"
+         Slot OverlayWidgetSlot "{599D59771EB55F47}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+          Padding 5 5 5 5
+         }
+         {
+          TextWidgetClass "{599D5977351D2966}" {
+           Name "Label"
+           Slot LayoutSlot "{599D5977351D294A}" {
+           }
+           Text "#OVT-Stability"
+           "Font Size" 26
+          }
+          FrameWidgetClass "{599D5977BB3E091D}" {
+           Name "Fill"
+           Slot LayoutSlot "{599D5977BB3E09E2}" {
+            SizeMode Fill
+           }
+          }
+          TextWidgetClass "{599D5977ADE84D10}" {
+           Name "Stability"
+           Slot LayoutSlot "{599D5977351D294A}" {
+            HorizontalAlign 0
+           }
+           Text "85%"
+           "Font Size" 26
+          }
+         }
+        }
+       }
+      }
+      OverlayWidgetClass "{599D5975B24A134C}" {
+       Name "StabilityMods"
+       Slot LayoutSlot "{599D5975B24A1314}" {
+       }
+       {
+        FrameWidgetClass "{599D597590F71E94}" {
+         Name "Frame0"
+         Slot OverlayWidgetSlot "{599D597590F71F7C}" {
+          HorizontalAlign 3
+         }
+         {
+          WrapLayoutWidgetClass "{599EDE8CC4C01877}" {
+           Name "StabilityModContainer"
+           Slot FrameWidgetSlot "{599EDE8CC4C018DA}" {
+            Anchor 0 0.5 1 0.5
+            PositionX 0
+            OffsetLeft 0
+            PositionY 0
+            OffsetTop 0
+            SizeX -300
+            OffsetRight 0
+            SizeY 100
+            OffsetBottom -100
+            Alignment 0 0.5
+           }
+           {
+            FrameWidgetClass "{599EDE8C91F0E05E}" : "{7BAC7637E5744768}UI/Layouts/Map/MapInfo/Modifier.layout" {
+             Name "StabilityMod0"
+             Slot WrapLayoutWidgetSlot "{599EDE8C91F0E07D}" {
+             }
+             {
+             }
+            }
+            FrameWidgetClass "{599EDE8C9FB7C310}" : "{7BAC7637E5744768}UI/Layouts/Map/MapInfo/Modifier.layout" {
+             Name "StabilityMod1"
+             Slot WrapLayoutWidgetSlot "{599EDE8C91F0E07D}" {
+             }
+             {
+             }
+            }
+            FrameWidgetClass "{599EDE8C9D0E4115}" : "{7BAC7637E5744768}UI/Layouts/Map/MapInfo/Modifier.layout" {
+             Name "StabilityMod2"
+             Slot WrapLayoutWidgetSlot "{599EDE8C91F0E07D}" {
+             }
+             {
+             }
+            }
+            FrameWidgetClass "{599EDE8C984A959F}" : "{7BAC7637E5744768}UI/Layouts/Map/MapInfo/Modifier.layout" {
+             Name "StabilityMod3"
+             Slot WrapLayoutWidgetSlot "{599EDE8C91F0E07D}" {
+             }
+             {
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+      OverlayWidgetClass "{599D59760BE4C5E9}" {
+       Name "SupportHeader"
+       Slot LayoutSlot "{599D59771F18D990}" {
+        Padding 0 10 0 0
+       }
+       {
+        PanelWidgetClass "{599D59760BE4C5E8}" {
+         Name "BG"
+         Slot OverlayWidgetSlot "{599D5977F1E3F8A8}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+         }
+         Color 1 1 1 0.035
+         style debugUI
+        }
+        HorizontalLayoutWidgetClass "{599D59760BE4C5D7}" {
+         Name "Layout"
+         Slot OverlayWidgetSlot "{599D59771EB55F47}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+          Padding 5 5 5 5
+         }
+         {
+          TextWidgetClass "{599D59760BE4C5D6}" {
+           Name "Label"
+           Slot LayoutSlot "{599D5977351D294A}" {
+           }
+           Text "#OVT-Support"
+           "Font Size" 26
+          }
+          FrameWidgetClass "{599D59760BE4C5D5}" {
+           Name "Fill"
+           Slot LayoutSlot "{599D5977BB3E09E2}" {
+            SizeMode Fill
+           }
+          }
+          TextWidgetClass "{599D59760BE4C5D4}" {
+           Name "Support"
+           Slot LayoutSlot "{599D5977351D294A}" {
+            HorizontalAlign 0
+           }
+           Text "12%"
+           "Font Size" 26
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

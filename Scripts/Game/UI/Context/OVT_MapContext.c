@@ -1,7 +1,18 @@
 class OVT_MapContext : OVT_UIContext
 {
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Modifier Layout", params: "layout")]
+	ResourceName m_ModLayout;
+	
+	[Attribute(uiwidget: UIWidgets.ColorPicker)]
+	ref Color m_NegativeModifierColor;
+	
+	[Attribute(uiwidget: UIWidgets.ColorPicker)]
+	ref Color m_PositiveModifierColor;
+	
 	OVT_TownManagerComponent m_TownManager;
 	OVT_RealEstateManagerComponent m_RealEstate;
+	
+	OVT_TownData m_SelectedTown;
 	
 	protected bool m_bMapInfoActive = false;
 	protected bool m_bFastTravelActive = false;
@@ -50,6 +61,61 @@ class OVT_MapContext : OVT_UIContext
 	{
 		m_bMapInfoActive = true;
 		ShowMap();
+		
+		ShowLayout();
+		m_SelectedTown = m_TownManager.GetNearestTown(m_Owner.GetOrigin());
+		
+		ShowTownInfo();
+	}
+	
+	protected void ShowTownInfo()
+	{
+		if(!m_wRoot) return;
+		if(!m_SelectedTown) return;
+		
+		SCR_MapDescriptorComponent marker = m_TownManager.GetNearestTownMarker(m_SelectedTown.location);
+		
+		TextWidget widget = TextWidget.Cast(m_wRoot.FindAnyWidget("TownName"));
+		widget.SetText(marker.Item().GetDisplayName());
+		
+		widget = TextWidget.Cast(m_wRoot.FindAnyWidget("Population"));
+		widget.SetText(m_SelectedTown.population.ToString());
+		
+		widget = TextWidget.Cast(m_wRoot.FindAnyWidget("Distance"));
+		float distance = vector.Distance(m_SelectedTown.location, m_Owner.GetOrigin());
+		string dis, units;
+		SCR_Global.GetDistForHUD(distance, false, dis, units);
+		widget.SetText(dis + " " + units);
+		
+		widget = TextWidget.Cast(m_wRoot.FindAnyWidget("Stability"));
+		widget.SetText(m_SelectedTown.stability.ToString() + "%");
+		
+		widget = TextWidget.Cast(m_wRoot.FindAnyWidget("Support"));
+		widget.SetText(m_SelectedTown.support.ToString() + "%");
+		
+		Widget container = m_wRoot.FindAnyWidget("StabilityModContainer");
+		Widget child = container.GetChildren();
+		while(child)
+		{
+			container.RemoveChild(child);
+			child = container.GetChildren();
+		}
+		foreach(int index : m_SelectedTown.stabilityModifiers)
+		{
+			OVT_StabilityModifierConfig mod = m_TownManager.m_StabilityModifiers.m_aStabilityModifiers[index];
+			WorkspaceWidget workspace = GetGame().GetWorkspace(); 
+			Widget w = workspace.CreateWidgets(m_ModLayout, container);
+			TextWidget tw = TextWidget.Cast(w.FindAnyWidget("Text"));
+			tw.SetText(mod.baseEffect.ToString() + "% " + mod.title);
+			
+			PanelWidget panel = PanelWidget.Cast(w.FindAnyWidget("Background"));
+			if(mod.baseEffect < 0)
+			{
+				panel.SetColor(m_NegativeModifierColor);
+			}else{
+				panel.SetColor(m_PositiveModifierColor);
+			}
+		}
 	}
 	
 	void EnableFastTravel()
@@ -71,15 +137,30 @@ class OVT_MapContext : OVT_UIContext
 	override void RegisterInputs()
 	{
 		super.RegisterInputs();
+		if(!m_InputManager) return;
 		
 		m_InputManager.AddActionListener("MapSelect", EActionTrigger.DOWN, MapClick);
+		m_InputManager.AddActionListener("MenuBack", EActionTrigger.DOWN, MapExit);
+		m_InputManager.AddActionListener("GadgetMap", EActionTrigger.DOWN, MapExit);
 	}
 	
 	override void UnregisterInputs()
 	{
 		super.UnregisterInputs();
+		if(!m_InputManager) return;
 		
 		m_InputManager.RemoveActionListener("MapSelect", EActionTrigger.DOWN, MapClick);
+		m_InputManager.RemoveActionListener("MenuBack", EActionTrigger.DOWN, MapExit);
+		m_InputManager.RemoveActionListener("GadgetMap", EActionTrigger.DOWN, MapExit);
+	}
+	
+	protected void MapExit(float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
+	{
+		if(!m_bFastTravelActive && !m_bMapInfoActive) return;
+		CloseLayout();
+		DisableMapInfo();
+		DisableFastTravel();
+		HideMap();
 	}
 	
 	void MapClick(float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
@@ -93,21 +174,20 @@ class OVT_MapContext : OVT_UIContext
 		
 		float x,y;
 		
+		
 		mapEntity.GetMapCursorWorldPosition(x,y);
 		
+		vector pos = Vector(x,0,y);
+		
 		if(m_bFastTravelActive)
-		{
-			vector spawnPosition = "0 0 0";
-			spawnPosition[0] = x;
-			spawnPosition[2] = y;
-			
+		{			
 			//Snap to the nearest navmesh point
 			AIPathfindingComponent pathFindindingComponent = AIPathfindingComponent.Cast(m_Owner.FindComponent(AIPathfindingComponent));
-			if (pathFindindingComponent && pathFindindingComponent.GetClosestPositionOnNavmesh(spawnPosition, "10 10 10", spawnPosition))
+			if (pathFindindingComponent && pathFindindingComponent.GetClosestPositionOnNavmesh(pos, "10 10 10", pos))
 			{
-				float groundHeight = GetGame().GetWorld().GetSurfaceY(spawnPosition[0], spawnPosition[2]);
-				if (spawnPosition[1] < groundHeight)
-					spawnPosition[1] = groundHeight;
+				float groundHeight = GetGame().GetWorld().GetSurfaceY(pos[0], pos[2]);
+				if (pos[1] < groundHeight)
+					pos[1] = groundHeight;
 			}
 			
 			HideMap();
@@ -126,21 +206,21 @@ class OVT_MapContext : OVT_UIContext
 						BaseCompartmentSlot slot = compartmentAccess.GetCompartment();
 						if(SCR_CompartmentAccessComponent.GetCompartmentType(slot) == ECompartmentType.Pilot)
 						{
-							SCR_Global.TeleportPlayer(spawnPosition);
+							SCR_Global.TeleportPlayer(pos);
 						}else{
 							ShowHint("#OVT-MustBeDriver");
 						}
 					}
 				}else{
-					SCR_Global.TeleportPlayer(spawnPosition);
+					SCR_Global.TeleportPlayer(pos);
 				}				
 			}			
 		}	
 		
 		if(m_bMapInfoActive)
 		{
-			HideMap();
-			DisableMapInfo();
+			m_SelectedTown = m_TownManager.GetNearestTown(pos);		
+			ShowTownInfo();
 		}	
 	}
 

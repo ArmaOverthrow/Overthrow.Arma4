@@ -106,4 +106,18 @@ class OVT_ShopComponent: OVT_Component
 		if(m_aInventory[id] < 0) m_aInventory[id] = 0;
 		StreamInventory(id);
 	}
+	
+	void ~OVT_ShopComponent()
+	{
+		if(m_aInventory)
+		{
+			m_aInventory.Clear();
+			m_aInventory = null;
+		}
+		if(m_aInventoryItems)
+		{
+			m_aInventoryItems.Clear();
+			m_aInventoryItems = null;
+		}
+	}
 }

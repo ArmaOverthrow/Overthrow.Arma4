@@ -1,0 +1,182 @@
+FrameWidgetClass {
+ Name "rootFrame"
+ {
+  PanelWidgetClass "{599D315916DD150D}" {
+   Name "Panel0"
+   Slot FrameWidgetSlot "{597282644EB209C6}" {
+    Anchor 0 0 0 1
+    PositionX 200
+    OffsetLeft 200
+    PositionY -1
+    OffsetTop 200
+    SizeX 900
+    OffsetRight -1100
+    SizeY 0
+    OffsetBottom 200
+   }
+   {
+    BlurWidgetClass "{599D315916DD150A}" : "{352322057FD78AE1}UI/layouts/WidgetLibrary/BaseElements/WLib_Blur.layout" {
+     Name "BackgroundBlur"
+     Slot FrameWidgetSlot "{5982E26F6316DE4F}" {
+      Anchor 0 0 1 1
+      PositionX 0
+      OffsetLeft 0
+      PositionY 0
+      OffsetTop 0
+      SizeX -200
+      OffsetRight 0
+      SizeY -1050
+      OffsetBottom 0
+     }
+     Color 0.127 0.127 0.127 1
+     Intensity 0.8
+    }
+    VerticalLayoutWidgetClass "{599D315916DD1509}" {
+     Name "VerticalLayout0"
+     Slot FrameWidgetSlot "{59728267ECC2178F}" {
+      Anchor 0 0 1 1
+      PositionX 1
+      OffsetLeft 1
+      PositionY 0
+      OffsetTop 0
+      SizeX 0
+      OffsetRight -1
+      SizeY 0
+      OffsetBottom 0
+     }
+     {
+      FrameWidgetClass "{599D315916DD1508}" {
+       Name "LogoFrame"
+       Slot LayoutSlot "{5972827FE545843A}" {
+        Padding 0 15 0 15
+       }
+       {
+        ImageWidgetClass "{599D315916DD15F7}" {
+         Name "OverthrowLogo"
+         Slot FrameWidgetSlot "{5972827FE023E3B6}" {
+          Anchor 0.5 0.5 0.5 0.5
+          PositionX -140
+          OffsetLeft -140
+          PositionY -140
+          OffsetTop -140
+          SizeX 280
+          OffsetRight -140
+          SizeY 280
+          OffsetBottom -140
+         }
+         Texture "{4A7D823D7914A85A}UI/Textures/logo_overthrow.edds"
+         Image ""
+         Size 150 300
+        }
+       }
+      }
+      HorizontalLayoutWidgetClass "{599D3A647FD4505E}" {
+       Name "FactionLayout"
+       Slot LayoutSlot "{599D3A647FD4503A}" {
+        Padding 0 0 0 0
+       }
+       "Fill Origin" Center
+       {
+        TextWidgetClass "{599D3A6449D30E9F}" {
+         Name "Text0"
+         Slot LayoutSlot "{599D3A6449D30F7B}" {
+          VerticalAlign 1
+          Padding 20 0 20 0
+         }
+         Text "#OVT-OccupyingFaction"
+        }
+        UniformGridLayoutWidgetClass "{599D3A6413A9E3F7}" {
+         Name "UniformGridLayout0"
+         Slot LayoutSlot "{599D3A6413A9E3D4}" {
+          Padding 0 0 20 0
+         }
+         {
+          ButtonWidgetClass "{599D3A641B7235A3}" : "{1AEE43307955233F}UI/Layouts/Menu/StartGameMenu/StartGameMenu_Faction.layout" {
+           Name "OccupyingFaction_Card0"
+           Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
+           }
+           components {
+            SCR_ButtonComponent "{56FAC701265C74AA}" {
+            }
+           }
+           {
+           }
+          }
+          ButtonWidgetClass "{599D3A64ED7FEA81}" : "{1AEE43307955233F}UI/Layouts/Menu/StartGameMenu/StartGameMenu_Faction.layout" {
+           Name "OccupyingFaction_Card1"
+           Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
+            Column 1
+           }
+           {
+           }
+          }
+         }
+        }
+       }
+      }
+      FrameWidgetClass "{599D315A49A619C7}" {
+       Name "Fill"
+       Slot LayoutSlot "{599D315A49A619AE}" {
+        SizeMode Fill
+       }
+      }
+      OverlayWidgetClass "{599D315A153C652E}" {
+       Name "Footer"
+       Slot LayoutSlot "{599D315A153C65F1}" {
+        Padding 5 0 5 5
+       }
+       {
+        HorizontalLayoutWidgetClass "{599D315A1DE877E1}" {
+         Name "Buttons"
+         Slot OverlayWidgetSlot "{56EEDE03DED9A743}" {
+          HorizontalAlign 3
+         }
+         {
+          FrameWidgetClass "{599D315ACFEEA92B}" {
+           Name "Fill"
+           Slot LayoutSlot "{599D315AD1237989}" {
+            SizeMode Fill
+           }
+          }
+          ButtonWidgetClass "{599D315A1DE877ED}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+           Name "StartButton"
+           Slot LayoutSlot "{56EEDE01982D053A}" {
+            Padding 0 0 10 0
+           }
+           components {
+            SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+             m_sLabel "#OVT-StartGame"
+             m_sActionName "OverthrowStartGame"
+            }
+           }
+           {
+            SizeLayoutWidgetClass "{5562AD435529FB36}" {
+             Prefab "{5562AD435529FB36}"
+             {
+              OverlayWidgetClass "{000000005E70868E}" {
+               Prefab "{000000005E70868E}"
+               {
+                HorizontalLayoutWidgetClass "{00000000E3602307}" {
+                 Prefab "{00000000E3602307}"
+                 Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
+                  Padding 10 10 16 10
+                 }
+                 {
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

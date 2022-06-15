@@ -14,6 +14,13 @@ class OVT_RespawnHandlerComponent : SCR_RespawnHandlerComponent
 	*/
 	private ref array<int> m_aSpawningBatch = {};
 	
+	protected OVT_OverthrowGameMode m_Overthrow;
+	
+	void OVT_RespawnHandlerComponent(IEntityComponentSource src, IEntity ent, IEntity parent)
+	{
+		m_Overthrow = OVT_OverthrowGameMode.Cast(ent);
+	}
+	
 	override bool CanPlayerSpawn(int playerId)
 	{
 		SCR_RespawnSystemComponent respawnSystem = m_pGameMode.GetRespawnSystemComponent();
@@ -70,10 +77,14 @@ class OVT_RespawnHandlerComponent : SCR_RespawnHandlerComponent
 		// Authority only
 		if (!m_pGameMode.IsMaster())
 			return;
+		
+		//Make sure game is started and initialized
+		if(!m_Overthrow.IsInitialized())
+			return;
 
 		// Clear batch
 		m_aSpawningBatch.Clear();
-
+		
 		// Find players eligible for respawn
 		foreach (int playerId : m_sEnqueuedPlayers)
 		{

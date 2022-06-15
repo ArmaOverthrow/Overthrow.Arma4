@@ -133,4 +133,13 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		m_mHomes[persId] = id;
 	}
+	
+	void ~OVT_RealEstateManagerComponent()
+	{
+		if(m_mHomes)
+		{
+			m_mHomes.Clear();
+			m_mHomes = null;
+		}
+	}
 }

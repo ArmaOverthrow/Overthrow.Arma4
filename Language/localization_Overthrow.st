@@ -75,10 +75,10 @@ StringTable {
   }
   CustomStringTableItem "{59969DFBF96C7EF4}" {
    Id "OVT-IntroHint"
-   Target_en_us "Welcome to Overthrow! This is your home, you own it, will respawn here and can fast travel here any time you want for a small fee by opening the main menu (Default Key: U)"\
+   Target_en_us "Welcome to Overthrow! This is your home, you will respawn here and can fast travel here for a small fee by opening the main menu (Default Key: U). You also own a car parked in your garage."\
    ""\
    "For more info on Overthrow's features and gameplay just have a look at the \"Field Manual\""
-   Modified 1503061408
+   Modified 1503470598
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -154,6 +154,13 @@ StringTable {
    Id "OVT-MustBeDriver"
    Target_en_us "You must be the driver of the vehicle to fast travel all occupants"
    Modified 1503337948
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{599D3A640FAF1233}" {
+   Id "OVT-OccupyingFaction"
+   Target_en_us "Occupying Faction"
+   Modified 1503478151
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -273,6 +280,55 @@ StringTable {
    Target_en_us "Stability"
    Status DEVELOPMENT_DONE
    Modified 1502796262
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{599EDE889725FB78}" {
+   Id "OVT-StabilityMod_CorruptMayor"
+   Target_en_us "Corrupt Mayor"
+   Modified 1503584566
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{599EDE89679CDCF8}" {
+   Id "OVT-StabilityMod_DrugProblems"
+   Target_en_us "Drug Problems"
+   Modified 1503584598
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{599EDE889FDE918F}" {
+   Id "OVT-StabilityMod_OrganizedCrime"
+   Target_en_us "Organized Crime"
+   Modified 1503584584
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{599EDE88A96FB592}" {
+   Id "OVT-StabilityMod_RecentDeath"
+   Target_en_us "Recent Deaths"
+   Modified 1503584520
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{599EDE88A12DC28E}" {
+   Id "OVT-StabilityMod_RecentGunfire"
+   Target_en_us "Recent Gunfire"
+   Modified 1503584512
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{599EDE88BA907EC8}" {
+   Id "OVT-StabilityMod_RecentPatrol"
+   Target_en_us "Recent Patrol"
+   Modified 1503584536
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{599D315AC7BF1F3F}" {
+   Id "OVT-StartGame"
+   Target_en_us "Start Game"
+   Modified 1503475215
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

@@ -117,4 +117,13 @@ class OVT_OwnerManagerComponent: OVT_Component
 		set<RplId> owner = m_mOwned[persId];
 		owner.Insert(id);
 	}
+	
+	void ~OVT_OwnerManagerComponent()
+	{
+		if(m_mOwned)
+		{
+			m_mOwned.Clear();
+			m_mOwned = null;
+		}
+	}
 }

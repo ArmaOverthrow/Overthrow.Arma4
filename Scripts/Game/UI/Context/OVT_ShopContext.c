@@ -135,16 +135,16 @@ class OVT_ShopContext : OVT_UIContext
 	override void RegisterInputs()
 	{
 		super.RegisterInputs();
-		
-		//m_InputManager.AddActionListener("OverthrowShopBuy", EActionTrigger.DOWN, Buy);
+		if(!m_InputManager) return;
+				
 		m_InputManager.AddActionListener("MenuBack", EActionTrigger.DOWN, CloseLayout);
 	}
 	
 	override void UnregisterInputs()
 	{
 		super.UnregisterInputs();
-		
-		//m_InputManager.RemoveActionListener("OverthrowShopBuy", EActionTrigger.DOWN, Buy);
+		if(!m_InputManager) return;
+				
 		m_InputManager.RemoveActionListener("MenuBack", EActionTrigger.DOWN, CloseLayout);
 	}		
 	

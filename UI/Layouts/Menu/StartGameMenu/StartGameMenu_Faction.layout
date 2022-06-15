@@ -1,0 +1,106 @@
+ButtonWidgetClass {
+ Name "PlaceMenu_Card"
+ Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
+ }
+ Color 1 1 1 0
+ components {
+  OVT_KeyButtonComponent "{599D590B47958E85}" {
+   m_bCanBeToggled 1
+   m_BackgroundDefault 1 1 1 0
+   m_BackgroundHovered 1 1 1 1
+   m_BackgroundSelected 0.76 0.392 0.08 1
+   m_bShowBorderOnFocus 0
+  }
+ }
+ Switch toggle
+ {
+  SizeLayoutWidgetClass "{599D3A652D049A65}" {
+   Name "SizeSetter"
+   Slot ButtonWidgetSlot "{56EF0B168C2D88EA}" {
+    Padding 0 0 0 0
+   }
+   AllowWidthOverride 1
+   WidthOverride 100
+   AllowHeightOverride 1
+   HeightOverride 100
+   MinDesiredWidth 160
+   MinDesiredHeight 100
+   MaxDesiredWidth 100
+   MaxDesiredHeight 240
+   AllowAspectRatioForce 1
+   {
+    OverlayWidgetClass "{599D3A652D049A64}" {
+     Name "Overlay"
+     Slot AlignableSlot "{56EF0B16AB7E10D1}" {
+      HorizontalAlign 3
+      Padding 8 0 8 0
+     }
+     {
+      VerticalLayoutWidgetClass "{599D3A652D049A63}" {
+       Name "Layout"
+       Slot OverlayWidgetSlot "{56EF0B18C4F3CA37}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       {
+        SizeLayoutWidgetClass "{599D3A652D049A62}" {
+         Name "AssetImage"
+         Slot LayoutSlot "{56EF0B18C4AC3F95}" {
+          SizeMode Fill
+         }
+         AllowWidthOverride 1
+         WidthOverride 240
+         AllowHeightOverride 1
+         HeightOverride 180
+         {
+          OverlayWidgetClass "{599D3A652D049A61}" {
+           Name "ImageOverlay"
+           Slot AlignableSlot "{56EF0B162CD61F4A}" {
+            HorizontalAlign 3
+            VerticalAlign 3
+            Padding 0 0 0 0
+           }
+           {
+            ImageWidgetClass "{599D3A652D049A60}" {
+             Name "Image"
+             Slot OverlayWidgetSlot "{56EF0B19288B21F6}" {
+              HorizontalAlign 3
+              VerticalAlign 3
+             }
+             Texture "{40B12B0DF911B856}UI/Textures/Editor/EditableEntities/Factions/EditableEntity_Faction_USSR.edds"
+             Image ""
+             Size 128 128
+            }
+            ImageWidgetClass "{599D3A652D049A6F}" {
+             Name "Splatter"
+             Slot OverlayWidgetSlot "{56EF0B19288B21F6}" {
+              HorizontalAlign 3
+              VerticalAlign 3
+             }
+             Texture "{7168533FAFDE2158}UI/Textures/Editor/Effects/Effect_AssetCard_Splatter_01.edds"
+             Image ""
+             Size 400 300
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+      PanelWidgetClass "{599D3A6D422EE6E9}" {
+       Name "Background"
+       Slot OverlayWidgetSlot "{56EF0B195DBB5E79}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+        Padding -4 -4 -4 -4
+       }
+       "Z Order" -1
+       Color 0.761 0.392 0.08 1
+       style outline_4px
+      }
+     }
+    }
+   }
+  }
+ }
+}

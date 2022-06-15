@@ -1,0 +1,10 @@
+GenericEntity {
+ components {
+  SCR_MapDescriptorComponent "{599D5911D54634E7}" {
+   DisplayName "#AR-MapLocation_Military"
+   MainType "Name Generic"
+  }
+ }
+ coords 9398.632 196.303 1170.757
+ Flags 1027
+}

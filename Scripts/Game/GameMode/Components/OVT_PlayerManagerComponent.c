@@ -99,4 +99,18 @@ class OVT_PlayerManagerComponent: OVT_Component
 		m_mPersistentIDs[playerId] = s;
 		m_mPlayerIDs[s] = playerId;
 	}
+	
+	void ~OVT_PlayerManagerComponent()
+	{
+		if(m_mPersistentIDs)
+		{
+			m_mPersistentIDs.Clear();
+			m_mPersistentIDs = null;
+		}
+		if(m_mPlayerIDs)
+		{
+			m_mPlayerIDs.Clear();
+			m_mPlayerIDs = null;
+		}
+	}
 }

@@ -123,12 +123,24 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 	protected void AddWaypoints(SCR_AIGroup aigroup, OVT_TownData town)
 	{		
 		array<AIWaypoint> queueOfWaypoints = new array<AIWaypoint>();
+		array<RplId> shops = m_Economy.GetAllShopsInTown(town);
+		if(shops.Count() == 0)
+		{
+			//To-Do: find some random buildings
+		}
 		
 		if(m_BaseController.m_AllCloseSlots.Count() > 2)
 		{						
-			aigroup.AddWaypoint(SpawnPatrolWaypoint(town.location));
+			aigroup.AddWaypoint(SpawnPatrolWaypoint(town.location));			
+			aigroup.AddWaypoint(SpawnWaitWaypoint(town.location, s_AIRandomGenerator.RandFloatXY(15, 50)));								
 			
-			aigroup.AddWaypoint(SpawnWaitWaypoint(town.location, s_AIRandomGenerator.RandFloatXY(45, 75)));								
+			foreach(RplId id : shops)
+			{
+				RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+				vector pos = rpl.GetEntity().GetOrigin();
+				aigroup.AddWaypoint(SpawnPatrolWaypoint(pos));			
+				aigroup.AddWaypoint(SpawnWaitWaypoint(pos, s_AIRandomGenerator.RandFloatXY(15, 50)));
+			}
 			
 			aigroup.AddWaypoint(SpawnPatrolWaypoint(m_BaseController.GetOwner().GetOrigin()));
 			
@@ -137,7 +149,15 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 	
 	void ~OVT_BaseUpgradeTownPatrol()
 	{
-		m_Patrols.Clear();
-		m_TownsInRange.Clear();		
+		if(m_Patrols)
+		{
+			m_Patrols.Clear();
+			m_Patrols = null;
+		}
+		if(m_TownsInRange)
+		{
+			m_TownsInRange.Clear();
+			m_TownsInRange = null;
+		}
 	}
 }

@@ -59,6 +59,7 @@ class OVT_PlaceContext : OVT_UIContext
 	override void RegisterInputs()
 	{
 		super.RegisterInputs();
+		if(!m_InputManager) return;
 		
 		m_InputManager.AddActionListener("OverthrowPlace", EActionTrigger.DOWN, DoPlace);
 		m_InputManager.AddActionListener("OverthrowRotateLeft", EActionTrigger.PRESSED, RotateLeft);
@@ -71,6 +72,7 @@ class OVT_PlaceContext : OVT_UIContext
 	override void UnregisterInputs()
 	{
 		super.UnregisterInputs();
+		if(!m_InputManager) return;
 		
 		m_InputManager.RemoveActionListener("OverthrowPlace", EActionTrigger.DOWN, DoPlace);
 		m_InputManager.RemoveActionListener("OverthrowRotateLeft", EActionTrigger.PRESSED, RotateLeft);

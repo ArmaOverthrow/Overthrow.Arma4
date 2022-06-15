@@ -4,6 +4,9 @@ class OVT_OverthrowGameModeClass: SCR_BaseGameModeClass
 
 class OVT_OverthrowGameMode : SCR_BaseGameMode
 {
+	[Attribute()]
+	ref OVT_UIContext m_StartGameUIContext;
+	
 	protected OVT_OverthrowConfigComponent m_Config;
 	protected OVT_TownManagerComponent m_TownManager;
 	protected OVT_OccupyingFactionManager m_OccupyingFactionManager;
@@ -14,6 +17,60 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	
 	ref set<string> m_aInitializedPlayers;
 	ref set<string> m_aHintedPlayers;
+	
+	protected bool m_bGameInitialized = false;
+	
+	bool IsInitialized()
+	{
+		return m_bGameInitialized;
+	}
+	
+	void StartGame()
+	{
+		Rpc(RpcAsk_StartGame);
+	}
+	
+	protected void DoStartGame()
+	{		
+		if(m_EconomyManager)
+		{
+			#ifdef OVERTHROW_DEBUG
+			Print("Starting Economy");
+			#endif
+			
+			m_EconomyManager.PostGameStart();
+		}
+				
+		if(m_TownManager)
+		{
+			#ifdef OVERTHROW_DEBUG
+			Print("Starting Towns");
+			#endif
+			
+			m_TownManager.PostGameStart();
+		}
+				
+		if(m_OccupyingFactionManager)
+		{
+			#ifdef OVERTHROW_DEBUG
+			Print("Starting Occupying Faction");
+			#endif
+			
+			m_OccupyingFactionManager.PostGameStart();
+		}		
+		
+		#ifdef OVERTHROW_DEBUG
+		Print("Allowing player spawn");
+		#endif
+		m_bGameInitialized = true;
+	}
+	
+	override void EOnFrame(IEntity owner, float timeSlice)
+	{
+		super.EOnFrame(owner, timeSlice);
+		if(m_bGameInitialized) return;
+		m_StartGameUIContext.EOnFrame(owner, timeSlice);
+	}
 	
 	protected void OnPlayerIDRegistered(int playerId, string persistentId)
 	{
@@ -68,15 +125,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		Print("Initializing Overthrow");
 		#endif
 		
-		m_Config = OVT_Global.GetConfig();
-		
-		if(!Replication.IsServer()) return;
-		
-		GetGame().GetTimeAndWeatherManager().SetDayDuration(86400 / m_Config.m_iTimeMultiplier);
-		
+		m_Config = OVT_Global.GetConfig();				
 		m_PlayerManager = OVT_Global.GetPlayers();		
-		m_PlayerManager.m_OnPlayerRegistered.Insert(OnPlayerIDRegistered);
-		
 		m_RealEstate = OVT_Global.GetRealEstate();
 		
 		m_EconomyManager = OVT_EconomyManagerComponent.Cast(FindComponent(OVT_EconomyManagerComponent));		
@@ -117,8 +167,26 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			#endif
 			
 			m_VehicleManager.Init(this);
+		}	
+		
+		m_StartGameUIContext.Init(owner, null);
+		m_StartGameUIContext.RegisterInputs();	
+		
+		if(!IsMaster()) {
+			//show wait screen?
+			return;
 		}
 		
+		GetGame().GetTimeAndWeatherManager().SetDayDuration(86400 / m_Config.m_iTimeMultiplier);
+		m_PlayerManager.m_OnPlayerRegistered.Insert(OnPlayerIDRegistered);
+		
+		//Are we a dedicated server?
+		if(RplSession.Mode() == RplMode.Dedicated)
+		{
+			//need to tell someone to open start game menu
+		}else{
+			m_StartGameUIContext.ShowLayout();
+		}
 	}
 	
 	void OnPlayerSpawnedLocal(string playerId)
@@ -128,6 +196,12 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-IntroHint","#OVT-Overthrow",20);
 			m_aHintedPlayers.Insert(playerId);
 		}		
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_StartGame()
+	{
+		DoStartGame();
 	}
 	
 	//------------------------------------------------------------------------------------------------

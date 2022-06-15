@@ -1,0 +1,62 @@
+FrameWidgetClass {
+ Name "StabilityMod"
+ {
+  SizeLayoutWidgetClass "{599EDE8A8C84ECDE}" {
+   Name "SizeSetter"
+   Slot FrameWidgetSlot "{599EDE8C001DC6B0}" {
+    OffsetLeft 0
+    OffsetTop 0
+    SizeX 115.5
+    OffsetRight -115.5
+    SizeY 28
+    OffsetBottom -28
+    SizeToContent 0
+   }
+   WidthOverride 100
+   HeightOverride 240
+   MinDesiredWidth 160
+   MinDesiredHeight 160
+   MaxDesiredWidth 160
+   MaxDesiredHeight 15
+   {
+    OverlayWidgetClass "{599EDE8A8C84ECDD}" {
+     Name "Overlay"
+     Slot AlignableSlot "{56EF0B16AB7E10D1}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+      Padding 0 0 0 0
+     }
+     {
+      PanelWidgetClass "{599EDE8B72D5A8A1}" {
+       Name "Background"
+       Slot OverlayWidgetSlot "{599EDE8B72D5A945}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       Color 0.468 0 0 1
+       style magazine_small_progress
+      }
+      HorizontalLayoutWidgetClass "{599EDE8BF5F7B392}" {
+       Name "HorizontalLayout0"
+       Slot OverlayWidgetSlot "{599EDE8BF5F7B3B5}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       {
+        TextWidgetClass "{599EDE8B23675257}" {
+         Name "Text"
+         Slot LayoutSlot "{599EDE8BF3A8E620}" {
+          Padding 8 8 8 8
+         }
+         Text "-5% #ovt-stabilitymod_corruptmayor"
+         "Font Size" 11
+         "Min Font Size" 11
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

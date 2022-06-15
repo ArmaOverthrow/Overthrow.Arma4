@@ -40,14 +40,19 @@ class OVT_OccupyingFactionManager: OVT_Component
 	}
 	
 	void Init(IEntity owner)
-	{		
+	{	
+		if(!Replication.IsServer()) return;
+			
 		m_iThreat = m_Config.m_Difficulty.baseThreat;
 		m_iResources = m_Config.m_Difficulty.startingResources;
 		
-		InitializeBases();
-		
-		GetGame().GetCallqueue().CallLater(CheckUpdate, OF_UPDATE_FREQUENCY, true, owner);		
-		
+		InitializeBases();		
+	}
+	
+	void PostGameStart()
+	{
+		GetGame().GetCallqueue().CallLater(CheckUpdate, OF_UPDATE_FREQUENCY, true, GetOwner());
+		GetGame().GetCallqueue().CallLater(SpawnBaseControllers, 0);
 	}
 	
 	OVT_BaseControllerComponent GetNearestBase(vector pos)
@@ -94,8 +99,6 @@ class OVT_OccupyingFactionManager: OVT_Component
 		#endif
 		
 		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, CheckBaseAdd, FilterBaseEntities, EQueryEntitiesFlags.STATIC);
-		
-		GetGame().GetCallqueue().CallLater(SpawnBaseControllers, 0);
 	}
 	
 	protected void SpawnBaseControllers()
@@ -108,6 +111,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 			
 			m_Bases.Insert(base.GetRpl().Id());
 		}
+		m_BasesToSpawn.Clear();
+		m_BasesToSpawn = null;
 		GetGame().GetCallqueue().CallLater(DistributeInitialResources, 100);
 	}
 	
@@ -221,6 +226,12 @@ class OVT_OccupyingFactionManager: OVT_Component
 	
 	void ~OVT_OccupyingFactionManager()
 	{
-		GetGame().GetCallqueue().Remove(CheckUpdate);				
+		GetGame().GetCallqueue().Remove(CheckUpdate);	
+		
+		if(m_Bases)
+		{
+			m_Bases.Clear();
+			m_Bases = null;
+		}			
 	}
 }

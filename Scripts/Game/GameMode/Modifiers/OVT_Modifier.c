@@ -17,10 +17,22 @@ class OVT_Modifier : ScriptAndConfig
 		
 	}
 	
-	//Called every so often, return false to remove modifier (or one of the stack)
-	bool OnTick()
+	//Called at game start for each town
+	void OnStart(OVT_TownData town)
 	{
 	
+	}
+	
+	//Called every so often
+	void OnTick(OVT_TownData town)
+	{
+	
+	}
+	
+	//Called every so often when town has this modifier, return false to remove modifier
+	bool OnActiveTick(OVT_TownData town)
+	{
+		return true;
 	}
 	
 	//Cleanup yourself here

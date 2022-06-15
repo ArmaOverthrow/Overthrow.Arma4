@@ -144,6 +144,8 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 			w.RemoveFromHierarchy();
 		}
 		m_Widgets.Clear();
+		m_Widgets = null;
 		m_Centers.Clear();
+		m_Centers = null;
 	}
 }
