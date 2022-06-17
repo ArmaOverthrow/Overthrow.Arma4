@@ -30,7 +30,7 @@ class OVT_RandomStabilityModifier : OVT_StabilityModifier
 		float chance = m_fChance * mod;
 		if(town.population < 50) chance *= m_fLowPopulationFactor;
 		if(town.stability < 50) chance *= m_fLowStabilityFactor;
-		if(town.support < 50) chance *= m_fLowSupportFactor;
+		if(town.SupportPercentage() < 50) chance *= m_fLowSupportFactor;
 		
 		if(s_AIRandomGenerator.RandFloat01() < chance)
 		{

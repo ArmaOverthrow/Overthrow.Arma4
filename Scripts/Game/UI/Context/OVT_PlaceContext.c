@@ -29,7 +29,16 @@ class OVT_PlaceContext : OVT_UIContext
 			
 			if(m_ePlacingEntity)
 			{
-				m_ePlacingEntity.SetOrigin(GetPlacePosition());
+				vector normal = vector.Zero;				
+				m_ePlacingEntity.SetOrigin(GetPlacePosition(normal));
+				if(m_Placeable.m_bPlaceOnWall)
+				{
+					vector ypr = m_ePlacingEntity.GetYawPitchRoll();
+					ypr[0] = normal.ToYaw();
+					ypr[1] = 0;
+					m_ePlacingEntity.SetYawPitchRoll(ypr);
+				}	
+				m_ePlacingEntity.Update();			
 			}
 		}
 	}
@@ -90,6 +99,8 @@ class OVT_PlaceContext : OVT_UIContext
 	
 	bool CanPlace(vector pos)
 	{
+		if(m_Placeable.m_bIgnoreLocation) return true;
+		
 		IEntity house = m_RealEstate.GetNearestOwned(m_sPlayerID, pos);
 		float dist = vector.Distance(house.GetOrigin(), pos);
 		
@@ -103,6 +114,8 @@ class OVT_PlaceContext : OVT_UIContext
 		if(m_bIsActive) CloseLayout();
 				
 		IEntity player = SCR_PlayerController.GetLocalControlledEntity();
+		
+		m_Placeable = placeable;
 		
 		if(!CanPlace(player.GetOrigin()))
 		{
@@ -121,7 +134,7 @@ class OVT_PlaceContext : OVT_UIContext
 		
 		
 		m_bPlacing = true;
-		m_Placeable = placeable;
+		
 		
 		m_iPrefabIndex = 0;
 		
@@ -130,14 +143,29 @@ class OVT_PlaceContext : OVT_UIContext
 	
 	protected void SpawnGhost()
 	{
-		vector pos = GetPlacePosition();
-		
+		vector normal = vector.Zero;
+		vector pos = GetPlacePosition(normal);
+				
 		EntitySpawnParams params = EntitySpawnParams();
 		params.TransformMode = ETransformMode.WORLD;
 		params.Transform[3] = pos;
 		m_pPlacingPrefab = m_Placeable.m_aPrefabs[m_iPrefabIndex];
 		m_ePlacingEntity = GetGame().SpawnEntityPrefabLocal(Resource.Load(m_pPlacingPrefab), null, params);
 		//SCR_Global.SetMaterial(m_ePlacingEntity, "{E0FECF0FE7457A54}Assets/Editor/PlacingPreview/Preview_03.emat", true);
+		
+		Physics phys = m_ePlacingEntity.GetPhysics();
+		if(phys)
+		{
+			phys.SetActive(0);
+		}
+		
+		m_ePlacingEntity.SetFlags(EntityFlags.VISIBLE, true);
+		
+		if(m_Placeable.m_bPlaceOnWall)
+		{
+			vector ypr = Vector(normal.ToYaw(), 0, 0);
+			m_ePlacingEntity.SetYawPitchRoll(ypr);
+		}
 	}
 	
 	protected void RemoveGhost()
@@ -173,9 +201,14 @@ class OVT_PlaceContext : OVT_UIContext
 			EntitySpawnParams params = EntitySpawnParams();
 			params.TransformMode = ETransformMode.WORLD;
 			params.Transform = mat;
-			GetGame().SpawnEntityPrefab(Resource.Load(m_pPlacingPrefab), null, params);
+			IEntity entity = GetGame().SpawnEntityPrefab(Resource.Load(m_pPlacingPrefab), null, params);
 			m_Economy.TakePlayerMoney(m_iPlayerID, m_Config.GetPlaceableCost(m_Placeable));
 			SCR_UISoundEntity.SoundEvent(UISounds.CLICK);
+			
+			if(m_Placeable.handler)
+			{
+				m_Placeable.handler.OnPlace(entity, m_iPlayerID);
+			}
 		}
 	}
 	
@@ -185,7 +218,7 @@ class OVT_PlaceContext : OVT_UIContext
 		if(newIndex > m_Placeable.m_aPrefabs.Count() - 1)
 		{
 			newIndex = 0;
-		}
+		}		
 		
 		if(newIndex != m_iPrefabIndex)
 		{
@@ -216,7 +249,12 @@ class OVT_PlaceContext : OVT_UIContext
 		if(m_ePlacingEntity)
 		{
 			vector angles = m_ePlacingEntity.GetYawPitchRoll();
-			angles[0] = angles[0] - 1;
+			if(m_Placeable.m_bPlaceOnWall)
+			{
+				angles[2] = angles[2] + 1;
+			}else{
+				angles[0] = angles[0] - 1;
+			}			
 			m_ePlacingEntity.SetYawPitchRoll(angles);
 		}
 	}
@@ -226,12 +264,17 @@ class OVT_PlaceContext : OVT_UIContext
 		if(m_ePlacingEntity)
 		{
 			vector angles = m_ePlacingEntity.GetYawPitchRoll();
-			angles[0] = angles[0] + 1;
+			if(m_Placeable.m_bPlaceOnWall)
+			{
+				angles[2] = angles[2] - 1;
+			}else{
+				angles[0] = angles[0] + 1;
+			}	
 			m_ePlacingEntity.SetYawPitchRoll(angles);
 		}
 	}
 	
-	vector GetPlacePosition()
+	vector GetPlacePosition(out vector normal)
 	{
 		WorkspaceWidget workspace = GetGame().GetWorkspace();
 		BaseWorld world = GetGame().GetWorld();
@@ -242,7 +285,7 @@ class OVT_PlaceContext : OVT_UIContext
 		vector cameraPos = workspace.ProjScreenToWorldNative(screenW / 2, screenH / 2, cameraDir, world, -1);
 		
 		//--- Find object/ground intersection, or use maximum distance when none is found
-		float traceDis = GetTraceDis(cameraPos, cameraDir * TRACE_DIS, cameraPos[1]);
+		float traceDis = GetTraceDis(cameraPos, cameraDir * TRACE_DIS, cameraPos[1], normal);
 		if (traceDis == 1)
 			traceDis = MAX_PREVIEW_DIS;
 		else
@@ -253,19 +296,21 @@ class OVT_PlaceContext : OVT_UIContext
 		return endPos;
 	}
 	
-	protected float GetTraceDis(vector pos, vector dir, float cameraHeight)
+	protected float GetTraceDis(vector pos, vector dir, float cameraHeight, out vector hitNormal)
 	{
 		BaseWorld world = GetGame().GetWorld();
 		autoptr TraceParam trace = new TraceParam();
 		trace.Start = pos;
 		trace.End = trace.Start + dir;
 		if (cameraHeight >= world.GetOceanBaseHeight())
-			trace.Flags = TraceFlags.WORLD | TraceFlags.OCEAN;
+			trace.Flags = TraceFlags.WORLD | TraceFlags.ENTS | TraceFlags.OCEAN;
 		else
-			trace.Flags = TraceFlags.WORLD; //--- Don't check for water intersection when under water
-		trace.LayerMask = EPhysicsLayerDefs.Static | EPhysicsLayerDefs.Terrain;
-		trace.Exclude = m_Owner;
+			trace.Flags = TraceFlags.WORLD | TraceFlags.ENTS; //--- Don't check for water intersection when under water
+		trace.Exclude = m_ePlacingEntity;
 		
-		return world.TraceMove(trace, null);
+		float dis = world.TraceMove(trace, SCR_Global.FilterCallback_IgnoreCharacters);
+		hitNormal = trace.TraceNorm;
+		
+		return dis;
 	}
 }

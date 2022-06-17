@@ -34,6 +34,8 @@ class OVT_DifficultySettings : ScriptAndConfig
 	int respawnCost;
 	[Attribute(defvalue: "1", desc: "Cost of placeables is multiplied by this value")]
 	float placeableCostMultiplier;
+	[Attribute(defvalue: "10", desc: "Donation income per civilian supporter")]
+	int donationIncome;
 }
 
 class OVT_Placeable : ScriptAndConfig
@@ -49,6 +51,18 @@ class OVT_Placeable : ScriptAndConfig
 	
 	[Attribute(defvalue: "100", desc: "Cost (multiplied by difficulty)")]
 	int m_iCost;
+	
+	[Attribute(defvalue: "0", desc: "Place on walls")]
+	bool m_bPlaceOnWall;
+	
+	[Attribute(defvalue: "0", desc: "Can place it anywhere")]
+	bool m_bIgnoreLocation;
+	
+	[Attribute(defvalue: "0", desc: "Cannot place near towns or bases")]
+	bool m_bAwayFromTownsBases;
+	
+	[Attribute("", UIWidgets.Object)]
+	ref OVT_PlaceableHandler handler;
 }
 
 

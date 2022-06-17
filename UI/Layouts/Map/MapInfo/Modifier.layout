@@ -6,8 +6,8 @@ FrameWidgetClass {
    Slot FrameWidgetSlot "{599EDE8C001DC6B0}" {
     OffsetLeft 0
     OffsetTop 0
-    SizeX 115.5
-    OffsetRight -115.5
+    SizeX 125
+    OffsetRight -125
     SizeY 28
     OffsetBottom -28
     SizeToContent 0

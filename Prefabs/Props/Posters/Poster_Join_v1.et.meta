@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{9C9EEE2BA3622871}Prefabs/Props/Commercial/Posters/Poster_Join_v1.et"
+ Configurations {
+  EntityTemplateResourceClass PC {
+  }
+  EntityTemplateResourceClass XBOX_ONE : PC {
+  }
+  EntityTemplateResourceClass XBOX_SERIES : PC {
+  }
+  EntityTemplateResourceClass PS4 : PC {
+  }
+  EntityTemplateResourceClass HEADLESS : PC {
+  }
+ }
+}

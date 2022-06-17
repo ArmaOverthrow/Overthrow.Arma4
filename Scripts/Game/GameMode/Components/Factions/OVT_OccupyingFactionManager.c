@@ -51,7 +51,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 	
 	void PostGameStart()
 	{
-		GetGame().GetCallqueue().CallLater(CheckUpdate, OF_UPDATE_FREQUENCY, true, GetOwner());
+		GetGame().GetCallqueue().CallLater(CheckUpdate, OF_UPDATE_FREQUENCY / m_Config.m_iTimeMultiplier, true, GetOwner());
 		GetGame().GetCallqueue().CallLater(SpawnBaseControllers, 0);
 	}
 	

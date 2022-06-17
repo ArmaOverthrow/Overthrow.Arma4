@@ -17,7 +17,7 @@ class OVT_MainMenuContext : OVT_UIContext
 		SCR_MapDescriptorComponent desc = m_TownManager.GetNearestTownMarker(town.location);
 		
 		m_Widgets.m_TownNameText.SetText(desc.Item().GetDisplayName());
-		m_Widgets.m_TownInfoText.SetTextFormat("#OVT-Population:%1\n#OVT-Stability: %2%\n#OVT-Support: %3%", town.population, town.stability, town.support);
+		m_Widgets.m_TownInfoText.SetTextFormat("#OVT-Population:%1\n#OVT-Stability: %2%\n#OVT-Support: %3%", town.population, town.stability, town.SupportPercentage());
 		
 		
 		SCR_ButtonTextComponent comp;

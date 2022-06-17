@@ -305,6 +305,66 @@ FrameWidgetClass {
         }
        }
       }
+      OverlayWidgetClass "{59A2BDA9DF2316C7}" {
+       Name "SupportMods"
+       Slot LayoutSlot "{599D5975B24A1314}" {
+       }
+       {
+        FrameWidgetClass "{59A2BDA9DF2316C5}" {
+         Name "Frame0"
+         Slot OverlayWidgetSlot "{599D597590F71F7C}" {
+          HorizontalAlign 3
+         }
+         {
+          WrapLayoutWidgetClass "{59A2BDA9DF2316C4}" {
+           Name "SupportModContainer"
+           Slot FrameWidgetSlot "{599EDE8CC4C018DA}" {
+            Anchor 0 0.5 1 0.5
+            PositionX 0
+            OffsetLeft 0
+            PositionY 0
+            OffsetTop 0
+            SizeX -300
+            OffsetRight 0
+            SizeY 100
+            OffsetBottom -100
+            Alignment 0 0.5
+           }
+           {
+            FrameWidgetClass "{59A2BDA9DF2316C3}" : "{7BAC7637E5744768}UI/Layouts/Map/MapInfo/Modifier.layout" {
+             Name "StabilityMod0"
+             Slot WrapLayoutWidgetSlot "{599EDE8C91F0E07D}" {
+             }
+             {
+             }
+            }
+            FrameWidgetClass "{59A2BDA9DF2316C1}" : "{7BAC7637E5744768}UI/Layouts/Map/MapInfo/Modifier.layout" {
+             Name "StabilityMod1"
+             Slot WrapLayoutWidgetSlot "{599EDE8C91F0E07D}" {
+             }
+             {
+             }
+            }
+            FrameWidgetClass "{59A2BDA9DF2316C0}" : "{7BAC7637E5744768}UI/Layouts/Map/MapInfo/Modifier.layout" {
+             Name "StabilityMod2"
+             Slot WrapLayoutWidgetSlot "{599EDE8C91F0E07D}" {
+             }
+             {
+             }
+            }
+            FrameWidgetClass "{59A2BDA9DF2316CE}" : "{7BAC7637E5744768}UI/Layouts/Map/MapInfo/Modifier.layout" {
+             Name "StabilityMod3"
+             Slot WrapLayoutWidgetSlot "{599EDE8C91F0E07D}" {
+             }
+             {
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
      }
     }
    }

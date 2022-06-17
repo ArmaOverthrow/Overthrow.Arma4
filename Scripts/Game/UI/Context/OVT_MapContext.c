@@ -90,8 +90,8 @@ class OVT_MapContext : OVT_UIContext
 		widget = TextWidget.Cast(m_wRoot.FindAnyWidget("Stability"));
 		widget.SetText(m_SelectedTown.stability.ToString() + "%");
 		
-		widget = TextWidget.Cast(m_wRoot.FindAnyWidget("Support"));
-		widget.SetText(m_SelectedTown.support.ToString() + "%");
+		widget = TextWidget.Cast(m_wRoot.FindAnyWidget("Support"));		
+		widget.SetText(m_SelectedTown.SupportPercentage().ToString() + "%");
 		
 		Widget container = m_wRoot.FindAnyWidget("StabilityModContainer");
 		Widget child = container.GetChildren();
@@ -100,13 +100,27 @@ class OVT_MapContext : OVT_UIContext
 			container.RemoveChild(child);
 			child = container.GetChildren();
 		}
+		array<int> done = new array<int>;
 		foreach(int index : m_SelectedTown.stabilityModifiers)
 		{
+			if(done.Contains(index)) continue;
 			OVT_StabilityModifierConfig mod = m_TownManager.m_StabilityModifiers.m_aStabilityModifiers[index];
 			WorkspaceWidget workspace = GetGame().GetWorkspace(); 
 			Widget w = workspace.CreateWidgets(m_ModLayout, container);
 			TextWidget tw = TextWidget.Cast(w.FindAnyWidget("Text"));
-			tw.SetText(mod.baseEffect.ToString() + "% " + mod.title);
+			
+			int effect = mod.baseEffect;
+			if(mod.flags & OVT_StabilityModifierFlags.STACKABLE)
+			{
+				effect = 0;
+				//count all present
+				foreach(int check : m_SelectedTown.stabilityModifiers)
+				{
+					if(check == index) effect += mod.baseEffect;
+				}
+			}
+			
+			tw.SetText(effect.ToString() + "% " + mod.title);
 			
 			PanelWidget panel = PanelWidget.Cast(w.FindAnyWidget("Background"));
 			if(mod.baseEffect < 0)
@@ -115,6 +129,45 @@ class OVT_MapContext : OVT_UIContext
 			}else{
 				panel.SetColor(m_PositiveModifierColor);
 			}
+			done.Insert(index);
+		}
+		
+		container = m_wRoot.FindAnyWidget("SupportModContainer");
+		child = container.GetChildren();
+		while(child)
+		{
+			container.RemoveChild(child);
+			child = container.GetChildren();
+		}
+		done.Clear();
+		foreach(int index : m_SelectedTown.supportModifiers)
+		{
+			if(done.Contains(index)) continue;
+			OVT_SupportModifierConfig mod = m_TownManager.m_SupportModifiers.m_aSupportModifiers[index];
+			WorkspaceWidget workspace = GetGame().GetWorkspace(); 
+			Widget w = workspace.CreateWidgets(m_ModLayout, container);
+			TextWidget tw = TextWidget.Cast(w.FindAnyWidget("Text"));
+			int effect = mod.baseEffect;
+			if(mod.flags & OVT_SupportModifierFlags.STACKABLE)
+			{
+				effect = 0;
+				//count all present
+				foreach(int check : m_SelectedTown.supportModifiers)
+				{
+					if(check == index) effect += mod.baseEffect;
+				}
+			}
+			
+			tw.SetText(effect.ToString() + "% " + mod.title);
+			
+			PanelWidget panel = PanelWidget.Cast(w.FindAnyWidget("Background"));
+			if(mod.baseEffect < 0)
+			{
+				panel.SetColor(m_NegativeModifierColor);
+			}else{
+				panel.SetColor(m_PositiveModifierColor);
+			}
+			done.Insert(index);
 		}
 	}
 	

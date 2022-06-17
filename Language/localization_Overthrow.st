@@ -211,6 +211,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{59A2BD9099621079}" {
+   Id "OVT-Place_Poster"
+   Target_en_us "Recruitment Posters"
+   Modified 1503863688
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{598AD55456A8B23F}" {
    Id "OVT-Place_Sandbags"
    Target_en_us "Sandbags"
@@ -325,6 +332,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{59A2BDB5E41019D9}" {
+   Id "OVT-StabilityMod_StrongEconomy"
+   Target_en_us "Strong Economy"
+   Modified 1503846400
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{599D315AC7BF1F3F}" {
    Id "OVT-StartGame"
    Target_en_us "Start Game"
@@ -337,6 +351,13 @@ StringTable {
    Target_en_us "Support"
    Status DEVELOPMENT_DONE
    Modified 1502796262
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59A2BDA8428BCAC2}" {
+   Id "OVT-SupportMod_RecruitmentPosters"
+   Target_en_us "Recruitment Posters"
+   Modified 1503843685
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

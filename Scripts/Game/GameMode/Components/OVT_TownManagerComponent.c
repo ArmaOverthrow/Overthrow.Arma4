@@ -16,6 +16,11 @@ class OVT_TownData : Managed
 	
 	ref array<ref int> stabilityModifierTimers = new array<ref int>;
 	ref array<ref int> supportModifierTimers = new array<ref int>;
+	
+	int SupportPercentage()
+	{
+		return Math.Round((support / population) * 100);
+	}
 }
 
 class OVT_TownManagerComponent: OVT_Component
@@ -50,8 +55,11 @@ class OVT_TownManagerComponent: OVT_Component
 	OVT_RealEstateManagerComponent m_RealEstate;
 	
 	ref OVT_StabilityModifiersConfig m_StabilityModifiers;
+	ref OVT_SupportModifiersConfig m_SupportModifiers;
 	
 	protected const int MODIFIER_FREQUENCY = 10000;
+	protected int m_iSupportCounter = 0;
+	protected const int SUPPORT_FREQUENCY = 6; // * MODIFIER_FREQUENCY
 	 
 	static OVT_TownManagerComponent s_Instance;	
 	static OVT_TownManagerComponent GetInstance()
@@ -88,8 +96,17 @@ class OVT_TownManagerComponent: OVT_Component
 	
 	protected void CheckUpdateModifiers()
 	{
+		m_iSupportCounter++;
+		bool dosupport = false;
+		if(m_iSupportCounter > SUPPORT_FREQUENCY)
+		{
+			m_iSupportCounter = 0;
+			dosupport = true;
+		}
+		
 		foreach(OVT_TownData town : m_Towns)
 		{
+			//Check if we need to time out any stability modifiers
 			bool recalc = false;
 			array<int> remove = new array<int>;
 			foreach(int i, int index : town.stabilityModifiers)
@@ -111,6 +128,7 @@ class OVT_TownManagerComponent: OVT_Component
 				}
 			}
 			
+			//Call stability modifier OnTicks
 			foreach(int i, OVT_StabilityModifierConfig config : m_StabilityModifiers.m_aStabilityModifiers)
 			{
 				if(config.handler)
@@ -119,12 +137,54 @@ class OVT_TownManagerComponent: OVT_Component
 				}
 			}
 			
+			//Remove modifiers tagged for removal
 			foreach(int i : remove)
 			{
 				town.stabilityModifierTimers.Remove(i);
 				town.stabilityModifiers.Remove(i);
 			}
 			if(recalc && Replication.IsServer()) RecalculateStability(town.id);
+			
+			//Check if we need to time out any support modifiers
+			remove.Clear();
+			foreach(int i, int index : town.supportModifiers)
+			{
+				town.supportModifierTimers[i] = town.supportModifierTimers[i] - MODIFIER_FREQUENCY / 1000;
+				if(town.supportModifierTimers[i] <= 0)
+				{					
+					remove.Insert(i);
+				}else{
+					OVT_SupportModifierConfig mod = m_SupportModifiers.m_aSupportModifiers[index];
+					if(mod.handler){
+						if(!mod.handler.OnActiveTick(town))
+						{
+							remove.Insert(i);
+						}
+					}
+				}
+			}
+			
+			//Call support modifier OnTicks
+			foreach(int i, OVT_SupportModifierConfig config : m_SupportModifiers.m_aSupportModifiers)
+			{
+				if(config.handler)
+				{
+					config.handler.OnTick(town);
+				}
+			}
+			
+			//Remove modifiers tagged for removal
+			foreach(int i : remove)
+			{
+				town.supportModifiers.Remove(i);
+				town.supportModifierTimers.Remove(i);
+			}
+			
+			if(dosupport && Replication.IsServer())
+			{
+				//We always recalculate support modifiers and add/remove supporters, but less often
+				RecalculateSupport(town.id);
+			}
 		}
 	}
 	
@@ -140,12 +200,43 @@ class OVT_TownManagerComponent: OVT_Component
 				InitStability();
 			}
 		}
+		
+		holder = BaseContainerTools.LoadContainer("{AB1726E5220F21F1}Configs/Modifiers/supportModifiers.conf");
+		if (holder)		
+		{
+			OVT_SupportModifiersConfig obj = OVT_SupportModifiersConfig.Cast(BaseContainerTools.CreateInstanceFromContainer(holder.GetResource().ToBaseContainer()));
+			if(obj)
+			{
+				m_SupportModifiers = obj;
+				InitSupport();
+			}
+		}
 	}
 	
 	protected void InitStability()
 	{
 		if(!Replication.IsServer()) return;
 		foreach(int i, OVT_StabilityModifierConfig config : m_StabilityModifiers.m_aStabilityModifiers)
+		{
+			if(config.handler)
+			{
+				config.handler.m_sName = config.name;
+				config.handler.m_iIndex = i;
+				config.handler.Init();
+				config.handler.OnPostInit();
+				
+				foreach(OVT_TownData town : m_Towns)
+				{
+					config.handler.OnStart(town);
+				}
+			}
+		}
+	}
+	
+	protected void InitSupport()
+	{
+		if(!Replication.IsServer()) return;
+		foreach(int i, OVT_SupportModifierConfig config : m_SupportModifiers.m_aSupportModifiers)
 		{
 			if(config.handler)
 			{
@@ -195,6 +286,7 @@ class OVT_TownManagerComponent: OVT_Component
 			town.stabilityModifierTimers.Remove(i);
 			town.stabilityModifiers.Remove(i);
 			Rpc(RpcDo_RemoveStabilityModifier, townId, index);
+			RecalculateStability(townId);
 		}		
 	}
 	
@@ -220,18 +312,82 @@ class OVT_TownManagerComponent: OVT_Component
 	
 	void AddStabilityModifier(int townId, int index)
 	{
+		Rpc(RpcAsk_AddStabilityModifier, townId, index);
+	}
+	
+	
+	
+	void TryAddSupportModifierByName(int townId, string name)
+	{
+		foreach(int i, OVT_SupportModifierConfig config : m_SupportModifiers.m_aSupportModifiers)
+		{
+			if(config.name == name)
+			{
+				TryAddSupportModifier(townId, i);
+				return;
+			}
+		}
+	}
+	
+	void RemoveSupportModifierByName(int townId, string name)
+	{
+		foreach(int i, OVT_SupportModifierConfig config : m_SupportModifiers.m_aSupportModifiers)
+		{
+			if(config.name == name)
+			{
+				RemoveSupportModifier(townId, i);
+				return;
+			}
+		}
+	}
+	
+	void RemoveSupportModifier(int townId, int index)
+	{
+		OVT_TownData town = m_Towns[townId];		
+		int i = town.supportModifiers.Find(index);
+		if(i > -1)
+		{
+			town.supportModifierTimers.Remove(i);
+			town.supportModifiers.Remove(i);
+			Rpc(RpcDo_RemoveSupportModifier, townId, index);
+		}		
+	}
+	
+	void TryAddSupportModifier(int townId, int index)
+	{
 		OVT_TownData town = m_Towns[townId];
-		OVT_StabilityModifierConfig mod = m_StabilityModifiers.m_aStabilityModifiers[index];
-		town.stabilityModifiers.Insert(index);
-		town.stabilityModifierTimers.Insert(mod.timeout);
-		
-		RecalculateStability(townId);		
-		Rpc(RpcDo_AddStabilityModifier, townId, index, mod.timeout);
+		OVT_SupportModifierConfig mod = m_SupportModifiers.m_aSupportModifiers[index];
+		//if(!(mod.flags & OVT_StabilityModifierFlags.ACTIVE)) return;
+		if(!town.supportModifiers.Contains(index))
+		{
+			AddSupportModifier(townId, index);
+		}else if(mod.flags & OVT_SupportModifierFlags.STACKABLE)
+		{
+			//Is stackable, so stack it
+			int num = 0;
+			foreach(int i : town.supportModifiers)
+			{
+				if(i == index) num++;
+			}
+			if(num < mod.stackLimit)
+				AddSupportModifier(townId, index);
+		}else{
+			//Is not stackable, reset timer
+			int i = town.supportModifiers.Find(index);
+			town.supportModifierTimers[i] = mod.timeout;
+			Rpc(RpcDo_ResetSupportModifier, townId, index);
+		}
+	}
+	
+	void AddSupportModifier(int townId, int index)
+	{
+		Rpc(RpcAsk_AddSupportModifier, townId, index);
 	}
 	
 	protected void RecalculateStability(int townId)
 	{
 		OVT_TownData town = m_Towns[townId];
+		
 		float newStability = 100;
 		foreach(int index : town.stabilityModifiers)
 		{
@@ -246,6 +402,54 @@ class OVT_TownManagerComponent: OVT_Component
 		{
 			town.stability = stab;
 			Rpc(RpcDo_SetStability, townId, stab);
+		}		
+	}
+	
+	protected void RecalculateSupport(int townId)
+	{		
+		OVT_TownData town = m_Towns[townId];
+		
+		int newsupport = town.support;
+		float supportmods = 0;
+		foreach(int index : town.supportModifiers)
+		{
+			OVT_SupportModifierConfig mod = m_SupportModifiers.m_aSupportModifiers[index];
+			supportmods += mod.baseEffect;
+		}
+		if(supportmods > 100) supportmods = 100;
+		if(supportmods < -100) supportmods = -100;
+		
+		if(supportmods > 75)
+		{
+			//Add a supporter to the cause
+			newsupport++;
+		}else if(supportmods < -75)
+		{
+			//Remove a supporter from the cause
+			newsupport--;
+		}else if(supportmods > 0)
+		{
+			//Maybe add a supporter
+			if(s_AIRandomGenerator.RandFloatXY(0, 100) < supportmods)
+			{
+				newsupport++;
+			}
+		}else if(supportmods < 0)
+		{
+			//Maybe remove a supporter
+			if(s_AIRandomGenerator.RandFloatXY(0, 100) < Math.AbsInt(supportmods))
+			{
+				newsupport--;
+			}
+		}
+		
+		if(newsupport < 0) newsupport = 0;
+		if(newsupport > town.population) newsupport = town.population;
+		
+		if(newsupport != town.support)
+		{
+			town.support = newsupport;
+			Rpc(RpcDo_SetSupport, townId, newsupport);
 		}		
 	}
 	
@@ -610,11 +814,41 @@ class OVT_TownManagerComponent: OVT_Component
 		return true;
 	}
 	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_AddStabilityModifier(int townId, int index)
+	{
+		OVT_TownData town = m_Towns[townId];
+		OVT_StabilityModifierConfig mod = m_StabilityModifiers.m_aStabilityModifiers[index];
+		town.stabilityModifiers.Insert(index);
+		town.stabilityModifierTimers.Insert(mod.timeout);
+		
+		RecalculateStability(townId);		
+		Rpc(RpcDo_AddStabilityModifier, townId, index, mod.timeout);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_AddSupportModifier(int townId, int index)
+	{
+		OVT_TownData town = m_Towns[townId];
+		OVT_SupportModifierConfig mod = m_SupportModifiers.m_aSupportModifiers[index];
+		town.supportModifiers.Insert(index);
+		town.supportModifierTimers.Insert(mod.timeout);
+				
+		Rpc(RpcDo_AddSupportModifier, townId, index, mod.timeout);
+	}
+	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_SetStability(int townId, int value)
 	{
 		OVT_TownData town = m_Towns[townId];
 		town.stability = value;
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_SetSupport(int townId, int value)
+	{
+		OVT_TownData town = m_Towns[townId];
+		town.support = value;
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]

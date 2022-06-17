@@ -41,6 +41,8 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	protected ref map<ResourceName,EntityID> m_mSpawnedItems;
 	
+	const int ECONOMY_UPDATE_FREQUENCY = 60000;
+	
 	//Streamed to clients..
 	protected ref map<RplId, int> m_mItemCosts;		
 	protected ref map<string, int> m_mMoney;
@@ -192,6 +194,45 @@ class OVT_EconomyManagerComponent: OVT_Component
 		
 		if(!Replication.IsServer()) return;		
 		InitializeShops();
+		
+		GetGame().GetCallqueue().CallLater(CheckUpdate, ECONOMY_UPDATE_FREQUENCY / m_Config.m_iTimeMultiplier, true, GetOwner());
+		
+	}
+	
+	void CheckUpdate()
+	{
+		TimeContainer time = m_Time.GetTime();		
+		
+		//Every 6 hrs get paid
+		if((time.m_iHours == 0 
+			|| time.m_iHours == 6 
+			|| time.m_iHours == 12 
+			|| time.m_iHours == 18)
+			 && 
+			time.m_iMinutes == 0)
+		{
+			CalculateIncome();
+		}
+	}
+	
+	protected void CalculateIncome()
+	{
+		//Support donations
+		int income = 0;
+		foreach(OVT_TownData town : m_Towns.m_Towns)
+		{
+			income += m_Config.m_Difficulty.donationIncome * town.support;
+		}
+		PlayerManager mgr = GetGame().GetPlayerManager();
+		//Distribute to all players online
+		int incomePerPlayer = Math.Round(income / mgr.GetPlayerCount());
+		
+		array<int> players = new array<int>;
+		mgr.GetPlayers(players);
+		foreach(int playerId : players)
+		{
+			AddPlayerMoney(playerId, incomePerPlayer);
+		}
 	}
 	
 	void PostGameStart()
@@ -426,6 +467,8 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	void ~OVT_EconomyManagerComponent()
 	{
+		GetGame().GetCallqueue().Remove(CheckUpdate);	
+		
 		if(m_aAllShops)
 		{
 			m_aAllShops.Clear();

@@ -4,7 +4,7 @@ enum OVT_StabilityModifierFlags
 	STACKABLE = 2	
 };
 
-[BaseContainerProps(), SCR_BaseContainerLocalizedTitleField("title")]
+[BaseContainerProps(), SCR_BaseContainerLocalizedTitleField("name")]
 class OVT_StabilityModifierConfig
 {
 	[Attribute()]

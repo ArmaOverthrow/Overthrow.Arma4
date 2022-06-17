@@ -350,6 +350,8 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode {
      }
      m_tPreview "{65134F624B2FE2B6}UI/Textures/EditorPreviews/Auto/Structures/Military/Camps/TentSmallUS_01/E_TentSmallUS_01.edds"
      m_iCost 150
+     m_bIgnoreLocation 1
+     m_bAwayFromTownsBases 1
     }
     OVT_Placeable "{598AD552E7A55104}" {
      name "#OVT-Place_FOB"
@@ -358,6 +360,21 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode {
      }
      m_tPreview "{511D7FCF61C4D6B3}UI/Textures/EditorPreviews/Auto/Structures/Military/Flags/E_FlagPole_02_V1_FIA.edds"
      m_iCost 1000
+     m_bIgnoreLocation 1
+     m_bAwayFromTownsBases 1
+    }
+    OVT_Placeable "{59A2BDB34357C5EF}" {
+     name "#OVT-Place_Poster"
+     m_aPrefabs {
+      "{9C9EEE2BA3622871}Prefabs/Props/Posters/Poster_Join_v1.et"
+     }
+     m_tPreview "{27E04F6AF79B7CDD}Assets/Posters/Poster_Join_v1.edds"
+     m_iCost 5
+     m_bPlaceOnWall 1
+     m_bIgnoreLocation 1
+     handler OVT_PlaceableSupportModHandler "{59A2BDB8391A6781}" {
+      m_sSupportModifierName "RecruitmentPosters"
+     }
     }
    }
    m_pGunDealerPrefab "{59929550D81A3045}Prefabs/Characters/Factions/INDFOR/FIA/Character_FIA_GunDealer.et"
@@ -373,6 +390,7 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode {
    m_aStartingHouseFilters {
     "House_Mountain_E_1I01.et"
    }
+   m_iTimeMultiplier 6
   }
   OVT_PlayerManagerComponent "{599AA74940529C1C}" {
   }
