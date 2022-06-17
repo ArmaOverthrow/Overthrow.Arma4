@@ -14,6 +14,9 @@ GenericEntity {
      m_iPriority 2
      m_bDeactivate 0
     }
+    OVT_BaseUpgradeCheckpoints "{59A02C08E74AD5ED}" {
+     m_iPriority 3
+    }
    }
   }
   RplComponent "{599AA7491505E0AB}" {

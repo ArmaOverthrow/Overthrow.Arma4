@@ -12,6 +12,9 @@ class OVT_RandomStabilityModifier : OVT_StabilityModifier
 	[Attribute("1")]
 	float m_fLowSupportFactor;
 	
+	[Attribute("10")]
+	float m_fGameStartFactor;
+	
 	override void OnTick(OVT_TownData town)
 	{
 		DoRandom(town);
@@ -19,12 +22,12 @@ class OVT_RandomStabilityModifier : OVT_StabilityModifier
 	
 	override void OnStart(OVT_TownData town)
 	{
-		DoRandom(town);
+		DoRandom(town,m_fGameStartFactor);
 	}
 	
-	protected void DoRandom(OVT_TownData town)
+	protected void DoRandom(OVT_TownData town, float mod = 1)
 	{
-		float chance = m_fChance;
+		float chance = m_fChance * mod;
 		if(town.population < 50) chance *= m_fLowPopulationFactor;
 		if(town.stability < 50) chance *= m_fLowStabilityFactor;
 		if(town.support < 50) chance *= m_fLowSupportFactor;

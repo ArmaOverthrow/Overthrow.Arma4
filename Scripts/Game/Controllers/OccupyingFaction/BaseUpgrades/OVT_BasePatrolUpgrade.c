@@ -4,17 +4,17 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 	bool m_bDeactivate;
 	
 	ref array<ref EntityID> m_Groups;
-	ref array<ResourceName> m_ProxiedGroups;
-	ref array<ref vector> m_ProxiedPositions;
+	ref array<ref ResourceName> m_ProxiedGroups;
+	ref array<ref vector> m_ProxiedPositions;	
 	int m_iProxedResources = 0;
 	
 	protected const int DEACTIVATE_FREQUENCY = 10000;
-	protected const int DEACTIVATE_RANGE = 4000;
+	protected const int DEACTIVATE_RANGE = 2500;
 	
 	override void PostInit()
 	{
 		m_Groups = new array<ref EntityID>;
-		m_ProxiedGroups = new array<ResourceName>;
+		m_ProxiedGroups = new array<ref ResourceName>;
 		m_ProxiedPositions = new array<ref vector>;
 		
 		if(m_bDeactivate)
@@ -163,6 +163,14 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 	protected AIWaypoint SpawnPatrolWaypoint(vector pos)
 	{
 		AIWaypoint wp = SpawnWaypoint(m_Config.m_pPatrolWaypointPrefab, pos);
+		return wp;
+	}
+	
+	protected AIWaypoint SpawnDefendWaypoint(vector pos, int preset = 0)
+	{
+		AIWaypoint wp = SpawnWaypoint(m_Config.m_pDefendWaypointPrefab, pos);
+		SCR_DefendWaypoint defend = SCR_DefendWaypoint.Cast(wp);
+		defend.SetCurrentDefendPreset(preset);
 		return wp;
 	}
 	

@@ -36,4 +36,9 @@ class OVT_Faction : SCR_Faction
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Flag Pole Prefab", params: "et", category: "Faction Objects")]
 	ResourceName m_aFlagPolePrefab;
 	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Medium Checkpoint Prefab", params: "et", category: "Faction Objects")]
+	ResourceName m_aMediumCheckpointPrefab;
+	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Large Checkpoint Prefab", params: "et", category: "Faction Objects")]
+	ResourceName m_aLargeCheckpointPrefab;
 }

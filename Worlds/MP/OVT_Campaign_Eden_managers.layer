@@ -449,6 +449,8 @@ SCR_FactionManager FactionManager_Overthrow : "{4A188E44289B9A50}Prefabs/MP/Mana
    m_aGroupSniperPrefab "{CA824A43ABA2DA97}Prefabs/Groups/Group_US_Sniper.et"
    m_aLightTownPatrolPrefab "{3BF36BDEEB33AEC9}Prefabs/Groups/BLUFOR/Group_US_SentryTeam.et"
    m_aFlagPolePrefab "{E55FC02F8C1518A2}Prefabs/Structures/Military/Flags/FlagPole_02_V1_US.et"
+   m_aMediumCheckpointPrefab "{5F42399DF7455261}Prefabs/Compositions/Slotted/SlotRoadMedium/Checkpoint_M_US_01.et"
+   m_aLargeCheckpointPrefab "{6D9DAF822F4ABFE6}Prefabs/Compositions/Slotted/SlotRoadLarge/Checkpoint_L_US_01.et"
   }
   OVT_Faction "{56DEAC40D3C2E623}" {
    m_aGroupPrefabSlots {
@@ -469,6 +471,8 @@ SCR_FactionManager FactionManager_Overthrow : "{4A188E44289B9A50}Prefabs/MP/Mana
    m_aGroupSniperPrefab "{65D8CD7BA7CB6B8A}Prefabs/Groups/Group_USSR_Sniper.et"
    m_aLightTownPatrolPrefab "{CB58D90EA14430AD}Prefabs/Groups/OPFOR/Group_USSR_SentryTeam.et"
    m_aFlagPolePrefab "{651E545B53BBD034}Prefabs/Structures/Military/Flags/FlagPole_02_V1_USSR.et"
+   m_aMediumCheckpointPrefab "{3C5B8A77605A80E9}Prefabs/Compositions/Slotted/SlotRoadMedium/OVT_Checkpoint_M_USSR_01.et"
+   m_aLargeCheckpointPrefab "{9F9924B626C5FA2B}Prefabs/Compositions/Slotted/SlotRoadLarge/Checkpoint_L_USSR_01.et"
   }
   OVT_Faction "{56DEAC40D132400B}" {
    m_bIsPlayable 1
@@ -476,6 +480,8 @@ SCR_FactionManager FactionManager_Overthrow : "{4A188E44289B9A50}Prefabs/MP/Mana
     "{5BEA04939D148B1D}Prefabs/Groups/INDFOR/Group_FIA_FireTeam.et" "{22F33D3EC8F281AB}Prefabs/Groups/INDFOR/Group_FIA_MachineGunTeam.et" "{2E9C920C3ACA2C6F}Prefabs/Groups/INDFOR/Group_FIA_ReconTeam.et" "{CE41AF625D05D0F0}Prefabs/Groups/INDFOR/Group_FIA_RifleSquad.et" "{6307F42403E9B8A4}Prefabs/Groups/INDFOR/Group_FIA_SharpshooterTeam.et" "{2CC26054775FBA2C}Prefabs/Groups/INDFOR/Group_FIA_Team_AT.et"
    }
    m_aFlagPolePrefab "{A4D90CAA4F220CBE}Prefabs/Structures/Military/Flags/FlagPole_02_V2_FIA.et"
+   m_aMediumCheckpointPrefab "{5F42399DF7455261}Prefabs/Compositions/Slotted/SlotRoadMedium/Checkpoint_M_US_01.et"
+   m_aLargeCheckpointPrefab "{6D9DAF822F4ABFE6}Prefabs/Compositions/Slotted/SlotRoadLarge/Checkpoint_L_US_01.et"
   }
  }
 }

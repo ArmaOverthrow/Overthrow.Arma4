@@ -173,7 +173,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 	{
 		TimeContainer time = m_Time.GetTime();		
 		
-		//Every 6 hrs distribute resources
+		//Every 6 hrs get more resources
 		if((time.m_iHours == 0 
 			|| time.m_iHours == 6 
 			|| time.m_iHours == 12 
@@ -181,18 +181,33 @@ class OVT_OccupyingFactionManager: OVT_Component
 			 && 
 			time.m_iMinutes == 0)
 		{
-			DistributeResources();
+			GainResources();
+		}
+		
+		//Every hour distribute resources we have, if any
+		if(m_iResources > 0 && time.m_iMinutes == 0)
+		{
+			//To-Do: prioritize bases that need it/are under threat
+			foreach(RplId id : m_Bases)
+			{
+				OVT_BaseControllerComponent base = GetBase(id);
+				m_iResources -= base.SpendResources(m_iResources, m_iThreat);			
+				
+				if(m_iResources <= 0) {
+					m_iResources = 0;
+				}
+			}
 		}
 	}
 	
-	void DistributeResources()
+	void GainResources()
 	{
 		
 		int newResources = m_Config.m_Difficulty.baseResourcesPerTick + (m_Config.m_Difficulty.resourcesPerTick * m_iThreat);
 		
 		m_iResources += newResources;
 		
-		Print ("OF Distributing Resources: " + newResources.ToString());
+		Print ("OF Gained Resources: " + newResources.ToString());			
 	}
 	
 	//RPC Methods

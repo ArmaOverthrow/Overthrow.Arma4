@@ -1,0 +1,206 @@
+GenericEntity : "{3BA9D94C4EE9B33B}Prefabs/Compositions/Slotted/CompositionBase.et" {
+ ID "5282DCB5DFC8538F"
+ components {
+  FactionAffiliationComponent "{59A02C1194C483A7}" {
+  }
+  SCR_AISmartActionSentinelComponent "{59A02C1194C483B1}" {
+  }
+  SCR_AISmartActionSentinelComponent "{59A02C1194C483B3}" {
+  }
+  SCR_AISmartActionSentinelComponent "{59A02C1194C483B7}" {
+  }
+  RplComponent "{54AC8D6E673199EE}" : "{B193E926C1935A4C}Prefabs/Editor/Components/Default_RplComponent.ct" {
+  }
+ }
+ coords 64 0 64
+ {
+  StaticModelEntity : "{172DD50ACF177B9E}Prefabs/Props/Military/Furniture/ChairMilitary_USSR_01.et" {
+   ID "59A02C1194C70FDF"
+   components {
+    Hierarchy "{59A02C1194C483B8}" {
+     Enabled 1
+    }
+   }
+   coords -3.494 0 0.883
+   angleY 116.488
+  }
+  GenericEntity : "{1EC801E208CB16C6}Prefabs/Vegetation/Cuttings/Rubus_idaeus_small_01.et" {
+   ID "59A02C1194C70FDC"
+   coords -1.792 0.307 2.624
+   angleY 17.874
+  }
+  $grp GenericEntity : "{4BE795374BE3D67E}Prefabs/Props/Industrial/BarrelFuel_01_closed.et" {
+   {
+    ID "59A02C1194C72E66"
+    components {
+     Hierarchy "{59A02C1194C483BD}" {
+      Enabled 1
+     }
+    }
+    coords 2.978 0 -3.201
+    angleY 85.899
+   }
+   {
+    ID "59A02C1194C72E67"
+    components {
+     Hierarchy "{59A02C1194C48443}" {
+      Enabled 1
+     }
+    }
+    coords 3.736 0 -3.069
+   }
+   {
+    ID "59A02C1194C72E78"
+    components {
+     Hierarchy "{59A02C1194C483BF}" {
+      Enabled 1
+     }
+    }
+    coords 2.676 0.304 -2.577
+    angleX -4.101
+    angleY 162.189
+    angleZ -90
+   }
+  }
+  GenericEntity : "{74843BB0BF08A845}Prefabs/Vegetation/Cuttings/Corylus_avellana_small_01.et" {
+   ID "59A02C1194C77020"
+   coords -3.936 0.02 2.511
+  }
+  GenericEntity : "{76153B97A551AADE}Prefabs/Systems/Arsenal/AmmoBoxes/USSR/AmmoBoxArsenal_Explosives_USSR.et" {
+   ID "59A02C1194C77023"
+   components {
+    Hierarchy "{59A02C1194C48446}" {
+     Enabled 1
+    }
+   }
+   coords -1.545 0 1.128
+   angleY -169.896
+  }
+  $grp StaticModelEntity : "{A46D45922F8CAD6C}Prefabs/Props/Military/Fortification/CzechHedgehog_01_painted.et" {
+   {
+    ID "59A02C1194C6B747"
+    components {
+     Hierarchy "{59A02C1194C4844A}" {
+      Enabled 1
+     }
+    }
+    coords 1.507 0 -3.834
+    angleY -139.283
+   }
+   {
+    ID "59A02C1194C6E365"
+    components {
+     Hierarchy "{59A02C1194C48448}" {
+      Enabled 1
+     }
+    }
+    coords -1.284 0 3.586
+    angleY -34.865
+   }
+  }
+  GenericEntity : "{B51CE80A9EEF7E00}Prefabs/Compositions/Misc/SubCompositions/Sandbag_Barricade_USSR_01.et" {
+   ID "59A02C1194C6E366"
+   components {
+    Hierarchy "{59A02C1194C4844E}" {
+    }
+   }
+   coords -3.075 0.1 1.038
+   {
+    GameEntity {
+     ID "58ECA7C4B7DD8A9A"
+     components {
+      Hierarchy "{59A02C1194C4844C}" {
+      }
+     }
+    }
+   }
+  }
+  StaticModelEntity : "{C1576E5555582214}Prefabs/Structures/Military/Fortifications/DirtCover_01_short.et" {
+   ID "59A02C1194C6E369"
+   components {
+    Hierarchy "{59A02C1194C48450}" {
+     Enabled 1
+    }
+   }
+   coords 3.342 0 -4.195
+  }
+  GenericEntity : "{C1977A326F2AA011}Prefabs/Structures/Signs/Military/SignCheckpoint_01_stop.et" {
+   ID "59A02C1194C64360"
+   components {
+    Hierarchy "{59A02C1194C48456}" {
+     Enabled 1
+    }
+   }
+   coords -1.014 0 4.601
+   angleY 7.904
+  }
+  $grp DecalEntity : "{CA8AB522F7C90A28}Prefabs/Decals/Miscellaneous/CigarButts_01.et" {
+   {
+    ID "59A02C1194C64D51"
+    coords -2.893 0 0.673
+    angleX -89.98
+    angleY -162.835
+    angleZ -180
+   }
+   {
+    ID "59A02C1194C64D52"
+    coords -2.028 0 0.676
+    angleX -89.972
+    angleY 139.652
+    angleZ -180
+   }
+  }
+  $grp GenericEntity : "{CC5453CCC311603B}Prefabs/Props/Military/Sandbags/Sandbag_01_end_burlap.et" {
+   {
+    ID "59A02C1194C513F3"
+    components {
+     Hierarchy "{59A02C1194C4845B}" {
+      Enabled 1
+     }
+    }
+    coords 3.955 0 -4.227
+   }
+   {
+    ID "59A02C1194C5B3BF"
+    components {
+     Hierarchy "{59A02C1194C48455}" {
+      Enabled 1
+     }
+    }
+    coords 2.789 0 -4.227
+    angleY -180
+   }
+  }
+  StaticModelEntity : "{DDF59362051B28BC}Prefabs/Props/Military/Fortification/BarbedTape_KnifeRest.et" {
+   ID "59A02C1194C48399"
+   components {
+    Hierarchy "{59A02C1194C4845E}" {
+     Enabled 1
+    }
+   }
+   coords -3.364 0 3.594
+   angleY 58.449
+  }
+  $grp GenericEntity : "{E51E2E1D77B54223}Prefabs/Compositions/Misc/CustomEntities/CompositionDecals/CompositionDecal_Dirt_Patch_01.et" {
+   {
+    ID "59A02C1194C4839E"
+    coords -2.778 0.1 0.562
+    angleY -35.999
+   }
+   {
+    ID "59A02C1194C4839F"
+    coords 3.019 0.1 -2.807
+    angleY -16.3
+   }
+  }
+  StaticModelEntity : "{EF39F5715EF2323E}Prefabs/Structures/Walls/BarbedWire/BarbedTape_Short.et" {
+   ID "59A02C1194C4839C"
+   components {
+    Hierarchy "{59A02C1194C48462}" {
+     Enabled 1
+    }
+   }
+   coords 4.451 0 -2.578
+  }
+ }
+}

@@ -33,4 +33,28 @@ class OVT_Global {
 	{
 		return OVT_OccupyingFactionManager.GetInstance();
 	}
+	
+	static bool PlayerInRange(vector pos, int range)
+	{		
+		bool active = false;
+		array<int> players = new array<int>;
+		PlayerManager mgr = GetGame().GetPlayerManager();
+		int numplayers = mgr.GetPlayers(players);
+		
+		if(numplayers > 0)
+		{
+			foreach(int playerID : players)
+			{
+				IEntity player = mgr.GetPlayerControlledEntity(playerID);
+				if(!player) continue;
+				float distance = vector.Distance(player.GetOrigin(), pos);
+				if(distance < range)
+				{
+					active = true;
+				}
+			}
+		}
+		
+		return active;
+	}
 }

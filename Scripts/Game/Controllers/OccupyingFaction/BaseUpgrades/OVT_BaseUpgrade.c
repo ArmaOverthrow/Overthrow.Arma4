@@ -10,6 +10,7 @@ class OVT_BaseUpgrade : ScriptAndConfig
 	OVT_OccupyingFactionManager m_occupyingFactionManager;
 	OVT_EconomyManagerComponent m_Economy;
 	OVT_OverthrowConfigComponent m_Config;
+	OVT_Faction m_Faction;
 	
 	void Init(OVT_BaseControllerComponent base, OVT_OccupyingFactionManager occupyingFactionManager, OVT_OverthrowConfigComponent config)
 	{
@@ -17,6 +18,8 @@ class OVT_BaseUpgrade : ScriptAndConfig
 		m_occupyingFactionManager = occupyingFactionManager;		
 		m_Config = config;
 		m_Economy = OVT_Global.GetEconomy();
+		
+		m_Faction = m_Config.GetOccupyingFaction();
 		
 		PostInit();
 	}

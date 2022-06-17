@@ -5,7 +5,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 	
 	protected OVT_TownManagerComponent m_Towns;
 	protected ref array<ref OVT_TownData> m_TownsInRange;
-	protected ref map<int, EntityID> m_Patrols;
+	protected ref map<ref int, ref EntityID> m_Patrols;
 		
 	override void PostInit()
 	{
@@ -13,7 +13,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		
 		m_Towns = OVT_Global.GetTowns();
 		m_TownsInRange = new array<ref OVT_TownData>;
-		m_Patrols = new map<int, EntityID>;
+		m_Patrols = new map<ref int, ref EntityID>;
 		
 		OVT_Global.GetTowns().GetTownsWithinDistance(m_BaseController.GetOwner().GetOrigin(), m_fRange, m_TownsInRange);
 	}
@@ -54,8 +54,9 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		int spent = 0;
 		
 		foreach(OVT_TownData town : m_TownsInRange)
-		{
+		{			
 			if(resources <= 0) break;
+			if(!OVT_Global.PlayerInRange(town.location, 2500)) continue;
 			if(!m_Patrols.Contains(town.id))
 			{
 				int newres = BuyTownPatrol(town);
@@ -110,6 +111,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		IEntity group = GetGame().SpawnEntityPrefab(Resource.Load(res), world, spawnParams);
 		
 		m_Groups.Insert(group.GetID());
+		m_Patrols[town.id] = group.GetID();
 		
 		SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
 		

@@ -1,14 +1,14 @@
 class OVT_BaseUpgradeTowerGuard : OVT_BasePatrolUpgrade
 {
 	ref array<ref EntityID> m_Towers;
-	ref map<EntityID,EntityID> m_TowerGuards;
+	ref map<ref EntityID,ref EntityID> m_TowerGuards;
 	
 	override void PostInit()
 	{
 		super.PostInit();
 		
 		m_Towers = new array<ref EntityID>;
-		m_TowerGuards = new map<EntityID,EntityID>;
+		m_TowerGuards = new map<ref EntityID,ref EntityID>;
 		
 		FindTowers();
 	}

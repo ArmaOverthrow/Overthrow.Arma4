@@ -66,6 +66,13 @@ class OVT_TownControllerComponent: OVT_Component
 			shop.m_aInventoryItems.Insert(item);
 		}
 		
+		FactionAffiliationComponent faction = FactionAffiliationComponent.Cast(dealer.FindComponent(FactionAffiliationComponent));
+		if(!faction){
+			Print("Gun dealer spawn prefab is missing FactionAffiliationComponent!");
+		}else{
+			faction.SetAffiliatedFactionByKey("");
+		}
+		
 		m_Economy.RegisterGunDealer(m_GunDealerID);
 	}
 }

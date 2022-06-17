@@ -22,6 +22,7 @@ class OVT_BaseControllerComponent: OVT_Component
 	ref array<ref EntityID> m_LargeSlots;
 	ref array<ref EntityID> m_SmallRoadSlots;
 	ref array<ref EntityID> m_MediumRoadSlots;
+	ref array<ref EntityID> m_LargeRoadSlots;
 		
 	protected OVT_OccupyingFactionManager m_occupyingFactionManager;
 	
@@ -60,6 +61,7 @@ class OVT_BaseControllerComponent: OVT_Component
 		m_LargeSlots = new array<ref EntityID>;
 		m_SmallRoadSlots = new array<ref EntityID>;
 		m_MediumRoadSlots = new array<ref EntityID>;
+		m_LargeRoadSlots = new array<ref EntityID>;
 				
 		FindSlots();
 		
@@ -124,6 +126,7 @@ class OVT_BaseControllerComponent: OVT_Component
 		if(name.IndexOf("FlatLarge") > -1) m_LargeSlots.Insert(entity.GetID());
 		if(name.IndexOf("RoadSmall") > -1) m_SmallRoadSlots.Insert(entity.GetID());
 		if(name.IndexOf("RoadMedium") > -1) m_MediumRoadSlots.Insert(entity.GetID());
+		if(name.IndexOf("RoadLarge") > -1) m_LargeRoadSlots.Insert(entity.GetID());
 		
 		return true;
 	}
@@ -202,5 +205,11 @@ class OVT_BaseControllerComponent: OVT_Component
 			m_MediumRoadSlots.Clear();
 			m_MediumRoadSlots = null;
 		}
+		if(m_LargeRoadSlots)
+		{
+			m_LargeRoadSlots.Clear();
+			m_LargeRoadSlots = null;
+		}
+		
 	}
 }

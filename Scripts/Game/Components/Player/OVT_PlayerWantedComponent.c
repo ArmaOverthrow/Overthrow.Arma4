@@ -94,6 +94,19 @@ class OVT_PlayerWantedComponent: OVT_Component
 		}else if(m_iWantedLevel == 1 && m_bIsSeen) {
 			SetWantedLevel(2);			
 		}
+		
+		Faction currentFaction = m_Faction.GetAffiliatedFaction();
+		if(m_iWantedLevel > 1 && !currentFaction)
+		{
+			//Print("You are wanted now");
+			m_Faction.SetAffiliatedFactionByKey(m_Config.m_sPlayerFaction);
+		}
+		
+		if(m_iWantedLevel < 2 && currentFaction)
+		{
+			//Print("You are no longer wanted");
+			m_Faction.SetAffiliatedFactionByKey("");
+		}
 	}
 	
 	bool CheckEntity(IEntity entity)
@@ -140,10 +153,14 @@ class OVT_PlayerWantedComponent: OVT_Component
 		
 		source.GetBoneMatrix(headBone, matPos);
 		vector headPos = source.CoordToParent(matPos[3]);
+		
+		headBone = dest.GetBoneIndex("head");		
+		source.GetBoneMatrix(headBone, matPos);
+		vector destHead = source.CoordToParent(matPos[3]);
 						
 		autoptr TraceParam param = new TraceParam;
 		param.Start = headPos;
-		param.End = dest.GetOrigin();
+		param.End = destHead;
 		param.LayerMask = EPhysicsLayerDefs.Perception;
 		param.Flags = TraceFlags.ENTS | TraceFlags.WORLD; 
 		param.Exclude = source;
