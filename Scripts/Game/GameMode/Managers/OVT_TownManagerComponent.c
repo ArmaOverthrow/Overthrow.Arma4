@@ -248,9 +248,14 @@ class OVT_TownManagerComponent: OVT_Component
 	}
 	
 	protected void RecalculateSupport(int townId)
-	{		
-		OVT_TownData town = m_Towns[townId];
+	{
+		Faction playerFaction = GetGame().GetFactionManager().GetFactionByKey(m_Config.m_sPlayerFaction);
+		int playerFactionIndex = GetGame().GetFactionManager().GetFactionIndex(playerFaction);
 		
+		Faction occupyingFaction = GetGame().GetFactionManager().GetFactionByKey(m_Config.m_sOccupyingFaction);
+		int occupyingFactionIndex = GetGame().GetFactionManager().GetFactionIndex(occupyingFaction);
+				
+		OVT_TownData town = m_Towns[townId];		
 		OVT_TownModifierSystem system = GetModifierSystem(OVT_TownSupportModifierSystem);
 		
 		int newsupport = system.Recalculate(town.supportModifiers, town.support, 0, town.population);
@@ -259,6 +264,28 @@ class OVT_TownManagerComponent: OVT_Component
 		{
 			town.support = newsupport;
 			Rpc(RpcDo_SetSupport, townId, newsupport);
+		}
+		
+		//Villages only, see if we can peacefully flip it to the resistance (or back)
+		if(town.size > 1) return;
+		
+		int support = town.SupportPercentage();		
+		if(town.faction != playerFactionIndex && support >= 75 && town.stability >= 50)
+		{
+			//Chance this village will flip to the resistance
+			if(support >= 85 || s_AIRandomGenerator.RandFloat01() < 0.5)
+			{
+				Rpc(RpcDo_SetTownFaction, townId, playerFactionIndex);
+				OVT_Global.GetPlayers().HintMessageAll("VillageControlledResistance", townId);
+			}			
+		}else if(town.faction == playerFactionIndex && support < 25)
+		{
+			//Chance this village will flip back to the OF
+			if(support < 15 || s_AIRandomGenerator.RandFloat01() < 0.5)
+			{
+				Rpc(RpcDo_SetTownFaction, townId, occupyingFactionIndex);
+				OVT_Global.GetPlayers().HintMessageAll("VillageControlledOccupying", townId);
+			}
 		}
 	}
 	
@@ -727,6 +754,14 @@ class OVT_TownManagerComponent: OVT_Component
 			town.supportModifierTimers[i] = mod.timeout;
 		}
 	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_SetTownFaction(int townId, int index)
+	{
+		OVT_TownData town = m_Towns[townId];
+		town.faction = index;
+	}
+	
 	
 	void ~OVT_TownManagerComponent()
 	{

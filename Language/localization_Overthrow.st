@@ -157,6 +157,20 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{59A49AC5C2FC26C2}" {
+   Id "OVT-Msg-VillageControlledOccupying"
+   Target_en_us "Resistance has lost control of the village due to low support"
+   Modified 1503964017
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59A49AC9A028CADB}" {
+   Id "OVT-Msg-VillageControlledResistance"
+   Target_en_us "Village is now under control by the resistance due to overwhelming support"
+   Modified 1503962273
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{599B1780E41380D7}" {
    Id "OVT-MustBeDriver"
    Target_en_us "You must be the driver of the vehicle to fast travel all occupants"

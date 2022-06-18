@@ -393,6 +393,7 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode {
    m_iTimeMultiplier 6
   }
   OVT_PlayerManagerComponent "{599AA74940529C1C}" {
+   m_rMessageConfigFile "{36405F298C9B3186}Configs/overthrowBroadcastMessages.conf"
   }
   OVT_RealEstateManagerComponent "{59724C983E7EF811}" {
   }

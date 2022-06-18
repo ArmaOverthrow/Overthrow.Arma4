@@ -45,6 +45,7 @@ class OVT_UnloadStorageAction : SCR_InventoryAction
 		vehicleStorage.GetItems(items);
 		if(items.Count() == 0) {
 			SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-VehicleEmpty");
+			return;
 		}
 		foreach(IEntity item : items)
 		{

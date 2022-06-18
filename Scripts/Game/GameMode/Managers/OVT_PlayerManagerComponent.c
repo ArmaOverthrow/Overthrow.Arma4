@@ -4,6 +4,11 @@ class OVT_PlayerManagerComponentClass: OVT_ComponentClass
 
 class OVT_PlayerManagerComponent: OVT_Component
 {	
+	[Attribute()]
+	ResourceName m_rMessageConfigFile;
+	
+	protected SCR_SimpleMessagePresets m_Messages;
+	
 	ref ScriptInvoker m_OnPlayerRegistered = new ScriptInvoker();
 	
 	static OVT_PlayerManagerComponent s_Instance;
@@ -33,6 +38,88 @@ class OVT_PlayerManagerComponent: OVT_Component
 	{
 		m_mPersistentIDs = new map<int, string>;
 		m_mPlayerIDs = new map<string, int>;
+		
+		LoadMessageConfig();
+	}
+	
+	protected void LoadMessageConfig()
+	{
+		Resource holder = BaseContainerTools.LoadContainer(m_rMessageConfigFile);
+		if (holder)		
+		{
+			SCR_SimpleMessagePresets obj = SCR_SimpleMessagePresets.Cast(BaseContainerTools.CreateInstanceFromContainer(holder.GetResource().ToBaseContainer()));
+			if(obj)
+			{
+				m_Messages = obj;
+			}
+		}
+	}
+	
+	void HintMessageAll(string tag, int townId = -1, int playerId = -1)
+	{
+		SCR_SimpleMessagePreset preset = m_Messages.GetPreset(tag);
+		int index = m_Messages.m_aPresets.Find(preset);
+		Rpc(RpcDo_HintMessage, index, townId, playerId);
+		DoHintMessage(index, townId, playerId);
+	}
+	
+	protected string GetMessageText(int index, int townId = -1, int playerId = -1)
+	{
+		string text = "";
+		SCR_SimpleMessagePreset preset = m_Messages.m_aPresets[index];		
+		if(preset.m_UIInfo){
+			text += preset.m_UIInfo.GetDescription();
+		}
+		return text;
+	}
+	
+	protected string GetMessageTitle(int index, int townId = -1, int playerId = -1)
+	{
+		SCR_SimpleMessagePreset preset = m_Messages.m_aPresets[index];		
+		string text = "";
+		
+		string title = preset.m_UIInfo.GetName();
+		if(title != "")
+		{ 
+			//Prepend anything from UIInfo
+			text = title + " ";
+		}
+		string townName;
+		if(townId > -1)
+		{
+			//Add town name
+			OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+			OVT_TownData town = towns.m_Towns[townId];
+			SCR_MapDescriptorComponent desc = towns.GetNearestTownMarker(town.location);
+			text += desc.Item().GetDisplayName() + ": ";
+		}
+		if(playerId > -1)
+		{
+			//Add player name
+			string name = GetGame().GetPlayerManager().GetPlayerName(playerId);
+			text += name + " ";
+		}		
+		return text;
+	}
+	
+	protected void DoHintMessage(int index, int townId = -1, int playerId = -1)
+	{
+		string text = GetMessageText(index, townId, playerId);
+		string title = GetMessageText(index, townId, playerId);
+		SCR_HintManagerComponent.GetInstance().ShowCustom(text, title, 10, true);
+	}
+	
+	void SendMessageAll(string tag, int townId = -1, int playerId = -1)
+	{
+		SCR_SimpleMessagePreset preset = m_Messages.GetPreset(tag);
+		int index = m_Messages.m_aPresets.Find(preset);
+		Rpc(RpcDo_SendMessage, index, townId, playerId);
+		DoRcvMessage(index, townId, playerId);
+	}
+	
+	protected void DoRcvMessage(int index, int townId = -1, int playerId = -1)
+	{
+		string text = GetMessageText(index, townId, playerId);
 	}
 	
 	string GetPersistentIDFromPlayerID(int playerId)
@@ -98,6 +185,18 @@ class OVT_PlayerManagerComponent: OVT_Component
 		string s = ""+id1+id2+id3;
 		m_mPersistentIDs[playerId] = s;
 		m_mPlayerIDs[s] = playerId;
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_HintMessage(int msg, int townId, int playerId)
+	{
+		DoHintMessage(msg, townId, playerId);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_SendMessage(int msg, int townId, int playerId)
+	{
+		DoRcvMessage(msg, townId, playerId);
 	}
 	
 	void ~OVT_PlayerManagerComponent()
