@@ -34,6 +34,11 @@ class OVT_Global {
 		return OVT_OccupyingFactionManager.GetInstance();
 	}
 	
+	static OVT_ResistanceFactionManager GetResistanceFaction()
+	{
+		return OVT_ResistanceFactionManager.GetInstance();
+	}
+	
 	static bool PlayerInRange(vector pos, int range)
 	{		
 		bool active = false;

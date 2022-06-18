@@ -157,6 +157,20 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{59A49A822C192F63}" {
+   Id "OVT-Msg-HasPlacedFOB"
+   Target_en_us "has placed a new FOB"
+   Modified 1503998659
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59A49A823A9D330A}" {
+   Id "OVT-Msg-NewFOB"
+   Target_en_us "The FOB is now available for fast travel and more"
+   Modified 1503998759
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59A49AC5C2FC26C2}" {
    Id "OVT-Msg-VillageControlledOccupying"
    Target_en_us "Resistance has lost control of the village due to low support"
@@ -393,6 +407,27 @@ StringTable {
    Id "OVT-SupportMod_RecruitmentPosters"
    Target_en_us "Recruitment Posters"
    Modified 1503843685
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59A49A81DADADDD9}" {
+   Id "OVT-TooCloseBase"
+   Target_en_us "You cannot place that here, it is too close to a military base"
+   Modified 1503997278
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59A49A8618B96EBF}" {
+   Id "OVT-TooCloseBuilding"
+   Target_en_us "You cannot place that here, it is too close to a building"
+   Modified 1503996764
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59A49A81B65FE81A}" {
+   Id "OVT-TooCloseTown"
+   Target_en_us "You cannot place that here, it is too close to a town"
+   Modified 1503997267
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

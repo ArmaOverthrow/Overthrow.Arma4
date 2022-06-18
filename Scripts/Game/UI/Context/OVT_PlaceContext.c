@@ -6,11 +6,15 @@ class OVT_PlaceContext : OVT_UIContext
 	protected ResourceName m_pPlacingPrefab;
 	protected OVT_Placeable m_Placeable;
 	
-	protected const float TRACE_DIS = 50;
-	protected const float MAX_PREVIEW_DIS = 50;
+	protected const float TRACE_DIS = 15;
+	protected const float MAX_PREVIEW_DIS = 15;
 	protected const float MAX_HOUSE_PLACE_DIS = 30;
+	protected const float MAX_FOB_PLACE_DIS = 30;
 	
 	protected OVT_RealEstateManagerComponent m_RealEstate;
+	protected OVT_OccupyingFactionManager m_OccupyingFaction;
+	protected OVT_ResistanceFactionManager m_Resistance;
+	protected OVT_TownManagerComponent m_Towns;
 	
 	bool m_bPlacing = false;
 	int m_iPrefabIndex = 0;
@@ -19,6 +23,9 @@ class OVT_PlaceContext : OVT_UIContext
 	{
 		m_Widgets = new OVT_PlaceMenuWidgets();
 		m_RealEstate = OVT_Global.GetRealEstate();
+		m_OccupyingFaction = OVT_Global.GetOccupyingFaction();
+		m_Resistance = OVT_Global.GetResistanceFaction();
+		m_Towns = OVT_Global.GetTowns();
 	}
 	
 	override void OnFrame(float timeSlice)
@@ -97,14 +104,57 @@ class OVT_PlaceContext : OVT_UIContext
 		RemoveGhost();
 	}
 	
-	bool CanPlace(vector pos)
+	bool CanPlace(vector pos, out string reason)
 	{
+		reason = "#OVT-CannotPlaceHere";
 		if(m_Placeable.m_bIgnoreLocation) return true;
 		
-		IEntity house = m_RealEstate.GetNearestOwned(m_sPlayerID, pos);
-		float dist = vector.Distance(house.GetOrigin(), pos);
+		float dist;
 		
-		if(dist < MAX_HOUSE_PLACE_DIS) return true;
+		if(m_Placeable.m_bAwayFromTownsBases)
+		{
+			IEntity building = m_RealEstate.GetNearestBuilding(pos, MAX_HOUSE_PLACE_DIS);
+			if(building)
+			{
+				dist = vector.Distance(building.GetOrigin(), pos);
+				if(dist < MAX_HOUSE_PLACE_DIS)
+				{
+					reason = "#OVT-TooCloseBuilding";
+					return false;
+				}
+			}
+			
+			OVT_BaseControllerComponent base = m_OccupyingFaction.GetNearestBase(pos);
+			OVT_TownData town = m_Towns.GetNearestTown(pos);
+			dist = vector.Distance(base.GetOwner().GetOrigin(),pos);
+			if(dist < base.m_iRange)
+			{
+				reason = "#OVT-TooCloseBase";
+				return false;
+			}
+			dist = vector.Distance(town.location,pos);
+			if(dist < m_Towns.GetTownRange(town))
+			{
+				reason = "#OVT-TooCloseTown";
+				return false;
+			}
+			
+			return true;
+		}		
+		
+		IEntity house = m_RealEstate.GetNearestOwned(m_sPlayerID, pos);
+		if(house)
+		{
+			dist = vector.Distance(house.GetOrigin(), pos);				
+			if(dist < MAX_HOUSE_PLACE_DIS) return true;
+		}
+		
+		OVT_ResistanceFOBControllerComponent fob = m_Resistance.GetNearestFOB(pos);
+		if(fob)
+		{
+			dist = vector.Distance(fob.GetOwner().GetOrigin(), pos);
+			if(dist < MAX_FOB_PLACE_DIS) return true;
+		}
 		
 		return false;
 	}
@@ -117,9 +167,10 @@ class OVT_PlaceContext : OVT_UIContext
 		
 		m_Placeable = placeable;
 		
-		if(!CanPlace(player.GetOrigin()))
+		string reason;
+		if(!CanPlace(player.GetOrigin(), reason))
 		{
-			ShowHint("#OVT-CannotPlaceHere");
+			ShowHint(reason);
 			SCR_UISoundEntity.SoundEvent(UISounds.ERROR);
 			return;
 		}
@@ -183,10 +234,10 @@ class OVT_PlaceContext : OVT_UIContext
 			vector mat[4];
 			m_ePlacingEntity.GetTransform(mat);
 			RemoveGhost();
-			
-			if(!CanPlace(mat[3]))
+			string error;
+			if(!CanPlace(mat[3], error))
 			{
-				ShowHint("#OVT-CannotPlaceHere");
+				ShowHint(error);
 				SCR_UISoundEntity.SoundEvent(UISounds.ERROR);
 				return;
 			}

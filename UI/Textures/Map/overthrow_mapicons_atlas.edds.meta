@@ -1,15 +1,15 @@
 MetaFileClass {
  Name "{B2EDB8AD2EA10AD3}UI/Textures/Map/overthrow_mapicons_atlas.edds"
  Configurations {
-  PNGResourceClass PC : "{1D692833852EC72A}Configs/System/ResourceTypes/PC/TextureUIAtlas.conf" {
+  TIFFResourceClass PC : "{1D692833852EC72A}Configs/System/ResourceTypes/PC/TextureUIAtlas.conf" {
   }
-  PNGResourceClass XBOX_ONE : "{96767353535A4256}Configs/System/ResourceTypes/XBOX_ONE/TextureUIAtlas.conf" {
+  TIFFResourceClass XBOX_ONE : "{96767353535A4256}Configs/System/ResourceTypes/XBOX_ONE/TextureUIAtlas.conf" {
   }
-  PNGResourceClass XBOX_SERIES : "{8A3A5BA26FD3DE70}Configs/System/ResourceTypes/XBOX_SERIES/TextureUIAtlas.conf" {
+  TIFFResourceClass XBOX_SERIES : "{8A3A5BA26FD3DE70}Configs/System/ResourceTypes/XBOX_SERIES/TextureUIAtlas.conf" {
   }
-  PNGResourceClass PS4 : "{962DE8F3FC2848A3}Configs/System/ResourceTypes/PS4/TextureUIAtlas.conf" {
+  TIFFResourceClass PS4 : "{962DE8F3FC2848A3}Configs/System/ResourceTypes/PS4/TextureUIAtlas.conf" {
   }
-  PNGResourceClass HEADLESS : "{15892FB1C3E30D2C}Configs/System/ResourceTypes/HEADLESS/TextureUIAtlas.conf" {
+  TIFFResourceClass HEADLESS : "{15892FB1C3E30D2C}Configs/System/ResourceTypes/HEADLESS/TextureUIAtlas.conf" {
   }
  }
 }

@@ -1,11 +1,5 @@
 class OVT_OccupyingFactionManagerClass: OVT_ComponentClass
-{
-	override bool DependsOn(string className)
-	{
-		if(className == "OVT_TownManagerComponent") return true;
-		
-		return false;
-	}
+{	
 }
 
 class OVT_OccupyingFactionManager: OVT_Component

@@ -10,6 +10,8 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	
 	static OVT_RealEstateManagerComponent s_Instance;
 	
+	protected ref array<IEntity> m_aEntitySearch;
+	
 	static OVT_RealEstateManagerComponent GetInstance()
 	{
 		if (!s_Instance)
@@ -25,6 +27,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	void OVT_RealEstateManagerComponent()
 	{
 		m_mHomes = new map<string, RplId>;
+		m_aEntitySearch = new array<IEntity>;
 	}
 	
 	override void OnPostInit(IEntity owner)
@@ -65,6 +68,39 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		}
 		
 		return nearestEnt;
+	}
+	
+	IEntity GetNearestBuilding(vector pos, float range = 25)
+	{
+		m_aEntitySearch.Clear();
+		GetGame().GetWorld().QueryEntitiesBySphere(pos, range, null, FilterBuildingToArray, EQueryEntitiesFlags.STATIC);
+		
+		if(m_aEntitySearch.Count() == 0)
+		{
+			return null;
+		}
+		float nearest = range;
+		IEntity nearestEnt;	
+		
+		foreach(IEntity ent : m_aEntitySearch)
+		{
+			float dist = vector.Distance(ent.GetOrigin(), pos);
+			if(dist < nearest)
+			{
+				nearest = dist;
+				nearestEnt = ent;
+			}
+		}
+		return nearestEnt;
+	}
+	
+	bool FilterBuildingToArray(IEntity entity)
+	{
+		if(entity.ClassName() == "SCR_DestructibleBuildingEntity")
+		{
+			m_aEntitySearch.Insert(entity);
+		}
+		return false;
 	}
 	
 	IEntity GetHome(string playerId)
@@ -140,6 +176,11 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		{
 			m_mHomes.Clear();
 			m_mHomes = null;
+		}
+		if(m_aEntitySearch)
+		{
+			m_aEntitySearch.Clear();
+			m_aEntitySearch = null;
 		}
 	}
 }

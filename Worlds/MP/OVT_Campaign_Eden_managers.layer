@@ -265,6 +265,8 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode {
     }
    }
   }
+  OVT_OccupyingFactionManager "{59845E732755785F}" {
+  }
   OVT_OverthrowConfigComponent "{59724C8C935D8E5D}" {
    m_pBaseControllerPrefab "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.et"
    m_pTownControllerPrefab "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.et"
@@ -350,18 +352,18 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode {
      }
      m_tPreview "{65134F624B2FE2B6}UI/Textures/EditorPreviews/Auto/Structures/Military/Camps/TentSmallUS_01/E_TentSmallUS_01.edds"
      m_iCost 150
-     m_bIgnoreLocation 1
      m_bAwayFromTownsBases 1
     }
     OVT_Placeable "{598AD552E7A55104}" {
      name "#OVT-Place_FOB"
      m_aPrefabs {
-      "{160E4E4110803F26}Prefabs/Structures/Military/Flags/FlagPole_02_V1_FIA.et"
+      "{3F983E0F4FD1246C}Prefabs/Structures/Military/Flags/FOB_V1_FIA.et"
      }
      m_tPreview "{511D7FCF61C4D6B3}UI/Textures/EditorPreviews/Auto/Structures/Military/Flags/E_FlagPole_02_V1_FIA.edds"
      m_iCost 1000
-     m_bIgnoreLocation 1
      m_bAwayFromTownsBases 1
+     handler OVT_PlaceableFOBHandler "{59A49A83EE9CF6C9}" {
+     }
     }
     OVT_Placeable "{59A2BDB34357C5EF}" {
      name "#OVT-Place_Poster"
@@ -397,6 +399,8 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode {
   }
   OVT_RealEstateManagerComponent "{59724C983E7EF811}" {
   }
+  OVT_ResistanceFactionManager "{59A49A9CD87CBC92}" {
+  }
   OVT_RespawnHandlerComponent "{59724C8C9A6408EE}" {
    m_iForcedFaction 1
    m_iForcedLoadout 0
@@ -412,8 +416,6 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode {
      m_rConfigFile "{AB1726E5220F21F1}Configs/Modifiers/supportModifiers.conf"
     }
    }
-  }
-  OVT_OccupyingFactionManager "{59845E732755785F}" {
   }
   OVT_VehicleManagerComponent "{59953E39CBC3659D}" {
    m_pStartingCarPrefab "{259EE7B78C51B624}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469.et"

@@ -46,6 +46,7 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
 		OVT_OverthrowConfigComponent otconfig = OVT_Global.GetConfig();
 		OVT_VehicleManagerComponent vehicles = OVT_Global.GetVehicles();
+		OVT_ResistanceFactionManager resistance = OVT_Global.GetResistanceFaction();
 		
 		ChimeraCharacter playerEntity = ChimeraCharacter.Cast(SCR_PlayerController.GetLocalControlledEntity());
 		if (!playerEntity)
@@ -132,6 +133,20 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 			
 			image.SetRotation(angles[0]);
 			
+			m_Widgets.Insert(w);
+		}
+		
+		foreach(RplId id : resistance.m_FOBs)
+		{
+			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+			if(!rpl) continue;
+			IEntity ent = rpl.GetEntity();
+			m_Centers.Insert(ent.GetOrigin());
+			
+			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
+			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
+						
+			image.LoadImageFromSet(0, m_Imageset, "fob");			
 			m_Widgets.Insert(w);
 		}
 		

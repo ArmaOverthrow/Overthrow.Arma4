@@ -365,6 +365,14 @@ class OVT_TownManagerComponent: OVT_Component
 		return nearestTown;
 	}
 	
+	float GetTownRange(OVT_TownData town)
+	{
+		float range = m_iCityRange;
+		if(town.size == 1) range = m_iVillageRange;
+		if(town.size == 2) range = m_iTownRange;
+		return range;
+	}
+	
 	OVT_TownData GetNearestTownInRange(vector pos)
 	{
 		foreach(OVT_TownData town : m_Towns)

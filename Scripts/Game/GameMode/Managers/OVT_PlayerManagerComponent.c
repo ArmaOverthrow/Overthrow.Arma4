@@ -7,7 +7,7 @@ class OVT_PlayerManagerComponent: OVT_Component
 	[Attribute()]
 	ResourceName m_rMessageConfigFile;
 	
-	protected SCR_SimpleMessagePresets m_Messages;
+	protected ref SCR_SimpleMessagePresets m_Messages;
 	
 	ref ScriptInvoker m_OnPlayerRegistered = new ScriptInvoker();
 	
@@ -105,7 +105,7 @@ class OVT_PlayerManagerComponent: OVT_Component
 	protected void DoHintMessage(int index, int townId = -1, int playerId = -1)
 	{
 		string text = GetMessageText(index, townId, playerId);
-		string title = GetMessageText(index, townId, playerId);
+		string title = GetMessageTitle(index, townId, playerId);
 		SCR_HintManagerComponent.GetInstance().ShowCustom(text, title, 10, true);
 	}
 	

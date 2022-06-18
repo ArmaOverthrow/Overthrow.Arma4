@@ -55,5 +55,11 @@ ImageSetClass {
    Size 128 128
    Flags 0
   }
+  ImageSetDefClass fob {
+   Name "fob"
+   Pos 262 132
+   Size 128 128
+   Flags 0
+  }
  }
 }
