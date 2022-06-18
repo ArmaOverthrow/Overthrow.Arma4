@@ -82,6 +82,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{59A2BD308A7926FA}" {
+   Id "OVT-LoadStorage"
+   Target_en_us "Load Into vehicle"
+   Modified 1503943274
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{598AB67692AD5DBB}" {
    Id "OVT-MainMenu_Build"
    Target_en_us "Build"
@@ -154,6 +161,13 @@ StringTable {
    Id "OVT-MustBeDriver"
    Target_en_us "You must be the driver of the vehicle to fast travel all occupants"
    Modified 1503337948
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59A2BD317EE6028A}" {
+   Id "OVT-NoVehiclesNearby"
+   Target_en_us "There are no vehicles nearby"
+   Modified 1503943297
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -346,6 +360,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{59A45C635CF39E07}" {
+   Id "OVT-StorageEmpty"
+   Target_en_us "Equipment Box is empty"
+   Modified 1503946452
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5976AC6DA03E2264}" {
    Id "OVT-Support"
    Target_en_us "Support"
@@ -358,6 +379,20 @@ StringTable {
    Id "OVT-SupportMod_RecruitmentPosters"
    Target_en_us "Recruitment Posters"
    Modified 1503843685
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59A2BD31647163FE}" {
+   Id "OVT-UnloadStorage"
+   Target_en_us "Unload from vehicle"
+   Modified 1503943258
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59A45C63209BFF7C}" {
+   Id "OVT-VehicleEmpty"
+   Target_en_us "Vehicle is empty"
+   Modified 1503946465
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

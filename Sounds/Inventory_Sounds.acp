@@ -1,0 +1,168 @@
+AudioClass {
+ sounds {
+  SoundClass {
+   id 3081
+   name "LOAD_VEHICLE"
+   tl 122 156
+   conns {
+    ConnectionsClass connections {
+     id 14
+     links {
+      ConnectionClass connection {
+       id 11282
+       port 65
+      }
+     }
+    }
+   }
+   outState 14347
+   outStatePort 79879
+  }
+  SoundClass {
+   id 5129
+   name "UNLOAD_VEHICLE"
+   tl 120 367.5
+   conns {
+    ConnectionsClass connections {
+     id 14
+     links {
+      ConnectionClass connection {
+       id 12306
+       port 65
+      }
+     }
+    }
+   }
+   outState 14347
+   outStatePort 79879
+  }
+ }
+ mixers {
+  MixerClass {
+   id 14347
+   name "OutputState 14"
+   tl 462 -21
+   res "{B764D803219C775E}Sounds/FinalMix.afm"
+   iops {
+    IOPConnectionClass iopConnection {
+     port 79879
+     conn {
+      ConnectionsClass connections {
+       id 5
+       links {
+        ConnectionClass connection {
+         id 5129
+         port 65
+        }
+        ConnectionClass connection {
+         id 3081
+         port 65
+        }
+       }
+      }
+     }
+    }
+   }
+   path "{B764D803219C775E}Sounds/FinalMix.afm"
+   inputs {
+    "ANM_Footsteps" "ANM_Voice" "WPN_Handling" "WPN_Shots" "WPN_Explosions" "WNP_BulletHits" "CHAR" "ENV_Ambients" "VEH_Animations" "Impacts" "Dialogue" "Music" "ENV_Objects" "UI" "VEH_Engine" "VEH_Tires" "VON" "SFX" "ENV_Ambient_NoAtt" "SFX_Reverb" "VON_Reverb" "Dialogue_Reverb"
+   }
+  }
+ }
+ shaders {
+  ShaderClass {
+   id 11282
+   name "Shader 4"
+   tl -243 156
+   conns {
+    ConnectionsClass connections {
+     id 0
+     links {
+      ConnectionClass connection {
+       id 4100
+       port 65
+      }
+     }
+    }
+   }
+   iops {
+    IOPConnectionClass iopConnection {
+     port 1
+     conn {
+      ConnectionsClass connections {
+       id 15
+       links {
+        ConnectionClass connection {
+         id 10259
+         port 65
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+  ShaderClass {
+   id 12306
+   name "Shader 5"
+   tl -244 367
+   conns {
+    ConnectionsClass connections {
+     id 0
+     links {
+      ConnectionClass connection {
+       id 6148
+       port 65
+      }
+     }
+    }
+   }
+   iops {
+    IOPConnectionClass iopConnection {
+     port 1
+     conn {
+      ConnectionsClass connections {
+       id 15
+       links {
+        ConnectionClass connection {
+         id 10259
+         port 65
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+ amplitudes {
+  AmplitudeClass : "{D6921F7062BE7960}Sounds/_SharedData/Configs/Amplitude/_SharedFolder/Amplitude_20m.conf" {
+   id 10259
+   tl -577 309
+   parent "{D6921F7062BE7960}Sounds/_SharedData/Configs/Amplitude/_SharedFolder/Amplitude_20m.conf"
+  }
+ }
+ banks_local {
+  BankLocalClass {
+   id 4100
+   name "Load"
+   tl -584 202
+   Samples {
+    AudioBankSampleClass "Sample(1)" {
+     Filename "{E19EA4AD29C9A8DE}Sounds/UI/Samples/Campaign/UI_Campaign_Load_Supplies.wav"
+    }
+   }
+  }
+  BankLocalClass {
+   id 6148
+   name "Unload"
+   tl -586 401.5
+   Samples {
+    AudioBankSampleClass "Sample(1)" {
+     Filename "{2CBF9835039200D6}Sounds/UI/Samples/Campaign/UI_Campaign_Unload_Supplies.wav"
+    }
+   }
+  }
+ }
+ version 1
+}

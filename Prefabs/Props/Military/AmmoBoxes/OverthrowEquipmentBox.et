@@ -29,6 +29,13 @@ GenericEntity {
    MaxCumulativeVolume 30000
    m_fMaxWeight 1000
   }
+  SimpleSoundComponent "{59A45C66864BF068}" {
+   Filenames {
+    "{E3471FB527172D41}Sounds/Inventory_Sounds.acp"
+   }
+  }
+  SCR_InventoryStorageManagerComponent "{59A45C644081E9DF}" {
+  }
   ActionsManagerComponent "{5992E2EE5A9EEC18}" {
    ActionContexts {
     UserActionContext "{5992E2EE277DD41C}" {
@@ -48,10 +55,30 @@ GenericEntity {
       Name "#AR-Inventory_OpenStorage"
      }
     }
+    OVT_LoadStorageAction "{59A2BD30E8635FC6}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{59A2BD30FD4120DE}" {
+      Name "#OVT-LoadStorage"
+     }
+     Duration 0
+     "Sort Priority" 1
+    }
+    OVT_UnloadStorageAction "{59A2BD30F5BF3DC3}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{59A2BD30D58DF9E8}" {
+      Name "#OVT-UnloadStorage"
+     }
+     Duration 0
+     "Sort Priority" 2
+    }
    }
   }
   RplComponent "{5992E2EEFC6E557E}" {
   }
  }
- coords 5597.396 97.994 6046.079
+ coords 0 0 0
 }
