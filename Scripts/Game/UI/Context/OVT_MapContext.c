@@ -101,16 +101,18 @@ class OVT_MapContext : OVT_UIContext
 			child = container.GetChildren();
 		}
 		array<int> done = new array<int>;
+		OVT_TownModifierSystem system = m_TownManager.GetModifierSystem(OVT_TownStabilityModifierSystem);
 		foreach(int index : m_SelectedTown.stabilityModifiers)
 		{
 			if(done.Contains(index)) continue;
-			OVT_StabilityModifierConfig mod = m_TownManager.m_StabilityModifiers.m_aStabilityModifiers[index];
+			
+			OVT_ModifierConfig mod = system.m_Config.m_aModifiers[index];
 			WorkspaceWidget workspace = GetGame().GetWorkspace(); 
 			Widget w = workspace.CreateWidgets(m_ModLayout, container);
 			TextWidget tw = TextWidget.Cast(w.FindAnyWidget("Text"));
 			
 			int effect = mod.baseEffect;
-			if(mod.flags & OVT_StabilityModifierFlags.STACKABLE)
+			if(mod.flags & OVT_ModifierFlags.STACKABLE)
 			{
 				effect = 0;
 				//count all present
@@ -140,15 +142,17 @@ class OVT_MapContext : OVT_UIContext
 			child = container.GetChildren();
 		}
 		done.Clear();
+		
+		system = m_TownManager.GetModifierSystem(OVT_TownSupportModifierSystem);
 		foreach(int index : m_SelectedTown.supportModifiers)
 		{
 			if(done.Contains(index)) continue;
-			OVT_SupportModifierConfig mod = m_TownManager.m_SupportModifiers.m_aSupportModifiers[index];
+			OVT_ModifierConfig mod = system.m_Config.m_aModifiers[index];
 			WorkspaceWidget workspace = GetGame().GetWorkspace(); 
 			Widget w = workspace.CreateWidgets(m_ModLayout, container);
 			TextWidget tw = TextWidget.Cast(w.FindAnyWidget("Text"));
 			int effect = mod.baseEffect;
-			if(mod.flags & OVT_SupportModifierFlags.STACKABLE)
+			if(mod.flags & OVT_ModifierFlags.STACKABLE)
 			{
 				effect = 0;
 				//count all present

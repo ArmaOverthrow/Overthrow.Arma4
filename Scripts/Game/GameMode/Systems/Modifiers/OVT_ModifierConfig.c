@@ -1,11 +1,11 @@
-enum OVT_StabilityModifierFlags
+enum OVT_ModifierFlags
 {	
 	ACTIVE = 1,
 	STACKABLE = 2	
 };
 
 [BaseContainerProps(), SCR_BaseContainerLocalizedTitleField("name")]
-class OVT_StabilityModifierConfig
+class OVT_ModifierConfig 
 {
 	[Attribute()]
 	string name;
@@ -15,16 +15,18 @@ class OVT_StabilityModifierConfig
 	float baseEffect;
 	[Attribute("1200")]
 	int timeout;
-	[Attribute("1", uiwidget: UIWidgets.Flags, "", "", ParamEnumArray.FromEnum(OVT_StabilityModifierFlags))]
-	OVT_StabilityModifierFlags flags;
+	[Attribute("5")]
+	int stackLimit;
+	[Attribute("1", uiwidget: UIWidgets.Flags, "", "", ParamEnumArray.FromEnum(OVT_ModifierFlags))]
+	OVT_ModifierFlags flags;
 	[Attribute("", UIWidgets.Object)]
-	ref OVT_StabilityModifier handler;
+	ref OVT_Modifier handler;
 }
 
 [BaseContainerProps(configRoot : true)]
-class OVT_StabilityModifiersConfig
+class OVT_ModifiersConfig
 {
 	[Attribute("", UIWidgets.Object)]
-	ref array<ref OVT_StabilityModifierConfig> m_aStabilityModifiers;
+	ref array<ref OVT_ModifierConfig> m_aModifiers;
 		
 }

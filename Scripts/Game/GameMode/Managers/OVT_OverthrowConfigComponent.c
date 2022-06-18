@@ -127,7 +127,7 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	[Attribute(desc: "Starting Houses (these should have parking spot entities added to their prefabs)", params: "et")]
 	ref array<string> m_aStartingHouseFilters;
 	
-	[Attribute(defvalue: "4", UIWidgets.EditBox, desc: "Time multiplier")]
+	[Attribute(defvalue: "6", UIWidgets.EditBox, desc: "Time multiplier")]
 	int m_iTimeMultiplier;
 	
 	// Instance of this component

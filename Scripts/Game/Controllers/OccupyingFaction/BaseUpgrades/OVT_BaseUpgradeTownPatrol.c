@@ -20,6 +20,9 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 	
 	override void OnUpdate(int timeSlice)
 	{
+		OVT_TownModifierSystem system = m_Towns.GetModifierSystem(OVT_TownStabilityModifierSystem);
+		if(!system) return;
+		
 		//Check on our patrols and update stability/support
 		for(int i; i< m_Patrols.Count(); i++)
 		{
@@ -34,14 +37,14 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 					OVT_TownData town = m_Towns.m_Towns[townId];
 					float dist = vector.Distance(town.location, group.GetOrigin());
 					if(dist < 50)
-					{
+					{						
 						if(town.support >= 75)
 						{
-							m_Towns.TryAddStabilityModifierByName(townId, "RecentPatrolNegative");
-							m_Towns.RemoveStabilityModifierByName(townId, "RecentPatrolPositive");
+							system.TryAddByName(townId, "RecentPatrolNegative");
+							system.RemoveByName(townId, "RecentPatrolPositive");
 						}else{
-							m_Towns.TryAddStabilityModifierByName(townId, "RecentPatrolPositive");
-							m_Towns.RemoveStabilityModifierByName(townId, "RecentPatrolNegative");
+							system.TryAddByName(townId, "RecentPatrolPositive");
+							system.RemoveByName(townId, "RecentPatrolNegative");
 						}						
 					}
 				}

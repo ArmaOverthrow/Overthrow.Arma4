@@ -403,6 +403,14 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode {
   OVT_RespawnSystemComponent "{59724C8C935D8E47}" {
   }
   OVT_TownManagerComponent "{59724C983BF56C3B}" {
+   m_aTownModifiers {
+    OVT_TownStabilityModifierSystem "{59A2BDDB065D9242}" {
+     m_rConfigFile "{FD430627EAC5BDBC}Configs/Modifiers/stabilityModifiers.conf"
+    }
+    OVT_TownSupportModifierSystem "{59A2BDDB000FF00C}" {
+     m_rConfigFile "{AB1726E5220F21F1}Configs/Modifiers/supportModifiers.conf"
+    }
+   }
   }
   OVT_OccupyingFactionManager "{59845E732755785F}" {
   }
