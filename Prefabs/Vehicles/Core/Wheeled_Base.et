@@ -1,0 +1,27 @@
+Vehicle : "{4085446E2B406849}Prefabs/Vehicles/Core/Vehicle_Base.et" {
+ ID "BBCBA43A9778AE21"
+ components {
+  BaseVehicleNodeComponent "{20FB66C5B2237133}" {
+   components {
+    SCR_BaseHUDComponent "{37C2676694790BC7}" {
+     InfoDisplays {
+     }
+    }
+   }
+  }
+  SCR_BaseHUDComponent "{53151CEE6C0A409F}" {
+   InfoDisplays {
+    OVT_WantedInfo "{59A2BD214D67BF76}" {
+     m_LayoutPath "{472DF3D2F7500FEB}UI/Layouts/HUD/WantedInfo.layout"
+    }
+    OVT_EconomyInfo "{59A2BD2148BC1E8C}" {
+     m_LayoutPath "{3C972A84DC44F671}UI/Layouts/HUD/EconomyInfo.layout"
+    }
+   }
+  }
+  SCR_VehicleDamageManagerComponent "{141326E9FD94FE40}" {
+   m_fVehicleDestroyDamage 2857.86
+  }
+ }
+ coords 0 0 0
+}

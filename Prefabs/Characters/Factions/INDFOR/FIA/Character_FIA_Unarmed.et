@@ -39,8 +39,10 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
   SCR_BaseHUDComponent "{520EA1D2DB118134}" {
    InfoDisplays {
     OVT_WantedInfo "{5970CDA89486F650}" {
+     m_LayoutPath "{472DF3D2F7500FEB}UI/Layouts/HUD/WantedInfo.layout"
     }
     OVT_EconomyInfo "{5988DB0A05162D4F}" {
+     m_LayoutPath "{3C972A84DC44F671}UI/Layouts/HUD/EconomyInfo.layout"
     }
    }
   }

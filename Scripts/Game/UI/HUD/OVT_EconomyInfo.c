@@ -1,65 +1,31 @@
-/*
-
-*/
-
-class OVT_EconomyInfo : SCR_InfoDisplayExtended {
-	ref OVT_EconomyInfoWidgets widgets;
-	
+class OVT_EconomyInfo : SCR_InfoDisplay {	
 	OVT_EconomyManagerComponent m_Economy = null;
 	string m_playerId;
 	
 	//------------------------------------------------------------------------------------------------
-	override bool DisplayStartDrawInit(IEntity owner)
+	override event void OnInit(IEntity owner)
 	{
-		CreateLayout();
-		
-		SCR_ChimeraCharacter character = SCR_ChimeraCharacter.Cast(owner);
-		if (!character)
-			return false;
-		
+		super.OnInit(owner);
+				
 		m_Economy = OVT_Global.GetEconomy();
-		
-		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(character);
-		m_playerId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+	}
 	
-		return true;
+	protected void InitCharacter()
+	{
+		SCR_ChimeraCharacter character = SCR_ChimeraCharacter.Cast(SCR_PlayerController.GetLocalControlledEntity());
+		if (!character)
+			return;
+		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(character);
+		m_playerId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);	
 	}
 		
-	override void DisplayUpdate(IEntity owner, float timeSlice)
+	private override event void UpdateValues(IEntity owner, float timeSlice)
 	{	
+		if(!m_playerId){
+			InitCharacter();
+		}
 		UpdateMoney();
 	}
-	
-	//------------------------------------------------------------------------------------------------
-	// Create the layout
-	//------------------------------------------------------------------------------------------------
-	void CreateLayout()
-	{		
-		// Destroy existing layout
-		DestroyLayout();
-		
-		// Create weapon info layout
-		SCR_HUDManagerComponent manager = SCR_HUDManagerComponent.GetHUDManager();
-		if (manager)
-			m_wRoot = manager.CreateLayout(OVT_EconomyInfoWidgets.s_sLayout, m_eLayer);
-
-		if (!m_wRoot)
-			return;
-		
-		widgets = new OVT_EconomyInfoWidgets();
-		widgets.Init(m_wRoot);
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	// Destroy the layout
-	//------------------------------------------------------------------------------------------------
-	void DestroyLayout()
-	{
-		if (m_wRoot)
-			m_wRoot.RemoveFromHierarchy();
-			
-		m_wRoot = null;
-	}	
 			
 	//------------------------------------------------------------------------------------------------
 	// Update Money
@@ -68,7 +34,10 @@ class OVT_EconomyInfo : SCR_InfoDisplayExtended {
 	{
 		if (!m_Economy)
 			return;
+		if(!m_wRoot)
+			return;
 						
-		widgets.m_MoneyText.SetText("$" + m_Economy.GetPlayerMoney(m_playerId));
+		TextWidget w = TextWidget.Cast(m_wRoot.FindWidget("Frame0.EconomyInfoPanel.Money.MoneyText"));
+		w.SetText("$" + m_Economy.GetPlayerMoney(m_playerId));
 	}
 }

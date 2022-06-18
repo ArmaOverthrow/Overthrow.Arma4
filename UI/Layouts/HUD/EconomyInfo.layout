@@ -19,7 +19,7 @@ OverlayWidgetClass {
    Opacity 0.9
    {
     VerticalLayoutWidgetClass "{5988DB07CCB81B21}" {
-     Name "m_EconomyInfoPanel"
+     Name "EconomyInfoPanel"
      Slot FrameWidgetSlot "{56E0F185ADC1E20E}" {
       Anchor 1 0 1 0
       PositionX -16
@@ -36,7 +36,7 @@ OverlayWidgetClass {
      "Inherit Color" 1
      {
       HorizontalLayoutWidgetClass "{5988DB07CCB81B20}" {
-       Name "m_Money"
+       Name "Money"
        Slot LayoutSlot "{5870C1D380D38B81}" {
         HorizontalAlign 2
         Padding 0 2 10 0
@@ -44,7 +44,7 @@ OverlayWidgetClass {
        "Inherit Color" 1
        {
         RichTextWidgetClass "{5988DB07CCB81B2F}" {
-         Name "m_MoneyText"
+         Name "MoneyText"
          Slot LayoutSlot "{56E0F189AA8E9CDB}" {
           HorizontalAlign 2
           VerticalAlign 1

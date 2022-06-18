@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{A5F5778DD6FF81CB}UI/Textures/Icons/icon_seen_ui.edds"
+ Configurations {
+  TIFFResourceClass PC : "{3549C665CAA9A8EA}Configs/System/ResourceTypes/PC/TextureUI.conf" {
+  }
+  TIFFResourceClass XBOX_ONE : "{5E6D8E2B87D36B34}Configs/System/ResourceTypes/XBOX_ONE/TextureUI.conf" {
+  }
+  TIFFResourceClass XBOX_SERIES : "{03194CD39583675A}Configs/System/ResourceTypes/XBOX_SERIES/TextureUI.conf" {
+  }
+  TIFFResourceClass PS4 : "{A752014F057BCE60}Configs/System/ResourceTypes/PS4/TextureUI.conf" {
+  }
+  TIFFResourceClass HEADLESS : "{E604D15366D985DF}Configs/System/ResourceTypes/HEADLESS/TextureUI.conf" {
+  }
+ }
+}

@@ -19,84 +19,93 @@ OverlayWidgetClass {
    Opacity 0.9
    {
     HorizontalLayoutWidgetClass "{5970CDADB3F0CA52}" {
-     Name "m_WantedLevel"
+     Name "WantedLevel"
      Slot FrameWidgetSlot "{5988DB08DC69F5F6}" {
       Anchor 1 0 1 0
       PositionX -20
       OffsetLeft -20
-      PositionY 50
-      OffsetTop 50
+      PositionY 40
+      OffsetTop 40
       SizeX 100
       OffsetRight -80
       SizeY 30
-      OffsetBottom -80
+      OffsetBottom -70
       Alignment 1 0
       SizeToContent 1
      }
      "Inherit Color" 1
      {
-      RichTextWidgetClass "{5970CDADB3F0CA53}" {
-       Name "m_WantedText"
-       Slot LayoutSlot "{56E0F189AA8E9CDB}" {
-        HorizontalAlign 2
-        VerticalAlign 1
-        Padding 0 0 10 0
+      ImageWidgetClass "{59A2BD22573D2B4A}" {
+       Name "Star0"
+       Slot LayoutSlot "{59A2BD22573D2B29}" {
+        Padding -8 0 -8 0
        }
-       Clipping False
-       Color 1 1 1 1
-       "Inherit Color" 1
-       Text "*****"
-       "Font Size" 60
-       "Min Font Size" 20
-       "Horizontal Alignment" Right
-       "Vertical Alignment" Center
-       FontProperties FontProperties "{55F8C56F794D79A5}" {
-        Font "{EABA4FE9D014CCEF}UI/Fonts/RobotoCondensed/RobotoCondensed_Bold.fnt"
-        ShadowSize 10
-        ShadowOffset 0 0
-        ShadowOpacity 0.7
+       Texture "{9DA6A249AD4D71C4}UI/Textures/Icons/icons_wrapperUI-48.imageset"
+       Image "favourite"
+       Size 48 48
+      }
+      ImageWidgetClass "{59A2BD22C0C22838}" {
+       Name "Star1"
+       Slot LayoutSlot "{59A2BD22573D2B29}" {
+        Padding -8 0 -8 0
        }
+       Texture "{9DA6A249AD4D71C4}UI/Textures/Icons/icons_wrapperUI-48.imageset"
+       Image "favourite"
+       Size 48 48
+      }
+      ImageWidgetClass "{59A2BD22CF703C55}" {
+       Name "Star2"
+       Slot LayoutSlot "{59A2BD22573D2B29}" {
+        Padding -8 0 -8 0
+       }
+       Texture "{9DA6A249AD4D71C4}UI/Textures/Icons/icons_wrapperUI-48.imageset"
+       Image "favourite"
+       Size 48 48
+      }
+      ImageWidgetClass "{59A2BD22CF33520D}" {
+       Name "Star3"
+       Slot LayoutSlot "{59A2BD22573D2B29}" {
+        Padding -8 0 -8 0
+       }
+       Texture "{9DA6A249AD4D71C4}UI/Textures/Icons/icons_wrapperUI-48.imageset"
+       Image "favourite"
+       Size 48 48
+      }
+      ImageWidgetClass "{59A2BD22CFF912F6}" {
+       Name "Star4"
+       Slot LayoutSlot "{59A2BD22573D2B29}" {
+        Padding -8 0 -8 0
+       }
+       Texture "{9DA6A249AD4D71C4}UI/Textures/Icons/icons_wrapperUI-48.imageset"
+       Image "favourite"
+       Size 48 48
       }
      }
     }
     HorizontalLayoutWidgetClass "{5988DB0B2183F428}" {
-     Name "m_Seen"
+     Name "Seen"
      Slot FrameWidgetSlot "{5988DB08DC69F5CF}" {
       Anchor 1 0 1 0
       PositionX -20
       OffsetLeft -20
-      PositionY 96
-      OffsetTop 96
+      PositionY 78
+      OffsetTop 78
       SizeX 100
       OffsetRight -80
       SizeY 30
-      OffsetBottom -126
+      OffsetBottom -108
       Alignment 1 0
       SizeToContent 1
      }
      "Inherit Color" 1
      {
-      RichTextWidgetClass "{5988DB0B2183F416}" {
-       Name "m_SeenText"
-       Slot LayoutSlot "{56E0F189AA8E9CDB}" {
-        HorizontalAlign 2
-        VerticalAlign 1
-        Padding 0 0 10 0
+      ImageWidgetClass "{59A2BD22D634BC38}" {
+       Name "SeenEye"
+       Slot LayoutSlot "{59A2BD22D634BC07}" {
        }
-       Clipping False
-       Color 1 1 1 1
-       "Inherit Color" 1
-       Text "o_o"
-       "Font Size" 30
-       "Min Font Size" 20
-       "Horizontal Alignment" Right
-       "Vertical Alignment" Center
-       FontProperties FontProperties "{55F8C56F794D79A5}" {
-        Font "{EABA4FE9D014CCEF}UI/Fonts/RobotoCondensed/RobotoCondensed_Bold.fnt"
-        ShadowSize 10
-        ShadowOffset 0 0
-        ShadowOpacity 0.7
-       }
+       Texture "{A5F5778DD6FF81CB}UI/Textures/Icons/icon_seen_ui.edds"
+       Image ""
+       Size 48 48
       }
      }
     }

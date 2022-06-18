@@ -2,68 +2,28 @@
 
 */
 
-class OVT_WantedInfo : SCR_InfoDisplayExtended {
-	ref OVT_WantedInfoWidgets widgets;
-	
+class OVT_WantedInfo : SCR_InfoDisplay {	
 	OVT_PlayerWantedComponent m_Wanted = null;
 	
-	protected const string LEVEL_INDICATOR = "*";
-	protected const string SEEN_INDICATOR = "o_o";
-	
-	//------------------------------------------------------------------------------------------------
-	override bool DisplayStartDrawInit(IEntity owner)
+	protected void InitCharacter()
 	{
-		CreateLayout();
-		
-		SCR_ChimeraCharacter character = SCR_ChimeraCharacter.Cast(owner);
+		SCR_ChimeraCharacter character = SCR_ChimeraCharacter.Cast(SCR_PlayerController.GetLocalControlledEntity());
 		if (!character)
-			return false;
-		
-		
-		
+			return;
+				
 		m_Wanted = OVT_PlayerWantedComponent.Cast(character.FindComponent(OVT_PlayerWantedComponent));
-		if (!m_Wanted)
-			return false;
-	
-		return true;
 	}
 		
-	override void DisplayUpdate(IEntity owner, float timeSlice)
+	private override event void UpdateValues(IEntity owner, float timeSlice)
 	{	
+		if(!m_Wanted)
+		{
+			InitCharacter();
+		}
 		UpdateWantedLevel();
 		UpdateSeen();
 	}
-	
-	//------------------------------------------------------------------------------------------------
-	// Create the layout
-	//------------------------------------------------------------------------------------------------
-	void CreateLayout()
-	{		
-		// Destroy existing layout
-		DestroyLayout();
-		
-		// Create weapon info layout
-		SCR_HUDManagerComponent manager = SCR_HUDManagerComponent.GetHUDManager();
-		if (manager)
-			m_wRoot = manager.CreateLayout(OVT_WantedInfoWidgets.s_sLayout, m_eLayer);
 
-		if (!m_wRoot)
-			return;
-		
-		widgets = new OVT_WantedInfoWidgets();
-		widgets.Init(m_wRoot);
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	// Destroy the layout
-	//------------------------------------------------------------------------------------------------
-	void DestroyLayout()
-	{
-		if (m_wRoot)
-			m_wRoot.RemoveFromHierarchy();
-			
-		m_wRoot = null;
-	}	
 			
 	//------------------------------------------------------------------------------------------------
 	// Update Wanted Level Indicator
@@ -73,12 +33,19 @@ class OVT_WantedInfo : SCR_InfoDisplayExtended {
 		if (!m_Wanted)
 			return;
 		
-		string text = "";
-		for(int i=0; i<m_Wanted.GetWantedLevel(); i++){
-			text += LEVEL_INDICATOR;
+		if(!m_wRoot)
+			return;
+		
+		int i;		
+		for(i=0; i<m_Wanted.GetWantedLevel(); i++){
+			Widget w = m_wRoot.FindWidget("Frame0.WantedLevel.Star" + i);
+			if(w) w.SetVisible(true);
 		}
 		
-		widgets.m_WantedText.SetText(text);
+		for(; i<5; i++){
+			Widget w = m_wRoot.FindWidget("Frame0.WantedLevel.Star" + i);
+			if(w) w.SetVisible(false);
+		}
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -89,15 +56,16 @@ class OVT_WantedInfo : SCR_InfoDisplayExtended {
 		if (!m_Wanted)
 			return;
 		
-		string text = "";
+		if(!m_wRoot)
+			return;
+		
+		Widget w = m_wRoot.FindWidget("Frame0.Seen.SeenEye");
 		
 		if(m_Wanted.IsSeen())
 		{
-			text += SEEN_INDICATOR;
+			w.SetVisible(true);
+		}else{
+			w.SetVisible(false);
 		}
-		
-		text += " " + m_Wanted.m_iLastSeen + " " + m_Wanted.m_iWantedTimer;
-		
-		widgets.m_SeenText.SetText(text);
 	}
 }
