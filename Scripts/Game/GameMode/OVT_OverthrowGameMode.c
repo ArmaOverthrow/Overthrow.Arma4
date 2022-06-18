@@ -90,7 +90,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			if(!home)
 			{
 				//spawn system already assigned them a house, so make nearest house their home
-				IEntity house = m_TownManager.GetNearestHouse(controlledEntity.GetOrigin());
+				IEntity house = m_TownManager.GetNearestStartingHouse(controlledEntity.GetOrigin());
 				m_RealEstate.SetOwner(playerId, house);
 				m_RealEstate.SetHome(playerId, house);
 				m_VehicleManager.SpawnStartingCar(house, persistentId);

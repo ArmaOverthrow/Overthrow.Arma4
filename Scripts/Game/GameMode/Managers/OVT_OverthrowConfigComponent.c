@@ -32,6 +32,8 @@ class OVT_DifficultySettings : ScriptAndConfig
 	int baseThreat;	
 	[Attribute(defvalue: "5", desc: "Money taken from player per respawn")]
 	int respawnCost;
+	[Attribute(defvalue: "5", desc: "Cost to fast travel")]
+	int fastTravelCost;
 	[Attribute(defvalue: "1", desc: "Cost of placeables is multiplied by this value")]
 	float placeableCostMultiplier;
 	[Attribute(defvalue: "10", desc: "Donation income per civilian supporter")]

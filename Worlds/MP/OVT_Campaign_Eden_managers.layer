@@ -271,7 +271,6 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode {
    m_pBaseControllerPrefab "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.et"
    m_pTownControllerPrefab "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.et"
    m_Difficulty OVT_DifficultySettings "{598AD54E1DA56EB1}" {
-    startingCash 20000
    }
    m_aDifficultyPresets {
     OVT_DifficultySettings "{598AD54F821FB8D9}" {
@@ -415,6 +414,9 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode {
     OVT_TownSupportModifierSystem "{59A2BDDB000FF00C}" {
      m_rConfigFile "{AB1726E5220F21F1}Configs/Modifiers/supportModifiers.conf"
     }
+   }
+   m_aStartExclusionZones {
+    10918.685 24.915 11706.15
    }
   }
   OVT_VehicleManagerComponent "{59953E39CBC3659D}" {

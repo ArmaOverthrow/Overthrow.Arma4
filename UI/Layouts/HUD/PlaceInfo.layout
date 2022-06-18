@@ -1,0 +1,259 @@
+FrameWidgetClass {
+ Name "rootFrame"
+ {
+  OverlayWidgetClass "{59A5462D1F5603F0}" {
+   Name "Overlay0"
+   Slot FrameWidgetSlot "{59A5462D1F5603DD}" {
+    Anchor 1 1 1 1
+    PositionX -50
+    OffsetLeft -50
+    PositionY -50
+    OffsetTop -50
+    SizeX 100
+    OffsetRight -50
+    SizeY 30
+    OffsetBottom 20
+    Alignment 1 1
+    SizeToContent 1
+   }
+   {
+    VerticalLayoutWidgetClass "{59A5462C09DE52F3}" {
+     Name "VerticalLayout0"
+     Slot OverlayWidgetSlot "{59A5462C09DE52D6}" {
+     }
+     {
+      HorizontalLayoutWidgetClass "{59A5462C3E9BE075}" {
+       Name "HorizontalLayout0"
+       Slot LayoutSlot "{59A5462C17CD0EF8}" {
+        HorizontalAlign 2
+       }
+       {
+        ButtonWidgetClass "{59A5462C39DCFB96}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+         Name "PrevItemButton"
+         Slot LayoutSlot "{59A5462C005E2D26}" {
+         }
+         components {
+          SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+           m_sLabel "#OVT-Place_PrevItem"
+           m_sActionName "OverthrowPrevItem"
+          }
+          ButtonActionComponent "{56EEDE0026B19E2C}" {
+           m_bActionName "OverthrowPrevItem"
+          }
+         }
+         {
+          SizeLayoutWidgetClass "{5562AD435529FB36}" {
+           Prefab "{5562AD435529FB36}"
+           {
+            OverlayWidgetClass "{000000005E70868E}" {
+             Prefab "{000000005E70868E}"
+             {
+              HorizontalLayoutWidgetClass "{00000000E3602307}" {
+               Prefab "{00000000E3602307}"
+               Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
+                Padding 10 10 16 10
+               }
+               {
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+        ButtonWidgetClass "{59A5462C10222C42}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+         Name "NextItemButton"
+         Slot LayoutSlot "{59A5462C005E2D26}" {
+         }
+         components {
+          SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+           m_sLabel "#OVT-Place_NextItem"
+           m_sActionName "OverthrowNextItem"
+          }
+          ButtonActionComponent "{56EEDE0026B19E2C}" {
+           m_bActionName "OverthrowNextItem"
+          }
+         }
+         {
+          SizeLayoutWidgetClass "{5562AD435529FB36}" {
+           Prefab "{5562AD435529FB36}"
+           {
+            OverlayWidgetClass "{000000005E70868E}" {
+             Prefab "{000000005E70868E}"
+             {
+              HorizontalLayoutWidgetClass "{00000000E3602307}" {
+               Prefab "{00000000E3602307}"
+               Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
+                Padding 10 10 16 10
+               }
+               {
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+      HorizontalLayoutWidgetClass "{59A5462CC08E0A99}" {
+       Name "HorizontalLayout1"
+       Slot LayoutSlot "{59A5462C17CD0EF8}" {
+        HorizontalAlign 2
+       }
+       {
+        ButtonWidgetClass "{59A5462CC08E0A87}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+         Name "RotateLeftButton"
+         Slot LayoutSlot "{59A5462C005E2D26}" {
+         }
+         components {
+          SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+           m_sLabel "#OVT-Place_RotateLeft"
+           m_sActionName "OverthrowRotateLeft"
+          }
+          ButtonActionComponent "{56EEDE0026B19E2C}" {
+           m_bActionName "OverthrowPrevItem"
+          }
+         }
+         {
+          SizeLayoutWidgetClass "{5562AD435529FB36}" {
+           Prefab "{5562AD435529FB36}"
+           {
+            OverlayWidgetClass "{000000005E70868E}" {
+             Prefab "{000000005E70868E}"
+             {
+              HorizontalLayoutWidgetClass "{00000000E3602307}" {
+               Prefab "{00000000E3602307}"
+               Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
+                Padding 10 10 16 10
+               }
+               {
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+        ButtonWidgetClass "{59A5462CC08E0A85}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+         Name "RotateRightButton"
+         Slot LayoutSlot "{59A5462C005E2D26}" {
+         }
+         components {
+          SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+           m_sLabel "#OVT-Place_RotateRight"
+           m_sActionName "OverthrowRotateRight"
+          }
+          ButtonActionComponent "{56EEDE0026B19E2C}" {
+           m_bActionName "OverthrowNextItem"
+          }
+         }
+         {
+          SizeLayoutWidgetClass "{5562AD435529FB36}" {
+           Prefab "{5562AD435529FB36}"
+           {
+            OverlayWidgetClass "{000000005E70868E}" {
+             Prefab "{000000005E70868E}"
+             {
+              HorizontalLayoutWidgetClass "{00000000E3602307}" {
+               Prefab "{00000000E3602307}"
+               Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
+                Padding 10 10 16 10
+               }
+               {
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+      HorizontalLayoutWidgetClass "{59A5462B4883734B}" {
+       Name "HorizontalLayout2"
+       Slot LayoutSlot "{59A5462C17CD0EF8}" {
+        HorizontalAlign 2
+       }
+       {
+        ButtonWidgetClass "{59A5462B48837348}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+         Name "CancelButton"
+         Slot LayoutSlot "{59A5462C005E2D26}" {
+         }
+         components {
+          SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+           m_sLabel "#OVT-Cancel"
+           m_sActionName "OverthrowPlaceCancel"
+          }
+          ButtonActionComponent "{56EEDE0026B19E2C}" {
+           m_bActionName "OverthrowPrevItem"
+          }
+         }
+         {
+          SizeLayoutWidgetClass "{5562AD435529FB36}" {
+           Prefab "{5562AD435529FB36}"
+           {
+            OverlayWidgetClass "{000000005E70868E}" {
+             Prefab "{000000005E70868E}"
+             {
+              HorizontalLayoutWidgetClass "{00000000E3602307}" {
+               Prefab "{00000000E3602307}"
+               Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
+                Padding 10 10 16 10
+               }
+               {
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+        ButtonWidgetClass "{59A5462B48837336}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+         Name "PlaceButton"
+         Slot LayoutSlot "{59A5462C005E2D26}" {
+         }
+         components {
+          SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+           m_bShowBorderOnHover 0
+           m_sLabel "#OVT-MainMenu_Place"
+           m_sActionName "OverthrowPlace"
+          }
+          ButtonActionComponent "{56EEDE0026B19E2C}" {
+           m_bActionName "OverthrowNextItem"
+          }
+         }
+         {
+          SizeLayoutWidgetClass "{5562AD435529FB36}" {
+           Prefab "{5562AD435529FB36}"
+           {
+            OverlayWidgetClass "{000000005E70868E}" {
+             Prefab "{000000005E70868E}"
+             {
+              HorizontalLayoutWidgetClass "{00000000E3602307}" {
+               Prefab "{00000000E3602307}"
+               Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
+                Padding 10 10 16 10
+               }
+               {
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

@@ -11,16 +11,22 @@ class OVT_MapContext : OVT_UIContext
 	
 	OVT_TownManagerComponent m_TownManager;
 	OVT_RealEstateManagerComponent m_RealEstate;
+	OVT_ResistanceFactionManager m_Resistance;
 	
 	OVT_TownData m_SelectedTown;
 	
 	protected bool m_bMapInfoActive = false;
 	protected bool m_bFastTravelActive = false;
 	
+	protected const int MAX_HOUSE_TRAVEL_DIS = 25;
+	protected const int MAX_FOB_TRAVEL_DIS = 40;
+	protected const int MIN_TRAVEL_DIS = 500;
+	
 	override void PostInit()
 	{		
 		m_TownManager = OVT_Global.GetTowns();
 		m_RealEstate = OVT_Global.GetRealEstate();
+		m_Resistance = OVT_Global.GetResistanceFaction();
 		
 		SCR_MapEntity.GetOnMapClose().Insert(DisableMapInfo);
 		SCR_MapEntity.GetOnMapClose().Insert(DisableFastTravel);
@@ -39,6 +45,46 @@ class OVT_MapContext : OVT_UIContext
 		if(!comp) return null;
 		
 		return comp;
+	}
+	
+	bool CanFastTravel(vector pos, out string reason)
+	{		
+		reason = "#OVT-CannotFastTravelThere";	
+		float dist;
+		
+		dist = vector.Distance(pos, m_Owner.GetOrigin());
+		if(dist < MIN_TRAVEL_DIS)
+		{
+			reason = "#OVT-CannotFastTravelDistance";
+			return false;	
+		}
+		
+		SCR_ChimeraCharacter character = SCR_ChimeraCharacter.Cast(SCR_PlayerController.GetLocalControlledEntity());
+		if (!character)
+			return false;
+		
+		OVT_PlayerWantedComponent m_Wanted = OVT_PlayerWantedComponent.Cast(character.FindComponent(OVT_PlayerWantedComponent));
+		if(m_Wanted.GetWantedLevel() > 0)
+		{
+			reason = "#OVT-CannotFastTravelWanted";
+			return false;
+		}		
+		
+		IEntity house = m_RealEstate.GetNearestOwned(m_sPlayerID, pos);
+		if(house)
+		{
+			dist = vector.Distance(house.GetOrigin(), pos);				
+			if(dist < MAX_HOUSE_TRAVEL_DIS) return true;
+		}
+		
+		OVT_ResistanceFOBControllerComponent fob = m_Resistance.GetNearestFOB(pos);
+		if(fob)
+		{
+			dist = vector.Distance(fob.GetOwner().GetOrigin(), pos);
+			if(dist < MAX_FOB_TRAVEL_DIS) return true;
+		}
+		
+		return false;
 	}
 	
 	void ShowMap()
@@ -233,16 +279,35 @@ class OVT_MapContext : OVT_UIContext
 		
 		
 		mapEntity.GetMapCursorWorldPosition(x,y);
+		float groundHeight = GetGame().GetWorld().GetSurfaceY(x,y);
 		
-		vector pos = Vector(x,0,y);
+		vector pos = Vector(x,groundHeight,y);
 		
 		if(m_bFastTravelActive)
-		{			
+		{	
+			string error;
+			if(!CanFastTravel(pos, error))
+			{
+				ShowHint(error);
+				HideMap();
+				DisableFastTravel();
+				return;
+			}
+			
+			int cost = m_Config.m_Difficulty.fastTravelCost;
+			
+			if(!m_Economy.PlayerHasMoney(m_sPlayerID, cost))
+			{
+				ShowHint("#OVT_CannotAfford");
+				HideMap();
+				DisableFastTravel();
+				return;
+			}
+					
 			//Snap to the nearest navmesh point
 			AIPathfindingComponent pathFindindingComponent = AIPathfindingComponent.Cast(m_Owner.FindComponent(AIPathfindingComponent));
 			if (pathFindindingComponent && pathFindindingComponent.GetClosestPositionOnNavmesh(pos, "10 10 10", pos))
 			{
-				float groundHeight = GetGame().GetWorld().GetSurfaceY(pos[0], pos[2]);
 				if (pos[1] < groundHeight)
 					pos[1] = groundHeight;
 			}
@@ -263,12 +328,16 @@ class OVT_MapContext : OVT_UIContext
 						BaseCompartmentSlot slot = compartmentAccess.GetCompartment();
 						if(SCR_CompartmentAccessComponent.GetCompartmentType(slot) == ECompartmentType.Pilot)
 						{
+							if(cost > 0)
+								m_Economy.TakePlayerMoney(m_iPlayerID, cost);
 							SCR_Global.TeleportPlayer(pos);
 						}else{
 							ShowHint("#OVT-MustBeDriver");
 						}
 					}
 				}else{
+					if(cost > 0)
+						m_Economy.TakePlayerMoney(m_iPlayerID, cost);
 					SCR_Global.TeleportPlayer(pos);
 				}				
 			}			

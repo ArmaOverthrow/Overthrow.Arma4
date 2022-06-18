@@ -2,11 +2,39 @@ StringTable {
  TargetPrefix "Target_"
  ItemClassName "CustomStringTableItem"
  Items {
+  CustomStringTableItem "{59A5462B60C888FA}" {
+   Id "OVT-Cancel"
+   Target_en_us "Cancel"
+   Modified 1504005479
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{598C5127A5D2149E}" {
    Id "OVT-CannotAfford"
    Target_en_us "You cannot afford that"
    Status DEVELOPMENT_DONE
    Modified 1502796262
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59A49A9BE80620C3}" {
+   Id "OVT-CannotFastTravelDistance"
+   Target_en_us "That is too short of a distance to fast travel"
+   Modified 1504002241
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59A49A9B02ABC32B}" {
+   Id "OVT-CannotFastTravelThere"
+   Target_en_us "You cannot fast travel there. Must be near an owned house, camp, FOB or controlled base"
+   Modified 1504002186
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59A49A9B1B4C8E20}" {
+   Id "OVT-CannotFastTravelWanted"
+   Target_en_us "You cannot fast travel while wanted"
+   Modified 1504002202
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -159,15 +187,15 @@ StringTable {
   }
   CustomStringTableItem "{59A49A822C192F63}" {
    Id "OVT-Msg-HasPlacedFOB"
-   Target_en_us "has placed a new FOB"
-   Modified 1503998659
+   Target_en_us "has placed a new FOB. It is now available for fast travel and more"
+   Modified 1504000954
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
   CustomStringTableItem "{59A49A823A9D330A}" {
    Id "OVT-Msg-NewFOB"
-   Target_en_us "The FOB is now available for fast travel and more"
-   Modified 1503998759
+   Target_en_us "New FOB"
+   Modified 1504000929
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -253,10 +281,38 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{59A5462C8A52FFB8}" {
+   Id "OVT-Place_NextItem"
+   Target_en_us "Next Item"
+   Modified 1504005442
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59A2BD9099621079}" {
    Id "OVT-Place_Poster"
    Target_en_us "Recruitment Posters"
    Modified 1503863688
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59A5462C90703535}" {
+   Id "OVT-Place_PrevItem"
+   Target_en_us "Previous Item"
+   Modified 1504005453
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59A5462CB0574E5C}" {
+   Id "OVT-Place_RotateLeft"
+   Target_en_us "Rotate Left"
+   Modified 1504005398
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59A5462CB9759E35}" {
+   Id "OVT-Place_RotateRight"
+   Target_en_us "Rotate Right"
+   Modified 1504005538
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -442,6 +498,13 @@ StringTable {
    Id "OVT-VehicleEmpty"
    Target_en_us "Vehicle is empty"
    Modified 1503946465
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59A550CC7B4FE9CA}" {
+   Id "OVT_Mission_Eden_Description"
+   Target_en_us "The persistent and dynamic revolution simulator"
+   Modified 1504008249
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

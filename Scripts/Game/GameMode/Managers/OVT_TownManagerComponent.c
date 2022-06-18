@@ -46,6 +46,9 @@ class OVT_TownManagerComponent: OVT_Component
 	[Attribute("", UIWidgets.Object)]	
 	ref array<ref OVT_TownModifierSystem> m_aTownModifiers;
 	
+	[Attribute("", UIWidgets.Object)]	
+	ref array<ref vector> m_aStartExclusionZones;
+	
 	protected int m_iTownCount=0;
 	
 	ref array<ref OVT_TownData> m_Towns;
@@ -292,16 +295,6 @@ class OVT_TownManagerComponent: OVT_Component
 	IEntity GetRandomHouse()
 	{
 		m_Houses = new array<ref EntityID>;
-		OVT_TownData town = m_Towns.GetRandomElement();
-		
-		GetGame().GetWorld().QueryEntitiesBySphere(town.location, m_iCityRange, CheckHouseAddToArray, FilterHouseEntities, EQueryEntitiesFlags.STATIC);
-		
-		return GetGame().GetWorld().FindEntityByID(m_Houses.GetRandomElement());
-	}
-	
-	IEntity GetRandomStartingHouse()
-	{
-		m_Houses = new array<ref EntityID>;
 		OVT_TownData town;
 		IEntity house;
 		int i = 0;
@@ -310,6 +303,34 @@ class OVT_TownManagerComponent: OVT_Component
 		{
 			i++;
 			town = m_Towns.GetRandomElement();
+			GetGame().GetWorld().QueryEntitiesBySphere(town.location, m_iCityRange, CheckHouseAddToArray, FilterHouseEntities, EQueryEntitiesFlags.STATIC);
+			if(m_Houses.Count() == 0) continue;
+			house = GetGame().GetWorld().FindEntityByID(m_Houses.GetRandomElement());
+			if(m_RealEstate.IsOwned(house.GetID())) house = null;			
+		}
+				
+		return house;
+	}
+	
+	IEntity GetRandomStartingHouse()
+	{
+		m_Houses = new array<ref EntityID>;
+		OVT_TownData town;
+		IEntity house;
+		int i = 0;
+		float dist;
+		
+		while(!house && i < 20)
+		{
+			i++;
+			town = m_Towns.GetRandomElement();
+			
+			foreach(vector exclusion : m_aStartExclusionZones)
+			{
+				dist = vector.Distance(town.location, exclusion);
+				if(dist < m_iCityRange) continue;
+			}
+			
 			GetGame().GetWorld().QueryEntitiesBySphere(town.location, m_iCityRange, CheckHouseAddToArray, FilterStartingHouseEntities, EQueryEntitiesFlags.STATIC);
 			if(m_Houses.Count() == 0) continue;
 			house = GetGame().GetWorld().FindEntityByID(m_Houses.GetRandomElement());
@@ -323,6 +344,28 @@ class OVT_TownManagerComponent: OVT_Component
 	{
 		m_Houses = new array<ref EntityID>;		
 		GetGame().GetWorld().QueryEntitiesBySphere(pos, 25, CheckHouseAddToArray, FilterHouseEntities, EQueryEntitiesFlags.STATIC);
+		
+		float nearest = 26;
+		IEntity nearestEnt;		
+		
+		foreach(EntityID id : m_Houses)
+		{			
+			IEntity ent = GetGame().GetWorld().FindEntityByID(id);
+			float dist = vector.Distance(ent.GetOrigin(), pos);
+			if(dist < nearest)
+			{
+				nearest = dist;
+				nearestEnt = ent;
+			}
+		}
+		
+		return nearestEnt;
+	}
+	
+	IEntity GetNearestStartingHouse(vector pos)
+	{
+		m_Houses = new array<ref EntityID>;		
+		GetGame().GetWorld().QueryEntitiesBySphere(pos, 25, CheckHouseAddToArray, FilterStartingHouseEntities, EQueryEntitiesFlags.STATIC);
 		
 		float nearest = 26;
 		IEntity nearestEnt;		
@@ -533,6 +576,12 @@ class OVT_TownManagerComponent: OVT_Component
 	protected bool FilterHouseEntities(IEntity entity) 
 	{
 		if(entity.ClassName() == "SCR_DestructibleBuildingEntity"){
+			ResourceName prefab = entity.GetPrefabData().GetPrefabName();
+			foreach(string s : m_Config.m_aStartingHouseFilters)
+			{
+				if(prefab.IndexOf(s) > -1) return false;
+			}	
+			
 			VObject mesh = entity.GetVObject();
 			
 			if(mesh){

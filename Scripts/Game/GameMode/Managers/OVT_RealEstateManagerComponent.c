@@ -4,7 +4,7 @@ class OVT_RealEstateManagerComponentClass: OVT_OwnerManagerComponentClass
 
 class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 {
-	ref map<string, RplId> m_mHomes;
+	ref map<string, ref RplId> m_mHomes;
 	
 	protected OVT_TownManagerComponent m_Town;
 	
@@ -26,7 +26,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	
 	void OVT_RealEstateManagerComponent()
 	{
-		m_mHomes = new map<string, RplId>;
+		m_mHomes = new map<string, ref RplId>;
 		m_aEntitySearch = new array<IEntity>;
 	}
 	

@@ -1,5 +1,10 @@
 class OVT_PlaceContext : OVT_UIContext
 {
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Layout to show when placing", params: "layout")]
+	ResourceName m_PlaceLayout;
+	
+	protected Widget m_PlaceWidget;
+	
 	ref OVT_PlaceMenuWidgets m_Widgets;
 	
 	protected IEntity m_ePlacingEntity;
@@ -81,7 +86,7 @@ class OVT_PlaceContext : OVT_UIContext
 		m_InputManager.AddActionListener("OverthrowRotateLeft", EActionTrigger.PRESSED, RotateLeft);
 		m_InputManager.AddActionListener("OverthrowRotateRight", EActionTrigger.PRESSED, RotateRight);
 		m_InputManager.AddActionListener("OverthrowNextItem", EActionTrigger.DOWN, NextItem);
-		m_InputManager.AddActionListener("OverthrowPrevItem", EActionTrigger.DOWN, NextItem);
+		m_InputManager.AddActionListener("OverthrowPrevItem", EActionTrigger.DOWN, PrevItem);
 		m_InputManager.AddActionListener("OverthrowPlaceCancel", EActionTrigger.DOWN, Cancel);
 	}
 	
@@ -94,7 +99,7 @@ class OVT_PlaceContext : OVT_UIContext
 		m_InputManager.RemoveActionListener("OverthrowRotateLeft", EActionTrigger.PRESSED, RotateLeft);
 		m_InputManager.RemoveActionListener("OverthrowRotateRight", EActionTrigger.PRESSED, RotateRight);
 		m_InputManager.RemoveActionListener("OverthrowNextItem", EActionTrigger.DOWN, NextItem);
-		m_InputManager.RemoveActionListener("OverthrowPrevItem", EActionTrigger.DOWN, NextItem);
+		m_InputManager.RemoveActionListener("OverthrowPrevItem", EActionTrigger.DOWN, PrevItem);
 		m_InputManager.RemoveActionListener("OverthrowPlaceCancel", EActionTrigger.DOWN, Cancel);
 	}
 	
@@ -102,6 +107,8 @@ class OVT_PlaceContext : OVT_UIContext
 	{
 		m_bPlacing = false;
 		RemoveGhost();
+		if(m_PlaceWidget)
+			m_PlaceWidget.RemoveFromHierarchy();
 	}
 	
 	bool CanPlace(vector pos, out string reason)
@@ -182,18 +189,17 @@ class OVT_PlaceContext : OVT_UIContext
 			return;
 		}
 		
+		WorkspaceWidget workspace = GetGame().GetWorkspace(); 
+		m_PlaceWidget = workspace.CreateWidgets(m_PlaceLayout);
 		
-		
-		m_bPlacing = true;
-		
-		
+		m_bPlacing = true;		
 		m_iPrefabIndex = 0;
 		
 		SpawnGhost();
 	}
 	
-	protected void SpawnGhost()
-	{
+	protected void SpawnGhost(vector mat[4])
+	{		
 		vector normal = vector.Zero;
 		vector pos = GetPlacePosition(normal);
 				
@@ -202,6 +208,11 @@ class OVT_PlaceContext : OVT_UIContext
 		params.Transform[3] = pos;
 		m_pPlacingPrefab = m_Placeable.m_aPrefabs[m_iPrefabIndex];
 		m_ePlacingEntity = GetGame().SpawnEntityPrefabLocal(Resource.Load(m_pPlacingPrefab), null, params);
+		
+		if(mat)
+		{
+			m_ePlacingEntity.SetTransform(mat);
+		}
 		//SCR_Global.SetMaterial(m_ePlacingEntity, "{E0FECF0FE7457A54}Assets/Editor/PlacingPreview/Preview_03.emat", true);
 		
 		Physics phys = m_ePlacingEntity.GetPhysics();
@@ -226,12 +237,12 @@ class OVT_PlaceContext : OVT_UIContext
 	}
 	
 	void DoPlace(float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
-	{
-		m_bPlacing = false;
+	{		
+		int cost = m_Config.GetPlaceableCost(m_Placeable);
+		vector mat[4];
 		
 		if(m_ePlacingEntity)
-		{
-			vector mat[4];
+		{			
 			m_ePlacingEntity.GetTransform(mat);
 			RemoveGhost();
 			string error;
@@ -242,7 +253,7 @@ class OVT_PlaceContext : OVT_UIContext
 				return;
 			}
 			
-			if(!m_Economy.PlayerHasMoney(m_sPlayerID, m_Config.GetPlaceableCost(m_Placeable)))
+			if(!m_Economy.PlayerHasMoney(m_sPlayerID, cost))
 			{
 				ShowHint("#OVT-CannotAfford");
 				SCR_UISoundEntity.SoundEvent(UISounds.ERROR);
@@ -261,6 +272,13 @@ class OVT_PlaceContext : OVT_UIContext
 				m_Placeable.handler.OnPlace(entity, m_iPlayerID);
 			}
 		}
+		
+		if(m_Economy.PlayerHasMoney(m_sPlayerID, cost))
+		{
+			SpawnGhost(mat); //Start all over again
+		}else{
+			Cancel();
+		}		
 	}
 	
 	void NextItem(float value = 1, EActionTrigger reason = EActionTrigger.DOWN)

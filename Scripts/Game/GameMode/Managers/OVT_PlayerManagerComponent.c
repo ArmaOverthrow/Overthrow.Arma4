@@ -66,6 +66,14 @@ class OVT_PlayerManagerComponent: OVT_Component
 	protected string GetMessageText(int index, int townId = -1, int playerId = -1)
 	{
 		string text = "";
+		
+		if(playerId > -1)
+		{
+			//Add player name
+			string name = GetGame().GetPlayerManager().GetPlayerName(playerId);
+			text += name + " ";
+		}	
+		
 		SCR_SimpleMessagePreset preset = m_Messages.m_aPresets[index];		
 		if(preset.m_UIInfo){
 			text += preset.m_UIInfo.GetDescription();
@@ -77,13 +85,7 @@ class OVT_PlayerManagerComponent: OVT_Component
 	{
 		SCR_SimpleMessagePreset preset = m_Messages.m_aPresets[index];		
 		string text = "";
-		
-		string title = preset.m_UIInfo.GetName();
-		if(title != "")
-		{ 
-			//Prepend anything from UIInfo
-			text = title + " ";
-		}
+				
 		string townName;
 		if(townId > -1)
 		{
@@ -91,14 +93,14 @@ class OVT_PlayerManagerComponent: OVT_Component
 			OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 			OVT_TownData town = towns.m_Towns[townId];
 			SCR_MapDescriptorComponent desc = towns.GetNearestTownMarker(town.location);
-			text += desc.Item().GetDisplayName() + ": ";
+			text += desc.Item().GetDisplayName() + " ";
+		}			
+		string title = preset.m_UIInfo.GetName();
+		if(title != "")
+		{ 
+			//Append anything from UIInfo
+			text += title;
 		}
-		if(playerId > -1)
-		{
-			//Add player name
-			string name = GetGame().GetPlayerManager().GetPlayerName(playerId);
-			text += name + " ";
-		}		
 		return text;
 	}
 	
