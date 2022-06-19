@@ -17,6 +17,7 @@ class OVT_MapContext : OVT_UIContext
 	
 	protected bool m_bMapInfoActive = false;
 	protected bool m_bFastTravelActive = false;
+	protected bool m_bBusTravelActive = false;
 	
 	protected const int MAX_HOUSE_TRAVEL_DIS = 25;
 	protected const int MAX_FOB_TRAVEL_DIS = 40;
@@ -227,6 +228,12 @@ class OVT_MapContext : OVT_UIContext
 		ShowMap();
 	}
 	
+	void EnableBusTravel()
+	{
+		m_bBusTravelActive = true;
+		ShowMap();
+	}
+	
 	void DisableMapInfo()
 	{
 		m_bMapInfoActive = false;
@@ -235,6 +242,11 @@ class OVT_MapContext : OVT_UIContext
 	void DisableFastTravel()
 	{
 		m_bFastTravelActive = false;
+	}
+	
+	void DisableBusTravel()
+	{
+		m_bBusTravelActive = false;
 	}
 	
 	override void RegisterInputs()
@@ -259,16 +271,17 @@ class OVT_MapContext : OVT_UIContext
 	
 	protected void MapExit(float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
 	{
-		if(!m_bFastTravelActive && !m_bMapInfoActive) return;
+		if(!m_bFastTravelActive && !m_bMapInfoActive && !m_bBusTravelActive) return;
 		CloseLayout();
 		DisableMapInfo();
 		DisableFastTravel();
+		DisableBusTravel();
 		HideMap();
 	}
 	
 	void MapClick(float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
 	{
-		if(!m_bFastTravelActive && !m_bMapInfoActive) return;
+		if(!m_bFastTravelActive && !m_bMapInfoActive && !m_bBusTravelActive) return;
 		SCR_MapGadgetComponent comp = GetMap();
 		if(!comp) return;
 		
@@ -298,7 +311,7 @@ class OVT_MapContext : OVT_UIContext
 			
 			if(!m_Economy.PlayerHasMoney(m_sPlayerID, cost))
 			{
-				ShowHint("#OVT_CannotAfford");
+				ShowHint("#OVT-CannotAfford");
 				HideMap();
 				DisableFastTravel();
 				return;
@@ -342,6 +355,48 @@ class OVT_MapContext : OVT_UIContext
 				}				
 			}			
 		}	
+		
+		if(m_bBusTravelActive)
+		{			
+			SCR_MapDescriptorComponent stop = m_TownManager.GetNearestBusStop(pos);
+			if(!stop)
+			{
+				ShowHint("#OVT-NeedBusStop");
+				DisableBusTravel();
+				HideMap();
+				return;
+			}
+			float dist = vector.Distance(pos, m_Owner.GetOrigin());
+			int cost = Math.Round((dist / 1000) * m_Config.m_Difficulty.busTicketPrice);
+			
+			if(!m_Economy.PlayerHasMoney(m_sPlayerID, cost))
+			{
+				ShowHint("#OVT-CannotAfford");
+				HideMap();
+				DisableBusTravel();
+				return;
+			}
+			
+			HideMap();
+			DisableBusTravel();
+			
+			IEntity player = SCR_PlayerController.GetLocalControlledEntity();
+			if(player)
+			{								
+				ChimeraCharacter character = ChimeraCharacter.Cast(player);
+				if(character && character.IsInVehicle())
+				{
+					ShowHint("#OVT-MustExitVehicle");
+					DisableBusTravel();
+					HideMap();
+					return;
+				}
+				
+				if(cost > 0)
+					m_Economy.TakePlayerMoney(m_iPlayerID, cost);
+				SCR_Global.TeleportPlayer(pos);
+			}
+		}
 		
 		if(m_bMapInfoActive)
 		{

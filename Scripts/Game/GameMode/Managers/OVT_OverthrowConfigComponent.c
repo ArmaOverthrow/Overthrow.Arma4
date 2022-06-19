@@ -46,6 +46,8 @@ class OVT_DifficultySettings : ScriptAndConfig
 	float placeableCostMultiplier;
 	[Attribute(defvalue: "10", desc: "Donation income per civilian supporter")]
 	int donationIncome;
+	[Attribute(defvalue: "5", desc: "Bus ticket price per km")]
+	int busTicketPrice;
 }
 
 class OVT_Placeable : ScriptAndConfig

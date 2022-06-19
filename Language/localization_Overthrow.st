@@ -45,6 +45,20 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{59A6ED8D1D1EF6CA}" {
+   Id "OVT-CatchBus"
+   Target_en_us "Catch a bus"
+   Modified 1504120095
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59A6ED95F1AB81D0}" {
+   Id "OVT-DeliverMedicalSupplies"
+   Target_en_us "Deliver Medical Supplies"
+   Modified 1504116226
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5990833697321087}" {
    Id "OVT-FieldManual_Category_Overthrow_Title"
    Target_en_us "Overthrow"
@@ -98,6 +112,13 @@ StringTable {
    Target_en_us "Gun Dealer"
    Status DEVELOPMENT_DONE
    Modified 1502796262
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59A6DA4F01F49A60}" {
+   Id "OVT-Income"
+   Target_en_us "Income"
+   Modified 1504108189
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -185,6 +206,27 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{59A6ED9A0E302C5E}" {
+   Id "OVT-MedicalSupplies"
+   Target_en_us "Medical Supplies"
+   Modified 1504115683
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59A6ED9645E233BB}" {
+   Id "OVT-MedicalSupplies_TooFar"
+   Target_en_us "You are too far from any towns to deliver medical supplies"
+   Modified 1504117657
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59A6ED9BB773C165}" {
+   Id "OVT-MedicalSuppliesDelivered"
+   Target_en_us "Medical supplies delivered to the value of"
+   Modified 1504115425
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59A49A822C192F63}" {
    Id "OVT-Msg-HasPlacedFOB"
    Target_en_us "has placed a new FOB. It is now available for fast travel and more"
@@ -217,6 +259,27 @@ StringTable {
    Id "OVT-MustBeDriver"
    Target_en_us "You must be the driver of the vehicle to fast travel all occupants"
    Modified 1503337948
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59A6ED92C4FDB9FD}" {
+   Id "OVT-MustExitVehicle"
+   Target_en_us "You must exit your vehicle first"
+   Modified 1504119718
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59A6ED92E301B152}" {
+   Id "OVT-NeedBusStop"
+   Target_en_us "You must click near another bus stop"
+   Modified 1504119664
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59A6ED9B869DC04C}" {
+   Id "OVT-NoMedicalSupplies"
+   Target_en_us "No medical supplies found in vehicle"
+   Modified 1504115443
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -337,6 +400,34 @@ StringTable {
    Target_en_us "Population"
    Status DEVELOPMENT_DONE
    Modified 1502796262
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59A6DA4EA0AEA2B4}" {
+   Id "OVT-Resistance_Funds"
+   Target_en_us "Total Funds"
+   Modified 1504109380
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59A6DA490E88EB49}" {
+   Id "OVT-Resistance_NextIncome"
+   Target_en_us "Next income is at"
+   Modified 1504109365
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59A6DA4F1007870D}" {
+   Id "OVT-Resistance_SupporterDonations"
+   Target_en_us "Supporter Donations"
+   Modified 1504108934
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59A6DA4E32870B30}" {
+   Id "OVT-Resistance_TotalTaxes"
+   Target_en_us "Total Taxes"
+   Modified 1504108873
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

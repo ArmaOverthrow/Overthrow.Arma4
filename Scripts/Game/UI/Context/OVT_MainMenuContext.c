@@ -43,6 +43,13 @@ class OVT_MainMenuContext : OVT_UIContext
 		{
 			comp.m_OnClicked.Insert(Place);
 		}
+		
+		// Resistance
+		comp = SCR_ButtonTextComponent.GetButtonText("Resistance", m_wRoot);
+		if (comp)
+		{
+			comp.m_OnClicked.Insert(Resistance);
+		}
 	}
 	
 	private void MapInfo()
@@ -61,5 +68,11 @@ class OVT_MainMenuContext : OVT_UIContext
 	{
 		CloseLayout();
 		m_UIManager.ShowContext(OVT_PlaceContext);		
+	}
+	
+	private void Resistance()
+	{
+		CloseLayout();
+		m_UIManager.ShowContext(OVT_ResistanceMenuContext);		
 	}
 }

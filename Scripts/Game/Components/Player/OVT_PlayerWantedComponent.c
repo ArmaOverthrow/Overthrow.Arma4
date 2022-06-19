@@ -15,6 +15,8 @@ class OVT_PlayerWantedComponent: OVT_Component
 	
 	protected FactionAffiliationComponent m_Faction;
 	protected BaseWeaponManagerComponent m_Weapon;
+	protected SCR_CharacterControllerComponent m_Character;
+	protected SCR_CompartmentAccessComponent m_Compartment;
 	
 	void SetWantedLevel(int level)
 	{
@@ -51,6 +53,8 @@ class OVT_PlayerWantedComponent: OVT_Component
 		
 		m_Faction = FactionAffiliationComponent.Cast(owner.FindComponent(FactionAffiliationComponent));
 		m_Weapon = BaseWeaponManagerComponent.Cast(owner.FindComponent(BaseWeaponManagerComponent));
+		m_Character = SCR_CharacterControllerComponent.Cast(owner.FindComponent(SCR_CharacterControllerComponent));
+		m_Compartment = SCR_CompartmentAccessComponent.Cast(owner.FindComponent(SCR_CompartmentAccessComponent));
 				
 		if(!GetRpl().IsOwner()) return;
 		
@@ -133,11 +137,44 @@ class OVT_PlayerWantedComponent: OVT_Component
 				m_bIsSeen = true;
 				if(m_iWantedLevel > 1) return false;
 								
+				int newLevel = m_iWantedLevel;
 				if (m_Weapon && m_Weapon.GetCurrentWeapon())
 				{
 					//Player is brandishing a weapon
-					m_iWantedLevel = 2;
+					newLevel = 2;
 				}	
+				
+				if(m_Compartment && m_Compartment.IsInCompartment())
+				{
+					//Player is in a vehicle, check if its armed
+					IEntity veh = m_Compartment.GetVehicle();
+					if(veh)
+					{						
+						SCR_EditableVehicleComponent editable = SCR_EditableVehicleComponent.Cast(veh.FindComponent(SCR_EditableVehicleComponent));
+						if(editable)
+						{
+							SCR_UIInfo uiinfo = editable.GetInfo();
+							if(uiinfo)
+							{
+								SCR_EditableEntityUIInfo info = SCR_EditableEntityUIInfo.Cast(uiinfo);
+								if(info)
+								{
+									array<EEditableEntityLabel> entityLabels = new array<EEditableEntityLabel>;
+									info.GetEntityLabels(entityLabels);
+									if(entityLabels.Contains(EEditableEntityLabel.TRAIT_ARMED))
+									{
+										newLevel = 4;
+									}
+								}
+							}
+						}
+					}
+				}
+				
+				if(newLevel != m_iWantedLevel)
+				{
+					SetBaseWantedLevel(newLevel);
+				}
 			}
 			return false;		
 		}

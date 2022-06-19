@@ -104,6 +104,25 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return price;
 	}
 	
+	int GetPriceByResource(ResourceName res, vector pos = "0 0 0")
+	{
+		RplId id = GetInventoryId(res);
+		return GetPrice(id, pos);
+	}
+	
+	bool IsSoldAtShop(ResourceName res, OVT_ShopType shopType)
+	{
+		OVT_ShopInventoryConfig config = GetShopConfig(shopType);
+		foreach(OVT_ShopInventoryItem item : config.m_aInventoryItems)
+		{
+			if(item.prefab == res)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	array<RplId> GetAllShops()
 	{
 		return m_aAllShops;
@@ -218,11 +237,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 	protected void CalculateIncome()
 	{
 		//Support donations
-		int income = 0;
-		foreach(OVT_TownData town : m_Towns.m_Towns)
-		{
-			income += m_Config.m_Difficulty.donationIncome * town.support;
-		}
+		int income = GetDonationIncome();
+		income += GetTaxIncome();
+		
 		PlayerManager mgr = GetGame().GetPlayerManager();
 		//Distribute to all players online
 		int incomePerPlayer = Math.Round(income / mgr.GetPlayerCount());
@@ -235,6 +252,23 @@ class OVT_EconomyManagerComponent: OVT_Component
 		}
 	}
 	
+	int GetDonationIncome()
+	{
+		int income = 0;
+		foreach(OVT_TownData town : m_Towns.m_Towns)
+		{
+			income += m_Config.m_Difficulty.donationIncome * town.support;
+		}
+		return income;
+	}
+	
+	int GetTaxIncome()
+	{
+		int income = 0;
+		
+		return income;
+	}
+			
 	void PostGameStart()
 	{
 		GetGame().GetCallqueue().CallLater(InitShopInventory, 0);

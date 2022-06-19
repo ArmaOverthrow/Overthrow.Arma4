@@ -147,6 +147,17 @@ class OVT_TownManagerComponent: OVT_Component
 			}
 		}
 	}
+	
+	void GetTotalPopulationStats(out int population, out int supporters)
+	{
+		population = 0;
+		supporters = 0;
+		foreach(OVT_TownData town : m_Towns)
+		{
+			population += town.population;
+			supporters += town.support;
+		}
+	}
 
 	void RemoveStabilityModifier(int townId, int index)
 	{
@@ -159,6 +170,18 @@ class OVT_TownManagerComponent: OVT_Component
 			Rpc(RpcDo_RemoveStabilityModifier, townId, index);
 			RecalculateStability(townId);
 		}		
+	}
+	
+	void TryAddStabilityModifierByName(int townId, string name)
+	{
+		OVT_TownModifierSystem system = GetModifierSystem(OVT_TownStabilityModifierSystem);
+		system.TryAddByName(townId, name);
+	}
+	
+	void TryAddSupportModifierByName(int townId, string name)
+	{
+		OVT_TownModifierSystem system = GetModifierSystem(OVT_TownSupportModifierSystem);
+		system.TryAddByName(townId, name);
 	}
 	
 	void TryAddStabilityModifier(int townId, int index)
@@ -440,6 +463,15 @@ class OVT_TownManagerComponent: OVT_Component
 		return SCR_MapDescriptorComponent.Cast(m_EntitySearched.FindComponent(SCR_MapDescriptorComponent));
 	}
 	
+	SCR_MapDescriptorComponent GetNearestBusStop(vector pos)
+	{	
+		m_EntitySearched = null;	
+		GetGame().GetWorld().QueryEntitiesBySphere(pos, 15, null, FindBusStop, EQueryEntitiesFlags.STATIC);
+		if(!m_EntitySearched) return null;
+		
+		return SCR_MapDescriptorComponent.Cast(m_EntitySearched.FindComponent(SCR_MapDescriptorComponent));
+	}
+	
 	void GetTownsWithinDistance(vector pos, float maxDistance, out array<ref OVT_TownData> towns)
 	{
 		foreach(OVT_TownData town : m_Towns)
@@ -539,6 +571,23 @@ class OVT_TownManagerComponent: OVT_Component
 			if(type == EMapDescriptorType.MDT_NAME_CITY) got = true;
 			if(type == EMapDescriptorType.MDT_NAME_VILLAGE) got = true;
 			if(type == EMapDescriptorType.MDT_NAME_TOWN) got = true;
+		}
+		
+		if(got)
+		{
+			m_EntitySearched = entity;
+		}
+				
+		return false;		
+	}
+	
+	protected bool FindBusStop(IEntity entity) 
+	{		
+		bool got = false;
+		MapDescriptorComponent mapdesc = MapDescriptorComponent.Cast(entity.FindComponent(MapDescriptorComponent));
+		if (mapdesc){	
+			int type = mapdesc.GetBaseType();
+			if(type == EMapDescriptorType.MDT_BUSSTOP) got = true;
 		}
 		
 		if(got)

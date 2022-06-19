@@ -22,6 +22,27 @@ Vehicle : "{4085446E2B406849}Prefabs/Vehicles/Core/Vehicle_Base.et" {
   SCR_VehicleDamageManagerComponent "{141326E9FD94FE40}" {
    m_fVehicleDestroyDamage 2857.86
   }
+  ActionsManagerComponent "{C97BE5489221AE18}" {
+   ActionContexts {
+    UserActionContext "{59A6ED97FFACD540}" {
+     ContextName "overthrow"
+     Position PointInfo "{59A6ED97FD8E58A4}" {
+      Offset 0 1 0
+     }
+     Radius 2
+    }
+   }
+   additionalActions {
+    OVT_DeliverMedicalSuppliesAction "{59A6ED97CE021E51}" {
+     ParentContextList {
+      "overthrow"
+     }
+     UIInfo UIInfo "{59A6ED97CC819A27}" {
+      Name "#OVT-DeliverMedicalSupplies"
+     }
+    }
+   }
+  }
  }
  coords 0 0 0
 }

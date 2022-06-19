@@ -35,6 +35,12 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      m_sContextName "OverthrowShopContext"
      m_bOpenActionCloses 0
     }
+    OVT_ResistanceMenuContext "{59A6DA44DADA8E66}" {
+     m_Layout "{4E6A4607DD9850F1}UI/Layouts/Menu/ResistanceMenu.layout"
+     m_sContextName "OverthrowResistanceMenuContext"
+     m_sOpenAction "OverthrowResistanceMenu"
+     m_sCloseAction "MenuBack"
+    }
    }
   }
   SCR_BaseHUDComponent "{520EA1D2DB118134}" {

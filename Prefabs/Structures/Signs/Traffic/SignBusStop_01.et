@@ -1,0 +1,26 @@
+GenericEntity : "{CD0BE5C399B0752F}Prefabs/Structures/Signs/Signs_Base.et" {
+ ID "50D67C36F4200F97"
+ components {
+  ActionsManagerComponent "{59A6ED8D3751EC5C}" {
+   ActionContexts {
+    UserActionContext "{59A6ED8D36C284EB}" {
+     ContextName "default"
+     Position PointInfo "{59A6ED8D320A1567}" {
+      Offset 0 1.5 0
+     }
+     Radius 0.65
+    }
+   }
+   additionalActions {
+    OVT_CatchBusAction "{59A6ED8D03873F1D}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{59A6ED8D0DEBE1C7}" {
+      Name "#OVT-CatchBus"
+     }
+    }
+   }
+  }
+ }
+}

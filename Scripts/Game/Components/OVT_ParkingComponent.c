@@ -45,9 +45,7 @@ class OVT_ParkingComponent : ScriptComponent
 			float result = GetOwner().GetWorld().TracePosition(trace, null);
 				
 			if (result < 0)
-			{
-				Print(trace.TraceEnt.ClassName());
-				Print(trace.TraceEnt.GetPrefabData().GetPrefabName());
+			{				
 				continue;
 			}			
 			
