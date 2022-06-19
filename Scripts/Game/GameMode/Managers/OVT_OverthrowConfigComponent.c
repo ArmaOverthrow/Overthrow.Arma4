@@ -22,6 +22,14 @@ class OVT_DifficultySettings : ScriptAndConfig
 	int resourcesPerTick;
 	[Attribute(defvalue: "10", desc: "Resource cost per soldier")]
 	int resourcesPerSoldier;
+	[Attribute(defvalue: "25", desc: "Resource cost per car")]
+	int resourcesPerCar;
+	[Attribute(defvalue: "35", desc: "Resource cost per truck")]
+	int resourcesPerTruck;
+	[Attribute(defvalue: "60", desc: "Resource cost per lightly armed vehicle")]
+	int resourcesPerLightVehicle;
+	[Attribute(defvalue: "100", desc: "Resource cost per heavily armed vehicle")]
+	int resourcesPerHeavyVehicle;
 	[Attribute(defvalue: "300", desc: "Initial starting resources per base")]
 	int initialResourcesPerBase;
 	

@@ -53,26 +53,19 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 			
 		}else if(FindNearestKerbParking(home.GetOrigin(), 20, mat))
 		{
-			Print("Unable to find OVT_ParkingSpot in starting house prefab. Trying to spawn car next to a kerb.");
+			Print("Unable to find OVT_ParkingComponent in starting house prefab. Trying to spawn car next to a kerb.");
 			SpawnVehicleMatrix(m_pStartingCarPrefab, mat, playerId);
 			
 		}else{
-			Print("Failure to spawn player's starting car. Add OVT_ParkingSpotEntity to all starting house prefabs in config");			
+			Print("Failure to spawn player's starting car. Add OVT_ParkingComponent to all starting house prefabs in config");			
 		}
 	}
 	
-	bool GetParkingSpot(IEntity building, out vector outMat[4])
+	bool GetParkingSpot(IEntity building, out vector outMat[4], OVT_ParkingType type = OVT_ParkingType.PARKING_CAR)
 	{
 		OVT_ParkingComponent parking = OVT_ParkingComponent.Cast(building.FindComponent(OVT_ParkingComponent));
-		if(parking && parking.m_aParkingSpots.Count() > 0)
-		{
-			// offset the item locally with building rotation
-			building.GetWorldTransform(outMat);			
-			outMat[3] = parking.m_aParkingSpots[0].Multiply4(outMat);
-			
-			return true;
-		}
-		return false;		
+		if(!parking) return false;
+		return parking.GetParkingSpot(outMat, type);
 	}
 	
 	bool FindNearestKerbParking(vector pos, float range, out vector outMat[4])

@@ -607,6 +607,7 @@ class OVT_TownManagerComponent: OVT_Component
 	{
 		if(entity.ClassName() == "SCR_DestructibleBuildingEntity"){
 			ResourceName res = entity.GetPrefabData().GetPrefabName();
+			if(res.IndexOf("_furniture") > -1) return false;
 			foreach(string s : m_Config.m_aStartingHouseFilters)
 			{
 				if(res.IndexOf(s) > -1) return true;

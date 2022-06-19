@@ -1,9 +1,12 @@
 SCR_DestructibleBuildingEntity : "{79CE8730C95EFD23}Prefabs/Structures/Houses/Village/House_Mountain_E_1I01_Base.et" {
  ID "F0DBA538AC2A0552"
  components {
-  OVT_ParkingComponent "{599B0A597194563B}" {
+  OVT_ParkingComponent "{59A6937B030F6768}" {
    m_aParkingSpots {
-    8.2 0 0
+    OVT_ParkingPointInfo "{59A6937B021483CB}" {
+     m_vPosition 8.2 0 0
+     m_Type PARKING_CAR
+    }
    }
   }
  }

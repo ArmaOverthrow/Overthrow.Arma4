@@ -24,14 +24,23 @@ class OVT_Faction : SCR_Faction
 	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Faction vehicles (all)", params: "et", category: "Faction Vehicles")]
 	ref array<ResourceName> m_aVehiclePrefabSlots;
 	
-	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Faction vehicles (Unarmed)", params: "et", category: "Faction Vehicles")]
-	ref array<ResourceName> m_aVehicleUnarmedPrefabSlots;
+	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Faction vehicles (Cars)", params: "et", category: "Faction Vehicles")]
+	ref array<ResourceName> m_aVehicleCarPrefabSlots;
 	
-	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Faction vehicles (Light)", params: "et", category: "Faction Vehicles")]
+	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Faction vehicles (Trucks)", params: "et", category: "Faction Vehicles")]
+	ref array<ResourceName> m_aVehicleTruckPrefabSlots;
+	
+	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Faction vehicles (Lightly Armed)", params: "et", category: "Faction Vehicles")]
 	ref array<ResourceName> m_aVehicleLightPrefabSlots;
 	
-	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Faction vehicles (Heavy)", params: "et", category: "Faction Vehicles")]
+	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Faction vehicles (Heavy Armed)", params: "et", category: "Faction Vehicles")]
 	ref array<ResourceName> m_aVehicleHeavyPrefabSlots;
+	
+	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Faction gun tripods (Light)", params: "et", category: "Faction Vehicles")]
+	ref array<ResourceName> m_aTripodLightPrefabSlots;
+	
+	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Faction gun tripods (Heavy)", params: "et", category: "Faction Vehicles")]
+	ref array<ResourceName> m_aTripodHeavyPrefabSlots;
 		
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Flag Pole Prefab", params: "et", category: "Faction Objects")]
 	ResourceName m_aFlagPolePrefab;

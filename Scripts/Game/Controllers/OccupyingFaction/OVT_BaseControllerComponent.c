@@ -23,6 +23,7 @@ class OVT_BaseControllerComponent: OVT_Component
 	ref array<ref EntityID> m_SmallRoadSlots;
 	ref array<ref EntityID> m_MediumRoadSlots;
 	ref array<ref EntityID> m_LargeRoadSlots;
+	ref array<ref EntityID> m_Parking;
 		
 	protected OVT_OccupyingFactionManager m_occupyingFactionManager;
 	
@@ -62,9 +63,10 @@ class OVT_BaseControllerComponent: OVT_Component
 		m_SmallRoadSlots = new array<ref EntityID>;
 		m_MediumRoadSlots = new array<ref EntityID>;
 		m_LargeRoadSlots = new array<ref EntityID>;
-				
-		FindSlots();
+		m_Parking = new array<ref EntityID>;
 		
+		FindSlots();
+		FindParking();
 		
 		//Spawn a flag
 		
@@ -129,6 +131,19 @@ class OVT_BaseControllerComponent: OVT_Component
 		if(name.IndexOf("RoadLarge") > -1) m_LargeRoadSlots.Insert(entity.GetID());
 		
 		return true;
+	}
+	
+	void FindParking()
+	{
+		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), m_iRange, null, FilterParkingEntities, EQueryEntitiesFlags.ALL);
+	}
+	
+	bool FilterParkingEntities(IEntity entity)
+	{
+		if(entity.FindComponent(OVT_ParkingComponent)) {
+			m_Parking.Insert(entity.GetID());
+		}
+		return false;
 	}
 	
 	int SpendResources(int resources, float threat = 0)
@@ -210,6 +225,10 @@ class OVT_BaseControllerComponent: OVT_Component
 			m_LargeRoadSlots.Clear();
 			m_LargeRoadSlots = null;
 		}
-		
+		if(m_Parking)
+		{
+			m_Parking.Clear();
+			m_Parking = null;
+		}
 	}
 }

@@ -11,6 +11,8 @@ class OVT_PlaceContext : OVT_UIContext
 	protected ResourceName m_pPlacingPrefab;
 	protected OVT_Placeable m_Placeable;
 	
+	protected vector[] m_vCurrentTransform[4];
+	
 	protected const float TRACE_DIS = 15;
 	protected const float MAX_PREVIEW_DIS = 15;
 	protected const float MAX_HOUSE_PLACE_DIS = 30;
@@ -30,7 +32,7 @@ class OVT_PlaceContext : OVT_UIContext
 		m_RealEstate = OVT_Global.GetRealEstate();
 		m_OccupyingFaction = OVT_Global.GetOccupyingFaction();
 		m_Resistance = OVT_Global.GetResistanceFaction();
-		m_Towns = OVT_Global.GetTowns();
+		m_Towns = OVT_Global.GetTowns();		
 	}
 	
 	override void OnFrame(float timeSlice)
@@ -43,6 +45,7 @@ class OVT_PlaceContext : OVT_UIContext
 			{
 				vector normal = vector.Zero;				
 				m_ePlacingEntity.SetOrigin(GetPlacePosition(normal));
+				m_ePlacingEntity.GetTransform(m_vCurrentTransform);
 				if(m_Placeable.m_bPlaceOnWall)
 				{
 					vector ypr = m_ePlacingEntity.GetYawPitchRoll();
@@ -198,7 +201,7 @@ class OVT_PlaceContext : OVT_UIContext
 		SpawnGhost();
 	}
 	
-	protected void SpawnGhost(vector mat[4])
+	protected void SpawnGhost()
 	{		
 		vector normal = vector.Zero;
 		vector pos = GetPlacePosition(normal);
@@ -209,9 +212,9 @@ class OVT_PlaceContext : OVT_UIContext
 		m_pPlacingPrefab = m_Placeable.m_aPrefabs[m_iPrefabIndex];
 		m_ePlacingEntity = GetGame().SpawnEntityPrefabLocal(Resource.Load(m_pPlacingPrefab), null, params);
 		
-		if(mat)
+		if(m_vCurrentTransform)
 		{
-			m_ePlacingEntity.SetTransform(mat);
+			m_ePlacingEntity.SetTransform(m_vCurrentTransform);
 		}
 		//SCR_Global.SetMaterial(m_ePlacingEntity, "{E0FECF0FE7457A54}Assets/Editor/PlacingPreview/Preview_03.emat", true);
 		
@@ -275,7 +278,7 @@ class OVT_PlaceContext : OVT_UIContext
 		
 		if(m_Economy.PlayerHasMoney(m_sPlayerID, cost))
 		{
-			SpawnGhost(mat); //Start all over again
+			SpawnGhost(); //Start all over again
 		}else{
 			Cancel();
 		}		
