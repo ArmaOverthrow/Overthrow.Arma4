@@ -1,10 +1,22 @@
-GenericEntity {
- components {
-  SCR_MapDescriptorComponent "{599D5911D54634E7}" {
-   DisplayName "#AR-MapLocation_Military"
-   MainType "Name Generic"
+$grp GenericEntity {
+ Base_South {
+  components {
+   SCR_MapDescriptorComponent "{599D5911D54634E7}" {
+    DisplayName "#AR-MapLocation_Military"
+    MainType "Name Generic"
+   }
   }
+  coords 9398.632 196.303 1170.757
+  Flags 1027
  }
- coords 9398.632 196.303 1170.757
- Flags 1027
+ Base_West {
+  components {
+   SCR_MapDescriptorComponent "{59A6ED8827D1E6A3}" {
+    DisplayName "#AR-MapLocation_Military"
+    MainType "Name Generic"
+   }
+  }
+  coords 924.549 2.751 6059.558
+  Flags 1027
+ }
 }

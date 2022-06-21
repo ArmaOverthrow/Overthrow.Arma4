@@ -32,7 +32,7 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 		{
 			foreach(int i, ResourceName res : m_ProxiedGroups)
 			{
-				BuyPatrol(res, m_ProxiedPositions[i]);
+				BuyPatrol(0, res, m_ProxiedPositions[i]);
 			}
 			m_ProxiedGroups.Clear();
 			m_ProxiedPositions.Clear();
@@ -74,12 +74,14 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 		return active;
 	}
 	
-	protected int BuyPatrol(ResourceName res = "", vector pos = "0 0 0")
+	protected int BuyPatrol(float threat, ResourceName res = "", vector pos = "0 0 0")
 	{
 		OVT_Faction faction = m_Config.GetOccupyingFaction();
 				
-		if(res == "")
+		if(res == ""){
 			res = faction.m_aGroupInfantryPrefabSlots.GetRandomElement();
+			if(threat > 25) res = faction.m_aHeavyInfantryPrefabSlots.GetRandomElement();
+		}
 		
 		BaseWorld world = GetGame().GetWorld();
 			
@@ -125,13 +127,13 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 		return res + m_iProxedResources;
 	}
 	
-	override int Spend(int resources)
+	override int Spend(int resources, float threat)
 	{
 		int spent = 0;
 		
 		while(resources > 0)
 		{			
-			int newres = BuyPatrol();
+			int newres = BuyPatrol(threat);
 			
 			if(newres > resources){
 				newres = resources;

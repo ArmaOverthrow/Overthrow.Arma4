@@ -9,6 +9,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 	ref array<RplId> m_Bases;
 	ref array<vector> m_BasesToSpawn;
 	
+	protected int m_iOccupyingFactionIndex;
+	protected int m_iPlayerFactionIndex;
+	
 	const int OF_UPDATE_FREQUENCY = 60000;
 	
 	ref ScriptInvoker<IEntity> m_OnAIKilled = new ScriptInvoker<IEntity>;
@@ -40,6 +43,14 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_iThreat = m_Config.m_Difficulty.baseThreat;
 		m_iResources = m_Config.m_Difficulty.startingResources;
 		
+		Faction playerFaction = GetGame().GetFactionManager().GetFactionByKey(m_Config.m_sPlayerFaction);
+		m_iPlayerFactionIndex = GetGame().GetFactionManager().GetFactionIndex(playerFaction);
+		
+		Faction occupyingFaction = GetGame().GetFactionManager().GetFactionByKey(m_Config.m_sOccupyingFaction);
+		m_iOccupyingFactionIndex = GetGame().GetFactionManager().GetFactionIndex(occupyingFaction);
+				
+		OVT_Global.GetTowns().m_OnTownControlChange.Insert(OnTownControlChanged);
+		
 		InitializeBases();		
 	}
 	
@@ -47,6 +58,14 @@ class OVT_OccupyingFactionManager: OVT_Component
 	{
 		GetGame().GetCallqueue().CallLater(CheckUpdate, OF_UPDATE_FREQUENCY / m_Config.m_iTimeMultiplier, true, GetOwner());
 		GetGame().GetCallqueue().CallLater(SpawnBaseControllers, 0);
+	}
+	
+	void OnTownControlChanged(OVT_TownData town)
+	{
+		if(town.faction == m_iPlayerFactionIndex)
+		{
+			m_iThreat += town.size * 15;
+		}
 	}
 	
 	OVT_BaseControllerComponent GetNearestBase(vector pos)
@@ -120,6 +139,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 			
 			if(m_iResources <= 0) break;
 		}
+		Print("OF Remaining Resources: " + m_iResources);
 	}
 	
 	OVT_BaseControllerComponent GetBase(RplId id)
@@ -191,17 +211,38 @@ class OVT_OccupyingFactionManager: OVT_Component
 					m_iResources = 0;
 				}
 			}
+			Print("OF Reserve Resources: " + m_iResources);
+		}
+		
+		//Every 15 mins reduce threat
+		if(time.m_iMinutes == 0 
+			|| time.m_iMinutes == 15 
+			|| time.m_iMinutes == 30 
+			|| time.m_iMinutes == 45)			
+		{
+			m_iThreat -= 1;
+			if(m_iThreat < 0) m_iThreat = 0;
 		}
 	}
 	
 	void GainResources()
 	{
-		
-		int newResources = m_Config.m_Difficulty.baseResourcesPerTick + (m_Config.m_Difficulty.resourcesPerTick * m_iThreat);
+		float threatFactor = m_iThreat / 100;
+		if(threatFactor > 1) threatFactor = 1;
+		int newResources = m_Config.m_Difficulty.baseResourcesPerTick + (m_Config.m_Difficulty.resourcesPerTick * threatFactor);
 		
 		m_iResources += newResources;
 		
 		Print ("OF Gained Resources: " + newResources.ToString());			
+	}
+	
+	void OnAIKilled(IEntity ai, IEntity insitgator)
+	{
+		if(!Replication.IsServer()) return;
+		
+		m_iThreat += 1;
+		
+		m_OnAIKilled.Invoke(ai);
 	}
 	
 	//RPC Methods

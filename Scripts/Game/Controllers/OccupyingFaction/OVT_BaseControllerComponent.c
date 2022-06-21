@@ -9,9 +9,12 @@ class OVT_BaseControllerComponent: OVT_Component
 	
 	[Attribute("", UIWidgets.Object)]
 	ref array<ref OVT_BaseUpgrade> m_aBaseUpgrades;
-					
-	int m_iRange = 250;
-	int m_iCloseRange = 150;
+			
+	[Attribute("320")]		
+	int m_iRange;
+	
+	[Attribute("230")]
+	int m_iCloseRange;
 	
 	string m_sName;	
 	
@@ -163,10 +166,10 @@ class OVT_BaseControllerComponent: OVT_Component
 					if(allocate < 0)
 					{
 						//Ignore allocation, spend recklessly
-						newres = upgrade.Spend(resources);
+						newres = upgrade.Spend(resources, threat);
 					}else{
 						if(resources < allocate) allocate = resources;
-						newres = upgrade.SpendToAllocation();
+						newres = upgrade.SpendToAllocation(threat);
 					}
 					
 					spent += newres;

@@ -44,7 +44,7 @@ class OVT_BaseUpgradeTowerGuard : OVT_BasePatrolUpgrade
 		return;
 	}
 	
-	override int Spend(int resources)
+	override int Spend(int resources, float threat)
 	{
 		int spent = 0;
 		

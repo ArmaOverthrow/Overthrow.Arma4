@@ -10,7 +10,7 @@ class OVT_BaseUpgradeCheckpoints : OVT_BasePatrolUpgrade
 		m_aSlotsFilled = new array<ref EntityID>;
 	}
 	
-	override int Spend(int resources)
+	override int Spend(int resources, float threat)
 	{
 		int spent = 0;
 		
@@ -25,7 +25,7 @@ class OVT_BaseUpgradeCheckpoints : OVT_BasePatrolUpgrade
 			m_aSlotsFilled.Insert(id);
 			
 			if(resources < (m_Config.m_Difficulty.resourcesPerSoldier * 4)) break;
-			int newres = BuyPatrol(m_Faction.m_aGroupInfantryPrefabSlots[0], slot.GetOrigin());
+			int newres = BuyPatrol(threat, m_Faction.m_aGroupInfantryPrefabSlots[0], slot.GetOrigin());
 			spent += newres;
 			resources -= newres;
 		}
@@ -41,7 +41,7 @@ class OVT_BaseUpgradeCheckpoints : OVT_BasePatrolUpgrade
 			m_aSlotsFilled.Insert(id);
 			
 			if(resources < (m_Config.m_Difficulty.resourcesPerSoldier * 4)) break;
-			int newres = BuyPatrol(m_Faction.m_aGroupInfantryPrefabSlots[0], slot.GetOrigin());
+			int newres = BuyPatrol(threat, m_Faction.m_aGroupInfantryPrefabSlots[0], slot.GetOrigin());
 			spent += newres;
 			resources -= newres;
 		}

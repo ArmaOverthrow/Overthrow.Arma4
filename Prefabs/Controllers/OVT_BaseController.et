@@ -24,6 +24,7 @@ GenericEntity {
      m_iPriority 3
     }
    }
+   m_iCloseRange 220
   }
   RplComponent "{599AA7491505E0AB}" {
   }

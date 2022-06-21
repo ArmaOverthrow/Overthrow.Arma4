@@ -1,5 +1,8 @@
 modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponent
 {
+	protected bool m_bCheckedFaction = false;
+	protected bool m_bIsOccupyingFaction = false;
+	
 	protected override void OnDamage(
 				EDamageType type,
 				float damage,
@@ -28,8 +31,9 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 	override void Kill(IEntity instigator = null)
 	{
 		super.Kill(instigator);
-		
-		OVT_Global.GetOccupyingFaction().m_OnAIKilled.Invoke(GetOwner());
+				
+		if(IsOccupyingFaction())
+			OVT_Global.GetOccupyingFaction().OnAIKilled(GetOwner(), instigator);
 		
 		if(instigator)
 		{
@@ -43,13 +47,30 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 		
 	}
 	
+	protected bool IsOccupyingFaction()
+	{
+		if(!m_bCheckedFaction)
+		{
+			OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+			FactionAffiliationComponent aff = FactionAffiliationComponent.Cast(GetOwner().FindComponent(FactionAffiliationComponent));
+			Faction fac = aff.GetAffiliatedFaction();
+			if(fac.GetFactionKey() == config.m_sOccupyingFaction)
+			{
+				m_bIsOccupyingFaction = true;
+			}
+			m_bCheckedFaction = true;
+		}
+		return m_bIsOccupyingFaction;
+	}
+	
 	protected override void OnDamageStateChanged(EDamageState state)
 	{
 		super.OnDamageStateChanged(state);
 		
 		UpdateBloodyFace();
 		
-		OVT_Global.GetOccupyingFaction().m_OnAIKilled.Invoke(GetOwner());
+		if(IsOccupyingFaction())
+			OVT_Global.GetOccupyingFaction().OnAIKilled(GetOwner(), null);
 		
 		//Check immediate surrounds for a vehicle (hoping for a better way soon pls BI)
 		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), 5, CheckVehicleSetWanted, FilterVehicleEntities, EQueryEntitiesFlags.ALL);

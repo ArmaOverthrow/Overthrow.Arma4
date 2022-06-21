@@ -60,6 +60,8 @@ class OVT_TownManagerComponent: OVT_Component
 	
 	OVT_RealEstateManagerComponent m_RealEstate;
 	
+	ref ScriptInvoker<IEntity> m_OnTownControlChange = new ScriptInvoker<IEntity>;
+	
 	const int MODIFIER_FREQUENCY = 10000;
 	protected int m_iSupportCounter = 0;
 	protected const int SUPPORT_FREQUENCY = 6; // * MODIFIER_FREQUENCY
@@ -301,6 +303,8 @@ class OVT_TownManagerComponent: OVT_Component
 			//Chance this village will flip to the resistance
 			if(support >= 85 || s_AIRandomGenerator.RandFloat01() < 0.5)
 			{
+				town.faction = playerFactionIndex;
+				m_OnTownControlChange.Invoke(town);
 				Rpc(RpcDo_SetTownFaction, townId, playerFactionIndex);
 				OVT_Global.GetPlayers().HintMessageAll("VillageControlledResistance", townId);
 			}			
@@ -309,6 +313,8 @@ class OVT_TownManagerComponent: OVT_Component
 			//Chance this village will flip back to the OF
 			if(support < 15 || s_AIRandomGenerator.RandFloat01() < 0.5)
 			{
+				town.faction = occupyingFactionIndex;
+				m_OnTownControlChange.Invoke(town);
 				Rpc(RpcDo_SetTownFaction, townId, occupyingFactionIndex);
 				OVT_Global.GetPlayers().HintMessageAll("VillageControlledOccupying", townId);
 			}

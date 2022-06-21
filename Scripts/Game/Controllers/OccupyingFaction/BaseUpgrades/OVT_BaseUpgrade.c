@@ -39,13 +39,13 @@ class OVT_BaseUpgrade : ScriptAndConfig
 		return 0;
 	}
 	
-	int Spend(int resources)
+	int Spend(int resources, float threat)
 	{
 		return 0;
 	}
 	
-	int SpendToAllocation()
+	int SpendToAllocation(float threat)
 	{
-		return Spend(m_iResourceAllocation - GetResources());
+		return Spend(m_iResourceAllocation - GetResources(), threat);
 	}
 }

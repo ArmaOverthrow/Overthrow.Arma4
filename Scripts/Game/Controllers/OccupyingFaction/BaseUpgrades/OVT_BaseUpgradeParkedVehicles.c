@@ -33,7 +33,7 @@ class OVT_BaseUpgradeParkedVehicles : OVT_BaseUpgrade
 		return res;
 	}
 	
-	override int Spend(int resources)
+	override int Spend(int resources, float threat)
 	{
 		int spent = 0;
 		

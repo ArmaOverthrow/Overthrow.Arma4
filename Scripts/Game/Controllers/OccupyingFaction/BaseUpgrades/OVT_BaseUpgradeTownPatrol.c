@@ -52,7 +52,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		}
 	}
 	
-	override int Spend(int resources)
+	override int Spend(int resources, float threat)
 	{
 		int spent = 0;
 		
@@ -62,7 +62,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 			if(!OVT_Global.PlayerInRange(town.location, 2500)) continue;
 			if(!m_Patrols.Contains(town.id))
 			{
-				int newres = BuyTownPatrol(town);
+				int newres = BuyTownPatrol(town, threat);
 				
 				spent += newres;
 				resources -= newres;
@@ -80,7 +80,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 					SCR_Global.DeleteEntityAndChildren(aigroup);	
 					
 					//send another one
-					int newres = BuyTownPatrol(town);
+					int newres = BuyTownPatrol(town, threat);
 				
 					spent += newres;
 					resources -= newres;			
@@ -91,11 +91,13 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		return spent;
 	}
 	
-	protected int BuyTownPatrol(OVT_TownData town)
+	protected int BuyTownPatrol(OVT_TownData town, float threat)
 	{
 		OVT_Faction faction = m_Config.GetOccupyingFaction();
 				
 		ResourceName res = faction.m_aLightTownPatrolPrefab;
+		if(threat > 15) res = faction.m_aGroupInfantryPrefabSlots.GetRandomElement();
+		if(threat > 50) res = faction.m_aHeavyInfantryPrefabSlots.GetRandomElement();		
 		
 		BaseWorld world = GetGame().GetWorld();
 			
