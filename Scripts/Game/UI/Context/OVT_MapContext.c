@@ -317,13 +317,7 @@ class OVT_MapContext : OVT_UIContext
 				return;
 			}
 					
-			//Snap to the nearest navmesh point
-			AIPathfindingComponent pathFindindingComponent = AIPathfindingComponent.Cast(m_Owner.FindComponent(AIPathfindingComponent));
-			if (pathFindindingComponent && pathFindindingComponent.GetClosestPositionOnNavmesh(pos, "10 10 10", pos))
-			{
-				if (pos[1] < groundHeight)
-					pos[1] = groundHeight;
-			}
+			pos = OVT_Global.FindSafeSpawnPosition(pos);
 			
 			HideMap();
 			DisableFastTravel();

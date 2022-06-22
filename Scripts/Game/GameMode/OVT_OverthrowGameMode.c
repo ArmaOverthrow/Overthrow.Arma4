@@ -14,6 +14,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	protected OVT_VehicleManagerComponent m_VehicleManager;
 	protected OVT_EconomyManagerComponent m_EconomyManager;
 	protected OVT_PlayerManagerComponent m_PlayerManager;
+	protected OVT_JobManagerComponent m_JobManager;
 	
 	ref set<string> m_aInitializedPlayers;
 	ref set<string> m_aHintedPlayers;
@@ -167,6 +168,16 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			#endif
 			
 			m_VehicleManager.Init(this);
+		}	
+		
+		m_JobManager = OVT_JobManagerComponent.Cast(FindComponent(OVT_JobManagerComponent));		
+		if(m_JobManager)
+		{
+			#ifdef OVERTHROW_DEBUG
+			Print("Initializing Jobs");
+			#endif
+			
+			m_JobManager.Init(this);
 		}	
 		
 		m_StartGameUIContext.Init(owner, null);

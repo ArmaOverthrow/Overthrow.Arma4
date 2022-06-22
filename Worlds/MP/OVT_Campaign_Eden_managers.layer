@@ -265,6 +265,11 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode {
     }
    }
   }
+  OVT_JobManagerComponent "{59A8D178EC1AA2AE}" {
+   m_aJobConfigFiles {
+    "{440607BAB7BD6B1C}Configs/Jobs/assassinateTraitor.conf"
+   }
+  }
   OVT_OccupyingFactionManager "{59845E732755785F}" {
   }
   OVT_OverthrowConfigComponent "{59724C8C935D8E5D}" {

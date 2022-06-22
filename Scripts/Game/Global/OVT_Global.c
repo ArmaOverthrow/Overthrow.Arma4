@@ -39,6 +39,11 @@ class OVT_Global {
 		return OVT_ResistanceFactionManager.GetInstance();
 	}
 	
+	static OVT_JobManagerComponent GetJobs()
+	{
+		return OVT_JobManagerComponent.GetInstance();
+	}
+	
 	static bool PlayerInRange(vector pos, int range)
 	{		
 		bool active = false;
@@ -61,5 +66,67 @@ class OVT_Global {
 		}
 		
 		return active;
+	}
+	
+	static int NearestPlayer(vector pos)
+	{		
+		array<int> players = new array<int>;
+		PlayerManager mgr = GetGame().GetPlayerManager();
+		int numplayers = mgr.GetPlayers(players);
+		
+		float nearestDist = 9999999;
+		int nearest = -1;
+		
+		if(numplayers > 0)
+		{
+			foreach(int playerID : players)
+			{
+				IEntity player = mgr.GetPlayerControlledEntity(playerID);
+				if(!player) continue;
+				float distance = vector.Distance(player.GetOrigin(), pos);
+				if(distance < nearestDist)
+				{
+					nearestDist = distance;
+					nearest = playerID;
+				}
+			}
+		}
+		
+		return nearest;
+	}
+	
+	static vector FindSafeSpawnPosition(vector pos, vector mins = "-0.5 0 -0.5", vector maxs = "0.5 2 0.5")
+	{
+		//a crude way to find a spawn position, try to improve this later
+		vector foundpos = pos;
+		int i = 0;
+		
+		BaseWorld world = GetGame().GetWorld();
+		float ground = world.GetSurfaceY(pos[0],pos[2]);
+				
+		while(i < 30)
+		{
+			i++;
+			
+			vector checkpos = s_AIRandomGenerator.GenerateRandomPointInRadius(0,3,pos,false);
+			checkpos[1] = ground + s_AIRandomGenerator.RandFloatXY(0, 2);
+			autoptr TraceBox trace = new TraceBox;
+			trace.Flags = TraceFlags.ENTS;
+			trace.Start = checkpos;
+			trace.Mins = mins;
+			trace.Maxs = maxs;
+			
+			float result = world.TracePosition(trace, null);
+				
+			if (result < 0)
+			{				
+				continue;
+			}else{
+				foundpos = checkpos;
+				break;
+			}
+		}
+		
+		return foundpos;
 	}
 }

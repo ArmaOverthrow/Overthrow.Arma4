@@ -36,14 +36,7 @@ class OVT_TownControllerComponent: OVT_Component
 		
 		BaseWorld world = GetGame().GetWorld();
 		
-		//Snap to the nearest navmesh point
-		AIPathfindingComponent pathFindindingComponent = AIPathfindingComponent.Cast(this.FindComponent(AIPathfindingComponent));
-		if (pathFindindingComponent && pathFindindingComponent.GetClosestPositionOnNavmesh(spawnPosition, "10 10 10", spawnPosition))
-		{
-			float groundHeight = world.GetSurfaceY(spawnPosition[0], spawnPosition[2]);
-			if (spawnPosition[1] < groundHeight)
-				spawnPosition[1] = groundHeight;
-		}
+		spawnPosition = OVT_Global.FindSafeSpawnPosition(spawnPosition);
 		
 		spawnParams.Transform[3] = spawnPosition;
 		IEntity dealer = GetGame().SpawnEntityPrefab(Resource.Load(m_Config.m_pGunDealerPrefab), world, spawnParams);

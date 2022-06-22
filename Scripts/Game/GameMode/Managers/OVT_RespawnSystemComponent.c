@@ -55,14 +55,7 @@ class OVT_RespawnSystemComponent : SCR_RespawnSystemComponent
 		
 		BaseWorld world = GetGame().GetWorld();
 		
-		//Snap to the nearest navmesh point
-		AIPathfindingComponent pathFindindingComponent = AIPathfindingComponent.Cast(this.FindComponent(AIPathfindingComponent));
-		if (pathFindindingComponent && pathFindindingComponent.GetClosestPositionOnNavmesh(spawnPosition, "10 10 10", spawnPosition))
-		{
-			float groundHeight = world.GetSurfaceY(spawnPosition[0], spawnPosition[2]);
-			if (spawnPosition[1] < groundHeight)
-				spawnPosition[1] = groundHeight;
-		}
+		spawnPosition = OVT_Global.FindSafeSpawnPosition(spawnPosition);
 		
 		GenericEntity spawned = DoSpawn(loadout.GetLoadoutResource(), spawnPosition, spawnRotation);
 		loadout.OnLoadoutSpawned(spawned, playerId);

@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{440607BAB7BD6B1C}Configs/Jobs/assassinateTraitor.conf"
+ Configurations {
+  CONFResourceClass PC {
+  }
+  CONFResourceClass XBOX_ONE : PC {
+  }
+  CONFResourceClass XBOX_SERIES : PC {
+  }
+  CONFResourceClass PS4 : PC {
+  }
+  CONFResourceClass HEADLESS : PC {
+  }
+ }
+}
