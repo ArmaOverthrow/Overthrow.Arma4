@@ -10,9 +10,6 @@ SCR_AIWorld : "{E0A05C76552E7F58}Prefabs/AI/SCR_AIWorld.et" {
 }
 OVT_OverthrowGameMode OVT_OverthrowGameMode {
  components {
-  AIPathfindingComponent "{59862DE9BF0C1544}" {
-   NavmeshProject "Soldiers"
-  }
   OVT_EconomyManagerComponent "{5988DB0008700592}" {
    m_aShopConfigs {
     OVT_ShopInventoryConfig "{598EDB5225F92650}" {
@@ -423,8 +420,8 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode {
      m_rConfigFile "{AB1726E5220F21F1}Configs/Modifiers/supportModifiers.conf"
     }
    }
-   m_aStartExclusionZones {
-    10918.685 24.915 11706.15
+   m_aIgnoreTowns {
+    "#AR-MapLocation_Erquy"
    }
   }
   OVT_VehicleManagerComponent "{59953E39CBC3659D}" {

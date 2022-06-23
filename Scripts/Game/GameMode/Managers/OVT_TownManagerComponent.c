@@ -47,11 +47,13 @@ class OVT_TownManagerComponent: OVT_Component
 	ref array<ref OVT_TownModifierSystem> m_aTownModifiers;
 	
 	[Attribute("", UIWidgets.Object)]	
-	ref array<ref vector> m_aStartExclusionZones;
+	ref array<ref string> m_aIgnoreTowns;
 	
 	protected int m_iTownCount=0;
 	
 	ref array<ref OVT_TownData> m_Towns;
+	ref array<ref string> m_TownNames;
+	
 	protected IEntity m_EntitySearched;
 	
 	protected OVT_TownData m_CheckTown;
@@ -82,6 +84,7 @@ class OVT_TownManagerComponent: OVT_Component
 	void OVT_TownManagerComponent()
 	{
 		m_Towns = new array<ref OVT_TownData>;
+		m_TownNames = new array<ref string>;
 	}
 	
 	void Init(IEntity owner)
@@ -353,13 +356,7 @@ class OVT_TownManagerComponent: OVT_Component
 		{
 			i++;
 			town = m_Towns.GetRandomElement();
-			
-			foreach(vector exclusion : m_aStartExclusionZones)
-			{
-				dist = vector.Distance(town.location, exclusion);
-				if(dist < m_iCityRange) continue;
-			}
-			
+				
 			GetGame().GetWorld().QueryEntitiesBySphere(town.location, m_iCityRange, CheckHouseAddToArray, FilterStartingHouseEntities, EQueryEntitiesFlags.STATIC);
 			if(m_Houses.Count() == 0) continue;
 			house = GetGame().GetWorld().FindEntityByID(m_Houses.GetRandomElement());
@@ -469,6 +466,16 @@ class OVT_TownManagerComponent: OVT_Component
 		return SCR_MapDescriptorComponent.Cast(m_EntitySearched.FindComponent(SCR_MapDescriptorComponent));
 	}
 	
+	string GetTownName(int townId)
+	{
+		if(m_TownNames[townId] == "")
+		{
+			SCR_MapDescriptorComponent desc = GetNearestTownMarker(m_Towns[townId].location);
+			m_TownNames[townId] = desc.Item().GetDisplayName();
+		}
+		return m_TownNames[townId];
+	}
+	
 	SCR_MapDescriptorComponent GetNearestBusStop(vector pos)
 	{	
 		m_EntitySearched = null;	
@@ -552,13 +559,14 @@ class OVT_TownManagerComponent: OVT_Component
 		#endif
 		
 		m_Towns.Insert(town);
-		
+		m_TownNames.Insert(mapdesc.Item().GetDisplayName());
 	}
 	
 	protected bool FilterCityTownEntities(IEntity entity) 
 	{		
 		MapDescriptorComponent mapdesc = MapDescriptorComponent.Cast(entity.FindComponent(MapDescriptorComponent));
 		if (mapdesc){	
+			if(m_aIgnoreTowns.Find(mapdesc.Item().GetDisplayName()) > -1) return false;
 			int type = mapdesc.GetBaseType();
 			if(type == EMapDescriptorType.MDT_NAME_CITY) return true;
 			if(type == EMapDescriptorType.MDT_NAME_VILLAGE) return true;
@@ -759,6 +767,7 @@ class OVT_TownManagerComponent: OVT_Component
 			}
 			
 			m_Towns.Insert(town);
+			m_TownNames.Insert(""); //Will get populated later as required
 		}
 		return true;
 	}
@@ -882,6 +891,11 @@ class OVT_TownManagerComponent: OVT_Component
 		{
 			m_Towns.Clear();
 			m_Towns = null;
+		}
+		if(m_TownNames)
+		{
+			m_TownNames.Clear();
+			m_TownNames = null;
 		}
 		if(m_Houses)
 		{

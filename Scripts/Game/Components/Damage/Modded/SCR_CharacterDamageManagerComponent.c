@@ -54,7 +54,7 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 			OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
 			FactionAffiliationComponent aff = FactionAffiliationComponent.Cast(GetOwner().FindComponent(FactionAffiliationComponent));
 			Faction fac = aff.GetAffiliatedFaction();
-			if(fac.GetFactionKey() == config.m_sOccupyingFaction)
+			if(fac && fac.GetFactionKey() == config.m_sOccupyingFaction)
 			{
 				m_bIsOccupyingFaction = true;
 			}

@@ -1,0 +1,92 @@
+ButtonWidgetClass {
+ Name "JobCard0"
+ Slot LayoutSlot "{59A8D255EC5826DF}" {
+  Padding 0 0 0 2
+ }
+ Color 0.018 0.018 0.018 1
+ components {
+  OVT_JobListEntryHandler "{59A8D255FB0F070C}" {
+   m_BackgroundDefault 0.018 0.018 0.018 0.102
+   m_BackgroundHovered 0.023 0.023 0.023 0.302
+   m_BackgroundSelected 0.018 0.011 0.004 0.302
+   m_BackgroundSelectedHovered 0.024 0.016 0.008 1
+   m_BackgroundClicked 0.031 0.02 0.009 1
+  }
+ }
+ {
+  OverlayWidgetClass "{59A8D268752701CF}" {
+   Name "Overlay0"
+   Slot ButtonWidgetSlot "{59A8D255EBAEC61D}" {
+    HorizontalAlign 3
+    VerticalAlign 3
+   }
+   {
+    ImageWidgetClass "{59A8D2682667616B}" {
+     Name "Background"
+     Slot OverlayWidgetSlot "{59A8D256E82DF638}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+     }
+     Color 0.005 0.005 0.005 1
+    }
+    HorizontalLayoutWidgetClass "{59A8D256B673231D}" {
+     Name "HorizontalLayout0"
+     Slot OverlayWidgetSlot "{59A8D256B67323E3}" {
+      HorizontalAlign 3
+      Padding 10 10 10 10
+     }
+     {
+      ImageWidgetClass "{59A8D25545F8B2E4}" {
+       Name "Image0"
+       Slot LayoutSlot "{59A8D255427F9AC0}" {
+       }
+       Texture "{10C0A9A305E8B3A4}UI/Imagesets/Tasks/Task_Icons.imageset"
+       Image "Icon_Task_BG"
+       Size 64 64
+      }
+      VerticalLayoutWidgetClass "{59A8D256829A7C24}" {
+       Name "VerticalLayout0"
+       Slot LayoutSlot "{59A8D256829A7C06}" {
+       }
+       {
+        TextWidgetClass "{59A8D269D30AE5B7}" {
+         Name "Title"
+         Slot LayoutSlot "{59A8D256B5221A2A}" {
+         }
+         Text "Assassinate Traitor"
+         "Font Size" 36
+         "Min Font Size" 36
+        }
+        TextWidgetClass "{59A8D2568F24A925}" {
+         Name "Location"
+         Slot LayoutSlot "{59A8D256B5221A2A}" {
+          Padding 0 5 0 0
+         }
+         Text "St Phillipe"
+         "Font Size" 22
+         "Min Font Size" 22
+        }
+       }
+      }
+      FrameWidgetClass "{59A8D25499B29A5A}" {
+       Name "Frame0"
+       Slot LayoutSlot "{59A8D25499B29A26}" {
+        SizeMode Fill
+       }
+      }
+      TextWidgetClass "{59A8D253618E9DB7}" {
+       Name "Reward"
+       Slot LayoutSlot "{59A8D253618E9D91}" {
+        HorizontalAlign 1
+        VerticalAlign 0
+       }
+       Text "$100"
+       "Font Size" 36
+       "Min Font Size" 36
+      }
+     }
+    }
+   }
+  }
+ }
+}

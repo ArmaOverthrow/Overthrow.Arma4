@@ -97,7 +97,7 @@ class OVT_Global {
 	
 	static vector FindSafeSpawnPosition(vector pos, vector mins = "-0.5 0 -0.5", vector maxs = "0.5 2 0.5")
 	{
-		//a crude way to find a spawn position, try to improve this later
+		//a crude and brute-force way to find a spawn position, try to improve this later
 		vector foundpos = pos;
 		int i = 0;
 		
@@ -108,8 +108,11 @@ class OVT_Global {
 		{
 			i++;
 			
+			//Get a random vector in a 3m radius sphere centered on pos and above the ground
 			vector checkpos = s_AIRandomGenerator.GenerateRandomPointInRadius(0,3,pos,false);
-			checkpos[1] = ground + s_AIRandomGenerator.RandFloatXY(0, 2);
+			checkpos[1] = pos[1] + s_AIRandomGenerator.RandFloatXY(0, 2);
+						
+			//check if a box on that position collides with anything
 			autoptr TraceBox trace = new TraceBox;
 			trace.Flags = TraceFlags.ENTS;
 			trace.Start = checkpos;
@@ -119,9 +122,11 @@ class OVT_Global {
 			float result = world.TracePosition(trace, null);
 				
 			if (result < 0)
-			{				
+			{
+				//collision, try again
 				continue;
 			}else{
+				//no collision, this pos is safe
 				foundpos = checkpos;
 				break;
 			}

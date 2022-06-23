@@ -92,8 +92,7 @@ class OVT_PlayerManagerComponent: OVT_Component
 			//Add town name
 			OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 			OVT_TownData town = towns.m_Towns[townId];
-			SCR_MapDescriptorComponent desc = towns.GetNearestTownMarker(town.location);
-			text += desc.Item().GetDisplayName() + " ";
+			text += towns.GetTownName(townId) + " ";
 		}			
 		string title = preset.m_UIInfo.GetName();
 		if(title != "")

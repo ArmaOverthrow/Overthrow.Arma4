@@ -32,7 +32,7 @@ class OVT_RandomStabilityModifier : OVT_StabilityModifier
 		if(town.stability < 50) chance *= m_fLowStabilityFactor;
 		if(town.SupportPercentage() < 50) chance *= m_fLowSupportFactor;
 		
-		if(s_AIRandomGenerator.RandFloat01() < chance)
+		if(s_AIRandomGenerator.RandFloatXY(0,100) < chance)
 		{
 			m_Towns.TryAddStabilityModifier(town.id, m_iIndex);
 		}

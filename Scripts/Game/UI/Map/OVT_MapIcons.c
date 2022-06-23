@@ -10,13 +10,14 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 	protected int m_iCeiling;
 	
 	protected ref array<vector> m_Centers;
+	protected ref array<float> m_Ranges;
 	protected ref array<ref Widget> m_Widgets;
 		
 	override void Update()
 	{
 		foreach(int i, Widget w : m_Widgets)
 		{
-			if(m_MapEntity.GetCurrentZoom() < m_iCeiling)
+			if(m_MapEntity.GetCurrentZoom() < m_Ranges[i])
 			{
 				w.SetOpacity(0);
 				continue;
@@ -41,12 +42,14 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 		
 		m_Centers = new array<vector>;
 		m_Widgets = new array<ref Widget>;
+		m_Ranges = new array<float>;
 		
 		OVT_RealEstateManagerComponent realEstate = OVT_Global.GetRealEstate();
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
 		OVT_OverthrowConfigComponent otconfig = OVT_Global.GetConfig();
 		OVT_VehicleManagerComponent vehicles = OVT_Global.GetVehicles();
 		OVT_ResistanceFactionManager resistance = OVT_Global.GetResistanceFaction();
+		OVT_JobManagerComponent jobs = OVT_Global.GetJobs();
 		
 		ChimeraCharacter playerEntity = ChimeraCharacter.Cast(SCR_PlayerController.GetLocalControlledEntity());
 		if (!playerEntity)
@@ -65,6 +68,7 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 		{
 			IEntity ent = world.FindEntityByID(id);
 			m_Centers.Insert(ent.GetOrigin());
+			m_Ranges.Insert(m_iCeiling);
 			
 			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
 			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
@@ -79,6 +83,7 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 			if(!rpl) continue;
 			IEntity ent = rpl.GetEntity();
 			m_Centers.Insert(ent.GetOrigin());
+			m_Ranges.Insert(m_iCeiling);
 			
 			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
 			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
@@ -93,6 +98,7 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 			if(!rpl) continue;
 			IEntity ent = rpl.GetEntity();
 			m_Centers.Insert(ent.GetOrigin());
+			m_Ranges.Insert(m_iCeiling);
 			
 			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
 			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
@@ -124,6 +130,7 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 		{
 			IEntity ent = world.FindEntityByID(id);
 			m_Centers.Insert(ent.GetOrigin());
+			m_Ranges.Insert(m_iCeiling);
 			
 			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
 			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
@@ -142,6 +149,7 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 			if(!rpl) continue;
 			IEntity ent = rpl.GetEntity();
 			m_Centers.Insert(ent.GetOrigin());
+			m_Ranges.Insert(0);
 			
 			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
 			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
@@ -150,6 +158,17 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 			m_Widgets.Insert(w);
 		}
 		
+		if(jobs.m_vCurrentWaypoint)
+		{
+			m_Centers.Insert(jobs.m_vCurrentWaypoint);
+			m_Ranges.Insert(0);
+			
+			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
+			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
+						
+			image.LoadImageFromSet(0, m_Imageset, "waypoint");			
+			m_Widgets.Insert(w);
+		}
 	}
 	
 	override void OnMapClose(MapConfiguration config)

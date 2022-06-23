@@ -41,6 +41,13 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      m_sOpenAction "OverthrowResistanceMenu"
      m_sCloseAction "MenuBack"
     }
+    OVT_JobsContext "{59A8D1BD2FBC299B}" {
+     m_Layout "{766CB9C6B8AB15AA}UI/Layouts/Menu/JobsMenu.layout"
+     m_sContextName "OverthrowJobsMenuContext"
+     m_sCloseAction "MenuBack"
+     m_bOpenActionCloses 0
+     m_JobLayout "{55AB78EFC69205D2}UI/Layouts/Menu/JobsMenu/JobCard.layout"
+    }
    }
   }
   SCR_BaseHUDComponent "{520EA1D2DB118134}" {

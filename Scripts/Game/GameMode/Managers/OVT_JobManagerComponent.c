@@ -71,6 +71,8 @@ class OVT_JobManagerComponent: OVT_Component
 	
 	protected const int JOB_FREQUENCY = 10000;
 	
+	vector m_vCurrentWaypoint;
+	
 	static OVT_JobManagerComponent s_Instance;	
 	static OVT_JobManagerComponent GetInstance()
 	{
@@ -142,6 +144,8 @@ class OVT_JobManagerComponent: OVT_Component
 					{
 						//Reward a player
 						OVT_Global.GetEconomy().AddPlayerMoney(stage.m_Handler.playerId, config.m_iReward);
+						SCR_HintManagerComponent.GetInstance().ShowCustom(config.m_sTitle, "#OVT-Jobs_Completed");
+						Rpc(RpcDo_NotifyJobCompleted, job.jobIndex);
 					}
 					
 					remove.Insert(job);
@@ -187,9 +191,10 @@ class OVT_JobManagerComponent: OVT_Component
 		//Check if we need to start any jobs
 		foreach(int index, OVT_JobConfig config : m_aJobConfigs)
 		{
-			if(config.flags & OVT_JobFlags.GLOBAL_UNIQUE && m_aGlobalJobs.Contains(index)) continue;			
+			if((config.flags & OVT_JobFlags.GLOBAL_UNIQUE) && m_aGlobalJobs.Contains(index)) continue;			
 			foreach(OVT_TownData town : m_Towns.m_Towns)
 			{
+				if((config.flags & OVT_JobFlags.GLOBAL_UNIQUE) && m_aGlobalJobs.Contains(index)) break;			
 				if(m_aTownJobs.Contains(town.id) && m_aTownJobs[town.id].Contains(index)) continue;
 				
 				bool start = true;
@@ -334,6 +339,13 @@ class OVT_JobManagerComponent: OVT_Component
 		{
 			m_aJobs.RemoveItem(foundjob);
 		}
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_NotifyJobCompleted(int index)
+	{
+		OVT_JobConfig config = GetConfig(index);
+		SCR_HintManagerComponent.GetInstance().ShowCustom(config.m_sTitle, "#OVT-Jobs_Completed");
 	}
 	
 	void ~OVT_JobManagerComponent()

@@ -224,6 +224,46 @@ FrameWidgetClass {
         }
        }
       }
+      ButtonWidgetClass "{59A8D26BCEB97DD4}" : "{9ECCD201BCF07E95}UI/layouts/Menus/PauseMenu/PauseMenuButton.layout" {
+       Name "Jobs"
+       Slot LayoutSlot "{557478C3F0230865}" {
+       }
+       components {
+        SCR_ButtonTextComponent "{5548F0143AE99095}" {
+         m_BackgroundSelected 1 1 1 0.196
+         m_BackgroundSelectedHovered 1 1 1 0.196
+         m_BackgroundClicked 1 1 1 0.196
+         m_sText "#OVT-MainMenu_Jobs"
+        }
+       }
+       {
+        SizeLayoutWidgetClass "{557098260F312277}" {
+         Prefab "{557098260F312277}"
+         {
+          OverlayWidgetClass "{557098260F312272}" {
+           Prefab "{557098260F312272}"
+           {
+            HorizontalLayoutWidgetClass "{557098267862A738}" {
+             Prefab "{557098267862A738}"
+             {
+              ScaleWidgetClass "{557478C2A0AF4E50}" {
+               Prefab "{557478C2A0AF4E50}"
+               {
+                ImageWidgetClass "{557098267D2A9494}" {
+                 Prefab "{557098267D2A9494}"
+                 Image "kill"
+                 Size 64 64
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
       ButtonWidgetClass "{598AB67349EB2885}" : "{9ECCD201BCF07E95}UI/layouts/Menus/PauseMenu/PauseMenuButton.layout" {
        Name "Place"
        Slot LayoutSlot "{557478C3F0230865}" {
@@ -268,6 +308,7 @@ FrameWidgetClass {
        Name "Build"
        Slot LayoutSlot "{557478C3F0230865}" {
        }
+       "Is Enabled" 0
        components {
         SCR_ButtonTextComponent "{5548F0143AE99095}" {
          m_BackgroundSelected 1 1 1 0.196
@@ -390,6 +431,7 @@ FrameWidgetClass {
        Name "Options"
        Slot LayoutSlot "{557478C3F0230865}" {
        }
+       "Is Enabled" 0
        components {
         SCR_ButtonTextComponent "{5548F0143AE99095}" {
          m_BackgroundSelected 1 1 1 0.196

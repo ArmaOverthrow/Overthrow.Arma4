@@ -131,6 +131,50 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{59AEEB5827181BD1}" {
+   Id "OVT-Job_AddedWaypoint"
+   Target_en_us "A waypoint marker has been added to your map"
+   Modified 1504638414
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59AEEB5F91CFCA25}" {
+   Id "OVT-Job_AssassinateTraitor"
+   Target_en_us "Assassinate Traitor"
+   Modified 1504637360
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59AEEB5F995E23EF}" {
+   Id "OVT-Job_AssassinateTraitor_Description"
+   Target_en_us "A member of the resistance has defected and is being held in protective custody. We have tracked down their location to a house. "\
+   ""\
+   "Eliminate this traitor before they can reveal any information."
+   Modified 1504637568
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59AEEB5A77561A7F}" {
+   Id "OVT-Jobs_Completed"
+   Target_en_us "Job Completed"
+   Modified 1504639238
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59AEEB58378EB9DE}" {
+   Id "OVT-Jobs_NoJobs"
+   Target_en_us "There are currently no jobs available"
+   Modified 1504638439
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59A8D254C85421A6}" {
+   Id "OVT-Jobs_ShowOnMap"
+   Target_en_us "Show On Map"
+   Modified 1504632546
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59A2BD308A7926FA}" {
    Id "OVT-LoadStorage"
    Target_en_us "Load Into vehicle"
@@ -159,6 +203,13 @@ StringTable {
    Target_en_us "Fast Travel"
    Status DEVELOPMENT_DONE
    Modified 1502796262
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59A8D26B9BC69C64}" {
+   Id "OVT-MainMenu_Jobs"
+   Target_en_us "Jobs"
+   Modified 1504629476
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

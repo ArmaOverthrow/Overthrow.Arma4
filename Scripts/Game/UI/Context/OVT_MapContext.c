@@ -119,11 +119,9 @@ class OVT_MapContext : OVT_UIContext
 	{
 		if(!m_wRoot) return;
 		if(!m_SelectedTown) return;
-		
-		SCR_MapDescriptorComponent marker = m_TownManager.GetNearestTownMarker(m_SelectedTown.location);
-		
+				
 		TextWidget widget = TextWidget.Cast(m_wRoot.FindAnyWidget("TownName"));
-		widget.SetText(marker.Item().GetDisplayName());
+		widget.SetText(m_TownManager.GetTownName(m_SelectedTown.id));
 		
 		widget = TextWidget.Cast(m_wRoot.FindAnyWidget("Population"));
 		widget.SetText(m_SelectedTown.population.ToString());
@@ -149,12 +147,13 @@ class OVT_MapContext : OVT_UIContext
 		}
 		array<int> done = new array<int>;
 		OVT_TownModifierSystem system = m_TownManager.GetModifierSystem(OVT_TownStabilityModifierSystem);
+		WorkspaceWidget workspace = GetGame().GetWorkspace(); 
 		foreach(int index : m_SelectedTown.stabilityModifiers)
 		{
 			if(done.Contains(index)) continue;
 			
 			OVT_ModifierConfig mod = system.m_Config.m_aModifiers[index];
-			WorkspaceWidget workspace = GetGame().GetWorkspace(); 
+			
 			Widget w = workspace.CreateWidgets(m_ModLayout, container);
 			TextWidget tw = TextWidget.Cast(w.FindAnyWidget("Text"));
 			
@@ -195,7 +194,6 @@ class OVT_MapContext : OVT_UIContext
 		{
 			if(done.Contains(index)) continue;
 			OVT_ModifierConfig mod = system.m_Config.m_aModifiers[index];
-			WorkspaceWidget workspace = GetGame().GetWorkspace(); 
 			Widget w = workspace.CreateWidgets(m_ModLayout, container);
 			TextWidget tw = TextWidget.Cast(w.FindAnyWidget("Text"));
 			int effect = mod.baseEffect;

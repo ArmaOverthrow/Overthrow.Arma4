@@ -19,7 +19,7 @@ class OVT_RandomJobCondition : OVT_JobCondition
 		if(town.stability < 50) chance *= m_fLowStabilityFactor;
 		if(town.SupportPercentage() < 50) chance *= m_fLowSupportFactor;
 		
-		if(s_AIRandomGenerator.RandFloat01() < chance)
+		if(s_AIRandomGenerator.RandFloatXY(0,100) < chance)
 		{
 			return true;
 		}
