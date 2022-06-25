@@ -131,14 +131,18 @@ class OVT_OccupyingFactionManager: OVT_Component
 	
 	protected void DistributeInitialResources()
 	{
-		//Distribute initial resources		
+		//Distribute initial resources
+		
+		int resourcesPerBase = Math.Floor(m_iResources / m_Bases.Count());
+		
 		foreach(RplId id : m_Bases)
 		{
 			OVT_BaseControllerComponent base = GetBase(id);
-			m_iResources -= base.SpendResources(m_Config.m_Difficulty.initialResourcesPerBase, m_iThreat);			
+			m_iResources -= base.SpendResources(resourcesPerBase, m_iThreat);			
 			
 			if(m_iResources <= 0) break;
 		}
+		if(m_iResources < 0) m_iResources = 0;
 		Print("OF Remaining Resources: " + m_iResources);
 	}
 	

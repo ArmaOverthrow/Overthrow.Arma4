@@ -50,7 +50,7 @@ class OVT_BaseUpgradeTowerGuard : OVT_BasePatrolUpgrade
 		
 		foreach(EntityID id : m_Towers)
 		{
-			if(resources < m_Config.m_Difficulty.resourcesPerSoldier) break;
+			if(resources < m_Config.m_Difficulty.baseResourceCost) break;
 			
 			bool needsGuard = false;
 			if(!m_TowerGuards.Contains(id))
@@ -70,8 +70,8 @@ class OVT_BaseUpgradeTowerGuard : OVT_BasePatrolUpgrade
 			{
 				if(BuyGuard(id))
 				{
-					resources -= m_Config.m_Difficulty.resourcesPerSoldier;
-					spent += m_Config.m_Difficulty.resourcesPerSoldier;
+					resources -= m_Config.m_Difficulty.baseResourceCost;
+					spent += m_Config.m_Difficulty.baseResourceCost;
 				}
 			}
 		}

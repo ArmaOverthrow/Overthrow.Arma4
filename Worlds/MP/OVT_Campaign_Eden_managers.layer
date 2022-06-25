@@ -285,8 +285,6 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode {
      startingResources 2500
      baseResourcesPerTick 250
      resourcesPerTick 500
-     resourcesPerSoldier 20
-     initialResourcesPerBase 150
      startingCash 250
      respawnCost 0
      placeableCostMultiplier 0.5
@@ -301,8 +299,6 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode {
      startingResources 10000
      baseResourcesPerTick 1000
      resourcesPerTick 2000
-     resourcesPerSoldier 5
-     initialResourcesPerBase 600
      startingCash 0
      respawnCost 10
      placeableCostMultiplier 2
@@ -493,6 +489,27 @@ SCR_FactionManager FactionManager_Overthrow : "{4A188E44289B9A50}Prefabs/MP/Mana
    m_aFlagPolePrefab "{E55FC02F8C1518A2}Prefabs/Structures/Military/Flags/FlagPole_02_V1_US.et"
    m_aMediumCheckpointPrefab "{5F42399DF7455261}Prefabs/Compositions/Slotted/SlotRoadMedium/Checkpoint_M_US_01.et"
    m_aLargeCheckpointPrefab "{6D9DAF822F4ABFE6}Prefabs/Compositions/Slotted/SlotRoadLarge/Checkpoint_L_US_01.et"
+   m_aCompositionConfig OVT_FactionCompositionConfig "{59AEFBEFF2CB70FC}" {
+    m_aCompositions {
+     OVT_FactionComposition "{59AEFBEFF1A8CE14}" {
+      m_sTag "SmallBunker"
+      m_iCost 10
+      m_aPrefabs {
+       "{D41D0213ED10734B}Prefabs/Compositions/Slotted/SlotFlatSmall/Bunker_S_US_01.et"
+      }
+      m_aGroupPrefabs {
+       "{18C178520CA6C59F}Prefabs/Groups/BLUFOR/Group_US_BunkerTeam.et"
+      }
+     }
+     OVT_FactionComposition "{59B2D5C4C30A2143}" {
+      m_sTag "AmmoCache"
+      m_iCost 8
+      m_aPrefabs {
+       "{D93E3956280DDF1B}Prefabs/Compositions/Slotted/SlotFlatSmall/AmmoCache_S_US_01.et"
+      }
+     }
+    }
+   }
   }
   OVT_Faction "{56DEAC40D3C2E623}" {
    m_aGroupPrefabSlots {
@@ -519,8 +536,29 @@ SCR_FactionManager FactionManager_Overthrow : "{4A188E44289B9A50}Prefabs/MP/Mana
     "{D9B91FAB817A6033}Prefabs/Vehicles/Wheeled/Ural4320/Ural4320_transport_covered.et" "{16C1F16C9B053801}Prefabs/Vehicles/Wheeled/Ural4320/Ural4320_transport.et"
    }
    m_aFlagPolePrefab "{651E545B53BBD034}Prefabs/Structures/Military/Flags/FlagPole_02_V1_USSR.et"
-   m_aMediumCheckpointPrefab "{3C5B8A77605A80E9}Prefabs/Compositions/Slotted/SlotRoadMedium/OVT_Checkpoint_M_USSR_01.et"
+   m_aMediumCheckpointPrefab "{089470408DAADC20}Prefabs/Compositions/Slotted/SlotRoadMedium/Checkpoint_M_USSR_01.et"
    m_aLargeCheckpointPrefab "{9F9924B626C5FA2B}Prefabs/Compositions/Slotted/SlotRoadLarge/Checkpoint_L_USSR_01.et"
+   m_aCompositionConfig OVT_FactionCompositionConfig "{59AEFBEFC1361E2B}" {
+    m_aCompositions {
+     OVT_FactionComposition "{59AEFBEFC1967734}" {
+      m_sTag "SmallBunker"
+      m_iCost 10
+      m_aPrefabs {
+       "{7492BAA88AFCEDCD}Prefabs/Compositions/Slotted/SlotFlatSmall/Bunker_S_USSR_01.et"
+      }
+      m_aGroupPrefabs {
+       "{E86ACA8246D15BFB}Prefabs/Groups/OPFOR/Group_USSR_BunkerTeam.et"
+      }
+     }
+     OVT_FactionComposition "{59B2D5C4DB132EBE}" {
+      m_sTag "AmmoCache"
+      m_iCost 9
+      m_aPrefabs {
+       "{02A678BD42964F8C}Prefabs/Compositions/Slotted/SlotFlatSmall/AmmoCache_S_USSR_01.et"
+      }
+     }
+    }
+   }
   }
   OVT_Faction "{56DEAC40D132400B}" {
    m_bIsPlayable 1

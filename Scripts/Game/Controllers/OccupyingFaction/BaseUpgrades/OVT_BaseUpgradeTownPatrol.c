@@ -74,7 +74,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 				if(distance < 20 || agentCount == 0)
 				{
 					//Recover any resources
-					m_occupyingFactionManager.RecoverResources(agentCount * m_Config.m_Difficulty.resourcesPerSoldier);
+					m_occupyingFactionManager.RecoverResources(agentCount * m_Config.m_Difficulty.baseResourceCost);
 					
 					m_Patrols.Remove(town.id);
 					SCR_Global.DeleteEntityAndChildren(aigroup);	
@@ -122,7 +122,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		
 		AddWaypoints(aigroup, town);
 		
-		int newres = aigroup.m_aUnitPrefabSlots.Count() * m_Config.m_Difficulty.resourcesPerSoldier;
+		int newres = aigroup.m_aUnitPrefabSlots.Count() * m_Config.m_Difficulty.baseResourceCost;
 			
 		return newres;
 	}

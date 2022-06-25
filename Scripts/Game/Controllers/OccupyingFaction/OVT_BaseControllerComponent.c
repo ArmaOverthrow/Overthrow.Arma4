@@ -9,6 +9,8 @@ class OVT_BaseControllerComponent: OVT_Component
 	
 	[Attribute("", UIWidgets.Object)]
 	ref array<ref OVT_BaseUpgrade> m_aBaseUpgrades;
+	
+	
 			
 	[Attribute("320")]		
 	int m_iRange;
@@ -27,6 +29,7 @@ class OVT_BaseControllerComponent: OVT_Component
 	ref array<ref EntityID> m_MediumRoadSlots;
 	ref array<ref EntityID> m_LargeRoadSlots;
 	ref array<ref EntityID> m_Parking;
+	ref array<ref EntityID> m_aSlotsFilled;
 		
 	protected OVT_OccupyingFactionManager m_occupyingFactionManager;
 	
@@ -67,6 +70,7 @@ class OVT_BaseControllerComponent: OVT_Component
 		m_MediumRoadSlots = new array<ref EntityID>;
 		m_LargeRoadSlots = new array<ref EntityID>;
 		m_Parking = new array<ref EntityID>;
+		m_aSlotsFilled = new array<ref EntityID>;
 		
 		FindSlots();
 		FindParking();
@@ -161,7 +165,7 @@ class OVT_BaseControllerComponent: OVT_Component
 				if(resources <= 0) break;
 				if(upgrade.m_iPriority == priority)
 				{					
-					int allocate = upgrade.m_iResourceAllocation;
+					int allocate = upgrade.m_iResourceAllocation * m_Config.m_Difficulty.baseResourceCost;
 					int newres = 0;
 					if(allocate < 0)
 					{

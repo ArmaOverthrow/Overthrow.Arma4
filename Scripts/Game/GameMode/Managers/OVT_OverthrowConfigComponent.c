@@ -14,24 +14,14 @@ class OVT_DifficultySettings : ScriptAndConfig
 	int wantedOneTimeout;
 	
 	//OF
-	[Attribute(defvalue: "5000", desc: "OF starting resources")]
+	[Attribute(defvalue: "1500", desc: "OF starting resources")]
 	int startingResources;
-	[Attribute(defvalue: "500", desc: "OF resources per 6 hrs")]
+	[Attribute(defvalue: "250", desc: "OF resources per 6 hrs")]
 	int baseResourcesPerTick;
-	[Attribute(defvalue: "1000", desc: "Additional OF resources per 6 hrs (* threat)")]
+	[Attribute(defvalue: "500", desc: "Additional OF resources per 6 hrs (* threat)")]
 	int resourcesPerTick;
-	[Attribute(defvalue: "10", desc: "Resource cost per soldier")]
-	int resourcesPerSoldier;
-	[Attribute(defvalue: "25", desc: "Resource cost per car")]
-	int resourcesPerCar;
-	[Attribute(defvalue: "35", desc: "Resource cost per truck")]
-	int resourcesPerTruck;
-	[Attribute(defvalue: "60", desc: "Resource cost per lightly armed vehicle")]
-	int resourcesPerLightVehicle;
-	[Attribute(defvalue: "100", desc: "Resource cost per heavily armed vehicle")]
-	int resourcesPerHeavyVehicle;
-	[Attribute(defvalue: "300", desc: "Initial starting resources per base")]
-	int initialResourcesPerBase;
+	[Attribute(defvalue: "10", desc: "Base resource cost")]
+	int baseResourceCost;	
 	
 	//RF
 	[Attribute(defvalue: "100", desc: "Player starting cash")]

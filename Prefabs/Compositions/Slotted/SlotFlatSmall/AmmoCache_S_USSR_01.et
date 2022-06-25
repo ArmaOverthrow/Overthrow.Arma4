@@ -1,0 +1,208 @@
+GenericEntity : "{3BA9D94C4EE9B33B}Prefabs/Compositions/Slotted/CompositionBase.et" {
+ ID "5282DCB5DFC8538F"
+ components {
+  FactionAffiliationComponent "{59B2DAF91F675B48}" {
+   "faction affiliation" "USSR"
+  }
+  SCR_AISmartActionSentinelComponent "{59B2DAF91F675B45}" {
+   AIBehaviorTree "{12B4838160EDE026}AI/BehaviorTrees/SmartActions/SA_CoverPost.bt"
+   Tags {
+    "CoverPost"
+   }
+   ActionOffset -5.054 0 2.793
+   m_vLookPosition -8.803 1 8.275
+   m_fLookDirectionRange 45
+   m_iCharacterStance CROUCH
+  }
+  SCR_AISmartActionSentinelComponent "{59B2DAF91F675B47}" {
+   AIBehaviorTree "{12B4838160EDE026}AI/BehaviorTrees/SmartActions/SA_CoverPost.bt"
+   Tags {
+    "CoverPost"
+   }
+   ActionOffset 6.531 0 -4.056
+   m_vLookPosition 11.434 1 -8.925
+   m_fLookDirectionRange 45
+   m_iCharacterStance CROUCH
+  }
+  SCR_AISmartActionSentinelComponent "{59B2DAF91F675B5A}" {
+   AIBehaviorTree "{BC53D77D23308CD6}AI/BehaviorTrees/SmartActions/SA_ObservationPost.bt"
+   Tags {
+    "ObservationPost"
+   }
+   ActionOffset -0.606 0 -5.054
+   m_vLookPosition -9.262 1 -12.547
+   m_fLookDirectionRange 45
+   m_bUseBinoculars 1
+  }
+ }
+ coords 0 0 0
+ {
+  GenericEntity : "{1651B2C631DF09F4}Prefabs/Structures/Signs/Military/Sign_AmmoStorage_USSR_01.et" {
+   ID "59B2DAF91F608F0E"
+   components {
+    Hierarchy "{59B2DAF91F675B5E}" {
+     Enabled 1
+    }
+   }
+   coords -1.129 0 1.413
+   angleX 0.52
+   angleY 3.612
+   angleZ -0.325
+  }
+  StaticModelEntity : "{18822FB3F0D2ED00}Prefabs/Structures/Walls/BarbedWire/BarbedTape_Long.et" {
+   ID "59B2DAF91F608F31"
+   components {
+    Hierarchy "{59B2DAF91F675B52}" {
+     Enabled 1
+    }
+   }
+   coords 6.479 0 1.014
+   angleY -16.223
+  }
+  $grp GenericEntity : "{1AC31E2AF0C54F8A}Prefabs/Props/Military/Camps/PalletAmmo_01_Soviet_camo.et" {
+   {
+    ID "59B2DAF91F608F30"
+    coords 3.781 0 -4.951
+    angleY -111.154
+   }
+   {
+    ID "59B2DAF91F608F33"
+    coords 2.568 0 -5.575
+    angleY -4.903
+   }
+  }
+  GenericEntity : "{7A32336CED936A26}Prefabs/Compositions/Misc/SubCompositions/CanvasCover_Cluttered_USSR_01.et" {
+   ID "59B2DAF91F608F32"
+   coords -0.012 0 -4.448
+   angleY -178.916
+  }
+  $grp GenericEntity : "{894A1AFDCB71CD0D}Prefabs/Compositions/Misc/CustomEntities/CompositionDecals/CompositionDecal_Dirt_Patch_02.et" {
+   {
+    ID "59B2DAF91F608F38"
+    coords -3.074 0.1 0.626
+    angleY -69.651
+   }
+   {
+    ID "59B2DAF91F608F3B"
+    coords 3.541 0.1 0.291
+    angleY -19.187
+   }
+  }
+  $grp GenericEntity : "{8E431002132E51BD}Prefabs/Compositions/Misc/CustomEntities/CompositionDecals/CompositionDecal_Dirt_Footprints_01.et" {
+   {
+    ID "59B2DAF91F608F3A"
+    coords 0.303 0.1 2.081
+    angleY -134.534
+   }
+   {
+    ID "59B2DAF91F608F3D"
+    coords 3.136 0.1 1.729
+   }
+  }
+  GenericEntity : "{C599195C442D7125}Prefabs/Compositions/Misc/CustomEntities/CompositionDecals/CompositionDecal_CigarButts_01.et" {
+   ID "59B2DAF91F608F3C"
+   coords -1.072 0.1 -2.796
+   angleY -33.57
+  }
+  GenericEntity : "{CB250223A419BC10}Prefabs/Compositions/Misc/SubCompositions/ShelterStorage_Cluttered_USSR_03.et" {
+   ID "59B2DAF91F608F3F"
+   coords -3.737 0 -1.121
+   angleY 15.562
+   {
+    GenericEntity {
+     ID "58B88DEEB6C2643E"
+     components {
+      SCR_ArsenalComponent "{589F01C9C8D4A475}" {
+       m_eSupportedArsenalItemTypes RIFLE
+       m_bDontReinsert 1
+      }
+     }
+    }
+    GenericEntity {
+     ID "58C28EA2122481B6"
+     components {
+      SCR_ArsenalDisplayComponent "{589E95D89A024D21}" {
+       m_bDontReinsert 1
+      }
+     }
+    }
+    GenericEntity {
+     ID "58C28EA212248244"
+     components {
+      SCR_ArsenalDisplayComponent "{589F01C8E2FEDEE5}" {
+       m_bDontReinsert 1
+      }
+     }
+    }
+   }
+  }
+  GenericEntity : "{CC66836BF4E211F9}Prefabs/Props/Military/Camps/Duckboard_01.et" {
+   ID "59B2DAF91F608F56"
+   components {
+    Hierarchy "{59B2DAF91F675AAE}" {
+     Enabled 1
+    }
+   }
+   coords 0.082 0 -0.201
+   angleY -175.623
+  }
+  StaticModelEntity : "{DF649B29EC7635F3}Prefabs/Structures/Military/Fortifications/DirtPile_01_small.et" {
+   ID "59B2DAF91F609BA0"
+   components {
+    Hierarchy "{59B2DAF91F675AAD}" {
+     Enabled 1
+    }
+   }
+   coords -1.16 0 1.385
+  }
+  GenericEntity : "{E51E2E1D77B54223}Prefabs/Compositions/Misc/CustomEntities/CompositionDecals/CompositionDecal_Dirt_Patch_01.et" {
+   ID "59B2DAF91F609BAF"
+   coords -0.05 0.1 -2.036
+  }
+  GenericEntity : "{F2A6A3DA58AFD5D2}Prefabs/Compositions/Misc/CustomEntities/CompositionDecals/CompositionDecal_Dirt_Tracks_01.et" {
+   ID "59B2DAF91F609BAD"
+   coords -0.014 0.1 4.033
+  }
+  GenericEntity : "{F611271BD1753527}Prefabs/Compositions/Misc/SubCompositions/ShelterStorage_Cluttered_USSR_04.et" {
+   ID "59B2DAF91F675B60"
+   coords 4.083 0 -0.818
+   angleY -15.274
+   {
+    GenericEntity {
+     ID "58C28EA0E63A1002"
+     components {
+      SCR_ArsenalComponent "{589F01C9C8D4A475}" {
+       m_eSupportedArsenalItemTypes 6
+       m_bDontReinsert 1
+      }
+     }
+    }
+    GenericEntity {
+     ID "58C28EA0E63A104F"
+     components {
+      SCR_ArsenalComponent "{589F01C9C8D4A475}" {
+       m_eSupportedArsenalItemTypes 6
+       m_bDontReinsert 1
+      }
+     }
+    }
+    GenericEntity {
+     ID "58C28EA0E63A1065"
+     components {
+      SCR_ArsenalComponent "{589F01C9C8D4A475}" {
+       m_bDontReinsert 1
+      }
+     }
+    }
+    GenericEntity {
+     ID "58C28EA0E63A1F8E"
+     components {
+      SCR_ArsenalDisplayComponent "{589E95D89A024D21}" {
+       m_bDontReinsert 1
+      }
+     }
+    }
+   }
+  }
+ }
+}

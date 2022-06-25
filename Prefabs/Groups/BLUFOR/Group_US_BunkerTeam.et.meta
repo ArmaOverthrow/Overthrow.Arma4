@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{18C178520CA6C59F}Prefabs/Groups/BLUFOR/Group_US_BunkerTeam.et"
+ Configurations {
+  EntityTemplateResourceClass PC {
+  }
+  EntityTemplateResourceClass XBOX_ONE : PC {
+  }
+  EntityTemplateResourceClass XBOX_SERIES : PC {
+  }
+  EntityTemplateResourceClass PS4 : PC {
+  }
+  EntityTemplateResourceClass HEADLESS : PC {
+  }
+ }
+}

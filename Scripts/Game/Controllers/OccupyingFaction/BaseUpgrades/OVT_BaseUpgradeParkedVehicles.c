@@ -24,11 +24,11 @@ class OVT_BaseUpgradeParkedVehicles : OVT_BaseUpgrade
 		int res = 0;
 		foreach(EntityID id : m_Cars)
 		{
-			res += m_Config.m_Difficulty.resourcesPerCar;	
+			res += m_Config.m_Difficulty.baseResourceCost * 3;	
 		}
 		foreach(EntityID id : m_Trucks)
 		{
-			res += m_Config.m_Difficulty.resourcesPerTruck;	
+			res += m_Config.m_Difficulty.baseResourceCost * 6;	
 		}
 		return res;
 	}
@@ -80,7 +80,7 @@ class OVT_BaseUpgradeParkedVehicles : OVT_BaseUpgrade
 		{
 			IEntity veh = m_Vehicles.SpawnVehicleMatrix(faction.m_aVehicleCarPrefabSlots.GetRandomElement(), spot);
 			if(veh){
-				spent += m_Config.m_Difficulty.resourcesPerCar;
+				spent += m_Config.m_Difficulty.baseResourceCost * 3;
 				m_Cars.Insert(veh.GetID());
 			}			
 		}
@@ -104,7 +104,7 @@ class OVT_BaseUpgradeParkedVehicles : OVT_BaseUpgrade
 		{
 			IEntity veh = m_Vehicles.SpawnVehicleMatrix(faction.m_aVehicleTruckPrefabSlots.GetRandomElement(), spot);
 			if(veh){
-				spent += m_Config.m_Difficulty.resourcesPerTruck;
+				spent += m_Config.m_Difficulty.baseResourceCost * 6;
 				m_Trucks.Insert(veh.GetID());
 			}			
 		}

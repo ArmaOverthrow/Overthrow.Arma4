@@ -41,7 +41,7 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 			foreach(EntityID id : m_Groups)
 			{
 				SCR_AIGroup group = GetGroup(id);
-				m_iProxedResources += group.GetAgentsCount() * m_Config.m_Difficulty.resourcesPerSoldier;
+				m_iProxedResources += group.GetAgentsCount() * m_Config.m_Difficulty.baseResourceCost;
 				m_ProxiedGroups.Insert(group.GetPrefabData().GetPrefabName());
 				m_ProxiedPositions.Insert(group.GetOrigin());
 				SCR_Global.DeleteEntityAndChildren(group);
@@ -106,7 +106,7 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 		
 		AddWaypoints(aigroup);
 		
-		int newres = aigroup.m_aUnitPrefabSlots.Count() * m_Config.m_Difficulty.resourcesPerSoldier;
+		int newres = aigroup.m_aUnitPrefabSlots.Count() * m_Config.m_Difficulty.baseResourceCost;
 			
 		return newres;
 	}
@@ -122,7 +122,7 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 		foreach(EntityID id : m_Groups)
 		{
 			SCR_AIGroup group = GetGroup(id);
-			res += group.GetAgentsCount() * m_Config.m_Difficulty.resourcesPerSoldier;			
+			res += group.GetAgentsCount() * m_Config.m_Difficulty.baseResourceCost;			
 		}
 		return res + m_iProxedResources;
 	}

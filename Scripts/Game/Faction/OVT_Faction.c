@@ -1,3 +1,26 @@
+[BaseContainerProps(configRoot:true)]
+class OVT_FactionCompositionConfig
+{
+	[Attribute("", UIWidgets.Object)]
+	ref array<ref OVT_FactionComposition> m_aCompositions;
+}
+
+[BaseContainerProps(), SCR_BaseContainerCustomTitleField("m_sTag")]
+class OVT_FactionComposition
+{
+	[Attribute()]
+	string m_sTag;
+	
+	[Attribute(defvalue:"5", desc:"Resource cost (multiplied by difficulty base resources)")]
+	int m_iCost;
+	
+	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Prefabs", params: "et")]
+	ref array<ResourceName> m_aPrefabs;
+	
+	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Groups", params: "et")]
+	ref array<ResourceName> m_aGroupPrefabs;
+}
+
 class OVT_Faction : SCR_Faction
 {
 	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Faction groups (all)", params: "et", category: "Faction Groups")]
@@ -50,4 +73,17 @@ class OVT_Faction : SCR_Faction
 	
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Large Checkpoint Prefab", params: "et", category: "Faction Objects")]
 	ResourceName m_aLargeCheckpointPrefab;
+	
+	[Attribute()]
+	ref OVT_FactionCompositionConfig m_aCompositionConfig;
+	
+	OVT_FactionComposition GetCompositionConfig(string tag)
+	{
+		if(!m_aCompositionConfig) return null;
+		foreach(OVT_FactionComposition config :  m_aCompositionConfig.m_aCompositions)
+		{
+			if(config.m_sTag == tag) return config;
+		}
+		return null;
+	}
 }

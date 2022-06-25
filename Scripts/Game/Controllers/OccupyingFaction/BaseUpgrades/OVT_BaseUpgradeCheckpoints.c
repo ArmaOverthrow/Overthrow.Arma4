@@ -24,7 +24,7 @@ class OVT_BaseUpgradeCheckpoints : OVT_BasePatrolUpgrade
 			m_SpawnedCheckpoint = SpawnCheckpoint(slot, m_Faction.m_aLargeCheckpointPrefab);
 			m_aSlotsFilled.Insert(id);
 			
-			if(resources < (m_Config.m_Difficulty.resourcesPerSoldier * 4)) break;
+			if(resources < (m_Config.m_Difficulty.baseResourceCost * 4)) break;
 			int newres = BuyPatrol(threat, m_Faction.m_aGroupInfantryPrefabSlots[0], slot.GetOrigin());
 			spent += newres;
 			resources -= newres;
@@ -38,9 +38,11 @@ class OVT_BaseUpgradeCheckpoints : OVT_BasePatrolUpgrade
 			spent += 40;
 			resources -= 40;
 			m_SpawnedCheckpoint = SpawnCheckpoint(slot, m_Faction.m_aMediumCheckpointPrefab);
+			if(!m_SpawnedCheckpoint) continue;
+			
 			m_aSlotsFilled.Insert(id);
 			
-			if(resources < (m_Config.m_Difficulty.resourcesPerSoldier * 4)) break;
+			if(resources < (m_Config.m_Difficulty.baseResourceCost * 4)) break;
 			int newres = BuyPatrol(threat, m_Faction.m_aGroupInfantryPrefabSlots[0], slot.GetOrigin());
 			spent += newres;
 			resources -= newres;
@@ -51,6 +53,8 @@ class OVT_BaseUpgradeCheckpoints : OVT_BasePatrolUpgrade
 	
 	override void AddWaypoints(SCR_AIGroup aigroup)
 	{
+		if(!m_SpawnedCheckpoint) return;
+		if(!aigroup) return;
 		aigroup.AddWaypoint(SpawnDefendWaypoint(m_SpawnedCheckpoint.GetOrigin()));
 	}
 	

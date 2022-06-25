@@ -4,7 +4,7 @@ GenericEntity {
   OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
    m_aBaseUpgrades {
     OVT_BaseUpgradeDefensePatrol "{599083983B065EC0}" {
-     m_iResourceAllocation 100
+     m_iResourceAllocation 8
     }
     OVT_BaseUpgradeTowerGuard "{599083983840DDC7}" {
      m_iResourceAllocation -1
@@ -15,13 +15,25 @@ GenericEntity {
      m_bDeactivate 0
     }
     OVT_BaseUpgradeParkedVehicles "{59A69ED8D05CE286}" {
-     m_iResourceAllocation 120
+     m_iResourceAllocation 9
      m_iPriority 10
      m_iNumberOfCars 2
      m_iNumberOfTrucks 2
     }
     OVT_BaseUpgradeCheckpoints "{59A02C08E74AD5ED}" {
+     m_iResourceAllocation -1
      m_iPriority 3
+    }
+    OVT_BaseUpgradeComposition "{59B2CEF74CC156C7}" {
+     m_iResourceAllocation -1
+     m_iPriority 4
+     m_sCompositionTag "SmallBunker"
+    }
+    OVT_BaseUpgradeComposition "{59B2D5C4B07D72C7}" {
+     m_iResourceAllocation -1
+     m_iPriority 2
+     m_bDeactivate 0
+     m_sCompositionTag "AmmoCache"
     }
    }
    m_iCloseRange 220
