@@ -23,6 +23,9 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		OVT_TownModifierSystem system = m_Towns.GetModifierSystem(OVT_TownStabilityModifierSystem);
 		if(!system) return;
 		
+		OVT_TownModifierSystem support = m_Towns.GetModifierSystem(OVT_TownSupportModifierSystem);
+		if(!support) return;
+		
 		//Check on our patrols and update stability/support
 		for(int i; i< m_Patrols.Count(); i++)
 		{
@@ -45,7 +48,8 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 						}else{
 							system.TryAddByName(townId, "RecentPatrolPositive");
 							system.RemoveByName(townId, "RecentPatrolNegative");
-						}						
+						}			
+						support.TryAddByName(townId, "RecentPatrol");			
 					}
 				}
 			}

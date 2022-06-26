@@ -69,7 +69,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), 250, CheckEntity, FilterEntities, EQueryEntitiesFlags.ALL);
 						
 		OVT_BaseControllerComponent base = OVT_Global.GetOccupyingFaction().GetNearestBase(GetOwner().GetOrigin());
-		if(base)
+		if(base && base.IsOccupyingFaction())
 		{
 			float distanceToBase = vector.Distance(base.GetOwner().GetOrigin(), GetOwner().GetOrigin());
 			if(m_iWantedLevel < 2 && distanceToBase < base.m_iCloseRange && m_bIsSeen)

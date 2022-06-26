@@ -2,6 +2,13 @@ class OVT_OverthrowConfigComponentClass: OVT_ComponentClass
 {	
 };
 
+enum OVT_QRFFastTravelMode
+{
+	FREE,
+	NOQRF,
+	DISABLED
+}
+
 class OVT_DifficultySettings : ScriptAndConfig
 {	
 	[Attribute()]
@@ -14,7 +21,7 @@ class OVT_DifficultySettings : ScriptAndConfig
 	int wantedOneTimeout;
 	
 	//OF
-	[Attribute(defvalue: "1500", desc: "OF starting resources")]
+	[Attribute(defvalue: "2000", desc: "OF starting resources")]
 	int startingResources;
 	[Attribute(defvalue: "250", desc: "OF resources per 6 hrs")]
 	int baseResourcesPerTick;
@@ -38,6 +45,13 @@ class OVT_DifficultySettings : ScriptAndConfig
 	int donationIncome;
 	[Attribute(defvalue: "5", desc: "Bus ticket price per km")]
 	int busTicketPrice;
+	
+	//QRF
+	[Attribute("1", UIWidgets.ComboBox, "QRF Fast Travel Mode", "", ParamEnumArray.FromEnum(OVT_QRFFastTravelMode) )]
+	OVT_QRFFastTravelMode QRFFastTravelMode;
+	
+	[Attribute(defvalue: "500", desc: "Max size of QRF in resources")]
+	int maxQRF;
 }
 
 class OVT_Placeable : ScriptAndConfig
@@ -78,9 +92,6 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	
 	[Attribute( defvalue: "US", uiwidget: UIWidgets.EditBox, desc: "The faction supporting the player", category: "Factions")]
 	string m_sSupportingFaction;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Base Controller Prefab", params: "et", category: "Controllers")]
-	ResourceName m_pBaseControllerPrefab;
 	
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Town Controller Prefab", params: "et", category: "Controllers")]
 	ResourceName m_pTownControllerPrefab;
@@ -131,6 +142,9 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	
 	[Attribute(defvalue: "6", UIWidgets.EditBox, desc: "Time multiplier")]
 	int m_iTimeMultiplier;
+	
+	protected  int m_iOccupyingFactionIndex = -1;
+	protected int m_iPlayerFactionIndex = -1;
 	
 	// Instance of this component
 	private static OVT_OverthrowConfigComponent s_Instance = null;
@@ -189,5 +203,28 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	OVT_Faction GetOccupyingFaction()
 	{
 		return OVT_Faction.Cast(GetGame().GetFactionManager().GetFactionByKey(m_sOccupyingFaction));
+	}
+	
+	int GetOccupyingFactionIndex()
+	{
+		if(m_iOccupyingFactionIndex == -1)
+		{
+			m_iOccupyingFactionIndex = GetGame().GetFactionManager().GetFactionIndex(GetOccupyingFaction());
+		}
+		return m_iOccupyingFactionIndex;
+	}
+	
+	OVT_Faction GetPlayerFaction()
+	{
+		return OVT_Faction.Cast(GetGame().GetFactionManager().GetFactionByKey(m_sPlayerFaction));
+	}
+	
+	int GetPlayerFactionIndex()
+	{
+		if(m_iPlayerFactionIndex == -1)
+		{
+			m_iPlayerFactionIndex = GetGame().GetFactionManager().GetFactionIndex(GetPlayerFaction());
+		}
+		return m_iPlayerFactionIndex;
 	}
 }

@@ -268,14 +268,12 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode {
    }
   }
   OVT_OccupyingFactionManager "{59845E732755785F}" {
+   m_pBaseControllerPrefab "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.et"
+   m_pQRFControllerPrefab "{A7D27DFA72B705D0}Prefabs/Controllers/OVT_QRFController.et"
   }
   OVT_OverthrowConfigComponent "{59724C8C935D8E5D}" {
-   m_pBaseControllerPrefab "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.et"
    m_pTownControllerPrefab "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.et"
    m_Difficulty OVT_DifficultySettings "{598AD54E1DA56EB1}" {
-    startingResources 1500
-    baseResourcesPerTick 250
-    resourcesPerTick 500
    }
    m_aDifficultyPresets {
     OVT_DifficultySettings "{598AD54F821FB8D9}" {
@@ -486,7 +484,7 @@ SCR_FactionManager FactionManager_Overthrow : "{4A188E44289B9A50}Prefabs/MP/Mana
    m_aVehicleTruckPrefabSlots {
     "{81FDAD5EB644CC3D}Prefabs/Vehicles/Wheeled/M923A1/M923A1_transport_covered.et" "{F1FBD0972FA5FE09}Prefabs/Vehicles/Wheeled/M923A1/M923A1_transport.et"
    }
-   m_aFlagPolePrefab "{E55FC02F8C1518A2}Prefabs/Structures/Military/Flags/FlagPole_02_V1_US.et"
+   m_aFlagPolePrefab "{E55FC02F8C1518A3}Prefabs/Structures/Military/Flags/BaseFlag_US.et"
    m_aMediumCheckpointPrefab "{5F42399DF7455261}Prefabs/Compositions/Slotted/SlotRoadMedium/Checkpoint_M_US_01.et"
    m_aLargeCheckpointPrefab "{6D9DAF822F4ABFE6}Prefabs/Compositions/Slotted/SlotRoadLarge/Checkpoint_L_US_01.et"
    m_aCompositionConfig OVT_FactionCompositionConfig "{59AEFBEFF2CB70FC}" {
@@ -535,7 +533,7 @@ SCR_FactionManager FactionManager_Overthrow : "{4A188E44289B9A50}Prefabs/MP/Mana
    m_aVehicleTruckPrefabSlots {
     "{D9B91FAB817A6033}Prefabs/Vehicles/Wheeled/Ural4320/Ural4320_transport_covered.et" "{16C1F16C9B053801}Prefabs/Vehicles/Wheeled/Ural4320/Ural4320_transport.et"
    }
-   m_aFlagPolePrefab "{651E545B53BBD034}Prefabs/Structures/Military/Flags/FlagPole_02_V1_USSR.et"
+   m_aFlagPolePrefab "{651E545B53BBD035}Prefabs/Structures/Military/Flags/BaseFlag_USSR.et"
    m_aMediumCheckpointPrefab "{089470408DAADC20}Prefabs/Compositions/Slotted/SlotRoadMedium/Checkpoint_M_USSR_01.et"
    m_aLargeCheckpointPrefab "{9F9924B626C5FA2B}Prefabs/Compositions/Slotted/SlotRoadLarge/Checkpoint_L_USSR_01.et"
    m_aCompositionConfig OVT_FactionCompositionConfig "{59AEFBEFC1361E2B}" {

@@ -11,7 +11,7 @@ OverlayWidgetClass {
  }
  {
   FrameWidgetClass "{5988DB07CCB81B23}" {
-   Name "Frame0"
+   Name "Economy"
    Slot OverlayWidgetSlot "{5872F8E8D1711656}" {
     HorizontalAlign 3
     VerticalAlign 3
@@ -39,7 +39,7 @@ OverlayWidgetClass {
        Name "Money"
        Slot LayoutSlot "{5870C1D380D38B81}" {
         HorizontalAlign 2
-        Padding 0 2 10 0
+        Padding 0 2 0 0
        }
        "Inherit Color" 1
        {
@@ -64,6 +64,55 @@ OverlayWidgetClass {
           ShadowOffset 0 0
           ShadowOpacity 0.7
          }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+  FrameWidgetClass "{59B4F0BA7B6B5F26}" {
+   Name "QRF"
+   Slot OverlayWidgetSlot "{59B4F0BA7B6B5F05}" {
+    VerticalAlign 0
+    Padding 0 20 0 0
+   }
+   {
+    VerticalLayoutWidgetClass "{59B4F0BA2270998D}" {
+     Name "VerticalLayout0"
+     Slot FrameWidgetSlot "{59B4F0BA22709A6E}" {
+      SizeToContent 1
+     }
+     {
+      TextWidgetClass "{59B4F0B65F14FF55}" {
+       Name "QRFTimerText"
+       Slot LayoutSlot "{59B4F0BA21EF220B}" {
+        HorizontalAlign 1
+       }
+       Text "Battle Starts In 60"
+      }
+      HorizontalLayoutWidgetClass "{59B4F0B67A1073E3}" {
+       Name "QRF Progress"
+       Slot LayoutSlot "{59B4F0BA21EF22DA}" {
+        Padding 0 5 0 0
+       }
+       {
+        SliderWidgetClass "{59B4F0B6042B7FD4}" {
+         Name "QRFOccupying"
+         Slot LayoutSlot "{59B4F0B6042B7FB4}" {
+         }
+         Color 1 0 0 1
+         Size 150 32
+         current 0
+         flipped 1
+        }
+        SliderWidgetClass "{59B4F0B6EB925D3D}" {
+         Name "QRFResistance"
+         Slot LayoutSlot "{59B4F0B6042B7FB4}" {
+         }
+         Color 0.004 0.413 0.01 1
+         Size 150 32
+         current 50
         }
        }
       }

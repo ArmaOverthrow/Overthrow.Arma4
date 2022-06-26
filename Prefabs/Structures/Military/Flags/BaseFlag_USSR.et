@@ -1,0 +1,39 @@
+GenericEntity : "{90B7CEB4C665B1E2}Prefabs/Structures/Military/Flags/FlagPole_02_V1.et" {
+ ID "50C6D20663830070"
+ components {
+  RigidBody "{5472A771D2979EF1}" {
+   ResponseIndex "TinyDestructible"
+  }
+  SlotManagerComponent "{55DAE04E55ECE7FA}" {
+   Slots {
+    EntitySlotInfo Flag {
+     Prefab "{CB81BF6576E682D3}Prefabs/Props/Fabric/Flags/Flag_USSR_01.et"
+    }
+   }
+  }
+  ActionsManagerComponent "{59B4D7D76147B399}" {
+   ActionContexts {
+    UserActionContext "{59B4D7D7604D27B4}" {
+     ContextName "default"
+     Position PointInfo "{59B4D7D76C00F63D}" {
+      Offset 0 1.2 0
+     }
+     Radius 0.65
+    }
+   }
+   additionalActions {
+    OVT_CaptureBaseAction "{59B4D7D775F7C92A}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{59B4D7D772D5A702}" {
+      Name "#OVT-CaptureBase"
+     }
+     Duration 15
+    }
+   }
+  }
+  RplComponent "{59B4D7D7D130B8B8}" {
+  }
+ }
+}

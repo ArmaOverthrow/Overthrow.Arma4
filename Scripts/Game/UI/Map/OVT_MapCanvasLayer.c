@@ -23,7 +23,7 @@ class OVT_MapCanvasLayer : SCR_MapModuleBase
 	
 	void DrawCircle(vector center, float range, int color, int n = 36)	
 	{
-		PolygonDrawCommand cmd = new PolygonDrawCommand();
+		PolygonDrawCommand cmd = new PolygonDrawCommand();		
 		cmd.m_iColor = color;
 		
 		cmd.m_Vertices = new array<float>;

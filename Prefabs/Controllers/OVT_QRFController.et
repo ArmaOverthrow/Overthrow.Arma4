@@ -1,0 +1,10 @@
+GenericEntity {
+ ID "59B4D7DB2B7D077F"
+ components {
+  OVT_QRFControllerComponent "{59B4D7DB50B2FB53}" {
+  }
+  RplComponent "{59B4D7DB5CBD1B60}" {
+  }
+ }
+ coords 7499.174 6.251 6705.744
+}

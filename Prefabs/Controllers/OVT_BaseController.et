@@ -4,7 +4,7 @@ GenericEntity {
   OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
    m_aBaseUpgrades {
     OVT_BaseUpgradeDefensePatrol "{599083983B065EC0}" {
-     m_iResourceAllocation 8
+     m_iResourceAllocation 6
     }
     OVT_BaseUpgradeTowerGuard "{599083983840DDC7}" {
      m_iResourceAllocation -1
@@ -23,10 +23,12 @@ GenericEntity {
     OVT_BaseUpgradeCheckpoints "{59A02C08E74AD5ED}" {
      m_iResourceAllocation -1
      m_iPriority 3
+     m_iMinimumThreat 5
     }
     OVT_BaseUpgradeComposition "{59B2CEF74CC156C7}" {
      m_iResourceAllocation -1
      m_iPriority 4
+     m_iMinimumThreat 15
      m_sCompositionTag "SmallBunker"
     }
     OVT_BaseUpgradeComposition "{59B2D5C4B07D72C7}" {

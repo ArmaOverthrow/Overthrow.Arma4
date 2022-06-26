@@ -1,0 +1,32 @@
+GenericEntity : "{90B7CEB4C665B1E2}Prefabs/Structures/Military/Flags/FlagPole_02_V1.et" {
+ ID "50C6D20663830070"
+ components {
+  RigidBody "{5472A771D2979EF1}" {
+   ResponseIndex "TinyDestructible"
+  }
+  ActionsManagerComponent "{59B4D7D00565D00A}" {
+   ActionContexts {
+    UserActionContext "{59B4D7D0043EA270}" {
+     ContextName "default"
+     Position PointInfo "{59B4D7D001D6B08F}" {
+      Offset 0 1.2 0
+     }
+     Radius 0.65
+    }
+   }
+   additionalActions {
+    OVT_CaptureBaseAction "{59B4D7D0139E23F0}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{59B4D7D0104F7FA4}" {
+      Name "#OVT-CaptureBase"
+     }
+     Duration 15
+    }
+   }
+  }
+  RplComponent "{59B4D7D03834DE61}" {
+  }
+ }
+}

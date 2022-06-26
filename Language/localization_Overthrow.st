@@ -2,6 +2,20 @@ StringTable {
  TargetPrefix "Target_"
  ItemClassName "CustomStringTableItem"
  Items {
+  CustomStringTableItem "{59B4F0BA1C3CB517}" {
+   Id "OVT-BattleProgress"
+   Target_en_us "Battle In Progress"
+   Modified 1505034469
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59B4F0BA13E340D4}" {
+   Id "OVT-BattleStartsIn"
+   Target_en_us "Battle Starts In"
+   Modified 1505034458
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59A5462B60C888FA}" {
    Id "OVT-Cancel"
    Target_en_us "Cancel"
@@ -24,10 +38,24 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{59B4F0B91B3216F6}" {
+   Id "OVT-CannotFastTravelDuringQRF"
+   Target_en_us "You cannot fast travel during a battle"
+   Modified 1505035911
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59A49A9B02ABC32B}" {
    Id "OVT-CannotFastTravelThere"
    Target_en_us "You cannot fast travel there. Must be near an owned house, camp, FOB or controlled base"
    Modified 1504002186
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59B4F0B9EBF698FF}" {
+   Id "OVT-CannotFastTravelToQRF"
+   Target_en_us "You cannot fast travel to a battle in progress"
+   Modified 1505035905
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -42,6 +70,13 @@ StringTable {
    Id "OVT-CannotPlaceHere"
    Target_en_us "You cannot place that item here, you must be near a house you own, an FOB or a controlled base"
    Modified 1502807313
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59B4D7D75C4B5A65}" {
+   Id "OVT-CaptureBase"
+   Target_en_us "Capture Base"
+   Modified 1505029827
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -275,6 +310,20 @@ StringTable {
    Id "OVT-MedicalSuppliesDelivered"
    Target_en_us "Medical supplies delivered to the value of"
    Modified 1504115425
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59B4F0A361F5ADF0}" {
+   Id "OVT-Msg-BaseControlledOccupying"
+   Target_en_us "The resistance has lost control of a base"
+   Modified 1505038646
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59B4F0A294E1135C}" {
+   Id "OVT-Msg-BaseControlledResistance"
+   Target_en_us "The resistance has captured an enemy base"
+   Modified 1505038613
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -598,6 +647,13 @@ StringTable {
    Target_en_us "Support"
    Status DEVELOPMENT_DONE
    Modified 1502796262
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59B2E6B07F085219}" {
+   Id "OVT-Supporters"
+   Target_en_us "Supporters"
+   Modified 1504899749
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

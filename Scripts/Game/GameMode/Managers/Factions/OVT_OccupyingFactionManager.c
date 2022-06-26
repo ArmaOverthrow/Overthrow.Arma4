@@ -4,6 +4,12 @@ class OVT_OccupyingFactionManagerClass: OVT_ComponentClass
 
 class OVT_OccupyingFactionManager: OVT_Component
 {	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Base Controller Prefab", params: "et", category: "Controllers")]
+	ResourceName m_pBaseControllerPrefab;
+	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "QRF Controller Prefab", params: "et", category: "Controllers")]
+	ResourceName m_pQRFControllerPrefab;
+	
 	int m_iResources;
 	float m_iThreat;
 	ref array<RplId> m_Bases;
@@ -12,9 +18,13 @@ class OVT_OccupyingFactionManager: OVT_Component
 	protected int m_iOccupyingFactionIndex;
 	protected int m_iPlayerFactionIndex;
 	
+	OVT_QRFControllerComponent m_CurrentQRF;
+	OVT_BaseControllerComponent m_CurrentQRFBase;
+	
 	const int OF_UPDATE_FREQUENCY = 60000;
 	
 	ref ScriptInvoker<IEntity> m_OnAIKilled = new ScriptInvoker<IEntity>;
+	ref ScriptInvoker<OVT_BaseControllerComponent> m_OnBaseControlChanged = new ScriptInvoker<OVT_BaseControllerComponent>;
 	
 	static OVT_OccupyingFactionManager s_Instance;
 	
@@ -123,6 +133,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 			OVT_BaseControllerComponent base = OVT_BaseControllerComponent.Cast(baseEntity.FindComponent(OVT_BaseControllerComponent));
 			
 			m_Bases.Insert(base.GetRpl().Id());
+			base.SetControllingFaction(m_Config.GetOccupyingFactionIndex());
 		}
 		m_BasesToSpawn.Clear();
 		m_BasesToSpawn = null;
@@ -153,6 +164,36 @@ class OVT_OccupyingFactionManager: OVT_Component
 		return OVT_BaseControllerComponent.Cast(marker.FindComponent(OVT_BaseControllerComponent));
 	}
 	
+	void StartBaseQRF(OVT_BaseControllerComponent base)
+	{
+		if(m_CurrentQRF) return;
+		
+		m_CurrentQRF = SpawnQRFController(base.GetOwner().GetOrigin());
+		RplComponent rpl = RplComponent.Cast(m_CurrentQRF.GetOwner().FindComponent(RplComponent));
+		Rpc(RpcDo_SetQRF, rpl.Id());
+		m_CurrentQRF.m_OnFinished.Insert(OnQRFFinishedBase);
+		m_CurrentQRFBase = base;
+	}
+	
+	void OnQRFFinishedBase()
+	{	
+		if(m_CurrentQRF.m_iWinningFaction != m_CurrentQRFBase.m_iControllingFaction)
+		{
+			if(m_CurrentQRFBase.IsOccupyingFaction())
+			{
+				m_iThreat += 50;
+				OVT_Global.GetPlayers().HintMessageAll("BaseControlledResistance");
+			}else{
+				OVT_Global.GetPlayers().HintMessageAll("BaseControlledOccupying");
+			}
+			m_CurrentQRFBase.SetControllingFaction(m_CurrentQRF.m_iWinningFaction);
+		}		
+				
+		SCR_Global.DeleteEntityAndChildren(m_CurrentQRF.GetOwner());
+		m_CurrentQRF = null;
+		Rpc(RpcDo_ClearQRF);
+	}
+	
 	bool CheckBaseAdd(IEntity ent)
 	{		
 		#ifdef OVERTHROW_DEBUG
@@ -170,8 +211,17 @@ class OVT_OccupyingFactionManager: OVT_Component
 		EntitySpawnParams params = EntitySpawnParams();
 		params.TransformMode = ETransformMode.WORLD;
 		params.Transform[3] = loc;
-		return GetGame().SpawnEntityPrefabLocal(Resource.Load(m_Config.m_pBaseControllerPrefab), null, params));
+		return GetGame().SpawnEntityPrefab(Resource.Load(m_pBaseControllerPrefab), null, params));
 		
+	}
+	
+	OVT_QRFControllerComponent SpawnQRFController(vector loc)
+	{
+		EntitySpawnParams params = EntitySpawnParams();
+		params.TransformMode = ETransformMode.WORLD;
+		params.Transform[3] = loc;
+		IEntity qrf = GetGame().SpawnEntityPrefab(Resource.Load(m_pQRFControllerPrefab), null, params);
+		return OVT_QRFControllerComponent.Cast(qrf.FindComponent(OVT_QRFControllerComponent));	
 	}
 	
 	bool FilterBaseEntities(IEntity entity)
@@ -209,6 +259,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 			foreach(RplId id : m_Bases)
 			{
 				OVT_BaseControllerComponent base = GetBase(id);
+				if(!base.IsOccupyingFaction()) continue;
+				
 				m_iResources -= base.SpendResources(m_iResources, m_iThreat);			
 				
 				if(m_iResources <= 0) {
@@ -227,6 +279,11 @@ class OVT_OccupyingFactionManager: OVT_Component
 			m_iThreat -= 1;
 			if(m_iThreat < 0) m_iThreat = 0;
 		}
+	}
+	
+	void OnBaseControlChange(OVT_BaseControllerComponent base)
+	{
+		if(m_OnBaseControlChanged) m_OnBaseControlChanged.Invoke(base);
 	}
 	
 	void GainResources()
@@ -276,6 +333,20 @@ class OVT_OccupyingFactionManager: OVT_Component
 			m_Bases.Insert(id);
 		}
 		return true;
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_SetQRF(RplId id)
+	{
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+		IEntity marker = rpl.GetEntity();
+		m_CurrentQRF = OVT_QRFControllerComponent.Cast(marker.FindComponent(OVT_QRFControllerComponent));
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_ClearQRF()
+	{		
+		m_CurrentQRF = null;
 	}
 	
 	void ~OVT_OccupyingFactionManager()

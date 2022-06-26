@@ -9,8 +9,9 @@ class OVT_BaseControllerComponent: OVT_Component
 	
 	[Attribute("", UIWidgets.Object)]
 	ref array<ref OVT_BaseUpgrade> m_aBaseUpgrades;
-	
-	
+		
+	[RplProp()]
+	int m_iControllingFaction;
 			
 	[Attribute("320")]		
 	int m_iRange;
@@ -53,10 +54,57 @@ class OVT_BaseControllerComponent: OVT_Component
 	
 	protected void UpdateUpgrades()
 	{
+		if(!IsOccupyingFaction()) return;
+		
 		foreach(OVT_BaseUpgrade upgrade : m_aBaseUpgrades)
 		{
 			upgrade.OnUpdate(UPGRADE_UPDATE_FREQUENCY);
 		}
+	}
+	
+	bool IsOccupyingFaction()
+	{
+		return m_iControllingFaction == m_Config.GetOccupyingFactionIndex();
+	}
+	
+	int GetControllingFaction()
+	{
+		return m_iControllingFaction;
+	}
+	
+	void SetControllingFaction(int index)
+	{
+		if(m_iControllingFaction == index) return;
+		
+		m_iControllingFaction = index;
+		Replication.BumpMe();
+		m_occupyingFactionManager.OnBaseControlChange(this);
+		
+		IEntity flag = GetGame().GetWorld().FindEntityByID(m_Flag);
+		if(flag)
+		{
+			SCR_Global.DeleteEntityAndChildren(flag);
+		}
+		
+		m_Flag = SpawnFlag().GetID();
+	}
+	
+	IEntity SpawnFlag()
+	{
+		vector pos = GetOwner().GetOrigin();
+		
+		float groundHeight = GetGame().GetWorld().GetSurfaceY(pos[0], pos[2]);
+		if (pos[1] < groundHeight)
+			pos[1] = groundHeight;
+		
+		Faction faction = GetGame().GetFactionManager().GetFactionByIndex(m_iControllingFaction);
+		OVT_Faction fac = OVT_Faction.Cast(faction);
+		EntitySpawnParams params = EntitySpawnParams();
+		params.TransformMode = ETransformMode.WORLD;
+		params.Transform[3] = pos;
+		IEntity flag = GetGame().SpawnEntityPrefab(Resource.Load(fac.m_aFlagPolePrefab), null, params);
+		
+		return flag;
 	}
 	
 	void InitializeBase()
@@ -76,17 +124,8 @@ class OVT_BaseControllerComponent: OVT_Component
 		FindParking();
 		
 		//Spawn a flag
-		
-		vector pos = GetOwner().GetOrigin();
-		
-		float groundHeight = GetGame().GetWorld().GetSurfaceY(pos[0], pos[2]);
-		if (pos[1] < groundHeight)
-			pos[1] = groundHeight;
-		
-		EntitySpawnParams params = EntitySpawnParams();
-		params.TransformMode = ETransformMode.WORLD;
-		params.Transform[3] = pos;
-		IEntity flag = GetGame().SpawnEntityPrefab(Resource.Load(m_Config.GetOccupyingFaction().m_aFlagPolePrefab), null, params);
+		if(m_iControllingFaction == -1) m_iControllingFaction = m_Config.GetOccupyingFactionIndex();
+		m_Flag = SpawnFlag().GetID();
 		
 		foreach(OVT_BaseUpgrade upgrade : m_aBaseUpgrades)
 		{
@@ -97,6 +136,11 @@ class OVT_BaseControllerComponent: OVT_Component
 		if(m_iTestingResources > 0){
 			SpendResources(m_iTestingResources);
 		}
+	}
+	
+	void StartCapture()
+	{
+		Rpc(RpcAsk_StartBaseCapture);
 	}
 	
 	OVT_BaseUpgrade FindUpgrade(typename type)
@@ -157,12 +201,13 @@ class OVT_BaseControllerComponent: OVT_Component
 	{
 		int spent = 0;
 		
-		for(int priority = 1; priority < 100; priority++)
+		for(int priority = 1; priority < 20; priority++)
 		{
 			if(resources <= 0) break;
 			foreach(OVT_BaseUpgrade upgrade : m_aBaseUpgrades)
 			{
 				if(resources <= 0) break;
+				if(upgrade.m_iMinimumThreat > threat) continue;
 				if(upgrade.m_iPriority == priority)
 				{					
 					int allocate = upgrade.m_iResourceAllocation * m_Config.m_Difficulty.baseResourceCost;
@@ -184,6 +229,14 @@ class OVT_BaseControllerComponent: OVT_Component
 		
 		return spent;
 	}
+	
+	//RPC methods
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_StartBaseCapture()
+	{
+		m_occupyingFactionManager.StartBaseQRF(this);
+	}
+	
 	
 	void ~OVT_BaseControllerComponent()
 	{

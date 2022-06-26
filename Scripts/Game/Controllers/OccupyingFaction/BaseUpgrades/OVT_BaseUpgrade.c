@@ -5,6 +5,9 @@ class OVT_BaseUpgrade : ScriptAndConfig
 	
 	[Attribute(defvalue: "1", UIWidgets.EditBox, desc: "Priority (1 = critical, 100 = max)")]
 	int m_iPriority;
+	
+	[Attribute(defvalue: "0", UIWidgets.EditBox, desc: "Minimum threat level to appear")]
+	int m_iMinimumThreat;
 		
 	OVT_BaseControllerComponent m_BaseController;
 	OVT_OccupyingFactionManager m_occupyingFactionManager;

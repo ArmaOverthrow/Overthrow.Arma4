@@ -12,6 +12,7 @@ class OVT_MapContext : OVT_UIContext
 	OVT_TownManagerComponent m_TownManager;
 	OVT_RealEstateManagerComponent m_RealEstate;
 	OVT_ResistanceFactionManager m_Resistance;
+	OVT_OccupyingFactionManager m_OccupyingFaction;
 	
 	OVT_TownData m_SelectedTown;
 	
@@ -28,6 +29,7 @@ class OVT_MapContext : OVT_UIContext
 		m_TownManager = OVT_Global.GetTowns();
 		m_RealEstate = OVT_Global.GetRealEstate();
 		m_Resistance = OVT_Global.GetResistanceFaction();
+		m_OccupyingFaction = OVT_Global.GetOccupyingFaction();
 		
 		SCR_MapEntity.GetOnMapClose().Insert(DisableMapInfo);
 		SCR_MapEntity.GetOnMapClose().Insert(DisableFastTravel);
@@ -71,6 +73,22 @@ class OVT_MapContext : OVT_UIContext
 			return false;
 		}		
 		
+		OVT_QRFControllerComponent qrf = m_OccupyingFaction.m_CurrentQRF;
+		if(qrf && m_Config.m_Difficulty.QRFFastTravelMode != OVT_QRFFastTravelMode.FREE)
+		{
+			if(m_Config.m_Difficulty.QRFFastTravelMode == OVT_QRFFastTravelMode.DISABLED)
+			{
+				reason = "#OVT-CannotFastTravelDuringQRF";
+				return false;
+			}
+			dist = vector.Distance(qrf.GetOwner().GetOrigin(), pos);		
+			if(dist < qrf.QRF_RANGE)
+			{
+				reason = "#OVT-CannotFastTravelToQRF";
+				return false;
+			}
+		}
+		
 		IEntity house = m_RealEstate.GetNearestOwned(m_sPlayerID, pos);
 		if(house)
 		{
@@ -83,6 +101,13 @@ class OVT_MapContext : OVT_UIContext
 		{
 			dist = vector.Distance(fob.GetOwner().GetOrigin(), pos);
 			if(dist < MAX_FOB_TRAVEL_DIS) return true;
+		}
+		
+		OVT_BaseControllerComponent base = m_OccupyingFaction.GetNearestBase(pos);
+		if(base && !base.IsOccupyingFaction())
+		{
+			dist = vector.Distance(base.GetOwner().GetOrigin(), pos);
+			if(dist < base.m_iCloseRange) return true;
 		}
 		
 		return false;
@@ -136,7 +161,7 @@ class OVT_MapContext : OVT_UIContext
 		widget.SetText(m_SelectedTown.stability.ToString() + "%");
 		
 		widget = TextWidget.Cast(m_wRoot.FindAnyWidget("Support"));		
-		widget.SetText(m_SelectedTown.SupportPercentage().ToString() + "%");
+		widget.SetText(m_SelectedTown.support.ToString() + " (" + m_SelectedTown.SupportPercentage().ToString() + "%)");
 		
 		Widget container = m_wRoot.FindAnyWidget("StabilityModContainer");
 		Widget child = container.GetChildren();
