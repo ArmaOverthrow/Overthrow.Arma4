@@ -164,6 +164,16 @@ class OVT_OccupyingFactionManager: OVT_Component
 		return OVT_BaseControllerComponent.Cast(marker.FindComponent(OVT_BaseControllerComponent));
 	}
 	
+	OVT_BaseControllerComponent GetBaseByIndex(int index)
+	{
+		return GetBase(m_Bases[index]);
+	}
+	
+	int GetBaseIndex(OVT_BaseControllerComponent base)
+	{
+		return m_Bases.Find(base.GetRpl().Id());
+	}
+	
 	void StartBaseQRF(OVT_BaseControllerComponent base)
 	{
 		if(m_CurrentQRF) return;

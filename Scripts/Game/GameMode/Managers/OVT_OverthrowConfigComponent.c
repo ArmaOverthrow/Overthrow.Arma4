@@ -77,6 +77,9 @@ class OVT_Placeable : ScriptAndConfig
 	[Attribute(defvalue: "0", desc: "Cannot place near towns or bases")]
 	bool m_bAwayFromTownsBases;
 	
+	[Attribute(defvalue: "0", desc: "Must be placed near a town")]
+	bool m_bNearTown;
+	
 	[Attribute("", UIWidgets.Object)]
 	ref OVT_PlaceableHandler handler;
 }
@@ -134,9 +137,6 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Smart Action Waypoint Prefab", params: "et", category: "Waypoints")]
 	ResourceName m_pSmartActionWaypointPrefab;
 	
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Map Marker Prefab", params: "et")]
-	ResourceName m_pMapMarkerPrefab;
-	
 	[Attribute(desc: "Starting Houses (these should have parking spot entities added to their prefabs)", params: "et")]
 	ref array<string> m_aStartingHouseFilters;
 	
@@ -171,28 +171,6 @@ class OVT_OverthrowConfigComponent: OVT_Component
 			Print("OVT_OverthrowConfigComponent has to be attached to a OVT_OverthrowGameMode (or inherited) entity!", LogLevel.ERROR);
 			
 		
-	}
-	
-	void SpawnMarkerLocal(vector pos, EMapDescriptorType type, string name = "")
-	{
-		EntitySpawnParams params = EntitySpawnParams();
-		params.TransformMode = ETransformMode.WORLD;
-		params.Transform[3] = pos;
-		IEntity ent = GetGame().SpawnEntityPrefabLocal(Resource.Load(m_pMapMarkerPrefab), null, params);
-		SCR_MapDescriptorComponent mapdesc = SCR_MapDescriptorComponent.Cast(ent.FindComponent(SCR_MapDescriptorComponent));
-		mapdesc.Item().SetBaseType(type);
-		mapdesc.Item().SetDisplayName(name);
-	}
-	
-	void SpawnMarker(vector pos, EMapDescriptorType type, string name = "")
-	{
-		EntitySpawnParams params = EntitySpawnParams();
-		params.TransformMode = ETransformMode.WORLD;
-		params.Transform[3] = pos;
-		IEntity ent = GetGame().SpawnEntityPrefab(Resource.Load(m_pMapMarkerPrefab), null, params);
-		SCR_MapDescriptorComponent mapdesc = SCR_MapDescriptorComponent.Cast(ent.FindComponent(SCR_MapDescriptorComponent));
-		mapdesc.Item().SetBaseType(type);
-		mapdesc.Item().SetDisplayName(name);
 	}
 	
 	int GetPlaceableCost(OVT_Placeable placeable)

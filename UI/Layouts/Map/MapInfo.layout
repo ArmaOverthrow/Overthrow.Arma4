@@ -47,15 +47,31 @@ FrameWidgetClass {
       OffsetBottom 0
      }
      {
-      TextWidgetClass "{599D5973F64E498C}" {
-       Name "TownName"
-       Slot LayoutSlot "{599D5973F64E4A59}" {
-        Padding 5 5 5 5
+      HorizontalLayoutWidgetClass "{59B6F5221A64D13F}" {
+       Name "HorizontalLayout0"
+       Slot LayoutSlot "{59B6F5221A64D119}" {
+        HorizontalAlign 1
        }
-       Text "#ar-maplocation_stphillipe"
-       "Font Size" 40
-       "Min Font Size" 40
-       "Horizontal Alignment" Center
+       {
+        ImageWidgetClass "{59B6F522EB1E1A08}" {
+         Name "ControllingFaction"
+         Slot LayoutSlot "{59B6F522EB1E1AD3}" {
+         }
+         Texture "{40B12B0DF911B856}UI/Textures/Editor/EditableEntities/Factions/EditableEntity_Faction_USSR.edds"
+         Image ""
+         Size 48 48
+        }
+        TextWidgetClass "{599D5973F64E498C}" {
+         Name "TownName"
+         Slot LayoutSlot "{599D5973F64E4A59}" {
+          Padding 5 5 5 5
+         }
+         Text "#ar-maplocation_stphillipe"
+         "Font Size" 40
+         "Min Font Size" 40
+         "Horizontal Alignment" Center
+        }
+       }
       }
       HorizontalLayoutWidgetClass "{599D5970B9AE5D84}" {
        Name "Statistics"

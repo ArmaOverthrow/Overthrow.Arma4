@@ -1,5 +1,5 @@
 MetaFileClass {
- Name "{4A1A823A403873C4}Prefabs/MP/Modes/OVT_OverthrowGameMode.et"
+ Name "{4DC10DCB8BE06D32}Prefabs/GameMode/OVT_OverthrowGameMode.et"
  Configurations {
   EntityTemplateResourceClass PC {
   }

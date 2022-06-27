@@ -1,5 +1,5 @@
 
-//Simly waits till the jobs attached entity is dead
+//Simply waits till the jobs attached entity is dead
 class OVT_WaitTillDeadJobStage : OVT_JobStage
 {
 	override bool OnTick(OVT_Job job)

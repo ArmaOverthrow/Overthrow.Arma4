@@ -150,7 +150,22 @@ class OVT_PlaceContext : OVT_UIContext
 			}
 			
 			return true;
-		}		
+		}
+		
+		if(m_Placeable.m_bNearTown)
+		{	
+			OVT_TownData town = m_Towns.GetNearestTown(pos);
+			dist = vector.Distance(town.location,pos);
+			int range = m_Towns.m_iCityRange;
+			if(town.size < 3) range = m_Towns.m_iTownRange;
+			if(dist > range)
+			{
+				reason = "#OVT-MustBeNearTown";
+				return false;
+			}else{
+				return true;
+			}
+		}
 		
 		IEntity house = m_RealEstate.GetNearestOwned(m_sPlayerID, pos);
 		if(house)

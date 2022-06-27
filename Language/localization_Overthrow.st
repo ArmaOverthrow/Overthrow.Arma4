@@ -2,6 +2,13 @@ StringTable {
  TargetPrefix "Target_"
  ItemClassName "CustomStringTableItem"
  Items {
+  CustomStringTableItem "{59B518A9E7140382}" {
+   Id "OVT-BaseNear"
+   Target_en_us "Base near"
+   Modified 1505049103
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59B4F0BA1C3CB517}" {
    Id "OVT-BattleProgress"
    Target_en_us "Battle In Progress"
@@ -112,9 +119,9 @@ StringTable {
   }
   CustomStringTableItem "{599083306EFCACF6}" {
    Id "OVT-FieldManual_MainMenu_Text"
-   Target_en_us "The Overthrow Main Menu (default key: U) is how to access most of the features of Overthrow."
-   Status DEVELOPMENT_DONE
-   Modified 1502796262
+   Target_en_us "Open the main menu with <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color> to access most of the features of Overthrow."
+   Status DEVELOPMENT_PENDING
+   Modified 1505174737
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -159,10 +166,10 @@ StringTable {
   }
   CustomStringTableItem "{59969DFBF96C7EF4}" {
    Id "OVT-IntroHint"
-   Target_en_us "Welcome to Overthrow! This is your home, you will respawn here and can fast travel here for a small fee by opening the main menu (Default Key: U). You also own a car parked in your garage."\
+   Target_en_us "Welcome to Overthrow! This is your home, you will respawn here and can fast travel here for a small fee by opening the main menu <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color>. You also own a car parked in your garage."\
    ""\
    "For more info on Overthrow's features and gameplay just have a look at the \"Field Manual\""
-   Modified 1503470598
+   Modified 1505174450
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -186,6 +193,40 @@ StringTable {
    ""\
    "Eliminate this traitor before they can reveal any information."
    Modified 1504637568
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59B540560DE6D9B3}" {
+   Id "OVT-Job_BaseRecon"
+   Target_en_us "Reconnaissance"
+   Modified 1505051844
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59B54056E3C62299}" {
+   Id "OVT-Job_BaseReconDescription"
+   Target_en_us "Visit a nearby base to determine the strength of it's defenses. You will need to get within 100m of the base to get a good look at it."\
+   ""\
+   "Be careful not to get seen within the restricted area marked as red on your map or you will be shot at."
+   Modified 1505053044
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59B518B28C1095CF}" {
+   Id "OVT-Job_RaiseSupport"
+   Target_en_us "Raise Support"
+   Modified 1505045835
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59B518B29D4D6B1B}" {
+   Id "OVT-Job_RaiseSupportDescription"
+   Target_en_us "Supporters in this town will bring a much needed source of income for the resistance in the form of donations."\
+   ""\
+   "Raise support by placing posters in and around the town using the \"Place\" menu option and waiting for them to catch the eye of 15% of the town's citizens. You can also deliver medical supplies like Bandages and Aspirin bottles using your car to make it go faster."\
+   ""\
+   "Check your progress using the \"Map Info\" menu option."
+   Modified 1505046631
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -359,6 +400,13 @@ StringTable {
    Id "OVT-MustBeDriver"
    Target_en_us "You must be the driver of the vehicle to fast travel all occupants"
    Modified 1503337948
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59B518AA296EFB7F}" {
+   Id "OVT-MustBeNearTown"
+   Target_en_us "This item must be placed inside a town to have any effect"
+   Modified 1505049493
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

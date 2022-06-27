@@ -13,10 +13,10 @@ class OVT_BaseControllerComponent: OVT_Component
 	[RplProp()]
 	int m_iControllingFaction;
 			
-	[Attribute("320")]		
+	[Attribute("280")]		
 	int m_iRange;
 	
-	[Attribute("230")]
+	[Attribute("220")]
 	int m_iCloseRange;
 	
 	string m_sName;	
@@ -154,7 +154,7 @@ class OVT_BaseControllerComponent: OVT_Component
 	
 	void FindSlots()
 	{
-		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), m_iRange, CheckSlotAddToArray, FilterSlotEntities, EQueryEntitiesFlags.ALL);
+		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), m_iCloseRange, CheckSlotAddToArray, FilterSlotEntities, EQueryEntitiesFlags.ALL);
 	}
 	
 	bool FilterSlotEntities(IEntity entity)
@@ -186,7 +186,7 @@ class OVT_BaseControllerComponent: OVT_Component
 	
 	void FindParking()
 	{
-		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), m_iRange, null, FilterParkingEntities, EQueryEntitiesFlags.ALL);
+		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), m_iCloseRange, null, FilterParkingEntities, EQueryEntitiesFlags.ALL);
 	}
 	
 	bool FilterParkingEntities(IEntity entity)

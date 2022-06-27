@@ -1,47 +1,20 @@
 Vehicle : "{4085446E2B406849}Prefabs/Vehicles/Core/Vehicle_Base.et" {
  ID "BBCBA43A9778AE21"
  components {
-  BaseVehicleNodeComponent "{20FB66C5B2237133}" {
-   components {
-    SCR_BaseHUDComponent "{37C2676694790BC7}" {
-     InfoDisplays {
-     }
-    }
-   }
-  }
   SCR_BaseHUDComponent "{53151CEE6C0A409F}" {
    InfoDisplays {
-    OVT_WantedInfo "{59A2BD214D67BF76}" {
+    OVT_WantedInfo "{59B70A6E01375E1B}" {
      m_LayoutPath "{472DF3D2F7500FEB}UI/Layouts/HUD/WantedInfo.layout"
+     m_eLayer OVERLAY
     }
-    OVT_EconomyInfo "{59A2BD2148BC1E8C}" {
+    OVT_EconomyInfo "{59B70A616D989C46}" {
      m_LayoutPath "{3C972A84DC44F671}UI/Layouts/HUD/EconomyInfo.layout"
+     m_eLayer OVERLAY
     }
    }
   }
   SCR_VehicleDamageManagerComponent "{141326E9FD94FE40}" {
    m_fVehicleDestroyDamage 2857.86
-  }
-  ActionsManagerComponent "{C97BE5489221AE18}" {
-   ActionContexts {
-    UserActionContext "{59A6ED97FFACD540}" {
-     ContextName "overthrow"
-     Position PointInfo "{59A6ED97FD8E58A4}" {
-      Offset 0 1 0
-     }
-     Radius 2
-    }
-   }
-   additionalActions {
-    OVT_DeliverMedicalSuppliesAction "{59A6ED97CE021E51}" {
-     ParentContextList {
-      "overthrow"
-     }
-     UIInfo UIInfo "{59A6ED97CC819A27}" {
-      Name "#OVT-DeliverMedicalSupplies"
-     }
-    }
-   }
   }
  }
  coords 0 0 0

@@ -5,7 +5,7 @@ class OVT_JobManagerComponentClass: OVT_ComponentClass
 enum OVT_JobFlags
 {	
 	ACTIVE = 1,
-	GLOBAL_UNIQUE = 2	
+	GLOBAL_UNIQUE = 2
 };
 
 //A config for a job that has start conditions and a number of stages
@@ -18,8 +18,14 @@ class OVT_JobConfig
 	[Attribute()]
 	string m_sDescription;
 	
+	[Attribute("0")]
+	bool m_bBaseOnly;
+	
 	[Attribute("100")]
 	int m_iReward;
+	
+	[Attribute(defvalue: "0", desc:"Maximum number of times this job will spawn")]
+	int m_iMaxTimes;
 	
 	[Attribute("", UIWidgets.Object)]
 	ref array<ref OVT_JobCondition> m_aConditions;
@@ -52,8 +58,19 @@ class OVT_Job
 	int jobIndex;
 	vector location;
 	int townId;
+	int baseId;
 	int stage;
 	RplId entity;
+	
+	OVT_TownData GetTown()
+	{
+		return OVT_Global.GetTowns().m_Towns[townId];
+	}
+	
+	OVT_BaseControllerComponent GetBase()
+	{
+		return OVT_Global.GetOccupyingFaction().GetBaseByIndex(baseId);
+	}
 }
 
 class OVT_JobManagerComponent: OVT_Component
@@ -66,8 +83,11 @@ class OVT_JobManagerComponent: OVT_Component
 	
 	ref set<int> m_aGlobalJobs;
 	ref map<int, ref set<int>> m_aTownJobs;
+	ref map<int, ref set<int>> m_aBaseJobs;
+	ref map<int, int> m_aJobCounts;
 	
 	protected OVT_TownManagerComponent m_Towns;
+	protected OVT_OccupyingFactionManager m_OccupyingFaction;
 	
 	protected const int JOB_FREQUENCY = 10000;
 	
@@ -91,7 +111,9 @@ class OVT_JobManagerComponent: OVT_Component
 		m_aJobConfigs = new array<ref OVT_JobConfig>;
 		m_aGlobalJobs = new set<int>;	
 		m_aTownJobs = new map<int, ref set<int>>;
+		m_aBaseJobs = new map<int, ref set<int>>;
 		m_aJobs = new array<ref OVT_Job>;
+		m_aJobCounts = new map<int, int>;
 	}
 	
 	void Init(IEntity owner)
@@ -99,6 +121,7 @@ class OVT_JobManagerComponent: OVT_Component
 		LoadConfigs();
 		
 		m_Towns = OVT_Global.GetTowns();
+		m_OccupyingFaction = OVT_Global.GetOccupyingFaction();
 		
 		if(!Replication.IsServer()) return;
 		GetGame().GetCallqueue().CallLater(CheckUpdate, JOB_FREQUENCY, true, GetOwner());		
@@ -150,8 +173,11 @@ class OVT_JobManagerComponent: OVT_Component
 					
 					remove.Insert(job);
 					if(config.flags & OVT_JobFlags.GLOBAL_UNIQUE) m_aGlobalJobs.Remove(m_aGlobalJobs.Find(job.jobIndex));
-					m_aTownJobs[job.townId].Remove(m_aTownJobs[job.townId].Find(job.jobIndex));
-					Rpc(RpcDo_RemoveJob, job.jobIndex, job.townId);
+					if(job.townId > -1)
+						m_aTownJobs[job.townId].Remove(m_aTownJobs[job.townId].Find(job.jobIndex));
+					if(job.baseId > -1)
+						m_aBaseJobs[job.baseId].Remove(m_aBaseJobs[job.baseId].Find(job.jobIndex));
+					Rpc(RpcDo_RemoveJob, job.jobIndex, job.townId, job.baseId);
 					
 					break;
 				}else{
@@ -168,8 +194,12 @@ class OVT_JobManagerComponent: OVT_Component
 							{
 								remove.Insert(job);
 								if(config.flags & OVT_JobFlags.GLOBAL_UNIQUE) m_aGlobalJobs.Remove(m_aGlobalJobs.Find(job.jobIndex));
-								m_aTownJobs[job.townId].Remove(m_aTownJobs[job.townId].Find(job.jobIndex));
-								Rpc(RpcDo_RemoveJob, job.jobIndex, job.townId);
+								if(job.townId > -1)
+									m_aTownJobs[job.townId].Remove(m_aTownJobs[job.townId].Find(job.jobIndex));
+								if(job.baseId > -1)
+									m_aBaseJobs[job.baseId].Remove(m_aBaseJobs[job.baseId].Find(job.jobIndex));
+								
+								Rpc(RpcDo_RemoveJob, job.jobIndex, job.townId, job.baseId);
 								dorpc = false;
 								break;
 							}
@@ -178,7 +208,7 @@ class OVT_JobManagerComponent: OVT_Component
 						}
 					}
 					if(dorpc)
-						Rpc(RpcDo_UpdateJob, job.jobIndex, job.location, job.townId, job.stage, job.entity);
+						Rpc(RpcDo_UpdateJob, job.jobIndex, job.location, job.townId, job.baseId, job.stage, job.entity);
 				}
 			}
 		}
@@ -191,7 +221,54 @@ class OVT_JobManagerComponent: OVT_Component
 		//Check if we need to start any jobs
 		foreach(int index, OVT_JobConfig config : m_aJobConfigs)
 		{
+			if(!m_aJobCounts.Contains(index))
+			{
+				m_aJobCounts[index] = 0;
+			}
+			if(config.m_iMaxTimes != 0 && m_aJobCounts[index] >= config.m_iMaxTimes) continue;
+			
 			if((config.flags & OVT_JobFlags.GLOBAL_UNIQUE) && m_aGlobalJobs.Contains(index)) continue;			
+			if(config.m_bBaseOnly)
+			{
+				foreach(int baseId, RplId id : m_OccupyingFaction.m_Bases)
+				{
+					OVT_BaseControllerComponent base = m_OccupyingFaction.GetBase(id);
+					if((config.flags & OVT_JobFlags.GLOBAL_UNIQUE) && m_aGlobalJobs.Contains(index)) break;			
+					if(m_aBaseJobs.Contains(baseId) && m_aBaseJobs[baseId].Contains(index)) continue;
+					
+					OVT_TownData town = m_Towns.GetNearestTown(base.GetOwner().GetOrigin());
+					
+					bool start = true;
+					foreach(OVT_JobCondition condition : config.m_aConditions)
+					{
+						if(!condition.ShouldStart(town, base)){
+							start = false;
+							break;
+						}
+					}
+					
+					if(start && config.m_aStages.Count() > 0)
+					{
+						if(!m_aBaseJobs.Contains(baseId))
+						{
+							m_aBaseJobs[baseId] = new set<int>;
+						}
+						m_aBaseJobs[baseId].Insert(index);
+						
+						if(config.flags & OVT_JobFlags.GLOBAL_UNIQUE)
+						{
+							m_aGlobalJobs.Insert(index);
+						}
+						
+						OVT_Job job = StartJob(index, null, base);
+						
+						//Update clients
+						if(job)
+							Rpc(RpcDo_UpdateJob, index, job.location, -1, baseId, job.stage, job.entity);
+					}
+				}
+				continue;
+			}
 			foreach(OVT_TownData town : m_Towns.m_Towns)
 			{
 				if((config.flags & OVT_JobFlags.GLOBAL_UNIQUE) && m_aGlobalJobs.Contains(index)) break;			
@@ -200,7 +277,7 @@ class OVT_JobManagerComponent: OVT_Component
 				bool start = true;
 				foreach(OVT_JobCondition condition : config.m_aConditions)
 				{
-					if(!condition.ShouldStart(town)){
+					if(!condition.ShouldStart(town, null)){
 						start = false;
 						break;
 					}
@@ -219,42 +296,59 @@ class OVT_JobManagerComponent: OVT_Component
 						m_aGlobalJobs.Insert(index);
 					}
 					
-					OVT_Job job = new OVT_Job();
-					job.jobIndex = index;
-					job.townId = town.id;
-					job.stage = 0;
-					
-					m_aJobs.Insert(job);
-					
-					bool done = false;
-					bool dorpc = true;
-					while(!done)
-					{
-						OVT_JobStageConfig stage = config.m_aStages[job.stage];
-						if(!stage.m_Handler.OnStart(job)) {
-							//Go to the next stage
-							job.stage++;
-							if(job.stage > config.m_aStages.Count() - 1)
-							{								
-								//Job finished without any ticks??
-								m_aJobs.RemoveItem(job);
-								dorpc = false;
-								break;
-							}
-						}else{
-							done = true;
-						}
-					}
+					OVT_Job job = StartJob(index, town, null);
 					
 					//Update clients
-					if(dorpc)
-						Rpc(RpcDo_UpdateJob, index, job.location, town.id, job.stage, job.entity);
+					if(job)
+						Rpc(RpcDo_UpdateJob, index, job.location, town.id, -1, job.stage, job.entity);
 				}
 			}
 		}
 		
 		
 		
+	}
+	
+	OVT_Job StartJob(int index, OVT_TownData town, OVT_BaseControllerComponent base)
+	{
+		OVT_JobConfig config = GetConfig(index);
+		OVT_Job job = new OVT_Job();
+		job.jobIndex = index;
+		if(town)
+		{
+			job.townId = town.id;
+			job.location = town.location;
+		}
+		if(base)
+		{
+			job.baseId = m_OccupyingFaction.GetBaseIndex(base);
+			job.location = base.GetOwner().GetOrigin();
+		}
+		
+		job.stage = 0;
+		
+		m_aJobs.Insert(job);					
+		m_aJobCounts[index] = m_aJobCounts[index] + 1;
+		
+		bool done = false;		
+		while(!done)
+		{
+			OVT_JobStageConfig stage = config.m_aStages[job.stage];
+			if(!stage.m_Handler.OnStart(job)) {
+				//Go to the next stage
+				job.stage++;
+				if(job.stage > config.m_aStages.Count() - 1)
+				{								
+					//Job finished without any ticks??
+					m_aJobs.RemoveItem(job);
+					return null;					
+				}
+			}else{
+				done = true;
+			}
+		}
+		
+		return job;
 	}
 	
 	//RPC Methods
@@ -269,6 +363,7 @@ class OVT_JobManagerComponent: OVT_Component
 			writer.Write(job.jobIndex, 32);
 			writer.WriteVector(job.location);
 			writer.Write(job.townId, 32);
+			writer.Write(job.baseId, 32);
 			writer.Write(job.stage, 32);
 			writer.WriteRplId(job.entity);			
 		}
@@ -289,6 +384,7 @@ class OVT_JobManagerComponent: OVT_Component
 			if (!reader.Read(job.jobIndex, 32)) return false;
 			if (!reader.ReadVector(job.location)) return false;		
 			if (!reader.Read(job.townId, 32)) return false;		
+			if (!reader.Read(job.baseId, 32)) return false;	
 			if (!reader.Read(job.stage, 32)) return false;	
 			if (!reader.ReadRplId(job.entity)) return false;		
 						
@@ -298,12 +394,12 @@ class OVT_JobManagerComponent: OVT_Component
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_UpdateJob(int index, vector location, int townId, int stage, RplId entity)
+	protected void RpcDo_UpdateJob(int index, vector location, int townId, int baseId, int stage, RplId entity)
 	{
 		bool updated = false;
 		foreach(OVT_Job job : m_aJobs)
 		{
-			if(job.jobIndex == index && job.townId == townId)
+			if(job.jobIndex == index && (job.townId == townId || job.baseId == baseId))
 			{
 				job.stage = stage;
 				job.location = location;
@@ -317,6 +413,7 @@ class OVT_JobManagerComponent: OVT_Component
 			job.jobIndex = index;
 			job.location = location;
 			job.townId = townId;
+			job.baseId = baseId;
 			job.stage = stage;
 			job.entity = entity;
 			
@@ -325,12 +422,12 @@ class OVT_JobManagerComponent: OVT_Component
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_RemoveJob(int index, int townId)
+	protected void RpcDo_RemoveJob(int index, int townId, int baseId)
 	{
 		OVT_Job foundjob;
 		foreach(OVT_Job job : m_aJobs)
 		{
-			if(job.jobIndex == index && job.townId == townId)
+			if(job.jobIndex == index && (job.townId == townId || job.baseId == baseId))
 			{
 				foundjob = job;
 			}

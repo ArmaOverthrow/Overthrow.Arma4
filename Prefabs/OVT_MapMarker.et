@@ -1,8 +1,0 @@
-GenericEntity {
- ID "598723B048779C9E"
- components {
-  SCR_MapDescriptorComponent "{598723BE07A459CD}" {
-  }
- }
- coords 4415.759 1.595 11077.353
-}

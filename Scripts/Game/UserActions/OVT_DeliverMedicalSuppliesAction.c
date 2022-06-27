@@ -1,11 +1,10 @@
 
-class OVT_DeliverMedicalSuppliesAction : SCR_InventoryAction
+class OVT_DeliverMedicalSuppliesAction : ScriptedUserAction
 {
-	protected ref array<IEntity> m_Vehicles;
 	
 	#ifndef DISABLE_INVENTORY
 	//------------------------------------------------------------------------------------------------
-	override protected void PerformActionInternal(SCR_InventoryStorageManagerComponent manager, IEntity pOwnerEntity, IEntity pUserEntity)
+	override void PerformAction(IEntity pOwnerEntity, IEntity pUserEntity)
 	{		
 		
 		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
@@ -75,14 +74,5 @@ class OVT_DeliverMedicalSuppliesAction : SCR_InventoryAction
 		}	
 	}
 	
-	#endif	
-	
-	protected bool FilterVehicleEntities(IEntity entity)
-	{
-		if(entity.ClassName() == "Vehicle")
-		{
-			m_Vehicles.Insert(entity);
-		}
-		return false;
-	}
+	#endif		
 };

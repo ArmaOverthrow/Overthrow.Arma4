@@ -13,7 +13,14 @@ class OVT_JobListEntryHandler : SCR_ButtonBaseComponent
 		title.SetText(m_JobConfig.m_sTitle);
 		
 		TextWidget location = TextWidget.Cast(m_wRoot.FindAnyWidget("Location"));
-		location.SetText(OVT_Global.GetTowns().GetTownName(job.townId));
+		if(job.townId == -1)
+		{
+			OVT_BaseControllerComponent base = OVT_Global.GetOccupyingFaction().GetBaseByIndex(job.baseId);
+			OVT_TownData town = OVT_Global.GetTowns().GetNearestTown(base.GetOwner().GetOrigin());
+			location.SetText("#OVT-BaseNear " + OVT_Global.GetTowns().GetTownName(town.id));
+		}else{
+			location.SetText(OVT_Global.GetTowns().GetTownName(job.townId));
+		}
 		
 		TextWidget reward = TextWidget.Cast(m_wRoot.FindAnyWidget("Reward"));
 		reward.SetText("$" + m_JobConfig.m_iReward.ToString());

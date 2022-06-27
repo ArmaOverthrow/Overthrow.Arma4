@@ -1,5 +1,5 @@
 MetaFileClass {
- Name "{65993159E29DA7BF}Prefabs/FactionManager_Overthrow.et"
+ Name "{8C75D1206F85987D}Prefabs/GameMode/OVT_FactionManager.et"
  Configurations {
   EntityTemplateResourceClass PC {
   }

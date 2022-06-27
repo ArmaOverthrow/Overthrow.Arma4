@@ -21,6 +21,11 @@ class OVT_TownData : Managed
 	{
 		return Math.Round((support / population) * 100);
 	}
+	
+	OVT_Faction ControllingFaction()
+	{
+		return OVT_Faction.Cast(GetGame().GetFactionManager().GetFactionByIndex(faction));
+	}
 }
 
 class OVT_TownManagerComponent: OVT_Component
