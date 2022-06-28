@@ -16,6 +16,12 @@ SCR_CameraManager SCR_CameraManager1 : "{33F9FD881E3700CC}Prefabs/World/Game/SCR
  DefaultViewAngles 5.1 -498.11 0
 }
 OVT_OverthrowGameMode OVT_OverthrowGameMode1 : "{4DC10DCB8BE06D32}Prefabs/GameMode/OVT_OverthrowGameMode.et" {
+ components {
+  SCR_SaveLoadComponent "{59724C8C935D8E11}" {
+   m_Struct OVT_OverthrowSaveStruct "{59B70AF2ABE445C8}" {
+   }
+  }
+ }
 }
 SCR_FactionManager OVT_FactionManager : "{8C75D1206F85987D}Prefabs/GameMode/OVT_FactionManager.et" {
 }
