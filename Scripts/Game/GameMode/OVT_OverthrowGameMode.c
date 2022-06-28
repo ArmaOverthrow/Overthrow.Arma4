@@ -20,7 +20,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	ref set<string> m_aHintedPlayers;
 	
 	protected bool m_bGameInitialized = false;
-	
+			
 	bool IsInitialized()
 	{
 		return m_bGameInitialized;
@@ -195,6 +195,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		if(RplSession.Mode() == RplMode.Dedicated)
 		{
 			//need to tell someone to open start game menu
+			RemoteStartGame();
 		}else{
 			m_StartGameUIContext.ShowLayout();
 		}
@@ -207,6 +208,32 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-IntroHint","#OVT-Overthrow",20);
 			m_aHintedPlayers.Insert(playerId);
 		}		
+	}
+	
+	protected void RemoteStartGame()
+	{
+		//any players online yet?
+		array<int> players = new array<int>;
+		PlayerManager mgr = GetGame().GetPlayerManager();
+		int numplayers = mgr.GetPlayers(players);
+		
+		if(numplayers > 0)
+		{
+			//tell the first player to start the game
+			Rpc(RpcDo_ShowStartGame, players[0]);
+		}else{
+			//try again in a couple seconds
+			GetGame().GetCallqueue().CallLater(RemoteStartGame, 2000);
+		}
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_ShowStartGame(int playerId)
+	{
+		int localId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
+		if(playerId != localId) return;
+		
+		m_StartGameUIContext.ShowLayout();
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]

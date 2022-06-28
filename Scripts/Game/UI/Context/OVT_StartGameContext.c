@@ -66,7 +66,7 @@ class OVT_StartGameContext : OVT_UIContext
 		}
 		button.SetToggled(true);
 		OVT_KeyButtonComponent btn = OVT_KeyButtonComponent.Cast(button);
-		m_Config.m_sOccupyingFaction = btn.GetData();		
+		m_Config.SetOccupyingFaction(btn.GetData());	
 	}
 	
 	protected void StartGame()

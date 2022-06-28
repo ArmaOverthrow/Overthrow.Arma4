@@ -178,6 +178,13 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		return Math.Round(m_Difficulty.placeableCostMultiplier * placeable.m_iCost);
 	}
 	
+	void SetOccupyingFaction(string key)
+	{
+		FactionManager factionMgr = GetGame().GetFactionManager();
+		Faction faction = factionMgr.GetFactionByKey(key);
+		Rpc(RpcAsk_SetOccupyingFaction, factionMgr.GetFactionIndex(faction));
+	}
+	
 	OVT_Faction GetOccupyingFaction()
 	{
 		return OVT_Faction.Cast(GetGame().GetFactionManager().GetFactionByKey(m_sOccupyingFaction));
@@ -204,5 +211,13 @@ class OVT_OverthrowConfigComponent: OVT_Component
 			m_iPlayerFactionIndex = GetGame().GetFactionManager().GetFactionIndex(GetPlayerFaction());
 		}
 		return m_iPlayerFactionIndex;
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_SetOccupyingFaction(int index)
+	{
+		FactionManager factionMgr = GetGame().GetFactionManager();
+		m_iOccupyingFactionIndex = index;
+		m_sOccupyingFaction = factionMgr.GetFactionByIndex(index).GetFactionKey();
 	}
 }
