@@ -352,7 +352,7 @@ FrameWidgetClass {
                  m_sActionName "OverthrowJobsShow"
                 }
                 ButtonActionComponent "{56EEDE0026B19E2C}" {
-                 m_bActionName "OverthrowShopBuy"
+                 m_bActionName "OverthrowJobsShow"
                 }
                }
                {

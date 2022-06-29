@@ -8,1215 +8,6 @@ SCR_FactionManager {
  coords 4477.324 4.749 11037.735
  Flags 0
  Factions {
-  OVT_Faction "{59B6F523ED57E9C1}" {
-   FactionKey "US"
-   FactionColor 0.016 0.552 0.905 1
-   UIInfo SCR_FactionUIInfo "{59B6F523ED5725BC}" {
-    Name "#AR-Faction_US"
-    Icon "{EB7F65DBC9392557}UI/Textures/Editor/EditableEntities/Factions/EditableEntity_Faction_USA.edds"
-    m_sNameUpper "#AR-Faction_US-UC"
-   }
-   "Identity of soldiers" FactionIdentity "{59B6F523ED5717D7}" {
-    VisualIdentityArray {
-     VisualIdentity "{59B6F523ED5726D2}" {
-      Head "{04F4D8CBA36A534B}Prefabs/Characters/Heads/Head_Black_02.et"
-      Body "{6253161EEAB88EAB}Prefabs/Characters/Basebody/CharacterBasebody_Black_02.et"
-      BodyMeshesConfig MeshConfig "{59B6F523ED5726D4}" {
-       SubmeshesOfBody {
-        IdentityBodyMesh "{59B6F523ED57267F}" {
-         PartType "Arm_L"
-         HealthyVersion "Basebody_Arm_L"
-         WoundVersion "Basebody_Arm_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED572666}" {
-         PartType "Arm_R"
-         HealthyVersion "Basebody_Arm_R"
-         WoundVersion "Basebody_Arm_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57266E}" {
-         PartType "ArmUpper_L"
-         HealthyVersion "Basebody_ArmUpper_L"
-         WoundVersion "Basebody_ArmUpper_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED572655}" {
-         PartType "ArmUpper_R"
-         HealthyVersion "Basebody_ArmUpper_R"
-         WoundVersion "Basebody_ArmUpper_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57265A}" {
-         PartType "Calf_L"
-         HealthyVersion "Basebody_Calf_L"
-         WoundVersion "Basebody_Calf_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED572644}" {
-         PartType "Calf_R"
-         HealthyVersion "Basebody_Calf_R"
-         WoundVersion "Basebody_Calf_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57264D}" {
-         PartType "Foot_L"
-         HealthyVersion "Basebody_Foot_L"
-         WoundVersion "Basebody_Foot_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED572635}" {
-         PartType "Foot_R"
-         HealthyVersion "Basebody_Foot_R"
-         WoundVersion "Basebody_Foot_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57263F}" {
-         PartType "Groin"
-         HealthyVersion "Basebody_Groin"
-         WoundVersion "Basebody_Groin_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED572626}" {
-         PartType "Hand_L"
-         HealthyVersion "Basebody_Hand_L"
-         WoundVersion "Basebody_Hand_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED572620}" {
-         PartType "Hand_R"
-         HealthyVersion "Basebody_Hand_R"
-         WoundVersion "Basebody_Hand_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57262A}" {
-         PartType "Leg_L"
-         HealthyVersion "Basebody_Leg_L"
-         WoundVersion "Basebody_Leg_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5726F0}" {
-         PartType "Leg_R"
-         HealthyVersion "Basebody_Leg_R"
-         WoundVersion "Basebody_Leg_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5726FB}" {
-         PartType "Torso"
-         HealthyVersion "Basebody_Torso"
-         WoundVersion "Basebody_Torso_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5726E6}" {
-         PartType "Head"
-         HealthyVersion "Head"
-         WoundVersion "Head_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5726EE}" {
-         PartType "CalfLower_L"
-         HealthyVersion "Basebody_CalfLower_L"
-         WoundVersion "Basebody_CalfLower_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5726D6}" {
-         PartType "CalfLower_R"
-         HealthyVersion "Basebody_CalfLower_R"
-         WoundVersion "Basebody_CalfLower_R_wound"
-        }
-       }
-      }
-     }
-     VisualIdentity "{59B6F523ED571261}" {
-      Head "{0F6C19B0574DCBCA}Prefabs/Characters/Heads/Head_White_03.et"
-      Body "{0023F898C0FF18AA}Prefabs/Characters/Basebody/CharacterBasebody.et"
-      BodyMeshesConfig MeshConfig "{59B6F523ED57122B}" {
-       SubmeshesOfBody {
-        IdentityBodyMesh "{59B6F523ED5726C2}" {
-         PartType "Arm_L"
-         HealthyVersion "Basebody_Arm_L"
-         WoundVersion "Basebody_Arm_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5726CC}" {
-         PartType "Arm_R"
-         HealthyVersion "Basebody_Arm_R"
-         WoundVersion "Basebody_Arm_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5726B6}" {
-         PartType "ArmUpper_L"
-         HealthyVersion "Basebody_ArmUpper_L"
-         WoundVersion "Basebody_ArmUpper_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5726BE}" {
-         PartType "ArmUpper_R"
-         HealthyVersion "Basebody_ArmUpper_R"
-         WoundVersion "Basebody_ArmUpper_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5726A6}" {
-         PartType "Calf_L"
-         HealthyVersion "Basebody_Calf_L"
-         WoundVersion "Basebody_Calf_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5726A2}" {
-         PartType "Calf_R"
-         HealthyVersion "Basebody_Calf_R"
-         WoundVersion "Basebody_Calf_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5726AD}" {
-         PartType "Foot_L"
-         HealthyVersion "Basebody_Foot_L"
-         WoundVersion "Basebody_Foot_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED572695}" {
-         PartType "Foot_R"
-         HealthyVersion "Basebody_Foot_R"
-         WoundVersion "Basebody_Foot_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED572690}" {
-         PartType "Groin"
-         HealthyVersion "Basebody_Groin"
-         WoundVersion "Basebody_Groin_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED572698}" {
-         PartType "Hand_L"
-         HealthyVersion "Basebody_Hand_L"
-         WoundVersion "Basebody_Hand_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED572681}" {
-         PartType "Hand_R"
-         HealthyVersion "Basebody_Hand_R"
-         WoundVersion "Basebody_Hand_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57268C}" {
-         PartType "Leg_L"
-         HealthyVersion "Basebody_Leg_L"
-         WoundVersion "Basebody_Leg_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED572776}" {
-         PartType "Leg_R"
-         HealthyVersion "Basebody_Leg_R"
-         WoundVersion "Basebody_Leg_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED572770}" {
-         PartType "Torso"
-         HealthyVersion "Basebody_Torso"
-         WoundVersion "Basebody_Torso_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57277A}" {
-         PartType "Head"
-         HealthyVersion "Head"
-         WoundVersion "Head_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED572763}" {
-         PartType "CalfLower_L"
-         HealthyVersion "Basebody_CalfLower_L"
-         WoundVersion "Basebody_CalfLower_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57276B}" {
-         PartType "CalfLower_R"
-         HealthyVersion "Basebody_CalfLower_R"
-         WoundVersion "Basebody_CalfLower_R_wound"
-        }
-       }
-      }
-     }
-     VisualIdentity "{59B6F523ED5712EF}" {
-      Head "{32583C88222142FD}Prefabs/Characters/Heads/Head_White_04.et"
-      Body "{0023F898C0FF18AA}Prefabs/Characters/Basebody/CharacterBasebody.et"
-      BodyMeshesConfig MeshConfig "{59B6F523ED5712E7}" {
-       SubmeshesOfBody {
-        IdentityBodyMesh "{59B6F523ED571256}" {
-         PartType "Arm_L"
-         HealthyVersion "Basebody_Arm_L"
-         WoundVersion "Basebody_Arm_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571251}" {
-         PartType "Arm_R"
-         HealthyVersion "Basebody_Arm_R"
-         WoundVersion "Basebody_Arm_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571259}" {
-         PartType "ArmUpper_L"
-         HealthyVersion "Basebody_ArmUpper_L"
-         WoundVersion "Basebody_ArmUpper_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571244}" {
-         PartType "ArmUpper_R"
-         HealthyVersion "Basebody_ArmUpper_R"
-         WoundVersion "Basebody_ArmUpper_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57124E}" {
-         PartType "Calf_L"
-         HealthyVersion "Basebody_Calf_L"
-         WoundVersion "Basebody_Calf_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5712B7}" {
-         PartType "Calf_R"
-         HealthyVersion "Basebody_Calf_R"
-         WoundVersion "Basebody_Calf_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5712B0}" {
-         PartType "Foot_L"
-         HealthyVersion "Basebody_Foot_L"
-         WoundVersion "Basebody_Foot_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5712BB}" {
-         PartType "Foot_R"
-         HealthyVersion "Basebody_Foot_R"
-         WoundVersion "Basebody_Foot_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5712A5}" {
-         PartType "Groin"
-         HealthyVersion "Basebody_Groin"
-         WoundVersion "Basebody_Groin_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5712A9}" {
-         PartType "Hand_L"
-         HealthyVersion "Basebody_Hand_L"
-         WoundVersion "Basebody_Hand_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571293}" {
-         PartType "Hand_R"
-         HealthyVersion "Basebody_Hand_R"
-         WoundVersion "Basebody_Hand_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57129C}" {
-         PartType "Leg_L"
-         HealthyVersion "Basebody_Leg_L"
-         WoundVersion "Basebody_Leg_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571285}" {
-         PartType "Leg_R"
-         HealthyVersion "Basebody_Leg_R"
-         WoundVersion "Basebody_Leg_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57128F}" {
-         PartType "Torso"
-         HealthyVersion "Basebody_Torso"
-         WoundVersion "Basebody_Torso_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5712F4}" {
-         PartType "Head"
-         HealthyVersion "Head"
-         WoundVersion "Head_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5712FD}" {
-         PartType "CalfLower_L"
-         HealthyVersion "Basebody_CalfLower_L"
-         WoundVersion "Basebody_CalfLower_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5712F8}" {
-         PartType "CalfLower_R"
-         HealthyVersion "Basebody_CalfLower_R"
-         WoundVersion "Basebody_CalfLower_R_wound"
-        }
-       }
-      }
-     }
-     VisualIdentity "{59B6F523ED571566}" {
-      Head "{D7C470712EC4D596}Prefabs/Characters/Heads/Head_White_05.et"
-      Body "{0023F898C0FF18AA}Prefabs/Characters/Basebody/CharacterBasebody.et"
-      BodyMeshesConfig MeshConfig "{59B6F523ED57157C}" {
-       SubmeshesOfBody {
-        IdentityBodyMesh "{59B6F523ED5712D3}" {
-         PartType "Arm_L"
-         HealthyVersion "Basebody_Arm_L"
-         WoundVersion "Basebody_Arm_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5712DE}" {
-         PartType "Arm_R"
-         HealthyVersion "Basebody_Arm_R"
-         WoundVersion "Basebody_Arm_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5712D8}" {
-         PartType "ArmUpper_L"
-         HealthyVersion "Basebody_ArmUpper_L"
-         WoundVersion "Basebody_ArmUpper_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5712C2}" {
-         PartType "ArmUpper_R"
-         HealthyVersion "Basebody_ArmUpper_R"
-         WoundVersion "Basebody_ArmUpper_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5712C9}" {
-         PartType "Calf_L"
-         HealthyVersion "Basebody_Calf_L"
-         WoundVersion "Basebody_Calf_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571533}" {
-         PartType "Calf_R"
-         HealthyVersion "Basebody_Calf_R"
-         WoundVersion "Basebody_Calf_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57153D}" {
-         PartType "Foot_L"
-         HealthyVersion "Basebody_Foot_L"
-         WoundVersion "Basebody_Foot_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571527}" {
-         PartType "Foot_R"
-         HealthyVersion "Basebody_Foot_R"
-         WoundVersion "Basebody_Foot_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571522}" {
-         PartType "Groin"
-         HealthyVersion "Basebody_Groin"
-         WoundVersion "Basebody_Groin_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57152A}" {
-         PartType "Hand_L"
-         HealthyVersion "Basebody_Hand_L"
-         WoundVersion "Basebody_Hand_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571512}" {
-         PartType "Hand_R"
-         HealthyVersion "Basebody_Hand_R"
-         WoundVersion "Basebody_Hand_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57151C}" {
-         PartType "Leg_L"
-         HealthyVersion "Basebody_Leg_L"
-         WoundVersion "Basebody_Leg_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571507}" {
-         PartType "Leg_R"
-         HealthyVersion "Basebody_Leg_R"
-         WoundVersion "Basebody_Leg_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57150E}" {
-         PartType "Torso"
-         HealthyVersion "Basebody_Torso"
-         WoundVersion "Basebody_Torso_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571509}" {
-         PartType "Head"
-         HealthyVersion "Head"
-         WoundVersion "Head_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571572}" {
-         PartType "CalfLower_L"
-         HealthyVersion "Basebody_CalfLower_L"
-         WoundVersion "Basebody_CalfLower_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57157D}" {
-         PartType "CalfLower_R"
-         HealthyVersion "Basebody_CalfLower_R"
-         WoundVersion "Basebody_CalfLower_R_wound"
-        }
-       }
-      }
-     }
-     VisualIdentity "{59B6F523ED5715E4}" {
-      Head "{BB90449192005AB8}Prefabs/Characters/Heads/Head_White_06.et"
-      Body "{0023F898C0FF18AA}Prefabs/Characters/Basebody/CharacterBasebody.et"
-      BodyMeshesConfig MeshConfig "{59B6F523ED5715FB}" {
-       SubmeshesOfBody {
-        IdentityBodyMesh "{59B6F523ED571555}" {
-         PartType "Arm_L"
-         HealthyVersion "Basebody_Arm_L"
-         WoundVersion "Basebody_Arm_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57155F}" {
-         PartType "Arm_R"
-         HealthyVersion "Basebody_Arm_R"
-         WoundVersion "Basebody_Arm_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571559}" {
-         PartType "ArmUpper_L"
-         HealthyVersion "Basebody_ArmUpper_L"
-         WoundVersion "Basebody_ArmUpper_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571541}" {
-         PartType "ArmUpper_R"
-         HealthyVersion "Basebody_ArmUpper_R"
-         WoundVersion "Basebody_ArmUpper_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57154A}" {
-         PartType "Calf_L"
-         HealthyVersion "Basebody_Calf_L"
-         WoundVersion "Basebody_Calf_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5715B1}" {
-         PartType "Calf_R"
-         HealthyVersion "Basebody_Calf_R"
-         WoundVersion "Basebody_Calf_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5715BA}" {
-         PartType "Foot_L"
-         HealthyVersion "Basebody_Foot_L"
-         WoundVersion "Basebody_Foot_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5715A5}" {
-         PartType "Foot_R"
-         HealthyVersion "Basebody_Foot_R"
-         WoundVersion "Basebody_Foot_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5715AE}" {
-         PartType "Groin"
-         HealthyVersion "Basebody_Groin"
-         WoundVersion "Basebody_Groin_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571596}" {
-         PartType "Hand_L"
-         HealthyVersion "Basebody_Hand_L"
-         WoundVersion "Basebody_Hand_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57159F}" {
-         PartType "Hand_R"
-         HealthyVersion "Basebody_Hand_R"
-         WoundVersion "Basebody_Hand_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571599}" {
-         PartType "Leg_L"
-         HealthyVersion "Basebody_Leg_L"
-         WoundVersion "Basebody_Leg_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571583}" {
-         PartType "Leg_R"
-         HealthyVersion "Basebody_Leg_R"
-         WoundVersion "Basebody_Leg_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57158D}" {
-         PartType "Torso"
-         HealthyVersion "Basebody_Torso"
-         WoundVersion "Basebody_Torso_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571588}" {
-         PartType "Head"
-         HealthyVersion "Head"
-         WoundVersion "Head_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5715F2}" {
-         PartType "CalfLower_L"
-         HealthyVersion "Basebody_CalfLower_L"
-         WoundVersion "Basebody_CalfLower_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5715FC}" {
-         PartType "CalfLower_R"
-         HealthyVersion "Basebody_CalfLower_R"
-         WoundVersion "Basebody_CalfLower_R_wound"
-        }
-       }
-      }
-     }
-     VisualIdentity "{59B6F523ED57147B}" {
-      Head "{C1F80EE178D948D6}Prefabs/Characters/Heads/Head_White_08.et"
-      Body "{0023F898C0FF18AA}Prefabs/Characters/Basebody/CharacterBasebody.et"
-      BodyMeshesConfig MeshConfig "{59B6F523ED571474}" {
-       SubmeshesOfBody {
-        IdentityBodyMesh "{59B6F523ED5715D7}" {
-         PartType "Arm_L"
-         HealthyVersion "Basebody_Arm_L"
-         WoundVersion "Basebody_Arm_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5715D1}" {
-         PartType "Arm_R"
-         HealthyVersion "Basebody_Arm_R"
-         WoundVersion "Basebody_Arm_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5715DC}" {
-         PartType "ArmUpper_L"
-         HealthyVersion "Basebody_ArmUpper_L"
-         WoundVersion "Basebody_ArmUpper_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5715C7}" {
-         PartType "ArmUpper_R"
-         HealthyVersion "Basebody_ArmUpper_R"
-         WoundVersion "Basebody_ArmUpper_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5715C1}" {
-         PartType "Calf_L"
-         HealthyVersion "Basebody_Calf_L"
-         WoundVersion "Basebody_Calf_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5715CC}" {
-         PartType "Calf_R"
-         HealthyVersion "Basebody_Calf_R"
-         WoundVersion "Basebody_Calf_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571435}" {
-         PartType "Foot_L"
-         HealthyVersion "Basebody_Foot_L"
-         WoundVersion "Basebody_Foot_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57143A}" {
-         PartType "Foot_R"
-         HealthyVersion "Basebody_Foot_R"
-         WoundVersion "Basebody_Foot_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571425}" {
-         PartType "Groin"
-         HealthyVersion "Basebody_Groin"
-         WoundVersion "Basebody_Groin_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57142C}" {
-         PartType "Hand_L"
-         HealthyVersion "Basebody_Hand_L"
-         WoundVersion "Basebody_Hand_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571416}" {
-         PartType "Hand_R"
-         HealthyVersion "Basebody_Hand_R"
-         WoundVersion "Basebody_Hand_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571411}" {
-         PartType "Leg_L"
-         HealthyVersion "Basebody_Leg_L"
-         WoundVersion "Basebody_Leg_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57141B}" {
-         PartType "Leg_R"
-         HealthyVersion "Basebody_Leg_R"
-         WoundVersion "Basebody_Leg_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571406}" {
-         PartType "Torso"
-         HealthyVersion "Basebody_Torso"
-         WoundVersion "Basebody_Torso_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571401}" {
-         PartType "Head"
-         HealthyVersion "Head"
-         WoundVersion "Head_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57140B}" {
-         PartType "CalfLower_L"
-         HealthyVersion "Basebody_CalfLower_L"
-         WoundVersion "Basebody_CalfLower_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571475}" {
-         PartType "CalfLower_R"
-         HealthyVersion "Basebody_CalfLower_R"
-         WoundVersion "Basebody_CalfLower_R_wound"
-        }
-       }
-      }
-     }
-     VisualIdentity "{59B6F523ED5714F2}" {
-      Head "{24D28E910BF9F648}Prefabs/Characters/Heads/Head_Asian_02.et"
-      Body "{32B5FE236D152368}Prefabs/Characters/Basebody/CharacterBasebody_Asian_02.et"
-      BodyMeshesConfig MeshConfig "{59B6F523ED5714F4}" {
-       SubmeshesOfBody {
-        IdentityBodyMesh "{59B6F523ED57146E}" {
-         PartType "Arm_L"
-         HealthyVersion "Basebody_Arm_L"
-         WoundVersion "Basebody_Arm_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571469}" {
-         PartType "Arm_R"
-         HealthyVersion "Basebody_Arm_R"
-         WoundVersion "Basebody_Arm_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571453}" {
-         PartType "ArmUpper_L"
-         HealthyVersion "Basebody_ArmUpper_L"
-         WoundVersion "Basebody_ArmUpper_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57145C}" {
-         PartType "ArmUpper_R"
-         HealthyVersion "Basebody_ArmUpper_R"
-         WoundVersion "Basebody_ArmUpper_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571445}" {
-         PartType "Calf_L"
-         HealthyVersion "Basebody_Calf_L"
-         WoundVersion "Basebody_Calf_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571440}" {
-         PartType "Calf_R"
-         HealthyVersion "Basebody_Calf_R"
-         WoundVersion "Basebody_Calf_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57144B}" {
-         PartType "Foot_L"
-         HealthyVersion "Basebody_Foot_L"
-         WoundVersion "Basebody_Foot_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5714B5}" {
-         PartType "Foot_R"
-         HealthyVersion "Basebody_Foot_R"
-         WoundVersion "Basebody_Foot_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5714BE}" {
-         PartType "Groin"
-         HealthyVersion "Basebody_Groin"
-         WoundVersion "Basebody_Groin_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5714A7}" {
-         PartType "Hand_L"
-         HealthyVersion "Basebody_Hand_L"
-         WoundVersion "Basebody_Hand_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5714AE}" {
-         PartType "Hand_R"
-         HealthyVersion "Basebody_Hand_R"
-         WoundVersion "Basebody_Hand_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5714A8}" {
-         PartType "Leg_L"
-         HealthyVersion "Basebody_Leg_L"
-         WoundVersion "Basebody_Leg_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571492}" {
-         PartType "Leg_R"
-         HealthyVersion "Basebody_Leg_R"
-         WoundVersion "Basebody_Leg_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57149C}" {
-         PartType "Torso"
-         HealthyVersion "Basebody_Torso"
-         WoundVersion "Basebody_Torso_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571486}" {
-         PartType "Head"
-         HealthyVersion "Head"
-         WoundVersion "Head_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57148D}" {
-         PartType "CalfLower_L"
-         HealthyVersion "Basebody_CalfLower_L"
-         WoundVersion "Basebody_CalfLower_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5714F5}" {
-         PartType "CalfLower_R"
-         HealthyVersion "Basebody_CalfLower_R"
-         WoundVersion "Basebody_CalfLower_R_wound"
-        }
-       }
-      }
-     }
-     VisualIdentity "{59B6F523ED571765}" {
-      Head "{24644218743CDFBD}Prefabs/Characters/Heads/Head_White_09.et"
-      Body "{0023F898C0FF18AA}Prefabs/Characters/Basebody/CharacterBasebody.et"
-      BodyMeshesConfig MeshConfig "{59B6F523ED57177C}" {
-       SubmeshesOfBody {
-        IdentityBodyMesh "{59B6F523ED5714E6}" {
-         PartType "Arm_L"
-         HealthyVersion "Basebody_Arm_L"
-         WoundVersion "Basebody_Arm_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5714EF}" {
-         PartType "Arm_R"
-         HealthyVersion "Basebody_Arm_R"
-         WoundVersion "Basebody_Arm_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5714EA}" {
-         PartType "ArmUpper_L"
-         HealthyVersion "Basebody_ArmUpper_L"
-         WoundVersion "Basebody_ArmUpper_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5714D5}" {
-         PartType "ArmUpper_R"
-         HealthyVersion "Basebody_ArmUpper_R"
-         WoundVersion "Basebody_ArmUpper_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5714DF}" {
-         PartType "Calf_L"
-         HealthyVersion "Basebody_Calf_L"
-         WoundVersion "Basebody_Calf_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5714D9}" {
-         PartType "Calf_R"
-         HealthyVersion "Basebody_Calf_R"
-         WoundVersion "Basebody_Calf_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57173D}" {
-         PartType "Foot_L"
-         HealthyVersion "Basebody_Foot_L"
-         WoundVersion "Basebody_Foot_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571724}" {
-         PartType "Foot_R"
-         HealthyVersion "Basebody_Foot_R"
-         WoundVersion "Basebody_Foot_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57172E}" {
-         PartType "Groin"
-         HealthyVersion "Basebody_Groin"
-         WoundVersion "Basebody_Groin_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571716}" {
-         PartType "Hand_L"
-         HealthyVersion "Basebody_Hand_L"
-         WoundVersion "Basebody_Hand_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571711}" {
-         PartType "Hand_R"
-         HealthyVersion "Basebody_Hand_R"
-         WoundVersion "Basebody_Hand_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57171B}" {
-         PartType "Leg_L"
-         HealthyVersion "Basebody_Leg_L"
-         WoundVersion "Basebody_Leg_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571704}" {
-         PartType "Leg_R"
-         HealthyVersion "Basebody_Leg_R"
-         WoundVersion "Basebody_Leg_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57170E}" {
-         PartType "Torso"
-         HealthyVersion "Basebody_Torso"
-         WoundVersion "Basebody_Torso_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571709}" {
-         PartType "Head"
-         HealthyVersion "Head"
-         WoundVersion "Head_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571773}" {
-         PartType "CalfLower_L"
-         HealthyVersion "Basebody_CalfLower_L"
-         WoundVersion "Basebody_CalfLower_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57177D}" {
-         PartType "CalfLower_R"
-         HealthyVersion "Basebody_CalfLower_R"
-         WoundVersion "Basebody_CalfLower_R_wound"
-        }
-       }
-      }
-     }
-     VisualIdentity "{59B6F523ED5717F7}" {
-      Head "{143245D81F2BAB94}Prefabs/Characters/Heads/Head_White_10.et"
-      Body "{0023F898C0FF18AA}Prefabs/Characters/Basebody/CharacterBasebody.et"
-      BodyMeshesConfig MeshConfig "{59B6F523ED57178D}" {
-       SubmeshesOfBody {
-        IdentityBodyMesh "{59B6F523ED571769}" {
-         PartType "Arm_L"
-         HealthyVersion "Basebody_Arm_L"
-         WoundVersion "Basebody_Arm_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571754}" {
-         PartType "Arm_R"
-         HealthyVersion "Basebody_Arm_R"
-         WoundVersion "Basebody_Arm_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57175A}" {
-         PartType "ArmUpper_L"
-         HealthyVersion "Basebody_ArmUpper_L"
-         WoundVersion "Basebody_ArmUpper_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571745}" {
-         PartType "ArmUpper_R"
-         HealthyVersion "Basebody_ArmUpper_R"
-         WoundVersion "Basebody_ArmUpper_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57174F}" {
-         PartType "Calf_L"
-         HealthyVersion "Basebody_Calf_L"
-         WoundVersion "Basebody_Calf_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57174B}" {
-         PartType "Calf_R"
-         HealthyVersion "Basebody_Calf_R"
-         WoundVersion "Basebody_Calf_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5717B5}" {
-         PartType "Foot_L"
-         HealthyVersion "Basebody_Foot_L"
-         WoundVersion "Basebody_Foot_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5717B0}" {
-         PartType "Foot_R"
-         HealthyVersion "Basebody_Foot_R"
-         WoundVersion "Basebody_Foot_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5717BB}" {
-         PartType "Groin"
-         HealthyVersion "Basebody_Groin"
-         WoundVersion "Basebody_Groin_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5717A5}" {
-         PartType "Hand_L"
-         HealthyVersion "Basebody_Hand_L"
-         WoundVersion "Basebody_Hand_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5717A0}" {
-         PartType "Hand_R"
-         HealthyVersion "Basebody_Hand_R"
-         WoundVersion "Basebody_Hand_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED5717AA}" {
-         PartType "Leg_L"
-         HealthyVersion "Basebody_Leg_L"
-         WoundVersion "Basebody_Leg_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571794}" {
-         PartType "Leg_R"
-         HealthyVersion "Basebody_Leg_R"
-         WoundVersion "Basebody_Leg_R_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57179C}" {
-         PartType "Torso"
-         HealthyVersion "Basebody_Torso"
-         WoundVersion "Basebody_Torso_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571798}" {
-         PartType "Head"
-         HealthyVersion "Head"
-         WoundVersion "Head_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED571783}" {
-         PartType "CalfLower_L"
-         HealthyVersion "Basebody_CalfLower_L"
-         WoundVersion "Basebody_CalfLower_L_wound"
-        }
-        IdentityBodyMesh "{59B6F523ED57178E}" {
-         PartType "CalfLower_R"
-         HealthyVersion "Basebody_CalfLower_R"
-         WoundVersion "Basebody_CalfLower_R_wound"
-        }
-       }
-      }
-     }
-    }
-    SoundIdentityArray {
-     SoundIdentity "{59B6F523ED5717FE}" {
-     }
-    }
-    SocialIdentity SocialIdentity "{59B6F523ED5717E8}" {
-     NamesConfig {
-      "#AR-FirstName_EN_Adam" "#AR-FirstName_EN_Brian" "#AR-FirstName_EN_Charlie" "#AR-FirstName_EN_Christopher" "#AR-FirstName_EN_Daniel" "#AR-FirstName_EN_David" "#AR-FirstName_EN_Edward" "#AR-FirstName_EN_James" "#AR-FirstName_EN_Jerry" "#AR-FirstName_EN_John" "#AR-FirstName_EN_Joseph" "#AR-FirstName_EN_Luke" "#AR-FirstName_EN_Mark" "#AR-FirstName_EN_Michael" "#AR-FirstName_EN_Patrick" "#AR-FirstName_EN_Paul" "#AR-FirstName_EN_Peter" "#AR-FirstName_EN_Richard" "#AR-FirstName_EN_Scott" "#AR-FirstName_EN_Steven" "#AR-FirstName_EN_Ted" "#AR-FirstName_EN_Thomas" "#AR-FirstName_EN_William"
-     }
-     SurnamesConfig {
-      "#AR-Surname_EN_Anderson" "#AR-Surname_EN_Allen" "#AR-Surname_EN_Baker" "#AR-Surname_EN_Brown" "#AR-Surname_EN_Clark" "#AR-Surname_EN_Collins" "#AR-Surname_EN_Davis" "#AR-Surname_EN_Harris" "#AR-Surname_EN_Jackson" "#AR-Surname_EN_Jones" "#AR-Surname_EN_Johnson" "#AR-Surname_EN_King" "#AR-Surname_EN_Lee" "#AR-Surname_EN_Lewis" "#AR-Surname_EN_Martin" "#AR-Surname_EN_Miller" "#AR-Surname_EN_Reed" "#AR-Surname_EN_Ryan" "#AR-Surname_EN_Smith" "#AR-Surname_EN_Taylor" "#AR-Surname_EN_Turner" "#AR-Surname_EN_Williams" "#AR-Surname_EN_Wilson"
-     }
-    }
-   }
-   m_OutlineFactionColor 0.005 0.044 0.114 1
-   m_bIsPlayable 0
-   m_sFactionFlag "{46FB2FB2C2125A3C}UI/Textures/Flags/US-flag-base-3it.edds"
-   m_CallsignInfo SCR_FactionCallsignInfo "{59B6F523ED571667}" {
-    m_bIsAssignedRandomly 0
-    m_aCompanyNames {
-     SCR_CallsignInfo "{59B6F523ED571634}" {
-      m_sCallsign "#AR-Callsign_US_Company_A"
-     }
-     SCR_CallsignInfo "{59B6F523ED571630}" {
-      m_sCallsign "#AR-Callsign_US_Company_B"
-     }
-     SCR_CallsignInfo "{59B6F523ED57163C}" {
-      m_sCallsign "#AR-Callsign_US_Company_C"
-     }
-     SCR_CallsignInfo "{59B6F523ED571638}" {
-      m_sCallsign "#AR-Callsign_US_Company_D"
-     }
-     SCR_CallsignInfo "{59B6F523ED571625}" {
-      m_sCallsign "#AR-Callsign_US_Company_E"
-     }
-     SCR_CallsignInfo "{59B6F523ED571621}" {
-      m_sCallsign "#AR-Callsign_US_Company_F"
-     }
-     SCR_CallsignInfo "{59B6F523ED57162E}" {
-      m_sCallsign "#AR-Callsign_US_Company_G"
-     }
-     SCR_CallsignInfo "{59B6F523ED571629}" {
-      m_sCallsign "#AR-Callsign_US_Company_H"
-     }
-    }
-    m_aPlatoonNames {
-     SCR_CallsignInfo "{59B6F523ED571614}" {
-      m_sCallsign "#AR-Callsign_US_Platoon_1"
-     }
-     SCR_CallsignInfo "{59B6F523ED57161F}" {
-      m_sCallsign "#AR-Callsign_US_Platoon_2"
-     }
-     SCR_CallsignInfo "{59B6F523ED57161C}" {
-      m_sCallsign "#AR-Callsign_US_Platoon_3"
-     }
-     SCR_CallsignInfo "{59B6F523ED571619}" {
-      m_sCallsign "#AR-Callsign_US_Platoon_4"
-     }
-    }
-    m_aSquadNames {
-     SCR_CallsignInfo "{59B6F523ED571605}" {
-      m_sCallsign "1"
-     }
-     SCR_CallsignInfo "{59B6F523ED571601}" {
-      m_sCallsign "2"
-     }
-     SCR_CallsignInfo "{59B6F523ED57160E}" {
-      m_sCallsign "3"
-     }
-     SCR_CallsignInfo "{59B6F523ED57160A}" {
-      m_sCallsign "4"
-     }
-    }
-    m_sCallsignGroupFormat "%1 %2 %3"
-    m_sCallsignCharacterFormat "%1 %2 %3: %4"
-    m_aCharacterRoleCallsigns {
-     SCR_LeaderRoleCallsign "{59B6F523ED571671}" {
-      m_sRoleName "#AR-Callsign_US_SquadLeader"
-     }
-     SCR_RadioOperatorRoleCallsign "{59B6F523ED571678}" {
-      m_sRoleName "#AR-Callsign_US_RadioOperator"
-     }
-    }
-   }
-   m_ArsenalConfig SCR_ArsenalItemListConfig "{59B6F523ED57E9B5}" {
-    m_aArsenalItems {
-     SCR_ArsenalItem "{59B6F523ED571652}" {
-      m_ItemResourceName "{A81F501D3EF6F38E}Prefabs/Items/Medicine/FieldDressing_US_01.et"
-      m_eItemType HEAL
-      m_eItemMode CONSUMABLE
-     }
-     SCR_ArsenalItem "{59B6F523ED57165A}" {
-      m_ItemResourceName "{13772C903CB5E4F7}Prefabs/Items/Equipment/Maps/PaperMap_01_folded.et"
-      m_eItemType EQUIPMENT
-      m_eItemMode DEFAULT
-     }
-     SCR_ArsenalItem "{59B6F523ED571645}" {
-      m_ItemResourceName "{61D4F80E49BF9B12}Prefabs/Items/Equipment/Compass/Compass_SY183.et"
-      m_eItemType EQUIPMENT
-      m_eItemMode DEFAULT
-     }
-     SCR_ArsenalItem "{59B6F523ED57164F}" {
-      m_ItemResourceName "{3A421547BC29F679}Prefabs/Items/Equipment/Flashlights/Flashlight_MX991.et"
-      m_eItemType EQUIPMENT
-      m_eItemMode DEFAULT
-     }
-     SCR_ArsenalItem "{59B6F523ED571649}" {
-      m_ItemResourceName "{78ED4FEF62BBA728}Prefabs/Items/Equipment/Watches/Watch_SandY184A.et"
-      m_eItemType EQUIPMENT
-      m_eItemMode DEFAULT
-     }
-     SCR_ArsenalItem "{59B6F523ED5716B4}" {
-      m_ItemResourceName "{0CF54B9A85D8E0D4}Prefabs/Items/Equipment/Binoculars/Binoculars_M22.et"
-      m_eItemType EQUIPMENT
-      m_eItemMode DEFAULT
-     }
-     SCR_ArsenalItem "{59B6F523ED5716BF}" {
-      m_ItemResourceName "{73950FBA2D7DB5C5}Prefabs/Items/Equipment/Radios/Radio_ANPRC68.et"
-      m_eItemType EQUIPMENT
-      m_eItemMode DEFAULT
-     }
-     SCR_ArsenalItem "{59B6F523ED5716BA}" {
-      m_ItemResourceName "{9B6B61BB3FE3DFB0}Prefabs/Items/Equipment/Radios/Radio_ANPRC77.et"
-      m_eItemType RADIO_BACKPACK
-      m_eItemMode DEFAULT
-     }
-     SCR_ArsenalItem "{59B6F523ED5716A3}" {
-      m_ItemResourceName "{DAAFD15478BDE1C3}Prefabs/Characters/Footwear/CombatBoots_US_01.et"
-      m_eItemType FOOTWEAR
-      m_eItemMode DEFAULT
-     }
-     SCR_ArsenalItem "{59B6F523ED5716AC}" {
-      m_ItemResourceName "{604BB72BE8E023C2}Prefabs/Characters/Uniforms/Pants_US_BDU.et"
-      m_eItemType LEGS
-      m_eItemMode DEFAULT
-     }
-     SCR_ArsenalItem "{59B6F523ED571697}" {
-      m_ItemResourceName "{C7861F11D5334C0E}Prefabs/Characters/Uniforms/Jacket_US_BDU.et"
-      m_eItemType TORSO
-      m_eItemMode DEFAULT
-     }
-     SCR_ArsenalItem "{59B6F523ED571692}" {
-      m_ItemResourceName "{FE5C49069C2499D9}Prefabs/Characters/HeadGear/Helmet_PASGT_01/Helmet_PASGT_01_cover.et"
-      m_eItemType HEADWEAR
-      m_eItemMode DEFAULT
-     }
-     SCR_ArsenalItem "{59B6F523ED57169E}" {
-      m_ItemResourceName "{E12126CDE731EED5}Prefabs/Characters/HeadGear/Hat_Boonie_US_01/Hat_Boonie_US_01.et"
-      m_eItemType HEADWEAR
-      m_eItemMode DEFAULT
-     }
-     SCR_ArsenalItem "{59B6F523ED57169A}" {
-      m_ItemResourceName "{156DC7109CEE6F69}Prefabs/Characters/Vests/Vest_ALICE/Variants/Vest_ALICE_AR.et"
-      m_eItemType VEST_AND_WAIST
-      m_eItemMode DEFAULT
-     }
-     SCR_ArsenalItem "{59B6F523ED571685}" {
-      m_ItemResourceName "{18B8B9316B590643}Prefabs/Characters/Vests/Vest_ALICE/Variants/Vest_ALICE_GL.et"
-      m_eItemType VEST_AND_WAIST
-      m_eItemMode DEFAULT
-     }
-     SCR_ArsenalItem "{59B6F523ED571681}" {
-      m_ItemResourceName "{477A190AF2A17B8A}Prefabs/Characters/Vests/Vest_ALICE/Variants/Vest_ALICE_MG.et"
-      m_eItemType VEST_AND_WAIST
-      m_eItemMode DEFAULT
-     }
-     SCR_ArsenalItem "{59B6F523ED57168C}" {
-      m_ItemResourceName "{2835A0EA3B79E63E}Prefabs/Characters/Vests/Vest_ALICE/Variants/Vest_ALICE_rifleman.et"
-      m_eItemType VEST_AND_WAIST
-      m_eItemMode DEFAULT
-     }
-     SCR_ArsenalItem "{59B6F523ED5716F7}" {
-      m_ItemResourceName "{9CEA24A1A9CC2675}Prefabs/Characters/Vests/Vest_ALICE/Variants/Vest_ALICE_sniper.et"
-      m_eItemType VEST_AND_WAIST
-      m_eItemMode DEFAULT
-     }
-     SCR_ArsenalItem "{59B6F523ED5716F2}" {
-      m_ItemResourceName "{5C5C6EE05EE2FF1A}Prefabs/Items/Equipment/Backpacks/Backpack_ALICE_Medium_assembled.et"
-      m_eItemType BACKPACK
-      m_eItemMode DEFAULT
-     }
-     SCR_ArsenalItem "{59B6F523ED5716F8}" {
-      m_ItemResourceName "{9DB69176CEF0EE97}Prefabs/Weapons/Grenades/Smoke_ANM8HC.et"
-      m_eItemType NON_LETHAL_THROWABLE
-      m_eItemMode DEFAULT
-     }
-     SCR_ArsenalItem "{59B6F523ED5716E2}" {
-      m_ItemResourceName "{D41D22DD1B8E921E}Prefabs/Weapons/Grenades/M18/Smoke_M18_Green.et"
-      m_eItemType NON_LETHAL_THROWABLE
-      m_eItemMode DEFAULT
-     }
-     SCR_ArsenalItem "{59B6F523ED5716EE}" {
-      m_ItemResourceName "{3343A055A83CB30D}Prefabs/Weapons/Grenades/M18/Smoke_M18_Red.et"
-      m_eItemType NON_LETHAL_THROWABLE
-      m_eItemMode DEFAULT
-     }
-     SCR_ArsenalItem "{59B6F523ED5716E9}" {
-      m_ItemResourceName "{14C1A0F061D9DDEE}Prefabs/Weapons/Grenades/M18/Smoke_M18_Violet.et"
-      m_eItemType NON_LETHAL_THROWABLE
-      m_eItemMode DEFAULT
-     }
-     SCR_ArsenalItem "{59B6F523ED5716D3}" {
-      m_ItemResourceName "{9BBDEE253A16CC66}Prefabs/Weapons/Grenades/M18/Smoke_M18_Yellow.et"
-      m_eItemType NON_LETHAL_THROWABLE
-      m_eItemMode DEFAULT
-     }
-     SCR_ArsenalItem "{59B6F523ED5716DE}" {
-      m_ItemResourceName "{E8F00BF730225B00}Prefabs/Weapons/Grenades/Grenade_M67.et"
-      m_eItemType LETHAL_THROWABLE
-      m_eItemMode DEFAULT
-     }
-     SCR_ArsenalItem "{59B6F523ED5716D9}" {
-      m_ItemResourceName "{1663496AE5B9F10B}Prefabs/Weapons/Ammo/Ammo_Grenade_HEDP_M433.et"
-      m_eItemType RIFLE
-      m_eItemMode AMMUNITION
-     }
-     SCR_ArsenalItem "{59B6F523ED5716C4}" {
-      m_ItemResourceName "{5375FA7CB1F68573}Prefabs/Weapons/Ammo/Ammo_Grenade_HE_M406.et"
-      m_eItemType RIFLE
-      m_eItemMode AMMUNITION
-     }
-     SCR_ArsenalItem "{59B6F523ED5716C0}" {
-      m_ItemResourceName "{1353C6EAD1DCFE43}Prefabs/Weapons/Handguns/M9/Handgun_M9.et"
-      m_eItemType PISTOL
-      m_eItemMode WEAPON
-     }
-     SCR_ArsenalItem "{59B6F523ED5716CB}" {
-      m_ItemResourceName "{9C05543A503DB80E}Prefabs/Weapons/Magazines/Magazine_9x19_M9_15rnd_Ball.et"
-      m_eItemType PISTOL
-      m_eItemMode AMMUNITION
-     }
-     SCR_ArsenalItem "{59B6F523ED57E936}" {
-      m_ItemResourceName "{3E413771E1834D2F}Prefabs/Weapons/Rifles/M16/Rifle_M16A2.et"
-      m_eItemType RIFLE
-      m_eItemMode WEAPON
-     }
-     SCR_ArsenalItem "{59B6F523ED57E93E}" {
-      m_ItemResourceName "{5A987A8A13763769}Prefabs/Weapons/Rifles/M16/Rifle_M16A2_M203.et"
-      m_eItemType RIFLE
-      m_eItemMode WEAPON_VARIANTS
-     }
-     SCR_ArsenalItem "{59B6F523ED57E939}" {
-      m_ItemResourceName "{D8F2CA92583B23D3}Prefabs/Weapons/Magazines/Magazine_556x45_STANAG_30rnd_Last_5Tracer.et"
-      m_eItemType RIFLE
-      m_eItemMode AMMUNITION
-     }
-     SCR_ArsenalItem "{59B6F523ED57E925}" {
-      m_ItemResourceName "{A9A385FE1F7BF4BD}Prefabs/Weapons/Magazines/Magazine_556x45_STANAG_30rnd_Tracer.et"
-      m_eItemType RIFLE
-      m_eItemMode AMMUNITION
-     }
-     SCR_ArsenalItem "{59B6F523ED57E921}" {
-      m_ItemResourceName "{D2B48DEBEF38D7D7}Prefabs/Weapons/MachineGuns/M249/MG_M249.et"
-      m_eItemType MACHINE_GUN
-      m_eItemMode WEAPON
-     }
-     SCR_ArsenalItem "{59B6F523ED57E92E}" {
-      m_ItemResourceName "{06D722FC2666EB83}Prefabs/Weapons/Magazines/Box_556x45_M249_200rnd_4Ball_1Tracer.et"
-      m_eItemType MACHINE_GUN
-      m_eItemMode AMMUNITION
-     }
-     SCR_ArsenalItem "{59B6F523ED57E928}" {
-      m_ItemResourceName "{4EEDDB27C023B8B9}Prefabs/Weapons/Magazines/Box_556x45_M249_200rnd_Tracer.et"
-      m_eItemType MACHINE_GUN
-      m_eItemMode AMMUNITION
-     }
-     SCR_ArsenalItem "{59B6F523ED57E912}" {
-      m_ItemResourceName "{D182DCDD72BF7E34}Prefabs/Weapons/MachineGuns/M60/MG_M60.et"
-      m_eItemType MACHINE_GUN
-      m_eItemMode WEAPON
-     }
-     SCR_ArsenalItem "{59B6F523ED57E91E}" {
-      m_ItemResourceName "{4D2C1E8F3A81F894}Prefabs/Weapons/Magazines/Box_762x51_M60_100rnd_4Ball_1Tracer.et"
-      m_eItemType MACHINE_GUN
-      m_eItemMode AMMUNITION
-     }
-     SCR_ArsenalItem "{59B6F523ED57E906}" {
-      m_ItemResourceName "{AD8AB93729348C3E}Prefabs/Weapons/Magazines/Box_762x51_M60_100rnd_Tracer.et"
-      m_eItemType MACHINE_GUN
-      m_eItemMode AMMUNITION
-     }
-     SCR_ArsenalItem "{59B6F523ED57E909}" {
-      m_ItemResourceName "{81EB948E6414BD6F}Prefabs/Weapons/Rifles/M14/Rifle_M21_ARTII.et"
-      m_eItemType SNIPER_RIFLE
-      m_eItemMode WEAPON
-     }
-     SCR_ArsenalItem "{59B6F523ED57E975}" {
-      m_ItemResourceName "{627255315038152A}Prefabs/Weapons/Magazines/Magazine_762x51_M14_20rnd_SpecialBall.et"
-      m_eItemType SNIPER_RIFLE
-      m_eItemMode AMMUNITION
-     }
-     SCR_ArsenalItem "{59B6F523ED57E97F}" {
-      m_ItemResourceName "{9C5C20FB0E01E64F}Prefabs/Weapons/Launchers/M72/Launcher_M72A3.et"
-      m_eItemType ROCKET_LAUNCHER
-      m_eItemMode WEAPON
-     }
-     SCR_ArsenalItem "{59B6F523ED57E944}" {
-      m_ItemResourceName "{CC7F787C3ECF678F}Prefabs/Weapons/Magazines/Box_127x99_M2_100rnd_4Ball_1Tracer.et"
-      m_eItemType MACHINE_GUN
-      m_eItemMode AMMUNITION
-     }
-     SCR_ArsenalItem "{59B6F523ED57E940}" {
-      m_ItemResourceName "{4068585808DF8DF2}Prefabs/Weapons/Magazines/Box_127x99_M2_100rnd_Tracer.et"
-      m_eItemType MACHINE_GUN
-      m_eItemMode AMMUNITION
-     }
-    }
-    m_MaxCountPerItemType {
-     SCR_ArsenalItemCountConfig "{59B6F523ED57E9B6}" {
-      m_ItemType RADIO_BACKPACK
-      m_MaxItemCount 5
-     }
-    }
-   }
-   m_aGroupPrefabSlots {
-    "{84E5BBAB25EA23E5}Prefabs/Groups/BLUFOR/Group_US_FireTeam.et" "{FCF7F5DC4F83955C}Prefabs/Groups/BLUFOR/Group_US_LightFireTeam.et" "{958039B857396B7B}Prefabs/Groups/BLUFOR/Group_US_MachineGunTeam.et" "{DDF3799FA1387848}Prefabs/Groups/BLUFOR/Group_US_RifleSquad.et" "{3BF36BDEEB33AEC9}Prefabs/Groups/BLUFOR/Group_US_SentryTeam.et" "{D807C7047E818488}Prefabs/Groups/BLUFOR/Group_US_SniperTeam.et" "{DE747BC9217D383C}Prefabs/Groups/BLUFOR/Group_US_Team_GL.et" "{FAEA8B9E1252F56E}Prefabs/Groups/BLUFOR/Group_US_Team_LAT.et" "{81B6DBF2B88545F5}Prefabs/Groups/BLUFOR/Group_US_Team_Suppress.et"
-   }
-   m_aGroupInfantryPrefabSlots {
-    "{3BF36BDEEB33AEC9}Prefabs/Groups/BLUFOR/Group_US_SentryTeam.et" "{FCF7F5DC4F83955C}Prefabs/Groups/BLUFOR/Group_US_LightFireTeam.et"
-   }
-   m_aHeavyInfantryPrefabSlots {
-    "{84E5BBAB25EA23E5}Prefabs/Groups/BLUFOR/Group_US_FireTeam.et" "{958039B857396B7B}Prefabs/Groups/BLUFOR/Group_US_MachineGunTeam.et" "{DE747BC9217D383C}Prefabs/Groups/BLUFOR/Group_US_Team_GL.et" "{81B6DBF2B88545F5}Prefabs/Groups/BLUFOR/Group_US_Team_Suppress.et"
-   }
-   m_aGroupATPrefabSlots {
-    "{FAEA8B9E1252F56E}Prefabs/Groups/BLUFOR/Group_US_Team_LAT.et" "{DDF3799FA1387848}Prefabs/Groups/BLUFOR/Group_US_RifleSquad.et"
-   }
-   m_aGroupSpecialPrefabSlots {
-    "{D807C7047E818488}Prefabs/Groups/BLUFOR/Group_US_SniperTeam.et"
-   }
-   m_aGroupSniperPrefab "{CA824A43ABA2DA97}Prefabs/Groups/Group_US_Sniper.et"
-   m_aLightTownPatrolPrefab "{3BF36BDEEB33AEC9}Prefabs/Groups/BLUFOR/Group_US_SentryTeam.et"
-   m_aVehicleCarPrefabSlots {
-    "{F649585ABB3706C4}Prefabs/Vehicles/Wheeled/M151A2/M151A2.et" "{47D94E1193A88497}Prefabs/Vehicles/Wheeled/M151A2/M151A2_transport.et"
-   }
-   m_aVehicleTruckPrefabSlots {
-    "{81FDAD5EB644CC3D}Prefabs/Vehicles/Wheeled/M923A1/M923A1_transport_covered.et" "{F1FBD0972FA5FE09}Prefabs/Vehicles/Wheeled/M923A1/M923A1_transport.et"
-   }
-   m_aFlagPolePrefab "{E55FC02F8C1518A3}Prefabs/Structures/Military/Flags/BaseFlag_US.et"
-   m_aMediumCheckpointPrefab "{5F42399DF7455261}Prefabs/Compositions/Slotted/SlotRoadMedium/Checkpoint_M_US_01.et"
-   m_aLargeCheckpointPrefab "{6D9DAF822F4ABFE6}Prefabs/Compositions/Slotted/SlotRoadLarge/Checkpoint_L_US_01.et"
-   m_aCompositionConfig OVT_FactionCompositionConfig "{59B6F523ED57E991}" {
-    m_aCompositions {
-     OVT_FactionComposition "{59B6F523ED57E9AE}" {
-      m_sTag "SmallBunker"
-      m_iCost 10
-      m_aPrefabs {
-       "{D41D0213ED10734B}Prefabs/Compositions/Slotted/SlotFlatSmall/Bunker_S_US_01.et"
-      }
-      m_aGroupPrefabs {
-       "{18C178520CA6C59F}Prefabs/Groups/BLUFOR/Group_US_BunkerTeam.et"
-      }
-     }
-     OVT_FactionComposition "{59B6F523ED57E992}" {
-      m_sTag "AmmoCache"
-      m_iCost 8
-      m_aPrefabs {
-       "{D93E3956280DDF1B}Prefabs/Compositions/Slotted/SlotFlatSmall/AmmoCache_S_US_01.et"
-      }
-     }
-    }
-   }
-  }
   OVT_Faction "{59B6F523ED57F9F2}" {
    FactionKey "USSR"
    FactionColor 0.855 0.031 0.028 1
@@ -2433,6 +1224,1215 @@ SCR_FactionManager {
       m_iCost 9
       m_aPrefabs {
        "{02A678BD42964F8C}Prefabs/Compositions/Slotted/SlotFlatSmall/AmmoCache_S_USSR_01.et"
+      }
+     }
+    }
+   }
+  }
+  OVT_Faction "{59B6F523ED57E9C1}" {
+   FactionKey "US"
+   FactionColor 0.016 0.552 0.905 1
+   UIInfo SCR_FactionUIInfo "{59B6F523ED5725BC}" {
+    Name "#AR-Faction_US"
+    Icon "{EB7F65DBC9392557}UI/Textures/Editor/EditableEntities/Factions/EditableEntity_Faction_USA.edds"
+    m_sNameUpper "#AR-Faction_US-UC"
+   }
+   "Identity of soldiers" FactionIdentity "{59B6F523ED5717D7}" {
+    VisualIdentityArray {
+     VisualIdentity "{59B6F523ED5726D2}" {
+      Head "{04F4D8CBA36A534B}Prefabs/Characters/Heads/Head_Black_02.et"
+      Body "{6253161EEAB88EAB}Prefabs/Characters/Basebody/CharacterBasebody_Black_02.et"
+      BodyMeshesConfig MeshConfig "{59B6F523ED5726D4}" {
+       SubmeshesOfBody {
+        IdentityBodyMesh "{59B6F523ED57267F}" {
+         PartType "Arm_L"
+         HealthyVersion "Basebody_Arm_L"
+         WoundVersion "Basebody_Arm_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED572666}" {
+         PartType "Arm_R"
+         HealthyVersion "Basebody_Arm_R"
+         WoundVersion "Basebody_Arm_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57266E}" {
+         PartType "ArmUpper_L"
+         HealthyVersion "Basebody_ArmUpper_L"
+         WoundVersion "Basebody_ArmUpper_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED572655}" {
+         PartType "ArmUpper_R"
+         HealthyVersion "Basebody_ArmUpper_R"
+         WoundVersion "Basebody_ArmUpper_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57265A}" {
+         PartType "Calf_L"
+         HealthyVersion "Basebody_Calf_L"
+         WoundVersion "Basebody_Calf_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED572644}" {
+         PartType "Calf_R"
+         HealthyVersion "Basebody_Calf_R"
+         WoundVersion "Basebody_Calf_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57264D}" {
+         PartType "Foot_L"
+         HealthyVersion "Basebody_Foot_L"
+         WoundVersion "Basebody_Foot_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED572635}" {
+         PartType "Foot_R"
+         HealthyVersion "Basebody_Foot_R"
+         WoundVersion "Basebody_Foot_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57263F}" {
+         PartType "Groin"
+         HealthyVersion "Basebody_Groin"
+         WoundVersion "Basebody_Groin_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED572626}" {
+         PartType "Hand_L"
+         HealthyVersion "Basebody_Hand_L"
+         WoundVersion "Basebody_Hand_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED572620}" {
+         PartType "Hand_R"
+         HealthyVersion "Basebody_Hand_R"
+         WoundVersion "Basebody_Hand_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57262A}" {
+         PartType "Leg_L"
+         HealthyVersion "Basebody_Leg_L"
+         WoundVersion "Basebody_Leg_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5726F0}" {
+         PartType "Leg_R"
+         HealthyVersion "Basebody_Leg_R"
+         WoundVersion "Basebody_Leg_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5726FB}" {
+         PartType "Torso"
+         HealthyVersion "Basebody_Torso"
+         WoundVersion "Basebody_Torso_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5726E6}" {
+         PartType "Head"
+         HealthyVersion "Head"
+         WoundVersion "Head_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5726EE}" {
+         PartType "CalfLower_L"
+         HealthyVersion "Basebody_CalfLower_L"
+         WoundVersion "Basebody_CalfLower_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5726D6}" {
+         PartType "CalfLower_R"
+         HealthyVersion "Basebody_CalfLower_R"
+         WoundVersion "Basebody_CalfLower_R_wound"
+        }
+       }
+      }
+     }
+     VisualIdentity "{59B6F523ED571261}" {
+      Head "{0F6C19B0574DCBCA}Prefabs/Characters/Heads/Head_White_03.et"
+      Body "{0023F898C0FF18AA}Prefabs/Characters/Basebody/CharacterBasebody.et"
+      BodyMeshesConfig MeshConfig "{59B6F523ED57122B}" {
+       SubmeshesOfBody {
+        IdentityBodyMesh "{59B6F523ED5726C2}" {
+         PartType "Arm_L"
+         HealthyVersion "Basebody_Arm_L"
+         WoundVersion "Basebody_Arm_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5726CC}" {
+         PartType "Arm_R"
+         HealthyVersion "Basebody_Arm_R"
+         WoundVersion "Basebody_Arm_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5726B6}" {
+         PartType "ArmUpper_L"
+         HealthyVersion "Basebody_ArmUpper_L"
+         WoundVersion "Basebody_ArmUpper_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5726BE}" {
+         PartType "ArmUpper_R"
+         HealthyVersion "Basebody_ArmUpper_R"
+         WoundVersion "Basebody_ArmUpper_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5726A6}" {
+         PartType "Calf_L"
+         HealthyVersion "Basebody_Calf_L"
+         WoundVersion "Basebody_Calf_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5726A2}" {
+         PartType "Calf_R"
+         HealthyVersion "Basebody_Calf_R"
+         WoundVersion "Basebody_Calf_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5726AD}" {
+         PartType "Foot_L"
+         HealthyVersion "Basebody_Foot_L"
+         WoundVersion "Basebody_Foot_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED572695}" {
+         PartType "Foot_R"
+         HealthyVersion "Basebody_Foot_R"
+         WoundVersion "Basebody_Foot_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED572690}" {
+         PartType "Groin"
+         HealthyVersion "Basebody_Groin"
+         WoundVersion "Basebody_Groin_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED572698}" {
+         PartType "Hand_L"
+         HealthyVersion "Basebody_Hand_L"
+         WoundVersion "Basebody_Hand_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED572681}" {
+         PartType "Hand_R"
+         HealthyVersion "Basebody_Hand_R"
+         WoundVersion "Basebody_Hand_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57268C}" {
+         PartType "Leg_L"
+         HealthyVersion "Basebody_Leg_L"
+         WoundVersion "Basebody_Leg_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED572776}" {
+         PartType "Leg_R"
+         HealthyVersion "Basebody_Leg_R"
+         WoundVersion "Basebody_Leg_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED572770}" {
+         PartType "Torso"
+         HealthyVersion "Basebody_Torso"
+         WoundVersion "Basebody_Torso_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57277A}" {
+         PartType "Head"
+         HealthyVersion "Head"
+         WoundVersion "Head_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED572763}" {
+         PartType "CalfLower_L"
+         HealthyVersion "Basebody_CalfLower_L"
+         WoundVersion "Basebody_CalfLower_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57276B}" {
+         PartType "CalfLower_R"
+         HealthyVersion "Basebody_CalfLower_R"
+         WoundVersion "Basebody_CalfLower_R_wound"
+        }
+       }
+      }
+     }
+     VisualIdentity "{59B6F523ED5712EF}" {
+      Head "{32583C88222142FD}Prefabs/Characters/Heads/Head_White_04.et"
+      Body "{0023F898C0FF18AA}Prefabs/Characters/Basebody/CharacterBasebody.et"
+      BodyMeshesConfig MeshConfig "{59B6F523ED5712E7}" {
+       SubmeshesOfBody {
+        IdentityBodyMesh "{59B6F523ED571256}" {
+         PartType "Arm_L"
+         HealthyVersion "Basebody_Arm_L"
+         WoundVersion "Basebody_Arm_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571251}" {
+         PartType "Arm_R"
+         HealthyVersion "Basebody_Arm_R"
+         WoundVersion "Basebody_Arm_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571259}" {
+         PartType "ArmUpper_L"
+         HealthyVersion "Basebody_ArmUpper_L"
+         WoundVersion "Basebody_ArmUpper_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571244}" {
+         PartType "ArmUpper_R"
+         HealthyVersion "Basebody_ArmUpper_R"
+         WoundVersion "Basebody_ArmUpper_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57124E}" {
+         PartType "Calf_L"
+         HealthyVersion "Basebody_Calf_L"
+         WoundVersion "Basebody_Calf_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5712B7}" {
+         PartType "Calf_R"
+         HealthyVersion "Basebody_Calf_R"
+         WoundVersion "Basebody_Calf_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5712B0}" {
+         PartType "Foot_L"
+         HealthyVersion "Basebody_Foot_L"
+         WoundVersion "Basebody_Foot_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5712BB}" {
+         PartType "Foot_R"
+         HealthyVersion "Basebody_Foot_R"
+         WoundVersion "Basebody_Foot_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5712A5}" {
+         PartType "Groin"
+         HealthyVersion "Basebody_Groin"
+         WoundVersion "Basebody_Groin_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5712A9}" {
+         PartType "Hand_L"
+         HealthyVersion "Basebody_Hand_L"
+         WoundVersion "Basebody_Hand_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571293}" {
+         PartType "Hand_R"
+         HealthyVersion "Basebody_Hand_R"
+         WoundVersion "Basebody_Hand_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57129C}" {
+         PartType "Leg_L"
+         HealthyVersion "Basebody_Leg_L"
+         WoundVersion "Basebody_Leg_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571285}" {
+         PartType "Leg_R"
+         HealthyVersion "Basebody_Leg_R"
+         WoundVersion "Basebody_Leg_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57128F}" {
+         PartType "Torso"
+         HealthyVersion "Basebody_Torso"
+         WoundVersion "Basebody_Torso_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5712F4}" {
+         PartType "Head"
+         HealthyVersion "Head"
+         WoundVersion "Head_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5712FD}" {
+         PartType "CalfLower_L"
+         HealthyVersion "Basebody_CalfLower_L"
+         WoundVersion "Basebody_CalfLower_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5712F8}" {
+         PartType "CalfLower_R"
+         HealthyVersion "Basebody_CalfLower_R"
+         WoundVersion "Basebody_CalfLower_R_wound"
+        }
+       }
+      }
+     }
+     VisualIdentity "{59B6F523ED571566}" {
+      Head "{D7C470712EC4D596}Prefabs/Characters/Heads/Head_White_05.et"
+      Body "{0023F898C0FF18AA}Prefabs/Characters/Basebody/CharacterBasebody.et"
+      BodyMeshesConfig MeshConfig "{59B6F523ED57157C}" {
+       SubmeshesOfBody {
+        IdentityBodyMesh "{59B6F523ED5712D3}" {
+         PartType "Arm_L"
+         HealthyVersion "Basebody_Arm_L"
+         WoundVersion "Basebody_Arm_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5712DE}" {
+         PartType "Arm_R"
+         HealthyVersion "Basebody_Arm_R"
+         WoundVersion "Basebody_Arm_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5712D8}" {
+         PartType "ArmUpper_L"
+         HealthyVersion "Basebody_ArmUpper_L"
+         WoundVersion "Basebody_ArmUpper_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5712C2}" {
+         PartType "ArmUpper_R"
+         HealthyVersion "Basebody_ArmUpper_R"
+         WoundVersion "Basebody_ArmUpper_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5712C9}" {
+         PartType "Calf_L"
+         HealthyVersion "Basebody_Calf_L"
+         WoundVersion "Basebody_Calf_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571533}" {
+         PartType "Calf_R"
+         HealthyVersion "Basebody_Calf_R"
+         WoundVersion "Basebody_Calf_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57153D}" {
+         PartType "Foot_L"
+         HealthyVersion "Basebody_Foot_L"
+         WoundVersion "Basebody_Foot_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571527}" {
+         PartType "Foot_R"
+         HealthyVersion "Basebody_Foot_R"
+         WoundVersion "Basebody_Foot_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571522}" {
+         PartType "Groin"
+         HealthyVersion "Basebody_Groin"
+         WoundVersion "Basebody_Groin_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57152A}" {
+         PartType "Hand_L"
+         HealthyVersion "Basebody_Hand_L"
+         WoundVersion "Basebody_Hand_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571512}" {
+         PartType "Hand_R"
+         HealthyVersion "Basebody_Hand_R"
+         WoundVersion "Basebody_Hand_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57151C}" {
+         PartType "Leg_L"
+         HealthyVersion "Basebody_Leg_L"
+         WoundVersion "Basebody_Leg_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571507}" {
+         PartType "Leg_R"
+         HealthyVersion "Basebody_Leg_R"
+         WoundVersion "Basebody_Leg_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57150E}" {
+         PartType "Torso"
+         HealthyVersion "Basebody_Torso"
+         WoundVersion "Basebody_Torso_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571509}" {
+         PartType "Head"
+         HealthyVersion "Head"
+         WoundVersion "Head_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571572}" {
+         PartType "CalfLower_L"
+         HealthyVersion "Basebody_CalfLower_L"
+         WoundVersion "Basebody_CalfLower_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57157D}" {
+         PartType "CalfLower_R"
+         HealthyVersion "Basebody_CalfLower_R"
+         WoundVersion "Basebody_CalfLower_R_wound"
+        }
+       }
+      }
+     }
+     VisualIdentity "{59B6F523ED5715E4}" {
+      Head "{BB90449192005AB8}Prefabs/Characters/Heads/Head_White_06.et"
+      Body "{0023F898C0FF18AA}Prefabs/Characters/Basebody/CharacterBasebody.et"
+      BodyMeshesConfig MeshConfig "{59B6F523ED5715FB}" {
+       SubmeshesOfBody {
+        IdentityBodyMesh "{59B6F523ED571555}" {
+         PartType "Arm_L"
+         HealthyVersion "Basebody_Arm_L"
+         WoundVersion "Basebody_Arm_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57155F}" {
+         PartType "Arm_R"
+         HealthyVersion "Basebody_Arm_R"
+         WoundVersion "Basebody_Arm_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571559}" {
+         PartType "ArmUpper_L"
+         HealthyVersion "Basebody_ArmUpper_L"
+         WoundVersion "Basebody_ArmUpper_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571541}" {
+         PartType "ArmUpper_R"
+         HealthyVersion "Basebody_ArmUpper_R"
+         WoundVersion "Basebody_ArmUpper_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57154A}" {
+         PartType "Calf_L"
+         HealthyVersion "Basebody_Calf_L"
+         WoundVersion "Basebody_Calf_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5715B1}" {
+         PartType "Calf_R"
+         HealthyVersion "Basebody_Calf_R"
+         WoundVersion "Basebody_Calf_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5715BA}" {
+         PartType "Foot_L"
+         HealthyVersion "Basebody_Foot_L"
+         WoundVersion "Basebody_Foot_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5715A5}" {
+         PartType "Foot_R"
+         HealthyVersion "Basebody_Foot_R"
+         WoundVersion "Basebody_Foot_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5715AE}" {
+         PartType "Groin"
+         HealthyVersion "Basebody_Groin"
+         WoundVersion "Basebody_Groin_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571596}" {
+         PartType "Hand_L"
+         HealthyVersion "Basebody_Hand_L"
+         WoundVersion "Basebody_Hand_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57159F}" {
+         PartType "Hand_R"
+         HealthyVersion "Basebody_Hand_R"
+         WoundVersion "Basebody_Hand_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571599}" {
+         PartType "Leg_L"
+         HealthyVersion "Basebody_Leg_L"
+         WoundVersion "Basebody_Leg_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571583}" {
+         PartType "Leg_R"
+         HealthyVersion "Basebody_Leg_R"
+         WoundVersion "Basebody_Leg_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57158D}" {
+         PartType "Torso"
+         HealthyVersion "Basebody_Torso"
+         WoundVersion "Basebody_Torso_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571588}" {
+         PartType "Head"
+         HealthyVersion "Head"
+         WoundVersion "Head_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5715F2}" {
+         PartType "CalfLower_L"
+         HealthyVersion "Basebody_CalfLower_L"
+         WoundVersion "Basebody_CalfLower_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5715FC}" {
+         PartType "CalfLower_R"
+         HealthyVersion "Basebody_CalfLower_R"
+         WoundVersion "Basebody_CalfLower_R_wound"
+        }
+       }
+      }
+     }
+     VisualIdentity "{59B6F523ED57147B}" {
+      Head "{C1F80EE178D948D6}Prefabs/Characters/Heads/Head_White_08.et"
+      Body "{0023F898C0FF18AA}Prefabs/Characters/Basebody/CharacterBasebody.et"
+      BodyMeshesConfig MeshConfig "{59B6F523ED571474}" {
+       SubmeshesOfBody {
+        IdentityBodyMesh "{59B6F523ED5715D7}" {
+         PartType "Arm_L"
+         HealthyVersion "Basebody_Arm_L"
+         WoundVersion "Basebody_Arm_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5715D1}" {
+         PartType "Arm_R"
+         HealthyVersion "Basebody_Arm_R"
+         WoundVersion "Basebody_Arm_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5715DC}" {
+         PartType "ArmUpper_L"
+         HealthyVersion "Basebody_ArmUpper_L"
+         WoundVersion "Basebody_ArmUpper_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5715C7}" {
+         PartType "ArmUpper_R"
+         HealthyVersion "Basebody_ArmUpper_R"
+         WoundVersion "Basebody_ArmUpper_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5715C1}" {
+         PartType "Calf_L"
+         HealthyVersion "Basebody_Calf_L"
+         WoundVersion "Basebody_Calf_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5715CC}" {
+         PartType "Calf_R"
+         HealthyVersion "Basebody_Calf_R"
+         WoundVersion "Basebody_Calf_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571435}" {
+         PartType "Foot_L"
+         HealthyVersion "Basebody_Foot_L"
+         WoundVersion "Basebody_Foot_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57143A}" {
+         PartType "Foot_R"
+         HealthyVersion "Basebody_Foot_R"
+         WoundVersion "Basebody_Foot_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571425}" {
+         PartType "Groin"
+         HealthyVersion "Basebody_Groin"
+         WoundVersion "Basebody_Groin_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57142C}" {
+         PartType "Hand_L"
+         HealthyVersion "Basebody_Hand_L"
+         WoundVersion "Basebody_Hand_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571416}" {
+         PartType "Hand_R"
+         HealthyVersion "Basebody_Hand_R"
+         WoundVersion "Basebody_Hand_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571411}" {
+         PartType "Leg_L"
+         HealthyVersion "Basebody_Leg_L"
+         WoundVersion "Basebody_Leg_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57141B}" {
+         PartType "Leg_R"
+         HealthyVersion "Basebody_Leg_R"
+         WoundVersion "Basebody_Leg_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571406}" {
+         PartType "Torso"
+         HealthyVersion "Basebody_Torso"
+         WoundVersion "Basebody_Torso_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571401}" {
+         PartType "Head"
+         HealthyVersion "Head"
+         WoundVersion "Head_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57140B}" {
+         PartType "CalfLower_L"
+         HealthyVersion "Basebody_CalfLower_L"
+         WoundVersion "Basebody_CalfLower_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571475}" {
+         PartType "CalfLower_R"
+         HealthyVersion "Basebody_CalfLower_R"
+         WoundVersion "Basebody_CalfLower_R_wound"
+        }
+       }
+      }
+     }
+     VisualIdentity "{59B6F523ED5714F2}" {
+      Head "{24D28E910BF9F648}Prefabs/Characters/Heads/Head_Asian_02.et"
+      Body "{32B5FE236D152368}Prefabs/Characters/Basebody/CharacterBasebody_Asian_02.et"
+      BodyMeshesConfig MeshConfig "{59B6F523ED5714F4}" {
+       SubmeshesOfBody {
+        IdentityBodyMesh "{59B6F523ED57146E}" {
+         PartType "Arm_L"
+         HealthyVersion "Basebody_Arm_L"
+         WoundVersion "Basebody_Arm_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571469}" {
+         PartType "Arm_R"
+         HealthyVersion "Basebody_Arm_R"
+         WoundVersion "Basebody_Arm_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571453}" {
+         PartType "ArmUpper_L"
+         HealthyVersion "Basebody_ArmUpper_L"
+         WoundVersion "Basebody_ArmUpper_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57145C}" {
+         PartType "ArmUpper_R"
+         HealthyVersion "Basebody_ArmUpper_R"
+         WoundVersion "Basebody_ArmUpper_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571445}" {
+         PartType "Calf_L"
+         HealthyVersion "Basebody_Calf_L"
+         WoundVersion "Basebody_Calf_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571440}" {
+         PartType "Calf_R"
+         HealthyVersion "Basebody_Calf_R"
+         WoundVersion "Basebody_Calf_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57144B}" {
+         PartType "Foot_L"
+         HealthyVersion "Basebody_Foot_L"
+         WoundVersion "Basebody_Foot_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5714B5}" {
+         PartType "Foot_R"
+         HealthyVersion "Basebody_Foot_R"
+         WoundVersion "Basebody_Foot_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5714BE}" {
+         PartType "Groin"
+         HealthyVersion "Basebody_Groin"
+         WoundVersion "Basebody_Groin_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5714A7}" {
+         PartType "Hand_L"
+         HealthyVersion "Basebody_Hand_L"
+         WoundVersion "Basebody_Hand_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5714AE}" {
+         PartType "Hand_R"
+         HealthyVersion "Basebody_Hand_R"
+         WoundVersion "Basebody_Hand_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5714A8}" {
+         PartType "Leg_L"
+         HealthyVersion "Basebody_Leg_L"
+         WoundVersion "Basebody_Leg_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571492}" {
+         PartType "Leg_R"
+         HealthyVersion "Basebody_Leg_R"
+         WoundVersion "Basebody_Leg_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57149C}" {
+         PartType "Torso"
+         HealthyVersion "Basebody_Torso"
+         WoundVersion "Basebody_Torso_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571486}" {
+         PartType "Head"
+         HealthyVersion "Head"
+         WoundVersion "Head_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57148D}" {
+         PartType "CalfLower_L"
+         HealthyVersion "Basebody_CalfLower_L"
+         WoundVersion "Basebody_CalfLower_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5714F5}" {
+         PartType "CalfLower_R"
+         HealthyVersion "Basebody_CalfLower_R"
+         WoundVersion "Basebody_CalfLower_R_wound"
+        }
+       }
+      }
+     }
+     VisualIdentity "{59B6F523ED571765}" {
+      Head "{24644218743CDFBD}Prefabs/Characters/Heads/Head_White_09.et"
+      Body "{0023F898C0FF18AA}Prefabs/Characters/Basebody/CharacterBasebody.et"
+      BodyMeshesConfig MeshConfig "{59B6F523ED57177C}" {
+       SubmeshesOfBody {
+        IdentityBodyMesh "{59B6F523ED5714E6}" {
+         PartType "Arm_L"
+         HealthyVersion "Basebody_Arm_L"
+         WoundVersion "Basebody_Arm_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5714EF}" {
+         PartType "Arm_R"
+         HealthyVersion "Basebody_Arm_R"
+         WoundVersion "Basebody_Arm_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5714EA}" {
+         PartType "ArmUpper_L"
+         HealthyVersion "Basebody_ArmUpper_L"
+         WoundVersion "Basebody_ArmUpper_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5714D5}" {
+         PartType "ArmUpper_R"
+         HealthyVersion "Basebody_ArmUpper_R"
+         WoundVersion "Basebody_ArmUpper_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5714DF}" {
+         PartType "Calf_L"
+         HealthyVersion "Basebody_Calf_L"
+         WoundVersion "Basebody_Calf_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5714D9}" {
+         PartType "Calf_R"
+         HealthyVersion "Basebody_Calf_R"
+         WoundVersion "Basebody_Calf_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57173D}" {
+         PartType "Foot_L"
+         HealthyVersion "Basebody_Foot_L"
+         WoundVersion "Basebody_Foot_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571724}" {
+         PartType "Foot_R"
+         HealthyVersion "Basebody_Foot_R"
+         WoundVersion "Basebody_Foot_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57172E}" {
+         PartType "Groin"
+         HealthyVersion "Basebody_Groin"
+         WoundVersion "Basebody_Groin_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571716}" {
+         PartType "Hand_L"
+         HealthyVersion "Basebody_Hand_L"
+         WoundVersion "Basebody_Hand_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571711}" {
+         PartType "Hand_R"
+         HealthyVersion "Basebody_Hand_R"
+         WoundVersion "Basebody_Hand_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57171B}" {
+         PartType "Leg_L"
+         HealthyVersion "Basebody_Leg_L"
+         WoundVersion "Basebody_Leg_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571704}" {
+         PartType "Leg_R"
+         HealthyVersion "Basebody_Leg_R"
+         WoundVersion "Basebody_Leg_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57170E}" {
+         PartType "Torso"
+         HealthyVersion "Basebody_Torso"
+         WoundVersion "Basebody_Torso_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571709}" {
+         PartType "Head"
+         HealthyVersion "Head"
+         WoundVersion "Head_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571773}" {
+         PartType "CalfLower_L"
+         HealthyVersion "Basebody_CalfLower_L"
+         WoundVersion "Basebody_CalfLower_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57177D}" {
+         PartType "CalfLower_R"
+         HealthyVersion "Basebody_CalfLower_R"
+         WoundVersion "Basebody_CalfLower_R_wound"
+        }
+       }
+      }
+     }
+     VisualIdentity "{59B6F523ED5717F7}" {
+      Head "{143245D81F2BAB94}Prefabs/Characters/Heads/Head_White_10.et"
+      Body "{0023F898C0FF18AA}Prefabs/Characters/Basebody/CharacterBasebody.et"
+      BodyMeshesConfig MeshConfig "{59B6F523ED57178D}" {
+       SubmeshesOfBody {
+        IdentityBodyMesh "{59B6F523ED571769}" {
+         PartType "Arm_L"
+         HealthyVersion "Basebody_Arm_L"
+         WoundVersion "Basebody_Arm_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571754}" {
+         PartType "Arm_R"
+         HealthyVersion "Basebody_Arm_R"
+         WoundVersion "Basebody_Arm_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57175A}" {
+         PartType "ArmUpper_L"
+         HealthyVersion "Basebody_ArmUpper_L"
+         WoundVersion "Basebody_ArmUpper_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571745}" {
+         PartType "ArmUpper_R"
+         HealthyVersion "Basebody_ArmUpper_R"
+         WoundVersion "Basebody_ArmUpper_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57174F}" {
+         PartType "Calf_L"
+         HealthyVersion "Basebody_Calf_L"
+         WoundVersion "Basebody_Calf_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57174B}" {
+         PartType "Calf_R"
+         HealthyVersion "Basebody_Calf_R"
+         WoundVersion "Basebody_Calf_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5717B5}" {
+         PartType "Foot_L"
+         HealthyVersion "Basebody_Foot_L"
+         WoundVersion "Basebody_Foot_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5717B0}" {
+         PartType "Foot_R"
+         HealthyVersion "Basebody_Foot_R"
+         WoundVersion "Basebody_Foot_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5717BB}" {
+         PartType "Groin"
+         HealthyVersion "Basebody_Groin"
+         WoundVersion "Basebody_Groin_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5717A5}" {
+         PartType "Hand_L"
+         HealthyVersion "Basebody_Hand_L"
+         WoundVersion "Basebody_Hand_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5717A0}" {
+         PartType "Hand_R"
+         HealthyVersion "Basebody_Hand_R"
+         WoundVersion "Basebody_Hand_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED5717AA}" {
+         PartType "Leg_L"
+         HealthyVersion "Basebody_Leg_L"
+         WoundVersion "Basebody_Leg_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571794}" {
+         PartType "Leg_R"
+         HealthyVersion "Basebody_Leg_R"
+         WoundVersion "Basebody_Leg_R_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57179C}" {
+         PartType "Torso"
+         HealthyVersion "Basebody_Torso"
+         WoundVersion "Basebody_Torso_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571798}" {
+         PartType "Head"
+         HealthyVersion "Head"
+         WoundVersion "Head_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED571783}" {
+         PartType "CalfLower_L"
+         HealthyVersion "Basebody_CalfLower_L"
+         WoundVersion "Basebody_CalfLower_L_wound"
+        }
+        IdentityBodyMesh "{59B6F523ED57178E}" {
+         PartType "CalfLower_R"
+         HealthyVersion "Basebody_CalfLower_R"
+         WoundVersion "Basebody_CalfLower_R_wound"
+        }
+       }
+      }
+     }
+    }
+    SoundIdentityArray {
+     SoundIdentity "{59B6F523ED5717FE}" {
+     }
+    }
+    SocialIdentity SocialIdentity "{59B6F523ED5717E8}" {
+     NamesConfig {
+      "#AR-FirstName_EN_Adam" "#AR-FirstName_EN_Brian" "#AR-FirstName_EN_Charlie" "#AR-FirstName_EN_Christopher" "#AR-FirstName_EN_Daniel" "#AR-FirstName_EN_David" "#AR-FirstName_EN_Edward" "#AR-FirstName_EN_James" "#AR-FirstName_EN_Jerry" "#AR-FirstName_EN_John" "#AR-FirstName_EN_Joseph" "#AR-FirstName_EN_Luke" "#AR-FirstName_EN_Mark" "#AR-FirstName_EN_Michael" "#AR-FirstName_EN_Patrick" "#AR-FirstName_EN_Paul" "#AR-FirstName_EN_Peter" "#AR-FirstName_EN_Richard" "#AR-FirstName_EN_Scott" "#AR-FirstName_EN_Steven" "#AR-FirstName_EN_Ted" "#AR-FirstName_EN_Thomas" "#AR-FirstName_EN_William"
+     }
+     SurnamesConfig {
+      "#AR-Surname_EN_Anderson" "#AR-Surname_EN_Allen" "#AR-Surname_EN_Baker" "#AR-Surname_EN_Brown" "#AR-Surname_EN_Clark" "#AR-Surname_EN_Collins" "#AR-Surname_EN_Davis" "#AR-Surname_EN_Harris" "#AR-Surname_EN_Jackson" "#AR-Surname_EN_Jones" "#AR-Surname_EN_Johnson" "#AR-Surname_EN_King" "#AR-Surname_EN_Lee" "#AR-Surname_EN_Lewis" "#AR-Surname_EN_Martin" "#AR-Surname_EN_Miller" "#AR-Surname_EN_Reed" "#AR-Surname_EN_Ryan" "#AR-Surname_EN_Smith" "#AR-Surname_EN_Taylor" "#AR-Surname_EN_Turner" "#AR-Surname_EN_Williams" "#AR-Surname_EN_Wilson"
+     }
+    }
+   }
+   m_OutlineFactionColor 0.005 0.044 0.114 1
+   m_bIsPlayable 0
+   m_sFactionFlag "{46FB2FB2C2125A3C}UI/Textures/Flags/US-flag-base-3it.edds"
+   m_CallsignInfo SCR_FactionCallsignInfo "{59B6F523ED571667}" {
+    m_bIsAssignedRandomly 0
+    m_aCompanyNames {
+     SCR_CallsignInfo "{59B6F523ED571634}" {
+      m_sCallsign "#AR-Callsign_US_Company_A"
+     }
+     SCR_CallsignInfo "{59B6F523ED571630}" {
+      m_sCallsign "#AR-Callsign_US_Company_B"
+     }
+     SCR_CallsignInfo "{59B6F523ED57163C}" {
+      m_sCallsign "#AR-Callsign_US_Company_C"
+     }
+     SCR_CallsignInfo "{59B6F523ED571638}" {
+      m_sCallsign "#AR-Callsign_US_Company_D"
+     }
+     SCR_CallsignInfo "{59B6F523ED571625}" {
+      m_sCallsign "#AR-Callsign_US_Company_E"
+     }
+     SCR_CallsignInfo "{59B6F523ED571621}" {
+      m_sCallsign "#AR-Callsign_US_Company_F"
+     }
+     SCR_CallsignInfo "{59B6F523ED57162E}" {
+      m_sCallsign "#AR-Callsign_US_Company_G"
+     }
+     SCR_CallsignInfo "{59B6F523ED571629}" {
+      m_sCallsign "#AR-Callsign_US_Company_H"
+     }
+    }
+    m_aPlatoonNames {
+     SCR_CallsignInfo "{59B6F523ED571614}" {
+      m_sCallsign "#AR-Callsign_US_Platoon_1"
+     }
+     SCR_CallsignInfo "{59B6F523ED57161F}" {
+      m_sCallsign "#AR-Callsign_US_Platoon_2"
+     }
+     SCR_CallsignInfo "{59B6F523ED57161C}" {
+      m_sCallsign "#AR-Callsign_US_Platoon_3"
+     }
+     SCR_CallsignInfo "{59B6F523ED571619}" {
+      m_sCallsign "#AR-Callsign_US_Platoon_4"
+     }
+    }
+    m_aSquadNames {
+     SCR_CallsignInfo "{59B6F523ED571605}" {
+      m_sCallsign "1"
+     }
+     SCR_CallsignInfo "{59B6F523ED571601}" {
+      m_sCallsign "2"
+     }
+     SCR_CallsignInfo "{59B6F523ED57160E}" {
+      m_sCallsign "3"
+     }
+     SCR_CallsignInfo "{59B6F523ED57160A}" {
+      m_sCallsign "4"
+     }
+    }
+    m_sCallsignGroupFormat "%1 %2 %3"
+    m_sCallsignCharacterFormat "%1 %2 %3: %4"
+    m_aCharacterRoleCallsigns {
+     SCR_LeaderRoleCallsign "{59B6F523ED571671}" {
+      m_sRoleName "#AR-Callsign_US_SquadLeader"
+     }
+     SCR_RadioOperatorRoleCallsign "{59B6F523ED571678}" {
+      m_sRoleName "#AR-Callsign_US_RadioOperator"
+     }
+    }
+   }
+   m_ArsenalConfig SCR_ArsenalItemListConfig "{59B6F523ED57E9B5}" {
+    m_aArsenalItems {
+     SCR_ArsenalItem "{59B6F523ED571652}" {
+      m_ItemResourceName "{A81F501D3EF6F38E}Prefabs/Items/Medicine/FieldDressing_US_01.et"
+      m_eItemType HEAL
+      m_eItemMode CONSUMABLE
+     }
+     SCR_ArsenalItem "{59B6F523ED57165A}" {
+      m_ItemResourceName "{13772C903CB5E4F7}Prefabs/Items/Equipment/Maps/PaperMap_01_folded.et"
+      m_eItemType EQUIPMENT
+      m_eItemMode DEFAULT
+     }
+     SCR_ArsenalItem "{59B6F523ED571645}" {
+      m_ItemResourceName "{61D4F80E49BF9B12}Prefabs/Items/Equipment/Compass/Compass_SY183.et"
+      m_eItemType EQUIPMENT
+      m_eItemMode DEFAULT
+     }
+     SCR_ArsenalItem "{59B6F523ED57164F}" {
+      m_ItemResourceName "{3A421547BC29F679}Prefabs/Items/Equipment/Flashlights/Flashlight_MX991.et"
+      m_eItemType EQUIPMENT
+      m_eItemMode DEFAULT
+     }
+     SCR_ArsenalItem "{59B6F523ED571649}" {
+      m_ItemResourceName "{78ED4FEF62BBA728}Prefabs/Items/Equipment/Watches/Watch_SandY184A.et"
+      m_eItemType EQUIPMENT
+      m_eItemMode DEFAULT
+     }
+     SCR_ArsenalItem "{59B6F523ED5716B4}" {
+      m_ItemResourceName "{0CF54B9A85D8E0D4}Prefabs/Items/Equipment/Binoculars/Binoculars_M22.et"
+      m_eItemType EQUIPMENT
+      m_eItemMode DEFAULT
+     }
+     SCR_ArsenalItem "{59B6F523ED5716BF}" {
+      m_ItemResourceName "{73950FBA2D7DB5C5}Prefabs/Items/Equipment/Radios/Radio_ANPRC68.et"
+      m_eItemType EQUIPMENT
+      m_eItemMode DEFAULT
+     }
+     SCR_ArsenalItem "{59B6F523ED5716BA}" {
+      m_ItemResourceName "{9B6B61BB3FE3DFB0}Prefabs/Items/Equipment/Radios/Radio_ANPRC77.et"
+      m_eItemType RADIO_BACKPACK
+      m_eItemMode DEFAULT
+     }
+     SCR_ArsenalItem "{59B6F523ED5716A3}" {
+      m_ItemResourceName "{DAAFD15478BDE1C3}Prefabs/Characters/Footwear/CombatBoots_US_01.et"
+      m_eItemType FOOTWEAR
+      m_eItemMode DEFAULT
+     }
+     SCR_ArsenalItem "{59B6F523ED5716AC}" {
+      m_ItemResourceName "{604BB72BE8E023C2}Prefabs/Characters/Uniforms/Pants_US_BDU.et"
+      m_eItemType LEGS
+      m_eItemMode DEFAULT
+     }
+     SCR_ArsenalItem "{59B6F523ED571697}" {
+      m_ItemResourceName "{C7861F11D5334C0E}Prefabs/Characters/Uniforms/Jacket_US_BDU.et"
+      m_eItemType TORSO
+      m_eItemMode DEFAULT
+     }
+     SCR_ArsenalItem "{59B6F523ED571692}" {
+      m_ItemResourceName "{FE5C49069C2499D9}Prefabs/Characters/HeadGear/Helmet_PASGT_01/Helmet_PASGT_01_cover.et"
+      m_eItemType HEADWEAR
+      m_eItemMode DEFAULT
+     }
+     SCR_ArsenalItem "{59B6F523ED57169E}" {
+      m_ItemResourceName "{E12126CDE731EED5}Prefabs/Characters/HeadGear/Hat_Boonie_US_01/Hat_Boonie_US_01.et"
+      m_eItemType HEADWEAR
+      m_eItemMode DEFAULT
+     }
+     SCR_ArsenalItem "{59B6F523ED57169A}" {
+      m_ItemResourceName "{156DC7109CEE6F69}Prefabs/Characters/Vests/Vest_ALICE/Variants/Vest_ALICE_AR.et"
+      m_eItemType VEST_AND_WAIST
+      m_eItemMode DEFAULT
+     }
+     SCR_ArsenalItem "{59B6F523ED571685}" {
+      m_ItemResourceName "{18B8B9316B590643}Prefabs/Characters/Vests/Vest_ALICE/Variants/Vest_ALICE_GL.et"
+      m_eItemType VEST_AND_WAIST
+      m_eItemMode DEFAULT
+     }
+     SCR_ArsenalItem "{59B6F523ED571681}" {
+      m_ItemResourceName "{477A190AF2A17B8A}Prefabs/Characters/Vests/Vest_ALICE/Variants/Vest_ALICE_MG.et"
+      m_eItemType VEST_AND_WAIST
+      m_eItemMode DEFAULT
+     }
+     SCR_ArsenalItem "{59B6F523ED57168C}" {
+      m_ItemResourceName "{2835A0EA3B79E63E}Prefabs/Characters/Vests/Vest_ALICE/Variants/Vest_ALICE_rifleman.et"
+      m_eItemType VEST_AND_WAIST
+      m_eItemMode DEFAULT
+     }
+     SCR_ArsenalItem "{59B6F523ED5716F7}" {
+      m_ItemResourceName "{9CEA24A1A9CC2675}Prefabs/Characters/Vests/Vest_ALICE/Variants/Vest_ALICE_sniper.et"
+      m_eItemType VEST_AND_WAIST
+      m_eItemMode DEFAULT
+     }
+     SCR_ArsenalItem "{59B6F523ED5716F2}" {
+      m_ItemResourceName "{5C5C6EE05EE2FF1A}Prefabs/Items/Equipment/Backpacks/Backpack_ALICE_Medium_assembled.et"
+      m_eItemType BACKPACK
+      m_eItemMode DEFAULT
+     }
+     SCR_ArsenalItem "{59B6F523ED5716F8}" {
+      m_ItemResourceName "{9DB69176CEF0EE97}Prefabs/Weapons/Grenades/Smoke_ANM8HC.et"
+      m_eItemType NON_LETHAL_THROWABLE
+      m_eItemMode DEFAULT
+     }
+     SCR_ArsenalItem "{59B6F523ED5716E2}" {
+      m_ItemResourceName "{D41D22DD1B8E921E}Prefabs/Weapons/Grenades/M18/Smoke_M18_Green.et"
+      m_eItemType NON_LETHAL_THROWABLE
+      m_eItemMode DEFAULT
+     }
+     SCR_ArsenalItem "{59B6F523ED5716EE}" {
+      m_ItemResourceName "{3343A055A83CB30D}Prefabs/Weapons/Grenades/M18/Smoke_M18_Red.et"
+      m_eItemType NON_LETHAL_THROWABLE
+      m_eItemMode DEFAULT
+     }
+     SCR_ArsenalItem "{59B6F523ED5716E9}" {
+      m_ItemResourceName "{14C1A0F061D9DDEE}Prefabs/Weapons/Grenades/M18/Smoke_M18_Violet.et"
+      m_eItemType NON_LETHAL_THROWABLE
+      m_eItemMode DEFAULT
+     }
+     SCR_ArsenalItem "{59B6F523ED5716D3}" {
+      m_ItemResourceName "{9BBDEE253A16CC66}Prefabs/Weapons/Grenades/M18/Smoke_M18_Yellow.et"
+      m_eItemType NON_LETHAL_THROWABLE
+      m_eItemMode DEFAULT
+     }
+     SCR_ArsenalItem "{59B6F523ED5716DE}" {
+      m_ItemResourceName "{E8F00BF730225B00}Prefabs/Weapons/Grenades/Grenade_M67.et"
+      m_eItemType LETHAL_THROWABLE
+      m_eItemMode DEFAULT
+     }
+     SCR_ArsenalItem "{59B6F523ED5716D9}" {
+      m_ItemResourceName "{1663496AE5B9F10B}Prefabs/Weapons/Ammo/Ammo_Grenade_HEDP_M433.et"
+      m_eItemType RIFLE
+      m_eItemMode AMMUNITION
+     }
+     SCR_ArsenalItem "{59B6F523ED5716C4}" {
+      m_ItemResourceName "{5375FA7CB1F68573}Prefabs/Weapons/Ammo/Ammo_Grenade_HE_M406.et"
+      m_eItemType RIFLE
+      m_eItemMode AMMUNITION
+     }
+     SCR_ArsenalItem "{59B6F523ED5716C0}" {
+      m_ItemResourceName "{1353C6EAD1DCFE43}Prefabs/Weapons/Handguns/M9/Handgun_M9.et"
+      m_eItemType PISTOL
+      m_eItemMode WEAPON
+     }
+     SCR_ArsenalItem "{59B6F523ED5716CB}" {
+      m_ItemResourceName "{9C05543A503DB80E}Prefabs/Weapons/Magazines/Magazine_9x19_M9_15rnd_Ball.et"
+      m_eItemType PISTOL
+      m_eItemMode AMMUNITION
+     }
+     SCR_ArsenalItem "{59B6F523ED57E936}" {
+      m_ItemResourceName "{3E413771E1834D2F}Prefabs/Weapons/Rifles/M16/Rifle_M16A2.et"
+      m_eItemType RIFLE
+      m_eItemMode WEAPON
+     }
+     SCR_ArsenalItem "{59B6F523ED57E93E}" {
+      m_ItemResourceName "{5A987A8A13763769}Prefabs/Weapons/Rifles/M16/Rifle_M16A2_M203.et"
+      m_eItemType RIFLE
+      m_eItemMode WEAPON_VARIANTS
+     }
+     SCR_ArsenalItem "{59B6F523ED57E939}" {
+      m_ItemResourceName "{D8F2CA92583B23D3}Prefabs/Weapons/Magazines/Magazine_556x45_STANAG_30rnd_Last_5Tracer.et"
+      m_eItemType RIFLE
+      m_eItemMode AMMUNITION
+     }
+     SCR_ArsenalItem "{59B6F523ED57E925}" {
+      m_ItemResourceName "{A9A385FE1F7BF4BD}Prefabs/Weapons/Magazines/Magazine_556x45_STANAG_30rnd_Tracer.et"
+      m_eItemType RIFLE
+      m_eItemMode AMMUNITION
+     }
+     SCR_ArsenalItem "{59B6F523ED57E921}" {
+      m_ItemResourceName "{D2B48DEBEF38D7D7}Prefabs/Weapons/MachineGuns/M249/MG_M249.et"
+      m_eItemType MACHINE_GUN
+      m_eItemMode WEAPON
+     }
+     SCR_ArsenalItem "{59B6F523ED57E92E}" {
+      m_ItemResourceName "{06D722FC2666EB83}Prefabs/Weapons/Magazines/Box_556x45_M249_200rnd_4Ball_1Tracer.et"
+      m_eItemType MACHINE_GUN
+      m_eItemMode AMMUNITION
+     }
+     SCR_ArsenalItem "{59B6F523ED57E928}" {
+      m_ItemResourceName "{4EEDDB27C023B8B9}Prefabs/Weapons/Magazines/Box_556x45_M249_200rnd_Tracer.et"
+      m_eItemType MACHINE_GUN
+      m_eItemMode AMMUNITION
+     }
+     SCR_ArsenalItem "{59B6F523ED57E912}" {
+      m_ItemResourceName "{D182DCDD72BF7E34}Prefabs/Weapons/MachineGuns/M60/MG_M60.et"
+      m_eItemType MACHINE_GUN
+      m_eItemMode WEAPON
+     }
+     SCR_ArsenalItem "{59B6F523ED57E91E}" {
+      m_ItemResourceName "{4D2C1E8F3A81F894}Prefabs/Weapons/Magazines/Box_762x51_M60_100rnd_4Ball_1Tracer.et"
+      m_eItemType MACHINE_GUN
+      m_eItemMode AMMUNITION
+     }
+     SCR_ArsenalItem "{59B6F523ED57E906}" {
+      m_ItemResourceName "{AD8AB93729348C3E}Prefabs/Weapons/Magazines/Box_762x51_M60_100rnd_Tracer.et"
+      m_eItemType MACHINE_GUN
+      m_eItemMode AMMUNITION
+     }
+     SCR_ArsenalItem "{59B6F523ED57E909}" {
+      m_ItemResourceName "{81EB948E6414BD6F}Prefabs/Weapons/Rifles/M14/Rifle_M21_ARTII.et"
+      m_eItemType SNIPER_RIFLE
+      m_eItemMode WEAPON
+     }
+     SCR_ArsenalItem "{59B6F523ED57E975}" {
+      m_ItemResourceName "{627255315038152A}Prefabs/Weapons/Magazines/Magazine_762x51_M14_20rnd_SpecialBall.et"
+      m_eItemType SNIPER_RIFLE
+      m_eItemMode AMMUNITION
+     }
+     SCR_ArsenalItem "{59B6F523ED57E97F}" {
+      m_ItemResourceName "{9C5C20FB0E01E64F}Prefabs/Weapons/Launchers/M72/Launcher_M72A3.et"
+      m_eItemType ROCKET_LAUNCHER
+      m_eItemMode WEAPON
+     }
+     SCR_ArsenalItem "{59B6F523ED57E944}" {
+      m_ItemResourceName "{CC7F787C3ECF678F}Prefabs/Weapons/Magazines/Box_127x99_M2_100rnd_4Ball_1Tracer.et"
+      m_eItemType MACHINE_GUN
+      m_eItemMode AMMUNITION
+     }
+     SCR_ArsenalItem "{59B6F523ED57E940}" {
+      m_ItemResourceName "{4068585808DF8DF2}Prefabs/Weapons/Magazines/Box_127x99_M2_100rnd_Tracer.et"
+      m_eItemType MACHINE_GUN
+      m_eItemMode AMMUNITION
+     }
+    }
+    m_MaxCountPerItemType {
+     SCR_ArsenalItemCountConfig "{59B6F523ED57E9B6}" {
+      m_ItemType RADIO_BACKPACK
+      m_MaxItemCount 5
+     }
+    }
+   }
+   m_aGroupPrefabSlots {
+    "{84E5BBAB25EA23E5}Prefabs/Groups/BLUFOR/Group_US_FireTeam.et" "{FCF7F5DC4F83955C}Prefabs/Groups/BLUFOR/Group_US_LightFireTeam.et" "{958039B857396B7B}Prefabs/Groups/BLUFOR/Group_US_MachineGunTeam.et" "{DDF3799FA1387848}Prefabs/Groups/BLUFOR/Group_US_RifleSquad.et" "{3BF36BDEEB33AEC9}Prefabs/Groups/BLUFOR/Group_US_SentryTeam.et" "{D807C7047E818488}Prefabs/Groups/BLUFOR/Group_US_SniperTeam.et" "{DE747BC9217D383C}Prefabs/Groups/BLUFOR/Group_US_Team_GL.et" "{FAEA8B9E1252F56E}Prefabs/Groups/BLUFOR/Group_US_Team_LAT.et" "{81B6DBF2B88545F5}Prefabs/Groups/BLUFOR/Group_US_Team_Suppress.et"
+   }
+   m_aGroupInfantryPrefabSlots {
+    "{3BF36BDEEB33AEC9}Prefabs/Groups/BLUFOR/Group_US_SentryTeam.et" "{FCF7F5DC4F83955C}Prefabs/Groups/BLUFOR/Group_US_LightFireTeam.et"
+   }
+   m_aHeavyInfantryPrefabSlots {
+    "{84E5BBAB25EA23E5}Prefabs/Groups/BLUFOR/Group_US_FireTeam.et" "{958039B857396B7B}Prefabs/Groups/BLUFOR/Group_US_MachineGunTeam.et" "{DE747BC9217D383C}Prefabs/Groups/BLUFOR/Group_US_Team_GL.et" "{81B6DBF2B88545F5}Prefabs/Groups/BLUFOR/Group_US_Team_Suppress.et"
+   }
+   m_aGroupATPrefabSlots {
+    "{FAEA8B9E1252F56E}Prefabs/Groups/BLUFOR/Group_US_Team_LAT.et" "{DDF3799FA1387848}Prefabs/Groups/BLUFOR/Group_US_RifleSquad.et"
+   }
+   m_aGroupSpecialPrefabSlots {
+    "{D807C7047E818488}Prefabs/Groups/BLUFOR/Group_US_SniperTeam.et"
+   }
+   m_aGroupSniperPrefab "{CA824A43ABA2DA97}Prefabs/Groups/Group_US_Sniper.et"
+   m_aLightTownPatrolPrefab "{3BF36BDEEB33AEC9}Prefabs/Groups/BLUFOR/Group_US_SentryTeam.et"
+   m_aVehicleCarPrefabSlots {
+    "{F649585ABB3706C4}Prefabs/Vehicles/Wheeled/M151A2/M151A2.et" "{47D94E1193A88497}Prefabs/Vehicles/Wheeled/M151A2/M151A2_transport.et"
+   }
+   m_aVehicleTruckPrefabSlots {
+    "{81FDAD5EB644CC3D}Prefabs/Vehicles/Wheeled/M923A1/M923A1_transport_covered.et" "{F1FBD0972FA5FE09}Prefabs/Vehicles/Wheeled/M923A1/M923A1_transport.et"
+   }
+   m_aFlagPolePrefab "{E55FC02F8C1518A3}Prefabs/Structures/Military/Flags/BaseFlag_US.et"
+   m_aMediumCheckpointPrefab "{5F42399DF7455261}Prefabs/Compositions/Slotted/SlotRoadMedium/Checkpoint_M_US_01.et"
+   m_aLargeCheckpointPrefab "{6D9DAF822F4ABFE6}Prefabs/Compositions/Slotted/SlotRoadLarge/Checkpoint_L_US_01.et"
+   m_aCompositionConfig OVT_FactionCompositionConfig "{59B6F523ED57E991}" {
+    m_aCompositions {
+     OVT_FactionComposition "{59B6F523ED57E9AE}" {
+      m_sTag "SmallBunker"
+      m_iCost 10
+      m_aPrefabs {
+       "{D41D0213ED10734B}Prefabs/Compositions/Slotted/SlotFlatSmall/Bunker_S_US_01.et"
+      }
+      m_aGroupPrefabs {
+       "{18C178520CA6C59F}Prefabs/Groups/BLUFOR/Group_US_BunkerTeam.et"
+      }
+     }
+     OVT_FactionComposition "{59B6F523ED57E992}" {
+      m_sTag "AmmoCache"
+      m_iCost 8
+      m_aPrefabs {
+       "{D93E3956280DDF1B}Prefabs/Compositions/Slotted/SlotFlatSmall/AmmoCache_S_US_01.et"
       }
      }
     }

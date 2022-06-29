@@ -15,58 +15,37 @@ class OVT_StartGameContext : OVT_UIContext
 					
 		m_Factions = GetGame().GetFactionManager();
 		int i = 0;
-		
-		m_FactionKeys = new array<FactionKey>;
-		m_FactionCards = new array<OVT_KeyButtonComponent>;
-		
+				
 		array<Faction> factions = new array<Faction>;
 		m_Factions.GetFactionsList(factions);
+		
+		Widget of = m_wRoot.FindAnyWidget("OccupyingFactionSpinner");
+		SCR_SpinBoxComponent spin = SCR_SpinBoxComponent.Cast(of.FindHandler(SCR_SpinBoxComponent));
+		spin.m_OnChanged.Insert(OnSpinFaction);
+				
+		int selectedFaction = 0;
 		
 		foreach(Faction fac : factions)
 		{
 			OVT_Faction faction = OVT_Faction.Cast(fac);
 			if(!faction) continue;
 			if(faction.IsPlayable()) continue;
-			m_FactionKeys.Insert(faction.GetFactionKey());
 			
-			ButtonWidget card = ButtonWidget.Cast(m_wRoot.FindAnyWidget("OccupyingFaction_Card" + i));
-			if(card)
-			{				
-				OVT_KeyButtonComponent button = OVT_KeyButtonComponent.Cast(card.FindHandler(OVT_KeyButtonComponent));
-				if(button)
-				{
-					m_FactionCards.Insert(button);
-					string key = faction.GetFactionKey();
-					button.SetData(key);
-					button.m_OnClicked.Insert(OnSetFaction);
-					if(m_Config.m_sOccupyingFaction == key)
-					{
-						button.SetToggled(true);
-					}else{
-						button.SetToggled(false);
-					}
-				}
-				ImageWidget image =  ImageWidget.Cast(card.FindAnyWidget("Image"));
-				if(image)
-				{
-					image.LoadImageTexture(0, faction.GetUIInfo().GetIconPath());
-				}
-			}
+			spin.AddItem(faction.GetUIInfo().GetName(),faction);
+						
+			if(faction.GetFactionKey() == m_Config.m_sDefaultOccupyingFaction) selectedFaction = i;
 			
 			i++;
 			if(i > 1) break;
 		}
+		Print(selectedFaction);
+		spin.SetCurrentItem(selectedFaction);
 	}
 	
-	protected void OnSetFaction(SCR_ButtonBaseComponent button)
+	protected void OnSpinFaction(SCR_SpinBoxComponent spinner, int index)
 	{
-		foreach(OVT_KeyButtonComponent b : m_FactionCards)
-		{
-			if(b != button) b.SetToggled(false);
-		}
-		button.SetToggled(true);
-		OVT_KeyButtonComponent btn = OVT_KeyButtonComponent.Cast(button);
-		m_Config.SetOccupyingFaction(btn.GetData());	
+		OVT_Faction data = OVT_Faction.Cast(spinner.GetItemData(index));
+		m_Config.SetOccupyingFaction(data.GetFactionKey());	
 	}
 	
 	protected void StartGame()
@@ -78,6 +57,8 @@ class OVT_StartGameContext : OVT_UIContext
 		if(mode)
 		{
 			mode.StartGame();
+		}else{
+			Print("Game mode error");
 		}
 	}
 }

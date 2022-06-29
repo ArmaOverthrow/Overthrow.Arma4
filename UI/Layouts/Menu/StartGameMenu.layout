@@ -70,48 +70,18 @@ FrameWidgetClass {
         }
        }
       }
-      HorizontalLayoutWidgetClass "{599D3A647FD4505E}" {
-       Name "FactionLayout"
-       Slot LayoutSlot "{599D3A647FD4503A}" {
-        Padding 0 0 0 0
+      ButtonWidgetClass "{59BA5A735A7D34FE}" : "{C9DF0E6590F6C388}UI/layouts/WidgetLibrary/SpinBox/WLib_SpinBox.layout" {
+       Name "OccupyingFactionSpinner"
+       Slot LayoutSlot "{59BA5A735A7D34E2}" {
+        HorizontalAlign 3
+        Padding 4 4 4 4
        }
-       "Fill Origin" Center
+       components {
+        SCR_SpinBoxComponent "{5472C6CBC0640458}" {
+         m_sLabel "#OVT-OccupyingFaction"
+        }
+       }
        {
-        TextWidgetClass "{599D3A6449D30E9F}" {
-         Name "Text0"
-         Slot LayoutSlot "{599D3A6449D30F7B}" {
-          VerticalAlign 1
-          Padding 20 0 20 0
-         }
-         Text "#OVT-OccupyingFaction"
-        }
-        UniformGridLayoutWidgetClass "{599D3A6413A9E3F7}" {
-         Name "UniformGridLayout0"
-         Slot LayoutSlot "{599D3A6413A9E3D4}" {
-          Padding 0 0 20 0
-         }
-         {
-          ButtonWidgetClass "{599D3A641B7235A3}" : "{1AEE43307955233F}UI/Layouts/Menu/StartGameMenu/StartGameMenu_Faction.layout" {
-           Name "OccupyingFaction_Card0"
-           Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
-           }
-           components {
-            SCR_ButtonComponent "{56FAC701265C74AA}" {
-            }
-           }
-           {
-           }
-          }
-          ButtonWidgetClass "{599D3A64ED7FEA81}" : "{1AEE43307955233F}UI/Layouts/Menu/StartGameMenu/StartGameMenu_Faction.layout" {
-           Name "OccupyingFaction_Card1"
-           Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
-            Column 1
-           }
-           {
-           }
-          }
-         }
-        }
        }
       }
       FrameWidgetClass "{599D315A49A619C7}" {

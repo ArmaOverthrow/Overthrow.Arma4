@@ -57,8 +57,8 @@ class OVT_Job
 {
 	int jobIndex;
 	vector location;
-	int townId;
-	int baseId;
+	int townId = -1;
+	int baseId = -1;
 	int stage;
 	RplId entity;
 	
@@ -230,9 +230,9 @@ class OVT_JobManagerComponent: OVT_Component
 			if((config.flags & OVT_JobFlags.GLOBAL_UNIQUE) && m_aGlobalJobs.Contains(index)) continue;			
 			if(config.m_bBaseOnly)
 			{
-				foreach(int baseId, RplId id : m_OccupyingFaction.m_Bases)
+				foreach(int baseId, OVT_BaseData data : m_OccupyingFaction.m_Bases)
 				{
-					OVT_BaseControllerComponent base = m_OccupyingFaction.GetBase(id);
+					OVT_BaseControllerComponent base = m_OccupyingFaction.GetBase(data.entId);
 					if((config.flags & OVT_JobFlags.GLOBAL_UNIQUE) && m_aGlobalJobs.Contains(index)) break;			
 					if(m_aBaseJobs.Contains(baseId) && m_aBaseJobs[baseId].Contains(index)) continue;
 					
@@ -241,7 +241,7 @@ class OVT_JobManagerComponent: OVT_Component
 					bool start = true;
 					foreach(OVT_JobCondition condition : config.m_aConditions)
 					{
-						if(!condition.ShouldStart(town, base)){
+						if(!condition.ShouldStart(town, data)){
 							start = false;
 							break;
 						}
@@ -260,7 +260,7 @@ class OVT_JobManagerComponent: OVT_Component
 							m_aGlobalJobs.Insert(index);
 						}
 						
-						OVT_Job job = StartJob(index, null, base);
+						OVT_Job job = StartJob(index, null, data);
 						
 						//Update clients
 						if(job)
@@ -309,7 +309,7 @@ class OVT_JobManagerComponent: OVT_Component
 		
 	}
 	
-	OVT_Job StartJob(int index, OVT_TownData town, OVT_BaseControllerComponent base)
+	OVT_Job StartJob(int index, OVT_TownData town, OVT_BaseData base)
 	{
 		OVT_JobConfig config = GetConfig(index);
 		OVT_Job job = new OVT_Job();
@@ -321,8 +321,8 @@ class OVT_JobManagerComponent: OVT_Component
 		}
 		if(base)
 		{
-			job.baseId = m_OccupyingFaction.GetBaseIndex(base);
-			job.location = base.GetOwner().GetOrigin();
+			job.baseId = base.id;
+			job.location = base.location;
 		}
 		
 		job.stage = 0;

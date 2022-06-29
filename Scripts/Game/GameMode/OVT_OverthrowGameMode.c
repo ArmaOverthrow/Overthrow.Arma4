@@ -7,6 +7,9 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	[Attribute()]
 	ref OVT_UIContext m_StartGameUIContext;
 	
+	[Attribute()]
+	ResourceName m_PlayerCommsPrefab;
+	
 	protected OVT_OverthrowConfigComponent m_Config;
 	protected OVT_TownManagerComponent m_TownManager;
 	protected OVT_OccupyingFactionManager m_OccupyingFactionManager;
@@ -15,6 +18,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	protected OVT_EconomyManagerComponent m_EconomyManager;
 	protected OVT_PlayerManagerComponent m_PlayerManager;
 	protected OVT_JobManagerComponent m_JobManager;
+	
+	OVT_PlayerCommsEntity m_Server;
 	
 	ref set<string> m_aInitializedPlayers;
 	ref set<string> m_aHintedPlayers;
@@ -26,43 +31,30 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		return m_bGameInitialized;
 	}
 	
-	void StartGame()
-	{
-		Rpc(RpcAsk_StartGame);
-	}
-	
 	protected void DoStartGame()
 	{		
 		if(m_EconomyManager)
 		{
-			#ifdef OVERTHROW_DEBUG
 			Print("Starting Economy");
-			#endif
 			
 			m_EconomyManager.PostGameStart();
 		}
 				
 		if(m_TownManager)
 		{
-			#ifdef OVERTHROW_DEBUG
 			Print("Starting Towns");
-			#endif
 			
 			m_TownManager.PostGameStart();
 		}
 				
 		if(m_OccupyingFactionManager)
 		{
-			#ifdef OVERTHROW_DEBUG
 			Print("Starting Occupying Faction");
-			#endif
 			
 			m_OccupyingFactionManager.PostGameStart();
-		}		
+		}				
 		
-		#ifdef OVERTHROW_DEBUG
-		Print("Allowing player spawn");
-		#endif
+		Print("Overthrow Starting");
 		m_bGameInitialized = true;
 	}
 	
@@ -73,27 +65,50 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		m_StartGameUIContext.EOnFrame(owner, timeSlice);
 	}
 	
+	protected override void OnPlayerRegistered(int playerId)
+	{
+		super.OnPlayerRegistered(playerId);
+		if(!Replication.IsServer()) return;
+		
+		PlayerController playerController = GetGame().GetPlayerManager().GetPlayerController(playerId);
+		if(!playerController) return;
+		
+		Print("Spawning player comms entity for player " + playerId);
+		RplIdentity playerRplID = playerController.GetRplIdentity();		
+		IEntity entity = GetGame().SpawnEntityPrefab(Resource.Load(m_PlayerCommsPrefab), GetGame().GetWorld());
+		
+		RplComponent rpl = RplComponent.Cast(entity.FindComponent(RplComponent));
+		
+		Print("Assigning comms to player " + playerId);
+		rpl.Give(playerRplID);
+	}
+	
 	protected void OnPlayerIDRegistered(int playerId, string persistentId)
 	{
 		IEntity controlledEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
 		
 		if(m_aInitializedPlayers.Contains(persistentId))
 		{
+			Print("Player exists, respawn");
 			//Existing player			
 			int cost = m_Config.m_Difficulty.respawnCost;
 			m_EconomyManager.TakePlayerMoney(playerId, cost);
 		}else{
 			//New player
+			Print("Adding start cash to player " + playerId);
 			int cash = m_Config.m_Difficulty.startingCash;
 			m_EconomyManager.AddPlayerMoney(playerId, cash);
 			
 			IEntity home = m_RealEstate.GetHome(persistentId);
 			if(!home)
 			{
+				Print("Adding home to player " + playerId);
 				//spawn system already assigned them a house, so make nearest house their home
 				IEntity house = m_TownManager.GetNearestStartingHouse(controlledEntity.GetOrigin());
 				m_RealEstate.SetOwner(playerId, house);
 				m_RealEstate.SetHome(playerId, house);
+				
+				Print("Spawning car for player " + playerId);
 				m_VehicleManager.SpawnStartingCar(house, persistentId);
 			}
 			
@@ -122,9 +137,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		if(SCR_Global.IsEditMode())
 			return;		
 				
-		#ifdef OVERTHROW_DEBUG
 		Print("Initializing Overthrow");
-		#endif
 		
 		m_Config = OVT_Global.GetConfig();				
 		m_PlayerManager = OVT_Global.GetPlayers();		
@@ -133,19 +146,14 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		m_EconomyManager = OVT_EconomyManagerComponent.Cast(FindComponent(OVT_EconomyManagerComponent));		
 		if(m_EconomyManager)
 		{
-			#ifdef OVERTHROW_DEBUG
 			Print("Initializing Economy");
-			#endif
-			
 			m_EconomyManager.Init(this);
 		}
 		
 		m_TownManager = OVT_TownManagerComponent.Cast(FindComponent(OVT_TownManagerComponent));		
 		if(m_TownManager)
 		{
-			#ifdef OVERTHROW_DEBUG
 			Print("Initializing Towns");
-			#endif
 			
 			m_TownManager.Init(this);
 		}
@@ -153,9 +161,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		m_OccupyingFactionManager = OVT_OccupyingFactionManager.Cast(FindComponent(OVT_OccupyingFactionManager));		
 		if(m_OccupyingFactionManager)
 		{
-			#ifdef OVERTHROW_DEBUG
 			Print("Initializing Occupying Faction");
-			#endif
 			
 			m_OccupyingFactionManager.Init(this);
 		}
@@ -163,9 +169,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		m_VehicleManager = OVT_VehicleManagerComponent.Cast(FindComponent(OVT_VehicleManagerComponent));		
 		if(m_VehicleManager)
 		{
-			#ifdef OVERTHROW_DEBUG
 			Print("Initializing Vehicles");
-			#endif
 			
 			m_VehicleManager.Init(this);
 		}	
@@ -173,9 +177,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		m_JobManager = OVT_JobManagerComponent.Cast(FindComponent(OVT_JobManagerComponent));		
 		if(m_JobManager)
 		{
-			#ifdef OVERTHROW_DEBUG
 			Print("Initializing Jobs");
-			#endif
 			
 			m_JobManager.Init(this);
 		}	
@@ -195,7 +197,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		if(RplSession.Mode() == RplMode.Dedicated)
 		{
 			//need to tell someone to open start game menu
-			RemoteStartGame();
+			//RemoteStartGame();
+			DoStartGame();
 		}else{
 			m_StartGameUIContext.ShowLayout();
 		}
@@ -219,8 +222,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		
 		if(numplayers > 0)
 		{
-			//tell the first player to start the game
-			Rpc(RpcDo_ShowStartGame, players[0]);
+			//tell the first player to start the game (not working atm?)
+			Rpc(RpcDo_ShowStartGame, players[0]); 			
 		}else{
 			//try again in a couple seconds
 			GetGame().GetCallqueue().CallLater(RemoteStartGame, 2000);
@@ -236,9 +239,16 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		m_StartGameUIContext.ShowLayout();
 	}
 	
+	void StartGame()
+	{
+		Print("Overthrow: Requesting Start Game");
+		Rpc(RpcAsk_StartGame);
+	}
+	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_StartGame()
 	{
+		Print ("Overthrow: Start Game Requested");
 		DoStartGame();
 	}
 	

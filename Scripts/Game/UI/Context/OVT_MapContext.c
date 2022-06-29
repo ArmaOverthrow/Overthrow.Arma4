@@ -73,16 +73,15 @@ class OVT_MapContext : OVT_UIContext
 			return false;
 		}		
 		
-		OVT_QRFControllerComponent qrf = m_OccupyingFaction.m_CurrentQRF;
-		if(qrf && m_Config.m_Difficulty.QRFFastTravelMode != OVT_QRFFastTravelMode.FREE)
+		if(m_OccupyingFaction.m_bQRFActive && m_Config.m_Difficulty.QRFFastTravelMode != OVT_QRFFastTravelMode.FREE)
 		{
 			if(m_Config.m_Difficulty.QRFFastTravelMode == OVT_QRFFastTravelMode.DISABLED)
 			{
 				reason = "#OVT-CannotFastTravelDuringQRF";
 				return false;
 			}
-			dist = vector.Distance(qrf.GetOwner().GetOrigin(), pos);		
-			if(dist < qrf.QRF_RANGE)
+			dist = vector.Distance(m_OccupyingFaction.m_vQRFLocation, pos);		
+			if(dist < OVT_QRFControllerComponent.QRF_RANGE)
 			{
 				reason = "#OVT-CannotFastTravelToQRF";
 				return false;
@@ -103,11 +102,11 @@ class OVT_MapContext : OVT_UIContext
 			if(dist < MAX_FOB_TRAVEL_DIS) return true;
 		}
 		
-		OVT_BaseControllerComponent base = m_OccupyingFaction.GetNearestBase(pos);
+		OVT_BaseData base = m_OccupyingFaction.GetNearestBase(pos);
 		if(base && !base.IsOccupyingFaction())
 		{
-			dist = vector.Distance(base.GetOwner().GetOrigin(), pos);
-			if(dist < base.m_iCloseRange) return true;
+			dist = vector.Distance(base.location, pos);
+			if(dist < base.closeRange) return true;
 		}
 		
 		return false;

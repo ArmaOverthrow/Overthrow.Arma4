@@ -138,11 +138,6 @@ class OVT_BaseControllerComponent: OVT_Component
 		}
 	}
 	
-	void StartCapture()
-	{
-		Rpc(RpcAsk_StartBaseCapture);
-	}
-	
 	OVT_BaseUpgrade FindUpgrade(typename type)
 	{
 		foreach(OVT_BaseUpgrade upgrade : m_aBaseUpgrades)
@@ -231,11 +226,7 @@ class OVT_BaseControllerComponent: OVT_Component
 	}
 	
 	//RPC methods
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_StartBaseCapture()
-	{
-		m_occupyingFactionManager.StartBaseQRF(this);
-	}
+	
 	
 	
 	void ~OVT_BaseControllerComponent()

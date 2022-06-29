@@ -90,7 +90,7 @@ class OVT_PlaceContext : OVT_UIContext
 		m_InputManager.AddActionListener("OverthrowRotateRight", EActionTrigger.PRESSED, RotateRight);
 		m_InputManager.AddActionListener("OverthrowNextItem", EActionTrigger.DOWN, NextItem);
 		m_InputManager.AddActionListener("OverthrowPrevItem", EActionTrigger.DOWN, PrevItem);
-		m_InputManager.AddActionListener("OverthrowPlaceCancel", EActionTrigger.DOWN, Cancel);
+		m_InputManager.AddActionListener("MenuBack", EActionTrigger.DOWN, Cancel);
 	}
 	
 	override void UnregisterInputs()
@@ -103,7 +103,7 @@ class OVT_PlaceContext : OVT_UIContext
 		m_InputManager.RemoveActionListener("OverthrowRotateRight", EActionTrigger.PRESSED, RotateRight);
 		m_InputManager.RemoveActionListener("OverthrowNextItem", EActionTrigger.DOWN, NextItem);
 		m_InputManager.RemoveActionListener("OverthrowPrevItem", EActionTrigger.DOWN, PrevItem);
-		m_InputManager.RemoveActionListener("OverthrowPlaceCancel", EActionTrigger.DOWN, Cancel);
+		m_InputManager.RemoveActionListener("MenuBack", EActionTrigger.DOWN, Cancel);
 	}
 	
 	void Cancel(float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
@@ -134,10 +134,10 @@ class OVT_PlaceContext : OVT_UIContext
 				}
 			}
 			
-			OVT_BaseControllerComponent base = m_OccupyingFaction.GetNearestBase(pos);
+			OVT_BaseData base = m_OccupyingFaction.GetNearestBase(pos);
 			OVT_TownData town = m_Towns.GetNearestTown(pos);
-			dist = vector.Distance(base.GetOwner().GetOrigin(),pos);
-			if(dist < base.m_iRange)
+			dist = vector.Distance(base.location,pos);
+			if(dist < base.range)
 			{
 				reason = "#OVT-TooCloseBase";
 				return false;
@@ -278,17 +278,13 @@ class OVT_PlaceContext : OVT_UIContext
 				return;
 			}
 			
-			EntitySpawnParams params = EntitySpawnParams();
-			params.TransformMode = ETransformMode.WORLD;
-			params.Transform = mat;
-			IEntity entity = GetGame().SpawnEntityPrefab(Resource.Load(m_pPlacingPrefab), null, params);
+			vector angles = Math3D.MatrixToAngles(mat);
+			int placeableIndex = m_Config.m_aPlaceables.Find(m_Placeable);
+			int prefabIndex = m_Placeable.m_aPrefabs.Find(m_pPlacingPrefab);
+			OVT_Global.GetServer().PlaceItem(placeableIndex, prefabIndex, mat[3], angles, m_iPlayerID);
+						
 			m_Economy.TakePlayerMoney(m_iPlayerID, m_Config.GetPlaceableCost(m_Placeable));
 			SCR_UISoundEntity.SoundEvent(UISounds.CLICK);
-			
-			if(m_Placeable.handler)
-			{
-				m_Placeable.handler.OnPlace(entity, m_iPlayerID);
-			}
 		}
 		
 		if(m_Economy.PlayerHasMoney(m_sPlayerID, cost))

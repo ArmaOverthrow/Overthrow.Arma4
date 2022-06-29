@@ -187,10 +187,10 @@ FrameWidgetClass {
          components {
           SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
            m_sLabel "#OVT-Cancel"
-           m_sActionName "OverthrowPlaceCancel"
+           m_sActionName "MenuBack"
           }
           ButtonActionComponent "{56EEDE0026B19E2C}" {
-           m_bActionName "OverthrowPrevItem"
+           m_bActionName "MenuBack"
           }
          }
          {

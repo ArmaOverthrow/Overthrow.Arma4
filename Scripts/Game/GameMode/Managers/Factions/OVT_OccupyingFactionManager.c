@@ -2,6 +2,21 @@ class OVT_OccupyingFactionManagerClass: OVT_ComponentClass
 {	
 }
 
+class OVT_BaseData
+{
+	int id;
+	int faction;
+	int closeRange;
+	int range;
+	vector location;
+	EntityID entId;
+	
+	bool IsOccupyingFaction()
+	{
+		return faction == OVT_Global.GetConfig().GetOccupyingFactionIndex();
+	}
+}
+
 class OVT_OccupyingFactionManager: OVT_Component
 {	
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Base Controller Prefab", params: "et", category: "Controllers")]
@@ -12,14 +27,20 @@ class OVT_OccupyingFactionManager: OVT_Component
 	
 	int m_iResources;
 	float m_iThreat;
-	ref array<RplId> m_Bases;
+	ref array<ref OVT_BaseData> m_Bases;
 	ref array<vector> m_BasesToSpawn;
 	
 	protected int m_iOccupyingFactionIndex;
 	protected int m_iPlayerFactionIndex;
 	
-	OVT_QRFControllerComponent m_CurrentQRF;
-	OVT_BaseControllerComponent m_CurrentQRFBase;
+	protected OVT_QRFControllerComponent m_CurrentQRF;
+	protected OVT_BaseControllerComponent m_CurrentQRFBase;
+	
+	bool m_bQRFActive = false;	
+	vector m_vQRFLocation = "0 0 0";
+	int m_iCurrentQRFBase = -1;	
+	int m_iQRFPoints = 0;	
+	int m_iQRFTimer = 0;
 	
 	const int OF_UPDATE_FREQUENCY = 60000;
 	
@@ -42,7 +63,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 	
 	void OVT_OccupyingFactionManager()
 	{
-		m_Bases = new array<RplId>;	
+		m_Bases = new array<ref OVT_BaseData>;	
 		m_BasesToSpawn = new array<vector>;	
 	}
 	
@@ -78,33 +99,28 @@ class OVT_OccupyingFactionManager: OVT_Component
 		}
 	}
 	
-	OVT_BaseControllerComponent GetNearestBase(vector pos)
+	OVT_BaseData GetNearestBase(vector pos)
 	{
-		IEntity nearestBase;
+		OVT_BaseData nearestBase;
 		float nearest = 9999999;
-		foreach(RplId id : m_Bases)
-		{
-			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
-			IEntity marker = rpl.GetEntity();
-			float distance = vector.Distance(marker.GetOrigin(), pos);
+		foreach(OVT_BaseData data : m_Bases)
+		{			
+			float distance = vector.Distance(data.location, pos);
 			if(distance < nearest){
 				nearest = distance;
-				nearestBase = marker;
+				nearestBase = data;
 			}
 		}
 		if(!nearestBase) return null;
-		return OVT_BaseControllerComponent.Cast(nearestBase.FindComponent(OVT_BaseControllerComponent));
+		return nearestBase;
 	}
 	
-	void GetBasesWithinDistance(vector pos, float maxDistance, out array<OVT_BaseControllerComponent> bases)
+	void GetBasesWithinDistance(vector pos, float maxDistance, out array<OVT_BaseData> bases)
 	{
-		foreach(RplId id : m_Bases)
-		{
-			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
-			IEntity marker = rpl.GetEntity();
-			float distance = vector.Distance(marker.GetOrigin(), pos);
-			if(distance < maxDistance){
-				OVT_BaseControllerComponent base = OVT_BaseControllerComponent.Cast(marker.FindComponent(OVT_BaseControllerComponent));
+		foreach(OVT_BaseData base : m_Bases)
+		{			
+			float distance = vector.Distance(base.location, pos);
+			if(distance < maxDistance){				
 				bases.Insert(base);
 			}
 		}
@@ -126,13 +142,22 @@ class OVT_OccupyingFactionManager: OVT_Component
 	
 	protected void SpawnBaseControllers()
 	{
-		foreach(vector pos : m_BasesToSpawn)
+		int occupyingFactionIndex = m_Config.GetOccupyingFactionIndex();
+		foreach(int index, vector pos : m_BasesToSpawn)
 		{		
 			IEntity baseEntity = SpawnBaseController(pos);
 			
 			OVT_BaseControllerComponent base = OVT_BaseControllerComponent.Cast(baseEntity.FindComponent(OVT_BaseControllerComponent));
 			
-			m_Bases.Insert(base.GetRpl().Id());
+			OVT_BaseData data = new OVT_BaseData();
+			data.id = index;
+			data.location = baseEntity.GetOrigin();
+			data.faction = occupyingFactionIndex;
+			data.entId = baseEntity.GetID();
+			data.closeRange = base.m_iCloseRange;
+			data.range = base.m_iRange;
+			
+			m_Bases.Insert(data);
 			base.SetControllingFaction(m_Config.GetOccupyingFactionIndex());
 		}
 		m_BasesToSpawn.Clear();
@@ -146,9 +171,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 		
 		int resourcesPerBase = Math.Floor(m_iResources / m_Bases.Count());
 		
-		foreach(RplId id : m_Bases)
+		foreach(OVT_BaseData data : m_Bases)
 		{
-			OVT_BaseControllerComponent base = GetBase(id);
+			OVT_BaseControllerComponent base = GetBase(data.entId);
 			m_iResources -= base.SpendResources(resourcesPerBase, m_iThreat);			
 			
 			if(m_iResources <= 0) break;
@@ -157,32 +182,54 @@ class OVT_OccupyingFactionManager: OVT_Component
 		Print("OF Remaining Resources: " + m_iResources);
 	}
 	
-	OVT_BaseControllerComponent GetBase(RplId id)
-	{
-		RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
-		IEntity marker = rpl.GetEntity();
+	OVT_BaseControllerComponent GetBase(EntityID id)
+	{		
+		IEntity marker = GetGame().GetWorld().FindEntityByID(id);
 		return OVT_BaseControllerComponent.Cast(marker.FindComponent(OVT_BaseControllerComponent));
 	}
 	
 	OVT_BaseControllerComponent GetBaseByIndex(int index)
 	{
-		return GetBase(m_Bases[index]);
+		return GetBase(m_Bases[index].entId);
 	}
 	
-	int GetBaseIndex(OVT_BaseControllerComponent base)
+	int GetBaseIndex(OVT_BaseData base)
 	{
-		return m_Bases.Find(base.GetRpl().Id());
+		return m_Bases.Find(base);
+	}
+	
+	void UpdateQRFTimer(int timer)
+	{
+		m_iQRFTimer = timer;
+		Rpc(RpcDo_SetQRFTimer, timer);
+	}
+	
+	void UpdateQRFPoints(int points)
+	{
+		m_iQRFPoints = points;
+		Rpc(RpcDo_SetQRFPoints, points);
 	}
 	
 	void StartBaseQRF(OVT_BaseControllerComponent base)
 	{
 		if(m_CurrentQRF) return;
 		
+		OVT_BaseData data = GetNearestBase(base.GetOwner().GetOrigin());
+		
 		m_CurrentQRF = SpawnQRFController(base.GetOwner().GetOrigin());
 		RplComponent rpl = RplComponent.Cast(m_CurrentQRF.GetOwner().FindComponent(RplComponent));
-		Rpc(RpcDo_SetQRF, rpl.Id());
+		
 		m_CurrentQRF.m_OnFinished.Insert(OnQRFFinishedBase);
 		m_CurrentQRFBase = base;
+		
+		m_bQRFActive = true;
+		m_vQRFLocation = base.GetOwner().GetOrigin();
+		m_iCurrentQRFBase = GetBaseIndex(data);
+		
+		Rpc(RpcDo_SetQRFBase, m_iCurrentQRFBase);
+		Rpc(RpcDo_SetQRFActive, m_vQRFLocation);
+		
+		Replication.BumpMe();
 	}
 	
 	void OnQRFFinishedBase()
@@ -201,7 +248,11 @@ class OVT_OccupyingFactionManager: OVT_Component
 				
 		SCR_Global.DeleteEntityAndChildren(m_CurrentQRF.GetOwner());
 		m_CurrentQRF = null;
-		Rpc(RpcDo_ClearQRF);
+		
+		m_bQRFActive = false;
+		m_iCurrentQRFBase = -1;
+		
+		Rpc(RpcDo_SetQRFInactive);
 	}
 	
 	bool CheckBaseAdd(IEntity ent)
@@ -221,7 +272,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		EntitySpawnParams params = EntitySpawnParams();
 		params.TransformMode = ETransformMode.WORLD;
 		params.Transform[3] = loc;
-		return GetGame().SpawnEntityPrefab(Resource.Load(m_pBaseControllerPrefab), null, params));
+		return GetGame().SpawnEntityPrefab(Resource.Load(m_pBaseControllerPrefab), GetGame().GetWorld(), params));
 		
 	}
 	
@@ -230,7 +281,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		EntitySpawnParams params = EntitySpawnParams();
 		params.TransformMode = ETransformMode.WORLD;
 		params.Transform[3] = loc;
-		IEntity qrf = GetGame().SpawnEntityPrefab(Resource.Load(m_pQRFControllerPrefab), null, params);
+		IEntity qrf = GetGame().SpawnEntityPrefab(Resource.Load(m_pQRFControllerPrefab), GetGame().GetWorld(), params);
 		return OVT_QRFControllerComponent.Cast(qrf.FindComponent(OVT_QRFControllerComponent));	
 	}
 	
@@ -266,10 +317,10 @@ class OVT_OccupyingFactionManager: OVT_Component
 		if(m_iResources > 0 && time.m_iMinutes == 0)
 		{
 			//To-Do: prioritize bases that need it/are under threat
-			foreach(RplId id : m_Bases)
+			foreach(OVT_BaseData data : m_Bases)
 			{
-				OVT_BaseControllerComponent base = GetBase(id);
-				if(!base.IsOccupyingFaction()) continue;
+				if(!data.IsOccupyingFaction()) continue;
+				OVT_BaseControllerComponent base = GetBase(data.entId);				
 				
 				m_iResources -= base.SpendResources(m_iResources, m_iThreat);			
 				
@@ -324,39 +375,77 @@ class OVT_OccupyingFactionManager: OVT_Component
 		writer.Write(m_Bases.Count(), 32); 
 		for(int i; i<m_Bases.Count(); i++)
 		{
-			writer.WriteRplId(m_Bases[i]);
+			OVT_BaseData data = m_Bases[i];
+			writer.WriteVector(data.location);
+			writer.Write(data.faction, 32);
+			writer.Write(data.closeRange, 32);
+			writer.Write(data.range, 32);
 		}
+		
+		writer.WriteVector(m_vQRFLocation);
+		writer.Write(m_iQRFPoints, 32);
+		writer.Write(m_iQRFTimer, 32);
+		writer.WriteBool(m_bQRFActive);
 		
 		return true;
 	}
 	
 	override bool RplLoad(ScriptBitReader reader)
-	{				
-		//Recieve JIP towns
+	{			
+		//Recieve JIP bases
 		int length;
 		RplId id;
 		
 		if (!reader.Read(length, 32)) return false;
 		for(int i; i<length; i++)
-		{			
-			if (!reader.ReadRplId(id)) return false;
-			m_Bases.Insert(id);
+		{	
+			OVT_BaseData base = new OVT_BaseData();
+					
+			if (!reader.ReadVector(base.location)) return false;
+			if (!reader.Read(base.faction, 32)) return false;
+			if (!reader.Read(base.closeRange, 32)) return false;
+			if (!reader.Read(base.range, 32)) return false;
+			
+			base.id = i;
+			m_Bases.Insert(base);
 		}
+		if (!reader.ReadVector(m_vQRFLocation)) return false;
+		if (!reader.Read(m_iQRFPoints,32)) return false;
+		if (!reader.Read(m_iQRFTimer,32)) return false;
+		if (!reader.ReadBool(m_bQRFActive)) return false;
+		
 		return true;
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_SetQRF(RplId id)
+	protected void RpcDo_SetQRFActive(vector pos)
 	{
-		RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
-		IEntity marker = rpl.GetEntity();
-		m_CurrentQRF = OVT_QRFControllerComponent.Cast(marker.FindComponent(OVT_QRFControllerComponent));
+		m_vQRFLocation = pos;
+		m_bQRFActive = true;
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_ClearQRF()
-	{		
-		m_CurrentQRF = null;
+	protected void RpcDo_SetQRFBase(int base)
+	{
+		m_iCurrentQRFBase = base;
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_SetQRFPoints(int points)
+	{
+		m_iQRFPoints = points;
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_SetQRFTimer(int timer)
+	{
+		m_iQRFTimer = timer;
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_SetQRFInactive()
+	{
+		m_bQRFActive = false;
 	}
 	
 	void ~OVT_OccupyingFactionManager()

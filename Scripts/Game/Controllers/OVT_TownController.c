@@ -20,6 +20,8 @@ class OVT_TownControllerComponent: OVT_Component
 		m_Economy = OVT_Global.GetEconomy();
 		m_Town = m_TownManager.GetNearestTown(GetOwner().GetOrigin());
 		
+		if(!Replication.IsServer()) return;
+		
 		if(m_Town.size > 1)
 			GetGame().GetCallqueue().CallLater(SpawnGunDealer, 0);
 	}

@@ -31,12 +31,12 @@ class OVT_ShopComponent: OVT_Component
 	
 	void AddToInventory(RplId id, int num)
 	{
-		Rpc(RpcAsk_AddToInventory, id, num);
+		OVT_Global.GetServer().AddToShopInventory(this, id, num);		
 	}
 	
 	void TakeFromInventory(RplId id, int num)
-	{
-		Rpc(RpcAsk_TakeFromInventory, id, num);
+	{		
+		OVT_Global.GetServer().TakeFromShopInventory(this, id, num);
 	}
 	
 	int GetStock(RplId id)
@@ -75,7 +75,7 @@ class OVT_ShopComponent: OVT_Component
 		return true;
 	}
 	
-	protected void StreamInventory(RplId id)
+	void StreamInventory(RplId id)
 	{
 		Rpc(RpcDo_SetInventory, id, m_aInventory[id]);
 	}
@@ -85,27 +85,7 @@ class OVT_ShopComponent: OVT_Component
 	{
 		m_aInventory[id] = amount;		
 	}
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_AddToInventory(RplId id, int num)
-	{
-		if(!m_aInventory.Contains(id))
-		{
-			m_aInventory[id] = 0;
-		}		
-		m_aInventory[id] = m_aInventory[id] + num;
-		StreamInventory(id);
-	}
-	
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_TakeFromInventory(RplId id, int num)
-	{
-		if(!m_aInventory.Contains(id)) return;		
-		m_aInventory[id] = m_aInventory[id] - num;		
-		if(m_aInventory[id] < 0) m_aInventory[id] = 0;
-		StreamInventory(id);
-	}
+
 	
 	void ~OVT_ShopComponent()
 	{

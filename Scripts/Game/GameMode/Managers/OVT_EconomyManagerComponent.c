@@ -171,22 +171,41 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	void AddPlayerMoney(int playerId, int amount)
 	{
-		Rpc(RpcAsk_AddPlayerMoney, playerId, amount);
+		if(Replication.IsServer())
+		{
+			DoAddPlayerMoney(playerId, amount);
+			return;
+		}
+		OVT_Global.GetServer().AddPlayerMoney(playerId, amount);		
+	}
+	
+	void DoAddPlayerMoney(int playerId, int amount)
+	{
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		if(!m_mMoney.Contains(persId)) m_mMoney[persId] = 0;
+		m_mMoney[persId] = m_mMoney[persId] + amount;
+		OVT_Global.GetEconomy().StreamPlayerMoney(playerId);
+		m_OnPlayerMoneyChanged.Invoke(persId, m_mMoney[persId]);
 	}
 	
 	void TakePlayerMoney(int playerId, int amount)
 	{
-		Rpc(RpcAsk_TakePlayerMoney, playerId, amount);
+		if(Replication.IsServer())
+		{
+			DoTakePlayerMoney(playerId, amount);
+			return;
+		}
+		OVT_Global.GetServer().TakePlayerMoney(playerId, amount);	
 	}
 	
-	void AddResistanceMoney(int amount)
+	void DoTakePlayerMoney(int playerId, int amount)
 	{
-		Rpc(RpcAsk_AddResistanceMoney, amount);
-	}
-	
-	void TakeResistanceMoney(int amount)
-	{
-		Rpc(RpcAsk_TakeResistanceMoney, amount);		
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		if(!m_mMoney.Contains(persId)) return;
+		m_mMoney[persId] = m_mMoney[persId] - amount;
+		if(m_mMoney[persId] < 0) m_mMoney[persId] = 0;
+		StreamPlayerMoney(playerId);	
+		m_OnPlayerMoneyChanged.Invoke(persId, m_mMoney[persId]);
 	}
 	
 	bool ResistanceHasMoney(int amount)
@@ -437,7 +456,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	}
 	
 	
-	protected void StreamPlayerMoney(int playerId)
+	void StreamPlayerMoney(int playerId)
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		Rpc(RpcDo_SetPlayerMoney, playerId, m_mMoney[persId]);
@@ -461,42 +480,6 @@ class OVT_EconomyManagerComponent: OVT_Component
 	{
 		m_iResistanceMoney = amount;
 		m_OnResistanceMoneyChanged.Invoke(m_iResistanceMoney);
-	}
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_AddPlayerMoney(int playerId, int amount)
-	{
-		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
-		if(!m_mMoney.Contains(persId)) m_mMoney[persId] = 0;
-		m_mMoney[persId] = m_mMoney[persId] + amount;
-		StreamPlayerMoney(playerId);
-		m_OnPlayerMoneyChanged.Invoke(persId, m_mMoney[persId]);
-	}
-	
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_TakePlayerMoney(int playerId, int amount)
-	{
-		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
-		if(!m_mMoney.Contains(persId)) return;
-		m_mMoney[persId] = m_mMoney[persId] - amount;
-		if(m_mMoney[persId] < 0) m_mMoney[persId] = 0;
-		StreamPlayerMoney(playerId);	
-		m_OnPlayerMoneyChanged.Invoke(persId, m_mMoney[persId]);
-	}
-	
-	protected void RpcAsk_AddResistanceMoney(int amount)
-	{
-		m_iResistanceMoney -= amount;
-		if(m_iResistanceMoney < 0) m_iResistanceMoney = 0;
-		StreamResistanceMoney();
-	}
-	
-	protected void RpcAsk_TakeResistanceMoney(int amount)
-	{
-		m_iResistanceMoney -= amount;
-		if(m_iResistanceMoney < 0) m_iResistanceMoney = 0;
-		StreamResistanceMoney();
 	}
 	
 	void ~OVT_EconomyManagerComponent()

@@ -20,15 +20,13 @@ class OVT_PlayerWantedComponent: OVT_Component
 	
 	void SetWantedLevel(int level)
 	{
-		m_iWantedLevel = level;
-		Rpc(RpcAsk_SetWantedLevel, level);		
+		m_iWantedLevel = level;	
 	}
 	
 	void SetBaseWantedLevel(int level)
 	{
 		if(m_iWantedLevel < level){
 			m_iWantedLevel = level;
-			Rpc(RpcAsk_SetWantedLevel, level);
 		}
 	}
 	
@@ -58,6 +56,8 @@ class OVT_PlayerWantedComponent: OVT_Component
 				
 		if(!GetRpl().IsOwner()) return;
 		
+		m_Faction.SetAffiliatedFactionByKey("");
+		
 		GetGame().GetCallqueue().CallLater(CheckUpdate, WANTED_SYSTEM_FREQUENCY, true, owner);		
 	}
 	
@@ -68,11 +68,11 @@ class OVT_PlayerWantedComponent: OVT_Component
 		
 		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), 250, CheckEntity, FilterEntities, EQueryEntitiesFlags.ALL);
 						
-		OVT_BaseControllerComponent base = OVT_Global.GetOccupyingFaction().GetNearestBase(GetOwner().GetOrigin());
+		OVT_BaseData base = OVT_Global.GetOccupyingFaction().GetNearestBase(GetOwner().GetOrigin());
 		if(base && base.IsOccupyingFaction())
 		{
-			float distanceToBase = vector.Distance(base.GetOwner().GetOrigin(), GetOwner().GetOrigin());
-			if(m_iWantedLevel < 2 && distanceToBase < base.m_iCloseRange && m_bIsSeen)
+			float distanceToBase = vector.Distance(base.location, GetOwner().GetOrigin());
+			if(m_iWantedLevel < 2 && distanceToBase < base.closeRange && m_bIsSeen)
 			{
 				SetBaseWantedLevel(2);
 			}		
@@ -241,23 +241,4 @@ class OVT_PlayerWantedComponent: OVT_Component
 	{		
 		GetGame().GetCallqueue().Remove(CheckUpdate);
 	}
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	void RpcAsk_SetWantedLevel(int level)
-	{
-		m_iWantedLevel = level;		
-		
-		Faction currentFaction = m_Faction.GetAffiliatedFaction();
-		if(m_iWantedLevel > 1 && !currentFaction)
-		{
-			//Print("You are wanted now");
-			m_Faction.SetAffiliatedFactionByKey(m_Config.m_sPlayerFaction);
-		}
-		
-		if(m_iWantedLevel < 2 && currentFaction)
-		{
-			//Print("You are no longer wanted");
-			m_Faction.SetAffiliatedFactionByKey("");
-		}
-	}	
 }

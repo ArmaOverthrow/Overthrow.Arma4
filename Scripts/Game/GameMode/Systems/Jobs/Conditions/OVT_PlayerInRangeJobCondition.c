@@ -3,11 +3,11 @@ class OVT_PlayerInRangeJobCondition : OVT_JobCondition
 	[Attribute("1500")]
 	float m_iRange;
 			
-	override bool ShouldStart(OVT_TownData town, OVT_BaseControllerComponent base)
+	override bool ShouldStart(OVT_TownData town, OVT_BaseData base)
 	{
 		if(base)
 		{
-			return OVT_Global.PlayerInRange(base.GetOwner().GetOrigin(), m_iRange);
+			return OVT_Global.PlayerInRange(base.location, m_iRange);
 		}
 		if(town)
 		{

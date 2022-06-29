@@ -91,7 +91,9 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	string m_sPlayerFaction;
 	
 	[Attribute( defvalue: "USSR", uiwidget: UIWidgets.EditBox, desc: "The faction occupying this map (the enemy)", category: "Factions")]
-	string m_sOccupyingFaction;
+	string m_sDefaultOccupyingFaction;
+	
+	string m_sOccupyingFaction = "USSR";
 	
 	[Attribute( defvalue: "US", uiwidget: UIWidgets.EditBox, desc: "The faction supporting the player", category: "Factions")]
 	string m_sSupportingFaction;

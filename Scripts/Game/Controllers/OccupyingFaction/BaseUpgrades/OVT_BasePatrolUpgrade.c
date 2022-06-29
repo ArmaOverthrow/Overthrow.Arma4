@@ -122,6 +122,7 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 		foreach(EntityID id : m_Groups)
 		{
 			SCR_AIGroup group = GetGroup(id);
+			if(!group) continue;
 			res += group.GetAgentsCount() * m_Config.m_Difficulty.baseResourceCost;			
 		}
 		return res + m_iProxedResources;

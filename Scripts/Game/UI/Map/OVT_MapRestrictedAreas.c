@@ -42,27 +42,24 @@ class OVT_MapRestrictedAreas : OVT_MapCanvasLayer
 		OVT_OccupyingFactionManager factionMgr = OVT_Global.GetOccupyingFaction();
 		OVT_OverthrowConfigComponent otconfig = OVT_Global.GetConfig();
 		
-		if(factionMgr.m_CurrentQRF)
+		if(factionMgr.m_bQRFActive)
 		{
 			m_bQRFActive = true;
-			m_QRFCenter = factionMgr.m_CurrentQRF.GetOwner().GetOrigin();
+			m_QRFCenter = factionMgr.m_vQRFLocation;
 		}else{
 			m_bQRFActive = false;
 		}
 		
-		foreach(RplId id : factionMgr.m_Bases)
-		{			
-			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
-			IEntity ent = rpl.GetEntity();
-			OVT_BaseControllerComponent base = OVT_BaseControllerComponent.Cast(ent.FindComponent(OVT_BaseControllerComponent));
+		foreach(OVT_BaseData base : factionMgr.m_Bases)
+		{	
 			if(!base.IsOccupyingFaction()) {
-				m_ResistanceCenters.Insert(ent.GetOrigin());
+				m_ResistanceCenters.Insert(base.location);
 				continue;
 			};
-			if(m_bQRFActive && factionMgr.m_CurrentQRFBase && factionMgr.m_CurrentQRFBase == base) continue;
+			if(m_bQRFActive && factionMgr.m_iCurrentQRFBase > -1 && factionMgr.m_iCurrentQRFBase == base.id) continue;
 			
-			m_Centers.Insert(ent.GetOrigin());
-			m_Ranges.Insert(base.m_iCloseRange);
+			m_Centers.Insert(base.location);
+			m_Ranges.Insert(base.closeRange);
 		}
 			
 		OVT_Faction faction = otconfig.GetOccupyingFaction();

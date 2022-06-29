@@ -48,10 +48,16 @@ class OVT_PlayerIdentityComponent: OVT_Component
 				f.FPrint(m_sPersistentID);
 				f.CloseFile();
 			}
-			Print(m_sPersistentID);
-			int int1,int2,int3;
-			OVT_PlayerManagerComponent.EncodeIDAsInts(m_sPersistentID, int1, int2, int3);
-			Rpc(RpcAsk_SetID, int1, int2, int3);
+			
+			int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(GetOwner());
+			OVT_Global.GetPlayers().RegisterPlayer(playerId, m_sPersistentID);
+			
+			RplComponent rplComponent = RplComponent.Cast(owner.FindComponent(RplComponent));
+			if (!rplComponent)
+				return;
+			
+			if(Replication.IsServer()) return;
+			OVT_Global.GetServer().RegisterPersistentID(m_sPersistentID);			
 		}
 	}
 	
@@ -79,15 +85,6 @@ class OVT_PlayerIdentityComponent: OVT_Component
 		
 		return s;
 	}
-		
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	void RpcAsk_SetID(int id1, int id2, int id3)
-	{
-		m_sPersistentID = ""+id1+id2+id3;
-		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(GetOwner());
-				
-		OVT_Global.GetPlayers().RegisterPlayer(playerId, m_sPersistentID);
-	}	
 	
 	void ~OVT_PlayerIdentityComponent()
 	{		

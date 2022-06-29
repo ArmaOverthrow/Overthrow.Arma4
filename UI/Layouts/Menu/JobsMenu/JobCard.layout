@@ -7,7 +7,7 @@ ButtonWidgetClass {
  components {
   OVT_JobListEntryHandler "{59A8D255FB0F070C}" {
    m_BackgroundDefault 0.018 0.018 0.018 0.102
-   m_BackgroundHovered 0.023 0.023 0.023 0.302
+   m_BackgroundHovered 0.041 0.041 0.041 0.302
    m_BackgroundSelected 0.018 0.011 0.004 0.302
    m_BackgroundSelectedHovered 0.024 0.016 0.008 1
    m_BackgroundClicked 0.031 0.02 0.009 1
@@ -26,6 +26,7 @@ ButtonWidgetClass {
      Slot OverlayWidgetSlot "{59A8D256E82DF638}" {
       HorizontalAlign 3
       VerticalAlign 3
+      Padding 2 2 2 2
      }
      Color 0.005 0.005 0.005 1
     }
@@ -85,6 +86,16 @@ ButtonWidgetClass {
        "Min Font Size" 36
       }
      }
+    }
+    PanelWidgetClass "{59BA5A71AF6A4BC9}" {
+     Name "Border"
+     Slot OverlayWidgetSlot "{56EF0B195DBB5E79}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+      Padding 0 0 0 0
+     }
+     Color 0.761 0.392 0.08 1
+     style outline_2px
     }
    }
   }

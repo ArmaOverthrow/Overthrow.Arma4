@@ -87,7 +87,7 @@ class OVT_RespawnHandlerComponent : SCR_RespawnHandlerComponent
 		
 		// Find players eligible for respawn
 		foreach (int playerId : m_sEnqueuedPlayers)
-		{
+		{			
 			if (m_pGameMode.CanPlayerRespawn(playerId))
 				m_aSpawningBatch.Insert(playerId);
 		}
@@ -96,6 +96,7 @@ class OVT_RespawnHandlerComponent : SCR_RespawnHandlerComponent
 		PlayerManager playerManager = GetGame().GetPlayerManager();
 		foreach (int playerId : m_aSpawningBatch)
 		{
+			Print("Respawning player " + playerId);
 			PlayerController playerController = playerManager.GetPlayerController(playerId);
 			
 			if(playerController)

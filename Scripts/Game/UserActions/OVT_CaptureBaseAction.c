@@ -4,13 +4,12 @@ class OVT_CaptureBaseAction : ScriptedUserAction
 	//---------------------------------------------------------
  	override void PerformAction(IEntity pOwnerEntity, IEntity pUserEntity) 
  	{
-		OVT_OccupyingFactionManager of = OVT_Global.GetOccupyingFaction();
-		
-		OVT_BaseControllerComponent base = of.GetNearestBase(pOwnerEntity.GetOrigin());
+		OVT_OccupyingFactionManager of = OVT_Global.GetOccupyingFaction();		
+		OVT_BaseData base = of.GetNearestBase(pOwnerEntity.GetOrigin());
 		
 		if(base.IsOccupyingFaction())
 		{
-			base.StartCapture();
+			OVT_Global.GetServer().StartBaseCapture(base.location);
 		}
  	}
 }

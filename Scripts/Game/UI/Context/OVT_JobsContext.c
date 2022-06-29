@@ -50,9 +50,9 @@ class OVT_JobsContext : OVT_UIContext
 		}
 		
 		Widget show = m_wRoot.FindAnyWidget("ShowOnMap");
-		SCR_NavigationButtonComponent btn = SCR_NavigationButtonComponent.Cast(show.FindHandler(SCR_NavigationButtonComponent));
+		ButtonActionComponent btn = ButtonActionComponent.Cast(show.FindHandler(ButtonActionComponent));
 		
-		btn.m_OnClicked.Insert(ShowOnMap);
+		btn.GetOnAction().Insert(ShowOnMap);
 		
 		foreach(int i,OVT_Job job : m_JobManager.m_aJobs)
 		{
@@ -81,15 +81,23 @@ class OVT_JobsContext : OVT_UIContext
 	}
 	
 	protected void OnJobClicked(SCR_ButtonBaseComponent btn)
-	{		
+	{				
 		OVT_JobListEntryHandler handler = OVT_JobListEntryHandler.Cast(btn);
+		OVT_Job job = handler.m_Job;
 		m_Selected = handler;
 		
 		TextWidget title = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedJobName"));
 		title.SetText(handler.m_JobConfig.m_sTitle);
 		
 		TextWidget location = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedLocation"));
-		location.SetText(OVT_Global.GetTowns().GetTownName(handler.m_Job.townId));
+		if(job.townId == -1)
+		{
+			OVT_BaseData base = OVT_Global.GetOccupyingFaction().m_Bases[job.baseId];
+			OVT_TownData town = OVT_Global.GetTowns().GetNearestTown(base.location);
+			location.SetText("#OVT-BaseNear " + OVT_Global.GetTowns().GetTownName(town.id));
+		}else{
+			location.SetText(OVT_Global.GetTowns().GetTownName(job.townId));
+		}
 		
 		TextWidget details = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedDetails"));
 		details.SetText("$" + handler.m_JobConfig.m_iReward.ToString());

@@ -40,6 +40,9 @@ class OVT_QRFControllerComponent: OVT_Component
 	protected void CheckUpdateTimer()
 	{
 		m_iTimer -= 1000;
+		
+		m_OccupyingFaction.UpdateQRFTimer(m_iTimer);
+		
 		if(m_iTimer <= 0)
 		{
 			m_iTimer = 0;
@@ -110,9 +113,9 @@ class OVT_QRFControllerComponent: OVT_Component
 				}	
 			}		
 			
-			if(m_iPoints > 100) m_iPoints = 100;				
+			if(m_iPoints > 100) m_iPoints = 100;
 			
-			Rpc(RpcDo_SetPoints, m_iPoints);
+			m_OccupyingFaction.UpdateQRFPoints(m_iPoints);		
 			
 			if(m_iPoints > 0) m_iWinningFaction = m_Config.GetPlayerFactionIndex();
 			if(m_iPoints < 0) m_iWinningFaction = m_Config.GetOccupyingFactionIndex();
@@ -133,9 +136,9 @@ class OVT_QRFControllerComponent: OVT_Component
 		
 		//Get valid bases to use for QRF
 		SCR_SortedArray<OVT_BaseControllerComponent> bases = new SCR_SortedArray<OVT_BaseControllerComponent>;
-		foreach(RplId id : m_OccupyingFaction.m_Bases)
+		foreach(OVT_BaseData data : m_OccupyingFaction.m_Bases)
 		{			
-			OVT_BaseControllerComponent base = m_OccupyingFaction.GetBase(id);
+			OVT_BaseControllerComponent base = m_OccupyingFaction.GetBase(data.entId);
 			vector pos = base.GetOwner().GetOrigin();
 			float dist = vector.Distance(pos, qrfpos);
 			
@@ -278,12 +281,6 @@ class OVT_QRFControllerComponent: OVT_Component
 	{
 		AIWaypoint wp = SpawnWaypoint(m_Config.m_pMoveWaypointPrefab, pos);
 		return wp;
-	}
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_SetPoints(int points)
-	{
-		m_iPoints = points;
 	}
 	
 	void ~OVT_QRFControllerComponent()

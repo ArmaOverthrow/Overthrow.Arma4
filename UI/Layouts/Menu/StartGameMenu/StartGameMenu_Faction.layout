@@ -9,7 +9,6 @@ ButtonWidgetClass {
    m_BackgroundDefault 1 1 1 0
    m_BackgroundHovered 1 1 1 1
    m_BackgroundSelected 0.76 0.392 0.08 1
-   m_bShowBorderOnFocus 0
   }
  }
  Switch toggle
@@ -97,6 +96,16 @@ ButtonWidgetClass {
        "Z Order" -1
        Color 0.761 0.392 0.08 1
        style outline_4px
+      }
+      PanelWidgetClass "{59BA5A71D72DC9CB}" {
+       Name "Border"
+       Slot OverlayWidgetSlot "{56EF0B195DBB5E79}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+        Padding -2 -2 -2 -2
+       }
+       Color 0.761 0.392 0.08 1
+       style outline_2px
       }
      }
     }
