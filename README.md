@@ -9,7 +9,7 @@ Overthrow is available in early access from the ARMA Reforger Workshop. Just sea
 ## Playing
 The key to open the Overthrow menu is not "Y", its now "U" (due to key binding conflicts in Arma Reforger). Read the [Wiki](https://github.com/ArmaOverthrow/Overthrow.Arma4/wiki) for more info.
 
-##Development
+## Development
 If you want to setup a dev environment for Overthrow and help with development..
 
 Start by cloning or downloading this Github repository. For Windows/MacOS we recommend using [Github Desktop](https://desktop.github.com/). 
