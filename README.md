@@ -3,10 +3,14 @@
 # Overthrow
 A dynamic and persistent revolution platform for Arma Reforger (and eventually Arma 4)
 
-Read the [Wiki](https://github.com/ArmaOverthrow/Overthrow.Arma4/wiki) for ideas and concepts planned.
-
 ## Installing
-Overthrow is not yet available in the Reforger workshop, but you are able to follow along with early development, help test or even create it by using this github
+Overthrow is available in early access from the ARMA Reforger Workshop. Just search for "Overthrow".
+
+## Playing
+The key to open the Overthrow menu is not "Y", its now "U" (due to key binding conflicts in Arma Reforger). Read the [Wiki](https://github.com/ArmaOverthrow/Overthrow.Arma4/wiki) for more info.
+
+## Development
+If you want to setup a dev environment for Overthrow and help with development..
 
 Start by cloning or downloading this Github repository. For Windows/MacOS we recommend using [Github Desktop](https://desktop.github.com/). 
  - [Installing Github Desktop](https://docs.github.com/en/desktop/installing-and-configuring-github-desktop/installing-and-authenticating-to-github-desktop/installing-github-desktop)
@@ -26,9 +30,7 @@ Updates will be pushed to github often (sometimes multiple times a day).
 1. Before updating Overthrow, exit game mode in World Editor
 1. In Github Desktop, make sure "Current Repository" top left is this one
 1. Click "Fetch Origin" and then "Pull Remote"
-
-## Playing
-The key to open the Overthrow menu is not "Y", its now "U" (due to key binding conflicts in Arma Reforger). But there really isnt much to do just yet. This section will update with more info as features are implemented and the wiki will start to be filled out.
+1. In the Reforger Script Editor, click on Build > Compile and Reload Scripts
 
 ## Contributing
 Just [join our Discord](https://discord.gg/j6CvmFfZ95) and participate in the `#overthrow-reforger` channel. Report any bugs you find or join the discussion about features or suggest your own. If you are comfortable with github and Enfusion development then please do make pull requests or ask to help out.
