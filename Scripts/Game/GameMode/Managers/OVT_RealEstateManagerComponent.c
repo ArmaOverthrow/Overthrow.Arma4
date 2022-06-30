@@ -4,7 +4,7 @@ class OVT_RealEstateManagerComponentClass: OVT_OwnerManagerComponentClass
 
 class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 {
-	ref map<string, ref RplId> m_mHomes;
+	ref map<string, ref vector> m_mHomes;
 	
 	protected OVT_TownManagerComponent m_Town;
 	
@@ -26,7 +26,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	
 	void OVT_RealEstateManagerComponent()
 	{
-		m_mHomes = new map<string, ref RplId>;
+		m_mHomes = new map<string, ref vector>;
 		m_aEntitySearch = new array<IEntity>;
 	}
 	
@@ -41,8 +41,8 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	
 	void SetHome(int playerId, IEntity building)
 	{	
-		RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
-		Rpc(RpcAsk_SetHome, playerId, rpl.Id());		
+		DoSetHome(playerId, building.GetOrigin());
+		Rpc(RpcDo_SetHome, playerId, building.GetOrigin());
 	}
 	
 	IEntity GetNearestOwned(string playerId, vector pos)
@@ -103,15 +103,17 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		return false;
 	}
 	
-	IEntity GetHome(string playerId)
+	vector GetHome(string playerId)
 	{				
-		RplComponent rpl = RplComponent.Cast(Replication.FindItem(m_mHomes[playerId]));
-		if(rpl)
-		{
-			return rpl.GetEntity();
-		}
+		if(m_mHomes.Contains(playerId)) return m_mHomes[playerId];
 		
-		return null;
+		return "0 0 0";
+	}
+	
+	void TeleportHome(int playerId)
+	{
+		RpcDo_TeleportHome(playerId);
+		Rpc(RpcDo_TeleportHome, playerId);
 	}
 	
 	//RPC Methods
@@ -125,7 +127,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		for(int i; i<m_mHomes.Count(); i++)
 		{			
 			RPL_WritePlayerID(writer, m_mHomes.GetKey(i));
-			writer.WriteRplId(m_mHomes.GetElement(i));
+			writer.WriteVector(m_mHomes.GetElement(i));
 		}
 		
 		return true;
@@ -138,36 +140,40 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		//Recieve JIP homes
 		int length, ownedlength;
 		string playerId;
-		RplId id;
+		vector loc;
 		
 		if (!reader.Read(length, 32)) return false;
 		for(int i; i<length; i++)
 		{
 			if (!RPL_ReadPlayerID(reader, playerId)) return false;
-			if (!reader.ReadRplId(id)) return false;		
+			if (!reader.ReadVector(loc)) return false;		
 			
-			m_mHomes[playerId] = id;
+			m_mHomes[playerId] = loc;
 		}
 		return true;
-	}
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	void RpcAsk_SetHome(int playerId, RplId id)
+	}	
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_SetHome(int playerId, vector loc)
 	{
-		DoSetHome(playerId, id);		
-		Rpc(RpcDo_SetHome, playerId, id);		
+		DoSetHome(playerId, loc);	
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_SetHome(int playerId, RplId id)
+	protected void RpcDo_TeleportHome(int playerId)
 	{
-		DoSetHome(playerId, id);	
+		int localId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
+		if(playerId != localId) return;
+		
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		vector spawn = OVT_Global.FindSafeSpawnPosition(m_mHomes[persId]);
+		SCR_Global.TeleportPlayer(spawn);
 	}
 	
-	void DoSetHome(int playerId, RplId id)
+	void DoSetHome(int playerId, vector loc)
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
-		m_mHomes[persId] = id;
+		m_mHomes[persId] = loc;
 	}
 	
 	void ~OVT_RealEstateManagerComponent()

@@ -4,15 +4,14 @@ class OVT_VehicleManagerComponentClass: OVT_OwnerManagerComponentClass
 
 class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 {	
-	[Attribute("", UIWidgets.Object)]
-	ref array<ref OVT_ShopInventoryConfig> m_aVehicleShopConfigs;
-	ref array<ref OVT_ShopInventoryConfig> m_aVehicleShopConfigsPacked = new array<ref OVT_ShopInventoryConfig>();
 
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Players starting car", params: "et", category: "Vehicles")]
 	ResourceName m_pStartingCarPrefab;
 		
 	ref array<EntityID> m_aAllVehicleShops;	
 	ref array<EntityID> m_aEntitySearch;
+	
+	ref array<ref EntityID> m_aVehicles;
 	
 	OVT_RealEstateManagerComponent m_RealEstate;
 		
@@ -34,6 +33,7 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 	{		
 		m_aAllVehicleShops = new array<EntityID>;	
 		m_aEntitySearch = new array<EntityID>;
+		m_aVehicles = new array<ref EntityID>;
 	}
 	
 	void Init(IEntity owner)
@@ -170,6 +170,8 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 		int playerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(ownerId);
 		
 		if(ownerId != "") SetOwner(playerId, ent);
+		
+		m_aVehicles.Insert(ent.GetID());
 		
 		return ent;
 	}

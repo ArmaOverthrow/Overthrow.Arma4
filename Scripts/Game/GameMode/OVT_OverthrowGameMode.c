@@ -31,8 +31,10 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		return m_bGameInitialized;
 	}
 	
-	protected void DoStartGame()
-	{		
+	void DoStartGame()
+	{
+		m_StartGameUIContext.CloseLayout();
+		
 		if(m_EconomyManager)
 		{
 			Print("Starting Economy");
@@ -87,20 +89,34 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	{
 		IEntity controlledEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
 		
-		if(m_aInitializedPlayers.Contains(persistentId))
+		if(m_EconomyManager.m_mMoney.Contains(persistentId))
 		{
 			Print("Player exists, respawn");
-			//Existing player			
-			int cost = m_Config.m_Difficulty.respawnCost;
-			m_EconomyManager.TakePlayerMoney(playerId, cost);
+			
+			//Existing player	
+			if(m_aInitializedPlayers.Contains(persistentId))
+			{
+				int cost = m_Config.m_Difficulty.respawnCost;
+				m_EconomyManager.TakePlayerMoney(playerId, cost);
+			}else{
+				m_aInitializedPlayers.Insert(persistentId);
+				
+				//Make sure player is at home (when loading save)
+				vector home = m_RealEstate.GetHome(persistentId);
+				float dist = vector.Distance(controlledEntity.GetOrigin(), home);				
+				if(dist > 5)
+				{
+					m_RealEstate.TeleportHome(playerId);
+				}
+			}
 		}else{
 			//New player
 			Print("Adding start cash to player " + playerId);
 			int cash = m_Config.m_Difficulty.startingCash;
 			m_EconomyManager.AddPlayerMoney(playerId, cash);
 			
-			IEntity home = m_RealEstate.GetHome(persistentId);
-			if(!home)
+			vector home = m_RealEstate.GetHome(persistentId);
+			if(home[0] == 0)
 			{
 				Print("Adding home to player " + playerId);
 				//spawn system already assigned them a house, so make nearest house their home

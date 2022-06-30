@@ -14,6 +14,23 @@ class OVT_SlottedBaseUpgrade : OVT_BasePatrolUpgrade
 		return null;
 	}
 	
+	private IEntity NearestSlot(vector pos)
+	{
+		IEntity nearest;
+		float nearestDist = 9999999;
+		foreach(EntityID id : m_BaseController.m_AllSlots)
+		{
+			IEntity ent = GetGame().GetWorld().FindEntityByID(id);
+			float dist = vector.Distance(pos, ent.GetOrigin());
+			if(dist < nearestDist)
+			{
+				nearest = ent;
+				nearestDist = dist;
+			}
+		}
+		return nearest;
+	}
+	
 	protected void RegisterFilledSlot(IEntity entity)
 	{
 		m_BaseController.m_aSlotsFilled.Insert(entity.GetID());
@@ -89,5 +106,39 @@ class OVT_SlottedBaseUpgrade : OVT_BasePatrolUpgrade
 		spawn_params.Transform = mat;		
 		IEntity ent = GetGame().SpawnEntityPrefab(Resource.Load(res), GetGame().GetWorld(), spawn_params);
 		return ent;
+	}
+	
+	override OVT_BaseUpgradeStruct Serialize()
+	{
+		OVT_BaseUpgradeStruct struct = super.Serialize();
+		
+		struct.m_iResources = 0; //Do not respend any resources
+		
+		if(m_Spawned)
+		{
+			IEntity ent = GetGame().GetWorld().FindEntityByID(m_Spawned);
+			if(!ent) return struct;
+			
+			OVT_VehicleStruct veh = new OVT_VehicleStruct();
+			if(veh.Parse(ent))
+				struct.m_aVehicles.Insert(veh);
+		}
+		
+		return struct;
+	}
+	
+	override bool Deserialize(OVT_BaseUpgradeStruct struct)	
+	{
+		foreach(OVT_VehicleStruct veh : struct.m_aVehicles)
+		{
+			IEntity slot = NearestSlot(veh.m_vPosition);
+			if(slot)
+			{
+				m_Spawned = SpawnInSlot(slot, veh.m_sResource).GetID();
+				RegisterFilledSlot(slot);
+			}
+		}
+		
+		return true;
 	}
 }

@@ -5,17 +5,27 @@ class OVT_OwnerManagerComponentClass: OVT_ComponentClass
 
 class OVT_OwnerManagerComponent: OVT_Component
 {
-	protected ref map<string, ref set<RplId>> m_mOwned;
+	ref map<string, ref set<RplId>> m_mOwned;
+	ref map<ref RplId, string> m_mOwners;
 	
 	void OVT_OwnerManagerComponent()
 	{
 		m_mOwned = new map<string, ref set<RplId>>;
+		m_mOwners = new map<ref RplId, string>;
 	}
 	
 	void SetOwner(int playerId, IEntity building)
 	{
 		RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
-		Rpc(RpcAsk_SetOwner, playerId, rpl.Id());	
+		DoSetOwner(playerId, rpl.Id());		
+		Rpc(RpcDo_SetOwner, playerId, rpl.Id());		
+	}
+	
+	string GetOwnerID(IEntity building)
+	{
+		RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
+		if(!m_mOwners.Contains(rpl.Id())) return "";
+		return m_mOwners[rpl.Id()];
 	}
 	
 	bool IsOwner(string playerId, EntityID entityId)
@@ -97,13 +107,6 @@ class OVT_OwnerManagerComponent: OVT_Component
 		return true;
 	}
 	
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	void RpcAsk_SetOwner(int playerId, RplId id)
-	{
-		DoSetOwner(playerId, id);		
-		Rpc(RpcDo_SetOwner, playerId, id);		
-	}
-	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_SetOwner(int playerId, RplId id)
 	{
@@ -116,6 +119,8 @@ class OVT_OwnerManagerComponent: OVT_Component
 		if(!m_mOwned.Contains(persId)) m_mOwned[persId] = new set<RplId>;
 		set<RplId> owner = m_mOwned[persId];
 		owner.Insert(id);
+		
+		m_mOwners[id] = persId;
 	}
 	
 	void ~OVT_OwnerManagerComponent()

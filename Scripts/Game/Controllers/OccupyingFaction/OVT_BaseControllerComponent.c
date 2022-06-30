@@ -138,11 +138,17 @@ class OVT_BaseControllerComponent: OVT_Component
 		}
 	}
 	
-	OVT_BaseUpgrade FindUpgrade(typename type)
+	OVT_BaseUpgrade FindUpgrade(string type, string tag = "")
 	{
 		foreach(OVT_BaseUpgrade upgrade : m_aBaseUpgrades)
 		{
-			if(upgrade.ClassName() == type.ToString()) return upgrade;
+			if(tag != "")
+			{
+				OVT_BaseUpgradeComposition comp = OVT_BaseUpgradeComposition.Cast(upgrade);
+				if(!comp) continue;
+				if(comp.m_sCompositionTag == tag) return upgrade;
+			}
+			if(upgrade.ClassName() == type) return upgrade;
 		}
 		return null;
 	}

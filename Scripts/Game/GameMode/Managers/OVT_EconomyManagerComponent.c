@@ -44,9 +44,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 	const int ECONOMY_UPDATE_FREQUENCY = 60000;
 	
 	//Streamed to clients..
-	protected ref map<RplId, int> m_mItemCosts;		
-	protected ref map<string, int> m_mMoney;
-	protected int m_iResistanceMoney = 0;
+	ref map<RplId, int> m_mItemCosts;		
+	ref map<string, int> m_mMoney;
+	int m_iResistanceMoney = 0;
 	
 	//Events
 	ref ScriptInvoker m_OnPlayerMoneyChanged = new ref ScriptInvoker();

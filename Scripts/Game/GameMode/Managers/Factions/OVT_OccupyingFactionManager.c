@@ -25,6 +25,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "QRF Controller Prefab", params: "et", category: "Controllers")]
 	ResourceName m_pQRFControllerPrefab;
 	
+	bool m_bDistributeInitial = true;
+	OVT_OccupyingFactionStruct m_LoadStruct;
+	
 	int m_iResources;
 	float m_iThreat;
 	ref array<ref OVT_BaseData> m_Bases;
@@ -82,13 +85,16 @@ class OVT_OccupyingFactionManager: OVT_Component
 				
 		OVT_Global.GetTowns().m_OnTownControlChange.Insert(OnTownControlChanged);
 		
-		InitializeBases();		
+		InitializeBases();
+		GetGame().GetCallqueue().CallLater(SpawnBaseControllers, 0);	
 	}
 	
 	void PostGameStart()
 	{
-		GetGame().GetCallqueue().CallLater(CheckUpdate, OF_UPDATE_FREQUENCY / m_Config.m_iTimeMultiplier, true, GetOwner());
-		GetGame().GetCallqueue().CallLater(SpawnBaseControllers, 0);
+		GetGame().GetCallqueue().CallLater(CheckUpdate, OF_UPDATE_FREQUENCY / m_Config.m_iTimeMultiplier, true, GetOwner());		
+		
+		if(m_bDistributeInitial)
+			GetGame().GetCallqueue().CallLater(DistributeInitialResources, 100);
 	}
 	
 	void OnTownControlChanged(OVT_TownData town)
@@ -141,28 +147,42 @@ class OVT_OccupyingFactionManager: OVT_Component
 	}
 	
 	protected void SpawnBaseControllers()
-	{
-		int occupyingFactionIndex = m_Config.GetOccupyingFactionIndex();
+	{		
 		foreach(int index, vector pos : m_BasesToSpawn)
 		{		
 			IEntity baseEntity = SpawnBaseController(pos);
 			
 			OVT_BaseControllerComponent base = OVT_BaseControllerComponent.Cast(baseEntity.FindComponent(OVT_BaseControllerComponent));
-			
-			OVT_BaseData data = new OVT_BaseData();
-			data.id = index;
-			data.location = baseEntity.GetOrigin();
-			data.faction = occupyingFactionIndex;
-			data.entId = baseEntity.GetID();
+			OVT_BaseData data = GetNearestBase(pos);
 			data.closeRange = base.m_iCloseRange;
 			data.range = base.m_iRange;
+			data.entId = baseEntity.GetID();	
+			base.SetControllingFaction(data.faction);
 			
-			m_Bases.Insert(data);
-			base.SetControllingFaction(m_Config.GetOccupyingFactionIndex());
+			if(m_LoadStruct)
+			{
+				//Loading a save game
+				OVT_BaseDataStruct struct;
+				foreach(OVT_BaseDataStruct s : m_LoadStruct.m_aBases)
+				{
+					if(s.m_vLocation == pos)
+					{
+						struct = s;
+						break;
+					}
+				}
+				if(struct)
+				{
+					foreach(OVT_BaseUpgradeStruct upgrade : struct.m_aUpgrades)
+					{
+						OVT_BaseUpgrade up = base.FindUpgrade(upgrade.m_sType, upgrade.m_sTag);
+						up.Deserialize(upgrade);
+					}	
+				}
+			}					
 		}
 		m_BasesToSpawn.Clear();
 		m_BasesToSpawn = null;
-		GetGame().GetCallqueue().CallLater(DistributeInitialResources, 100);
 	}
 	
 	protected void DistributeInitialResources()
@@ -244,6 +264,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 				OVT_Global.GetPlayers().HintMessageAll("BaseControlledOccupying");
 			}
 			m_CurrentQRFBase.SetControllingFaction(m_CurrentQRF.m_iWinningFaction);
+			m_Bases[m_iCurrentQRFBase].faction = m_CurrentQRF.m_iWinningFaction;
+			Rpc(RpcDo_SetBaseFaction, m_iCurrentQRFBase, m_CurrentQRF.m_iWinningFaction);
 		}		
 				
 		SCR_Global.DeleteEntityAndChildren(m_CurrentQRF.GetOwner());
@@ -262,6 +284,15 @@ class OVT_OccupyingFactionManager: OVT_Component
 		OVT_TownData closestTown = townManager.GetNearestTown(ent.GetOrigin());
 		Print("Adding base near " + closestTown.name);
 		#endif
+				
+		int occupyingFactionIndex = m_Config.GetOccupyingFactionIndex();
+		
+		OVT_BaseData data = new OVT_BaseData();
+		data.id = m_Bases.Count();
+		data.location = ent.GetOrigin();
+		data.faction = occupyingFactionIndex;
+		
+		m_Bases.Insert(data);
 		
 		m_BasesToSpawn.Insert(ent.GetOrigin());		
 		return true;
@@ -434,6 +465,12 @@ class OVT_OccupyingFactionManager: OVT_Component
 	protected void RpcDo_SetQRFPoints(int points)
 	{
 		m_iQRFPoints = points;
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_SetBaseFaction(int index, int faction)
+	{
+		m_Bases[index].faction = faction;
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]

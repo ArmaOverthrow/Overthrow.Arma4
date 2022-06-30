@@ -423,6 +423,17 @@ OVT_OverthrowGameMode {
   SCR_PlayerProfileManagerComponent "{59724C8C935D8E14}" {
   }
   SCR_SaveLoadComponent "{59724C8C935D8E11}" {
+   m_Struct OVT_OverthrowSaveStruct "{59B70AF2ABE445C8}" {
+    m_EconomyStruct OVT_EconomyStruct "{59BC36810DBC39CF}" {
+    }
+    m_RealEstateStruct OVT_RealEstateStruct "{59BC369BFBE654E2}" {
+    }
+    m_VehiclesStruct OVT_VehiclesStruct "{59BC6AC6398E856A}" {
+    }
+    m_OccupyingStruct OVT_OccupyingFactionStruct "{59BCB05F7055CAED}" {
+    }
+   }
+   m_bLoadSaveInWorkbench 0
   }
   RplComponent "{59724C8C935D8E18}" {
   }
@@ -434,4 +445,5 @@ OVT_OverthrowGameMode {
   m_bOpenActionCloses 0
   m_bHideHUDOnShow 0
  }
+ m_PlayerCommsPrefab "{1673675D02489268}Prefabs/GameMode/OVT_PlayerCommsEntity.et"
 }

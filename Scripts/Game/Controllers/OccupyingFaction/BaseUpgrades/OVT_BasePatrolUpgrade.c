@@ -211,6 +211,48 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 		return wp;
 	}
 	
+	override OVT_BaseUpgradeStruct Serialize()
+	{
+		OVT_BaseUpgradeStruct struct = super.Serialize();
+		
+		struct.m_iResources = 0; //Do not respend any resources
+		
+		foreach(EntityID id : m_Groups)
+		{
+			IEntity group = GetGame().GetWorld().FindEntityByID(id);
+			SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
+			if(aigroup.GetAgentsCount() > 0)
+			{
+				OVT_BaseUpgradeGroupStruct g = new OVT_BaseUpgradeGroupStruct();
+				
+				g.m_sType = group.GetPrefabData().GetPrefabName();
+				g.m_vLocation = group.GetOrigin();
+				
+				struct.m_aGroups.Insert(g);
+			}			
+		}
+		
+		foreach(int i, ResourceName res : m_ProxiedGroups)
+		{
+			OVT_BaseUpgradeGroupStruct g = new OVT_BaseUpgradeGroupStruct();
+			g.m_sType = res;
+			g.m_vLocation = m_ProxiedPositions[i];
+			
+			struct.m_aGroups.Insert(g);
+		}
+		
+		return struct;
+	}
+	
+	override bool Deserialize(OVT_BaseUpgradeStruct struct)
+	{
+		foreach(OVT_BaseUpgradeGroupStruct g : struct.m_aGroups)
+		{
+			BuyPatrol(0, g.m_sType, g.m_vLocation);
+		}
+		return true;
+	}
+	
 	void ~OVT_BasePatrolUpgrade()
 	{
 		GetGame().GetCallqueue().Remove(CheckUpdate);	

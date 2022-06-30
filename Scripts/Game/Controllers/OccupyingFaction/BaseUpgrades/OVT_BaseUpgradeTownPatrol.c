@@ -158,6 +158,21 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		}
 	}
 	
+	override OVT_BaseUpgradeStruct Serialize()
+	{
+		OVT_BaseUpgradeStruct struct = new OVT_BaseUpgradeStruct();
+		struct.m_sType = ClassName();
+		struct.m_iResources = GetResources();
+		return struct;
+	}
+	
+	override bool Deserialize(OVT_BaseUpgradeStruct struct)
+	{
+		Spend(struct.m_iResources, m_iMinimumThreat);
+		
+		return true;
+	}
+	
 	void ~OVT_BaseUpgradeTownPatrol()
 	{
 		if(m_Patrols)

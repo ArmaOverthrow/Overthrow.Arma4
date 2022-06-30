@@ -125,11 +125,13 @@ class OVT_PlayerManagerComponent: OVT_Component
 	
 	string GetPersistentIDFromPlayerID(int playerId)
 	{
+		if(!m_mPersistentIDs.Contains(playerId)) return "";
 		return m_mPersistentIDs[playerId];
 	}
 	
 	int GetPlayerIDFromPersistentID(string id)
 	{
+		if(!m_mPlayerIDs.Contains(id)) return -1;
 		return m_mPlayerIDs[id];
 	}
 	

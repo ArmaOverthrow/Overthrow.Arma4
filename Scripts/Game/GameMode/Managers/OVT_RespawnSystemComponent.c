@@ -40,14 +40,14 @@ class OVT_RespawnSystemComponent : SCR_RespawnSystemComponent
 			return null;
 		}
 		
-		IEntity home = re.GetHome(OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId));
+		vector home = re.GetHome(OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId));
 		vector spawnPosition = m_Owner.GetOrigin();
 		
-		if(home){
-			spawnPosition = home.GetOrigin();
+		if(home[0] != 0){
+			spawnPosition = home;
 		}else{
-			home = OVT_Global.GetTowns().GetRandomStartingHouse();
-			spawnPosition = home.GetOrigin();
+			IEntity newhome = OVT_Global.GetTowns().GetRandomStartingHouse();
+			spawnPosition = newhome.GetOrigin();
 		}
 		vector spawnRotation = vector.Zero;
 		
