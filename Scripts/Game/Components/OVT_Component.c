@@ -30,9 +30,12 @@ class OVT_Component: ScriptComponent
 
 	protected void RPL_WritePlayerID(ScriptBitWriter writer, string id)
 	{
-		writer.Write((id.Substring(0,9)).ToInt(), 32);
-		writer.Write((id.Substring(9,9)).ToInt(), 32);
-		writer.Write((id.Substring(18,id.Length() - 18)).ToInt(), 32);
+		int id1, id2, id3;
+		OVT_PlayerManagerComponent.EncodeIDAsInts(id, id1, id2, id3);
+		
+		writer.Write(id1, 32);
+		writer.Write(id2, 32);
+		writer.Write(id3, 32);
 	}
 
 	protected bool RPL_ReadPlayerID(ScriptBitReader reader, out string id)
@@ -43,10 +46,12 @@ class OVT_Component: ScriptComponent
 		id += i.ToString();
 			
 		if(!reader.Read(i, 32)) return false;
-		id += i.ToString();
+		if(i > -1)
+			id += i.ToString();
 	
 		if(!reader.Read(i, 32)) return false;
-		id += i.ToString();
+		if(i > -1)
+			id += i.ToString();
 	
 		return true;
 	}

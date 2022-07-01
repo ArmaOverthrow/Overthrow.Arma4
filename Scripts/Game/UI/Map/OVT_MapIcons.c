@@ -143,12 +143,9 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 			m_Widgets.Insert(w);
 		}
 		
-		foreach(RplId id : resistance.m_FOBs)
-		{
-			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
-			if(!rpl) continue;
-			IEntity ent = rpl.GetEntity();
-			m_Centers.Insert(ent.GetOrigin());
+		foreach(vector fob : resistance.m_FOBs)
+		{			
+			m_Centers.Insert(fob);
 			m_Ranges.Insert(0);
 			
 			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);

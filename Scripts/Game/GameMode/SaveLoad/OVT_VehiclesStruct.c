@@ -45,19 +45,16 @@ class OVT_VehicleStruct : SCR_JsonApiStruct
 	string m_sPlayerId;
 	ResourceName m_sResource;
 	vector m_vPosition;
-	vector m_vRight;
-	vector m_vUp;
-	vector m_vForward;
+	vector m_vAngles;
 	float m_fFuel;
 	float m_fHealth;
+	ref array<string> m_aInventory = {};
 	
 	IEntity Spawn()
 	{
 		OVT_VehicleManagerComponent vehicles = OVT_Global.GetVehicles();
-		vector mat[4];
-		mat[0] = m_vRight;
-		mat[1] = m_vUp;
-		mat[2] = m_vForward;
+		vector mat[4];		
+		Math3D.AnglesToMatrix(m_vAngles, mat);
 		mat[3] = m_vPosition;
 		
 		IEntity ent = vehicles.SpawnVehicleMatrix(m_sResource, mat, m_sPlayerId);
@@ -71,6 +68,15 @@ class OVT_VehicleStruct : SCR_JsonApiStruct
 		{
 			BaseFuelNode node = fuel.GetCurrentFuelTank();			
 			node.SetFuel(m_fFuel);
+		}
+		
+		InventoryStorageManagerComponent inv = InventoryStorageManagerComponent.Cast(ent.FindComponent(InventoryStorageManagerComponent));
+		if(inv)
+		{
+			foreach(string res : m_aInventory)
+			{
+				inv.TrySpawnPrefabToStorage(res);
+			}
 		}
 		
 		return ent;
@@ -92,10 +98,7 @@ class OVT_VehicleStruct : SCR_JsonApiStruct
 		
 		vector mat[4];
 		ent.GetTransform(mat);
-		
-		m_vRight = mat[0];
-		m_vUp = mat[1];
-		m_vForward = mat[2];
+		m_vAngles = Math3D.MatrixToAngles(mat);
 		m_vPosition = mat[3];
 		
 		SCR_FuelConsumptionComponent fuel = SCR_FuelConsumptionComponent.Cast(ent.FindComponent(SCR_FuelConsumptionComponent));
@@ -104,6 +107,21 @@ class OVT_VehicleStruct : SCR_JsonApiStruct
 			BaseFuelNode node = fuel.GetCurrentFuelTank();
 			m_fFuel = node.GetFuel();
 		}		
+		
+		InventoryStorageManagerComponent inv = InventoryStorageManagerComponent.Cast(ent.FindComponent(InventoryStorageManagerComponent));
+		if(inv)
+		{
+			array<IEntity> items = new array<IEntity>;
+			int count = inv.GetItems(items);
+			if(count > 0)
+			{
+				foreach(IEntity item : items)
+				{
+					m_aInventory.Insert(item.GetPrefabData().GetPrefabName());
+				}
+			}
+		}
+				
 		return true;
 	}
 		
@@ -112,10 +130,9 @@ class OVT_VehicleStruct : SCR_JsonApiStruct
 		RegV("m_sPlayerId");
 		RegV("m_sResource");
 		RegV("m_vPosition");
-		RegV("m_vRight");
-		RegV("m_vUp");
-		RegV("m_vForward");
+		RegV("m_vAngles");
 		RegV("m_fFuel");
 		RegV("m_fHealth");
+		RegV("m_aInventory");
 	}
 }

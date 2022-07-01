@@ -27,8 +27,11 @@ class OVT_PlayerCommsEntity: GenericEntity
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	void RpcAsk_SetID(int playerId, int id1, int id2, int id3)
-	{
-		string persistentID = ""+id1+id2+id3;				
+	{		
+		string persistentID = "" + id1;
+		if(id2 > -1) persistentID += id2.ToString();
+		if(id3 > -1) persistentID += id3.ToString();
+					
 		OVT_Global.GetPlayers().RegisterPlayer(playerId, persistentID);
 	}	
 	
@@ -113,28 +116,12 @@ class OVT_PlayerCommsEntity: GenericEntity
 	//PLACING
 	void PlaceItem(int placeableIndex, int prefabIndex, vector pos, vector angles, int playerId)
 	{
-		Rpc(RpcAsk_PlaceItem, placeableIndex, prefabIndex, pos, angles);
+		Rpc(RpcAsk_PlaceItem, placeableIndex, prefabIndex, pos, angles, playerId);
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_PlaceItem(int placeableIndex, int prefabIndex, vector pos, vector angles, int playerId)
 	{
-		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-		OVT_Placeable placeable = config.m_aPlaceables[placeableIndex];
-		ResourceName res = placeable.m_aPrefabs[prefabIndex];
-		
-		EntitySpawnParams params = EntitySpawnParams();
-		params.TransformMode = ETransformMode.WORLD;
-		vector mat[4];
-		Math3D.AnglesToMatrix(angles, mat);
-		mat[3] = pos;
-		params.Transform = mat;
-		
-		IEntity entity = GetGame().SpawnEntityPrefab(Resource.Load(res), GetGame().GetWorld(), params);
-		
-		if(placeable.handler)
-		{
-			placeable.handler.OnPlace(entity, playerId);
-		}
+		OVT_Global.GetResistanceFaction().PlaceItem(placeableIndex, prefabIndex, pos, angles, playerId);
 	}
 }

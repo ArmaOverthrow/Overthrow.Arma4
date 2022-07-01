@@ -344,6 +344,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 			GainResources();
 		}
 		
+		//We dont spend resources or reduce threat during a QRF
+		if(m_CurrentQRF) return;
+		
 		//Every hour distribute resources we have, if any
 		if(m_iResources > 0 && time.m_iMinutes == 0)
 		{
@@ -351,7 +354,10 @@ class OVT_OccupyingFactionManager: OVT_Component
 			foreach(OVT_BaseData data : m_Bases)
 			{
 				if(!data.IsOccupyingFaction()) continue;
-				OVT_BaseControllerComponent base = GetBase(data.entId);				
+				OVT_BaseControllerComponent base = GetBase(data.entId);	
+				
+				//Dont spawn stuff if a player is watching lol
+				if(OVT_Global.PlayerInRange(data.location, base.m_iCloseRange+100)) continue;			
 				
 				m_iResources -= base.SpendResources(m_iResources, m_iThreat);			
 				

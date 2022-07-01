@@ -4,7 +4,8 @@ class OVT_ResistanceFactionManagerClass: OVT_ComponentClass
 
 class OVT_ResistanceFactionManager: OVT_Component
 {	
-	ref set<RplId> m_FOBs;
+	ref array<vector> m_FOBs;
+	ref array<EntityID> m_Placed;
 	
 	OVT_PlayerManagerComponent m_Players;
 	
@@ -31,32 +32,58 @@ class OVT_ResistanceFactionManager: OVT_Component
 	
 	void OVT_ResistanceFactionManager()
 	{
-		m_FOBs = new set<RplId>;	
+		m_FOBs = new array<vector>;	
+		m_Placed = new array<EntityID>;	
+	}
+	
+	IEntity PlaceItem(int placeableIndex, int prefabIndex, vector pos, vector angles, int playerId, bool runHandler = true)
+	{
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		OVT_Placeable placeable = config.m_aPlaceables[placeableIndex];
+		ResourceName res = placeable.m_aPrefabs[prefabIndex];
+		
+		EntitySpawnParams params = EntitySpawnParams();
+		params.TransformMode = ETransformMode.WORLD;
+		vector mat[4];
+		Math3D.AnglesToMatrix(angles, mat);
+		mat[3] = pos;
+		params.Transform = mat;
+		
+		IEntity entity = GetGame().SpawnEntityPrefab(Resource.Load(res), GetGame().GetWorld(), params);
+		
+		if(placeable.handler && runHandler)
+		{
+			placeable.handler.OnPlace(entity, playerId);
+		}
+		
+		RegisterPlaceable(entity);
+		
+		return entity;
+	}
+	
+	void RegisterPlaceable(IEntity ent)
+	{
+		m_Placed.Insert(ent.GetID());
 	}
 	
 	void RegisterFOB(IEntity ent, int playerId)
-	{
-		RplComponent rpl = RplComponent.Cast(ent.FindComponent(RplComponent));
-		if(!rpl) return;
-		Rpc(RpcAsk_RegisterFOB, rpl.Id(), playerId);
+	{		
+		Rpc(RpcAsk_RegisterFOB, ent.GetOrigin(), playerId);
 	}
 	
-	OVT_ResistanceFOBControllerComponent GetNearestFOB(vector pos)
+	vector GetNearestFOB(vector pos)
 	{
-		IEntity nearestBase;
+		vector nearestBase;
 		float nearest = 9999999;
-		foreach(RplId id : m_FOBs)
-		{
-			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
-			IEntity marker = rpl.GetEntity();
-			float distance = vector.Distance(marker.GetOrigin(), pos);
+		foreach(vector fob : m_FOBs)
+		{			
+			float distance = vector.Distance(fob, pos);
 			if(distance < nearest){
 				nearest = distance;
-				nearestBase = marker;
+				nearestBase = fob;
 			}
 		}
-		if(!nearestBase) return null;
-		return OVT_ResistanceFOBControllerComponent.Cast(nearestBase.FindComponent(OVT_ResistanceFOBControllerComponent));
+		return nearestBase;
 	}
 	
 	//RPC Methods	
@@ -66,7 +93,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		writer.Write(m_FOBs.Count(), 32); 
 		for(int i; i<m_FOBs.Count(); i++)
 		{
-			writer.WriteRplId(m_FOBs[i]);
+			writer.WriteVector(m_FOBs[i]);
 		}
 		
 		return true;
@@ -76,30 +103,30 @@ class OVT_ResistanceFactionManager: OVT_Component
 	{				
 		//Recieve JIP FOBs
 		int length;
-		RplId id;
+		vector fob;
 		
 		if (!reader.Read(length, 32)) return false;
 		for(int i; i<length; i++)
 		{			
-			if (!reader.ReadRplId(id)) return false;
-			m_FOBs.Insert(id);
+			if (!reader.ReadVector(fob)) return false;
+			m_FOBs.Insert(fob);
 		}
 		return true;
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_RegisterFOB(RplId id, int playerId)
+	protected void RpcAsk_RegisterFOB(vector pos, int playerId)
 	{
-		m_FOBs.Insert(id);
+		m_FOBs.Insert(pos);
 				
-		Rpc(RpcDo_RegisterFOB, id);
+		Rpc(RpcDo_RegisterFOB, pos);
 		m_Players.HintMessageAll("PlacedFOB",-1,playerId);
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_RegisterFOB(RplId id)
+	protected void RpcDo_RegisterFOB(vector pos)
 	{
-		m_FOBs.Insert(id);
+		m_FOBs.Insert(pos);
 	}
 	
 	void ~OVT_ResistanceFactionManager()

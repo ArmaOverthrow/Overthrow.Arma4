@@ -24,6 +24,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 	string GetOwnerID(IEntity building)
 	{
 		RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
+		if(!rpl) return "";
 		if(!m_mOwners.Contains(rpl.Id())) return "";
 		return m_mOwners[rpl.Id()];
 	}

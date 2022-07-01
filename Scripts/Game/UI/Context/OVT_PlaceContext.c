@@ -174,12 +174,10 @@ class OVT_PlaceContext : OVT_UIContext
 			if(dist < MAX_HOUSE_PLACE_DIS) return true;
 		}
 		
-		OVT_ResistanceFOBControllerComponent fob = m_Resistance.GetNearestFOB(pos);
-		if(fob)
-		{
-			dist = vector.Distance(fob.GetOwner().GetOrigin(), pos);
-			if(dist < MAX_FOB_PLACE_DIS) return true;
-		}
+		vector fob = m_Resistance.GetNearestFOB(pos);
+		
+		dist = vector.Distance(fob, pos);
+		if(dist < MAX_FOB_PLACE_DIS) return true;		
 		
 		return false;
 	}

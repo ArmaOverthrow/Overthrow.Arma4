@@ -32,29 +32,33 @@ class OVT_PlayerIdentityComponent: OVT_Component
 		if(m_sPersistentID != "") return;	
 		if (controlled)
 		{			
-			//Check for a saved persistent player ID			
-			if(FileIO.FileExist(PERSISTENT_ID_FILE_PATH))
+			int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(GetOwner());
+			//Check for bohemia ID
+			int bid = GetGame().GetBackendApi().GetPlayerUID(playerId);
+			
+			if(bid == 0)
 			{
-				//File exists, use it
-				FileHandle f = FileIO.OpenFile(PERSISTENT_ID_FILE_PATH, FileMode.READ);
-				if(f){
-					f.FGets(m_sPersistentID);
+				//Check for a saved persistent player ID			
+				if(FileIO.FileExist(PERSISTENT_ID_FILE_PATH))
+				{
+					//File exists, use it
+					FileHandle f = FileIO.OpenFile(PERSISTENT_ID_FILE_PATH, FileMode.READ);
+					if(f){
+						f.FGets(m_sPersistentID);
+						f.CloseFile();
+					}
+				}else{
+					//File doesnt exist, generate one
+					m_sPersistentID = GenerateID();
+					FileHandle f = FileIO.OpenFile(PERSISTENT_ID_FILE_PATH, FileMode.WRITE);
+					f.FPrint(m_sPersistentID);
 					f.CloseFile();
 				}
 			}else{
-				//File doesnt exist, generate one
-				m_sPersistentID = GenerateID(); //To-Do: Generate a random string
-				FileHandle f = FileIO.OpenFile(PERSISTENT_ID_FILE_PATH, FileMode.WRITE);
-				f.FPrint(m_sPersistentID);
-				f.CloseFile();
+				m_sPersistentID = bid.ToString();
 			}
 			
-			int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(GetOwner());
 			OVT_Global.GetPlayers().RegisterPlayer(playerId, m_sPersistentID);
-			
-			RplComponent rplComponent = RplComponent.Cast(owner.FindComponent(RplComponent));
-			if (!rplComponent)
-				return;
 			
 			if(Replication.IsServer()) return;
 			OVT_Global.GetServer().RegisterPersistentID(m_sPersistentID);			

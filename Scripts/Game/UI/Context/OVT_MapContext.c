@@ -95,12 +95,9 @@ class OVT_MapContext : OVT_UIContext
 			if(dist < MAX_HOUSE_TRAVEL_DIS) return true;
 		}
 		
-		OVT_ResistanceFOBControllerComponent fob = m_Resistance.GetNearestFOB(pos);
-		if(fob)
-		{
-			dist = vector.Distance(fob.GetOwner().GetOrigin(), pos);
-			if(dist < MAX_FOB_TRAVEL_DIS) return true;
-		}
+		vector fob = m_Resistance.GetNearestFOB(pos);		
+		dist = vector.Distance(fob, pos);
+		if(dist < MAX_FOB_TRAVEL_DIS) return true;		
 		
 		OVT_BaseData base = m_OccupyingFaction.GetNearestBase(pos);
 		if(base && !base.IsOccupyingFaction())

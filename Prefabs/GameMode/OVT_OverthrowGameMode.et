@@ -432,7 +432,10 @@ OVT_OverthrowGameMode {
     }
     m_OccupyingStruct OVT_OccupyingFactionStruct "{59BCB05F7055CAED}" {
     }
+    m_ResistanceStruct OVT_ResistanceFactionStruct "{59C25863DB9CE2B4}" {
+    }
    }
+   m_iAutosavePeriod 600
    m_bLoadSaveInWorkbench 0
   }
   RplComponent "{59724C8C935D8E18}" {

@@ -26,9 +26,18 @@ class OVT_PlayerManagerComponent: OVT_Component
 	
 	static void EncodeIDAsInts(string persId, out int int1, out int int2, out int int3)
 	{
-		int1 = (persId.Substring(0,9)).ToInt();
-		int2 = (persId.Substring(9,9)).ToInt();
-		int3 = (persId.Substring(18,persId.Length() - 18)).ToInt();
+		if(persId.Length() > 10)
+		{
+			//This is an overthrow ID
+			int1 = (persId.Substring(0,9)).ToInt();
+			int2 = (persId.Substring(9,9)).ToInt();
+			int3 = (persId.Substring(18,persId.Length() - 18)).ToInt();
+		}else{
+			//This is a bohemia ID
+			int1 = persId.ToInt();
+			int2 = -1;
+			int3 = -1;
+		}		
 	}
 	
 	protected ref map<int, string> m_mPersistentIDs;
@@ -185,7 +194,9 @@ class OVT_PlayerManagerComponent: OVT_Component
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_RegisterPlayer(int playerId, int id1, int id2, int id3)
 	{
-		string s = ""+id1+id2+id3;
+		string s = "" + id1;
+		if(id2 > -1) s += id2.ToString();
+		if(id3 > -1) s += id3.ToString();
 		m_mPersistentIDs[playerId] = s;
 		m_mPlayerIDs[s] = playerId;
 	}
