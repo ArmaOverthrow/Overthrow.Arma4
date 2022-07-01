@@ -1,28 +1,31 @@
 GenericEntity : "{4CC2C69DE1AEF103}Prefabs/Props/Core/Destructible_Props_Base.et" {
  ID "F0DBA538AC2A0552"
  components {
-  Hierarchy "{5994FB46F7E95B24}" {
+  Hierarchy "{59C2C9AE803107FA}" {
   }
-  ActionsManagerComponent "{5994FB461D0AF2A8}" {
+  ActionsManagerComponent "{59C2C9AE7307F1B5}" {
    ActionContexts {
-    UserActionContext "{5994FB461B67783E}" {
+    UserActionContext "{59C2C9AE71EB5C51}" {
      ContextName "default"
-     Position PointInfo "{59953E66D6314AEF}" {
+     Position PointInfo "{59C2C9AE7EB358C1}" {
       Offset 0 0.2 0
      }
      Radius 0.65
     }
    }
    additionalActions {
-    OVT_ShopAction "{5994FB46E7F7B143}" {
+    OVT_ShopAction "{59C2C9AE40790B97}" {
      ParentContextList {
       "default"
      }
-     UIInfo UIInfo "{5994FB46E17ACB9C}" {
+     UIInfo UIInfo "{59C2C9AE4C667CF0}" {
       Name "#OVT-Shop_Open"
      }
     }
    }
+  }
+  RplComponent "{5624A88DC2D9928D}" {
+   Enabled 1
   }
  }
 }

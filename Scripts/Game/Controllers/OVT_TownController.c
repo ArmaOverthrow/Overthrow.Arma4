@@ -49,11 +49,9 @@ class OVT_TownControllerComponent: OVT_Component
 		
 		foreach(OVT_ShopInventoryItem item : m_Economy.m_aGunDealerItems)
 		{
-			RplId id = m_Economy.GetInventoryId(item.prefab);
-			if(!m_Economy.HasPrice(id))
-			{
-				m_Economy.SetPrice(id, item.cost);
-			}
+			int id = m_Economy.GetInventoryId(item.prefab);			
+			m_Economy.SetPrice(id, item.cost);
+			
 			int num = Math.Round(s_AIRandomGenerator.RandFloatXY(1,item.maxAtStart));
 			
 			shop.AddToInventory(id, num);

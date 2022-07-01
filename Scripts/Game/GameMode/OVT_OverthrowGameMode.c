@@ -35,6 +35,13 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	{
 		m_StartGameUIContext.CloseLayout();
 		
+		if(RplSession.Mode() == RplMode.Dedicated)
+		{
+			Print("Spawning comms entity for dedicated server");					
+			IEntity entity = GetGame().SpawnEntityPrefab(Resource.Load(m_PlayerCommsPrefab), GetGame().GetWorld());
+			m_Server = OVT_PlayerCommsEntity.Cast(entity);
+		}
+		
 		if(m_EconomyManager)
 		{
 			Print("Starting Economy");
@@ -214,7 +221,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		{
 			//need to tell someone to open start game menu
 			//RemoteStartGame();
-			DoStartGame();
+			GetGame().GetCallqueue().CallLater(DoStartGame, 0);			
 		}else{
 			m_StartGameUIContext.ShowLayout();
 		}

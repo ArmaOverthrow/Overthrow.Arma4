@@ -1,0 +1,8 @@
+StaticModelEntity : "{E04C8E7133043968}Prefabs/Structures/Core/Fortifications_Base.et" {
+ ID "51E2F0F0E96F07CE"
+ components {
+  RplComponent "{58A2A8A1B4E2F634}" {
+   Enabled 1
+  }
+ }
+}

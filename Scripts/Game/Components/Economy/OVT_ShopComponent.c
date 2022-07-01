@@ -18,28 +18,28 @@ class OVT_ShopComponent: OVT_Component
 	[Attribute("1", UIWidgets.ComboBox, "Shop type", "", ParamEnumArray.FromEnum(OVT_ShopType) )]
 	OVT_ShopType m_ShopType;
 	
-	ref map<RplId,int> m_aInventory;
+	ref map<int,int> m_aInventory;
 	ref array<ref OVT_ShopInventoryItem> m_aInventoryItems;
 	
 	override void OnPostInit(IEntity owner)
 	{
 		super.OnPostInit(owner);	
 		
-		m_aInventory = new map<RplId,int>;
+		m_aInventory = new map<int,int>;
 		m_aInventoryItems = new array<ref OVT_ShopInventoryItem>;
 	}
 	
-	void AddToInventory(RplId id, int num)
+	void AddToInventory(int id, int num)
 	{
 		OVT_Global.GetServer().AddToShopInventory(this, id, num);		
 	}
 	
-	void TakeFromInventory(RplId id, int num)
+	void TakeFromInventory(int id, int num)
 	{		
 		OVT_Global.GetServer().TakeFromShopInventory(this, id, num);
 	}
 	
-	int GetStock(RplId id)
+	int GetStock(int id)
 	{
 		if(!m_aInventory.Contains(id)) return 0;
 		return m_aInventory[id];
@@ -52,7 +52,7 @@ class OVT_ShopComponent: OVT_Component
 		writer.Write(m_aInventory.Count(), 32); 
 		for(int i; i<m_aInventory.Count(); i++)
 		{
-			writer.WriteRplId(m_aInventory.GetKey(i));
+			writer.Write(m_aInventory.GetKey(i),32);
 			writer.Write(m_aInventory.GetElement(i),32);
 		}
 		
@@ -68,20 +68,20 @@ class OVT_ShopComponent: OVT_Component
 		if (!reader.Read(length, 32)) return false;
 		for(int i; i<length; i++)
 		{
-			if (!reader.ReadRplId(id)) return false;				
+			if (!reader.Read(id,32)) return false;				
 			if (!reader.Read(num, 32)) return false;
 			m_aInventory[id] = num;
 		}
 		return true;
 	}
 	
-	void StreamInventory(RplId id)
+	void StreamInventory(int id)
 	{
 		Rpc(RpcDo_SetInventory, id, m_aInventory[id]);
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_SetInventory(RplId id, int amount)
+	protected void RpcDo_SetInventory(int id, int amount)
 	{
 		m_aInventory[id] = amount;		
 	}

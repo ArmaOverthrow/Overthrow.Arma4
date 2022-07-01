@@ -1,0 +1,8 @@
+SCR_DestructibleBuildingEntity : "{A43A100E3C377DB2}Prefabs/Structures/Core/Building_Base.et" {
+ ID "F0DBA538AC2A0552"
+ components {
+  OVT_ShopComponent "{59C2C703C4E7DE6E}" {
+   m_ShopType SHOP_GENERAL
+  }
+ }
+}

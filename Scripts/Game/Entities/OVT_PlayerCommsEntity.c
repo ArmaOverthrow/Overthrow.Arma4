@@ -51,14 +51,14 @@ class OVT_PlayerCommsEntity: GenericEntity
 	
 	//SHOPS
 	
-	void AddToShopInventory(OVT_ShopComponent shop, RplId id, int num)
+	void AddToShopInventory(OVT_ShopComponent shop, int id, int num)
 	{
 		RplComponent rpl = RplComponent.Cast(shop.GetOwner().FindComponent(RplComponent));
 		Rpc(RpcAsk_AddToInventory, rpl.Id(), id, num);
 	}
 		
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_AddToInventory(RplId shopId, RplId id, int num)
+	protected void RpcAsk_AddToInventory(RplId shopId, int id, int num)
 	{
 		RplComponent rpl = RplComponent.Cast(Replication.FindItem(shopId));
 		OVT_ShopComponent shop = OVT_ShopComponent.Cast(rpl.GetEntity().FindComponent(OVT_ShopComponent));

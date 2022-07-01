@@ -220,6 +220,8 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	{
 		FactionManager factionMgr = GetGame().GetFactionManager();
 		m_iOccupyingFactionIndex = index;
-		m_sOccupyingFaction = factionMgr.GetFactionByIndex(index).GetFactionKey();
+		Faction faction = factionMgr.GetFactionByIndex(index);
+		if(!faction) return;
+		m_sOccupyingFaction = faction.GetFactionKey();
 	}
 }

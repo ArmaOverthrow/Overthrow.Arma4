@@ -74,6 +74,9 @@ class OVT_OverthrowSaveStruct : SCR_MissionStruct
 		
 		if (m_ResistanceStruct && !m_ResistanceStruct.Deserialize())
 			return false;
+		
+		//A workaround because this will be fired with a blank struct on dedi servers that have no existing save file
+		if(m_sOccupyingFaction == "") return true;
 					
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
 		config.SetOccupyingFaction(m_sOccupyingFaction);

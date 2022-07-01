@@ -12,6 +12,9 @@ GenericEntity : "{4106EBCD72532DA4}Prefabs/Props/Commercial/Posters/PosterSingle
   RigidBody "{5872F0EB7DFB5A9D}" {
    ResponseIndex "TinyDestructible"
   }
+  RplComponent "{5624A88DC2D9928D}" {
+   Enabled 1
+  }
  }
  scale 2.5
 }

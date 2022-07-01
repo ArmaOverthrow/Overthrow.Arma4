@@ -1,46 +1,8 @@
 SCR_DestructibleBuildingEntity : "{9064E65F34097C8F}Prefabs/Structures/Commercial/Shops/ShopHouse_E_2I01t_Base.et" {
  ID "F0DBA538AC2A0552"
  components {
-  OVT_ShopComponent "{5994FB79CD205991}" {
+  OVT_ShopComponent "{59C2C703C4E7DE6E}" {
    m_ShopType SHOP_CLOTHES
   }
- }
- {
-  GenericEntity {
-   ID "58C2DCA4C0A8DC6F"
-   {
-    GenericEntity {
-     ID "58C2DCA4C3B30E29"
-     components {
-      Hierarchy "{5994FB44D95B2CD5}" {
-      }
-      ActionsManagerComponent "{5994FB44A57B6647}" {
-       ActionContexts {
-        UserActionContext "{5994FB44A432B814}" {
-         ContextName "default"
-         Position PointInfo "{5994FB44A16033BC}" {
-          Offset 0 0.5 0
-         }
-         Radius 0.65
-        }
-       }
-       additionalActions {
-        OVT_ShopAction "{5994FB44B54C40D5}" {
-         ParentContextList {
-          "default"
-         }
-         UIInfo UIInfo "{5994FB44B1F6AA25}" {
-          Name "#OVT-Shop_Open"
-         }
-        }
-       }
-      }
-      RplComponent "{5624A88DC2D9928D}" {
-       Enabled 1
-      }
-     }
-    }
-   }
-  }
- }
+ } 
 }

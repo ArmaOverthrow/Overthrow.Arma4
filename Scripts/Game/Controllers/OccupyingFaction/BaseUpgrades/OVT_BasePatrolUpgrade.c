@@ -77,6 +77,7 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 	protected int BuyPatrol(float threat, ResourceName res = "", vector pos = "0 0 0")
 	{
 		OVT_Faction faction = m_Config.GetOccupyingFaction();
+		if(!faction) return 0;
 				
 		if(res == ""){
 			res = faction.m_aGroupInfantryPrefabSlots.GetRandomElement();

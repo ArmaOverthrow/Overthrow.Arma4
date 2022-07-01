@@ -1,12 +1,12 @@
 class OVT_ShopMenuCardComponent : SCR_ScriptedWidgetComponent
 {
-	protected RplId m_Resource;
+	protected int m_Resource;
 	protected OVT_ShopContext m_Context;
 	
-	void Init(RplId id, int cost, int qty, OVT_ShopContext context)
-	{
-		RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
-		IEntity spawnedItem = rpl.GetEntity();
+	void Init(int id, int cost, int qty, OVT_ShopContext context)
+	{	
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();	
+		IEntity spawnedItem = GetGame().SpawnEntityPrefabLocal(Resource.Load(economy.GetResource(id)));
 		
 		m_Resource = id;
 		m_Context = context;
@@ -59,7 +59,9 @@ class OVT_ShopMenuCardComponent : SCR_ScriptedWidgetComponent
 					text.SetText(info.GetName());
 				}
 			}
-		}			
+		}		
+		
+		SCR_Global.DeleteEntityAndChildren(spawnedItem);	
 	}
 	
 	override bool OnClick(Widget w, int x, int y, int button)

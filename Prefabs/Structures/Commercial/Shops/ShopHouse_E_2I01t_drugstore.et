@@ -1,24 +1,8 @@
 SCR_DestructibleBuildingEntity : "{9064E65F34097C8F}Prefabs/Structures/Commercial/Shops/ShopHouse_E_2I01t_Base.et" {
  ID "F0DBA538AC2A0552"
  components {
-  OVT_ShopComponent "{5994FB7902F1492B}" {
+  OVT_ShopComponent "{59C2C703C4E7DE6E}" {
+   m_ShopType SHOP_DRUG
   }
- }
- {
-  GenericEntity {
-   ID "56F2E0B9FD01B0E5"
-   {
-    GenericEntity {
-     ID "56F2D931A16E6DD0"
-     components {
-      MeshObject "{5872F0EB7FA40561}" {
-      }
-      RplComponent "{5624A88DC2D9928D}" {
-       Enabled 1
-      }
-     }
-    }
-   }
-  }
- }
+ } 
 }
