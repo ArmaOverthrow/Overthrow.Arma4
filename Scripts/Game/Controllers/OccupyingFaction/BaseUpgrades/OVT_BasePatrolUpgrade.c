@@ -212,11 +212,11 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 		return wp;
 	}
 	
-	override OVT_BaseUpgradeStruct Serialize()
+	override OVT_BaseUpgradeStruct Serialize(inout array<string> rdb)
 	{
-		OVT_BaseUpgradeStruct struct = super.Serialize();
+		OVT_BaseUpgradeStruct struct = super.Serialize(rdb);
 		
-		struct.m_iResources = 0; //Do not respend any resources
+		struct.resources = 0; //Do not respend any resources
 		
 		foreach(EntityID id : m_Groups)
 		{
@@ -226,30 +226,41 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 			{
 				OVT_BaseUpgradeGroupStruct g = new OVT_BaseUpgradeGroupStruct();
 				
-				g.m_sType = group.GetPrefabData().GetPrefabName();
-				g.m_vLocation = group.GetOrigin();
+				string res = group.GetPrefabData().GetPrefabName();
+				g.type = rdb.Find(res);
+				if(g.type == -1)
+				{
+					rdb.Insert(res);
+					g.type = rdb.Count() - 1;
+				}
+				g.pos = group.GetOrigin();
 				
-				struct.m_aGroups.Insert(g);
+				struct.groups.Insert(g);
 			}			
 		}
 		
 		foreach(int i, ResourceName res : m_ProxiedGroups)
 		{
 			OVT_BaseUpgradeGroupStruct g = new OVT_BaseUpgradeGroupStruct();
-			g.m_sType = res;
-			g.m_vLocation = m_ProxiedPositions[i];
+			g.type = rdb.Find(res);
+			if(g.type == -1)
+			{
+				rdb.Insert(res);
+				g.type = rdb.Count() - 1;
+			}
+			g.pos = m_ProxiedPositions[i];
 			
-			struct.m_aGroups.Insert(g);
+			struct.groups.Insert(g);
 		}
 		
 		return struct;
 	}
 	
-	override bool Deserialize(OVT_BaseUpgradeStruct struct)
+	override bool Deserialize(OVT_BaseUpgradeStruct struct, array<string> rdb)
 	{
-		foreach(OVT_BaseUpgradeGroupStruct g : struct.m_aGroups)
+		foreach(OVT_BaseUpgradeGroupStruct g : struct.groups)
 		{
-			BuyPatrol(0, g.m_sType, g.m_vLocation);
+			BuyPatrol(0, rdb[g.type], g.pos);
 		}
 		return true;
 	}

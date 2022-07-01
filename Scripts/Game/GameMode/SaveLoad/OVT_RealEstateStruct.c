@@ -1,22 +1,24 @@
 [BaseContainerProps()]
-class OVT_RealEstateStruct : SCR_JsonApiStruct
+class OVT_RealEstateStruct : OVT_BaseSaveStruct
 {
-	protected ref array<ref OVT_RealEstatePlayerStruct> m_aPlayerStructs = {};
+	protected ref array<ref OVT_RealEstatePlayerStruct> players = {};
 		
 	override bool Serialize()
 	{
-		map<string, OVT_RealEstatePlayerStruct> players = new map<string, OVT_RealEstatePlayerStruct>;
+		players.Clear();
+		
+		map<string, OVT_RealEstatePlayerStruct> playerStructs = new map<string, OVT_RealEstatePlayerStruct>;
 		OVT_RealEstateManagerComponent re = OVT_Global.GetRealEstate();
 		
 		for(int i; i<re.m_mHomes.Count(); i++)
 		{	
 			OVT_RealEstatePlayerStruct struct = new OVT_RealEstatePlayerStruct();
 			
-			struct.m_sPlayerId = re.m_mHomes.GetKey(i);
-			struct.m_vHome = re.m_mHomes.GetElement(i);
+			struct.id = re.m_mHomes.GetKey(i);
+			struct.home = re.m_mHomes.GetElement(i);
 			
-			players[struct.m_sPlayerId] = struct;
-			m_aPlayerStructs.Insert(struct);
+			playerStructs[struct.id] = struct;
+			players.Insert(struct);
 		}
 		
 		for(int i; i<re.m_mOwned.Count(); i++)
@@ -24,13 +26,13 @@ class OVT_RealEstateStruct : SCR_JsonApiStruct
 			string playerId = re.m_mOwned.GetKey(i);
 			OVT_RealEstatePlayerStruct struct;
 			
-			if(!players.Contains(playerId))
+			if(!playerStructs.Contains(playerId))
 			{
 				struct = new OVT_RealEstatePlayerStruct();
-				struct.m_sPlayerId = playerId;
-				m_aPlayerStructs.Insert(struct);
+				struct.id = playerId;
+				players.Insert(struct);
 			}else{
-				struct = players[playerId];
+				struct = playerStructs[playerId];
 			}
 			
 			foreach(RplId id : re.m_mOwned[playerId])
@@ -38,8 +40,8 @@ class OVT_RealEstateStruct : SCR_JsonApiStruct
 				RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
 				IEntity ent = rpl.GetEntity();
 				OVT_VectorStruct vec = new OVT_VectorStruct();
-				vec.m_vLoc = ent.GetOrigin();
-				struct.m_aOwned.Insert(vec);
+				vec.pos = ent.GetOrigin();
+				struct.ownedProperty.Insert(vec);
 			}
 		}
 		
@@ -50,20 +52,20 @@ class OVT_RealEstateStruct : SCR_JsonApiStruct
 	{
 		OVT_RealEstateManagerComponent re = OVT_Global.GetRealEstate();
 		
-		foreach(OVT_RealEstatePlayerStruct struct : m_aPlayerStructs)
+		foreach(OVT_RealEstatePlayerStruct struct : players)
 		{
-			re.m_mHomes[struct.m_sPlayerId] = struct.m_vHome;
+			re.m_mHomes[struct.id] = struct.home;
 									
-			re.m_mOwned[struct.m_sPlayerId] = new set<RplId>;
+			re.m_mOwned[struct.id] = new set<RplId>;
 			
-			foreach(OVT_VectorStruct loc : struct.m_aOwned)
+			foreach(OVT_VectorStruct loc : struct.ownedProperty)
 			{
-				vector vec = loc.m_vLoc;
+				vector vec = loc.pos;
 				IEntity ent = re.GetNearestBuilding(vec,2);
 				if(ent)
 				{
 					RplComponent rpl = RplComponent.Cast(ent.FindComponent(RplComponent));
-					re.m_mOwned[struct.m_sPlayerId].Insert(rpl.Id());
+					re.m_mOwned[struct.id].Insert(rpl.Id());
 				}
 			}	
 		}
@@ -73,6 +75,6 @@ class OVT_RealEstateStruct : SCR_JsonApiStruct
 	
 	void OVT_RealEstateStruct()
 	{
-		RegV("m_aPlayerStructs");
+		RegV("players");
 	}
 }

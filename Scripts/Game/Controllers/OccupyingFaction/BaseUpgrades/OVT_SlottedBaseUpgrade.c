@@ -108,11 +108,11 @@ class OVT_SlottedBaseUpgrade : OVT_BasePatrolUpgrade
 		return ent;
 	}
 	
-	override OVT_BaseUpgradeStruct Serialize()
+	override OVT_BaseUpgradeStruct Serialize(inout array<string> rdb)
 	{
-		OVT_BaseUpgradeStruct struct = super.Serialize();
+		OVT_BaseUpgradeStruct struct = super.Serialize(rdb);
 		
-		struct.m_iResources = 0; //Do not respend any resources
+		struct.resources = 0; //Do not respend any resources
 		
 		if(m_Spawned)
 		{
@@ -120,21 +120,21 @@ class OVT_SlottedBaseUpgrade : OVT_BasePatrolUpgrade
 			if(!ent) return struct;
 			
 			OVT_VehicleStruct veh = new OVT_VehicleStruct();
-			if(veh.Parse(ent))
-				struct.m_aVehicles.Insert(veh);
+			if(veh.Parse(ent, rdb))
+				struct.vehicles.Insert(veh);
 		}
 		
 		return struct;
 	}
 	
-	override bool Deserialize(OVT_BaseUpgradeStruct struct)	
+	override bool Deserialize(OVT_BaseUpgradeStruct struct, array<string> rdb)	
 	{
-		foreach(OVT_VehicleStruct veh : struct.m_aVehicles)
+		foreach(OVT_VehicleStruct veh : struct.vehicles)
 		{
-			IEntity slot = NearestSlot(veh.m_vPosition);
+			IEntity slot = NearestSlot(veh.pos);
 			if(slot)
 			{
-				m_Spawned = SpawnInSlot(slot, veh.m_sResource).GetID();
+				m_Spawned = SpawnInSlot(slot, rdb[veh.res]).GetID();
 				RegisterFilledSlot(slot);
 			}
 		}

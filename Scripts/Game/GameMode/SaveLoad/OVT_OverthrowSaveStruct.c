@@ -1,95 +1,132 @@
+class OVT_BaseSaveStruct : SCR_JsonApiStruct {
+	ref array<string> rdb = {};
+}
+
 [BaseContainerProps()]
 class OVT_OverthrowSaveStruct : SCR_MissionStruct
 {
 	[Attribute()]
-	protected ref OVT_EconomyStruct m_EconomyStruct;
+	protected ref OVT_EconomyStruct economy;
 	
 	[Attribute()]
-	protected ref OVT_RealEstateStruct m_RealEstateStruct;
+	protected ref OVT_RealEstateStruct property;
 	
 	[Attribute()]
-	protected ref OVT_VehiclesStruct m_VehiclesStruct;
+	protected ref OVT_VehiclesStruct vehicles;
 	
 	[Attribute()]
-	protected ref OVT_OccupyingFactionStruct m_OccupyingStruct;
+	protected ref OVT_OccupyingFactionStruct occupying;
 	
 	[Attribute()]
-	protected ref OVT_ResistanceFactionStruct m_ResistanceStruct;
+	protected ref OVT_ResistanceFactionStruct resistance;
 	
-	protected string m_sOccupyingFaction;
-	protected ref OVT_TimeDateStruct m_DateTime;
-	protected ref array<ref OVT_TownStruct> m_aTowns = {};
+	ref array<string> rdb = {};
+	
+	protected string occupyingFaction;
+	protected ref array<int> time = {};
+	protected ref array<ref OVT_TownStruct> towns = {};
 	
 	override bool Serialize()
 	{
-		if (m_EconomyStruct && !m_EconomyStruct.Serialize())
-			return false;
+		rdb.Clear();
+		towns.Clear();
+		time.Clear();
 		
-		if (m_RealEstateStruct && !m_RealEstateStruct.Serialize())
-			return false;
-		
-		if (m_VehiclesStruct && !m_VehiclesStruct.Serialize())
-			return false;
-		
-		if (m_OccupyingStruct && !m_OccupyingStruct.Serialize())
-			return false;
-		
-		if (m_ResistanceStruct && !m_ResistanceStruct.Serialize())
-			return false;
+		if(economy)
+		{
+			economy.rdb = rdb;
+			if(!economy.Serialize()) return false;
+		}
+		if(property)
+		{
+			property.rdb = rdb;
+			if(!property.Serialize()) return false;
+		}
+		if(vehicles)
+		{
+			vehicles.rdb = rdb;
+			if(!vehicles.Serialize()) return false;
+		}
+		if(occupying)
+		{
+			occupying.rdb = rdb;
+			if(!occupying.Serialize()) return false;
+		}
+		if(resistance)
+		{
+			resistance.rdb = rdb;
+			if(!resistance.Serialize()) return false;
+		}
+
 		
 		TimeAndWeatherManagerEntity timeMgr = GetGame().GetTimeAndWeatherManager();
-		TimeContainer time = timeMgr.GetTime();
+		TimeContainer t = timeMgr.GetTime();
 				
-		m_DateTime = new OVT_TimeDateStruct();
-		m_DateTime.m_iHours = time.m_iHours;
-		m_DateTime.m_iMinutes = time.m_iMinutes;
-		m_DateTime.m_iSeconds = time.m_iSeconds;
-		timeMgr.GetDate(m_DateTime.m_iYear, m_DateTime.m_iMonth, m_DateTime.m_iDay);
+		int y,m,d;
+		timeMgr.GetDate(y,m,d);
+		
+		time.Insert(y);
+		time.Insert(m);
+		time.Insert(d);
+		time.Insert(t.m_iHours);
+		time.Insert(t.m_iMinutes);
+		time.Insert(t.m_iSeconds);
 		
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-		m_sOccupyingFaction = config.m_sOccupyingFaction;
+		occupyingFaction = config.m_sOccupyingFaction;
 		
 		foreach(OVT_TownData town : OVT_Global.GetTowns().m_Towns)
 		{
 			OVT_TownStruct struct = new OVT_TownStruct();
 			struct.Parse(town);
-			m_aTowns.Insert(struct);
+			towns.Insert(struct);
 		}
 		
 		return true;
 	}
 	override bool Deserialize()
 	{
-		if (m_EconomyStruct && !m_EconomyStruct.Deserialize())
-			return false;
-		
-		if (m_RealEstateStruct && !m_RealEstateStruct.Deserialize())
-			return false;
-		
-		if (m_VehiclesStruct && !m_VehiclesStruct.Deserialize())
-			return false;
-		
-		if (m_OccupyingStruct && !m_OccupyingStruct.Deserialize())
-			return false;
-		
-		if (m_ResistanceStruct && !m_ResistanceStruct.Deserialize())
-			return false;
+		if(economy)
+		{
+			economy.rdb = rdb;
+			if(!economy.Deserialize()) return false;
+		}
+		if(property)
+		{
+			property.rdb = rdb;
+			if(!property.Deserialize()) return false;
+		}
+		if(vehicles)
+		{
+			vehicles.rdb = rdb;
+			if(!vehicles.Deserialize()) return false;
+		}
+		if(occupying)
+		{
+			occupying.rdb = rdb;
+			if(!occupying.Deserialize()) return false;
+		}
+		if(resistance)
+		{
+			resistance.rdb = rdb;
+			if(!resistance.Deserialize()) return false;
+		}
 		
 		//A workaround because this will be fired with a blank struct on dedi servers that have no existing save file
-		if(m_sOccupyingFaction == "") return true;
+		if(occupyingFaction == "") return true;
 					
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-		config.SetOccupyingFaction(m_sOccupyingFaction);
+		config.SetOccupyingFaction(occupyingFaction);
 		
-		if(m_DateTime)
+		if(time)
 		{
 			TimeAndWeatherManagerEntity timeMgr = GetGame().GetTimeAndWeatherManager();
-			timeMgr.SetDate(m_DateTime.m_iYear, m_DateTime.m_iMonth, m_DateTime.m_iDay, true);
-			TimeContainer time = timeMgr.GetTime();
-			time.m_iHours = m_DateTime.m_iHours;
-			time.m_iMinutes = m_DateTime.m_iMinutes;
-			time.m_iSeconds = m_DateTime.m_iSeconds;
-			timeMgr.SetTime(time);
+			timeMgr.SetDate(time[0], time[1], time[2], true);
+			TimeContainer t = timeMgr.GetTime();
+			t.m_iHours = time[3];
+			t.m_iMinutes = time[4];
+			t.m_iSeconds = time[5];
+			timeMgr.SetTime(t);
 		}
 		
 		OVT_OverthrowGameMode mode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
@@ -97,31 +134,31 @@ class OVT_OverthrowSaveStruct : SCR_MissionStruct
 		
 		foreach(OVT_TownData town : OVT_Global.GetTowns().m_Towns)
 		{			
-			foreach(OVT_TownStruct struct : m_aTowns)
+			foreach(OVT_TownStruct struct : towns)
 			{
-				float dist = vector.Distance(struct.m_vLocation, town.location);
+				float dist = vector.Distance(struct.pos, town.location);
 				if(dist < 50)
 				{
-					town.population = struct.m_iPopulation;
-					town.support = struct.m_iSupport;
-					foreach(int i : struct.m_aSupportMods)
+					town.population = struct.pop;
+					town.support = struct.support;
+					foreach(int i : struct.supportMods)
 					{
 						town.supportModifiers.Insert(i);
 					}
-					foreach(int i : struct.m_aSupportModTimers)
+					foreach(int i : struct.supportModTime)
 					{
 						town.supportModifierTimers.Insert(i);
 					}
-					foreach(int i : struct.m_aStabilityMods)
+					foreach(int i : struct.stabilityMods)
 					{
 						town.stabilityModifiers.Insert(i);
 					}
-					foreach(int i : struct.m_aStabilityModTimers)
+					foreach(int i : struct.stabilityModTime)
 					{
 						town.stabilityModifierTimers.Insert(i);
 					}					
 					
-					Faction fac = GetGame().GetFactionManager().GetFactionByKey(struct.m_sFaction);
+					Faction fac = GetGame().GetFactionManager().GetFactionByKey(struct.faction);
 					if(fac)
 					{
 						town.faction = GetGame().GetFactionManager().GetFactionIndex(fac);
@@ -136,71 +173,52 @@ class OVT_OverthrowSaveStruct : SCR_MissionStruct
 	
 	void OVT_OverthrowSaveStruct()
 	{
-		RegV("m_EconomyStruct");
-		RegV("m_RealEstateStruct");
-		RegV("m_VehiclesStruct");
-		RegV("m_OccupyingStruct");
-		RegV("m_ResistanceStruct");
-		RegV("m_sOccupyingFaction");
-		RegV("m_aTowns");
-		RegV("m_DateTime");
-	}
-}
-
-class OVT_TimeDateStruct : SCR_JsonApiStruct
-{
-	int m_iHours;
-	int m_iMinutes;
-	int m_iSeconds;
-	int m_iYear;
-	int m_iMonth;
-	int m_iDay;
-	
-	void OVT_TimeDateStruct()
-	{
-		RegV("m_iHours");
-		RegV("m_iMinutes");
-		RegV("m_iSeconds");
-		RegV("m_iYear");
-		RegV("m_iMonth");
-		RegV("m_iDay");
+		RegV("rdb");
+		RegV("economy");
+		RegV("property");
+		RegV("vehicles");
+		RegV("occupying");
+		RegV("resistance");
+		RegV("occupyingFaction");
+		RegV("towns");
+		RegV("time");
 	}
 }
 
 class OVT_TownStruct : SCR_JsonApiStruct
 {
-	vector m_vLocation;
-	int m_iPopulation;
-	int m_iSupport;
-	string m_sFaction;
-	ref array<ref int> m_aSupportMods = {};
-	ref array<ref int> m_aSupportModTimers = {};
-	ref array<ref int> m_aStabilityMods = {};	
-	ref array<ref int> m_aStabilityModTimers = {};
+	vector pos;
+	int pop;
+	int support;
+	string faction;
+	ref array<ref int> supportMods = {};
+	ref array<ref int> supportModTime = {};
+	ref array<ref int> stabilityMods = {};	
+	ref array<ref int> stabilityModTime = {};
 	
 	void Parse(OVT_TownData town)
 	{
 		FactionManager factions = GetGame().GetFactionManager();
 		
-		m_vLocation = town.location;
-		m_iPopulation = town.population;
-		m_iSupport = town.support;
-		m_sFaction = factions.GetFactionByIndex(town.faction).GetFactionKey();
-		m_aSupportMods = town.supportModifiers;
-		m_aStabilityMods = town.stabilityModifiers;
-		m_aSupportModTimers = town.supportModifierTimers;
-		m_aStabilityModTimers = town.stabilityModifierTimers;
+		pos = town.location;
+		pop = town.population;
+		support = town.support;
+		faction = factions.GetFactionByIndex(town.faction).GetFactionKey();
+		supportMods = town.supportModifiers;
+		stabilityMods = town.stabilityModifiers;
+		supportModTime = town.supportModifierTimers;
+		stabilityModTime = town.stabilityModifierTimers;
 	}
 	
 	void OVT_TownStruct()
 	{
-		RegV("m_vLocation");
-		RegV("m_iPopulation");
-		RegV("m_iSupport");
-		RegV("m_sFaction");
-		RegV("m_aSupportMods");
-		RegV("m_aSupportModTimers");
-		RegV("m_aStabilityMods");
-		RegV("m_aStabilityModTimers");
+		RegV("pos");
+		RegV("pop");
+		RegV("support");
+		RegV("faction");
+		RegV("supportMods");
+		RegV("supportModTime");
+		RegV("stabilityMods");
+		RegV("stabilityModTime");
 	}
 }

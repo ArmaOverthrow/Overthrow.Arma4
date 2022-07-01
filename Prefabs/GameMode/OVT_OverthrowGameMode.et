@@ -424,15 +424,15 @@ OVT_OverthrowGameMode {
   }
   SCR_SaveLoadComponent "{59724C8C935D8E11}" {
    m_Struct OVT_OverthrowSaveStruct "{59B70AF2ABE445C8}" {
-    m_EconomyStruct OVT_EconomyStruct "{59BC36810DBC39CF}" {
+    economy OVT_EconomyStruct "{59C2E6211480A3BC}" {
     }
-    m_RealEstateStruct OVT_RealEstateStruct "{59BC369BFBE654E2}" {
+    property OVT_RealEstateStruct "{59C2E621133163FD}" {
     }
-    m_VehiclesStruct OVT_VehiclesStruct "{59BC6AC6398E856A}" {
+    vehicles OVT_VehiclesStruct "{59C2E6211304E6CF}" {
     }
-    m_OccupyingStruct OVT_OccupyingFactionStruct "{59BCB05F7055CAED}" {
+    occupying OVT_OccupyingFactionStruct "{59C2E62113DE7EEC}" {
     }
-    m_ResistanceStruct OVT_ResistanceFactionStruct "{59C25863DB9CE2B4}" {
+    resistance OVT_ResistanceFactionStruct "{59C2E62113AC9CEF}" {
     }
    }
    m_iAutosavePeriod 600

@@ -1,23 +1,25 @@
 [BaseContainerProps()]
-class OVT_VehiclesStruct : SCR_JsonApiStruct
+class OVT_VehiclesStruct : OVT_BaseSaveStruct
 {
-	protected ref array<ref OVT_VehicleStruct> m_aVehicles = {};
+	protected ref array<ref OVT_VehicleStruct> vehicles = {};
 	
 	override bool Serialize()
 	{
-		OVT_VehicleManagerComponent vehicles = OVT_Global.GetVehicles();
+		vehicles.Clear();
 		
-		foreach(EntityID id : vehicles.m_aVehicles)
+		OVT_VehicleManagerComponent vehMgr = OVT_Global.GetVehicles();
+		
+		foreach(EntityID id : vehMgr.m_aVehicles)
 		{
 			IEntity ent = GetGame().GetWorld().FindEntityByID(id);
-			string owner = vehicles.GetOwnerID(ent);
+			string owner = vehMgr.GetOwnerID(ent);
 			if(owner == "") continue;
 			
 			if(ent)
 			{								
 				OVT_VehicleStruct veh = new OVT_VehicleStruct();
-				if(veh.Parse(ent))
-					m_aVehicles.Insert(veh);
+				if(veh.Parse(ent,rdb))
+					vehicles.Insert(veh);
 			}
 		}
 		
@@ -26,9 +28,9 @@ class OVT_VehiclesStruct : SCR_JsonApiStruct
 	
 	override bool Deserialize()
 	{
-		foreach(OVT_VehicleStruct veh : m_aVehicles)
+		foreach(OVT_VehicleStruct veh : vehicles)
 		{
-			veh.Spawn();
+			veh.Spawn(rdb);
 		}
 		
 		return true;
@@ -36,53 +38,53 @@ class OVT_VehiclesStruct : SCR_JsonApiStruct
 	
 	void OVT_VehiclesStruct()
 	{
-		RegV("m_aVehicles");
+		RegV("vehicles");
 	}
 }
 
 class OVT_VehicleStruct : SCR_JsonApiStruct
 {
-	string m_sPlayerId;
-	ResourceName m_sResource;
-	vector m_vPosition;
-	vector m_vAngles;
-	float m_fFuel;
-	float m_fHealth;
-	ref array<string> m_aInventory = {};
+	string owner;
+	int res;
+	vector pos;
+	vector ang;
+	float fuel;
+	float health;
+	ref array<int> inv = {};
 	
-	IEntity Spawn()
+	IEntity Spawn(array<string> resources)
 	{
 		OVT_VehicleManagerComponent vehicles = OVT_Global.GetVehicles();
 		vector mat[4];		
-		Math3D.AnglesToMatrix(m_vAngles, mat);
-		mat[3] = m_vPosition;
+		Math3D.AnglesToMatrix(ang, mat);
+		mat[3] = pos;
 		
-		IEntity ent = vehicles.SpawnVehicleMatrix(m_sResource, mat, m_sPlayerId);
+		IEntity ent = vehicles.SpawnVehicleMatrix(resources[res], mat, owner);
 		
 		SCR_DamageManagerComponent dmg = SCR_DamageManagerComponent.Cast(ent.FindComponent(SCR_DamageManagerComponent));
 		if(dmg)
-			dmg.SetHealthScaled(m_fHealth);
+			dmg.SetHealthScaled(health);
 		
-		SCR_FuelConsumptionComponent fuel = SCR_FuelConsumptionComponent.Cast(ent.FindComponent(SCR_FuelConsumptionComponent));
-		if(fuel)
+		SCR_FuelConsumptionComponent f = SCR_FuelConsumptionComponent.Cast(ent.FindComponent(SCR_FuelConsumptionComponent));
+		if(f)
 		{
-			BaseFuelNode node = fuel.GetCurrentFuelTank();			
-			node.SetFuel(m_fFuel);
+			BaseFuelNode node = f.GetCurrentFuelTank();			
+			node.SetFuel(fuel);
 		}
 		
-		InventoryStorageManagerComponent inv = InventoryStorageManagerComponent.Cast(ent.FindComponent(InventoryStorageManagerComponent));
-		if(inv)
+		InventoryStorageManagerComponent invMgr = InventoryStorageManagerComponent.Cast(ent.FindComponent(InventoryStorageManagerComponent));
+		if(invMgr)
 		{
-			foreach(string res : m_aInventory)
+			foreach(int id : inv)
 			{
-				inv.TrySpawnPrefabToStorage(res);
+				invMgr.TrySpawnPrefabToStorage(resources[id]);
 			}
 		}
 		
 		return ent;
 	}
 	
-	bool Parse(IEntity ent)
+	bool Parse(IEntity ent, inout array<string> resources)
 	{
 		OVT_VehicleManagerComponent vehicles = OVT_Global.GetVehicles();
 		SCR_DamageManagerComponent dmg = SCR_DamageManagerComponent.Cast(ent.FindComponent(SCR_DamageManagerComponent));
@@ -90,34 +92,47 @@ class OVT_VehicleStruct : SCR_JsonApiStruct
 		{
 			if(dmg.IsDestroyed()) return false;
 		
-			m_fHealth = dmg.GetHealth();
+			health = dmg.GetHealth();
 		}
-		string owner = vehicles.GetOwnerID(ent);				
-		m_sPlayerId = owner;
-		m_sResource = ent.GetPrefabData().GetPrefabName();
+		owner = vehicles.GetOwnerID(ent);	
+		string resource = ent.GetPrefabData().GetPrefabName();
+		
+		res = resources.Find(resource);
+		if(res == -1)
+		{
+			resources.Insert(resource);
+			res = resources.Count() - 1;
+		}		
 		
 		vector mat[4];
 		ent.GetTransform(mat);
-		m_vAngles = Math3D.MatrixToAngles(mat);
-		m_vPosition = mat[3];
+		ang = Math3D.MatrixToAngles(mat);
+		pos = mat[3];
 		
-		SCR_FuelConsumptionComponent fuel = SCR_FuelConsumptionComponent.Cast(ent.FindComponent(SCR_FuelConsumptionComponent));
-		if(fuel)
+		SCR_FuelConsumptionComponent f = SCR_FuelConsumptionComponent.Cast(ent.FindComponent(SCR_FuelConsumptionComponent));
+		if(f)
 		{
-			BaseFuelNode node = fuel.GetCurrentFuelTank();
-			m_fFuel = node.GetFuel();
+			BaseFuelNode node = f.GetCurrentFuelTank();
+			fuel = node.GetFuel();
 		}		
 		
-		InventoryStorageManagerComponent inv = InventoryStorageManagerComponent.Cast(ent.FindComponent(InventoryStorageManagerComponent));
-		if(inv)
+		InventoryStorageManagerComponent invMgr = InventoryStorageManagerComponent.Cast(ent.FindComponent(InventoryStorageManagerComponent));
+		if(invMgr)
 		{
 			array<IEntity> items = new array<IEntity>;
-			int count = inv.GetItems(items);
+			int count = invMgr.GetItems(items);
 			if(count > 0)
 			{
 				foreach(IEntity item : items)
 				{
-					m_aInventory.Insert(item.GetPrefabData().GetPrefabName());
+					string r = item.GetPrefabData().GetPrefabName();
+					int id = resources.Find(r);
+					if(id == -1)
+					{
+						resources.Insert(r);
+						id = resources.Count() - 1;
+					}
+					inv.Insert(id);
 				}
 			}
 		}
@@ -127,12 +142,12 @@ class OVT_VehicleStruct : SCR_JsonApiStruct
 		
 	void OVT_VehicleStruct()
 	{
-		RegV("m_sPlayerId");
-		RegV("m_sResource");
-		RegV("m_vPosition");
-		RegV("m_vAngles");
-		RegV("m_fFuel");
-		RegV("m_fHealth");
-		RegV("m_aInventory");
+		RegV("owner");
+		RegV("res");
+		RegV("pos");
+		RegV("ang");
+		RegV("fuel");
+		RegV("health");
+		RegV("inv");
 	}
 }

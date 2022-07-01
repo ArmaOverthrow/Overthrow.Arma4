@@ -163,9 +163,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 			{
 				//Loading a save game
 				OVT_BaseDataStruct struct;
-				foreach(OVT_BaseDataStruct s : m_LoadStruct.m_aBases)
+				foreach(OVT_BaseDataStruct s : m_LoadStruct.bases)
 				{
-					if(s.m_vLocation == pos)
+					if(s.pos == pos)
 					{
 						struct = s;
 						break;
@@ -173,10 +173,10 @@ class OVT_OccupyingFactionManager: OVT_Component
 				}
 				if(struct)
 				{
-					foreach(OVT_BaseUpgradeStruct upgrade : struct.m_aUpgrades)
+					foreach(OVT_BaseUpgradeStruct upgrade : struct.upgrades)
 					{
-						OVT_BaseUpgrade up = base.FindUpgrade(upgrade.m_sType, upgrade.m_sTag);
-						up.Deserialize(upgrade);
+						OVT_BaseUpgrade up = base.FindUpgrade(upgrade.type, upgrade.tag);
+						up.Deserialize(upgrade, m_LoadStruct.rdb);
 					}	
 				}
 			}					

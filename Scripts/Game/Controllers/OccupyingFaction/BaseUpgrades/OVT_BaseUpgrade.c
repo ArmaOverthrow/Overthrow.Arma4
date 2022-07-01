@@ -58,51 +58,19 @@ class OVT_BaseUpgrade : ScriptAndConfig
 		return faction.GetCompositionConfig(tag);
 	}
 	
-	OVT_BaseUpgradeStruct Serialize()
+	OVT_BaseUpgradeStruct Serialize(inout array<string> rdb)
 	{
 		OVT_BaseUpgradeStruct struct = new OVT_BaseUpgradeStruct();
-		struct.m_sType = ClassName();
-		struct.m_iResources = GetResources();
+		struct.type = ClassName();
+		struct.resources = GetResources();
 		
 		return struct;		
 	}
 	
-	bool Deserialize(OVT_BaseUpgradeStruct struct)
+	bool Deserialize(OVT_BaseUpgradeStruct struct, array<string> rdb)
 	{
-		Spend(struct.m_iResources, m_iMinimumThreat);
+		Spend(struct.resources, m_iMinimumThreat);
 		
 		return true;
-	}
-}
-
-class OVT_BaseUpgradeStruct : SCR_JsonApiStruct
-{
-	string m_sType;
-	int m_iResources;
-	vector m_vLocation;
-	ref array<ref OVT_BaseUpgradeGroupStruct> m_aGroups = {};
-	ref array<ref OVT_VehicleStruct> m_aVehicles = {};
-	string m_sTag = "";
-		
-	void OVT_BaseUpgradeStruct()
-	{
-		RegV("m_sType");
-		RegV("m_iResources");
-		RegV("m_vLocation");
-		RegV("m_aGroups");
-		RegV("m_aVehicles");
-		RegV("m_sTag");
-	}
-}
-
-class OVT_BaseUpgradeGroupStruct : SCR_JsonApiStruct
-{
-	string m_sType;
-	vector m_vLocation;
-	
-	void OVT_BaseUpgradeGroupStruct()
-	{
-		RegV("m_sType");
-		RegV("m_vLocation");
 	}
 }

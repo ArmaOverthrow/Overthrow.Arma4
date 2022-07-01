@@ -1,11 +1,12 @@
 [BaseContainerProps()]
-class OVT_EconomyStruct : SCR_JsonApiStruct
+class OVT_EconomyStruct : OVT_BaseSaveStruct
 {
-	protected int m_iResistanceMoney;
-	protected ref array<ref OVT_EconomyMoneyStruct> m_aMoneyStructs = {};
+	protected int funds;
+	protected ref array<ref OVT_EconomyMoneyStruct> players = {};
 	
 	override bool Serialize()
 	{
+		players.Clear();
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
 		for(int i; i<economy.m_mMoney.Count(); i++)
 		{	
@@ -13,7 +14,7 @@ class OVT_EconomyStruct : SCR_JsonApiStruct
 			d.m_sPlayerId = economy.m_mMoney.GetKey(i);
 			d.m_iMoney = economy.m_mMoney.GetElement(i);
 			
-			m_aMoneyStructs.Insert(d);
+			players.Insert(d);
 		}		
 		
 		return true;
@@ -22,7 +23,7 @@ class OVT_EconomyStruct : SCR_JsonApiStruct
 	override bool Deserialize()
 	{
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
-		foreach(OVT_EconomyMoneyStruct d : m_aMoneyStructs)
+		foreach(OVT_EconomyMoneyStruct d : players)
 		{
 			economy.m_mMoney[d.m_sPlayerId] = d.m_iMoney;
 		}
@@ -32,7 +33,7 @@ class OVT_EconomyStruct : SCR_JsonApiStruct
 	
 	void OVT_EconomyStruct()
 	{
-		RegV("m_aMoneyStructs");
-		RegV("m_iResistanceMoney");
+		RegV("players");
+		RegV("funds");
 	}
 }

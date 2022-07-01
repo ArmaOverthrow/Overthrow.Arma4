@@ -111,11 +111,11 @@ class OVT_BaseUpgradeParkedVehicles : OVT_BaseUpgrade
 		return spent;
 	}
 	
-	override OVT_BaseUpgradeStruct Serialize()
+	override OVT_BaseUpgradeStruct Serialize(inout array<string> rdb)
 	{
-		OVT_BaseUpgradeStruct struct = super.Serialize();
+		OVT_BaseUpgradeStruct struct = super.Serialize(rdb);
 		
-		struct.m_iResources = 0; //Do not respend any resources
+		struct.resources = 0; //Do not respend any resources
 		
 		foreach(EntityID id : m_Cars)
 		{
@@ -123,9 +123,9 @@ class OVT_BaseUpgradeParkedVehicles : OVT_BaseUpgrade
 			if(ent)
 			{
 				OVT_VehicleStruct veh = new OVT_VehicleStruct();
-				if(veh.Parse(ent))
+				if(veh.Parse(ent,rdb))
 				{
-					struct.m_aVehicles.Insert(veh);
+					struct.vehicles.Insert(veh);
 				}
 			}			
 		}
@@ -136,9 +136,9 @@ class OVT_BaseUpgradeParkedVehicles : OVT_BaseUpgrade
 			if(ent)
 			{
 				OVT_VehicleStruct veh = new OVT_VehicleStruct();
-				if(veh.Parse(ent))
+				if(veh.Parse(ent,rdb))
 				{
-					struct.m_aVehicles.Insert(veh);
+					struct.vehicles.Insert(veh);
 				}
 			}			
 		}
@@ -146,15 +146,15 @@ class OVT_BaseUpgradeParkedVehicles : OVT_BaseUpgrade
 		return struct;
 	}
 	
-	override bool Deserialize(OVT_BaseUpgradeStruct struct)
+	override bool Deserialize(OVT_BaseUpgradeStruct struct, array<string> rdb)
 	{
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
 		OVT_Faction faction = config.GetOccupyingFaction();
 		
-		foreach(OVT_VehicleStruct veh : struct.m_aVehicles)
+		foreach(OVT_VehicleStruct veh : struct.vehicles)
 		{
-			IEntity ent = veh.Spawn();
-			if(faction.m_aVehicleCarPrefabSlots.Find(veh.m_sResource) > -1)
+			IEntity ent = veh.Spawn(rdb);
+			if(faction.m_aVehicleCarPrefabSlots.Find(rdb[veh.res]) > -1)
 			{
 				m_Cars.Insert(ent.GetID());
 			}else{

@@ -41,10 +41,10 @@ class OVT_BaseUpgradeComposition : OVT_SlottedBaseUpgrade
 		return 0;
 	}	
 	
-	override OVT_BaseUpgradeStruct Serialize()
+	override OVT_BaseUpgradeStruct Serialize(inout array<string> rdb)
 	{
-		OVT_BaseUpgradeStruct struct = super.Serialize();
-		struct.m_sTag = m_sCompositionTag;
+		OVT_BaseUpgradeStruct struct = super.Serialize(rdb);
+		struct.tag = m_sCompositionTag;
 		return struct;
 	}
 	
