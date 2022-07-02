@@ -144,13 +144,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		}else{
 			wanted.SetWantedLevel(0);
 		}
-		
-		FactionAffiliationComponent faction = FactionAffiliationComponent.Cast(controlledEntity.FindComponent(FactionAffiliationComponent));
-		if(!faction){
-			Print("Player spawn prefab is missing FactionAffiliationComponent!");
-		}else{
-			faction.SetAffiliatedFactionByKey("");
-		}
 	}
 	
 	override void EOnInit(IEntity owner) //!EntityEvent.INIT

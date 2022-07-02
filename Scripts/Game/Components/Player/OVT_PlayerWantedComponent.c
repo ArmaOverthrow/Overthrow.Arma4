@@ -56,8 +56,6 @@ class OVT_PlayerWantedComponent: OVT_Component
 				
 		if(!GetRpl().IsOwner()) return;
 		
-		m_Faction.SetAffiliatedFactionByKey("");
-		
 		GetGame().GetCallqueue().CallLater(CheckUpdate, WANTED_SYSTEM_FREQUENCY, true, owner);		
 	}
 	

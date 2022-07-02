@@ -689,38 +689,38 @@ class OVT_TownManagerComponent: OVT_Component
 	override bool RplSave(ScriptBitWriter writer)
 	{		
 		//Send JIP towns
-		writer.Write(m_Towns.Count(), 32); 
+		writer.WriteInt(m_Towns.Count()); 
 		for(int i; i<m_Towns.Count(); i++)
 		{
 			OVT_TownData town = m_Towns[i];
-			writer.Write(town.id, 32);
+			writer.WriteInt(town.id);
 			writer.WriteVector(town.location);
-			writer.Write(town.population, 32);
-			writer.Write(town.stability, 32);
-			writer.Write(town.support, 32);
-			writer.Write(town.faction, 32);
-			writer.Write(town.size, 32);
+			writer.WriteInt(town.population);
+			writer.WriteInt(town.stability);
+			writer.WriteInt(town.support);
+			writer.WriteInt(town.faction);
+			writer.WriteInt(town.size);
 			
-			writer.Write(town.stabilityModifiers.Count(), 32);
-			for(int t; t<town.stabilityModifiers.Count(); i++)
+			writer.WriteInt(town.stabilityModifiers.Count());
+			for(int t; t<town.stabilityModifiers.Count(); t++)
 			{
-				writer.Write(town.stabilityModifiers[t], 32);
+				writer.WriteInt(town.stabilityModifiers[t]);
 			}
-			writer.Write(town.supportModifiers.Count(), 32);
-			for(int t; t<town.supportModifiers.Count(); i++)
+			writer.WriteInt(town.supportModifiers.Count());
+			for(int t; t<town.supportModifiers.Count(); t++)
 			{
-				writer.Write(town.supportModifiers[t], 32);
+				writer.WriteInt(town.supportModifiers[t]);
 			}
 			
-			writer.Write(town.stabilityModifierTimers.Count(), 32);
-			for(int t; t<town.stabilityModifierTimers.Count(); i++)
+			writer.WriteInt(town.stabilityModifierTimers.Count());
+			for(int t; t<town.stabilityModifierTimers.Count(); t++)
 			{
-				writer.Write(town.stabilityModifierTimers[t], 32);
+				writer.WriteInt(town.stabilityModifierTimers[t]);
 			}
-			writer.Write(town.supportModifierTimers.Count(), 32);
-			for(int t; t<town.supportModifierTimers.Count(); i++)
+			writer.WriteInt(town.supportModifierTimers.Count());
+			for(int t; t<town.supportModifierTimers.Count(); t++)
 			{
-				writer.Write(town.supportModifierTimers[t], 32);
+				writer.WriteInt(town.supportModifierTimers[t]);
 			}
 		}
 		
@@ -732,42 +732,42 @@ class OVT_TownManagerComponent: OVT_Component
 		//Recieve JIP towns
 		int length, modlength, mod;
 		
-		if (!reader.Read(length, 32)) return false;
+		if (!reader.ReadInt(length)) return false;
 		for(int i; i<length; i++)
 		{
 			OVT_TownData town = new OVT_TownData();
 			
-			if (!reader.Read(town.id, 32)) return false;
+			if (!reader.ReadInt(town.id)) return false;
 			if (!reader.ReadVector(town.location)) return false;		
-			if (!reader.Read(town.population, 32)) return false;		
-			if (!reader.Read(town.stability, 32)) return false;		
-			if (!reader.Read(town.support, 32)) return false;		
-			if (!reader.Read(town.faction, 32)) return false;		
-			if (!reader.Read(town.size, 32)) return false;	
+			if (!reader.ReadInt(town.population)) return false;		
+			if (!reader.ReadInt(town.stability)) return false;		
+			if (!reader.ReadInt(town.support)) return false;		
+			if (!reader.ReadInt(town.faction)) return false;		
+			if (!reader.ReadInt(town.size)) return false;	
 				
-			if (!reader.Read(modlength, 32)) return false;
+			if (!reader.ReadInt(modlength)) return false;
 			for(int t = 0; t<modlength; t++)
 			{
-				if (!reader.Read(mod, 32)) return false;
+				if (!reader.ReadInt(mod)) return false;
 				town.stabilityModifiers.Insert(mod);
 			}	
-			if (!reader.Read(modlength, 32)) return false;
+			if (!reader.ReadInt(modlength)) return false;
 			for(int t = 0; t<modlength; t++)
 			{
-				if (!reader.Read(mod, 32)) return false;
+				if (!reader.ReadInt(mod)) return false;
 				town.supportModifiers.Insert(mod);
 			}
 			
-			if (!reader.Read(modlength, 32)) return false;
+			if (!reader.ReadInt(modlength)) return false;
 			for(int t = 0; t<modlength; t++)
 			{
-				if (!reader.Read(mod, 32)) return false;
+				if (!reader.ReadInt(mod)) return false;
 				town.stabilityModifierTimers.Insert(mod);
 			}	
-			if (!reader.Read(modlength, 32)) return false;
+			if (!reader.ReadInt(modlength)) return false;
 			for(int t = 0; t<modlength; t++)
 			{
-				if (!reader.Read(mod, 32)) return false;
+				if (!reader.ReadInt(mod)) return false;
 				town.supportModifierTimers.Insert(mod);
 			}
 			
