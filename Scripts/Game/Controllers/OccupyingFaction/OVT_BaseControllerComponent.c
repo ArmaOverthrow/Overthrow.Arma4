@@ -72,13 +72,14 @@ class OVT_BaseControllerComponent: OVT_Component
 		return m_iControllingFaction;
 	}
 	
-	void SetControllingFaction(int index)
+	void SetControllingFaction(int index, bool suppressEvents = false)
 	{
 		if(m_iControllingFaction == index) return;
 		
 		m_iControllingFaction = index;
 		Replication.BumpMe();
-		m_occupyingFactionManager.OnBaseControlChange(this);
+		if(!suppressEvents)
+			m_occupyingFactionManager.OnBaseControlChange(this);
 		
 		IEntity flag = GetGame().GetWorld().FindEntityByID(m_Flag);
 		if(flag)

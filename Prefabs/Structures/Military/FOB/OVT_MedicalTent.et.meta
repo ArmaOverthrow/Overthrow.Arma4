@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{F634370733F16BC0}Prefabs/Structures/Military/FOB/OVT_MedicalTent.et"
+ Configurations {
+  EntityTemplateResourceClass PC {
+  }
+  EntityTemplateResourceClass XBOX_ONE : PC {
+  }
+  EntityTemplateResourceClass XBOX_SERIES : PC {
+  }
+  EntityTemplateResourceClass PS4 : PC {
+  }
+  EntityTemplateResourceClass HEADLESS : PC {
+  }
+ }
+}

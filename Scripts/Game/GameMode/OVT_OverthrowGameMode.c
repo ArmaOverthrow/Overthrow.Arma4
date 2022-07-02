@@ -61,7 +61,14 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			Print("Starting Occupying Faction");
 			
 			m_OccupyingFactionManager.PostGameStart();
-		}				
+		}	
+		
+		if(m_EconomyManager)
+		{
+			Print("Starting Jobs");
+			
+			m_JobManager.PostGameStart();
+		}			
 		
 		Print("Overthrow Starting");
 		m_bGameInitialized = true;
@@ -70,6 +77,13 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	override void EOnFrame(IEntity owner, float timeSlice)
 	{
 		super.EOnFrame(owner, timeSlice);
+		
+		if(DiagMenu.GetValue(200))
+		{
+			m_EconomyManager.DoAddPlayerMoney(SCR_PlayerController.GetLocalPlayerId(),1000);
+			DiagMenu.SetValue(200,0);
+		}
+		
 		if(m_bGameInitialized) return;
 		m_StartGameUIContext.EOnFrame(owner, timeSlice);
 	}
@@ -149,6 +163,9 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	override void EOnInit(IEntity owner) //!EntityEvent.INIT
 	{
 		super.EOnInit(owner);
+		
+		DiagMenu.RegisterBool(200, "lctrl+lalt+g", "Give $1000", "Cheats");
+		DiagMenu.SetValue(200, 0);
 		
 		if(SCR_Global.IsEditMode())
 			return;		

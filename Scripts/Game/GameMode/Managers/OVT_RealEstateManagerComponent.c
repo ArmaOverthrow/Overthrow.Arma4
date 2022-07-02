@@ -45,6 +45,12 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		Rpc(RpcDo_SetHome, playerId, building.GetOrigin());
 	}
 	
+	void SetHomePos(int playerId, vector pos)
+	{	
+		DoSetHome(playerId, pos);
+		Rpc(RpcDo_SetHome, playerId, pos);
+	}
+	
 	IEntity GetNearestOwned(string playerId, vector pos)
 	{
 		if(!m_mOwned.Contains(playerId)) return null;

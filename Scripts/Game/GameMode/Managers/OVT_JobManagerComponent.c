@@ -122,8 +122,11 @@ class OVT_JobManagerComponent: OVT_Component
 		
 		m_Towns = OVT_Global.GetTowns();
 		m_OccupyingFaction = OVT_Global.GetOccupyingFaction();
-		
-		if(!Replication.IsServer()) return;
+				
+	}
+	
+	void PostGameStart()
+	{
 		GetGame().GetCallqueue().CallLater(CheckUpdate, JOB_FREQUENCY, true, GetOwner());		
 	}
 	

@@ -258,6 +258,7 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 	
 	override bool Deserialize(OVT_BaseUpgradeStruct struct, array<string> rdb)
 	{
+		if(!m_BaseController.IsOccupyingFaction()) return true;
 		foreach(OVT_BaseUpgradeGroupStruct g : struct.groups)
 		{
 			BuyPatrol(0, rdb[g.type], g.pos);

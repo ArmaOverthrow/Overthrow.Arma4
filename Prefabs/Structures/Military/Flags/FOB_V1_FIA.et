@@ -3,7 +3,29 @@ GenericEntity : "{160E4E4110803F26}Prefabs/Structures/Military/Flags/FlagPole_02
  components {
   OVT_ResistanceFOBControllerComponent "{59A49A9F9A08E066}" {
   }
+  ActionsManagerComponent "{59C52755F65E61F5}" {
+   ActionContexts {
+    UserActionContext "{59C52755F52E2881}" {
+     ContextName "default"
+     Position PointInfo "{59C52755F1DD050B}" {
+      Offset 0 1.8 0
+     }
+     Radius 0.65
+    }
+   }
+   additionalActions {
+    OVT_SetHomeAction "{59C52755A9157553}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{59C52755B6094D4B}" {
+      Name "#OVT-SetHome"
+     }
+    }
+   }
+  }
   RplComponent "{59A49A8416A87531}" {
   }
  }
+ coords 0 0 0
 }

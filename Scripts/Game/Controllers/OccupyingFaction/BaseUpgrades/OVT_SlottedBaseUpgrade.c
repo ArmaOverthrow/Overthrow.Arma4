@@ -129,6 +129,7 @@ class OVT_SlottedBaseUpgrade : OVT_BasePatrolUpgrade
 	
 	override bool Deserialize(OVT_BaseUpgradeStruct struct, array<string> rdb)	
 	{
+		if(!m_BaseController.IsOccupyingFaction()) return true;
 		foreach(OVT_VehicleStruct veh : struct.vehicles)
 		{
 			IEntity slot = NearestSlot(veh.pos);

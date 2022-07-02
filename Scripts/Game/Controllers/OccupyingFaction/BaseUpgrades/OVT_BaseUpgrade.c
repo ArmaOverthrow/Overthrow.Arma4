@@ -69,6 +69,7 @@ class OVT_BaseUpgrade : ScriptAndConfig
 	
 	bool Deserialize(OVT_BaseUpgradeStruct struct, array<string> rdb)
 	{
+		if(!m_BaseController.IsOccupyingFaction()) return true;
 		Spend(struct.resources, m_iMinimumThreat);
 		
 		return true;

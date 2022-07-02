@@ -41,6 +41,8 @@ class OVT_DifficultySettings : ScriptAndConfig
 	int fastTravelCost;
 	[Attribute(defvalue: "1", desc: "Cost of placeables is multiplied by this value")]
 	float placeableCostMultiplier;
+	[Attribute(defvalue: "1", desc: "Cost of buildables is multiplied by this value")]
+	float buildableCostMultiplier;
 	[Attribute(defvalue: "10", desc: "Donation income per civilian supporter")]
 	int donationIncome;
 	[Attribute(defvalue: "5", desc: "Bus ticket price per km")]
@@ -53,37 +55,6 @@ class OVT_DifficultySettings : ScriptAndConfig
 	[Attribute(defvalue: "500", desc: "Max size of QRF in resources")]
 	int maxQRF;
 }
-
-class OVT_Placeable : ScriptAndConfig
-{
-	[Attribute()]
-	string name;
-		
-	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Object Prefabs", params: "et")]
-	ref array<ResourceName> m_aPrefabs;
-	
-	[Attribute("", UIWidgets.ResourceNamePicker, "", "edds")]
-	ResourceName m_tPreview;
-	
-	[Attribute(defvalue: "100", desc: "Cost (multiplied by difficulty)")]
-	int m_iCost;
-	
-	[Attribute(defvalue: "0", desc: "Place on walls")]
-	bool m_bPlaceOnWall;
-	
-	[Attribute(defvalue: "0", desc: "Can place it anywhere")]
-	bool m_bIgnoreLocation;
-	
-	[Attribute(defvalue: "0", desc: "Cannot place near towns or bases")]
-	bool m_bAwayFromTownsBases;
-	
-	[Attribute(defvalue: "0", desc: "Must be placed near a town")]
-	bool m_bNearTown;
-	
-	[Attribute("", UIWidgets.Object)]
-	ref OVT_PlaceableHandler handler;
-}
-
 
 class OVT_OverthrowConfigComponent: OVT_Component
 {
@@ -106,12 +77,7 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		
 	[Attribute("", UIWidgets.Object)]
 	ref array<ref OVT_DifficultySettings> m_aDifficultyPresets;
-	ref array<ref OVT_DifficultySettings> m_aDifficultyPresetsPacked = new array<ref OVT_DifficultySettings>();
-	
-	[Attribute("", UIWidgets.Object)]
-	ref array<ref OVT_Placeable> m_aPlaceables;
-	ref array<ref OVT_Placeable> m_aPlaceablesPacked = new array<ref OVT_Placeable>();
-	
+		
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Gun Dealer Prefab", params: "et")]
 	ResourceName m_pGunDealerPrefab;
 	
@@ -178,6 +144,11 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	int GetPlaceableCost(OVT_Placeable placeable)
 	{
 		return Math.Round(m_Difficulty.placeableCostMultiplier * placeable.m_iCost);
+	}
+	
+	int GetBuildableCost(OVT_Buildable buildable)
+	{
+		return Math.Round(m_Difficulty.buildableCostMultiplier * buildable.m_iCost);
 	}
 	
 	void SetOccupyingFaction(string key)

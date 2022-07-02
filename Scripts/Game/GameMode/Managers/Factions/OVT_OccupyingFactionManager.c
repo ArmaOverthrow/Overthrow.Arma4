@@ -86,11 +86,13 @@ class OVT_OccupyingFactionManager: OVT_Component
 		OVT_Global.GetTowns().m_OnTownControlChange.Insert(OnTownControlChanged);
 		
 		InitializeBases();
-		GetGame().GetCallqueue().CallLater(SpawnBaseControllers, 0);	
+			
 	}
 	
 	void PostGameStart()
 	{
+		GetGame().GetCallqueue().CallLater(SpawnBaseControllers, 0);
+		
 		GetGame().GetCallqueue().CallLater(CheckUpdate, OF_UPDATE_FREQUENCY / m_Config.m_iTimeMultiplier, true, GetOwner());		
 		
 		if(m_bDistributeInitial)
@@ -157,7 +159,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 			data.closeRange = base.m_iCloseRange;
 			data.range = base.m_iRange;
 			data.entId = baseEntity.GetID();	
-			base.SetControllingFaction(data.faction);
+			base.SetControllingFaction(data.faction, false);
 			
 			if(m_LoadStruct)
 			{

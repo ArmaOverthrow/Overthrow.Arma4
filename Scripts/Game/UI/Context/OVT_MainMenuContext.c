@@ -56,6 +56,13 @@ class OVT_MainMenuContext : OVT_UIContext
 		{
 			comp.m_OnClicked.Insert(Jobs);
 		}
+		
+		// Build
+		comp = SCR_ButtonTextComponent.GetButtonText("Build", m_wRoot);
+		if (comp)
+		{
+			comp.m_OnClicked.Insert(Build);
+		}
 	}
 	
 	private void MapInfo()
@@ -86,5 +93,11 @@ class OVT_MainMenuContext : OVT_UIContext
 	{
 		CloseLayout();
 		m_UIManager.ShowContext(OVT_JobsContext);		
+	}
+	
+	private void Build()
+	{
+		CloseLayout();
+		m_UIManager.ShowContext(OVT_BuildContext);		
 	}
 }

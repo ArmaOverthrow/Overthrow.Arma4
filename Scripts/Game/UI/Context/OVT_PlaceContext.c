@@ -63,7 +63,7 @@ class OVT_PlaceContext : OVT_UIContext
 		m_Widgets.Init(m_wRoot);
 				
 		int done = 0;
-		foreach(int i, OVT_Placeable placeable : m_Config.m_aPlaceables)
+		foreach(int i, OVT_Placeable placeable : m_Resistance.m_aPlaceables)
 		{
 			Widget w = m_Widgets.m_BrowserGrid.FindWidget("PlaceMenu_Card" + i);
 			OVT_PlaceMenuCardComponent card = OVT_PlaceMenuCardComponent.Cast(w.FindHandler(OVT_PlaceMenuCardComponent));
@@ -108,6 +108,7 @@ class OVT_PlaceContext : OVT_UIContext
 	
 	void Cancel(float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
 	{
+		if(!m_bPlacing) return;
 		m_bPlacing = false;
 		RemoveGhost();
 		if(m_PlaceWidget)
@@ -174,10 +175,16 @@ class OVT_PlaceContext : OVT_UIContext
 			if(dist < MAX_HOUSE_PLACE_DIS) return true;
 		}
 		
-		vector fob = m_Resistance.GetNearestFOB(pos);
-		
+		vector fob = m_Resistance.GetNearestFOB(pos);		
 		dist = vector.Distance(fob, pos);
-		if(dist < MAX_FOB_PLACE_DIS) return true;		
+		if(dist < MAX_FOB_PLACE_DIS) return true;	
+		
+		OVT_BaseData base = m_OccupyingFaction.GetNearestBase(pos);
+		dist = vector.Distance(base.location,pos);
+		if(!base.IsOccupyingFaction() && dist < base.range)
+		{
+			return true;
+		}
 		
 		return false;
 	}
@@ -254,6 +261,8 @@ class OVT_PlaceContext : OVT_UIContext
 	
 	void DoPlace(float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
 	{		
+		if(!m_bPlacing) return;
+		
 		int cost = m_Config.GetPlaceableCost(m_Placeable);
 		vector mat[4];
 		
@@ -277,7 +286,7 @@ class OVT_PlaceContext : OVT_UIContext
 			}
 			
 			vector angles = Math3D.MatrixToAngles(mat);
-			int placeableIndex = m_Config.m_aPlaceables.Find(m_Placeable);
+			int placeableIndex = m_Resistance.m_aPlaceables.Find(m_Placeable);
 			int prefabIndex = m_Placeable.m_aPrefabs.Find(m_pPlacingPrefab);
 			OVT_Global.GetServer().PlaceItem(placeableIndex, prefabIndex, mat[3], angles, m_iPlayerID);
 						
@@ -295,6 +304,7 @@ class OVT_PlaceContext : OVT_UIContext
 	
 	void NextItem(float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
 	{
+		if(!m_bPlacing) return;
 		int newIndex = m_iPrefabIndex + 1;
 		if(newIndex > m_Placeable.m_aPrefabs.Count() - 1)
 		{
@@ -311,6 +321,7 @@ class OVT_PlaceContext : OVT_UIContext
 	
 	void PrevItem(float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
 	{
+		if(!m_bPlacing) return;
 		int newIndex = m_iPrefabIndex - 1;
 		if(newIndex < 0)
 		{

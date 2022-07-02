@@ -15,6 +15,20 @@ SCR_CameraManager SCR_CameraManager1 : "{33F9FD881E3700CC}Prefabs/World/Game/SCR
 }
 OVT_OverthrowGameMode OVT_OverthrowGameMode1 : "{4DC10DCB8BE06D32}Prefabs/GameMode/OVT_OverthrowGameMode.et" {
  components {
+  OVT_ResistanceFactionManager "{59A49A9CD87CBC92}" {
+   m_aBuildables {
+    OVT_Buildable "{59C4C0ED2BB2E769}" {
+     name "#OVT-Build_MedicalTent"
+     m_aPrefabs {
+      "{F634370733F16BC0}Prefabs/Structures/Military/FOB/OVT_MedicalTent.et"
+     }
+     m_tPreview "{D57791EDD697D223}UI/Textures/EditorPreviews/Auto/Structures/Military/Camps/TentUSSR_01/E_TentUSSRMedical_01.edds"
+     m_iCost 1000
+     m_bBuildAtBase 1
+     m_bBuildAtFOB 1
+    }
+   }
+  }
   SCR_InitWeatherComponent "{597CE04456F991A8}" {
    m_sInitialStartingWeatherId "Cloudy"
    m_initialWeatherDurationMin 0.2

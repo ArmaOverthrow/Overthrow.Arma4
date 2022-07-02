@@ -23,6 +23,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{59C4F15B8934641B}" {
+   Id "OVT-Build_MedicalTent"
+   Target_en_us "Medical Tent"
+   Modified 1506079956
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59A5462B60C888FA}" {
    Id "OVT-Cancel"
    Target_en_us "Cancel"
@@ -35,6 +42,34 @@ StringTable {
    Target_en_us "You cannot afford that"
    Status DEVELOPMENT_DONE
    Modified 1502796262
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59C4F15B7BFD22D6}" {
+   Id "OVT-CannotBuildAnythingHere"
+   Target_en_us "You cannot build anything here. Try at an FOB or a captured town/base."
+   Modified 1506079602
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59C4F15B5D50BCD3}" {
+   Id "OVT-CannotBuildHere"
+   Target_en_us "You cannot build that here"
+   Modified 1506079633
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59C4F15B2987932A}" {
+   Id "OVT-CannotBuildTown"
+   Target_en_us "You can only build that in small villages"
+   Modified 1506079670
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59C4F15B22A9F14E}" {
+   Id "OVT-CannotBuildVillage"
+   Target_en_us "You cannot build that in a small village"
+   Modified 1506079654
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -161,6 +196,27 @@ StringTable {
    Target_en_us "Gun Dealer"
    Status DEVELOPMENT_DONE
    Modified 1502796262
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59C527544D0B9EF0}" {
+   Id "OVT-Heal"
+   Target_en_us "Heal"
+   Modified 1506094340
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59C5275449083085}" {
+   Id "OVT-Healed"
+   Target_en_us "You have been healed"
+   Modified 1506094352
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59C527545D12FEDB}" {
+   Id "OVT-HomeSet"
+   Target_en_us "Your home is now set to here"
+   Modified 1506094372
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -583,6 +639,13 @@ StringTable {
    Id "OVT-Resistance_TotalTaxes"
    Target_en_us "Total Taxes"
    Modified 1504108873
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59C5275452D1E646}" {
+   Id "OVT-SetHome"
+   Target_en_us "Set Home"
+   Modified 1506094359
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

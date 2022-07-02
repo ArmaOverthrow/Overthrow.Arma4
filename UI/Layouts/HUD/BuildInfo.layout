@@ -1,7 +1,7 @@
 FrameWidgetClass {
  Name "rootFrame"
  {
-  OverlayWidgetClass "{59A5462D1F5603F0}" {
+  OverlayWidgetClass "{59C4C0EB4AB752D9}" {
    Name "Overlay0"
    Slot FrameWidgetSlot "{59A5462D1F5603DD}" {
     Anchor 1 1 1 1
@@ -17,18 +17,18 @@ FrameWidgetClass {
     SizeToContent 1
    }
    {
-    VerticalLayoutWidgetClass "{59A5462C09DE52F3}" {
+    VerticalLayoutWidgetClass "{59C4C0EB4AB752D8}" {
      Name "VerticalLayout0"
      Slot OverlayWidgetSlot "{59A5462C09DE52D6}" {
      }
      {
-      HorizontalLayoutWidgetClass "{59A5462C3E9BE075}" {
+      HorizontalLayoutWidgetClass "{59C4C0EB4AB752DB}" {
        Name "HorizontalLayout0"
        Slot LayoutSlot "{59A5462C17CD0EF8}" {
         HorizontalAlign 2
        }
        {
-        ButtonWidgetClass "{59A5462C39DCFB96}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+        ButtonWidgetClass "{59C4C0EB4AB752DD}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
          Name "PrevItemButton"
          Slot LayoutSlot "{59A5462C005E2D26}" {
          }
@@ -62,7 +62,7 @@ FrameWidgetClass {
           }
          }
         }
-        ButtonWidgetClass "{59A5462C10222C42}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+        ButtonWidgetClass "{59C4C0EB4AB752DF}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
          Name "NextItemButton"
          Slot LayoutSlot "{59A5462C005E2D26}" {
          }
@@ -98,13 +98,13 @@ FrameWidgetClass {
         }
        }
       }
-      HorizontalLayoutWidgetClass "{59A5462CC08E0A99}" {
+      HorizontalLayoutWidgetClass "{59C4C0EB4AB752C1}" {
        Name "HorizontalLayout1"
        Slot LayoutSlot "{59A5462C17CD0EF8}" {
         HorizontalAlign 2
        }
        {
-        ButtonWidgetClass "{59A5462CC08E0A87}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+        ButtonWidgetClass "{59C4C0EB4AB752C0}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
          Name "RotateLeftButton"
          Slot LayoutSlot "{59A5462C005E2D26}" {
          }
@@ -138,7 +138,7 @@ FrameWidgetClass {
           }
          }
         }
-        ButtonWidgetClass "{59A5462CC08E0A85}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+        ButtonWidgetClass "{59C4C0EB4AB752C3}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
          Name "RotateRightButton"
          Slot LayoutSlot "{59A5462C005E2D26}" {
          }
@@ -174,13 +174,13 @@ FrameWidgetClass {
         }
        }
       }
-      HorizontalLayoutWidgetClass "{59A5462B4883734B}" {
+      HorizontalLayoutWidgetClass "{59C4C0EB4AB752C5}" {
        Name "HorizontalLayout2"
        Slot LayoutSlot "{59A5462C17CD0EF8}" {
         HorizontalAlign 2
        }
        {
-        ButtonWidgetClass "{59A5462B48837348}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+        ButtonWidgetClass "{59C4C0EB4AB752C4}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
          Name "CancelButton"
          Slot LayoutSlot "{59A5462C005E2D26}" {
          }
@@ -214,14 +214,14 @@ FrameWidgetClass {
           }
          }
         }
-        ButtonWidgetClass "{59A5462B48837336}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
-         Name "PlaceButton"
+        ButtonWidgetClass "{59C4C0EB4AB752C7}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+         Name "BuildButton"
          Slot LayoutSlot "{59A5462C005E2D26}" {
          }
          components {
           SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
            m_bShowBorderOnHover 0
-           m_sLabel "#OVT-MainMenu_Place"
+           m_sLabel "#OVT-MainMenu_Build"
            m_sActionName "OverthrowPlace"
           }
           ButtonActionComponent "{56EEDE0026B19E2C}" {

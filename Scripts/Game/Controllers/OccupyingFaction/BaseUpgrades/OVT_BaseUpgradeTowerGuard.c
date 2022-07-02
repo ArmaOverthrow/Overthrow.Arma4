@@ -114,6 +114,7 @@ class OVT_BaseUpgradeTowerGuard : OVT_BasePatrolUpgrade
 	
 	override bool Deserialize(OVT_BaseUpgradeStruct struct, array<string> rdb)
 	{
+		if(!m_BaseController.IsOccupyingFaction()) return true;
 		Spend(struct.resources, m_iMinimumThreat);
 		
 		return true;

@@ -49,6 +49,18 @@ class OVT_PlayerCommsEntity: GenericEntity
 		of.StartBaseQRF(base);
 	}
 	
+	void SetHome(int playerId)
+	{		
+		Rpc(RpcAsk_SetHome, playerId);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_SetHome(int playerId)
+	{	
+		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+		OVT_Global.GetRealEstate().SetHomePos(playerId, player.GetOrigin());
+	}
+	
 	//SHOPS
 	
 	void Buy(OVT_ShopComponent shop, int id, int num, int playerId)
@@ -194,5 +206,17 @@ class OVT_PlayerCommsEntity: GenericEntity
 	protected void RpcAsk_PlaceItem(int placeableIndex, int prefabIndex, vector pos, vector angles, int playerId)
 	{
 		OVT_Global.GetResistanceFaction().PlaceItem(placeableIndex, prefabIndex, pos, angles, playerId);
+	}
+	
+	//BUILDING
+	void BuildItem(int buildableIndex, int prefabIndex, vector pos, vector angles, int playerId)
+	{
+		Rpc(RpcAsk_BuildItem, buildableIndex, prefabIndex, pos, angles, playerId);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_BuildItem(int buildableIndex, int prefabIndex, vector pos, vector angles, int playerId)
+	{
+		OVT_Global.GetResistanceFaction().BuildItem(buildableIndex, prefabIndex, pos, angles, playerId);
 	}
 }

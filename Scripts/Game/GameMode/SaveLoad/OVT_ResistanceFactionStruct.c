@@ -3,11 +3,13 @@ class OVT_ResistanceFactionStruct : OVT_BaseSaveStruct
 {
 	ref array<ref OVT_EntityStruct> placed = {};
 	ref array<ref OVT_VectorStruct> fobs = {};
+	ref array<ref OVT_VehicleStruct> built = {};
 	
 	override bool Serialize()
 	{
 		placed.Clear();
 		fobs.Clear();
+		built.Clear();
 		
 		OVT_ResistanceFactionManager rf = OVT_Global.GetResistanceFaction();
 		
@@ -26,6 +28,15 @@ class OVT_ResistanceFactionStruct : OVT_BaseSaveStruct
 			fobs.Insert(struct);
 		}
 		
+		foreach(EntityID id : rf.m_Built)
+		{
+			IEntity ent = GetGame().GetWorld().FindEntityByID(id);
+			if(!ent) continue;
+			OVT_VehicleStruct struct = new OVT_VehicleStruct();
+			if(struct.Parse(ent, rdb))
+				built.Insert(struct);
+		}
+		
 		return true;
 	}
 	
@@ -42,6 +53,12 @@ class OVT_ResistanceFactionStruct : OVT_BaseSaveStruct
 		{	
 			rf.m_FOBs.Insert(struct.pos);
 		}
+		
+		foreach(OVT_VehicleStruct struct : built)
+		{			
+			IEntity ent = struct.Spawn(rdb);
+			rf.m_Built.Insert(ent.GetID());
+		}
 			
 		return true;
 	}
@@ -50,6 +67,7 @@ class OVT_ResistanceFactionStruct : OVT_BaseSaveStruct
 	{		
 		RegV("placed");
 		RegV("fobs");
+		RegV("built");
 	}
 }
 

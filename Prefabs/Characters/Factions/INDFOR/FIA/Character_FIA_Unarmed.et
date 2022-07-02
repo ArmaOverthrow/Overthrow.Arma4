@@ -49,6 +49,14 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      m_bOpenActionCloses 0
      m_JobLayout "{55AB78EFC69205D2}UI/Layouts/Menu/JobsMenu/JobCard.layout"
     }
+    OVT_BuildContext "{59C4C0E9D2BF409E}" {
+     m_Layout "{871C07E88AE43089}UI/Layouts/Menu/BuildMenu.layout"
+     m_sContextName "OverthrowBuildMenuContext"
+     m_sOpenAction "OverthrowBuildMenu"
+     m_sCloseAction "MenuBack"
+     m_BuildLayout "{A07C65DB3FF77D40}UI/Layouts/HUD/BuildInfo.layout"
+     m_BuildCameraPrefab "{B8BD4F86A7DB358D}Prefabs/GameMode/OVT_BuildCamera.et"
+    }
    }
   }
   SCR_BaseHUDComponent "{520EA1D2DB118134}" {

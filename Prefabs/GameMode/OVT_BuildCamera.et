@@ -1,0 +1,6 @@
+SCR_CameraBase {
+ ID "59C50E09B2CCB66B"
+ coords 4811.309 26.55 10845.438
+ FOV 60
+ projectionType Perspective
+}
