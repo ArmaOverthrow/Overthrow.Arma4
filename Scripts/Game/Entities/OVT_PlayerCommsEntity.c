@@ -51,6 +51,77 @@ class OVT_PlayerCommsEntity: GenericEntity
 	
 	//SHOPS
 	
+	void Buy(OVT_ShopComponent shop, int id, int num, int playerId)
+	{
+		RplComponent rpl = RplComponent.Cast(shop.GetOwner().FindComponent(RplComponent));
+		Rpc(RpcAsk_Buy, rpl.Id(), id, num, playerId);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_Buy(RplId shopId, int id, int num, int playerId)
+	{
+		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+		if(!player) return;
+		
+		SCR_InventoryStorageManagerComponent inventory = SCR_InventoryStorageManagerComponent.Cast(player.FindComponent( SCR_InventoryStorageManagerComponent ));
+		if(!inventory) return;
+		
+		string playerPersId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		
+		int cost = economy.GetPrice(id, player.GetOrigin());		
+		if(!economy.PlayerHasMoney(playerPersId, cost)) return;
+		
+		int total = 0;
+		int totalnum = 0;
+		for(int i = 0; i<num; i++)
+		{
+			IEntity item = GetGame().SpawnEntityPrefab(Resource.Load(economy.GetResource(id)));
+		
+			if(inventory.TryInsertItem(item))
+			{
+				total += cost;
+				totalnum++;
+			}else{
+				SCR_Global.DeleteEntityAndChildren(item);
+				break;
+			}
+		}
+		if(total > 0)
+		{
+			RpcAsk_TakePlayerMoney(playerId, total);
+			RpcAsk_TakeFromInventory(shopId, id, totalnum);
+		}
+		
+	}
+	
+	void BuyVehicle(OVT_ShopComponent shop, int id, int playerId)
+	{
+		RplComponent rpl = RplComponent.Cast(shop.GetOwner().FindComponent(RplComponent));
+		Rpc(RpcAsk_BuyVehicle, rpl.Id(), id, playerId);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_BuyVehicle(RplId shopId, int id, int playerId)
+	{
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		
+		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+		if(!player) return;
+		
+		string playerPersId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		
+		int cost = economy.GetPrice(id, player.GetOrigin());		
+		if(!economy.PlayerHasMoney(playerPersId, cost)) return;
+		
+		if(OVT_Global.GetVehicles().SpawnVehicleBehind(id, player, playerPersId))
+		{
+			RpcAsk_TakePlayerMoney(playerId, cost);
+			RpcAsk_TakeFromInventory(shopId, id, 1);
+		}
+	}
+	
 	void AddToShopInventory(OVT_ShopComponent shop, int id, int num)
 	{
 		RplComponent rpl = RplComponent.Cast(shop.GetOwner().FindComponent(RplComponent));

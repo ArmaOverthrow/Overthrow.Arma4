@@ -166,23 +166,11 @@ class OVT_ShopContext : OVT_UIContext
 		
 		if(m_Shop.m_ShopType == OVT_ShopType.SHOP_VEHICLE)
 		{
-			if(OVT_Global.GetVehicles().SpawnVehicleBehind(m_SelectedResource, player, m_sPlayerID))
-			{
-				m_Economy.TakePlayerMoney(m_iPlayerID, cost);
-				m_Shop.TakeFromInventory(m_SelectedResource, 1);
-				Refresh();
-				SelectItem(m_SelectedResource);
-			}
+			
 			return;
-		}		
+		}	
 		
-		IEntity item = GetGame().SpawnEntityPrefab(Resource.Load(m_Economy.GetResource(m_SelectedResource)));
-		
-		if(inventory.TryInsertItem(item))
-		{
-			m_Economy.TakePlayerMoney(m_iPlayerID, cost);
-			m_Shop.TakeFromInventory(m_SelectedResource, 1);
-		}
+		OVT_Global.GetServer().Buy(m_Shop, m_SelectedResource, 1, m_iPlayerID);		
 	}
 	
 	void Sell(Widget src, float value = 1, EActionTrigger reason = EActionTrigger.DOWN)

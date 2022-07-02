@@ -7,11 +7,32 @@ class OVT_StartGameContext : OVT_UIContext
 	
 	override void OnShow()
 	{		
+		IEntity mode = GetGame().GetGameMode();
+		SCR_SaveLoadComponent saveload = SCR_SaveLoadComponent.Cast(mode.FindComponent(SCR_SaveLoadComponent));
+		
 		Widget startButton = m_wRoot.FindAnyWidget("StartButton");
-		SCR_NavigationButtonComponent action = SCR_NavigationButtonComponent.Cast(startButton.FindHandler(SCR_NavigationButtonComponent));
+		ButtonActionComponent action = ButtonActionComponent.Cast(startButton.FindHandler(ButtonActionComponent));
 		
 		if(action)
-			action.m_OnActivated.Insert(StartGame);
+			action.GetOnAction().Insert(StartGame);
+		
+		bool hasSave = true;
+		SCR_MissionHeader missionHeader = SCR_MissionHeader.Cast(GetGame().GetMissionHeader());
+		if (missionHeader)
+		{
+			if(!saveload.HasSaveFile(missionHeader)) hasSave = false;
+		}
+		
+		Widget continueButton = m_wRoot.FindAnyWidget("ContinueButton");
+		if(!hasSave || !Replication.IsServer()){
+			continueButton.SetVisible(false);
+		}else{
+			action = ButtonActionComponent.Cast(continueButton.FindHandler(ButtonActionComponent));
+		
+			if(action)
+				action.GetOnAction().Insert(ContinueSave);
+		}
+		
 					
 		m_Factions = GetGame().GetFactionManager();
 		int i = 0;
@@ -38,7 +59,6 @@ class OVT_StartGameContext : OVT_UIContext
 			i++;
 			if(i > 1) break;
 		}
-		Print(selectedFaction);
 		spin.SetCurrentItem(selectedFaction);
 	}
 	
@@ -60,5 +80,12 @@ class OVT_StartGameContext : OVT_UIContext
 		}else{
 			Print("Game mode error");
 		}
+	}
+	
+	protected void ContinueSave()
+	{
+		IEntity mode = GetGame().GetGameMode();
+		SCR_SaveLoadComponent saveload = SCR_SaveLoadComponent.Cast(mode.FindComponent(SCR_SaveLoadComponent));
+		saveload.LoadGame();
 	}
 }

@@ -37,4 +37,13 @@ modded class SCR_SaveLoadComponent
 			}
 		}
 	}
+	
+	void LoadGame()
+	{
+		if (m_sFileName && Replication.IsServer())
+		{			
+			m_Callback = new SCR_DSSessionCallback(m_Struct);			
+			m_Callback.LoadSession(m_sFileName);
+		}
+	}
 }

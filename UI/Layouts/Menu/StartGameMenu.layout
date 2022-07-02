@@ -108,6 +108,41 @@ FrameWidgetClass {
             SizeMode Fill
            }
           }
+          ButtonWidgetClass "{59C30B0184099D0D}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+           Name "ContinueButton"
+           Slot LayoutSlot "{56EEDE01982D053A}" {
+            Padding 0 0 10 0
+           }
+           components {
+            SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+             m_sLabel "#OVT-ContinueSave"
+             m_sActionName "OverthrowContinueSave"
+            }
+            ButtonActionComponent "{59C31AA02E6B6D6E}" {
+             m_bActionName "OverthrowContinueSave"
+            }
+           }
+           {
+            SizeLayoutWidgetClass "{5562AD435529FB36}" {
+             Prefab "{5562AD435529FB36}"
+             {
+              OverlayWidgetClass "{000000005E70868E}" {
+               Prefab "{000000005E70868E}"
+               {
+                HorizontalLayoutWidgetClass "{00000000E3602307}" {
+                 Prefab "{00000000E3602307}"
+                 Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
+                  Padding 10 10 16 10
+                 }
+                 {
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
           ButtonWidgetClass "{599D315A1DE877ED}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
            Name "StartButton"
            Slot LayoutSlot "{56EEDE01982D053A}" {
@@ -117,6 +152,9 @@ FrameWidgetClass {
             SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
              m_sLabel "#OVT-StartGame"
              m_sActionName "OverthrowStartGame"
+            }
+            ButtonActionComponent "{59C31AA05D6BDB4D}" {
+             m_bActionName "OverthrowStartGame"
             }
            }
            {

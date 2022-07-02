@@ -94,6 +94,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{59C30B007FD079D1}" {
+   Id "OVT-ContinueSave"
+   Target_en_us "Continue Save"
+   Modified 1505957158
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59A6ED95F1AB81D0}" {
    Id "OVT-DeliverMedicalSupplies"
    Target_en_us "Deliver Medical Supplies"
