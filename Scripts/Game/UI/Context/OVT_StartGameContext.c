@@ -24,16 +24,12 @@ class OVT_StartGameContext : OVT_UIContext
 		}
 		
 		Widget continueButton = m_wRoot.FindAnyWidget("ContinueButton");
-		if(!hasSave || !Replication.IsServer()){
-			continueButton.SetVisible(false);
-		}else{
-			action = ButtonActionComponent.Cast(continueButton.FindHandler(ButtonActionComponent));
-		
-			if(action)
-				action.GetOnAction().Insert(ContinueSave);
-		}
-		
-					
+
+		action = ButtonActionComponent.Cast(continueButton.FindHandler(ButtonActionComponent));
+	
+		if(action)
+			action.GetOnAction().Insert(ContinueSave);
+									
 		m_Factions = GetGame().GetFactionManager();
 		int i = 0;
 				
