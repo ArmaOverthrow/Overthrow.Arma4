@@ -222,6 +222,7 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 		{
 			IEntity group = GetGame().GetWorld().FindEntityByID(id);
 			SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
+			if(!aigroup) continue;
 			if(aigroup.GetAgentsCount() > 0)
 			{
 				OVT_BaseUpgradeGroupStruct g = new OVT_BaseUpgradeGroupStruct();

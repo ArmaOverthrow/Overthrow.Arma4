@@ -33,30 +33,38 @@ class OVT_PlayerIdentityComponent: OVT_Component
 		if (controlled)
 		{			
 			int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(GetOwner());
-			//Check for bohemia ID
-			int bid = GetGame().GetBackendApi().GetPlayerUID(playerId);
 			
-			if(bid == 0)
+			//if XBOX, we assume there is only one player
+			if(GetGame().GetPlayerManager().GetPlatformKind(playerId) == PlatformKind.XBOX)
 			{
-				//Check for a saved persistent player ID			
-				if(FileIO.FileExist(PERSISTENT_ID_FILE_PATH))
+				m_sPersistentID = "1";
+			}else{
+				//Check for bohemia ID
+				int bid = GetGame().GetBackendApi().GetPlayerUID(playerId);
+				
+				if(bid == 0)
 				{
-					//File exists, use it
-					FileHandle f = FileIO.OpenFile(PERSISTENT_ID_FILE_PATH, FileMode.READ);
-					if(f){
-						f.FGets(m_sPersistentID);
+					//Check for a saved persistent player ID			
+					if(FileIO.FileExist(PERSISTENT_ID_FILE_PATH))
+					{
+						//File exists, use it
+						FileHandle f = FileIO.OpenFile(PERSISTENT_ID_FILE_PATH, FileMode.READ);
+						if(f){
+							f.FGets(m_sPersistentID);
+							f.CloseFile();
+						}
+					}else{
+						//File doesnt exist, generate one
+						m_sPersistentID = GenerateID();
+						FileHandle f = FileIO.OpenFile(PERSISTENT_ID_FILE_PATH, FileMode.WRITE);
+						f.FPrint(m_sPersistentID);
 						f.CloseFile();
 					}
 				}else{
-					//File doesnt exist, generate one
-					m_sPersistentID = GenerateID();
-					FileHandle f = FileIO.OpenFile(PERSISTENT_ID_FILE_PATH, FileMode.WRITE);
-					f.FPrint(m_sPersistentID);
-					f.CloseFile();
+					m_sPersistentID = bid.ToString();
 				}
-			}else{
-				m_sPersistentID = bid.ToString();
-			}
+			}		
+			
 			
 			OVT_Global.GetPlayers().RegisterPlayer(playerId, m_sPersistentID);
 			
