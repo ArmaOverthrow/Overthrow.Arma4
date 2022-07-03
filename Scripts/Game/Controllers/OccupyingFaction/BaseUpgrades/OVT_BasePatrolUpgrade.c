@@ -23,6 +23,30 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 			float freq = s_AIRandomGenerator.RandFloatXY(DEACTIVATE_FREQUENCY - 1000, DEACTIVATE_FREQUENCY + 1000);
 			
 			GetGame().GetCallqueue().CallLater(CheckUpdate, freq, true, m_BaseController.GetOwner());	
+		}else{
+			GetGame().GetCallqueue().CallLater(CheckClean, freq, true, m_BaseController.GetOwner());	
+		}
+	}
+	
+	protected void CheckClean()
+	{
+		//Clean up ghost/killed groups
+		array<EntityID> remove = {};
+		foreach(EntityID id : m_Groups)
+		{
+			SCR_AIGroup group = GetGroup(id);
+			if(!group)
+			{
+				remove.Insert(id);
+			}else if(group.GetAgentsCount() == 0)
+			{
+				SCR_Global.DeleteEntityAndChildren(group);
+				remove.Insert(id);
+			}
+		}
+		foreach(EntityID id : remove)			
+		{
+			m_Groups.RemoveItem(id);
 		}
 	}
 	
@@ -37,10 +61,13 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 			m_ProxiedGroups.Clear();
 			m_ProxiedPositions.Clear();
 			m_iProxedResources = 0;
+			
+			CheckClean();
 		}else{
 			foreach(EntityID id : m_Groups)
 			{
 				SCR_AIGroup group = GetGroup(id);
+				if(!group) continue;
 				m_iProxedResources += group.GetAgentsCount() * m_Config.m_Difficulty.baseResourceCost;
 				m_ProxiedGroups.Insert(group.GetPrefabData().GetPrefabName());
 				m_ProxiedPositions.Insert(group.GetOrigin());
