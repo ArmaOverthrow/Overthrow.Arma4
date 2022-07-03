@@ -294,6 +294,8 @@ class OVT_EconomyManagerComponent: OVT_Component
 		int income = GetDonationIncome();
 		income += GetTaxIncome();
 		
+		if(income == 0) return;
+		
 		PlayerManager mgr = GetGame().GetPlayerManager();
 		int count = mgr.GetPlayerCount();
 		if(count == 0)

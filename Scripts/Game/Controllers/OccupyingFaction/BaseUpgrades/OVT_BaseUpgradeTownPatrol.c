@@ -139,23 +139,20 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		{
 			//To-Do: find some random buildings
 		}
+							
+		aigroup.AddWaypoint(SpawnPatrolWaypoint(town.location));			
+		aigroup.AddWaypoint(SpawnWaitWaypoint(town.location, s_AIRandomGenerator.RandFloatXY(15, 50)));								
 		
-		if(m_BaseController.m_AllCloseSlots.Count() > 2)
-		{						
-			aigroup.AddWaypoint(SpawnPatrolWaypoint(town.location));			
-			aigroup.AddWaypoint(SpawnWaitWaypoint(town.location, s_AIRandomGenerator.RandFloatXY(15, 50)));								
-			
-			foreach(RplId id : shops)
-			{
-				RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
-				vector pos = rpl.GetEntity().GetOrigin();
-				aigroup.AddWaypoint(SpawnPatrolWaypoint(pos));			
-				aigroup.AddWaypoint(SpawnWaitWaypoint(pos, s_AIRandomGenerator.RandFloatXY(15, 50)));
-			}
-			
-			aigroup.AddWaypoint(SpawnPatrolWaypoint(m_BaseController.GetOwner().GetOrigin()));
-			
+		foreach(RplId id : shops)
+		{
+			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+			vector pos = rpl.GetEntity().GetOrigin();
+			aigroup.AddWaypoint(SpawnPatrolWaypoint(pos));			
+			aigroup.AddWaypoint(SpawnWaitWaypoint(pos, s_AIRandomGenerator.RandFloatXY(15, 50)));
 		}
+		
+		aigroup.AddWaypoint(SpawnPatrolWaypoint(m_BaseController.GetOwner().GetOrigin()));
+		
 	}
 	
 	override OVT_BaseUpgradeStruct Serialize(inout array<string> rdb)

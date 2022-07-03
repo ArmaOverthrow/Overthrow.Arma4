@@ -17,6 +17,30 @@ class OVT_BaseData
 	}
 }
 
+enum OVT_TargetType
+{
+	BASE,
+	BROADCAST_TOWER,
+	FOB,
+	WAREHOUSE
+}
+
+enum OVT_OrderType
+{
+	ATTACK,
+	DEFEND,
+	DESTROY
+}
+
+class OVT_TargetData
+{
+	OVT_TargetType type;
+	vector location;
+	int assignedBase;
+	bool completed;
+	OVT_OrderType order;
+}
+
 class OVT_OccupyingFactionManager: OVT_Component
 {	
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Base Controller Prefab", params: "et", category: "Controllers")]
@@ -25,6 +49,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "QRF Controller Prefab", params: "et", category: "Controllers")]
 	ResourceName m_pQRFControllerPrefab;
 	
+
 	bool m_bDistributeInitial = true;
 	OVT_OccupyingFactionStruct m_LoadStruct;
 	
@@ -33,10 +58,12 @@ class OVT_OccupyingFactionManager: OVT_Component
 	ref array<ref OVT_BaseData> m_Bases;
 	ref array<ref vector> m_BasesToSpawn;
 	
+	ref array<ref OVT_TargetData> m_aKnownTargets;
+	
 	protected int m_iOccupyingFactionIndex;
 	protected int m_iPlayerFactionIndex;
 	
-	protected OVT_QRFControllerComponent m_CurrentQRF;
+	OVT_QRFControllerComponent m_CurrentQRF;
 	protected OVT_BaseControllerComponent m_CurrentQRFBase;
 	
 	bool m_bQRFActive = false;	
@@ -68,6 +95,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 	{
 		m_Bases = new array<ref OVT_BaseData>;	
 		m_BasesToSpawn = new array<ref vector>;	
+		m_aKnownTargets = new array<ref OVT_TargetData>;
 	}
 	
 	void Init(IEntity owner)
@@ -123,6 +151,23 @@ class OVT_OccupyingFactionManager: OVT_Component
 		return nearestBase;
 	}
 	
+	OVT_BaseData GetNearestOccupiedBase(vector pos)
+	{
+		OVT_BaseData nearestBase;
+		float nearest = 9999999;
+		foreach(OVT_BaseData data : m_Bases)
+		{
+			if(!data.IsOccupyingFaction()) continue;
+			float distance = vector.Distance(data.location, pos);
+			if(distance < nearest){
+				nearest = distance;
+				nearestBase = data;
+			}
+		}
+		if(!nearestBase) return null;
+		return nearestBase;
+	}
+	
 	void GetBasesWithinDistance(vector pos, float maxDistance, out array<OVT_BaseData> bases)
 	{
 		foreach(OVT_BaseData base : m_Bases)
@@ -146,6 +191,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		#endif
 		
 		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, CheckBaseAdd, FilterBaseEntities, EQueryEntitiesFlags.STATIC);
+		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, CheckTransmitterTowerAdd, FilterTransmitterTowerEntities, EQueryEntitiesFlags.ALL);
 	}
 	
 	protected void SpawnBaseControllers()
@@ -199,6 +245,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 			
 			if(m_iResources <= 0) break;
 		}
+		UpdateSpecops();
 		if(m_iResources < 0) m_iResources = 0;
 		Print("OF Remaining Resources: " + m_iResources);
 	}
@@ -217,6 +264,22 @@ class OVT_OccupyingFactionManager: OVT_Component
 	int GetBaseIndex(OVT_BaseData base)
 	{
 		return m_Bases.Find(base);
+	}
+	
+	OVT_TargetData GetNearestKnownTarget(vector pos)
+	{
+		OVT_TargetData nearestTarget;
+		float nearest = 9999999;
+		foreach(OVT_TargetData data : m_aKnownTargets)
+		{			
+			float distance = vector.Distance(data.location, pos);
+			if(distance < nearest){
+				nearest = distance;
+				nearestTarget = data;
+			}
+		}
+		if(!nearestTarget) return null;
+		return nearestTarget;
 	}
 	
 	void UpdateQRFTimer(int timer)
@@ -330,6 +393,30 @@ class OVT_OccupyingFactionManager: OVT_Component
 		return false;	
 	}
 	
+	bool CheckTransmitterTowerAdd(IEntity ent)
+	{		
+		OVT_TargetData target = new OVT_TargetData();
+		target.type = OVT_TargetType.BROADCAST_TOWER;
+		target.location = ent.GetOrigin();
+		target.order = OVT_OrderType.DEFEND;
+		m_aKnownTargets.Insert(target);
+				
+		return true;
+	}
+	
+	bool FilterTransmitterTowerEntities(IEntity entity)
+	{
+		MapDescriptorComponent mapdesc = MapDescriptorComponent.Cast(entity.FindComponent(MapDescriptorComponent));
+		if (mapdesc){	
+			int type = mapdesc.GetBaseType();
+			if(type == EMapDescriptorType.MDT_TRANSMITTER) {				
+				return true;
+			}
+		}
+				
+		return false;	
+	}
+	
 	void CheckUpdate()
 	{
 		PlayerManager mgr = GetGame().GetPlayerManager();		
@@ -357,6 +444,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		//Every hour distribute resources we have, if any
 		if(m_iResources > 0 && time.m_iMinutes == 0)
 		{
+			UpdateKnownTargets();
 			//To-Do: prioritize bases that need it/are under threat
 			foreach(OVT_BaseData data : m_Bases)
 			{
@@ -370,8 +458,10 @@ class OVT_OccupyingFactionManager: OVT_Component
 				
 				if(m_iResources <= 0) {
 					m_iResources = 0;
+					break;
 				}
 			}
+			UpdateSpecops();
 			Print("OF Reserve Resources: " + m_iResources);
 		}
 		
@@ -384,6 +474,83 @@ class OVT_OccupyingFactionManager: OVT_Component
 			m_iThreat -= 1;
 			if(m_iThreat < 0) m_iThreat = 0;
 		}
+	}
+	
+	protected void UpdateSpecops()
+	{
+		if(m_iResources > m_Config.m_Difficulty.maxQRF)
+		{
+			//Do Specops
+			foreach(OVT_TargetData target : m_aKnownTargets)
+			{
+				if(target.completed || target.type == OVT_TargetType.BROADCAST_TOWER) continue;
+				OVT_BaseData data = GetNearestOccupiedBase(target.location);
+				if(!data) break;
+				OVT_BaseControllerComponent base = GetBase(data.entId);
+				OVT_BaseUpgradeSpecops upgrade = OVT_BaseUpgradeSpecops.Cast(base.FindUpgrade("OVT_BaseUpgradeSpecops"));
+				if(upgrade && !upgrade.HasTarget())
+				{
+					m_iResources -= upgrade.SetTarget(target);
+				}
+				
+				if(m_iResources <= 0) {
+					m_iResources = 0;
+					break;
+				}
+				if(m_iResources < m_Config.m_Difficulty.maxQRF) {
+					break;
+				}
+			}
+		}	
+	}
+	
+	void UpdateKnownTargets()
+	{
+		//To-Do: target discovery not by magic
+		OVT_ResistanceFactionManager resistance = OVT_Global.GetResistanceFaction();
+		
+		foreach(vector fob : resistance.m_FOBs)
+		{
+			if(!IsKnownTarget(fob))
+			{
+				OVT_TargetData target = new OVT_TargetData();
+				target.location = fob;
+				target.type = OVT_TargetType.FOB;
+				target.order = OVT_OrderType.ATTACK;
+				m_aKnownTargets.Insert(target);
+			}
+		}
+		
+		foreach(OVT_BaseData data : m_Bases)
+		{
+			if(data.IsOccupyingFaction()){
+				if(IsKnownTarget(data.location))
+				{
+					m_aKnownTargets.RemoveItem(GetNearestKnownTarget(data.location));
+				}
+				continue;
+			}
+			if(!IsKnownTarget(data.location))
+			{
+				OVT_TargetData target = new OVT_TargetData();
+				target.location = data.location;
+				target.type = OVT_TargetType.BASE;
+				target.order = OVT_OrderType.ATTACK;
+				m_aKnownTargets.Insert(target);
+			}
+		}
+	}
+	
+	bool IsKnownTarget(vector pos)
+	{
+		foreach(OVT_TargetData target : m_aKnownTargets)
+		{
+			if(vector.Distance(target.location, pos) < 1)
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	void OnBaseControlChange(OVT_BaseControllerComponent base)

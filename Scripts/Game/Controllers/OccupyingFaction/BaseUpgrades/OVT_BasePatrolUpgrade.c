@@ -11,17 +11,18 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 	protected const int DEACTIVATE_FREQUENCY = 10000;
 	protected const int DEACTIVATE_RANGE = 2500;
 	
+	bool m_bSpawned = true;
+	
 	override void PostInit()
 	{
 		m_Groups = new array<ref EntityID>;
 		m_ProxiedGroups = new array<ref ResourceName>;
 		m_ProxiedPositions = new array<ref vector>;
 		
+		
+		float freq = s_AIRandomGenerator.RandFloatXY(DEACTIVATE_FREQUENCY - 1000, DEACTIVATE_FREQUENCY + 1000);
 		if(m_bDeactivate)
-		{
-			//Stagger these updates
-			float freq = s_AIRandomGenerator.RandFloatXY(DEACTIVATE_FREQUENCY - 1000, DEACTIVATE_FREQUENCY + 1000);
-			
+		{			
 			GetGame().GetCallqueue().CallLater(CheckUpdate, freq, true, m_BaseController.GetOwner());	
 		}else{
 			GetGame().GetCallqueue().CallLater(CheckClean, freq, true, m_BaseController.GetOwner());	
@@ -52,7 +53,8 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 	
 	protected void CheckUpdate()
 	{
-		if(PlayerInRange())
+		bool inrange = PlayerInRange();
+		if(inrange && !m_bSpawned)
 		{
 			foreach(int i, ResourceName res : m_ProxiedGroups)
 			{
@@ -62,8 +64,8 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 			m_ProxiedPositions.Clear();
 			m_iProxedResources = 0;
 			
-			CheckClean();
-		}else{
+			m_bSpawned = true;					
+		}else if(!inrange && m_bSpawned){
 			foreach(EntityID id : m_Groups)
 			{
 				SCR_AIGroup group = GetGroup(id);
@@ -74,6 +76,9 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 				SCR_Global.DeleteEntityAndChildren(group);
 			}
 			m_Groups.Clear();
+			m_bSpawned = false;
+		}else{
+			CheckClean();
 		}
 	}
 	

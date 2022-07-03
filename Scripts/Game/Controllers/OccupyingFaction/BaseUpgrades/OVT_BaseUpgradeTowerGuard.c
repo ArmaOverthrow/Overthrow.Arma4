@@ -40,8 +40,24 @@ class OVT_BaseUpgradeTowerGuard : OVT_BasePatrolUpgrade
 	
 	protected override void CheckUpdate()
 	{
-		//Disable despawning for now
-		return;
+		bool inrange = PlayerInRange();
+		if(inrange && !m_bSpawned)
+		{
+			Spend(m_iProxedResources, OVT_Global.GetOccupyingFaction().m_iThreat);
+			m_bSpawned = true;
+		}else if(!inrange && m_bSpawned){
+			foreach(EntityID id : m_Groups)
+			{
+				SCR_AIGroup group = GetGroup(id);
+				if(!group) continue;
+				m_iProxedResources += group.GetAgentsCount() * m_Config.m_Difficulty.baseResourceCost;
+				
+				SCR_Global.DeleteEntityAndChildren(group);
+			}
+			m_Groups.Clear();
+			m_TowerGuards.Clear();
+			m_bSpawned = false;
+		}
 	}
 	
 	override int Spend(int resources, float threat)

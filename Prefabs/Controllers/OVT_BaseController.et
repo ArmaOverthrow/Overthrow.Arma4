@@ -37,6 +37,9 @@ GenericEntity {
      m_bDeactivate 0
      m_sCompositionTag "AmmoCache"
     }
+    OVT_BaseUpgradeSpecops "{59C6CB0B8B96FCF2}" {
+     m_bDeactivate 0
+    }
    }
    m_iCloseRange 220
   }
