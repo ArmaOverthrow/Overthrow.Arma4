@@ -268,6 +268,12 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	void CheckUpdate()
 	{
+		PlayerManager mgr = GetGame().GetPlayerManager();		
+		if(mgr.GetPlayerCount() == 0)
+		{
+			return;
+		}
+		
 		TimeContainer time = m_Time.GetTime();		
 		
 		//Every 6 hrs get paid
@@ -289,8 +295,14 @@ class OVT_EconomyManagerComponent: OVT_Component
 		income += GetTaxIncome();
 		
 		PlayerManager mgr = GetGame().GetPlayerManager();
+		int count = mgr.GetPlayerCount();
+		if(count == 0)
+		{
+			m_iResistanceMoney += income;
+			return;
+		}
 		//Distribute to all players online
-		int incomePerPlayer = Math.Round(income / mgr.GetPlayerCount());
+		int incomePerPlayer = Math.Round(income / count);
 		
 		array<int> players = new array<int>;
 		mgr.GetPlayers(players);

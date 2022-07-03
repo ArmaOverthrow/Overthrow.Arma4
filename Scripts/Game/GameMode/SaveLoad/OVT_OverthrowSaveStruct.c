@@ -129,8 +129,11 @@ class OVT_OverthrowSaveStruct : SCR_MissionStruct
 			timeMgr.SetTime(t);
 		}
 		
-		OVT_OverthrowGameMode mode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
-		mode.DoStartGame();
+		if(RplSession.Mode() != RplMode.Dedicated)
+		{
+			OVT_OverthrowGameMode mode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
+			mode.DoStartGame();
+		}
 		
 		foreach(OVT_TownData town : OVT_Global.GetTowns().m_Towns)
 		{			

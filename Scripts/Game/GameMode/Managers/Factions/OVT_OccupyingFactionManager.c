@@ -31,7 +31,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 	int m_iResources;
 	float m_iThreat;
 	ref array<ref OVT_BaseData> m_Bases;
-	ref array<vector> m_BasesToSpawn;
+	ref array<ref vector> m_BasesToSpawn;
 	
 	protected int m_iOccupyingFactionIndex;
 	protected int m_iPlayerFactionIndex;
@@ -67,7 +67,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 	void OVT_OccupyingFactionManager()
 	{
 		m_Bases = new array<ref OVT_BaseData>;	
-		m_BasesToSpawn = new array<vector>;	
+		m_BasesToSpawn = new array<ref vector>;	
 	}
 	
 	void Init(IEntity owner)
@@ -184,7 +184,6 @@ class OVT_OccupyingFactionManager: OVT_Component
 			}					
 		}
 		m_BasesToSpawn.Clear();
-		m_BasesToSpawn = null;
 	}
 	
 	protected void DistributeInitialResources()
@@ -333,6 +332,12 @@ class OVT_OccupyingFactionManager: OVT_Component
 	
 	void CheckUpdate()
 	{
+		PlayerManager mgr = GetGame().GetPlayerManager();		
+		if(mgr.GetPlayerCount() == 0)
+		{
+			return;
+		}
+		
 		TimeContainer time = m_Time.GetTime();		
 		
 		//Every 6 hrs get more resources
