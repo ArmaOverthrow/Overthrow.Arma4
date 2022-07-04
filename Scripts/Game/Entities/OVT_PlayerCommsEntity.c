@@ -196,6 +196,39 @@ class OVT_PlayerCommsEntity: GenericEntity
 		OVT_Global.GetEconomy().DoTakePlayerMoney(playerId, amount);		
 	}
 	
+	void AddResistanceMoney(int amount)
+	{
+		Rpc(RpcAsk_AddResistanceMoney, amount);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_AddResistanceMoney(int amount)
+	{
+		OVT_Global.GetEconomy().DoAddResistanceMoney(amount);		
+	}
+	
+	void SetResistanceTax(float amount)
+	{
+		Rpc(RpcAsk_SetResistanceTax, amount);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_SetResistanceTax(float amount)
+	{
+		OVT_Global.GetEconomy().DoSetResistanceTax(amount);		
+	}
+	
+	void TakeResistanceMoney(int amount)
+	{
+		Rpc(RpcAsk_TakeResistanceMoney, amount);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_TakeResistanceMoney(int amount)
+	{
+		OVT_Global.GetEconomy().DoTakeResistanceMoney(amount);		
+	}
+	
 	//PLACING
 	void PlaceItem(int placeableIndex, int prefabIndex, vector pos, vector angles, int playerId)
 	{

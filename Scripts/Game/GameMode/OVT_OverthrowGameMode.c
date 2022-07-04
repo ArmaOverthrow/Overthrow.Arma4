@@ -13,6 +13,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	protected OVT_OverthrowConfigComponent m_Config;
 	protected OVT_TownManagerComponent m_TownManager;
 	protected OVT_OccupyingFactionManager m_OccupyingFactionManager;
+	protected OVT_ResistanceFactionManager m_ResistanceFactionManager;
 	protected OVT_RealEstateManagerComponent m_RealEstate;
 	protected OVT_VehicleManagerComponent m_VehicleManager;
 	protected OVT_EconomyManagerComponent m_EconomyManager;
@@ -23,6 +24,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	
 	ref set<string> m_aInitializedPlayers;
 	ref set<string> m_aHintedPlayers;
+	
+	ref map<string, EntityID> m_mPlayerGroups;
 	
 	protected bool m_bGameInitialized = false;
 			
@@ -109,7 +112,11 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	protected void OnPlayerIDRegistered(int playerId, string persistentId)
 	{
 		IEntity controlledEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
-		
+		if(m_ResistanceFactionManager.m_Officers.Count() == 0)
+		{
+			m_ResistanceFactionManager.AddOfficer(playerId);
+		}
+				
 		if(m_EconomyManager.m_mMoney.Contains(persistentId))
 		{
 			Print("Player exists, respawn");
@@ -151,6 +158,21 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			
 			m_aInitializedPlayers.Insert(persistentId);
 		}
+		
+		if(!m_mPlayerGroups.Contains(persistentId))
+		{
+			//Spawn player group
+			EntitySpawnParams spawnParams = new EntitySpawnParams;
+			spawnParams.TransformMode = ETransformMode.WORLD;		
+			spawnParams.Transform[3] = controlledEntity.GetOrigin();
+			IEntity entity = GetGame().SpawnEntityPrefab(Resource.Load(m_Config.m_pPlayerGroupPrefab), GetGame().GetWorld(), spawnParams);
+			m_mPlayerGroups[persistentId] = entity.GetID();
+		}
+		SCR_AIGroup group = SCR_AIGroup.Cast(GetGame().GetWorld().FindEntityByID(m_mPlayerGroups[persistentId]));
+		if(group)
+		{			
+			group.AddPlayer(playerId);
+		}		
 		
 		OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(controlledEntity.FindComponent(OVT_PlayerWantedComponent));
 		if(!wanted){
@@ -197,6 +219,14 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			Print("Initializing Occupying Faction");
 			
 			m_OccupyingFactionManager.Init(this);
+		}
+		
+		m_ResistanceFactionManager = OVT_ResistanceFactionManager.Cast(FindComponent(OVT_ResistanceFactionManager));		
+		if(m_ResistanceFactionManager)
+		{
+			Print("Initializing Resistance Faction");
+			
+			m_ResistanceFactionManager.Init(this);
 		}
 		
 		m_VehicleManager = OVT_VehicleManagerComponent.Cast(FindComponent(OVT_VehicleManagerComponent));		
@@ -290,6 +320,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	{
 		m_aInitializedPlayers = new set<string>;
 		m_aHintedPlayers = new set<string>;
+		m_mPlayerGroups = new map<string, EntityID>;
 	}
 	
 	void ~OVT_OverthrowGameMode()

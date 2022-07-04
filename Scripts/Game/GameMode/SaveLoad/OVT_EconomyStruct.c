@@ -2,6 +2,7 @@
 class OVT_EconomyStruct : OVT_BaseSaveStruct
 {
 	protected int funds;
+	protected float tax;
 	protected ref array<ref OVT_EconomyMoneyStruct> players = {};
 	
 	override bool Serialize()
@@ -17,6 +18,9 @@ class OVT_EconomyStruct : OVT_BaseSaveStruct
 			players.Insert(d);
 		}		
 		
+		funds = economy.m_iResistanceMoney;
+		tax = economy.m_fResistanceTax;
+		
 		return true;
 	}
 	
@@ -28,6 +32,9 @@ class OVT_EconomyStruct : OVT_BaseSaveStruct
 			economy.m_mMoney[d.m_sPlayerId] = d.m_iMoney;
 		}
 		
+		economy.m_iResistanceMoney = funds;
+		economy.m_fResistanceTax = tax;
+		
 		return true;
 	}
 	
@@ -35,5 +42,6 @@ class OVT_EconomyStruct : OVT_BaseSaveStruct
 	{
 		RegV("players");
 		RegV("funds");
+		RegV("tax");
 	}
 }

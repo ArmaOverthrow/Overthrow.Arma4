@@ -2,6 +2,13 @@ StringTable {
  TargetPrefix "Target_"
  ItemClassName "CustomStringTableItem"
  Items {
+  CustomStringTableItem "{59C84C79CA882ABD}" {
+   Id "OVT-Amount"
+   Target_en_us "Amount"
+   Modified 1506304860
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59B518A9E7140382}" {
    Id "OVT-BaseNear"
    Target_en_us "Base near"
@@ -140,6 +147,13 @@ StringTable {
    Id "OVT-DeliverMedicalSupplies"
    Target_en_us "Deliver Medical Supplies"
    Modified 1504116226
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59C84C639B645258}" {
+   Id "OVT-DonateFunds"
+   Target_en_us "Donate Funds"
+   Modified 1506307750
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -396,6 +410,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{59C84C7D5793F882}" {
+   Id "OVT-MakeOfficer"
+   Target_en_us "Make Officer"
+   Modified 1506306469
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59A6ED9A0E302C5E}" {
    Id "OVT-MedicalSupplies"
    Target_en_us "Medical Supplies"
@@ -606,6 +627,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{59C84C79C2AB441A}" {
+   Id "OVT-Player"
+   Target_en_us "Player"
+   Modified 1506304847
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5976AC6DDD54D1E4}" {
    Id "OVT-Population"
    Target_en_us "Population"
@@ -639,6 +667,34 @@ StringTable {
    Id "OVT-Resistance_TotalTaxes"
    Target_en_us "Total Taxes"
    Modified 1504108873
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59C84C6734016F2F}" {
+   Id "OVT-ResistanceTax"
+   Target_en_us "Resistance Tax"
+   Modified 1506309537
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59C84C7D7D70BC9B}" {
+   Id "OVT-SendFunds"
+   Target_en_us "Send Funds"
+   Modified 1506306432
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59C84C79FA503BB0}" {
+   Id "OVT-SendFundsMoney"
+   Target_en_us "Send Money"
+   Modified 1506304838
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59C84C7D798A8CAE}" {
+   Id "OVT-SendMoney"
+   Target_en_us "Send Money"
+   Modified 1506306438
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

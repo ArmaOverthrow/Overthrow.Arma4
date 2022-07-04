@@ -77,6 +77,8 @@ class OVT_ResistanceFactionManager: OVT_Component
 	ref array<EntityID> m_Placed;
 	ref array<EntityID> m_Built;
 	
+	ref array<string> m_Officers;
+	
 	OVT_PlayerManagerComponent m_Players;
 	
 	static OVT_ResistanceFactionManager s_Instance;
@@ -105,6 +107,29 @@ class OVT_ResistanceFactionManager: OVT_Component
 		m_FOBs = new array<vector>;	
 		m_Placed = new array<EntityID>;	
 		m_Built = new array<EntityID>;	
+		m_Officers = new array<string>;
+	}
+	
+	void Init(IEntity owner)
+	{
+		
+	}
+	
+	bool IsOfficer(int playerId)
+	{
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		return m_Officers.Contains(persId);
+	}
+	
+	bool IsLocalPlayerOfficer()
+	{
+		return IsOfficer(SCR_PlayerController.GetLocalPlayerId());
+	}
+	
+	void AddOfficer(int playerId)
+	{
+		RpcDo_AddOfficer(playerId);
+		Rpc(RpcDo_AddOfficer, playerId);
 	}
 	
 	IEntity PlaceItem(int placeableIndex, int prefabIndex, vector pos, vector angles, int playerId, bool runHandler = true)
@@ -191,10 +216,17 @@ class OVT_ResistanceFactionManager: OVT_Component
 	override bool RplSave(ScriptBitWriter writer)
 	{		
 		//Send JIP FOBs
-		writer.Write(m_FOBs.Count(), 32); 
+		writer.WriteInt(m_FOBs.Count()); 
 		for(int i; i<m_FOBs.Count(); i++)
 		{
 			writer.WriteVector(m_FOBs[i]);
+		}
+		
+		//Send JIP officers
+		writer.WriteInt(m_Officers.Count()); 
+		for(int i; i<m_Officers.Count(); i++)
+		{
+			RPL_WritePlayerID(writer, m_Officers[i]);
 		}
 		
 		return true;
@@ -204,13 +236,22 @@ class OVT_ResistanceFactionManager: OVT_Component
 	{				
 		//Recieve JIP FOBs
 		int length;
+		string id;
 		vector fob;
 		
-		if (!reader.Read(length, 32)) return false;
+		if (!reader.ReadInt(length)) return false;
 		for(int i; i<length; i++)
 		{			
 			if (!reader.ReadVector(fob)) return false;
 			m_FOBs.Insert(fob);
+		}
+		
+		//Recieve JIP Officers
+		if (!reader.ReadInt(length)) return false;
+		for(int i; i<length; i++)
+		{			
+			if (!RPL_ReadPlayerID(reader, id)) return false;
+			m_Officers.Insert(id);
 		}
 		return true;
 	}
@@ -228,6 +269,19 @@ class OVT_ResistanceFactionManager: OVT_Component
 	protected void RpcDo_RegisterFOB(vector pos)
 	{
 		m_FOBs.Insert(pos);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_AddOfficer(int playerId)
+	{
+		m_Officers.Insert(OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId));
+		if(playerId == SCR_PlayerController.GetLocalPlayerId())
+		{
+			SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-NewOfficerYou", "", 10, true);
+		}else{
+			string playerName = GetGame().GetPlayerManager().GetPlayerName(playerId);
+			SCR_HintManagerComponent.GetInstance().ShowCustom(playerName + " #OVT-NewOfficer", "", 10, true);
+		}
 	}
 	
 	void ~OVT_ResistanceFactionManager()

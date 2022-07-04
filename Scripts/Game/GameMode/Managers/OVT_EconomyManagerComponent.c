@@ -49,6 +49,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	ref map<int, int> m_mItemCosts;		
 	ref map<string, int> m_mMoney;
 	int m_iResistanceMoney = 0;
+	float m_fResistanceTax = 0;
 	
 	//Events
 	ref ScriptInvoker m_OnPlayerMoneyChanged = new ref ScriptInvoker();
@@ -165,6 +166,13 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return m_mMoney[playerId];
 	}
 	
+	int GetLocalPlayerMoney()
+	{
+		string playerId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(SCR_PlayerController.GetLocalPlayerId());
+		if(!m_mMoney.Contains(playerId)) return 0;
+		return m_mMoney[playerId];
+	}
+	
 	bool PlayerHasMoney(string playerId, int amount)
 	{
 		if(!m_mMoney.Contains(playerId)) return false;
@@ -188,6 +196,54 @@ class OVT_EconomyManagerComponent: OVT_Component
 		m_mMoney[persId] = m_mMoney[persId] + amount;
 		OVT_Global.GetEconomy().StreamPlayerMoney(playerId);
 		m_OnPlayerMoneyChanged.Invoke(persId, m_mMoney[persId]);
+	}
+	
+	void AddResistanceMoney(int amount)
+	{
+		if(Replication.IsServer())
+		{
+			DoAddResistanceMoney(amount);
+			return;
+		}
+		OVT_Global.GetServer().AddResistanceMoney(amount);		
+	}
+	
+	void DoAddResistanceMoney(int amount)
+	{		
+		RpcDo_SetResistanceMoney(m_iResistanceMoney + amount);
+		StreamResistanceMoney();
+	}
+	
+	void TakeResistanceMoney(int amount)
+	{
+		if(Replication.IsServer())
+		{
+			DoTakeResistanceMoney(amount);
+			return;
+		}
+		OVT_Global.GetServer().TakeResistanceMoney(amount);		
+	}
+	
+	void DoTakeResistanceMoney(int amount)
+	{		
+		RpcDo_SetResistanceMoney(m_iResistanceMoney - amount);
+		StreamResistanceMoney();
+	}
+	
+	void SetResistanceTax(float amount)
+	{
+		if(Replication.IsServer())
+		{
+			DoSetResistanceTax(amount);
+			return;
+		}
+		OVT_Global.GetServer().SetResistanceTax(amount);		
+	}
+	
+	void DoSetResistanceTax(float amount)
+	{		
+		RpcDo_SetResistanceTax(amount);
+		StreamResistanceTax();
 	}
 	
 	void TakePlayerMoney(int playerId, int amount)
@@ -296,14 +352,18 @@ class OVT_EconomyManagerComponent: OVT_Component
 		
 		if(income == 0) return;
 		
+		int taxed = Math.Round(income * m_fResistanceTax);
+		income -= taxed;
+		AddResistanceMoney(taxed);
+		
 		PlayerManager mgr = GetGame().GetPlayerManager();
 		int count = mgr.GetPlayerCount();
 		if(count == 0)
 		{
-			m_iResistanceMoney += income;
+			AddResistanceMoney(income);
 			return;
 		}
-		//Distribute to all players online
+		//Distribute remaining to all players online
 		int incomePerPlayer = Math.Round(income / count);
 		
 		array<int> players = new array<int>;
@@ -423,6 +483,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 			writer.Write(m_mMoney.GetElement(i), 32);
 		}
 		writer.Write(m_iResistanceMoney, 32);
+		writer.WriteFloat(m_fResistanceTax);
 		
 		//Send JIP Shops
 		writer.Write(m_aAllShops.Count(), 32); 
@@ -466,6 +527,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 			m_mMoney[playerId] = price;
 		}
 		if (!reader.Read(m_iResistanceMoney, 32)) return false;
+		if (!reader.ReadFloat(m_fResistanceTax)) return false;
 		
 		//Recieve JIP shops		
 		if (!reader.Read(length, 32)) return false;
@@ -511,6 +573,17 @@ class OVT_EconomyManagerComponent: OVT_Component
 	{
 		m_iResistanceMoney = amount;
 		m_OnResistanceMoneyChanged.Invoke(m_iResistanceMoney);
+	}
+	
+	protected void StreamResistanceTax()
+	{
+		Rpc(RpcDo_SetResistanceTax, m_fResistanceTax);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_SetResistanceTax(float amount)
+	{
+		m_fResistanceTax = amount;
 	}
 	
 	void ~OVT_EconomyManagerComponent()

@@ -4,6 +4,7 @@ class OVT_ResistanceFactionStruct : OVT_BaseSaveStruct
 	ref array<ref OVT_EntityStruct> placed = {};
 	ref array<ref OVT_VectorStruct> fobs = {};
 	ref array<ref OVT_VehicleStruct> built = {};
+	ref array<string> officers = {};
 	
 	override bool Serialize()
 	{
@@ -37,6 +38,11 @@ class OVT_ResistanceFactionStruct : OVT_BaseSaveStruct
 				built.Insert(struct);
 		}
 		
+		foreach(string id : rf.m_Officers)
+		{
+			officers.Insert(id);
+		}
+		
 		return true;
 	}
 	
@@ -59,6 +65,11 @@ class OVT_ResistanceFactionStruct : OVT_BaseSaveStruct
 			IEntity ent = struct.Spawn(rdb);
 			rf.m_Built.Insert(ent.GetID());
 		}
+		
+		foreach(string id : officers)
+		{
+			rf.m_Officers.Insert(id);
+		}
 			
 		return true;
 	}
@@ -68,6 +79,7 @@ class OVT_ResistanceFactionStruct : OVT_BaseSaveStruct
 		RegV("placed");
 		RegV("fobs");
 		RegV("built");
+		RegV("officers");
 	}
 }
 

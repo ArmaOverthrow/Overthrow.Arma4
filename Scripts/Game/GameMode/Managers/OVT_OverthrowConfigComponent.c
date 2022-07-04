@@ -111,6 +111,9 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	[Attribute(defvalue: "6", UIWidgets.EditBox, desc: "Time multiplier")]
 	int m_iTimeMultiplier;
 	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Player Group Prefab", params: "et")]
+	ResourceName m_pPlayerGroupPrefab;
+	
 	protected  int m_iOccupyingFactionIndex = -1;
 	protected int m_iPlayerFactionIndex = -1;
 	
