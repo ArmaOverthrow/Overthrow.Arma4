@@ -10,6 +10,8 @@ class OVT_OccupyingFactionStruct : OVT_BaseSaveStruct
 		bases.Clear();
 		
 		OVT_OccupyingFactionManager of = OVT_Global.GetOccupyingFaction();
+		OVT_ResistanceFactionManager rf = OVT_Global.GetResistanceFaction();
+		
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
 		FactionManager factions = GetGame().GetFactionManager();
 		foreach(OVT_BaseData base : of.m_Bases)
@@ -17,11 +19,33 @@ class OVT_OccupyingFactionStruct : OVT_BaseSaveStruct
 			OVT_BaseDataStruct b = new OVT_BaseDataStruct();
 			b.pos = base.location;
 			b.faction = factions.GetFactionByIndex(base.faction).GetFactionKey();
-			OVT_BaseControllerComponent controller = of.GetBase(base.entId);
-			foreach(OVT_BaseUpgrade upgrade : controller.m_aBaseUpgrades)
+			
+			if(base.IsOccupyingFaction())
 			{
-				b.upgrades.Insert(upgrade.Serialize(rdb));
+				OVT_BaseControllerComponent controller = of.GetBase(base.entId);
+				foreach(OVT_BaseUpgrade upgrade : controller.m_aBaseUpgrades)
+				{
+					b.upgrades.Insert(upgrade.Serialize(rdb));
+				}
+			}else{
+				foreach(EntityID id : base.garrison)
+				{
+					SCR_AIGroup aigroup = SCR_AIGroup.Cast(GetGame().GetWorld().FindEntityByID(id));
+					if(aigroup && aigroup.GetAgentsCount() > 0)
+					{
+						string resource = aigroup.GetPrefabData().GetPrefabName();
+	
+						int res = rdb.Find(resource);
+						if(res == -1)
+						{
+							rdb.Insert(resource);
+							res = rdb.Count() - 1;
+						}		
+						b.garrison.Insert(res);
+					}
+				}							
 			}
+			
 			bases.Insert(b);
 		}
 		
@@ -37,8 +61,7 @@ class OVT_OccupyingFactionStruct : OVT_BaseSaveStruct
 		of.m_LoadStruct = this;
 		of.m_bDistributeInitial = false;
 		foreach(OVT_BaseData data : of.m_Bases)
-		{
-			//Load data from save if we need to
+		{			
 			OVT_BaseDataStruct struct;
 			foreach(OVT_BaseDataStruct s : bases)
 			{
@@ -77,12 +100,14 @@ class OVT_BaseDataStruct : SCR_JsonApiStruct
 	vector pos;
 	string faction;
 	ref array<ref OVT_BaseUpgradeStruct> upgrades = {};
+	ref array<int> garrison = {};
 	
 	void OVT_BaseDataStruct()
 	{
 		RegV("pos");
 		RegV("faction");
 		RegV("upgrades");
+		RegV("garrison");
 	}
 }
 

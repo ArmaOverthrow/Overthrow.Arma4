@@ -55,7 +55,7 @@ class OVT_BaseUpgradeCheckpoints : OVT_BasePatrolUpgrade
 	{
 		if(!m_SpawnedCheckpoint) return;
 		if(!aigroup) return;
-		aigroup.AddWaypoint(SpawnDefendWaypoint(m_SpawnedCheckpoint.GetOrigin()));
+		aigroup.AddWaypoint(m_Config.SpawnDefendWaypoint(m_SpawnedCheckpoint.GetOrigin()));
 	}
 	
 	protected IEntity SpawnCheckpoint(IEntity slot, ResourceName res)

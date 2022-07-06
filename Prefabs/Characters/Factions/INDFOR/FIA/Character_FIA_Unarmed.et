@@ -41,6 +41,8 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      m_sContextName "OverthrowResistanceMenuContext"
      m_sOpenAction "OverthrowResistanceMenu"
      m_sCloseAction "MenuBack"
+     m_bOpenActionCloses 0
+     m_bHideHUDOnShow 0
     }
     OVT_JobsContext "{59A8D1BD2FBC299B}" {
      m_Layout "{766CB9C6B8AB15AA}UI/Layouts/Menu/JobsMenu.layout"
@@ -54,8 +56,16 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      m_sContextName "OverthrowBuildMenuContext"
      m_sOpenAction "OverthrowBuildMenu"
      m_sCloseAction "MenuBack"
+     m_bOpenActionCloses 0
      m_BuildLayout "{A07C65DB3FF77D40}UI/Layouts/HUD/BuildInfo.layout"
      m_BuildCameraPrefab "{B8BD4F86A7DB358D}Prefabs/GameMode/OVT_BuildCamera.et"
+    }
+    OVT_BaseMenuContext "{59C8F617A8CC47E0}" {
+     m_Layout "{E13C8636ACACECF8}UI/Layouts/Menu/BaseMenu.layout"
+     m_sContextName "OverthrowBaseMenuContext"
+     m_sCloseAction "MenuBack"
+     m_bOpenActionCloses 0
+     m_bHideHUDOnShow 1
     }
    }
   }
@@ -102,6 +112,12 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
     ItemsInitConfigurationItem "{5968C8BB5309538A}" {
      TargetStorage "Prefabs/Characters/Uniforms/Jacket_M70.et"
      TargetPurpose 64
+    }
+   }
+  }
+  SCR_PlayerMailboxComponent "{59CC0DBB0D1E902D}" {
+   m_pCommandingRadialMenu SCR_RadialMenu "{59CC0DBB0B65C791}" {
+    m_pDisplay SCR_RadialMenuDisplay "{59CC0DBB0A0B7547}" {
     }
    }
   }

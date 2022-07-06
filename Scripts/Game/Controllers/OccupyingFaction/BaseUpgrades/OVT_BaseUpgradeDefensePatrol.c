@@ -12,14 +12,14 @@ class OVT_BaseUpgradeDefensePatrol : OVT_BasePatrolUpgrade
 			for(int i; i< 3; i++)
 			{
 				IEntity randomSlot = GetGame().GetWorld().FindEntityByID(m_BaseController.m_AllCloseSlots.GetRandomElement());
-				AIWaypoint wp = SpawnPatrolWaypoint(randomSlot.GetOrigin());
+				AIWaypoint wp = m_Config.SpawnPatrolWaypoint(randomSlot.GetOrigin());
 				if(i==0) firstWP = wp;
 				queueOfWaypoints.Insert(wp);
 				
-				AIWaypoint wait = SpawnWaitWaypoint(randomSlot.GetOrigin(), s_AIRandomGenerator.RandFloatXY(45, 75));								
+				AIWaypoint wait = m_Config.SpawnWaitWaypoint(randomSlot.GetOrigin(), s_AIRandomGenerator.RandFloatXY(45, 75));								
 				queueOfWaypoints.Insert(wait);
 			}
-			AIWaypointCycle cycle = AIWaypointCycle.Cast(SpawnWaypoint(m_Config.m_pCycleWaypointPrefab, firstWP.GetOrigin()));
+			AIWaypointCycle cycle = AIWaypointCycle.Cast(m_Config.SpawnWaypoint(m_Config.m_pCycleWaypointPrefab, firstWP.GetOrigin()));
 			cycle.SetWaypoints(queueOfWaypoints);
 			cycle.SetRerunCounter(-1);
 			aigroup.AddWaypoint(cycle);

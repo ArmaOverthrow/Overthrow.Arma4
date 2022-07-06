@@ -387,6 +387,14 @@ OVT_OverthrowGameMode {
       m_sSupportModifierName "RecruitmentPosters"
      }
     }
+    OVT_Placeable "{59CC0DB9D0A1B763}" {
+     name "#OVT-Place_Lamps"
+     m_aPrefabs {
+      "{EEEA6C34560413B0}Prefabs/Props/Lights/OVT_DeskLamp.et"
+     }
+     m_tPreview "{807EB4832E33E821}UI/Textures/EditorPreviews/Auto/Props/Furniture/E_LightTable_01.edds"
+     m_iCost 50
+    }
    }
    m_aBuildables {
     OVT_Buildable "{59C4C0ED2BB2E769}" {
@@ -438,6 +446,9 @@ OVT_OverthrowGameMode {
   }
   SCR_PlayerProfileManagerComponent "{59724C8C935D8E14}" {
   }
+  SCR_RespawnTimerComponent "{59C30B0685EFBB8C}" {
+   m_fRespawnTime 2
+  }
   SCR_SaveLoadComponent "{59724C8C935D8E11}" {
    m_Struct OVT_OverthrowSaveStruct "{59B70AF2ABE445C8}" {
     economy OVT_EconomyStruct "{59C2E6211480A3BC}" {
@@ -455,9 +466,6 @@ OVT_OverthrowGameMode {
    m_bLoadSaveInWorkbench 0
   }
   RplComponent "{59724C8C935D8E18}" {
-  }
-  SCR_RespawnTimerComponent "{59C30B0685EFBB8C}" {
-   m_fRespawnTime 2
   }
  }
  coords 3207.214 1.87 11071.67

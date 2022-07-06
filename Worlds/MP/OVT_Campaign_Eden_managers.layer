@@ -14,20 +14,6 @@ SCR_CameraManager SCR_CameraManager1 : "{33F9FD881E3700CC}Prefabs/World/Game/SCR
  DefaultViewAngles 5.1 -498.11 0
 }
 OVT_OverthrowGameMode OVT_OverthrowGameMode1 : "{4DC10DCB8BE06D32}Prefabs/GameMode/OVT_OverthrowGameMode.et" {
- components {
-  OVT_ResistanceFactionManager "{59A49A9CD87CBC92}" {
-   m_aPlaceables {
-    OVT_Placeable "{59CC0DB9D0A1B763}" {
-     name "#OVT-Place_Lamps"
-     m_aPrefabs {
-      "{EEEA6C34560413B0}Prefabs/Props/Lights/OVT_DeskLamp.et"
-     }
-     m_tPreview "{807EB4832E33E821}UI/Textures/EditorPreviews/Auto/Props/Furniture/E_LightTable_01.edds"
-     m_iCost 50
-    }
-   }
-  }
- }
 }
 SCR_FactionManager OVT_FactionManager : "{8C75D1206F85987D}Prefabs/GameMode/OVT_FactionManager.et" {
 }

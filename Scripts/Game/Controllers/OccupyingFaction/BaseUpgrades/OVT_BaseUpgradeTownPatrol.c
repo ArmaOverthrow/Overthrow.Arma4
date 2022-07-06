@@ -140,18 +140,18 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 			//To-Do: find some random buildings
 		}
 							
-		aigroup.AddWaypoint(SpawnPatrolWaypoint(town.location));			
-		aigroup.AddWaypoint(SpawnWaitWaypoint(town.location, s_AIRandomGenerator.RandFloatXY(15, 50)));								
+		aigroup.AddWaypoint(m_Config.SpawnPatrolWaypoint(town.location));			
+		aigroup.AddWaypoint(m_Config.SpawnWaitWaypoint(town.location, s_AIRandomGenerator.RandFloatXY(15, 50)));								
 		
 		foreach(RplId id : shops)
 		{
 			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
 			vector pos = rpl.GetEntity().GetOrigin();
-			aigroup.AddWaypoint(SpawnPatrolWaypoint(pos));			
-			aigroup.AddWaypoint(SpawnWaitWaypoint(pos, s_AIRandomGenerator.RandFloatXY(15, 50)));
+			aigroup.AddWaypoint(m_Config.SpawnPatrolWaypoint(pos));			
+			aigroup.AddWaypoint(m_Config.SpawnWaitWaypoint(pos, s_AIRandomGenerator.RandFloatXY(15, 50)));
 		}
 		
-		aigroup.AddWaypoint(SpawnPatrolWaypoint(m_BaseController.GetOwner().GetOrigin()));
+		aigroup.AddWaypoint(m_Config.SpawnPatrolWaypoint(m_BaseController.GetOwner().GetOrigin()));
 		
 	}
 	

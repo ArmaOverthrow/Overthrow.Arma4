@@ -100,12 +100,12 @@ class OVT_BaseUpgradeSpecops : OVT_BasePatrolUpgrade
 		if(!m_CurrentTarget) return;
 		if(m_CurrentTarget.order == OVT_OrderType.ATTACK)
 		{
-			aigroup.AddWaypoint(SpawnPatrolWaypoint(m_CurrentTarget.location));
+			aigroup.AddWaypoint(m_Config.SpawnPatrolWaypoint(m_CurrentTarget.location));
 		}
 		if(m_CurrentTarget.order == OVT_OrderType.DEFEND)
 		{
-			aigroup.AddWaypoint(SpawnPatrolWaypoint(m_CurrentTarget.location));
-			aigroup.AddWaypoint(SpawnDefendWaypoint(m_CurrentTarget.location));
+			aigroup.AddWaypoint(m_Config.SpawnPatrolWaypoint(m_CurrentTarget.location));
+			aigroup.AddWaypoint(m_Config.SpawnDefendWaypoint(m_CurrentTarget.location));
 		}
 	}
 }

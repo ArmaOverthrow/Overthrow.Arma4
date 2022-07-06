@@ -19,7 +19,7 @@ class OVT_PlayerCommsEntity: GenericEntity
 	{
 		int int1,int2,int3;
 		OVT_PlayerManagerComponent.EncodeIDAsInts(persistentID, int1, int2, int3);
-		Print("Registering persistent ID with server: " + persistentID);
+		
 		int playerId = SCR_PlayerController.GetLocalPlayerId();
 		
 		Rpc(RpcAsk_SetID, playerId, int1, int2, int3);
@@ -32,6 +32,7 @@ class OVT_PlayerCommsEntity: GenericEntity
 		if(id2 > -1) persistentID += id2.ToString();
 		if(id3 > -1) persistentID += id3.ToString();
 					
+		Print("Registering persistent ID with server: " + persistentID);
 		OVT_Global.GetPlayers().RegisterPlayer(playerId, persistentID);
 	}	
 	
@@ -251,5 +252,19 @@ class OVT_PlayerCommsEntity: GenericEntity
 	protected void RpcAsk_BuildItem(int buildableIndex, int prefabIndex, vector pos, vector angles, int playerId)
 	{
 		OVT_Global.GetResistanceFaction().BuildItem(buildableIndex, prefabIndex, pos, angles, playerId);
+	}
+	
+	//BASES
+	void AddGarrison(OVT_BaseData base, ResourceName res)
+	{
+		OVT_Faction faction = OVT_Global.GetConfig().GetPlayerFaction();
+		int index = faction.m_aGroupPrefabSlots.Find(res);
+		if(index == -1) return;
+		Rpc(RpcAsk_AddGarrison, base.id, index);		
+	}
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_AddGarrison(int baseId, int prefabIndex)
+	{
+		OVT_Global.GetResistanceFaction().AddGarrison(baseId, prefabIndex);
 	}
 }

@@ -164,6 +164,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{59CC0DA6CE6D0311}" {
+   Id "OVT-EquipmentCost"
+   Target_en_us "Equipment Cost"
+   Modified 1506553944
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5990833697321087}" {
    Id "OVT-FieldManual_Category_Overthrow_Title"
    Target_en_us "Overthrow"
@@ -787,6 +794,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{59CC0DA6C7151F8E}" {
+   Id "OVT-SoldierCost"
+   Target_en_us "Soldier Cost"
+   Modified 1506553928
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5976AC6DA44FAA95}" {
    Id "OVT-Stability"
    Target_en_us "Stability"
@@ -898,6 +912,13 @@ StringTable {
    Id "OVT-TooCloseTown"
    Target_en_us "You cannot place that here, it is too close to a town"
    Modified 1503997267
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59CC0DA6C9595E99}" {
+   Id "OVT-Total"
+   Target_en_us "Total"
+   Modified 1506553950
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

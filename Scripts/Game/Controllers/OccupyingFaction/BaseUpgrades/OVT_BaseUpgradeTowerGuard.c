@@ -111,7 +111,7 @@ class OVT_BaseUpgradeTowerGuard : OVT_BasePatrolUpgrade
 		params.Transform[3] = actionPos;
 		SCR_AIGroup group = SCR_AIGroup.Cast(GetGame().SpawnEntityPrefab(Resource.Load(m_Config.GetOccupyingFaction().m_aGroupSniperPrefab), null, params));
 						
-		AIWaypoint wp = SpawnActionWaypoint(actionPos, tower, "CoverPost");
+		AIWaypoint wp = m_Config.SpawnActionWaypoint(actionPos, tower, "CoverPost");
 		group.AddWaypoint(wp);
 		
 		m_Groups.Insert(group.GetID());

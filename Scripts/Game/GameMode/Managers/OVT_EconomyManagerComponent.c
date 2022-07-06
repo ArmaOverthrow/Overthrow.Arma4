@@ -173,6 +173,12 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return m_mMoney[playerId];
 	}
 	
+	int LocalPlayerHasMoney(int amount)
+	{
+		string playerId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(SCR_PlayerController.GetLocalPlayerId());		
+		return PlayerHasMoney(playerId, amount);
+	}
+	
 	bool PlayerHasMoney(string playerId, int amount)
 	{
 		if(!m_mMoney.Contains(playerId)) return false;
@@ -244,6 +250,12 @@ class OVT_EconomyManagerComponent: OVT_Component
 	{		
 		RpcDo_SetResistanceTax(amount);
 		StreamResistanceTax();
+	}
+	
+	void TakeLocalPlayerMoney(int amount)
+	{
+		int id = SCR_PlayerController.GetLocalPlayerId();
+		TakePlayerMoney(id, amount);
 	}
 	
 	void TakePlayerMoney(int playerId, int amount)

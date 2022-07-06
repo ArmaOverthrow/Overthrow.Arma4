@@ -38,33 +38,24 @@ class OVT_PlayerIdentityComponent: OVT_Component
 			if(GetGame().GetPlayerManager().GetPlatformKind(playerId) == PlatformKind.XBOX)
 			{
 				m_sPersistentID = "1";
-			}else{
-				//Check for bohemia ID
-				int bid = GetGame().GetBackendApi().GetPlayerUID(playerId);
-				
-				if(bid == 0)
+			}else{				
+				//Check for a saved persistent player ID			
+				if(FileIO.FileExist(PERSISTENT_ID_FILE_PATH))
 				{
-					//Check for a saved persistent player ID			
-					if(FileIO.FileExist(PERSISTENT_ID_FILE_PATH))
-					{
-						//File exists, use it
-						FileHandle f = FileIO.OpenFile(PERSISTENT_ID_FILE_PATH, FileMode.READ);
-						if(f){
-							f.FGets(m_sPersistentID);
-							f.CloseFile();
-						}
-					}else{
-						//File doesnt exist, generate one
-						m_sPersistentID = GenerateID();
-						FileHandle f = FileIO.OpenFile(PERSISTENT_ID_FILE_PATH, FileMode.WRITE);
-						f.FPrint(m_sPersistentID);
+					//File exists, use it
+					FileHandle f = FileIO.OpenFile(PERSISTENT_ID_FILE_PATH, FileMode.READ);
+					if(f){
+						f.FGets(m_sPersistentID);
 						f.CloseFile();
 					}
 				}else{
-					m_sPersistentID = bid.ToString();
-				}
-			}		
-			
+					//File doesnt exist, generate one
+					m_sPersistentID = GenerateID();
+					FileHandle f = FileIO.OpenFile(PERSISTENT_ID_FILE_PATH, FileMode.WRITE);
+					f.FPrint(m_sPersistentID);
+					f.CloseFile();
+				}				
+			}				
 			
 			OVT_Global.GetPlayers().RegisterPlayer(playerId, m_sPersistentID);
 			

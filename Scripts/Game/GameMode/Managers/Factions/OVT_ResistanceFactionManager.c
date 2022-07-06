@@ -182,6 +182,48 @@ class OVT_ResistanceFactionManager: OVT_Component
 		return entity;
 	}
 	
+	void AddGarrison(int baseId, int prefabIndex)
+	{
+		OVT_BaseData base = OVT_Global.GetOccupyingFaction().m_Bases[baseId];
+		OVT_Faction faction = m_Config.GetPlayerFaction();
+		ResourceName res = faction.m_aGroupPrefabSlots[prefabIndex];
+				
+		EntitySpawnParams params = EntitySpawnParams();
+		params.TransformMode = ETransformMode.WORLD;
+		params.Transform[3] = base.location;
+		
+		IEntity entity = GetGame().SpawnEntityPrefab(Resource.Load(res), GetGame().GetWorld(), params);
+		SCR_AIGroup group = SCR_AIGroup.Cast(entity);
+		AddPatrolWaypoints(group, base);
+			
+		base.garrison.Insert(entity.GetID());	
+	}
+	
+	protected void AddPatrolWaypoints(SCR_AIGroup aigroup, OVT_BaseData base)
+	{
+		OVT_BaseControllerComponent controller = OVT_Global.GetOccupyingFaction().GetBase(base.entId);
+		array<AIWaypoint> queueOfWaypoints = new array<AIWaypoint>();
+		
+		if(controller.m_AllCloseSlots.Count() > 2)
+		{
+			AIWaypoint firstWP;
+			for(int i; i< 3; i++)
+			{
+				IEntity randomSlot = GetGame().GetWorld().FindEntityByID(controller.m_AllCloseSlots.GetRandomElement());
+				AIWaypoint wp = m_Config.SpawnPatrolWaypoint(randomSlot.GetOrigin());
+				if(i==0) firstWP = wp;
+				queueOfWaypoints.Insert(wp);
+				
+				AIWaypoint wait = m_Config.SpawnWaitWaypoint(randomSlot.GetOrigin(), s_AIRandomGenerator.RandFloatXY(45, 75));								
+				queueOfWaypoints.Insert(wait);
+			}
+			AIWaypointCycle cycle = AIWaypointCycle.Cast(m_Config.SpawnWaypoint(m_Config.m_pCycleWaypointPrefab, firstWP.GetOrigin()));
+			cycle.SetWaypoints(queueOfWaypoints);
+			cycle.SetRerunCounter(-1);
+			aigroup.AddWaypoint(cycle);
+		}
+	}
+	
 	void RegisterPlaceable(IEntity ent)
 	{
 		m_Placed.Insert(ent.GetID());

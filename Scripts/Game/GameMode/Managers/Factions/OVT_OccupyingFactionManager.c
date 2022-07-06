@@ -10,6 +10,7 @@ class OVT_BaseData
 	int range;
 	vector location;
 	EntityID entId;
+	ref array<ref EntityID> garrison = {};
 	
 	bool IsOccupyingFaction()
 	{
@@ -196,6 +197,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 	
 	protected void SpawnBaseControllers()
 	{		
+		OVT_ResistanceFactionManager rf = OVT_Global.GetResistanceFaction();
+		OVT_Faction resistance = m_Config.GetPlayerFaction();
+		
 		foreach(int index, vector pos : m_BasesToSpawn)
 		{		
 			IEntity baseEntity = SpawnBaseController(pos);
@@ -221,11 +225,24 @@ class OVT_OccupyingFactionManager: OVT_Component
 				}
 				if(struct)
 				{
-					foreach(OVT_BaseUpgradeStruct upgrade : struct.upgrades)
+					if(data.IsOccupyingFaction())
 					{
-						OVT_BaseUpgrade up = base.FindUpgrade(upgrade.type, upgrade.tag);
-						up.Deserialize(upgrade, m_LoadStruct.rdb);
-					}	
+						foreach(OVT_BaseUpgradeStruct upgrade : struct.upgrades)
+						{
+							OVT_BaseUpgrade up = base.FindUpgrade(upgrade.type, upgrade.tag);
+							up.Deserialize(upgrade, m_LoadStruct.rdb);
+						}	
+					}else{
+						foreach(int res : struct.garrison)
+						{
+							ResourceName resource = m_LoadStruct.rdb[res];
+							int prefabIndex = resistance.m_aGroupPrefabSlots.Find(resource);
+							if(prefabIndex > -1)
+							{
+								rf.AddGarrison(data.id, prefabIndex);
+							}							
+						}
+					}					
 				}
 			}					
 		}

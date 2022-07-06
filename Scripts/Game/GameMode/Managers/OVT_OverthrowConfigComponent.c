@@ -47,6 +47,8 @@ class OVT_DifficultySettings : ScriptAndConfig
 	int donationIncome;
 	[Attribute(defvalue: "5", desc: "Bus ticket price per km")]
 	int busTicketPrice;
+	[Attribute(defvalue: "250", desc: "Base price for AI recruit")]
+	int baseRecruitCost;
 	
 	//QRF
 	[Attribute("1", UIWidgets.ComboBox, "QRF Fast Travel Mode", "", ParamEnumArray.FromEnum(OVT_QRFFastTravelMode) )]
@@ -187,6 +189,63 @@ class OVT_OverthrowConfigComponent: OVT_Component
 			m_iPlayerFactionIndex = GetGame().GetFactionManager().GetFactionIndex(GetPlayerFaction());
 		}
 		return m_iPlayerFactionIndex;
+	}
+	
+	AIWaypoint SpawnWaypoint(ResourceName res, vector pos)
+	{
+		EntitySpawnParams params = EntitySpawnParams();
+		params.TransformMode = ETransformMode.WORLD;
+		params.Transform[3] = pos;
+		AIWaypoint wp = AIWaypoint.Cast(GetGame().SpawnEntityPrefab(Resource.Load(res), null, params));
+		return wp;
+	}
+	
+	AIWaypoint SpawnPatrolWaypoint(vector pos)
+	{
+		AIWaypoint wp = SpawnWaypoint(m_pPatrolWaypointPrefab, pos);
+		return wp;
+	}
+	
+	AIWaypoint SpawnDefendWaypoint(vector pos, int preset = 0)
+	{
+		AIWaypoint wp = SpawnWaypoint(m_pDefendWaypointPrefab, pos);
+		SCR_DefendWaypoint defend = SCR_DefendWaypoint.Cast(wp);
+		defend.SetCurrentDefendPreset(preset);
+		return wp;
+	}
+	
+	SCR_EntityWaypoint SpawnGetInWaypoint(IEntity target)
+	{
+		EntitySpawnParams params = EntitySpawnParams();
+		params.TransformMode = ETransformMode.WORLD;
+		params.Transform[3] = target.GetOrigin();
+		SCR_EntityWaypoint wp = SCR_EntityWaypoint.Cast(GetGame().SpawnEntityPrefab(Resource.Load(m_pGetInWaypointPrefab), null, params));
+		
+		wp.SetEntity(target);
+		
+		return wp;
+	}
+	
+	SCR_TimedWaypoint SpawnWaitWaypoint(vector pos, float time)
+	{
+		EntitySpawnParams params = EntitySpawnParams();
+		params.TransformMode = ETransformMode.WORLD;
+		params.Transform[3] = pos;
+		SCR_TimedWaypoint wp = SCR_TimedWaypoint.Cast(GetGame().SpawnEntityPrefab(Resource.Load(m_pWaitWaypointPrefab), null, params));
+		
+		return wp;
+	}
+	
+	SCR_SmartActionWaypoint SpawnActionWaypoint(vector pos, IEntity target, string action)
+	{
+		EntitySpawnParams params = EntitySpawnParams();
+		params.TransformMode = ETransformMode.WORLD;
+		params.Transform[3] = pos;
+		SCR_SmartActionWaypoint wp = SCR_SmartActionWaypoint.Cast(GetGame().SpawnEntityPrefab(Resource.Load(m_pSmartActionWaypointPrefab), null, params));
+		
+		wp.SetSmartActionEntity(target, action);
+		
+		return wp;
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]

@@ -187,63 +187,6 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 		return SCR_AIGroup.Cast(ent);
 	}
 	
-	protected AIWaypoint SpawnWaypoint(ResourceName res, vector pos)
-	{
-		EntitySpawnParams params = EntitySpawnParams();
-		params.TransformMode = ETransformMode.WORLD;
-		params.Transform[3] = pos;
-		AIWaypoint wp = AIWaypoint.Cast(GetGame().SpawnEntityPrefab(Resource.Load(res), null, params));
-		return wp;
-	}
-	
-	protected AIWaypoint SpawnPatrolWaypoint(vector pos)
-	{
-		AIWaypoint wp = SpawnWaypoint(m_Config.m_pPatrolWaypointPrefab, pos);
-		return wp;
-	}
-	
-	protected AIWaypoint SpawnDefendWaypoint(vector pos, int preset = 0)
-	{
-		AIWaypoint wp = SpawnWaypoint(m_Config.m_pDefendWaypointPrefab, pos);
-		SCR_DefendWaypoint defend = SCR_DefendWaypoint.Cast(wp);
-		defend.SetCurrentDefendPreset(preset);
-		return wp;
-	}
-	
-	protected SCR_EntityWaypoint SpawnGetInWaypoint(IEntity target)
-	{
-		EntitySpawnParams params = EntitySpawnParams();
-		params.TransformMode = ETransformMode.WORLD;
-		params.Transform[3] = target.GetOrigin();
-		SCR_EntityWaypoint wp = SCR_EntityWaypoint.Cast(GetGame().SpawnEntityPrefab(Resource.Load(m_Config.m_pGetInWaypointPrefab), null, params));
-		
-		wp.SetEntity(target);
-		
-		return wp;
-	}
-	
-	protected SCR_TimedWaypoint SpawnWaitWaypoint(vector pos, float time)
-	{
-		EntitySpawnParams params = EntitySpawnParams();
-		params.TransformMode = ETransformMode.WORLD;
-		params.Transform[3] = pos;
-		SCR_TimedWaypoint wp = SCR_TimedWaypoint.Cast(GetGame().SpawnEntityPrefab(Resource.Load(m_Config.m_pWaitWaypointPrefab), null, params));
-		
-		return wp;
-	}
-	
-	protected SCR_SmartActionWaypoint SpawnActionWaypoint(vector pos, IEntity target, string action)
-	{
-		EntitySpawnParams params = EntitySpawnParams();
-		params.TransformMode = ETransformMode.WORLD;
-		params.Transform[3] = pos;
-		SCR_SmartActionWaypoint wp = SCR_SmartActionWaypoint.Cast(GetGame().SpawnEntityPrefab(Resource.Load(m_Config.m_pSmartActionWaypointPrefab), null, params));
-		
-		wp.SetSmartActionEntity(target, action);
-		
-		return wp;
-	}
-	
 	override OVT_BaseUpgradeStruct Serialize(inout array<string> rdb)
 	{
 		OVT_BaseUpgradeStruct struct = super.Serialize(rdb);
