@@ -2,6 +2,13 @@ StringTable {
  TargetPrefix "Target_"
  ItemClassName "CustomStringTableItem"
  Items {
+  CustomStringTableItem "{59C84C2687EAA6DD}" {
+   Id "OVT-AddToGarrison"
+   Target_en_us "Add To Garrison"
+   Modified 1506340446
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59C84C79CA882ABD}" {
    Id "OVT-Amount"
    Target_en_us "Amount"
@@ -202,6 +209,13 @@ StringTable {
    Target_en_us "Opens a menu allowing you to see info or change settings about the resistance. Officers can assign other officers here or set a tax rate (Default is 0%) that will deposit an amount of the regular income directly to the Resistance Funds instead. Officers can withdraw money from resistance funds here or send it to another player. Any player can donate money to the resistance efforts here as well."
    Status DEVELOPMENT_DONE
    Modified 1502796262
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59C84C260326A9DB}" {
+   Id "OVT-Garrison"
+   Target_en_us "Garrison"
+   Modified 1506340232
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -417,6 +431,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{59C84C21E97284F1}" {
+   Id "OVT-ManageBase"
+   Target_en_us "Manage Base"
+   Modified 1506339840
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59A6ED9A0E302C5E}" {
    Id "OVT-MedicalSupplies"
    Target_en_us "Medical Supplies"
@@ -508,6 +529,20 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{59C90534E23FD594}" {
+   Id "OVT-NewOfficer"
+   Target_en_us "has been made an officer"
+   Modified 1506346539
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59C905341F0718F9}" {
+   Id "OVT-NewOfficerYou"
+   Target_en_us "You have been made an officer"
+   Modified 1506346518
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59A6ED9B869DC04C}" {
    Id "OVT-NoMedicalSupplies"
    Target_en_us "No medical supplies found in vehicle"
@@ -573,6 +608,13 @@ StringTable {
    Target_en_us "Hedgehog"
    Status DEVELOPMENT_DONE
    Modified 1502796262
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59CC0DB81CE327C8}" {
+   Id "OVT-Place_Lamps"
+   Target_en_us "Lamps"
+   Modified 1506552687
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -870,6 +912,13 @@ StringTable {
    Id "OVT-VehicleEmpty"
    Target_en_us "Vehicle is empty"
    Modified 1503946465
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59C84C26FD19B1CA}" {
+   Id "OVT_Group"
+   Target_en_us "Group"
+   Modified 1506340322
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
