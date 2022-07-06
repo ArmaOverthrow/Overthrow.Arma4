@@ -5,12 +5,14 @@ class OVT_ResistanceFactionStruct : OVT_BaseSaveStruct
 	ref array<ref OVT_VectorStruct> fobs = {};
 	ref array<ref OVT_VehicleStruct> built = {};
 	ref array<string> officers = {};
+	ref array<ref OVT_PlayerLocationStruct> camps = {};
 	
 	override bool Serialize()
 	{
 		placed.Clear();
 		fobs.Clear();
 		built.Clear();
+		camps.Clear();
 		
 		OVT_ResistanceFactionManager rf = OVT_Global.GetResistanceFaction();
 		
@@ -43,6 +45,14 @@ class OVT_ResistanceFactionStruct : OVT_BaseSaveStruct
 			officers.Insert(id);
 		}
 		
+		for(int i = 0; i<rf.m_mCamps.Count(); i++)
+		{
+			OVT_PlayerLocationStruct struct = new OVT_PlayerLocationStruct();
+			struct.id = rf.m_mCamps.GetKey(i);
+			struct.pos = rf.m_mCamps.GetElement(i);
+			camps.Insert(struct);
+		}
+		
 		return true;
 	}
 	
@@ -70,6 +80,11 @@ class OVT_ResistanceFactionStruct : OVT_BaseSaveStruct
 		{
 			rf.m_Officers.Insert(id);
 		}
+		
+		foreach(OVT_PlayerLocationStruct struct : camps)
+		{			
+			rf.m_mCamps[struct.id] = struct.pos;
+		}
 			
 		return true;
 	}
@@ -80,6 +95,7 @@ class OVT_ResistanceFactionStruct : OVT_BaseSaveStruct
 		RegV("fobs");
 		RegV("built");
 		RegV("officers");
+		RegV("camps");
 	}
 }
 
@@ -167,5 +183,17 @@ class OVT_EntityStruct : SCR_JsonApiStruct
 		RegV("pos");
 		RegV("ang");		
 		RegV("inv");
+	}
+}
+
+class OVT_PlayerLocationStruct : SCR_JsonApiStruct
+{
+	string id;
+	vector pos;
+	
+	void OVT_PlayerLocationStruct()
+	{		
+		RegV("id");
+		RegV("pos");
 	}
 }

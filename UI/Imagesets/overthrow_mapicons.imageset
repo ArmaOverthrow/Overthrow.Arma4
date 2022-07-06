@@ -63,7 +63,13 @@ ImageSetClass {
   }
   ImageSetDefClass waypoint {
    Name "waypoint"
-   Pos 394 132
+   Pos 392 132
+   Size 128 128
+   Flags 0
+  }
+  ImageSetDefClass camp {
+   Name "camp"
+   Pos 522 132
    Size 128 128
    Flags 0
   }

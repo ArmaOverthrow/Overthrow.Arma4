@@ -155,6 +155,18 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 			m_Widgets.Insert(w);
 		}
 		
+		for(int i = 0; i<resistance.m_mCamps.Count(); i++)
+		{
+			m_Centers.Insert(resistance.m_mCamps.GetElement(i));
+			m_Ranges.Insert(2);
+						
+			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
+			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
+						
+			image.LoadImageFromSet(0, m_Imageset, "camp");			
+			m_Widgets.Insert(w);
+		}
+		
 		if(jobs.m_vCurrentWaypoint)
 		{
 			m_Centers.Insert(jobs.m_vCurrentWaypoint);

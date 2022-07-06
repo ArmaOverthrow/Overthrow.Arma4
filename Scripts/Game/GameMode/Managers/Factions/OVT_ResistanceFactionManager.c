@@ -78,6 +78,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 	ref array<EntityID> m_Built;
 	
 	ref array<string> m_Officers;
+	ref map<ref string,ref vector> m_mCamps;
 	
 	OVT_PlayerManagerComponent m_Players;
 	
@@ -108,6 +109,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		m_Placed = new array<EntityID>;	
 		m_Built = new array<EntityID>;	
 		m_Officers = new array<string>;
+		m_mCamps = new map<ref string,ref vector>;
 	}
 	
 	void Init(IEntity owner)
@@ -235,8 +237,46 @@ class OVT_ResistanceFactionManager: OVT_Component
 	}
 	
 	void RegisterFOB(IEntity ent, int playerId)
-	{		
-		Rpc(RpcAsk_RegisterFOB, ent.GetOrigin(), playerId);
+	{	
+		vector pos = ent.GetOrigin();	
+		m_FOBs.Insert(pos);
+				
+		Rpc(RpcDo_RegisterFOB, pos);
+		m_Players.HintMessageAll("PlacedFOB",-1,playerId);
+	}
+	
+	void RegisterCamp(IEntity ent, int playerId)
+	{
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		vector pos = ent.GetOrigin();
+		if(m_mCamps.Contains(persId))
+		{
+			GetGame().GetWorld().QueryEntitiesBySphere(m_mCamps[persId], 15, null, FindAndDeleteCamps, EQueryEntitiesFlags.ALL);
+		}
+		m_mCamps[persId] = pos;
+				
+		Rpc(RpcDo_RegisterCamp, pos, playerId);
+	}
+	
+	protected bool FindAndDeleteCamps(IEntity ent)
+	{
+		string res = ent.GetPrefabData().GetPrefabName();
+		if(res.Contains("TentSmallUS"))
+		{
+			SCR_Global.DeleteEntityAndChildren(ent);
+		}
+		return false;
+	}
+	
+	float DistanceToNearestCamp(vector pos)
+	{
+		float nearest = 999999;
+		for(int i =0; i<m_mCamps.Count(); i++)
+		{
+			float dist = vector.Distance(pos, m_mCamps.GetElement(i));
+			if(dist < nearest) nearest = dist;
+		}
+		return nearest;
 	}
 	
 	vector GetNearestFOB(vector pos)
@@ -271,6 +311,14 @@ class OVT_ResistanceFactionManager: OVT_Component
 			RPL_WritePlayerID(writer, m_Officers[i]);
 		}
 		
+		//Send JIP Camps
+		writer.WriteInt(m_mCamps.Count()); 
+		for(int i; i<m_mCamps.Count(); i++)
+		{
+			RPL_WritePlayerID(writer, m_mCamps.GetKey(i));
+			writer.WriteVector(m_mCamps.GetElement(i));
+		}
+		
 		return true;
 	}
 	
@@ -295,22 +343,29 @@ class OVT_ResistanceFactionManager: OVT_Component
 			if (!RPL_ReadPlayerID(reader, id)) return false;
 			m_Officers.Insert(id);
 		}
+		
+		//Recieve JIP Camps
+		if (!reader.ReadInt(length)) return false;
+		for(int i; i<length; i++)
+		{			
+			if (!RPL_ReadPlayerID(reader, id)) return false;
+			if (!reader.ReadVector(fob)) return false;
+			m_mCamps[id] = fob;
+		}
 		return true;
-	}
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_RegisterFOB(vector pos, int playerId)
-	{
-		m_FOBs.Insert(pos);
-				
-		Rpc(RpcDo_RegisterFOB, pos);
-		m_Players.HintMessageAll("PlacedFOB",-1,playerId);
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_RegisterFOB(vector pos)
 	{
 		m_FOBs.Insert(pos);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_RegisterCamp(vector pos, int playerId)
+	{
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		m_mCamps[persId] = pos;
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]

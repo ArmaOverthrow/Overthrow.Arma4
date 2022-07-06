@@ -88,6 +88,11 @@ class OVT_MapContext : OVT_UIContext
 			}
 		}
 		
+		if(m_Resistance.DistanceToNearestCamp(pos) < MAX_HOUSE_TRAVEL_DIS)
+		{
+			return true;
+		}
+		
 		IEntity house = m_RealEstate.GetNearestOwned(m_sPlayerID, pos);
 		if(house)
 		{
