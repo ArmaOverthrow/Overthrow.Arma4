@@ -51,24 +51,45 @@ class OVT_TownModifierSystem : ScriptAndConfig
 	bool OnTick(inout array<ref int> modifiers, inout array<ref int> modifierTimers, OVT_TownData town)
 	{
 		//Check if we need to time out any modifiers
-		array<int> remove = new array<int>;
+		array<int> rebuild = new array<int>;
+		array<int> rebuildtimers = new array<int>;
 		bool recalc = false;
 		foreach(int i, int index : modifiers)
 		{
+			bool remove = false;
 			modifierTimers[i] = modifierTimers[i] - m_TownManager.MODIFIER_FREQUENCY / 1000;
 			if(modifierTimers[i] <= 0)
 			{
 				recalc = true;
-				remove.Insert(i);
+				remove = true;
 			}else{
 				OVT_ModifierConfig mod = m_Config.m_aModifiers[index];
 				if(mod.handler){
 					if(!mod.handler.OnActiveTick(town))
 					{
-						remove.Insert(i);
+						remove = true;
 						recalc = true;
 					}
 				}
+			}
+			if(!remove) {
+				rebuild.Insert(index);
+				rebuildtimers.Insert(modifierTimers[i]);
+			}
+		}
+		
+		if(recalc)
+		{
+			//rebuild arrays (minus removed)
+			modifiers.Clear();
+			modifierTimers.Clear();
+			foreach(int index : rebuild)
+			{
+				modifiers.Insert(index);
+			}
+			foreach(int index : rebuildtimers)
+			{
+				modifierTimers.Insert(index);
 			}
 		}
 		
@@ -79,13 +100,6 @@ class OVT_TownModifierSystem : ScriptAndConfig
 			{
 				config.handler.OnTick(town);
 			}
-		}
-		
-		//Remove modifiers tagged for removal
-		foreach(int i : remove)
-		{
-			modifierTimers.Remove(i);
-			modifiers.Remove(i);
 		}
 		
 		return recalc;
