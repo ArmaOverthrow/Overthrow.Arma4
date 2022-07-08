@@ -2,29 +2,38 @@ class OVT_ManageVehicleContext : OVT_UIContext
 {
 	Vehicle m_Vehicle;
 	OVT_VehicleUpgrade m_SelectedUpgrade;
+	
+	ref ButtonActionComponent m_UpgradeAction;
+	ref ButtonActionComponent m_RepairAction;
 		
 	override void OnShow()
 	{			
 		m_Vehicle = null;
 		GetGame().GetWorld().QueryEntitiesBySphere(m_Owner.GetOrigin(), 5, null, FilterVehicleEntities, EQueryEntitiesFlags.ALL);
-			
+					
+		Widget upgradeButton = m_wRoot.FindAnyWidget("UpgradeButton");
+		m_UpgradeAction = ButtonActionComponent.Cast(upgradeButton.FindHandler(ButtonActionComponent));
+		
+		m_UpgradeAction.GetOnAction().Insert(Upgrade);
+		
+		Widget repairButton = m_wRoot.FindAnyWidget("RepairButton");
+		m_RepairAction = ButtonActionComponent.Cast(repairButton.FindHandler(ButtonActionComponent));
+		
+		m_RepairAction.GetOnAction().Insert(Repair);
+		
 		if(!m_Vehicle){
 			CloseLayout();
 			SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-NoVehicleOnRamp");
 			return;
 		}
 		
-		Widget upgradeButton = m_wRoot.FindAnyWidget("UpgradeButton");
-		ButtonActionComponent action = ButtonActionComponent.Cast(upgradeButton.FindHandler(ButtonActionComponent));
-		
-		action.GetOnAction().Insert(Upgrade);
-		
 		Refresh();		
 	}
 	
 	override void OnClose()
-	{
-		
+	{		
+		m_UpgradeAction.GetOnAction().Remove(Upgrade);
+		m_RepairAction.GetOnAction().Remove(Repair);
 	}
 	
 	protected bool FilterVehicleEntities(IEntity entity)
@@ -38,24 +47,18 @@ class OVT_ManageVehicleContext : OVT_UIContext
 	
 	protected void Refresh()
 	{
-		ItemPreviewWidget img = ItemPreviewWidget.Cast(m_wRoot.FindAnyWidget("VehiclePreview"));
 		TextWidget text = TextWidget.Cast(m_wRoot.FindAnyWidget("VehicleName"));
 		Widget grid = m_wRoot.FindAnyWidget("UpgradesGrid");
-						
-		ItemPreviewManagerEntity manager = GetGame().GetItemPreviewManager();
-		if (!manager)
-			return;
-		
-		// Set rendering and preview properties 		
-		img.SetResolutionScale(1, 1);
-		
+				
 		SCR_EditableVehicleComponent veh = SCR_EditableVehicleComponent.Cast(m_Vehicle.FindComponent(SCR_EditableVehicleComponent));
 		if(!veh) return;
 		SCR_EditableEntityUIInfo info = SCR_EditableEntityUIInfo.Cast(veh.GetInfo());
 		if(!info) return;
 		
 		text.SetText(info.GetName());		
-		manager.SetPreviewItem(img, m_Vehicle);		
+		
+		ImageWidget tex = ImageWidget.Cast(m_wRoot.FindAnyWidget("VehiclePreview"));
+		tex.LoadImageTexture(0, info.GetImage());
 		
 		ResourceName vehres = m_Vehicle.GetPrefabData().GetPrefabName();
 		
@@ -68,6 +71,29 @@ class OVT_ManageVehicleContext : OVT_UIContext
 				break;
 			}
 		}
+		
+		Widget healthWidget = m_wRoot.FindAnyWidget("HealthBar");
+		SCR_WLibProgressBarComponent healthBar = SCR_WLibProgressBarComponent.Cast(healthWidget.FindHandler(SCR_WLibProgressBarComponent));
+		
+		float health = 1;
+		SCR_VehicleDamageManagerComponent dmg = SCR_VehicleDamageManagerComponent.Cast(m_Vehicle.FindComponent(SCR_VehicleDamageManagerComponent));
+		if(dmg)
+		{
+			health = dmg.GetHealth() / dmg.GetMaxHealth();
+		}		
+		healthBar.SetValue(health);
+		
+		Widget fuelWidget = m_wRoot.FindAnyWidget("FuelBar");
+		SCR_WLibProgressBarComponent fuelBar = SCR_WLibProgressBarComponent.Cast(fuelWidget.FindHandler(SCR_WLibProgressBarComponent));		
+		float fuel = 1;
+		
+		SCR_FuelConsumptionComponent f = SCR_FuelConsumptionComponent.Cast(m_Vehicle.FindComponent(SCR_FuelConsumptionComponent));
+		if(f)
+		{
+			BaseFuelNode node = f.GetCurrentFuelTank();
+			fuel = node.GetFuel() / node.GetMaxFuel();
+		}		
+		fuelBar.SetValue(fuel);
 		
 		if(!upgrades)
 		{
@@ -114,7 +140,18 @@ class OVT_ManageVehicleContext : OVT_UIContext
 		
 		economy.TakeLocalPlayerMoney(m_SelectedUpgrade.m_iCost);
 		
-		OVT_Global.GetServer().UpgradeVehicle(m_Vehicle, m_SelectedUpgrade);		
+		OVT_Global.GetServer().UpgradeVehicle(m_Vehicle, m_SelectedUpgrade);
+		CloseLayout();	
+		ShowHint("#OVT-VehicleUpgraded");	
+	}
+	
+	void Repair()
+	{
+		if(!m_Vehicle) return;
+		
+		OVT_Global.GetServer().RepairVehicle(m_Vehicle);
+		CloseLayout();	
+		ShowHint("#OVT-VehicleRepaired");		
 	}
 	
 	override void SelectItem(ResourceName res)

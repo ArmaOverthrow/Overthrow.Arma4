@@ -294,4 +294,17 @@ class OVT_PlayerCommsEntity: GenericEntity
 	{
 		OVT_Global.GetVehicles().UpgradeVehicle(vehicle, id);
 	}
+	
+	void RepairVehicle(Vehicle vehicle)
+	{		
+		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
+		
+		Rpc(RpcAsk_RepairVehicle, rpl.Id());
+	}	
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_RepairVehicle(RplId vehicle)
+	{
+		OVT_Global.GetVehicles().RepairVehicle(vehicle);
+	}
 }

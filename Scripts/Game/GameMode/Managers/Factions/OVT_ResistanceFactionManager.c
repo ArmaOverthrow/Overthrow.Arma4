@@ -404,7 +404,10 @@ class OVT_ResistanceFactionManager: OVT_Component
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_AddOfficer(int playerId)
 	{
-		m_Officers.Insert(OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId));
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		if(m_Officers.Contains(persId)) return;
+		
+		m_Officers.Insert(persId);
 		if(playerId == SCR_PlayerController.GetLocalPlayerId())
 		{
 			SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-NewOfficerYou", "", 10, true);

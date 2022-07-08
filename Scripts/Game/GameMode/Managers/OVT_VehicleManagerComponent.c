@@ -220,6 +220,19 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 		SCR_Global.DeleteEntityAndChildren(entity);		
 	}
 	
+	void RepairVehicle(RplId vehicle)
+	{					
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(vehicle));
+		if(!rpl) return;
+		IEntity entity = rpl.GetEntity();
+		
+		SCR_VehicleDamageManagerComponent dmg = SCR_VehicleDamageManagerComponent.Cast(entity.FindComponent(SCR_VehicleDamageManagerComponent));
+		if(dmg)
+		{
+			dmg.SetHealthScaled(dmg.GetMaxHealth());
+		}		
+	}
+	
 	void ~OVT_VehicleManagerComponent()
 	{
 		if(m_aAllVehicleShops)

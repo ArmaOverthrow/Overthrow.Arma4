@@ -233,6 +233,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{59D05007F9A93F67}" {
+   Id "OVT-Fuel"
+   Target_en_us "Fuel"
+   Modified 1506831154
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59C84C260326A9DB}" {
    Id "OVT-Garrison"
    Target_en_us "Garrison"
@@ -259,6 +266,13 @@ StringTable {
    Id "OVT-Healed"
    Target_en_us "You have been healed"
    Modified 1506094352
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59D05007FF9B8533}" {
+   Id "OVT-Health"
+   Target_en_us "Health"
+   Modified 1506831146
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -992,10 +1006,24 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{59D05006BA9FDE60}" {
+   Id "OVT-VehicleRepaired"
+   Target_en_us "Vehicle has been repaired"
+   Modified 1506831728
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59CF1968C9785E22}" {
    Id "OVT-VehicleUnloaded"
    Target_en_us "Vehicle has been unloaded into storage"
    Modified 1506744999
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59D05006B011C8B2}" {
+   Id "OVT-VehicleUpgraded"
+   Target_en_us "Vehicle has been upgraded"
+   Modified 1506831718
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

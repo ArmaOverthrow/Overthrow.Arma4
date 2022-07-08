@@ -66,6 +66,7 @@ FrameWidgetClass {
           VerticalAlign 1
           Padding 10 0 0 0
          }
+         Clipping False
          Text "#OVT-ManageVehicle"
          "Font Size" 36
         }
@@ -88,7 +89,7 @@ FrameWidgetClass {
           VerticalLayoutWidgetClass "{59CF196166BD2A33}" {
            Name "VerticalLayout0"
            Slot LayoutSlot "{59CF196166BD2BCE}" {
-            Padding 0 0 0 0
+            Padding 0 0 150 0
            }
            {
             TextWidgetClass "{59CF19616E6E7608}" {
@@ -99,15 +100,85 @@ FrameWidgetClass {
              "Font Size" 36
              "Min Font Size" 36
             }
+            HorizontalLayoutWidgetClass "{59D0500777CA6C76}" {
+             Name "HealthLayout"
+             Slot LayoutSlot "{59D0500777CA6C5F}" {
+              Padding 0 10 0 0
+             }
+             {
+              TextWidgetClass "{59D05007504025D5}" {
+               Name "Text0"
+               Slot LayoutSlot "{59D05007504025BF}" {
+                HorizontalAlign 2
+                VerticalAlign 1
+                Padding 0 0 5 0
+                SizeMode Fill
+                FillWeight 0.3
+               }
+               Text "#OVT-Health"
+              }
+              SizeLayoutWidgetClass "{59D0500747DA8910}" : "{8C63C2E7AE0092B7}UI/layouts/WidgetLibrary/WLib_ProgressBar.layout" {
+               Name "HealthBar"
+               Slot LayoutSlot "{59D0500747DA89E7}" {
+                HorizontalAlign 3
+                VerticalAlign 3
+                Padding 2 2 2 2
+                SizeMode Fill
+               }
+               components {
+                SCR_WLibProgressBarComponent "{5570DACE374D2D4B}" {
+                 m_BackgroundColor 0 0 0 1
+                }
+               }
+               {
+               }
+              }
+             }
+            }
+            HorizontalLayoutWidgetClass "{59D0500734A751B7}" {
+             Name "FuelLayout"
+             Slot LayoutSlot "{59D0500777CA6C5F}" {
+              Padding 0 10 0 0
+             }
+             {
+              TextWidgetClass "{59D0500734A751B6}" {
+               Name "Text0"
+               Slot LayoutSlot "{59D05007504025BF}" {
+                HorizontalAlign 2
+                VerticalAlign 1
+                Padding 0 0 5 0
+                SizeMode Fill
+                FillWeight 0.3
+               }
+               Text "#OVT-Fuel"
+              }
+              SizeLayoutWidgetClass "{59D0500734A751B4}" : "{8C63C2E7AE0092B7}UI/layouts/WidgetLibrary/WLib_ProgressBar.layout" {
+               Name "FuelBar"
+               Slot LayoutSlot "{59D0500747DA89E7}" {
+                HorizontalAlign 3
+                VerticalAlign 3
+                Padding 2 2 2 2
+                SizeMode Fill
+               }
+               components {
+                SCR_WLibProgressBarComponent "{5570DACE374D2D4B}" {
+                 m_BackgroundColor 0 0 0 1
+                }
+               }
+               {
+               }
+              }
+             }
+            }
            }
           }
          }
         }
-        ItemPreviewWidgetClass "{59CF196124292005}" {
+        ImageWidgetClass "{59D05004D0ECD2B0}" {
          Name "VehiclePreview"
-         Slot LayoutSlot "{59CF1961242921CF}" {
-          SizeMode Fill
+         Slot LayoutSlot "{59D05004D0ECD287}" {
          }
+         Size 250 250
         }
        }
       }
@@ -138,6 +209,7 @@ FrameWidgetClass {
            Name "Text"
            Slot LayoutSlot "{599D5977351D294A}" {
            }
+           Clipping False
            Text "#OVT-Upgrades"
            "Font Size" 26
           }
