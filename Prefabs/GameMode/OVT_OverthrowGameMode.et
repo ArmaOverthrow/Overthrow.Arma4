@@ -409,6 +409,27 @@ OVT_OverthrowGameMode {
      m_bBuildAtBase 1
      m_bBuildAtFOB 1
     }
+    OVT_Buildable "{59CF196F7146636B}" {
+     name "#OVT-Build_VehicleMaintenanceRamp"
+     m_aPrefabs {
+      "{3D2270BA89BC2AA4}Prefabs/Structures/Military/FOB/OVT_VehicleMaintenanceRamp.et"
+     }
+     m_tPreview "{41D4D216FD6A2FE2}UI/Textures/EditorPreviews/Auto/Structures/Industrial/Repair/E_RampVehicle_01_metal.edds"
+     m_iCost 1500
+     m_bBuildAtBase 1
+     m_bBuildAtFOB 1
+    }
+   }
+   m_aVehicleUpgrades {
+    OVT_VehicleUpgrades "{59CF1963D54690F3}" {
+     m_pBasePrefab "{F649585ABB3706C4}Prefabs/Vehicles/Wheeled/M151A2/M151A2.et"
+     m_aUpgrades {
+      OVT_VehicleUpgrade "{59CF196388095600}" {
+       m_pUpgradePrefab "{F6B23D17D5067C11}Prefabs/Vehicles/Wheeled/M151A2/M151A2_M2HB.et"
+       m_iCost 14000
+      }
+     }
+    }
    }
   }
   OVT_RespawnHandlerComponent "{59724C8C9A6408EE}" {

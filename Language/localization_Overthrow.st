@@ -44,6 +44,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{59D030D767EAB683}" {
+   Id "OVT-Build_VehicleMaintenanceRamp"
+   Target_en_us "Vehicle Maintenance Ramp"
+   Modified 1506817592
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59A5462B60C888FA}" {
    Id "OVT-Cancel"
    Target_en_us "Cancel"
@@ -161,6 +168,13 @@ StringTable {
    Id "OVT-DonateFunds"
    Target_en_us "Donate Funds"
    Modified 1506307750
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59CEA732CF3E444B}" {
+   Id "OVT-DriverMustExit"
+   Target_en_us "Driver must exit vehicle first"
+   Modified 1506816331
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -445,6 +459,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{59CF196E2474961C}" {
+   Id "OVT-ManageVehicle"
+   Target_en_us "Manage Vehicle"
+   Modified 1506747812
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59A6ED9A0E302C5E}" {
    Id "OVT-MedicalSupplies"
    Target_en_us "Medical Supplies"
@@ -554,6 +575,13 @@ StringTable {
    Id "OVT-NoMedicalSupplies"
    Target_en_us "No medical supplies found in vehicle"
    Modified 1504115443
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59CF196EEADAB2A1}" {
+   Id "OVT-NoVehicleOnRamp"
+   Target_en_us "No Vehicle on ramp"
+   Modified 1506747951
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -688,6 +716,13 @@ StringTable {
    Target_en_us "Population"
    Status DEVELOPMENT_DONE
    Modified 1502796262
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59D0228A8D1E8EE6}" {
+   Id "OVT-RepairVehicle"
+   Target_en_us "Repair Vehicle"
+   Modified 1506815726
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -929,10 +964,38 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{59CF196279F7E5EB}" {
+   Id "OVT-Upgrades"
+   Target_en_us "Upgrades"
+   Modified 1506749577
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59D0228A83C99C85}" {
+   Id "OVT-UpgradeVehicle"
+   Target_en_us "Upgrade Vehicle"
+   Modified 1506815716
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59A45C63209BFF7C}" {
    Id "OVT-VehicleEmpty"
    Target_en_us "Vehicle is empty"
    Modified 1503946465
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59CF1968DDFE36E4}" {
+   Id "OVT-VehicleLoaded"
+   Target_en_us "Vehicle has been loaded"
+   Modified 1506745024
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59CF1968C9785E22}" {
+   Id "OVT-VehicleUnloaded"
+   Target_en_us "Vehicle has been unloaded into storage"
+   Modified 1506744999
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

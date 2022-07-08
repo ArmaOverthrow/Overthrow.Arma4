@@ -68,6 +68,16 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 		return parking.GetParkingSpot(outMat, type);
 	}
 	
+	bool GetNearestParkingSpot(vector pos, out vector outMat[4], OVT_ParkingType type = OVT_ParkingType.PARKING_CAR)
+	{
+		m_aEntitySearch.Clear();
+		GetGame().GetWorld().QueryEntitiesBySphere(pos, 15, null, FilterParkingAddToArray, EQueryEntitiesFlags.ALL);
+		
+		if(m_aEntitySearch.Count() == 0) return false;
+		
+		return GetParkingSpot(GetGame().GetWorld().FindEntityByID(m_aEntitySearch[0]), outMat, type);
+	}
+	
 	bool FindNearestKerbParking(vector pos, float range, out vector outMat[4])
 	{
 		m_aEntitySearch.Clear();
@@ -135,11 +145,21 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 		
 	}
 	
-	IEntity SpawnVehicleBehind(RplId id, IEntity entity, string ownerId="")
+	IEntity SpawnVehicleNearestParking(ResourceName prefab, vector pos,  string ownerId = "")
 	{
-		RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
-		IEntity spawnedItem = rpl.GetEntity();
-		
+		vector mat[4];
+		if(!GetNearestParkingSpot(pos, mat))
+		{
+			if(!FindNearestKerbParking(pos, 30, mat))
+			{				
+				return null;
+			}
+		}
+		return SpawnVehicleMatrix(prefab, mat, ownerId);
+	}
+	
+	IEntity SpawnVehicleBehind(ResourceName prefab, IEntity entity, string ownerId="")
+	{
 		vector mat[4];
 			
 		entity.GetTransform(mat);
@@ -151,7 +171,7 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 		Math3D.AnglesToMatrix(angles, mat);
 		mat[3] = pos;
 		
-		return SpawnVehicleMatrix(spawnedItem.GetPrefabData().GetPrefabName(), mat, ownerId);
+		return SpawnVehicleMatrix(prefab, mat, ownerId);
 	}
 	
 	IEntity SpawnVehicleMatrix(ResourceName prefab, vector mat[4], string ownerId = "")
@@ -174,6 +194,30 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 		m_aVehicles.Insert(ent.GetID());
 		
 		return ent;
+	}
+	
+	void UpgradeVehicle(RplId vehicle, int id)
+	{
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		
+		ResourceName res = economy.GetResource(id);
+		
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(vehicle));
+		if(!rpl) return;
+		IEntity entity = rpl.GetEntity();
+		
+		string ownerId = GetOwnerID(entity);
+		
+		vector mat[4];
+		entity.GetTransform(mat);
+		
+		IEntity newveh = SpawnVehicleMatrix(res, mat, ownerId);
+		RplComponent newrpl = RplComponent.Cast(newveh.FindComponent(RplComponent));
+		
+		m_aVehicles.RemoveItem(entity.GetID());
+		
+		OVT_Global.TransferStorage(vehicle, newrpl.Id());
+		SCR_Global.DeleteEntityAndChildren(entity);		
 	}
 	
 	void ~OVT_VehicleManagerComponent()

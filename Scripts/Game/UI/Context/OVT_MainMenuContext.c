@@ -2,11 +2,42 @@ class OVT_MainMenuContext : OVT_UIContext
 {
 	ref OVT_MainMenuWidgets m_Widgets;
 	OVT_TownManagerComponent m_TownManager;
+	
+	OVT_MainMenuContextOverrideComponent m_FoundOverride;
 		
 	override void PostInit()
 	{		
 		m_TownManager = OVT_Global.GetTowns();
 		m_Widgets = new OVT_MainMenuWidgets();
+	}
+	
+	override void ShowLayout()
+	{
+		m_FoundOverride = null;
+		GetGame().GetWorld().QueryEntitiesBySphere(m_Owner.GetOrigin(), 5, null, FindOverride, EQueryEntitiesFlags.ALL);
+		
+		if(m_FoundOverride)
+		{
+			OVT_UIManagerComponent ui = OVT_UIManagerComponent.Cast(m_Owner.FindComponent(OVT_UIManagerComponent));
+			if(ui)
+			{
+				OVT_UIContext context = ui.GetContextByString(m_FoundOverride.m_ContextName);
+				if(context)
+				{
+					context.ShowLayout();
+					return;
+				}
+			}
+		}
+		
+		super.ShowLayout();
+	}
+	
+	protected bool FindOverride(IEntity entity)
+	{
+		OVT_MainMenuContextOverrideComponent found = OVT_MainMenuContextOverrideComponent.Cast(entity.FindComponent(OVT_MainMenuContextOverrideComponent));
+		if(found) m_FoundOverride = found;
+		return false;
 	}
 	
 	override void OnShow()

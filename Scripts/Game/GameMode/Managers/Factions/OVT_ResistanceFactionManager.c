@@ -65,6 +65,24 @@ class OVT_Buildable : ScriptAndConfig
 	ref OVT_PlaceableHandler handler;
 }
 
+class OVT_VehicleUpgrades : ScriptAndConfig
+{
+	[Attribute()]
+	ResourceName m_pBasePrefab;
+	
+	[Attribute("", UIWidgets.Object)]
+	ref array<ref OVT_VehicleUpgrade> m_aUpgrades;	
+}
+
+class OVT_VehicleUpgrade : ScriptAndConfig
+{
+	[Attribute()]
+	ResourceName m_pUpgradePrefab;
+	
+	[Attribute(defvalue: "100", desc: "Cost (multiplied by difficulty)")]
+	int m_iCost;
+}
+
 class OVT_ResistanceFactionManager: OVT_Component
 {	
 	[Attribute("", UIWidgets.Object)]
@@ -73,14 +91,20 @@ class OVT_ResistanceFactionManager: OVT_Component
 	[Attribute("", UIWidgets.Object)]
 	ref array<ref OVT_Buildable> m_aBuildables;
 	
+	[Attribute("", UIWidgets.Object)]
+	ref array<ref OVT_VehicleUpgrades> m_aVehicleUpgrades;
+	
 	ref array<vector> m_FOBs;
 	ref array<EntityID> m_Placed;
 	ref array<EntityID> m_Built;
 	
 	ref array<string> m_Officers;
 	ref map<ref string,ref vector> m_mCamps;
+	ref map<ref string,ref vector> m_mPlayerPositions;
 	
 	OVT_PlayerManagerComponent m_Players;
+	
+	
 	
 	static OVT_ResistanceFactionManager s_Instance;
 	
@@ -110,11 +134,20 @@ class OVT_ResistanceFactionManager: OVT_Component
 		m_Built = new array<EntityID>;	
 		m_Officers = new array<string>;
 		m_mCamps = new map<ref string,ref vector>;
+		m_mPlayerPositions = new map<ref string,ref vector>;
 	}
 	
 	void Init(IEntity owner)
 	{
-		
+		//Register vehicle upgrade resources with the economy
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		foreach(OVT_VehicleUpgrades upgrades : m_aVehicleUpgrades)
+		{
+			foreach(OVT_VehicleUpgrade upgrade : upgrades.m_aUpgrades)
+			{
+				economy.RegisterResource(upgrade.m_pUpgradePrefab);				
+			}
+		}
 	}
 	
 	bool IsOfficer(int playerId)

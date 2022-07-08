@@ -1,0 +1,320 @@
+FrameWidgetClass {
+ Name "rootFrame"
+ {
+  PanelWidgetClass "{59CF196F90DE7EE1}" {
+   Name "ManageVehiclePanel"
+   Slot FrameWidgetSlot "{597282644EB209C6}" {
+    Anchor 0.5 0.5 0.5 0.5
+    PositionX 0
+    OffsetLeft 0
+    PositionY 0
+    OffsetTop 0
+    SizeX 1000
+    OffsetRight -1000
+    SizeY 650
+    OffsetBottom -650
+    Alignment 0.5 0.5
+   }
+   {
+    BlurWidgetClass "{59CF196F90DE7EE2}" : "{352322057FD78AE1}UI/layouts/WidgetLibrary/BaseElements/WLib_Blur.layout" {
+     Name "BackgroundBlur"
+     Slot FrameWidgetSlot "{5982E26F6316DE4F}" {
+      Anchor 0 0 1 1
+      PositionX 0
+      OffsetLeft 0
+      PositionY 0
+      OffsetTop 0
+      SizeX -200
+      OffsetRight 0
+      SizeY -1050
+      OffsetBottom 0
+     }
+     Color 0.127 0.127 0.127 1
+     Intensity 0.8
+    }
+    VerticalLayoutWidgetClass "{59CF196F90DE7EE5}" {
+     Name "VerticalLayout0"
+     Slot FrameWidgetSlot "{59728267ECC2178F}" {
+      Anchor 0 0 1 1
+      PositionX 1
+      OffsetLeft 10
+      PositionY 0
+      OffsetTop 10
+      SizeX 0
+      OffsetRight 10
+      SizeY 0
+      OffsetBottom 10
+     }
+     {
+      HorizontalLayoutWidgetClass "{59CF196F90DE7EE4}" {
+       Name "Header"
+       Slot LayoutSlot "{59A6DA4C43CC721E}" {
+       }
+       {
+        ImageWidgetClass "{59CF196F90DE7EE7}" {
+         Name "Image0"
+         Slot LayoutSlot "{59A6DA4C4FC5D425}" {
+         }
+         Texture "{2EFEA2AF1F38E7F0}UI/Textures/Icons/icons_wrapperUI-64.imageset"
+         Image "repair"
+         Size 64 64
+        }
+        TextWidgetClass "{59CF196F90DE7EE6}" {
+         Name "Text0"
+         Slot LayoutSlot "{59A6DA4C57D30E9F}" {
+          HorizontalAlign 1
+          VerticalAlign 1
+          Padding 10 0 0 0
+         }
+         Text "#OVT-ManageVehicle"
+         "Font Size" 36
+        }
+       }
+      }
+      HorizontalLayoutWidgetClass "{59CF1960920B48EF}" {
+       Name "DetailLayout"
+       Slot LayoutSlot "{59CF1960920B4887}" {
+        SizeMode Fill
+        FillWeight 0.5
+       }
+       {
+        SizeLayoutWidgetClass "{59CF19613A67F9F0}" {
+         Name "SizeLayout0"
+         Slot LayoutSlot "{59CF19613A67F98D}" {
+          Padding 5 5 5 5
+          SizeMode Fill
+         }
+         {
+          VerticalLayoutWidgetClass "{59CF196166BD2A33}" {
+           Name "VerticalLayout0"
+           Slot LayoutSlot "{59CF196166BD2BCE}" {
+            Padding 0 0 0 0
+           }
+           {
+            TextWidgetClass "{59CF19616E6E7608}" {
+             Name "VehicleName"
+             Slot LayoutSlot "{59CF19616E6E762F}" {
+             }
+             Text "UAZ469"
+             "Font Size" 36
+             "Min Font Size" 36
+            }
+           }
+          }
+         }
+        }
+        ItemPreviewWidgetClass "{59CF196124292005}" {
+         Name "VehiclePreview"
+         Slot LayoutSlot "{59CF1961242921CF}" {
+          SizeMode Fill
+         }
+        }
+       }
+      }
+      OverlayWidgetClass "{59CF1962654AA158}" {
+       Name "UpgradesHeader"
+       Slot LayoutSlot "{599D59771F18D990}" {
+        Padding 0 5 0 0
+       }
+       {
+        PanelWidgetClass "{59CF1962654AA15C}" {
+         Name "BG"
+         Slot OverlayWidgetSlot "{599D5977F1E3F8A8}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+         }
+         Color 1 1 1 0.035
+         style debugUI
+        }
+        HorizontalLayoutWidgetClass "{59CF1962654AA152}" {
+         Name "Layout"
+         Slot OverlayWidgetSlot "{599D59771EB55F47}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+          Padding 5 5 5 5
+         }
+         {
+          TextWidgetClass "{59CF1962654AA150}" {
+           Name "Text"
+           Slot LayoutSlot "{599D5977351D294A}" {
+           }
+           Text "#OVT-Upgrades"
+           "Font Size" 26
+          }
+         }
+        }
+       }
+      }
+      UniformGridLayoutWidgetClass "{59CF19622E125088}" {
+       Name "UpgradesGrid"
+       Slot LayoutSlot "{59CF19635CB4679D}" {
+       }
+       {
+        ButtonWidgetClass "{59CF19622E12508E}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
+         Name "ShopMenu_Card0"
+         Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
+         }
+         {
+         }
+        }
+        ButtonWidgetClass "{59CF19622E125082}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
+         Name "ShopMenu_Card1"
+         Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
+          Column 1
+         }
+         {
+         }
+        }
+        ButtonWidgetClass "{59CF19622E125080}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
+         Name "ShopMenu_Card2"
+         Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
+          Column 2
+         }
+         {
+         }
+        }
+        ButtonWidgetClass "{59CF19622E125081}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
+         Name "ShopMenu_Card3"
+         Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
+          Column 3
+         }
+         {
+         }
+        }
+       }
+      }
+      OverlayWidgetClass "{59CF196F90DF32D2}" {
+       Name "Footer"
+       Slot LayoutSlot "{56EEDE03DE14A911}" {
+       }
+       {
+        HorizontalLayoutWidgetClass "{59CF196F90DF32D3}" {
+         Name "Buttons"
+         Slot OverlayWidgetSlot "{56EEDE03DED9A743}" {
+          HorizontalAlign 3
+         }
+         {
+          ButtonWidgetClass "{59CF196F90DF32D0}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+           Name "CloseButton"
+           Slot LayoutSlot "{56EEDE01982D053A}" {
+            Padding 0 0 10 0
+           }
+           components {
+            SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+             m_sSoundClicked "SOUND_FE_BUTTON_CANCEL"
+             m_sLabel "#AR-Editor_ContentBrowser_ButtonClose"
+             m_sActionName "MenuBack"
+            }
+            ButtonActionComponent "{56EEDE01BE93EE7D}" {
+             m_bActionName "MenuBack"
+            }
+           }
+           {
+            SizeLayoutWidgetClass "{5562AD435529FB36}" {
+             Prefab "{5562AD435529FB36}"
+             {
+              OverlayWidgetClass "{000000005E70868E}" {
+               Prefab "{000000005E70868E}"
+               {
+                HorizontalLayoutWidgetClass "{00000000E3602307}" {
+                 Prefab "{00000000E3602307}"
+                 Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
+                  Padding 10 10 16 10
+                 }
+                 {
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+          FrameWidgetClass "{59D0228AADA4099D}" {
+           Name "Fill"
+           Slot LayoutSlot "{59D0228AADA40A65}" {
+            SizeMode Fill
+           }
+          }
+          ButtonWidgetClass "{59D0228A4E53A03B}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+           Name "UpgradeButton"
+           Slot LayoutSlot "{56EEDE01982D053A}" {
+            Padding 0 0 10 0
+           }
+           components {
+            SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+             m_sSoundClicked "SOUND_FE_BUTTON_CANCEL"
+             m_sLabel "#OVT-UpgradeVehicle"
+             m_sActionName "OverthrowUpgradeVehicle"
+            }
+            ButtonActionComponent "{56EEDE01BE93EE7D}" {
+             m_bActionName "OverthrowUpgradeVehicle"
+            }
+           }
+           {
+            SizeLayoutWidgetClass "{5562AD435529FB36}" {
+             Prefab "{5562AD435529FB36}"
+             {
+              OverlayWidgetClass "{000000005E70868E}" {
+               Prefab "{000000005E70868E}"
+               {
+                HorizontalLayoutWidgetClass "{00000000E3602307}" {
+                 Prefab "{00000000E3602307}"
+                 Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
+                  Padding 10 10 16 10
+                 }
+                 {
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+          ButtonWidgetClass "{59D0228A9C956725}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+           Name "RepairButton"
+           Slot LayoutSlot "{56EEDE01982D053A}" {
+            Padding 0 0 10 0
+           }
+           components {
+            SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+             m_sSoundClicked "SOUND_FE_BUTTON_CANCEL"
+             m_sLabel "#OVT-RepairVehicle"
+             m_sActionName "OverthrowRepairVehicle"
+            }
+            ButtonActionComponent "{56EEDE01BE93EE7D}" {
+             m_bActionName "OverthrowRepairVehicle"
+            }
+           }
+           {
+            SizeLayoutWidgetClass "{5562AD435529FB36}" {
+             Prefab "{5562AD435529FB36}"
+             {
+              OverlayWidgetClass "{000000005E70868E}" {
+               Prefab "{000000005E70868E}"
+               {
+                HorizontalLayoutWidgetClass "{00000000E3602307}" {
+                 Prefab "{00000000E3602307}"
+                 Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
+                  Padding 10 10 16 10
+                 }
+                 {
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

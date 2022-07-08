@@ -112,8 +112,8 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 		if(!faction) return 0;
 				
 		if(res == ""){
-			res = faction.m_aGroupInfantryPrefabSlots.GetRandomElement();
-			if(threat > 25) res = faction.m_aHeavyInfantryPrefabSlots.GetRandomElement();
+			res = faction.GetRandomGroupByType(OVT_GroupType.LIGHT_INFANTRY);
+			if(threat > 25) res = faction.GetRandomGroupByType(OVT_GroupType.HEAVY_INFANTRY);
 		}
 		
 		BaseWorld world = GetGame().GetWorld();

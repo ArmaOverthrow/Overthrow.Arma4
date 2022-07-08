@@ -1,0 +1,101 @@
+GenericEntity {
+ ID "59CF196E7B413D5B"
+ components {
+  Hierarchy "{59D05009C322FE87}" {
+  }
+  OVT_MainMenuContextOverrideComponent "{59D05009CFE48314}" {
+   m_ContextName "OVT_ManageVehicleContext"
+  }
+  RplComponent "{59CF196A053B1B4F}" {
+  }
+ }
+ coords 0 0 0
+ {
+  GenericEntity : "{061EFBBB385DAF01}Prefabs/Props/VehicleParts/Tires/Tire_UAZ469_pile.et" {
+   ID "59CF196E7B415758"
+   coords -2.044 0.877 -0.706
+  }
+  GenericEntity : "{2F2BBFDA3A2C73D4}Prefabs/Props/Civilian/RadioSmall_01_black.et" {
+   ID "59CF196E7B46077A"
+   components {
+    Hierarchy "{59CF196D2FC1E5B9}" {
+    }
+   }
+   coords -2.322 0.867 0.696
+   angleY 62.606
+  }
+  GenericEntity : "{50A752B7D5E679A2}Prefabs/Props/Industrial/Repair/GasWelder_01.et" {
+   ID "59CF196E7B468CD7"
+   components {
+    Hierarchy "{59CF196C78239E29}" {
+    }
+    RigidBody "{5872F0EB7DFB5A9D}" {
+    }
+    RplComponent "{5624A88DC2D9928D}" {
+     Enabled 1
+    }
+   }
+   coords 2.063 0.923 0.184
+   angleY -56.425
+  }
+  GenericEntity : "{62B2ADC4243454F9}Prefabs/Props/Civilian/Jerrycan_01.et" {
+   ID "59CF196E7B46FF89"
+   components {
+    Hierarchy "{59CF196D456FD289}" {
+    }
+   }
+   coords -1.884 0.875 0.097
+  }
+  SCR_DestructibleBuildingEntity : "{74FAABE8512145EF}Prefabs/Structures/Industrial/Repair/RampVehicle_01_metal.et" {
+   ID "59CF196E7B413D5F"
+   components {
+   }
+  }
+  DecalEntity : "{9EE74738BD9E8CDB}Prefabs/Decals/Dirt/Decal_Dirt_Tracks_02.et" {
+   ID "59CF196E7B415751"
+   components {
+    Hierarchy "{59CF196C4934255A}" {
+    }
+   }
+   coords -0.099 0.548 10.798
+   angleX -90
+   angleZ 85.573
+   scale 5
+  }
+  DecalEntity : "{AF4AA779A4546D51}Prefabs/Decals/Dirt/Decal_Dirt_Patch_02.et" {
+   ID "59CF196E7B415727"
+   components {
+    Hierarchy "{59CF196C4D816EF9}" {
+    }
+   }
+   coords -0.299 0 1.83
+   angleX -90
+   scale 5
+   FarPlane 2.498
+  }
+  GenericEntity : "{BCE07A58672955B9}Prefabs/Props/Civilian/Bucket_01.et" {
+   ID "59CF196E7B46FF88"
+   components {
+    Hierarchy "{59CF196C9EE7C1B7}" {
+    }
+   }
+   coords -2.21 0.87 0.017
+  }
+  GenericEntity : "{BD65F1D86388640D}Prefabs/Props/Civilian/FireExtinguisher_01.et" {
+   ID "59CF196E7B461A2A"
+   components {
+    Hierarchy "{59CF196D6218A15F}" {
+    }
+   }
+   coords -2.229 0.869 0.351
+  }
+  GenericEntity : "{DA861447E6D426AE}Prefabs/Props/Industrial/Repair/VehicleGarbage_01_pile_small.et" {
+   ID "59CF196E7B468CD4"
+   components {
+    Hierarchy "{59CF196C7CCDDF4F}" {
+    }
+   }
+   coords 1.829 0.892 -0.859
+  }
+ }
+}

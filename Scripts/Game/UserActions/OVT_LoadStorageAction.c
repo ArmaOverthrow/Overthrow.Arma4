@@ -29,6 +29,18 @@ class OVT_LoadStorageAction : SCR_InventoryAction
 			}
 		}
 		
+		//Make sure noone is driving it
+		Vehicle veh = Vehicle.Cast(nearestVeh);
+		SCR_BaseCompartmentManagerComponent access = SCR_BaseCompartmentManagerComponent.Cast(veh.FindComponent(SCR_BaseCompartmentManagerComponent));
+		array<IEntity> pilots = {};
+		access.GetOccupantsOfType(pilots, ECompartmentType.Pilot);
+		
+		if(pilots.Count() > 0)
+		{
+			SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-DriverMustExit");
+			return;
+		}
+		
 		SCR_UniversalInventoryStorageComponent vehicleStorage = SCR_UniversalInventoryStorageComponent.Cast(nearestVeh.FindComponent(SCR_UniversalInventoryStorageComponent));
 		if(!vehicleStorage)
 		{
@@ -47,23 +59,10 @@ class OVT_LoadStorageAction : SCR_InventoryAction
 			SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-StorageEmpty");
 			return;
 		}
-		foreach(IEntity item : items)
-		{
-			if(!boxStorage.TryMoveItemToStorage(item, vehicleStorage)){				
-				continue;
-			}
-		}
 		
-		// Play sound
-		SimpleSoundComponent simpleSoundComp = SimpleSoundComponent.Cast(pOwnerEntity.FindComponent(SimpleSoundComponent));
-		if (simpleSoundComp)
-		{
-			vector mat[4];
-			pOwnerEntity.GetWorldTransform(mat);
-			
-			simpleSoundComp.SetTransformation(mat);
-			simpleSoundComp.PlayStr("LOAD_VEHICLE");
-		}		
+		OVT_Global.GetServer().TransferStorage(pOwnerEntity, nearestVeh);
+		
+		SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-VehicleLoaded");
 	}
 	
 	#endif	

@@ -5,6 +5,15 @@ class OVT_FactionCompositionConfig
 	ref array<ref OVT_FactionComposition> m_aCompositions;
 }
 
+enum OVT_GroupType
+{
+	LIGHT_INFANTRY,
+	HEAVY_INFANTRY,
+	ANTI_TANK,
+	SPECIAL_FORCES,
+	SNIPER
+}
+
 [BaseContainerProps(), SCR_BaseContainerCustomTitleField("m_sTag")]
 class OVT_FactionComposition
 {
@@ -85,5 +94,22 @@ class OVT_Faction : SCR_Faction
 			if(config.m_sTag == tag) return config;
 		}
 		return null;
+	}
+	
+	ResourceName GetRandomGroupByType(OVT_GroupType type)
+	{
+		switch(type)
+		{				
+			case OVT_GroupType.HEAVY_INFANTRY:
+				return m_aHeavyInfantryPrefabSlots.GetRandomElement();
+			case OVT_GroupType.ANTI_TANK:
+				return m_aGroupATPrefabSlots.GetRandomElement();
+			case OVT_GroupType.SPECIAL_FORCES:
+				return m_aGroupSpecialPrefabSlots.GetRandomElement();
+			case OVT_GroupType.SNIPER:
+				return m_aGroupSniperPrefab;
+		}
+		
+		return m_aGroupPrefabSlots.GetRandomElement();
 	}
 }

@@ -67,6 +67,12 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      m_bOpenActionCloses 0
      m_bHideHUDOnShow 1
     }
+    OVT_ManageVehicleContext "{59D0228D94C37A99}" {
+     m_Layout "{B9AD9DE29BB469E2}UI/Layouts/Menu/ManageVehicleMenu.layout"
+     m_sContextName "OverthrowBaseMenuContext"
+     m_sCloseAction "MenuBack"
+     m_bOpenActionCloses 0
+    }
    }
   }
   SCR_BaseHUDComponent "{520EA1D2DB118134}" {
@@ -94,6 +100,12 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
     }
    }
   }
+  SCR_PlayerMailboxComponent "{59CC0DBB0D1E902D}" {
+   m_pCommandingRadialMenu SCR_RadialMenu "{59CC0DBB0B65C791}" {
+    m_pDisplay SCR_RadialMenuDisplay "{59CC0DBB0A0B7547}" {
+    }
+   }
+  }
   CharacterIdentityComponent "{5584CBC63E092DBC}" {
    Identity Identity "{5584CBC6363C648B}" {
     VisualIdentity VisualIdentity "{56E6D9456009D1C4}" {
@@ -112,12 +124,6 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
     ItemsInitConfigurationItem "{5968C8BB5309538A}" {
      TargetStorage "Prefabs/Characters/Uniforms/Jacket_M70.et"
      TargetPurpose 64
-    }
-   }
-  }
-  SCR_PlayerMailboxComponent "{59CC0DBB0D1E902D}" {
-   m_pCommandingRadialMenu SCR_RadialMenu "{59CC0DBB0B65C791}" {
-    m_pDisplay SCR_RadialMenuDisplay "{59CC0DBB0A0B7547}" {
     }
    }
   }

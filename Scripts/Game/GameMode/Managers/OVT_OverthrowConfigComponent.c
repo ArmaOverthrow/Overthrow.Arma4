@@ -9,6 +9,17 @@ enum OVT_QRFFastTravelMode
 	DISABLED
 }
 
+enum OVT_FactionType {
+	OCCUPYING_FACTION,
+	RESISTANCE_FACTION,
+	SUPPORTING_FACTION
+}
+
+enum OVT_PatrolType {
+	DEFEND,
+	PERIMETER	
+}
+
 class OVT_DifficultySettings : ScriptAndConfig
 {	
 	[Attribute()]
@@ -191,6 +202,16 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		return m_iPlayerFactionIndex;
 	}
 	
+	OVT_Faction GetFactionByType(OVT_FactionType type)
+	{
+		switch(type)
+		{
+			case OVT_FactionType.OCCUPYING_FACTION:
+				return GetOccupyingFaction();		
+		}
+		return GetPlayerFaction();
+	}
+	
 	AIWaypoint SpawnWaypoint(ResourceName res, vector pos)
 	{
 		EntitySpawnParams params = EntitySpawnParams();
@@ -246,6 +267,45 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		wp.SetSmartActionEntity(target, action);
 		
 		return wp;
+	}
+	
+	void GivePatrolWaypoints(SCR_AIGroup aigroup, OVT_PatrolType type, vector center = "0 0 0")
+	{
+		if(center[0] == 0) center = aigroup.GetOrigin();
+		
+		if(type == OVT_PatrolType.DEFEND)
+		{
+			aigroup.AddWaypoint(SpawnDefendWaypoint(center));
+			return;
+		}
+		
+		if(type == OVT_PatrolType.PERIMETER)
+		{
+			float dist = vector.Distance(aigroup.GetOrigin(), center);
+			vector dir = vector.Direction(aigroup.GetOrigin(), center);
+			float angle = dir.VectorToAngles()[1];
+			
+			array<AIWaypoint> queueOfWaypoints = new array<AIWaypoint>();
+			AIWaypoint firstWP;
+			for(int i; i< 4; i++)
+			{
+				vector pos = center + (Vector(0,angle,0).AnglesToVector() * dist);
+				
+				AIWaypoint wp = SpawnPatrolWaypoint(pos);
+				queueOfWaypoints.Insert(wp);
+				
+				AIWaypoint wait = SpawnWaitWaypoint(pos, s_AIRandomGenerator.RandFloatXY(45, 75));								
+				queueOfWaypoints.Insert(wait);
+				
+				angle += 90;
+				if(angle > 359) angle -= 360;
+			}
+			AIWaypointCycle cycle = AIWaypointCycle.Cast(SpawnWaypoint(m_pCycleWaypointPrefab, aigroup.GetOrigin()));
+			cycle.SetWaypoints(queueOfWaypoints);
+			cycle.SetRerunCounter(-1);
+			aigroup.AddWaypoint(cycle);
+			return;
+		}
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]

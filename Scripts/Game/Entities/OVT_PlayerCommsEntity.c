@@ -70,7 +70,7 @@ class OVT_PlayerCommsEntity: GenericEntity
 		Rpc(RpcAsk_Buy, rpl.Id(), id, num, playerId);
 	}
 	
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
 	protected void RpcAsk_Buy(RplId shopId, int id, int num, int playerId)
 	{
 		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
@@ -89,22 +89,17 @@ class OVT_PlayerCommsEntity: GenericEntity
 		int total = 0;
 		int totalnum = 0;
 		for(int i = 0; i<num; i++)
-		{
-			IEntity item = GetGame().SpawnEntityPrefab(Resource.Load(economy.GetResource(id)));
-		
-			if(inventory.TryInsertItem(item))
+		{		
+			if(inventory.TrySpawnPrefabToStorage(economy.GetResource(id)))
 			{
 				total += cost;
 				totalnum++;
-			}else{
-				SCR_Global.DeleteEntityAndChildren(item);
-				break;
 			}
 		}
 		if(total > 0)
 		{
-			RpcAsk_TakePlayerMoney(playerId, total);
-			RpcAsk_TakeFromInventory(shopId, id, totalnum);
+			Rpc(RpcAsk_TakePlayerMoney, playerId, total);
+			Rpc(RpcAsk_TakeFromInventory, shopId, id, totalnum);
 		}
 		
 	}
@@ -128,7 +123,7 @@ class OVT_PlayerCommsEntity: GenericEntity
 		int cost = economy.GetPrice(id, player.GetOrigin());		
 		if(!economy.PlayerHasMoney(playerPersId, cost)) return;
 		
-		if(OVT_Global.GetVehicles().SpawnVehicleBehind(id, player, playerPersId))
+		if(OVT_Global.GetVehicles().SpawnVehicleNearestParking(economy.GetResource(id), player.GetOrigin(), playerPersId))
 		{
 			RpcAsk_TakePlayerMoney(playerId, cost);
 			RpcAsk_TakeFromInventory(shopId, id, 1);
@@ -266,5 +261,37 @@ class OVT_PlayerCommsEntity: GenericEntity
 	protected void RpcAsk_AddGarrison(int baseId, int prefabIndex)
 	{
 		OVT_Global.GetResistanceFaction().AddGarrison(baseId, prefabIndex);
+	}
+	
+	//INVENTORY
+	void TransferStorage(IEntity from, IEntity to)
+	{
+		RplComponent fromRpl = RplComponent.Cast(from.FindComponent(RplComponent));
+		RplComponent toRpl = RplComponent.Cast(to.FindComponent(RplComponent));
+		
+		if(!fromRpl || !toRpl) return;
+		
+		Rpc(RpcAsk_TransferStorage, fromRpl.Id(), toRpl.Id());
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_TransferStorage(RplId from, RplId to)
+	{
+		OVT_Global.TransferStorage(from, to);
+	}
+	
+	//VEHICLES
+	void UpgradeVehicle(Vehicle vehicle, OVT_VehicleUpgrade upgrade)
+	{
+		int id = OVT_Global.GetEconomy().GetInventoryId(upgrade.m_pUpgradePrefab);
+		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
+		
+		Rpc(RpcAsk_UpgradeVehicle, rpl.Id(), id);
+	}	
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_UpgradeVehicle(RplId vehicle, int id)
+	{
+		OVT_Global.GetVehicles().UpgradeVehicle(vehicle, id);
 	}
 }

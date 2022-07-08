@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{B9AD9DE29BB469E2}UI/Layouts/Menu/ManageVehicleMenu.layout"
+ Configurations {
+  LayoutResourceClass PC {
+  }
+  LayoutResourceClass XBOX_ONE : PC {
+  }
+  LayoutResourceClass XBOX_SERIES : PC {
+  }
+  LayoutResourceClass PS4 : PC {
+  }
+  LayoutResourceClass HEADLESS : PC {
+  }
+ }
+}

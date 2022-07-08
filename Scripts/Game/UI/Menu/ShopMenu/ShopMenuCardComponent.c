@@ -1,14 +1,14 @@
 class OVT_ShopMenuCardComponent : SCR_ScriptedWidgetComponent
 {
-	protected int m_Resource;
-	protected OVT_ShopContext m_Context;
+	protected ResourceName m_Resource;
+	protected OVT_UIContext m_Context;
 	
-	void Init(int id, int cost, int qty, OVT_ShopContext context)
+	void Init(ResourceName res, int cost, int qty, OVT_UIContext context)
 	{	
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();	
-		IEntity spawnedItem = GetGame().SpawnEntityPrefabLocal(Resource.Load(economy.GetResource(id)));
+		IEntity spawnedItem = GetGame().SpawnEntityPrefabLocal(Resource.Load(res));
 		
-		m_Resource = id;
+		m_Resource = res;
 		m_Context = context;
 		
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
@@ -16,10 +16,21 @@ class OVT_ShopMenuCardComponent : SCR_ScriptedWidgetComponent
 		TextWidget text = TextWidget.Cast(m_wRoot.FindAnyWidget("EntityName"));
 		
 		TextWidget costWidget = TextWidget.Cast(m_wRoot.FindAnyWidget("Cost"));
-		costWidget.SetText("$" + cost);
+		if(cost == -1)
+		{
+			costWidget.SetVisible(false);
+		}else{
+			costWidget.SetText("$" + cost);
+		}		
 		
 		TextWidget qtyWidget = TextWidget.Cast(m_wRoot.FindAnyWidget("Stock"));
-		qtyWidget.SetText(qty.ToString());
+		if(qty == -1)
+		{
+			qtyWidget.SetVisible(false);
+		}else{
+			qtyWidget.SetText(qty.ToString());
+		}
+		
 		
 		ItemPreviewWidget img = ItemPreviewWidget.Cast(m_wRoot.FindAnyWidget("Image"));
 		ImageWidget tex = ImageWidget.Cast(m_wRoot.FindAnyWidget("Texture"));

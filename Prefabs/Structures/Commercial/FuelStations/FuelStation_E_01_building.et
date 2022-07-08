@@ -1,6 +1,18 @@
 SCR_DestructibleBuildingEntity : "{A43A100E3C377DB2}Prefabs/Structures/Core/Building_Base.et" {
  ID "F0DBA538AC2A0552"
  components {
+  OVT_ParkingComponent "{59D030D1D4B18E18}" {
+   m_aParkingSpots {
+    OVT_ParkingPointInfo "{59D030D1D24EF732}" {
+     m_vPosition -4.392 -1.187 7.648
+     m_Type PARKING_CAR
+    }
+    OVT_ParkingPointInfo "{59D030D1B5AAF761}" {
+     m_vPosition 12.998 -1.388 4.827
+     m_Type PARKING_CAR
+    }
+   }
+  }
   OVT_ShopComponent "{5996803956C49D1E}" {
    m_ShopType SHOP_VEHICLE
   }

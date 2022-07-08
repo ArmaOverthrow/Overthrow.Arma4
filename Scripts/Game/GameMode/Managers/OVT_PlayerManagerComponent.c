@@ -156,6 +156,17 @@ class OVT_PlayerManagerComponent: OVT_Component
 		Rpc(RpcDo_RegisterPlayer, playerId, id1, id2, id3);
 	}
 	
+	void TeleportPlayer(int playerId, vector pos)
+	{
+		int localId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
+		if(playerId == localId){
+			RpcDo_TeleportPlayer(playerId, pos);
+			return;
+		}
+		
+		Rpc(RpcDo_TeleportPlayer, playerId, pos);
+	}
+	
 	//RPC Methods
 	
 	override bool RplSave(ScriptBitWriter writer)
@@ -189,6 +200,17 @@ class OVT_PlayerManagerComponent: OVT_Component
 			m_mPlayerIDs[persId] = playerId;
 		}
 		return true;
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_TeleportPlayer(int playerId, vector pos)
+	{
+		int localId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
+		if(playerId != localId) return;
+		
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		vector spawn = OVT_Global.FindSafeSpawnPosition(pos);
+		SCR_Global.TeleportPlayer(spawn);
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]

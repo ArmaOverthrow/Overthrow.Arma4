@@ -90,7 +90,7 @@ class OVT_BaseUpgradeSpecops : OVT_BasePatrolUpgrade
 		if(groupsSent == 0)
 		{
 			//Send specops
-			spent += BuyPatrol(0, faction.m_aGroupSpecialPrefabSlots.GetRandomElement());			
+			spent += BuyPatrol(0, faction.GetRandomGroupByType(OVT_GroupType.SPECIAL_FORCES));			
 		}
 		return spent;
 	}

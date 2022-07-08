@@ -155,6 +155,11 @@ class OVT_UIContext : ScriptAndConfig
 	
 	}
 	
+	void SelectItem(ResourceName res)
+	{
+	
+	}
+	
 	void Enable()
 	{
 		m_bIsActive = true;

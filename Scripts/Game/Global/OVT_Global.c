@@ -141,4 +141,41 @@ class OVT_Global {
 		
 		return foundpos;
 	}
+	
+	static void TransferStorage(RplId from, RplId to)
+	{
+		IEntity fromEntity = RplComponent.Cast(Replication.FindItem(from)).GetEntity();
+		IEntity toEntity = RplComponent.Cast(Replication.FindItem(to)).GetEntity();
+		
+		if(!fromEntity || !toEntity) return;
+		
+		InventoryStorageManagerComponent fromStorage = InventoryStorageManagerComponent.Cast(fromEntity.FindComponent(InventoryStorageManagerComponent));		
+		UniversalInventoryStorageComponent toStorage = UniversalInventoryStorageComponent.Cast(toEntity.FindComponent(UniversalInventoryStorageComponent));
+		
+		if(!toStorage || !fromStorage) return;
+				
+		array<IEntity> items = new array<IEntity>;
+		fromStorage.GetItems(items);
+		if(items.Count() == 0) return;
+				
+		foreach(IEntity item : items)
+		{
+			fromStorage.TryMoveItemToStorage(item, toStorage);				
+		}
+		
+		// Play sound if one is defined
+		SimpleSoundComponent simpleSoundComp = SimpleSoundComponent.Cast(toEntity.FindComponent(SimpleSoundComponent));
+		if(!simpleSoundComp)
+		{
+			simpleSoundComp = SimpleSoundComponent.Cast(fromEntity.FindComponent(SimpleSoundComponent));
+		}
+		if (simpleSoundComp)
+		{
+			vector mat[4];
+			toEntity.GetWorldTransform(mat);
+			
+			simpleSoundComp.SetTransformation(mat);
+			simpleSoundComp.PlayStr("LOAD_VEHICLE");
+		}	
+	}
 }

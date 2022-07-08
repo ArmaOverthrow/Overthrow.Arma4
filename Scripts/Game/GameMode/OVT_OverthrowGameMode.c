@@ -109,6 +109,21 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		rpl.Give(playerRplID);
 	}
 	
+	protected override void OnPlayerDisconnected(int playerId)
+	{
+		string persId = m_PlayerManager.GetPersistentIDFromPlayerID(playerId);
+		IEntity controlledEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+		
+		if(controlledEntity)
+		{
+			m_ResistanceFactionManager.m_mPlayerPositions[persId] = controlledEntity.GetOrigin();
+		}
+		
+		m_aInitializedPlayers.Remove(m_aInitializedPlayers.Find(persId));
+		
+		super.OnPlayerDisconnected(playerId);
+	}
+	
 	protected void OnPlayerIDRegistered(int playerId, string persistentId)
 	{
 		IEntity controlledEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
@@ -129,12 +144,16 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			}else{
 				m_aInitializedPlayers.Insert(persistentId);
 				
-				//Make sure player is at home (when loading save)
+				//Make sure player is at home or last position (when loading save)
 				vector home = m_RealEstate.GetHome(persistentId);
+				if(m_ResistanceFactionManager.m_mPlayerPositions.Contains(persistentId))
+				{
+					home = m_ResistanceFactionManager.m_mPlayerPositions[persistentId];
+				}
 				float dist = vector.Distance(controlledEntity.GetOrigin(), home);				
 				if(dist > 5)
 				{
-					m_RealEstate.TeleportHome(playerId);
+					m_PlayerManager.TeleportPlayer(playerId, home);
 				}
 			}
 		}else{

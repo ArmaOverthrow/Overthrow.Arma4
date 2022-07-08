@@ -309,6 +309,14 @@ class OVT_EconomyManagerComponent: OVT_Component
 		
 	}
 	
+	void RegisterResource(ResourceName res)
+	{
+		if(!m_aResources.Contains(res))
+		{
+			m_aResources.Insert(res);
+		}
+	}
+	
 	void BuildResourceDatabase()
 	{
 		m_aResources = new set<ResourceName>;

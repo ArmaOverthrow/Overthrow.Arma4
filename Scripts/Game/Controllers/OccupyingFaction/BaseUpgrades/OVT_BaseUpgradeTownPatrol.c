@@ -100,8 +100,8 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		OVT_Faction faction = m_Config.GetOccupyingFaction();
 				
 		ResourceName res = faction.m_aLightTownPatrolPrefab;
-		if(threat > 15) res = faction.m_aGroupInfantryPrefabSlots.GetRandomElement();
-		if(threat > 50) res = faction.m_aHeavyInfantryPrefabSlots.GetRandomElement();		
+		if(threat > 15) res = faction.GetRandomGroupByType(OVT_GroupType.LIGHT_INFANTRY);
+		if(threat > 50) res = faction.GetRandomGroupByType(OVT_GroupType.HEAVY_INFANTRY);		
 		
 		BaseWorld world = GetGame().GetWorld();
 			

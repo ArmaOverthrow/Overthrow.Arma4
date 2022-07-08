@@ -65,9 +65,10 @@ class OVT_ShopContext : OVT_UIContext
 		for(int i = m_iPageNum * 15; i < (m_iPageNum + 1) * 15 && i < m_Shop.m_aInventory.Count(); i++)
 		{			
 			int id = m_Shop.m_aInventory.GetKey(i);
+			ResourceName res = m_Economy.GetResource(id);
 						
 			if(wi == 0 && m_SelectedResource == -1){
-				SelectItem(id);
+				SelectItem(res);
 			}
 			
 			Widget w = grid.FindWidget("ShopMenu_Card" + wi);
@@ -77,7 +78,7 @@ class OVT_ShopContext : OVT_UIContext
 			int cost = m_Economy.GetPrice(id, m_Shop.GetOwner().GetOrigin());
 			int qty = m_Shop.GetStock(id);
 			
-			card.Init(id, cost, qty, this);
+			card.Init(res, cost, qty, this);
 			
 			wi++;
 		}
@@ -90,8 +91,9 @@ class OVT_ShopContext : OVT_UIContext
 		
 	}
 	
-	void SelectItem(int id)
+	override void SelectItem(ResourceName res)
 	{
+		int id = m_Economy.GetInventoryId(res);
 		m_SelectedResource = id;
 		TextWidget typeName = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedTypeName"));
 		TextWidget details = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedDetails"));
@@ -166,7 +168,8 @@ class OVT_ShopContext : OVT_UIContext
 		
 		if(m_Shop.m_ShopType == OVT_ShopType.SHOP_VEHICLE)
 		{
-			
+			OVT_Global.GetServer().BuyVehicle(m_Shop, m_SelectedResource, m_iPlayerID);	
+			CloseLayout();
 			return;
 		}	
 		
