@@ -186,10 +186,8 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 			Print("Failure to spawn vehicle");
 			return null;
 		}
-		
-		int playerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(ownerId);
-		
-		if(ownerId != "") SetOwner(playerId, ent);
+				
+		if(ownerId != "") SetOwnerPersistentId(ownerId, ent);
 		
 		m_aVehicles.Insert(ent.GetID());
 		

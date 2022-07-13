@@ -1,0 +1,18 @@
+GameEntity {
+ ID "51ACD0965653D003"
+ components {
+  ActionsManagerComponent "{51ACD09C7181BA0B}" {
+   additionalActions {
+    OVT_HireGunnerAction "{59DA76A754A4EB9F}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{59DA76A7514D9CE2}" {
+      Name "#OVT-RecruitGunner"
+     }
+    }
+   }
+  }
+ }
+ coords 0 0 0
+}

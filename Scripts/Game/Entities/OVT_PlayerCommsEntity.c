@@ -307,4 +307,17 @@ class OVT_PlayerCommsEntity: GenericEntity
 	{
 		OVT_Global.GetVehicles().RepairVehicle(vehicle);
 	}
+	
+	void SpawnGunner(IEntity turret, int playerId = -1)
+	{		
+		RplComponent rpl = RplComponent.Cast(turret.FindComponent(RplComponent));
+		
+		Rpc(RpcAsk_SpawnGunner, rpl.Id(), playerId);
+	}	
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_SpawnGunner(RplId turret, int playerId)
+	{
+		OVT_Global.GetResistanceFaction().SpawnGunner(turret, playerId);
+	}
 }

@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{1AF5B9AE5CFD4433}Prefabs/Groups/INDFOR/Group_CIV.et"
+ Configurations {
+  EntityTemplateResourceClass PC {
+  }
+  EntityTemplateResourceClass XBOX_ONE : PC {
+  }
+  EntityTemplateResourceClass XBOX_SERIES : PC {
+  }
+  EntityTemplateResourceClass PS4 : PC {
+  }
+  EntityTemplateResourceClass HEADLESS : PC {
+  }
+ }
+}

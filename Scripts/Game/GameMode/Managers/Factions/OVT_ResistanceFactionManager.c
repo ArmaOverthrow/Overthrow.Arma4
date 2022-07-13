@@ -94,6 +94,9 @@ class OVT_ResistanceFactionManager: OVT_Component
 	[Attribute("", UIWidgets.Object)]
 	ref array<ref OVT_VehicleUpgrades> m_aVehicleUpgrades;
 	
+	[Attribute("", UIWidgets.Object)]
+	ResourceName m_pHiredCivilianPrefab;
+	
 	ref array<vector> m_FOBs;
 	ref array<EntityID> m_Placed;
 	ref array<EntityID> m_Built;
@@ -104,7 +107,8 @@ class OVT_ResistanceFactionManager: OVT_Component
 	
 	OVT_PlayerManagerComponent m_Players;
 	
-	
+	protected IEntity m_TempVehicle;
+	protected SCR_AIGroup m_TempGroup;
 	
 	static OVT_ResistanceFactionManager s_Instance;
 	
@@ -217,7 +221,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		return entity;
 	}
 	
-	void AddGarrison(int baseId, int prefabIndex)
+	void AddGarrison(int baseId, int prefabIndex, bool takeSupporters = true)
 	{
 		OVT_BaseData base = OVT_Global.GetOccupyingFaction().m_Bases[baseId];
 		OVT_Faction faction = m_Config.GetPlayerFaction();
@@ -232,6 +236,11 @@ class OVT_ResistanceFactionManager: OVT_Component
 		AddPatrolWaypoints(group, base);
 			
 		base.garrison.Insert(entity.GetID());	
+		
+		if(takeSupporters)
+		{
+			OVT_Global.GetTowns().TakeSupportersFromNearestTown(base.location, group.m_aUnitPrefabSlots.Count());
+		}
 	}
 	
 	protected void AddPatrolWaypoints(SCR_AIGroup aigroup, OVT_BaseData base)
@@ -325,6 +334,45 @@ class OVT_ResistanceFactionManager: OVT_Component
 			}
 		}
 		return nearestBase;
+	}
+	
+	protected void MoveInGunner()
+	{
+		array<AIAgent> agents = {};
+		m_TempGroup.GetAgents(agents);
+		if(agents.Count() == 0) return;
+		
+		AIAgent dude = agents[0];
+		IEntity ent = dude.GetControlledEntity();
+		
+		SCR_CompartmentAccessComponent access = SCR_CompartmentAccessComponent.Cast(ent.FindComponent(SCR_CompartmentAccessComponent));
+		if(!access) return;
+		
+		access.MoveInVehicle(m_TempVehicle, ECompartmentType.Turret);
+	}
+	
+	void SpawnGunner(RplId turret, int playerId = -1, bool takeSupporter = true)
+	{
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(turret));
+		if(!rpl) return;
+		
+		IEntity turretEntity = rpl.GetEntity();	
+		IEntity vehicle = turretEntity.GetParent();
+		if(!vehicle) return;		
+				
+		IEntity group = GetGame().SpawnEntityPrefab(Resource.Load(m_pHiredCivilianPrefab));
+		SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
+		if(!aigroup) return;
+		
+		m_TempVehicle = vehicle;
+		m_TempGroup = aigroup;
+		
+		aigroup.GetOnInit().Insert(MoveInGunner);
+		
+		if(takeSupporter)
+		{
+			OVT_Global.GetTowns().TakeSupportersFromNearestTown(turretEntity.GetOrigin());
+		}		
 	}
 	
 	//RPC Methods	

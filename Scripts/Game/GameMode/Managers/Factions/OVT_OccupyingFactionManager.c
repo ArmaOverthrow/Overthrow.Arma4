@@ -239,7 +239,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 							int prefabIndex = resistance.m_aGroupPrefabSlots.Find(resource);
 							if(prefabIndex > -1)
 							{
-								rf.AddGarrison(data.id, prefabIndex);
+								rf.AddGarrison(data.id, prefabIndex,false);
 							}							
 						}
 					}					

@@ -617,6 +617,17 @@ class OVT_TownManagerComponent: OVT_Component
 		return false;		
 	}
 	
+	void TakeSupportersFromNearestTown(vector pos, int num = 1)
+	{
+		OVT_TownData town = GetNearestTown(pos);
+		if(town.support < num || town.population < num) return;
+		RpcDo_SetSupport(town.id, town.support - num);
+		Rpc(RpcDo_SetSupport, town.id, town.support - num);
+		
+		RpcDo_SetPopulation(town.id, town.population - num);
+		Rpc(RpcDo_SetPopulation, town.id, town.population - num);
+	}
+	
 	protected bool CheckHouseAddPopulation(IEntity entity)
 	{
 		VObject mesh = entity.GetVObject();
@@ -821,6 +832,13 @@ class OVT_TownManagerComponent: OVT_Component
 	{
 		OVT_TownData town = m_Towns[townId];
 		town.support = value;
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_SetPopulation(int townId, int value)
+	{
+		OVT_TownData town = m_Towns[townId];
+		town.population = value;
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]

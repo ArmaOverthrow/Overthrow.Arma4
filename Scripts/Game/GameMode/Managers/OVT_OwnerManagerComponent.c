@@ -21,6 +21,14 @@ class OVT_OwnerManagerComponent: OVT_Component
 		Rpc(RpcDo_SetOwner, playerId, rpl.Id());		
 	}
 	
+	void SetOwnerPersistentId(string persId, IEntity building)
+	{
+		RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
+		int playerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(persId);
+		DoSetOwnerPersistentId(persId, rpl.Id());		
+		Rpc(RpcDo_SetOwner, playerId, rpl.Id());		
+	}
+	
 	string GetOwnerID(IEntity building)
 	{
 		RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
@@ -60,6 +68,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 		foreach(RplId id : m_mOwned[playerId])
 		{
 			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+			if(!rpl) continue;
 			entities.Insert(rpl.GetEntity().GetID());
 		}
 		return entities;
@@ -117,6 +126,11 @@ class OVT_OwnerManagerComponent: OVT_Component
 	void DoSetOwner(int playerId, RplId id)
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		DoSetOwnerPersistentId(persId, id);
+	}
+	
+	void DoSetOwnerPersistentId(string persId, RplId id)
+	{
 		if(!m_mOwned.Contains(persId)) m_mOwned[persId] = new set<RplId>;
 		set<RplId> owner = m_mOwned[persId];
 		owner.Insert(id);

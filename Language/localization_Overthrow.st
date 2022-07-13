@@ -9,6 +9,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{59DA69F6CA52A3DC}" {
+   Id "OVT-AlreadyOccupied"
+   Target_en_us "Position is already occupied"
+   Modified 1507488152
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59C84C79CA882ABD}" {
    Id "OVT-Amount"
    Target_en_us "Amount"
@@ -599,6 +606,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{59DA69F4EADC4C3E}" {
+   Id "OVT-NoSupportersToRecruit"
+   Target_en_us "There are not enough supporters in the nearest town to recruit"
+   Modified 1507488586
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59CF196EEADAB2A1}" {
    Id "OVT-NoVehicleOnRamp"
    Target_en_us "No Vehicle on ramp"
@@ -737,6 +751,13 @@ StringTable {
    Target_en_us "Population"
    Status DEVELOPMENT_DONE
    Modified 1502796262
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{59DA76A7366B7006}" {
+   Id "OVT-RecruitGunner"
+   Target_en_us "Recruit Gunner"
+   Modified 1507490513
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

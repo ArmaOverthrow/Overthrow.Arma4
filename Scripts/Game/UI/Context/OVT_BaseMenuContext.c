@@ -1,14 +1,16 @@
 class OVT_GroupUIInfo : Managed
 {
 	ResourceName resource;
+	int numSoldiers;
 	int soldierCost;
 	int equipmentCost;
 	
-	void OVT_GroupUIInfo(ResourceName res, int soldiers, int equip)
+	void OVT_GroupUIInfo(ResourceName res, int soldiers, int equip, int num)
 	{
 		soldierCost = soldiers;
 		resource = res;
 		equipmentCost = equip;
+		numSoldiers = num;
 	}
 }
 
@@ -59,7 +61,7 @@ class OVT_BaseMenuContext : OVT_UIContext
 			SCR_EditableGroupComponent group = SCR_EditableGroupComponent.Cast(spawn.FindComponent(SCR_EditableGroupComponent));
 			if(group)
 			{
-				m_GroupSpin.AddItem(group.GetDisplayName(), new OVT_GroupUIInfo(res, soldierCost, equipmentCost));
+				m_GroupSpin.AddItem(group.GetDisplayName(), new OVT_GroupUIInfo(res, soldierCost, equipmentCost, aigroup.m_aUnitPrefabSlots.Count()));
 			}
 			
 			
@@ -77,7 +79,17 @@ class OVT_BaseMenuContext : OVT_UIContext
 		
 		int cost = uiinfo.soldierCost + uiinfo.equipmentCost;
 		if(!m_Economy.LocalPlayerHasMoney(cost))
+		{	
+			CloseLayout();	
+			ShowHint("#OVT-CannotAfford");			
+			return;
+		}
+		
+		OVT_TownData town = OVT_Global.GetTowns().GetNearestTown(m_Owner.GetOrigin());
+		if(town.support < uiinfo.numSoldiers || town.population < uiinfo.numSoldiers)
 		{			
+			CloseLayout();	
+			SCR_HintManagerComponent.ShowCustomHint("#OVT-NoSupportersToRecruit");
 			return;
 		}
 		
