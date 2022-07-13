@@ -564,6 +564,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{59DA66363F3C1321}" {
+   Id "OVT-MustHaveMap"
+   Target_en_us "You must have a map equipped"
+   Modified 1507485415
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59A6ED92E301B152}" {
    Id "OVT-NeedBusStop"
    Target_en_us "You must click near another bus stop"

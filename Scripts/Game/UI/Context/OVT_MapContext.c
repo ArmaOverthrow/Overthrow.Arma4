@@ -114,12 +114,13 @@ class OVT_MapContext : OVT_UIContext
 		return false;
 	}
 	
-	void ShowMap()
+	bool ShowMap()
 	{
 		SCR_MapGadgetComponent comp = GetMap();
-		if(!comp) return;
+		if(!comp) return false;
 		
 		comp.SetMapMode(true);
+		return true;
 	}
 	
 	void HideMap()
@@ -131,9 +132,13 @@ class OVT_MapContext : OVT_UIContext
 	}
 	
 	void EnableMapInfo()
-	{
+	{		
+		if(!ShowMap())
+		{
+			ShowHint("#OVT-MustHaveMap");
+			return;
+		}
 		m_bMapInfoActive = true;
-		ShowMap();
 		
 		ShowLayout();
 		m_SelectedTown = m_TownManager.GetNearestTown(m_Owner.GetOrigin());
@@ -251,14 +256,22 @@ class OVT_MapContext : OVT_UIContext
 	
 	void EnableFastTravel()
 	{
+		if(!ShowMap())
+		{
+			ShowHint("#OVT-MustHaveMap");
+			return;
+		}
 		m_bFastTravelActive = true;
-		ShowMap();
 	}
 	
 	void EnableBusTravel()
 	{
+		if(!ShowMap())
+		{
+			ShowHint("#OVT-MustHaveMap");
+			return;
+		}
 		m_bBusTravelActive = true;
-		ShowMap();
 	}
 	
 	void DisableMapInfo()

@@ -85,6 +85,7 @@ class OVT_UIManagerComponent: OVT_Component
 		
 		foreach(OVT_UIContext context : m_aContexts)
 		{
+			context.CloseLayout();
 			context.UnregisterInputs();
 		}
 	}
