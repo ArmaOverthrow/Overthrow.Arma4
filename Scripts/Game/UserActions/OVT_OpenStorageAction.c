@@ -11,7 +11,7 @@ class OVT_OpenStorageAction : SCR_InventoryAction
 		// Play sound
 		RplComponent rplComp = RplComponent.Cast(pOwnerEntity.FindComponent(RplComponent));
 		if (rplComp)
-			manager.PlayItemSound(rplComp.Id(), "SOUND_OPEN");
+			manager.PlayItemSound(pOwnerEntity, "SOUND_OPEN");			
 		else
 		{
 			SimpleSoundComponent simpleSoundComp = SimpleSoundComponent.Cast(pOwnerEntity.FindComponent(SimpleSoundComponent));
