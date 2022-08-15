@@ -34,6 +34,16 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		return m_bGameInitialized;
 	}
 	
+	void DoStartNewGame()
+	{
+		if(m_OccupyingFactionManager)
+		{
+			Print("Starting Occupying Faction");
+			
+			m_OccupyingFactionManager.NewGameStart();
+		}	
+	}
+	
 	void DoStartGame()
 	{
 		m_StartGameUIContext.CloseLayout();
@@ -319,6 +329,20 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		if(playerId != localId) return;
 		
 		m_StartGameUIContext.ShowLayout();
+	}
+	
+	void StartNewGame()
+	{
+		Print("Overthrow: Requesting Start Game");
+		Rpc(RpcAsk_StartNewGame);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_StartNewGame()
+	{
+		Print ("Overthrow: Start New Game Requested");
+		DoStartNewGame();
+		DoStartGame();
 	}
 	
 	void StartGame()

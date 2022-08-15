@@ -127,8 +127,8 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Player Group Prefab", params: "et")]
 	ResourceName m_pPlayerGroupPrefab;
 	
-	protected  int m_iOccupyingFactionIndex = -1;
-	protected int m_iPlayerFactionIndex = -1;
+	int m_iOccupyingFactionIndex = -1;
+	int m_iPlayerFactionIndex = -1;
 	
 	// Instance of this component
 	private static OVT_OverthrowConfigComponent s_Instance = null;

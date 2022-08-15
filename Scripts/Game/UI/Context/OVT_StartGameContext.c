@@ -72,7 +72,7 @@ class OVT_StartGameContext : OVT_UIContext
 		
 		if(mode)
 		{
-			mode.StartGame();
+			mode.StartNewGame();
 		}else{
 			Print("Game mode error");
 		}

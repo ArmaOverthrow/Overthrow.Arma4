@@ -118,6 +118,15 @@ class OVT_OccupyingFactionManager: OVT_Component
 			
 	}
 	
+	void NewGameStart()
+	{
+		m_Config.m_iOccupyingFactionIndex = -1;
+		foreach(OVT_BaseData data : m_Bases)
+		{
+			data.faction = m_Config.GetOccupyingFactionIndex();
+		}
+	}
+	
 	void PostGameStart()
 	{
 		GetGame().GetCallqueue().CallLater(SpawnBaseControllers, 0);
