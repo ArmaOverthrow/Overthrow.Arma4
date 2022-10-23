@@ -41,7 +41,7 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 				remove.Insert(id);
 			}else if(group.GetAgentsCount() == 0)
 			{
-				SCR_Global.DeleteEntityAndChildren(group);
+				SCR_EntityHelper.DeleteEntityAndChildren(group);
 				remove.Insert(id);
 			}
 		}
@@ -73,7 +73,7 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 				m_iProxedResources += group.GetAgentsCount() * m_Config.m_Difficulty.baseResourceCost;
 				m_ProxiedGroups.Insert(group.GetPrefabData().GetPrefabName());
 				m_ProxiedPositions.Insert(group.GetOrigin());
-				SCR_Global.DeleteEntityAndChildren(group);
+				SCR_EntityHelper.DeleteEntityAndChildren(group);
 			}
 			m_Groups.Clear();
 			m_bSpawned = false;

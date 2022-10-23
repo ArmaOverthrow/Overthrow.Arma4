@@ -81,7 +81,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 					m_occupyingFactionManager.RecoverResources(agentCount * m_Config.m_Difficulty.baseResourceCost);
 					
 					m_Patrols.Remove(town.id);
-					SCR_Global.DeleteEntityAndChildren(aigroup);	
+					SCR_EntityHelper.DeleteEntityAndChildren(aigroup);	
 					
 					//send another one
 					int newres = BuyTownPatrol(town, threat);

@@ -305,7 +305,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		string res = ent.GetPrefabData().GetPrefabName();
 		if(res.Contains("TentSmallUS"))
 		{
-			SCR_Global.DeleteEntityAndChildren(ent);
+			SCR_EntityHelper.DeleteEntityAndChildren(ent);
 		}
 		return false;
 	}

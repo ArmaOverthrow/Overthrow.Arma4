@@ -215,7 +215,7 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 		m_aVehicles.RemoveItem(entity.GetID());
 		
 		OVT_Global.TransferStorage(vehicle, newrpl.Id());
-		SCR_Global.DeleteEntityAndChildren(entity);		
+		SCR_EntityHelper.DeleteEntityAndChildren(entity);		
 	}
 	
 	void RepairVehicle(RplId vehicle)

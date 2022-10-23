@@ -72,7 +72,7 @@ class OVT_ShopMenuCardComponent : SCR_ScriptedWidgetComponent
 			}
 		}		
 		
-		SCR_Global.DeleteEntityAndChildren(spawnedItem);	
+		SCR_EntityHelper.DeleteEntityAndChildren(spawnedItem);	
 	}
 	
 	override bool OnClick(Widget w, int x, int y, int button)

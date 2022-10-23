@@ -13,7 +13,7 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 	protected ref array<float> m_Ranges;
 	protected ref array<ref Widget> m_Widgets;
 		
-	override void Update()
+	override void Update(float timeSlice)
 	{
 		foreach(int i, Widget w : m_Widgets)
 		{

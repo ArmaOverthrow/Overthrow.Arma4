@@ -31,7 +31,7 @@ class OVT_MapCanvasLayer : SCR_MapModuleBase
 		int xcp, ycp;
 		
 		m_MapEntity.WorldToScreen(center[0], center[2], xcp, ycp, true);
-		float r = range * m_MapEntity.GetCurrentPixelPerUnit();
+		float r = range * m_MapEntity.GetCurrentZoom();
 		
 		for(int i = 0; i < n; i++)
 		{

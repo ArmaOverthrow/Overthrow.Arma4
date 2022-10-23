@@ -84,7 +84,7 @@ class OVT_BaseControllerComponent: OVT_Component
 		IEntity flag = GetGame().GetWorld().FindEntityByID(m_Flag);
 		if(flag)
 		{
-			SCR_Global.DeleteEntityAndChildren(flag);
+			SCR_EntityHelper.DeleteEntityAndChildren(flag);
 		}
 		
 		m_Flag = SpawnFlag().GetID();

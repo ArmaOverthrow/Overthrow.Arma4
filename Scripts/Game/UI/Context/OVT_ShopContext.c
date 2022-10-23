@@ -127,7 +127,7 @@ class OVT_ShopContext : OVT_UIContext
 			}
 		}
 		
-		SCR_Global.DeleteEntityAndChildren(spawnedItem);
+		SCR_EntityHelper.DeleteEntityAndChildren(spawnedItem);
 	}
 	
 	void SetShop(OVT_ShopComponent shop)

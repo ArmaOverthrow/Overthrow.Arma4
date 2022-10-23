@@ -358,7 +358,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 			Rpc(RpcDo_SetBaseFaction, m_iCurrentQRFBase, m_CurrentQRF.m_iWinningFaction);
 		}		
 				
-		SCR_Global.DeleteEntityAndChildren(m_CurrentQRF.GetOwner());
+		SCR_EntityHelper.DeleteEntityAndChildren(m_CurrentQRF.GetOwner());
 		m_CurrentQRF = null;
 		
 		m_bQRFActive = false;

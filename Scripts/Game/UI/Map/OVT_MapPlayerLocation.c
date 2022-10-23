@@ -7,7 +7,7 @@ class OVT_MapPlayerLocation : SCR_MapUIBaseComponent
 	[Attribute()]
 	protected ResourceName m_Layout;
 
-	override void Update()
+	override void Update(float timeSlice)
 	{
 		if (!m_Widget)
 			return;
@@ -60,12 +60,7 @@ class OVT_MapPlayerLocation : SCR_MapUIBaseComponent
 	//------------------------------------------------------------------------------------------------
 	override void Init()
 	{
-		SCR_MapToolMenuModule toolMenu = SCR_MapToolMenuModule.Cast(m_MapEntity.GetMapModule(SCR_MapToolMenuModule));
-		if (toolMenu)
-		{
-			//m_ToolMenuEntry = toolMenu.RegisterToolMenuEntry("{14A14368AE7FA04D}UI/Textures/Icons/PlayerMarker.imageset", "PlayerMarker", false, 99);
-			//m_ToolMenuEntry.m_OnClick.Insert(ZoomInOnPlayer);
-		}
+		
 	}
 
 	//------------------------------------------------------------------------------------------------

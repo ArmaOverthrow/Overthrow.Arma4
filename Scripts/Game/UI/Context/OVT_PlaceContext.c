@@ -201,14 +201,14 @@ class OVT_PlaceContext : OVT_UIContext
 		if(!CanPlace(player.GetOrigin(), reason))
 		{
 			ShowHint(reason);
-			SCR_UISoundEntity.SoundEvent(UISounds.ERROR);
+			SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.ERROR);
 			return;
 		}
 		
 		if(!m_Economy.PlayerHasMoney(m_sPlayerID, m_Config.GetPlaceableCost(placeable)))
 		{
 			ShowHint("#OVT-CannotAfford");
-			SCR_UISoundEntity.SoundEvent(UISounds.ERROR);
+			SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.ERROR);
 			return;
 		}
 		
@@ -255,7 +255,7 @@ class OVT_PlaceContext : OVT_UIContext
 	
 	protected void RemoveGhost()
 	{
-		SCR_Global.DeleteEntityAndChildren(m_ePlacingEntity);
+		SCR_EntityHelper.DeleteEntityAndChildren(m_ePlacingEntity);
 		m_ePlacingEntity = null;
 	}
 	
@@ -274,14 +274,14 @@ class OVT_PlaceContext : OVT_UIContext
 			if(!CanPlace(mat[3], error))
 			{
 				ShowHint(error);
-				SCR_UISoundEntity.SoundEvent(UISounds.ERROR);
+				SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.ERROR);
 				return;
 			}
 			
 			if(!m_Economy.PlayerHasMoney(m_sPlayerID, cost))
 			{
 				ShowHint("#OVT-CannotAfford");
-				SCR_UISoundEntity.SoundEvent(UISounds.ERROR);
+				SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.ERROR);
 				return;
 			}
 			
@@ -291,7 +291,7 @@ class OVT_PlaceContext : OVT_UIContext
 			OVT_Global.GetServer().PlaceItem(placeableIndex, prefabIndex, mat[3], angles, m_iPlayerID);
 						
 			m_Economy.TakePlayerMoney(m_iPlayerID, m_Config.GetPlaceableCost(m_Placeable));
-			SCR_UISoundEntity.SoundEvent(UISounds.CLICK);
+			SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.CLICK);
 		}
 		
 		if(m_Economy.PlayerHasMoney(m_sPlayerID, cost))

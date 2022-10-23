@@ -66,7 +66,7 @@ class OVT_BaseMenuContext : OVT_UIContext
 			
 			
 			
-			SCR_Global.DeleteEntityAndChildren(spawn);			
+			SCR_EntityHelper.DeleteEntityAndChildren(spawn);			
 		}
 		
 		

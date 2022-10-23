@@ -76,7 +76,7 @@ class OVT_BuildContext : OVT_UIContext
 		
 		if(valid.Count() == 0)
 		{			
-			SCR_UISoundEntity.SoundEvent(UISounds.ERROR);
+			SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.ERROR);
 			CloseLayout();
 			ShowHint("#OVT-CannotBuildAnythingHere");
 			return;
@@ -214,14 +214,14 @@ class OVT_BuildContext : OVT_UIContext
 		if(!CanBuild(m_Buildable, player.GetOrigin(), reason))
 		{
 			ShowHint(reason);
-			SCR_UISoundEntity.SoundEvent(UISounds.ERROR);
+			SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.ERROR);
 			return;
 		}
 		
 		if(!m_Economy.PlayerHasMoney(m_sPlayerID, m_Config.GetBuildableCost(buildable)))
 		{
 			ShowHint("#OVT-CannotAfford");
-			SCR_UISoundEntity.SoundEvent(UISounds.ERROR);
+			SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.ERROR);
 			return;
 		}
 		
@@ -263,7 +263,7 @@ class OVT_BuildContext : OVT_UIContext
 		CameraManager cameraMgr = GetGame().GetCameraManager();		
 		cameraMgr.SetCamera(m_PlayerCamera);
 		
-		SCR_Global.DeleteEntityAndChildren(m_Camera);
+		SCR_EntityHelper.DeleteEntityAndChildren(m_Camera);
 		m_Camera = null;
 	}
 	
@@ -351,7 +351,7 @@ class OVT_BuildContext : OVT_UIContext
 	
 	protected void RemoveGhost()
 	{
-		SCR_Global.DeleteEntityAndChildren(m_eBuildingEntity);
+		SCR_EntityHelper.DeleteEntityAndChildren(m_eBuildingEntity);
 		m_eBuildingEntity = null;
 	}
 	
@@ -370,14 +370,14 @@ class OVT_BuildContext : OVT_UIContext
 			if(!CanBuild(m_Buildable, mat[3], error))
 			{
 				ShowHint(error);
-				SCR_UISoundEntity.SoundEvent(UISounds.ERROR);
+				SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.ERROR);
 				return;
 			}
 			
 			if(!m_Economy.PlayerHasMoney(m_sPlayerID, cost))
 			{
 				ShowHint("#OVT-CannotAfford");
-				SCR_UISoundEntity.SoundEvent(UISounds.ERROR);
+				SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.ERROR);
 				return;
 			}
 			
@@ -387,7 +387,7 @@ class OVT_BuildContext : OVT_UIContext
 			OVT_Global.GetServer().BuildItem(buildableIndex, prefabIndex, mat[3], angles, m_iPlayerID);
 						
 			m_Economy.TakePlayerMoney(m_iPlayerID, m_Config.GetBuildableCost(m_Buildable));
-			SCR_UISoundEntity.SoundEvent(UISounds.CLICK);
+			SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.CLICK);
 		}
 		
 		Cancel();

@@ -52,7 +52,7 @@ class OVT_BaseUpgradeTowerGuard : OVT_BasePatrolUpgrade
 				if(!group) continue;
 				m_iProxedResources += group.GetAgentsCount() * m_Config.m_Difficulty.baseResourceCost;
 				
-				SCR_Global.DeleteEntityAndChildren(group);
+				SCR_EntityHelper.DeleteEntityAndChildren(group);
 			}
 			m_Groups.Clear();
 			m_TowerGuards.Clear();
