@@ -15,8 +15,6 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 	{
 		super.OnDamage(type, damage, pHitZone, instigator, hitTransform, speed, colliderID, nodeID);
 		
-		UpdateBloodyFace();
-		
 		if(instigator)
 		{
 			OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(instigator.FindComponent(OVT_PlayerWantedComponent));
@@ -66,8 +64,6 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 	protected override void OnDamageStateChanged(EDamageState state)
 	{
 		super.OnDamageStateChanged(state);
-		
-		UpdateBloodyFace();
 		
 		if(IsOccupyingFaction())
 			OVT_Global.GetOccupyingFaction().OnAIKilled(GetOwner(), null);

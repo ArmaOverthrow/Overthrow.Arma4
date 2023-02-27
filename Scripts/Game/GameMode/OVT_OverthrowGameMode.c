@@ -119,7 +119,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		rpl.Give(playerRplID);
 	}
 	
-	protected override void OnPlayerDisconnected(int playerId, KickCauseCode cause)
+	protected override void OnPlayerDisconnected(int playerId, KickCauseCode cause, int timeout)
 	{
 		string persId = m_PlayerManager.GetPersistentIDFromPlayerID(playerId);
 		IEntity controlledEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
@@ -131,7 +131,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		
 		m_aInitializedPlayers.Remove(m_aInitializedPlayers.Find(persId));
 		
-		super.OnPlayerDisconnected(playerId, cause);
+		super.OnPlayerDisconnected(playerId, cause, timeout);
 	}
 	
 	protected void OnPlayerIDRegistered(int playerId, string persistentId)

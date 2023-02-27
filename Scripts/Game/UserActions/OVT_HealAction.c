@@ -12,7 +12,6 @@ class OVT_HealAction : ScriptedUserAction
 			return;	
 		
 		dmg.SetHealthScaled(dmg.GetMaxHealth());
-		dmg.RemoveBleeding();
 		
 		SCR_HintManagerComponent.ShowCustomHint("#OVT-Healed", "", 4);
  	}
