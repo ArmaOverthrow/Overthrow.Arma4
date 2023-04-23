@@ -10,11 +10,8 @@ class OVT_ShopInventoryItem : ScriptAndConfig
 	[Attribute("50")]
 	int cost;
 	
-	[Attribute("10")]
-	int maxAtStart;
-	
-	[Attribute(defvalue: "0.1", desc: "Demand Per Population Per Day")]
-	float demand;
+	[Attribute("1")]
+	int demandMultiplier;
 }
 
 class OVT_ShopInventoryConfig : ScriptAndConfig
@@ -35,6 +32,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	ref array<ref OVT_ShopInventoryItem> m_aGunDealerItems;
 			
 	protected ref array<RplId> m_aAllShops;
+	protected ref array<RplId> m_aAllPorts;
 	protected ref array<RplId> m_aGunDealers;
 	
 	protected OVT_TownManagerComponent m_Towns;
@@ -43,7 +41,11 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	const int ECONOMY_UPDATE_FREQUENCY = 60000;
 	
-	protected ref set<ResourceName> m_aResources;
+	protected ref array<ref ResourceName> m_aResources;
+	
+	protected ref map<int, ref array<RplId>> m_mTownShops;
+	
+	protected ref map<int, ref OVT_ShopInventoryItem> m_mInventoryItems;
 	
 	//Streamed to clients..
 	ref map<int, int> m_mItemCosts;		
@@ -71,10 +73,13 @@ class OVT_EconomyManagerComponent: OVT_Component
 	void OVT_EconomyManagerComponent()
 	{
 		m_aAllShops = new array<RplId>;	
+		m_aAllPorts = new array<RplId>;
 		m_mItemCosts = new map<int, int>;
 		m_mMoney = new map<string, int>;
 		m_aGunDealers = new array<RplId>;
 		m_mSpawnedItems = new map<ResourceName,EntityID>;
+		m_mTownShops = new map<int, ref array<RplId>>;
+		m_mInventoryItems = new map<int, ref OVT_ShopInventoryItem>;
 	}
 	
 	void SetPrice(int id, int cost)
@@ -82,35 +87,65 @@ class OVT_EconomyManagerComponent: OVT_Component
 		m_mItemCosts[id] = cost;
 	}
 	
-	int GetPrice(int id, vector pos = "0 0 0")
+	int GetSellPrice(int id, vector pos = "0 0 0")
 	{
 		if(m_mItemCosts.Count()-1 < id) return 0;
 		
-		int price = m_mItemCosts[id];
+		int price = GetMinPrice(id);
 		if(pos[0] != 0)
 		{
 			OVT_TownData town = OVT_Global.GetTowns().GetNearestTown(pos);
 			if(town)
 			{
-				//price should go up as stability goes down				
-				float stability = town.stability / 100;
-				price = Math.Round(price + (price * 0.1 * (1 - stability)));				
-				
-				//smaller towns slightly more expensive
-				if(town.size < 3)
-				{
-					price = Math.Round(price * 1.05);
-				}
+				int stock_level = GetTownStock(town.id, id);
+				int max_stock = GetTownMaxStock(town.id, id);
+				float distance_to_port = DistanceToNearestPort(pos);
+				price = Math.Round(price + ((1 - (stock_level / max_stock)) * (price * 0.1)) + (price * distance_to_port * 0.0001));
+				if(price < 0) price = 1;
 			}
 		}
 		
 		return price;
 	}
 	
+	int GetBuyPrice(int id, vector pos = "0 0 0")
+	{
+		int price = GetSellPrice(id, pos);
+		int buy = Math.Round(price + (price * m_Config.m_fShopProfitMargin));
+		if(buy == price) buy += 1;
+		return buy;
+	}
+	
+	int GetTownStock(int townId, int id)
+	{
+		if(!m_mTownShops.Contains(townId)) return 0;
+		int stock = 0;
+		foreach(RplId shopId : m_mTownShops[townId])
+		{
+			OVT_ShopComponent shop = GetShopByRplId(shopId);
+			stock += shop.GetStock(id);
+		}
+		return stock;
+	}
+	
+	int GetTownMaxStock(int townId, int id)
+	{
+		OVT_ShopInventoryItem item = GetInventoryItem(id);
+		if(!item) return 100;
+		OVT_TownData town = m_Towns.GetTown(townId);
+		if(!town) return 100;
+		return Math.Round(1 + (town.population * m_Config.m_fNPCBuyRate * item.demandMultiplier * ((float)town.stability / 100)));
+	}	
+	
+	int GetMinPrice(int id)
+	{
+		return m_mItemCosts[id];
+	}
+	
 	int GetPriceByResource(ResourceName res, vector pos = "0 0 0")
 	{
 		int id = GetInventoryId(res);
-		return GetPrice(id, pos);
+		return GetSellPrice(id, pos);
 	}
 	
 	bool IsSoldAtShop(ResourceName res, OVT_ShopType shopType)
@@ -126,9 +161,44 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return false;
 	}
 	
+	RplId GetNearestPort(vector pos)
+	{
+		RplId nearestPort;
+		float nearest = 9999999;
+		foreach(RplId id : m_aAllPorts)
+		{
+			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+			float distance = vector.Distance(pos, rpl.GetEntity().GetOrigin());
+			if(distance < nearest){
+				nearest = distance;
+				nearestPort = id;
+			}
+		}
+		return nearestPort;
+	}
+	
+	float DistanceToNearestPort(vector pos)
+	{
+		float nearest = 9999999;
+		foreach(RplId id : m_aAllPorts)
+		{
+			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+			float distance = vector.Distance(pos, rpl.GetEntity().GetOrigin());
+			if(distance < nearest){
+				nearest = distance;
+			}
+		}
+		return nearest;
+	}
+	
 	array<RplId> GetAllShops()
 	{
 		return m_aAllShops;
+	}
+	
+	array<RplId> GetAllPorts()
+	{
+		return m_aAllPorts;
 	}
 	
 	array<RplId> GetGunDealers()
@@ -301,9 +371,10 @@ class OVT_EconomyManagerComponent: OVT_Component
 		m_Towns = OVT_Global.GetTowns();
 		
 		BuildResourceDatabase();
+		GetGame().GetCallqueue().CallLater(InitializePorts, 0);
 		
 		if(!Replication.IsServer()) return;		
-		InitializeShops();
+		InitializeShops();		
 		
 		GetGame().GetCallqueue().CallLater(CheckUpdate, ECONOMY_UPDATE_FREQUENCY / m_Config.m_iTimeMultiplier, true, GetOwner());
 		
@@ -319,7 +390,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	void BuildResourceDatabase()
 	{
-		m_aResources = new set<ResourceName>;
+		m_aResources = new array<ref ResourceName>;
 		foreach(OVT_ShopInventoryConfig config : m_aShopConfigs)
 		{
 			foreach(OVT_ShopInventoryItem item : config.m_aInventoryItems)
@@ -328,6 +399,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 				if(!m_aResources.Contains(res))
 				{
 					m_aResources.Insert(res);
+					int id = m_aResources.Count()-1;
+					m_mInventoryItems[id] = item;	
+					Print(id.ToString() + ": " + item.prefab);
 				}
 			}
 		}
@@ -338,8 +412,14 @@ class OVT_EconomyManagerComponent: OVT_Component
 			if(!m_aResources.Contains(res))
 			{
 				m_aResources.Insert(res);
+				m_mInventoryItems[m_aResources.Count()-1] = item;
 			}
 		}
+	}
+	
+	OVT_ShopInventoryItem GetInventoryItem(int id)
+	{
+		return m_mInventoryItems[id];
 	}
 	
 	void CheckUpdate()
@@ -361,7 +441,117 @@ class OVT_EconomyManagerComponent: OVT_Component
 			time.m_iMinutes == 0)
 		{
 			CalculateIncome();
+			UpdateShops();
 		}
+		
+		//Every morning at 7am replenish stock
+		if(time.m_iHours == 7 &&
+			time.m_iMinutes == 0)
+		{
+			ReplenishStock();
+		}
+	}
+	
+	protected void ReplenishStock()
+	{
+		//Shops restocking		
+		foreach(OVT_TownData town : m_Towns.m_Towns)
+		{
+			if(!m_mTownShops.Contains(town.id)) continue;			
+			
+			//split shops into types
+			map<int, ref array<RplId>> typeShops = GetShopTypes(town.id);
+			
+			array<int> types = new array<int>;			
+			for(int i=0; i<typeShops.Count(); i++)
+			{
+				types.Insert(typeShops.GetKey(i));
+			}			
+			
+			foreach(RplId shopId : m_aAllShops)
+			{
+				OVT_ShopComponent shop = GetShopByRplId(shopId);
+				foreach(int id : shop.m_aInventoryItemIds)
+				{
+					int max = GetTownMaxStock(town.id, id);
+					max = Math.Round(max / typeShops[shop.m_ShopType].Count());
+					int stock = shop.GetStock(id);
+					int half = Math.Round(stock * 0.5);
+					if(stock < half)
+					{
+						shop.AddToInventory(id, half - stock);
+					}
+				}
+			}
+		}
+	}
+	
+	protected void UpdateShops()
+	{
+		//NPCs Buying stock
+		foreach(OVT_TownData town : m_Towns.m_Towns)
+		{
+			if(!m_mTownShops.Contains(town.id)) continue;
+			int maxToBuy = (town.population * m_Config.m_fNPCBuyRate) * (town.stability / 100);
+			
+			int numToBuy = s_AIRandomGenerator.RandInt(1,maxToBuy);
+			
+			//split shops into types
+			map<int, ref array<RplId>> typeShops = GetShopTypes(town.id);
+			
+			array<int> types = new array<int>;			
+			for(int i=0; i<typeShops.Count(); i++)
+			{
+				types.Insert(typeShops.GetKey(i));
+			}			
+			
+			//buy stuff
+			for(int i; i<numToBuy; i++)
+			{
+				//pick a random shop type
+				int typeIndex = s_AIRandomGenerator.RandInt(0,types.Count()-1);
+				//pick a random shop within that type
+				int shopIndex = s_AIRandomGenerator.RandInt(0,typeShops[types[typeIndex]].Count()-1);
+				OVT_ShopComponent shop = GetShopByRplId(typeShops[types[typeIndex]][shopIndex]);
+				if(!shop) continue;
+				//pick a random inventory item
+				int itemIndex = s_AIRandomGenerator.RandInt(0,shop.m_aInventoryItemIds.Count()-1);
+				int id = shop.m_aInventoryItemIds[itemIndex];
+				OVT_ShopInventoryItem item = GetInventoryItem(id);
+				int qty = s_AIRandomGenerator.RandInt(1,item.demandMultiplier);
+				int stock = shop.GetStock(id);
+				if(stock < qty) qty = stock;
+				if(qty > 0)
+				{
+					shop.HandleNPCSale(id, qty);
+				}
+			}			
+		}
+	}
+	
+	protected map<int, ref array<RplId>> GetShopTypes(int townId)
+	{
+		map<int, ref array<RplId>> typeShops = new map<int, ref array<RplId>>;
+		for(int i=0; i<m_mTownShops[townId].Count(); i++)
+		{				
+			RplId shopId = m_mTownShops[townId][i];
+			OVT_ShopComponent shop = GetShopByRplId(shopId);
+			if(!shop || shop.m_ShopType == -1) continue;
+			if(!typeShops.Contains(shop.m_ShopType))
+			{
+				typeShops[shop.m_ShopType] = new array<RplId>;
+			}
+			typeShops[shop.m_ShopType].Insert(shopId);
+		}
+		return typeShops;
+	}
+	
+	OVT_ShopComponent GetShopByRplId(RplId shopId)
+	{
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(shopId));
+		if(!rpl) return null;
+		IEntity entity = rpl.GetEntity();
+		return OVT_ShopComponent.Cast(entity.FindComponent(OVT_ShopComponent));
 	}
 	
 	protected void CalculateIncome()
@@ -389,9 +579,12 @@ class OVT_EconomyManagerComponent: OVT_Component
 		array<int> players = new array<int>;
 		mgr.GetPlayers(players);
 		foreach(int playerId : players)
-		{
+		{			
 			AddPlayerMoney(playerId, incomePerPlayer);
 		}
+		
+		
+		
 	}
 	
 	int GetDonationIncome()
@@ -412,8 +605,17 @@ class OVT_EconomyManagerComponent: OVT_Component
 	}
 			
 	void PostGameStart()
+	{		
+		GetGame().GetCallqueue().CallLater(InitShopInventory, 0);				
+	}
+	
+	protected void InitializePorts()
 	{
-		GetGame().GetCallqueue().CallLater(InitShopInventory, 0);
+		#ifdef OVERTHROW_DEBUG
+		Print("Finding ports");
+		#endif
+		
+		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, CheckPortInit, FilterPortEntities, EQueryEntitiesFlags.DYNAMIC);
 	}
 	
 	protected void InitializeShops()
@@ -443,6 +645,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 			if(!rpl) continue;
 			IEntity entity = rpl.GetEntity();
 			OVT_ShopComponent shop = OVT_ShopComponent.Cast(entity.FindComponent(OVT_ShopComponent));
+			OVT_TownData town = shop.GetTown();
 		
 			OVT_ShopInventoryConfig config = GetShopConfig(shop.m_ShopType);
 			foreach(OVT_ShopInventoryItem item : config.m_aInventoryItems)
@@ -450,11 +653,14 @@ class OVT_EconomyManagerComponent: OVT_Component
 				int id = GetInventoryId(item.prefab);				
 				SetPrice(id, item.cost);
 				
-				int num = Math.Round(s_AIRandomGenerator.RandFloatXY(1,item.maxAtStart));
+				int max = GetTownMaxStock(town.id, id);
+				
+				int num = Math.Round(s_AIRandomGenerator.RandFloatXY(1,max));
 				
 				shop.AddToInventory(id, num);
 				
 				shop.m_aInventoryItems.Insert(item);
+				shop.m_aInventoryItemIds.Insert(id);
 			}
 		}
 	}
@@ -467,7 +673,22 @@ class OVT_EconomyManagerComponent: OVT_Component
 		
 		RplComponent rpl = RplComponent.Cast(entity.FindComponent(RplComponent));
 		if(rpl)
-			m_aAllShops.Insert(rpl.Id());
+		{
+			RplId id = rpl.Id();
+			m_aAllShops.Insert(id);
+		
+			OVT_TownData town = m_Towns.GetNearestTown(entity.GetOrigin());
+			
+			if(!m_mTownShops.Contains(town.id))
+			{				
+				m_mTownShops[town.id] = new ref array<RplId>;	
+			}
+			
+			m_mTownShops[town.id].Insert(id);
+			
+			OVT_ShopComponent shop = GetShopByRplId(id);
+			shop.m_iTownId = town.id;
+		}
 		
 		return true;
 	}
@@ -479,6 +700,31 @@ class OVT_EconomyManagerComponent: OVT_Component
 			OVT_ShopComponent shop = OVT_ShopComponent.Cast(entity.FindComponent(OVT_ShopComponent));
 			if(shop) return true;
 		}
+		return false;
+	}
+	
+	protected bool CheckPortInit(IEntity entity)
+	{	
+		//#ifdef OVERTHROW_DEBUG
+		Print("Found Port");
+		//#endif
+		
+		RplComponent rpl = RplComponent.Cast(entity.FindComponent(RplComponent));
+		if(rpl)
+		{
+			RplId id = rpl.Id();
+			m_aAllPorts.Insert(id);
+		}
+		
+		return true;
+	}
+	
+	protected bool FilterPortEntities(IEntity entity)
+	{	
+
+		OVT_PortControllerComponent port = OVT_PortControllerComponent.Cast(entity.FindComponent(OVT_PortControllerComponent));
+		if(port) return true;
+
 		return false;
 	}
 	
@@ -510,6 +756,17 @@ class OVT_EconomyManagerComponent: OVT_Component
 		for(int i; i<m_aAllShops.Count(); i++)
 		{
 			writer.WriteRplId(m_aAllShops[i]);
+		}
+		writer.Write(m_mTownShops.Count(), 32); 
+		for(int i; i<m_mTownShops.Count(); i++)
+		{			
+			int key = m_mTownShops.GetKey(i);
+			writer.Write(key, 32);
+			writer.Write(m_mTownShops[key].Count(), 32);
+			for(int t; t<m_mTownShops[key].Count(); t++)
+			{	
+				writer.WriteRplId(m_mTownShops[key][t]);
+			}			
 		}
 		
 		//Send JIP Gun Dealers
@@ -555,6 +812,18 @@ class OVT_EconomyManagerComponent: OVT_Component
 		{			
 			if (!reader.ReadRplId(id)) return false;
 			m_aAllShops.Insert(id);
+		}
+		if (!reader.Read(length, 32)) return false;
+		for(int i; i<length; i++)
+		{	
+			if (!reader.Read(key, 32)) return false;
+			m_mTownShops[key] = new array<RplId>;
+			if (!reader.Read(keylength, 32)) return false;
+			for(int t; t<keylength; t++)
+			{
+				if (!reader.ReadRplId(id)) return false;
+				m_mTownShops[key].Insert(id);
+			}
 		}
 		
 		//Recieve JIP gun dealers		

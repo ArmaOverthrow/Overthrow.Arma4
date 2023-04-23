@@ -471,6 +471,11 @@ class OVT_TownManagerComponent: OVT_Component
 		return SCR_MapDescriptorComponent.Cast(m_EntitySearched.FindComponent(SCR_MapDescriptorComponent));
 	}
 	
+	OVT_TownData GetTown(int townId)
+	{
+		return m_Towns[townId];
+	}
+	
 	string GetTownName(int townId)
 	{
 		if(m_TownNames[townId] == "")
@@ -617,6 +622,7 @@ class OVT_TownManagerComponent: OVT_Component
 		return false;		
 	}
 	
+
 	void TakeSupportersFromNearestTown(vector pos, int num = 1)
 	{
 		OVT_TownData town = GetNearestTown(pos);

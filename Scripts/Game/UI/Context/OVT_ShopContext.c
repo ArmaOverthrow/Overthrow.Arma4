@@ -3,6 +3,7 @@ class OVT_ShopContext : OVT_UIContext
 	protected OVT_ShopComponent m_Shop;
 	protected int m_iPageNum = 0;
 	protected int m_SelectedResource = -1;
+	protected ResourceName m_SelectedResourceName;
 		
 	override void PostInit()
 	{
@@ -75,10 +76,10 @@ class OVT_ShopContext : OVT_UIContext
 			w.SetOpacity(1);
 			OVT_ShopMenuCardComponent card = OVT_ShopMenuCardComponent.Cast(w.FindHandler(OVT_ShopMenuCardComponent));
 			
-			int cost = m_Economy.GetPrice(id, m_Shop.GetOwner().GetOrigin());
+			int buy = m_Economy.GetBuyPrice(id, m_Shop.GetOwner().GetOrigin());
 			int qty = m_Shop.GetStock(id);
 			
-			card.Init(res, cost, qty, this);
+			card.Init(res, buy, qty, this);
 			
 			wi++;
 		}
@@ -95,12 +96,16 @@ class OVT_ShopContext : OVT_UIContext
 	{
 		int id = m_Economy.GetInventoryId(res);
 		m_SelectedResource = id;
+		m_SelectedResourceName = res;
 		TextWidget typeName = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedTypeName"));
 		TextWidget details = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedDetails"));
 		TextWidget desc = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedDescription"));
 		
-		int cost = m_Economy.GetPrice(id, m_Shop.GetOwner().GetOrigin());
+		int buy = m_Economy.GetBuyPrice(id, m_Shop.GetOwner().GetOrigin());
+		int sell = m_Economy.GetSellPrice(id, m_Shop.GetOwner().GetOrigin());
 		int qty = m_Shop.GetStock(id);
+		OVT_TownData town = m_Shop.GetTown();
+		int max = m_Economy.GetTownMaxStock(town.id, id);
 				
 		IEntity spawnedItem = GetGame().SpawnEntityPrefabLocal(Resource.Load(m_Economy.GetResource(id)));
 		
@@ -110,7 +115,7 @@ class OVT_ShopContext : OVT_UIContext
 			if(info)
 			{
 				typeName.SetText(info.GetName());
-				details.SetText("$" + cost + "\n" + qty + " #OVT-Shop_InStock");
+				details.SetText("$" + buy + "\n" + qty + " #OVT-Shop_InStock");				
 				desc.SetText(info.GetDescription());
 			}
 		}else{		
@@ -121,7 +126,7 @@ class OVT_ShopContext : OVT_UIContext
 				{
 					UIInfo info = attr.GetUIInfo();
 					typeName.SetText(info.GetName());
-					details.SetText("$" + cost + "\n" + qty + " #OVT-Shop_InStock");
+					details.SetText("#OVT-Shop_Buying: $" + buy + "\n#OVT-Shop_Selling: $" + sell + "\n" + qty + "/" + max + " #OVT-Shop_InStock");
 					desc.SetText(info.GetDescription());
 				}
 			}
@@ -159,7 +164,7 @@ class OVT_ShopContext : OVT_UIContext
 		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
 		if(!player) return;
 		
-		int cost = m_Economy.GetPrice(m_SelectedResource, m_Shop.GetOwner().GetOrigin());
+		int cost = m_Economy.GetBuyPrice(m_SelectedResource, m_Shop.GetOwner().GetOrigin());
 		
 		if(!m_Economy.PlayerHasMoney(m_sPlayerID, cost)) return;
 				
@@ -173,7 +178,8 @@ class OVT_ShopContext : OVT_UIContext
 			return;
 		}	
 		
-		OVT_Global.GetServer().Buy(m_Shop, m_SelectedResource, 1, m_iPlayerID);		
+		OVT_Global.GetServer().Buy(m_Shop, m_SelectedResource, 1, m_iPlayerID);	
+		SelectItem(m_SelectedResourceName);
 	}
 	
 	void Sell(Widget src, float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
@@ -182,7 +188,7 @@ class OVT_ShopContext : OVT_UIContext
 		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
 		if(!player) return;
 		
-		int cost = m_Economy.GetPrice(m_SelectedResource, m_Shop.GetOwner().GetOrigin());
+		int cost = m_Economy.GetSellPrice(m_SelectedResource, m_Shop.GetOwner().GetOrigin());
 		
 		SCR_InventoryStorageManagerComponent inventory = SCR_InventoryStorageManagerComponent.Cast(player.FindComponent( SCR_InventoryStorageManagerComponent ));
 		if(!inventory) return;
@@ -200,6 +206,7 @@ class OVT_ShopContext : OVT_UIContext
 				{
 					m_Economy.AddPlayerMoney(m_iPlayerID, cost);
 					m_Shop.AddToInventory(m_SelectedResource, 1);
+					SelectItem(m_SelectedResourceName);
 					break;
 				}
 			}

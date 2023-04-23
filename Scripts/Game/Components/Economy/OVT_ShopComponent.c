@@ -16,10 +16,12 @@ enum OVT_ShopType
 class OVT_ShopComponent: OVT_Component
 {
 	[Attribute("1", UIWidgets.ComboBox, "Shop type", "", ParamEnumArray.FromEnum(OVT_ShopType) )]
-	OVT_ShopType m_ShopType;
+	int m_ShopType;
+	int m_iTownId = -1;
 	
 	ref map<int,int> m_aInventory;
 	ref array<ref OVT_ShopInventoryItem> m_aInventoryItems;
+	ref array<int> m_aInventoryItemIds;
 	
 	override void OnPostInit(IEntity owner)
 	{
@@ -27,6 +29,7 @@ class OVT_ShopComponent: OVT_Component
 		
 		m_aInventory = new map<int,int>;
 		m_aInventoryItems = new array<ref OVT_ShopInventoryItem>;
+		m_aInventoryItemIds = new array<int>;
 	}
 	
 	void AddToInventory(int id, int num)
@@ -39,10 +42,21 @@ class OVT_ShopComponent: OVT_Component
 		OVT_Global.GetServer().TakeFromShopInventory(this, id, num);
 	}
 	
+	void HandleNPCSale(int id, int num)
+	{
+		//To-do: Give player money if they own the shop
+		TakeFromInventory(id, num);
+	}
+	
 	int GetStock(int id)
 	{
 		if(!m_aInventory.Contains(id)) return 0;
 		return m_aInventory[id];
+	}
+		
+	OVT_TownData GetTown()
+	{
+		return OVT_Global.GetTowns().GetTown(m_iTownId);
 	}
 	
 	//RPC Methods
@@ -55,6 +69,8 @@ class OVT_ShopComponent: OVT_Component
 			writer.Write(m_aInventory.GetKey(i),32);
 			writer.Write(m_aInventory.GetElement(i),32);
 		}
+		
+		writer.Write(m_iTownId,32);
 		
 		return true;
 	}
@@ -72,6 +88,8 @@ class OVT_ShopComponent: OVT_Component
 			if (!reader.Read(num, 32)) return false;
 			m_aInventory[id] = num;
 		}
+		if (!reader.Read(m_iTownId,32)) return false;
+		
 		return true;
 	}
 	

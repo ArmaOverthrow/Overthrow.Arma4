@@ -1,0 +1,10 @@
+GenericEntity {
+ ID "5D28DE9ECCD36B88"
+ components {
+  OVT_PortControllerComponent "{5D28DE9E0E4ABD45}" {
+  }
+  RplComponent "{5D2EDC8CF6F2D4DC}" {
+  }
+ }
+ coords 4410.808 1.594 11158.649
+}

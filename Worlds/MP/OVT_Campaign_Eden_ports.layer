@@ -1,0 +1,8 @@
+$grp GenericEntity : "{B0EAD3B02FFE89A7}Prefabs/Controllers/OVT_PortController.et" {
+ Port_StPhillipe {
+  coords 4410.808 1.594 11158.65
+ }
+ Port_StPierre {
+  coords 9986.972 2.898 1518.956
+ }
+}

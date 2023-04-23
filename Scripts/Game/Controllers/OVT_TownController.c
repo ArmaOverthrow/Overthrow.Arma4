@@ -52,11 +52,12 @@ class OVT_TownControllerComponent: OVT_Component
 			int id = m_Economy.GetInventoryId(item.prefab);			
 			m_Economy.SetPrice(id, item.cost);
 			
-			int num = Math.Round(s_AIRandomGenerator.RandFloatXY(1,item.maxAtStart));
+			int num = Math.Round(s_AIRandomGenerator.RandFloatXY(1,m_Economy.GetTownMaxStock(m_Town.id, id)));
 			
 			shop.AddToInventory(id, num);
 			
 			shop.m_aInventoryItems.Insert(item);
+			shop.m_aInventoryItemIds.Insert(id);
 		}
 		
 		GetGame().GetCallqueue().CallLater(SetDealerFaction, 1500);

@@ -61,7 +61,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			
 			m_EconomyManager.PostGameStart();
 		}
-				
+		
 		if(m_TownManager)
 		{
 			Print("Starting Towns");
@@ -76,7 +76,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			m_OccupyingFactionManager.PostGameStart();
 		}	
 		
-		if(m_EconomyManager)
+		if(m_JobManager)
 		{
 			Print("Starting Jobs");
 			
@@ -227,19 +227,19 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		m_PlayerManager = OVT_Global.GetPlayers();		
 		m_RealEstate = OVT_Global.GetRealEstate();
 		
-		m_EconomyManager = OVT_EconomyManagerComponent.Cast(FindComponent(OVT_EconomyManagerComponent));		
-		if(m_EconomyManager)
-		{
-			Print("Initializing Economy");
-			m_EconomyManager.Init(this);
-		}
-		
 		m_TownManager = OVT_TownManagerComponent.Cast(FindComponent(OVT_TownManagerComponent));		
 		if(m_TownManager)
 		{
 			Print("Initializing Towns");
 			
 			m_TownManager.Init(this);
+		}
+		
+		m_EconomyManager = OVT_EconomyManagerComponent.Cast(FindComponent(OVT_EconomyManagerComponent));		
+		if(m_EconomyManager)
+		{
+			Print("Initializing Economy");
+			m_EconomyManager.Init(this);
 		}
 		
 		m_OccupyingFactionManager = OVT_OccupyingFactionManager.Cast(FindComponent(OVT_OccupyingFactionManager));		

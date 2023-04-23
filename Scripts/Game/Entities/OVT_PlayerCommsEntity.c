@@ -83,7 +83,7 @@ class OVT_PlayerCommsEntity: GenericEntity
 		
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
 		
-		int cost = economy.GetPrice(id, player.GetOrigin());		
+		int cost = economy.GetBuyPrice(id, player.GetOrigin());		
 		if(!economy.PlayerHasMoney(playerPersId, cost)) return;
 		
 		int total = 0;
@@ -120,7 +120,7 @@ class OVT_PlayerCommsEntity: GenericEntity
 		
 		string playerPersId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		
-		int cost = economy.GetPrice(id, player.GetOrigin());		
+		int cost = economy.GetBuyPrice(id, player.GetOrigin());		
 		if(!economy.PlayerHasMoney(playerPersId, cost)) return;
 		
 		if(OVT_Global.GetVehicles().SpawnVehicleNearestParking(economy.GetResource(id), player.GetOrigin(), playerPersId))

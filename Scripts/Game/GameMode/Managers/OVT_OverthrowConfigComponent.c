@@ -124,11 +124,20 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	[Attribute(defvalue: "6", UIWidgets.EditBox, desc: "Time multiplier")]
 	int m_iTimeMultiplier;
 	
+	[Attribute(defvalue: "0.1", UIWidgets.EditBox, desc: "NPC Shop Buy Rate", category: "Economy")]
+	float m_fNPCBuyRate;
+	
+	[Attribute(defvalue: "0.25", UIWidgets.EditBox, desc: "Shop Profit Margin", category: "Economy")]
+	float m_fShopProfitMargin;
+	
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Player Group Prefab", params: "et")]
 	ResourceName m_pPlayerGroupPrefab;
 	
 	int m_iOccupyingFactionIndex = -1;
 	int m_iPlayerFactionIndex = -1;
+	
+	[Attribute(defvalue: "false", UIWidgets.EditBox, desc: "Debug Mode")]
+	bool m_bDebugMode;
 	
 	// Instance of this component
 	private static OVT_OverthrowConfigComponent s_Instance = null;

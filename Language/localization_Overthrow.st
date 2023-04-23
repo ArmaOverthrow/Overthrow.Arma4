@@ -1,5 +1,4 @@
 StringTable {
- TargetPrefix "Target_"
  ItemClassName "CustomStringTableItem"
  Items {
   CustomStringTableItem "{59C84C2687EAA6DD}" {
@@ -847,6 +846,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D2847DF447B51C3}" {
+   Id "OVT-Shop_Buying"
+   Target_en_us "Buy for"
+   Modified 1562926312
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{599070D91BB49BFF}" {
    Id "OVT-Shop_InStock"
    Target_en_us "In Stock"
@@ -868,6 +874,13 @@ StringTable {
    Target_en_us "Sell"
    Status DEVELOPMENT_DONE
    Modified 1502796262
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D2847DF5BAEC7BF}" {
+   Id "OVT-Shop_Selling"
+   Target_en_us "Sell for"
+   Modified 1562926325
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

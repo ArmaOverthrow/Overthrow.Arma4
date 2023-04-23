@@ -51,7 +51,9 @@ class OVT_MapContext : OVT_UIContext
 	}
 	
 	bool CanFastTravel(vector pos, out string reason)
-	{		
+	{	
+		if(m_Config.m_bDebugMode) return true;
+		
 		reason = "#OVT-CannotFastTravelThere";	
 		float dist;
 		
@@ -348,6 +350,8 @@ class OVT_MapContext : OVT_UIContext
 			}
 			
 			int cost = m_Config.m_Difficulty.fastTravelCost;
+			
+			if(m_Config.m_bDebugMode) cost = 0;
 			
 			if(!m_Economy.PlayerHasMoney(m_sPlayerID, cost))
 			{
