@@ -128,6 +128,48 @@ OVT_OverthrowGameMode {
        prefab "{793EEE2C133176F9}Prefabs/Characters/HeadGear/Hat_Panama_Soviet/Hat_Panama_Soviet_01_v1.et"
        cost 35
       }
+      OVT_ShopInventoryItem "{5D346D528A31BF93}" {
+       prefab "{80F19C72CFA4CED4}Prefabs/Characters/Uniforms/Pants/cargo_pants_grey.et"
+      }
+      OVT_ShopInventoryItem "{5D346D5297B12BDE}" {
+       prefab "{432A36533B42C11D}Prefabs/Characters/Uniforms/Pants/cargo_pants_grey_black.et"
+      }
+      OVT_ShopInventoryItem "{5D346D529B3EE98D}" {
+       prefab "{BB8B4C27985C8797}Prefabs/Characters/Uniforms/Pants/cargo_pants_khaki.et"
+      }
+      OVT_ShopInventoryItem "{5D346D53661CFB73}" {
+       prefab "{0C78AD2BF86D089B}Prefabs/Characters/Uniforms/Pants/cargo_pants_khaki_black.et"
+      }
+      OVT_ShopInventoryItem "{5D346D536260EA89}" {
+       prefab "{B3DEA5A87A2BDC20}Prefabs/Characters/Uniforms/Pants/cargo_pants_khaki_grey_item.et"
+      }
+      OVT_ShopInventoryItem "{5D346D536E4A9AE0}" {
+       prefab "{924CAA6171029E01}Prefabs/Characters/Uniforms/Pants/cargo_pants_Olive_brown.et"
+      }
+      OVT_ShopInventoryItem "{5D346D5347F23F54}" {
+       prefab "{F45F7C77050CEB1B}Prefabs/Characters/Uniforms/Pants/civi_shorts_blue.xob"
+       cost 35
+      }
+      OVT_ShopInventoryItem "{5D346D5342F934B2}" {
+       prefab "{A1EA5AF6323CAAD2}Prefabs/Characters/Uniforms/Pants/civi_shorts_green.xob"
+       cost 35
+      }
+      OVT_ShopInventoryItem "{5D346D53CF14BF13}" {
+       prefab "{552ECFA7B9F0AB32}Prefabs/Characters/Uniforms/Pants/civi_shorts_red.xob"
+       cost 35
+      }
+      OVT_ShopInventoryItem "{5D346D53D1398FB2}" {
+       prefab "{785F4A26DB826D34}Prefabs/Characters/Uniforms/Pants/jeans_black_washed.et"
+       cost 70
+      }
+      OVT_ShopInventoryItem "{5D346D53AEDE9EC7}" {
+       prefab "{D5E273BB88B47524}Prefabs/Characters/Uniforms/Pants/jeans_black_washed_ripped.et"
+       cost 70
+      }
+      OVT_ShopInventoryItem "{5D346D53BDADB604}" {
+       prefab "{4CE818FF4A86E19D}Prefabs/Characters/Uniforms/Pants/jeans_blue_washed.et"
+       cost 70
+      }
      }
     }
     OVT_ShopInventoryConfig "{599680393904D480}" {
@@ -244,6 +286,7 @@ OVT_OverthrowGameMode {
     }
    }
    m_pGunDealerPrefab "{59929550D81A3045}Prefabs/Characters/Factions/INDFOR/FIA/Character_FIA_GunDealer.et"
+   m_pCivilianPrefab "{1AF5B9AE5CFD4434}Prefabs/Groups/INDFOR/Group_CIV.et"
    m_pMoveWaypointPrefab "{750A8D1695BD6998}Prefabs/AI/Waypoints/AIWaypoint_Move.et"
    m_pDefendWaypointPrefab "{93291E72AC23930F}Prefabs/AI/Waypoints/AIWaypoint_Defend.et"
    m_pPatrolWaypointPrefab "{22A875E30470BD4F}Prefabs/AI/Waypoints/AIWaypoint_Patrol.et"
@@ -440,7 +483,7 @@ OVT_OverthrowGameMode {
      }
     }
    }
-   m_pHiredCivilianPrefab "{1AF5B9AE5CFD4433}Prefabs/Groups/INDFOR/Group_CIV.et"
+   m_pHiredCivilianPrefab "{1AF5B9AE5CFD4434}Prefabs/Groups/INDFOR/Group_CIV.et"
   }
   OVT_RespawnHandlerComponent "{59724C8C9A6408EE}" {
    m_iForcedFaction 1

@@ -114,9 +114,31 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
     }
    }
   }
+  BaseLoadoutManagerComponent "{520EA1D2DB11821E}" {
+   Slots {
+    LoadoutSlotInfo Hat {
+     Prefab ""
+    }
+    LoadoutSlotInfo Jacket {
+     Prefab "{5F310D795D4ED30C}Prefabs/Characters/Uniforms/Tops/flannel_blue.et"
+    }
+    LoadoutSlotInfo Pants {
+     Prefab "{80F19C72CFA4CED4}Prefabs/Characters/Uniforms/Pants/cargo_pants_grey.et"
+    }
+   }
+  }
   SCR_InventoryStorageManagerComponent "{520EA1D2DB118DE5}" {
    InitialInventoryItems {
+    ItemsInitConfigurationItem "{5A24CC1119C7787F}" {
+     PrefabsToSpawn {
+     }
+    }
+    ItemsInitConfigurationItem "{5A24CC1119A46C9F}" {
+     PrefabsToSpawn {
+     }
+    }
     ItemsInitConfigurationItem "{566C8D26AC156C09}" {
+     TargetStorage "Prefabs/Characters/Uniforms/Pants/cargo_pants_grey.et"
      PrefabsToSpawn {
       "{13772C903CB5E4F7}Prefabs/Items/Equipment/Maps/PaperMap_01_folded.et"
      }

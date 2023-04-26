@@ -98,6 +98,9 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Gun Dealer Prefab", params: "et")]
 	ResourceName m_pGunDealerPrefab;
 	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Civilian Prefab", params: "et")]
+	ResourceName m_pCivilianPrefab;
+	
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Move Waypoint Prefab", params: "et", category: "Waypoints")]
 	ResourceName m_pMoveWaypointPrefab;
 	
@@ -130,6 +133,12 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	
 	[Attribute(defvalue: "6", UIWidgets.EditBox, desc: "Time multiplier")]
 	int m_iTimeMultiplier;
+	
+	[Attribute(defvalue: "0.1", UIWidgets.EditBox, desc: "Civilians to spawn per population")]
+	float m_fCivilianSpawnRate;
+	
+	[Attribute(defvalue: "2500", UIWidgets.EditBox, desc: "Civilian spawn distance")]
+	int m_iCivilianSpawnDistance;
 	
 	[Attribute(defvalue: "0.1", UIWidgets.EditBox, desc: "NPC Shop Buy Rate", category: "Economy")]
 	float m_fNPCBuyRate;
