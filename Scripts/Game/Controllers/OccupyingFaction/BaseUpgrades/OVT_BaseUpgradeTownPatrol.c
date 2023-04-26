@@ -1,6 +1,6 @@
 class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 {
-	[Attribute("2000", desc: "Max range of towns to patrol")]
+	[Attribute("3000", desc: "Max range of towns to patrol")]
 	float m_fRange;
 	
 	protected OVT_TownManagerComponent m_Towns;
@@ -63,7 +63,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		foreach(OVT_TownData town : m_TownsInRange)
 		{			
 			if(resources <= 0) break;
-			if(!OVT_Global.PlayerInRange(town.location, 2500)) continue;
+			if(!OVT_Global.PlayerInRange(town.location, 5000)) continue;
 			if(!m_Patrols.Contains(town.id))
 			{
 				int newres = BuyTownPatrol(town, threat);

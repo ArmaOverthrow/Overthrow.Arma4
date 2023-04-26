@@ -312,6 +312,20 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D346D5D199B4849}" {
+   Id "OVT-Item_Weed_Description"
+   Target_en_us "A quarter ounce of the finest sticky icky. Can be sold to civilians for a small profit."
+   Modified 1563724586
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D346D5D0FC98EAB}" {
+   Id "OVT-Item_Weed_Name"
+   Target_en_us "Weed"
+   Modified 1563724535
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59AEEB5827181BD1}" {
    Id "OVT-Job_AddedWaypoint"
    Target_en_us "A waypoint marker has been added to your map"
@@ -612,6 +626,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D346D4FFDAE200A}" {
+   Id "OVT-NoDrugs"
+   Target_en_us "You are not carrying any drugs. Buy them from a gun dealer."
+   Modified 1563731550
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59A6ED9B869DC04C}" {
    Id "OVT-NoMedicalSupplies"
    Target_en_us "No medical supplies found in vehicle"
@@ -848,6 +869,13 @@ StringTable {
    Id "OVT-ResistanceTax"
    Target_en_us "Resistance Tax"
    Modified 1506309537
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D346D4FE8D27151}" {
+   Id "OVT-SellDrugs"
+   Target_en_us "Sell Drugs"
+   Modified 1563731513
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

@@ -68,6 +68,23 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
     }
    }
   }
+  ActionsManagerComponent "{520EA1D2F659CE02}" {
+   ActionContexts {
+    UserActionContext "{520EA1D2F659CE17}" {
+     Radius 2
+    }
+   }
+   additionalActions {
+    OVT_SellDrugsAction "{5D346D72DFDCB6CB}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{5D346D72DBBA8B7E}" {
+      Name "#OVT-SellDrugs"
+     }
+    }
+   }
+  }
  }
  coords 0 0 0
 }

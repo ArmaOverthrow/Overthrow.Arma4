@@ -1,0 +1,59 @@
+GenericEntity : "{7B6990100263E2B3}Prefabs/Items/Core/Map_Base.et" {
+ ID "508AB2013EEE1E00"
+ components {
+  InventoryItemComponent "{5222EB4D0C73006B}" {
+   Attributes SCR_ItemAttributeCollection "{5222EB4D0A2B466B}" {
+    ItemDisplayName UIInfo "{5222EB4D07D865FA}" {
+     Name "#OVT-Item_Weed_Name"
+     Description "#OVT-Item_Weed_Description"
+    }
+    ItemPhysAttributes ItemPhysicalAttributes PhysicalAttributes {
+     Weight 0.1
+     SizeSetupStrategy Manual
+     ItemDimensions 5 5 5
+     ItemVolume 200
+    }
+    ItemAnimationAttributes ItemAnimationAttributes "{5D346D5D687D24CB}" {
+     AnimationAttachments {
+      AnimationAttachmentInfo "{5D346D5D687D24BD}" {
+       AnimGraph "{83675D0B0AB1B2C3}Assets/Items/Equipment/workspaces/paper_map.agr"
+       AnimInstance "{56794534F6B8C3D7}Assets/Items/Equipment/workspaces/player_map.asi"
+       BindingName "Gadget"
+      }
+     }
+    }
+    CustomAttributes {
+     PreviewRenderAttributes "{5D346D5D687D24B8}" {
+      CameraPreset Top
+      CameraOrbitAngles 0 0 0
+      CameraDistanceToItem 1.4
+      CameraOffset 0 0 0
+      FOV 10
+     }
+     CharacterModifierAttributes "{5D346D5D687D24A4}" {
+      ADSSpeedLimit 1
+     }
+    }
+    m_SlotType SLOT_GADGETS_STORAGE
+   }
+  }
+  MeshObject "{5D346D5D687D24AF}" {
+   Object "{E443663E5241622A}Assets/Items/Equipment/Maps/Map_Paper_01/Map_Paper_01_folded.xob"
+  }
+  RigidBody "{5D346D5D687D24AC}" {
+   LinearDamping 0.5
+   AngularDamping 0.5
+   ModelGeometry 1
+  }
+  SCR_MapGadgetComponent "{5D346D5D687D24A8}" {
+   m_eAnimVariable MAP
+  }
+  ActionsManagerComponent "{508AB5952B584B2E}" {
+   additionalActions {
+    SCR_EquipGadgetAction "{553AE376A93A9D5B}" : "{068D8D646964D12A}Prefabs/Characters/Core/Actions/EquipGadgetAction.conf" {
+    }
+   }
+  }
+ }
+ coords 1251.57 51.001 1427.637
+}

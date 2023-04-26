@@ -242,6 +242,10 @@ OVT_OverthrowGameMode {
      prefab "{645C73791ECA1698}Prefabs/Weapons/Grenades/Grenade_RGD5.et"
      cost 35
     }
+    OVT_ShopInventoryItem "{5D346D5DD06ED55E}" {
+     prefab "{9068EA9DDD7CB805}Prefabs/Items/Equipment/Drugs/DrugsWeed_01.et"
+     cost 38
+    }
    }
   }
   OVT_JobManagerComponent "{59A8D178EC1AA2AE}" {

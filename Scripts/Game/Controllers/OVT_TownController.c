@@ -134,6 +134,7 @@ class OVT_TownControllerComponent: OVT_Component
 		m_GunDealerID = dealer.GetID();
 		
 		OVT_ShopComponent shop = OVT_ShopComponent.Cast(dealer.FindComponent(OVT_ShopComponent));
+		shop.m_iTownId = m_Town.id;
 		
 		foreach(OVT_ShopInventoryItem item : m_Economy.m_aGunDealerItems)
 		{
