@@ -108,6 +108,6 @@ SCR_AIGroup : "{242BC3C6BCE96EA5}Prefabs/Groups/INDFOR/Group_FIA_Base.et" {
  }
  m_faction ""
  m_aUnitPrefabSlots {
-  "{3A99A99836F6B3DC}Prefabs/Characters/Factions/INDFOR/FIA/Character_FIA_Unarmed.et"
+  "{826258FDA41294E8}Prefabs/Characters/Factions/INDFOR/FIA/Character_CIV.et"
  }
 }

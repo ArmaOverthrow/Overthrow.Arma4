@@ -1,0 +1,73 @@
+SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA/Character_FIA_base.et" {
+ ID "520EC961A090B1EE"
+ components {
+  FactionAffiliationComponent "{555C98D1CD949F3E}" {
+  }
+  SCR_BaseHUDComponent "{520EA1D2DB118134}" {
+   InfoDisplays {
+    OVT_WantedInfo "{5D346D5C5623F1F5}" {
+     m_LayoutPath "{472DF3D2F7500FEB}UI/Layouts/HUD/WantedInfo.layout"
+    }
+    OVT_EconomyInfo "{5D346D5C5623F1F3}" {
+     m_LayoutPath "{3C972A84DC44F671}UI/Layouts/HUD/EconomyInfo.layout"
+    }
+   }
+  }
+  SCR_EditableCharacterComponent "{520EA1D2F659C85C}" {
+   m_UIInfo SCR_EditableEntityUIInfo "{5298E609432D192D}" {
+    Name "#AR-Role_Unarmed"
+    Icon "{9164E45B9A237FE9}UI/Textures/Editor/EditableEntities/Characters/EditableEntity_Character_Unarmed.edds"
+    IconSetName ""
+    m_Image "{0F62C575785D87CD}UI/Textures/EditorPreviews/Characters/INDFOR/FIA/Character_FIA_Unarmed.edds"
+    m_sFaction "FIA"
+    m_aAuthoredLabels + {
+     22
+    }
+    m_aAutoLabels {
+     122
+    }
+   }
+  }
+  CharacterIdentityComponent "{5584CBC63E092DBC}" {
+   Identity Identity "{5584CBC6363C648B}" {
+    VisualIdentity VisualIdentity "{56E6D9456009D1C4}" {
+     Head "{04F4D8CBA36A534B}Prefabs/Characters/Heads/Head_Black_02.et"
+     Body "{6253161EEAB88EAB}Prefabs/Characters/Basebody/CharacterBasebody_Black_02.et"
+    }
+   }
+  }
+  BaseLoadoutManagerComponent "{520EA1D2DB11821E}" {
+   Slots {
+    LoadoutSlotInfo Hat {
+     Prefab ""
+    }
+    LoadoutSlotInfo Jacket {
+     Prefab "{5F310D795D4ED30C}Prefabs/Characters/Uniforms/Tops/flannel_blue.et"
+    }
+    LoadoutSlotInfo Pants {
+     Prefab "{80F19C72CFA4CED4}Prefabs/Characters/Uniforms/Pants/cargo_pants_grey.et"
+    }
+   }
+  }
+  SCR_InventoryStorageManagerComponent "{520EA1D2DB118DE5}" {
+   InitialInventoryItems {
+    ItemsInitConfigurationItem "{5A24CC1119C7787F}" {
+     PrefabsToSpawn {
+     }
+    }
+    ItemsInitConfigurationItem "{5A24CC1119A46C9F}" {
+     PrefabsToSpawn {
+     }
+    }
+    ItemsInitConfigurationItem "{5D346D5C5623F1D4}" {
+     TargetStorage "Prefabs/Characters/Uniforms/Pants/cargo_pants_grey.et"
+    }
+    ItemsInitConfigurationItem "{5D346D5C5623F1D2}" {
+     TargetStorage "Prefabs/Characters/Uniforms/Jacket_M70.et"
+     TargetPurpose 64
+    }
+   }
+  }
+ }
+ coords 0 0 0
+}
