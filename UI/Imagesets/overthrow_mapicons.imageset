@@ -73,5 +73,11 @@ ImageSetClass {
    Size 128 128
    Flags 0
   }
+  ImageSetDefClass warehouse {
+   Name "warehouse"
+   Pos 652 132
+   Size 128 128
+   Flags 0
+  }
  }
 }

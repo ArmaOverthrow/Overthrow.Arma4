@@ -214,6 +214,7 @@ OVT_OverthrowGameMode {
   OVT_OverthrowConfigComponent "{59724C8C935D8E5D}" {
    m_pTownControllerPrefab "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.et"
    m_Difficulty OVT_DifficultySettings "{598AD54E1DA56EB1}" {
+    startingCash 100
    }
    m_aDifficultyPresets {
     OVT_DifficultySettings "{598AD54F821FB8D9}" {
@@ -253,6 +254,63 @@ OVT_OverthrowGameMode {
    m_pSmartActionWaypointPrefab "{04A06A6742FB0AF8}Prefabs/AI/Waypoints/AIWaypoint_UserAction.et"
    m_aStartingHouseFilters {
     "House_Mountain_E_1I01.et"
+   }
+   m_aBuildingTypes {
+    OVT_RealEstateConfig "{5D2EDC0DFB761194}" {
+     m_Name "Starting House"
+     m_aResourceNameFilters {
+      "House_Mountain_E_1I01.et"
+     }
+     m_BasePrice 25000
+     m_BaseRent 1000
+     m_DemandMultiplier 0.005
+    }
+    OVT_RealEstateConfig "{5D2EDC0C4C018B4C}" {
+     m_Name "Small House"
+     m_aResourceNameFilters {
+      "House_Wooden_E" "FarmHouse_E"
+     }
+     m_BasePrice 32000
+     m_BaseRent 1500
+     m_DemandMultiplier 0.02
+    }
+    OVT_RealEstateConfig "{5D2EDC0C01CF2CDD}" {
+     m_Name "Medium House"
+     m_aResourceNameFilters {
+      "House_Prefab_2I" "House_Village_E"
+     }
+     m_BasePrice 48000
+     m_BaseRent 1800
+     m_DemandMultiplier 0.02
+    }
+    OVT_RealEstateConfig "{5D2EDC0A45D424DB}" {
+     m_Name "Large House"
+     m_aResourceNameFilters {
+      "House_Town_E"
+     }
+     m_BasePrice 60000
+     m_BaseRent 2200
+     m_DemandMultiplier 0.02
+    }
+    OVT_RealEstateConfig "{5D2EDC0A34D912FC}" {
+     m_Name "Villa"
+     m_aResourceNameFilters {
+      "Villa_E"
+     }
+     m_BasePrice 120000
+     m_BaseRent 4500
+     m_DemandMultiplier 0.02
+    }
+    OVT_RealEstateConfig "{5D2EDC0AEC9FDDB6}" {
+     m_Name "Warehouse"
+     m_aResourceNameFilters {
+      "Warehouse_01"
+     }
+     m_BasePrice 150000
+     m_BaseRent 2500
+     m_DemandMultiplier 0.01
+     m_IsWarehouse 1
+    }
    }
    m_iTimeMultiplier 6
    m_pPlayerGroupPrefab "{9BED5CCD52C87E26}Prefabs/Groups/INDFOR/Group_Player.et"

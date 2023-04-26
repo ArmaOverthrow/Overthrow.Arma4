@@ -7,7 +7,7 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 	protected ResourceName m_Imageset;
 	
 	[Attribute()]
-	protected int m_iCeiling;
+	protected float m_fCeiling;
 	
 	protected ref array<vector> m_Centers;
 	protected ref array<float> m_Ranges;
@@ -67,12 +67,90 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 		foreach(EntityID id : houses)
 		{
 			IEntity ent = world.FindEntityByID(id);
+			OVT_RealEstateConfig bdgConfig = realEstate.GetConfig(ent);
+			if(bdgConfig.m_IsWarehouse)
+			{
+				continue;
+			}
+			
+			int range = m_fCeiling;
+			if(realEstate.IsHome(persId, ent.GetID()))
+			{
+				range = 0;
+			}
+			
 			m_Centers.Insert(ent.GetOrigin());
-			m_Ranges.Insert(m_iCeiling);
+			m_Ranges.Insert(range);			
+			
+			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
+			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
+			image.LoadImageFromSet(0, m_Imageset, "house");					
+			
+			m_Widgets.Insert(w);
+		}
+		
+		houses = realEstate.GetRented(persId);
+		
+		foreach(EntityID id : houses)
+		{
+			IEntity ent = world.FindEntityByID(id);
+			OVT_RealEstateConfig bdgConfig = realEstate.GetConfig(ent);
+			if(bdgConfig.m_IsWarehouse)
+			{
+				continue;
+			}
+			m_Centers.Insert(ent.GetOrigin());
+			m_Ranges.Insert(m_fCeiling);
 			
 			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
 			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
 			image.LoadImageFromSet(0, m_Imageset, "house");
+			image.SetColor(Color.Gray25);
+			
+			m_Widgets.Insert(w);
+		}
+		
+		//Public Owned Warehouses
+		
+		for(int i = 0; i < realEstate.m_mOwners.Count(); i++)
+		{
+			RplId id = realEstate.m_mOwners.GetKey(i);
+			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+			IEntity ent = rpl.GetEntity();
+			OVT_RealEstateConfig bdgConfig = realEstate.GetConfig(ent);
+			if(!bdgConfig.m_IsWarehouse)
+			{
+				continue;
+			}
+			m_Centers.Insert(ent.GetOrigin());
+			m_Ranges.Insert(m_fCeiling);
+			
+			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
+			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
+			image.LoadImageFromSet(0, m_Imageset, "warehouse");
+			
+			m_Widgets.Insert(w);
+		}
+		
+		//Public Rented Warehouses
+		
+		for(int i = 0; i < realEstate.m_mRenters.Count(); i++)
+		{
+			RplId id = realEstate.m_mRenters.GetKey(i);
+			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+			IEntity ent = rpl.GetEntity();
+			OVT_RealEstateConfig bdgConfig = realEstate.GetConfig(ent);
+			if(!bdgConfig.m_IsWarehouse)
+			{
+				continue;
+			}
+			m_Centers.Insert(ent.GetOrigin());
+			m_Ranges.Insert(m_fCeiling);
+			
+			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
+			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
+			image.LoadImageFromSet(0, m_Imageset, "warehouse");
+			image.SetColor(Color.Gray25);
 			
 			m_Widgets.Insert(w);
 		}
@@ -83,7 +161,7 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 			if(!rpl) continue;
 			IEntity ent = rpl.GetEntity();
 			m_Centers.Insert(ent.GetOrigin());
-			m_Ranges.Insert(m_iCeiling);
+			m_Ranges.Insert(m_fCeiling);
 			
 			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
 			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
@@ -98,7 +176,7 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 			if(!rpl) continue;
 			IEntity ent = rpl.GetEntity();
 			m_Centers.Insert(ent.GetOrigin());
-			m_Ranges.Insert(m_iCeiling);
+			m_Ranges.Insert(m_fCeiling);
 			
 			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
 			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
@@ -130,7 +208,7 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 		{
 			IEntity ent = world.FindEntityByID(id);
 			m_Centers.Insert(ent.GetOrigin());
-			m_Ranges.Insert(m_iCeiling);
+			m_Ranges.Insert(m_fCeiling);
 			
 			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
 			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));

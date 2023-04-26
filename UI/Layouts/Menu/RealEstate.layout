@@ -1,0 +1,535 @@
+FrameWidgetClass {
+ Name "rootFrame"
+ {
+  PanelWidgetClass "{5D305CF2C4D8BCB2}" {
+   Name "ResistancePanel"
+   Slot FrameWidgetSlot "{597282644EB209C6}" {
+    Anchor 0.5 0.5 0.5 0.5
+    PositionX 0
+    OffsetLeft 0
+    PositionY 0
+    OffsetTop 0
+    SizeX 800
+    OffsetRight -800
+    SizeY 650
+    OffsetBottom -650
+    Alignment 0.5 0.5
+   }
+   {
+    BlurWidgetClass "{5D305CF2C4D8BCBF}" : "{352322057FD78AE1}UI/layouts/WidgetLibrary/BaseElements/WLib_Blur.layout" {
+     Name "BackgroundBlur"
+     Slot FrameWidgetSlot "{5982E26F6316DE4F}" {
+      Anchor 0 0 1 1
+      PositionX 0
+      OffsetLeft 0
+      PositionY 0
+      OffsetTop 0
+      SizeX -200
+      OffsetRight 0
+      SizeY -1050
+      OffsetBottom 0
+     }
+     Color 0.127 0.127 0.127 1
+     Intensity 0.8
+    }
+    VerticalLayoutWidgetClass "{5D305CF2C4D8BCBD}" {
+     Name "VerticalLayout0"
+     Slot FrameWidgetSlot "{59728267ECC2178F}" {
+      Anchor 0 0 1 1
+      PositionX 1
+      OffsetLeft 10
+      PositionY 0
+      OffsetTop 10
+      SizeX 0
+      OffsetRight 10
+      SizeY 0
+      OffsetBottom 10
+     }
+     {
+      HorizontalLayoutWidgetClass "{5D305CF2C4D8BCBC}" {
+       Name "Header"
+       Slot LayoutSlot "{59A6DA4C43CC721E}" {
+       }
+       {
+        TextWidgetClass "{5D305CF2C4D8BCBA}" {
+         Name "Text0"
+         Slot LayoutSlot "{59A6DA4C57D30E9F}" {
+          HorizontalAlign 1
+          VerticalAlign 1
+          Padding 10 0 0 0
+         }
+         Text "#ovt-mainmenu_realestate"
+         "Font Size" 36
+        }
+       }
+      }
+      SizeLayoutWidgetClass "{5D305CF1A4507BC0}" {
+       Name "AssetImage"
+       Slot LayoutSlot "{56EF0B18C4AC3F95}" {
+        SizeMode Fill
+       }
+       AllowWidthOverride 1
+       WidthOverride 240
+       AllowHeightOverride 1
+       HeightOverride 180
+       {
+        OverlayWidgetClass "{5D305CF1A4507BCE}" {
+         Name "ImageOverlay"
+         Slot AlignableSlot "{56EF0B162CD61F4A}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+         }
+         {
+          ItemPreviewWidgetClass "{5D305CF1A45059D6}" {
+           Name "Image"
+           Slot OverlayWidgetSlot "{56EF0B19288B21F6}" {
+            HorizontalAlign 3
+            VerticalAlign 3
+           }
+          }
+          ImageWidgetClass "{5D305CF1A45059D4}" {
+           Name "Texture"
+           Slot OverlayWidgetSlot "{59968CDFF05D0A2C}" {
+           }
+           "Is Visible" 0
+           Texture "{0853023FFB197DB8}UI/Textures/EditorPreviews/Vehicles/Wheeled/M923A1/M923A1.edds"
+           Image ""
+           Size 800 600
+          }
+          ImageWidgetClass "{5D305CF1A45059D3}" {
+           Name "Splatter"
+           Slot OverlayWidgetSlot "{56EF0B19288B21F6}" {
+            HorizontalAlign 3
+            VerticalAlign 3
+           }
+           Texture "{7168533FAFDE2158}UI/Textures/Editor/Effects/Effect_AssetCard_Splatter_01.edds"
+           Image ""
+           Size 400 300
+          }
+         }
+        }
+       }
+      }
+      OverlayWidgetClass "{5D305CF0B85199FC}" {
+       Name "Buy Price"
+       Slot LayoutSlot "{599D59771F18D990}" {
+        Padding 0 20 0 0
+       }
+       {
+        PanelWidgetClass "{5D305CF0B85199FB}" {
+         Name "BG"
+         Slot OverlayWidgetSlot "{599D5977F1E3F8A8}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+         }
+         Color 1 1 1 0.035
+         style debugUI
+        }
+        HorizontalLayoutWidgetClass "{5D305CF0B85199F9}" {
+         Name "Layout"
+         Slot OverlayWidgetSlot "{599D59771EB55F47}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+          Padding 5 5 5 5
+         }
+         {
+          TextWidgetClass "{5D305CF0B85199F8}" {
+           Name "BuyLabel"
+           Slot LayoutSlot "{599D5977351D294A}" {
+           }
+           Text "#ovt-shop_buying"
+           "Font Size" 26
+          }
+          FrameWidgetClass "{5D305CF0B85199F7}" {
+           Name "Fill"
+           Slot LayoutSlot "{599D5977BB3E09E2}" {
+            SizeMode Fill
+           }
+          }
+          TextWidgetClass "{5D305CF0B85199F6}" {
+           Name "BuyPrice"
+           Slot LayoutSlot "{599D5977351D294A}" {
+            HorizontalAlign 0
+           }
+           Text "$56000"
+           "Font Size" 26
+          }
+         }
+        }
+       }
+      }
+      OverlayWidgetClass "{5D305CF745AC2C38}" {
+       Name "Rent Price"
+       Slot LayoutSlot "{599D59771F18D990}" {
+        Padding 0 1 0 0
+       }
+       {
+        PanelWidgetClass "{5D305CF745AC2C36}" {
+         Name "BG"
+         Slot OverlayWidgetSlot "{599D5977F1E3F8A8}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+         }
+         Color 1 1 1 0.035
+         style debugUI
+        }
+        HorizontalLayoutWidgetClass "{5D305CF745AC2C34}" {
+         Name "Layout"
+         Slot OverlayWidgetSlot "{599D59771EB55F47}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+          Padding 5 5 5 5
+         }
+         {
+          TextWidgetClass "{5D305CF745AC2C33}" {
+           Name "RentLabel"
+           Slot LayoutSlot "{599D5977351D294A}" {
+           }
+           Text "#ovt-shop_renting"
+           "Font Size" 26
+          }
+          FrameWidgetClass "{5D305CF745AC2C32}" {
+           Name "Fill"
+           Slot LayoutSlot "{599D5977BB3E09E2}" {
+            SizeMode Fill
+           }
+          }
+          TextWidgetClass "{5D305CF745AC2C31}" {
+           Name "RentPrice"
+           Slot LayoutSlot "{599D5977351D294A}" {
+            HorizontalAlign 0
+           }
+           Text "$56000"
+           "Font Size" 26
+          }
+          TextWidgetClass "{5D305CF727F688B4}" {
+           Name "RentPrice0"
+           Slot LayoutSlot "{599D5977351D294A}" {
+            HorizontalAlign 0
+            Padding 6.3 0 0 0
+           }
+           Text "#ovt-perday"
+           "Font Size" 26
+          }
+         }
+        }
+       }
+      }
+      FrameWidgetClass "{5D305CF2C4D8BD73}" {
+       Name "Fill"
+       Slot LayoutSlot "{59A6DA4FA28C85D1}" {
+        SizeMode Fill
+       }
+      }
+      OverlayWidgetClass "{5D305DEB8B7EEBC9}" {
+       Name "Renting"
+       Slot LayoutSlot "{5D34246E2F8AED5C}" {
+       }
+       {
+        PanelWidgetClass "{5D305DEB8B7EEBC8}" {
+         Name "BG"
+         Slot OverlayWidgetSlot "{599D5977F1E3F8A8}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+         }
+         Color 0.376 0.286 0 1
+         style debugUI
+        }
+        TextWidgetClass "{5D305DEB8B7EEBC5}" {
+         Name "Label"
+         Slot OverlayWidgetSlot "{5D305DEB8B7EEB1B}" {
+          Padding 5 5 5 5
+         }
+         Text "#ovt-Renting"
+         "Font Size" 26
+         "Horizontal Alignment" Center
+        }
+       }
+      }
+      OverlayWidgetClass "{5D305DE539B18537}" {
+       Name "Owned"
+       Slot LayoutSlot "{599D59771F18D990}" {
+        Padding 0 0 0 0
+       }
+       {
+        PanelWidgetClass "{5D305DE539B18535}" {
+         Name "BG"
+         Slot OverlayWidgetSlot "{599D5977F1E3F8A8}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+         }
+         Color 0 0.171 0.047 1
+         style debugUI
+        }
+        TextWidgetClass "{5D305DE539B18532}" {
+         Name "Label"
+         Slot OverlayWidgetSlot "{5D34246E2F8AEDE6}" {
+          Padding 5 5 5 5
+         }
+         Text "#ovt-Owned"
+         "Font Size" 26
+         "Horizontal Alignment" Center
+        }
+       }
+      }
+      OverlayWidgetClass "{5D34246EE98D946A}" {
+       Name "IsHome"
+       Slot LayoutSlot "{599D59771F18D990}" {
+        Padding 0 2 0 0
+       }
+       {
+        PanelWidgetClass "{5D34246EE98D9469}" {
+         Name "BG"
+         Slot OverlayWidgetSlot "{599D5977F1E3F8A8}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+         }
+         Color 0 0.171 0.047 1
+         style debugUI
+        }
+        TextWidgetClass "{5D34246EE98D9457}" {
+         Name "Label"
+         Slot OverlayWidgetSlot "{5D34246E2F8AEDE6}" {
+          Padding 5 5 5 5
+         }
+         Text "#ovt-IsHome"
+         "Font Size" 26
+         "Horizontal Alignment" Center
+        }
+       }
+      }
+      HorizontalLayoutWidgetClass "{5D305CF7D9CC4D27}" {
+       Name "ButtonsLayout"
+       Slot LayoutSlot "{59A6DA4B67F90A9C}" {
+        Padding 0 0 0 0
+       }
+       {
+        ButtonWidgetClass "{5D305CF7D9CC4D25}" : "{75C912A1C89BE6C2}UI/layouts/WidgetLibrary/Buttons/WLib_ButtonText.layout" {
+         Name "Rent"
+         Slot LayoutSlot "{59C84C7C117A2068}" {
+          Padding 5 5 5 5
+         }
+         components {
+          SCR_ButtonTextComponent "{5548F0143AE99095}" {
+           m_sText "#OVT-Rent"
+          }
+         }
+         {
+          SizeLayoutWidgetClass "{5548EB41A8E48247}" {
+           Prefab "{5548EB41A8E48247}"
+           {
+            OverlayWidgetClass "{5548EB41A8E48245}" {
+             Prefab "{5548EB41A8E48245}"
+             Slot ButtonWidgetSlot "{5548E6E7F213FB11}" {
+              Padding 2 2 2 2
+             }
+             {
+              TextWidgetClass "{5548F014E72FB9DA}" {
+               Prefab "{5548F014E72FB9DA}"
+               Slot OverlayWidgetSlot "{55708DE55528756B}" {
+                Padding 10 10 10 10
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+        ButtonWidgetClass "{5D305DE578F60B45}" : "{75C912A1C89BE6C2}UI/layouts/WidgetLibrary/Buttons/WLib_ButtonText.layout" {
+         Name "StopRenting"
+         Slot LayoutSlot "{59C84C7C117A2068}" {
+          Padding 5 5 5 5
+         }
+         components {
+          SCR_ButtonTextComponent "{5548F0143AE99095}" {
+           m_sText "#OVT-StopRenting"
+          }
+         }
+         {
+          SizeLayoutWidgetClass "{5548EB41A8E48247}" {
+           Prefab "{5548EB41A8E48247}"
+           {
+            OverlayWidgetClass "{5548EB41A8E48245}" {
+             Prefab "{5548EB41A8E48245}"
+             Slot ButtonWidgetSlot "{5548E6E7F213FB11}" {
+              Padding 2 2 2 2
+             }
+             {
+              TextWidgetClass "{5548F014E72FB9DA}" {
+               Prefab "{5548F014E72FB9DA}"
+               Slot OverlayWidgetSlot "{55708DE55528756B}" {
+                Padding 10 10 10 10
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+        FrameWidgetClass "{5D305CF7D9CC4D20}" {
+         Name "Fill"
+         Slot LayoutSlot "{59A6DA4FA28C85D1}" {
+          SizeMode Fill
+         }
+        }
+        ButtonWidgetClass "{5D34246E3D339CEB}" : "{75C912A1C89BE6C2}UI/layouts/WidgetLibrary/Buttons/WLib_ButtonText.layout" {
+         Name "SetAsHome"
+         Slot LayoutSlot "{59C84C7C117A2068}" {
+          Padding 5 5 5 5
+         }
+         components {
+          SCR_ButtonTextComponent "{5548F0143AE99095}" {
+           m_sText "#OVT-SetAsHome"
+          }
+         }
+         {
+          SizeLayoutWidgetClass "{5548EB41A8E48247}" {
+           Prefab "{5548EB41A8E48247}"
+           {
+            OverlayWidgetClass "{5548EB41A8E48245}" {
+             Prefab "{5548EB41A8E48245}"
+             Slot ButtonWidgetSlot "{5548E6E7F213FB11}" {
+              Padding 2 2 2 2
+             }
+             {
+              TextWidgetClass "{5548F014E72FB9DA}" {
+               Prefab "{5548F014E72FB9DA}"
+               Slot OverlayWidgetSlot "{55708DE55528756B}" {
+                Padding 10 10 10 10
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+        FrameWidgetClass "{5D34246E34942E7B}" {
+         Name "Fill0"
+         Slot LayoutSlot "{59A6DA4FA28C85D1}" {
+          SizeMode Fill
+         }
+        }
+        ButtonWidgetClass "{5D305CF7D9CC4D3D}" : "{75C912A1C89BE6C2}UI/layouts/WidgetLibrary/Buttons/WLib_ButtonText.layout" {
+         Name "Buy"
+         Slot LayoutSlot "{59C84C7C117A2068}" {
+          Padding 5 5 5 5
+         }
+         components {
+          SCR_ButtonTextComponent "{5548F0143AE99095}" {
+           m_sText "#OVT-Shop_Buy"
+          }
+         }
+         {
+          SizeLayoutWidgetClass "{5548EB41A8E48247}" {
+           Prefab "{5548EB41A8E48247}"
+           {
+            OverlayWidgetClass "{5548EB41A8E48245}" {
+             Prefab "{5548EB41A8E48245}"
+             Slot ButtonWidgetSlot "{5548E6E7F213FB11}" {
+              Padding 2 2 2 2
+             }
+             {
+              TextWidgetClass "{5548F014E72FB9DA}" {
+               Prefab "{5548F014E72FB9DA}"
+               Slot OverlayWidgetSlot "{55708DE55528756B}" {
+                Padding 10 10 10 10
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+        ButtonWidgetClass "{5D305DE5538EB30B}" : "{75C912A1C89BE6C2}UI/layouts/WidgetLibrary/Buttons/WLib_ButtonText.layout" {
+         Name "Sell"
+         Slot LayoutSlot "{59C84C7C117A2068}" {
+          Padding 5 5 5 5
+         }
+         components {
+          SCR_ButtonTextComponent "{5548F0143AE99095}" {
+           m_sText "#OVT-Shop_Sell"
+          }
+         }
+         {
+          SizeLayoutWidgetClass "{5548EB41A8E48247}" {
+           Prefab "{5548EB41A8E48247}"
+           {
+            OverlayWidgetClass "{5548EB41A8E48245}" {
+             Prefab "{5548EB41A8E48245}"
+             Slot ButtonWidgetSlot "{5548E6E7F213FB11}" {
+              Padding 2 2 2 2
+             }
+             {
+              TextWidgetClass "{5548F014E72FB9DA}" {
+               Prefab "{5548F014E72FB9DA}"
+               Slot OverlayWidgetSlot "{55708DE55528756B}" {
+                Padding 10 10 10 10
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+      OverlayWidgetClass "{5D305CF2C4D8BD72}" {
+       Name "Footer"
+       Slot LayoutSlot "{56EEDE03DE14A911}" {
+       }
+       {
+        HorizontalLayoutWidgetClass "{5D305CF2C4D8BD71}" {
+         Name "Buttons"
+         Slot OverlayWidgetSlot "{56EEDE03DED9A743}" {
+          HorizontalAlign 3
+         }
+         {
+          ButtonWidgetClass "{5D305CF2C4D8BD70}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+           Name "CloseButton"
+           Slot LayoutSlot "{56EEDE01982D053A}" {
+            Padding 0 0 10 0
+           }
+           components {
+            SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+             m_sSoundClicked "SOUND_FE_BUTTON_CANCEL"
+             m_sLabel "#AR-Editor_ContentBrowser_ButtonClose"
+             m_sActionName "MenuBack"
+            }
+            ButtonActionComponent "{56EEDE01BE93EE7D}" {
+             m_bActionName "MenuBack"
+            }
+           }
+           {
+            SizeLayoutWidgetClass "{5562AD435529FB36}" {
+             Prefab "{5562AD435529FB36}"
+             {
+              OverlayWidgetClass "{000000005E70868E}" {
+               Prefab "{000000005E70868E}"
+               {
+                HorizontalLayoutWidgetClass "{00000000E3602307}" {
+                 Prefab "{00000000E3602307}"
+                 Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
+                  Padding 10 10 16 10
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

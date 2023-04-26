@@ -45,6 +45,30 @@ class OVT_RealEstateStruct : OVT_BaseSaveStruct
 			}
 		}
 		
+		for(int i; i<re.m_mRented.Count(); i++)
+		{
+			string playerId = re.m_mRented.GetKey(i);
+			OVT_RealEstatePlayerStruct struct;
+			
+			if(!playerStructs.Contains(playerId))
+			{
+				struct = new OVT_RealEstatePlayerStruct();
+				struct.id = playerId;
+				players.Insert(struct);
+			}else{
+				struct = playerStructs[playerId];
+			}
+			
+			foreach(RplId id : re.m_mOwned[playerId])
+			{
+				RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+				IEntity ent = rpl.GetEntity();
+				OVT_VectorStruct vec = new OVT_VectorStruct();
+				vec.pos = ent.GetOrigin();
+				struct.rentedProperty.Insert(vec);
+			}
+		}
+		
 		return true;
 	}
 	
@@ -66,6 +90,16 @@ class OVT_RealEstateStruct : OVT_BaseSaveStruct
 				{
 					RplComponent rpl = RplComponent.Cast(ent.FindComponent(RplComponent));
 					re.m_mOwned[struct.id].Insert(rpl.Id());
+				}
+			}
+			foreach(OVT_VectorStruct loc : struct.rentedProperty)
+			{
+				vector vec = loc.pos;
+				IEntity ent = re.GetNearestBuilding(vec,2);
+				if(ent)
+				{
+					RplComponent rpl = RplComponent.Cast(ent.FindComponent(RplComponent));
+					re.m_mRented[struct.id].Insert(rpl.Id());
 				}
 			}	
 		}

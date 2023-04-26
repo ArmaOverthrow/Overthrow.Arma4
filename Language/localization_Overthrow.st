@@ -305,6 +305,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D34246EAE2E228C}" {
+   Id "OVT-IsHome"
+   Target_en_us "Your Home (Respawn Point)"
+   Modified 1563700033
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59AEEB5827181BD1}" {
    Id "OVT-Job_AddedWaypoint"
    Target_en_us "A waypoint marker has been added to your map"
@@ -454,6 +461,13 @@ StringTable {
    Target_en_us "Place"
    Status DEVELOPMENT_DONE
    Modified 1502796262
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D305CF3CF05C921}" {
+   Id "OVT-MainMenu_RealEstate"
+   Target_en_us "Real Estate"
+   Modified 1563450917
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -640,6 +654,20 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D305DE5B6029A1B}" {
+   Id "OVT-Owned"
+   Target_en_us "Owned"
+   Modified 1563619823
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D305CF7F4C3B9F3}" {
+   Id "OVT-PerDay"
+   Target_en_us "per day"
+   Modified 1563452968
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{598AD5529A3EEA5D}" {
    Id "OVT-Place_Camp"
    Target_en_us "Camp"
@@ -760,6 +788,27 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D305CF6351DD698}" {
+   Id "OVT-Rent"
+   Target_en_us "Rent"
+   Modified 1563453307
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D342475BAF79297}" {
+   Id "OVT-RentIncome"
+   Target_en_us "Rent Income"
+   Modified 1563710446
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D305DE90B69493E}" {
+   Id "OVT-Renting"
+   Target_en_us "Renting"
+   Modified 1563621473
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59D0228A8D1E8EE6}" {
    Id "OVT-RepairVehicle"
    Target_en_us "Repair Vehicle"
@@ -823,6 +872,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D34246ED529442C}" {
+   Id "OVT-SetAsHome"
+   Target_en_us "Set As Home"
+   Modified 1563699985
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59C5275452D1E646}" {
    Id "OVT-SetHome"
    Target_en_us "Set Home"
@@ -866,6 +922,13 @@ StringTable {
    Target_en_us "Open Shop"
    Status DEVELOPMENT_DONE
    Modified 1502796262
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D305CF7EDB14774}" {
+   Id "OVT-Shop_Renting"
+   Target_en_us "Rent for"
+   Modified 1563452954
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -952,6 +1015,13 @@ StringTable {
    Id "OVT-StartGame"
    Target_en_us "Start Game"
    Modified 1503475215
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D305DE5A4ECB590}" {
+   Id "OVT-StopRenting"
+   Target_en_us "Stop Renting"
+   Modified 1563619798
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

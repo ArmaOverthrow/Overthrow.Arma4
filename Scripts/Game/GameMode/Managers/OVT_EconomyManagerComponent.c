@@ -82,6 +82,220 @@ class OVT_EconomyManagerComponent: OVT_Component
 		m_mInventoryItems = new map<int, ref OVT_ShopInventoryItem>;
 	}
 	
+	void CheckUpdate()
+	{
+		PlayerManager mgr = GetGame().GetPlayerManager();		
+		if(mgr.GetPlayerCount() == 0)
+		{
+			return;
+		}
+		
+		TimeContainer time = m_Time.GetTime();		
+		
+		//Every 6 hrs get paid
+		if((time.m_iHours == 0 
+			|| time.m_iHours == 6 
+			|| time.m_iHours == 12 
+			|| time.m_iHours == 18)
+			 && 
+			time.m_iMinutes == 0)
+		{
+			CalculateIncome();
+			UpdateShops();
+		}
+		
+		//Every morning at 7am replenish stock
+		if(time.m_iHours == 7 &&
+			time.m_iMinutes == 0)
+		{
+			ReplenishStock();
+		}
+		
+		//Every midnight calculate rents
+		if(time.m_iHours == 0 &&
+			time.m_iMinutes == 0)
+		{
+			UpdateRents();
+		}
+	}
+	
+	protected void UpdateRents()
+	{
+		OVT_RealEstateManagerComponent realEstate = OVT_Global.GetRealEstate();
+		for(int i = 0; i < realEstate.m_mRenters.Count(); i++)
+		{
+			RplId id = realEstate.m_mRenters.GetKey(i);
+			string playerId = realEstate.m_mRenters[id];
+			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+			if(!rpl) continue;
+			IEntity entity = rpl.GetEntity();
+			int cost = realEstate.GetRentPrice(entity);
+			if(realEstate.IsOwner(playerId, entity.GetID()))
+			{
+				AddPlayerMoneyPersistentId(playerId, cost);
+			}else{			
+				if(!PlayerHasMoney(playerId, cost))
+				{
+					realEstate.SetRenter(-1, entity);
+				}else{
+					TakePlayerMoneyPersistentId(playerId, cost);
+				}
+			}
+		}
+	}
+	
+	protected void ReplenishStock()
+	{
+		//Shops restocking		
+		foreach(OVT_TownData town : m_Towns.m_Towns)
+		{
+			if(!m_mTownShops.Contains(town.id)) continue;			
+			
+			//split shops into types
+			map<int, ref array<RplId>> typeShops = GetShopTypes(town.id);
+			
+			array<int> types = new array<int>;			
+			for(int i=0; i<typeShops.Count(); i++)
+			{
+				types.Insert(typeShops.GetKey(i));
+			}			
+			
+			foreach(RplId shopId : m_aAllShops)
+			{
+				OVT_ShopComponent shop = GetShopByRplId(shopId);
+				foreach(int id : shop.m_aInventoryItemIds)
+				{
+					int max = GetTownMaxStock(town.id, id);
+					max = Math.Round(max / typeShops[shop.m_ShopType].Count());
+					int stock = shop.GetStock(id);
+					int half = Math.Round(stock * 0.5);
+					if(stock < half)
+					{
+						shop.AddToInventory(id, half - stock);
+					}
+				}
+			}
+		}
+	}
+	
+	protected void UpdateShops()
+	{
+		//NPCs Buying stock
+		foreach(OVT_TownData town : m_Towns.m_Towns)
+		{
+			if(!m_mTownShops.Contains(town.id)) continue;
+			int maxToBuy = (town.population * m_Config.m_fNPCBuyRate) * (town.stability / 100);
+			
+			int numToBuy = s_AIRandomGenerator.RandInt(1,maxToBuy);
+			
+			//split shops into types
+			map<int, ref array<RplId>> typeShops = GetShopTypes(town.id);
+			
+			array<int> types = new array<int>;			
+			for(int i=0; i<typeShops.Count(); i++)
+			{
+				types.Insert(typeShops.GetKey(i));
+			}			
+			
+			//buy stuff
+			for(int i; i<numToBuy; i++)
+			{
+				//pick a random shop type
+				int typeIndex = s_AIRandomGenerator.RandInt(0,types.Count()-1);
+				//pick a random shop within that type
+				int shopIndex = s_AIRandomGenerator.RandInt(0,typeShops[types[typeIndex]].Count()-1);
+				OVT_ShopComponent shop = GetShopByRplId(typeShops[types[typeIndex]][shopIndex]);
+				if(!shop) continue;
+				//pick a random inventory item
+				int itemIndex = s_AIRandomGenerator.RandInt(0,shop.m_aInventoryItemIds.Count()-1);
+				int id = shop.m_aInventoryItemIds[itemIndex];
+				OVT_ShopInventoryItem item = GetInventoryItem(id);
+				int qty = s_AIRandomGenerator.RandInt(1,item.demandMultiplier);
+				int stock = shop.GetStock(id);
+				if(stock < qty) qty = stock;
+				if(qty > 0)
+				{
+					shop.HandleNPCSale(id, qty);
+				}
+			}			
+		}
+	}
+	
+	protected map<int, ref array<RplId>> GetShopTypes(int townId)
+	{
+		map<int, ref array<RplId>> typeShops = new map<int, ref array<RplId>>;
+		for(int i=0; i<m_mTownShops[townId].Count(); i++)
+		{				
+			RplId shopId = m_mTownShops[townId][i];
+			OVT_ShopComponent shop = GetShopByRplId(shopId);
+			if(!shop || shop.m_ShopType == -1) continue;
+			if(!typeShops.Contains(shop.m_ShopType))
+			{
+				typeShops[shop.m_ShopType] = new array<RplId>;
+			}
+			typeShops[shop.m_ShopType].Insert(shopId);
+		}
+		return typeShops;
+	}
+	
+	OVT_ShopComponent GetShopByRplId(RplId shopId)
+	{
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(shopId));
+		if(!rpl) return null;
+		IEntity entity = rpl.GetEntity();
+		return OVT_ShopComponent.Cast(entity.FindComponent(OVT_ShopComponent));
+	}
+	
+	protected void CalculateIncome()
+	{
+		//Support donations
+		int income = GetDonationIncome();
+		income += GetTaxIncome();
+		
+		if(income == 0) return;
+		
+		int taxed = Math.Round(income * m_fResistanceTax);
+		income -= taxed;
+		AddResistanceMoney(taxed);
+		
+		PlayerManager mgr = GetGame().GetPlayerManager();
+		int count = mgr.GetPlayerCount();
+		if(count == 0)
+		{
+			AddResistanceMoney(income);
+			return;
+		}
+		//Distribute remaining to all players online
+		int incomePerPlayer = Math.Round(income / count);
+		
+		array<int> players = new array<int>;
+		mgr.GetPlayers(players);
+		foreach(int playerId : players)
+		{			
+			AddPlayerMoney(playerId, incomePerPlayer);
+		}
+		
+		
+		
+	}
+	
+	int GetDonationIncome()
+	{
+		int income = 0;
+		foreach(OVT_TownData town : m_Towns.m_Towns)
+		{
+			income += m_Config.m_Difficulty.donationIncome * town.support;
+		}
+		return income;
+	}
+	
+	int GetTaxIncome()
+	{
+		int income = 0;
+		
+		return income;
+	}
+	
 	void SetPrice(int id, int cost)
 	{
 		m_mItemCosts[id] = cost;
@@ -338,6 +552,31 @@ class OVT_EconomyManagerComponent: OVT_Component
 		OVT_Global.GetServer().TakePlayerMoney(playerId, amount);	
 	}
 	
+	void TakePlayerMoneyPersistentId(string persId, int amount)
+	{
+		if(!m_mMoney.Contains(persId)) return;
+		m_mMoney[persId] = m_mMoney[persId] - amount;
+		if(m_mMoney[persId] < 0) m_mMoney[persId] = 0;
+		
+		int playerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(persId);
+		if(playerId > -1){
+			StreamPlayerMoney(playerId);	
+		}
+		m_OnPlayerMoneyChanged.Invoke(persId, m_mMoney[persId]);
+	}
+	
+	void AddPlayerMoneyPersistentId(string persId, int amount)
+	{
+		if(!m_mMoney.Contains(persId)) m_mMoney[persId] = 0;
+		m_mMoney[persId] = m_mMoney[persId] + amount;
+		
+		int playerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(persId);
+		if(playerId > -1){
+			StreamPlayerMoney(playerId);	
+		}
+		m_OnPlayerMoneyChanged.Invoke(persId, m_mMoney[persId]);
+	}
+	
 	void DoTakePlayerMoney(int playerId, int amount)
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
@@ -422,187 +661,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return m_mInventoryItems[id];
 	}
 	
-	void CheckUpdate()
-	{
-		PlayerManager mgr = GetGame().GetPlayerManager();		
-		if(mgr.GetPlayerCount() == 0)
-		{
-			return;
-		}
-		
-		TimeContainer time = m_Time.GetTime();		
-		
-		//Every 6 hrs get paid
-		if((time.m_iHours == 0 
-			|| time.m_iHours == 6 
-			|| time.m_iHours == 12 
-			|| time.m_iHours == 18)
-			 && 
-			time.m_iMinutes == 0)
-		{
-			CalculateIncome();
-			UpdateShops();
-		}
-		
-		//Every morning at 7am replenish stock
-		if(time.m_iHours == 7 &&
-			time.m_iMinutes == 0)
-		{
-			ReplenishStock();
-		}
-	}
 	
-	protected void ReplenishStock()
-	{
-		//Shops restocking		
-		foreach(OVT_TownData town : m_Towns.m_Towns)
-		{
-			if(!m_mTownShops.Contains(town.id)) continue;			
-			
-			//split shops into types
-			map<int, ref array<RplId>> typeShops = GetShopTypes(town.id);
-			
-			array<int> types = new array<int>;			
-			for(int i=0; i<typeShops.Count(); i++)
-			{
-				types.Insert(typeShops.GetKey(i));
-			}			
-			
-			foreach(RplId shopId : m_aAllShops)
-			{
-				OVT_ShopComponent shop = GetShopByRplId(shopId);
-				foreach(int id : shop.m_aInventoryItemIds)
-				{
-					int max = GetTownMaxStock(town.id, id);
-					max = Math.Round(max / typeShops[shop.m_ShopType].Count());
-					int stock = shop.GetStock(id);
-					int half = Math.Round(stock * 0.5);
-					if(stock < half)
-					{
-						shop.AddToInventory(id, half - stock);
-					}
-				}
-			}
-		}
-	}
-	
-	protected void UpdateShops()
-	{
-		//NPCs Buying stock
-		foreach(OVT_TownData town : m_Towns.m_Towns)
-		{
-			if(!m_mTownShops.Contains(town.id)) continue;
-			int maxToBuy = (town.population * m_Config.m_fNPCBuyRate) * (town.stability / 100);
-			
-			int numToBuy = s_AIRandomGenerator.RandInt(1,maxToBuy);
-			
-			//split shops into types
-			map<int, ref array<RplId>> typeShops = GetShopTypes(town.id);
-			
-			array<int> types = new array<int>;			
-			for(int i=0; i<typeShops.Count(); i++)
-			{
-				types.Insert(typeShops.GetKey(i));
-			}			
-			
-			//buy stuff
-			for(int i; i<numToBuy; i++)
-			{
-				//pick a random shop type
-				int typeIndex = s_AIRandomGenerator.RandInt(0,types.Count()-1);
-				//pick a random shop within that type
-				int shopIndex = s_AIRandomGenerator.RandInt(0,typeShops[types[typeIndex]].Count()-1);
-				OVT_ShopComponent shop = GetShopByRplId(typeShops[types[typeIndex]][shopIndex]);
-				if(!shop) continue;
-				//pick a random inventory item
-				int itemIndex = s_AIRandomGenerator.RandInt(0,shop.m_aInventoryItemIds.Count()-1);
-				int id = shop.m_aInventoryItemIds[itemIndex];
-				OVT_ShopInventoryItem item = GetInventoryItem(id);
-				int qty = s_AIRandomGenerator.RandInt(1,item.demandMultiplier);
-				int stock = shop.GetStock(id);
-				if(stock < qty) qty = stock;
-				if(qty > 0)
-				{
-					shop.HandleNPCSale(id, qty);
-				}
-			}			
-		}
-	}
-	
-	protected map<int, ref array<RplId>> GetShopTypes(int townId)
-	{
-		map<int, ref array<RplId>> typeShops = new map<int, ref array<RplId>>;
-		for(int i=0; i<m_mTownShops[townId].Count(); i++)
-		{				
-			RplId shopId = m_mTownShops[townId][i];
-			OVT_ShopComponent shop = GetShopByRplId(shopId);
-			if(!shop || shop.m_ShopType == -1) continue;
-			if(!typeShops.Contains(shop.m_ShopType))
-			{
-				typeShops[shop.m_ShopType] = new array<RplId>;
-			}
-			typeShops[shop.m_ShopType].Insert(shopId);
-		}
-		return typeShops;
-	}
-	
-	OVT_ShopComponent GetShopByRplId(RplId shopId)
-	{
-		RplComponent rpl = RplComponent.Cast(Replication.FindItem(shopId));
-		if(!rpl) return null;
-		IEntity entity = rpl.GetEntity();
-		return OVT_ShopComponent.Cast(entity.FindComponent(OVT_ShopComponent));
-	}
-	
-	protected void CalculateIncome()
-	{
-		//Support donations
-		int income = GetDonationIncome();
-		income += GetTaxIncome();
-		
-		if(income == 0) return;
-		
-		int taxed = Math.Round(income * m_fResistanceTax);
-		income -= taxed;
-		AddResistanceMoney(taxed);
-		
-		PlayerManager mgr = GetGame().GetPlayerManager();
-		int count = mgr.GetPlayerCount();
-		if(count == 0)
-		{
-			AddResistanceMoney(income);
-			return;
-		}
-		//Distribute remaining to all players online
-		int incomePerPlayer = Math.Round(income / count);
-		
-		array<int> players = new array<int>;
-		mgr.GetPlayers(players);
-		foreach(int playerId : players)
-		{			
-			AddPlayerMoney(playerId, incomePerPlayer);
-		}
-		
-		
-		
-	}
-	
-	int GetDonationIncome()
-	{
-		int income = 0;
-		foreach(OVT_TownData town : m_Towns.m_Towns)
-		{
-			income += m_Config.m_Difficulty.donationIncome * town.support;
-		}
-		return income;
-	}
-	
-	int GetTaxIncome()
-	{
-		int income = 0;
-		
-		return income;
-	}
 			
 	void PostGameStart()
 	{		

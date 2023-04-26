@@ -51,11 +51,16 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		Rpc(RpcDo_SetHome, playerId, pos);
 	}
 	
+	bool IsHome(string playerId, EntityID entityId)
+	{
+		IEntity building = GetGame().GetWorld().FindEntityByID(entityId);
+		float dist = vector.Distance(building.GetOrigin(), m_mHomes[playerId]);
+		return dist < 1;
+	}
+	
 	IEntity GetNearestOwned(string playerId, vector pos)
 	{
 		if(!m_mOwned.Contains(playerId)) return null;
-		
-		BaseWorld world = GetGame().GetWorld();
 		
 		float nearest = 999999;
 		IEntity nearestEnt;		
@@ -76,7 +81,30 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		return nearestEnt;
 	}
 	
-	IEntity GetNearestBuilding(vector pos, float range = 25)
+	IEntity GetNearestRented(string playerId, vector pos)
+	{
+		if(!m_mRented.Contains(playerId)) return null;
+		
+		float nearest = 999999;
+		IEntity nearestEnt;		
+		
+		set<RplId> owner = m_mRented[playerId];
+		foreach(RplId id : owner)
+		{
+			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+			IEntity ent = rpl.GetEntity();
+			float dist = vector.Distance(ent.GetOrigin(), pos);
+			if(dist < nearest)
+			{
+				nearest = dist;
+				nearestEnt = ent;
+			}
+		}
+		
+		return nearestEnt;
+	}
+	
+	IEntity GetNearestBuilding(vector pos, float range = 40)
 	{
 		m_aEntitySearch.Clear();
 		GetGame().GetWorld().QueryEntitiesBySphere(pos, range, null, FilterBuildingToArray, EQueryEntitiesFlags.STATIC);
@@ -98,6 +126,64 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 			}
 		}
 		return nearestEnt;
+	}
+	
+	bool BuildingIsOwnable(IEntity entity)
+	{
+		if(!entity) return false;
+		if(entity.ClassName() != "SCR_DestructibleBuildingEntity")
+		{
+			return false;
+		}
+		
+		ResourceName res = entity.GetPrefabData().GetPrefabName();
+		foreach(OVT_RealEstateConfig config : m_Config.m_aBuildingTypes)
+		{
+			foreach(ResourceName s : config.m_aResourceNameFilters)
+			{
+				if(res.IndexOf(s) > -1) return true;
+			}
+		}
+		return false;
+	}
+	
+	OVT_RealEstateConfig GetConfig(IEntity entity)
+	{
+		if(!entity) return null;
+		if(entity.ClassName() != "SCR_DestructibleBuildingEntity")
+		{
+			return null;
+		}
+		
+		ResourceName res = entity.GetPrefabData().GetPrefabName();
+		foreach(OVT_RealEstateConfig config : m_Config.m_aBuildingTypes)
+		{
+			foreach(ResourceName s : config.m_aResourceNameFilters)
+			{
+				if(res.IndexOf(s) > -1) return config;
+			}
+		}
+		return null;
+	}
+	
+	int GetBuyPrice(IEntity entity)
+	{
+		OVT_RealEstateConfig config = GetConfig(entity);
+		if(!config) return 0;
+		
+		OVT_TownData town = m_Town.GetNearestTown(entity.GetOrigin());
+		
+		return config.m_BasePrice + (config.m_BasePrice * (config.m_DemandMultiplier * town.population * ((float)town.stability / 100)));
+	}
+	
+	int GetRentPrice(IEntity entity)
+	{
+		OVT_RealEstateConfig config = GetConfig(entity);
+		if(!config) return 0;
+		
+		OVT_TownData town = m_Town.GetNearestTown(entity.GetOrigin());
+		
+		return config.m_BaseRent + (config.m_BaseRent * (config.m_DemandMultiplier * town.population * ((float)town.stability / 100)));
 	}
 	
 	bool FilterBuildingToArray(IEntity entity)

@@ -2,12 +2,14 @@ class OVT_MainMenuContext : OVT_UIContext
 {
 	ref OVT_MainMenuWidgets m_Widgets;
 	OVT_TownManagerComponent m_TownManager;
+	OVT_RealEstateManagerComponent m_RealEstate;
 	
 	OVT_MainMenuContextOverrideComponent m_FoundOverride;
 		
 	override void PostInit()
 	{		
 		m_TownManager = OVT_Global.GetTowns();
+		m_RealEstate = OVT_Global.GetRealEstate();
 		m_Widgets = new OVT_MainMenuWidgets();
 	}
 	
@@ -94,6 +96,18 @@ class OVT_MainMenuContext : OVT_UIContext
 		{
 			comp.m_OnClicked.Insert(Build);
 		}
+		
+		// Real Estate
+		comp = SCR_ButtonTextComponent.GetButtonText("Real Estate", m_wRoot);
+		if (comp)
+		{
+			IEntity building = m_RealEstate.GetNearestBuilding(m_Owner.GetOrigin());
+			if(!m_RealEstate.BuildingIsOwnable(building)){
+				comp.SetEnabled(false);
+			}else{
+				comp.m_OnClicked.Insert(RealEstate);
+			}
+		}
 	}
 	
 	private void MapInfo()
@@ -130,5 +144,11 @@ class OVT_MainMenuContext : OVT_UIContext
 	{
 		CloseLayout();
 		m_UIManager.ShowContext(OVT_BuildContext);		
+	}
+	
+	private void RealEstate()
+	{
+		CloseLayout();
+		m_UIManager.ShowContext(OVT_RealEstateContext);		
 	}
 }

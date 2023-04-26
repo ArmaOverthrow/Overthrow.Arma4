@@ -26,46 +26,50 @@ class OVT_DifficultySettings : ScriptAndConfig
 	string name;
 	
 	//Wanted system
-	[Attribute(defvalue: "30000", desc: "Timeout in ms for wanted levels 2-5 (per level)")]
+	[Attribute(defvalue: "30000", desc: "Timeout in ms for wanted levels 2-5 (per level)", category: "Wanted System")]
 	int wantedTimeout;
-	[Attribute(defvalue: "120000", desc: "Timeout in ms for wanted level 1")]
+	[Attribute(defvalue: "120000", desc: "Timeout in ms for wanted level 1", category: "Wanted System")]
 	int wantedOneTimeout;
 	
 	//OF
-	[Attribute(defvalue: "2000", desc: "OF starting resources")]
+	[Attribute(defvalue: "2000", desc: "OF starting resources", category: "Occupying Faction")]
 	int startingResources;
-	[Attribute(defvalue: "250", desc: "OF resources per 6 hrs")]
+	[Attribute(defvalue: "250", desc: "OF resources per 6 hrs", category: "Occupying Faction")]
 	int baseResourcesPerTick;
-	[Attribute(defvalue: "500", desc: "Additional OF resources per 6 hrs (* threat)")]
+	[Attribute(defvalue: "500", desc: "Additional OF resources per 6 hrs (* threat)", category: "Occupying Faction")]
 	int resourcesPerTick;
-	[Attribute(defvalue: "10", desc: "Base resource cost")]
+	[Attribute(defvalue: "10", desc: "Base resource cost", category: "Occupying Faction")]
 	int baseResourceCost;	
 	
-	//RF
-	[Attribute(defvalue: "100", desc: "Player starting cash")]
+	//Economy
+	[Attribute(defvalue: "100", desc: "Player starting cash", category: "Economy")]
 	int startingCash;
-	[Attribute(defvalue: "0", desc: "Base RF threat")]
-	int baseThreat;	
-	[Attribute(defvalue: "5", desc: "Money taken from player per respawn")]
+	[Attribute(defvalue: "5", desc: "Money taken from player per respawn", category: "Economy")]
 	int respawnCost;
-	[Attribute(defvalue: "5", desc: "Cost to fast travel")]
+	[Attribute(defvalue: "5", desc: "Cost to fast travel", category: "Economy")]
 	int fastTravelCost;
-	[Attribute(defvalue: "1", desc: "Cost of placeables is multiplied by this value")]
+	[Attribute(defvalue: "1", desc: "Cost of placeables is multiplied by this value", category: "Economy")]
 	float placeableCostMultiplier;
-	[Attribute(defvalue: "1", desc: "Cost of buildables is multiplied by this value")]
+	[Attribute(defvalue: "1", desc: "Cost of buildables is multiplied by this value", category: "Economy")]
 	float buildableCostMultiplier;
-	[Attribute(defvalue: "10", desc: "Donation income per civilian supporter")]
+	[Attribute(defvalue: "0.5", desc: "Cost of Real Estate is multiplied by this value", category: "Economy")]
+	float realEstateCostMultiplier;
+	[Attribute(defvalue: "10", desc: "Donation income per civilian supporter", category: "Economy")]
 	int donationIncome;
-	[Attribute(defvalue: "5", desc: "Bus ticket price per km")]
+	[Attribute(defvalue: "5", desc: "Bus ticket price per km", category: "Economy")]
 	int busTicketPrice;
-	[Attribute(defvalue: "250", desc: "Base price for AI recruit")]
+	[Attribute(defvalue: "250", desc: "Base price for AI recruit", category: "Economy")]
 	int baseRecruitCost;
 	
+	//RF
+	[Attribute(defvalue: "0", desc: "Base RF threat", category: "Resistance Faction")]
+	int baseThreat;	
+	
 	//QRF
-	[Attribute("1", UIWidgets.ComboBox, "QRF Fast Travel Mode", "", ParamEnumArray.FromEnum(OVT_QRFFastTravelMode) )]
+	[Attribute("1", UIWidgets.ComboBox, "QRF Fast Travel Mode", "", ParamEnumArray.FromEnum(OVT_QRFFastTravelMode), category: "QRF" )]
 	OVT_QRFFastTravelMode QRFFastTravelMode;
 	
-	[Attribute(defvalue: "500", desc: "Max size of QRF in resources")]
+	[Attribute(defvalue: "500", desc: "Max size of QRF in resources", category: "QRF")]
 	int maxQRF;
 }
 
@@ -118,8 +122,11 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Smart Action Waypoint Prefab", params: "et", category: "Waypoints")]
 	ResourceName m_pSmartActionWaypointPrefab;
 	
-	[Attribute(desc: "Starting Houses (these should have parking spot entities added to their prefabs)", params: "et")]
+	[Attribute(desc: "Starting Houses (these should have parking spot entities added to their prefabs)", params: "et", category: "Real Estate")]
 	ref array<string> m_aStartingHouseFilters;
+	
+	[Attribute(desc: "Real estate configs to set prices and rents for building types", category: "Real Estate", UIWidgets.Object)]
+	ref array<ref OVT_RealEstateConfig> m_aBuildingTypes;
 	
 	[Attribute(defvalue: "6", UIWidgets.EditBox, desc: "Time multiplier")]
 	int m_iTimeMultiplier;

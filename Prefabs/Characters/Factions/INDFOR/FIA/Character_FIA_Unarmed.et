@@ -73,6 +73,12 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      m_sCloseAction "MenuBack"
      m_bOpenActionCloses 0
     }
+    OVT_RealEstateContext "{5D305CF2082F3D0B}" {
+     m_Layout "{ED9204119D37CEBF}UI/Layouts/Menu/RealEstate.layout"
+     m_sContextName "OverthrowRealEstateContext"
+     m_sCloseAction "MenuBack"
+     m_bOpenActionCloses 0
+    }
    }
   }
   SCR_BaseHUDComponent "{520EA1D2DB118134}" {
@@ -97,12 +103,6 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
     }
     m_aAutoLabels {
      122
-    }
-   }
-  }
-  SCR_PlayerMailboxComponent "{59CC0DBB0D1E902D}" {
-   m_pCommandingRadialMenu SCR_RadialMenu "{59CC0DBB0B65C791}" {
-    m_pDisplay SCR_RadialMenuDisplay "{59CC0DBB0A0B7547}" {
     }
    }
   }

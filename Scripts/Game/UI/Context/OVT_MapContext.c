@@ -98,7 +98,19 @@ class OVT_MapContext : OVT_UIContext
 		IEntity house = m_RealEstate.GetNearestOwned(m_sPlayerID, pos);
 		if(house)
 		{
+			if(m_RealEstate.IsRented(house.GetID())) return false;
+			OVT_RealEstateConfig config = m_RealEstate.GetConfig(house);
+			if(config.m_IsWarehouse) return false;
 			dist = vector.Distance(house.GetOrigin(), pos);				
+			if(dist < MAX_HOUSE_TRAVEL_DIS) return true;
+		}
+		
+		house = m_RealEstate.GetNearestRented(m_sPlayerID, pos);
+		if(house)
+		{
+			OVT_RealEstateConfig config = m_RealEstate.GetConfig(house);
+			if(config.m_IsWarehouse) return false;
+			dist = vector.Distance(house.GetOrigin(), pos);							
 			if(dist < MAX_HOUSE_TRAVEL_DIS) return true;
 		}
 		

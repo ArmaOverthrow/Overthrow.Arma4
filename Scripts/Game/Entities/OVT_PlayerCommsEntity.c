@@ -50,6 +50,8 @@ class OVT_PlayerCommsEntity: GenericEntity
 		of.StartBaseQRF(base);
 	}
 	
+	//REAL ESTATE
+	
 	void SetHome(int playerId)
 	{		
 		Rpc(RpcAsk_SetHome, playerId);
@@ -60,6 +62,45 @@ class OVT_PlayerCommsEntity: GenericEntity
 	{	
 		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
 		OVT_Global.GetRealEstate().SetHomePos(playerId, player.GetOrigin());
+	}
+	
+	void SetBuildingHome(int playerId, IEntity building)
+	{		
+		RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
+		Rpc(RpcAsk_SetBuildingHome, playerId, rpl.Id());
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_SetBuildingHome(int playerId, RplId id)
+	{	
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+		OVT_Global.GetRealEstate().SetHome(playerId, rpl.GetEntity());
+	}
+	
+	void SetBuildingOwner(int playerId, IEntity building)
+	{		
+		RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
+		Rpc(RpcAsk_SetBuildingOwner, playerId, rpl.Id());
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_SetBuildingOwner(int playerId, RplId id)
+	{	
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+		OVT_Global.GetRealEstate().SetOwner(playerId, rpl.GetEntity());
+	}
+	
+	void SetBuildingRenter(int playerId, IEntity building)
+	{		
+		RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
+		Rpc(RpcAsk_SetBuildingRenter, playerId, rpl.Id());
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_SetBuildingRenter(int playerId, RplId id)
+	{	
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+		OVT_Global.GetRealEstate().SetRenter(playerId, rpl.GetEntity());
 	}
 	
 	//SHOPS
