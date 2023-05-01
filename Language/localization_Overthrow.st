@@ -682,6 +682,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D34F5770B8834D2}" {
+   Id "OVT-Owner"
+   Target_en_us "Owner"
+   Modified 1563843675
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5D305CF7F4C3B9F3}" {
    Id "OVT-PerDay"
    Target_en_us "per day"
@@ -799,6 +806,13 @@ StringTable {
    Target_en_us "Population"
    Status DEVELOPMENT_DONE
    Modified 1502796262
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D34EBA09AC421EB}" {
+   Id "OVT-PutInWarehouse"
+   Target_en_us "Put In Warehouse"
+   Modified 1563750453
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -1079,6 +1093,13 @@ StringTable {
    Id "OVT-SupportMod_RecruitmentPosters"
    Target_en_us "Recruitment Posters"
    Modified 1503843685
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D34EBA0F73327D6}" {
+   Id "OVT-TakeFromWarehouse"
+   Target_en_us "Take From Warehouse"
+   Modified 1563750006
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

@@ -178,4 +178,52 @@ class OVT_Global {
 			simpleSoundComp.PlayStr("LOAD_VEHICLE");
 		}	
 	}
+	
+	static void TransferToWarehouse(RplId from)
+	{
+		OVT_RealEstateManagerComponent realEstate = GetRealEstate();
+		IEntity fromEntity = RplComponent.Cast(Replication.FindItem(from)).GetEntity();
+		
+		if(!fromEntity) return;
+		
+		InventoryStorageManagerComponent fromStorage = InventoryStorageManagerComponent.Cast(fromEntity.FindComponent(InventoryStorageManagerComponent));		
+				
+		if(!fromStorage) return;
+		
+		OVT_WarehouseData warehouse = realEstate.GetNearestWarehouse(fromEntity.GetOrigin(), 50);
+		if(!warehouse) return;
+						
+		array<IEntity> items = new array<IEntity>;
+		fromStorage.GetItems(items);
+		if(items.Count() == 0) return;
+		
+		map<ResourceName,int> collated = new map<ResourceName,int>;
+				
+		foreach(IEntity item : items)
+		{
+			if(fromStorage.TryDeleteItem(item))
+			{
+				ResourceName res = item.GetPrefabData().GetPrefabName();
+				if(!collated.Contains(res)) collated[res] = 0;
+				collated[res] = collated[res] + 1;
+			}
+		}
+		
+		for(int i=0; i<collated.Count(); i++)
+		{
+			ResourceName res = collated.GetKey(i);
+			realEstate.AddToWarehouse(warehouse, res, collated[res]);
+		}
+		
+		// Play sound if one is defined
+		SimpleSoundComponent simpleSoundComp = SimpleSoundComponent.Cast(fromEntity.FindComponent(SimpleSoundComponent));
+		if (simpleSoundComp)
+		{
+			vector mat[4];
+			fromEntity.GetWorldTransform(mat);
+			
+			simpleSoundComp.SetTransformation(mat);
+			simpleSoundComp.PlayStr("LOAD_VEHICLE");
+		}	
+	}
 }

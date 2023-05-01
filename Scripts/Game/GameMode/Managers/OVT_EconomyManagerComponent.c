@@ -42,6 +42,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	const int ECONOMY_UPDATE_FREQUENCY = 60000;
 	
 	protected ref array<ref ResourceName> m_aResources;
+	protected ref map<ref ResourceName,int> m_aResourceIndex;
 	
 	protected ref map<int, ref array<RplId>> m_mTownShops;
 	
@@ -80,6 +81,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		m_mSpawnedItems = new map<ResourceName,EntityID>;
 		m_mTownShops = new map<int, ref array<RplId>>;
 		m_mInventoryItems = new map<int, ref OVT_ShopInventoryItem>;
+		m_aResourceIndex = new map<ref ResourceName,int>;
 	}
 	
 	void CheckUpdate()
@@ -624,12 +626,15 @@ class OVT_EconomyManagerComponent: OVT_Component
 		if(!m_aResources.Contains(res))
 		{
 			m_aResources.Insert(res);
+			int id = m_aResources.Count()-1;
+			m_aResourceIndex[res] = id;
 		}
 	}
 	
 	void BuildResourceDatabase()
 	{
 		m_aResources = new array<ref ResourceName>;
+		
 		foreach(OVT_ShopInventoryConfig config : m_aShopConfigs)
 		{
 			foreach(OVT_ShopInventoryItem item : config.m_aInventoryItems)
@@ -640,7 +645,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 					m_aResources.Insert(res);
 					int id = m_aResources.Count()-1;
 					m_mInventoryItems[id] = item;	
-					Print(id.ToString() + ": " + item.prefab);
+					m_aResourceIndex[res] = id;
 				}
 			}
 		}
@@ -651,7 +656,29 @@ class OVT_EconomyManagerComponent: OVT_Component
 			if(!m_aResources.Contains(res))
 			{
 				m_aResources.Insert(res);
-				m_mInventoryItems[m_aResources.Count()-1] = item;
+				int id = m_aResources.Count()-1;
+				m_mInventoryItems[id] = item;	
+				m_aResourceIndex[res] = id;
+			}
+		}
+		
+		FactionManager factionMgr = GetGame().GetFactionManager();
+		array<Faction> factions = new array<Faction>;
+		factionMgr.GetFactionsList(factions);
+		foreach(Faction faction : factions)
+		{
+			OVT_Faction fac = OVT_Faction.Cast(faction);
+			array<ref SCR_ArsenalItem> items = new array<ref SCR_ArsenalItem>;
+			fac.GetArsenalItems(items);
+			foreach(SCR_ArsenalItem item : items) 
+			{
+				ResourceName res = item.GetItemResourceName();
+				if(!m_aResources.Contains(res))
+				{
+					m_aResources.Insert(res);
+					int id = m_aResources.Count()-1;
+					m_aResourceIndex[res] = id;
+				}
 			}
 		}
 	}
@@ -687,8 +714,8 @@ class OVT_EconomyManagerComponent: OVT_Component
 	}
 		
 	int GetInventoryId(ResourceName res)
-	{
-		return m_aResources.Find(res);
+	{		
+		return m_aResourceIndex[res];
 	}
 	
 	ResourceName GetResource(int id)

@@ -108,6 +108,7 @@ class OVT_UIContext : ScriptAndConfig
 	void ShowLayout()
 	{
 		if(!m_Layout) return;
+		if(!CanShowLayout()) return;
 		
 		if(m_bOpenActionCloses && m_bIsActive)
 		{
@@ -126,6 +127,11 @@ class OVT_UIContext : ScriptAndConfig
 		
 		Enable();
 		OnShow();
+	}
+	
+	bool CanShowLayout()
+	{
+		return true;
 	}
 	
 	protected void OnShow()

@@ -321,6 +321,21 @@ class OVT_PlayerCommsEntity: GenericEntity
 		OVT_Global.TransferStorage(from, to);
 	}
 	
+	void TransferToWarehouse(IEntity from)
+	{
+		RplComponent fromRpl = RplComponent.Cast(from.FindComponent(RplComponent));
+		
+		if(!fromRpl) return;
+		
+		Rpc(RpcAsk_TransferToWarehouse, fromRpl.Id());
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_TransferToWarehouse(RplId from, RplId to)
+	{
+		OVT_Global.TransferToWarehouse(from);
+	}
+	
 	//VEHICLES
 	void UpgradeVehicle(Vehicle vehicle, OVT_VehicleUpgrade upgrade)
 	{
@@ -360,5 +375,28 @@ class OVT_PlayerCommsEntity: GenericEntity
 	protected void RpcAsk_SpawnGunner(RplId turret, int playerId)
 	{
 		OVT_Global.GetResistanceFaction().SpawnGunner(turret, playerId);
+	}
+	
+	//WAREHOUSES
+	void AddToWarehouse(int warehouseId, int id, int count)
+	{
+		Rpc(RpcAsk_AddToWarehouse, warehouseId, id, count);
+	}	
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_AddToWarehouse(int warehouseId, int id, int count)
+	{
+		OVT_Global.GetRealEstate().DoAddToWarehouse(warehouseId, id, count);
+	}
+	
+	void TakeFromWarehouse(int warehouseId, int id, int count)
+	{
+		Rpc(RpcAsk_TakeFromWarehouse, warehouseId, id, count);
+	}	
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_TakeFromWarehouse(int warehouseId, int id, int count)
+	{
+		OVT_Global.GetRealEstate().DoTakeFromWarehouse(warehouseId, id, count);
 	}
 }

@@ -13,9 +13,6 @@ Vehicle : "{4085446E2B406849}Prefabs/Vehicles/Core/Vehicle_Base.et" {
     }
    }
   }
-  SCR_VehicleDamageManagerComponent "{141326E9FD94FE40}" {
-   m_fVehicleDestroyDamage 2857.86
-  }
  }
  coords 0 0 0
 }

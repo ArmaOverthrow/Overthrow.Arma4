@@ -116,10 +116,15 @@ class OVT_TownControllerComponent: OVT_Component
 	
 	protected void SpawnGunDealer()
 	{
+		vector spawnPosition;
 		
-		IEntity house = m_TownManager.GetRandomHouseInTown(m_Town);
-		
-		vector spawnPosition = house.GetOrigin();
+		if(m_Town.gunDealerPosition && m_Town.gunDealerPosition[0] != 0)
+		{
+			spawnPosition = m_Town.gunDealerPosition;
+		}else{
+			IEntity house = m_TownManager.GetRandomHouseInTown(m_Town);		
+			spawnPosition = house.GetOrigin();
+		}
 		
 		EntitySpawnParams spawnParams = new EntitySpawnParams;
 		spawnParams.TransformMode = ETransformMode.WORLD;
@@ -132,6 +137,8 @@ class OVT_TownControllerComponent: OVT_Component
 		IEntity dealer = GetGame().SpawnEntityPrefab(Resource.Load(m_Config.m_pGunDealerPrefab), world, spawnParams);
 		
 		m_GunDealerID = dealer.GetID();
+		
+		m_Town.gunDealerPosition = spawnPosition;
 		
 		OVT_ShopComponent shop = OVT_ShopComponent.Cast(dealer.FindComponent(OVT_ShopComponent));
 		shop.m_iTownId = m_Town.id;

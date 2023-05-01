@@ -17,6 +17,8 @@ class OVT_TownData : Managed
 	ref array<ref int> stabilityModifierTimers = new array<ref int>;
 	ref array<ref int> supportModifierTimers = new array<ref int>;
 	
+	vector gunDealerPosition;
+	
 	int SupportPercentage()
 	{
 		return Math.Round((support / population) * 100);

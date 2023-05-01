@@ -79,6 +79,12 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      m_sCloseAction "MenuBack"
      m_bOpenActionCloses 0
     }
+    OVT_VehicleMenuContext "{5D34EBA1CABC549B}" {
+     m_Layout "{0C06484C71A3F7B0}UI/Layouts/Menu/VehicleMenu.layout"
+     m_sContextName "OverthrowVehicleMenuContext"
+     m_sOpenAction "OverthrowVehicleMenu"
+     m_sCloseAction "MenuBack"
+    }
    }
   }
   SCR_BaseHUDComponent "{520EA1D2DB118134}" {

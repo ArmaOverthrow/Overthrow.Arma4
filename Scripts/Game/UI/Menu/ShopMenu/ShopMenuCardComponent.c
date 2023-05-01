@@ -56,12 +56,7 @@ class OVT_ShopMenuCardComponent : SCR_ScriptedWidgetComponent
 		}else{
 			InventoryItemComponent inv = InventoryItemComponent.Cast(spawnedItem.FindComponent(InventoryItemComponent));
 			if(inv){
-				PreviewRenderAttributes previewAttr = PreviewRenderAttributes.Cast(inv.GetAttributes().FindAttribute(PreviewRenderAttributes));
-				if(previewAttr){
-					manager.SetPreviewItem(img, spawnedItem, previewAttr);
-				}else{
-					manager.SetPreviewItem(img, spawnedItem);
-				}				
+				manager.SetPreviewItemFromPrefab(img, res);			
 				
 				SCR_ItemAttributeCollection attr = SCR_ItemAttributeCollection.Cast(inv.GetAttributes());
 				if(attr)

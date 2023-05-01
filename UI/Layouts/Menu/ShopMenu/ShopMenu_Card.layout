@@ -67,6 +67,10 @@ ButtonWidgetClass {
               HorizontalAlign 3
               VerticalAlign 3
              }
+             Format "HDR Low"
+             "Use clear color" 1
+             "Clear Color" 0.114 0.114 0.114 0.408
+             "Blend mode" Blend
             }
             ImageWidgetClass "{59968CDFF05D0A59}" {
              Name "Texture"
@@ -106,6 +110,7 @@ ButtonWidgetClass {
               VerticalAlign 0
               Padding 10 10 10 10
              }
+             "Is Visible" 0
              Text "100"
              FontProperties FontProperties "{598AD558CB805630}" {
               Font "{CD2634D279AB011A}UI/Fonts/Roboto/Roboto_Bold.fnt"

@@ -144,6 +144,7 @@ class OVT_OverthrowSaveStruct : SCR_MissionStruct
 				{
 					town.population = struct.pop;
 					town.support = struct.support;
+					town.gunDealerPosition = struct.gunDealerPos;
 					foreach(int i : struct.supportMods)
 					{
 						town.supportModifiers.Insert(i);
@@ -191,6 +192,7 @@ class OVT_OverthrowSaveStruct : SCR_MissionStruct
 class OVT_TownStruct : SCR_JsonApiStruct
 {
 	vector pos;
+	vector gunDealerPos;
 	int pop;
 	int support;
 	string faction;
@@ -204,6 +206,7 @@ class OVT_TownStruct : SCR_JsonApiStruct
 		FactionManager factions = GetGame().GetFactionManager();
 		
 		pos = town.location;
+		gunDealerPos = town.gunDealerPosition;
 		pop = town.population;
 		support = town.support;
 		faction = factions.GetFactionByIndex(town.faction).GetFactionKey();
@@ -216,6 +219,7 @@ class OVT_TownStruct : SCR_JsonApiStruct
 	void OVT_TownStruct()
 	{
 		RegV("pos");
+		RegV("gunDealerPos");
 		RegV("pop");
 		RegV("support");
 		RegV("faction");

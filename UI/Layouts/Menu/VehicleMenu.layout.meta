@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{0C06484C71A3F7B0}UI/Layouts/Menu/VehicleMenu.layout"
+ Configurations {
+  LayoutResourceClass PC {
+  }
+  LayoutResourceClass XBOX_ONE : PC {
+  }
+  LayoutResourceClass XBOX_SERIES : PC {
+  }
+  LayoutResourceClass PS4 : PC {
+  }
+  LayoutResourceClass HEADLESS : PC {
+  }
+ }
+}

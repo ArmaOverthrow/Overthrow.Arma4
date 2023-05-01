@@ -84,7 +84,50 @@ class OVT_Faction : SCR_Faction
 	ResourceName m_aLargeCheckpointPrefab;
 	
 	[Attribute()]
+	ref array<ResourceName> m_aArsenalConfigFiles;
+	
+	ref array<ref SCR_ArsenalItemListConfig> m_aArsenalConfigs;
+	
+	[Attribute()]
 	ref OVT_FactionCompositionConfig m_aCompositionConfig;
+	
+	void OVT_Faction()
+	{
+		m_aArsenalConfigs = new array<ref SCR_ArsenalItemListConfig>;		
+	}
+	
+	void LoadArsenalConfigs()
+	{
+		if(!m_aArsenalConfigFiles) return;
+		foreach(ResourceName res : m_aArsenalConfigFiles)
+		{
+			Resource holder = BaseContainerTools.LoadContainer(res);
+			if (holder)		
+			{
+				SCR_ArsenalItemListConfig obj = SCR_ArsenalItemListConfig.Cast(BaseContainerTools.CreateInstanceFromContainer(holder.GetResource().ToBaseContainer()));
+				if(obj)
+				{
+					m_aArsenalConfigs.Insert(obj);
+				}
+			}
+		}
+	}
+	
+	override bool GetArsenalItems(out array<ref SCR_ArsenalItem> arsenalItems)
+	{
+		if(m_aArsenalConfigs.Count() == 0) LoadArsenalConfigs();
+		foreach(SCR_ArsenalItemListConfig config : m_aArsenalConfigs)
+		{
+			array<ref SCR_ArsenalItem> items = new array<ref SCR_ArsenalItem>;
+			config.GetArsenalItems(items);
+			foreach(SCR_ArsenalItem item : items)
+			{
+				if(item.GetItemResourceName() == "") continue;
+				arsenalItems.Insert(item);
+			}
+		}
+		return true;
+	}
 	
 	OVT_FactionComposition GetCompositionConfig(string tag)
 	{

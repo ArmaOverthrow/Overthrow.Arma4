@@ -549,6 +549,7 @@ OVT_OverthrowGameMode {
   }
  }
  coords 3207.214 1.87 11071.67
+ m_bAutoPlayerRespawn 0
  m_StartGameUIContext OVT_StartGameContext "{599D315949D3D5D0}" {
   m_Layout "{4A7A8EED9F6F2A92}UI/Layouts/Menu/StartGameMenu.layout"
   m_sContextName "OverthrowStartContext"

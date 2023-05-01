@@ -143,7 +143,7 @@ class OVT_RealEstateContext : OVT_UIContext
 			return;
 						
 		img.SetResolutionScale(1, 1);		
-		manager.SetPreviewItem(img, building);
+		manager.SetPreviewItemFromPrefab(img, building.GetPrefabData().GetPrefab().GetResourceName());
 	}
 	
 	protected void Buy(SCR_ButtonTextComponent btn)
