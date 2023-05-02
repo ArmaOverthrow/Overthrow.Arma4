@@ -2,6 +2,7 @@
 class OVT_RealEstateStruct : OVT_BaseSaveStruct
 {
 	protected ref array<ref OVT_RealEstatePlayerStruct> players = {};
+	protected ref array<ref OVT_WarehouseStruct> warehouses = {};
 		
 	override bool Serialize()
 	{
@@ -69,6 +70,17 @@ class OVT_RealEstateStruct : OVT_BaseSaveStruct
 			}
 		}
 		
+		foreach(OVT_WarehouseData warehouse : re.m_aWarehouses)		
+		{
+			OVT_WarehouseStruct struct = new OVT_WarehouseStruct;
+			struct.id = warehouse.id;
+			struct.location = warehouse.location;
+			struct.owner = warehouse.owner;
+			struct.isPrivate = warehouse.isPrivate;
+			struct.isLinked = warehouse.isLinked;
+			struct.inventory = warehouse.inventory;
+		}
+		
 		return true;
 	}
 	
@@ -104,11 +116,24 @@ class OVT_RealEstateStruct : OVT_BaseSaveStruct
 			}	
 		}
 		
+		foreach(OVT_WarehouseStruct struct : warehouses)
+		{
+			OVT_WarehouseData warehouse = new OVT_WarehouseData;
+			warehouse.id = struct.id;
+			warehouse.location = struct.location;
+			warehouse.owner = struct.owner;
+			warehouse.isPrivate = struct.isPrivate;
+			warehouse.isLinked = struct.isLinked;
+			warehouse.inventory = struct.inventory;
+			re.m_aWarehouses.Insert(warehouse);
+		}
+		
 		return true;
 	}
 	
 	void OVT_RealEstateStruct()
 	{
 		RegV("players");
+		RegV("warehouses");
 	}
 }

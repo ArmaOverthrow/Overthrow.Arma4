@@ -51,6 +51,39 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		m_Town = OVT_TownManagerComponent.Cast(GetOwner().FindComponent(OVT_TownManagerComponent));	
 	}
 	
+	override void SetOwner(int playerId, IEntity building)
+	{
+		super.SetOwner(playerId, building);
+		
+		OVT_RealEstateConfig config = GetConfig(building);
+		if(!config) return;
+		
+		if(config.m_IsWarehouse)
+		{
+			bool hasData = false;
+			OVT_WarehouseData warehouseData;
+			foreach(OVT_WarehouseData warehouse : m_aWarehouses)
+			{
+				if(vector.Distance(warehouse.location, building.GetOrigin()) < 10)
+				{
+					hasData = true;
+					warehouseData = warehouse;
+					break;
+				}
+			}
+			if(!hasData)
+			{
+				warehouseData = new OVT_WarehouseData;
+				warehouseData.location = building.GetOrigin();
+				warehouseData.inventory = new map<int,int>;
+				warehouseData.id = m_aWarehouses.Count();
+				m_aWarehouses.Insert(warehouseData);
+				
+			}
+			warehouseData.owner = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);				
+		}
+	}
+	
 	OVT_WarehouseData GetNearestWarehouse(vector pos, int range=9999999)
 	{
 		OVT_WarehouseData nearestWarehouse;
@@ -309,6 +342,24 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 			writer.WriteVector(m_mHomes.GetElement(i));
 		}
 		
+		//Send JIP warehouses
+		writer.Write(m_aWarehouses.Count(), 32);
+		for(int i; i<m_aWarehouses.Count(); i++)
+		{
+			OVT_WarehouseData data = m_aWarehouses[i];
+			writer.Write(data.id, 32);
+			writer.WriteVector(data.location);
+			RPL_WritePlayerID(writer, data.owner);
+			writer.WriteBool(data.isLinked);
+			writer.WriteBool(data.isPrivate);
+			writer.Write(data.inventory.Count(), 32);
+			for(int ii; ii<m_aWarehouses.Count(); ii++)
+			{
+				writer.Write(data.inventory.GetKey(ii), 32);
+				writer.Write(data.inventory.GetElement(ii), 32);
+			}
+		}
+		
 		return true;
 	}
 	
@@ -317,7 +368,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		if(!super.RplLoad(reader)) return false;
 		
 		//Recieve JIP homes
-		int length, ownedlength;
+		int length, ownedlength, id, qty;
 		string playerId;
 		vector loc;
 		
@@ -328,6 +379,28 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 			if (!reader.ReadVector(loc)) return false;		
 			
 			m_mHomes[playerId] = loc;
+		}
+		//Recieve JIP warehouses
+		if (!reader.Read(length, 32)) return false;
+		for(int i; i<length; i++)
+		{
+			OVT_WarehouseData data = new OVT_WarehouseData;
+			if (!reader.Read(data.id, 32)) return false;
+			if (!reader.ReadVector(data.location)) return false;	
+			if (!RPL_ReadPlayerID(reader, data.owner)) return false;
+			if (!reader.ReadBool(data.isLinked)) return false;
+			if (!reader.ReadBool(data.isPrivate)) return false;
+			
+			data.inventory = new map<int,int>;
+			
+			if (!reader.Read(ownedlength, 32)) return false;
+			for(int ii; ii<length; ii++)
+			{
+				if (!reader.Read(id, 32)) return false;
+				if (!reader.Read(qty, 32)) return false;
+				data.inventory[id] = qty;
+			}
+			m_aWarehouses.Insert(data);			
 		}
 		return true;
 	}	

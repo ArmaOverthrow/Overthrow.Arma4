@@ -44,7 +44,7 @@ class OVT_VehicleMenuContext : OVT_UIContext
 		TextWidget w = TextWidget.Cast(m_wRoot.FindAnyWidget("VehicleInfoText"));
 		w.SetText("#OVT-Owner: " + ownerName);
 		
-		comp = SCR_ButtonTextComponent.GetButtonText("PutInWarehouse", m_wRoot);
+		SCR_ButtonTextComponent comp = SCR_ButtonTextComponent.GetButtonText("PutInWarehouse", m_wRoot);
 		if (comp)
 		{
 			GetGame().GetWorkspace().SetFocusedWidget(comp.GetRootWidget());
