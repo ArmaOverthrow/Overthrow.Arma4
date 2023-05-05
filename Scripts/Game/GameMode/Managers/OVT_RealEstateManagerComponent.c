@@ -40,6 +40,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	{
 		m_mHomes = new map<string, ref vector>;
 		m_aEntitySearch = new array<IEntity>;
+		m_aWarehouses = new array<ref OVT_WarehouseData>;
 	}
 	
 	override void OnPostInit(IEntity owner)

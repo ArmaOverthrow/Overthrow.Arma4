@@ -5,16 +5,15 @@ class OVT_ResistanceFactionStruct : OVT_BaseSaveStruct
 	ref array<ref OVT_VectorStruct> fobs = {};
 	ref array<ref OVT_VehicleStruct> built = {};
 	ref array<string> officers = {};
-	ref array<ref OVT_PlayerLocationStruct> camps = {};
-	ref array<ref OVT_PlayerLocationStruct> players = {};
+	ref array<ref OVT_PlayerStruct> players = {};
 	
 	override bool Serialize()
 	{
 		placed.Clear();
 		fobs.Clear();
 		built.Clear();
-		camps.Clear();
 		players.Clear();
+		officers.Clear();
 		
 		OVT_ResistanceFactionManager rf = OVT_Global.GetResistanceFaction();
 		
@@ -45,41 +44,20 @@ class OVT_ResistanceFactionStruct : OVT_BaseSaveStruct
 		foreach(string id : rf.m_Officers)
 		{
 			officers.Insert(id);
-		}
-		
-		for(int i = 0; i<rf.m_mCamps.Count(); i++)
-		{
-			OVT_PlayerLocationStruct struct = new OVT_PlayerLocationStruct();
-			struct.id = rf.m_mCamps.GetKey(i);
-			struct.pos = rf.m_mCamps.GetElement(i);
-			camps.Insert(struct);
-		}
-		
-		array<string> online = {};		
-		array<int> playerIds = {};
+		}		
 		
 		PlayerManager mgr = GetGame().GetPlayerManager();
-		mgr.GetPlayers(playerIds);
 		
 		OVT_PlayerManagerComponent playerMgr = OVT_Global.GetPlayers();
-		foreach(int id : playerIds)
+		for(int i = 0; i < playerMgr.m_mPlayers.Count(); i++)
 		{
-			string persId = playerMgr.GetPersistentIDFromPlayerID(id);
-			online.Insert(persId);
-			OVT_PlayerLocationStruct struct = new OVT_PlayerLocationStruct();
+			OVT_PlayerData player = playerMgr.m_mPlayers.GetElement(i);
+			string persId = playerMgr.m_mPlayers.GetKey(i);
+			OVT_PlayerStruct struct = new OVT_PlayerStruct();
 			struct.id = persId;
-			struct.pos = mgr.GetPlayerControlledEntity(id).GetOrigin();
-			players.Insert(struct);
-		}
-		
-		for(int i = 0; i<rf.m_mPlayerPositions.Count(); i++)
-		{
-			string persId = rf.m_mPlayerPositions.GetKey(i);
-			if(online.Contains(persId)) continue;
+			struct.pos = player.location;
+			struct.camp = player.camp;
 			
-			OVT_PlayerLocationStruct struct = new OVT_PlayerLocationStruct();
-			struct.id = persId;
-			struct.pos = rf.m_mPlayerPositions.GetElement(i);
 			players.Insert(struct);
 		}
 		
@@ -89,6 +67,7 @@ class OVT_ResistanceFactionStruct : OVT_BaseSaveStruct
 	override bool Deserialize()
 	{		
 		OVT_ResistanceFactionManager rf = OVT_Global.GetResistanceFaction();
+		OVT_PlayerManagerComponent pm = OVT_Global.GetPlayers();
 		foreach(OVT_EntityStruct struct : placed)
 		{			
 			IEntity ent = struct.Spawn(rdb);
@@ -111,14 +90,13 @@ class OVT_ResistanceFactionStruct : OVT_BaseSaveStruct
 			rf.m_Officers.Insert(id);
 		}
 		
-		foreach(OVT_PlayerLocationStruct struct : camps)
+		foreach(OVT_PlayerStruct struct : players)
 		{			
-			rf.m_mCamps[struct.id] = struct.pos;
-		}
-		
-		foreach(OVT_PlayerLocationStruct struct : players)
-		{			
-			rf.m_mPlayerPositions[struct.id] = struct.pos;
+			OVT_PlayerData player = new OVT_PlayerData;
+			player.id = -1;
+			player.location = struct.pos;
+			player.camp = struct.camp;
+			pm.m_mPlayers[struct.id] = player;
 		}
 			
 		return true;
@@ -222,14 +200,16 @@ class OVT_EntityStruct : SCR_JsonApiStruct
 	}
 }
 
-class OVT_PlayerLocationStruct : SCR_JsonApiStruct
+class OVT_PlayerStruct : SCR_JsonApiStruct
 {
 	string id;
 	vector pos;
+	vector camp;
 	
 	void OVT_PlayerLocationStruct()
 	{		
 		RegV("id");
 		RegV("pos");
+		RegV("camp");
 	}
 }

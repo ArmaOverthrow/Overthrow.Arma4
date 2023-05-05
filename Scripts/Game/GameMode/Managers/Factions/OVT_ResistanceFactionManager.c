@@ -103,7 +103,6 @@ class OVT_ResistanceFactionManager: OVT_Component
 	
 	ref array<string> m_Officers;
 	ref map<ref string,ref vector> m_mCamps;
-	ref map<ref string,ref vector> m_mPlayerPositions;
 	
 	OVT_PlayerManagerComponent m_Players;
 	
@@ -138,7 +137,6 @@ class OVT_ResistanceFactionManager: OVT_Component
 		m_Built = new array<EntityID>;	
 		m_Officers = new array<string>;
 		m_mCamps = new map<ref string,ref vector>;
-		m_mPlayerPositions = new map<ref string,ref vector>;
 	}
 	
 	void Init(IEntity owner)
@@ -296,6 +294,12 @@ class OVT_ResistanceFactionManager: OVT_Component
 			GetGame().GetWorld().QueryEntitiesBySphere(m_mCamps[persId], 15, null, FindAndDeleteCamps, EQueryEntitiesFlags.ALL);
 		}
 		m_mCamps[persId] = pos;
+		
+		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(persId);
+		if(player)
+		{
+			player.camp = pos;
+		}
 				
 		Rpc(RpcDo_RegisterCamp, pos, playerId);
 	}
@@ -447,6 +451,11 @@ class OVT_ResistanceFactionManager: OVT_Component
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		m_mCamps[persId] = pos;
+		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(persId);
+		if(player)
+		{
+			player.camp = pos;
+		}
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]

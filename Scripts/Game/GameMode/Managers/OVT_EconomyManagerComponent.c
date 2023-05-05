@@ -669,7 +669,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		{
 			OVT_Faction fac = OVT_Faction.Cast(faction);
 			array<ref SCR_ArsenalItem> items = new array<ref SCR_ArsenalItem>;
-			fac.GetArsenalItems(items);
+			fac.GetAllArsenalItems(items);
 			foreach(SCR_ArsenalItem item : items) 
 			{
 				ResourceName res = item.GetItemResourceName();

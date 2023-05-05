@@ -2,6 +2,14 @@ class OVT_PlayerManagerComponentClass: OVT_ComponentClass
 {
 };
 
+class OVT_PlayerData : Managed
+{
+	int id;
+	vector location;
+	string name;
+	vector camp;
+}
+
 class OVT_PlayerManagerComponent: OVT_Component
 {	
 	[Attribute()]
@@ -42,13 +50,21 @@ class OVT_PlayerManagerComponent: OVT_Component
 	
 	protected ref map<int, string> m_mPersistentIDs;
 	protected ref map<string, int> m_mPlayerIDs;
+	ref map<string, ref OVT_PlayerData> m_mPlayers;
 	
 	void OVT_PlayerManagerComponent()
 	{
 		m_mPersistentIDs = new map<int, string>;
 		m_mPlayerIDs = new map<string, int>;
+		m_mPlayers = new map<string, ref OVT_PlayerData>;
 		
 		LoadMessageConfig();
+	}
+	
+	OVT_PlayerData GetPlayer(string persId)
+	{
+		if(m_mPlayers.Contains(persId)) return m_mPlayers[persId];
+		return null;
 	}
 	
 	protected void LoadMessageConfig()
@@ -151,9 +167,22 @@ class OVT_PlayerManagerComponent: OVT_Component
 		
 		m_OnPlayerRegistered.Invoke(playerId, persistentId);
 		
+		OVT_PlayerData player = GetPlayer(persistentId);		
+		IEntity playerEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+			
+		if(!player)
+		{
+			player = new OVT_PlayerData;
+			m_mPlayers[persistentId] = player;		
+		}
+		
+		player.name = GetGame().GetPlayerManager().GetPlayerName(playerId);
+		player.location = playerEntity.GetOrigin();
+		player.id = playerId;
+		
 		int id1, id2, id3;
 		EncodeIDAsInts(persistentId, id1, id2, id3);
-		Rpc(RpcDo_RegisterPlayer, playerId, id1, id2, id3);
+		Rpc(RpcDo_RegisterPlayer, playerId, id1, id2, id3);		
 	}
 	
 	void TeleportPlayer(int playerId, vector pos)
@@ -198,6 +227,21 @@ class OVT_PlayerManagerComponent: OVT_Component
 			
 			m_mPersistentIDs[playerId] = persId;
 			m_mPlayerIDs[persId] = playerId;
+			
+			OVT_PlayerData player = GetPlayer(persId);		
+			IEntity playerEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+						
+			if(!player)
+			{
+				player = new OVT_PlayerData;
+				m_mPlayers[persId] = player;		
+			}
+			
+			if(!playerEntity) continue;
+		
+			player.name = GetGame().GetPlayerManager().GetPlayerName(playerId);
+			player.location = playerEntity.GetOrigin();
+			player.id = playerId;
 		}
 		return true;
 	}

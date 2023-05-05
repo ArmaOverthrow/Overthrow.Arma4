@@ -22,7 +22,9 @@ class OVT_VehicleMenuContext : OVT_UIContext
 	
 	override void OnShow()
 	{
-		OVT_TownData town = m_TownManager.GetNearestTown(m_Owner.GetOrigin());
+		vector pos = m_Owner.GetOrigin();
+		
+		OVT_TownData town = m_TownManager.GetNearestTown(pos);
 		
 		SCR_CompartmentAccessComponent compartment = SCR_CompartmentAccessComponent.Cast(m_Owner.FindComponent(SCR_CompartmentAccessComponent));
 		if(!compartment) return;
@@ -44,11 +46,42 @@ class OVT_VehicleMenuContext : OVT_UIContext
 		TextWidget w = TextWidget.Cast(m_wRoot.FindAnyWidget("VehicleInfoText"));
 		w.SetText("#OVT-Owner: " + ownerName);
 		
+		OVT_WarehouseData warehouse = m_RealEstate.GetNearestWarehouse(pos, 40);
+		bool isAccessible = false;
+		if(warehouse)
+		{
+			IEntity warehouseEntity = m_RealEstate.GetNearestBuilding(warehouse.location, 10);
+			if(warehouseEntity)
+			{
+				EntityID id = warehouseEntity.GetID();
+				bool isOwned = m_RealEstate.IsOwned(id);
+				bool isOwner = m_RealEstate.IsOwner(m_sPlayerID, id);
+				isAccessible = (!warehouse.isPrivate && isOwned) || (warehouse.isPrivate && isOwner);
+			}			
+		}
+		
 		SCR_ButtonTextComponent comp = SCR_ButtonTextComponent.GetButtonText("PutInWarehouse", m_wRoot);
 		if (comp)
 		{
-			GetGame().GetWorkspace().SetFocusedWidget(comp.GetRootWidget());
-			comp.m_OnClicked.Insert(PutInWarehouse);
+			if(isAccessible){
+				comp.SetEnabled(true);
+				GetGame().GetWorkspace().SetFocusedWidget(comp.GetRootWidget());
+				comp.m_OnClicked.Insert(PutInWarehouse);
+			}else{
+				comp.SetEnabled(false);
+			}
+		}
+		
+		comp = SCR_ButtonTextComponent.GetButtonText("TakeFromWarehouse", m_wRoot);
+		if (comp)
+		{
+			if(isAccessible){
+				comp.SetEnabled(true);
+				GetGame().GetWorkspace().SetFocusedWidget(comp.GetRootWidget());
+				comp.m_OnClicked.Insert(TakeFromWarehouse);
+			}else{
+				comp.SetEnabled(false);
+			}
 		}
 	}
 	
@@ -73,6 +106,37 @@ class OVT_VehicleMenuContext : OVT_UIContext
 		}
 		
 		OVT_Global.GetServer().TransferToWarehouse(nearestVeh);	
+		CloseLayout();
 		SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-VehicleUnloaded");
+	}
+	
+	protected void TakeFromWarehouse()
+	{		
+		vector pos = m_Owner.GetOrigin();
+		OVT_WarehouseData warehouse = m_RealEstate.GetNearestWarehouse(pos, 40);
+		if(!warehouse) return;
+		
+		bool isAccessible = false;
+		if(warehouse)
+		{
+			IEntity warehouseEntity = m_RealEstate.GetNearestBuilding(warehouse.location, 10);
+			if(warehouseEntity)
+			{
+				EntityID id = warehouseEntity.GetID();
+				bool isOwned = m_RealEstate.IsOwned(id);
+				bool isOwner = m_RealEstate.IsOwner(m_sPlayerID, id);
+				isAccessible = (!warehouse.isPrivate && isOwned) || (warehouse.isPrivate && isOwner);
+			}			
+		}
+		if(!isAccessible) return;
+		
+		OVT_WarehouseContext context = OVT_WarehouseContext.Cast(m_UIManager.GetContext(OVT_WarehouseContext));
+		if(!context) return;
+		
+		context.SetWarehouse(warehouse);
+		
+		m_UIManager.ShowContext(OVT_WarehouseContext);
+		
+		CloseLayout();
 	}
 }

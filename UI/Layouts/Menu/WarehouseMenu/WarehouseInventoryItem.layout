@@ -1,0 +1,102 @@
+ButtonWidgetClass {
+ Name "InventoryItem"
+ Slot LayoutSlot "{5D48A6AB9C2ECBCB}" {
+  Padding 5 3 5 3
+ }
+ components {
+  SCR_ButtonComponent "{5D48A6A5583303E0}" {
+   m_bMouseOverToFocus 1
+  }
+  OVT_WarehouseInventoryItemComponent "{5D48CA0294CB7794}" {
+  }
+ }
+ style blank
+ {
+  SizeLayoutWidgetClass "{5D48A6AAF80B5914}" {
+   Name "SizeSetter"
+   Slot ButtonWidgetSlot "{5D48A6A577ADBD8A}" {
+    HorizontalAlign 3
+    VerticalAlign 3
+   }
+   AllowHeightOverride 1
+   HeightOverride 50
+   MinDesiredHeight 0
+   {
+    OverlayWidgetClass "{5D48CA00E4215C80}" {
+     Name "Overlay"
+     Slot AlignableSlot "{5D48CA00E4215D49}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+     }
+     {
+      HorizontalLayoutWidgetClass "{5D48CA00E3E5B6A8}" {
+       Name "Layout"
+       Slot OverlayWidgetSlot "{5D48CA00AF2180C8}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       {
+        SizeLayoutWidgetClass "{5D48CA00E3E5B696}" {
+         Name "SizeLayout0"
+         Slot LayoutSlot "{5D48A6AAB42A9E5C}" {
+         }
+         AllowWidthOverride 1
+         WidthOverride 50
+         {
+          ItemPreviewWidgetClass "{5D48CA00E3E5B695}" {
+           Name "Image"
+           Slot AlignableSlot "{5D48CA01BE7CC790}" {
+            HorizontalAlign 3
+            VerticalAlign 3
+           }
+          }
+         }
+        }
+        TextWidgetClass "{5D48CA00E3E5B694}" {
+         Name "EntityName"
+         Slot LayoutSlot "{5D48A6A577ADBE09}" {
+          Padding 5 0 5 0
+         }
+         Text "Item name that is really long"
+         "Vertical Alignment" Center
+        }
+        SizeLayoutWidgetClass "{5D48CA00E3E5B693}" {
+         Name "Fill"
+         Slot LayoutSlot "{5D48A6A577ADBED5}" {
+          SizeMode Fill
+         }
+        }
+        TextWidgetClass "{5D48CA00E3E5B692}" {
+         Name "Stock"
+         Slot LayoutSlot "{5D48A6ABC421043E}" {
+          Padding 10 0 10 0
+         }
+         Text "100"
+         "Horizontal Alignment" Right
+         "Vertical Alignment" Center
+        }
+       }
+      }
+      PanelWidgetClass "{5D48CA00F4DE6623}" {
+       Name "Border"
+       Slot OverlayWidgetSlot "{56EF0B195DBB5E79}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+        Padding -2 -2 -2 -2
+       }
+       Color 0.761 0.392 0.08 1
+       style outline_2px
+      }
+      ImageWidgetClass "{5D48CA00C9F69471}" {
+       Name "Background"
+       Slot OverlayWidgetSlot "{5D48CA00C9F6945E}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

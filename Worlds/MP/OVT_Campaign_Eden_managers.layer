@@ -19,6 +19,9 @@ SCR_CameraManager SCR_CameraManager1 : "{33F9FD881E3700CC}Prefabs/World/Game/SCR
 OVT_OverthrowGameMode OVT_OverthrowGameMode1 : "{4DC10DCB8BE06D32}Prefabs/GameMode/OVT_OverthrowGameMode.et" {
  components {
   OVT_OverthrowConfigComponent "{59724C8C935D8E5D}" {
+   m_Difficulty OVT_DifficultySettings "{598AD54E1DA56EB1}" {
+    startingCash 100000000
+   }
    m_bDebugMode 1
   }
  }

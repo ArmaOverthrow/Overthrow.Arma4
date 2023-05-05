@@ -109,13 +109,13 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		PlayerController playerController = GetGame().GetPlayerManager().GetPlayerController(playerId);
 		if(!playerController) return;
 		
-		Print("Spawning player comms entity for player " + playerId);
+		//Print("Spawning player comms entity for player " + playerId);
 		RplIdentity playerRplID = playerController.GetRplIdentity();		
 		IEntity entity = GetGame().SpawnEntityPrefab(Resource.Load(m_PlayerCommsPrefab), GetGame().GetWorld());
 		
 		RplComponent rpl = RplComponent.Cast(entity.FindComponent(RplComponent));
 		
-		Print("Assigning comms to player " + playerId);
+		//Print("Assigning comms to player " + playerId);
 		rpl.Give(playerRplID);
 	}
 	
@@ -126,7 +126,12 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		
 		if(controlledEntity)
 		{
-			m_ResistanceFactionManager.m_mPlayerPositions[persId] = controlledEntity.GetOrigin();
+			OVT_PlayerData player = m_PlayerManager.GetPlayer(persId);
+			if(player)
+			{
+				player.location = controlledEntity.GetOrigin();
+				player.id = -1;
+			}
 		}
 		
 		m_aInitializedPlayers.Remove(m_aInitializedPlayers.Find(persId));
@@ -156,10 +161,13 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 				
 				//Make sure player is at home or last position (when loading save)
 				vector home = m_RealEstate.GetHome(persistentId);
-				if(m_ResistanceFactionManager.m_mPlayerPositions.Contains(persistentId))
+				OVT_PlayerData player = m_PlayerManager.GetPlayer(persistentId);
+				
+				if(player)
 				{
-					home = m_ResistanceFactionManager.m_mPlayerPositions[persistentId];
+					home = player.location;
 				}
+				
 				float dist = vector.Distance(controlledEntity.GetOrigin(), home);				
 				if(dist > 5)
 				{

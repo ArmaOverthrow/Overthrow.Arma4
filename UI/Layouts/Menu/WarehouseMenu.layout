@@ -1,0 +1,445 @@
+FrameWidgetClass {
+ Name "rootFrame"
+ {
+  PanelWidgetClass "{5D48A6A969E0E8D0}" {
+   Name "Panel0"
+   Slot FrameWidgetSlot "{597282644EB209C6}" {
+    Anchor 0 0 1 1
+    PositionX 0
+    OffsetLeft -1
+    PositionY -1
+    OffsetTop -1
+    SizeX -1540
+    OffsetRight 1
+    SizeY 0
+    OffsetBottom 1
+   }
+   {
+    BlurWidgetClass "{5D48A6A969E0E8DE}" : "{352322057FD78AE1}UI/layouts/WidgetLibrary/BaseElements/WLib_Blur.layout" {
+     Name "BackgroundBlur"
+     Slot FrameWidgetSlot "{5982E26F6316DE4F}" {
+      Anchor 0 0 1 1
+      PositionX 0
+      OffsetLeft 0
+      PositionY 0
+      OffsetTop 0
+      SizeX -200
+      OffsetRight 0
+      SizeY -1050
+      OffsetBottom 0
+     }
+     Color 0.127 0.127 0.127 1
+     Intensity 0.8
+    }
+    VerticalLayoutWidgetClass "{5D48A6A969E0E8DD}" {
+     Name "VerticalLayout0"
+     Slot FrameWidgetSlot "{59728267ECC2178F}" {
+      Anchor 0 0 1 1
+      PositionX 1
+      OffsetLeft 1
+      PositionY 0
+      OffsetTop 0
+      SizeX 0
+      OffsetRight -1
+      SizeY 0
+      OffsetBottom 0
+     }
+     {
+      TextWidgetClass "{5D48A6A92157A5BE}" {
+       Name "Text0"
+       Slot LayoutSlot "{5D48A6A92157A58A}" {
+        Padding 0 20 0 20
+       }
+       Text "#OVT-Warehouse"
+       "Font Size" 40
+       "Horizontal Alignment" Center
+      }
+      HorizontalLayoutWidgetClass "{5D48A6A9EFA84210}" {
+       Name "HorizontalLayout0"
+       Slot LayoutSlot "{5D48A6A9EFA842FD}" {
+        SizeMode Fill
+       }
+       {
+        OverlayWidgetClass "{5D48A6A5D89A5935}" {
+         Name "Inventory View"
+         Slot LayoutSlot "{5D48A6A5D89A5910}" {
+          SizeMode Fill
+         }
+         {
+          ImageWidgetClass "{5D48A6A5B513729F}" {
+           Name "Background"
+           Slot OverlayWidgetSlot "{5D48CA0180A2AB61}" {
+            HorizontalAlign 3
+            VerticalAlign 3
+           }
+           Opacity 0.5
+           Color 0 0 0 0.498
+          }
+          ScrollLayoutWidgetClass "{5D48A6A9FA5CA2E9}" {
+           Name "ScrollLayout0"
+           Slot OverlayWidgetSlot "{5D48CA0180A2AB4A}" {
+            HorizontalAlign 3
+            VerticalAlign 3
+           }
+           {
+            VerticalLayoutWidgetClass "{5D48A6A99D3C9522}" {
+             Name "Inventory"
+             Slot AlignableSlot "{5D48A6A99D3C9502}" {
+              HorizontalAlign 3
+             }
+             {
+              ButtonWidgetClass "{5D48A6A56429FCDB}" : "{B49D1A239015F7D1}UI/Layouts/Menu/WarehouseMenu/WarehouseInventoryItem.layout" {
+               Name "InventoryItem0"
+               Slot LayoutSlot "{5D48A6AB9C2ECBCB}" {
+               }
+              }
+              ButtonWidgetClass "{5D48A6A56FA06609}" : "{B49D1A239015F7D1}UI/Layouts/Menu/WarehouseMenu/WarehouseInventoryItem.layout" {
+               Name "InventoryItem1"
+               Slot LayoutSlot "{5D48A6AB9C2ECBCB}" {
+               }
+              }
+              ButtonWidgetClass "{5D48A6A56E055B23}" : "{B49D1A239015F7D1}UI/Layouts/Menu/WarehouseMenu/WarehouseInventoryItem.layout" {
+               Name "InventoryItem2"
+               Slot LayoutSlot "{5D48A6AB9C2ECBCB}" {
+               }
+              }
+              ButtonWidgetClass "{5D48A6A56EE60504}" : "{B49D1A239015F7D1}UI/Layouts/Menu/WarehouseMenu/WarehouseInventoryItem.layout" {
+               Name "InventoryItem3"
+               Slot LayoutSlot "{5D48A6AB9C2ECBCB}" {
+               }
+              }
+              ButtonWidgetClass "{5D48A6A56EBFE9C5}" : "{B49D1A239015F7D1}UI/Layouts/Menu/WarehouseMenu/WarehouseInventoryItem.layout" {
+               Name "InventoryItem4"
+               Slot LayoutSlot "{5D48A6AB9C2ECBCB}" {
+               }
+              }
+              ButtonWidgetClass "{5D48A6A56E9DBA15}" : "{B49D1A239015F7D1}UI/Layouts/Menu/WarehouseMenu/WarehouseInventoryItem.layout" {
+               Name "InventoryItem5"
+               Slot LayoutSlot "{5D48A6AB9C2ECBCB}" {
+               }
+              }
+              ButtonWidgetClass "{5D48A6A56D7C3628}" : "{B49D1A239015F7D1}UI/Layouts/Menu/WarehouseMenu/WarehouseInventoryItem.layout" {
+               Name "InventoryItem6"
+               Slot LayoutSlot "{5D48A6AB9C2ECBCB}" {
+               }
+              }
+              ButtonWidgetClass "{5D48A6A56D39257A}" : "{B49D1A239015F7D1}UI/Layouts/Menu/WarehouseMenu/WarehouseInventoryItem.layout" {
+               Name "InventoryItem7"
+               Slot LayoutSlot "{5D48A6AB9C2ECBCB}" {
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+        OverlayWidgetClass "{5D48A6A414E1EC03}" {
+         Name "Detail View"
+         Slot LayoutSlot "{5D48A6A414E1ECEA}" {
+          SizeMode Fill
+          FillWeight 0.4
+         }
+         {
+          ImageWidgetClass "{5D48A6A4F4AEF937}" {
+           Name "Background"
+           Slot OverlayWidgetSlot "{56EEDE05C99AA714}" {
+            HorizontalAlign 3
+            VerticalAlign 3
+           }
+           Color 0.005 0.005 0.005 1
+          }
+          SizeLayoutWidgetClass "{5D48A6A4F4AEF5D2}" {
+           Name "Alignment"
+           Slot OverlayWidgetSlot "{56EEDE0485B98294}" {
+            HorizontalAlign 3
+            VerticalAlign 3
+            Padding 10 10 10 10
+           }
+           AllowWidthOverride 1
+           WidthOverride 384
+           AllowHeightOverride 1
+           HeightOverride 936
+           {
+            VerticalLayoutWidgetClass "{5D48A6A4F4AEF5D1}" {
+             Name "DetailLayout"
+             Slot AlignableSlot "{56EEDE0403BED8AE}" {
+              HorizontalAlign 3
+              VerticalAlign 3
+             }
+             {
+              OverlayWidgetClass "{5D48A6A4F4AEF5D0}" {
+               Name "DetailContent"
+               Slot LayoutSlot "{598EF9F521ECFF8D}" {
+                SizeMode Fill
+               }
+               {
+                VerticalLayoutWidgetClass "{5D48A6A4F4AEF5DF}" {
+                 Name "DetailContentLayout"
+                 Slot OverlayWidgetSlot "{598EF9F5311402ED}" {
+                  HorizontalAlign 3
+                  VerticalAlign 3
+                 }
+                 {
+                  SizeLayoutWidgetClass "{5D48CA0066B09D75}" {
+                   Name "SizeLayout0"
+                   Slot LayoutSlot "{5D48CA0066B09D51}" {
+                   }
+                   AllowHeightOverride 1
+                   HeightOverride 250
+                   {
+                    ItemPreviewWidgetClass "{5D48A6A4D7BF39FB}" {
+                     Name "SelectedTypeImage"
+                     Slot AlignableSlot "{5D48CA00644D497F}" {
+                      HorizontalAlign 3
+                      VerticalAlign 3
+                     }
+                    }
+                   }
+                  }
+                  TextWidgetClass "{5D48A6A4F4AEF5DD}" : "{9D643D214767D616}UI/layouts/WidgetLibrary/TextWidgets/Text_Heading2.layout" {
+                   Name "SelectedTypeName"
+                   Slot LayoutSlot "{598EF9F53F730301}" {
+                    Padding 10 10 10 30
+                   }
+                   Text "Type Name"
+                   "Font Size" 28
+                   "Min Font Size" 25
+                  }
+                  TextWidgetClass "{5D48A6A4F4AEF5DC}" : "{9D643D214767D616}UI/layouts/WidgetLibrary/TextWidgets/Text_Heading2.layout" {
+                   Name "SelectedDetails"
+                   Slot LayoutSlot "{598EF9F53F730347}" {
+                    Padding 10 0 10 30
+                   }
+                   Text "Qty in stock: 12"
+                   "Font Size" 25
+                   "Min Font Size" 20
+                  }
+                  TextWidgetClass "{5D48A6A4F4AEF5DB}" : "{9D643D214767D616}UI/layouts/WidgetLibrary/TextWidgets/Text_Heading2.layout" {
+                   Name "SelectedDescription"
+                   Slot LayoutSlot "{598EF9F53F73034B}" {
+                    Padding 10 0 10 12
+                   }
+                   Text "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In dapibus ipsum vulputate posuere consequat. Suspendisse bibendum lectus a lacus posuere, a rutrum massa dictum. Praesent posuere lectus sit amet magna feugiat, vitae egestas dui sagittis. Quisque mi elit, varius quis justo eget, lobortis congue nibh. Fusce fringilla urna eu neque commodo condimentum. Vestibulum placerat sapien non scelerisque tristique. Aliquam erat volutpat. Sed nisl risus, imperdiet accumsan lectus a, dignissim egestas velit. Suspendisse potenti. Morbi vel mi fringilla, lacinia lectus id, molestie magna. Etiam faucibus justo purus, vitae faucibus est vehicula id. Suspendisse nec nunc mattis, fringilla tortor et, ullamcorper magna."
+                   "Font Size" 20
+                   "Min Font Size" 12
+                   Wrap 1
+                   FontProperties FontProperties "{546AF489DFD25402}" {
+                    Font "{E2CBA6F76AAA42AF}UI/Fonts/Roboto/Roboto_Regular.fnt"
+                   }
+                  }
+                 }
+                }
+               }
+              }
+              OverlayWidgetClass "{5D48A6A4F4AEF5DA}" {
+               Name "Footer"
+               Slot LayoutSlot "{598EF9FA81791653}" {
+               }
+               {
+                HorizontalLayoutWidgetClass "{5D48A6A4F4AEF5D9}" {
+                 Name "Buttons"
+                 Slot OverlayWidgetSlot "{56EEDE03DED9A743}" {
+                  HorizontalAlign 3
+                 }
+                 {
+                  ButtonWidgetClass "{5D48A6A4F4AEF5C7}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+                   Name "Take1Button"
+                   Slot LayoutSlot "{56EEDE01982D053A}" {
+                    Padding 0 0 0 0
+                   }
+                   components {
+                    SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+                     m_sLabel "#OVT-Warehouse_Take_1"
+                     m_sActionName "OverthrowWarehouseTakeOne"
+                    }
+                    ButtonActionComponent "{56EEDE0026B19E2C}" {
+                     m_bActionName "OverthrowWarehouseTakeOne"
+                    }
+                   }
+                   {
+                    SizeLayoutWidgetClass "{5562AD435529FB36}" {
+                     Prefab "{5562AD435529FB36}"
+                     {
+                      OverlayWidgetClass "{000000005E70868E}" {
+                       Prefab "{000000005E70868E}"
+                       {
+                        HorizontalLayoutWidgetClass "{00000000E3602307}" {
+                         Prefab "{00000000E3602307}"
+                         Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
+                          Padding 10 10 16 10
+                         }
+                        }
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                  ButtonWidgetClass "{5D48A6A4F4AEF5C4}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+                   Name "Take10Button"
+                   Slot LayoutSlot "{56EEDE01982D053A}" {
+                    Padding 0 0 0 0
+                   }
+                   components {
+                    SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+                     m_sLabel "#OVT-Warehouse_Take_10"
+                     m_sActionName "OverthrowWarehouseTakeTen"
+                    }
+                    ButtonActionComponent "{56EEDE0026B19E2C}" {
+                     m_bActionName "OverthrowWarehouseTakeTen"
+                    }
+                   }
+                   {
+                    SizeLayoutWidgetClass "{5562AD435529FB36}" {
+                     Prefab "{5562AD435529FB36}"
+                     {
+                      OverlayWidgetClass "{000000005E70868E}" {
+                       Prefab "{000000005E70868E}"
+                       {
+                        HorizontalLayoutWidgetClass "{00000000E3602307}" {
+                         Prefab "{00000000E3602307}"
+                         Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
+                          Padding 10 10 16 10
+                         }
+                        }
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                  ButtonWidgetClass "{5D48A6A7F2BFB525}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+                   Name "Take100Button"
+                   Slot LayoutSlot "{56EEDE01982D053A}" {
+                    Padding 0 0 0 0
+                   }
+                   components {
+                    SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+                     m_sLabel "#OVT-Warehouse_Take_100"
+                     m_sActionName "OverthrowWarehouseTakeHundred"
+                    }
+                    ButtonActionComponent "{56EEDE0026B19E2C}" {
+                     m_bActionName "OverthrowWarehouseTakeHundred"
+                    }
+                   }
+                   {
+                    SizeLayoutWidgetClass "{5562AD435529FB36}" {
+                     Prefab "{5562AD435529FB36}"
+                     {
+                      OverlayWidgetClass "{000000005E70868E}" {
+                       Prefab "{000000005E70868E}"
+                       {
+                        HorizontalLayoutWidgetClass "{00000000E3602307}" {
+                         Prefab "{00000000E3602307}"
+                         Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
+                          Padding 10 10 16 10
+                         }
+                        }
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+      OverlayWidgetClass "{5D48A6A47508220F}" {
+       Name "Footer"
+       Slot LayoutSlot "{56EEDE03DE14A911}" {
+        Padding 10 10 0 10
+       }
+       {
+        HorizontalLayoutWidgetClass "{5D48A6A47508220E}" {
+         Name "Buttons"
+         Slot OverlayWidgetSlot "{56EEDE03DED9A743}" {
+          HorizontalAlign 3
+         }
+         {
+          ButtonWidgetClass "{5D48A6A47508220C}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+           Name "CloseButton"
+           Slot LayoutSlot "{56EEDE01982D053A}" {
+            Padding 0 0 10 0
+           }
+           components {
+            SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+             m_sSoundClicked "SOUND_FE_BUTTON_CANCEL"
+             m_sLabel "#AR-Editor_ContentBrowser_ButtonClose"
+             m_sActionName "MenuBack"
+            }
+            ButtonActionComponent "{56EEDE01BE93EE7D}" {
+             m_bActionName "MenuBack"
+            }
+           }
+           {
+            SizeLayoutWidgetClass "{5562AD435529FB36}" {
+             Prefab "{5562AD435529FB36}"
+             {
+              OverlayWidgetClass "{000000005E70868E}" {
+               Prefab "{000000005E70868E}"
+               {
+                HorizontalLayoutWidgetClass "{00000000E3602307}" {
+                 Prefab "{00000000E3602307}"
+                 Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
+                  Padding 10 10 16 10
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+          ButtonWidgetClass "{5D48A6A475082209}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+           Name "SelectButton"
+           Slot LayoutSlot "{56EEDE01982D053A}" {
+            Padding 0 0 10 0
+           }
+           components {
+            SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+             m_sLabel "#AR-Editor_ContentBrowser_ButtonSelect"
+             m_sActionName "MenuSelect"
+            }
+            SCR_DeviceSpecificComponent "{56EEDE01335EDAD4}" {
+             m_bControllerOnly 1
+            }
+           }
+           {
+            SizeLayoutWidgetClass "{5562AD435529FB36}" {
+             Prefab "{5562AD435529FB36}"
+             {
+              OverlayWidgetClass "{000000005E70868E}" {
+               Prefab "{000000005E70868E}"
+               {
+                HorizontalLayoutWidgetClass "{00000000E3602307}" {
+                 Prefab "{00000000E3602307}"
+                 Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
+                  Padding 10 10 16 10
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

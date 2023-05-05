@@ -33,7 +33,7 @@ class OVT_PlayerCommsEntity: GenericEntity
 		if(id3 > -1) persistentID += id3.ToString();
 					
 		Print("Registering persistent ID with server: " + persistentID);
-		OVT_Global.GetPlayers().RegisterPlayer(playerId, persistentID);
+		OVT_Global.GetPlayers().RegisterPlayer(playerId, persistentID);		
 	}	
 	
 	void StartBaseCapture(vector loc)
@@ -398,5 +398,17 @@ class OVT_PlayerCommsEntity: GenericEntity
 	protected void RpcAsk_TakeFromWarehouse(int warehouseId, int id, int count)
 	{
 		OVT_Global.GetRealEstate().DoTakeFromWarehouse(warehouseId, id, count);
+	}
+	
+	void TakeFromWarehouseToVehicle(int warehouseId, int id, int qty, IEntity vehicle)	
+	{
+		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
+		Rpc(RpcAsk_TakeFromWarehouseToVehicle, warehouseId, id, qty, rpl.Id());
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	void RpcAsk_TakeFromWarehouseToVehicle(int warehouseId, int id, int qty, RplId vehicleId)	
+	{
+		OVT_Global.TakeFromWarehouseToVehicle(warehouseId, id, qty, vehicleId);
 	}
 }

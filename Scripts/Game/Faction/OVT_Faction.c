@@ -113,8 +113,8 @@ class OVT_Faction : SCR_Faction
 		}
 	}
 	
-	override bool GetArsenalItems(out array<ref SCR_ArsenalItem> arsenalItems)
-	{
+	bool GetAllArsenalItems(out array<ref SCR_ArsenalItem> arsenalItems)
+	{		
 		if(m_aArsenalConfigs.Count() == 0) LoadArsenalConfigs();
 		foreach(SCR_ArsenalItemListConfig config : m_aArsenalConfigs)
 		{

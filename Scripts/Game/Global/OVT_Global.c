@@ -160,6 +160,7 @@ class OVT_Global {
 				
 		foreach(IEntity item : items)
 		{
+			if(!item) continue;
 			fromStorage.TryMoveItemToStorage(item, toStorage);				
 		}
 		
@@ -201,9 +202,12 @@ class OVT_Global {
 				
 		foreach(IEntity item : items)
 		{
+			if(!item) continue;
+			EntityPrefabData data = item.GetPrefabData();
 			if(fromStorage.TryDeleteItem(item))
-			{
-				ResourceName res = item.GetPrefabData().GetPrefabName();
+			{				
+				if(!data) continue;
+				ResourceName res = data.GetPrefabName();
 				if(!collated.Contains(res)) collated[res] = 0;
 				collated[res] = collated[res] + 1;
 			}
@@ -225,5 +229,32 @@ class OVT_Global {
 			simpleSoundComp.SetTransformation(mat);
 			simpleSoundComp.PlayStr("LOAD_VEHICLE");
 		}	
+	}
+	
+	static void TakeFromWarehouseToVehicle(int warehouseId, int id, int qty, RplId from)
+	{
+		IEntity fromEntity = RplComponent.Cast(Replication.FindItem(from)).GetEntity();		
+		if(!fromEntity) return;
+		
+		InventoryStorageManagerComponent fromStorage = InventoryStorageManagerComponent.Cast(fromEntity.FindComponent(InventoryStorageManagerComponent));				
+		if(!fromStorage) return;
+		
+		OVT_RealEstateManagerComponent re = OVT_Global.GetRealEstate();
+		
+		OVT_WarehouseData warehouse = re.m_aWarehouses[warehouseId];
+		ResourceName res = OVT_Global.GetEconomy().GetResource(id);
+		
+		if(warehouse.inventory[id] < qty) qty = warehouse.inventory[id];
+		int actual = 0;
+		
+		for(int i = 0; i < qty; i++)
+		{
+			if(fromStorage.TrySpawnPrefabToStorage(res))
+			{
+				actual++;
+			}
+		}
+		
+		re.TakeFromWarehouse(warehouse, res, actual);
 	}
 }

@@ -1187,6 +1187,34 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D48A6A90A8A2177}" {
+   Id "OVT-Warehouse"
+   Target_en_us "Warehouse"
+   Modified 1565044381
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D48A6A70B5716E0}" {
+   Id "OVT-Warehouse_Take_1"
+   Target_en_us "Take 1"
+   Modified 1565047384
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D48A6A7175CDEFD}" {
+   Id "OVT-Warehouse_Take_10"
+   Target_en_us "Take 10"
+   Modified 1565047390
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D48A6A714F7BA51}" {
+   Id "OVT-Warehouse_Take_100"
+   Target_en_us "Take 100"
+   Modified 1565047395
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59C84C26FD19B1CA}" {
    Id "OVT_Group"
    Target_en_us "Group"
