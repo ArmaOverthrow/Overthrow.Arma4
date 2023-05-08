@@ -411,4 +411,33 @@ class OVT_PlayerCommsEntity: GenericEntity
 	{
 		OVT_Global.TakeFromWarehouseToVehicle(warehouseId, id, qty, vehicleId);
 	}
+	
+	//JOBS
+	void AcceptJob(OVT_Job job, int playerId)	
+	{		
+		Rpc(RpcAsk_AcceptJob, job.jobIndex, job.townId, job.baseId, playerId);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	void RpcAsk_AcceptJob(int jobIndex, int townId, int baseId, int playerId)	
+	{
+		OVT_JobManagerComponent jobs = OVT_Global.GetJobs();
+		OVT_JobConfig config = jobs.GetConfig(jobIndex);
+		foreach(OVT_Job job : jobs.m_aJobs)
+		{
+			if(job.jobIndex != jobIndex) continue;
+			if(config.m_bPublic)
+			{
+				if(!job.accepted && job.owner == "" && job.townId == townId && job.baseId == baseId) {
+					jobs.AcceptJob(job, playerId);
+				}
+			}else{
+				string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+				if(!job.accepted && job.owner == persId && job.townId == townId && job.baseId == baseId) {
+					jobs.AcceptJob(job, playerId);
+				}
+			}
+		}
+	}
+	
 }

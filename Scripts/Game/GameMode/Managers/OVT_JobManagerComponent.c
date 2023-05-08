@@ -2,56 +2,6 @@ class OVT_JobManagerComponentClass: OVT_ComponentClass
 {
 };
 
-enum OVT_JobFlags
-{	
-	ACTIVE = 1,
-	GLOBAL_UNIQUE = 2
-};
-
-//A config for a job that has start conditions and a number of stages
-[BaseContainerProps(configRoot : true)]
-class OVT_JobConfig
-{
-	[Attribute()]
-	string m_sTitle;
-	
-	[Attribute()]
-	string m_sDescription;
-	
-	[Attribute("0")]
-	bool m_bBaseOnly;
-	
-	[Attribute("100")]
-	int m_iReward;
-	
-	[Attribute(defvalue: "0", desc:"Maximum number of times this job will spawn")]
-	int m_iMaxTimes;
-	
-	[Attribute("", UIWidgets.Object)]
-	ref array<ref OVT_JobCondition> m_aConditions;
-	
-	[Attribute("", UIWidgets.Object)]
-	ref array<ref OVT_JobStageConfig> m_aStages;
-	
-	[Attribute("1", uiwidget: UIWidgets.Flags, "", "", ParamEnumArray.FromEnum(OVT_JobFlags))]
-	OVT_JobFlags flags;
-}
-
-class OVT_JobStageConfig : ScriptAndConfig
-{
-	[Attribute()]
-	string m_sTitle;
-	
-	[Attribute()]
-	string m_sDescription;
-	
-	[Attribute("0")]
-	int m_iTimeout;
-	
-	[Attribute("", UIWidgets.Object)]
-	ref OVT_JobStage m_Handler;
-}
-
 //Represents an active job and it's current state
 class OVT_Job
 {
@@ -61,6 +11,8 @@ class OVT_Job
 	int baseId = -1;
 	int stage;
 	RplId entity;
+	string owner;
+	bool accepted;
 	
 	OVT_TownData GetTown()
 	{
@@ -85,6 +37,7 @@ class OVT_JobManagerComponent: OVT_Component
 	ref map<int, ref set<int>> m_aTownJobs;
 	ref map<int, ref set<int>> m_aBaseJobs;
 	ref map<int, int> m_aJobCounts;
+	ref map<string, map<int, int>> m_mPlayerJobCounts;
 	
 	protected OVT_TownManagerComponent m_Towns;
 	protected OVT_OccupyingFactionManager m_OccupyingFaction;
@@ -114,6 +67,7 @@ class OVT_JobManagerComponent: OVT_Component
 		m_aBaseJobs = new map<int, ref set<int>>;
 		m_aJobs = new array<ref OVT_Job>;
 		m_aJobCounts = new map<int, int>;
+		m_mPlayerJobCounts = new map<string, map<int, int>>;
 	}
 	
 	void Init(IEntity owner)
@@ -127,7 +81,27 @@ class OVT_JobManagerComponent: OVT_Component
 	
 	void PostGameStart()
 	{
+		GetGame().GetCallqueue().CallLater(CheckUpdate, 250, false, GetOwner());
 		GetGame().GetCallqueue().CallLater(CheckUpdate, JOB_FREQUENCY, true, GetOwner());		
+	}
+	
+	void AcceptJob(OVT_Job job, int playerId)
+	{	
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		job.accepted = true;	
+		job.owner = persId;
+		if(!Replication.IsServer())
+		{
+			OVT_Global.GetServer().AcceptJob(job, playerId);
+		}else{
+			StreamJobUpdate(job);
+		}
+	}
+	
+	void StreamJobUpdate(OVT_Job job)
+	{
+		int playerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(job.owner);
+		Rpc(RpcDo_UpdateJob, job.jobIndex, job.location, job.townId, job.baseId, job.stage, job.entity, playerId, job.accepted);
 	}
 	
 	protected void LoadConfigs()
@@ -157,6 +131,12 @@ class OVT_JobManagerComponent: OVT_Component
 		array<OVT_Job> remove = new array<OVT_Job>;
 		foreach(OVT_Job job : m_aJobs)
 		{
+			if(!job.accepted) continue;
+			int ownerId = -1;
+			if(job.owner != "")
+			{
+				ownerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(job.owner);
+			}
 			OVT_JobConfig config = GetConfig(job.jobIndex);
 			OVT_JobStageConfig stage = config.m_aStages[job.stage];
 			if(!stage.m_Handler.OnTick(job))
@@ -166,21 +146,20 @@ class OVT_JobManagerComponent: OVT_Component
 				if(job.stage > config.m_aStages.Count() - 1)
 				{								
 					//No more stages, job finished
-					if(stage.m_Handler.playerId > -1 && config.m_iReward > 0)
-					{
-						//Reward a player
-						OVT_Global.GetEconomy().AddPlayerMoney(stage.m_Handler.playerId, config.m_iReward);
-						SCR_HintManagerComponent.GetInstance().ShowCustom(config.m_sTitle, "#OVT-Jobs_Completed");
-						Rpc(RpcDo_NotifyJobCompleted, job.jobIndex);
-					}
 					
+					//Reward the player
+					int playerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(job.owner);
+					OVT_Global.GetEconomy().AddPlayerMoney(playerId, config.m_iReward);
+					SCR_HintManagerComponent.GetInstance().ShowCustom(config.m_sTitle, "#OVT-Jobs_Completed");
+					Rpc(RpcDo_NotifyJobCompleted, job.jobIndex);
+										
 					remove.Insert(job);
 					if(config.flags & OVT_JobFlags.GLOBAL_UNIQUE) m_aGlobalJobs.Remove(m_aGlobalJobs.Find(job.jobIndex));
 					if(job.townId > -1)
 						m_aTownJobs[job.townId].Remove(m_aTownJobs[job.townId].Find(job.jobIndex));
 					if(job.baseId > -1)
 						m_aBaseJobs[job.baseId].Remove(m_aBaseJobs[job.baseId].Find(job.jobIndex));
-					Rpc(RpcDo_RemoveJob, job.jobIndex, job.townId, job.baseId);
+					Rpc(RpcDo_RemoveJob, job.jobIndex, job.townId, job.baseId, ownerId);
 					
 					break;
 				}else{
@@ -202,7 +181,7 @@ class OVT_JobManagerComponent: OVT_Component
 								if(job.baseId > -1)
 									m_aBaseJobs[job.baseId].Remove(m_aBaseJobs[job.baseId].Find(job.jobIndex));
 								
-								Rpc(RpcDo_RemoveJob, job.jobIndex, job.townId, job.baseId);
+								Rpc(RpcDo_RemoveJob, job.jobIndex, job.townId, job.baseId, ownerId);
 								dorpc = false;
 								break;
 							}
@@ -211,7 +190,7 @@ class OVT_JobManagerComponent: OVT_Component
 						}
 					}
 					if(dorpc)
-						Rpc(RpcDo_UpdateJob, job.jobIndex, job.location, job.townId, job.baseId, job.stage, job.entity);
+						Rpc(RpcDo_UpdateJob, job.jobIndex, job.location, job.townId, job.baseId, job.stage, job.entity, ownerId, job.accepted);
 				}
 			}
 		}
@@ -235,22 +214,14 @@ class OVT_JobManagerComponent: OVT_Component
 			{
 				foreach(int baseId, OVT_BaseData data : m_OccupyingFaction.m_Bases)
 				{
+					if(data.entId == 0) continue;
 					OVT_BaseControllerComponent base = m_OccupyingFaction.GetBase(data.entId);
 					if((config.flags & OVT_JobFlags.GLOBAL_UNIQUE) && m_aGlobalJobs.Contains(index)) break;			
 					if(m_aBaseJobs.Contains(baseId) && m_aBaseJobs[baseId].Contains(index)) continue;
 					
 					OVT_TownData town = m_Towns.GetNearestTown(base.GetOwner().GetOrigin());
-					
-					bool start = true;
-					foreach(OVT_JobCondition condition : config.m_aConditions)
-					{
-						if(!condition.ShouldStart(town, data)){
-							start = false;
-							break;
-						}
-					}
-					
-					if(start && config.m_aStages.Count() > 0)
+										
+					if(JobShouldStart(config, null, data, -1) && config.m_aStages.Count() > 0)
 					{
 						if(!m_aBaseJobs.Contains(baseId))
 						{
@@ -263,47 +234,71 @@ class OVT_JobManagerComponent: OVT_Component
 							m_aGlobalJobs.Insert(index);
 						}
 						
-						OVT_Job job = StartJob(index, null, data);
+						OVT_Job job = StartJob(index, null, data, "");
 						
 						//Update clients
 						if(job)
-							Rpc(RpcDo_UpdateJob, index, job.location, -1, baseId, job.stage, job.entity);
+							Rpc(RpcDo_UpdateJob, index, job.location, -1, baseId, job.stage, job.entity, -1, job.accepted);
 					}
 				}
 				continue;
 			}
 			foreach(OVT_TownData town : m_Towns.m_Towns)
 			{
-				if((config.flags & OVT_JobFlags.GLOBAL_UNIQUE) && m_aGlobalJobs.Contains(index)) break;			
-				if(m_aTownJobs.Contains(town.id) && m_aTownJobs[town.id].Contains(index)) continue;
-				
-				bool start = true;
-				foreach(OVT_JobCondition condition : config.m_aConditions)
+				if(!config.m_bPublic)
 				{
-					if(!condition.ShouldStart(town, null)){
-						start = false;
-						break;
-					}
-				}
-				
-				if(start && config.m_aStages.Count() > 0)
-				{
-					if(!m_aTownJobs.Contains(town.id))
+					//Player allocated job
+					OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
+					for(int i =0; i < players.m_mPlayers.Count(); i++)
 					{
-						m_aTownJobs[town.id] = new set<int>;
+						string persId = players.m_mPlayers.GetKey(i);
+						OVT_PlayerData player = players.m_mPlayers[persId];
+						if(player.IsOffline()) continue;
+						map<int,int> playerJobs = m_mPlayerJobCounts[persId];
+						if(!playerJobs)
+						{
+							playerJobs = new map<int,int>;
+							m_mPlayerJobCounts[persId] = playerJobs;
+						}
+						
+						bool start = JobShouldStart(config, town, null, player.id);
+										
+						if(start && playerJobs.Contains(index) && config.m_iMaxTimes > 0){
+							start = playerJobs[index] < config.m_iMaxTimes;
+						}
+						
+						if(start && config.m_aStages.Count() > 0)
+						{
+							playerJobs[index] = playerJobs[index] + 1;
+							OVT_Job job = StartJob(index, town, null, persId);
+							if(job)
+								Rpc(RpcDo_UpdateJob, index, job.location, town.id, -1, job.stage, job.entity, player.id, job.accepted);
+						}
 					}
-					m_aTownJobs[town.id].Insert(index);
-					
-					if(config.flags & OVT_JobFlags.GLOBAL_UNIQUE)
+				}else{
+					//Public Job
+					if((config.flags & OVT_JobFlags.GLOBAL_UNIQUE) && m_aGlobalJobs.Contains(index)) break;			
+					if(m_aTownJobs.Contains(town.id) && m_aTownJobs[town.id].Contains(index)) continue;
+								
+					if(JobShouldStart(config, town, null, -1) && config.m_aStages.Count() > 0)
 					{
-						m_aGlobalJobs.Insert(index);
+						if(!m_aTownJobs.Contains(town.id))
+						{
+							m_aTownJobs[town.id] = new set<int>;
+						}
+						m_aTownJobs[town.id].Insert(index);
+						
+						if(config.flags & OVT_JobFlags.GLOBAL_UNIQUE)
+						{
+							m_aGlobalJobs.Insert(index);
+						}
+						
+						OVT_Job job = StartJob(index, town, null, "");
+						
+						//Update clients
+						if(job)
+							Rpc(RpcDo_UpdateJob, index, job.location, town.id, -1, job.stage, job.entity, -1, job.accepted);
 					}
-					
-					OVT_Job job = StartJob(index, town, null);
-					
-					//Update clients
-					if(job)
-						Rpc(RpcDo_UpdateJob, index, job.location, town.id, -1, job.stage, job.entity);
 				}
 			}
 		}
@@ -312,10 +307,24 @@ class OVT_JobManagerComponent: OVT_Component
 		
 	}
 	
-	OVT_Job StartJob(int index, OVT_TownData town, OVT_BaseData base)
+	protected bool JobShouldStart(OVT_JobConfig config, OVT_TownData town, OVT_BaseData base, int playerId)
+	{
+		bool start = true;
+		foreach(OVT_JobCondition condition : config.m_aConditions)
+		{
+			if(!condition.ShouldStart(town, base, playerId)){
+				start = false;
+				break;
+			}
+		}
+		return start;
+	}
+	
+	OVT_Job StartJob(int index, OVT_TownData town, OVT_BaseData base, string owner)
 	{
 		OVT_JobConfig config = GetConfig(index);
 		OVT_Job job = new OVT_Job();
+		job.owner = owner;
 		job.jobIndex = index;
 		if(town)
 		{
@@ -369,7 +378,9 @@ class OVT_JobManagerComponent: OVT_Component
 			writer.Write(job.townId, 32);
 			writer.Write(job.baseId, 32);
 			writer.Write(job.stage, 32);
-			writer.WriteRplId(job.entity);			
+			writer.WriteRplId(job.entity);	
+			RPL_WritePlayerID(writer, job.owner);
+			writer.WriteBool(job.accepted);		
 		}
 		
 		return true;
@@ -380,6 +391,7 @@ class OVT_JobManagerComponent: OVT_Component
 					
 		//Recieve JIP active jobs
 		int length;
+		string persId;
 		
 		if (!reader.Read(length, 32)) return false;
 		for(int i; i<length; i++)
@@ -391,7 +403,10 @@ class OVT_JobManagerComponent: OVT_Component
 			if (!reader.Read(job.townId, 32)) return false;		
 			if (!reader.Read(job.baseId, 32)) return false;	
 			if (!reader.Read(job.stage, 32)) return false;	
-			if (!reader.ReadRplId(job.entity)) return false;		
+			if (!reader.ReadRplId(job.entity)) return false;	
+			if (!RPL_ReadPlayerID(reader, persId)) return false;
+			job.owner = persId;
+			if(!reader.ReadBool(job.accepted)) return false;
 						
 			m_aJobs.Insert(job);
 		}
@@ -399,8 +414,11 @@ class OVT_JobManagerComponent: OVT_Component
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_UpdateJob(int index, vector location, int townId, int baseId, int stage, RplId entity)
+	protected void RpcDo_UpdateJob(int index, vector location, int townId, int baseId, int stage, RplId entity, int ownerId, bool accepted)
 	{
+		string persId = "";
+		if(ownerId > -1)
+			persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(ownerId);
 		bool updated = false;
 		foreach(OVT_Job job : m_aJobs)
 		{
@@ -408,6 +426,8 @@ class OVT_JobManagerComponent: OVT_Component
 			{
 				job.stage = stage;
 				job.location = location;
+				job.owner = persId;
+				job.accepted = accepted;
 				updated = true;
 			}
 		}
@@ -421,18 +441,24 @@ class OVT_JobManagerComponent: OVT_Component
 			job.baseId = baseId;
 			job.stage = stage;
 			job.entity = entity;
+			job.owner = persId;
+			job.accepted = accepted;
 			
 			m_aJobs.Insert(job);
 		}
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_RemoveJob(int index, int townId, int baseId)
+	protected void RpcDo_RemoveJob(int index, int townId, int baseId, int ownerId)
 	{
+		string persId = "";
+		if(ownerId > -1)
+			persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(ownerId);
+		
 		OVT_Job foundjob;
 		foreach(OVT_Job job : m_aJobs)
 		{
-			if(job.jobIndex == index && (job.townId == townId || job.baseId == baseId))
+			if(job.jobIndex == index && (job.townId == townId || job.baseId == baseId) && job.owner == persId)
 			{
 				foundjob = job;
 			}

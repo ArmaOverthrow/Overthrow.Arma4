@@ -12,7 +12,7 @@ class OVT_RandomJobCondition : OVT_JobCondition
 	[Attribute("1")]
 	float m_fLowSupportFactor;
 		
-	override bool ShouldStart(OVT_TownData town, OVT_BaseData base)
+	override bool ShouldStart(OVT_TownData town, OVT_BaseData base, int playerId)
 	{
 		float chance = m_fChance;
 		if(town.population < 50) chance *= m_fLowPopulationFactor;

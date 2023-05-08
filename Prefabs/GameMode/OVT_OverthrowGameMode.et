@@ -250,7 +250,7 @@ OVT_OverthrowGameMode {
   }
   OVT_JobManagerComponent "{59A8D178EC1AA2AE}" {
    m_aJobConfigFiles {
-    "{440607BAB7BD6B1C}Configs/Jobs/assassinateTraitor.conf" "{A885604D1141044D}Configs/Jobs/raiseSupport.conf" "{8263088AF3FD648B}Configs/Jobs/baseRecon.conf"
+    "{440607BAB7BD6B1C}Configs/Jobs/assassinateTraitor.conf" "{A885604D1141044D}Configs/Jobs/raiseSupport.conf" "{8263088AF3FD648B}Configs/Jobs/baseRecon.conf" "{A66B34BC59667AE6}Configs/Jobs/findGunDealer.conf"
    }
   }
   OVT_OccupyingFactionManager "{59845E732755785F}" {

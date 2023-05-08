@@ -19,10 +19,7 @@ class OVT_WaitTillDeadJobStage : OVT_JobStage
 			if (!damageManager)
 				return false;
 			
-			if(damageManager.GetState() == EDamageState.DESTROYED){
-				//Find the nearest player
-				playerId = OVT_Global.NearestPlayer(entity.GetOrigin());
-				
+			if(damageManager.GetState() == EDamageState.DESTROYED){				
 				return false;
 			}
 		}else{

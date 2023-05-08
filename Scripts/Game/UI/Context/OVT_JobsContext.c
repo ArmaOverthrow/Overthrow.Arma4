@@ -4,7 +4,8 @@ class OVT_JobsContext : OVT_UIContext
 	ResourceName m_JobLayout;
 	
 	OVT_JobManagerComponent m_JobManager;
-	OVT_JobListEntryHandler m_Selected;
+	OVT_Job m_SelectedJob;
+	OVT_JobConfig m_Selected
 		
 	override void PostInit()
 	{		
@@ -12,7 +13,22 @@ class OVT_JobsContext : OVT_UIContext
 	}
 	
 	override void OnShow()
-	{				
+	{	
+		Widget show = m_wRoot.FindAnyWidget("ShowOnMap");
+		ButtonActionComponent btn = ButtonActionComponent.Cast(show.FindHandler(ButtonActionComponent));
+		
+		btn.GetOnAction().Insert(ShowOnMap);
+		
+		show = m_wRoot.FindAnyWidget("Accept");
+		btn = ButtonActionComponent.Cast(show.FindHandler(ButtonActionComponent));
+		
+		btn.GetOnAction().Insert(Accept);
+		
+		show = m_wRoot.FindAnyWidget("Decline");
+		btn = ButtonActionComponent.Cast(show.FindHandler(ButtonActionComponent));
+		
+		btn.GetOnAction().Insert(Decline);
+					
 		Refresh();		
 	}
 	
@@ -49,14 +65,10 @@ class OVT_JobsContext : OVT_UIContext
 			return;
 		}
 		
-		Widget show = m_wRoot.FindAnyWidget("ShowOnMap");
-		ButtonActionComponent btn = ButtonActionComponent.Cast(show.FindHandler(ButtonActionComponent));
-		
-		btn.GetOnAction().Insert(ShowOnMap);
-		
 		foreach(int i,OVT_Job job : m_JobManager.m_aJobs)
 		{
 			OVT_JobConfig config = m_JobManager.GetConfig(job.jobIndex);
+			if(job.owner != "" && job.owner != m_sPlayerID) continue;
 			
 			Widget w = workspace.CreateWidgets(m_JobLayout, container);
 			
@@ -65,16 +77,28 @@ class OVT_JobsContext : OVT_UIContext
 			handler.Populate(job, config);
 			
 			handler.m_OnClicked.Insert(OnJobClicked);
-			if(!m_Selected)
+			if(!m_SelectedJob)
 			{
 				OnJobClicked(handler);
 			}
 		}
 	}
 	
+	protected void Accept()
+	{
+		OVT_Global.GetJobs().AcceptJob(m_SelectedJob, m_iPlayerID);
+		Refresh();
+		SelectJob(m_SelectedJob);
+	}
+	
+	protected void Decline()
+	{
+	
+	}
+	
 	protected void ShowOnMap()
 	{
-		m_JobManager.m_vCurrentWaypoint = m_Selected.m_Job.location;
+		m_JobManager.m_vCurrentWaypoint = m_SelectedJob.location;
 				
 		CloseLayout();
 		ShowHint("#OVT-Job_AddedWaypoint");
@@ -83,11 +107,27 @@ class OVT_JobsContext : OVT_UIContext
 	protected void OnJobClicked(SCR_ButtonBaseComponent btn)
 	{				
 		OVT_JobListEntryHandler handler = OVT_JobListEntryHandler.Cast(btn);
-		OVT_Job job = handler.m_Job;
-		m_Selected = handler;
+		SelectJob(handler.m_Job);
+	}
+	
+	protected void SelectJob(OVT_Job job)
+	{		
+		m_SelectedJob = job;
+		m_Selected = OVT_Global.GetJobs().GetConfig(job.jobIndex);
+		
+		if(job.accepted)
+		{
+			m_wRoot.FindAnyWidget("ShowOnMap").SetVisible(true);			
+			m_wRoot.FindAnyWidget("Accept").SetVisible(false);
+			m_wRoot.FindAnyWidget("Decline").SetVisible(false);
+		}else{
+			m_wRoot.FindAnyWidget("ShowOnMap").SetVisible(false);			
+			m_wRoot.FindAnyWidget("Accept").SetVisible(true);
+			m_wRoot.FindAnyWidget("Decline").SetVisible(true);
+		}
 		
 		TextWidget title = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedJobName"));
-		title.SetText(handler.m_JobConfig.m_sTitle);
+		title.SetText(m_Selected.m_sTitle);
 		
 		TextWidget location = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedLocation"));
 		if(job.townId == -1)
@@ -100,9 +140,9 @@ class OVT_JobsContext : OVT_UIContext
 		}
 		
 		TextWidget details = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedDetails"));
-		details.SetText("$" + handler.m_JobConfig.m_iReward.ToString());
+		details.SetText("$" + m_Selected.m_iReward.ToString());
 		
 		TextWidget desc = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedDescription"));
-		desc.SetText(handler.m_JobConfig.m_sDescription);
+		desc.SetText(m_Selected.m_sDescription);
 	}
 }

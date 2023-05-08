@@ -111,21 +111,15 @@ FrameWidgetClass {
                  Name "JobCard00"
                  Slot LayoutSlot "{59A8D255EC5826DF}" {
                  }
-                 {
-                 }
                 }
                 ButtonWidgetClass "{59A8D254286EE220}" : "{55AB78EFC69205D2}UI/Layouts/Menu/JobsMenu/JobCard.layout" {
                  Name "JobCard01"
                  Slot LayoutSlot "{59A8D255EC5826DF}" {
                  }
-                 {
-                 }
                 }
                 ButtonWidgetClass "{59A8D25428830A87}" : "{55AB78EFC69205D2}UI/Layouts/Menu/JobsMenu/JobCard.layout" {
                  Name "JobCard02"
                  Slot LayoutSlot "{59A8D255EC5826DF}" {
-                 }
-                 {
                  }
                 }
                }
@@ -178,8 +172,6 @@ FrameWidgetClass {
                        Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
                         Padding 10 10 16 10
                        }
-                       {
-                       }
                       }
                      }
                     }
@@ -212,8 +204,6 @@ FrameWidgetClass {
                        Prefab "{00000000E3602307}"
                        Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
                         Padding 10 10 16 10
-                       }
-                       {
                        }
                       }
                      }
@@ -349,10 +339,10 @@ FrameWidgetClass {
                components {
                 SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
                  m_sLabel "#OVT-Jobs_ShowOnMap"
-                 m_sActionName "OverthrowJobsShow"
+                 m_sActionName "OverthrowJobsShowOnMap"
                 }
                 ButtonActionComponent "{56EEDE0026B19E2C}" {
-                 m_bActionName "OverthrowJobsShow"
+                 m_bActionName "OverthrowJobsShowOnMap"
                 }
                }
                {
@@ -367,7 +357,71 @@ FrameWidgetClass {
                      Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
                       Padding 10 10 16 10
                      }
-                     {
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+              ButtonWidgetClass "{5D5080D2922EEC28}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+               Name "Accept"
+               Slot LayoutSlot "{56EEDE01982D053A}" {
+                Padding 0 0 0 0
+               }
+               components {
+                SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+                 m_sLabel "#OVT-Jobs_Accept"
+                 m_sActionName "OverthrowJobsAccept"
+                }
+                ButtonActionComponent "{56EEDE0026B19E2C}" {
+                 m_bActionName "OverthrowJobsAccept"
+                }
+               }
+               {
+                SizeLayoutWidgetClass "{5562AD435529FB36}" {
+                 Prefab "{5562AD435529FB36}"
+                 {
+                  OverlayWidgetClass "{000000005E70868E}" {
+                   Prefab "{000000005E70868E}"
+                   {
+                    HorizontalLayoutWidgetClass "{00000000E3602307}" {
+                     Prefab "{00000000E3602307}"
+                     Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
+                      Padding 10 10 16 10
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+              ButtonWidgetClass "{5D5080D563FB6EED}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+               Name "Decline"
+               Slot LayoutSlot "{56EEDE01982D053A}" {
+                Padding 0 0 0 0
+               }
+               components {
+                SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+                 m_sLabel "#OVT-Jobs_Decline"
+                 m_sActionName "OverthrowJobsDecline"
+                }
+                ButtonActionComponent "{56EEDE0026B19E2C}" {
+                 m_bActionName "OverthrowJobsDecline"
+                }
+               }
+               {
+                SizeLayoutWidgetClass "{5562AD435529FB36}" {
+                 Prefab "{5562AD435529FB36}"
+                 {
+                  OverlayWidgetClass "{000000005E70868E}" {
+                   Prefab "{000000005E70868E}"
+                   {
+                    HorizontalLayoutWidgetClass "{00000000E3602307}" {
+                     Prefab "{00000000E3602307}"
+                     Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
+                      Padding 10 10 16 10
                      }
                     }
                    }

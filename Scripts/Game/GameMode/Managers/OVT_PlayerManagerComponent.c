@@ -8,6 +8,11 @@ class OVT_PlayerData : Managed
 	vector location;
 	string name;
 	vector camp;
+	
+	bool IsOffline()
+	{
+		return id == -1;
+	}
 }
 
 class OVT_PlayerManagerComponent: OVT_Component

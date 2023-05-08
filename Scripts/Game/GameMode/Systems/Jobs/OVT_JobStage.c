@@ -1,7 +1,5 @@
 class OVT_JobStage : ScriptAndConfig
-{		
-	int playerId = -1;
-	
+{	
 	//return false to go to next stage/end job
 	bool OnStart(OVT_Job job)
 	{

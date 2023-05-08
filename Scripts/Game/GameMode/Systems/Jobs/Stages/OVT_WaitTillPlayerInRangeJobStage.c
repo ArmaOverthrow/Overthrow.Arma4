@@ -5,17 +5,15 @@ class OVT_WaitTillPlayerInRangeJobStage : OVT_JobStage
 	
 	override bool OnTick(OVT_Job job)
 	{
-		if(job.baseId > -1)
-		{
-			OVT_BaseControllerComponent base = job.GetBase();
-			vector pos = base.GetOwner().GetOrigin();
-			playerId = OVT_Global.NearestPlayer(pos);
-			if(OVT_Global.PlayerInRange(pos, m_iRange)) return false;
-		}else{
-			OVT_TownData town = job.GetTown();
-			playerId = OVT_Global.NearestPlayer(town.location);
-			if(OVT_Global.PlayerInRange(town.location, m_iRange)) return false;
-		}
+		if(job.owner == "") return true;
+		
+		OVT_PlayerData playerData = OVT_Global.GetPlayers().GetPlayer(job.owner);
+		if(playerData.IsOffline()) return true;
+		
+		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerData.id);		
+		if(!player) return true;
+		
+		if(vector.Distance(player.GetOrigin(), job.location) <= m_iRange) return false;
 		
 		return true;
 	}

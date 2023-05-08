@@ -365,6 +365,22 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D5080D0358FFA9F}" {
+   Id "OVT-Job_FindGunDealer"
+   Target_en_us "Find a gun dealer"
+   Modified 1565557561
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D5080D03B975F22}" {
+   Id "OVT-Job_FindGunDealerDescription"
+   Target_en_us "Gun dealers are located in the larger towns and cities. They are independant merchants who stock weapons and other illegal items."\
+   ""\
+   "Visit the nearest gun dealer to see what items they have available."
+   Modified 1565558054
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59B518B28C1095CF}" {
    Id "OVT-Job_RaiseSupport"
    Target_en_us "Raise Support"
@@ -383,10 +399,24 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D5080D395D01E22}" {
+   Id "OVT-Jobs_Accept"
+   Target_en_us "Accept"
+   Modified 1565558312
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59AEEB5A77561A7F}" {
    Id "OVT-Jobs_Completed"
    Target_en_us "Job Completed"
    Modified 1504639238
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D5080D2669C4FC6}" {
+   Id "OVT-Jobs_Decline"
+   Target_en_us "Decline"
+   Modified 1565558325
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
