@@ -381,7 +381,8 @@ class OVT_ResistanceFactionManager: OVT_Component
 	
 	//RPC Methods	
 	override bool RplSave(ScriptBitWriter writer)
-	{		
+	{	
+			
 		//Send JIP FOBs
 		writer.WriteInt(m_FOBs.Count()); 
 		for(int i; i<m_FOBs.Count(); i++)
@@ -408,7 +409,8 @@ class OVT_ResistanceFactionManager: OVT_Component
 	}
 	
 	override bool RplLoad(ScriptBitReader reader)
-	{				
+	{		
+				
 		//Recieve JIP FOBs
 		int length;
 		string id;

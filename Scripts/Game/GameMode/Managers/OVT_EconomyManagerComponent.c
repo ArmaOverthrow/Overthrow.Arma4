@@ -818,7 +818,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	
 	override bool RplSave(ScriptBitWriter writer)
-	{
+	{		
 		//Send JIP price list
 		writer.Write(m_mItemCosts.Count(), 32); 
 		for(int i; i<m_mItemCosts.Count(); i++)
@@ -867,6 +867,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	override bool RplLoad(ScriptBitReader reader)
 	{
+		
 		//Recieve JIP price list
 		int length, keylength, price;
 		string playerId;
@@ -899,6 +900,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 			if (!reader.ReadRplId(id)) return false;
 			m_aAllShops.Insert(id);
 		}
+		
 		if (!reader.Read(length, 32)) return false;
 		for(int i; i<length; i++)
 		{	

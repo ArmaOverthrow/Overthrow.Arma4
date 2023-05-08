@@ -5,7 +5,7 @@ class OVT_WarehouseStruct : OVT_BaseSaveStruct
 	string owner;
 	bool isPrivate;
 	bool isLinked;
-	ref map<int,int> inventory;
+	ref array<ref OVT_InventoryStruct> inventory = {};
 	
 	void OVT_WarehouseStruct()
 	{

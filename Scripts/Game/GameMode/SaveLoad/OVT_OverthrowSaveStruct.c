@@ -229,3 +229,14 @@ class OVT_TownStruct : SCR_JsonApiStruct
 		RegV("stabilityModTime");
 	}
 }
+
+class OVT_InventoryStruct : SCR_JsonApiStruct
+{
+	int id;
+	int qty;
+	void OVT_InventoryStruct()
+	{
+		RegV("id");
+		RegV("qty");
+	}
+}

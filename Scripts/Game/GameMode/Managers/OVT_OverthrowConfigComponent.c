@@ -170,18 +170,6 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		return s_Instance;
 	}
 	
-	override void OnPostInit(IEntity owner)
-	{
-		super.OnPostInit(owner);
-		
-		OVT_OverthrowGameMode gameMode = OVT_OverthrowGameMode.Cast(owner);
-		if (!gameMode)
-			// If parent is not gamemode, print an error
-			Print("OVT_OverthrowConfigComponent has to be attached to a OVT_OverthrowGameMode (or inherited) entity!", LogLevel.ERROR);
-			
-		
-	}
-	
 	int GetPlaceableCost(OVT_Placeable placeable)
 	{
 		return Math.Round(m_Difficulty.placeableCostMultiplier * placeable.m_iCost);

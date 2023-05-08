@@ -34,13 +34,22 @@ class OVT_RespawnSystemComponent : SCR_RespawnSystemComponent
 			return null;
 		}	
 		
+		OVT_PlayerManagerComponent pm = OVT_Global.GetPlayers();
+		
 		OVT_RealEstateManagerComponent re = OVT_RealEstateManagerComponent.Cast(gameMode.FindComponent(OVT_RealEstateManagerComponent));
 		if(!re){
 			Print("Real Estate Manager not found. Game Mode entity requires a OVT_RealEstateManagerComponent!");
 			return null;
 		}
 		
-		vector home = re.GetHome(OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId));
+		string persId = pm.GetPersistentIDFromPlayerID(playerId);
+		OVT_PlayerData player = pm.GetPlayer(persId);
+		
+		vector home = re.GetHome(persId);
+		if(player)
+		{
+			home = player.location;
+		}
 		vector spawnPosition = m_Owner.GetOrigin();
 		
 		if(home[0] != 0){

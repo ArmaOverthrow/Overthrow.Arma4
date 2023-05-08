@@ -546,6 +546,7 @@ OVT_OverthrowGameMode {
    m_bLoadSaveInWorkbench 0
   }
   RplComponent "{59724C8C935D8E18}" {
+   Streamable Disabled
   }
  }
  coords 3207.214 1.87 11071.67

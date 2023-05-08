@@ -10,6 +10,7 @@ class OVT_RealEstateStruct : OVT_BaseSaveStruct
 		
 		map<string, OVT_RealEstatePlayerStruct> playerStructs = new map<string, OVT_RealEstatePlayerStruct>;
 		OVT_RealEstateManagerComponent re = OVT_Global.GetRealEstate();
+		OVT_EconomyManagerComponent ec = OVT_Global.GetEconomy();
 		
 		for(int i; i<re.m_mHomes.Count(); i++)
 		{	
@@ -78,7 +79,26 @@ class OVT_RealEstateStruct : OVT_BaseSaveStruct
 			struct.owner = warehouse.owner;
 			struct.isPrivate = warehouse.isPrivate;
 			struct.isLinked = warehouse.isLinked;
-			struct.inventory = warehouse.inventory;
+			struct.inventory = new array<ref OVT_InventoryStruct>;
+			for(int i=0; i<warehouse.inventory.Count(); i++)
+			{
+				int qty = warehouse.inventory.GetElement(i);
+				if(qty < 1) continue;
+				
+				int resourceId = warehouse.inventory.GetKey(i);
+				ResourceName resource = ec.GetResource(resourceId);
+				int res = rdb.Find(resource);
+				if(res == -1)
+				{
+					rdb.Insert(resource);
+					res = rdb.Count() - 1;
+				}
+				OVT_InventoryStruct inv = new OVT_InventoryStruct;
+				inv.id = res;
+				inv.qty = qty;
+				struct.inventory.Insert(inv);
+			}
+			warehouses.Insert(struct);
 		}
 		
 		return true;
@@ -87,6 +107,7 @@ class OVT_RealEstateStruct : OVT_BaseSaveStruct
 	override bool Deserialize()
 	{
 		OVT_RealEstateManagerComponent re = OVT_Global.GetRealEstate();
+		OVT_EconomyManagerComponent ec = OVT_Global.GetEconomy();
 		
 		foreach(OVT_RealEstatePlayerStruct struct : players)
 		{
@@ -124,7 +145,14 @@ class OVT_RealEstateStruct : OVT_BaseSaveStruct
 			warehouse.owner = struct.owner;
 			warehouse.isPrivate = struct.isPrivate;
 			warehouse.isLinked = struct.isLinked;
-			warehouse.inventory = struct.inventory;
+			warehouse.inventory = new map<int,int>;
+			foreach(OVT_InventoryStruct inv : struct.inventory)
+			{
+				int resourceId = inv.id;
+				ResourceName resource = rdb[resourceId];
+				int res = ec.GetInventoryId(resource);
+				warehouse.inventory[res] = inv.qty;
+			}
 			re.m_aWarehouses.Insert(warehouse);
 		}
 		

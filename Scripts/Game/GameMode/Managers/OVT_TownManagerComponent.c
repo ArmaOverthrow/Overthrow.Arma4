@@ -719,7 +719,8 @@ class OVT_TownManagerComponent: OVT_Component
 	//RPC Methods
 	
 	override bool RplSave(ScriptBitWriter writer)
-	{		
+	{	
+			
 		//Send JIP towns
 		writer.Write(m_Towns.Count(),32); 
 		for(int i; i<m_Towns.Count(); i++)
@@ -760,7 +761,8 @@ class OVT_TownManagerComponent: OVT_Component
 	}
 	
 	override bool RplLoad(ScriptBitReader reader)
-	{				
+	{		
+				
 		//Recieve JIP towns
 		int length, modlength, mod;
 		

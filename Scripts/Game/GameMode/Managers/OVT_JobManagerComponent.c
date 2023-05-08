@@ -358,6 +358,7 @@ class OVT_JobManagerComponent: OVT_Component
 	
 	override bool RplSave(ScriptBitWriter writer)
 	{		
+		
 		//Send JIP active jobs
 		writer.Write(m_aJobs.Count(), 32); 
 		for(int i; i<m_aJobs.Count(); i++)
@@ -375,7 +376,8 @@ class OVT_JobManagerComponent: OVT_Component
 	}
 	
 	override bool RplLoad(ScriptBitReader reader)
-	{				
+	{	
+					
 		//Recieve JIP active jobs
 		int length;
 		

@@ -119,6 +119,18 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		rpl.Give(playerRplID);
 	}
 	
+	protected override void OnPlayerKilled(int playerId, IEntity player, IEntity killer)
+	{
+		super.OnPlayerKilled(playerId, player, killer);
+		
+		string persId = m_PlayerManager.GetPersistentIDFromPlayerID(playerId);
+		OVT_PlayerData playerData = m_PlayerManager.GetPlayer(persId);
+		if(playerData)
+		{
+			playerData.location = OVT_Global.GetRealEstate().GetHome(persId);
+		}
+	}
+	
 	protected override void OnPlayerDisconnected(int playerId, KickCauseCode cause, int timeout)
 	{
 		string persId = m_PlayerManager.GetPersistentIDFromPlayerID(playerId);
@@ -134,7 +146,10 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			}
 		}
 		
-		m_aInitializedPlayers.Remove(m_aInitializedPlayers.Find(persId));
+		int i = m_aInitializedPlayers.Find(persId);
+		
+		if(i > -1)
+			m_aInitializedPlayers.Remove(i);
 		
 		super.OnPlayerDisconnected(playerId, cause, timeout);
 	}
@@ -188,6 +203,10 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 				IEntity house = m_TownManager.GetNearestStartingHouse(controlledEntity.GetOrigin());
 				m_RealEstate.SetOwner(playerId, house);
 				m_RealEstate.SetHome(playerId, house);
+				OVT_PlayerData player = m_PlayerManager.GetPlayer(persistentId);
+				if(player){
+					player.location = house.GetOrigin();
+				}
 				
 				Print("Spawning car for player " + playerId);
 				m_VehicleManager.SpawnStartingCar(house, persistentId);

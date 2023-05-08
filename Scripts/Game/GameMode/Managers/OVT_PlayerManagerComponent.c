@@ -162,10 +162,19 @@ class OVT_PlayerManagerComponent: OVT_Component
 	
 	void RegisterPlayer(int playerId, string persistentId)
 	{
-		m_mPersistentIDs[playerId] = persistentId;
-		m_mPlayerIDs[persistentId] = playerId;
+		SetupPlayer(playerId, persistentId);
 		
 		m_OnPlayerRegistered.Invoke(playerId, persistentId);
+		
+		int id1, id2, id3;
+		EncodeIDAsInts(persistentId, id1, id2, id3);
+		Rpc(RpcDo_RegisterPlayer, playerId, id1, id2, id3);		
+	}
+	
+	void SetupPlayer(int playerId, string persistentId)
+	{
+		m_mPersistentIDs[playerId] = persistentId;
+		m_mPlayerIDs[persistentId] = playerId;
 		
 		OVT_PlayerData player = GetPlayer(persistentId);		
 		IEntity playerEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
@@ -177,12 +186,8 @@ class OVT_PlayerManagerComponent: OVT_Component
 		}
 		
 		player.name = GetGame().GetPlayerManager().GetPlayerName(playerId);
-		player.location = playerEntity.GetOrigin();
-		player.id = playerId;
 		
-		int id1, id2, id3;
-		EncodeIDAsInts(persistentId, id1, id2, id3);
-		Rpc(RpcDo_RegisterPlayer, playerId, id1, id2, id3);		
+		player.id = playerId;
 	}
 	
 	void TeleportPlayer(int playerId, vector pos)
@@ -200,7 +205,6 @@ class OVT_PlayerManagerComponent: OVT_Component
 	
 	override bool RplSave(ScriptBitWriter writer)
 	{
-		super.RplSave(writer);
 		
 		//Send JIP ids
 		writer.Write(m_mPersistentIDs.Count(), 32); 
@@ -215,6 +219,7 @@ class OVT_PlayerManagerComponent: OVT_Component
 	
 	override bool RplLoad(ScriptBitReader reader)
 	{		
+		
 		//Recieve JIP ids
 		int length, playerId;
 		string persId;
@@ -225,23 +230,7 @@ class OVT_PlayerManagerComponent: OVT_Component
 			if (!reader.Read(playerId, 32)) return false;		
 			if (!RPL_ReadPlayerID(reader, persId)) return false;
 			
-			m_mPersistentIDs[playerId] = persId;
-			m_mPlayerIDs[persId] = playerId;
-			
-			OVT_PlayerData player = GetPlayer(persId);		
-			IEntity playerEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
-						
-			if(!player)
-			{
-				player = new OVT_PlayerData;
-				m_mPlayers[persId] = player;		
-			}
-			
-			if(!playerEntity) continue;
-		
-			player.name = GetGame().GetPlayerManager().GetPlayerName(playerId);
-			player.location = playerEntity.GetOrigin();
-			player.id = playerId;
+			SetupPlayer(playerId, persId);		
 		}
 		return true;
 	}
@@ -263,8 +252,9 @@ class OVT_PlayerManagerComponent: OVT_Component
 		string s = "" + id1;
 		if(id2 > -1) s += id2.ToString();
 		if(id3 > -1) s += id3.ToString();
-		m_mPersistentIDs[playerId] = s;
-		m_mPlayerIDs[s] = playerId;
+		SetupPlayer(playerId, s);
+		
+		m_OnPlayerRegistered.Invoke(playerId, s);
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]

@@ -54,8 +54,17 @@ class OVT_ResistanceFactionStruct : OVT_BaseSaveStruct
 			OVT_PlayerData player = playerMgr.m_mPlayers.GetElement(i);
 			string persId = playerMgr.m_mPlayers.GetKey(i);
 			OVT_PlayerStruct struct = new OVT_PlayerStruct();
-			struct.id = persId;
-			struct.pos = player.location;
+			if(player.id > -1)
+			{				
+				IEntity controlledEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(player.id);
+				if(controlledEntity)
+				{
+					struct.pos = controlledEntity.GetOrigin();
+				}
+			}else{
+				struct.pos = player.location;
+			}
+			struct.id = persId;			
 			struct.camp = player.camp;
 			
 			players.Insert(struct);
@@ -206,7 +215,7 @@ class OVT_PlayerStruct : SCR_JsonApiStruct
 	vector pos;
 	vector camp;
 	
-	void OVT_PlayerLocationStruct()
+	void OVT_PlayerStruct()
 	{		
 		RegV("id");
 		RegV("pos");

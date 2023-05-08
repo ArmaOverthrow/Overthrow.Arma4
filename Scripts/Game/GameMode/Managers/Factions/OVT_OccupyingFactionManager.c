@@ -607,7 +607,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 	//RPC Methods
 	
 	override bool RplSave(ScriptBitWriter writer)
-	{		
+	{
+				
 		//Send JIP bases
 		writer.Write(m_Bases.Count(), 32); 
 		for(int i; i<m_Bases.Count(); i++)
@@ -628,7 +629,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 	}
 	
 	override bool RplLoad(ScriptBitReader reader)
-	{			
+	{		
+			
 		//Recieve JIP bases
 		int length;
 		RplId id;

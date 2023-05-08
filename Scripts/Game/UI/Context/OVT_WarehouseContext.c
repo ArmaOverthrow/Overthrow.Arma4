@@ -15,6 +15,14 @@ class OVT_WarehouseContext : OVT_UIContext
 		ButtonActionComponent action = ButtonActionComponent.Cast(take1.FindHandler(ButtonActionComponent));		
 		action.GetOnAction().Insert(TakeOne);
 		
+		Widget take10 = m_wRoot.FindAnyWidget("Take10Button");
+		action = ButtonActionComponent.Cast(take10.FindHandler(ButtonActionComponent));		
+		action.GetOnAction().Insert(TakeTen);
+		
+		Widget take100 = m_wRoot.FindAnyWidget("Take100Button");
+		action = ButtonActionComponent.Cast(take100.FindHandler(ButtonActionComponent));		
+		action.GetOnAction().Insert(TakeHundred);
+		
 		Refresh();		
 	}
 	

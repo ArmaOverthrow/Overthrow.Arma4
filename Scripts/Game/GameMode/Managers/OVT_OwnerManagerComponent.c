@@ -142,6 +142,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 	
 	override bool RplSave(ScriptBitWriter writer)
 	{		
+		
 		//Send JIP owned
 		writer.Write(m_mOwned.Count(), 32); 
 		for(int i; i<m_mOwned.Count(); i++)
@@ -173,6 +174,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 	
 	override bool RplLoad(ScriptBitReader reader)
 	{	
+		
 		int length, ownedlength;
 		string playerId;
 		RplId id;
