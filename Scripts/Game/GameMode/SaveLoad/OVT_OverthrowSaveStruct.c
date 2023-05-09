@@ -20,6 +20,9 @@ class OVT_OverthrowSaveStruct : SCR_MissionStruct
 	[Attribute()]
 	protected ref OVT_ResistanceFactionStruct resistance;
 	
+	[Attribute()]
+	protected ref OVT_JobsStruct jobs;
+	
 	ref array<string> rdb = {};
 	
 	protected string occupyingFaction;
@@ -57,6 +60,11 @@ class OVT_OverthrowSaveStruct : SCR_MissionStruct
 			resistance.rdb = rdb;
 			if(!resistance.Serialize()) return false;
 		}
+		if(jobs)
+		{
+			jobs.rdb = rdb;
+			if(!jobs.Serialize()) return false;
+		}		
 
 		
 		TimeAndWeatherManagerEntity timeMgr = GetGame().GetTimeAndWeatherManager();
@@ -184,6 +192,7 @@ class OVT_OverthrowSaveStruct : SCR_MissionStruct
 		RegV("occupying");
 		RegV("resistance");
 		RegV("occupyingFaction");
+		RegV("jobs");
 		RegV("towns");
 		RegV("time");
 	}
@@ -238,5 +247,27 @@ class OVT_InventoryStruct : SCR_JsonApiStruct
 	{
 		RegV("id");
 		RegV("qty");
+	}
+}
+
+class OVT_IDMapStruct : SCR_JsonApiStruct
+{
+	int id;
+	ref set<int> ids;
+	void OVT_IDMapStruct()
+	{
+		RegV("id");
+		RegV("ids");
+	}
+}
+
+class OVT_PlayerIDIntMapStruct : SCR_JsonApiStruct
+{
+	string id;
+	ref array<ref OVT_InventoryStruct> ids = {};
+	void OVT_IDMapStruct()
+	{
+		RegV("id");
+		RegV("ids");
 	}
 }

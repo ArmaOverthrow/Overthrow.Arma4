@@ -68,7 +68,8 @@ class OVT_JobsContext : OVT_UIContext
 		foreach(int i,OVT_Job job : m_JobManager.m_aJobs)
 		{
 			OVT_JobConfig config = m_JobManager.GetConfig(job.jobIndex);
-			if(job.owner != "" && job.owner != m_sPlayerID) continue;
+			if(job.owner != "" && job.owner != m_sPlayerID) continue;			
+			if(job.declined.Contains(m_sPlayerID)) continue;
 			
 			Widget w = workspace.CreateWidgets(m_JobLayout, container);
 			
@@ -93,7 +94,9 @@ class OVT_JobsContext : OVT_UIContext
 	
 	protected void Decline()
 	{
-	
+		OVT_Global.GetJobs().DeclineJob(m_SelectedJob, m_iPlayerID);
+		m_SelectedJob = null;
+		Refresh();
 	}
 	
 	protected void ShowOnMap()

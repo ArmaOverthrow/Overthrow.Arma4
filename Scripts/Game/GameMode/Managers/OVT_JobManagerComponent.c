@@ -13,6 +13,7 @@ class OVT_Job
 	RplId entity;
 	string owner;
 	bool accepted;
+	ref array<string> declined;
 	
 	OVT_TownData GetTown()
 	{
@@ -95,6 +96,35 @@ class OVT_JobManagerComponent: OVT_Component
 			OVT_Global.GetServer().AcceptJob(job, playerId);
 		}else{
 			StreamJobUpdate(job);
+		}
+	}
+	
+	void DeclineJob(OVT_Job job, int playerId)
+	{			
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		OVT_JobConfig config = GetConfig(job.jobIndex);
+		
+		if(!config.m_bPublic)
+		{
+			m_aJobs.Remove(m_aJobs.Find(job));
+		}else{
+			job.declined.Insert(persId);
+		}		
+		if(!Replication.IsServer())
+		{
+			OVT_Global.GetServer().DeclineJob(job, playerId);
+		}
+	}
+	
+	void RunJobToCurrentStage(OVT_Job job)
+	{
+		OVT_JobConfig config = GetConfig(job.jobIndex);
+		for(int i=0; i<job.stage; i++)
+		{
+			OVT_JobStageConfig stage = config.m_aStages[i];
+			stage.m_Handler.OnStart(job);
+			stage.m_Handler.OnTick(job);
+			stage.m_Handler.OnEnd(job);
 		}
 	}
 	
@@ -380,7 +410,12 @@ class OVT_JobManagerComponent: OVT_Component
 			writer.Write(job.stage, 32);
 			writer.WriteRplId(job.entity);	
 			RPL_WritePlayerID(writer, job.owner);
-			writer.WriteBool(job.accepted);		
+			writer.WriteBool(job.accepted);	
+			writer.Write(job.declined.Count(),32);
+			for(int t; t<job.declined.Count(); t++)
+			{
+				RPL_WritePlayerID(writer, job.declined[t]);
+			}
 		}
 		
 		return true;
@@ -390,7 +425,7 @@ class OVT_JobManagerComponent: OVT_Component
 	{	
 					
 		//Recieve JIP active jobs
-		int length;
+		int length, declength;
 		string persId;
 		
 		if (!reader.Read(length, 32)) return false;
@@ -407,6 +442,12 @@ class OVT_JobManagerComponent: OVT_Component
 			if (!RPL_ReadPlayerID(reader, persId)) return false;
 			job.owner = persId;
 			if(!reader.ReadBool(job.accepted)) return false;
+			if(!reader.Read(declength,32)) return false;
+			for(int t; t<declength; t++)
+			{
+				if(!RPL_ReadPlayerID(reader, persId)) return false;
+				job.declined.Insert(persId);
+			}
 						
 			m_aJobs.Insert(job);
 		}

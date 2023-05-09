@@ -439,5 +439,30 @@ class OVT_PlayerCommsEntity: GenericEntity
 			}
 		}
 	}
+	void DeclineJob(OVT_Job job, int playerId)	
+	{		
+		Rpc(RpcAsk_DeclineJob, job.jobIndex, job.townId, job.baseId, playerId);
+	}
 	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	void RpcAsk_DeclineJob(int jobIndex, int townId, int baseId, int playerId)	
+	{
+		OVT_JobManagerComponent jobs = OVT_Global.GetJobs();
+		OVT_JobConfig config = jobs.GetConfig(jobIndex);
+		foreach(OVT_Job job : jobs.m_aJobs)
+		{
+			if(job.jobIndex != jobIndex) continue;
+			if(config.m_bPublic)
+			{
+				if(job.townId == townId && job.baseId == baseId) {
+					jobs.DeclineJob(job, playerId);
+				}
+			}else{
+				string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+				if(job.owner == persId && job.townId == townId && job.baseId == baseId) {
+					jobs.DeclineJob(job, playerId);
+				}
+			}
+		}
+	}
 }
