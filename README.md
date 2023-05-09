@@ -1,4 +1,14 @@
-![Overthrow](https://github.com/ArmaOverthrow/Overthrow.Arma4/blob/main/UI/Textures/logo_overthrow.png?raw=true)
+<div align="center">
+<picture>  
+  <img alt="Everon Life" width="400" src="https://github.com/ArmaOverthrow/Overthrow.Arma4/blob/main/UI/Textures/logo_overthrow.png?raw=true">
+</picture>
+<br/><br/>
+
+[![Releases](https://img.shields.io/github/v/release/ArmaOverthrow/Overthrow.Arma4)](https://github.com/ArmaOverthrow/Overthrow.Arma4/releases)
+[![Contributors](https://img.shields.io/github/contributors/ArmaOverthrow/Overthrow.Arma4)](https://github.com/ArmaOverthrow/Overthrow.Arma4/graphs/contributors)
+[![Discord](https://img.shields.io/discord/241062829963214848?label=discord)](https://discord.gg/j6CvmFfZ95)
+[![License MIT](https://img.shields.io/badge/License-MIT-green)](https://opensource.org/licenses/MIT)
+</div>
 
 # Overthrow
 A dynamic and persistent revolution platform for Arma Reforger (and eventually Arma 4)
