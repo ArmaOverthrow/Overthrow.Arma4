@@ -14,7 +14,7 @@ modded class SCR_SaveLoadComponent
 				m_sFileName = missionHeader.GetSaveFileName();
 			
 				//--- Saving is disabled, terminate
-				if (!missionHeader.IsSavingEnabled())
+				if (!missionHeader.m_bIsSavingEnabled)
 					return;
 				
 				load = IsLoadOnStart(missionHeader);

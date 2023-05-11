@@ -130,7 +130,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		m_Players = OVT_Global.GetPlayers();
 	}
 	
-	void OVT_ResistanceFactionManager()
+	void OVT_ResistanceFactionManager(IEntityComponentSource src, IEntity ent, IEntity parent)
 	{
 		m_FOBs = new array<vector>;	
 		m_Placed = new array<EntityID>;	

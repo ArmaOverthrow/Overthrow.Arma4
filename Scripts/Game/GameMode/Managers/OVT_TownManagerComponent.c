@@ -88,7 +88,7 @@ class OVT_TownManagerComponent: OVT_Component
 		return s_Instance;
 	}
 	
-	void OVT_TownManagerComponent()
+	void OVT_TownManagerComponent(IEntityComponentSource src, IEntity ent, IEntity parent)
 	{
 		m_Towns = new array<ref OVT_TownData>;
 		m_TownNames = new array<ref string>;

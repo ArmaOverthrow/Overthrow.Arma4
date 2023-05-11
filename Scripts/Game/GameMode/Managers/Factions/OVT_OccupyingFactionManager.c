@@ -92,7 +92,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		return s_Instance;
 	}
 	
-	void OVT_OccupyingFactionManager()
+	void OVT_OccupyingFactionManager(IEntityComponentSource src, IEntity ent, IEntity parent)
 	{
 		m_Bases = new array<ref OVT_BaseData>;	
 		m_BasesToSpawn = new array<ref vector>;	

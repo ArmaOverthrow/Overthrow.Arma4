@@ -71,7 +71,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return s_Instance;
 	}
 	
-	void OVT_EconomyManagerComponent()
+	void OVT_EconomyManagerComponent(IEntityComponentSource src, IEntity ent, IEntity parent)
 	{
 		m_aAllShops = new array<RplId>;	
 		m_aAllPorts = new array<RplId>;
@@ -668,9 +668,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 		foreach(Faction faction : factions)
 		{
 			OVT_Faction fac = OVT_Faction.Cast(faction);
-			array<ref SCR_ArsenalItem> items = new array<ref SCR_ArsenalItem>;
+			array<ref SCR_ArsenalItemStandalone> items = new array<ref SCR_ArsenalItemStandalone>;
 			fac.GetAllArsenalItems(items);
-			foreach(SCR_ArsenalItem item : items) 
+			foreach(SCR_ArsenalItemStandalone item : items) 
 			{
 				ResourceName res = item.GetItemResourceName();
 				if(!m_aResources.Contains(res))

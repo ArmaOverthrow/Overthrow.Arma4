@@ -36,7 +36,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		return s_Instance;
 	}
 	
-	void OVT_RealEstateManagerComponent()
+	void OVT_RealEstateManagerComponent(IEntityComponentSource src, IEntity ent, IEntity parent)
 	{
 		m_mHomes = new map<string, ref vector>;
 		m_aEntitySearch = new array<IEntity>;

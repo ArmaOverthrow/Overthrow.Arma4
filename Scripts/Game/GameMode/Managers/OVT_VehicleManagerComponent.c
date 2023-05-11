@@ -29,7 +29,7 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 		return s_Instance;
 	}
 	
-	void OVT_VehicleManagerComponent()
+	void OVT_VehicleManagerComponent(IEntityComponentSource src, IEntity ent, IEntity parent)
 	{		
 		m_aAllVehicleShops = new array<EntityID>;	
 		m_aEntitySearch = new array<EntityID>;

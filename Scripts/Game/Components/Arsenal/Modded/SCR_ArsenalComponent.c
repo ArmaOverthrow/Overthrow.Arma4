@@ -13,7 +13,7 @@ modded class SCR_ArsenalComponent : ScriptComponent
 			return;
 		}
 		
-		InsertItem(Resource.Load(entity.GetPrefabData().GetPrefabName()));
+		InsertItem(entity.GetPrefabData().GetPrefabName());
 	}
 	
 	

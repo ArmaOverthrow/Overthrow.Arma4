@@ -541,6 +541,8 @@ OVT_OverthrowGameMode {
     }
     resistance OVT_ResistanceFactionStruct "{59C2E62113AC9CEF}" {
     }
+    jobs OVT_JobsStruct "{5D5096191D6AB686}" {
+    }
    }
    m_iAutosavePeriod 600
    m_bLoadSaveInWorkbench 0

@@ -113,14 +113,14 @@ class OVT_Faction : SCR_Faction
 		}
 	}
 	
-	bool GetAllArsenalItems(out array<ref SCR_ArsenalItem> arsenalItems)
+	bool GetAllArsenalItems(out array<ref SCR_ArsenalItemStandalone> arsenalItems)
 	{		
 		if(m_aArsenalConfigs.Count() == 0) LoadArsenalConfigs();
 		foreach(SCR_ArsenalItemListConfig config : m_aArsenalConfigs)
 		{
-			array<ref SCR_ArsenalItem> items = new array<ref SCR_ArsenalItem>;
+			array<ref SCR_ArsenalItemStandalone> items = new array<ref SCR_ArsenalItemStandalone>;
 			config.GetArsenalItems(items);
-			foreach(SCR_ArsenalItem item : items)
+			foreach(SCR_ArsenalItemStandalone item : items)
 			{
 				if(item.GetItemResourceName() == "") continue;
 				arsenalItems.Insert(item);

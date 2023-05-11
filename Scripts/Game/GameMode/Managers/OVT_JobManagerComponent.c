@@ -60,7 +60,7 @@ class OVT_JobManagerComponent: OVT_Component
 		return s_Instance;
 	}
 	
-	void OVT_JobManagerComponent()
+	void OVT_JobManagerComponent(IEntityComponentSource src, IEntity ent, IEntity parent)
 	{
 		m_aJobConfigs = new array<ref OVT_JobConfig>;
 		m_aGlobalJobs = new set<int>;	
