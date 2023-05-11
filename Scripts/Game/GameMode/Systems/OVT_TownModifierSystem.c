@@ -72,7 +72,8 @@ class OVT_TownModifierSystem : ScriptAndConfig
 			}
 			if(!remove) {
 				rebuild.Insert(index);
-				rebuildtimers.Insert(modifierTimers[i]);
+				rebuildtimers.Insert(modifierTimers[i]);				
+			}else{
 				recalc = true;
 			}
 		}
