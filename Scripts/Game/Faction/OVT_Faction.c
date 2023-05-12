@@ -84,46 +84,45 @@ class OVT_Faction : SCR_Faction
 	ResourceName m_aLargeCheckpointPrefab;
 	
 	[Attribute()]
-	ref array<ResourceName> m_aArsenalConfigFiles;
+	ref array<ResourceName> m_aInventoryConfigFiles;
 	
-	ref array<ref SCR_ArsenalItemListConfig> m_aArsenalConfigs;
+	ref array<ref SCR_EntityCatalogMultiList> m_aInventoryConfigs;
 	
 	[Attribute()]
 	ref OVT_FactionCompositionConfig m_aCompositionConfig;
 	
 	void OVT_Faction()
 	{
-		m_aArsenalConfigs = new array<ref SCR_ArsenalItemListConfig>;		
+		m_aInventoryConfigs = new array<ref SCR_EntityCatalogMultiList>;		
 	}
 	
 	void LoadArsenalConfigs()
 	{
-		if(!m_aArsenalConfigFiles) return;
-		foreach(ResourceName res : m_aArsenalConfigFiles)
+		if(!m_aInventoryConfigFiles) return;
+		foreach(ResourceName res : m_aInventoryConfigFiles)
 		{
 			Resource holder = BaseContainerTools.LoadContainer(res);
 			if (holder)		
 			{
-				SCR_ArsenalItemListConfig obj = SCR_ArsenalItemListConfig.Cast(BaseContainerTools.CreateInstanceFromContainer(holder.GetResource().ToBaseContainer()));
+				SCR_EntityCatalogMultiList obj = SCR_EntityCatalogMultiList.Cast(BaseContainerTools.CreateInstanceFromContainer(holder.GetResource().ToBaseContainer()));
 				if(obj)
 				{
-					m_aArsenalConfigs.Insert(obj);
+					m_aInventoryConfigs.Insert(obj);
 				}
 			}
 		}
 	}
 	
-	bool GetAllArsenalItems(out array<ref SCR_ArsenalItemStandalone> arsenalItems)
+	bool GetAllInventoryItems(out array<SCR_EntityCatalogEntry> inventoryItems)
 	{		
-		if(m_aArsenalConfigs.Count() == 0) LoadArsenalConfigs();
-		foreach(SCR_ArsenalItemListConfig config : m_aArsenalConfigs)
+		if(m_aInventoryConfigs.Count() == 0) LoadArsenalConfigs();
+		foreach(SCR_EntityCatalogMultiList config : m_aInventoryConfigs)
 		{
-			array<ref SCR_ArsenalItemStandalone> items = new array<ref SCR_ArsenalItemStandalone>;
-			config.GetArsenalItems(items);
-			foreach(SCR_ArsenalItemStandalone item : items)
-			{
-				if(item.GetItemResourceName() == "") continue;
-				arsenalItems.Insert(item);
+			array<SCR_EntityCatalogEntry> items = new array<SCR_EntityCatalogEntry>;
+			config.GetEntityList(items);
+			foreach(SCR_EntityCatalogEntry item : items)
+			{				
+				inventoryItems.Insert(item);
 			}
 		}
 		return true;

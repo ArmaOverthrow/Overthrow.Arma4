@@ -49,14 +49,17 @@ class OVT_JobsStruct : OVT_BaseSaveStruct
 		{
 			OVT_PlayerIDIntMapStruct struct = new OVT_PlayerIDIntMapStruct;			
 			struct.id = jm.m_mPlayerJobCounts.GetKey(i);
-			for(int t = 0; t < jm.m_mPlayerJobCounts.GetElement(i).Count(); t++)
-			{
-				OVT_InventoryStruct s = new OVT_InventoryStruct;
-				s.id = jm.m_mPlayerJobCounts.GetElement(t).GetKey(t);
-				s.qty = jm.m_mPlayerJobCounts.GetElement(t).GetElement(t);
-				struct.ids.Insert(s);
+			map<int,int> counts = jm.m_mPlayerJobCounts.GetElement(i);
+			if(counts){
+				for(int t = 0; t < counts.Count(); t++)
+				{
+					OVT_InventoryStruct s = new OVT_InventoryStruct;
+					s.id = jm.m_mPlayerJobCounts.GetElement(t).GetKey(t);
+					s.qty = jm.m_mPlayerJobCounts.GetElement(t).GetElement(t);
+					struct.ids.Insert(s);
+				}
+				players.Insert(struct);
 			}
-			players.Insert(struct);
 		}
 		
 		return true;

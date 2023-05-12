@@ -10,6 +10,9 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	[Attribute()]
 	ResourceName m_PlayerCommsPrefab;
 	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Start Camera Prefab", params: "et")]
+	ResourceName m_StartCameraPrefab;
+	
 	protected OVT_OverthrowConfigComponent m_Config;
 	protected OVT_TownManagerComponent m_TownManager;
 	protected OVT_OccupyingFactionManager m_OccupyingFactionManager;
@@ -28,6 +31,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	ref map<string, EntityID> m_mPlayerGroups;
 	
 	protected bool m_bGameInitialized = false;
+	protected bool m_bCameraSet = false;
 			
 	bool IsInitialized()
 	{
@@ -95,6 +99,11 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		{
 			m_EconomyManager.DoAddPlayerMoney(SCR_PlayerController.GetLocalPlayerId(),1000);
 			DiagMenu.SetValue(200,0);
+		}
+		
+		if(!(IsMaster() && RplSession.Mode() == RplMode.Dedicated) && !m_bCameraSet)
+		{
+			SetRandomCameraPosition();
 		}
 		
 		if(m_bGameInitialized) return;
@@ -238,6 +247,29 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		}
 	}
 	
+	protected void SetRandomCameraPosition()
+	{
+		CameraManager cameraMgr = GetGame().GetCameraManager();
+		if(!cameraMgr) return;
+		BaseWorld world = GetGame().GetWorld();
+		
+		int cameraIndex = s_AIRandomGenerator.RandInt(0, m_Config.m_aCameraPositions.Count()-1);
+		OVT_CameraPosition pos = m_Config.m_aCameraPositions[cameraIndex];
+		
+		EntitySpawnParams params = EntitySpawnParams();
+		params.TransformMode = ETransformMode.WORLD;		
+		params.Transform[3] = pos.position;
+						
+		IEntity cam = GetGame().SpawnEntityPrefabLocal(Resource.Load(m_StartCameraPrefab),null,params);
+		if(cam)
+		{			
+			CameraBase camera = CameraBase.Cast(cam);
+			camera.SetAngles(pos.angles);
+			cameraMgr.SetCamera(camera);
+			m_bCameraSet = true;
+		}		
+	}
+	
 	override void EOnInit(IEntity owner) //!EntityEvent.INIT
 	{
 		super.EOnInit(owner);
@@ -247,7 +279,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		
 		if(SCR_Global.IsEditMode())
 			return;		
-				
+								
 		Print("Initializing Overthrow");
 		
 		m_Config = OVT_Global.GetConfig();				

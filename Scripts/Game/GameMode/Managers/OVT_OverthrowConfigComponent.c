@@ -20,6 +20,15 @@ enum OVT_PatrolType {
 	PERIMETER	
 }
 
+class OVT_CameraPosition : ScriptAndConfig
+{
+	[Attribute("0 0 0", UIWidgets.Coords)]
+	vector position;
+	
+	[Attribute("0 0 0", UIWidgets.Coords)]
+	vector angles;
+}
+
 class OVT_DifficultySettings : ScriptAndConfig
 {	
 	[Attribute()]
@@ -85,6 +94,9 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	
 	[Attribute( defvalue: "US", uiwidget: UIWidgets.EditBox, desc: "The faction supporting the player", category: "Factions")]
 	string m_sSupportingFaction;
+	
+	[Attribute("", UIWidgets.Object)]
+	ref array<ref OVT_CameraPosition> m_aCameraPositions;
 	
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Town Controller Prefab", params: "et", category: "Controllers")]
 	ResourceName m_pTownControllerPrefab;

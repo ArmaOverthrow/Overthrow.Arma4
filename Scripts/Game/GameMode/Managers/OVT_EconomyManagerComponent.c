@@ -668,11 +668,12 @@ class OVT_EconomyManagerComponent: OVT_Component
 		foreach(Faction faction : factions)
 		{
 			OVT_Faction fac = OVT_Faction.Cast(faction);
-			array<ref SCR_ArsenalItemStandalone> items = new array<ref SCR_ArsenalItemStandalone>;
-			fac.GetAllArsenalItems(items);
-			foreach(SCR_ArsenalItemStandalone item : items) 
+			array<SCR_EntityCatalogEntry> items = new array<SCR_EntityCatalogEntry>;
+			fac.GetAllInventoryItems(items);
+			foreach(SCR_EntityCatalogEntry item : items) 
 			{
-				ResourceName res = item.GetItemResourceName();
+				ResourceName res = item.GetPrefab();
+				if(res == "") continue;
 				if(!m_aResources.Contains(res))
 				{
 					m_aResources.Insert(res);

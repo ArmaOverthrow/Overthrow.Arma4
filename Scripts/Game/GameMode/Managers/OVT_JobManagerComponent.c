@@ -13,7 +13,7 @@ class OVT_Job
 	RplId entity;
 	string owner;
 	bool accepted;
-	ref array<string> declined;
+	ref array<string> declined = {};
 	
 	OVT_TownData GetTown()
 	{
@@ -185,10 +185,12 @@ class OVT_JobManagerComponent: OVT_Component
 										
 					remove.Insert(job);
 					if(config.flags & OVT_JobFlags.GLOBAL_UNIQUE) m_aGlobalJobs.Remove(m_aGlobalJobs.Find(job.jobIndex));
-					if(job.townId > -1)
+					if(job.townId > -1 && m_aTownJobs.Contains(job.townId) && m_aTownJobs[job.townId].Contains(job.jobIndex)){
 						m_aTownJobs[job.townId].Remove(m_aTownJobs[job.townId].Find(job.jobIndex));
-					if(job.baseId > -1)
+					}
+					if(job.baseId > -1 && m_aBaseJobs.Contains(job.baseId) && m_aBaseJobs[job.baseId].Contains(job.jobIndex)){
 						m_aBaseJobs[job.baseId].Remove(m_aBaseJobs[job.baseId].Find(job.jobIndex));
+					}
 					Rpc(RpcDo_RemoveJob, job.jobIndex, job.townId, job.baseId, ownerId);
 					
 					break;
