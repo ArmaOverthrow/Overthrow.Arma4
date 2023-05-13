@@ -29,6 +29,7 @@ class OVT_ResistanceFactionStruct : OVT_BaseSaveStruct
 		foreach(vector p : rf.m_FOBs)
 		{
 			OVT_VectorStruct struct = new OVT_VectorStruct();
+			struct.pos = p;
 			fobs.Insert(struct);
 		}
 		
