@@ -80,6 +80,13 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			m_OccupyingFactionManager.PostGameStart();
 		}	
 		
+		if(m_ResistanceFactionManager)
+		{
+			Print("Starting Resistance Faction");
+			
+			m_ResistanceFactionManager.PostGameStart();
+		}	
+		
 		if(m_JobManager)
 		{
 			Print("Starting Jobs");

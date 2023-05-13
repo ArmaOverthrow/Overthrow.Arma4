@@ -150,6 +150,14 @@ class OVT_PlaceContext : OVT_UIContext
 				return false;
 			}
 			
+			vector fob = m_Resistance.GetNearestFOB(pos);		
+			dist = vector.Distance(fob, pos);
+			if(dist < 250)
+			{
+				reason = "#OVT-TooCloseFOB";
+				return false;
+			}
+			
 			return true;
 		}
 		

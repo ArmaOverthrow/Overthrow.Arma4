@@ -537,6 +537,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D582605F2DE0E0B}" {
+   Id "OVT-ManageFOB"
+   Target_en_us "Manage FOB"
+   Modified 1566196855
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59CF196E2474961C}" {
    Id "OVT-ManageVehicle"
    Target_en_us "Manage Vehicle"
@@ -1144,6 +1151,13 @@ StringTable {
    Id "OVT-TooCloseBuilding"
    Target_en_us "You cannot place that here, it is too close to a building"
    Modified 1503996764
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D58260519D9B5F3}" {
+   Id "OVT-TooCloseFOB"
+   Target_en_us "You cannot place that here, it is too close to an FOB"
+   Modified 1566196822
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

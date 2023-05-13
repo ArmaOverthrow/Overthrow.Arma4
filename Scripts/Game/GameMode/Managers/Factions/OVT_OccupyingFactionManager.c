@@ -535,12 +535,12 @@ class OVT_OccupyingFactionManager: OVT_Component
 		//To-Do: target discovery not by magic
 		OVT_ResistanceFactionManager resistance = OVT_Global.GetResistanceFaction();
 		
-		foreach(vector fob : resistance.m_FOBs)
+		foreach(OVT_FOBData fob : resistance.m_FOBs)
 		{
-			if(!IsKnownTarget(fob))
+			if(!IsKnownTarget(fob.location))
 			{
 				OVT_TargetData target = new OVT_TargetData();
-				target.location = fob;
+				target.location = fob.location;
 				target.type = OVT_TargetType.FOB;
 				target.order = OVT_OrderType.ATTACK;
 				m_aKnownTargets.Insert(target);

@@ -28,7 +28,12 @@ class OVT_ManageBaseAction : ScriptedUserAction
 			context.m_Base = m_BaseData;
 			context.ShowLayout();
 		}else{
-			//To-Do: FOB menu
+			OVT_FOBData fob = OVT_Global.GetResistanceFaction().GetNearestFOBData(pOwnerEntity.GetOrigin());
+			OVT_FOBMenuContext context = OVT_FOBMenuContext.Cast(ui.GetContext(OVT_FOBMenuContext));
+			if(!context) return;
+		
+			context.m_FOB = fob;
+			context.ShowLayout();
 		}
  	}
 	

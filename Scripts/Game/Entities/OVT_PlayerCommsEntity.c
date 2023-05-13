@@ -304,6 +304,21 @@ class OVT_PlayerCommsEntity: GenericEntity
 		OVT_Global.GetResistanceFaction().AddGarrison(baseId, prefabIndex);
 	}
 	
+	void AddGarrisonFOB(OVT_FOBData base, ResourceName res)
+	{
+		OVT_Faction faction = OVT_Global.GetConfig().GetPlayerFaction();
+		int index = faction.m_aGroupPrefabSlots.Find(res);
+		if(index == -1) return;
+		Rpc(RpcAsk_AddGarrisonFOB, base.location, index);		
+	}
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_AddGarrisonFOB(vector pos, int prefabIndex)
+	{
+		OVT_ResistanceFactionManager rf = OVT_Global.GetResistanceFaction();
+		OVT_FOBData fob = rf.GetNearestFOBData(pos);
+		rf.AddGarrisonFOB(fob, prefabIndex);
+	}
+	
 	//INVENTORY
 	void TransferStorage(IEntity from, IEntity to)
 	{

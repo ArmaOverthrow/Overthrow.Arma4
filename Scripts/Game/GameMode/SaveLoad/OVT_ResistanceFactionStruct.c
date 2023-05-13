@@ -2,7 +2,7 @@
 class OVT_ResistanceFactionStruct : OVT_BaseSaveStruct
 {
 	ref array<ref OVT_EntityStruct> placed = {};
-	ref array<ref OVT_VectorStruct> fobs = {};
+	ref array<ref OVT_FOBStruct> fobs = {};
 	ref array<ref OVT_VehicleStruct> built = {};
 	ref array<string> officers = {};
 	ref array<ref OVT_PlayerStruct> players = {};
@@ -26,10 +26,29 @@ class OVT_ResistanceFactionStruct : OVT_BaseSaveStruct
 				placed.Insert(struct);
 		}
 		
-		foreach(vector p : rf.m_FOBs)
+		foreach(OVT_FOBData fob : rf.m_FOBs)
 		{
-			OVT_VectorStruct struct = new OVT_VectorStruct();
-			struct.pos = p;
+			OVT_FOBStruct struct = new OVT_FOBStruct();
+			struct.pos = fob.location;
+			struct.faction = fob.faction;
+			
+			foreach(EntityID id : fob.garrison)
+			{
+				SCR_AIGroup aigroup = SCR_AIGroup.Cast(GetGame().GetWorld().FindEntityByID(id));
+				if(aigroup && aigroup.GetAgentsCount() > 0)
+				{
+					string resource = aigroup.GetPrefabData().GetPrefabName();
+
+					int res = rdb.Find(resource);
+					if(res == -1)
+					{
+						rdb.Insert(resource);
+						res = rdb.Count() - 1;
+					}		
+					struct.garrison.Insert(res);
+				}
+			}
+			
 			fobs.Insert(struct);
 		}
 		
@@ -78,15 +97,12 @@ class OVT_ResistanceFactionStruct : OVT_BaseSaveStruct
 	{		
 		OVT_ResistanceFactionManager rf = OVT_Global.GetResistanceFaction();
 		OVT_PlayerManagerComponent pm = OVT_Global.GetPlayers();
+		rf.m_LoadStruct = this;		
+		
 		foreach(OVT_EntityStruct struct : placed)
 		{			
 			IEntity ent = struct.Spawn(rdb);
 			rf.m_Placed.Insert(ent.GetID());
-		}
-		
-		foreach(OVT_VectorStruct struct : fobs)
-		{	
-			rf.m_FOBs.Insert(struct.pos);
 		}
 		
 		foreach(OVT_VehicleStruct struct : built)
@@ -221,5 +237,19 @@ class OVT_PlayerStruct : SCR_JsonApiStruct
 		RegV("id");
 		RegV("pos");
 		RegV("camp");
+	}
+}
+
+class OVT_FOBStruct : SCR_JsonApiStruct
+{	
+	vector pos;
+	int faction;
+	ref array<int> garrison = {};
+	
+	void OVT_FOBStruct()
+	{		
+		RegV("pos");
+		RegV("faction");
+		RegV("garrison");
 	}
 }
