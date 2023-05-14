@@ -1,8 +1,9 @@
 ImageSetClass {
- RefSize 784 262
+ RefSize 784 393
  Textures {
   ImageSetTextureClass {
-   mpix 1
+   screenSize FHD
+   size 784 393
    path "{B2EDB8AD2EA10AD3}UI/Textures/Map/overthrow_mapicons_atlas.edds"
   }
  }
@@ -76,6 +77,12 @@ ImageSetClass {
   ImageSetDefClass warehouse {
    Name "warehouse"
    Pos 652 132
+   Size 128 128
+   Flags 0
+  }
+  ImageSetDefClass port {
+   Name "port"
+   Pos 2 262
    Size 128 128
    Flags 0
   }

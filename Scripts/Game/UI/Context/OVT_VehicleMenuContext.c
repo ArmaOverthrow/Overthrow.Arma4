@@ -83,6 +83,21 @@ class OVT_VehicleMenuContext : OVT_UIContext
 				comp.SetEnabled(false);
 			}
 		}
+		
+		comp = SCR_ButtonTextComponent.GetButtonText("Import", m_wRoot);
+		if (comp)
+		{
+			RplId port = m_Economy.GetNearestPort(pos);
+			RplComponent rpl = RplComponent.Cast(Replication.FindItem(port));
+			float dist = vector.Distance(pos, rpl.GetEntity().GetOrigin()); 
+			if(dist < 20){
+				comp.SetEnabled(true);
+				GetGame().GetWorkspace().SetFocusedWidget(comp.GetRootWidget());
+				comp.m_OnClicked.Insert(Import);
+			}else{
+				comp.SetEnabled(false);
+			}
+		}
 	}
 	
 	protected void PutInWarehouse()
@@ -136,6 +151,21 @@ class OVT_VehicleMenuContext : OVT_UIContext
 		context.SetWarehouse(warehouse);
 		
 		m_UIManager.ShowContext(OVT_WarehouseContext);
+		
+		CloseLayout();
+	}
+	
+	protected void Import()
+	{		
+		vector pos = m_Owner.GetOrigin();
+		RplId port = m_Economy.GetNearestPort(pos);
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(port));
+		float dist = vector.Distance(pos, rpl.GetEntity().GetOrigin()); 
+		if(dist > 20){
+			return;
+		}
+		
+		m_UIManager.ShowContext(OVT_PortContext);
 		
 		CloseLayout();
 	}

@@ -289,6 +289,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D5AD8A5702C6A81}" {
+   Id "OVT-Import"
+   Target_en_us "Import"
+   Modified 1566239683
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59A6DA4F01F49A60}" {
    Id "OVT-Income"
    Target_en_us "Income"
@@ -843,6 +850,27 @@ StringTable {
    Target_en_us "Population"
    Status DEVELOPMENT_DONE
    Modified 1502796262
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D5AD8AF15D8A1B9}" {
+   Id "OVT-Port"
+   Target_en_us "Port"
+   Modified 1566235008
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D5AD8AFF9999255}" {
+   Id "OVT-Port_Buy_10"
+   Target_en_us "Buy 10"
+   Modified 1566235097
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D5AD8AFCF71A6EB}" {
+   Id "OVT-Port_Buy_100"
+   Target_en_us "Buy 100"
+   Modified 1566235103
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

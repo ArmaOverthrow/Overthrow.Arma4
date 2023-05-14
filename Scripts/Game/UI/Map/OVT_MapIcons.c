@@ -245,6 +245,19 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 			m_Widgets.Insert(w);
 		}
 		
+		foreach(RplId id : economy.GetAllPorts())
+		{
+			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+			m_Centers.Insert(rpl.GetEntity().GetOrigin());
+			m_Ranges.Insert(0);
+			
+			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
+			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
+						
+			image.LoadImageFromSet(0, m_Imageset, "port");			
+			m_Widgets.Insert(w);
+		}
+		
 		if(jobs.m_vCurrentWaypoint)
 		{
 			m_Centers.Insert(jobs.m_vCurrentWaypoint);

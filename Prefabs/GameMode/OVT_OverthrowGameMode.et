@@ -57,7 +57,7 @@ OVT_OverthrowGameMode {
       }
       OVT_ShopInventoryItem "{599698B625E6A3AA}" {
        prefab "{E1A5D4B878AA8980}Prefabs/Items/Equipment/Radios/Radio_R148.et"
-       cost 100
+       cost 225
       }
       OVT_ShopInventoryItem "{599698B63FA9B003}" {
        prefab "{3A421547BC29F679}Prefabs/Items/Equipment/Flashlights/Flashlight_MX991.et"
@@ -85,11 +85,6 @@ OVT_OverthrowGameMode {
        prefab "{CDCC313B2FB76FE7}Prefabs/Items/Medicine/Gauze_01.et"
        cost 8
        demandMultiplier 5
-      }
-      OVT_ShopInventoryItem "{59953E6411321F17}" {
-       prefab "{C98FCC6CA6C56069}Prefabs/Items/Medicine/AspirinBottle.et"
-       cost 18
-       demandMultiplier 3
       }
      }
     }
@@ -140,23 +135,8 @@ OVT_OverthrowGameMode {
       OVT_ShopInventoryItem "{5D346D53661CFB73}" {
        prefab "{0C78AD2BF86D089B}Prefabs/Characters/Uniforms/Pants/cargo_pants_khaki_black.et"
       }
-      OVT_ShopInventoryItem "{5D346D536260EA89}" {
-       prefab "{B3DEA5A87A2BDC20}Prefabs/Characters/Uniforms/Pants/cargo_pants_khaki_grey_item.et"
-      }
       OVT_ShopInventoryItem "{5D346D536E4A9AE0}" {
        prefab "{924CAA6171029E01}Prefabs/Characters/Uniforms/Pants/cargo_pants_Olive_brown.et"
-      }
-      OVT_ShopInventoryItem "{5D346D5347F23F54}" {
-       prefab "{F45F7C77050CEB1B}Prefabs/Characters/Uniforms/Pants/civi_shorts_blue.xob"
-       cost 35
-      }
-      OVT_ShopInventoryItem "{5D346D5342F934B2}" {
-       prefab "{A1EA5AF6323CAAD2}Prefabs/Characters/Uniforms/Pants/civi_shorts_green.xob"
-       cost 35
-      }
-      OVT_ShopInventoryItem "{5D346D53CF14BF13}" {
-       prefab "{552ECFA7B9F0AB32}Prefabs/Characters/Uniforms/Pants/civi_shorts_red.xob"
-       cost 35
       }
       OVT_ShopInventoryItem "{5D346D53D1398FB2}" {
        prefab "{785F4A26DB826D34}Prefabs/Characters/Uniforms/Pants/jeans_black_washed.et"

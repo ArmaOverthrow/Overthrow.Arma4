@@ -145,6 +145,45 @@ class OVT_PlayerCommsEntity: GenericEntity
 		
 	}
 	
+	void ImportToVehicle(int id, int qty, IEntity vehicle, int playerId)
+	{
+		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
+		if(!rpl) return;
+		
+		Rpc(RpcAsk_ImportToVehicle, id, qty, rpl.Id(), playerId)	
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void RpcAsk_ImportToVehicle(int id, int qty, RplId vehicleId, int playerId)
+	{
+		IEntity vehicle = RplComponent.Cast(Replication.FindItem(vehicleId)).GetEntity();		
+		if(!vehicle) return;
+		
+		InventoryStorageManagerComponent storage = InventoryStorageManagerComponent.Cast(vehicle.FindComponent(InventoryStorageManagerComponent));				
+		if(!storage) return;
+		
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		OVT_ShopInventoryItem item = OVT_Global.GetEconomy().GetInventoryItem(id);
+		
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		
+		int cost = qty * item.cost;
+		if(!economy.PlayerHasMoney(persId, cost)) return;
+		
+		int actual = 0;
+		ResourceName res = economy.GetResource(id);
+		
+		for(int i = 0; i < qty; i++)
+		{
+			if(storage.TrySpawnPrefabToStorage(res))
+			{
+				actual++;
+			}
+		}
+		
+		economy.DoTakePlayerMoney(playerId, actual * item.cost);
+	}
+	
 	void BuyVehicle(OVT_ShopComponent shop, int id, int playerId)
 	{
 		RplComponent rpl = RplComponent.Cast(shop.GetOwner().FindComponent(RplComponent));
