@@ -83,12 +83,29 @@ FrameWidgetClass {
         Padding 40 10 40 10
        }
        {
-        TextWidgetClass "{5972827C5ECF75A7}" {
-         Name "m_TownNameText"
-         Slot LayoutSlot "{5972827C5ECF7585}" {
+        HorizontalLayoutWidgetClass "{5D5C554285778EDF}" {
+         Name "HorizontalLayout0"
+         Slot LayoutSlot "{5D5C554285778EA5}" {
          }
-         Text "St Phillipe"
-         FontProperties FontProperties "{5972827C3D02D175}" {
+         {
+          ImageWidgetClass "{5D5C5542832A4D66}" {
+           Name "ControllingFaction"
+           Slot LayoutSlot "{59B6F522EB1E1AD3}" {
+           }
+           Texture "{40B12B0DF911B856}UI/Textures/Editor/EditableEntities/Factions/EditableEntity_Faction_USSR.edds"
+           Image ""
+           Size 48 48
+          }
+          TextWidgetClass "{5972827C5ECF75A7}" {
+           Name "m_TownNameText"
+           Slot LayoutSlot "{5972827C5ECF7585}" {
+            VerticalAlign 1
+            Padding 10 0 0 0
+           }
+           Text "St Phillipe"
+           FontProperties FontProperties "{5972827C3D02D175}" {
+           }
+          }
          }
         }
         TextWidgetClass "{5972827C15CF7A9F}" {

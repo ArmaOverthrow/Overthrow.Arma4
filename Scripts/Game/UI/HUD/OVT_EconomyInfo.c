@@ -2,6 +2,11 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 	OVT_EconomyManagerComponent m_Economy;
 	OVT_OccupyingFactionManager m_OccupyingFaction;
 	string m_playerId;
+	SCR_ChimeraCharacter m_player;
+	
+	float m_fCounter = 8;
+	int m_iCurrentTownId = -1;
+	bool m_bTownShowing = false;
 	
 	//------------------------------------------------------------------------------------------------
 	override event void OnInit(IEntity owner)
@@ -19,10 +24,13 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 			return;
 		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(character);
 		m_playerId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);	
+		
+		m_player = character;
 	}
 		
 	private override event void UpdateValues(IEntity owner, float timeSlice)
 	{	
+		m_fCounter += timeSlice;
 		if(!m_playerId){
 			InitCharacter();
 		}
@@ -33,6 +41,47 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 			UpdateQRF();
 		}else{
 			HideQRF();
+		}
+		
+		if(m_fCounter > 10)
+		{
+			m_fCounter = 0;
+			UpdateTown();
+		}
+	}
+	
+	void UpdateTown()
+	{		
+		if(m_bTownShowing) {
+			Widget panel = m_wRoot.FindAnyWidget("Town");
+			panel.SetVisible(false);
+			m_bTownShowing = false;
+			return;
+		}	
+		OVT_TownManagerComponent tm = OVT_Global.GetTowns();	
+		OVT_TownData town = tm.GetNearestTown(m_player.GetOrigin());
+		if(m_iCurrentTownId != town.id)
+		{
+			m_iCurrentTownId = town.id;
+			ImageWidget img = ImageWidget.Cast(m_wRoot.FindAnyWidget("ControllingFaction"));
+			img.LoadImageTexture(0, town.ControllingFaction().GetUIInfo().GetIconPath());
+					
+			TextWidget widget = TextWidget.Cast(m_wRoot.FindAnyWidget("TownName"));
+			widget.SetText(tm.GetTownName(town.id));
+			
+			widget = TextWidget.Cast(m_wRoot.FindAnyWidget("Population"));
+			widget.SetText(town.population.ToString());
+			
+			widget = TextWidget.Cast(m_wRoot.FindAnyWidget("Stability"));
+			widget.SetText(town.stability.ToString() + "%");
+			
+			widget = TextWidget.Cast(m_wRoot.FindAnyWidget("Support"));		
+			widget.SetText(town.support.ToString() + " (" + town.SupportPercentage().ToString() + "%)");
+			
+			Widget panel = m_wRoot.FindAnyWidget("Town");
+			panel.SetVisible(true);
+			
+			m_bTownShowing = true;
 		}
 	}
 	

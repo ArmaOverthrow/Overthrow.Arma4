@@ -92,7 +92,7 @@ FrameWidgetClass {
         TextWidgetClass "{5D5C4113C4611369}" : "{9D643D214767D616}UI/layouts/WidgetLibrary/TextWidgets/Text_Heading2.layout" {
          Name "PlayerMoney"
          Slot LayoutSlot "{56EEDE046853BD3D}" {
-          Padding 0 0 0 12
+          Padding 0 0 150 12
          }
          Text "$100"
          "Min Font Size" 20

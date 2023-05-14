@@ -120,5 +120,134 @@ OverlayWidgetClass {
     }
    }
   }
+  FrameWidgetClass "{5D5C4CA946DEDBFB}" {
+   Name "Town"
+   Slot OverlayWidgetSlot "{5D5C4CA946DEDBCB}" {
+    HorizontalAlign 0
+    VerticalAlign 2
+    Padding 200 0 0 200
+   }
+   "Is Visible" 0
+   {
+    VerticalLayoutWidgetClass "{5D5C4CA924754A02}" {
+     Name "TownInfoPanel"
+     Slot FrameWidgetSlot "{5D5C4CA924754AE5}" {
+     }
+     {
+      HorizontalLayoutWidgetClass "{5D5C4CA9D1752E72}" {
+       Name "HorizontalLayout0"
+       Slot LayoutSlot "{59B6F5221A64D119}" {
+        HorizontalAlign 1
+       }
+       {
+        ImageWidgetClass "{5D5C4CA9D1752E71}" {
+         Name "ControllingFaction"
+         Slot LayoutSlot "{59B6F522EB1E1AD3}" {
+         }
+         Texture "{40B12B0DF911B856}UI/Textures/Editor/EditableEntities/Factions/EditableEntity_Faction_USSR.edds"
+         Image ""
+         Size 48 48
+        }
+        TextWidgetClass "{5D5C4CA9D1752E70}" {
+         Name "TownName"
+         Slot LayoutSlot "{599D5973F64E4A59}" {
+          Padding 5 5 5 5
+         }
+         Text "#ar-maplocation_stphillipe"
+         "Font Size" 40
+         "Min Font Size" 40
+         "Horizontal Alignment" Center
+        }
+       }
+      }
+      HorizontalLayoutWidgetClass "{5D5C4CA82ABE40FD}" {
+       Name "PopulationPanel"
+       Slot LayoutSlot "{5D5C55426B75215B}" {
+       }
+       {
+        ImageWidgetClass "{5D5C4CA82ABE40FC}" {
+         Name "Icon"
+         Slot LayoutSlot "{599D5971CDC4D980}" {
+          Padding 0 0 5 0
+         }
+         Texture "{D17288006833490F}UI/Textures/Icons/icons_wrapperUI-32.imageset"
+         Image "players"
+         Size 32 32
+        }
+        TextWidgetClass "{5D5C4CA82ABE40FB}" {
+         Name "Population"
+         Slot LayoutSlot "{599D5973F64E4A59}" {
+          VerticalAlign 1
+          Padding 0 0 0 0
+         }
+         Text "123"
+         "Font Size" 22
+         "Min Font Size" 22
+         "Horizontal Alignment" Center
+        }
+       }
+      }
+      HorizontalLayoutWidgetClass "{5D5C4CA9AF94E980}" {
+       Name "StabilityPanel"
+       Slot LayoutSlot "{5D5C55426B752107}" {
+       }
+       {
+        TextWidgetClass "{5D5C4CA9AF94E98F}" {
+         Name "Label"
+         Slot LayoutSlot "{599D5977351D294A}" {
+         }
+         Text "#OVT-Stability"
+         "Font Size" 26
+        }
+        SizeLayoutWidgetClass "{5D5C4CA9AF94E98D}" {
+         Name "Fill"
+         Slot LayoutSlot "{599D5977BB3E09E2}" {
+         }
+         AllowWidthOverride 1
+         WidthOverride 20
+        }
+        TextWidgetClass "{5D5C4CA9AF94E98C}" {
+         Name "Stability"
+         Slot LayoutSlot "{599D5977351D294A}" {
+          HorizontalAlign 0
+         }
+         Text "85%"
+         "Font Size" 26
+        }
+       }
+      }
+      HorizontalLayoutWidgetClass "{5D5C4CA87EA65E71}" {
+       Name "SupportPanel"
+       Slot LayoutSlot "{5D5C4CA87EA65D04}" {
+       }
+       {
+        TextWidgetClass "{5D5C4CA87EA65E70}" {
+         Name "Label"
+         Slot LayoutSlot "{599D5977351D294A}" {
+         }
+         Text "#OVT-Supporters"
+         "Font Size" 26
+        }
+        SizeLayoutWidgetClass "{5D5C4CA87EA65E7F}" {
+         Name "Fill"
+         Slot LayoutSlot "{599D5977BB3E09E2}" {
+         }
+         AllowWidthOverride 1
+         WidthOverride 20
+        }
+        TextWidgetClass "{5D5C4CA87EA65E7E}" {
+         Name "Support"
+         Slot LayoutSlot "{599D5977351D294A}" {
+          HorizontalAlign 0
+         }
+         Text "85%"
+         "Font Size" 26
+        }
+       }
+      }
+     }
+    }
+   }
+  }
  }
 }

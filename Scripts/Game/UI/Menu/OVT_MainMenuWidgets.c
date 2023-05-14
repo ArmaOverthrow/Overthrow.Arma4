@@ -12,9 +12,9 @@ class OVT_MainMenuWidgets
 
 	bool Init(Widget root)
 	{
-		m_TownNameText = TextWidget.Cast(root.FindWidget("Panel0.VerticalLayout0.TownInfo.m_TownNameText"));
+		m_TownNameText = TextWidget.Cast(root.FindAnyWidget("m_TownNameText"));
 
-		m_TownInfoText = TextWidget.Cast(root.FindWidget("Panel0.VerticalLayout0.TownInfo.m_TownInfoText"));
+		m_TownInfoText = TextWidget.Cast(root.FindAnyWidget("m_TownInfoText"));
 
 		return true;
 	}
