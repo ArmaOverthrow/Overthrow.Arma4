@@ -110,6 +110,13 @@ class OVT_MainMenuContext : OVT_UIContext
 				comp.m_OnClicked.Insert(RealEstate);
 			}
 		}
+		
+		// Save
+		comp = SCR_ButtonTextComponent.GetButtonText("Save", m_wRoot);
+		if (comp)
+		{
+			comp.m_OnClicked.Insert(Save);
+		}
 	}
 	
 	private void MapInfo()
@@ -152,5 +159,17 @@ class OVT_MainMenuContext : OVT_UIContext
 	{
 		CloseLayout();
 		m_UIManager.ShowContext(OVT_RealEstateContext);		
+	}
+	
+	private void Save()
+	{
+		CloseLayout();
+		if(!OVT_Global.GetResistanceFaction().IsLocalPlayerOfficer())
+		{
+			SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-MustBeOfficer");
+			return;
+		}
+		OVT_Global.GetServer().RequestSave();
+		SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-Saved");
 	}
 }

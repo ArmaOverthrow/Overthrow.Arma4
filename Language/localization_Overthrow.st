@@ -635,6 +635,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D5C558A94391828}" {
+   Id "OVT-MustBeOfficer"
+   Target_en_us "You must be an officer to do that"
+   Modified 1566463203
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59A6ED92C4FDB9FD}" {
    Id "OVT-MustExitVehicle"
    Target_en_us "You must exit your vehicle first"
@@ -948,6 +955,20 @@ StringTable {
    Id "OVT-ResistanceTax"
    Target_en_us "Resistance Tax"
    Modified 1506309537
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D5C558A4B6DA3CC}" {
+   Id "OVT-Save"
+   Target_en_us "Save"
+   Modified 1566462841
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D5C55886813A4AB}" {
+   Id "OVT-Saved"
+   Target_en_us "Game Saved"
+   Modified 1566463720
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

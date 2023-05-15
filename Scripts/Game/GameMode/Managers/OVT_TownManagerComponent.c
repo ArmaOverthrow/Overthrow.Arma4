@@ -570,19 +570,6 @@ class OVT_TownManagerComponent: OVT_Component
 		Print(town.name + ": pop. " + town.population.ToString());
 		#endif
 		
-		//Villages will tick the stability modifier system a few times to get some randomized modifiers
-		if(town.size == 1)
-		{
-			OVT_TownStabilityModifierSystem system = OVT_TownStabilityModifierSystem.Cast(GetModifierSystem(OVT_TownStabilityModifierSystem));
-			if(system){
-				int numTicks = s_AIRandomGenerator.RandInt(1,10);
-				for(int i = 0; i < numTicks; i++)
-				{
-					system.OnTick(town.stabilityModifiers, town.stabilityModifierTimers, town);
-				}
-			}
-		}
-		
 		m_Towns.Insert(town);
 		m_TownNames.Insert(mapdesc.Item().GetDisplayName());
 	}

@@ -15,6 +15,21 @@ class OVT_PlayerCommsEntity: GenericEntity
 		mode.m_Server = this;
 	}
 	
+	void RequestSave()
+	{
+		Rpc(RpcAsk_RequestSave);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	void RpcAsk_RequestSave()
+	{
+		SCR_SaveLoadComponent save = SCR_SaveLoadComponent.Cast(GetGame().GetGameMode().FindComponent(SCR_SaveLoadComponent));
+		if(save)
+		{
+			save.Save();
+		}
+	}
+	
 	void RegisterPersistentID(string persistentID)
 	{
 		int int1,int2,int3;
