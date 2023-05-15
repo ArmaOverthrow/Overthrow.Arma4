@@ -129,6 +129,8 @@ class OVT_TownManagerComponent: OVT_Component
 	
 	protected void CheckUpdateModifiers()
 	{
+		OVT_OccupyingFactionManager of = OVT_Global.GetOccupyingFaction();
+		
 		m_iSupportCounter++;
 		bool dosupport = false;
 		if(m_iSupportCounter > SUPPORT_FREQUENCY)
@@ -149,6 +151,32 @@ class OVT_TownManagerComponent: OVT_Component
 				system.OnTick(town.supportModifiers, town.supportModifierTimers, town);
 						
 			if(!Replication.IsServer()) continue;
+			
+			bool hasEnemyTower = false;
+			bool hasFriendlyTower = false;
+			foreach(OVT_RadioTowerData tower : of.m_RadioTowers)
+			{				
+				float dist = vector.Distance(town.location, tower.location);
+				if(dist < m_Config.m_Difficulty.radioTowerRange)
+				{
+					if(tower.IsOccupyingFaction())
+					{
+						hasEnemyTower = true;
+					}else{
+						hasFriendlyTower = true;
+					}
+				}
+			}			
+			
+			if(hasEnemyTower)
+			{
+				RemoveSupportModifierByName(town.id, "NearbyRadioTowerPositive");
+				TryAddSupportModifierByName(town.id, "NearbyRadioTowerNegative");
+			}else if(hasFriendlyTower)
+			{
+				RemoveSupportModifierByName(town.id, "NearbyRadioTowerNegative");
+				TryAddSupportModifierByName(town.id, "NearbyRadioTowerPositive");
+			}		
 			
 			if(recalc) RecalculateStability(town.id);
 						
@@ -194,6 +222,12 @@ class OVT_TownManagerComponent: OVT_Component
 	{
 		OVT_TownModifierSystem system = GetModifierSystem(OVT_TownSupportModifierSystem);
 		system.TryAddByName(townId, name);
+	}
+	
+	void RemoveSupportModifierByName(int townId, string name)
+	{
+		OVT_TownModifierSystem system = GetModifierSystem(OVT_TownSupportModifierSystem);
+		system.RemoveByName(townId, name);
 	}
 	
 	void TryAddStabilityModifier(int townId, int index)
@@ -258,7 +292,7 @@ class OVT_TownManagerComponent: OVT_Component
 			}
 			if(num < mod.stackLimit)
 				AddSupportModifier(townId, index);
-		}else{
+		}else if(mod.timeout > 0){
 			//Is not stackable, reset timer
 			int i = town.supportModifiers.Find(index);
 			town.supportModifierTimers[i] = mod.timeout;

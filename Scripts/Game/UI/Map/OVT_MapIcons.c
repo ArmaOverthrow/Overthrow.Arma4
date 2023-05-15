@@ -49,6 +49,7 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 		OVT_OverthrowConfigComponent otconfig = OVT_Global.GetConfig();
 		OVT_VehicleManagerComponent vehicles = OVT_Global.GetVehicles();
 		OVT_ResistanceFactionManager resistance = OVT_Global.GetResistanceFaction();
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
 		OVT_JobManagerComponent jobs = OVT_Global.GetJobs();
 		
 		ChimeraCharacter playerEntity = ChimeraCharacter.Cast(SCR_PlayerController.GetLocalControlledEntity());
@@ -230,6 +231,26 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
 						
 			image.LoadImageFromSet(0, m_Imageset, "fob");			
+			
+			OVT_Faction faction = OVT_Faction.Cast(GetGame().GetFactionManager().GetFactionByIndex(fob.faction));
+			image.SetColor(faction.GetFactionColor());
+			
+			m_Widgets.Insert(w);
+		}
+		
+		foreach(OVT_RadioTowerData tower : occupying.m_RadioTowers)
+		{			
+			m_Centers.Insert(tower.location);
+			m_Ranges.Insert(0);
+			
+			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
+			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
+						
+			image.LoadImageFromSet(0, m_Imageset, "tower");	
+			
+			OVT_Faction faction = OVT_Faction.Cast(GetGame().GetFactionManager().GetFactionByIndex(tower.faction));
+			image.SetColor(faction.GetFactionColor());
+								
 			m_Widgets.Insert(w);
 		}
 		

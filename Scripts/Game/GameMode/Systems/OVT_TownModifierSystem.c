@@ -56,13 +56,15 @@ class OVT_TownModifierSystem : ScriptAndConfig
 		bool recalc = false;		
 		foreach(int i, int index : modifiers)
 		{
+			OVT_ModifierConfig mod = m_Config.m_aModifiers[index];
+			if(mod.timeout <= 0) continue;
+			
 			bool remove = false;
 			modifierTimers[i] = modifierTimers[i] - m_TownManager.MODIFIER_FREQUENCY / 1000;
 			if(modifierTimers[i] <= 0)
 			{
 				remove = true;
-			}else{
-				OVT_ModifierConfig mod = m_Config.m_aModifiers[index];
+			}else{				
 				if(mod.handler){
 					if(!mod.handler.OnActiveTick(town))
 					{

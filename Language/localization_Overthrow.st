@@ -1104,6 +1104,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D5ECE59227BBB1D}" {
+   Id "OVT-StabilityMod_NearbyTower"
+   Target_en_us "Nearby Radio Tower"
+   Modified 1566497892
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{599EDE889FDE918F}" {
    Id "OVT-StabilityMod_OrganizedCrime"
    Target_en_us "Organized Crime"

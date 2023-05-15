@@ -18,6 +18,19 @@ class OVT_BaseData
 	}
 }
 
+class OVT_RadioTowerData
+{
+	int id;
+	int faction;	
+	vector location;	
+	ref array<ref EntityID> garrison = {};
+	
+	bool IsOccupyingFaction()
+	{
+		return faction == OVT_Global.GetConfig().GetOccupyingFactionIndex();
+	}
+}
+
 enum OVT_TargetType
 {
 	BASE,
@@ -57,6 +70,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 	int m_iResources;
 	float m_iThreat;
 	ref array<ref OVT_BaseData> m_Bases;
+	ref array<ref OVT_RadioTowerData> m_RadioTowers;
 	ref array<ref vector> m_BasesToSpawn;
 	
 	ref array<ref OVT_TargetData> m_aKnownTargets;
@@ -95,6 +109,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 	void OVT_OccupyingFactionManager(IEntityComponentSource src, IEntity ent, IEntity parent)
 	{
 		m_Bases = new array<ref OVT_BaseData>;	
+		m_RadioTowers = new array<ref OVT_RadioTowerData>;	
 		m_BasesToSpawn = new array<ref vector>;	
 		m_aKnownTargets = new array<ref OVT_TargetData>;
 	}
@@ -115,7 +130,6 @@ class OVT_OccupyingFactionManager: OVT_Component
 		OVT_Global.GetTowns().m_OnTownControlChange.Insert(OnTownControlChanged);
 		
 		InitializeBases();
-			
 	}
 	
 	void NewGameStart()
@@ -150,6 +164,22 @@ class OVT_OccupyingFactionManager: OVT_Component
 		OVT_BaseData nearestBase;
 		float nearest = 9999999;
 		foreach(OVT_BaseData data : m_Bases)
+		{			
+			float distance = vector.Distance(data.location, pos);
+			if(distance < nearest){
+				nearest = distance;
+				nearestBase = data;
+			}
+		}
+		if(!nearestBase) return null;
+		return nearestBase;
+	}
+	
+	OVT_RadioTowerData GetNearestRadioTower(vector pos)
+	{
+		OVT_RadioTowerData nearestBase;
+		float nearest = 9999999;
+		foreach(OVT_RadioTowerData data : m_RadioTowers)
 		{			
 			float distance = vector.Distance(data.location, pos);
 			if(distance < nearest){
@@ -421,11 +451,14 @@ class OVT_OccupyingFactionManager: OVT_Component
 	
 	bool CheckTransmitterTowerAdd(IEntity ent)
 	{		
-		OVT_TargetData target = new OVT_TargetData();
-		target.type = OVT_TargetType.BROADCAST_TOWER;
-		target.location = ent.GetOrigin();
-		target.order = OVT_OrderType.DEFEND;
-		m_aKnownTargets.Insert(target);
+		int occupyingFactionIndex = m_Config.GetOccupyingFactionIndex();
+		
+		OVT_RadioTowerData data = new OVT_RadioTowerData;
+		data.id = m_RadioTowers.Count();
+		data.location = ent.GetOrigin();
+		data.faction = occupyingFactionIndex;
+		
+		m_RadioTowers.Insert(data);
 				
 		return true;
 	}
@@ -620,6 +653,15 @@ class OVT_OccupyingFactionManager: OVT_Component
 			writer.Write(data.range, 32);
 		}
 		
+		//Send JIP radio towers
+		writer.Write(m_RadioTowers.Count(), 32); 
+		for(int i; i<m_RadioTowers.Count(); i++)
+		{
+			OVT_RadioTowerData data = m_RadioTowers[i];
+			writer.WriteVector(data.location);
+			writer.Write(data.faction, 32);
+		}
+		
 		writer.WriteVector(m_vQRFLocation);
 		writer.Write(m_iQRFPoints, 32);
 		writer.Write(m_iQRFTimer, 32);
@@ -630,11 +672,10 @@ class OVT_OccupyingFactionManager: OVT_Component
 	
 	override bool RplLoad(ScriptBitReader reader)
 	{		
-			
-		//Recieve JIP bases
 		int length;
-		RplId id;
+		RplId id;		
 		
+		//Recieve JIP bases
 		if (!reader.Read(length, 32)) return false;
 		for(int i; i<length; i++)
 		{	
@@ -647,6 +688,19 @@ class OVT_OccupyingFactionManager: OVT_Component
 			
 			base.id = i;
 			m_Bases.Insert(base);
+		}
+		
+		//Recieve JIP radio towers
+		if (!reader.Read(length, 32)) return false;
+		for(int i; i<length; i++)
+		{	
+			OVT_RadioTowerData base = new OVT_RadioTowerData();
+					
+			if (!reader.ReadVector(base.location)) return false;
+			if (!reader.Read(base.faction, 32)) return false;
+			
+			base.id = i;
+			m_RadioTowers.Insert(base);
 		}
 		if (!reader.ReadVector(m_vQRFLocation)) return false;
 		if (!reader.Read(m_iQRFPoints,32)) return false;
