@@ -340,7 +340,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		writer.Write(m_mHomes.Count(), 32); 
 		for(int i; i<m_mHomes.Count(); i++)
 		{			
-			RPL_WritePlayerID(writer, m_mHomes.GetKey(i));
+			writer.WriteString(m_mHomes.GetKey(i));
 			writer.WriteVector(m_mHomes.GetElement(i));
 		}
 		
@@ -351,7 +351,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 			OVT_WarehouseData data = m_aWarehouses[i];
 			writer.Write(data.id, 32);
 			writer.WriteVector(data.location);
-			RPL_WritePlayerID(writer, data.owner);
+			writer.WriteString(data.owner);
 			writer.WriteBool(data.isLinked);
 			writer.WriteBool(data.isPrivate);
 			writer.Write(data.inventory.Count(), 32);
@@ -377,7 +377,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		if (!reader.Read(length, 32)) return false;
 		for(int i; i<length; i++)
 		{
-			if (!RPL_ReadPlayerID(reader, playerId)) return false;
+			if (!reader.ReadString(playerId)) return false;
 			if (!reader.ReadVector(loc)) return false;		
 			
 			m_mHomes[playerId] = loc;
@@ -389,7 +389,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 			OVT_WarehouseData data = new OVT_WarehouseData;
 			if (!reader.Read(data.id, 32)) return false;
 			if (!reader.ReadVector(data.location)) return false;	
-			if (!RPL_ReadPlayerID(reader, data.owner)) return false;
+			if (!reader.ReadString(data.owner)) return false;
 			if (!reader.ReadBool(data.isLinked)) return false;
 			if (!reader.ReadBool(data.isPrivate)) return false;
 			

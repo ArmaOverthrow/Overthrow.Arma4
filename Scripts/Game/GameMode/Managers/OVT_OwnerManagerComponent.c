@@ -148,7 +148,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 		for(int i; i<m_mOwned.Count(); i++)
 		{		
 			set<RplId> ownedArray = m_mOwned.GetElement(i);
-			RPL_WritePlayerID(writer, m_mOwned.GetKey(i));			
+			writer.WriteString(m_mOwned.GetKey(i));			
 			writer.Write(ownedArray.Count(),32);
 			for(int t; t<ownedArray.Count(); t++)
 			{	
@@ -161,7 +161,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 		for(int i; i<m_mRented.Count(); i++)
 		{		
 			set<RplId> rentedArray = m_mRented.GetElement(i);
-			RPL_WritePlayerID(writer, m_mRented.GetKey(i));			
+			writer.WriteString(m_mRented.GetKey(i));			
 			writer.Write(rentedArray.Count(),32);
 			for(int t; t<rentedArray.Count(); t++)
 			{	
@@ -183,7 +183,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 		if (!reader.Read(length, 32)) return false;
 		for(int i; i<length; i++)
 		{
-			if (!RPL_ReadPlayerID(reader, playerId)) return false;
+			if (!reader.ReadString(playerId)) return false;
 			m_mOwned[playerId] = new set<RplId>;
 			
 			if (!reader.Read(ownedlength, 32)) return false;
@@ -198,7 +198,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 		if (!reader.Read(length, 32)) return false;
 		for(int i; i<length; i++)
 		{
-			if (!RPL_ReadPlayerID(reader, playerId)) return false;
+			if (!reader.ReadString(playerId)) return false;
 			m_mRented[playerId] = new set<RplId>;
 			
 			if (!reader.Read(ownedlength, 32)) return false;

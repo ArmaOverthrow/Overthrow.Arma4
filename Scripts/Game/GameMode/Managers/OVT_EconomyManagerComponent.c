@@ -832,7 +832,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		writer.Write(m_mMoney.Count(), 32); 
 		for(int i; i<m_mMoney.Count(); i++)
 		{			
-			RPL_WritePlayerID(writer, m_mMoney.GetKey(i));
+			writer.WriteString(m_mMoney.GetKey(i));
 			writer.Write(m_mMoney.GetElement(i), 32);
 		}
 		writer.Write(m_iResistanceMoney, 32);
@@ -887,7 +887,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		if (!reader.Read(length, 32)) return false;
 		for(int i; i<length; i++)
 		{
-			if(!RPL_ReadPlayerID(reader, playerId)) return false;
+			if(!reader.ReadString(playerId)) return false;
 			if (!reader.Read(price, 32)) return false;
 			m_mMoney[playerId] = price;
 		}

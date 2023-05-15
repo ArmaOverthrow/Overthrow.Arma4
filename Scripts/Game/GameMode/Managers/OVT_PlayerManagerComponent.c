@@ -216,7 +216,7 @@ class OVT_PlayerManagerComponent: OVT_Component
 		for(int i; i<m_mPersistentIDs.Count(); i++)
 		{
 			writer.Write(m_mPersistentIDs.GetKey(i),32);	
-			RPL_WritePlayerID(writer, m_mPersistentIDs.GetElement(i));			
+			writer.WriteString(m_mPersistentIDs.GetElement(i));			
 		}
 		
 		return true;
@@ -233,7 +233,7 @@ class OVT_PlayerManagerComponent: OVT_Component
 		for(int i; i<length; i++)
 		{
 			if (!reader.Read(playerId, 32)) return false;		
-			if (!RPL_ReadPlayerID(reader, persId)) return false;
+			if (!reader.ReadString(persId)) return false;
 			
 			SetupPlayer(playerId, persId);		
 		}

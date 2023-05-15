@@ -34,59 +34,13 @@ class OVT_PlayerIdentityComponent: OVT_Component
 		{			
 			int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(GetOwner());
 			
-			//if XBOX, we assume there is only one player
-			if(GetGame().GetPlayerManager().GetPlatformKind(playerId) == PlatformKind.XBOX)
-			{
-				m_sPersistentID = "1";
-			}else{				
-				//Check for a saved persistent player ID			
-				if(FileIO.FileExist(PERSISTENT_ID_FILE_PATH))
-				{
-					//File exists, use it
-					FileHandle f = FileIO.OpenFile(PERSISTENT_ID_FILE_PATH, FileMode.READ);
-					if(f){
-						f.ReadLine(m_sPersistentID);
-						f.Close();
-					}
-				}else{
-					//File doesnt exist, generate one
-					m_sPersistentID = GenerateID();
-					FileHandle f = FileIO.OpenFile(PERSISTENT_ID_FILE_PATH, FileMode.WRITE);
-					f.WriteLine(m_sPersistentID);
-					f.Close();
-				}				
-			}				
-			
+			m_sPersistentID = OVT_Global.GetPlayerUID(playerId);	
+						
 			OVT_Global.GetPlayers().RegisterPlayer(playerId, m_sPersistentID);
 			
 			if(Replication.IsServer()) return;
 			OVT_Global.GetServer().RegisterPersistentID(m_sPersistentID);			
 		}
-	}
-	
-	protected string GenerateID()
-	{
-			
-		int year = 0;
-		int month = 0;
-		int day = 0;	
-		System.GetYearMonthDayUTC(year, month, day);
-	
-		int hour = 0;
-		int minute = 0;
-		int second = 0;			
-		System.GetHourMinuteSecondUTC(hour, minute, second);
-		
-		string s = ""+year+month+day+hour+minute+second;
-	
-		//Add some random numbers (Reference: https://eager.io/blog/how-long-does-an-id-need-to-be/)
-		int i = s_AIRandomGenerator.RandFloatXY(0, 16777215);
-		s += i.ToString();
-	
-		i = s_AIRandomGenerator.RandFloatXY(0, 16777215);
-		s += i.ToString();
-		
-		return s;
 	}
 	
 	void ~OVT_PlayerIdentityComponent()

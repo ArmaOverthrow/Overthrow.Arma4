@@ -411,12 +411,12 @@ class OVT_JobManagerComponent: OVT_Component
 			writer.Write(job.baseId, 32);
 			writer.Write(job.stage, 32);
 			writer.WriteRplId(job.entity);	
-			RPL_WritePlayerID(writer, job.owner);
+			writer.WriteString(job.owner);
 			writer.WriteBool(job.accepted);	
 			writer.Write(job.declined.Count(),32);
 			for(int t; t<job.declined.Count(); t++)
 			{
-				RPL_WritePlayerID(writer, job.declined[t]);
+				writer.WriteString(job.declined[t]);
 			}
 		}
 		
@@ -441,13 +441,13 @@ class OVT_JobManagerComponent: OVT_Component
 			if (!reader.Read(job.baseId, 32)) return false;	
 			if (!reader.Read(job.stage, 32)) return false;	
 			if (!reader.ReadRplId(job.entity)) return false;	
-			if (!RPL_ReadPlayerID(reader, persId)) return false;
+			if (!reader.ReadString(persId)) return false;
 			job.owner = persId;
 			if(!reader.ReadBool(job.accepted)) return false;
 			if(!reader.Read(declength,32)) return false;
 			for(int t; t<declength; t++)
 			{
-				if(!RPL_ReadPlayerID(reader, persId)) return false;
+				if(!reader.ReadString(persId)) return false;
 				job.declined.Insert(persId);
 			}
 						

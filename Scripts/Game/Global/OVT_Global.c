@@ -257,4 +257,27 @@ class OVT_Global {
 		
 		re.TakeFromWarehouse(warehouse, res, actual);
 	}
+	
+	//Credit to Arkensor / EveronLife
+	//https://github.com/Arkensor/EveronLife/blob/c2adaff17f297ffe1785b173da6fb3874b17b146/src/Scripts/Game/Core/EL_Utils.c#L7
+	
+	//------------------------------------------------------------------------------------------------
+	//! Gets the Bohemia UID
+	//! \param playerId Index of the player inside player manager
+	//! \return the uid as string
+	static string GetPlayerUID(int playerId)
+	{
+		string uid = GetGame().GetBackendApi().GetPlayerUID(playerId);
+		if (!uid) uid = string.Format("LOCAL_UID_%1", playerId);
+		return uid;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Gets the Bohemia UID
+	//! \param player Instance of the player
+	//! \return the uid as string
+	static string GetPlayerUID(IEntity player)
+	{
+		return GetPlayerUID(GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(player));
+	}
 }

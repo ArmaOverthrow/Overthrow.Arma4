@@ -484,14 +484,14 @@ class OVT_ResistanceFactionManager: OVT_Component
 		writer.WriteInt(m_Officers.Count()); 
 		for(int i; i<m_Officers.Count(); i++)
 		{
-			RPL_WritePlayerID(writer, m_Officers[i]);
+			writer.WriteString(m_Officers[i]);			
 		}
 		
 		//Send JIP Camps
 		writer.WriteInt(m_mCamps.Count()); 
 		for(int i; i<m_mCamps.Count(); i++)
 		{
-			RPL_WritePlayerID(writer, m_mCamps.GetKey(i));
+			writer.WriteString(m_mCamps.GetKey(i));
 			writer.WriteVector(m_mCamps.GetElement(i));
 		}
 		
@@ -519,7 +519,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		if (!reader.ReadInt(length)) return false;
 		for(int i; i<length; i++)
 		{			
-			if (!RPL_ReadPlayerID(reader, id)) return false;
+			if (!reader.ReadString(id)) return false;
 			m_Officers.Insert(id);
 		}
 		
@@ -527,7 +527,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		if (!reader.ReadInt(length)) return false;
 		for(int i; i<length; i++)
 		{			
-			if (!RPL_ReadPlayerID(reader, id)) return false;
+			if (!reader.ReadString(id)) return false;
 			if (!reader.ReadVector(pos)) return false;
 			m_mCamps[id] = pos;
 		}
