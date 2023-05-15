@@ -31,22 +31,15 @@ class OVT_PlayerCommsEntity: GenericEntity
 	}
 	
 	void RegisterPersistentID(string persistentID)
-	{
-		int int1,int2,int3;
-		OVT_PlayerManagerComponent.EncodeIDAsInts(persistentID, int1, int2, int3);
-		
+	{		
 		int playerId = SCR_PlayerController.GetLocalPlayerId();
 		
-		Rpc(RpcAsk_SetID, playerId, int1, int2, int3);
+		Rpc(RpcAsk_SetID, playerId, persistentID);
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	void RpcAsk_SetID(int playerId, int id1, int id2, int id3)
-	{		
-		string persistentID = "" + id1;
-		if(id2 > -1) persistentID += id2.ToString();
-		if(id3 > -1) persistentID += id3.ToString();
-					
+	void RpcAsk_SetID(int playerId, string persistentID)
+	{					
 		Print("Registering persistent ID with server: " + persistentID);
 		OVT_Global.GetPlayers().RegisterPlayer(playerId, persistentID);		
 	}	

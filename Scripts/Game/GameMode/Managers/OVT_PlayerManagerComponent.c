@@ -37,22 +37,6 @@ class OVT_PlayerManagerComponent: OVT_Component
 		return s_Instance;
 	}
 	
-	static void EncodeIDAsInts(string persId, out int int1, out int int2, out int int3)
-	{
-		if(persId.Length() > 10)
-		{
-			//This is an overthrow ID
-			int1 = (persId.Substring(0,9)).ToInt();
-			int2 = (persId.Substring(9,9)).ToInt();
-			int3 = (persId.Substring(18,persId.Length() - 18)).ToInt();
-		}else{
-			//This is a bohemia ID
-			int1 = persId.ToInt();
-			int2 = -1;
-			int3 = -1;
-		}		
-	}
-	
 	protected ref map<int, string> m_mPersistentIDs;
 	protected ref map<string, int> m_mPlayerIDs;
 	ref map<string, ref OVT_PlayerData> m_mPlayers;
@@ -172,8 +156,7 @@ class OVT_PlayerManagerComponent: OVT_Component
 		m_OnPlayerRegistered.Invoke(playerId, persistentId);
 		
 		int id1, id2, id3;
-		EncodeIDAsInts(persistentId, id1, id2, id3);
-		Rpc(RpcDo_RegisterPlayer, playerId, id1, id2, id3);		
+		Rpc(RpcDo_RegisterPlayer, playerId, persistentId);		
 	}
 	
 	void SetupPlayer(int playerId, string persistentId)
@@ -252,11 +235,8 @@ class OVT_PlayerManagerComponent: OVT_Component
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_RegisterPlayer(int playerId, int id1, int id2, int id3)
+	protected void RpcDo_RegisterPlayer(int playerId, string s)
 	{
-		string s = "" + id1;
-		if(id2 > -1) s += id2.ToString();
-		if(id3 > -1) s += id3.ToString();
 		SetupPlayer(playerId, s);
 		
 		m_OnPlayerRegistered.Invoke(playerId, s);
