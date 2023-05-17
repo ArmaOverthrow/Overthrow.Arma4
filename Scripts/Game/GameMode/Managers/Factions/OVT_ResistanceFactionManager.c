@@ -297,11 +297,14 @@ class OVT_ResistanceFactionManager: OVT_Component
 				
 		EntitySpawnParams params = EntitySpawnParams();
 		params.TransformMode = ETransformMode.WORLD;
-		params.Transform[3] = fob.location;
+		params.Transform[3] = fob.location + "1 0 0";
 		
 		IEntity entity = GetGame().SpawnEntityPrefab(Resource.Load(res), GetGame().GetWorld(), params);
 		SCR_AIGroup group = SCR_AIGroup.Cast(entity);
-		fob.garrison.Insert(entity.GetID());	
+		fob.garrison.Insert(entity.GetID());
+		
+		AIWaypoint wp = m_Config.SpawnDefendWaypoint(fob.location);
+		group.AddWaypoint(wp);	
 		
 		if(takeSupporters)
 		{

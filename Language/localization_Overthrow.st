@@ -607,6 +607,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D6051C94F256E7F}" {
+   Id "OVT-Msg-TowerControlledResistance"
+   Target_en_us "The resistance has captured an enemy radio tower"
+   Modified 1566786266
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59A49AC5C2FC26C2}" {
    Id "OVT-Msg-VillageControlledOccupying"
    Target_en_us "Resistance has lost control of the village due to low support"

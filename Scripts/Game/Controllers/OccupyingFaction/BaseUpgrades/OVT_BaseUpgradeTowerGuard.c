@@ -98,14 +98,29 @@ class OVT_BaseUpgradeTowerGuard : OVT_BasePatrolUpgrade
 	protected bool BuyGuard(EntityID towerID)
 	{
 		IEntity tower = GetGame().GetWorld().FindEntityByID(towerID);
-		SCR_AISmartActionSentinelComponent sentinel = SCR_AISmartActionSentinelComponent.Cast(tower.FindComponent(SCR_AISmartActionSentinelComponent));
+		
+		array<Managed> outComponents = {};
+		SCR_AISmartActionSentinelComponent component;
+		SCR_AISmartActionSentinelComponent sentinel;
+		array<string> outTags = {};
+		tower.FindComponents(SCR_AISmartActionSentinelComponent, outComponents);
+		
+		foreach (Managed outComponent : outComponents)
+		{
+			component = SCR_AISmartActionSentinelComponent.Cast(outComponent);
+			if (!component)
+				continue;
+			component.GetTags(outTags);
+			if (outTags.Contains("CoverPost") && component.IsActionAccessible())
+			{
+				sentinel = component;
+			}
+		}
+				
 		if(!sentinel) return false;
 		
-		vector wTrans[4];
-		tower.GetWorldTransform(wTrans);
-		
-		vector actionPos = sentinel.GetActionOffset().Multiply4(wTrans);		
-		
+		vector actionPos = tower.GetOrigin() + sentinel.GetActionOffset() - "0 1.3 0";
+				
 		EntitySpawnParams params = EntitySpawnParams();
 		params.TransformMode = ETransformMode.WORLD;
 		params.Transform[3] = actionPos;

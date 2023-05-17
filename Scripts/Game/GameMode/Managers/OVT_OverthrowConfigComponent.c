@@ -51,6 +51,8 @@ class OVT_DifficultySettings : ScriptAndConfig
 	int baseResourceCost;	
 	[Attribute(defvalue: "1500", desc: "Radio Tower Range", category: "Occupying Faction")]
 	float radioTowerRange;
+	[Attribute(defvalue: "1", desc: "Number of defense groups at radio towers", category: "Occupying Faction")]
+	int radioTowerGroups;	
 	
 	//Economy
 	[Attribute(defvalue: "100", desc: "Player starting cash", category: "Economy")]

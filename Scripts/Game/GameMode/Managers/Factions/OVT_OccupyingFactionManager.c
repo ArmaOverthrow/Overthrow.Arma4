@@ -24,7 +24,7 @@ class OVT_RadioTowerData
 	int faction;	
 	vector location;	
 	ref array<ref EntityID> garrison = {};
-	
+		
 	bool IsOccupyingFaction()
 	{
 		return faction == OVT_Global.GetConfig().GetOccupyingFactionIndex();
@@ -147,8 +147,87 @@ class OVT_OccupyingFactionManager: OVT_Component
 		
 		GetGame().GetCallqueue().CallLater(CheckUpdate, OF_UPDATE_FREQUENCY / m_Config.m_iTimeMultiplier, true, GetOwner());		
 		
+		GetGame().GetCallqueue().CallLater(CheckRadioTowers, 9000, true, GetOwner());	
+		
 		if(m_bDistributeInitial)
 			GetGame().GetCallqueue().CallLater(DistributeInitialResources, 100);
+	}
+	
+	void CheckRadioTowers()
+	{
+		OVT_Faction faction = m_Config.GetOccupyingFaction();
+		foreach(OVT_RadioTowerData tower : m_RadioTowers)
+		{
+			if(!tower.IsOccupyingFaction()) continue;
+			if(OVT_Global.PlayerInRange(tower.location, 2500))
+			{
+				if(tower.garrison.Count() == 0)
+				{
+					//Spawn in radio defense
+					BaseWorld world = GetGame().GetWorld();			
+					EntitySpawnParams spawnParams = new EntitySpawnParams;
+					spawnParams.TransformMode = ETransformMode.WORLD;
+					
+					vector pos = tower.location + "5 0 0";
+					
+					float surfaceY = world.GetSurfaceY(pos[0], pos[2]);
+					if (pos[1] < surfaceY)
+					{
+						pos[1] = surfaceY;
+					}
+					
+					spawnParams.Transform[3] = pos;
+					
+					for(int t = 0; t < m_Config.m_Difficulty.radioTowerGroups; t++)
+					{
+						IEntity group = GetGame().SpawnEntityPrefab(Resource.Load(faction.m_aTowerDefensePatrolPrefab), world, spawnParams);
+						tower.garrison.Insert(group.GetID());
+						SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
+						AIWaypoint wp = m_Config.SpawnDefendWaypoint(pos);
+						aigroup.AddWaypoint(wp);
+					}
+				}else{
+					//Check if dead
+					array<EntityID> remove = {};
+					foreach(EntityID id : tower.garrison)
+					{
+						IEntity ent = GetGame().GetWorld().FindEntityByID(id);
+						SCR_AIGroup group = SCR_AIGroup.Cast(ent);
+						if(!group)
+						{
+							remove.Insert(id);
+						}else if(group.GetAgentsCount() == 0)
+						{
+							SCR_EntityHelper.DeleteEntityAndChildren(group);
+							remove.Insert(id);
+						}
+					}
+					foreach(EntityID id : remove)			
+					{
+						tower.garrison.RemoveItem(id);
+					}
+					if(tower.garrison.Count() == 0)
+					{
+						//radio tower changes hands
+						tower.faction = m_Config.GetPlayerFactionIndex();
+						Rpc(RpcDo_SetRadioTowerFaction, tower.location, tower.faction);
+						OVT_TownData town = OVT_Global.GetTowns().GetNearestTown(tower.location);
+						OVT_Global.GetPlayers().HintMessageAll("RadioTowerControlledResistance",town.id,-1);
+					}
+				}
+			}else{
+				if(tower.garrison.Count() > 0)
+				{
+					//Despawn defense
+					foreach(EntityID id : tower.garrison)
+					{
+						IEntity ent = GetGame().GetWorld().FindEntityByID(id);
+						SCR_EntityHelper.DeleteEntityAndChildren(ent);
+					}
+					tower.garrison.Clear();
+				}
+			}
+		}
 	}
 	
 	void OnTownControlChanged(OVT_TownData town)
@@ -733,6 +812,15 @@ class OVT_OccupyingFactionManager: OVT_Component
 	protected void RpcDo_SetBaseFaction(int index, int faction)
 	{
 		m_Bases[index].faction = faction;
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_SetRadioTowerFaction(vector pos, int faction)
+	{
+		OVT_RadioTowerData tower = GetNearestRadioTower(pos);
+		if(!tower) return;
+		
+		tower.faction = faction;
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
