@@ -32,6 +32,11 @@ class OVT_TownData : Managed
 	{
 		return OVT_Faction.Cast(GetGame().GetFactionManager().GetFactionByIndex(faction));
 	}
+	
+	bool IsOccupyingFaction()
+	{
+		return faction == OVT_Global.GetConfig().GetOccupyingFactionIndex();
+	}
 }
 
 class OVT_TownManagerComponent: OVT_Component
@@ -363,22 +368,37 @@ class OVT_TownManagerComponent: OVT_Component
 			//Chance this village will flip to the resistance
 			if(support >= 85 || s_AIRandomGenerator.RandFloat01() < 0.5)
 			{
-				town.faction = playerFactionIndex;
-				m_OnTownControlChange.Invoke(town);
-				Rpc(RpcDo_SetTownFaction, townId, playerFactionIndex);
-				OVT_Global.GetPlayers().HintMessageAll("VillageControlledResistance", townId);
+				ChangeTownControl(town, playerFactionIndex);
 			}			
 		}else if(town.faction == playerFactionIndex && support < 25)
 		{
 			//Chance this village will flip back to the OF
 			if(support < 15 || s_AIRandomGenerator.RandFloat01() < 0.5)
 			{
-				town.faction = occupyingFactionIndex;
-				m_OnTownControlChange.Invoke(town);
-				Rpc(RpcDo_SetTownFaction, townId, occupyingFactionIndex);
-				OVT_Global.GetPlayers().HintMessageAll("VillageControlledOccupying", townId);
+				ChangeTownControl(town, occupyingFactionIndex);
 			}
 		}
+	}
+	
+	void ResetSupport(OVT_TownData town)
+	{
+		town.support = 0;
+		Rpc(RpcDo_SetSupport, town.id, 0);
+	}
+	
+	void ChangeTownControl(OVT_TownData town, int faction)
+	{
+		town.faction = faction;
+		m_OnTownControlChange.Invoke(town);
+		Rpc(RpcDo_SetTownFaction, town.id, faction);
+		string type = "Village";
+		if(town.size == 2) type = "Town";
+		if(town.size == 3) type = "City";
+		
+		string factionType = "Resistance";
+		if(faction != m_Config.GetPlayerFactionIndex()) factionType = "Occupying";
+		
+		OVT_Global.GetPlayers().HintMessageAll(type + "Controlled" + factionType, town.id);		
 	}
 	
 	IEntity GetRandomHouse()

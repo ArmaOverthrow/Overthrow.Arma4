@@ -108,6 +108,32 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			DiagMenu.SetValue(200,0);
 		}
 		
+		if(DiagMenu.GetValue(201))
+		{
+			OVT_TownData town = OVT_Global.GetTowns().GetNearestTown(SCR_PlayerController.GetLocalControlledEntity().GetOrigin());
+			if(town)
+			{
+				town.support = town.population;
+			}
+			DiagMenu.SetValue(201,0);
+		}
+		
+		if(DiagMenu.GetValue(202))
+		{
+			OVT_TownData town = OVT_Global.GetTowns().GetNearestTown(SCR_PlayerController.GetLocalControlledEntity().GetOrigin());
+			if(town)
+			{
+				OVT_Global.GetTowns().ChangeTownControl(town, m_Config.GetPlayerFactionIndex());
+			}
+			DiagMenu.SetValue(202,0);
+		}
+		
+		if(DiagMenu.GetValue(203))
+		{
+			OVT_Global.GetOccupyingFaction().WinBattle();
+			DiagMenu.SetValue(203,0);
+		}
+		
 		if(!(IsMaster() && RplSession.Mode() == RplMode.Dedicated) && !m_bCameraSet)
 		{
 			SetRandomCameraPosition();
@@ -283,6 +309,15 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		
 		DiagMenu.RegisterBool(200, "lctrl+lalt+g", "Give $1000", "Cheats");
 		DiagMenu.SetValue(200, 0);
+		
+		DiagMenu.RegisterBool(201, "lctrl+lalt+s", "Give 100% support", "Cheats");
+		DiagMenu.SetValue(201, 0);
+		
+		DiagMenu.RegisterBool(202, "lctrl+lalt+c", "Capture Town", "Cheats");
+		DiagMenu.SetValue(202, 0);
+		
+		DiagMenu.RegisterBool(203, "lctrl+lalt+w", "Win Battle", "Cheats");
+		DiagMenu.SetValue(203, 0);
 		
 		if(SCR_Global.IsEditMode())
 			return;		

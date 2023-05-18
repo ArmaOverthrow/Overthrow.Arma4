@@ -80,10 +80,12 @@ class OVT_OccupyingFactionManager: OVT_Component
 	
 	OVT_QRFControllerComponent m_CurrentQRF;
 	protected OVT_BaseControllerComponent m_CurrentQRFBase;
+	protected OVT_TownData m_CurrentQRFTown;
 	
 	bool m_bQRFActive = false;	
 	vector m_vQRFLocation = "0 0 0";
 	int m_iCurrentQRFBase = -1;	
+	int m_iCurrentQRFTown = -1;	
 	int m_iQRFPoints = 0;	
 	int m_iQRFTimer = 0;
 	
@@ -443,9 +445,29 @@ class OVT_OccupyingFactionManager: OVT_Component
 		
 		m_bQRFActive = true;
 		m_vQRFLocation = base.GetOwner().GetOrigin();
-		m_iCurrentQRFBase = GetBaseIndex(data);
+		m_iCurrentQRFBase= GetBaseIndex(data);
 		
 		Rpc(RpcDo_SetQRFBase, m_iCurrentQRFBase);
+		Rpc(RpcDo_SetQRFActive, m_vQRFLocation);
+		
+		Replication.BumpMe();
+	}
+	
+	void StartTownQRF(OVT_TownData town)
+	{
+		if(m_CurrentQRF) return;
+		
+		m_CurrentQRF = SpawnQRFController(town.location);
+		RplComponent rpl = RplComponent.Cast(m_CurrentQRF.GetOwner().FindComponent(RplComponent));
+		
+		m_CurrentQRF.m_OnFinished.Insert(OnQRFFinishedTown);
+		m_CurrentQRFTown = town;
+		
+		m_bQRFActive = true;
+		m_vQRFLocation = town.location;
+		m_iCurrentQRFTown = town.id;
+		
+		Rpc(RpcDo_SetQRFTown, m_iCurrentQRFBase);
 		Rpc(RpcDo_SetQRFActive, m_vQRFLocation);
 		
 		Replication.BumpMe();
@@ -472,8 +494,46 @@ class OVT_OccupyingFactionManager: OVT_Component
 		
 		m_bQRFActive = false;
 		m_iCurrentQRFBase = -1;
+		m_iCurrentQRFTown = -1;
 		
 		Rpc(RpcDo_SetQRFInactive);
+	}
+	
+	void OnQRFFinishedTown()
+	{	
+		if(m_CurrentQRF.m_iWinningFaction != m_CurrentQRFTown.faction)
+		{
+			string type = "Town";
+			if(m_CurrentQRFTown.size > 2) type = "City";
+			if(m_CurrentQRFTown.IsOccupyingFaction())
+			{
+				m_iThreat += 50;
+				OVT_Global.GetPlayers().HintMessageAll(type + "ControlledResistance");
+				OVT_Global.GetTowns().TryAddSupportModifierByName(m_CurrentQRFTown.id, "RecentBattlePositive");
+			}else{
+				OVT_Global.GetPlayers().HintMessageAll(type + "ControlledOccupying");
+				OVT_Global.GetTowns().TryAddSupportModifierByName(m_CurrentQRFTown.id, "RecentBattleNegative");
+				OVT_Global.GetTowns().ResetSupport(m_CurrentQRFTown);	
+			}			
+			OVT_Global.GetTowns().TryAddStabilityModifierByName(m_CurrentQRFTown.id, "RecentBattle");
+			OVT_Global.GetTowns().ChangeTownControl(m_CurrentQRFTown, m_CurrentQRF.m_iWinningFaction);			
+					
+		}		
+				
+		SCR_EntityHelper.DeleteEntityAndChildren(m_CurrentQRF.GetOwner());
+		m_CurrentQRF = null;
+		
+		m_bQRFActive = false;
+		m_iCurrentQRFBase = -1;
+		m_iCurrentQRFTown = -1;
+		
+		Rpc(RpcDo_SetQRFInactive);
+	}
+	
+	void WinBattle()
+	{
+		if(!m_CurrentQRF) return;
+		m_CurrentQRF.KillAll();
 	}
 	
 	bool CheckBaseAdd(IEntity ent)
@@ -603,7 +663,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 			Print("OF Reserve Resources: " + m_iResources);
 		}
 		
-		//Every 15 mins reduce threat
+		//Every 15 mins reduce threat and check if we wanna start a battle for a town
 		if(time.m_iMinutes == 0 
 			|| time.m_iMinutes == 15 
 			|| time.m_iMinutes == 30 
@@ -611,6 +671,35 @@ class OVT_OccupyingFactionManager: OVT_Component
 		{
 			m_iThreat -= 1;
 			if(m_iThreat < 0) m_iThreat = 0;
+			
+			int playerFaction = m_Config.GetPlayerFactionIndex();
+			int occupyingFaction = m_Config.GetOccupyingFactionIndex();
+			
+			foreach(OVT_TownData town : OVT_Global.GetTowns().m_Towns)
+			{
+				if(town.size == 1) continue;
+				int support = town.SupportPercentage();		
+				if(town.faction == occupyingFaction)
+				{
+					if(support > 75 && town.stability >= 50)
+					{
+						//Chance this town will start a battle
+						if(support >= 85 || s_AIRandomGenerator.RandFloat01() < 0.5)
+						{
+							StartTownQRF(town);
+						}	
+					}
+				}else{
+					if(support < 25)
+					{
+						//Chance this town will start a battle
+						if(support <= 15 || s_AIRandomGenerator.RandFloat01() < 0.5)
+						{
+							StartTownQRF(town);
+						}	
+					}
+				}
+			}
 		}
 	}
 	
@@ -803,6 +892,12 @@ class OVT_OccupyingFactionManager: OVT_Component
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_SetQRFTown(int townId)
+	{
+		m_iCurrentQRFTown = townId;
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_SetQRFPoints(int points)
 	{
 		m_iQRFPoints = points;
@@ -833,6 +928,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 	protected void RpcDo_SetQRFInactive()
 	{
 		m_bQRFActive = false;
+		m_iCurrentQRFBase = -1;
+		m_iCurrentQRFTown = -1;
 	}
 	
 	void ~OVT_OccupyingFactionManager()

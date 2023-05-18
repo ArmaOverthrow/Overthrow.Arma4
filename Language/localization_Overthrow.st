@@ -579,6 +579,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D64799EE068B0DB}" {
+   Id "OVT-Modifier_RecentBattle"
+   Target_en_us "Recent Battle"
+   Modified 1566877803
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59B4F0A361F5ADF0}" {
    Id "OVT-Msg-BaseControlledOccupying"
    Target_en_us "The resistance has lost control of a base"
@@ -590,6 +597,27 @@ StringTable {
    Id "OVT-Msg-BaseControlledResistance"
    Target_en_us "The resistance has captured an enemy base"
    Modified 1505038613
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D64799026B5CA0A}" {
+   Id "OVT-Msg-CityBattle"
+   Target_en_us "The battle for the city will begin shortly"
+   Modified 1566876767
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D647993297FAA09}" {
+   Id "OVT-Msg-CityControlledOccupying"
+   Target_en_us "The resistance has lost control of the city"
+   Modified 1566876332
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D6479933F0A23F6}" {
+   Id "OVT-Msg-CityControlledResistance"
+   Target_en_us "City is now under control by the resistance"
+   Modified 1566876352
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -611,6 +639,27 @@ StringTable {
    Id "OVT-Msg-TowerControlledResistance"
    Target_en_us "The resistance has captured an enemy radio tower"
    Modified 1566786266
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D647993F9896F6F}" {
+   Id "OVT-Msg-TownBattle"
+   Target_en_us "The battle for the town will begin shortly"
+   Modified 1566876749
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D6479932650745D}" {
+   Id "OVT-Msg-TownControlledOccupying"
+   Target_en_us "The resistance has lost control of the town"
+   Modified 1566876313
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D6479934B14F461}" {
+   Id "OVT-Msg-TownControlledResistance"
+   Target_en_us "Town is now under control by the resistance"
+   Modified 1566876292
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

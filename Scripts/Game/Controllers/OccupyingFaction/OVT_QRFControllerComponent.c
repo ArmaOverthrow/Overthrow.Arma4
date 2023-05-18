@@ -50,6 +50,26 @@ class OVT_QRFControllerComponent: OVT_Component
 		}
 	}
 	
+	void KillAll()
+	{
+		BaseWorld world = GetGame().GetWorld();
+		foreach(EntityID id : m_Groups)
+		{
+			IEntity group = world.FindEntityByID(id);
+			if(!group) continue;
+			SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
+			if(!aigroup) continue;
+			array<AIAgent> agents = new array<AIAgent>;
+			aigroup.GetAgents(agents);
+			foreach(AIAgent agent : agents)
+			{
+				DamageManagerComponent damageManager = DamageManagerComponent.Cast(agent.FindComponent(DamageManagerComponent));
+				if (damageManager && damageManager.IsDamageHandlingEnabled())
+					damageManager.SetHealthScaled(0);
+			}
+		}
+	}
+	
 	protected void CheckUpdatePoints()
 	{
 		BaseWorld world = GetGame().GetWorld();

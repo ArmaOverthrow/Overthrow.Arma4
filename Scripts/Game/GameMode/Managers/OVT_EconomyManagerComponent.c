@@ -295,6 +295,12 @@ class OVT_EconomyManagerComponent: OVT_Component
 	{
 		int income = 0;
 		
+		foreach(OVT_TownData town : m_Towns.m_Towns)
+		{
+			if(town.IsOccupyingFaction()) continue;
+			income += (int)Math.Round(m_Config.m_Difficulty.taxIncome * town.population * (town.stability / 100));
+		}
+		
 		return income;
 	}
 	

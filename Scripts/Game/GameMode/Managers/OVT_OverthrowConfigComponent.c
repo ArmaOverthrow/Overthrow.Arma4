@@ -69,6 +69,8 @@ class OVT_DifficultySettings : ScriptAndConfig
 	float realEstateCostMultiplier;
 	[Attribute(defvalue: "10", desc: "Donation income per civilian supporter", category: "Economy")]
 	int donationIncome;
+	[Attribute(defvalue: "100", desc: "Tax income per civilian", category: "Economy")]
+	int taxIncome;
 	[Attribute(defvalue: "5", desc: "Bus ticket price per km", category: "Economy")]
 	int busTicketPrice;
 	[Attribute(defvalue: "250", desc: "Base price for AI recruit", category: "Economy")]
