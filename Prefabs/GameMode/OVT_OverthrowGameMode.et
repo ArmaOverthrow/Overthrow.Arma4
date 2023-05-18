@@ -551,6 +551,8 @@ OVT_OverthrowGameMode {
     }
     jobs OVT_JobsStruct "{5D5096191D6AB686}" {
     }
+    radioTowers OVT_RadioTowerArrayStruct "{5D6346180781EF1C}" {
+    }
    }
    m_iAutosavePeriod 600
    m_bLoadSaveInWorkbench 0

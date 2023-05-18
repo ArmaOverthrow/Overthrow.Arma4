@@ -23,6 +23,9 @@ class OVT_OverthrowSaveStruct : SCR_MissionStruct
 	[Attribute()]
 	protected ref OVT_JobsStruct jobs;
 	
+	[Attribute()]
+	protected ref OVT_RadioTowerArrayStruct radioTowers;
+	
 	ref array<string> rdb = {};
 	
 	protected string occupyingFaction;
@@ -65,6 +68,18 @@ class OVT_OverthrowSaveStruct : SCR_MissionStruct
 			jobs.rdb = rdb;
 			if(!jobs.Serialize()) return false;
 		}		
+		
+		if(radioTowers)
+		{
+			radioTowers.towers.Clear();
+			foreach(OVT_RadioTowerData data : OVT_Global.GetOccupyingFaction().m_RadioTowers)
+			{
+				OVT_RadioTowerStruct struct = new OVT_RadioTowerStruct;
+				struct.pos = data.location;
+				struct.faction = data.faction;
+				radioTowers.towers.Insert(struct);
+			}
+		}
 
 		
 		TimeAndWeatherManagerEntity timeMgr = GetGame().GetTimeAndWeatherManager();
@@ -118,6 +133,17 @@ class OVT_OverthrowSaveStruct : SCR_MissionStruct
 		{
 			resistance.rdb = rdb;
 			if(!resistance.Deserialize()) return false;
+		}
+		
+		if(radioTowers)
+		{
+			foreach(OVT_RadioTowerStruct struct : radioTowers.towers)
+			{
+				OVT_RadioTowerData data = OVT_Global.GetOccupyingFaction().GetNearestRadioTower(struct.pos);
+				if(data){
+					data.faction = struct.faction;
+				}
+			}
 		}
 		
 		//A workaround because this will be fired with a blank struct on dedi servers that have no existing save file
@@ -193,6 +219,7 @@ class OVT_OverthrowSaveStruct : SCR_MissionStruct
 		RegV("jobs");
 		RegV("towns");
 		RegV("time");
+		RegV("radioTowers");
 	}
 }
 
@@ -247,6 +274,29 @@ class OVT_TownStruct : SCR_JsonApiStruct
 		RegV("supportModTime");
 		RegV("stabilityMods");
 		RegV("stabilityModTime");
+	}
+}
+
+[BaseContainerProps()]
+class OVT_RadioTowerArrayStruct : SCR_JsonApiStruct
+{
+	ref array<ref OVT_RadioTowerStruct> towers = {};
+	void OVT_RadioTowerArrayStruct()
+	{
+		RegV("towers");
+	}
+}
+
+class OVT_RadioTowerStruct : SCR_JsonApiStruct
+{
+	vector pos;
+	int faction;
+	ref array<int> garrison = {};
+	void OVT_RadioTowerStruct()
+	{
+		RegV("pos");
+		RegV("faction");
+		RegV("garrison");
 	}
 }
 
