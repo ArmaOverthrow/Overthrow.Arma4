@@ -20,6 +20,8 @@ class OVT_QRFControllerComponent: OVT_Component
 	
 	ref ScriptInvoker m_OnFinished = new ScriptInvoker();
 	
+	int m_iUsedResources = 0;
+	
 	OVT_OccupyingFactionManager m_OccupyingFaction;
 	
 	override void OnPostInit(IEntity owner)
@@ -198,6 +200,8 @@ class OVT_QRFControllerComponent: OVT_Component
 		
 		m_OccupyingFaction.m_iResources = m_OccupyingFaction.m_iResources - spent;
 		if(m_OccupyingFaction.m_iResources < 0) m_OccupyingFaction.m_iResources = 0;
+		
+		m_iUsedResources = spent;
 	}
 	
 	protected int SpawnTroops(vector pos, vector targetPos)
