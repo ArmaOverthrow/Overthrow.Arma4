@@ -10,13 +10,13 @@ class OVT_TownSupportModifierSystem : OVT_TownModifierSystem
 		m_TownManager.RemoveSupportModifier(townId, index);
 	}
 	
-	override int Recalculate(array<ref int> modifiers, int baseValue = 100, int min = 0, int max = 100)
+	override int Recalculate(array<ref OVT_TownModifierData> modifiers, int baseValue = 100, int min = 0, int max = 100)
 	{
 		int newsupport = baseValue;
 		float supportmods = 0;
-		foreach(int index : modifiers)
+		foreach(OVT_TownModifierData modifier : modifiers)
 		{
-			OVT_ModifierConfig mod = m_Config.m_aModifiers[index];
+			OVT_ModifierConfig mod = m_Config.m_aModifiers[modifier.id];
 			supportmods += mod.baseEffect;
 		}
 		if(supportmods > 100) supportmods = 100;

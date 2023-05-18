@@ -153,21 +153,19 @@ class OVT_OverthrowSaveStruct : SCR_MissionStruct
 					town.population = struct.pop;
 					town.support = struct.support;
 					town.gunDealerPosition = struct.gunDealerPos;
-					foreach(int i : struct.supportMods)
+					foreach(int index, int i : struct.supportMods)
 					{
-						town.supportModifiers.Insert(i);
+						OVT_TownModifierData data = new OVT_TownModifierData;
+						data.id = i;
+						data.timer = struct.supportModTime[index];
+						town.supportModifiers.Insert(data);
 					}
-					foreach(int i : struct.supportModTime)
+					foreach(int index, int i : struct.stabilityMods)
 					{
-						town.supportModifierTimers.Insert(i);
-					}
-					foreach(int i : struct.stabilityMods)
-					{
-						town.stabilityModifiers.Insert(i);
-					}
-					foreach(int i : struct.stabilityModTime)
-					{
-						town.stabilityModifierTimers.Insert(i);
+						OVT_TownModifierData data = new OVT_TownModifierData;
+						data.id = i;
+						data.timer = struct.stabilityModTime[index];
+						town.stabilityModifiers.Insert(data);
 					}					
 					
 					Faction fac = GetGame().GetFactionManager().GetFactionByKey(struct.faction);
@@ -219,10 +217,23 @@ class OVT_TownStruct : SCR_JsonApiStruct
 		pop = town.population;
 		support = town.support;
 		faction = factions.GetFactionByIndex(town.faction).GetFactionKey();
-		supportMods = town.supportModifiers;
-		stabilityMods = town.stabilityModifiers;
-		supportModTime = town.supportModifierTimers;
-		stabilityModTime = town.stabilityModifierTimers;
+		
+		supportMods.Clear();
+		supportModTime.Clear();
+		stabilityMods.Clear();
+		stabilityModTime.Clear();
+		
+		foreach(OVT_TownModifierData data : town.supportModifiers)
+		{
+			supportMods.Insert(data.id);
+			supportModTime.Insert(data.timer);
+		}
+		
+		foreach(OVT_TownModifierData data : town.stabilityModifiers)
+		{
+			stabilityMods.Insert(data.id);
+			stabilityModTime.Insert(data.timer);
+		}
 	}
 	
 	void OVT_TownStruct()

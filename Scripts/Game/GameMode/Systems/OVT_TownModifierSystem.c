@@ -48,20 +48,20 @@ class OVT_TownModifierSystem : ScriptAndConfig
 		}
 	}
 	
-	bool OnTick(inout array<ref int> modifiers, inout array<ref int> modifierTimers, OVT_TownData town)
+	bool OnTick(inout array<ref OVT_TownModifierData> modifiers, OVT_TownData town)
 	{
 		//Check if we need to time out any modifiers
-		array<int> rebuild = new array<int>;
-		array<int> rebuildtimers = new array<int>;
+		array<OVT_TownModifierData> rebuild = new array<OVT_TownModifierData>;
 		bool recalc = false;		
-		foreach(int i, int index : modifiers)
+		foreach(OVT_TownModifierData modifier : modifiers)
 		{
-			OVT_ModifierConfig mod = m_Config.m_aModifiers[index];
+			OVT_ModifierConfig mod = m_Config.m_aModifiers[modifier.id];
 			if(mod.timeout <= 0) continue;
 			
 			bool remove = false;
-			modifierTimers[i] = modifierTimers[i] - m_TownManager.MODIFIER_FREQUENCY / 1000;
-			if(modifierTimers[i] <= 0)
+			modifier.timer = modifier.timer - m_TownManager.MODIFIER_FREQUENCY / 1000;
+			
+			if(modifier.timer <= 0)
 			{
 				remove = true;
 			}else{				
@@ -73,8 +73,7 @@ class OVT_TownModifierSystem : ScriptAndConfig
 				}
 			}
 			if(!remove) {
-				rebuild.Insert(index);
-				rebuildtimers.Insert(modifierTimers[i]);				
+				rebuild.Insert(modifier);								
 			}else{
 				recalc = true;
 			}
@@ -84,14 +83,9 @@ class OVT_TownModifierSystem : ScriptAndConfig
 		{
 			//rebuild arrays (minus removed)
 			modifiers.Clear();
-			modifierTimers.Clear();
-			foreach(int index : rebuild)
+			foreach(OVT_TownModifierData mod : rebuild)
 			{
-				modifiers.Insert(index);
-			}
-			foreach(int index : rebuildtimers)
-			{
-				modifierTimers.Insert(index);
+				modifiers.Insert(mod);
 			}
 		}
 		
@@ -107,12 +101,12 @@ class OVT_TownModifierSystem : ScriptAndConfig
 		return recalc;
 	}
 	
-	int Recalculate(array<ref int> modifiers, int baseValue = 100, int min = 0, int max = 100)
+	int Recalculate(array<ref OVT_TownModifierData> modifiers, int baseValue = 100, int min = 0, int max = 100)
 	{
 		float newval = baseValue;
-		foreach(int index : modifiers)
+		foreach(OVT_TownModifierData modifier : modifiers)
 		{
-			OVT_ModifierConfig mod = m_Config.m_aModifiers[index];
+			OVT_ModifierConfig mod = m_Config.m_aModifiers[modifier.id];
 			newval += mod.baseEffect;
 		}
 		if(newval > max) newval = max;

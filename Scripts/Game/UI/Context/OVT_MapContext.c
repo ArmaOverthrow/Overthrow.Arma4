@@ -196,11 +196,11 @@ class OVT_MapContext : OVT_UIContext
 		array<int> done = new array<int>;
 		OVT_TownModifierSystem system = m_TownManager.GetModifierSystem(OVT_TownStabilityModifierSystem);
 		WorkspaceWidget workspace = GetGame().GetWorkspace(); 
-		foreach(int index : m_SelectedTown.stabilityModifiers)
+		foreach(OVT_TownModifierData data : m_SelectedTown.stabilityModifiers)
 		{
-			if(done.Contains(index)) continue;
+			if(done.Contains(data.id)) continue;
 			
-			OVT_ModifierConfig mod = system.m_Config.m_aModifiers[index];
+			OVT_ModifierConfig mod = system.m_Config.m_aModifiers[data.id];
 			
 			Widget w = workspace.CreateWidgets(m_ModLayout, container);
 			TextWidget tw = TextWidget.Cast(w.FindAnyWidget("Text"));
@@ -210,9 +210,9 @@ class OVT_MapContext : OVT_UIContext
 			{
 				effect = 0;
 				//count all present
-				foreach(int check : m_SelectedTown.stabilityModifiers)
+				foreach(OVT_TownModifierData check : m_SelectedTown.stabilityModifiers)
 				{
-					if(check == index) effect += mod.baseEffect;
+					if(check.id == data.id) effect += mod.baseEffect;
 				}
 			}
 			
@@ -225,7 +225,7 @@ class OVT_MapContext : OVT_UIContext
 			}else{
 				panel.SetColor(m_PositiveModifierColor);
 			}
-			done.Insert(index);
+			done.Insert(data.id);
 		}
 		
 		container = m_wRoot.FindAnyWidget("SupportModContainer");
@@ -238,10 +238,10 @@ class OVT_MapContext : OVT_UIContext
 		done.Clear();
 		
 		system = m_TownManager.GetModifierSystem(OVT_TownSupportModifierSystem);
-		foreach(int index : m_SelectedTown.supportModifiers)
+		foreach(OVT_TownModifierData data : m_SelectedTown.supportModifiers)
 		{
-			if(done.Contains(index)) continue;
-			OVT_ModifierConfig mod = system.m_Config.m_aModifiers[index];
+			if(done.Contains(data.id)) continue;
+			OVT_ModifierConfig mod = system.m_Config.m_aModifiers[data.id];
 			Widget w = workspace.CreateWidgets(m_ModLayout, container);
 			TextWidget tw = TextWidget.Cast(w.FindAnyWidget("Text"));
 			int effect = mod.baseEffect;
@@ -249,9 +249,9 @@ class OVT_MapContext : OVT_UIContext
 			{
 				effect = 0;
 				//count all present
-				foreach(int check : m_SelectedTown.supportModifiers)
+				foreach(OVT_TownModifierData check : m_SelectedTown.supportModifiers)
 				{
-					if(check == index) effect += mod.baseEffect;
+					if(check.id == data.id) effect += mod.baseEffect;
 				}
 			}
 			
@@ -264,7 +264,7 @@ class OVT_MapContext : OVT_UIContext
 			}else{
 				panel.SetColor(m_PositiveModifierColor);
 			}
-			done.Insert(index);
+			done.Insert(data.id);
 		}
 	}
 	
