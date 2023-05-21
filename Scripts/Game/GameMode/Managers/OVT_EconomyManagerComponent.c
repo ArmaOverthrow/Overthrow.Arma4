@@ -827,35 +827,35 @@ class OVT_EconomyManagerComponent: OVT_Component
 	override bool RplSave(ScriptBitWriter writer)
 	{		
 		//Send JIP price list
-		writer.Write(m_mItemCosts.Count(), 32); 
+		writer.WriteInt(m_mItemCosts.Count()); 
 		for(int i; i<m_mItemCosts.Count(); i++)
 		{			
-			writer.Write(m_mItemCosts.GetKey(i),32);
-			writer.Write(m_mItemCosts.GetElement(i),32);
+			writer.WriteInt(m_mItemCosts.GetKey(i));
+			writer.WriteInt(m_mItemCosts.GetElement(i));
 		}
 		
 		//Send JIP money map
-		writer.Write(m_mMoney.Count(), 32); 
+		writer.WriteInt(m_mMoney.Count()); 
 		for(int i; i<m_mMoney.Count(); i++)
 		{			
 			writer.WriteString(m_mMoney.GetKey(i));
-			writer.Write(m_mMoney.GetElement(i), 32);
+			writer.WriteInt(m_mMoney.GetElement(i));
 		}
-		writer.Write(m_iResistanceMoney, 32);
+		writer.WriteInt(m_iResistanceMoney);
 		writer.WriteFloat(m_fResistanceTax);
 		
 		//Send JIP Shops
-		writer.Write(m_aAllShops.Count(), 32); 
+		writer.WriteInt(m_aAllShops.Count()); 
 		for(int i; i<m_aAllShops.Count(); i++)
 		{
 			writer.WriteRplId(m_aAllShops[i]);
 		}
-		writer.Write(m_mTownShops.Count(), 32); 
+		writer.WriteInt(m_mTownShops.Count()); 
 		for(int i; i<m_mTownShops.Count(); i++)
 		{			
 			int key = m_mTownShops.GetKey(i);
-			writer.Write(key, 32);
-			writer.Write(m_mTownShops[key].Count(), 32);
+			writer.WriteInt(key);
+			writer.WriteInt(m_mTownShops[key].Count());
 			for(int t; t<m_mTownShops[key].Count(); t++)
 			{	
 				writer.WriteRplId(m_mTownShops[key][t]);
@@ -863,7 +863,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		}
 		
 		//Send JIP Gun Dealers
-		writer.Write(m_aGunDealers.Count(), 32); 
+		writer.WriteInt(m_aGunDealers.Count()); 
 		for(int i; i<m_aGunDealers.Count(); i++)
 		{
 			writer.WriteRplId(m_aGunDealers[i]);
@@ -881,39 +881,39 @@ class OVT_EconomyManagerComponent: OVT_Component
 		RplId id;
 		int key;
 		
-		if (!reader.Read(length, 32)) return false;
+		if (!reader.ReadInt(length)) return false;
 		for(int i; i<length; i++)
 		{
-			if (!reader.Read(key, 32)) return false;
-			if (!reader.Read(price, 32)) return false;
+			if (!reader.ReadInt(key)) return false;
+			if (!reader.ReadInt(price)) return false;
 			m_mItemCosts[key] = price;
 		}
 		
 		//Recieve JIP money map
-		if (!reader.Read(length, 32)) return false;
+		if (!reader.ReadInt(length)) return false;
 		for(int i; i<length; i++)
 		{
 			if(!reader.ReadString(playerId)) return false;
-			if (!reader.Read(price, 32)) return false;
+			if (!reader.ReadInt(price)) return false;
 			m_mMoney[playerId] = price;
 		}
-		if (!reader.Read(m_iResistanceMoney, 32)) return false;
+		if (!reader.ReadInt(m_iResistanceMoney)) return false;
 		if (!reader.ReadFloat(m_fResistanceTax)) return false;
 		
 		//Recieve JIP shops		
-		if (!reader.Read(length, 32)) return false;
+		if (!reader.ReadInt(length)) return false;
 		for(int i; i<length; i++)
 		{			
 			if (!reader.ReadRplId(id)) return false;
 			m_aAllShops.Insert(id);
 		}
 		
-		if (!reader.Read(length, 32)) return false;
+		if (!reader.ReadInt(length)) return false;
 		for(int i; i<length; i++)
 		{	
-			if (!reader.Read(key, 32)) return false;
+			if (!reader.ReadInt(key)) return false;
 			m_mTownShops[key] = new array<RplId>;
-			if (!reader.Read(keylength, 32)) return false;
+			if (!reader.ReadInt(keylength)) return false;
 			for(int t; t<keylength; t++)
 			{
 				if (!reader.ReadRplId(id)) return false;
@@ -922,7 +922,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		}
 		
 		//Recieve JIP gun dealers		
-		if (!reader.Read(length, 32)) return false;
+		if (!reader.ReadInt(length)) return false;
 		for(int i; i<length; i++)
 		{			
 			if (!reader.ReadRplId(id)) return false;

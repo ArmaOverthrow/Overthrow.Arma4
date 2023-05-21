@@ -337,7 +337,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		super.RplSave(writer);
 		
 		//Send JIP homes
-		writer.Write(m_mHomes.Count(), 32); 
+		writer.WriteInt(m_mHomes.Count()); 
 		for(int i; i<m_mHomes.Count(); i++)
 		{			
 			writer.WriteString(m_mHomes.GetKey(i));
@@ -345,20 +345,20 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		}
 		
 		//Send JIP warehouses
-		writer.Write(m_aWarehouses.Count(), 32);
+		writer.WriteInt(m_aWarehouses.Count());
 		for(int i; i<m_aWarehouses.Count(); i++)
 		{
 			OVT_WarehouseData data = m_aWarehouses[i];
-			writer.Write(data.id, 32);
+			writer.WriteInt(data.id);
 			writer.WriteVector(data.location);
 			writer.WriteString(data.owner);
 			writer.WriteBool(data.isLinked);
 			writer.WriteBool(data.isPrivate);
-			writer.Write(data.inventory.Count(), 32);
+			writer.WriteInt(data.inventory.Count());
 			for(int ii; ii<m_aWarehouses.Count(); ii++)
 			{
-				writer.Write(data.inventory.GetKey(ii), 32);
-				writer.Write(data.inventory.GetElement(ii), 32);
+				writer.WriteInt(data.inventory.GetKey(ii));
+				writer.WriteInt(data.inventory.GetElement(ii));
 			}
 		}
 		
@@ -374,7 +374,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		string playerId;
 		vector loc;
 		
-		if (!reader.Read(length, 32)) return false;
+		if (!reader.ReadInt(length)) return false;
 		for(int i; i<length; i++)
 		{
 			if (!reader.ReadString(playerId)) return false;
@@ -383,11 +383,11 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 			m_mHomes[playerId] = loc;
 		}
 		//Recieve JIP warehouses
-		if (!reader.Read(length, 32)) return false;
+		if (!reader.ReadInt(length)) return false;
 		for(int i; i<length; i++)
 		{
 			OVT_WarehouseData data = new OVT_WarehouseData;
-			if (!reader.Read(data.id, 32)) return false;
+			if (!reader.ReadInt(data.id)) return false;
 			if (!reader.ReadVector(data.location)) return false;	
 			if (!reader.ReadString(data.owner)) return false;
 			if (!reader.ReadBool(data.isLinked)) return false;
@@ -395,11 +395,11 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 			
 			data.inventory = new map<int,int>;
 			
-			if (!reader.Read(ownedlength, 32)) return false;
+			if (!reader.ReadInt(ownedlength)) return false;
 			for(int ii; ii<length; ii++)
 			{
-				if (!reader.Read(id, 32)) return false;
-				if (!reader.Read(qty, 32)) return false;
+				if (!reader.ReadInt(id)) return false;
+				if (!reader.ReadInt(qty)) return false;
 				data.inventory[id] = qty;
 			}
 			m_aWarehouses.Insert(data);			

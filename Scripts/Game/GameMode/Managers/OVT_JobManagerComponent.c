@@ -401,19 +401,19 @@ class OVT_JobManagerComponent: OVT_Component
 	{		
 		
 		//Send JIP active jobs
-		writer.Write(m_aJobs.Count(), 32); 
+		writer.WriteInt(m_aJobs.Count()); 
 		for(int i; i<m_aJobs.Count(); i++)
 		{
 			OVT_Job job = m_aJobs[i];
-			writer.Write(job.jobIndex, 32);
+			writer.WriteInt(job.jobIndex);
 			writer.WriteVector(job.location);
-			writer.Write(job.townId, 32);
-			writer.Write(job.baseId, 32);
-			writer.Write(job.stage, 32);
+			writer.WriteInt(job.townId);
+			writer.WriteInt(job.baseId);
+			writer.WriteInt(job.stage);
 			writer.WriteRplId(job.entity);	
 			writer.WriteString(job.owner);
 			writer.WriteBool(job.accepted);	
-			writer.Write(job.declined.Count(),32);
+			writer.WriteInt(job.declined.Count());
 			for(int t; t<job.declined.Count(); t++)
 			{
 				writer.WriteString(job.declined[t]);
@@ -430,21 +430,21 @@ class OVT_JobManagerComponent: OVT_Component
 		int length, declength;
 		string persId;
 		
-		if (!reader.Read(length, 32)) return false;
+		if (!reader.ReadInt(length)) return false;
 		for(int i; i<length; i++)
 		{
 			OVT_Job job = new OVT_Job();
 			
-			if (!reader.Read(job.jobIndex, 32)) return false;
+			if (!reader.ReadInt(job.jobIndex)) return false;
 			if (!reader.ReadVector(job.location)) return false;		
-			if (!reader.Read(job.townId, 32)) return false;		
-			if (!reader.Read(job.baseId, 32)) return false;	
-			if (!reader.Read(job.stage, 32)) return false;	
+			if (!reader.ReadInt(job.townId)) return false;		
+			if (!reader.ReadInt(job.baseId)) return false;	
+			if (!reader.ReadInt(job.stage)) return false;	
 			if (!reader.ReadRplId(job.entity)) return false;	
 			if (!reader.ReadString(persId)) return false;
 			job.owner = persId;
 			if(!reader.ReadBool(job.accepted)) return false;
-			if(!reader.Read(declength,32)) return false;
+			if(!reader.ReadInt(declength)) return false;
 			for(int t; t<declength; t++)
 			{
 				if(!reader.ReadString(persId)) return false;

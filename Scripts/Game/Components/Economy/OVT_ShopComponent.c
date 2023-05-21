@@ -63,14 +63,14 @@ class OVT_ShopComponent: OVT_Component
 	override bool RplSave(ScriptBitWriter writer)
 	{
 		//Send JIP inventory
-		writer.Write(m_aInventory.Count(), 32); 
+		writer.WriteInt(m_aInventory.Count()); 
 		for(int i; i<m_aInventory.Count(); i++)
 		{
-			writer.Write(m_aInventory.GetKey(i),32);
-			writer.Write(m_aInventory.GetElement(i),32);
+			writer.WriteInt(m_aInventory.GetKey(i));
+			writer.WriteInt(m_aInventory.GetElement(i));
 		}
 		
-		writer.Write(m_iTownId,32);
+		writer.WriteInt(m_iTownId);
 		
 		return true;
 	}
@@ -81,14 +81,14 @@ class OVT_ShopComponent: OVT_Component
 		int length, num;
 		RplId id;
 		
-		if (!reader.Read(length, 32)) return false;
+		if (!reader.ReadInt(length)) return false;
 		for(int i; i<length; i++)
 		{
-			if (!reader.Read(id,32)) return false;				
-			if (!reader.Read(num, 32)) return false;
+			if (!reader.ReadInt(id)) return false;				
+			if (!reader.ReadInt(num)) return false;
 			m_aInventory[id] = num;
 		}
-		if (!reader.Read(m_iTownId,32)) return false;
+		if (!reader.ReadInt(m_iTownId)) return false;
 		
 		return true;
 	}

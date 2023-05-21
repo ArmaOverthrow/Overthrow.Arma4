@@ -817,28 +817,28 @@ class OVT_OccupyingFactionManager: OVT_Component
 	{
 				
 		//Send JIP bases
-		writer.Write(m_Bases.Count(), 32); 
+		writer.WriteInt(m_Bases.Count()); 
 		for(int i; i<m_Bases.Count(); i++)
 		{
 			OVT_BaseData data = m_Bases[i];
 			writer.WriteVector(data.location);
-			writer.Write(data.faction, 32);
-			writer.Write(data.closeRange, 32);
-			writer.Write(data.range, 32);
+			writer.WriteInt(data.faction);
+			writer.WriteInt(data.closeRange);
+			writer.WriteInt(data.range);
 		}
 		
 		//Send JIP radio towers
-		writer.Write(m_RadioTowers.Count(), 32); 
+		writer.WriteInt(m_RadioTowers.Count()); 
 		for(int i; i<m_RadioTowers.Count(); i++)
 		{
 			OVT_RadioTowerData data = m_RadioTowers[i];
 			writer.WriteVector(data.location);
-			writer.Write(data.faction, 32);
+			writer.WriteInt(data.faction);
 		}
 		
 		writer.WriteVector(m_vQRFLocation);
-		writer.Write(m_iQRFPoints, 32);
-		writer.Write(m_iQRFTimer, 32);
+		writer.WriteInt(m_iQRFPoints);
+		writer.WriteInt(m_iQRFTimer);
 		writer.WriteBool(m_bQRFActive);
 		
 		return true;
@@ -850,35 +850,35 @@ class OVT_OccupyingFactionManager: OVT_Component
 		RplId id;		
 		
 		//Recieve JIP bases
-		if (!reader.Read(length, 32)) return false;
+		if (!reader.ReadInt(length)) return false;
 		for(int i; i<length; i++)
 		{	
 			OVT_BaseData base = new OVT_BaseData();
 					
 			if (!reader.ReadVector(base.location)) return false;
-			if (!reader.Read(base.faction, 32)) return false;
-			if (!reader.Read(base.closeRange, 32)) return false;
-			if (!reader.Read(base.range, 32)) return false;
+			if (!reader.ReadInt(base.faction)) return false;
+			if (!reader.ReadInt(base.closeRange)) return false;
+			if (!reader.ReadInt(base.range)) return false;
 			
 			base.id = i;
 			m_Bases.Insert(base);
 		}
 		
 		//Recieve JIP radio towers
-		if (!reader.Read(length, 32)) return false;
+		if (!reader.ReadInt(length)) return false;
 		for(int i; i<length; i++)
 		{	
 			OVT_RadioTowerData base = new OVT_RadioTowerData();
 					
 			if (!reader.ReadVector(base.location)) return false;
-			if (!reader.Read(base.faction, 32)) return false;
+			if (!reader.ReadInt(base.faction)) return false;
 			
 			base.id = i;
 			m_RadioTowers.Insert(base);
 		}
 		if (!reader.ReadVector(m_vQRFLocation)) return false;
-		if (!reader.Read(m_iQRFPoints,32)) return false;
-		if (!reader.Read(m_iQRFTimer,32)) return false;
+		if (!reader.ReadInt(m_iQRFPoints)) return false;
+		if (!reader.ReadInt(m_iQRFTimer)) return false;
 		if (!reader.ReadBool(m_bQRFActive)) return false;
 		
 		return true;

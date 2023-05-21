@@ -347,5 +347,15 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		Faction faction = factionMgr.GetFactionByIndex(index);
 		if(!faction) return;
 		m_sOccupyingFaction = faction.GetFactionKey();
+		
+		foreach(OVT_TownData town : OVT_Global.GetTowns().m_Towns)
+		{
+			town.faction = index;
+		}
+		
+		foreach(OVT_RadioTowerData tower : OVT_Global.GetOccupyingFaction().m_RadioTowers)
+		{
+			tower.faction = index;
+		}
 	}
 }
