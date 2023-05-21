@@ -462,7 +462,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		m_TempVehicle = vehicle;
 		m_TempGroup = aigroup;
 		
-		aigroup.GetOnInit().Insert(MoveInGunner);
+		GetGame().GetCallqueue().CallLater(MoveInGunner, 5);
 		
 		if(takeSupporter)
 		{

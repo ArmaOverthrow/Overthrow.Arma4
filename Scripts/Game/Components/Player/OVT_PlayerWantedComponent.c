@@ -3,9 +3,8 @@ class OVT_PlayerWantedComponentClass: OVT_ComponentClass
 {}
 
 class OVT_PlayerWantedComponent: OVT_Component
-{
-	[Attribute("0", params: "0 5 1", desc: "The current wanted level of this character")]
-	protected int m_iWantedLevel;
+{	
+	protected int m_iWantedLevel = 0;
 	protected bool m_bIsSeen = false;	
 	int m_iWantedTimer = 0;
 	int m_iLastSeen;
@@ -17,6 +16,8 @@ class OVT_PlayerWantedComponent: OVT_Component
 	protected BaseWeaponManagerComponent m_Weapon;
 	protected SCR_CharacterControllerComponent m_Character;
 	protected SCR_CompartmentAccessComponent m_Compartment;
+	
+	protected ref TraceParam m_TraceParams;
 	
 	void SetWantedLevel(int level)
 	{
@@ -64,7 +65,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		m_bIsSeen = false;
 		m_iLastSeen = LAST_SEEN_MAX;
 		
-		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), 250, CheckEntity, FilterEntities, EQueryEntitiesFlags.ALL);
+		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), 250, CheckEntity, FilterEntities, EQueryEntitiesFlags.DYNAMIC);
 						
 		OVT_BaseData base = OVT_Global.GetOccupyingFaction().GetNearestBase(GetOwner().GetOrigin());
 		if(base)
@@ -112,69 +113,94 @@ class OVT_PlayerWantedComponent: OVT_Component
 	}
 	
 	bool CheckEntity(IEntity entity)
-	{				
+	{		
+		//Search through every nearby enemy AI with a perception component and determine if we:
+		//1. Are a known target
+		//2. Can be seen in LOS
+		//3. If the above is true, are we currently breaking any laws (ie open carrying a weapon)
+				
 		PerceptionComponent perceptComp = PerceptionComponent.Cast(entity.FindComponent(PerceptionComponent));
 		if(!perceptComp) return true;
 		
-		BaseTarget possibleTarget = perceptComp.GetClosestTarget(ETargetCategory.FACTIONLESS, LAST_SEEN_MAX);
+		if(perceptComp.GetTargetCount(ETargetCategory.FACTIONLESS) == 0) return true;
+		
+		array<BaseTarget> targets = new array<BaseTarget>;
+		
+		perceptComp.GetTargetsList(targets, ETargetCategory.FACTIONLESS);
+		
+		foreach(BaseTarget possibleTarget : targets)
+		{		
+			IEntity realEnt = possibleTarget.GetTargetEntity();
+			
+			if (realEnt && realEnt == GetOwner())
+			{				
+				int lastSeen = possibleTarget.GetTimeSinceSeen();
 				
-		IEntity realEnt = NULL;
-		
-		if (possibleTarget)
-			realEnt = possibleTarget.GetTargetEntity();
-		
-		if (realEnt && realEnt == GetOwner())
-		{
-			
-			int lastSeen = possibleTarget.GetTimeSinceSeen();
-			
-			if(lastSeen < m_iLastSeen) m_iLastSeen = lastSeen;			
-			
-			if(TraceLOS(entity, GetOwner())){
-				//Player can be seen with direct Line of sight
-				m_bIsSeen = true;
-				if(m_iWantedLevel > 1) return false;
-								
+				if(lastSeen < m_iLastSeen) m_iLastSeen = lastSeen;	
+				
 				int newLevel = m_iWantedLevel;
-				if (m_Weapon && m_Weapon.GetCurrentWeapon())
-				{
-					//Player is brandishing a weapon
-					newLevel = 2;
-				}	
+				bool inVehicle = false;
 				
 				if(m_Compartment && m_Compartment.IsInCompartment())
-				{
-					//Player is in a vehicle, check if its armed
+				{		
+					//Player is in a vehicle
 					IEntity veh = m_Compartment.GetVehicle();
-					if(veh)
-					{						
-						SCR_EditableVehicleComponent editable = SCR_EditableVehicleComponent.Cast(veh.FindComponent(SCR_EditableVehicleComponent));
-						if(editable)
-						{
-							SCR_UIInfo uiinfo = editable.GetInfo();
-							if(uiinfo)
+					if(veh && TraceLOSVehicle(entity, veh)){	
+						//Vehicle can be seen					
+						m_bIsSeen = true;
+						inVehicle = true;
+					}
+				}else{				
+					if(TraceLOS(entity, GetOwner())){
+						//Player can be seen
+						m_bIsSeen = true;	
+					}
+				}
+				
+				if(m_bIsSeen)
+				{
+					if (m_Weapon && m_Weapon.GetCurrentWeapon())
+					{
+						//Player is brandishing a weapon
+						newLevel = 2;
+					}	
+					//To-Do: check for illegal attire (uniforms, etc)
+					
+					if(inVehicle)
+					{
+						IEntity veh = m_Compartment.GetVehicle();
+						if(veh){
+							//Check if vehicle is armed
+							SCR_EditableVehicleComponent editable = SCR_EditableVehicleComponent.Cast(veh.FindComponent(SCR_EditableVehicleComponent));
+							if(editable)
 							{
-								SCR_EditableEntityUIInfo info = SCR_EditableEntityUIInfo.Cast(uiinfo);
-								if(info)
+								SCR_UIInfo uiinfo = editable.GetInfo();
+								if(uiinfo)
 								{
-									array<EEditableEntityLabel> entityLabels = new array<EEditableEntityLabel>;
-									info.GetEntityLabels(entityLabels);
-									if(entityLabels.Contains(EEditableEntityLabel.TRAIT_ARMED))
+									SCR_EditableEntityUIInfo info = SCR_EditableEntityUIInfo.Cast(uiinfo);
+									if(info)
 									{
-										newLevel = 4;
+										array<EEditableEntityLabel> entityLabels = new array<EEditableEntityLabel>;
+										info.GetEntityLabels(entityLabels);
+										if(entityLabels.Contains(EEditableEntityLabel.TRAIT_ARMED))
+										{
+											newLevel = 4;
+										}
 									}
 								}
 							}
 						}
 					}
-				}
-				
-				if(newLevel != m_iWantedLevel)
-				{
-					SetBaseWantedLevel(newLevel);
-				}
+					
+					if(newLevel != m_iWantedLevel)
+					{
+						SetBaseWantedLevel(newLevel);						
+					}
+					
+					//We can see and have checked this player, we don't need to continue the search
+					return false; 
+				}				
 			}
-			return false;		
 		}
 		
 		//Continue search
@@ -190,20 +216,61 @@ class OVT_PlayerWantedComponent: OVT_Component
 		vector headPos = source.CoordToParent(matPos[3]);
 		
 		headBone = dest.GetBoneIndex("head");		
-		source.GetBoneMatrix(headBone, matPos);
-		vector destHead = source.CoordToParent(matPos[3]);
-						
-		autoptr TraceParam param = new TraceParam;
-		param.Start = headPos;
-		param.End = destHead;
-		param.LayerMask = EPhysicsLayerDefs.Perception;
-		param.Flags = TraceFlags.ENTS | TraceFlags.WORLD; 
-		param.Exclude = source;
+		dest.GetBoneMatrix(headBone, matPos);
+		vector destHead = dest.CoordToParent(matPos[3]);
+		
+		
+		if (!m_TraceParams)
+		{
+			m_TraceParams = new TraceParam();		
+			m_TraceParams.Flags = TraceFlags.ENTS | TraceFlags.WORLD;
+			m_TraceParams.LayerMask =  EPhysicsLayerDefs.Perception;
+		}						
+		
+		m_TraceParams.Start = headPos;
+		m_TraceParams.End = destHead;		
+		m_TraceParams.Exclude = source;
 			
-		float percent = GetGame().GetWorld().TraceMove(param, null);
+		float percent = GetGame().GetWorld().TraceMove(m_TraceParams, null);
 			
 		// If trace hits the target entity or travels the entire path, return true	
-		GenericEntity ent = GenericEntity.Cast(param.TraceEnt);
+		GenericEntity ent = GenericEntity.Cast(m_TraceParams.TraceEnt);
+		if (ent)
+		{
+			if ( ent == dest || ent.GetParent() == dest )
+				return true;
+		} 
+		else if (percent == 1)
+			return true;
+				
+		return false;
+	}
+	
+	private bool TraceLOSVehicle(IEntity source, IEntity dest)
+	{		
+		int headBone = source.GetBoneIndex("head");
+		vector matPos[4];
+		
+		source.GetBoneMatrix(headBone, matPos);
+		vector headPos = source.CoordToParent(matPos[3]);		
+		
+		vector destVeh = dest.GetOrigin();		
+		
+		if (!m_TraceParams)
+		{
+			m_TraceParams = new TraceParam();		
+			m_TraceParams.Flags = TraceFlags.ENTS | TraceFlags.WORLD;
+			m_TraceParams.LayerMask =  EPhysicsLayerDefs.Perception;
+		}						
+		
+		m_TraceParams.Start = headPos;
+		m_TraceParams.End = destVeh;		
+		m_TraceParams.Exclude = source;
+			
+		float percent = GetGame().GetWorld().TraceMove(m_TraceParams, null);
+			
+		// If trace hits the target entity or travels the entire path, return true	
+		GenericEntity ent = GenericEntity.Cast(m_TraceParams.TraceEnt);
 		if (ent)
 		{
 			if ( ent == dest || ent.GetParent() == dest )
@@ -221,16 +288,20 @@ class OVT_PlayerWantedComponent: OVT_Component
 		if(ent == GetOwner())
 			return false;
 		
-		if (ent.FindComponent(AIControlComponent)){
-			FactionAffiliationComponent faction = FactionAffiliationComponent.Cast(ent.FindComponent(FactionAffiliationComponent));
-				
-			if(!faction) return false;
-			
-			Faction currentFaction = faction.GetAffiliatedFaction();
-			
-			if(currentFaction && currentFaction.GetFactionKey() == m_Config.m_sOccupyingFaction)
-				return true;
+		SCR_DamageManagerComponent dmg = SCR_DamageManagerComponent.Cast(ent.FindComponent(SCR_DamageManagerComponent));
+		if(dmg && dmg.GetHealth() == 0)
+		{
+			//Is dead, ignore
+			return false;
 		}
+		
+		FactionAffiliationComponent faction = FactionAffiliationComponent.Cast(ent.FindComponent(FactionAffiliationComponent));			
+		if(!faction) return false;
+		
+		Faction currentFaction = faction.GetAffiliatedFaction();
+		
+		if(currentFaction && currentFaction.GetFactionKey() == m_Config.m_sOccupyingFaction)
+			return true;
 				
 		return false;		
 	}	

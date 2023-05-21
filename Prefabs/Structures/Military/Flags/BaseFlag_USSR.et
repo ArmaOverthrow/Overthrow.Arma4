@@ -1,4 +1,4 @@
-GenericEntity : "{90B7CEB4C665B1E2}Prefabs/Structures/Military/Flags/FlagPole_02_V1.et" {
+GenericEntity : "{90B7CEB4C665B1E2}Prefabs/Structures/Military/Flags/FlagPole_02/FlagPole_02_V1.et" {
  ID "50C6D20663830070"
  components {
   RigidBody "{5472A771D2979EF1}" {
@@ -7,7 +7,7 @@ GenericEntity : "{90B7CEB4C665B1E2}Prefabs/Structures/Military/Flags/FlagPole_02
   SlotManagerComponent "{55DAE04E55ECE7FA}" {
    Slots {
     EntitySlotInfo Flag {
-     Prefab "{CB81BF6576E682D3}Prefabs/Props/Fabric/Flags/Flag_USSR_01.et"
+     Prefab "{CB81BF6576E682D3}Prefabs/Props/Fabric/Flags/Flag_1_2_USSR_01.et"
     }
    }
   }
@@ -29,7 +29,7 @@ GenericEntity : "{90B7CEB4C665B1E2}Prefabs/Structures/Military/Flags/FlagPole_02
      UIInfo UIInfo "{59B4D7D772D5A702}" {
       Name "#OVT-CaptureBase"
      }
-     Duration 15
+     Duration 0
     }
    }
   }

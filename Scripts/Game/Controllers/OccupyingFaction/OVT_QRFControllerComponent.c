@@ -114,7 +114,7 @@ class OVT_QRFControllerComponent: OVT_Component
 				}
 			}
 			
-			if(enemyTotal < 2){
+			if(playerNum > 0 && enemyTotal < 2){
 				//push towards resistance fast
 				m_iPoints += 5;
 			}else{

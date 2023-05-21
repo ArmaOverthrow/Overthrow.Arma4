@@ -493,7 +493,7 @@ OVT_OverthrowGameMode {
      }
     }
    }
-   m_pHiredCivilianPrefab "{1AF5B9AE5CFD4434}Prefabs/Groups/INDFOR/Group_CIV.et"
+   m_pHiredCivilianPrefab "{365CD448A5DABCCC}Prefabs/Groups/INDFOR/Group_CIV_Recruit.et"
   }
   OVT_RespawnHandlerComponent "{59724C8C9A6408EE}" {
    m_iForcedFaction 1

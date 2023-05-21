@@ -55,6 +55,7 @@ class OVT_TownModifierSystem : ScriptAndConfig
 		bool recalc = false;		
 		foreach(OVT_TownModifierData modifier : modifiers)
 		{
+			if(!modifier) continue;
 			OVT_ModifierConfig mod = m_Config.m_aModifiers[modifier.id];
 			if(mod.timeout <= 0) continue;
 			

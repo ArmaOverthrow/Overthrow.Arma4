@@ -71,17 +71,31 @@ OverlayWidgetClass {
     }
    }
   }
-  FrameWidgetClass "{59B4F0BA7B6B5F26}" {
+  OverlayWidgetClass "{59B4F0BA7B6B5F26}" {
    Name "QRF"
    Slot OverlayWidgetSlot "{59B4F0BA7B6B5F05}" {
     VerticalAlign 0
-    Padding 0 20 0 0
+    Padding 0 0 0 0
    }
    {
+    ImageWidgetClass "{5D6ADBB371DAAC92}" {
+     Name "Image0"
+     Slot OverlayWidgetSlot {
+      HorizontalAlign 3
+      VerticalAlign 3
+     }
+     Color 0 0 0 0.404
+    }
+    SizeLayoutWidgetClass "{5D6ADBB33CAFF0EB}" {
+     Name "SizeLayout0"
+     Slot OverlayWidgetSlot "{5D6ADBB33CAFF0CC}" {
+      Padding 0 0 0 0
+     }
+    }
     VerticalLayoutWidgetClass "{59B4F0BA2270998D}" {
      Name "VerticalLayout0"
-     Slot FrameWidgetSlot "{59B4F0BA22709A6E}" {
-      SizeToContent 1
+     Slot OverlayWidgetSlot {
+      Padding 10 20 10 10
      }
      {
       TextWidgetClass "{59B4F0B65F14FF55}" {
@@ -125,7 +139,7 @@ OverlayWidgetClass {
    Slot OverlayWidgetSlot "{5D5C4CA946DEDBCB}" {
     HorizontalAlign 0
     VerticalAlign 2
-    Padding 200 0 0 200
+    Padding 250 0 0 250
    }
    "Is Visible" 0
    {

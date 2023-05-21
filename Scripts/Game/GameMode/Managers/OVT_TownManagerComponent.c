@@ -152,11 +152,11 @@ class OVT_TownManagerComponent: OVT_Component
 		{
 			bool recalc = false;
 			OVT_TownModifierSystem system = GetModifierSystem(OVT_TownStabilityModifierSystem);
-			if(system)
+			if(system && town.stabilityModifiers)
 				if(system.OnTick(town.stabilityModifiers, town)) recalc = true;
 			
 			system = GetModifierSystem(OVT_TownSupportModifierSystem);
-			if(system)
+			if(system && town.supportModifiers)
 				system.OnTick(town.supportModifiers, town);
 						
 			if(!Replication.IsServer()) continue;
@@ -223,8 +223,10 @@ class OVT_TownManagerComponent: OVT_Component
 	protected int GetModifierIndex(array<ref OVT_TownModifierData> modifiers, int id)
 	{
 		int i = -1;
+		if(!modifiers) return -1;
 		foreach(int index, OVT_TownModifierData data : modifiers)
 		{
+			if(!data) continue;
 			if(data.id == id)
 			{
 				i = index;
@@ -791,14 +793,29 @@ class OVT_TownManagerComponent: OVT_Component
 			writer.Write(town.faction,32);
 			writer.Write(town.size,32);
 			
-			writer.Write(town.stabilityModifiers.Count(),32);
-			for(int t; t<town.stabilityModifiers.Count(); t++)
+			int count = town.stabilityModifiers.Count();
+			if(count > 2000)
+			{
+				Print("High number of stability modifiers detected: " + count.ToString());
+				count = 0;		
+				town.stabilityModifiers.Clear();		
+			}
+			
+			writer.Write(count,32);
+			for(int t; t<count; t++)
 			{
 				writer.Write(town.stabilityModifiers[t].id,32);
 				writer.Write(town.stabilityModifiers[t].timer,32);
 			}
-			writer.Write(town.supportModifiers.Count(),32);
-			for(int t; t<town.supportModifiers.Count(); t++)
+			count = town.supportModifiers.Count();
+			if(count > 2000)
+			{
+				Print("High number of support modifiers detected: " + count.ToString());
+				count = 0;	
+				town.supportModifiers.Clear();			
+			}
+			writer.Write(count,32);
+			for(int t; t<count; t++)
 			{
 				writer.Write(town.supportModifiers[t].id,32);
 				writer.Write(town.supportModifiers[t].timer,32);

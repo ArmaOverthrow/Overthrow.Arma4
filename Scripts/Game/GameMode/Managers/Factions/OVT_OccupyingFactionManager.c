@@ -312,7 +312,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		#endif
 		
 		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, CheckBaseAdd, FilterBaseEntities, EQueryEntitiesFlags.STATIC);
-		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, CheckTransmitterTowerAdd, FilterTransmitterTowerEntities, EQueryEntitiesFlags.ALL);
+		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, CheckTransmitterTowerAdd, FilterTransmitterTowerEntities, EQueryEntitiesFlags.STATIC);
 	}
 	
 	protected void SpawnBaseControllers()
@@ -602,7 +602,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		data.id = m_RadioTowers.Count();
 		data.location = ent.GetOrigin();
 		data.faction = occupyingFactionIndex;
-		
+				
 		m_RadioTowers.Insert(data);
 				
 		return true;
