@@ -84,6 +84,16 @@ class OVT_PlayerWantedComponent: OVT_Component
 			}		
 		}
 		
+		OVT_RadioTowerData tower = OVT_Global.GetOccupyingFaction().GetNearestRadioTower(GetOwner().GetOrigin());
+		if(tower)
+		{
+			float distanceToBase = vector.Distance(tower.location, GetOwner().GetOrigin());
+			if(m_iWantedLevel < 2 && distanceToBase < 20 && m_bTempSeen)
+			{
+				SetBaseWantedLevel(2);
+			}		
+		}
+		
 		//Print("Last seen is: " + m_iLastSeen);
 		
 		if(m_iWantedLevel > 0 && !m_bTempSeen)

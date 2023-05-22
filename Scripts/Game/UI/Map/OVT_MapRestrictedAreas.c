@@ -2,6 +2,7 @@
 class OVT_MapRestrictedAreas : OVT_MapCanvasLayer
 {		
 	protected ref array<vector> m_Centers;
+	protected ref array<vector> m_OccupyingCenters;
 	protected ref array<vector> m_ResistanceCenters;
 	protected ref array<int> m_Ranges;
 	protected ref SharedItemRef m_Flag;
@@ -15,7 +16,11 @@ class OVT_MapRestrictedAreas : OVT_MapCanvasLayer
 		
 		foreach(int i, vector center : m_Centers)
 		{			
-			DrawCircle(center, m_Ranges[i], ARGB(50, 255, 0, 0));
+			DrawCircle(center, m_Ranges[i], ARGB(50, 255, 0, 0));			
+		}
+		
+		foreach(int i, vector center : m_OccupyingCenters)
+		{			
 			DrawImage(center, 25, 25, m_Flag);
 		}
 		
@@ -38,6 +43,7 @@ class OVT_MapRestrictedAreas : OVT_MapCanvasLayer
 		m_Centers = new array<vector>;
 		m_Ranges = new array<int>;
 		m_ResistanceCenters = new array<vector>;
+		m_OccupyingCenters = new array<vector>;
 		
 		OVT_OccupyingFactionManager factionMgr = OVT_Global.GetOccupyingFaction();
 		OVT_OverthrowConfigComponent otconfig = OVT_Global.GetConfig();
@@ -58,8 +64,18 @@ class OVT_MapRestrictedAreas : OVT_MapCanvasLayer
 			};
 			if(m_bQRFActive && factionMgr.m_iCurrentQRFBase > -1 && factionMgr.m_iCurrentQRFBase == base.id) continue;
 			
+			m_OccupyingCenters.Insert(base.location);
 			m_Centers.Insert(base.location);
 			m_Ranges.Insert(base.closeRange);
+		}
+		
+		foreach(OVT_RadioTowerData tower : factionMgr.m_RadioTowers)
+		{	
+			if(!tower.IsOccupyingFaction()) {				
+				continue;
+			};
+			m_Centers.Insert(tower.location);
+			m_Ranges.Insert(20);
 		}
 			
 		OVT_Faction faction = otconfig.GetOccupyingFaction();
