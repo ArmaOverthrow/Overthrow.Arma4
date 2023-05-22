@@ -7,7 +7,8 @@ class OVT_PlaceableSupportModHandler : OVT_PlaceableHandler
 	{
 		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 		OVT_TownData town = towns.GetNearestTown(entity.GetOrigin());
+		int townID = towns.GetTownID(town);
 		OVT_TownModifierSystem system = towns.GetModifierSystem(OVT_TownSupportModifierSystem);
-		system.TryAddByName(town.id, m_sSupportModifierName);		
+		system.TryAddByName(townID, m_sSupportModifierName);		
 	}
 }

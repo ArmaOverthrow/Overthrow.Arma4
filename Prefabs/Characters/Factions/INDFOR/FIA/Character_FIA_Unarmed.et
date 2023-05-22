@@ -158,13 +158,14 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      }
     }
     ItemsInitConfigurationItem "{5A24CC1119A46C9F}" {
+     TargetStorage ""
      PrefabsToSpawn {
      }
     }
     ItemsInitConfigurationItem "{566C8D26AC156C09}" {
      TargetStorage "Prefabs/Characters/Uniforms/Pants/cargo_pants_grey.et"
      PrefabsToSpawn {
-      "{13772C903CB5E4F7}Prefabs/Items/Equipment/Maps/PaperMap_01_folded.et"
+      "{13772C903CB5E4F7}Prefabs/Items/Equipment/Maps/PaperMap_01_folded.et" "{3A421547BC29F679}Prefabs/Items/Equipment/Flashlights/Flashlight_MX991.et"
      }
     }
     ItemsInitConfigurationItem "{5968C8BB5309538A}" {

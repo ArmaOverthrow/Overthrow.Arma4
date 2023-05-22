@@ -22,7 +22,7 @@ class OVT_IsNearestTownWithDealerJobCondition : OVT_JobCondition
 				nearestTown = t;
 			}
 		}
-		if(nearestTown && nearestTown.id == town.id) return true;
+		if(nearestTown && nearestTown == town) return true;
 		return false;			
 		
 	}

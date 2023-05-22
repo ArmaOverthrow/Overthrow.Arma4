@@ -2,7 +2,7 @@ class OVT_IsNearestJobCondition : OVT_JobCondition
 {
 		
 	override bool ShouldStart(OVT_TownData town, OVT_BaseData base, int playerId)
-	{
+	{		
 		if(playerId == -1) return false; //only valid for player-allocated jobs
 				
 		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);		
@@ -18,7 +18,7 @@ class OVT_IsNearestJobCondition : OVT_JobCondition
 		if(town)
 		{
 			OVT_TownData nearest = OVT_Global.GetTowns().GetNearestTown(pos);
-			if(nearest.id == town.id) return true;
+			if(nearest == town) return true;
 		}
 		return false;			
 		

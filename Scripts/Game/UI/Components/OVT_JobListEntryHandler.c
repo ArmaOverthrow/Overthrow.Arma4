@@ -17,7 +17,8 @@ class OVT_JobListEntryHandler : SCR_ButtonBaseComponent
 		{
 			OVT_BaseData base = OVT_Global.GetOccupyingFaction().m_Bases[job.baseId];
 			OVT_TownData town = OVT_Global.GetTowns().GetNearestTown(base.location);
-			location.SetText("#OVT-BaseNear " + OVT_Global.GetTowns().GetTownName(town.id));
+			int townID = OVT_Global.GetTowns().GetTownID(town);
+			location.SetText("#OVT-BaseNear " + OVT_Global.GetTowns().GetTownName(townID));
 		}else{
 			location.SetText(OVT_Global.GetTowns().GetTownName(job.townId));
 		}

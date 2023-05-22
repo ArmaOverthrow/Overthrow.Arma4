@@ -165,11 +165,13 @@ class OVT_MapContext : OVT_UIContext
 		if(!m_wRoot) return;
 		if(!m_SelectedTown) return;
 		
+		int townID = m_TownManager.GetTownID(m_SelectedTown);
+		
 		ImageWidget img = ImageWidget.Cast(m_wRoot.FindAnyWidget("ControllingFaction"));
 		img.LoadImageTexture(0, m_SelectedTown.ControllingFaction().GetUIInfo().GetIconPath());
 				
 		TextWidget widget = TextWidget.Cast(m_wRoot.FindAnyWidget("TownName"));
-		widget.SetText(m_TownManager.GetTownName(m_SelectedTown.id));
+		widget.SetText(m_TownManager.GetTownName(townID));
 		
 		widget = TextWidget.Cast(m_wRoot.FindAnyWidget("Population"));
 		widget.SetText(m_SelectedTown.population.ToString());

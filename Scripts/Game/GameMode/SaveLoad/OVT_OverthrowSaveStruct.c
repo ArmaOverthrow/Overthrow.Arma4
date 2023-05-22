@@ -252,12 +252,14 @@ class OVT_TownStruct : SCR_JsonApiStruct
 		
 		foreach(OVT_TownModifierData data : town.supportModifiers)
 		{
+			if(!data) continue;
 			supportMods.Insert(data.id);
 			supportModTime.Insert(data.timer);
 		}
 		
 		foreach(OVT_TownModifierData data : town.stabilityModifiers)
 		{
+			if(!data) continue;
 			stabilityMods.Insert(data.id);
 			stabilityModTime.Insert(data.timer);
 		}

@@ -140,15 +140,17 @@ class OVT_TownControllerComponent: OVT_Component
 		
 		m_Town.gunDealerPosition = spawnPosition;
 		
+		int townID = m_TownManager.GetTownID(m_Town);
+		
 		OVT_ShopComponent shop = OVT_ShopComponent.Cast(dealer.FindComponent(OVT_ShopComponent));
-		shop.m_iTownId = m_Town.id;
+		shop.m_iTownId = townID;
 		
 		foreach(OVT_ShopInventoryItem item : m_Economy.m_aGunDealerItems)
 		{
 			int id = m_Economy.GetInventoryId(item.prefab);			
 			m_Economy.SetPrice(id, item.cost);
 			
-			int num = Math.Round(s_AIRandomGenerator.RandFloatXY(1,m_Economy.GetTownMaxStock(m_Town.id, id)));
+			int num = Math.Round(s_AIRandomGenerator.RandFloatXY(1,m_Economy.GetTownMaxStock(townID, id)));
 			
 			shop.AddToInventory(id, num);
 			

@@ -105,7 +105,8 @@ class OVT_ShopContext : OVT_UIContext
 		int sell = m_Economy.GetSellPrice(id, m_Shop.GetOwner().GetOrigin());
 		int qty = m_Shop.GetStock(id);
 		OVT_TownData town = m_Shop.GetTown();
-		int max = m_Economy.GetTownMaxStock(town.id, id);
+		int townID = OVT_Global.GetTowns().GetTownID(town);
+		int max = m_Economy.GetTownMaxStock(townID, id);
 				
 		IEntity spawnedItem = GetGame().SpawnEntityPrefabLocal(Resource.Load(m_Economy.GetResource(id)));
 		

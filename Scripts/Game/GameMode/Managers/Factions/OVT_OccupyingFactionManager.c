@@ -214,7 +214,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 						tower.faction = m_Config.GetPlayerFactionIndex();
 						Rpc(RpcDo_SetRadioTowerFaction, tower.location, tower.faction);
 						OVT_TownData town = OVT_Global.GetTowns().GetNearestTown(tower.location);
-						OVT_Global.GetPlayers().HintMessageAll("RadioTowerControlledResistance",town.id,-1);
+						int townID = OVT_Global.GetTowns().GetTownID(town);
+						OVT_Global.GetPlayers().HintMessageAll("RadioTowerControlledResistance",townID,-1);
 					}
 				}
 			}else{
@@ -457,6 +458,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 	{
 		if(m_CurrentQRF) return;
 		
+		int townID = OVT_Global.GetTowns().GetTownID(town);
+		
 		m_CurrentQRF = SpawnQRFController(town.location);
 		RplComponent rpl = RplComponent.Cast(m_CurrentQRF.GetOwner().FindComponent(RplComponent));
 		
@@ -465,7 +468,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		
 		m_bQRFActive = true;
 		m_vQRFLocation = town.location;
-		m_iCurrentQRFTown = town.id;
+		m_iCurrentQRFTown = townID;
 		
 		Rpc(RpcDo_SetQRFTown, m_iCurrentQRFBase);
 		Rpc(RpcDo_SetQRFActive, m_vQRFLocation);
@@ -504,6 +507,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 	
 	void OnQRFFinishedTown()
 	{	
+		int townID = OVT_Global.GetTowns().GetTownID(m_CurrentQRFTown);
 		if(m_CurrentQRF.m_iWinningFaction != m_CurrentQRFTown.faction)
 		{
 			string type = "Town";
@@ -512,13 +516,13 @@ class OVT_OccupyingFactionManager: OVT_Component
 			{
 				m_iThreat += 50;
 				OVT_Global.GetPlayers().HintMessageAll(type + "ControlledResistance");
-				OVT_Global.GetTowns().TryAddSupportModifierByName(m_CurrentQRFTown.id, "RecentBattlePositive");
+				OVT_Global.GetTowns().TryAddSupportModifierByName(townID, "RecentBattlePositive");
 			}else{
 				OVT_Global.GetPlayers().HintMessageAll(type + "ControlledOccupying");
-				OVT_Global.GetTowns().TryAddSupportModifierByName(m_CurrentQRFTown.id, "RecentBattleNegative");
+				OVT_Global.GetTowns().TryAddSupportModifierByName(townID, "RecentBattleNegative");
 				OVT_Global.GetTowns().ResetSupport(m_CurrentQRFTown);	
 			}			
-			OVT_Global.GetTowns().TryAddStabilityModifierByName(m_CurrentQRFTown.id, "RecentBattle");
+			OVT_Global.GetTowns().TryAddStabilityModifierByName(townID, "RecentBattle");
 			OVT_Global.GetTowns().ChangeTownControl(m_CurrentQRFTown, m_CurrentQRF.m_iWinningFaction);			
 					
 		}

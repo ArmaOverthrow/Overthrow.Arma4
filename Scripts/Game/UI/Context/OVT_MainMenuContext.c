@@ -47,8 +47,8 @@ class OVT_MainMenuContext : OVT_UIContext
 		m_Widgets.Init(m_wRoot);
 		
 		OVT_TownData town = m_TownManager.GetNearestTown(m_Owner.GetOrigin());
-				
-		m_Widgets.m_TownNameText.SetText(m_TownManager.GetTownName(town.id));
+		int townID = m_TownManager.GetTownID(town);
+		m_Widgets.m_TownNameText.SetText(m_TownManager.GetTownName(townID));
 		m_Widgets.m_TownInfoText.SetTextFormat("#OVT-Population: %1\n#OVT-Stability: %2%\n#OVT-Supporters: %3 (%4%)", town.population, town.stability, town.support, town.SupportPercentage());
 		
 		ImageWidget img = ImageWidget.Cast(m_wRoot.FindAnyWidget("ControllingFaction"));

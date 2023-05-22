@@ -60,14 +60,15 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 		}	
 		OVT_TownManagerComponent tm = OVT_Global.GetTowns();	
 		OVT_TownData town = tm.GetNearestTown(m_player.GetOrigin());
-		if(m_iCurrentTownId != town.id)
+		int townID = OVT_Global.GetTowns().GetTownID(town);
+		if(m_iCurrentTownId != townID)
 		{
-			m_iCurrentTownId = town.id;
+			m_iCurrentTownId = townID;
 			ImageWidget img = ImageWidget.Cast(m_wRoot.FindAnyWidget("ControllingFaction"));
 			img.LoadImageTexture(0, town.ControllingFaction().GetUIInfo().GetIconPath());
 					
 			TextWidget widget = TextWidget.Cast(m_wRoot.FindAnyWidget("TownName"));
-			widget.SetText(tm.GetTownName(town.id));
+			widget.SetText(tm.GetTownName(townID));
 			
 			widget = TextWidget.Cast(m_wRoot.FindAnyWidget("Population"));
 			widget.SetText(town.population.ToString());

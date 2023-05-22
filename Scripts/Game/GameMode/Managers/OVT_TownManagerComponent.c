@@ -10,7 +10,6 @@ class OVT_TownModifierData : Managed
 
 class OVT_TownData : Managed
 {
-	int id;
 	vector location;
 	int population;
 	int stability;
@@ -152,6 +151,7 @@ class OVT_TownManagerComponent: OVT_Component
 		
 		foreach(OVT_TownData town : m_Towns)
 		{
+			int townID = GetTownID(town);
 			bool recalc = false;
 			OVT_TownModifierSystem system = GetModifierSystem(OVT_TownStabilityModifierSystem);
 			if(system && town.stabilityModifiers)
@@ -181,12 +181,12 @@ class OVT_TownManagerComponent: OVT_Component
 			
 			if(hasEnemyTower)
 			{
-				RemoveSupportModifierByName(town.id, "NearbyRadioTowerPositive");
-				TryAddSupportModifierByName(town.id, "NearbyRadioTowerNegative");
+				RemoveSupportModifierByName(townID, "NearbyRadioTowerPositive");
+				TryAddSupportModifierByName(townID, "NearbyRadioTowerNegative");
 			}else if(hasFriendlyTower)
 			{
-				RemoveSupportModifierByName(town.id, "NearbyRadioTowerNegative");
-				TryAddSupportModifierByName(town.id, "NearbyRadioTowerPositive");
+				RemoveSupportModifierByName(townID, "NearbyRadioTowerNegative");
+				TryAddSupportModifierByName(townID, "NearbyRadioTowerPositive");
 			}	
 			
 			bool hasEnemyBase = false;
@@ -208,20 +208,20 @@ class OVT_TownManagerComponent: OVT_Component
 			
 			if(hasEnemyBase)
 			{
-				RemoveSupportModifierByName(town.id, "NearbyBasePositive");
-				TryAddSupportModifierByName(town.id, "NearbyBaseNegative");
+				RemoveSupportModifierByName(townID, "NearbyBasePositive");
+				TryAddSupportModifierByName(townID, "NearbyBaseNegative");
 			}else if(hasFriendlyBase)
 			{
-				RemoveSupportModifierByName(town.id, "NearbyBaseNegative");
-				TryAddSupportModifierByName(town.id, "NearbyBasePositive");
+				RemoveSupportModifierByName(townID, "NearbyBaseNegative");
+				TryAddSupportModifierByName(townID, "NearbyBasePositive");
 			}	
 			
-			if(recalc) RecalculateStability(town.id);
+			if(recalc) RecalculateStability(townID);
 						
 			if(dosupport)
 			{
 				//We always recalculate support modifiers and add/remove supporters, but less often
-				RecalculateSupport(town.id);
+				RecalculateSupport(townID);
 			}
 		}
 	}
@@ -247,6 +247,11 @@ class OVT_TownManagerComponent: OVT_Component
 			Rpc(RpcDo_RemoveStabilityModifier, townId, index);
 			RecalculateStability(townId);
 		}		
+	}
+	
+	int GetTownID(OVT_TownData town)
+	{
+		return m_Towns.Find(town);
 	}
 	
 	protected int GetModifierIndex(array<ref OVT_TownModifierData> modifiers, int id)
@@ -414,14 +419,16 @@ class OVT_TownManagerComponent: OVT_Component
 	void ResetSupport(OVT_TownData town)
 	{
 		town.support = 0;
-		Rpc(RpcDo_SetSupport, town.id, 0);
+		int townID = GetTownID(town);
+		Rpc(RpcDo_SetSupport, townID, 0);
 	}
 	
 	void ChangeTownControl(OVT_TownData town, int faction)
 	{
+		int townID = GetTownID(town);
 		town.faction = faction;
 		m_OnTownControlChange.Invoke(town);
-		Rpc(RpcDo_SetTownFaction, town.id, faction);
+		Rpc(RpcDo_SetTownFaction, townID, faction);
 		string type = "Village";
 		if(town.size == 2) type = "Town";
 		if(town.size == 3) type = "City";
@@ -429,7 +436,7 @@ class OVT_TownManagerComponent: OVT_Component
 		string factionType = "Resistance";
 		if(faction != m_Config.GetPlayerFactionIndex()) factionType = "Occupying";
 		
-		OVT_Global.GetPlayers().HintMessageAll(type + "Controlled" + factionType, town.id);		
+		OVT_Global.GetPlayers().HintMessageAll(type + "Controlled" + factionType, townID);		
 	}
 	
 	IEntity GetRandomHouse()
@@ -642,10 +649,11 @@ class OVT_TownManagerComponent: OVT_Component
 	protected void ProcessTown(IEntity entity, MapDescriptorComponent mapdesc)
 	{
 		OVT_TownData town = new OVT_TownData();
+		int townID = GetTownID(town);
 		
 		Faction faction = GetGame().GetFactionManager().GetFactionByKey(m_Config.m_sOccupyingFaction);
 			
-		town.id = m_iTownCount;
+		townID = m_iTownCount;
 		town.location = entity.GetOrigin();
 		town.population = 0;
 		town.support = 0;
@@ -730,12 +738,13 @@ class OVT_TownManagerComponent: OVT_Component
 	void TakeSupportersFromNearestTown(vector pos, int num = 1)
 	{
 		OVT_TownData town = GetNearestTown(pos);
+		int townID = GetTownID(town);
 		if(town.support < num || town.population < num) return;
-		RpcDo_SetSupport(town.id, town.support - num);
-		Rpc(RpcDo_SetSupport, town.id, town.support - num);
+		RpcDo_SetSupport(townID, town.support - num);
+		Rpc(RpcDo_SetSupport, townID, town.support - num);
 		
-		RpcDo_SetPopulation(town.id, town.population - num);
-		Rpc(RpcDo_SetPopulation, town.id, town.population - num);
+		RpcDo_SetPopulation(townID, town.population - num);
+		Rpc(RpcDo_SetPopulation, townID, town.population - num);
 	}
 	
 	protected bool CheckHouseAddPopulation(IEntity entity)
@@ -817,7 +826,8 @@ class OVT_TownManagerComponent: OVT_Component
 		for(int i; i<length; i++)
 		{			
 			OVT_TownData town = m_Towns[i];
-			Print("Writing town ID " + town.id);
+			int townID = GetTownID(town);
+			Print("Writing town ID " + townID);
 			writer.WriteVector(town.location);
 			writer.WriteInt(town.population);
 			writer.WriteInt(town.stability);
@@ -858,8 +868,9 @@ class OVT_TownManagerComponent: OVT_Component
 		{
 			if (!reader.ReadVector(pos)) return false;
 			OVT_TownData town = GetNearestTown(pos);
+			int townID = GetTownID(town);
 			
-			Print("Replicating town " + town.id);			
+			Print("Replicating town " + townID);			
 				
 			if (!reader.ReadInt(town.population)) return false;		
 			if (!reader.ReadInt(town.stability)) return false;		

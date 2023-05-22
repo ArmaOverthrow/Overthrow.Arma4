@@ -102,7 +102,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 			//Print("Wanted timeout tick -1");
 			if(m_iWantedTimer <= 0)
 			{				
-				m_iWantedLevel -= 1;
+				SetWantedLevel(m_iWantedLevel - 1);
 				//Print("Downgrading wanted level to " + m_iWantedLevel);
 				if(m_iWantedLevel > 1)
 				{

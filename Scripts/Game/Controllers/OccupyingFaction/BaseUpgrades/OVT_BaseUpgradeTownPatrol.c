@@ -61,10 +61,11 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		int spent = 0;
 		
 		foreach(OVT_TownData town : m_TownsInRange)
-		{			
+		{		
+			int townID = m_Towns.GetTownID(town);	
 			if(resources <= 0) break;
 			if(!OVT_Global.PlayerInRange(town.location, 5000)) continue;
-			if(!m_Patrols.Contains(town.id))
+			if(!m_Patrols.Contains(townID))
 			{
 				int newres = BuyTownPatrol(town, threat);
 				
@@ -72,7 +73,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 				resources -= newres;
 			}else{
 				//Check if theyre back
-				SCR_AIGroup aigroup = GetGroup(m_Patrols[town.id]);
+				SCR_AIGroup aigroup = GetGroup(m_Patrols[townID]);
 				float distance = vector.Distance(aigroup.GetOrigin(), m_BaseController.GetOwner().GetOrigin());
 				int agentCount = aigroup.GetAgentsCount();
 				if(distance < 20 || agentCount == 0)
@@ -80,7 +81,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 					//Recover any resources
 					m_occupyingFactionManager.RecoverResources(agentCount * m_Config.m_Difficulty.baseResourceCost);
 					
-					m_Patrols.Remove(town.id);
+					m_Patrols.Remove(townID);
 					SCR_EntityHelper.DeleteEntityAndChildren(aigroup);	
 					
 					//send another one
@@ -97,6 +98,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 	
 	protected int BuyTownPatrol(OVT_TownData town, float threat)
 	{
+		int townID = OVT_Global.GetTowns().GetTownID(town);
 		OVT_Faction faction = m_Config.GetOccupyingFaction();
 				
 		ResourceName res = faction.m_aLightTownPatrolPrefab;
@@ -120,7 +122,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		IEntity group = GetGame().SpawnEntityPrefab(Resource.Load(res), world, spawnParams);
 		
 		m_Groups.Insert(group.GetID());
-		m_Patrols[town.id] = group.GetID();
+		m_Patrols[townID] = group.GetID();
 		
 		SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
 		

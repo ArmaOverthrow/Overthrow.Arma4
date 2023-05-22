@@ -151,10 +151,11 @@ class OVT_EconomyManagerComponent: OVT_Component
 		//Shops restocking		
 		foreach(OVT_TownData town : m_Towns.m_Towns)
 		{
-			if(!m_mTownShops.Contains(town.id)) continue;			
+			int townID = OVT_Global.GetTowns().GetTownID(town);
+			if(!m_mTownShops.Contains(townID)) continue;			
 			
 			//split shops into types
-			map<int, ref array<RplId>> typeShops = GetShopTypes(town.id);
+			map<int, ref array<RplId>> typeShops = GetShopTypes(townID);
 			
 			array<int> types = new array<int>;			
 			for(int i=0; i<typeShops.Count(); i++)
@@ -167,7 +168,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 				OVT_ShopComponent shop = GetShopByRplId(shopId);
 				foreach(int id : shop.m_aInventoryItemIds)
 				{
-					int max = GetTownMaxStock(town.id, id);
+					int max = GetTownMaxStock(townID, id);
 					max = Math.Round(max / typeShops[shop.m_ShopType].Count());
 					int stock = shop.GetStock(id);
 					int half = Math.Round(stock * 0.5);
@@ -185,13 +186,14 @@ class OVT_EconomyManagerComponent: OVT_Component
 		//NPCs Buying stock
 		foreach(OVT_TownData town : m_Towns.m_Towns)
 		{
-			if(!m_mTownShops.Contains(town.id)) continue;
+			int townID = OVT_Global.GetTowns().GetTownID(town);
+			if(!m_mTownShops.Contains(townID)) continue;
 			int maxToBuy = (town.population * m_Config.m_fNPCBuyRate) * (town.stability / 100);
 			
 			int numToBuy = s_AIRandomGenerator.RandInt(1,maxToBuy);
 			
 			//split shops into types
-			map<int, ref array<RplId>> typeShops = GetShopTypes(town.id);
+			map<int, ref array<RplId>> typeShops = GetShopTypes(townID);
 			
 			array<int> types = new array<int>;			
 			for(int i=0; i<typeShops.Count(); i++)
@@ -319,8 +321,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 			OVT_TownData town = OVT_Global.GetTowns().GetNearestTown(pos);
 			if(town)
 			{
-				int stock_level = GetTownStock(town.id, id);
-				int max_stock = GetTownMaxStock(town.id, id);
+				int townID = OVT_Global.GetTowns().GetTownID(town);
+				int stock_level = GetTownStock(townID, id);
+				int max_stock = GetTownMaxStock(townID, id);
 				float distance_to_port = DistanceToNearestPort(pos);
 				price = Math.Round(price + ((1 - (stock_level / max_stock)) * (price * 0.1)) + (price * distance_to_port * 0.0001));
 				if(price < 0) price = 1;
@@ -739,6 +742,8 @@ class OVT_EconomyManagerComponent: OVT_Component
 			IEntity entity = rpl.GetEntity();
 			OVT_ShopComponent shop = OVT_ShopComponent.Cast(entity.FindComponent(OVT_ShopComponent));
 			OVT_TownData town = shop.GetTown();
+			
+			int townID = OVT_Global.GetTowns().GetTownID(town);
 		
 			OVT_ShopInventoryConfig config = GetShopConfig(shop.m_ShopType);
 			foreach(OVT_ShopInventoryItem item : config.m_aInventoryItems)
@@ -746,7 +751,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 				int id = GetInventoryId(item.prefab);				
 				SetPrice(id, item.cost);
 				
-				int max = GetTownMaxStock(town.id, id);
+				int max = GetTownMaxStock(townID, id);
 				
 				int num = Math.Round(s_AIRandomGenerator.RandFloatXY(1,max));
 				
@@ -771,16 +776,17 @@ class OVT_EconomyManagerComponent: OVT_Component
 			m_aAllShops.Insert(id);
 		
 			OVT_TownData town = m_Towns.GetNearestTown(entity.GetOrigin());
+			int townID = OVT_Global.GetTowns().GetTownID(town);
 			
-			if(!m_mTownShops.Contains(town.id))
+			if(!m_mTownShops.Contains(townID))
 			{				
-				m_mTownShops[town.id] = new ref array<RplId>;	
+				m_mTownShops[townID] = new ref array<RplId>;	
 			}
 			
-			m_mTownShops[town.id].Insert(id);
+			m_mTownShops[townID].Insert(id);
 			
 			OVT_ShopComponent shop = GetShopByRplId(id);
-			shop.m_iTownId = town.id;
+			shop.m_iTownId = townID;
 		}
 		
 		return true;

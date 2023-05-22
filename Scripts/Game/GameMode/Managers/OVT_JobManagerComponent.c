@@ -277,6 +277,7 @@ class OVT_JobManagerComponent: OVT_Component
 			}
 			foreach(OVT_TownData town : m_Towns.m_Towns)
 			{
+				int townID = OVT_Global.GetTowns().GetTownID(town);
 				if(!config.m_bPublic)
 				{
 					//Player allocated job
@@ -304,21 +305,21 @@ class OVT_JobManagerComponent: OVT_Component
 							playerJobs[index] = playerJobs[index] + 1;
 							OVT_Job job = StartJob(index, town, null, persId);
 							if(job)
-								Rpc(RpcDo_UpdateJob, index, job.location, town.id, -1, job.stage, job.entity, player.id, job.accepted);
+								Rpc(RpcDo_UpdateJob, index, job.location, townID, -1, job.stage, job.entity, player.id, job.accepted);
 						}
 					}
 				}else{
 					//Public Job
 					if((config.flags & OVT_JobFlags.GLOBAL_UNIQUE) && m_aGlobalJobs.Contains(index)) break;			
-					if(m_aTownJobs.Contains(town.id) && m_aTownJobs[town.id].Contains(index)) continue;
+					if(m_aTownJobs.Contains(townID) && m_aTownJobs[townID].Contains(index)) continue;
 								
 					if(JobShouldStart(config, town, null, -1) && config.m_aStages.Count() > 0)
 					{
-						if(!m_aTownJobs.Contains(town.id))
+						if(!m_aTownJobs.Contains(townID))
 						{
-							m_aTownJobs[town.id] = new set<int>;
+							m_aTownJobs[townID] = new set<int>;
 						}
-						m_aTownJobs[town.id].Insert(index);
+						m_aTownJobs[townID].Insert(index);
 						
 						if(config.flags & OVT_JobFlags.GLOBAL_UNIQUE)
 						{
@@ -329,7 +330,7 @@ class OVT_JobManagerComponent: OVT_Component
 						
 						//Update clients
 						if(job)
-							Rpc(RpcDo_UpdateJob, index, job.location, town.id, -1, job.stage, job.entity, -1, job.accepted);
+							Rpc(RpcDo_UpdateJob, index, job.location, townID, -1, job.stage, job.entity, -1, job.accepted);
 					}
 				}
 			}
@@ -354,13 +355,14 @@ class OVT_JobManagerComponent: OVT_Component
 	
 	OVT_Job StartJob(int index, OVT_TownData town, OVT_BaseData base, string owner)
 	{
+		int townID = OVT_Global.GetTowns().GetTownID(town);
 		OVT_JobConfig config = GetConfig(index);
 		OVT_Job job = new OVT_Job();
 		job.owner = owner;
 		job.jobIndex = index;
 		if(town)
 		{
-			job.townId = town.id;
+			job.townId = townID;
 			job.location = town.location;
 		}
 		if(base)

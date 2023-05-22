@@ -138,11 +138,12 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		{
 			foreach(OVT_TownData town : m_TownManager.m_Towns)
 			{
-				m_TownManager.TryAddSupportModifierByName(town.id, "RecruitmentPosters");
-				m_TownManager.TryAddSupportModifierByName(town.id, "RecruitmentPosters");
-				m_TownManager.TryAddSupportModifierByName(town.id, "RecruitmentPosters");
-				m_TownManager.TryAddSupportModifierByName(town.id, "RecruitmentPosters");
-				m_TownManager.TryAddSupportModifierByName(town.id, "RecruitmentPosters");
+				int townID = OVT_Global.GetTowns().GetTownID(town);
+				m_TownManager.TryAddSupportModifierByName(townID, "RecruitmentPosters");
+				m_TownManager.TryAddSupportModifierByName(townID, "RecruitmentPosters");
+				m_TownManager.TryAddSupportModifierByName(townID, "RecruitmentPosters");
+				m_TownManager.TryAddSupportModifierByName(townID, "RecruitmentPosters");
+				m_TownManager.TryAddSupportModifierByName(townID, "RecruitmentPosters");
 			}
 			DiagMenu.SetValue(204,0);
 		}
