@@ -579,6 +579,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D6C212548EA9183}" {
+   Id "OVT-Modifier_NearbyBase"
+   Target_en_us "Nearby Base"
+   Modified 1567370294
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5D64799EE068B0DB}" {
    Id "OVT-Modifier_RecentBattle"
    Target_en_us "Recent Battle"

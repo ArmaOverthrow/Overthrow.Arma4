@@ -4,10 +4,15 @@ class OVT_PlayerWantedComponentClass: OVT_ComponentClass
 
 class OVT_PlayerWantedComponent: OVT_Component
 {	
+	[RplProp()]
 	protected int m_iWantedLevel = 0;
+	[RplProp()]
 	protected bool m_bIsSeen = false;	
+	
 	int m_iWantedTimer = 0;
 	int m_iLastSeen;
+	
+	protected bool m_bTempSeen = false;
 	
 	protected const int LAST_SEEN_MAX = 15;
 	protected const int WANTED_SYSTEM_FREQUENCY = 1000;
@@ -22,13 +27,15 @@ class OVT_PlayerWantedComponent: OVT_Component
 	void SetWantedLevel(int level)
 	{
 		m_iWantedLevel = level;	
+		Replication.BumpMe();
 	}
 	
 	void SetBaseWantedLevel(int level)
 	{
 		if(m_iWantedLevel < level){
 			m_iWantedLevel = level;
-		}
+			Replication.BumpMe();
+		}		
 	}
 	
 	int GetWantedLevel()
@@ -61,8 +68,8 @@ class OVT_PlayerWantedComponent: OVT_Component
 	}
 	
 	void CheckUpdate()
-	{		
-		m_bIsSeen = false;
+	{
+		m_bTempSeen = false;
 		m_iLastSeen = LAST_SEEN_MAX;
 		
 		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), 250, CheckEntity, FilterEntities, EQueryEntitiesFlags.DYNAMIC);
@@ -71,7 +78,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		if(base)
 		{
 			float distanceToBase = vector.Distance(base.location, GetOwner().GetOrigin());
-			if(m_iWantedLevel < 2 && distanceToBase < base.closeRange && m_bIsSeen)
+			if(m_iWantedLevel < 2 && distanceToBase < base.closeRange && m_bTempSeen)
 			{
 				SetBaseWantedLevel(2);
 			}		
@@ -79,7 +86,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		
 		//Print("Last seen is: " + m_iLastSeen);
 		
-		if(m_iWantedLevel > 0 && !m_bIsSeen)
+		if(m_iWantedLevel > 0 && !m_bTempSeen)
 		{
 			m_iWantedTimer -= WANTED_SYSTEM_FREQUENCY;
 			//Print("Wanted timeout tick -1");
@@ -94,7 +101,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 					m_iWantedTimer = m_Config.m_Difficulty.wantedOneTimeout;
 				}
 			}
-		}else if(m_iWantedLevel == 1 && m_bIsSeen) {
+		}else if(m_iWantedLevel == 1 && m_bTempSeen) {
 			SetWantedLevel(2);			
 		}
 		
@@ -109,6 +116,12 @@ class OVT_PlayerWantedComponent: OVT_Component
 		{
 			//Print("You are no longer wanted");
 			m_Faction.SetAffiliatedFactionByKey("");
+		}
+		
+		if(m_bTempSeen != m_bIsSeen)
+		{
+			m_bIsSeen = m_bTempSeen;
+			Replication.BumpMe();
 		}
 	}
 	
@@ -147,17 +160,17 @@ class OVT_PlayerWantedComponent: OVT_Component
 					IEntity veh = m_Compartment.GetVehicle();
 					if(veh && TraceLOSVehicle(entity, veh)){	
 						//Vehicle can be seen					
-						m_bIsSeen = true;
+						m_bTempSeen = true;
 						inVehicle = true;
 					}
 				}else{				
 					if(TraceLOS(entity, GetOwner())){
 						//Player can be seen
-						m_bIsSeen = true;	
+						m_bTempSeen = true;	
 					}
 				}
 				
-				if(m_bIsSeen)
+				if(m_bTempSeen)
 				{
 					if (m_Weapon && m_Weapon.GetCurrentWeapon())
 					{

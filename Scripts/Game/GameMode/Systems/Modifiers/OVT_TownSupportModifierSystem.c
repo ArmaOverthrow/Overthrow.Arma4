@@ -22,6 +22,8 @@ class OVT_TownSupportModifierSystem : OVT_TownModifierSystem
 		if(supportmods > 100) supportmods = 100;
 		if(supportmods < -100) supportmods = -100;
 		
+		int supportPerc = Math.Round((newsupport / max) * 100);
+		
 		if(supportmods > 75)
 		{
 			//Add a supporter to the cause
@@ -33,10 +35,19 @@ class OVT_TownSupportModifierSystem : OVT_TownModifierSystem
 		}else if(supportmods > 0)
 		{
 			//Maybe add a supporter
-			if(s_AIRandomGenerator.RandFloatXY(0, 100) < supportmods)
+			if(supportPerc < supportmods)
 			{
-				newsupport++;
+				if(s_AIRandomGenerator.RandFloatXY(0, 100) < supportmods)
+				{
+					newsupport++;
+				}
+			}else{
+				if(s_AIRandomGenerator.RandFloatXY(0, 100) < (supportmods * 0.25))
+				{
+					newsupport++;
+				}
 			}
+			
 		}else if(supportmods < 0)
 		{
 			//Maybe remove a supporter

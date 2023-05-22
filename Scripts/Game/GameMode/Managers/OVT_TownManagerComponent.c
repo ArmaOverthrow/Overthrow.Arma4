@@ -109,10 +109,12 @@ class OVT_TownManagerComponent: OVT_Component
 		foreach(OVT_TownModifierSystem system : m_aTownModifiers)
 		{
 			system.Init();
-		}
+		}		
+		
+		InitializeTowns();
 		
 		if(!Replication.IsServer()) return;
-		InitializeTowns();
+		SetupTowns();
 	}
 	
 	void PostGameStart()
@@ -185,7 +187,34 @@ class OVT_TownManagerComponent: OVT_Component
 			{
 				RemoveSupportModifierByName(town.id, "NearbyRadioTowerNegative");
 				TryAddSupportModifierByName(town.id, "NearbyRadioTowerPositive");
-			}		
+			}	
+			
+			bool hasEnemyBase = false;
+			bool hasFriendlyBase = false;	
+			
+			foreach(OVT_BaseData base : of.m_Bases)
+			{				
+				float dist = vector.Distance(town.location, base.location);
+				if(dist < m_Config.m_Difficulty.baseSupportRange)
+				{
+					if(base.IsOccupyingFaction())
+					{
+						hasEnemyBase = true;
+					}else{
+						hasFriendlyBase = true;
+					}
+				}
+			}
+			
+			if(hasEnemyBase)
+			{
+				RemoveSupportModifierByName(town.id, "NearbyBasePositive");
+				TryAddSupportModifierByName(town.id, "NearbyBaseNegative");
+			}else if(hasFriendlyBase)
+			{
+				RemoveSupportModifierByName(town.id, "NearbyBaseNegative");
+				TryAddSupportModifierByName(town.id, "NearbyBasePositive");
+			}	
 			
 			if(recalc) RecalculateStability(town.id);
 						
@@ -621,6 +650,7 @@ class OVT_TownManagerComponent: OVT_Component
 		town.population = 0;
 		town.support = 0;
 		town.faction = GetGame().GetFactionManager().GetFactionIndex(faction);
+		town.stability = 100;
 		
 		m_iTownCount++;
 		
@@ -628,22 +658,22 @@ class OVT_TownManagerComponent: OVT_Component
 		if(mapdesc.GetBaseType() == EMapDescriptorType.MDT_NAME_TOWN) town.size = 2;
 		if(mapdesc.GetBaseType() == EMapDescriptorType.MDT_NAME_CITY) town.size = 3;
 		
-		m_CheckTown = town;
-		
-		int range = m_iTownRange;
-		if(town.size == 1) range = m_iVillageRange;
-		if(town.size == 3) range = m_iCityRange;
-		
-		town.stability = 100;
-		
-		GetGame().GetWorld().QueryEntitiesBySphere(entity.GetOrigin(), range, CheckHouseAddPopulation, FilterHouseEntities, EQueryEntitiesFlags.STATIC);
-		
-		#ifdef OVERTHROW_DEBUG
-		Print(town.name + ": pop. " + town.population.ToString());
-		#endif
-		
 		m_Towns.Insert(town);
 		m_TownNames.Insert(mapdesc.Item().GetDisplayName());
+	}
+	
+	protected void SetupTowns()
+	{
+		foreach(OVT_TownData town : m_Towns)
+		{
+			m_CheckTown = town;
+		
+			int range = m_iTownRange;
+			if(town.size == 1) range = m_iVillageRange;
+			if(town.size == 3) range = m_iCityRange;
+			
+			GetGame().GetWorld().QueryEntitiesBySphere(town.location, range, CheckHouseAddPopulation, FilterHouseEntities, EQueryEntitiesFlags.STATIC);
+		}
 	}
 	
 	protected bool FilterCityTownEntities(IEntity entity) 
@@ -786,12 +816,10 @@ class OVT_TownManagerComponent: OVT_Component
 		{
 			OVT_TownData town = m_Towns[i];
 			writer.WriteInt(town.id);
-			writer.WriteVector(town.location);
 			writer.WriteInt(town.population);
 			writer.WriteInt(town.stability);
 			writer.WriteInt(town.support);
 			writer.WriteInt(town.faction);
-			writer.WriteInt(town.size);
 			
 			int count = town.stabilityModifiers.Count();
 			
@@ -818,23 +846,21 @@ class OVT_TownManagerComponent: OVT_Component
 	{		
 				
 		//Recieve JIP towns
-		int length, modlength;
+		int length, modlength, id;
 		
 		if (!reader.ReadInt(length)) return false;
 		Print("Replicating " + length + " towns");
 		for(int i; i<length; i++)
 		{
-			OVT_TownData town = new OVT_TownData();
+			if (!reader.ReadInt(id)) return false;
+			OVT_TownData town = GetTown(id);
 			
-			Print("Replicating town " + i);
-			
-			if (!reader.ReadInt(town.id)) return false;
-			if (!reader.ReadVector(town.location)) return false;		
+			Print("Replicating town " + id);			
+				
 			if (!reader.ReadInt(town.population)) return false;		
 			if (!reader.ReadInt(town.stability)) return false;		
 			if (!reader.ReadInt(town.support)) return false;		
-			if (!reader.ReadInt(town.faction)) return false;		
-			if (!reader.ReadInt(town.size)) return false;	
+			if (!reader.ReadInt(town.faction)) return false;
 				
 			int stabilitylength;
 			if (!reader.ReadInt(stabilitylength)) return false;
@@ -856,9 +882,6 @@ class OVT_TownManagerComponent: OVT_Component
 				if (!reader.ReadInt(mod.timer)) return false;
 				town.supportModifiers.Insert(mod);
 			}
-			
-			m_Towns.Insert(town);
-			m_TownNames.Insert(""); //Will get populated later as required
 		}
 		return true;
 	}
