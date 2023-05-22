@@ -134,6 +134,19 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			DiagMenu.SetValue(203,0);
 		}
 		
+		if(DiagMenu.GetValue(204))
+		{
+			foreach(OVT_TownData town : m_TownManager.m_Towns)
+			{
+				m_TownManager.TryAddSupportModifierByName(town.id, "RecruitmentPosters");
+				m_TownManager.TryAddSupportModifierByName(town.id, "RecruitmentPosters");
+				m_TownManager.TryAddSupportModifierByName(town.id, "RecruitmentPosters");
+				m_TownManager.TryAddSupportModifierByName(town.id, "RecruitmentPosters");
+				m_TownManager.TryAddSupportModifierByName(town.id, "RecruitmentPosters");
+			}
+			DiagMenu.SetValue(204,0);
+		}
+		
 		if(!(IsMaster() && RplSession.Mode() == RplMode.Dedicated) && !m_bCameraSet)
 		{
 			SetRandomCameraPosition();
@@ -196,9 +209,20 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		super.OnPlayerDisconnected(playerId, cause, timeout);
 	}
 	
-	protected void OnPlayerIDRegistered(int playerId, string persistentId)
+	override void OnPlayerAuditSuccess(int iPlayerID)
 	{
-		IEntity controlledEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+		super.OnPlayerAuditSuccess(iPlayerID);
+		
+		string persistentId = OVT_Global.GetPlayerUID(iPlayerID);
+		m_PlayerManager.RegisterPlayer(iPlayerID, persistentId);
+	}
+	
+	protected override void OnPlayerSpawned(int playerId, IEntity controlledEntity)
+	{
+		super.OnPlayerSpawned(playerId, controlledEntity);
+		
+		string persistentId = m_PlayerManager.GetPersistentIDFromPlayerID(playerId);
+		
 		if(m_ResistanceFactionManager.m_Officers.Count() == 0)
 		{
 			m_ResistanceFactionManager.AddOfficer(playerId);
@@ -280,14 +304,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		}
 	}
 	
-	override void OnPlayerAuditSuccess(int iPlayerID)
-	{
-		super.OnPlayerAuditSuccess(iPlayerID);
-		
-		string persistentId = OVT_Global.GetPlayerUID(iPlayerID);
-		m_PlayerManager.RegisterPlayer(iPlayerID, persistentId);
-	}
-	
 	protected void SetRandomCameraPosition()
 	{
 		CameraManager cameraMgr = GetGame().GetCameraManager();
@@ -326,6 +342,9 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		
 		DiagMenu.RegisterBool(203, "lctrl+lalt+w", "Win Battle", "Cheats");
 		DiagMenu.SetValue(203, 0);
+		
+		DiagMenu.RegisterBool(204, "lctrl+lalt+r", "Poster all towns", "Cheats");
+		DiagMenu.SetValue(204, 0);
 		
 		if(SCR_Global.IsEditMode())
 			return;		
@@ -392,8 +411,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		}
 		
 		GetGame().GetTimeAndWeatherManager().SetDayDuration(86400 / m_Config.m_iTimeMultiplier);
-		m_PlayerManager.m_OnPlayerRegistered.Insert(OnPlayerIDRegistered);
-		
+				
 		//Are we a dedicated server?
 		if(RplSession.Mode() == RplMode.Dedicated)
 		{

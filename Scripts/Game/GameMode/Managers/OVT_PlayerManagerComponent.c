@@ -139,7 +139,12 @@ class OVT_PlayerManagerComponent: OVT_Component
 	
 	string GetPersistentIDFromPlayerID(int playerId)
 	{
-		if(!m_mPersistentIDs.Contains(playerId)) return "";
+		if(!m_mPersistentIDs.Contains(playerId)) {
+			//Fallback for single player
+			string persistentId = OVT_Global.GetPlayerUID(playerId);
+			RegisterPlayer(playerId, persistentId);
+			return persistentId;
+		}
 		return m_mPersistentIDs[playerId];
 	}
 	
@@ -151,6 +156,7 @@ class OVT_PlayerManagerComponent: OVT_Component
 	
 	void RegisterPlayer(int playerId, string persistentId)
 	{	
+		Print("Player ID registered: " + persistentId);
 		SetupPlayer(playerId, persistentId);
 		
 		m_OnPlayerRegistered.Invoke(playerId, persistentId);

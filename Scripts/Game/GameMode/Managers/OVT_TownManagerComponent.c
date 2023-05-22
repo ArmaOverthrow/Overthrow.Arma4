@@ -811,10 +811,13 @@ class OVT_TownManagerComponent: OVT_Component
 	{	
 			
 		//Send JIP towns
-		writer.WriteInt(m_Towns.Count()); 
-		for(int i; i<m_Towns.Count(); i++)
-		{
+		int length = m_Towns.Count();
+		Print("Writing " + length + " towns");
+		writer.WriteInt(length); 
+		for(int i; i<length; i++)
+		{			
 			OVT_TownData town = m_Towns[i];
+			Print("Writing town ID " + town.id);
 			writer.WriteVector(town.location);
 			writer.WriteInt(town.population);
 			writer.WriteInt(town.stability);
@@ -822,7 +825,7 @@ class OVT_TownManagerComponent: OVT_Component
 			writer.WriteInt(town.faction);
 			
 			int count = town.stabilityModifiers.Count();
-			
+			Print("Writing " + count + " stability modifiers");
 			writer.WriteInt(count);
 			for(int t; t<count; t++)
 			{
@@ -830,7 +833,7 @@ class OVT_TownManagerComponent: OVT_Component
 				writer.WriteInt(town.stabilityModifiers[t].timer);
 			}
 			count = town.supportModifiers.Count();
-
+			Print("Writing " + count + " support modifiers");
 			writer.WriteInt(count);
 			for(int t; t<count; t++)
 			{
