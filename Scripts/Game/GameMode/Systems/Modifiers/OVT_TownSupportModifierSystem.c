@@ -16,6 +16,7 @@ class OVT_TownSupportModifierSystem : OVT_TownModifierSystem
 		float supportmods = 0;
 		foreach(OVT_TownModifierData modifier : modifiers)
 		{
+			if(!modifier) continue;
 			OVT_ModifierConfig mod = m_Config.m_aModifiers[modifier.id];
 			supportmods += mod.baseEffect;
 		}

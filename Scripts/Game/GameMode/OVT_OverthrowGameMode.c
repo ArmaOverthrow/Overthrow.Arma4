@@ -280,6 +280,14 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		}
 	}
 	
+	override void OnPlayerAuditSuccess(int iPlayerID)
+	{
+		super.OnPlayerAuditSuccess(iPlayerID);
+		
+		string persistentId = OVT_Global.GetPlayerUID(iPlayerID);
+		m_PlayerManager.RegisterPlayer(iPlayerID, persistentId);
+	}
+	
 	protected void SetRandomCameraPosition()
 	{
 		CameraManager cameraMgr = GetGame().GetCameraManager();

@@ -150,12 +150,11 @@ class OVT_PlayerManagerComponent: OVT_Component
 	}
 	
 	void RegisterPlayer(int playerId, string persistentId)
-	{
+	{	
 		SetupPlayer(playerId, persistentId);
 		
 		m_OnPlayerRegistered.Invoke(playerId, persistentId);
 		
-		int id1, id2, id3;
 		Rpc(RpcDo_RegisterPlayer, playerId, persistentId);		
 	}
 	

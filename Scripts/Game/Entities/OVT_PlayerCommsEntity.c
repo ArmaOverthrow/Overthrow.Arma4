@@ -30,20 +30,6 @@ class OVT_PlayerCommsEntity: GenericEntity
 		}
 	}
 	
-	void RegisterPersistentID(string persistentID)
-	{		
-		int playerId = SCR_PlayerController.GetLocalPlayerId();
-		
-		Rpc(RpcAsk_SetID, playerId, persistentID);
-	}
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	void RpcAsk_SetID(int playerId, string persistentID)
-	{					
-		Print("Registering persistent ID with server: " + persistentID);
-		OVT_Global.GetPlayers().RegisterPlayer(playerId, persistentID);		
-	}	
-	
 	void StartBaseCapture(vector loc)
 	{		
 		Rpc(RpcAsk_StartBaseCapture, loc);

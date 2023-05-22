@@ -815,7 +815,7 @@ class OVT_TownManagerComponent: OVT_Component
 		for(int i; i<m_Towns.Count(); i++)
 		{
 			OVT_TownData town = m_Towns[i];
-			writer.WriteInt(town.id);
+			writer.WriteVector(town.location);
 			writer.WriteInt(town.population);
 			writer.WriteInt(town.stability);
 			writer.WriteInt(town.support);
@@ -846,16 +846,17 @@ class OVT_TownManagerComponent: OVT_Component
 	{		
 				
 		//Recieve JIP towns
-		int length, modlength, id;
+		int length, modlength;
+		vector pos;
 		
 		if (!reader.ReadInt(length)) return false;
 		Print("Replicating " + length + " towns");
 		for(int i; i<length; i++)
 		{
-			if (!reader.ReadInt(id)) return false;
-			OVT_TownData town = GetTown(id);
+			if (!reader.ReadVector(pos)) return false;
+			OVT_TownData town = GetNearestTown(pos);
 			
-			Print("Replicating town " + id);			
+			Print("Replicating town " + town.id);			
 				
 			if (!reader.ReadInt(town.population)) return false;		
 			if (!reader.ReadInt(town.stability)) return false;		
