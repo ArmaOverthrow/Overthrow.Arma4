@@ -27,7 +27,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		if(!support) return;
 		
 		//Check on our patrols and update stability/support
-		for(int i; i< m_Patrols.Count(); i++)
+		for(int i=0; i< m_Patrols.Count(); i++)
 		{
 			int townId = m_Patrols.GetKey(i);
 			EntityID id = m_Patrols.GetElement(i);
@@ -74,6 +74,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 			}else{
 				//Check if theyre back
 				SCR_AIGroup aigroup = GetGroup(m_Patrols[townID]);
+				if(!aigroup) continue;
 				float distance = vector.Distance(aigroup.GetOrigin(), m_BaseController.GetOwner().GetOrigin());
 				int agentCount = aigroup.GetAgentsCount();
 				if(distance < 20 || agentCount == 0)

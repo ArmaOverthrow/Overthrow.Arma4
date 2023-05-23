@@ -184,7 +184,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	{
 		if(!m_mOwned.Contains(playerId)) return null;
 		
-		float nearest = 999999;
+		float nearest = -1;
 		IEntity nearestEnt;		
 		
 		set<RplId> owner = m_mOwned[playerId];
@@ -193,7 +193,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
 			IEntity ent = rpl.GetEntity();
 			float dist = vector.Distance(ent.GetOrigin(), pos);
-			if(dist < nearest)
+			if(nearest == -1 || dist < nearest)
 			{
 				nearest = dist;
 				nearestEnt = ent;
@@ -207,7 +207,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	{
 		if(!m_mRented.Contains(playerId)) return null;
 		
-		float nearest = 999999;
+		float nearest = -1;
 		IEntity nearestEnt;		
 		
 		set<RplId> owner = m_mRented[playerId];
@@ -216,7 +216,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
 			IEntity ent = rpl.GetEntity();
 			float dist = vector.Distance(ent.GetOrigin(), pos);
-			if(dist < nearest)
+			if(nearest == -1 || dist < nearest)
 			{
 				nearest = dist;
 				nearestEnt = ent;
@@ -338,7 +338,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		
 		//Send JIP homes
 		writer.WriteInt(m_mHomes.Count()); 
-		for(int i; i<m_mHomes.Count(); i++)
+		for(int i=0; i<m_mHomes.Count(); i++)
 		{			
 			writer.WriteString(m_mHomes.GetKey(i));
 			writer.WriteVector(m_mHomes.GetElement(i));
@@ -346,7 +346,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		
 		//Send JIP warehouses
 		writer.WriteInt(m_aWarehouses.Count());
-		for(int i; i<m_aWarehouses.Count(); i++)
+		for(int i=0; i<m_aWarehouses.Count(); i++)
 		{
 			OVT_WarehouseData data = m_aWarehouses[i];
 			writer.WriteInt(data.id);
@@ -375,7 +375,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		vector loc;
 		
 		if (!reader.ReadInt(length)) return false;
-		for(int i; i<length; i++)
+		for(int i=0; i<length; i++)
 		{
 			if (!reader.ReadString(playerId)) return false;
 			if (!reader.ReadVector(loc)) return false;		
@@ -384,7 +384,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		}
 		//Recieve JIP warehouses
 		if (!reader.ReadInt(length)) return false;
-		for(int i; i<length; i++)
+		for(int i=0; i<length; i++)
 		{
 			OVT_WarehouseData data = new OVT_WarehouseData;
 			if (!reader.ReadInt(data.id)) return false;

@@ -12,7 +12,7 @@ class OVT_RealEstateStruct : OVT_BaseSaveStruct
 		OVT_RealEstateManagerComponent re = OVT_Global.GetRealEstate();
 		OVT_EconomyManagerComponent ec = OVT_Global.GetEconomy();
 		
-		for(int i; i<re.m_mHomes.Count(); i++)
+		for(int i=0; i<re.m_mHomes.Count(); i++)
 		{	
 			OVT_RealEstatePlayerStruct struct = new OVT_RealEstatePlayerStruct();
 			
@@ -23,7 +23,7 @@ class OVT_RealEstateStruct : OVT_BaseSaveStruct
 			players.Insert(struct);
 		}
 		
-		for(int i; i<re.m_mOwned.Count(); i++)
+		for(int i=0; i<re.m_mOwned.Count(); i++)
 		{
 			string playerId = re.m_mOwned.GetKey(i);
 			OVT_RealEstatePlayerStruct struct;
@@ -40,6 +40,7 @@ class OVT_RealEstateStruct : OVT_BaseSaveStruct
 			foreach(RplId id : re.m_mOwned[playerId])
 			{
 				RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+				if(!rpl) continue;
 				IEntity ent = rpl.GetEntity();
 				OVT_VectorStruct vec = new OVT_VectorStruct();
 				vec.pos = ent.GetOrigin();
@@ -47,7 +48,7 @@ class OVT_RealEstateStruct : OVT_BaseSaveStruct
 			}
 		}
 		
-		for(int i; i<re.m_mRented.Count(); i++)
+		for(int i=0; i<re.m_mRented.Count(); i++)
 		{
 			string playerId = re.m_mRented.GetKey(i);
 			OVT_RealEstatePlayerStruct struct;
@@ -64,6 +65,7 @@ class OVT_RealEstateStruct : OVT_BaseSaveStruct
 			foreach(RplId id : re.m_mOwned[playerId])
 			{
 				RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+				if(!rpl) continue;
 				IEntity ent = rpl.GetEntity();
 				OVT_VectorStruct vec = new OVT_VectorStruct();
 				vec.pos = ent.GetOrigin();

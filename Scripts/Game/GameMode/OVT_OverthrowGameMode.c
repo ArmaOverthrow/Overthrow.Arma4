@@ -443,6 +443,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		//any players online yet?
 		array<int> players = new array<int>;
 		PlayerManager mgr = GetGame().GetPlayerManager();
+		mgr.GetPlayers(players);
 		int numplayers = mgr.GetPlayers(players);
 		
 		Print("Requested Remote Start Game. Players online: " + players.Count().ToString());

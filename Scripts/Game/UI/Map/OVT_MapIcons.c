@@ -117,6 +117,7 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 		{
 			RplId id = realEstate.m_mOwners.GetKey(i);
 			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+			if(!rpl) continue;
 			IEntity ent = rpl.GetEntity();
 			OVT_RealEstateConfig bdgConfig = realEstate.GetConfig(ent);
 			if(!bdgConfig.m_IsWarehouse)
@@ -139,6 +140,7 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 		{
 			RplId id = realEstate.m_mRenters.GetKey(i);
 			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+			if(!rpl) continue;
 			IEntity ent = rpl.GetEntity();
 			OVT_RealEstateConfig bdgConfig = realEstate.GetConfig(ent);
 			if(!bdgConfig.m_IsWarehouse)
@@ -208,6 +210,7 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 		foreach(EntityID id : vehicles.GetOwned(persId))
 		{
 			IEntity ent = world.FindEntityByID(id);
+			if(!ent) continue;
 			m_Centers.Insert(ent.GetOrigin());
 			m_Ranges.Insert(m_fCeiling);
 			

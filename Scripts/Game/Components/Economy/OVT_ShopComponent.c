@@ -64,7 +64,7 @@ class OVT_ShopComponent: OVT_Component
 	{
 		//Send JIP inventory
 		writer.WriteInt(m_aInventory.Count()); 
-		for(int i; i<m_aInventory.Count(); i++)
+		for(int i=0; i<m_aInventory.Count(); i++)
 		{
 			writer.WriteInt(m_aInventory.GetKey(i));
 			writer.WriteInt(m_aInventory.GetElement(i));
@@ -82,7 +82,7 @@ class OVT_ShopComponent: OVT_Component
 		RplId id;
 		
 		if (!reader.ReadInt(length)) return false;
-		for(int i; i<length; i++)
+		for(int i=0; i<length; i++)
 		{
 			if (!reader.ReadInt(id)) return false;				
 			if (!reader.ReadInt(num)) return false;

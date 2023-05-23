@@ -1,46 +1,69 @@
 class OVT_MapPlayerLocation : SCR_MapUIBaseComponent
-{
-	protected Widget m_Widget;
-	protected ImageWidget m_Image;
+{	
 	protected SCR_MapToolEntry m_ToolMenuEntry;
 	
+	protected ref map<int,ref Widget> m_Widgets;
+	
+	protected int m_iLocalPlayerId = -1;
+		
 	[Attribute()]
 	protected ResourceName m_Layout;
 
 	override void Update(float timeSlice)
 	{
-		if (!m_Widget)
+		if (!m_Widgets)
 			return;
 
-		ChimeraCharacter player = ChimeraCharacter.Cast(SCR_PlayerController.GetLocalControlledEntity());
-		if (!player)
+		for(int i = 0; i < m_Widgets.Count(); i++)
 		{
-			m_Widget.RemoveFromHierarchy();
-			return;
+			int playerId = m_Widgets.GetKey(i);
+			Widget w = m_Widgets[playerId];
+			
+			if(playerId != m_iLocalPlayerId && m_MapEntity.GetCurrentZoom() < 0.6)
+			{
+				w.SetOpacity(0);
+				continue;
+			}else{
+				w.SetOpacity(1);
+			}
+			IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+			if(!player)
+			{
+				w.SetOpacity(0);
+				continue;
+			}
+			vector posPlayer = player.GetOrigin();
+	
+			float x, y;
+			m_MapEntity.WorldToScreen(posPlayer[0], posPlayer[2], x, y, true);
+	
+			x = GetGame().GetWorkspace().DPIUnscale(x);
+			y = GetGame().GetWorkspace().DPIUnscale(y);
+					
+			vector ypr = player.GetYawPitchRoll();	
+			
+			ImageWidget img = ImageWidget.Cast(w.FindAnyWidget("Image"));
+			if(img)
+				img.SetRotation(ypr[0]);
+			
+			FrameSlot.SetPos(w, x, y);
 		}
-
-		vector posPlayer = player.GetOrigin();
-
-		float x, y;
-		m_MapEntity.WorldToScreen(posPlayer[0], posPlayer[2], x, y, true);
-
-		x = GetGame().GetWorkspace().DPIUnscale(x);
-		y = GetGame().GetWorkspace().DPIUnscale(y);
-				
-		vector ypr = player.GetYawPitchRoll();	
-		
-		m_Image.SetRotation(ypr[0]);
-		FrameSlot.SetPos(m_Widget, x, y);
 	}
 
 	override void OnMapOpen(MapConfiguration config)
 	{
 		super.OnMapOpen(config);
-
-		if (m_Widget)
+		
+		ChimeraCharacter player = ChimeraCharacter.Cast(SCR_PlayerController.GetLocalControlledEntity());
+		if (!player)
 		{
 			return;
 		}
+		
+		m_iLocalPlayerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(player);
+		
+		if(!m_Widgets) m_Widgets = new map<int,ref Widget>;
+		m_Widgets.Clear();
 		
 		FactionManager faction = GetGame().GetFactionManager();
 		OVT_OverthrowConfigComponent otconfig = OVT_Global.GetConfig();
@@ -48,12 +71,17 @@ class OVT_MapPlayerLocation : SCR_MapUIBaseComponent
 		Faction fac = faction.GetFactionByKey(otconfig.m_sPlayerFaction);
 		if(!fac) return;
 
-		m_Widget = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
-
-		m_Image = ImageWidget.Cast(m_Widget.FindAnyWidget("Image"));
-		if(m_Image)
-		{
-			m_Image.SetColor(fac.GetFactionColor());
+		array<int> players = new array<int>;
+		PlayerManager mgr = GetGame().GetPlayerManager();
+		mgr.GetPlayers(players);
+		foreach(int playerId : players){
+			Widget widget = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
+			ImageWidget img = ImageWidget.Cast(widget.FindAnyWidget("Image"));
+			if(img)
+			{
+				img.SetColor(fac.GetFactionColor());
+			}
+			m_Widgets[playerId] = widget;
 		}
 	}
 
@@ -74,7 +102,7 @@ class OVT_MapPlayerLocation : SCR_MapUIBaseComponent
 		{
 			return;
 		}
-
+		
 		vector posPlayer = player.GetOrigin();
 
 		vector mapSize = m_MapEntity.GetMapWidget().GetSizeInUnits();

@@ -12,12 +12,12 @@ class OVT_IsNearestTownWithDealerJobCondition : OVT_JobCondition
 		vector pos = player.GetOrigin();
 		
 		OVT_TownData nearestTown;
-		float nearest = 9999999;
+		float nearest = -1;
 		foreach(OVT_TownData t : OVT_Global.GetTowns().m_Towns)
 		{
 			if(!t.gunDealerPosition || t.gunDealerPosition[0] == 0) continue;
 			float distance = vector.Distance(t.location, pos);
-			if(distance < nearest){
+			if(nearest == -1 || distance < nearest){
 				nearest = distance;
 				nearestTown = t;
 			}

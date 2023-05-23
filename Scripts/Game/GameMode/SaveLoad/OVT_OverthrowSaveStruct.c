@@ -109,6 +109,12 @@ class OVT_OverthrowSaveStruct : SCR_MissionStruct
 	}
 	override bool Deserialize()
 	{
+		//A workaround because this will be fired with a blank struct on dedi servers that have no existing save file
+		if(occupyingFaction == "") return true;
+		
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		config.SetOccupyingFaction(occupyingFaction);
+		
 		if(economy)
 		{
 			economy.rdb = rdb;
@@ -137,26 +143,20 @@ class OVT_OverthrowSaveStruct : SCR_MissionStruct
 		if(jobs)
 		{
 			jobs.rdb = rdb;
-			if(!jobs.Deserialize()) return false;
+			//Disabled for now as its not working
+			//if(!jobs.Deserialize()) return false;
 		}	
 		
 		if(radioTowers)
 		{
+			OVT_OccupyingFactionManager of = OVT_Global.GetOccupyingFaction();
 			foreach(OVT_RadioTowerStruct struct : radioTowers.towers)
 			{
-				OVT_RadioTowerData data = OVT_Global.GetOccupyingFaction().GetNearestRadioTower(struct.pos);
-				if(data){
-					data.faction = struct.faction;
-				}
+				of.SetRadioTowerFaction(struct.pos, struct.faction);
 			}
-		}
+		}		
 		
-		//A workaround because this will be fired with a blank struct on dedi servers that have no existing save file
-		if(occupyingFaction == "") return true;
-					
-		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-		config.SetOccupyingFaction(occupyingFaction);
-		
+						
 		if(time)
 		{
 			TimeAndWeatherManagerEntity timeMgr = GetGame().GetTimeAndWeatherManager();

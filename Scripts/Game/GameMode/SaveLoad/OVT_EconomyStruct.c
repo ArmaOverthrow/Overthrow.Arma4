@@ -9,7 +9,7 @@ class OVT_EconomyStruct : OVT_BaseSaveStruct
 	{
 		players.Clear();
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
-		for(int i; i<economy.m_mMoney.Count(); i++)
+		for(int i=0; i<economy.m_mMoney.Count(); i++)
 		{	
 			OVT_EconomyMoneyStruct d = new OVT_EconomyMoneyStruct();
 			d.m_sPlayerId = economy.m_mMoney.GetKey(i);

@@ -74,6 +74,7 @@ class OVT_JobsStruct : OVT_BaseSaveStruct
 		foreach(OVT_JobStruct struct : jobs)
 		{
 			OVT_Job job = new OVT_Job;
+			if(job.jobIndex == -1) continue;
 			job.jobIndex = struct.jobIndex;
 			job.location = struct.location;
 			job.townId = struct.townId;
@@ -87,21 +88,25 @@ class OVT_JobsStruct : OVT_BaseSaveStruct
 			jm.RunJobToCurrentStage(job);
 		}	
 		
+		
 		foreach(OVT_IDMapStruct struct : towns)
 		{
-			jm.m_aTownJobs[struct.id] = struct.ids;
+			if(struct.ids)
+				jm.m_aTownJobs[struct.id] = struct.ids;
 		}	
 		
 		foreach(OVT_IDMapStruct struct : bases)
 		{
-			jm.m_aBaseJobs[struct.id] = struct.ids;
+			if(struct.ids)
+				jm.m_aBaseJobs[struct.id] = struct.ids;
 		}
 		
 		foreach(OVT_PlayerIDIntMapStruct struct : players)
 		{
 			jm.m_mPlayerJobCounts[struct.id] = new map<int,int>;
 			foreach(OVT_InventoryStruct s : struct.ids){
-				jm.m_mPlayerJobCounts[struct.id][s.id] = s.qty;
+				if(struct.ids)
+					jm.m_mPlayerJobCounts[struct.id][s.id] = s.qty;
 			}
 		}
 			
@@ -120,7 +125,7 @@ class OVT_JobsStruct : OVT_BaseSaveStruct
 
 class OVT_JobStruct : SCR_JsonApiStruct
 {
-	int jobIndex;
+	int jobIndex = -1;
 	vector location;
 	int townId = -1;
 	int baseId = -1;

@@ -404,7 +404,7 @@ class OVT_JobManagerComponent: OVT_Component
 		
 		//Send JIP active jobs
 		writer.WriteInt(m_aJobs.Count()); 
-		for(int i; i<m_aJobs.Count(); i++)
+		for(int i=0; i<m_aJobs.Count(); i++)
 		{
 			OVT_Job job = m_aJobs[i];
 			writer.WriteInt(job.jobIndex);
@@ -416,7 +416,7 @@ class OVT_JobManagerComponent: OVT_Component
 			writer.WriteString(job.owner);
 			writer.WriteBool(job.accepted);	
 			writer.WriteInt(job.declined.Count());
-			for(int t; t<job.declined.Count(); t++)
+			for(int t=0; t<job.declined.Count(); t++)
 			{
 				writer.WriteString(job.declined[t]);
 			}
@@ -433,7 +433,7 @@ class OVT_JobManagerComponent: OVT_Component
 		string persId;
 		
 		if (!reader.ReadInt(length)) return false;
-		for(int i; i<length; i++)
+		for(int i=0; i<length; i++)
 		{
 			OVT_Job job = new OVT_Job();
 			
@@ -447,7 +447,7 @@ class OVT_JobManagerComponent: OVT_Component
 			job.owner = persId;
 			if(!reader.ReadBool(job.accepted)) return false;
 			if(!reader.ReadInt(declength)) return false;
-			for(int t; t<declength; t++)
+			for(int t=0; t<declength; t++)
 			{
 				if(!reader.ReadString(persId)) return false;
 				job.declined.Insert(persId);

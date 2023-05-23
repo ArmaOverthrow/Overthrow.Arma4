@@ -842,7 +842,7 @@ class OVT_TownManagerComponent: OVT_Component
 		int length = m_Towns.Count();
 		//Print("Writing " + length + " towns");
 		writer.WriteInt(length); 
-		for(int i; i<length; i++)
+		for(int i=0; i<length; i++)
 		{			
 			OVT_TownData town = m_Towns[i];
 			//int townID = GetTownID(town);
@@ -866,7 +866,7 @@ class OVT_TownManagerComponent: OVT_Component
 		
 		if (!reader.ReadInt(length)) return false;
 		//Print("Replicating " + length + " towns");
-		for(int i; i<length; i++)
+		for(int i=0; i<length; i++)
 		{			
 			OVT_TownData town = GetTown(i);
 			

@@ -202,6 +202,8 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	
 	void SetOccupyingFaction(string key)
 	{
+		OVT_Faction of = GetOccupyingFaction();
+		if(key == of.GetFactionKey()) return;
 		FactionManager factionMgr = GetGame().GetFactionManager();
 		Faction faction = factionMgr.GetFactionByKey(key);
 		Rpc(RpcAsk_SetOccupyingFaction, factionMgr.GetFactionIndex(faction));
@@ -320,7 +322,7 @@ class OVT_OverthrowConfigComponent: OVT_Component
 			
 			array<AIWaypoint> queueOfWaypoints = new array<AIWaypoint>();
 			AIWaypoint firstWP;
-			for(int i; i< 4; i++)
+			for(int i=0; i< 4; i++)
 			{
 				vector pos = center + (Vector(0,angle,0).AnglesToVector() * dist);
 				

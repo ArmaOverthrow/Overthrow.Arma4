@@ -9,7 +9,7 @@ class OVT_BaseUpgradeDefensePatrol : OVT_BasePatrolUpgrade
 		if(m_BaseController.m_AllCloseSlots.Count() > 2)
 		{
 			AIWaypoint firstWP;
-			for(int i; i< 3; i++)
+			for(int i=0; i< 3; i++)
 			{
 				IEntity randomSlot = GetGame().GetWorld().FindEntityByID(m_BaseController.m_AllCloseSlots.GetRandomElement());
 				AIWaypoint wp = m_Config.SpawnPatrolWaypoint(randomSlot.GetOrigin());

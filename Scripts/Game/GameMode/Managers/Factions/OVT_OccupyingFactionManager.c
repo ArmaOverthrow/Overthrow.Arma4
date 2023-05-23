@@ -244,11 +244,11 @@ class OVT_OccupyingFactionManager: OVT_Component
 	OVT_BaseData GetNearestBase(vector pos)
 	{
 		OVT_BaseData nearestBase;
-		float nearest = 9999999;
+		float nearest = -1;
 		foreach(OVT_BaseData data : m_Bases)
 		{			
 			float distance = vector.Distance(data.location, pos);
-			if(distance < nearest){
+			if(nearest == -1 || distance < nearest){
 				nearest = distance;
 				nearestBase = data;
 			}
@@ -260,11 +260,11 @@ class OVT_OccupyingFactionManager: OVT_Component
 	OVT_RadioTowerData GetNearestRadioTower(vector pos)
 	{
 		OVT_RadioTowerData nearestBase;
-		float nearest = 9999999;
+		float nearest = -1;
 		foreach(OVT_RadioTowerData data : m_RadioTowers)
 		{			
 			float distance = vector.Distance(data.location, pos);
-			if(distance < nearest){
+			if(nearest == -1 || distance < nearest){
 				nearest = distance;
 				nearestBase = data;
 			}
@@ -276,12 +276,12 @@ class OVT_OccupyingFactionManager: OVT_Component
 	OVT_BaseData GetNearestOccupiedBase(vector pos)
 	{
 		OVT_BaseData nearestBase;
-		float nearest = 9999999;
+		float nearest = -1;
 		foreach(OVT_BaseData data : m_Bases)
 		{
 			if(!data.IsOccupyingFaction()) continue;
 			float distance = vector.Distance(data.location, pos);
-			if(distance < nearest){
+			if(nearest == -1 || distance < nearest){
 				nearest = distance;
 				nearestBase = data;
 			}
@@ -407,11 +407,11 @@ class OVT_OccupyingFactionManager: OVT_Component
 	OVT_TargetData GetNearestKnownTarget(vector pos)
 	{
 		OVT_TargetData nearestTarget;
-		float nearest = 9999999;
+		float nearest = -1;
 		foreach(OVT_TargetData data : m_aKnownTargets)
 		{			
 			float distance = vector.Distance(data.location, pos);
-			if(distance < nearest){
+			if(nearest == -1 || distance < nearest){
 				nearest = distance;
 				nearestTarget = data;
 			}
@@ -836,7 +836,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 				
 		//Send JIP bases
 		writer.WriteInt(m_Bases.Count()); 
-		for(int i; i<m_Bases.Count(); i++)
+		for(int i=0; i<m_Bases.Count(); i++)
 		{
 			OVT_BaseData data = m_Bases[i];
 			writer.WriteVector(data.location);
@@ -847,7 +847,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		
 		//Send JIP radio towers
 		writer.WriteInt(m_RadioTowers.Count()); 
-		for(int i; i<m_RadioTowers.Count(); i++)
+		for(int i=0; i<m_RadioTowers.Count(); i++)
 		{
 			OVT_RadioTowerData data = m_RadioTowers[i];
 			writer.WriteVector(data.location);
@@ -869,7 +869,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		
 		//Recieve JIP bases
 		if (!reader.ReadInt(length)) return false;
-		for(int i; i<length; i++)
+		for(int i=0; i<length; i++)
 		{	
 			OVT_BaseData base = new OVT_BaseData();
 					
@@ -884,7 +884,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		
 		//Recieve JIP radio towers
 		if (!reader.ReadInt(length)) return false;
-		for(int i; i<length; i++)
+		for(int i=0; i<length; i++)
 		{	
 			OVT_RadioTowerData base = new OVT_RadioTowerData();
 					
@@ -935,6 +935,11 @@ class OVT_OccupyingFactionManager: OVT_Component
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_SetRadioTowerFaction(vector pos, int faction)
+	{
+		SetRadioTowerFaction(pos, faction);
+	}
+	
+	void SetRadioTowerFaction(vector pos, int faction)
 	{
 		OVT_RadioTowerData tower = GetNearestRadioTower(pos);
 		if(!tower) return;

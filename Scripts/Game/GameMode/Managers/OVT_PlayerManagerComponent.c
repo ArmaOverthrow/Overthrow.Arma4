@@ -201,7 +201,7 @@ class OVT_PlayerManagerComponent: OVT_Component
 		
 		//Send JIP ids
 		writer.Write(m_mPersistentIDs.Count(), 32); 
-		for(int i; i<m_mPersistentIDs.Count(); i++)
+		for(int i=0; i<m_mPersistentIDs.Count(); i++)
 		{
 			writer.Write(m_mPersistentIDs.GetKey(i),32);	
 			writer.WriteString(m_mPersistentIDs.GetElement(i));			
@@ -218,7 +218,7 @@ class OVT_PlayerManagerComponent: OVT_Component
 		string persId;
 		
 		if (!reader.Read(length, 32)) return false;
-		for(int i; i<length; i++)
+		for(int i=0; i<length; i++)
 		{
 			if (!reader.Read(playerId, 32)) return false;		
 			if (!reader.ReadString(persId)) return false;

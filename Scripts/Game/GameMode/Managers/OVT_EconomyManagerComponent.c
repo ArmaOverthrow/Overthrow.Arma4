@@ -202,7 +202,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 			}			
 			
 			//buy stuff
-			for(int i; i<numToBuy; i++)
+			for(int i=0; i<numToBuy; i++)
 			{
 				//pick a random shop type
 				int typeIndex = s_AIRandomGenerator.RandInt(0,types.Count()-1);
@@ -389,12 +389,12 @@ class OVT_EconomyManagerComponent: OVT_Component
 	RplId GetNearestPort(vector pos)
 	{
 		RplId nearestPort;
-		float nearest = 9999999;
+		float nearest = -1;
 		foreach(RplId id : m_aAllPorts)
 		{
 			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
 			float distance = vector.Distance(pos, rpl.GetEntity().GetOrigin());
-			if(distance < nearest){
+			if(nearest == -1 || distance < nearest){
 				nearest = distance;
 				nearestPort = id;
 			}
@@ -404,12 +404,12 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	float DistanceToNearestPort(vector pos)
 	{
-		float nearest = 9999999;
+		float nearest = -1;
 		foreach(RplId id : m_aAllPorts)
 		{
 			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
 			float distance = vector.Distance(pos, rpl.GetEntity().GetOrigin());
-			if(distance < nearest){
+			if(nearest == -1 || distance < nearest){
 				nearest = distance;
 			}
 		}
@@ -834,7 +834,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	{		
 		//Send JIP price list
 		writer.WriteInt(m_mItemCosts.Count()); 
-		for(int i; i<m_mItemCosts.Count(); i++)
+		for(int i=0; i<m_mItemCosts.Count(); i++)
 		{			
 			writer.WriteInt(m_mItemCosts.GetKey(i));
 			writer.WriteInt(m_mItemCosts.GetElement(i));
@@ -842,7 +842,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		
 		//Send JIP money map
 		writer.WriteInt(m_mMoney.Count()); 
-		for(int i; i<m_mMoney.Count(); i++)
+		for(int i=0; i<m_mMoney.Count(); i++)
 		{			
 			writer.WriteString(m_mMoney.GetKey(i));
 			writer.WriteInt(m_mMoney.GetElement(i));
@@ -852,17 +852,17 @@ class OVT_EconomyManagerComponent: OVT_Component
 		
 		//Send JIP Shops
 		writer.WriteInt(m_aAllShops.Count()); 
-		for(int i; i<m_aAllShops.Count(); i++)
+		for(int i=0; i<m_aAllShops.Count(); i++)
 		{
 			writer.WriteRplId(m_aAllShops[i]);
 		}
 		writer.WriteInt(m_mTownShops.Count()); 
-		for(int i; i<m_mTownShops.Count(); i++)
+		for(int i=0; i<m_mTownShops.Count(); i++)
 		{			
 			int key = m_mTownShops.GetKey(i);
 			writer.WriteInt(key);
 			writer.WriteInt(m_mTownShops[key].Count());
-			for(int t; t<m_mTownShops[key].Count(); t++)
+			for(int t=0; t<m_mTownShops[key].Count(); t++)
 			{	
 				writer.WriteRplId(m_mTownShops[key][t]);
 			}			
@@ -870,7 +870,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		
 		//Send JIP Gun Dealers
 		writer.WriteInt(m_aGunDealers.Count()); 
-		for(int i; i<m_aGunDealers.Count(); i++)
+		for(int i=0; i<m_aGunDealers.Count(); i++)
 		{
 			writer.WriteRplId(m_aGunDealers[i]);
 		}
@@ -888,7 +888,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		int key;
 		
 		if (!reader.ReadInt(length)) return false;
-		for(int i; i<length; i++)
+		for(int i=0; i<length; i++)
 		{
 			if (!reader.ReadInt(key)) return false;
 			if (!reader.ReadInt(price)) return false;
@@ -897,7 +897,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		
 		//Recieve JIP money map
 		if (!reader.ReadInt(length)) return false;
-		for(int i; i<length; i++)
+		for(int i=0; i<length; i++)
 		{
 			if(!reader.ReadString(playerId)) return false;
 			if (!reader.ReadInt(price)) return false;
@@ -908,19 +908,19 @@ class OVT_EconomyManagerComponent: OVT_Component
 		
 		//Recieve JIP shops		
 		if (!reader.ReadInt(length)) return false;
-		for(int i; i<length; i++)
+		for(int i=0; i<length; i++)
 		{			
 			if (!reader.ReadRplId(id)) return false;
 			m_aAllShops.Insert(id);
 		}
 		
 		if (!reader.ReadInt(length)) return false;
-		for(int i; i<length; i++)
+		for(int i=0; i<length; i++)
 		{	
 			if (!reader.ReadInt(key)) return false;
 			m_mTownShops[key] = new array<RplId>;
 			if (!reader.ReadInt(keylength)) return false;
-			for(int t; t<keylength; t++)
+			for(int t=0; t<keylength; t++)
 			{
 				if (!reader.ReadRplId(id)) return false;
 				m_mTownShops[key].Insert(id);
@@ -929,7 +929,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		
 		//Recieve JIP gun dealers		
 		if (!reader.ReadInt(length)) return false;
-		for(int i; i<length; i++)
+		for(int i=0; i<length; i++)
 		{			
 			if (!reader.ReadRplId(id)) return false;
 			m_aGunDealers.Insert(id);

@@ -320,7 +320,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		if(controller.m_AllCloseSlots.Count() > 2)
 		{
 			AIWaypoint firstWP;
-			for(int i; i< 3; i++)
+			for(int i=0; i< 3; i++)
 			{
 				IEntity randomSlot = GetGame().GetWorld().FindEntityByID(controller.m_AllCloseSlots.GetRandomElement());
 				AIWaypoint wp = m_Config.SpawnPatrolWaypoint(randomSlot.GetOrigin());
@@ -390,11 +390,11 @@ class OVT_ResistanceFactionManager: OVT_Component
 	
 	float DistanceToNearestCamp(vector pos)
 	{
-		float nearest = 999999;
+		float nearest = -1;
 		for(int i =0; i<m_mCamps.Count(); i++)
 		{
 			float dist = vector.Distance(pos, m_mCamps.GetElement(i));
-			if(dist < nearest) nearest = dist;
+			if(nearest == -1 || dist < nearest) nearest = dist;
 		}
 		return nearest;
 	}
@@ -402,12 +402,12 @@ class OVT_ResistanceFactionManager: OVT_Component
 	vector GetNearestFOB(vector pos)
 	{
 		vector nearestBase;
-		float nearest = 9999999;
+		float nearest = -1;
 		foreach(OVT_FOBData fob : m_FOBs)
 		{
 			if(fob.IsOccupyingFaction()) continue;
 			float distance = vector.Distance(fob.location, pos);
-			if(distance < nearest){
+			if(nearest == -1 || distance < nearest){
 				nearest = distance;
 				nearestBase = fob.location;
 			}
@@ -418,12 +418,12 @@ class OVT_ResistanceFactionManager: OVT_Component
 	OVT_FOBData GetNearestFOBData(vector pos)
 	{
 		OVT_FOBData nearestBase;
-		float nearest = 9999999;
+		float nearest = -1;
 		foreach(OVT_FOBData fob : m_FOBs)
 		{
 			if(fob.IsOccupyingFaction()) continue;
 			float distance = vector.Distance(fob.location, pos);
-			if(distance < nearest){
+			if(nearest == -1 || distance < nearest){
 				nearest = distance;
 				nearestBase = fob;
 			}
@@ -476,7 +476,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 			
 		//Send JIP FOBs
 		writer.WriteInt(m_FOBs.Count()); 
-		for(int i; i<m_FOBs.Count(); i++)
+		for(int i=0; i<m_FOBs.Count(); i++)
 		{
 			OVT_FOBData fob = m_FOBs[i];
 			writer.Write(fob.faction, 32);
@@ -485,14 +485,14 @@ class OVT_ResistanceFactionManager: OVT_Component
 		
 		//Send JIP officers
 		writer.WriteInt(m_Officers.Count()); 
-		for(int i; i<m_Officers.Count(); i++)
+		for(int i=0; i<m_Officers.Count(); i++)
 		{
 			writer.WriteString(m_Officers[i]);			
 		}
 		
 		//Send JIP Camps
 		writer.WriteInt(m_mCamps.Count()); 
-		for(int i; i<m_mCamps.Count(); i++)
+		for(int i=0; i<m_mCamps.Count(); i++)
 		{
 			writer.WriteString(m_mCamps.GetKey(i));
 			writer.WriteVector(m_mCamps.GetElement(i));
@@ -510,7 +510,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		vector pos;
 		
 		if (!reader.ReadInt(length)) return false;
-		for(int i; i<length; i++)
+		for(int i=0; i<length; i++)
 		{			
 			OVT_FOBData fob = new OVT_FOBData;			
 			if (!reader.Read(fob.faction, 32)) return false;
@@ -520,7 +520,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		
 		//Recieve JIP Officers
 		if (!reader.ReadInt(length)) return false;
-		for(int i; i<length; i++)
+		for(int i=0; i<length; i++)
 		{			
 			if (!reader.ReadString(id)) return false;
 			m_Officers.Insert(id);
@@ -528,7 +528,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		
 		//Recieve JIP Camps
 		if (!reader.ReadInt(length)) return false;
-		for(int i; i<length; i++)
+		for(int i=0; i<length; i++)
 		{			
 			if (!reader.ReadString(id)) return false;
 			if (!reader.ReadVector(pos)) return false;
