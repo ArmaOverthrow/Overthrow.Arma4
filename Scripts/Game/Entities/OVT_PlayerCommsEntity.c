@@ -15,6 +15,36 @@ class OVT_PlayerCommsEntity: GenericEntity
 		mode.m_Server = this;
 	}
 	
+	void RequestStart()
+	{
+		Rpc(RpcAsk_RequestStart);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	void RpcAsk_RequestStart()
+	{
+		OVT_OverthrowGameMode mode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
+		if(mode)
+		{
+			mode.StartNewGame();
+		}
+	}
+	
+	void RequestLoad()
+	{
+		Rpc(RpcAsk_RequestLoad);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	void RpcAsk_RequestLoad()
+	{
+		SCR_SaveLoadComponent save = SCR_SaveLoadComponent.Cast(GetGame().GetGameMode().FindComponent(SCR_SaveLoadComponent));
+		if(save)
+		{
+			save.LoadGame();
+		}
+	}
+	
 	void RequestSave()
 	{
 		Rpc(RpcAsk_RequestSave);

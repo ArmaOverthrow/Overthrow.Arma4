@@ -17,8 +17,8 @@ GenericEntity {
     OVT_BaseUpgradeParkedVehicles "{59A69ED8D05CE286}" {
      m_iResourceAllocation 9
      m_iPriority 10
-     m_iNumberOfCars 2
-     m_iNumberOfTrucks 2
+     m_iNumberOfCars 0
+     m_iNumberOfTrucks 1
     }
     OVT_BaseUpgradeCheckpoints "{59A02C08E74AD5ED}" {
      m_iResourceAllocation -1

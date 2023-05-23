@@ -107,6 +107,7 @@ class OVT_TownModifierSystem : ScriptAndConfig
 		float newval = baseValue;
 		foreach(OVT_TownModifierData modifier : modifiers)
 		{
+			if(!modifier) continue;
 			OVT_ModifierConfig mod = m_Config.m_aModifiers[modifier.id];
 			newval += mod.baseEffect;
 		}

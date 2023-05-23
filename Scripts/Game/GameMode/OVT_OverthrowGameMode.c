@@ -32,6 +32,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	
 	protected bool m_bGameInitialized = false;
 	protected bool m_bCameraSet = false;
+	protected bool m_bGameStarted = false;
 			
 	bool IsInitialized()
 	{
@@ -51,6 +52,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	void DoStartGame()
 	{
 		m_StartGameUIContext.CloseLayout();
+		m_bGameStarted = true;
 		
 		if(RplSession.Mode() == RplMode.Dedicated)
 		{
@@ -173,6 +175,13 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		
 		//Print("Assigning comms to player " + playerId);
 		rpl.Give(playerRplID);
+		
+		m_TownManager.StreamTownModifiers(playerId);
+		
+		if(RplSession.Mode() == RplMode.Dedicated && !m_bGameStarted)
+		{
+			RemoteStartGame();
+		}
 	}
 	
 	protected override void OnPlayerKilled(int playerId, IEntity player, IEntity killer)
@@ -414,12 +423,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		GetGame().GetTimeAndWeatherManager().SetDayDuration(86400 / m_Config.m_iTimeMultiplier);
 				
 		//Are we a dedicated server?
-		if(RplSession.Mode() == RplMode.Dedicated)
+		if(RplSession.Mode() != RplMode.Dedicated)
 		{
-			//need to tell someone to open start game menu
-			//RemoteStartGame();
-			GetGame().GetCallqueue().CallLater(DoStartGame, 0);			
-		}else{
 			m_StartGameUIContext.ShowLayout();
 		}
 	}
@@ -440,13 +445,12 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		PlayerManager mgr = GetGame().GetPlayerManager();
 		int numplayers = mgr.GetPlayers(players);
 		
-		if(numplayers > 0)
+		Print("Requested Remote Start Game. Players online: " + players.Count().ToString());
+		
+		if(players.Count() > 0)
 		{
-			//tell the first player to start the game (not working atm?)
+			//tell the first player to start the game
 			Rpc(RpcDo_ShowStartGame, players[0]); 			
-		}else{
-			//try again in a couple seconds
-			GetGame().GetCallqueue().CallLater(RemoteStartGame, 2000);
 		}
 	}
 	
@@ -460,13 +464,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	}
 	
 	void StartNewGame()
-	{
-		Print("Overthrow: Requesting Start Game");
-		Rpc(RpcAsk_StartNewGame);
-	}
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_StartNewGame()
 	{
 		Print ("Overthrow: Start New Game Requested");
 		DoStartNewGame();

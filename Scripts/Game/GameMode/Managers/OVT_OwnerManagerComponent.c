@@ -50,6 +50,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 	
 	string GetOwnerID(IEntity building)
 	{
+		if(!building) return "";
 		RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
 		if(!rpl) return "";
 		if(!m_mOwners.Contains(rpl.Id())) return "";
@@ -144,12 +145,12 @@ class OVT_OwnerManagerComponent: OVT_Component
 	{		
 		
 		//Send JIP owned
-		writer.Write(m_mOwned.Count(), 32); 
+		writer.WriteInt(m_mOwned.Count()); 
 		for(int i; i<m_mOwned.Count(); i++)
 		{		
 			set<RplId> ownedArray = m_mOwned.GetElement(i);
 			writer.WriteString(m_mOwned.GetKey(i));			
-			writer.Write(ownedArray.Count(),32);
+			writer.WriteInt(ownedArray.Count());
 			for(int t; t<ownedArray.Count(); t++)
 			{	
 				writer.WriteRplId(ownedArray[t]);
@@ -157,12 +158,12 @@ class OVT_OwnerManagerComponent: OVT_Component
 		}
 		
 		//Send JIP rented
-		writer.Write(m_mRented.Count(), 32); 
+		writer.WriteInt(m_mRented.Count()); 
 		for(int i; i<m_mRented.Count(); i++)
 		{		
 			set<RplId> rentedArray = m_mRented.GetElement(i);
 			writer.WriteString(m_mRented.GetKey(i));			
-			writer.Write(rentedArray.Count(),32);
+			writer.WriteInt(rentedArray.Count());
 			for(int t; t<rentedArray.Count(); t++)
 			{	
 				writer.WriteRplId(rentedArray[t]);
@@ -180,32 +181,32 @@ class OVT_OwnerManagerComponent: OVT_Component
 		RplId id;
 			
 		//Recieve JIP owned
-		if (!reader.Read(length, 32)) return false;
+		if (!reader.ReadInt(length)) return false;
 		for(int i; i<length; i++)
 		{
 			if (!reader.ReadString(playerId)) return false;
 			m_mOwned[playerId] = new set<RplId>;
 			
-			if (!reader.Read(ownedlength, 32)) return false;
+			if (!reader.ReadInt(ownedlength)) return false;
 			for(int t; t<ownedlength; t++)
 			{
 				if (!reader.ReadRplId(id)) return false;
-				m_mOwned[playerId].Insert(id);
+				DoSetOwnerPersistentId(playerId, id);
 			}			
 		}
 		
 		//Recieve JIP rented
-		if (!reader.Read(length, 32)) return false;
+		if (!reader.ReadInt(length)) return false;
 		for(int i; i<length; i++)
 		{
 			if (!reader.ReadString(playerId)) return false;
 			m_mRented[playerId] = new set<RplId>;
 			
-			if (!reader.Read(ownedlength, 32)) return false;
+			if (!reader.ReadInt(ownedlength)) return false;
 			for(int t; t<ownedlength; t++)
 			{
 				if (!reader.ReadRplId(id)) return false;
-				m_mRented[playerId].Insert(id);
+				DoSetRenterPersistentId(playerId, id);
 			}			
 		}
 		return true;

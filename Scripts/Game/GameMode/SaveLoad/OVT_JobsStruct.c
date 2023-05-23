@@ -11,6 +11,8 @@ class OVT_JobsStruct : OVT_BaseSaveStruct
 	{
 		jobs.Clear();
 		towns.Clear();
+		bases.Clear();
+		players.Clear();
 		OVT_JobManagerComponent jm = OVT_Global.GetJobs();
 		
 		foreach(OVT_Job job : jm.m_aJobs)

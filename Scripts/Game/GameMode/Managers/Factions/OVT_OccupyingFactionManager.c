@@ -630,6 +630,20 @@ class OVT_OccupyingFactionManager: OVT_Component
 		PlayerManager mgr = GetGame().GetPlayerManager();		
 		if(mgr.GetPlayerCount() == 0)
 		{
+			//Clear dead bodies when no players are online
+			SCR_AIWorld aiworld = SCR_AIWorld.Cast(GetGame().GetAIWorld());
+			int numAI = aiworld.GetCurrentNumOfCharacters();
+			array<AIAgent> agents = new array<AIAgent>;
+			aiworld.GetAIAgents(agents);
+			foreach(AIAgent agent : agents)
+			{
+				SCR_DamageManagerComponent dmg = SCR_DamageManagerComponent.Cast(agent.FindComponent(SCR_DamageManagerComponent));
+				if(dmg && dmg.GetHealth() == 0)
+				{
+					//Is dead, remove body
+					SCR_EntityHelper.DeleteEntityAndChildren(agent);
+				}
+			}
 			return;
 		}
 		

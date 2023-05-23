@@ -134,6 +134,11 @@ class OVT_OverthrowSaveStruct : SCR_MissionStruct
 			resistance.rdb = rdb;
 			if(!resistance.Deserialize()) return false;
 		}
+		if(jobs)
+		{
+			jobs.rdb = rdb;
+			if(!jobs.Deserialize()) return false;
+		}	
 		
 		if(radioTowers)
 		{
@@ -161,12 +166,6 @@ class OVT_OverthrowSaveStruct : SCR_MissionStruct
 			t.m_iMinutes = time[4];
 			t.m_iSeconds = time[5];
 			timeMgr.SetTime(t);
-		}
-		
-		if(RplSession.Mode() != RplMode.Dedicated)
-		{
-			OVT_OverthrowGameMode mode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
-			mode.DoStartGame();
 		}
 		
 		foreach(OVT_TownData town : OVT_Global.GetTowns().m_Towns)
@@ -203,6 +202,9 @@ class OVT_OverthrowSaveStruct : SCR_MissionStruct
 				}
 			}
 		}
+		
+		OVT_OverthrowGameMode mode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
+		mode.DoStartGame();
 		
 		return true;
 	}

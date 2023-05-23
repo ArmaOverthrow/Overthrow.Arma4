@@ -62,8 +62,14 @@ class OVT_Global {
 		{
 			foreach(int playerID : players)
 			{
-				IEntity player = mgr.GetPlayerControlledEntity(playerID);
+				IEntity player = mgr.GetPlayerControlledEntity(playerID);				
 				if(!player) continue;
+				SCR_DamageManagerComponent dmg = SCR_DamageManagerComponent.Cast(player.FindComponent(SCR_DamageManagerComponent));
+				if(dmg && dmg.GetHealth() == 0)
+				{
+					//Is dead, ignore
+					continue;
+				}
 				float distance = vector.Distance(player.GetOrigin(), pos);
 				if(distance < range)
 				{
@@ -281,6 +287,9 @@ class OVT_Global {
 				Debug.Error("Dedicated server is not correctly configured to connect to the BI backend.\nSee https://community.bistudio.com/wiki/Arma_Reforger:Server_Hosting#gameHostRegisterBindAddress");
 				return string.Empty;
 			}
+#ifdef WORKBENCH			
+			if(playerId > 2) playerId = 2;
+#endif		
 
 			uid = string.Format("LOCAL_UID_%1", playerId);
 		}

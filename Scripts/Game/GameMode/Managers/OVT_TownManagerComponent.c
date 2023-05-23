@@ -122,6 +122,25 @@ class OVT_TownManagerComponent: OVT_Component
 		GetGame().GetCallqueue().CallLater(SpawnTownControllers, 0);
 	}
 	
+	void StreamTownModifiers(int playerId)
+	{
+		foreach(int townID, OVT_TownData town : m_Towns)
+		{
+			array<int> stability = new array<int>;
+			foreach(OVT_TownModifierData data : town.stabilityModifiers)
+			{
+				if(data) stability.Insert(data.id);
+			}
+			array<int> support = new array<int>;
+			foreach(OVT_TownModifierData data : town.supportModifiers)
+			{
+				if(data) support.Insert(data.id);
+			}
+			
+			Rpc(RpcDo_StreamModifiers, playerId, townID, stability, support);
+		}
+	}
+	
 	/*
 	Town Modifier Systems
 	*/
@@ -537,11 +556,11 @@ class OVT_TownManagerComponent: OVT_Component
 	OVT_TownData GetNearestTown(vector pos)
 	{
 		OVT_TownData nearestTown;
-		float nearest = 9999999;
+		float nearest = -1;
 		foreach(OVT_TownData town : m_Towns)
 		{
 			float distance = vector.Distance(town.location, pos);
-			if(distance < nearest){
+			if(nearest == -1 || distance < nearest){
 				nearest = distance;
 				nearestTown = town;
 			}
@@ -821,35 +840,18 @@ class OVT_TownManagerComponent: OVT_Component
 			
 		//Send JIP towns
 		int length = m_Towns.Count();
-		Print("Writing " + length + " towns");
+		//Print("Writing " + length + " towns");
 		writer.WriteInt(length); 
 		for(int i; i<length; i++)
 		{			
 			OVT_TownData town = m_Towns[i];
-			int townID = GetTownID(town);
-			Print("Writing town ID " + townID);
-			writer.WriteVector(town.location);
+			//int townID = GetTownID(town);
+			//Print("Writing town ID " + townID);
+			
 			writer.WriteInt(town.population);
 			writer.WriteInt(town.stability);
 			writer.WriteInt(town.support);
 			writer.WriteInt(town.faction);
-			
-			int count = town.stabilityModifiers.Count();
-			Print("Writing " + count + " stability modifiers");
-			writer.WriteInt(count);
-			for(int t; t<count; t++)
-			{
-				writer.WriteInt(town.stabilityModifiers[t].id);
-				writer.WriteInt(town.stabilityModifiers[t].timer);
-			}
-			count = town.supportModifiers.Count();
-			Print("Writing " + count + " support modifiers");
-			writer.WriteInt(count);
-			for(int t; t<count; t++)
-			{
-				writer.WriteInt(town.supportModifiers[t].id);
-				writer.WriteInt(town.supportModifiers[t].timer);
-			}						
 		}
 		
 		return true;
@@ -863,40 +865,17 @@ class OVT_TownManagerComponent: OVT_Component
 		vector pos;
 		
 		if (!reader.ReadInt(length)) return false;
-		Print("Replicating " + length + " towns");
+		//Print("Replicating " + length + " towns");
 		for(int i; i<length; i++)
-		{
-			if (!reader.ReadVector(pos)) return false;
-			OVT_TownData town = GetNearestTown(pos);
-			int townID = GetTownID(town);
+		{			
+			OVT_TownData town = GetTown(i);
 			
-			Print("Replicating town " + townID);			
+			//Print("Replicating town ID " + i);
 				
 			if (!reader.ReadInt(town.population)) return false;		
 			if (!reader.ReadInt(town.stability)) return false;		
 			if (!reader.ReadInt(town.support)) return false;		
 			if (!reader.ReadInt(town.faction)) return false;
-				
-			int stabilitylength;
-			if (!reader.ReadInt(stabilitylength)) return false;
-			Print("Replicating " + stabilitylength + " stability mods");
-			for(int t = 0; t<stabilitylength; t++)
-			{
-				OVT_TownModifierData mod = new OVT_TownModifierData;
-				if (!reader.ReadInt(mod.id)) return false;
-				if (!reader.ReadInt(mod.timer)) return false;
-				town.stabilityModifiers.Insert(mod);
-			}	
-			int supportlength;
-			if (!reader.ReadInt(supportlength)) return false;
-			Print("Replicating " + supportlength + " support mods");
-			for(int t = 0; t<supportlength; t++)
-			{
-				OVT_TownModifierData mod = new OVT_TownModifierData;
-				if (!reader.ReadInt(mod.id)) return false;
-				if (!reader.ReadInt(mod.timer)) return false;
-				town.supportModifiers.Insert(mod);
-			}
 		}
 		return true;
 	}
@@ -1023,6 +1002,27 @@ class OVT_TownManagerComponent: OVT_Component
 		if(i > -1)
 		{
 			town.supportModifiers[i].timer = mod.timeout;
+		}
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_StreamModifiers(int playerId, int townId, array<int> stability, array<int> support)
+	{
+		int localId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
+		if(playerId != localId) return;
+		
+		OVT_TownData town = m_Towns[townId];
+		foreach(int id : stability)
+		{
+			OVT_TownModifierData data = new OVT_TownModifierData;
+			data.id = id;
+			town.stabilityModifiers.Insert(data);
+		}
+		foreach(int id : support)
+		{
+			OVT_TownModifierData data = new OVT_TownModifierData;
+			data.id = id;
+			town.supportModifiers.Insert(data);
 		}
 	}
 	

@@ -68,20 +68,13 @@ class OVT_StartGameContext : OVT_UIContext
 	{
 		CloseLayout();
 		
-		OVT_OverthrowGameMode mode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
-		
-		if(mode)
-		{
-			mode.StartNewGame();
-		}else{
-			Print("Game mode error");
-		}
+		OVT_Global.GetServer().RequestStart();
 	}
 	
 	protected void ContinueSave()
 	{
-		IEntity mode = GetGame().GetGameMode();
-		SCR_SaveLoadComponent saveload = SCR_SaveLoadComponent.Cast(mode.FindComponent(SCR_SaveLoadComponent));
-		saveload.LoadGame();
+		CloseLayout();
+		
+		OVT_Global.GetServer().RequestLoad();
 	}
 }
