@@ -187,61 +187,6 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 		return SCR_AIGroup.Cast(ent);
 	}
 	
-	override OVT_BaseUpgradeStruct Serialize(inout array<string> rdb)
-	{
-		OVT_BaseUpgradeStruct struct = super.Serialize(rdb);
-		
-		struct.resources = 0; //Do not respend any resources
-		
-		foreach(EntityID id : m_Groups)
-		{
-			IEntity group = GetGame().GetWorld().FindEntityByID(id);
-			SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
-			if(!aigroup) continue;
-			if(aigroup.GetAgentsCount() > 0)
-			{
-				OVT_BaseUpgradeGroupStruct g = new OVT_BaseUpgradeGroupStruct();
-				
-				string res = group.GetPrefabData().GetPrefabName();
-				g.type = rdb.Find(res);
-				if(g.type == -1)
-				{
-					rdb.Insert(res);
-					g.type = rdb.Count() - 1;
-				}
-				g.pos = group.GetOrigin();
-				
-				struct.groups.Insert(g);
-			}			
-		}
-		
-		foreach(int i, ResourceName res : m_ProxiedGroups)
-		{
-			OVT_BaseUpgradeGroupStruct g = new OVT_BaseUpgradeGroupStruct();
-			g.type = rdb.Find(res);
-			if(g.type == -1)
-			{
-				rdb.Insert(res);
-				g.type = rdb.Count() - 1;
-			}
-			g.pos = m_ProxiedPositions[i];
-			
-			struct.groups.Insert(g);
-		}
-		
-		return struct;
-	}
-	
-	override bool Deserialize(OVT_BaseUpgradeStruct struct, array<string> rdb)
-	{
-		if(!m_BaseController.IsOccupyingFaction()) return true;
-		foreach(OVT_BaseUpgradeGroupStruct g : struct.groups)
-		{
-			BuyPatrol(0, rdb[g.type], g.pos);
-		}
-		return true;
-	}
-	
 	void ~OVT_BasePatrolUpgrade()
 	{
 		GetGame().GetCallqueue().Remove(CheckUpdate);	

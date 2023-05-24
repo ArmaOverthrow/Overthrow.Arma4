@@ -38,11 +38,7 @@ class OVT_PlayerCommsEntity: GenericEntity
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	void RpcAsk_RequestLoad()
 	{
-		SCR_SaveLoadComponent save = SCR_SaveLoadComponent.Cast(GetGame().GetGameMode().FindComponent(SCR_SaveLoadComponent));
-		if(save)
-		{
-			save.LoadGame();
-		}
+		
 	}
 	
 	void RequestSave()

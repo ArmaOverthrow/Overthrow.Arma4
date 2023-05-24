@@ -1,6 +1,11 @@
 OVT_OverthrowGameMode {
  ID "59B6F5261FBE5DC1"
  components {
+  EPF_PersistenceManagerComponent "{5D7009B40A81B085}" {
+   m_pConnectionInfo EDF_JsonFileDbConnectionInfo "{5D7009B41CA877E1}" {
+    m_sDatabaseName "Overthrow"
+   }
+  }
   OVT_EconomyManagerComponent "{5988DB0008700592}" {
    m_aShopConfigs {
     OVT_ShopInventoryConfig "{598EDB5225F92650}" {
@@ -536,26 +541,6 @@ OVT_OverthrowGameMode {
   }
   SCR_RespawnTimerComponent "{59C30B0685EFBB8C}" {
    m_fRespawnTime 2
-  }
-  SCR_SaveLoadComponent "{59724C8C935D8E11}" {
-   m_Struct OVT_OverthrowSaveStruct "{59B70AF2ABE445C8}" {
-    economy OVT_EconomyStruct "{59C2E6211480A3BC}" {
-    }
-    property OVT_RealEstateStruct "{59C2E621133163FD}" {
-    }
-    vehicles OVT_VehiclesStruct "{59C2E6211304E6CF}" {
-    }
-    occupying OVT_OccupyingFactionStruct "{59C2E62113DE7EEC}" {
-    }
-    resistance OVT_ResistanceFactionStruct "{59C2E62113AC9CEF}" {
-    }
-    jobs OVT_JobsStruct "{5D5096191D6AB686}" {
-    }
-    radioTowers OVT_RadioTowerArrayStruct "{5D6346180781EF1C}" {
-    }
-   }
-   m_iAutosavePeriod 600
-   m_bLoadSaveInWorkbench 0
   }
   RplComponent "{59724C8C935D8E18}" {
    Streamable Disabled

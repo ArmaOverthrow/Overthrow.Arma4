@@ -107,39 +107,5 @@ class OVT_SlottedBaseUpgrade : OVT_BasePatrolUpgrade
 		IEntity ent = GetGame().SpawnEntityPrefab(Resource.Load(res), GetGame().GetWorld(), spawn_params);
 		return ent;
 	}
-	
-	override OVT_BaseUpgradeStruct Serialize(inout array<string> rdb)
-	{
-		OVT_BaseUpgradeStruct struct = super.Serialize(rdb);
-		
-		struct.resources = 0; //Do not respend any resources
-		
-		if(m_Spawned)
-		{
-			IEntity ent = GetGame().GetWorld().FindEntityByID(m_Spawned);
-			if(!ent) return struct;
-			
-			OVT_VehicleStruct veh = new OVT_VehicleStruct();
-			if(veh.Parse(ent, rdb))
-				struct.vehicles.Insert(veh);
-		}
-		
-		return struct;
-	}
-	
-	override bool Deserialize(OVT_BaseUpgradeStruct struct, array<string> rdb)	
-	{
-		if(!m_BaseController.IsOccupyingFaction()) return true;
-		foreach(OVT_VehicleStruct veh : struct.vehicles)
-		{
-			IEntity slot = NearestSlot(veh.pos);
-			if(slot)
-			{
-				m_Spawned = SpawnInSlot(slot, rdb[veh.res]).GetID();
-				RegisterFilledSlot(slot);
-			}
-		}
-		
-		return true;
-	}
+
 }

@@ -123,8 +123,6 @@ class OVT_ResistanceFactionManager: OVT_Component
 	protected IEntity m_TempVehicle;
 	protected SCR_AIGroup m_TempGroup;
 	
-	OVT_ResistanceFactionStruct m_LoadStruct;
-	
 	static OVT_ResistanceFactionManager s_Instance;
 	
 	static OVT_ResistanceFactionManager GetInstance()
@@ -170,36 +168,8 @@ class OVT_ResistanceFactionManager: OVT_Component
 	
 	void PostGameStart()
 	{
-		GetGame().GetCallqueue().CallLater(SpawnFOBs, 0);
-	}
-	
-	protected void SpawnFOBs()
-	{
-		if(!m_LoadStruct) return;
 		
-		OVT_Faction resistance = m_Config.GetPlayerFaction();
-		
-		foreach(OVT_FOBStruct struct : m_LoadStruct.fobs)
-		{
-			OVT_FOBData fob = new OVT_FOBData;
-			fob.location = struct.pos;
-			fob.faction = struct.faction;
-			if(!fob.IsOccupyingFaction())
-			{
-				foreach(int res : struct.garrison)
-				{
-					ResourceName resource = m_LoadStruct.rdb[res];
-					int prefabIndex = resistance.m_aGroupPrefabSlots.Find(resource);
-					if(prefabIndex > -1)
-					{
-						AddGarrisonFOB(fob, prefabIndex,false);
-					}							
-				}
-				Rpc(RpcDo_RegisterFOB, struct.pos);
-			}
-			m_FOBs.Insert(fob);			
-		}
-	}
+	}	
 	
 	bool IsOfficer(int playerId)
 	{

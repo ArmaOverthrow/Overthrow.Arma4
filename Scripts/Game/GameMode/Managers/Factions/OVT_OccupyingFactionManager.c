@@ -65,7 +65,6 @@ class OVT_OccupyingFactionManager: OVT_Component
 	
 
 	bool m_bDistributeInitial = true;
-	OVT_OccupyingFactionStruct m_LoadStruct;
 	
 	int m_iResources;
 	float m_iThreat;
@@ -330,42 +329,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 			data.closeRange = base.m_iCloseRange;
 			data.range = base.m_iRange;
 			data.entId = baseEntity.GetID();	
-			base.SetControllingFaction(data.faction, false);
-			
-			if(m_LoadStruct)
-			{
-				//Loading a save game
-				OVT_BaseDataStruct struct;
-				foreach(OVT_BaseDataStruct s : m_LoadStruct.bases)
-				{
-					if(s.pos == pos)
-					{
-						struct = s;
-						break;
-					}
-				}
-				if(struct)
-				{
-					if(data.IsOccupyingFaction())
-					{
-						foreach(OVT_BaseUpgradeStruct upgrade : struct.upgrades)
-						{
-							OVT_BaseUpgrade up = base.FindUpgrade(upgrade.type, upgrade.tag);
-							up.Deserialize(upgrade, m_LoadStruct.rdb);
-						}	
-					}else{
-						foreach(int res : struct.garrison)
-						{
-							ResourceName resource = m_LoadStruct.rdb[res];
-							int prefabIndex = resistance.m_aGroupPrefabSlots.Find(resource);
-							if(prefabIndex > -1)
-							{
-								rf.AddGarrison(data.id, prefabIndex,false);
-							}							
-						}
-					}					
-				}
-			}					
+			base.SetControllingFaction(data.faction, false);						
 		}
 		m_BasesToSpawn.Clear();
 	}

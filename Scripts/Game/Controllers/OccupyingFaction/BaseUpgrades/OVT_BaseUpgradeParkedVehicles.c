@@ -110,58 +110,5 @@ class OVT_BaseUpgradeParkedVehicles : OVT_BaseUpgrade
 		}
 		return spent;
 	}
-	
-	override OVT_BaseUpgradeStruct Serialize(inout array<string> rdb)
-	{
-		OVT_BaseUpgradeStruct struct = super.Serialize(rdb);
-		
-		struct.resources = 0; //Do not respend any resources
-		
-		foreach(EntityID id : m_Cars)
-		{
-			IEntity ent = GetGame().GetWorld().FindEntityByID(id);
-			if(ent)
-			{
-				OVT_VehicleStruct veh = new OVT_VehicleStruct();
-				if(veh.Parse(ent,rdb))
-				{
-					struct.vehicles.Insert(veh);
-				}
-			}			
-		}
-		
-		foreach(EntityID id : m_Trucks)
-		{
-			IEntity ent = GetGame().GetWorld().FindEntityByID(id);
-			if(ent)
-			{
-				OVT_VehicleStruct veh = new OVT_VehicleStruct();
-				if(veh.Parse(ent,rdb))
-				{
-					struct.vehicles.Insert(veh);
-				}
-			}			
-		}
-		
-		return struct;
-	}
-	
-	override bool Deserialize(OVT_BaseUpgradeStruct struct, array<string> rdb)
-	{
-		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-		OVT_Faction faction = config.GetOccupyingFaction();
-		
-		foreach(OVT_VehicleStruct veh : struct.vehicles)
-		{
-			IEntity ent = veh.Spawn(rdb);
-			if(faction.m_aVehicleCarPrefabSlots.Find(rdb[veh.res]) > -1)
-			{
-				m_Cars.Insert(ent.GetID());
-			}else{
-				m_Trucks.Insert(ent.GetID());
-			}
-		}
-		
-		return true;
-	}
+
 }

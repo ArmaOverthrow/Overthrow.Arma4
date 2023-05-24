@@ -41,13 +41,6 @@ class OVT_BaseUpgradeComposition : OVT_SlottedBaseUpgrade
 		return 0;
 	}	
 	
-	override OVT_BaseUpgradeStruct Serialize(inout array<string> rdb)
-	{
-		OVT_BaseUpgradeStruct struct = super.Serialize(rdb);
-		struct.tag = m_sCompositionTag;
-		return struct;
-	}
-	
 	override int GetResources()
 	{
 		if(!m_Spawned) return 0;

@@ -135,22 +135,6 @@ class OVT_BaseUpgradeTowerGuard : OVT_BasePatrolUpgrade
 		return true;
 	}
 	
-	override OVT_BaseUpgradeStruct Serialize(inout array<string> rdb)
-	{
-		OVT_BaseUpgradeStruct struct = new OVT_BaseUpgradeStruct();
-		struct.type = ClassName();
-		struct.resources = GetResources();
-		return struct;
-	}
-	
-	override bool Deserialize(OVT_BaseUpgradeStruct struct, array<string> rdb)
-	{
-		if(!m_BaseController.IsOccupyingFaction()) return true;
-		Spend(struct.resources, m_iMinimumThreat);
-		
-		return true;
-	}
-	
 	void ~OVT_BaseUpgradeTowerGuard()
 	{
 		if(m_Towers)

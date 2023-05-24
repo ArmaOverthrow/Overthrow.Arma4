@@ -3,7 +3,7 @@ GameProject {
  GUID "59B657D731E2A11D"
  TITLE "Overthrow"
  Dependencies {
-  "58D0FB3206B6F859" "59B70A5A19E9B51E"
+  "58D0FB3206B6F859" "59B70A5A19E9B51E" "5D6EBC81EB1842EF"
  }
  Configurations {
   GameProjectConfig PC {
