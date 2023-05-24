@@ -74,7 +74,10 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 			}else{
 				//Check if theyre back
 				SCR_AIGroup aigroup = GetGroup(m_Patrols[townID]);
-				if(!aigroup) continue;
+				if(!aigroup) {
+					m_Patrols.Remove(townID);
+					continue;
+				}
 				float distance = vector.Distance(aigroup.GetOrigin(), m_BaseController.GetOwner().GetOrigin());
 				int agentCount = aigroup.GetAgentsCount();
 				if(distance < 20 || agentCount == 0)
