@@ -36,6 +36,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	protected ref array<RplId> m_aGunDealers;
 	
 	protected OVT_TownManagerComponent m_Towns;
+	protected OVT_PlayerManagerComponent m_Players;
 	
 	protected ref map<ResourceName,EntityID> m_mSpawnedItems;
 	
@@ -48,9 +49,10 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	protected ref map<int, ref OVT_ShopInventoryItem> m_mInventoryItems;
 	
+	
+	
 	//Streamed to clients..
 	ref map<int, int> m_mItemCosts;		
-	ref map<string, int> m_mMoney;
 	int m_iResistanceMoney = 0;
 	float m_fResistanceTax = 0;
 	
@@ -76,7 +78,6 @@ class OVT_EconomyManagerComponent: OVT_Component
 		m_aAllShops = new array<RplId>;	
 		m_aAllPorts = new array<RplId>;
 		m_mItemCosts = new map<int, int>;
-		m_mMoney = new map<string, int>;
 		m_aGunDealers = new array<RplId>;
 		m_mSpawnedItems = new map<ResourceName,EntityID>;
 		m_mTownShops = new map<int, ref array<RplId>>;
@@ -457,15 +458,16 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	int GetPlayerMoney(string playerId)
 	{
-		if(!m_mMoney.Contains(playerId)) return 0;
-		return m_mMoney[playerId];
+		OVT_PlayerData player = m_Players.GetPlayer(playerId);
+		if(!player) return 0;
+		return player.money;
 	}
 	
 	int GetLocalPlayerMoney()
 	{
 		string playerId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(SCR_PlayerController.GetLocalPlayerId());
-		if(!m_mMoney.Contains(playerId)) return 0;
-		return m_mMoney[playerId];
+		
+		return GetPlayerMoney(playerId);
 	}
 	
 	int LocalPlayerHasMoney(int amount)
@@ -476,8 +478,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	bool PlayerHasMoney(string playerId, int amount)
 	{
-		if(!m_mMoney.Contains(playerId)) return false;
-		return m_mMoney[playerId] >= amount;
+		OVT_PlayerData player = m_Players.GetPlayer(playerId);
+		if(!player) return false;
+		return player.money >= amount;
 	}
 	
 	void AddPlayerMoney(int playerId, int amount)
@@ -493,10 +496,13 @@ class OVT_EconomyManagerComponent: OVT_Component
 	void DoAddPlayerMoney(int playerId, int amount)
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
-		if(!m_mMoney.Contains(persId)) m_mMoney[persId] = 0;
-		m_mMoney[persId] = m_mMoney[persId] + amount;
+		
+		OVT_PlayerData player = m_Players.GetPlayer(persId);
+		if(!player) return;
+		
+		player.money = player.money + amount;
 		OVT_Global.GetEconomy().StreamPlayerMoney(playerId);
-		m_OnPlayerMoneyChanged.Invoke(persId, m_mMoney[persId]);
+		m_OnPlayerMoneyChanged.Invoke(persId, player.money);
 	}
 	
 	void AddResistanceMoney(int amount)
@@ -565,37 +571,43 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	void TakePlayerMoneyPersistentId(string persId, int amount)
 	{
-		if(!m_mMoney.Contains(persId)) return;
-		m_mMoney[persId] = m_mMoney[persId] - amount;
-		if(m_mMoney[persId] < 0) m_mMoney[persId] = 0;
+		OVT_PlayerData player = m_Players.GetPlayer(persId);
+		if(!player) return;		
+		
+		player.money = player.money - amount;
+		if(player.money < 0) player.money = 0;
 		
 		int playerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(persId);
 		if(playerId > -1){
 			StreamPlayerMoney(playerId);	
 		}
-		m_OnPlayerMoneyChanged.Invoke(persId, m_mMoney[persId]);
+		m_OnPlayerMoneyChanged.Invoke(persId, player.money);
 	}
 	
 	void AddPlayerMoneyPersistentId(string persId, int amount)
 	{
-		if(!m_mMoney.Contains(persId)) m_mMoney[persId] = 0;
-		m_mMoney[persId] = m_mMoney[persId] + amount;
+		OVT_PlayerData player = m_Players.GetPlayer(persId);
+		if(!player) return;
+		
+		player.money = player.money + amount;
 		
 		int playerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(persId);
 		if(playerId > -1){
 			StreamPlayerMoney(playerId);	
 		}
-		m_OnPlayerMoneyChanged.Invoke(persId, m_mMoney[persId]);
+		m_OnPlayerMoneyChanged.Invoke(persId, player.money);
 	}
 	
 	void DoTakePlayerMoney(int playerId, int amount)
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
-		if(!m_mMoney.Contains(persId)) return;
-		m_mMoney[persId] = m_mMoney[persId] - amount;
-		if(m_mMoney[persId] < 0) m_mMoney[persId] = 0;
+		OVT_PlayerData player = m_Players.GetPlayer(persId);
+		if(!player) return;
+		
+		player.money = player.money - amount;
+		if(player.money < 0) player.money = 0;
 		StreamPlayerMoney(playerId);	
-		m_OnPlayerMoneyChanged.Invoke(persId, m_mMoney[persId]);
+		m_OnPlayerMoneyChanged.Invoke(persId, player.money);
 	}
 	
 	bool ResistanceHasMoney(int amount)
@@ -619,6 +631,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	void Init(IEntity owner)
 	{			
 		m_Towns = OVT_Global.GetTowns();
+		m_Players = OVT_Global.GetPlayers();
 		
 		BuildResourceDatabase();
 		GetGame().GetCallqueue().CallLater(InitializePorts, 0);
@@ -840,13 +853,6 @@ class OVT_EconomyManagerComponent: OVT_Component
 			writer.WriteInt(m_mItemCosts.GetElement(i));
 		}
 		
-		//Send JIP money map
-		writer.WriteInt(m_mMoney.Count()); 
-		for(int i=0; i<m_mMoney.Count(); i++)
-		{			
-			writer.WriteString(m_mMoney.GetKey(i));
-			writer.WriteInt(m_mMoney.GetElement(i));
-		}
 		writer.WriteInt(m_iResistanceMoney);
 		writer.WriteFloat(m_fResistanceTax);
 		
@@ -895,14 +901,6 @@ class OVT_EconomyManagerComponent: OVT_Component
 			m_mItemCosts[key] = price;
 		}
 		
-		//Recieve JIP money map
-		if (!reader.ReadInt(length)) return false;
-		for(int i=0; i<length; i++)
-		{
-			if(!reader.ReadString(playerId)) return false;
-			if (!reader.ReadInt(price)) return false;
-			m_mMoney[playerId] = price;
-		}
 		if (!reader.ReadInt(m_iResistanceMoney)) return false;
 		if (!reader.ReadFloat(m_fResistanceTax)) return false;
 		
@@ -942,15 +940,20 @@ class OVT_EconomyManagerComponent: OVT_Component
 	void StreamPlayerMoney(int playerId)
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
-		Rpc(RpcDo_SetPlayerMoney, playerId, m_mMoney[persId]);
+		OVT_PlayerData player = m_Players.GetPlayer(persId);
+		if(!player) return;
+		
+		Rpc(RpcDo_SetPlayerMoney, playerId, player.money);
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_SetPlayerMoney(int playerId, int amount)
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
-		m_mMoney[persId] = amount;
-		m_OnPlayerMoneyChanged.Invoke(persId, m_mMoney[persId]);
+		OVT_PlayerData player = m_Players.GetPlayer(persId);
+		if(!player) return;
+		player.money = amount;
+		m_OnPlayerMoneyChanged.Invoke(persId, player.money);
 	}
 	
 	protected void StreamResistanceMoney()

@@ -9,13 +9,11 @@ class OVT_WarehouseData : Managed
 	string owner;
 	bool isPrivate;
 	bool isLinked;
-	ref map<int,int> inventory;
+	ref map<string,int> inventory;
 }
 
 class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
-{
-	ref map<string, ref vector> m_mHomes;
-	
+{		
 	protected OVT_TownManagerComponent m_Town;
 	
 	static OVT_RealEstateManagerComponent s_Instance;
@@ -37,8 +35,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	}
 	
 	void OVT_RealEstateManagerComponent(IEntityComponentSource src, IEntity ent, IEntity parent)
-	{
-		m_mHomes = new map<string, ref vector>;
+	{		
 		m_aEntitySearch = new array<IEntity>;
 		m_aWarehouses = new array<ref OVT_WarehouseData>;
 	}
@@ -76,7 +73,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 			{
 				warehouseData = new OVT_WarehouseData;
 				warehouseData.location = building.GetOrigin();
-				warehouseData.inventory = new map<int,int>;
+				warehouseData.inventory = new map<string,int>;
 				warehouseData.id = m_aWarehouses.Count();
 				m_aWarehouses.Insert(warehouseData);
 				
@@ -85,7 +82,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 			Rpc(RpcDo_SetWarehouseOwner, building.GetOrigin(), playerId);
 		}
 	}
-	
+			
 	OVT_WarehouseData GetNearestWarehouse(vector pos, int range=9999999)
 	{
 		OVT_WarehouseData nearestWarehouse;
@@ -101,17 +98,17 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		return nearestWarehouse;
 	}
 	
-	map<int,int> GetWarehouseInventory(OVT_WarehouseData warehouse)
+	map<string,int> GetWarehouseInventory(OVT_WarehouseData warehouse)
 	{
 		if(warehouse.isLinked)
 		{
-			map<int,int> items = new map<int,int>;
+			map<string,int> items = new map<string,int>;
 			foreach(OVT_WarehouseData w : m_aWarehouses)
 			{
 				if(!w.isLinked) continue;
 				for(int i=0; i<w.inventory.Count(); i++)
 				{
-					int id = w.inventory.GetKey(i);
+					string id = w.inventory.GetKey(i);
 					if(!items.Contains(id)) items[id] = 0;
 					items[id] = items[id] + w.inventory[id];
 				}
@@ -123,17 +120,16 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	}
 	
 	void AddToWarehouse(OVT_WarehouseData warehouse, ResourceName res, int count = 1)
-	{
-		int id = OVT_Global.GetEconomy().GetInventoryId(res);
+	{		
 		if(Replication.IsServer())
 		{
-			DoAddToWarehouse(warehouse.id, id, count);
+			DoAddToWarehouse(warehouse.id, res, count);
 			return;
 		}
-		OVT_Global.GetServer().AddToWarehouse(warehouse.id, id, count);
+		OVT_Global.GetServer().AddToWarehouse(warehouse.id, res, count);
 	}
 	
-	void DoAddToWarehouse(int warehouseId, int id, int count)
+	void DoAddToWarehouse(int warehouseId, string id, int count)
 	{
 		OVT_WarehouseData warehouse = m_aWarehouses[warehouseId];
 		if(!warehouse.inventory.Contains(id)) warehouse.inventory[id] = 0;
@@ -142,17 +138,16 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	}
 	
 	void TakeFromWarehouse(OVT_WarehouseData warehouse, ResourceName res, int count = 1)
-	{
-		int id = OVT_Global.GetEconomy().GetInventoryId(res);
+	{		
 		if(Replication.IsServer())
 		{
-			DoTakeFromWarehouse(warehouse.id, id, count);
+			DoTakeFromWarehouse(warehouse.id, res, count);
 			return;
 		}
-		OVT_Global.GetServer().TakeFromWarehouse(warehouse.id, id, count);
+		OVT_Global.GetServer().TakeFromWarehouse(warehouse.id, res, count);
 	}
 	
-	void DoTakeFromWarehouse(int warehouseId, int id, int count)
+	void DoTakeFromWarehouse(int warehouseId, string id, int count)
 	{
 		OVT_WarehouseData warehouse = m_aWarehouses[warehouseId];
 		if(!warehouse.inventory.Contains(id)) warehouse.inventory[id] = 0;
@@ -176,7 +171,8 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	bool IsHome(string playerId, EntityID entityId)
 	{
 		IEntity building = GetGame().GetWorld().FindEntityByID(entityId);
-		float dist = vector.Distance(building.GetOrigin(), m_mHomes[playerId]);
+		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(playerId);
+		float dist = vector.Distance(building.GetOrigin(), player.home);
 		return dist < 1;
 	}
 	
@@ -319,9 +315,10 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	
 	vector GetHome(string playerId)
 	{				
-		if(m_mHomes.Contains(playerId)) return m_mHomes[playerId];
-		
-		return "0 0 0";
+		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(playerId);
+		if(!player) return "0 0 0";
+				
+		return player.home;
 	}
 	
 	void TeleportHome(int playerId)
@@ -336,14 +333,6 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	{
 		super.RplSave(writer);
 		
-		//Send JIP homes
-		writer.WriteInt(m_mHomes.Count()); 
-		for(int i=0; i<m_mHomes.Count(); i++)
-		{			
-			writer.WriteString(m_mHomes.GetKey(i));
-			writer.WriteVector(m_mHomes.GetElement(i));
-		}
-		
 		//Send JIP warehouses
 		writer.WriteInt(m_aWarehouses.Count());
 		for(int i=0; i<m_aWarehouses.Count(); i++)
@@ -357,7 +346,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 			writer.WriteInt(data.inventory.Count());
 			for(int ii; ii<m_aWarehouses.Count(); ii++)
 			{
-				writer.WriteInt(data.inventory.GetKey(ii));
+				writer.WriteString(data.inventory.GetKey(ii));
 				writer.WriteInt(data.inventory.GetElement(ii));
 			}
 		}
@@ -369,19 +358,11 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	{
 		if(!super.RplLoad(reader)) return false;
 		
-		//Recieve JIP homes
 		int length, ownedlength, id, qty;
+		string res;
 		string playerId;
 		vector loc;
 		
-		if (!reader.ReadInt(length)) return false;
-		for(int i=0; i<length; i++)
-		{
-			if (!reader.ReadString(playerId)) return false;
-			if (!reader.ReadVector(loc)) return false;		
-			
-			m_mHomes[playerId] = loc;
-		}
 		//Recieve JIP warehouses
 		if (!reader.ReadInt(length)) return false;
 		for(int i=0; i<length; i++)
@@ -393,14 +374,14 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 			if (!reader.ReadBool(data.isLinked)) return false;
 			if (!reader.ReadBool(data.isPrivate)) return false;
 			
-			data.inventory = new map<int,int>;
+			data.inventory = new map<string,int>;
 			
 			if (!reader.ReadInt(ownedlength)) return false;
 			for(int ii; ii<length; ii++)
 			{
-				if (!reader.ReadInt(id)) return false;
+				if (!reader.ReadString(res)) return false;
 				if (!reader.ReadInt(qty)) return false;
-				data.inventory[id] = qty;
+				data.inventory[res] = qty;
 			}
 			m_aWarehouses.Insert(data);			
 		}
@@ -414,7 +395,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_SetWarehouseInventory(int warehouseId, int id, int qty)
+	protected void RpcDo_SetWarehouseInventory(int warehouseId, string id, int qty)
 	{
 		m_aWarehouses[warehouseId].inventory[id] = qty;
 	}
@@ -437,7 +418,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		{
 			warehouseData = new OVT_WarehouseData;
 			warehouseData.location = location;
-			warehouseData.inventory = new map<int,int>;
+			warehouseData.inventory = new map<string,int>;
 			warehouseData.id = m_aWarehouses.Count();
 			m_aWarehouses.Insert(warehouseData);
 			
@@ -452,23 +433,20 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		if(playerId != localId) return;
 		
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
-		vector spawn = OVT_Global.FindSafeSpawnPosition(m_mHomes[persId]);
+		vector spawn = OVT_Global.FindSafeSpawnPosition(OVT_Global.GetRealEstate().GetHome(persId));
 		SCR_Global.TeleportPlayer(spawn);
 	}
 	
 	void DoSetHome(int playerId, vector loc)
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
-		m_mHomes[persId] = loc;
+		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(persId);
+		if(!player) return;
+		player.home = loc;
 	}
 	
 	void ~OVT_RealEstateManagerComponent()
-	{
-		if(m_mHomes)
-		{
-			m_mHomes.Clear();
-			m_mHomes = null;
-		}
+	{		
 		if(m_aEntitySearch)
 		{
 			m_aEntitySearch.Clear();

@@ -213,7 +213,7 @@ class OVT_Global {
 			if(fromStorage.TryDeleteItem(item))
 			{				
 				if(!data) continue;
-				ResourceName res = data.GetPrefabName();
+				ResourceName res = EPF_Utils.GetPrefabName(item);
 				if(!collated.Contains(res)) collated[res] = 0;
 				collated[res] = collated[res] + 1;
 			}
@@ -237,7 +237,7 @@ class OVT_Global {
 		}	
 	}
 	
-	static void TakeFromWarehouseToVehicle(int warehouseId, int id, int qty, RplId from)
+	static void TakeFromWarehouseToVehicle(int warehouseId, string id, int qty, RplId from)
 	{
 		IEntity fromEntity = RplComponent.Cast(Replication.FindItem(from)).GetEntity();		
 		if(!fromEntity) return;
@@ -248,61 +248,18 @@ class OVT_Global {
 		OVT_RealEstateManagerComponent re = OVT_Global.GetRealEstate();
 		
 		OVT_WarehouseData warehouse = re.m_aWarehouses[warehouseId];
-		ResourceName res = OVT_Global.GetEconomy().GetResource(id);
 		
 		if(warehouse.inventory[id] < qty) qty = warehouse.inventory[id];
 		int actual = 0;
 		
 		for(int i = 0; i < qty; i++)
 		{
-			if(fromStorage.TrySpawnPrefabToStorage(res))
+			if(fromStorage.TrySpawnPrefabToStorage(id))
 			{
 				actual++;
 			}
 		}
 		
-		re.TakeFromWarehouse(warehouse, res, actual);
-	}
-	
-	//Credit to Arkensor / EveronLife
-	//https://github.com/Arkensor/EveronLife/blob/c2adaff17f297ffe1785b173da6fb3874b17b146/src/Scripts/Game/Core/EL_Utils.c#L7
-	
-	//------------------------------------------------------------------------------------------------
-	//! Gets the Bohemia UID
-	//! \param playerId Index of the player inside player manager
-	//! \return the uid as string
-	static string GetPlayerUID(int playerId)
-	{
-		if (!Replication.IsServer())
-		{
-			Debug.Error("GetPlayerUID can only be used on the server and after OnPlayerAuditSuccess.");
-			return string.Empty;
-		}
-
-		string uid = GetGame().GetBackendApi().GetPlayerUID(playerId);
-		if (!uid)
-		{
-			if (RplSession.Mode() == RplMode.Dedicated)
-			{
-				Debug.Error("Dedicated server is not correctly configured to connect to the BI backend.\nSee https://community.bistudio.com/wiki/Arma_Reforger:Server_Hosting#gameHostRegisterBindAddress");
-				return string.Empty;
-			}
-#ifdef WORKBENCH			
-			if(playerId > 2) playerId = 2;
-#endif		
-
-			uid = string.Format("LOCAL_UID_%1", playerId);
-		}
-
-		return uid;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Gets the Bohemia UID
-	//! \param player Instance of the player
-	//! \return the uid as string
-	static string GetPlayerUID(IEntity player)
-	{
-		return GetPlayerUID(GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(player));
+		re.TakeFromWarehouse(warehouse, id, actual);
 	}
 }

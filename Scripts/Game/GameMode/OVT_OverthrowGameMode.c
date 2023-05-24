@@ -22,6 +22,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	protected OVT_EconomyManagerComponent m_EconomyManager;
 	protected OVT_PlayerManagerComponent m_PlayerManager;
 	protected OVT_JobManagerComponent m_JobManager;
+	protected OVT_PersistenceManagerComponent m_Persistence;
 	
 	OVT_PlayerCommsEntity m_Server;
 	
@@ -41,6 +42,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	
 	void DoStartNewGame()
 	{
+		m_Persistence.StartNewGame();
 		if(m_OccupyingFactionManager)
 		{
 			Print("Starting Occupying Faction");
@@ -159,6 +161,38 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		m_StartGameUIContext.EOnFrame(owner, timeSlice);
 	}
 	
+	void PreShutdownPersist()
+	{		
+		// Save all online player locations
+		array<int> players = new array<int>;
+		PlayerManager mgr = GetGame().GetPlayerManager();
+		mgr.GetPlayers(players);
+		foreach(int playerId : players){
+			IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+			string persId = m_PlayerManager.GetPersistentIDFromPlayerID(playerId);
+			OVT_PlayerData playerData = m_PlayerManager.GetPlayer(persId);
+			if(!playerData) continue;
+			
+			playerData.location = player.GetOrigin();
+		}
+	}
+	
+	protected override void OnPlayerRoleChange(int playerId, EPlayerRole roleFlags)
+	{
+		super.OnPlayerRoleChange(playerId, roleFlags);
+		
+		if(SCR_Global.IsAdminRole(roleFlags))
+		{
+			string persId = m_PlayerManager.GetPersistentIDFromPlayerID(playerId);
+			OVT_PlayerData player = m_PlayerManager.GetPlayer(persId);
+			if(!player) return;
+			if(!player.isOfficer)
+			{
+				m_ResistanceFactionManager.AddOfficer(playerId);
+			}
+		}
+	}
+	
 	protected override void OnPlayerRegistered(int playerId)
 	{
 		super.OnPlayerRegistered(playerId);
@@ -223,7 +257,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	{
 		super.OnPlayerAuditSuccess(iPlayerID);
 		
-		string persistentId = OVT_Global.GetPlayerUID(iPlayerID);
+		string persistentId = EPF_Utils.GetPlayerUID(iPlayerID);
 		m_PlayerManager.RegisterPlayer(iPlayerID, persistentId);
 	}
 	
@@ -233,12 +267,27 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		
 		string persistentId = m_PlayerManager.GetPersistentIDFromPlayerID(playerId);
 		
-		if(m_ResistanceFactionManager.m_Officers.Count() == 0)
+		OVT_PlayerData player = m_PlayerManager.GetPlayer(persistentId);
+		if(!player) {
+			m_PlayerManager.SetupPlayer(playerId, persistentId);
+			player = m_PlayerManager.GetPlayer(persistentId);	
+		}	
+		
+		if(!player.isOfficer && RplSession.Mode() == RplMode.None)
 		{
+			//In single player, make the player an officer
 			m_ResistanceFactionManager.AddOfficer(playerId);
 		}
-				
-		if(m_EconomyManager.m_mMoney.Contains(persistentId))
+		
+#ifdef WORKBENCH
+		if(!player.isOfficer && playerId == 1)
+		{
+			//In workbench, make the first player an officer
+			m_ResistanceFactionManager.AddOfficer(playerId);
+		}
+#endif		
+							
+		if(player.initialized)
 		{
 			Print("Player exists, respawn");
 			
@@ -252,9 +301,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 				
 				//Make sure player is at home or last position (when loading save)
 				vector home = m_RealEstate.GetHome(persistentId);
-				OVT_PlayerData player = m_PlayerManager.GetPlayer(persistentId);
 				
-				if(player)
+				if(player.location[0] != 0)
 				{
 					home = player.location;
 				}
@@ -278,16 +326,13 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 				//spawn system already assigned them a house, so make nearest house their home
 				IEntity house = m_TownManager.GetNearestStartingHouse(controlledEntity.GetOrigin());
 				m_RealEstate.SetOwner(playerId, house);
-				m_RealEstate.SetHome(playerId, house);
-				OVT_PlayerData player = m_PlayerManager.GetPlayer(persistentId);
-				if(player){
-					player.location = house.GetOrigin();
-				}
+				m_RealEstate.SetHome(playerId, house);				
+				player.location = house.GetOrigin();				
 				
 				Print("Spawning car for player " + playerId);
 				m_VehicleManager.SpawnStartingCar(house, persistentId);
 			}
-			
+			player.initialized = true;
 			m_aInitializedPlayers.Insert(persistentId);
 		}
 		
@@ -421,11 +466,28 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		}
 		
 		GetGame().GetTimeAndWeatherManager().SetDayDuration(86400 / m_Config.m_iTimeMultiplier);
-				
-		//Are we a dedicated server?
-		if(RplSession.Mode() != RplMode.Dedicated)
+		
+		m_Persistence = OVT_PersistenceManagerComponent.Cast(FindComponent(OVT_PersistenceManagerComponent));		
+		if(m_Persistence)
 		{
-			m_StartGameUIContext.ShowLayout();
+			Print("Initializing Persistence");
+			if(m_Persistence.HasSaveGame())
+			{
+				Print("Loading game");
+				m_bCameraSet = true;
+				RequestLoad();
+				DoStartGame();
+			}else{
+				Print("No save game detected");
+				if(RplSession.Mode() == RplMode.Dedicated)
+				{
+					Print("Dedicated server, starting new game");
+					DoStartNewGame();
+					DoStartGame();
+				}else{
+					m_StartGameUIContext.ShowLayout();
+				}
+			}
 		}
 	}
 	
@@ -462,6 +524,11 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		if(playerId != localId) return;
 		
 		m_StartGameUIContext.ShowLayout();
+	}
+	
+	void RequestLoad()
+	{
+		m_Persistence.LoadGame();
 	}
 	
 	void StartNewGame()

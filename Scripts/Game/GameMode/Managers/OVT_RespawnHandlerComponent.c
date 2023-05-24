@@ -2,6 +2,10 @@ class OVT_RespawnHandlerComponentClass : SCR_RespawnHandlerComponentClass {}
 
 class OVT_RespawnHandlerComponent : SCR_RespawnHandlerComponent
 {
+	protected OVT_RespawnSystemComponent m_pRespawnSystem;
+	protected PlayerManager m_pPlayerManager;
+	protected EPF_PersistenceManager m_pPersistenceManager;
+	
 	[Attribute("-1", uiwidget: UIWidgets.EditComboBox, category: "Respawn", desc: "Faction index to spawn player(s) with. Only applied when greater or equal to 0.")]
 	protected int m_iForcedFaction;
 	
@@ -19,6 +23,14 @@ class OVT_RespawnHandlerComponent : SCR_RespawnHandlerComponent
 	void OVT_RespawnHandlerComponent(IEntityComponentSource src, IEntity ent, IEntity parent)
 	{
 		m_Overthrow = OVT_OverthrowGameMode.Cast(ent);
+	}
+	
+	override protected void OnPostInit(IEntity owner)
+	{
+		super.OnPostInit(owner);
+		m_pRespawnSystem = OVT_RespawnSystemComponent.Cast(owner.FindComponent(OVT_RespawnSystemComponent));
+		m_pPlayerManager = GetGame().GetPlayerManager();
+		m_pPersistenceManager = EPF_PersistenceManager.GetInstance();
 	}
 	
 	override bool CanPlayerSpawn(int playerId)
@@ -81,7 +93,11 @@ class OVT_RespawnHandlerComponent : SCR_RespawnHandlerComponent
 		//Make sure game is started and initialized
 		if(!m_Overthrow.IsInitialized())
 			return;
-
+		
+		//Make sure persistence is active
+		if(!m_pPersistenceManager.GetState() == EPF_EPersistenceManagerState.ACTIVE)
+			return;
+		
 		// Clear batch
 		m_aSpawningBatch.Clear();
 		
@@ -93,11 +109,10 @@ class OVT_RespawnHandlerComponent : SCR_RespawnHandlerComponent
 		}
 
 		// Respawn eligible players
-		PlayerManager playerManager = GetGame().GetPlayerManager();
 		foreach (int playerId : m_aSpawningBatch)
 		{
 			Print("Respawning player " + playerId);
-			PlayerController playerController = playerManager.GetPlayerController(playerId);
+			PlayerController playerController = m_pPlayerManager.GetPlayerController(playerId);
 			
 			if(playerController)
 				playerController.RequestRespawn();

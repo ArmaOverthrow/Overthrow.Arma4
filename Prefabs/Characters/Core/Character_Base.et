@@ -1,0 +1,8 @@
+SCR_ChimeraCharacter {
+ ID "520EC961A090B1EE"
+ components {
+  EPF_PersistenceComponent "{5A12D8F4DFED6D84}" {
+   Enabled 0
+  }
+ }
+}

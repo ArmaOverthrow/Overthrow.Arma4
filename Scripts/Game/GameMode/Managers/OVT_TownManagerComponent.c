@@ -15,6 +15,8 @@ class OVT_TownData : Managed
 	int stability;
 	int support;
 	int faction;
+	
+	[NonSerialized()]
 	int size;
 	
 	ref array<ref OVT_TownModifierData> stabilityModifiers = {};
@@ -35,6 +37,17 @@ class OVT_TownData : Managed
 	bool IsOccupyingFaction()
 	{
 		return faction == OVT_Global.GetConfig().GetOccupyingFactionIndex();
+	}
+	
+	void CopyFrom(OVT_TownData town)
+	{
+		population = town.population;
+		stability = town.stability;
+		support = town.support;
+		faction = town.faction;
+		stabilityModifiers = town.stabilityModifiers;
+		supportModifiers = town.supportModifiers;
+		gunDealerPosition = town.gunDealerPosition;
 	}
 }
 

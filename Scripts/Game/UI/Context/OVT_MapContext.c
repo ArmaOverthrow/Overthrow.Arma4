@@ -90,7 +90,7 @@ class OVT_MapContext : OVT_UIContext
 			}
 		}
 		
-		if(m_Resistance.DistanceToNearestCamp(pos) < MAX_HOUSE_TRAVEL_DIS)
+		if(m_Resistance.DistanceToCamp(pos, m_sPlayerID) < MAX_HOUSE_TRAVEL_DIS)
 		{
 			return true;
 		}

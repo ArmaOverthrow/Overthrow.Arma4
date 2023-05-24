@@ -65,6 +65,8 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 		
 		set<EntityID> houses = realEstate.GetOwned(persId);
 		
+		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(persId);
+		
 		foreach(EntityID id : houses)
 		{
 			IEntity ent = world.FindEntityByID(id);
@@ -257,11 +259,10 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 			m_Widgets.Insert(w);
 		}
 		
-		for(int i = 0; i<resistance.m_mCamps.Count(); i++)
+		if(player.camp[0] != 0)
 		{
-			m_Centers.Insert(resistance.m_mCamps.GetElement(i));
-			m_Ranges.Insert(2);
-						
+			m_Centers.Insert(player.camp);
+			m_Ranges.Insert(0);
 			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
 			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
 						

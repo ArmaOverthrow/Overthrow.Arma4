@@ -4,12 +4,23 @@ class OVT_OccupyingFactionManagerClass: OVT_ComponentClass
 
 class OVT_BaseData
 {
+	[NonSerialized()]
 	int id;
+	
 	int faction;
+	
+	[NonSerialized()]
 	int closeRange;
+	
+	[NonSerialized()]
 	int range;
+	
 	vector location;
+	
+	[NonSerialized()]
 	EntityID entId;
+		
+	[NonSerialized()]
 	ref array<ref EntityID> garrison = {};
 	
 	bool IsOccupyingFaction()
@@ -20,9 +31,13 @@ class OVT_BaseData
 
 class OVT_RadioTowerData
 {
+	[NonSerialized()]
 	int id;
+	
 	int faction;	
 	vector location;	
+	
+	[NonSerialized()]
 	ref array<ref EntityID> garrison = {};
 		
 	bool IsOccupyingFaction()

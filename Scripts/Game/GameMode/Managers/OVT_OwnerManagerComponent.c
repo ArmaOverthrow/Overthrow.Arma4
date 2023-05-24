@@ -182,25 +182,22 @@ class OVT_OwnerManagerComponent: OVT_Component
 			
 		//Recieve JIP owned
 		if (!reader.ReadInt(length)) return false;
-		Print("Replicating " + length.ToString() + " owned");
+		
 		for(int i=0; i<length; i++)
 		{
-			if (!reader.ReadString(playerId)) return false;
-			Print("Replicating " + playerId);
+			if (!reader.ReadString(playerId)) return false;		
 			
-			if (!reader.ReadInt(ownedlength)) return false;
-			Print("Replicating " + ownedlength.ToString() + " owned houses");
+			if (!reader.ReadInt(ownedlength)) return false;			
 			for(int t=0; t<ownedlength; t++)
 			{
-				if (!reader.ReadRplId(id)) return false;
-				Print("Requesting owner of " + id.ToString() + " to " + playerId);
+				if (!reader.ReadRplId(id)) return false;				
 				DoSetOwnerPersistentId(playerId, id);
 			}			
 		}
 		
 		//Recieve JIP rented
 		if (!reader.ReadInt(length)) return false;
-		Print("Replicating " + length.ToString() + " rented");
+		
 		for(int i=0; i<length; i++)
 		{
 			if (!reader.ReadString(playerId)) return false;
@@ -236,7 +233,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 			DoSetOwnerPersistentId(persId, id);
 		}		
 	}
-	
+		
 	void DoSetRenter(int playerId, RplId id)
 	{
 		if(playerId == -1) {
@@ -273,7 +270,6 @@ class OVT_OwnerManagerComponent: OVT_Component
 	
 	void DoSetOwnerPersistentId(string persId, RplId id)
 	{		
-		Print("Setting owner of " + id.ToString() + " to " + persId);
 		if(!m_mOwned.Contains(persId)) m_mOwned[persId] = new set<RplId>;
 		set<RplId> owner = m_mOwned[persId];
 		owner.Insert(id);

@@ -4,10 +4,16 @@ class OVT_PlayerManagerComponentClass: OVT_ComponentClass
 
 class OVT_PlayerData : Managed
 {
+	[NonSerialized()]
 	int id;
+	
 	vector location;
 	string name;
-	vector camp;
+	vector home;
+	vector camp;	
+	int money;
+	bool initialized;
+	bool isOfficer;
 	
 	bool IsOffline()
 	{
@@ -141,7 +147,7 @@ class OVT_PlayerManagerComponent: OVT_Component
 	{
 		if(!m_mPersistentIDs.Contains(playerId)) {
 			//Fallback for single player
-			string persistentId = OVT_Global.GetPlayerUID(playerId);
+			string persistentId = EPF_Utils.GetPlayerUID(playerId);
 			RegisterPlayer(playerId, persistentId);
 			return persistentId;
 		}
@@ -198,32 +204,49 @@ class OVT_PlayerManagerComponent: OVT_Component
 	
 	override bool RplSave(ScriptBitWriter writer)
 	{
-		
-		//Send JIP ids
-		writer.Write(m_mPersistentIDs.Count(), 32); 
-		for(int i=0; i<m_mPersistentIDs.Count(); i++)
+		//Send JIP Players
+		writer.WriteInt(m_mPlayers.Count());
+		for(int i=0; i<m_mPlayers.Count(); i++)
 		{
-			writer.Write(m_mPersistentIDs.GetKey(i),32);	
-			writer.WriteString(m_mPersistentIDs.GetElement(i));			
-		}
-		
+			OVT_PlayerData player = m_mPlayers.GetElement(i);
+			writer.WriteString(m_mPlayers.GetKey(i));
+			writer.WriteInt(player.id);
+			writer.WriteInt(player.money);
+			writer.WriteVector(player.home);
+			writer.WriteVector(player.camp);
+			writer.WriteString(player.name);
+			writer.WriteBool(player.isOfficer);
+		}		
 		return true;
 	}
 	
 	override bool RplLoad(ScriptBitReader reader)
 	{		
 		
-		//Recieve JIP ids
 		int length, playerId;
 		string persId;
 		
-		if (!reader.Read(length, 32)) return false;
+		//Recieve JIP players
+		if (!reader.ReadInt(length)) return false;
 		for(int i=0; i<length; i++)
 		{
-			if (!reader.Read(playerId, 32)) return false;		
 			if (!reader.ReadString(persId)) return false;
+			if (!reader.ReadInt(playerId)) return false;
+			OVT_PlayerData player = GetPlayer(persId);
+			if(!player)
+			{
+				player = new OVT_PlayerData;
+				m_mPlayers[persId] = player;
+				player.id = playerId;		
+			}
+			m_mPersistentIDs[playerId] = persId;
+			m_mPlayerIDs[persId] = playerId;
 			
-			SetupPlayer(playerId, persId);		
+			if (!reader.ReadInt(player.money)) return false;
+			if (!reader.ReadVector(player.home)) return false;
+			if (!reader.ReadVector(player.camp)) return false;
+			if (!reader.ReadString(player.name)) return false;
+			if (!reader.ReadBool(player.isOfficer)) return false;
 		}
 		return true;
 	}

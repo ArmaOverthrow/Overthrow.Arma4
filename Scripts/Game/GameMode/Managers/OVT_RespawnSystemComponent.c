@@ -98,4 +98,11 @@ class OVT_RespawnSystemComponent : SCR_RespawnSystemComponent
 
 		return true;
 	}
+	
+	void PrepareCharacter(int playerId, EPF_CharacterSaveData saveData)
+	{
+		GenericEntity playerEntity;
+		
+		
+	}
 }

@@ -40,19 +40,18 @@ class OVT_WarehouseContext : OVT_UIContext
 				
 		for(int i = 0; i < m_Warehouse.inventory.Count(); i++)
 		{			
-			int id = m_Warehouse.inventory.GetKey(i);
-			ResourceName res = m_Economy.GetResource(id);
+			string id = m_Warehouse.inventory.GetKey(i);
 			int qty = m_Warehouse.inventory[id];
 			if(qty == 0) continue;
 						
 			if(wi == 0 && m_SelectedResource == -1){
-				SelectItem(res);
+				SelectItem(id);
 			}
 			
 			Widget ww = workspace.CreateWidgets(m_ItemLayout, container);
 			OVT_WarehouseInventoryItemComponent card = OVT_WarehouseInventoryItemComponent.Cast(ww.FindHandler(OVT_WarehouseInventoryItemComponent));
 									
-			card.Init(res, qty, this);
+			card.Init(id, qty, this);
 			
 			wi++;
 		}		
@@ -69,7 +68,7 @@ class OVT_WarehouseContext : OVT_UIContext
 		TextWidget desc = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedDescription"));
 		img.SetResolutionScale(1, 1);
 
-		int qty = m_Warehouse.inventory[id];
+		int qty = m_Warehouse.inventory[res];
 				
 		IEntity spawnedItem = GetGame().SpawnEntityPrefabLocal(Resource.Load(m_Economy.GetResource(id)));
 					
@@ -117,9 +116,9 @@ class OVT_WarehouseContext : OVT_UIContext
 	
 	void Take(int qty)
 	{
-		if(m_Warehouse.inventory[m_SelectedResource] < qty)
+		if(m_Warehouse.inventory[m_SelectedResourceName] < qty)
 		{
-			qty = m_Warehouse.inventory[m_SelectedResource];
+			qty = m_Warehouse.inventory[m_SelectedResourceName];
 		}
 		if(qty > 0){
 			SCR_CompartmentAccessComponent compartment = SCR_CompartmentAccessComponent.Cast(m_Owner.FindComponent(SCR_CompartmentAccessComponent));
@@ -128,7 +127,7 @@ class OVT_WarehouseContext : OVT_UIContext
 			IEntity entity = compartment.GetVehicle();
 			if(entity)
 			{	
-				OVT_Global.GetServer().TakeFromWarehouseToVehicle(m_Warehouse.id, m_SelectedResource, qty, entity);
+				OVT_Global.GetServer().TakeFromWarehouseToVehicle(m_Warehouse.id, m_SelectedResourceName, qty, entity);
 			}
 		}
 		Refresh();

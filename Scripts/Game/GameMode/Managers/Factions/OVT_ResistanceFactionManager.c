@@ -4,10 +4,13 @@ class OVT_ResistanceFactionManagerClass: OVT_ComponentClass
 
 class OVT_FOBData
 {
+	[NonSerialized()]
 	int id;
+	
 	int faction;	
 	vector location;
-	EntityID entId;
+	
+	[NonSerialized()]
 	ref array<ref EntityID> garrison = {};
 	
 	bool IsOccupyingFaction()
@@ -112,11 +115,6 @@ class OVT_ResistanceFactionManager: OVT_Component
 	ResourceName m_pHiredCivilianPrefab;
 	
 	ref array<ref OVT_FOBData> m_FOBs;
-	ref array<EntityID> m_Placed;
-	ref array<EntityID> m_Built;
-	
-	ref array<string> m_Officers;
-	ref map<ref string,ref vector> m_mCamps;
 	
 	OVT_PlayerManagerComponent m_Players;
 	
@@ -146,11 +144,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 	
 	void OVT_ResistanceFactionManager(IEntityComponentSource src, IEntity ent, IEntity parent)
 	{
-		m_FOBs = new array<ref OVT_FOBData>;	
-		m_Placed = new array<EntityID>;	
-		m_Built = new array<EntityID>;	
-		m_Officers = new array<string>;
-		m_mCamps = new map<ref string,ref vector>;
+		m_FOBs = new array<ref OVT_FOBData>;
 	}
 	
 	void Init(IEntity owner)
@@ -174,7 +168,8 @@ class OVT_ResistanceFactionManager: OVT_Component
 	bool IsOfficer(int playerId)
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
-		return m_Officers.Contains(persId);
+		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(persId);
+		return player.isOfficer;
 	}
 	
 	bool IsLocalPlayerOfficer()
@@ -208,8 +203,6 @@ class OVT_ResistanceFactionManager: OVT_Component
 			placeable.handler.OnPlace(entity, playerId);
 		}
 		
-		RegisterPlaceable(entity);
-		
 		return entity;
 	}
 	
@@ -233,8 +226,6 @@ class OVT_ResistanceFactionManager: OVT_Component
 			buildable.handler.OnPlace(entity, playerId);
 		}
 		
-		RegisterBuildable(entity);
-		
 		return entity;
 	}
 	
@@ -252,7 +243,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		SCR_AIGroup group = SCR_AIGroup.Cast(entity);
 		AddPatrolWaypoints(group, base);
 			
-		base.garrison.Insert(entity.GetID());	
+		base.garrison.Insert(group.GetID());	
 		
 		if(takeSupporters)
 		{
@@ -307,16 +298,6 @@ class OVT_ResistanceFactionManager: OVT_Component
 		}
 	}
 	
-	void RegisterPlaceable(IEntity ent)
-	{
-		m_Placed.Insert(ent.GetID());
-	}
-	
-	void RegisterBuildable(IEntity ent)
-	{
-		m_Built.Insert(ent.GetID());
-	}
-	
 	void RegisterFOB(IEntity ent, int playerId)
 	{	
 		vector pos = ent.GetOrigin();	
@@ -333,12 +314,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		vector pos = ent.GetOrigin();
-		if(m_mCamps.Contains(persId))
-		{
-			GetGame().GetWorld().QueryEntitiesBySphere(m_mCamps[persId], 15, null, FindAndDeleteCamps, EQueryEntitiesFlags.ALL);
-		}
-		m_mCamps[persId] = pos;
-		
+				
 		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(persId);
 		if(player)
 		{
@@ -358,15 +334,13 @@ class OVT_ResistanceFactionManager: OVT_Component
 		return false;
 	}
 	
-	float DistanceToNearestCamp(vector pos)
+	float DistanceToCamp(vector pos, string playerId)
 	{
-		float nearest = -1;
-		for(int i =0; i<m_mCamps.Count(); i++)
-		{
-			float dist = vector.Distance(pos, m_mCamps.GetElement(i));
-			if(nearest == -1 || dist < nearest) nearest = dist;
-		}
-		return nearest;
+		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(playerId);
+		if(!player) return 99999;
+		if(player.camp[0] == 0) return 99999;
+		
+		return vector.Distance(player.camp, pos);
 	}
 	
 	vector GetNearestFOB(vector pos)
@@ -453,21 +427,6 @@ class OVT_ResistanceFactionManager: OVT_Component
 			writer.WriteVector(fob.location);
 		}
 		
-		//Send JIP officers
-		writer.WriteInt(m_Officers.Count()); 
-		for(int i=0; i<m_Officers.Count(); i++)
-		{
-			writer.WriteString(m_Officers[i]);			
-		}
-		
-		//Send JIP Camps
-		writer.WriteInt(m_mCamps.Count()); 
-		for(int i=0; i<m_mCamps.Count(); i++)
-		{
-			writer.WriteString(m_mCamps.GetKey(i));
-			writer.WriteVector(m_mCamps.GetElement(i));
-		}
-		
 		return true;
 	}
 	
@@ -487,23 +446,6 @@ class OVT_ResistanceFactionManager: OVT_Component
 			if (!reader.ReadVector(fob.location)) return false;
 			m_FOBs.Insert(fob);
 		}
-		
-		//Recieve JIP Officers
-		if (!reader.ReadInt(length)) return false;
-		for(int i=0; i<length; i++)
-		{			
-			if (!reader.ReadString(id)) return false;
-			m_Officers.Insert(id);
-		}
-		
-		//Recieve JIP Camps
-		if (!reader.ReadInt(length)) return false;
-		for(int i=0; i<length; i++)
-		{			
-			if (!reader.ReadString(id)) return false;
-			if (!reader.ReadVector(pos)) return false;
-			m_mCamps[id] = pos;
-		}
 		return true;
 	}
 	
@@ -520,7 +462,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 	protected void RpcDo_RegisterCamp(vector pos, int playerId)
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
-		m_mCamps[persId] = pos;
+		
 		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(persId);
 		if(player)
 		{
@@ -532,9 +474,12 @@ class OVT_ResistanceFactionManager: OVT_Component
 	protected void RpcDo_AddOfficer(int playerId)
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
-		if(m_Officers.Contains(persId)) return;
+		if(IsOfficer(playerId)) return;
 		
-		m_Officers.Insert(persId);
+		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(persId);
+		if(!player) return;
+		
+		player.isOfficer = true;
 		if(playerId == SCR_PlayerController.GetLocalPlayerId())
 		{
 			SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-NewOfficerYou", "", 10, true);

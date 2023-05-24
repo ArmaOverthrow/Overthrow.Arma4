@@ -38,7 +38,8 @@ class OVT_PlayerCommsEntity: GenericEntity
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	void RpcAsk_RequestLoad()
 	{
-		
+		OVT_OverthrowGameMode mode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
+		mode.RequestLoad();
 	}
 	
 	void RequestSave()
@@ -452,36 +453,36 @@ class OVT_PlayerCommsEntity: GenericEntity
 	}
 	
 	//WAREHOUSES
-	void AddToWarehouse(int warehouseId, int id, int count)
+	void AddToWarehouse(int warehouseId, string id, int count)
 	{
 		Rpc(RpcAsk_AddToWarehouse, warehouseId, id, count);
 	}	
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_AddToWarehouse(int warehouseId, int id, int count)
+	protected void RpcAsk_AddToWarehouse(int warehouseId, string id, int count)
 	{
 		OVT_Global.GetRealEstate().DoAddToWarehouse(warehouseId, id, count);
 	}
 	
-	void TakeFromWarehouse(int warehouseId, int id, int count)
+	void TakeFromWarehouse(int warehouseId, string id, int count)
 	{
 		Rpc(RpcAsk_TakeFromWarehouse, warehouseId, id, count);
 	}	
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_TakeFromWarehouse(int warehouseId, int id, int count)
+	protected void RpcAsk_TakeFromWarehouse(int warehouseId, string id, int count)
 	{
 		OVT_Global.GetRealEstate().DoTakeFromWarehouse(warehouseId, id, count);
 	}
 	
-	void TakeFromWarehouseToVehicle(int warehouseId, int id, int qty, IEntity vehicle)	
+	void TakeFromWarehouseToVehicle(int warehouseId, string id, int qty, IEntity vehicle)	
 	{
 		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
 		Rpc(RpcAsk_TakeFromWarehouseToVehicle, warehouseId, id, qty, rpl.Id());
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	void RpcAsk_TakeFromWarehouseToVehicle(int warehouseId, int id, int qty, RplId vehicleId)	
+	void RpcAsk_TakeFromWarehouseToVehicle(int warehouseId, string id, int qty, RplId vehicleId)	
 	{
 		OVT_Global.TakeFromWarehouseToVehicle(warehouseId, id, qty, vehicleId);
 	}

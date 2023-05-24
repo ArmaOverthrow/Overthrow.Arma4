@@ -1,11 +1,6 @@
 OVT_OverthrowGameMode {
  ID "59B6F5261FBE5DC1"
  components {
-  EPF_PersistenceManagerComponent "{5D7009B40A81B085}" {
-   m_pConnectionInfo EDF_JsonFileDbConnectionInfo "{5D7009B41CA877E1}" {
-    m_sDatabaseName "Overthrow"
-   }
-  }
   OVT_EconomyManagerComponent "{5988DB0008700592}" {
    m_aShopConfigs {
     OVT_ShopInventoryConfig "{598EDB5225F92650}" {
@@ -374,6 +369,11 @@ OVT_OverthrowGameMode {
    m_pPlayerGroupPrefab "{9BED5CCD52C87E26}Prefabs/Groups/INDFOR/Group_Player.et"
    m_bDebugMode 0
   }
+  OVT_PersistenceManagerComponent "{5D7009B844876186}" {
+   m_pConnectionInfo EDF_JsonFileDbConnectionInfo "{5D7009B8408E1A9D}" {
+    m_sDatabaseName "Overthrow"
+   }
+  }
   OVT_PlayerManagerComponent "{599AA74940529C1C}" {
    m_rMessageConfigFile "{36405F298C9B3186}Configs/overthrowBroadcastMessages.conf"
   }
@@ -519,7 +519,7 @@ OVT_OverthrowGameMode {
     "#AR-MapLocation_Erquy"
    }
   }
-  OVT_VehicleManagerComponent "{59953E39CBC3659D}" {
+  OVT_VehicleManagerComponent "{5D707B3386AF876D}" {
    m_pStartingCarPrefab "{259EE7B78C51B624}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469.et"
   }
   SCR_CallsignManagerComponent "{59724C8C935D8E23}" {
@@ -544,6 +544,28 @@ OVT_OverthrowGameMode {
   }
   RplComponent "{59724C8C935D8E18}" {
    Streamable Disabled
+  }
+  EPF_PersistenceComponent "{5D7009A1AB220903}" {
+   m_bSelfSpawn 0
+   m_bSelfDelete 0
+   m_pSaveData OVT_OverthrowSaveDataClass "{5D7009A22C40BEE5}" {
+    m_eTranformSaveFlags 0
+    m_bSaveRemainingLifetime 0
+    m_aComponents {
+     OVT_EconomySaveDataClass "{5D7009A2B14C4055}" {
+     }
+     OVT_PlayerSaveDataClass "{5D7009AA91A43E6F}" {
+     }
+     OVT_OccupyingFactionSaveDataClass "{5D70099DAD21A0F3}" {
+     }
+     OVT_RealEstateSaveDataClass "{5D707B33903B8735}" {
+     }
+     OVT_TownSaveDataClass "{5D70912C42B66D9E}" {
+     }
+     OVT_ResistanceSaveDataClass "{5D70912B726E1A32}" {
+     }
+    }
+   }
   }
  }
  coords 3207.214 1.87 11071.67
