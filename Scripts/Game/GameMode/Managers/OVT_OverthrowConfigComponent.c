@@ -20,6 +20,26 @@ enum OVT_PatrolType {
 	PERIMETER	
 }
 
+[BaseContainerProps(), SCR_BaseContainerCustomTitleResourceName("m_sName", true)]
+class OVT_LoadoutSlot
+{	
+	[Attribute("Name", desc: "")]
+	string m_sName;
+	
+	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Available choices", params: "et")]
+	ref array<ResourceName> m_aChoices;
+	
+	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Items to store", params: "et")]
+	ref array<ResourceName> m_aStoredItems;
+}
+
+[BaseContainerProps(configRoot: true)]
+class OVT_LoadoutConfig
+{
+	[Attribute( desc: "Loadout Areas" )]
+	ref array<ref OVT_LoadoutSlot> m_aSlots;
+}
+
 class OVT_CameraPosition : ScriptAndConfig
 {
 	[Attribute("0 0 0", UIWidgets.Coords)]
@@ -168,6 +188,9 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Player Group Prefab", params: "et")]
 	ResourceName m_pPlayerGroupPrefab;
+	
+	[Attribute( uiwidget: UIWidgets.Object, desc: "Civilian Loadout" )]
+	ref OVT_LoadoutConfig m_CivilianLoadout;
 	
 	int m_iOccupyingFactionIndex = -1;
 	int m_iPlayerFactionIndex = -1;

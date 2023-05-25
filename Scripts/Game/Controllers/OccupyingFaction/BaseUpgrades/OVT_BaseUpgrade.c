@@ -57,4 +57,21 @@ class OVT_BaseUpgrade : ScriptAndConfig
 		OVT_Faction faction = m_Config.GetOccupyingFaction();
 		return faction.GetCompositionConfig(tag);
 	}
+	
+	OVT_BaseUpgradeData Serialize()
+	{
+		OVT_BaseUpgradeData struct = new OVT_BaseUpgradeData();
+		struct.type = ClassName();
+		struct.resources = GetResources();
+		
+		return struct;		
+	}
+	
+	bool Deserialize(OVT_BaseUpgradeData struct)
+	{
+		if(!m_BaseController.IsOccupyingFaction()) return true;
+		Spend(struct.resources, m_iMinimumThreat);
+		
+		return true;
+	}
 }

@@ -12,4 +12,6 @@ class OVT_CaptureBaseAction : ScriptedUserAction
 			OVT_Global.GetServer().StartBaseCapture(base.location);
 		}
  	}
+	
+	override bool HasLocalEffectOnlyScript() { return true; };
 }

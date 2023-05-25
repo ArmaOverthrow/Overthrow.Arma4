@@ -25,4 +25,6 @@ class OVT_SetHomeAction : ScriptedUserAction
 		
 		return genericRpl.IsOwner();
  	}
+	
+	override bool HasLocalEffectOnlyScript() { return true; };
 }

@@ -15,21 +15,7 @@ class OVT_StartGameContext : OVT_UIContext
 		
 		if(action)
 			action.GetOnAction().Insert(StartGame);
-		
-		bool hasSave = true;
-		SCR_MissionHeader missionHeader = SCR_MissionHeader.Cast(GetGame().GetMissionHeader());
-		if (missionHeader)
-		{
-			if(!saveload.HasSaveFile(missionHeader)) hasSave = false;
-		}
-		
-		Widget continueButton = m_wRoot.FindAnyWidget("ContinueButton");
-
-		action = ButtonActionComponent.Cast(continueButton.FindHandler(ButtonActionComponent));
-	
-		if(action)
-			action.GetOnAction().Insert(ContinueSave);
-									
+											
 		m_Factions = GetGame().GetFactionManager();
 		int i = 0;
 				
@@ -69,12 +55,5 @@ class OVT_StartGameContext : OVT_UIContext
 		CloseLayout();
 		
 		OVT_Global.GetServer().RequestStart();
-	}
-	
-	protected void ContinueSave()
-	{
-		CloseLayout();
-		
-		OVT_Global.GetServer().RequestLoad();
 	}
 }

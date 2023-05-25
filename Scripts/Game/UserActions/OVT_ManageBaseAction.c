@@ -48,4 +48,6 @@ class OVT_ManageBaseAction : ScriptedUserAction
 		
 		return true;
 	}
+	
+	override bool HasLocalEffectOnlyScript() { return true; };
 }

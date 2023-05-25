@@ -1,6 +1,17 @@
 SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA/Character_FIA_base.et" {
  ID "520EC961A090B1EE"
  components {
+  SCR_CharacterInventoryStorageComponent "{520EA1D2DB118DAC}" {
+   components {
+    SCR_EquipmentStorageComponent "{56B49DA9722B635D}" {
+     InitialStorageSlots {
+      SCR_EquipmentStorageSlot WristwatchSlot {
+       Prefab ""
+      }
+     }
+    }
+   }
+  }
   FactionAffiliationComponent "{555C98D1CD949F3E}" {
   }
   OVT_PlayerWantedComponent "{596EE382181C58FB}" {
@@ -140,14 +151,17 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
   }
   BaseLoadoutManagerComponent "{520EA1D2DB11821E}" {
    Slots {
+    LoadoutSlotInfo Boots {
+     Prefab ""
+    }
     LoadoutSlotInfo Hat {
      Prefab ""
     }
     LoadoutSlotInfo Jacket {
-     Prefab "{5F310D795D4ED30C}Prefabs/Characters/Uniforms/Tops/flannel_blue.et"
+     Prefab ""
     }
     LoadoutSlotInfo Pants {
-     Prefab "{80F19C72CFA4CED4}Prefabs/Characters/Uniforms/Pants/cargo_pants_grey.et"
+     Prefab ""
     }
    }
   }

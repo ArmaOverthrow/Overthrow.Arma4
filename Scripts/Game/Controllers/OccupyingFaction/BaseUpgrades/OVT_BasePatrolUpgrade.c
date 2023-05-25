@@ -71,7 +71,7 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 				SCR_AIGroup group = GetGroup(id);
 				if(!group) continue;
 				m_iProxedResources += group.GetAgentsCount() * m_Config.m_Difficulty.baseResourceCost;
-				m_ProxiedGroups.Insert(group.GetPrefabData().GetPrefabName());
+				m_ProxiedGroups.Insert(EPF_Utils.GetPrefabName(group));
 				m_ProxiedPositions.Insert(group.GetOrigin());
 				SCR_EntityHelper.DeleteEntityAndChildren(group);
 			}
@@ -185,6 +185,51 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 	{
 		IEntity ent = GetGame().GetWorld().FindEntityByID(id);
 		return SCR_AIGroup.Cast(ent);
+	}
+	
+	override OVT_BaseUpgradeData Serialize()
+	{
+		OVT_BaseUpgradeData struct = super.Serialize();
+		
+		struct.resources = 0; //Do not respend any resources
+		
+		foreach(EntityID id : m_Groups)
+		{
+			IEntity group = GetGame().GetWorld().FindEntityByID(id);
+			SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
+			if(!aigroup) continue;
+			if(aigroup.GetAgentsCount() > 0)
+			{
+				OVT_BaseUpgradeGroupData g = new OVT_BaseUpgradeGroupData();
+				
+				string res = EPF_Utils.GetPrefabName(aigroup);
+				g.prefab = res;				
+				g.position = group.GetOrigin();
+				
+				struct.groups.Insert(g);
+			}			
+		}
+		
+		foreach(int i, ResourceName res : m_ProxiedGroups)
+		{
+			OVT_BaseUpgradeGroupData g = new OVT_BaseUpgradeGroupData();
+			g.prefab = res;
+			g.position = m_ProxiedPositions[i];
+			
+			struct.groups.Insert(g);
+		}
+		
+		return struct;
+	}
+	
+	override bool Deserialize(OVT_BaseUpgradeData struct)
+	{
+		if(!m_BaseController.IsOccupyingFaction()) return true;
+		foreach(OVT_BaseUpgradeGroupData g : struct.groups)
+		{
+			BuyPatrol(0, g.prefab, g.position);
+		}
+		return true;
 	}
 	
 	void ~OVT_BasePatrolUpgrade()

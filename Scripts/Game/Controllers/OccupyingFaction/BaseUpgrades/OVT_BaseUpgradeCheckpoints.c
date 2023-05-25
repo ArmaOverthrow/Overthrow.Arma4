@@ -1,28 +1,22 @@
 class OVT_BaseUpgradeCheckpoints : OVT_BasePatrolUpgrade
 {		
-	protected ref array<ref EntityID> m_aSlotsFilled;
 	protected IEntity m_SpawnedCheckpoint;
-	
-	override void PostInit()
-	{
-		super.PostInit();
 		
-		m_aSlotsFilled = new array<ref EntityID>;
-	}
-	
 	override int Spend(int resources, float threat)
 	{
 		int spent = 0;
 		
 		foreach(EntityID id : m_BaseController.m_LargeRoadSlots)
 		{
-			if(m_aSlotsFilled.Contains(id)) continue;
+			if(m_BaseController.m_aSlotsFilled.Contains(id)) continue;
 			if(resources < 60) break;
 			IEntity slot = GetGame().GetWorld().FindEntityByID(id);
+			
+			
 			spent += 60;
 			resources -= 60;
 			m_SpawnedCheckpoint = SpawnCheckpoint(slot, m_Faction.m_aLargeCheckpointPrefab);
-			m_aSlotsFilled.Insert(id);
+			m_BaseController.m_aSlotsFilled.Insert(id);
 			
 			if(resources < (m_Config.m_Difficulty.baseResourceCost * 4)) break;
 			int newres = BuyPatrol(threat, m_Faction.m_aGroupInfantryPrefabSlots[0], slot.GetOrigin());
@@ -32,7 +26,7 @@ class OVT_BaseUpgradeCheckpoints : OVT_BasePatrolUpgrade
 		
 		foreach(EntityID id : m_BaseController.m_MediumRoadSlots)
 		{
-			if(m_aSlotsFilled.Contains(id)) continue;
+			if(m_BaseController.m_aSlotsFilled.Contains(id)) continue;
 			if(resources < 40) break;
 			IEntity slot = GetGame().GetWorld().FindEntityByID(id);
 			spent += 40;
@@ -40,7 +34,7 @@ class OVT_BaseUpgradeCheckpoints : OVT_BasePatrolUpgrade
 			m_SpawnedCheckpoint = SpawnCheckpoint(slot, m_Faction.m_aMediumCheckpointPrefab);
 			if(!m_SpawnedCheckpoint) continue;
 			
-			m_aSlotsFilled.Insert(id);
+			m_BaseController.m_aSlotsFilled.Insert(id);
 			
 			if(resources < (m_Config.m_Difficulty.baseResourceCost * 4)) break;
 			int newres = BuyPatrol(threat, m_Faction.m_aGroupInfantryPrefabSlots[0], slot.GetOrigin());
@@ -69,12 +63,13 @@ class OVT_BaseUpgradeCheckpoints : OVT_BasePatrolUpgrade
 		return ent;
 	}
 	
-	void ~OVT_BaseUpgradeCheckpoints()
+	override OVT_BaseUpgradeData Serialize()
 	{
-		if(m_aSlotsFilled)
-		{
-			m_aSlotsFilled.Clear();
-			m_aSlotsFilled = null;
-		}
+		return null;
+	}
+	
+	override bool Deserialize(OVT_BaseUpgradeData struct)	
+	{		
+		return true;
 	}
 }

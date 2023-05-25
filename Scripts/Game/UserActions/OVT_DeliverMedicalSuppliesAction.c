@@ -76,5 +76,7 @@ class OVT_DeliverMedicalSuppliesAction : ScriptedUserAction
 		}	
 	}
 	
+	override bool HasLocalEffectOnlyScript() { return true; };
+	
 	#endif		
 };

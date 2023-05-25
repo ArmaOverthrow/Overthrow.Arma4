@@ -51,4 +51,6 @@ class OVT_HireGunnerAction : ScriptedUserAction
 	override bool CanBeShownScript(IEntity user) {
 		return true;
 	}
+	
+	override bool HasLocalEffectOnlyScript() { return true; };
 }

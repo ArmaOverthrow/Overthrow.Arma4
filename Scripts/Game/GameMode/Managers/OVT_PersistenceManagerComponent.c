@@ -33,7 +33,7 @@ class OVT_PersistenceManagerComponent : EPF_PersistenceManagerComponent
 	
 	void StartNewGame()
 	{
-		//To-Do: wipe database to start a new game
+		//To-Do: wipe database to start a new game?
 		if (m_pPersistenceManager)
 			m_pPersistenceManager.OnWorldPostProcess(m_World);
 	}
@@ -41,5 +41,19 @@ class OVT_PersistenceManagerComponent : EPF_PersistenceManagerComponent
 	bool HasSaveGame()
 	{
 		return FileIO.FileExist(DB_BASE_DIR + "/RootEntityCollections");
+	}
+	
+	void WipeSave()
+	{
+		System.FindFiles(DeleteFileCallback, DB_BASE_DIR, ".json");
+		System.FindFiles(DeleteFileCallback, DB_BASE_DIR, ".bin");
+		System.FindFiles(DeleteFileCallback, DB_BASE_DIR, string.Empty);
+		FileIO.DeleteFile(DB_BASE_DIR);
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	protected void DeleteFileCallback(string path, FileAttribute attributes)
+	{
+		FileIO.DeleteFile(path);
 	}
 }

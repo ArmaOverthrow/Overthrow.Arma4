@@ -52,4 +52,6 @@ class OVT_SellDrugsAction : ScriptedUserAction
 	override bool CanBeShownScript(IEntity user) {
 		return !m_bHasBeenSold;
 	}
+	
+	override bool HasLocalEffectOnlyScript() { return true; };
 }

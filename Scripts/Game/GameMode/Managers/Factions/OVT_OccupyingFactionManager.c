@@ -2,7 +2,21 @@ class OVT_OccupyingFactionManagerClass: OVT_ComponentClass
 {	
 }
 
-class OVT_BaseData
+class OVT_BaseUpgradeData : Managed
+{
+	string type;
+	int resources;
+	ref array<ref OVT_BaseUpgradeGroupData> groups = {};
+	string tag = "";
+}
+
+class OVT_BaseUpgradeGroupData : Managed
+{
+	string prefab;
+	vector position;
+}
+
+class OVT_BaseData : Managed
 {
 	[NonSerialized()]
 	int id;
@@ -16,6 +30,9 @@ class OVT_BaseData
 	int range;
 	
 	vector location;
+	ref array<vector> slotsFilled = {};
+	
+	ref array<ref OVT_BaseUpgradeData> upgrades = {};
 	
 	[NonSerialized()]
 	EntityID entId;
@@ -29,7 +46,7 @@ class OVT_BaseData
 	}
 }
 
-class OVT_RadioTowerData
+class OVT_RadioTowerData : Managed
 {
 	[NonSerialized()]
 	int id;
@@ -344,7 +361,27 @@ class OVT_OccupyingFactionManager: OVT_Component
 			data.closeRange = base.m_iCloseRange;
 			data.range = base.m_iRange;
 			data.entId = baseEntity.GetID();	
-			base.SetControllingFaction(data.faction, false);						
+			base.SetControllingFaction(data.faction, false);
+			
+			if(base.IsOccupyingFaction())
+			{
+				if(data.upgrades)
+				{
+					foreach(OVT_BaseUpgradeData upgrade : data.upgrades)
+					{					
+						OVT_BaseUpgrade up = base.FindUpgrade(upgrade.type, upgrade.tag);
+						up.Deserialize(upgrade);
+					}
+				}		
+				if(data.slotsFilled)
+				{
+					foreach(vector slotPos : data.slotsFilled)
+					{
+						IEntity slot = base.GetNearestSlot(slotPos);
+						if(slot) base.m_aSlotsFilled.Insert(slot.GetID());
+					}
+				}	
+			}			
 		}
 		m_BasesToSpawn.Clear();
 	}

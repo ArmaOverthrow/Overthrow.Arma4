@@ -232,6 +232,23 @@ class OVT_BaseControllerComponent: OVT_Component
 		return spent;
 	}
 	
+	IEntity GetNearestSlot(vector pos)
+	{
+		IEntity nearest;
+		float nearestDist = -1;
+		foreach(EntityID id : m_AllSlots)
+		{
+			IEntity ent = GetGame().GetWorld().FindEntityByID(id);
+			float dist = vector.Distance(pos, ent.GetOrigin());
+			if(nearestDist == -1 || dist < nearestDist)
+			{
+				nearest = ent;
+				nearestDist = dist;
+			}
+		}
+		return nearest;
+	}
+	
 	//RPC methods
 	
 	

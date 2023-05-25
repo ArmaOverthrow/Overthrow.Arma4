@@ -231,7 +231,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	}
 	
 	protected override void OnPlayerDisconnected(int playerId, KickCauseCode cause, int timeout)
-	{
+	{		
 		string persId = m_PlayerManager.GetPersistentIDFromPlayerID(playerId);
 		IEntity controlledEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
 		
@@ -242,6 +242,13 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			{
 				player.location = controlledEntity.GetOrigin();
 				player.id = -1;
+			}
+			
+			EPF_PersistenceComponent persistence = EPF_PersistenceComponent.Cast(controlledEntity.FindComponent(EPF_PersistenceComponent));
+			if(persistence)
+			{
+				persistence.PauseTracking();
+				persistence.Save();				
 			}
 		}
 		
@@ -261,11 +268,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		m_PlayerManager.RegisterPlayer(iPlayerID, persistentId);
 	}
 	
-	protected override void OnPlayerSpawned(int playerId, IEntity controlledEntity)
+	void PreparePlayer(int playerId, string persistentId)
 	{
-		super.OnPlayerSpawned(playerId, controlledEntity);
-		
-		string persistentId = m_PlayerManager.GetPersistentIDFromPlayerID(playerId);
 		
 		OVT_PlayerData player = m_PlayerManager.GetPlayer(persistentId);
 		if(!player) {
@@ -286,7 +290,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			m_ResistanceFactionManager.AddOfficer(playerId);
 		}
 #endif		
-							
+											
 		if(player.initialized)
 		{
 			Print("Player exists, respawn");
@@ -297,21 +301,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 				int cost = m_Config.m_Difficulty.respawnCost;
 				m_EconomyManager.TakePlayerMoney(playerId, cost);
 			}else{
+				//This is a returning player, don't charge them hospital fees				
 				m_aInitializedPlayers.Insert(persistentId);
-				
-				//Make sure player is at home or last position (when loading save)
-				vector home = m_RealEstate.GetHome(persistentId);
-				
-				if(player.location[0] != 0)
-				{
-					home = player.location;
-				}
-				
-				float dist = vector.Distance(controlledEntity.GetOrigin(), home);				
-				if(dist > 5)
-				{
-					m_PlayerManager.TeleportPlayer(playerId, home);
-				}
 			}
 		}else{
 			//New player
@@ -323,8 +314,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			if(home[0] == 0)
 			{
 				Print("Adding home to player " + playerId);
-				//spawn system already assigned them a house, so make nearest house their home
-				IEntity house = m_TownManager.GetNearestStartingHouse(controlledEntity.GetOrigin());
+				
+				IEntity house = OVT_Global.GetTowns().GetRandomStartingHouse();
 				m_RealEstate.SetOwner(playerId, house);
 				m_RealEstate.SetHome(playerId, house);				
 				player.location = house.GetOrigin();				
@@ -334,23 +325,12 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			}
 			player.initialized = true;
 			m_aInitializedPlayers.Insert(persistentId);
-		}
-		
-		if(!m_mPlayerGroups.Contains(persistentId))
-		{
-			//Spawn player group
-			EntitySpawnParams spawnParams = new EntitySpawnParams;
-			spawnParams.TransformMode = ETransformMode.WORLD;		
-			spawnParams.Transform[3] = controlledEntity.GetOrigin();
-			IEntity entity = GetGame().SpawnEntityPrefab(Resource.Load(m_Config.m_pPlayerGroupPrefab), GetGame().GetWorld(), spawnParams);
-			m_mPlayerGroups[persistentId] = entity.GetID();
-		}
-		SCR_AIGroup group = SCR_AIGroup.Cast(GetGame().GetWorld().FindEntityByID(m_mPlayerGroups[persistentId]));
-		if(group)
-		{			
-			group.AddPlayer(playerId);
-		}		
-		
+		}	
+				
+	}
+	
+	protected override void OnPlayerSpawned(int playerId, IEntity controlledEntity)
+	{		
 		OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(controlledEntity.FindComponent(OVT_PlayerWantedComponent));
 		if(!wanted){
 			Print("Player spawn prefab is missing OVT_PlayerWantedComponent!");

@@ -36,4 +36,6 @@ class OVT_HealAction : ScriptedUserAction
 		
 		return genericRpl.IsOwner();
  	}
+	
+	override bool HasLocalEffectOnlyScript() { return true; };
 }

@@ -9,4 +9,6 @@ class OVT_CatchBusAction : ScriptedUserAction
 		
 		OVT_MapContext.Cast(ui.GetContext(OVT_MapContext)).EnableBusTravel();
  	}
+	
+	override bool HasLocalEffectOnlyScript() { return true; };
 }

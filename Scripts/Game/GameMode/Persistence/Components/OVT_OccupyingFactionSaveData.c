@@ -8,17 +8,40 @@ class OVT_OccupyingFactionSaveData : EPF_ComponentSaveData
 {	
 	int m_iResources;
 	float m_iThreat;
-	array<ref OVT_BaseData> m_Bases;
-	array<ref OVT_RadioTowerData> m_RadioTowers;
+	ref array<ref OVT_BaseData> m_Bases;
+	ref array<ref OVT_RadioTowerData> m_RadioTowers;
 	
 	override EPF_EReadResult ReadFrom(IEntity owner, GenericComponent component, EPF_ComponentSaveDataClass attributes)
 	{		
 		OVT_OccupyingFactionManager of = OVT_OccupyingFactionManager.Cast(component);
 		
 		m_iResources = of.m_iResources;
-		m_iThreat = of.m_iThreat;
-		m_Bases = of.m_Bases;
+		m_iThreat = of.m_iThreat;		
 		m_RadioTowers = of.m_RadioTowers;
+		
+		m_Bases = new array<ref OVT_BaseData>;
+		
+		foreach(OVT_BaseData base : of.m_Bases)
+		{
+			base.upgrades.Clear();
+			base.slotsFilled.Clear();
+			if(base.IsOccupyingFaction())
+			{
+				OVT_BaseControllerComponent controller = of.GetBase(base.entId);
+				foreach(OVT_BaseUpgrade upgrade : controller.m_aBaseUpgrades)
+				{
+					OVT_BaseUpgradeData data = upgrade.Serialize();
+					if(data)
+						base.upgrades.Insert(data);
+				}
+				foreach(EntityID id : controller.m_aSlotsFilled)
+				{
+					IEntity ent = GetGame().GetWorld().FindEntityByID(id);
+					if(ent) base.slotsFilled.Insert(ent.GetOrigin());
+				}
+			}
+			m_Bases.Insert(base);
+		}
 		
 		return EPF_EReadResult.OK;
 	}
@@ -36,6 +59,8 @@ class OVT_OccupyingFactionSaveData : EPF_ComponentSaveData
 			OVT_BaseData existing = of.GetNearestBase(base.location);
 			if(!existing) continue;
 			existing.faction = base.faction;
+			existing.upgrades = base.upgrades;
+			existing.slotsFilled = base.slotsFilled;
 		}
 		
 		foreach(OVT_RadioTowerData tower : m_RadioTowers)

@@ -4,174 +4,144 @@ class OVT_RespawnHandlerComponent : SCR_RespawnHandlerComponent
 {
 	protected OVT_RespawnSystemComponent m_pRespawnSystem;
 	protected PlayerManager m_pPlayerManager;
-	protected EPF_PersistenceManager m_pPersistenceManager;
-	
-	[Attribute("-1", uiwidget: UIWidgets.EditComboBox, category: "Respawn", desc: "Faction index to spawn player(s) with. Only applied when greater or equal to 0.")]
-	protected int m_iForcedFaction;
-	
-	[Attribute("-1", uiwidget: UIWidgets.EditComboBox, category: "Respawn", desc: "Loadout index to spawn player(s) with. Only applied when greater or equal to 0.")]
-	protected int m_iForcedLoadout;
-	
-	/*!
-		Batch of players that are supposed to spawn.
-		Used to prevent modifying collection we're iterating through.
-	*/
-	private ref array<int> m_aSpawningBatch = {};
-	
 	protected OVT_OverthrowGameMode m_Overthrow;
-	
-	void OVT_RespawnHandlerComponent(IEntityComponentSource src, IEntity ent, IEntity parent)
+	protected ref array<ref Tuple2<int, string>> m_sEnqueuedCharacters = new array<ref Tuple2<int, string>>;
+
+	//------------------------------------------------------------------------------------------------
+	override void OnPlayerRegistered(int playerId)
 	{
-		m_Overthrow = OVT_OverthrowGameMode.Cast(ent);
+		// On dedicated servers we need to wait for OnPlayerAuditSuccess instead for the real UID to be available
+		if (m_pGameMode.IsMaster() && (RplSession.Mode() != RplMode.Dedicated))
+			OnUidAvailable(playerId);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	override void OnPlayerAuditSuccess(int playerId)
+	{
+		if (m_pGameMode.IsMaster())
+			OnUidAvailable(playerId);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	protected void OnUidAvailable(int playerId)
+	{
+		string playerUid = EPF_Utils.GetPlayerUID(playerId);
+		if (!playerUid)
+			return;
+		
+		if(!m_Overthrow || !m_Overthrow.IsInitialized())
+		{
+			Tuple2<int, string> characterInfo(playerId, playerUid);
+			m_sEnqueuedCharacters.Insert(characterInfo);
+		}else{
+			LoadPlayerData(playerId, playerUid);
+		}
 	}
 	
+	protected void LoadPlayerData(int playerId, string playerUid)
+	{
+		Tuple2<int, string> characterContext(playerId, playerUid);
+		EDF_DbFindCallbackSingle<EPF_CharacterSaveData> characterDataCallback(this, "OnCharacterDataLoaded", characterContext);
+		EPF_PersistenceEntityHelper<EPF_CharacterSaveData>.GetRepository().FindAsync(playerUid, characterDataCallback);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Handles the character data found for the players account
+	protected void OnCharacterDataLoaded(EDF_EDbOperationStatusCode statusCode, EPF_CharacterSaveData characterData, Managed context)
+	{
+		Tuple2<int, string> characterInfo = Tuple2<int, string>.Cast(context);
+
+		if (characterData)
+			PrintFormat("Loaded existing character '%1'.", characterInfo.param2);
+
+		// Prepare spawn data buffer with last known player data (null for fresh accounts) and queue player for spawn
+		m_pRespawnSystem.PrepareCharacter(characterInfo.param1, characterInfo.param2, characterData);
+		m_sEnqueuedPlayers.Insert(characterInfo.param1);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	override void OnPlayerSpawned(int playerId, IEntity controlledEntity)
+	{
+		m_sEnqueuedPlayers.RemoveItem(playerId);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	override void OnPlayerKilled(int playerId, IEntity player, IEntity killer)
+	{
+		if (!m_pGameMode.IsMaster())
+			return;
+
+		// Add the dead body root entity collection so it spawns back after restart for looting
+		EPF_PersistenceComponent persistence = EPF_Component<EPF_PersistenceComponent>.Find(player);
+		if (!persistence)
+		{
+			Print(string.Format("OnPlayerKilled(%1, %2, %3) -> Player killed that does not have persistence component?!? Something went terribly wrong!", playerId, player, killer), LogLevel.ERROR);
+			return;
+		}
+
+		string newId = persistence.GetPersistentId();
+
+		persistence.SetPersistentId(string.Empty); // Force generation of new id for dead body
+		persistence.ForceSelfSpawn();
+
+		// Prepare and execute fresh character spawn
+		m_pRespawnSystem.PrepareCharacter(playerId, newId, null);
+		m_sEnqueuedPlayers.Insert(playerId);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	override void OnPlayerDisconnected(int playerId, KickCauseCode cause, int timeout)
+	{
+		if (!m_pGameMode.IsMaster())
+			return;
+
+		m_sEnqueuedPlayers.RemoveItem(playerId);
+
+		IEntity player = m_pPlayerManager.GetPlayerController(playerId).GetControlledEntity();
+		if (player)
+		{
+			EPF_PersistenceComponent persistence = EPF_Component<EPF_PersistenceComponent>.Find(player);
+			persistence.PauseTracking();
+			persistence.Save();
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	override void EOnFrame(IEntity owner, float timeSlice)
+	{
+		if(!m_Overthrow || !m_Overthrow.IsInitialized())
+			return;
+		
+		if (!m_sEnqueuedCharacters.IsEmpty())
+		{
+			foreach (Tuple2<int, string> characterData : m_sEnqueuedCharacters)
+			{
+				LoadPlayerData(characterData.param1, characterData.param2);
+			}
+			m_sEnqueuedCharacters.Clear();
+		}
+		
+		if (m_sEnqueuedPlayers.IsEmpty())
+			return;
+
+		set<int> iterCopy();
+		iterCopy.Copy(m_sEnqueuedPlayers);
+		foreach (int playerId : iterCopy)
+		{
+			if (m_pRespawnSystem.IsReadyForSpawn(playerId)){
+				PlayerController controller = m_pPlayerManager.GetPlayerController(playerId);
+				if(controller)
+					controller.RequestRespawn();
+			}
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
 	override protected void OnPostInit(IEntity owner)
 	{
 		super.OnPostInit(owner);
-		m_pRespawnSystem = OVT_RespawnSystemComponent.Cast(owner.FindComponent(OVT_RespawnSystemComponent));
+		m_pRespawnSystem = EPF_Component<OVT_RespawnSystemComponent>.Find(owner);
 		m_pPlayerManager = GetGame().GetPlayerManager();
-		m_pPersistenceManager = EPF_PersistenceManager.GetInstance();
+		m_Overthrow = OVT_OverthrowGameMode.Cast(owner);
 	}
-	
-	override bool CanPlayerSpawn(int playerId)
-	{
-		SCR_RespawnSystemComponent respawnSystem = m_pGameMode.GetRespawnSystemComponent();
-
-		if (!respawnSystem.GetPlayerLoadout(playerId))
-			return false;
-
-		return true;
-	}
-	
-	protected override bool RandomizePlayerSpawnPoint(int playerId)
-	{
-		if (!m_pGameMode.IsMaster())
-			return false;
-		
-		return true;
-	}
-
-	/*!
-		When player is enqueued, randomize their loadout.
-	*/
-	override void OnPlayerEnqueued(int playerId)
-	{
-		super.OnPlayerEnqueued(playerId);
-
-		if (m_iForcedFaction >= 0)
-		{
-			if (OVT_RespawnSystemComponent.GetInstance().CanSetFaction(playerId, m_iForcedFaction))
-				OVT_RespawnSystemComponent.GetInstance().DoSetPlayerFaction(playerId, m_iForcedFaction);
-			else
-				Print(string.Format("Cannot set faction %1 to player %2! Is faction index valid?", m_iForcedFaction, playerId), LogLevel.ERROR);
-		}
-		else 
-			RandomizePlayerFaction(playerId);
-		
-		if (m_iForcedLoadout >= 0)
-		{
-			if (OVT_RespawnSystemComponent.GetInstance().CanSetLoadout(playerId, m_iForcedLoadout))
-				OVT_RespawnSystemComponent.GetInstance().DoSetPlayerLoadout(playerId, m_iForcedLoadout);
-			else
-				Print(string.Format("Cannot set loadout %1 to player %2! Is loadout index valid?", m_iForcedLoadout, playerId), LogLevel.ERROR);
-		}
-		else
-			RandomizePlayerLoadout(playerId);
-		
-		RandomizePlayerSpawnPoint(playerId);
-	}
-
-	/*!
-		Ticks every frame. Handles automatic player respawn.
-	*/
-	override void EOnFrame(IEntity owner, float timeSlice)
-	{
-		// Authority only
-		if (!m_pGameMode.IsMaster())
-			return;
-		
-		//Make sure game is started and initialized
-		if(!m_Overthrow.IsInitialized())
-			return;
-		
-		//Make sure persistence is active
-		if(!m_pPersistenceManager.GetState() == EPF_EPersistenceManagerState.ACTIVE)
-			return;
-		
-		// Clear batch
-		m_aSpawningBatch.Clear();
-		
-		// Find players eligible for respawn
-		foreach (int playerId : m_sEnqueuedPlayers)
-		{			
-			if (m_pGameMode.CanPlayerRespawn(playerId))
-				m_aSpawningBatch.Insert(playerId);
-		}
-
-		// Respawn eligible players
-		foreach (int playerId : m_aSpawningBatch)
-		{
-			Print("Respawning player " + playerId);
-			PlayerController playerController = m_pPlayerManager.GetPlayerController(playerId);
-			
-			if(playerController)
-				playerController.RequestRespawn();
-		}
-
-		super.EOnFrame(owner, timeSlice);
-	}
-
-	#ifdef WORKBENCH
-	//! Possibility to get variable value choices dynamically
-	override array<ref ParamEnum> _WB_GetUserEnums(string varName, IEntity owner, IEntityComponentSource src)
-	{
-		if (varName == "m_iForcedFaction")
-		{
-			FactionManager factionManager = GetGame().GetFactionManager();
-			if (factionManager)
-			{
-				ref array<ref ParamEnum> factionEnums = new array<ref ParamEnum>();
-				factionEnums.Insert(new ParamEnum("Disabled", "-1"));
-
-				Faction faction;
-				string name;
-				int factionCount = factionManager.GetFactionsCount();
-				for (int i = 0; i < factionCount; i++)
-				{
-					faction = factionManager.GetFactionByIndex(i);
-					name = faction.GetFactionKey();
-					factionEnums.Insert(new ParamEnum(name, i.ToString()));
-				}
-
-				return factionEnums;
-			}
-		}
-		
-		if (varName == "m_iForcedLoadout")
-		{
-			SCR_LoadoutManager loadoutManager = GetGame().GetLoadoutManager();
-			if (loadoutManager)
-			{
-				ref array<ref ParamEnum> loadoutEnums = new array<ref ParamEnum>();
-				loadoutEnums.Insert(new ParamEnum("Disabled", "-1"));
-				
-				array<SCR_BasePlayerLoadout> loadouts = {};
-				for (int i = 0, count = loadoutManager.GetLoadoutCount(); i < count; i++)
-					loadouts.Insert(loadoutManager.GetLoadoutByIndex(i));
-				
-				SCR_BasePlayerLoadout loadout;
-				for (int i = 0, count = loadouts.Count(); i < count; i++)
-				{
-					loadout = loadouts[i];
-					int loadoutIndex = loadoutManager.GetLoadoutIndex(loadout);
-					loadoutEnums.Insert(new ParamEnum(loadout.GetLoadoutName(), loadoutIndex.ToString()));
-				}
-
-				return loadoutEnums;
-			}
-		}
-
-		return super._WB_GetUserEnums(varName, owner, src);
-	}
-	#endif
 }

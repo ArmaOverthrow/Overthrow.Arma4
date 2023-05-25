@@ -161,6 +161,11 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		
 	}
 	
+	override OVT_BaseUpgradeData Serialize()
+	{
+		return null;
+	}
+	
 	void ~OVT_BaseUpgradeTownPatrol()
 	{
 		if(m_Patrols)

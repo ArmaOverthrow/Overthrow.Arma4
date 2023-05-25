@@ -1,0 +1,15 @@
+GenericEntity : "{28411B0C79460DF8}Prefabs/Structures/Core/BuildingFurniture_base.et" {
+ ID "56A8CBB92342240A"
+ {
+  GenericEntity : "{51D31AB07AE3C1C7}Prefabs/Props/Commercial/CashierShop_01.et" {
+   ID "5D72308DA50481E4"
+   coords 3.143 1.224 -1.084
+   angleY -174.863
+  }
+  GenericEntity : "{E214337C6E1931C5}Prefabs/Props/Commercial/CounterShop_01.et" {
+   ID "5D72308DA50481CE"
+   coords 3.132 0.182 -1.054
+   angleY 4.59
+  }
+ }
+}

@@ -8,101 +8,202 @@ class OVT_RespawnSystemComponentClass : SCR_RespawnSystemComponentClass
 [ComponentEditorProps(icon: HYBRID_COMPONENT_ICON)]
 class OVT_RespawnSystemComponent : SCR_RespawnSystemComponent
 {
-	[Attribute(defvalue: "0", desc: "Respawn here only (for testing)")]
-	bool m_bSpawnHere;
-	IEntity m_Owner;
+	[Attribute(defvalue: "{37578B1666981FCE}Prefabs/Characters/Core/Character_Base.et")]
+	ResourceName m_rDefaultPrefab;
 	
-	override void OnInit(IEntity owner)
-	{
-		super.OnInit(owner);
-		m_Owner = owner;
-	}
+	protected ref map<GenericEntity, int> m_mLoadingCharacters = new map<GenericEntity, int>();
+	protected ref map<int, GenericEntity> m_mPreparedCharacters = new map<int, GenericEntity>();
 	
-	protected override GenericEntity RequestSpawn(int playerId)
-	{
-		SCR_BaseGameMode gameMode = SCR_BaseGameMode.Cast(GetGame().GetGameMode());
-		if (gameMode && !gameMode.CanPlayerRespawn(playerId))
-		{
-			Print("Requested spawn denied! GameMode returned false in CanPlayerRespawn() for playerId=" + playerId, LogLevel.WARNING);
-			return null;
-		}
+	protected OVT_OverthrowGameMode m_Overthrow;
 
-		SCR_BasePlayerLoadout loadout = GetPlayerLoadout(playerId);
-		if (!loadout)
-		{
-			Print(LOG_HEAD+" No valid entity to spawn could be returned in RequestSpawn. Are there valid loadouts for the target player faction?", LogLevel.ERROR);
-			return null;
-		}	
-		
-		OVT_PlayerManagerComponent pm = OVT_Global.GetPlayers();
-		
-		OVT_RealEstateManagerComponent re = OVT_RealEstateManagerComponent.Cast(gameMode.FindComponent(OVT_RealEstateManagerComponent));
-		if(!re){
-			Print("Real Estate Manager not found. Game Mode entity requires a OVT_RealEstateManagerComponent!");
-			return null;
-		}
-		
-		string persId = pm.GetPersistentIDFromPlayerID(playerId);
-		OVT_PlayerData player = pm.GetPlayer(persId);
-		
-		vector home = re.GetHome(persId);
-		if(player)
-		{
-			home = player.location;
-		}
-		vector spawnPosition = m_Owner.GetOrigin();
-		
-		if(home[0] != 0){
-			spawnPosition = home;
-		}else{
-			IEntity newhome = OVT_Global.GetTowns().GetRandomStartingHouse();
-			spawnPosition = newhome.GetOrigin();
-		}
-		vector spawnRotation = vector.Zero;
-		
-		if(m_bSpawnHere) spawnPosition = m_Owner.GetOrigin();
-		
-		BaseWorld world = GetGame().GetWorld();
-		
-		spawnPosition = OVT_Global.FindSafeSpawnPosition(spawnPosition);
-		
-		GenericEntity spawned = DoSpawn(loadout.GetLoadoutResource(), spawnPosition, spawnRotation);
-		loadout.OnLoadoutSpawned(spawned, playerId);
-		
-		return spawned;
-	}
-	
-	override bool CanSetFaction(int playerId, int factionIndex)
-	{
-		if (factionIndex == SCR_PlayerRespawnInfo.RESPAWN_INFO_INVALID_INDEX)
-			return true;
-
-		// Disallow invalid factions
-		Faction faction = GetFactionByIndex(factionIndex);
-		if (!faction)
-			return false;
-
-		SCR_Faction scriptedFaction = SCR_Faction.Cast(faction);	
-			
-		//Verify that faction is playable Faction. If not then it checks if the spawned player has GM rights
-		if (scriptedFaction && !scriptedFaction.IsPlayable())
-		{
-			SCR_EditorManagerCore core = SCR_EditorManagerCore.Cast(SCR_EditorManagerCore.GetInstance(SCR_EditorManagerCore));
-			if (!core)
-				return false;
-		
-			//Check if has GM rights if not return false
-			SCR_EditorManagerEntity editorManager = core.GetEditorManager(playerId);
-			return editorManager && !editorManager.IsLimited(); 
-		}
-
-		return true;
-	}
-	
-	void PrepareCharacter(int playerId, EPF_CharacterSaveData saveData)
+	//------------------------------------------------------------------------------------------------
+	void PrepareCharacter(int playerId, string playerUid, EPF_CharacterSaveData saveData)
 	{
 		GenericEntity playerEntity;
 		
+		m_Overthrow.PreparePlayer(playerId, playerUid);
 		
+		if (saveData)
+		{
+			// Spawn character from data
+			EPF_PersistenceManager persistenceManager = EPF_PersistenceManager.GetInstance();
+
+			vector spawnAngles = Vector(saveData.m_pTransformation.m_vAngles[1], saveData.m_pTransformation.m_vAngles[0], saveData.m_pTransformation.m_vAngles[2]);
+			playerEntity = DoSpawn(m_rDefaultPrefab, saveData.m_pTransformation.m_vOrigin, spawnAngles);
+
+			EPF_PersistenceComponent persistenceComponent = EPF_Component<EPF_PersistenceComponent>.Find(playerEntity);
+			if (persistenceComponent)
+			{
+				// Remember which entity was for what player id
+				m_mLoadingCharacters.Set(playerEntity, playerId);
+
+				persistenceComponent.GetOnAfterLoadEvent().Insert(OnCharacterLoaded);
+				if (persistenceComponent.Load(saveData))
+					return;
+
+				// On failure remove again
+				persistenceComponent.GetOnAfterLoadEvent().Remove(OnCharacterLoaded);
+				m_mLoadingCharacters.Remove(playerEntity);
+			}
+
+			Debug.Error(string.Format("Failed to apply save-data '%1:%2' to character.", saveData.Type().ToString(), saveData.GetId()));
+			SCR_EntityHelper.DeleteEntityAndChildren(playerEntity);
+			playerEntity = null;
+		}
+
+		if (!playerEntity)
+		{
+			OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(playerUid);
+			
+			playerEntity = DoSpawn(m_rDefaultPrefab, player.home);
+			
+			InventoryStorageManagerComponent storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(playerEntity);
+			foreach (OVT_LoadoutSlot loadoutItem : OVT_Global.GetConfig().m_CivilianLoadout.m_aSlots)
+			{
+				IEntity slotEntity = SpawnDefaultCharacterItem(storageManager, loadoutItem);
+				if (!slotEntity) continue;
+				
+				if (!storageManager.TryInsertItem(slotEntity, EStoragePurpose.PURPOSE_LOADOUT_PROXY))
+				{
+					SCR_EntityHelper.DeleteEntityAndChildren(slotEntity);
+				}
+			}
+
+			EPF_PersistenceComponent persistenceComponent = EPF_Component<EPF_PersistenceComponent>.Find(playerEntity);
+			if (persistenceComponent)
+			{
+				persistenceComponent.SetPersistentId(playerUid);
+			}
+			else
+			{
+				Print(string.Format("Could not create new character, prefab '%1' is missing component '%2'.", m_rDefaultPrefab, EPF_PersistenceComponent), LogLevel.ERROR);
+				SCR_EntityHelper.DeleteEntityAndChildren(playerEntity);
+				return;
+			}
+			
+			
+
+			m_mPreparedCharacters.Set(playerId, playerEntity);
+		}
+	}
+	
+	protected IEntity SpawnDefaultCharacterItem(InventoryStorageManagerComponent storageManager, OVT_LoadoutSlot loadoutItem)
+	{
+		int selection = s_AIRandomGenerator.RandInt(0, loadoutItem.m_aChoices.Count() - 1);
+		ResourceName prefab = loadoutItem.m_aChoices[selection];
+		
+		IEntity slotEntity = GetGame().SpawnEntityPrefab(Resource.Load(prefab));
+		if (!slotEntity) return null;
+		
+		if (loadoutItem.m_aStoredItems)
+		{
+			array<Managed> outComponents();
+			slotEntity.FindComponents(BaseInventoryStorageComponent, outComponents);
+
+			foreach (ResourceName storedItem : loadoutItem.m_aStoredItems)
+			{				
+				IEntity spawnedItem = GetGame().SpawnEntityPrefab(Resource.Load(storedItem));
+
+				foreach (Managed componentRef : outComponents)
+				{
+					BaseInventoryStorageComponent storageComponent = BaseInventoryStorageComponent.Cast(componentRef);
+					
+					if(storageComponent.GetPurpose() & EStoragePurpose.PURPOSE_DEPOSIT){
+						if (!storageManager.TryInsertItemInStorage(spawnedItem, storageComponent)) continue;
+	
+						InventoryItemComponent inventoryItemComponent = InventoryItemComponent.Cast(spawnedItem.FindComponent(InventoryItemComponent));
+						if (inventoryItemComponent && !inventoryItemComponent.GetParentSlot()) continue;
+						break;	
+					}		
+				}
+			}
+		}
+		
+		return slotEntity;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	protected void OnCharacterLoaded(EPF_PersistenceComponent persistenceComponent, EPF_EntitySaveData saveData)
+	{
+		// We only want to know this once
+		persistenceComponent.GetOnAfterLoadEvent().Remove(OnCharacterLoaded);
+
+		GenericEntity playerEntity = GenericEntity.Cast(persistenceComponent.GetOwner());
+		int playerId = m_mLoadingCharacters.Get(playerEntity);
+		m_mLoadingCharacters.Remove(playerEntity);
+
+		EPF_PersistenceManager persistenceManager = EPF_PersistenceManager.GetInstance();
+		SCR_CharacterInventoryStorageComponent inventoryStorage = EPF_Component<SCR_CharacterInventoryStorageComponent>.Find(playerEntity);
+		if (inventoryStorage)
+		{
+			EPF_CharacterInventoryStorageComponentSaveData charInventorySaveData = EPF_ComponentSaveDataGetter<EPF_CharacterInventoryStorageComponentSaveData>.GetFirst(saveData);
+			if (charInventorySaveData && charInventorySaveData.m_aQuickSlotEntities)
+			{
+				array<RplId> quickBarRplIds();
+				// Init with invalid ids
+				int nQuickslots = inventoryStorage.GetQuickSlotItems().Count();
+				quickBarRplIds.Reserve(nQuickslots);
+				for (int i = 0; i < nQuickslots; i++)
+				{
+					quickBarRplIds.Insert(RplId.Invalid());
+				}
+
+				foreach (EPF_PersistentQuickSlotItem quickSlot : charInventorySaveData.m_aQuickSlotEntities)
+				{
+					IEntity slotEntity = persistenceManager.FindEntityByPersistentId(quickSlot.m_sEntityId);
+					if (slotEntity && quickSlot.m_iIndex < quickBarRplIds.Count())
+					{
+						RplComponent replication = RplComponent.Cast(slotEntity.FindComponent(RplComponent));
+						if (replication) quickBarRplIds.Set(quickSlot.m_iIndex, replication.Id());
+					}
+				}
+
+				// Apply quick item slots serverside to avoid inital sync back from client with same data
+				inventoryStorage.EPF_Rpc_UpdateQuickSlotItems(quickBarRplIds);
+
+				SCR_RespawnComponent respawnComponent = SCR_RespawnComponent.Cast(GetGame().GetPlayerManager().GetPlayerRespawnComponent(playerId));
+				respawnComponent.EPF_SetQuickBarItems(quickBarRplIds);
+			}
+		}
+
+		m_mPreparedCharacters.Set(playerId, playerEntity);
+		return; //Wait a few frame for character and weapon controller and gadgets etc to be setup
+	}
+
+	//------------------------------------------------------------------------------------------------
+	bool IsReadyForSpawn(int playerId)
+	{
+		return m_mPreparedCharacters.Contains(playerId);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	protected override GenericEntity RequestSpawn(int playerId)
+	{
+		GenericEntity playerEntity = m_mPreparedCharacters.Get(playerId);
+		if (playerEntity)
+		{
+			m_mPreparedCharacters.Remove(playerId);
+			return playerEntity;
+		}
+
+		Debug.Error("Attempt to spawn a character that has not finished processing. IsReadyForSpawn was not checked?");
+		return null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	override void OnInit(IEntity owner)
+	{
+		// Hard override to not rely on faction or loadout manager
+		m_pGameMode = SCR_BaseGameMode.Cast(owner);
+
+		if (m_pGameMode)
+		{
+			// Use replication of the parent
+			m_pRplComponent = RplComponent.Cast(m_pGameMode.FindComponent(RplComponent));
+		}
+
+		// Hard skip the rest of super implementation >:)
+		
+		m_Overthrow = OVT_OverthrowGameMode.Cast(owner);
 	}
 }

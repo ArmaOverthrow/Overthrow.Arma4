@@ -17,12 +17,12 @@ class OVT_SlottedBaseUpgrade : OVT_BasePatrolUpgrade
 	private IEntity NearestSlot(vector pos)
 	{
 		IEntity nearest;
-		float nearestDist = 9999999;
+		float nearestDist = -1;
 		foreach(EntityID id : m_BaseController.m_AllSlots)
 		{
 			IEntity ent = GetGame().GetWorld().FindEntityByID(id);
 			float dist = vector.Distance(pos, ent.GetOrigin());
-			if(dist < nearestDist)
+			if(nearestDist == -1 || dist < nearestDist)
 			{
 				nearest = ent;
 				nearestDist = dist;
@@ -106,6 +106,16 @@ class OVT_SlottedBaseUpgrade : OVT_BasePatrolUpgrade
 		spawn_params.Transform = mat;		
 		IEntity ent = GetGame().SpawnEntityPrefab(Resource.Load(res), GetGame().GetWorld(), spawn_params);
 		return ent;
+	}
+	
+	override OVT_BaseUpgradeData Serialize()
+	{
+		return null;
+	}
+	
+	override bool Deserialize(OVT_BaseUpgradeData struct)	
+	{		
+		return true;
 	}
 
 }

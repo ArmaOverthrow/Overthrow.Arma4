@@ -1,4 +1,4 @@
-GenericEntity : "{160E4E4110803F26}Prefabs/Structures/Military/Flags/FlagPole_02_V1_FIA.et" {
+GenericEntity : "{160E4E4110803F26}Prefabs/Structures/Military/Flags/FlagPole_02/FlagPole_02_V1_FIA.et" {
  ID "50C6D20663830070"
  components {
   OVT_ResistanceFOBControllerComponent "{59A49A9F9A08E066}" {
@@ -26,6 +26,7 @@ GenericEntity : "{160E4E4110803F26}Prefabs/Structures/Military/Flags/FlagPole_02
      ParentContextList {
       "default"
      }
+     "Sort Priority" 1
     }
    }
   }

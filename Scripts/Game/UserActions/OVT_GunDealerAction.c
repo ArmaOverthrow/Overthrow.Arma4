@@ -64,4 +64,6 @@ class OVT_GunDealerAction : ScriptedUserAction
 		
 		return genericRpl.IsOwner();
  	}
+	
+	override bool HasLocalEffectOnlyScript() { return true; };
 }

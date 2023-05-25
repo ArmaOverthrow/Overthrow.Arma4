@@ -233,6 +233,7 @@ class OVT_BuildContext : OVT_UIContext
 		
 		SpawnGhost();
 		CreateCamera();
+		MoveCamera();
 	}
 	
 	protected void CreateCamera()
@@ -253,9 +254,16 @@ class OVT_BuildContext : OVT_UIContext
 		IEntity cam = GetGame().SpawnEntityPrefabLocal(Resource.Load(m_BuildCameraPrefab),null,params);
 		if(cam)
 		{
-			m_Camera = SCR_CameraBase.Cast(cam);
-			m_Camera.SetAngles("-45 0 0");			
+			m_Camera = SCR_CameraBase.Cast(cam);	
 		}
+	}
+	
+	protected void MoveCamera()
+	{
+		if(!m_Camera) return;
+		IEntity player = SCR_PlayerController.GetLocalControlledEntity();
+		m_Camera.SetAngles("-45 0 0");
+		m_Camera.SetOrigin(player.GetOrigin() + "0 15 0");
 	}
 	
 	protected void RevertCamera()

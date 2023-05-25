@@ -367,6 +367,31 @@ OVT_OverthrowGameMode {
    }
    m_iTimeMultiplier 6
    m_pPlayerGroupPrefab "{9BED5CCD52C87E26}Prefabs/Groups/INDFOR/Group_Player.et"
+   m_CivilianLoadout OVT_LoadoutConfig "{5D70ECF4724BC81E}" {
+    m_aSlots {
+     OVT_LoadoutSlot "{5D70ECF470377ECE}" {
+      m_sName "Pants"
+      m_aChoices {
+       "{80F19C72CFA4CED4}Prefabs/Characters/Uniforms/Pants/cargo_pants_grey.et" "{432A36533B42C11D}Prefabs/Characters/Uniforms/Pants/cargo_pants_grey_black.et" "{BB8B4C27985C8797}Prefabs/Characters/Uniforms/Pants/cargo_pants_khaki.et" "{0C78AD2BF86D089B}Prefabs/Characters/Uniforms/Pants/cargo_pants_khaki_black.et" "{924CAA6171029E01}Prefabs/Characters/Uniforms/Pants/cargo_pants_Olive_brown.et" "{F154F1FD77F85F2D}Prefabs/Characters/Uniforms/Pants/civi_shorts_black_item.et" "{6AA6952976457212}Prefabs/Characters/Uniforms/Pants/jeans_black.et" "{785F4A26DB826D34}Prefabs/Characters/Uniforms/Pants/jeans_black_washed.et" "{D5E273BB88B47524}Prefabs/Characters/Uniforms/Pants/jeans_black_washed_ripped.et" "{C5848D50C28BC324}Prefabs/Characters/Uniforms/Pants/jeans_blue.et" "{4CE818FF4A86E19D}Prefabs/Characters/Uniforms/Pants/jeans_blue_washed.et" "{ECF063267DA69767}Prefabs/Characters/Uniforms/Pants/jeans_brown_dirty.et" "{E38958AE4AE55A02}Prefabs/Characters/Uniforms/Pants/jeans_light_blue_washed.et" "{5BC452D2DB3E2573}Prefabs/Characters/Uniforms/Pants/jeans_lightblue_washed_ripped.et" "{526C254A17AD7270}Prefabs/Characters/Uniforms/Pants/joggers_pants_black.et" "{5484D2CE182555D9}Prefabs/Characters/Uniforms/Pants/joggers_pants_green.et" "{EB38D98A6D988B3C}Prefabs/Characters/Uniforms/Pants/joggers_pants_blue.et" "{31F3AA060CEAFA43}Prefabs/Characters/Uniforms/Pants/joggers_pants_grey.et"
+      }
+      m_aStoredItems {
+       "{13772C903CB5E4F7}Prefabs/Items/Equipment/Maps/PaperMap_01_folded.et" "{3A421547BC29F679}Prefabs/Items/Equipment/Flashlights/Flashlight_MX991.et"
+      }
+     }
+     OVT_LoadoutSlot "{5D70ECF42BD5A6EB}" {
+      m_sName "Top"
+      m_aChoices {
+       "{5F310D795D4ED30C}Prefabs/Characters/Uniforms/Tops/flannel_blue.et" "{494706283AF39DFA}Prefabs/Characters/Uniforms/Tops/flannel_brown.et" "{BF2B7ED6C6BF0422}Prefabs/Characters/Uniforms/Tops/flannel_dark_red.et" "{48DE2B7B0C2F73FA}Prefabs/Characters/Uniforms/Tops/flannel_green.et" "{FA00640060D60B8A}Prefabs/Characters/Uniforms/Tops/Jacket_black_red.et" "{7A0C78BBC9E5EDD1}Prefabs/Characters/Uniforms/Tops/Jacket_black_grey.et" "{A0C70B37A8979CAE}Prefabs/Characters/Uniforms/Tops/Jacket_black_blue.et" "{CC781A72C88D3D49}Prefabs/Characters/Uniforms/Tops/Jacket_blue_white.et" "{EC9BEA5CE4676B48}Prefabs/Characters/Uniforms/Tops/Jacket_green_black.et" "{7F44A37BB64B8842}Prefabs/Characters/Uniforms/Tops/Long_sleeve_white.et" "{1C1E94227EC12843}Prefabs/Characters/Uniforms/Tops/Long_sleeve_red.et" "{B7A4A1897332C888}Prefabs/Characters/Uniforms/Tops/Long_sleeve_black.et" "{603FB971FA3E642C}Prefabs/Characters/Uniforms/Tops/Jacket_grey_white.et" "{A8DFBB833F4724E6}Prefabs/Characters/Uniforms/Tops/Jacket_grey_black.et" "{D2DEF6C1A0165016}Prefabs/Characters/Uniforms/Tops/short_sleeve.et" "{E4BABD401DC80E02}Prefabs/Characters/Uniforms/Tops/short_sleeve_cg.et" "{D2F07DAEA4F14603}Prefabs/Characters/Uniforms/Tops/short_sleeve_pink.et" "{AC1AED3B4C3BC7F0}Prefabs/Characters/Uniforms/Tops/short_sleeve_v2_babyblue.et" "{E8510F70E8DF3FB0}Prefabs/Characters/Uniforms/Tops/short_sleeve_v2_black.et" "{EFCBD7C61269BB9D}Prefabs/Characters/Uniforms/Tops/short_sleeve_v2_blue.et" "{86DD4B003E1FADB2}Prefabs/Characters/Uniforms/Tops/short_sleeve_v2_FU_black.et" "{1696E895046EF1A5}Prefabs/Characters/Uniforms/Tops/short_sleeve_v2_orange.et" "{E04A3F5ED9162A91}Prefabs/Characters/Uniforms/Tops/short_sleeve_white.et" "{983A71A4BAE74507}Prefabs/Characters/Uniforms/Tops/tank_top_white.et" "{50DA73567F9E05CD}Prefabs/Characters/Uniforms/Tops/tank_top_black.et"
+      }
+     }
+     OVT_LoadoutSlot "{5D70ECF439A1223C}" {
+      m_sName "Shoes"
+      m_aChoices {
+       "{9AC4B50676BCAFA4}Prefabs/Characters/Footwear/Sandles.et" "{58CDE15D74295DA2}Prefabs/Characters/Footwear/hiking_boots.et" "{C7923961D7235D70}Prefabs/Characters/Footwear/CombatBoots_Soviet_01.et" "{DAAFD15478BDE1C3}Prefabs/Characters/Footwear/CombatBoots_US_01.et"
+      }
+     }
+    }
+   }
    m_bDebugMode 0
   }
   OVT_PersistenceManagerComponent "{5D7009B844876186}" {
@@ -501,10 +526,9 @@ OVT_OverthrowGameMode {
    m_pHiredCivilianPrefab "{365CD448A5DABCCC}Prefabs/Groups/INDFOR/Group_CIV_Recruit.et"
   }
   OVT_RespawnHandlerComponent "{59724C8C9A6408EE}" {
-   m_iForcedFaction 1
-   m_iForcedLoadout 0
   }
   OVT_RespawnSystemComponent "{59724C8C935D8E47}" {
+   m_rDefaultPrefab "{3A99A99836F6B3DC}Prefabs/Characters/Factions/INDFOR/FIA/Character_Player.et"
   }
   OVT_TownManagerComponent "{59724C983BF56C3B}" {
    m_aTownModifiers {

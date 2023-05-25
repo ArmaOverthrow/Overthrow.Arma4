@@ -110,5 +110,15 @@ class OVT_BaseUpgradeParkedVehicles : OVT_BaseUpgrade
 		}
 		return spent;
 	}
+	
+	override OVT_BaseUpgradeData Serialize()
+	{
+		return null;
+	}
+	
+	override bool Deserialize(OVT_BaseUpgradeData struct)	
+	{		
+		return true;
+	}
 
 }

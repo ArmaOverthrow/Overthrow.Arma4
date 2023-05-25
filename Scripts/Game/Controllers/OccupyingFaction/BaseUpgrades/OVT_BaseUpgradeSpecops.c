@@ -108,4 +108,14 @@ class OVT_BaseUpgradeSpecops : OVT_BasePatrolUpgrade
 			aigroup.AddWaypoint(m_Config.SpawnDefendWaypoint(m_CurrentTarget.location));
 		}
 	}
+	
+	override OVT_BaseUpgradeData Serialize()
+	{
+		return null;
+	}
+	
+	override bool Deserialize(OVT_BaseUpgradeData struct)	
+	{		
+		return true;
+	}
 }
