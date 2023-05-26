@@ -20,16 +20,12 @@ class OVT_ShopComponent: OVT_Component
 	int m_iTownId = -1;
 	
 	ref map<int,int> m_aInventory;
-	ref array<ref OVT_ShopInventoryItem> m_aInventoryItems;
-	ref array<int> m_aInventoryItemIds;
 	
 	override void OnPostInit(IEntity owner)
 	{
 		super.OnPostInit(owner);	
 		
 		m_aInventory = new map<int,int>;
-		m_aInventoryItems = new array<ref OVT_ShopInventoryItem>;
-		m_aInventoryItemIds = new array<int>;
 	}
 	
 	void AddToInventory(int id, int num)
@@ -111,11 +107,6 @@ class OVT_ShopComponent: OVT_Component
 		{
 			m_aInventory.Clear();
 			m_aInventory = null;
-		}
-		if(m_aInventoryItems)
-		{
-			m_aInventoryItems.Clear();
-			m_aInventoryItems = null;
 		}
 	}
 }

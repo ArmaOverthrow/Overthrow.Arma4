@@ -958,6 +958,9 @@ SCR_FactionManager {
    m_aFlagPolePrefab "{651E545B53BBD035}Prefabs/Structures/Military/Flags/BaseFlag_USSR.et"
    m_aMediumCheckpointPrefab "{089470408DAADC20}Prefabs/Compositions/Slotted/SlotRoadMedium/Checkpoint_M_USSR_01.et"
    m_aLargeCheckpointPrefab "{9F9924B626C5FA2B}Prefabs/Compositions/Slotted/SlotRoadLarge/Checkpoint_L_USSR_01.et"
+   m_aInventoryConfigFiles {
+    "{C53421647C3D0D2E}Configs/EntityCatalog/USSR/USSR_InventoryItems.conf"
+   }
    m_aCompositionConfig OVT_FactionCompositionConfig "{59B6F523ED57F922}" {
     m_aCompositions {
      OVT_FactionComposition "{59B6F523ED57F93D}" {
@@ -1938,6 +1941,9 @@ SCR_FactionManager {
    m_aFlagPolePrefab "{E55FC02F8C1518A3}Prefabs/Structures/Military/Flags/BaseFlag_US.et"
    m_aMediumCheckpointPrefab "{5F42399DF7455261}Prefabs/Compositions/Slotted/SlotRoadMedium/Checkpoint_M_US_01.et"
    m_aLargeCheckpointPrefab "{6D9DAF822F4ABFE6}Prefabs/Compositions/Slotted/SlotRoadLarge/Checkpoint_L_US_01.et"
+   m_aInventoryConfigFiles {
+    "{5F7EC52FC40A03E2}Configs/EntityCatalog/US/US_InventoryItems.conf"
+   }
    m_aCompositionConfig OVT_FactionCompositionConfig "{59B6F523ED57E991}" {
     m_aCompositions {
      OVT_FactionComposition "{59B6F523ED57E9AE}" {
@@ -2843,6 +2849,9 @@ SCR_FactionManager {
    m_aFlagPolePrefab "{3F983E0F4FD1246C}Prefabs/Structures/Military/Flags/FOB_V1_FIA.et"
    m_aMediumCheckpointPrefab "{5F42399DF7455261}Prefabs/Compositions/Slotted/SlotRoadMedium/Checkpoint_M_US_01.et"
    m_aLargeCheckpointPrefab "{6D9DAF822F4ABFE6}Prefabs/Compositions/Slotted/SlotRoadLarge/Checkpoint_L_US_01.et"
+   m_aInventoryConfigFiles {
+    "{E908001749419691}Configs/EntityCatalog/FIA/FIA_InventoryItems.conf"
+   }
   }
  }
 }

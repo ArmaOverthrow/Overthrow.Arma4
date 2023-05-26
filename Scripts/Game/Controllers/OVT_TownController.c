@@ -147,15 +147,16 @@ class OVT_TownControllerComponent: OVT_Component
 		
 		foreach(OVT_ShopInventoryItem item : m_Economy.m_aGunDealerItems)
 		{
-			int id = m_Economy.GetInventoryId(item.prefab);			
-			m_Economy.SetPrice(id, item.cost);
+			array<SCR_EntityCatalogEntry> entries();
+			m_Economy.FindInventoryItems(item.m_eItemType, item.m_eItemMode, item.m_sFind, entries);
 			
-			int num = Math.Round(s_AIRandomGenerator.RandFloatXY(1,m_Economy.GetTownMaxStock(townID, id)));
-			
-			shop.AddToInventory(id, num);
-			
-			shop.m_aInventoryItems.Insert(item);
-			shop.m_aInventoryItemIds.Insert(id);
+			foreach(SCR_EntityCatalogEntry entry : entries)
+			{
+				int id = m_Economy.GetInventoryId(entry.GetPrefab());											
+				int num = Math.Round(s_AIRandomGenerator.RandFloatXY(1,m_Economy.GetTownMaxStock(townID, id)));
+				
+				shop.AddToInventory(id, num);
+			}
 		}
 		
 		GetGame().GetCallqueue().CallLater(SetDealerFaction, 500);

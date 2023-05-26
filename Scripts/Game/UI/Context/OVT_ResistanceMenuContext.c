@@ -24,6 +24,11 @@ class OVT_ResistanceMenuContext : OVT_UIContext
 	override void OnShow()
 	{	
 		m_Economy.m_OnResistanceMoneyChanged.Insert(RefreshFunds);
+		
+		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");
+		SCR_NavigationButtonComponent btn = SCR_NavigationButtonComponent.Cast(closeButton.FindHandler(SCR_NavigationButtonComponent));		
+		btn.m_OnClicked.Insert(CloseLayout);
+		
 		Refresh();		
 	}
 	

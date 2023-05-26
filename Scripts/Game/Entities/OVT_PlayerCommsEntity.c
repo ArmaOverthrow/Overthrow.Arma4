@@ -184,11 +184,10 @@ class OVT_PlayerCommsEntity: GenericEntity
 		if(!storage) return;
 		
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
-		OVT_ShopInventoryItem item = OVT_Global.GetEconomy().GetInventoryItem(id);
 		
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		
-		int cost = qty * item.cost;
+		int cost = qty * economy.GetPrice(id);
 		if(!economy.PlayerHasMoney(persId, cost)) return;
 		
 		int actual = 0;
@@ -202,7 +201,7 @@ class OVT_PlayerCommsEntity: GenericEntity
 			}
 		}
 		
-		economy.DoTakePlayerMoney(playerId, actual * item.cost);
+		economy.DoTakePlayerMoney(playerId, actual * economy.GetPrice(id));
 	}
 	
 	void BuyVehicle(OVT_ShopComponent shop, int id, int playerId)

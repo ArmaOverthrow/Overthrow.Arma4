@@ -23,6 +23,10 @@ class OVT_WarehouseContext : OVT_UIContext
 		action = ButtonActionComponent.Cast(take100.FindHandler(ButtonActionComponent));		
 		action.GetOnAction().Insert(TakeHundred);
 		
+		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");
+		SCR_NavigationButtonComponent btn = SCR_NavigationButtonComponent.Cast(closeButton.FindHandler(SCR_NavigationButtonComponent));		
+		btn.m_OnClicked.Insert(CloseLayout);
+		
 		Refresh();		
 	}
 	

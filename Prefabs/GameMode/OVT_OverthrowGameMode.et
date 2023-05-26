@@ -6,233 +6,246 @@ OVT_OverthrowGameMode {
     OVT_ShopInventoryConfig "{598EDB5225F92650}" {
      type SHOP_GENERAL
      m_aInventoryItems {
-      OVT_ShopInventoryItem "{598EDB5222351501}" {
-       prefab "{13772C903CB5E4F7}Prefabs/Items/Equipment/Maps/PaperMap_01_folded.et"
-       cost 1
-       demandMultiplier 10
+      OVT_ShopInventoryItem "{5D72C37A46875E13}" {
+       m_eItemType EQUIPMENT
+       m_sFind "PaperMap_"
       }
-      OVT_ShopInventoryItem "{599083DC8CDAF7F2}" {
-       prefab "{CDCC313B2FB76FE7}Prefabs/Items/Medicine/Gauze_01.et"
-       cost 8
-       demandMultiplier 5
+      OVT_ShopInventoryItem "{5D72C37A4BAD0E98}" {
+       m_eItemType HEAL
       }
-      OVT_ShopInventoryItem "{599083DF01183217}" {
-       prefab "{7CEF68E2BC68CE71}Prefabs/Items/Equipment/Compass/Compass_Adrianov.et"
+      OVT_ShopInventoryItem "{5D72C37A5AA12A12}" {
+       m_eItemType BACKPACK
       }
-      OVT_ShopInventoryItem "{599083DF13422B7E}" {
-       prefab "{61D4F80E49BF9B12}Prefabs/Items/Equipment/Compass/Compass_SY183.et"
+      OVT_ShopInventoryItem "{5D72C37A16A30DB6}" {
+       m_eItemType EQUIPMENT
+       m_sFind "Binoculars_"
       }
-      OVT_ShopInventoryItem "{599083DFE62D8BE7}" {
-       prefab "{F2539FA5706E51E4}Prefabs/Items/Equipment/Binoculars/Binoculars_B12.et"
-       cost 200
-      }
-      OVT_ShopInventoryItem "{599083DFEE42DE7C}" {
-       prefab "{0CF54B9A85D8E0D4}Prefabs/Items/Equipment/Binoculars/Binoculars_M22.et"
-       cost 200
+      OVT_ShopInventoryItem "{5D72C37AEF296A2A}" {
+       m_eItemType EQUIPMENT
+       m_sFind "Watch_"
       }
      }
     }
     OVT_ShopInventoryConfig "{598EF98CB5D3159F}" {
      type SHOP_ELECTRONIC
      m_aInventoryItems {
-      OVT_ShopInventoryItem "{598EF98C82141982}" {
-       prefab "{78ED4FEF62BBA728}Prefabs/Items/Equipment/Watches/Watch_SandY184A.et"
-       cost 125
-      }
-      OVT_ShopInventoryItem "{599698B66916C38B}" {
-       prefab "{6FD6C96121905202}Prefabs/Items/Equipment/Watches/Watch_Vostok.et"
-       cost 125
-      }
-      OVT_ShopInventoryItem "{599698B67DB2BF9D}" {
-       prefab "{73950FBA2D7DB5C5}Prefabs/Items/Equipment/Radios/Radio_ANPRC68.et"
-       cost 225
-      }
-      OVT_ShopInventoryItem "{599698B64DD50188}" {
-       prefab "{9B6B61BB3FE3DFB0}Prefabs/Items/Equipment/Radios/Radio_ANPRC77.et"
-       cost 350
-      }
-      OVT_ShopInventoryItem "{599698B65258C0A9}" {
-       prefab "{54C68E438DD34265}Prefabs/Items/Equipment/Radios/Radio_R107M.et"
-       cost 280
-      }
-      OVT_ShopInventoryItem "{599698B625E6A3AA}" {
-       prefab "{E1A5D4B878AA8980}Prefabs/Items/Equipment/Radios/Radio_R148.et"
-       cost 225
-      }
-      OVT_ShopInventoryItem "{599698B63FA9B003}" {
-       prefab "{3A421547BC29F679}Prefabs/Items/Equipment/Flashlights/Flashlight_MX991.et"
-       cost 60
-      }
-      OVT_ShopInventoryItem "{599698B60F1FC377}" {
-       prefab "{575EA58E67448C2A}Prefabs/Items/Equipment/Flashlights/Flashlight_Soviet_01.et"
-       cost 25
+      OVT_ShopInventoryItem "{5D72C37A679ACC6A}" {
+       m_eItemType EQUIPMENT
       }
      }
     }
     OVT_ShopInventoryConfig "{59953E645BFCDAB7}" {
      m_aInventoryItems {
-      OVT_ShopInventoryItem "{59953E642701BD4B}" {
-       prefab "{A81F501D3EF6F38E}Prefabs/Items/Medicine/FieldDressing_US_01.et"
-       cost 15
-       demandMultiplier 5
-      }
-      OVT_ShopInventoryItem "{59953E6407547097}" {
-       prefab "{C3F1FA1E2EC2B345}Prefabs/Items/Medicine/FieldDressing_USSR_01.et"
-       cost 15
-       demandMultiplier 5
-      }
-      OVT_ShopInventoryItem "{59953E640DED5A9D}" {
-       prefab "{CDCC313B2FB76FE7}Prefabs/Items/Medicine/Gauze_01.et"
-       cost 8
-       demandMultiplier 5
+      OVT_ShopInventoryItem "{5D72C37AF08C5B5F}" {
+       m_eItemType HEAL
       }
      }
     }
     OVT_ShopInventoryConfig "{59953E64E1FAC553}" {
      type SHOP_CLOTHES
      m_aInventoryItems {
-      OVT_ShopInventoryItem "{59953E64ED7BC6BE}" {
-       prefab "{06B68C58B72EAAC6}Prefabs/Items/Equipment/Backpacks/Backpack_ALICE_Medium.et"
-       cost 150
+      OVT_ShopInventoryItem "{5D72C37496CF7A55}" {
+       m_eItemType BACKPACK
       }
-      OVT_ShopInventoryItem "{59953E64A40688D3}" {
-       prefab "{41A9C55B61F375F0}Prefabs/Items/Equipment/Backpacks/Backpack_Kolobok.et"
-       cost 80
+      OVT_ShopInventoryItem "{5D72C37BC1D7EBFB}" {
+       m_eItemType HEADWEAR
       }
-      OVT_ShopInventoryItem "{59953E64829FC381}" {
-       prefab "{FDA7B6630DB87991}Prefabs/Items/Equipment/Backpacks/Backpack_M70_Swiss.et"
-       cost 45
+      OVT_ShopInventoryItem "{5D72C37BD513D3A3}" {
+       m_eItemType TORSO
       }
-      OVT_ShopInventoryItem "{59953E6493473AF4}" {
-       prefab "{6A39B5843B3F36DA}Prefabs/Items/Equipment/Backpacks/Backpack_RPG_Assistant.et"
-       cost 65
+      OVT_ShopInventoryItem "{5D72C37BD257E66B}" {
+       m_eItemType LEGS
       }
-      OVT_ShopInventoryItem "{59953E656544CDED}" {
-       prefab "{0D39750E5695B9D8}Prefabs/Items/Equipment/Backpacks/Backpack_RPG_Gunner.et"
-       cost 65
-      }
-      OVT_ShopInventoryItem "{59953E6568B17E87}" {
-       prefab "{3DE0155EC9767B98}Prefabs/Items/Equipment/Backpacks/Backpack_Veshmeshok.et"
-       cost 110
-      }
-      OVT_ShopInventoryItem "{59953E6502250D5E}" {
-       prefab "{E12126CDE731EED5}Prefabs/Characters/HeadGear/Hat_Boonie_US_01/Hat_Boonie_US_01.et"
-       cost 35
-      }
-      OVT_ShopInventoryItem "{59953E65F56FFB18}" {
-       prefab "{793EEE2C133176F9}Prefabs/Characters/HeadGear/Hat_Panama_Soviet/Hat_Panama_Soviet_01_v1.et"
-       cost 35
-      }
-      OVT_ShopInventoryItem "{5D346D528A31BF93}" {
-       prefab "{80F19C72CFA4CED4}Prefabs/Characters/Uniforms/Pants/cargo_pants_grey.et"
-      }
-      OVT_ShopInventoryItem "{5D346D5297B12BDE}" {
-       prefab "{432A36533B42C11D}Prefabs/Characters/Uniforms/Pants/cargo_pants_grey_black.et"
-      }
-      OVT_ShopInventoryItem "{5D346D529B3EE98D}" {
-       prefab "{BB8B4C27985C8797}Prefabs/Characters/Uniforms/Pants/cargo_pants_khaki.et"
-      }
-      OVT_ShopInventoryItem "{5D346D53661CFB73}" {
-       prefab "{0C78AD2BF86D089B}Prefabs/Characters/Uniforms/Pants/cargo_pants_khaki_black.et"
-      }
-      OVT_ShopInventoryItem "{5D346D536E4A9AE0}" {
-       prefab "{924CAA6171029E01}Prefabs/Characters/Uniforms/Pants/cargo_pants_Olive_brown.et"
-      }
-      OVT_ShopInventoryItem "{5D346D53D1398FB2}" {
-       prefab "{785F4A26DB826D34}Prefabs/Characters/Uniforms/Pants/jeans_black_washed.et"
-       cost 70
-      }
-      OVT_ShopInventoryItem "{5D346D53AEDE9EC7}" {
-       prefab "{D5E273BB88B47524}Prefabs/Characters/Uniforms/Pants/jeans_black_washed_ripped.et"
-       cost 70
-      }
-      OVT_ShopInventoryItem "{5D346D53BDADB604}" {
-       prefab "{4CE818FF4A86E19D}Prefabs/Characters/Uniforms/Pants/jeans_blue_washed.et"
-       cost 70
+      OVT_ShopInventoryItem "{5D72C37BD86B3370}" {
+       m_eItemType FOOTWEAR
       }
      }
     }
     OVT_ShopInventoryConfig "{599680393904D480}" {
      type SHOP_VEHICLE
-     m_aInventoryItems {
-      OVT_ShopInventoryItem "{599680390843E336}" {
-       prefab "{F649585ABB3706C4}Prefabs/Vehicles/Wheeled/M151A2/M151A2.et"
-       cost 2500
-      }
-      OVT_ShopInventoryItem "{59968039ABA96510}" {
-       prefab "{9A0D72816DFFDB7F}Prefabs/Vehicles/Wheeled/M923A1/M923A1.et"
-       cost 8000
-      }
-      OVT_ShopInventoryItem "{59968039B1A4C8BB}" {
-       prefab "{F1FBD0972FA5FE09}Prefabs/Vehicles/Wheeled/M923A1/M923A1_transport.et"
-       cost 9000
-      }
-      OVT_ShopInventoryItem "{59968039955B641E}" {
-       prefab "{81FDAD5EB644CC3D}Prefabs/Vehicles/Wheeled/M923A1/M923A1_transport_covered.et"
-       cost 9000
-      }
-      OVT_ShopInventoryItem "{59968038784A2AA4}" {
-       prefab "{2BE1F8B9299B67C1}Prefabs/Vehicles/Wheeled/M923A1/M923A1_tanker.et"
-       cost 11000
-      }
-      OVT_ShopInventoryItem "{59968038279F49E0}" {
-       prefab "{4597626AF36C0858}Prefabs/Vehicles/Wheeled/Ural4320/Ural4320.et"
-       cost 6000
-      }
-      OVT_ShopInventoryItem "{59968038368166BF}" {
-       prefab "{16C1F16C9B053801}Prefabs/Vehicles/Wheeled/Ural4320/Ural4320_transport.et"
-       cost 7000
-      }
-      OVT_ShopInventoryItem "{5996803807D8CCFF}" {
-       prefab "{D9B91FAB817A6033}Prefabs/Vehicles/Wheeled/Ural4320/Ural4320_transport_covered.et"
-       cost 7000
-      }
-      OVT_ShopInventoryItem "{5996803817DA7828}" {
-       prefab "{4C81D7ED8F8C0D87}Prefabs/Vehicles/Wheeled/Ural4320/Ural4320_tanker.et"
-       cost 9000
-      }
-      OVT_ShopInventoryItem "{59B70A6A8498F29D}" {
-       prefab "{259EE7B78C51B624}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469.et"
-       cost 1800
-      }
-     }
     }
    }
    m_aGunDealerItems {
-    OVT_ShopInventoryItem "{59908364950495F9}" {
-     prefab "{1353C6EAD1DCFE43}Prefabs/Weapons/Handguns/M9/Handgun_M9.et"
-     cost 700
+    OVT_ShopInventoryItem "{5D72C37AC3500B92}" {
+     m_eItemType PISTOL
     }
-    OVT_ShopInventoryItem "{599083677DB68E47}" {
-     prefab "{C0F7DD85A86B2900}Prefabs/Weapons/Handguns/PM/Handgun_PM.et"
-     cost 650
+    OVT_ShopInventoryItem "{5D72C37ACC17963D}" {
+     m_eItemType WEAPON_ATTACHMENT
     }
-    OVT_ShopInventoryItem "{59908367E3985A8C}" {
-     prefab "{9C05543A503DB80E}Prefabs/Weapons/Magazines/Magazine_9x19_M9_15rnd_Ball.et"
+    OVT_ShopInventoryItem "{5D72C37AA6061534}" {
+     m_eItemType LETHAL_THROWABLE
     }
-    OVT_ShopInventoryItem "{59908367F9456BFB}" {
-     prefab "{8B853CDD11BA916E}Prefabs/Weapons/Magazines/Magazine_9x18_PM_8rnd_Ball.et"
-     cost 35
+    OVT_ShopInventoryItem "{5D72C37AAF2FE72E}" {
+     m_eItemType NON_LETHAL_THROWABLE
     }
-    OVT_ShopInventoryItem "{59908367A773F3CB}" {
-     prefab "{E8F00BF730225B00}Prefabs/Weapons/Grenades/Grenade_M67.et"
+    OVT_ShopInventoryItem "{5D72C37AAD851814}" {
+     m_eItemType EXPLOSIVES
+    }
+   }
+   m_aVehicleShopItems {
+    OVT_VehicleShopConfig "{5D72D722729EF487}" {
+     m_sEntityPrefab "{259EE7B78C51B624}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469.et"
+     cost 600
+    }
+    OVT_VehicleShopConfig "{5D72D7224B2D9900}" {
+     m_sEntityPrefab "{F649585ABB3706C4}Prefabs/Vehicles/Wheeled/M151A2/M151A2.et"
+     cost 1200
+    }
+    OVT_VehicleShopConfig "{5D72D7222E8E2073}" {
+     m_sEntityPrefab "{F1FBD0972FA5FE09}Prefabs/Vehicles/Wheeled/M923A1/M923A1_transport.et"
+     cost 3500
+    }
+    OVT_VehicleShopConfig "{5D72D7223B785440}" {
+     m_sEntityPrefab "{81FDAD5EB644CC3D}Prefabs/Vehicles/Wheeled/M923A1/M923A1_transport_covered.et"
+     cost 3600
+    }
+    OVT_VehicleShopConfig "{5D72D72203815AA6}" {
+     m_sEntityPrefab "{2BE1F8B9299B67C1}Prefabs/Vehicles/Wheeled/M923A1/M923A1_tanker.et"
+     cost 5000
+    }
+    OVT_VehicleShopConfig "{5D72D7221683C36C}" {
+     m_sEntityPrefab "{5674FAEB9AB7BDD0}Prefabs/Vehicles/Wheeled/M998/M998.et"
+     cost 2500
+    }
+    OVT_VehicleShopConfig "{5D72D722F89F6D09}" {
+     m_sEntityPrefab "{16C1F16C9B053801}Prefabs/Vehicles/Wheeled/Ural4320/Ural4320_transport.et"
+     cost 3500
+    }
+    OVT_VehicleShopConfig "{5D72D722D4464739}" {
+     m_sEntityPrefab "{D9B91FAB817A6033}Prefabs/Vehicles/Wheeled/Ural4320/Ural4320_transport_covered.et"
+     cost 3600
+    }
+    OVT_VehicleShopConfig "{5D72D722DC2B5DEF}" {
+     m_sEntityPrefab "{4C81D7ED8F8C0D87}Prefabs/Vehicles/Wheeled/Ural4320/Ural4320_tanker.et"
+     cost 4500
+    }
+   }
+   m_aPriceConfigs {
+    OVT_PriceConfig "{5D72D731FCF5F172}" {
+     cost 800
+    }
+    OVT_PriceConfig "{5D72D731CCB3097B}" {
+     m_eItemType PISTOL
+     cost 400
+    }
+    OVT_PriceConfig "{5D72D731A708F4F7}" {
+     m_eItemType LETHAL_THROWABLE
+     cost 40
+    }
+    OVT_PriceConfig "{5D72D731A38497B2}" {
+     m_eItemType ROCKET_LAUNCHER
+     cost 1500
+    }
+    OVT_PriceConfig "{5D72D731A96E692B}" {
+     m_eItemType MACHINE_GUN
+     cost 1500
+    }
+    OVT_PriceConfig "{5D72D731B34E42E7}" {
+     m_eItemType HEAL
+     cost 5
+     demand 75
+    }
+    OVT_PriceConfig "{5D72D736326ECEBD}" {
+     m_eItemType BACKPACK
+    }
+    OVT_PriceConfig "{5D72D7363EA7E137}" {
+     m_eItemType SNIPER_RIFLE
+     cost 2000
+    }
+    OVT_PriceConfig "{5D72D73639B1A86C}" {
+     m_eItemType NON_LETHAL_THROWABLE
+     cost 25
+    }
+    OVT_PriceConfig "{5D72D73603D27464}" {
+     m_eItemType HEADWEAR
+    }
+    OVT_PriceConfig "{5D72D7360DDD73D2}" {
+     m_eItemType TORSO
+    }
+    OVT_PriceConfig "{5D72D7361A77BC07}" {
+     m_eItemType VEST_AND_WAIST
+     cost 120
+    }
+    OVT_PriceConfig "{5D72D736E01E9565}" {
+     m_eItemType LEGS
+     cost 60
+    }
+    OVT_PriceConfig "{5D72D736FEBB95D3}" {
+     m_eItemType FOOTWEAR
+     cost 65
+    }
+    OVT_PriceConfig "{5D72D736F8B61353}" {
+     m_eItemType RADIO_BACKPACK
+     cost 500
+    }
+    OVT_PriceConfig "{5D72D736C2DBBC6E}" {
+     m_eItemType EQUIPMENT
+    }
+    OVT_PriceConfig "{5D72D736D819DC45}" {
+     m_eItemType WEAPON_ATTACHMENT
+     cost 150
+    }
+    OVT_PriceConfig "{5D72D736AEC6B667}" {
+     m_eItemType EXPLOSIVES
+    }
+    OVT_PriceConfig "{5D72D736B6A27C7B}" {
+     m_eItemType EQUIPMENT
+     m_sFind "Compass_"
+     cost 10
+    }
+    OVT_PriceConfig "{5D72D7368E52E26A}" {
+     m_eItemType EQUIPMENT
+     m_sFind "Flashlight_"
+     cost 15
+    }
+    OVT_PriceConfig "{5D72D7369485BFE9}" {
+     m_eItemType EQUIPMENT
+     m_sFind "Binoculars_"
+     cost 100
+    }
+    OVT_PriceConfig "{5D72D737649BD262}" {
+     m_eItemType EQUIPMENT
+     m_sFind "Radio_"
+     cost 75
+    }
+    OVT_PriceConfig "{5D72D73771DFFB0B}" {
+     m_eItemType EQUIPMENT
+     m_sFind "Watch_"
      cost 45
     }
-    OVT_ShopInventoryItem "{59908367A86FB67B}" {
-     prefab "{645C73791ECA1698}Prefabs/Weapons/Grenades/Grenade_RGD5.et"
-     cost 35
+    OVT_PriceConfig "{5D72D73752644321}" {
+     m_eItemType EQUIPMENT
+     m_sFind "PaperMap_"
+     cost 1
+     demand 40
     }
-    OVT_ShopInventoryItem "{5D346D5DD06ED55E}" {
-     prefab "{9068EA9DDD7CB805}Prefabs/Items/Equipment/Drugs/DrugsWeed_01.et"
-     cost 38
+    OVT_PriceConfig "{5D72D73A413F5EBE}" {
+     m_eItemType PISTOL
+     m_eItemMode AMMUNITION
+     cost 3
+     demand 50
     }
-    OVT_ShopInventoryItem "{5D5826D4773888E6}" {
-     prefab "{49FFE8F373F55960}Prefabs/Weapons/Explosives/Mine_M15AT/Mine_M15AT.et"
-     cost 85
+    OVT_PriceConfig "{5D72D73A2856B8C8}" {
+     m_eItemMode AMMUNITION
+     cost 6
+     demand 50
     }
-    OVT_ShopInventoryItem "{5D5826D446FE2ABA}" {
-     prefab "{D6EF54367CECE1D9}Prefabs/Weapons/Explosives/Mine_TM62M/Mine_TM62M.et"
-     cost 85
+    OVT_PriceConfig "{5D72D73A3F8D0930}" {
+     m_eItemType ROCKET_LAUNCHER
+     m_eItemMode AMMUNITION
+     cost 25
+    }
+    OVT_PriceConfig "{5D72D73A0577A328}" {
+     m_eItemType MACHINE_GUN
+     m_eItemMode AMMUNITION
+     cost 8
+     demand 50
+    }
+    OVT_PriceConfig "{5D72D73A148CFFEF}" {
+     m_eItemType SNIPER_RIFLE
+     m_eItemMode AMMUNITION
+     cost 10
+     demand 50
     }
    }
   }
@@ -508,6 +521,16 @@ OVT_OverthrowGameMode {
      }
      m_tPreview "{41D4D216FD6A2FE2}UI/Textures/EditorPreviews/Auto/Structures/Industrial/Repair/E_RampVehicle_01_metal.edds"
      m_iCost 1500
+     m_bBuildAtBase 1
+     m_bBuildAtFOB 1
+    }
+    OVT_Buildable "{5D746E054D3455B1}" {
+     name "#OVT-Build_Tent"
+     m_aPrefabs {
+      "{A817454D4372DBCA}Prefabs/Structures/Military/CamoNets/Soviet/CamoNet_Tent_Soviet.et" "{6A30882656A63268}Prefabs/Structures/Military/CamoNets/US/CamoNet_Tent_US.et" "{B6D61E3EC914119E}Prefabs/Compositions/Misc/SubCompositions/Tent_Barrack_Camo_Cluttered_USSR_01.et" "{DA822ADE75D09EB0}Prefabs/Compositions/Misc/SubCompositions/Tent_Barrack_Camo_Cluttered_USSR_02.et" "{95A4CF49FC9C0481}Prefabs/Compositions/Misc/SubCompositions/Tent_Barrack_Cluttered_US_01.et" "{F9F0FBA940588BAF}Prefabs/Compositions/Misc/SubCompositions/Tent_Barrack_Cluttered_US_02.et" "{1C6CB7504CBD1CC4}Prefabs/Compositions/Misc/SubCompositions/Tent_Barrack_Cluttered_US_03.et" "{2158926839D195F3}Prefabs/Compositions/Misc/SubCompositions/Tent_Barrack_Cluttered_US_04.et" "{C4C4DE9135340298}Prefabs/Compositions/Misc/SubCompositions/Tent_Barrack_Cluttered_US_05.et" "{61A1055D397072A5}Prefabs/Compositions/Misc/SubCompositions/Tent_Barrack_Cluttered_USSR_01.et" "{0DF531BD85B4FD8B}Prefabs/Compositions/Misc/SubCompositions/Tent_Barrack_Cluttered_USSR_02.et" "{E8697D4489516AE0}Prefabs/Compositions/Misc/SubCompositions/Tent_Barrack_Cluttered_USSR_03.et" "{FA06509902D591F4}Prefabs/Compositions/Misc/SubCompositions/Tent_BarrackHQ_Cluttered_US_01.et" "{6DEC3A82BA35F108}Prefabs/Compositions/Misc/SubCompositions/Tent_BarrackHQ_Cluttered_USSR_01.et" "{F1C5F8E2EF1105F9}Prefabs/Compositions/Misc/SubCompositions/Tent_HQ_Camo_Cluttered_US_01.et" "{EE6C590D25FF8AD3}Prefabs/Compositions/Misc/SubCompositions/Tent_HQ_Camo_Cluttered_USSR_01.et" "{4A1E3B17DB672E35}Prefabs/Structures/Military/Camps/TentFIA_01/TentFIA_01.et" "{9F2A11E9E112D3ED}Prefabs/Structures/Military/Camps/TentFIA_01/TentFIA_01_camonet.et" "{9110077F59864EF1}Prefabs/Structures/Military/Camps/TentFIA_01/TentFIA_01_medical.et" "{019FFBD85C046071}Prefabs/Structures/Military/Camps/TentFIA_01/TentFIA_01_medical_foundation.et"
+     }
+     m_tPreview "{AED2D3AC99C74576}UI/Textures/EditorPreviews/Auto/Structures/Military/CamoNets/Soviet/E_CamoNet_Tent_Soviet.edds"
+     m_iCost 250
      m_bBuildAtBase 1
      m_bBuildAtFOB 1
     }

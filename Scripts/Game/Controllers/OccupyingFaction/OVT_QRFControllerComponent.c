@@ -72,6 +72,25 @@ class OVT_QRFControllerComponent: OVT_Component
 		}
 	}
 	
+	void Cleanup()
+	{
+		BaseWorld world = GetGame().GetWorld();
+		foreach(EntityID id : m_Groups)
+		{
+			IEntity group = world.FindEntityByID(id);
+			if(!group) continue;
+			SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
+			if(!aigroup) continue;
+			array<AIAgent> agents = new array<AIAgent>;
+			aigroup.GetAgents(agents);
+			foreach(AIAgent agent : agents)
+			{
+				SCR_EntityHelper.DeleteEntityAndChildren(agent);
+			}
+			SCR_EntityHelper.DeleteEntityAndChildren(aigroup);
+		}
+	}
+	
 	protected void CheckUpdatePoints()
 	{
 		BaseWorld world = GetGame().GetWorld();
@@ -145,9 +164,11 @@ class OVT_QRFControllerComponent: OVT_Component
 			
 			if(m_iPoints >= 100 || m_iPoints <= -100)
 			{
+				Cleanup();
 				//We have a winner		
 				m_OnFinished.Invoke();
 				GetGame().GetCallqueue().Remove(CheckUpdatePoints);
+				
 			}
 		}
 	}

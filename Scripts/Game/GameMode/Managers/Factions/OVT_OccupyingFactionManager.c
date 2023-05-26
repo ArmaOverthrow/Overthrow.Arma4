@@ -718,6 +718,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 			foreach(OVT_TownData town : OVT_Global.GetTowns().m_Towns)
 			{
 				if(town.size == 1) continue;
+				if(!OVT_Global.PlayerInRange(town.location, 300)) continue;
+				
 				int support = town.SupportPercentage();		
 				if(town.faction == occupyingFaction)
 				{

@@ -15,6 +15,10 @@ class OVT_FOBMenuContext : OVT_UIContext
 		m_GarrisonButton = SCR_ButtonTextComponent.Cast(m_wRoot.FindAnyWidget("AddToGarrison").FindHandler(SCR_ButtonTextComponent));
 		m_GarrisonButton.m_OnClicked.Insert(AddToGarrison);
 		
+		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");
+		SCR_NavigationButtonComponent btn = SCR_NavigationButtonComponent.Cast(closeButton.FindHandler(SCR_NavigationButtonComponent));		
+		btn.m_OnClicked.Insert(CloseLayout);
+		
 		Refresh();		
 	}
 	
@@ -35,6 +39,9 @@ class OVT_FOBMenuContext : OVT_UIContext
 		foreach(int i, ResourceName res : faction.m_aGroupPrefabSlots)
 		{
 			IEntity spawn = GetGame().SpawnEntityPrefabLocal(Resource.Load(res));
+			EPF_PersistenceComponent persist = EPF_Component<EPF_PersistenceComponent>.Find(spawn);
+			if(persist)
+				persist.Delete();
 			
 			SCR_AIGroup aigroup = SCR_AIGroup.Cast(spawn);
 			int soldierCost = m_Config.m_Difficulty.baseRecruitCost * aigroup.m_aUnitPrefabSlots.Count();

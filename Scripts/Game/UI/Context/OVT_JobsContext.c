@@ -28,6 +28,10 @@ class OVT_JobsContext : OVT_UIContext
 		btn = ButtonActionComponent.Cast(show.FindHandler(ButtonActionComponent));
 		
 		btn.GetOnAction().Insert(Decline);
+		
+		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");
+		SCR_NavigationButtonComponent b = SCR_NavigationButtonComponent.Cast(closeButton.FindHandler(SCR_NavigationButtonComponent));		
+		b.m_OnClicked.Insert(CloseLayout);
 					
 		Refresh();		
 	}

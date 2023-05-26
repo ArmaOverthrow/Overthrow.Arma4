@@ -53,8 +53,6 @@ FrameWidgetClass {
                Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
                 Padding 10 10 16 10
                }
-               {
-               }
               }
              }
             }
@@ -86,8 +84,6 @@ FrameWidgetClass {
                Prefab "{00000000E3602307}"
                Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
                 Padding 10 10 16 10
-               }
-               {
                }
               }
              }
@@ -129,8 +125,6 @@ FrameWidgetClass {
                Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
                 Padding 10 10 16 10
                }
-               {
-               }
               }
              }
             }
@@ -162,8 +156,6 @@ FrameWidgetClass {
                Prefab "{00000000E3602307}"
                Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
                 Padding 10 10 16 10
-               }
-               {
                }
               }
              }
@@ -205,8 +197,6 @@ FrameWidgetClass {
                Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
                 Padding 10 10 16 10
                }
-               {
-               }
               }
              }
             }
@@ -222,10 +212,10 @@ FrameWidgetClass {
           SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
            m_bShowBorderOnHover 0
            m_sLabel "#OVT-MainMenu_Build"
-           m_sActionName "OverthrowPlace"
+           m_sActionName "CharacterFire"
           }
           ButtonActionComponent "{56EEDE0026B19E2C}" {
-           m_bActionName "OverthrowPlace"
+           m_bActionName "CharacterFire"
           }
          }
          {
@@ -239,8 +229,6 @@ FrameWidgetClass {
                Prefab "{00000000E3602307}"
                Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
                 Padding 10 10 16 10
-               }
-               {
                }
               }
              }

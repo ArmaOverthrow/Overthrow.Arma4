@@ -27,6 +27,10 @@ class OVT_ManageVehicleContext : OVT_UIContext
 			return;
 		}
 		
+		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");
+		SCR_NavigationButtonComponent btn = SCR_NavigationButtonComponent.Cast(closeButton.FindHandler(SCR_NavigationButtonComponent));		
+		btn.m_OnClicked.Insert(CloseLayout);
+		
 		Refresh();		
 	}
 	

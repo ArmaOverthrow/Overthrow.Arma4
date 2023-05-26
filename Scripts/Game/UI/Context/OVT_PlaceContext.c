@@ -16,7 +16,7 @@ class OVT_PlaceContext : OVT_UIContext
 	protected const float TRACE_DIS = 15;
 	protected const float MAX_PREVIEW_DIS = 15;
 	protected const float MAX_HOUSE_PLACE_DIS = 30;
-	protected const float MAX_FOB_PLACE_DIS = 30;
+	protected const float MAX_FOB_PLACE_DIS = 60;
 	
 	protected OVT_RealEstateManagerComponent m_RealEstate;
 	protected OVT_OccupyingFactionManager m_OccupyingFaction;
@@ -85,7 +85,7 @@ class OVT_PlaceContext : OVT_UIContext
 		super.RegisterInputs();
 		if(!m_InputManager) return;
 		
-		m_InputManager.AddActionListener("OverthrowPlace", EActionTrigger.DOWN, DoPlace);
+		m_InputManager.AddActionListener("CharacterFire", EActionTrigger.DOWN, DoPlace);
 		m_InputManager.AddActionListener("OverthrowRotateLeft", EActionTrigger.PRESSED, RotateLeft);
 		m_InputManager.AddActionListener("OverthrowRotateRight", EActionTrigger.PRESSED, RotateRight);
 		m_InputManager.AddActionListener("OverthrowNextItem", EActionTrigger.DOWN, NextItem);
@@ -98,7 +98,7 @@ class OVT_PlaceContext : OVT_UIContext
 		super.UnregisterInputs();
 		if(!m_InputManager) return;
 		
-		m_InputManager.RemoveActionListener("OverthrowPlace", EActionTrigger.DOWN, DoPlace);
+		m_InputManager.RemoveActionListener("CharacterFire", EActionTrigger.DOWN, DoPlace);
 		m_InputManager.RemoveActionListener("OverthrowRotateLeft", EActionTrigger.PRESSED, RotateLeft);
 		m_InputManager.RemoveActionListener("OverthrowRotateRight", EActionTrigger.PRESSED, RotateRight);
 		m_InputManager.RemoveActionListener("OverthrowNextItem", EActionTrigger.DOWN, NextItem);
@@ -239,6 +239,9 @@ class OVT_PlaceContext : OVT_UIContext
 		params.Transform[3] = pos;
 		m_pPlacingPrefab = m_Placeable.m_aPrefabs[m_iPrefabIndex];
 		m_ePlacingEntity = GetGame().SpawnEntityPrefabLocal(Resource.Load(m_pPlacingPrefab), null, params);
+		EPF_PersistenceComponent persist = EPF_Component<EPF_PersistenceComponent>.Find(m_ePlacingEntity);
+		if(persist)
+			persist.Delete();
 		
 		if(m_vCurrentTransform)
 		{

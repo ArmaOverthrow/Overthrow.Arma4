@@ -32,6 +32,10 @@ class OVT_PortContext : OVT_UIContext
 		action = ButtonActionComponent.Cast(take10.FindHandler(ButtonActionComponent));		
 		action.GetOnAction().Insert(BuyHundred);
 		
+		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");
+		SCR_NavigationButtonComponent btn = SCR_NavigationButtonComponent.Cast(closeButton.FindHandler(SCR_NavigationButtonComponent));		
+		btn.m_OnClicked.Insert(CloseLayout);
+		
 		Refresh();		
 	}
 	
@@ -48,23 +52,33 @@ class OVT_PortContext : OVT_UIContext
 		array<ResourceName> done = new array<ResourceName>;
 		
 		foreach(OVT_ShopInventoryConfig shop : m_Economy.m_aShopConfigs)
-		{
+		{			
 			if(shop.type == OVT_ShopType.SHOP_VEHICLE) continue;
+			
 			foreach(OVT_ShopInventoryItem item : shop.m_aInventoryItems)
 			{
-				if(done.Contains(item.prefab)) continue;
-				done.Insert(item.prefab);
+				array<SCR_EntityCatalogEntry> entries();
+				m_Economy.FindInventoryItems(item.m_eItemType, item.m_eItemMode, item.m_sFind, entries);
 				
-				if(wi == 0 && m_SelectedResource == -1){
-					SelectItem(item.prefab);
+				foreach(SCR_EntityCatalogEntry entry : entries)
+				{
+					ResourceName prefab = entry.GetPrefab();
+					if(done.Contains(prefab)) continue;
+					done.Insert(prefab);
+					
+					if(wi == 0 && m_SelectedResource == -1){
+						SelectItem(prefab);
+					}
+					
+					Widget ww = workspace.CreateWidgets(m_ItemLayout, container);
+					OVT_PortItemComponent card = OVT_PortItemComponent.Cast(ww.FindHandler(OVT_PortItemComponent));
+					
+					int id = m_Economy.GetInventoryId(prefab);
+											
+					card.Init(prefab, m_Economy.GetPrice(id), this);
+					
+					wi++;
 				}
-				
-				Widget ww = workspace.CreateWidgets(m_ItemLayout, container);
-				OVT_PortItemComponent card = OVT_PortItemComponent.Cast(ww.FindHandler(OVT_PortItemComponent));
-										
-				card.Init(item.prefab, item.cost, this);
-				
-				wi++;
 			}
 		}		
 	}
@@ -81,9 +95,7 @@ class OVT_PortContext : OVT_UIContext
 		img.SetResolutionScale(1, 1);
 				
 		IEntity spawnedItem = GetGame().SpawnEntityPrefabLocal(Resource.Load(m_Economy.GetResource(id)));
-		
-		OVT_ShopInventoryItem shopItem = m_Economy.GetInventoryItem(id);
-							
+									
 		InventoryItemComponent inv = InventoryItemComponent.Cast(spawnedItem.FindComponent(InventoryItemComponent));
 		if(inv){
 			SCR_ItemAttributeCollection attr = SCR_ItemAttributeCollection.Cast(inv.GetAttributes());
@@ -92,7 +104,7 @@ class OVT_PortContext : OVT_UIContext
 				
 				UIInfo info = attr.GetUIInfo();
 				typeName.SetText(info.GetName());
-				details.SetText("$" + shopItem.cost.ToString());
+				details.SetText("$" + m_Economy.GetPrice(id).ToString());
 				desc.SetText(info.GetDescription());
 			}
 		}

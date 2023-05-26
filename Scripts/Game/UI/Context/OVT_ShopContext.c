@@ -11,6 +11,24 @@ class OVT_ShopContext : OVT_UIContext
 		m_Economy.m_OnPlayerMoneyChanged.Insert(OnPlayerMoneyChanged);
 	}
 	
+	override void RegisterInputs()
+	{
+		super.RegisterInputs();
+		if(!m_InputManager) return;
+		
+		m_InputManager.AddActionListener("MenuNavLeft", EActionTrigger.DOWN, PreviousPage);		
+		m_InputManager.AddActionListener("MenuNavRight", EActionTrigger.DOWN, NextPage);
+	}
+	
+	override void UnregisterInputs()
+	{
+		super.UnregisterInputs();
+		if(!m_InputManager) return;
+		
+		m_InputManager.RemoveActionListener("MenuNavLeft", EActionTrigger.DOWN, PreviousPage);
+		m_InputManager.RemoveActionListener("MenuNavRight", EActionTrigger.PRESSED, NextPage);				
+	}
+	
 	protected void OnPlayerMoneyChanged(string playerId, int amount)
 	{
 		if(playerId == m_sPlayerID && m_bIsActive)
@@ -39,12 +57,46 @@ class OVT_ShopContext : OVT_UIContext
 			sellAction.GetOnAction().Insert(Sell);
 		}
 		
+		Widget prevButton = m_wRoot.FindAnyWidget("PrevButton");
+		SCR_NavigationButtonComponent btn = SCR_NavigationButtonComponent.Cast(prevButton.FindHandler(SCR_NavigationButtonComponent));
+		
+		btn.m_OnClicked.Insert(PreviousPage);
+		
+		Widget nextButton = m_wRoot.FindAnyWidget("NextButton");
+		btn = SCR_NavigationButtonComponent.Cast(nextButton.FindHandler(SCR_NavigationButtonComponent));
+		
+		btn.m_OnClicked.Insert(NextPage);
+		
+		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");
+		btn = SCR_NavigationButtonComponent.Cast(closeButton.FindHandler(SCR_NavigationButtonComponent));		
+		btn.m_OnClicked.Insert(CloseLayout);
+		
 		Refresh();		
+	}
+	
+	void PreviousPage()
+	{
+		if(!m_wRoot) return;
+		m_iPageNum--;
+		if(m_iPageNum < 0) m_iPageNum = 0;
+		
+		Refresh();
+	}
+	
+	void NextPage()
+	{
+		if(!m_wRoot) return;
+		m_iPageNum++;
+		int numPages = Math.Ceil(m_Shop.m_aInventory.Count() / 15);
+		if(m_iPageNum > numPages-1) m_iPageNum = numPages-1;
+		
+		Refresh();
 	}
 	
 	void Refresh()
 	{
 		if(!m_Shop) return;
+		if(!m_wRoot) return;
 		
 		TextWidget money = TextWidget.Cast(m_wRoot.FindAnyWidget("PlayerMoney"));
 		
@@ -109,6 +161,9 @@ class OVT_ShopContext : OVT_UIContext
 		int max = m_Economy.GetTownMaxStock(townID, id);
 				
 		IEntity spawnedItem = GetGame().SpawnEntityPrefabLocal(Resource.Load(m_Economy.GetResource(id)));
+		EPF_PersistenceComponent persist = EPF_Component<EPF_PersistenceComponent>.Find(spawnedItem);
+		if(persist)
+			persist.Delete();
 		
 		SCR_EditableVehicleComponent veh = SCR_EditableVehicleComponent.Cast(spawnedItem.FindComponent(SCR_EditableVehicleComponent));
 		if(veh){
@@ -139,22 +194,6 @@ class OVT_ShopContext : OVT_UIContext
 	void SetShop(OVT_ShopComponent shop)
 	{
 		m_Shop = shop;
-	}
-	
-	override void RegisterInputs()
-	{
-		super.RegisterInputs();
-		if(!m_InputManager) return;
-				
-		m_InputManager.AddActionListener("MenuBack", EActionTrigger.DOWN, CloseLayout);
-	}
-	
-	override void UnregisterInputs()
-	{
-		super.UnregisterInputs();
-		if(!m_InputManager) return;
-				
-		m_InputManager.RemoveActionListener("MenuBack", EActionTrigger.DOWN, CloseLayout);
 	}		
 	
 	void Buy(Widget src, float value = 1, EActionTrigger reason = EActionTrigger.DOWN)

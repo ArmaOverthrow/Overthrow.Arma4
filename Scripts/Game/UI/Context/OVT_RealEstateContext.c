@@ -32,6 +32,10 @@ class OVT_RealEstateContext : OVT_UIContext
 		b = SCR_ButtonTextComponent.Cast(btn.FindHandler(SCR_ButtonTextComponent));
 		b.m_OnClicked.Insert(SetAsHome);
 		
+		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");
+		SCR_NavigationButtonComponent nb = SCR_NavigationButtonComponent.Cast(closeButton.FindHandler(SCR_NavigationButtonComponent));		
+		nb.m_OnClicked.Insert(CloseLayout);
+		
 		Refresh();		
 	}
 	

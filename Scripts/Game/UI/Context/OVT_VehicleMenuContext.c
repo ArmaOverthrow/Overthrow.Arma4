@@ -98,6 +98,7 @@ class OVT_VehicleMenuContext : OVT_UIContext
 				comp.SetEnabled(false);
 			}
 		}
+		
 	}
 	
 	protected void PutInWarehouse()

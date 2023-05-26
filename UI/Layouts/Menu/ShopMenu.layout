@@ -121,15 +121,11 @@ FrameWidgetClass {
                  Name "ShopMenu_Card0"
                  Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
                  }
-                 {
-                 }
                 }
                 ButtonWidgetClass "{598EF9F63483038F}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
                  Name "ShopMenu_Card1"
                  Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
                   Column 1
-                 }
-                 {
                  }
                 }
                 ButtonWidgetClass "{598EF9F633D06051}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
@@ -137,15 +133,11 @@ FrameWidgetClass {
                  Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
                   Column 2
                  }
-                 {
-                 }
                 }
                 ButtonWidgetClass "{598EF9F633BFEF00}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
                  Name "ShopMenu_Card3"
                  Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
                   Column 3
-                 }
-                 {
                  }
                 }
                 ButtonWidgetClass "{598EF9F6325378D2}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
@@ -153,15 +145,11 @@ FrameWidgetClass {
                  Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
                   Column 4
                  }
-                 {
-                 }
                 }
                 ButtonWidgetClass "{598EF9F60F337705}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
                  Name "ShopMenu_Card5"
                  Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
                   Row 1
-                 }
-                 {
                  }
                 }
                 ButtonWidgetClass "{598EF9F60F36BA40}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
@@ -170,16 +158,12 @@ FrameWidgetClass {
                   Row 1
                   Column 1
                  }
-                 {
-                 }
                 }
                 ButtonWidgetClass "{598EF9F60F35E940}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
                  Name "ShopMenu_Card7"
                  Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
                   Row 1
                   Column 2
-                 }
-                 {
                  }
                 }
                 ButtonWidgetClass "{598EF9F60F3896BA}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
@@ -188,8 +172,6 @@ FrameWidgetClass {
                   Row 1
                   Column 3
                  }
-                 {
-                 }
                 }
                 ButtonWidgetClass "{598EF9F60F3FBB18}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
                  Name "ShopMenu_Card9"
@@ -197,15 +179,11 @@ FrameWidgetClass {
                   Row 1
                   Column 4
                  }
-                 {
-                 }
                 }
                 ButtonWidgetClass "{598EF9F613CB2661}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
                  Name "ShopMenu_Card10"
                  Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
                   Row 2
-                 }
-                 {
                  }
                 }
                 ButtonWidgetClass "{598EF9F613CFA83A}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
@@ -214,16 +192,12 @@ FrameWidgetClass {
                   Row 2
                   Column 1
                  }
-                 {
-                 }
                 }
                 ButtonWidgetClass "{598EF9F613B3F901}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
                  Name "ShopMenu_Card12"
                  Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
                   Row 2
                   Column 2
-                 }
-                 {
                  }
                 }
                 ButtonWidgetClass "{598EF9F613B7C75F}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
@@ -232,16 +206,12 @@ FrameWidgetClass {
                   Row 2
                   Column 3
                  }
-                 {
-                 }
                 }
                 ButtonWidgetClass "{598EF9F613BBC135}" : "{E597EA0FF6FA0CB0}UI/Layouts/Menu/ShopMenu/ShopMenu_Card.layout" {
                  Name "ShopMenu_Card14"
                  Slot UniformGridWidgetSlot "{5720F28474F65C1B}" {
                   Row 2
                   Column 4
-                 }
-                 {
                  }
                 }
                }
@@ -278,9 +248,6 @@ FrameWidgetClass {
                    m_sLabel "#AR-Editor_ContentBrowser_ButtonClose"
                    m_sActionName "MenuBack"
                   }
-                  ButtonActionComponent "{56EEDE01BE93EE7D}" {
-                   m_bActionName "MenuBack"
-                  }
                  }
                  {
                   SizeLayoutWidgetClass "{5562AD435529FB36}" {
@@ -293,8 +260,6 @@ FrameWidgetClass {
                        Prefab "{00000000E3602307}"
                        Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
                         Padding 10 10 16 10
-                       }
-                       {
                        }
                       }
                      }
@@ -329,8 +294,6 @@ FrameWidgetClass {
                        Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
                         Padding 10 10 16 10
                        }
-                       {
-                       }
                       }
                      }
                     }
@@ -344,8 +307,6 @@ FrameWidgetClass {
                Name "Pagination"
                Slot OverlayWidgetSlot "{56EEDE03221863B0}" {
                 VerticalAlign 3
-               }
-               {
                }
               }
              }
@@ -483,8 +444,6 @@ FrameWidgetClass {
                      Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
                       Padding 10 10 16 10
                      }
-                     {
-                     }
                     }
                    }
                   }
@@ -517,8 +476,6 @@ FrameWidgetClass {
                      Prefab "{00000000E3602307}"
                      Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
                       Padding 10 10 16 10
-                     }
-                     {
                      }
                     }
                    }
