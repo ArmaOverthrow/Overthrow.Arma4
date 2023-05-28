@@ -51,6 +51,11 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		}	
 	}
 	
+	OVT_PersistenceManagerComponent GetPersistence()
+	{
+		return m_Persistence;
+	}
+	
 	void DoStartGame()
 	{
 		m_StartGameUIContext.CloseLayout();

@@ -31,6 +31,12 @@ class OVT_PersistenceManagerComponent : EPF_PersistenceManagerComponent
 			m_pPersistenceManager.OnWorldPostProcess(m_World);
 	}
 	
+	void SaveGame()
+	{
+		if (m_pPersistenceManager)
+			m_pPersistenceManager.AutoSave();
+	}
+	
 	void StartNewGame()
 	{
 		//To-Do: wipe database to start a new game?
