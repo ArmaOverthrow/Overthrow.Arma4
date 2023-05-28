@@ -1,0 +1,9 @@
+StaticModelEntity {
+ ID "5A5344E1FF095A46"
+ components {
+  EPF_PersistenceComponent "{5D78E467D90A152C}" {
+   m_pSaveData EPF_ItemSaveDataClass "{5D78E467D8C117F2}" {
+   }
+  }
+ }
+}

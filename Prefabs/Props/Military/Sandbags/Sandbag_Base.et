@@ -4,5 +4,9 @@ GenericEntity : "{4CC2C69DE1AEF103}Prefabs/Props/Core/Destructible_Props_Base.et
   RplComponent "{5624A88DC2D9928D}" {
    Enabled 1
   }
+  EPF_PersistenceComponent "{5D78D825E012A6C6}" {
+   m_pSaveData EPF_ItemSaveDataClass "{5D78D825EFAB6EA6}" {
+   }
+  }
  }
 }

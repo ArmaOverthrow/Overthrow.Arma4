@@ -33,6 +33,10 @@ GenericEntity : "{3BA9D94C4EE9B33B}Prefabs/Compositions/Slotted/CompositionBase.
    m_fLookDirectionRange 90
    m_bUseBinoculars 1
   }
+  EPF_PersistenceComponent "{5D78D8216A0F3155}" {
+   m_pSaveData EPF_ItemSaveDataClass "{5D78D82169A8DD18}" {
+   }
+  }
  }
  coords 0 0 0
  {
@@ -56,7 +60,7 @@ GenericEntity : "{3BA9D94C4EE9B33B}Prefabs/Compositions/Slotted/CompositionBase.
    coords -4.368 0.114 1.664
    angleY -16.103
   }
-  StaticModelEntity : "{55A3DA68E58453A1}Prefabs/Structures/Military/Fortifications/DirtCover_01_long_v2.et" {
+  StaticModelEntity : "{55A3DA68E58453A1}Prefabs/Structures/Military/Fortifications/DirtCover_01/DirtCover_01_long_v2.et" {
    ID "59B2E1ACD820F757"
    components {
     Hierarchy "{59B2E1ACD82B7110}" {
@@ -65,7 +69,7 @@ GenericEntity : "{3BA9D94C4EE9B33B}Prefabs/Compositions/Slotted/CompositionBase.
    }
    coords 1.275 0 -3.826
   }
-  StaticModelEntity : "{60DE3D0B58E8C7A0}Prefabs/Compositions/Misc/SubCompositions/BarbedCoil_Cluttered_USSR_02.et" {
+  SCR_DestructibleEntity : "{60DE3D0B58E8C7A0}Prefabs/Compositions/Misc/SubCompositions/BarbedCoil_Cluttered_USSR_02.et" {
    ID "59B2E1ACD820F756"
    coords 2.403 0 -0.578
   }
@@ -82,7 +86,7 @@ GenericEntity : "{3BA9D94C4EE9B33B}Prefabs/Compositions/Slotted/CompositionBase.
    coords -3.939 0.001 -0.012
    angleY 166.671
   }
-  $grp StaticModelEntity : "{82B378151A9AEF2F}Prefabs/Structures/Military/Fortifications/DirtPile_01_large.et" {
+  $grp StaticModelEntity : "{82B378151A9AEF2F}Prefabs/Structures/Military/Fortifications/DirtPile_01/DirtPile_01_large.et" {
    {
     ID "59B2E1ACD82F61E0"
     components {
@@ -128,7 +132,7 @@ GenericEntity : "{3BA9D94C4EE9B33B}Prefabs/Compositions/Slotted/CompositionBase.
     coords -0.511 0.1 -0.559
    }
   }
-  GenericEntity : "{9A6B7E1F874E5C0F}Prefabs/Compositions/Misc/SubCompositions/Sandbag_Bunker_Cluttered_USSR_01.et" {
+  StaticModelEntity : "{9A6B7E1F874E5C0F}Prefabs/Compositions/Misc/SubCompositions/Sandbag_Bunker_Cluttered_USSR_01.et" {
    ID "59B2E1ACD82F63D0"
    coords 0.138 0 2.173
   }
@@ -141,13 +145,13 @@ GenericEntity : "{3BA9D94C4EE9B33B}Prefabs/Compositions/Slotted/CompositionBase.
    }
    coords 0.177 0 -1.937
   }
-  GenericEntity : "{A0ACD52C934CFA92}Prefabs/Props/Military/AmmoBoxes/EquipmentBoxStack/EquipmentBoxStack_USSR_01_V5_covered.et" {
+  GenericEntity : "{A0ACD52C934CFA92}Prefabs/Props/Military/AmmoBoxes/EquipmentBoxStack/USSR/EquipmentBoxStack_USSR_01_V5_covered.et" {
    ID "59B2E1ACD82F2AD6"
    coords -2.745 -0.035 0.167
    angleY 169.367
    scale 0.75
   }
-  StaticModelEntity : "{B03F9691E961C4CA}Prefabs/Structures/Military/Fortifications/DirtCover_01_long_v3.et" {
+  StaticModelEntity : "{B03F9691E961C4CA}Prefabs/Structures/Military/Fortifications/DirtCover_01/DirtCover_01_long_v3.et" {
    ID "59B2E1ACD82F2AD7"
    components {
     Hierarchy "{59B2E1ACD82B70FA}" {
@@ -235,7 +239,7 @@ GenericEntity : "{3BA9D94C4EE9B33B}Prefabs/Compositions/Slotted/CompositionBase.
    angleY -131.679
    angleZ -9.465
   }
-  $grp StaticModelEntity : "{C1576E5555582214}Prefabs/Structures/Military/Fortifications/DirtCover_01_short.et" {
+  $grp StaticModelEntity : "{C1576E5555582214}Prefabs/Structures/Military/Fortifications/DirtCover_01/DirtCover_01_short.et" {
    {
     ID "59B2E1ACD82E5410"
     components {

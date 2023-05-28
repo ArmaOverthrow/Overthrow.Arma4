@@ -1,0 +1,9 @@
+GenericEntity : "{CD0BE5C399B0752F}Prefabs/Structures/Signs/Signs_Base.et" {
+ ID "50D67C36F4200F97"
+ components {
+  EPF_PersistenceComponent "{5D78E4660FFC4E2C}" {
+   m_pSaveData EPF_ItemSaveDataClass "{5D78E4660D569EE1}" {
+   }
+  }
+ }
+}

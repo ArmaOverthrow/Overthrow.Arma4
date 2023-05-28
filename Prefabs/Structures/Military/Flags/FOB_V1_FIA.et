@@ -32,6 +32,10 @@ GenericEntity : "{160E4E4110803F26}Prefabs/Structures/Military/Flags/FlagPole_02
   }
   RplComponent "{59A49A8416A87531}" {
   }
+  EPF_PersistenceComponent "{5D78E466BB11D34B}" {
+   m_pSaveData EPF_ItemSaveDataClass "{5D78E466B908FD06}" {
+   }
+  }
  }
  coords 0 0 0
 }

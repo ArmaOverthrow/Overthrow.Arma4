@@ -3,17 +3,20 @@ GenericEntity : "{D62A80FF7E61B2FA}Prefabs/Props/Furniture/LightTable_01.et" {
  components {
   Hierarchy "{59CC0DBAEA18F509}" {
   }
+  RplComponent "{5624A88DC2D9928D}" {
+   Enabled 1
+  }
+  EPF_PersistenceComponent "{5D78D824AFD37D43}" {
+   m_pSaveData EPF_ItemSaveDataClass "{5D78D824ACB93529}" {
+   }
+  }
  }
  coords 5019.553 27.982 10843.384
  {
-  LightEntity : "{FDAE290D23E339DB}Prefabs/Props/Core/Destructible_Light_Base.et" {
+  SCR_DestructibleEntity : "{FDAE290D23E339DB}Prefabs/Props/Core/Destructible_Light_Base.et" {
    ID "59CC0DB92FBA4722"
    coords 0 0.34 0.1
    angleX 0
-   Color 1 0.967 0.838 0
-   LV 1.353
-   Type Point
-   Radius 3.49
   }
  }
 }
