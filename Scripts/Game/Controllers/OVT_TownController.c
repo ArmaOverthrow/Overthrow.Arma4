@@ -84,15 +84,10 @@ class OVT_TownControllerComponent: OVT_Component
 		
 		IEntity target = m_TownManager.GetRandomHouseInTown(m_Town);
 		
-		EntitySpawnParams spawnParams = new EntitySpawnParams;
-		spawnParams.TransformMode = ETransformMode.WORLD;
-		
 		BaseWorld world = GetGame().GetWorld();
 		
 		spawnPosition = OVT_Global.FindSafeSpawnPosition(spawnPosition);
-		
-		spawnParams.Transform[3] = spawnPosition;
-		IEntity civ = GetGame().SpawnEntityPrefab(Resource.Load(m_Config.m_pCivilianPrefab), world, spawnParams);
+		IEntity civ = EPF_Utils.SpawnEntityPrefab(m_Config.m_pCivilianPrefab, spawnPosition);
 		
 		EntityID civId = civ.GetID();
 		
@@ -126,15 +121,11 @@ class OVT_TownControllerComponent: OVT_Component
 			spawnPosition = house.GetOrigin();
 		}
 		
-		EntitySpawnParams spawnParams = new EntitySpawnParams;
-		spawnParams.TransformMode = ETransformMode.WORLD;
-		
 		BaseWorld world = GetGame().GetWorld();
 		
 		spawnPosition = OVT_Global.FindSafeSpawnPosition(spawnPosition);
 		
-		spawnParams.Transform[3] = spawnPosition;
-		IEntity dealer = GetGame().SpawnEntityPrefab(Resource.Load(m_Config.m_pGunDealerPrefab), world, spawnParams);
+		IEntity dealer = EPF_Utils.SpawnEntityPrefab(m_Config.m_pGunDealerPrefab, spawnPosition);
 		
 		m_GunDealerID = dealer.GetID();
 		

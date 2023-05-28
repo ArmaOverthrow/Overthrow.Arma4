@@ -272,10 +272,7 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	
 	AIWaypoint SpawnWaypoint(ResourceName res, vector pos)
 	{
-		EntitySpawnParams params = EntitySpawnParams();
-		params.TransformMode = ETransformMode.WORLD;
-		params.Transform[3] = pos;
-		AIWaypoint wp = AIWaypoint.Cast(GetGame().SpawnEntityPrefab(Resource.Load(res), null, params));
+		AIWaypoint wp = AIWaypoint.Cast(EPF_Utils.SpawnEntityPrefab(res, pos));
 		return wp;
 	}
 	
@@ -295,10 +292,7 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	
 	SCR_EntityWaypoint SpawnGetInWaypoint(IEntity target)
 	{
-		EntitySpawnParams params = EntitySpawnParams();
-		params.TransformMode = ETransformMode.WORLD;
-		params.Transform[3] = target.GetOrigin();
-		SCR_EntityWaypoint wp = SCR_EntityWaypoint.Cast(GetGame().SpawnEntityPrefab(Resource.Load(m_pGetInWaypointPrefab), null, params));
+		SCR_EntityWaypoint wp = SCR_EntityWaypoint.Cast(EPF_Utils.SpawnEntityPrefab(m_pGetInWaypointPrefab, target.GetOrigin()));
 		
 		wp.SetEntity(target);
 		
@@ -307,20 +301,14 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	
 	SCR_TimedWaypoint SpawnWaitWaypoint(vector pos, float time)
 	{
-		EntitySpawnParams params = EntitySpawnParams();
-		params.TransformMode = ETransformMode.WORLD;
-		params.Transform[3] = pos;
-		SCR_TimedWaypoint wp = SCR_TimedWaypoint.Cast(GetGame().SpawnEntityPrefab(Resource.Load(m_pWaitWaypointPrefab), null, params));
+		SCR_TimedWaypoint wp = SCR_TimedWaypoint.Cast(EPF_Utils.SpawnEntityPrefab(m_pWaitWaypointPrefab, pos));
 		
 		return wp;
 	}
 	
 	SCR_SmartActionWaypoint SpawnActionWaypoint(vector pos, IEntity target, string action)
 	{
-		EntitySpawnParams params = EntitySpawnParams();
-		params.TransformMode = ETransformMode.WORLD;
-		params.Transform[3] = pos;
-		SCR_SmartActionWaypoint wp = SCR_SmartActionWaypoint.Cast(GetGame().SpawnEntityPrefab(Resource.Load(m_pSmartActionWaypointPrefab), null, params));
+		SCR_SmartActionWaypoint wp = SCR_SmartActionWaypoint.Cast(EPF_Utils.SpawnEntityPrefab(m_pSmartActionWaypointPrefab, pos));
 		
 		wp.SetSmartActionEntity(target, action);
 		

@@ -6,16 +6,12 @@ class OVT_SpawnCivilianJobStage : OVT_JobStage
 	override bool OnStart(OVT_Job job)
 	{
 		vector spawnPosition = job.location;
-		
-		EntitySpawnParams spawnParams = new EntitySpawnParams;
-		spawnParams.TransformMode = ETransformMode.WORLD;
-		
+				
 		BaseWorld world = GetGame().GetWorld();
 		
-		spawnPosition = OVT_Global.FindSafeSpawnPosition(spawnPosition);		
-		spawnParams.Transform[3] = spawnPosition;
+		spawnPosition = OVT_Global.FindSafeSpawnPosition(spawnPosition);			
 		
-		IEntity entity = GetGame().SpawnEntityPrefab(Resource.Load(m_pPrefab), world, spawnParams);
+		IEntity entity = EPF_Utils.SpawnEntityPrefab(m_pPrefab, spawnPosition);
 		
 		RplComponent rpl = RplComponent.Cast(entity.FindComponent(RplComponent));		
 		job.entity = rpl.Id();

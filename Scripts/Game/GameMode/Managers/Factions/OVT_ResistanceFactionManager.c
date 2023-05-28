@@ -151,6 +151,11 @@ class OVT_ResistanceFactionManager: OVT_Component
 	
 	void Init(IEntity owner)
 	{
+		GetGame().GetCallqueue().CallLater(RegisterUpgrades, 0);		
+	}
+	
+	void RegisterUpgrades()
+	{
 		//Register vehicle upgrade resources with the economy
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
 		foreach(OVT_VehicleUpgrades upgrades : m_aVehicleUpgrades)
@@ -274,24 +279,16 @@ class OVT_ResistanceFactionManager: OVT_Component
 	}
 	
 	SCR_AIGroup SpawnGarrison(OVT_BaseData base, ResourceName res)
-	{
-		EntitySpawnParams params = EntitySpawnParams();
-		params.TransformMode = ETransformMode.WORLD;
-		params.Transform[3] = base.location;
-		
-		IEntity entity = GetGame().SpawnEntityPrefab(Resource.Load(res), GetGame().GetWorld(), params);
+	{		
+		IEntity entity = EPF_Utils.SpawnEntityPrefab(res, base.location);
 		SCR_AIGroup group = SCR_AIGroup.Cast(entity);
 		AddPatrolWaypoints(group, base);
 		return group;
 	}
 	
 	SCR_AIGroup SpawnGarrisonFOB(OVT_FOBData fob, ResourceName res)
-	{
-		EntitySpawnParams params = EntitySpawnParams();
-		params.TransformMode = ETransformMode.WORLD;
-		params.Transform[3] = fob.location + "1 0 0";
-		
-		IEntity entity = GetGame().SpawnEntityPrefab(Resource.Load(res), GetGame().GetWorld(), params);
+	{	
+		IEntity entity = EPF_Utils.SpawnEntityPrefab(res, fob.location + "1 0 0");
 		SCR_AIGroup group = SCR_AIGroup.Cast(entity);
 		
 		AIWaypoint wp = m_Config.SpawnDefendWaypoint(fob.location);
@@ -426,7 +423,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		IEntity vehicle = turretEntity.GetParent();
 		if(!vehicle) return;		
 				
-		IEntity group = GetGame().SpawnEntityPrefab(Resource.Load(m_pHiredCivilianPrefab));
+		IEntity group = EPF_Utils.SpawnEntityPrefab(m_pHiredCivilianPrefab, vehicle.GetOrigin());
 		SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
 		if(!aigroup) return;
 		

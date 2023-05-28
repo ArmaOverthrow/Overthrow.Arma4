@@ -64,7 +64,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		if(RplSession.Mode() == RplMode.Dedicated)
 		{
 			Print("Spawning comms entity for dedicated server");					
-			IEntity entity = GetGame().SpawnEntityPrefab(Resource.Load(m_PlayerCommsPrefab), GetGame().GetWorld());
+			IEntity entity = EPF_Utils.SpawnEntityPrefab(m_PlayerCommsPrefab,"100 0 0");
 			m_Server = OVT_PlayerCommsEntity.Cast(entity);
 		}
 		
@@ -208,7 +208,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		
 		//Print("Spawning player comms entity for player " + playerId);
 		RplIdentity playerRplID = playerController.GetRplIdentity();		
-		IEntity entity = GetGame().SpawnEntityPrefab(Resource.Load(m_PlayerCommsPrefab), GetGame().GetWorld());
+		IEntity entity = EPF_Utils.SpawnEntityPrefab(m_PlayerCommsPrefab, "100 0 0");
 		
 		RplComponent rpl = RplComponent.Cast(entity.FindComponent(RplComponent));
 		
@@ -216,11 +216,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		rpl.Give(playerRplID);
 		
 		m_TownManager.StreamTownModifiers(playerId);
-		
-		if(RplSession.Mode() == RplMode.Dedicated && !m_bGameStarted)
-		{
-			RemoteStartGame();
-		}
 	}
 	
 	protected override void OnPlayerKilled(int playerId, IEntity player, IEntity killer)
@@ -352,12 +347,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		
 		int cameraIndex = s_AIRandomGenerator.RandInt(0, m_Config.m_aCameraPositions.Count()-1);
 		OVT_CameraPosition pos = m_Config.m_aCameraPositions[cameraIndex];
-		
-		EntitySpawnParams params = EntitySpawnParams();
-		params.TransformMode = ETransformMode.WORLD;		
-		params.Transform[3] = pos.position;
 						
-		IEntity cam = GetGame().SpawnEntityPrefabLocal(Resource.Load(m_StartCameraPrefab),null,params);
+		IEntity cam = EPF_Utils.SpawnEntityPrefab(m_StartCameraPrefab, pos.position, "0 0 0", false);
 		if(cam)
 		{			
 			CameraBase camera = CameraBase.Cast(cam);

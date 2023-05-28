@@ -199,23 +199,18 @@ class OVT_OccupyingFactionManager: OVT_Component
 				if(tower.garrison.Count() == 0)
 				{
 					//Spawn in radio defense
-					BaseWorld world = GetGame().GetWorld();			
-					EntitySpawnParams spawnParams = new EntitySpawnParams;
-					spawnParams.TransformMode = ETransformMode.WORLD;
 					
 					vector pos = tower.location + "5 0 0";
 					
-					float surfaceY = world.GetSurfaceY(pos[0], pos[2]);
+					float surfaceY = GetGame().GetWorld().GetSurfaceY(pos[0], pos[2]);
 					if (pos[1] < surfaceY)
 					{
 						pos[1] = surfaceY;
 					}
 					
-					spawnParams.Transform[3] = pos;
-					
 					for(int t = 0; t < m_Config.m_Difficulty.radioTowerGroups; t++)
 					{
-						IEntity group = GetGame().SpawnEntityPrefab(Resource.Load(faction.m_aTowerDefensePatrolPrefab), world, spawnParams);
+						IEntity group = EPF_Utils.SpawnEntityPrefab(faction.m_aTowerDefensePatrolPrefab, pos);						
 						tower.garrison.Insert(group.GetID());
 						SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
 						AIWaypoint wp = m_Config.SpawnDefendWaypoint(pos);
@@ -592,19 +587,12 @@ class OVT_OccupyingFactionManager: OVT_Component
 	
 	IEntity SpawnBaseController(vector loc)
 	{
-		EntitySpawnParams params = EntitySpawnParams();
-		params.TransformMode = ETransformMode.WORLD;
-		params.Transform[3] = loc;
-		return GetGame().SpawnEntityPrefab(Resource.Load(m_pBaseControllerPrefab), GetGame().GetWorld(), params));
-		
+		return EPF_Utils.SpawnEntityPrefab(m_pBaseControllerPrefab, loc);				
 	}
 	
 	OVT_QRFControllerComponent SpawnQRFController(vector loc)
-	{
-		EntitySpawnParams params = EntitySpawnParams();
-		params.TransformMode = ETransformMode.WORLD;
-		params.Transform[3] = loc;
-		IEntity qrf = GetGame().SpawnEntityPrefab(Resource.Load(m_pQRFControllerPrefab), GetGame().GetWorld(), params);
+	{		
+		IEntity qrf = EPF_Utils.SpawnEntityPrefab(m_pQRFControllerPrefab, loc);
 		return OVT_QRFControllerComponent.Cast(qrf.FindComponent(OVT_QRFControllerComponent));	
 	}
 	

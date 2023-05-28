@@ -662,10 +662,7 @@ class OVT_TownManagerComponent: OVT_Component
 	{
 		foreach(OVT_TownData town : m_Towns)
 		{
-			EntitySpawnParams spawnParams = new EntitySpawnParams;
-			spawnParams.TransformMode = ETransformMode.WORLD;		
-			spawnParams.Transform[3] = town.location;
-			IEntity controller = GetGame().SpawnEntityPrefab(Resource.Load(m_Config.m_pTownControllerPrefab), GetGame().GetWorld(), spawnParams);
+			IEntity controller = EPF_Utils.SpawnEntityPrefab(m_Config.m_pTownControllerPrefab, town.location);
 		}
 	}
 	

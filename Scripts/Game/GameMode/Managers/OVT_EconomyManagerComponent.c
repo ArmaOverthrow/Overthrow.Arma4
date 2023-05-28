@@ -678,15 +678,21 @@ class OVT_EconomyManagerComponent: OVT_Component
 	{			
 		m_Towns = OVT_Global.GetTowns();
 		m_Players = OVT_Global.GetPlayers();
+		m_aResources = new array<ref ResourceName>;
 		
-		BuildResourceDatabase();
-		GetGame().GetCallqueue().CallLater(InitializePorts, 0);
-		
-		if(!Replication.IsServer()) return;		
-		InitializeShops();		
+		GetGame().GetCallqueue().CallLater(AfterInit, 0);		
 		
 		GetGame().GetCallqueue().CallLater(CheckUpdate, ECONOMY_UPDATE_FREQUENCY / m_Config.m_iTimeMultiplier, true, GetOwner());
 		
+	}
+	
+	protected void AfterInit()
+	{
+		BuildResourceDatabase();
+		InitializePorts();
+		
+		if(!Replication.IsServer()) return;		
+		InitializeShops();		
 	}
 	
 	void RegisterResource(ResourceName res)
@@ -700,9 +706,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	}
 	
 	void BuildResourceDatabase()
-	{
-		m_aResources = new array<ref ResourceName>;
-				
+	{	
 		FactionManager factionMgr = GetGame().GetFactionManager();
 		array<Faction> factions = new array<Faction>;
 		factionMgr.GetFactionsList(factions);

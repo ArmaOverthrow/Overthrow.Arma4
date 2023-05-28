@@ -19,19 +19,15 @@ class OVT_SpawnGroupJobStage : OVT_JobStage
 	{
 		vector spawnPosition = job.location + m_vPositionOffset;
 		
-		EntitySpawnParams spawnParams = new EntitySpawnParams;
-		spawnParams.TransformMode = ETransformMode.WORLD;
-		
 		BaseWorld world = GetGame().GetWorld();
 		
-		spawnPosition = OVT_Global.FindSafeSpawnPosition(spawnPosition);		
-		spawnParams.Transform[3] = spawnPosition;
+		spawnPosition = OVT_Global.FindSafeSpawnPosition(spawnPosition);	
 		
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
 		
 		OVT_Faction faction = config.GetFactionByType(m_Faction);
 		
-		IEntity entity = GetGame().SpawnEntityPrefab(Resource.Load(faction.GetRandomGroupByType(m_GroupType)), world, spawnParams);
+		IEntity entity = EPF_Utils.SpawnEntityPrefab(faction.GetRandomGroupByType(m_GroupType), spawnPosition);
 		
 		SCR_AIGroup group = SCR_AIGroup.Cast(entity);
 		if(group)
