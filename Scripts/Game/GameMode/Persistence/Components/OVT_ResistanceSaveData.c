@@ -12,7 +12,23 @@ class OVT_ResistanceSaveData : EPF_ComponentSaveData
 	{		
 		OVT_ResistanceFactionManager resistance = OVT_ResistanceFactionManager.Cast(component);
 		
-		m_FOBs = resistance.m_FOBs;
+		m_FOBs = new array<ref OVT_FOBData>;
+		
+		foreach(OVT_FOBData fob : resistance.m_FOBs)
+		{
+			fob.garrison.Clear();
+			foreach(EntityID id : fob.garrisonEntities)
+			{
+				SCR_AIGroup aigroup = SCR_AIGroup.Cast(GetGame().GetWorld().FindEntityByID(id));
+				if(!aigroup) continue;
+				if(aigroup.GetAgentsCount() > 0)
+				{
+					ResourceName res = EPF_Utils.GetPrefabName(aigroup);
+					fob.garrison.Insert(res);					
+				}
+			}	
+			m_FOBs.Insert(fob);
+		}
 		
 		return EPF_EReadResult.OK;
 	}

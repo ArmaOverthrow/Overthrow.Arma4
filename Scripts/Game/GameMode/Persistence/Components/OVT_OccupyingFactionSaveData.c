@@ -39,6 +39,18 @@ class OVT_OccupyingFactionSaveData : EPF_ComponentSaveData
 					IEntity ent = GetGame().GetWorld().FindEntityByID(id);
 					if(ent) base.slotsFilled.Insert(ent.GetOrigin());
 				}
+			}else{
+				base.garrison.Clear();
+				foreach(EntityID id : base.garrisonEntities)
+				{
+					SCR_AIGroup aigroup = SCR_AIGroup.Cast(GetGame().GetWorld().FindEntityByID(id));
+					if(!aigroup) continue;
+					if(aigroup.GetAgentsCount() > 0)
+					{
+						ResourceName res = EPF_Utils.GetPrefabName(aigroup);
+						base.garrison.Insert(res);					
+					}
+				}	
 			}
 			m_Bases.Insert(base);
 		}
@@ -61,6 +73,7 @@ class OVT_OccupyingFactionSaveData : EPF_ComponentSaveData
 			existing.faction = base.faction;
 			existing.upgrades = base.upgrades;
 			existing.slotsFilled = base.slotsFilled;
+			existing.garrison = base.garrison;
 		}
 		
 		foreach(OVT_RadioTowerData tower : m_RadioTowers)

@@ -38,7 +38,9 @@ class OVT_BaseData : Managed
 	EntityID entId;
 		
 	[NonSerialized()]
-	ref array<ref EntityID> garrison = {};
+	ref array<ref EntityID> garrisonEntities = {};
+	
+	ref array<ref ResourceName> garrison = {};
 	
 	bool IsOccupyingFaction()
 	{
@@ -381,6 +383,11 @@ class OVT_OccupyingFactionManager: OVT_Component
 						if(slot) base.m_aSlotsFilled.Insert(slot.GetID());
 					}
 				}	
+			}else{
+				foreach(ResourceName res : data.garrison)
+				{
+					data.garrisonEntities.Insert(OVT_Global.GetResistanceFaction().SpawnGarrison(data, res).GetID());
+				}
 			}			
 		}
 		m_BasesToSpawn.Clear();

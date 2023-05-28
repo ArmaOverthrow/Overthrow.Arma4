@@ -20,13 +20,13 @@ class OVT_TownSaveData : EPF_ComponentSaveData
 	override EPF_EApplyResult ApplyTo(IEntity owner, GenericComponent component, EPF_ComponentSaveDataClass attributes)
 	{
 		OVT_TownManagerComponent towns = OVT_TownManagerComponent.Cast(component);
-		
+				
 		foreach(OVT_TownData town : m_aTowns)
 		{
 			OVT_TownData existing = towns.GetNearestTown(town.location);
 			if(!existing) continue;
 			
-			town.CopyFrom(existing);
+			existing.CopyFrom(town);
 		}
 				
 		return EPF_EApplyResult.OK;

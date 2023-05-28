@@ -11,7 +11,9 @@ class OVT_FOBData
 	vector location;
 	
 	[NonSerialized()]
-	ref array<ref EntityID> garrison = {};
+	ref array<ref EntityID> garrisonEntities = {};
+	
+	ref array<ref ResourceName> garrison = {};
 	
 	bool IsOccupyingFaction()
 	{
@@ -162,8 +164,19 @@ class OVT_ResistanceFactionManager: OVT_Component
 	
 	void PostGameStart()
 	{
-		
+		GetGame().GetCallqueue().CallLater(SpawnGarrisons, 0);
 	}	
+	
+	protected void SpawnGarrisons()
+	{	
+		foreach(OVT_FOBData fob : m_FOBs)
+		{
+			foreach(ResourceName res : fob.garrison)
+			{
+				fob.garrisonEntities.Insert(OVT_Global.GetResistanceFaction().SpawnGarrisonFOB(fob, res).GetID());
+			}
+		}
+	}
 	
 	bool IsOfficer(int playerId)
 	{
@@ -235,15 +248,9 @@ class OVT_ResistanceFactionManager: OVT_Component
 		OVT_Faction faction = m_Config.GetPlayerFaction();
 		ResourceName res = faction.m_aGroupPrefabSlots[prefabIndex];
 				
-		EntitySpawnParams params = EntitySpawnParams();
-		params.TransformMode = ETransformMode.WORLD;
-		params.Transform[3] = base.location;
-		
-		IEntity entity = GetGame().SpawnEntityPrefab(Resource.Load(res), GetGame().GetWorld(), params);
-		SCR_AIGroup group = SCR_AIGroup.Cast(entity);
-		AddPatrolWaypoints(group, base);
+		SCR_AIGroup group = SpawnGarrison(base, res);
 			
-		base.garrison.Insert(group.GetID());	
+		base.garrisonEntities.Insert(group.GetID());	
 		
 		if(takeSupporters)
 		{
@@ -256,21 +263,41 @@ class OVT_ResistanceFactionManager: OVT_Component
 		OVT_Faction faction = m_Config.GetPlayerFaction();
 		ResourceName res = faction.m_aGroupPrefabSlots[prefabIndex];
 				
+		SCR_AIGroup group = SpawnGarrisonFOB(fob, res);
+		
+		fob.garrisonEntities.Insert(group.GetID());
+				
+		if(takeSupporters)
+		{
+			OVT_Global.GetTowns().TakeSupportersFromNearestTown(fob.location, group.m_aUnitPrefabSlots.Count());
+		}
+	}
+	
+	SCR_AIGroup SpawnGarrison(OVT_BaseData base, ResourceName res)
+	{
+		EntitySpawnParams params = EntitySpawnParams();
+		params.TransformMode = ETransformMode.WORLD;
+		params.Transform[3] = base.location;
+		
+		IEntity entity = GetGame().SpawnEntityPrefab(Resource.Load(res), GetGame().GetWorld(), params);
+		SCR_AIGroup group = SCR_AIGroup.Cast(entity);
+		AddPatrolWaypoints(group, base);
+		return group;
+	}
+	
+	SCR_AIGroup SpawnGarrisonFOB(OVT_FOBData fob, ResourceName res)
+	{
 		EntitySpawnParams params = EntitySpawnParams();
 		params.TransformMode = ETransformMode.WORLD;
 		params.Transform[3] = fob.location + "1 0 0";
 		
 		IEntity entity = GetGame().SpawnEntityPrefab(Resource.Load(res), GetGame().GetWorld(), params);
 		SCR_AIGroup group = SCR_AIGroup.Cast(entity);
-		fob.garrison.Insert(entity.GetID());
 		
 		AIWaypoint wp = m_Config.SpawnDefendWaypoint(fob.location);
 		group.AddWaypoint(wp);	
 		
-		if(takeSupporters)
-		{
-			OVT_Global.GetTowns().TakeSupportersFromNearestTown(fob.location, group.m_aUnitPrefabSlots.Count());
-		}
+		return group;
 	}
 	
 	protected void AddPatrolWaypoints(SCR_AIGroup aigroup, OVT_BaseData base)
