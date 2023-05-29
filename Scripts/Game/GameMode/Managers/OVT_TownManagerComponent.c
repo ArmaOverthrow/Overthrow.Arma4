@@ -662,7 +662,7 @@ class OVT_TownManagerComponent: OVT_Component
 	{
 		foreach(OVT_TownData town : m_Towns)
 		{
-			IEntity controller = EPF_Utils.SpawnEntityPrefab(m_Config.m_pTownControllerPrefab, town.location);
+			IEntity controller = OVT_Global.SpawnEntityPrefab(m_Config.m_pTownControllerPrefab, town.location);
 		}
 	}
 	

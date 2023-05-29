@@ -210,7 +210,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 					
 					for(int t = 0; t < m_Config.m_Difficulty.radioTowerGroups; t++)
 					{
-						IEntity group = EPF_Utils.SpawnEntityPrefab(faction.m_aTowerDefensePatrolPrefab, pos);						
+						IEntity group = OVT_Global.SpawnEntityPrefab(faction.m_aTowerDefensePatrolPrefab, pos);						
 						tower.garrison.Insert(group.GetID());
 						SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
 						AIWaypoint wp = m_Config.SpawnDefendWaypoint(pos);
@@ -587,12 +587,12 @@ class OVT_OccupyingFactionManager: OVT_Component
 	
 	IEntity SpawnBaseController(vector loc)
 	{
-		return EPF_Utils.SpawnEntityPrefab(m_pBaseControllerPrefab, loc);				
+		return OVT_Global.SpawnEntityPrefab(m_pBaseControllerPrefab, loc);				
 	}
 	
 	OVT_QRFControllerComponent SpawnQRFController(vector loc)
 	{		
-		IEntity qrf = EPF_Utils.SpawnEntityPrefab(m_pQRFControllerPrefab, loc);
+		IEntity qrf = OVT_Global.SpawnEntityPrefab(m_pQRFControllerPrefab, loc);
 		return OVT_QRFControllerComponent.Cast(qrf.FindComponent(OVT_QRFControllerComponent));	
 	}
 	

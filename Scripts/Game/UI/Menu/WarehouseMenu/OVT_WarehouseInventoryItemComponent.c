@@ -6,7 +6,7 @@ class OVT_WarehouseInventoryItemComponent : SCR_ScriptedWidgetComponent
 	void Init(ResourceName res, int qty, OVT_UIContext context)
 	{	
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();	
-		IEntity spawnedItem = GetGame().SpawnEntityPrefabLocal(Resource.Load(res));
+		IEntity spawnedItem = OVT_Global.SpawnEntityPrefab(res, "0 0 0", "0 0 0", false);
 		EPF_PersistenceComponent persist = EPF_Component<EPF_PersistenceComponent>.Find(spawnedItem);
 		if(persist)
 			persist.Delete();

@@ -54,7 +54,7 @@ class OVT_BaseMenuContext : OVT_UIContext
 		
 		foreach(int i, ResourceName res : faction.m_aGroupPrefabSlots)
 		{
-			IEntity spawn = GetGame().SpawnEntityPrefabLocal(Resource.Load(res));
+			IEntity spawn = OVT_Global.SpawnEntityPrefab(res, "0 0 0", "0 0 0", false);
 			EPF_PersistenceComponent persist = EPF_Component<EPF_PersistenceComponent>.Find(spawn);
 			if(persist)
 				persist.Delete();

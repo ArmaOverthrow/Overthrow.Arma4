@@ -275,7 +275,7 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	
 	AIWaypoint SpawnWaypoint(ResourceName res, vector pos)
 	{
-		AIWaypoint wp = AIWaypoint.Cast(EPF_Utils.SpawnEntityPrefab(res, pos));
+		AIWaypoint wp = AIWaypoint.Cast(OVT_Global.SpawnEntityPrefab(res, pos));
 		return wp;
 	}
 	
@@ -295,7 +295,7 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	
 	SCR_EntityWaypoint SpawnGetInWaypoint(IEntity target)
 	{
-		SCR_EntityWaypoint wp = SCR_EntityWaypoint.Cast(EPF_Utils.SpawnEntityPrefab(m_pGetInWaypointPrefab, target.GetOrigin()));
+		SCR_EntityWaypoint wp = SCR_EntityWaypoint.Cast(OVT_Global.SpawnEntityPrefab(m_pGetInWaypointPrefab, target.GetOrigin()));
 		
 		wp.SetEntity(target);
 		
@@ -304,14 +304,14 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	
 	SCR_TimedWaypoint SpawnWaitWaypoint(vector pos, float time)
 	{
-		SCR_TimedWaypoint wp = SCR_TimedWaypoint.Cast(EPF_Utils.SpawnEntityPrefab(m_pWaitWaypointPrefab, pos));
+		SCR_TimedWaypoint wp = SCR_TimedWaypoint.Cast(OVT_Global.SpawnEntityPrefab(m_pWaitWaypointPrefab, pos));
 		
 		return wp;
 	}
 	
 	SCR_SmartActionWaypoint SpawnActionWaypoint(vector pos, IEntity target, string action)
 	{
-		SCR_SmartActionWaypoint wp = SCR_SmartActionWaypoint.Cast(EPF_Utils.SpawnEntityPrefab(m_pSmartActionWaypointPrefab, pos));
+		SCR_SmartActionWaypoint wp = SCR_SmartActionWaypoint.Cast(OVT_Global.SpawnEntityPrefab(m_pSmartActionWaypointPrefab, pos));
 		
 		wp.SetSmartActionEntity(target, action);
 		

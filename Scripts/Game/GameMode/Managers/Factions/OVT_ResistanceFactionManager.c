@@ -207,14 +207,11 @@ class OVT_ResistanceFactionManager: OVT_Component
 		OVT_Placeable placeable = config.m_aPlaceables[placeableIndex];
 		ResourceName res = placeable.m_aPrefabs[prefabIndex];
 		
-		EntitySpawnParams params = EntitySpawnParams();
-		params.TransformMode = ETransformMode.WORLD;
 		vector mat[4];
 		Math3D.AnglesToMatrix(angles, mat);
 		mat[3] = pos;
-		params.Transform = mat;
 		
-		IEntity entity = GetGame().SpawnEntityPrefab(Resource.Load(res), GetGame().GetWorld(), params);
+		IEntity entity = OVT_Global.SpawnEntityPrefabMatrix(res, mat);
 		
 		if(placeable.handler && runHandler)
 		{
@@ -230,14 +227,11 @@ class OVT_ResistanceFactionManager: OVT_Component
 		OVT_Buildable buildable = config.m_aBuildables[buildableIndex];
 		ResourceName res = buildable.m_aPrefabs[prefabIndex];
 		
-		EntitySpawnParams params = EntitySpawnParams();
-		params.TransformMode = ETransformMode.WORLD;
 		vector mat[4];
 		Math3D.AnglesToMatrix(angles, mat);
 		mat[3] = pos;
-		params.Transform = mat;
 		
-		IEntity entity = GetGame().SpawnEntityPrefab(Resource.Load(res), GetGame().GetWorld(), params);
+		IEntity entity = OVT_Global.SpawnEntityPrefabMatrix(res, mat);
 		
 		if(buildable.handler && runHandler)
 		{
@@ -280,7 +274,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 	
 	SCR_AIGroup SpawnGarrison(OVT_BaseData base, ResourceName res)
 	{		
-		IEntity entity = EPF_Utils.SpawnEntityPrefab(res, base.location);
+		IEntity entity = OVT_Global.SpawnEntityPrefab(res, base.location);
 		SCR_AIGroup group = SCR_AIGroup.Cast(entity);
 		AddPatrolWaypoints(group, base);
 		return group;
@@ -288,7 +282,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 	
 	SCR_AIGroup SpawnGarrisonFOB(OVT_FOBData fob, ResourceName res)
 	{	
-		IEntity entity = EPF_Utils.SpawnEntityPrefab(res, fob.location + "1 0 0");
+		IEntity entity = OVT_Global.SpawnEntityPrefab(res, fob.location + "1 0 0");
 		SCR_AIGroup group = SCR_AIGroup.Cast(entity);
 		
 		AIWaypoint wp = m_Config.SpawnDefendWaypoint(fob.location);
@@ -423,7 +417,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		IEntity vehicle = turretEntity.GetParent();
 		if(!vehicle) return;		
 				
-		IEntity group = EPF_Utils.SpawnEntityPrefab(m_pHiredCivilianPrefab, vehicle.GetOrigin());
+		IEntity group = OVT_Global.SpawnEntityPrefab(m_pHiredCivilianPrefab, vehicle.GetOrigin());
 		SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
 		if(!aigroup) return;
 		

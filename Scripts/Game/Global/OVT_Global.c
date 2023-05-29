@@ -262,4 +262,30 @@ class OVT_Global {
 		
 		re.TakeFromWarehouse(warehouse, id, actual);
 	}
+	
+	static IEntity SpawnEntityPrefab(ResourceName prefab, vector origin, vector orientation = "0 0 0", bool global = true)
+	{
+		EntitySpawnParams spawnParams();
+
+		spawnParams.TransformMode = ETransformMode.WORLD;
+
+		Math3D.AnglesToMatrix(orientation, spawnParams.Transform);
+		spawnParams.Transform[3] = origin;
+
+		if (!global) return GetGame().SpawnEntityPrefabLocal(Resource.Load(prefab), GetGame().GetWorld(), spawnParams);
+
+		return GetGame().SpawnEntityPrefab(Resource.Load(prefab), GetGame().GetWorld(), spawnParams);
+	}
+	
+	static IEntity SpawnEntityPrefabMatrix(ResourceName prefab, vector mat[4], bool global = true)
+	{
+		EntitySpawnParams spawnParams();
+
+		spawnParams.TransformMode = ETransformMode.WORLD;
+		spawnParams.Transform = mat;
+
+		if (!global) return GetGame().SpawnEntityPrefabLocal(Resource.Load(prefab), GetGame().GetWorld(), spawnParams);
+
+		return GetGame().SpawnEntityPrefab(Resource.Load(prefab), GetGame().GetWorld(), spawnParams);
+	}
 }

@@ -73,8 +73,8 @@ class OVT_WarehouseContext : OVT_UIContext
 		img.SetResolutionScale(1, 1);
 
 		int qty = m_Warehouse.inventory[res];
-				
-		IEntity spawnedItem = GetGame().SpawnEntityPrefabLocal(Resource.Load(m_Economy.GetResource(id)));
+						
+		IEntity spawnedItem = OVT_Global.SpawnEntityPrefab(m_Economy.GetResource(id), "0 0 0", "0 0 0", false);
 					
 		InventoryItemComponent inv = InventoryItemComponent.Cast(spawnedItem.FindComponent(InventoryItemComponent));
 		if(inv){

@@ -101,7 +101,7 @@ class OVT_BaseControllerComponent: OVT_Component
 		Faction faction = GetGame().GetFactionManager().GetFactionByIndex(m_iControllingFaction);
 		OVT_Faction fac = OVT_Faction.Cast(faction);
 
-		IEntity flag = EPF_Utils.SpawnEntityPrefab(fac.m_aFlagPolePrefab,pos);
+		IEntity flag = OVT_Global.SpawnEntityPrefab(fac.m_aFlagPolePrefab,pos);
 		
 		return flag;
 	}

@@ -54,6 +54,9 @@ class OVT_StartGameContext : OVT_UIContext
 	{
 		CloseLayout();
 		
-		OVT_Global.GetServer().RequestStart();
+		OVT_OverthrowGameMode mode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
+		
+		mode.DoStartNewGame();
+		mode.DoStartGame();
 	}
 }

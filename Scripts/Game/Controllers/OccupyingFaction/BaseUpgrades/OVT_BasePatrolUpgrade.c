@@ -98,10 +98,7 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 		}
 		
 		BaseWorld world = GetGame().GetWorld();
-			
-		EntitySpawnParams spawnParams = new EntitySpawnParams;
-		spawnParams.TransformMode = ETransformMode.WORLD;
-		
+					
 		if(pos[0] == 0)
 			pos = m_BaseController.GetOwner().GetOrigin();
 		
@@ -111,8 +108,7 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 			pos[1] = surfaceY;
 		}
 		
-		spawnParams.Transform[3] = pos;
-		IEntity group = GetGame().SpawnEntityPrefab(Resource.Load(res), world, spawnParams);
+		IEntity group = OVT_Global.SpawnEntityPrefab(res, pos);
 		
 		m_Groups.Insert(group.GetID());
 		

@@ -14,8 +14,6 @@ class OVT_PersistenceManagerComponent : EPF_PersistenceManagerComponent
 			mode.PreShutdownPersist();
 		
 		super.OnGameEnd();
-		if (m_pPersistenceManager)
-			m_pPersistenceManager.OnGameEnd();
 	}
 	
 	void SaveGame()

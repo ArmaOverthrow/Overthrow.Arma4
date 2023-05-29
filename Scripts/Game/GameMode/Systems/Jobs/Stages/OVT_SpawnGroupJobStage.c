@@ -27,7 +27,7 @@ class OVT_SpawnGroupJobStage : OVT_JobStage
 		
 		OVT_Faction faction = config.GetFactionByType(m_Faction);
 		
-		IEntity entity = EPF_Utils.SpawnEntityPrefab(faction.GetRandomGroupByType(m_GroupType), spawnPosition);
+		IEntity entity = OVT_Global.SpawnEntityPrefab(faction.GetRandomGroupByType(m_GroupType), spawnPosition);
 		
 		SCR_AIGroup group = SCR_AIGroup.Cast(entity);
 		if(group)

@@ -87,7 +87,7 @@ class OVT_TownControllerComponent: OVT_Component
 		BaseWorld world = GetGame().GetWorld();
 		
 		spawnPosition = OVT_Global.FindSafeSpawnPosition(spawnPosition);
-		IEntity civ = EPF_Utils.SpawnEntityPrefab(m_Config.m_pCivilianPrefab, spawnPosition);
+		IEntity civ = OVT_Global.SpawnEntityPrefab(m_Config.m_pCivilianPrefab, spawnPosition);
 		
 		EntityID civId = civ.GetID();
 		
@@ -125,7 +125,7 @@ class OVT_TownControllerComponent: OVT_Component
 		
 		spawnPosition = OVT_Global.FindSafeSpawnPosition(spawnPosition);
 		
-		IEntity dealer = EPF_Utils.SpawnEntityPrefab(m_Config.m_pGunDealerPrefab, spawnPosition);
+		IEntity dealer = OVT_Global.SpawnEntityPrefab(m_Config.m_pGunDealerPrefab, spawnPosition);
 		
 		m_GunDealerID = dealer.GetID();
 		

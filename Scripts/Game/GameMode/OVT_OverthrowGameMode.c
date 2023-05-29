@@ -59,14 +59,9 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	void DoStartGame()
 	{
 		m_StartGameUIContext.CloseLayout();
-		m_bGameStarted = true;
+		m_bGameStarted = true;		
 		
-		if(RplSession.Mode() == RplMode.Dedicated)
-		{
-			Print("Spawning comms entity for dedicated server");					
-			IEntity entity = EPF_Utils.SpawnEntityPrefab(m_PlayerCommsPrefab,"100 0 0");
-			m_Server = OVT_PlayerCommsEntity.Cast(entity);
-		}
+		SpawnCommsServer();			
 		
 		if(m_EconomyManager)
 		{
@@ -101,12 +96,21 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			Print("Starting Jobs");
 			
 			m_JobManager.PostGameStart();
-		}			
+		}
+		
+				
 		
 		Print("Overthrow Starting");
 		m_bGameInitialized = true;
 		
 		GetGame().GetCallqueue().CallLater(CheckUpdate, 10000, true, this);		
+	}
+	
+	protected void SpawnCommsServer()
+	{
+		Print("Spawning comms entity for server");					
+		IEntity entity = OVT_Global.SpawnEntityPrefab(m_PlayerCommsPrefab,"100 0 0");
+		m_Server = OVT_PlayerCommsEntity.Cast(entity);
 	}
 	
 	protected void CheckUpdate()
@@ -212,26 +216,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		}
 	}
 	
-	protected override void OnPlayerRegistered(int playerId)
-	{
-		super.OnPlayerRegistered(playerId);
-		if(!Replication.IsServer()) return;
-		
-		PlayerController playerController = GetGame().GetPlayerManager().GetPlayerController(playerId);
-		if(!playerController) return;
-		
-		//Print("Spawning player comms entity for player " + playerId);
-		RplIdentity playerRplID = playerController.GetRplIdentity();		
-		IEntity entity = EPF_Utils.SpawnEntityPrefab(m_PlayerCommsPrefab, "100 0 0");
-		
-		RplComponent rpl = RplComponent.Cast(entity.FindComponent(RplComponent));
-		
-		//Print("Assigning comms to player " + playerId);
-		rpl.Give(playerRplID);
-		
-		m_TownManager.StreamTownModifiers(playerId);
-	}
-	
 	protected override void OnPlayerKilled(int playerId, IEntity player, IEntity killer)
 	{
 		super.OnPlayerKilled(playerId, player, killer);
@@ -276,6 +260,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	
 	void PreparePlayer(int playerId, string persistentId)
 	{
+		if(!Replication.IsServer()) return;
+		
 		m_PlayerManager.SetupPlayer(playerId, persistentId);
 		OVT_PlayerData player = m_PlayerManager.GetPlayer(persistentId);		
 		
@@ -323,7 +309,32 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			player.initialized = true;
 			m_aInitializedPlayers.Insert(persistentId);
 		}	
-				
+	}
+	
+	void AssignComms(int playerId)
+	{
+		PlayerController playerController = GetGame().GetPlayerManager().GetPlayerController(playerId);
+		
+		bool spawnComms = true;
+
+		if(RplSession.Mode() != RplMode.Dedicated && playerId == 1)
+		{
+			spawnComms = false;
+		}
+											
+		if(playerController && spawnComms)
+		{
+			Print("Spawning player comms entity for player " + playerId);
+			RplIdentity playerRplID = playerController.GetRplIdentity();		
+			IEntity entity = OVT_Global.SpawnEntityPrefab(m_PlayerCommsPrefab, "100 0 0");
+			
+			RplComponent rpl = RplComponent.Cast(entity.FindComponent(RplComponent));
+			
+			//Print("Assigning comms to player " + playerId);
+			rpl.Give(playerRplID);
+						
+			m_TownManager.StreamTownModifiers(playerId);
+		}	
 	}
 	
 	protected override void OnPlayerSpawned(int playerId, IEntity controlledEntity)
@@ -345,7 +356,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		int cameraIndex = s_AIRandomGenerator.RandInt(0, m_Config.m_aCameraPositions.Count()-1);
 		OVT_CameraPosition pos = m_Config.m_aCameraPositions[cameraIndex];
 						
-		IEntity cam = EPF_Utils.SpawnEntityPrefab(m_StartCameraPrefab, pos.position, "0 0 0", false);
+		IEntity cam = OVT_Global.SpawnEntityPrefab(m_StartCameraPrefab, pos.position, "0 0 0", false);
 		if(cam)
 		{			
 			CameraBase camera = CameraBase.Cast(cam);
@@ -465,10 +476,11 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	
 	override event void OnWorldPostProcess(World world)
 	{
+		Print("World Post Processing complete..");
 		super.OnWorldPostProcess(world);
 		if(m_bRequestStartOnPostProcess)
 		{
-			DoStartGame();
+			GetGame().GetCallqueue().CallLater(DoStartGame);
 		}
 	};
 	
@@ -488,13 +500,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		if(playerId != localId) return;
 		
 		m_StartGameUIContext.ShowLayout();
-	}
-	
-	void StartNewGame()
-	{
-		Print ("Overthrow: Start New Game Requested");
-		DoStartNewGame();
-		DoStartGame();
 	}
 	
 	void StartGame()

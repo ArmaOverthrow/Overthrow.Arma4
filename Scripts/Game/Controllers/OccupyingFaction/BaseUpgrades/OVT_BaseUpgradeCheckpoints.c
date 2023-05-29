@@ -53,13 +53,10 @@ class OVT_BaseUpgradeCheckpoints : OVT_BasePatrolUpgrade
 	}
 	
 	protected IEntity SpawnCheckpoint(IEntity slot, ResourceName res)
-	{
-		EntitySpawnParams spawn_params = EntitySpawnParams();
-		spawn_params.TransformMode = ETransformMode.WORLD;
+	{		
 		vector mat[4];
-		slot.GetTransform(mat);
-		spawn_params.Transform = mat;		
-		IEntity ent = GetGame().SpawnEntityPrefab(Resource.Load(res), GetGame().GetWorld(), spawn_params);
+		slot.GetTransform(mat);		
+		IEntity ent = OVT_Global.SpawnEntityPrefabMatrix(res, mat);
 		return ent;
 	}
 	

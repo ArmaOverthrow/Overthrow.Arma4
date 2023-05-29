@@ -11,7 +11,7 @@ class OVT_SpawnCivilianJobStage : OVT_JobStage
 		
 		spawnPosition = OVT_Global.FindSafeSpawnPosition(spawnPosition);			
 		
-		IEntity entity = EPF_Utils.SpawnEntityPrefab(m_pPrefab, spawnPosition);
+		IEntity entity = OVT_Global.SpawnEntityPrefab(m_pPrefab, spawnPosition);
 		
 		RplComponent rpl = RplComponent.Cast(entity.FindComponent(RplComponent));		
 		job.entity = rpl.Id();

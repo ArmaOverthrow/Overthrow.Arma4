@@ -175,12 +175,8 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 	}
 	
 	IEntity SpawnVehicleMatrix(ResourceName prefab, vector mat[4], string ownerId = "")
-	{
-		EntitySpawnParams spawnParams = new EntitySpawnParams;
-		spawnParams.TransformMode = ETransformMode.WORLD;		
-		spawnParams.Transform = mat;
-		
-		IEntity ent = GetGame().SpawnEntityPrefab(Resource.Load(prefab), GetGame().GetWorld(), spawnParams);
+	{		
+		IEntity ent = OVT_Global.SpawnEntityPrefabMatrix(prefab, mat);
 		if(!ent)
 		{
 			Print("Failure to spawn vehicle");

@@ -160,7 +160,7 @@ class OVT_ShopContext : OVT_UIContext
 		int townID = OVT_Global.GetTowns().GetTownID(town);
 		int max = m_Economy.GetTownMaxStock(townID, id);
 				
-		IEntity spawnedItem = GetGame().SpawnEntityPrefabLocal(Resource.Load(m_Economy.GetResource(id)));
+		IEntity spawnedItem = OVT_Global.SpawnEntityPrefab(m_Economy.GetResource(id), "0 0 0", "0 0 0", false);
 		EPF_PersistenceComponent persist = EPF_Component<EPF_PersistenceComponent>.Find(spawnedItem);
 		if(persist)
 			persist.Delete();

@@ -113,9 +113,6 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		if(threat > 50) res = faction.GetRandomGroupByType(OVT_GroupType.HEAVY_INFANTRY);		
 		
 		BaseWorld world = GetGame().GetWorld();
-			
-		EntitySpawnParams spawnParams = new EntitySpawnParams;
-		spawnParams.TransformMode = ETransformMode.WORLD;
 		
 		vector pos = m_BaseController.GetOwner().GetOrigin();
 		
@@ -125,8 +122,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 			pos[1] = surfaceY;
 		}
 		
-		spawnParams.Transform[3] = pos;
-		IEntity group = GetGame().SpawnEntityPrefab(Resource.Load(res), world, spawnParams);
+		IEntity group = OVT_Global.SpawnEntityPrefab(res, pos);
 		
 		m_Groups.Insert(group.GetID());
 		m_Patrols[townID] = group.GetID();
