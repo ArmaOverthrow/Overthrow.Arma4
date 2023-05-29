@@ -1,19 +1,9 @@
-class OVT_PlayerCommsEntityClass: GenericEntityClass
+class OVT_PlayerCommsComponentClass: OVT_ComponentClass
 {
 };
 
-class OVT_PlayerCommsEntity: GenericEntity
+class OVT_PlayerCommsComponent: OVT_Component
 {
-	void OVT_PlayerCommsEntity(IEntitySource src, IEntity parent)
-	{
-		SetEventMask(EntityEvent.INIT);
-	}
-	
-	override void EOnInit(IEntity owner)
-	{
-		OVT_OverthrowGameMode mode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
-		mode.m_Server = this;
-	}
 	
 	void RequestSave()
 	{

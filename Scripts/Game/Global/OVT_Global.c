@@ -1,9 +1,12 @@
-class OVT_Global {
-	static OVT_PlayerCommsEntity s_Server;
-	
-	static OVT_PlayerCommsEntity GetServer()
-	{				
-		return OVT_OverthrowGameMode.Cast(GetGame().GetGameMode()).m_Server;
+class OVT_Global {	
+	static OVT_PlayerCommsComponent GetServer()
+	{		
+		if(Replication.IsServer())
+		{
+			return OVT_PlayerCommsComponent.Cast(OVT_OverthrowGameMode.Cast(GetGame().GetGameMode()).FindComponent(OVT_PlayerCommsComponent));
+		}		
+		IEntity player = SCR_PlayerController.GetLocalControlledEntity();
+		return OVT_PlayerCommsComponent.Cast(player.FindComponent(OVT_PlayerCommsComponent));
 	}
 	
 	static OVT_OverthrowConfigComponent GetConfig()

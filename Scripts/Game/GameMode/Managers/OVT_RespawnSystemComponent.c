@@ -87,7 +87,7 @@ class OVT_RespawnSystemComponent : SCR_RespawnSystemComponent
 			m_mPreparedCharacters.Set(playerId, playerEntity);
 		}
 		
-		m_Overthrow.AssignComms(playerId);
+		OVT_Global.GetTowns().StreamTownModifiers(playerId);
 	}
 	
 	protected IEntity SpawnDefaultCharacterItem(InventoryStorageManagerComponent storageManager, OVT_LoadoutSlot loadoutItem)

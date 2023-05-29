@@ -24,8 +24,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	protected OVT_JobManagerComponent m_JobManager;
 	protected OVT_PersistenceManagerComponent m_Persistence;
 	
-	OVT_PlayerCommsEntity m_Server;
-	
 	ref set<string> m_aInitializedPlayers;
 	ref set<string> m_aHintedPlayers;
 	
@@ -60,8 +58,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	{
 		m_StartGameUIContext.CloseLayout();
 		m_bGameStarted = true;		
-		
-		SpawnCommsServer();			
 		
 		if(m_EconomyManager)
 		{
@@ -104,13 +100,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		m_bGameInitialized = true;
 		
 		GetGame().GetCallqueue().CallLater(CheckUpdate, 10000, true, this);		
-	}
-	
-	protected void SpawnCommsServer()
-	{
-		Print("Spawning comms entity for server");					
-		IEntity entity = OVT_Global.SpawnEntityPrefab(m_PlayerCommsPrefab,"100 0 0");
-		m_Server = OVT_PlayerCommsEntity.Cast(entity);
 	}
 	
 	protected void CheckUpdate()
@@ -308,32 +297,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			}
 			player.initialized = true;
 			m_aInitializedPlayers.Insert(persistentId);
-		}	
-	}
-	
-	void AssignComms(int playerId)
-	{
-		PlayerController playerController = GetGame().GetPlayerManager().GetPlayerController(playerId);
-		
-		bool spawnComms = true;
-
-		if(RplSession.Mode() != RplMode.Dedicated && playerId == 1)
-		{
-			spawnComms = false;
-		}
-											
-		if(playerController && spawnComms)
-		{
-			Print("Spawning player comms entity for player " + playerId);
-			RplIdentity playerRplID = playerController.GetRplIdentity();		
-			IEntity entity = OVT_Global.SpawnEntityPrefab(m_PlayerCommsPrefab, "100 0 0");
-			
-			RplComponent rpl = RplComponent.Cast(entity.FindComponent(RplComponent));
-			
-			//Print("Assigning comms to player " + playerId);
-			rpl.Give(playerRplID);
-						
-			m_TownManager.StreamTownModifiers(playerId);
 		}	
 	}
 	

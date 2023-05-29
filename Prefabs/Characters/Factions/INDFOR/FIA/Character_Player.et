@@ -12,7 +12,12 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
     }
    }
   }
+  EPF_PersistenceComponent "{5A12D8F4DFED6D84}" {
+   Enabled 1
+  }
   FactionAffiliationComponent "{555C98D1CD949F3E}" {
+  }
+  OVT_PlayerCommsComponent "{5D7ACE122292D0CF}" {
   }
   OVT_PlayerWantedComponent "{596EE382181C58FB}" {
   }
@@ -187,9 +192,6 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      TargetPurpose 64
     }
    }
-  }
-  EPF_PersistenceComponent "{5A12D8F4DFED6D84}" {
-   Enabled 1
   }
  }
  coords 0 0 0
