@@ -26,6 +26,15 @@ class OVT_RespawnHandlerComponent : SCR_RespawnHandlerComponent
 	protected void OnUidAvailable(int playerId)
 	{
 		string playerUid = EPF_Utils.GetPlayerUID(playerId);
+		
+#ifdef WORKBENCH
+		//Force only two players in workbench to test reconnection
+		if(playerId > 2)
+		{
+			playerUid = "LOCAL_UID_2";
+		}
+#endif
+
 		if (!playerUid)
 			return;
 		

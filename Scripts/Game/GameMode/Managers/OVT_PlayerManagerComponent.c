@@ -28,8 +28,6 @@ class OVT_PlayerManagerComponent: OVT_Component
 	
 	protected ref SCR_SimpleMessagePresets m_Messages;
 	
-	ref ScriptInvoker m_OnPlayerRegistered = new ScriptInvoker();
-	
 	static OVT_PlayerManagerComponent s_Instance;
 	static OVT_PlayerManagerComponent GetInstance()
 	{
@@ -146,9 +144,15 @@ class OVT_PlayerManagerComponent: OVT_Component
 	string GetPersistentIDFromPlayerID(int playerId)
 	{
 		if(!m_mPersistentIDs.Contains(playerId)) {
-			//Fallback for single player
 			string persistentId = EPF_Utils.GetPlayerUID(playerId);
-			RegisterPlayer(playerId, persistentId);
+#ifdef WORKBENCH
+			//Force only two players in workbench to test reconnection
+			if(playerId > 2)
+			{
+				persistentId = "LOCAL_UID_2";
+			}
+#endif
+			SetupPlayer(playerId, persistentId);
 			return persistentId;
 		}
 		return m_mPersistentIDs[playerId];
@@ -160,33 +164,25 @@ class OVT_PlayerManagerComponent: OVT_Component
 		return m_mPlayerIDs[id];
 	}
 	
-	void RegisterPlayer(int playerId, string persistentId)
-	{	
-		Print("Player ID registered: " + persistentId);
-		SetupPlayer(playerId, persistentId);
-		
-		m_OnPlayerRegistered.Invoke(playerId, persistentId);
-		
-		Rpc(RpcDo_RegisterPlayer, playerId, persistentId);		
-	}
-	
 	void SetupPlayer(int playerId, string persistentId)
 	{
 		m_mPersistentIDs[playerId] = persistentId;
 		m_mPlayerIDs[persistentId] = playerId;
 		
 		OVT_PlayerData player = GetPlayer(persistentId);		
-		IEntity playerEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
-			
+					
 		if(!player)
 		{
 			player = new OVT_PlayerData;
-			m_mPlayers[persistentId] = player;		
+			m_mPlayers[persistentId] = player;			
 		}
 		
 		player.name = GetGame().GetPlayerManager().GetPlayerName(playerId);
 		
 		player.id = playerId;
+		
+		if(Replication.IsServer())	
+			Rpc(RpcDo_RegisterPlayer, playerId, persistentId);
 	}
 	
 	void TeleportPlayer(int playerId, vector pos)
@@ -266,8 +262,6 @@ class OVT_PlayerManagerComponent: OVT_Component
 	protected void RpcDo_RegisterPlayer(int playerId, string s)
 	{
 		SetupPlayer(playerId, s);
-		
-		m_OnPlayerRegistered.Invoke(playerId, s);
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]

@@ -260,22 +260,10 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		super.OnPlayerDisconnected(playerId, cause, timeout);
 	}
 	
-	override void OnPlayerAuditSuccess(int iPlayerID)
-	{
-		super.OnPlayerAuditSuccess(iPlayerID);
-		
-		string persistentId = EPF_Utils.GetPlayerUID(iPlayerID);
-		m_PlayerManager.RegisterPlayer(iPlayerID, persistentId);
-	}
-	
 	void PreparePlayer(int playerId, string persistentId)
 	{
-		
-		OVT_PlayerData player = m_PlayerManager.GetPlayer(persistentId);
-		if(!player) {
-			m_PlayerManager.SetupPlayer(playerId, persistentId);
-			player = m_PlayerManager.GetPlayer(persistentId);	
-		}	
+		m_PlayerManager.SetupPlayer(playerId, persistentId);
+		OVT_PlayerData player = m_PlayerManager.GetPlayer(persistentId);		
 		
 		if(!player.isOfficer && RplSession.Mode() == RplMode.None)
 		{
@@ -450,21 +438,26 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			if(m_Persistence.HasSaveGame())
 			{
 				Print("Loading game");
-				m_bCameraSet = true;
-				RequestLoad();
-				DoStartGame();
+				m_bCameraSet = true;				
+				GetGame().GetCallqueue().CallLater(LoadAndStart);
 			}else{
 				Print("No save game detected");
 				if(RplSession.Mode() == RplMode.Dedicated)
 				{
 					Print("Dedicated server, starting new game");
 					DoStartNewGame();
-					DoStartGame();
+					GetGame().GetCallqueue().CallLater(DoStartGame);
 				}else{
 					m_StartGameUIContext.ShowLayout();
 				}
 			}
 		}
+	}
+	
+	protected void LoadAndStart()
+	{
+		RequestLoad();
+		DoStartGame();
 	}
 	
 	void OnPlayerSpawnedLocal(string playerId)
@@ -537,7 +530,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	
 	void ~OVT_OverthrowGameMode()
 	{
-		if(!m_PlayerManager) return;
-		m_PlayerManager.m_OnPlayerRegistered.Remove(OnPlayerRegistered);
+		m_aInitializedPlayers.Clear();
+		m_aHintedPlayers.Clear();
+		m_mPlayerGroups.Clear();
 	}
 }

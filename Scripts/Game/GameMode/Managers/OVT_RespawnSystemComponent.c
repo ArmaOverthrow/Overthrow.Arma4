@@ -27,8 +27,9 @@ class OVT_RespawnSystemComponent : SCR_RespawnSystemComponent
 		{
 			// Spawn character from data
 			EPF_PersistenceManager persistenceManager = EPF_PersistenceManager.GetInstance();
-
+			
 			vector spawnAngles = Vector(saveData.m_pTransformation.m_vAngles[1], saveData.m_pTransformation.m_vAngles[0], saveData.m_pTransformation.m_vAngles[2]);
+			if(spawnAngles[0] == float.INFINITY) spawnAngles = "0 0 0";
 			playerEntity = DoSpawn(m_rDefaultPrefab, saveData.m_pTransformation.m_vOrigin, spawnAngles);
 
 			EPF_PersistenceComponent persistenceComponent = EPF_Component<EPF_PersistenceComponent>.Find(playerEntity);
@@ -162,7 +163,8 @@ class OVT_RespawnSystemComponent : SCR_RespawnSystemComponent
 				inventoryStorage.EPF_Rpc_UpdateQuickSlotItems(quickBarRplIds);
 
 				SCR_RespawnComponent respawnComponent = SCR_RespawnComponent.Cast(GetGame().GetPlayerManager().GetPlayerRespawnComponent(playerId));
-				respawnComponent.EPF_SetQuickBarItems(quickBarRplIds);
+				if(respawnComponent)
+					respawnComponent.EPF_SetQuickBarItems(quickBarRplIds);
 			}
 		}
 
