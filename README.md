@@ -4,7 +4,7 @@
 </picture>
 <br/><br/>
 
-[![Releases](https://img.shields.io/github/v/release/ArmaOverthrow/Overthrow.Arma4)](https://github.com/ArmaOverthrow/Overthrow.Arma4/releases)
+[![Arma Reforger Workshop](https://img.shields.io/badge/Workshop-59B657D731E2A11D-blue?style=flat-square)](https://reforger.armaplatform.com/workshop/59B657D731E2A11D)
 [![Contributors](https://img.shields.io/github/contributors/ArmaOverthrow/Overthrow.Arma4)](https://github.com/ArmaOverthrow/Overthrow.Arma4/graphs/contributors)
 [![Discord](https://img.shields.io/discord/241062829963214848?label=discord)](https://discord.gg/j6CvmFfZ95)
 [![License MIT](https://img.shields.io/badge/License-MIT-green)](https://opensource.org/licenses/MIT)
