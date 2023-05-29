@@ -294,9 +294,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 #endif		
 											
 		if(player.initialized)
-		{
-			Print("Player exists, respawn");
-			
+		{			
 			//Existing player	
 			if(m_aInitializedPlayers.Contains(persistentId))
 			{
@@ -308,21 +306,18 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			}
 		}else{
 			//New player
-			Print("Adding start cash to player " + playerId);
 			int cash = m_Config.m_Difficulty.startingCash;
 			m_EconomyManager.AddPlayerMoney(playerId, cash);
 			
 			vector home = m_RealEstate.GetHome(persistentId);
 			if(home[0] == 0)
 			{
-				Print("Adding home to player " + playerId);
 				
 				IEntity house = OVT_Global.GetTowns().GetRandomStartingHouse();
 				m_RealEstate.SetOwner(playerId, house);
 				m_RealEstate.SetHome(playerId, house);				
 				player.location = house.GetOrigin();				
 				
-				Print("Spawning car for player " + playerId);
 				m_VehicleManager.SpawnStartingCar(house, persistentId);
 			}
 			player.initialized = true;

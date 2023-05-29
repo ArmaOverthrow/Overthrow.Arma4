@@ -891,11 +891,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	}
 	
 	protected bool CheckPortInit(IEntity entity)
-	{	
-		//#ifdef OVERTHROW_DEBUG
-		Print("Found Port");
-		//#endif
-		
+	{		
 		RplComponent rpl = RplComponent.Cast(entity.FindComponent(RplComponent));
 		if(rpl)
 		{
