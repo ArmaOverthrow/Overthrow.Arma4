@@ -30,18 +30,6 @@ class OVT_PlayerCommsEntity: GenericEntity
 		}
 	}
 	
-	void RequestLoad()
-	{
-		Rpc(RpcAsk_RequestLoad);
-	}
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	void RpcAsk_RequestLoad()
-	{
-		OVT_OverthrowGameMode mode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
-		mode.RequestLoad();
-	}
-	
 	void RequestSave()
 	{
 		Rpc(RpcAsk_RequestSave);

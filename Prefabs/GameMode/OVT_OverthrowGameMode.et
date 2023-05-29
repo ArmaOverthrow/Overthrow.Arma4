@@ -573,6 +573,8 @@ OVT_OverthrowGameMode {
   }
   SCR_DestructionManagerComponent "{59724C8C935D8E20}" {
   }
+  SCR_GameModeHealthSettings "{5D7A443950718AF0}" {
+  }
   SCR_HintManagerComponent "{59724C8C935D8E2C}" {
   }
   SCR_InitWeatherComponent "{597CE04456F991A8}" {
@@ -583,6 +585,47 @@ OVT_OverthrowGameMode {
   SCR_MapConfigComponent "{5D56F4474D716C00}" {
   }
   SCR_NametagConfigComponent "{59724C8C935D8E28}" {
+  }
+  SCR_NotificationSenderComponent "{5D7A443FDCA27CAE}" {
+   m_iReceiveKillFeedType SAME_FACTION_ONLY
+   m_aKillfeedTypeNames {
+    SCR_NotificationKillfeedTypeName "{5D7A4439A46B176A}" {
+     m_iKillfeedType DISABLED
+     m_sKillfeedTypeName "#AR-Notification_KillfeedType_DISABLED"
+    }
+    SCR_NotificationKillfeedTypeName "{5D7A4439ACBBFC32}" {
+     m_iKillfeedType UNKNOWN_KILLER
+     m_sKillfeedTypeName "#AR-Notification_KillfeedType_UNKNOWN_KILLER"
+    }
+    SCR_NotificationKillfeedTypeName "{5D7A4439B4AC4DEC}" {
+     m_iKillfeedType FULL
+     m_sKillfeedTypeName "#AR-Notification_KillfeedType_FULL"
+    }
+   }
+   m_aKillfeedReceiveTypeNames {
+    SCR_NotificationKillfeedreceiveTypeName "{5D7A4439957C2FF2}" {
+     m_iKillfeedreceiveType ALL
+     m_sKillfeedReceiveTypeName "#AR-Notification_KillfeedReceiveType_ALL"
+    }
+    SCR_NotificationKillfeedreceiveTypeName "{5D7A4439916A94CD}" {
+     m_iKillfeedreceiveType ENEMIES_ONLY
+     m_sKillfeedReceiveTypeName "#AR-Notification_KillfeedReceiveType_ENEMIES_ONLY"
+    }
+    SCR_NotificationKillfeedreceiveTypeName "{5D7A44399A3B00F5}" {
+     m_iKillfeedreceiveType ALLIES_ONLY
+     m_sKillfeedReceiveTypeName "#AR-Notification_KillfeedReceiveType_ALLIES_ONLY"
+    }
+    SCR_NotificationKillfeedreceiveTypeName "{5D7A442665D40F6F}" {
+     m_iKillfeedreceiveType SAME_FACTION_ONLY
+     m_sKillfeedReceiveTypeName "#AR-Notification_KillfeedReceiveType_SAME_FACTION_ONLY"
+    }
+    SCR_NotificationKillfeedreceiveTypeName "{5D7A44266056A71D}" {
+     m_iKillfeedreceiveType GROUP_ONLY
+     m_sKillfeedReceiveTypeName "#AR-Notification_KillfeedReceiveType_GROUP_ONLY"
+    }
+   }
+   m_PlayerKickReasonsConfig SCR_ConfigurableDialogUiPresets "{5D7A443943FDACDA}" {
+   }
   }
   SCR_PlayerProfileManagerComponent "{59724C8C935D8E14}" {
   }
@@ -616,6 +659,7 @@ OVT_OverthrowGameMode {
   }
  }
  coords 3207.214 1.87 11071.67
+ Flags 0
  m_bAutoPlayerRespawn 0
  m_StartGameUIContext OVT_StartGameContext "{599D315949D3D5D0}" {
   m_Layout "{4A7A8EED9F6F2A92}UI/Layouts/Menu/StartGameMenu.layout"

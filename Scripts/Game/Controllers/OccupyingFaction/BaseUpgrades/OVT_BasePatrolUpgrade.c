@@ -84,26 +84,7 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 	
 	protected bool PlayerInRange()
 	{		
-		bool active = false;
-		array<int> players = new array<int>;
-		PlayerManager mgr = GetGame().GetPlayerManager();
-		int numplayers = mgr.GetPlayers(players);
-		
-		if(numplayers > 0)
-		{
-			foreach(int playerID : players)
-			{
-				IEntity player = mgr.GetPlayerControlledEntity(playerID);
-				if(!player) continue;
-				float distance = vector.Distance(player.GetOrigin(), m_BaseController.GetOwner().GetOrigin());
-				if(distance < DEACTIVATE_RANGE)
-				{
-					active = true;
-				}
-			}
-		}
-		
-		return active;
+		return OVT_Global.PlayerInRange(m_BaseController.GetOwner().GetOrigin(), DEACTIVATE_RANGE);
 	}
 	
 	protected int BuyPatrol(float threat, ResourceName res = "", vector pos = "0 0 0")
@@ -166,8 +147,19 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 		int spent = 0;
 		
 		while(resources > 0)
-		{			
-			int newres = BuyPatrol(threat);
+		{
+			int newres = m_Config.m_Difficulty.baseResourceCost * 4;
+			if(!PlayerInRange())
+			{
+				OVT_Faction faction = m_Config.GetOccupyingFaction();
+				ResourceName res = faction.GetRandomGroupByType(OVT_GroupType.LIGHT_INFANTRY);
+				m_iProxedResources += newres;
+				m_ProxiedGroups.Insert(res);
+				m_ProxiedPositions.Insert(m_BaseController.GetOwner().GetOrigin());
+			}else{
+				newres = BuyPatrol(threat);
+				m_bSpawned = true;
+			}
 			
 			if(newres > resources){
 				newres = resources;

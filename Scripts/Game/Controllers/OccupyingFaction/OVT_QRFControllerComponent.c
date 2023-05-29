@@ -24,6 +24,10 @@ class OVT_QRFControllerComponent: OVT_Component
 	
 	OVT_OccupyingFactionManager m_OccupyingFaction;
 	
+	ref array<ResourceName> m_aSpawnQueue = {};
+	ref array<vector> m_aSpawnPositions = {};
+	ref array<vector> m_aSpawnTargets = {};
+	
 	override void OnPostInit(IEntity owner)
 	{
 		super.OnPostInit(owner);
@@ -41,6 +45,8 @@ class OVT_QRFControllerComponent: OVT_Component
 	
 	protected void CheckUpdateTimer()
 	{
+		SpawnFromQueue();
+		
 		m_iTimer -= 1000;
 		
 		m_OccupyingFaction.UpdateQRFTimer(m_iTimer);
@@ -74,6 +80,10 @@ class OVT_QRFControllerComponent: OVT_Component
 	
 	void Cleanup()
 	{
+		m_aSpawnQueue.Clear();
+		m_aSpawnTargets.Clear();
+		m_aSpawnPositions.Clear();
+		
 		BaseWorld world = GetGame().GetWorld();
 		foreach(EntityID id : m_Groups)
 		{
@@ -89,6 +99,10 @@ class OVT_QRFControllerComponent: OVT_Component
 			}
 			SCR_EntityHelper.DeleteEntityAndChildren(aigroup);
 		}
+		
+		m_Groups.Clear();
+		
+		SCR_EntityHelper.DeleteEntityAndChildren(GetOwner());
 	}
 	
 	protected void CheckUpdatePoints()
@@ -175,6 +189,10 @@ class OVT_QRFControllerComponent: OVT_Component
 	
 	protected void SendTroops()
 	{
+		m_aSpawnQueue.Clear();
+		m_aSpawnPositions.Clear();
+		m_aSpawnTargets.Clear();
+		
 		vector qrfpos = GetOwner().GetOrigin();
 		
 		//Get valid bases to use for QRF
@@ -230,7 +248,24 @@ class OVT_QRFControllerComponent: OVT_Component
 		OVT_Faction faction = m_Config.GetOccupyingFaction();
 						
 		ResourceName res = faction.m_aGroupPrefabSlots.GetRandomElement();
+		
+		m_aSpawnQueue.Insert(res);
+		m_aSpawnPositions.Insert(pos);
+		m_aSpawnTargets.Insert(targetPos);
 				
+		int newres = 8 * m_Config.m_Difficulty.baseResourceCost;
+			
+		return newres;
+	}
+	
+	protected void SpawnFromQueue()
+	{
+		if(m_aSpawnQueue.Count() == 0) return;
+		
+		ResourceName res = m_aSpawnQueue[0];
+		vector pos = m_aSpawnPositions[0];
+		vector targetPos = m_aSpawnTargets[0];
+		
 		BaseWorld world = GetGame().GetWorld();
 			
 		EntitySpawnParams spawnParams = new EntitySpawnParams;
@@ -242,10 +277,10 @@ class OVT_QRFControllerComponent: OVT_Component
 		m_Groups.Insert(group.GetID());
 		
 		aigroup.AddWaypoint(SpawnMoveWaypoint(targetPos));
-				
-		int newres = aigroup.m_aUnitPrefabSlots.Count() * m_Config.m_Difficulty.baseResourceCost;
-			
-		return newres;
+		
+		m_aSpawnQueue.Remove(0);
+		m_aSpawnPositions.Remove(0);
+		m_aSpawnTargets.Remove(0);
 	}
 	
 	protected vector GetTargetZone(vector pos)
@@ -332,5 +367,9 @@ class OVT_QRFControllerComponent: OVT_Component
 	{
 		GetGame().GetCallqueue().Remove(CheckUpdateTimer);
 		GetGame().GetCallqueue().Remove(CheckUpdatePoints);
+		m_Groups.Clear();
+		m_aSpawnQueue.Clear();
+		m_aSpawnTargets.Clear();
+		m_aSpawnPositions.Clear();
 	}
 }

@@ -1,0 +1,37 @@
+GenericEntity : "{160E4E4110803F26}Prefabs/Structures/Military/Flags/FlagPole_02/FlagPole_02_V1_FIA.et" {
+ ID "50C6D20663830070"
+ components {
+  OVT_ResistanceFOBControllerComponent "{5D7A443B1AAE13FE}" {
+  }
+  ActionsManagerComponent "{5D7A443B1AAE13E5}" {
+   ActionContexts {
+    UserActionContext "{5D7A443B1AAE13E0}" {
+     ContextName "default"
+     Position PointInfo "{5D7A443B1AAE13ED}" {
+      Offset 0 1.8 0
+     }
+     Radius 0.65
+    }
+   }
+   additionalActions {
+    OVT_SetHomeAction "{5D7A443B1AAE13E9}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{5D7A443B1AAE13D7}" {
+      Name "#OVT-SetHome"
+     }
+    }
+    OVT_ManageBaseAction "{5D7A443B1AAE13D5}" {
+     ParentContextList {
+      "default"
+     }
+     "Sort Priority" 1
+    }
+   }
+  }
+  RplComponent "{5D7A443B1AAE13D3}" {
+  }
+ }
+ coords 0 0 0
+}

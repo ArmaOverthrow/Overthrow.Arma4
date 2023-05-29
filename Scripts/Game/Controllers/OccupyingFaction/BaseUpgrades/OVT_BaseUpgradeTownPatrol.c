@@ -64,13 +64,14 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		{		
 			int townID = m_Towns.GetTownID(town);	
 			if(resources <= 0) break;
-			if(!OVT_Global.PlayerInRange(town.location, 5000)) continue;
 			if(!m_Patrols.Contains(townID))
 			{
-				int newres = BuyTownPatrol(town, threat);
-				
-				spent += newres;
-				resources -= newres;
+				if(OVT_Global.PlayerInRange(town.location, 5000)){
+					int newres = BuyTownPatrol(town, threat);
+					
+					spent += newres;
+					resources -= newres;
+				}
 			}else{
 				//Check if theyre back
 				SCR_AIGroup aigroup = GetGroup(m_Patrols[townID]);
@@ -89,10 +90,12 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 					SCR_EntityHelper.DeleteEntityAndChildren(aigroup);	
 					
 					//send another one
-					int newres = BuyTownPatrol(town, threat);
-				
-					spent += newres;
-					resources -= newres;			
+					if(OVT_Global.PlayerInRange(town.location, 5000)){
+						int newres = BuyTownPatrol(town, threat);
+					
+						spent += newres;
+						resources -= newres;	
+					}		
 				}
 			}
 		}

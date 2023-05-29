@@ -84,11 +84,17 @@ class OVT_BaseUpgradeTowerGuard : OVT_BasePatrolUpgrade
 			}
 			if(needsGuard)
 			{
-				if(BuyGuard(id))
-				{
-					resources -= m_Config.m_Difficulty.baseResourceCost;
+				if(!PlayerInRange()){
+					m_iProxedResources += m_Config.m_Difficulty.baseResourceCost;
 					spent += m_Config.m_Difficulty.baseResourceCost;
-				}
+				}else{
+					if(BuyGuard(id))
+					{
+						m_bSpawned = true;
+						resources -= m_Config.m_Difficulty.baseResourceCost;
+						spent += m_Config.m_Difficulty.baseResourceCost;
+					}
+				}				
 			}
 		}
 		
@@ -97,6 +103,7 @@ class OVT_BaseUpgradeTowerGuard : OVT_BasePatrolUpgrade
 	
 	protected bool BuyGuard(EntityID towerID)
 	{
+		
 		IEntity tower = GetGame().GetWorld().FindEntityByID(towerID);
 		
 		array<Managed> outComponents = {};

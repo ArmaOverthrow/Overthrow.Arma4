@@ -119,8 +119,6 @@ FrameWidgetClass {
          m_sLabel "#OVT_Group"
         }
        }
-       {
-       }
       }
       VerticalLayoutWidgetClass "{59CC0DA662F57138}" {
        Name "GroupInfo"
@@ -299,8 +297,6 @@ FrameWidgetClass {
                  Prefab "{00000000E3602307}"
                  Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
                   Padding 10 10 16 10
-                 }
-                 {
                  }
                 }
                }

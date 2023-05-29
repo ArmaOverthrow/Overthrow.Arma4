@@ -6,13 +6,6 @@ class OVT_PersistenceManagerComponentClass : EPF_PersistenceManagerComponentClas
 class OVT_PersistenceManagerComponent : EPF_PersistenceManagerComponent
 {
 	const string DB_BASE_DIR = "$profile:/.db/Overthrow";
-	protected World m_World;
-	
-	override event void OnWorldPostProcess(World world)
-	{
-		//We want to control when the game loads from save, so we do nothing here
-		m_World = world;
-	}
 	
 	override event void OnGameEnd()
 	{
@@ -25,23 +18,10 @@ class OVT_PersistenceManagerComponent : EPF_PersistenceManagerComponent
 			m_pPersistenceManager.OnGameEnd();
 	}
 	
-	void LoadGame()
-	{
-		if (m_pPersistenceManager)
-			m_pPersistenceManager.OnWorldPostProcess(m_World);
-	}
-	
 	void SaveGame()
 	{
 		if (m_pPersistenceManager)
 			m_pPersistenceManager.AutoSave();
-	}
-	
-	void StartNewGame()
-	{
-		//To-Do: wipe database to start a new game?
-		if (m_pPersistenceManager)
-			m_pPersistenceManager.OnWorldPostProcess(m_World);
 	}
 	
 	bool HasSaveGame()

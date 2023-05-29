@@ -20,6 +20,7 @@ SCR_AIWorld SCR_AIWorld : "{E0A05C76552E7F58}Prefabs/AI/SCR_AIWorld.et" {
 PerceptionManager PerceptionManager1 : "{028DAEAD63E056BE}Prefabs/World/Game/PerceptionManager.et" {
 }
 OVT_OverthrowGameMode OVT_OverthrowGameMode1 : "{4DC10DCB8BE06D32}Prefabs/GameMode/OVT_OverthrowGameMode.et" {
+ coords 3207.214 2.27 11071.67
 }
 SCR_FactionManager OVT_FactionManager : "{8C75D1206F85987D}Prefabs/GameMode/OVT_FactionManager.et" {
 }
@@ -39,7 +40,7 @@ SCR_GarbageManager : "{9B883A7D8EBB282A}Prefabs/MP/Managers/GarbageManager.et" {
 SCR_LoadoutManager : "{AA4E7419A1FF65B0}Prefabs/MP/Managers/Loadouts/LoadoutManager_Base.et" {
  m_aPlayerLoadouts {
   SCR_FactionPlayerLoadout "{5968C8BCD347882D}" {
-   m_sLoadoutResource "{3A99A99836F6B3DC}Prefabs/Characters/Factions/INDFOR/FIA/Character_FIA_Unarmed.et"
+   m_sLoadoutResource "{3A99A99836F6B3DC}Prefabs/Characters/Factions/INDFOR/FIA/Character_Player.et"
    m_sAffiliatedFaction "FIA"
   }
  }

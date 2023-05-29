@@ -2846,7 +2846,7 @@ SCR_FactionManager {
    m_aGroupPrefabSlots {
     "{5BEA04939D148B1D}Prefabs/Groups/INDFOR/Group_FIA_FireTeam.et" "{22F33D3EC8F281AB}Prefabs/Groups/INDFOR/Group_FIA_MachineGunTeam.et" "{2E9C920C3ACA2C6F}Prefabs/Groups/INDFOR/Group_FIA_ReconTeam.et" "{CE41AF625D05D0F0}Prefabs/Groups/INDFOR/Group_FIA_RifleSquad.et" "{6307F42403E9B8A4}Prefabs/Groups/INDFOR/Group_FIA_SharpshooterTeam.et" "{2CC26054775FBA2C}Prefabs/Groups/INDFOR/Group_FIA_Team_AT.et"
    }
-   m_aFlagPolePrefab "{3F983E0F4FD1246C}Prefabs/Structures/Military/Flags/FOB_V1_FIA.et"
+   m_aFlagPolePrefab "{166AB26BD8321277}Prefabs/Structures/Military/Flags/BaseFlag_FIA.et"
    m_aMediumCheckpointPrefab "{5F42399DF7455261}Prefabs/Compositions/Slotted/SlotRoadMedium/Checkpoint_M_US_01.et"
    m_aLargeCheckpointPrefab "{6D9DAF822F4ABFE6}Prefabs/Compositions/Slotted/SlotRoadLarge/Checkpoint_L_US_01.et"
    m_aInventoryConfigFiles {

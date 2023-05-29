@@ -34,6 +34,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	protected bool m_bGameInitialized = false;
 	protected bool m_bCameraSet = false;
 	protected bool m_bGameStarted = false;
+	protected bool m_bRequestStartOnPostProcess = false;
 			
 	bool IsInitialized()
 	{
@@ -42,7 +43,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	
 	void DoStartNewGame()
 	{
-		m_Persistence.StartNewGame();
 		if(m_OccupyingFactionManager)
 		{
 			Print("Starting Occupying Faction");
@@ -105,6 +105,20 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		
 		Print("Overthrow Starting");
 		m_bGameInitialized = true;
+		
+		GetGame().GetCallqueue().CallLater(CheckUpdate, 10000, true, this);		
+	}
+	
+	protected void CheckUpdate()
+	{
+		TimeAndWeatherManagerEntity timeMgr = GetGame().GetTimeAndWeatherManager();
+		TimeContainer time = timeMgr.GetTime();
+		if(time.m_iHours >= 18 || time.m_iHours < 6)
+		{
+			timeMgr.SetDayDuration(86400 / m_Config.m_iNightTimeMultiplier);
+		}else{
+			timeMgr.SetDayDuration(86400 / m_Config.m_iTimeMultiplier);
+		}
 	}
 	
 	override void EOnFrame(IEntity owner, float timeSlice)
@@ -429,7 +443,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			return;
 		}
 		
-		GetGame().GetTimeAndWeatherManager().SetDayDuration(86400 / m_Config.m_iTimeMultiplier);
+		CheckUpdate();
 		
 		m_Persistence = OVT_PersistenceManagerComponent.Cast(FindComponent(OVT_PersistenceManagerComponent));		
 		if(m_Persistence)
@@ -439,14 +453,14 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			{
 				Print("Loading game");
 				m_bCameraSet = true;				
-				GetGame().GetCallqueue().CallLater(LoadAndStart);
+				m_bRequestStartOnPostProcess = true;
 			}else{
 				Print("No save game detected");
 				if(RplSession.Mode() == RplMode.Dedicated)
 				{
 					Print("Dedicated server, starting new game");
 					DoStartNewGame();
-					GetGame().GetCallqueue().CallLater(DoStartGame);
+					m_bRequestStartOnPostProcess = true;
 				}else{
 					m_StartGameUIContext.ShowLayout();
 				}
@@ -454,11 +468,14 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		}
 	}
 	
-	protected void LoadAndStart()
+	override event void OnWorldPostProcess(World world)
 	{
-		RequestLoad();
-		DoStartGame();
-	}
+		super.OnWorldPostProcess(world);
+		if(m_bRequestStartOnPostProcess)
+		{
+			DoStartGame();
+		}
+	};
 	
 	void OnPlayerSpawnedLocal(string playerId)
 	{
@@ -469,23 +486,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		}		
 	}
 	
-	protected void RemoteStartGame()
-	{
-		//any players online yet?
-		array<int> players = new array<int>;
-		PlayerManager mgr = GetGame().GetPlayerManager();
-		mgr.GetPlayers(players);
-		int numplayers = mgr.GetPlayers(players);
-		
-		Print("Requested Remote Start Game. Players online: " + players.Count().ToString());
-		
-		if(players.Count() > 0)
-		{
-			//tell the first player to start the game
-			Rpc(RpcDo_ShowStartGame, players[0]); 			
-		}
-	}
-	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_ShowStartGame(int playerId)
 	{
@@ -493,11 +493,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		if(playerId != localId) return;
 		
 		m_StartGameUIContext.ShowLayout();
-	}
-	
-	void RequestLoad()
-	{
-		m_Persistence.LoadGame();
 	}
 	
 	void StartNewGame()
@@ -533,5 +528,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		m_aInitializedPlayers.Clear();
 		m_aHintedPlayers.Clear();
 		m_mPlayerGroups.Clear();
+		GetGame().GetCallqueue().Remove(CheckUpdate);	
 	}
 }
