@@ -21,36 +21,6 @@ class OVT_FOBData
 	}
 }
 
-class OVT_Placeable : ScriptAndConfig
-{
-	[Attribute()]
-	string name;
-		
-	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Object Prefabs", params: "et")]
-	ref array<ResourceName> m_aPrefabs;
-	
-	[Attribute("", UIWidgets.ResourceNamePicker, "", "edds")]
-	ResourceName m_tPreview;
-	
-	[Attribute(defvalue: "100", desc: "Cost (multiplied by difficulty)")]
-	int m_iCost;
-	
-	[Attribute(defvalue: "0", desc: "Place on walls")]
-	bool m_bPlaceOnWall;
-	
-	[Attribute(defvalue: "0", desc: "Can place it anywhere")]
-	bool m_bIgnoreLocation;
-	
-	[Attribute(defvalue: "0", desc: "Cannot place near towns or bases")]
-	bool m_bAwayFromTownsBases;
-	
-	[Attribute(defvalue: "0", desc: "Must be placed near a town")]
-	bool m_bNearTown;
-	
-	[Attribute("", UIWidgets.Object)]
-	ref OVT_PlaceableHandler handler;
-}
-
 class OVT_Buildable : ScriptAndConfig
 {
 	[Attribute()]
@@ -104,8 +74,10 @@ class OVT_VehicleUpgrade : ScriptAndConfig
 
 class OVT_ResistanceFactionManager: OVT_Component
 {	
-	[Attribute("", UIWidgets.Object)]
-	ref array<ref OVT_Placeable> m_aPlaceables;
+	[Attribute()]
+	ResourceName m_rPlaceablesConfigFile;
+	
+	ref OVT_PlaceablesConfig m_PlaceablesConfig;
 	
 	[Attribute("", UIWidgets.Object)]
 	ref array<ref OVT_Buildable> m_aBuildables;
@@ -142,6 +114,9 @@ class OVT_ResistanceFactionManager: OVT_Component
 		super.OnPostInit(owner);
 		
 		m_Players = OVT_Global.GetPlayers();
+		
+		if (SCR_Global.IsEditMode()) return;
+		LoadConfigs();
 	}
 	
 	void OVT_ResistanceFactionManager(IEntityComponentSource src, IEntity ent, IEntity parent)
@@ -152,6 +127,19 @@ class OVT_ResistanceFactionManager: OVT_Component
 	void Init(IEntity owner)
 	{
 		GetGame().GetCallqueue().CallLater(RegisterUpgrades, 0);		
+	}
+	
+	protected void LoadConfigs()
+	{
+		Resource holder = BaseContainerTools.LoadContainer(m_rPlaceablesConfigFile);
+		if (holder)		
+		{
+			OVT_PlaceablesConfig obj = OVT_PlaceablesConfig.Cast(BaseContainerTools.CreateInstanceFromContainer(holder.GetResource().ToBaseContainer()));
+			if(obj)
+			{
+				m_PlaceablesConfig = obj;
+			}
+		}
 	}
 	
 	void RegisterUpgrades()
@@ -204,7 +192,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 	IEntity PlaceItem(int placeableIndex, int prefabIndex, vector pos, vector angles, int playerId, bool runHandler = true)
 	{
 		OVT_ResistanceFactionManager config = OVT_Global.GetResistanceFaction();
-		OVT_Placeable placeable = config.m_aPlaceables[placeableIndex];
+		OVT_Placeable placeable = config.m_PlaceablesConfig.m_aPlaceables[placeableIndex];
 		ResourceName res = placeable.m_aPrefabs[prefabIndex];
 		
 		vector mat[4];

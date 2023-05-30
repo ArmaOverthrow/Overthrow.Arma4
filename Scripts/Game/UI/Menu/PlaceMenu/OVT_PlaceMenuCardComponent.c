@@ -11,7 +11,7 @@ class OVT_PlaceMenuCardComponent : SCR_ScriptedWidgetComponent
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
 		
 		TextWidget text = TextWidget.Cast(m_wRoot.FindAnyWidget("EntityName"));
-		text.SetText(placeable.name);
+		text.SetText(placeable.m_sTitle);
 		
 		TextWidget cost = TextWidget.Cast(m_wRoot.FindAnyWidget("Cost"));
 		cost.SetText("$" + config.GetPlaceableCost(placeable));

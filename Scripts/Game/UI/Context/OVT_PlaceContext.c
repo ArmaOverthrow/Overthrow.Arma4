@@ -63,7 +63,7 @@ class OVT_PlaceContext : OVT_UIContext
 		m_Widgets.Init(m_wRoot);
 				
 		int done = 0;
-		foreach(int i, OVT_Placeable placeable : m_Resistance.m_aPlaceables)
+		foreach(int i, OVT_Placeable placeable : m_Resistance.m_PlaceablesConfig.m_aPlaceables)
 		{
 			Widget w = m_Widgets.m_BrowserGrid.FindWidget("PlaceMenu_Card" + i);
 			OVT_PlaceMenuCardComponent card = OVT_PlaceMenuCardComponent.Cast(w.FindHandler(OVT_PlaceMenuCardComponent));
@@ -294,7 +294,7 @@ class OVT_PlaceContext : OVT_UIContext
 			}
 			
 			vector angles = Math3D.MatrixToAngles(mat);
-			int placeableIndex = m_Resistance.m_aPlaceables.Find(m_Placeable);
+			int placeableIndex = m_Resistance.m_PlaceablesConfig.m_aPlaceables.Find(m_Placeable);
 			int prefabIndex = m_Placeable.m_aPrefabs.Find(m_pPlacingPrefab);
 			OVT_Global.GetServer().PlaceItem(placeableIndex, prefabIndex, mat[3], angles, m_iPlayerID);
 						
