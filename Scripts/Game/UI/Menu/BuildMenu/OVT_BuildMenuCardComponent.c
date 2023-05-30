@@ -11,7 +11,7 @@ class OVT_BuildMenuCardComponent : SCR_ScriptedWidgetComponent
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
 		
 		TextWidget text = TextWidget.Cast(m_wRoot.FindAnyWidget("EntityName"));
-		text.SetText(buildable.name);
+		text.SetText(buildable.m_sTitle);
 		
 		TextWidget cost = TextWidget.Cast(m_wRoot.FindAnyWidget("Cost"));
 		cost.SetText("$" + config.GetBuildableCost(buildable));

@@ -21,39 +21,6 @@ class OVT_FOBData
 	}
 }
 
-class OVT_Buildable : ScriptAndConfig
-{
-	[Attribute()]
-	string name;
-		
-	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Structure Prefabs", params: "et")]
-	ref array<ResourceName> m_aPrefabs;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Furniture Prefabs", params: "et")]
-	ref array<ResourceName> m_aFurniturePrefabs;
-	
-	[Attribute("", UIWidgets.ResourceNamePicker, "", "edds")]
-	ResourceName m_tPreview;
-	
-	[Attribute(defvalue: "100", desc: "Cost (multiplied by difficulty)")]
-	int m_iCost;
-	
-	[Attribute(defvalue: "0", desc: "Can build at a base")]
-	bool m_bBuildAtBase;
-	
-	[Attribute(defvalue: "0", desc: "Can build in a town")]
-	bool m_bBuildInTown;
-	
-	[Attribute(defvalue: "0", desc: "Can build in a village")]
-	bool m_bBuildInVillage;
-	
-	[Attribute(defvalue: "0", desc: "Can build at an FOB")]
-	bool m_bBuildAtFOB;
-	
-	[Attribute("", UIWidgets.Object)]
-	ref OVT_PlaceableHandler handler;
-}
-
 class OVT_VehicleUpgrades : ScriptAndConfig
 {
 	[Attribute()]
@@ -79,8 +46,10 @@ class OVT_ResistanceFactionManager: OVT_Component
 	
 	ref OVT_PlaceablesConfig m_PlaceablesConfig;
 	
-	[Attribute("", UIWidgets.Object)]
-	ref array<ref OVT_Buildable> m_aBuildables;
+	[Attribute()]
+	ResourceName m_rBuildablesConfigFile;
+	
+	ref OVT_BuildablesConfig m_BuildablesConfig;
 	
 	[Attribute("", UIWidgets.Object)]
 	ref array<ref OVT_VehicleUpgrades> m_aVehicleUpgrades;
@@ -138,6 +107,16 @@ class OVT_ResistanceFactionManager: OVT_Component
 			if(obj)
 			{
 				m_PlaceablesConfig = obj;
+			}
+		}
+		
+		holder = BaseContainerTools.LoadContainer(m_rBuildablesConfigFile);
+		if (holder)		
+		{
+			OVT_BuildablesConfig obj = OVT_BuildablesConfig.Cast(BaseContainerTools.CreateInstanceFromContainer(holder.GetResource().ToBaseContainer()));
+			if(obj)
+			{
+				m_BuildablesConfig = obj;
 			}
 		}
 	}
@@ -212,7 +191,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 	IEntity BuildItem(int buildableIndex, int prefabIndex, vector pos, vector angles, int playerId, bool runHandler = true)
 	{
 		OVT_ResistanceFactionManager config = OVT_Global.GetResistanceFaction();
-		OVT_Buildable buildable = config.m_aBuildables[buildableIndex];
+		OVT_Buildable buildable = config.m_BuildablesConfig.m_aBuildables[buildableIndex];
 		ResourceName res = buildable.m_aPrefabs[prefabIndex];
 		
 		vector mat[4];

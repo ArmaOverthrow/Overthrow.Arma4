@@ -7,8 +7,7 @@ class OVT_PlayerData : Managed
 	[NonSerialized()]
 	int id;
 	
-	string name;
-	vector location;	
+	string name;	
 	vector home;
 	vector camp;	
 	int money;

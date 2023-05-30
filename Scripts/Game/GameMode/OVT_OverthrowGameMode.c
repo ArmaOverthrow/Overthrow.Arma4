@@ -175,18 +175,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	
 	void PreShutdownPersist()
 	{		
-		// Save all online player locations
-		array<int> players = new array<int>;
-		PlayerManager mgr = GetGame().GetPlayerManager();
-		mgr.GetPlayers(players);
-		foreach(int playerId : players){
-			IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
-			string persId = m_PlayerManager.GetPersistentIDFromPlayerID(playerId);
-			OVT_PlayerData playerData = m_PlayerManager.GetPlayer(persId);
-			if(!playerData) continue;
-			
-			playerData.location = player.GetOrigin();
-		}
+		
 	}
 	
 	protected override void OnPlayerRoleChange(int playerId, EPlayerRole roleFlags)
@@ -210,11 +199,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		super.OnPlayerKilled(playerId, player, killer);
 		
 		string persId = m_PlayerManager.GetPersistentIDFromPlayerID(playerId);
-		OVT_PlayerData playerData = m_PlayerManager.GetPlayer(persId);
-		if(playerData)
-		{
-			playerData.location = OVT_Global.GetRealEstate().GetHome(persId);
-		}
+		OVT_PlayerData playerData = m_PlayerManager.GetPlayer(persId);		
 	}
 	
 	protected override void OnPlayerDisconnected(int playerId, KickCauseCode cause, int timeout)
@@ -226,8 +211,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		{
 			OVT_PlayerData player = m_PlayerManager.GetPlayer(persId);
 			if(player)
-			{
-				player.location = controlledEntity.GetOrigin();
+			{				
 				player.id = -1;
 			}
 			
@@ -291,7 +275,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 				IEntity house = OVT_Global.GetTowns().GetRandomStartingHouse();
 				m_RealEstate.SetOwner(playerId, house);
 				m_RealEstate.SetHome(playerId, house);				
-				player.location = house.GetOrigin();				
 				
 				m_VehicleManager.SpawnStartingCar(house, persistentId);
 			}

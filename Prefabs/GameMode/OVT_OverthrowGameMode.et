@@ -443,38 +443,7 @@ OVT_OverthrowGameMode {
   }
   OVT_ResistanceFactionManager "{59A49A9CD87CBC92}" {
    m_rPlaceablesConfigFile "{A4E760D069AE00F8}Configs/Resistance/placeables.conf"
-   m_aBuildables {
-    OVT_Buildable "{59C4C0ED2BB2E769}" {
-     name "#OVT-Build_MedicalTent"
-     m_aPrefabs {
-      "{F634370733F16BC0}Prefabs/Structures/Military/FOB/OVT_MedicalTent.et"
-     }
-     m_tPreview "{D57791EDD697D223}UI/Textures/EditorPreviews/Auto/Structures/Military/Camps/TentUSSR_01/E_TentUSSRMedical_01.edds"
-     m_iCost 1000
-     m_bBuildAtBase 1
-     m_bBuildAtFOB 1
-    }
-    OVT_Buildable "{59CF196F7146636B}" {
-     name "#OVT-Build_VehicleMaintenanceRamp"
-     m_aPrefabs {
-      "{3D2270BA89BC2AA4}Prefabs/Structures/Military/FOB/OVT_VehicleMaintenanceRamp.et"
-     }
-     m_tPreview "{41D4D216FD6A2FE2}UI/Textures/EditorPreviews/Auto/Structures/Industrial/Repair/E_RampVehicle_01_metal.edds"
-     m_iCost 1500
-     m_bBuildAtBase 1
-     m_bBuildAtFOB 1
-    }
-    OVT_Buildable "{5D746E054D3455B1}" {
-     name "#OVT-Build_Tent"
-     m_aPrefabs {
-      "{A817454D4372DBCA}Prefabs/Structures/Military/CamoNets/Soviet/CamoNet_Tent_Soviet.et" "{6A30882656A63268}Prefabs/Structures/Military/CamoNets/US/CamoNet_Tent_US.et" "{B6D61E3EC914119E}Prefabs/Compositions/Misc/SubCompositions/Tent_Barrack_Camo_Cluttered_USSR_01.et" "{DA822ADE75D09EB0}Prefabs/Compositions/Misc/SubCompositions/Tent_Barrack_Camo_Cluttered_USSR_02.et" "{95A4CF49FC9C0481}Prefabs/Compositions/Misc/SubCompositions/Tent_Barrack_Cluttered_US_01.et" "{F9F0FBA940588BAF}Prefabs/Compositions/Misc/SubCompositions/Tent_Barrack_Cluttered_US_02.et" "{1C6CB7504CBD1CC4}Prefabs/Compositions/Misc/SubCompositions/Tent_Barrack_Cluttered_US_03.et" "{2158926839D195F3}Prefabs/Compositions/Misc/SubCompositions/Tent_Barrack_Cluttered_US_04.et" "{C4C4DE9135340298}Prefabs/Compositions/Misc/SubCompositions/Tent_Barrack_Cluttered_US_05.et" "{61A1055D397072A5}Prefabs/Compositions/Misc/SubCompositions/Tent_Barrack_Cluttered_USSR_01.et" "{0DF531BD85B4FD8B}Prefabs/Compositions/Misc/SubCompositions/Tent_Barrack_Cluttered_USSR_02.et" "{E8697D4489516AE0}Prefabs/Compositions/Misc/SubCompositions/Tent_Barrack_Cluttered_USSR_03.et" "{FA06509902D591F4}Prefabs/Compositions/Misc/SubCompositions/Tent_BarrackHQ_Cluttered_US_01.et" "{6DEC3A82BA35F108}Prefabs/Compositions/Misc/SubCompositions/Tent_BarrackHQ_Cluttered_USSR_01.et" "{F1C5F8E2EF1105F9}Prefabs/Compositions/Misc/SubCompositions/Tent_HQ_Camo_Cluttered_US_01.et" "{EE6C590D25FF8AD3}Prefabs/Compositions/Misc/SubCompositions/Tent_HQ_Camo_Cluttered_USSR_01.et" "{4A1E3B17DB672E35}Prefabs/Structures/Military/Camps/TentFIA_01/TentFIA_01.et" "{9F2A11E9E112D3ED}Prefabs/Structures/Military/Camps/TentFIA_01/TentFIA_01_camonet.et"
-     }
-     m_tPreview "{AED2D3AC99C74576}UI/Textures/EditorPreviews/Auto/Structures/Military/CamoNets/Soviet/E_CamoNet_Tent_Soviet.edds"
-     m_iCost 250
-     m_bBuildAtBase 1
-     m_bBuildAtFOB 1
-    }
-   }
+   m_rBuildablesConfigFile "{430C71DF4386D868}Configs/Resistance/buildables.conf"
    m_aVehicleUpgrades {
     OVT_VehicleUpgrades "{59CF1963D54690F3}" {
      m_pBasePrefab "{F649585ABB3706C4}Prefabs/Vehicles/Wheeled/M151A2/M151A2.et"

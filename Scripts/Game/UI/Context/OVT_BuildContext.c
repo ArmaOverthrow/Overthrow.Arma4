@@ -66,7 +66,7 @@ class OVT_BuildContext : OVT_UIContext
 		IEntity player = SCR_PlayerController.GetLocalControlledEntity();
 				
 		string reason;		
-		foreach(int i, OVT_Buildable buildable : m_Resistance.m_aBuildables)
+		foreach(int i, OVT_Buildable buildable : m_Resistance.m_BuildablesConfig.m_aBuildables)
 		{
 			if(CanBuild(buildable, player.GetOrigin(), reason))
 			{
@@ -393,7 +393,7 @@ class OVT_BuildContext : OVT_UIContext
 			}
 			
 			vector angles = Math3D.MatrixToAngles(mat);
-			int buildableIndex = m_Resistance.m_aBuildables.Find(m_Buildable);
+			int buildableIndex = m_Resistance.m_BuildablesConfig.m_aBuildables.Find(m_Buildable);
 			int prefabIndex = m_Buildable.m_aPrefabs.Find(m_pBuildingPrefab);
 			OVT_Global.GetServer().BuildItem(buildableIndex, prefabIndex, mat[3], angles, m_iPlayerID);
 						
