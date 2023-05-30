@@ -55,25 +55,7 @@ class OVT_DeliverMedicalSuppliesAction : ScriptedUserAction
 		
 		SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-MedicalSuppliesDelivered $" + cost.ToString());
 		
-		int townID = OVT_Global.GetTowns().GetTownID(town);
-		
-		int supportValue = Math.Floor(cost / 10);
-		for(int t=0; t<supportValue; t++)
-		{
-			towns.TryAddSupportModifierByName(townID, "MedicalSupplies");
-			towns.TryAddStabilityModifierByName(townID, "MedicalSupplies");
-		}
-		
-		// Play sound
-		SimpleSoundComponent simpleSoundComp = SimpleSoundComponent.Cast(pOwnerEntity.FindComponent(SimpleSoundComponent));
-		if (simpleSoundComp)
-		{
-			vector mat[4];
-			pOwnerEntity.GetWorldTransform(mat);
-			
-			simpleSoundComp.SetTransformation(mat);
-			simpleSoundComp.PlayStr("UNLOAD_VEHICLE");
-		}	
+		OVT_Global.GetServer().DeliverMedicalSupplies(pOwnerEntity);
 	}
 	
 	override bool HasLocalEffectOnlyScript() { return true; };

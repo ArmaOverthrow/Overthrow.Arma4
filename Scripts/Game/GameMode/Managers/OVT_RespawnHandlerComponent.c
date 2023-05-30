@@ -45,6 +45,8 @@ class OVT_RespawnHandlerComponent : SCR_RespawnHandlerComponent
 		}else{
 			LoadPlayerData(playerId, playerUid);
 		}
+		
+		OVT_Global.GetTowns().StreamTownModifiers(playerId);
 	}
 	
 	protected void LoadPlayerData(int playerId, string playerUid)

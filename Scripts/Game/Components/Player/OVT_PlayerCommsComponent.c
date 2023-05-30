@@ -36,6 +36,74 @@ class OVT_PlayerCommsComponent: OVT_Component
 		of.StartBaseQRF(base);
 	}
 	
+	void DeliverMedicalSupplies(IEntity vehicle)
+	{
+		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
+		Rpc(RpcAsk_DeliverMedicalSupplies, rpl.Id());
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_DeliverMedicalSupplies(RplId vehicleId)
+	{	
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		
+		RplComponent rplComp = RplComponent.Cast(Replication.FindItem(vehicleId));
+		if(!rplComp) return;
+		
+		IEntity vehicle = rplComp.GetEntity();
+		
+		OVT_TownData town = towns.GetNearestTown(vehicle.GetOrigin());
+		
+		SCR_VehicleInventoryStorageManagerComponent vehicleStorage = SCR_VehicleInventoryStorageManagerComponent.Cast(vehicle.FindComponent(SCR_VehicleInventoryStorageManagerComponent));
+		if(!vehicleStorage)
+		{
+			return;
+		}
+				
+		array<IEntity> items = new array<IEntity>;
+		vehicleStorage.GetItems(items);
+		if(items.Count() == 0) {
+			return;
+		}
+		
+		int cost = 0;
+		foreach(IEntity item : items)
+		{
+			ResourceName res = item.GetPrefabData().GetPrefabName();
+			if(!economy.IsSoldAtShop(res, OVT_ShopType.SHOP_DRUG)) continue;
+			if(!vehicleStorage.TryDeleteItem(item)){				
+				continue;
+			}
+			cost += economy.GetPriceByResource(res, town.location);
+		}
+		
+		if(cost == 0)
+		{
+			return;
+		}
+				
+		int townID = OVT_Global.GetTowns().GetTownID(town);
+		
+		int supportValue = Math.Floor(cost / 10);
+		for(int t=0; t<supportValue; t++)
+		{
+			towns.TryAddSupportModifierByName(townID, "MedicalSupplies");
+			towns.TryAddStabilityModifierByName(townID, "MedicalSupplies");
+		}
+		
+		// Play sound
+		SimpleSoundComponent simpleSoundComp = SimpleSoundComponent.Cast(vehicle.FindComponent(SimpleSoundComponent));
+		if (simpleSoundComp)
+		{
+			vector mat[4];
+			vehicle.GetWorldTransform(mat);
+			
+			simpleSoundComp.SetTransformation(mat);
+			simpleSoundComp.PlayStr("UNLOAD_VEHICLE");
+		}	
+	}
+	
 	//REAL ESTATE
 	
 	void SetHome(int playerId)
