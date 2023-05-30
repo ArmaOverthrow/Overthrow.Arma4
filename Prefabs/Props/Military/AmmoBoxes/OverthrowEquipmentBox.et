@@ -1,6 +1,14 @@
 GenericEntity {
  ID "5992E2EECFF48DDE"
  components {
+  EPF_PersistenceComponent "{5D78D8248549E11B}" {
+   m_pSaveData OVT_PlaceableSaveDataClass "{5D78D8248416F52D}" {
+    m_aComponents {
+     EPF_BaseInventoryStorageComponentSaveDataClass "{5D78E4659065E2C6}" {
+     }
+    }
+   }
+  }
   MeshObject "{5992E2ED4AE6FC55}" {
    Object "{B8A18DA1DEC04635}Assets/Props/Military/AmmoBox/EquipmentBoxStack/EquipmentBoxStack_01_V4.xob"
    LODFactors {
@@ -78,14 +86,6 @@ GenericEntity {
    }
   }
   RplComponent "{5992E2EEFC6E557E}" {
-  }
-  EPF_PersistenceComponent "{5D78D8248549E11B}" {
-   m_pSaveData EPF_ItemSaveDataClass "{5D78D8248416F52D}" {
-    m_aComponents {
-     EPF_BaseInventoryStorageComponentSaveDataClass "{5D78E4659065E2C6}" {
-     }
-    }
-   }
   }
  }
  coords 0 0 0

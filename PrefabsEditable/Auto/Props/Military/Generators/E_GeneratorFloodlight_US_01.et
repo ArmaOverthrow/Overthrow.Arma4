@@ -1,0 +1,9 @@
+GameEntity : "{0E94F28FD722B1D8}Prefabs/Props/Military/Generators/GeneratorFloodlight_US_01.et" {
+ ID "F0DBA538AC2A0552"
+ components {
+  EPF_PersistenceComponent "{5D7C48988CA3E03D}" {
+   m_pSaveData OVT_PlaceableSaveDataClass "{5D7C48988A452E7B}" {
+   }
+  }
+ }
+}

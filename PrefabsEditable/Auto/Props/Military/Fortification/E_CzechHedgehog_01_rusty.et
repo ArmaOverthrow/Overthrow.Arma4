@@ -1,0 +1,9 @@
+StaticModelEntity : "{AE28D47CF26E91EA}Prefabs/Props/Military/Fortification/CzechHedgehog_01_rusty.et" {
+ ID "51E2F0F0E96F07CE"
+ components {
+  EPF_PersistenceComponent "{5D7C4898BDE2E6A2}" {
+   m_pSaveData OVT_PlaceableSaveDataClass "{5D7C4898BB5209CB}" {
+   }
+  }
+ }
+}

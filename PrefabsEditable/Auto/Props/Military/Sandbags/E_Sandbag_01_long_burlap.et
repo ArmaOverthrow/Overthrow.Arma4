@@ -1,0 +1,9 @@
+GenericEntity : "{21D83950DF36F250}Prefabs/Props/Military/Sandbags/Sandbag_01_long_burlap.et" {
+ ID "F0DBA538AC2A0552"
+ components {
+  EPF_PersistenceComponent "{5D7C489F73C5F947}" {
+   m_pSaveData OVT_PlaceableSaveDataClass "{5D7C489F710D3ED1}" {
+   }
+  }
+ }
+}

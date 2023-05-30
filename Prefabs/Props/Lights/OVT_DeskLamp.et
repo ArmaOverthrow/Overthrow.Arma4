@@ -1,14 +1,14 @@
 GenericEntity : "{D62A80FF7E61B2FA}Prefabs/Props/Furniture/LightTable_01.et" {
  ID "6093E737DF86B25E"
  components {
+  EPF_PersistenceComponent "{5D78D824AFD37D43}" {
+   m_pSaveData OVT_PlaceableSaveDataClass "{5D78D824ACB93529}" {
+   }
+  }
   Hierarchy "{59CC0DBAEA18F509}" {
   }
   RplComponent "{5624A88DC2D9928D}" {
    Enabled 1
-  }
-  EPF_PersistenceComponent "{5D78D824AFD37D43}" {
-   m_pSaveData EPF_ItemSaveDataClass "{5D78D824ACB93529}" {
-   }
   }
  }
  coords 5019.553 27.982 10843.384
