@@ -1,0 +1,9 @@
+StaticModelEntity : "{B6D61E3EC914119E}Prefabs/Compositions/Misc/SubCompositions/Tent_Barrack_Camo_Cluttered_USSR_01.et" {
+ ID "F0DBA538AC2A0552"
+ components {
+  EPF_PersistenceComponent "{5D7C4894B81042DA}" {
+   m_pSaveData OVT_BuildingSaveDataClass "{5D7C48948614D710}" {
+   }
+  }
+ }
+}

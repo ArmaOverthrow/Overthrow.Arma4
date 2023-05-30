@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{806E831E70E193F1}Prefabs/Structures/Military/Houses/GuardTower_01/OVT_GuardTower_01.et"
+ Configurations {
+  EntityTemplateResourceClass PC {
+  }
+  EntityTemplateResourceClass XBOX_ONE : PC {
+  }
+  EntityTemplateResourceClass XBOX_SERIES : PC {
+  }
+  EntityTemplateResourceClass PS4 : PC {
+  }
+  EntityTemplateResourceClass HEADLESS : PC {
+  }
+ }
+}

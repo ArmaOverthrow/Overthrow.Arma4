@@ -1,0 +1,9 @@
+StaticModelEntity : "{54AF9F7C4603B71B}Prefabs/Structures/Military/Camps/TentFIA_01/TentFIA_01_foundation.et" {
+ ID "5A532DCCA3D221CE"
+ components {
+  EPF_PersistenceComponent "{5D7C48957179D41A}" {
+   m_pSaveData OVT_BuildingSaveDataClass "{5D7C48957F484FD9}" {
+   }
+  }
+ }
+}

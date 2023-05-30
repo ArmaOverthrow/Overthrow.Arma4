@@ -9,9 +9,6 @@ class OVT_BuildablesConfig
 class OVT_Buildable
 {
 	[Attribute()]
-	string name;
-	
-	[Attribute()]
 	string m_sName;
 	
 	[Attribute()]

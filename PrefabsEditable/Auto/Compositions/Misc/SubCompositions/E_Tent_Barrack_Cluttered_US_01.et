@@ -1,0 +1,9 @@
+StaticModelEntity : "{95A4CF49FC9C0481}Prefabs/Compositions/Misc/SubCompositions/Tent_Barrack_Cluttered_US_01.et" {
+ ID "527AC119B710AE74"
+ components {
+  EPF_PersistenceComponent "{5D7C48948DE94477}" {
+   m_pSaveData OVT_BuildingSaveDataClass "{5D7C48948B5F9EDB}" {
+   }
+  }
+ }
+}
