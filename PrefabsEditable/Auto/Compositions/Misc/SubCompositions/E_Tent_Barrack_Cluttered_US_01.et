@@ -5,5 +5,8 @@ StaticModelEntity : "{95A4CF49FC9C0481}Prefabs/Compositions/Misc/SubCompositions
    m_pSaveData OVT_BuildingSaveDataClass "{5D7C48948B5F9EDB}" {
    }
   }
+  RplComponent "{5706EA58AB163202}" {
+   Streamable Disabled
+  }
  }
 }

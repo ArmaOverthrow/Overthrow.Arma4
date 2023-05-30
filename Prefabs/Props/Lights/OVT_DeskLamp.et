@@ -9,6 +9,7 @@ GenericEntity : "{D62A80FF7E61B2FA}Prefabs/Props/Furniture/LightTable_01.et" {
   }
   RplComponent "{5624A88DC2D9928D}" {
    Enabled 1
+   Streamable Disabled
   }
  }
  coords 5019.553 27.982 10843.384

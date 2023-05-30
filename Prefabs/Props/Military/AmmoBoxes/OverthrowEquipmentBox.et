@@ -86,6 +86,7 @@ GenericEntity {
    }
   }
   RplComponent "{5992E2EEFC6E557E}" {
+   Streamable Disabled
   }
  }
  coords 0 0 0

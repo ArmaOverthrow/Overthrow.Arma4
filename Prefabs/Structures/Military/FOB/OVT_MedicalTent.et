@@ -26,6 +26,9 @@ SCR_DestructibleBuildingEntity : "{CBE5E0D2DC08E178}Prefabs/Structures/Military/
     }
    }
   }
+  RplComponent "{50A4E7C9B5728062}" {
+   Streamable Disabled
+  }
  }
  coords 4781.773 0.001 10833.379
  {

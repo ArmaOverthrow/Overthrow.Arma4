@@ -31,7 +31,7 @@ class OVT_RespawnHandlerComponent : SCR_RespawnHandlerComponent
 		//Force only two players in workbench to test reconnection
 		if(playerId > 2)
 		{
-			playerUid = "LOCAL_UID_2";
+			playerUid = EPF_Utils.GetPlayerUID(2);
 		}
 #endif
 

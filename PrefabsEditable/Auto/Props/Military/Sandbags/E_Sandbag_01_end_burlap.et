@@ -5,5 +5,8 @@ GenericEntity : "{CC5453CCC311603B}Prefabs/Props/Military/Sandbags/Sandbag_01_en
    m_pSaveData OVT_PlaceableSaveDataClass "{5D7C489E946041BA}" {
    }
   }
+  RplComponent "{5624A88DC2D9928D}" {
+   Streamable Disabled
+  }
  }
 }

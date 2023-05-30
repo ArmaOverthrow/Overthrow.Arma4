@@ -5,6 +5,9 @@ SCR_DestructibleBuildingEntity : "{33F50E1C918159AB}Prefabs/Structures/Military/
    m_pSaveData OVT_BuildingSaveDataClass "{5D7C4896F5867BB6}" {
    }
   }
+  RplComponent "{50A4E7C9B5728062}" {
+   Streamable Disabled
+  }
  }
  {
   $grp GenericEntity : "{465E10879E936748}Prefabs/Structures/BuildingParts/Windows/Glass_42x43/Glass_42x43.et" {

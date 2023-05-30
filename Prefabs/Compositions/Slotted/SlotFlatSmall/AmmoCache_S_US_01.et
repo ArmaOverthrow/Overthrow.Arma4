@@ -1,6 +1,10 @@
 GenericEntity : "{3BA9D94C4EE9B33B}Prefabs/Compositions/Slotted/CompositionBase.et" {
  ID "5282DCB5DFC8538F"
  components {
+  EPF_PersistenceComponent "{5D78D8209E26FEAD}" {
+   m_pSaveData OVT_BaseUpgradeSaveDataClass "{5D78D8209DB2CCBC}" {
+   }
+  }
   FactionAffiliationComponent "{59B2DAFAD57D5EC3}" {
    "faction affiliation" "US"
   }
@@ -35,10 +39,6 @@ GenericEntity : "{3BA9D94C4EE9B33B}Prefabs/Compositions/Slotted/CompositionBase.
    m_vLookPosition -3.993 1 7.216
    m_fLookDirectionRange 90
    m_bUseBinoculars 1
-  }
-  EPF_PersistenceComponent "{5D78D8209E26FEAD}" {
-   m_pSaveData EPF_ItemSaveDataClass "{5D78D8209DB2CCBC}" {
-   }
   }
  }
  coords 64 0 64

@@ -56,6 +56,11 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	
 	void DoStartGame()
 	{
+		if(m_Persistence.HasSaveGame()){
+			Print("Loading Game");
+			m_Persistence.LoadGame();
+		}
+		
 		m_StartGameUIContext.CloseLayout();
 		m_bGameStarted = true;		
 		
@@ -403,7 +408,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			Print("Initializing Persistence");
 			if(m_Persistence.HasSaveGame())
 			{
-				Print("Loading game");
 				m_bCameraSet = true;				
 				m_bRequestStartOnPostProcess = true;
 			}else{

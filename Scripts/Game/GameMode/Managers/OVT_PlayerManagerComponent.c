@@ -148,7 +148,7 @@ class OVT_PlayerManagerComponent: OVT_Component
 			//Force only two players in workbench to test reconnection
 			if(playerId > 2)
 			{
-				persistentId = "LOCAL_UID_2";
+				persistentId = EPF_Utils.GetPlayerUID(2);
 			}
 #endif
 			SetupPlayer(playerId, persistentId);

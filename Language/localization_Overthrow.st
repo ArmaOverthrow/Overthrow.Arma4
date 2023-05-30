@@ -43,10 +43,24 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D7C5DE3BEE5FBE3}" {
+   Id "OVT-Build_GuardTower"
+   Target_en_us "Guard Tower"
+   Modified 1568432256
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59C4F15B8934641B}" {
    Id "OVT-Build_MedicalTent"
    Target_en_us "Medical Tent"
    Modified 1506079956
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D7C5DE39344EAE9}" {
+   Id "OVT-Build_Tent"
+   Target_en_us "Tent"
+   Modified 1568432283
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
