@@ -538,6 +538,18 @@ OVT_OverthrowGameMode {
   }
   SCR_PlayerProfileManagerComponent "{59724C8C935D8E14}" {
   }
+  SCR_RadialMenuGameModeComponent "{5D7EADAF1949CAD1}" {
+   m_Menu SCR_RadialMenu "{5D7EADAFE1EB1C74}" : "{D9448EF097CB0ACB}Configs/HUD/RadialMenu/GlobalRadialMenu.conf" {
+   }
+  }
+  SCR_RadialMenuItemsComponent "{5D7EADAFC9902670}" {
+   m_MenuController SCR_RadialMenuController "{5D7EADAFC88B4B33}" {
+    m_RMControls SCR_RadialMenuControllerInputs "{5D7EADAFD4ED2D14}" {
+     m_sControllerContext "WeaponSelectionContext"
+     m_sOpenAction "Inventory_WeaponSwitchingRadial"
+    }
+   }
+  }
   SCR_RespawnTimerComponent "{59C30B0685EFBB8C}" {
    m_fRespawnTime 2
   }
