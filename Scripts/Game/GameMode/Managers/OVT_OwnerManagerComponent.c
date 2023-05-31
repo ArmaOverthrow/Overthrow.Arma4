@@ -9,6 +9,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 	ref map<string, ref set<RplId>> m_mRented;
 	ref map<ref RplId, string> m_mOwners;
 	ref map<ref RplId, string> m_mRenters;
+	ref map<ref RplId, vector> m_mLocations;
 	
 	void OVT_OwnerManagerComponent(IEntityComponentSource src, IEntity ent, IEntity parent)
 	{
@@ -16,6 +17,13 @@ class OVT_OwnerManagerComponent: OVT_Component
 		m_mOwners = new map<ref RplId, string>;
 		m_mRented = new map<string, ref set<RplId>>;
 		m_mRenters = new map<ref RplId, string>;
+		m_mLocations = new map<ref RplId, vector>;
+	}
+	
+	vector GetLocationFromId(RplId id)
+	{
+		if(!m_mLocations.Contains(id)) return "0 0 0";
+		return m_mLocations[id];
 	}
 	
 	void SetOwner(int playerId, IEntity building)
@@ -275,6 +283,10 @@ class OVT_OwnerManagerComponent: OVT_Component
 		owner.Insert(id);
 		
 		m_mOwners[id] = persId;
+		
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+		if(!rpl) return;
+		m_mLocations[id] = rpl.GetEntity().GetOrigin();
 	}
 	
 	void DoSetRenterPersistentId(string persId, RplId id)
@@ -284,6 +296,10 @@ class OVT_OwnerManagerComponent: OVT_Component
 		owner.Insert(id);
 		
 		m_mRenters[id] = persId;
+		
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+		if(!rpl) return;
+		m_mLocations[id] = rpl.GetEntity().GetOrigin();
 	}
 	
 	void ~OVT_OwnerManagerComponent()
@@ -307,6 +323,11 @@ class OVT_OwnerManagerComponent: OVT_Component
 		{
 			m_mRenters.Clear();
 			m_mRenters = null;
+		}
+		if(m_mLocations)
+		{
+			m_mLocations.Clear();
+			m_mLocations = null;
 		}
 	}
 }

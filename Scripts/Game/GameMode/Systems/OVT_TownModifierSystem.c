@@ -51,7 +51,7 @@ class OVT_TownModifierSystem : ScriptAndConfig
 	bool OnTick(inout array<ref OVT_TownModifierData> modifiers, OVT_TownData town)
 	{
 		//Check if we need to time out any modifiers
-		array<OVT_TownModifierData> rebuild = new array<OVT_TownModifierData>;
+		array<ref OVT_TownModifierData> rebuild = new array<ref OVT_TownModifierData>;
 		bool recalc = false;		
 		foreach(OVT_TownModifierData modifier : modifiers)
 		{
@@ -86,7 +86,8 @@ class OVT_TownModifierSystem : ScriptAndConfig
 			modifiers.Clear();
 			foreach(OVT_TownModifierData mod : rebuild)
 			{
-				modifiers.Insert(mod);
+				if(mod)
+					modifiers.Insert(mod);
 			}
 		}
 		

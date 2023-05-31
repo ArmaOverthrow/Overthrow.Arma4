@@ -377,7 +377,7 @@ class OVT_TownManagerComponent: OVT_Component
 			int num = 0;
 			foreach(OVT_TownModifierData data : town.supportModifiers)
 			{
-				if(data.id == index) num++;
+				if(data && data.id == index) num++;
 			}
 			if(num < mod.stackLimit)
 				AddSupportModifier(townId, index);

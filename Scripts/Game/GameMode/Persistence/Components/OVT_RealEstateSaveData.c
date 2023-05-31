@@ -25,12 +25,8 @@ class OVT_RealEstateSaveData : EPF_ComponentSaveData
 			m_mOwned[playerId] = new array<vector>;
 			
 			foreach(RplId id : ownedArray)
-			{
-				RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
-				if(!rpl) continue;
-				IEntity ent = rpl.GetEntity();
-				if(!ent) continue;
-				m_mOwned[playerId].Insert(ent.GetOrigin());
+			{				
+				m_mOwned[playerId].Insert(re.GetLocationFromId(id));
 			}
 		}
 		
@@ -44,11 +40,7 @@ class OVT_RealEstateSaveData : EPF_ComponentSaveData
 			
 			foreach(RplId id : ownedArray)
 			{
-				RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
-				if(!rpl) continue;
-				IEntity ent = rpl.GetEntity();
-				if(!ent) continue;
-				m_mRented[playerId].Insert(ent.GetOrigin());
+				m_mRented[playerId].Insert(re.GetLocationFromId(id));
 			}
 		}
 		
