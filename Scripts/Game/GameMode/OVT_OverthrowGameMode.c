@@ -55,14 +55,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	}
 	
 	void DoStartGame()
-	{
-		if(m_Persistence.HasSaveGame()){
-			Print("[EPF] Loading Game");			
-		}else{
-			Print("[EPF] Starting persistence");
-		}
-		m_Persistence.LoadGame();
-		
+	{		
 		m_StartGameUIContext.CloseLayout();
 		m_bGameStarted = true;		
 		

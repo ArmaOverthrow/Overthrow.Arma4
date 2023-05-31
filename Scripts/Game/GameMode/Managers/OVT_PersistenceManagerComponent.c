@@ -9,24 +9,6 @@ class OVT_PersistenceManagerComponent : EPF_PersistenceManagerComponent
 	
 	protected World m_World;
 	
-	override event void OnWorldPostProcess(World world)
-	{
-		if(Replication.IsServer()){
-			//Do nothing, wait for us to call LoadGame()
-			m_World = world;
-			return;
-		}
-		super.OnWorldPostProcess(world);
-		if (m_pPersistenceManager)
-			m_pPersistenceManager.OnWorldPostProcess(world);
-	}
-	
-	void LoadGame()
-	{
-		if (m_pPersistenceManager)
-			m_pPersistenceManager.OnWorldPostProcess(m_World);
-	}
-	
 	override event void OnGameEnd()
 	{
 		OVT_OverthrowGameMode mode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
