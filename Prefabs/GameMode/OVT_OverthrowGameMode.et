@@ -341,13 +341,13 @@ OVT_OverthrowGameMode {
    m_pGetInWaypointPrefab "{712F4795CF8B91C7}Prefabs/AI/Waypoints/AIWaypoint_GetIn.et"
    m_pSmartActionWaypointPrefab "{04A06A6742FB0AF8}Prefabs/AI/Waypoints/AIWaypoint_UserAction.et"
    m_aStartingHouseFilters {
-    "House_Mountain_E_1I01.et"
+    "House_Mountain_E_1I01.et" "House_Village_E_1I05s.et" "House_Village_E_1L03t.et"
    }
    m_aBuildingTypes {
     OVT_RealEstateConfig "{5D2EDC0DFB761194}" {
      m_Name "Starting House"
      m_aResourceNameFilters {
-      "House_Mountain_E_1I01.et"
+      "House_Mountain_E_1I01.et" "House_Village_E_1I05s.et" ""
      }
      m_BasePrice 25000
      m_BaseRent 1000
@@ -545,7 +545,7 @@ OVT_OverthrowGameMode {
    Streamable Disabled
   }
  }
- coords 3207.214 1.87 11071.67
+ coords 3207.214 2.27 11071.67
  Flags 0
  m_bAutoPlayerRespawn 0
  m_StartGameUIContext OVT_StartGameContext "{599D315949D3D5D0}" {

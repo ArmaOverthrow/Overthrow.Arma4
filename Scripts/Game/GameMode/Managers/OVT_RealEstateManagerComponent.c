@@ -158,8 +158,14 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	
 	void SetHome(int playerId, IEntity building)
 	{	
-		DoSetHome(playerId, building.GetOrigin());
-		Rpc(RpcDo_SetHome, playerId, building.GetOrigin());
+		OVT_SpawnPointComponent spawn = OVT_SpawnPointComponent.Cast(building.FindComponent(OVT_SpawnPointComponent));
+		vector pos = building.GetOrigin();
+		if(spawn)
+		{
+			pos = spawn.GetSpawnPoint();
+		}
+		DoSetHome(playerId, pos);
+		Rpc(RpcDo_SetHome, playerId, pos);		
 	}
 	
 	void SetHomePos(int playerId, vector pos)

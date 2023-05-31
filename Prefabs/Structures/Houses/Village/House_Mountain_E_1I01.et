@@ -1,4 +1,4 @@
-SCR_DestructibleBuildingEntity : "{79CE8730C95EFD23}Prefabs/Structures/Houses/Village/House_Mountain_E_1I01_Base.et" {
+SCR_DestructibleBuildingEntity : "{79CE8730C95EFD23}Prefabs/Structures/Houses/Village/House_Mountain_E_1I01/House_Mountain_E_1I01_Base.et" {
  ID "F0DBA538AC2A0552"
  components {
   OVT_ParkingComponent "{59A6937B030F6768}" {
@@ -8,6 +8,9 @@ SCR_DestructibleBuildingEntity : "{79CE8730C95EFD23}Prefabs/Structures/Houses/Vi
      m_Type PARKING_CAR
     }
    }
+  }
+  OVT_SpawnPointComponent "{5D7E499D659959C8}" {
+   m_vPosition -0.376 0 1.314
   }
  }
 }

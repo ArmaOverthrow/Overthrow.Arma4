@@ -238,7 +238,7 @@ class OVT_RealEstateContext : OVT_UIContext
 		
 		if(!isOwner || isHome) return;
 		
-		OVT_Global.GetServer().SetBuildingHome(m_iPlayerID, building);
+		OVT_Global.GetServer().SetHome(m_iPlayerID);
 		
 		Refresh();
 	}

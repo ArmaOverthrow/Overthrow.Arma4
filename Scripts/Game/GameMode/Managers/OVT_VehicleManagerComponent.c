@@ -47,7 +47,7 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 		
 		//Find us a parking spot
 		
-		if(GetParkingSpot(home, mat))
+		if(GetParkingSpot(home, mat, OVT_ParkingType.PARKING_CAR, true))
 		{
 			SpawnVehicleMatrix(m_pStartingCarPrefab, mat, playerId);
 			
@@ -61,11 +61,11 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 		}
 	}
 	
-	bool GetParkingSpot(IEntity building, out vector outMat[4], OVT_ParkingType type = OVT_ParkingType.PARKING_CAR)
+	bool GetParkingSpot(IEntity building, out vector outMat[4], OVT_ParkingType type = OVT_ParkingType.PARKING_CAR, bool skipObstructionCheck = false)
 	{
 		OVT_ParkingComponent parking = OVT_ParkingComponent.Cast(building.FindComponent(OVT_ParkingComponent));
 		if(!parking) return false;
-		return parking.GetParkingSpot(outMat, type);
+		return parking.GetParkingSpot(outMat, type, skipObstructionCheck);
 	}
 	
 	bool GetNearestParkingSpot(vector pos, out vector outMat[4], OVT_ParkingType type = OVT_ParkingType.PARKING_CAR)

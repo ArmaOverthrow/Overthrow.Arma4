@@ -10,7 +10,7 @@ class OVT_ParkingComponent : ScriptComponent
 	
 	protected bool m_bFoundObstacle;
 	
-	bool GetParkingSpot(out vector outMat[4], OVT_ParkingType type = OVT_ParkingType.PARKING_CAR)
+	bool GetParkingSpot(out vector outMat[4], OVT_ParkingType type = OVT_ParkingType.PARKING_CAR, bool skipObstructionCheck = false)
 	{
 		if(m_aParkingSpots.Count() == 0) return false;
 		
@@ -32,22 +32,25 @@ class OVT_ParkingComponent : ScriptComponent
 			angles[0] = angles[0] + point.m_vAngles[1];
 			Math3D.AnglesToMatrix(angles, outMat);
 					
-			//Check for obstructions
-			vector mins = "-1 -1 -1";
-			vector maxs = "1 1 1";
-			autoptr TraceBox trace = new TraceBox;
-			trace.Flags = TraceFlags.ENTS;
-			trace.Start = outMat[3];
-			trace.Mins = mins;
-			trace.Maxs = maxs;
-			trace.Exclude = GetOwner();
-			
-			float result = GetOwner().GetWorld().TracePosition(trace, null);
+			if(!skipObstructionCheck)
+			{
+				//Check for obstructions
+				vector mins = "-1 -1 -1";
+				vector maxs = "1 1 1";
+				autoptr TraceBox trace = new TraceBox;
+				trace.Flags = TraceFlags.ENTS;
+				trace.Start = outMat[3];
+				trace.Mins = mins;
+				trace.Maxs = maxs;
+				trace.Exclude = GetOwner();
 				
-			if (result < 0)
-			{				
-				continue;
-			}			
+				float result = GetOwner().GetWorld().TracePosition(trace, null);
+					
+				if (result < 0)
+				{				
+					continue;
+				}			
+			}
 			
 			return true;
 		}		
