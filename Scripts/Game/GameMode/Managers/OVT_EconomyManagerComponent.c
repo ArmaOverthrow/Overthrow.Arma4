@@ -213,7 +213,10 @@ class OVT_EconomyManagerComponent: OVT_Component
 				{
 					int id = shop.m_aInventory.GetKey(i);
 					int max = GetTownMaxStock(townID, id);
-					max = Math.Round(max / typeShops[shop.m_ShopType].Count());
+					int numShops = 1;					
+					if(typeShops.Contains(shop.m_ShopType))
+						numShops = typeShops[shop.m_ShopType].Count();
+					max = Math.Round(max / numShops);
 					int stock = shop.GetStock(id);
 					int half = Math.Round(stock * 0.5);
 					if(stock < half)
@@ -682,6 +685,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		
 		GetGame().GetCallqueue().CallLater(AfterInit, 0);		
 		
+		if(!Replication.IsServer()) return;
 		GetGame().GetCallqueue().CallLater(CheckUpdate, ECONOMY_UPDATE_FREQUENCY / m_Config.m_iTimeMultiplier, true, GetOwner());
 		
 	}
