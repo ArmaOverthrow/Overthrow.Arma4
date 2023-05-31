@@ -347,7 +347,7 @@ OVT_OverthrowGameMode {
     OVT_RealEstateConfig "{5D2EDC0DFB761194}" {
      m_Name "Starting House"
      m_aResourceNameFilters {
-      "House_Mountain_E_1I01.et" "House_Village_E_1I05s.et" ""
+      "House_Mountain_E_1I01.et" "House_Village_E_1I05s.et" "House_Village_E_1L03t.et"
      }
      m_BasePrice 25000
      m_BaseRent 1000
