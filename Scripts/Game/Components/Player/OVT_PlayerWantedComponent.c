@@ -311,8 +311,8 @@ class OVT_PlayerWantedComponent: OVT_Component
 		if(ent == GetOwner())
 			return false;
 		
-		SCR_DamageManagerComponent dmg = SCR_DamageManagerComponent.Cast(ent.FindComponent(SCR_DamageManagerComponent));
-		if(dmg && dmg.GetHealth() == 0)
+		DamageManagerComponent dmg = DamageManagerComponent.Cast(ent.FindComponent(DamageManagerComponent));
+		if(dmg && dmg.IsDestroyed())
 		{
 			//Is dead, ignore
 			return false;

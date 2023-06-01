@@ -36,6 +36,64 @@ class OVT_PlayerCommsComponent: OVT_Component
 		of.StartBaseQRF(base);
 	}
 	
+	void LootIntoVehicle(IEntity vehicle)
+	{
+		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
+		Rpc(RpcAsk_LootIntoVehicle, rpl.Id());
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_LootIntoVehicle(RplId vehicleId)
+	{	
+		RplComponent rplComp = RplComponent.Cast(Replication.FindItem(vehicleId));
+		if(!rplComp) return;
+		
+		IEntity vehicle = rplComp.GetEntity();
+		
+		UniversalInventoryStorageComponent vehicleStorage = EPF_Component<UniversalInventoryStorageComponent>.Find(vehicle);
+		if(!vehicleStorage) return;
+		
+		InventoryStorageManagerComponent vehicleStorageMgr = EPF_Component<InventoryStorageManagerComponent>.Find(vehicle);
+		if(!vehicleStorageMgr) return;
+		
+		array<IEntity> bodies();
+		
+		//Query the nearby world for weapons and bodies
+		OVT_Global.GetNearbyBodiesAndWeapons(vehicle.GetOrigin(), 25, bodies);
+			
+		if(bodies.Count() == 0) return;
+		
+		foreach(IEntity body : bodies)
+		{
+			InventoryStorageManagerComponent inv = EPF_Component<InventoryStorageManagerComponent>.Find(body);
+			if(!inv) {
+				//Might be a weapon
+				WeaponComponent weapon = EPF_Component<WeaponComponent>.Find(body);
+				if(weapon)
+				{
+					vehicleStorageMgr.TryInsertItem(body);					
+				}
+			}else{
+				array<IEntity> items = new array<IEntity>;
+				inv.GetItems(items);
+				if(items.Count() == 0) continue;
+				foreach(IEntity item : items)
+				{
+					//Ignore clothes (but get helmets, backpacks, etc)
+					BaseLoadoutClothComponent cloth = EPF_Component<BaseLoadoutClothComponent>.Find(item);
+					if(cloth)
+					{
+						if(cloth.GetAreaType().ClassName() == "LoadoutPantsArea") continue;
+						if(cloth.GetAreaType().ClassName() == "LoadoutJacketArea") continue;
+						if(cloth.GetAreaType().ClassName() == "LoadoutBootsArea") continue;
+					}
+					if(!inv.TryMoveItemToStorage(item, vehicleStorage)) break; //vehicle is full
+				}
+				SCR_EntityHelper.DeleteEntityAndChildren(body);
+			}		
+		}		
+	}
+	
 	void DeliverMedicalSupplies(IEntity vehicle)
 	{
 		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));

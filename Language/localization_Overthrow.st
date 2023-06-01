@@ -43,6 +43,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D822427A868571A}" {
+   Id "OVT-BodiesLooted"
+   Target_en_us "Dead bodies and weapons within 25m have looted into the vehicle"
+   Modified 1568845085
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5D7C5DE3BEE5FBE3}" {
    Id "OVT-Build_GuardTower"
    Target_en_us "Guard Tower"
@@ -754,6 +761,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D822427D032737F}" {
+   Id "OVT-NoDeadBodiesNearby"
+   Target_en_us "There are no dead bodies or weapons within 25m"
+   Modified 1568845020
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5D346D4FFDAE200A}" {
    Id "OVT-NoDrugs"
    Target_en_us "You are not carrying any drugs. Buy them from a gun dealer."
@@ -1389,6 +1403,13 @@ StringTable {
    Id "OVT-Warehouse_Take_100"
    Target_en_us "Take 100"
    Modified 1565047395
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D8224288CE28A36}" {
+   Id "OVT_Action-Loot"
+   Target_en_us "Loot"
+   Modified 1568845536
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

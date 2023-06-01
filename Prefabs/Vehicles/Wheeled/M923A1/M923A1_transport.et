@@ -1,0 +1,22 @@
+Vehicle : "{9A0D72816DFFDB7F}Prefabs/Vehicles/Wheeled/M923A1/M923A1.et" {
+ ID "BBCBA43A9778AE21"
+ components {
+  ActionsManagerComponent "{C97BE5489221AE18}" {
+   additionalActions {
+    OVT_LootIntoVehicleAction "{5D82242924FDA95C}" {
+     ParentContextList {
+      "starter_switch"
+     }
+     UIInfo UIInfo "{5D8224292F74FA23}" {
+     }
+     "Sort Priority" 1
+     m_bIsToggle 0
+     m_bTargetState 0
+     m_sActionStateOn ""
+     m_sActionStateOff ""
+     m_bInteriorOnly 1
+    }
+   }
+  }
+ }
+}

@@ -1,0 +1,23 @@
+Vehicle : "{4597626AF36C0858}Prefabs/Vehicles/Wheeled/Ural4320/Ural4320.et" {
+ ID "BBCBA43A9778AE21"
+ components {
+  ActionsManagerComponent "{C97BE5489221AE18}" {
+   additionalActions {
+    OVT_LootIntoVehicleAction "{5D82242977899C58}" {
+     ParentContextList {
+      "starter_switch"
+     }
+     UIInfo UIInfo "{5D822429720424B9}" {
+      Name "#OVT_Action-Loot"
+     }
+     "Sort Priority" 1
+     m_bIsToggle 0
+     m_bTargetState 0
+     m_sActionStateOn ""
+     m_sActionStateOff ""
+     m_bInteriorOnly 1
+    }
+   }
+  }
+ }
+}

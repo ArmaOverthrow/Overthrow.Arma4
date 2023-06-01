@@ -56,7 +56,6 @@ class OVT_Global {
 	
 	static bool PlayerInRange(vector pos, int range)
 	{		
-		bool active = false;
 		array<int> players = new array<int>;
 		PlayerManager mgr = GetGame().GetPlayerManager();
 		int numplayers = mgr.GetPlayers(players);
@@ -67,8 +66,8 @@ class OVT_Global {
 			{
 				IEntity player = mgr.GetPlayerControlledEntity(playerID);				
 				if(!player) continue;
-				SCR_DamageManagerComponent dmg = SCR_DamageManagerComponent.Cast(player.FindComponent(SCR_DamageManagerComponent));
-				if(dmg && dmg.GetHealth() == 0)
+				DamageManagerComponent dmg = DamageManagerComponent.Cast(player.FindComponent(DamageManagerComponent));
+				if(dmg && dmg.IsDestroyed())
 				{
 					//Is dead, ignore
 					continue;
@@ -76,12 +75,12 @@ class OVT_Global {
 				float distance = vector.Distance(player.GetOrigin(), pos);
 				if(distance < range)
 				{
-					active = true;
+					return true;
 				}
 			}
 		}
 		
-		return active;
+		return false;
 	}
 	
 	static int NearestPlayer(vector pos)
@@ -315,5 +314,31 @@ class OVT_Global {
 		}
 		
 		return pos;
+	}
+	
+	static bool GetNearbyBodiesAndWeapons(vector pos, int range, out array<IEntity> entities)
+	{
+		m_Bodies = new array<IEntity>;
+		GetGame().GetWorld().QueryEntitiesBySphere(pos, range, FilterDeadBodiesAndWeapons);
+		entities.InsertAll(m_Bodies);
+		
+		return true;
+	}
+	
+	protected static ref array<IEntity> m_Bodies;
+	
+	protected static bool FilterDeadBodiesAndWeapons(IEntity ent)
+	{		
+		DamageManagerComponent dmg = EPF_Component<DamageManagerComponent>.Find(ent);
+		if(dmg && dmg.IsDestroyed())
+		{
+			m_Bodies.Insert(ent);
+			return true;
+		}
+		
+		WeaponComponent weapon = EPF_Component<WeaponComponent>.Find(ent);		
+		if(weapon) m_Bodies.Insert(ent);
+				
+		return true;
 	}
 }

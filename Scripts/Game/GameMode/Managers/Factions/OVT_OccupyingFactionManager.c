@@ -658,8 +658,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 			aiworld.GetAIAgents(agents);
 			foreach(AIAgent agent : agents)
 			{
-				SCR_DamageManagerComponent dmg = SCR_DamageManagerComponent.Cast(agent.FindComponent(SCR_DamageManagerComponent));
-				if(dmg && dmg.GetHealth() == 0)
+				DamageManagerComponent dmg = DamageManagerComponent.Cast(agent.FindComponent(DamageManagerComponent));
+				if(dmg && dmg.IsDestroyed())
 				{
 					//Is dead, remove body
 					SCR_EntityHelper.DeleteEntityAndChildren(agent);
