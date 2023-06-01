@@ -291,4 +291,29 @@ class OVT_Global {
 
 		return GetGame().SpawnEntityPrefab(Resource.Load(prefab), GetGame().GetWorld(), spawnParams);
 	}
+	
+	static bool IsOceanAtPosition(vector checkpos)
+	{		
+		World world = GetGame().GetWorld();
+		return world.GetOceanBaseHeight() > world.GetSurfaceY(checkpos[0],checkpos[2]);
+	}
+	
+	static vector GetRandomNonOceanPositionNear(vector pos, float range)
+	{
+		int i = 0;
+		while(i < 30)
+		{
+			i++;			
+			
+			vector checkpos = s_AIRandomGenerator.GenerateRandomPointInRadius(0,range,pos,false);
+			
+			if(!OVT_Global.IsOceanAtPosition(checkpos))
+			{	
+				checkpos[1] = GetGame().GetWorld().GetSurfaceY(checkpos[0],checkpos[2]) + 1;
+				return checkpos;
+			}
+		}
+		
+		return pos;
+	}
 }

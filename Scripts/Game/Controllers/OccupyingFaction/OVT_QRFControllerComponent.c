@@ -307,13 +307,11 @@ class OVT_QRFControllerComponent: OVT_Component
 		BaseWorld world = GetGame().GetWorld();
 		
 		int i = 0;
-		while(i < 20 && dist < distToPos)
+		while(i < 30 && dist < distToPos)
 		{
-			i++;	
+			i++;			
 			
-			checkpos[1] = world.GetSurfaceY(checkpos[0],checkpos[2]);
-			//Check is not ocean
-			if(world.GetOceanHeight(checkpos[0], checkpos[2]) < checkpos[1])
+			if(!OVT_Global.IsOceanAtPosition(checkpos))
 			{		
 				//Check for clear LZ (20x20x20)
 				vector mins = "-10 0 -10";
