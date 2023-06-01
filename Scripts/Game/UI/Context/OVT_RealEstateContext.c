@@ -209,7 +209,7 @@ class OVT_RealEstateContext : OVT_UIContext
 			m_Economy.TakePlayerMoney(m_iPlayerID, cost);			
 		}
 		
-		OVT_Global.GetServer().SetBuildingRenter(m_iPlayerID, building);
+		OVT_Global.GetServer().SetBuildingRenter(m_iPlayerID, building.GetOrigin());
 		
 		Refresh();
 	}
@@ -223,7 +223,7 @@ class OVT_RealEstateContext : OVT_UIContext
 		
 		if(!isRenter) return;
 				
-		OVT_Global.GetServer().SetBuildingRenter(-1, building);
+		OVT_Global.GetServer().SetBuildingRenter(-1, building.GetOrigin());
 		
 		Refresh();
 	}
