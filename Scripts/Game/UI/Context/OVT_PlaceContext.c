@@ -121,6 +121,7 @@ class OVT_PlaceContext : OVT_UIContext
 		if(m_Placeable.m_bIgnoreLocation) return true;
 		
 		float dist;
+		OVT_TownData town = m_Towns.GetNearestTown(pos);
 		
 		if(m_Placeable.m_bAwayFromTownsBases)
 		{
@@ -136,15 +137,23 @@ class OVT_PlaceContext : OVT_UIContext
 			}
 			
 			OVT_BaseData base = m_OccupyingFaction.GetNearestBase(pos);
-			OVT_TownData town = m_Towns.GetNearestTown(pos);
+					
+			
 			dist = vector.Distance(base.location,pos);
 			if(dist < base.range)
 			{
 				reason = "#OVT-TooCloseBase";
 				return false;
 			}
+			
+			//Smaller town ranges for the "too close" option
+			//Opens up some better FOB positions for town battles and allows camps a bit closer
+			int townRange = 800;
+			if(town.size < 3) townRange = 400;
+			if(town.size < 2) townRange = 200;
+			
 			dist = vector.Distance(town.location,pos);
-			if(dist < m_Towns.GetTownRange(town))
+			if(dist < townRange)
 			{
 				reason = "#OVT-TooCloseTown";
 				return false;
@@ -163,11 +172,8 @@ class OVT_PlaceContext : OVT_UIContext
 		
 		if(m_Placeable.m_bNearTown)
 		{	
-			OVT_TownData town = m_Towns.GetNearestTown(pos);
-			dist = vector.Distance(town.location,pos);
-			int range = m_Towns.m_iCityRange;
-			if(town.size < 3) range = m_Towns.m_iTownRange;
-			if(dist > range)
+			dist = vector.Distance(town.location,pos);			
+			if(dist > m_Towns.GetTownRange(town))
 			{
 				reason = "#OVT-MustBeNearTown";
 				return false;
