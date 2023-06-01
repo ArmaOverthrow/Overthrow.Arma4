@@ -40,6 +40,11 @@ class OVT_BaseUpgradeTowerGuard : OVT_BasePatrolUpgrade
 	
 	protected override void CheckUpdate()
 	{
+		if(!m_BaseController.IsOccupyingFaction())
+		{
+			CheckClean();
+			return;
+		}
 		bool inrange = PlayerInRange();
 		if(inrange && !m_bSpawned)
 		{
@@ -57,6 +62,8 @@ class OVT_BaseUpgradeTowerGuard : OVT_BasePatrolUpgrade
 			m_Groups.Clear();
 			m_TowerGuards.Clear();
 			m_bSpawned = false;
+		}else{
+			CheckClean();
 		}
 	}
 	

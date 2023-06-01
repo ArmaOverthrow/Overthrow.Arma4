@@ -9,9 +9,6 @@ class OVT_BaseControllerComponent: OVT_Component
 	
 	[Attribute("", UIWidgets.Object)]
 	ref array<ref OVT_BaseUpgrade> m_aBaseUpgrades;
-		
-	[RplProp()]
-	int m_iControllingFaction;
 			
 	[Attribute("280")]		
 	int m_iRange;
@@ -64,20 +61,20 @@ class OVT_BaseControllerComponent: OVT_Component
 	
 	bool IsOccupyingFaction()
 	{
-		return m_iControllingFaction == m_Config.GetOccupyingFactionIndex();
+		OVT_BaseData data = OVT_Global.GetOccupyingFaction().GetNearestBase(GetOwner().GetOrigin());
+		return data.IsOccupyingFaction();
 	}
 	
 	int GetControllingFaction()
 	{
-		return m_iControllingFaction;
+		OVT_BaseData data = OVT_Global.GetOccupyingFaction().GetNearestBase(GetOwner().GetOrigin());
+		return data.faction;
 	}
 	
 	void SetControllingFaction(int index, bool suppressEvents = false)
 	{
-		if(m_iControllingFaction == index) return;
+		if(GetControllingFaction() == index) return;
 		
-		m_iControllingFaction = index;
-		Replication.BumpMe();
 		if(!suppressEvents)
 			m_occupyingFactionManager.OnBaseControlChange(this);
 		
@@ -98,7 +95,7 @@ class OVT_BaseControllerComponent: OVT_Component
 		if (pos[1] < groundHeight)
 			pos[1] = groundHeight;
 		
-		Faction faction = GetGame().GetFactionManager().GetFactionByIndex(m_iControllingFaction);
+		Faction faction = GetGame().GetFactionManager().GetFactionByIndex(GetControllingFaction());
 		OVT_Faction fac = OVT_Faction.Cast(faction);
 
 		IEntity flag = OVT_Global.SpawnEntityPrefab(fac.m_aFlagPolePrefab,pos);
@@ -122,8 +119,7 @@ class OVT_BaseControllerComponent: OVT_Component
 		FindSlots();
 		FindParking();
 		
-		//Spawn a flag
-		if(m_iControllingFaction == -1) m_iControllingFaction = m_Config.GetOccupyingFactionIndex();
+		//Spawn a flag		
 		m_Flag = SpawnFlag().GetID();
 		
 		foreach(OVT_BaseUpgrade upgrade : m_aBaseUpgrades)

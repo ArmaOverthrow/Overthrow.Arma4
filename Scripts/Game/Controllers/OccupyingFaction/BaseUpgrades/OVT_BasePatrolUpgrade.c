@@ -53,6 +53,11 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 	
 	protected void CheckUpdate()
 	{
+		if(!m_BaseController.IsOccupyingFaction())
+		{
+			CheckClean();
+			return;
+		}
 		bool inrange = PlayerInRange();
 		if(inrange && !m_bSpawned)
 		{

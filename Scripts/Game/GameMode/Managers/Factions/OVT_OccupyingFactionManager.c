@@ -496,7 +496,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 	
 	void OnQRFFinishedBase()
 	{	
-		if(m_CurrentQRF.m_iWinningFaction != m_CurrentQRFBase.m_iControllingFaction)
+		if(m_CurrentQRF.m_iWinningFaction != m_CurrentQRFBase.GetControllingFaction())
 		{
 			if(m_CurrentQRFBase.IsOccupyingFaction())
 			{
