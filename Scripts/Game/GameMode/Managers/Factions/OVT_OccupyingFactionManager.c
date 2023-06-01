@@ -486,7 +486,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_vQRFLocation = town.location;
 		m_iCurrentQRFTown = townID;
 		
-		Rpc(RpcDo_SetQRFTown, m_iCurrentQRFBase);
+		Rpc(RpcDo_SetQRFTown, m_iCurrentQRFTown);
 		Rpc(RpcDo_SetQRFActive, m_vQRFLocation);
 	}
 	
@@ -524,6 +524,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		int townID = OVT_Global.GetTowns().GetTownID(m_CurrentQRFTown);
 		if(m_CurrentQRF.m_iWinningFaction != m_CurrentQRFTown.faction)
 		{
+			//This town has changed control
 			string type = "Town";
 			if(m_CurrentQRFTown.size > 2) type = "City";
 			if(m_CurrentQRFTown.IsOccupyingFaction())
@@ -534,12 +535,25 @@ class OVT_OccupyingFactionManager: OVT_Component
 			}else{
 				OVT_Global.GetPlayers().HintMessageAll(type + "ControlledOccupying");
 				OVT_Global.GetTowns().TryAddSupportModifierByName(townID, "RecentBattleNegative");
+				//All supporters in this town abandon the resistance (and avoids the battle looping)
 				OVT_Global.GetTowns().ResetSupport(m_CurrentQRFTown);	
-			}			
-			OVT_Global.GetTowns().TryAddStabilityModifierByName(townID, "RecentBattle");
+			}						
 			OVT_Global.GetTowns().ChangeTownControl(m_CurrentQRFTown, m_CurrentQRF.m_iWinningFaction);			
 					
+		}else{
+			//This town has NOT changed control, but we still need to add modifiers
+			if(m_CurrentQRFTown.IsOccupyingFaction())
+			{
+				OVT_Global.GetTowns().TryAddSupportModifierByName(townID, "RecentBattleNegative");
+				//All supporters in this town abandon the resistance (and avoids the battle looping)
+				OVT_Global.GetTowns().ResetSupport(m_CurrentQRFTown);
+			}else{
+				m_iThreat += 50;
+				OVT_Global.GetTowns().TryAddSupportModifierByName(townID, "RecentBattlePositive");
+			}
 		}
+		
+		OVT_Global.GetTowns().TryAddStabilityModifierByName(townID, "RecentBattle");
 		
 		//Recover used resources
 		OVT_Global.GetOccupyingFaction().m_iResources = m_CurrentQRF.m_iUsedResources;
@@ -712,24 +726,18 @@ class OVT_OccupyingFactionManager: OVT_Component
 				if(!OVT_Global.PlayerInRange(town.location, 300)) continue;
 				
 				int support = town.SupportPercentage();		
-				if(town.faction == occupyingFaction)
+				if(town.IsOccupyingFaction())
 				{
-					if(support > 75 && town.stability >= 50)
-					{
-						//Chance this town will start a battle
-						if(support >= 85 || s_AIRandomGenerator.RandFloat01() < 0.5)
-						{
-							StartTownQRF(town);
-						}	
+					if(support > 75)
+					{						
+						StartTownQRF(town);
+						break;						
 					}
 				}else{
 					if(support < 25)
-					{
-						//Chance this town will start a battle
-						if(support <= 15 || s_AIRandomGenerator.RandFloat01() < 0.5)
-						{
-							StartTownQRF(town);
-						}	
+					{						
+						StartTownQRF(town);
+						break;							
 					}
 				}
 			}
@@ -823,6 +831,26 @@ class OVT_OccupyingFactionManager: OVT_Component
 		float threatFactor = m_iThreat / 100;
 		if(threatFactor > 1) threatFactor = 1;
 		int newResources = m_Config.m_Difficulty.baseResourcesPerTick + (m_Config.m_Difficulty.resourcesPerTick * threatFactor);
+		
+		int numPlayersOnline = GetGame().GetPlayerManager().GetPlayerCount();
+		
+		//Scale resources by number of players online
+		if(numPlayersOnline > 32)
+		{
+			newResources *= 6;
+		}else if(numPlayersOnline > 24)
+		{
+			newResources *= 5;
+		}else if(numPlayersOnline > 16)
+		{
+			newResources *= 4;
+		}else if(numPlayersOnline > 8)
+		{
+			newResources *= 3;
+		}else if(numPlayersOnline > 4)
+		{
+			newResources *= 2;
+		}
 		
 		m_iResources += newResources;
 		

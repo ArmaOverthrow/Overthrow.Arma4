@@ -28,8 +28,14 @@ class OVT_QRFControllerComponent: OVT_Component
 	ref array<vector> m_aSpawnPositions = {};
 	ref array<vector> m_aSpawnTargets = {};
 	
+	ref array<vector> m_Bases = {};
+	int m_iResourcesLeft = 0;
+	
 	override void OnPostInit(IEntity owner)
 	{
+		m_iPoints = 0;
+		m_iWinningFaction = -1;		
+		
 		super.OnPostInit(owner);
 		m_OccupyingFaction = OVT_Global.GetOccupyingFaction();
 		
@@ -38,7 +44,8 @@ class OVT_QRFControllerComponent: OVT_Component
 		if(!Replication.IsServer()) return;
 		
 		m_Groups = new array<ref EntityID>;
-		SendTroops();		
+		SendTroops();
+		Replication.BumpMe();		
 		
 		GetGame().GetCallqueue().CallLater(CheckUpdatePoints, UPDATE_FREQUENCY, true, owner);		
 	}
@@ -196,7 +203,7 @@ class OVT_QRFControllerComponent: OVT_Component
 		vector qrfpos = GetOwner().GetOrigin();
 		
 		//Get valid bases to use for QRF
-		SCR_SortedArray<OVT_BaseControllerComponent> bases = new SCR_SortedArray<OVT_BaseControllerComponent>;
+		
 		foreach(OVT_BaseData data : m_OccupyingFaction.m_Bases)
 		{			
 			OVT_BaseControllerComponent base = m_OccupyingFaction.GetBase(data.entId);
@@ -206,26 +213,58 @@ class OVT_QRFControllerComponent: OVT_Component
 			if(!base.IsOccupyingFaction()) continue;
 			if(dist < 20) continue; //QRF is for this base, ignore it
 			
-			bases.Insert(dist, base);
+			m_Bases.Insert(pos);
 		}
 		
 		int resources = m_OccupyingFaction.m_iResources;
 		if(resources <= 200) resources = 200; //Emergency resources (minimum size QRF)
 		
-		if(resources > m_Config.m_Difficulty.maxQRF)
+		int max = m_Config.m_Difficulty.maxQRF;
+		int numPlayersOnline = GetGame().GetPlayerManager().GetPlayerCount();
+		
+		//Scale max QRF size by number of players online
+		if(numPlayersOnline > 32)
 		{
-			resources = m_Config.m_Difficulty.maxQRF;
+			max *= 6;
+		}else if(numPlayersOnline > 24)
+		{
+			max *= 5;
+		}else if(numPlayersOnline > 16)
+		{
+			max *= 4;
+		}else if(numPlayersOnline > 8)
+		{
+			max *= 3;
+		}else if(numPlayersOnline > 4)
+		{
+			max *= 2;
 		}
 		
-		int spent = 0;
-		int allocate = Math.Floor(resources / bases.Count());
-		
-		for(int i = bases.Count() - 1; i>=0; i--)
+		if(resources > max)
 		{
-			if(resources <= 0) break;
+			resources = max;
+		}
+		
+		m_iResourcesLeft = resources;
+		SendWave();		
+	}
+	
+	protected int SendWave()
+	{
+		int spent = 0;
+		int allocate = Math.Floor(m_iResourcesLeft / m_Bases.Count());
+		
+		if(allocate > (16 * m_Config.m_Difficulty.baseResourceCost))
+		{
+			allocate = 16 * m_Config.m_Difficulty.baseResourceCost;
+		}
+		
+		foreach(vector base : m_Bases)
+		{
+			if(m_iResourcesLeft <= 0) break;
 			int allocated = 0;
-			OVT_BaseControllerComponent base = bases[i];
-			vector lz = GetLandingZone(base.GetOwner().GetOrigin());
+			
+			vector lz = GetLandingZone(base);
 			vector target = GetTargetZone(lz);
 			int ii = 0;
 			while(allocated < allocate && ii < 6)
@@ -234,13 +273,21 @@ class OVT_QRFControllerComponent: OVT_Component
 				allocated += SpawnTroops(lz, target);
 			}
 			spent += allocated;
-			resources -= allocated;
+			m_iResourcesLeft -= allocated;
+		}
+		
+		if(m_iResourcesLeft > 0)
+		{
+			//leftover resources, schedule another wave
+			GetGame().GetCallqueue().CallLater(SendWave, s_AIRandomGenerator.RandInt(480000, 960000));
 		}
 		
 		m_OccupyingFaction.m_iResources = m_OccupyingFaction.m_iResources - spent;
 		if(m_OccupyingFaction.m_iResources < 0) m_OccupyingFaction.m_iResources = 0;
 		
 		m_iUsedResources = spent;
+		
+		return spent;
 	}
 	
 	protected int SpawnTroops(vector pos, vector targetPos)
