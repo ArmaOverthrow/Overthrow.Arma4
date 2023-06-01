@@ -468,8 +468,6 @@ class OVT_OccupyingFactionManager: OVT_Component
 		
 		Rpc(RpcDo_SetQRFBase, m_iCurrentQRFBase);
 		Rpc(RpcDo_SetQRFActive, m_vQRFLocation);
-		
-		Replication.BumpMe();
 	}
 	
 	void StartTownQRF(OVT_TownData town)
@@ -490,8 +488,6 @@ class OVT_OccupyingFactionManager: OVT_Component
 		
 		Rpc(RpcDo_SetQRFTown, m_iCurrentQRFBase);
 		Rpc(RpcDo_SetQRFActive, m_vQRFLocation);
-		
-		Replication.BumpMe();
 	}
 	
 	void OnQRFFinishedBase()

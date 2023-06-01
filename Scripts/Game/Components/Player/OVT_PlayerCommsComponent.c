@@ -154,6 +154,7 @@ class OVT_PlayerCommsComponent: OVT_Component
 	protected void RpcAsk_SetBuildingRenter(int playerId, RplId id)
 	{	
 		RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+		if(!rpl) return;
 		OVT_Global.GetRealEstate().SetRenter(playerId, rpl.GetEntity());
 	}
 	
