@@ -164,7 +164,7 @@ class OVT_QRFControllerComponent: OVT_Component
 					if(m_iPoints > 0) m_iPoints--;
 					if(m_iPoints < 0) m_iPoints++;
 				}else{
-					if(playerNum > 0 && enemyNum < 5)
+					if(playerNum > 0 && enemyNum < 3)
 					{
 						//push towards resistance
 						m_iPoints++;
@@ -324,6 +324,7 @@ class OVT_QRFControllerComponent: OVT_Component
 		m_Groups.Insert(group.GetID());
 		
 		aigroup.AddWaypoint(SpawnMoveWaypoint(targetPos));
+		aigroup.AddWaypoint(SpawnDefendWaypoint(targetPos));
 		
 		m_aSpawnQueue.Remove(0);
 		m_aSpawnPositions.Remove(0);
@@ -405,6 +406,12 @@ class OVT_QRFControllerComponent: OVT_Component
 	protected AIWaypoint SpawnMoveWaypoint(vector pos)
 	{
 		AIWaypoint wp = SpawnWaypoint(m_Config.m_pMoveWaypointPrefab, pos);
+		return wp;
+	}
+	
+	protected AIWaypoint SpawnDefendWaypoint(vector pos)
+	{
+		AIWaypoint wp = SpawnWaypoint(m_Config.m_pDefendWaypointPrefab, pos);
 		return wp;
 	}
 	

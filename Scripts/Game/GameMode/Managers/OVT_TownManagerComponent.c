@@ -150,7 +150,8 @@ class OVT_TownManagerComponent: OVT_Component
 				if(data) support.Insert(data.id);
 			}
 			
-			Rpc(RpcDo_StreamModifiers, playerId, townID, stability, support);
+			if(support.Count() > 0 || stability.Count() > 0)			
+				Rpc(RpcDo_StreamModifiers, playerId, townID, stability, support);
 		}
 	}
 	
@@ -1020,18 +1021,22 @@ class OVT_TownManagerComponent: OVT_Component
 	{
 		int localId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
 		if(playerId != localId) return;
-		
+				
 		OVT_TownData town = m_Towns[townId];
 		foreach(int id : stability)
 		{
 			OVT_TownModifierData data = new OVT_TownModifierData;
+			OVT_ModifierConfig mod = GetModifierSystem(OVT_TownStabilityModifierSystem).m_Config.m_aModifiers[id];
 			data.id = id;
+			data.timer = mod.timeout;
 			town.stabilityModifiers.Insert(data);
 		}
 		foreach(int id : support)
 		{
 			OVT_TownModifierData data = new OVT_TownModifierData;
+			OVT_ModifierConfig mod = GetModifierSystem(OVT_TownSupportModifierSystem).m_Config.m_aModifiers[id];
 			data.id = id;
+			data.timer = mod.timeout;
 			town.supportModifiers.Insert(data);
 		}
 	}
