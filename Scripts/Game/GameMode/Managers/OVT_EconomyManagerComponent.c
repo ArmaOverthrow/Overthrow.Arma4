@@ -2,13 +2,20 @@ class OVT_EconomyManagerComponentClass: OVT_ComponentClass
 {
 };
 
-class OVT_VehicleShopConfig : ScriptAndConfig
+class OVT_PrefabItemCostConfig : ScriptAndConfig
 {
 	[Attribute(desc: "Prefab of entity", UIWidgets.ResourcePickerThumbnail, params: "et")]
 	ResourceName m_sEntityPrefab;
 	
 	[Attribute("50", desc: "The cost")]
 	int cost;
+	
+	[Attribute("10", desc: "Maximum number to stock")]
+	int maxStock;
+}
+
+class OVT_VehicleShopConfig : OVT_PrefabItemCostConfig
+{
 }
 
 class OVT_PriceConfig : ScriptAndConfig
@@ -57,6 +64,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	[Attribute("", UIWidgets.Object)]
 	ref array<ref OVT_ShopInventoryItem> m_aGunDealerItems;
+	
+	[Attribute("", UIWidgets.Object)]
+	ref array<ref OVT_PrefabItemCostConfig> m_aGunDealerItemPrefabs;
 	
 	[Attribute("", UIWidgets.Object)]
 	ref array<ref OVT_VehicleShopConfig> m_aVehicleShopItems;
@@ -746,6 +756,19 @@ class OVT_EconomyManagerComponent: OVT_Component
 			}			
 		}
 		
+		foreach(OVT_PrefabItemCostConfig item : m_aGunDealerItemPrefabs)
+		{
+			ResourceName res = item.m_sEntityPrefab;
+			if(res == "") continue;
+			if(!m_aResources.Contains(res))
+			{
+				m_aResources.Insert(res);
+				int id = m_aResources.Count()-1;
+				m_aResourceIndex[res] = id;
+				SetPrice(id, item.cost);
+			}			
+		}
+		
 		//Set Prices
 		foreach(OVT_PriceConfig config : m_aPriceConfigs)
 		{
@@ -832,7 +855,8 @@ class OVT_EconomyManagerComponent: OVT_Component
 				foreach(OVT_VehicleShopConfig item : m_aVehicleShopItems)
 				{
 					int id = GetInventoryId(item.m_sEntityPrefab);
-					shop.AddToInventory(id, 1);
+					int num = Math.Round(s_AIRandomGenerator.RandFloatXY(1,item.maxStock));
+					shop.AddToInventory(id, num);
 				}
 			}else{		
 				OVT_ShopInventoryConfig config = GetShopConfig(shop.m_ShopType);

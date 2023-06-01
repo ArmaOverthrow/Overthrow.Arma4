@@ -104,6 +104,13 @@ OVT_OverthrowGameMode {
      m_eItemType EXPLOSIVES
     }
    }
+   m_aGunDealerItemPrefabs {
+    OVT_PrefabItemCostConfig "{5D822436E980BEB7}" {
+     m_sEntityPrefab "{9068EA9DDD7CB805}Prefabs/Items/Equipment/Drugs/DrugsWeed_01.et"
+     cost 75
+     maxStock 25
+    }
+   }
    m_aVehicleShopItems {
     OVT_VehicleShopConfig "{5D72D722729EF487}" {
      m_sEntityPrefab "{259EE7B78C51B624}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469.et"

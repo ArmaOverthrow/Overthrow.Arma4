@@ -15,6 +15,7 @@ class OVT_SellDrugsAction : ScriptedUserAction
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
 		
 		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
+			
 		
 		foreach(IEntity ent : items)
 		{
@@ -25,8 +26,9 @@ class OVT_SellDrugsAction : ScriptedUserAction
 				if(inventory.TryDeleteItem(ent))
 				{					
 					int cost = economy.GetBuyPrice(id, pUserEntity.GetOrigin()) * 1.25;
-					economy.AddPlayerMoney(playerId, cost);		
-					m_bHasBeenSold = true;	
+					economy.AddPlayerMoney(playerId, cost);	
+					if(s_AIRandomGenerator.RandFloat01() > 0.25)	
+						m_bHasBeenSold = true;	
 					hasDrugs = true;		
 					break;
 				}
@@ -53,5 +55,5 @@ class OVT_SellDrugsAction : ScriptedUserAction
 		return !m_bHasBeenSold;
 	}
 	
-	override bool HasLocalEffectOnlyScript() { return true; };
+	override bool HasLocalEffectOnlyScript() { return true; }
 }

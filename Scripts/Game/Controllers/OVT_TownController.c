@@ -169,6 +169,14 @@ class OVT_TownControllerComponent: OVT_Component
 		OVT_ShopComponent shop = OVT_ShopComponent.Cast(dealer.FindComponent(OVT_ShopComponent));
 		shop.m_iTownId = townID;
 		
+		foreach(OVT_PrefabItemCostConfig item : m_Economy.m_aGunDealerItemPrefabs)
+		{
+			int id = m_Economy.GetInventoryId(item.m_sEntityPrefab);											
+			int num = Math.Round(s_AIRandomGenerator.RandFloatXY(1,item.maxStock));
+			
+			shop.AddToInventory(id, num);
+		}
+		
 		foreach(OVT_ShopInventoryItem item : m_Economy.m_aGunDealerItems)
 		{
 			array<SCR_EntityCatalogEntry> entries();
