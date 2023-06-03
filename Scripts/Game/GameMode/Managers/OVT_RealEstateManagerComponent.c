@@ -297,6 +297,11 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		
 		OVT_TownData town = m_Town.GetNearestTown(entity.GetOrigin());
 		
+		if(config.m_IsWarehouse)
+		{
+			return config.m_BasePrice;
+		}
+		
 		return config.m_BasePrice + (config.m_BasePrice * (config.m_DemandMultiplier * town.population * ((float)town.stability / 100)));
 	}
 	
@@ -306,6 +311,11 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		if(!config) return 0;
 		
 		OVT_TownData town = m_Town.GetNearestTown(entity.GetOrigin());
+		
+		if(config.m_IsWarehouse)
+		{
+			return config.m_BaseRent;
+		}
 		
 		return config.m_BaseRent + (config.m_BaseRent * (config.m_DemandMultiplier * town.population * ((float)town.stability / 100)));
 	}

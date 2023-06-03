@@ -105,7 +105,9 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 		BaseWorld world = GetGame().GetWorld();
 					
 		if(pos[0] == 0)
-			pos = m_BaseController.GetOwner().GetOrigin();
+		{
+			pos = s_AIRandomGenerator.GenerateRandomPointInRadius(5,50, m_BaseController.GetOwner().GetOrigin());			
+		}
 		
 		float surfaceY = world.GetSurfaceY(pos[0], pos[2]);
 		if (pos[1] < surfaceY)

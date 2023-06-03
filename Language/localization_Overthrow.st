@@ -679,10 +679,24 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D86A3FA5A8D0F3C}" {
+   Id "OVT-Msg-RadioTowerCapture"
+   Target_en_us "The enemy is attempting to capture a radio tower near %1"
+   Modified 1569128954
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5D86A3C7B5BAFA27}" {
    Id "OVT-Msg-TaxesDonationsPlayer"
    Target_en_us "You have received $%1 in donations and taxes"
    Modified 1569111019
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D86A3FB6DAF997D}" {
+   Id "OVT-Msg-TowerControlledOccupying"
+   Target_en_us "The resistance has lost control of a radio tower near %1"
+   Modified 1569128146
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

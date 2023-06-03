@@ -170,5 +170,10 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 		w.SetTextFormat(data.msg.m_UIInfo.GetDescription(), data.param1, data.param2, data.param3);
 		notify.SetVisible(true);
 		
+		if(data.msg.m_UIInfo.GetIconSetName() != "")
+		{
+			ImageWidget icon = ImageWidget.Cast(m_wRoot.FindAnyWidget("NotificationIcon"));
+			data.msg.m_UIInfo.SetIconTo(icon);
+		}			
 	}
 }

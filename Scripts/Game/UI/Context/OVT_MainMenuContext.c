@@ -140,6 +140,13 @@ class OVT_MainMenuContext : OVT_UIContext
 			tw.SetTextFormat(data.msg.m_UIInfo.GetDescription(),data.param1,data.param2,data.param3);
 			TextWidget time = TextWidget.Cast(w.FindAnyWidget("Time"));
 			time.SetTextFormat("%1:%2",data.time.m_iHours.ToString(2),data.time.m_iMinutes.ToString(2));
+			
+			
+			if(data.msg.m_UIInfo.GetIconSetName() != "")
+			{
+				ImageWidget icon = ImageWidget.Cast(w.FindAnyWidget("Icon"));
+				data.msg.m_UIInfo.SetIconTo(icon);
+			}			
 		}
 	}
 	

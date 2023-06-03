@@ -13,7 +13,7 @@ FrameWidgetClass {
    {
     ImageWidgetClass "{5D86A3C089912FF3}" {
      Name "Image0"
-     Slot OverlayWidgetSlot {
+     Slot OverlayWidgetSlot "{5D86A3E0BCEC12B7}" {
       HorizontalAlign 3
       VerticalAlign 3
      }
@@ -21,7 +21,7 @@ FrameWidgetClass {
     }
     HorizontalLayoutWidgetClass "{5D86A3C3503FC354}" {
      Name "HorizontalLayout0"
-     Slot OverlayWidgetSlot {
+     Slot OverlayWidgetSlot "{5D86A3E0BCEC1375}" {
       HorizontalAlign 0
      }
      {
@@ -34,7 +34,7 @@ FrameWidgetClass {
        HeightOverride 0
        {
         ImageWidgetClass "{5D86A3C3503FC351}" {
-         Name "Image0"
+         Name "Icon"
          Slot AlignableSlot "{5D86A3C8E6516099}" {
          }
          Texture "{D17288006833490F}UI/Textures/Icons/icons_wrapperUI-32.imageset"

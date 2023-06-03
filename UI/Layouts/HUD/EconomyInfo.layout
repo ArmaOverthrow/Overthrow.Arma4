@@ -14,7 +14,7 @@ OverlayWidgetClass {
    Name "Notify"
    Slot OverlayWidgetSlot "{5D8680DE360578C7}" {
     VerticalAlign 0
-    Padding 0 106.9 0 0
+    Padding 0 95 0 0
    }
    {
     SizeLayoutWidgetClass "{5D8680C956D12121}" {
@@ -81,7 +81,7 @@ OverlayWidgetClass {
            }
            {
             ImageWidgetClass "{5D8680D6CCB4FE1C}" {
-             Name "Image0"
+             Name "NotificationIcon"
              Slot AlignableSlot "{5D86A3C8E6516099}" {
              }
              Texture "{D17288006833490F}UI/Textures/Icons/icons_wrapperUI-32.imageset"

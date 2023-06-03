@@ -239,11 +239,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 					if(tower.garrison.Count() == 0)
 					{
 						//radio tower changes hands
-						tower.faction = m_Config.GetPlayerFactionIndex();
-						Rpc(RpcDo_SetRadioTowerFaction, tower.location, tower.faction);
-												
-						string townName = OVT_Global.GetTowns().GetTownName(tower.location);
-						OVT_Global.GetNotify().SendTextNotification("RadioTowerControlledResistance",-1,townName);
+						ChangeRadioTowerControl(tower, m_Config.GetPlayerFactionIndex());						
 					}
 				}
 			}else{
@@ -261,6 +257,22 @@ class OVT_OccupyingFactionManager: OVT_Component
 		}
 	}
 	
+	void ChangeRadioTowerControl(OVT_RadioTowerData tower, int faction)
+	{
+		if(faction == tower.faction) return;
+		tower.faction = faction;
+		Rpc(RpcDo_SetRadioTowerFaction, tower.location, faction);
+		
+		string townName = OVT_Global.GetTowns().GetTownName(tower.location);
+		
+		if(faction == m_Config.GetOccupyingFactionIndex())
+		{
+			OVT_Global.GetNotify().SendTextNotification("RadioTowerControlledOccupying",-1,townName);	
+		}else{
+			OVT_Global.GetNotify().SendTextNotification("RadioTowerControlledResistance",-1,townName);	
+		}		
+	}
+		
 	void OnTownControlChanged(OVT_TownData town)
 	{
 		if(town.faction == m_iPlayerFactionIndex)
@@ -757,7 +769,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 			//Do Specops
 			foreach(OVT_TargetData target : m_aKnownTargets)
 			{
-				if(target.completed || target.type == OVT_TargetType.BROADCAST_TOWER) continue;
+				if(target.completed) continue;
 				OVT_BaseData data = GetNearestOccupiedBase(target.location);
 				if(!data) break;
 				OVT_BaseControllerComponent base = GetBase(data.entId);
@@ -809,6 +821,25 @@ class OVT_OccupyingFactionManager: OVT_Component
 				OVT_TargetData target = new OVT_TargetData();
 				target.location = data.location;
 				target.type = OVT_TargetType.BASE;
+				target.order = OVT_OrderType.ATTACK;
+				m_aKnownTargets.Insert(target);
+			}
+		}
+		
+		foreach(OVT_RadioTowerData data : m_RadioTowers)
+		{
+			if(data.IsOccupyingFaction()){
+				if(IsKnownTarget(data.location))
+				{
+					m_aKnownTargets.RemoveItem(GetNearestKnownTarget(data.location));
+				}
+				continue;
+			}
+			if(!IsKnownTarget(data.location))
+			{
+				OVT_TargetData target = new OVT_TargetData();
+				target.location = data.location;
+				target.type = OVT_TargetType.BROADCAST_TOWER;
 				target.order = OVT_OrderType.ATTACK;
 				m_aKnownTargets.Insert(target);
 			}
