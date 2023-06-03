@@ -179,9 +179,29 @@ class OVT_JobManagerComponent: OVT_Component
 					
 					//Reward the player
 					int playerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(job.owner);
-					OVT_Global.GetEconomy().AddPlayerMoney(playerId, config.m_iReward);
+					if(config.m_iReward > 0)
+					{
+						OVT_Global.GetEconomy().AddPlayerMoney(playerId, config.m_iReward);
+					}
 					SCR_HintManagerComponent.GetInstance().ShowCustom(config.m_sTitle, "#OVT-Jobs_Completed");
 					Rpc(RpcDo_NotifyJobCompleted, job.jobIndex);
+					
+					if(config.m_aRewardItems.Count() > 0)
+					{
+						IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+						if(!player) return;
+						
+						SCR_InventoryStorageManagerComponent inventory = SCR_InventoryStorageManagerComponent.Cast(player.FindComponent( SCR_InventoryStorageManagerComponent ));
+						if(!inventory) return;
+																		
+						foreach(ResourceName res : config.m_aRewardItems)
+						{
+							if(!inventory.TrySpawnPrefabToStorage(res))
+							{
+								//Spawn it on the ground?
+							}
+						}
+					}
 										
 					remove.Insert(job);
 					if(config.flags & OVT_JobFlags.GLOBAL_UNIQUE) m_aGlobalJobs.Remove(m_aGlobalJobs.Find(job.jobIndex));

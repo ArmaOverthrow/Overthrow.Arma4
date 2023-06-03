@@ -23,6 +23,9 @@ class OVT_JobConfig
 	[Attribute("100")]
 	int m_iReward;
 	
+	[Attribute(ResourceName.Empty, UIWidgets.ResourcePickerThumbnail, "Reward item prefabs", "et")]
+	ref array<ResourceName> m_aRewardItems;
+	
 	[Attribute(defvalue: "0", desc:"Maximum number of times this job will spawn")]
 	int m_iMaxTimes;
 	

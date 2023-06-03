@@ -404,8 +404,10 @@ StringTable {
    Id "OVT-Job_FindGunDealerDescription"
    Target_en_us "Gun dealers are located in the larger towns and cities. They are independant merchants who stock weapons and other illegal items."\
    ""\
-   "Visit the nearest gun dealer to see what items they have available."
-   Modified 1565558054
+   "Visit the nearest gun dealer to see what items they have available."\
+   ""\
+   "You will receive a free pistol with ammunition"
+   Modified 1569113474
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
