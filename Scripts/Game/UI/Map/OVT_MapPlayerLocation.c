@@ -18,14 +18,7 @@ class OVT_MapPlayerLocation : SCR_MapUIBaseComponent
 		{
 			int playerId = m_Widgets.GetKey(i);
 			Widget w = m_Widgets[playerId];
-			
-			if(playerId != m_iLocalPlayerId && m_MapEntity.GetCurrentZoom() < 0.6)
-			{
-				w.SetOpacity(0);
-				continue;
-			}else{
-				w.SetOpacity(1);
-			}
+						
 			IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
 			if(!player)
 			{
