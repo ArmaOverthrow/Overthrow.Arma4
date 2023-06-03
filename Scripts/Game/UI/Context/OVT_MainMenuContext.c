@@ -139,7 +139,7 @@ class OVT_MainMenuContext : OVT_UIContext
 			TextWidget tw = TextWidget.Cast(w.FindAnyWidget("NotificationText"));
 			tw.SetTextFormat(data.msg.m_UIInfo.GetDescription(),data.param1,data.param2,data.param3);
 			TextWidget time = TextWidget.Cast(w.FindAnyWidget("Time"));
-			time.SetTextFormat("%1:%2",data.time.m_iHours.ToString(),data.time.m_iMinutes.ToString());
+			time.SetTextFormat("%1:%2",data.time.m_iHours.ToString(2),data.time.m_iMinutes.ToString(2));
 		}
 	}
 	

@@ -6,6 +6,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 	protected OVT_TownManagerComponent m_Towns;
 	protected ref array<ref OVT_TownData> m_TownsInRange;
 	protected ref map<ref int, ref EntityID> m_Patrols;
+	protected ref map<int, bool> m_SpottedPatrols;
 		
 	override void PostInit()
 	{
@@ -14,6 +15,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		m_Towns = OVT_Global.GetTowns();
 		m_TownsInRange = new array<ref OVT_TownData>;
 		m_Patrols = new map<ref int, ref EntityID>;
+		m_SpottedPatrols = new map<int, bool>;
 		
 		OVT_Global.GetTowns().GetTownsWithinDistance(m_BaseController.GetOwner().GetOrigin(), m_fRange, m_TownsInRange);
 	}
@@ -39,6 +41,11 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 				{
 					OVT_TownData town = m_Towns.m_Towns[townId];
 					float dist = vector.Distance(town.location, group.GetOrigin());
+					if(town.SupportPercentage() > 25 && !m_SpottedPatrols[townId] && dist < m_Towns.GetTownRange(town))
+					{
+						m_SpottedPatrols[townId] = true;
+						OVT_Global.GetNotify().SendTextNotification("PatrolSpotted",-1,m_Towns.GetTownName(townId));
+					}
 					if(dist < 50)
 					{						
 						if(town.support >= 75)
@@ -126,6 +133,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		
 		m_Groups.Insert(group.GetID());
 		m_Patrols[townID] = group.GetID();
+		m_SpottedPatrols[townID] = false;
 		
 		SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
 		

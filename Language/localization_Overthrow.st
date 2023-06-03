@@ -670,6 +670,20 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D86A3C61F7BDD71}" {
+   Id "OVT-Msg-PatrolSpotted"
+   Target_en_us "Supporters have spotted a patrol in %1"
+   Modified 1569111285
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D86A3C7B5BAFA27}" {
+   Id "OVT-Msg-TaxesDonationsPlayer"
+   Target_en_us "You have received $%1 in donations and taxes"
+   Modified 1569111019
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5D6051C94F256E7F}" {
    Id "OVT-Msg-TowerControlledResistance"
    Target_en_us "The resistance has captured an enemy radio tower near %1"

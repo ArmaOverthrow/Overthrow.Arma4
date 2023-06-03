@@ -332,11 +332,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 		mgr.GetPlayers(players);
 		foreach(int playerId : players)
 		{			
-			AddPlayerMoney(playerId, incomePerPlayer);
+			AddPlayerMoney(playerId, incomePerPlayer);			
 		}
-		
-		
-		
+		OVT_Global.GetNotify().SendTextNotification("TaxesDonationsPlayer",-1,incomePerPlayer.ToString());
 	}
 	
 	int GetDonationIncome()
