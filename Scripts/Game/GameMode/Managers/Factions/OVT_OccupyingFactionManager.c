@@ -241,9 +241,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 						//radio tower changes hands
 						tower.faction = m_Config.GetPlayerFactionIndex();
 						Rpc(RpcDo_SetRadioTowerFaction, tower.location, tower.faction);
-						OVT_TownData town = OVT_Global.GetTowns().GetNearestTown(tower.location);
-						int townID = OVT_Global.GetTowns().GetTownID(town);
-						OVT_Global.GetPlayers().HintMessageAll("RadioTowerControlledResistance",townID,-1);
+												
+						string townName = OVT_Global.GetTowns().GetTownName(tower.location);
+						OVT_Global.GetNotify().SendTextNotification("RadioTowerControlledResistance",-1,townName);
 					}
 				}
 			}else{
@@ -355,8 +355,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 			
 			OVT_BaseControllerComponent base = OVT_BaseControllerComponent.Cast(baseEntity.FindComponent(OVT_BaseControllerComponent));
 			OVT_BaseData data = GetNearestBase(pos);
-			data.closeRange = base.m_iCloseRange;
-			data.range = base.m_iRange;
+			data.closeRange = m_Config.m_Difficulty.baseCloseRange;
+			data.range = base.m_Config.m_Difficulty.baseRange;
 			data.entId = baseEntity.GetID();	
 			base.SetControllingFaction(data.faction, false);
 			
@@ -466,6 +466,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_vQRFLocation = base.GetOwner().GetOrigin();
 		m_iCurrentQRFBase= GetBaseIndex(data);
 		
+		OVT_Global.GetNotify().SendTextNotification("BaseBattle", -1, OVT_Global.GetTowns().GetTownName(m_vQRFLocation));
+		
 		Rpc(RpcDo_SetQRFBase, m_iCurrentQRFBase);
 		Rpc(RpcDo_SetQRFActive, m_vQRFLocation);
 	}
@@ -486,6 +488,11 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_vQRFLocation = town.location;
 		m_iCurrentQRFTown = townID;
 		
+		string type = "Village";
+		if(town.size == 2) type = "Town";
+		if(town.size == 3) type = "City";
+		OVT_Global.GetNotify().SendTextNotification(type + "Battle", -1, OVT_Global.GetTowns().GetTownName(townID));
+		
 		Rpc(RpcDo_SetQRFTown, m_iCurrentQRFTown);
 		Rpc(RpcDo_SetQRFActive, m_vQRFLocation);
 	}
@@ -494,12 +501,13 @@ class OVT_OccupyingFactionManager: OVT_Component
 	{	
 		if(m_CurrentQRF.m_iWinningFaction != m_CurrentQRFBase.GetControllingFaction())
 		{
+			string townName = OVT_Global.GetTowns().GetTownName(m_CurrentQRFBase.GetOwner().GetOrigin());
 			if(m_CurrentQRFBase.IsOccupyingFaction())
 			{
 				m_iThreat += 50;
-				OVT_Global.GetPlayers().HintMessageAll("BaseControlledResistance");
+				OVT_Global.GetNotify().SendTextNotification("BaseControlledResistance",-1,townName);
 			}else{
-				OVT_Global.GetPlayers().HintMessageAll("BaseControlledOccupying");
+				OVT_Global.GetNotify().SendTextNotification("BaseControlledOccupying",-1,townName);
 			}
 			m_CurrentQRFBase.SetControllingFaction(m_CurrentQRF.m_iWinningFaction);
 			m_Bases[m_iCurrentQRFBase].faction = m_CurrentQRF.m_iWinningFaction;
@@ -523,17 +531,15 @@ class OVT_OccupyingFactionManager: OVT_Component
 	{	
 		int townID = OVT_Global.GetTowns().GetTownID(m_CurrentQRFTown);
 		if(m_CurrentQRF.m_iWinningFaction != m_CurrentQRFTown.faction)
-		{
+		{			
 			//This town has changed control
 			string type = "Town";
 			if(m_CurrentQRFTown.size > 2) type = "City";
 			if(m_CurrentQRFTown.IsOccupyingFaction())
 			{
-				m_iThreat += 50;
-				OVT_Global.GetPlayers().HintMessageAll(type + "ControlledResistance");
+				m_iThreat += 50;				
 				OVT_Global.GetTowns().TryAddSupportModifierByName(townID, "RecentBattlePositive");
-			}else{
-				OVT_Global.GetPlayers().HintMessageAll(type + "ControlledOccupying");
+			}else{				
 				OVT_Global.GetTowns().TryAddSupportModifierByName(townID, "RecentBattleNegative");
 				//All supporters in this town abandon the resistance (and avoids the battle looping)
 				OVT_Global.GetTowns().ResetSupport(m_CurrentQRFTown);	
@@ -695,7 +701,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 				OVT_BaseControllerComponent base = GetBase(data.entId);	
 				
 				//Dont spawn stuff if a player is watching lol
-				if(OVT_Global.PlayerInRange(data.location, base.m_iCloseRange+100)) continue;			
+				if(OVT_Global.PlayerInRange(data.location, m_Config.m_Difficulty.baseCloseRange+100)) continue;			
 				
 				m_iResources -= base.SpendResources(m_iResources, m_iThreat);			
 				

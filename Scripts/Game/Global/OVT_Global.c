@@ -54,6 +54,11 @@ class OVT_Global {
 		return OVT_JobManagerComponent.GetInstance();
 	}
 	
+	static OVT_NotificationManagerComponent GetNotify()
+	{
+		return OVT_NotificationManagerComponent.GetInstance();
+	}
+	
 	static bool PlayerInRange(vector pos, int range)
 	{		
 		array<int> players = new array<int>;

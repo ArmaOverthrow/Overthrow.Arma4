@@ -75,6 +75,10 @@ class OVT_DifficultySettings : ScriptAndConfig
 	float baseSupportRange;
 	[Attribute(defvalue: "1", desc: "Number of defense groups at radio towers", category: "Occupying Faction")]
 	int radioTowerGroups;	
+	[Attribute("280")]
+	float baseRange;
+	[Attribute("220")]
+	float baseCloseRange;
 	
 	//Economy
 	[Attribute(defvalue: "100", desc: "Player starting cash", category: "Economy")]

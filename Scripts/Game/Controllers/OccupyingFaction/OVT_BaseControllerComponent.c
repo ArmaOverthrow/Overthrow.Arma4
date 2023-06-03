@@ -9,13 +9,7 @@ class OVT_BaseControllerComponent: OVT_Component
 	
 	[Attribute("", UIWidgets.Object)]
 	ref array<ref OVT_BaseUpgrade> m_aBaseUpgrades;
-			
-	[Attribute("280")]		
-	int m_iRange;
-	
-	[Attribute("220")]
-	int m_iCloseRange;
-	
+				
 	string m_sName;	
 	
 	ref array<ref EntityID> m_AllSlots;
@@ -150,7 +144,7 @@ class OVT_BaseControllerComponent: OVT_Component
 	
 	void FindSlots()
 	{
-		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), m_iCloseRange, CheckSlotAddToArray, FilterSlotEntities, EQueryEntitiesFlags.ALL);
+		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(),  m_Config.m_Difficulty.baseCloseRange, CheckSlotAddToArray, FilterSlotEntities, EQueryEntitiesFlags.ALL);
 	}
 	
 	bool FilterSlotEntities(IEntity entity)
@@ -164,7 +158,7 @@ class OVT_BaseControllerComponent: OVT_Component
 		m_AllSlots.Insert(entity.GetID());
 		
 		float distance = vector.Distance(entity.GetOrigin(), GetOwner().GetOrigin());
-		if(distance < m_iCloseRange)
+		if(distance <  m_Config.m_Difficulty.baseCloseRange)
 		{
 			m_AllCloseSlots.Insert(entity.GetID());
 		}
@@ -182,7 +176,7 @@ class OVT_BaseControllerComponent: OVT_Component
 	
 	void FindParking()
 	{
-		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), m_iCloseRange, null, FilterParkingEntities, EQueryEntitiesFlags.ALL);
+		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), m_Config.m_Difficulty.baseCloseRange, null, FilterParkingEntities, EQueryEntitiesFlags.ALL);
 	}
 	
 	bool FilterParkingEntities(IEntity entity)

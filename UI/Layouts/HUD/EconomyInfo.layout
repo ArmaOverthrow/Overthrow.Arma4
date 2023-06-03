@@ -10,6 +10,107 @@ OverlayWidgetClass {
   }
  }
  {
+  OverlayWidgetClass "{5D8680DE360578F4}" {
+   Name "Notify"
+   Slot OverlayWidgetSlot "{5D8680DE360578C7}" {
+    VerticalAlign 0
+    Padding 0 106.9 0 0
+   }
+   {
+    SizeLayoutWidgetClass "{5D8680C956D12121}" {
+     Name "SizeLayout1"
+     Slot OverlayWidgetSlot "{5D6ADBB33CAFF0CC}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+      Padding 0 0 -5 0
+     }
+     MaxDesiredWidth 0
+     {
+      OverlayWidgetClass "{5D8680C956D12120}" {
+       Name "Overlay0"
+       Slot AlignableSlot "{5D8680C8BEDA6A7E}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       {
+        ImageWidgetClass "{5D8680C956D1212F}" {
+         Name "Image1"
+         Slot OverlayWidgetSlot "{5D8680C8BAC97B13}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+         }
+         Color 0 0 0 0.525
+        }
+        PanelWidgetClass "{5D8680C956D1212E}" {
+         Name "Image0"
+         Slot OverlayWidgetSlot "{5D8680C956D12151}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+         }
+         style pixel_outline
+         "no focus" 1
+        }
+       }
+      }
+     }
+    }
+    VerticalLayoutWidgetClass "{5D8680DE1129F8AF}" {
+     Name "VerticalLayout0"
+     Slot OverlayWidgetSlot "{5D86A3CBC51C1C56}" {
+     }
+     {
+      SizeLayoutWidgetClass "{5D86A3C851913B40}" {
+       Name "SizeLayout0"
+       Slot LayoutSlot "{5D86A3C851913B15}" {
+        HorizontalAlign 1
+        VerticalAlign 1
+       }
+       AllowMaxDesiredWidth 1
+       MaxDesiredWidth 400
+       {
+        HorizontalLayoutWidgetClass "{5D8680D6C200D0F1}" {
+         Name "HorizontalLayout0"
+         Slot AlignableSlot "{5D86A3C85095208E}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+         }
+         {
+          SizeLayoutWidgetClass "{5D86A3C8188DBF48}" {
+           Name "SizeLayout0"
+           Slot LayoutSlot "{5D86A3C8188DBF17}" {
+           }
+           {
+            ImageWidgetClass "{5D8680D6CCB4FE1C}" {
+             Name "Image0"
+             Slot AlignableSlot "{5D86A3C8E6516099}" {
+             }
+             Texture "{D17288006833490F}UI/Textures/Icons/icons_wrapperUI-32.imageset"
+             Image "system"
+             Size 32 32
+            }
+           }
+          }
+          TextWidgetClass "{5D8680DEE17559B0}" {
+           Name "NotificationText"
+           Slot LayoutSlot "{5D8680DEE175599B}" {
+            HorizontalAlign 0
+            VerticalAlign 1
+            Padding 0 10 10 10
+            SizeMode Fill
+           }
+           Text "A wild notification appears that is really long and should wrap around at some point if possible"
+           "Font Size" 16
+           "Min Font Size" 16
+           Wrap 1
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
   FrameWidgetClass "{5988DB07CCB81B23}" {
    Name "Economy"
    Slot OverlayWidgetSlot "{5872F8E8D1711656}" {
@@ -78,23 +179,45 @@ OverlayWidgetClass {
     Padding 0 0 0 0
    }
    {
-    ImageWidgetClass "{5D6ADBB371DAAC92}" {
-     Name "Image0"
-     Slot OverlayWidgetSlot {
-      HorizontalAlign 3
-      VerticalAlign 3
-     }
-     Color 0 0 0 0.404
-    }
     SizeLayoutWidgetClass "{5D6ADBB33CAFF0EB}" {
      Name "SizeLayout0"
      Slot OverlayWidgetSlot "{5D6ADBB33CAFF0CC}" {
-      Padding 0 0 0 0
+      HorizontalAlign 3
+      VerticalAlign 3
+      Padding 0 -4 0 0
+     }
+     {
+      OverlayWidgetClass "{5D8680C8B2D699B5}" {
+       Name "Overlay0"
+       Slot AlignableSlot "{5D8680C8BEDA6A7E}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       {
+        ImageWidgetClass "{5D8680C8BAC97B36}" {
+         Name "Image1"
+         Slot OverlayWidgetSlot "{5D8680C8BAC97B13}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+         }
+         Color 0 0 0 0.525
+        }
+        PanelWidgetClass "{5D6ADBB371DAAC92}" {
+         Name "Image0"
+         Slot OverlayWidgetSlot "{5D86A3CBC51C1DB3}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+         }
+         style pixel_outline
+         "no focus" 1
+        }
+       }
+      }
      }
     }
     VerticalLayoutWidgetClass "{59B4F0BA2270998D}" {
      Name "VerticalLayout0"
-     Slot OverlayWidgetSlot {
+     Slot OverlayWidgetSlot "{5D8680DE2604CF96}" {
       Padding 10 20 10 10
      }
      {

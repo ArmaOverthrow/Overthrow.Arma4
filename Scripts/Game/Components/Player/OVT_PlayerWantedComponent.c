@@ -72,7 +72,35 @@ class OVT_PlayerWantedComponent: OVT_Component
 		m_bTempSeen = false;
 		m_iLastSeen = LAST_SEEN_MAX;
 		
-		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), 250, CheckEntity, FilterEntities, EQueryEntitiesFlags.DYNAMIC);
+		//GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), 250, CheckEntity, FilterEntities, EQueryEntitiesFlags.DYNAMIC);
+		
+		array<AIAgent> agents();
+		
+		AIWorld aiworld = GetGame().GetAIWorld();
+		aiworld.GetAIAgents(agents);
+		
+		vector pos = GetOwner().GetOrigin();
+		
+		foreach(AIAgent agent : agents)
+		{
+			AIGroup group = AIGroup.Cast(agent);
+			if(!group) continue;
+			
+			array<AIAgent> groupAgents();
+			group.GetAgents(groupAgents);
+			
+			foreach(AIAgent member : groupAgents)
+			{			
+				IEntity entity = member.GetControlledEntity();
+				if(!entity) continue;
+				float dist = vector.Distance(entity.GetOrigin(), pos);
+				if(dist > 250) continue;
+				if(FilterEntities(entity))
+				{
+					CheckEntity(entity);
+				}
+			}
+		}		
 						
 		OVT_BaseData base = OVT_Global.GetOccupyingFaction().GetNearestBase(GetOwner().GetOrigin());
 		if(base)

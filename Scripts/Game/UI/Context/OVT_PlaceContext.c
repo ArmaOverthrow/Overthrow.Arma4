@@ -148,9 +148,9 @@ class OVT_PlaceContext : OVT_UIContext
 			
 			//Smaller town ranges for the "too close" option
 			//Opens up some better FOB positions for town battles and allows camps a bit closer
-			int townRange = 800;
-			if(town.size < 3) townRange = 400;
-			if(town.size < 2) townRange = 200;
+			int townRange = m_Towns.m_iCityRange - 400;
+			if(town.size < 3) townRange = m_Towns.m_iTownRange - 200;
+			if(town.size < 2) townRange = m_Towns.m_iVillageRange - 50;
 			
 			dist = vector.Distance(town.location,pos);
 			if(dist < townRange)
@@ -159,12 +159,15 @@ class OVT_PlaceContext : OVT_UIContext
 				return false;
 			}
 			
-			vector fob = m_Resistance.GetNearestFOB(pos);		
-			dist = vector.Distance(fob, pos);
-			if(dist < 250)
-			{
-				reason = "#OVT-TooCloseFOB";
-				return false;
+			vector fob = m_Resistance.GetNearestFOB(pos);	
+			if(fob[0] != 0)
+			{	
+				dist = vector.Distance(fob, pos);
+				if(dist < 250)
+				{
+					reason = "#OVT-TooCloseFOB";
+					return false;
+				}
 			}
 			
 			return true;

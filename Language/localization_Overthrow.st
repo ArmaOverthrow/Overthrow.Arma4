@@ -614,45 +614,52 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D86A3C8844B8729}" {
+   Id "OVT-Msg-BaseBattle"
+   Target_en_us "The battle for %1 base will begin shortly"
+   Modified 1569106637
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59B4F0A361F5ADF0}" {
    Id "OVT-Msg-BaseControlledOccupying"
-   Target_en_us "The resistance has lost control of a base"
-   Modified 1505038646
+   Target_en_us "The resistance has lost control of %1 base"
+   Modified 1569106527
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
   CustomStringTableItem "{59B4F0A294E1135C}" {
    Id "OVT-Msg-BaseControlledResistance"
-   Target_en_us "The resistance has captured an enemy base"
-   Modified 1505038613
+   Target_en_us "The resistance has captured %1 base"
+   Modified 1569106535
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
   CustomStringTableItem "{5D64799026B5CA0A}" {
    Id "OVT-Msg-CityBattle"
-   Target_en_us "The battle for the city will begin shortly"
-   Modified 1566876767
+   Target_en_us "The battle for the city of %1 will begin shortly"
+   Modified 1569106547
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
   CustomStringTableItem "{5D647993297FAA09}" {
    Id "OVT-Msg-CityControlledOccupying"
-   Target_en_us "The resistance has lost control of the city"
-   Modified 1566876332
+   Target_en_us "The resistance has lost control of the city of %1"
+   Modified 1569106519
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
   CustomStringTableItem "{5D6479933F0A23F6}" {
    Id "OVT-Msg-CityControlledResistance"
-   Target_en_us "City is now under control by the resistance"
-   Modified 1566876352
+   Target_en_us "The city of %1 is now under control by the resistance"
+   Modified 1569106514
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
   CustomStringTableItem "{59A49A822C192F63}" {
    Id "OVT-Msg-HasPlacedFOB"
-   Target_en_us "has placed a new FOB. It is now available for fast travel and more"
-   Modified 1504000954
+   Target_en_us "%1 has placed a new FOB near %2. It is now available for fast travel and more"
+   Modified 1569106206
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -665,43 +672,43 @@ StringTable {
   }
   CustomStringTableItem "{5D6051C94F256E7F}" {
    Id "OVT-Msg-TowerControlledResistance"
-   Target_en_us "The resistance has captured an enemy radio tower"
-   Modified 1566786266
+   Target_en_us "The resistance has captured an enemy radio tower near %1"
+   Modified 1569106121
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
   CustomStringTableItem "{5D647993F9896F6F}" {
    Id "OVT-Msg-TownBattle"
-   Target_en_us "The battle for the town will begin shortly"
-   Modified 1566876749
+   Target_en_us "The battle for the town of %1 will begin shortly"
+   Modified 1569106112
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
   CustomStringTableItem "{5D6479932650745D}" {
    Id "OVT-Msg-TownControlledOccupying"
-   Target_en_us "The resistance has lost control of the town"
-   Modified 1566876313
+   Target_en_us "The resistance has lost control of the town of %1"
+   Modified 1569106100
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
   CustomStringTableItem "{5D6479934B14F461}" {
    Id "OVT-Msg-TownControlledResistance"
-   Target_en_us "Town is now under control by the resistance"
-   Modified 1566876292
+   Target_en_us "The town of %1 is now under control by the resistance"
+   Modified 1569106095
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
   CustomStringTableItem "{59A49AC5C2FC26C2}" {
    Id "OVT-Msg-VillageControlledOccupying"
-   Target_en_us "Resistance has lost control of the village due to low support"
-   Modified 1503964017
+   Target_en_us "Resistance has lost control of the village of %1 due to low support"
+   Modified 1569106081
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
   CustomStringTableItem "{59A49AC9A028CADB}" {
    Id "OVT-Msg-VillageControlledResistance"
-   Target_en_us "Village is now under control by the resistance due to overwhelming support"
-   Modified 1503962273
+   Target_en_us "The village of %1 is now under control by the resistance due to overwhelming support"
+   Modified 1569105647
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

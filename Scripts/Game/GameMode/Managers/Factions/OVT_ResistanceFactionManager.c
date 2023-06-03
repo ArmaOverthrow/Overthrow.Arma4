@@ -292,7 +292,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		m_FOBs.Insert(fob);
 				
 		Rpc(RpcDo_RegisterFOB, pos);
-		m_Players.HintMessageAll("PlacedFOB",-1,playerId);
+		OVT_Global.GetNotify().SendTextNotification("PlacedFOB",-1,OVT_Global.GetPlayers().GetPlayerName(playerId),OVT_Global.GetTowns().GetTownName(pos));
 	}
 	
 	void RegisterCamp(IEntity ent, int playerId)

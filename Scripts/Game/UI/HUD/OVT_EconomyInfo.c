@@ -1,6 +1,7 @@
 class OVT_EconomyInfo : SCR_InfoDisplay {	
 	OVT_EconomyManagerComponent m_Economy;
 	OVT_OccupyingFactionManager m_OccupyingFaction;
+	OVT_NotificationManagerComponent m_Notify;
 	string m_playerId;
 	SCR_ChimeraCharacter m_player;
 	
@@ -15,6 +16,7 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 				
 		m_Economy = OVT_Global.GetEconomy();
 		m_OccupyingFaction = OVT_Global.GetOccupyingFaction();
+		m_Notify = OVT_Global.GetNotify();
 	}
 	
 	protected void InitCharacter()
@@ -42,6 +44,8 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 		}else{
 			HideQRF();
 		}
+		
+		UpdateNotification(timeSlice);
 		
 		if(m_fCounter > 10)
 		{
@@ -130,5 +134,41 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 						
 		TextWidget w = TextWidget.Cast(m_wRoot.FindAnyWidget("MoneyText"));
 		w.SetText("$" + m_Economy.GetPlayerMoney(m_playerId));
+	}
+	
+	void UpdateNotification(float timeSlice)
+	{
+		if (!m_Notify)
+			return;
+		if(!m_wRoot)
+			return;
+		
+		Widget notify = m_wRoot.FindAnyWidget("Notify");
+		TextWidget w = TextWidget.Cast(m_wRoot.FindAnyWidget("NotificationText"));
+		
+		if(m_Notify.m_aNotifications.Count() == 0)
+		{
+			notify.SetVisible(false);
+			return;
+		}
+		
+		OVT_NotificationData data = m_Notify.m_aNotifications.Get(0);
+		if(!data)
+		{
+			notify.SetVisible(false);
+			return;
+		}
+		
+		if(data.displayTimer <= 0)
+		{
+			notify.SetVisible(false);
+			return;
+		}
+		
+		data.displayTimer = data.displayTimer - timeSlice;
+		
+		w.SetTextFormat(data.msg.m_UIInfo.GetDescription(), data.param1, data.param2, data.param3);
+		notify.SetVisible(true);
+		
 	}
 }

@@ -21,12 +21,7 @@ class OVT_PlayerData : Managed
 }
 
 class OVT_PlayerManagerComponent: OVT_Component
-{	
-	[Attribute()]
-	ResourceName m_rMessageConfigFile;
-	
-	protected ref SCR_SimpleMessagePresets m_Messages;
-	
+{		
 	static OVT_PlayerManagerComponent s_Instance;
 	static OVT_PlayerManagerComponent GetInstance()
 	{
@@ -49,8 +44,6 @@ class OVT_PlayerManagerComponent: OVT_Component
 		m_mPersistentIDs = new map<int, string>;
 		m_mPlayerIDs = new map<string, int>;
 		m_mPlayers = new map<string, ref OVT_PlayerData>;
-		
-		LoadMessageConfig();
 	}
 	
 	OVT_PlayerData GetPlayer(string persId)
@@ -59,85 +52,21 @@ class OVT_PlayerManagerComponent: OVT_Component
 		return null;
 	}
 	
-	protected void LoadMessageConfig()
-	{
-		Resource holder = BaseContainerTools.LoadContainer(m_rMessageConfigFile);
-		if (holder)		
-		{
-			SCR_SimpleMessagePresets obj = SCR_SimpleMessagePresets.Cast(BaseContainerTools.CreateInstanceFromContainer(holder.GetResource().ToBaseContainer()));
-			if(obj)
-			{
-				m_Messages = obj;
-			}
-		}
+	OVT_PlayerData GetPlayer(int playerId)
+	{		
+		return GetPlayer(GetPersistentIDFromPlayerID(playerId));
 	}
 	
-	void HintMessageAll(string tag, int townId = -1, int playerId = -1)
+	string GetPlayerName(string persId)
 	{
-		SCR_SimpleMessagePreset preset = m_Messages.GetPreset(tag);
-		int index = m_Messages.m_aPresets.Find(preset);
-		Rpc(RpcDo_HintMessage, index, townId, playerId);
-		DoHintMessage(index, townId, playerId);
+		OVT_PlayerData player = GetPlayer(persId);
+		if(player) return player.name;
+		return "";
 	}
 	
-	protected string GetMessageText(int index, int townId = -1, int playerId = -1)
+	string GetPlayerName(int playerId)
 	{
-		string text = "";
-		
-		if(playerId > -1)
-		{
-			//Add player name
-			string name = GetGame().GetPlayerManager().GetPlayerName(playerId);
-			text += name + " ";
-		}	
-		
-		SCR_SimpleMessagePreset preset = m_Messages.m_aPresets[index];		
-		if(preset.m_UIInfo){
-			text += preset.m_UIInfo.GetDescription();
-		}
-		return text;
-	}
-	
-	protected string GetMessageTitle(int index, int townId = -1, int playerId = -1)
-	{
-		SCR_SimpleMessagePreset preset = m_Messages.m_aPresets[index];		
-		string text = "";
-				
-		string townName;
-		if(townId > -1)
-		{
-			//Add town name
-			OVT_TownManagerComponent towns = OVT_Global.GetTowns();
-			OVT_TownData town = towns.m_Towns[townId];
-			text += towns.GetTownName(townId) + " ";
-		}			
-		string title = preset.m_UIInfo.GetName();
-		if(title != "")
-		{ 
-			//Append anything from UIInfo
-			text += title;
-		}
-		return text;
-	}
-	
-	protected void DoHintMessage(int index, int townId = -1, int playerId = -1)
-	{
-		string text = GetMessageText(index, townId, playerId);
-		string title = GetMessageTitle(index, townId, playerId);
-		SCR_HintManagerComponent.GetInstance().ShowCustom(text, title, 10, true);
-	}
-	
-	void SendMessageAll(string tag, int townId = -1, int playerId = -1)
-	{
-		SCR_SimpleMessagePreset preset = m_Messages.GetPreset(tag);
-		int index = m_Messages.m_aPresets.Find(preset);
-		Rpc(RpcDo_SendMessage, index, townId, playerId);
-		DoRcvMessage(index, townId, playerId);
-	}
-	
-	protected void DoRcvMessage(int index, int townId = -1, int playerId = -1)
-	{
-		string text = GetMessageText(index, townId, playerId);
+		return GetPlayerName(GetPersistentIDFromPlayerID(playerId));
 	}
 	
 	string GetPersistentIDFromPlayerID(int playerId)
@@ -261,18 +190,6 @@ class OVT_PlayerManagerComponent: OVT_Component
 	protected void RpcDo_RegisterPlayer(int playerId, string s)
 	{
 		SetupPlayer(playerId, s);
-	}
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_HintMessage(int msg, int townId, int playerId)
-	{
-		DoHintMessage(msg, townId, playerId);
-	}
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_SendMessage(int msg, int townId, int playerId)
-	{
-		DoRcvMessage(msg, townId, playerId);
 	}
 	
 	void ~OVT_PlayerManagerComponent()

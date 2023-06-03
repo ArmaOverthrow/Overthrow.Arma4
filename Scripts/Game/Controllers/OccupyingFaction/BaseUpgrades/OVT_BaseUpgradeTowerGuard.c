@@ -15,7 +15,7 @@ class OVT_BaseUpgradeTowerGuard : OVT_BasePatrolUpgrade
 	
 	protected void FindTowers()
 	{
-		GetGame().GetWorld().QueryEntitiesBySphere(m_BaseController.GetOwner().GetOrigin(), m_BaseController.m_iRange, CheckTowerAddToArray, FilterTowerEntities, EQueryEntitiesFlags.ALL);
+		GetGame().GetWorld().QueryEntitiesBySphere(m_BaseController.GetOwner().GetOrigin(), m_Config.m_Difficulty.baseRange, CheckTowerAddToArray, FilterTowerEntities, EQueryEntitiesFlags.ALL);
 	}
 	
 	protected bool FilterTowerEntities(IEntity entity)

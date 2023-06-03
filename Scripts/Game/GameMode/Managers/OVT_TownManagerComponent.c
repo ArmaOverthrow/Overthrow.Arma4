@@ -469,7 +469,7 @@ class OVT_TownManagerComponent: OVT_Component
 		string factionType = "Resistance";
 		if(faction != m_Config.GetPlayerFactionIndex()) factionType = "Occupying";
 		
-		OVT_Global.GetPlayers().HintMessageAll(type + "Controlled" + factionType, townID);		
+		OVT_Global.GetNotify().SendTextNotification(type + "Controlled" + factionType, -1, GetTownName(townID));
 	}
 	
 	IEntity GetRandomHouse()
@@ -627,6 +627,14 @@ class OVT_TownManagerComponent: OVT_Component
 			m_TownNames[townId] = desc.Item().GetDisplayName();
 		}
 		return m_TownNames[townId];
+	}
+	
+	string GetTownName(vector location)
+	{
+		OVT_TownData town = GetNearestTown(location);
+		int townId = GetTownID(town);
+		
+		return GetTownName(townId);
 	}
 	
 	SCR_MapDescriptorComponent GetNearestBusStop(vector pos)

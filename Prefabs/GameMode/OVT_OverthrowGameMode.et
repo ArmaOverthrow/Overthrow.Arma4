@@ -283,6 +283,10 @@ OVT_OverthrowGameMode {
     "{440607BAB7BD6B1C}Configs/Jobs/assassinateTraitor.conf" "{A885604D1141044D}Configs/Jobs/raiseSupport.conf" "{8263088AF3FD648B}Configs/Jobs/baseRecon.conf" "{A66B34BC59667AE6}Configs/Jobs/findGunDealer.conf"
    }
   }
+  OVT_NotificationManagerComponent "{5D8680DB07CF50FD}" {
+   m_Messages SCR_SimpleMessagePresets "{5D8680DB04A58A20}" : "{36405F298C9B3186}Configs/overthrowBroadcastMessages.conf" {
+   }
+  }
   OVT_OccupyingFactionManager "{59845E732755785F}" {
    m_pBaseControllerPrefab "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.et"
    m_pQRFControllerPrefab "{A7D27DFA72B705D0}Prefabs/Controllers/OVT_QRFController.et"
@@ -444,7 +448,8 @@ OVT_OverthrowGameMode {
   OVT_PlayerCommsComponent "{5D7ACE1228D77F40}" {
   }
   OVT_PlayerManagerComponent "{599AA74940529C1C}" {
-   m_rMessageConfigFile "{36405F298C9B3186}Configs/overthrowBroadcastMessages.conf"
+   m_Messages SCR_SimpleMessagePresets "{5D8680D82EED88F5}" : "{36405F298C9B3186}Configs/overthrowBroadcastMessages.conf" {
+   }
   }
   OVT_RealEstateManagerComponent "{59724C983E7EF811}" {
   }
