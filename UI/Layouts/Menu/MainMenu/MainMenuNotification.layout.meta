@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{83FFB5E643F7C339}UI/Layouts/Menu/MainMenu/MainMenuNotification.layout"
+ Configurations {
+  LayoutResourceClass PC {
+  }
+  LayoutResourceClass XBOX_ONE : PC {
+  }
+  LayoutResourceClass XBOX_SERIES : PC {
+  }
+  LayoutResourceClass PS4 : PC {
+  }
+  LayoutResourceClass HEADLESS : PC {
+  }
+ }
+}

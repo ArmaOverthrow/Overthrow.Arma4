@@ -8,8 +8,47 @@ FrameWidgetClass {
   }
  }
  {
+  VerticalLayoutWidgetClass "{5D86A3CDA6EB670F}" {
+   Name "NotificationLog"
+   Slot FrameWidgetSlot "{5D86A3CDA6EB67E2}" {
+    Anchor 0 0 0 1
+    PositionX 380
+    OffsetLeft 380
+    PositionY 0
+    OffsetTop -1
+    SizeX 1000
+    OffsetRight -1380
+    SizeY 0
+    OffsetBottom -1
+   }
+   Color 0 0 0 1
+   {
+    VerticalLayoutWidgetClass "{5D86A3CC56DF0B3B}" {
+     Name "LogContainer"
+     Slot LayoutSlot {
+     }
+     {
+      FrameWidgetClass "{5D86A3C31F553FCC}" : "{83FFB5E643F7C339}UI/Layouts/Menu/MainMenu/MainMenuNotification.layout" {
+       Name "Notification2"
+       Slot LayoutSlot "{5D86A3C31F553F96}" {
+       }
+      }
+      FrameWidgetClass "{5D86A3C311215599}" : "{83FFB5E643F7C339}UI/Layouts/Menu/MainMenu/MainMenuNotification.layout" {
+       Name "Notification1"
+       Slot LayoutSlot "{5D86A3C311215665}" {
+       }
+      }
+      FrameWidgetClass "{5D86A3C312486E9B}" : "{83FFB5E643F7C339}UI/Layouts/Menu/MainMenu/MainMenuNotification.layout" {
+       Name "Notification0"
+       Slot LayoutSlot "{5D86A3C312486F7A}" {
+       }
+      }
+     }
+    }
+   }
+  }
   PanelWidgetClass "{597282644EB209FB}" {
-   Name "Panel0"
+   Name "Menu"
    Slot FrameWidgetSlot "{597282644EB209C6}" {
     Anchor 0 0 0 1
     PositionX 0

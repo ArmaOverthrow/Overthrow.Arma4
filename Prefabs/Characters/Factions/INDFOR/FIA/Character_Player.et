@@ -28,6 +28,7 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      m_sContextName "OverthrowMainMenuContext"
      m_sOpenAction "OverthrowMainMenu"
      m_sCloseAction "MenuBack"
+     m_NotificationLayout "{83FFB5E643F7C339}UI/Layouts/Menu/MainMenu/MainMenuNotification.layout"
     }
     OVT_PlaceContext "{598C5166834EC2A0}" {
      m_Layout "{02AA5A91E0DD49DF}UI/Layouts/Menu/PlaceMenu.layout"

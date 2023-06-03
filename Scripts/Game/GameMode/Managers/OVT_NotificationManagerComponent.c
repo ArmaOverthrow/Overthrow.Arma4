@@ -5,7 +5,7 @@ class OVT_NotificationManagerComponentClass: OVT_ComponentClass
 class OVT_NotificationData : Managed
 {
 	SCR_SimpleMessagePreset msg;
-	TimeContainer time;
+	ref TimeContainer time;
 	
 	string param1;
 	string param2;
@@ -18,6 +18,9 @@ class OVT_NotificationManagerComponent: OVT_Component
 {
 	[Attribute()]
 	protected ref SCR_SimpleMessagePresets m_Messages;
+	
+	[Attribute("25")]
+	protected int m_iMaxNotifications;
 	
 	ref array<ref OVT_NotificationData> m_aNotifications = {};
 	
@@ -67,5 +70,10 @@ class OVT_NotificationManagerComponent: OVT_Component
 		data.time = GetGame().GetTimeAndWeatherManager().GetTime();
 		
 		m_aNotifications.InsertAt(data, 0);
+		
+		if(m_aNotifications.Count() > m_iMaxNotifications)
+		{
+			m_aNotifications.Remove(m_aNotifications.Count() - 1);
+		}
 	}
 }

@@ -1,5 +1,8 @@
 class OVT_MainMenuContext : OVT_UIContext
 {
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Notification layout", params: "layout")]
+	ResourceName m_NotificationLayout;
+	
 	ref OVT_MainMenuWidgets m_Widgets;
 	OVT_TownManagerComponent m_TownManager;
 	OVT_RealEstateManagerComponent m_RealEstate;
@@ -116,6 +119,27 @@ class OVT_MainMenuContext : OVT_UIContext
 		if (comp)
 		{
 			comp.m_OnClicked.Insert(Save);
+		}
+		
+		//Logs
+		Widget container = m_wRoot.FindAnyWidget("LogContainer");
+		Widget child = container.GetChildren();
+		while(child)
+		{
+			container.RemoveChild(child);
+			child = container.GetChildren();
+		}
+		
+		WorkspaceWidget workspace = GetGame().GetWorkspace(); 
+		
+		OVT_NotificationManagerComponent notify = OVT_Global.GetNotify();
+		foreach(OVT_NotificationData data : notify.m_aNotifications)
+		{
+			Widget w = workspace.CreateWidgets(m_NotificationLayout, container);
+			TextWidget tw = TextWidget.Cast(w.FindAnyWidget("NotificationText"));
+			tw.SetTextFormat(data.msg.m_UIInfo.GetDescription(),data.param1,data.param2,data.param3);
+			TextWidget time = TextWidget.Cast(w.FindAnyWidget("Time"));
+			time.SetTextFormat("%1:%2",data.time.m_iHours.ToString(),data.time.m_iMinutes.ToString());
 		}
 	}
 	

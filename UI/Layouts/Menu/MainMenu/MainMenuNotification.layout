@@ -1,0 +1,75 @@
+FrameWidgetClass {
+ Name "Notification"
+ {
+  OverlayWidgetClass "{5D86A3C085D607BB}" {
+   Name "Overlay0"
+   Slot FrameWidgetSlot "{5D86A3C094412C96}" {
+    OffsetLeft 0
+    OffsetTop 0
+    SizeX 990
+    OffsetRight -990
+    OffsetBottom -30
+   }
+   {
+    ImageWidgetClass "{5D86A3C089912FF3}" {
+     Name "Image0"
+     Slot OverlayWidgetSlot {
+      HorizontalAlign 3
+      VerticalAlign 3
+     }
+     Color 0 0 0 0.471
+    }
+    HorizontalLayoutWidgetClass "{5D86A3C3503FC354}" {
+     Name "HorizontalLayout0"
+     Slot OverlayWidgetSlot {
+      HorizontalAlign 0
+     }
+     {
+      SizeLayoutWidgetClass "{5D86A3C3503FC353}" {
+       Name "SizeLayout0"
+       Slot LayoutSlot "{5D86A3C8188DBF17}" {
+       }
+       AllowWidthOverride 1
+       WidthOverride 32
+       HeightOverride 0
+       {
+        ImageWidgetClass "{5D86A3C3503FC351}" {
+         Name "Image0"
+         Slot AlignableSlot "{5D86A3C8E6516099}" {
+         }
+         Texture "{D17288006833490F}UI/Textures/Icons/icons_wrapperUI-32.imageset"
+         Image "system"
+         Size 32 32
+        }
+       }
+      }
+      TextWidgetClass "{5D86A3C2FEE0D30C}" {
+       Name "Time"
+       Slot LayoutSlot "{5D8680DEE175599B}" {
+        HorizontalAlign 0
+        VerticalAlign 1
+        Padding 0 0 5 0
+       }
+       Text "00:00"
+       "Font Size" 14
+       "Min Font Size" 14
+       Wrap 1
+      }
+      TextWidgetClass "{5D86A3C3503FC350}" {
+       Name "NotificationText"
+       Slot LayoutSlot "{5D8680DEE175599B}" {
+        VerticalAlign 1
+        Padding 0 0 0 0
+        SizeMode Fill
+       }
+       Text "A wild notification appears that is really long and should wrap around at some point if possible"
+       "Font Size" 14
+       "Min Font Size" 14
+       Wrap 1
+      }
+     }
+    }
+   }
+  }
+ }
+}
