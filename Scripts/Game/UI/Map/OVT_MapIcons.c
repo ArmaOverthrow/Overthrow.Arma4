@@ -127,7 +127,7 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 				continue;
 			}
 			m_Centers.Insert(ent.GetOrigin());
-			m_Ranges.Insert(m_fCeiling);
+			m_Ranges.Insert(0);
 			
 			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
 			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
@@ -150,7 +150,7 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 				continue;
 			}
 			m_Centers.Insert(ent.GetOrigin());
-			m_Ranges.Insert(m_fCeiling);
+			m_Ranges.Insert(0);
 			
 			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
 			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
