@@ -71,15 +71,19 @@ OVT_OverthrowGameMode {
       }
       OVT_ShopInventoryItem "{5D72C37BC1D7EBFB}" {
        m_eItemType HEADWEAR
+       m_bNotOccupyingFaction 1
       }
       OVT_ShopInventoryItem "{5D72C37BD513D3A3}" {
        m_eItemType TORSO
+       m_bNotOccupyingFaction 1
       }
       OVT_ShopInventoryItem "{5D72C37BD257E66B}" {
        m_eItemType LEGS
+       m_bNotOccupyingFaction 1
       }
       OVT_ShopInventoryItem "{5D72C37BD86B3370}" {
        m_eItemType FOOTWEAR
+       m_bNotOccupyingFaction 1
       }
      }
     }
@@ -93,15 +97,64 @@ OVT_OverthrowGameMode {
     }
     OVT_ShopInventoryItem "{5D72C37ACC17963D}" {
      m_eItemType WEAPON_ATTACHMENT
+     m_bNotOccupyingFaction 1
     }
     OVT_ShopInventoryItem "{5D72C37AA6061534}" {
      m_eItemType LETHAL_THROWABLE
+     m_bNotOccupyingFaction 1
     }
     OVT_ShopInventoryItem "{5D72C37AAF2FE72E}" {
      m_eItemType NON_LETHAL_THROWABLE
     }
     OVT_ShopInventoryItem "{5D72C37AAD851814}" {
      m_eItemType EXPLOSIVES
+     m_bNotOccupyingFaction 1
+    }
+    OVT_ShopInventoryItem "{5D86A3EE6DA96AE9}" {
+     m_eItemMode AMMUNITION
+     m_bNotOccupyingFaction 1
+    }
+    OVT_ShopInventoryItem "{5D86A3EE71CC805E}" {
+     m_eItemMode WEAPON
+     m_bNotOccupyingFaction 1
+     m_bSingleRandomItem 1
+    }
+    OVT_ShopInventoryItem "{5D86A3E31C0D0CBA}" {
+     m_eItemType ROCKET_LAUNCHER
+     m_eItemMode AMMUNITION
+     m_bNotOccupyingFaction 1
+    }
+    OVT_ShopInventoryItem "{5D86A3E3F7943E98}" {
+     m_eItemType ROCKET_LAUNCHER
+     m_eItemMode WEAPON
+     m_bNotOccupyingFaction 1
+     m_bSingleRandomItem 1
+    }
+    OVT_ShopInventoryItem "{5D86A3E3F1EA1F8C}" {
+     m_eItemMode ATTACHMENT
+     m_bNotOccupyingFaction 1
+    }
+    OVT_ShopInventoryItem "{5D86A3E3F80E67EC}" {
+     m_eItemType SNIPER_RIFLE
+     m_eItemMode AMMUNITION
+     m_bNotOccupyingFaction 1
+    }
+    OVT_ShopInventoryItem "{5D86A3E3AC5F7CA6}" {
+     m_eItemType SNIPER_RIFLE
+     m_eItemMode WEAPON
+     m_bNotOccupyingFaction 1
+     m_bSingleRandomItem 1
+    }
+    OVT_ShopInventoryItem "{5D86A3E3B2C9B30C}" {
+     m_eItemType MACHINE_GUN
+     m_eItemMode AMMUNITION
+     m_bNotOccupyingFaction 1
+    }
+    OVT_ShopInventoryItem "{5D86A3E3B9AFAD7C}" {
+     m_eItemType MACHINE_GUN
+     m_eItemMode WEAPON
+     m_bNotOccupyingFaction 1
+     m_bSingleRandomItem 1
     }
    }
    m_aGunDealerItemPrefabs {
@@ -448,8 +501,6 @@ OVT_OverthrowGameMode {
   OVT_PlayerCommsComponent "{5D7ACE1228D77F40}" {
   }
   OVT_PlayerManagerComponent "{599AA74940529C1C}" {
-   m_Messages SCR_SimpleMessagePresets "{5D8680D82EED88F5}" : "{36405F298C9B3186}Configs/overthrowBroadcastMessages.conf" {
-   }
   }
   OVT_RealEstateManagerComponent "{59724C983E7EF811}" {
   }

@@ -169,25 +169,57 @@ class OVT_TownControllerComponent: OVT_Component
 		OVT_ShopComponent shop = OVT_ShopComponent.Cast(dealer.FindComponent(OVT_ShopComponent));
 		shop.m_iTownId = townID;
 		
+		RandomGenerator generator = new RandomGenerator;
+		generator.SetSeed(Math.RandomInt(0,100));
+		
 		foreach(OVT_PrefabItemCostConfig item : m_Economy.m_aGunDealerItemPrefabs)
 		{
 			int id = m_Economy.GetInventoryId(item.m_sEntityPrefab);											
-			int num = Math.Round(s_AIRandomGenerator.RandFloatXY(1,item.maxStock));
+			int num = Math.Round(generator.RandFloatXY(1,item.maxStock));
 			
 			shop.AddToInventory(id, num);
 		}
 		
+		int occupyingFactionId = m_Config.GetOccupyingFactionIndex();
+				
 		foreach(OVT_ShopInventoryItem item : m_Economy.m_aGunDealerItems)
 		{
 			array<SCR_EntityCatalogEntry> entries();
 			m_Economy.FindInventoryItems(item.m_eItemType, item.m_eItemMode, item.m_sFind, entries);
-			
-			foreach(SCR_EntityCatalogEntry entry : entries)
+						
+			if(item.m_bSingleRandomItem)
 			{
-				int id = m_Economy.GetInventoryId(entry.GetPrefab());											
-				int num = Math.Round(s_AIRandomGenerator.RandFloatXY(1,m_Economy.GetTownMaxStock(townID, id)));
-				
-				shop.AddToInventory(id, num);
+				SCR_EntityCatalogEntry found;
+				int t = 0;
+				while(!found && t < 20)
+				{
+					t++;
+					int index = generator.RandInt(0,entries.Count()-1);
+					Print(entries.Count());
+					Print(index);
+					SCR_EntityCatalogEntry check = entries[index];
+					int id = m_Economy.GetInventoryId(check.GetPrefab());											
+					if(item.m_bNotOccupyingFaction && m_Economy.ItemIsFromFaction(id, occupyingFactionId)) continue;
+					found = check;					
+				}
+				if(found)
+				{
+					Print(found.GetPrefab());
+					int id = m_Economy.GetInventoryId(found.GetPrefab());
+					int num = Math.Round(generator.RandFloatXY(1,m_Economy.GetTownMaxStock(townID, id)));
+					
+					shop.AddToInventory(id, num);
+				}
+			}else{						
+				foreach(SCR_EntityCatalogEntry entry : entries)
+				{
+					int id = m_Economy.GetInventoryId(entry.GetPrefab());											
+					if(item.m_bNotOccupyingFaction && m_Economy.ItemIsFromFaction(id, occupyingFactionId)) continue;
+					
+					int num = Math.Round(generator.RandFloatXY(1,m_Economy.GetTownMaxStock(townID, id)));
+					
+					shop.AddToInventory(id, num);
+				}
 			}
 		}
 		

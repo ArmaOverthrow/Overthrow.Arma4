@@ -46,6 +46,12 @@ class OVT_ShopInventoryItem : ScriptAndConfig
 	
 	[Attribute(desc: "String to search in prefab name, blank for all")]
 	string m_sFind;
+	
+	[Attribute(desc: "Don't buy/sell occupying faction's gear for this item")]
+	bool m_bNotOccupyingFaction;
+	
+	[Attribute(desc: "Choose a single and random item from this category")]
+	bool m_bSingleRandomItem;
 }
 
 class OVT_ShopInventoryConfig : ScriptAndConfig
@@ -86,6 +92,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	protected ref array<ref ResourceName> m_aResources;
 	protected ref map<ref ResourceName,int> m_aResourceIndex;
 	protected ref array<ref SCR_EntityCatalogEntry> m_aEntityCatalogEntries;
+	protected ref map<int,ref array<int>> m_mFactionResources;
 	
 	protected ref map<int, ref array<RplId>> m_mTownShops;
 	
@@ -122,6 +129,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		m_aGunDealers = new array<RplId>;
 		m_mTownShops = new map<int, ref array<RplId>>;
 		m_aResourceIndex = new map<ref ResourceName,int>;
+		m_mFactionResources = new map<int,ref array<int>>;
 		m_aEntityCatalogEntries = new array<ref SCR_EntityCatalogEntry>;
 	}
 	
@@ -489,6 +497,12 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return m_aGunDealers;
 	}
 	
+	bool ItemIsFromFaction(int id, int factionId)
+	{
+		if(!m_mFactionResources.Contains(factionId)) return false;
+		return m_mFactionResources[factionId].Contains(id);
+	}
+	
 	array<RplId> GetAllShopsInTown(OVT_TownData town)
 	{
 		int range = m_Towns.m_iCityRange;
@@ -725,6 +739,8 @@ class OVT_EconomyManagerComponent: OVT_Component
 		foreach(Faction faction : factions)
 		{
 			OVT_Faction fac = OVT_Faction.Cast(faction);
+			int factionId = factionMgr.GetFactionIndex(faction);
+			m_mFactionResources[factionId] = new array<int>;
 			array<SCR_EntityCatalogEntry> items = new array<SCR_EntityCatalogEntry>;
 			fac.GetAllInventoryItems(items);
 			foreach(SCR_EntityCatalogEntry item : items) 
@@ -737,6 +753,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 					int id = m_aResources.Count()-1;
 					m_aResourceIndex[res] = id;
 					m_aEntityCatalogEntries.Insert(item);
+					m_mFactionResources[factionId].Insert(id);
 				}
 			}
 		}
@@ -846,6 +863,8 @@ class OVT_EconomyManagerComponent: OVT_Component
 			OVT_ShopComponent shop = OVT_ShopComponent.Cast(entity.FindComponent(OVT_ShopComponent));
 			OVT_TownData town = shop.GetTown();
 			
+			int occupyingFactionId = m_Config.GetOccupyingFactionIndex();
+			
 			int townID = OVT_Global.GetTowns().GetTownID(town);
 			
 			if(shop.m_ShopType == OVT_ShopType.SHOP_VEHICLE)
@@ -866,6 +885,8 @@ class OVT_EconomyManagerComponent: OVT_Component
 					foreach(SCR_EntityCatalogEntry entry : entries)
 					{
 						int id = GetInventoryId(entry.GetPrefab());
+						
+						if(item.m_bNotOccupyingFaction && ItemIsFromFaction(id, occupyingFactionId)) continue;
 						int max = GetTownMaxStock(townID, id);
 					
 						int num = Math.Round(s_AIRandomGenerator.RandFloatXY(1,max));
