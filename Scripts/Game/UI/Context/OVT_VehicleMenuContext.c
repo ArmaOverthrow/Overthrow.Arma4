@@ -40,8 +40,12 @@ class OVT_VehicleMenuContext : OVT_UIContext
 		}
 		
 		string owner = OVT_Global.GetVehicles().GetOwnerID(entity);
-		int playerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(owner);
-		string ownerName = GetGame().GetPlayerManager().GetPlayerName(playerId);
+		string ownerName = "";
+		if(owner != "")
+		{
+			OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(owner);
+			ownerName = player.name;
+		}
 		
 		TextWidget w = TextWidget.Cast(m_wRoot.FindAnyWidget("VehicleInfoText"));
 		w.SetText("#OVT-Owner: " + ownerName);
@@ -56,7 +60,8 @@ class OVT_VehicleMenuContext : OVT_UIContext
 				EntityID id = warehouseEntity.GetID();
 				bool isOwned = m_RealEstate.IsOwned(id);
 				bool isOwner = m_RealEstate.IsOwner(m_sPlayerID, id);
-				isAccessible = (!warehouse.isPrivate && isOwned) || (warehouse.isPrivate && isOwner);
+				bool isRented = m_RealEstate.IsRented(id);
+				isAccessible = (!warehouse.isPrivate && isOwned && !isRented) || (warehouse.isPrivate && isOwner && !isRented) || isRented;
 			}			
 		}
 		
@@ -141,7 +146,8 @@ class OVT_VehicleMenuContext : OVT_UIContext
 				EntityID id = warehouseEntity.GetID();
 				bool isOwned = m_RealEstate.IsOwned(id);
 				bool isOwner = m_RealEstate.IsOwner(m_sPlayerID, id);
-				isAccessible = (!warehouse.isPrivate && isOwned) || (warehouse.isPrivate && isOwner);
+				bool isRented = m_RealEstate.IsRented(id);
+				isAccessible = (!warehouse.isPrivate && isOwned && !isRented) || (warehouse.isPrivate && isOwner && !isRented) || isRented;
 			}			
 		}
 		if(!isAccessible) return;
