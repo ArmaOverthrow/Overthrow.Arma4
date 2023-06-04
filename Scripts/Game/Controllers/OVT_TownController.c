@@ -195,8 +195,6 @@ class OVT_TownControllerComponent: OVT_Component
 				{
 					t++;
 					int index = generator.RandInt(0,entries.Count()-1);
-					Print(entries.Count());
-					Print(index);
 					SCR_EntityCatalogEntry check = entries[index];
 					int id = m_Economy.GetInventoryId(check.GetPrefab());											
 					if(item.m_bNotOccupyingFaction && m_Economy.ItemIsFromFaction(id, occupyingFactionId)) continue;

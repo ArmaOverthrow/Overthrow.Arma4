@@ -1,6 +1,13 @@
 StringTable {
  ItemClassName "CustomStringTableItem"
  Items {
+  CustomStringTableItem "{5D86A310C893DBD0}" {
+   Id "OVT-Account"
+   Target_en_us "Account"
+   Modified 1569244913
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59C84C2687EAA6DD}" {
    Id "OVT-AddToGarrison"
    Target_en_us "Add To Garrison"
@@ -777,6 +784,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D86A310CD4EFBC4}" {
+   Id "OVT-MyAccount"
+   Target_en_us "My Account"
+   Modified 1569244906
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59A6ED92E301B152}" {
    Id "OVT-NeedBusStop"
    Target_en_us "You must click near another bus stop"
@@ -1076,6 +1090,13 @@ StringTable {
    Id "OVT-Resistance_TotalTaxes"
    Target_en_us "Total Taxes"
    Modified 1504108873
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D86A310D3971BAE}" {
+   Id "OVT-ResistanceFunds"
+   Target_en_us "Resistance Funds"
+   Modified 1569244921
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

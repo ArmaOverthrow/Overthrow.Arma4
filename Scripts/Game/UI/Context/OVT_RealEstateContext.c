@@ -36,6 +36,19 @@ class OVT_RealEstateContext : OVT_UIContext
 		SCR_NavigationButtonComponent nb = SCR_NavigationButtonComponent.Cast(closeButton.FindHandler(SCR_NavigationButtonComponent));		
 		nb.m_OnClicked.Insert(CloseLayout);
 		
+		Widget spinner = m_wRoot.FindAnyWidget("AccountSpinner");
+		SCR_SpinBoxComponent spin = SCR_SpinBoxComponent.Cast(spinner.FindHandler(SCR_SpinBoxComponent));
+		spin.AddItem("#OVT-MyAccount");
+		if(OVT_Global.GetPlayers().LocalPlayerIsOfficer())
+		{
+			spin.AddItem("#OVT-ResistanceFunds");
+			spinner.SetEnabled(true);
+		}else{
+			spinner.SetEnabled(false);
+		}
+		spin.GetOnLeftArrowClick().Insert(Refresh);
+		spin.GetOnRightArrowClick().Insert(Refresh);
+		
 		Refresh();		
 	}
 	
@@ -44,8 +57,17 @@ class OVT_RealEstateContext : OVT_UIContext
 		
 	}
 	
+	protected int GetCurrentAccount()
+	{
+		Widget spinner = m_wRoot.FindAnyWidget("AccountSpinner");
+		SCR_SpinBoxComponent spin = SCR_SpinBoxComponent.Cast(spinner.FindHandler(SCR_SpinBoxComponent));
+		
+		return spin.GetCurrentIndex();
+	}
+	
 	protected void Refresh()
-	{		
+	{			
+		int account = GetCurrentAccount();
 		IEntity building = m_RealEstate.GetNearestBuilding(m_Owner.GetOrigin());
 				
 		int buy = m_RealEstate.GetBuyPrice(building);
@@ -64,6 +86,25 @@ class OVT_RealEstateContext : OVT_UIContext
 		bool isRenter = m_RealEstate.IsRenter(m_sPlayerID, id);
 		bool isOwner = m_RealEstate.IsOwner(m_sPlayerID, id);
 		bool isHome = m_RealEstate.IsHome(m_sPlayerID, id);
+		bool isOfficer = OVT_Global.GetPlayers().LocalPlayerIsOfficer();
+		bool isResistanceOwned = false;
+		if(isOwned)
+		{
+			isResistanceOwned = m_RealEstate.GetOwnerID(building) == "resistance";
+			if(isResistanceOwned && account == 1)
+			{
+				isOwner = true;
+			}
+		}
+		bool isResistanceRented = false;
+		if(isRented)
+		{
+			isResistanceRented = m_RealEstate.GetRenterID(building) == "resistance";
+			if(isResistanceRented && account == 1)
+			{
+				isRenter = true;
+			}
+		}
 		
 		OverlayWidget o = OverlayWidget.Cast(m_wRoot.FindAnyWidget("Renting"));
 		if(!isRenter)
@@ -152,6 +193,8 @@ class OVT_RealEstateContext : OVT_UIContext
 	
 	protected void Buy(SCR_ButtonTextComponent btn)
 	{
+		int account = GetCurrentAccount();
+		
 		IEntity building = m_RealEstate.GetNearestBuilding(m_Owner.GetOrigin());
 		EntityID id = building.GetID();
 		
@@ -161,21 +204,39 @@ class OVT_RealEstateContext : OVT_UIContext
 		if(isRented || isOwned) return;
 				
 		int cost = m_RealEstate.GetBuyPrice(building);
-				
-		if(!m_Economy.PlayerHasMoney(m_sPlayerID, cost)) return;
 		
-		m_Economy.TakePlayerMoney(m_iPlayerID, cost);
-		OVT_Global.GetServer().SetBuildingOwner(m_iPlayerID, building);
+		if(account == 0)
+		{				
+			if(!m_Economy.PlayerHasMoney(m_sPlayerID, cost)) return;
+			
+			m_Economy.TakePlayerMoney(m_iPlayerID, cost);
+			OVT_Global.GetServer().SetBuildingOwner(m_iPlayerID, building);
+		}else if(account == 1)
+		{
+			if(!m_Economy.ResistanceHasMoney(cost)) return;
+			
+			m_Economy.TakeResistanceMoney(cost);
+			OVT_Global.GetServer().SetBuildingOwner("resistance", building);
+		}
 		
 		Refresh();
 	}
 	
 	protected void Sell(SCR_ButtonTextComponent btn)
 	{
+		int account = GetCurrentAccount();
+		
 		IEntity building = m_RealEstate.GetNearestBuilding(m_Owner.GetOrigin());
 		EntityID id = building.GetID();
 		
-		bool isOwner = m_RealEstate.IsOwner(m_sPlayerID, id);		
+		bool isOwner = m_RealEstate.IsOwner(m_sPlayerID, id);	
+		bool isResistanceOwned = false;		
+		isResistanceOwned = m_RealEstate.GetOwnerID(building) == "resistance";
+		if(isResistanceOwned && account == 1)
+		{
+			isOwner = true;
+		}
+	
 		
 		if(!isOwner) return;
 		
@@ -183,7 +244,13 @@ class OVT_RealEstateContext : OVT_UIContext
 				
 		int cost = m_RealEstate.GetBuyPrice(building);
 		
-		m_Economy.AddPlayerMoney(m_iPlayerID, cost);
+		if(account == 0)
+		{
+			m_Economy.AddPlayerMoney(m_iPlayerID, cost);
+		}else if(account == 1)
+		{
+			m_Economy.AddResistanceMoney(cost);
+		}
 		
 		OVT_Global.GetServer().SetBuildingOwner(-1, building);
 		
@@ -192,6 +259,8 @@ class OVT_RealEstateContext : OVT_UIContext
 	
 	protected void Rent(SCR_ButtonTextComponent btn)
 	{
+		int account = GetCurrentAccount();
+		
 		IEntity building = m_RealEstate.GetNearestBuilding(m_Owner.GetOrigin());
 		EntityID id = building.GetID();
 		
@@ -199,27 +268,61 @@ class OVT_RealEstateContext : OVT_UIContext
 		bool isOwned = m_RealEstate.IsOwned(id);
 		bool isOwner = m_RealEstate.IsOwner(m_sPlayerID, id);
 		bool isHome = m_RealEstate.IsHome(m_sPlayerID, id);
+		bool isResistanceOwned = false;
+		if(isOwned)
+		{
+			isResistanceOwned = m_RealEstate.GetOwnerID(building) == "resistance";
+			if(isResistanceOwned && account == 1)
+			{
+				isOwner = true;
+			}
+		}
 		
 		if(isHome || isRented || (isOwned && !isOwner)) return;
 							
 		if(!isOwner)
 		{
-			int cost = m_RealEstate.GetRentPrice(building);				
-			if(!m_Economy.PlayerHasMoney(m_sPlayerID, cost)) return;		
-			m_Economy.TakePlayerMoney(m_iPlayerID, cost);			
+			int cost = m_RealEstate.GetRentPrice(building);	
+			
+			if(account == 0)			
+			{
+				if(!m_Economy.PlayerHasMoney(m_sPlayerID, cost)) return;		
+				m_Economy.TakePlayerMoney(m_iPlayerID, cost);			
+			}else if(account == 1)
+			{
+				if(!m_Economy.ResistanceHasMoney(cost)) return;		
+				m_Economy.TakeResistanceMoney(cost);	
+			}
 		}
 		
-		OVT_Global.GetServer().SetBuildingRenter(m_iPlayerID, building.GetOrigin());
+		
+		if(account == 0)			
+		{
+			OVT_Global.GetServer().SetBuildingRenter(m_iPlayerID, building.GetOrigin());
+		}else if(account == 1)
+		{
+			OVT_Global.GetServer().SetBuildingRenter("resistance", building.GetOrigin());
+		}
 		
 		Refresh();
 	}
 	
 	protected void StopRenting(SCR_ButtonTextComponent btn)
 	{
+		int account = GetCurrentAccount();
+		
 		IEntity building = m_RealEstate.GetNearestBuilding(m_Owner.GetOrigin());
 		EntityID id = building.GetID();
 		
 		bool isRenter = m_RealEstate.IsRenter(m_sPlayerID, id);
+		bool isResistanceRented = false;
+		
+		isResistanceRented = m_RealEstate.GetRenterID(building) == "resistance";
+		if(isResistanceRented && account == 1)
+		{
+			isRenter = true;
+		}
+		
 		
 		if(!isRenter) return;
 				

@@ -9,7 +9,8 @@ class OVT_WarehouseData : Managed
 	string owner;
 	bool isPrivate;
 	bool isLinked;
-	ref map<string,int> inventory;
+	
+	ref map<string,int> inventory;	
 }
 
 class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
@@ -80,6 +81,40 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 			}
 			warehouseData.owner = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);				
 			Rpc(RpcDo_SetWarehouseOwner, building.GetOrigin(), playerId);
+		}
+	}
+	
+	override void SetOwnerPersistentId(string persId, IEntity building)
+	{
+		super.SetOwnerPersistentId(persId, building);
+		
+		OVT_RealEstateConfig config = GetConfig(building);
+		if(!config) return;
+		
+		if(config.m_IsWarehouse)
+		{
+			bool hasData = false;
+			OVT_WarehouseData warehouseData;
+			foreach(OVT_WarehouseData warehouse : m_aWarehouses)
+			{
+				if(vector.Distance(warehouse.location, building.GetOrigin()) < 10)
+				{
+					hasData = true;
+					warehouseData = warehouse;
+					break;
+				}
+			}
+			if(!hasData)
+			{
+				warehouseData = new OVT_WarehouseData;
+				warehouseData.location = building.GetOrigin();
+				warehouseData.inventory = new map<string,int>;
+				warehouseData.id = m_aWarehouses.Count();
+				m_aWarehouses.Insert(warehouseData);
+				
+			}
+			warehouseData.owner = persId;
+			Rpc(RpcDo_SetWarehouseOwnerPersistent, building.GetOrigin(), persId);
 		}
 	}
 			
@@ -440,6 +475,32 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 			
 		}
 		warehouseData.owner = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_SetWarehouseOwnerPersistent(vector location, string playerId)
+	{
+		bool hasData = false;
+		OVT_WarehouseData warehouseData;
+		foreach(OVT_WarehouseData warehouse : m_aWarehouses)
+		{
+			if(vector.Distance(warehouse.location, location) < 10)
+			{
+				hasData = true;
+				warehouseData = warehouse;
+				break;
+			}
+		}
+		if(!hasData)
+		{
+			warehouseData = new OVT_WarehouseData;
+			warehouseData.location = location;
+			warehouseData.inventory = new map<string,int>;
+			warehouseData.id = m_aWarehouses.Count();
+			m_aWarehouses.Insert(warehouseData);
+			
+		}
+		warehouseData.owner = playerId;
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]

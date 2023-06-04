@@ -202,6 +202,19 @@ class OVT_PlayerCommsComponent: OVT_Component
 		OVT_Global.GetRealEstate().SetOwner(playerId, rpl.GetEntity());
 	}
 	
+	void SetBuildingOwner(string playerPersistentId, IEntity building)
+	{		
+		RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
+		Rpc(RpcAsk_SetBuildingOwnerPersistent, playerPersistentId, rpl.Id());
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_SetBuildingOwnerPersistent(string playerId, RplId id)
+	{	
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+		OVT_Global.GetRealEstate().SetOwnerPersistentId(playerId, rpl.GetEntity());
+	}
+	
 	void SetBuildingRenter(int playerId, vector pos)
 	{		
 		Rpc(RpcAsk_SetBuildingRenter, playerId, pos);
@@ -214,6 +227,20 @@ class OVT_PlayerCommsComponent: OVT_Component
 		IEntity building = re.GetNearestBuilding(pos, 5);
 		if(!building) return;
 		OVT_Global.GetRealEstate().SetRenter(playerId, building);
+	}
+	
+	void SetBuildingRenter(string playerId, vector pos)
+	{		
+		Rpc(RpcAsk_SetBuildingRenterPersistent, playerId, pos);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_SetBuildingRenterPersistent(string playerId, vector pos)
+	{	
+		OVT_RealEstateManagerComponent re = OVT_Global.GetRealEstate();
+		IEntity building = re.GetNearestBuilding(pos, 5);
+		if(!building) return;
+		OVT_Global.GetRealEstate().SetRenterPersistentId(playerId, building);
 	}
 	
 	//SHOPS

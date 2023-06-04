@@ -52,6 +52,14 @@ class OVT_PlayerManagerComponent: OVT_Component
 		return null;
 	}
 	
+	bool LocalPlayerIsOfficer()
+	{
+		int localId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
+		string persId = GetPersistentIDFromPlayerID(localId);
+		OVT_PlayerData player = GetPlayer(persId);
+		return player.isOfficer;
+	}
+	
 	OVT_PlayerData GetPlayer(int playerId)
 	{		
 		return GetPlayer(GetPersistentIDFromPlayerID(playerId));

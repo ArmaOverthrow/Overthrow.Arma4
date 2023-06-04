@@ -215,12 +215,10 @@ class OVT_Global {
 				
 		foreach(IEntity item : items)
 		{
-			if(!item) continue;
-			EntityPrefabData data = item.GetPrefabData();
+			if(!item) continue;			
+			ResourceName res = EPF_Utils.GetPrefabName(item);
 			if(fromStorage.TryDeleteItem(item))
-			{				
-				if(!data) continue;
-				ResourceName res = EPF_Utils.GetPrefabName(item);
+			{			
 				if(!collated.Contains(res)) collated[res] = 0;
 				collated[res] = collated[res] + 1;
 			}

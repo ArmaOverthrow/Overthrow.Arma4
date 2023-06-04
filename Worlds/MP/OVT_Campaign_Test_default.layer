@@ -18,14 +18,462 @@ PerceptionManager PerceptionManager1 : "{028DAEAD63E056BE}Prefabs/World/Game/Per
 }
 OVT_OverthrowGameMode OVT_OverthrowGameMode1 : "{4DC10DCB8BE06D32}Prefabs/GameMode/OVT_OverthrowGameMode.et" {
  components {
+  EPF_PersistenceComponent "{5D7009A1AB220903}" {
+   m_bSelfSpawn 0
+   m_bSelfDelete 0
+   m_pSaveData OVT_OverthrowSaveDataClass "{5D7009A22C40BEE5}" {
+    m_eTranformSaveFlags 0
+    m_bSaveRemainingLifetime 0
+    m_aComponents {
+     OVT_EconomySaveDataClass "{5D7009A2B14C4055}" {
+     }
+     OVT_PlayerSaveDataClass "{5D7009AA91A43E6F}" {
+     }
+     OVT_OccupyingFactionSaveDataClass "{5D70099DAD21A0F3}" {
+     }
+     OVT_RealEstateSaveDataClass "{5D707B33903B8735}" {
+     }
+     OVT_TownSaveDataClass "{5D70912C42B66D9E}" {
+     }
+     OVT_ResistanceSaveDataClass "{5D70912B726E1A32}" {
+     }
+    }
+   }
+  }
+  OVT_EconomyManagerComponent "{5988DB0008700592}" {
+   m_aShopConfigs {
+    OVT_ShopInventoryConfig "{598EDB5225F92650}" {
+     type SHOP_GENERAL
+     m_aInventoryItems {
+      OVT_ShopInventoryItem "{5D72C37A46875E13}" {
+       m_eItemType EQUIPMENT
+       m_sFind "PaperMap_"
+      }
+      OVT_ShopInventoryItem "{5D72C37A4BAD0E98}" {
+       m_eItemType HEAL
+      }
+      OVT_ShopInventoryItem "{5D72C37A5AA12A12}" {
+       m_eItemType BACKPACK
+      }
+      OVT_ShopInventoryItem "{5D72C37A16A30DB6}" {
+       m_eItemType EQUIPMENT
+       m_sFind "Binoculars_"
+      }
+      OVT_ShopInventoryItem "{5D72C37AEF296A2A}" {
+       m_eItemType EQUIPMENT
+       m_sFind "Watch_"
+      }
+     }
+    }
+    OVT_ShopInventoryConfig "{598EF98CB5D3159F}" {
+     type SHOP_ELECTRONIC
+     m_aInventoryItems {
+      OVT_ShopInventoryItem "{5D72C37A679ACC6A}" {
+       m_eItemType EQUIPMENT
+      }
+     }
+    }
+    OVT_ShopInventoryConfig "{59953E645BFCDAB7}" {
+     m_aInventoryItems {
+      OVT_ShopInventoryItem "{5D72C37AF08C5B5F}" {
+       m_eItemType HEAL
+      }
+     }
+    }
+    OVT_ShopInventoryConfig "{59953E64E1FAC553}" {
+     type SHOP_CLOTHES
+     m_aInventoryItems {
+      OVT_ShopInventoryItem "{5D72C37496CF7A55}" {
+       m_eItemType BACKPACK
+      }
+      OVT_ShopInventoryItem "{5D72C37BC1D7EBFB}" {
+       m_eItemType HEADWEAR
+      }
+      OVT_ShopInventoryItem "{5D72C37BD513D3A3}" {
+       m_eItemType TORSO
+      }
+      OVT_ShopInventoryItem "{5D72C37BD257E66B}" {
+       m_eItemType LEGS
+      }
+      OVT_ShopInventoryItem "{5D72C37BD86B3370}" {
+       m_eItemType FOOTWEAR
+      }
+     }
+    }
+    OVT_ShopInventoryConfig "{599680393904D480}" {
+     type SHOP_VEHICLE
+    }
+   }
+   m_aGunDealerItems {
+    OVT_ShopInventoryItem "{5D86A3EE6DA96AE9}" {
+     m_eItemMode AMMUNITION
+     m_bNotOccupyingFaction 1
+    }
+    OVT_ShopInventoryItem "{5D86A3EE71CC805E}" {
+     m_eItemMode WEAPON
+     m_bNotOccupyingFaction 1
+     m_bSingleRandomItem 1
+    }
+    OVT_ShopInventoryItem "{5D86A3E31C0D0CBA}" {
+     m_eItemType ROCKET_LAUNCHER
+     m_eItemMode AMMUNITION
+     m_bNotOccupyingFaction 1
+    }
+    OVT_ShopInventoryItem "{5D86A3E3F7943E98}" {
+     m_eItemType ROCKET_LAUNCHER
+     m_eItemMode WEAPON
+     m_bNotOccupyingFaction 1
+     m_bSingleRandomItem 1
+    }
+    OVT_ShopInventoryItem "{5D86A3E3F1EA1F8C}" {
+     m_eItemMode ATTACHMENT
+     m_bNotOccupyingFaction 1
+    }
+    OVT_ShopInventoryItem "{5D86A3E3F80E67EC}" {
+     m_eItemType SNIPER_RIFLE
+     m_eItemMode AMMUNITION
+     m_bNotOccupyingFaction 1
+    }
+    OVT_ShopInventoryItem "{5D86A3E3AC5F7CA6}" {
+     m_eItemType SNIPER_RIFLE
+     m_eItemMode WEAPON
+     m_bNotOccupyingFaction 1
+     m_bSingleRandomItem 1
+    }
+    OVT_ShopInventoryItem "{5D86A3E3B2C9B30C}" {
+     m_eItemType MACHINE_GUN
+     m_eItemMode AMMUNITION
+     m_bNotOccupyingFaction 1
+    }
+    OVT_ShopInventoryItem "{5D86A3E3B9AFAD7C}" {
+     m_eItemType MACHINE_GUN
+     m_eItemMode WEAPON
+     m_bNotOccupyingFaction 1
+     m_bSingleRandomItem 1
+    }
+    OVT_ShopInventoryItem "{5D72C37AC3500B92}" {
+     m_eItemType PISTOL
+    }
+    OVT_ShopInventoryItem "{5D72C37ACC17963D}" {
+     m_eItemType WEAPON_ATTACHMENT
+    }
+    OVT_ShopInventoryItem "{5D72C37AA6061534}" {
+     m_eItemType LETHAL_THROWABLE
+    }
+    OVT_ShopInventoryItem "{5D72C37AAF2FE72E}" {
+     m_eItemType NON_LETHAL_THROWABLE
+    }
+    OVT_ShopInventoryItem "{5D72C37AAD851814}" {
+     m_eItemType EXPLOSIVES
+    }
+   }
+   m_aGunDealerItemPrefabs {
+    OVT_PrefabItemCostConfig "{5D822436E980BEB7}" {
+     m_sEntityPrefab "{9068EA9DDD7CB805}Prefabs/Items/Equipment/Drugs/DrugsWeed_01.et"
+     cost 75
+     maxStock 25
+    }
+   }
+   m_aVehicleShopItems {
+    OVT_VehicleShopConfig "{5D72D722729EF487}" {
+     m_sEntityPrefab "{259EE7B78C51B624}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469.et"
+     cost 600
+    }
+    OVT_VehicleShopConfig "{5D72D7224B2D9900}" {
+     m_sEntityPrefab "{F649585ABB3706C4}Prefabs/Vehicles/Wheeled/M151A2/M151A2.et"
+     cost 1200
+    }
+    OVT_VehicleShopConfig "{5D72D7222E8E2073}" {
+     m_sEntityPrefab "{F1FBD0972FA5FE09}Prefabs/Vehicles/Wheeled/M923A1/M923A1_transport.et"
+     cost 3500
+    }
+    OVT_VehicleShopConfig "{5D72D7223B785440}" {
+     m_sEntityPrefab "{81FDAD5EB644CC3D}Prefabs/Vehicles/Wheeled/M923A1/M923A1_transport_covered.et"
+     cost 3600
+    }
+    OVT_VehicleShopConfig "{5D72D72203815AA6}" {
+     m_sEntityPrefab "{2BE1F8B9299B67C1}Prefabs/Vehicles/Wheeled/M923A1/M923A1_tanker.et"
+     cost 5000
+    }
+    OVT_VehicleShopConfig "{5D72D7221683C36C}" {
+     m_sEntityPrefab "{5674FAEB9AB7BDD0}Prefabs/Vehicles/Wheeled/M998/M998.et"
+     cost 2500
+    }
+    OVT_VehicleShopConfig "{5D72D722F89F6D09}" {
+     m_sEntityPrefab "{16C1F16C9B053801}Prefabs/Vehicles/Wheeled/Ural4320/Ural4320_transport.et"
+     cost 3500
+    }
+    OVT_VehicleShopConfig "{5D72D722D4464739}" {
+     m_sEntityPrefab "{D9B91FAB817A6033}Prefabs/Vehicles/Wheeled/Ural4320/Ural4320_transport_covered.et"
+     cost 3600
+    }
+    OVT_VehicleShopConfig "{5D72D722DC2B5DEF}" {
+     m_sEntityPrefab "{4C81D7ED8F8C0D87}Prefabs/Vehicles/Wheeled/Ural4320/Ural4320_tanker.et"
+     cost 4500
+    }
+   }
+   m_aPriceConfigs {
+    OVT_PriceConfig "{5D72D731FCF5F172}" {
+     cost 800
+    }
+    OVT_PriceConfig "{5D72D731CCB3097B}" {
+     m_eItemType PISTOL
+     cost 400
+    }
+    OVT_PriceConfig "{5D72D731A708F4F7}" {
+     m_eItemType LETHAL_THROWABLE
+     cost 40
+    }
+    OVT_PriceConfig "{5D72D731A38497B2}" {
+     m_eItemType ROCKET_LAUNCHER
+     cost 1500
+    }
+    OVT_PriceConfig "{5D72D731A96E692B}" {
+     m_eItemType MACHINE_GUN
+     cost 1500
+    }
+    OVT_PriceConfig "{5D72D731B34E42E7}" {
+     m_eItemType HEAL
+     cost 5
+     demand 75
+    }
+    OVT_PriceConfig "{5D72D736326ECEBD}" {
+     m_eItemType BACKPACK
+    }
+    OVT_PriceConfig "{5D72D7363EA7E137}" {
+     m_eItemType SNIPER_RIFLE
+     cost 2000
+    }
+    OVT_PriceConfig "{5D72D73639B1A86C}" {
+     m_eItemType NON_LETHAL_THROWABLE
+     cost 25
+    }
+    OVT_PriceConfig "{5D72D73603D27464}" {
+     m_eItemType HEADWEAR
+    }
+    OVT_PriceConfig "{5D72D7360DDD73D2}" {
+     m_eItemType TORSO
+    }
+    OVT_PriceConfig "{5D72D7361A77BC07}" {
+     m_eItemType VEST_AND_WAIST
+     cost 120
+    }
+    OVT_PriceConfig "{5D72D736E01E9565}" {
+     m_eItemType LEGS
+     cost 60
+    }
+    OVT_PriceConfig "{5D72D736FEBB95D3}" {
+     m_eItemType FOOTWEAR
+     cost 65
+    }
+    OVT_PriceConfig "{5D72D736F8B61353}" {
+     m_eItemType RADIO_BACKPACK
+     cost 500
+    }
+    OVT_PriceConfig "{5D72D736C2DBBC6E}" {
+     m_eItemType EQUIPMENT
+    }
+    OVT_PriceConfig "{5D72D736D819DC45}" {
+     m_eItemType WEAPON_ATTACHMENT
+     cost 150
+    }
+    OVT_PriceConfig "{5D72D736AEC6B667}" {
+     m_eItemType EXPLOSIVES
+    }
+    OVT_PriceConfig "{5D72D736B6A27C7B}" {
+     m_eItemType EQUIPMENT
+     m_sFind "Compass_"
+     cost 10
+    }
+    OVT_PriceConfig "{5D72D7368E52E26A}" {
+     m_eItemType EQUIPMENT
+     m_sFind "Flashlight_"
+     cost 15
+    }
+    OVT_PriceConfig "{5D72D7369485BFE9}" {
+     m_eItemType EQUIPMENT
+     m_sFind "Binoculars_"
+     cost 100
+    }
+    OVT_PriceConfig "{5D72D737649BD262}" {
+     m_eItemType EQUIPMENT
+     m_sFind "Radio_"
+     cost 75
+    }
+    OVT_PriceConfig "{5D72D73771DFFB0B}" {
+     m_eItemType EQUIPMENT
+     m_sFind "Watch_"
+     cost 45
+    }
+    OVT_PriceConfig "{5D72D73752644321}" {
+     m_eItemType EQUIPMENT
+     m_sFind "PaperMap_"
+     cost 1
+     demand 40
+    }
+    OVT_PriceConfig "{5D72D73A413F5EBE}" {
+     m_eItemType PISTOL
+     m_eItemMode AMMUNITION
+     cost 3
+     demand 50
+    }
+    OVT_PriceConfig "{5D72D73A2856B8C8}" {
+     m_eItemMode AMMUNITION
+     cost 6
+     demand 50
+    }
+    OVT_PriceConfig "{5D72D73A3F8D0930}" {
+     m_eItemType ROCKET_LAUNCHER
+     m_eItemMode AMMUNITION
+     cost 25
+    }
+    OVT_PriceConfig "{5D72D73A0577A328}" {
+     m_eItemType MACHINE_GUN
+     m_eItemMode AMMUNITION
+     cost 8
+     demand 50
+    }
+    OVT_PriceConfig "{5D72D73A148CFFEF}" {
+     m_eItemType SNIPER_RIFLE
+     m_eItemMode AMMUNITION
+     cost 10
+     demand 50
+    }
+   }
+  }
+  OVT_JobManagerComponent "{59A8D178EC1AA2AE}" {
+   m_aJobConfigFiles +{
+   }
+  }
+  OVT_NotificationManagerComponent "{5D8680DB07CF50FD}" {
+   m_Messages SCR_SimpleMessagePresets "{5D8680DB04A58A20}" : "{36405F298C9B3186}Configs/overthrowBroadcastMessages.conf" {
+   }
+  }
+  OVT_OccupyingFactionManager "{59845E732755785F}" {
+   m_pBaseControllerPrefab "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.et"
+   m_pQRFControllerPrefab "{A7D27DFA72B705D0}Prefabs/Controllers/OVT_QRFController.et"
+  }
   OVT_OverthrowConfigComponent "{59724C8C935D8E5D}" {
    m_Difficulty OVT_DifficultySettings "{598AD54E1DA56EB1}" {
     baseRange 50
     baseCloseRange 25
    }
   }
+  OVT_PersistenceManagerComponent "{5D7009B844876186}" {
+   m_pConnectionInfo EDF_JsonFileDbConnectionInfo "{5D7009B8408E1A9D}" {
+    m_sDatabaseName "Overthrow"
+   }
+  }
+  OVT_PlayerCommsComponent "{5D7ACE1228D77F40}" {
+  }
+  OVT_PlayerManagerComponent "{599AA74940529C1C}" {
+  }
+  OVT_RealEstateManagerComponent "{59724C983E7EF811}" {
+  }
+  OVT_ResistanceFactionManager "{59A49A9CD87CBC92}" {
+   m_rPlaceablesConfigFile "{A4E760D069AE00F8}Configs/Resistance/placeables.conf"
+   m_rBuildablesConfigFile "{430C71DF4386D868}Configs/Resistance/buildables.conf"
+   m_aVehicleUpgrades {
+    OVT_VehicleUpgrades "{59CF1963D54690F3}" {
+     m_pBasePrefab "{F649585ABB3706C4}Prefabs/Vehicles/Wheeled/M151A2/M151A2.et"
+     m_aUpgrades {
+      OVT_VehicleUpgrade "{59CF196388095600}" {
+       m_pUpgradePrefab "{F6B23D17D5067C11}Prefabs/Vehicles/Wheeled/M151A2/M151A2_M2HB.et"
+       m_iCost 14000
+      }
+     }
+    }
+   }
+   m_pHiredCivilianPrefab "{365CD448A5DABCCC}Prefabs/Groups/INDFOR/Group_CIV_Recruit.et"
+  }
+  OVT_RespawnHandlerComponent "{59724C8C9A6408EE}" {
+  }
+  OVT_RespawnSystemComponent "{59724C8C935D8E47}" {
+   m_rDefaultPrefab "{3A99A99836F6B3DC}Prefabs/Characters/Factions/INDFOR/FIA/Character_Player.et"
+  }
   OVT_TownManagerComponent "{59724C983BF56C3B}" {
    m_iVillageRange 100
+  }
+  OVT_VehicleManagerComponent "{5D707B3386AF876D}" {
+   m_pStartingCarPrefab "{259EE7B78C51B624}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469.et"
+  }
+  SCR_CallsignManagerComponent "{59724C8C935D8E23}" {
+  }
+  SCR_DestructionManagerComponent "{59724C8C935D8E20}" {
+  }
+  SCR_GameModeHealthSettings "{5D7A443950718AF0}" {
+  }
+  SCR_HintManagerComponent "{59724C8C935D8E2C}" {
+  }
+  SCR_InitWeatherComponent "{597CE04456F991A8}" {
+   m_sInitialStartingWeatherId "Cloudy"
+   m_initialWeatherDurationMin 0.2
+   m_initialWeatherDurationMax 0.5
+  }
+  SCR_MapConfigComponent "{5D56F4474D716C00}" {
+  }
+  SCR_NametagConfigComponent "{59724C8C935D8E28}" {
+  }
+  SCR_NotificationSenderComponent "{5D7A443FDCA27CAE}" {
+   m_iReceiveKillFeedType SAME_FACTION_ONLY
+   m_aKillfeedTypeNames {
+    SCR_NotificationKillfeedTypeName "{5D7A4439A46B176A}" {
+     m_iKillfeedType DISABLED
+     m_sKillfeedTypeName "#AR-Notification_KillfeedType_DISABLED"
+    }
+    SCR_NotificationKillfeedTypeName "{5D7A4439ACBBFC32}" {
+     m_iKillfeedType UNKNOWN_KILLER
+     m_sKillfeedTypeName "#AR-Notification_KillfeedType_UNKNOWN_KILLER"
+    }
+    SCR_NotificationKillfeedTypeName "{5D7A4439B4AC4DEC}" {
+     m_iKillfeedType FULL
+     m_sKillfeedTypeName "#AR-Notification_KillfeedType_FULL"
+    }
+   }
+   m_aKillfeedReceiveTypeNames {
+    SCR_NotificationKillfeedreceiveTypeName "{5D7A4439957C2FF2}" {
+     m_iKillfeedreceiveType ALL
+     m_sKillfeedReceiveTypeName "#AR-Notification_KillfeedReceiveType_ALL"
+    }
+    SCR_NotificationKillfeedreceiveTypeName "{5D7A4439916A94CD}" {
+     m_iKillfeedreceiveType ENEMIES_ONLY
+     m_sKillfeedReceiveTypeName "#AR-Notification_KillfeedReceiveType_ENEMIES_ONLY"
+    }
+    SCR_NotificationKillfeedreceiveTypeName "{5D7A44399A3B00F5}" {
+     m_iKillfeedreceiveType ALLIES_ONLY
+     m_sKillfeedReceiveTypeName "#AR-Notification_KillfeedReceiveType_ALLIES_ONLY"
+    }
+    SCR_NotificationKillfeedreceiveTypeName "{5D7A442665D40F6F}" {
+     m_iKillfeedreceiveType SAME_FACTION_ONLY
+     m_sKillfeedReceiveTypeName "#AR-Notification_KillfeedReceiveType_SAME_FACTION_ONLY"
+    }
+    SCR_NotificationKillfeedreceiveTypeName "{5D7A44266056A71D}" {
+     m_iKillfeedreceiveType GROUP_ONLY
+     m_sKillfeedReceiveTypeName "#AR-Notification_KillfeedReceiveType_GROUP_ONLY"
+    }
+   }
+   m_PlayerKickReasonsConfig SCR_ConfigurableDialogUiPresets "{5D7A443943FDACDA}" {
+   }
+  }
+  SCR_PlayerProfileManagerComponent "{59724C8C935D8E14}" {
+  }
+  SCR_RadialMenuGameModeComponent "{5D7EADAF1949CAD1}" {
+   m_Menu SCR_RadialMenu "{5D7EADAFE1EB1C74}" : "{D9448EF097CB0ACB}Configs/HUD/RadialMenu/GlobalRadialMenu.conf" {
+   }
+  }
+  SCR_RadialMenuItemsComponent "{5D7EADAFC9902670}" {
+   m_MenuController SCR_RadialMenuController "{5D7EADAFC88B4B33}" {
+    m_RMControls SCR_RadialMenuControllerInputs "{5D7EADAFD4ED2D14}" {
+     m_sControllerContext "WeaponSelectionContext"
+     m_sOpenAction "Inventory_WeaponSwitchingRadial"
+    }
+   }
+  }
+  SCR_RespawnTimerComponent "{59C30B0685EFBB8C}" {
+   m_fRespawnTime 2
+  }
+  RplComponent "{59724C8C935D8E18}" {
+   Streamable Disabled
   }
  }
  coords 208.286 1.001 116.919
@@ -38,10 +486,10 @@ $grp GenericEntity {
   components {
    SCR_MapDescriptorComponent "{5D8680D15B3CF38E}" {
     DisplayName "Town"
-    MainType "Name Village"
+    MainType "Name Town"
    }
   }
-  coords 193.523 1.001 130.718
+  coords 221.182 1.001 107.325
   Flags 1027
  }
  Base {
@@ -63,6 +511,16 @@ $grp GenericEntity {
   coords 29.444 1.001 116.796
   Flags 1027
  }
+ Port {
+  components {
+   OVT_PortControllerComponent "{5D86A31491FBD971}" {
+   }
+   RplComponent "{5D86A32B2B3E4FF5}" {
+   }
+  }
+  coords 148.188 1.001 249.565
+  Flags 1027
+ }
 }
 SCR_SiteSlotEntity : "{055DDE93F47A6A1D}PrefabsEditable/Slots/Flat/E_SlotFlatLarge.et" {
  coords 35.458 1.001 173.433
@@ -73,8 +531,11 @@ SCR_SiteSlotEntity : "{055DDE93F47A6A1D}PrefabsEditable/Slots/Flat/E_SlotFlatLar
   }
  }
 }
+SCR_DestructibleBuildingEntity : "{12310677867A85D4}Prefabs/Structures/Industrial/Houses/Warehouse_01/Warehouse_01.et" {
+ coords 208.787 0.001 124.336
+}
 SCR_DestructibleBuildingEntity : "{38A5F3E4578087AB}Prefabs/Structures/Houses/Town/House_Town_E_2I01/House_Town_E_2I01.et" {
- coords 201.462 0.001 115.648
+ coords 241.413 0.001 118.064
  angleY -91.024
 }
 SCR_SiteSlotEntity : "{4B1C4BDDF6683101}PrefabsEditable/Slots/Flat/E_SlotFlatMedium.et" {
@@ -87,21 +548,27 @@ SCR_SiteSlotEntity : "{4B1C4BDDF6683101}PrefabsEditable/Slots/Flat/E_SlotFlatMed
  }
 }
 SCR_DestructibleBuildingEntity : "{54F1C704EB440885}Prefabs/Structures/Houses/Town/House_Town_E_2I02/House_Town_E_2I02.et" {
- coords 199.014 0.001 95.618
+ coords 238.965 0.001 98.034
  angleY -90.115
 }
 SCR_SiteSlotEntity : "{588A3DAF0296B0C1}PrefabsEditable/Slots/Flat/E_SlotFlatSmall.et" {
  coords 56.513 1.001 94.104
 }
 SCR_DestructibleBuildingEntity : "{5CADC96916FF1CC4}Prefabs/Structures/Houses/Villa/Villa_E_2I01/Villa_E_2I01.et" {
- coords 177.277 0.001 142.272
+ coords 217.228 0.001 144.688
 }
 SCR_SiteSlotEntity : "{881CE7B0098504C2}PrefabsEditable/Slots/Road/E_SlotRoadLarge.et" {
  coords 70.335 1.001 119.549
 }
+SCR_DestructibleBuildingEntity : "{92E8F78BCF17D93D}Prefabs/Structures/Commercial/Shops/ShopHouse_E_2I01t_clothesstore.et" {
+ coords 191.848 0.001 87.529
+}
 SCR_DestructibleBuildingEntity : "{BEF9077AF9F93AE7}Prefabs/Structures/Houses/Village/House_Mountain_E_1I01.et" {
- coords 196.689 0.001 145.592
+ coords 236.64 0.001 148.008
  angleY -93.461
+}
+SCR_DestructibleBuildingEntity : "{CFE8511B2B7E8AAA}Prefabs/Structures/Commercial/Shops/ShopModern_E_01.et" {
+ coords 210.935 0.001 93.913
 }
 SCR_SiteSlotEntity : "{F4066B8425BEC47C}PrefabsEditable/Slots/Road/E_SlotRoadMedium.et" {
  coords 68.924 1.001 146.036
@@ -112,7 +579,13 @@ SCR_SiteSlotEntity : "{F4066B8425BEC47C}PrefabsEditable/Slots/Road/E_SlotRoadMed
   }
  }
 }
+SCR_DestructibleBuildingEntity : "{F51B9B9BD15BBE64}Prefabs/Structures/Commercial/Shops/ShopHouse_E_2I01t_householdwares.et" {
+ coords 166.601 0.001 87.468
+}
 SCR_DestructibleBuildingEntity : "{FBCE1861B987EA68}Prefabs/Structures/Military/Houses/GuardTower_01/GuardTower_01.et" {
  coords 32.833 0.001 101.143
  angleY -90.081
+}
+SCR_DestructibleBuildingEntity : "{FF48B5059EB0AC65}Prefabs/Structures/Commercial/Shops/ShopHouse_E_2I01t_drugstore.et" {
+ coords 179.27 0.001 87.654
 }

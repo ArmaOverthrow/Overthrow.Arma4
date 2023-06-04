@@ -87,7 +87,7 @@ class OVT_VehicleMenuContext : OVT_UIContext
 		comp = SCR_ButtonTextComponent.GetButtonText("Import", m_wRoot);
 		if (comp)
 		{
-			RplId port = m_Economy.GetNearestPort(pos);
+			RplId port = m_Economy.GetNearestPort(pos);			
 			RplComponent rpl = RplComponent.Cast(Replication.FindItem(port));
 			float dist = vector.Distance(pos, rpl.GetEntity().GetOrigin()); 
 			if(dist < 20){

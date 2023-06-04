@@ -187,19 +187,41 @@ class OVT_EconomyManagerComponent: OVT_Component
 		OVT_RealEstateManagerComponent realEstate = OVT_Global.GetRealEstate();
 		for(int i = 0; i < realEstate.m_mRenters.Count(); i++)
 		{
-			RplId id = realEstate.m_mRenters.GetKey(i);
-			string playerId = realEstate.m_mRenters[id];
-			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+			RplId rid = realEstate.m_mRenters.GetKey(i);
+			string playerId = realEstate.m_mRenters[rid];
+			RplComponent rpl = RplComponent.Cast(Replication.FindItem(rid));
 			if(!rpl) continue;
-			IEntity entity = rpl.GetEntity();
-			int cost = realEstate.GetRentPrice(entity);
-			if(realEstate.IsOwner(playerId, entity.GetID()))
+			IEntity building = rpl.GetEntity();
+			EntityID id = building.GetID();
+			int cost = realEstate.GetRentPrice(building);
+			
+			bool isRenter = realEstate.IsRenter(playerId, id);
+			bool isOwner = realEstate.IsOwner(playerId, id);
+			bool isResistanceOwned = realEstate.GetOwnerID(building) == "resistance";
+			bool isResistanceRented = realEstate.GetRenterID(building) == "resistance";				
+			
+			if(isResistanceOwned)
+			{
+				AddResistanceMoney(cost);
+				return;
+			}else if(isResistanceRented)
+			{
+				if(!ResistanceHasMoney(cost))
+				{
+					realEstate.SetRenter(-1, building);
+				}else{
+					TakeResistanceMoney(cost);
+				}
+				return;
+			}
+			
+			if(isOwner)
 			{
 				AddPlayerMoneyPersistentId(playerId, cost);
 			}else{			
 				if(!PlayerHasMoney(playerId, cost))
 				{
-					realEstate.SetRenter(-1, entity);
+					realEstate.SetRenter(-1, building);
 				}else{
 					TakePlayerMoneyPersistentId(playerId, cost);
 				}
@@ -831,7 +853,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		Print("Finding ports");
 		#endif
 		
-		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, CheckPortInit, FilterPortEntities, EQueryEntitiesFlags.DYNAMIC);
+		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, CheckPortInit, FilterPortEntities);
 	}
 	
 	protected void InitializeShops()

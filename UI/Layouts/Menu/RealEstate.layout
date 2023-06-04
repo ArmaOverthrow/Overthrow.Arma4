@@ -298,6 +298,26 @@ FrameWidgetClass {
         }
        }
       }
+      HorizontalLayoutWidgetClass "{5D86A3115A0CC8C2}" {
+       Name "HorizontalLayout0"
+       Slot LayoutSlot {
+       }
+       {
+        ButtonWidgetClass "{5D86A3113F0E8FBE}" : "{C9DF0E6590F6C388}UI/layouts/WidgetLibrary/SpinBox/WLib_SpinBox.layout" {
+         Name "AccountSpinner"
+         Slot LayoutSlot "{59BA5A735A7D34E2}" {
+          HorizontalAlign 3
+          Padding 4 4 4 4
+          SizeMode Fill
+         }
+         components {
+          SCR_SpinBoxComponent "{5472C6CBC0640458}" {
+           m_sLabel "#OVT-Account"
+          }
+         }
+        }
+       }
+      }
       HorizontalLayoutWidgetClass "{5D305CF7D9CC4D27}" {
        Name "ButtonsLayout"
        Slot LayoutSlot "{59A6DA4B67F90A9C}" {
