@@ -223,6 +223,7 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 		SCR_VehicleDamageManagerComponent dmg = SCR_VehicleDamageManagerComponent.Cast(entity.FindComponent(SCR_VehicleDamageManagerComponent));
 		if(dmg)
 		{
+			dmg.FullHeal();
 			dmg.SetHealthScaled(dmg.GetMaxHealth());
 		}		
 	}
