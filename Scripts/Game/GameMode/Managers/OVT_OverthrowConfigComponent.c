@@ -241,28 +241,40 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	
 	OVT_Faction GetOccupyingFaction()
 	{
-		return OVT_Faction.Cast(GetGame().GetFactionManager().GetFactionByKey(m_sOccupyingFaction));
+		return OVT_Global.GetFactions().GetOverthrowFactionByKey(m_sOccupyingFaction);
+	}
+	
+	Faction GetOccupyingFactionData()
+	{
+		return GetGame().GetFactionManager().GetFactionByKey(m_sOccupyingFaction);
 	}
 	
 	int GetOccupyingFactionIndex()
 	{
 		if(m_iOccupyingFactionIndex == -1)
 		{
-			m_iOccupyingFactionIndex = GetGame().GetFactionManager().GetFactionIndex(GetOccupyingFaction());
+			FactionManager fm = GetGame().GetFactionManager();
+			m_iOccupyingFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(m_sOccupyingFaction));
 		}
 		return m_iOccupyingFactionIndex;
 	}
 	
 	OVT_Faction GetPlayerFaction()
 	{
-		return OVT_Faction.Cast(GetGame().GetFactionManager().GetFactionByKey(m_sPlayerFaction));
+		return OVT_Global.GetFactions().GetOverthrowFactionByKey(m_sPlayerFaction);
+	}
+	
+	Faction GetPlayerFactionData()
+	{
+		return GetGame().GetFactionManager().GetFactionByKey(m_sPlayerFaction);
 	}
 	
 	int GetPlayerFactionIndex()
 	{
 		if(m_iPlayerFactionIndex == -1)
 		{
-			m_iPlayerFactionIndex = GetGame().GetFactionManager().GetFactionIndex(GetPlayerFaction());
+			FactionManager fm = GetGame().GetFactionManager();
+			m_iPlayerFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(m_sPlayerFaction));
 		}
 		return m_iPlayerFactionIndex;
 	}

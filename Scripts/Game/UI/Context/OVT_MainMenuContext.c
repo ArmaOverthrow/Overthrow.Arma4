@@ -55,7 +55,7 @@ class OVT_MainMenuContext : OVT_UIContext
 		m_Widgets.m_TownInfoText.SetTextFormat("#OVT-Population: %1\n#OVT-Stability: %2%\n#OVT-Supporters: %3 (%4%)", town.population, town.stability, town.support, town.SupportPercentage());
 		
 		ImageWidget img = ImageWidget.Cast(m_wRoot.FindAnyWidget("ControllingFaction"));
-		img.LoadImageTexture(0, town.ControllingFaction().GetUIInfo().GetIconPath());
+		img.LoadImageTexture(0, town.ControllingFactionData().GetUIInfo().GetIconPath());
 				
 		SCR_ButtonTextComponent comp;
 

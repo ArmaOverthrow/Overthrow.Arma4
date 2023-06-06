@@ -69,7 +69,7 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 		{
 			m_iCurrentTownId = townID;
 			ImageWidget img = ImageWidget.Cast(m_wRoot.FindAnyWidget("ControllingFaction"));
-			img.LoadImageTexture(0, town.ControllingFaction().GetUIInfo().GetIconPath());
+			img.LoadImageTexture(0, town.ControllingFactionData().GetUIInfo().GetIconPath());
 					
 			TextWidget widget = TextWidget.Cast(m_wRoot.FindAnyWidget("TownName"));
 			widget.SetText(tm.GetTownName(townID));

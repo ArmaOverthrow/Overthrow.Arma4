@@ -59,6 +59,11 @@ class OVT_Global {
 		return OVT_NotificationManagerComponent.GetInstance();
 	}
 	
+	static OVT_OverthrowFactionManager GetFactions()
+	{
+		return OVT_OverthrowFactionManager.Cast(GetGame().GetFactionManager());
+	}
+	
 	static bool PlayerInRange(vector pos, int range)
 	{		
 		array<int> players = new array<int>;

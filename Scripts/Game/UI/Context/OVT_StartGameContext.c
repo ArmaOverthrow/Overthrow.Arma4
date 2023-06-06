@@ -30,11 +30,11 @@ class OVT_StartGameContext : OVT_UIContext
 		
 		foreach(Faction fac : factions)
 		{
-			OVT_Faction faction = OVT_Faction.Cast(fac);
+			OVT_Faction faction = OVT_Global.GetFactions().GetOverthrowFactionByKey(fac.GetFactionKey());
 			if(!faction) continue;
 			if(faction.IsPlayable()) continue;
 			
-			spin.AddItem(faction.GetUIInfo().GetName(),faction);
+			spin.AddItem(fac.GetUIInfo().GetName(),fac);
 						
 			if(faction.GetFactionKey() == m_Config.m_sDefaultOccupyingFaction) selectedFaction = i;
 			

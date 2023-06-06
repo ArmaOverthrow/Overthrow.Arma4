@@ -31,7 +31,12 @@ class OVT_TownData : Managed
 	
 	OVT_Faction ControllingFaction()
 	{
-		return OVT_Faction.Cast(GetGame().GetFactionManager().GetFactionByIndex(faction));
+		return OVT_Global.GetFactions().GetOverthrowFactionByIndex(faction);
+	}
+	
+	Faction ControllingFactionData()
+	{
+		return GetGame().GetFactionManager().GetFactionByIndex(faction);
 	}
 	
 	bool IsOccupyingFaction()

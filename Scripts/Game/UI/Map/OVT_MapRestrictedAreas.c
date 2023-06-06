@@ -78,13 +78,13 @@ class OVT_MapRestrictedAreas : OVT_MapCanvasLayer
 			m_Ranges.Insert(20);
 		}
 			
-		OVT_Faction faction = otconfig.GetOccupyingFaction();
+		Faction faction = otconfig.GetOccupyingFactionData();
 		if(faction)
 		{
 			m_Flag = m_Canvas.LoadTexture(faction.GetUIInfo().GetIconPath());
 		}
 		
-		faction = otconfig.GetPlayerFaction();
+		faction = otconfig.GetPlayerFactionData();
 		if(faction)
 		{
 			m_ResistanceFlag = m_Canvas.LoadTexture(faction.GetUIInfo().GetIconPath());

@@ -89,9 +89,8 @@ class OVT_BaseControllerComponent: OVT_Component
 		if (pos[1] < groundHeight)
 			pos[1] = groundHeight;
 		
-		Faction faction = GetGame().GetFactionManager().GetFactionByIndex(GetControllingFaction());
-		OVT_Faction fac = OVT_Faction.Cast(faction);
-
+		OVT_Faction fac = OVT_Global.GetFactions().GetOverthrowFactionByIndex(GetControllingFaction());
+		
 		IEntity flag = OVT_Global.SpawnEntityPrefab(fac.m_aFlagPolePrefab,pos);
 		
 		return flag;

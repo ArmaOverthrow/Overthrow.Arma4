@@ -30,11 +30,15 @@ class OVT_FactionComposition
 	ref array<ResourceName> m_aGroupPrefabs;
 }
 
-class OVT_Faction : SCR_Faction
+[BaseContainerProps(configRoot:true), SCR_BaseContainerCustomTitleField("m_sFactionKey")]
+class OVT_Faction
 {
-	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Faction groups (all)", params: "et", category: "Faction Groups")]
-	ref array<ResourceName> m_aGroupPrefabSlots;
+	[Attribute()]
+	string m_sFactionKey;
 	
+	[Attribute()]
+	bool m_bIsPlayable;
+		
 	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Faction groups (Light Infantry)", params: "et", category: "Faction Groups")]
 	ref array<ResourceName> m_aGroupInfantryPrefabSlots;
 	
@@ -85,49 +89,42 @@ class OVT_Faction : SCR_Faction
 	
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Large Checkpoint Prefab", params: "et", category: "Faction Objects")]
 	ResourceName m_aLargeCheckpointPrefab;
-	
-	[Attribute()]
-	ref array<ResourceName> m_aInventoryConfigFiles;
-	
-	ref array<ref SCR_EntityCatalogMultiList> m_aInventoryConfigs;
-	
+		
 	[Attribute()]
 	ref OVT_FactionCompositionConfig m_aCompositionConfig;
 	
-	void OVT_Faction()
+	ref array<ResourceName> m_aGroupPrefabSlots = {};
+	
+	void Init()
 	{
-		m_aInventoryConfigs = new array<ref SCR_EntityCatalogMultiList>;		
+		if (SCR_Global.IsEditMode()) return;
+		
+		SCR_Faction faction = SCR_Faction.Cast(GetGame().GetFactionManager().GetFactionByKey(m_sFactionKey));
+		SCR_EntityCatalog catalog = faction.GetFactionEntityCatalogOfType(EEntityCatalogType.GROUP);		
+		array<SCR_EntityCatalogEntry> entries();
+		catalog.GetEntityList(entries);
+		
+		foreach(SCR_EntityCatalogEntry entry : entries)
+		{
+			m_aGroupPrefabSlots.Insert(entry.GetPrefab());
+		}
+	}
+		
+	string GetFactionKey()
+	{
+		return m_sFactionKey;
 	}
 	
-	void LoadArsenalConfigs()
+	bool IsPlayable()
 	{
-		if(!m_aInventoryConfigFiles) return;
-		foreach(ResourceName res : m_aInventoryConfigFiles)
-		{
-			Resource holder = BaseContainerTools.LoadContainer(res);
-			if (holder)		
-			{
-				SCR_EntityCatalogMultiList obj = SCR_EntityCatalogMultiList.Cast(BaseContainerTools.CreateInstanceFromContainer(holder.GetResource().ToBaseContainer()));
-				if(obj)
-				{
-					m_aInventoryConfigs.Insert(obj);
-				}
-			}
-		}
+		return m_bIsPlayable;
 	}
 	
 	bool GetAllInventoryItems(out array<SCR_EntityCatalogEntry> inventoryItems)
 	{		
-		if(m_aInventoryConfigs.Count() == 0) LoadArsenalConfigs();
-		foreach(SCR_EntityCatalogMultiList config : m_aInventoryConfigs)
-		{
-			array<SCR_EntityCatalogEntry> items = new array<SCR_EntityCatalogEntry>;
-			config.GetEntityList(items);
-			foreach(SCR_EntityCatalogEntry item : items)
-			{				
-				inventoryItems.Insert(item);
-			}
-		}
+		SCR_Faction faction = SCR_Faction.Cast(GetGame().GetFactionManager().GetFactionByKey(m_sFactionKey));
+		SCR_EntityCatalog catalog = faction.GetFactionEntityCatalogOfType(EEntityCatalogType.ITEM);		
+		catalog.GetEntityList(inventoryItems);		
 		return true;
 	}
 	

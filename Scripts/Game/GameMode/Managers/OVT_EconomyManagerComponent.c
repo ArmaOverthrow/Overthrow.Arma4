@@ -760,7 +760,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		factionMgr.GetFactionsList(factions);
 		foreach(Faction faction : factions)
 		{
-			OVT_Faction fac = OVT_Faction.Cast(faction);
+			OVT_Faction fac = OVT_Global.GetFactions().GetOverthrowFactionByKey(faction.GetFactionKey());
 			int factionId = factionMgr.GetFactionIndex(faction);
 			m_mFactionResources[factionId] = new array<int>;
 			array<SCR_EntityCatalogEntry> items = new array<SCR_EntityCatalogEntry>;

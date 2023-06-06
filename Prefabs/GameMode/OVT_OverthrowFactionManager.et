@@ -1,0 +1,21 @@
+OVT_OverthrowFactionManager {
+ ID "5D8CB07C66269E75"
+ coords 157.818 1.001 143.531
+ Factions {
+  SCR_Faction "{5D8CB0700C13A528}" : "{09727032415AC39B}Configs/Factions/USSR.conf" {
+  }
+  SCR_Faction "{5D8CB07009D3FA5D}" : "{5EB46557DF2AA24F}Configs/Factions/US.conf" {
+  }
+  SCR_Faction "{5D8CB07017FAD571}" : "{8053DB656DD18B14}Configs/Factions/FIA.conf" {
+  }
+ }
+ m_bCanChangeFactionsPlayable 0
+ m_aOverthrowFactions {
+  OVT_Faction "{5D8CB07C7A41E854}" : "{09727032415AC39C}Configs/Factions/USSR_OverthrowData.conf" {
+  }
+  OVT_Faction "{5D8CB07F1A072D18}" : "{EF3B64A93DC980EF}Configs/Factions/US_OverthrowData.conf" {
+  }
+  OVT_Faction "{5D8CB07FC36DF5F6}" : "{581BA9D7260E4FB7}Configs/Factions/FIA_OverthrowData.conf" {
+  }
+ }
+}

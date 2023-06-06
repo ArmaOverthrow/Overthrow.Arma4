@@ -237,7 +237,7 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 						
 			image.LoadImageFromSet(0, m_Imageset, "fob");			
 			
-			OVT_Faction faction = OVT_Faction.Cast(GetGame().GetFactionManager().GetFactionByIndex(fob.faction));
+			Faction faction = GetGame().GetFactionManager().GetFactionByIndex(fob.faction);
 			image.SetColor(faction.GetFactionColor());
 			
 			m_Widgets.Insert(w);
@@ -253,7 +253,7 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 						
 			image.LoadImageFromSet(0, m_Imageset, "tower");	
 			
-			OVT_Faction faction = OVT_Faction.Cast(GetGame().GetFactionManager().GetFactionByIndex(tower.faction));
+			Faction faction = GetGame().GetFactionManager().GetFactionByIndex(tower.faction);
 			image.SetColor(faction.GetFactionColor());
 								
 			m_Widgets.Insert(w);

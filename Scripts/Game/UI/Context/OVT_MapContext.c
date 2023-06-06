@@ -168,7 +168,7 @@ class OVT_MapContext : OVT_UIContext
 		int townID = m_TownManager.GetTownID(m_SelectedTown);
 		
 		ImageWidget img = ImageWidget.Cast(m_wRoot.FindAnyWidget("ControllingFaction"));
-		img.LoadImageTexture(0, m_SelectedTown.ControllingFaction().GetUIInfo().GetIconPath());
+		img.LoadImageTexture(0, m_SelectedTown.ControllingFactionData().GetUIInfo().GetIconPath());
 				
 		TextWidget widget = TextWidget.Cast(m_wRoot.FindAnyWidget("TownName"));
 		widget.SetText(m_TownManager.GetTownName(townID));

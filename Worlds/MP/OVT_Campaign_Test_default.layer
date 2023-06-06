@@ -16,7 +16,7 @@ SCR_AIWorld : "{E0A05C76552E7F58}Prefabs/AI/SCR_AIWorld.et" {
 PerceptionManager PerceptionManager1 : "{028DAEAD63E056BE}Prefabs/World/Game/PerceptionManager.et" {
  coords 129.083 1.001 186.739
 }
-OVT_OverthrowGameMode OVT_OverthrowGameMode1 : "{4DC10DCB8BE06D32}Prefabs/GameMode/OVT_OverthrowGameMode.et" {
+OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMode/OVT_OverthrowGameMode.et" {
  components {
   EPF_PersistenceComponent "{5D7009A1AB220903}" {
    m_bSelfSpawn 0
@@ -478,8 +478,8 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode1 : "{4DC10DCB8BE06D32}Prefabs/GameMo
  }
  coords 208.286 1.001 116.919
 }
-SCR_FactionManager OVT_FactionManager1 : "{8C75D1206F85987D}Prefabs/GameMode/OVT_FactionManager.et" {
- coords 201.696 1.001 127.602
+OVT_OverthrowFactionManager OVT_OverthrowFactionManager : "{51EBC0CFD56DA130}Prefabs/GameMode/OVT_OverthrowFactionManager.et" {
+ coords 0 0 0
 }
 $grp GenericEntity {
  Town {
