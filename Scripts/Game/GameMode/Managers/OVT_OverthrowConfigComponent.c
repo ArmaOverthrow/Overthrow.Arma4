@@ -236,6 +236,7 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		if(key == of.GetFactionKey()) return;
 		FactionManager factionMgr = GetGame().GetFactionManager();
 		Faction faction = factionMgr.GetFactionByKey(key);
+		m_iOccupyingFactionIndex = factionMgr.GetFactionIndex(faction);
 		Rpc(RpcAsk_SetOccupyingFaction, factionMgr.GetFactionIndex(faction));
 	}
 	

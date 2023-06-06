@@ -39,7 +39,6 @@ class OVT_StartGameContext : OVT_UIContext
 			if(faction.GetFactionKey() == m_Config.m_sDefaultOccupyingFaction) selectedFaction = i;
 			
 			i++;
-			if(i > 1) break;
 		}
 		spin.SetCurrentItem(selectedFaction);
 	}

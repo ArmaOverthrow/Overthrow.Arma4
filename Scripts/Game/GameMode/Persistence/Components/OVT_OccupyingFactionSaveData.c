@@ -10,6 +10,7 @@ class OVT_OccupyingFactionSaveData : EPF_ComponentSaveData
 	float m_iThreat;
 	ref array<ref OVT_BaseData> m_Bases;
 	ref array<ref OVT_RadioTowerData> m_RadioTowers;
+	string m_sOccupyingFactionKey;
 	
 	override EPF_EReadResult ReadFrom(IEntity owner, GenericComponent component, EPF_ComponentSaveDataClass attributes)
 	{		
@@ -18,6 +19,7 @@ class OVT_OccupyingFactionSaveData : EPF_ComponentSaveData
 		m_iResources = of.m_iResources;
 		m_iThreat = of.m_iThreat;		
 		m_RadioTowers = of.m_RadioTowers;
+		m_sOccupyingFactionKey = OVT_Global.GetConfig().m_sOccupyingFaction;
 		
 		m_Bases = new array<ref OVT_BaseData>;
 		
@@ -65,6 +67,8 @@ class OVT_OccupyingFactionSaveData : EPF_ComponentSaveData
 		of.m_iResources = m_iResources;
 		of.m_iThreat = m_iThreat;		
 		of.m_bDistributeInitial = false;
+		
+		OVT_Global.GetConfig().SetOccupyingFaction(m_sOccupyingFactionKey);
 		
 		foreach(OVT_BaseData base : m_Bases)
 		{
