@@ -74,24 +74,34 @@ class OVT_PlayerCommsComponent: OVT_Component
 					vehicleStorageMgr.TryInsertItem(body);					
 				}
 			}else{
-				array<IEntity> items = new array<IEntity>;
-				inv.GetItems(items);
-				if(items.Count() == 0) continue;
-				foreach(IEntity item : items)
-				{
-					//Ignore clothes (but get helmets, backpacks, etc)
-					BaseLoadoutClothComponent cloth = EPF_Component<BaseLoadoutClothComponent>.Find(item);
-					if(cloth)
-					{
-						if(cloth.GetAreaType().ClassName() == "LoadoutPantsArea") continue;
-						if(cloth.GetAreaType().ClassName() == "LoadoutJacketArea") continue;
-						if(cloth.GetAreaType().ClassName() == "LoadoutBootsArea") continue;
-					}
-					if(!inv.TryMoveItemToStorage(item, vehicleStorage)) break; //vehicle is full
+				bool allMovesSucceeded = LootBody(inv, vehicleStorage);
+				if(allMovesSucceeded) {
+					SCR_EntityHelper.DeleteEntityAndChildren(body);
 				}
-				SCR_EntityHelper.DeleteEntityAndChildren(body);
-			}		
-		}		
+			}
+		}
+	}
+
+	bool LootBody(InventoryStorageManagerComponent inv, UniversalInventoryStorageComponent vehicleStorage)
+	{
+		array<IEntity> items = new array<IEntity>;
+		inv.GetItems(items);
+		if(items.Count() == 0) return false;
+		bool allMovesSucceeded = true;
+		foreach(IEntity item : items)
+		{
+			//Ignore clothes (but get helmets, backpacks, etc)
+			BaseLoadoutClothComponent cloth = EPF_Component<BaseLoadoutClothComponent>.Find(item);
+			if(cloth)
+			{
+				if(cloth.GetAreaType().ClassName() == "LoadoutPantsArea") continue;
+				if(cloth.GetAreaType().ClassName() == "LoadoutJacketArea") continue;
+				if(cloth.GetAreaType().ClassName() == "LoadoutBootsArea") continue;
+			}
+			bool couldMove = inv.TryMoveItemToStorage(item, vehicleStorage);
+			allMovesSucceeded = allMovesSucceeded && couldMove;
+		}
+		return allMovesSucceeded;
 	}
 	
 	void DeliverMedicalSupplies(IEntity vehicle)
