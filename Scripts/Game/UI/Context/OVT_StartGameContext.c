@@ -46,7 +46,7 @@ class OVT_StartGameContext : OVT_UIContext
 	
 	protected void OnSpinFaction(SCR_SpinBoxComponent spinner, int index)
 	{
-		OVT_Faction data = OVT_Faction.Cast(spinner.GetItemData(index));
+		Faction data = Faction.Cast(spinner.GetItemData(index));
 		m_Config.SetOccupyingFaction(data.GetFactionKey());	
 	}
 	
