@@ -34,20 +34,32 @@ class OVT_ResistanceSaveData : EPF_ComponentSaveData
 		
 		return EPF_EReadResult.OK;
 	}
-	
+
 	override EPF_EApplyResult ApplyTo(IEntity owner, GenericComponent component, EPF_ComponentSaveDataClass attributes)
 	{
 		OVT_ResistanceFactionManager resistance = OVT_ResistanceFactionManager.Cast(component);
-				
+
+		if (m_sPlayerFactionKey.IsEmpty())
+		{
+			Print("Player faction key is invalid, setting to FIA", LogLevel.WARNING);
+			m_sPlayerFactionKey = "FIA";
+		}
+
 		OVT_Global.GetConfig().m_sPlayerFaction = m_sPlayerFactionKey;
-		OVT_Global.GetConfig().m_iPlayerFactionIndex = GetGame().GetFactionManager().GetFactionIndex(GetGame().GetFactionManager().GetFactionByKey(m_sPlayerFactionKey));
-		
+		int playerFactionIndex  = GetGame().GetFactionManager().GetFactionIndex(GetGame().GetFactionManager().GetFactionByKey(m_sPlayerFactionKey));
+		OVT_Global.GetConfig().m_iPlayerFactionIndex = playerFactionIndex;
+
 		foreach(OVT_FOBData fob : m_FOBs)
 		{	
-			fob.id = resistance.m_FOBs.Count();		
-			resistance.m_FOBs.Insert(fob);						
+			fob.id = resistance.m_FOBs.Count();
+			if (fob.faction < 0)
+			{
+				Print(string.Format("FOB with invalid owner faction index found, setting to default of %1", playerFactionIndex), LogLevel.WARNING);
+				fob.faction = playerFactionIndex;
+			}
+			resistance.m_FOBs.Insert(fob);
 		}
-				
+
 		return EPF_EApplyResult.OK;
 	}
 }

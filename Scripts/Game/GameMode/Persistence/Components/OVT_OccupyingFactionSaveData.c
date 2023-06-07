@@ -74,6 +74,11 @@ class OVT_OccupyingFactionSaveData : EPF_ComponentSaveData
 		{
 			OVT_BaseData existing = of.GetNearestBase(base.location);
 			if(!existing) continue;
+			if (base.faction < 0)
+			{
+				Print("Uninitialized faction found for base, setting to default.", LogLevel.WARNING);
+				base.faction = OVT_Global().GetConfig().GetOccupyingFactionIndex();
+			}
 			existing.faction = base.faction;
 			existing.upgrades = base.upgrades;
 			existing.slotsFilled = base.slotsFilled;
