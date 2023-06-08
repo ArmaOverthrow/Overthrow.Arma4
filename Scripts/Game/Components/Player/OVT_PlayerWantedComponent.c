@@ -9,6 +9,9 @@ class OVT_PlayerWantedComponent: OVT_Component
 	[RplProp()]
 	protected bool m_bIsSeen = false;	
 	
+	[Attribute("250")]
+	float m_fBaseDistanceSeenAt;
+	
 	int m_iWantedTimer = 0;
 	int m_iLastSeen;
 	
@@ -86,7 +89,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		aiworld.GetAIAgents(agents);
 		
 		vector pos = GetOwner().GetOrigin();
-		float distanceSeen = 5 + (250 * m_fVisualRecognitionFactor); 
+		float distanceSeen = 5 + (m_fBaseDistanceSeenAt * m_fVisualRecognitionFactor); 
 		
 		foreach(AIAgent agent : agents)
 		{

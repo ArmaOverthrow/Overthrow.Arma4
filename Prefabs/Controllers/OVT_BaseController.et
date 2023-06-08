@@ -23,12 +23,10 @@ GenericEntity {
     OVT_BaseUpgradeCheckpoints "{59A02C08E74AD5ED}" {
      m_iResourceAllocation -1
      m_iPriority 3
-     m_iMinimumThreat 5
     }
     OVT_BaseUpgradeComposition "{59B2CEF74CC156C7}" {
      m_iResourceAllocation -1
      m_iPriority 4
-     m_iMinimumThreat 15
      m_sCompositionTag "SmallBunker"
     }
     OVT_BaseUpgradeComposition "{59B2D5C4B07D72C7}" {
@@ -41,7 +39,6 @@ GenericEntity {
      m_bDeactivate 0
     }
    }
-   m_iCloseRange 220
   }
   RplComponent "{599AA7491505E0AB}" {
   }
