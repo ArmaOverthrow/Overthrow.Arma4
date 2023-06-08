@@ -907,7 +907,10 @@ class OVT_OccupyingFactionManager: OVT_Component
 	
 	override bool RplSave(ScriptBitWriter writer)
 	{
-				
+		//Send JIP factions
+		writer.WriteString(m_Config.m_sOccupyingFaction);
+		writer.WriteString(m_Config.m_sPlayerFaction);
+			
 		//Send JIP bases
 		writer.WriteInt(m_Bases.Count()); 
 		for(int i=0; i<m_Bases.Count(); i++)
@@ -939,7 +942,14 @@ class OVT_OccupyingFactionManager: OVT_Component
 	override bool RplLoad(ScriptBitReader reader)
 	{		
 		int length;
-		RplId id;		
+		RplId id;	
+		
+		if(!reader.ReadString(m_Config.m_sOccupyingFaction)) return false;	
+		if(!reader.ReadString(m_Config.m_sPlayerFaction)) return false;
+		
+		FactionManager fm = GetGame().GetFactionManager();
+		m_Config.m_iOccupyingFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(m_Config.m_sOccupyingFaction));
+		m_Config.m_iPlayerFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(m_Config.m_sPlayerFaction));
 		
 		//Recieve JIP bases
 		if (!reader.ReadInt(length)) return false;
