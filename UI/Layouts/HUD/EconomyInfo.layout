@@ -168,6 +168,39 @@ OverlayWidgetClass {
         }
        }
       }
+      HorizontalLayoutWidgetClass "{5D9091EEC96D4D5B}" {
+       Name "Debug"
+       Slot LayoutSlot "{5870C1D380D38B81}" {
+        HorizontalAlign 2
+        Padding 0 2 0 0
+       }
+       "Is Visible" 0
+       "Inherit Color" 1
+       {
+        RichTextWidgetClass "{5D9091EEC96D4D5A}" {
+         Name "DebugText"
+         Slot LayoutSlot "{56E0F189AA8E9CDB}" {
+          HorizontalAlign 2
+          VerticalAlign 1
+          Padding 0 10.8 0 0
+         }
+         Clipping False
+         Color 1 1 1 1
+         "Inherit Color" 1
+         Text "Debug"
+         "Font Size" 21
+         "Min Font Size" 20
+         "Horizontal Alignment" Right
+         "Vertical Alignment" Center
+         FontProperties FontProperties "{55F8C56F794D79A5}" {
+          Font "{3E7733BAC8C831F6}UI/Fonts/RobotoCondensed/RobotoCondensed_Regular.fnt"
+          ShadowSize 10
+          ShadowOffset 0 0
+          ShadowOpacity 0.7
+         }
+        }
+       }
+      }
      }
     }
    }

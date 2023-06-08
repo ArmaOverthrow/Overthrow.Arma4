@@ -21,6 +21,9 @@ class OVT_PlayerWantedComponent: OVT_Component
 	protected BaseWeaponManagerComponent m_Weapon;
 	protected SCR_CharacterControllerComponent m_Character;
 	protected SCR_CompartmentAccessComponent m_Compartment;
+	protected CharacterPerceivableComponent m_Percieve;
+	
+	protected float m_fVisualRecognitionFactor = 1;
 	
 	protected ref TraceParam m_TraceParams;
 	
@@ -61,6 +64,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		m_Weapon = BaseWeaponManagerComponent.Cast(owner.FindComponent(BaseWeaponManagerComponent));
 		m_Character = SCR_CharacterControllerComponent.Cast(owner.FindComponent(SCR_CharacterControllerComponent));
 		m_Compartment = SCR_CompartmentAccessComponent.Cast(owner.FindComponent(SCR_CompartmentAccessComponent));
+		m_Percieve = CharacterPerceivableComponent.Cast(owner.FindComponent(CharacterPerceivableComponent));
 				
 		if(!GetRpl().IsOwner()) return;
 		
@@ -72,6 +76,8 @@ class OVT_PlayerWantedComponent: OVT_Component
 		m_bTempSeen = false;
 		m_iLastSeen = LAST_SEEN_MAX;
 		
+		m_fVisualRecognitionFactor = m_Percieve.GetVisualRecognitionFactor();
+		
 		//GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), 250, CheckEntity, FilterEntities, EQueryEntitiesFlags.DYNAMIC);
 		
 		array<AIAgent> agents();
@@ -80,6 +86,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		aiworld.GetAIAgents(agents);
 		
 		vector pos = GetOwner().GetOrigin();
+		float distanceSeen = 5 + (250 * m_fVisualRecognitionFactor); 
 		
 		foreach(AIAgent agent : agents)
 		{
@@ -94,7 +101,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 				IEntity entity = member.GetControlledEntity();
 				if(!entity) continue;
 				float dist = vector.Distance(entity.GetOrigin(), pos);
-				if(dist > 250) continue;
+				if(dist > distanceSeen) continue;
 				if(FilterEntities(entity))
 				{
 					CheckEntity(entity);
@@ -180,6 +187,22 @@ class OVT_PlayerWantedComponent: OVT_Component
 		
 		perceptComp.GetTargetsList(targets, ETargetCategory.FACTIONLESS);
 		
+		float dist = vector.Distance(GetOwner().GetOrigin(), entity.GetOrigin());
+		
+		//Is player in a vehicle?
+		bool inVehicle = false;
+		if(m_Compartment && m_Compartment.IsInCompartment())
+		{		
+			//Player is in a vehicle
+			inVehicle = true;
+		}		
+		
+		if(m_fVisualRecognitionFactor < 0.2 && dist > 5 && !inVehicle)
+		{
+			//Definitely can't see you, but continue search
+			return true;
+		}
+		
 		foreach(BaseTarget possibleTarget : targets)
 		{		
 			IEntity realEnt = possibleTarget.GetTargetEntity();
@@ -191,16 +214,14 @@ class OVT_PlayerWantedComponent: OVT_Component
 				if(lastSeen < m_iLastSeen) m_iLastSeen = lastSeen;	
 				
 				int newLevel = m_iWantedLevel;
-				bool inVehicle = false;
 				
-				if(m_Compartment && m_Compartment.IsInCompartment())
+				if(inVehicle)
 				{		
 					//Player is in a vehicle
 					IEntity veh = m_Compartment.GetVehicle();
 					if(veh && TraceLOSVehicle(entity, veh)){	
 						//Vehicle can be seen					
 						m_bTempSeen = true;
-						inVehicle = true;
 					}
 				}else{				
 					if(TraceLOS(entity, GetOwner())){

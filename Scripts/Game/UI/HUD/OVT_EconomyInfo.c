@@ -52,6 +52,24 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 			m_fCounter = 0;
 			UpdateTown();
 		}
+		
+#ifdef WORKBENCH
+		//UpdateDebug();
+#endif				
+	}
+	
+	void UpdateDebug()
+	{
+		Widget d = m_wRoot.FindAnyWidget("Debug");
+		d.SetVisible(true);
+		
+		TextWidget text = TextWidget.Cast(m_wRoot.FindAnyWidget("DebugText"));
+		
+		CharacterPerceivableComponent percieve = EPF_Component<CharacterPerceivableComponent>.Find(m_player);
+		if(percieve)
+		{
+			text.SetText(percieve.GetVisualRecognitionFactor().ToString());
+		}
 	}
 	
 	void UpdateTown()

@@ -4,6 +4,7 @@
 
 class OVT_WantedInfo : SCR_InfoDisplay {	
 	OVT_PlayerWantedComponent m_Wanted = null;
+	CharacterPerceivableComponent m_Percieve = null;
 	
 	protected void InitCharacter()
 	{
@@ -12,6 +13,7 @@ class OVT_WantedInfo : SCR_InfoDisplay {
 			return;
 				
 		m_Wanted = OVT_PlayerWantedComponent.Cast(character.FindComponent(OVT_PlayerWantedComponent));
+		m_Percieve = CharacterPerceivableComponent.Cast(character.FindComponent(CharacterPerceivableComponent));
 	}
 		
 	private override event void UpdateValues(IEntity owner, float timeSlice)
@@ -64,6 +66,7 @@ class OVT_WantedInfo : SCR_InfoDisplay {
 		if(m_Wanted.IsSeen())
 		{
 			w.SetVisible(true);
+			w.SetOpacity(m_Percieve.GetVisualRecognitionFactor());
 		}else{
 			w.SetVisible(false);
 		}
