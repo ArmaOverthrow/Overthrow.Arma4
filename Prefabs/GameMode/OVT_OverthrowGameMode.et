@@ -526,6 +526,8 @@ OVT_OverthrowGameMode {
   OVT_RespawnSystemComponent "{59724C8C935D8E47}" {
    m_rDefaultPrefab "{3A99A99836F6B3DC}Prefabs/Characters/Factions/INDFOR/FIA/Character_Player.et"
   }
+  OVT_SkillManagerComponent "{5D9091FB5B8013D9}" {
+  }
   OVT_TownManagerComponent "{59724C983BF56C3B}" {
    m_aTownModifiers {
     OVT_TownStabilityModifierSystem "{59A2BDDB065D9242}" {

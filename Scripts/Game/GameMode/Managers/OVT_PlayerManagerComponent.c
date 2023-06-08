@@ -14,9 +14,51 @@ class OVT_PlayerData : Managed
 	bool initialized;
 	bool isOfficer;
 	
+	int kills;
+	int xp;
+	ref map<string,int> skills = new map<string,int>;
+	
 	bool IsOffline()
 	{
 		return id == -1;
+	}
+	
+	float GetRawLevel()
+	{
+		return 1 + (0.1 * Math.Sqrt(xp));
+	}
+	
+	int GetLevel()
+	{		
+		return Math.Floor(GetRawLevel());
+	}	
+	
+	float GetLevelProgress()
+	{
+		return GetRawLevel() - GetLevel();
+	}
+	
+	int CountSkills()
+	{
+		int count = 0;
+		for(int t=0; t < skills.Count(); t++)
+		{
+			count += skills.GetElement(t);
+		}
+		
+		return count;
+	}
+	
+	static OVT_PlayerData Get(string persId)
+	{
+		return OVT_Global.GetPlayers().GetPlayer(persId);
+	}	
+	
+	static OVT_PlayerData Get(int playerId)
+	{
+		OVT_PlayerManagerComponent pm = OVT_Global.GetPlayers();
+		string persId = pm.GetPersistentIDFromPlayerID(playerId);
+		return pm.GetPlayer(persId);
 	}
 }
 
@@ -148,6 +190,9 @@ class OVT_PlayerManagerComponent: OVT_Component
 			writer.WriteVector(player.camp);
 			writer.WriteString(player.name);
 			writer.WriteBool(player.isOfficer);
+			
+			writer.WriteInt(player.kills);
+			writer.WriteInt(player.xp);
 		}		
 		return true;
 	}
@@ -179,6 +224,9 @@ class OVT_PlayerManagerComponent: OVT_Component
 			if (!reader.ReadVector(player.camp)) return false;
 			if (!reader.ReadString(player.name)) return false;
 			if (!reader.ReadBool(player.isOfficer)) return false;
+			
+			if(!reader.ReadInt(player.kills)) return false;
+			if(!reader.ReadInt(player.xp)) return false;
 		}
 		return true;
 	}

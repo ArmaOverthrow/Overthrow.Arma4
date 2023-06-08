@@ -888,13 +888,13 @@ class OVT_OccupyingFactionManager: OVT_Component
 		Print ("OF Gained Resources: " + newResources.ToString());			
 	}
 	
-	void OnAIKilled(IEntity ai, IEntity insitgator)
+	void OnAIKilled(IEntity ai, IEntity instigator)
 	{
 		if(!Replication.IsServer()) return;
 		
 		m_iThreat += 1;
 		
-		m_OnAIKilled.Invoke(ai);
+		m_OnAIKilled.Invoke(ai, instigator);
 	}
 	
 	//RPC Methods

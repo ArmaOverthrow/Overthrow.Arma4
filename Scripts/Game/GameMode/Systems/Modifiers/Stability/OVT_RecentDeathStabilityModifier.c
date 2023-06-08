@@ -19,7 +19,7 @@ class OVT_RecentDeathStabilityModifier : OVT_StabilityModifier
 		mode.GetOnPlayerKilled().Remove(OnPlayerKilled);
 	}
 	
-	protected void OnAIKilled(IEntity entity)
+	protected void OnAIKilled(IEntity entity, IEntity instigator)
 	{
 		AddModifierToNearestTownInRange(entity.GetOrigin());
 	}

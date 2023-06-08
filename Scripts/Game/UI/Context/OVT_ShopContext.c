@@ -244,7 +244,7 @@ class OVT_ShopContext : OVT_UIContext
 			{
 				if(inventory.TryDeleteItem(ent))
 				{
-					m_Economy.AddPlayerMoney(m_iPlayerID, cost);
+					m_Economy.AddPlayerMoney(m_iPlayerID, cost, true);
 					m_Shop.AddToInventory(m_SelectedResource, 1);
 					SelectItem(m_SelectedResourceName);
 					break;

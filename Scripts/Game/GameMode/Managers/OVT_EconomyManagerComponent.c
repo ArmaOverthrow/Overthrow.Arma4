@@ -106,6 +106,8 @@ class OVT_EconomyManagerComponent: OVT_Component
 	//Events
 	ref ScriptInvoker m_OnPlayerMoneyChanged = new ref ScriptInvoker();
 	ref ScriptInvoker m_OnResistanceMoneyChanged = new ref ScriptInvoker();
+	ref ScriptInvoker m_OnPlayerBuy = new ref ScriptInvoker();
+	ref ScriptInvoker m_OnPlayerSell = new ref ScriptInvoker();
 		
 	static OVT_EconomyManagerComponent s_Instance;	
 	static OVT_EconomyManagerComponent GetInstance()
@@ -576,14 +578,14 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return player.money >= amount;
 	}
 	
-	void AddPlayerMoney(int playerId, int amount)
+	void AddPlayerMoney(int playerId, int amount, bool doEvent=false)
 	{
 		if(Replication.IsServer())
 		{
 			DoAddPlayerMoney(playerId, amount);
 			return;
 		}
-		OVT_Global.GetServer().AddPlayerMoney(playerId, amount);		
+		OVT_Global.GetServer().AddPlayerMoney(playerId, amount, doEvent);		
 	}
 	
 	void DoAddPlayerMoney(int playerId, int amount)

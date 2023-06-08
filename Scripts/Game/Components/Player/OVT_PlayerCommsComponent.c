@@ -291,6 +291,7 @@ class OVT_PlayerCommsComponent: OVT_Component
 		{
 			Rpc(RpcAsk_TakePlayerMoney, playerId, total);
 			Rpc(RpcAsk_TakeFromInventory, shopId, id, totalnum);
+			economy.m_OnPlayerBuy.Invoke(playerId, total);
 		}
 		
 	}
@@ -399,15 +400,19 @@ class OVT_PlayerCommsComponent: OVT_Component
 	
 	//ECONOMY
 	
-	void AddPlayerMoney(int playerId, int amount)
+	void AddPlayerMoney(int playerId, int amount, bool doEvent=false)
 	{
-		Rpc(RpcAsk_AddPlayerMoney, playerId, amount);
+		Rpc(RpcAsk_AddPlayerMoney, playerId, amount, doEvent);
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_AddPlayerMoney(int playerId, int amount)
+	protected void RpcAsk_AddPlayerMoney(int playerId, int amount, bool doEvent)
 	{
-		OVT_Global.GetEconomy().DoAddPlayerMoney(playerId, amount);		
+		OVT_Global.GetEconomy().DoAddPlayerMoney(playerId, amount);
+		if(doEvent)
+		{
+			OVT_Global.GetEconomy().m_OnPlayerSell.Invoke(playerId, amount);
+		}		
 	}
 	
 	void TakePlayerMoney(int playerId, int amount)
