@@ -1,0 +1,15 @@
+TextWidgetClass {
+ Name "Text0"
+ Slot LayoutSlot "{5D91097637D47B74}" {
+  HorizontalAlign 1
+  VerticalAlign 1
+  Padding 0 0 0 2
+ }
+ Color 1 1 1 0.651
+ Text "10% Discount on all purchases"
+ "Font Size" 11
+ "Min Font Size" 11
+ "Horizontal Alignment" Center
+ "Vertical Alignment" Center
+ Wrap 1
+}

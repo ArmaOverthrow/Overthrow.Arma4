@@ -22,6 +22,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	protected OVT_EconomyManagerComponent m_EconomyManager;
 	protected OVT_PlayerManagerComponent m_PlayerManager;
 	protected OVT_JobManagerComponent m_JobManager;
+	protected OVT_SkillManagerComponent m_SkillManager;
 	protected OVT_PersistenceManagerComponent m_Persistence;
 	
 	ref set<string> m_aInitializedPlayers;
@@ -104,7 +105,12 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			m_JobManager.PostGameStart();
 		}
 		
-				
+		if(m_SkillManager)
+		{
+			Print("Starting Skills");
+			
+			m_SkillManager.PostGameStart();
+		}		
 		
 		Print("Overthrow Starting");
 		m_bGameInitialized = true;
@@ -395,6 +401,14 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			Print("Initializing Jobs");
 			
 			m_JobManager.Init(this);
+		}	
+		
+		m_SkillManager = OVT_SkillManagerComponent.Cast(FindComponent(OVT_SkillManagerComponent));		
+		if(m_SkillManager)
+		{
+			Print("Initializing Skills");
+			
+			m_SkillManager.Init(this);
 		}	
 		
 		m_StartGameUIContext.Init(owner, null);

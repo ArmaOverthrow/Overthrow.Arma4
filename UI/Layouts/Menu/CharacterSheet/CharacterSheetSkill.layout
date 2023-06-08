@@ -1,0 +1,155 @@
+OverlayWidgetClass {
+ Name "Skill"
+ {
+  PanelWidgetClass "{5D910358EF7B6902}" {
+   Name "Image0"
+   Slot OverlayWidgetSlot "{5D910358EF7B69EF}" {
+    HorizontalAlign 3
+    VerticalAlign 3
+   }
+   Color 0.091 0.091 0.091 0.31
+  }
+  VerticalLayoutWidgetClass "{5D910358085B1603}" {
+   Name "VerticalLayout0"
+   Slot OverlayWidgetSlot "{5D910970417D1233}" {
+    HorizontalAlign 0
+    VerticalAlign 0
+    Padding 10 10 10 10
+   }
+   {
+    TextWidgetClass "{5D910359D6A17565}" {
+     Name "SkillName"
+     Slot LayoutSlot "{5D910359D6A17534}" {
+     }
+     Text "Trade"
+     "Font Size" 32
+     "Min Font Size" 32
+     FontProperties FontProperties "{5D910358301242DA}" {
+      Bold 1
+     }
+    }
+    TextWidgetClass "{5D910359D9E7F958}" {
+     Name "SkillDescription"
+     Slot LayoutSlot "{5D910359D9E7F92B}" {
+      Padding 0 0 0 10
+     }
+     Text "This is a description here"
+     "Font Size" 16
+     "Min Font Size" 16
+    }
+    HorizontalLayoutWidgetClass "{5D910976A89FEDC7}" {
+     Name "HorizontalLayout0"
+     Slot LayoutSlot "{5D910976A89FED96}" {
+     }
+     {
+      HorizontalLayoutWidgetClass "{5D91097767522819}" {
+       Name "LevelContainer"
+       Slot LayoutSlot "{5D910977675228E4}" {
+       }
+       {
+        OverlayWidgetClass "{5D910977007159B6}" : "{97679790AD4184BF}UI/Layouts/Menu/CharacterSheet/CharacterSheetSkillLevel.layout" {
+         Name "SkillLevel4"
+         Slot LayoutSlot "{5D91097729FFB093}" {
+         }
+        }
+        OverlayWidgetClass "{5D91097702CDF1B1}" : "{97679790AD4184BF}UI/Layouts/Menu/CharacterSheet/CharacterSheetSkillLevel.layout" {
+         Name "SkillLevel3"
+         Slot LayoutSlot "{5D91097729FFB093}" {
+         }
+        }
+        OverlayWidgetClass "{5D91097703FC03D8}" : "{97679790AD4184BF}UI/Layouts/Menu/CharacterSheet/CharacterSheetSkillLevel.layout" {
+         Name "SkillLevel2"
+         Slot LayoutSlot "{5D91097729FFB093}" {
+         }
+        }
+        OverlayWidgetClass "{5D910977045AB2A8}" : "{97679790AD4184BF}UI/Layouts/Menu/CharacterSheet/CharacterSheetSkillLevel.layout" {
+         Name "SkillLevel1"
+         Slot LayoutSlot "{5D91097729FFB093}" {
+         }
+        }
+        OverlayWidgetClass "{5D910977062DD667}" : "{97679790AD4184BF}UI/Layouts/Menu/CharacterSheet/CharacterSheetSkillLevel.layout" {
+         Name "SkillLevel0"
+         Slot LayoutSlot "{5D91097729FFB093}" {
+         }
+        }
+       }
+      }
+      ButtonWidgetClass "{5D9109756A2F872F}" {
+       Name "AddButton"
+       Slot LayoutSlot {
+       }
+       Clipping False
+       Color 1 1 1 0
+       components {
+        SCR_ButtonComponent "{56FAC701265C74AA}" {
+         m_bMouseOverToFocus 1
+         m_BackgroundDefault 1 1 1 0
+         m_BackgroundHovered 1 1 1 0
+         m_bShowBorderOnHover 1
+        }
+        OVT_ShopMenuCardComponent "{598EF9F6FF18AF88}" {
+        }
+       }
+       {
+        SizeLayoutWidgetClass "{5D9109756A2F872E}" {
+         Name "SizeSetter"
+         Slot ButtonWidgetSlot "{56EF0B168C2D88EA}" {
+          Padding 0 0 0 0
+         }
+         AllowWidthOverride 1
+         WidthOverride 100
+         AllowHeightOverride 1
+         HeightOverride 100
+         AllowAspectRatioForce 1
+         {
+          OverlayWidgetClass "{5D9109756A2F872B}" {
+           Name "Overlay"
+           Slot AlignableSlot "{56EF0B16AB7E10D1}" {
+            HorizontalAlign 3
+            VerticalAlign 3
+            Padding 2 2 2 2
+           }
+           {
+            ImageWidgetClass "{5D910975223FC88B}" {
+             Name "Image0"
+             Slot OverlayWidgetSlot "{5D910970B7216592}" {
+              HorizontalAlign 3
+              VerticalAlign 3
+             }
+             Color 0.044 0.044 0.044 1
+            }
+            TextWidgetClass "{5D9109756A2F872A}" {
+             Name "Plus"
+             Slot OverlayWidgetSlot "{56EF0B18C4F3CA37}" {
+              HorizontalAlign 3
+              VerticalAlign 3
+             }
+             Color 1 1 1 0.592
+             Text "+"
+             "Font Size" 90
+             "Min Font Size" 90
+             "Horizontal Alignment" Center
+             "Vertical Alignment" Center
+            }
+            PanelWidgetClass "{5D9109756A2F871C}" {
+             Name "Border"
+             Slot OverlayWidgetSlot "{56EF0B195DBB5E79}" {
+              HorizontalAlign 3
+              VerticalAlign 3
+              Padding -2 -2 -2 -2
+             }
+             Color 0.761 0.392 0.08 1
+             style outline_2px
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

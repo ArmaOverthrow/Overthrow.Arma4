@@ -101,7 +101,7 @@ class OVT_MainMenuContext : OVT_UIContext
 		{
 			comp.m_OnClicked.Insert(Build);
 		}
-		
+				
 		// Real Estate
 		comp = SCR_ButtonTextComponent.GetButtonText("Real Estate", m_wRoot);
 		if (comp)
@@ -112,6 +112,13 @@ class OVT_MainMenuContext : OVT_UIContext
 			}else{
 				comp.m_OnClicked.Insert(RealEstate);
 			}
+		}
+		
+		// Character Sheet
+		comp = SCR_ButtonTextComponent.GetButtonText("Character Sheet", m_wRoot);
+		if (comp)
+		{
+			comp.m_OnClicked.Insert(CharacterSheet);
 		}
 		
 		// Save
@@ -190,6 +197,12 @@ class OVT_MainMenuContext : OVT_UIContext
 	{
 		CloseLayout();
 		m_UIManager.ShowContext(OVT_RealEstateContext);		
+	}
+	
+	private void CharacterSheet()
+	{
+		CloseLayout();
+		m_UIManager.ShowContext(OVT_CharacterSheetContext);		
 	}
 	
 	private void Save()

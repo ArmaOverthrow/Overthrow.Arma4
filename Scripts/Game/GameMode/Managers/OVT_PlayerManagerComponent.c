@@ -35,7 +35,23 @@ class OVT_PlayerData : Managed
 	
 	float GetLevelProgress()
 	{
-		return GetRawLevel() - GetLevel();
+		int levelFromXP = GetLevelXP(GetLevel()-1);
+		int levelToXP = GetNextLevelXP();
+		int total = levelToXP - levelFromXP;
+		int current = xp - levelFromXP;
+		
+		return current / total;
+	}
+	
+	int GetLevelXP(int level)
+	{
+		return Math.Pow(level / 0.1,2);
+	}
+	
+	int GetNextLevelXP()
+	{
+		int level = GetLevel();
+		return Math.Pow(level / 0.1,2);
 	}
 	
 	int CountSkills()

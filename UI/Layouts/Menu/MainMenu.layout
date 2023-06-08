@@ -25,7 +25,7 @@ FrameWidgetClass {
    {
     VerticalLayoutWidgetClass "{5D86A3CC56DF0B3B}" {
      Name "LogContainer"
-     Slot LayoutSlot {
+     Slot LayoutSlot "{5D90EE008F3DB919}" {
      }
      {
       FrameWidgetClass "{5D86A3C31F553FCC}" : "{83FFB5E643F7C339}UI/Layouts/Menu/MainMenu/MainMenuNotification.layout" {
@@ -485,7 +485,6 @@ FrameWidgetClass {
        Name "Character Sheet"
        Slot LayoutSlot "{557478C3F0230865}" {
        }
-       "Is Enabled" 0
        components {
         SCR_ButtonTextComponent "{5548F0143AE99095}" {
          m_BackgroundSelected 1 1 1 0.196

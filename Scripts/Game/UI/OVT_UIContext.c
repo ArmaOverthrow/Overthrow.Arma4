@@ -28,6 +28,7 @@ class OVT_UIContext : ScriptAndConfig
 	protected Widget m_wRoot;
 	protected string m_sPlayerID;
 	protected int m_iPlayerID;
+	protected ChimeraCharacter m_Player;
 	
 	void Init(IEntity owner, OVT_UIManagerComponent uimanager)
 	{
@@ -36,6 +37,7 @@ class OVT_UIContext : ScriptAndConfig
 		m_Economy = OVT_Global.GetEconomy();
 		m_Config = OVT_Global.GetConfig();
 		m_UIManager = uimanager;		
+		m_Player = ChimeraCharacter.Cast(owner);
 		
 		m_Controller = SCR_CharacterControllerComponent.Cast(owner.FindComponent(SCR_CharacterControllerComponent));
 		

@@ -1,0 +1,57 @@
+OverlayWidgetClass {
+ Name "SkillLevel"
+ Slot LayoutSlot "{5D91097729FFB093}" {
+  Padding 0 0 5 0
+ }
+ {
+  ImageWidgetClass "{5D910970B72165B6}" {
+   Name "Background"
+   Slot OverlayWidgetSlot "{5D910970B7216592}" {
+    HorizontalAlign 3
+    VerticalAlign 3
+   }
+   Color 0.044 0.044 0.044 1
+  }
+  SizeLayoutWidgetClass "{5D910970844EE664}" {
+   Name "SizeLayout0"
+   Slot OverlayWidgetSlot "{5D910970844EE624}" {
+   }
+   AllowWidthOverride 1
+   WidthOverride 100
+   AllowHeightOverride 1
+   HeightOverride 100
+   {
+    OverlayWidgetClass "{5D9109761BA0B6E4}" {
+     Name "Overlay0"
+     Slot AlignableSlot "{5D9109761BA0B6C5}" {
+     }
+     {
+      TextWidgetClass "{5D910977AA0BB583}" {
+       Name "TextSkillLevel"
+       Slot OverlayWidgetSlot "{5D911903BEF95555}" {
+       }
+       Color 0.089 0.089 0.089 0.494
+       Text "1"
+       "Font Size" 90
+       "Min Font Size" 90
+       "Horizontal Alignment" Center
+       "Vertical Alignment" Center
+      }
+      VerticalLayoutWidgetClass "{5D91097627E05C08}" {
+       Name "EffectContainer"
+       Slot OverlayWidgetSlot "{5D91097627E05CD6}" {
+       }
+       {
+        TextWidgetClass "{5D911902544EF9DD}" : "{B40D2F7787BB6248}UI/Layouts/Menu/CharacterSheet/CharacterSheetSkillEffect.layout" {
+         Name "Text00"
+         Slot LayoutSlot "{5D91097637D47B74}" {
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

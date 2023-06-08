@@ -4,6 +4,9 @@ class OVT_SkillManagerComponentClass: OVT_ComponentClass
 
 class OVT_SkillManagerComponent: OVT_Component
 {	
+	[Attribute()]
+	ref OVT_SkillsConfig m_Skills;
+	
 	static OVT_SkillManagerComponent s_Instance;
 	
 	static OVT_SkillManagerComponent GetInstance()
@@ -18,10 +21,13 @@ class OVT_SkillManagerComponent: OVT_Component
 		return s_Instance;
 	}
 	
-	override void OnPostInit(IEntity owner)
+	void Init(IEntity owner)
 	{
-		super.OnPostInit(owner);
 		
+	}
+	
+	void PostGameStart()
+	{		
 		OVT_OverthrowGameMode game = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());		
 		game.GetOnPlayerKilled().Insert(OnPlayerDeath);
 		
@@ -113,14 +119,6 @@ class OVT_SkillManagerComponent: OVT_Component
 	
 	void ~OVT_SkillManagerComponent()
 	{
-		OVT_OverthrowGameMode game = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());		
-		game.GetOnPlayerKilled().Remove(OnPlayerDeath);
 		
-		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
-		economy.m_OnPlayerBuy.Remove(OnPlayerBuy);
-		economy.m_OnPlayerSell.Remove(OnPlayerSell);
-		
-		OVT_OccupyingFactionManager of = OVT_Global.GetOccupyingFaction();
-		of.m_OnAIKilled.Remove(OnAIKilled);
 	}
 }

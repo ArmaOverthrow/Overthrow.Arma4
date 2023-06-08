@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{97679790AD4184BF}UI/Layouts/Menu/CharacterSheet/CharacterSheetSkillLevel.layout"
+ Configurations {
+  LayoutResourceClass PC {
+  }
+  LayoutResourceClass XBOX_ONE : PC {
+  }
+  LayoutResourceClass XBOX_SERIES : PC {
+  }
+  LayoutResourceClass PS4 : PC {
+  }
+  LayoutResourceClass HEADLESS : PC {
+  }
+ }
+}

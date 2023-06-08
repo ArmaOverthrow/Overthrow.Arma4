@@ -471,6 +471,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D90EE05EEC6781E}" {
+   Id "OVT-Level"
+   Target_en_us "Level %1"
+   Modified 1569781773
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59A2BD308A7926FA}" {
    Id "OVT-LoadStorage"
    Target_en_us "Load Into vehicle"
@@ -1221,6 +1228,62 @@ StringTable {
    Id "OVT-Shop_Selling"
    Target_en_us "Sell for"
    Modified 1562926325
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D91190139CCD0D6}" {
+   Id "OVT-Skill_Fitness"
+   Target_en_us "Fitness"
+   Modified 1569791299
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D91190104C9B444}" {
+   Id "OVT-Skill_Fitness_Description"
+   Target_en_us "Skill at running for longer"
+   Modified 1569792110
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D91035931D62E8D}" {
+   Id "OVT-Skill_Trade"
+   Target_en_us "Trade"
+   Modified 1569784820
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D9103593B02CEFA}" {
+   Id "OVT-Skill_Trade_Description"
+   Target_en_us "Skill at getting good deals for the resistance on equipment and supplies"
+   Modified 1569784858
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D9119001503A991}" {
+   Id "OVT-SkillEffect_Stamina"
+   Target_en_us "%1% Reduction in stamina drain"
+   Modified 1569792053
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D910972E5435D64}" {
+   Id "OVT-SkillEffect_TradeDiscount"
+   Target_en_us "%1% Discount on all purchases"
+   Modified 1569786927
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D90EE08355E4132}" {
+   Id "OVT-SkillPointsToSpend"
+   Target_en_us "%1 Skill points to spend"
+   Modified 1569783985
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D90EE08ED5CDD97}" {
+   Id "OVT-SkillPointToSpend"
+   Target_en_us "%1 Skill point to spend"
+   Modified 1569784087
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

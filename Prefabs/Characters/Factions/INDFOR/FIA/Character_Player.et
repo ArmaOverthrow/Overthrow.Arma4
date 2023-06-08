@@ -120,6 +120,15 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      m_bOpenActionCloses 0
      m_ItemLayout "{180AFE3E333CCB2B}UI/Layouts/Menu/PortMenu/PortInventoryItem.layout"
     }
+    OVT_CharacterSheetContext "{5D90EE00B7B5784B}" {
+     m_Layout "{3FAB6AC939AA912E}UI/Layouts/Menu/CharacterSheet.layout"
+     m_sContextName "OverthrowCharacterSheetContext"
+     m_sCloseAction "MenuBack"
+     m_bOpenActionCloses 0
+     m_SkillLayout "{7E15B98B24697DD9}UI/Layouts/Menu/CharacterSheet/CharacterSheetSkill.layout"
+     m_SkillLevelLayout "{97679790AD4184BF}UI/Layouts/Menu/CharacterSheet/CharacterSheetSkillLevel.layout"
+     m_SkillEffectLayout "{B40D2F7787BB6248}UI/Layouts/Menu/CharacterSheet/CharacterSheetSkillEffect.layout"
+    }
    }
   }
   SCR_BaseHUDComponent "{520EA1D2DB118134}" {
