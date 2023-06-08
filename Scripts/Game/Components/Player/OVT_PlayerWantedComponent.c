@@ -151,7 +151,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 			m_Faction.SetAffiliatedFactionByKey(m_Config.m_sPlayerFaction);
 		}
 		
-		if(m_iWantedLevel < 2 && currentFaction)
+		if(m_iWantedLevel < 1 && currentFaction)
 		{
 			//Print("You are no longer wanted");
 			m_Faction.SetAffiliatedFactionByKey("");

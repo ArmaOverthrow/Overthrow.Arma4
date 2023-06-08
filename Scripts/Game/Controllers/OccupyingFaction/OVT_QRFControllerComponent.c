@@ -38,10 +38,10 @@ class OVT_QRFControllerComponent: OVT_Component
 		
 		super.OnPostInit(owner);
 		m_OccupyingFaction = OVT_Global.GetOccupyingFaction();
+					
+		if(!Replication.IsServer()) return;
 		
 		GetGame().GetCallqueue().CallLater(CheckUpdateTimer, 1000, true, owner);		
-		
-		if(!Replication.IsServer()) return;
 		
 		m_Groups = new array<ref EntityID>;
 		SendTroops();
@@ -56,13 +56,14 @@ class OVT_QRFControllerComponent: OVT_Component
 		
 		m_iTimer -= 1000;
 		
-		m_OccupyingFaction.UpdateQRFTimer(m_iTimer);
-		
 		if(m_iTimer <= 0)
 		{
 			m_iTimer = 0;
 			GetGame().GetCallqueue().Remove(CheckUpdateTimer);
 		}
+		
+		m_OccupyingFaction.UpdateQRFTimer(m_iTimer);
+		Replication.BumpMe();
 	}
 	
 	void KillAll()
@@ -115,25 +116,32 @@ class OVT_QRFControllerComponent: OVT_Component
 	protected void CheckUpdatePoints()
 	{
 		BaseWorld world = GetGame().GetWorld();
-		int enemyNum = 0;
-		int playerNum = 0;
-		int enemyTotal = 0;
-		
+				
 		if(m_iTimer <= 0)
 		{
-			foreach(EntityID id : m_Groups)
-			{
-				IEntity group = world.FindEntityByID(id);
+			int enemyNum = 0;
+			int playerNum = 0;
+			int enemyTotal = 0;
+			
+			array<AIAgent> groups();
+			GetGame().GetAIWorld().GetAIAgents(groups);
+			foreach(AIAgent group : groups)
+			{				
 				if(!group) continue;
-				SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
-				if(!aigroup) continue;
-				float dist = vector.Distance(group.GetOrigin(),GetOwner().GetOrigin());
-				int num = aigroup.GetAgentsCount();
+				IEntity entity = group.GetControlledEntity();
+				if(!entity) continue;
+				SCR_ChimeraCharacter character = SCR_ChimeraCharacter.Cast(entity);
+				if(!character) continue;
+				if(character.GetFactionKey() != m_Config.GetOccupyingFactionData().GetFactionKey()) continue;
+				float dist = vector.Distance(character.GetOrigin(),GetOwner().GetOrigin());
 				if(dist < QRF_POINT_RANGE)
 				{
-					enemyNum += num;
+					enemyNum += 1;
 				}
-				enemyTotal += num;
+				if(dist < QRF_RANGE)
+				{
+					enemyTotal += 1;
+				}	
 			}
 			
 			array<int> players = new array<int>;
@@ -154,17 +162,17 @@ class OVT_QRFControllerComponent: OVT_Component
 				}
 			}
 			
-			if(playerNum > 0 && enemyTotal < 2){
+			if(playerNum == numplayers && enemyTotal == 0){
 				//push towards resistance fast
 				m_iPoints += 5;
 			}else{
-				if(playerNum == 0 && enemyNum == 0)
+				if(playerNum == enemyNum)
 				{
 					//push towards zero
 					if(m_iPoints > 0) m_iPoints--;
 					if(m_iPoints < 0) m_iPoints++;
 				}else{
-					if(playerNum > 0 && enemyNum < 3)
+					if(playerNum > enemyNum)
 					{
 						//push towards resistance
 						m_iPoints++;
@@ -206,14 +214,20 @@ class OVT_QRFControllerComponent: OVT_Component
 		
 		foreach(OVT_BaseData data : m_OccupyingFaction.m_Bases)
 		{			
-			OVT_BaseControllerComponent base = m_OccupyingFaction.GetBase(data.entId);
-			vector pos = base.GetOwner().GetOrigin();
+			vector pos = data.location;
 			float dist = vector.Distance(pos, qrfpos);
 			
-			if(!base.IsOccupyingFaction()) continue;
+			if(!data.IsOccupyingFaction()) continue;
 			if(dist < 20) continue; //QRF is for this base, ignore it
 			
 			m_Bases.Insert(pos);
+		}
+		
+		if(m_Bases.Count() == 0)
+		{
+			//Temporary for when the OF has no bases left but this one
+			//To-Do: organize an external force to come from the sea/air
+			m_Bases.Insert(qrfpos + "250 0 100");
 		}
 		
 		int resources = m_OccupyingFaction.m_iResources;
@@ -282,10 +296,7 @@ class OVT_QRFControllerComponent: OVT_Component
 			GetGame().GetCallqueue().CallLater(SendWave, s_AIRandomGenerator.RandInt(480000, 960000));
 		}
 		
-		m_OccupyingFaction.m_iResources = m_OccupyingFaction.m_iResources - spent;
-		if(m_OccupyingFaction.m_iResources < 0) m_OccupyingFaction.m_iResources = 0;
-		
-		m_iUsedResources = spent;
+		m_iUsedResources += spent;
 		
 		return spent;
 	}

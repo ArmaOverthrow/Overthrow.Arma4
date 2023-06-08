@@ -365,6 +365,7 @@ OVT_OverthrowGameMode {
    }
    m_pTownControllerPrefab "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.et"
    m_Difficulty OVT_DifficultySettings "{598AD54E1DA56EB1}" {
+    startingResources 3000
     startingCash 100
    }
    m_aDifficultyPresets {

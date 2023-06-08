@@ -525,10 +525,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 			m_Bases[m_iCurrentQRFBase].faction = m_CurrentQRF.m_iWinningFaction;
 			Rpc(RpcDo_SetBaseFaction, m_iCurrentQRFBase, m_CurrentQRF.m_iWinningFaction);
 		}		
-		
-		//Recover used resources
-		OVT_Global.GetOccupyingFaction().m_iResources = m_CurrentQRF.m_iUsedResources;
-				
+						
 		SCR_EntityHelper.DeleteEntityAndChildren(m_CurrentQRF.GetOwner());
 		m_CurrentQRF = null;
 		
@@ -572,10 +569,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		}
 		
 		OVT_Global.GetTowns().TryAddStabilityModifierByName(townID, "RecentBattle");
-		
-		//Recover used resources
-		OVT_Global.GetOccupyingFaction().m_iResources = m_CurrentQRF.m_iUsedResources;
-				
+						
 		SCR_EntityHelper.DeleteEntityAndChildren(m_CurrentQRF.GetOwner());
 		m_CurrentQRF = null;
 		
