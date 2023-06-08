@@ -95,23 +95,21 @@ class OVT_MapContext : OVT_UIContext
 			return true;
 		}
 		
-		IEntity house = m_RealEstate.GetNearestOwned(m_sPlayerID, pos);
+		IEntity house = m_RealEstate.GetNearestOwned(m_sPlayerID, pos, MAX_HOUSE_TRAVEL_DIS);
 		if(house)
 		{
 			if(m_RealEstate.IsRented(house.GetID())) return false;
 			OVT_RealEstateConfig config = m_RealEstate.GetConfig(house);
 			if(config.m_IsWarehouse) return false;
-			dist = vector.Distance(house.GetOrigin(), pos);				
-			if(dist < MAX_HOUSE_TRAVEL_DIS) return true;
+			return true;
 		}
 		
-		house = m_RealEstate.GetNearestRented(m_sPlayerID, pos);
+		house = m_RealEstate.GetNearestRented(m_sPlayerID, pos, MAX_HOUSE_TRAVEL_DIS);
 		if(house)
 		{
 			OVT_RealEstateConfig config = m_RealEstate.GetConfig(house);
 			if(config.m_IsWarehouse) return false;
-			dist = vector.Distance(house.GetOrigin(), pos);							
-			if(dist < MAX_HOUSE_TRAVEL_DIS) return true;
+			return true;
 		}
 		
 		vector fob = m_Resistance.GetNearestFOB(pos);		
