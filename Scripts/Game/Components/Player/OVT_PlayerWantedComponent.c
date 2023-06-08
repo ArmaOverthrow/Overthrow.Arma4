@@ -147,6 +147,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		if(m_iWantedLevel > 1 && !currentFaction)
 		{
 			//Print("You are wanted now");
+			if(m_Config.m_sPlayerFaction.IsEmpty()) m_Config.m_sPlayerFaction = "FIA";
 			m_Faction.SetAffiliatedFactionByKey(m_Config.m_sPlayerFaction);
 		}
 		

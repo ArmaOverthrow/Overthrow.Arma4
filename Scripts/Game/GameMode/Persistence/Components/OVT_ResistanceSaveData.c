@@ -46,7 +46,7 @@ class OVT_ResistanceSaveData : EPF_ComponentSaveData
 		}
 
 		OVT_Global.GetConfig().m_sPlayerFaction = m_sPlayerFactionKey;
-		int playerFactionIndex  = GetGame().GetFactionManager().GetFactionIndex(GetGame().GetFactionManager().GetFactionByKey(m_sPlayerFactionKey));
+		int playerFactionIndex = GetGame().GetFactionManager().GetFactionIndex(GetGame().GetFactionManager().GetFactionByKey(m_sPlayerFactionKey));
 		OVT_Global.GetConfig().m_iPlayerFactionIndex = playerFactionIndex;
 
 		foreach(OVT_FOBData fob : m_FOBs)
