@@ -202,7 +202,6 @@ class OVT_TownControllerComponent: OVT_Component
 				}
 				if(found)
 				{
-					Print(found.GetPrefab());
 					int id = m_Economy.GetInventoryId(found.GetPrefab());
 					int num = Math.Round(generator.RandFloatXY(1,m_Economy.GetTownMaxStock(townID, id)));
 					
