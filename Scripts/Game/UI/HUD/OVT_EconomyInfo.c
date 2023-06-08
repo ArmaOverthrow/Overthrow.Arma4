@@ -33,7 +33,7 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 	private override event void UpdateValues(IEntity owner, float timeSlice)
 	{	
 		m_fCounter += timeSlice;
-		if(!m_playerId){
+		if(!m_player){
 			InitCharacter();
 		}
 		UpdateMoney();
@@ -62,6 +62,7 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 			m_bTownShowing = false;
 			return;
 		}	
+		if(!m_player) return;
 		OVT_TownManagerComponent tm = OVT_Global.GetTowns();	
 		OVT_TownData town = tm.GetNearestTown(m_player.GetOrigin());
 		int townID = OVT_Global.GetTowns().GetTownID(town);

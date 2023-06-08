@@ -41,9 +41,15 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	
 	void DoStartNewGame()
 	{
+		if(RplSession.Mode() == RplMode.Dedicated)
+		{
+			Print("Dedicated server detected, setting occupying faction to " + m_Config.m_sDefaultOccupyingFaction);
+			m_Config.SetOccupyingFaction(m_Config.m_sDefaultOccupyingFaction);
+		}
+		
 		if(m_OccupyingFactionManager)
 		{
-			Print("Starting Occupying Faction");
+			Print("Starting New Occupying Faction");
 			
 			m_OccupyingFactionManager.NewGameStart();
 		}	
@@ -55,7 +61,11 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	}
 	
 	void DoStartGame()
-	{		
+	{	
+		FactionManager fm = GetGame().GetFactionManager();
+		m_Config.m_iPlayerFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(m_Config.m_sPlayerFaction));
+		m_Config.m_iOccupyingFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(m_Config.m_sOccupyingFaction));
+				
 		m_StartGameUIContext.CloseLayout();
 		m_bGameStarted = true;		
 		
@@ -436,28 +446,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-IntroHint","#OVT-Overthrow",20);
 			m_aHintedPlayers.Insert(playerId);
 		}		
-	}
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_ShowStartGame(int playerId)
-	{
-		int localId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
-		if(playerId != localId) return;
-		
-		m_StartGameUIContext.ShowLayout();
-	}
-	
-	void StartGame()
-	{
-		Print("Overthrow: Requesting Start Game");
-		Rpc(RpcAsk_StartGame);
-	}
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_StartGame()
-	{
-		Print ("Overthrow: Start Game Requested");
-		DoStartGame();
 	}
 	
 	//------------------------------------------------------------------------------------------------
