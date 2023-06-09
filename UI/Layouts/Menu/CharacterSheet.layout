@@ -115,29 +115,66 @@ FrameWidgetClass {
                   FillWeight 0.7
                  }
                  {
-                  TextWidgetClass "{5D90EE013EB59F98}" {
-                   Name "TextPlayerName"
-                   Slot LayoutSlot "{5D90EE013EB59861}" {
-                    VerticalAlign 1
-                    Padding 5 5 0 5
+                  HorizontalLayoutWidgetClass "{5D923C573BE7A541}" {
+                   Name "HorizontalLayout0"
+                   Slot LayoutSlot "{5D923C573BE7A513}" {
                    }
-                   Text "Player Name"
-                   "Font Size" 48
-                   "Min Font Size" 48
-                   FontProperties FontProperties "{5D91035852DC7759}" {
-                    Bold 1
-                    ShadowOffset 0 0
+                   {
+                    OverlayWidgetClass "{5D923C57EA5A6E12}" {
+                     Name "Overlay0"
+                     Slot LayoutSlot "{5D923C57EA5A6EF9}" {
+                     }
+                     {
+                      SizeLayoutWidgetClass "{5D923C57D54A6F64}" {
+                       Name "SizeLayout0"
+                       Slot OverlayWidgetSlot "{5D923C57D54A6F4B}" {
+                       }
+                       AllowWidthOverride 1
+                       WidthOverride 64
+                       AllowHeightOverride 1
+                       HeightOverride 64
+                       {
+                        ImageWidgetClass "{5D923C57F4ED4796}" {
+                         Name "Image0"
+                         Slot AlignableSlot "{5D923C57D401566E}" {
+                          HorizontalAlign 3
+                          VerticalAlign 3
+                         }
+                         Color 0.157 0.275 0.624 1
+                         Texture "{D17288006833490F}UI/Textures/Icons/icons_wrapperUI-32.imageset"
+                         Image "careerCircle"
+                         Size 32 32
+                        }
+                       }
+                      }
+                      TextWidgetClass "{5D90EE01B80FE2CC}" {
+                       Name "TextLevel"
+                       Slot OverlayWidgetSlot {
+                       }
+                       Text "24"
+                       "Font Size" 26
+                       "Min Font Size" 26
+                       "Horizontal Alignment" Center
+                       "Vertical Alignment" Center
+                      }
+                     }
+                    }
+                    TextWidgetClass "{5D90EE013EB59F98}" {
+                     Name "TextPlayerName"
+                     Slot LayoutSlot "{5D90EE013EB59861}" {
+                      VerticalAlign 1
+                      Padding 5 5 0 5
+                      SizeMode Fill
+                     }
+                     Text "Player Name"
+                     "Font Size" 48
+                     "Min Font Size" 48
+                     FontProperties FontProperties "{5D91035852DC7759}" {
+                      Bold 1
+                      ShadowOffset 0 0
+                     }
+                    }
                    }
-                  }
-                  TextWidgetClass "{5D90EE01B80FE2CC}" {
-                   Name "TextLevel"
-                   Slot LayoutSlot "{5D90EE013EB59861}" {
-                    VerticalAlign 1
-                    Padding 5 5 0 10
-                   }
-                   Text "#OVT-Level"
-                   "Font Size" 36
-                   "Min Font Size" 36
                   }
                   HorizontalLayoutWidgetClass "{5D90EE01F0EEB438}" {
                    Name "Progress"
@@ -195,15 +232,19 @@ FrameWidgetClass {
                    Name "TextToSpend"
                    Slot LayoutSlot "{5D90EE013EB59861}" {
                     VerticalAlign 1
-                    Padding 5 5 0 10
+                    Padding 5 2 0 0
                    }
+                   Color 0.402 0.402 0.402 1
                    Text "#OVT-SkillPointsToSpend"
-                   "Min Font Size" 24
+                   "Font Size" 12
+                   "Min Font Size" 12
+                   "Horizontal Alignment" Center
+                   "Vertical Alignment" Center
                   }
                   VerticalLayoutWidgetClass "{5D91035987F649A5}" {
                    Name "SkillContainer"
                    Slot LayoutSlot "{5D91035987F64981}" {
-                    Padding 5 20 0 0
+                    Padding 5 5 0 0
                     SizeMode Fill
                    }
                    {
@@ -211,36 +252,10 @@ FrameWidgetClass {
                      Name "Skill0"
                      Slot LayoutSlot "{5D9103587261C833}" {
                      }
-                     {
-                      VerticalLayoutWidgetClass "{5D910358085B1603}" {
-                       Prefab "{5D910358085B1603}"
-                       {
-                        HorizontalLayoutWidgetClass "{5D91097767522819}" {
-                         Prefab "{5D91097767522819}"
-                         Slot LayoutSlot "{5D910977675228E4}" {
-                          Padding 0 10 0 0
-                         }
-                        }
-                       }
-                      }
-                     }
                     }
                     OverlayWidgetClass "{5D910977DE553731}" : "{7E15B98B24697DD9}UI/Layouts/Menu/CharacterSheet/CharacterSheetSkill.layout" {
                      Name "Skill1"
                      Slot LayoutSlot "{5D9103587261C833}" {
-                     }
-                     {
-                      VerticalLayoutWidgetClass "{5D910358085B1603}" {
-                       Prefab "{5D910358085B1603}"
-                       {
-                        HorizontalLayoutWidgetClass "{5D91097767522819}" {
-                         Prefab "{5D91097767522819}"
-                         Slot LayoutSlot "{5D910977675228E4}" {
-                          Padding 0 10 0 0
-                         }
-                        }
-                       }
-                      }
                      }
                     }
                    }

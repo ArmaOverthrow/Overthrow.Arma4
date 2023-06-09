@@ -427,10 +427,16 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return price;
 	}
 	
-	int GetBuyPrice(int id, vector pos = "0 0 0")
+	int GetBuyPrice(int id, vector pos = "0 0 0", int playerId=-1)
 	{
 		int price = GetSellPrice(id, pos);
 		int buy = Math.Round(price + (price * m_Config.m_fShopProfitMargin));
+		if(playerId > -1)
+		{
+			OVT_PlayerData player = OVT_PlayerData.Get(playerId);
+			if(player)
+				buy = Math.Round(buy * player.priceMultiplier);
+		}
 		if(buy == price) buy += 1;
 		return buy;
 	}

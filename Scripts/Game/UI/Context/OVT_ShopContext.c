@@ -128,7 +128,7 @@ class OVT_ShopContext : OVT_UIContext
 			w.SetOpacity(1);
 			OVT_ShopMenuCardComponent card = OVT_ShopMenuCardComponent.Cast(w.FindHandler(OVT_ShopMenuCardComponent));
 			
-			int buy = m_Economy.GetBuyPrice(id, m_Shop.GetOwner().GetOrigin());
+			int buy = m_Economy.GetBuyPrice(id, m_Shop.GetOwner().GetOrigin(),m_iPlayerID);
 			int qty = m_Shop.GetStock(id);
 			
 			card.Init(res, buy, qty, this);
@@ -153,7 +153,7 @@ class OVT_ShopContext : OVT_UIContext
 		TextWidget details = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedDetails"));
 		TextWidget desc = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedDescription"));
 		
-		int buy = m_Economy.GetBuyPrice(id, m_Shop.GetOwner().GetOrigin());
+		int buy = m_Economy.GetBuyPrice(id, m_Shop.GetOwner().GetOrigin(),m_iPlayerID);
 		int sell = m_Economy.GetSellPrice(id, m_Shop.GetOwner().GetOrigin());
 		int qty = m_Shop.GetStock(id);
 		OVT_TownData town = m_Shop.GetTown();
@@ -204,7 +204,7 @@ class OVT_ShopContext : OVT_UIContext
 		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
 		if(!player) return;
 		
-		int cost = m_Economy.GetBuyPrice(m_SelectedResource, m_Shop.GetOwner().GetOrigin());
+		int cost = m_Economy.GetBuyPrice(m_SelectedResource, m_Shop.GetOwner().GetOrigin(),m_iPlayerID);
 		
 		if(!m_Economy.PlayerHasMoney(m_sPlayerID, cost)) return;
 				

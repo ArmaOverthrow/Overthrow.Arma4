@@ -679,6 +679,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D923C512BF03A5F}" {
+   Id "OVT-Msg-LevelledUp"
+   Target_en_us "You have reached level %1 and have a skill point to spend in the Character Sheet"
+   Modified 1569866579
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59A49A823A9D330A}" {
    Id "OVT-Msg-NewFOB"
    Target_en_us "New FOB"

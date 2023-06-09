@@ -16,7 +16,11 @@ class OVT_PlayerData : Managed
 	
 	int kills;
 	int xp;
+	int levelNotified=1;
 	ref map<string,int> skills = new map<string,int>;
+	
+	[NonSerialized()]
+	float priceMultiplier=1;
 	
 	bool IsOffline()
 	{
@@ -92,6 +96,8 @@ class OVT_PlayerManagerComponent: OVT_Component
 
 		return s_Instance;
 	}
+	
+	ref ScriptInvoker m_OnPlayerDataLoaded = new ref ScriptInvoker();
 	
 	protected ref map<int, string> m_mPersistentIDs;
 	protected ref map<string, int> m_mPlayerIDs;

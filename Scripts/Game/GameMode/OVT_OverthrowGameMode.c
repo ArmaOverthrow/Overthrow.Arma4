@@ -180,6 +180,12 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			DiagMenu.SetValue(204,0);
 		}
 		
+		if(DiagMenu.GetValue(205))
+		{
+			OVT_Global.GetSkills().GiveXP(SCR_PlayerController.GetLocalPlayerId(),100);
+			DiagMenu.SetValue(205,0);
+		}
+		
 		if(!(IsMaster() && RplSession.Mode() == RplMode.Dedicated) && !m_bCameraSet)
 		{
 			SetRandomCameraPosition();
@@ -346,6 +352,9 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		
 		DiagMenu.RegisterBool(204, "lctrl+lalt+r", "Poster all towns", "Cheats");
 		DiagMenu.SetValue(204, 0);
+		
+		DiagMenu.RegisterBool(205, "lctrl+lalt+x", "Give 100 XP", "Cheats");
+		DiagMenu.SetValue(205, 0);
 		
 		if(SCR_Global.IsEditMode())
 			return;		

@@ -28,6 +28,12 @@ class OVT_CharacterSheetContext : OVT_UIContext
 		
 		m_SkillContainer = m_wRoot.FindAnyWidget("SkillContainer");
 		m_SkillManager = OVT_Global.GetSkills();
+		
+		m_SkillManager.m_OnPlayerSkill.Insert(Refresh);
+		
+		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");
+		SCR_NavigationButtonComponent btn = SCR_NavigationButtonComponent.Cast(closeButton.FindHandler(SCR_NavigationButtonComponent));		
+		btn.m_OnClicked.Insert(CloseLayout);
 				
 		RefreshPlayerWidget();
 		
@@ -46,7 +52,7 @@ class OVT_CharacterSheetContext : OVT_UIContext
 		int toSpend = (level - 1) - player.CountSkills();
 		
 		txt = TextWidget.Cast(m_wRoot.FindAnyWidget("TextLevel"));
-		txt.SetTextFormat("#OVT-Level",level.ToString());
+		txt.SetTextFormat(level.ToString());
 		
 		txt = TextWidget.Cast(m_wRoot.FindAnyWidget("TextLevelFrom"));
 		txt.SetText(level.ToString());
@@ -77,11 +83,13 @@ class OVT_CharacterSheetContext : OVT_UIContext
 		
 		foreach(OVT_SkillConfig config : m_SkillManager.m_Skills.m_aSkills)
 		{
-			RenderSkill(config);
+			int playerLevel = 0;
+			if(player.skills.Contains(config.m_sKey)) playerLevel = player.skills[config.m_sKey];
+			RenderSkill(config,toSpend,playerLevel);
 		}
 	}
 	
-	protected void RenderSkill(OVT_SkillConfig config)
+	protected void RenderSkill(OVT_SkillConfig config, int toSpend, int playerLevel)
 	{
 		WorkspaceWidget workspace = GetGame().GetWorkspace(); 
 		Widget w = workspace.CreateWidgets(m_SkillLayout, m_SkillContainer);
@@ -92,12 +100,29 @@ class OVT_CharacterSheetContext : OVT_UIContext
 		txt = TextWidget.Cast(w.FindAnyWidget("SkillDescription"));
 		txt.SetText(config.m_UIInfo.GetDescription());
 		
+		ImageWidget icon = ImageWidget.Cast(w.FindAnyWidget("SkillIcon"));
+		config.m_UIInfo.SetIconTo(icon);
+		
 		Widget levelContainer = w.FindAnyWidget("LevelContainer");
 		Widget child = levelContainer.GetChildren();
 		while(child)
 		{
 			levelContainer.RemoveChild(child);
 			child = levelContainer.GetChildren();
+		}
+		
+		ButtonWidget add = ButtonWidget.Cast(w.FindAnyWidget("AddButton"));
+		add.SetName(config.m_sKey);
+		if(toSpend > 0)
+		{
+			add.SetVisible(true);
+		}else{
+			add.SetVisible(false);
+		}
+		SCR_ButtonComponent btn = SCR_ButtonComponent.Cast(add.FindHandler(SCR_ButtonComponent));
+		if(btn)
+		{
+			btn.m_OnClicked.Insert(BuySkill);
 		}
 		
 		int level = 1;
@@ -107,6 +132,13 @@ class OVT_CharacterSheetContext : OVT_UIContext
 			Widget effectContainer = ww.FindAnyWidget("EffectContainer");
 			txt = TextWidget.Cast(ww.FindAnyWidget("TextSkillLevel"));
 			txt.SetText(level.ToString());
+			
+			if(playerLevel >= level)
+			{
+				ImageWidget bg = ImageWidget.Cast(ww.FindAnyWidget("Background"));
+				bg.SetColor(new Color(0.0, 0.42, 0.22, 1.0));
+			}
+			
 			
 			Widget effectChild = effectContainer.GetChildren();
 			while(effectChild)
@@ -124,6 +156,23 @@ class OVT_CharacterSheetContext : OVT_UIContext
 			
 			level++;
 		}
+	}
+	
+	protected void BuySkill(SCR_ButtonBaseComponent btn)
+	{		
+		string key = btn.GetRootWidget().GetName();
+		OVT_PlayerData player = OVT_PlayerData.Get(m_sPlayerID);
+		
+		int level = player.GetLevel();
+		int toSpend = (level - 1) - player.CountSkills();
+		if(toSpend <= 0) return;
+		
+		OVT_Global.GetServer().BuySkill(m_iPlayerID,key);
+	}
+	
+	protected override void OnClose()
+	{
+		m_SkillManager.m_OnPlayerSkill.Remove(Refresh);
 	}
 	
 	

@@ -25,12 +25,12 @@ class OVT_SkillLevelConfig : ScriptAndConfig
 
 class OVT_SkillEffect : ScriptAndConfig
 {	
-	void SetupSkillServer(ChimeraCharacter character, string persId)
+	void OnPlayerData(OVT_PlayerData player)
 	{
 	
 	}
 	
-	void SetupSkillLocal(ChimeraCharacter character)
+	void OnPlayerSpawn(ChimeraCharacter character)
 	{
 	
 	}

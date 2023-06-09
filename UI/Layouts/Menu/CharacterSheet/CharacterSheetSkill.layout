@@ -17,25 +17,53 @@ OverlayWidgetClass {
     Padding 10 10 10 10
    }
    {
-    TextWidgetClass "{5D910359D6A17565}" {
-     Name "SkillName"
-     Slot LayoutSlot "{5D910359D6A17534}" {
+    HorizontalLayoutWidgetClass "{5D923C56DC344445}" {
+     Name "HorizontalLayout1"
+     Slot LayoutSlot "{5D923C56DC34441F}" {
      }
-     Text "Trade"
-     "Font Size" 32
-     "Min Font Size" 32
-     FontProperties FontProperties "{5D910358301242DA}" {
-      Bold 1
+     {
+      SizeLayoutWidgetClass "{5D923C56AE08B78E}" {
+       Name "SizeLayout0"
+       Slot LayoutSlot "{5D923C56AE08B051}" {
+       }
+       AllowWidthOverride 1
+       WidthOverride 24
+       AllowHeightOverride 1
+       HeightOverride 24
+       {
+        ImageWidgetClass "{5D923C56AA5FA006}" {
+         Name "SkillIcon"
+         Slot AlignableSlot "{5D923C56AA5FA0E2}" {
+         }
+         Texture "{D17288006833490F}UI/Textures/Icons/icons_wrapperUI-32.imageset"
+         Image "fxIcon"
+         Size 32 32
+        }
+       }
+      }
+      TextWidgetClass "{5D910359D6A17565}" {
+       Name "SkillName"
+       Slot LayoutSlot "{5D910359D6A17534}" {
+        Padding 0 0 0 0
+        SizeMode Fill
+       }
+       Text "Trade"
+       "Min Font Size" 24
+       FontProperties FontProperties "{5D910358301242DA}" {
+        Bold 1
+       }
+      }
      }
     }
     TextWidgetClass "{5D910359D9E7F958}" {
      Name "SkillDescription"
      Slot LayoutSlot "{5D910359D9E7F92B}" {
-      Padding 0 0 0 10
+      Padding 0 2 0 5
      }
      Text "This is a description here"
-     "Font Size" 16
-     "Min Font Size" 16
+     "Font Size" 14
+     "Min Font Size" 14
+     "Vertical Alignment" Center
     }
     HorizontalLayoutWidgetClass "{5D910976A89FEDC7}" {
      Name "HorizontalLayout0"
@@ -50,6 +78,12 @@ OverlayWidgetClass {
         OverlayWidgetClass "{5D910977007159B6}" : "{97679790AD4184BF}UI/Layouts/Menu/CharacterSheet/CharacterSheetSkillLevel.layout" {
          Name "SkillLevel4"
          Slot LayoutSlot "{5D91097729FFB093}" {
+         }
+         {
+          ImageWidgetClass "{5D910970B72165B6}" {
+           Prefab "{5D910970B72165B6}"
+           Color 0 0.147 0.041 1
+          }
          }
         }
         OverlayWidgetClass "{5D91097702CDF1B1}" : "{97679790AD4184BF}UI/Layouts/Menu/CharacterSheet/CharacterSheetSkillLevel.layout" {
@@ -76,7 +110,7 @@ OverlayWidgetClass {
       }
       ButtonWidgetClass "{5D9109756A2F872F}" {
        Name "AddButton"
-       Slot LayoutSlot {
+       Slot LayoutSlot "{5D923C51AA3E5028}" {
        }
        Clipping False
        Color 1 1 1 0

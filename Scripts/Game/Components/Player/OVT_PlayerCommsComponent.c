@@ -22,6 +22,17 @@ class OVT_PlayerCommsComponent: OVT_Component
 		}
 	}
 	
+	void BuySkill(int playerId, string key)
+	{
+		Rpc(RpcAsk_BuySkill, playerId, key);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	void RpcAsk_BuySkill(int playerId, string key)
+	{
+		OVT_Global.GetSkills().AddSkillLevel(playerId, key);
+	}
+	
 	void StartBaseCapture(vector loc)
 	{		
 		Rpc(RpcAsk_StartBaseCapture, loc);
@@ -274,7 +285,7 @@ class OVT_PlayerCommsComponent: OVT_Component
 		
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
 		
-		int cost = economy.GetBuyPrice(id, player.GetOrigin());		
+		int cost = economy.GetBuyPrice(id, player.GetOrigin(),playerId);		
 		if(!economy.PlayerHasMoney(playerPersId, cost)) return;
 		
 		int total = 0;
@@ -350,7 +361,7 @@ class OVT_PlayerCommsComponent: OVT_Component
 		
 		string playerPersId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		
-		int cost = economy.GetBuyPrice(id, player.GetOrigin());		
+		int cost = economy.GetBuyPrice(id, player.GetOrigin(), playerId);		
 		if(!economy.PlayerHasMoney(playerPersId, cost)) return;
 		
 		if(OVT_Global.GetVehicles().SpawnVehicleNearestParking(economy.GetResource(id), player.GetOrigin(), playerPersId))

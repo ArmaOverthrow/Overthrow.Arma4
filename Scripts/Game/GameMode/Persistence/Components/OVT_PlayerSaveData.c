@@ -6,7 +6,7 @@ class OVT_PlayerSaveDataClass : EPF_ComponentSaveDataClass
 [EDF_DbName.Automatic()]
 class OVT_PlayerSaveData : EPF_ComponentSaveData
 {
-	map<string, ref OVT_PlayerData> m_mPlayers;
+	ref map<string, ref OVT_PlayerData> m_mPlayers;
 	
 	override EPF_EReadResult ReadFrom(IEntity owner, GenericComponent component, EPF_ComponentSaveDataClass attributes)
 	{		
@@ -21,7 +21,13 @@ class OVT_PlayerSaveData : EPF_ComponentSaveData
 	{
 		OVT_PlayerManagerComponent players = OVT_PlayerManagerComponent.Cast(component);
 		
-		players.m_mPlayers = m_mPlayers;
+		for(int t=0; t< m_mPlayers.Count(); t++)
+		{
+			string persId = m_mPlayers.GetKey(t);
+			OVT_PlayerData player = m_mPlayers.GetElement(t);
+			players.m_mPlayers[persId] = player;
+			players.m_OnPlayerDataLoaded.Invoke(player, persId);
+		}
 				
 		return EPF_EApplyResult.OK;
 	}

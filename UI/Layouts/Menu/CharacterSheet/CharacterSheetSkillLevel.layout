@@ -30,7 +30,7 @@ OverlayWidgetClass {
        Name "TextSkillLevel"
        Slot OverlayWidgetSlot "{5D911903BEF95555}" {
        }
-       Color 0.089 0.089 0.089 0.494
+       Color 1 1 1 0.047
        Text "1"
        "Font Size" 90
        "Min Font Size" 90
