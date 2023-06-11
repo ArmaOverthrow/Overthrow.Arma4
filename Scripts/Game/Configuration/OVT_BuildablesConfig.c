@@ -24,7 +24,10 @@ class OVT_Buildable
 	ResourceName m_tPreview;
 	
 	[Attribute(defvalue: "100", desc: "Cost (multiplied by difficulty)")]
-	int m_iCost;
+	int m_iCost;	
+	
+	[Attribute(defvalue: "25", desc: "XP gain when built")]
+	int m_iRewardXP;
 	
 	[Attribute(defvalue: "0", desc: "Can build at a base")]
 	bool m_bBuildAtBase;

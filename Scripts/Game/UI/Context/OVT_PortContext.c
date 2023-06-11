@@ -44,6 +44,9 @@ class OVT_PortContext : OVT_UIContext
 		Widget container = m_wRoot.FindAnyWidget("Inventory");
 		WorkspaceWidget workspace = GetGame().GetWorkspace(); 
 		
+		TextWidget money = TextWidget.Cast(m_wRoot.FindAnyWidget("PlayerMoney"));		
+		money.SetText("$" + m_Economy.GetPlayerMoney(m_sPlayerID));
+		
 		int wi = 0;
 		
 		while(container.GetChildren())
@@ -51,36 +54,60 @@ class OVT_PortContext : OVT_UIContext
 		
 		array<ResourceName> done = new array<ResourceName>;
 		
-		foreach(OVT_ShopInventoryConfig shop : m_Economy.m_aShopConfigs)
-		{			
-			if(shop.type == OVT_ShopType.SHOP_VEHICLE) continue;
-			
-			foreach(OVT_ShopInventoryItem item : shop.m_aInventoryItems)
+		if(m_PlayerData.HasPermission("IllegalImports"))
+		{
+			array<ResourceName> resources();
+			m_Economy.GetAllNonOccupyingFactionItems(resources);
+			foreach(ResourceName prefab : resources)
 			{
-				array<SCR_EntityCatalogEntry> entries();
-				m_Economy.FindInventoryItems(item.m_eItemType, item.m_eItemMode, item.m_sFind, entries);
+				if(done.Contains(prefab)) continue;
+				done.Insert(prefab);
 				
-				foreach(SCR_EntityCatalogEntry entry : entries)
-				{
-					ResourceName prefab = entry.GetPrefab();
-					if(done.Contains(prefab)) continue;
-					done.Insert(prefab);
-					
-					if(wi == 0 && m_SelectedResource == -1){
-						SelectItem(prefab);
-					}
-					
-					Widget ww = workspace.CreateWidgets(m_ItemLayout, container);
-					OVT_PortItemComponent card = OVT_PortItemComponent.Cast(ww.FindHandler(OVT_PortItemComponent));
-					
-					int id = m_Economy.GetInventoryId(prefab);
-											
-					card.Init(prefab, m_Economy.GetPrice(id), this);
-					
-					wi++;
+				if(wi == 0 && m_SelectedResource == -1){
+					SelectItem(prefab);
 				}
-			}
-		}		
+				
+				Widget ww = workspace.CreateWidgets(m_ItemLayout, container);
+				OVT_PortItemComponent card = OVT_PortItemComponent.Cast(ww.FindHandler(OVT_PortItemComponent));
+				
+				int id = m_Economy.GetInventoryId(prefab);
+										
+				card.Init(prefab, m_Economy.GetPrice(id), this);
+				
+				wi++;
+			}				
+		}else{		
+			foreach(OVT_ShopInventoryConfig shop : m_Economy.m_aShopConfigs)
+			{			
+				if(shop.type == OVT_ShopType.SHOP_VEHICLE) continue;
+				
+				foreach(OVT_ShopInventoryItem item : shop.m_aInventoryItems)
+				{
+					array<SCR_EntityCatalogEntry> entries();
+					m_Economy.FindInventoryItems(item.m_eItemType, item.m_eItemMode, item.m_sFind, entries);
+					
+					foreach(SCR_EntityCatalogEntry entry : entries)
+					{
+						ResourceName prefab = entry.GetPrefab();
+						if(done.Contains(prefab)) continue;
+						done.Insert(prefab);
+						
+						if(wi == 0 && m_SelectedResource == -1){
+							SelectItem(prefab);
+						}
+						
+						Widget ww = workspace.CreateWidgets(m_ItemLayout, container);
+						OVT_PortItemComponent card = OVT_PortItemComponent.Cast(ww.FindHandler(OVT_PortItemComponent));
+						
+						int id = m_Economy.GetInventoryId(prefab);
+												
+						card.Init(prefab, m_Economy.GetPrice(id), this);
+						
+						wi++;
+					}
+				}
+			}		
+		}
 	}
 	
 	override void SelectItem(ResourceName res)

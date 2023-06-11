@@ -157,6 +157,7 @@ class OVT_QRFControllerComponent: OVT_Component
 					float distance = vector.Distance(player.GetOrigin(), GetOwner().GetOrigin());
 					if(distance < QRF_POINT_RANGE)
 					{
+						OVT_Global.GetSkills().GiveXP(playerID, 2);
 						playerNum++;
 					}
 				}

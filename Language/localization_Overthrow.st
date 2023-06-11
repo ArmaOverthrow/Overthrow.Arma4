@@ -1315,6 +1315,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D94EEC5B303C59A}" {
+   Id "OVT-SkillEffect_IllegalImports"
+   Target_en_us "Unlocks import of illegal goods at ports"
+   Modified 1570138678
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5D9119001503A991}" {
    Id "OVT-SkillEffect_Stamina"
    Target_en_us "%1% Reduction in stamina drain"

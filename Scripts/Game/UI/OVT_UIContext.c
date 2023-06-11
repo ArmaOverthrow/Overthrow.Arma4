@@ -29,6 +29,7 @@ class OVT_UIContext : ScriptAndConfig
 	protected string m_sPlayerID;
 	protected int m_iPlayerID;
 	protected ChimeraCharacter m_Player;
+	protected OVT_PlayerData m_PlayerData;
 	
 	void Init(IEntity owner, OVT_UIManagerComponent uimanager)
 	{
@@ -54,6 +55,7 @@ class OVT_UIContext : ScriptAndConfig
 		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(m_Owner);
 		m_sPlayerID = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		m_iPlayerID = playerId;
+		m_PlayerData = OVT_PlayerData.Get(m_iPlayerID);
 	}
 	
 	void PostInit()

@@ -64,6 +64,9 @@ class OVT_ResistanceFactionManager: OVT_Component
 	protected IEntity m_TempVehicle;
 	protected SCR_AIGroup m_TempGroup;
 	
+	ref ScriptInvoker m_OnPlace = new ref ScriptInvoker();
+	ref ScriptInvoker m_OnBuild = new ref ScriptInvoker();
+	
 	static OVT_ResistanceFactionManager s_Instance;
 	
 	static OVT_ResistanceFactionManager GetInstance()
@@ -185,6 +188,8 @@ class OVT_ResistanceFactionManager: OVT_Component
 			placeable.handler.OnPlace(entity, playerId);
 		}
 		
+		m_OnPlace.Invoke(entity, placeable, playerId);
+		
 		return entity;
 	}
 	
@@ -204,6 +209,8 @@ class OVT_ResistanceFactionManager: OVT_Component
 		{
 			buildable.handler.OnPlace(entity, playerId);
 		}
+		
+		m_OnBuild.Invoke(entity, buildable, playerId);
 		
 		return entity;
 	}

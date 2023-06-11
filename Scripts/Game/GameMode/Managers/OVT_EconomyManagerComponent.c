@@ -849,6 +849,23 @@ class OVT_EconomyManagerComponent: OVT_Component
 		}
 		return true;
 	}
+	
+	bool GetAllNonOccupyingFactionItems(out array<ResourceName> resources)
+	{
+		int occupyingFactionIndex = m_Config.GetOccupyingFactionIndex();
+		foreach(SCR_EntityCatalogEntry entry : m_aEntityCatalogEntries)
+		{
+			SCR_ArsenalItem item = SCR_ArsenalItem.Cast(entry.GetEntityDataOfType(SCR_ArsenalItem));
+			if(item)
+			{
+				ResourceName prefab = entry.GetPrefab();
+				int id = GetInventoryId(prefab);
+				if(ItemIsFromFaction(id, occupyingFactionIndex)) continue;
+				resources.Insert(prefab);				
+			}
+		}
+		return true;
+	}
 			
 	void PostGameStart()
 	{		

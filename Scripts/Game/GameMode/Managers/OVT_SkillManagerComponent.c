@@ -41,6 +41,10 @@ class OVT_SkillManagerComponent: OVT_Component
 		
 		OVT_OccupyingFactionManager of = OVT_Global.GetOccupyingFaction();
 		of.m_OnAIKilled.Insert(OnAIKilled);
+		
+		OVT_ResistanceFactionManager rf = OVT_Global.GetResistanceFaction();
+		rf.m_OnPlace.Insert(OnBuild);
+		rf.m_OnPlace.Insert(OnPlace);
 	}
 	
 	void OnPlayerDataLoaded(OVT_PlayerData player, string persId)
@@ -105,6 +109,16 @@ class OVT_SkillManagerComponent: OVT_Component
 		}
 	}
 	
+	void OnPlace(IEntity entity, OVT_Placeable placeable, int playerId)
+	{
+		GiveXP(playerId, placeable.m_iRewardXP);
+	}
+	
+	void OnBuild(IEntity entity, OVT_Buildable buildable, int playerId)
+	{
+		GiveXP(playerId, buildable.m_iRewardXP);
+	}
+	
 	void OnPlayerDeath(int playerId)
 	{
 		TakeXP(playerId, 1);
@@ -112,8 +126,7 @@ class OVT_SkillManagerComponent: OVT_Component
 	
 	void OnPlayerBuy(int playerId, int amount)
 	{
-		int xp = 1 + Math.Floor(amount * 0.01);
-		GiveXP(playerId, xp);
+		GiveXP(playerId, 1);
 	}
 	
 	void OnPlayerSell(int playerId, int amount)

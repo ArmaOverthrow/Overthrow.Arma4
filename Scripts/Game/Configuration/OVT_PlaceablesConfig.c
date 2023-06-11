@@ -23,6 +23,9 @@ class OVT_Placeable
 	[Attribute(defvalue: "100", desc: "Cost (multiplied by difficulty)")]
 	int m_iCost;
 	
+	[Attribute(defvalue: "1", desc: "XP gain when placed")]
+	int m_iRewardXP;
+	
 	[Attribute(defvalue: "0", desc: "Place on walls")]
 	bool m_bPlaceOnWall;
 	
