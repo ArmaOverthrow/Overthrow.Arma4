@@ -22,6 +22,12 @@ class OVT_PlayerData : Managed
 	[NonSerialized()]
 	float priceMultiplier=1;
 	
+	[NonSerialized()]
+	float stealthMultiplier=1;
+	
+	[NonSerialized()]
+	float diplomacy=0.1;
+	
 	bool IsOffline()
 	{
 		return id == -1;

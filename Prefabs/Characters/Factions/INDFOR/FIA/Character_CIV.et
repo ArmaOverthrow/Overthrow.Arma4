@@ -85,6 +85,15 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      UIInfo UIInfo "{5D346D72DBBA8B7E}" {
       Name "#OVT-SellDrugs"
      }
+     "Sort Priority" 1
+    }
+    OVT_ConvertSupporterAction "{5D94EE3C6F34DDC0}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{5D94EE3C69CD6B85}" {
+      Name "#OVT-ConvertSupporter"
+     }
     }
    }
   }

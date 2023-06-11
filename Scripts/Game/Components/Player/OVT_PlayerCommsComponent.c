@@ -22,6 +22,17 @@ class OVT_PlayerCommsComponent: OVT_Component
 		}
 	}
 	
+	void AddSupporters(vector location, int num)
+	{
+		Rpc(RpcAsk_AddSupporters, location, num);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	void RpcAsk_AddSupporters(vector location, int num)
+	{
+		OVT_Global.GetTowns().AddSupport(location, num);		
+	}
+	
 	void BuySkill(int playerId, string key)
 	{
 		Rpc(RpcAsk_BuySkill, playerId, key);

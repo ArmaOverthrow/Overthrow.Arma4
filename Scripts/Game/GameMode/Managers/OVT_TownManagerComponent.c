@@ -790,6 +790,15 @@ class OVT_TownManagerComponent: OVT_Component
 		Rpc(RpcDo_SetPopulation, townID, town.population - num);
 	}
 	
+	void AddSupport(vector pos, int num = 1)
+	{
+		OVT_TownData town = GetNearestTown(pos);
+		int townID = GetTownID(town);
+				
+		RpcDo_SetSupport(townID, town.support + num);
+		Rpc(RpcDo_SetSupport, townID, town.support + num);
+	}
+	
 	protected bool CheckHouseAddPopulation(IEntity entity)
 	{
 		VObject mesh = entity.GetVObject();

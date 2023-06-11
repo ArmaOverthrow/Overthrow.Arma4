@@ -136,7 +136,7 @@ class OVT_CharacterSheetContext : OVT_UIContext
 			if(playerLevel >= level)
 			{
 				ImageWidget bg = ImageWidget.Cast(ww.FindAnyWidget("Background"));
-				bg.SetColor(new Color(0.0, 0.42, 0.22, 1.0));
+				bg.SetColor(new Color(0.0, 0.32, 0.12, 1.0));
 			}
 			
 			

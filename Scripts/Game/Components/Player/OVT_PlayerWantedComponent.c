@@ -30,6 +30,8 @@ class OVT_PlayerWantedComponent: OVT_Component
 	
 	protected ref TraceParam m_TraceParams;
 	
+	protected ref OVT_PlayerData m_PlayerData;
+	
 	void SetWantedLevel(int level)
 	{
 		m_iWantedLevel = level;	
@@ -68,6 +70,8 @@ class OVT_PlayerWantedComponent: OVT_Component
 		m_Character = SCR_CharacterControllerComponent.Cast(owner.FindComponent(SCR_CharacterControllerComponent));
 		m_Compartment = SCR_CompartmentAccessComponent.Cast(owner.FindComponent(SCR_CompartmentAccessComponent));
 		m_Percieve = CharacterPerceivableComponent.Cast(owner.FindComponent(CharacterPerceivableComponent));
+		
+		m_PlayerData = OVT_PlayerData.Get(GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(owner));
 				
 		if(!GetRpl().IsOwner()) return;
 		
@@ -89,7 +93,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		aiworld.GetAIAgents(agents);
 		
 		vector pos = GetOwner().GetOrigin();
-		float distanceSeen = 5 + (m_fBaseDistanceSeenAt * m_fVisualRecognitionFactor); 
+		float distanceSeen = 5 + (m_fBaseDistanceSeenAt * m_PlayerData.stealthMultiplier); 
 		
 		foreach(AIAgent agent : agents)
 		{
@@ -200,7 +204,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 			inVehicle = true;
 		}		
 		
-		if(m_fVisualRecognitionFactor < 0.2 && dist > 5 && !inVehicle)
+		if(m_fVisualRecognitionFactor < 0.2 && dist > (10 * m_PlayerData.stealthMultiplier) && !inVehicle)
 		{
 			//Definitely can't see you, but continue search
 			return true;

@@ -23,6 +23,9 @@ class OVT_JobConfig
 	[Attribute("100")]
 	int m_iReward;
 	
+	[Attribute("5")]
+	int m_iRewardXP;
+	
 	[Attribute(ResourceName.Empty, UIWidgets.ResourcePickerThumbnail, "Reward item prefabs", "et")]
 	ref array<ResourceName> m_aRewardItems;
 	

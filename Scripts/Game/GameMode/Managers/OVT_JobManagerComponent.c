@@ -183,6 +183,10 @@ class OVT_JobManagerComponent: OVT_Component
 					{
 						OVT_Global.GetEconomy().AddPlayerMoney(playerId, config.m_iReward);
 					}
+					if(config.m_iRewardXP > 0)
+					{
+						OVT_Global.GetSkills().GiveXP(playerId, config.m_iRewardXP);
+					}
 					SCR_HintManagerComponent.GetInstance().ShowCustom(config.m_sTitle, "#OVT-Jobs_Completed");
 					Rpc(RpcDo_NotifyJobCompleted, job.jobIndex);
 					

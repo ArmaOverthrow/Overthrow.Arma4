@@ -191,6 +191,20 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D94EE3DCB35FA8E}" {
+   Id "OVT-ConvertedSupporter"
+   Target_en_us "You have converted a supporter"
+   Modified 1570134691
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D94EE3C4D596F60}" {
+   Id "OVT-ConvertSupporter"
+   Target_en_us "Convert Supporter"
+   Modified 1570133991
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59A6ED95F1AB81D0}" {
    Id "OVT-DeliverMedicalSupplies"
    Target_en_us "Deliver Medical Supplies"
@@ -854,6 +868,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D94EE3DD1EA83D0}" {
+   Id "OVT-NotConvertedSupporter"
+   Target_en_us "This civilian was not interested in becoming a supporter"
+   Modified 1570134707
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59CF196EEADAB2A1}" {
    Id "OVT-NoVehicleOnRamp"
    Target_en_us "No Vehicle on ramp"
@@ -1238,6 +1259,20 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D94EE3C359E030A}" {
+   Id "OVT-Skill_Diplomacy"
+   Target_en_us "Diplomacy"
+   Modified 1570134062
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D94EE3C3D571D28}" {
+   Id "OVT-Skill_Diplomacy_Description"
+   Target_en_us "Skill at raising support and the profile of the resistance "
+   Modified 1570134094
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5D91190139CCD0D6}" {
    Id "OVT-Skill_Fitness"
    Target_en_us "Fitness"
@@ -1249,6 +1284,20 @@ StringTable {
    Id "OVT-Skill_Fitness_Description"
    Target_en_us "Skill at running for longer"
    Modified 1569792110
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D94EE45EA12C802}" {
+   Id "OVT-Skill_Stealth"
+   Target_en_us "Stealth"
+   Modified 1570043296
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D94EE45F5DE2994}" {
+   Id "OVT-Skill_Stealth_Description"
+   Target_en_us "Skill at remaining unseen for longer"
+   Modified 1570043310
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -1270,6 +1319,20 @@ StringTable {
    Id "OVT-SkillEffect_Stamina"
    Target_en_us "%1% Reduction in stamina drain"
    Modified 1569792053
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D94EE44A4C929C8}" {
+   Id "OVT-SkillEffect_Stealth"
+   Target_en_us "%1% Reduction in distance seen from"
+   Modified 1570042978
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D94EE3C54D60462}" {
+   Id "OVT-SkillEffect_Support"
+   Target_en_us "%1% Chance at converting a supporter"
+   Modified 1570134025
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

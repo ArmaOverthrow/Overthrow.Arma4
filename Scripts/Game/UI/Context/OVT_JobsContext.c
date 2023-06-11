@@ -148,7 +148,7 @@ class OVT_JobsContext : OVT_UIContext
 		}
 		
 		TextWidget details = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedDetails"));
-		details.SetText("$" + m_Selected.m_iReward.ToString());
+		details.SetText("$" + m_Selected.m_iReward.ToString() + " + " + m_Selected.m_iRewardXP.ToString() + " XP");
 		
 		TextWidget desc = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedDescription"));
 		desc.SetText(m_Selected.m_sDescription);
