@@ -499,7 +499,7 @@ $grp GenericEntity {
     MainType "Name Generic"
    }
   }
-  coords 15.562 1.001 136.64
+  coords 54.063 1.001 106.288
   Flags 1027
  }
  RadioTower {
@@ -594,6 +594,10 @@ SCR_DestructibleBuildingEntity : "{CFE8511B2B7E8AAA}Prefabs/Structures/Commercia
 }
 Tree : "{D9DF1D13919F19A0}Prefabs/Vegetation/Bush/b_rosa_canina_0s.et" {
  coords 182.829 0.001 130.379
+}
+SCR_DestructibleBuildingEntity GarageMilitary_E_01_5D94EEDDE2F882B5 : "{F16324CB8CB07C00}Prefabs/Structures/Military/Houses/GarageMilitary_E_01/GarageMilitary_E_01.et" {
+ coords 35.015 0.001 138.931
+ angleY 177.325
 }
 SCR_SiteSlotEntity : "{F4066B8425BEC47C}PrefabsEditable/Slots/Road/E_SlotRoadMedium.et" {
  coords 68.924 1.001 146.036

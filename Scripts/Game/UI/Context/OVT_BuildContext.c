@@ -341,9 +341,6 @@ class OVT_BuildContext : OVT_UIContext
 		params.Transform[3] = pos;
 		m_pBuildingPrefab = m_Buildable.m_aPrefabs[m_iPrefabIndex];
 		m_eBuildingEntity = GetGame().SpawnEntityPrefabLocal(Resource.Load(m_pBuildingPrefab), null, params);
-		EPF_PersistenceComponent persist = EPF_Component<EPF_PersistenceComponent>.Find(m_eBuildingEntity);
-		if(persist)
-			persist.Delete();
 		
 		if(m_vCurrentTransform)
 		{

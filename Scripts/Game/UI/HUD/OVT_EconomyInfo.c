@@ -6,8 +6,12 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 	SCR_ChimeraCharacter m_player;
 	
 	float m_fCounter = 8;
+	float m_fOverrideCounter = 0;
 	int m_iCurrentTownId = -1;
 	bool m_bTownShowing = false;
+	
+	protected OVT_MainMenuContextOverrideComponent m_FoundOverride;
+	protected float m_fFoundRange=-1;
 	
 	//------------------------------------------------------------------------------------------------
 	override event void OnInit(IEntity owner)
@@ -33,6 +37,7 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 	private override event void UpdateValues(IEntity owner, float timeSlice)
 	{	
 		m_fCounter += timeSlice;
+		m_fOverrideCounter += timeSlice;
 		if(!m_player){
 			InitCharacter();
 		}
@@ -45,7 +50,13 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 			HideQRF();
 		}
 		
+		if(m_fOverrideCounter >= 2)
+		{
+			UpdateOverride();
+		}
+		
 		UpdateNotification(timeSlice);
+		
 		
 		if(m_fCounter > 10)
 		{
@@ -56,6 +67,49 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 #ifdef WORKBENCH
 		//UpdateDebug();
 #endif				
+	}
+	
+	void UpdateOverride()
+	{
+		m_FoundOverride = null;
+		m_fFoundRange = -1;
+		GetGame().GetWorld().QueryEntitiesBySphere(m_player.GetOrigin(), 50, null, FindOverride, EQueryEntitiesFlags.ALL);		
+		
+		if(m_FoundOverride)
+		{
+			m_wRoot.FindAnyWidget("MainMenuOverride").SetVisible(true);
+			RichTextWidget text = RichTextWidget.Cast(m_wRoot.FindAnyWidget("MainMenuOverrideText"));
+			text.SetTextFormat("<color rgba='226,168,79,255'><action name='OverthrowMainMenu'/></color> %1",m_FoundOverride.m_sDescription);
+		}else{
+			m_wRoot.FindAnyWidget("MainMenuOverride").SetVisible(false);
+		}
+	}
+	
+	protected bool FindOverride(IEntity entity)
+	{
+		OVT_MainMenuContextOverrideComponent found = OVT_MainMenuContextOverrideComponent.Cast(entity.FindComponent(OVT_MainMenuContextOverrideComponent));
+		if(found) {
+			float dist = vector.Distance(entity.GetOrigin(),m_player.GetOrigin());
+			if(dist > found.m_fRange) return false;
+			if(m_fFoundRange == -1 || m_fFoundRange > dist)
+			{
+				bool got = true;
+				if(found.m_bMustOwnBase)
+				{
+					OVT_BaseData base = OVT_Global.GetOccupyingFaction().GetNearestBase(entity.GetOrigin());
+					if(!base || base.IsOccupyingFaction())
+					{
+						got = false;
+					}
+				}
+				if(got)
+				{
+					m_FoundOverride = found;
+					m_fFoundRange = dist;
+				}
+			}			
+		}
+		return false;
 	}
 	
 	void UpdateDebug()

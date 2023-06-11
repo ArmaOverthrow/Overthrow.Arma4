@@ -419,5 +419,53 @@ OverlayWidgetClass {
     }
    }
   }
+  OverlayWidgetClass "{5D9699673298AAA5}" {
+   Name "MainMenuOverride"
+   Slot OverlayWidgetSlot "{5D8680DE360578C7}" {
+    VerticalAlign 2
+    Padding 0 0 0 100
+   }
+   "Is Visible" 0
+   {
+    VerticalLayoutWidgetClass "{5D9699673298AAAF}" {
+     Name "VerticalLayout0"
+     Slot OverlayWidgetSlot "{5D86A3CBC51C1C56}" {
+     }
+     {
+      SizeLayoutWidgetClass "{5D9699673298AAAE}" {
+       Name "SizeLayout0"
+       Slot LayoutSlot "{5D86A3C851913B15}" {
+        HorizontalAlign 1
+        VerticalAlign 1
+       }
+       AllowMaxDesiredWidth 1
+       MaxDesiredWidth 400
+       {
+        HorizontalLayoutWidgetClass "{5D9699673298AAAD}" {
+         Name "HorizontalLayout0"
+         Slot AlignableSlot "{5D86A3C85095208E}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+         }
+         {
+          RichTextWidgetClass "{5D9699673298AAAA}" {
+           Name "MainMenuOverrideText"
+           Slot LayoutSlot "{5D8680DEE175599B}" {
+            HorizontalAlign 0
+            VerticalAlign 1
+            Padding 0 10 10 10
+            SizeMode Fill
+           }
+           Text "<color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color> Vehicle Maintenance Ramp"
+           Wrap 1
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
  }
 }

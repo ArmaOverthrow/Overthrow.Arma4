@@ -354,4 +354,61 @@ class OVT_Global {
 				
 		return true;
 	}
+	
+	static SCR_EditableVehicleUIInfo GetVehicleUIInfo(ResourceName res)
+	{
+		Resource holder = BaseContainerTools.LoadContainer(res);
+		if (holder)
+		{
+			IEntitySource ent = holder.GetResource().ToEntitySource();
+			for(int t=0; t<ent.GetComponentCount(); t++)
+			{
+				IEntityComponentSource comp = ent.GetComponent(t);
+				if(comp.GetClassName() == "SCR_EditableVehicleComponent")
+				{
+					SCR_EditableVehicleUIInfo info;
+					comp.Get("m_UIInfo",info);
+					return info;
+				}
+			}
+		}
+		return null;
+	}
+	
+	static UIInfo GetItemUIInfo(ResourceName prefab)
+	{
+		IEntitySource entitySource = SCR_BaseContainerTools.FindEntitySource(Resource.Load(prefab));
+		if (entitySource)
+		{
+		    for(int nComponent, componentCount = entitySource.GetComponentCount(); nComponent < componentCount; nComponent++)
+		    {
+		        IEntityComponentSource componentSource = entitySource.GetComponent(nComponent);
+		        if(componentSource.GetClassName().ToType().IsInherited(InventoryItemComponent))
+		        {
+		            BaseContainer attributesContainer = componentSource.GetObject("Attributes");
+		            if (attributesContainer)
+		            {
+		                BaseContainer itemDisplayNameContainer = attributesContainer.GetObject("ItemDisplayName");
+		                if (itemDisplayNameContainer)
+		                {
+		                    UIInfo resultInfo = UIInfo.Cast(BaseContainerTools.CreateInstanceFromContainer(itemDisplayNameContainer));
+		                    return resultInfo;
+		                }
+		            }
+		        }
+		    }
+		}
+		return null;
+	}
+	
+	static bool ResourceIsVehicle(ResourceName res)
+	{
+		Resource holder = BaseContainerTools.LoadContainer(res);
+		if (holder)
+		{
+			IEntitySource ent = holder.GetResource().ToEntitySource();
+			return (ent.GetClassName() == "Vehicle");
+		}
+		return false;
+	}
 }

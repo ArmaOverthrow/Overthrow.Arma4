@@ -17,6 +17,10 @@ class OVT_ShopComponent: OVT_Component
 {
 	[Attribute("1", UIWidgets.ComboBox, "Shop type", "", ParamEnumArray.FromEnum(OVT_ShopType) )]
 	int m_ShopType;
+	
+	[Attribute("0", desc:"")]
+	bool m_bProcurement;
+	
 	int m_iTownId = -1;
 	
 	ref map<int,int> m_aInventory;

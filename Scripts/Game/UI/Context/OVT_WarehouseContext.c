@@ -74,21 +74,13 @@ class OVT_WarehouseContext : OVT_UIContext
 
 		int qty = m_Warehouse.inventory[res];
 						
-		IEntity spawnedItem = OVT_Global.SpawnEntityPrefab(m_Economy.GetResource(id), "0 0 0", "0 0 0", false);
-					
-		InventoryItemComponent inv = InventoryItemComponent.Cast(spawnedItem.FindComponent(InventoryItemComponent));
-		if(inv){
-			SCR_ItemAttributeCollection attr = SCR_ItemAttributeCollection.Cast(inv.GetAttributes());
-			if(attr)
-			{
-				
-				UIInfo info = attr.GetUIInfo();
-				typeName.SetText(info.GetName());
-				details.SetText(qty.ToString() + " #OVT-Shop_InStock");
-				desc.SetText(info.GetDescription());
-			}
-		}
-		SCR_EntityHelper.DeleteEntityAndChildren(spawnedItem);
+		UIInfo info = OVT_Global.GetItemUIInfo(res);
+		if(info)
+		{
+			typeName.SetText(info.GetName());
+			details.SetText("$" + m_Economy.GetPrice(id).ToString());
+			desc.SetText(info.GetDescription());
+		}	
 		
 		ItemPreviewManagerEntity manager = GetGame().GetItemPreviewManager();
 		if (!manager)

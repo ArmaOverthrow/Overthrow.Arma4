@@ -8,6 +8,7 @@ class OVT_MainMenuContext : OVT_UIContext
 	OVT_RealEstateManagerComponent m_RealEstate;
 	
 	OVT_MainMenuContextOverrideComponent m_FoundOverride;
+	protected float m_fFoundRange = -1;
 		
 	override void PostInit()
 	{		
@@ -19,7 +20,8 @@ class OVT_MainMenuContext : OVT_UIContext
 	override void ShowLayout()
 	{
 		m_FoundOverride = null;
-		GetGame().GetWorld().QueryEntitiesBySphere(m_Owner.GetOrigin(), 5, null, FindOverride, EQueryEntitiesFlags.ALL);
+		m_fFoundRange = -1;
+		GetGame().GetWorld().QueryEntitiesBySphere(m_Owner.GetOrigin(), 50, null, FindOverride, EQueryEntitiesFlags.ALL);
 		
 		if(m_FoundOverride)
 		{
@@ -29,6 +31,15 @@ class OVT_MainMenuContext : OVT_UIContext
 				OVT_UIContext context = ui.GetContextByString(m_FoundOverride.m_ContextName);
 				if(context)
 				{
+					if(m_FoundOverride.m_ContextName == "OVT_ShopContext")
+					{
+						OVT_ShopComponent shop = EPF_Component<OVT_ShopComponent>.Find(m_FoundOverride.GetOwner());
+						if(shop)
+						{
+							OVT_ShopContext shopContext = OVT_ShopContext.Cast(context);
+							shopContext.SetShop(shop);
+						}
+					}
 					context.ShowLayout();
 					return;
 				}
@@ -41,7 +52,27 @@ class OVT_MainMenuContext : OVT_UIContext
 	protected bool FindOverride(IEntity entity)
 	{
 		OVT_MainMenuContextOverrideComponent found = OVT_MainMenuContextOverrideComponent.Cast(entity.FindComponent(OVT_MainMenuContextOverrideComponent));
-		if(found) m_FoundOverride = found;
+		if(found) {
+			float dist = vector.Distance(entity.GetOrigin(),m_Owner.GetOrigin());
+			if(dist > found.m_fRange) return false;
+			if(m_fFoundRange == -1 || m_fFoundRange > dist)
+			{
+				bool got = true;
+				if(found.m_bMustOwnBase)
+				{
+					OVT_BaseData base = OVT_Global.GetOccupyingFaction().GetNearestBase(entity.GetOrigin());
+					if(!base || base.IsOccupyingFaction())
+					{
+						got = false;
+					}
+				}
+				if(got)
+				{
+					m_FoundOverride = found;
+					m_fFoundRange = dist;
+				}
+			}			
+		}
 		return false;
 	}
 	

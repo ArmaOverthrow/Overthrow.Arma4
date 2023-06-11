@@ -6,11 +6,7 @@ class OVT_ShopMenuCardComponent : SCR_ScriptedWidgetComponent
 	void Init(ResourceName res, int cost, int qty, OVT_UIContext context)
 	{	
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();	
-		IEntity spawnedItem = OVT_Global.SpawnEntityPrefab(res, "0 0 0", "0 0 0", false);
-		EPF_PersistenceComponent persist = EPF_Component<EPF_PersistenceComponent>.Find(spawnedItem);
-		if(persist)
-			persist.Delete();
-		
+				
 		m_Resource = res;
 		m_Context = context;
 		
@@ -46,31 +42,18 @@ class OVT_ShopMenuCardComponent : SCR_ScriptedWidgetComponent
 		
 		img.SetResolutionScale(1, 1);
 		
-		SCR_EditableVehicleComponent veh = SCR_EditableVehicleComponent.Cast(spawnedItem.FindComponent(SCR_EditableVehicleComponent));
-		if(veh){
-			SCR_EditableEntityUIInfo info = SCR_EditableEntityUIInfo.Cast(veh.GetInfo());
-			if(info)
-			{
-				text.SetText(info.GetName());
-				img.SetVisible(false);
-				tex.SetVisible(true);
-				tex.LoadImageTexture(0, info.GetImage());
-			}
+		if(OVT_Global.ResourceIsVehicle(res))
+		{
+			SCR_EditableVehicleUIInfo info = OVT_Global.GetVehicleUIInfo(res);
+			text.SetText(info.GetName());
+			img.SetVisible(false);
+			tex.SetVisible(true);
+			tex.LoadImageTexture(0, info.GetImage());
 		}else{
-			InventoryItemComponent inv = InventoryItemComponent.Cast(spawnedItem.FindComponent(InventoryItemComponent));
-			if(inv){
-				manager.SetPreviewItemFromPrefab(img, res);			
-				
-				SCR_ItemAttributeCollection attr = SCR_ItemAttributeCollection.Cast(inv.GetAttributes());
-				if(attr)
-				{
-					UIInfo info = attr.GetUIInfo();
-					text.SetText(info.GetName());
-				}
-			}
-		}		
-		
-		SCR_EntityHelper.DeleteEntityAndChildren(spawnedItem);	
+			manager.SetPreviewItemFromPrefab(img, res);
+			UIInfo info = OVT_Global.GetItemUIInfo(res);
+			text.SetText(info.GetName());
+		}
 	}
 	
 	override bool OnClick(Widget w, int x, int y, int button)

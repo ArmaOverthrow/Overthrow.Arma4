@@ -18,24 +18,6 @@ class OVT_VehicleShopConfig : OVT_PrefabItemCostConfig
 {
 }
 
-class OVT_PriceConfig : ScriptAndConfig
-{
-	[Attribute("2", desc: "Type of item", uiwidget: UIWidgets.SearchComboBox, enums: ParamEnumArray.FromEnum(SCR_EArsenalItemType))]
-	SCR_EArsenalItemType m_eItemType;
-	
-	[Attribute("2", desc: "Item mode", uiwidget: UIWidgets.SearchComboBox, enums: ParamEnumArray.FromEnum(SCR_EArsenalItemMode))]
-	SCR_EArsenalItemMode m_eItemMode;
-	
-	[Attribute(desc: "String to search in prefab name, blank for all")]
-	string m_sFind;
-	
-	[Attribute("50", desc: "The cost of the items found, will override any above this one")]
-	int cost;
-	
-	[Attribute("5", desc: "Demand Multiplier")]
-	int demand;
-}
-
 class OVT_ShopInventoryItem : ScriptAndConfig
 {
 	[Attribute("2", desc: "Type of item", uiwidget: UIWidgets.SearchComboBox, enums: ParamEnumArray.FromEnum(SCR_EArsenalItemType))]
@@ -73,12 +55,12 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	[Attribute("", UIWidgets.Object)]
 	ref array<ref OVT_PrefabItemCostConfig> m_aGunDealerItemPrefabs;
+		
+	[Attribute("", UIWidgets.Object)]
+	ref OVT_PricesConfig m_PriceConfig;
 	
 	[Attribute("", UIWidgets.Object)]
-	ref array<ref OVT_VehicleShopConfig> m_aVehicleShopItems;
-	
-	[Attribute("", UIWidgets.Object)]
-	ref array<ref OVT_PriceConfig> m_aPriceConfigs;
+	ref OVT_VehiclePricesConfig m_VehiclePriceConfig;
 			
 	protected ref array<RplId> m_aAllShops;
 	protected ref array<RplId> m_aAllPorts;
@@ -98,6 +80,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	protected ref map<int, int> m_mItemCosts;
 	protected ref map<int, int> m_mItemDemand;	
+	
+	protected ref array<int> m_aLegalVehicles;
+	protected ref array<int> m_aAllVehicles;
 	
 	//Streamed to clients..			
 	int m_iResistanceMoney = 0;
@@ -133,6 +118,8 @@ class OVT_EconomyManagerComponent: OVT_Component
 		m_aResourceIndex = new map<ref ResourceName,int>;
 		m_mFactionResources = new map<int,ref array<int>>;
 		m_aEntityCatalogEntries = new array<ref SCR_EntityCatalogEntry>;
+		m_aLegalVehicles = new array<int>;
+		m_aAllVehicles = new array<int>;
 	}
 	
 	void CheckUpdate()
@@ -786,19 +773,38 @@ class OVT_EconomyManagerComponent: OVT_Component
 					m_mFactionResources[factionId].Insert(id);
 				}
 			}
-		}
-		
-		foreach(OVT_VehicleShopConfig item : m_aVehicleShopItems)
-		{
-			ResourceName res = item.m_sEntityPrefab;
-			if(res == "") continue;
-			if(!m_aResources.Contains(res))
+			
+			array<SCR_EntityCatalogEntry> vehicles = new array<SCR_EntityCatalogEntry>;
+			fac.GetAllVehicles(vehicles);
+			foreach(SCR_EntityCatalogEntry item : vehicles) 
 			{
-				m_aResources.Insert(res);
-				int id = m_aResources.Count()-1;
-				m_aResourceIndex[res] = id;
-				SetPrice(id, item.cost);
-			}			
+				ResourceName res = item.GetPrefab();
+				if(res == "") continue;
+				if(res.IndexOf("Campaign") > -1) continue;
+				if(!m_aResources.Contains(res))
+				{
+					m_aResources.Insert(res);
+					int id = m_aResources.Count()-1;
+					m_aResourceIndex[res] = id;
+					m_aEntityCatalogEntries.Insert(item);
+					m_mFactionResources[factionId].Insert(id);
+					m_aAllVehicles.Insert(id);
+					
+					bool illegal = true;
+					int cost = 500000;
+					//Set it's price
+					foreach(OVT_VehiclePriceConfig cfg : m_VehiclePriceConfig.m_aPrices)
+					{
+						if(cfg.m_sFind == "" || res.IndexOf(cfg.m_sFind) > -1)
+						{
+							cost = cfg.cost;
+							illegal = cfg.illegal;
+						}
+					}
+					SetPrice(id, cost);
+					if(!illegal) m_aLegalVehicles.Insert(id);
+				}
+			}
 		}
 		
 		foreach(OVT_PrefabItemCostConfig item : m_aGunDealerItemPrefabs)
@@ -815,7 +821,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		}
 		
 		//Set Prices
-		foreach(OVT_PriceConfig config : m_aPriceConfigs)
+		foreach(OVT_PriceConfig config : m_PriceConfig.m_aPrices)
 		{
 			array<SCR_EntityCatalogEntry> items = new array<SCR_EntityCatalogEntry>;
 			FindInventoryItems(config.m_eItemType, config.m_eItemMode, config.m_sFind, items);
@@ -863,6 +869,21 @@ class OVT_EconomyManagerComponent: OVT_Component
 				if(ItemIsFromFaction(id, occupyingFactionIndex)) continue;
 				resources.Insert(prefab);				
 			}
+		}
+		return true;
+	}
+	
+	bool GetAllNonOccupyingFactionVehicles(out array<ResourceName> resources, bool includeIllegal = false)
+	{
+		int occupyingFactionIndex = m_Config.GetOccupyingFactionIndex();
+		foreach(SCR_EntityCatalogEntry entry : m_aEntityCatalogEntries)
+		{			
+			ResourceName prefab = entry.GetPrefab();
+			int id = GetInventoryId(prefab);
+			if(!m_aAllVehicles.Contains(id)) continue;			
+			if(ItemIsFromFaction(id, occupyingFactionIndex)) continue;
+			if(!includeIllegal && !m_aLegalVehicles.Contains(id)) continue;
+			resources.Insert(prefab);			
 		}
 		return true;
 	}
@@ -916,11 +937,12 @@ class OVT_EconomyManagerComponent: OVT_Component
 			
 			if(shop.m_ShopType == OVT_ShopType.SHOP_VEHICLE)
 			{
-				foreach(OVT_VehicleShopConfig item : m_aVehicleShopItems)
+				array<ResourceName> vehicles();
+				GetAllNonOccupyingFactionVehicles(vehicles);
+				foreach(ResourceName res : vehicles)
 				{
-					int id = GetInventoryId(item.m_sEntityPrefab);
-					int num = Math.Round(s_AIRandomGenerator.RandFloatXY(1,item.maxStock));
-					shop.AddToInventory(id, num);
+					int id = GetInventoryId(res);
+					shop.AddToInventory(id, 10);
 				}
 			}else{		
 				OVT_ShopInventoryConfig config = GetShopConfig(shop.m_ShopType);
@@ -979,7 +1001,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		if(entity.ClassName() == "SCR_DestructibleBuildingEntity")
 		{
 			OVT_ShopComponent shop = OVT_ShopComponent.Cast(entity.FindComponent(OVT_ShopComponent));
-			if(shop) return true;
+			if(shop) return !shop.m_bProcurement;
 		}
 		return false;
 	}

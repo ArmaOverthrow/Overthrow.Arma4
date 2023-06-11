@@ -4,6 +4,7 @@ class OVT_ShopContext : OVT_UIContext
 	protected int m_iPageNum = 0;
 	protected int m_SelectedResource = -1;
 	protected ResourceName m_SelectedResourceName;
+	protected int m_iNumPages = 0;
 		
 	override void PostInit()
 	{
@@ -87,8 +88,7 @@ class OVT_ShopContext : OVT_UIContext
 	{
 		if(!m_wRoot) return;
 		m_iPageNum++;
-		int numPages = Math.Ceil(m_Shop.m_aInventory.Count() / 15);
-		if(m_iPageNum > numPages-1) m_iPageNum = numPages-1;
+		if(m_iPageNum > m_iNumPages-1) m_iPageNum = m_iNumPages-1;
 		
 		Refresh();
 	}
@@ -105,35 +105,65 @@ class OVT_ShopContext : OVT_UIContext
 		TextWidget pages = TextWidget.Cast(m_wRoot.FindAnyWidget("Pages"));
 		
 		Widget grid = m_wRoot.FindAnyWidget("BrowserGrid");
-		
-		int numPages = Math.Ceil(m_Shop.m_aInventory.Count() / 15);
-		if(m_iPageNum >= numPages) m_iPageNum = 0;
-		string pageNumText = (m_iPageNum + 1).ToString();
-		
-		pages.SetText(pageNumText + "/" + numPages);
-		
+				
 		int wi = 0;
 		
-		//We only read m_Shop.m_aInventory because m_Shop.m_aInventoryItems is not replicated
-		for(int i = m_iPageNum * 15; i < (m_iPageNum + 1) * 15 && i < m_Shop.m_aInventory.Count(); i++)
-		{			
-			int id = m_Shop.m_aInventory.GetKey(i);
-			ResourceName res = m_Economy.GetResource(id);
+		if(m_Shop.m_bProcurement)
+		{
+			array<ResourceName> vehicles();
+			m_Economy.GetAllNonOccupyingFactionVehicles(vehicles, true);
+			
+			m_iNumPages = Math.Ceil(vehicles.Count() / 15);
+			if(m_iPageNum >= m_iNumPages) m_iPageNum = 0;
+			string pageNumText = (m_iPageNum + 1).ToString();
+			
+			pages.SetText(pageNumText + "/" + m_iNumPages);
 						
-			if(wi == 0 && m_SelectedResource == -1){
-				SelectItem(res);
+			for(int i = m_iPageNum * 15; i < (m_iPageNum + 1) * 15 && i < vehicles.Count(); i++)
+			{	
+				ResourceName res = vehicles[i];
+				int id = m_Economy.GetInventoryId(res);
+				if(wi == 0 && m_SelectedResource == -1){
+					SelectItem(res);
+				}
+				Widget w = grid.FindWidget("ShopMenu_Card" + wi);
+				w.SetOpacity(1);
+				OVT_ShopMenuCardComponent card = OVT_ShopMenuCardComponent.Cast(w.FindHandler(OVT_ShopMenuCardComponent));
+				
+				int buy = m_Economy.GetPrice(id);
+								
+				card.Init(res, buy, 100, this);
+				
+				wi++;
 			}
+		}else{
+			m_iNumPages = Math.Ceil(m_Shop.m_aInventory.Count() / 15);
+			if(m_iPageNum >= m_iNumPages) m_iPageNum = 0;
+			string pageNumText = (m_iPageNum + 1).ToString();
 			
-			Widget w = grid.FindWidget("ShopMenu_Card" + wi);
-			w.SetOpacity(1);
-			OVT_ShopMenuCardComponent card = OVT_ShopMenuCardComponent.Cast(w.FindHandler(OVT_ShopMenuCardComponent));
+			pages.SetText(pageNumText + "/" + m_iNumPages);
 			
-			int buy = m_Economy.GetBuyPrice(id, m_Shop.GetOwner().GetOrigin(),m_iPlayerID);
-			int qty = m_Shop.GetStock(id);
-			
-			card.Init(res, buy, qty, this);
-			
-			wi++;
+			//We only read m_Shop.m_aInventory because m_Shop.m_aInventoryItems is not replicated
+			for(int i = m_iPageNum * 15; i < (m_iPageNum + 1) * 15 && i < m_Shop.m_aInventory.Count(); i++)
+			{			
+				int id = m_Shop.m_aInventory.GetKey(i);
+				ResourceName res = m_Economy.GetResource(id);
+							
+				if(wi == 0 && m_SelectedResource == -1){
+					SelectItem(res);
+				}
+				
+				Widget w = grid.FindWidget("ShopMenu_Card" + wi);
+				w.SetOpacity(1);
+				OVT_ShopMenuCardComponent card = OVT_ShopMenuCardComponent.Cast(w.FindHandler(OVT_ShopMenuCardComponent));
+				
+				int buy = m_Economy.GetBuyPrice(id, m_Shop.GetOwner().GetOrigin(),m_iPlayerID);
+				int qty = m_Shop.GetStock(id);
+				
+				card.Init(res, buy, qty, this);
+				
+				wi++;
+			}
 		}
 		
 		for(; wi < 15; wi++)
@@ -153,42 +183,47 @@ class OVT_ShopContext : OVT_UIContext
 		TextWidget details = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedDetails"));
 		TextWidget desc = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedDescription"));
 		
-		int buy = m_Economy.GetBuyPrice(id, m_Shop.GetOwner().GetOrigin(),m_iPlayerID);
-		int sell = m_Economy.GetSellPrice(id, m_Shop.GetOwner().GetOrigin());
-		int qty = m_Shop.GetStock(id);
-		OVT_TownData town = m_Shop.GetTown();
-		int townID = OVT_Global.GetTowns().GetTownID(town);
-		int max = m_Economy.GetTownMaxStock(townID, id);
-				
-		IEntity spawnedItem = OVT_Global.SpawnEntityPrefab(m_Economy.GetResource(id), "0 0 0", "0 0 0", false);
-		EPF_PersistenceComponent persist = EPF_Component<EPF_PersistenceComponent>.Find(spawnedItem);
-		if(persist)
-			persist.Delete();
+		int buy, sell, qty, max;
 		
-		SCR_EditableVehicleComponent veh = SCR_EditableVehicleComponent.Cast(spawnedItem.FindComponent(SCR_EditableVehicleComponent));
-		if(veh){
-			SCR_EditableEntityUIInfo info = SCR_EditableEntityUIInfo.Cast(veh.GetInfo());
+		if(m_Shop.m_bProcurement)
+		{
+			buy = m_Economy.GetPrice(id);
+			sell = buy;
+			qty = 100;
+			max = 100;
+		}else{
+			buy = m_Economy.GetBuyPrice(id, m_Shop.GetOwner().GetOrigin(),m_iPlayerID);
+			sell = m_Economy.GetSellPrice(id, m_Shop.GetOwner().GetOrigin());
+			qty = m_Shop.GetStock(id);
+			OVT_TownData town = m_Shop.GetTown();
+			int townID = OVT_Global.GetTowns().GetTownID(town);
+			max = m_Economy.GetTownMaxStock(townID, id);
+		}	
+		
+		if(OVT_Global.ResourceIsVehicle(res))
+		{
+			SCR_EditableVehicleUIInfo info = OVT_Global.GetVehicleUIInfo(res);
 			if(info)
 			{
 				typeName.SetText(info.GetName());
-				details.SetText("$" + buy + "\n" + qty + " #OVT-Shop_InStock");				
+				if(m_Shop.m_bProcurement)
+				{
+					details.SetText("$" + buy);				
+				}else{
+					details.SetText("$" + buy + "\n" + qty + " #OVT-Shop_InStock");				
+				}
+				
 				desc.SetText(info.GetDescription());
 			}
-		}else{		
-			InventoryItemComponent inv = InventoryItemComponent.Cast(spawnedItem.FindComponent(InventoryItemComponent));
-			if(inv){
-				SCR_ItemAttributeCollection attr = SCR_ItemAttributeCollection.Cast(inv.GetAttributes());
-				if(attr)
-				{
-					UIInfo info = attr.GetUIInfo();
-					typeName.SetText(info.GetName());
-					details.SetText("#OVT-Shop_Buying: $" + buy + "\n#OVT-Shop_Selling: $" + sell + "\n" + qty + "/" + max + " #OVT-Shop_InStock");
-					desc.SetText(info.GetDescription());
-				}
+		}else{
+			UIInfo info = OVT_Global.GetItemUIInfo(res);
+			if(info)
+			{
+				typeName.SetText(info.GetName());
+				details.SetText("#OVT-Shop_Buying: $" + buy + "\n#OVT-Shop_Selling: $" + sell + "\n" + qty + "/" + max + " #OVT-Shop_InStock");
+				desc.SetText(info.GetDescription());
 			}
 		}
-		
-		SCR_EntityHelper.DeleteEntityAndChildren(spawnedItem);
 	}
 	
 	void SetShop(OVT_ShopComponent shop)
@@ -198,13 +233,18 @@ class OVT_ShopContext : OVT_UIContext
 	
 	void Buy(Widget src, float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
 	{
-		if(m_Shop.GetStock(m_SelectedResource) < 1) return;
+		if(!m_Shop.m_bProcurement && m_Shop.GetStock(m_SelectedResource) < 1) return;
 		
 		int playerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(m_sPlayerID);
 		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
 		if(!player) return;
 		
 		int cost = m_Economy.GetBuyPrice(m_SelectedResource, m_Shop.GetOwner().GetOrigin(),m_iPlayerID);
+		
+		if(m_Shop.m_bProcurement)
+		{
+			cost = m_Economy.GetPrice(m_SelectedResource);
+		}
 		
 		if(!m_Economy.PlayerHasMoney(m_sPlayerID, cost)) return;
 				

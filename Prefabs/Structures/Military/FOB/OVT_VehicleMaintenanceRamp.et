@@ -9,6 +9,7 @@ GenericEntity {
   }
   OVT_MainMenuContextOverrideComponent "{59D05009CFE48314}" {
    m_ContextName "OVT_ManageVehicleContext"
+   m_sDescription "#OVT-Build_VehicleMaintenanceRamp"
   }
   RplComponent "{59CF196A053B1B4F}" {
    Streamable Disabled

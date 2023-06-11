@@ -245,9 +245,6 @@ class OVT_PlaceContext : OVT_UIContext
 				
 		m_pPlacingPrefab = m_Placeable.m_aPrefabs[m_iPrefabIndex];
 		m_ePlacingEntity = OVT_Global.SpawnEntityPrefab(m_pPlacingPrefab, pos, "0 0 0", false);
-		EPF_PersistenceComponent persist = EPF_Component<EPF_PersistenceComponent>.Find(m_ePlacingEntity);
-		if(persist)
-			persist.Delete();
 		
 		if(m_vCurrentTransform)
 		{

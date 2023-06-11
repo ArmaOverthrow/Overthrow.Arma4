@@ -370,15 +370,24 @@ class OVT_PlayerCommsComponent: OVT_Component
 		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
 		if(!player) return;
 		
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(shopId));
+		OVT_ShopComponent shop = OVT_ShopComponent.Cast(rpl.GetEntity().FindComponent(OVT_ShopComponent));
+		if(!shop) return;
+		
 		string playerPersId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		
 		int cost = economy.GetBuyPrice(id, player.GetOrigin(), playerId);		
+		if(shop.m_bProcurement)
+		{
+			cost = economy.GetPrice(id);
+		}
 		if(!economy.PlayerHasMoney(playerPersId, cost)) return;
-		
+				
 		if(OVT_Global.GetVehicles().SpawnVehicleNearestParking(economy.GetResource(id), player.GetOrigin(), playerPersId))
 		{
 			RpcAsk_TakePlayerMoney(playerId, cost);
-			RpcAsk_TakeFromInventory(shopId, id, 1);
+			if(!shop.m_bProcurement)
+				RpcAsk_TakeFromInventory(shopId, id, 1);
 		}
 	}
 	

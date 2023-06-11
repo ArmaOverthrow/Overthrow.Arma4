@@ -6,11 +6,7 @@ class OVT_PortItemComponent : SCR_ScriptedWidgetComponent
 	void Init(ResourceName res, int cost, OVT_UIContext context)
 	{	
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();	
-		IEntity spawnedItem = OVT_Global.SpawnEntityPrefab(res, "0 0 0", "0 0 0", false);
-		EPF_PersistenceComponent persist = EPF_Component<EPF_PersistenceComponent>.Find(spawnedItem);
-		if(persist)
-			persist.Delete();
-		
+				
 		m_Resource = res;
 		m_Context = context;
 		
@@ -32,21 +28,13 @@ class OVT_PortItemComponent : SCR_ScriptedWidgetComponent
 		// Set rendering and preview properties 
 		
 		img.SetResolutionScale(1, 1);
+		manager.SetPreviewItemFromPrefab(img, res);		
 		
-
-		InventoryItemComponent inv = InventoryItemComponent.Cast(spawnedItem.FindComponent(InventoryItemComponent));
-		if(inv){
-			manager.SetPreviewItemFromPrefab(img, res);			
-			
-			SCR_ItemAttributeCollection attr = SCR_ItemAttributeCollection.Cast(inv.GetAttributes());
-			if(attr)
-			{
-				UIInfo info = attr.GetUIInfo();
-				text.SetText(info.GetName());
-			}
+		UIInfo info = OVT_Global.GetItemUIInfo(res);
+		if(info)
+		{
+			text.SetText(info.GetName());
 		}	
-		
-		SCR_EntityHelper.DeleteEntityAndChildren(spawnedItem);	
 	}
 	
 	override bool OnClick(Widget w, int x, int y, int button)

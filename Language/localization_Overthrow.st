@@ -1058,6 +1058,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D94EEDA320FAEDC}" {
+   Id "OVT-Procurement"
+   Target_en_us "Procurement"
+   Modified 1570150674
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5D34EBA09AC421EB}" {
    Id "OVT-PutInWarehouse"
    Target_en_us "Put In Warehouse"

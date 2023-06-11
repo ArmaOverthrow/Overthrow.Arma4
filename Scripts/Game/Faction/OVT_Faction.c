@@ -128,6 +128,14 @@ class OVT_Faction
 		return true;
 	}
 	
+	bool GetAllVehicles(out array<SCR_EntityCatalogEntry> vehicles)
+	{		
+		SCR_Faction faction = SCR_Faction.Cast(GetGame().GetFactionManager().GetFactionByKey(m_sFactionKey));
+		SCR_EntityCatalog catalog = faction.GetFactionEntityCatalogOfType(EEntityCatalogType.VEHICLE);		
+		catalog.GetEntityList(vehicles);		
+		return true;
+	}
+	
 	OVT_FactionComposition GetCompositionConfig(string tag)
 	{
 		if(!m_aCompositionConfig) return null;

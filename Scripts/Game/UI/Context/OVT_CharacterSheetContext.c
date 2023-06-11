@@ -113,7 +113,7 @@ class OVT_CharacterSheetContext : OVT_UIContext
 		
 		ButtonWidget add = ButtonWidget.Cast(w.FindAnyWidget("AddButton"));
 		add.SetName(config.m_sKey);
-		if(toSpend > 0)
+		if(toSpend > 0 && playerLevel < config.m_aLevels.Count())
 		{
 			add.SetVisible(true);
 		}else{
