@@ -1,0 +1,45 @@
+SCR_DestructibleBuildingEntity : "{9D656741EA2AABC5}Prefabs/Structures/Industrial/Garages/Garage_E_02/Garage_E_02_base.et" {
+ ID "F0DBA538AC2A0552"
+ components {
+  EPF_PersistenceComponent "{5D98AC7A15809A56}" {
+   m_pSaveData OVT_BuildingSaveDataClass "{5D98AC7A138A7DCF}" {
+   }
+  }
+  OVT_MainMenuContextOverrideComponent "{5D98AC7A1790B552}" {
+   m_ContextName "OVT_ShopContext"
+   m_UiInfo SCR_UIInfo "{5D98AC7AE7A3FF18}" {
+    Name "#OVT-Procurement"
+    Icon "{C7691945DE01FB28}UI/Imagesets/overthrow_mapicons.imageset"
+    IconSetName "vehicles"
+   }
+   m_fRange 9
+   m_bMustOwnBase 1
+  }
+  OVT_ParkingComponent "{5D98AC7CB504FF23}" {
+   m_aParkingSpots {
+    OVT_ParkingPointInfo "{5D98AC7CB13BA421}" {
+     m_vPosition -9.092 0.063 13.989
+     m_vAngles 0 90 0
+     m_Type PARKING_CAR
+    }
+    OVT_ParkingPointInfo "{5D98AC7D6A494BFA}" {
+     m_vPosition -2.246 0.063 13.784
+     m_vAngles 0 90 0
+     m_Type PARKING_CAR
+    }
+    OVT_ParkingPointInfo "{5D98AC7D43678293}" {
+     m_vPosition 5.855 0.063 13.541
+     m_vAngles 0 90 0
+     m_Type PARKING_CAR
+    }
+   }
+  }
+  OVT_ShopComponent "{5D98AC7CD4E4C6BB}" {
+   m_ShopType SHOP_VEHICLE
+   m_bProcurement 1
+  }
+  RplComponent "{50A4E7C9B5728062}" {
+   Streamable Disabled
+  }
+ }
+}

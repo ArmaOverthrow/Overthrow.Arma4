@@ -10,6 +10,11 @@ GenericEntity {
   OVT_MainMenuContextOverrideComponent "{59D05009CFE48314}" {
    m_ContextName "OVT_ManageVehicleContext"
    m_sDescription "#OVT-Build_VehicleMaintenanceRamp"
+   m_UiInfo SCR_UIInfo "{5D9735ECD8BBC621}" {
+    Name "#OVT-Build_VehicleMaintenanceRamp"
+    Icon "{D17288006833490F}UI/Textures/Icons/icons_wrapperUI-32.imageset"
+    IconSetName "repair"
+   }
   }
   RplComponent "{59CF196A053B1B4F}" {
    Streamable Disabled

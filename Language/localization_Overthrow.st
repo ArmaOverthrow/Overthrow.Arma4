@@ -288,6 +288,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D98AC7E74E178DC}" {
+   Id "OVT-Garage"
+   Target_en_us "Garage"
+   Modified 1570288841
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59C84C260326A9DB}" {
    Id "OVT-Garrison"
    Target_en_us "Garrison"

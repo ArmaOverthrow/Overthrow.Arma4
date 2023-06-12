@@ -8,6 +8,11 @@ SCR_DestructibleBuildingEntity : "{A43A100E3C377DB2}Prefabs/Structures/Core/Buil
   OVT_MainMenuContextOverrideComponent "{5D94EEDEDB4F04D8}" {
    m_ContextName "OVT_ShopContext"
    m_sDescription "#OVT-Procurement"
+   m_UiInfo SCR_UIInfo "{5D9735ECE665AAA3}" {
+    Name "#OVT-Procurement"
+    Icon "{C7691945DE01FB28}UI/Imagesets/overthrow_mapicons.imageset"
+    IconSetName "vehicles"
+   }
    m_fRange 20
   }
   OVT_ParkingComponent "{5D969965DB7C8201}" {

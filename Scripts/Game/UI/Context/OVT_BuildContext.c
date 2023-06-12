@@ -354,6 +354,13 @@ class OVT_BuildContext : OVT_UIContext
 			phys.SetActive(0);
 		}
 		
+		OVT_MainMenuContextOverrideComponent over = EPF_Component<OVT_MainMenuContextOverrideComponent>.Find(m_eBuildingEntity);
+		if(over)
+		{
+			//Disable map icon showing for ghost
+			over.m_UiInfo = null;
+		}
+		
 		m_eBuildingEntity.SetFlags(EntityFlags.VISIBLE, true);
 	}
 	
