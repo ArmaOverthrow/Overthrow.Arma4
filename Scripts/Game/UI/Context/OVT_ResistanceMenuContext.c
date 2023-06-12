@@ -10,6 +10,9 @@ class OVT_ResistancePlayerData : Managed
 
 class OVT_ResistanceMenuContext : OVT_UIContext
 {		
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Leaderboard player layout", params: "layout")]
+	ResourceName m_PlayerLayout;
+	
 	protected OVT_TownManagerComponent m_Towns;
 	
 	protected SCR_SpinBoxComponent m_PlayerSpin;
@@ -134,6 +137,35 @@ class OVT_ResistanceMenuContext : OVT_UIContext
 		btn = SCR_ButtonTextComponent.Cast(ww.FindHandler(SCR_ButtonTextComponent));
 		btn.m_OnClicked.Insert(DonateFunds);
 		
+		SCR_SortedArray<OVT_PlayerData> leaderboard();
+		OVT_PlayerManagerComponent pm = OVT_Global.GetPlayers();
+		for(int i=0; i < pm.m_mPlayers.Count(); i++)
+		{			
+			OVT_PlayerData player = pm.m_mPlayers.GetElement(i);
+			if(player.name == "") continue;
+			leaderboard.Insert(player.kills, player);
+		}
+		
+		Widget container = m_wRoot.FindAnyWidget("LeaderboardContainer");
+		while(container.GetChildren())
+			container.RemoveChild(container.GetChildren());
+		
+		array<OVT_PlayerData> playersSorted();
+		leaderboard.ToArray(playersSorted);
+		WorkspaceWidget workspace = GetGame().GetWorkspace(); 
+		for(int i = playersSorted.Count()-1; i>=0; i--)
+		{
+			OVT_PlayerData player = playersSorted[i];
+			Widget pw = workspace.CreateWidgets(m_PlayerLayout, container);
+			TextWidget txt = TextWidget.Cast(pw.FindAnyWidget("TextLevel"));
+			txt.SetText(player.GetLevel().ToString());
+			
+			txt = TextWidget.Cast(pw.FindAnyWidget("NameText"));
+			txt.SetText(player.name);
+			
+			txt = TextWidget.Cast(pw.FindAnyWidget("KillsText"));
+			txt.SetText(player.kills.ToString());
+		}
 	}
 	
 	protected void RefreshFunds()

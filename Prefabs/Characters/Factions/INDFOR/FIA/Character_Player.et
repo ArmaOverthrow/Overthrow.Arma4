@@ -58,6 +58,7 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      m_sCloseAction "MenuBack"
      m_bOpenActionCloses 0
      m_bHideHUDOnShow 0
+     m_PlayerLayout "{6413FF58FA73AB1A}UI/Layouts/Menu/ResistanceMenu/LeaderboardPlayer.layout"
     }
     OVT_JobsContext "{59A8D1BD2FBC299B}" {
      m_Layout "{766CB9C6B8AB15AA}UI/Layouts/Menu/JobsMenu.layout"

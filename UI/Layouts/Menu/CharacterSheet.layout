@@ -121,7 +121,7 @@ FrameWidgetClass {
                    }
                    {
                     OverlayWidgetClass "{5D923C57EA5A6E12}" {
-                     Name "Overlay0"
+                     Name "Level Icon"
                      Slot LayoutSlot "{5D923C57EA5A6EF9}" {
                      }
                      {
@@ -149,7 +149,7 @@ FrameWidgetClass {
                       }
                       TextWidgetClass "{5D90EE01B80FE2CC}" {
                        Name "TextLevel"
-                       Slot OverlayWidgetSlot {
+                       Slot OverlayWidgetSlot "{5D98F8A37E4C23F7}" {
                        }
                        Text "24"
                        "Font Size" 26

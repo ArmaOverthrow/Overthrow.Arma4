@@ -1,580 +1,735 @@
 FrameWidgetClass {
  Name "rootFrame"
  {
-  PanelWidgetClass "{59A6DA4D9D9CC5A8}" {
-   Name "ResistancePanel"
-   Slot FrameWidgetSlot "{597282644EB209C6}" {
-    Anchor 0.5 0.5 0.5 0.5
+  HorizontalLayoutWidgetClass "{5D98F8A321DD8233}" {
+   Name "Window"
+   Slot FrameWidgetSlot "{56EEDE05AD6DF1E2}" {
+    Anchor 0 0 1 1
     PositionX 0
     OffsetLeft 0
     PositionY 0
     OffsetTop 0
-    SizeX 800
-    OffsetRight -800
-    SizeY 650
-    OffsetBottom -650
-    Alignment 0.5 0.5
+    SizeX -1820
+    OffsetRight 0
+    SizeY -1050
+    OffsetBottom 0
    }
    {
-    BlurWidgetClass "{59A6DA4D9D9CC596}" : "{352322057FD78AE1}UI/layouts/WidgetLibrary/BaseElements/WLib_Blur.layout" {
-     Name "BackgroundBlur"
-     Slot FrameWidgetSlot "{5982E26F6316DE4F}" {
-      Anchor 0 0 1 1
-      PositionX 0
-      OffsetLeft 0
-      PositionY 0
-      OffsetTop 0
-      SizeX -200
-      OffsetRight 0
-      SizeY -1050
-      OffsetBottom 0
-     }
-     Color 0.127 0.127 0.127 1
-     Intensity 0.8
-    }
-    VerticalLayoutWidgetClass "{59A6DA4D9D9C0327}" {
-     Name "VerticalLayout0"
-     Slot FrameWidgetSlot "{59728267ECC2178F}" {
-      Anchor 0 0 1 1
-      PositionX 1
-      OffsetLeft 10
-      PositionY 0
-      OffsetTop 10
-      SizeX 0
-      OffsetRight 10
-      SizeY 0
-      OffsetBottom 10
+    OverlayWidgetClass "{5D98F8A321DD8232}" {
+     Name "Content"
+     Slot LayoutSlot "{56EEDE05BFED5D35}" {
+      SizeMode Fill
      }
      {
-      HorizontalLayoutWidgetClass "{59A6DA4C43CC7261}" {
-       Name "Header"
-       Slot LayoutSlot "{59A6DA4C43CC721E}" {
+      ImageWidgetClass "{5D98F8A321DD8231}" {
+       Name "Background"
+       Slot OverlayWidgetSlot "{56EEDE05C871C02C}" {
+        HorizontalAlign 3
+        VerticalAlign 3
        }
-       {
-        ImageWidgetClass "{59A6DA4C4FC5D409}" {
-         Name "Image0"
-         Slot LayoutSlot "{59A6DA4C4FC5D425}" {
-         }
-         Texture "{FB266CDD4502D60B}UI/Textures/Editor/EditableEntities/Factions/EditableEntity_Faction_Fia.edds"
-         Image ""
-         Size 64 64
-        }
-        TextWidgetClass "{59A6DA4C57D30EE6}" {
-         Name "Text0"
-         Slot LayoutSlot "{59A6DA4C57D30E9F}" {
-          HorizontalAlign 1
-          VerticalAlign 1
-          Padding 10 0 0 0
-         }
-         Text "#ovt-mainmenu_resistance"
-         "Font Size" 36
-        }
-       }
+       Opacity 0.5
+       Color 0 0 0 1
       }
-      OverlayWidgetClass "{59A6DA4EC12672A1}" {
-       Name "Funds Header"
-       Slot LayoutSlot "{599D59771F18D990}" {
-        Padding 0 20 0 0
+      BlurWidgetClass "{5D98F8A321DD823E}" {
+       Name "Blur"
+       Slot OverlayWidgetSlot "{56EEDE05D754F42B}" {
+        HorizontalAlign 3
+        VerticalAlign 3
        }
-       {
-        PanelWidgetClass "{59A6DA4EC12672A6}" {
-         Name "BG"
-         Slot OverlayWidgetSlot "{599D5977F1E3F8A8}" {
-          HorizontalAlign 3
-          VerticalAlign 3
-         }
-         Color 1 1 1 0.035
-         style debugUI
-        }
-        HorizontalLayoutWidgetClass "{59A6DA4EC12672A7}" {
-         Name "Layout"
-         Slot OverlayWidgetSlot "{599D59771EB55F47}" {
-          HorizontalAlign 3
-          VerticalAlign 3
-          Padding 5 5 5 5
-         }
-         {
-          TextWidgetClass "{59A6DA4EC12672A4}" {
-           Name "Label"
-           Slot LayoutSlot "{599D5977351D294A}" {
-           }
-           Text "#OVT-Resistance_Funds"
-           "Font Size" 26
-          }
-          FrameWidgetClass "{59A6DA4EC12672A5}" {
-           Name "Fill"
-           Slot LayoutSlot "{599D5977BB3E09E2}" {
-            SizeMode Fill
-           }
-          }
-          TextWidgetClass "{59A6DA4EC12672BA}" {
-           Name "TotalFunds"
-           Slot LayoutSlot "{599D5977351D294A}" {
-            HorizontalAlign 0
-           }
-           Text "$56000"
-           "Font Size" 26
-          }
-         }
-        }
-       }
+       Color 0.305 0.305 0.305 1
+       Intensity 0.7
       }
-      OverlayWidgetClass "{59A6DA4F3774D1A7}" {
-       Name "IncomeHeader"
-       Slot LayoutSlot "{599D59771F18D990}" {
-        Padding 0 1 0 0
+      HorizontalLayoutWidgetClass "{5D98F8A321DD823D}" {
+       Name "SpaceLayout"
+       Slot OverlayWidgetSlot "{5720DE53ABB7CBED}" {
+        Padding 0 72 0 72
        }
        {
-        PanelWidgetClass "{59A6DA4F3774D1A4}" {
-         Name "BG"
-         Slot OverlayWidgetSlot "{599D5977F1E3F8A8}" {
-          HorizontalAlign 3
-          VerticalAlign 3
-         }
-         Color 1 1 1 0.035
-         style debugUI
-        }
-        HorizontalLayoutWidgetClass "{59A6DA4F3774D1A5}" {
-         Name "Layout"
-         Slot OverlayWidgetSlot "{599D59771EB55F47}" {
-          HorizontalAlign 3
-          VerticalAlign 3
-          Padding 5 5 5 5
-         }
-         {
-          TextWidgetClass "{59A6DA4F3774D1BA}" {
-           Name "Label"
-           Slot LayoutSlot "{599D5977351D294A}" {
-           }
-           Text "#OVT-Income"
-           "Font Size" 26
-          }
-          FrameWidgetClass "{59A6DA4F3774D1BB}" {
-           Name "Fill"
-           Slot LayoutSlot "{599D5977BB3E09E2}" {
-            SizeMode Fill
-           }
-          }
-          TextWidgetClass "{59A6DA4F3774D1B8}" {
-           Name "TotalIncome"
-           Slot LayoutSlot "{599D5977351D294A}" {
-            HorizontalAlign 0
-           }
-           Text "$1450"
-           "Font Size" 26
-          }
+        FrameWidgetClass "{5D98F8A321DD823B}" {
+         Name "SpaceLeft"
+         Slot LayoutSlot "{5720ECBBBD66ED2B}" {
+          SizeMode Fill
+          FillWeight 0.025
          }
         }
-       }
-      }
-      HorizontalLayoutWidgetClass "{59A6DA4CA613D960}" {
-       Name "Supporters"
-       Slot LayoutSlot "{59A6DA4C43CC721E}" {
-        Padding 0 0 0 0
-       }
-       {
-        ImageWidgetClass "{59A6DA4CA613D966}" {
-         Name "Image0"
-         Slot LayoutSlot "{59A6DA4C4FC5D425}" {
-         }
-         Texture "{D17288006833490F}UI/Textures/Icons/icons_wrapperUI-32.imageset"
-         Image "players"
-         Size 32 32
-        }
-        TextWidgetClass "{59A6DA4CA613D967}" {
-         Name "TotalSupporters"
-         Slot LayoutSlot "{59A6DA4C57D30E9F}" {
-          HorizontalAlign 1
-          VerticalAlign 1
-          Padding 10 0 0 0
-         }
-         Text "45/567"
-         "Font Size" 18
-         "Min Font Size" 18
-        }
-        TextWidgetClass "{59A6DA4F621243FA}" {
-         Name "Text1"
-         Slot LayoutSlot "{59A6DA4C57D30E9F}" {
-          HorizontalAlign 1
-          VerticalAlign 1
-          Padding 5 0 0 0
-         }
-         Text "#OVT-Resistance_SupporterDonations"
-         "Font Size" 18
-         "Min Font Size" 18
-        }
-        FrameWidgetClass "{59A6DA4FA28C863F}" {
-         Name "Fill"
-         Slot LayoutSlot "{59A6DA4FA28C85D1}" {
+        SizeLayoutWidgetClass "{5D98F8A321DD823A}" {
+         Name "Alignment"
+         Slot LayoutSlot "{5720DE53A848E0CC}" {
           SizeMode Fill
          }
-        }
-        TextWidgetClass "{59A6DA4FCB4C6F1F}" {
-         Name "SupporterIncome"
-         Slot LayoutSlot "{59A6DA4C57D30E9F}" {
-          HorizontalAlign 1
-          VerticalAlign 1
-          Padding 10 0 5 0
-         }
-         Text "$450"
-         "Font Size" 18
-         "Min Font Size" 18
-        }
-       }
-      }
-      HorizontalLayoutWidgetClass "{59A6DA4F9EB94C04}" {
-       Name "Tax"
-       Slot LayoutSlot "{59A6DA4C43CC721E}" {
-        Padding 0 0 0 0
-       }
-       {
-        ImageWidgetClass "{59A6DA4F9EB94C05}" {
-         Name "Image0"
-         Slot LayoutSlot "{59A6DA4C4FC5D425}" {
-         }
-         Texture "{D17288006833490F}UI/Textures/Icons/icons_wrapperUI-32.imageset"
-         Image "fxIcon"
-         Size 32 32
-        }
-        TextWidgetClass "{59A6DA4F9EB94C1B}" {
-         Name "Text1"
-         Slot LayoutSlot "{59A6DA4C57D30E9F}" {
-          HorizontalAlign 1
-          VerticalAlign 1
-          Padding 10 0 0 0
-         }
-         Text "#OVT-Resistance_TotalTaxes"
-         "Font Size" 18
-         "Min Font Size" 18
-        }
-        FrameWidgetClass "{59A6DA4F9EB94C18}" {
-         Name "Fill"
-         Slot LayoutSlot "{59A6DA4FA28C85D1}" {
-          SizeMode Fill
-         }
-        }
-        TextWidgetClass "{59A6DA4F9EB94C19}" {
-         Name "TaxIncome"
-         Slot LayoutSlot "{59A6DA4C57D30E9F}" {
-          HorizontalAlign 1
-          VerticalAlign 1
-          Padding 10 0 5 0
-         }
-         Text "$1000"
-         "Font Size" 18
-         "Min Font Size" 18
-        }
-       }
-      }
-      ImageWidgetClass "{59A6DA4BBE282D0C}" : "{199E5807E8619522}UI/layouts/WidgetLibrary/WLib_Separator.layout" {
-       Name "Separator0"
-       Slot LayoutSlot "{59A6DA4BBE282D1C}" {
-        Padding 4 8 4 4
-       }
-      }
-      ButtonWidgetClass "{59C84C674B72C979}" : "{4A41296C0E9A889F}UI/layouts/WidgetLibrary/WLib_Slider.layout" {
-       Name "TaxSlider"
-       Slot LayoutSlot "{59C84C674B72C945}" {
-        HorizontalAlign 3
-        Padding 4 4 4 4
-       }
-       components {
-        SCR_SliderComponent "{548294960C7399D9}" {
-         m_sLabel "#OVT-ResistanceTax"
-         m_fValue 0
-         m_fShownValueMultiplier 100
-        }
-       }
-       {
-       }
-      }
-      HorizontalLayoutWidgetClass "{59A6DA4956F09DAE}" {
-       Name "NextIncome"
-       Slot LayoutSlot "{59A6DA4C43CC721E}" {
-        HorizontalAlign 2
-        Padding 0 0 5 0
-       }
-       {
-        TextWidgetClass "{59A6DA4956F09DAC}" {
-         Name "Text1"
-         Slot LayoutSlot "{59A6DA4C57D30E9F}" {
-          HorizontalAlign 1
-          VerticalAlign 1
-          Padding 42 0 0 0
-         }
-         Color 0.301 0.301 0.301 1
-         Text "#OVT-Resistance_NextIncome"
-         "Font Size" 14
-         "Min Font Size" 14
-        }
-        TextWidgetClass "{59A6DA4956F09DA2}" {
-         Name "NextIncomeTime"
-         Slot LayoutSlot "{59A6DA4C57D30E9F}" {
-          HorizontalAlign 1
-          VerticalAlign 1
-          Padding 3 0 0 0
-         }
-         Color 0.301 0.301 0.301 1
-         Text "06:00"
-         "Font Size" 14
-         "Min Font Size" 14
-        }
-       }
-      }
-      OverlayWidgetClass "{59C84C7B314AF7FC}" {
-       Name "SendMoneyHeader"
-       Slot LayoutSlot "{599D59771F18D990}" {
-        Padding 0 30 0 0
-       }
-       {
-        PanelWidgetClass "{59C84C7B314AF7FB}" {
-         Name "BG"
-         Slot OverlayWidgetSlot "{599D5977F1E3F8A8}" {
-          HorizontalAlign 3
-          VerticalAlign 3
-         }
-         Color 1 1 1 0.035
-         style debugUI
-        }
-        HorizontalLayoutWidgetClass "{59C84C7B314AF7FA}" {
-         Name "Layout"
-         Slot OverlayWidgetSlot "{599D59771EB55F47}" {
-          HorizontalAlign 3
-          VerticalAlign 3
-          Padding 5 5 5 5
-         }
+         AllowWidthOverride 1
+         WidthOverride 1344
+         AllowHeightOverride 1
+         HeightOverride 936
          {
-          TextWidgetClass "{59C84C7B314AF7F9}" {
-           Name "Text"
-           Slot LayoutSlot "{599D5977351D294A}" {
+          VerticalLayoutWidgetClass "{5D98F8A321DD8239}" {
+           Name "ContentLayout"
+           Slot AlignableSlot "{56EEDE0403BED8AE}" {
+            HorizontalAlign 3
+            VerticalAlign 3
            }
-           Text "#OVT-SendFundsMoney"
-           "Font Size" 26
-          }
-         }
-        }
-       }
-      }
-      ButtonWidgetClass "{59C84C788890001B}" : "{C9DF0E6590F6C388}UI/layouts/WidgetLibrary/SpinBox/WLib_SpinBox.layout" {
-       Name "PlayerSpin"
-       Slot LayoutSlot "{59C84C788890000C}" {
-        HorizontalAlign 3
-        Padding 4 4 4 4
-       }
-       components {
-        SCR_SpinBoxComponent "{5472C6CBC0640458}" {
-         m_sLabel "#OVT-Player"
-        }
-       }
-       {
-       }
-      }
-      ButtonWidgetClass "{59C84C7945D46425}" : "{4A41296C0E9A889F}UI/layouts/WidgetLibrary/WLib_Slider.layout" {
-       Name "AmountSlider"
-       Slot LayoutSlot "{59C84C7945D46417}" {
-        HorizontalAlign 3
-        Padding 4 4 4 4
-       }
-       components {
-        SCR_SliderComponent "{548294960C7399D9}" {
-         m_sLabel "#OVT-Amount"
-         m_fValue 1000
-         m_fMinValue 100
-         m_fMaxValue 10000
-         m_fStep 100
-         m_sFormatText "$%1"
-        }
-       }
-       {
-       }
-      }
-      HorizontalLayoutWidgetClass "{59A6DA4B67F90AE5}" {
-       Name "SendButtonsLayout"
-       Slot LayoutSlot "{59A6DA4B67F90A9C}" {
-        Padding 0 0 0 0
-       }
-       {
-        ButtonWidgetClass "{59C84C7CB694E8F4}" : "{75C912A1C89BE6C2}UI/layouts/WidgetLibrary/Buttons/WLib_ButtonText.layout" {
-         Name "MakeOfficer"
-         Slot LayoutSlot "{59C84C7C117A2068}" {
-          Padding 5 5 5 5
-         }
-         components {
-          SCR_ButtonTextComponent "{5548F0143AE99095}" {
-           m_sText "#OVT-MakeOfficer"
-          }
-         }
-         {
-          SizeLayoutWidgetClass "{5548EB41A8E48247}" {
-           Prefab "{5548EB41A8E48247}"
+           "Fill Origin" Center
            {
-            OverlayWidgetClass "{5548EB41A8E48245}" {
-             Prefab "{5548EB41A8E48245}"
-             Slot ButtonWidgetSlot "{5548E6E7F213FB11}" {
-              Padding 2 2 2 2
+            OverlayWidgetClass "{5D98F8A321DD8238}" {
+             Name "ContentSegment"
+             Slot LayoutSlot "{56EF0B1E79FE7342}" {
+              Padding 0 12 0 0
+              SizeMode Fill
              }
              {
-              TextWidgetClass "{5548F014E72FB9DA}" {
-               Prefab "{5548F014E72FB9DA}"
-               Slot OverlayWidgetSlot "{55708DE55528756B}" {
-                Padding 10 10 10 10
+              HorizontalLayoutWidgetClass "{5D98F8A321DD8227}" {
+               Name "HorizontalLayout0"
+               Slot OverlayWidgetSlot "{5D9091C37F8DC652}" {
+                HorizontalAlign 3
+                VerticalAlign 3
                }
-              }
-             }
-            }
-           }
-          }
-         }
-        }
-        ButtonWidgetClass "{59C84C63BEA7AFC0}" : "{75C912A1C89BE6C2}UI/layouts/WidgetLibrary/Buttons/WLib_ButtonText.layout" {
-         Name "DonateFunds"
-         Slot LayoutSlot "{59C84C7C117A2068}" {
-          Padding 5 5 5 5
-         }
-         components {
-          SCR_ButtonTextComponent "{5548F0143AE99095}" {
-           m_sText "#OVT-DonateFunds"
-          }
-         }
-         {
-          SizeLayoutWidgetClass "{5548EB41A8E48247}" {
-           Prefab "{5548EB41A8E48247}"
-           {
-            OverlayWidgetClass "{5548EB41A8E48245}" {
-             Prefab "{5548EB41A8E48245}"
-             Slot ButtonWidgetSlot "{5548E6E7F213FB11}" {
-              Padding 2 2 2 2
-             }
-             {
-              TextWidgetClass "{5548F014E72FB9DA}" {
-               Prefab "{5548F014E72FB9DA}"
-               Slot OverlayWidgetSlot "{55708DE55528756B}" {
-                Padding 10 10 10 10
-               }
-              }
-             }
-            }
-           }
-          }
-         }
-        }
-        FrameWidgetClass "{59C84C7CDCBB0145}" {
-         Name "Fill"
-         Slot LayoutSlot "{59A6DA4FA28C85D1}" {
-          SizeMode Fill
-         }
-        }
-        ButtonWidgetClass "{59C84C7C117A2078}" : "{75C912A1C89BE6C2}UI/layouts/WidgetLibrary/Buttons/WLib_ButtonText.layout" {
-         Name "SendFunds"
-         Slot LayoutSlot "{59C84C7C117A2068}" {
-          Padding 5 5 5 5
-         }
-         components {
-          SCR_ButtonTextComponent "{5548F0143AE99095}" {
-           m_sText "#OVT-SendFunds"
-          }
-         }
-         {
-          SizeLayoutWidgetClass "{5548EB41A8E48247}" {
-           Prefab "{5548EB41A8E48247}"
-           {
-            OverlayWidgetClass "{5548EB41A8E48245}" {
-             Prefab "{5548EB41A8E48245}"
-             Slot ButtonWidgetSlot "{5548E6E7F213FB11}" {
-              Padding 2 2 2 2
-             }
-             {
-              TextWidgetClass "{5548F014E72FB9DA}" {
-               Prefab "{5548F014E72FB9DA}"
-               Slot OverlayWidgetSlot "{55708DE55528756B}" {
-                Padding 10 10 10 10
-               }
-              }
-             }
-            }
-           }
-          }
-         }
-        }
-        ButtonWidgetClass "{59C84C7CADF2A4B7}" : "{75C912A1C89BE6C2}UI/layouts/WidgetLibrary/Buttons/WLib_ButtonText.layout" {
-         Name "SendMoney"
-         Slot LayoutSlot "{59C84C7C117A2068}" {
-          Padding 5 5 5 5
-         }
-         components {
-          SCR_ButtonTextComponent "{5548F0143AE99095}" {
-           m_sText "#OVT-SendMoney"
-          }
-         }
-         {
-          SizeLayoutWidgetClass "{5548EB41A8E48247}" {
-           Prefab "{5548EB41A8E48247}"
-           {
-            OverlayWidgetClass "{5548EB41A8E48245}" {
-             Prefab "{5548EB41A8E48245}"
-             Slot ButtonWidgetSlot "{5548E6E7F213FB11}" {
-              Padding 2 2 2 2
-             }
-             {
-              TextWidgetClass "{5548F014E72FB9DA}" {
-               Prefab "{5548F014E72FB9DA}"
-               Slot OverlayWidgetSlot "{55708DE55528756B}" {
-                Padding 10 10 10 10
-               }
-              }
-             }
-            }
-           }
-          }
-         }
-        }
-       }
-      }
-      FrameWidgetClass "{59A6DA4811BFDF53}" {
-       Name "Fill"
-       Slot LayoutSlot "{59A6DA4FA28C85D1}" {
-        SizeMode Fill
-       }
-      }
-      OverlayWidgetClass "{59A6DA483A285947}" {
-       Name "Footer"
-       Slot LayoutSlot "{56EEDE03DE14A911}" {
-       }
-       {
-        HorizontalLayoutWidgetClass "{59A6DA483A285944}" {
-         Name "Buttons"
-         Slot OverlayWidgetSlot "{56EEDE03DED9A743}" {
-          HorizontalAlign 3
-         }
-         {
-          ButtonWidgetClass "{59A6DA483A285945}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
-           Name "CloseButton"
-           Slot LayoutSlot "{56EEDE01982D053A}" {
-            Padding 0 0 10 0
-           }
-           components {
-            SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
-             m_sSoundClicked "SOUND_FE_BUTTON_CANCEL"
-             m_sLabel "#AR-Editor_ContentBrowser_ButtonClose"
-             m_sActionName "MenuBack"
-            }
-            ButtonActionComponent "{56EEDE01BE93EE7D}" {
-             m_bActionName "MenuBack"
-            }
-           }
-           {
-            SizeLayoutWidgetClass "{5562AD435529FB36}" {
-             Prefab "{5562AD435529FB36}"
-             {
-              OverlayWidgetClass "{000000005E70868E}" {
-               Prefab "{000000005E70868E}"
                {
-                HorizontalLayoutWidgetClass "{00000000E3602307}" {
-                 Prefab "{00000000E3602307}"
-                 Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
-                  Padding 10 10 16 10
+                OverlayWidgetClass "{5D98F8A212486F2F}" {
+                 Name "Overlay0"
+                 Slot LayoutSlot "{5D98F8A212486ECB}" {
+                  Padding 5 0 5 0
+                  SizeMode Fill
+                  FillWeight 0.5
                  }
                  {
+                  ImageWidgetClass "{5D98F8A2E5E4B8B2}" {
+                   Name "Image0"
+                   Slot OverlayWidgetSlot "{5D98F8A2E5E4B85B}" {
+                    HorizontalAlign 3
+                    VerticalAlign 3
+                   }
+                   Color 0 0 0 0.176
+                  }
+                  VerticalLayoutWidgetClass "{5D98F8A321DD8226}" {
+                   Name "LeaderboardArea"
+                   Slot OverlayWidgetSlot {
+                    HorizontalAlign 3
+                    VerticalAlign 3
+                    Padding 5 5 5 5
+                   }
+                   {
+                    HorizontalLayoutWidgetClass "{5D98F8A279325398}" {
+                     Name "HorizontalLayout0"
+                     Slot LayoutSlot "{5D98F8A2793253A4}" {
+                      VerticalAlign 0
+                     }
+                     {
+                      TextWidgetClass "{5D98F8A2404D7A46}" {
+                       Name "NameHeading"
+                       Slot LayoutSlot "{5D98F8A2404D7A6F}" {
+                        Padding 2 0 0 0
+                        SizeMode Fill
+                       }
+                       Text "Player"
+                       "Font Size" 18
+                       "Min Font Size" 18
+                      }
+                      TextWidgetClass "{5D98F8A2260E8BEE}" {
+                       Name "KillsHeading"
+                       Slot LayoutSlot "{5D98F8A2404D7A6F}" {
+                        Padding 0 0 2 0
+                       }
+                       Text "Kills"
+                       "Font Size" 18
+                       "Min Font Size" 18
+                      }
+                     }
+                    }
+                    ImageWidgetClass "{5D98F8A2A41B871D}" : "{199E5807E8619522}UI/layouts/WidgetLibrary/WLib_Separator.layout" {
+                     Name "Separator0"
+                     Slot LayoutSlot "{59A6DA4BBE282D1C}" {
+                      Padding 4 8 4 4
+                     }
+                    }
+                    VerticalLayoutWidgetClass "{5D98F8A2B49E0FBC}" {
+                     Name "LeaderboardContainer"
+                     Slot LayoutSlot "{5D98F8A2B49E0F58}" {
+                     }
+                     {
+                      HorizontalLayoutWidgetClass "{5D98F8A1F552B58D}" : "{6413FF58FA73AB1A}UI/Layouts/Menu/ResistanceMenu/LeaderboardPlayer.layout" {
+                       Name "LeaderboardPlayer00"
+                       Slot LayoutSlot "{5D98F8A28EDEFE45}" {
+                       }
+                      }
+                      HorizontalLayoutWidgetClass "{5D98F8A1FB61088E}" : "{6413FF58FA73AB1A}UI/Layouts/Menu/ResistanceMenu/LeaderboardPlayer.layout" {
+                       Name "LeaderboardPlayer01"
+                       Slot LayoutSlot "{5D98F8A28EDEFE45}" {
+                       }
+                      }
+                      HorizontalLayoutWidgetClass "{5D98F8A1FAD2E8FE}" : "{6413FF58FA73AB1A}UI/Layouts/Menu/ResistanceMenu/LeaderboardPlayer.layout" {
+                       Name "LeaderboardPlayer02"
+                       Slot LayoutSlot "{5D98F8A28EDEFE45}" {
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+                VerticalLayoutWidgetClass "{5D98F8A303B71475}" {
+                 Name "VerticalLayout1"
+                 Slot LayoutSlot {
+                  SizeMode Fill
+                 }
+                 {
+                  HorizontalLayoutWidgetClass "{5D98F8A303B71474}" {
+                   Name "Header"
+                   Slot LayoutSlot "{59A6DA4C43CC721E}" {
+                   }
+                   {
+                    ImageWidgetClass "{5D98F8A303B71476}" {
+                     Name "Image0"
+                     Slot LayoutSlot "{59A6DA4C4FC5D425}" {
+                     }
+                     Texture "{FB266CDD4502D60B}UI/Textures/Editor/EditableEntities/Factions/EditableEntity_Faction_Fia.edds"
+                     Image ""
+                     Size 64 64
+                    }
+                    TextWidgetClass "{5D98F8A303B71471}" {
+                     Name "Text0"
+                     Slot LayoutSlot "{59A6DA4C57D30E9F}" {
+                      HorizontalAlign 1
+                      VerticalAlign 1
+                      Padding 10 0 0 0
+                     }
+                     Text "#ovt-mainmenu_resistance"
+                     "Font Size" 36
+                    }
+                   }
+                  }
+                  OverlayWidgetClass "{5D98F8A303B71470}" {
+                   Name "Funds Header"
+                   Slot LayoutSlot "{599D59771F18D990}" {
+                    Padding 0 20 0 0
+                   }
+                   {
+                    PanelWidgetClass "{5D98F8A303B71472}" {
+                     Name "BG"
+                     Slot OverlayWidgetSlot "{599D5977F1E3F8A8}" {
+                      HorizontalAlign 3
+                      VerticalAlign 3
+                     }
+                     Color 1 1 1 0.035
+                     style debugUI
+                    }
+                    HorizontalLayoutWidgetClass "{5D98F8A303B7147D}" {
+                     Name "Layout"
+                     Slot OverlayWidgetSlot "{599D59771EB55F47}" {
+                      HorizontalAlign 3
+                      VerticalAlign 3
+                      Padding 5 5 5 5
+                     }
+                     {
+                      TextWidgetClass "{5D98F8A303B7147C}" {
+                       Name "Label"
+                       Slot LayoutSlot "{599D5977351D294A}" {
+                       }
+                       Text "#OVT-Resistance_Funds"
+                       "Font Size" 26
+                      }
+                      FrameWidgetClass "{5D98F8A303B7147F}" {
+                       Name "Fill"
+                       Slot LayoutSlot "{599D5977BB3E09E2}" {
+                        SizeMode Fill
+                       }
+                      }
+                      TextWidgetClass "{5D98F8A303B7147E}" {
+                       Name "TotalFunds"
+                       Slot LayoutSlot "{599D5977351D294A}" {
+                        HorizontalAlign 0
+                       }
+                       Text "$56000"
+                       "Font Size" 26
+                      }
+                     }
+                    }
+                   }
+                  }
+                  OverlayWidgetClass "{5D98F8A303B71479}" {
+                   Name "IncomeHeader"
+                   Slot LayoutSlot "{599D59771F18D990}" {
+                    Padding 0 1 0 0
+                   }
+                   {
+                    PanelWidgetClass "{5D98F8A303B71478}" {
+                     Name "BG"
+                     Slot OverlayWidgetSlot "{599D5977F1E3F8A8}" {
+                      HorizontalAlign 3
+                      VerticalAlign 3
+                     }
+                     Color 1 1 1 0.035
+                     style debugUI
+                    }
+                    HorizontalLayoutWidgetClass "{5D98F8A303B7147B}" {
+                     Name "Layout"
+                     Slot OverlayWidgetSlot "{599D59771EB55F47}" {
+                      HorizontalAlign 3
+                      VerticalAlign 3
+                      Padding 5 5 5 5
+                     }
+                     {
+                      TextWidgetClass "{5D98F8A303B7147A}" {
+                       Name "Label"
+                       Slot LayoutSlot "{599D5977351D294A}" {
+                       }
+                       Text "#OVT-Income"
+                       "Font Size" 26
+                      }
+                      FrameWidgetClass "{5D98F8A303B71465}" {
+                       Name "Fill"
+                       Slot LayoutSlot "{599D5977BB3E09E2}" {
+                        SizeMode Fill
+                       }
+                      }
+                      TextWidgetClass "{5D98F8A303B71464}" {
+                       Name "TotalIncome"
+                       Slot LayoutSlot "{599D5977351D294A}" {
+                        HorizontalAlign 0
+                       }
+                       Text "$1450"
+                       "Font Size" 26
+                      }
+                     }
+                    }
+                   }
+                  }
+                  HorizontalLayoutWidgetClass "{5D98F8A303B71466}" {
+                   Name "Supporters"
+                   Slot LayoutSlot "{59A6DA4C43CC721E}" {
+                    Padding 0 0 0 0
+                   }
+                   {
+                    ImageWidgetClass "{5D98F8A303B71461}" {
+                     Name "Image0"
+                     Slot LayoutSlot "{59A6DA4C4FC5D425}" {
+                     }
+                     Texture "{D17288006833490F}UI/Textures/Icons/icons_wrapperUI-32.imageset"
+                     Image "players"
+                     Size 32 32
+                    }
+                    TextWidgetClass "{5D98F8A303B71460}" {
+                     Name "TotalSupporters"
+                     Slot LayoutSlot "{59A6DA4C57D30E9F}" {
+                      HorizontalAlign 1
+                      VerticalAlign 1
+                      Padding 10 0 0 0
+                     }
+                     Text "45/567"
+                     "Font Size" 18
+                     "Min Font Size" 18
+                    }
+                    TextWidgetClass "{5D98F8A303B71463}" {
+                     Name "Text1"
+                     Slot LayoutSlot "{59A6DA4C57D30E9F}" {
+                      HorizontalAlign 1
+                      VerticalAlign 1
+                      Padding 5 0 0 0
+                     }
+                     Text "#OVT-Resistance_SupporterDonations"
+                     "Font Size" 18
+                     "Min Font Size" 18
+                    }
+                    FrameWidgetClass "{5D98F8A303B71462}" {
+                     Name "Fill"
+                     Slot LayoutSlot "{59A6DA4FA28C85D1}" {
+                      SizeMode Fill
+                     }
+                    }
+                    TextWidgetClass "{5D98F8A303B7146D}" {
+                     Name "SupporterIncome"
+                     Slot LayoutSlot "{59A6DA4C57D30E9F}" {
+                      HorizontalAlign 1
+                      VerticalAlign 1
+                      Padding 10 0 5 0
+                     }
+                     Text "$450"
+                     "Font Size" 18
+                     "Min Font Size" 18
+                    }
+                   }
+                  }
+                  HorizontalLayoutWidgetClass "{5D98F8A303B7146C}" {
+                   Name "Tax"
+                   Slot LayoutSlot "{59A6DA4C43CC721E}" {
+                    Padding 0 0 0 0
+                   }
+                   {
+                    ImageWidgetClass "{5D98F8A303B7146F}" {
+                     Name "Image0"
+                     Slot LayoutSlot "{59A6DA4C4FC5D425}" {
+                     }
+                     Texture "{D17288006833490F}UI/Textures/Icons/icons_wrapperUI-32.imageset"
+                     Image "fxIcon"
+                     Size 32 32
+                    }
+                    TextWidgetClass "{5D98F8A303B7146E}" {
+                     Name "Text1"
+                     Slot LayoutSlot "{59A6DA4C57D30E9F}" {
+                      HorizontalAlign 1
+                      VerticalAlign 1
+                      Padding 10 0 0 0
+                     }
+                     Text "#OVT-Resistance_TotalTaxes"
+                     "Font Size" 18
+                     "Min Font Size" 18
+                    }
+                    FrameWidgetClass "{5D98F8A303B71469}" {
+                     Name "Fill"
+                     Slot LayoutSlot "{59A6DA4FA28C85D1}" {
+                      SizeMode Fill
+                     }
+                    }
+                    TextWidgetClass "{5D98F8A303B7146B}" {
+                     Name "TaxIncome"
+                     Slot LayoutSlot "{59A6DA4C57D30E9F}" {
+                      HorizontalAlign 1
+                      VerticalAlign 1
+                      Padding 10 0 5 0
+                     }
+                     Text "$1000"
+                     "Font Size" 18
+                     "Min Font Size" 18
+                    }
+                   }
+                  }
+                  ImageWidgetClass "{5D98F8A303B7146A}" : "{199E5807E8619522}UI/layouts/WidgetLibrary/WLib_Separator.layout" {
+                   Name "Separator0"
+                   Slot LayoutSlot "{59A6DA4BBE282D1C}" {
+                    Padding 4 8 4 4
+                   }
+                  }
+                  ButtonWidgetClass "{5D98F8A303B71415}" : "{4A41296C0E9A889F}UI/layouts/WidgetLibrary/WLib_Slider.layout" {
+                   Name "TaxSlider"
+                   Slot LayoutSlot "{59C84C674B72C945}" {
+                    HorizontalAlign 3
+                    Padding 4 4 4 4
+                   }
+                   components {
+                    SCR_SliderComponent "{548294960C7399D9}" {
+                     m_sLabel "#OVT-ResistanceTax"
+                     m_fValue 0
+                     m_fShownValueMultiplier 100
+                    }
+                   }
+                  }
+                  HorizontalLayoutWidgetClass "{5D98F8A303B71416}" {
+                   Name "NextIncome"
+                   Slot LayoutSlot "{59A6DA4C43CC721E}" {
+                    HorizontalAlign 2
+                    Padding 0 0 5 0
+                   }
+                   {
+                    TextWidgetClass "{5D98F8A303B71411}" {
+                     Name "Text1"
+                     Slot LayoutSlot "{59A6DA4C57D30E9F}" {
+                      HorizontalAlign 1
+                      VerticalAlign 1
+                      Padding 42 0 0 0
+                     }
+                     Color 0.301 0.301 0.301 1
+                     Text "#OVT-Resistance_NextIncome"
+                     "Font Size" 14
+                     "Min Font Size" 14
+                    }
+                    TextWidgetClass "{5D98F8A303B71410}" {
+                     Name "NextIncomeTime"
+                     Slot LayoutSlot "{59A6DA4C57D30E9F}" {
+                      HorizontalAlign 1
+                      VerticalAlign 1
+                      Padding 3 0 0 0
+                     }
+                     Color 0.301 0.301 0.301 1
+                     Text "06:00"
+                     "Font Size" 14
+                     "Min Font Size" 14
+                    }
+                   }
+                  }
+                  OverlayWidgetClass "{5D98F8A303B71413}" {
+                   Name "SendMoneyHeader"
+                   Slot LayoutSlot "{599D59771F18D990}" {
+                    Padding 0 30 0 0
+                   }
+                   {
+                    PanelWidgetClass "{5D98F8A303B71412}" {
+                     Name "BG"
+                     Slot OverlayWidgetSlot "{599D5977F1E3F8A8}" {
+                      HorizontalAlign 3
+                      VerticalAlign 3
+                     }
+                     Color 1 1 1 0.035
+                     style debugUI
+                    }
+                    HorizontalLayoutWidgetClass "{5D98F8A303B7141D}" {
+                     Name "Layout"
+                     Slot OverlayWidgetSlot "{599D59771EB55F47}" {
+                      HorizontalAlign 3
+                      VerticalAlign 3
+                      Padding 5 5 5 5
+                     }
+                     {
+                      TextWidgetClass "{5D98F8A303B7141C}" {
+                       Name "Text"
+                       Slot LayoutSlot "{599D5977351D294A}" {
+                       }
+                       Text "#OVT-SendFundsMoney"
+                       "Font Size" 26
+                      }
+                     }
+                    }
+                   }
+                  }
+                  ButtonWidgetClass "{5D98F8A303B7141F}" : "{C9DF0E6590F6C388}UI/layouts/WidgetLibrary/SpinBox/WLib_SpinBox.layout" {
+                   Name "PlayerSpin"
+                   Slot LayoutSlot "{59C84C788890000C}" {
+                    HorizontalAlign 3
+                    Padding 4 4 4 4
+                   }
+                   components {
+                    SCR_SpinBoxComponent "{5472C6CBC0640458}" {
+                     m_sLabel "#OVT-Player"
+                    }
+                   }
+                  }
+                  ButtonWidgetClass "{5D98F8A303B71405}" : "{4A41296C0E9A889F}UI/layouts/WidgetLibrary/WLib_Slider.layout" {
+                   Name "AmountSlider"
+                   Slot LayoutSlot "{59C84C7945D46417}" {
+                    HorizontalAlign 3
+                    Padding 4 4 4 4
+                   }
+                   components {
+                    SCR_SliderComponent "{548294960C7399D9}" {
+                     m_sLabel "#OVT-Amount"
+                     m_fValue 1000
+                     m_fMinValue 100
+                     m_fMaxValue 10000
+                     m_fStep 100
+                     m_sFormatText "$%1"
+                    }
+                   }
+                  }
+                  HorizontalLayoutWidgetClass "{5D98F8A303B71406}" {
+                   Name "SendButtonsLayout"
+                   Slot LayoutSlot "{59A6DA4B67F90A9C}" {
+                    Padding 0 0 0 0
+                   }
+                   {
+                    ButtonWidgetClass "{5D98F8A303B71401}" : "{75C912A1C89BE6C2}UI/layouts/WidgetLibrary/Buttons/WLib_ButtonText.layout" {
+                     Name "MakeOfficer"
+                     Slot LayoutSlot "{59C84C7C117A2068}" {
+                      Padding 5 5 5 5
+                     }
+                     components {
+                      SCR_ButtonTextComponent "{5548F0143AE99095}" {
+                       m_sText "#OVT-MakeOfficer"
+                      }
+                     }
+                     {
+                      SizeLayoutWidgetClass "{5548EB41A8E48247}" {
+                       Prefab "{5548EB41A8E48247}"
+                       {
+                        OverlayWidgetClass "{5548EB41A8E48245}" {
+                         Prefab "{5548EB41A8E48245}"
+                         Slot ButtonWidgetSlot "{5548E6E7F213FB11}" {
+                          Padding 2 2 2 2
+                         }
+                         {
+                          TextWidgetClass "{5548F014E72FB9DA}" {
+                           Prefab "{5548F014E72FB9DA}"
+                           Slot OverlayWidgetSlot "{55708DE55528756B}" {
+                            Padding 10 10 10 10
+                           }
+                          }
+                         }
+                        }
+                       }
+                      }
+                     }
+                    }
+                    ButtonWidgetClass "{5D98F8A303B71403}" : "{75C912A1C89BE6C2}UI/layouts/WidgetLibrary/Buttons/WLib_ButtonText.layout" {
+                     Name "DonateFunds"
+                     Slot LayoutSlot "{59C84C7C117A2068}" {
+                      Padding 5 5 5 5
+                     }
+                     components {
+                      SCR_ButtonTextComponent "{5548F0143AE99095}" {
+                       m_sText "#OVT-DonateFunds"
+                      }
+                     }
+                     {
+                      SizeLayoutWidgetClass "{5548EB41A8E48247}" {
+                       Prefab "{5548EB41A8E48247}"
+                       {
+                        OverlayWidgetClass "{5548EB41A8E48245}" {
+                         Prefab "{5548EB41A8E48245}"
+                         Slot ButtonWidgetSlot "{5548E6E7F213FB11}" {
+                          Padding 2 2 2 2
+                         }
+                         {
+                          TextWidgetClass "{5548F014E72FB9DA}" {
+                           Prefab "{5548F014E72FB9DA}"
+                           Slot OverlayWidgetSlot "{55708DE55528756B}" {
+                            Padding 10 10 10 10
+                           }
+                          }
+                         }
+                        }
+                       }
+                      }
+                     }
+                    }
+                    FrameWidgetClass "{5D98F8A303B71402}" {
+                     Name "Fill"
+                     Slot LayoutSlot "{59A6DA4FA28C85D1}" {
+                      SizeMode Fill
+                     }
+                    }
+                    ButtonWidgetClass "{5D98F8A303B7140C}" : "{75C912A1C89BE6C2}UI/layouts/WidgetLibrary/Buttons/WLib_ButtonText.layout" {
+                     Name "SendFunds"
+                     Slot LayoutSlot "{59C84C7C117A2068}" {
+                      Padding 5 5 5 5
+                     }
+                     components {
+                      SCR_ButtonTextComponent "{5548F0143AE99095}" {
+                       m_sText "#OVT-SendFunds"
+                      }
+                     }
+                     {
+                      SizeLayoutWidgetClass "{5548EB41A8E48247}" {
+                       Prefab "{5548EB41A8E48247}"
+                       {
+                        OverlayWidgetClass "{5548EB41A8E48245}" {
+                         Prefab "{5548EB41A8E48245}"
+                         Slot ButtonWidgetSlot "{5548E6E7F213FB11}" {
+                          Padding 2 2 2 2
+                         }
+                         {
+                          TextWidgetClass "{5548F014E72FB9DA}" {
+                           Prefab "{5548F014E72FB9DA}"
+                           Slot OverlayWidgetSlot "{55708DE55528756B}" {
+                            Padding 10 10 10 10
+                           }
+                          }
+                         }
+                        }
+                       }
+                      }
+                     }
+                    }
+                    ButtonWidgetClass "{5D98F8A303B7140F}" : "{75C912A1C89BE6C2}UI/layouts/WidgetLibrary/Buttons/WLib_ButtonText.layout" {
+                     Name "SendMoney"
+                     Slot LayoutSlot "{59C84C7C117A2068}" {
+                      Padding 5 5 5 5
+                     }
+                     components {
+                      SCR_ButtonTextComponent "{5548F0143AE99095}" {
+                       m_sText "#OVT-SendMoney"
+                      }
+                     }
+                     {
+                      SizeLayoutWidgetClass "{5548EB41A8E48247}" {
+                       Prefab "{5548EB41A8E48247}"
+                       {
+                        OverlayWidgetClass "{5548EB41A8E48245}" {
+                         Prefab "{5548EB41A8E48245}"
+                         Slot ButtonWidgetSlot "{5548E6E7F213FB11}" {
+                          Padding 2 2 2 2
+                         }
+                         {
+                          TextWidgetClass "{5548F014E72FB9DA}" {
+                           Prefab "{5548F014E72FB9DA}"
+                           Slot OverlayWidgetSlot "{55708DE55528756B}" {
+                            Padding 10 10 10 10
+                           }
+                          }
+                         }
+                        }
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+            OverlayWidgetClass "{5D98F8A321DD05A7}" {
+             Name "Footer"
+             Slot LayoutSlot "{56EEDE03DE14A911}" {
+             }
+             {
+              HorizontalLayoutWidgetClass "{5D98F8A321DD05A6}" {
+               Name "Buttons"
+               Slot OverlayWidgetSlot "{56EEDE03DED9A743}" {
+                HorizontalAlign 3
+               }
+               {
+                ButtonWidgetClass "{5D98F8A321DD05A1}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+                 Name "CloseButton"
+                 Slot LayoutSlot "{56EEDE01982D053A}" {
+                  Padding 0 0 10 0
+                 }
+                 components {
+                  SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+                   m_sSoundClicked "SOUND_FE_BUTTON_CANCEL"
+                   m_sLabel "#AR-Editor_ContentBrowser_ButtonClose"
+                   m_sActionName "MenuBack"
+                  }
+                 }
+                 {
+                  SizeLayoutWidgetClass "{5562AD435529FB36}" {
+                   Prefab "{5562AD435529FB36}"
+                   {
+                    OverlayWidgetClass "{000000005E70868E}" {
+                     Prefab "{000000005E70868E}"
+                     {
+                      HorizontalLayoutWidgetClass "{00000000E3602307}" {
+                       Prefab "{00000000E3602307}"
+                       Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
+                        Padding 10 10 16 10
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+                ButtonWidgetClass "{5D98F8A321DD05A2}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+                 Name "SelectButton"
+                 Slot LayoutSlot "{56EEDE01982D053A}" {
+                  Padding 0 0 10 0
+                 }
+                 components {
+                  SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+                   m_sLabel "#AR-Editor_ContentBrowser_ButtonSelect"
+                   m_sActionName "MenuSelect"
+                  }
+                  SCR_DeviceSpecificComponent "{56EEDE01335EDAD4}" {
+                   m_bControllerOnly 1
+                  }
+                 }
+                 {
+                  SizeLayoutWidgetClass "{5562AD435529FB36}" {
+                   Prefab "{5562AD435529FB36}"
+                   {
+                    OverlayWidgetClass "{000000005E70868E}" {
+                     Prefab "{000000005E70868E}"
+                     {
+                      HorizontalLayoutWidgetClass "{00000000E3602307}" {
+                       Prefab "{00000000E3602307}"
+                       Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
+                        Padding 10 10 16 10
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
                  }
                 }
                }
@@ -583,6 +738,13 @@ FrameWidgetClass {
             }
            }
           }
+         }
+        }
+        FrameWidgetClass "{5D98F8A321DD05AC}" {
+         Name "SpaceRight"
+         Slot LayoutSlot "{5720ECBBBD66ED2B}" {
+          SizeMode Fill
+          FillWeight 0.025
          }
         }
        }

@@ -1,0 +1,67 @@
+HorizontalLayoutWidgetClass "{5D98F8A28EDEFEB8}" {
+ Name "LeaderboardPlayer0"
+ Slot LayoutSlot "{5D98F8A28EDEFE45}" {
+ }
+ {
+  OverlayWidgetClass "{5D98F8A16CCB9C13}" {
+   Name "Level Icon"
+   Slot LayoutSlot "{5D923C57EA5A6EF9}" {
+   }
+   {
+    SizeLayoutWidgetClass "{5D98F8A16CCB9C12}" {
+     Name "SizeLayout0"
+     Slot OverlayWidgetSlot "{5D923C57D54A6F4B}" {
+     }
+     AllowWidthOverride 1
+     WidthOverride 32
+     AllowHeightOverride 1
+     HeightOverride 32
+     {
+      ImageWidgetClass "{5D98F8A16CCB9C1C}" {
+       Name "Image0"
+       Slot AlignableSlot "{5D923C57D401566E}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       Color 0.157 0.275 0.624 1
+       Texture "{D17288006833490F}UI/Textures/Icons/icons_wrapperUI-32.imageset"
+       Image "careerCircle"
+       Size 32 32
+      }
+     }
+    }
+    TextWidgetClass "{5D98F8A16CCB9C1E}" {
+     Name "TextLevel"
+     Slot OverlayWidgetSlot "{5D98F8A37E4C23F7}" {
+     }
+     Text "12"
+     "Font Size" 12
+     "Min Font Size" 12
+     "Horizontal Alignment" Center
+     "Vertical Alignment" Center
+    }
+   }
+  }
+  TextWidgetClass "{5D98F8A2881BB7BB}" {
+   Name "NameText"
+   Slot LayoutSlot "{5D98F8A2404D7A6F}" {
+    Padding 0 0 0 0
+    SizeMode Fill
+   }
+   Text "Player"
+   "Font Size" 18
+   "Min Font Size" 18
+   "Vertical Alignment" Center
+  }
+  TextWidgetClass "{5D98F8A2881BB74E}" {
+   Name "KillsText"
+   Slot LayoutSlot "{5D98F8A2404D7A6F}" {
+    Padding 0 0 2 0
+   }
+   Text "124"
+   "Font Size" 18
+   "Min Font Size" 18
+   "Vertical Alignment" Center
+  }
+ }
+}
