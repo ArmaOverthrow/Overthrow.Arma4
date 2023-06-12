@@ -217,7 +217,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		return dist < 1;
 	}
 	
-	IEntity GetNearestOwned(string playerId, vector pos)
+	IEntity GetNearestOwned(string playerId, vector pos, float range = -1)
 	{
 		if(!m_mOwned.Contains(playerId)) return null;
 		
@@ -230,6 +230,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
 			IEntity ent = rpl.GetEntity();
 			float dist = vector.Distance(ent.GetOrigin(), pos);
+			if(range > -1 && dist > range) continue;
 			if(nearest == -1 || dist < nearest)
 			{
 				nearest = dist;
@@ -240,7 +241,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		return nearestEnt;
 	}
 	
-	IEntity GetNearestRented(string playerId, vector pos)
+	IEntity GetNearestRented(string playerId, vector pos, float range = -1)
 	{
 		if(!m_mRented.Contains(playerId)) return null;
 		
@@ -253,6 +254,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
 			IEntity ent = rpl.GetEntity();
 			float dist = vector.Distance(ent.GetOrigin(), pos);
+			if(range > -1 && dist > range) continue;
 			if(nearest == -1 || dist < nearest)
 			{
 				nearest = dist;
