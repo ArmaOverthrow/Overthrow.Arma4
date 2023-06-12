@@ -66,9 +66,7 @@ class OVT_BaseControllerComponent: OVT_Component
 	}
 	
 	void SetControllingFaction(int index, bool suppressEvents = false)
-	{
-		if(GetControllingFaction() == index) return;
-		
+	{		
 		if(!suppressEvents)
 			m_occupyingFactionManager.OnBaseControlChange(this);
 		

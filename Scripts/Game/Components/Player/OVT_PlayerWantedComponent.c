@@ -76,6 +76,17 @@ class OVT_PlayerWantedComponent: OVT_Component
 		if(!GetRpl().IsOwner()) return;
 		
 		GetGame().GetCallqueue().CallLater(CheckUpdate, WANTED_SYSTEM_FREQUENCY, true, owner);		
+		
+		OVT_Global.GetOccupyingFaction().m_OnPlayerLoot.Insert(OnPlayerLoot);
+	}
+	
+	void OnPlayerLoot(IEntity player)
+	{
+		if(m_bIsSeen)
+		{
+			SetBaseWantedLevel(2);
+			CheckWanted();
+		}
 	}
 	
 	void CheckUpdate()
@@ -157,6 +168,17 @@ class OVT_PlayerWantedComponent: OVT_Component
 			SetWantedLevel(2);			
 		}
 		
+		CheckWanted();
+		
+		if(m_bTempSeen != m_bIsSeen)
+		{
+			m_bIsSeen = m_bTempSeen;
+			Replication.BumpMe();
+		}
+	}
+	
+	protected void CheckWanted()
+	{
 		Faction currentFaction = m_Faction.GetAffiliatedFaction();
 		if(m_iWantedLevel > 1 && !currentFaction)
 		{
@@ -169,12 +191,6 @@ class OVT_PlayerWantedComponent: OVT_Component
 		{
 			//Print("You are no longer wanted");
 			m_Faction.SetAffiliatedFactionByKey("");
-		}
-		
-		if(m_bTempSeen != m_bIsSeen)
-		{
-			m_bIsSeen = m_bTempSeen;
-			Replication.BumpMe();
 		}
 	}
 	

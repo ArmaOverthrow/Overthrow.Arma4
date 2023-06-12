@@ -126,6 +126,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 	
 	ref ScriptInvoker<IEntity> m_OnAIKilled = new ScriptInvoker<IEntity>;
 	ref ScriptInvoker<OVT_BaseControllerComponent> m_OnBaseControlChanged = new ScriptInvoker<OVT_BaseControllerComponent>;
+	ref ScriptInvoker<IEntity> m_OnPlayerLoot = new ScriptInvoker<IEntity>;
 	
 	static OVT_OccupyingFactionManager s_Instance;
 	
