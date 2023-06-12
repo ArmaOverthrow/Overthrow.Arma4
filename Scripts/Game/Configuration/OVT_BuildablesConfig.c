@@ -13,6 +13,9 @@ class OVT_Buildable
 	
 	[Attribute()]
 	string m_sTitle;
+	
+	[Attribute()]
+	string m_sDescription;
 		
 	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Structure Prefabs", params: "et")]
 	ref array<ResourceName> m_aPrefabs;

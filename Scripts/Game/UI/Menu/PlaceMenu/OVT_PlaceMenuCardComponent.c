@@ -18,6 +18,9 @@ class OVT_PlaceMenuCardComponent : SCR_ScriptedWidgetComponent
 		
 		ImageWidget img = ImageWidget.Cast(m_wRoot.FindAnyWidget("Image"));
 		img.LoadImageTexture(0, placeable.m_tPreview);
+		
+		TextWidget desc = TextWidget.Cast(m_wRoot.FindAnyWidget("EntityDescription"));
+		desc.SetText(placeable.m_sDescription);
 	}
 	
 	override bool OnClick(Widget w, int x, int y, int button)

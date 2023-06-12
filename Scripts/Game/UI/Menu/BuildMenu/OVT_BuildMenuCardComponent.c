@@ -18,6 +18,9 @@ class OVT_BuildMenuCardComponent : SCR_ScriptedWidgetComponent
 		
 		ImageWidget img = ImageWidget.Cast(m_wRoot.FindAnyWidget("Image"));
 		img.LoadImageTexture(0, buildable.m_tPreview);
+		
+		TextWidget desc = TextWidget.Cast(m_wRoot.FindAnyWidget("EntityDescription"));
+		desc.SetText(buildable.m_sDescription);
 	}
 	
 	override bool OnClick(Widget w, int x, int y, int button)
@@ -25,6 +28,8 @@ class OVT_BuildMenuCardComponent : SCR_ScriptedWidgetComponent
 		super.OnClick(w, x, y, button);
 		if (button != 0)
 			return false;
+		
+		if(!m_Context) return false;
 		
 		m_Context.StartBuild(m_Buildable);
 		

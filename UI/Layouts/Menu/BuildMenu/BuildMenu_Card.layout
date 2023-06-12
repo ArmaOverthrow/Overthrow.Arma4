@@ -16,7 +16,7 @@ ButtonWidgetClass {
  {
   SizeLayoutWidgetClass "{59C4C0E87E20D4F1}" {
    Name "SizeSetter"
-   Slot ButtonWidgetSlot {
+   Slot ButtonWidgetSlot "{5D98E60BDD266AD2}" {
    }
    AllowWidthOverride 1
    WidthOverride 264
@@ -84,7 +84,7 @@ ButtonWidgetClass {
              Slot OverlayWidgetSlot "{598AD558E38C3D42}" {
               HorizontalAlign 2
               VerticalAlign 0
-              Padding 10 10 10 10
+              Padding 10 5 2 10
              }
              Text "$10000000"
              FontProperties FontProperties "{598AD558CB805630}" {
@@ -113,24 +113,52 @@ ButtonWidgetClass {
            Image ""
            Size 64 64
           }
-          HorizontalLayoutWidgetClass "{59C4C0E87E20D4FB}" {
-           Name "InfoLayout"
-           Slot OverlayWidgetSlot "{5720FBE423AF7170}" {
+          VerticalLayoutWidgetClass "{5D98E60BAEF78B9B}" {
+           Name "VerticalLayout0"
+           Slot OverlayWidgetSlot "{5D98E60BAEF78462}" {
             HorizontalAlign 3
             VerticalAlign 3
-            Padding 8 4 12 4
            }
            {
-            TextWidgetClass "{59C4C0E87E20D4FA}" : "{B537936D5B7E2BA1}UI/layouts/WidgetLibrary/TextWidgets/Text_BodySmall.layout" {
-             Name "EntityName"
-             Slot LayoutSlot "{56EF0B1828174F0C}" {
-              Padding 8 4 0 4
-              SizeMode Fill
+            HorizontalLayoutWidgetClass "{59C4C0E87E20D4FB}" {
+             Name "InfoLayout"
+             Slot LayoutSlot "{5D98E60C7B1FF34F}" {
              }
-             Text "Very long entity name that barely fits"
-             "Font Size" 20
-             "Min Font Size" 8
-             "Vertical Alignment" Center
+             {
+              TextWidgetClass "{59C4C0E87E20D4FA}" : "{B537936D5B7E2BA1}UI/layouts/WidgetLibrary/TextWidgets/Text_BodySmall.layout" {
+               Name "EntityName"
+               Slot LayoutSlot "{56EF0B1828174F0C}" {
+                Padding 2 2 2 2
+                SizeMode Fill
+               }
+               Text "Entity Name"
+               "Font Size" 19
+               "Min Font Size" 8
+               "Horizontal Alignment" Center
+               "Vertical Alignment" Center
+               FontProperties FontProperties "{552CF630AEFD33AF}" {
+                Font "{EABA4FE9D014CCEF}UI/Fonts/RobotoCondensed/RobotoCondensed_Bold.fnt"
+               }
+              }
+             }
+            }
+            HorizontalLayoutWidgetClass "{5D98E60B87D4506E}" {
+             Name "InfoLayout0"
+             Slot LayoutSlot {
+             }
+             {
+              TextWidgetClass "{5D98E60B87D4506D}" : "{B537936D5B7E2BA1}UI/layouts/WidgetLibrary/TextWidgets/Text_BodySmall.layout" {
+               Name "EntityDescription"
+               Slot LayoutSlot "{56EF0B1828174F0C}" {
+                Padding 2 4 2 4
+                SizeMode Fill
+               }
+               Text "Very long entity description that is long"
+               "Font Size" 11
+               "Min Font Size" 8
+               "Horizontal Alignment" Center
+              }
+             }
             }
            }
           }

@@ -63,7 +63,27 @@ class OVT_PlaceContext : OVT_UIContext
 		m_Widgets.Init(m_wRoot);
 				
 		int done = 0;
+		array<OVT_Placeable> valid = new array<OVT_Placeable>;
+		IEntity player = SCR_PlayerController.GetLocalControlledEntity();
+				
+		string reason;		
 		foreach(int i, OVT_Placeable placeable : m_Resistance.m_PlaceablesConfig.m_aPlaceables)
+		{
+			if(CanPlace(placeable, player.GetOrigin(), reason))
+			{
+				valid.Insert(placeable);
+			} 
+		}
+		
+		if(valid.Count() == 0)
+		{			
+			SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.ERROR);
+			CloseLayout();
+			ShowHint("#OVT-CannotPlaceAnythingHere");
+			return;
+		}
+		
+		foreach(int i, OVT_Placeable placeable : valid)
 		{
 			Widget w = m_Widgets.m_BrowserGrid.FindWidget("PlaceMenu_Card" + i);
 			OVT_PlaceMenuCardComponent card = OVT_PlaceMenuCardComponent.Cast(w.FindHandler(OVT_PlaceMenuCardComponent));
@@ -115,15 +135,15 @@ class OVT_PlaceContext : OVT_UIContext
 			m_PlaceWidget.RemoveFromHierarchy();
 	}
 	
-	bool CanPlace(vector pos, out string reason)
+	bool CanPlace(OVT_Placeable placeable, vector pos, out string reason)
 	{
 		reason = "#OVT-CannotPlaceHere";
-		if(m_Placeable.m_bIgnoreLocation) return true;
+		if(placeable.m_bIgnoreLocation) return true;
 		
 		float dist;
 		OVT_TownData town = m_Towns.GetNearestTown(pos);
 		
-		if(m_Placeable.m_bAwayFromTownsBases)
+		if(placeable.m_bAwayFromTownsBases)
 		{
 			IEntity building = m_RealEstate.GetNearestBuilding(pos, MAX_HOUSE_PLACE_DIS);
 			if(building)
@@ -173,7 +193,7 @@ class OVT_PlaceContext : OVT_UIContext
 			return true;
 		}
 		
-		if(m_Placeable.m_bNearTown)
+		if(placeable.m_bNearTown)
 		{	
 			dist = vector.Distance(town.location,pos);			
 			if(dist > m_Towns.GetTownRange(town))
@@ -215,7 +235,7 @@ class OVT_PlaceContext : OVT_UIContext
 		m_Placeable = placeable;
 		
 		string reason;
-		if(!CanPlace(player.GetOrigin(), reason))
+		if(!CanPlace(m_Placeable, player.GetOrigin(), reason))
 		{
 			ShowHint(reason);
 			SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.ERROR);
@@ -285,7 +305,7 @@ class OVT_PlaceContext : OVT_UIContext
 			m_ePlacingEntity.GetTransform(mat);
 			RemoveGhost();
 			string error;
-			if(!CanPlace(mat[3], error))
+			if(!CanPlace(m_Placeable, mat[3], error))
 			{
 				ShowHint(error);
 				SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.ERROR);

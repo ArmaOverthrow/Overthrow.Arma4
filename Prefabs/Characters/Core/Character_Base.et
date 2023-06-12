@@ -3,6 +3,12 @@ SCR_ChimeraCharacter {
  components {
   EPF_PersistenceComponent "{5A12D8F4DFED6D84}" {
    Enabled 0
+   m_pSaveData EPF_CharacterSaveDataClass "{5A12D8F4DA8632DC}" {
+    m_aComponents {
+     OVT_CharacterControllerComponentSaveDataClass "{5CFED52E8CB02A22}" {
+     }
+    }
+   }
   }
  }
 }

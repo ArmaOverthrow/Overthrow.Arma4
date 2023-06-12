@@ -64,10 +64,24 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D98E60803116898}" {
+   Id "OVT-Build_GuardTower_Description"
+   Target_en_us "Provides a platform to watch (or shoot) from"
+   Modified 1570302108
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59C4F15B8934641B}" {
    Id "OVT-Build_MedicalTent"
    Target_en_us "Medical Tent"
    Modified 1506079956
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D98E6081E84FDC9}" {
+   Id "OVT-Build_MedicalTent_Description"
+   Target_en_us "Heals players"
+   Modified 1570302137
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -78,10 +92,24 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D98E6082EEC8732}" {
+   Id "OVT-Build_Tent_Description"
+   Target_en_us "Various tents to provide shelter"
+   Modified 1570304312
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59D030D767EAB683}" {
    Id "OVT-Build_VehicleMaintenanceRamp"
    Target_en_us "Vehicle Maintenance Ramp"
    Modified 1506817592
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D98E608EFB3CD85}" {
+   Id "OVT-Build_VehicleMaintenanceRamp_Description"
+   Target_en_us "Repairs and upgrades vehicles"
+   Modified 1570302171
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -102,8 +130,8 @@ StringTable {
   }
   CustomStringTableItem "{59C4F15B7BFD22D6}" {
    Id "OVT-CannotBuildAnythingHere"
-   Target_en_us "You cannot build anything here. Try at an FOB or a captured town/base."
-   Modified 1506079602
+   Target_en_us "You cannot build anything here. Try at an FOB or a captured base/town."
+   Modified 1570305115
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -160,6 +188,13 @@ StringTable {
    Id "OVT-CannotFastTravelWanted"
    Target_en_us "You cannot fast travel while wanted"
    Modified 1504002202
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D98E60E0FC4DED2}" {
+   Id "OVT-CannotPlaceAnythingHere"
+   Target_en_us "You cannot place anything here. Try at a house you own, an FOB or a captured base."
+   Modified 1570305137
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -292,6 +327,13 @@ StringTable {
    Id "OVT-Garage"
    Target_en_us "Garage"
    Modified 1570288841
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D98E608FF82E3E2}" {
+   Id "OVT-Garage_Description"
+   Target_en_us "A place to purchase vehicles, including armed and armored"
+   Modified 1570302195
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -939,11 +981,25 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D98E60B695CF54D}" {
+   Id "OVT-Place_Camp_Description"
+   Target_en_us "A personal fast-travel destination"
+   Modified 1570304436
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{598AD55D632ED8B6}" {
    Id "OVT-Place_EquipmentBox"
    Target_en_us "Equipment Box"
    Status DEVELOPMENT_DONE
    Modified 1502806313
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D98E60B2745F190}" {
+   Id "OVT-Place_EquipmentBox_Description"
+   Target_en_us "Somewhere to put your stuff"
+   Modified 1570302487
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -955,6 +1011,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D98E60B0B031DFC}" {
+   Id "OVT-Place_Floodlights_Description"
+   Target_en_us "Makes it easier to see in the dark"
+   Modified 1570302565
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{598AD553667F76AF}" {
    Id "OVT-Place_FOB"
    Target_en_us "FOB"
@@ -963,11 +1026,25 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D98E60B4717C3C6}" {
+   Id "OVT-Place_FOB_Description"
+   Target_en_us "All players can fast-travel and place/build"
+   Modified 1570304478
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{598AD55488E14CB4}" {
    Id "OVT-Place_Hedgehog"
    Target_en_us "Hedgehog"
    Status DEVELOPMENT_DONE
    Modified 1502796262
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D98E60B0540BBE0}" {
+   Id "OVT-Place_Hedgehog_Description"
+   Target_en_us "Slows down vehicles"
+   Modified 1570302544
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -989,6 +1066,13 @@ StringTable {
    Id "OVT-Place_Poster"
    Target_en_us "Recruitment Posters"
    Modified 1503863688
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D98E6089CB6C537}" {
+   Id "OVT-Place_Poster_Description"
+   Target_en_us "Raises support in villages, towns and cities"
+   Modified 1570302369
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -1018,6 +1102,13 @@ StringTable {
    Target_en_us "Sandbags"
    Status DEVELOPMENT_DONE
    Modified 1502796262
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D98E60B2AF93675}" {
+   Id "OVT-Place_Sandbags_Description"
+   Target_en_us "Makes it harder for people to shoot at you"
+   Modified 1570302509
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

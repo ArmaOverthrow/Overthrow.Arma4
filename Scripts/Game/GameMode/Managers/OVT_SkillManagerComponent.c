@@ -43,7 +43,7 @@ class OVT_SkillManagerComponent: OVT_Component
 		of.m_OnAIKilled.Insert(OnAIKilled);
 		
 		OVT_ResistanceFactionManager rf = OVT_Global.GetResistanceFaction();
-		rf.m_OnPlace.Insert(OnBuild);
+		rf.m_OnBuild.Insert(OnBuild);
 		rf.m_OnPlace.Insert(OnPlace);
 	}
 	
