@@ -429,12 +429,12 @@ StringTable {
    Id "OVT-Job_RaiseSupportDescription"
    Target_en_us "Supporters in this town will bring a much needed source of income for the resistance in the form of donations."\
    ""\
-   "Raise support by placing posters in and around the town using the \"Place\" menu option and waiting for them to catch the eye of 15% of the town's citizens. You can also deliver medical supplies like Bandages and Aspirin bottles using your car to make it go faster."\
+   "Raise support by placing posters in and around the town using the \"Place\" option in the Overthrow menu and waiting for them to catch the eye of 15% of the town's citizens. You can also deliver medical supplies like Bandages and Aspirin bottles by placing them in your car and using the \"Deliver Medical Supplies\" option in your trunk."\
    ""\
    "Check your progress using the \"Map Info\" menu option."
-   Modified 1505046631
+   Modified 1570317221
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "bgui3"
   }
   CustomStringTableItem "{5D5080D395D01E22}" {
    Id "OVT-Jobs_Accept"
