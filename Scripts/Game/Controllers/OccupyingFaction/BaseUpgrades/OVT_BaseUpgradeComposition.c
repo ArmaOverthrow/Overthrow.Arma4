@@ -37,9 +37,38 @@ class OVT_BaseUpgradeComposition : OVT_SlottedBaseUpgrade
 			
 		}
 		
-		if(ent) return comp.m_iCost;
+		if(ent) {
+			FillAmmoboxes(ent);
+			return comp.m_iCost;
+		}
 		return 0;
 	}	
+	
+	protected void FillAmmoboxes(IEntity entity)
+	{
+		SlotManagerComponent slots = EPF_Component<SlotManagerComponent>.Find(entity);
+		if(!slots) return;
+		array<EntitySlotInfo> slotInfos();
+		slots.GetSlotInfos(slotInfos);
+		
+		array<ResourceName> prefabs();
+		OVT_Global.GetEconomy().GetAllNonClothingOccupyingFactionItems(prefabs);
+				
+		foreach(EntitySlotInfo slot : slotInfos)
+		{
+			IEntity box = slot.GetAttachedEntity();
+			if(!box) continue;
+			SCR_InventoryStorageManagerComponent toStorage = SCR_InventoryStorageManagerComponent.Cast(box.FindComponent(SCR_InventoryStorageManagerComponent));
+			if(!toStorage) continue;
+			int numItems = s_AIRandomGenerator.RandInt(15,40);
+			for(int i = 0; i<numItems; i++)
+			{
+				int itemIndex = s_AIRandomGenerator.RandInt(0,prefabs.Count()-1);
+				ResourceName res = prefabs[itemIndex];
+				toStorage.TrySpawnPrefabToStorage(res);
+			}
+		}
+	}
 	
 	override int GetResources()
 	{

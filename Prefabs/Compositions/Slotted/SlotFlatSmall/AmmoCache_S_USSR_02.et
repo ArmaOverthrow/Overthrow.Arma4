@@ -1,0 +1,69 @@
+GenericEntity {
+ ID "5D98F81E3E3E432A"
+ components {
+  EPF_PersistenceComponent "{5D98F81EAB38F541}" {
+   m_pSaveData OVT_BaseUpgradeSaveDataClass "{5D98F81EA84B34ED}" {
+    m_aComponents {
+     EPF_SlotManagerComponentSaveDataClass "{5D98F81EB00620FB}" {
+     }
+    }
+   }
+  }
+  Hierarchy "{5D98F81DB64A0417}" {
+  }
+  SlotManagerComponent "{5D98F81EBEAB487B}" {
+   Slots {
+    EntitySlotInfo Ammobox1 {
+     Prefab "{7E938522C27C266C}Prefabs/Props/Military/AmmoBoxes/OVT_AmmoBox_Cache.et"
+    }
+   }
+  }
+  RplComponent "{5D98F81DAFA8FCB1}" {
+   Streamable Disabled
+  }
+ }
+ coords 56.329 1.001 94.153
+ {
+  GenericEntity : "{1651B2C631DF09F4}Prefabs/Structures/Signs/Military/Sign_AmmoStorage_USSR_01.et" {
+   ID "5D98F8659B9B7583"
+   coords -1.277 0 4.475
+   angleY 9.123
+  }
+  GenericEntity : "{1DE88E6E3B4FEC8D}Prefabs/Props/Military/AmmoBoxes/EquipmentBoxStack/USSR/EquipmentBoxStack_USSR_01_V3_covered.et" {
+   ID "5D98F8634AAA5991"
+   coords 1.213 0 0.014
+  }
+  StaticModelEntity : "{39C308BBB5945B85}Prefabs/Props/Military/Furniture/ChairMilitary_US_02.et" {
+   ID "5D98F863CDA1DCE4"
+   coords -1.95 0 -0.243
+   angleY 57.311
+  }
+  GenericEntity : "{7030822F7A54F479}Prefabs/Props/Crates/CrateWooden_01_base.et" {
+   ID "5D98F863707FD521"
+   coords -1.029 0 -0.116
+  }
+  GenericEntity : "{A0ACD52C934CFA92}Prefabs/Props/Military/AmmoBoxes/EquipmentBoxStack/USSR/EquipmentBoxStack_USSR_01_V5_covered.et" {
+   ID "5D98F86325B2D754"
+   coords -0.017 0 -1.055
+   angleY 180
+  }
+  GenericEntity : "{A817454D4372DBCA}Prefabs/Structures/Military/CamoNets/Soviet/CamoNet_Tent_Soviet.et" {
+   ID "5D98F81EE78D0B89"
+   coords 0 0 0
+  }
+  SCR_DestructibleEntity : "{BE7B5BAFE1A16A50}Prefabs/Props/Military/Fortification/BarbedTape_Coil.et" {
+   ID "5D98F863A330CC45"
+   coords -1.135 0 -1.336
+  }
+  GenericEntity : "{DACF7DE206313E97}Prefabs/Props/Garbage/Cardboard/Cardboard_Pile_01.et" {
+   ID "5D98F86244D3B8E5"
+   coords -0.05 0 0.596
+   angleY -91.644
+  }
+  GenericEntity : "{E17324998DE1BB87}Prefabs/Props/Military/MilitaryCrates/ShellContainerstack_01/ShellContainerstack_01_pile_big.et" {
+   ID "5D98F863E19D500B"
+   coords 1.245 0 -2.003
+   angleY 90
+  }
+ }
+}

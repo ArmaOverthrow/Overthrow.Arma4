@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{6EF24C5DFE52C0A2}Prefabs/Compositions/Slotted/SlotFlatSmall/AmmoCache_S_USSR_02.et"
+ Configurations {
+  EntityTemplateResourceClass PC {
+  }
+  EntityTemplateResourceClass XBOX_ONE : PC {
+  }
+  EntityTemplateResourceClass XBOX_SERIES : PC {
+  }
+  EntityTemplateResourceClass PS4 : PC {
+  }
+  EntityTemplateResourceClass HEADLESS : PC {
+  }
+ }
+}

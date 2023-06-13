@@ -856,6 +856,33 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return true;
 	}
 	
+	bool GetAllNonClothingOccupyingFactionItems(out array<ResourceName> resources)
+	{
+		array<SCR_EArsenalItemType> ignore = {
+			SCR_EArsenalItemType.LEGS,
+			SCR_EArsenalItemType.TORSO,
+			SCR_EArsenalItemType.FOOTWEAR,
+			SCR_EArsenalItemType.HEADWEAR,
+			SCR_EArsenalItemType.BACKPACK,
+			SCR_EArsenalItemType.VEST_AND_WAIST
+		};
+		
+		foreach(SCR_EntityCatalogEntry entry : m_aEntityCatalogEntries)
+		{
+			ResourceName res = entry.GetPrefab();
+			int id = GetInventoryId(res);
+			if(!ItemIsFromFaction(id, m_Config.GetOccupyingFactionIndex())) continue;
+			
+			SCR_ArsenalItem item = SCR_ArsenalItem.Cast(entry.GetEntityDataOfType(SCR_ArsenalItem));
+			if(item)
+			{
+				if(ignore.Contains(item.GetItemType())) continue;				
+				resources.Insert(entry.GetPrefab());				
+			}
+		}
+		return true;
+	}
+	
 	bool GetAllNonOccupyingFactionItems(out array<ResourceName> resources)
 	{
 		int occupyingFactionIndex = m_Config.GetOccupyingFactionIndex();

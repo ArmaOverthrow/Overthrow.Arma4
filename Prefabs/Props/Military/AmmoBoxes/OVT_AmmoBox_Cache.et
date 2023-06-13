@@ -1,0 +1,12 @@
+GenericEntity : "{71BD5B9F53DF8CF6}Prefabs/Props/Military/AmmoBoxes/OVT_AmmoBox_Base.et" {
+ ID "5992E2EECFF48DDE"
+ components {
+  EPF_PersistenceComponent "{5D78D8248549E11B}" {
+   m_bSelfSpawn 0
+   m_bSelfDelete 0
+   m_bStorageRoot 0
+   m_pSaveData EPF_ItemSaveDataClass "{5D78D8248416F52D}" {
+   }
+  }
+ }
+}
