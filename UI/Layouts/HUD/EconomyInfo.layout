@@ -186,10 +186,6 @@ OverlayWidgetClass {
       VerticalAlign 3
       Padding 0 -4 0 0
      }
-     HeightOverride 64.3
-     MinDesiredHeight 67.1
-     MaxDesiredWidth 171.4
-     AspectRatioForce 54.5
      {
       OverlayWidgetClass "{5D8680C8B2D699B5}" {
        Name "Overlay0"
