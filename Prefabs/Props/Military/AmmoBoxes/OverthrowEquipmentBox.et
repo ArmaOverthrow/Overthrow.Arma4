@@ -34,8 +34,8 @@ GenericEntity {
     m_Size SLOT_3x3
    }
    UseCapacityCoefficient 0
-   MaxCumulativeVolume 30000
-   m_fMaxWeight 1000
+   MaxCumulativeVolume 3000000
+   m_fMaxWeight 30000
   }
   SimpleSoundComponent "{59A45C66864BF068}" {
    Filenames {

@@ -8,6 +8,7 @@ Vehicle : "{9A0D72816DFFDB7F}Prefabs/Vehicles/Wheeled/M923A1/M923A1.et" {
       "starter_switch"
      }
      UIInfo UIInfo "{5D8224292F74FA23}" {
+      Name "#OVT_Action-Loot"
      }
      "Sort Priority" 1
      m_bIsToggle 0

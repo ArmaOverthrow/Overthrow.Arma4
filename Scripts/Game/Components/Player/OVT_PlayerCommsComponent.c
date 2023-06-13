@@ -114,7 +114,7 @@ class OVT_PlayerCommsComponent: OVT_Component
 		{
 			//Ignore clothes (but get helmets, backpacks, etc)
 			BaseLoadoutClothComponent cloth = EPF_Component<BaseLoadoutClothComponent>.Find(item);
-			if(cloth)
+			if(cloth && cloth.GetAreaType())
 			{
 				if(cloth.GetAreaType().ClassName() == "LoadoutPantsArea") continue;
 				if(cloth.GetAreaType().ClassName() == "LoadoutJacketArea") continue;
