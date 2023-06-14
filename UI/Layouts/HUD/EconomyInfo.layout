@@ -14,7 +14,7 @@ OverlayWidgetClass {
    Name "Notify"
    Slot OverlayWidgetSlot "{5D8680DE360578C7}" {
     VerticalAlign 0
-    Padding 0 95 0 0
+    Padding 0 115 0 0
    }
    {
     SizeLayoutWidgetClass "{5D8680C956D12121}" {
@@ -251,8 +251,9 @@ OverlayWidgetClass {
     VerticalLayoutWidgetClass "{59B4F0BA2270998D}" {
      Name "VerticalLayout0"
      Slot OverlayWidgetSlot "{5D8680DE2604CF96}" {
-      Padding 10 20 10 10
+      Padding 10 10 10 10
      }
+     "Down target" "1000"
      {
       TextWidgetClass "{59B4F0B65F14FF55}" {
        Name "QRFTimerText"
@@ -267,22 +268,54 @@ OverlayWidgetClass {
         Padding 0 5 0 0
        }
        {
-        SliderWidgetClass "{59B4F0B6042B7FD4}" {
-         Name "QRFOccupying"
-         Slot LayoutSlot "{59B4F0B6042B7FB4}" {
+        VerticalLayoutWidgetClass "{5D9A447980EB4E0B}" {
+         Name "OccupyingVertical"
+         Slot LayoutSlot "{5D9A447980EB4EDC}" {
+          Padding 0 0.5 3 0
          }
-         Color 1 0 0 1
-         Size 150 32
-         current 0
-         flipped 1
+         "Down target" "123123"
+         {
+          TextWidgetClass "{5D9A4479B8FAAEAD}" {
+           Name "QRFOccupyingText"
+           Slot LayoutSlot "{5D9A4479B8FAAF4E}" {
+            Padding 0 0 0 5
+           }
+           Text "Occupying"
+           "Horizontal Alignment" Center
+          }
+          SliderWidgetClass "{59B4F0B6042B7FD4}" {
+           Name "QRFOccupying"
+           Slot LayoutSlot "{59B4F0B6042B7FB4}" {
+           }
+           Color 1 0 0 1
+           Size 150 32
+           current 0
+           flipped 1
+          }
+         }
         }
-        SliderWidgetClass "{59B4F0B6EB925D3D}" {
-         Name "QRFResistance"
-         Slot LayoutSlot "{59B4F0B6042B7FB4}" {
+        VerticalLayoutWidgetClass "{5D9A4479B2832764}" {
+         Name "ResistanceVertical"
+         Slot LayoutSlot "{5D9A4479B283271F}" {
          }
-         Color 0.004 0.413 0.01 1
-         Size 150 32
-         current 50
+         {
+          TextWidgetClass "{5D9A4479A645BFAD}" {
+           Name "QRFResistanceText"
+           Slot LayoutSlot "{5D9A4479A645BC42}" {
+            Padding 0 0 0 5
+           }
+           Text "Resistance"
+           "Horizontal Alignment" Center
+          }
+          SliderWidgetClass "{59B4F0B6EB925D3D}" {
+           Name "QRFResistance"
+           Slot LayoutSlot "{59B4F0B6042B7FB4}" {
+           }
+           Color 0.004 0.413 0.01 1
+           Size 150 32
+           current 50
+          }
+         }
         }
        }
       }
