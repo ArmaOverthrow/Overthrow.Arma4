@@ -418,6 +418,22 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D9E51CB2C43D69B}" {
+   Id "OVT-Job_FindShop"
+   Target_en_us "Find a shop"
+   Modified 1570656852
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D9E51CB363A1F40}" {
+   Id "OVT-Job_FindShopDescription"
+   Target_en_us "Many towns on the map have various shops where you can purchase legal items. They are marked on the map by different icons representing the type of shop."\
+   ""\
+   "Visit the nearest shop and see what items they have available by performing an action on the cash register."
+   Modified 1570656877
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5D9E322DC34EA5A4}" {
    Id "OVT-Job_InProgress"
    Target_en_us "In Progress:"
