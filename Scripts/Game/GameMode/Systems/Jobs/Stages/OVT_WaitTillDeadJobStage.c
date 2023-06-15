@@ -19,7 +19,7 @@ class OVT_WaitTillDeadJobStage : OVT_JobStage
 			if (!damageManager)
 				return false;
 			
-			if(damageManager.GetState() == EDamageState.DESTROYED){				
+			if(damageManager.IsDestroyed()){				
 				return false;
 			}
 		}else{

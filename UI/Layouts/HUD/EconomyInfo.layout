@@ -271,16 +271,18 @@ OverlayWidgetClass {
         VerticalLayoutWidgetClass "{5D9A447980EB4E0B}" {
          Name "OccupyingVertical"
          Slot LayoutSlot "{5D9A447980EB4EDC}" {
-          Padding 0 0.5 3 0
+          Padding 0 0 0 0
          }
          "Down target" "123123"
          {
           TextWidgetClass "{5D9A4479B8FAAEAD}" {
            Name "QRFOccupyingText"
            Slot LayoutSlot "{5D9A4479B8FAAF4E}" {
-            Padding 0 0 0 5
+            Padding 0 10 0 5
            }
-           Text "Occupying"
+           Text "#ovt-occupyingfaction"
+           "Font Size" 16
+           "Min Font Size" 16
            "Horizontal Alignment" Center
           }
           SliderWidgetClass "{59B4F0B6042B7FD4}" {
@@ -302,9 +304,11 @@ OverlayWidgetClass {
           TextWidgetClass "{5D9A4479A645BFAD}" {
            Name "QRFResistanceText"
            Slot LayoutSlot "{5D9A4479A645BC42}" {
-            Padding 0 0 0 5
+            Padding 0 10 0 5
            }
-           Text "Resistance"
+           Text "#OVT-MainMenu_Resistance"
+           "Font Size" 16
+           "Min Font Size" 16
            "Horizontal Alignment" Center
           }
           SliderWidgetClass "{59B4F0B6EB925D3D}" {

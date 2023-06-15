@@ -27,11 +27,10 @@ class OVT_Job
 }
 
 class OVT_JobManagerComponent: OVT_Component
-{
-	[Attribute()]
-	ref array<ResourceName> m_aJobConfigFiles;
+{	
+	[Attribute("", UIWidgets.Object)]
+	protected ref array<ref OVT_JobConfig> m_aJobConfigs;
 	
-	ref array<ref OVT_JobConfig> m_aJobConfigs;
 	ref array<ref OVT_Job> m_aJobs;
 	
 	ref set<int> m_aGlobalJobs;
@@ -61,8 +60,7 @@ class OVT_JobManagerComponent: OVT_Component
 	}
 	
 	void OVT_JobManagerComponent(IEntityComponentSource src, IEntity ent, IEntity parent)
-	{
-		m_aJobConfigs = new array<ref OVT_JobConfig>;
+	{		
 		m_aGlobalJobs = new set<int>;	
 		m_aTownJobs = new map<int, ref set<int>>;
 		m_aBaseJobs = new map<int, ref set<int>>;
@@ -72,12 +70,9 @@ class OVT_JobManagerComponent: OVT_Component
 	}
 	
 	void Init(IEntity owner)
-	{
-		LoadConfigs();
-		
+	{		
 		m_Towns = OVT_Global.GetTowns();
-		m_OccupyingFaction = OVT_Global.GetOccupyingFaction();
-				
+		m_OccupyingFaction = OVT_Global.GetOccupyingFaction();				
 	}
 	
 	void PostGameStart()
@@ -133,23 +128,7 @@ class OVT_JobManagerComponent: OVT_Component
 		int playerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(job.owner);
 		Rpc(RpcDo_UpdateJob, job.jobIndex, job.location, job.townId, job.baseId, job.stage, job.entity, playerId, job.accepted);
 	}
-	
-	protected void LoadConfigs()
-	{
-		foreach(ResourceName res : m_aJobConfigFiles)
-		{
-			Resource holder = BaseContainerTools.LoadContainer(res);
-			if (holder)		
-			{
-				OVT_JobConfig obj = OVT_JobConfig.Cast(BaseContainerTools.CreateInstanceFromContainer(holder.GetResource().ToBaseContainer()));
-				if(obj)
-				{
-					m_aJobConfigs.Insert(obj);
-				}
-			}
-		}		
-	}
-	
+		
 	OVT_JobConfig GetConfig(int index)
 	{
 		return m_aJobConfigs[index];

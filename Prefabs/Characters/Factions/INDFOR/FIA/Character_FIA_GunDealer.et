@@ -1,6 +1,9 @@
 SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA/Character_FIA_base.et" {
  ID "520EC961A090B1EE"
  components {
+  FactionAffiliationComponent "{555C98D1CD949F3E}" {
+   "faction affiliation" ""
+  }
   OVT_ShopComponent "{5990836A6D8D04F4}" {
    m_ShopType SHOP_GUNDEALER
   }
@@ -22,7 +25,7 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
   SCR_InventoryStorageManagerComponent "{520EA1D2DB118DE5}" {
    InitialInventoryItems {
     ItemsInitConfigurationItem "{566C8D26AC156C09}" {
-     PrefabsToSpawn +{
+     PrefabsToSpawn {
      }
     }
     ItemsInitConfigurationItem "{5990836B7E73D9FB}" {

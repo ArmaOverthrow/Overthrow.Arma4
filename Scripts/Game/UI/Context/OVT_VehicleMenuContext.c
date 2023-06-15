@@ -163,7 +163,13 @@ class OVT_VehicleMenuContext : OVT_UIContext
 	}
 	
 	protected void Import()
-	{		
+	{	
+		if(!m_PlayerData.HasPermission("Import"))	
+		{
+			CloseLayout();
+			SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-CannotImport");			
+			return;
+		}
 		vector pos = m_Owner.GetOrigin();
 		RplId port = m_Economy.GetNearestPort(pos);
 		RplComponent rpl = RplComponent.Cast(Replication.FindItem(port));

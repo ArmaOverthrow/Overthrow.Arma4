@@ -178,7 +178,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 	}
 	
 	protected void CheckWanted()
-	{
+	{		
 		Faction currentFaction = m_Faction.GetAffiliatedFaction();
 		if(m_iWantedLevel > 1 && !currentFaction)
 		{
@@ -192,6 +192,22 @@ class OVT_PlayerWantedComponent: OVT_Component
 			//Print("You are no longer wanted");
 			m_Faction.SetAffiliatedFactionByKey("");
 		}
+		
+		if(m_Compartment && m_Compartment.IsInCompartment())
+		{		
+			//Player is in a vehicle, may need to update vehicle's faction
+			SCR_VehicleFactionAffiliationComponent vfac = EPF_Component<SCR_VehicleFactionAffiliationComponent>.Find(m_Compartment.GetVehicle());
+			Faction vehFaction = vfac.GetAffiliatedFaction();
+			if(m_iWantedLevel > 1 && !vehFaction)
+			{
+				if(m_Config.m_sPlayerFaction.IsEmpty()) m_Config.m_sPlayerFaction = "FIA";
+				vfac.SetAffiliatedFactionByKey(m_Config.m_sPlayerFaction);
+			}
+			if(m_iWantedLevel < 1 && currentFaction)
+			{
+				vfac.SetAffiliatedFactionByKey("");
+			}
+		}	
 	}
 	
 	bool CheckEntity(IEntity entity)
@@ -372,7 +388,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 			if ( ent == dest || ent.GetParent() == dest )
 				return true;
 		} 
-		else if (percent == 1)
+		if (percent > 0.99)
 			return true;
 				
 		return false;

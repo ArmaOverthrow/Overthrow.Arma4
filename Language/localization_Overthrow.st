@@ -191,6 +191,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D9C33D7BA510D2C}" {
+   Id "OVT-CannotImport"
+   Target_en_us "Trade skill level 1 is required to import at ports"
+   Modified 1570518852
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5D98E60E0FC4DED2}" {
    Id "OVT-CannotPlaceAnythingHere"
    Target_en_us "You cannot place anything here. Try at a house you own, an FOB or a captured base."
@@ -478,6 +485,22 @@ StringTable {
    ""\
    "You will receive a free pistol with ammunition"
    Modified 1569113474
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D9C33D0836CB411}" {
+   Id "OVT-Job_FindShop"
+   Target_en_us "Find a shop"
+   Modified 1570521391
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D9C33D08A551BDF}" {
+   Id "OVT-Job_FindShopDescription"
+   Target_en_us "Many towns on the map have various shops where you can purchase legal items. They are marked on the map by different icons representing the type of shop."\
+   ""\
+   "Visit the nearest shop and see what items they have available by performing an action on the cash register."
+   Modified 1570521515
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -1424,6 +1447,13 @@ StringTable {
    Id "OVT-SkillEffect_IllegalImports"
    Target_en_us "Unlocks import of illegal goods at ports"
    Modified 1570138678
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5D9C33D7F09996BB}" {
+   Id "OVT-SkillEffect_Import"
+   Target_en_us "Unlocks import of legal goods at ports"
+   Modified 1570518722
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

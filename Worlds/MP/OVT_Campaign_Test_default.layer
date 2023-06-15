@@ -176,8 +176,6 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMod
    }
   }
   OVT_JobManagerComponent "{59A8D178EC1AA2AE}" {
-   m_aJobConfigFiles +{
-   }
   }
   OVT_NotificationManagerComponent "{5D8680DB07CF50FD}" {
    m_Messages SCR_SimpleMessagePresets "{5D8680DB04A58A20}" : "{36405F298C9B3186}Configs/overthrowBroadcastMessages.conf" {
@@ -324,7 +322,7 @@ $grp GenericEntity {
   components {
    SCR_MapDescriptorComponent "{5D8680D15B3CF38E}" {
     DisplayName "Town"
-    MainType "Name Village"
+    MainType "Name Town"
    }
   }
   coords 221.182 1.001 107.325

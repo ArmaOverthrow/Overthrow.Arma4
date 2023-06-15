@@ -76,7 +76,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	protected ref array<ref SCR_EntityCatalogEntry> m_aEntityCatalogEntries;
 	protected ref map<int,ref array<int>> m_mFactionResources;
 	
-	protected ref map<int, ref array<RplId>> m_mTownShops;
+	ref map<int, ref array<RplId>> m_mTownShops;
 	
 	protected ref map<int, int> m_mItemCosts;
 	protected ref map<int, int> m_mItemDemand;	

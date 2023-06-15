@@ -38,7 +38,7 @@ GenericEntity : "{7B6990100263E2B3}Prefabs/Items/Core/Map_Base.et" {
    }
   }
   MeshObject "{5D346D5D687D24AF}" {
-   Object "{E443663E5241622A}Assets/Items/Equipment/Maps/Map_Paper_01/Map_Paper_01_folded.xob"
+   Object "{66987F8D92167E7D}Assets/Items/Misc/Weed_01/weed.xob"
   }
   RigidBody "{5D346D5D687D24AC}" {
    LinearDamping 0.5
