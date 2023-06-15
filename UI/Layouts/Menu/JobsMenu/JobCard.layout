@@ -40,6 +40,7 @@ ButtonWidgetClass {
       ImageWidgetClass "{59A8D25545F8B2E4}" {
        Name "Image0"
        Slot LayoutSlot "{59A8D255427F9AC0}" {
+        FillWeight 0
        }
        Texture "{10C0A9A305E8B3A4}UI/Imagesets/Tasks/Task_Icons.imageset"
        Image "Icon_Task_BG"
@@ -48,20 +49,25 @@ ButtonWidgetClass {
       VerticalLayoutWidgetClass "{59A8D256829A7C24}" {
        Name "VerticalLayout0"
        Slot LayoutSlot "{59A8D256829A7C06}" {
+        HorizontalAlign 0
+        FillWeight 1
        }
        {
         TextWidgetClass "{59A8D269D30AE5B7}" {
          Name "Title"
          Slot LayoutSlot "{59A8D256B5221A2A}" {
+          Padding 0 0 0 5
          }
          Text "Assassinate Traitor"
-         "Font Size" 36
-         "Min Font Size" 36
+         "Font Size" 34
+         "Min Font Size" 34
+         FontProperties FontProperties "{5D9E322E2E3EF8DD}" {
+          Bold 1
+         }
         }
         TextWidgetClass "{59A8D2568F24A925}" {
          Name "Location"
          Slot LayoutSlot "{59A8D256B5221A2A}" {
-          Padding 0 5 0 0
          }
          Text "St Phillipe"
          "Font Size" 22
@@ -79,7 +85,7 @@ ButtonWidgetClass {
        Name "Reward"
        Slot LayoutSlot "{59A8D253618E9D91}" {
         HorizontalAlign 1
-        VerticalAlign 0
+        VerticalAlign 1
        }
        Text "$100"
        "Font Size" 36
