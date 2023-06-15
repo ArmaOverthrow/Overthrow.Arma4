@@ -12,6 +12,10 @@ class OVT_JobListEntryHandler : SCR_ButtonBaseComponent
 		TextWidget title = TextWidget.Cast(m_wRoot.FindAnyWidget("Title"));
 		title.SetText(m_JobConfig.m_sTitle);
 		
+		if (m_Job.accepted) {
+			title.SetText("#OVT-Job_InProgress " + m_JobConfig.m_sTitle);
+		};
+		
 		TextWidget location = TextWidget.Cast(m_wRoot.FindAnyWidget("Location"));
 		if(job.townId == -1)
 		{

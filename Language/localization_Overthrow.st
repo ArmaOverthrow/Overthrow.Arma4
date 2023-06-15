@@ -418,6 +418,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D9E322DC34EA5A4}" {
+   Id "OVT-Job_InProgress"
+   Target_en_us "In Progress:"
+   Modified 1570655006
+   Author "bgui3"
+   LastChanged "bgui3"
+  }
   CustomStringTableItem "{59B518B28C1095CF}" {
    Id "OVT-Job_RaiseSupport"
    Target_en_us "Raise Support"
