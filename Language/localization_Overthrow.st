@@ -64,10 +64,24 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5DA486E25C2B0175}" {
+   Id "OVT-Build_GuardTower_Description"
+   Target_en_us "Provides a better view"
+   Modified 1571064095
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59C4F15B8934641B}" {
    Id "OVT-Build_MedicalTent"
    Target_en_us "Medical Tent"
    Modified 1506079956
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5DA486E22347ED73}" {
+   Id "OVT-Build_MedicalTent_Description"
+   Target_en_us "Heals players"
+   Modified 1571064110
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -78,10 +92,24 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5DA486E24EA74F15}" {
+   Id "OVT-Build_Tent_Description"
+   Target_en_us "A roof over your head"
+   Modified 1571064081
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59D030D767EAB683}" {
    Id "OVT-Build_VehicleMaintenanceRamp"
    Target_en_us "Vehicle Maintenance Ramp"
    Modified 1506817592
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5DA486E22A59D4C6}" {
+   Id "OVT-Build_VehicleMaintenanceRamp_Description"
+   Target_en_us "Can repair and upgrade vehicles"
+   Modified 1571064130
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -191,6 +219,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5DA486E3A9993D96}" {
+   Id "OVT-ConvertSupporter"
+   Target_en_us "Convert supporter"
+   Modified 1571063898
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59A6ED95F1AB81D0}" {
    Id "OVT-DeliverMedicalSupplies"
    Target_en_us "Deliver Medical Supplies"
@@ -271,6 +306,20 @@ StringTable {
    Id "OVT-Fuel"
    Target_en_us "Fuel"
    Modified 1506831154
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5DA486E2314F517D}" {
+   Id "OVT-Garage"
+   Target_en_us "Garage"
+   Modified 1571064139
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5DA486E23E9BF397}" {
+   Id "OVT-Garage_Description"
+   Target_en_us "Allows purchase of vehicles"
+   Modified 1571064157
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -863,6 +912,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5DA486E2EACACAD6}" {
+   Id "OVT-NotConvertedSupporter"
+   Target_en_us "This civilian was not interested in supporting the resistance"
+   Modified 1571064241
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59CF196EEADAB2A1}" {
    Id "OVT-NoVehicleOnRamp"
    Target_en_us "No Vehicle on ramp"
@@ -920,11 +976,25 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5DA486E39FBCD116}" {
+   Id "OVT-Place_Camp_Description"
+   Target_en_us "A personal fast-travel destination"
+   Modified 1571063977
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{598AD55D632ED8B6}" {
    Id "OVT-Place_EquipmentBox"
    Target_en_us "Equipment Box"
    Status DEVELOPMENT_DONE
    Modified 1502806313
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5DA486E26BD2084C}" {
+   Id "OVT-Place_EquipmentBox_Description"
+   Target_en_us "Somewhere to put your stuff"
+   Modified 1571064008
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -936,6 +1006,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5DA486E247151F16}" {
+   Id "OVT-Place_Floodlights_Description"
+   Target_en_us "Provides light at night"
+   Modified 1571064043
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{598AD553667F76AF}" {
    Id "OVT-Place_FOB"
    Target_en_us "FOB"
@@ -944,11 +1021,25 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5DA486E2647E8EC3}" {
+   Id "OVT-Place_FOB_Description"
+   Target_en_us "Forward Operating Base"
+   Modified 1571063993
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{598AD55488E14CB4}" {
    Id "OVT-Place_Hedgehog"
    Target_en_us "Hedgehog"
    Status DEVELOPMENT_DONE
    Modified 1502796262
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5DA486E27E03497F}" {
+   Id "OVT-Place_Hedgehog_Description"
+   Target_en_us "Slows down vehicles"
+   Modified 1571064032
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -970,6 +1061,13 @@ StringTable {
    Id "OVT-Place_Poster"
    Target_en_us "Recruitment Posters"
    Modified 1503863688
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5DA486E38A335821}" {
+   Id "OVT-Place_Poster_Description"
+   Target_en_us "Raises support (max 5/town)"
+   Modified 1571063957
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -999,6 +1097,13 @@ StringTable {
    Target_en_us "Sandbags"
    Status DEVELOPMENT_DONE
    Modified 1502796262
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5DA486E27516F652}" {
+   Id "OVT-Place_Sandbags_Description"
+   Target_en_us "Makes it harder to get shot at"
+   Modified 1571064020
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -1244,6 +1349,90 @@ StringTable {
    Id "OVT-Shop_Selling"
    Target_en_us "Sell for"
    Modified 1562926325
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5DA486E30664D5AA}" {
+   Id "OVT-Skill_Diplomacy"
+   Target_en_us "Diplomacy"
+   Modified 1571063701
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5DA486E30167EF6C}" {
+   Id "OVT-Skill_Diplomacy_Description"
+   Target_en_us "Skill at raising support and the profile of the resistance"
+   Modified 1571063722
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5DA486E3117724CA}" {
+   Id "OVT-Skill_Stealth"
+   Target_en_us "Stealth"
+   Modified 1571063734
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5DA486E31D3DED8C}" {
+   Id "OVT-Skill_Stealth_Description"
+   Target_en_us "Skill at remaining unseen for longer"
+   Modified 1571063754
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5DA486E35F7AD204}" {
+   Id "OVT-Skill_Trade"
+   Target_en_us "Trade"
+   Modified 1571063627
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5DA486E35B0CDFD0}" {
+   Id "OVT-Skill_Trade_Description"
+   Target_en_us "Skill at getting good deals for the resistance on items"
+   Modified 1571063649
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5DA486E33F3873F8}" {
+   Id "OVT-SkillEffect_IllegalImports"
+   Target_en_us "Unlocks import of illegal goods at ports"
+   Modified 1571063691
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5DA486E32DD93FD1}" {
+   Id "OVT-SkillEffect_Import"
+   Target_en_us "Unlocks import of legal goods at ports"
+   Modified 1571063673
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5DA486E3F0541B08}" {
+   Id "OVT-SkillEffect_Stealth"
+   Target_en_us "%1% Reduction in distance seen from"
+   Modified 1571063800
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5DA486E3C0B62D40}" {
+   Id "OVT-SkillEffect_Support"
+   Target_en_us "%1% Chance at converting a supporter"
+   Modified 1571063834
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5DA486E3D2532344}" {
+   Id "OVT-SkillEffect_TradeDiscount"
+   Target_en_us "%1% Discount when buying items at shops"
+   Modified 1571063856
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5DA486E2F82C6218}" {
+   Id "OVT-SkillPointsToSpend"
+   Target_en_us "%1 Skill points to spend"
+   Modified 1571064273
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
