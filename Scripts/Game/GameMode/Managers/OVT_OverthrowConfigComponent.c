@@ -184,8 +184,11 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	[Attribute(defvalue: "0.1", UIWidgets.EditBox, desc: "Civilians to spawn per population")]
 	float m_fCivilianSpawnRate;
 	
-	[Attribute(defvalue: "2500", UIWidgets.EditBox, desc: "Civilian spawn distance")]
+	[Attribute(defvalue: "1000", UIWidgets.EditBox, desc: "Civilian spawn distance")]
 	int m_iCivilianSpawnDistance;
+	
+	[Attribute(defvalue: "1750", UIWidgets.EditBox, desc: "Military spawn distance")]
+	int m_iMilitarySpawnDistance;
 	
 	[Attribute(defvalue: "0.1", UIWidgets.EditBox, desc: "NPC Shop Buy Rate", category: "Economy")]
 	float m_fNPCBuyRate;

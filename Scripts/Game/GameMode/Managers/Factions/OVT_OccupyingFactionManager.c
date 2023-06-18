@@ -195,7 +195,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 		foreach(OVT_RadioTowerData tower : m_RadioTowers)
 		{
 			if(!tower.IsOccupyingFaction()) continue;
-			if(OVT_Global.PlayerInRange(tower.location, 2500))
+			bool inrange = OVT_Global.PlayerInRange(tower.location, m_Config.m_iMilitarySpawnDistance) && !m_CurrentQRF;
+			if(inrange)
 			{
 				if(tower.garrison.Count() == 0)
 				{

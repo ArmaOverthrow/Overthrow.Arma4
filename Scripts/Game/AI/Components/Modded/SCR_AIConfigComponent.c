@@ -9,11 +9,14 @@ modded class SCR_AIConfigComponent : ScriptComponent
 		if(type == EAIDangerEventType.Danger_WeaponFire)
 		{
 			IEntity instigator = dangerEvent.GetObject();
-			OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(instigator.FindComponent(OVT_PlayerWantedComponent));
-			
-			if(wanted)
+			if(instigator)
 			{
-				wanted.SetBaseWantedLevel(2);
+				OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(instigator.FindComponent(OVT_PlayerWantedComponent));
+				
+				if(wanted)
+				{
+					wanted.SetBaseWantedLevel(2);
+				}
 			}
 		}
 		

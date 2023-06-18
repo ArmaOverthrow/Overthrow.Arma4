@@ -9,7 +9,6 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 	int m_iProxedResources = 0;
 	
 	protected const int DEACTIVATE_FREQUENCY = 10000;
-	protected const int DEACTIVATE_RANGE = 2500;
 	
 	bool m_bSpawned = true;
 	
@@ -58,7 +57,7 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 			CheckClean();
 			return;
 		}
-		bool inrange = PlayerInRange();
+		bool inrange = PlayerInRange() && !m_occupyingFactionManager.m_CurrentQRF;
 		if(inrange && !m_bSpawned)
 		{
 			foreach(int i, ResourceName res : m_ProxiedGroups)
@@ -89,7 +88,7 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 	
 	protected bool PlayerInRange()
 	{		
-		return OVT_Global.PlayerInRange(m_BaseController.GetOwner().GetOrigin(), DEACTIVATE_RANGE);
+		return OVT_Global.PlayerInRange(m_BaseController.GetOwner().GetOrigin(), m_Config.m_iMilitarySpawnDistance);
 	}
 	
 	protected int BuyPatrol(float threat, ResourceName res = "", vector pos = "0 0 0")

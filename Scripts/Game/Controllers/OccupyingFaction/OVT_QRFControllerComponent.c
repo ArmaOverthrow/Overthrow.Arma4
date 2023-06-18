@@ -52,7 +52,8 @@ class OVT_QRFControllerComponent: OVT_Component
 	
 	protected void CheckUpdateTimer()
 	{
-		SpawnFromQueue();
+		if(m_iTimer < 105000) //Wait 15 seconds for everything to despawn
+			SpawnFromQueue();
 		
 		m_iTimer -= 1000;
 		

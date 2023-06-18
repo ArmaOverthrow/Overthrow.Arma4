@@ -36,13 +36,11 @@ class OVT_TownControllerComponent: OVT_Component
 	
 	protected void CheckSpawnCivilian()
 	{
-		if(m_bCiviliansSpawned)
-		{
-			if(!OVT_Global.PlayerInRange(m_Town.location, m_Config.m_iCivilianSpawnDistance)) {
-				DespawnCivilians();
-			}
-		}else{
-			if(!OVT_Global.PlayerInRange(m_Town.location, m_Config.m_iCivilianSpawnDistance)) return;
+		bool inrange = OVT_Global.PlayerInRange(m_Town.location, m_Config.m_iCivilianSpawnDistance) && !OVT_Global.GetOccupyingFaction().m_CurrentQRF;
+		if(m_bCiviliansSpawned && !inrange)
+		{			
+			DespawnCivilians();			
+		}else if(!m_bCiviliansSpawned && inrange){			
 			SpawnCivilians();
 		}
 	}

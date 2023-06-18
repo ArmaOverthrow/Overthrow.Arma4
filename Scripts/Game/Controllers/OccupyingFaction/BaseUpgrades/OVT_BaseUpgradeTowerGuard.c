@@ -45,7 +45,7 @@ class OVT_BaseUpgradeTowerGuard : OVT_BasePatrolUpgrade
 			CheckClean();
 			return;
 		}
-		bool inrange = PlayerInRange();
+		bool inrange = PlayerInRange() && !m_occupyingFactionManager.m_CurrentQRF;
 		if(inrange && !m_bSpawned)
 		{
 			Spend(m_iProxedResources, OVT_Global.GetOccupyingFaction().m_iThreat);
