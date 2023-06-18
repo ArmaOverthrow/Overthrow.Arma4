@@ -66,7 +66,7 @@ class OVT_WantedInfo : SCR_InfoDisplay {
 		if(m_Wanted.IsSeen())
 		{
 			w.SetVisible(true);
-			w.SetOpacity(m_Percieve.GetVisualRecognitionFactor());
+			w.SetOpacity(m_Wanted.m_fVisualRecognitionFactor);
 		}else{
 			w.SetVisible(false);
 		}

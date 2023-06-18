@@ -53,6 +53,7 @@ class OVT_TownModifierSystem : ScriptAndConfig
 		//Check if we need to time out any modifiers
 		array<ref OVT_TownModifierData> rebuild = new array<ref OVT_TownModifierData>;
 		bool recalc = false;		
+		int townID = m_TownManager.GetTownID(town);
 		foreach(OVT_TownModifierData modifier : modifiers)
 		{
 			if(!modifier) continue;
@@ -77,6 +78,7 @@ class OVT_TownModifierSystem : ScriptAndConfig
 				rebuild.Insert(modifier);								
 			}else{
 				recalc = true;
+				OnTimeout(townID, modifier.id);
 			}
 		}
 		
@@ -147,6 +149,11 @@ class OVT_TownModifierSystem : ScriptAndConfig
 	}
 	
 	protected void RemoveModifier(int townId, int index)
+	{
+	
+	}
+	
+	protected void OnTimeout(int townId, int index)
 	{
 	
 	}

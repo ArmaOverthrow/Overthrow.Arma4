@@ -9,4 +9,9 @@ class OVT_TownStabilityModifierSystem : OVT_TownModifierSystem
 	{
 		m_TownManager.RemoveStabilityModifier(townId, index);
 	}
+	
+	protected override void OnTimeout(int townId, int index)
+	{
+		m_TownManager.TimeoutStabilityModifier(townId, index);
+	}
 }

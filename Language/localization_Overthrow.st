@@ -219,6 +219,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5DA4CE52026813CE}" {
+   Id "OVT-ConvertedSupporter"
+   Target_en_us "This citizen now supports the resistance"
+   Modified 1571082259
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5DA486E3A9993D96}" {
    Id "OVT-ConvertSupporter"
    Target_en_us "Convert supporter"
@@ -741,6 +748,13 @@ StringTable {
    Id "OVT-Msg-HasPlacedFOB"
    Target_en_us "%1 has placed a new FOB near %2. It is now available for fast travel and more"
    Modified 1569106206
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5DA4CE52796041FE}" {
+   Id "OVT-Msg-LevelledUp"
+   Target_en_us "You have reached level %1 and have a skill point to spend in the Character Sheet"
+   Modified 1571081884
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
@@ -1433,6 +1447,13 @@ StringTable {
    Id "OVT-SkillPointsToSpend"
    Target_en_us "%1 Skill points to spend"
    Modified 1571064273
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5DA4CE522EDC12E2}" {
+   Id "OVT-SkillPointToSpend"
+   Target_en_us "%1 Skill point to spend"
+   Modified 1571081951
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }

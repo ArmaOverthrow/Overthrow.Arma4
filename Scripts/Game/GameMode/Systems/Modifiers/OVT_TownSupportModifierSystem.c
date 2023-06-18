@@ -10,6 +10,11 @@ class OVT_TownSupportModifierSystem : OVT_TownModifierSystem
 		m_TownManager.RemoveSupportModifier(townId, index);
 	}
 	
+	protected override void OnTimeout(int townId, int index)
+	{
+		m_TownManager.TimeoutSupportModifier(townId, index);
+	}
+	
 	override int Recalculate(array<ref OVT_TownModifierData> modifiers, int baseValue = 100, int min = 0, int max = 100)
 	{
 		int newsupport = baseValue;

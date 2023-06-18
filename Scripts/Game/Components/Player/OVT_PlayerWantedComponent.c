@@ -8,6 +8,8 @@ class OVT_PlayerWantedComponent: OVT_Component
 	protected int m_iWantedLevel = 0;
 	[RplProp()]
 	protected bool m_bIsSeen = false;	
+	[RplProp()]
+	float m_fVisualRecognitionFactor = 1;
 	
 	[Attribute("250")]
 	float m_fBaseDistanceSeenAt;
@@ -26,7 +28,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 	protected SCR_CompartmentAccessComponent m_Compartment;
 	protected CharacterPerceivableComponent m_Percieve;
 	
-	protected float m_fVisualRecognitionFactor = 1;
+	
 	
 	protected ref TraceParam m_TraceParams;
 	

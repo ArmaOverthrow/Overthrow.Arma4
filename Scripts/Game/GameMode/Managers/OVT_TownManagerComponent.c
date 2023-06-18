@@ -198,8 +198,6 @@ class OVT_TownManagerComponent: OVT_Component
 			system = GetModifierSystem(OVT_TownSupportModifierSystem);
 			if(system && town.supportModifiers)
 				system.OnTick(town.supportModifiers, town);
-						
-			if(!Replication.IsServer()) continue;
 			
 			bool hasEnemyTower = false;
 			bool hasFriendlyTower = false;
@@ -367,6 +365,16 @@ class OVT_TownManagerComponent: OVT_Component
 			town.supportModifiers.Remove(i);
 			Rpc(RpcDo_RemoveSupportModifier, townId, index);
 		}		
+	}
+	
+	void TimeoutSupportModifier(int townId, int index)
+	{		
+		Rpc(RpcDo_RemoveSupportModifier, townId, index);	
+	}
+	
+	void TimeoutStabilityModifier(int townId, int index)
+	{		
+		Rpc(RpcDo_RemoveStabilityModifier, townId, index);	
 	}
 	
 	void TryAddSupportModifier(int townId, int index)
