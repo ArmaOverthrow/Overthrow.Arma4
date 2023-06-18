@@ -28,9 +28,12 @@ Start by cloning or downloading this Github repository. For Windows/MacOS we rec
 1. Install the "Arma Reforger Tools" in Steam. Find it by switching from "Games" to "Tools" in your Steam library.
 1. Run the Arma Reforger Tools and click "Add Existing"
 1. Navigate to the folder you cloned the Overthrow Github into and select `addon.gproj`
+1. Before opening the project, copy the 3 dependancies into `My Documents/My Games/ArmaReforgerWorkbench/addons` from `My Documents/My Games/ArmaReforger/addons`
 1. Double click on the Overthrow mod to open it in the Workbench
-1. Double click on `Overthrow/Worlds/MP/OVT_Campaign_Eden.ent` in the Enfusion Workbench resource browser
+1. Double click on `Overthrow/Worlds/MP/OVT_Campaign_Test.ent` in the Enfusion Workbench resource browser
 1. In the World Editor that opens, click on the Green Play button or press F5
+
+We recommend using the "test" world for most things as it's much smaller and loads much faster, if you need to test things on a full map, open `Overthrow/Worlds/MP/OVT_Campaign_Eden.ent` instead
 
 ## Updating
 Updates will be pushed to github often (sometimes multiple times a day). 
