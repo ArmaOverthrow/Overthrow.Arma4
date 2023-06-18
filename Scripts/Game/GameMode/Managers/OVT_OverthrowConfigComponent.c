@@ -61,7 +61,7 @@ class OVT_DifficultySettings : ScriptAndConfig
 	int wantedOneTimeout;
 	
 	//OF
-	[Attribute(defvalue: "2000", desc: "OF starting resources", category: "Occupying Faction")]
+	[Attribute(defvalue: "3000", desc: "OF starting resources", category: "Occupying Faction")]
 	int startingResources;
 	[Attribute(defvalue: "250", desc: "OF resources per 6 hrs", category: "Occupying Faction")]
 	int baseResourcesPerTick;
@@ -95,7 +95,7 @@ class OVT_DifficultySettings : ScriptAndConfig
 	float realEstateCostMultiplier;
 	[Attribute(defvalue: "10", desc: "Donation income per civilian supporter", category: "Economy")]
 	int donationIncome;
-	[Attribute(defvalue: "100", desc: "Tax income per civilian", category: "Economy")]
+	[Attribute(defvalue: "25", desc: "Tax income per civilian", category: "Economy")]
 	int taxIncome;
 	[Attribute(defvalue: "5", desc: "Bus ticket price per km", category: "Economy")]
 	int busTicketPrice;
@@ -110,7 +110,7 @@ class OVT_DifficultySettings : ScriptAndConfig
 	[Attribute("1", UIWidgets.ComboBox, "QRF Fast Travel Mode", "", ParamEnumArray.FromEnum(OVT_QRFFastTravelMode), category: "QRF" )]
 	OVT_QRFFastTravelMode QRFFastTravelMode;
 	
-	[Attribute(defvalue: "500", desc: "Max size of QRF in resources", category: "QRF")]
+	[Attribute(defvalue: "1000", desc: "Max size of QRF in resources", category: "QRF")]
 	int maxQRF;
 }
 

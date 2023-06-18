@@ -20,6 +20,8 @@ OVT_OverthrowGameMode {
      }
      OVT_ResistanceSaveDataClass "{5D70912B726E1A32}" {
      }
+     OVT_ConfigSaveDataClass "{5D9E53AFE550A24E}" {
+     }
     }
    }
   }
@@ -212,8 +214,7 @@ OVT_OverthrowGameMode {
    }
    m_pTownControllerPrefab "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.et"
    m_Difficulty OVT_DifficultySettings "{598AD54E1DA56EB1}" {
-    startingResources 3000
-    startingCash 100
+    name "Default"
    }
    m_aDifficultyPresets {
     OVT_DifficultySettings "{598AD54F821FB8D9}" {
