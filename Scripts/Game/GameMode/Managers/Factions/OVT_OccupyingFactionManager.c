@@ -186,7 +186,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		GetGame().GetCallqueue().CallLater(CheckRadioTowers, 9000, true, GetOwner());	
 		
 		if(m_bDistributeInitial)
-			GetGame().GetCallqueue().CallLater(DistributeInitialResources, 100);
+			GetGame().GetCallqueue().CallLater(DistributeInitialResources, 5000);
 	}
 	
 	void CheckRadioTowers()

@@ -1,6 +1,6 @@
 class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 {
-	[Attribute("3000", desc: "Max range of towns to patrol")]
+	[Attribute("1500", desc: "Max range of towns to patrol")]
 	float m_fRange;
 	
 	protected OVT_TownManagerComponent m_Towns;
@@ -122,6 +122,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		BaseWorld world = GetGame().GetWorld();
 		
 		vector pos = m_BaseController.GetOwner().GetOrigin();
+		pos = OVT_Global.GetRandomNonOceanPositionNear(pos, 15);
 		
 		float surfaceY = world.GetSurfaceY(pos[0], pos[2]);
 		if (pos[1] < surfaceY)
@@ -156,16 +157,15 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		aigroup.AddWaypoint(m_Config.SpawnPatrolWaypoint(town.location));			
 		aigroup.AddWaypoint(m_Config.SpawnWaitWaypoint(town.location, s_AIRandomGenerator.RandFloatXY(15, 50)));								
 		
-		foreach(RplId id : shops)
-		{
-			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
-			vector pos = rpl.GetEntity().GetOrigin();
-			aigroup.AddWaypoint(m_Config.SpawnPatrolWaypoint(pos));			
-			aigroup.AddWaypoint(m_Config.SpawnWaitWaypoint(pos, s_AIRandomGenerator.RandFloatXY(15, 50)));
-		}
+		vector pos = OVT_Global.GetRandomNonOceanPositionNear(town.location, 250);
+		aigroup.AddWaypoint(m_Config.SpawnPatrolWaypoint(pos));			
+		aigroup.AddWaypoint(m_Config.SpawnWaitWaypoint(pos, s_AIRandomGenerator.RandFloatXY(15, 50)));								
 		
-		aigroup.AddWaypoint(m_Config.SpawnPatrolWaypoint(m_BaseController.GetOwner().GetOrigin()));
+		pos = OVT_Global.GetRandomNonOceanPositionNear(town.location, 250);
+		aigroup.AddWaypoint(m_Config.SpawnPatrolWaypoint(pos));			
+		aigroup.AddWaypoint(m_Config.SpawnWaitWaypoint(pos, s_AIRandomGenerator.RandFloatXY(15, 50)));								
 		
+		aigroup.AddWaypoint(m_Config.SpawnPatrolWaypoint(m_BaseController.GetOwner().GetOrigin()));		
 	}
 	
 	override OVT_BaseUpgradeData Serialize()

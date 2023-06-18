@@ -151,17 +151,12 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 		while(resources > 0)
 		{
 			int newres = m_Config.m_Difficulty.baseResourceCost * 4;
-			if(!PlayerInRange())
-			{
-				OVT_Faction faction = m_Config.GetOccupyingFaction();
-				ResourceName res = faction.GetRandomGroupByType(OVT_GroupType.LIGHT_INFANTRY);
-				m_iProxedResources += newres;
-				m_ProxiedGroups.Insert(res);
-				m_ProxiedPositions.Insert(m_BaseController.GetOwner().GetOrigin());
-			}else{
-				newres = BuyPatrol(threat);
-				m_bSpawned = true;
-			}
+			
+			OVT_Faction faction = m_Config.GetOccupyingFaction();
+			ResourceName res = faction.GetRandomGroupByType(OVT_GroupType.LIGHT_INFANTRY);
+			m_iProxedResources += newres;
+			m_ProxiedGroups.Insert(res);
+			m_ProxiedPositions.Insert(m_BaseController.GetOwner().GetOrigin());			
 			
 			if(newres > resources){
 				newres = resources;

@@ -1,21 +1,13 @@
-SCR_AIWorld SCR_AIWorld : "{E0A05C76552E7F58}Prefabs/AI/SCR_AIWorld.et" {
+SCR_AIWorld : "{70CCCF16487C927F}Prefabs/AI/SCR_AIWorld_Eden.et" {
  components {
   NavmeshWorldComponent "{5584F30E67F617AD}" {
    NavmeshSettings NavmeshWorld "{50FC63BEBE3973C5}" {
-    NavmeshFilesConfig BaseNavmeshFilesConfig "{5D346D5906DEF118}" {
-     NavmeshFile "{AD5F99CD7C59D5E0}worlds/GameMaster/Navmeshes/GM_Eden.nmn"
-    }
-   }
-  }
-  NavmeshWorldComponent "{5C8C9B750D124A63}" {
-   NavmeshSettings NavmeshWorld "{5C8C9B750B60C6E2}" {
-    NavmeshFilesConfig BaseNavmeshFilesConfig "{5C90BD0EC793647D}" {
-     NavmeshFile "{AD5F99CD7C59D5E0}worlds/GameMaster/Navmeshes/GM_Eden.nmn"
+    NavmeshFilesConfig BaseNavmeshFilesConfig "{5D9E53A237B70259}" : "{8BBC73472092902E}Configs/Navmesh/Navmesh_GM_Eden_Soldier.conf" {
     }
    }
   }
  }
- coords 7.375 1 19.454
+ coords 7456.035 165.562 4307.494
 }
 PerceptionManager PerceptionManager1 : "{028DAEAD63E056BE}Prefabs/World/Game/PerceptionManager.et" {
 }

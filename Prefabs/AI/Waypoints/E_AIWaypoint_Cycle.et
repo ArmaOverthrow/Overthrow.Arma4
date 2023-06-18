@@ -1,0 +1,19 @@
+AIWaypointCycle : "{35BD6541CBB8AC08}Prefabs/AI/Waypoints/AIWaypoint_Cycle.et" {
+ ID "54C6AE7D8237ADE9"
+ components {
+  SCR_EditableWaypointComponent "{5DA46C92EDF2AE93}" {
+   m_EntityType WAYPOINT
+   m_UIInfo SCR_EditableEntityUIInfo "{5DA46C92FD3CF4EB}" {
+    Name "Cycle"
+    Description "Cycle"
+    m_aAutoLabels {
+     124 7
+    }
+   }
+   m_bAutoRegister NEVER
+   m_Flags 4166
+  }
+  RplComponent "{5DA46C935CE997EB}" {
+  }
+ }
+}

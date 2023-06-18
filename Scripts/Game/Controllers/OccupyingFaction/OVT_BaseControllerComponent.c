@@ -41,6 +41,8 @@ class OVT_BaseControllerComponent: OVT_Component
 		InitializeBase();
 		
 		GetGame().GetCallqueue().CallLater(UpdateUpgrades, UPGRADE_UPDATE_FREQUENCY, true, owner);		
+		
+		GetGame().GetWorld().QueryEntitiesBySphere(owner.GetOrigin(), m_Config.m_Difficulty.baseRange, CheckGateOpen, FilterGateEntities, EQueryEntitiesFlags.ALL);
 	}
 	
 	protected void UpdateUpgrades()
@@ -51,6 +53,27 @@ class OVT_BaseControllerComponent: OVT_Component
 		{
 			upgrade.OnUpdate(UPGRADE_UPDATE_FREQUENCY);
 		}
+	}
+	
+	protected bool FilterGateEntities(IEntity entity)
+	{
+		SCR_AISmartActionComponent smart = EPF_Component<SCR_AISmartActionComponent>.Find(entity);
+		if(!smart) return false;
+		array<string> tags();
+		smart.GetTags(tags);
+		if(tags.Count() == 0) return false;
+		if(tags[0] == "OpenGate") return true;
+		return false;
+	}
+	
+	protected bool CheckGateOpen(IEntity entity)
+	{
+		ActionsManagerComponent actions = EPF_Component<ActionsManagerComponent>.Find(entity);
+		if(!actions) return true;
+		SCR_DoorUserAction door = SCR_DoorUserAction.Cast(actions.GetFirstAction());
+		if(!door) return true;
+		door.PerformAction(entity, entity);
+		return true;
 	}
 	
 	bool IsOccupyingFaction()
