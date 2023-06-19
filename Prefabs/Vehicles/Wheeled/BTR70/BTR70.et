@@ -1,0 +1,18 @@
+Vehicle : "{1C5FE7B7FF49BB8D}Prefabs/Vehicles/Wheeled/BTR70/BTR70_Base.et" {
+ ID "BBCBA43A9778AE21"
+ components {
+  ActionsManagerComponent "{C97BE5489221AE18}" {
+   additionalActions {
+    OVT_HireGunnerAction "{5DA6925BDEA42B49}" {
+     ParentContextList {
+      "door_l01" "door_r01"
+     }
+     UIInfo UIInfo "{5DA6925BA36FD17C}" {
+      Name "#OVT-RecruitGunner"
+     }
+     "Sort Priority" 1000
+    }
+   }
+  }
+ }
+}

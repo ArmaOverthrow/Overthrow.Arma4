@@ -516,10 +516,12 @@ class OVT_TownManagerComponent: OVT_Component
 		while(!house && i < 20)
 		{
 			i++;
-			town = m_Towns.GetRandomElement();
+			int index = s_AIRandomGenerator.RandInt(0, m_Towns.Count()-1);
+			town = m_Towns[index];
 				
 			GetGame().GetWorld().QueryEntitiesBySphere(town.location, m_iCityRange, CheckHouseAddToArray, FilterStartingHouseEntities, EQueryEntitiesFlags.STATIC);
 			if(m_Houses.Count() == 0) continue;
+			
 			house = GetGame().GetWorld().FindEntityByID(m_Houses.GetRandomElement());
 			if(m_RealEstate.IsOwned(house.GetID())) house = null;			
 		}

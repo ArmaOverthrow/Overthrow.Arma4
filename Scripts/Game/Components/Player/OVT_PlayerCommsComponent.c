@@ -283,7 +283,7 @@ class OVT_PlayerCommsComponent: OVT_Component
 		Rpc(RpcAsk_Buy, rpl.Id(), id, num, playerId);
 	}
 	
-	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_Buy(RplId shopId, int id, int num, int playerId)
 	{
 		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
@@ -326,7 +326,7 @@ class OVT_PlayerCommsComponent: OVT_Component
 		Rpc(RpcAsk_ImportToVehicle, id, qty, rpl.Id(), playerId)	
 	}
 	
-	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_ImportToVehicle(int id, int qty, RplId vehicleId, int playerId)
 	{
 		IEntity vehicle = RplComponent.Cast(Replication.FindItem(vehicleId)).GetEntity();		

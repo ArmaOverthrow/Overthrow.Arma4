@@ -133,6 +133,13 @@ class OVT_PlayerManagerComponent: OVT_Component
 			writer.WriteString(player.name);
 			writer.WriteBool(player.isOfficer);
 			
+			writer.WriteInt(player.skills.Count());
+			for(int t=0; t<player.skills.Count(); t++)
+			{
+				writer.WriteString(player.skills.GetKey(t));
+				writer.WriteInt(player.skills.GetElement(t));
+			}
+			
 			writer.WriteInt(player.kills);
 			writer.WriteInt(player.xp);
 		}		
@@ -142,8 +149,8 @@ class OVT_PlayerManagerComponent: OVT_Component
 	override bool RplLoad(ScriptBitReader reader)
 	{		
 		
-		int length, playerId;
-		string persId;
+		int length, playerId, skilllength, level;
+		string persId, skill;
 		
 		//Recieve JIP players
 		if (!reader.ReadInt(length)) return false;
@@ -167,8 +174,18 @@ class OVT_PlayerManagerComponent: OVT_Component
 			if (!reader.ReadString(player.name)) return false;
 			if (!reader.ReadBool(player.isOfficer)) return false;
 			
+			if (!reader.ReadInt(skilllength)) return false;
+			for(int t=0; t<skilllength; t++)
+			{
+				if (!reader.ReadString(skill)) return false;
+				if (!reader.ReadInt(level)) return false;
+				player.skills[skill] = level;
+			}
+			
 			if(!reader.ReadInt(player.kills)) return false;
 			if(!reader.ReadInt(player.xp)) return false;
+			
+			OVT_Global.GetSkills().OnPlayerDataLoaded(player, persId);
 		}
 		return true;
 	}

@@ -389,11 +389,13 @@ class OVT_ResistanceFactionManager: OVT_Component
 		
 		IEntity turretEntity = rpl.GetEntity();	
 		IEntity vehicle = turretEntity.GetParent();
-		if(!vehicle) return;		
+		if(!vehicle) vehicle = turretEntity;	
 				
 		IEntity group = OVT_Global.SpawnEntityPrefab(m_pHiredCivilianPrefab, vehicle.GetOrigin());
 		SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
 		if(!aigroup) return;
+		
+		OVT_Global.RandomizeCivilianClothes(aigroup);
 		
 		m_TempVehicle = vehicle;
 		m_TempGroup = aigroup;

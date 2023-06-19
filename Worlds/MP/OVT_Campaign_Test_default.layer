@@ -425,19 +425,23 @@ Tree : "{AF4BFBE29028A9FD}Prefabs/Vegetation/Bush/b_corylus_avellana_1l.et" {
 Tree : "{BA785041AC632123}Prefabs/Vegetation/Bush/b_salix_cinerea_1.et" {
  coords 179.952 0.001 121.315
 }
-SCR_DestructibleBuildingEntity : "{BEF9077AF9F93AE7}Prefabs/Structures/Houses/Village/House_Mountain_E_1I01.et" {
- coords 236.64 0.001 148.008
- angleY -93.461
+$grp SCR_DestructibleBuildingEntity : "{BEF9077AF9F93AE7}Prefabs/Structures/Houses/Village/House_Mountain_E_1I01.et" {
+ {
+  coords 236.64 0.001 148.008
+  angleY -93.461
+ }
+ {
+  coords 217.825 0.001 168.148
+ }
+ {
+  coords 217.481 0.001 187.517
+ }
 }
 SCR_DestructibleBuildingEntity : "{CFE8511B2B7E8AAA}Prefabs/Structures/Commercial/Shops/ShopModern_E_01.et" {
  coords 210.935 0.001 93.913
 }
 Tree : "{D9DF1D13919F19A0}Prefabs/Vegetation/Bush/b_rosa_canina_0s.et" {
  coords 182.829 0.001 130.379
-}
-SCR_DestructibleBuildingEntity GarageMilitary_E_01_5D94EEDDE2F882B5 : "{F16324CB8CB07C00}Prefabs/Structures/Military/Houses/GarageMilitary_E_01/GarageMilitary_E_01.et" {
- coords 35.015 0.001 138.931
- angleY 177.325
 }
 SCR_SiteSlotEntity : "{F4066B8425BEC47C}PrefabsEditable/Slots/Road/E_SlotRoadMedium.et" {
  coords 68.924 1.001 146.036

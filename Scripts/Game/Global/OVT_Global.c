@@ -411,4 +411,37 @@ class OVT_Global {
 		}
 		return false;
 	}
+	
+	static void RandomizeCivilianClothes(SCR_AIGroup aigroup)
+	{
+		array<AIAgent> civs  = new array<AIAgent>;
+		aigroup.GetAgents(civs);
+		foreach(AIAgent agent : civs)
+		{
+			IEntity civ = agent.GetControlledEntity();
+			InventoryStorageManagerComponent storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(civ);
+			if(!storageManager) continue;
+			foreach (OVT_LoadoutSlot loadoutItem : OVT_Global.GetConfig().m_CivilianLoadout.m_aSlots)
+			{
+				IEntity slotEntity = SpawnDefaultCharacterItem(storageManager, loadoutItem);
+				if (!slotEntity) continue;
+				
+				if (!storageManager.TryInsertItem(slotEntity, EStoragePurpose.PURPOSE_LOADOUT_PROXY))
+				{
+					SCR_EntityHelper.DeleteEntityAndChildren(slotEntity);
+				}
+			}
+		}
+	}
+	
+	protected static IEntity SpawnDefaultCharacterItem(InventoryStorageManagerComponent storageManager, OVT_LoadoutSlot loadoutItem)
+	{
+		int selection = s_AIRandomGenerator.RandInt(0, loadoutItem.m_aChoices.Count() - 1);
+		ResourceName prefab = loadoutItem.m_aChoices[selection];
+		
+		IEntity slotEntity = GetGame().SpawnEntityPrefab(Resource.Load(prefab));
+		if (!slotEntity) return null;
+		
+		return slotEntity;
+	}
 }

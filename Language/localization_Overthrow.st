@@ -191,6 +191,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5DA6821F295FE629}" {
+   Id "OVT-CannotImport"
+   Target_en_us "Trade skill level 1 is required to import"
+   Modified 1571194902
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5992E2F582B25E27}" {
    Id "OVT-CannotPlaceHere"
    Target_en_us "You cannot place that item here, you must be near a house you own, an FOB or a controlled base"
