@@ -295,10 +295,18 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			{
 				
 				IEntity house = OVT_Global.GetTowns().GetRandomStartingHouse();
-				m_RealEstate.SetOwner(playerId, house);
-				m_RealEstate.SetHome(playerId, house);				
+				if(!house)
+				{
+					//No houses left on the map, spawn in a town
+					int index = s_AIRandomGenerator.RandInt(0, m_TownManager.m_Towns.Count()-1);
+					OVT_TownData town = m_TownManager.m_Towns[index];
+					m_RealEstate.SetHomePos(playerId, town.location);
+				}else{
+					m_RealEstate.SetOwner(playerId, house);
+					m_RealEstate.SetHome(playerId, house);				
 				
-				m_VehicleManager.SpawnStartingCar(house, persistentId);
+					m_VehicleManager.SpawnStartingCar(house, persistentId);
+				}
 			}
 			player.initialized = true;
 			m_aInitializedPlayers.Insert(persistentId);

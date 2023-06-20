@@ -73,7 +73,7 @@ class OVT_MapRestrictedAreas : OVT_MapCanvasLayer
 		{	
 			if(!tower.IsOccupyingFaction()) {				
 				continue;
-			};
+			}
 			m_Centers.Insert(tower.location);
 			m_Ranges.Insert(20);
 		}
