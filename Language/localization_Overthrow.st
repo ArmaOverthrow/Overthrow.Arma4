@@ -779,6 +779,27 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5DA8D3A294F70ED0}" {
+   Id "OVT-Msg-PlayerDonated"
+   Target_en_us "%1 has donated $%2 to the resistance funds"
+   Modified 1571346231
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5DA8D3A10424E647}" {
+   Id "OVT-Msg-PlayerSentFunds"
+   Target_en_us "An officer has sent you $%1 in resistance funds"
+   Modified 1571346425
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5DA8D3A13F1C34F3}" {
+   Id "OVT-Msg-PlayerSentMoney"
+   Target_en_us "%1 has sent you $%2"
+   Modified 1571346399
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5D86A3FA5A8D0F3C}" {
    Id "OVT-Msg-RadioTowerCapture"
    Target_en_us "The enemy is attempting to capture a radio tower near %1"

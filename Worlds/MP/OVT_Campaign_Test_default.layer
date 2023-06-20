@@ -425,18 +425,6 @@ Tree : "{AF4BFBE29028A9FD}Prefabs/Vegetation/Bush/b_corylus_avellana_1l.et" {
 Tree : "{BA785041AC632123}Prefabs/Vegetation/Bush/b_salix_cinerea_1.et" {
  coords 179.952 0.001 121.315
 }
-$grp SCR_DestructibleBuildingEntity : "{BEF9077AF9F93AE7}Prefabs/Structures/Houses/Village/House_Mountain_E_1I01.et" {
- {
-  coords 236.64 0.001 148.008
-  angleY -93.461
- }
- {
-  coords 217.825 0.001 168.148
- }
- {
-  coords 217.481 0.001 187.517
- }
-}
 SCR_DestructibleBuildingEntity : "{CFE8511B2B7E8AAA}Prefabs/Structures/Commercial/Shops/ShopModern_E_01.et" {
  coords 210.935 0.001 93.913
 }

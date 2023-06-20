@@ -22,6 +22,17 @@ class OVT_PlayerCommsComponent: OVT_Component
 		}
 	}
 	
+	void SendNotification(string tag, int playerId = -1, string param1 = "", string param2="", string param3="")
+	{
+		Rpc(RpcAsk_SendNotification, tag, playerId, param1, param2, param3);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	void RpcAsk_SendNotification(string tag, int playerId, string param1, string param2, string param3)
+	{
+		OVT_Global.GetNotify().SendTextNotification(tag,playerId,param1,param2,param3);
+	}
+	
 	void AddSupporters(vector location, int num)
 	{
 		Rpc(RpcAsk_AddSupporters, location, num);

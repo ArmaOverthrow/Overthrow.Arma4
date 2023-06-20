@@ -22,15 +22,44 @@ class OVT_ResistanceMenuContext : OVT_UIContext
 	{
 		if(SCR_Global.IsEditMode()) return;
 		m_Towns = OVT_Global.GetTowns();
+		m_Economy.m_OnPlayerMoneyChanged.Insert(OnPlayerMoneyChanged);
+	}
+	
+	protected void OnPlayerMoneyChanged(string playerId, int amount)
+	{
+		if(playerId == m_sPlayerID && m_bIsActive)
+		{
+			TextWidget money = TextWidget.Cast(m_wRoot.FindAnyWidget("PlayerMoney"));		
+			money.SetText("$" + amount);
+		}
 	}
 	
 	override void OnShow()
 	{	
+		bool isOfficer = OVT_Global.GetResistanceFaction().IsLocalPlayerOfficer();
 		m_Economy.m_OnResistanceMoneyChanged.Insert(RefreshFunds);
 		
 		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");
 		SCR_NavigationButtonComponent btn = SCR_NavigationButtonComponent.Cast(closeButton.FindHandler(SCR_NavigationButtonComponent));		
 		btn.m_OnClicked.Insert(CloseLayout);
+		
+		Widget ww = m_wRoot.FindAnyWidget("MakeOfficer");
+		if(!isOfficer) ww.SetVisible(false);
+		ButtonActionComponent action = ButtonActionComponent.Cast(ww.FindHandler(ButtonActionComponent));		
+		action.GetOnAction().Insert(MakeOfficer);
+		
+		ww = m_wRoot.FindAnyWidget("SendFunds");
+		if(!isOfficer) ww.SetVisible(false);
+		action = ButtonActionComponent.Cast(ww.FindHandler(ButtonActionComponent));		
+		action.GetOnAction().Insert(SendFunds);
+		
+		ww = m_wRoot.FindAnyWidget("SendMoney");
+		action = ButtonActionComponent.Cast(ww.FindHandler(ButtonActionComponent));		
+		action.GetOnAction().Insert(SendMoney);
+		
+		ww = m_wRoot.FindAnyWidget("DonateFunds");
+		action = ButtonActionComponent.Cast(ww.FindHandler(ButtonActionComponent));		
+		action.GetOnAction().Insert(DonateFunds);
 		
 		Refresh();		
 	}
@@ -43,6 +72,9 @@ class OVT_ResistanceMenuContext : OVT_UIContext
 	protected void Refresh()
 	{
 		bool isOfficer = OVT_Global.GetResistanceFaction().IsLocalPlayerOfficer();
+		
+		TextWidget money = TextWidget.Cast(m_wRoot.FindAnyWidget("PlayerMoney"));		
+		money.SetText("$" + m_Economy.GetPlayerMoney(m_sPlayerID));
 		
 		TextWidget w = TextWidget.Cast(m_wRoot.FindAnyWidget("TotalFunds"));
 		w.SetText("$" + m_Economy.GetResistanceMoney().ToString());
@@ -117,26 +149,6 @@ class OVT_ResistanceMenuContext : OVT_UIContext
 			slider.SetValue(10);
 		}
 		
-		
-		
-		ww = m_wRoot.FindAnyWidget("MakeOfficer");
-		if(!isOfficer) ww.SetVisible(false);
-		SCR_ButtonTextComponent btn = SCR_ButtonTextComponent.Cast(ww.FindHandler(SCR_ButtonTextComponent));
-		btn.m_OnClicked.Insert(MakeOfficer);
-		
-		ww = m_wRoot.FindAnyWidget("SendFunds");
-		if(!isOfficer) ww.SetVisible(false);
-		btn = SCR_ButtonTextComponent.Cast(ww.FindHandler(SCR_ButtonTextComponent));
-		btn.m_OnClicked.Insert(SendFunds);
-		
-		ww = m_wRoot.FindAnyWidget("SendMoney");
-		btn = SCR_ButtonTextComponent.Cast(ww.FindHandler(SCR_ButtonTextComponent));
-		btn.m_OnClicked.Insert(SendMoney);
-		
-		ww = m_wRoot.FindAnyWidget("DonateFunds");
-		btn = SCR_ButtonTextComponent.Cast(ww.FindHandler(SCR_ButtonTextComponent));
-		btn.m_OnClicked.Insert(DonateFunds);
-		
 		SCR_SortedArray<OVT_PlayerData> leaderboard();
 		OVT_PlayerManagerComponent pm = OVT_Global.GetPlayers();
 		for(int i=0; i < pm.m_mPlayers.Count(); i++)
@@ -207,6 +219,7 @@ class OVT_ResistanceMenuContext : OVT_UIContext
 				
 		m_Economy.TakePlayerMoney(localId, amount);
 		m_Economy.AddResistanceMoney(amount);
+		OVT_Global.GetServer().SendNotification("PlayerDonated",-1,OVT_Global.GetPlayers().GetPlayerName(m_iPlayerID),amount.ToString());
 	}
 	
 	protected void SendFunds(SCR_ButtonTextComponent btn)
@@ -222,6 +235,7 @@ class OVT_ResistanceMenuContext : OVT_UIContext
 		OVT_ResistancePlayerData data = OVT_ResistancePlayerData.Cast(m_PlayerSpin.GetCurrentItemData());
 		m_Economy.AddPlayerMoney(data.playerId, amount);
 		m_Economy.TakeResistanceMoney(amount);
+		OVT_Global.GetServer().SendNotification("PlayerSentFunds",data.playerId,amount.ToString());
 	}
 	
 	protected void SendMoney(SCR_ButtonTextComponent btn)
@@ -242,5 +256,6 @@ class OVT_ResistanceMenuContext : OVT_UIContext
 				
 		m_Economy.AddPlayerMoney(data.playerId, amount);
 		m_Economy.TakePlayerMoney(localId, amount);
+		OVT_Global.GetServer().SendNotification("PlayerSentMoney",data.playerId,OVT_Global.GetPlayers().GetPlayerName(m_iPlayerID),amount.ToString());
 	}
 }

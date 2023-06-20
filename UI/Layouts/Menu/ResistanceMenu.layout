@@ -102,7 +102,7 @@ FrameWidgetClass {
                   }
                   VerticalLayoutWidgetClass "{5D98F8A321DD8226}" {
                    Name "LeaderboardArea"
-                   Slot OverlayWidgetSlot {
+                   Slot OverlayWidgetSlot "{5DA8CB094A2B82E0}" {
                     HorizontalAlign 3
                     VerticalAlign 3
                     Padding 5 5 5 5
@@ -169,7 +169,7 @@ FrameWidgetClass {
                 }
                 VerticalLayoutWidgetClass "{5D98F8A303B71475}" {
                  Name "VerticalLayout1"
-                 Slot LayoutSlot {
+                 Slot LayoutSlot "{5DA8CB094A2C01AB}" {
                   SizeMode Fill
                  }
                  {
@@ -476,6 +476,18 @@ FrameWidgetClass {
                        Text "#OVT-SendFundsMoney"
                        "Font Size" 26
                       }
+                      FrameWidgetClass "{5DA8CB0B422F89E8}" {
+                       Name "Fill"
+                       Slot LayoutSlot "{59A6DA4FA28C85D1}" {
+                        SizeMode Fill
+                       }
+                      }
+                      TextWidgetClass "{5DA8CB0B6FD08D01}" {
+                       Name "PlayerMoney"
+                       Slot LayoutSlot "{5DA8CB0B6FD08DE8}" {
+                       }
+                       Text "$500"
+                      }
                      }
                     }
                    }
@@ -515,30 +527,31 @@ FrameWidgetClass {
                     Padding 0 0 0 0
                    }
                    {
-                    ButtonWidgetClass "{5D98F8A303B71401}" : "{75C912A1C89BE6C2}UI/layouts/WidgetLibrary/Buttons/WLib_ButtonText.layout" {
+                    ButtonWidgetClass "{5DA8CB09249A974D}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
                      Name "MakeOfficer"
-                     Slot LayoutSlot "{59C84C7C117A2068}" {
-                      Padding 5 5 5 5
+                     Slot LayoutSlot "{56EEDE01982D053A}" {
+                      Padding 0 0 0 0
                      }
                      components {
-                      SCR_ButtonTextComponent "{5548F0143AE99095}" {
-                       m_sText "#OVT-MakeOfficer"
+                      SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+                       m_sLabel "#OVT-MakeOfficer"
+                       m_sActionName "OverthrowMakeOfficer"
+                      }
+                      ButtonActionComponent "{56EEDE0026B19E2C}" {
+                       m_bActionName "OverthrowMakeOfficer"
                       }
                      }
                      {
-                      SizeLayoutWidgetClass "{5548EB41A8E48247}" {
-                       Prefab "{5548EB41A8E48247}"
+                      SizeLayoutWidgetClass "{5562AD435529FB36}" {
+                       Prefab "{5562AD435529FB36}"
                        {
-                        OverlayWidgetClass "{5548EB41A8E48245}" {
-                         Prefab "{5548EB41A8E48245}"
-                         Slot ButtonWidgetSlot "{5548E6E7F213FB11}" {
-                          Padding 2 2 2 2
-                         }
+                        OverlayWidgetClass "{000000005E70868E}" {
+                         Prefab "{000000005E70868E}"
                          {
-                          TextWidgetClass "{5548F014E72FB9DA}" {
-                           Prefab "{5548F014E72FB9DA}"
-                           Slot OverlayWidgetSlot "{55708DE55528756B}" {
-                            Padding 10 10 10 10
+                          HorizontalLayoutWidgetClass "{00000000E3602307}" {
+                           Prefab "{00000000E3602307}"
+                           Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
+                            Padding 10 10 16 10
                            }
                           }
                          }
@@ -547,30 +560,31 @@ FrameWidgetClass {
                       }
                      }
                     }
-                    ButtonWidgetClass "{5D98F8A303B71403}" : "{75C912A1C89BE6C2}UI/layouts/WidgetLibrary/Buttons/WLib_ButtonText.layout" {
+                    ButtonWidgetClass "{5DA8CB09BBB83A87}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
                      Name "DonateFunds"
-                     Slot LayoutSlot "{59C84C7C117A2068}" {
-                      Padding 5 5 5 5
+                     Slot LayoutSlot "{56EEDE01982D053A}" {
+                      Padding 0 0 0 0
                      }
                      components {
-                      SCR_ButtonTextComponent "{5548F0143AE99095}" {
-                       m_sText "#OVT-DonateFunds"
+                      SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+                       m_sLabel "#OVT-DonateFunds"
+                       m_sActionName "OverthrowDonateFunds"
+                      }
+                      ButtonActionComponent "{56EEDE0026B19E2C}" {
+                       m_bActionName "OverthrowDonateFunds"
                       }
                      }
                      {
-                      SizeLayoutWidgetClass "{5548EB41A8E48247}" {
-                       Prefab "{5548EB41A8E48247}"
+                      SizeLayoutWidgetClass "{5562AD435529FB36}" {
+                       Prefab "{5562AD435529FB36}"
                        {
-                        OverlayWidgetClass "{5548EB41A8E48245}" {
-                         Prefab "{5548EB41A8E48245}"
-                         Slot ButtonWidgetSlot "{5548E6E7F213FB11}" {
-                          Padding 2 2 2 2
-                         }
+                        OverlayWidgetClass "{000000005E70868E}" {
+                         Prefab "{000000005E70868E}"
                          {
-                          TextWidgetClass "{5548F014E72FB9DA}" {
-                           Prefab "{5548F014E72FB9DA}"
-                           Slot OverlayWidgetSlot "{55708DE55528756B}" {
-                            Padding 10 10 10 10
+                          HorizontalLayoutWidgetClass "{00000000E3602307}" {
+                           Prefab "{00000000E3602307}"
+                           Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
+                            Padding 10 10 16 10
                            }
                           }
                          }
@@ -585,30 +599,31 @@ FrameWidgetClass {
                       SizeMode Fill
                      }
                     }
-                    ButtonWidgetClass "{5D98F8A303B7140C}" : "{75C912A1C89BE6C2}UI/layouts/WidgetLibrary/Buttons/WLib_ButtonText.layout" {
+                    ButtonWidgetClass "{5DA8CB0A5E31ED98}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
                      Name "SendFunds"
-                     Slot LayoutSlot "{59C84C7C117A2068}" {
-                      Padding 5 5 5 5
+                     Slot LayoutSlot "{56EEDE01982D053A}" {
+                      Padding 0 0 0 0
                      }
                      components {
-                      SCR_ButtonTextComponent "{5548F0143AE99095}" {
-                       m_sText "#OVT-SendFunds"
+                      SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+                       m_sLabel "#OVT-SendFunds"
+                       m_sActionName "OverthrowSendFunds"
+                      }
+                      ButtonActionComponent "{56EEDE0026B19E2C}" {
+                       m_bActionName "OverthrowSendFunds"
                       }
                      }
                      {
-                      SizeLayoutWidgetClass "{5548EB41A8E48247}" {
-                       Prefab "{5548EB41A8E48247}"
+                      SizeLayoutWidgetClass "{5562AD435529FB36}" {
+                       Prefab "{5562AD435529FB36}"
                        {
-                        OverlayWidgetClass "{5548EB41A8E48245}" {
-                         Prefab "{5548EB41A8E48245}"
-                         Slot ButtonWidgetSlot "{5548E6E7F213FB11}" {
-                          Padding 2 2 2 2
-                         }
+                        OverlayWidgetClass "{000000005E70868E}" {
+                         Prefab "{000000005E70868E}"
                          {
-                          TextWidgetClass "{5548F014E72FB9DA}" {
-                           Prefab "{5548F014E72FB9DA}"
-                           Slot OverlayWidgetSlot "{55708DE55528756B}" {
-                            Padding 10 10 10 10
+                          HorizontalLayoutWidgetClass "{00000000E3602307}" {
+                           Prefab "{00000000E3602307}"
+                           Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
+                            Padding 10 10 16 10
                            }
                           }
                          }
@@ -617,30 +632,31 @@ FrameWidgetClass {
                       }
                      }
                     }
-                    ButtonWidgetClass "{5D98F8A303B7140F}" : "{75C912A1C89BE6C2}UI/layouts/WidgetLibrary/Buttons/WLib_ButtonText.layout" {
+                    ButtonWidgetClass "{5DA8CB0A166088F7}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
                      Name "SendMoney"
-                     Slot LayoutSlot "{59C84C7C117A2068}" {
-                      Padding 5 5 5 5
+                     Slot LayoutSlot "{56EEDE01982D053A}" {
+                      Padding 0 0 0 0
                      }
                      components {
-                      SCR_ButtonTextComponent "{5548F0143AE99095}" {
-                       m_sText "#OVT-SendMoney"
+                      SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+                       m_sLabel "#OVT-SendMoney"
+                       m_sActionName "OverthrowSendMoney"
+                      }
+                      ButtonActionComponent "{56EEDE0026B19E2C}" {
+                       m_bActionName "OverthrowSendMoney"
                       }
                      }
                      {
-                      SizeLayoutWidgetClass "{5548EB41A8E48247}" {
-                       Prefab "{5548EB41A8E48247}"
+                      SizeLayoutWidgetClass "{5562AD435529FB36}" {
+                       Prefab "{5562AD435529FB36}"
                        {
-                        OverlayWidgetClass "{5548EB41A8E48245}" {
-                         Prefab "{5548EB41A8E48245}"
-                         Slot ButtonWidgetSlot "{5548E6E7F213FB11}" {
-                          Padding 2 2 2 2
-                         }
+                        OverlayWidgetClass "{000000005E70868E}" {
+                         Prefab "{000000005E70868E}"
                          {
-                          TextWidgetClass "{5548F014E72FB9DA}" {
-                           Prefab "{5548F014E72FB9DA}"
-                           Slot OverlayWidgetSlot "{55708DE55528756B}" {
-                            Padding 10 10 10 10
+                          HorizontalLayoutWidgetClass "{00000000E3602307}" {
+                           Prefab "{00000000E3602307}"
+                           Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
+                            Padding 10 10 16 10
                            }
                           }
                          }
