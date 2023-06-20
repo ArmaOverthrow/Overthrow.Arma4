@@ -75,7 +75,7 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 		m_fFoundRange = -1;
 		GetGame().GetWorld().QueryEntitiesBySphere(m_player.GetOrigin(), 50, null, FindOverride, EQueryEntitiesFlags.ALL);		
 		
-		if(m_FoundOverride)
+		if(m_FoundOverride && m_FoundOverride.CanShow(m_player))
 		{
 			m_wRoot.FindAnyWidget("MainMenuOverride").SetVisible(true);
 			RichTextWidget text = RichTextWidget.Cast(m_wRoot.FindAnyWidget("MainMenuOverrideText"));

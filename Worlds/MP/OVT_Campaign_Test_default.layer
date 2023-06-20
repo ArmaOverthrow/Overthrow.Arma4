@@ -347,16 +347,6 @@ $grp GenericEntity {
   coords 29.444 1.001 116.796
   Flags 1027
  }
- Port {
-  components {
-   OVT_PortControllerComponent "{5D86A31491FBD971}" {
-   }
-   RplComponent "{5D86A32B2B3E4FF5}" {
-   }
-  }
-  coords 148.188 1.001 249.565
-  Flags 1027
- }
 }
 SCR_DestructibleBuildingEntity : "{00FD2B4A0BDEC271}Prefabs/Structures/Commercial/FuelStations/FuelStation_E_01_building.et" {
  coords 240.87 0.001 76.83
@@ -411,6 +401,9 @@ Tree : "{9025E96A11516E7A}Prefabs/Vegetation/Bush/b_juniperus_communis_2w.et" {
 }
 SCR_DestructibleBuildingEntity : "{92E8F78BCF17D93D}Prefabs/Structures/Commercial/Shops/ShopHouse_E_2I01t_clothesstore.et" {
  coords 191.848 0.001 87.529
+}
+GenericEntity : "{9BF7399A6F63D480}Prefabs/GameMode/OVT_Port.et" {
+ coords 143.682 1.001 246.857
 }
 Tree : "{A5DE58FC9FB6BA60}Prefabs/Vegetation/Bush/b_corylus_avellana_2.et" {
  coords 183.058 0.001 122.114
