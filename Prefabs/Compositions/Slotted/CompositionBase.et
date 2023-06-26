@@ -1,0 +1,9 @@
+GenericEntity {
+ ID "5282DCB5DFC8538F"
+ components {
+  EPF_PersistenceComponent "{5DB4E4D52E079648}" {
+   m_pSaveData OVT_BaseUpgradeSaveDataClass "{5DB4E4D52C7300F7}" {
+   }
+  }
+ }
+}

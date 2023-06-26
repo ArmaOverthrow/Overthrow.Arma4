@@ -1,9 +1,0 @@
-GenericEntity : "{3BA9D94C4EE9B33B}Prefabs/Compositions/Slotted/CompositionBase.et" {
- ID "560C73448CF83343"
- components {
-  EPF_PersistenceComponent "{5D78D82007D28BF7}" {
-   m_pSaveData OVT_BaseUpgradeSaveDataClass "{5D78D82005F0046A}" {
-   }
-  }
- }
-}

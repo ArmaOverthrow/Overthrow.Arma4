@@ -13,6 +13,8 @@ class OVT_BaseUpgradeComposition : OVT_SlottedBaseUpgrade
 	[Attribute("0", UIWidgets.ComboBox, "Slot size", "", ParamEnumArray.FromEnum(OVT_SlotType) )]
 	OVT_SlotType m_SlotSize;
 	
+	protected int m_iAgentIndex = 0;	
+	
 	override int Spend(int resources, float threat)
 	{
 		if(m_Spawned) return 0;
@@ -70,6 +72,21 @@ class OVT_BaseUpgradeComposition : OVT_SlottedBaseUpgrade
 		}
 	}
 	
+	override void Setup()
+	{
+		GetGame().GetWorld().QueryEntitiesBySphere(m_vPos, 4, FillCompartments, null, EQueryEntitiesFlags.ALL);
+	}
+	
+	protected bool FillCompartments(IEntity entity)
+	{
+		SCR_BaseCompartmentManagerComponent compartment = EPF_Component<SCR_BaseCompartmentManagerComponent>.Find(entity);
+		if(!compartment) return true;		
+		
+		compartment.SpawnDefaultOccupants({ECompartmentType.Turret});
+		
+		return true;
+	}
+	
 	override int GetResources()
 	{
 		if(!m_Spawned) return 0;
@@ -78,5 +95,25 @@ class OVT_BaseUpgradeComposition : OVT_SlottedBaseUpgrade
 		if(!comp) return 0;
 		
 		return comp.m_iCost;
+	}
+	
+	override OVT_BaseUpgradeData Serialize()
+	{
+		OVT_BaseUpgradeData struct = new OVT_BaseUpgradeData();
+		struct.type = ClassName();
+		struct.pos = m_vPos;	
+		struct.tag = m_sCompositionTag;	
+		
+		return struct;		
+	}
+	
+	override bool Deserialize(OVT_BaseUpgradeData struct)
+	{
+		if(!m_BaseController.IsOccupyingFaction()) return true;
+		m_vPos = struct.pos;
+		
+		Setup();
+		
+		return true;
 	}
 }

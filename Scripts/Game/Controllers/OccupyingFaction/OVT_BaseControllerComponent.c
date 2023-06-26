@@ -155,7 +155,12 @@ class OVT_BaseControllerComponent: OVT_Component
 			{
 				OVT_BaseUpgradeComposition comp = OVT_BaseUpgradeComposition.Cast(upgrade);
 				if(!comp) continue;
-				if(comp.m_sCompositionTag == tag) return upgrade;
+				if(comp.m_sCompositionTag == tag)
+				{
+					return upgrade;
+				}else{
+					continue;
+				}
 			}
 			if(upgrade.ClassName() == type) return upgrade;
 		}

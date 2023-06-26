@@ -1,6 +1,7 @@
 class OVT_SlottedBaseUpgrade : OVT_BasePatrolUpgrade
 {
 	protected EntityID m_Spawned;
+	protected vector m_vPos;
 	
 	private IEntity FindSlot(array<ref EntityID> slots)
 	{
@@ -85,11 +86,20 @@ class OVT_SlottedBaseUpgrade : OVT_BasePatrolUpgrade
 		m_Spawned = spawn.GetID();
 		RegisterFilledSlot(slot);
 		
+		m_vPos = slot.GetOrigin();
+		
+		Setup();
+		
 		if(comp.m_aGroupPrefabs.Count() == 0) return spawn;
 		
 		BuyPatrol(0,comp.m_aGroupPrefabs.GetRandomElement(),spawn.GetOrigin());
 		
 		return spawn;
+	}
+	
+	void Setup()
+	{
+	
 	}
 	
 	override void AddWaypoints(SCR_AIGroup aigroup)

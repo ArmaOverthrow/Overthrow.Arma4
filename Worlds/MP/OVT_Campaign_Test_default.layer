@@ -187,8 +187,8 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMod
   }
   OVT_OverthrowConfigComponent "{59724C8C935D8E5D}" {
    m_Difficulty OVT_DifficultySettings "{598AD54E1DA56EB1}" {
-    baseRange 50
-    baseCloseRange 25
+    baseRange 150
+    baseCloseRange 100
    }
   }
   OVT_PersistenceManagerComponent "{5D7009B844876186}" {
@@ -352,15 +352,6 @@ SCR_DestructibleBuildingEntity : "{00FD2B4A0BDEC271}Prefabs/Structures/Commercia
  coords 240.87 0.001 76.83
  angleY -89.85
 }
-SCR_SiteSlotEntity : "{055DDE93F47A6A1D}PrefabsEditable/Slots/Flat/E_SlotFlatLarge.et" {
- coords 35.458 1.001 173.433
- {
-  StaticModelEntity {
-   ID "52E8C3643526D54D"
-   coords 0 -0.001 0
-  }
- }
-}
 SCR_DestructibleBuildingEntity : "{12310677867A85D4}Prefabs/Structures/Industrial/Houses/Warehouse_01/Warehouse_01.et" {
  coords 208.787 0.001 124.336
 }
@@ -384,8 +375,25 @@ SCR_DestructibleBuildingEntity : "{54F1C704EB440885}Prefabs/Structures/Houses/To
  coords 238.965 0.001 98.034
  angleY -90.115
 }
-SCR_SiteSlotEntity : "{588A3DAF0296B0C1}PrefabsEditable/Slots/Flat/E_SlotFlatSmall.et" {
- coords 56.513 1.001 94.104
+$grp SCR_SiteSlotEntity : "{588A3DAF0296B0C1}PrefabsEditable/Slots/Flat/E_SlotFlatSmall.et" {
+ {
+  coords 56.513 1.001 94.104
+ }
+ {
+  coords 47.408 1.001 114.793
+ }
+ {
+  coords 44.982 1.001 134.648
+ }
+ {
+  coords 46.766 1.001 155.25
+ }
+ {
+  coords 21.724 1.001 117.133
+ }
+ {
+  coords 22.035 1.001 137.46
+ }
 }
 SCR_DestructibleBuildingEntity : "{5CADC96916FF1CC4}Prefabs/Structures/Houses/Villa/Villa_E_2I01/Villa_E_2I01.et" {
  coords 217.228 0.001 144.688

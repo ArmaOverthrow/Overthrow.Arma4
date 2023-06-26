@@ -8,6 +8,7 @@ class OVT_BaseUpgradeData : Managed
 	int resources;
 	ref array<ref OVT_BaseUpgradeGroupData> groups = {};
 	string tag = "";
+	vector pos;
 }
 
 class OVT_BaseUpgradeGroupData : Managed

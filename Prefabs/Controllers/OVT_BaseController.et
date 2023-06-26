@@ -35,6 +35,12 @@ GenericEntity {
      m_bDeactivate 0
      m_sCompositionTag "AmmoCache"
     }
+    OVT_BaseUpgradeComposition "{5DB4E4D2689FCFC2}" {
+     m_iResourceAllocation -1
+     m_iPriority 4
+     m_bDeactivate 0
+     m_sCompositionTag "MGNest"
+    }
     OVT_BaseUpgradeSpecops "{59C6CB0B8B96FCF2}" {
      m_bDeactivate 0
     }

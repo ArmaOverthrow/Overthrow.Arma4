@@ -59,14 +59,4 @@ class OVT_BaseUpgradeCheckpoints : OVT_BasePatrolUpgrade
 		IEntity ent = OVT_Global.SpawnEntityPrefabMatrix(res, mat);
 		return ent;
 	}
-	
-	override OVT_BaseUpgradeData Serialize()
-	{
-		return null;
-	}
-	
-	override bool Deserialize(OVT_BaseUpgradeData struct)	
-	{		
-		return true;
-	}
 }
