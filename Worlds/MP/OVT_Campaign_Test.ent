@@ -4,3 +4,6 @@ SubScene {
 Layer default {
  Index 0
 }
+Layer building {
+ Index 1
+}

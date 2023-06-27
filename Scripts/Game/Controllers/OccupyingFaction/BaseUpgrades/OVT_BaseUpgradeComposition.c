@@ -74,7 +74,11 @@ class OVT_BaseUpgradeComposition : OVT_SlottedBaseUpgrade
 	
 	override void Setup()
 	{
-		GetGame().GetWorld().QueryEntitiesBySphere(m_vPos, 4, FillCompartments, null, EQueryEntitiesFlags.ALL);
+		float range = 7;
+		if(m_SlotSize == OVT_SlotType.SLOT_MEDIUM) range = 15;
+		if(m_SlotSize == OVT_SlotType.SLOT_LARGE) range = 23;
+		
+		GetGame().GetWorld().QueryEntitiesBySphere(m_vPos, range, FillCompartments, null, EQueryEntitiesFlags.ALL);
 	}
 	
 	protected bool FillCompartments(IEntity entity)

@@ -21,7 +21,7 @@ class OVT_MainMenuContextOverrideComponent : OVT_Component
 	[Attribute("1")]
 	bool m_bShowOnMap;
 	
-	protected bool m_bRegistered;
+	protected bool m_bRegistered = false;
 	
 	override void OnPostInit(IEntity owner)
 	{	
@@ -33,16 +33,23 @@ class OVT_MainMenuContextOverrideComponent : OVT_Component
 	{		
 		if(!m_bRegistered)
 		{
-			if(!m_UiInfo) return;
-			if(!m_bShowOnMap) return;
-			m_bRegistered = true;
+			if(!m_bShowOnMap || !m_UiInfo) 
+			{
+				m_bRegistered = true;
+				return;
+			}
+			if(!owner) return;			
 			if(m_bMustOwnBase)
 			{
-				OVT_BaseData base = OVT_Global.GetOccupyingFaction().GetNearestBase(owner.GetOrigin());
+				OVT_OccupyingFactionManager of = OVT_Global.GetOccupyingFaction();
+				if(!of) return;
+				OVT_BaseData base = of.GetNearestBase(owner.GetOrigin());
+				if(!base) return;
 				float dist = vector.Distance(base.location, owner.GetOrigin());
 				if(dist > base.range) return;
 			}
 			OVT_MapIcons.RegisterPOI(m_UiInfo, owner.GetOrigin(), m_bMustOwnBase);
+			m_bRegistered = true;
 		}
 	}
 	

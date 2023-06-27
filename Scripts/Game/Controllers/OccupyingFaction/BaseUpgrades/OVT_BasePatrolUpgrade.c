@@ -7,10 +7,11 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 	ref array<ref ResourceName> m_ProxiedGroups;
 	ref array<ref vector> m_ProxiedPositions;	
 	int m_iProxedResources = 0;
+	int m_iNumGroups = 0;
 	
 	protected const int DEACTIVATE_FREQUENCY = 10000;
 	
-	bool m_bSpawned = true;
+	bool m_bSpawned = false;
 	
 	override void PostInit()
 	{
@@ -47,6 +48,7 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 		foreach(EntityID id : remove)			
 		{
 			m_Groups.RemoveItem(id);
+			m_iNumGroups--;
 		}
 	}
 	
@@ -93,6 +95,8 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 	
 	protected int BuyPatrol(float threat, ResourceName res = "", vector pos = "0 0 0")
 	{
+		m_iNumGroups++;
+		
 		OVT_Faction faction = m_Config.GetOccupyingFaction();
 		if(!faction) return 0;
 				
@@ -165,6 +169,7 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 			
 			spent += newres;
 			resources -= newres;
+			m_iNumGroups++;
 		}
 		
 		return spent;

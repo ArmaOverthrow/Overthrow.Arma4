@@ -30,4 +30,40 @@ class OVT_BaseUpgradeDefensePatrol : OVT_BasePatrolUpgrade
 		}				
 		
 	}
+	
+	override int Spend(int resources, float threat)
+	{
+		int spent = 0;
+		
+		while(resources > 0)
+		{
+			OVT_GroupType type = OVT_GroupType.LIGHT_INFANTRY;
+			
+			if(m_iNumGroups == 0 || threat > 50)
+			{
+				type = OVT_GroupType.ANTI_TANK;
+			}else if(threat > 25){
+				type = OVT_GroupType.HEAVY_INFANTRY;
+			}
+			
+			int newres = m_Config.m_Difficulty.baseResourceCost * 4;
+			
+			OVT_Faction faction = m_Config.GetOccupyingFaction();
+			ResourceName res = faction.GetRandomGroupByType(type);
+			m_iProxedResources += newres;
+			m_ProxiedGroups.Insert(res);
+			m_ProxiedPositions.Insert(m_BaseController.GetOwner().GetOrigin());			
+			
+			if(newres > resources){
+				newres = resources;
+				//todo: delete some soldiers when overspending
+			}
+			
+			spent += newres;
+			resources -= newres;
+			m_iNumGroups++;
+		}
+		
+		return spent;
+	}
 }
