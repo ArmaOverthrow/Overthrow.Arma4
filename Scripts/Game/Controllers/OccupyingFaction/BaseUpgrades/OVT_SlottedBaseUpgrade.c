@@ -83,6 +83,9 @@ class OVT_SlottedBaseUpgrade : OVT_BasePatrolUpgrade
 		IEntity spawn = SpawnInSlot(slot, comp.m_aPrefabs.GetRandomElement());
 		if(!spawn) return null;
 		
+		SCR_AIWorld aiworld = SCR_AIWorld.Cast(GetGame().GetAIWorld());
+		aiworld.RequestNavmeshRebuildEntity(spawn);
+		
 		m_Spawned = spawn.GetID();
 		RegisterFilledSlot(slot);
 		

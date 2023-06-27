@@ -183,6 +183,9 @@ class OVT_ResistanceFactionManager: OVT_Component
 		
 		IEntity entity = OVT_Global.SpawnEntityPrefabMatrix(res, mat);
 		
+		SCR_AIWorld aiworld = SCR_AIWorld.Cast(GetGame().GetAIWorld());
+		aiworld.RequestNavmeshRebuildEntity(entity);
+		
 		if(placeable.handler && runHandler)
 		{
 			placeable.handler.OnPlace(entity, playerId);
@@ -204,6 +207,9 @@ class OVT_ResistanceFactionManager: OVT_Component
 		mat[3] = pos;
 		
 		IEntity entity = OVT_Global.SpawnEntityPrefabMatrix(res, mat);
+		
+		SCR_AIWorld aiworld = SCR_AIWorld.Cast(GetGame().GetAIWorld());
+		aiworld.RequestNavmeshRebuildEntity(entity);
 		
 		if(buildable.handler && runHandler)
 		{
