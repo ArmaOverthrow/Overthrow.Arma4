@@ -75,9 +75,13 @@ class OVT_PlayerCommsComponent: OVT_Component
 		Rpc(RpcAsk_LootIntoVehicle, rpl.Id());
 	}
 	
+	ref array<IEntity> m_aLootBodies;
+	RplId m_LootVehicle;
+	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_LootIntoVehicle(RplId vehicleId)
 	{	
+		m_LootVehicle = vehicleId;
 		RplComponent rplComp = RplComponent.Cast(Replication.FindItem(vehicleId));
 		if(!rplComp) return;
 		
@@ -89,30 +93,52 @@ class OVT_PlayerCommsComponent: OVT_Component
 		InventoryStorageManagerComponent vehicleStorageMgr = EPF_Component<InventoryStorageManagerComponent>.Find(vehicle);
 		if(!vehicleStorageMgr) return;
 		
-		array<IEntity> bodies();
+		m_aLootBodies = new array<IEntity>;
 		
 		//Query the nearby world for weapons and bodies
-		OVT_Global.GetNearbyBodiesAndWeapons(vehicle.GetOrigin(), 25, bodies);
+		OVT_Global.GetNearbyBodiesAndWeapons(vehicle.GetOrigin(), 25, m_aLootBodies);
 			
-		if(bodies.Count() == 0) return;
+		if(m_aLootBodies.Count() == 0) return;
 		
-		foreach(IEntity body : bodies)
-		{
-			InventoryStorageManagerComponent inv = EPF_Component<InventoryStorageManagerComponent>.Find(body);
-			if(!inv) {
-				//Might be a weapon
-				WeaponComponent weapon = EPF_Component<WeaponComponent>.Find(body);
-				if(weapon)
-				{
-					vehicleStorageMgr.TryInsertItem(body);					
-				}
-			}else{
-				bool allMovesSucceeded = LootBody(inv, vehicleStorage);
-				if(allMovesSucceeded) {
-					SCR_EntityHelper.DeleteEntityAndChildren(body);
-				}
+		GetGame().GetCallqueue().CallLater(LootNextBody, 100);
+	}
+	
+	protected void LootNextBody()
+	{
+		if(m_aLootBodies.Count() == 0) return;
+		RplComponent rplComp = RplComponent.Cast(Replication.FindItem(m_LootVehicle));
+		if(!rplComp) return;
+		
+		IEntity vehicle = rplComp.GetEntity();
+		
+		UniversalInventoryStorageComponent vehicleStorage = EPF_Component<UniversalInventoryStorageComponent>.Find(vehicle);
+		if(!vehicleStorage) return;
+		
+		InventoryStorageManagerComponent vehicleStorageMgr = EPF_Component<InventoryStorageManagerComponent>.Find(vehicle);
+		if(!vehicleStorageMgr) return;
+		
+		IEntity body = m_aLootBodies[0];
+		
+		InventoryStorageManagerComponent inv = EPF_Component<InventoryStorageManagerComponent>.Find(body);
+		if(!inv) {
+			//Might be a weapon
+			WeaponComponent weapon = EPF_Component<WeaponComponent>.Find(body);
+			if(weapon)
+			{
+				vehicleStorageMgr.TryInsertItem(body);					
+			}
+		}else{
+			bool allMovesSucceeded = LootBody(inv, vehicleStorage);
+			if(allMovesSucceeded) {
+				SCR_EntityHelper.DeleteEntityAndChildren(body);
 			}
 		}
+		
+		m_aLootBodies.Remove(0);
+		
+		if(m_aLootBodies.Count() == 0) return;
+		
+		GetGame().GetCallqueue().CallLater(LootNextBody, 100);
 	}
 
 	bool LootBody(InventoryStorageManagerComponent inv, UniversalInventoryStorageComponent vehicleStorage)
