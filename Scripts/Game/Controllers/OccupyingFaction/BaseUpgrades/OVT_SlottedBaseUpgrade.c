@@ -5,13 +5,17 @@ class OVT_SlottedBaseUpgrade : OVT_BasePatrolUpgrade
 	
 	private IEntity FindSlot(array<ref EntityID> slots)
 	{
-		foreach(EntityID id : slots)
+		int i = 0;
+		while(i < 30)
 		{
+			i++;
+			int index = s_AIRandomGenerator.RandInt(0,slots.Count()-1);
+			EntityID id = slots[index];
 			if(!m_BaseController.m_aSlotsFilled.Contains(id))
 			{
 				return GetGame().GetWorld().FindEntityByID(id);
 			}
-		}
+		}		
 		return null;
 	}
 	
