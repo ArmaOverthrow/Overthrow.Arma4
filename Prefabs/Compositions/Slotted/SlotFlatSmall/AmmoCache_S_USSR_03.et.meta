@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{9226E75D49DAA096}Prefabs/Compositions/Slotted/AmmoCache_S_USSR_03.et"
+ Configurations {
+  EntityTemplateResourceClass PC {
+  }
+  EntityTemplateResourceClass XBOX_ONE : PC {
+  }
+  EntityTemplateResourceClass XBOX_SERIES : PC {
+  }
+  EntityTemplateResourceClass PS4 : PC {
+  }
+  EntityTemplateResourceClass HEADLESS : PC {
+  }
+ }
+}
