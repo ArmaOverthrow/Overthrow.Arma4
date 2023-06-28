@@ -281,7 +281,7 @@ class OVT_QRFControllerComponent: OVT_Component
 			int allocated = 0;
 			
 			vector lz = GetLandingZone(base);
-			vector target = GetTargetZone(lz);
+			vector target = GetTargetZone();
 			int ii = 0;
 			while(allocated < allocate && ii < 6)
 			{
@@ -336,20 +336,17 @@ class OVT_QRFControllerComponent: OVT_Component
 		SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
 		m_Groups.Insert(group.GetID());
 		
-		aigroup.AddWaypoint(SpawnMoveWaypoint(targetPos));
-		aigroup.AddWaypoint(SpawnDefendWaypoint(targetPos));
+		aigroup.AddWaypoint(m_Config.SpawnSearchAndDestroyWaypoint(targetPos));
+		aigroup.AddWaypoint(m_Config.SpawnDefendWaypoint(targetPos));
 		
 		m_aSpawnQueue.Remove(0);
 		m_aSpawnPositions.Remove(0);
 		m_aSpawnTargets.Remove(0);
 	}
 	
-	protected vector GetTargetZone(vector pos)
-	{
-		vector qrfpos = GetOwner().GetOrigin();
-		vector dir = vector.Direction(qrfpos, pos);		
-		dir.Normalize();
-		return qrfpos + (dir * (QRF_POINT_RANGE * 0.05));
+	protected vector GetTargetZone()
+	{		
+		return qOVT_Global.GetRandomNonOceanPositionNear(GetOwner().GetOrigin(),QRF_POINT_RANGE);
 	}
 	
 	protected vector GetLandingZone(vector pos)
@@ -397,37 +394,13 @@ class OVT_QRFControllerComponent: OVT_Component
 		}
 		
 		if(dist > distToPos) return pos;
+		
+		//Randomize the position a little bit
+		checkpos = s_AIRandomGenerator.GenerateRandomPointInRadius(0,50,checkpos);
 				
 		return checkpos;
 	}
-	
-	protected AIWaypoint SpawnWaypoint(ResourceName res, vector pos)
-	{
-		EntitySpawnParams params = EntitySpawnParams();
-		params.TransformMode = ETransformMode.WORLD;
-		params.Transform[3] = pos;
-		AIWaypoint wp = AIWaypoint.Cast(GetGame().SpawnEntityPrefab(Resource.Load(res), null, params));
-		return wp;
-	}
-	
-	protected AIWaypoint SpawnPatrolWaypoint(vector pos)
-	{
-		AIWaypoint wp = SpawnWaypoint(m_Config.m_pPatrolWaypointPrefab, pos);
-		return wp;
-	}
-	
-	protected AIWaypoint SpawnMoveWaypoint(vector pos)
-	{
-		AIWaypoint wp = SpawnWaypoint(m_Config.m_pMoveWaypointPrefab, pos);
-		return wp;
-	}
-	
-	protected AIWaypoint SpawnDefendWaypoint(vector pos)
-	{
-		AIWaypoint wp = SpawnWaypoint(m_Config.m_pDefendWaypointPrefab, pos);
-		return wp;
-	}
-	
+		
 	void ~OVT_QRFControllerComponent()
 	{
 		GetGame().GetCallqueue().Remove(CheckUpdateTimer);
