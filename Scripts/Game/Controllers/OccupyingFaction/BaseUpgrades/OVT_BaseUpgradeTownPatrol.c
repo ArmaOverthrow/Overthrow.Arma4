@@ -155,14 +155,13 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		}
 							
 		aigroup.AddWaypoint(m_Config.SpawnPatrolWaypoint(town.location));			
-		aigroup.AddWaypoint(m_Config.SpawnWaitWaypoint(town.location, s_AIRandomGenerator.RandFloatXY(15, 50)));								
-		
+				
 		vector pos = OVT_Global.GetRandomNonOceanPositionNear(town.location, 250);
-		aigroup.AddWaypoint(m_Config.SpawnPatrolWaypoint(pos));			
+		aigroup.AddWaypoint(m_Config.SpawnSearchAndDestroyWaypoint(pos));			
 		aigroup.AddWaypoint(m_Config.SpawnWaitWaypoint(pos, s_AIRandomGenerator.RandFloatXY(15, 50)));								
 		
 		pos = OVT_Global.GetRandomNonOceanPositionNear(town.location, 250);
-		aigroup.AddWaypoint(m_Config.SpawnPatrolWaypoint(pos));			
+		aigroup.AddWaypoint(m_Config.SpawnSearchAndDestroyWaypoint(pos));			
 		aigroup.AddWaypoint(m_Config.SpawnWaitWaypoint(pos, s_AIRandomGenerator.RandFloatXY(15, 50)));								
 		
 		aigroup.AddWaypoint(m_Config.SpawnPatrolWaypoint(m_BaseController.GetOwner().GetOrigin()));		

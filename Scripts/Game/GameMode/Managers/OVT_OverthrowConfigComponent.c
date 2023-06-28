@@ -305,6 +305,12 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		return wp;
 	}
 	
+	AIWaypoint SpawnSearchAndDestroyWaypoint(vector pos)
+	{
+		AIWaypoint wp = SpawnWaypoint(m_pSearchAndDestroyWaypointPrefab, pos);
+		return wp;
+	}
+	
 	AIWaypoint SpawnDefendWaypoint(vector pos, int preset = 0)
 	{
 		AIWaypoint wp = SpawnWaypoint(m_pDefendWaypointPrefab, pos);

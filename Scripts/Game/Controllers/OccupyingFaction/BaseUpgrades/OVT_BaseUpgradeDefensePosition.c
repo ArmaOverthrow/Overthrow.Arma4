@@ -81,7 +81,7 @@ class OVT_BaseUpgradeDefensePosition : OVT_BasePatrolUpgrade
 	
 	protected bool BuyGuard(int id, vector pos)
 	{	
-		vector spawnpos = s_AIRandomGenerator.GenerateRandomPointInRadius(5,50, m_BaseController.GetOwner().GetOrigin());			
+		vector spawnpos = OVT_Global.GetRandomNonOceanPositionNear(m_BaseController.GetOwner().GetOrigin(), 50);			
 					
 		SCR_AIGroup group = SCR_AIGroup.Cast(OVT_Global.SpawnEntityPrefab(m_Config.GetOccupyingFaction().m_aHeavyInfantryPrefabSlots[0], spawnpos));
 						

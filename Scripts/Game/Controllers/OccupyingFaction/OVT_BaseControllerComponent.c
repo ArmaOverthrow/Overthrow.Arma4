@@ -42,8 +42,6 @@ class OVT_BaseControllerComponent: OVT_Component
 		InitializeBase();
 		
 		GetGame().GetCallqueue().CallLater(UpdateUpgrades, UPGRADE_UPDATE_FREQUENCY, true, owner);		
-		
-		GetGame().GetWorld().QueryEntitiesBySphere(owner.GetOrigin(), m_Config.m_Difficulty.baseRange, CheckGateOpen, FilterGateEntities, EQueryEntitiesFlags.ALL);
 	}
 	
 	protected void UpdateUpgrades()
@@ -54,27 +52,6 @@ class OVT_BaseControllerComponent: OVT_Component
 		{
 			upgrade.OnUpdate(UPGRADE_UPDATE_FREQUENCY);
 		}
-	}
-	
-	protected bool FilterGateEntities(IEntity entity)
-	{
-		SCR_AISmartActionComponent smart = EPF_Component<SCR_AISmartActionComponent>.Find(entity);
-		if(!smart) return false;
-		array<string> tags();
-		smart.GetTags(tags);
-		if(tags.Count() == 0) return false;
-		if(tags[0] == "OpenGate") return true;
-		return false;
-	}
-	
-	protected bool CheckGateOpen(IEntity entity)
-	{
-		ActionsManagerComponent actions = EPF_Component<ActionsManagerComponent>.Find(entity);
-		if(!actions) return true;
-		SCR_DoorUserAction door = SCR_DoorUserAction.Cast(actions.GetFirstAction());
-		if(!door) return true;
-		door.PerformAction(entity, entity);
-		return true;
 	}
 	
 	bool IsOccupyingFaction()
@@ -178,7 +155,15 @@ class OVT_BaseControllerComponent: OVT_Component
 	{
 		if(entity.ClassName() == "SCR_SiteSlotEntity") return true;
 		SCR_AISmartActionSentinelComponent action = EPF_Component<SCR_AISmartActionSentinelComponent>.Find(entity);
-		if(action) return true;
+		if(action) {
+			SCR_MapDescriptorComponent mapdes = EPF_Component<SCR_MapDescriptorComponent>.Find(entity);
+			if(mapdes)
+			{
+				EMapDescriptorType type = mapdes.GetBaseType();
+				if(type == EMapDescriptorType.MDT_TOWER) return false; //Towers are handled by OVT_BaseUpgradeTowerGuard
+			}
+			return true;
+		}
 		return false;
 	}
 	
@@ -187,7 +172,9 @@ class OVT_BaseControllerComponent: OVT_Component
 		SCR_AISmartActionSentinelComponent action = EPF_Component<SCR_AISmartActionSentinelComponent>.Find(entity);
 		if(action)
 		{
-			m_aDefendPositions.Insert(entity.GetOrigin());
+			vector pos = entity.GetOrigin();
+			if(!m_aDefendPositions.Contains(pos))
+				m_aDefendPositions.Insert(entity.GetOrigin());
 			return true;
 		}
 		

@@ -7,7 +7,7 @@ GenericEntity {
      m_iResourceAllocation 8
     }
     OVT_BaseUpgradeDefensePosition "{5DB876561AD51C3C}" {
-     m_iResourceAllocation 8
+     m_iResourceAllocation -1
     }
     OVT_BaseUpgradeTowerGuard "{599083983840DDC7}" {
      m_iResourceAllocation -1

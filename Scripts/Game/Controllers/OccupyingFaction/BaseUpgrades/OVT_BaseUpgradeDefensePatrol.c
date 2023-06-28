@@ -7,28 +7,21 @@ class OVT_BaseUpgradeDefensePatrol : OVT_BasePatrolUpgrade
 		array<AIWaypoint> queueOfWaypoints = new array<AIWaypoint>();
 		AIWaypoint firstWP;
 		
-		if(m_BaseController.m_AllCloseSlots.Count() > 2)
-		{
 			
-			for(int i=0; i< 3; i++)
-			{
-				IEntity randomSlot = GetGame().GetWorld().FindEntityByID(m_BaseController.m_AllCloseSlots.GetRandomElement());
-				AIWaypoint wp = m_Config.SpawnPatrolWaypoint(randomSlot.GetOrigin());
-				if(i==0) firstWP = wp;
-				queueOfWaypoints.Insert(wp);
-				
-				AIWaypoint wait = m_Config.SpawnWaitWaypoint(randomSlot.GetOrigin(), s_AIRandomGenerator.RandFloatXY(45, 75));								
-				queueOfWaypoints.Insert(wait);
-			}			
-			AIWaypointCycle cycle = AIWaypointCycle.Cast(m_Config.SpawnWaypoint(m_Config.m_pCycleWaypointPrefab, firstWP.GetOrigin()));
-			cycle.SetWaypoints(queueOfWaypoints);
-			cycle.SetRerunCounter(-1);
-			aigroup.AddWaypoint(cycle);
-		}else{
-			//Just defend the flag
-			aigroup.AddWaypoint(m_Config.SpawnDefendWaypoint(m_BaseController.GetOwner().GetOrigin()));
-		}				
-		
+		for(int i=0; i< 4; i++)
+		{
+			vector randompos = OVT_Global.GetRandomNonOceanPositionNear(m_BaseController.GetOwner().GetOrigin(), m_Config.m_Difficulty.baseRange);			
+			AIWaypoint wp = m_Config.SpawnPatrolWaypoint(randompos);
+			if(i==0) firstWP = wp;
+			queueOfWaypoints.Insert(wp);
+			
+			wp = m_Config.SpawnSearchAndDestroyWaypoint(randompos);			
+			queueOfWaypoints.Insert(wp);			
+		}			
+		AIWaypointCycle cycle = AIWaypointCycle.Cast(m_Config.SpawnWaypoint(m_Config.m_pCycleWaypointPrefab, firstWP.GetOrigin()));
+		cycle.SetWaypoints(queueOfWaypoints);
+		cycle.SetRerunCounter(-1);
+		aigroup.AddWaypoint(cycle);		
 	}
 	
 	override int Spend(int resources, float threat)
@@ -52,7 +45,8 @@ class OVT_BaseUpgradeDefensePatrol : OVT_BasePatrolUpgrade
 			ResourceName res = faction.GetRandomGroupByType(type);
 			m_iProxedResources += newres;
 			m_ProxiedGroups.Insert(res);
-			m_ProxiedPositions.Insert(m_BaseController.GetOwner().GetOrigin());			
+			vector spawnpos = OVT_Global.GetRandomNonOceanPositionNear(m_BaseController.GetOwner().GetOrigin(), 50);			
+			m_ProxiedPositions.Insert(spawnpos);			
 			
 			if(newres > resources){
 				newres = resources;
