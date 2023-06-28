@@ -22,6 +22,7 @@ class OVT_BaseControllerComponent: OVT_Component
 	ref array<ref EntityID> m_LargeRoadSlots;
 	ref array<ref EntityID> m_Parking;
 	ref array<ref EntityID> m_aSlotsFilled;
+	ref array<ref vector> m_aDefendPositions;
 		
 	protected OVT_OccupyingFactionManager m_occupyingFactionManager;
 	
@@ -129,6 +130,7 @@ class OVT_BaseControllerComponent: OVT_Component
 		m_LargeRoadSlots = new array<ref EntityID>;
 		m_Parking = new array<ref EntityID>;
 		m_aSlotsFilled = new array<ref EntityID>;
+		m_aDefendPositions = new array<ref vector>;
 		
 		FindSlots();
 		FindParking();
@@ -175,11 +177,20 @@ class OVT_BaseControllerComponent: OVT_Component
 	bool FilterSlotEntities(IEntity entity)
 	{
 		if(entity.ClassName() == "SCR_SiteSlotEntity") return true;
+		SCR_AISmartActionSentinelComponent action = EPF_Component<SCR_AISmartActionSentinelComponent>.Find(entity);
+		if(action) return true;
 		return false;
 	}
 	
 	bool CheckSlotAddToArray(IEntity entity)
 	{
+		SCR_AISmartActionSentinelComponent action = EPF_Component<SCR_AISmartActionSentinelComponent>.Find(entity);
+		if(action)
+		{
+			m_aDefendPositions.Insert(entity.GetOrigin());
+			return true;
+		}
+		
 		m_AllSlots.Insert(entity.GetID());
 		
 		float distance = vector.Distance(entity.GetOrigin(), GetOwner().GetOrigin());

@@ -4,7 +4,10 @@ GenericEntity {
   OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
    m_aBaseUpgrades {
     OVT_BaseUpgradeDefensePatrol "{599083983B065EC0}" {
-     m_iResourceAllocation 16
+     m_iResourceAllocation 8
+    }
+    OVT_BaseUpgradeDefensePosition "{5DB876561AD51C3C}" {
+     m_iResourceAllocation 8
     }
     OVT_BaseUpgradeTowerGuard "{599083983840DDC7}" {
      m_iResourceAllocation -1
