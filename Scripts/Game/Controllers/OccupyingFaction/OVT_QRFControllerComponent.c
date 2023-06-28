@@ -164,7 +164,7 @@ class OVT_QRFControllerComponent: OVT_Component
 				}
 			}
 			
-			if(playerNum == numplayers && enemyTotal == 0){
+			if(playerNum > 0 && enemyTotal == 0){
 				//push towards resistance fast
 				m_iPoints += 5;
 			}else{
@@ -346,7 +346,7 @@ class OVT_QRFControllerComponent: OVT_Component
 	
 	protected vector GetTargetZone()
 	{		
-		return qOVT_Global.GetRandomNonOceanPositionNear(GetOwner().GetOrigin(),QRF_POINT_RANGE);
+		return OVT_Global.GetRandomNonOceanPositionNear(GetOwner().GetOrigin(),QRF_POINT_RANGE);
 	}
 	
 	protected vector GetLandingZone(vector pos)
@@ -360,7 +360,7 @@ class OVT_QRFControllerComponent: OVT_Component
 		if(distToPos < QRF_RANGE) return pos; //Just walk, its close
 		
 		float dist = QRF_RANGE;
-		vector checkpos = qrfpos + (dir * dist);
+		vector checkpos = s_AIRandomGenerator.GenerateRandomPointInRadius(0,50,qrfpos + (dir * dist));
 		
 		BaseWorld world = GetGame().GetWorld();
 		
@@ -390,14 +390,12 @@ class OVT_QRFControllerComponent: OVT_Component
 			}
 			
 			dist += 20;
-			checkpos = qrfpos + (dir * dist);
+			//Randomize the position a little bit
+			checkpos = s_AIRandomGenerator.GenerateRandomPointInRadius(0,50,qrfpos + (dir * dist));
 		}
 		
 		if(dist > distToPos) return pos;
-		
-		//Randomize the position a little bit
-		checkpos = s_AIRandomGenerator.GenerateRandomPointInRadius(0,50,checkpos);
-				
+						
 		return checkpos;
 	}
 		
