@@ -414,7 +414,7 @@ class OVT_Global {
 	
 	static void RandomizeCivilianClothes(SCR_AIGroup aigroup)
 	{
-		array<AIAgent> civs  = new array<AIAgent>;
+		autoptr array<AIAgent> civs  = new array<AIAgent>;
 		aigroup.GetAgents(civs);
 		foreach(AIAgent agent : civs)
 		{
