@@ -29,7 +29,7 @@ class OVT_DeliverMedicalSuppliesAction : ScriptedUserAction
 			return;
 		}
 				
-		array<IEntity> items = new array<IEntity>;
+		autoptr array<IEntity> items = new array<IEntity>;
 		vehicleStorage.GetItems(items);
 		if(items.Count() == 0) {
 			SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-VehicleEmpty");

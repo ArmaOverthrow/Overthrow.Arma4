@@ -224,7 +224,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		
 		if(perceptComp.GetTargetCount(ETargetCategory.FACTIONLESS) == 0) return true;
 		
-		array<BaseTarget> targets = new array<BaseTarget>;
+		autoptr array<BaseTarget> targets = new array<BaseTarget>;
 		
 		perceptComp.GetTargetsList(targets, ETargetCategory.FACTIONLESS);
 		
@@ -294,7 +294,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 									SCR_EditableEntityUIInfo info = SCR_EditableEntityUIInfo.Cast(uiinfo);
 									if(info)
 									{
-										array<EEditableEntityLabel> entityLabels = new array<EEditableEntityLabel>;
+										autoptr array<EEditableEntityLabel> entityLabels = new array<EEditableEntityLabel>;
 										info.GetEntityLabels(entityLabels);
 										if(entityLabels.Contains(EEditableEntityLabel.TRAIT_ARMED))
 										{

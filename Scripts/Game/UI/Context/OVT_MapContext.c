@@ -193,7 +193,7 @@ class OVT_MapContext : OVT_UIContext
 			container.RemoveChild(child);
 			child = container.GetChildren();
 		}
-		array<int> done = new array<int>;
+		autoptr array<int> done = new array<int>;
 		OVT_TownModifierSystem system = m_TownManager.GetModifierSystem(OVT_TownStabilityModifierSystem);
 		WorkspaceWidget workspace = GetGame().GetWorkspace(); 
 		foreach(OVT_TownModifierData data : m_SelectedTown.stabilityModifiers)

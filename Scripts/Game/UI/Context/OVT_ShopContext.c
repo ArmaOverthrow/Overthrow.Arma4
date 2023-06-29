@@ -273,7 +273,7 @@ class OVT_ShopContext : OVT_UIContext
 		SCR_InventoryStorageManagerComponent inventory = SCR_InventoryStorageManagerComponent.Cast(player.FindComponent( SCR_InventoryStorageManagerComponent ));
 		if(!inventory) return;
 		
-		array<IEntity> items = new array<IEntity>;
+		autoptr array<IEntity> items = new array<IEntity>;
 		inventory.GetItems(items);
 		
 		ResourceName res = m_Economy.GetResource(m_SelectedResource);

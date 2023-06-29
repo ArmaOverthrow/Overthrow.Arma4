@@ -347,7 +347,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		//Distribute remaining to all players online
 		int incomePerPlayer = Math.Round(income / count);
 		
-		array<int> players = new array<int>;
+		autoptr array<int> players = new array<int>;
 		mgr.GetPlayers(players);
 		foreach(int playerId : players)
 		{			

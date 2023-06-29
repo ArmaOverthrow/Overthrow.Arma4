@@ -64,7 +64,7 @@ class OVT_MapPlayerLocation : SCR_MapUIBaseComponent
 		Faction fac = faction.GetFactionByKey(otconfig.m_sPlayerFaction);
 		if(!fac) return;
 
-		array<int> players = new array<int>;
+		autoptr array<int> players = new array<int>;
 		PlayerManager mgr = GetGame().GetPlayerManager();
 		mgr.GetPlayers(players);
 		foreach(int playerId : players){

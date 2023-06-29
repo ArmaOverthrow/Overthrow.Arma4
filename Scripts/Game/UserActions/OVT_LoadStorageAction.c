@@ -53,7 +53,7 @@ class OVT_LoadStorageAction : SCR_InventoryAction
 			return;
 		}
 		
-		array<IEntity> items = new array<IEntity>;
+		autoptr array<IEntity> items = new array<IEntity>;
 		boxStorage.GetItems(items);
 		if(items.Count() == 0) {
 			SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-StorageEmpty");

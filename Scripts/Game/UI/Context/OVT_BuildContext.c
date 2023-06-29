@@ -62,7 +62,7 @@ class OVT_BuildContext : OVT_UIContext
 	{			
 				
 		int done = 0;
-		array<OVT_Buildable> valid = new array<OVT_Buildable>;
+		autoptr array<OVT_Buildable> valid = new array<OVT_Buildable>;
 		IEntity player = SCR_PlayerController.GetLocalControlledEntity();
 				
 		string reason;		

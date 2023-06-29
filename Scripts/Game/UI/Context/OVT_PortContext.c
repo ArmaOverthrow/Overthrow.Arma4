@@ -52,7 +52,7 @@ class OVT_PortContext : OVT_UIContext
 		while(container.GetChildren())
 			container.RemoveChild(container.GetChildren());
 		
-		array<ResourceName> done = new array<ResourceName>;
+		autoptr array<ResourceName> done = new array<ResourceName>;
 		
 		if(m_PlayerData.HasPermission("IllegalImports"))
 		{

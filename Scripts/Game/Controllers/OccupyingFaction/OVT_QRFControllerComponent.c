@@ -76,7 +76,7 @@ class OVT_QRFControllerComponent: OVT_Component
 			if(!group) continue;
 			SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
 			if(!aigroup) continue;
-			array<AIAgent> agents = new array<AIAgent>;
+			autoptr array<AIAgent> agents = new array<AIAgent>;
 			aigroup.GetAgents(agents);
 			foreach(AIAgent agent : agents)
 			{
@@ -100,7 +100,7 @@ class OVT_QRFControllerComponent: OVT_Component
 			if(!group) continue;
 			SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
 			if(!aigroup) continue;
-			array<AIAgent> agents = new array<AIAgent>;
+			autoptr array<AIAgent> agents = new array<AIAgent>;
 			aigroup.GetAgents(agents);
 			foreach(AIAgent agent : agents)
 			{
@@ -145,7 +145,7 @@ class OVT_QRFControllerComponent: OVT_Component
 				}	
 			}
 			
-			array<int> players = new array<int>;
+			autoptr array<int> players = new array<int>;
 			PlayerManager mgr = GetGame().GetPlayerManager();
 			int numplayers = mgr.GetPlayers(players);
 			

@@ -71,7 +71,7 @@ class OVT_Global {
 	
 	static bool PlayerInRange(vector pos, int range)
 	{		
-		array<int> players = new array<int>;
+		autoptr array<int> players = new array<int>;
 		PlayerManager mgr = GetGame().GetPlayerManager();
 		int numplayers = mgr.GetPlayers(players);
 		
@@ -100,7 +100,7 @@ class OVT_Global {
 	
 	static int NearestPlayer(vector pos)
 	{		
-		array<int> players = new array<int>;
+		autoptr array<int> players = new array<int>;
 		PlayerManager mgr = GetGame().GetPlayerManager();
 		int numplayers = mgr.GetPlayers(players);
 		
@@ -177,7 +177,7 @@ class OVT_Global {
 		
 		if(!toStorage || !fromStorage) return;
 				
-		array<IEntity> items = new array<IEntity>;
+		autoptr array<IEntity> items = new array<IEntity>;
 		fromStorage.GetItems(items);
 		if(items.Count() == 0) return;
 				
@@ -217,7 +217,7 @@ class OVT_Global {
 		OVT_WarehouseData warehouse = realEstate.GetNearestWarehouse(fromEntity.GetOrigin(), 50);
 		if(!warehouse) return;
 						
-		array<IEntity> items = new array<IEntity>;
+		autoptr array<IEntity> items = new array<IEntity>;
 		fromStorage.GetItems(items);
 		if(items.Count() == 0) return;
 		
