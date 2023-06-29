@@ -323,14 +323,14 @@ class OVT_PlayerWantedComponent: OVT_Component
 	
 	private bool TraceLOS(IEntity source, IEntity dest)
 	{		
-		int headBone = source.GetBoneIndex("head");
+		int headBone = source.GetAnimation().GetBoneIndex("head");
 		vector matPos[4];
 		
-		source.GetBoneMatrix(headBone, matPos);
+		source.GetAnimation().GetBoneMatrix(headBone, matPos);
 		vector headPos = source.CoordToParent(matPos[3]);
 		
-		headBone = dest.GetBoneIndex("head");		
-		dest.GetBoneMatrix(headBone, matPos);
+		headBone = dest.GetAnimation().GetBoneIndex("head");		
+		dest.GetAnimation().GetBoneMatrix(headBone, matPos);
 		vector destHead = dest.CoordToParent(matPos[3]);
 		
 		
@@ -362,10 +362,10 @@ class OVT_PlayerWantedComponent: OVT_Component
 	
 	private bool TraceLOSVehicle(IEntity source, IEntity dest)
 	{		
-		int headBone = source.GetBoneIndex("head");
+		int headBone = source.GetAnimation().GetBoneIndex("head");
 		vector matPos[4];
 		
-		source.GetBoneMatrix(headBone, matPos);
+		source.GetAnimation().GetBoneMatrix(headBone, matPos);
 		vector headPos = source.CoordToParent(matPos[3]);		
 		
 		vector destVeh = dest.GetOrigin();		

@@ -119,7 +119,7 @@ class OVT_SkillManagerComponent: OVT_Component
 		GiveXP(playerId, buildable.m_iRewardXP);
 	}
 	
-	void OnPlayerDeath(int playerId)
+	void OnPlayerDeath(int playerId, IEntity player, IEntity killer)
 	{
 		TakeXP(playerId, 1);
 	}

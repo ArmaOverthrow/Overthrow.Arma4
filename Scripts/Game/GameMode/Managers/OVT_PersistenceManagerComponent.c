@@ -26,7 +26,7 @@ class OVT_PersistenceManagerComponent : EPF_PersistenceManagerComponent
 	
 	bool HasSaveGame()
 	{
-		return FileIO.FileExist(DB_BASE_DIR + "/RootEntityCollections");
+		return FileIO.FileExists(DB_BASE_DIR + "/RootEntityCollections");
 	}
 	
 	void WipeSave()
