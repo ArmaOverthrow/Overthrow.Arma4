@@ -669,7 +669,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 			//Clear dead bodies when no players are online
 			SCR_AIWorld aiworld = SCR_AIWorld.Cast(GetGame().GetAIWorld());
 			int numAI = aiworld.GetCurrentNumOfCharacters();
-			array<AIAgent> agents = new array<AIAgent>;
+			autoptr array<AIAgent> agents = new array<AIAgent>;
 			aiworld.GetAIAgents(agents);
 			foreach(AIAgent agent : agents)
 			{

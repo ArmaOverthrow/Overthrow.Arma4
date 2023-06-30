@@ -24,7 +24,7 @@ class OVT_StartGameContext : OVT_UIContext
 		m_Factions = GetGame().GetFactionManager();
 		int i = 0;
 				
-		array<Faction> factions = new array<Faction>;
+		autoptr array<Faction> factions = new array<Faction>;
 		m_Factions.GetFactionsList(factions);
 		
 		Widget of = m_wRoot.FindAnyWidget("OccupyingFactionSpinner");

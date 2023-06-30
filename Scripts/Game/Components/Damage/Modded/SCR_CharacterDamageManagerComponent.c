@@ -83,7 +83,7 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 	{
 		SCR_BaseCompartmentManagerComponent mgr = SCR_BaseCompartmentManagerComponent.Cast(entity.FindComponent(SCR_BaseCompartmentManagerComponent));
 		
-		array<IEntity> occupants = new array<IEntity>;
+		autoptr array<IEntity> occupants = new array<IEntity>;
 		
 		mgr.GetOccupants(occupants);
 				
