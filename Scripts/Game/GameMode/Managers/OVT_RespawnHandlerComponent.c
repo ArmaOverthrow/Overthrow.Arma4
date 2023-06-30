@@ -50,6 +50,12 @@ class OVT_RespawnHandlerComponent : SCR_RespawnHandlerComponent
 	
 	protected void LoadPlayerData(int playerId, string playerUid)
 	{
+#ifdef PLATFORM_XBOX
+		m_pRespawnSystem.PrepareCharacter(playerId, playerUid, null);
+		m_sEnqueuedPlayers.Insert(playerId);
+		return;
+#endif
+		
 		Tuple2<int, string> characterContext(playerId, playerUid);
 		EDF_DbFindCallbackSingle<EPF_CharacterSaveData> characterDataCallback(this, "OnCharacterDataLoaded", characterContext);
 		EPF_PersistenceEntityHelper<EPF_CharacterSaveData>.GetRepository().FindAsync(playerUid, characterDataCallback);

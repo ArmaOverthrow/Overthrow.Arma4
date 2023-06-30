@@ -7,6 +7,11 @@ class OVT_StartGameContext : OVT_UIContext
 	
 	override void OnShow()
 	{		
+#ifdef PLATFORM_XBOX		
+		Widget xbox = m_wRoot.FindAnyWidget("XBOXWarning");
+		xbox.SetVisible(true);
+#endif
+		
 		IEntity mode = GetGame().GetGameMode();
 		SCR_SaveLoadComponent saveload = SCR_SaveLoadComponent.Cast(mode.FindComponent(SCR_SaveLoadComponent));
 		
