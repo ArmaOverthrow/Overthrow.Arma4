@@ -9,7 +9,7 @@ class OVT_SellDrugsAction : ScriptedUserAction
 		if(!inventory) return;
 		
 		bool hasDrugs = false;
-		array<IEntity> items = new array<IEntity>;
+		autoptr array<IEntity> items = new array<IEntity>;
 		inventory.GetItems(items);
 		
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
