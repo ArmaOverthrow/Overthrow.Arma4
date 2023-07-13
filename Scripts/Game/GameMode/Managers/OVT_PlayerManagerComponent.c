@@ -198,7 +198,7 @@ class OVT_PlayerManagerComponent: OVT_Component
 		
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		vector spawn = OVT_Global.FindSafeSpawnPosition(pos);
-		SCR_Global.TeleportPlayer(spawn);
+		SCR_Global.TeleportPlayer(localId, spawn);
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]

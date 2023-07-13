@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{0BA489F3657E13D8}Configs/Difficulty/Difficulty_TestWorld.conf"
+ Configurations {
+  CONFResourceClass PC {
+  }
+  CONFResourceClass XBOX_ONE : PC {
+  }
+  CONFResourceClass XBOX_SERIES : PC {
+  }
+  CONFResourceClass PS4 : PC {
+  }
+  CONFResourceClass HEADLESS : PC {
+  }
+ }
+}

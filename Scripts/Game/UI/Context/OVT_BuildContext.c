@@ -155,7 +155,7 @@ class OVT_BuildContext : OVT_UIContext
 		{			
 			OVT_BaseData base = m_OccupyingFaction.GetNearestBase(pos);			
 			dist = vector.Distance(base.location,pos);
-			if(dist < base.range && !base.IsOccupyingFaction())
+			if(dist < m_Config.m_Difficulty.baseRange && !base.IsOccupyingFaction())
 			{
 				return true;
 			}

@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{C0CB40B3E8B87FD4}Configs/Difficulty/Difficulty_Normal.conf"
+ Configurations {
+  CONFResourceClass PC {
+  }
+  CONFResourceClass XBOX_ONE : PC {
+  }
+  CONFResourceClass XBOX_SERIES : PC {
+  }
+  CONFResourceClass PS4 : PC {
+  }
+  CONFResourceClass HEADLESS : PC {
+  }
+ }
+}

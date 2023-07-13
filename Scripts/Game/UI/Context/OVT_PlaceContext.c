@@ -160,7 +160,7 @@ class OVT_PlaceContext : OVT_UIContext
 					
 			
 			dist = vector.Distance(base.location,pos);
-			if(dist < base.range)
+			if(dist < m_Config.m_Difficulty.baseRange)
 			{
 				reason = "#OVT-TooCloseBase";
 				return false;
@@ -218,7 +218,7 @@ class OVT_PlaceContext : OVT_UIContext
 		
 		OVT_BaseData base = m_OccupyingFaction.GetNearestBase(pos);
 		dist = vector.Distance(base.location,pos);
-		if(!base.IsOccupyingFaction() && dist < base.range)
+		if(!base.IsOccupyingFaction() && dist < m_Config.m_Difficulty.baseRange)
 		{
 			return true;
 		}

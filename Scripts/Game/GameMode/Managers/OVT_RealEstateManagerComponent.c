@@ -513,7 +513,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		vector spawn = OVT_Global.FindSafeSpawnPosition(OVT_Global.GetRealEstate().GetHome(persId));
-		SCR_Global.TeleportPlayer(spawn);
+		SCR_Global.TeleportPlayer(localId, spawn);
 	}
 	
 	void DoSetHome(int playerId, vector loc)

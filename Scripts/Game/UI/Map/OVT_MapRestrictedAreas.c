@@ -66,7 +66,7 @@ class OVT_MapRestrictedAreas : OVT_MapCanvasLayer
 			
 			m_OccupyingCenters.Insert(base.location);
 			m_Centers.Insert(base.location);
-			m_Ranges.Insert(base.closeRange);
+			m_Ranges.Insert(otconfig.m_Difficulty.baseCloseRange);
 		}
 		
 		foreach(OVT_RadioTowerData tower : factionMgr.m_RadioTowers)

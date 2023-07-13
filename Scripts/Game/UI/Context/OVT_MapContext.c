@@ -120,7 +120,7 @@ class OVT_MapContext : OVT_UIContext
 		if(base && !base.IsOccupyingFaction())
 		{
 			dist = vector.Distance(base.location, pos);
-			if(dist < base.closeRange) return true;
+			if(dist < m_Config.m_Difficulty.baseCloseRange) return true;
 		}
 		
 		return false;
@@ -393,7 +393,7 @@ class OVT_MapContext : OVT_UIContext
 						{
 							if(cost > 0)
 								m_Economy.TakePlayerMoney(m_iPlayerID, cost);
-							SCR_Global.TeleportPlayer(pos);
+							SCR_Global.TeleportPlayer(m_iPlayerID, pos);
 						}else{
 							ShowHint("#OVT-MustBeDriver");
 						}
@@ -401,7 +401,7 @@ class OVT_MapContext : OVT_UIContext
 				}else{
 					if(cost > 0)
 						m_Economy.TakePlayerMoney(m_iPlayerID, cost);
-					SCR_Global.TeleportPlayer(pos);
+					SCR_Global.TeleportPlayer(m_iPlayerID, pos);
 				}				
 			}			
 		}	
@@ -444,7 +444,7 @@ class OVT_MapContext : OVT_UIContext
 				
 				if(cost > 0)
 					m_Economy.TakePlayerMoney(m_iPlayerID, cost);
-				SCR_Global.TeleportPlayer(pos);
+				SCR_Global.TeleportPlayer(m_iPlayerID, pos);
 			}
 		}
 		

@@ -24,12 +24,6 @@ class OVT_BaseData : Managed
 	
 	int faction;
 	
-	[NonSerialized()]
-	int closeRange;
-	
-	[NonSerialized()]
-	int range;
-	
 	vector location;
 	ref array<vector> slotsFilled = {};
 	
@@ -370,8 +364,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 			
 			OVT_BaseControllerComponent base = OVT_BaseControllerComponent.Cast(baseEntity.FindComponent(OVT_BaseControllerComponent));
 			OVT_BaseData data = GetNearestBase(pos);
-			data.closeRange = m_Config.m_Difficulty.baseCloseRange;
-			data.range = base.m_Config.m_Difficulty.baseRange;
+			
 			data.entId = baseEntity.GetID();	
 			base.SetControllingFaction(data.faction, false);
 			
@@ -915,8 +908,6 @@ class OVT_OccupyingFactionManager: OVT_Component
 			OVT_BaseData data = m_Bases[i];
 			writer.WriteVector(data.location);
 			writer.WriteInt(data.faction);
-			writer.WriteInt(data.closeRange);
-			writer.WriteInt(data.range);
 		}
 		
 		//Send JIP radio towers
@@ -956,8 +947,6 @@ class OVT_OccupyingFactionManager: OVT_Component
 					
 			if (!reader.ReadVector(base.location)) return false;
 			if (!reader.ReadInt(base.faction)) return false;
-			if (!reader.ReadInt(base.closeRange)) return false;
-			if (!reader.ReadInt(base.range)) return false;
 			
 			base.id = i;
 			m_Bases.Insert(base);

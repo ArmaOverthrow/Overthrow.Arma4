@@ -213,8 +213,7 @@ OVT_OverthrowGameMode {
     }
    }
    m_pTownControllerPrefab "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.et"
-   m_Difficulty OVT_DifficultySettings "{598AD54E1DA56EB1}" {
-    name "Default"
+   m_Difficulty OVT_DifficultySettings "{598AD54E1DA56EB1}" : "{C0CB40B3E8B87FD4}Configs/Difficulty/Difficulty_Normal.conf" {
    }
    m_aDifficultyPresets {
     OVT_DifficultySettings "{598AD54F821FB8D9}" {
@@ -323,7 +322,7 @@ OVT_OverthrowGameMode {
        "{80F19C72CFA4CED4}Prefabs/Characters/Uniforms/Pants/cargo_pants_grey.et" "{432A36533B42C11D}Prefabs/Characters/Uniforms/Pants/cargo_pants_grey_black.et" "{BB8B4C27985C8797}Prefabs/Characters/Uniforms/Pants/cargo_pants_khaki.et" "{0C78AD2BF86D089B}Prefabs/Characters/Uniforms/Pants/cargo_pants_khaki_black.et" "{924CAA6171029E01}Prefabs/Characters/Uniforms/Pants/cargo_pants_Olive_brown.et" "{76C4162E75BC3870}Prefabs/Characters/Uniforms/Pants/shorts_black.et" "{6AA6952976457212}Prefabs/Characters/Uniforms/Pants/jeans_black.et" "{785F4A26DB826D34}Prefabs/Characters/Uniforms/Pants/jeans_black_washed.et" "{D5E273BB88B47524}Prefabs/Characters/Uniforms/Pants/jeans_black_washed_ripped.et" "{C5848D50C28BC324}Prefabs/Characters/Uniforms/Pants/jeans_blue.et" "{4CE818FF4A86E19D}Prefabs/Characters/Uniforms/Pants/jeans_blue_washed.et" "{ECF063267DA69767}Prefabs/Characters/Uniforms/Pants/jeans_brown_dirty.et" "{E38958AE4AE55A02}Prefabs/Characters/Uniforms/Pants/jeans_light_blue_washed.et" "{5BC452D2DB3E2573}Prefabs/Characters/Uniforms/Pants/jeans_lightblue_washed_ripped.et" "{526C254A17AD7270}Prefabs/Characters/Uniforms/Pants/joggers_pants_black.et" "{5484D2CE182555D9}Prefabs/Characters/Uniforms/Pants/joggers_pants_green.et" "{EB38D98A6D988B3C}Prefabs/Characters/Uniforms/Pants/joggers_pants_blue.et" "{31F3AA060CEAFA43}Prefabs/Characters/Uniforms/Pants/joggers_pants_grey.et"
       }
       m_aStoredItems {
-       "{13772C903CB5E4F7}Prefabs/Items/Equipment/Maps/PaperMap_01_folded.et" "{3A421547BC29F679}Prefabs/Items/Equipment/Flashlights/Flashlight_MX991.et"
+       "{13772C903CB5E4F7}Prefabs/Items/Equipment/Maps/PaperMap_01_folded.et" "{3A421547BC29F679}Prefabs/Items/Equipment/Flashlights/Flashlight_MX991/Flashlight_MX991.et"
       }
      }
      OVT_LoadoutSlot "{5D70ECF42BD5A6EB}" {
@@ -369,11 +368,6 @@ OVT_OverthrowGameMode {
    }
    m_pHiredCivilianPrefab "{365CD448A5DABCCC}Prefabs/Groups/INDFOR/Group_CIV_Recruit.et"
   }
-  OVT_RespawnHandlerComponent "{59724C8C9A6408EE}" {
-  }
-  OVT_RespawnSystemComponent "{59724C8C935D8E47}" {
-   m_rDefaultPrefab "{3A99A99836F6B3DC}Prefabs/Characters/Factions/INDFOR/FIA/Character_Player.et"
-  }
   OVT_SkillManagerComponent "{5D90EE077169A8A2}" {
    m_Skills OVT_SkillsConfig "{5D91035951D22CD1}" : "{F7740B6A7C4F6FB7}Configs/Player/overthrowSkills.conf" {
    }
@@ -399,6 +393,9 @@ OVT_OverthrowGameMode {
   SCR_DestructionManagerComponent "{59724C8C935D8E20}" {
   }
   SCR_GameModeHealthSettings "{5D7A443950718AF0}" {
+  }
+  SCR_GroupsManagerComponent "{5DDAD8A30938E391}" {
+   m_sDefaultGroupPrefab "{8B4D49A9F324E7D5}Prefabs/Groups/PlayableGroup.et"
   }
   SCR_HintManagerComponent "{59724C8C935D8E2C}" {
   }
@@ -464,6 +461,19 @@ OVT_OverthrowGameMode {
      m_sControllerContext "WeaponSelectionContext"
      m_sOpenAction "Inventory_WeaponSwitchingRadial"
     }
+   }
+  }
+  SCR_RespawnSystemComponent "{5DDAD8AC95899E7A}" {
+   components {
+    SCR_FreeSpawnHandlerComponent "{5DDAD8AEE6F42037}" {
+    }
+    SCR_PossessSpawnHandlerComponent "{5DDAD8A415669B0D}" {
+    }
+    SCR_SpawnPointSpawnHandlerComponent "{5DDAD8A411FCB73D}" {
+    }
+   }
+   m_SpawnLogic OVT_PersistentRespawnLogic "{5DDAD8AC93B51D0C}" {
+    m_PlayerPrefab "{3A99A99836F6B3DC}Prefabs/Characters/Factions/INDFOR/FIA/Character_Player.et"
    }
   }
   SCR_RespawnTimerComponent "{59C30B0685EFBB8C}" {

@@ -49,6 +49,7 @@ class OVT_CameraPosition : ScriptAndConfig
 	vector angles;
 }
 
+[BaseContainerProps(configRoot: true)]
 class OVT_DifficultySettings : ScriptAndConfig
 {	
 	[Attribute()]

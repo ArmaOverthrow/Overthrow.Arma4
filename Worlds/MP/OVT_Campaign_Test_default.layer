@@ -44,6 +44,8 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMod
      }
      OVT_ResistanceSaveDataClass "{5D70912B726E1A32}" {
      }
+     OVT_ConfigSaveDataClass "{5D9E53AFE550A24E}" {
+     }
     }
    }
   }
@@ -112,6 +114,21 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMod
     }
    }
    m_aGunDealerItems {
+    OVT_ShopInventoryItem "{5D72C37AC3500B92}" {
+     m_eItemType PISTOL
+    }
+    OVT_ShopInventoryItem "{5D72C37ACC17963D}" {
+     m_eItemType WEAPON_ATTACHMENT
+    }
+    OVT_ShopInventoryItem "{5D72C37AA6061534}" {
+     m_eItemType LETHAL_THROWABLE
+    }
+    OVT_ShopInventoryItem "{5D72C37AAF2FE72E}" {
+     m_eItemType NON_LETHAL_THROWABLE
+    }
+    OVT_ShopInventoryItem "{5D72C37AAD851814}" {
+     m_eItemType EXPLOSIVES
+    }
     OVT_ShopInventoryItem "{5D86A3EE6DA96AE9}" {
      m_eItemMode AMMUNITION
      m_bNotOccupyingFaction 1
@@ -158,21 +175,6 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMod
      m_bNotOccupyingFaction 1
      m_bSingleRandomItem 1
     }
-    OVT_ShopInventoryItem "{5D72C37AC3500B92}" {
-     m_eItemType PISTOL
-    }
-    OVT_ShopInventoryItem "{5D72C37ACC17963D}" {
-     m_eItemType WEAPON_ATTACHMENT
-    }
-    OVT_ShopInventoryItem "{5D72C37AA6061534}" {
-     m_eItemType LETHAL_THROWABLE
-    }
-    OVT_ShopInventoryItem "{5D72C37AAF2FE72E}" {
-     m_eItemType NON_LETHAL_THROWABLE
-    }
-    OVT_ShopInventoryItem "{5D72C37AAD851814}" {
-     m_eItemType EXPLOSIVES
-    }
    }
    m_aGunDealerItemPrefabs {
     OVT_PrefabItemCostConfig "{5D822436E980BEB7}" {
@@ -183,6 +185,18 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMod
    }
   }
   OVT_JobManagerComponent "{59A8D178EC1AA2AE}" {
+   m_aJobConfigs {
+    OVT_JobConfig "{5D9C33D67790A077}" : "{440607BAB7BD6B1C}Configs/Jobs/assassinateTraitor.conf" {
+    }
+    OVT_JobConfig "{5D9C33D67575FF25}" : "{8263088AF3FD648B}Configs/Jobs/baseRecon.conf" {
+    }
+    OVT_JobConfig "{5D9C33D6746B603D}" : "{A66B34BC59667AE6}Configs/Jobs/findGunDealer.conf" {
+    }
+    OVT_JobConfig "{5D9C33D67348B567}" : "{A885604D1141044D}Configs/Jobs/raiseSupport.conf" {
+    }
+    OVT_JobConfig "{5D9C33D122545AFD}" : "{11EE393C09B6A661}Configs/Jobs/findShop.conf" {
+    }
+   }
   }
   OVT_NotificationManagerComponent "{5D8680DB07CF50FD}" {
    m_Messages SCR_SimpleMessagePresets "{5D8680DB04A58A20}" : "{36405F298C9B3186}Configs/overthrowBroadcastMessages.conf" {
@@ -193,21 +207,13 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMod
    m_pQRFControllerPrefab "{A7D27DFA72B705D0}Prefabs/Controllers/OVT_QRFController.et"
   }
   OVT_OverthrowConfigComponent "{59724C8C935D8E5D}" {
-   m_Difficulty OVT_DifficultySettings "{598AD54E1DA56EB1}" {
-    baseRange 150
-    baseCloseRange 100
+   m_Difficulty OVT_DifficultySettings "{598AD54E1DA56EB1}" : "{0BA489F3657E13D8}Configs/Difficulty/Difficulty_TestWorld.conf" {
    }
   }
   OVT_PersistenceManagerComponent "{5D7009B844876186}" {
    m_pConnectionInfo EDF_JsonFileDbConnectionInfo "{5D7009B8408E1A9D}" {
     m_sDatabaseName "Overthrow"
    }
-  }
-  OVT_PlayerCommsComponent "{5D7ACE1228D77F40}" {
-  }
-  OVT_PlayerManagerComponent "{599AA74940529C1C}" {
-  }
-  OVT_RealEstateManagerComponent "{59724C983E7EF811}" {
   }
   OVT_ResistanceFactionManager "{59A49A9CD87CBC92}" {
    m_rPlaceablesConfigFile "{A4E760D069AE00F8}Configs/Resistance/placeables.conf"
@@ -225,11 +231,6 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMod
    }
    m_pHiredCivilianPrefab "{365CD448A5DABCCC}Prefabs/Groups/INDFOR/Group_CIV_Recruit.et"
   }
-  OVT_RespawnHandlerComponent "{59724C8C9A6408EE}" {
-  }
-  OVT_RespawnSystemComponent "{59724C8C935D8E47}" {
-   m_rDefaultPrefab "{3A99A99836F6B3DC}Prefabs/Characters/Factions/INDFOR/FIA/Character_Player.et"
-  }
   OVT_SkillManagerComponent "{5D90EE077169A8A2}" {
    m_Skills OVT_SkillsConfig "{5D91035951D22CD1}" : "{F7740B6A7C4F6FB7}Configs/Player/overthrowSkills.conf" {
    }
@@ -240,22 +241,13 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMod
   OVT_VehicleManagerComponent "{5D707B3386AF876D}" {
    m_pStartingCarPrefab "{259EE7B78C51B624}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469.et"
   }
-  SCR_CallsignManagerComponent "{59724C8C935D8E23}" {
-  }
-  SCR_DestructionManagerComponent "{59724C8C935D8E20}" {
-  }
-  SCR_GameModeHealthSettings "{5D7A443950718AF0}" {
-  }
-  SCR_HintManagerComponent "{59724C8C935D8E2C}" {
+  SCR_GroupsManagerComponent "{5DDAD8A30938E391}" {
+   m_sDefaultGroupPrefab "{8B4D49A9F324E7D5}Prefabs/Groups/PlayableGroup.et"
   }
   SCR_InitWeatherComponent "{597CE04456F991A8}" {
    m_sInitialStartingWeatherId "Cloudy"
    m_initialWeatherDurationMin 0.2
    m_initialWeatherDurationMax 0.5
-  }
-  SCR_MapConfigComponent "{5D56F4474D716C00}" {
-  }
-  SCR_NametagConfigComponent "{59724C8C935D8E28}" {
   }
   SCR_NotificationSenderComponent "{5D7A443FDCA27CAE}" {
    m_iReceiveKillFeedType SAME_FACTION_ONLY
@@ -298,8 +290,6 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMod
    m_PlayerKickReasonsConfig SCR_ConfigurableDialogUiPresets "{5D7A443943FDACDA}" {
    }
   }
-  SCR_PlayerProfileManagerComponent "{59724C8C935D8E14}" {
-  }
   SCR_RadialMenuGameModeComponent "{5D7EADAF1949CAD1}" {
    m_Menu SCR_RadialMenu "{5D7EADAFE1EB1C74}" : "{D9448EF097CB0ACB}Configs/HUD/RadialMenu/GlobalRadialMenu.conf" {
    }
@@ -310,6 +300,11 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMod
      m_sControllerContext "WeaponSelectionContext"
      m_sOpenAction "Inventory_WeaponSwitchingRadial"
     }
+   }
+  }
+  SCR_RespawnSystemComponent "{5DDAD8AC95899E7A}" {
+   m_SpawnLogic OVT_PersistentRespawnLogic "{5DDAD8AC93B51D0C}" {
+    m_PlayerPrefab "{3A99A99836F6B3DC}Prefabs/Characters/Factions/INDFOR/FIA/Character_Player.et"
    }
   }
   SCR_RespawnTimerComponent "{59C30B0685EFBB8C}" {
@@ -425,6 +420,9 @@ GenericEntity : "{9BF7399A6F63D480}Prefabs/GameMode/OVT_Port.et" {
 }
 Tree : "{A5DE58FC9FB6BA60}Prefabs/Vegetation/Bush/b_corylus_avellana_2.et" {
  coords 183.058 0.001 122.114
+}
+SCR_LoadoutManager : "{AA4E7419A1FF65B0}Prefabs/MP/Managers/Loadouts/LoadoutManager_Base.et" {
+ coords 5.166 1 86.323
 }
 Tree : "{AED5759B653DF6D0}Prefabs/Vegetation/Bush/b_rosa_canina_1s.et" {
  coords 179.418 0.001 128.609

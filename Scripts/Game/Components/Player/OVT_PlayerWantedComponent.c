@@ -133,7 +133,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		if(base)
 		{
 			float distanceToBase = vector.Distance(base.location, GetOwner().GetOrigin());
-			if(m_iWantedLevel < 2 && distanceToBase < base.closeRange && m_bTempSeen)
+			if(m_iWantedLevel < 2 && distanceToBase < m_Config.m_Difficulty.baseCloseRange && m_bTempSeen)
 			{
 				SetBaseWantedLevel(2);
 			}		
