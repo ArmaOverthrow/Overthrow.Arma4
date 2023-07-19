@@ -375,6 +375,26 @@ class OVT_Global {
 		return null;
 	}
 	
+	static SCR_EditableEntityUIInfo GetEditableUIInfo(ResourceName res)
+	{
+		Resource holder = BaseContainerTools.LoadContainer(res);
+		if (holder)
+		{
+			IEntitySource ent = holder.GetResource().ToEntitySource();
+			for(int t=0; t<ent.GetComponentCount(); t++)
+			{
+				IEntityComponentSource comp = ent.GetComponent(t);
+				if(comp.GetClassName() == "SCR_EditableVehicleComponent")
+				{
+					SCR_EditableEntityUIInfo info;
+					comp.Get("m_UIInfo",info);
+					return info;
+				}
+			}
+		}
+		return null;
+	}
+	
 	static UIInfo GetItemUIInfo(ResourceName prefab)
 	{
 		IEntitySource entitySource = SCR_BaseContainerTools.FindEntitySource(Resource.Load(prefab));

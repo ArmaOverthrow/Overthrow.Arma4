@@ -45,10 +45,18 @@ class OVT_ShopMenuCardComponent : SCR_ScriptedWidgetComponent
 		if(OVT_Global.ResourceIsVehicle(res))
 		{
 			SCR_EditableVehicleUIInfo info = OVT_Global.GetVehicleUIInfo(res);
-			text.SetText(info.GetName());
+			if(info)
+			{
+				text.SetText(info.GetName());
+				tex.LoadImageTexture(0, info.GetImage());
+			}else{
+				SCR_EditableEntityUIInfo uiinfo = OVT_Global.GetEditableUIInfo(res);
+				text.SetText(uiinfo.GetName());
+				tex.LoadImageTexture(0, uiinfo.GetImage());
+			}
 			img.SetVisible(false);
 			tex.SetVisible(true);
-			tex.LoadImageTexture(0, info.GetImage());
+			
 		}else{
 			manager.SetPreviewItemFromPrefab(img, res);
 			UIInfo info = OVT_Global.GetItemUIInfo(res);

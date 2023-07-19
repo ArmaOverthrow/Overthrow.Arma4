@@ -205,15 +205,18 @@ class OVT_ShopContext : OVT_UIContext
 			SCR_EditableVehicleUIInfo info = OVT_Global.GetVehicleUIInfo(res);
 			if(info)
 			{
-				typeName.SetText(info.GetName());
-				if(m_Shop.m_bProcurement)
-				{
-					details.SetText("$" + buy);				
-				}else{
-					details.SetText("$" + buy + "\n" + qty + " #OVT-Shop_InStock");				
-				}
-				
+				typeName.SetText(info.GetName());				
 				desc.SetText(info.GetDescription());
+			}else{
+				SCR_EditableEntityUIInfo uiinfo = OVT_Global.GetEditableUIInfo(res);
+				typeName.SetText(uiinfo.GetName());				
+				desc.SetText(uiinfo.GetDescription());
+			}
+			if(m_Shop.m_bProcurement)
+			{
+				details.SetText("$" + buy);				
+			}else{
+				details.SetText("$" + buy + "\n" + qty + " #OVT-Shop_InStock");				
 			}
 		}else{
 			UIInfo info = OVT_Global.GetItemUIInfo(res);

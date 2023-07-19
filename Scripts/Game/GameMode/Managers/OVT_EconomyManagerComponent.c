@@ -109,6 +109,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	void OVT_EconomyManagerComponent(IEntityComponentSource src, IEntity ent, IEntity parent)
 	{
+		m_aResources = new array<ref ResourceName>;
 		m_aAllShops = new array<RplId>;	
 		m_aAllPorts = new array<RplId>;
 		m_mItemCosts = new map<int, int>;
@@ -720,7 +721,6 @@ class OVT_EconomyManagerComponent: OVT_Component
 	{			
 		m_Towns = OVT_Global.GetTowns();
 		m_Players = OVT_Global.GetPlayers();
-		m_aResources = new array<ref ResourceName>;
 		
 		GetGame().GetCallqueue().CallLater(AfterInit, 0);		
 		

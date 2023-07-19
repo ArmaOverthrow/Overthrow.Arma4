@@ -240,8 +240,24 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		if(key == of.GetFactionKey()) return;
 		FactionManager factionMgr = GetGame().GetFactionManager();
 		Faction faction = factionMgr.GetFactionByKey(key);
-		m_iOccupyingFactionIndex = factionMgr.GetFactionIndex(faction);
-		Rpc(RpcAsk_SetOccupyingFaction, factionMgr.GetFactionIndex(faction));
+		m_iOccupyingFactionIndex = factionMgr.GetFactionIndex(faction);			
+		
+		m_sOccupyingFaction = faction.GetFactionKey();
+		
+		foreach(OVT_BaseData base : OVT_Global.GetOccupyingFaction().m_Bases)
+		{
+			base.faction = m_iOccupyingFactionIndex;
+		}
+		
+		foreach(OVT_TownData town : OVT_Global.GetTowns().m_Towns)
+		{
+			town.faction = m_iOccupyingFactionIndex;
+		}
+		
+		foreach(OVT_RadioTowerData tower : OVT_Global.GetOccupyingFaction().m_RadioTowers)
+		{
+			tower.faction = m_iOccupyingFactionIndex;
+		}
 	}
 	
 	OVT_Faction GetOccupyingFaction()
@@ -381,26 +397,6 @@ class OVT_OverthrowConfigComponent: OVT_Component
 			cycle.SetRerunCounter(-1);
 			aigroup.AddWaypoint(cycle);
 			return;
-		}
-	}
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_SetOccupyingFaction(int index)
-	{
-		FactionManager factionMgr = GetGame().GetFactionManager();
-		m_iOccupyingFactionIndex = index;
-		Faction faction = factionMgr.GetFactionByIndex(index);
-		if(!faction) return;
-		m_sOccupyingFaction = faction.GetFactionKey();
-		
-		foreach(OVT_TownData town : OVT_Global.GetTowns().m_Towns)
-		{
-			town.faction = index;
-		}
-		
-		foreach(OVT_RadioTowerData tower : OVT_Global.GetOccupyingFaction().m_RadioTowers)
-		{
-			tower.faction = index;
 		}
 	}
 }

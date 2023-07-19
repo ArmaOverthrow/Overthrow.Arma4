@@ -5,7 +5,6 @@ OVT_OverthrowGameMode {
    m_bSelfSpawn 0
    m_bSelfDelete 0
    m_pSaveData OVT_OverthrowSaveDataClass "{5D7009A22C40BEE5}" {
-    m_bTrimDefaults 0
     m_eTranformSaveFlags 0
     m_bSaveRemainingLifetime 0
     m_aComponents {
@@ -189,6 +188,13 @@ OVT_OverthrowGameMode {
     }
    }
    m_VehiclePriceConfig OVT_VehiclePricesConfig "{5D96A5A380C4B791}" : "{8787FC0A63F99EF8}Configs/Pricing/vehiclePrices.conf" {
+    m_aPrices {
+     OVT_VehiclePriceConfig "{5DE72AF17F14214D}" {
+      m_sFind "_ambulance"
+      cost 4200
+      illegal 0
+     }
+    }
    }
   }
   OVT_JobManagerComponent "{59A8D178EC1AA2AE}" {
