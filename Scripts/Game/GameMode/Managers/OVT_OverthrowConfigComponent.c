@@ -134,7 +134,7 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Town Controller Prefab", params: "et", category: "Controllers")]
 	ResourceName m_pTownControllerPrefab;
 	
-	[Attribute()]
+	[Attribute("", UIWidgets.Object)]
 	ref OVT_DifficultySettings m_Difficulty;
 		
 	[Attribute("", UIWidgets.Object)]

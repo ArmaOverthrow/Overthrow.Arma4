@@ -90,8 +90,8 @@ class OVT_UIManagerComponent: OVT_Component
 		}
 	}
 	
-	protected void OnControlledByPlayer(IEntity owner, bool controlled)
-	{		
+	protected void AfterControlledByPlayer(IEntity owner, bool controlled)
+	{
 		if (!controlled)
 		{			
 			ClearEventMask(owner, EntityEvent.FRAME);
@@ -116,6 +116,11 @@ class OVT_UIManagerComponent: OVT_Component
 			
 			if(gameMode) gameMode.OnPlayerSpawnedLocal(OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId));
 		}
+	}
+	
+	protected void OnControlledByPlayer(IEntity owner, bool controlled)
+	{		
+		GetGame().GetCallqueue().CallLater(AfterControlledByPlayer, 0, false, owner, controlled);
 	}
 	
 	void ~OVT_UIManagerComponent()
