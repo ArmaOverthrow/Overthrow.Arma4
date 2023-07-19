@@ -2,6 +2,7 @@ StaticModelEntity : "{95A4CF49FC9C0481}Prefabs/Compositions/Misc/SubCompositions
  ID "527AC119B710AE74"
  components {
   EPF_PersistenceComponent "{5D7C48948DE94477}" {
+   m_bUpdateNavmesh 1
    m_pSaveData OVT_BuildingSaveDataClass "{5D7C48948B5F9EDB}" {
    }
   }

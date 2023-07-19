@@ -2,6 +2,7 @@ GenericEntity {
  ID "5D98F865F21B50D0"
  components {
   EPF_PersistenceComponent "{5D98F865F21B50E1}" {
+   m_bUpdateNavmesh 1
    m_pSaveData OVT_BaseUpgradeSaveDataClass "{5D98F865F21B50E8}" {
     m_aComponents {
      EPF_SlotManagerComponentSaveDataClass "{5D98F865F21B5095}" {

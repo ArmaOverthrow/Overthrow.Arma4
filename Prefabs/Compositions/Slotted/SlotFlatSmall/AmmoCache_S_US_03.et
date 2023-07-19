@@ -1,6 +1,9 @@
 GenericEntity : "{3BA9D94C4EE9B33B}Prefabs/Compositions/Slotted/CompositionBase.et" {
  ID "5282DCB5DFC8538F"
  components {
+  EPF_PersistenceComponent "{5DB4E4D52E079648}" {
+   m_bUpdateNavmesh 1
+  }
   SCR_SlotCompositionComponent "{52CAE30B655050CF}" {
    m_SlotPrefab "{588A3DAF0296B0C1}PrefabsEditable/Slots/Flat/E_SlotFlatSmall.et"
   }

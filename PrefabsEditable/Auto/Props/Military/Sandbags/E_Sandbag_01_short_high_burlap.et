@@ -2,6 +2,7 @@ GenericEntity : "{937999008F178E82}Prefabs/Props/Military/Sandbags/Sandbag_01_sh
  ID "F0DBA538AC2A0552"
  components {
   EPF_PersistenceComponent "{5D7C4898D09F8BBE}" {
+   m_bUpdateNavmesh 1
    m_pSaveData OVT_PlaceableSaveDataClass "{5D7C4898DE4EF473}" {
    }
   }

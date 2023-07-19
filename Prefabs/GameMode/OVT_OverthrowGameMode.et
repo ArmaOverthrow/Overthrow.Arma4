@@ -5,6 +5,7 @@ OVT_OverthrowGameMode {
    m_bSelfSpawn 0
    m_bSelfDelete 0
    m_pSaveData OVT_OverthrowSaveDataClass "{5D7009A22C40BEE5}" {
+    m_bTrimDefaults 0
     m_eTranformSaveFlags 0
     m_bSaveRemainingLifetime 0
     m_aComponents {
