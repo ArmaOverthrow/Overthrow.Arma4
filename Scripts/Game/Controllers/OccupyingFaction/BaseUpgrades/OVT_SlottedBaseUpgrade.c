@@ -5,6 +5,7 @@ class OVT_SlottedBaseUpgrade : OVT_BasePatrolUpgrade
 	
 	private IEntity FindSlot(array<ref EntityID> slots)
 	{
+		if(slots.Count() == 0) return null;
 		int i = 0;
 		while(i < 30)
 		{

@@ -74,8 +74,6 @@ class OVT_RespawnSystemComponent : EPF_BasicRespawnSystemComponent
 			}
 		}
 		
-		
-		
 		vector home = OVT_Global.GetRealEstate().GetHome(playerUid);
 
 		playerEntity = EPF_Utils.SpawnEntityPrefab(m_rDefaultPrefab, home + "0 0.1 0", "0 0 0");
