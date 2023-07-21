@@ -394,6 +394,9 @@ OVT_OverthrowGameMode {
    }
    m_pHiredCivilianPrefab "{365CD448A5DABCCC}Prefabs/Groups/INDFOR/Group_CIV_Recruit.et"
   }
+  OVT_RespawnSystemComponent "{5DEA8B45ED838B55}" {
+   m_rDefaultPrefab "{3A99A99836F6B3DC}Prefabs/Characters/Factions/INDFOR/FIA/Character_Player.et"
+  }
   OVT_SkillManagerComponent "{5D90EE077169A8A2}" {
    m_Skills OVT_SkillsConfig "{5D91035951D22CD1}" : "{F7740B6A7C4F6FB7}Configs/Player/overthrowSkills.conf" {
    }
@@ -487,19 +490,6 @@ OVT_OverthrowGameMode {
      m_sControllerContext "WeaponSelectionContext"
      m_sOpenAction "Inventory_WeaponSwitchingRadial"
     }
-   }
-  }
-  SCR_RespawnSystemComponent "{5DDAD8AC95899E7A}" {
-   components {
-    SCR_FreeSpawnHandlerComponent "{5DDAD8AEE6F42037}" {
-    }
-    SCR_PossessSpawnHandlerComponent "{5DDAD8A415669B0D}" {
-    }
-    SCR_SpawnPointSpawnHandlerComponent "{5DDAD8A411FCB73D}" {
-    }
-   }
-   m_SpawnLogic OVT_PersistentRespawnLogic "{5DDAD8AC93B51D0C}" {
-    m_PlayerPrefab "{3A99A99836F6B3DC}Prefabs/Characters/Factions/INDFOR/FIA/Character_Player.et"
    }
   }
   SCR_RespawnTimerComponent "{59C30B0685EFBB8C}" {
