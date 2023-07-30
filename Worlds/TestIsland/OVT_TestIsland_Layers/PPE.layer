@@ -1,0 +1,34 @@
+$grp GenericWorldPPEffect {
+ GodRays {
+  coords 2252.761 20.615 1670.701
+  Profile 1
+ }
+ HBAO {
+  coords 2256.657 20.242 1672.959
+  Profile 0
+ }
+ HDR {
+  coords 2261.1 19.664 1683.008
+  Profile 2
+ }
+ SSDO {
+  coords 2269.599 19.192 1681.733
+  Profile 3
+ }
+ PPAA {
+  coords 2268.597 19.353 1679.199
+  Profile 6
+ }
+ Underwater {
+  coords 2267.052 20.043 1669.712
+  Profile 5
+ }
+ Rain {
+  coords 2265.078 19.356 1683.982
+  Profile 7
+ }
+ SSR {
+  coords 2260.889 20.338 1667.149
+  Profile 4
+ }
+}

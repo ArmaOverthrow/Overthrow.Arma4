@@ -1,0 +1,7 @@
+HeightMapImportDescClass {
+ FileName "C:/Users/Aaron Static/Downloads/heightmap.png"
+ Flags 5
+ MinHeight -1000000
+ ResampleMinHeight -20
+ ResampleMaxHeight 35
+}

@@ -1,0 +1,47 @@
+MetaFileClass {
+ Name "{B1182375FA0DC871}Worlds/TestIsland/Terrain/Terrain.terr"
+ Configurations {
+  TerrainResourceClass PC {
+   BlocksPerTile 4
+   TilesCount 289
+   LayerSource SourceTextureClass "{5DFAB57A4E3DE0A3}" : "{A59F335F96C4442F}Configs/System/ResourceTypes/PC/TextureTerrainLayer.conf" {
+   }
+   NormalSource SourceTextureClass "{5DFAB57A4E3DE2AD}" : "{835E083C88C3D9C3}Configs/System/ResourceTypes/PC/TextureTerrainNormal.conf" {
+   }
+   SuperSource SourceTextureClass "{5DFAB57A4E3DE33D}" : "{CBA1266690ABD336}Configs/System/ResourceTypes/PC/TextureTerrainSuper.conf" {
+   }
+  }
+  TerrainResourceClass XBOX_ONE : PC {
+   LayerSource SourceTextureClass "{5DFAB57A4E3DE3B8}" : "{9843D16A29542D5A}Configs/System/ResourceTypes/XBOX_ONE/TextureTerrainLayer.conf" {
+   }
+   NormalSource SourceTextureClass "{5DFAB57A4E3D9C38}" : "{6C5EFFA712A52100}Configs/System/ResourceTypes/XBOX_ONE/TextureTerrainNormal.conf" {
+   }
+   SuperSource SourceTextureClass "{5DFAB57A4E3D9C90}" : "{F67DC4532F3BBA43}Configs/System/ResourceTypes/XBOX_ONE/TextureTerrainSuper.conf" {
+   }
+  }
+  TerrainResourceClass XBOX_SERIES : PC {
+   LayerSource SourceTextureClass "{5DFAB57A4E3D9D33}" : "{2071F9D39E062268}Configs/System/ResourceTypes/XBOX_SERIES/TextureTerrainLayer.conf" {
+   }
+   NormalSource SourceTextureClass "{5DFAB57A4E3D9DDB}" : "{90ADE65A903F3042}Configs/System/ResourceTypes/XBOX_SERIES/TextureTerrainNormal.conf" {
+   }
+   SuperSource SourceTextureClass "{5DFAB57A4E3D9E75}" : "{4E4FECEA9869B571}Configs/System/ResourceTypes/XBOX_SERIES/TextureTerrainSuper.conf" {
+   }
+  }
+  TerrainResourceClass PS4 : PC {
+   LayerSource SourceTextureClass "{5DFAB57A4E3D9E2C}" : "{4C431036F57D4D58}Configs/System/ResourceTypes/PS4/TextureTerrainLayer.conf" {
+   }
+   NormalSource SourceTextureClass "{5DFAB57A4E3D9EC8}" : "{6F6E5A1432381FD2}Configs/System/ResourceTypes/PS4/TextureTerrainNormal.conf" {
+   }
+   SuperSource SourceTextureClass "{5DFAB57A4E3D9F64}" : "{227D050FF312DA41}Configs/System/ResourceTypes/PS4/TextureTerrainSuper.conf" {
+   }
+  }
+  TerrainResourceClass HEADLESS : PC {
+   LayerSource SourceTextureClass "{5DFAB57A4E3D9F1B}" : "{3B38AD285230D19F}Configs/System/ResourceTypes/HEADLESS/TextureTerrainLayer.conf" {
+   }
+   NormalSource SourceTextureClass "{5DFAB57A4E3D9FAB}" : "{EAB38BDFD096C0A6}Configs/System/ResourceTypes/HEADLESS/TextureTerrainNormal.conf" {
+   }
+   SuperSource SourceTextureClass "{5DFAB57A4E3D9842}" : "{5506B811545F4686}Configs/System/ResourceTypes/HEADLESS/TextureTerrainSuper.conf" {
+   }
+  }
+ }
+}

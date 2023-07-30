@@ -1,0 +1,6 @@
+OVT_OverthrowGameMode OVT_OverthrowGameMode1 : "{4DC10DCB8BE06D32}Prefabs/GameMode/OVT_OverthrowGameMode.et" {
+ coords 2219.029 12.249 1867.513
+}
+OVT_OverthrowFactionManager OVT_OverthrowFactionManager1 : "{51EBC0CFD56DA130}Prefabs/GameMode/OVT_OverthrowFactionManager.et" {
+ coords 2202.962 18.664 2466.576
+}

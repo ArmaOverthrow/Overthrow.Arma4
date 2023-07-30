@@ -46,7 +46,7 @@ class OVT_MainMenuContextOverrideComponent : OVT_Component
 				OVT_BaseData base = of.GetNearestBase(owner.GetOrigin());
 				if(!base) return;
 				float dist = vector.Distance(base.location, owner.GetOrigin());
-				if(dist > m_Config.m_Difficulty.baseRange) return;
+				if(dist > 220) return;
 			}
 			OVT_MapIcons.RegisterPOI(m_UiInfo, owner.GetOrigin(), m_bMustOwnBase);
 			m_bRegistered = true;

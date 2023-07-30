@@ -656,6 +656,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 	
 	void CheckUpdate()
 	{
+		if(!m_Time) m_Time = GetGame().GetTimeAndWeatherManager();
+		
 		PlayerManager mgr = GetGame().GetPlayerManager();		
 		if(mgr.GetPlayerCount() == 0)
 		{

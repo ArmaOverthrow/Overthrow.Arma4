@@ -68,7 +68,13 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		m_Config.m_iOccupyingFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(m_Config.m_sOccupyingFaction));
 				
 		m_StartGameUIContext.CloseLayout();
-		m_bGameStarted = true;		
+		m_bGameStarted = true;	
+		
+		if(!m_Config.m_Difficulty)
+		{
+			Print("No difficulty settings found! Reverting to default");
+			m_Config.m_Difficulty = new OVT_DifficultySettings();
+		}	
 		
 		if(m_EconomyManager)
 		{

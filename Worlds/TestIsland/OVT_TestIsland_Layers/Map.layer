@@ -1,0 +1,257 @@
+SCR_MapEntity SCR_MapEntity1 {
+ coords 2155.504 2.73 2076.857
+ "Map Geometry Data" "{0DD089CCD442399A}worlds/Arland/Arland.topo"
+ "Satellite background image" "{F98F3D2CBA523091}UI/Textures/Map/worlds/Arland/ArlandRasterized.edds"
+}
+$grp GenericEntity {
+ City {
+  components {
+   SCR_MapDescriptorComponent "{5DFCC9B0A4955F93}" {
+    DisplayName "City"
+    MainType "Name City"
+   }
+  }
+  coords 2143.401 2.887 1983.322
+  Flags 1027
+ }
+ Base_1 {
+  components {
+   SCR_MapDescriptorComponent "{5DFCC9B33E2DF8BA}" {
+    DisplayName "#AR-MapLocation_Military"
+    MainType "Name Generic"
+   }
+  }
+  coords 1707.424 34.845 2514.746
+  Flags 1027
+ }
+ Village {
+  components {
+   SCR_MapDescriptorComponent "{5DFCC9B3ABFCFB29}" {
+    DisplayName "Village"
+    MainType "Name Village"
+   }
+  }
+  coords 2199.147 18.611 2470.828
+  Flags 1027
+ }
+ Base_2 {
+  components {
+   MapDescriptorComponent "{5DFCC9BD7E9CB4DB}" {
+    DisplayName "#AR-MapLocation_Military"
+    MainType "Name Generic"
+   }
+  }
+  coords 2496.918 11.732 2279.004
+  Flags 1027
+ }
+}
+$grp SplineShapeEntity {
+ MainRoad_1 {
+  coords 2201.493 2.474 1982.326
+  Points {
+   ShapePoint "{5DFCC9B63A823C08}" {
+    Position -292.447 25.78 81.113
+   }
+   ShapePoint "{5DFCC9B6D5CAD33D}" {
+    Position -186.939 10.725 6.393
+   }
+   ShapePoint "{5DFCC9B63A8202E9}" {
+    Position 5.069 0.073 1.714
+   }
+   ShapePoint "{5DFCC9B6C00AB5B4}" {
+    Position 252.788 24.728 -8.924
+   }
+  }
+  {
+   RoadGeneratorEntity : "{6EFBB8BA8D28B57D}PrefabLibrary/Generators/Roads/Asphalt/RG_Road_Asphalt_E_02.et" {
+    coords 0 0 0
+    AdjustHeightMap 0
+    {
+     RoadEntity {
+      ID "556C6C02C8F45A73"
+      SplinePoints {
+       ShapePoint "{556C6C02BD077CFC}" {
+        Position -292.447 25.78 81.113
+       }
+       ShapePoint "{556C6C02BD077389}" {
+        Position -186.939 10.725 6.393
+       }
+       ShapePoint "{5DFCC9B6830BEFC0}" {
+        Position 5.069 0.073 1.714
+       }
+       ShapePoint "{5DFCC9B6830BE854}" {
+        Position 252.788 24.728 -8.924
+       }
+      }
+      IsClosedSpline 0
+      Width 8
+     }
+    }
+   }
+  }
+ }
+ MainRoad_2 {
+  coords 2209.301 2.583 2052.651
+  Points {
+   ShapePoint "{5DFCC9B1483B0137}" {
+    Position -90.271 17.729 413.448
+   }
+   ShapePoint "{5DFCC9B2C9B0EC0C}" {
+    Position -83.444 3.235 197.984
+   }
+   ShapePoint "{5DFCC9B1483B0705}" {
+    Position -58.679 8.825 -167.797
+   }
+  }
+  {
+   RoadGeneratorEntity : "{6EFBB8BA8D28B57D}PrefabLibrary/Generators/Roads/Asphalt/RG_Road_Asphalt_E_02.et" {
+    coords 0 0 0
+    AdjustHeightMap 0
+    {
+     RoadEntity {
+      ID "556C6C02C8F45A73"
+      SplinePoints {
+       ShapePoint "{556C6C02BD077CFC}" {
+        Position -90.271 17.729 413.448
+       }
+       ShapePoint "{556C6C02BD077389}" {
+        Position -83.444 3.235 197.984
+       }
+       ShapePoint "{5DFCC9B2C9B091AA}" {
+        Position -58.679 8.825 -167.797
+       }
+      }
+      IsClosedSpline 0
+      Width 8
+     }
+    }
+   }
+  }
+ }
+ VillageRoad_1 {
+  coords 2220.571 19.593 2466.819
+  Points {
+   ShapePoint "{5DFCC9B2A003BB6F}" {
+    Position -150.455 -1.538 0
+   }
+   ShapePoint "{5DFCC9B2A003B940}" {
+    Position 5 0.306 0
+   }
+  }
+  {
+   RoadGeneratorEntity : "{ABC15429070F8391}PrefabLibrary/Generators/Roads/Cobblestone/RG_Road_Cobblestone_01.et" {
+    coords 0 0 0
+    {
+     RoadEntity {
+      ID "56F07CB2CD0F496C"
+      SplinePoints {
+       ShapePoint "{56F07CB28583E030}" {
+        Position -150.455 -1.538 0
+       }
+       ShapePoint "{56F07CB28583FED6}" {
+        Position 5 0.306 0
+       }
+      }
+      IsClosedSpline 0
+      Width 8
+     }
+    }
+   }
+  }
+ }
+}
+StaticModelEntity : "{1BB9E9ECC5AD0E88}PrefabsEditable/Auto/Structures/Infrastructure/Towers/E_TransmitterTower_01.et" {
+ coords 2512.757 28.871 1639.89
+}
+SCR_DestructibleBuildingEntity : "{2A0D72C46FDCD368}Prefabs/Structures/Houses/Village/House_Village_E_1I04/House_Village_E_1I04t.et" {
+ coords 2180.207 1.29 2482.617
+}
+SCR_DestructibleBuildingEntity : "{2F830B9B3A7D4855}Prefabs/Structures/Commercial/Shops/ShopHouse_E_2I01t_foodstore.et" {
+ coords 2130.157 0.323 1998.303
+ angleY 179.187
+}
+SCR_DestructibleBuildingEntity : "{38A5F3E4578087AB}Prefabs/Structures/Houses/Town/House_Town_E_2I01/House_Town_E_2I01.et" {
+ coords 2168.213 -0.251 1999.177
+ angleY 179.643
+}
+SCR_DestructibleBuildingEntity : "{3F91DEEC9C78E473}Prefabs/Structures/Military/Houses/GuardHouse_01/GuardHouse_01.et" {
+ coords 1705.776 0.983 2500.965
+}
+SCR_DestructibleBuildingEntity : "{54F1C704EB440885}Prefabs/Structures/Houses/Town/House_Town_E_2I02/House_Town_E_2I02.et" {
+ coords 2109.104 0.456 1996.534
+ angleY 180
+}
+$grp SCR_SiteSlotEntity : "{588A3DAF0296B0C1}PrefabsEditable/Slots/Flat/E_SlotFlatSmall.et" {
+ {
+  coords 1695.3 34.128 2530.877
+  {
+   StaticModelEntity {
+    ID "52E8C3643526D54D"
+    coords 0 0.131 0
+    angleX -4.127
+    angleZ -2.059
+   }
+  }
+ }
+ {
+  coords 1714.298 34.768 2530.812
+  {
+   StaticModelEntity {
+    ID "52E8C3643526D54D"
+    coords 0 -0.252 0
+    angleX -1.044
+    angleZ 1.356
+   }
+  }
+ }
+ {
+  coords 1681.346 32.518 2483.075
+  {
+   StaticModelEntity {
+    ID "52E8C3643526D54D"
+    coords 0 -0.237 0
+    angleX -2.259
+    angleZ -3.586
+   }
+  }
+ }
+}
+SCR_DestructibleBuildingEntity : "{5CADC96916FF1CC4}Prefabs/Structures/Houses/Villa/Villa_E_2I01/Villa_E_2I01.et" {
+ coords 2127.998 1.124 2017.122
+ angleY 88.79
+}
+$grp SCR_DestructibleBuildingEntity : "{60333F74EE12B52F}Prefabs/Structures/Houses/Village/House_Village_E_1I05/House_Village_E_1I05s.et" {
+ {
+  coords 2154.479 0.077 2028.181
+  angleY 85.737
+ }
+ {
+  coords 2120.851 0.17 2482.255
+ }
+}
+SCR_DestructibleBuildingEntity : "{7A1C57051B31036D}Prefabs/Structures/Commercial/Shops/ShopHouse_E_2I01t_shoestore.et" {
+ coords 2180.284 -0.106 1967.624
+}
+SCR_DestructibleBuildingEntity : "{92E8F78BCF17D93D}Prefabs/Structures/Commercial/Shops/ShopHouse_E_2I01t_clothesstore.et" {
+ coords 2155.988 0 1968.655
+}
+SCR_DestructibleBuildingEntity : "{CFE8511B2B7E8AAA}Prefabs/Structures/Commercial/Shops/ShopModern_E_01.et" {
+ coords 2125.113 1.22 1964.716
+}
+SCR_DestructibleBuildingEntity : "{E7EC0E80F0645DFE}Prefabs/Structures/Houses/Town/House_Town_E_2I03/House_Town_E_2I03.et" {
+ coords 2097.401 0.968 1964.612
+}
+SCR_DestructibleBuildingEntity : "{EDBC0E94793BA9F1}Prefabs/Structures/Houses/Village/House_Village_E_1I01/House_Village_E_1I01.et" {
+ coords 2131.118 0.027 2032.819
+}
+SCR_DestructibleBuildingEntity : "{F51B9B9BD15BBE64}Prefabs/Structures/Commercial/Shops/ShopHouse_E_2I01t_householdwares.et" {
+ coords 2168.09 0.285 1968.445
+}
+SCR_DestructibleBuildingEntity : "{FBCE1861B987EA68}Prefabs/Structures/Military/Houses/GuardTower_01/GuardTower_01.et" {
+ coords 1672.246 0 2507.735
+ angleY 90.945
+}
+SCR_DestructibleBuildingEntity : "{FF48B5059EB0AC65}Prefabs/Structures/Commercial/Shops/ShopHouse_E_2I01t_drugstore.et" {
+ coords 2156.059 0.383 1999.168
+ angleY 179.723
+}
