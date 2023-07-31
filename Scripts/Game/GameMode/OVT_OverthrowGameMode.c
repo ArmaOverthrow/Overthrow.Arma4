@@ -25,6 +25,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	protected OVT_SkillManagerComponent m_SkillManager;
 	protected OVT_PersistenceManagerComponent m_Persistence;
 	
+	protected CameraBase m_pCamera;
+	
 	ref set<string> m_aInitializedPlayers;
 	ref set<string> m_aHintedPlayers;
 	
@@ -197,7 +199,14 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			SetRandomCameraPosition();
 		}
 		
-		if(m_bGameInitialized) return;
+		if(m_bGameInitialized)
+		{
+			if(m_pCamera)
+			{
+				SCR_EntityHelper.DeleteEntityAndChildren(m_pCamera);
+				m_pCamera = null;
+			}
+		}
 		m_StartGameUIContext.EOnFrame(owner, timeSlice);
 	}
 	
@@ -342,9 +351,11 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		if(cam)
 		{			
 			CameraBase camera = CameraBase.Cast(cam);
+			camera.SetName("StartCam");
 			camera.SetAngles(pos.angles);
 			cameraMgr.SetCamera(camera);
 			m_bCameraSet = true;
+			m_pCamera = camera;
 		}		
 	}
 	

@@ -94,6 +94,22 @@ class OVT_RespawnSystemComponent : EPF_BasicRespawnSystemComponent
 		}
 	}
 	
+	protected override void HandoverToPlayer(int playerId, IEntity character)
+	{
+		//PrintFormat("HandoverToPlayer(%1, %2)", playerId, character);
+		SCR_PlayerController playerController = SCR_PlayerController.Cast(m_pPlayerManager.GetPlayerController(playerId));
+		EDF_ScriptInvokerCallback callback(this, "OnHandoverComplete", new Tuple1<int>(playerId));
+		playerController.m_OnControlledEntityChanged.Insert(callback.Invoke);
+
+		playerController.SetInitialMainEntity(character);
+
+		m_pGameMode.OnPlayerEntityChanged_S(playerId, null, character);
+
+		SCR_RespawnComponent respawn = SCR_RespawnComponent.Cast(playerController.GetRespawnComponent());
+		respawn.SGetOnSpawn().Invoke(); // TODO: Check if this is needed, the base game added it as a hack?!?
+		respawn.NotifySpawn(character);
+	}
+	
 	protected override void OnHandoverComplete(Managed context)
 	{
 		super.OnHandoverComplete(context);

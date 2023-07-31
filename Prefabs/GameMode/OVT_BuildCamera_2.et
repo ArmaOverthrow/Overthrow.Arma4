@@ -1,0 +1,6 @@
+SCR_ManualCamera {
+ ID "5DFD0EB1151B47A8"
+ coords 82.19 1 110.738
+ cameraFlags 6
+ m_sActionContext "OverthrowBuildContext"
+}

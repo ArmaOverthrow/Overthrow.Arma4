@@ -15,8 +15,6 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
   EPF_PersistenceComponent "{5A12D8F4DFED6D84}" {
    Enabled 1
   }
-  FactionAffiliationComponent "{555C98D1CD949F3E}" {
-  }
   OVT_PlayerCommsComponent "{5D7ACE122292D0CF}" {
   }
   OVT_PlayerWantedComponent "{596EE382181C58FB}" {
@@ -74,7 +72,7 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      m_sCloseAction "MenuBack"
      m_bOpenActionCloses 0
      m_BuildLayout "{A07C65DB3FF77D40}UI/Layouts/HUD/BuildInfo.layout"
-     m_BuildCameraPrefab "{B8BD4F86A7DB358D}Prefabs/GameMode/OVT_BuildCamera.et"
+     m_BuildCameraPrefab "{27E3E078BAE54DE8}Prefabs/GameMode/OVT_BuildCamera_2.et"
     }
     OVT_BaseMenuContext "{59C8F617A8CC47E0}" {
      m_Layout "{E13C8636ACACECF8}UI/Layouts/Menu/BaseMenu.layout"
@@ -167,9 +165,6 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
   }
   BaseLoadoutManagerComponent "{520EA1D2DB11821E}" {
    Slots {
-    LoadoutSlotInfo Boots {
-     Prefab ""
-    }
     LoadoutSlotInfo Hat {
      Prefab ""
     }
@@ -177,6 +172,9 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      Prefab ""
     }
     LoadoutSlotInfo Pants {
+     Prefab ""
+    }
+    LoadoutSlotInfo Boots {
      Prefab ""
     }
    }
@@ -195,7 +193,7 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
     ItemsInitConfigurationItem "{566C8D26AC156C09}" {
      TargetStorage "Prefabs/Characters/Uniforms/Pants/cargo_pants_grey.et"
      PrefabsToSpawn {
-      "{13772C903CB5E4F7}Prefabs/Items/Equipment/Maps/PaperMap_01_folded.et" "{3A421547BC29F679}Prefabs/Items/Equipment/Flashlights/Flashlight_MX991.et"
+      "{13772C903CB5E4F7}Prefabs/Items/Equipment/Maps/PaperMap_01_folded.et" "{3A421547BC29F679}Prefabs/Items/Equipment/Flashlights/Flashlight_MX991/Flashlight_MX991.et"
      }
     }
     ItemsInitConfigurationItem "{5968C8BB5309538A}" {
