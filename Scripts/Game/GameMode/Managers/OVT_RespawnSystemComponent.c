@@ -136,6 +136,8 @@ class OVT_RespawnSystemComponent : EPF_BasicRespawnSystemComponent
 	
 	protected IEntity SpawnDefaultCharacterItem(InventoryStorageManagerComponent storageManager, OVT_LoadoutSlot loadoutItem)
 	{
+		if(!storageManager) return null;
+		
 		int selection = s_AIRandomGenerator.RandInt(0, loadoutItem.m_aChoices.Count() - 1);
 		ResourceName prefab = loadoutItem.m_aChoices[selection];
 		
@@ -150,6 +152,7 @@ class OVT_RespawnSystemComponent : EPF_BasicRespawnSystemComponent
 			foreach (ResourceName storedItem : loadoutItem.m_aStoredItems)
 			{				
 				IEntity spawnedItem = GetGame().SpawnEntityPrefab(Resource.Load(storedItem));
+				if(!spawnedItem) continue;
 
 				foreach (Managed componentRef : outComponents)
 				{
