@@ -22,6 +22,22 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
     }
    }
   }
+  BaseLoadoutManagerComponent "{520EA1D2DB11821E}" {
+   Slots {
+    LoadoutSlotInfo Hat {
+     Prefab "{5B6998DF1207FB5A}Prefabs/Characters/HeadGear/TruckerCap/trucker_cap_backwards.et"
+    }
+    LoadoutSlotInfo Jacket {
+     Prefab "{6CE193F2080A9D5D}Prefabs/Characters/Uniforms/Tops/OTW_top_Multicam.et"
+    }
+    LoadoutSlotInfo Pants {
+     Prefab "{2BA5AAEB00E98AD4}Prefabs/Characters/Uniforms/Pants/OTW_pants_OCP.et"
+    }
+    LoadoutSlotInfo Boots {
+     Prefab "{58CDE15D74295DA2}Prefabs/Characters/Footwear/hiking_boots.et"
+    }
+   }
+  }
   SCR_InventoryStorageManagerComponent "{520EA1D2DB118DE5}" {
    InitialInventoryItems {
     ItemsInitConfigurationItem "{566C8D26AC156C09}" {
@@ -32,7 +48,7 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      TargetStorage "Prefabs/Characters/Uniforms/Jacket_M70.et"
      TargetPurpose 64
      PrefabsToSpawn {
-      "{575EA58E67448C2A}Prefabs/Items/Equipment/Flashlights/Flashlight_Soviet_01.et"
+      "{575EA58E67448C2A}Prefabs/Items/Equipment/Flashlights/Flashlight_Soviet_01/Flashlight_Soviet_01.et"
      }
     }
    }

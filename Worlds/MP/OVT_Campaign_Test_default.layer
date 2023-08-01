@@ -300,7 +300,7 @@ $grp GenericEntity {
   components {
    SCR_MapDescriptorComponent "{5D8680D15B3CF38E}" {
     DisplayName "Town"
-    MainType "Name Village"
+    MainType "Name Town"
    }
   }
   coords 221.182 1.001 107.325
