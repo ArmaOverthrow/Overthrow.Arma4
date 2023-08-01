@@ -25,18 +25,22 @@ GameProject {
         Code "en_us"
         StringTableRuntime "{DA665909AFF44C34}Language/localization_Overthrow.en-us.conf"
        }
+       LanguageDefinition "{5E02BE3B9CC1C0C7}" {
+        Code "ru_ru"
+        StringTableRuntime "{487CD323BF6347F4}Language/localization_Overthrow.ru-ru.conf"
+       }
       }
      }
     }
    }
+  }
+  GameProjectConfig HEADLESS {
   }
   GameProjectConfig XBOX_ONE {
   }
   GameProjectConfig XBOX_SERIES {
   }
   GameProjectConfig PS4 {
-  }
-  GameProjectConfig HEADLESS {
   }
  }
 }
