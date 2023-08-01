@@ -1,8 +1,0 @@
-OVT_PlayerCommsEntity {
- ID "59B8CE1E98082E63"
- components {
-  RplComponent "{59B8CE1E8A9C340E}" {
-  }
- }
- coords 10148.363 2.448 1494.281
-}

@@ -120,18 +120,22 @@ class OVT_RespawnSystemComponent : EPF_BasicRespawnSystemComponent
 		{
 			IEntity entity = m_mNeedRandomize[playerId];
 			InventoryStorageManagerComponent storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(entity);
-			foreach (OVT_LoadoutSlot loadoutItem : OVT_Global.GetConfig().m_CivilianLoadout.m_aSlots)
+			if(storageManager)
 			{
-				IEntity slotEntity = SpawnDefaultCharacterItem(storageManager, loadoutItem);
-				if (!slotEntity) continue;
-				
-				if (!storageManager.TryInsertItem(slotEntity, EStoragePurpose.PURPOSE_LOADOUT_PROXY))
+				foreach (OVT_LoadoutSlot loadoutItem : OVT_Global.GetConfig().m_CivilianLoadout.m_aSlots)
 				{
-					SCR_EntityHelper.DeleteEntityAndChildren(slotEntity);
+					IEntity slotEntity = SpawnDefaultCharacterItem(storageManager, loadoutItem);
+					if (!slotEntity) continue;
+					
+					if (!storageManager.TryInsertItem(slotEntity, EStoragePurpose.PURPOSE_LOADOUT_PROXY))
+					{
+						SCR_EntityHelper.DeleteEntityAndChildren(slotEntity);
+					}
 				}
 			}
-			m_mLoadingCharacters.Remove(playerId);
-		}		
+			m_mNeedRandomize.Remove(playerId);
+		}
+		m_mLoadingCharacters.Remove(playerId);
 	}
 	
 	protected IEntity SpawnDefaultCharacterItem(InventoryStorageManagerComponent storageManager, OVT_LoadoutSlot loadoutItem)

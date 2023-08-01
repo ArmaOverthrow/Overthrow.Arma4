@@ -419,7 +419,12 @@ OVT_OverthrowGameMode {
   }
   SCR_CallsignManagerComponent "{59724C8C935D8E23}" {
   }
-  SCR_DestructionManagerComponent "{59724C8C935D8E20}" {
+  SCR_CommandingManagerComponent "{5DFEE7C53D7244B0}" {
+   m_sCommandsConfigPath "{54764D4E706F348C}Configs/Commanding/Commands.conf"
+  }
+  SCR_DataCollectorComponent "{5DFEE7C5E2762B63}" {
+  }
+  SCR_DestructionManagerComponent "{5DFEE7C5F4445327}" {
   }
   SCR_GameModeHealthSettings "{5D7A443950718AF0}" {
   }
@@ -436,6 +441,7 @@ OVT_OverthrowGameMode {
   SCR_MapConfigComponent "{5D56F4474D716C00}" {
   }
   SCR_NametagConfigComponent "{59724C8C935D8E28}" {
+   m_sConfigPath "{09F7AAA14A642683}Configs/NameTags/NametagFriendlies.conf"
   }
   SCR_NotificationSenderComponent "{5D7A443FDCA27CAE}" {
    m_iReceiveKillFeedType SAME_FACTION_ONLY
