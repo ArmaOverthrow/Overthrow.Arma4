@@ -7,9 +7,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	[Attribute()]
 	ref OVT_UIContext m_StartGameUIContext;
 	
-	[Attribute()]
-	ResourceName m_PlayerCommsPrefab;
-	
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Start Camera Prefab", params: "et")]
 	ResourceName m_StartCameraPrefab;
 	
@@ -121,21 +118,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		}		
 		
 		Print("Overthrow Starting");
-		m_bGameInitialized = true;
-		
-		GetGame().GetCallqueue().CallLater(CheckUpdate, 10000, true, this);		
-	}
-	
-	protected void CheckUpdate()
-	{
-		TimeAndWeatherManagerEntity timeMgr = GetGame().GetTimeAndWeatherManager();
-		TimeContainer time = timeMgr.GetTime();
-		if(time.m_iHours >= 18 || time.m_iHours < 6)
-		{
-			timeMgr.SetDayDuration(86400 / m_Config.m_iNightTimeMultiplier);
-		}else{
-			timeMgr.SetDayDuration(86400 / m_Config.m_iTimeMultiplier);
-		}
+		m_bGameInitialized = true;	
 	}
 	
 	override void EOnFrame(IEntity owner, float timeSlice)
@@ -453,8 +436,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			return;
 		}
 		
-		CheckUpdate();
-		
 		m_Persistence = OVT_PersistenceManagerComponent.Cast(FindComponent(OVT_PersistenceManagerComponent));		
 		if(m_Persistence)
 		{
@@ -508,7 +489,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	{
 		m_aInitializedPlayers.Clear();
 		m_aHintedPlayers.Clear();
-		m_mPlayerGroups.Clear();
-		GetGame().GetCallqueue().Remove(CheckUpdate);	
+		m_mPlayerGroups.Clear();	
 	}
 }

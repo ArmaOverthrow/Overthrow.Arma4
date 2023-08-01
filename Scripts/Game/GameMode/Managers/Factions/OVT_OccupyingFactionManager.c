@@ -174,9 +174,14 @@ class OVT_OccupyingFactionManager: OVT_Component
 	
 	void PostGameStart()
 	{
+		float timeMul = 6;
+		OVT_TimeAndWeatherHandlerComponent tw = OVT_TimeAndWeatherHandlerComponent.Cast(GetGame().GetGameMode().FindComponent(OVT_TimeAndWeatherHandlerComponent));
+		
+		if(tw) timeMul = tw.GetDayTimeMultiplier();
+		
 		GetGame().GetCallqueue().CallLater(SpawnBaseControllers, 0);
 		
-		GetGame().GetCallqueue().CallLater(CheckUpdate, OF_UPDATE_FREQUENCY / m_Config.m_iTimeMultiplier, true, GetOwner());		
+		GetGame().GetCallqueue().CallLater(CheckUpdate, OF_UPDATE_FREQUENCY / timeMul, true, GetOwner());		
 		
 		GetGame().GetCallqueue().CallLater(CheckRadioTowers, 9000, true, GetOwner());	
 		

@@ -176,12 +176,6 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	[Attribute(desc: "Real estate configs to set prices and rents for building types", category: "Real Estate", UIWidgets.Object)]
 	ref array<ref OVT_RealEstateConfig> m_aBuildingTypes;
 	
-	[Attribute(defvalue: "6", UIWidgets.EditBox, desc: "Time multiplier")]
-	int m_iTimeMultiplier;
-	
-	[Attribute(defvalue: "12", UIWidgets.EditBox, desc: "Night Time multiplier")]
-	int m_iNightTimeMultiplier;
-	
 	[Attribute(defvalue: "0.1", UIWidgets.EditBox, desc: "Civilians to spawn per population")]
 	float m_fCivilianSpawnRate;
 	

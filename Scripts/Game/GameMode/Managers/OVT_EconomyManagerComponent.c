@@ -721,13 +721,18 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	void Init(IEntity owner)
 	{			
+		float timeMul = 6;
+		OVT_TimeAndWeatherHandlerComponent tw = OVT_TimeAndWeatherHandlerComponent.Cast(GetGame().GetGameMode().FindComponent(OVT_TimeAndWeatherHandlerComponent));
+		
+		if(tw) timeMul = tw.GetDayTimeMultiplier();
+		
 		m_Towns = OVT_Global.GetTowns();
 		m_Players = OVT_Global.GetPlayers();
 		
 		GetGame().GetCallqueue().CallLater(AfterInit, 0);		
 		
 		if(!Replication.IsServer()) return;
-		GetGame().GetCallqueue().CallLater(CheckUpdate, ECONOMY_UPDATE_FREQUENCY / m_Config.m_iTimeMultiplier, true, GetOwner());
+		GetGame().GetCallqueue().CallLater(CheckUpdate, ECONOMY_UPDATE_FREQUENCY / timeMul, true, GetOwner());
 		
 	}
 	
