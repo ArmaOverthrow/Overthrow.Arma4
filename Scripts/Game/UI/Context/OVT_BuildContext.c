@@ -24,6 +24,7 @@ class OVT_BuildContext : OVT_UIContext
 	protected CameraManager m_CameraManager;
 	
 	const int MAX_FOB_BUILD_DIS = 100;
+	const int MAX_CAMP_BUILD_DIS = 50;
 	
 	bool m_bBuilding = false;
 	int m_iPrefabIndex = 0;
@@ -205,11 +206,11 @@ class OVT_BuildContext : OVT_UIContext
 			}
 		}
 		
-		if(buildable.m_bBuildAtFOB)
+		if(buildable.m_bBuildAtCamp)
 		{	
-			vector fob = m_Resistance.GetNearestFOB(pos);		
+			vector fob = m_Resistance.GetNearestCamp(pos);		
 			dist = vector.Distance(fob, pos);
-			if(dist < MAX_FOB_BUILD_DIS) return true;	
+			if(dist < MAX_CAMP_BUILD_DIS) return true;	
 		}
 							
 		return false;

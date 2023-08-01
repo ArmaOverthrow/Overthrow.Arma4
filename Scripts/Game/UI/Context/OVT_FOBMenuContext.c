@@ -1,6 +1,6 @@
 class OVT_FOBMenuContext : OVT_UIContext
 {	
-	OVT_FOBData m_FOB;
+	OVT_CampData m_FOB;
 	ref SCR_SpinBoxComponent m_GroupSpin;
 	ref SCR_ButtonTextComponent m_GarrisonButton;
 	

@@ -44,6 +44,9 @@ class OVT_Buildable
 	[Attribute(defvalue: "0", desc: "Can build at an FOB")]
 	bool m_bBuildAtFOB;
 	
+	[Attribute(defvalue: "0", desc: "Can build at a Camp")]
+	bool m_bBuildAtCamp;
+	
 	[Attribute("", UIWidgets.Object)]
 	ref OVT_PlaceableHandler handler;
 }

@@ -92,11 +92,6 @@ class OVT_MapContext : OVT_UIContext
 			}
 		}
 		
-		if(m_Resistance.DistanceToCamp(pos, m_sPlayerID) < MAX_HOUSE_TRAVEL_DIS)
-		{
-			return true;
-		}
-		
 		IEntity house = m_RealEstate.GetNearestOwned(m_sPlayerID, pos, MAX_HOUSE_TRAVEL_DIS);
 		if(house)
 		{
@@ -114,7 +109,7 @@ class OVT_MapContext : OVT_UIContext
 			return true;
 		}
 		
-		vector fob = m_Resistance.GetNearestFOB(pos);		
+		vector fob = m_Resistance.GetNearestCamp(pos);		
 		dist = vector.Distance(fob, pos);
 		if(dist < MAX_FOB_TRAVEL_DIS) return true;		
 		

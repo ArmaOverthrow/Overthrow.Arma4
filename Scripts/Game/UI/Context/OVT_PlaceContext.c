@@ -16,8 +16,9 @@ class OVT_PlaceContext : OVT_UIContext
 	protected const float TRACE_DIS = 15;
 	protected const float MAX_PREVIEW_DIS = 15;
 	protected const float MAX_HOUSE_PLACE_DIS = 30;
-	protected const float MAX_FOB_PLACE_DIS = 60;
-
+	protected const float MAX_FOB_PLACE_DIS = 100;
+	protected const float MAX_CAMP_PLACE_DIS = 75;
+	
 	protected OVT_RealEstateManagerComponent m_RealEstate;
 	protected OVT_OccupyingFactionManager m_OccupyingFaction;
 	protected OVT_ResistanceFactionManager m_Resistance;
@@ -167,7 +168,7 @@ class OVT_PlaceContext : OVT_UIContext
 			}
 
 			//Smaller town ranges for the "too close" option
-			//Opens up some better FOB positions for town battles and allows camps a bit closer
+			//Allows camps a bit closer
 			int townRange = m_Towns.m_iCityRange - 400;
 			if(town.size < 3) townRange = m_Towns.m_iTownRange - 200;
 			if(town.size < 2) townRange = m_Towns.m_iVillageRange - 50;
@@ -178,14 +179,14 @@ class OVT_PlaceContext : OVT_UIContext
 				reason = "#OVT-TooCloseTown";
 				return false;
 			}
-
-			vector fob = m_Resistance.GetNearestFOB(pos);
+			
+			vector fob = m_Resistance.GetNearestCamp(pos);	
 			if(fob[0] != 0)
 			{
 				dist = vector.Distance(fob, pos);
 				if(dist < 250)
 				{
-					reason = "#OVT-TooCloseFOB";
+					reason = "#OVT-TooCloseCamp";
 					return false;
 				}
 			}
@@ -211,11 +212,11 @@ class OVT_PlaceContext : OVT_UIContext
 			dist = vector.Distance(house.GetOrigin(), pos);
 			if(dist < MAX_HOUSE_PLACE_DIS) return true;
 		}
-
-		vector fob = m_Resistance.GetNearestFOB(pos);
-		dist = vector.Distance(fob, pos);
-		if(dist < MAX_FOB_PLACE_DIS) return true;
-
+		
+		OVT_CampData fob = m_Resistance.GetNearestCampData(pos);		
+		dist = vector.Distance(fob.location, pos);
+		if(dist < MAX_CAMP_PLACE_DIS && fob.owner == m_sPlayerID) return true;	
+		
 		OVT_BaseData base = m_OccupyingFaction.GetNearestBase(pos);
 		dist = vector.Distance(base.location,pos);
 		if(!base.IsOccupyingFaction() && dist < OVT_Global.GetConfig().m_Difficulty.baseRange)

@@ -6,12 +6,22 @@ class OVT_ManageBaseAction : ScriptedUserAction
  	{
 		OVT_UIManagerComponent ui = OVT_UIManagerComponent.Cast(pUserEntity.FindComponent(OVT_UIManagerComponent));
 		if(!ui) return;
-
-		OVT_BaseMenuContext context = OVT_BaseMenuContext.Cast(ui.GetContext(OVT_BaseMenuContext));
-		if(!context) return;
-
-		context.m_Base = OVT_BaseData.Get(pOwnerEntity.GetOrigin());
-		context.ShowLayout();
+		
+		if(m_bIsBase)
+		{
+			OVT_BaseMenuContext context = OVT_BaseMenuContext.Cast(ui.GetContext(OVT_BaseMenuContext));
+			if(!context) return;
+		
+			context.m_Base = m_BaseData;
+			context.ShowLayout();
+		}else{
+			OVT_CampData fob = OVT_Global.GetResistanceFaction().GetNearestCampData(pOwnerEntity.GetOrigin());
+			OVT_FOBMenuContext context = OVT_FOBMenuContext.Cast(ui.GetContext(OVT_FOBMenuContext));
+			if(!context) return;
+		
+			context.m_FOB = fob;
+			context.ShowLayout();
+		}
  	}
 
 	override bool GetActionNameScript(out string outName)
