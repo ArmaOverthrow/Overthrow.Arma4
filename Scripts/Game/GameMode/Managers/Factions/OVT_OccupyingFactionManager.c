@@ -65,7 +65,8 @@ enum OVT_TargetType
 	BASE,
 	BROADCAST_TOWER,
 	FOB,
-	WAREHOUSE
+	WAREHOUSE,
+	CAMP
 }
 
 enum OVT_OrderType
@@ -792,13 +793,13 @@ class OVT_OccupyingFactionManager: OVT_Component
 		//To-Do: target discovery not by magic
 		OVT_ResistanceFactionManager resistance = OVT_Global.GetResistanceFaction();
 		
-		foreach(OVT_FOBData fob : resistance.m_FOBs)
+		foreach(OVT_CampData fob : resistance.m_Camps)
 		{
 			if(!IsKnownTarget(fob.location))
 			{
 				OVT_TargetData target = new OVT_TargetData();
 				target.location = fob.location;
-				target.type = OVT_TargetType.FOB;
+				target.type = OVT_TargetType.CAMP;
 				target.order = OVT_OrderType.ATTACK;
 				m_aKnownTargets.Insert(target);
 			}

@@ -226,13 +226,20 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Brian"
   }
+  CustomStringTableItem "{5E02BE2D148E3EDB}" {
+   Id "OVT-CannotPlaceAnythingHere"
+   Target_en_us "You cannot place anything here, you must be near a house/camp you own, an FOB or a controlled base"
+   Modified 1577249168
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5992E2F582B25E27}" {
    Id "OVT-CannotPlaceHere"
-   Target_en_us "You cannot place that item here, you must be near a house you own, an FOB or a controlled base"
+   Target_en_us "You cannot place that item here, you must be near a house/camp you own, an FOB or a controlled base"
    Target_ru_ru "Вы не можете разместить это предмет здесь, вы должны быть возле купленного дома, FOB или захваченой базы"
-   Modified 1575656369
+   Modified 1577249155
    Author "Aaron Static"
-   LastChanged "Brian"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{59B4D7D75C4B5A65}" {
    Id "OVT-CaptureBase"
@@ -766,12 +773,12 @@ StringTable {
    LastChanged "Brian"
   }
   CustomStringTableItem "{5D582605F2DE0E0B}" {
-   Id "OVT-ManageFOB"
-   Target_en_us "Manage FOB"
-   Target_ru_ru "Управление FOB"
-   Modified 1575659557
+   Id "OVT-ManageCamp"
+   Target_en_us "Manage Camp"
+   Target_ru_ru "Управление Лагерь"
+   Modified 1577249457
    Author "Aaron Static"
-   LastChanged "Brian"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{59CF196E2474961C}" {
    Id "OVT-ManageVehicle"
@@ -870,12 +877,12 @@ StringTable {
    LastChanged "Brian"
   }
   CustomStringTableItem "{59A49A822C192F63}" {
-   Id "OVT-Msg-HasPlacedFOB"
-   Target_en_us "%1 has placed a new FOB near %2. It is now available for fast travel and more"
-   Target_ru_ru "%1 разместил FOB вблизи %2. Точка доступна для быстрого перемещения"
-   Modified 1575660013
+   Id "OVT-Msg-HasPlacedCamp"
+   Target_en_us "%1 has placed a new camp near %2. It is now available for fast travel"
+   Target_ru_ru "%1 разместил Лагерь вблизи %2. Точка доступна для быстрого перемещения"
+   Modified 1577249453
    Author "Aaron Static"
-   LastChanged "Brian"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{5DA4CE52796041FE}" {
    Id "OVT-Msg-LevelledUp"
@@ -886,12 +893,12 @@ StringTable {
    LastChanged "Brian"
   }
   CustomStringTableItem "{59A49A823A9D330A}" {
-   Id "OVT-Msg-NewFOB"
+   Id "OVT-Msg-NewCamp"
    Target_en_us "New FOB"
-   Target_ru_ru "Новая FOB"
-   Modified 1575660099
+   Target_ru_ru "Новая Лагерь"
+   Modified 1577249461
    Author "Aaron Static"
-   LastChanged "Brian"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{5D86A3C61F7BDD71}" {
    Id "OVT-Msg-PatrolSpotted"
@@ -1177,11 +1184,11 @@ StringTable {
   }
   CustomStringTableItem "{5DA486E39FBCD116}" {
    Id "OVT-Place_Camp_Description"
-   Target_en_us "A personal fast-travel destination"
+   Target_en_us "A fast-travel destination"
    Target_ru_ru "Персональная точка быстрого перемещения"
-   Modified 1575661297
+   Modified 1577249420
    Author "Aaron Static"
-   LastChanged "Brian"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{598AD55D632ED8B6}" {
    Id "OVT-Place_EquipmentBox"
@@ -1214,23 +1221,6 @@ StringTable {
    Target_en_us "Provides light at night"
    Target_ru_ru "Дает свет ночью"
    Modified 1575661672
-   Author "Aaron Static"
-   LastChanged "Brian"
-  }
-  CustomStringTableItem "{598AD553667F76AF}" {
-   Id "OVT-Place_FOB"
-   Target_en_us "FOB"
-   Target_ru_ru "FOB"
-   Status DEVELOPMENT_DONE
-   Modified 1575661603
-   Author "Aaron Static"
-   LastChanged "Brian"
-  }
-  CustomStringTableItem "{5DA486E2647E8EC3}" {
-   Id "OVT-Place_FOB_Description"
-   Target_en_us "Forward Operating Base"
-   Target_ru_ru "База передового развёртывания"
-   Modified 1575661643
    Author "Aaron Static"
    LastChanged "Brian"
   }
@@ -1864,12 +1854,12 @@ StringTable {
    LastChanged "Brian"
   }
   CustomStringTableItem "{5D58260519D9B5F3}" {
-   Id "OVT-TooCloseFOB"
-   Target_en_us "You cannot place that here, it is too close to an FOB"
-   Target_ru_ru "Вы не можете поставить это здесь, слишком близко к FOB"
-   Modified 1575663267
+   Id "OVT-TooCloseCamp"
+   Target_en_us "You cannot place that here, it is too close to a camp"
+   Target_ru_ru "Вы не можете поставить это здесь, слишком близко к Лагерь"
+   Modified 1577249475
    Author "Aaron Static"
-   LastChanged "Brian"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{59A49A81B65FE81A}" {
    Id "OVT-TooCloseTown"

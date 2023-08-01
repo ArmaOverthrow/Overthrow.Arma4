@@ -28,7 +28,7 @@ class OVT_ManageBaseAction : ScriptedUserAction
 			context.m_Base = m_BaseData;
 			context.ShowLayout();
 		}else{
-			OVT_FOBData fob = OVT_Global.GetResistanceFaction().GetNearestFOBData(pOwnerEntity.GetOrigin());
+			OVT_CampData fob = OVT_Global.GetResistanceFaction().GetNearestCampData(pOwnerEntity.GetOrigin());
 			OVT_FOBMenuContext context = OVT_FOBMenuContext.Cast(ui.GetContext(OVT_FOBMenuContext));
 			if(!context) return;
 		

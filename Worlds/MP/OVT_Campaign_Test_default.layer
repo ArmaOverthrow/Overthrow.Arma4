@@ -25,6 +25,30 @@ PerceptionManager PerceptionManager1 : "{028DAEAD63E056BE}Prefabs/World/Game/Per
 }
 OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMode/OVT_OverthrowGameMode.et" {
  components {
+  EPF_PersistenceComponent "{5D7009A1AB220903}" {
+   m_bSelfSpawn 0
+   m_bSelfDelete 0
+   m_pSaveData OVT_OverthrowSaveDataClass "{5D7009A22C40BEE5}" {
+    m_eTranformSaveFlags 0
+    m_bSaveRemainingLifetime 0
+    m_aComponents {
+     OVT_EconomySaveDataClass "{5D7009A2B14C4055}" {
+     }
+     OVT_PlayerSaveDataClass "{5D7009AA91A43E6F}" {
+     }
+     OVT_OccupyingFactionSaveDataClass "{5D70099DAD21A0F3}" {
+     }
+     OVT_RealEstateSaveDataClass "{5D707B33903B8735}" {
+     }
+     OVT_TownSaveDataClass "{5D70912C42B66D9E}" {
+     }
+     OVT_ResistanceSaveDataClass "{5D70912B726E1A32}" {
+     }
+     OVT_ConfigSaveDataClass "{5D9E53AFE550A24E}" {
+     }
+    }
+   }
+  }
   OVT_EconomyManagerComponent "{5988DB0008700592}" {
    m_aShopConfigs {
     OVT_ShopInventoryConfig "{598EDB5225F92650}" {
@@ -207,15 +231,26 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMod
    }
    m_pHiredCivilianPrefab "{365CD448A5DABCCC}Prefabs/Groups/INDFOR/Group_CIV_Recruit.et"
   }
+  OVT_RespawnSystemComponent "{5DEA8B45ED838B55}" {
+   m_rDefaultPrefab "{3A99A99836F6B3DC}Prefabs/Characters/Factions/INDFOR/FIA/Character_Player.et"
+  }
   OVT_SkillManagerComponent "{5D90EE077169A8A2}" {
    m_Skills OVT_SkillsConfig "{5D91035951D22CD1}" : "{F7740B6A7C4F6FB7}Configs/Player/overthrowSkills.conf" {
    }
+  }
+  OVT_TimeAndWeatherHandlerComponent "{5E02BE29723C0739}" {
+   m_fDayTimeAcceleration 6
+   m_fNightTimeAcceleration 12
+   m_bRandomStartingWeather 1
   }
   OVT_TownManagerComponent "{59724C983BF56C3B}" {
    m_iVillageRange 100
   }
   OVT_VehicleManagerComponent "{5D707B3386AF876D}" {
    m_pStartingCarPrefab "{259EE7B78C51B624}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469.et"
+  }
+  SCR_CommandingManagerComponent "{5DFEE7C53D7244B0}" {
+   m_sCommandsConfigPath "{54764D4E706F348C}Configs/Commanding/Commands.conf"
   }
   SCR_GroupsManagerComponent "{5DDAD8A30938E391}" {
    m_sDefaultGroupPrefab "{8B4D49A9F324E7D5}Prefabs/Groups/PlayableGroup.et"
@@ -224,6 +259,9 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMod
    m_sInitialStartingWeatherId "Cloudy"
    m_initialWeatherDurationMin 0.2
    m_initialWeatherDurationMax 0.5
+  }
+  SCR_NametagConfigComponent "{59724C8C935D8E28}" {
+   m_sConfigPath "{09F7AAA14A642683}Configs/NameTags/NametagFriendlies.conf"
   }
   SCR_NotificationSenderComponent "{5D7A443FDCA27CAE}" {
    m_iReceiveKillFeedType SAME_FACTION_ONLY
@@ -300,7 +338,7 @@ $grp GenericEntity {
   components {
    SCR_MapDescriptorComponent "{5D8680D15B3CF38E}" {
     DisplayName "Town"
-    MainType "Name Town"
+    MainType "Name Village"
    }
   }
   coords 221.182 1.001 107.325
