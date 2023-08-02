@@ -53,12 +53,23 @@ class OVT_ResistanceFactionManager: OVT_Component
 	[Attribute("", UIWidgets.Object)]
 	ResourceName m_pHiredCivilianPrefab;
 	
+	[Attribute("", UIWidgets.Object)]
+	ResourceName m_pMobileFOBPrefab;
+	
+	[Attribute("", UIWidgets.Object)]
+	ResourceName m_pMobileFOBDeployedPrefab;
+	
 	ref array<ref OVT_CampData> m_Camps;
 	
 	OVT_PlayerManagerComponent m_Players;
 	
 	protected IEntity m_TempVehicle;
 	protected SCR_AIGroup m_TempGroup;
+	
+	[RplProp()]
+	bool m_bFOBDeployed = false;
+	[RplProp()]
+	vector m_vFOBLocation;
 	
 	ref ScriptInvoker m_OnPlace = new ref ScriptInvoker();
 	ref ScriptInvoker m_OnBuild = new ref ScriptInvoker();
@@ -165,6 +176,61 @@ class OVT_ResistanceFactionManager: OVT_Component
 	{
 		RpcDo_AddOfficer(playerId);
 		Rpc(RpcDo_AddOfficer, playerId);
+	}
+	
+	void DeployFOB(RplId vehicle)
+	{		
+		if(m_bFOBDeployed) return;
+		
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(vehicle));
+		if(!rpl) return;
+		IEntity entity = rpl.GetEntity();
+		
+		OVT_VehicleManagerComponent vm = OVT_Global.GetVehicles();
+		
+		string ownerId = vm.GetOwnerID(entity);
+		
+		vector mat[4];
+		entity.GetTransform(mat);
+		
+		IEntity newveh = vm.SpawnVehicleMatrix(m_pMobileFOBDeployedPrefab, mat, ownerId);
+		RplComponent newrpl = RplComponent.Cast(newveh.FindComponent(RplComponent));
+		
+		OVT_Global.GetVehicles().m_aVehicles.RemoveItem(entity.GetID());
+		
+		OVT_Global.TransferStorage(vehicle, newrpl.Id());
+		SCR_EntityHelper.DeleteEntityAndChildren(entity);	
+		
+		m_bFOBDeployed = true;
+		m_vFOBLocation = newveh.GetOrigin();
+		Replication.BumpMe();	
+	}
+	
+	void UndeployFOB(RplId vehicle)
+	{		
+		if(!m_bFOBDeployed) return;
+		
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(vehicle));
+		if(!rpl) return;
+		IEntity entity = rpl.GetEntity();
+		
+		OVT_VehicleManagerComponent vm = OVT_Global.GetVehicles();
+		
+		string ownerId = vm.GetOwnerID(entity);
+		
+		vector mat[4];
+		entity.GetTransform(mat);
+		
+		IEntity newveh = vm.SpawnVehicleMatrix(m_pMobileFOBPrefab, mat, ownerId);
+		RplComponent newrpl = RplComponent.Cast(newveh.FindComponent(RplComponent));
+		
+		OVT_Global.GetVehicles().m_aVehicles.RemoveItem(entity.GetID());
+		
+		OVT_Global.TransferStorage(vehicle, newrpl.Id());
+		SCR_EntityHelper.DeleteEntityAndChildren(entity);		
+		
+		m_bFOBDeployed = false;
+		Replication.BumpMe();
 	}
 	
 	IEntity PlaceItem(int placeableIndex, int prefabIndex, vector pos, vector angles, int playerId, bool runHandler = true)
@@ -306,8 +372,8 @@ class OVT_ResistanceFactionManager: OVT_Component
 			{
 				RpcDo_RemoveCamp(player.camp);
 				Rpc(RpcDo_RemoveCamp, player.camp);
-			}
-			GetGame().GetWorld().QueryEntitiesBySphere(player.camp, 10, null, FindAndDeleteCamps);
+				GetGame().GetWorld().QueryEntitiesBySphere(player.camp, 10, null, FindAndDeleteCamps);
+			}			
 			player.camp = pos;
 			fob.name = "#OVT-Place_Camp " + player.name;
 		}
@@ -321,6 +387,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 	
 	protected bool FindAndDeleteCamps(IEntity ent)
 	{
+		if(ent.ClassName() != "GenericEntity") return false;
 		string res = EPF_Utils.GetPrefabName(ent);
 		if(res.Contains("TentSmallUS"))
 		{
@@ -412,6 +479,8 @@ class OVT_ResistanceFactionManager: OVT_Component
 	//RPC Methods	
 	override bool RplSave(ScriptBitWriter writer)
 	{	
+		writer.WriteBool(m_bFOBDeployed);
+		writer.WriteVector(m_vFOBLocation);
 			
 		//Send JIP Camps
 		writer.WriteInt(m_Camps.Count()); 
@@ -427,6 +496,8 @@ class OVT_ResistanceFactionManager: OVT_Component
 	
 	override bool RplLoad(ScriptBitReader reader)
 	{		
+		if(!reader.ReadBool(m_bFOBDeployed)) return false;
+		if(!reader.ReadVector(m_vFOBLocation)) return false;
 				
 		//Recieve JIP Camps
 		int length;

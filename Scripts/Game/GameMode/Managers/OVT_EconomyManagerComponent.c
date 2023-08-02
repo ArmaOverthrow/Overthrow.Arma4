@@ -1142,6 +1142,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	void StreamPlayerMoney(int playerId)
 	{
+		if(!m_Players) m_Players = OVT_Global.GetPlayers();
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		OVT_PlayerData player = m_Players.GetPlayer(persId);
 		if(!player) return;

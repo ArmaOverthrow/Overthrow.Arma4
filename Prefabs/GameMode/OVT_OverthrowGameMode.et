@@ -390,8 +390,19 @@ OVT_OverthrowGameMode {
       }
      }
     }
+    OVT_VehicleUpgrades "{5E02EBD7116F279B}" {
+     m_pBasePrefab "{F1FBD0972FA5FE09}Prefabs/Vehicles/Wheeled/M923A1/M923A1_transport.et"
+     m_aUpgrades {
+      OVT_VehicleUpgrade "{5E02EBD7F727B31C}" {
+       m_pUpgradePrefab "{E6A31A5A6EA0AF04}Prefabs/Vehicles/Wheeled/M923A1/OverthrowMobileFOB.et"
+       m_iCost 10000
+      }
+     }
+    }
    }
    m_pHiredCivilianPrefab "{365CD448A5DABCCC}Prefabs/Groups/INDFOR/Group_CIV_Recruit.et"
+   m_pMobileFOBPrefab "{E6A31A5A6EA0AF04}Prefabs/Vehicles/Wheeled/M923A1/OverthrowMobileFOB.et"
+   m_pMobileFOBDeployedPrefab "{ABF741C3184846E9}Prefabs/Vehicles/Wheeled/M923A1/OverthrowMobileFOBDeployed.et"
   }
   OVT_RespawnSystemComponent "{5DEA8B45ED838B55}" {
    m_rDefaultPrefab "{3A99A99836F6B3DC}Prefabs/Characters/Factions/INDFOR/FIA/Character_Player.et"
