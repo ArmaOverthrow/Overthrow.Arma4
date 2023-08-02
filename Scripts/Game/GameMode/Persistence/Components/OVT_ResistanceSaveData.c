@@ -8,6 +8,8 @@ class OVT_ResistanceSaveData : EPF_ComponentSaveData
 {
 	ref array<ref OVT_CampData> m_Camps;
 	string m_sPlayerFactionKey;
+	bool m_bFOBDeployed = false;
+	vector m_vFOBLocation;
 	
 	//Jobs
 	ref set<int> m_aGlobalJobs;
@@ -25,6 +27,9 @@ class OVT_ResistanceSaveData : EPF_ComponentSaveData
 		
 		m_Camps = new array<ref OVT_CampData>;
 		m_sPlayerFactionKey = OVT_Global.GetConfig().m_sPlayerFaction;
+		
+		m_bFOBDeployed = resistance.m_bFOBDeployed;
+		m_vFOBLocation = resistance.m_vFOBLocation;
 		
 		foreach(OVT_CampData fob : resistance.m_Camps)
 		{
@@ -109,6 +114,9 @@ class OVT_ResistanceSaveData : EPF_ComponentSaveData
 	override EPF_EApplyResult ApplyTo(IEntity owner, GenericComponent component, EPF_ComponentSaveDataClass attributes)
 	{
 		OVT_ResistanceFactionManager resistance = OVT_ResistanceFactionManager.Cast(component);
+		
+		resistance.m_bFOBDeployed = m_bFOBDeployed;
+		resistance.m_vFOBLocation = m_vFOBLocation;
 
 		if (m_sPlayerFactionKey.IsEmpty())
 		{

@@ -670,6 +670,32 @@ class OVT_PlayerCommsComponent: OVT_Component
 	}
 	
 	//VEHICLES
+	void DeployFOB(IEntity vehicle)
+	{
+		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
+		
+		Rpc(RpcAsk_DeployFOB, rpl.Id());
+	}	
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_DeployFOB(RplId vehicle)
+	{
+		OVT_Global.GetResistanceFaction().DeployFOB(vehicle);
+	}
+	
+	void UndeployFOB(IEntity vehicle)
+	{
+		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
+		
+		Rpc(RpcAsk_UndeployFOB, rpl.Id());
+	}	
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_UndeployFOB(RplId vehicle)
+	{
+		OVT_Global.GetResistanceFaction().UndeployFOB(vehicle);
+	}
+	
 	void UpgradeVehicle(Vehicle vehicle, OVT_VehicleUpgrade upgrade)
 	{
 		int id = OVT_Global.GetEconomy().GetInventoryId(upgrade.m_pUpgradePrefab);

@@ -775,6 +775,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5E04888F0573C994}" {
+   Id "OVT-DeployFOB"
+   Target_en_us "Deploy FOB"
+   Modified 1577356956
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59C84C639B645258}" {
    Id "OVT-DonateFunds"
    Target_en_us "Donate Funds"
@@ -2190,6 +2197,20 @@ StringTable {
    LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{5E02EBD7A19FF995}" {
+   Id "OVT-MobileFOB"
+   Target_en_us "Mobile FOB"
+   Modified 1577355142
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5E02EBD7A9A429AF}" {
+   Id "OVT-MobileFOBDescription"
+   Target_en_us "Can be deployed almost anywhere to provide a fast-travel destination and location to build specialist tents to provide various services to the resistance. Only one may be deployed at any time. Un-deploying an FOB will collect any nearby containers into the truck for transportation to a new area."
+   Modified 1577355242
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{5D6C212548EA9183}" {
    Id "OVT-Modifier_NearbyBase"
@@ -4902,6 +4923,13 @@ StringTable {
    LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{5E04888F00ABCED0}" {
+   Id "OVT-UndeployFOB"
+   Target_en_us "Undeploy FOB"
+   Modified 1577356966
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{59A2BD31647163FE}" {
    Id "OVT-UnloadStorage"

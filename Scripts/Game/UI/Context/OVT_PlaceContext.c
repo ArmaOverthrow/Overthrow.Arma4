@@ -213,9 +213,18 @@ class OVT_PlaceContext : OVT_UIContext
 			if(dist < MAX_HOUSE_PLACE_DIS) return true;
 		}
 		
-		OVT_CampData fob = m_Resistance.GetNearestCampData(pos);		
-		dist = vector.Distance(fob.location, pos);
-		if(dist < MAX_CAMP_PLACE_DIS && fob.owner == m_sPlayerID) return true;	
+		OVT_CampData fob = m_Resistance.GetNearestCampData(pos);	
+		if(fob)
+		{	
+			dist = vector.Distance(fob.location, pos);
+			if(dist < MAX_CAMP_PLACE_DIS && fob.owner == m_sPlayerID) return true;	
+		}
+		
+		if(m_Resistance.m_bFOBDeployed)
+		{
+			dist = vector.Distance(m_Resistance.m_vFOBLocation, pos);
+			if(dist < MAX_FOB_PLACE_DIS) return true;
+		}
 		
 		OVT_BaseData base = m_OccupyingFaction.GetNearestBase(pos);
 		dist = vector.Distance(base.location,pos);
