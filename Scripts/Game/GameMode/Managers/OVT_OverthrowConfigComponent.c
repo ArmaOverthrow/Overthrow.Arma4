@@ -240,7 +240,7 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		
 		foreach(OVT_BaseData base : OVT_Global.GetOccupyingFaction().m_Bases)
 		{
-			base.faction = m_iOccupyingFactionIndex;
+			base.faction = key;
 		}
 		
 		foreach(OVT_TownData town : OVT_Global.GetTowns().m_Towns)

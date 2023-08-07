@@ -92,6 +92,8 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 		m_Ranges = new array<float>;
 		m_POIWidgets = new array<ref Widget>;
 		
+		
+		
 		OVT_RealEstateManagerComponent realEstate = OVT_Global.GetRealEstate();
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
 		OVT_OverthrowConfigComponent otconfig = OVT_Global.GetConfig();

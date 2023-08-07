@@ -66,6 +66,14 @@ class OVT_BaseControllerComponent: OVT_Component
 		return data.faction;
 	}
 	
+	void SetControllingFaction(string key, bool suppressEvents = false)
+	{
+		FactionManager mgr = GetGame().GetFactionManager();
+		Faction faction = mgr.GetFactionByKey(key);
+		int index = mgr.GetFactionIndex(faction);
+		SetControllingFaction(index, suppressEvents);
+	}
+	
 	void SetControllingFaction(int index, bool suppressEvents = false)
 	{		
 		if(!suppressEvents)

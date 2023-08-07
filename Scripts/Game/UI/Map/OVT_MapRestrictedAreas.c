@@ -19,16 +19,6 @@ class OVT_MapRestrictedAreas : OVT_MapCanvasLayer
 			DrawCircle(center, m_Ranges[i], ARGB(50, 255, 0, 0));			
 		}
 		
-		foreach(int i, vector center : m_OccupyingCenters)
-		{			
-			DrawImage(center, 25, 25, m_Flag);
-		}
-		
-		foreach(int i, vector center : m_ResistanceCenters)
-		{			
-			DrawImage(center, 25, 25, m_ResistanceFlag);
-		}
-		
 		if(m_bQRFActive)
 		{
 			DrawCircle(m_QRFCenter, OVT_QRFControllerComponent.QRF_RANGE, ARGB(50, 255, 0, 0));

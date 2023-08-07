@@ -1,0 +1,130 @@
+FrameWidgetClass {
+ Name "rootWidget"
+ components {
+  OVT_CampaignMapUIBase "{5E0E1B8B3DD4A63F}" {
+  }
+ }
+ {
+  OverlayWidgetClass "{5E0E1B8B1235BEA6}" {
+   Name "Overlay0"
+   Slot FrameWidgetSlot "{5712D788F1DFB22C}" {
+    Anchor 0.5 0.5 0.5 0.5
+    PositionX 0
+    OffsetLeft 0
+    PositionY 0
+    OffsetTop 0
+    OffsetRight -100
+    SizeY 100
+    OffsetBottom -100
+    Alignment 0.5 0.5
+   }
+   {
+    SizeLayoutWidgetClass "{5E0E1B8B1235BEA4}" {
+     Name "SizeBaseIcon"
+     Slot OverlayWidgetSlot "{5712D788F02EA7EE}" {
+     }
+     "Ignore Cursor" 0
+     AllowWidthOverride 1
+     WidthOverride 60
+     AllowHeightOverride 1
+     HeightOverride 60
+     {
+      OverlayWidgetClass "{5E0E1B8B1235BEA3}" {
+       Name "ImageOverlay"
+       Slot AlignableSlot "{5712D78E585B4C60}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       "Is Enabled" 0
+       {
+        ImageWidgetClass "{5E0E1B8B1235BEAF}" {
+         Name "Highlight"
+         Slot OverlayWidgetSlot "{56FAD15D251881C8}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+          Padding 0 0 0 0
+         }
+         "Z Order" 3
+         "Is Visible" 0
+        }
+        ImageWidgetClass "{5E0E1B8B1235BEAE}" {
+         Name "Special"
+         Slot OverlayWidgetSlot "{570E98AD58CD05BD}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+          Padding 0 0 0 0
+         }
+         "Is Visible" 0
+        }
+        OverlayWidgetClass "{5E0E1B8B1235BEAD}" {
+         Name "SideSymbol"
+         Slot OverlayWidgetSlot "{5646BAA78B50FE6C}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+          Padding 0 0 0 0
+         }
+         "Z Order" 1
+         Color 0.471 0.471 0.471 1
+         components {
+          SCR_MilitarySymbolUIComponent "{56F4CE75B4245547}" {
+           m_MilitarySymbol SCR_MilitarySymbol "{56F4CE75B761BCC4}" {
+            m_Identity OPFOR
+            m_Dimension INSTALLATION
+            m_Icons RESPAWN
+           }
+          }
+         }
+        }
+        ImageWidgetClass "{5E0E1B8B1235BEAC}" {
+         Name "Corners"
+         Slot OverlayWidgetSlot "{56FAD15D251881C8}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+          Padding 0 0 0 0
+         }
+         "Z Order" 4
+         "Is Visible" 0
+         Color 0.896 0.539 0.184 1
+        }
+        ButtonWidgetClass "{5E0E1B8B1235BEAB}" {
+         Name "BaseFrame"
+         Slot OverlayWidgetSlot "{55EAFD1162B82B7E}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+         }
+         "Ignore Cursor" 0
+         Color 1 1 1 0
+         {
+          ImageWidgetClass "{5E0E1B8B1235BEAA}" {
+           Name "Image0"
+           Slot ButtonWidgetSlot "{5A74C103AACB7005}" {
+           }
+           "Is Visible" 0
+           Color 0.561 0.071 0.439 0.404
+          }
+         }
+        }
+        ImageWidgetClass "{5E0E1B8B1235BE9C}" {
+         Name "BackgroundGradient"
+         Slot OverlayWidgetSlot "{56FAD15D251881C8}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+         }
+         "Is Visible" 0
+         Opacity 0.766
+         Color 0 0 0 0.745
+         Saturation 0.555
+         Mask "{0BFC9F2798DAD87D}system/textures/PP/HDRCircleWeight_A.edds"
+         "Transition width" 0.498
+         Progress 0.461
+         "Mask Mode" "Exclude Range"
+         Range 0.672
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

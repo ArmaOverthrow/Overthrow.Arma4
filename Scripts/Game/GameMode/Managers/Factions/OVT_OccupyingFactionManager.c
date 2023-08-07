@@ -22,7 +22,7 @@ class OVT_BaseData : Managed
 	[NonSerialized()]
 	int id;
 	
-	int faction;
+	string faction;
 	
 	vector location;
 	ref array<vector> slotsFilled = {};
@@ -39,7 +39,7 @@ class OVT_BaseData : Managed
 	
 	bool IsOccupyingFaction()
 	{
-		return faction == OVT_Global.GetConfig().GetOccupyingFactionIndex();
+		return faction == OVT_Global.GetConfig().m_sOccupyingFaction;
 	}
 }
 
@@ -169,7 +169,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_Config.m_iOccupyingFactionIndex = -1;
 		foreach(OVT_BaseData data : m_Bases)
 		{
-			data.faction = m_Config.GetOccupyingFactionIndex();
+			data.faction = m_Config.m_sOccupyingFaction;
 		}
 	}
 	
@@ -371,7 +371,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 			OVT_BaseControllerComponent base = OVT_BaseControllerComponent.Cast(baseEntity.FindComponent(OVT_BaseControllerComponent));
 			OVT_BaseData data = GetNearestBase(pos);
 			
-			data.entId = baseEntity.GetID();	
+			data.entId = baseEntity.GetID();				
 			base.SetControllingFaction(data.faction, false);
 			
 			if(base.IsOccupyingFaction())
@@ -523,9 +523,11 @@ class OVT_OccupyingFactionManager: OVT_Component
 			}else{
 				OVT_Global.GetNotify().SendTextNotification("BaseControlledOccupying",-1,townName);
 			}
+			string winnerKey = GetGame().GetFactionManager().GetFactionByIndex(m_CurrentQRF.m_iWinningFaction).GetFactionKey();
+			
 			m_CurrentQRFBase.SetControllingFaction(m_CurrentQRF.m_iWinningFaction);
-			m_Bases[m_iCurrentQRFBase].faction = m_CurrentQRF.m_iWinningFaction;
-			Rpc(RpcDo_SetBaseFaction, m_iCurrentQRFBase, m_CurrentQRF.m_iWinningFaction);
+			m_Bases[m_iCurrentQRFBase].faction = winnerKey;
+			Rpc(RpcDo_SetBaseFaction, m_iCurrentQRFBase, winnerKey);
 		}		
 						
 		SCR_EntityHelper.DeleteEntityAndChildren(m_CurrentQRF.GetOwner());
@@ -595,13 +597,11 @@ class OVT_OccupyingFactionManager: OVT_Component
 		OVT_TownData closestTown = townManager.GetNearestTown(ent.GetOrigin());
 		Print("Adding base near " + closestTown.name);
 		#endif
-				
-		int occupyingFactionIndex = m_Config.GetOccupyingFactionIndex();
 		
 		OVT_BaseData data = new OVT_BaseData();
 		data.id = m_Bases.Count();
 		data.location = ent.GetOrigin();
-		data.faction = occupyingFactionIndex;
+		data.faction = m_Config.GetOccupyingFaction().GetFactionKey();
 		
 		m_Bases.Insert(data);
 		
@@ -915,7 +915,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		{
 			OVT_BaseData data = m_Bases[i];
 			writer.WriteVector(data.location);
-			writer.WriteInt(data.faction);
+			writer.WriteString(data.faction);
 		}
 		
 		//Send JIP radio towers
@@ -954,7 +954,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 			OVT_BaseData base = new OVT_BaseData();
 					
 			if (!reader.ReadVector(base.location)) return false;
-			if (!reader.ReadInt(base.faction)) return false;
+			if (!reader.ReadString(base.faction)) return false;
 			
 			base.id = i;
 			m_Bases.Insert(base);
@@ -1006,7 +1006,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_SetBaseFaction(int index, int faction)
+	protected void RpcDo_SetBaseFaction(int index, string faction)
 	{
 		m_Bases[index].faction = faction;
 	}
