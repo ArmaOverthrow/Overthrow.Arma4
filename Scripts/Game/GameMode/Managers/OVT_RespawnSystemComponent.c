@@ -32,7 +32,7 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 		if (!playerUid)
 		{
 			//Still no player UID?
-			Debug.Log("WARNING: Early OnUidAvailable detected. Retrying...", LogLevel.WARNING);
+			Print("WARNING: Early OnUidAvailable detected. Retrying...", LogLevel.WARNING);
 			OnPlayerRegisterFailed(playerId);
 			return;
 		}

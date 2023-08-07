@@ -86,7 +86,7 @@ class OVT_PlayerManagerComponent: OVT_Component
 	
 	void SetupPlayer(int playerId, string persistentId)
 	{
-		Debug.Log("Setting up player: " + persistentId);
+		Print("Setting up player: " + persistentId);
 		m_mPersistentIDs[playerId] = persistentId;
 		m_mPlayerIDs[persistentId] = playerId;
 		
