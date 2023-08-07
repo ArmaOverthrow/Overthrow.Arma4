@@ -1,22 +1,23 @@
-$grp GenericEntity {
- Base_South {
-  components {
-   SCR_MapDescriptorComponent "{599D5911D54634E7}" {
-    DisplayName "#AR-MapLocation_Military"
-    MainType "Name Generic"
-   }
-  }
-  coords 9398.632 196.303 1170.757
-  Flags 1027
+$grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.et" {
+ OVT_Base_Levie {
+  coords 7457.223 164.562 4278.119
  }
- Base_West {
-  components {
-   SCR_MapDescriptorComponent "{59A6ED8827D1E6A3}" {
-    DisplayName "#AR-MapLocation_Military"
-    MainType "Name Generic"
-   }
-  }
-  coords 924.549 2.751 6059.558
-  Flags 1027
+ OVT_Base_StPierre {
+  coords 9398.637 196.296 1170.662
+ }
+ OVT_Base_Lamentin {
+  coords 924.679 2.75 6059.404
+ }
+ OVT_Base_Chotain {
+  coords 7462.8 7.814 6727.422
+ }
+ OVT_Base_SaintPhillipe {
+  coords 5343.506 43.617 10535.197
+ }
+ OVT_Base_Airport {
+  coords 4961.688 28.343 11878.047
+ }
+ OVT_Base_TrainingGrounds {
+  coords 7729.433 13.656 8154.407
  }
 }

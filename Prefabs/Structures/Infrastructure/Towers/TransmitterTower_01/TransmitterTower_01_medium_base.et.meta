@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{01E409EF2B75692E}Prefabs/Structures/Infrastructure/Towers/TransmitterTower_01/TransmitterTower_01_medium_base.et"
+ Configurations {
+  EntityTemplateResourceClass PC {
+  }
+  EntityTemplateResourceClass XBOX_ONE : PC {
+  }
+  EntityTemplateResourceClass XBOX_SERIES : PC {
+  }
+  EntityTemplateResourceClass PS4 : PC {
+  }
+  EntityTemplateResourceClass HEADLESS : PC {
+  }
+ }
+}

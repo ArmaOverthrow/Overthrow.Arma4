@@ -3,12 +3,14 @@ class OVT_CampaignMapUIBase : SCR_MapUIElement
 	protected OVT_BaseData m_BaseData;
 	protected string m_sFactionKey;
 	protected Widget m_wBaseIcon;
+	protected SCR_MilitarySymbolUIComponent m_wSymbolUI;
 	
 	override void HandlerAttached(Widget w)
 	{
 		super.HandlerAttached(w);
 
-		m_wBaseIcon = Widget.Cast(w.FindAnyWidget("SideSymbol"));		
+		m_wBaseIcon = Widget.Cast(w.FindAnyWidget("SideSymbol"));
+		m_wSymbolUI = SCR_MilitarySymbolUIComponent.Cast(m_wBaseIcon.FindHandler(SCR_MilitarySymbolUIComponent));				
 	}
 	
 	void InitBase(OVT_BaseData baseData)
@@ -25,7 +27,22 @@ class OVT_CampaignMapUIBase : SCR_MapUIElement
 
 		Faction f = GetGame().GetFactionManager().GetFactionByKey(m_BaseData.faction);
 		
-		SetIconFaction(f);		
+		SetIconFaction(f);	
+		
+		if(!m_wSymbolUI) return;
+		
+		SCR_MilitarySymbol baseIcon = new SCR_MilitarySymbol();
+		
+		if(m_BaseData.IsOccupyingFaction())
+		{
+			baseIcon.SetIdentity(EMilitarySymbolIdentity.OPFOR);
+		}else{
+			baseIcon.SetIdentity(EMilitarySymbolIdentity.BLUFOR);
+		}
+		
+		baseIcon.SetDimension(EMilitarySymbolDimension.INSTALLATION);
+		
+		m_wSymbolUI.Update(baseIcon);
 	}
 	
 	protected void SetIconFaction(Faction faction)

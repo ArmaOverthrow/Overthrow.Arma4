@@ -28,12 +28,10 @@ class OVT_BaseControllerComponent: OVT_Component
 	
 	protected const int UPGRADE_UPDATE_FREQUENCY = 10000;
 	
-	EntityID m_Flag;	
+	EntityID m_Flag;
 	
-	override void OnPostInit(IEntity owner)
-	{	
-		super.OnPostInit(owner);
-		
+	void InitBase()
+	{
 		if(!Replication.IsServer()) return;
 		if (SCR_Global.IsEditMode()) return;
 		
@@ -41,7 +39,7 @@ class OVT_BaseControllerComponent: OVT_Component
 		
 		InitializeBase();
 		
-		GetGame().GetCallqueue().CallLater(UpdateUpgrades, UPGRADE_UPDATE_FREQUENCY, true, owner);		
+		GetGame().GetCallqueue().CallLater(UpdateUpgrades, UPGRADE_UPDATE_FREQUENCY, true, GetOwner());		
 	}
 	
 	protected void UpdateUpgrades()

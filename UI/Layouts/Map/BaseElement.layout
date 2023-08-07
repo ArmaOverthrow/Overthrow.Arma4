@@ -70,7 +70,6 @@ FrameWidgetClass {
            m_MilitarySymbol SCR_MilitarySymbol "{56F4CE75B761BCC4}" {
             m_Identity OPFOR
             m_Dimension INSTALLATION
-            m_Icons RESPAWN
            }
           }
          }
