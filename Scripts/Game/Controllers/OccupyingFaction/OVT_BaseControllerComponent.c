@@ -27,7 +27,7 @@ class OVT_BaseControllerComponent: OVT_Component
 	protected OVT_OccupyingFactionManager m_occupyingFactionManager;
 
 	protected const int UPGRADE_UPDATE_FREQUENCY = 10000;
-
+		
 	void InitBase()
 	{
 		if(!Replication.IsServer()) return;

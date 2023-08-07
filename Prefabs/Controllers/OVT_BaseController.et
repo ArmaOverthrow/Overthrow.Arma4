@@ -98,5 +98,6 @@ GenericEntity : "{160E4E4110803F26}Prefabs/Structures/Military/Flags/FlagPole_02
   RplComponent "{599AA7491505E0AB}" {
   }
  }
- coords 7504.101 165.761 4282.453
+ coords 51.793 1 107.192
+ Flags 1027
 }

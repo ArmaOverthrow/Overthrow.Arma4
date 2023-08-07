@@ -139,7 +139,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		}		
 						
 		OVT_BaseData base = OVT_Global.GetOccupyingFaction().GetNearestBase(GetOwner().GetOrigin());
-		if(base)
+		if(base && base.IsOccupyingFaction())
 		{
 			float distanceToBase = vector.Distance(base.location, GetOwner().GetOrigin());
 			if(m_iWantedLevel < 2 && distanceToBase < OVT_Global.GetConfig().m_Difficulty.baseCloseRange && m_bTempSeen)
@@ -149,7 +149,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		}
 		
 		OVT_RadioTowerData tower = OVT_Global.GetOccupyingFaction().GetNearestRadioTower(GetOwner().GetOrigin());
-		if(tower)
+		if(tower && tower.IsOccupyingFaction())
 		{
 			float distanceToBase = vector.Distance(tower.location, GetOwner().GetOrigin());
 			if(m_iWantedLevel < 2 && distanceToBase < 20 && m_bTempSeen)

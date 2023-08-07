@@ -91,9 +91,6 @@ class OVT_TargetData
 
 class OVT_OccupyingFactionManager: OVT_Component
 {
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Base Controller Prefab", params: "et", category: "Controllers")]
-	ResourceName m_pBaseControllerPrefab;
-
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "QRF Controller Prefab", params: "et", category: "Controllers")]
 	ResourceName m_pQRFControllerPrefab;
 
@@ -104,7 +101,6 @@ class OVT_OccupyingFactionManager: OVT_Component
 	float m_iThreat;
 	ref array<ref OVT_BaseData> m_Bases;
 	ref array<ref OVT_RadioTowerData> m_RadioTowers;
-	ref array<ref vector> m_BasesToSpawn;
 
 	ref array<ref OVT_TargetData> m_aKnownTargets;
 
@@ -148,7 +144,6 @@ class OVT_OccupyingFactionManager: OVT_Component
 	{
 		m_Bases = new array<ref OVT_BaseData>;
 		m_RadioTowers = new array<ref OVT_RadioTowerData>;
-		m_BasesToSpawn = new array<ref vector>;
 		m_aKnownTargets = new array<ref OVT_TargetData>;
 	}
 
@@ -186,7 +181,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 		if(tw) timeMul = tw.GetDayTimeMultiplier();
 
-		GetGame().GetCallqueue().CallLater(SpawnBaseControllers, 0);
+		GetGame().GetCallqueue().CallLater(InitBaseControllers, 0);
 
 		GetGame().GetCallqueue().CallLater(CheckUpdate, OF_UPDATE_FREQUENCY / timeMul, true, GetOwner());
 
@@ -367,10 +362,10 @@ class OVT_OccupyingFactionManager: OVT_Component
 		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, CheckTransmitterTowerAdd, FilterTransmitterTowerEntities, EQueryEntitiesFlags.STATIC);
 	}
 
-	protected void SpawnBaseControllers()
+	protected void InitBaseControllers()
 	{
 		OVT_ResistanceFactionManager rf = OVT_Global.GetResistanceFaction();
-		OVT_Faction resistance = OVT_Global.GetConfig().GetPlayerFaction();
+		OVT_Faction resistance = m_Config.GetPlayerFaction();
 
 		foreach(int index, OVT_BaseData data : m_Bases)
 		{
@@ -403,7 +398,6 @@ class OVT_OccupyingFactionManager: OVT_Component
 				}
 			}
 		}
-		m_BasesToSpawn.Clear();
 	}
 
 	protected void DistributeInitialResources()
@@ -609,17 +603,13 @@ class OVT_OccupyingFactionManager: OVT_Component
 		int occupyingFactionIndex = m_Config.GetOccupyingFactionIndex();
 
 		OVT_BaseData data = new OVT_BaseData();
+		data.entId = ent.GetID();
 		data.id = m_Bases.Count();
 		data.location = ent.GetOrigin();
-		data.faction = OVT_Global.GetConfig().GetOccupyingFaction().GetFactionKey();
+		data.faction = m_Config.GetOccupyingFaction().GetFactionKey();
 
 		m_Bases.Insert(data);
 		return true;
-	}
-
-	IEntity SpawnBaseController(vector loc)
-	{
-		return OVT_Global.SpawnEntityPrefab(m_pBaseControllerPrefab, loc);
 	}
 
 	OVT_QRFControllerComponent SpawnQRFController(vector loc)
@@ -630,13 +620,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 	bool FilterBaseEntities(IEntity entity)
 	{
-		MapDescriptorComponent mapdesc = MapDescriptorComponent.Cast(entity.FindComponent(MapDescriptorComponent));
-		if (mapdesc){
-			int type = mapdesc.GetBaseType();
-			if(type == EMapDescriptorType.MDT_NAME_GENERIC) {
-				if(mapdesc.Item().GetDisplayName() == "#AR-MapLocation_Military") return true;
-			}
-		}
+		OVT_BaseControllerComponent controller = OVT_BaseControllerComponent.Cast(entity.FindComponent(OVT_BaseControllerComponent));
+		if(controller) return true;
 
 		return false;
 	}
@@ -657,13 +642,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 	bool FilterTransmitterTowerEntities(IEntity entity)
 	{
-		MapDescriptorComponent mapdesc = MapDescriptorComponent.Cast(entity.FindComponent(MapDescriptorComponent));
-		if (mapdesc){
-			int type = mapdesc.GetBaseType();
-			if(type == EMapDescriptorType.MDT_TRANSMITTER) {
-				return true;
-			}
-		}
+		OVT_TowerControllerComponent controller = OVT_TowerControllerComponent.Cast(entity.FindComponent(OVT_TowerControllerComponent));
+		if(controller) return true;
 
 		return false;
 	}
