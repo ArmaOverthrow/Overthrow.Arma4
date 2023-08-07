@@ -30,7 +30,12 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 		
 		string playerUid = EPF_Utils.GetPlayerUID(playerId);
 		if (!playerUid)
+		{
+			//Still no player UID?
+			Debug.Log("WARNING: Early OnUidAvailable detected. Retrying...", LogLevel.WARNING);
+			OnPlayerRegisterFailed(playerId);
 			return;
+		}
 		
 		mode.PreparePlayer(playerId, playerUid);
 		

@@ -280,11 +280,13 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 				int cost = m_Config.m_Difficulty.respawnCost;
 				m_EconomyManager.TakePlayerMoney(playerId, cost);
 			}else{
+				Debug.Log("Preparing returning player: " + persistentId);	
 				//This is a returning player, don't charge them hospital fees				
 				m_aInitializedPlayers.Insert(persistentId);
 			}
 		}else{
 			//New player
+			Debug.Log("Preparing NEW player: " + persistentId);
 			int cash = m_Config.m_Difficulty.startingCash;
 			m_EconomyManager.AddPlayerMoney(playerId, cash);
 			
