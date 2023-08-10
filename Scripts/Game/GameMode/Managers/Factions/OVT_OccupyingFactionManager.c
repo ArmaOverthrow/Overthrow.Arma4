@@ -270,8 +270,10 @@ class OVT_OccupyingFactionManager: OVT_Component
 		if(faction == m_Config.GetOccupyingFactionIndex())
 		{
 			OVT_Global.GetNotify().SendTextNotification("RadioTowerControlledOccupying",-1,townName);	
+			OVT_Global.GetNotify().SendExternalNotifications("RadioTowerControlledOccupying",townName);	
 		}else{
 			OVT_Global.GetNotify().SendTextNotification("RadioTowerControlledResistance",-1,townName);	
+			OVT_Global.GetNotify().SendExternalNotifications("RadioTowerControlledResistance",townName);	
 		}		
 	}
 		
@@ -480,6 +482,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_iCurrentQRFBase= GetBaseIndex(data);
 		
 		OVT_Global.GetNotify().SendTextNotification("BaseBattle", -1, OVT_Global.GetTowns().GetTownName(m_vQRFLocation));
+		OVT_Global.GetNotify().SendExternalNotifications("BaseBattle", OVT_Global.GetTowns().GetTownName(m_vQRFLocation));
 		
 		Rpc(RpcDo_SetQRFBase, m_iCurrentQRFBase);
 		Rpc(RpcDo_SetQRFActive, m_vQRFLocation);
@@ -505,6 +508,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		if(town.size == 2) type = "Town";
 		if(town.size == 3) type = "City";
 		OVT_Global.GetNotify().SendTextNotification(type + "Battle", -1, OVT_Global.GetTowns().GetTownName(townID));
+		OVT_Global.GetNotify().SendExternalNotifications(type + "Battle", OVT_Global.GetTowns().GetTownName(townID));
 		
 		Rpc(RpcDo_SetQRFTown, m_iCurrentQRFTown);
 		Rpc(RpcDo_SetQRFActive, m_vQRFLocation);
@@ -519,8 +523,10 @@ class OVT_OccupyingFactionManager: OVT_Component
 			{
 				m_iThreat += 50;
 				OVT_Global.GetNotify().SendTextNotification("BaseControlledResistance",-1,townName);
+				OVT_Global.GetNotify().SendExternalNotifications("BaseControlledResistance",townName);
 			}else{
 				OVT_Global.GetNotify().SendTextNotification("BaseControlledOccupying",-1,townName);
+				OVT_Global.GetNotify().SendExternalNotifications("BaseControlledOccupying",townName);
 			}
 			m_CurrentQRFBase.SetControllingFaction(m_CurrentQRF.m_iWinningFaction);
 			m_Bases[m_iCurrentQRFBase].faction = m_CurrentQRF.m_iWinningFaction;

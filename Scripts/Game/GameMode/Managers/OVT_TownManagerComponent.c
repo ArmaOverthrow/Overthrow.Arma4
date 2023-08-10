@@ -483,6 +483,7 @@ class OVT_TownManagerComponent: OVT_Component
 		if(faction != m_Config.GetPlayerFactionIndex()) factionType = "Occupying";
 		
 		OVT_Global.GetNotify().SendTextNotification(type + "Controlled" + factionType, -1, GetTownName(townID));
+		OVT_Global.GetNotify().SendExternalNotifications(type + "Controlled" + factionType, GetTownName(townID));
 	}
 	
 	IEntity GetRandomHouse()

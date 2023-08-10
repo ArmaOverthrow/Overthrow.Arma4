@@ -41,10 +41,20 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	
 	void DoStartNewGame()
 	{
-		if(RplSession.Mode() == RplMode.Dedicated)
+		bool isDedicated = RplSession.Mode() == RplMode.Dedicated;
+#ifdef WORKBENCH
+		isDedicated = true; //To test dedicated server config
+#endif		
+		if(isDedicated)
 		{
-			Print("Dedicated server detected, setting occupying faction to " + m_Config.m_sDefaultOccupyingFaction);
-			m_Config.SetOccupyingFaction(m_Config.m_sDefaultOccupyingFaction);
+			if(m_Config.m_ConfigFile && m_Config.m_ConfigFile.occupyingFaction != "" && m_Config.m_ConfigFile.occupyingFaction != "FIA")
+			{
+				Print("Overthrow: Setting occupying faction to config value (" + m_Config.m_ConfigFile.occupyingFaction + ")");	
+				m_Config.SetOccupyingFaction(m_Config.m_ConfigFile.occupyingFaction);
+			}else{
+				Print("Overthrow: Setting occupying faction to default (" + m_Config.m_sDefaultOccupyingFaction + ")");	
+				m_Config.SetOccupyingFaction(m_Config.m_sDefaultOccupyingFaction);				
+			}
 		}
 		
 		if(m_OccupyingFactionManager)
@@ -437,6 +447,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			//show wait screen?
 			return;
 		}
+		
+		m_Config.LoadConfig();
 		
 		m_Persistence = OVT_PersistenceManagerComponent.Cast(FindComponent(OVT_PersistenceManagerComponent));		
 		if(m_Persistence)

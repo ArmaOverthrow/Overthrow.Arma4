@@ -14,6 +14,25 @@ class OVT_NotificationData : Managed
 	int displayTimer = 5000;
 }
 
+sealed class OVT_DiscordWebhookCallback : RestCallback
+{
+	override void OnSuccess(string data, int dataSize)
+	{
+		Print("Web Hook Success");
+	}
+	
+	override void OnError(int errorCode)
+	{
+		Print("Web Hook Error: " + errorCode.ToString());
+	}
+
+	//------------------------------------------------------------------------------------------------
+	override void OnTimeout()
+	{
+		Print("Web Hook Timeout");
+	}
+}
+
 class OVT_NotificationManagerComponent: OVT_Component
 {
 	[Attribute()]
@@ -46,6 +65,32 @@ class OVT_NotificationManagerComponent: OVT_Component
 		{
 			RpcDo_RcvTextNotification(tag, playerId, param1, param2, param3);
 		}
+	}
+	
+	void SendExternalNotifications(string tag, string param1 = "", string param2="", string param3="")
+	{
+		SCR_SimpleMessagePreset preset = m_Messages.GetPreset(tag);
+		if(!preset) return;
+					
+		string localized = WidgetManager.Translate(preset.m_UIInfo.GetDescription(), param1, param2, param3);
+		
+		Print("Overthrow: " + localized);
+		
+		if(m_Config.m_ConfigFile && m_Config.m_ConfigFile.discordWebHookURL.StartsWith("http"))
+		{
+			RestContext context = GetGame().GetRestApi().GetContext(m_Config.m_ConfigFile.discordWebHookURL);
+			int result = context.POST(new OVT_DiscordWebhookCallback(),"","content="+localized);
+		}		
+	}
+	
+	static string Serialize(Managed data)
+	{
+		ContainerSerializationSaveContext writer();
+		JsonSaveContainer jsonContainer = new JsonSaveContainer();
+		jsonContainer.SetMaxDecimalPlaces(5);
+		writer.SetContainer(jsonContainer);
+		writer.WriteValue("", data);
+		return jsonContainer.ExportToString();
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
