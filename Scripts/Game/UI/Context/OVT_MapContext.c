@@ -31,8 +31,7 @@ class OVT_MapContext : OVT_UIContext
 		m_Resistance = OVT_Global.GetResistanceFaction();
 		m_OccupyingFaction = OVT_Global.GetOccupyingFaction();
 		
-		SCR_MapEntity.GetOnMapClose().Insert(DisableMapInfo);
-		SCR_MapEntity.GetOnMapClose().Insert(DisableFastTravel);
+		SCR_MapEntity.GetOnMapClose().Insert(OnMapExit);		
 		
 	}
 	
@@ -286,6 +285,12 @@ class OVT_MapContext : OVT_UIContext
 			return;
 		}
 		m_bBusTravelActive = true;
+	}
+	
+	void OnMapExit(MapConfiguration config)
+	{
+		DisableMapInfo();
+		DisableFastTravel();
 	}
 	
 	void DisableMapInfo()
