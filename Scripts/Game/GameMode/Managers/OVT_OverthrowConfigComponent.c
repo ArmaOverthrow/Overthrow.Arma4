@@ -49,6 +49,17 @@ class OVT_CameraPosition : ScriptAndConfig
 	vector angles;
 }
 
+class OVT_OverthrowConfigStruct
+{
+	string occupyingFaction;
+	string discordWebHookURL;
+	void SetDefaults()
+	{
+		discordWebHookURL = "see wiki: https://github.com/ArmaOverthrow/Overthrow.Arma4/wiki/Discord-Web-Hook";
+		occupyingFaction = "";
+	}
+}
+
 [BaseContainerProps(configRoot: true)]
 class OVT_DifficultySettings : ScriptAndConfig
 {	
@@ -113,10 +124,18 @@ class OVT_DifficultySettings : ScriptAndConfig
 	
 	[Attribute(defvalue: "1000", desc: "Max size of QRF in resources", category: "QRF")]
 	int maxQRF;
+	
+	[Attribute("", UIWidgets.ResourcePickerThumbnail, "Items given to player when first spawned in")]
+	ref array<ResourceName> startingItems;
 }
 
 class OVT_OverthrowConfigComponent: OVT_Component
 {
+	[Attribute("$profile:Overthrow_Config.json")]
+	string m_sConfigFilePath;
+	
+	ref OVT_OverthrowConfigStruct m_ConfigFile;
+	
 	[Attribute( defvalue: "FIA", uiwidget: UIWidgets.EditBox, desc: "Faction affiliation of the player's side", category: "Factions")]
 	string m_sPlayerFaction;
 	
@@ -217,6 +236,50 @@ class OVT_OverthrowConfigComponent: OVT_Component
 
 		return s_Instance;
 	}
+	
+	bool LoadConfig()
+	{
+		Print("Overthrow: Trying to load configuration file "+m_sConfigFilePath, LogLevel.NORMAL);
+		
+		SCR_JsonLoadContext configLoadContext = new SCR_JsonLoadContext();
+		
+		if (!FileIO.FileExists( m_sConfigFilePath ))
+		{
+			Print("Overthrow: Configuration file does not exist. Creating new one.", LogLevel.WARNING);
+			m_ConfigFile = new OVT_OverthrowConfigStruct();
+			m_ConfigFile.SetDefaults();
+			
+			SaveConfig();
+		};
+		
+		if (!configLoadContext.LoadFromFile( m_sConfigFilePath ))
+		{
+			Print("Overthrow: Configuration load failed", LogLevel.ERROR);
+			return false;
+		};
+		
+		if (!configLoadContext.ReadValue("", m_ConfigFile))
+		{
+			Print("Overthrow: Configuration load failed", LogLevel.ERROR);
+			return false;
+		};	
+		
+		return true;
+	};
+	
+	bool SaveConfig()
+	{
+		SCR_JsonSaveContext configSaveContext = new SCR_JsonSaveContext();
+		configSaveContext.WriteValue("", m_ConfigFile);
+		
+		if (!configSaveContext.SaveToFile( m_sConfigFilePath ))
+		{
+			Print("Overthrow: Saving config file failed!", LogLevel.ERROR);
+			return false;
+		};
+		
+		return true;
+	};
 	
 	int GetPlaceableCost(OVT_Placeable placeable)
 	{

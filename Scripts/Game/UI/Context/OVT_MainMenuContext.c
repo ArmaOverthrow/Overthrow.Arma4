@@ -46,6 +46,8 @@ class OVT_MainMenuContext : OVT_UIContext
 			}
 		}
 		
+		OVT_Global.GetOverthrow().m_bHasOpenedMenu = true;
+		
 		super.ShowLayout();
 	}
 	

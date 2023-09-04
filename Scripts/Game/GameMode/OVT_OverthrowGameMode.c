@@ -33,6 +33,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	protected bool m_bCameraSet = false;
 	protected bool m_bGameStarted = false;
 	protected bool m_bRequestStartOnPostProcess = false;
+	
+	bool m_bHasOpenedMenu = false;
 			
 	bool IsInitialized()
 	{
@@ -41,10 +43,20 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	
 	void DoStartNewGame()
 	{
-		if(RplSession.Mode() == RplMode.Dedicated)
+		bool isDedicated = RplSession.Mode() == RplMode.Dedicated;
+#ifdef WORKBENCH
+		isDedicated = true; //To test dedicated server config
+#endif		
+		if(isDedicated)
 		{
-			Print("Dedicated server detected, setting occupying faction to " + m_Config.m_sDefaultOccupyingFaction);
-			m_Config.SetOccupyingFaction(m_Config.m_sDefaultOccupyingFaction);
+			if(m_Config.m_ConfigFile && m_Config.m_ConfigFile.occupyingFaction != "" && m_Config.m_ConfigFile.occupyingFaction != "FIA")
+			{
+				Print("Overthrow: Setting occupying faction to config value (" + m_Config.m_ConfigFile.occupyingFaction + ")");	
+				m_Config.SetOccupyingFaction(m_Config.m_ConfigFile.occupyingFaction);
+			}else{
+				Print("Overthrow: Setting occupying faction to default (" + m_Config.m_sDefaultOccupyingFaction + ")");	
+				m_Config.SetOccupyingFaction(m_Config.m_sDefaultOccupyingFaction);				
+			}
 		}
 		
 		if(m_OccupyingFactionManager)
@@ -280,11 +292,14 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 				int cost = m_Config.m_Difficulty.respawnCost;
 				m_EconomyManager.TakePlayerMoney(playerId, cost);
 			}else{
+				Print("Preparing returning player: " + persistentId);	
 				//This is a returning player, don't charge them hospital fees				
 				m_aInitializedPlayers.Insert(persistentId);
 			}
+			player.firstSpawn = false;
 		}else{
 			//New player
+			Print("Preparing NEW player: " + persistentId);
 			int cash = m_Config.m_Difficulty.startingCash;
 			m_EconomyManager.AddPlayerMoney(playerId, cash);
 			
@@ -307,6 +322,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 				}
 			}
 			player.initialized = true;
+			player.firstSpawn = true;
 			m_aInitializedPlayers.Insert(persistentId);
 		}	
 	}
@@ -435,6 +451,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			//show wait screen?
 			return;
 		}
+		
+		m_Config.LoadConfig();
 		
 		m_Persistence = OVT_PersistenceManagerComponent.Cast(FindComponent(OVT_PersistenceManagerComponent));		
 		if(m_Persistence)

@@ -86,6 +86,7 @@ class OVT_PlayerManagerComponent: OVT_Component
 	
 	void SetupPlayer(int playerId, string persistentId)
 	{
+		Print("Setting up player: " + persistentId);
 		m_mPersistentIDs[playerId] = persistentId;
 		m_mPlayerIDs[persistentId] = playerId;
 		

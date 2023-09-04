@@ -86,6 +86,7 @@ class OVT_RealEstateContext : OVT_UIContext
 		bool isRenter = m_RealEstate.IsRenter(m_sPlayerID, id);
 		bool isOwner = m_RealEstate.IsOwner(m_sPlayerID, id);
 		bool isHome = m_RealEstate.IsHome(m_sPlayerID, id);
+		bool isOnlyHouse = m_RealEstate.m_mOwned[m_sPlayerID].Count() == 1;
 		bool isOfficer = OVT_Global.GetPlayers().LocalPlayerIsOfficer();
 		bool isResistanceOwned = false;
 		if(isOwned)
@@ -167,7 +168,7 @@ class OVT_RealEstateContext : OVT_UIContext
 			btn.SetEnabled(true);
 		}
 		btn = ButtonWidget.Cast(m_wRoot.FindAnyWidget("Sell"));
-		if(isOwner && !isHome && !isRenter)
+		if(isOwner && !isHome && !isRenter && !isOnlyHouse)
 		{
 			btn.SetEnabled(true);
 		}else{
@@ -230,6 +231,8 @@ class OVT_RealEstateContext : OVT_UIContext
 		EntityID id = building.GetID();
 		
 		bool isOwner = m_RealEstate.IsOwner(m_sPlayerID, id);	
+		bool isOnlyHouse = m_RealEstate.m_mOwned[m_sPlayerID].Count() == 1;
+		
 		bool isResistanceOwned = false;		
 		isResistanceOwned = m_RealEstate.GetOwnerID(building) == "resistance";
 		if(isResistanceOwned && account == 1)
@@ -239,6 +242,7 @@ class OVT_RealEstateContext : OVT_UIContext
 	
 		
 		if(!isOwner) return;
+		if(isOnlyHouse) return;
 		
 		if(m_RealEstate.IsHome(m_sPlayerID, id)) return;
 				

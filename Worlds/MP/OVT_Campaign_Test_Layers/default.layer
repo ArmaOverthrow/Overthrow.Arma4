@@ -25,30 +25,6 @@ PerceptionManager PerceptionManager1 : "{028DAEAD63E056BE}Prefabs/World/Game/Per
 }
 OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMode/OVT_OverthrowGameMode.et" {
  components {
-  EPF_PersistenceComponent "{5D7009A1AB220903}" {
-   m_bSelfSpawn 0
-   m_bSelfDelete 0
-   m_pSaveData OVT_OverthrowSaveDataClass "{5D7009A22C40BEE5}" {
-    m_eTranformSaveFlags 0
-    m_bSaveRemainingLifetime 0
-    m_aComponents {
-     OVT_EconomySaveDataClass "{5D7009A2B14C4055}" {
-     }
-     OVT_PlayerSaveDataClass "{5D7009AA91A43E6F}" {
-     }
-     OVT_OccupyingFactionSaveDataClass "{5D70099DAD21A0F3}" {
-     }
-     OVT_RealEstateSaveDataClass "{5D707B33903B8735}" {
-     }
-     OVT_TownSaveDataClass "{5D70912C42B66D9E}" {
-     }
-     OVT_ResistanceSaveDataClass "{5D70912B726E1A32}" {
-     }
-     OVT_ConfigSaveDataClass "{5D9E53AFE550A24E}" {
-     }
-    }
-   }
-  }
   OVT_EconomyManagerComponent "{5988DB0008700592}" {
    m_aShopConfigs {
     OVT_ShopInventoryConfig "{598EDB5225F92650}" {
@@ -203,6 +179,7 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMod
    }
   }
   OVT_OccupyingFactionManager "{59845E732755785F}" {
+   m_pBaseControllerPrefab "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.et"
    m_pQRFControllerPrefab "{A7D27DFA72B705D0}Prefabs/Controllers/OVT_QRFController.et"
   }
   OVT_OverthrowConfigComponent "{59724C8C935D8E5D}" {
@@ -230,26 +207,15 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMod
    }
    m_pHiredCivilianPrefab "{365CD448A5DABCCC}Prefabs/Groups/INDFOR/Group_CIV_Recruit.et"
   }
-  OVT_RespawnSystemComponent "{5DEA8B45ED838B55}" {
-   m_rDefaultPrefab "{3A99A99836F6B3DC}Prefabs/Characters/Factions/INDFOR/FIA/Character_Player.et"
-  }
   OVT_SkillManagerComponent "{5D90EE077169A8A2}" {
    m_Skills OVT_SkillsConfig "{5D91035951D22CD1}" : "{F7740B6A7C4F6FB7}Configs/Player/overthrowSkills.conf" {
    }
-  }
-  OVT_TimeAndWeatherHandlerComponent "{5E02BE29723C0739}" {
-   m_fDayTimeAcceleration 6
-   m_fNightTimeAcceleration 12
-   m_bRandomStartingWeather 1
   }
   OVT_TownManagerComponent "{59724C983BF56C3B}" {
    m_iVillageRange 100
   }
   OVT_VehicleManagerComponent "{5D707B3386AF876D}" {
    m_pStartingCarPrefab "{259EE7B78C51B624}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469.et"
-  }
-  SCR_CommandingManagerComponent "{5DFEE7C53D7244B0}" {
-   m_sCommandsConfigPath "{54764D4E706F348C}Configs/Commanding/Commands.conf"
   }
   SCR_GroupsManagerComponent "{5DDAD8A30938E391}" {
    m_sDefaultGroupPrefab "{8B4D49A9F324E7D5}Prefabs/Groups/PlayableGroup.et"
@@ -258,9 +224,6 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMod
    m_sInitialStartingWeatherId "Cloudy"
    m_initialWeatherDurationMin 0.2
    m_initialWeatherDurationMax 0.5
-  }
-  SCR_NametagConfigComponent "{59724C8C935D8E28}" {
-   m_sConfigPath "{09F7AAA14A642683}Configs/NameTags/NametagFriendlies.conf"
   }
   SCR_NotificationSenderComponent "{5D7A443FDCA27CAE}" {
    m_iReceiveKillFeedType SAME_FACTION_ONLY
@@ -332,15 +295,36 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMod
 OVT_OverthrowFactionManager OVT_OverthrowFactionManager : "{51EBC0CFD56DA130}Prefabs/GameMode/OVT_OverthrowFactionManager.et" {
  coords 0 0 0
 }
-GenericEntity Town {
- components {
-  SCR_MapDescriptorComponent "{5D8680D15B3CF38E}" {
-   DisplayName "Town"
-   MainType "Name Village"
+$grp GenericEntity {
+ Town {
+  components {
+   SCR_MapDescriptorComponent "{5D8680D15B3CF38E}" {
+    DisplayName "Town"
+    MainType "Name Town"
+   }
   }
+  coords 221.182 1.001 107.325
+  Flags 1027
  }
- coords 221.182 1.001 107.325
- Flags 1027
+ Base {
+  components {
+   SCR_MapDescriptorComponent "{5D8680D1F205B205}" {
+    DisplayName "#AR-MapLocation_Military"
+    MainType "Name Generic"
+   }
+  }
+  coords 54.063 1.001 106.288
+  Flags 1027
+ }
+ RadioTower {
+  components {
+   SCR_MapDescriptorComponent "{5D8680D5676588BA}" {
+    MainType Transmitter
+   }
+  }
+  coords 29.444 1.001 116.796
+  Flags 1027
+ }
 }
 SCR_DestructibleBuildingEntity : "{00FD2B4A0BDEC271}Prefabs/Structures/Commercial/FuelStations/FuelStation_E_01_building.et" {
  coords 240.87 0.001 76.83
@@ -351,6 +335,10 @@ SCR_DestructibleBuildingEntity : "{05446F713779A94D}Prefabs/Structures/Military/
 }
 SCR_DestructibleBuildingEntity : "{12310677867A85D4}Prefabs/Structures/Industrial/Houses/Warehouse_01/Warehouse_01.et" {
  coords 208.787 0.001 124.336
+}
+SCR_DestructibleBuildingEntity : "{230EB641379A24C0}Prefabs/Structures/Houses/Village/House_Village_E_1I04/House_Village_E_1I04sf.et" {
+ coords 240.255 0 141.306
+ angleY 88.468
 }
 Tree : "{23C0BE9D80929DBD}Prefabs/Vegetation/Bush/b_salix_cinerea_1w.et" {
  coords 180.297 0.001 117.938
@@ -395,14 +383,12 @@ $grp SCR_SiteSlotEntity : "{588A3DAF0296B0C1}PrefabsEditable/Slots/Flat/E_SlotFl
 SCR_DestructibleBuildingEntity : "{5CADC96916FF1CC4}Prefabs/Structures/Houses/Villa/Villa_E_2I01/Villa_E_2I01.et" {
  coords 217.228 0.001 144.688
 }
-GenericEntity Base : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.et" {
- coords 51.793 1 107.192
+SCR_DestructibleBuildingEntity : "{60333F74EE12B52F}Prefabs/Structures/Houses/Village/House_Village_E_1I05/House_Village_E_1I05s.et" {
+ coords 239.643 0.412 168.588
+ angleY 90
 }
 Tree : "{7BAA3CF64495B691}Prefabs/Vegetation/Bush/b_rubus_idaeus_0s.et" {
  coords 179.619 0.001 124.94
-}
-StaticModelEntity : "{7E2380494811A5FB}Prefabs/Structures/Infrastructure/Towers/TransmitterTower_01/TransmitterTower_01_medium.et" {
- coords 16.061 1 230.159
 }
 SCR_SiteSlotEntity : "{881CE7B0098504C2}PrefabsEditable/Slots/Road/E_SlotRoadLarge.et" {
  coords 70.335 1.001 119.549

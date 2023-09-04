@@ -72,9 +72,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		m_Character = SCR_CharacterControllerComponent.Cast(owner.FindComponent(SCR_CharacterControllerComponent));
 		m_Compartment = SCR_CompartmentAccessComponent.Cast(owner.FindComponent(SCR_CompartmentAccessComponent));
 		m_Percieve = CharacterPerceivableComponent.Cast(owner.FindComponent(CharacterPerceivableComponent));
-		
-		m_PlayerData = OVT_PlayerData.Get(GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(owner));
-				
+						
 		if(!GetRpl().IsOwner()) return;
 		
 		GetGame().GetCallqueue().CallLater(CheckUpdate, WANTED_SYSTEM_FREQUENCY, true, owner);		
@@ -93,6 +91,17 @@ class OVT_PlayerWantedComponent: OVT_Component
 	
 	void CheckUpdate()
 	{
+		if(!m_PlayerData)
+		{
+			int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(GetOwner());
+			if(playerId > 0)
+			{
+				m_PlayerData = OVT_PlayerData.Get(playerId);
+			}else{
+				return;
+			}
+		}
+		
 		m_bTempSeen = false;
 		m_iLastSeen = LAST_SEEN_MAX;
 		

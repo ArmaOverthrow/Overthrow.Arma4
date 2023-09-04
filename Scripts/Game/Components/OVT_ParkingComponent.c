@@ -23,10 +23,7 @@ class OVT_ParkingComponent : ScriptComponent
 			
 			// offset the item locally with building rotation
 			outMat[3] = point.m_vPosition.Multiply4(outMat);
-			
-			//Set ground height to Y
-			outMat[3][1] = GetGame().GetWorld().GetSurfaceY(outMat[3][0],outMat[3][2]);	
-			
+						
 			//Add PointInfo Yaw (ignore pitch and roll)
 			vector angles = Math3D.MatrixToAngles(outMat);
 			angles[0] = angles[0] + point.m_vAngles[1];

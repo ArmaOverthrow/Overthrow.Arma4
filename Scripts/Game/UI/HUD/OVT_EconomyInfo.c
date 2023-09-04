@@ -81,7 +81,14 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 			RichTextWidget text = RichTextWidget.Cast(m_wRoot.FindAnyWidget("MainMenuOverrideText"));
 			text.SetTextFormat("<color rgba='226,168,79,255'><action name='OverthrowMainMenu'/></color> %1",m_FoundOverride.m_UiInfo.GetName());
 		}else{
-			m_wRoot.FindAnyWidget("MainMenuOverride").SetVisible(false);
+			if(!OVT_Global.GetOverthrow().m_bHasOpenedMenu)
+			{
+				RichTextWidget text = RichTextWidget.Cast(m_wRoot.FindAnyWidget("MainMenuOverrideText"));
+				text.SetText("<color rgba='226,168,79,255'><action name='OverthrowMainMenu'/></color> #OVT_Open_Overthrow_Menu");
+				m_wRoot.FindAnyWidget("MainMenuOverride").SetVisible(true);
+			}else{
+				m_wRoot.FindAnyWidget("MainMenuOverride").SetVisible(false);
+			}
 		}
 	}
 	
