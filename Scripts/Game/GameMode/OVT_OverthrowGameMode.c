@@ -33,6 +33,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	protected bool m_bCameraSet = false;
 	protected bool m_bGameStarted = false;
 	protected bool m_bRequestStartOnPostProcess = false;
+	
+	bool m_bHasOpenedMenu = false;
 			
 	bool IsInitialized()
 	{

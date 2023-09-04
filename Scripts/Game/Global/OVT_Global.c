@@ -3,10 +3,15 @@ class OVT_Global {
 	{		
 		if(Replication.IsServer())
 		{
-			return OVT_PlayerCommsComponent.Cast(OVT_OverthrowGameMode.Cast(GetGame().GetGameMode()).FindComponent(OVT_PlayerCommsComponent));
+			return OVT_PlayerCommsComponent.Cast(GetOverthrow().FindComponent(OVT_PlayerCommsComponent));
 		}		
 		IEntity player = SCR_PlayerController.GetLocalControlledEntity();
 		return OVT_PlayerCommsComponent.Cast(player.FindComponent(OVT_PlayerCommsComponent));
+	}
+	
+	static OVT_OverthrowGameMode GetOverthrow()
+	{
+		return OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
 	}
 	
 	static OVT_OverthrowConfigComponent GetConfig()

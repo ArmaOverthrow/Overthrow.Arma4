@@ -2007,5 +2007,12 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Brian"
   }
+  CustomStringTableItem "{5E4852B16105E7FC}" {
+   Id "OVT_Open_Overthrow_Menu"
+   Target_en_us "Open Overthrow Menu"
+   Modified 1581800374
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
  }
 }
