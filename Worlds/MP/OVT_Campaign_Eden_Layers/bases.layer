@@ -19,4 +19,14 @@ $grp GenericEntity {
   coords 924.549 2.751 6059.558
   Flags 1027
  }
+ Base_PowerPlant {
+  components {
+   MapDescriptorComponent "{5E4852B860CE2C30}" {
+    DisplayName "#AR-MapLocation_Military"
+    MainType "Name Generic"
+   }
+  }
+  coords 5841.275 4.563 9794.273
+  Flags 1027
+ }
 }

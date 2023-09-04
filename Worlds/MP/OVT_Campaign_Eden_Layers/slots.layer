@@ -63,6 +63,20 @@ $grp SCR_SiteSlotEntity : "{588A3DAF0296B0C1}PrefabsEditable/Slots/Flat/E_SlotFl
    }
   }
  }
+ {
+  coords 5854.795 6.091 9850.645
+  {
+   StaticModelEntity {
+    ID "52E8C3643526D54D"
+    coords 0 -0.849 0
+    angleX 2.802
+    angleZ 0.674
+   }
+  }
+ }
+ {
+  coords 5810.926 5.254 9847.3
+ }
 }
 $grp SCR_SiteSlotEntity : "{F4066B8425BEC47C}PrefabsEditable/Slots/Road/E_SlotRoadMedium.et" {
  {
@@ -102,7 +116,7 @@ $grp SCR_SiteSlotEntity : "{F4066B8425BEC47C}PrefabsEditable/Slots/Road/E_SlotRo
   }
  }
 }
-$grp SCR_DestructibleBuildingEntity : "{FBCE1861B987EA68}Prefabs/Structures/Military/Houses/GuardTower_01.et" {
+$grp SCR_DestructibleBuildingEntity : "{FBCE1861B987EA68}Prefabs/Structures/Military/Houses/GuardTower_01/GuardTower_01.et" {
  {
   coords 1027.589 0.001 6021.835
   angleY 135.797
@@ -110,5 +124,19 @@ $grp SCR_DestructibleBuildingEntity : "{FBCE1861B987EA68}Prefabs/Structures/Mili
  {
   coords 9266.643 0.07 1160.767
   angleY 86.665
+ }
+ {
+  coords 5827.649 0 9831.581
+ }
+ {
+  coords 5856.696 -0.001 9828.184
+ }
+ {
+  coords 5853.244 0 9668.791
+  angleY -158.014
+ }
+ {
+  coords 5926.57 0.001 9703.16
+  angleY 128.48
  }
 }
