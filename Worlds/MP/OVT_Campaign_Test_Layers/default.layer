@@ -336,6 +336,10 @@ SCR_DestructibleBuildingEntity : "{05446F713779A94D}Prefabs/Structures/Military/
 SCR_DestructibleBuildingEntity : "{12310677867A85D4}Prefabs/Structures/Industrial/Houses/Warehouse_01/Warehouse_01.et" {
  coords 208.787 0.001 124.336
 }
+SCR_DestructibleBuildingEntity : "{230EB641379A24C0}Prefabs/Structures/Houses/Village/House_Village_E_1I04/House_Village_E_1I04sf.et" {
+ coords 240.255 0 141.306
+ angleY 88.468
+}
 Tree : "{23C0BE9D80929DBD}Prefabs/Vegetation/Bush/b_salix_cinerea_1w.et" {
  coords 180.297 0.001 117.938
 }
@@ -378,6 +382,10 @@ $grp SCR_SiteSlotEntity : "{588A3DAF0296B0C1}PrefabsEditable/Slots/Flat/E_SlotFl
 }
 SCR_DestructibleBuildingEntity : "{5CADC96916FF1CC4}Prefabs/Structures/Houses/Villa/Villa_E_2I01/Villa_E_2I01.et" {
  coords 217.228 0.001 144.688
+}
+SCR_DestructibleBuildingEntity : "{60333F74EE12B52F}Prefabs/Structures/Houses/Village/House_Village_E_1I05/House_Village_E_1I05s.et" {
+ coords 239.643 0.412 168.588
+ angleY 90
 }
 Tree : "{7BAA3CF64495B691}Prefabs/Vegetation/Bush/b_rubus_idaeus_0s.et" {
  coords 179.619 0.001 124.94
