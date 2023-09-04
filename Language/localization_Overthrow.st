@@ -451,15 +451,17 @@ StringTable {
   }
   CustomStringTableItem "{59969DFBF96C7EF4}" {
    Id "OVT-IntroHint"
-   Target_en_us "Welcome to Overthrow! This is your home, you will respawn here and can fast travel here for a small fee by opening the main menu <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color>. You also own a car parked in your garage."\
+   Target_en_us "Welcome to Overthrow! This is your home, you will respawn here and can fast travel here for a small fee by opening the main menu <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color>. "\
+   ""\
+   "You own a car parked in your garage, and a handgun is in your pants. The enemy considers you a civilian if they don't see you carrying a weapon and will not shoot you, so be careful when equipping your weapon around them. Stars will appear in the top right if you are \"wanted\" by the enemy."\
    ""\
    "For more info on Overthrow's features and gameplay just have a look at the \"Field Manual\""
    Target_ru_ru "Приветствую в Overthrow! Этой ваш дом, вы будете здесь возрождаться, вы можете быстро перемещаться сюда с небольшой платой, через главное меню <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color>. В гараже стоит ваша машина."\
    ""\
    "Для дополнительной информации о возможностях и геймплее вы можете посмотреть в \"Полевом мануале\"."
-   Modified 1575658356
+   Modified 1581802182
    Author "Aaron Static"
-   LastChanged "Brian"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{5D34246EAE2E228C}" {
    Id "OVT-IsHome"
@@ -545,17 +547,15 @@ StringTable {
    Id "OVT-Job_FindGunDealerDescription"
    Target_en_us "Gun dealers are located in the larger towns and cities. They are independant merchants who stock weapons and other illegal items."\
    ""\
-   "Visit the nearest gun dealer to see what items they have available."\
-   ""\
-   "You will receive a free pistol with ammunition"
+   "Visit the nearest gun dealer to see what items they have available."
    Target_ru_ru "Торговцы оружием расположены в крупных городах. Это независимые торговцы, которые торгуют оружием и другими незаконными товарами."\
    ""\
    "Посетите ближайшего торговца оружием, чтобы узнать, какие товары у него есть в наличии."\
    ""\
    "Вы получите бесплатный пистолет с боеприпасами"
-   Modified 1575659016
+   Modified 1581800919
    Author "Aaron Static"
-   LastChanged "Brian"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{5D9E51CB2C43D69B}" {
    Id "OVT-Job_FindShop"

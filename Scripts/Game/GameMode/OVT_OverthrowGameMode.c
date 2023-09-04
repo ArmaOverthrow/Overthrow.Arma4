@@ -296,6 +296,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 				//This is a returning player, don't charge them hospital fees				
 				m_aInitializedPlayers.Insert(persistentId);
 			}
+			player.firstSpawn = false;
 		}else{
 			//New player
 			Print("Preparing NEW player: " + persistentId);
@@ -321,6 +322,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 				}
 			}
 			player.initialized = true;
+			player.firstSpawn = true;
 			m_aInitializedPlayers.Insert(persistentId);
 		}	
 	}

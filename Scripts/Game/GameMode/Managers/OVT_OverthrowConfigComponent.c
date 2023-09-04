@@ -124,6 +124,9 @@ class OVT_DifficultySettings : ScriptAndConfig
 	
 	[Attribute(defvalue: "1000", desc: "Max size of QRF in resources", category: "QRF")]
 	int maxQRF;
+	
+	[Attribute("", UIWidgets.ResourcePickerThumbnail, "Items given to player when first spawned in")]
+	ref array<ResourceName> startingItems;
 }
 
 class OVT_OverthrowConfigComponent: OVT_Component

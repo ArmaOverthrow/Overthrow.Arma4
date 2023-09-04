@@ -3,12 +3,15 @@ class OVT_PlayerData : Managed
 	[NonSerialized()]
 	int id;
 	
+	[NonSerialized()]
+	bool firstSpawn;
+	
 	//Persisted
 	string name;	
 	vector home;
 	vector camp;	
 	int money;
-	bool initialized;
+	bool initialized;	
 	bool isOfficer;
 	
 	int kills;

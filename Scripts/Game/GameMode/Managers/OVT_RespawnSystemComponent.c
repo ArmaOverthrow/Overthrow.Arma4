@@ -75,6 +75,24 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 					SCR_EntityHelper.DeleteEntityAndChildren(slotEntity);
 				}
 			}
+			
+			OVT_PlayerData player = OVT_PlayerData.Get(characterPersistenceId);
+			OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+			if(config && config.m_Difficulty && player && player.firstSpawn)
+			{				
+				foreach(ResourceName res : config.m_Difficulty.startingItems)
+				{
+					IEntity spawnedItem = GetGame().SpawnEntityPrefab(Resource.Load(res));
+					if(!spawnedItem) continue;
+					
+					if (!storageManager.TryInsertItem(spawnedItem))
+					{
+						SCR_EntityHelper.DeleteEntityAndChildren(spawnedItem);
+					}
+				}
+			}
+			
+			player.firstSpawn = false;
 		}		
 	}
 	
