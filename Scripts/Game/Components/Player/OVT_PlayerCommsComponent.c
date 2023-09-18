@@ -419,7 +419,23 @@ class OVT_PlayerCommsComponent: OVT_Component
 			cost = economy.GetPrice(id);
 		}
 		if(!economy.PlayerHasMoney(playerPersId, cost)) return;
-				
+		
+		//Try to spawn the vehicle in the parking for this shop
+		OVT_ParkingComponent parking = EPF_Component<OVT_ParkingComponent>.Find(shop.GetOwner());
+		if(parking)
+		{
+			vector mat[4];
+			if(parking.GetParkingSpot(mat, economy.GetParkingType(id)))
+			{
+				OVT_Global.GetVehicles().SpawnVehicleMatrix(economy.GetResource(id), mat, playerPersId);
+				RpcAsk_TakePlayerMoney(playerId, cost);
+				if(!shop.m_bProcurement)
+					RpcAsk_TakeFromInventory(shopId, id, 1);
+				return;
+			}			
+		}
+			
+		//Try to spawn the vehicle anywhere nearby	
 		if(OVT_Global.GetVehicles().SpawnVehicleNearestParking(economy.GetResource(id), player.GetOrigin(), playerPersId))
 		{
 			RpcAsk_TakePlayerMoney(playerId, cost);

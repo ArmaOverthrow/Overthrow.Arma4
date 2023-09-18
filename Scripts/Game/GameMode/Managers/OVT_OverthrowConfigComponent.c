@@ -241,6 +241,12 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	{
 		Print("Overthrow: Trying to load configuration file "+m_sConfigFilePath, LogLevel.NORMAL);
 		
+#ifdef PLATFORM_XBOX	
+		m_ConfigFile = new OVT_OverthrowConfigStruct();
+		m_ConfigFile.SetDefaults();
+		return true;
+#endif
+		
 		SCR_JsonLoadContext configLoadContext = new SCR_JsonLoadContext();
 		
 		if (!FileIO.FileExists( m_sConfigFilePath ))

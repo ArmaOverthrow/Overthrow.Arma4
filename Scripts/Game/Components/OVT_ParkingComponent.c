@@ -53,6 +53,18 @@ class OVT_ParkingComponent : ScriptComponent
 		}		
 		return false;
 	}	
+	
+	bool GetParkingTypes(array<OVT_ParkingType> outTypes)
+	{
+		foreach(OVT_ParkingPointInfo point : m_aParkingSpots)
+		{
+			if(!outTypes.Contains(point.m_Type))
+			{
+				outTypes.Insert(point.m_Type);
+			}
+		}		
+		return true;
+	}
 }
 
 enum OVT_ParkingType

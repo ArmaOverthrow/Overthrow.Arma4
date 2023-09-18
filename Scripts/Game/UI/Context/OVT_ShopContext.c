@@ -110,8 +110,12 @@ class OVT_ShopContext : OVT_UIContext
 		
 		if(m_Shop.m_bProcurement)
 		{
+			OVT_ParkingComponent parking = EPF_Component<OVT_ParkingComponent>.Find(m_Shop.GetOwner());
+			array<OVT_ParkingType> parkingTypes();
+			parking.GetParkingTypes(parkingTypes);
+			
 			array<ResourceName> vehicles();
-			m_Economy.GetAllNonOccupyingFactionVehicles(vehicles, true);
+			m_Economy.GetAllNonOccupyingFactionVehiclesByParking(vehicles, parkingTypes, true);
 			
 			m_iNumPages = Math.Ceil(vehicles.Count() / 15);
 			if(m_iPageNum >= m_iNumPages) m_iPageNum = 0;
@@ -200,7 +204,7 @@ class OVT_ShopContext : OVT_UIContext
 			max = m_Economy.GetTownMaxStock(townID, id);
 		}	
 		
-		if(OVT_Global.ResourceIsVehicle(res))
+		if(m_Economy.IsVehicle(res))
 		{
 			SCR_EditableVehicleUIInfo info = OVT_Global.GetVehicleUIInfo(res);
 			if(info)
