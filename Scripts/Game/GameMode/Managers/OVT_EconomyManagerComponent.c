@@ -83,6 +83,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	protected ref array<int> m_aLegalVehicles;
 	protected ref array<int> m_aAllVehicles;
+	protected ref map<int,OVT_ParkingType> m_mVehicleParking;
 	
 	//Streamed to clients..			
 	int m_iResistanceMoney = 0;
@@ -121,6 +122,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		m_aEntityCatalogEntries = new array<ref SCR_EntityCatalogEntry>;
 		m_aLegalVehicles = new array<int>;
 		m_aAllVehicles = new array<int>;
+		m_mVehicleParking = new map<int,OVT_ParkingType>;
 	}
 	
 	void CheckUpdate()
@@ -172,6 +174,12 @@ class OVT_EconomyManagerComponent: OVT_Component
 	{
 		if(!m_mItemDemand.Contains(id)) return 5;
 		return m_mItemDemand[id];
+	}
+	
+	OVT_ParkingType GetParkingType(int id)
+	{
+		if(!m_mVehicleParking.Contains(id)) return OVT_ParkingType.PARKING_CAR;
+		return m_mVehicleParking[id];
 	}
 	
 	protected void UpdateRents()
@@ -757,6 +765,25 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	void BuildResourceDatabase()
 	{	
+		//Process non EntityCatalog vehicles
+		foreach(OVT_VehiclePriceConfig cfg : m_VehiclePriceConfig.m_aPrices)
+		{
+			if(cfg.m_sFind == "" && cfg.prefab != "")
+			{
+				ResourceName res = cfg.prefab;
+				if(!m_aResources.Contains(res))
+				{
+					m_aResources.Insert(res);
+					int id = m_aResources.Count()-1;
+					m_aResourceIndex[res] = id;
+					m_aAllVehicles.Insert(id);
+					SetPrice(id, cfg.cost);
+					m_mVehicleParking[id] = cfg.parking;
+					if(!cfg.illegal) m_aLegalVehicles.Insert(id);
+				}
+			}
+		}
+		
 		FactionManager factionMgr = GetGame().GetFactionManager();
 		array<Faction> factions = new array<Faction>;
 		factionMgr.GetFactionsList(factions);
@@ -782,6 +809,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 			}
 			
 			array<SCR_EntityCatalogEntry> vehicles = new array<SCR_EntityCatalogEntry>;
+			
 			fac.GetAllVehicles(vehicles);
 			foreach(SCR_EntityCatalogEntry item : vehicles) 
 			{
@@ -799,15 +827,19 @@ class OVT_EconomyManagerComponent: OVT_Component
 					
 					bool illegal = true;
 					int cost = 500000;
+					OVT_ParkingType parkingType = OVT_ParkingType.PARKING_CAR;
 					//Set it's price
 					foreach(OVT_VehiclePriceConfig cfg : m_VehiclePriceConfig.m_aPrices)
 					{
+						if(cfg.prefab != "") continue;
 						if(cfg.m_sFind == "" || res.IndexOf(cfg.m_sFind) > -1)
 						{
 							cost = cfg.cost;
 							illegal = cfg.illegal;
+							parkingType = cfg.parking;
 						}
 					}
+					m_mVehicleParking[id] = parkingType;
 					SetPrice(id, cost);
 					if(!illegal) m_aLegalVehicles.Insert(id);
 				}
@@ -890,6 +922,17 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return true;
 	}
 	
+	bool IsVehicle(int id)
+	{
+		return m_aAllVehicles.Contains(id);
+	}
+	
+	bool IsVehicle(ResourceName res)
+	{
+		int id = GetInventoryId(res);
+		return IsVehicle(id);
+	}
+	
 	bool GetAllNonOccupyingFactionItems(out array<ResourceName> resources)
 	{
 		int occupyingFactionIndex = m_Config.GetOccupyingFactionIndex();
@@ -910,15 +953,31 @@ class OVT_EconomyManagerComponent: OVT_Component
 	bool GetAllNonOccupyingFactionVehicles(out array<ResourceName> resources, bool includeIllegal = false)
 	{
 		int occupyingFactionIndex = m_Config.GetOccupyingFactionIndex();
-		foreach(SCR_EntityCatalogEntry entry : m_aEntityCatalogEntries)
-		{			
-			ResourceName prefab = entry.GetPrefab();
-			int id = GetInventoryId(prefab);
-			if(!m_aAllVehicles.Contains(id)) continue;			
+		
+		foreach(int id : m_aAllVehicles)
+		{
+			ResourceName prefab = GetResource(id);
 			if(ItemIsFromFaction(id, occupyingFactionIndex)) continue;
 			if(!includeIllegal && !m_aLegalVehicles.Contains(id)) continue;
 			resources.Insert(prefab);			
 		}
+		
+		return true;
+	}
+	
+	bool GetAllNonOccupyingFactionVehiclesByParking(out array<ResourceName> resources, array<OVT_ParkingType> parkingTypes, bool includeIllegal = false)
+	{
+		int occupyingFactionIndex = m_Config.GetOccupyingFactionIndex();
+		
+		foreach(int id : m_aAllVehicles)
+		{
+			ResourceName prefab = GetResource(id);
+			if(ItemIsFromFaction(id, occupyingFactionIndex)) continue;
+			if(!includeIllegal && !m_aLegalVehicles.Contains(id)) continue;
+			if(!parkingTypes.Contains(GetParkingType(id))) continue;
+			resources.Insert(prefab);			
+		}
+		
 		return true;
 	}
 			
@@ -1182,20 +1241,75 @@ class OVT_EconomyManagerComponent: OVT_Component
 	{
 		m_fResistanceTax = amount;
 	}
-	
+		
 	void ~OVT_EconomyManagerComponent()
 	{
 		GetGame().GetCallqueue().Remove(CheckUpdate);	
 		
+		if(m_aResources)
+		{
+			m_aResources.Clear();
+			m_aResources = null;
+		}
 		if(m_aAllShops)
 		{
 			m_aAllShops.Clear();
 			m_aAllShops = null;
 		}
+		if(m_aAllPorts)
+		{
+			m_aAllPorts.Clear();
+			m_aAllPorts = null;
+		}
+		if(m_mItemCosts)
+		{
+			m_mItemCosts.Clear();
+			m_mItemCosts = null;
+		}
+		if(m_mItemDemand)
+		{
+			m_mItemDemand.Clear();
+			m_mItemDemand = null;
+		}
 		if(m_aGunDealers)
 		{
 			m_aGunDealers.Clear();
 			m_aGunDealers = null;
+		}
+		if(m_mTownShops)
+		{
+			m_mTownShops.Clear();
+			m_mTownShops = null;
+		}
+		if(m_aResourceIndex)
+		{
+			m_aResourceIndex.Clear();
+			m_aResourceIndex = null;
+		}
+		if(m_mFactionResources)
+		{
+			m_mFactionResources.Clear();
+			m_mFactionResources = null;
+		}
+		if(m_aEntityCatalogEntries)
+		{
+			m_aEntityCatalogEntries.Clear();
+			m_aEntityCatalogEntries = null;
+		}
+		if(m_aLegalVehicles)
+		{
+			m_aLegalVehicles.Clear();
+			m_aLegalVehicles = null;
+		}
+		if(m_aAllVehicles)
+		{
+			m_aAllVehicles.Clear();
+			m_aAllVehicles = null;
+		}
+		if(m_mVehicleParking)
+		{
+			m_mVehicleParking.Clear();
+			m_mVehicleParking = null;
 		}
 	}
 }

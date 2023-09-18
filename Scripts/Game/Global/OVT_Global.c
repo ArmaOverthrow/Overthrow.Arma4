@@ -426,17 +426,6 @@ class OVT_Global {
 		return null;
 	}
 	
-	static bool ResourceIsVehicle(ResourceName res)
-	{
-		Resource holder = BaseContainerTools.LoadContainer(res);
-		if (holder)
-		{
-			IEntitySource ent = holder.GetResource().ToEntitySource();
-			return (ent.GetClassName() == "Vehicle");
-		}
-		return false;
-	}
-	
 	static void RandomizeCivilianClothes(SCR_AIGroup aigroup)
 	{
 		autoptr array<AIAgent> civs  = new array<AIAgent>;

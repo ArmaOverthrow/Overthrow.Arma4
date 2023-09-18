@@ -42,7 +42,7 @@ class OVT_ShopMenuCardComponent : SCR_ScriptedWidgetComponent
 		
 		img.SetResolutionScale(1, 1);
 		
-		if(OVT_Global.ResourceIsVehicle(res))
+		if(OVT_Global.GetEconomy().IsVehicle(res))
 		{
 			SCR_EditableVehicleUIInfo info = OVT_Global.GetVehicleUIInfo(res);
 			if(info)

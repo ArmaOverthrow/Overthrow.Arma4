@@ -455,6 +455,8 @@ OVT_OverthrowGameMode {
   }
   SCR_MapConfigComponent "{5D56F4474D716C00}" {
   }
+  SCR_MapMarkerManagerComponent "{5E4852B941E83CA7}" {
+  }
   SCR_NametagConfigComponent "{59724C8C935D8E28}" {
    m_sConfigPath "{09F7AAA14A642683}Configs/NameTags/NametagFriendlies.conf"
   }

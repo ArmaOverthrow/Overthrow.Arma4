@@ -20,4 +20,14 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
  OVT_Base_TrainingGrounds {
   coords 7729.433 13.656 8154.407
  }
+ Base_PowerPlant {
+  components {
+   MapDescriptorComponent "{5E4852B860CE2C30}" {
+    DisplayName "#AR-MapLocation_Military"
+    MainType "Name Generic"
+   }
+  }
+  coords 5841.275 4.563 9794.273
+  Flags 1027
+ }
 }

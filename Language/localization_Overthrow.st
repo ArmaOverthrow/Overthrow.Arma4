@@ -439,6 +439,20 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Brian"
   }
+  CustomStringTableItem "{5E648245F29C7998}" {
+   Id "OVT-Helipad"
+   Target_en_us "Helipad"
+   Modified 1583648984
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5E6482493A453E1C}" {
+   Id "OVT-Helipad_Description"
+   Target_en_us "Allows purchase of helicopters"
+   Modified 1583650718
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59C527545D12FEDB}" {
    Id "OVT-HomeSet"
    Target_en_us "Your home is now set to here"
@@ -1384,6 +1398,13 @@ StringTable {
    Modified 1575661944
    Author "Aaron Static"
    LastChanged "Brian"
+  }
+  CustomStringTableItem "{5E4A6E76C0D01F62}" {
+   Id "OVT-Procurement"
+   Target_en_us "Procurement"
+   Modified 1581936808
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{5D34EBA09AC421EB}" {
    Id "OVT-PutInWarehouse"

@@ -4,17 +4,19 @@ GenericEntity {
   OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
    m_aBaseUpgrades {
     OVT_BaseUpgradeDefensePatrol "{599083983B065EC0}" {
-     m_iResourceAllocation 8
+     m_iResourceAllocation 6
     }
     OVT_BaseUpgradeDefensePosition "{5DB876561AD51C3C}" {
      m_iResourceAllocation -1
+     m_iPriority 2
     }
     OVT_BaseUpgradeTowerGuard "{599083983840DDC7}" {
      m_iResourceAllocation -1
+     m_iPriority 2
     }
     OVT_BaseUpgradeTownPatrol "{5990839679E96556}" {
      m_iResourceAllocation -1
-     m_iPriority 2
+     m_iPriority 3
      m_bDeactivate 0
     }
     OVT_BaseUpgradeParkedVehicles "{59A69ED8D05CE286}" {
@@ -34,17 +36,16 @@ GenericEntity {
     }
     OVT_BaseUpgradeComposition "{59B2D5C4B07D72C7}" {
      m_iResourceAllocation -1
-     m_iPriority 2
      m_bDeactivate 0
      m_sCompositionTag "AmmoCache"
     }
     OVT_BaseUpgradeComposition "{5DB4E4D2689FCFC2}" {
      m_iResourceAllocation -1
-     m_iPriority 4
      m_bDeactivate 0
      m_sCompositionTag "MGNest"
     }
     OVT_BaseUpgradeSpecops "{59C6CB0B8B96FCF2}" {
+     m_iPriority 3
      m_bDeactivate 0
     }
    }

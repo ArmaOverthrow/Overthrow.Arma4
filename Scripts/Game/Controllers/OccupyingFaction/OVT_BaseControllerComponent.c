@@ -154,12 +154,17 @@ class OVT_BaseControllerComponent: OVT_Component
 	
 	void FindSlots()
 	{
-		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(),  m_Config.m_Difficulty.baseCloseRange, CheckSlotAddToArray, FilterSlotEntities, EQueryEntitiesFlags.ALL);
+		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(),  m_Config.m_Difficulty.baseRange, CheckSlotAddToArray, FilterSlotEntities);
 	}
 	
 	bool FilterSlotEntities(IEntity entity)
 	{
-		if(entity.ClassName() == "SCR_SiteSlotEntity") return true;
+		SCR_EditableEntityComponent editable = EPF_Component<SCR_EditableEntityComponent>.Find(entity);
+		if(editable && editable.GetEntityType() == EEditableEntityType.SLOT)
+		{
+			return true;
+		}
+		
 		SCR_AISmartActionSentinelComponent action = EPF_Component<SCR_AISmartActionSentinelComponent>.Find(entity);
 		if(action) {
 			SCR_MapDescriptorComponent mapdes = EPF_Component<SCR_MapDescriptorComponent>.Find(entity);
@@ -184,21 +189,28 @@ class OVT_BaseControllerComponent: OVT_Component
 			return true;
 		}
 		
-		m_AllSlots.Insert(entity.GetID());
-		
-		float distance = vector.Distance(entity.GetOrigin(), GetOwner().GetOrigin());
-		if(distance <  m_Config.m_Difficulty.baseCloseRange)
-		{
-			m_AllCloseSlots.Insert(entity.GetID());
+		SCR_EditableEntityComponent editable = EPF_Component<SCR_EditableEntityComponent>.Find(entity);
+		if(editable && editable.GetEntityType() == EEditableEntityType.SLOT)
+		{		
+			SCR_EditableEntityUIInfo uiinfo = SCR_EditableEntityUIInfo.Cast(editable.GetInfo());
+			if(!uiinfo) return true;
+									
+			m_AllSlots.Insert(entity.GetID());
+			
+			float distance = vector.Distance(entity.GetOrigin(), GetOwner().GetOrigin());
+			if(distance <  m_Config.m_Difficulty.baseCloseRange)
+			{
+				m_AllCloseSlots.Insert(entity.GetID());
+			}
+			
+			string name = entity.GetPrefabData().GetPrefabName();
+			if(uiinfo.HasEntityLabel(EEditableEntityLabel.SLOT_FLAT_SMALL)) m_SmallSlots.Insert(entity.GetID());
+			if(uiinfo.HasEntityLabel(EEditableEntityLabel.SLOT_FLAT_MEDIUM)) m_MediumSlots.Insert(entity.GetID());
+			if(uiinfo.HasEntityLabel(EEditableEntityLabel.SLOT_FLAT_LARGE)) m_LargeSlots.Insert(entity.GetID());
+			if(uiinfo.HasEntityLabel(EEditableEntityLabel.SLOT_ROAD_SMALL)) m_SmallRoadSlots.Insert(entity.GetID());
+			if(uiinfo.HasEntityLabel(EEditableEntityLabel.SLOT_ROAD_MEDIUM)) m_MediumRoadSlots.Insert(entity.GetID());
+			if(uiinfo.HasEntityLabel(EEditableEntityLabel.SLOT_ROAD_LARGE)) m_LargeRoadSlots.Insert(entity.GetID());
 		}
-		
-		string name = entity.GetPrefabData().GetPrefabName();
-		if(name.IndexOf("FlatSmall") > -1) m_SmallSlots.Insert(entity.GetID());
-		if(name.IndexOf("FlatMedium") > -1) m_MediumSlots.Insert(entity.GetID());
-		if(name.IndexOf("FlatLarge") > -1) m_LargeSlots.Insert(entity.GetID());
-		if(name.IndexOf("RoadSmall") > -1) m_SmallRoadSlots.Insert(entity.GetID());
-		if(name.IndexOf("RoadMedium") > -1) m_MediumRoadSlots.Insert(entity.GetID());
-		if(name.IndexOf("RoadLarge") > -1) m_LargeRoadSlots.Insert(entity.GetID());
 		
 		return true;
 	}
