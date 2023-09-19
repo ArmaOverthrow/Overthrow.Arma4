@@ -204,7 +204,7 @@ class OVT_TownManagerComponent: OVT_Component
 			foreach(OVT_RadioTowerData tower : of.m_RadioTowers)
 			{				
 				float dist = vector.Distance(town.location, tower.location);
-				if(dist < m_Config.m_Difficulty.radioTowerRange)
+				if(dist < OVT_Global.GetConfig().m_Difficulty.radioTowerRange)
 				{
 					if(tower.IsOccupyingFaction())
 					{
@@ -231,7 +231,7 @@ class OVT_TownManagerComponent: OVT_Component
 			foreach(OVT_BaseData base : of.m_Bases)
 			{				
 				float dist = vector.Distance(town.location, base.location);
-				if(dist < m_Config.m_Difficulty.baseSupportRange)
+				if(dist < OVT_Global.GetConfig().m_Difficulty.baseSupportRange)
 				{
 					if(base.IsOccupyingFaction())
 					{
@@ -424,10 +424,10 @@ class OVT_TownManagerComponent: OVT_Component
 	
 	protected void RecalculateSupport(int townId)
 	{
-		Faction playerFaction = GetGame().GetFactionManager().GetFactionByKey(m_Config.m_sPlayerFaction);
+		Faction playerFaction = GetGame().GetFactionManager().GetFactionByKey(OVT_Global.GetConfig().m_sPlayerFaction);
 		int playerFactionIndex = GetGame().GetFactionManager().GetFactionIndex(playerFaction);
 		
-		Faction occupyingFaction = GetGame().GetFactionManager().GetFactionByKey(m_Config.m_sOccupyingFaction);
+		Faction occupyingFaction = GetGame().GetFactionManager().GetFactionByKey(OVT_Global.GetConfig().m_sOccupyingFaction);
 		int occupyingFactionIndex = GetGame().GetFactionManager().GetFactionIndex(occupyingFaction);
 				
 		OVT_TownData town = m_Towns[townId];		
@@ -480,7 +480,7 @@ class OVT_TownManagerComponent: OVT_Component
 		if(town.size == 3) type = "City";
 		
 		string factionType = "Resistance";
-		if(faction != m_Config.GetPlayerFactionIndex()) factionType = "Occupying";
+		if(faction != OVT_Global.GetConfig().GetPlayerFactionIndex()) factionType = "Occupying";
 		
 		OVT_Global.GetNotify().SendTextNotification(type + "Controlled" + factionType, -1, GetTownName(townID));
 		OVT_Global.GetNotify().SendExternalNotifications(type + "Controlled" + factionType, GetTownName(townID));
@@ -687,7 +687,7 @@ class OVT_TownManagerComponent: OVT_Component
 	{
 		foreach(OVT_TownData town : m_Towns)
 		{
-			IEntity controller = OVT_Global.SpawnEntityPrefab(m_Config.m_pTownControllerPrefab, town.location);
+			IEntity controller = OVT_Global.SpawnEntityPrefab(OVT_Global.GetConfig().m_pTownControllerPrefab, town.location);
 		}
 	}
 	
@@ -705,7 +705,7 @@ class OVT_TownManagerComponent: OVT_Component
 		OVT_TownData town = new OVT_TownData();
 		int townID = GetTownID(town);
 		
-		Faction faction = GetGame().GetFactionManager().GetFactionByKey(m_Config.m_sOccupyingFaction);
+		Faction faction = GetGame().GetFactionManager().GetFactionByKey(OVT_Global.GetConfig().m_sOccupyingFaction);
 			
 		townID = m_iTownCount;
 		town.location = entity.GetOrigin();
@@ -838,7 +838,7 @@ class OVT_TownManagerComponent: OVT_Component
 	{
 		if(entity.ClassName() == "SCR_DestructibleBuildingEntity"){
 			ResourceName prefab = entity.GetPrefabData().GetPrefabName();
-			foreach(string s : m_Config.m_aStartingHouseFilters)
+			foreach(string s : OVT_Global.GetConfig().m_aStartingHouseFilters)
 			{
 				if(prefab.IndexOf(s) > -1) return false;
 			}	
@@ -869,7 +869,7 @@ class OVT_TownManagerComponent: OVT_Component
 		if(entity.ClassName() == "SCR_DestructibleBuildingEntity"){
 			ResourceName res = entity.GetPrefabData().GetPrefabName();
 			if(res.IndexOf("_furniture") > -1) return false;
-			foreach(string s : m_Config.m_aStartingHouseFilters)
+			foreach(string s : OVT_Global.GetConfig().m_aStartingHouseFilters)
 			{
 				if(res.IndexOf(s) > -1) return true;
 			}			

@@ -36,7 +36,7 @@ class OVT_TownControllerComponent: OVT_Component
 	
 	protected void CheckSpawnCivilian()
 	{
-		bool inrange = OVT_Global.PlayerInRange(m_Town.location, m_Config.m_iCivilianSpawnDistance) && !OVT_Global.GetOccupyingFaction().m_CurrentQRF;
+		bool inrange = OVT_Global.PlayerInRange(m_Town.location, OVT_Global.GetConfig().m_iCivilianSpawnDistance) && !OVT_Global.GetOccupyingFaction().m_CurrentQRF;
 		if(m_bCiviliansSpawned && !inrange)
 		{			
 			DespawnCivilians();			
@@ -67,7 +67,7 @@ class OVT_TownControllerComponent: OVT_Component
 	{
 		if(m_bCiviliansSpawned) return;
 		m_bCiviliansSpawned = true;
-		int numciv = Math.Round((float)m_Town.population * m_Config.m_fCivilianSpawnRate);
+		int numciv = Math.Round((float)m_Town.population * OVT_Global.GetConfig().m_fCivilianSpawnRate);
 		
 		for(int i=0; i<numciv; i++)
 		{
@@ -84,7 +84,7 @@ class OVT_TownControllerComponent: OVT_Component
 		BaseWorld world = GetGame().GetWorld();
 		
 		spawnPosition = OVT_Global.FindSafeSpawnPosition(spawnPosition);
-		IEntity civ = OVT_Global.SpawnEntityPrefab(m_Config.m_pCivilianPrefab, spawnPosition);
+		IEntity civ = OVT_Global.SpawnEntityPrefab(OVT_Global.GetConfig().m_pCivilianPrefab, spawnPosition);
 				
 		EntityID civId = civ.GetID();
 		
@@ -95,13 +95,13 @@ class OVT_TownControllerComponent: OVT_Component
 		
 		array<AIWaypoint> queueOfWaypoints = new array<AIWaypoint>();
 		
-		queueOfWaypoints.Insert(m_Config.SpawnPatrolWaypoint(targetPos));			
-		queueOfWaypoints.Insert(m_Config.SpawnWaitWaypoint(targetPos, s_AIRandomGenerator.RandFloatXY(15, 50)));
+		queueOfWaypoints.Insert(OVT_Global.GetConfig().SpawnPatrolWaypoint(targetPos));			
+		queueOfWaypoints.Insert(OVT_Global.GetConfig().SpawnWaitWaypoint(targetPos, s_AIRandomGenerator.RandFloatXY(15, 50)));
 		
-		queueOfWaypoints.Insert(m_Config.SpawnPatrolWaypoint(spawnPosition));			
-		queueOfWaypoints.Insert(m_Config.SpawnWaitWaypoint(spawnPosition, s_AIRandomGenerator.RandFloatXY(15, 50)));
+		queueOfWaypoints.Insert(OVT_Global.GetConfig().SpawnPatrolWaypoint(spawnPosition));			
+		queueOfWaypoints.Insert(OVT_Global.GetConfig().SpawnWaitWaypoint(spawnPosition, s_AIRandomGenerator.RandFloatXY(15, 50)));
 		
-		AIWaypointCycle cycle = AIWaypointCycle.Cast(m_Config.SpawnWaypoint(m_Config.m_pCycleWaypointPrefab, targetPos));
+		AIWaypointCycle cycle = AIWaypointCycle.Cast(OVT_Global.GetConfig().SpawnWaypoint(OVT_Global.GetConfig().m_pCycleWaypointPrefab, targetPos));
 		cycle.SetWaypoints(queueOfWaypoints);
 		cycle.SetRerunCounter(-1);
 		aigroup.AddWaypoint(cycle);
@@ -123,7 +123,7 @@ class OVT_TownControllerComponent: OVT_Component
 		
 		spawnPosition = OVT_Global.FindSafeSpawnPosition(spawnPosition);
 		
-		IEntity dealer = OVT_Global.SpawnEntityPrefab(m_Config.m_pGunDealerPrefab, spawnPosition);
+		IEntity dealer = OVT_Global.SpawnEntityPrefab(OVT_Global.GetConfig().m_pGunDealerPrefab, spawnPosition);
 		
 		m_GunDealerID = dealer.GetID();
 		
@@ -145,7 +145,7 @@ class OVT_TownControllerComponent: OVT_Component
 			shop.AddToInventory(id, num);
 		}
 		
-		int occupyingFactionId = m_Config.GetOccupyingFactionIndex();
+		int occupyingFactionId = OVT_Global.GetConfig().GetOccupyingFactionIndex();
 				
 		foreach(OVT_ShopInventoryItem item : m_Economy.m_aGunDealerItems)
 		{

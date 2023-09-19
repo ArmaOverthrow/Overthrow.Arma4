@@ -12,17 +12,16 @@ class OVT_BaseUpgrade : ScriptAndConfig
 	OVT_BaseControllerComponent m_BaseController;
 	OVT_OccupyingFactionManager m_occupyingFactionManager;
 	OVT_EconomyManagerComponent m_Economy;
-	OVT_OverthrowConfigComponent m_Config;
 	OVT_Faction m_Faction;
 	
 	void Init(OVT_BaseControllerComponent base, OVT_OccupyingFactionManager occupyingFactionManager, OVT_OverthrowConfigComponent config)
 	{
 		m_BaseController = base;
 		m_occupyingFactionManager = occupyingFactionManager;		
-		m_Config = config;
+		OVT_Global.GetConfig() = config;
 		m_Economy = OVT_Global.GetEconomy();
 		
-		m_Faction = m_Config.GetOccupyingFaction();
+		m_Faction = OVT_Global.GetConfig().GetOccupyingFaction();
 		
 		PostInit();
 	}
@@ -49,12 +48,12 @@ class OVT_BaseUpgrade : ScriptAndConfig
 	
 	int SpendToAllocation(float threat)
 	{
-		return Spend((m_iResourceAllocation * m_Config.m_Difficulty.baseResourceCost) - GetResources(), threat);
+		return Spend((m_iResourceAllocation * OVT_Global.GetConfig().m_Difficulty.baseResourceCost) - GetResources(), threat);
 	}
 	
 	protected OVT_FactionComposition GetCompositionConfig(string tag)
 	{
-		OVT_Faction faction = m_Config.GetOccupyingFaction();
+		OVT_Faction faction = OVT_Global.GetConfig().GetOccupyingFaction();
 		return faction.GetCompositionConfig(tag);
 	}
 	

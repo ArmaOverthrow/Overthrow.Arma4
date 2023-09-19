@@ -65,7 +65,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		if(SCR_Global.IsEditMode())
 			return;		
 		
-		m_iWantedTimer = m_Config.m_Difficulty.wantedTimeout;
+		m_iWantedTimer = OVT_Global.GetConfig().m_Difficulty.wantedTimeout;
 		
 		m_Faction = FactionAffiliationComponent.Cast(owner.FindComponent(FactionAffiliationComponent));
 		m_Weapon = BaseWeaponManagerComponent.Cast(owner.FindComponent(BaseWeaponManagerComponent));
@@ -142,7 +142,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		if(base && base.IsOccupyingFaction())
 		{
 			float distanceToBase = vector.Distance(base.location, GetOwner().GetOrigin());
-			if(m_iWantedLevel < 2 && distanceToBase < m_Config.m_Difficulty.baseCloseRange && m_bTempSeen)
+			if(m_iWantedLevel < 2 && distanceToBase < OVT_Global.GetConfig().m_Difficulty.baseCloseRange && m_bTempSeen)
 			{
 				SetBaseWantedLevel(2);
 			}		
@@ -170,9 +170,9 @@ class OVT_PlayerWantedComponent: OVT_Component
 				//Print("Downgrading wanted level to " + m_iWantedLevel);
 				if(m_iWantedLevel > 1)
 				{
-					m_iWantedTimer = m_Config.m_Difficulty.wantedTimeout;
+					m_iWantedTimer = OVT_Global.GetConfig().m_Difficulty.wantedTimeout;
 				}else{
-					m_iWantedTimer = m_Config.m_Difficulty.wantedOneTimeout;
+					m_iWantedTimer = OVT_Global.GetConfig().m_Difficulty.wantedOneTimeout;
 				}
 			}
 		}else if(m_iWantedLevel == 1 && m_bTempSeen) {
@@ -194,8 +194,8 @@ class OVT_PlayerWantedComponent: OVT_Component
 		if(m_iWantedLevel > 1 && !currentFaction)
 		{
 			//Print("You are wanted now");
-			if(m_Config.m_sPlayerFaction.IsEmpty()) m_Config.m_sPlayerFaction = "FIA";
-			m_Faction.SetAffiliatedFactionByKey(m_Config.m_sPlayerFaction);
+			if(OVT_Global.GetConfig().m_sPlayerFaction.IsEmpty()) OVT_Global.GetConfig().m_sPlayerFaction = "FIA";
+			m_Faction.SetAffiliatedFactionByKey(OVT_Global.GetConfig().m_sPlayerFaction);
 		}
 		
 		if(m_iWantedLevel < 1 && currentFaction)
@@ -211,8 +211,8 @@ class OVT_PlayerWantedComponent: OVT_Component
 			Faction vehFaction = vfac.GetAffiliatedFaction();
 			if(m_iWantedLevel > 1 && !vehFaction)
 			{
-				if(m_Config.m_sPlayerFaction.IsEmpty()) m_Config.m_sPlayerFaction = "FIA";
-				vfac.SetAffiliatedFactionByKey(m_Config.m_sPlayerFaction);
+				if(OVT_Global.GetConfig().m_sPlayerFaction.IsEmpty()) OVT_Global.GetConfig().m_sPlayerFaction = "FIA";
+				vfac.SetAffiliatedFactionByKey(OVT_Global.GetConfig().m_sPlayerFaction);
 			}
 			if(m_iWantedLevel < 1 && currentFaction)
 			{
@@ -423,7 +423,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		
 		Faction currentFaction = faction.GetAffiliatedFaction();
 		
-		if(currentFaction && currentFaction.GetFactionKey() == m_Config.m_sOccupyingFaction)
+		if(currentFaction && currentFaction.GetFactionKey() == OVT_Global.GetConfig().m_sOccupyingFaction)
 			return true;
 				
 		return false;		

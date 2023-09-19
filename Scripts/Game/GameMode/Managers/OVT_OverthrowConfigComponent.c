@@ -242,8 +242,8 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		Print("Overthrow: Trying to load configuration file "+m_sConfigFilePath, LogLevel.NORMAL);
 		
 #ifdef PLATFORM_XBOX	
-		m_ConfigFile = new OVT_OverthrowConfigStruct();
-		m_ConfigFile.SetDefaults();
+		OVT_Global.GetConfig()File = new OVT_OverthrowConfigStruct();
+		OVT_Global.GetConfig()File.SetDefaults();
 		return true;
 #endif
 		

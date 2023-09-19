@@ -286,7 +286,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 	void AddGarrison(int baseId, int prefabIndex, bool takeSupporters = true)
 	{
 		OVT_BaseData base = OVT_Global.GetOccupyingFaction().m_Bases[baseId];
-		OVT_Faction faction = m_Config.GetPlayerFaction();
+		OVT_Faction faction = OVT_Global.GetConfig().GetPlayerFaction();
 		ResourceName res = faction.m_aGroupPrefabSlots[prefabIndex];
 				
 		SCR_AIGroup group = SpawnGarrison(base, res);
@@ -301,7 +301,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 	
 	void AddGarrisonFOB(OVT_CampData fob, int prefabIndex, bool takeSupporters = true)
 	{		
-		OVT_Faction faction = m_Config.GetPlayerFaction();
+		OVT_Faction faction = OVT_Global.GetConfig().GetPlayerFaction();
 		ResourceName res = faction.m_aGroupPrefabSlots[prefabIndex];
 				
 		SCR_AIGroup group = SpawnGarrisonFOB(fob, res);
@@ -327,7 +327,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		IEntity entity = OVT_Global.SpawnEntityPrefab(res, fob.location + "1 0 0");
 		SCR_AIGroup group = SCR_AIGroup.Cast(entity);
 		
-		AIWaypoint wp = m_Config.SpawnDefendWaypoint(fob.location);
+		AIWaypoint wp = OVT_Global.GetConfig().SpawnDefendWaypoint(fob.location);
 		group.AddWaypoint(wp);	
 		
 		return group;
@@ -344,14 +344,14 @@ class OVT_ResistanceFactionManager: OVT_Component
 			for(int i=0; i< 3; i++)
 			{
 				IEntity randomSlot = GetGame().GetWorld().FindEntityByID(controller.m_AllCloseSlots.GetRandomElement());
-				AIWaypoint wp = m_Config.SpawnPatrolWaypoint(randomSlot.GetOrigin());
+				AIWaypoint wp = OVT_Global.GetConfig().SpawnPatrolWaypoint(randomSlot.GetOrigin());
 				if(i==0) firstWP = wp;
 				queueOfWaypoints.Insert(wp);
 				
-				AIWaypoint wait = m_Config.SpawnWaitWaypoint(randomSlot.GetOrigin(), s_AIRandomGenerator.RandFloatXY(45, 75));								
+				AIWaypoint wait = OVT_Global.GetConfig().SpawnWaitWaypoint(randomSlot.GetOrigin(), s_AIRandomGenerator.RandFloatXY(45, 75));								
 				queueOfWaypoints.Insert(wait);
 			}
-			AIWaypointCycle cycle = AIWaypointCycle.Cast(m_Config.SpawnWaypoint(m_Config.m_pCycleWaypointPrefab, firstWP.GetOrigin()));
+			AIWaypointCycle cycle = AIWaypointCycle.Cast(OVT_Global.GetConfig().SpawnWaypoint(OVT_Global.GetConfig().m_pCycleWaypointPrefab, firstWP.GetOrigin()));
 			cycle.SetWaypoints(queueOfWaypoints);
 			cycle.SetRerunCounter(-1);
 			aigroup.AddWaypoint(cycle);

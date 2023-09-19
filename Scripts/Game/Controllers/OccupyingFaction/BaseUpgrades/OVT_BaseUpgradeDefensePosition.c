@@ -26,7 +26,7 @@ class OVT_BaseUpgradeDefensePosition : OVT_BasePatrolUpgrade
 			{
 				SCR_AIGroup group = GetGroup(id);
 				if(!group) continue;
-				m_iProxedResources += group.GetAgentsCount() * m_Config.m_Difficulty.baseResourceCost;
+				m_iProxedResources += group.GetAgentsCount() * OVT_Global.GetConfig().m_Difficulty.baseResourceCost;
 				
 				SCR_EntityHelper.DeleteEntityAndChildren(group);
 			}
@@ -44,7 +44,7 @@ class OVT_BaseUpgradeDefensePosition : OVT_BasePatrolUpgrade
 		
 		foreach(int id, vector pos : m_BaseController.m_aDefendPositions)
 		{
-			if(resources < m_Config.m_Difficulty.baseResourceCost * 4) break;
+			if(resources < OVT_Global.GetConfig().m_Difficulty.baseResourceCost * 4) break;
 			
 			bool needsGuard = false;
 			if(!m_Guards.Contains(id))
@@ -63,14 +63,14 @@ class OVT_BaseUpgradeDefensePosition : OVT_BasePatrolUpgrade
 			if(needsGuard)
 			{
 				if(!PlayerInRange()){
-					m_iProxedResources += m_Config.m_Difficulty.baseResourceCost * 4;
-					spent += m_Config.m_Difficulty.baseResourceCost * 4;
+					m_iProxedResources += OVT_Global.GetConfig().m_Difficulty.baseResourceCost * 4;
+					spent += OVT_Global.GetConfig().m_Difficulty.baseResourceCost * 4;
 				}else{
 					if(BuyGuard(id, pos))
 					{
 						m_bSpawned = true;
-						resources -= m_Config.m_Difficulty.baseResourceCost * 4;
-						spent += m_Config.m_Difficulty.baseResourceCost * 4;
+						resources -= OVT_Global.GetConfig().m_Difficulty.baseResourceCost * 4;
+						spent += OVT_Global.GetConfig().m_Difficulty.baseResourceCost * 4;
 					}
 				}				
 			}
@@ -83,9 +83,9 @@ class OVT_BaseUpgradeDefensePosition : OVT_BasePatrolUpgrade
 	{	
 		vector spawnpos = OVT_Global.GetRandomNonOceanPositionNear(m_BaseController.GetOwner().GetOrigin(), 50);			
 					
-		SCR_AIGroup group = SCR_AIGroup.Cast(OVT_Global.SpawnEntityPrefab(m_Config.GetOccupyingFaction().m_aHeavyInfantryPrefabSlots[0], spawnpos));
+		SCR_AIGroup group = SCR_AIGroup.Cast(OVT_Global.SpawnEntityPrefab(OVT_Global.GetConfig().GetOccupyingFaction().m_aHeavyInfantryPrefabSlots[0], spawnpos));
 						
-		AIWaypoint wp = m_Config.SpawnDefendWaypoint(pos);
+		AIWaypoint wp = OVT_Global.GetConfig().SpawnDefendWaypoint(pos);
 		group.AddWaypoint(wp);
 		
 		m_Groups.Insert(group.GetID());

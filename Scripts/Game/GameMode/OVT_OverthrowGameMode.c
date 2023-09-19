@@ -47,15 +47,16 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 #ifdef WORKBENCH
 		isDedicated = true; //To test dedicated server config
 #endif		
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
 		if(isDedicated)
 		{
-			if(m_Config.m_ConfigFile && m_Config.m_ConfigFile.occupyingFaction != "" && m_Config.m_ConfigFile.occupyingFaction != "FIA")
+			if(config.m_ConfigFile && config.m_ConfigFile.occupyingFaction != "" && config.m_ConfigFile.occupyingFaction != "FIA")
 			{
-				Print("Overthrow: Setting occupying faction to config value (" + m_Config.m_ConfigFile.occupyingFaction + ")");	
-				m_Config.SetOccupyingFaction(m_Config.m_ConfigFile.occupyingFaction);
+				Print("Overthrow: Setting occupying faction to config value (" + config.m_ConfigFile.occupyingFaction + ")");	
+				config.SetOccupyingFaction(config.m_ConfigFile.occupyingFaction);
 			}else{
-				Print("Overthrow: Setting occupying faction to default (" + m_Config.m_sDefaultOccupyingFaction + ")");	
-				m_Config.SetOccupyingFaction(m_Config.m_sDefaultOccupyingFaction);				
+				Print("Overthrow: Setting occupying faction to default (" + config.m_sDefaultOccupyingFaction + ")");	
+				config.SetOccupyingFaction(config.m_sDefaultOccupyingFaction);				
 			}
 		}
 		
@@ -75,16 +76,16 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	void DoStartGame()
 	{	
 		FactionManager fm = GetGame().GetFactionManager();
-		m_Config.m_iPlayerFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(m_Config.m_sPlayerFaction));
-		m_Config.m_iOccupyingFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(m_Config.m_sOccupyingFaction));
+		OVT_Global.GetConfig().m_iPlayerFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(OVT_Global.GetConfig().m_sPlayerFaction));
+		OVT_Global.GetConfig().m_iOccupyingFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(OVT_Global.GetConfig().m_sOccupyingFaction));
 				
 		m_StartGameUIContext.CloseLayout();
 		m_bGameStarted = true;	
 		
-		if(!m_Config.m_Difficulty)
+		if(!OVT_Global.GetConfig().m_Difficulty)
 		{
 			Print("No difficulty settings found! Reverting to default");
-			m_Config.m_Difficulty = new OVT_DifficultySettings();
+			OVT_Global.GetConfig().m_Difficulty = new OVT_DifficultySettings();
 		}	
 		
 		if(m_EconomyManager)
@@ -158,7 +159,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			OVT_TownData town = OVT_Global.GetTowns().GetNearestTown(SCR_PlayerController.GetLocalControlledEntity().GetOrigin());
 			if(town)
 			{
-				OVT_Global.GetTowns().ChangeTownControl(town, m_Config.GetPlayerFactionIndex());
+				OVT_Global.GetTowns().ChangeTownControl(town, OVT_Global.GetConfig().GetPlayerFactionIndex());
 			}
 			DiagMenu.SetValue(202,0);
 		}
@@ -289,7 +290,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			//Existing player	
 			if(m_aInitializedPlayers.Contains(persistentId))
 			{
-				int cost = m_Config.m_Difficulty.respawnCost;
+				int cost = OVT_Global.GetConfig().m_Difficulty.respawnCost;
 				m_EconomyManager.TakePlayerMoney(playerId, cost);
 			}else{
 				Print("Preparing returning player: " + persistentId);	
@@ -300,7 +301,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		}else{
 			//New player
 			Print("Preparing NEW player: " + persistentId);
-			int cash = m_Config.m_Difficulty.startingCash;
+			int cash = OVT_Global.GetConfig().m_Difficulty.startingCash;
 			m_EconomyManager.AddPlayerMoney(playerId, cash);
 			
 			vector home = m_RealEstate.GetHome(persistentId);
@@ -343,8 +344,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		if(!cameraMgr) return;
 		BaseWorld world = GetGame().GetWorld();
 		
-		int cameraIndex = s_AIRandomGenerator.RandInt(0, m_Config.m_aCameraPositions.Count()-1);
-		OVT_CameraPosition pos = m_Config.m_aCameraPositions[cameraIndex];
+		int cameraIndex = s_AIRandomGenerator.RandInt(0, OVT_Global.GetConfig().m_aCameraPositions.Count()-1);
+		OVT_CameraPosition pos = OVT_Global.GetConfig().m_aCameraPositions[cameraIndex];
 						
 		IEntity cam = OVT_Global.SpawnEntityPrefab(m_StartCameraPrefab, pos.position, "0 0 0", false);
 		if(cam)
@@ -385,7 +386,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 								
 		Print("Initializing Overthrow");
 		
-		m_Config = OVT_Global.GetConfig();				
+		OVT_Global.GetConfig() = OVT_Global.GetConfig();				
 		m_PlayerManager = OVT_Global.GetPlayers();		
 		m_RealEstate = OVT_Global.GetRealEstate();
 		
@@ -452,7 +453,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			return;
 		}
 		
-		m_Config.LoadConfig();
+		OVT_Global.GetConfig().LoadConfig();
 		
 		m_Persistence = OVT_PersistenceManagerComponent.Cast(FindComponent(OVT_PersistenceManagerComponent));		
 		if(m_Persistence)

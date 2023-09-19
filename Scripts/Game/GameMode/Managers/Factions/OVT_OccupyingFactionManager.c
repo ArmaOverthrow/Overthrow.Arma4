@@ -41,6 +41,11 @@ class OVT_BaseData : Managed
 	{
 		return faction == OVT_Global.GetConfig().m_sOccupyingFaction;
 	}
+	
+	static OVT_BaseData Get(vector pos)
+	{
+		return OVT_Global.GetOccupyingFaction().GetNearestBase(pos);
+	}
 }
 
 class OVT_RadioTowerData : Managed
@@ -145,13 +150,13 @@ class OVT_OccupyingFactionManager: OVT_Component
 	{	
 		if(!Replication.IsServer()) return;
 			
-		m_iThreat = m_Config.m_Difficulty.baseThreat;
-		m_iResources = m_Config.m_Difficulty.startingResources;
+		m_iThreat = OVT_Global.GetConfig().m_Difficulty.baseThreat;
+		m_iResources = OVT_Global.GetConfig().m_Difficulty.startingResources;
 		
-		Faction playerFaction = GetGame().GetFactionManager().GetFactionByKey(m_Config.m_sPlayerFaction);
+		Faction playerFaction = GetGame().GetFactionManager().GetFactionByKey(OVT_Global.GetConfig().m_sPlayerFaction);
 		m_iPlayerFactionIndex = GetGame().GetFactionManager().GetFactionIndex(playerFaction);
 		
-		Faction occupyingFaction = GetGame().GetFactionManager().GetFactionByKey(m_Config.m_sOccupyingFaction);
+		Faction occupyingFaction = GetGame().GetFactionManager().GetFactionByKey(OVT_Global.GetConfig().m_sOccupyingFaction);
 		m_iOccupyingFactionIndex = GetGame().GetFactionManager().GetFactionIndex(occupyingFaction);
 				
 		OVT_Global.GetTowns().m_OnTownControlChange.Insert(OnTownControlChanged);
@@ -161,10 +166,10 @@ class OVT_OccupyingFactionManager: OVT_Component
 	
 	void NewGameStart()
 	{
-		m_Config.m_iOccupyingFactionIndex = -1;
+		OVT_Global.GetConfig().m_iOccupyingFactionIndex = -1;
 		foreach(OVT_BaseData data : m_Bases)
 		{
-			data.faction = m_Config.m_sOccupyingFaction;
+			data.faction = OVT_Global.GetConfig().m_sOccupyingFaction;
 		}
 	}
 	
@@ -187,11 +192,11 @@ class OVT_OccupyingFactionManager: OVT_Component
 	
 	void CheckRadioTowers()
 	{
-		OVT_Faction faction = m_Config.GetOccupyingFaction();
+		OVT_Faction faction = OVT_Global.GetConfig().GetOccupyingFaction();
 		foreach(OVT_RadioTowerData tower : m_RadioTowers)
 		{
 			if(!tower.IsOccupyingFaction()) continue;
-			bool inrange = OVT_Global.PlayerInRange(tower.location, m_Config.m_iMilitarySpawnDistance) && !m_CurrentQRF;
+			bool inrange = OVT_Global.PlayerInRange(tower.location, OVT_Global.GetConfig().m_iMilitarySpawnDistance) && !m_CurrentQRF;
 			if(inrange)
 			{
 				if(tower.garrison.Count() == 0)
@@ -206,12 +211,12 @@ class OVT_OccupyingFactionManager: OVT_Component
 						pos[1] = surfaceY;
 					}
 					
-					for(int t = 0; t < m_Config.m_Difficulty.radioTowerGroups; t++)
+					for(int t = 0; t < OVT_Global.GetConfig().m_Difficulty.radioTowerGroups; t++)
 					{
 						IEntity group = OVT_Global.SpawnEntityPrefab(faction.m_aTowerDefensePatrolPrefab, pos);						
 						tower.garrison.Insert(group.GetID());
 						SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
-						AIWaypoint wp = m_Config.SpawnDefendWaypoint(pos);
+						AIWaypoint wp = OVT_Global.GetConfig().SpawnDefendWaypoint(pos);
 						aigroup.AddWaypoint(wp);
 					}
 				}else{
@@ -237,7 +242,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 					if(tower.garrison.Count() == 0)
 					{
 						//radio tower changes hands
-						ChangeRadioTowerControl(tower, m_Config.GetPlayerFactionIndex());						
+						ChangeRadioTowerControl(tower, OVT_Global.GetConfig().GetPlayerFactionIndex());						
 					}
 				}
 			}else{
@@ -263,7 +268,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		
 		string townName = OVT_Global.GetTowns().GetTownName(tower.location);
 		
-		if(faction == m_Config.GetOccupyingFactionIndex())
+		if(faction == OVT_Global.GetConfig().GetOccupyingFactionIndex())
 		{
 			OVT_Global.GetNotify().SendTextNotification("RadioTowerControlledOccupying",-1,townName);	
 			OVT_Global.GetNotify().SendExternalNotifications("RadioTowerControlledOccupying",townName);	
@@ -359,7 +364,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 	protected void InitBaseControllers()
 	{		
 		OVT_ResistanceFactionManager rf = OVT_Global.GetResistanceFaction();
-		OVT_Faction resistance = m_Config.GetPlayerFaction();
+		OVT_Faction resistance = OVT_Global.GetConfig().GetPlayerFaction();
 		
 		foreach(int index, OVT_BaseData data : m_Bases)
 		{			
@@ -598,7 +603,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		data.entId = ent.GetID();
 		data.id = m_Bases.Count();
 		data.location = ent.GetOrigin();
-		data.faction = m_Config.GetOccupyingFaction().GetFactionKey();
+		data.faction = OVT_Global.GetConfig().GetOccupyingFaction().GetFactionKey();
 		
 		m_Bases.Insert(data);		
 		return true;
@@ -620,7 +625,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 	
 	bool CheckTransmitterTowerAdd(IEntity ent)
 	{		
-		int occupyingFactionIndex = m_Config.GetOccupyingFactionIndex();
+		int occupyingFactionIndex = OVT_Global.GetConfig().GetOccupyingFactionIndex();
 		
 		OVT_RadioTowerData data = new OVT_RadioTowerData;
 		data.id = m_RadioTowers.Count();
@@ -691,7 +696,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 				OVT_BaseControllerComponent base = GetBase(data.entId);	
 				
 				//Dont spawn stuff if a player is watching lol
-				if(OVT_Global.PlayerInRange(data.location, m_Config.m_Difficulty.baseCloseRange+100)) continue;			
+				if(OVT_Global.PlayerInRange(data.location, OVT_Global.GetConfig().m_Difficulty.baseCloseRange+100)) continue;			
 				
 				m_iResources -= base.SpendResources(m_iResources, m_iThreat);			
 				
@@ -713,8 +718,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 			m_iThreat -= 1;
 			if(m_iThreat < 0) m_iThreat = 0;
 			
-			int playerFaction = m_Config.GetPlayerFactionIndex();
-			int occupyingFaction = m_Config.GetOccupyingFactionIndex();
+			int playerFaction = OVT_Global.GetConfig().GetPlayerFactionIndex();
+			int occupyingFaction = OVT_Global.GetConfig().GetOccupyingFactionIndex();
 			
 			foreach(OVT_TownData town : OVT_Global.GetTowns().m_Towns)
 			{
@@ -742,7 +747,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 	
 	protected void UpdateSpecops()
 	{
-		if(m_iResources > m_Config.m_Difficulty.maxQRF)
+		if(m_iResources > OVT_Global.GetConfig().m_Difficulty.maxQRF)
 		{
 			//Do Specops
 			foreach(OVT_TargetData target : m_aKnownTargets)
@@ -761,7 +766,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 					m_iResources = 0;
 					break;
 				}
-				if(m_iResources < m_Config.m_Difficulty.maxQRF) {
+				if(m_iResources < OVT_Global.GetConfig().m_Difficulty.maxQRF) {
 					break;
 				}
 			}
@@ -845,7 +850,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 	{
 		float threatFactor = m_iThreat / 100;
 		if(threatFactor > 1) threatFactor = 1;
-		int newResources = m_Config.m_Difficulty.baseResourcesPerTick + (m_Config.m_Difficulty.resourcesPerTick * threatFactor);
+		int newResources = OVT_Global.GetConfig().m_Difficulty.baseResourcesPerTick + (OVT_Global.GetConfig().m_Difficulty.resourcesPerTick * threatFactor);
 		
 		int numPlayersOnline = GetGame().GetPlayerManager().GetPlayerCount();
 		
@@ -886,8 +891,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 	override bool RplSave(ScriptBitWriter writer)
 	{
 		//Send JIP factions
-		writer.WriteString(m_Config.m_sOccupyingFaction);
-		writer.WriteString(m_Config.m_sPlayerFaction);
+		writer.WriteString(OVT_Global.GetConfig().m_sOccupyingFaction);
+		writer.WriteString(OVT_Global.GetConfig().m_sPlayerFaction);
 			
 		//Send JIP bases
 		writer.WriteInt(m_Bases.Count()); 
@@ -920,12 +925,12 @@ class OVT_OccupyingFactionManager: OVT_Component
 		int length;
 		RplId id;	
 		
-		if(!reader.ReadString(m_Config.m_sOccupyingFaction)) return false;	
-		if(!reader.ReadString(m_Config.m_sPlayerFaction)) return false;
+		if(!reader.ReadString(OVT_Global.GetConfig().m_sOccupyingFaction)) return false;	
+		if(!reader.ReadString(OVT_Global.GetConfig().m_sPlayerFaction)) return false;
 		
 		FactionManager fm = GetGame().GetFactionManager();
-		m_Config.m_iOccupyingFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(m_Config.m_sOccupyingFaction));
-		m_Config.m_iPlayerFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(m_Config.m_sPlayerFaction));
+		OVT_Global.GetConfig().m_iOccupyingFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(OVT_Global.GetConfig().m_sOccupyingFaction));
+		OVT_Global.GetConfig().m_iPlayerFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(OVT_Global.GetConfig().m_sPlayerFaction));
 		
 		//Recieve JIP bases
 		if (!reader.ReadInt(length)) return false;

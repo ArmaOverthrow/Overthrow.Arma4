@@ -15,7 +15,7 @@ class OVT_BaseUpgradeTowerGuard : OVT_BasePatrolUpgrade
 	
 	protected void FindTowers()
 	{
-		GetGame().GetWorld().QueryEntitiesBySphere(m_BaseController.GetOwner().GetOrigin(), m_Config.m_Difficulty.baseRange, CheckTowerAddToArray, FilterTowerEntities, EQueryEntitiesFlags.ALL);
+		GetGame().GetWorld().QueryEntitiesBySphere(m_BaseController.GetOwner().GetOrigin(), OVT_Global.GetConfig().m_Difficulty.baseRange, CheckTowerAddToArray, FilterTowerEntities, EQueryEntitiesFlags.ALL);
 	}
 	
 	protected bool FilterTowerEntities(IEntity entity)
@@ -55,7 +55,7 @@ class OVT_BaseUpgradeTowerGuard : OVT_BasePatrolUpgrade
 			{
 				SCR_AIGroup group = GetGroup(id);
 				if(!group) continue;
-				m_iProxedResources += group.GetAgentsCount() * m_Config.m_Difficulty.baseResourceCost;
+				m_iProxedResources += group.GetAgentsCount() * OVT_Global.GetConfig().m_Difficulty.baseResourceCost;
 				
 				SCR_EntityHelper.DeleteEntityAndChildren(group);
 			}
@@ -73,7 +73,7 @@ class OVT_BaseUpgradeTowerGuard : OVT_BasePatrolUpgrade
 		
 		foreach(EntityID id : m_Towers)
 		{
-			if(resources < m_Config.m_Difficulty.baseResourceCost) break;
+			if(resources < OVT_Global.GetConfig().m_Difficulty.baseResourceCost) break;
 			
 			bool needsGuard = false;
 			if(!m_TowerGuards.Contains(id))
@@ -92,14 +92,14 @@ class OVT_BaseUpgradeTowerGuard : OVT_BasePatrolUpgrade
 			if(needsGuard)
 			{
 				if(!PlayerInRange()){
-					m_iProxedResources += m_Config.m_Difficulty.baseResourceCost;
-					spent += m_Config.m_Difficulty.baseResourceCost;
+					m_iProxedResources += OVT_Global.GetConfig().m_Difficulty.baseResourceCost;
+					spent += OVT_Global.GetConfig().m_Difficulty.baseResourceCost;
 				}else{
 					if(BuyGuard(id))
 					{
 						m_bSpawned = true;
-						resources -= m_Config.m_Difficulty.baseResourceCost;
-						spent += m_Config.m_Difficulty.baseResourceCost;
+						resources -= OVT_Global.GetConfig().m_Difficulty.baseResourceCost;
+						spent += OVT_Global.GetConfig().m_Difficulty.baseResourceCost;
 					}
 				}				
 			}
@@ -135,9 +135,9 @@ class OVT_BaseUpgradeTowerGuard : OVT_BasePatrolUpgrade
 		
 		vector actionPos = tower.GetOrigin() + sentinel.GetActionOffset() - "0 1.3 0";
 				
-		SCR_AIGroup group = SCR_AIGroup.Cast(OVT_Global.SpawnEntityPrefab(m_Config.GetOccupyingFaction().m_aGroupSniperPrefab, actionPos));
+		SCR_AIGroup group = SCR_AIGroup.Cast(OVT_Global.SpawnEntityPrefab(OVT_Global.GetConfig().GetOccupyingFaction().m_aGroupSniperPrefab, actionPos));
 						
-		AIWaypoint wp = m_Config.SpawnActionWaypoint(actionPos, tower, "CoverPost");
+		AIWaypoint wp = OVT_Global.GetConfig().SpawnActionWaypoint(actionPos, tower, "CoverPost");
 		group.AddWaypoint(wp);
 		
 		m_Groups.Insert(group.GetID());

@@ -161,7 +161,7 @@ class OVT_PlaceContext : OVT_UIContext
 					
 			
 			dist = vector.Distance(base.location,pos);
-			if(dist < m_Config.m_Difficulty.baseRange)
+			if(dist < OVT_Global.GetConfig().m_Difficulty.baseRange)
 			{
 				reason = "#OVT-TooCloseBase";
 				return false;
@@ -228,7 +228,7 @@ class OVT_PlaceContext : OVT_UIContext
 		
 		OVT_BaseData base = m_OccupyingFaction.GetNearestBase(pos);
 		dist = vector.Distance(base.location,pos);
-		if(!base.IsOccupyingFaction() && dist < m_Config.m_Difficulty.baseRange)
+		if(!base.IsOccupyingFaction() && dist < OVT_Global.GetConfig().m_Difficulty.baseRange)
 		{
 			return true;
 		}
@@ -252,7 +252,7 @@ class OVT_PlaceContext : OVT_UIContext
 			return;
 		}
 		
-		if(!m_Economy.PlayerHasMoney(m_sPlayerID, m_Config.GetPlaceableCost(placeable)))
+		if(!m_Economy.PlayerHasMoney(m_sPlayerID, OVT_Global.GetConfig().GetPlaceableCost(placeable)))
 		{
 			ShowHint("#OVT-CannotAfford");
 			SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.ERROR);
@@ -307,7 +307,7 @@ class OVT_PlaceContext : OVT_UIContext
 	{		
 		if(!m_bPlacing) return;
 		
-		int cost = m_Config.GetPlaceableCost(m_Placeable);
+		int cost = OVT_Global.GetConfig().GetPlaceableCost(m_Placeable);
 		vector mat[4];
 		
 		if(m_ePlacingEntity)
@@ -334,7 +334,7 @@ class OVT_PlaceContext : OVT_UIContext
 			int prefabIndex = m_Placeable.m_aPrefabs.Find(m_pPlacingPrefab);
 			OVT_Global.GetServer().PlaceItem(placeableIndex, prefabIndex, mat[3], angles, m_iPlayerID);
 						
-			m_Economy.TakePlayerMoney(m_iPlayerID, m_Config.GetPlaceableCost(m_Placeable));
+			m_Economy.TakePlayerMoney(m_iPlayerID, OVT_Global.GetConfig().GetPlaceableCost(m_Placeable));
 			SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.CLICK);
 		}
 		

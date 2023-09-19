@@ -133,7 +133,7 @@ class OVT_QRFControllerComponent: OVT_Component
 				if(!entity) continue;
 				SCR_ChimeraCharacter character = SCR_ChimeraCharacter.Cast(entity);
 				if(!character) continue;
-				if(character.GetFactionKey() != m_Config.GetOccupyingFactionData().GetFactionKey()) continue;
+				if(character.GetFactionKey() != OVT_Global.GetConfig().GetOccupyingFactionData().GetFactionKey()) continue;
 				float dist = vector.Distance(character.GetOrigin(),GetOwner().GetOrigin());
 				if(dist < QRF_POINT_RANGE)
 				{
@@ -189,8 +189,8 @@ class OVT_QRFControllerComponent: OVT_Component
 			
 			m_OccupyingFaction.UpdateQRFPoints(m_iPoints);		
 			
-			if(m_iPoints > 0) m_iWinningFaction = m_Config.GetPlayerFactionIndex();
-			if(m_iPoints < 0) m_iWinningFaction = m_Config.GetOccupyingFactionIndex();
+			if(m_iPoints > 0) m_iWinningFaction = OVT_Global.GetConfig().GetPlayerFactionIndex();
+			if(m_iPoints < 0) m_iWinningFaction = OVT_Global.GetConfig().GetOccupyingFactionIndex();
 			if(m_iPoints == 0) m_iWinningFaction = -1;
 			
 			if(m_iPoints >= 100 || m_iPoints <= -100)
@@ -235,7 +235,7 @@ class OVT_QRFControllerComponent: OVT_Component
 		int resources = m_OccupyingFaction.m_iResources;
 		if(resources <= 200) resources = 200; //Emergency resources (minimum size QRF)
 		
-		int max = m_Config.m_Difficulty.maxQRF;
+		int max = OVT_Global.GetConfig().m_Difficulty.maxQRF;
 		int numPlayersOnline = GetGame().GetPlayerManager().GetPlayerCount();
 		
 		//Scale max QRF size by number of players online
@@ -270,9 +270,9 @@ class OVT_QRFControllerComponent: OVT_Component
 		int spent = 0;
 		int allocate = Math.Floor(m_iResourcesLeft / m_Bases.Count());
 		
-		if(allocate > (16 * m_Config.m_Difficulty.baseResourceCost))
+		if(allocate > (16 * OVT_Global.GetConfig().m_Difficulty.baseResourceCost))
 		{
-			allocate = 16 * m_Config.m_Difficulty.baseResourceCost;
+			allocate = 16 * OVT_Global.GetConfig().m_Difficulty.baseResourceCost;
 		}
 		
 		foreach(vector base : m_Bases)
@@ -305,7 +305,7 @@ class OVT_QRFControllerComponent: OVT_Component
 	
 	protected int SpawnTroops(vector pos, vector targetPos)
 	{
-		OVT_Faction faction = m_Config.GetOccupyingFaction();
+		OVT_Faction faction = OVT_Global.GetConfig().GetOccupyingFaction();
 						
 		ResourceName res = faction.m_aGroupPrefabSlots.GetRandomElement();
 		
@@ -313,7 +313,7 @@ class OVT_QRFControllerComponent: OVT_Component
 		m_aSpawnPositions.Insert(pos);
 		m_aSpawnTargets.Insert(targetPos);
 				
-		int newres = 8 * m_Config.m_Difficulty.baseResourceCost;
+		int newres = 8 * OVT_Global.GetConfig().m_Difficulty.baseResourceCost;
 			
 		return newres;
 	}
@@ -336,8 +336,8 @@ class OVT_QRFControllerComponent: OVT_Component
 		SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
 		m_Groups.Insert(group.GetID());
 		
-		aigroup.AddWaypoint(m_Config.SpawnSearchAndDestroyWaypoint(targetPos));
-		aigroup.AddWaypoint(m_Config.SpawnDefendWaypoint(targetPos));
+		aigroup.AddWaypoint(OVT_Global.GetConfig().SpawnSearchAndDestroyWaypoint(targetPos));
+		aigroup.AddWaypoint(OVT_Global.GetConfig().SpawnDefendWaypoint(targetPos));
 		
 		m_aSpawnQueue.Remove(0);
 		m_aSpawnPositions.Remove(0);

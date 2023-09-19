@@ -51,7 +51,7 @@ class OVT_MapContext : OVT_UIContext
 	
 	bool CanFastTravel(vector pos, out string reason)
 	{	
-		if(m_Config.m_bDebugMode) return true;
+		if(OVT_Global.GetConfig().m_bDebugMode) return true;
 		
 		reason = "#OVT-CannotFastTravelThere";	
 		float dist;
@@ -74,9 +74,9 @@ class OVT_MapContext : OVT_UIContext
 			return false;
 		}		
 		
-		if(m_OccupyingFaction.m_bQRFActive && m_Config.m_Difficulty.QRFFastTravelMode != OVT_QRFFastTravelMode.FREE)
+		if(m_OccupyingFaction.m_bQRFActive && OVT_Global.GetConfig().m_Difficulty.QRFFastTravelMode != OVT_QRFFastTravelMode.FREE)
 		{
-			if(m_Config.m_Difficulty.QRFFastTravelMode == OVT_QRFFastTravelMode.DISABLED)
+			if(OVT_Global.GetConfig().m_Difficulty.QRFFastTravelMode == OVT_QRFFastTravelMode.DISABLED)
 			{
 				reason = "#OVT-CannotFastTravelDuringQRF";
 				return false;
@@ -120,7 +120,7 @@ class OVT_MapContext : OVT_UIContext
 		if(base && !base.IsOccupyingFaction())
 		{
 			dist = vector.Distance(base.location, pos);
-			if(dist < m_Config.m_Difficulty.baseCloseRange) return true;
+			if(dist < OVT_Global.GetConfig().m_Difficulty.baseCloseRange) return true;
 		}
 		
 		return false;
@@ -367,9 +367,9 @@ class OVT_MapContext : OVT_UIContext
 				return;
 			}
 			
-			int cost = m_Config.m_Difficulty.fastTravelCost;
+			int cost = OVT_Global.GetConfig().m_Difficulty.fastTravelCost;
 			
-			if(m_Config.m_bDebugMode) cost = 0;
+			if(OVT_Global.GetConfig().m_bDebugMode) cost = 0;
 			
 			if(!m_Economy.PlayerHasMoney(m_sPlayerID, cost))
 			{
@@ -423,7 +423,7 @@ class OVT_MapContext : OVT_UIContext
 				return;
 			}
 			float dist = vector.Distance(pos, m_Owner.GetOrigin());
-			int cost = Math.Round((dist / 1000) * m_Config.m_Difficulty.busTicketPrice);
+			int cost = Math.Round((dist / 1000) * OVT_Global.GetConfig().m_Difficulty.busTicketPrice);
 			
 			if(!m_Economy.PlayerHasMoney(m_sPlayerID, cost))
 			{

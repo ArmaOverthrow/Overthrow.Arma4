@@ -24,11 +24,11 @@ class OVT_BaseUpgradeParkedVehicles : OVT_BaseUpgrade
 		int res = 0;
 		foreach(EntityID id : m_Cars)
 		{
-			res += m_Config.m_Difficulty.baseResourceCost * 3;	
+			res += OVT_Global.GetConfig().m_Difficulty.baseResourceCost * 3;	
 		}
 		foreach(EntityID id : m_Trucks)
 		{
-			res += m_Config.m_Difficulty.baseResourceCost * 6;	
+			res += OVT_Global.GetConfig().m_Difficulty.baseResourceCost * 6;	
 		}
 		return res;
 	}
@@ -69,7 +69,7 @@ class OVT_BaseUpgradeParkedVehicles : OVT_BaseUpgrade
 		//Try to find a parking spot
 		if(m_BaseController.m_Parking.Count() == 0) return 0;
 		
-		OVT_Faction faction = m_Config.GetOccupyingFaction();
+		OVT_Faction faction = OVT_Global.GetConfig().GetOccupyingFaction();
 		if(faction.m_aVehicleCarPrefabSlots.Count() == 0) return 0;
 		
 		EntityID parkingBuildingID = m_BaseController.m_Parking.GetRandomElement();
@@ -80,7 +80,7 @@ class OVT_BaseUpgradeParkedVehicles : OVT_BaseUpgrade
 		{
 			IEntity veh = m_Vehicles.SpawnVehicleMatrix(faction.m_aVehicleCarPrefabSlots.GetRandomElement(), spot);
 			if(veh){
-				spent += m_Config.m_Difficulty.baseResourceCost * 3;
+				spent += OVT_Global.GetConfig().m_Difficulty.baseResourceCost * 3;
 				m_Cars.Insert(veh.GetID());
 			}			
 		}
@@ -93,7 +93,7 @@ class OVT_BaseUpgradeParkedVehicles : OVT_BaseUpgrade
 		//Try to find a parking spot
 		if(m_BaseController.m_Parking.Count() == 0) return 0;
 		
-		OVT_Faction faction = m_Config.GetOccupyingFaction();
+		OVT_Faction faction = OVT_Global.GetConfig().GetOccupyingFaction();
 		if(faction.m_aVehicleTruckPrefabSlots.Count() == 0) return 0;
 		
 		EntityID parkingBuildingID = m_BaseController.m_Parking.GetRandomElement();
@@ -104,7 +104,7 @@ class OVT_BaseUpgradeParkedVehicles : OVT_BaseUpgrade
 		{
 			IEntity veh = m_Vehicles.SpawnVehicleMatrix(faction.m_aVehicleTruckPrefabSlots.GetRandomElement(), spot);
 			if(veh){
-				spent += m_Config.m_Difficulty.baseResourceCost * 6;
+				spent += OVT_Global.GetConfig().m_Difficulty.baseResourceCost * 6;
 				m_Trucks.Insert(veh.GetID());
 			}			
 		}

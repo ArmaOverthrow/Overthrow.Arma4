@@ -28,8 +28,6 @@ class OVT_BaseControllerComponent: OVT_Component
 	
 	protected const int UPGRADE_UPDATE_FREQUENCY = 10000;
 	
-	EntityID m_Flag;
-	
 	void InitBase()
 	{
 		if(!Replication.IsServer()) return;
@@ -40,6 +38,9 @@ class OVT_BaseControllerComponent: OVT_Component
 		InitializeBase();
 		
 		GetGame().GetCallqueue().CallLater(UpdateUpgrades, UPGRADE_UPDATE_FREQUENCY, true, GetOwner());		
+		
+		SCR_FactionAffiliationComponent affiliation = EPF_Component<SCR_FactionAffiliationComponent>.Find(GetOwner());
+		affiliation.GetOnFactionChanged().Insert(OnFactionChanged);
 	}
 	
 	protected void UpdateUpgrades()
@@ -54,14 +55,16 @@ class OVT_BaseControllerComponent: OVT_Component
 	
 	bool IsOccupyingFaction()
 	{
-		OVT_BaseData data = OVT_Global.GetOccupyingFaction().GetNearestBase(GetOwner().GetOrigin());
-		return data.IsOccupyingFaction();
+		SCR_FactionAffiliationComponent affiliation = EPF_Component<SCR_FactionAffiliationComponent>.Find(GetOwner());
+		string occupyingFaction = OVT_Global.GetConfig().GetOccupyingFactionData().GetFactionKey();
+		return affiliation.GetAffiliatedFaction().GetFactionKey() == occupyingFaction;
 	}
 	
 	int GetControllingFaction()
 	{
-		OVT_BaseData data = OVT_Global.GetOccupyingFaction().GetNearestBase(GetOwner().GetOrigin());
-		return data.faction;
+		SCR_FactionAffiliationComponent affiliation = EPF_Component<SCR_FactionAffiliationComponent>.Find(GetOwner());
+		
+		return GetGame().GetFactionManager().GetFactionIndex(affiliation.GetAffiliatedFaction());
 	}
 	
 	void SetControllingFaction(string key, bool suppressEvents = false)
@@ -72,33 +75,25 @@ class OVT_BaseControllerComponent: OVT_Component
 		SetControllingFaction(index, suppressEvents);
 	}
 	
+	void OnFactionChanged(FactionAffiliationComponent owner, Faction previousFaction, Faction newFaction)
+	{
+		SlotManagerComponent slots = EPF_Component<SlotManagerComponent>.Find(GetOwner());
+		EntitySlotInfo slot = slots.GetSlotByName("Flag");
+		IEntity flag = slot.GetAttachedEntity();
+		SCR_EntityHelper.DeleteEntityAndChildren(flag);
+		OVT_Faction fac = OVT_Global.GetFactions().GetOverthrowFactionByKey(newFaction.GetFactionKey());
+		IEntity newFlag = GetGame().SpawnEntityPrefab(Resource.Load(fac.m_sFlagPrefab));
+		slot.AttachEntity(newFlag);		
+	}
+	
 	void SetControllingFaction(int index, bool suppressEvents = false)
 	{		
 		if(!suppressEvents)
 			m_occupyingFactionManager.OnBaseControlChange(this);
 		
-		IEntity flag = GetGame().GetWorld().FindEntityByID(m_Flag);
-		if(flag)
-		{
-			SCR_EntityHelper.DeleteEntityAndChildren(flag);
-		}
-		
-		m_Flag = SpawnFlag().GetID();
-	}
-	
-	IEntity SpawnFlag()
-	{
-		vector pos = GetOwner().GetOrigin();
-		
-		float groundHeight = GetGame().GetWorld().GetSurfaceY(pos[0], pos[2]);
-		if (pos[1] < groundHeight)
-			pos[1] = groundHeight;
-		
-		OVT_Faction fac = OVT_Global.GetFactions().GetOverthrowFactionByIndex(GetControllingFaction());
-		
-		IEntity flag = OVT_Global.SpawnEntityPrefab(fac.m_aFlagPolePrefab,pos);
-		
-		return flag;
+		Faction fac = GetGame().GetFactionManager().GetFactionByIndex(index);
+		SCR_FactionAffiliationComponent affiliation = EPF_Component<SCR_FactionAffiliationComponent>.Find(GetOwner());
+		affiliation.SetAffiliatedFaction(fac);					
 	}
 	
 	void InitializeBase()
@@ -118,12 +113,9 @@ class OVT_BaseControllerComponent: OVT_Component
 		FindSlots();
 		FindParking();
 		
-		//Spawn a flag		
-		m_Flag = SpawnFlag().GetID();
-		
 		foreach(OVT_BaseUpgrade upgrade : m_aBaseUpgrades)
 		{
-			upgrade.Init(this, m_occupyingFactionManager, m_Config);
+			upgrade.Init(this, m_occupyingFactionManager, OVT_Global.GetConfig());
 		}
 		
 		//Spend testing resources (if any)
@@ -154,7 +146,7 @@ class OVT_BaseControllerComponent: OVT_Component
 	
 	void FindSlots()
 	{
-		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(),  m_Config.m_Difficulty.baseRange, CheckSlotAddToArray, FilterSlotEntities);
+		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(),  OVT_Global.GetConfig().m_Difficulty.baseRange, CheckSlotAddToArray, FilterSlotEntities);
 	}
 	
 	bool FilterSlotEntities(IEntity entity)
@@ -198,7 +190,7 @@ class OVT_BaseControllerComponent: OVT_Component
 			m_AllSlots.Insert(entity.GetID());
 			
 			float distance = vector.Distance(entity.GetOrigin(), GetOwner().GetOrigin());
-			if(distance <  m_Config.m_Difficulty.baseCloseRange)
+			if(distance <  OVT_Global.GetConfig().m_Difficulty.baseCloseRange)
 			{
 				m_AllCloseSlots.Insert(entity.GetID());
 			}
@@ -217,7 +209,7 @@ class OVT_BaseControllerComponent: OVT_Component
 	
 	void FindParking()
 	{
-		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), m_Config.m_Difficulty.baseCloseRange, null, FilterParkingEntities, EQueryEntitiesFlags.ALL);
+		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), OVT_Global.GetConfig().m_Difficulty.baseCloseRange, null, FilterParkingEntities, EQueryEntitiesFlags.ALL);
 	}
 	
 	bool FilterParkingEntities(IEntity entity)
@@ -241,7 +233,7 @@ class OVT_BaseControllerComponent: OVT_Component
 				if(upgrade.m_iMinimumThreat > threat) continue;
 				if(upgrade.m_iPriority == priority)
 				{					
-					int allocate = upgrade.m_iResourceAllocation * m_Config.m_Difficulty.baseResourceCost;
+					int allocate = upgrade.m_iResourceAllocation * OVT_Global.GetConfig().m_Difficulty.baseResourceCost;
 					int newres = 0;
 					if(allocate < 0)
 					{

@@ -26,5 +26,10 @@ class OVT_SetHomeAction : ScriptedUserAction
 		return genericRpl.IsOwner();
  	}
 	
+	override bool CanBeShownScript(IEntity user)
+	{
+		return !EPF_Component<OVT_BaseControllerComponent>.Find(GetOwner()).IsOccupyingFaction();
+	}
+	
 	override bool HasLocalEffectOnlyScript() { return true; };
 }

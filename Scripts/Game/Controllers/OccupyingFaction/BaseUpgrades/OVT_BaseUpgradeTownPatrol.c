@@ -91,7 +91,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 				if(distance < 20 || agentCount == 0)
 				{
 					//Recover any resources
-					m_occupyingFactionManager.RecoverResources(agentCount * m_Config.m_Difficulty.baseResourceCost);
+					m_occupyingFactionManager.RecoverResources(agentCount * OVT_Global.GetConfig().m_Difficulty.baseResourceCost);
 					
 					m_Patrols.Remove(townID);
 					SCR_EntityHelper.DeleteEntityAndChildren(aigroup);	
@@ -113,7 +113,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 	protected int BuyTownPatrol(OVT_TownData town, float threat)
 	{
 		int townID = OVT_Global.GetTowns().GetTownID(town);
-		OVT_Faction faction = m_Config.GetOccupyingFaction();
+		OVT_Faction faction = OVT_Global.GetConfig().GetOccupyingFaction();
 				
 		ResourceName res = faction.m_aLightTownPatrolPrefab;
 		if(threat > 15) res = faction.GetRandomGroupByType(OVT_GroupType.LIGHT_INFANTRY);
@@ -140,7 +140,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		
 		AddWaypoints(aigroup, town);
 		
-		int newres = aigroup.m_aUnitPrefabSlots.Count() * m_Config.m_Difficulty.baseResourceCost;
+		int newres = aigroup.m_aUnitPrefabSlots.Count() * OVT_Global.GetConfig().m_Difficulty.baseResourceCost;
 			
 		return newres;
 	}
@@ -154,17 +154,17 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 			//To-Do: find some random buildings
 		}
 							
-		aigroup.AddWaypoint(m_Config.SpawnPatrolWaypoint(town.location));			
+		aigroup.AddWaypoint(OVT_Global.GetConfig().SpawnPatrolWaypoint(town.location));			
 				
 		vector pos = OVT_Global.GetRandomNonOceanPositionNear(town.location, 250);
-		aigroup.AddWaypoint(m_Config.SpawnSearchAndDestroyWaypoint(pos));			
-		aigroup.AddWaypoint(m_Config.SpawnWaitWaypoint(pos, s_AIRandomGenerator.RandFloatXY(15, 50)));								
+		aigroup.AddWaypoint(OVT_Global.GetConfig().SpawnSearchAndDestroyWaypoint(pos));			
+		aigroup.AddWaypoint(OVT_Global.GetConfig().SpawnWaitWaypoint(pos, s_AIRandomGenerator.RandFloatXY(15, 50)));								
 		
 		pos = OVT_Global.GetRandomNonOceanPositionNear(town.location, 250);
-		aigroup.AddWaypoint(m_Config.SpawnSearchAndDestroyWaypoint(pos));			
-		aigroup.AddWaypoint(m_Config.SpawnWaitWaypoint(pos, s_AIRandomGenerator.RandFloatXY(15, 50)));								
+		aigroup.AddWaypoint(OVT_Global.GetConfig().SpawnSearchAndDestroyWaypoint(pos));			
+		aigroup.AddWaypoint(OVT_Global.GetConfig().SpawnWaitWaypoint(pos, s_AIRandomGenerator.RandFloatXY(15, 50)));								
 		
-		aigroup.AddWaypoint(m_Config.SpawnPatrolWaypoint(m_BaseController.GetOwner().GetOrigin()));		
+		aigroup.AddWaypoint(OVT_Global.GetConfig().SpawnPatrolWaypoint(m_BaseController.GetOwner().GetOrigin()));		
 	}
 	
 	override OVT_BaseUpgradeData Serialize()

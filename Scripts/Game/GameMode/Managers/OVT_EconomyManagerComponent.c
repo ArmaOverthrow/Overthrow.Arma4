@@ -275,7 +275,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		{
 			int townID = OVT_Global.GetTowns().GetTownID(town);
 			if(!m_mTownShops.Contains(townID)) continue;
-			int maxToBuy = (town.population * m_Config.m_fNPCBuyRate) * (town.stability / 100);
+			int maxToBuy = (town.population * OVT_Global.GetConfig().m_fNPCBuyRate) * (town.stability / 100);
 			
 			int numToBuy = s_AIRandomGenerator.RandInt(1,maxToBuy);
 			
@@ -372,7 +372,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		int income = 0;
 		foreach(OVT_TownData town : m_Towns.m_Towns)
 		{
-			int increase = m_Config.m_Difficulty.donationIncome * town.support;
+			int increase = OVT_Global.GetConfig().m_Difficulty.donationIncome * town.support;
 			if(town.stability > 75)
 			{
 				increase *= 2;
@@ -389,7 +389,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		foreach(OVT_TownData town : m_Towns.m_Towns)
 		{
 			if(town.IsOccupyingFaction()) continue;
-			income += (int)Math.Round(m_Config.m_Difficulty.taxIncome * town.population * (town.stability / 100));
+			income += (int)Math.Round(OVT_Global.GetConfig().m_Difficulty.taxIncome * town.population * (town.stability / 100));
 		}
 		
 		return income;
@@ -428,7 +428,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	int GetBuyPrice(int id, vector pos = "0 0 0", int playerId=-1)
 	{
 		int price = GetSellPrice(id, pos);
-		int buy = Math.Round(price + (price * m_Config.m_fShopProfitMargin));
+		int buy = Math.Round(price + (price * OVT_Global.GetConfig().m_fShopProfitMargin));
 		if(playerId > -1)
 		{
 			OVT_PlayerData player = OVT_PlayerData.Get(playerId);
@@ -455,7 +455,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	{
 		OVT_TownData town = m_Towns.GetTown(townId);
 		if(!town) return 100;
-		return Math.Round(1 + (town.population * m_Config.m_fNPCBuyRate * GetDemand(id) * ((float)town.stability / 100)));
+		return Math.Round(1 + (town.population * OVT_Global.GetConfig().m_fNPCBuyRate * GetDemand(id) * ((float)town.stability / 100)));
 	}	
 	
 	int GetPriceByResource(ResourceName res, vector pos = "0 0 0")
@@ -910,7 +910,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		{
 			ResourceName res = entry.GetPrefab();
 			int id = GetInventoryId(res);
-			if(!ItemIsFromFaction(id, m_Config.GetOccupyingFactionIndex())) continue;
+			if(!ItemIsFromFaction(id, OVT_Global.GetConfig().GetOccupyingFactionIndex())) continue;
 			
 			SCR_ArsenalItem item = SCR_ArsenalItem.Cast(entry.GetEntityDataOfType(SCR_ArsenalItem));
 			if(item)
@@ -935,7 +935,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	bool GetAllNonOccupyingFactionItems(out array<ResourceName> resources)
 	{
-		int occupyingFactionIndex = m_Config.GetOccupyingFactionIndex();
+		int occupyingFactionIndex = OVT_Global.GetConfig().GetOccupyingFactionIndex();
 		foreach(SCR_EntityCatalogEntry entry : m_aEntityCatalogEntries)
 		{
 			SCR_ArsenalItem item = SCR_ArsenalItem.Cast(entry.GetEntityDataOfType(SCR_ArsenalItem));
@@ -952,7 +952,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	bool GetAllNonOccupyingFactionVehicles(out array<ResourceName> resources, bool includeIllegal = false)
 	{
-		int occupyingFactionIndex = m_Config.GetOccupyingFactionIndex();
+		int occupyingFactionIndex = OVT_Global.GetConfig().GetOccupyingFactionIndex();
 		
 		foreach(int id : m_aAllVehicles)
 		{
@@ -967,7 +967,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	bool GetAllNonOccupyingFactionVehiclesByParking(out array<ResourceName> resources, array<OVT_ParkingType> parkingTypes, bool includeIllegal = false)
 	{
-		int occupyingFactionIndex = m_Config.GetOccupyingFactionIndex();
+		int occupyingFactionIndex = OVT_Global.GetConfig().GetOccupyingFactionIndex();
 		
 		foreach(int id : m_aAllVehicles)
 		{
@@ -1024,7 +1024,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 			OVT_ShopComponent shop = OVT_ShopComponent.Cast(entity.FindComponent(OVT_ShopComponent));
 			OVT_TownData town = shop.GetTown();
 			
-			int occupyingFactionId = m_Config.GetOccupyingFactionIndex();
+			int occupyingFactionId = OVT_Global.GetConfig().GetOccupyingFactionIndex();
 			
 			int townID = OVT_Global.GetTowns().GetTownID(town);
 			

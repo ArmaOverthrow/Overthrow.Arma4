@@ -32,27 +32,5 @@ class OVT_MapCampaignUI : SCR_MapUIElementContainer
 		super.OnMapOpen(config);
 
 		InitBases();
-		
-		SCR_MapEntity.GetOnMapPan().Insert(UpdateIcons);
-		SCR_MapEntity.GetOnMapZoom().Insert(UpdateIcons);
-	}
-
-	//------------------------------------------------------------------------------------------------
-	override void OnMapClose(MapConfiguration config)
-	{
-		super.OnMapClose(config);
-		
-		SCR_MapEntity.GetOnMapPan().Remove(UpdateIcons);
-		SCR_MapEntity.GetOnMapZoom().Remove(UpdateIcons);
-
-		m_mIcons.Clear();
-	}
-	
-	void ~OVT_MapCampaignUI()
-	{
-		foreach (Widget w, SCR_MapUIElement i : m_mIcons)
-		{
-			delete w;
-		}
 	}
 }
