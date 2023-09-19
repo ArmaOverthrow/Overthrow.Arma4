@@ -46,11 +46,27 @@ FrameWidgetClass {
           Padding 0 0 0 0
          }
          "Z Order" 4
-         Color 0.471 0.471 0.471 1
-         components {
-          SCR_MilitarySymbolUIComponent "{56F4CE75B4245547}" {
-           m_MilitarySymbol SCR_MilitarySymbol "{56F4CE75B761BCC4}" {
-            m_Identity INDFOR
+         Color 0.502 0 0 1
+         {
+          SizeLayoutWidgetClass "{5E66BC35D88CD7BD}" {
+           Name "SizeLayout0"
+           Slot OverlayWidgetSlot "{5E66BC35D88CD786}" {
+           }
+           "Inherit Color" 1
+           AllowWidthOverride 1
+           WidthOverride 32
+           AllowHeightOverride 1
+           HeightOverride 32
+           {
+            ImageWidgetClass "{5E66BC369BE234C2}" {
+             Name "Icon"
+             Slot AlignableSlot "{5E66BC35A573A4F0}" {
+             }
+             "Inherit Color" 1
+             Texture "{FDD5423E69D007F8}UI/Textures/Icons/icons_wrapperUI-128.imageset"
+             Image "careerCircle"
+             Size 128 128
+            }
            }
           }
          }

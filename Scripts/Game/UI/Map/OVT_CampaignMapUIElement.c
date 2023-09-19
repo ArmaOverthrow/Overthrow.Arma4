@@ -2,7 +2,6 @@ class OVT_CampaignMapUIElement : SCR_MapUIElement
 {
 	protected string m_sFactionKey;
 	protected Widget m_wBaseIcon;
-	protected SCR_MilitarySymbolUIComponent m_wSymbolUI;
 	
 	protected ref ScriptInvoker m_OnMapIconEnter;
 	protected ref ScriptInvoker m_OnMapIconClick;
@@ -70,9 +69,7 @@ class OVT_CampaignMapUIElement : SCR_MapUIElement
 	override void HandlerAttached(Widget w)
 	{
 		super.HandlerAttached(w);
-
-		m_wBaseIcon = Widget.Cast(w.FindAnyWidget("SideSymbol"));
-		m_wSymbolUI = SCR_MilitarySymbolUIComponent.Cast(m_wBaseIcon.FindHandler(SCR_MilitarySymbolUIComponent));				
+		m_wBaseIcon = Widget.Cast(w.FindAnyWidget("SideSymbol"));		
 	}
 	
 	protected void SetIconFaction(Faction faction)

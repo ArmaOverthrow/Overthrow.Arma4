@@ -311,7 +311,7 @@ $grp GenericEntity {
     MainType Transmitter
    }
   }
-  coords 29.444 1.001 116.796
+  coords 29.444 1.001 220.242
   Flags 1027
  }
 }

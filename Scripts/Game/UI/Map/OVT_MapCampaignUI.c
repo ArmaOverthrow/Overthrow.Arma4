@@ -69,18 +69,14 @@ class OVT_MapCampaignUI : SCR_MapUIElementContainer
 	}
 	
 	protected void OnBaseClick(OVT_CampaignMapUIBase handler)
-	{
-		Print("Base Clicked");
-		
+	{		
 		if(m_SelectedElement) m_SelectedElement.DeselectIcon();
 		handler.SelectIcon();
 		m_SelectedElement = handler;
 	}
 	
 	protected void OnTownClick(OVT_CampaignMapUITown handler)
-	{
-		Print("Town Clicked");
-		
+	{		
 		if(m_SelectedElement) m_SelectedElement.DeselectIcon();
 		handler.SelectIcon();
 		m_SelectedElement = handler;

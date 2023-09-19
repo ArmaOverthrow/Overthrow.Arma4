@@ -1,12 +1,20 @@
 class OVT_CampaignMapUIBase : OVT_CampaignMapUIElement
 {
-	protected OVT_BaseData m_BaseData;	
+	protected OVT_BaseData m_BaseData;		
+	protected SCR_MilitarySymbolUIComponent m_wSymbolUI;
 	
 	void InitBase(OVT_BaseData baseData)
 	{
 		m_BaseData = baseData;
 
 		InitBaseIcon();
+	}
+	
+	override void HandlerAttached(Widget w)
+	{
+		super.HandlerAttached(w);
+		
+		m_wSymbolUI = SCR_MilitarySymbolUIComponent.Cast(m_wBaseIcon.FindHandler(SCR_MilitarySymbolUIComponent));				
 	}
 	
 	protected void InitBaseIcon()

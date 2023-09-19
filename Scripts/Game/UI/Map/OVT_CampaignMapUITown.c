@@ -30,19 +30,23 @@ class OVT_CampaignMapUITown : OVT_CampaignMapUIElement
 		
 		SetIconFaction(f);	
 		
-		if(!m_wSymbolUI) return;
+		SizeLayoutWidget size = SizeLayoutWidget.Cast(m_wBaseIcon.GetChildren());
+		if(!size) return;
 		
-		SCR_MilitarySymbol baseIcon = new SCR_MilitarySymbol();
-		
-		if(m_TownData.IsOccupyingFaction())
+		if(m_TownData.size == 1)
 		{
-			baseIcon.SetIdentity(EMilitarySymbolIdentity.OPFOR);
-		}else{
-			baseIcon.SetIdentity(EMilitarySymbolIdentity.BLUFOR);
+			size.SetWidthOverride(16);
+			size.SetHeightOverride(16);
 		}
-		
-		baseIcon.SetDimension(EMilitarySymbolDimension.INSTALLATION);
-		
-		m_wSymbolUI.Update(baseIcon);
+		if(m_TownData.size == 2)
+		{
+			size.SetWidthOverride(24);
+			size.SetHeightOverride(24);
+		}
+		if(m_TownData.size == 3)
+		{
+			size.SetWidthOverride(32);
+			size.SetHeightOverride(32);
+		}
 	}
 }
