@@ -76,7 +76,7 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 			{
 				SCR_AIGroup group = GetGroup(id);
 				if(!group) continue;
-				m_iProxedResources += group.GetAgentsCount() * m_Config.m_Difficulty.baseResourceCost;
+				m_iProxedResources += group.GetAgentsCount() * OVT_Global.GetConfig().m_Difficulty.baseResourceCost;
 				m_ProxiedGroups.Insert(EPF_Utils.GetPrefabName(group));
 				m_ProxiedPositions.Insert(group.GetOrigin());
 				SCR_EntityHelper.DeleteEntityAndChildren(group);
@@ -90,14 +90,14 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 	
 	protected bool PlayerInRange()
 	{		
-		return OVT_Global.PlayerInRange(m_BaseController.GetOwner().GetOrigin(), m_Config.m_iMilitarySpawnDistance);
+		return OVT_Global.PlayerInRange(m_BaseController.GetOwner().GetOrigin(), OVT_Global.GetConfig().m_iMilitarySpawnDistance);
 	}
 	
 	protected int BuyPatrol(float threat, ResourceName res = "", vector pos = "0 0 0")
 	{
 		m_iNumGroups++;
 		
-		OVT_Faction faction = m_Config.GetOccupyingFaction();
+		OVT_Faction faction = OVT_Global.GetConfig().GetOccupyingFaction();
 		if(!faction) return 0;
 				
 		if(res == ""){
@@ -126,7 +126,7 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 		
 		AddWaypoints(aigroup);
 		
-		int newres = aigroup.m_aUnitPrefabSlots.Count() * m_Config.m_Difficulty.baseResourceCost;
+		int newres = aigroup.m_aUnitPrefabSlots.Count() * OVT_Global.GetConfig().m_Difficulty.baseResourceCost;
 			
 		return newres;
 	}
@@ -143,7 +143,7 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 		{
 			SCR_AIGroup group = GetGroup(id);
 			if(!group) continue;
-			res += group.GetAgentsCount() * m_Config.m_Difficulty.baseResourceCost;			
+			res += group.GetAgentsCount() * OVT_Global.GetConfig().m_Difficulty.baseResourceCost;			
 		}
 		return res + m_iProxedResources;
 	}
@@ -154,9 +154,9 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 		
 		while(resources > 0)
 		{
-			int newres = m_Config.m_Difficulty.baseResourceCost * 4;
+			int newres = OVT_Global.GetConfig().m_Difficulty.baseResourceCost * 4;
 			
-			OVT_Faction faction = m_Config.GetOccupyingFaction();
+			OVT_Faction faction = OVT_Global.GetConfig().GetOccupyingFaction();
 			ResourceName res = faction.GetRandomGroupByType(OVT_GroupType.LIGHT_INFANTRY);
 			m_iProxedResources += newres;
 			m_ProxiedGroups.Insert(res);

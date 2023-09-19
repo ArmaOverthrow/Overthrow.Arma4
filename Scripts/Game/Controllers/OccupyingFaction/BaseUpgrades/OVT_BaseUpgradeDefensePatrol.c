@@ -10,15 +10,15 @@ class OVT_BaseUpgradeDefensePatrol : OVT_BasePatrolUpgrade
 			
 		for(int i=0; i< 4; i++)
 		{
-			vector randompos = OVT_Global.GetRandomNonOceanPositionNear(m_BaseController.GetOwner().GetOrigin(), m_Config.m_Difficulty.baseRange);			
-			AIWaypoint wp = m_Config.SpawnPatrolWaypoint(randompos);
+			vector randompos = OVT_Global.GetRandomNonOceanPositionNear(m_BaseController.GetOwner().GetOrigin(), OVT_Global.GetConfig().m_Difficulty.baseRange);			
+			AIWaypoint wp = OVT_Global.GetConfig().SpawnPatrolWaypoint(randompos);
 			if(i==0) firstWP = wp;
 			queueOfWaypoints.Insert(wp);
 			
-			wp = m_Config.SpawnSearchAndDestroyWaypoint(randompos);			
+			wp = OVT_Global.GetConfig().SpawnSearchAndDestroyWaypoint(randompos);			
 			queueOfWaypoints.Insert(wp);			
 		}			
-		AIWaypointCycle cycle = AIWaypointCycle.Cast(m_Config.SpawnWaypoint(m_Config.m_pCycleWaypointPrefab, firstWP.GetOrigin()));
+		AIWaypointCycle cycle = AIWaypointCycle.Cast(OVT_Global.GetConfig().SpawnWaypoint(OVT_Global.GetConfig().m_pCycleWaypointPrefab, firstWP.GetOrigin()));
 		cycle.SetWaypoints(queueOfWaypoints);
 		cycle.SetRerunCounter(-1);
 		aigroup.AddWaypoint(cycle);		
@@ -39,9 +39,9 @@ class OVT_BaseUpgradeDefensePatrol : OVT_BasePatrolUpgrade
 				type = OVT_GroupType.HEAVY_INFANTRY;
 			}
 			
-			int newres = m_Config.m_Difficulty.baseResourceCost * 4;
+			int newres = OVT_Global.GetConfig().m_Difficulty.baseResourceCost * 4;
 			
-			OVT_Faction faction = m_Config.GetOccupyingFaction();
+			OVT_Faction faction = OVT_Global.GetConfig().GetOccupyingFaction();
 			ResourceName res = faction.GetRandomGroupByType(type);
 			m_iProxedResources += newres;
 			m_ProxiedGroups.Insert(res);

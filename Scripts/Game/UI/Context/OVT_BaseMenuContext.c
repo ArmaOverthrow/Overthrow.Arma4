@@ -57,7 +57,7 @@ class OVT_BaseMenuContext : OVT_UIContext
 			IEntity spawn = OVT_Global.SpawnEntityPrefab(res, "0 0 0", "0 0 0", false);
 			
 			SCR_AIGroup aigroup = SCR_AIGroup.Cast(spawn);
-			int soldierCost = m_Config.m_Difficulty.baseRecruitCost * aigroup.m_aUnitPrefabSlots.Count();
+			int soldierCost = OVT_Global.GetConfig().m_Difficulty.baseRecruitCost * aigroup.m_aUnitPrefabSlots.Count();
 			
 			//To-do: properly calculate equipment cost (factoring in warehouse)
 			int equipmentCost = 300 * aigroup.m_aUnitPrefabSlots.Count();

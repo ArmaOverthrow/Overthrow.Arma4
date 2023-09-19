@@ -50,16 +50,6 @@ $grp GenericEntity {
   coords 221.182 1.001 107.325
   Flags 1027
  }
- Base {
-  components {
-   SCR_MapDescriptorComponent "{5D8680D1F205B205}" {
-    DisplayName "#AR-MapLocation_Military"
-    MainType "Name Generic"
-   }
-  }
-  coords 54.063 1.001 106.288
-  Flags 1027
- }
  RadioTower {
   components {
    SCR_MapDescriptorComponent "{5D8680D5676588BA}" {
@@ -130,6 +120,9 @@ SCR_DestructibleBuildingEntity : "{5CADC96916FF1CC4}Prefabs/Structures/Houses/Vi
 SCR_DestructibleBuildingEntity : "{60333F74EE12B52F}Prefabs/Structures/Houses/Village/House_Village_E_1I05/House_Village_E_1I05s.et" {
  coords 239.643 0.412 168.588
  angleY 90
+}
+GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.et" {
+ coords 55.331 1 128.241
 }
 Tree : "{7BAA3CF64495B691}Prefabs/Vegetation/Bush/b_rubus_idaeus_0s.et" {
  coords 179.619 0.001 124.94

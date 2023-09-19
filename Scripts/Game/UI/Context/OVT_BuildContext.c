@@ -168,7 +168,7 @@ class OVT_BuildContext : OVT_UIContext
 		{			
 			OVT_BaseData base = m_OccupyingFaction.GetNearestBase(pos);			
 			dist = vector.Distance(base.location,pos);
-			if(dist < m_Config.m_Difficulty.baseRange && !base.IsOccupyingFaction())
+			if(dist < OVT_Global.GetConfig().m_Difficulty.baseRange && !base.IsOccupyingFaction())
 			{
 				return true;
 			}
@@ -231,7 +231,7 @@ class OVT_BuildContext : OVT_UIContext
 			return;
 		}
 		
-		if(!m_Economy.PlayerHasMoney(m_sPlayerID, m_Config.GetBuildableCost(buildable)))
+		if(!m_Economy.PlayerHasMoney(m_sPlayerID, OVT_Global.GetConfig().GetBuildableCost(buildable)))
 		{
 			ShowHint("#OVT-CannotAfford");
 			SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.ERROR);
@@ -385,7 +385,7 @@ class OVT_BuildContext : OVT_UIContext
 	{	
 		if(!m_bBuilding) return;
 			
-		int cost = m_Config.GetBuildableCost(m_Buildable);
+		int cost = OVT_Global.GetConfig().GetBuildableCost(m_Buildable);
 		vector mat[4];
 		
 		if(m_eBuildingEntity)
@@ -412,7 +412,7 @@ class OVT_BuildContext : OVT_UIContext
 			int prefabIndex = m_Buildable.m_aPrefabs.Find(m_pBuildingPrefab);
 			OVT_Global.GetServer().BuildItem(buildableIndex, prefabIndex, mat[3], angles, m_iPlayerID);
 						
-			m_Economy.TakePlayerMoney(m_iPlayerID, m_Config.GetBuildableCost(m_Buildable));
+			m_Economy.TakePlayerMoney(m_iPlayerID, OVT_Global.GetConfig().GetBuildableCost(m_Buildable));
 			SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.CLICK);
 		}
 		

@@ -6,12 +6,12 @@ class OVT_BaseControllerComponent: OVT_Component
 {
 	[Attribute(defvalue: "0", UIWidgets.EditBox, desc: "Resources to allocate for testing only")]
 	int m_iTestingResources;
-	
+
 	[Attribute("", UIWidgets.Object)]
 	ref array<ref OVT_BaseUpgrade> m_aBaseUpgrades;
-				
-	string m_sName;	
-	
+
+	string m_sName;
+
 	ref array<ref EntityID> m_AllSlots;
 	ref array<ref EntityID> m_AllCloseSlots;
 	ref array<ref EntityID> m_SmallSlots;
@@ -23,80 +23,81 @@ class OVT_BaseControllerComponent: OVT_Component
 	ref array<ref EntityID> m_Parking;
 	ref array<ref EntityID> m_aSlotsFilled;
 	ref array<ref vector> m_aDefendPositions;
-		
+
 	protected OVT_OccupyingFactionManager m_occupyingFactionManager;
-	
+
 	protected const int UPGRADE_UPDATE_FREQUENCY = 10000;
-	
-	EntityID m_Flag;	
-	
-	override void OnPostInit(IEntity owner)
-	{	
-		super.OnPostInit(owner);
-		
+
+	void InitBase()
+	{
 		if(!Replication.IsServer()) return;
 		if (SCR_Global.IsEditMode()) return;
-		
+
 		m_occupyingFactionManager = OVT_Global.GetOccupyingFaction();
-		
+
 		InitializeBase();
-		
-		GetGame().GetCallqueue().CallLater(UpdateUpgrades, UPGRADE_UPDATE_FREQUENCY, true, owner);		
+
+		GetGame().GetCallqueue().CallLater(UpdateUpgrades, UPGRADE_UPDATE_FREQUENCY, true, GetOwner());
+
+		SCR_FactionAffiliationComponent affiliation = EPF_Component<SCR_FactionAffiliationComponent>.Find(GetOwner());
+		affiliation.GetOnFactionChanged().Insert(OnFactionChanged);
 	}
-	
+
 	protected void UpdateUpgrades()
 	{
 		if(!IsOccupyingFaction()) return;
-		
+
 		foreach(OVT_BaseUpgrade upgrade : m_aBaseUpgrades)
 		{
 			upgrade.OnUpdate(UPGRADE_UPDATE_FREQUENCY);
 		}
 	}
-	
+
 	bool IsOccupyingFaction()
 	{
-		OVT_BaseData data = OVT_Global.GetOccupyingFaction().GetNearestBase(GetOwner().GetOrigin());
-		return data.IsOccupyingFaction();
+		SCR_FactionAffiliationComponent affiliation = EPF_Component<SCR_FactionAffiliationComponent>.Find(GetOwner());
+		string occupyingFaction = OVT_Global.GetConfig().GetOccupyingFactionData().GetFactionKey();
+		return affiliation.GetAffiliatedFaction().GetFactionKey() == occupyingFaction;
 	}
-	
+
 	int GetControllingFaction()
 	{
-		OVT_BaseData data = OVT_Global.GetOccupyingFaction().GetNearestBase(GetOwner().GetOrigin());
-		return data.faction;
+		SCR_FactionAffiliationComponent affiliation = EPF_Component<SCR_FactionAffiliationComponent>.Find(GetOwner());
+
+		return GetGame().GetFactionManager().GetFactionIndex(affiliation.GetAffiliatedFaction());
 	}
-	
+
+	void SetControllingFaction(string key, bool suppressEvents = false)
+	{
+		FactionManager mgr = GetGame().GetFactionManager();
+		Faction faction = mgr.GetFactionByKey(key);
+		int index = mgr.GetFactionIndex(faction);
+		SetControllingFaction(index, suppressEvents);
+	}
+
+	void OnFactionChanged(FactionAffiliationComponent owner, Faction previousFaction, Faction newFaction)
+	{
+		SlotManagerComponent slots = EPF_Component<SlotManagerComponent>.Find(GetOwner());
+		EntitySlotInfo slot = slots.GetSlotByName("Flag");
+		IEntity flag = slot.GetAttachedEntity();
+		SCR_EntityHelper.DeleteEntityAndChildren(flag);
+		OVT_Faction fac = OVT_Global.GetFactions().GetOverthrowFactionByKey(newFaction.GetFactionKey());
+		IEntity newFlag = GetGame().SpawnEntityPrefab(Resource.Load(fac.m_sFlagPrefab));
+		slot.AttachEntity(newFlag);
+	}
+
 	void SetControllingFaction(int index, bool suppressEvents = false)
-	{		
+	{
 		if(!suppressEvents)
 			m_occupyingFactionManager.OnBaseControlChange(this);
-		
-		IEntity flag = GetGame().GetWorld().FindEntityByID(m_Flag);
-		if(flag)
-		{
-			SCR_EntityHelper.DeleteEntityAndChildren(flag);
-		}
-		
-		m_Flag = SpawnFlag().GetID();
+
+		Faction fac = GetGame().GetFactionManager().GetFactionByIndex(index);
+		SCR_FactionAffiliationComponent affiliation = EPF_Component<SCR_FactionAffiliationComponent>.Find(GetOwner());
+		affiliation.SetAffiliatedFaction(fac);
 	}
-	
-	IEntity SpawnFlag()
-	{
-		vector pos = GetOwner().GetOrigin();
-		
-		float groundHeight = GetGame().GetWorld().GetSurfaceY(pos[0], pos[2]);
-		if (pos[1] < groundHeight)
-			pos[1] = groundHeight;
-		
-		OVT_Faction fac = OVT_Global.GetFactions().GetOverthrowFactionByIndex(GetControllingFaction());
-		
-		IEntity flag = OVT_Global.SpawnEntityPrefab(fac.m_aFlagPolePrefab,pos);
-		
-		return flag;
-	}
-	
+
 	void InitializeBase()
-	{		
+	{
 		m_AllSlots = new array<ref EntityID>;
 		m_AllCloseSlots = new array<ref EntityID>;
 		m_SmallSlots = new array<ref EntityID>;
@@ -108,24 +109,21 @@ class OVT_BaseControllerComponent: OVT_Component
 		m_Parking = new array<ref EntityID>;
 		m_aSlotsFilled = new array<ref EntityID>;
 		m_aDefendPositions = new array<ref vector>;
-		
+
 		FindSlots();
 		FindParking();
-		
-		//Spawn a flag		
-		m_Flag = SpawnFlag().GetID();
-		
+
 		foreach(OVT_BaseUpgrade upgrade : m_aBaseUpgrades)
 		{
-			upgrade.Init(this, m_occupyingFactionManager, m_Config);
+			upgrade.Init(this, m_occupyingFactionManager, OVT_Global.GetConfig());
 		}
-		
+
 		//Spend testing resources (if any)
 		if(m_iTestingResources > 0){
 			SpendResources(m_iTestingResources);
 		}
 	}
-	
+
 	OVT_BaseUpgrade FindUpgrade(string type, string tag = "")
 	{
 		foreach(OVT_BaseUpgrade upgrade : m_aBaseUpgrades)
@@ -145,12 +143,12 @@ class OVT_BaseControllerComponent: OVT_Component
 		}
 		return null;
 	}
-	
+
 	void FindSlots()
 	{
-		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(),  m_Config.m_Difficulty.baseRange, CheckSlotAddToArray, FilterSlotEntities);
+		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(),  OVT_Global.GetConfig().m_Difficulty.baseRange, CheckSlotAddToArray, FilterSlotEntities);
 	}
-	
+
 	bool FilterSlotEntities(IEntity entity)
 	{
 		SCR_EditableEntityComponent editable = EPF_Component<SCR_EditableEntityComponent>.Find(entity);
@@ -158,7 +156,7 @@ class OVT_BaseControllerComponent: OVT_Component
 		{
 			return true;
 		}
-		
+
 		SCR_AISmartActionSentinelComponent action = EPF_Component<SCR_AISmartActionSentinelComponent>.Find(entity);
 		if(action) {
 			SCR_MapDescriptorComponent mapdes = EPF_Component<SCR_MapDescriptorComponent>.Find(entity);
@@ -171,7 +169,7 @@ class OVT_BaseControllerComponent: OVT_Component
 		}
 		return false;
 	}
-	
+
 	bool CheckSlotAddToArray(IEntity entity)
 	{
 		SCR_AISmartActionSentinelComponent action = EPF_Component<SCR_AISmartActionSentinelComponent>.Find(entity);
@@ -182,21 +180,21 @@ class OVT_BaseControllerComponent: OVT_Component
 				m_aDefendPositions.Insert(entity.GetOrigin());
 			return true;
 		}
-		
+
 		SCR_EditableEntityComponent editable = EPF_Component<SCR_EditableEntityComponent>.Find(entity);
 		if(editable && editable.GetEntityType() == EEditableEntityType.SLOT)
-		{		
+		{
 			SCR_EditableEntityUIInfo uiinfo = SCR_EditableEntityUIInfo.Cast(editable.GetInfo());
 			if(!uiinfo) return true;
-									
+
 			m_AllSlots.Insert(entity.GetID());
-			
+
 			float distance = vector.Distance(entity.GetOrigin(), GetOwner().GetOrigin());
-			if(distance <  m_Config.m_Difficulty.baseCloseRange)
+			if(distance <  OVT_Global.GetConfig().m_Difficulty.baseCloseRange)
 			{
 				m_AllCloseSlots.Insert(entity.GetID());
 			}
-			
+
 			string name = entity.GetPrefabData().GetPrefabName();
 			if(uiinfo.HasEntityLabel(EEditableEntityLabel.SLOT_FLAT_SMALL)) m_SmallSlots.Insert(entity.GetID());
 			if(uiinfo.HasEntityLabel(EEditableEntityLabel.SLOT_FLAT_MEDIUM)) m_MediumSlots.Insert(entity.GetID());
@@ -205,15 +203,15 @@ class OVT_BaseControllerComponent: OVT_Component
 			if(uiinfo.HasEntityLabel(EEditableEntityLabel.SLOT_ROAD_MEDIUM)) m_MediumRoadSlots.Insert(entity.GetID());
 			if(uiinfo.HasEntityLabel(EEditableEntityLabel.SLOT_ROAD_LARGE)) m_LargeRoadSlots.Insert(entity.GetID());
 		}
-		
+
 		return true;
 	}
-	
+
 	void FindParking()
 	{
-		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), m_Config.m_Difficulty.baseCloseRange, null, FilterParkingEntities, EQueryEntitiesFlags.ALL);
+		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), OVT_Global.GetConfig().m_Difficulty.baseCloseRange, null, FilterParkingEntities, EQueryEntitiesFlags.ALL);
 	}
-	
+
 	bool FilterParkingEntities(IEntity entity)
 	{
 		if(entity.FindComponent(OVT_ParkingComponent)) {
@@ -221,11 +219,11 @@ class OVT_BaseControllerComponent: OVT_Component
 		}
 		return false;
 	}
-	
+
 	int SpendResources(int resources, float threat = 0)
 	{
 		int spent = 0;
-		
+
 		for(int priority = 1; priority < 20; priority++)
 		{
 			if(resources <= 0) break;
@@ -234,8 +232,8 @@ class OVT_BaseControllerComponent: OVT_Component
 				if(resources <= 0) break;
 				if(upgrade.m_iMinimumThreat > threat) continue;
 				if(upgrade.m_iPriority == priority)
-				{					
-					int allocate = upgrade.m_iResourceAllocation * m_Config.m_Difficulty.baseResourceCost;
+				{
+					int allocate = upgrade.m_iResourceAllocation * OVT_Global.GetConfig().m_Difficulty.baseResourceCost;
 					int newres = 0;
 					if(allocate < 0)
 					{
@@ -245,16 +243,16 @@ class OVT_BaseControllerComponent: OVT_Component
 						if(resources < allocate) allocate = resources;
 						newres = upgrade.SpendToAllocation(threat);
 					}
-					
+
 					spent += newres;
 					resources -= newres;
 				}
 			}
 		}
-		
+
 		return spent;
 	}
-	
+
 	IEntity GetNearestSlot(vector pos)
 	{
 		IEntity nearest;
@@ -271,11 +269,11 @@ class OVT_BaseControllerComponent: OVT_Component
 		}
 		return nearest;
 	}
-	
+
 	//RPC methods
-	
-	
-	
+
+
+
 	void ~OVT_BaseControllerComponent()
 	{
 		if(m_aBaseUpgrades)

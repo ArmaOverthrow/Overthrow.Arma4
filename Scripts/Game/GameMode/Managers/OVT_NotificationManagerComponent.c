@@ -76,9 +76,11 @@ class OVT_NotificationManagerComponent: OVT_Component
 		
 		Print("[Overthrow.NotificationManagerComponent] " + localized);
 		
-		if(m_Config.m_ConfigFile && m_Config.m_ConfigFile.discordWebHookURL.StartsWith("http"))
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		
+		if(config.m_ConfigFile && config.m_ConfigFile.discordWebHookURL.StartsWith("http"))
 		{
-			RestContext context = GetGame().GetRestApi().GetContext(m_Config.m_ConfigFile.discordWebHookURL);
+			RestContext context = GetGame().GetRestApi().GetContext(config.m_ConfigFile.discordWebHookURL);
 			int result = context.POST(new OVT_DiscordWebhookCallback(),"","content="+localized);
 		}		
 	}

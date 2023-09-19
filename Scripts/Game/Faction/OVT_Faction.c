@@ -82,7 +82,7 @@ class OVT_Faction
 	ref array<ResourceName> m_aTripodHeavyPrefabSlots;
 		
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Flag Pole Prefab", params: "et", category: "Faction Objects")]
-	ResourceName m_aFlagPolePrefab;
+	ResourceName m_sFlagPrefab;
 	
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Medium Checkpoint Prefab", params: "et", category: "Faction Objects")]
 	ResourceName m_aMediumCheckpointPrefab;

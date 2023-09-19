@@ -1,4 +1,4 @@
-GenericEntity {
+GenericEntity : "{160E4E4110803F26}Prefabs/Structures/Military/Flags/FlagPole_02/FlagPole_02_V1_FIA.et" {
  ID "59845E6E8A2A6A0B"
  components {
   OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
@@ -47,6 +47,51 @@ GenericEntity {
     OVT_BaseUpgradeSpecops "{59C6CB0B8B96FCF2}" {
      m_iPriority 3
      m_bDeactivate 0
+    }
+   }
+  }
+  SCR_FactionAffiliationComponent "{5E66A8EA8F5BA794}" {
+  }
+  SlotManagerComponent "{55DAE04E55ECE7FA}" {
+   Slots {
+    EntitySlotInfo Flag {
+     Prefab "{CB81BF6576E682D3}Prefabs/Props/Fabric/Flags/Flag_1_2_USSR_01.et"
+    }
+   }
+  }
+  ActionsManagerComponent "{5E66A8E424754565}" {
+   ActionContexts {
+    UserActionContext "{5E66A8E424754560}" {
+     ContextName "default"
+     Position PointInfo "{5E66A8E42475456C}" {
+      Offset 0 1.8 0
+     }
+     Radius 0.65
+    }
+   }
+   additionalActions {
+    OVT_SetHomeAction "{5E66A8E424754568}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{5E66A8E424754557}" {
+      Name "#OVT-SetHome"
+     }
+    }
+    OVT_ManageBaseAction "{5E66A8E424754555}" {
+     ParentContextList {
+      "default"
+     }
+     "Sort Priority" 1
+    }
+    OVT_CaptureBaseAction "{59B4D7D0139E23F0}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{59B4D7D0104F7FA4}" {
+      Name "#OVT-CaptureBase"
+     }
+     Duration 15
     }
    }
   }

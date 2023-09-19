@@ -141,7 +141,7 @@ class OVT_SkillManagerComponent: OVT_Component
 		FactionAffiliationComponent fac = EPF_Component<FactionAffiliationComponent>.Find(killed);
 		if(!fac) return;
 		
-		if(fac.GetAffiliatedFaction().GetFactionKey() == m_Config.m_sOccupyingFaction)
+		if(fac.GetAffiliatedFaction().GetFactionKey() == OVT_Global.GetConfig().m_sOccupyingFaction)
 		{
 			int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(instigator);
 			if(playerId > -1)

@@ -112,7 +112,7 @@ class OVT_SlottedBaseUpgrade : OVT_BasePatrolUpgrade
 	
 	override void AddWaypoints(SCR_AIGroup aigroup)
 	{
-		aigroup.AddWaypoint(m_Config.SpawnDefendWaypoint(aigroup.GetOrigin()));
+		aigroup.AddWaypoint(OVT_Global.GetConfig().SpawnDefendWaypoint(aigroup.GetOrigin()));
 	}
 	
 	protected IEntity SpawnInSlot(IEntity slot, ResourceName res)

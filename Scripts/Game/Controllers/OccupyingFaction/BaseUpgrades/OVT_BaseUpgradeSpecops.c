@@ -52,7 +52,7 @@ class OVT_BaseUpgradeSpecops : OVT_BasePatrolUpgrade
 				}else if(m_CurrentTarget.type == OVT_TargetType.BROADCAST_TOWER)
 				{
 					OVT_RadioTowerData data = m_occupyingFactionManager.GetNearestRadioTower(m_CurrentTarget.location);
-					if(!data.IsOccupyingFaction() && !m_occupyingFactionManager.m_CurrentQRF && m_occupyingFactionManager.m_iResources > m_Config.m_Difficulty.maxQRF)
+					if(!data.IsOccupyingFaction() && !m_occupyingFactionManager.m_CurrentQRF && m_occupyingFactionManager.m_iResources > OVT_Global.GetConfig().m_Difficulty.maxQRF)
 					{
 						if(!m_bCapturing)
 						{
@@ -62,7 +62,7 @@ class OVT_BaseUpgradeSpecops : OVT_BasePatrolUpgrade
 							m_iCaptureTimer = m_iCaptureTimer - timeSlice;
 							if(m_iCaptureTimer <=0)
 							{
-								m_occupyingFactionManager.ChangeRadioTowerControl(data, m_Config.GetOccupyingFactionIndex());
+								m_occupyingFactionManager.ChangeRadioTowerControl(data, OVT_Global.GetConfig().GetOccupyingFactionIndex());
 								m_CurrentTarget.completed = true;
 								m_CurrentTarget = null;									
 								return;
@@ -88,7 +88,7 @@ class OVT_BaseUpgradeSpecops : OVT_BasePatrolUpgrade
 	int SetTarget(OVT_TargetData target)
 	{
 		m_CurrentTarget = target;
-		OVT_Faction faction = m_Config.GetOccupyingFaction();
+		OVT_Faction faction = OVT_Global.GetConfig().GetOccupyingFaction();
 		if(!faction) return 0;
 		
 		m_iCaptureTimer = 600000;
@@ -127,8 +127,8 @@ class OVT_BaseUpgradeSpecops : OVT_BasePatrolUpgrade
 	{
 		if(!m_CurrentTarget) return;
 
-		aigroup.AddWaypoint(m_Config.SpawnPatrolWaypoint(m_CurrentTarget.location));
-		aigroup.AddWaypoint(m_Config.SpawnDefendWaypoint(m_CurrentTarget.location));		
+		aigroup.AddWaypoint(OVT_Global.GetConfig().SpawnPatrolWaypoint(m_CurrentTarget.location));
+		aigroup.AddWaypoint(OVT_Global.GetConfig().SpawnDefendWaypoint(m_CurrentTarget.location));		
 	}
 	
 	override OVT_BaseUpgradeData Serialize()

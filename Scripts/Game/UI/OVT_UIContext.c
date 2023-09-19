@@ -36,7 +36,7 @@ class OVT_UIContext : ScriptAndConfig
 		m_Owner = owner;
 		m_InputManager = GetGame().GetInputManager();
 		m_Economy = OVT_Global.GetEconomy();
-		m_Config = OVT_Global.GetConfig();
+		OVT_Global.GetConfig() = OVT_Global.GetConfig();
 		m_UIManager = uimanager;		
 		m_Player = ChimeraCharacter.Cast(owner);
 		

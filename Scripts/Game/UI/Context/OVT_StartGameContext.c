@@ -41,7 +41,7 @@ class OVT_StartGameContext : OVT_UIContext
 			
 			spin.AddItem(fac.GetUIInfo().GetName(),fac);
 						
-			if(faction.GetFactionKey() == m_Config.m_sDefaultOccupyingFaction) selectedFaction = i;
+			if(faction.GetFactionKey() == OVT_Global.GetConfig().m_sDefaultOccupyingFaction) selectedFaction = i;
 			
 			i++;
 		}
@@ -51,7 +51,7 @@ class OVT_StartGameContext : OVT_UIContext
 	protected void OnSpinFaction(SCR_SpinBoxComponent spinner, int index)
 	{
 		Faction data = Faction.Cast(spinner.GetItemData(index));
-		m_Config.SetOccupyingFaction(data.GetFactionKey());	
+		OVT_Global.GetConfig().SetOccupyingFaction(data.GetFactionKey());	
 	}
 	
 	protected void StartGame()

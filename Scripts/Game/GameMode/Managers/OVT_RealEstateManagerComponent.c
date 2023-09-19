@@ -298,7 +298,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		}
 		
 		ResourceName res = entity.GetPrefabData().GetPrefabName();
-		foreach(OVT_RealEstateConfig config : m_Config.m_aBuildingTypes)
+		foreach(OVT_RealEstateConfig config : OVT_Global.GetConfig().m_aBuildingTypes)
 		{
 			foreach(ResourceName s : config.m_aResourceNameFilters)
 			{
@@ -317,7 +317,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		}
 		
 		ResourceName res = entity.GetPrefabData().GetPrefabName();
-		foreach(OVT_RealEstateConfig config : m_Config.m_aBuildingTypes)
+		foreach(OVT_RealEstateConfig config : OVT_Global.GetConfig().m_aBuildingTypes)
 		{
 			foreach(ResourceName s : config.m_aResourceNameFilters)
 			{
