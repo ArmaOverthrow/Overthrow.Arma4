@@ -16,7 +16,6 @@ class OVT_MapContext : OVT_UIContext
 	
 	OVT_TownData m_SelectedTown;
 	
-	protected bool m_bMapInfoActive = false;
 	protected bool m_bFastTravelActive = false;
 	protected bool m_bBusTravelActive = false;
 	
@@ -143,131 +142,6 @@ class OVT_MapContext : OVT_UIContext
 		comp.SetMapMode(false);
 	}
 	
-	void EnableMapInfo()
-	{		
-		if(!ShowMap())
-		{
-			ShowHint("#OVT-MustHaveMap");
-			return;
-		}
-		m_bMapInfoActive = true;
-		
-		ShowLayout();
-		m_SelectedTown = m_TownManager.GetNearestTown(m_Owner.GetOrigin());
-		
-		ShowTownInfo();
-	}
-	
-	protected void ShowTownInfo()
-	{
-		if(!m_wRoot) return;
-		if(!m_SelectedTown) return;
-		
-		int townID = m_TownManager.GetTownID(m_SelectedTown);
-		
-		ImageWidget img = ImageWidget.Cast(m_wRoot.FindAnyWidget("ControllingFaction"));
-		img.LoadImageTexture(0, m_SelectedTown.ControllingFactionData().GetUIInfo().GetIconPath());
-				
-		TextWidget widget = TextWidget.Cast(m_wRoot.FindAnyWidget("TownName"));
-		widget.SetText(m_TownManager.GetTownName(townID));
-		
-		widget = TextWidget.Cast(m_wRoot.FindAnyWidget("Population"));
-		widget.SetText(m_SelectedTown.population.ToString());
-		
-		widget = TextWidget.Cast(m_wRoot.FindAnyWidget("Distance"));
-		float distance = vector.Distance(m_SelectedTown.location, m_Owner.GetOrigin());
-		string dis, units;
-		SCR_Global.GetDistForHUD(distance, false, dis, units);
-		widget.SetText(dis + " " + units);
-		
-		widget = TextWidget.Cast(m_wRoot.FindAnyWidget("Stability"));
-		widget.SetText(m_SelectedTown.stability.ToString() + "%");
-		
-		widget = TextWidget.Cast(m_wRoot.FindAnyWidget("Support"));		
-		widget.SetText(m_SelectedTown.support.ToString() + " (" + m_SelectedTown.SupportPercentage().ToString() + "%)");
-		
-		Widget container = m_wRoot.FindAnyWidget("StabilityModContainer");
-		Widget child = container.GetChildren();
-		while(child)
-		{
-			container.RemoveChild(child);
-			child = container.GetChildren();
-		}
-		autoptr array<int> done = new array<int>;
-		OVT_TownModifierSystem system = m_TownManager.GetModifierSystem(OVT_TownStabilityModifierSystem);
-		WorkspaceWidget workspace = GetGame().GetWorkspace(); 
-		foreach(OVT_TownModifierData data : m_SelectedTown.stabilityModifiers)
-		{
-			if(done.Contains(data.id)) continue;
-			
-			OVT_ModifierConfig mod = system.m_Config.m_aModifiers[data.id];
-			
-			Widget w = workspace.CreateWidgets(m_ModLayout, container);
-			TextWidget tw = TextWidget.Cast(w.FindAnyWidget("Text"));
-			
-			int effect = mod.baseEffect;
-			if(mod.flags & OVT_ModifierFlags.STACKABLE)
-			{
-				effect = 0;
-				//count all present
-				foreach(OVT_TownModifierData check : m_SelectedTown.stabilityModifiers)
-				{
-					if(check.id == data.id) effect += mod.baseEffect;
-				}
-			}
-			
-			tw.SetText(effect.ToString() + "% " + mod.title);
-			
-			PanelWidget panel = PanelWidget.Cast(w.FindAnyWidget("Background"));
-			if(mod.baseEffect < 0)
-			{
-				panel.SetColor(m_NegativeModifierColor);
-			}else{
-				panel.SetColor(m_PositiveModifierColor);
-			}
-			done.Insert(data.id);
-		}
-		
-		container = m_wRoot.FindAnyWidget("SupportModContainer");
-		child = container.GetChildren();
-		while(child)
-		{
-			container.RemoveChild(child);
-			child = container.GetChildren();
-		}
-		done.Clear();
-		
-		system = m_TownManager.GetModifierSystem(OVT_TownSupportModifierSystem);
-		foreach(OVT_TownModifierData data : m_SelectedTown.supportModifiers)
-		{
-			if(done.Contains(data.id)) continue;
-			OVT_ModifierConfig mod = system.m_Config.m_aModifiers[data.id];
-			Widget w = workspace.CreateWidgets(m_ModLayout, container);
-			TextWidget tw = TextWidget.Cast(w.FindAnyWidget("Text"));
-			int effect = mod.baseEffect;
-			if(mod.flags & OVT_ModifierFlags.STACKABLE)
-			{
-				effect = 0;
-				//count all present
-				foreach(OVT_TownModifierData check : m_SelectedTown.supportModifiers)
-				{
-					if(check.id == data.id) effect += mod.baseEffect;
-				}
-			}
-			
-			tw.SetText(effect.ToString() + "% " + mod.title);
-			
-			PanelWidget panel = PanelWidget.Cast(w.FindAnyWidget("Background"));
-			if(mod.baseEffect < 0)
-			{
-				panel.SetColor(m_NegativeModifierColor);
-			}else{
-				panel.SetColor(m_PositiveModifierColor);
-			}
-			done.Insert(data.id);
-		}
-	}
-	
 	void EnableFastTravel()
 	{
 		if(!ShowMap())
@@ -290,13 +164,7 @@ class OVT_MapContext : OVT_UIContext
 	
 	void OnMapExit(MapConfiguration config)
 	{
-		DisableMapInfo();
 		DisableFastTravel();
-	}
-	
-	void DisableMapInfo()
-	{
-		m_bMapInfoActive = false;
 	}
 	
 	void DisableFastTravel()
@@ -331,9 +199,8 @@ class OVT_MapContext : OVT_UIContext
 	
 	protected void MapExit(float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
 	{
-		if(!m_bFastTravelActive && !m_bMapInfoActive && !m_bBusTravelActive) return;
+		if(!m_bFastTravelActive && !m_bBusTravelActive) return;
 		CloseLayout();
-		DisableMapInfo();
 		DisableFastTravel();
 		DisableBusTravel();
 		HideMap();
@@ -341,7 +208,7 @@ class OVT_MapContext : OVT_UIContext
 	
 	void MapClick(float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
 	{
-		if(!m_bFastTravelActive && !m_bMapInfoActive && !m_bBusTravelActive) return;
+		if(!m_bFastTravelActive && !m_bBusTravelActive) return;
 		SCR_MapGadgetComponent comp = GetMap();
 		if(!comp) return;
 		
@@ -453,12 +320,6 @@ class OVT_MapContext : OVT_UIContext
 				SCR_Global.TeleportPlayer(m_iPlayerID, pos);
 			}
 		}
-		
-		if(m_bMapInfoActive)
-		{
-			m_SelectedTown = m_TownManager.GetNearestTown(pos);		
-			ShowTownInfo();
-		}	
 	}
 
 }

@@ -1,21 +1,35 @@
 FrameWidgetClass {
  Name "rootFrame"
- "Z Order" 9
+ Slot FrameWidgetSlot "{5E66BC3EC407FAEB}" {
+  Anchor 1 1 1 1
+  PositionX -275
+  OffsetLeft -275
+  PositionY -400
+  OffsetTop -400
+  SizeX 500
+  OffsetRight -225
+  SizeY 375
+  OffsetBottom 25
+  Alignment 0.5 0
+ }
+ "Z Order" 10
+ Clipping False
  {
   PanelWidgetClass "{599D597C1CE47A1F}" {
    Name "Panel0"
    Slot FrameWidgetSlot "{597282644EB209C6}" {
-    Anchor 1 1 1 1
-    PositionX -500
-    OffsetLeft -500
-    PositionY -500
-    OffsetTop -500
-    SizeX 400
-    OffsetRight 100
-    SizeY 380
-    OffsetBottom 120
+    Anchor 0 0 1 1
+    PositionX 0
+    OffsetLeft 0
+    PositionY 0
+    OffsetTop 0
+    SizeX -1420
+    OffsetRight 0
+    SizeY -705
+    OffsetBottom 0
     Alignment 0 0
    }
+   Color 1 1 1 0
    {
     BlurWidgetClass "{599D597C1CE47A1D}" : "{352322057FD78AE1}UI/layouts/WidgetLibrary/BaseElements/WLib_Blur.layout" {
      Name "BackgroundBlur"
@@ -30,7 +44,7 @@ FrameWidgetClass {
       SizeY -1050
       OffsetBottom 0
      }
-     Color 0.127 0.127 0.127 1
+     Color 0.245 0.245 0.245 1
      Intensity 0.8
     }
     VerticalLayoutWidgetClass "{599D597C1CE47A1C}" {
@@ -51,6 +65,7 @@ FrameWidgetClass {
        Name "HorizontalLayout0"
        Slot LayoutSlot "{59B6F5221A64D119}" {
         HorizontalAlign 1
+        Padding 0 10 0 0
        }
        {
         ImageWidgetClass "{59B6F522EB1E1A08}" {
@@ -171,14 +186,13 @@ FrameWidgetClass {
         Padding 0 10 0 0
        }
        {
-        PanelWidgetClass "{599D5977F1E3F8C0}" {
+        ImageWidgetClass "{599D5977F1E3F8C0}" {
          Name "BG"
          Slot OverlayWidgetSlot "{599D5977F1E3F8A8}" {
           HorizontalAlign 3
           VerticalAlign 3
          }
          Color 1 1 1 0.035
-         style debugUI
         }
         HorizontalLayoutWidgetClass "{599D597725AE9B72}" {
          Name "Layout"
@@ -243,28 +257,20 @@ FrameWidgetClass {
              Name "StabilityMod0"
              Slot WrapLayoutWidgetSlot "{599EDE8C91F0E07D}" {
              }
-             {
-             }
             }
             FrameWidgetClass "{599EDE8C9FB7C310}" : "{7BAC7637E5744768}UI/Layouts/Map/MapInfo/Modifier.layout" {
              Name "StabilityMod1"
              Slot WrapLayoutWidgetSlot "{599EDE8C91F0E07D}" {
-             }
-             {
              }
             }
             FrameWidgetClass "{599EDE8C9D0E4115}" : "{7BAC7637E5744768}UI/Layouts/Map/MapInfo/Modifier.layout" {
              Name "StabilityMod2"
              Slot WrapLayoutWidgetSlot "{599EDE8C91F0E07D}" {
              }
-             {
-             }
             }
             FrameWidgetClass "{599EDE8C984A959F}" : "{7BAC7637E5744768}UI/Layouts/Map/MapInfo/Modifier.layout" {
              Name "StabilityMod3"
              Slot WrapLayoutWidgetSlot "{599EDE8C91F0E07D}" {
-             }
-             {
              }
             }
            }
@@ -279,14 +285,13 @@ FrameWidgetClass {
         Padding 0 10 0 0
        }
        {
-        PanelWidgetClass "{599D59760BE4C5E8}" {
+        ImageWidgetClass "{599D59760BE4C5E8}" {
          Name "BG"
          Slot OverlayWidgetSlot "{599D5977F1E3F8A8}" {
           HorizontalAlign 3
           VerticalAlign 3
          }
          Color 1 1 1 0.035
-         style debugUI
         }
         HorizontalLayoutWidgetClass "{599D59760BE4C5D7}" {
          Name "Layout"
@@ -351,28 +356,20 @@ FrameWidgetClass {
              Name "StabilityMod0"
              Slot WrapLayoutWidgetSlot "{599EDE8C91F0E07D}" {
              }
-             {
-             }
             }
             FrameWidgetClass "{59A2BDA9DF2316C1}" : "{7BAC7637E5744768}UI/Layouts/Map/MapInfo/Modifier.layout" {
              Name "StabilityMod1"
              Slot WrapLayoutWidgetSlot "{599EDE8C91F0E07D}" {
-             }
-             {
              }
             }
             FrameWidgetClass "{59A2BDA9DF2316C0}" : "{7BAC7637E5744768}UI/Layouts/Map/MapInfo/Modifier.layout" {
              Name "StabilityMod2"
              Slot WrapLayoutWidgetSlot "{599EDE8C91F0E07D}" {
              }
-             {
-             }
             }
             FrameWidgetClass "{59A2BDA9DF2316CE}" : "{7BAC7637E5744768}UI/Layouts/Map/MapInfo/Modifier.layout" {
              Name "StabilityMod3"
              Slot WrapLayoutWidgetSlot "{599EDE8C91F0E07D}" {
-             }
-             {
              }
             }
            }

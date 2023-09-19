@@ -91,14 +91,6 @@ class OVT_MainMenuContext : OVT_UIContext
 		img.LoadImageTexture(0, town.ControllingFactionData().GetUIInfo().GetIconPath());
 				
 		SCR_ButtonTextComponent comp;
-
-		// Map Info
-		comp = SCR_ButtonTextComponent.GetButtonText("Map Info", m_wRoot);
-		if (comp)
-		{
-			GetGame().GetWorkspace().SetFocusedWidget(comp.GetRootWidget());
-			comp.m_OnClicked.Insert(MapInfo);
-		}
 		
 		// Fast Travel
 		comp = SCR_ButtonTextComponent.GetButtonText("Fast Travel", m_wRoot);
@@ -188,12 +180,6 @@ class OVT_MainMenuContext : OVT_UIContext
 				data.msg.m_UIInfo.SetIconTo(icon);
 			}			
 		}
-	}
-	
-	private void MapInfo()
-	{
-		CloseLayout();
-		OVT_MapContext.Cast(m_UIManager.GetContext(OVT_MapContext)).EnableMapInfo();		
 	}
 	
 	private void FastTravel()

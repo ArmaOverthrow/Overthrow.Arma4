@@ -1,17 +1,6 @@
-class OVT_CampaignMapUIBase : SCR_MapUIElement
+class OVT_CampaignMapUIBase : OVT_CampaignMapUIElement
 {
-	protected OVT_BaseData m_BaseData;
-	protected string m_sFactionKey;
-	protected Widget m_wBaseIcon;
-	protected SCR_MilitarySymbolUIComponent m_wSymbolUI;
-	
-	override void HandlerAttached(Widget w)
-	{
-		super.HandlerAttached(w);
-
-		m_wBaseIcon = Widget.Cast(w.FindAnyWidget("SideSymbol"));
-		m_wSymbolUI = SCR_MilitarySymbolUIComponent.Cast(m_wBaseIcon.FindHandler(SCR_MilitarySymbolUIComponent));				
-	}
+	protected OVT_BaseData m_BaseData;	
 	
 	void InitBase(OVT_BaseData baseData)
 	{
@@ -43,40 +32,6 @@ class OVT_CampaignMapUIBase : SCR_MapUIElement
 		baseIcon.SetDimension(EMilitarySymbolDimension.INSTALLATION);
 		
 		m_wSymbolUI.Update(baseIcon);
-	}
-	
-	protected void SetIconFaction(Faction faction)
-	{
-		if(!faction) return;
-		m_sFactionKey = faction.GetFactionKey();
-		SetBaseIconFactionColor(faction);
-	}
-	
-	string GetFactionKey()
-	{
-		return m_sFactionKey;
-	}
-	//------------------------------------------------------------------------------------------------
-	Color GetFactionColor()
-	{
-		return GetColorForFaction(m_sFactionKey);
-	}
-		
-	void SetBaseIconFactionColor(Faction faction)
-	{
-		if (!m_wBaseIcon)
-			return;
-
-		Color color;
-		
-		if (faction)
-			color = faction.GetFactionColor();
-		else
-			color = GetColorForFaction("");
-
-		m_wBaseIcon.SetColor(color);
-		if (m_wGradient)
-			m_wGradient.SetColor(color);
 	}
 	
 	override vector GetPos()

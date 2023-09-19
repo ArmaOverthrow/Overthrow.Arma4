@@ -2,11 +2,11 @@ FrameWidgetClass {
  Name "rootWidget"
  "Ignore Cursor" 0
  components {
-  OVT_CampaignMapUIBase "{5E0E1B8B3DD4A63F}" {
+  OVT_CampaignMapUITown "{5E66BC317D967892}" {
   }
  }
  {
-  OverlayWidgetClass "{5E0E1B8B1235BEA6}" {
+  OverlayWidgetClass "{5E66BC31620CD4D6}" {
    Name "Overlay0"
    Slot FrameWidgetSlot "{5712D788F1DFB22C}" {
     Anchor 0.5 0.5 0.5 0.5
@@ -20,7 +20,7 @@ FrameWidgetClass {
     Alignment 0.5 0.5
    }
    {
-    SizeLayoutWidgetClass "{5E0E1B8B1235BEA4}" {
+    SizeLayoutWidgetClass "{5E66BC31620CD4D5}" {
      Name "SizeBaseIcon"
      Slot OverlayWidgetSlot "{5712D788F02EA7EE}" {
      }
@@ -30,7 +30,7 @@ FrameWidgetClass {
      AllowHeightOverride 1
      HeightOverride 60
      {
-      OverlayWidgetClass "{5E0E1B8B1235BEA3}" {
+      OverlayWidgetClass "{5E66BC31620CD4D3}" {
        Name "ImageOverlay"
        Slot AlignableSlot "{5712D78E585B4C60}" {
         HorizontalAlign 3
@@ -38,7 +38,7 @@ FrameWidgetClass {
        }
        "Is Enabled" 0
        {
-        OverlayWidgetClass "{5E0E1B8B1235BEAD}" {
+        OverlayWidgetClass "{5E66BC31620CD4D2}" {
          Name "SideSymbol"
          Slot OverlayWidgetSlot "{5646BAA78B50FE6C}" {
           HorizontalAlign 3
@@ -50,13 +50,12 @@ FrameWidgetClass {
          components {
           SCR_MilitarySymbolUIComponent "{56F4CE75B4245547}" {
            m_MilitarySymbol SCR_MilitarySymbol "{56F4CE75B761BCC4}" {
-            m_Identity OPFOR
-            m_Dimension INSTALLATION
+            m_Identity INDFOR
            }
           }
          }
         }
-        ImageWidgetClass "{5E0E1B8B1235BEAF}" {
+        ImageWidgetClass "{5E66BC31620CD4D1}" {
          Name "Highlight"
          Slot OverlayWidgetSlot "{56FAD15D251881C8}" {
           HorizontalAlign 3
@@ -70,7 +69,7 @@ FrameWidgetClass {
          Image "ammotype-sniper"
          Size 64 64
         }
-        ImageWidgetClass "{5E0E1B8B1235BEAE}" {
+        ImageWidgetClass "{5E66BC31620CD4D0}" {
          Name "Special"
          Slot OverlayWidgetSlot "{570E98AD58CD05BD}" {
           HorizontalAlign 3
@@ -79,7 +78,7 @@ FrameWidgetClass {
          }
          "Is Visible" 0
         }
-        ImageWidgetClass "{5E0E1B8B1235BEAC}" {
+        ImageWidgetClass "{5E66BC31620CD4DF}" {
          Name "Corners"
          Slot OverlayWidgetSlot "{56FAD15D251881C8}" {
           HorizontalAlign 3
@@ -94,7 +93,7 @@ FrameWidgetClass {
          Mask "{3BB05C675B05A74B}UI/Textures/WeaponInfo/icons_weaponInfo.imageset"
          MaskImage "ammotype-sniper"
         }
-        ButtonWidgetClass "{5E0E1B8B1235BEAB}" {
+        ButtonWidgetClass "{5E66BC31620CD4DE}" {
          Name "BaseFrame"
          Slot OverlayWidgetSlot "{55EAFD1162B82B7E}" {
           HorizontalAlign 3
@@ -103,7 +102,7 @@ FrameWidgetClass {
          "Ignore Cursor" 0
          Color 1 1 1 0
          {
-          ImageWidgetClass "{5E0E1B8B1235BEAA}" {
+          ImageWidgetClass "{5E66BC31620CD4DD}" {
            Name "Image0"
            Slot ButtonWidgetSlot "{5A74C103AACB7005}" {
            }
@@ -112,7 +111,7 @@ FrameWidgetClass {
           }
          }
         }
-        ImageWidgetClass "{5E0E1B8B1235BE9C}" {
+        ImageWidgetClass "{5E66BC31620CD4DC}" {
          Name "BackgroundGradient"
          Slot OverlayWidgetSlot "{56FAD15D251881C8}" {
           HorizontalAlign 3
