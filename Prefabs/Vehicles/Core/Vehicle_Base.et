@@ -1,0 +1,51 @@
+Vehicle {
+ ID "BBCBA43A9778AE21"
+ components {
+  ActionsManagerComponent "{C97BE5489221AE18}" {
+   ActionContexts {
+    UserActionContext "{5E68DB1D7CFACFA4}" {
+     ContextName "locker"
+     Position PointInfo "{5E68DB1D537C7906}" {
+      Offset 0 1.2 0
+     }
+     Radius 2.658
+    }
+   }
+   additionalActions {
+    OVT_LockVehicleAction "{5E68DB1CA2EDA71E}" {
+     ParentContextList {
+      "locker"
+     }
+     UIInfo UIInfo "{5E68DB1CAF65FC53}" {
+      Name "#OVT-LockVehicle"
+     }
+     VisibilityRange -1
+     Duration 2
+     CanAggregate 1
+    }
+    OVT_UnlockVehicleAction "{5E68DB1C8263B801}" {
+     ParentContextList {
+      "locker"
+     }
+     UIInfo UIInfo "{5E68DB1C8F191CA4}" {
+      Name "#OVT-UnlockVehicle"
+     }
+     VisibilityRange -1
+     Duration 2
+     CanAggregate 1
+    }
+    OVT_FlipVehicleAction "{5E68F65B7968EFD7}" {
+     ParentContextList {
+      "locker"
+     }
+     UIInfo UIInfo "{5E68F65B4660684C}" {
+      Name "#OVT-FlipVehicle"
+     }
+     Duration 5
+     CanAggregate 1
+     "Sort Priority" 1
+    }
+   }
+  }
+ }
+}

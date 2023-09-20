@@ -360,6 +360,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Brian"
   }
+  CustomStringTableItem "{5E68F65B3B222D82}" {
+   Id "OVT-FlipVehicle"
+   Target_en_us "Flip Vehicle"
+   Modified 1583937285
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59D05007F9A93F67}" {
    Id "OVT-Fuel"
    Target_en_us "Fuel"
@@ -670,6 +677,27 @@ StringTable {
    Modified 1575659386
    Author "Aaron Static"
    LastChanged "Brian"
+  }
+  CustomStringTableItem "{5E68F659A1044CB6}" {
+   Id "OVT-Lock"
+   Target_en_us "Lock"
+   Modified 1583938391
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5E68DB10BD28E109}" {
+   Id "OVT-Locked"
+   Target_en_us "Locked"
+   Modified 1583933531
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5E68DB1CEC304F21}" {
+   Id "OVT-LockVehicle"
+   Target_en_us "Lock Vehicle"
+   Modified 1583935223
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{598AB67692AD5DBB}" {
    Id "OVT-MainMenu_Build"
@@ -1915,6 +1943,20 @@ StringTable {
    Modified 1575663305
    Author "Aaron Static"
    LastChanged "Brian"
+  }
+  CustomStringTableItem "{5E68F659AB46ED4B}" {
+   Id "OVT-Unlock"
+   Target_en_us "Unlock"
+   Modified 1583938398
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5E68DB1CF6BF6571}" {
+   Id "OVT-UnlockVehicle"
+   Target_en_us "Unlock Vehicle"
+   Modified 1583935494
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{59CF196279F7E5EB}" {
    Id "OVT-Upgrades"
