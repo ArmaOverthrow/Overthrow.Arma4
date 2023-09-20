@@ -306,7 +306,10 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		m_iOccupyingFactionIndex = factionMgr.GetFactionIndex(faction);			
 		
 		m_sOccupyingFaction = faction.GetFactionKey();
-		
+	}
+	
+	void SetBaseAndTownOwners()
+	{
 		foreach(OVT_BaseData base : OVT_Global.GetOccupyingFaction().m_Bases)
 		{
 			base.faction = key;
