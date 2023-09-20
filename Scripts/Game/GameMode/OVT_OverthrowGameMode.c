@@ -44,9 +44,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	void DoStartNewGame()
 	{
 		bool isDedicated = RplSession.Mode() == RplMode.Dedicated;
-#ifdef WORKBENCH
-		isDedicated = true; //To test dedicated server config
-#endif		
 		if(isDedicated)
 		{
 			if(m_Config.m_ConfigFile && m_Config.m_ConfigFile.occupyingFaction != "" && m_Config.m_ConfigFile.occupyingFaction != "FIA")
@@ -56,8 +53,9 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			}else{
 				Print("Overthrow: Setting occupying faction to default (" + m_Config.m_sDefaultOccupyingFaction + ")");	
 				m_Config.SetOccupyingFaction(m_Config.m_sDefaultOccupyingFaction);				
-			}
+			}			
 		}
+		m_Config.SetBaseAndTownOwners();
 		
 		if(m_OccupyingFactionManager)
 		{
