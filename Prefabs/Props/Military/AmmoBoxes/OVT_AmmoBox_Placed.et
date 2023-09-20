@@ -1,3 +1,39 @@
 GenericEntity : "{71BD5B9F53DF8CF6}Prefabs/Props/Military/AmmoBoxes/OVT_AmmoBox_Base.et" {
  ID "5992E2EECFF48DDE"
+ components {
+  EPF_PersistenceComponent "{5D78D8248549E11B}" {
+   m_pSaveData OVT_PlaceableSaveDataClass "{5D78D8248416F52D}" {
+    m_aComponents {
+     OVT_PlayerOwnerDataClass "{5E68F6591A05B624}" {
+     }
+    }
+   }
+  }
+  OVT_PlayerOwnerComponent "{5E68F65911AA6ADA}" {
+  }
+  ActionsManagerComponent "{5992E2EE5A9EEC18}" {
+   additionalActions {
+    OVT_LockVehicleAction "{5E68F659EC7AD454}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{5E68F659D0C31843}" {
+      Name "#OVT-Lock"
+     }
+     Duration 2
+     "Sort Priority" 3
+    }
+    OVT_UnlockVehicleAction "{5E68F659C4A0738B}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{5E68F659D930AA91}" {
+      Name "#OVT-Unlock"
+     }
+     Duration 2
+     "Sort Priority" 3
+    }
+   }
+  }
+ }
 }

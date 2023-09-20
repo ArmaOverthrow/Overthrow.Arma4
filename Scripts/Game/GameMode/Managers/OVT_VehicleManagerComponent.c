@@ -183,7 +183,15 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 			return null;
 		}
 				
-		if(ownerId != "") SetOwnerPersistentId(ownerId, ent);
+		if(ownerId != "") 
+		{
+			SetOwnerPersistentId(ownerId, ent);
+			OVT_PlayerOwnerComponent playerowner = EPF_Component<OVT_PlayerOwnerComponent>.Find(ent);
+			if(playerowner)
+			{
+				playerowner.SetPlayerOwner(ownerId);
+			}
+		}
 		
 		m_aVehicles.Insert(ent.GetID());
 		

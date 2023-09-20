@@ -1,6 +1,16 @@
 Vehicle : "{4085446E2B406849}Prefabs/Vehicles/Core/Vehicle_Base.et" {
  ID "BBCBA43A9778AE21"
  components {
+  EPF_PersistenceComponent "{5A0D2D215F2F2559}" {
+   m_pSaveData EPF_VehicleSaveDataClass "{5A0D2D215C6BFA59}" {
+    m_aComponents {
+     OVT_PlayerOwnerDataClass "{5E68DB1780257F99}" {
+     }
+    }
+   }
+  }
+  OVT_PlayerOwnerComponent "{5E68DB17BD399A4F}" {
+  }
   SCR_BaseHUDComponent "{53151CEE6C0A409F}" {
    InfoDisplays {
     OVT_WantedInfo "{59B70A6E01375E1B}" {

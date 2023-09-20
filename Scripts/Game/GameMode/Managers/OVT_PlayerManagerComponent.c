@@ -78,6 +78,12 @@ class OVT_PlayerManagerComponent: OVT_Component
 		return m_mPersistentIDs[playerId];
 	}
 	
+	string GetPersistentIDFromControlledEntity(IEntity controlled)
+	{
+		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(controlled);
+		return GetPersistentIDFromPlayerID(playerId);
+	}
+	
 	int GetPlayerIDFromPersistentID(string id)
 	{
 		if(!m_mPlayerIDs.Contains(id)) return -1;

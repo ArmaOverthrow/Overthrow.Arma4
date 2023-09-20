@@ -255,6 +255,14 @@ class OVT_ResistanceFactionManager: OVT_Component
 		
 		m_OnPlace.Invoke(entity, placeable, playerId);
 		
+		OVT_PlayerOwnerComponent playerowner = EPF_Component<OVT_PlayerOwnerComponent>.Find(entity);
+		if(playerowner)
+		{
+			string playerUid = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+			playerowner.SetPlayerOwner(playerUid);
+			playerowner.SetLocked(false);
+		}
+		
 		return entity;
 	}
 	

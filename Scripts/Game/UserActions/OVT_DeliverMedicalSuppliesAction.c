@@ -60,5 +60,21 @@ class OVT_DeliverMedicalSuppliesAction : ScriptedUserAction
 	
 	override bool HasLocalEffectOnlyScript() { return true; };
 	
+	override event bool CanBeShownScript(IEntity user)
+	{		
+		OVT_OverthrowGameMode ot = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
+		if(!ot) return false;
+		
+		OVT_PlayerOwnerComponent playerowner = EPF_Component<OVT_PlayerOwnerComponent>.Find(GetOwner());
+		if(!playerowner) return false;
+		if(!playerowner.IsLocked()) return true;
+				
+		string ownerUid = playerowner.GetPlayerOwnerUid();		
+		string playerUid = OVT_Global.GetPlayers().GetPersistentIDFromControlledEntity(user);
+		if(ownerUid != playerUid) return false;
+		
+		return true;
+	}
+	
 	#endif		
 };
