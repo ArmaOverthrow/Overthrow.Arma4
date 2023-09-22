@@ -418,7 +418,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		}
 		UpdateSpecops();
 		if(m_iResources < 0) m_iResources = 0;
-		Print("OF Remaining Resources: " + m_iResources);
+		Print("[Overthrow.OccupyingFactionManager] Remaining Resources: " + m_iResources.ToString());
 	}
 	
 	OVT_BaseControllerComponent GetBase(EntityID id)
@@ -726,7 +726,20 @@ class OVT_OccupyingFactionManager: OVT_Component
 				}
 			}
 			UpdateSpecops();
-			Print("OF Reserve Resources: " + m_iResources);
+			Print("[Overthrow.OccupyingFactionManager] Reserve Resources: " + m_iResources.ToString());
+			
+			//If we have a surplus of resources, try to take a random base back
+			if(m_iResources > 2000)
+			{			
+				Print("[Overthrow.OccupyingFactionManager] Surplus of resources, attempting counter attack");
+				OVT_BaseData randomBase = m_Bases[s_AIRandomGenerator.RandInt(0,m_Bases.Count()-1)];
+				if(!randomBase.IsOccupyingFaction())
+				{
+					OVT_BaseControllerComponent base = GetBase(randomBase.entId);
+					StartBaseQRF(base);
+					return;
+				}
+			}
 		}
 		
 		//Every 15 mins reduce threat and check if we wanna start a battle for a town
@@ -868,6 +881,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 	
 	void GainResources()
 	{
+		Print("[Overthrow.OccupyingFactionManager] Gaining Resources");
+		Print("[Overthrow.OccupyingFactionManager] Current Threat: " + m_iThreat.ToString());
 		float threatFactor = m_iThreat / 100;
 		if(threatFactor > 1) threatFactor = 1;
 		int newResources = m_Config.m_Difficulty.baseResourcesPerTick + (m_Config.m_Difficulty.resourcesPerTick * threatFactor);
@@ -894,7 +909,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		
 		m_iResources += newResources;
 		
-		Print ("OF Gained Resources: " + newResources.ToString());			
+		Print ("[Overthrow.OccupyingFactionManager] Gained Resources: " + newResources.ToString());			
 	}
 	
 	void OnAIKilled(IEntity ai, IEntity instigator)

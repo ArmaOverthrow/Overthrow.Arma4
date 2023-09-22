@@ -227,13 +227,14 @@ class OVT_QRFControllerComponent: OVT_Component
 		
 		if(m_Bases.Count() == 0)
 		{
+			Print("[Overthrow.QRFControllerComponent] Final Base Detected");
 			//Temporary for when the OF has no bases left but this one
 			//To-Do: organize an external force to come from the sea/air
 			m_Bases.Insert(qrfpos + "250 0 100");
 		}
 		
 		int resources = m_OccupyingFaction.m_iResources;
-		if(resources <= 200) resources = 200; //Emergency resources (minimum size QRF)
+		if(resources <= 400) resources = 400; //Emergency resources (minimum size QRF)
 		
 		int max = m_Config.m_Difficulty.maxQRF;
 		int numPlayersOnline = GetGame().GetPlayerManager().GetPlayerCount();
@@ -260,6 +261,8 @@ class OVT_QRFControllerComponent: OVT_Component
 		{
 			resources = max;
 		}
+		
+		Print("[Overthrow.QRFControllerComponent] Allocated QRF Size: " + resources.ToString());
 		
 		m_iResourcesLeft = resources;
 		SendWave();		
@@ -290,6 +293,7 @@ class OVT_QRFControllerComponent: OVT_Component
 			}
 			spent += allocated;
 			m_iResourcesLeft -= allocated;
+			Print("[Overthrow.QRFControllerComponent] Sent wave from " + base.ToString() + ": " + allocated.ToString());
 		}
 		
 		if(m_iResourcesLeft > 0)
@@ -299,6 +303,8 @@ class OVT_QRFControllerComponent: OVT_Component
 		}
 		
 		m_iUsedResources += spent;
+		
+		Print("[Overthrow.QRFControllerComponent] Wave complete: " + spent.ToString());
 		
 		return spent;
 	}
