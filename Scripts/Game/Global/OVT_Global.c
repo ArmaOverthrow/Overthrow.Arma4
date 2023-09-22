@@ -80,6 +80,11 @@ class OVT_Global : Managed
 		return OVT_SkillManagerComponent.GetInstance();
 	}
 	
+	static OVT_VirtualizationManagerComponent GetVirtualization()
+	{
+		return OVT_VirtualizationManagerComponent.GetInstance();
+	}
+	
 	static bool PlayerInRange(vector pos, int range)
 	{		
 		array<int> players = new array<int>;
