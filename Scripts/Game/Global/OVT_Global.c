@@ -74,6 +74,11 @@ class OVT_Global {
 		return OVT_SkillManagerComponent.GetInstance();
 	}
 	
+	static OVT_VirtualizationManagerComponent GetVirtualization()
+	{
+		return OVT_VirtualizationManagerComponent.GetInstance();
+	}
+	
 	static bool PlayerInRange(vector pos, int range)
 	{		
 		autoptr array<int> players = new array<int>;
