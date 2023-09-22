@@ -117,6 +117,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 	int m_iQRFPoints = 0;	
 	int m_iQRFTimer = 0;
 	
+	bool m_bNoCounterAttack = false;
+	
 	const int OF_UPDATE_FREQUENCY = 60000;
 	
 	ref ScriptInvoker<IEntity> m_OnAIKilled = new ScriptInvoker<IEntity>;
@@ -729,7 +731,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 			Print("[Overthrow.OccupyingFactionManager] Reserve Resources: " + m_iResources.ToString());
 			
 			//If we have a surplus of resources, try to take a random base back
-			if(m_iResources > 2000)
+			if(m_iResources > 2000 && !m_bNoCounterAttack)
 			{			
 				Print("[Overthrow.OccupyingFactionManager] Surplus of resources, attempting counter attack");
 				OVT_BaseData randomBase = m_Bases[s_AIRandomGenerator.RandInt(0,m_Bases.Count()-1)];
@@ -737,8 +739,11 @@ class OVT_OccupyingFactionManager: OVT_Component
 				{
 					OVT_BaseControllerComponent base = GetBase(randomBase.entId);
 					StartBaseQRF(base);
+					m_bNoCounterAttack = true; //Hold off counter attacks for a little
 					return;
 				}
+			}else{
+				m_bNoCounterAttack = false;
 			}
 		}
 		

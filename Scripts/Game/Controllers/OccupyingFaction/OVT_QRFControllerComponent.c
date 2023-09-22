@@ -199,7 +199,7 @@ class OVT_QRFControllerComponent: OVT_Component
 				//We have a winner		
 				m_OnFinished.Invoke();
 				GetGame().GetCallqueue().Remove(CheckUpdatePoints);
-				
+				GetGame().GetCallqueue().Remove(CheckUpdateTimer);
 			}
 		}
 	}
