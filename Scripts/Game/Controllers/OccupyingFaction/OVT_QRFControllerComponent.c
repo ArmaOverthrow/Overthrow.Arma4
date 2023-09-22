@@ -60,7 +60,7 @@ class OVT_QRFControllerComponent: OVT_Component
 		if(m_iTimer <= 0)
 		{
 			m_iTimer = 0;
-			GetGame().GetCallqueue().Remove(CheckUpdateTimer);
+			return;
 		}
 		
 		m_OccupyingFaction.UpdateQRFTimer(m_iTimer);
@@ -299,7 +299,7 @@ class OVT_QRFControllerComponent: OVT_Component
 		if(m_iResourcesLeft > 0)
 		{
 			//leftover resources, schedule another wave
-			GetGame().GetCallqueue().CallLater(SendWave, s_AIRandomGenerator.RandInt(480000, 960000));
+			GetGame().GetCallqueue().CallLater(SendWave, s_AIRandomGenerator.RandInt(240000, 480000));
 		}
 		
 		m_iUsedResources += spent;

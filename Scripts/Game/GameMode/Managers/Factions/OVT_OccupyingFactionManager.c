@@ -689,7 +689,10 @@ class OVT_OccupyingFactionManager: OVT_Component
 			return;
 		}
 		
-		TimeContainer time = m_Time.GetTime();		
+		TimeContainer time = m_Time.GetTime();	
+		
+		//We dont get/spend resources or reduce threat during a QRF
+		if(m_CurrentQRF) return;	
 		
 		//Every 6 hrs get more resources
 		if((time.m_iHours == 0 
@@ -701,9 +704,6 @@ class OVT_OccupyingFactionManager: OVT_Component
 		{
 			GainResources();
 		}
-		
-		//We dont spend resources or reduce threat during a QRF
-		if(m_CurrentQRF) return;
 		
 		//Every hour distribute resources we have, if any
 		if(m_iResources > 0 && time.m_iMinutes == 0)
