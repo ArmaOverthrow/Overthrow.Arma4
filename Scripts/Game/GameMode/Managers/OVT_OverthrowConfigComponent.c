@@ -118,6 +118,9 @@ class OVT_DifficultySettings : ScriptAndConfig
 	[Attribute(defvalue: "0", desc: "Base RF threat", category: "Resistance Faction")]
 	int baseThreat;	
 	
+	[Attribute(defvalue: "0.004", desc: "Threat reduction factor", category: "Resistance Faction")]
+	float threatReductionFactor;	
+	
 	//QRF
 	[Attribute("1", UIWidgets.ComboBox, "QRF Fast Travel Mode", "", ParamEnumArray.FromEnum(OVT_QRFFastTravelMode), category: "QRF" )]
 	OVT_QRFFastTravelMode QRFFastTravelMode;

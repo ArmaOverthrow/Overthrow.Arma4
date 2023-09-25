@@ -283,7 +283,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 	{
 		if(town.faction == m_iPlayerFactionIndex)
 		{
-			m_iThreat += town.size * 15;
+			m_iThreat += town.size * 150;
 		}
 	}
 	
@@ -523,10 +523,11 @@ class OVT_OccupyingFactionManager: OVT_Component
 			string townName = OVT_Global.GetTowns().GetTownName(m_CurrentQRFBase.GetOwner().GetOrigin());
 			if(m_CurrentQRFBase.IsOccupyingFaction())
 			{
-				m_iThreat += 50;
+				m_iThreat += 250;
 				OVT_Global.GetNotify().SendTextNotification("BaseControlledResistance",-1,townName);
 				OVT_Global.GetNotify().SendExternalNotifications("BaseControlledResistance",townName);
 			}else{
+				m_iThreat -= 250;
 				OVT_Global.GetNotify().SendTextNotification("BaseControlledOccupying",-1,townName);
 				OVT_Global.GetNotify().SendExternalNotifications("BaseControlledOccupying",townName);
 			}
@@ -555,9 +556,10 @@ class OVT_OccupyingFactionManager: OVT_Component
 			if(m_CurrentQRFTown.size > 2) type = "City";
 			if(m_CurrentQRFTown.IsOccupyingFaction())
 			{
-				m_iThreat += 50;				
+				m_iThreat += 250;				
 				OVT_Global.GetTowns().TryAddSupportModifierByName(townID, "RecentBattlePositive");
-			}else{				
+			}else{	
+				m_iThreat -= 250;					
 				OVT_Global.GetTowns().TryAddSupportModifierByName(townID, "RecentBattleNegative");
 				//All supporters in this town abandon the resistance (and avoids the battle looping)
 				OVT_Global.GetTowns().ResetSupport(m_CurrentQRFTown);	
@@ -572,7 +574,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 				//All supporters in this town abandon the resistance (and avoids the battle looping)
 				OVT_Global.GetTowns().ResetSupport(m_CurrentQRFTown);
 			}else{
-				m_iThreat += 50;
+				m_iThreat += 250;
 				OVT_Global.GetTowns().TryAddSupportModifierByName(townID, "RecentBattlePositive");
 			}
 		}
@@ -753,7 +755,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 			|| time.m_iMinutes == 30 
 			|| time.m_iMinutes == 45)			
 		{
-			m_iThreat -= 1;
+			int threatReduce = Math.Ceil((float)m_iThreat * OVT_Global.GetDifficulty().threatReductionFactor);
+			m_iThreat -= threatReduce;
 			if(m_iThreat < 0) m_iThreat = 0;
 			
 			int playerFaction = m_Config.GetPlayerFactionIndex();
@@ -888,8 +891,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 	{
 		Print("[Overthrow.OccupyingFactionManager] Gaining Resources");
 		Print("[Overthrow.OccupyingFactionManager] Current Threat: " + m_iThreat.ToString());
-		float threatFactor = m_iThreat / 100;
-		if(threatFactor > 1) threatFactor = 1;
+		float threatFactor = m_iThreat / 1000;
+		if(threatFactor > 4) threatFactor = 4;
 		int newResources = m_Config.m_Difficulty.baseResourcesPerTick + (m_Config.m_Difficulty.resourcesPerTick * threatFactor);
 		
 		int numPlayersOnline = GetGame().GetPlayerManager().GetPlayerCount();
@@ -921,7 +924,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 	{
 		if(!Replication.IsServer()) return;
 		
-		m_iThreat += 1;
+		m_iThreat += 5;
 		
 		m_OnAIKilled.Invoke(ai, instigator);
 	}
