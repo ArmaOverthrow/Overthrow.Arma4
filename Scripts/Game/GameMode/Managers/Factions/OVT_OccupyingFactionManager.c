@@ -283,7 +283,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 	{
 		if(town.faction == m_iPlayerFactionIndex)
 		{
-			m_iThreat += town.size * 150;
+			m_iThreat += town.size * 500;
 		}
 	}
 	
