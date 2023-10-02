@@ -1,14 +1,14 @@
 class OVT_BaseUpgradeTowerGuard : OVT_BasePatrolUpgrade
 {
 	ref array<ref EntityID> m_Towers;
-	ref map<ref EntityID,ref EntityID> m_TowerGuards;
+	ref map<ref EntityID,int> m_TowerGuards;
 	
 	override void PostInit()
 	{
 		super.PostInit();
 		
 		m_Towers = new array<ref EntityID>;
-		m_TowerGuards = new map<ref EntityID,ref EntityID>;
+		m_TowerGuards = new map<ref EntityID,int>;
 		
 		FindTowers();
 	}
@@ -38,42 +38,13 @@ class OVT_BaseUpgradeTowerGuard : OVT_BasePatrolUpgrade
 		return true;
 	}
 	
-	protected override void CheckUpdate()
-	{
-		if(!m_BaseController.IsOccupyingFaction())
-		{
-			CheckClean();
-			return;
-		}
-		bool inrange = PlayerInRange() && !m_occupyingFactionManager.m_CurrentQRF;
-		if(inrange && !m_bSpawned)
-		{
-			Spend(m_iProxedResources, OVT_Global.GetOccupyingFaction().m_iThreat);
-			m_bSpawned = true;
-		}else if(!inrange && m_bSpawned){
-			foreach(EntityID id : m_Groups)
-			{
-				SCR_AIGroup group = GetGroup(id);
-				if(!group) continue;
-				m_iProxedResources += group.GetAgentsCount() * OVT_Global.GetConfig().m_Difficulty.baseResourceCost;
-				
-				SCR_EntityHelper.DeleteEntityAndChildren(group);
-			}
-			m_Groups.Clear();
-			m_TowerGuards.Clear();
-			m_bSpawned = false;
-		}else{
-			CheckClean();
-		}
-	}
-	
 	override int Spend(int resources, float threat)
 	{
 		int spent = 0;
 		
 		foreach(EntityID id : m_Towers)
 		{
-			if(resources < OVT_Global.GetConfig().m_Difficulty.baseResourceCost) break;
+			if(resources < OVT_Global.GetConfig().m_Difficulty.baseResourceCost) break; //We are out of resources
 			
 			bool needsGuard = false;
 			if(!m_TowerGuards.Contains(id))
@@ -81,27 +52,17 @@ class OVT_BaseUpgradeTowerGuard : OVT_BasePatrolUpgrade
 				needsGuard = true;
 			}else{
 				//Check if still alive
-				SCR_AIGroup group = GetGroup(m_TowerGuards[id]);				
-				if(group)
-				{
-					if(group.GetAgentsCount() == 0) needsGuard = true;					
-				}else{
-					needsGuard = true;
-				}
+				OVT_VirtualizedGroupData data = OVT_VirtualizedGroupData.Get(m_TowerGuards[id]);
+				if(!data) needsGuard = true;
 			}
 			if(needsGuard)
 			{
-				if(!PlayerInRange()){
-					m_iProxedResources += OVT_Global.GetConfig().m_Difficulty.baseResourceCost;
-					spent += OVT_Global.GetConfig().m_Difficulty.baseResourceCost;
-				}else{
-					if(BuyGuard(id))
-					{
-						m_bSpawned = true;
-						resources -= OVT_Global.GetConfig().m_Difficulty.baseResourceCost;
-						spent += OVT_Global.GetConfig().m_Difficulty.baseResourceCost;
-					}
-				}				
+				if(BuyGuard(id))
+				{
+					int newres = OVT_Global.GetConfig().m_Difficulty.baseResourceCost;
+					resources -= newres;
+					spent += newres;
+				}
 			}
 		}
 		
@@ -134,14 +95,13 @@ class OVT_BaseUpgradeTowerGuard : OVT_BasePatrolUpgrade
 		if(!sentinel) return false;
 		
 		vector actionPos = tower.GetOrigin() + sentinel.GetActionOffset() - "0 1.3 0";
-				
-		SCR_AIGroup group = SCR_AIGroup.Cast(OVT_Global.SpawnEntityPrefab(OVT_Global.GetConfig().GetOccupyingFaction().m_aGroupSniperPrefab, actionPos));
-						
-		AIWaypoint wp = OVT_Global.GetConfig().SpawnActionWaypoint(actionPos, tower, "CoverPost");
-		group.AddWaypoint(wp);
 		
-		m_Groups.Insert(group.GetID());
-		m_TowerGuards[towerID] = group.GetID();
+		OVT_VirtualizationManagerComponent virt = OVT_Global.GetVirtualization();
+		array<vector> waypoints()
+		OVT_VirtualizedGroupData data = virt.Create(OVT_Global.GetConfig().GetOccupyingFaction().m_aGroupSniperPrefab, actionPos, waypoints);
+		
+		m_aGroups.Insert(data.id);
+		m_TowerGuards[towerID] = data.id;
 		
 		return true;
 	}

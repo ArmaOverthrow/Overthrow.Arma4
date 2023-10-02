@@ -216,7 +216,6 @@ OVT_OverthrowGameMode {
    }
   }
   OVT_OccupyingFactionManager "{59845E732755785F}" {
-   m_pBaseControllerPrefab "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.et"
    m_pQRFControllerPrefab "{A7D27DFA72B705D0}Prefabs/Controllers/OVT_QRFController.et"
   }
   OVT_OverthrowConfigComponent "{59724C8C935D8E5D}" {
@@ -431,6 +430,8 @@ OVT_OverthrowGameMode {
   }
   OVT_VehicleManagerComponent "{5D707B3386AF876D}" {
    m_pStartingCarPrefab "{259EE7B78C51B624}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469.et"
+  }
+  OVT_VirtualizationManagerComponent "{5E84D14A6F9B80A9}" {
   }
   SCR_CallsignManagerComponent "{59724C8C935D8E23}" {
   }

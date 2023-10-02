@@ -1,11 +1,11 @@
 class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 {
-	[Attribute("1500", desc: "Max range of towns to patrol")]
+	[Attribute("3000", desc: "Max range of towns to patrol")]
 	float m_fRange;
 	
 	protected OVT_TownManagerComponent m_Towns;
 	protected ref array<ref OVT_TownData> m_TownsInRange;
-	protected ref map<ref int, ref EntityID> m_Patrols;
+	protected ref map<int, int> m_Patrols;
 	protected ref map<int, bool> m_SpottedPatrols;
 		
 	override void PostInit()
@@ -14,13 +14,13 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		
 		m_Towns = OVT_Global.GetTowns();
 		m_TownsInRange = new array<ref OVT_TownData>;
-		m_Patrols = new map<ref int, ref EntityID>;
+		m_Patrols = new map<int, int>;
 		m_SpottedPatrols = new map<int, bool>;
 		
 		OVT_Global.GetTowns().GetTownsWithinDistance(m_BaseController.GetOwner().GetOrigin(), m_fRange, m_TownsInRange);
 	}
 	
-	override void OnUpdate(int timeSlice)
+	override void CheckUpdate()
 	{
 		OVT_TownModifierSystem system = m_Towns.GetModifierSystem(OVT_TownStabilityModifierSystem);
 		if(!system) return;
@@ -32,32 +32,29 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		for(int i=0; i< m_Patrols.Count(); i++)
 		{
 			int townId = m_Patrols.GetKey(i);
-			EntityID id = m_Patrols.GetElement(i);
-			IEntity ent = GetGame().GetWorld().FindEntityByID(id);
-			if(ent)
-			{
-				SCR_AIGroup group = SCR_AIGroup.Cast(ent);
-				if(group.GetAgentsCount() > 0)
+			int id = m_Patrols.GetElement(i);
+			OVT_VirtualizedGroupData data = OVT_VirtualizedGroupData.Get(id);
+			
+			if(data)
+			{				
+				OVT_TownData town = m_Towns.m_Towns[townId];
+				float dist = vector.Distance(town.location, data.pos);
+				if(town.SupportPercentage() > 25 && !m_SpottedPatrols[townId] && dist < m_Towns.GetTownRange(town))
 				{
-					OVT_TownData town = m_Towns.m_Towns[townId];
-					float dist = vector.Distance(town.location, group.GetOrigin());
-					if(town.SupportPercentage() > 25 && !m_SpottedPatrols[townId] && dist < m_Towns.GetTownRange(town))
+					m_SpottedPatrols[townId] = true;
+					OVT_Global.GetNotify().SendTextNotification("PatrolSpotted",-1,m_Towns.GetTownName(townId));
+				}
+				if(dist < 50)
+				{						
+					if(town.support >= 75)
 					{
-						m_SpottedPatrols[townId] = true;
-						OVT_Global.GetNotify().SendTextNotification("PatrolSpotted",-1,m_Towns.GetTownName(townId));
-					}
-					if(dist < 50)
-					{						
-						if(town.support >= 75)
-						{
-							system.TryAddByName(townId, "RecentPatrolNegative");
-							system.RemoveByName(townId, "RecentPatrolPositive");
-						}else{
-							system.TryAddByName(townId, "RecentPatrolPositive");
-							system.RemoveByName(townId, "RecentPatrolNegative");
-						}			
-						support.TryAddByName(townId, "RecentPatrol");			
-					}
+						system.TryAddByName(townId, "RecentPatrolNegative");
+						system.RemoveByName(townId, "RecentPatrolPositive");
+					}else{
+						system.TryAddByName(townId, "RecentPatrolPositive");
+						system.RemoveByName(townId, "RecentPatrolNegative");
+					}			
+					support.TryAddByName(townId, "RecentPatrol");			
 				}
 			}
 		}
@@ -73,36 +70,19 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 			if(resources <= 0) break;
 			if(!m_Patrols.Contains(townID))
 			{
-				if(OVT_Global.PlayerInRange(town.location, 5000)){
-					int newres = BuyTownPatrol(town, threat);
-					
+				int newres = BuyTownPatrol(town, threat);					
+				spent += newres;
+				resources -= newres;
+			}else{
+				//Check if theyre dead
+				OVT_VirtualizedGroupData data = OVT_VirtualizedGroupData.Get(m_Patrols[townID]);
+				
+				if(!data) {
+					m_Patrols.Remove(townID);
+					int newres = BuyTownPatrol(town, threat);					
 					spent += newres;
 					resources -= newres;
-				}
-			}else{
-				//Check if theyre back
-				SCR_AIGroup aigroup = GetGroup(m_Patrols[townID]);
-				if(!aigroup) {
-					m_Patrols.Remove(townID);
 					continue;
-				}
-				float distance = vector.Distance(aigroup.GetOrigin(), m_BaseController.GetOwner().GetOrigin());
-				int agentCount = aigroup.GetAgentsCount();
-				if(distance < 20 || agentCount == 0)
-				{
-					//Recover any resources
-					m_occupyingFactionManager.RecoverResources(agentCount * OVT_Global.GetConfig().m_Difficulty.baseResourceCost);
-					
-					m_Patrols.Remove(townID);
-					SCR_EntityHelper.DeleteEntityAndChildren(aigroup);	
-					
-					//send another one
-					if(OVT_Global.PlayerInRange(town.location, 5000)){
-						int newres = BuyTownPatrol(town, threat);
-					
-						spent += newres;
-						resources -= newres;	
-					}		
 				}
 			}
 		}
@@ -130,41 +110,31 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 			pos[1] = surfaceY;
 		}
 		
-		IEntity group = OVT_Global.SpawnEntityPrefab(res, pos);
+		OVT_VirtualizationManagerComponent virt = OVT_Global.GetVirtualization();
+		array<vector> waypoints()
+		if(GetTownWaypoints(waypoints, town))
+		{
+			OVT_VirtualizedGroupData data = virt.Create(res, pos, waypoints);
 		
-		m_Groups.Insert(group.GetID());
-		m_Patrols[townID] = group.GetID();
-		m_SpottedPatrols[townID] = false;
-		
-		SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
-		
-		AddWaypoints(aigroup, town);
-		
-		int newres = aigroup.m_aUnitPrefabSlots.Count() * OVT_Global.GetConfig().m_Difficulty.baseResourceCost;
+			m_aGroups.Insert(data.id);
+			m_Patrols[townID] = data.id;
+			m_SpottedPatrols[townID] = false;
 			
-		return newres;
+			int newres = 2 * OVT_Global.GetConfig().m_Difficulty.baseResourceCost;
+			
+			return newres;
+		}
+		
+		return 0;
 	}
 	
-	protected void AddWaypoints(SCR_AIGroup aigroup, OVT_TownData town)
-	{		
-		array<AIWaypoint> queueOfWaypoints = new array<AIWaypoint>();
-		array<RplId> shops = m_Economy.GetAllShopsInTown(town);
-		if(shops.Count() == 0)
-		{
-			//To-Do: find some random buildings
-		}
-							
-		aigroup.AddWaypoint(OVT_Global.GetConfig().SpawnPatrolWaypoint(town.location));			
-				
-		vector pos = OVT_Global.GetRandomNonOceanPositionNear(town.location, 250);
-		aigroup.AddWaypoint(OVT_Global.GetConfig().SpawnSearchAndDestroyWaypoint(pos));			
-		aigroup.AddWaypoint(OVT_Global.GetConfig().SpawnWaitWaypoint(pos, s_AIRandomGenerator.RandFloatXY(15, 50)));								
+	protected bool GetTownWaypoints(inout array<vector> waypoints, OVT_TownData town)
+	{	
+		waypoints.Insert(OVT_Global.GetRandomNonOceanPositionNear(town.location, 250));
+		waypoints.Insert(OVT_Global.GetRandomNonOceanPositionNear(town.location, 250));
+		waypoints.Insert(OVT_Global.GetRandomNonOceanPositionNear(town.location, 250));
 		
-		pos = OVT_Global.GetRandomNonOceanPositionNear(town.location, 250);
-		aigroup.AddWaypoint(OVT_Global.GetConfig().SpawnSearchAndDestroyWaypoint(pos));			
-		aigroup.AddWaypoint(OVT_Global.GetConfig().SpawnWaitWaypoint(pos, s_AIRandomGenerator.RandFloatXY(15, 50)));								
-		
-		aigroup.AddWaypoint(OVT_Global.GetConfig().SpawnPatrolWaypoint(m_BaseController.GetOwner().GetOrigin()));		
+		return true;
 	}
 	
 	override OVT_BaseUpgradeData Serialize()
