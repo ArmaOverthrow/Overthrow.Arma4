@@ -74,7 +74,7 @@ class OVT_NotificationManagerComponent: OVT_Component
 					
 		string localized = WidgetManager.Translate(preset.m_UIInfo.GetDescription(), param1, param2, param3);
 		
-		Print("Overthrow: " + localized);
+		Print("[Overthrow.NotificationManagerComponent] " + localized);
 		
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
 		

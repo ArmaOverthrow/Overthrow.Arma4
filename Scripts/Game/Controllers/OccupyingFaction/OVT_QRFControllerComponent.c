@@ -60,7 +60,7 @@ class OVT_QRFControllerComponent: OVT_Component
 		if(m_iTimer <= 0)
 		{
 			m_iTimer = 0;
-			GetGame().GetCallqueue().Remove(CheckUpdateTimer);
+			return;
 		}
 		
 		m_OccupyingFaction.UpdateQRFTimer(m_iTimer);
@@ -199,7 +199,7 @@ class OVT_QRFControllerComponent: OVT_Component
 				//We have a winner		
 				m_OnFinished.Invoke();
 				GetGame().GetCallqueue().Remove(CheckUpdatePoints);
-				
+				GetGame().GetCallqueue().Remove(CheckUpdateTimer);
 			}
 		}
 	}
@@ -227,13 +227,14 @@ class OVT_QRFControllerComponent: OVT_Component
 		
 		if(m_Bases.Count() == 0)
 		{
+			Print("[Overthrow.QRFControllerComponent] Final Base Detected");
 			//Temporary for when the OF has no bases left but this one
 			//To-Do: organize an external force to come from the sea/air
 			m_Bases.Insert(qrfpos + "250 0 100");
 		}
 		
 		int resources = m_OccupyingFaction.m_iResources;
-		if(resources <= 200) resources = 200; //Emergency resources (minimum size QRF)
+		if(resources <= 400) resources = 400; //Emergency resources (minimum size QRF)
 		
 		int max = OVT_Global.GetConfig().m_Difficulty.maxQRF;
 		int numPlayersOnline = GetGame().GetPlayerManager().GetPlayerCount();
@@ -260,6 +261,8 @@ class OVT_QRFControllerComponent: OVT_Component
 		{
 			resources = max;
 		}
+		
+		Print("[Overthrow.QRFControllerComponent] Allocated QRF Size: " + resources.ToString());
 		
 		m_iResourcesLeft = resources;
 		SendWave();		
@@ -290,15 +293,18 @@ class OVT_QRFControllerComponent: OVT_Component
 			}
 			spent += allocated;
 			m_iResourcesLeft -= allocated;
+			Print("[Overthrow.QRFControllerComponent] Sent wave from " + base.ToString() + ": " + allocated.ToString());
 		}
 		
 		if(m_iResourcesLeft > 0)
 		{
 			//leftover resources, schedule another wave
-			GetGame().GetCallqueue().CallLater(SendWave, s_AIRandomGenerator.RandInt(480000, 960000));
+			GetGame().GetCallqueue().CallLater(SendWave, s_AIRandomGenerator.RandInt(240000, 480000));
 		}
 		
 		m_iUsedResources += spent;
+		
+		Print("[Overthrow.QRFControllerComponent] Wave complete: " + spent.ToString());
 		
 		return spent;
 	}

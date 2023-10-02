@@ -19,6 +19,11 @@ class OVT_Global {
 		return OVT_OverthrowConfigComponent.GetInstance();
 	}
 	
+	static OVT_DifficultySettings GetDifficulty()
+	{
+		return GetConfig().m_Difficulty;
+	}
+	
 	static OVT_EconomyManagerComponent GetEconomy()
 	{
 		return OVT_EconomyManagerComponent.GetInstance();
