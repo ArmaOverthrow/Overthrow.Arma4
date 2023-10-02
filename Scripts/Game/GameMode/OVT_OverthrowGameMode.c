@@ -21,6 +21,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	protected OVT_JobManagerComponent m_JobManager;
 	protected OVT_SkillManagerComponent m_SkillManager;
 	protected OVT_PersistenceManagerComponent m_Persistence;
+	protected OVT_VirtualizationManagerComponent m_Virtualization;
 
 	protected CameraBase m_pCamera;
 
@@ -169,6 +170,13 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 				config.m_Difficulty.startingCash = config.m_ConfigFile.startingCash;
 				config.m_Difficulty.procurementMultiplier = config.m_ConfigFile.procurementMultiplier;
 			}
+		}
+		
+		if(m_Virtualization)
+		{
+			Print("Starting Virtualization");
+
+			m_Virtualization.PostGameStart();
 		}
 
 		Print("[Overthrow] Overthrow Starting");
@@ -588,6 +596,12 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 					m_StartGameUIContext.ShowLayout();
 				}
 			}
+		}
+		
+		m_Virtualization = OVT_VirtualizationManagerComponent.Cast(FindComponent(OVT_VirtualizationManagerComponent));
+		if(m_Virtualization)
+		{
+			Print("Initializing Virtualization");			
 		}
 	}
 	

@@ -24,6 +24,16 @@ class OVT_BaseUpgradeDefensePatrol : OVT_BasePatrolUpgrade
 		aigroup.AddWaypoint(cycle);		
 	}
 	
+	protected override bool GetWaypoints(inout array<vector> waypoints)
+	{
+		for(int i=0; i< 4; i++)
+		{
+			vector randompos = OVT_Global.GetRandomNonOceanPositionNear(m_BaseController.GetOwner().GetOrigin(), OVT_Global.GetConfig().m_Difficulty.baseRange);			
+			waypoints.Insert(randompos);			
+		}
+		return true;
+	}
+	
 	override int Spend(int resources, float threat)
 	{
 		int spent = 0;
@@ -43,10 +53,9 @@ class OVT_BaseUpgradeDefensePatrol : OVT_BasePatrolUpgrade
 			
 			OVT_Faction faction = OVT_Global.GetConfig().GetOccupyingFaction();
 			ResourceName res = faction.GetRandomGroupByType(type);
-			m_iProxedResources += newres;
-			m_ProxiedGroups.Insert(res);
+			
 			vector spawnpos = OVT_Global.GetRandomNonOceanPositionNear(m_BaseController.GetOwner().GetOrigin(), 50);			
-			m_ProxiedPositions.Insert(spawnpos);			
+			BuyPatrol(threat, res, spawnpos);
 			
 			if(newres > resources){
 				newres = resources;

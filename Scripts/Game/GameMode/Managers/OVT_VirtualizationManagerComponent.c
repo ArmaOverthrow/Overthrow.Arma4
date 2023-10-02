@@ -4,14 +4,14 @@ class OVT_VirtualizationManagerComponentClass: OVT_ComponentClass
 
 enum OVT_GroupOrder
 {
-	PATROL,
-	SEARCH_AND_DESTROY,
-	ATTACK
+	PATROL,		//Will walk to each waypoint and execute a search & destroy
+	ATTACK		//Will run to each waypoint and execute a search & destroy
 }
 
 enum OVT_GroupSpeed
 {
 	WALKING=2,
+	RUNNING=4,
 	DRIVING_SLOW=10,
 	DRIVING_FAST=22,
 	FLYING_SLOW=55,
@@ -32,18 +32,54 @@ class OVT_VirtualizedGroupData : Managed
 	int currentWaypoint = 0;
 	
 	[NonSerialized()]
+	bool remove = false; //Remove this group on next update
+	
+	[NonSerialized()]
 	bool isSpawned = false;
 	
 	[NonSerialized()]
 	EntityID spawnedEntity;	
+	
+	[NonSerialized()]
+	ref array<EntityID> waypointEntities = new array<EntityID>;
+	
+	void SetWaypoints(array<vector> newWaypoints)
+	{
+		waypoints.Clear();
+		waypoints = newWaypoints;
+		
+		if(isSpawned)
+		{
+			SCR_AIGroup aigroup = SCR_AIGroup.Cast(GetGame().GetWorld().FindEntityByID(spawnedEntity));
+			if(!aigroup) return;
+			if(aigroup.GetAgentsCount() == 0) return;
+			
+			array<AIWaypoint> waypoints = {};
+			aigroup.GetWaypoints(waypoints);
+			
+			foreach(AIWaypoint wp : waypoints)
+			{
+				aigroup.RemoveWaypoint(wp);
+				SCR_EntityHelper.DeleteEntityAndChildren(wp);
+			}
+			OVT_VirtualizationManagerComponent virt = OVT_Global.GetVirtualization();
+			virt.SetWaypoints(aigroup, this);
+		}		
+	}
+	
+	static OVT_VirtualizedGroupData Get(int groupId)
+	{
+		OVT_VirtualizationManagerComponent virt = OVT_Global.GetVirtualization();
+		return virt.GetData(groupId);
+	}
 }
 
 const int VIRTUALIZATION_FREQUENCY = 5000;
-const int SPAWN_DISTANCE = 50;
+const int SPAWN_DISTANCE = 2500;
 
 class OVT_VirtualizationManagerComponent: OVT_Component
 {
-	protected ref map<int, OVT_VirtualizedGroupData> m_mGroups;
+	protected ref map<int, ref OVT_VirtualizedGroupData> m_mGroups;
 	protected int nextId = 0;
 	
 	static OVT_VirtualizationManagerComponent s_Instance;	
@@ -83,17 +119,38 @@ class OVT_VirtualizationManagerComponent: OVT_Component
 		return data;
 	}
 	
+	OVT_VirtualizedGroupData GetData(int id)
+	{
+		if(!m_mGroups.Contains(id)) return null;
+		return m_mGroups[id];
+	}
+	
 	protected void CheckUpdate()
 	{		
-		array<int> toRemove();
+		autoptr array<int> toRemove();
 		
 		for(int i=0; i<m_mGroups.Count(); i++)
 		{
 			OVT_VirtualizedGroupData groupData = m_mGroups.GetElement(i);
-			vector target = groupData.waypoints[groupData.currentWaypoint];
+			if(!groupData) {
+				m_mGroups.RemoveElement(i);
+				continue;
+			}
+			vector target = groupData.pos;
+			if(groupData.waypoints && groupData.waypoints.Count() > 0)
+			{
+				target = groupData.waypoints[groupData.currentWaypoint];
+			}
+			
+			if(groupData.remove)
+			{
+				if(groupData.isSpawned) Despawn(groupData);
+				toRemove.Insert(groupData.id);
+				continue;
+			}
 			
 			if(groupData.isSpawned)
-			{
+			{				
 				IEntity group = GetGame().GetWorld().FindEntityByID(groupData.spawnedEntity);
 				if(!group)
 				{
@@ -108,11 +165,11 @@ class OVT_VirtualizationManagerComponent: OVT_Component
 					Despawn(groupData);
 				}
 			}else{			
-				if(groupData.waypoints.Count() == 0) return;
-			
-				float distanceTravelled = (float)groupData.speed * ((float)VIRTUALIZATION_FREQUENCY / 1000);
-				
-				groupData.pos = SCR_Math3D.MoveTowards(groupData.pos, target, distanceTravelled);
+				if(groupData.waypoints.Count() > 0)
+				{			
+					float distanceTravelled = (float)groupData.speed * ((float)VIRTUALIZATION_FREQUENCY / 1000);				
+					groupData.pos = SCR_Math3D.MoveTowards(groupData.pos, target, distanceTravelled);
+				}
 				
 				if(OVT_Global.PlayerInRange(groupData.pos, SPAWN_DISTANCE))
 				{
@@ -134,21 +191,106 @@ class OVT_VirtualizationManagerComponent: OVT_Component
 				}
 			}
 		}
+		
+		foreach(int id : toRemove)
+		{
+			m_mGroups.Remove(id);
+		}
 	}
 	
 	protected void Spawn(OVT_VirtualizedGroupData data)
 	{
+		vector pos = data.pos;
+		BaseWorld world = GetGame().GetWorld();
+		float ground = world.GetSurfaceY(pos[0],pos[2]);
+		pos[1] = ground;
 		
+		IEntity entity = OVT_Global.SpawnEntityPrefab(data.prefab, pos);
+		data.spawnedEntity = entity.GetID();
+		data.isSpawned = true;
+		SetWaypoints(entity, data);
 	}
 	
 	protected void Despawn(OVT_VirtualizedGroupData data)
 	{
+		IEntity entity = GetGame().GetWorld().FindEntityByID(data.spawnedEntity);
+		SCR_EntityHelper.DeleteEntityAndChildren(entity);
 		
+		data.spawnedEntity = null;
+		data.isSpawned = false;
+		
+		foreach(EntityID id : data.waypointEntities)
+		{
+			IEntity wp = GetGame().GetWorld().FindEntityByID(id);
+			SCR_EntityHelper.DeleteEntityAndChildren(wp);
+		}
+		data.waypointEntities.Clear();
+	}
+	
+	void SetWaypoints(IEntity entity, OVT_VirtualizedGroupData data)
+	{
+		int numWaypoints = data.waypoints.Count();
+		SCR_AIGroup aigroup = SCR_AIGroup.Cast(entity);
+		
+		if(numWaypoints == 0) {
+			AIWaypoint defend = OVT_Global.GetConfig().SpawnDefendWaypoint(data.pos);
+			aigroup.AddWaypoint(defend);
+			return;
+		}
+		
+		array<AIWaypoint> queueOfWaypoints = new array<AIWaypoint>();
+		
+		vector firstWP;
+		if(!aigroup) return;
+		
+		for(int i=data.currentWaypoint; i<data.currentWaypoint+numWaypoints; i++)
+		{
+			int index = i;
+			if(i >= numWaypoints)
+			{
+				if(!data.cycleWaypoints) break;
+				index = i - numWaypoints;
+			}
+			vector wp = data.waypoints[index];
+			if(i == data.currentWaypoint) firstWP = wp;
+			
+			if(data.order == OVT_GroupOrder.PATROL)
+			{
+				AIWaypoint patrol = OVT_Global.GetConfig().SpawnPatrolWaypoint(wp);
+				if(data.cycleWaypoints)
+					queueOfWaypoints.Insert(patrol);
+				else
+					aigroup.AddWaypoint(patrol);				
+			}	
+						
+			AIWaypoint searchdestroy = OVT_Global.GetConfig().SpawnSearchAndDestroyWaypoint(wp);			
+			if(data.cycleWaypoints)
+				queueOfWaypoints.Insert(searchdestroy);
+			else
+				aigroup.AddWaypoint(searchdestroy);		
+			
+			if(data.order == OVT_GroupOrder.ATTACK)
+			{
+				AIWaypoint defend = OVT_Global.GetConfig().SpawnDefendWaypoint(wp);
+				if(data.cycleWaypoints)
+					queueOfWaypoints.Insert(defend);
+				else
+					aigroup.AddWaypoint(defend);				
+			}	
+		}
+		
+		if(data.cycleWaypoints)
+		{
+			AIWaypointCycle cycle = AIWaypointCycle.Cast(OVT_Global.GetConfig().SpawnWaypoint(OVT_Global.GetConfig().m_pCycleWaypointPrefab, firstWP));
+			cycle.SetWaypoints(queueOfWaypoints);
+			cycle.SetRerunCounter(-1);
+			aigroup.AddWaypoint(cycle);
+		}
 	}
 	
 	void OVT_VirtualizationManagerComponent(IEntityComponentSource src, IEntity ent, IEntity parent)
 	{
-		m_mGroups = new map<int, OVT_VirtualizedGroupData>;
+		m_mGroups = new map<int, ref OVT_VirtualizedGroupData>;
 	}
 	
 	void ~OVT_VirtualizationManagerComponent()

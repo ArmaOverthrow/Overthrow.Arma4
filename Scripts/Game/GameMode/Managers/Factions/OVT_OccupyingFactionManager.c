@@ -940,11 +940,13 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 	int GainResources()
 	{
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		
 		Print("[Overthrow.OccupyingFactionManager] Gaining Resources");
 		Print("[Overthrow.OccupyingFactionManager] Current Threat: " + m_iThreat.ToString());
 		float threatFactor = m_iThreat / 1000;
 		if(threatFactor > 4) threatFactor = 4;
-		int newResources = m_Config.m_Difficulty.baseResourcesPerTick + (m_Config.m_Difficulty.resourcesPerTick * threatFactor);
+		int newResources = config.m_Difficulty.baseResourcesPerTick + (config.m_Difficulty.resourcesPerTick * threatFactor);
 
 		int numPlayersOnline = GetGame().GetPlayerManager().GetPlayerCount();
 
