@@ -30,4 +30,7 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
   coords 5841.275 4.563 9794.273
   Flags 1027
  }
+ OVT_Base_Gravette {
+  coords 3882.378 15.287 8445.397
+ }
 }
