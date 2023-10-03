@@ -22,6 +22,8 @@ OVT_OverthrowGameMode {
      }
      OVT_ConfigSaveDataClass "{5D9E53AFE550A24E}" {
      }
+     OVT_VirtualizationSaveDataClass "{5E869D5B314B7B83}" {
+     }
     }
    }
   }

@@ -130,6 +130,26 @@ class OVT_VirtualizationManagerComponent: OVT_Component
 		return m_mGroups[id];
 	}
 	
+	bool GetGroupsArray(inout array<ref OVT_VirtualizedGroupData> groups)
+	{
+		for(int t=0; t<m_mGroups.Count(); t++)
+		{
+			OVT_VirtualizedGroupData group = m_mGroups.GetElement(t);
+			groups.Insert(group);
+		}
+		return true;
+	}
+	
+	bool LoadGroupsArray(array<ref OVT_VirtualizedGroupData> groups)
+	{
+		foreach(OVT_VirtualizedGroupData group: groups)
+		{
+			m_mGroups[group.id] = group;
+			if(group.id >= nextId) nextId = group.id + 1;
+		}
+		return true;
+	}
+	
 	protected void CheckQueue()
 	{
 		if(m_aSpawnQueue.Count() > 0)
@@ -153,6 +173,22 @@ class OVT_VirtualizationManagerComponent: OVT_Component
 				Despawn(groupData);
 			}
 		}
+	}
+	
+	int GetNumGroupsInRange(vector pos, float range)
+	{
+		int num = 0;
+		for(int t=0; t<m_mGroups.Count(); t++)
+		{
+			OVT_VirtualizedGroupData group = m_mGroups.GetElement(t);
+			if(group.isTrigger) continue;
+			float dist = vector.Distance(pos, group.pos);
+			if(dist <= range)
+			{
+				num++;
+			}
+		}
+		return num;
 	}
 	
 	protected void CheckUpdate()
