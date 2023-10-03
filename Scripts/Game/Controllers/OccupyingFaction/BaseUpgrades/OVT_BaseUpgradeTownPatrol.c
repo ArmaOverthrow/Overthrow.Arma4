@@ -56,6 +56,8 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 					}			
 					support.TryAddByName(townId, "RecentPatrol");			
 				}
+			}else{
+				m_Patrols.Remove(townId);
 			}
 		}
 	}
