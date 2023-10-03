@@ -75,12 +75,16 @@ class OVT_VirtualizedGroupData : Managed
 }
 
 const int VIRTUALIZATION_FREQUENCY = 5000;
+const int VIRTUALIZATION_QUEUE_FREQUENCY = 200;
 const int SPAWN_DISTANCE = 2500;
 
 class OVT_VirtualizationManagerComponent: OVT_Component
 {
 	protected ref map<int, ref OVT_VirtualizedGroupData> m_mGroups;
 	protected int nextId = 0;
+	
+	protected ref array<int> m_aSpawnQueue;
+	protected ref array<int> m_aDespawnQueue;
 	
 	static OVT_VirtualizationManagerComponent s_Instance;	
 	static OVT_VirtualizationManagerComponent GetInstance()
@@ -98,6 +102,7 @@ class OVT_VirtualizationManagerComponent: OVT_Component
 	void PostGameStart()
 	{
 		GetGame().GetCallqueue().CallLater(CheckUpdate, VIRTUALIZATION_FREQUENCY, true, GetOwner());				
+		GetGame().GetCallqueue().CallLater(CheckQueue, VIRTUALIZATION_QUEUE_FREQUENCY, true, GetOwner());				
 	}
 	
 	OVT_VirtualizedGroupData Create(ResourceName prefab, vector pos, array<vector> waypoints, bool isTrigger = false, OVT_GroupOrder order = OVT_GroupOrder.PATROL, OVT_GroupSpeed speed = OVT_GroupSpeed.WALKING, bool cycleWaypoints = true)
@@ -125,6 +130,31 @@ class OVT_VirtualizationManagerComponent: OVT_Component
 		return m_mGroups[id];
 	}
 	
+	protected void CheckQueue()
+	{
+		if(m_aSpawnQueue.Count() > 0)
+		{
+			int id = m_aSpawnQueue[0];
+			OVT_VirtualizedGroupData groupData = GetData(id);
+			m_aSpawnQueue.Remove(0);
+			if(groupData && !m_aDespawnQueue.Contains(id))
+			{
+				Spawn(groupData);
+			}
+		}
+		
+		if(m_aDespawnQueue.Count() > 0)
+		{
+			int id = m_aDespawnQueue[0];
+			OVT_VirtualizedGroupData groupData = GetData(id);
+			m_aDespawnQueue.Remove(0);
+			if(groupData)
+			{
+				Despawn(groupData);
+			}
+		}
+	}
+	
 	protected void CheckUpdate()
 	{		
 		autoptr array<int> toRemove();
@@ -136,6 +166,8 @@ class OVT_VirtualizationManagerComponent: OVT_Component
 				m_mGroups.RemoveElement(i);
 				continue;
 			}
+			if(m_aSpawnQueue.Contains(groupData.id) || m_aDespawnQueue.Contains(groupData.id)) continue;
+			
 			vector target = groupData.pos;
 			if(groupData.waypoints && groupData.waypoints.Count() > 0)
 			{
@@ -162,7 +194,7 @@ class OVT_VirtualizationManagerComponent: OVT_Component
 				
 				if(!OVT_Global.PlayerInRange(groupData.pos, SPAWN_DISTANCE))
 				{
-					Despawn(groupData);
+					m_aDespawnQueue.Insert(groupData.id);
 				}
 			}else{			
 				if(groupData.waypoints.Count() > 0)
@@ -173,7 +205,7 @@ class OVT_VirtualizationManagerComponent: OVT_Component
 				
 				if(OVT_Global.PlayerInRange(groupData.pos, SPAWN_DISTANCE))
 				{
-					Spawn(groupData);
+					m_aSpawnQueue.Insert(groupData.id);
 				}
 			}
 			
@@ -291,6 +323,8 @@ class OVT_VirtualizationManagerComponent: OVT_Component
 	void OVT_VirtualizationManagerComponent(IEntityComponentSource src, IEntity ent, IEntity parent)
 	{
 		m_mGroups = new map<int, ref OVT_VirtualizedGroupData>;
+		m_aSpawnQueue = new array<int>;
+		m_aDespawnQueue = new array<int>;
 	}
 	
 	void ~OVT_VirtualizationManagerComponent()
@@ -300,5 +334,20 @@ class OVT_VirtualizationManagerComponent: OVT_Component
 			m_mGroups.Clear();
 			m_mGroups = null;
 		}
+		
+		if(m_aSpawnQueue)
+		{
+			m_aSpawnQueue.Clear();
+			m_aSpawnQueue = null;
+		}
+		
+		if(m_aDespawnQueue)
+		{
+			m_aDespawnQueue.Clear();
+			m_aDespawnQueue = null;
+		}
+		
+		GetGame().GetCallqueue().Remove(CheckUpdate);
+		GetGame().GetCallqueue().Remove(CheckQueue);
 	}
 }
