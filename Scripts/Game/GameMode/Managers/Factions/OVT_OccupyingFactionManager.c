@@ -56,8 +56,7 @@ class OVT_RadioTowerData : Managed
 	int faction;
 	vector location;
 
-	[NonSerialized()]
-	ref array<ref EntityID> garrison = {};
+	ref array<int> garrison = {};
 
 	bool IsOccupyingFaction()
 	{
@@ -195,70 +194,53 @@ class OVT_OccupyingFactionManager: OVT_Component
 	void CheckRadioTowers()
 	{
 		OVT_Faction faction = OVT_Global.GetConfig().GetOccupyingFaction();
+		OVT_VirtualizationManagerComponent virt = OVT_Global.GetVirtualization();
+		
 		foreach(OVT_RadioTowerData tower : m_RadioTowers)
 		{
 			if(!tower.IsOccupyingFaction()) continue;
-			bool inrange = OVT_Global.PlayerInRange(tower.location, OVT_Global.GetConfig().m_iMilitarySpawnDistance) && !m_CurrentQRF;
-			if(inrange)
+			
+			if(tower.garrison.Count() == 0)
 			{
-				if(tower.garrison.Count() == 0)
+				//Create radio defense
+
+				vector pos = tower.location + "5 0 0";
+
+				float surfaceY = GetGame().GetWorld().GetSurfaceY(pos[0], pos[2]);
+				if (pos[1] < surfaceY)
 				{
-					//Spawn in radio defense
-
-					vector pos = tower.location + "5 0 0";
-
-					float surfaceY = GetGame().GetWorld().GetSurfaceY(pos[0], pos[2]);
-					if (pos[1] < surfaceY)
-					{
-						pos[1] = surfaceY;
-					}
-
-					for(int t = 0; t < OVT_Global.GetConfig().m_Difficulty.radioTowerGroups; t++)
-					{
-						IEntity group = OVT_Global.SpawnEntityPrefab(faction.m_aTowerDefensePatrolPrefab, pos);
-						tower.garrison.Insert(group.GetID());
-						SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
-						AIWaypoint wp = OVT_Global.GetConfig().SpawnDefendWaypoint(pos);
-						aigroup.AddWaypoint(wp);
-					}
-				}else{
-					//Check if dead
-					array<EntityID> remove = {};
-					foreach(EntityID id : tower.garrison)
-					{
-						IEntity ent = GetGame().GetWorld().FindEntityByID(id);
-						SCR_AIGroup group = SCR_AIGroup.Cast(ent);
-						if(!group)
-						{
-							remove.Insert(id);
-						}else if(group.GetAgentsCount() == 0)
-						{
-							SCR_EntityHelper.DeleteEntityAndChildren(group);
-							remove.Insert(id);
-						}
-					}
-					foreach(EntityID id : remove)
-					{
-						tower.garrison.RemoveItem(id);
-					}
-					if(tower.garrison.Count() == 0)
-					{
-						//radio tower changes hands
-						ChangeRadioTowerControl(tower, OVT_Global.GetConfig().GetPlayerFactionIndex());
-					}
+					pos[1] = surfaceY;
+				}
+				
+				for(int t = 0; t < OVT_Global.GetConfig().m_Difficulty.radioTowerGroups; t++)
+				{
+					array<vector> waypoints();
+					OVT_VirtualizedGroupData data = virt.Create(faction.m_aTowerDefensePatrolPrefab, pos, waypoints);					
+					tower.garrison.Insert(data.id);					
 				}
 			}else{
-				if(tower.garrison.Count() > 0)
+				//Check if dead
+				array<int> remove = {};
+				foreach(int id : tower.garrison)
 				{
-					//Despawn defense
-					foreach(EntityID id : tower.garrison)
+					OVT_VirtualizedGroupData data = OVT_VirtualizedGroupData.Get(id);
+					
+					if(!data)
 					{
-						IEntity ent = GetGame().GetWorld().FindEntityByID(id);
-						SCR_EntityHelper.DeleteEntityAndChildren(ent);
+						remove.Insert(id);
 					}
-					tower.garrison.Clear();
 				}
-			}
+				
+				foreach(int id : remove)
+				{
+					tower.garrison.RemoveItem(id);
+				}
+				if(tower.garrison.Count() == 0)
+				{
+					//radio tower changes hands
+					ChangeRadioTowerControl(tower, OVT_Global.GetConfig().GetPlayerFactionIndex());
+				}
+			}			
 		}
 	}
 
