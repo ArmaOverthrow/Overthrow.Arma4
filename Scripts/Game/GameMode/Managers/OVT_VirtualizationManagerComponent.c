@@ -18,7 +18,7 @@ enum OVT_GroupSpeed
 	FLYING_FAST=80
 }
 
-class OVT_VirtualizedGroupData : Managed
+class OVT_VirtualizedGroupData : EPF_PersistentScriptedState
 {
 	int id;					//
 	vector pos;				//Current position
@@ -140,12 +140,22 @@ class OVT_VirtualizationManagerComponent: OVT_Component
 		return true;
 	}
 	
-	bool LoadGroupsArray(array<ref OVT_VirtualizedGroupData> groups)
+	bool GetGroupsIdArray(inout array<string> groups)
 	{
-		foreach(OVT_VirtualizedGroupData group: groups)
+		for(int t=0; t<m_mGroups.Count(); t++)
 		{
-			m_mGroups[group.id] = group;
-			if(group.id >= nextId) nextId = group.id + 1;
+			OVT_VirtualizedGroupData group = m_mGroups.GetElement(t);
+			groups.Insert(group.GetPersistentId());
+		}
+		return true;
+	}
+	
+	bool LoadGroupsIdArray(array<string> groups)
+	{
+		foreach(string persId : groups)
+		{
+			OVT_VirtualizedGroupData data = EPF_PersistentScriptedStateLoader<OVT_VirtualizedGroupData>.Load(persId);
+			m_mGroups[data.id] = data;			
 		}
 		return true;
 	}
