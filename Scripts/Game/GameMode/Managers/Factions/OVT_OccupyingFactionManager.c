@@ -714,13 +714,12 @@ class OVT_OccupyingFactionManager: OVT_Component
 			foreach(OVT_BaseData data : m_Bases)
 			{
 				if(!data.IsOccupyingFaction()) continue;
-				OVT_BaseControllerComponent base = GetBase(data.entId);	
-								
-				m_iResources -= base.SpendResources(m_iResources, m_iThreat);			
+				OVT_BaseControllerComponent base = GetBase(data.entId);			
 
 				if(OVT_Global.PlayerInRange(data.location, OVT_Global.GetConfig().m_Difficulty.baseCloseRange+100)) continue;
 
-				int spent = base.SpendResources(m_iResources, m_iThreat);
+				int spent = base.SpendResources(toSpend, m_iThreat);
+				Print("[Overthrow.OccupyingFactionManager] Base spent " + spent);
 				m_iResources -= spent;
 				toSpend -= spent;
 				
