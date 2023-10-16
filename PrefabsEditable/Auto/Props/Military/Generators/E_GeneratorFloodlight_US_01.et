@@ -6,8 +6,5 @@ GameEntity : "{0E94F28FD722B1D8}Prefabs/Props/Military/Generators/GeneratorFlood
    m_pSaveData OVT_PlaceableSaveDataClass "{5D7C48988A452E7B}" {
    }
   }
-  RplComponent "{5882ABC121D1C3C5}" {
-   Streamable Disabled
-  }
  }
 }

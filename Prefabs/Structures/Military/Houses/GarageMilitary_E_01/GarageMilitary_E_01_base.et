@@ -43,8 +43,5 @@ SCR_DestructibleBuildingEntity : "{A43A100E3C377DB2}Prefabs/Structures/Core/Buil
    m_ShopType SHOP_VEHICLE
    m_bProcurement 1
   }
-  RplComponent "{50A4E7C9B5728062}" {
-   Streamable Disabled
-  }
  }
 }
