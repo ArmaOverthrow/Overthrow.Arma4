@@ -14,7 +14,7 @@
 A dynamic and persistent revolution platform for Arma Reforger (and eventually Arma 4)
 
 ## Installing
-Overthrow is available in early access from the ARMA Reforger Workshop. Just search for "Overthrow".
+Overthrow is available in early access from Bohemia Interactive's official [ARMA Reforger Workshop](https://reforger.armaplatform.com/workshop). Just search for "Overthrow".
 
 ## Playing
 The key to open the Overthrow menu is not "Y", its now "U" (due to key binding conflicts in Arma Reforger). Read the [Wiki](https://github.com/ArmaOverthrow/Overthrow.Arma4/wiki) for more info.
