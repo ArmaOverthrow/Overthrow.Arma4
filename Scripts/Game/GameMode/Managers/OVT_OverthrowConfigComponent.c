@@ -2,12 +2,7 @@ class OVT_OverthrowConfigComponentClass: OVT_ComponentClass
 {	
 };
 
-enum OVT_QRFFastTravelMode
-{
-	FREE,
-	NOQRF,
-	DISABLED
-}
+
 
 enum OVT_FactionType {
 	OCCUPYING_FACTION,
@@ -58,78 +53,6 @@ class OVT_OverthrowConfigStruct
 		discordWebHookURL = "see wiki: https://github.com/ArmaOverthrow/Overthrow.Arma4/wiki/Discord-Web-Hook";
 		occupyingFaction = "";
 	}
-}
-
-[BaseContainerProps(configRoot: true)]
-class OVT_DifficultySettings : ScriptAndConfig
-{	
-	[Attribute()]
-	string name;
-	
-	//Wanted system
-	[Attribute(defvalue: "30000", desc: "Timeout in ms for wanted levels 2-5 (per level)", category: "Wanted System")]
-	int wantedTimeout;
-	[Attribute(defvalue: "120000", desc: "Timeout in ms for wanted level 1", category: "Wanted System")]
-	int wantedOneTimeout;
-	
-	//OF
-	[Attribute(defvalue: "3000", desc: "OF starting resources", category: "Occupying Faction")]
-	int startingResources;
-	[Attribute(defvalue: "250", desc: "OF resources per 6 hrs", category: "Occupying Faction")]
-	int baseResourcesPerTick;
-	[Attribute(defvalue: "500", desc: "Additional OF resources per 6 hrs (* threat)", category: "Occupying Faction")]
-	int resourcesPerTick;
-	[Attribute(defvalue: "10", desc: "Base resource cost", category: "Occupying Faction")]
-	int baseResourceCost;	
-	[Attribute(defvalue: "1500", desc: "Radio Tower Range", category: "Occupying Faction")]
-	float radioTowerRange;
-	[Attribute(defvalue: "750", desc: "Base Support Range", category: "Occupying Faction")]
-	float baseSupportRange;
-	[Attribute(defvalue: "2", desc: "Number of defense groups at radio towers", category: "Occupying Faction")]
-	int radioTowerGroups;	
-	[Attribute("280")]
-	float baseRange;
-	[Attribute("220")]
-	float baseCloseRange;
-	
-	//Economy
-	[Attribute(defvalue: "100", desc: "Player starting cash", category: "Economy")]
-	int startingCash;
-	[Attribute(defvalue: "5", desc: "Money taken from player per respawn", category: "Economy")]
-	int respawnCost;
-	[Attribute(defvalue: "5", desc: "Cost to fast travel", category: "Economy")]
-	int fastTravelCost;
-	[Attribute(defvalue: "1", desc: "Cost of placeables is multiplied by this value", category: "Economy")]
-	float placeableCostMultiplier;
-	[Attribute(defvalue: "1", desc: "Cost of buildables is multiplied by this value", category: "Economy")]
-	float buildableCostMultiplier;
-	[Attribute(defvalue: "0.5", desc: "Cost of Real Estate is multiplied by this value", category: "Economy")]
-	float realEstateCostMultiplier;
-	[Attribute(defvalue: "10", desc: "Donation income per civilian supporter", category: "Economy")]
-	int donationIncome;
-	[Attribute(defvalue: "25", desc: "Tax income per civilian", category: "Economy")]
-	int taxIncome;
-	[Attribute(defvalue: "5", desc: "Bus ticket price per km", category: "Economy")]
-	int busTicketPrice;
-	[Attribute(defvalue: "250", desc: "Base price for AI recruit", category: "Economy")]
-	int baseRecruitCost;
-	
-	//RF
-	[Attribute(defvalue: "0", desc: "Base RF threat", category: "Resistance Faction")]
-	int baseThreat;	
-	
-	[Attribute(defvalue: "0.004", desc: "Threat reduction factor", category: "Resistance Faction")]
-	float threatReductionFactor;	
-	
-	//QRF
-	[Attribute("1", UIWidgets.ComboBox, "QRF Fast Travel Mode", "", ParamEnumArray.FromEnum(OVT_QRFFastTravelMode), category: "QRF" )]
-	OVT_QRFFastTravelMode QRFFastTravelMode;
-	
-	[Attribute(defvalue: "1000", desc: "Max size of QRF in resources", category: "QRF")]
-	int maxQRF;
-	
-	[Attribute("", UIWidgets.ResourcePickerThumbnail, "Items given to player when first spawned in")]
-	ref array<ResourceName> startingItems;
 }
 
 class OVT_OverthrowConfigComponent: OVT_Component

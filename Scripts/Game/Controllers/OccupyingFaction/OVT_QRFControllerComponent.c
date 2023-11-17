@@ -185,7 +185,10 @@ class OVT_QRFControllerComponent: OVT_Component
 				}	
 			}		
 			
-			if(m_iPoints > 100) m_iPoints = 100;
+			int toWin = m_Config.m_Difficulty.QRFPointsToWin;
+			
+			if(m_iPoints > toWin) m_iPoints = toWin;
+			if(m_iPoints < -toWin) m_iPoints = -toWin;
 			
 			m_OccupyingFaction.UpdateQRFPoints(m_iPoints);		
 			
@@ -193,7 +196,7 @@ class OVT_QRFControllerComponent: OVT_Component
 			if(m_iPoints < 0) m_iWinningFaction = m_Config.GetOccupyingFactionIndex();
 			if(m_iPoints == 0) m_iWinningFaction = -1;
 			
-			if(m_iPoints >= 100 || m_iPoints <= -100)
+			if(m_iPoints >= toWin || m_iPoints <= -toWin)
 			{
 				Cleanup();
 				//We have a winner		
