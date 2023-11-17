@@ -261,10 +261,8 @@ FrameWidgetClass {
            }
            components {
             SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+             m_sActionName "MenuBack"
              m_sLabel "#AR-Menu_Back"
-            }
-            ButtonActionComponent "{56EEDE01BE93EE7D}" {
-             m_bActionName "MenuBack"
             }
            }
           }
@@ -281,10 +279,8 @@ FrameWidgetClass {
            }
            components {
             SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+             m_sActionName "OverthrowUpgradeVehicle"
              m_sLabel "#OVT-UpgradeVehicle"
-            }
-            ButtonActionComponent "{56EEDE01BE93EE7D}" {
-             m_bActionName "OverthrowUpgradeVehicle"
             }
            }
           }
@@ -295,10 +291,8 @@ FrameWidgetClass {
            }
            components {
             SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+             m_sActionName "OverthrowRepairVehicle"
              m_sLabel "#OVT-RepairVehicle"
-            }
-            ButtonActionComponent "{56EEDE01BE93EE7D}" {
-             m_bActionName "OverthrowRepairVehicle"
             }
            }
           }

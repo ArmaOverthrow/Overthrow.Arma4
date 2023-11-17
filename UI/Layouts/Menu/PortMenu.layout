@@ -248,7 +248,7 @@ FrameWidgetClass {
                    Slot LayoutSlot "{598EF9F53F730301}" {
                     Padding 10 10 10 30
                    }
-                   Text "Type Name"
+                   Text ""
                    "Font Size" 28
                    "Min Font Size" 25
                   }
@@ -257,7 +257,7 @@ FrameWidgetClass {
                    Slot LayoutSlot "{598EF9F53F730347}" {
                     Padding 10 0 10 30
                    }
-                   Text "Qty in stock: 12"
+                   Text ""
                    "Font Size" 25
                    "Min Font Size" 20
                   }
@@ -266,7 +266,7 @@ FrameWidgetClass {
                    Slot LayoutSlot "{598EF9F53F73034B}" {
                     Padding 10 0 10 12
                    }
-                   Text "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In dapibus ipsum vulputate posuere consequat. Suspendisse bibendum lectus a lacus posuere, a rutrum massa dictum. Praesent posuere lectus sit amet magna feugiat, vitae egestas dui sagittis. Quisque mi elit, varius quis justo eget, lobortis congue nibh. Fusce fringilla urna eu neque commodo condimentum. Vestibulum placerat sapien non scelerisque tristique. Aliquam erat volutpat. Sed nisl risus, imperdiet accumsan lectus a, dignissim egestas velit. Suspendisse potenti. Morbi vel mi fringilla, lacinia lectus id, molestie magna. Etiam faucibus justo purus, vitae faucibus est vehicula id. Suspendisse nec nunc mattis, fringilla tortor et, ullamcorper magna."
+                   Text ""
                    "Font Size" 20
                    "Min Font Size" 12
                    Wrap 1
@@ -296,10 +296,8 @@ FrameWidgetClass {
                    }
                    components {
                     SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                     m_sActionName "OverthrowPortBuyTen"
                      m_sLabel "#OVT-Port_Buy_10"
-                    }
-                    ButtonActionComponent "{56EEDE0026B19E2C}" {
-                     m_bActionName "OverthrowPortBuyTen"
                     }
                    }
                   }
@@ -310,10 +308,8 @@ FrameWidgetClass {
                    }
                    components {
                     SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                     m_sActionName "OverthrowPortBuyHundred"
                      m_sLabel "#OVT-Port_Buy_100"
-                    }
-                    ButtonActionComponent "{56EEDE0026B19E2C}" {
-                     m_bActionName "OverthrowPortBuyHundred"
                     }
                    }
                   }

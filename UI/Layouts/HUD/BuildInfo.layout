@@ -34,6 +34,7 @@ FrameWidgetClass {
          }
          components {
           SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+           m_sActionName "OverthrowPrevItem"
            m_sLabel "#OVT-Place_PrevItem"
           }
           ButtonActionComponent "{56EEDE0026B19E2C}" {
@@ -47,6 +48,7 @@ FrameWidgetClass {
          }
          components {
           SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+           m_sActionName "OverthrowNextItem"
            m_sLabel "#OVT-Place_NextItem"
           }
           ButtonActionComponent "{56EEDE0026B19E2C}" {
@@ -68,6 +70,7 @@ FrameWidgetClass {
          }
          components {
           SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+           m_sActionName "OverthrowRotateLeft"
            m_sLabel "#OVT-Place_RotateLeft"
           }
           ButtonActionComponent "{56EEDE0026B19E2C}" {
@@ -81,6 +84,7 @@ FrameWidgetClass {
          }
          components {
           SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+           m_sActionName "OverthrowRotateRight"
            m_sLabel "#OVT-Place_RotateRight"
           }
           ButtonActionComponent "{56EEDE0026B19E2C}" {
@@ -102,6 +106,7 @@ FrameWidgetClass {
          }
          components {
           SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+           m_sActionName "MenuBack"
            m_sLabel "#OVT-Cancel"
           }
           ButtonActionComponent "{56EEDE0026B19E2C}" {
@@ -115,6 +120,7 @@ FrameWidgetClass {
          }
          components {
           SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+           m_sActionName "MenuSelect"
            m_sLabel "#OVT-MainMenu_Build"
           }
           ButtonActionComponent "{56EEDE0026B19E2C}" {

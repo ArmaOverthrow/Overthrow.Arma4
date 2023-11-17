@@ -284,6 +284,7 @@ FrameWidgetClass {
                  }
                  components {
                   SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                   m_sActionName "MenuBack"
                    m_sLabel "#AR-Menu_Back"
                   }
                  }
@@ -295,6 +296,7 @@ FrameWidgetClass {
                  }
                  components {
                   SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                   m_sActionName "MenuSelect"
                    m_sLabel "#AR-Menu_Select"
                   }
                   SCR_DeviceSpecificComponent "{56EEDE01335EDAD4}" {

@@ -161,10 +161,8 @@ FrameWidgetClass {
            }
            components {
             SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+             m_sActionName "OverthrowStartGame"
              m_sLabel "#OVT-StartGame"
-            }
-            ButtonActionComponent "{59C31AA05D6BDB4D}" {
-             m_bActionName "OverthrowStartGame"
             }
            }
           }

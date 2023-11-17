@@ -244,6 +244,7 @@ FrameWidgetClass {
                  }
                  components {
                   SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                   m_sActionName "MenuBack"
                    m_sLabel "#AR-Menu_Back"
                   }
                  }
@@ -255,6 +256,7 @@ FrameWidgetClass {
                  }
                  components {
                   SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                   m_sActionName "MenuSelect"
                    m_sLabel "#AR-Menu_Select"
                   }
                   SCR_DeviceSpecificComponent "{56EEDE01335EDAD4}" {
@@ -386,10 +388,8 @@ FrameWidgetClass {
                }
                components {
                 SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                 m_sActionName "OverthrowShopBuy"
                  m_sLabel "#OVT-Shop_Buy"
-                }
-                ButtonActionComponent "{56EEDE0026B19E2C}" {
-                 m_bActionName "OverthrowShopBuy"
                 }
                }
               }
@@ -400,10 +400,8 @@ FrameWidgetClass {
                }
                components {
                 SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                 m_sActionName "OverthrowShopSell"
                  m_sLabel "#OVT-Shop_Sell"
-                }
-                ButtonActionComponent "{56EEDE0026B19E2C}" {
-                 m_bActionName "OverthrowShopSell"
                 }
                }
               }

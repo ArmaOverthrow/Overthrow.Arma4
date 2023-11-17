@@ -249,8 +249,9 @@ FrameWidgetClass {
                     Padding 0 0 0 0
                    }
                    components {
-                    ButtonActionComponent "{56EEDE0026B19E2C}" {
-                     m_bActionName "OverthrowWarehouseTakeOne"
+                    SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                     m_sActionName "OverthrowWarehouseTakeOne"
+                     m_sLabel "#OVT-Warehouse_Take_1"
                     }
                    }
                   }
@@ -260,8 +261,9 @@ FrameWidgetClass {
                     Padding 0 0 0 0
                    }
                    components {
-                    ButtonActionComponent "{56EEDE0026B19E2C}" {
-                     m_bActionName "OverthrowWarehouseTakeTen"
+                    SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                     m_sActionName "OverthrowWarehouseTakeTen"
+                     m_sLabel "#OVT-Warehouse_Take_10"
                     }
                    }
                   }
@@ -271,8 +273,9 @@ FrameWidgetClass {
                     Padding 0 0 0 0
                    }
                    components {
-                    ButtonActionComponent "{56EEDE0026B19E2C}" {
-                     m_bActionName "OverthrowWarehouseTakeHundred"
+                    SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                     m_sActionName "OverthrowWarehouseTakeHundred"
+                     m_sLabel "#OVT-Warehouse_Take_100"
                     }
                    }
                   }
@@ -307,6 +310,7 @@ FrameWidgetClass {
            }
            components {
             SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+             m_sActionName "MenuBack"
              m_sLabel "#AR-Menu_Back"
             }
             ButtonActionComponent "{56EEDE01BE93EE7D}" {
@@ -321,6 +325,7 @@ FrameWidgetClass {
            }
            components {
             SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+             m_sActionName "MenuSelect"
              m_sLabel "#AR-Menu_Select"
             }
             SCR_DeviceSpecificComponent "{56EEDE01335EDAD4}" {
