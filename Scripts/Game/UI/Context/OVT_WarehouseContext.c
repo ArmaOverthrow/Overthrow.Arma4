@@ -24,7 +24,7 @@ class OVT_WarehouseContext : OVT_UIContext
 		action.GetOnAction().Insert(TakeHundred);
 		
 		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");
-		SCR_NavigationButtonComponent btn = SCR_NavigationButtonComponent.Cast(closeButton.FindHandler(SCR_NavigationButtonComponent));		
+		SCR_InputButtonComponent btn = SCR_InputButtonComponent.Cast(closeButton.FindHandler(SCR_InputButtonComponent));		
 		btn.m_OnClicked.Insert(CloseLayout);
 		
 		Refresh();		
@@ -82,7 +82,8 @@ class OVT_WarehouseContext : OVT_UIContext
 			desc.SetText(info.GetDescription());
 		}	
 		
-		ItemPreviewManagerEntity manager = GetGame().GetItemPreviewManager();
+		ChimeraWorld world = GetGame().GetWorld();
+		ItemPreviewManagerEntity manager = world.GetItemPreviewManager();
 		if (!manager)
 			return;
 		

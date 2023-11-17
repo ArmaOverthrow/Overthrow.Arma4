@@ -40,7 +40,7 @@ class OVT_ResistanceMenuContext : OVT_UIContext
 		m_Economy.m_OnResistanceMoneyChanged.Insert(RefreshFunds);
 		
 		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");
-		SCR_NavigationButtonComponent btn = SCR_NavigationButtonComponent.Cast(closeButton.FindHandler(SCR_NavigationButtonComponent));		
+		SCR_InputButtonComponent btn = SCR_InputButtonComponent.Cast(closeButton.FindHandler(SCR_InputButtonComponent));		
 		btn.m_OnClicked.Insert(CloseLayout);
 		
 		Widget ww = m_wRoot.FindAnyWidget("MakeOfficer");
@@ -98,7 +98,8 @@ class OVT_ResistanceMenuContext : OVT_UIContext
 		w = TextWidget.Cast(m_wRoot.FindAnyWidget("TaxIncome"));
 		w.SetText("$" + taxes.ToString());
 		
-		TimeAndWeatherManagerEntity t = GetGame().GetTimeAndWeatherManager();
+		ChimeraWorld world = GetGame().GetWorld();
+		TimeAndWeatherManagerEntity t = world.GetTimeAndWeatherManager();
 		int nextIncome = 0;
 		TimeContainer time = t.GetTime();	
 		

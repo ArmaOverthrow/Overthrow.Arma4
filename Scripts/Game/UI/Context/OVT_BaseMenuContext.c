@@ -32,7 +32,7 @@ class OVT_BaseMenuContext : OVT_UIContext
 		m_GarrisonButton.m_OnClicked.Insert(AddToGarrison);
 		
 		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");
-		SCR_NavigationButtonComponent btn = SCR_NavigationButtonComponent.Cast(closeButton.FindHandler(SCR_NavigationButtonComponent));		
+		SCR_InputButtonComponent btn = SCR_InputButtonComponent.Cast(closeButton.FindHandler(SCR_InputButtonComponent));		
 		btn.m_OnClicked.Insert(CloseLayout);
 		
 		Refresh();		

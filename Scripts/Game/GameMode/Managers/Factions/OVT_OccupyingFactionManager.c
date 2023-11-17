@@ -711,7 +711,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		{
 			int newResources = GainResources();
 		
-			int toSpend = (int)Math.Floor((float)newResources * 0.8);
+			int toSpend = Math.Floor((float)newResources * 0.8);
 			UpdateKnownTargets();
 			//To-Do: prioritize bases that need it/are under threat
 			foreach(OVT_BaseData data : m_Bases)

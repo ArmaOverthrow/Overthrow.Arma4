@@ -59,17 +59,17 @@ class OVT_ShopContext : OVT_UIContext
 		}
 		
 		Widget prevButton = m_wRoot.FindAnyWidget("PrevButton");
-		SCR_NavigationButtonComponent btn = SCR_NavigationButtonComponent.Cast(prevButton.FindHandler(SCR_NavigationButtonComponent));
+		SCR_InputButtonComponent btn = SCR_InputButtonComponent.Cast(prevButton.FindHandler(SCR_InputButtonComponent));
 		
 		btn.m_OnClicked.Insert(PreviousPage);
 		
 		Widget nextButton = m_wRoot.FindAnyWidget("NextButton");
-		btn = SCR_NavigationButtonComponent.Cast(nextButton.FindHandler(SCR_NavigationButtonComponent));
+		btn = SCR_InputButtonComponent.Cast(nextButton.FindHandler(SCR_InputButtonComponent));
 		
 		btn.m_OnClicked.Insert(NextPage);
 		
 		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");
-		btn = SCR_NavigationButtonComponent.Cast(closeButton.FindHandler(SCR_NavigationButtonComponent));		
+		btn = SCR_InputButtonComponent.Cast(closeButton.FindHandler(SCR_InputButtonComponent));		
 		btn.m_OnClicked.Insert(CloseLayout);
 		
 		Refresh();		

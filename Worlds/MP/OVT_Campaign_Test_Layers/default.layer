@@ -185,6 +185,25 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMod
   OVT_OverthrowConfigComponent "{59724C8C935D8E5D}" {
    m_Difficulty OVT_DifficultySettings "{598AD54E1DA56EB1}" : "{0BA489F3657E13D8}Configs/Difficulty/Difficulty_TestWorld.conf" {
    }
+   m_CivilianLoadout OVT_LoadoutConfig "{5D70ECF4724BC81E}" {
+    m_aSlots {
+     OVT_LoadoutSlot "{5D70ECF470377ECE}" {
+      m_aChoices {
+       "{DCF980831E880F6A}Prefabs/Characters/Uniforms/Pants_M88.et"
+      }
+     }
+     OVT_LoadoutSlot "{5D70ECF42BD5A6EB}" {
+      m_aChoices {
+       "{9F546CCA2582D16F}Prefabs/Characters/Uniforms/Jacket_M88.et"
+      }
+     }
+     OVT_LoadoutSlot "{5D70ECF439A1223C}" {
+      m_aChoices {
+       "{C7923961D7235D70}Prefabs/Characters/Footwear/CombatBoots_Soviet_01.et"
+      }
+     }
+    }
+   }
   }
   OVT_PersistenceManagerComponent "{5D7009B844876186}" {
    m_pConnectionInfo EDF_JsonFileDbConnectionInfo "{5D7009B8408E1A9D}" {

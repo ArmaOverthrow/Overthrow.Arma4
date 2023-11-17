@@ -104,7 +104,7 @@ FrameWidgetClass {
         }
         VerticalLayoutWidgetClass "{5DBCDD903607325F}" {
          Name "VerticalLayout2"
-         Slot OverlayWidgetSlot {
+         Slot OverlayWidgetSlot "{5EE258B1FB8EC4B2}" {
          }
          {
           TextWidgetClass "{5DBCDD903BBC7AE6}" {
@@ -160,30 +160,11 @@ FrameWidgetClass {
             Padding 0 0 10 0
            }
            components {
-            SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+            SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
              m_sLabel "#OVT-StartGame"
-             m_sActionName "OverthrowStartGame"
             }
             ButtonActionComponent "{59C31AA05D6BDB4D}" {
              m_bActionName "OverthrowStartGame"
-            }
-           }
-           {
-            SizeLayoutWidgetClass "{5562AD435529FB36}" {
-             Prefab "{5562AD435529FB36}"
-             {
-              OverlayWidgetClass "{000000005E70868E}" {
-               Prefab "{000000005E70868E}"
-               {
-                HorizontalLayoutWidgetClass "{00000000E3602307}" {
-                 Prefab "{00000000E3602307}"
-                 Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
-                  Padding 10 10 16 10
-                 }
-                }
-               }
-              }
-             }
             }
            }
           }

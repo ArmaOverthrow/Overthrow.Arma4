@@ -26,7 +26,8 @@ class OVT_WarehouseInventoryItemComponent : SCR_ScriptedWidgetComponent
 		
 		ItemPreviewWidget img = ItemPreviewWidget.Cast(m_wRoot.FindAnyWidget("Image"));
 						
-		ItemPreviewManagerEntity manager = GetGame().GetItemPreviewManager();
+		ChimeraWorld world = GetGame().GetWorld();
+		ItemPreviewManagerEntity manager = world.GetItemPreviewManager();
 		if (!manager)
 			return;
 		

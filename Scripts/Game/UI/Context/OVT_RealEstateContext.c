@@ -33,7 +33,7 @@ class OVT_RealEstateContext : OVT_UIContext
 		b.m_OnClicked.Insert(SetAsHome);
 		
 		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");
-		SCR_NavigationButtonComponent nb = SCR_NavigationButtonComponent.Cast(closeButton.FindHandler(SCR_NavigationButtonComponent));		
+		SCR_InputButtonComponent nb = SCR_InputButtonComponent.Cast(closeButton.FindHandler(SCR_InputButtonComponent));		
 		nb.m_OnClicked.Insert(CloseLayout);
 		
 		Widget spinner = m_wRoot.FindAnyWidget("AccountSpinner");
@@ -184,7 +184,8 @@ class OVT_RealEstateContext : OVT_UIContext
 		}
 		
 		ItemPreviewWidget img = ItemPreviewWidget.Cast(m_wRoot.FindAnyWidget("Image"));
-		ItemPreviewManagerEntity manager = GetGame().GetItemPreviewManager();
+		ChimeraWorld world = GetGame().GetWorld();
+		ItemPreviewManagerEntity manager = world.GetItemPreviewManager();
 		if (!manager)
 			return;
 						
