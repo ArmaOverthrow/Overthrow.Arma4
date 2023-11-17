@@ -16,10 +16,10 @@ class OVT_StartGameContext : OVT_UIContext
 		SCR_SaveLoadComponent saveload = SCR_SaveLoadComponent.Cast(mode.FindComponent(SCR_SaveLoadComponent));
 		
 		Widget startButton = m_wRoot.FindAnyWidget("StartButton");
-		ButtonActionComponent action = ButtonActionComponent.Cast(startButton.FindHandler(ButtonActionComponent));
+		SCR_InputButtonComponent action = SCR_InputButtonComponent.Cast(startButton.FindHandler(SCR_InputButtonComponent));
 		
 		if(action)
-			action.GetOnAction().Insert(StartGame);
+			action.m_OnActivated.Insert(StartGame);
 											
 		m_Factions = GetGame().GetFactionManager();
 		int i = 0;

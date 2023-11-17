@@ -38,28 +38,28 @@ class OVT_ResistanceMenuContext : OVT_UIContext
 	{	
 		bool isOfficer = OVT_Global.GetResistanceFaction().IsLocalPlayerOfficer();
 		m_Economy.m_OnResistanceMoneyChanged.Insert(RefreshFunds);
-		
-		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");
+				
+		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");		
 		SCR_InputButtonComponent btn = SCR_InputButtonComponent.Cast(closeButton.FindHandler(SCR_InputButtonComponent));		
-		btn.m_OnClicked.Insert(CloseLayout);
+		btn.m_OnActivated.Insert(CloseLayout);
 		
 		Widget ww = m_wRoot.FindAnyWidget("MakeOfficer");
 		if(!isOfficer) ww.SetVisible(false);
-		ButtonActionComponent action = ButtonActionComponent.Cast(ww.FindHandler(ButtonActionComponent));		
-		action.GetOnAction().Insert(MakeOfficer);
+		btn = SCR_InputButtonComponent.Cast(ww.FindHandler(SCR_InputButtonComponent));		
+		btn.m_OnActivated.Insert(MakeOfficer);
 		
 		ww = m_wRoot.FindAnyWidget("SendFunds");
 		if(!isOfficer) ww.SetVisible(false);
-		action = ButtonActionComponent.Cast(ww.FindHandler(ButtonActionComponent));		
-		action.GetOnAction().Insert(SendFunds);
+		btn = SCR_InputButtonComponent.Cast(ww.FindHandler(SCR_InputButtonComponent));		
+		btn.m_OnActivated.Insert(SendFunds);
 		
 		ww = m_wRoot.FindAnyWidget("SendMoney");
-		action = ButtonActionComponent.Cast(ww.FindHandler(ButtonActionComponent));		
-		action.GetOnAction().Insert(SendMoney);
+		btn = SCR_InputButtonComponent.Cast(ww.FindHandler(SCR_InputButtonComponent));		
+		btn.m_OnActivated.Insert(SendMoney);
 		
 		ww = m_wRoot.FindAnyWidget("DonateFunds");
-		action = ButtonActionComponent.Cast(ww.FindHandler(ButtonActionComponent));		
-		action.GetOnAction().Insert(DonateFunds);
+		btn = SCR_InputButtonComponent.Cast(ww.FindHandler(SCR_InputButtonComponent));		
+		btn.m_OnActivated.Insert(DonateFunds);
 		
 		Refresh();		
 	}
@@ -194,7 +194,7 @@ class OVT_ResistanceMenuContext : OVT_UIContext
 		m_Economy.SetResistanceTax(slider.GetValue());
 	}
 	
-	protected void MakeOfficer(SCR_ButtonTextComponent btn)
+	protected void MakeOfficer()
 	{
 		OVT_ResistanceFactionManager resistance = OVT_Global.GetResistanceFaction();
 		if(!resistance.IsLocalPlayerOfficer()) return;
@@ -206,7 +206,7 @@ class OVT_ResistanceMenuContext : OVT_UIContext
 		resistance.AddOfficer(data.playerId);
 	}
 	
-	protected void DonateFunds(SCR_ButtonTextComponent btn)
+	protected void DonateFunds()
 	{	
 		int localId = SCR_PlayerController.GetLocalPlayerId();		
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(localId);	
@@ -223,7 +223,7 @@ class OVT_ResistanceMenuContext : OVT_UIContext
 		OVT_Global.GetServer().SendNotification("PlayerDonated",-1,OVT_Global.GetPlayers().GetPlayerName(m_iPlayerID),amount.ToString());
 	}
 	
-	protected void SendFunds(SCR_ButtonTextComponent btn)
+	protected void SendFunds()
 	{
 		if(!OVT_Global.GetResistanceFaction().IsLocalPlayerOfficer()) return;
 		
@@ -239,7 +239,7 @@ class OVT_ResistanceMenuContext : OVT_UIContext
 		OVT_Global.GetServer().SendNotification("PlayerSentFunds",data.playerId,amount.ToString());
 	}
 	
-	protected void SendMoney(SCR_ButtonTextComponent btn)
+	protected void SendMoney()
 	{	
 		int localId = SCR_PlayerController.GetLocalPlayerId();
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(localId);	

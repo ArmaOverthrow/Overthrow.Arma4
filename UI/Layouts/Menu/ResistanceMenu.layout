@@ -537,6 +537,9 @@ FrameWidgetClass {
                        m_sActionName "OverthrowMakeOfficer"
                        m_sLabel "#OVT-MakeOfficer"
                       }
+                      ButtonActionComponent "{5EE30C17B5E556F9}" {
+                       m_bActionName "OverthrowMakeOfficer"
+                      }
                      }
                     }
                     ButtonWidgetClass "{5DA8CB09BBB83A87}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
@@ -566,9 +569,6 @@ FrameWidgetClass {
                       SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
                        m_sActionName "OverthrowSendFunds"
                        m_sLabel "#OVT-SendFunds"
-                      }
-                      ButtonActionComponent "{56EEDE0026B19E2C}" {
-                       m_bActionName "OverthrowSendFunds"
                       }
                      }
                     }
