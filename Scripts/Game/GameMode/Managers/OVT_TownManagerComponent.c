@@ -324,7 +324,7 @@ class OVT_TownManagerComponent: OVT_Component
 		system.RemoveByName(townId, name);
 	}
 	
-	void TryAddStabilityModifier(int townId, int index)
+	bool TryAddStabilityModifier(int townId, int index)
 	{
 		OVT_TownData town = m_Towns[townId];
 		OVT_ModifierConfig mod = GetModifierSystem(OVT_TownStabilityModifierSystem).m_Config.m_aModifiers[index];
@@ -340,14 +340,18 @@ class OVT_TownManagerComponent: OVT_Component
 			{
 				if(data.id == index) num++;
 			}
-			if(num < mod.stackLimit)
+			if(num < mod.stackLimit){
 				AddStabilityModifier(townId, index);
+			}else{
+				return false;
+			}
 		}else{
 			//Is not stackable, reset timer
 			int i = GetModifierIndex(town.stabilityModifiers, index);			
 			town.stabilityModifiers[i].timer = mod.timeout;
 			Rpc(RpcDo_ResetStabilityModifier, townId, index);
 		}
+		return true;
 	}
 	
 	void AddStabilityModifier(int townId, int index)
@@ -377,7 +381,7 @@ class OVT_TownManagerComponent: OVT_Component
 		Rpc(RpcDo_RemoveStabilityModifier, townId, index);	
 	}
 	
-	void TryAddSupportModifier(int townId, int index)
+	bool TryAddSupportModifier(int townId, int index)
 	{
 		OVT_TownData town = m_Towns[townId];
 		OVT_ModifierConfig mod = GetModifierSystem(OVT_TownSupportModifierSystem).m_Config.m_aModifiers[index];
@@ -394,13 +398,18 @@ class OVT_TownManagerComponent: OVT_Component
 				if(data && data.id == index) num++;
 			}
 			if(num < mod.stackLimit)
+			{
 				AddSupportModifier(townId, index);
+			}else{
+				return false;
+			}
 		}else if(mod.timeout > 0){
 			//Is not stackable, reset timer
 			int i = GetModifierIndex(town.supportModifiers, index);			
 			town.supportModifiers[i].timer = mod.timeout;
 			Rpc(RpcDo_ResetSupportModifier, townId, index);
 		}
+		return true;
 	}
 	
 	void AddSupportModifier(int townId, int index)

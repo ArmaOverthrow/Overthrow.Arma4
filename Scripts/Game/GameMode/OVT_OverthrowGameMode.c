@@ -62,7 +62,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			Print("Starting New Occupying Faction");
 			
 			m_OccupyingFactionManager.NewGameStart();
-		}	
+		}		
 	}
 	
 	OVT_PersistenceManagerComponent GetPersistence()
@@ -443,6 +443,11 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		}
 		
 		m_Config.LoadConfig();
+		
+		//Default weather (add config for this later)
+		ChimeraWorld world = GetGame().GetWorld();
+		TimeAndWeatherManagerEntity time = world.GetTimeAndWeatherManager();
+		time.ForceWeatherTo(false, "Cloudy");		
 		
 		m_Persistence = OVT_PersistenceManagerComponent.Cast(FindComponent(OVT_PersistenceManagerComponent));		
 		if(m_Persistence)

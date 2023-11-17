@@ -323,8 +323,7 @@ class OVT_PlaceContext : OVT_UIContext
 			int placeableIndex = m_Resistance.m_PlaceablesConfig.m_aPlaceables.Find(m_Placeable);
 			int prefabIndex = m_Placeable.m_aPrefabs.Find(m_pPlacingPrefab);
 			OVT_Global.GetServer().PlaceItem(placeableIndex, prefabIndex, mat[3], angles, m_iPlayerID);
-						
-			m_Economy.TakePlayerMoney(m_iPlayerID, m_Config.GetPlaceableCost(m_Placeable));
+			
 			SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.CLICK);
 		}
 		

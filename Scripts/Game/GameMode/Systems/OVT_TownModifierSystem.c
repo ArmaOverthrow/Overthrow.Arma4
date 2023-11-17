@@ -119,16 +119,16 @@ class OVT_TownModifierSystem : ScriptAndConfig
 		return Math.Round(newval);		
 	}
 	
-	void TryAddByName(int townId, string name)
+	bool TryAddByName(int townId, string name)
 	{
 		foreach(int i, OVT_ModifierConfig config : m_Config.m_aModifiers)
 		{
 			if(config.name == name)
 			{
-				TryAddModifier(townId, i);
-				return;
+				return TryAddModifier(townId, i);
 			}
 		}
+		return false;
 	}
 	
 	void RemoveByName(int townId, string name)
@@ -143,7 +143,7 @@ class OVT_TownModifierSystem : ScriptAndConfig
 		}
 	}
 	
-	protected void TryAddModifier(int townId, int index)
+	protected bool TryAddModifier(int townId, int index)
 	{
 		
 	}

@@ -175,21 +175,29 @@ class OVT_ResistanceFactionManager: OVT_Component
 	{
 		OVT_ResistanceFactionManager config = OVT_Global.GetResistanceFaction();
 		OVT_Placeable placeable = config.m_PlaceablesConfig.m_aPlaceables[placeableIndex];
-		ResourceName res = placeable.m_aPrefabs[prefabIndex];
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
 		
+		ResourceName res = placeable.m_aPrefabs[prefabIndex];
+				
 		vector mat[4];
 		Math3D.AnglesToMatrix(angles, mat);
 		mat[3] = pos;
 		
 		IEntity entity = OVT_Global.SpawnEntityPrefabMatrix(res, mat);
 		
-		SCR_AIWorld aiworld = SCR_AIWorld.Cast(GetGame().GetAIWorld());
-		aiworld.RequestNavmeshRebuildEntity(entity);
-		
 		if(placeable.handler && runHandler)
 		{
-			placeable.handler.OnPlace(entity, playerId);
+			if(!placeable.handler.OnPlace(entity, playerId))
+			{
+				SCR_EntityHelper.DeleteEntityAndChildren(entity);
+				return null;
+			}
 		}
+		
+		economy.TakePlayerMoney(playerId, m_Config.GetPlaceableCost(placeable));
+		
+		SCR_AIWorld aiworld = SCR_AIWorld.Cast(GetGame().GetAIWorld());
+		aiworld.RequestNavmeshRebuildEntity(entity);
 		
 		m_OnPlace.Invoke(entity, placeable, playerId);
 		

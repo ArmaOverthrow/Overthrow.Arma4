@@ -1,8 +1,8 @@
 class OVT_TownSupportModifierSystem : OVT_TownModifierSystem
 {
-	protected override void TryAddModifier(int townId, int index)
+	protected override bool TryAddModifier(int townId, int index)
 	{
-		m_TownManager.TryAddSupportModifier(townId, index);
+		return m_TownManager.TryAddSupportModifier(townId, index);
 	}
 	
 	protected override void RemoveModifier(int townId, int index)
