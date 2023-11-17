@@ -6,7 +6,7 @@ class OVT_TownSaveDataClass : EPF_ComponentSaveDataClass
 [EDF_DbName.Automatic()]
 class OVT_TownSaveData : EPF_ComponentSaveData
 {
-	array<ref OVT_TownData> m_aTowns;
+	ref array<ref OVT_TownData> m_aTowns;
 	
 	override EPF_EReadResult ReadFrom(IEntity owner, GenericComponent component, EPF_ComponentSaveDataClass attributes)
 	{		

@@ -2,23 +2,36 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 {
 	protected bool m_bCheckedFaction = false;
 	protected bool m_bIsOccupyingFaction = false;
+	protected IEntity m_eLastInstigator;
 	
-	/*
-	protected override void OnDamage(
-				EDamageType type,
-				float damage,
-				HitZone pHitZone,
-				IEntity instigator, 
-				inout vector hitTransform[3], 
-				float speed,
-				int colliderID, 
-				int nodeID)
+	override void OnInit(IEntity owner)
 	{
-		super.OnDamage(type, damage, pHitZone, instigator, hitTransform, speed, colliderID, nodeID);
+		SCR_BaseGameMode baseGameMode = SCR_BaseGameMode.Cast(GetGame().GetGameMode());
+		if (baseGameMode)
+			s_HealthSettings = baseGameMode.GetGameModeHealthSettings();
 		
+		LIMB_GROUPS = {};
+		SCR_Enum.GetEnumValues(ECharacterHitZoneGroup, LIMB_GROUPS);
+		
+#ifdef ENABLE_DIAG
+		DiagInit(owner);
+#endif
+		GetOnDamage().Insert(WhenDamaged);
+		GetOnDamageStateChanged().Insert(WhenDamageStateChanged);
+	}
+	
+	void WhenDamaged(EDamageType type,
+				  float damage,
+				  HitZone pHitZone,
+				  notnull Instigator instigator,
+				  inout vector hitTransform[3],
+				  float speed,
+				  int colliderID,
+				  int nodeID)
+	{		
 		if(instigator)
-		{
-			OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(instigator.FindComponent(OVT_PlayerWantedComponent));
+		{			
+			OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(instigator.GetInstigatorEntity().FindComponent(OVT_PlayerWantedComponent));
 			
 			if(wanted)
 			{
@@ -28,25 +41,27 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 	}
 	
 	
-	override void Kill(IEntity instigator = null)
-	{
-		super.Kill(instigator);
-				
-		if(IsOccupyingFaction())
-			OVT_Global.GetOccupyingFaction().OnAIKilled(GetOwner(), instigator);
-		
-		if(instigator)
-		{
-			OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(instigator.FindComponent(OVT_PlayerWantedComponent));
-			
-			if(wanted)
+
+	void WhenDamageStateChanged(EDamageState state)
+	{		
+		IEntity instigator = GetInstigator().GetInstigatorEntity();				
+		if(state == EDamageState.DESTROYED){
+			if(IsOccupyingFaction())
 			{
-				wanted.SetBaseWantedLevel(3);
+				OVT_Global.GetOccupyingFaction().OnAIKilled(GetOwner(), instigator);			
 			}
-		}
-		
+			if(instigator)
+			{			
+				OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(instigator.FindComponent(OVT_PlayerWantedComponent));
+				
+				if(wanted)
+				{
+					wanted.SetBaseWantedLevel(3);
+				}
+			}
+		}		
 	}
-	*/
+	
 	protected bool IsOccupyingFaction()
 	{
 		if(!m_bCheckedFaction)

@@ -281,11 +281,16 @@ class OVT_PlayerWantedComponent: OVT_Component
 				}
 				
 				if(m_bTempSeen)
-				{
-					if (m_Weapon && m_Weapon.GetCurrentWeapon())
+				{					
+					if (m_Weapon)
 					{
-						//Player is brandishing a weapon
-						newLevel = 2;
+						BaseWeaponComponent weapon = m_Weapon.GetCurrentWeapon();
+						if(weapon){
+							Print(weapon);
+							//Player is brandishing a weapon
+							Print("Weapon");
+							newLevel = 2;
+						}
 					}	
 					//To-Do: check for illegal attire (uniforms, etc)
 					
