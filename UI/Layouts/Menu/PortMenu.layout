@@ -295,6 +295,9 @@ FrameWidgetClass {
                     Padding 0 0 0 0
                    }
                    components {
+                    SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                     m_sLabel "#OVT-Port_Buy_10"
+                    }
                     ButtonActionComponent "{56EEDE0026B19E2C}" {
                      m_bActionName "OverthrowPortBuyTen"
                     }
@@ -306,6 +309,9 @@ FrameWidgetClass {
                     Padding 0 0 0 0
                    }
                    components {
+                    SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                     m_sLabel "#OVT-Port_Buy_100"
+                    }
                     ButtonActionComponent "{56EEDE0026B19E2C}" {
                      m_bActionName "OverthrowPortBuyHundred"
                     }

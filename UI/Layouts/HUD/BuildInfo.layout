@@ -33,30 +33,11 @@ FrameWidgetClass {
          Slot LayoutSlot "{59A5462C005E2D26}" {
          }
          components {
-          SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+          SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
            m_sLabel "#OVT-Place_PrevItem"
-           m_sActionName "OverthrowPrevItem"
           }
           ButtonActionComponent "{56EEDE0026B19E2C}" {
            m_bActionName "OverthrowPrevItem"
-          }
-         }
-         {
-          SizeLayoutWidgetClass "{5562AD435529FB36}" {
-           Prefab "{5562AD435529FB36}"
-           {
-            OverlayWidgetClass "{000000005E70868E}" {
-             Prefab "{000000005E70868E}"
-             {
-              HorizontalLayoutWidgetClass "{00000000E3602307}" {
-               Prefab "{00000000E3602307}"
-               Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
-                Padding 10 10 16 10
-               }
-              }
-             }
-            }
-           }
           }
          }
         }
@@ -65,30 +46,11 @@ FrameWidgetClass {
          Slot LayoutSlot "{59A5462C005E2D26}" {
          }
          components {
-          SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+          SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
            m_sLabel "#OVT-Place_NextItem"
-           m_sActionName "OverthrowNextItem"
           }
           ButtonActionComponent "{56EEDE0026B19E2C}" {
            m_bActionName "OverthrowNextItem"
-          }
-         }
-         {
-          SizeLayoutWidgetClass "{5562AD435529FB36}" {
-           Prefab "{5562AD435529FB36}"
-           {
-            OverlayWidgetClass "{000000005E70868E}" {
-             Prefab "{000000005E70868E}"
-             {
-              HorizontalLayoutWidgetClass "{00000000E3602307}" {
-               Prefab "{00000000E3602307}"
-               Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
-                Padding 10 10 16 10
-               }
-              }
-             }
-            }
-           }
           }
          }
         }
@@ -105,30 +67,11 @@ FrameWidgetClass {
          Slot LayoutSlot "{59A5462C005E2D26}" {
          }
          components {
-          SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+          SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
            m_sLabel "#OVT-Place_RotateLeft"
-           m_sActionName "OverthrowRotateLeft"
           }
           ButtonActionComponent "{56EEDE0026B19E2C}" {
            m_bActionName "OverthrowPrevItem"
-          }
-         }
-         {
-          SizeLayoutWidgetClass "{5562AD435529FB36}" {
-           Prefab "{5562AD435529FB36}"
-           {
-            OverlayWidgetClass "{000000005E70868E}" {
-             Prefab "{000000005E70868E}"
-             {
-              HorizontalLayoutWidgetClass "{00000000E3602307}" {
-               Prefab "{00000000E3602307}"
-               Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
-                Padding 10 10 16 10
-               }
-              }
-             }
-            }
-           }
           }
          }
         }
@@ -137,30 +80,11 @@ FrameWidgetClass {
          Slot LayoutSlot "{59A5462C005E2D26}" {
          }
          components {
-          SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+          SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
            m_sLabel "#OVT-Place_RotateRight"
-           m_sActionName "OverthrowRotateRight"
           }
           ButtonActionComponent "{56EEDE0026B19E2C}" {
            m_bActionName "OverthrowNextItem"
-          }
-         }
-         {
-          SizeLayoutWidgetClass "{5562AD435529FB36}" {
-           Prefab "{5562AD435529FB36}"
-           {
-            OverlayWidgetClass "{000000005E70868E}" {
-             Prefab "{000000005E70868E}"
-             {
-              HorizontalLayoutWidgetClass "{00000000E3602307}" {
-               Prefab "{00000000E3602307}"
-               Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
-                Padding 10 10 16 10
-               }
-              }
-             }
-            }
-           }
           }
          }
         }
@@ -177,30 +101,11 @@ FrameWidgetClass {
          Slot LayoutSlot "{59A5462C005E2D26}" {
          }
          components {
-          SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
+          SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
            m_sLabel "#OVT-Cancel"
-           m_sActionName "MenuBack"
           }
           ButtonActionComponent "{56EEDE0026B19E2C}" {
            m_bActionName "MenuBack"
-          }
-         }
-         {
-          SizeLayoutWidgetClass "{5562AD435529FB36}" {
-           Prefab "{5562AD435529FB36}"
-           {
-            OverlayWidgetClass "{000000005E70868E}" {
-             Prefab "{000000005E70868E}"
-             {
-              HorizontalLayoutWidgetClass "{00000000E3602307}" {
-               Prefab "{00000000E3602307}"
-               Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
-                Padding 10 10 16 10
-               }
-              }
-             }
-            }
-           }
           }
          }
         }
@@ -209,31 +114,11 @@ FrameWidgetClass {
          Slot LayoutSlot "{59A5462C005E2D26}" {
          }
          components {
-          SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
-           m_bShowBorderOnHover 0
+          SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
            m_sLabel "#OVT-MainMenu_Build"
-           m_sActionName "CharacterFire"
           }
           ButtonActionComponent "{56EEDE0026B19E2C}" {
            m_bActionName "CharacterFire"
-          }
-         }
-         {
-          SizeLayoutWidgetClass "{5562AD435529FB36}" {
-           Prefab "{5562AD435529FB36}"
-           {
-            OverlayWidgetClass "{000000005E70868E}" {
-             Prefab "{000000005E70868E}"
-             {
-              HorizontalLayoutWidgetClass "{00000000E3602307}" {
-               Prefab "{00000000E3602307}"
-               Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
-                Padding 10 10 16 10
-               }
-              }
-             }
-            }
-           }
           }
          }
         }

@@ -385,6 +385,9 @@ FrameWidgetClass {
                 Padding 0 0 0 0
                }
                components {
+                SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                 m_sLabel "#OVT-Shop_Buy"
+                }
                 ButtonActionComponent "{56EEDE0026B19E2C}" {
                  m_bActionName "OverthrowShopBuy"
                 }
@@ -396,6 +399,9 @@ FrameWidgetClass {
                 Padding 0 0 0 0
                }
                components {
+                SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                 m_sLabel "#OVT-Shop_Sell"
+                }
                 ButtonActionComponent "{56EEDE0026B19E2C}" {
                  m_bActionName "OverthrowShopSell"
                 }
