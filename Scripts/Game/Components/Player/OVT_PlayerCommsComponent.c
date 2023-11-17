@@ -623,7 +623,7 @@ class OVT_PlayerCommsComponent: OVT_Component
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_TransferToWarehouse(RplId from, RplId to)
+	protected void RpcAsk_TransferToWarehouse(RplId from)
 	{
 		OVT_Global.TransferToWarehouse(from);
 	}

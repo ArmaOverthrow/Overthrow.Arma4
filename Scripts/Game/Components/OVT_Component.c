@@ -13,7 +13,8 @@ class OVT_Component: ScriptComponent
 		super.OnPostInit(owner);
 		
 		m_Config = OVT_Global.GetConfig();
-		m_Time = GetGame().GetTimeAndWeatherManager();
+		ChimeraWorld world = GetOwner().GetWorld();
+		m_Time = world.GetTimeAndWeatherManager();
 	}
 	
 	protected string GetGUID(ResourceName prefab)

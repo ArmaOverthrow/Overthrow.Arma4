@@ -3,6 +3,7 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 	protected bool m_bCheckedFaction = false;
 	protected bool m_bIsOccupyingFaction = false;
 	
+	/*
 	protected override void OnDamage(
 				EDamageType type,
 				float damage,
@@ -26,6 +27,7 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 		}
 	}
 	
+	
 	override void Kill(IEntity instigator = null)
 	{
 		super.Kill(instigator);
@@ -44,7 +46,7 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 		}
 		
 	}
-	
+	*/
 	protected bool IsOccupyingFaction()
 	{
 		if(!m_bCheckedFaction)

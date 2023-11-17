@@ -224,14 +224,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		}
 	}
 	
-	protected override void OnPlayerKilled(int playerId, IEntity player, IEntity killer)
-	{
-		super.OnPlayerKilled(playerId, player, killer);
-		
-		string persId = m_PlayerManager.GetPersistentIDFromPlayerID(playerId);
-		OVT_PlayerData playerData = m_PlayerManager.GetPlayer(persId);		
-	}
-	
 	protected override void OnPlayerDisconnected(int playerId, KickCauseCode cause, int timeout)
 	{		
 		string persId = m_PlayerManager.GetPersistentIDFromPlayerID(playerId);

@@ -24,8 +24,8 @@ class OVT_RecentDeathStabilityModifier : OVT_StabilityModifier
 		AddModifierToNearestTownInRange(entity.GetOrigin());
 	}
 	
-	protected void OnPlayerKilled(int playerId, IEntity player, IEntity killer)
+	protected void OnPlayerKilled(int playerId, IEntity playerEntity, IEntity killerEntity, notnull Instigator killer)
 	{
-		AddModifierToNearestTownInRange(player.GetOrigin());
+		AddModifierToNearestTownInRange(playerEntity.GetOrigin());
 	}
 }

@@ -671,14 +671,17 @@ class OVT_OccupyingFactionManager: OVT_Component
 	
 	void CheckUpdate()
 	{
-		if(!m_Time) m_Time = GetGame().GetTimeAndWeatherManager();
+		if(!m_Time) 
+		{
+			ChimeraWorld world = GetOwner().GetWorld();
+			m_Time = world.GetTimeAndWeatherManager();
+		}
 		
 		PlayerManager mgr = GetGame().GetPlayerManager();		
 		if(mgr.GetPlayerCount() == 0)
 		{
 			//Clear dead bodies when no players are online
-			SCR_AIWorld aiworld = SCR_AIWorld.Cast(GetGame().GetAIWorld());
-			int numAI = aiworld.GetCurrentNumOfCharacters();
+			SCR_AIWorld aiworld = SCR_AIWorld.Cast(GetGame().GetAIWorld());			
 			autoptr array<AIAgent> agents = new array<AIAgent>;
 			aiworld.GetAIAgents(agents);
 			foreach(AIAgent agent : agents)

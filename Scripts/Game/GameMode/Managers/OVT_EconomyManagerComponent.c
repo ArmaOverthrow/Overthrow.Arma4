@@ -127,7 +127,11 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	void CheckUpdate()
 	{
-		if(!m_Time) m_Time = GetGame().GetTimeAndWeatherManager();
+		if(!m_Time) 
+		{
+			ChimeraWorld world = GetOwner().GetWorld();
+			m_Time = world.GetTimeAndWeatherManager();
+		}
 		
 		PlayerManager mgr = GetGame().GetPlayerManager();		
 		if(mgr.GetPlayerCount() == 0)

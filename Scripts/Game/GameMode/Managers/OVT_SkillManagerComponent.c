@@ -33,7 +33,7 @@ class OVT_SkillManagerComponent: OVT_Component
 	{	
 		if(!Replication.IsServer()) return;	
 		OVT_OverthrowGameMode game = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());		
-		game.GetOnPlayerKilled().Insert(OnPlayerDeath);
+		game.GetOnPlayerKilled().Insert(OnPlayerKilled);
 		
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
 		economy.m_OnPlayerBuy.Insert(OnPlayerBuy);
@@ -119,7 +119,7 @@ class OVT_SkillManagerComponent: OVT_Component
 		GiveXP(playerId, buildable.m_iRewardXP);
 	}
 	
-	void OnPlayerDeath(int playerId, IEntity player, IEntity killer)
+	void OnPlayerKilled(int playerId, IEntity playerEntity, IEntity killerEntity, notnull Instigator killer)
 	{
 		TakeXP(playerId, 1);
 	}

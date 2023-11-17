@@ -347,7 +347,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		{
 			m_TraceParams = new TraceParam();		
 			m_TraceParams.Flags = TraceFlags.ENTS | TraceFlags.WORLD;
-			m_TraceParams.LayerMask =  EPhysicsLayerDefs.Perception;
+			m_TraceParams.LayerMask =  EPhysicsLayerDefs.Projectile;
 		}						
 		
 		m_TraceParams.Start = headPos;
@@ -383,7 +383,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		{
 			m_TraceParams = new TraceParam();		
 			m_TraceParams.Flags = TraceFlags.ENTS | TraceFlags.WORLD;
-			m_TraceParams.LayerMask =  EPhysicsLayerDefs.Perception;
+			m_TraceParams.LayerMask =  EPhysicsLayerDefs.Projectile;
 		}						
 		
 		m_TraceParams.Start = headPos;
