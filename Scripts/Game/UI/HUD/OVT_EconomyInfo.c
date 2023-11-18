@@ -79,7 +79,9 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 		{
 			m_wRoot.FindAnyWidget("MainMenuOverride").SetVisible(true);
 			RichTextWidget text = RichTextWidget.Cast(m_wRoot.FindAnyWidget("MainMenuOverrideText"));
-			text.SetTextFormat("<color rgba='226,168,79,255'><action name='OverthrowMainMenu'/></color> %1",m_FoundOverride.m_UiInfo.GetName());
+			SCR_UIInfo info = m_FoundOverride.m_UiInfo;
+			if(info)
+				text.SetTextFormat("<color rgba='226,168,79,255'><action name='OverthrowMainMenu'/></color> %1",info.GetName());
 		}else{
 			if(!OVT_Global.GetOverthrow().m_bHasOpenedMenu)
 			{

@@ -30,12 +30,16 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 				  int nodeID)
 	{		
 		if(instigator)
-		{			
-			OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(instigator.GetInstigatorEntity().FindComponent(OVT_PlayerWantedComponent));
-			
-			if(wanted)
+		{	
+			IEntity entity = instigator.GetInstigatorEntity();
+			if(entity) 
 			{
-				wanted.SetBaseWantedLevel(2);
+				OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(entity.FindComponent(OVT_PlayerWantedComponent));
+				
+				if(wanted)
+				{
+					wanted.SetBaseWantedLevel(2);
+				}
 			}
 		}
 	}

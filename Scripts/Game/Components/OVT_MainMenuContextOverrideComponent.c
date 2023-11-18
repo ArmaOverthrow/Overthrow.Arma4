@@ -24,8 +24,11 @@ class OVT_MainMenuContextOverrideComponent : OVT_Component
 	protected bool m_bRegistered = false;
 	
 	override void OnPostInit(IEntity owner)
-	{	
+	{		
 		super.OnPostInit(owner);
+		if(SCR_Global.IsEditMode())
+			return;
+		
 		SetEventMask(owner, EntityEvent.INIT | EntityEvent.FRAME);
 	}
 	

@@ -12,6 +12,9 @@ class OVT_Component: ScriptComponent
 	{
 		super.OnPostInit(owner);
 		
+		if(SCR_Global.IsEditMode())
+			return;
+		
 		m_Config = OVT_Global.GetConfig();
 		ChimeraWorld world = GetOwner().GetWorld();
 		m_Time = world.GetTimeAndWeatherManager();

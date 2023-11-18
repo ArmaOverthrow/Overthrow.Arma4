@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{9DA31028409EDE7E}PrefabsEditable/Auto/Structures/Military/Camps/HelipadImprovised_01/Helipad.et"
+ Configurations {
+  EntityTemplateResourceClass PC {
+  }
+  EntityTemplateResourceClass XBOX_ONE : PC {
+  }
+  EntityTemplateResourceClass XBOX_SERIES : PC {
+  }
+  EntityTemplateResourceClass PS4 : PC {
+  }
+  EntityTemplateResourceClass HEADLESS : PC {
+  }
+ }
+}
