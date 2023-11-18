@@ -57,7 +57,7 @@ class OVT_QRFControllerComponent: OVT_Component
 		
 		m_iTimer -= 1000;
 		
-		if(m_iTimer <= 0)
+		if(m_iTimer < 0)
 		{
 			m_iTimer = 0;
 			return;
