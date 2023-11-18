@@ -192,12 +192,15 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 		SliderWidget of = SliderWidget.Cast(m_wRoot.FindAnyWidget("QRFOccupying"));
 		SliderWidget rf = SliderWidget.Cast(m_wRoot.FindAnyWidget("QRFResistance"));
 		
-		if(m_OccupyingFaction.m_iQRFPoints > 0)
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		int points = (m_OccupyingFaction.m_iQRFPoints / config.m_Difficulty.QRFPointsToWin) * 100;
+		
+		if(points > 0)
 		{
-			rf.SetCurrent(m_OccupyingFaction.m_iQRFPoints);
+			rf.SetCurrent(points);
 			of.SetCurrent(0);
 		}else{
-			of.SetCurrent(Math.AbsFloat(m_OccupyingFaction.m_iQRFPoints));
+			of.SetCurrent(Math.AbsFloat(points));
 			rf.SetCurrent(0);
 		}
 	}

@@ -7,6 +7,9 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Players starting cars", params: "et", category: "Vehicles")]
 	ref array<ResourceName> m_pStartingCarPrefabs;
+	
+	[Attribute()]
+	ref SCR_EntityCatalogMultiList m_CivilianVehicleEntityCatalog;
 		
 	ref array<EntityID> m_aAllVehicleShops;	
 	ref array<EntityID> m_aEntitySearch;

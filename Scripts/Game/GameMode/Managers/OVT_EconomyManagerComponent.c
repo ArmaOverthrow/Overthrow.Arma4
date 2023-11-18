@@ -822,14 +822,8 @@ class OVT_EconomyManagerComponent: OVT_Component
 				if(res.IndexOf("Campaign") > -1) continue;
 				if(!m_aResources.Contains(res))
 				{
-					m_aResources.Insert(res);
-					int id = m_aResources.Count()-1;
-					m_aResourceIndex[res] = id;
-					m_aEntityCatalogEntries.Insert(item);
-					m_mFactionResources[factionId].Insert(id);
-					m_aAllVehicles.Insert(id);
-					
-					bool illegal = true;
+					bool illegal = false;
+					bool hidden = false;
 					int cost = 500000;
 					OVT_ParkingType parkingType = OVT_ParkingType.PARKING_CAR;
 					//Set it's price
@@ -837,16 +831,80 @@ class OVT_EconomyManagerComponent: OVT_Component
 					{
 						if(cfg.prefab != "") continue;
 						if(cfg.m_sFind == "" || res.IndexOf(cfg.m_sFind) > -1)
-						{
+						{							
+							if(cfg.hidden) {
+								Print("Hiding " + res);
+								hidden = true;
+								break;
+							}
 							cost = cfg.cost;
 							illegal = cfg.illegal;
 							parkingType = cfg.parking;
 						}
 					}
+					
+					if(hidden) continue;
+					
+					m_aResources.Insert(res);
+					int id = m_aResources.Count()-1;
+					m_aResourceIndex[res] = id;
+					m_aEntityCatalogEntries.Insert(item);
+					m_mFactionResources[factionId].Insert(id);
+					m_aAllVehicles.Insert(id);					
+					
 					m_mVehicleParking[id] = parkingType;
 					SetPrice(id, cost);
 					if(!illegal) m_aLegalVehicles.Insert(id);
 				}
+			}
+		}
+		
+		//Get civilian vehicles
+		array<SCR_EntityCatalogEntry> civVehicles();
+		OVT_VehicleManagerComponent vm = OVT_Global.GetVehicles();
+		vm.m_CivilianVehicleEntityCatalog.GetEntityList(civVehicles);
+		m_mFactionResources[-1] = new array<int>;
+		
+		foreach(SCR_EntityCatalogEntry item : civVehicles) 
+		{
+			ResourceName res = item.GetPrefab();
+			if(res == "") continue;
+			if(res.IndexOf("Campaign") > -1) continue;
+			if(!m_aResources.Contains(res))
+			{
+				bool illegal = false;
+				bool hidden = false;
+				int cost = 500000;
+				OVT_ParkingType parkingType = OVT_ParkingType.PARKING_CAR;
+				//Set it's price
+				foreach(OVT_VehiclePriceConfig cfg : m_VehiclePriceConfig.m_aPrices)
+				{
+					if(cfg.prefab != "") continue;
+					if(cfg.m_sFind == "" || res.IndexOf(cfg.m_sFind) > -1)
+					{
+						if(cfg.hidden) {
+							hidden = true;
+							break;
+						}
+						cost = cfg.cost;
+						illegal = cfg.illegal;
+						parkingType = cfg.parking;
+					}
+				}
+				
+				if(hidden) continue;
+				
+				m_aResources.Insert(res);
+				int id = m_aResources.Count()-1;
+				m_aResourceIndex[res] = id;
+				m_aEntityCatalogEntries.Insert(item);
+				m_mFactionResources[-1].Insert(id);
+				m_aAllVehicles.Insert(id);
+				
+				
+				m_mVehicleParking[id] = parkingType;
+				SetPrice(id, cost);
+				if(!illegal) m_aLegalVehicles.Insert(id);
 			}
 		}
 		
