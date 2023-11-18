@@ -170,7 +170,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		OVT_Global.GetConfig().m_iOccupyingFactionIndex = -1;
 		foreach(OVT_BaseData data : m_Bases)
 		{
-			data.faction = OVT_Global.GetConfig().m_sOccupyingFaction;
+			data.faction = OVT_Global.GetConfig().GetOccupyingFactionIndex();
 		}
 	}
 
@@ -606,7 +606,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		data.entId = ent.GetID();
 		data.id = m_Bases.Count();
 		data.location = ent.GetOrigin();
-		data.faction = m_Config.GetOccupyingFaction().GetFactionKey();
+		data.faction = m_Config.GetOccupyingFactionIndex();
 
 		m_Bases.Insert(data);
 		return true;

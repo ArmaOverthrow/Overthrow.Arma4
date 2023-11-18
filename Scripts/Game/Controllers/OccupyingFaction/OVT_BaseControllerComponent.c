@@ -34,13 +34,16 @@ class OVT_BaseControllerComponent: OVT_Component
 		if (SCR_Global.IsEditMode()) return;
 
 		m_occupyingFactionManager = OVT_Global.GetOccupyingFaction();
+		
+		SCR_FactionAffiliationComponent affiliation = EPF_Component<SCR_FactionAffiliationComponent>.Find(GetOwner());
+		if(affiliation)
+		{
+			affiliation.GetOnFactionChanged().Insert(OnFactionChanged);
+		}
 
 		InitializeBase();
 
 		GetGame().GetCallqueue().CallLater(UpdateUpgrades, UPGRADE_UPDATE_FREQUENCY, true, GetOwner());
-
-		SCR_FactionAffiliationComponent affiliation = EPF_Component<SCR_FactionAffiliationComponent>.Find(GetOwner());
-		affiliation.GetOnFactionChanged().Insert(OnFactionChanged);
 	}
 
 	protected void UpdateUpgrades()
@@ -51,6 +54,13 @@ class OVT_BaseControllerComponent: OVT_Component
 		{
 			upgrade.OnUpdate(UPGRADE_UPDATE_FREQUENCY);
 		}
+	}
+	
+	void OnFactionChanged(FactionAffiliationComponent owner, Faction previousFaction, Faction newFaction)
+	{
+		SCR_FlagComponent flag = EPF_Component<SCR_FlagComponent>.Find(GetOwner());
+		SCR_Faction faction = SCR_Faction.Cast(newFaction);
+		flag.ChangeMaterial(faction.GetFactionFlagMaterial());
 	}
 
 	bool IsOccupyingFaction()
@@ -73,17 +83,6 @@ class OVT_BaseControllerComponent: OVT_Component
 		Faction faction = mgr.GetFactionByKey(key);
 		int index = mgr.GetFactionIndex(faction);
 		SetControllingFaction(index, suppressEvents);
-	}
-
-	void OnFactionChanged(FactionAffiliationComponent owner, Faction previousFaction, Faction newFaction)
-	{
-		SlotManagerComponent slots = EPF_Component<SlotManagerComponent>.Find(GetOwner());
-		EntitySlotInfo slot = slots.GetSlotByName("Flag");
-		IEntity flag = slot.GetAttachedEntity();
-		SCR_EntityHelper.DeleteEntityAndChildren(flag);
-		OVT_Faction fac = OVT_Global.GetFactions().GetOverthrowFactionByKey(newFaction.GetFactionKey());
-		IEntity newFlag = GetGame().SpawnEntityPrefab(Resource.Load(fac.m_sFlagPrefab));
-		slot.AttachEntity(newFlag);
 	}
 
 	void SetControllingFaction(int index, bool suppressEvents = false)
