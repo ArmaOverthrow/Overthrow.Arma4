@@ -195,7 +195,7 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 		SliderWidget rf = SliderWidget.Cast(m_wRoot.FindAnyWidget("QRFResistance"));
 		
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-		int points = (m_OccupyingFaction.m_iQRFPoints / config.m_Difficulty.QRFPointsToWin) * 100;
+		int points = (int)((float)m_OccupyingFaction.m_iQRFPoints / (float)config.m_Difficulty.QRFPointsToWin) * 100;
 		
 		if(points > 0)
 		{

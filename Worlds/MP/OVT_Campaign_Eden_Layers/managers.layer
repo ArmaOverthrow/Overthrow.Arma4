@@ -25,25 +25,20 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode1 : "{4DC10DCB8BE06D32}Prefabs/GameMo
 }
 OVT_OverthrowFactionManager OVT_OverthrowFactionManager : "{51EBC0CFD56DA130}Prefabs/GameMode/OVT_OverthrowFactionManager.et" {
  coords 0 0 0
+ Factions {
+  SCR_Faction "{5D8CB0700C13A528}" : "{09727032415AC39B}Configs/Factions/USSR.conf" {
+   m_bIsPlayable 0
+  }
+  SCR_Faction "{5D8CB07009D3FA5D}" : "{5EB46557DF2AA24F}Configs/Factions/US.conf" {
+   m_bIsPlayable 0
+  }
+  SCR_Faction "{5D8CB07017FAD571}" : "{8053DB656DD18B14}Configs/Factions/FIA.conf" {
+   m_bIsPlayable 0
+  }
+ }
 }
 RadioManagerEntity RadioManager : "{B8E09FAB91C4ECCD}Prefabs/Radio/RadioManager.et" {
  coords 3201.473 0 11071.047
 }
 ScriptedChatEntity : "{F69BC912AC8236F9}Prefabs/MP/ScriptedChatEntity.et" {
-}
-SCR_GarbageManager : "{9B883A7D8EBB282A}Prefabs/MP/Managers/GarbageManager.et" {
- coords 4477.324 4.749 11037.735
- CollectorInterval 300
- CharacterLifetime 1800
- VehicleCollect 0
- VehicleLifetime 1800
- ItemLifetime 1800
-}
-SCR_LoadoutManager : "{AA4E7419A1FF65B0}Prefabs/MP/Managers/Loadouts/LoadoutManager_Base.et" {
- m_aPlayerLoadouts {
-  SCR_FactionPlayerLoadout "{5968C8BCD347882D}" {
-   m_sLoadoutResource "{3A99A99836F6B3DC}Prefabs/Characters/Factions/INDFOR/FIA/Character_Player.et"
-   m_sAffiliatedFaction "FIA"
-  }
- }
 }
