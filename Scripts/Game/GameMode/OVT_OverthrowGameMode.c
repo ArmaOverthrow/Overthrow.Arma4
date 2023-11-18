@@ -48,6 +48,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		isDedicated = true; //To test dedicated server config
 #endif
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		m_Config = config;
+		
 		if(isDedicated)
 		{
 			if(config.m_ConfigFile && config.m_ConfigFile.occupyingFaction != "" && config.m_ConfigFile.occupyingFaction != "FIA")
