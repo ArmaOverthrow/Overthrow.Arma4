@@ -25,16 +25,15 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
   BaseLoadoutManagerComponent "{520EA1D2DB11821E}" {
    Slots {
     LoadoutSlotInfo Hat {
-     Prefab "{5B6998DF1207FB5A}Prefabs/Characters/HeadGear/TruckerCap/trucker_cap_backwards.et"
     }
     LoadoutSlotInfo Jacket {
-     Prefab "{6CE193F2080A9D5D}Prefabs/Characters/Uniforms/Tops/OTW_top_Multicam.et"
+     Prefab "{D262D2102B9931C6}Prefabs/Characters/Uniforms/Jacket_M88_rolledup.et"
     }
     LoadoutSlotInfo Pants {
-     Prefab "{2BA5AAEB00E98AD4}Prefabs/Characters/Uniforms/Pants/OTW_pants_OCP.et"
+     Prefab "{604BB72BE8E023C2}Prefabs/Characters/Uniforms/Pants_US_BDU.et"
     }
     LoadoutSlotInfo Boots {
-     Prefab "{58CDE15D74295DA2}Prefabs/Characters/Footwear/hiking_boots.et"
+     Prefab "{C7923961D7235D70}Prefabs/Characters/Footwear/CombatBoots_Soviet_01.et"
     }
    }
   }

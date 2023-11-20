@@ -45,6 +45,12 @@ class OVT_BaseControllerComponent: OVT_Component
 
 		GetGame().GetCallqueue().CallLater(UpdateUpgrades, UPGRADE_UPDATE_FREQUENCY, true, GetOwner());
 	}
+	
+	OVT_BaseData GetData()
+	{
+		OVT_OccupyingFactionManager of = OVT_Global.GetOccupyingFaction();
+		return of.GetNearestBase(GetOwner().GetOrigin());
+	}
 
 	protected void UpdateUpgrades()
 	{

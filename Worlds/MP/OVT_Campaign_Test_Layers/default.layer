@@ -50,12 +50,15 @@ OVT_OverthrowFactionManager OVT_OverthrowFactionManager : "{51EBC0CFD56DA130}Pre
   }
  }
 }
+ScriptedChatEntity : "{F69BC912AC8236F9}Prefabs/MP/ScriptedChatEntity.et" {
+ coords 54.102 1 133.598
+}
 $grp GenericEntity {
  Town {
   components {
    SCR_MapDescriptorComponent "{5D8680D15B3CF38E}" {
     DisplayName "Town"
-    MainType "Name Village"
+    MainType "Name Town"
    }
   }
   coords 221.182 1.001 107.325

@@ -193,7 +193,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			DiagMenu.SetValue(205,0);
 		}
 
-		if(!(IsMaster() && RplSession.Mode() == RplMode.Dedicated) && !m_bCameraSet)
+		if((IsMaster() && (RplSession.Mode() == RplMode.None || RplSession.Mode() == RplMode.Listen)) && !m_bCameraSet)
 		{
 			SetRandomCameraPosition();
 		}
@@ -443,8 +443,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		m_StartGameUIContext.Init(owner, null);
 		m_StartGameUIContext.RegisterInputs();
 
-		if(!IsMaster()) {
-			//show wait screen?
+		if(!IsMaster()) {			
 			return;
 		}
 
@@ -475,6 +474,11 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 				}
 			}
 		}
+	}
+	
+	protected void OnPlayerSpawnClient(IEntity entity)
+	{
+		
 	}
 
 	override event void OnWorldPostProcess(World world)

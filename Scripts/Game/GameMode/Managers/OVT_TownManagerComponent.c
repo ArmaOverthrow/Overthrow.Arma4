@@ -482,7 +482,9 @@ class OVT_TownManagerComponent: OVT_Component
 	{
 		int townID = GetTownID(town);
 		town.faction = faction;
-		m_OnTownControlChange.Invoke(town);
+		if(m_OnTownControlChange)
+			m_OnTownControlChange.Invoke(town);
+		
 		Rpc(RpcDo_SetTownFaction, townID, faction);
 		string type = "Village";
 		if(town.size == 2) type = "Town";
@@ -523,7 +525,7 @@ class OVT_TownManagerComponent: OVT_Component
 		int i = 0;
 		float dist;
 		
-		while(!house && i < 40)
+		while(!house && i < 400)
 		{
 			i++;
 			int index = s_AIRandomGenerator.RandInt(0, m_Towns.Count()-1);
@@ -532,8 +534,9 @@ class OVT_TownManagerComponent: OVT_Component
 			GetGame().GetWorld().QueryEntitiesBySphere(town.location, m_iCityRange, CheckHouseAddToArray, FilterStartingHouseEntities, EQueryEntitiesFlags.STATIC);
 			if(m_Houses.Count() == 0) continue;
 			
-			house = GetGame().GetWorld().FindEntityByID(m_Houses.GetRandomElement());
-			if(m_RealEstate.IsOwned(house.GetID())) house = null;			
+			index = s_AIRandomGenerator.RandInt(0, m_Houses.Count()-1);
+			
+			house = GetGame().GetWorld().FindEntityByID(m_Houses[index]);						
 		}
 				
 		return house;
@@ -838,7 +841,9 @@ class OVT_TownManagerComponent: OVT_Component
 	
 	protected bool CheckHouseAddToArray(IEntity entity)
 	{
-		m_Houses.Insert(entity.GetID());
+		EntityID id = entity.GetID();
+		if(!m_RealEstate.IsOwned(id))
+			m_Houses.Insert(id);
 				
 		return true;
 	}

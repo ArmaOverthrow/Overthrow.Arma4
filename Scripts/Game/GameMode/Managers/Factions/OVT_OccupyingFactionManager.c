@@ -371,7 +371,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		{
 			OVT_BaseControllerComponent base = GetBase(data.entId);
 			base.InitBase();
-			base.SetControllingFaction(data.faction, false);
+			base.SetControllingFaction(data.faction, true);
 
 			if(base.IsOccupyingFaction())
 			{
@@ -525,9 +525,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 				m_iThreat -= 250;
 				OVT_Global.GetNotify().SendTextNotification("BaseControlledOccupying",-1,townName);
 				OVT_Global.GetNotify().SendExternalNotifications("BaseControlledOccupying",townName);
-			}
-			m_CurrentQRFBase.SetControllingFaction(m_CurrentQRF.m_iWinningFaction);
+			}			
 			m_Bases[m_iCurrentQRFBase].faction = m_CurrentQRF.m_iWinningFaction;
+			m_CurrentQRFBase.SetControllingFaction(m_CurrentQRF.m_iWinningFaction);
 			Rpc(RpcDo_SetBaseFaction, m_iCurrentQRFBase, m_CurrentQRF.m_iWinningFaction);
 		}
 

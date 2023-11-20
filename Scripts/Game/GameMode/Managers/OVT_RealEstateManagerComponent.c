@@ -21,7 +21,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	
 	protected ref array<IEntity> m_aEntitySearch;
 	
-	ref array<ref OVT_WarehouseData> m_aWarehouses;
+	ref array<ref OVT_WarehouseData> m_aWarehouses = new array<ref OVT_WarehouseData>;
 	
 	static OVT_RealEstateManagerComponent GetInstance()
 	{
@@ -387,8 +387,10 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		super.RplSave(writer);
 		
 		//Send JIP warehouses
-		writer.WriteInt(m_aWarehouses.Count());
-		for(int i=0; i<m_aWarehouses.Count(); i++)
+		int count = 0;
+		if(m_aWarehouses) count = m_aWarehouses.Count();
+		writer.WriteInt(count);
+		for(int i=0; i<count; i++)
 		{
 			OVT_WarehouseData data = m_aWarehouses[i];
 			writer.WriteInt(data.id);
