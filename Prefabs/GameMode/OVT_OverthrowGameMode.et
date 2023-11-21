@@ -442,6 +442,7 @@ OVT_OverthrowGameMode {
   }
   SCR_GroupsManagerComponent "{5DDAD8A30938E391}" {
    m_sDefaultGroupPrefab "{8B4D49A9F324E7D5}Prefabs/Groups/PlayableGroup.et"
+   m_iPlayableGroupFrequencyOffset 500
   }
   SCR_HintManagerComponent "{59724C8C935D8E2C}" {
   }

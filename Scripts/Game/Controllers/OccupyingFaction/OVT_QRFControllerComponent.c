@@ -86,33 +86,7 @@ class OVT_QRFControllerComponent: OVT_Component
 			}
 		}
 	}
-	
-	void Cleanup()
-	{
-		m_aSpawnQueue.Clear();
-		m_aSpawnTargets.Clear();
-		m_aSpawnPositions.Clear();
-		
-		BaseWorld world = GetGame().GetWorld();
-		foreach(EntityID id : m_Groups)
-		{
-			IEntity group = world.FindEntityByID(id);
-			if(!group) continue;
-			SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
-			if(!aigroup) continue;
-			autoptr array<AIAgent> agents = new array<AIAgent>;
-			aigroup.GetAgents(agents);
-			foreach(AIAgent agent : agents)
-			{
-				SCR_EntityHelper.DeleteEntityAndChildren(agent);
-			}
-			SCR_EntityHelper.DeleteEntityAndChildren(aigroup);
-		}
-		
-		m_Groups.Clear();
-		
-		SCR_EntityHelper.DeleteEntityAndChildren(GetOwner());
-	}
+
 	
 	protected void CheckUpdatePoints()
 	{
@@ -198,7 +172,6 @@ class OVT_QRFControllerComponent: OVT_Component
 			
 			if(m_iPoints >= toWin || m_iPoints <= -toWin)
 			{
-				Cleanup();
 				//We have a winner		
 				m_OnFinished.Invoke();
 				GetGame().GetCallqueue().Remove(CheckUpdatePoints);
@@ -296,7 +269,7 @@ class OVT_QRFControllerComponent: OVT_Component
 			}
 			spent += allocated;
 			m_iResourcesLeft -= allocated;
-			Print("[Overthrow.QRFControllerComponent] Sent wave from " + base.ToString() + ": " + allocated.ToString());
+			Print("[Overthrow.QRFControllerComponent] Sent wave from " + lz.ToString() + ": " + allocated.ToString());
 		}
 		
 		if(m_iResourcesLeft > 0)
