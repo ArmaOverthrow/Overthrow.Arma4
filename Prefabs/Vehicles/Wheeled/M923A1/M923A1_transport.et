@@ -1,6 +1,10 @@
 Vehicle : "{9A0D72816DFFDB7F}Prefabs/Vehicles/Wheeled/M923A1/M923A1.et" {
  ID "BBCBA43A9778AE21"
  components {
+  SCR_UniversalInventoryStorageComponent "{5916C580F1DA28BB}" {
+   MaxCumulativeVolume 200000
+   m_fMaxWeight 1000
+  }
   ActionsManagerComponent "{C97BE5489221AE18}" {
    additionalActions {
     OVT_LootIntoVehicleAction "{5D82242924FDA95C}" {
