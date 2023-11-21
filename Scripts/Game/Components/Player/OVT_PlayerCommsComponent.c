@@ -772,4 +772,16 @@ class OVT_PlayerCommsComponent: OVT_Component
 			}
 		}
 	}
+	
+	void RequestFastTravel(int playerId, vector pos)	
+	{		
+		Rpc(RpcAsk_RequestFastTravel, playerId, pos);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	void RpcAsk_RequestFastTravel(int playerId, vector pos)	
+	{
+		SCR_Global.TeleportPlayer(playerId, pos);
+	}	
+	
 }

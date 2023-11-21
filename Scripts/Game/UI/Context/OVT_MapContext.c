@@ -22,7 +22,6 @@ class OVT_MapContext : OVT_UIContext
 	
 	protected const int MAX_HOUSE_TRAVEL_DIS = 25;
 	protected const int MAX_FOB_TRAVEL_DIS = 40;
-	protected const int MIN_TRAVEL_DIS = 500;
 	
 	override void PostInit()
 	{		
@@ -57,7 +56,7 @@ class OVT_MapContext : OVT_UIContext
 		float dist;
 		
 		dist = vector.Distance(pos, m_Owner.GetOrigin());
-		if(dist < MIN_TRAVEL_DIS)
+		if(dist < OVT_Global.GetConfig().m_Difficulty.minFastTravelDistance)
 		{
 			reason = "#OVT-CannotFastTravelDistance";
 			return false;	
@@ -398,7 +397,7 @@ class OVT_MapContext : OVT_UIContext
 						{
 							if(cost > 0)
 								m_Economy.TakePlayerMoney(m_iPlayerID, cost);
-							SCR_Global.TeleportPlayer(m_iPlayerID, pos);
+							OVT_Global.GetServer().RequestFastTravel(m_iPlayerID, pos);
 						}else{
 							ShowHint("#OVT-MustBeDriver");
 						}
@@ -406,7 +405,7 @@ class OVT_MapContext : OVT_UIContext
 				}else{
 					if(cost > 0)
 						m_Economy.TakePlayerMoney(m_iPlayerID, cost);
-					SCR_Global.TeleportPlayer(m_iPlayerID, pos);
+					OVT_Global.GetServer().RequestFastTravel(m_iPlayerID, pos);					
 				}				
 			}			
 		}	
@@ -449,7 +448,7 @@ class OVT_MapContext : OVT_UIContext
 				
 				if(cost > 0)
 					m_Economy.TakePlayerMoney(m_iPlayerID, cost);
-				SCR_Global.TeleportPlayer(m_iPlayerID, pos);
+				OVT_Global.GetServer().RequestFastTravel(m_iPlayerID, pos);
 			}
 		}
 		

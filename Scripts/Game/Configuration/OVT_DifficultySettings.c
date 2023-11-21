@@ -65,6 +65,9 @@ class OVT_DifficultySettings : ScriptAndConfig
 	[Attribute(defvalue: "0.004", desc: "Threat reduction factor", category: "Resistance Faction")]
 	float threatReductionFactor;	
 	
+	[Attribute(defvalue: "500", desc: "Minimum fast travel distance", category: "Resistance Faction")]
+	float minFastTravelDistance;
+	
 	//QRF
 	[Attribute("1", UIWidgets.ComboBox, "QRF Fast Travel Mode", "", ParamEnumArray.FromEnum(OVT_QRFFastTravelMode), category: "QRF" )]
 	OVT_QRFFastTravelMode QRFFastTravelMode;
