@@ -248,17 +248,6 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 			dmg.FullHeal();
 			dmg.SetHealthScaled(dmg.GetMaxHealth());
 		}
-		
-		FuelManagerComponent fuel = FuelManagerComponent.Cast(entity.FindComponent(FuelManagerComponent));	
-		if(fuel)
-		{
-			array<BaseFuelNode> nodes();
-			fuel.GetFuelNodesList(nodes);
-			foreach(BaseFuelNode node : nodes)
-			{
-				node.SetFuel(node.GetMaxFuel());
-			}
-		}
 	}
 	
 	void ~OVT_VehicleManagerComponent()

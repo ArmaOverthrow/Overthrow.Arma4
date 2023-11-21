@@ -14,11 +14,11 @@ class OVT_ManageVehicleContext : OVT_UIContext
 			return;
 		}
 		
-		Widget ww = m_wRoot.FindAnyWidget("UpgradeVehicle");
+		Widget ww = m_wRoot.FindAnyWidget("UpgradeButton");
 		SCR_InputButtonComponent btn = SCR_InputButtonComponent.Cast(ww.FindHandler(SCR_InputButtonComponent));		
 		btn.m_OnActivated.Insert(Upgrade);
 		
-		ww = m_wRoot.FindAnyWidget("RepairVehicle");
+		ww = m_wRoot.FindAnyWidget("RepairButton");
 		btn = SCR_InputButtonComponent.Cast(ww.FindHandler(SCR_InputButtonComponent));		
 		btn.m_OnActivated.Insert(Repair);
 		
