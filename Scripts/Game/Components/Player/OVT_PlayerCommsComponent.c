@@ -231,6 +231,21 @@ class OVT_PlayerCommsComponent: OVT_Component
 		}	
 	}
 	
+	void SetVehicleLock(IEntity vehicle, bool locked)	
+	{	
+		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));	
+		Rpc(RpcAsk_SetVehicleLock, rpl.Id(), locked);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	void RpcAsk_SetVehicleLock(RplId vehicle, bool locked)	
+	{
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(vehicle));
+		IEntity entity = rpl.GetEntity();
+		OVT_PlayerOwnerComponent playerOwner = EPF_Component<OVT_PlayerOwnerComponent>.Find(entity);
+		if(playerOwner) playerOwner.SetLocked(locked);
+	}
+	
 	//REAL ESTATE
 	
 	void SetHome(int playerId)

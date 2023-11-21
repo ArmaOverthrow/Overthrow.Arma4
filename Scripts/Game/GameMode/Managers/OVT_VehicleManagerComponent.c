@@ -52,19 +52,26 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 		ResourceName prefab = m_pStartingCarPrefabs[i];
 		
 		//Find us a parking spot
+		IEntity veh;
 		
 		if(GetParkingSpot(home, mat, OVT_ParkingType.PARKING_CAR, true))
 		{
 			
-			SpawnVehicleMatrix(prefab, mat, playerId);
+			veh = SpawnVehicleMatrix(prefab, mat, playerId);
 			
 		}else if(FindNearestKerbParking(home.GetOrigin(), 20, mat))
 		{
 			Print("Unable to find OVT_ParkingComponent in starting house prefab. Trying to spawn car next to a kerb.");
-			SpawnVehicleMatrix(prefab, mat, playerId);
+			veh = SpawnVehicleMatrix(prefab, mat, playerId);
 			
 		}else{
 			Print("Failure to spawn player's starting car. Add OVT_ParkingComponent to all starting house prefabs in config");			
+		}
+		
+		if(veh)
+		{
+			OVT_PlayerOwnerComponent playerowner = EPF_Component<OVT_PlayerOwnerComponent>.Find(veh);
+			if(playerowner) playerowner.SetLocked(true);
 		}
 	}
 	
