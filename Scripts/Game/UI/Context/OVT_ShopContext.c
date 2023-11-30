@@ -12,24 +12,6 @@ class OVT_ShopContext : OVT_UIContext
 		m_Economy.m_OnPlayerMoneyChanged.Insert(OnPlayerMoneyChanged);
 	}
 	
-	override void RegisterInputs()
-	{
-		super.RegisterInputs();
-		if(!m_InputManager) return;
-		
-		m_InputManager.AddActionListener("MenuNavLeft", EActionTrigger.DOWN, PreviousPage);		
-		m_InputManager.AddActionListener("MenuNavRight", EActionTrigger.DOWN, NextPage);
-	}
-	
-	override void UnregisterInputs()
-	{
-		super.UnregisterInputs();
-		if(!m_InputManager) return;
-		
-		m_InputManager.RemoveActionListener("MenuNavLeft", EActionTrigger.DOWN, PreviousPage);
-		m_InputManager.RemoveActionListener("MenuNavRight", EActionTrigger.PRESSED, NextPage);				
-	}
-	
 	protected void OnPlayerMoneyChanged(string playerId, int amount)
 	{
 		if(playerId == m_sPlayerID && m_bIsActive)

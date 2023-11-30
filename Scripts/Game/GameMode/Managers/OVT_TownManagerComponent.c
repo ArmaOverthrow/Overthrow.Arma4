@@ -525,7 +525,7 @@ class OVT_TownManagerComponent: OVT_Component
 		int i = 0;
 		float dist;
 		
-		while(!house && i < 400)
+		while(!house && i < 40)
 		{
 			i++;
 			int index = s_AIRandomGenerator.RandInt(0, m_Towns.Count()-1);

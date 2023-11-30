@@ -40,6 +40,10 @@ class OVT_MapContext : OVT_UIContext
 		if(!mgr) return null;
 		
 		IEntity ent = mgr.GetQuickslotGadgetByType(EGadgetType.MAP);
+		if(!ent) {		
+			ent = mgr.GetGadgetByType(EGadgetType.MAP);
+		}
+		
 		if(!ent) return null;
 				
 		SCR_MapGadgetComponent comp = SCR_MapGadgetComponent.Cast(ent.FindComponent(SCR_MapGadgetComponent));
@@ -405,7 +409,7 @@ class OVT_MapContext : OVT_UIContext
 				}else{
 					if(cost > 0)
 						m_Economy.TakePlayerMoney(m_iPlayerID, cost);
-					OVT_Global.GetServer().RequestFastTravel(m_iPlayerID, pos);					
+					SCR_Global.TeleportPlayer(m_iPlayerID, pos);					
 				}				
 			}			
 		}	
@@ -448,7 +452,7 @@ class OVT_MapContext : OVT_UIContext
 				
 				if(cost > 0)
 					m_Economy.TakePlayerMoney(m_iPlayerID, cost);
-				OVT_Global.GetServer().RequestFastTravel(m_iPlayerID, pos);
+				SCR_Global.TeleportPlayer(m_iPlayerID, pos);
 			}
 		}
 		
