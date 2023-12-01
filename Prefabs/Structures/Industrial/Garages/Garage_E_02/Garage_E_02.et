@@ -18,16 +18,19 @@ SCR_DestructibleBuildingEntity : "{9D656741EA2AABC5}Prefabs/Structures/Industria
   OVT_ParkingComponent "{5D98AC7CB504FF23}" {
    m_aParkingSpots {
     OVT_ParkingPointInfo "{5D98AC7CB13BA421}" {
+     Offset -9.092 0.063 13.989
      m_vPosition -9.092 0.063 13.989
      m_vAngles 0 90 0
      m_Type PARKING_CAR
     }
     OVT_ParkingPointInfo "{5D98AC7D6A494BFA}" {
+     Offset -2.246 0.063 13.784
      m_vPosition -2.246 0.063 13.784
      m_vAngles 0 90 0
      m_Type PARKING_CAR
     }
     OVT_ParkingPointInfo "{5D98AC7D43678293}" {
+     Offset 5.855 0.063 13.541
      m_vPosition 5.855 0.063 13.541
      m_vAngles 0 90 0
      m_Type PARKING_CAR

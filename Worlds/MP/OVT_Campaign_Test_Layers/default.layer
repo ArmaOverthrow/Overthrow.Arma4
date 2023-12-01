@@ -131,9 +131,19 @@ $grp SCR_SiteSlotEntity : "{588A3DAF0296B0C1}PrefabsEditable/Slots/Flat/E_SlotFl
 SCR_DestructibleBuildingEntity : "{5CADC96916FF1CC4}Prefabs/Structures/Houses/Villa/Villa_E_2I01/Villa_E_2I01.et" {
  coords 217.228 0.001 144.688
 }
-SCR_DestructibleBuildingEntity : "{60333F74EE12B52F}Prefabs/Structures/Houses/Village/House_Village_E_1I05/House_Village_E_1I05s.et" {
- coords 239.643 0.412 168.588
- angleY 90
+$grp SCR_DestructibleBuildingEntity : "{60333F74EE12B52F}Prefabs/Structures/Houses/Village/House_Village_E_1I05/House_Village_E_1I05s.et" {
+ {
+  coords 219.088 0.412 199.548
+  angleY 56.419
+ }
+ {
+  coords 244.1 0.764 172.015
+  angleY 114.534
+ }
+ {
+  coords 212.01 0.567 174.074
+  angleY 14.886
+ }
 }
 GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.et" {
  components {

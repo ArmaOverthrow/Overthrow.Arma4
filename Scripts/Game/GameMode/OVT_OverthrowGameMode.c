@@ -54,10 +54,10 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		{
 			if(config.m_ConfigFile && config.m_ConfigFile.occupyingFaction != "" && config.m_ConfigFile.occupyingFaction != "FIA")
 			{
-				Print("Overthrow: Setting occupying faction to config value (" + config.m_ConfigFile.occupyingFaction + ")");
+				Print("[Overthrow] Overthrow: Setting occupying faction to config value (" + config.m_ConfigFile.occupyingFaction + ")");
 				config.SetOccupyingFaction(config.m_ConfigFile.occupyingFaction);
 			}else{
-				Print("Overthrow: Setting occupying faction to default (" + config.m_sDefaultOccupyingFaction + ")");
+				Print("[Overthrow] Overthrow: Setting occupying faction to default (" + config.m_sDefaultOccupyingFaction + ")");
 				config.SetOccupyingFaction(config.m_sDefaultOccupyingFaction);
 			}
 		}
@@ -65,7 +65,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 
 		if(m_OccupyingFactionManager)
 		{
-			Print("Starting New Occupying Faction");
+			Print("[Overthrow] Starting New Occupying Faction");
 
 			m_OccupyingFactionManager.NewGameStart();
 		}
@@ -87,54 +87,66 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 
 		if(!OVT_Global.GetConfig().m_Difficulty)
 		{
-			Print("No difficulty settings found! Reverting to default");
+			Print("[Overthrow] No difficulty settings found! Reverting to default");
 			OVT_Global.GetConfig().m_Difficulty = new OVT_DifficultySettings();
 		}
 
 		if(m_EconomyManager)
 		{
-			Print("Starting Economy");
+			Print("[Overthrow] Starting Economy");
 
 			m_EconomyManager.PostGameStart();
 		}
 
 		if(m_TownManager)
 		{
-			Print("Starting Towns");
+			Print("[Overthrow] Starting Towns");
 
 			m_TownManager.PostGameStart();
 		}
 
 		if(m_OccupyingFactionManager)
 		{
-			Print("Starting Occupying Faction");
+			Print("[Overthrow] Starting Occupying Faction");
 
 			m_OccupyingFactionManager.PostGameStart();
 		}
 
 		if(m_ResistanceFactionManager)
 		{
-			Print("Starting Resistance Faction");
+			Print("[Overthrow] Starting Resistance Faction");
 
 			m_ResistanceFactionManager.PostGameStart();
 		}
 
 		if(m_JobManager)
 		{
-			Print("Starting Jobs");
+			Print("[Overthrow] Starting Jobs");
 
 			m_JobManager.PostGameStart();
 		}
 
 		if(m_SkillManager)
 		{
-			Print("Starting Skills");
+			Print("[Overthrow] Starting Skills");
 
 			m_SkillManager.PostGameStart();
 		}
 
-		Print("Overthrow Starting");
+		Print("[Overthrow] Overthrow Starting");
 		m_bGameInitialized = true;
+	}
+	
+	void DoPostLoad()
+	{
+		if(!IsMaster()) return;
+		
+		if(m_RealEstate)
+		{
+			Print("[Overthrow] Real Estate Post-Load");
+			
+			m_RealEstate.OnPostLoad(this);
+		}
 	}
 
 	override void EOnFrame(IEntity owner, float timeSlice)
@@ -288,22 +300,21 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 				int cost = OVT_Global.GetConfig().m_Difficulty.respawnCost;
 				m_EconomyManager.TakePlayerMoney(playerId, cost);
 			}else{
-				Print("Preparing returning player: " + persistentId);
+				Print("[Overthrow] Preparing returning player: " + persistentId);
 				//This is a returning player, don't charge them hospital fees
 				m_aInitializedPlayers.Insert(persistentId);
 			}
 			player.firstSpawn = false;
 		}else{
 			//New player
-			Print("Preparing NEW player: " + persistentId);
+			Print("[Overthrow] Preparing NEW player: " + persistentId);
 			int cash = OVT_Global.GetConfig().m_Difficulty.startingCash;
 			m_EconomyManager.AddPlayerMoney(playerId, cash);
 
 			vector home = m_RealEstate.GetHome(persistentId);
 			if(home[0] == 0)
 			{
-
-				IEntity house = OVT_Global.GetTowns().GetRandomStartingHouse();
+				IEntity house = OVT_Global.GetRealEstate().GetRandomStartingHouse();
 				if(!house)
 				{
 					//No houses left on the map, spawn in a town
@@ -327,7 +338,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	{
 		OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(controlledEntity.FindComponent(OVT_PlayerWantedComponent));
 		if(!wanted){
-			Print("Player spawn prefab is missing OVT_PlayerWantedComponent!");
+			Print("[Overthrow] Player spawn prefab is missing OVT_PlayerWantedComponent!");
 		}else{
 			wanted.SetWantedLevel(0);
 		}
@@ -379,7 +390,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		if(SCR_Global.IsEditMode())
 			return;
 
-		Print("Initializing Overthrow");
+		Print("[Overthrow] Initializing Overthrow");
 
 		OVT_Global.GetConfig() = OVT_Global.GetConfig();
 		m_PlayerManager = OVT_Global.GetPlayers();
@@ -388,7 +399,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		m_TownManager = OVT_TownManagerComponent.Cast(FindComponent(OVT_TownManagerComponent));
 		if(m_TownManager)
 		{
-			Print("Initializing Towns");
+			Print("[Overthrow] Initializing Towns");
 
 			m_TownManager.Init(this);
 		}
@@ -396,14 +407,14 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		m_EconomyManager = OVT_EconomyManagerComponent.Cast(FindComponent(OVT_EconomyManagerComponent));
 		if(m_EconomyManager)
 		{
-			Print("Initializing Economy");
+			Print("[Overthrow] Initializing Economy");
 			m_EconomyManager.Init(this);
 		}
 
 		m_OccupyingFactionManager = OVT_OccupyingFactionManager.Cast(FindComponent(OVT_OccupyingFactionManager));
 		if(m_OccupyingFactionManager)
 		{
-			Print("Initializing Occupying Faction");
+			Print("[Overthrow] Initializing Occupying Faction");
 
 			m_OccupyingFactionManager.Init(this);
 		}
@@ -411,7 +422,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		m_ResistanceFactionManager = OVT_ResistanceFactionManager.Cast(FindComponent(OVT_ResistanceFactionManager));
 		if(m_ResistanceFactionManager)
 		{
-			Print("Initializing Resistance Faction");
+			Print("[Overthrow] Initializing Resistance Faction");
 
 			m_ResistanceFactionManager.Init(this);
 		}
@@ -419,7 +430,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		m_VehicleManager = OVT_VehicleManagerComponent.Cast(FindComponent(OVT_VehicleManagerComponent));
 		if(m_VehicleManager)
 		{
-			Print("Initializing Vehicles");
+			Print("[Overthrow] Initializing Vehicles");
 
 			m_VehicleManager.Init(this);
 		}
@@ -427,7 +438,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		m_JobManager = OVT_JobManagerComponent.Cast(FindComponent(OVT_JobManagerComponent));
 		if(m_JobManager)
 		{
-			Print("Initializing Jobs");
+			Print("[Overthrow] Initializing Jobs");
 
 			m_JobManager.Init(this);
 		}
@@ -435,7 +446,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		m_SkillManager = OVT_SkillManagerComponent.Cast(FindComponent(OVT_SkillManagerComponent));
 		if(m_SkillManager)
 		{
-			Print("Initializing Skills");
+			Print("[Overthrow] Initializing Skills");
 
 			m_SkillManager.Init(this);
 		}
@@ -457,16 +468,16 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		m_Persistence = OVT_PersistenceManagerComponent.Cast(FindComponent(OVT_PersistenceManagerComponent));
 		if(m_Persistence)
 		{
-			Print("Initializing Persistence");
+			Print("[Overthrow] Initializing Persistence");
 			if(m_Persistence.HasSaveGame())
 			{
 				m_bCameraSet = true;
 				m_bRequestStartOnPostProcess = true;
 			}else{
-				Print("No save game detected");
+				Print("[Overthrow] No save game detected");
 				if(RplSession.Mode() == RplMode.Dedicated)
 				{
-					Print("Dedicated server, starting new game");
+					Print("[Overthrow] Dedicated server, starting new game");
 					DoStartNewGame();
 					m_bRequestStartOnPostProcess = true;
 				}else{
@@ -483,8 +494,9 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 
 	override event void OnWorldPostProcess(World world)
 	{
-		Print("World Post Processing complete..");
+		Print("[Overthrow] World Post Processing complete..");
 		super.OnWorldPostProcess(world);
+		GetGame().GetCallqueue().CallLater(DoPostLoad);
 		if(m_bRequestStartOnPostProcess)
 		{
 			GetGame().GetCallqueue().CallLater(DoStartGame);

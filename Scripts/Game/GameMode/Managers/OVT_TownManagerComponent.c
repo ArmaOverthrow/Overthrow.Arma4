@@ -517,57 +517,10 @@ class OVT_TownManagerComponent: OVT_Component
 		return house;
 	}
 	
-	IEntity GetRandomStartingHouse()
-	{
-		m_Houses = new array<ref EntityID>;
-		OVT_TownData town;
-		IEntity house;
-		int i = 0;
-		float dist;
-		
-		while(!house && i < 40)
-		{
-			i++;
-			int index = s_AIRandomGenerator.RandInt(0, m_Towns.Count()-1);
-			town = m_Towns[index];
-				
-			GetGame().GetWorld().QueryEntitiesBySphere(town.location, m_iCityRange, CheckHouseAddToArray, FilterStartingHouseEntities, EQueryEntitiesFlags.STATIC);
-			if(m_Houses.Count() == 0) continue;
-			
-			index = s_AIRandomGenerator.RandInt(0, m_Houses.Count()-1);
-			
-			house = GetGame().GetWorld().FindEntityByID(m_Houses[index]);						
-		}
-				
-		return house;
-	}
-	
 	IEntity GetNearestHouse(vector pos)
 	{
 		m_Houses = new array<ref EntityID>;		
 		GetGame().GetWorld().QueryEntitiesBySphere(pos, 25, CheckHouseAddToArray, FilterHouseEntities, EQueryEntitiesFlags.STATIC);
-		
-		float nearest = 26;
-		IEntity nearestEnt;		
-		
-		foreach(EntityID id : m_Houses)
-		{			
-			IEntity ent = GetGame().GetWorld().FindEntityByID(id);
-			float dist = vector.Distance(ent.GetOrigin(), pos);
-			if(dist < nearest)
-			{
-				nearest = dist;
-				nearestEnt = ent;
-			}
-		}
-		
-		return nearestEnt;
-	}
-	
-	IEntity GetNearestStartingHouse(vector pos)
-	{
-		m_Houses = new array<ref EntityID>;		
-		GetGame().GetWorld().QueryEntitiesBySphere(pos, 25, CheckHouseAddToArray, FilterStartingHouseEntities, EQueryEntitiesFlags.STATIC);
 		
 		float nearest = 26;
 		IEntity nearestEnt;		
@@ -874,19 +827,6 @@ class OVT_TownManagerComponent: OVT_Component
 				}
 					
 			}
-		}
-		return false;
-	}
-	
-	protected bool FilterStartingHouseEntities(IEntity entity) 
-	{
-		if(entity.ClassName() == "SCR_DestructibleBuildingEntity"){
-			ResourceName res = entity.GetPrefabData().GetPrefabName();
-			if(res.IndexOf("_furniture") > -1) return false;
-			foreach(string s : OVT_Global.GetConfig().m_aStartingHouseFilters)
-			{
-				if(res.IndexOf(s) > -1) return true;
-			}			
 		}
 		return false;
 	}

@@ -1,9 +1,10 @@
-SCR_DestructibleBuildingEntity : "{A43A100E3C377DB2}Prefabs/Structures/Core/Building_Base.et" {
+SCR_DestructibleBuildingEntity : "{525700C0EC3BA75B}Prefabs/Structures/Industrial/Sheds/ShedMetal_02/ShedMetal_02_short_base.et" {
  ID "F0DBA538AC2A0552"
  components {
   OVT_ParkingComponent "{59A6ADD9C4B02657}" {
    m_aParkingSpots {
     OVT_ParkingPointInfo "{59A6ADD9C2411829}" {
+     Offset 5 0 0
      m_vPosition 5 0 0
      m_Type PARKING_CAR
     }
@@ -11,10 +12,13 @@ SCR_DestructibleBuildingEntity : "{A43A100E3C377DB2}Prefabs/Structures/Core/Buil
      m_Type PARKING_CAR
     }
     OVT_ParkingPointInfo "{59A6ADD9D4AB1A07}" {
+     Offset -5 0 0
      m_vPosition -5 0 0
      m_Type PARKING_CAR
     }
     OVT_ParkingPointInfo "{59A6ADD9DD417D3B}" {
+     Offset 0 0 10
+     Angles 0 90 0
      m_vPosition 0 0 10
      m_vAngles 0 90 0
     }
