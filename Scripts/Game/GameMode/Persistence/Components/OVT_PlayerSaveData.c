@@ -21,6 +21,8 @@ class OVT_PlayerSaveData : EPF_ComponentSaveData
 	{
 		OVT_PlayerManagerComponent players = OVT_PlayerManagerComponent.Cast(component);
 		
+		if(!m_mPlayers) return;
+		
 		for(int t=0; t< m_mPlayers.Count(); t++)
 		{
 			string persId = m_mPlayers.GetKey(t);

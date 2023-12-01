@@ -1,0 +1,4 @@
+MatPBRBasic {
+ BCRMap "{A4BFB47B214F044C}Assets/Clothes/Data/TshirtBlackOverthrow_BCR.edds"
+ NMOMap "{2A01795B073844C8}Prefabs/Characters/Uniforms/Tops/Data/Tshirt_NMO.edds"
+}

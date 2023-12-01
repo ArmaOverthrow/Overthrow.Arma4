@@ -1,0 +1,15 @@
+GenericEntity {
+ ID "5F02B5D0F5DD50DD"
+ components {
+  MeshObject "{5F02B5D010CBA777}" {
+   Object "{3EC17BD41F8BF95C}Prefabs/Characters/Uniforms/Tops/Data/Tshirt_Arma_fertig.xob"
+   Materials {
+    MaterialAssignClass "{5F02B5D0A4E5CE6C}" {
+     SourceMaterial "Tshirt"
+     AssignedMaterial "{F0849A16C837B432}Prefabs/Characters/Uniforms/Tops/Data/TshirtBlackOverthrowAA.emat"
+    }
+   }
+  }
+ }
+ coords 230.769 1 164.083
+}
