@@ -5,12 +5,14 @@ SCR_DestructibleBuildingEntity : "{3F0D1AD613E9785F}Prefabs/Structures/Houses/Vi
    m_aParkingSpots {
     OVT_ParkingPointInfo "{5D7E4992E0704F11}" {
      Offset -8.66 0 -0.183
-     m_vPosition -8.66 0 -0.183
      m_Type PARKING_CAR
     }
    }
   }
   OVT_SpawnPointComponent "{5D7E499555462586}" {
+   m_vPoint PointInfo "{5F026405AC2186F4}" {
+    Offset -0.1079 0.5 2.5614
+   }
    m_vPosition 1.169 0.5 -2.355
   }
  }
