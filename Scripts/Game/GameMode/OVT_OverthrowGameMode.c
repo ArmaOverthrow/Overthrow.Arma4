@@ -317,6 +317,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 				IEntity house = OVT_Global.GetRealEstate().GetRandomStartingHouse();
 				if(!house)
 				{
+					Print("[Overthrow] No Starting homes left");
 					//No houses left on the map, spawn in a town
 					int index = s_AIRandomGenerator.RandInt(0, m_TownManager.m_Towns.Count()-1);
 					OVT_TownData town = m_TownManager.m_Towns[index];
@@ -368,6 +369,9 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	override void EOnInit(IEntity owner) //!EntityEvent.INIT
 	{
 		super.EOnInit(owner);
+		
+		m_aInitializedPlayers = new set<string>;
+		m_aHintedPlayers = new set<string>;
 
 		DiagMenu.RegisterBool(200, "lctrl+lalt+g", "Give $1000", "Cheats");
 		DiagMenu.SetValue(200, 0);
@@ -394,6 +398,14 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 
 		OVT_Global.GetConfig() = OVT_Global.GetConfig();
 		m_PlayerManager = OVT_Global.GetPlayers();
+		if(m_PlayerManager)
+		{
+			Print("[Overthrow] Initializing Players");
+
+			m_PlayerManager.Init(this);
+		}
+		
+		
 		m_RealEstate = OVT_Global.GetRealEstate();
 
 		m_TownManager = OVT_TownManagerComponent.Cast(FindComponent(OVT_TownManagerComponent));
@@ -514,9 +526,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 
 	//------------------------------------------------------------------------------------------------
 	void OVT_OverthrowGameMode(IEntitySource src, IEntity parent)
-	{
-		m_aInitializedPlayers = new set<string>;
-		m_aHintedPlayers = new set<string>;
+	{		
 		m_mPlayerGroups = new map<string, EntityID>;
 	}
 

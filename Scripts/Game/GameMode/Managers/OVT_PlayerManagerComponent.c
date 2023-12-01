@@ -23,7 +23,7 @@ class OVT_PlayerManagerComponent: OVT_Component
 	protected ref map<string, int> m_mPlayerIDs;
 	ref map<string, ref OVT_PlayerData> m_mPlayers;
 	
-	void OVT_PlayerManagerComponent(IEntityComponentSource src, IEntity ent, IEntity parent)
+	void Init(IEntity owner)
 	{
 		m_mPersistentIDs = new map<int, string>;
 		m_mPlayerIDs = new map<string, int>;

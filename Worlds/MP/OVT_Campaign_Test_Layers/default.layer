@@ -131,20 +131,6 @@ $grp SCR_SiteSlotEntity : "{588A3DAF0296B0C1}PrefabsEditable/Slots/Flat/E_SlotFl
 SCR_DestructibleBuildingEntity : "{5CADC96916FF1CC4}Prefabs/Structures/Houses/Villa/Villa_E_2I01/Villa_E_2I01.et" {
  coords 217.228 0.001 144.688
 }
-$grp SCR_DestructibleBuildingEntity : "{60333F74EE12B52F}Prefabs/Structures/Houses/Village/House_Village_E_1I05/House_Village_E_1I05s.et" {
- {
-  coords 219.088 0.412 199.548
-  angleY 56.419
- }
- {
-  coords 244.1 0.764 172.015
-  angleY 114.534
- }
- {
-  coords 212.01 0.567 174.074
-  angleY 14.886
- }
-}
 GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.et" {
  components {
   SCR_FactionAffiliationComponent "{5E66A8EA8F5BA794}" {
@@ -189,6 +175,10 @@ SCR_DestructibleBuildingEntity : "{CFE8511B2B7E8AAA}Prefabs/Structures/Commercia
 }
 Tree : "{D9DF1D13919F19A0}Prefabs/Vegetation/Bush/b_rosa_canina_0s.et" {
  coords 182.829 0.001 130.379
+}
+SCR_DestructibleBuildingEntity : "{DE43119351D125AC}Prefabs/Structures/Houses/Village/House_Village_E_1L02/House_Village_E_1L02t.et" {
+ coords 226.19 0.655 193.901
+ angleY -122.007
 }
 SCR_SiteSlotEntity : "{F4066B8425BEC47C}PrefabsEditable/Slots/Road/E_SlotRoadMedium.et" {
  coords 68.924 1.001 146.036
