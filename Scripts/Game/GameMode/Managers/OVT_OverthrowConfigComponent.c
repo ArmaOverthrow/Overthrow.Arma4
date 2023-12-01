@@ -48,10 +48,12 @@ class OVT_OverthrowConfigStruct
 {
 	string occupyingFaction;
 	string discordWebHookURL;
+	ref array<string> officers;
 	void SetDefaults()
 	{
 		discordWebHookURL = "see wiki: https://github.com/ArmaOverthrow/Overthrow.Arma4/wiki/Discord-Web-Hook";
 		occupyingFaction = "";
+		officers = new array<string>;
 	}
 }
 

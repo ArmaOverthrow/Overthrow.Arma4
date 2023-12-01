@@ -284,14 +284,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			m_ResistanceFactionManager.AddOfficer(playerId);
 		}
 
-#ifdef WORKBENCH
-		if(!player.isOfficer && playerId == 1)
-		{
-			//In workbench, make the first player an officer
-			m_ResistanceFactionManager.AddOfficer(playerId);
-		}
-#endif
-
 		if(player.initialized)
 		{
 			//Existing player
@@ -332,6 +324,15 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			player.initialized = true;
 			player.firstSpawn = true;
 			m_aInitializedPlayers.Insert(persistentId);
+		}
+		
+		if(!player.isOfficer)
+		{
+			OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+			if(config.m_ConfigFile && config.m_ConfigFile.officers && config.m_ConfigFile.officers.Find(persistentId) > -1)
+			{
+				m_ResistanceFactionManager.AddOfficer(playerId);
+			}
 		}
 	}
 
