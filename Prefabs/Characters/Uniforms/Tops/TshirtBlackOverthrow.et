@@ -9,8 +9,8 @@ GameEntity : "{D262D2102B9931C6}Prefabs/Characters/Uniforms/Jacket_M88_rolledup.
    }
    Attributes SCR_ItemAttributeCollection "{5222CB01245CDF32}" {
     ItemDisplayName UIInfo "{5222CB0109A04AB2}" {
-     Name "Tshirt"
-     Description "Black A"
+     Name "Tshirt (Overthrow)"
+     Description "Black w/ Overthrow logo"
     }
     CustomAttributes {
      PreviewRenderAttributes "{555292467DA11B7C}" {

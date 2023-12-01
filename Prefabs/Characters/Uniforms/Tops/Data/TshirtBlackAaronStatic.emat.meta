@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{2B4F88B454775CDC}Prefabs/Characters/Uniforms/Tops/Data/TshirtBlackAaronStatic.emat"
+ Configurations {
+  EMATResourceClass PC {
+  }
+  EMATResourceClass XBOX_ONE : PC {
+  }
+  EMATResourceClass XBOX_SERIES : PC {
+  }
+  EMATResourceClass PS4 : PC {
+  }
+  EMATResourceClass HEADLESS : PC {
+  }
+ }
+}
