@@ -21,7 +21,7 @@ class OVT_PlayerSaveData : EPF_ComponentSaveData
 	{
 		OVT_PlayerManagerComponent players = OVT_PlayerManagerComponent.Cast(component);
 		
-		if(!m_mPlayers) return;
+		if(!m_mPlayers) return EPF_EApplyResult.OK;
 		
 		for(int t=0; t< m_mPlayers.Count(); t++)
 		{
