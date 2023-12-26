@@ -1,0 +1,15 @@
+Vehicle : "{4085446E2B406849}Prefabs/Vehicles/Core/Vehicle_Base.et" {
+ ID "57DA6675519A417B"
+ components {
+  EPF_PersistenceComponent "{5A0D2D215F2F2559}" {
+   m_pSaveData EPF_VehicleSaveDataClass "{5A0D2D215C6BFA59}" {
+    m_aComponents {
+     OVT_PlayerOwnerDataClass "{5F1EC251ACF6B341}" {
+     }
+    }
+   }
+  }
+  OVT_PlayerOwnerComponent "{5F1EC253F0A9CC36}" {
+  }
+ }
+}
