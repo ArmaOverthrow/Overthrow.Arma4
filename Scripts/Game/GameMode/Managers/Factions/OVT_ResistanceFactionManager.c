@@ -64,8 +64,8 @@ class OVT_ResistanceFactionManager: OVT_Component
 	protected IEntity m_TempVehicle;
 	protected SCR_AIGroup m_TempGroup;
 	
-	ref ScriptInvoker m_OnPlace = new ref ScriptInvoker();
-	ref ScriptInvoker m_OnBuild = new ref ScriptInvoker();
+	ref ScriptInvoker m_OnPlace = new ScriptInvoker();
+	ref ScriptInvoker m_OnBuild = new ScriptInvoker();
 	
 	static OVT_ResistanceFactionManager s_Instance;
 	

@@ -122,7 +122,7 @@ class OVT_ResistanceMenuContext : OVT_UIContext
 		OVT_PlayerManagerComponent playerMgr = OVT_Global.GetPlayers();
 		foreach(int id : players)
 		{
-			spin.AddItem(mgr.GetPlayerName(id), new OVT_ResistancePlayerData(id));
+			spin.AddItem(mgr.GetPlayerName(id), false, new OVT_ResistancePlayerData(id));
 		}
 		
 		ww = m_wRoot.FindAnyWidget("TaxSlider");

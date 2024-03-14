@@ -17,7 +17,7 @@ class OVT_PlayerManagerComponent: OVT_Component
 		return s_Instance;
 	}
 	
-	ref ScriptInvoker m_OnPlayerDataLoaded = new ref ScriptInvoker();
+	ref ScriptInvoker m_OnPlayerDataLoaded = new ScriptInvoker();
 	
 	protected ref map<int, string> m_mPersistentIDs;
 	protected ref map<string, int> m_mPlayerIDs;

@@ -49,7 +49,7 @@ class OVT_FOBMenuContext : OVT_UIContext
 			SCR_EditableGroupComponent group = SCR_EditableGroupComponent.Cast(spawn.FindComponent(SCR_EditableGroupComponent));
 			if(group)
 			{
-				m_GroupSpin.AddItem(group.GetDisplayName(), new OVT_GroupUIInfo(res, soldierCost, equipmentCost, aigroup.m_aUnitPrefabSlots.Count()));
+				m_GroupSpin.AddItem(group.GetDisplayName(), false, new OVT_GroupUIInfo(res, soldierCost, equipmentCost, aigroup.m_aUnitPrefabSlots.Count()));
 			}
 			
 			

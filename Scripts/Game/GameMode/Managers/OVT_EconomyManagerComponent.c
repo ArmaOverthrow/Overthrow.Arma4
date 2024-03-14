@@ -90,10 +90,10 @@ class OVT_EconomyManagerComponent: OVT_Component
 	float m_fResistanceTax = 0;
 	
 	//Events
-	ref ScriptInvoker m_OnPlayerMoneyChanged = new ref ScriptInvoker();
-	ref ScriptInvoker m_OnResistanceMoneyChanged = new ref ScriptInvoker();
-	ref ScriptInvoker m_OnPlayerBuy = new ref ScriptInvoker();
-	ref ScriptInvoker m_OnPlayerSell = new ref ScriptInvoker();
+	ref ScriptInvoker m_OnPlayerMoneyChanged = new ScriptInvoker();
+	ref ScriptInvoker m_OnResistanceMoneyChanged = new ScriptInvoker();
+	ref ScriptInvoker m_OnPlayerBuy = new ScriptInvoker();
+	ref ScriptInvoker m_OnPlayerSell = new ScriptInvoker();
 		
 	static OVT_EconomyManagerComponent s_Instance;	
 	static OVT_EconomyManagerComponent GetInstance()
@@ -1139,7 +1139,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 			
 			if(!m_mTownShops.Contains(townID))
 			{				
-				m_mTownShops[townID] = new ref array<RplId>;	
+				m_mTownShops[townID] = {};	
 			}
 			
 			m_mTownShops[townID].Insert(id);

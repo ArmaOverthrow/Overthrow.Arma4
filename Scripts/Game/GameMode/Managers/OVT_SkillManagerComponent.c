@@ -21,7 +21,7 @@ class OVT_SkillManagerComponent: OVT_Component
 		return s_Instance;
 	}
 	
-	ref ScriptInvoker m_OnPlayerSkill = new ref ScriptInvoker();
+	ref ScriptInvoker m_OnPlayerSkill = new ScriptInvoker();
 	
 	void Init(IEntity owner)
 	{

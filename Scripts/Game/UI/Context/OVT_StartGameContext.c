@@ -39,7 +39,7 @@ class OVT_StartGameContext : OVT_UIContext
 			if(!faction) continue;
 			if(faction.IsPlayable()) continue;
 			
-			spin.AddItem(fac.GetUIInfo().GetName(),fac);
+			spin.AddItem(fac.GetUIInfo().GetName(),false,fac);
 						
 			if(faction.GetFactionKey() == OVT_Global.GetConfig().m_sDefaultOccupyingFaction) selectedFaction = i;
 			
