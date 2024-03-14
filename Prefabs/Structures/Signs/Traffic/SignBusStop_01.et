@@ -1,6 +1,9 @@
 GenericEntity : "{CD0BE5C399B0752F}Prefabs/Structures/Signs/Signs_Base.et" {
  ID "50D67C36F4200F97"
  components {
+  SCR_DestructionMultiPhaseComponent "{5496C1EF00137501}" {
+   EnableDamage 0
+  }
   ActionsManagerComponent "{59A6ED8D3751EC5C}" {
    ActionContexts {
     UserActionContext "{59A6ED8D36C284EB}" {
