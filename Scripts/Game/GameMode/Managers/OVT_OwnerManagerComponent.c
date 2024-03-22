@@ -29,8 +29,12 @@ class OVT_OwnerManagerComponent: OVT_Component
 	void SetOwner(int playerId, IEntity building)
 	{
 		RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
-		DoSetOwner(playerId, rpl.Id());		
-		Rpc(RpcDo_SetOwner, playerId, rpl.Id());		
+		
+		RplId rplId = null;
+		if(rpl != null) rplId = rpl.Id();
+		
+		DoSetOwner(playerId, rplId);		
+		Rpc(RpcDo_SetOwner, playerId, rplId);		
 	}
 	
 	void SetOwnerPersistentId(string persId, IEntity building)
