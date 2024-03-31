@@ -13,7 +13,9 @@ SCR_DestructibleBuildingEntity : "{3F0D1AD613E9785F}Prefabs/Structures/Houses/Vi
    m_vPoint PointInfo "{5F026405AC2186F4}" {
     Offset -0.1079 0.5 2.5614
    }
-   m_vPosition 1.169 0.5 -2.355
+  }
+  RplComponent "{50A4E7C9B5728062}" {
+   Enabled 1
   }
  }
 }

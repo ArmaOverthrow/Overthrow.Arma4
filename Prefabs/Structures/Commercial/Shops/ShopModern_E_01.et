@@ -4,5 +4,8 @@ SCR_DestructibleBuildingEntity : "{9ABD5AF92E43D2AA}Prefabs/Structures/Commercia
   OVT_ShopComponent "{598EDB5A1677FEA3}" {
    m_ShopType SHOP_GENERAL
   }
- } 
+  RplComponent "{50A4E7C9B5728062}" {
+   Enabled 1
+  }
+ }
 }

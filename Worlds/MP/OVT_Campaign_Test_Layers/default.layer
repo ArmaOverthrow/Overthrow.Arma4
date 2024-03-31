@@ -75,6 +75,11 @@ $grp GenericEntity {
  }
 }
 SCR_DestructibleBuildingEntity : "{00FD2B4A0BDEC271}Prefabs/Structures/Commercial/FuelStations/FuelStation_E_01_building.et" {
+ components {
+  RplComponent "{50A4E7C9B5728062}" {
+   Enabled 0
+  }
+ }
  coords 240.87 0.001 76.83
  angleY -89.85
 }
@@ -149,6 +154,11 @@ Tree : "{9025E96A11516E7A}Prefabs/Vegetation/Bush/b_juniperus_communis_2w.et" {
  coords 182.721 0.001 126.162
 }
 SCR_DestructibleBuildingEntity : "{92E8F78BCF17D93D}Prefabs/Structures/Commercial/Shops/ShopHouse_E_2I01t_clothesstore.et" {
+ components {
+  RplComponent "{50A4E7C9B5728062}" {
+   Enabled 1
+  }
+ }
  coords 191.848 0.001 87.529
 }
 GenericEntity : "{9BF7399A6F63D480}Prefabs/GameMode/OVT_Port.et" {
@@ -171,6 +181,11 @@ Tree : "{BA785041AC632123}Prefabs/Vegetation/Bush/b_salix_cinerea_1.et" {
  coords 179.952 0.001 121.315
 }
 SCR_DestructibleBuildingEntity : "{CFE8511B2B7E8AAA}Prefabs/Structures/Commercial/Shops/ShopModern_E_01.et" {
+ components {
+  RplComponent "{50A4E7C9B5728062}" {
+   Enabled 1
+  }
+ }
  coords 210.935 0.001 93.913
 }
 Tree : "{D9DF1D13919F19A0}Prefabs/Vegetation/Bush/b_rosa_canina_0s.et" {
@@ -190,6 +205,11 @@ SCR_SiteSlotEntity : "{F4066B8425BEC47C}PrefabsEditable/Slots/Road/E_SlotRoadMed
  }
 }
 SCR_DestructibleBuildingEntity : "{F51B9B9BD15BBE64}Prefabs/Structures/Commercial/Shops/ShopHouse_E_2I01t_householdwares.et" {
+ components {
+  RplComponent "{50A4E7C9B5728062}" {
+   Enabled 1
+  }
+ }
  coords 166.601 0.001 87.468
 }
 StaticModelEntity : "{F808145ADD4EF885}PrefabLibrary/Walls/Metal/MetalGate_01_Long.et" {
@@ -201,5 +221,10 @@ SCR_DestructibleBuildingEntity : "{FBCE1861B987EA68}Prefabs/Structures/Military/
  angleY -90.081
 }
 SCR_DestructibleBuildingEntity : "{FF48B5059EB0AC65}Prefabs/Structures/Commercial/Shops/ShopHouse_E_2I01t_drugstore.et" {
+ components {
+  RplComponent "{50A4E7C9B5728062}" {
+   Enabled 1
+  }
+ }
  coords 179.27 0.001 87.654
 }

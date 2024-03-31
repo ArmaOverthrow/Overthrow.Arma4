@@ -5,7 +5,6 @@ SCR_DestructibleBuildingEntity : "{525700C0EC3BA75B}Prefabs/Structures/Industria
    m_aParkingSpots {
     OVT_ParkingPointInfo "{59A6ADD9C2411829}" {
      Offset 5 0 0
-     m_vPosition 5 0 0
      m_Type PARKING_CAR
     }
     OVT_ParkingPointInfo "{59A6ADD9D76EF643}" {
@@ -13,16 +12,16 @@ SCR_DestructibleBuildingEntity : "{525700C0EC3BA75B}Prefabs/Structures/Industria
     }
     OVT_ParkingPointInfo "{59A6ADD9D4AB1A07}" {
      Offset -5 0 0
-     m_vPosition -5 0 0
      m_Type PARKING_CAR
     }
     OVT_ParkingPointInfo "{59A6ADD9DD417D3B}" {
      Offset 0 0 10
      Angles 0 90 0
-     m_vPosition 0 0 10
-     m_vAngles 0 90 0
     }
    }
+  }
+  RplComponent "{50A4E7C9B5728062}" {
+   Enabled 1
   }
  }
 }
