@@ -26,7 +26,9 @@ class OVT_TownData : Managed
 	
 	int SupportPercentage()
 	{
-		return Math.Round((support / population) * 100);
+		if(population == 0) 
+			return 0;
+		return Math.Round((support / population ) * 100);
 	}
 	
 	OVT_Faction ControllingFaction()
