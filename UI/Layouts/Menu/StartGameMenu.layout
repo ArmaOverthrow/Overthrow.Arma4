@@ -124,9 +124,9 @@ FrameWidgetClass {
            }
            Text "It is currently not possible to save your game on XBOX in single-player due to a limitation with the Arma Reforger engine."\
            ""\
-           "You can still play Overthrow, but your progress will be lost as soon as you exit the scenario."\
+           "There is no indication of when this will be fixed by Bohemia Interactive. We are trying to make it work without saving but having trouble getting it to work. You can try to hit the Start Game button but it may not work and get stuck on this screen forever."\
            ""\
-           "Your progress will be saved, however, if you play on a Multiplayer cross-play server. Search the server list for \"Overthrow\" and join any of the public servers hosted by the community."
+           "You can still play Overthrow on a Multiplayer cross-play server. Search the server list for \"Overthrow\" and join any of the public servers hosted by the community."
            "Font Size" 17
            "Min Font Size" 17
            "Horizontal Alignment" Center
