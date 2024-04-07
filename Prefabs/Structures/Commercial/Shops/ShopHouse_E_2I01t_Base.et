@@ -4,5 +4,8 @@ SCR_DestructibleBuildingEntity : "{A43A100E3C377DB2}Prefabs/Structures/Core/Buil
   OVT_ShopComponent "{59C2C703C4E7DE6E}" {
    m_ShopType SHOP_GENERAL
   }
+  RplComponent "{50A4E7C9B5728062}" {
+   Enabled 1
+  }
  }
 }

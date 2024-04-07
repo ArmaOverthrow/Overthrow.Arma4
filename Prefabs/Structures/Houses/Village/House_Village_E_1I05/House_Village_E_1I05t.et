@@ -14,5 +14,8 @@ SCR_DestructibleBuildingEntity : "{3F0D1AD613E9785F}Prefabs/Structures/Houses/Vi
     Offset -2.0261 0.4954 3.3734
    }
   }
+  RplComponent "{50A4E7C9B5728062}" {
+   Enabled 1
+  }
  }
 }
