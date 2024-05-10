@@ -173,7 +173,7 @@ class OVT_TownControllerComponent: OVT_Component
 			{
 				SCR_EntityCatalogEntry found;
 				int t = 0;
-				while(!found && t < 20)
+				while(!entries.IsEmpty() && !found && t < 20)
 				{
 					t++;
 					int index = generator.RandInt(0,entries.Count()-1);
