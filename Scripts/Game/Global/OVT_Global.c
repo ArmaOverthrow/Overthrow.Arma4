@@ -1,4 +1,5 @@
-class OVT_Global {	
+class OVT_Global : Managed
+{	
 	static OVT_PlayerCommsComponent GetServer()
 	{		
 		if(Replication.IsServer())
