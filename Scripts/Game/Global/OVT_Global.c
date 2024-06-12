@@ -81,7 +81,7 @@ class OVT_Global {
 	
 	static bool PlayerInRange(vector pos, int range)
 	{		
-		autoptr array<int> players = new array<int>;
+		array<int> players = new array<int>;
 		PlayerManager mgr = GetGame().GetPlayerManager();
 		int numplayers = mgr.GetPlayers(players);
 		
@@ -110,7 +110,7 @@ class OVT_Global {
 	
 	static int NearestPlayer(vector pos)
 	{		
-		autoptr array<int> players = new array<int>;
+		array<int> players = new array<int>;
 		PlayerManager mgr = GetGame().GetPlayerManager();
 		int numplayers = mgr.GetPlayers(players);
 		
@@ -153,7 +153,7 @@ class OVT_Global {
 			checkpos[1] = pos[1] + s_AIRandomGenerator.RandFloatXY(0, 2);
 						
 			//check if a box on that position collides with anything
-			autoptr TraceBox trace = new TraceBox;
+			TraceBox trace = new TraceBox;
 			trace.Flags = TraceFlags.ENTS;
 			trace.Start = checkpos;
 			trace.Mins = mins;
@@ -187,7 +187,7 @@ class OVT_Global {
 		
 		if(!toStorage || !fromStorage) return;
 				
-		autoptr array<IEntity> items = new array<IEntity>;
+		array<IEntity> items = new array<IEntity>;
 		fromStorage.GetItems(items);
 		if(items.Count() == 0) return;
 				
@@ -227,7 +227,7 @@ class OVT_Global {
 		OVT_WarehouseData warehouse = realEstate.GetNearestWarehouse(fromEntity.GetOrigin(), 50);
 		if(!warehouse) return;
 						
-		autoptr array<IEntity> items = new array<IEntity>;
+		array<IEntity> items = new array<IEntity>;
 		fromStorage.GetItems(items);
 		if(items.Count() == 0) return;
 		
@@ -433,7 +433,7 @@ class OVT_Global {
 	
 	static void RandomizeCivilianClothes(SCR_AIGroup aigroup)
 	{
-		autoptr array<AIAgent> civs  = new array<AIAgent>;
+		array<AIAgent> civs  = new array<AIAgent>;
 		aigroup.GetAgents(civs);
 		foreach(AIAgent agent : civs)
 		{
