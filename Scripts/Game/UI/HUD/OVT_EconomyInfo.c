@@ -50,8 +50,9 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 			HideQRF();
 		}
 		
-		if(m_fOverrideCounter >= 2)
+		if(m_fOverrideCounter >= 1)
 		{
+			m_fOverrideCounter = 0;
 			UpdateOverride();
 		}
 		
