@@ -63,7 +63,7 @@ class OVT_MainMenuContextOverrideComponent : OVT_Component
 		
 		SCR_CompartmentAccessComponent compartment = SCR_CompartmentAccessComponent.Cast(player.FindComponent(SCR_CompartmentAccessComponent));
 				
-		if(compartment && compartment.IsInCompartment() && compartment.GetCompartmentType(compartment.GetCompartment()) == ECompartmentType.Pilot){
+		if(compartment && compartment.IsInCompartment() && compartment.GetCompartment().GetType() == ECompartmentType.Pilot){
 			isDriver = true;
 		}
 		
