@@ -8,6 +8,7 @@ assignees: ''
 ---
 
 ## Version information
+- Platform:
 - Game version:
 - Overthrow version:
 
