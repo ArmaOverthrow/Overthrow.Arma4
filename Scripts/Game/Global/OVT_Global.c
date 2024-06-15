@@ -148,13 +148,14 @@ class OVT_Global : Managed
 		BaseWorld world = GetGame().GetWorld();
 		float ground = world.GetSurfaceY(pos[0],pos[2]);
 		
+		vector checkpos;
 		TraceBox trace;
 		while(i < 30)
 		{
 			i++;
 			
 			//Get a random vector in a 3m radius sphere centered on pos and above the ground
-			vector checkpos = s_AIRandomGenerator.GenerateRandomPointInRadius(0,3,pos,false);
+			checkpos = s_AIRandomGenerator.GenerateRandomPointInRadius(0,3,pos,false);
 			checkpos[1] = pos[1] + s_AIRandomGenerator.RandFloatXY(0, 2);
 						
 			//check if a box on that position collides with anything
