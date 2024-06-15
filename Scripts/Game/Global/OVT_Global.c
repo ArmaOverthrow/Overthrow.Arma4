@@ -88,11 +88,13 @@ class OVT_Global : Managed
 		
 		if(numplayers > 0)
 		{
+			IEntity player;
+			DamageManagerComponent dmg;
 			foreach(int playerID : players)
 			{
-				IEntity player = mgr.GetPlayerControlledEntity(playerID);				
+				player = mgr.GetPlayerControlledEntity(playerID);				
 				if(!player) continue;
-				DamageManagerComponent dmg = DamageManagerComponent.Cast(player.FindComponent(DamageManagerComponent));
+				dmg = DamageManagerComponent.Cast(player.FindComponent(DamageManagerComponent));
 				if(dmg && dmg.IsDestroyed())
 				{
 					//Is dead, ignore
@@ -120,9 +122,10 @@ class OVT_Global : Managed
 		
 		if(numplayers > 0)
 		{
+			IEntity player;
 			foreach(int playerID : players)
 			{
-				IEntity player = mgr.GetPlayerControlledEntity(playerID);
+				player = mgr.GetPlayerControlledEntity(playerID);
 				if(!player) continue;
 				float distance = vector.Distance(player.GetOrigin(), pos);
 				if(distance < nearestDist)
@@ -144,7 +147,8 @@ class OVT_Global : Managed
 		
 		BaseWorld world = GetGame().GetWorld();
 		float ground = world.GetSurfaceY(pos[0],pos[2]);
-				
+		
+		TraceBox trace;
 		while(i < 30)
 		{
 			i++;
@@ -154,7 +158,7 @@ class OVT_Global : Managed
 			checkpos[1] = pos[1] + s_AIRandomGenerator.RandFloatXY(0, 2);
 						
 			//check if a box on that position collides with anything
-			TraceBox trace = new TraceBox;
+			trace = new TraceBox;
 			trace.Flags = TraceFlags.ENTS;
 			trace.Start = checkpos;
 			trace.Mins = mins;
@@ -324,11 +328,12 @@ class OVT_Global : Managed
 	static vector GetRandomNonOceanPositionNear(vector pos, float range)
 	{
 		int i = 0;
+		vector checkpos;
 		while(i < 30)
 		{
 			i++;			
 			
-			vector checkpos = s_AIRandomGenerator.GenerateRandomPointInRadius(0,range,pos,false);
+			checkpos = s_AIRandomGenerator.GenerateRandomPointInRadius(0,range,pos,false);
 			
 			if(!OVT_Global.IsOceanAtPosition(checkpos))
 			{	
@@ -436,14 +441,17 @@ class OVT_Global : Managed
 	{
 		array<AIAgent> civs  = new array<AIAgent>;
 		aigroup.GetAgents(civs);
+		IEntity civ;
+		InventoryStorageManagerComponent storageManager;
 		foreach(AIAgent agent : civs)
 		{
-			IEntity civ = agent.GetControlledEntity();
-			InventoryStorageManagerComponent storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(civ);
+			civ = agent.GetControlledEntity();
+			storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(civ);
 			if(!storageManager) continue;
+			IEntity slotEntity;
 			foreach (OVT_LoadoutSlot loadoutItem : OVT_Global.GetConfig().m_CivilianLoadout.m_aSlots)
 			{
-				IEntity slotEntity = SpawnDefaultCharacterItem(storageManager, loadoutItem);
+				slotEntity = SpawnDefaultCharacterItem(storageManager, loadoutItem);
 				if (!slotEntity) continue;
 				
 				if (!storageManager.TryInsertItem(slotEntity, EStoragePurpose.PURPOSE_LOADOUT_PROXY))
