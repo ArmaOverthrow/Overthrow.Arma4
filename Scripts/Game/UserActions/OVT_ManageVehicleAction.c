@@ -21,7 +21,7 @@ class OVT_ManageVehicleAction : ScriptedUserAction
 		Vehicle veh = Vehicle.Cast(m_Vehicles[0]);
 		SCR_BaseCompartmentManagerComponent access = SCR_BaseCompartmentManagerComponent.Cast(veh.FindComponent(SCR_BaseCompartmentManagerComponent));
 		array<IEntity> pilots = {};
-		access.GetOccupantsOfType(pilots, ECompartmentType.Pilot);
+		access.GetOccupantsOfType(pilots, ECompartmentType.PILOT);
 		
 		if(pilots.Count() > 0)
 		{

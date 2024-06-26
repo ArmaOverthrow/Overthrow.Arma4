@@ -401,7 +401,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		SCR_CompartmentAccessComponent access = SCR_CompartmentAccessComponent.Cast(ent.FindComponent(SCR_CompartmentAccessComponent));
 		if(!access) return;
 		
-		access.MoveInVehicle(m_TempVehicle, ECompartmentType.Turret);
+		access.MoveInVehicle(m_TempVehicle, ECompartmentType.TURRET);
 	}
 	
 	void SpawnGunner(RplId turret, int playerId = -1, bool takeSupporter = true)

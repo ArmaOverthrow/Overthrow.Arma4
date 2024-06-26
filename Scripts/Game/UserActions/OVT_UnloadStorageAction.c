@@ -33,7 +33,7 @@ class OVT_UnloadStorageAction : SCR_InventoryAction
 		Vehicle veh = Vehicle.Cast(nearestVeh);
 		SCR_BaseCompartmentManagerComponent access = SCR_BaseCompartmentManagerComponent.Cast(veh.FindComponent(SCR_BaseCompartmentManagerComponent));
 		array<IEntity> pilots = {};
-		access.GetOccupantsOfType(pilots, ECompartmentType.Pilot);
+		access.GetOccupantsOfType(pilots, ECompartmentType.PILOT);
 		
 		if(pilots.Count() > 0)
 		{
