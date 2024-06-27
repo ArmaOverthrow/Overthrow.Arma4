@@ -28,7 +28,13 @@ class OVT_SetHomeAction : ScriptedUserAction
 	
 	override bool CanBeShownScript(IEntity user)
 	{
-		return !EPF_Component<OVT_BaseControllerComponent>.Find(GetOwner()).IsOccupyingFaction();
+		OVT_BaseControllerComponent baseController = EPF_Component<OVT_BaseControllerComponent>.Find(GetOwner());
+		if (!baseController)
+		{
+			Print("OVT_SetHomeAction.CanBeShownScript: Null BaseControllerComponent! Exiting", LogLevel.WARNING);
+			return false;
+		}
+		return !baseController.IsOccupyingFaction();
 	}
 	
 	override bool HasLocalEffectOnlyScript() { return true; };
