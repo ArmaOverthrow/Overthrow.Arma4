@@ -103,7 +103,10 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 		int selection = s_AIRandomGenerator.RandInt(0, loadoutItem.m_aChoices.Count() - 1);
 		ResourceName prefab = loadoutItem.m_aChoices[selection];
 		
-		IEntity slotEntity = GetGame().SpawnEntityPrefab(Resource.Load(prefab));
+		EntitySpawnParams spawnParams();
+		spawnParams.Transform[3] = storageManager.GetOwner().GetOrigin();
+		
+		IEntity slotEntity = GetGame().SpawnEntityPrefab(Resource.Load(prefab), GetGame().GetWorld(), spawnParams);
 		if (!slotEntity) return null;
 		
 		if (loadoutItem.m_aStoredItems)
@@ -113,7 +116,7 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 
 			foreach (ResourceName storedItem : loadoutItem.m_aStoredItems)
 			{				
-				IEntity spawnedItem = GetGame().SpawnEntityPrefab(Resource.Load(storedItem));
+				IEntity spawnedItem = GetGame().SpawnEntityPrefab(Resource.Load(storedItem), GetGame().GetWorld(), spawnParams);
 				if(!spawnedItem) continue;
 
 				foreach (Managed componentRef : outComponents)
