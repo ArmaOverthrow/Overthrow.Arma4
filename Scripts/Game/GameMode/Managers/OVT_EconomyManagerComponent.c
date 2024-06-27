@@ -84,6 +84,10 @@ class OVT_EconomyManagerComponent: OVT_Component
 	protected ref array<int> m_aLegalVehicles;
 	protected ref array<int> m_aAllVehicles;
 	protected ref map<int,OVT_ParkingType> m_mVehicleParking;
+
+  	protected int m_iHourPaidIncome = -1;
+	protected int m_iHourPaidStock = -1;
+	protected int m_iHourPaidRent = -1;
 	
 	//Streamed to clients..			
 	int m_iResistanceMoney = 0;
@@ -147,24 +151,33 @@ class OVT_EconomyManagerComponent: OVT_Component
 			|| time.m_iHours == 12 
 			|| time.m_iHours == 18)
 			 && 
-			time.m_iMinutes == 0)
+			m_iHourPaidIncome != time.m_iHours)
 		{
+			m_iHourPaidIncome = time.m_iHours;
 			CalculateIncome();
 			UpdateShops();
 		}
 		
 		//Every morning at 7am replenish stock
-		if(time.m_iHours == 7 &&
-			time.m_iMinutes == 0)
+		if(time.m_iHours == 7)
 		{
-			ReplenishStock();
+			if (m_iHourPaidStock != time.m_iHours) {
+				m_iHourPaidStock = time.m_iHours;
+				ReplenishStock();
+			}
+		} else {
+			m_iHourPaidStock = -1;
 		}
 		
 		//Every midnight calculate rents
-		if(time.m_iHours == 0 &&
-			time.m_iMinutes == 0)
+		if(time.m_iHours == 0)
 		{
-			UpdateRents();
+			if (m_iHourPaidRent != time.m_iHours) {
+				m_iHourPaidRent = time.m_iHours;
+				UpdateRents();
+			}
+		} else {
+			m_iHourPaidRent = -1;
 		}
 	}
 	
