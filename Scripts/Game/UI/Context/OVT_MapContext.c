@@ -397,7 +397,7 @@ class OVT_MapContext : OVT_UIContext
 					if (compartmentAccess)
 					{
 						BaseCompartmentSlot slot = compartmentAccess.GetCompartment();
-						if(SCR_CompartmentAccessComponent.GetCompartmentType(slot) == ECompartmentType.Pilot)
+						if(SCR_CompartmentAccessComponent.GetCompartmentType(slot) == ECompartmentType.PILOT)
 						{
 							if(cost > 0)
 								m_Economy.TakePlayerMoney(m_iPlayerID, cost);
