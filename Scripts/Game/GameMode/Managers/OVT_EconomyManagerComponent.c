@@ -1194,6 +1194,16 @@ class OVT_EconomyManagerComponent: OVT_Component
 
 		return false;
 	}
+
+	void ChargeRespawn(int playerId)
+	{
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		int money = GetPlayerMoney(persId);
+		if (money > 500) {
+			int cost = OVT_Global.GetConfig().m_Difficulty.respawnCost;
+			TakePlayerMoney(playerId, cost);
+		}
+	}
 	
 	//RPC Methods
 	
