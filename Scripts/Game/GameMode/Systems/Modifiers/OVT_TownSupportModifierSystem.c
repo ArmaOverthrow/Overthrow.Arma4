@@ -28,6 +28,14 @@ class OVT_TownSupportModifierSystem : OVT_TownModifierSystem
 		if(supportmods > 100) supportmods = 100;
 		if(supportmods < -100) supportmods = -100;
 		
+		// Prevent division by zero and dump info
+		if(max == 0)
+		{
+			Print("OVT_TownSupportModifierSystem.Recalculate - passed zero as max value, exiting with baseValue", LogLevel.ERROR);
+			PrintFormat("modifiers: %1 - baseValue: %2 - min: %3 - max: %4", modifiers, baseValue, min, max);
+			return baseValue;
+		}
+		
 		int supportPerc = Math.Round((newsupport / max) * 100);
 		
 		if(supportmods > 75)
