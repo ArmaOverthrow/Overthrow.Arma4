@@ -37,9 +37,9 @@ class OVT_PersistenceManagerComponent : EPF_PersistenceManagerComponent
 #ifdef PLATFORM_XBOX
 		return;
 #endif
-		System.FindFiles(DeleteFileCallback, DB_BASE_DIR, ".json");
-		System.FindFiles(DeleteFileCallback, DB_BASE_DIR, ".bin");
-		System.FindFiles(DeleteFileCallback, DB_BASE_DIR, string.Empty);
+		FileIO.FindFiles(DeleteFileCallback, DB_BASE_DIR, ".json");
+		FileIO.FindFiles(DeleteFileCallback, DB_BASE_DIR, ".bin");
+		FileIO.FindFiles(DeleteFileCallback, DB_BASE_DIR, string.Empty);
 		FileIO.DeleteFile(DB_BASE_DIR);
 	}
 	
