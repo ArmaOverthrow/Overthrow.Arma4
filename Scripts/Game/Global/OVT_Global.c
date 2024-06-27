@@ -1,4 +1,5 @@
-class OVT_Global {	
+class OVT_Global : Managed
+{	
 	static OVT_PlayerCommsComponent GetServer()
 	{		
 		if(Replication.IsServer())
@@ -81,17 +82,19 @@ class OVT_Global {
 	
 	static bool PlayerInRange(vector pos, int range)
 	{		
-		autoptr array<int> players = new array<int>;
+		array<int> players = new array<int>;
 		PlayerManager mgr = GetGame().GetPlayerManager();
 		int numplayers = mgr.GetPlayers(players);
 		
 		if(numplayers > 0)
 		{
+			IEntity player;
+			DamageManagerComponent dmg;
 			foreach(int playerID : players)
 			{
-				IEntity player = mgr.GetPlayerControlledEntity(playerID);				
+				player = mgr.GetPlayerControlledEntity(playerID);				
 				if(!player) continue;
-				DamageManagerComponent dmg = DamageManagerComponent.Cast(player.FindComponent(DamageManagerComponent));
+				dmg = DamageManagerComponent.Cast(player.FindComponent(DamageManagerComponent));
 				if(dmg && dmg.IsDestroyed())
 				{
 					//Is dead, ignore
@@ -110,7 +113,7 @@ class OVT_Global {
 	
 	static int NearestPlayer(vector pos)
 	{		
-		autoptr array<int> players = new array<int>;
+		array<int> players = new array<int>;
 		PlayerManager mgr = GetGame().GetPlayerManager();
 		int numplayers = mgr.GetPlayers(players);
 		
@@ -119,9 +122,10 @@ class OVT_Global {
 		
 		if(numplayers > 0)
 		{
+			IEntity player;
 			foreach(int playerID : players)
 			{
-				IEntity player = mgr.GetPlayerControlledEntity(playerID);
+				player = mgr.GetPlayerControlledEntity(playerID);
 				if(!player) continue;
 				float distance = vector.Distance(player.GetOrigin(), pos);
 				if(distance < nearestDist)
@@ -143,17 +147,19 @@ class OVT_Global {
 		
 		BaseWorld world = GetGame().GetWorld();
 		float ground = world.GetSurfaceY(pos[0],pos[2]);
-				
+		
+		vector checkpos;
+		TraceBox trace;
 		while(i < 30)
 		{
 			i++;
 			
 			//Get a random vector in a 3m radius sphere centered on pos and above the ground
-			vector checkpos = s_AIRandomGenerator.GenerateRandomPointInRadius(0,3,pos,false);
+			checkpos = s_AIRandomGenerator.GenerateRandomPointInRadius(0,3,pos,false);
 			checkpos[1] = pos[1] + s_AIRandomGenerator.RandFloatXY(0, 2);
 						
 			//check if a box on that position collides with anything
-			autoptr TraceBox trace = new TraceBox;
+			trace = new TraceBox;
 			trace.Flags = TraceFlags.ENTS;
 			trace.Start = checkpos;
 			trace.Mins = mins;
@@ -187,7 +193,7 @@ class OVT_Global {
 		
 		if(!toStorage || !fromStorage) return;
 				
-		autoptr array<IEntity> items = new array<IEntity>;
+		array<IEntity> items = new array<IEntity>;
 		fromStorage.GetItems(items);
 		if(items.Count() == 0) return;
 				
@@ -227,7 +233,7 @@ class OVT_Global {
 		OVT_WarehouseData warehouse = realEstate.GetNearestWarehouse(fromEntity.GetOrigin(), 50);
 		if(!warehouse) return;
 						
-		autoptr array<IEntity> items = new array<IEntity>;
+		array<IEntity> items = new array<IEntity>;
 		fromStorage.GetItems(items);
 		if(items.Count() == 0) return;
 		
@@ -323,11 +329,12 @@ class OVT_Global {
 	static vector GetRandomNonOceanPositionNear(vector pos, float range)
 	{
 		int i = 0;
+		vector checkpos;
 		while(i < 30)
 		{
 			i++;			
 			
-			vector checkpos = s_AIRandomGenerator.GenerateRandomPointInRadius(0,range,pos,false);
+			checkpos = s_AIRandomGenerator.GenerateRandomPointInRadius(0,range,pos,false);
 			
 			if(!OVT_Global.IsOceanAtPosition(checkpos))
 			{	
@@ -433,16 +440,19 @@ class OVT_Global {
 	
 	static void RandomizeCivilianClothes(SCR_AIGroup aigroup)
 	{
-		autoptr array<AIAgent> civs  = new array<AIAgent>;
+		array<AIAgent> civs  = new array<AIAgent>;
 		aigroup.GetAgents(civs);
+		IEntity civ;
+		InventoryStorageManagerComponent storageManager;
 		foreach(AIAgent agent : civs)
 		{
-			IEntity civ = agent.GetControlledEntity();
-			InventoryStorageManagerComponent storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(civ);
+			civ = agent.GetControlledEntity();
+			storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(civ);
 			if(!storageManager) continue;
+			IEntity slotEntity;
 			foreach (OVT_LoadoutSlot loadoutItem : OVT_Global.GetConfig().m_CivilianLoadout.m_aSlots)
 			{
-				IEntity slotEntity = SpawnDefaultCharacterItem(storageManager, loadoutItem);
+				slotEntity = SpawnDefaultCharacterItem(storageManager, loadoutItem);
 				if (!slotEntity) continue;
 				
 				if (!storageManager.TryInsertItem(slotEntity, EStoragePurpose.PURPOSE_LOADOUT_PROXY))

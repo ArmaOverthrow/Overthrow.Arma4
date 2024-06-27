@@ -87,7 +87,7 @@ class OVT_BaseUpgradeComposition : OVT_SlottedBaseUpgrade
 		SCR_BaseCompartmentManagerComponent compartment = EPF_Component<SCR_BaseCompartmentManagerComponent>.Find(entity);
 		if(!compartment) return true;		
 		
-		compartment.SpawnDefaultOccupants({ECompartmentType.Turret});
+		compartment.SpawnDefaultOccupants({ECompartmentType.TURRET});
 		
 		return true;
 	}
