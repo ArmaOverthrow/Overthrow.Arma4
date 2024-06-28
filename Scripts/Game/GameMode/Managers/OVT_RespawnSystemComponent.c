@@ -136,4 +136,12 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 		
 		return slotEntity;
 	}
+	
+	override void OnPlayerKilled_S(int playerId, IEntity playerEntity, IEntity killerEntity, notnull Instigator killer)
+	{
+		super.OnPlayerKilled_S(playerId, playerEntity, killerEntity, killer);
+		
+		if (!Replication.IsServer()) return;
+		OVT_Global.GetEconomy().ChargeRespawn(playerId);
+	}
 }

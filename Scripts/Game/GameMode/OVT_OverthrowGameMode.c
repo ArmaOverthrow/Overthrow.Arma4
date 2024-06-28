@@ -289,8 +289,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			//Existing player
 			if(m_aInitializedPlayers.Contains(persistentId))
 			{
-				int cost = OVT_Global.GetConfig().m_Difficulty.respawnCost;
-				m_EconomyManager.TakePlayerMoney(playerId, cost);
+				//m_EconomyManager.ChargeRespawn(playerId);
 			}else{
 				Print("[Overthrow] Preparing returning player: " + persistentId);
 				//This is a returning player, don't charge them hospital fees
