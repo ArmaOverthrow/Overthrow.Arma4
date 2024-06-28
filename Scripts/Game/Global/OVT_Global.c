@@ -468,7 +468,10 @@ class OVT_Global : Managed
 		int selection = s_AIRandomGenerator.RandInt(0, loadoutItem.m_aChoices.Count() - 1);
 		ResourceName prefab = loadoutItem.m_aChoices[selection];
 		
-		IEntity slotEntity = GetGame().SpawnEntityPrefab(Resource.Load(prefab));
+		EntitySpawnParams spawnParams();
+		spawnParams.Transform[3] = storageManager.GetOwner().GetOrigin();
+		
+		IEntity slotEntity = GetGame().SpawnEntityPrefab(Resource.Load(prefab), GetGame().GetWorld(), spawnParams);
 		if (!slotEntity) return null;
 		
 		return slotEntity;
