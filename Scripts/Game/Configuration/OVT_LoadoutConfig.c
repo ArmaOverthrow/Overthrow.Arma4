@@ -6,6 +6,9 @@ class OVT_LoadoutSlot
 	
 	[Attribute("Player Only", desc: "This item will only spawn on the player, not civilians")]
 	bool m_bPlayerOnly;
+	
+	[Attribute("Skip Chance", desc: "The chance that this item will be skipped")]
+	float m_fSkipChance = 0;
 
 	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Available choices", params: "et")]
 	ref array<ResourceName> m_aChoices;

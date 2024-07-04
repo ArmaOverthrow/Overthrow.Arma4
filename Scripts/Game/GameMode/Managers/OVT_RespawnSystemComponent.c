@@ -72,6 +72,12 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 		{
 			foreach (OVT_LoadoutSlot loadoutItem : OVT_Global.GetConfig().m_CivilianLoadout.m_aSlots)
 			{
+				if(loadoutItem.m_fSkipChance > 0)
+				{
+					float rnd = s_AIRandomGenerator.RandFloat01();
+					if(rnd <= loadoutItem.m_fSkipChance) continue; 
+				}
+				
 				IEntity slotEntity = SpawnDefaultCharacterItem(storageManager, loadoutItem);
 				if (!slotEntity) continue;
 				

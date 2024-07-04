@@ -116,6 +116,12 @@ class OVT_TownControllerComponent: OVT_Component
 		{
 			if(loadoutItem.m_bPlayerOnly) continue;
 			
+			if(loadoutItem.m_fSkipChance > 0)
+			{
+				float rnd = s_AIRandomGenerator.RandFloat01();
+				if(rnd <= loadoutItem.m_fSkipChance) continue; 
+			}
+			
 			IEntity slotEntity = OVT_Global.SpawnDefaultCharacterItem(storageManager, loadoutItem);
 			if (!slotEntity) continue;
 			

@@ -10,6 +10,13 @@ SCR_AIWorld : "{E0A05C76552E7F58}Prefabs/AI/SCR_AIWorld.et" {
     }
    }
   }
+  NavmeshWorldComponent "{5584F30EEFEE1223}" {
+   NavmeshSettings ChimeraNavmeshWorld "{50FC63BEBE3973C5}" {
+    NavmeshFilesConfig BaseNavmeshFilesConfig "{60CA9BE5536BF701}" {
+     NavmeshFile "{97770339E1784B6D}Worlds/MP/OVT_Campaign_Test_btrlike.nmn"
+    }
+   }
+  }
   NavmeshWorldComponent "{5C8C9B750D124A63}" {
    NavmeshSettings NavmeshWorld "{5C8C9B750B60C6E2}" {
     NavmeshFilesConfig BaseNavmeshFilesConfig "{5C90BD0EC793647D}" {
@@ -30,7 +37,7 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMod
    }
   }
   OVT_VehicleManagerComponent "{5D707B3386AF876D}" {
-   m_CivilianVehicleEntityCatalog SCR_EntityCatalogMultiList "{5EE4E8D8F96B3B17}" : "{77243A71AF0E5A75}Configs/EntityCatalog/FactionLess/EntityCatalog_Vehicles.conf" {
+   m_CivilianVehicleEntityCatalog SCR_EntityCatalogMultiList "{5EE4E8D8F96B3B17}" : "{77243A71AF0E5A75}Configs/EntityCatalog/FactionLess/Vehicles_EntityCatalog_Factionless.conf" {
    }
   }
  }
@@ -161,6 +168,9 @@ SCR_DestructibleBuildingEntity : "{92E8F78BCF17D93D}Prefabs/Structures/Commercia
  }
  coords 191.848 0.001 87.529
 }
+SCR_MPDestructionManager : "{9BB369F2803C6F71}Prefabs/MP/MPDestructionManager.et" {
+ coords 100.821 1 49.288
+}
 GenericEntity : "{9BF7399A6F63D480}Prefabs/GameMode/OVT_Port.et" {
  coords 143.682 1.001 246.857
 }
@@ -176,6 +186,9 @@ Tree : "{AED5759B653DF6D0}Prefabs/Vegetation/Bush/b_rosa_canina_1s.et" {
 }
 Tree : "{AF4BFBE29028A9FD}Prefabs/Vegetation/Bush/b_corylus_avellana_1l.et" {
  coords 182.406 0.001 117.203
+}
+EnvironmentProbeEntity : "{B6B6A21399C5571B}Prefabs/World/DefaultWorld/EnvProbe_Default.et" {
+ coords 112.285 2.18 89.264
 }
 Tree : "{BA785041AC632123}Prefabs/Vegetation/Bush/b_salix_cinerea_1.et" {
  coords 179.952 0.001 121.315
