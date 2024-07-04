@@ -23,10 +23,14 @@ class OVT_OccupyingFactionSaveData : EPF_ComponentSaveData
 		
 		m_Bases = new array<ref OVT_BaseData>;
 		
+		FactionManager fm = GetGame().GetFactionManager();
+		
 		foreach(OVT_BaseData base : of.m_Bases)
 		{
 			base.upgrades.Clear();
 			base.slotsFilled.Clear();
+			Faction fac = fm.GetFactionByIndex(base.faction);
+			base.factionKey = fac.GetFactionKey();
 			if(base.IsOccupyingFaction())
 			{
 				OVT_BaseControllerComponent controller = of.GetBase(base.entId);
@@ -74,12 +78,15 @@ class OVT_OccupyingFactionSaveData : EPF_ComponentSaveData
 		{
 			OVT_BaseData existing = of.GetNearestBase(base.location);
 			if(!existing) continue;
-			if (base.faction == "")
+			if (base.factionKey == "")
 			{
 				Print("Uninitialized faction found for base, setting to default.", LogLevel.WARNING);
-				base.faction = OVT_Global().GetConfig().GetOccupyingFaction().GetFactionKey();
-			}
-			existing.faction = base.faction;
+				base.faction = OVT_Global().GetConfig().GetOccupyingFactionIndex();
+			}else{
+				FactionManager fm = GetGame().GetFactionManager();
+				Faction faction = fm.GetFactionByKey(base.factionKey);
+				existing.faction = fm.GetFactionIndex(faction);
+			}			
 			existing.upgrades = base.upgrades;
 			existing.slotsFilled = base.slotsFilled;
 			existing.garrison = base.garrison;

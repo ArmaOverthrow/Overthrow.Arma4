@@ -22,7 +22,7 @@ class OVT_CampaignMapUIBase : OVT_CampaignMapUIElement
 		if (!m_BaseData)
 			return;
 
-		Faction f = GetGame().GetFactionManager().GetFactionByKey(m_BaseData.faction);
+		Faction f = GetGame().GetFactionManager().GetFactionByIndex(m_BaseData.faction);
 		
 		SetIconFaction(f);	
 		

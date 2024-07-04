@@ -22,7 +22,10 @@ class OVT_BaseData : Managed
 	[NonSerialized()]
 	int id;
 
-	int faction;
+	[NonSerialized()]
+	int faction = -1;
+	
+	string factionKey = "";
 
 	vector location;
 	ref array<vector> slotsFilled = {};
@@ -170,7 +173,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		OVT_Global.GetConfig().m_iOccupyingFactionIndex = -1;
 		foreach(OVT_BaseData data : m_Bases)
 		{
-			data.faction = OVT_Global.GetConfig().GetOccupyingFactionIndex();
+			data.faction = OVT_Global.GetConfig().GetOccupyingFactionKey();
 		}
 	}
 
@@ -526,7 +529,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 				OVT_Global.GetNotify().SendTextNotification("BaseControlledOccupying",-1,townName);
 				OVT_Global.GetNotify().SendExternalNotifications("BaseControlledOccupying",townName);
 			}			
-			m_Bases[m_iCurrentQRFBase].faction = m_CurrentQRF.m_iWinningFaction;
+			m_Bases[m_iCurrentQRFBase].faction = m_CurrentQRF.GetWinningFactionKey();
 			m_CurrentQRFBase.SetControllingFaction(m_CurrentQRF.m_iWinningFaction);
 			Rpc(RpcDo_SetBaseFaction, m_iCurrentQRFBase, m_CurrentQRF.m_iWinningFaction);
 		}
@@ -606,7 +609,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		data.entId = ent.GetID();
 		data.id = m_Bases.Count();
 		data.location = ent.GetOrigin();
-		data.faction = m_Config.GetOccupyingFactionIndex();
+		data.faction = m_Config.GetOccupyingFactionKey();
 
 		m_Bases.Insert(data);
 		return true;

@@ -7,6 +7,8 @@ class OVT_ResistanceSaveDataClass : EPF_ComponentSaveDataClass
 class OVT_ResistanceSaveData : EPF_ComponentSaveData
 {
 	ref array<ref OVT_CampData> m_Camps;
+	ref array<ref OVT_FOBData> m_FOBs;
+	
 	string m_sPlayerFactionKey;
 	bool m_bFOBDeployed = false;
 	vector m_vFOBLocation;
@@ -17,11 +19,15 @@ class OVT_ResistanceSaveData : EPF_ComponentSaveData
 		
 		m_Camps = new array<ref OVT_CampData>;
 		m_sPlayerFactionKey = OVT_Global.GetConfig().m_sPlayerFaction;
-		
-		m_bFOBDeployed = resistance.m_bFOBDeployed;
-		m_vFOBLocation = resistance.m_vFOBLocation;
-		
+				
 		foreach(OVT_CampData fob : resistance.m_Camps)
+		{
+			m_Camps.Insert(fob);
+		}
+		
+		m_FOBs = new array<ref OVT_FOBData>;
+				
+		foreach(OVT_FOBData fob : resistance.m_FOBs)
 		{
 			fob.garrison.Clear();
 			foreach(EntityID id : fob.garrisonEntities)
@@ -34,7 +40,7 @@ class OVT_ResistanceSaveData : EPF_ComponentSaveData
 					fob.garrison.Insert(res);					
 				}
 			}	
-			m_Camps.Insert(fob);
+			m_FOBs.Insert(fob);
 		}
 		
 		return EPF_EReadResult.OK;
@@ -44,9 +50,6 @@ class OVT_ResistanceSaveData : EPF_ComponentSaveData
 	{
 		OVT_ResistanceFactionManager resistance = OVT_ResistanceFactionManager.Cast(component);
 		
-		resistance.m_bFOBDeployed = m_bFOBDeployed;
-		resistance.m_vFOBLocation = m_vFOBLocation;
-
 		if (m_sPlayerFactionKey.IsEmpty())
 		{
 			Print("Player faction key is invalid, setting to FIA", LogLevel.WARNING);
@@ -61,6 +64,12 @@ class OVT_ResistanceSaveData : EPF_ComponentSaveData
 		{	
 			fob.id = resistance.m_Camps.Count();			
 			resistance.m_Camps.Insert(fob);
+		}
+		
+		foreach(OVT_FOBData fob : m_FOBs)
+		{	
+			fob.id = resistance.m_FOBs.Count();			
+			resistance.m_FOBs.Insert(fob);
 		}
 
 		return EPF_EApplyResult.OK;

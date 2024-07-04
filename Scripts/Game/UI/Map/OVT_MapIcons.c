@@ -304,9 +304,9 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 			m_Widgets.Insert(w);
 		}
 		
-		if(resistance.m_bFOBDeployed)
-		{
-			m_Centers.Insert(resistance.m_vFOBLocation);
+		foreach(OVT_FOBData fob : resistance.m_FOBs)
+		{			
+			m_Centers.Insert(fob.location);
 			m_Ranges.Insert(0);
 			
 			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);

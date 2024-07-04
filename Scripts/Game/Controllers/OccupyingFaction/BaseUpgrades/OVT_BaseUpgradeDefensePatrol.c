@@ -24,7 +24,7 @@ class OVT_BaseUpgradeDefensePatrol : OVT_BasePatrolUpgrade
 		aigroup.AddWaypoint(cycle);		
 	}
 	
-	protected override bool GetWaypoints(inout array<vector> waypoints)
+	protected bool GetWaypoints(inout array<vector> waypoints)
 	{
 		for(int i=0; i< 4; i++)
 		{

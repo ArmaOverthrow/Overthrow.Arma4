@@ -208,14 +208,15 @@ class OVT_BuildContext : OVT_UIContext
 		
 		if(buildable.m_bBuildAtCamp)
 		{	
-			vector fob = m_Resistance.GetNearestCamp(pos);		
+			vector fob = m_Resistance.GetNearestCamp(pos, m_sPlayerID);		
 			dist = vector.Distance(fob, pos);
 			if(dist < MAX_CAMP_BUILD_DIS) return true;	
 		}
 		
-		if(buildable.m_bBuildAtFOB && m_Resistance.m_bFOBDeployed)
+		if(buildable.m_bBuildAtFOB)
 		{
-			dist = vector.Distance(m_Resistance.m_vFOBLocation, pos);
+			OVT_FOBData fob = m_Resistance.GetNearestFOBData(pos);
+			dist = vector.Distance(fob.location, pos);
 			if(dist < MAX_FOB_BUILD_DIS) return true;
 		}
 							

@@ -41,6 +41,12 @@ class OVT_VehicleUpgrade : ScriptAndConfig
 
 class OVT_ResistanceFactionManager: OVT_Component
 {	
+	[Attribute("", UIWidgets.Object)]
+	ResourceName m_pMobileFOBPrefab;
+
+	[Attribute("", UIWidgets.Object)]
+	ResourceName m_pMobileFOBDeployedPrefab;
+	
 	[Attribute()]
 	ResourceName m_rPlaceablesConfigFile;
 	
@@ -58,6 +64,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 	ResourceName m_pHiredCivilianPrefab;
 	
 	ref array<ref OVT_FOBData> m_FOBs;
+	ref array<ref OVT_CampData> m_Camps;
 	
 	OVT_PlayerManagerComponent m_Players;
 	
@@ -324,6 +331,15 @@ class OVT_ResistanceFactionManager: OVT_Component
 		OVT_Global.GetNotify().SendTextNotification("PlacedFOB",-1,OVT_Global.GetPlayers().GetPlayerName(playerId),OVT_Global.GetTowns().GetTownName(pos));
 	}
 	
+	void UnregisterFOB(vector pos)
+	{	
+		OVT_FOBData fob = GetNearestFOBData(pos);
+		
+		m_FOBs.RemoveItem(fob);
+				
+		Rpc(RpcDo_UnregisterFOB, pos);		
+	}
+	
 	void RegisterCamp(IEntity ent, int playerId)
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
@@ -389,6 +405,42 @@ class OVT_ResistanceFactionManager: OVT_Component
 		return nearestBase;
 	}
 	
+	OVT_CampData GetNearestCampData(vector pos, string playerPersId = "")
+	{
+		OVT_CampData nearestCamp;
+		float nearest = -1;
+		foreach(OVT_CampData camp : m_Camps)
+		{
+			if(playerPersId != "" && camp.playerPersId != playerPersId) continue;
+			if(playerPersId == "" && !camp.isPublic) continue;
+			
+			float distance = vector.Distance(camp.location, pos);
+			if(nearest == -1 || distance < nearest){
+				nearest = distance;
+				nearestCamp = camp;
+			}
+		}
+		return nearestCamp;
+	}
+	
+	vector GetNearestCamp(vector pos, string playerPersId = "")
+	{
+		OVT_CampData nearestCamp;
+		float nearest = -1;
+		foreach(OVT_CampData camp : m_Camps)
+		{
+			if(playerPersId != "" && camp.playerPersId != playerPersId) continue;
+			if(playerPersId == "" && !camp.isPublic) continue;
+			
+			float distance = vector.Distance(camp.location, pos);
+			if(nearest == -1 || distance < nearest){
+				nearest = distance;
+				nearestCamp = camp;
+			}
+		}
+		return nearestCamp.location;
+	}
+	
 	protected void MoveInGunner()
 	{
 		array<AIAgent> agents = {};
@@ -428,6 +480,55 @@ class OVT_ResistanceFactionManager: OVT_Component
 		{
 			OVT_Global.GetTowns().TakeSupportersFromNearestTown(turretEntity.GetOrigin());
 		}		
+	}
+	
+	void DeployFOB(RplId vehicle)
+	{
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(vehicle));
+		if(!rpl) return;
+		IEntity entity = rpl.GetEntity();
+
+		OVT_VehicleManagerComponent vm = OVT_Global.GetVehicles();
+
+		string ownerId = vm.GetOwnerID(entity);
+
+		vector mat[4];
+		entity.GetTransform(mat);
+
+		IEntity newveh = vm.SpawnVehicleMatrix(m_pMobileFOBDeployedPrefab, mat, ownerId);
+		RplComponent newrpl = RplComponent.Cast(newveh.FindComponent(RplComponent));
+
+		OVT_Global.GetVehicles().m_aVehicles.RemoveItem(entity.GetID());
+
+		OVT_Global.TransferStorage(vehicle, newrpl.Id());
+		SCR_EntityHelper.DeleteEntityAndChildren(entity);	
+
+		RegisterFOB(entity, -1);		
+
+	}
+	
+	void UndeployFOB(RplId vehicle)
+	{
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(vehicle));
+		if(!rpl) return;
+		IEntity entity = rpl.GetEntity();
+
+		OVT_VehicleManagerComponent vm = OVT_Global.GetVehicles();
+
+		string ownerId = vm.GetOwnerID(entity);
+
+		vector mat[4];
+		entity.GetTransform(mat);
+
+		IEntity newveh = vm.SpawnVehicleMatrix(m_pMobileFOBPrefab, mat, ownerId);
+		RplComponent newrpl = RplComponent.Cast(newveh.FindComponent(RplComponent));
+
+		OVT_Global.GetVehicles().m_aVehicles.RemoveItem(entity.GetID());
+
+		OVT_Global.TransferStorage(vehicle, newrpl.Id());
+		SCR_EntityHelper.DeleteEntityAndChildren(entity);		
+
+		UnregisterFOB(entity.GetOrigin());
 	}
 	
 	//RPC Methods	
@@ -475,6 +576,13 @@ class OVT_ResistanceFactionManager: OVT_Component
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_UnregisterFOB(vector pos)
+	{
+		OVT_FOBData fob = GetNearestFOBData(pos);
+		m_FOBs.RemoveItem(fob);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_RegisterCamp(vector pos, int playerId)
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
@@ -484,6 +592,13 @@ class OVT_ResistanceFactionManager: OVT_Component
 		{
 			player.camp = pos;
 		}
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_UnregisterCamp(vector pos)
+	{
+		OVT_CampData camp = GetNearestCampData(pos);
+		m_Camps.RemoveItem(camp);
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
@@ -511,6 +626,12 @@ class OVT_ResistanceFactionManager: OVT_Component
 		{
 			m_FOBs.Clear();
 			m_FOBs = null;
-		}			
+		}	
+		
+		if(m_Camps)
+		{
+			m_Camps.Clear();
+			m_Camps = null;
+		}		
 	}
 }

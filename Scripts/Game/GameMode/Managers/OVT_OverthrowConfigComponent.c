@@ -253,6 +253,11 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		}
 		return m_iOccupyingFactionIndex;
 	}
+	
+	string GetOccupyingFactionKey()
+	{		
+		return m_sOccupyingFaction;
+	}
 
 	OVT_Faction GetPlayerFaction()
 	{

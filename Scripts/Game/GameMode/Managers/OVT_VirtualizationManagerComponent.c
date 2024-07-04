@@ -54,10 +54,10 @@ class OVT_VirtualizedGroupData : EPF_PersistentScriptedState
 			if(!aigroup) return;
 			if(aigroup.GetAgentsCount() == 0) return;
 			
-			array<AIWaypoint> waypoints = {};
-			aigroup.GetWaypoints(waypoints);
+			array<AIWaypoint> grpWaypoints = {};
+			aigroup.GetWaypoints(grpWaypoints);
 			
-			foreach(AIWaypoint wp : waypoints)
+			foreach(AIWaypoint wp : grpWaypoints)
 			{
 				aigroup.RemoveWaypoint(wp);
 				SCR_EntityHelper.DeleteEntityAndChildren(wp);

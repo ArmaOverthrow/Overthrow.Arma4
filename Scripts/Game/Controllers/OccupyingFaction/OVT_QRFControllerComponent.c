@@ -8,7 +8,7 @@ class OVT_QRFControllerComponent: OVT_Component
 	int m_iWinningFaction = -1;
 	
 	[RplProp()]
-	int m_iPoints = 0;
+	int m_iPoints = 0;	
 			
 	int m_iTimer = 120000;
 	
@@ -85,6 +85,12 @@ class OVT_QRFControllerComponent: OVT_Component
 					damageManager.SetHealthScaled(0);
 			}
 		}
+	}
+	
+	string GetWinningFactionKey()
+	{
+		FactionManager fm = GetGame().GetFactionManager();
+		return fm.GetFactionByIndex(m_iWinningFaction).GetFactionKey();
 	}
 
 	
