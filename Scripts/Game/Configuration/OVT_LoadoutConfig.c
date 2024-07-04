@@ -3,6 +3,9 @@ class OVT_LoadoutSlot
 {
 	[Attribute("Name", desc: "")]
 	string m_sName;
+	
+	[Attribute("Player Only", desc: "This item will only spawn on the player, not civilians")]
+	bool m_bPlayerOnly;
 
 	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Available choices", params: "et")]
 	ref array<ResourceName> m_aChoices;

@@ -114,6 +114,8 @@ class OVT_TownControllerComponent: OVT_Component
 		if(!storageManager) return;
 		foreach (OVT_LoadoutSlot loadoutItem : OVT_Global.GetConfig().m_CivilianLoadout.m_aSlots)
 		{
+			if(loadoutItem.m_bPlayerOnly) continue;
+			
 			IEntity slotEntity = OVT_Global.SpawnDefaultCharacterItem(storageManager, loadoutItem);
 			if (!slotEntity) continue;
 			
