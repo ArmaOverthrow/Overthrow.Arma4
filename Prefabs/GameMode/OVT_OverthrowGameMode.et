@@ -338,30 +338,7 @@ OVT_OverthrowGameMode {
     }
    }
    m_pPlayerGroupPrefab "{9BED5CCD52C87E26}Prefabs/Groups/INDFOR/Group_Player.et"
-   m_CivilianLoadout OVT_LoadoutConfig "{5D70ECF4724BC81E}" {
-    m_aSlots {
-     OVT_LoadoutSlot "{5D70ECF470377ECE}" {
-      m_sName "Pants"
-      m_aChoices {
-       "{CC0A330083A4358B}Prefabs/Characters/Uniforms/CargoPantsBlack.et" "{A460FE16C10E1734}Prefabs/Characters/Uniforms/CargoPantsBlue.et" "{CB7BE9D7BAF0FC22}Prefabs/Characters/Uniforms/CargoPantsBrown.et" "{CAE2C4848C2C1222}Prefabs/Characters/Uniforms/CargoPantsGreen.et" "{7EAB8D9AA07C664B}Prefabs/Characters/Uniforms/CargoPantsGrey.et" "{1B6E6E398065D203}Prefabs/Characters/Uniforms/CargoPantsTan.et" "{3713F6CB4E83F031}Prefabs/Characters/Uniforms/JeansDarkBlack.et" "{3E1CA7416861B2B4}Prefabs/Characters/Uniforms/JeansDarkBlue.et" "{30622C1C77D73998}Prefabs/Characters/Uniforms/JeansDarkBrown.et" "{2C89CC82F07D4374}Prefabs/Characters/Uniforms/SweatPants_BRownB.et" "{C9C0CE9060C66DEA}Prefabs/Characters/Uniforms/SweatPants_CB.et" "{E45879B75AD0EA93}Prefabs/Characters/Uniforms/SweatPants_Grey.et" "{23D376CBA12E8F07}Prefabs/Characters/Uniforms/SweatPants_MC.et" "{E92B742883C2C235}Prefabs/Characters/Uniforms/SweatPants_RedPatter.et"
-      }
-      m_aStoredItems {
-       "{13772C903CB5E4F7}Prefabs/Items/Equipment/Maps/PaperMap_01_folded.et" "{3A421547BC29F679}Prefabs/Items/Equipment/Flashlights/Flashlight_MX991/Flashlight_MX991.et"
-      }
-     }
-     OVT_LoadoutSlot "{5D70ECF42BD5A6EB}" {
-      m_sName "Top"
-      m_aChoices {
-       "{4973415E2AC6B6C8}Prefabs/Characters/Uniforms/Tops/TshirtBlackOverthrow.et" "{71A3578BA6AAC97B}Prefabs/Characters/Uniforms/Tops/TshirtBlackAaronStatic.et" "{C78A99052D88B3E2}Prefabs/Characters/Uniforms/Tops/PoloshirtBlack.et" "{C0FB43D214DC7A4B}Prefabs/Characters/Uniforms/Tops/PoloshirtBrown.et" "{C1626E812200944B}Prefabs/Characters/Uniforms/Tops/PoloshirtGreen.et" "{CFAA27CDA341CA45}Prefabs/Characters/Uniforms/Tops/PoloshirtGWB.et" "{B86AD95C78663117}Prefabs/Characters/Uniforms/Tops/PoloshirtRed.et" "{B06B93BB5F6DB22C}Prefabs/Characters/Uniforms/Tops/PoloshirtTan.et" "{00DAFC8073E2CB05}Prefabs/Characters/Uniforms/Tops/PoloshirtYWB.et" "{5CCDA8E5C623AC83}Prefabs/Characters/Uniforms/Tops/SweatShirtBlue.et" "{86B7F309A93160DE}Prefabs/Characters/Uniforms/Tops/SweatShirtCB.et" "{6B0776A42649FC70}Prefabs/Characters/Uniforms/Tops/SweatShirtDarkBrown.et" "{9174E38426C01F38}Prefabs/Characters/Uniforms/Tops/SweatShirtOliveG.et" "{595A0B851CCC4117}Prefabs/Characters/Uniforms/Tops/SweatShirtRed.et" "{C68CCD60E0E82D15}Prefabs/Characters/Uniforms/Tops/SweatShirtTan.et" "{B18E34FFA519661C}Prefabs/Characters/Uniforms/Tops/TshirtBlackAA.et" "{34A0295DFE72C474}Prefabs/Characters/Uniforms/Tops/TshirtBlueSP.et" "{575491244B9349CF}Prefabs/Characters/Uniforms/Tops/TshirtDarkBlueS.et" "{CEA8913C049DE4E1}Prefabs/Characters/Uniforms/Tops/TshirtDarkBrown.et" "{A308628F15399F51}Prefabs/Characters/Uniforms/Tops/TshirtDarkGreenPP.et" "{6A325E53C928A697}Prefabs/Characters/Uniforms/Tops/TshirtDarkGrey.et" "{B80234423A9F710F}Prefabs/Characters/Uniforms/Tops/TshirtDarkGreyPP.et" "{87A79AE47D7BA703}Prefabs/Characters/Uniforms/Tops/TshirtGreySydney.et" "{1569F28D53D89A8A}Prefabs/Characters/Uniforms/Tops/TshirtRedLV.et"
-      }
-     }
-     OVT_LoadoutSlot "{5D70ECF439A1223C}" {
-      m_sName "Shoes"
-      m_aChoices {
-       "{1A91008D4033B825}Prefabs/Characters/Footwear/LeatherBrowjnBB.et" "{0D916BA089AF2DF3}Prefabs/Characters/Footwear/LeatherShoe.et" "{F8F520392F48A156}Prefabs/Characters/Footwear/LeatherShoered.et" "{7B0EF269A062E324}Prefabs/Characters/Footwear/NikeRunner.et" "{C7CBD63461B16D2E}Prefabs/Characters/Footwear/NikeRunnerBlue.et" "{B13D1AA1341B9766}Prefabs/Characters/Footwear/NikeRunnerBrown.et" "{F169EB23782BA770}Prefabs/Characters/Footwear/NikeRunnerRed.et" "{F968A1C45F20244A}Prefabs/Characters/Footwear/NikeRunnerTan.et" "{3BFDEE64439EC563}Prefabs/Characters/Footwear/RunnersV2BlackBrown20.et" "{03B8FF15CA60DF1D}Prefabs/Characters/Footwear/RunnersV2Brown20.et" "{EB2DF7C66EF7DD09}Prefabs/Characters/Footwear/RunnersV2RedBrown20.et" "{F8EB30AAC9F79134}Prefabs/Characters/Footwear/RunningShoes19.et" "{3B199DA54C1E7AAE}Prefabs/Characters/Footwear/RunningShoes19Blue.et" "{3E9B4F96AFB7F9D4}Prefabs/Characters/Footwear/RunningShoes19Brown.et" "{50ED499D3DF3132E}Prefabs/Characters/Footwear/RunningShoes19Red.et" "{8886686D0C0ED0FA}Prefabs/Characters/Footwear/SneakerBlackBL.et" "{CEB19E03F437F2AA}Prefabs/Characters/Footwear/SneakerBlackwh.et" "{EAE9CEEB77950FFD}Prefabs/Characters/Footwear/SneakerBrownBL.et"
-      }
-     }
-    }
+   m_CivilianLoadout OVT_LoadoutConfig "{61C8AC0BB681EDAF}" : "{AB39AD8BD8554967}Configs/Civilians/CivilianClothes.conf" {
    }
    m_bDebugMode 0
   }
@@ -422,7 +399,7 @@ OVT_OverthrowGameMode {
    m_pStartingCarPrefabs {
     "{9B3A89DD33FF0483}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469_uncovered_CIV_blue.et" "{270F23D61238ABC7}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469_uncovered_CIV_brown.et" "{599DFCA424399DBF}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469_uncovered_CIV_red.et" "{D4855501D5B12AF2}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469_uncovered_CIV_teal.et" "{B2CC137FE424B129}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469_covered_CIV_VAK.et" "{870EB660433857D3}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469_covered_CIV_teal.et" "{A4D16A62B432451A}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469_covered_CIV_red.et" "{5070B3749C7782D8}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469_covered_CIV_JZD.et" "{BDFB2377B6B4ABBB}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469_covered_CIV_PTS.et" "{C8B16ABCA57679A2}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469_covered_CIV_blue.et" "{D7C51A961BF675B2}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469_covered_CIV_brown.et" "{B6D330E7E40FE7DD}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469_covered_CIV_forest.et"
    }
-   m_CivilianVehicleEntityCatalog SCR_EntityCatalogMultiList "{5EE51BB6ADFBE791}" : "{77243A71AF0E5A75}Configs/EntityCatalog/FactionLess/EntityCatalog_Vehicles.conf" {
+   m_CivilianVehicleEntityCatalog SCR_EntityCatalogMultiList "{5EE51BB6ADFBE791}" : "{77243A71AF0E5A75}Configs/EntityCatalog/FactionLess/Vehicles_EntityCatalog_Factionless.conf" {
    }
   }
   SCR_CallsignManagerComponent "{59724C8C935D8E23}" {
