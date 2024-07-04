@@ -4,6 +4,9 @@ GenericEntity : "{90B7CEB4C665B1E2}Prefabs/Structures/Military/Flags/FlagPole_02
   RigidBody "{5472A771D2979EF1}" {
    ResponseIndex "TinyDestructible"
   }
+  SCR_FlagComponent "{5E3C95A1E1EE9681}" {
+   m_sDefaultMaterial "{D33A1334B4A3369D}Assets/Props/Fabric/Flags/Data/Flag_1_2_USSR.emat"
+  }
   SlotManagerComponent "{55DAE04E55ECE7FA}" {
    Slots {
     EntitySlotInfo Flag {

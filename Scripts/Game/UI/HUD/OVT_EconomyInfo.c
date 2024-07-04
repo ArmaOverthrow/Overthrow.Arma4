@@ -50,8 +50,9 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 			HideQRF();
 		}
 		
-		if(m_fOverrideCounter >= 2)
+		if(m_fOverrideCounter >= 1)
 		{
+			m_fOverrideCounter = 0;
 			UpdateOverride();
 		}
 		
@@ -79,7 +80,9 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 		{
 			m_wRoot.FindAnyWidget("MainMenuOverride").SetVisible(true);
 			RichTextWidget text = RichTextWidget.Cast(m_wRoot.FindAnyWidget("MainMenuOverrideText"));
-			text.SetTextFormat("<color rgba='226,168,79,255'><action name='OverthrowMainMenu'/></color> %1",m_FoundOverride.m_UiInfo.GetName());
+			SCR_UIInfo info = m_FoundOverride.m_UiInfo;
+			if(info)
+				text.SetTextFormat("<color rgba='226,168,79,255'><action name='OverthrowMainMenu'/></color> %1",info.GetName());
 		}else{
 			if(!OVT_Global.GetOverthrow().m_bHasOpenedMenu)
 			{
@@ -92,30 +95,37 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 		}
 	}
 	
+	// FindOverride gets called a lot, so make it a tiny bit faster by having the pointer here
+	protected Managed m_foundComponent;
 	protected bool FindOverride(IEntity entity)
 	{
-		OVT_MainMenuContextOverrideComponent found = OVT_MainMenuContextOverrideComponent.Cast(entity.FindComponent(OVT_MainMenuContextOverrideComponent));
-		if(found) {
-			float dist = vector.Distance(entity.GetOrigin(),m_player.GetOrigin());
-			if(dist > found.m_fRange) return false;
-			if(m_fFoundRange == -1 || m_fFoundRange > dist)
+		m_foundComponent = entity.FindComponent(OVT_MainMenuContextOverrideComponent);
+		if(!m_foundComponent) return false;
+		
+		OVT_MainMenuContextOverrideComponent m_overrideComponent = OVT_MainMenuContextOverrideComponent.Cast(m_foundComponent);
+		if(!m_overrideComponent) return false;
+		
+		float dist = vector.Distance(entity.GetOrigin(),m_player.GetOrigin());
+		if(dist > m_overrideComponent.m_fRange) return false;
+		
+		if(m_fFoundRange == -1 || m_fFoundRange > dist)
+		{
+			bool got = true;
+			if(m_overrideComponent.m_bMustOwnBase)
 			{
-				bool got = true;
-				if(found.m_bMustOwnBase)
+				OVT_BaseData base = OVT_Global.GetOccupyingFaction().GetNearestBase(entity.GetOrigin());
+				if(!base || base.IsOccupyingFaction())
 				{
-					OVT_BaseData base = OVT_Global.GetOccupyingFaction().GetNearestBase(entity.GetOrigin());
-					if(!base || base.IsOccupyingFaction())
-					{
-						got = false;
-					}
+					got = false;
 				}
-				if(got)
-				{
-					m_FoundOverride = found;
-					m_fFoundRange = dist;
-				}
-			}			
+			}
+			if(got)
+			{
+				m_FoundOverride = m_overrideComponent;
+				m_fFoundRange = dist;
+			}
 		}
+		
 		return false;
 	}
 	
@@ -192,12 +202,15 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 		SliderWidget of = SliderWidget.Cast(m_wRoot.FindAnyWidget("QRFOccupying"));
 		SliderWidget rf = SliderWidget.Cast(m_wRoot.FindAnyWidget("QRFResistance"));
 		
-		if(m_OccupyingFaction.m_iQRFPoints > 0)
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		int points = Math.Round(((float)m_OccupyingFaction.m_iQRFPoints / (float)config.m_Difficulty.QRFPointsToWin) * 100);
+		
+		if(points >= 0)
 		{
-			rf.SetCurrent(m_OccupyingFaction.m_iQRFPoints);
+			rf.SetCurrent(points);
 			of.SetCurrent(0);
 		}else{
-			of.SetCurrent(Math.AbsFloat(m_OccupyingFaction.m_iQRFPoints));
+			of.SetCurrent(Math.AbsFloat(points));
 			rf.SetCurrent(0);
 		}
 	}

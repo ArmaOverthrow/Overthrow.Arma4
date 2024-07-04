@@ -1,8 +1,8 @@
 class OVT_TownSupportModifierSystem : OVT_TownModifierSystem
 {
-	protected override void TryAddModifier(int townId, int index)
+	protected override bool TryAddModifier(int townId, int index)
 	{
-		m_TownManager.TryAddSupportModifier(townId, index);
+		return m_TownManager.TryAddSupportModifier(townId, index);
 	}
 	
 	protected override void RemoveModifier(int townId, int index)
@@ -27,6 +27,14 @@ class OVT_TownSupportModifierSystem : OVT_TownModifierSystem
 		}
 		if(supportmods > 100) supportmods = 100;
 		if(supportmods < -100) supportmods = -100;
+		
+		// Prevent division by zero and dump info
+		if(max == 0)
+		{
+			Print("OVT_TownSupportModifierSystem.Recalculate - passed zero as max value, exiting with baseValue", LogLevel.ERROR);
+			PrintFormat("modifiers: %1 - baseValue: %2 - min: %3 - max: %4", modifiers, baseValue, min, max);
+			return baseValue;
+		}
 		
 		int supportPerc = Math.Round((newsupport / max) * 100);
 		

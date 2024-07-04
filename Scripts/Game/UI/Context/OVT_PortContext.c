@@ -23,18 +23,17 @@ class OVT_PortContext : OVT_UIContext
 	
 	override void OnShow()
 	{	
+		Widget ww = m_wRoot.FindAnyWidget("Buy10Button");
+		SCR_InputButtonComponent btn = SCR_InputButtonComponent.Cast(ww.FindHandler(SCR_InputButtonComponent));		
+		btn.m_OnActivated.Insert(BuyTen);
 		
-		Widget take1 = m_wRoot.FindAnyWidget("Buy10Button");
-		ButtonActionComponent action = ButtonActionComponent.Cast(take1.FindHandler(ButtonActionComponent));		
-		action.GetOnAction().Insert(BuyTen);
+		ww = m_wRoot.FindAnyWidget("Buy100Button");
+		btn = SCR_InputButtonComponent.Cast(ww.FindHandler(SCR_InputButtonComponent));		
+		btn.m_OnActivated.Insert(BuyHundred);
 		
-		Widget take10 = m_wRoot.FindAnyWidget("Buy100Button");
-		action = ButtonActionComponent.Cast(take10.FindHandler(ButtonActionComponent));		
-		action.GetOnAction().Insert(BuyHundred);
-		
-		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");
-		SCR_NavigationButtonComponent btn = SCR_NavigationButtonComponent.Cast(closeButton.FindHandler(SCR_NavigationButtonComponent));		
-		btn.m_OnClicked.Insert(CloseLayout);
+		ww = m_wRoot.FindAnyWidget("CloseButton");
+		btn = SCR_InputButtonComponent.Cast(ww.FindHandler(SCR_InputButtonComponent));		
+		btn.m_OnActivated.Insert(CloseLayout);		
 		
 		Refresh();		
 	}
@@ -128,8 +127,8 @@ class OVT_PortContext : OVT_UIContext
 			details.SetText("$" + m_Economy.GetPrice(id).ToString());
 			desc.SetText(info.GetDescription());
 		}	
-		
-		ItemPreviewManagerEntity manager = GetGame().GetItemPreviewManager();
+		ChimeraWorld world = GetGame().GetWorld();
+		ItemPreviewManagerEntity manager = world.GetItemPreviewManager();
 		if (!manager)
 			return;
 		

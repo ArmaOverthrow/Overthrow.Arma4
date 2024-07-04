@@ -1,21 +1,21 @@
 class OVT_PlayerData : Managed
 {
 	[NonSerialized()]
-	int id;
+	int id=0;
 	
 	[NonSerialized()]
-	bool firstSpawn;
+	bool firstSpawn = true;
 	
 	//Persisted
-	string name;	
-	vector home;
-	vector camp;	
-	int money;
-	bool initialized;	
-	bool isOfficer;
+	string name="";	
+	vector home="0 0 0";
+	vector camp="0 0 0";	
+	int money = 0;
+	bool initialized = false;	
+	bool isOfficer = false;
 	
-	int kills;
-	int xp;
+	int kills = 0;
+	int xp = 0;
 	int levelNotified=1;
 	ref map<string,int> skills = new map<string,int>;
 	

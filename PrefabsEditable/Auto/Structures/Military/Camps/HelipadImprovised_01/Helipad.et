@@ -1,0 +1,58 @@
+StaticModelEntity : "{CF1FFB7BAA1A0769}Prefabs/Structures/Military/Camps/HelipadImprovised_01/HelipadImprovised_US_01.et" {
+ ID "56ACD1C4DB91DB10"
+ components {
+  EPF_PersistenceComponent "{5EE4E8DFCFC695BB}" {
+   m_pSaveData OVT_BuildingSaveDataClass "{5EE4E8DFCB5B743C}" {
+   }
+  }
+  OVT_MainMenuContextOverrideComponent "{5EE4F8205A6FCEEB}" {
+   m_ContextName "OVT_ShopContext"
+   m_UiInfo SCR_UIInfo "{5EE4F82038D99771}" {
+    Name "#OVT-Procurement"
+   }
+   m_fRange 22
+   m_bMustOwnBase 1
+   m_bShowOnMap 0
+  }
+  OVT_ParkingComponent "{5EE4FAB48A022EAC}" {
+   m_aParkingSpots {
+    OVT_ParkingPointInfo "{5EE4FAB48902A482}" {
+     m_Type PARKING_HELI
+    }
+   }
+  }
+  OVT_ShopComponent "{5EE4FAB421A5A2CE}" {
+   m_ShopType SHOP_VEHICLE
+   m_bProcurement 1
+  }
+  SCR_EditableEntityComponent "{5D748E174E08B8F0}" : "{996046FE206C699A}Prefabs/Editor/Components/Default_SCR_EditableEntityComponent.ct" {
+   m_UIInfo SCR_EditableEntityUIInfo "{5298E609432D192D}" {
+    Name "(HelipadImprovised_US_01)"
+    m_Image "{8677748C00CEE455}UI/Textures/EditorPreviews/Auto/Structures/Military/Camps/HelipadImprovised_01/E_HelipadImprovised_US_01.edds"
+    m_aAuthoredLabels {
+    }
+    m_aAutoLabels {
+     108 1 124
+    }
+   }
+  }
+  SCR_PreviewEntityComponent "{5D748E174E0BAB38}" : "{6CADA7A88A6265FD}Prefabs/Editor/Components/PreviewEntityComponentClass.ct" {
+   m_bRuntime 0
+   m_aEntries {
+    SCR_BasePreviewEntry "{5EE4E8DFFD2106B0}" {
+     m_iParentID -1
+     m_Mesh "{26DD70BFE956BC33}Assets/Structures/Military/Camps/HelipadImprovised_01/HelipadImprovised_US_01.xob"
+     m_Flags EDITABLE
+     m_Shape MESH
+     m_iPivotID ""
+     m_vScale 1 1 1
+     m_vPosition 0 0 0
+     m_vAngles 0 0 0
+    }
+   }
+  }
+  RplComponent "{5D748E174E08BEBB}" : "{B193E926C1935A4C}Prefabs/Editor/Components/Default_RplComponent.ct" {
+  }
+ }
+ placement none
+}

@@ -6,8 +6,5 @@ StaticModelEntity : "{AE28D47CF26E91EA}Prefabs/Props/Military/Fortification/Czec
    m_pSaveData OVT_PlaceableSaveDataClass "{5D7C4898BB5209CB}" {
    }
   }
-  RplComponent "{58A2A8A1B4E2F634}" {
-   Streamable Disabled
-  }
  }
 }

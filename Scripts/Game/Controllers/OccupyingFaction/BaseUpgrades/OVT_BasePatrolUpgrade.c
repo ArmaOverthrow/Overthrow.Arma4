@@ -1,23 +1,99 @@
 class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
-{	
-	protected ref array<int> m_aGroups = new array<int>;
-	protected const int UPDATE_FREQUENCY = 10000;
-	protected int m_iNumGroups = 0;
+{
+	[Attribute("1", desc: "Deactivate patrols when noone around")]
+	bool m_bDeactivate;
+	
+	ref array<ref EntityID> m_Groups;
+	ref array<ref ResourceName> m_ProxiedGroups;
+	ref array<ref vector> m_ProxiedPositions;	
+	int m_iProxedResources = 0;
+	int m_iNumGroups = 0;
+	
+	protected const int DEACTIVATE_FREQUENCY = 10000;
+	
+	bool m_bSpawned = false;
 	
 	override void PostInit()
-	{		
+	{
+		m_Groups = new array<ref EntityID>;
+		m_ProxiedGroups = new array<ref ResourceName>;
+		m_ProxiedPositions = new array<ref vector>;
 		
-		float freq = s_AIRandomGenerator.RandFloatXY(UPDATE_FREQUENCY - 1000, UPDATE_FREQUENCY + 1000);
-				
-		GetGame().GetCallqueue().CallLater(CheckUpdate, freq, true, m_BaseController.GetOwner());	
+		
+		float freq = s_AIRandomGenerator.RandFloatXY(DEACTIVATE_FREQUENCY - 1000, DEACTIVATE_FREQUENCY + 1000);
+		if(m_bDeactivate)
+		{			
+			GetGame().GetCallqueue().CallLater(CheckUpdate, freq, true, m_BaseController.GetOwner());	
+		}else{
+			GetGame().GetCallqueue().CallLater(CheckClean, freq, true, m_BaseController.GetOwner());	
+		}
+	}
+	
+	protected void CheckClean()
+	{
+		//Clean up ghost/killed groups
+		array<EntityID> remove = {};
+		foreach(EntityID id : m_Groups)
+		{
+			SCR_AIGroup group = GetGroup(id);
+			if(!group)
+			{
+				remove.Insert(id);
+			}else if(group.GetAgentsCount() == 0)
+			{
+				SCR_EntityHelper.DeleteEntityAndChildren(group);
+				remove.Insert(id);
+			}
+		}
+		foreach(EntityID id : remove)			
+		{
+			m_Groups.RemoveItem(id);
+			m_iNumGroups--;
+		}
 	}
 	
 	protected void CheckUpdate()
 	{
-		
-	}
+		if(!m_BaseController.IsOccupyingFaction())
+		{
+			CheckClean();
+			return;
+		}
+		bool inrange = PlayerInRange() && !m_occupyingFactionManager.m_CurrentQRF;
+		if(inrange && !m_bSpawned)
+		{
+			foreach(int i, ResourceName res : m_ProxiedGroups)
+			{
+				BuyPatrol(0, res, m_ProxiedPositions[i]);
+			}
+			m_ProxiedGroups.Clear();
+			m_ProxiedPositions.Clear();
+			m_iProxedResources = 0;
 			
-	protected int BuyPatrol(float threat, ResourceName res = "", vector pos = "0 0 0", OVT_GroupOrder order = OVT_GroupOrder.PATROL)
+			m_bSpawned = true;					
+		}else if(!inrange && m_bSpawned){
+			foreach(EntityID id : m_Groups)
+			{
+				SCR_AIGroup group = GetGroup(id);
+				if(!group) continue;
+				m_iProxedResources += group.GetAgentsCount() * OVT_Global.GetConfig().m_Difficulty.baseResourceCost;
+				m_ProxiedGroups.Insert(EPF_Utils.GetPrefabName(group));
+				m_ProxiedPositions.Insert(group.GetOrigin());
+				SCR_EntityHelper.DeleteEntityAndChildren(group);
+			}
+			m_Groups.Clear();
+			m_bSpawned = false;
+		}else{
+			CheckClean();
+		}
+	}
+	
+	protected bool PlayerInRange()
+	{		
+		return OVT_Global.PlayerInRange(m_BaseController.GetOwner().GetOrigin(), OVT_Global.GetConfig().m_iMilitarySpawnDistance);
+	}
+	
+	protected int BuyPatrol(float threat, ResourceName res = "", vector pos = "0 0 0")
 	{
 		m_iNumGroups++;
 		
@@ -42,15 +118,15 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 			pos[1] = surfaceY;
 		}
 		
-		array<vector> waypoints();
-		if(GetWaypoints(waypoints))
-		{
-			OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
-			OVT_VirtualizedGroupData data = virtualization.Create(res, pos, waypoints, false, order);
-			m_aGroups.Insert(data.id);
-		}
+		IEntity group = OVT_Global.SpawnEntityPrefab(res, pos);
 		
-		int newres = 8 * OVT_Global.GetConfig().m_Difficulty.baseResourceCost;
+		m_Groups.Insert(group.GetID());
+		
+		SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
+		
+		AddWaypoints(aigroup);
+		
+		int newres = aigroup.m_aUnitPrefabSlots.Count() * OVT_Global.GetConfig().m_Difficulty.baseResourceCost;
 			
 		return newres;
 	}
@@ -60,14 +136,16 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 		
 	}
 	
-	protected bool GetWaypoints(inout array<vector> waypoints)
-	{
-		return true;
-	}
-	
 	override int GetResources()
 	{
-		return 0;
+		int res = 0;
+		foreach(EntityID id : m_Groups)
+		{
+			SCR_AIGroup group = GetGroup(id);
+			if(!group) continue;
+			res += group.GetAgentsCount() * OVT_Global.GetConfig().m_Difficulty.baseResourceCost;			
+		}
+		return res + m_iProxedResources;
 	}
 	
 	override int Spend(int resources, float threat)
@@ -75,11 +153,14 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 		int spent = 0;
 		
 		while(resources > 0)
-		{			
+		{
+			int newres = OVT_Global.GetConfig().m_Difficulty.baseResourceCost * 4;
+			
 			OVT_Faction faction = OVT_Global.GetConfig().GetOccupyingFaction();
 			ResourceName res = faction.GetRandomGroupByType(OVT_GroupType.LIGHT_INFANTRY);
-			vector randompos = OVT_Global.GetRandomNonOceanPositionNear(m_BaseController.GetOwner().GetOrigin(), 20);			
-			int newres = BuyPatrol(threat, res, randompos);	
+			m_iProxedResources += newres;
+			m_ProxiedGroups.Insert(res);
+			m_ProxiedPositions.Insert(m_BaseController.GetOwner().GetOrigin());			
 			
 			if(newres > resources){
 				newres = resources;
@@ -94,21 +175,75 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 		return spent;
 	}
 	
+	protected SCR_AIGroup GetGroup(EntityID id)
+	{
+		IEntity ent = GetGame().GetWorld().FindEntityByID(id);
+		return SCR_AIGroup.Cast(ent);
+	}
+	
 	override OVT_BaseUpgradeData Serialize()
 	{
 		OVT_BaseUpgradeData struct = super.Serialize();
-						
+		
+		struct.resources = 0; //Do not respend any resources
+		
+		foreach(EntityID id : m_Groups)
+		{
+			IEntity group = GetGame().GetWorld().FindEntityByID(id);
+			SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
+			if(!aigroup) continue;
+			if(aigroup.GetAgentsCount() > 0)
+			{
+				OVT_BaseUpgradeGroupData g = new OVT_BaseUpgradeGroupData();
+				
+				string res = EPF_Utils.GetPrefabName(aigroup);
+				g.prefab = res;				
+				g.position = group.GetOrigin();
+				
+				struct.groups.Insert(g);
+			}			
+		}
+		
+		foreach(int i, ResourceName res : m_ProxiedGroups)
+		{
+			OVT_BaseUpgradeGroupData g = new OVT_BaseUpgradeGroupData();
+			g.prefab = res;
+			g.position = m_ProxiedPositions[i];
+			
+			struct.groups.Insert(g);
+		}
+		
 		return struct;
 	}
 	
 	override bool Deserialize(OVT_BaseUpgradeData struct)
 	{
-		
+		if(!m_BaseController.IsOccupyingFaction()) return true;
+		foreach(OVT_BaseUpgradeGroupData g : struct.groups)
+		{
+			BuyPatrol(0, g.prefab, g.position);
+		}
 		return true;
 	}
 	
 	void ~OVT_BasePatrolUpgrade()
 	{
 		GetGame().GetCallqueue().Remove(CheckUpdate);	
+		
+		if(m_Groups)
+		{
+			m_Groups.Clear();
+			m_Groups = null;
+		}
+		if(m_ProxiedGroups)
+		{
+			m_ProxiedGroups.Clear();
+			m_ProxiedGroups = null;
+		}
+		if(m_ProxiedPositions)
+		{
+			m_ProxiedPositions.Clear();
+			m_ProxiedPositions = null;
+		}		
 	}
 }

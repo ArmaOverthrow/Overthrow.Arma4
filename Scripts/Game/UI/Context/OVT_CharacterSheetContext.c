@@ -20,7 +20,8 @@ class OVT_CharacterSheetContext : OVT_UIContext
 	override void OnShow()
 	{		
 		m_StorageManager = SCR_CharacterInventoryStorageComponent.Cast(m_Player.FindComponent(SCR_CharacterInventoryStorageComponent));
-		m_pPreviewManager = GetGame().GetItemPreviewManager();
+		ChimeraWorld world = GetGame().GetWorld();
+		m_pPreviewManager = world.GetItemPreviewManager();
 		m_wPlayerRender = ItemPreviewWidget.Cast(m_wRoot.FindAnyWidget("playerRender"));
 		auto collection = m_StorageManager.GetAttributes();
 		if (collection)
@@ -32,7 +33,7 @@ class OVT_CharacterSheetContext : OVT_UIContext
 		m_SkillManager.m_OnPlayerSkill.Insert(Refresh);
 		
 		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");
-		SCR_NavigationButtonComponent btn = SCR_NavigationButtonComponent.Cast(closeButton.FindHandler(SCR_NavigationButtonComponent));		
+		SCR_InputButtonComponent btn = SCR_InputButtonComponent.Cast(closeButton.FindHandler(SCR_InputButtonComponent));		
 		btn.m_OnClicked.Insert(CloseLayout);
 				
 		RefreshPlayerWidget();

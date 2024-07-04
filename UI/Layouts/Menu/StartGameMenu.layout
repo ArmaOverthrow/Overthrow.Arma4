@@ -104,7 +104,7 @@ FrameWidgetClass {
         }
         VerticalLayoutWidgetClass "{5DBCDD903607325F}" {
          Name "VerticalLayout2"
-         Slot OverlayWidgetSlot {
+         Slot OverlayWidgetSlot "{5EE258B1FB8EC4B2}" {
          }
          {
           TextWidgetClass "{5DBCDD903BBC7AE6}" {
@@ -122,11 +122,11 @@ FrameWidgetClass {
            Slot LayoutSlot "{5DBCDD9011FBF7B6}" {
             Padding 5 15 5 15
            }
-           Text "It is currently not possible to save your game on XBOX in single-player due to a limitation with the Arma Reforger engine."\
+           Text "XBOX Single player is currently NOT WORKING due to limitations in Arma Reforger."\
            ""\
-           "You can still play Overthrow, but your progress will be lost as soon as you exit the scenario."\
+           "There is no indication of when this will be fixed by Bohemia Interactive. We are trying to make it work without saving but having trouble getting it to work. You can try to hit the Start Game button but it may not work and get stuck on this screen forever."\
            ""\
-           "Your progress will be saved, however, if you play on a Multiplayer cross-play server. Search the server list for \"Overthrow\" and join any of the public servers hosted by the community."
+           "You can still play Overthrow on a Multiplayer cross-play server. Search the server list for \"Overthrow\" and join any of the public servers hosted by the community."
            "Font Size" 17
            "Min Font Size" 17
            "Horizontal Alignment" Center
@@ -160,30 +160,9 @@ FrameWidgetClass {
             Padding 0 0 10 0
            }
            components {
-            SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
-             m_sLabel "#OVT-StartGame"
+            SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
              m_sActionName "OverthrowStartGame"
-            }
-            ButtonActionComponent "{59C31AA05D6BDB4D}" {
-             m_bActionName "OverthrowStartGame"
-            }
-           }
-           {
-            SizeLayoutWidgetClass "{5562AD435529FB36}" {
-             Prefab "{5562AD435529FB36}"
-             {
-              OverlayWidgetClass "{000000005E70868E}" {
-               Prefab "{000000005E70868E}"
-               {
-                HorizontalLayoutWidgetClass "{00000000E3602307}" {
-                 Prefab "{00000000E3602307}"
-                 Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
-                  Padding 10 10 16 10
-                 }
-                }
-               }
-              }
-             }
+             m_sLabel "#OVT-StartGame"
             }
            }
           }

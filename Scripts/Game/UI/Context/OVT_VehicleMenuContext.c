@@ -14,7 +14,7 @@ class OVT_VehicleMenuContext : OVT_UIContext
 		SCR_CompartmentAccessComponent compartment = SCR_CompartmentAccessComponent.Cast(m_Owner.FindComponent(SCR_CompartmentAccessComponent));
 		if(!compartment) return false;
 		
-		if(compartment.IsInCompartment() && compartment.GetCompartmentType(compartment.GetCompartment()) == ECompartmentType.Pilot){
+		if(compartment.IsInCompartment() && compartment.GetCompartment().GetType() == ECompartmentType.PILOT){
 			return true;
 		}
 		return false;

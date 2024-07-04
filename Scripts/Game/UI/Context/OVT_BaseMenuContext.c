@@ -32,7 +32,7 @@ class OVT_BaseMenuContext : OVT_UIContext
 		m_GarrisonButton.m_OnClicked.Insert(AddToGarrison);
 		
 		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");
-		SCR_NavigationButtonComponent btn = SCR_NavigationButtonComponent.Cast(closeButton.FindHandler(SCR_NavigationButtonComponent));		
+		SCR_InputButtonComponent btn = SCR_InputButtonComponent.Cast(closeButton.FindHandler(SCR_InputButtonComponent));		
 		btn.m_OnClicked.Insert(CloseLayout);
 		
 		Refresh();		
@@ -65,7 +65,7 @@ class OVT_BaseMenuContext : OVT_UIContext
 			SCR_EditableGroupComponent group = SCR_EditableGroupComponent.Cast(spawn.FindComponent(SCR_EditableGroupComponent));
 			if(group)
 			{
-				m_GroupSpin.AddItem(group.GetDisplayName(), new OVT_GroupUIInfo(res, soldierCost, equipmentCost, aigroup.m_aUnitPrefabSlots.Count()));
+				m_GroupSpin.AddItem(group.GetDisplayName(), false, new OVT_GroupUIInfo(res, soldierCost, equipmentCost, aigroup.m_aUnitPrefabSlots.Count()));
 			}
 			
 			

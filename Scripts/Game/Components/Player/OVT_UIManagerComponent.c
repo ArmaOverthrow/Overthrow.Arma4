@@ -78,11 +78,8 @@ class OVT_UIManagerComponent: OVT_Component
 		}	
 	}
 	
-	protected void OnPlayerDeath(SCR_CharacterControllerComponent charController, IEntity instigator)
+	protected void OnPlayerDeath()
 	{		
-		if (!charController || charController != m_Controller)
-			return;		
-		
 		foreach(OVT_UIContext context : m_aContexts)
 		{
 			context.CloseLayout();

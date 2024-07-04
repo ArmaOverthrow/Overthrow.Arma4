@@ -2,24 +2,11 @@ class OVT_ManageVehicleContext : OVT_UIContext
 {
 	Vehicle m_Vehicle;
 	OVT_VehicleUpgrade m_SelectedUpgrade;
-	
-	ref ButtonActionComponent m_UpgradeAction;
-	ref ButtonActionComponent m_RepairAction;
 		
 	override void OnShow()
 	{			
 		m_Vehicle = null;
 		GetGame().GetWorld().QueryEntitiesBySphere(m_Owner.GetOrigin(), 5, null, FilterVehicleEntities, EQueryEntitiesFlags.ALL);
-					
-		Widget upgradeButton = m_wRoot.FindAnyWidget("UpgradeButton");
-		m_UpgradeAction = ButtonActionComponent.Cast(upgradeButton.FindHandler(ButtonActionComponent));
-		
-		m_UpgradeAction.GetOnAction().Insert(Upgrade);
-		
-		Widget repairButton = m_wRoot.FindAnyWidget("RepairButton");
-		m_RepairAction = ButtonActionComponent.Cast(repairButton.FindHandler(ButtonActionComponent));
-		
-		m_RepairAction.GetOnAction().Insert(Repair);
 		
 		if(!m_Vehicle){
 			CloseLayout();
@@ -27,18 +14,16 @@ class OVT_ManageVehicleContext : OVT_UIContext
 			return;
 		}
 		
-		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");
-		SCR_NavigationButtonComponent btn = SCR_NavigationButtonComponent.Cast(closeButton.FindHandler(SCR_NavigationButtonComponent));		
-		btn.m_OnClicked.Insert(CloseLayout);
+		Widget ww = m_wRoot.FindAnyWidget("UpgradeButton");
+		SCR_InputButtonComponent btn = SCR_InputButtonComponent.Cast(ww.FindHandler(SCR_InputButtonComponent));		
+		btn.m_OnActivated.Insert(Upgrade);
+		
+		ww = m_wRoot.FindAnyWidget("RepairButton");
+		btn = SCR_InputButtonComponent.Cast(ww.FindHandler(SCR_InputButtonComponent));		
+		btn.m_OnActivated.Insert(Repair);
 		
 		Refresh();		
-	}
-	
-	override void OnClose()
-	{		
-		m_UpgradeAction.GetOnAction().Remove(Upgrade);
-		m_RepairAction.GetOnAction().Remove(Repair);
-	}
+	}	
 	
 	protected bool FilterVehicleEntities(IEntity entity)
 	{

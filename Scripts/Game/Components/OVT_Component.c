@@ -1,19 +1,25 @@
 class OVT_ComponentClass: ScriptComponentClass
 {
-	
+
 }
 
 class OVT_Component: ScriptComponent
 {
 	protected TimeAndWeatherManagerEntity m_Time;
-	
+	protected OVT_OverthrowConfigComponent m_Config;
+
 	override void OnPostInit(IEntity owner)
 	{
 		super.OnPostInit(owner);
-		
-		m_Time = GetGame().GetTimeAndWeatherManager();
+
+		if(SCR_Global.IsEditMode())
+			return;
+
+		m_Config = OVT_Global.GetConfig();
+		ChimeraWorld world = GetOwner().GetWorld();
+		m_Time = world.GetTimeAndWeatherManager();
 	}
-	
+
 	protected string GetGUID(ResourceName prefab)
 	{
 		int index = prefab.IndexOf("}");

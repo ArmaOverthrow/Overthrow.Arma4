@@ -2,19 +2,23 @@ class OVT_ResistanceFactionManagerClass: OVT_ComponentClass
 {	
 }
 
-class OVT_CampData
+class OVT_FOBData
 {
 	[NonSerialized()]
 	int id;
 	
-	string name;	
+	int faction;	
 	vector location;
-	string owner;
 	
 	[NonSerialized()]
 	ref array<ref EntityID> garrisonEntities = {};
 	
 	ref array<ref ResourceName> garrison = {};
+	
+	bool IsOccupyingFaction()
+	{
+		return faction == OVT_Global.GetConfig().GetOccupyingFactionIndex();
+	}
 }
 
 class OVT_VehicleUpgrades : ScriptAndConfig
@@ -53,26 +57,15 @@ class OVT_ResistanceFactionManager: OVT_Component
 	[Attribute("", UIWidgets.Object)]
 	ResourceName m_pHiredCivilianPrefab;
 	
-	[Attribute("", UIWidgets.Object)]
-	ResourceName m_pMobileFOBPrefab;
-	
-	[Attribute("", UIWidgets.Object)]
-	ResourceName m_pMobileFOBDeployedPrefab;
-	
-	ref array<ref OVT_CampData> m_Camps;
+	ref array<ref OVT_FOBData> m_FOBs;
 	
 	OVT_PlayerManagerComponent m_Players;
 	
 	protected IEntity m_TempVehicle;
 	protected SCR_AIGroup m_TempGroup;
 	
-	[RplProp()]
-	bool m_bFOBDeployed = false;
-	[RplProp()]
-	vector m_vFOBLocation;
-	
-	ref ScriptInvoker m_OnPlace = new ref ScriptInvoker();
-	ref ScriptInvoker m_OnBuild = new ref ScriptInvoker();
+	ref ScriptInvoker m_OnPlace = new ScriptInvoker();
+	ref ScriptInvoker m_OnBuild = new ScriptInvoker();
 	
 	static OVT_ResistanceFactionManager s_Instance;
 	
@@ -100,7 +93,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 	
 	void OVT_ResistanceFactionManager(IEntityComponentSource src, IEntity ent, IEntity parent)
 	{
-		m_Camps = new array<ref OVT_CampData>;
+		m_FOBs = new array<ref OVT_FOBData>;
 	}
 	
 	void Init(IEntity owner)
@@ -151,7 +144,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 	
 	protected void SpawnGarrisons()
 	{	
-		foreach(OVT_CampData fob : m_Camps)
+		foreach(OVT_FOBData fob : m_FOBs)
 		{
 			foreach(ResourceName res : fob.garrison)
 			{
@@ -178,80 +171,33 @@ class OVT_ResistanceFactionManager: OVT_Component
 		Rpc(RpcDo_AddOfficer, playerId);
 	}
 	
-	void DeployFOB(RplId vehicle)
-	{		
-		if(m_bFOBDeployed) return;
-		
-		RplComponent rpl = RplComponent.Cast(Replication.FindItem(vehicle));
-		if(!rpl) return;
-		IEntity entity = rpl.GetEntity();
-		
-		OVT_VehicleManagerComponent vm = OVT_Global.GetVehicles();
-		
-		string ownerId = vm.GetOwnerID(entity);
-		
-		vector mat[4];
-		entity.GetTransform(mat);
-		
-		IEntity newveh = vm.SpawnVehicleMatrix(m_pMobileFOBDeployedPrefab, mat, ownerId);
-		RplComponent newrpl = RplComponent.Cast(newveh.FindComponent(RplComponent));
-		
-		OVT_Global.GetVehicles().m_aVehicles.RemoveItem(entity.GetID());
-		
-		OVT_Global.TransferStorage(vehicle, newrpl.Id());
-		SCR_EntityHelper.DeleteEntityAndChildren(entity);	
-		
-		m_bFOBDeployed = true;
-		m_vFOBLocation = newveh.GetOrigin();
-		Replication.BumpMe();	
-	}
-	
-	void UndeployFOB(RplId vehicle)
-	{		
-		if(!m_bFOBDeployed) return;
-		
-		RplComponent rpl = RplComponent.Cast(Replication.FindItem(vehicle));
-		if(!rpl) return;
-		IEntity entity = rpl.GetEntity();
-		
-		OVT_VehicleManagerComponent vm = OVT_Global.GetVehicles();
-		
-		string ownerId = vm.GetOwnerID(entity);
-		
-		vector mat[4];
-		entity.GetTransform(mat);
-		
-		IEntity newveh = vm.SpawnVehicleMatrix(m_pMobileFOBPrefab, mat, ownerId);
-		RplComponent newrpl = RplComponent.Cast(newveh.FindComponent(RplComponent));
-		
-		OVT_Global.GetVehicles().m_aVehicles.RemoveItem(entity.GetID());
-		
-		OVT_Global.TransferStorage(vehicle, newrpl.Id());
-		SCR_EntityHelper.DeleteEntityAndChildren(entity);		
-		
-		m_bFOBDeployed = false;
-		Replication.BumpMe();
-	}
-	
 	IEntity PlaceItem(int placeableIndex, int prefabIndex, vector pos, vector angles, int playerId, bool runHandler = true)
 	{
 		OVT_ResistanceFactionManager config = OVT_Global.GetResistanceFaction();
 		OVT_Placeable placeable = config.m_PlaceablesConfig.m_aPlaceables[placeableIndex];
-		ResourceName res = placeable.m_aPrefabs[prefabIndex];
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
 		
+		ResourceName res = placeable.m_aPrefabs[prefabIndex];
+				
 		vector mat[4];
 		Math3D.AnglesToMatrix(angles, mat);
 		mat[3] = pos;
 		
 		IEntity entity = OVT_Global.SpawnEntityPrefabMatrix(res, mat);
 		
-		SCR_AIWorld aiworld = SCR_AIWorld.Cast(GetGame().GetAIWorld());
-		aiworld.RequestNavmeshRebuildEntity(entity);
-		
 		if(placeable.handler && runHandler)
 		{
-			placeable.handler.OnPlace(entity, playerId);
+			if(!placeable.handler.OnPlace(entity, playerId))
+			{
+				SCR_EntityHelper.DeleteEntityAndChildren(entity);
+				return null;
+			}
 		}
+		
+		economy.TakePlayerMoney(playerId, m_Config.GetPlaceableCost(placeable));
+		
+		SCR_AIWorld aiworld = SCR_AIWorld.Cast(GetGame().GetAIWorld());
+		aiworld.RequestNavmeshRebuildEntity(entity);
 		
 		m_OnPlace.Invoke(entity, placeable, playerId);
 		
@@ -307,7 +253,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		}
 	}
 	
-	void AddGarrisonFOB(OVT_CampData fob, int prefabIndex, bool takeSupporters = true)
+	void AddGarrisonFOB(OVT_FOBData fob, int prefabIndex, bool takeSupporters = true)
 	{		
 		OVT_Faction faction = OVT_Global.GetConfig().GetPlayerFaction();
 		ResourceName res = faction.m_aGroupPrefabSlots[prefabIndex];
@@ -330,7 +276,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		return group;
 	}
 	
-	SCR_AIGroup SpawnGarrisonFOB(OVT_CampData fob, ResourceName res)
+	SCR_AIGroup SpawnGarrisonFOB(OVT_FOBData fob, ResourceName res)
 	{	
 		IEntity entity = OVT_Global.SpawnEntityPrefab(res, fob.location + "1 0 0");
 		SCR_AIGroup group = SCR_AIGroup.Cast(entity);
@@ -366,37 +312,35 @@ class OVT_ResistanceFactionManager: OVT_Component
 		}
 	}
 	
+	void RegisterFOB(IEntity ent, int playerId)
+	{	
+		vector pos = ent.GetOrigin();	
+		OVT_FOBData fob = new OVT_FOBData;
+		fob.faction = OVT_Global.GetConfig().GetPlayerFactionIndex();
+		fob.location = pos;
+		m_FOBs.Insert(fob);
+				
+		Rpc(RpcDo_RegisterFOB, pos);
+		OVT_Global.GetNotify().SendTextNotification("PlacedFOB",-1,OVT_Global.GetPlayers().GetPlayerName(playerId),OVT_Global.GetTowns().GetTownName(pos));
+	}
+	
 	void RegisterCamp(IEntity ent, int playerId)
 	{
-		vector pos = ent.GetOrigin();	
-		
-		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);	
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		vector pos = ent.GetOrigin();
+				
 		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(persId);
-		OVT_CampData fob = new OVT_CampData;
-		fob.owner = persId;
 		if(player)
 		{
-			if(player.camp[0] != 0)
-			{
-				RpcDo_RemoveCamp(player.camp);
-				Rpc(RpcDo_RemoveCamp, player.camp);
-				GetGame().GetWorld().QueryEntitiesBySphere(player.camp, 10, null, FindAndDeleteCamps);
-			}			
 			player.camp = pos;
-			fob.name = "#OVT-Place_Camp " + player.name;
 		}
-		
-		fob.location = pos;
-		m_Camps.Insert(fob);
 				
-		Rpc(RpcDo_RegisterCamp, pos, fob.name, playerId);
-		OVT_Global.GetNotify().SendTextNotification("PlacedCamp",-1,OVT_Global.GetPlayers().GetPlayerName(playerId),OVT_Global.GetTowns().GetTownName(pos));
+		Rpc(RpcDo_RegisterCamp, pos, playerId);
 	}
 	
 	protected bool FindAndDeleteCamps(IEntity ent)
 	{
-		if(ent.ClassName() != "GenericEntity") return false;
-		string res = EPF_Utils.GetPrefabName(ent);
+		string res = ent.GetPrefabData().GetPrefabName();
 		if(res.Contains("TentSmallUS"))
 		{
 			SCR_EntityHelper.DeleteEntityAndChildren(ent);
@@ -413,12 +357,13 @@ class OVT_ResistanceFactionManager: OVT_Component
 		return vector.Distance(player.camp, pos);
 	}
 	
-	vector GetNearestCamp(vector pos)
+	vector GetNearestFOB(vector pos)
 	{
 		vector nearestBase;
 		float nearest = -1;
-		foreach(OVT_CampData fob : m_Camps)
+		foreach(OVT_FOBData fob : m_FOBs)
 		{
+			if(fob.IsOccupyingFaction()) continue;
 			float distance = vector.Distance(fob.location, pos);
 			if(nearest == -1 || distance < nearest){
 				nearest = distance;
@@ -428,12 +373,13 @@ class OVT_ResistanceFactionManager: OVT_Component
 		return nearestBase;
 	}
 	
-	OVT_CampData GetNearestCampData(vector pos)
+	OVT_FOBData GetNearestFOBData(vector pos)
 	{
-		OVT_CampData nearestBase;
+		OVT_FOBData nearestBase;
 		float nearest = -1;
-		foreach(OVT_CampData fob : m_Camps)
+		foreach(OVT_FOBData fob : m_FOBs)
 		{
+			if(fob.IsOccupyingFaction()) continue;
 			float distance = vector.Distance(fob.location, pos);
 			if(nearest == -1 || distance < nearest){
 				nearest = distance;
@@ -455,7 +401,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		SCR_CompartmentAccessComponent access = SCR_CompartmentAccessComponent.Cast(ent.FindComponent(SCR_CompartmentAccessComponent));
 		if(!access) return;
 		
-		access.MoveInVehicle(m_TempVehicle, ECompartmentType.Turret);
+		access.MoveInVehicle(m_TempVehicle, ECompartmentType.TURRET);
 	}
 	
 	void SpawnGunner(RplId turret, int playerId = -1, bool takeSupporter = true)
@@ -487,15 +433,13 @@ class OVT_ResistanceFactionManager: OVT_Component
 	//RPC Methods	
 	override bool RplSave(ScriptBitWriter writer)
 	{	
-		writer.WriteBool(m_bFOBDeployed);
-		writer.WriteVector(m_vFOBLocation);
 			
-		//Send JIP Camps
-		writer.WriteInt(m_Camps.Count()); 
-		for(int i=0; i<m_Camps.Count(); i++)
+		//Send JIP FOBs
+		writer.WriteInt(m_FOBs.Count()); 
+		for(int i=0; i<m_FOBs.Count(); i++)
 		{
-			OVT_CampData fob = m_Camps[i];
-			writer.WriteString(fob.name);
+			OVT_FOBData fob = m_FOBs[i];
+			writer.Write(fob.faction, 32);
 			writer.WriteVector(fob.location);
 		}
 		
@@ -504,10 +448,8 @@ class OVT_ResistanceFactionManager: OVT_Component
 	
 	override bool RplLoad(ScriptBitReader reader)
 	{		
-		if(!reader.ReadBool(m_bFOBDeployed)) return false;
-		if(!reader.ReadVector(m_vFOBLocation)) return false;
 				
-		//Recieve JIP Camps
+		//Recieve JIP FOBs
 		int length;
 		string id;
 		vector pos;
@@ -515,45 +457,32 @@ class OVT_ResistanceFactionManager: OVT_Component
 		if (!reader.ReadInt(length)) return false;
 		for(int i=0; i<length; i++)
 		{			
-			OVT_CampData fob = new OVT_CampData;			
-			if (!reader.ReadString(fob.name)) return false;
+			OVT_FOBData fob = new OVT_FOBData;			
+			if (!reader.Read(fob.faction, 32)) return false;
 			if (!reader.ReadVector(fob.location)) return false;
-			m_Camps.Insert(fob);
+			m_FOBs.Insert(fob);
 		}
 		return true;
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_RegisterCamp(vector pos, string name, int playerId)
-	{		
-		OVT_CampData fob = new OVT_CampData;
+	protected void RpcDo_RegisterFOB(vector pos)
+	{
+		OVT_FOBData fob = new OVT_FOBData;
 		fob.location = pos;
-		fob.name = name;
-		m_Camps.Insert(fob);
-		
+		fob.faction = m_Config.GetPlayerFactionIndex();
+		m_FOBs.Insert(fob);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_RegisterCamp(vector pos, int playerId)
+	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
-		fob.owner = persId;
+		
 		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(persId);
 		if(player)
 		{
 			player.camp = pos;
-		}
-	}
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_RemoveCamp(vector pos)
-	{		
-		int index = -1;
-		foreach(int t, OVT_CampData camp : m_Camps)
-		{
-			if(camp.location == pos)
-			{
-				index = t;
-			}
-		}
-		if(index > -1)
-		{
-			m_Camps.Remove(index);
 		}
 	}
 	
@@ -578,10 +507,10 @@ class OVT_ResistanceFactionManager: OVT_Component
 	
 	void ~OVT_ResistanceFactionManager()
 	{		
-		if(m_Camps)
+		if(m_FOBs)
 		{
-			m_Camps.Clear();
-			m_Camps = null;
+			m_FOBs.Clear();
+			m_FOBs = null;
 		}			
 	}
 }

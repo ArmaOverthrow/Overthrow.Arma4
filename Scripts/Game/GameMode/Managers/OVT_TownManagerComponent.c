@@ -26,7 +26,9 @@ class OVT_TownData : Managed
 	
 	int SupportPercentage()
 	{
-		return Math.Round((support / population) * 100);
+		if(population == 0) 
+			return 0;
+		return Math.Round((support / population ) * 100);
 	}
 	
 	OVT_Faction ControllingFaction()
@@ -324,7 +326,7 @@ class OVT_TownManagerComponent: OVT_Component
 		system.RemoveByName(townId, name);
 	}
 	
-	void TryAddStabilityModifier(int townId, int index)
+	bool TryAddStabilityModifier(int townId, int index)
 	{
 		OVT_TownData town = m_Towns[townId];
 		OVT_ModifierConfig mod = GetModifierSystem(OVT_TownStabilityModifierSystem).m_Config.m_aModifiers[index];
@@ -340,14 +342,18 @@ class OVT_TownManagerComponent: OVT_Component
 			{
 				if(data.id == index) num++;
 			}
-			if(num < mod.stackLimit)
+			if(num < mod.stackLimit){
 				AddStabilityModifier(townId, index);
+			}else{
+				return false;
+			}
 		}else{
 			//Is not stackable, reset timer
 			int i = GetModifierIndex(town.stabilityModifiers, index);			
 			town.stabilityModifiers[i].timer = mod.timeout;
 			Rpc(RpcDo_ResetStabilityModifier, townId, index);
 		}
+		return true;
 	}
 	
 	void AddStabilityModifier(int townId, int index)
@@ -377,7 +383,7 @@ class OVT_TownManagerComponent: OVT_Component
 		Rpc(RpcDo_RemoveStabilityModifier, townId, index);	
 	}
 	
-	void TryAddSupportModifier(int townId, int index)
+	bool TryAddSupportModifier(int townId, int index)
 	{
 		OVT_TownData town = m_Towns[townId];
 		OVT_ModifierConfig mod = GetModifierSystem(OVT_TownSupportModifierSystem).m_Config.m_aModifiers[index];
@@ -394,13 +400,18 @@ class OVT_TownManagerComponent: OVT_Component
 				if(data && data.id == index) num++;
 			}
 			if(num < mod.stackLimit)
+			{
 				AddSupportModifier(townId, index);
+			}else{
+				return false;
+			}
 		}else if(mod.timeout > 0){
 			//Is not stackable, reset timer
 			int i = GetModifierIndex(town.supportModifiers, index);			
 			town.supportModifiers[i].timer = mod.timeout;
 			Rpc(RpcDo_ResetSupportModifier, townId, index);
 		}
+		return true;
 	}
 	
 	void AddSupportModifier(int townId, int index)
@@ -473,7 +484,9 @@ class OVT_TownManagerComponent: OVT_Component
 	{
 		int townID = GetTownID(town);
 		town.faction = faction;
-		m_OnTownControlChange.Invoke(town);
+		if(m_OnTownControlChange)
+			m_OnTownControlChange.Invoke(town);
+		
 		Rpc(RpcDo_SetTownFaction, townID, faction);
 		string type = "Village";
 		if(town.size == 2) type = "Town";
@@ -506,56 +519,10 @@ class OVT_TownManagerComponent: OVT_Component
 		return house;
 	}
 	
-	IEntity GetRandomStartingHouse()
-	{
-		m_Houses = new array<ref EntityID>;
-		OVT_TownData town;
-		IEntity house;
-		int i = 0;
-		float dist;
-		
-		while(!house && i < 40)
-		{
-			i++;
-			int index = s_AIRandomGenerator.RandInt(0, m_Towns.Count()-1);
-			town = m_Towns[index];
-				
-			GetGame().GetWorld().QueryEntitiesBySphere(town.location, m_iCityRange, CheckHouseAddToArray, FilterStartingHouseEntities, EQueryEntitiesFlags.STATIC);
-			if(m_Houses.Count() == 0) continue;
-			
-			house = GetGame().GetWorld().FindEntityByID(m_Houses.GetRandomElement());
-			if(m_RealEstate.IsOwned(house.GetID())) house = null;			
-		}
-				
-		return house;
-	}
-	
 	IEntity GetNearestHouse(vector pos)
 	{
 		m_Houses = new array<ref EntityID>;		
 		GetGame().GetWorld().QueryEntitiesBySphere(pos, 25, CheckHouseAddToArray, FilterHouseEntities, EQueryEntitiesFlags.STATIC);
-		
-		float nearest = 26;
-		IEntity nearestEnt;		
-		
-		foreach(EntityID id : m_Houses)
-		{			
-			IEntity ent = GetGame().GetWorld().FindEntityByID(id);
-			float dist = vector.Distance(ent.GetOrigin(), pos);
-			if(dist < nearest)
-			{
-				nearest = dist;
-				nearestEnt = ent;
-			}
-		}
-		
-		return nearestEnt;
-	}
-	
-	IEntity GetNearestStartingHouse(vector pos)
-	{
-		m_Houses = new array<ref EntityID>;		
-		GetGame().GetWorld().QueryEntitiesBySphere(pos, 25, CheckHouseAddToArray, FilterStartingHouseEntities, EQueryEntitiesFlags.STATIC);
 		
 		float nearest = 26;
 		IEntity nearestEnt;		
@@ -829,7 +796,9 @@ class OVT_TownManagerComponent: OVT_Component
 	
 	protected bool CheckHouseAddToArray(IEntity entity)
 	{
-		m_Houses.Insert(entity.GetID());
+		EntityID id = entity.GetID();
+		if(!m_RealEstate.IsOwned(id))
+			m_Houses.Insert(id);
 				
 		return true;
 	}
@@ -860,19 +829,6 @@ class OVT_TownManagerComponent: OVT_Component
 				}
 					
 			}
-		}
-		return false;
-	}
-	
-	protected bool FilterStartingHouseEntities(IEntity entity) 
-	{
-		if(entity.ClassName() == "SCR_DestructibleBuildingEntity"){
-			ResourceName res = entity.GetPrefabData().GetPrefabName();
-			if(res.IndexOf("_furniture") > -1) return false;
-			foreach(string s : OVT_Global.GetConfig().m_aStartingHouseFilters)
-			{
-				if(res.IndexOf(s) > -1) return true;
-			}			
 		}
 		return false;
 	}

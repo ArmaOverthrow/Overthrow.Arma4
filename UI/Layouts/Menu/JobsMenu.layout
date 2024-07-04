@@ -151,31 +151,9 @@ FrameWidgetClass {
                   Padding 0 0 10 0
                  }
                  components {
-                  SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
-                   m_sSoundClicked "SOUND_FE_BUTTON_CANCEL"
-                   m_sLabel "#AR-Editor_ContentBrowser_ButtonClose"
+                  SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
                    m_sActionName "MenuBack"
-                  }
-                  ButtonActionComponent "{56EEDE01BE93EE7D}" {
-                   m_bActionName "MenuBack"
-                  }
-                 }
-                 {
-                  SizeLayoutWidgetClass "{5562AD435529FB36}" {
-                   Prefab "{5562AD435529FB36}"
-                   {
-                    OverlayWidgetClass "{000000005E70868E}" {
-                     Prefab "{000000005E70868E}"
-                     {
-                      HorizontalLayoutWidgetClass "{00000000E3602307}" {
-                       Prefab "{00000000E3602307}"
-                       Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
-                        Padding 10 10 16 10
-                       }
-                      }
-                     }
-                    }
-                   }
+                   m_sLabel "#AR-Menu_Back"
                   }
                  }
                 }
@@ -185,30 +163,12 @@ FrameWidgetClass {
                   Padding 0 0 10 0
                  }
                  components {
-                  SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
-                   m_sLabel "#AR-Editor_ContentBrowser_ButtonSelect"
+                  SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
                    m_sActionName "MenuSelect"
+                   m_sLabel "#AR-Menu_Select"
                   }
                   SCR_DeviceSpecificComponent "{56EEDE01335EDAD4}" {
                    m_bControllerOnly 1
-                  }
-                 }
-                 {
-                  SizeLayoutWidgetClass "{5562AD435529FB36}" {
-                   Prefab "{5562AD435529FB36}"
-                   {
-                    OverlayWidgetClass "{000000005E70868E}" {
-                     Prefab "{000000005E70868E}"
-                     {
-                      HorizontalLayoutWidgetClass "{00000000E3602307}" {
-                       Prefab "{00000000E3602307}"
-                       Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
-                        Padding 10 10 16 10
-                       }
-                      }
-                     }
-                    }
-                   }
                   }
                  }
                 }
@@ -281,7 +241,7 @@ FrameWidgetClass {
                Slot LayoutSlot "{598EF9F53F730301}" {
                 Padding 10 10 10 10
                }
-               Text "Job Name"
+               Text ""
                "Font Size" 28
                "Min Font Size" 25
               }
@@ -290,7 +250,7 @@ FrameWidgetClass {
                Slot LayoutSlot "{598EF9F53F730347}" {
                 Padding 10 0 10 30
                }
-               Text "St Phillipe"
+               Text ""
                "Font Size" 25
                "Min Font Size" 20
               }
@@ -299,7 +259,7 @@ FrameWidgetClass {
                Slot LayoutSlot "{598EF9F53F730347}" {
                 Padding 10 0 10 30
                }
-               Text "$100 Reward"
+               Text ""
                "Font Size" 25
                "Min Font Size" 20
               }
@@ -308,7 +268,7 @@ FrameWidgetClass {
                Slot LayoutSlot "{598EF9F53F73034B}" {
                 Padding 10 0 10 12
                }
-               Text "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In dapibus ipsum vulputate posuere consequat. Suspendisse bibendum lectus a lacus posuere, a rutrum massa dictum. Praesent posuere lectus sit amet magna feugiat, vitae egestas dui sagittis. Quisque mi elit, varius quis justo eget, lobortis congue nibh. Fusce fringilla urna eu neque commodo condimentum. Vestibulum placerat sapien non scelerisque tristique. Aliquam erat volutpat. Sed nisl risus, imperdiet accumsan lectus a, dignissim egestas velit. Suspendisse potenti. Morbi vel mi fringilla, lacinia lectus id, molestie magna. Etiam faucibus justo purus, vitae faucibus est vehicula id. Suspendisse nec nunc mattis, fringilla tortor et, ullamcorper magna."
+               Text "Select a job on the left"
                "Font Size" 20
                "Min Font Size" 12
                Wrap 1
@@ -337,30 +297,9 @@ FrameWidgetClass {
                 Padding 0 0 0 0
                }
                components {
-                SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
-                 m_sLabel "#OVT-Jobs_ShowOnMap"
+                SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
                  m_sActionName "OverthrowJobsShowOnMap"
-                }
-                ButtonActionComponent "{56EEDE0026B19E2C}" {
-                 m_bActionName "OverthrowJobsShowOnMap"
-                }
-               }
-               {
-                SizeLayoutWidgetClass "{5562AD435529FB36}" {
-                 Prefab "{5562AD435529FB36}"
-                 {
-                  OverlayWidgetClass "{000000005E70868E}" {
-                   Prefab "{000000005E70868E}"
-                   {
-                    HorizontalLayoutWidgetClass "{00000000E3602307}" {
-                     Prefab "{00000000E3602307}"
-                     Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
-                      Padding 10 10 16 10
-                     }
-                    }
-                   }
-                  }
-                 }
+                 m_sLabel "#OVT-Jobs_ShowOnMap"
                 }
                }
               }
@@ -370,30 +309,9 @@ FrameWidgetClass {
                 Padding 0 0 0 0
                }
                components {
-                SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
-                 m_sLabel "#OVT-Jobs_Accept"
+                SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
                  m_sActionName "OverthrowJobsAccept"
-                }
-                ButtonActionComponent "{56EEDE0026B19E2C}" {
-                 m_bActionName "OverthrowJobsAccept"
-                }
-               }
-               {
-                SizeLayoutWidgetClass "{5562AD435529FB36}" {
-                 Prefab "{5562AD435529FB36}"
-                 {
-                  OverlayWidgetClass "{000000005E70868E}" {
-                   Prefab "{000000005E70868E}"
-                   {
-                    HorizontalLayoutWidgetClass "{00000000E3602307}" {
-                     Prefab "{00000000E3602307}"
-                     Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
-                      Padding 10 10 16 10
-                     }
-                    }
-                   }
-                  }
-                 }
+                 m_sLabel "#OVT-Jobs_Accept"
                 }
                }
               }
@@ -403,30 +321,9 @@ FrameWidgetClass {
                 Padding 0 0 0 0
                }
                components {
-                SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
-                 m_sLabel "#OVT-Jobs_Decline"
+                SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
                  m_sActionName "OverthrowJobsDecline"
-                }
-                ButtonActionComponent "{56EEDE0026B19E2C}" {
-                 m_bActionName "OverthrowJobsDecline"
-                }
-               }
-               {
-                SizeLayoutWidgetClass "{5562AD435529FB36}" {
-                 Prefab "{5562AD435529FB36}"
-                 {
-                  OverlayWidgetClass "{000000005E70868E}" {
-                   Prefab "{000000005E70868E}"
-                   {
-                    HorizontalLayoutWidgetClass "{00000000E3602307}" {
-                     Prefab "{00000000E3602307}"
-                     Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
-                      Padding 10 10 16 10
-                     }
-                    }
-                   }
-                  }
-                 }
+                 m_sLabel "#OVT-Jobs_Decline"
                 }
                }
               }

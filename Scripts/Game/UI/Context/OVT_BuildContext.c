@@ -120,7 +120,7 @@ class OVT_BuildContext : OVT_UIContext
 		super.RegisterInputs();
 		if(!m_InputManager) return;
 		
-		m_InputManager.AddActionListener("CharacterFire", EActionTrigger.DOWN, DoBuild);
+		m_InputManager.AddActionListener("MenuSelect", EActionTrigger.DOWN, DoBuild);
 		m_InputManager.AddActionListener("OverthrowRotateLeft", EActionTrigger.PRESSED, RotateLeft);
 		m_InputManager.AddActionListener("OverthrowRotateRight", EActionTrigger.PRESSED, RotateRight);
 		m_InputManager.AddActionListener("OverthrowNextItem", EActionTrigger.DOWN, NextItem);
@@ -137,7 +137,7 @@ class OVT_BuildContext : OVT_UIContext
 		super.UnregisterInputs();
 		if(!m_InputManager) return;
 		
-		m_InputManager.RemoveActionListener("CharacterFire", EActionTrigger.DOWN, DoBuild);
+		m_InputManager.RemoveActionListener("MenuSelect", EActionTrigger.DOWN, DoBuild);
 		m_InputManager.RemoveActionListener("OverthrowRotateLeft", EActionTrigger.PRESSED, RotateLeft);
 		m_InputManager.RemoveActionListener("OverthrowRotateRight", EActionTrigger.PRESSED, RotateRight);
 		m_InputManager.RemoveActionListener("OverthrowNextItem", EActionTrigger.DOWN, NextItem);

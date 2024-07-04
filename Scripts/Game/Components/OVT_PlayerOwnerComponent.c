@@ -8,7 +8,7 @@ class OVT_PlayerOwnerComponent : ScriptComponent
 	[RplProp()]
 	protected string m_sOwnerUID;
 	[RplProp()]
-	protected bool m_bIsLocked = true;
+	protected bool m_bIsLocked = false;
 	
 	private ref ScriptInvoker m_OnOwnerChange;
 	private ref ScriptInvoker m_OnLockChange;

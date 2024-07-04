@@ -8,7 +8,7 @@ class OVT_LockVehicleAction : ScriptedUserAction
 		OVT_PlayerOwnerComponent playerowner = EPF_Component<OVT_PlayerOwnerComponent>.Find(GetOwner());
 		if(playerowner)
 		{
-			playerowner.SetLocked(true);
+			OVT_Global.GetServer().SetVehicleLock(GetOwner(), true);
 		}
  	}
 	

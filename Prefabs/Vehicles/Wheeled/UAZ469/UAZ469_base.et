@@ -1,0 +1,18 @@
+Vehicle : "{1F9BB80C3EC3C891}Prefabs/Vehicles/Core/Wheeled_Car_Base.et" {
+ ID "BBCBA43A9778AE21"
+ components {
+  ActionsManagerComponent "{C97BE5489221AE18}" {
+   additionalActions {
+    OVT_DeliverMedicalSuppliesAction "{5F1EC2560BD24EBF}" {
+     ParentContextList {
+      "door_rear"
+     }
+     UIInfo UIInfo "{5F1EC25610CD3900}" {
+      Name "#OVT-DeliverMedicalSupplies"
+     }
+     "Sort Priority" 1
+    }
+   }
+  }
+ }
+}

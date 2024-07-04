@@ -6,8 +6,5 @@ StaticModelEntity : "{54AF9F7C4603B71B}Prefabs/Structures/Military/Camps/TentFIA
    m_pSaveData OVT_BuildingSaveDataClass "{5D7C48957F484FD9}" {
    }
   }
-  RplComponent "{5A5888305E9E92ED}" {
-   Streamable Disabled
-  }
  }
 }

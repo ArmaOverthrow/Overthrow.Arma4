@@ -47,3 +47,5 @@ Updates will be pushed to github often (sometimes multiple times a day).
 
 ## Contributing
 Just [join our Discord](https://discord.gg/j6CvmFfZ95) and participate in the `#overthrow-reforger` channel. Report any bugs you find or join the discussion about features or suggest your own. If you are comfortable with github and Enfusion development then please do make pull requests or ask to help out.
+
+![Alt](https://repobeats.axiom.co/api/embed/49520d34e4c6206b4d0f149dd4b6c2fec786d606.svg "Repobeats analytics image")

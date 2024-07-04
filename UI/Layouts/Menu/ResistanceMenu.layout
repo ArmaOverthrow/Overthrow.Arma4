@@ -533,30 +533,12 @@ FrameWidgetClass {
                       Padding 0 0 0 0
                      }
                      components {
-                      SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
-                       m_sLabel "#OVT-MakeOfficer"
+                      SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
                        m_sActionName "OverthrowMakeOfficer"
+                       m_sLabel "#OVT-MakeOfficer"
                       }
-                      ButtonActionComponent "{56EEDE0026B19E2C}" {
+                      ButtonActionComponent "{5EE30C17B5E556F9}" {
                        m_bActionName "OverthrowMakeOfficer"
-                      }
-                     }
-                     {
-                      SizeLayoutWidgetClass "{5562AD435529FB36}" {
-                       Prefab "{5562AD435529FB36}"
-                       {
-                        OverlayWidgetClass "{000000005E70868E}" {
-                         Prefab "{000000005E70868E}"
-                         {
-                          HorizontalLayoutWidgetClass "{00000000E3602307}" {
-                           Prefab "{00000000E3602307}"
-                           Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
-                            Padding 10 10 16 10
-                           }
-                          }
-                         }
-                        }
-                       }
                       }
                      }
                     }
@@ -566,30 +548,9 @@ FrameWidgetClass {
                       Padding 0 0 0 0
                      }
                      components {
-                      SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
-                       m_sLabel "#OVT-DonateFunds"
+                      SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
                        m_sActionName "OverthrowDonateFunds"
-                      }
-                      ButtonActionComponent "{56EEDE0026B19E2C}" {
-                       m_bActionName "OverthrowDonateFunds"
-                      }
-                     }
-                     {
-                      SizeLayoutWidgetClass "{5562AD435529FB36}" {
-                       Prefab "{5562AD435529FB36}"
-                       {
-                        OverlayWidgetClass "{000000005E70868E}" {
-                         Prefab "{000000005E70868E}"
-                         {
-                          HorizontalLayoutWidgetClass "{00000000E3602307}" {
-                           Prefab "{00000000E3602307}"
-                           Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
-                            Padding 10 10 16 10
-                           }
-                          }
-                         }
-                        }
-                       }
+                       m_sLabel "#OVT-DonateFunds"
                       }
                      }
                     }
@@ -605,30 +566,9 @@ FrameWidgetClass {
                       Padding 0 0 0 0
                      }
                      components {
-                      SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
-                       m_sLabel "#OVT-SendFunds"
+                      SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
                        m_sActionName "OverthrowSendFunds"
-                      }
-                      ButtonActionComponent "{56EEDE0026B19E2C}" {
-                       m_bActionName "OverthrowSendFunds"
-                      }
-                     }
-                     {
-                      SizeLayoutWidgetClass "{5562AD435529FB36}" {
-                       Prefab "{5562AD435529FB36}"
-                       {
-                        OverlayWidgetClass "{000000005E70868E}" {
-                         Prefab "{000000005E70868E}"
-                         {
-                          HorizontalLayoutWidgetClass "{00000000E3602307}" {
-                           Prefab "{00000000E3602307}"
-                           Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
-                            Padding 10 10 16 10
-                           }
-                          }
-                         }
-                        }
-                       }
+                       m_sLabel "#OVT-SendFunds"
                       }
                      }
                     }
@@ -638,30 +578,9 @@ FrameWidgetClass {
                       Padding 0 0 0 0
                      }
                      components {
-                      SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
-                       m_sLabel "#OVT-SendMoney"
+                      SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
                        m_sActionName "OverthrowSendMoney"
-                      }
-                      ButtonActionComponent "{56EEDE0026B19E2C}" {
-                       m_bActionName "OverthrowSendMoney"
-                      }
-                     }
-                     {
-                      SizeLayoutWidgetClass "{5562AD435529FB36}" {
-                       Prefab "{5562AD435529FB36}"
-                       {
-                        OverlayWidgetClass "{000000005E70868E}" {
-                         Prefab "{000000005E70868E}"
-                         {
-                          HorizontalLayoutWidgetClass "{00000000E3602307}" {
-                           Prefab "{00000000E3602307}"
-                           Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
-                            Padding 10 10 16 10
-                           }
-                          }
-                         }
-                        }
-                       }
+                       m_sLabel "#OVT-SendMoney"
                       }
                      }
                     }
@@ -690,28 +609,9 @@ FrameWidgetClass {
                   Padding 0 0 10 0
                  }
                  components {
-                  SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
-                   m_sSoundClicked "SOUND_FE_BUTTON_CANCEL"
-                   m_sLabel "#AR-Editor_ContentBrowser_ButtonClose"
+                  SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
                    m_sActionName "MenuBack"
-                  }
-                 }
-                 {
-                  SizeLayoutWidgetClass "{5562AD435529FB36}" {
-                   Prefab "{5562AD435529FB36}"
-                   {
-                    OverlayWidgetClass "{000000005E70868E}" {
-                     Prefab "{000000005E70868E}"
-                     {
-                      HorizontalLayoutWidgetClass "{00000000E3602307}" {
-                       Prefab "{00000000E3602307}"
-                       Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
-                        Padding 10 10 16 10
-                       }
-                      }
-                     }
-                    }
-                   }
+                   m_sLabel "#AR-Menu_Back"
                   }
                  }
                 }
@@ -721,30 +621,12 @@ FrameWidgetClass {
                   Padding 0 0 10 0
                  }
                  components {
-                  SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
-                   m_sLabel "#AR-Editor_ContentBrowser_ButtonSelect"
+                  SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
                    m_sActionName "MenuSelect"
+                   m_sLabel "#AR-Menu_Select"
                   }
                   SCR_DeviceSpecificComponent "{56EEDE01335EDAD4}" {
                    m_bControllerOnly 1
-                  }
-                 }
-                 {
-                  SizeLayoutWidgetClass "{5562AD435529FB36}" {
-                   Prefab "{5562AD435529FB36}"
-                   {
-                    OverlayWidgetClass "{000000005E70868E}" {
-                     Prefab "{000000005E70868E}"
-                     {
-                      HorizontalLayoutWidgetClass "{00000000E3602307}" {
-                       Prefab "{00000000E3602307}"
-                       Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
-                        Padding 10 10 16 10
-                       }
-                      }
-                     }
-                    }
-                   }
                   }
                  }
                 }

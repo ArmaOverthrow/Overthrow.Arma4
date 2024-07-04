@@ -271,22 +271,22 @@ OVT_OverthrowGameMode {
    }
    m_pGunDealerPrefab "{59929550D81A3045}Prefabs/Characters/Factions/INDFOR/FIA/Character_FIA_GunDealer.et"
    m_pCivilianPrefab "{1AF5B9AE5CFD4434}Prefabs/Groups/INDFOR/Group_CIV.et"
-   m_pMoveWaypointPrefab "{FFF9518F73279473}PrefabsEditable/Auto/AI/Waypoints/E_AIWaypoint_Move.et"
-   m_pDefendWaypointPrefab "{D9C14ECEC9772CC6}PrefabsEditable/Auto/AI/Waypoints/E_AIWaypoint_Defend.et"
-   m_pPatrolWaypointPrefab "{C0A9A9B589802A5B}PrefabsEditable/Auto/AI/Waypoints/E_AIWaypoint_Patrol.et"
-   m_pWaitWaypointPrefab "{90E783A161383314}PrefabsEditable/Auto/AI/Waypoints/E_AIWaypoint_Wait.et"
-   m_pCycleWaypointPrefab "{CB2F221DB14DD864}Prefabs/AI/Waypoints/E_AIWaypoint_Cycle.et"
-   m_pSearchAndDestroyWaypointPrefab "{EE9A99488B40628B}PrefabsEditable/Auto/AI/Waypoints/E_AIWaypoint_SearchAndDestroy.et"
-   m_pGetInWaypointPrefab "{2E6D3ABB8094159A}PrefabsEditable/Auto/AI/Waypoints/E_AIWaypoint_GetIn.et"
+   m_pMoveWaypointPrefab "{750A8D1695BD6998}Prefabs/AI/Waypoints/AIWaypoint_Move.et"
+   m_pDefendWaypointPrefab "{93291E72AC23930F}Prefabs/AI/Waypoints/AIWaypoint_Defend.et"
+   m_pPatrolWaypointPrefab "{22A875E30470BD4F}Prefabs/AI/Waypoints/AIWaypoint_Patrol.et"
+   m_pWaitWaypointPrefab "{531EC45063C1F57B}Prefabs/AI/Waypoints/AIWaypoint_Wait.et"
+   m_pCycleWaypointPrefab "{35BD6541CBB8AC08}Prefabs/AI/Waypoints/AIWaypoint_Cycle.et"
+   m_pSearchAndDestroyWaypointPrefab "{B3E7B8DC2BAB8ACC}Prefabs/AI/Waypoints/AIWaypoint_SearchAndDestroy.et"
+   m_pGetInWaypointPrefab "{712F4795CF8B91C7}Prefabs/AI/Waypoints/AIWaypoint_GetIn.et"
    m_pSmartActionWaypointPrefab "{04A06A6742FB0AF8}Prefabs/AI/Waypoints/AIWaypoint_UserAction.et"
    m_aStartingHouseFilters {
-    "House_Mountain_E_1I01.et" "House_Village_E_1I05s.et" "House_Village_E_1L03t.et"
+    "House_Mountain_E_1I01.et" "House_Village_E_1I05s.et" "House_Village_E_1L03t.et" "House_Village_E_1I04t.et" "House_Village_E_1I05t.et" "House_Village_E_1L02t.et"
    }
    m_aBuildingTypes {
     OVT_RealEstateConfig "{5D2EDC0DFB761194}" {
      m_Name "Starting House"
      m_aResourceNameFilters {
-      "House_Mountain_E_1I01.et" "House_Village_E_1I05s.et" "House_Village_E_1L03t.et"
+      "House_Mountain_E_1I01.et" "House_Village_E_1I05s.et" "House_Village_E_1L03t.et" "House_Village_E_1I04t.et" "House_Village_E_1I05t.et" "House_Village_E_1L02t.et"
      }
      m_BasePrice 25000
      m_BaseRent 1000
@@ -340,30 +340,7 @@ OVT_OverthrowGameMode {
     }
    }
    m_pPlayerGroupPrefab "{9BED5CCD52C87E26}Prefabs/Groups/INDFOR/Group_Player.et"
-   m_CivilianLoadout OVT_LoadoutConfig "{5D70ECF4724BC81E}" {
-    m_aSlots {
-     OVT_LoadoutSlot "{5D70ECF470377ECE}" {
-      m_sName "Pants"
-      m_aChoices {
-       "{80F19C72CFA4CED4}Prefabs/Characters/Uniforms/Pants/cargo_pants_grey.et" "{432A36533B42C11D}Prefabs/Characters/Uniforms/Pants/cargo_pants_grey_black.et" "{BB8B4C27985C8797}Prefabs/Characters/Uniforms/Pants/cargo_pants_khaki.et" "{0C78AD2BF86D089B}Prefabs/Characters/Uniforms/Pants/cargo_pants_khaki_black.et" "{924CAA6171029E01}Prefabs/Characters/Uniforms/Pants/cargo_pants_Olive_brown.et" "{76C4162E75BC3870}Prefabs/Characters/Uniforms/Pants/shorts_black.et" "{6AA6952976457212}Prefabs/Characters/Uniforms/Pants/jeans_black.et" "{785F4A26DB826D34}Prefabs/Characters/Uniforms/Pants/jeans_black_washed.et" "{D5E273BB88B47524}Prefabs/Characters/Uniforms/Pants/jeans_black_washed_ripped.et" "{C5848D50C28BC324}Prefabs/Characters/Uniforms/Pants/jeans_blue.et" "{4CE818FF4A86E19D}Prefabs/Characters/Uniforms/Pants/jeans_blue_washed.et" "{ECF063267DA69767}Prefabs/Characters/Uniforms/Pants/jeans_brown_dirty.et" "{E38958AE4AE55A02}Prefabs/Characters/Uniforms/Pants/jeans_light_blue_washed.et" "{5BC452D2DB3E2573}Prefabs/Characters/Uniforms/Pants/jeans_lightblue_washed_ripped.et" "{526C254A17AD7270}Prefabs/Characters/Uniforms/Pants/joggers_pants_black.et" "{5484D2CE182555D9}Prefabs/Characters/Uniforms/Pants/joggers_pants_green.et" "{EB38D98A6D988B3C}Prefabs/Characters/Uniforms/Pants/joggers_pants_blue.et" "{31F3AA060CEAFA43}Prefabs/Characters/Uniforms/Pants/joggers_pants_grey.et"
-      }
-      m_aStoredItems {
-       "{13772C903CB5E4F7}Prefabs/Items/Equipment/Maps/PaperMap_01_folded.et" "{3A421547BC29F679}Prefabs/Items/Equipment/Flashlights/Flashlight_MX991/Flashlight_MX991.et"
-      }
-     }
-     OVT_LoadoutSlot "{5D70ECF42BD5A6EB}" {
-      m_sName "Top"
-      m_aChoices {
-       "{5F310D795D4ED30C}Prefabs/Characters/Uniforms/Tops/flannel_blue.et" "{494706283AF39DFA}Prefabs/Characters/Uniforms/Tops/flannel_brown.et" "{BF2B7ED6C6BF0422}Prefabs/Characters/Uniforms/Tops/flannel_dark_red.et" "{48DE2B7B0C2F73FA}Prefabs/Characters/Uniforms/Tops/flannel_green.et" "{FA00640060D60B8A}Prefabs/Characters/Uniforms/Tops/Jacket_black_red.et" "{7A0C78BBC9E5EDD1}Prefabs/Characters/Uniforms/Tops/Jacket_black_grey.et" "{A0C70B37A8979CAE}Prefabs/Characters/Uniforms/Tops/Jacket_black_blue.et" "{CC781A72C88D3D49}Prefabs/Characters/Uniforms/Tops/Jacket_blue_white.et" "{EC9BEA5CE4676B48}Prefabs/Characters/Uniforms/Tops/Jacket_green_black.et" "{7F44A37BB64B8842}Prefabs/Characters/Uniforms/Tops/Long_sleeve_white.et" "{1C1E94227EC12843}Prefabs/Characters/Uniforms/Tops/Long_sleeve_red.et" "{B7A4A1897332C888}Prefabs/Characters/Uniforms/Tops/Long_sleeve_black.et" "{603FB971FA3E642C}Prefabs/Characters/Uniforms/Tops/Jacket_grey_white.et" "{A8DFBB833F4724E6}Prefabs/Characters/Uniforms/Tops/Jacket_grey_black.et" "{E4BABD401DC80E02}Prefabs/Characters/Uniforms/Tops/short_sleeve_cg.et" "{D2F07DAEA4F14603}Prefabs/Characters/Uniforms/Tops/short_sleeve_pink.et" "{AC1AED3B4C3BC7F0}Prefabs/Characters/Uniforms/Tops/short_sleeve_v2_babyblue.et" "{E8510F70E8DF3FB0}Prefabs/Characters/Uniforms/Tops/short_sleeve_v2_black.et" "{EFCBD7C61269BB9D}Prefabs/Characters/Uniforms/Tops/short_sleeve_v2_blue.et" "{1696E895046EF1A5}Prefabs/Characters/Uniforms/Tops/short_sleeve_v2_orange.et" "{E04A3F5ED9162A91}Prefabs/Characters/Uniforms/Tops/short_sleeve_white.et" "{983A71A4BAE74507}Prefabs/Characters/Uniforms/Tops/tank_top_white.et" "{50DA73567F9E05CD}Prefabs/Characters/Uniforms/Tops/tank_top_black.et"
-      }
-     }
-     OVT_LoadoutSlot "{5D70ECF439A1223C}" {
-      m_sName "Shoes"
-      m_aChoices {
-       "{9AC4B50676BCAFA4}Prefabs/Characters/Footwear/Sandles.et" "{58CDE15D74295DA2}Prefabs/Characters/Footwear/hiking_boots.et" "{C7923961D7235D70}Prefabs/Characters/Footwear/CombatBoots_Soviet_01.et" "{DAAFD15478BDE1C3}Prefabs/Characters/Footwear/CombatBoots_US_01.et"
-      }
-     }
-    }
+   m_CivilianLoadout OVT_LoadoutConfig "{61C8AC0BB681EDAF}" : "{AB39AD8BD8554967}Configs/Civilians/CivilianClothes.conf" {
    }
    m_bDebugMode 0
   }
@@ -418,6 +395,7 @@ OVT_OverthrowGameMode {
    m_bRandomStartingWeather 1
   }
   OVT_TownManagerComponent "{59724C983BF56C3B}" {
+   m_iVillageRange 100
    m_aTownModifiers {
     OVT_TownStabilityModifierSystem "{59A2BDDB065D9242}" {
      m_rConfigFile "{FD430627EAC5BDBC}Configs/Modifiers/stabilityModifiers.conf"
@@ -431,7 +409,11 @@ OVT_OverthrowGameMode {
    }
   }
   OVT_VehicleManagerComponent "{5D707B3386AF876D}" {
-   m_pStartingCarPrefab "{259EE7B78C51B624}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469.et"
+   m_pStartingCarPrefabs {
+    "{9B3A89DD33FF0483}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469_uncovered_CIV_blue.et" "{270F23D61238ABC7}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469_uncovered_CIV_brown.et" "{599DFCA424399DBF}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469_uncovered_CIV_red.et" "{D4855501D5B12AF2}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469_uncovered_CIV_teal.et" "{B2CC137FE424B129}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469_covered_CIV_VAK.et" "{870EB660433857D3}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469_covered_CIV_teal.et" "{A4D16A62B432451A}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469_covered_CIV_red.et" "{5070B3749C7782D8}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469_covered_CIV_JZD.et" "{BDFB2377B6B4ABBB}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469_covered_CIV_PTS.et" "{C8B16ABCA57679A2}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469_covered_CIV_blue.et" "{D7C51A961BF675B2}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469_covered_CIV_brown.et" "{B6D330E7E40FE7DD}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469_covered_CIV_forest.et"
+   }
+   m_CivilianVehicleEntityCatalog SCR_EntityCatalogMultiList "{5EE51BB6ADFBE791}" : "{77243A71AF0E5A75}Configs/EntityCatalog/FactionLess/Vehicles_EntityCatalog_Factionless.conf" {
+   }
   }
   OVT_VirtualizationManagerComponent "{5E84D14A6F9B80A9}" {
   }
@@ -440,21 +422,21 @@ OVT_OverthrowGameMode {
   SCR_CommandingManagerComponent "{5DFEE7C53D7244B0}" {
    m_sCommandsConfigPath "{54764D4E706F348C}Configs/Commanding/Commands.conf"
   }
+  SCR_CompositionSlotManagerComponent "{5EE264023189375A}" {
+  }
   SCR_DataCollectorComponent "{5DFEE7C5E2762B63}" {
   }
   SCR_DestructionManagerComponent "{5DFEE7C5F4445327}" {
+  }
+  SCR_EntityCatalogManagerComponent "{5EE2640207CD57B9}" {
   }
   SCR_GameModeHealthSettings "{5D7A443950718AF0}" {
   }
   SCR_GroupsManagerComponent "{5DDAD8A30938E391}" {
    m_sDefaultGroupPrefab "{8B4D49A9F324E7D5}Prefabs/Groups/PlayableGroup.et"
+   m_iPlayableGroupFrequencyOffset 500
   }
   SCR_HintManagerComponent "{59724C8C935D8E2C}" {
-  }
-  SCR_InitWeatherComponent "{597CE04456F991A8}" {
-   m_sInitialStartingWeatherId "Cloudy"
-   m_initialWeatherDurationMin 0.2
-   m_initialWeatherDurationMax 0.5
   }
   SCR_MapConfigComponent "{5D56F4474D716C00}" {
   }
@@ -506,9 +488,7 @@ OVT_OverthrowGameMode {
   }
   SCR_PlayerProfileManagerComponent "{59724C8C935D8E14}" {
   }
-  SCR_RadialMenuGameModeComponent "{5D7EADAF1949CAD1}" {
-   m_Menu SCR_RadialMenu "{5D7EADAFE1EB1C74}" : "{D9448EF097CB0ACB}Configs/HUD/RadialMenu/GlobalRadialMenu.conf" {
-   }
+  SCR_PossessingManagerComponent "{5EE26402F4693B94}" {
   }
   SCR_RadialMenuItemsComponent "{5D7EADAFC9902670}" {
    m_MenuController SCR_RadialMenuController "{5D7EADAFC88B4B33}" {
@@ -521,11 +501,20 @@ OVT_OverthrowGameMode {
   SCR_RespawnTimerComponent "{59C30B0685EFBB8C}" {
    m_fRespawnTime 2
   }
+  SCR_SupportStationManagerComponent "{5EE26402C9203074}" {
+  }
+  SCR_TimeAndWeatherHandlerComponent "{5EE26402AC31F891}" {
+   m_bRandomWeatherChanges 1
+  }
+  SCR_VotingManagerComponent "{5EE26402B4C7BB47}" {
+  }
+  SerializerInventoryStorageManagerComponent "{5EE26402B9CEA8E5}" {
+  }
   RplComponent "{59724C8C935D8E18}" {
    Streamable Disabled
   }
  }
- coords 3207.214 2.27 11071.67
+ coords 208.286 1.001 116.919
  Flags 0
  m_bAutoPlayerRespawn 0
  m_StartGameUIContext OVT_StartGameContext "{599D315949D3D5D0}" {

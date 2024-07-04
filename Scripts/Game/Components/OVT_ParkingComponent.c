@@ -22,13 +22,17 @@ class OVT_ParkingComponent : ScriptComponent
 			GetOwner().GetTransform(outMat);
 			
 			// offset the item locally with building rotation
-			outMat[3] = point.m_vPosition.Multiply4(outMat);
-						
-			//Add PointInfo Yaw (ignore pitch and roll)
-			vector angles = Math3D.MatrixToAngles(outMat);
-			angles[0] = angles[0] + point.m_vAngles[1];
-			Math3D.AnglesToMatrix(angles, outMat);
-					
+			vector offsetMat[4];
+			point.GetTransform(offsetMat);			
+			outMat[3] = offsetMat[3].Multiply4(outMat);	
+			
+			float qt[4];
+			float q[4];
+			Math3D.MatrixToQuat(outMat, qt);
+			Math3D.MatrixToQuat(offsetMat, q); 
+			Math3D.QuatMultiply(qt, q, qt);
+			Math3D.QuatToMatrix(qt, outMat);
+								
 			if(!skipObstructionCheck)
 			{
 				//Check for obstructions
@@ -77,16 +81,8 @@ enum OVT_ParkingType
 	PARKING_PLANE
 }
 
-class OVT_ParkingPointInfo : ScriptAndConfig
-{
-	[Attribute("0 0 0", UIWidgets.EditBox, desc: "Parking Position", params: "inf inf 0 purposeCoords spaceEntity")]
-	vector m_vPosition;
-	
-	[Attribute("0 0 0")]
-	vector m_vAngles;
-	
+class OVT_ParkingPointInfo : PointInfo
+{	
 	[Attribute("1", UIWidgets.ComboBox, "Parking type", "", ParamEnumArray.FromEnum(OVT_ParkingType) )]
-	OVT_ParkingType m_Type;
-	
-	
+	OVT_ParkingType m_Type;	
 }

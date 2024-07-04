@@ -5,18 +5,22 @@ class OVT_SpawnPointComponentClass: ScriptComponentClass
 
 class OVT_SpawnPointComponent : ScriptComponent
 {
-	[Attribute("0 0 0", UIWidgets.EditBox, desc: "Spawn Position", params: "inf inf 0 purposeCoords spaceEntity")]
-	vector m_vPosition;
-	
+	[Attribute()]
+	ref PointInfo m_vPoint;
+		
 	vector GetSpawnPoint()
 	{		
 		vector outMat[4];
+		vector offsetMat[4];
 					
 		//Get building transform
 		GetOwner().GetTransform(outMat);
+		if(!m_vPoint) return outMat[3];
+		
+		m_vPoint.GetTransform(offsetMat);
 		
 		// offset the item locally with building rotation
-		outMat[3] = m_vPosition.Multiply4(outMat);
+		outMat[3] = offsetMat[3].Multiply4(outMat);
 		
 		//Set ground height to Y + 1m
 		outMat[3][1] = GetGame().GetWorld().GetSurfaceY(outMat[3][0],outMat[3][2]) + 1;	

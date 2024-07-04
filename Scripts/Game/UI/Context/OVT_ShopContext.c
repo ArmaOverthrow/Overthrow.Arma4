@@ -12,24 +12,6 @@ class OVT_ShopContext : OVT_UIContext
 		m_Economy.m_OnPlayerMoneyChanged.Insert(OnPlayerMoneyChanged);
 	}
 	
-	override void RegisterInputs()
-	{
-		super.RegisterInputs();
-		if(!m_InputManager) return;
-		
-		m_InputManager.AddActionListener("MenuNavLeft", EActionTrigger.DOWN, PreviousPage);		
-		m_InputManager.AddActionListener("MenuNavRight", EActionTrigger.DOWN, NextPage);
-	}
-	
-	override void UnregisterInputs()
-	{
-		super.UnregisterInputs();
-		if(!m_InputManager) return;
-		
-		m_InputManager.RemoveActionListener("MenuNavLeft", EActionTrigger.DOWN, PreviousPage);
-		m_InputManager.RemoveActionListener("MenuNavRight", EActionTrigger.PRESSED, NextPage);				
-	}
-	
 	protected void OnPlayerMoneyChanged(string playerId, int amount)
 	{
 		if(playerId == m_sPlayerID && m_bIsActive)
@@ -43,34 +25,35 @@ class OVT_ShopContext : OVT_UIContext
 	{	
 		m_iPageNum = 0;	
 		
-		Widget buyButton = m_wRoot.FindAnyWidget("BuyButton");
-		ButtonActionComponent action = ButtonActionComponent.Cast(buyButton.FindHandler(ButtonActionComponent));
 		
-		action.GetOnAction().Insert(Buy);
+		Widget buyButton = m_wRoot.FindAnyWidget("BuyButton");
+		SCR_InputButtonComponent action = SCR_InputButtonComponent.Cast(buyButton.FindHandler(SCR_InputButtonComponent));
+				
+		action.m_OnActivated.Insert(Buy);
 		
 		Widget sellButton = m_wRoot.FindAnyWidget("SellButton");
 		if(m_Shop.m_ShopType == OVT_ShopType.SHOP_GUNDEALER || m_Shop.m_ShopType == OVT_ShopType.SHOP_VEHICLE)
 		{
 			sellButton.SetVisible(false);
 		}else{
-			ButtonActionComponent sellAction = ButtonActionComponent.Cast(sellButton.FindHandler(ButtonActionComponent));
+			SCR_InputButtonComponent sellAction = SCR_InputButtonComponent.Cast(sellButton.FindHandler(SCR_InputButtonComponent));
 		
-			sellAction.GetOnAction().Insert(Sell);
+			sellAction.m_OnActivated.Insert(Sell);
 		}
 		
 		Widget prevButton = m_wRoot.FindAnyWidget("PrevButton");
-		SCR_NavigationButtonComponent btn = SCR_NavigationButtonComponent.Cast(prevButton.FindHandler(SCR_NavigationButtonComponent));
+		SCR_InputButtonComponent btn = SCR_InputButtonComponent.Cast(prevButton.FindHandler(SCR_InputButtonComponent));
 		
-		btn.m_OnClicked.Insert(PreviousPage);
+		btn.m_OnActivated.Insert(PreviousPage);
 		
 		Widget nextButton = m_wRoot.FindAnyWidget("NextButton");
-		btn = SCR_NavigationButtonComponent.Cast(nextButton.FindHandler(SCR_NavigationButtonComponent));
+		btn = SCR_InputButtonComponent.Cast(nextButton.FindHandler(SCR_InputButtonComponent));
 		
-		btn.m_OnClicked.Insert(NextPage);
+		btn.m_OnActivated.Insert(NextPage);
 		
 		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");
-		btn = SCR_NavigationButtonComponent.Cast(closeButton.FindHandler(SCR_NavigationButtonComponent));		
-		btn.m_OnClicked.Insert(CloseLayout);
+		btn = SCR_InputButtonComponent.Cast(closeButton.FindHandler(SCR_InputButtonComponent));		
+		btn.m_OnActivated.Insert(CloseLayout);
 		
 		Refresh();		
 	}

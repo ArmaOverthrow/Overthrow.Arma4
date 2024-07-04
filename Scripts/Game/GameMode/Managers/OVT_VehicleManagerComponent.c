@@ -5,8 +5,11 @@ class OVT_VehicleManagerComponentClass: OVT_OwnerManagerComponentClass
 class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 {	
 
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Players starting car", params: "et", category: "Vehicles")]
-	ResourceName m_pStartingCarPrefab;
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Players starting cars", params: "et", category: "Vehicles")]
+	ref array<ResourceName> m_pStartingCarPrefabs;
+	
+	[Attribute()]
+	ref SCR_EntityCatalogMultiList m_CivilianVehicleEntityCatalog;
 		
 	ref array<EntityID> m_aAllVehicleShops;	
 	ref array<EntityID> m_aEntitySearch;
@@ -45,19 +48,30 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 	{		
 		vector mat[4];
 		
+		int i = s_AIRandomGenerator.RandInt(0, m_pStartingCarPrefabs.Count()-1);
+		ResourceName prefab = m_pStartingCarPrefabs[i];
+		
 		//Find us a parking spot
+		IEntity veh;
 		
 		if(GetParkingSpot(home, mat, OVT_ParkingType.PARKING_CAR, true))
 		{
-			SpawnVehicleMatrix(m_pStartingCarPrefab, mat, playerId);
+			
+			veh = SpawnVehicleMatrix(prefab, mat, playerId);
 			
 		}else if(FindNearestKerbParking(home.GetOrigin(), 20, mat))
 		{
 			Print("Unable to find OVT_ParkingComponent in starting house prefab. Trying to spawn car next to a kerb.");
-			SpawnVehicleMatrix(m_pStartingCarPrefab, mat, playerId);
+			veh = SpawnVehicleMatrix(prefab, mat, playerId);
 			
 		}else{
 			Print("Failure to spawn player's starting car. Add OVT_ParkingComponent to all starting house prefabs in config");			
+		}
+		
+		if(veh)
+		{
+			OVT_PlayerOwnerComponent playerowner = EPF_Component<OVT_PlayerOwnerComponent>.Find(veh);
+			if(playerowner) playerowner.SetLocked(true);
 		}
 	}
 	
@@ -233,17 +247,6 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 		{
 			dmg.FullHeal();
 			dmg.SetHealthScaled(dmg.GetMaxHealth());
-		}
-		
-		FuelManagerComponent fuel = FuelManagerComponent.Cast(entity.FindComponent(FuelManagerComponent));	
-		if(fuel)
-		{
-			array<BaseFuelNode> nodes();
-			fuel.GetFuelNodesList(nodes);
-			foreach(BaseFuelNode node : nodes)
-			{
-				node.SetFuel(node.GetMaxFuel());
-			}
 		}
 	}
 	

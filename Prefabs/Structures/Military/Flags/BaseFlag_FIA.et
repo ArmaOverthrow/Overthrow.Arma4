@@ -3,6 +3,9 @@ GenericEntity : "{160E4E4110803F26}Prefabs/Structures/Military/Flags/FlagPole_02
  components {
   OVT_ResistanceFOBControllerComponent "{5D7A443B1AAE13FE}" {
   }
+  SCR_FlagComponent "{5E3C95A1E1EE9681}" {
+   m_sDefaultMaterial "{D33A1334B4A3369D}Assets/Props/Fabric/Flags/Data/Flag_1_2_FIA.emat"
+  }
   ActionsManagerComponent "{5D7A443B1AAE13E5}" {
    ActionContexts {
     UserActionContext "{5D7A443B1AAE13E0}" {

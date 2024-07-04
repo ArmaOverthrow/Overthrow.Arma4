@@ -1,4 +1,4 @@
 class OVT_PlaceableHandler : ScriptAndConfig
 {
-	void OnPlace(IEntity entity, int playerId){}
+	bool OnPlace(IEntity entity, int playerId){}
 }

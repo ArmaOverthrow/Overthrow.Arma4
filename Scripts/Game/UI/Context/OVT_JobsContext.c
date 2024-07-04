@@ -13,25 +13,18 @@ class OVT_JobsContext : OVT_UIContext
 	}
 	
 	override void OnShow()
-	{	
-		Widget show = m_wRoot.FindAnyWidget("ShowOnMap");
-		ButtonActionComponent btn = ButtonActionComponent.Cast(show.FindHandler(ButtonActionComponent));
+	{			
+		Widget ww = m_wRoot.FindAnyWidget("ShowOnMap");
+		SCR_InputButtonComponent btn = SCR_InputButtonComponent.Cast(ww.FindHandler(SCR_InputButtonComponent));		
+		btn.m_OnActivated.Insert(ShowOnMap);
 		
-		btn.GetOnAction().Insert(ShowOnMap);
+		ww = m_wRoot.FindAnyWidget("Accept");
+		btn = SCR_InputButtonComponent.Cast(ww.FindHandler(SCR_InputButtonComponent));		
+		btn.m_OnActivated.Insert(Accept);
 		
-		show = m_wRoot.FindAnyWidget("Accept");
-		btn = ButtonActionComponent.Cast(show.FindHandler(ButtonActionComponent));
-		
-		btn.GetOnAction().Insert(Accept);
-		
-		show = m_wRoot.FindAnyWidget("Decline");
-		btn = ButtonActionComponent.Cast(show.FindHandler(ButtonActionComponent));
-		
-		btn.GetOnAction().Insert(Decline);
-		
-		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");
-		SCR_NavigationButtonComponent b = SCR_NavigationButtonComponent.Cast(closeButton.FindHandler(SCR_NavigationButtonComponent));		
-		b.m_OnClicked.Insert(CloseLayout);
+		ww = m_wRoot.FindAnyWidget("Decline");
+		btn = SCR_InputButtonComponent.Cast(ww.FindHandler(SCR_InputButtonComponent));		
+		btn.m_OnActivated.Insert(Decline);
 					
 		Refresh();		
 	}

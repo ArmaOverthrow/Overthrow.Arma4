@@ -231,6 +231,21 @@ class OVT_PlayerCommsComponent: OVT_Component
 		}	
 	}
 	
+	void SetVehicleLock(IEntity vehicle, bool locked)	
+	{	
+		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));	
+		Rpc(RpcAsk_SetVehicleLock, rpl.Id(), locked);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	void RpcAsk_SetVehicleLock(RplId vehicle, bool locked)	
+	{
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(vehicle));
+		IEntity entity = rpl.GetEntity();
+		OVT_PlayerOwnerComponent playerOwner = EPF_Component<OVT_PlayerOwnerComponent>.Find(entity);
+		if(playerOwner) playerOwner.SetLocked(locked);
+	}
+	
 	//REAL ESTATE
 	
 	void SetHome(int playerId)
@@ -623,7 +638,7 @@ class OVT_PlayerCommsComponent: OVT_Component
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_TransferToWarehouse(RplId from, RplId to)
+	protected void RpcAsk_TransferToWarehouse(RplId from)
 	{
 		OVT_Global.TransferToWarehouse(from);
 	}
@@ -783,4 +798,16 @@ class OVT_PlayerCommsComponent: OVT_Component
 			}
 		}
 	}
+	
+	void RequestFastTravel(int playerId, vector pos)	
+	{		
+		Rpc(RpcAsk_RequestFastTravel, playerId, pos);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	void RpcAsk_RequestFastTravel(int playerId, vector pos)	
+	{
+		SCR_Global.TeleportPlayer(playerId, pos);
+	}	
+	
 }

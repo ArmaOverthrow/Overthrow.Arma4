@@ -12,7 +12,7 @@ class OVT_QRFControllerComponent: OVT_Component
 			
 	int m_iTimer = 120000;
 	
-	ref array<int> m_Groups;
+	ref array<ref EntityID> m_Groups;
 	
 	protected const int UPDATE_FREQUENCY = 10000;
 	const int QRF_RANGE = 1000;
@@ -43,7 +43,7 @@ class OVT_QRFControllerComponent: OVT_Component
 		
 		GetGame().GetCallqueue().CallLater(CheckUpdateTimer, 1000, true, owner);		
 		
-		m_Groups = new array<int>;
+		m_Groups = new array<ref EntityID>;
 		SendTroops();
 		Replication.BumpMe();		
 		
@@ -57,7 +57,7 @@ class OVT_QRFControllerComponent: OVT_Component
 		
 		m_iTimer -= 1000;
 		
-		if(m_iTimer <= 0)
+		if(m_iTimer < 0)
 		{
 			m_iTimer = 0;
 			return;
@@ -70,50 +70,23 @@ class OVT_QRFControllerComponent: OVT_Component
 	void KillAll()
 	{
 		BaseWorld world = GetGame().GetWorld();
-		OVT_VirtualizationManagerComponent virt = OVT_Global.GetVirtualization();
-		foreach(int id : m_Groups)
+		foreach(EntityID id : m_Groups)
 		{
-			OVT_VirtualizedGroupData data = OVT_VirtualizedGroupData.Get(id);
-			if(data && data.isSpawned)
-			{			
-				IEntity group = world.FindEntityByID(data.spawnedEntity);
-				if(!group) continue;
-				SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
-				if(!aigroup) continue;
-				autoptr array<AIAgent> agents = new array<AIAgent>;
-				aigroup.GetAgents(agents);
-				foreach(AIAgent agent : agents)
-				{
-					DamageManagerComponent damageManager = DamageManagerComponent.Cast(agent.FindComponent(DamageManagerComponent));
-					if (damageManager && damageManager.IsDamageHandlingEnabled())
-						damageManager.SetHealthScaled(0);
-				}
-			}else{
-				data.remove = true;
+			IEntity group = world.FindEntityByID(id);
+			if(!group) continue;
+			SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
+			if(!aigroup) continue;
+			autoptr array<AIAgent> agents = new array<AIAgent>;
+			aigroup.GetAgents(agents);
+			foreach(AIAgent agent : agents)
+			{
+				DamageManagerComponent damageManager = DamageManagerComponent.Cast(agent.FindComponent(DamageManagerComponent));
+				if (damageManager && damageManager.IsDamageHandlingEnabled())
+					damageManager.SetHealthScaled(0);
 			}
 		}
 	}
-	
-	void Cleanup()
-	{
-		m_aSpawnQueue.Clear();
-		m_aSpawnTargets.Clear();
-		m_aSpawnPositions.Clear();
-		
-		BaseWorld world = GetGame().GetWorld();
-		foreach(int id : m_Groups)
-		{
-			OVT_VirtualizedGroupData data = OVT_VirtualizedGroupData.Get(id);
-			if(data)
-			{	
-				data.remove = true;
-			}
-		}
-		
-		m_Groups.Clear();
-		
-		SCR_EntityHelper.DeleteEntityAndChildren(GetOwner());
-	}
+
 	
 	protected void CheckUpdatePoints()
 	{
@@ -121,11 +94,30 @@ class OVT_QRFControllerComponent: OVT_Component
 				
 		if(m_iTimer <= 0)
 		{
-			OVT_VirtualizationManagerComponent virt = OVT_Global.GetVirtualization();
-			
-			int enemyNum = virt.GetNumGroupsInRange(GetOwner().GetOrigin(), QRF_POINT_RANGE) * 4;
+			int enemyNum = 0;
 			int playerNum = 0;
-			int enemyTotal = virt.GetNumGroupsInRange(GetOwner().GetOrigin(), QRF_RANGE) * 4;
+			int enemyTotal = 0;
+			
+			array<AIAgent> groups();
+			GetGame().GetAIWorld().GetAIAgents(groups);
+			foreach(AIAgent group : groups)
+			{				
+				if(!group) continue;
+				IEntity entity = group.GetControlledEntity();
+				if(!entity) continue;
+				SCR_ChimeraCharacter character = SCR_ChimeraCharacter.Cast(entity);
+				if(!character) continue;
+				if(character.GetFactionKey() != OVT_Global.GetConfig().GetOccupyingFactionData().GetFactionKey()) continue;
+				float dist = vector.Distance(character.GetOrigin(),GetOwner().GetOrigin());
+				if(dist < QRF_POINT_RANGE)
+				{
+					enemyNum += 1;
+				}
+				if(dist < QRF_RANGE)
+				{
+					enemyTotal += 1;
+				}	
+			}
 			
 			autoptr array<int> players = new array<int>;
 			PlayerManager mgr = GetGame().GetPlayerManager();
@@ -167,7 +159,10 @@ class OVT_QRFControllerComponent: OVT_Component
 				}	
 			}		
 			
-			if(m_iPoints > 100) m_iPoints = 100;
+			int toWin = m_Config.m_Difficulty.QRFPointsToWin;
+			
+			if(m_iPoints > toWin) m_iPoints = toWin;
+			if(m_iPoints < -toWin) m_iPoints = -toWin;
 			
 			m_OccupyingFaction.UpdateQRFPoints(m_iPoints);		
 			
@@ -175,9 +170,8 @@ class OVT_QRFControllerComponent: OVT_Component
 			if(m_iPoints < 0) m_iWinningFaction = OVT_Global.GetConfig().GetOccupyingFactionIndex();
 			if(m_iPoints == 0) m_iWinningFaction = -1;
 			
-			if(m_iPoints >= 100 || m_iPoints <= -100)
+			if(m_iPoints >= toWin || m_iPoints <= -toWin)
 			{
-				Cleanup();
 				//We have a winner		
 				m_OnFinished.Invoke();
 				GetGame().GetCallqueue().Remove(CheckUpdatePoints);
@@ -275,7 +269,7 @@ class OVT_QRFControllerComponent: OVT_Component
 			}
 			spent += allocated;
 			m_iResourcesLeft -= allocated;
-			Print("[Overthrow.QRFControllerComponent] Sent wave from " + base.ToString() + ": " + allocated.ToString());
+			Print("[Overthrow.QRFControllerComponent] Sent wave from " + lz.ToString() + ": " + allocated.ToString());
 		}
 		
 		if(m_iResourcesLeft > 0)
@@ -310,17 +304,22 @@ class OVT_QRFControllerComponent: OVT_Component
 	{
 		if(m_aSpawnQueue.Count() == 0) return;
 		
-		OVT_VirtualizationManagerComponent virt = OVT_Global.GetVirtualization();
-		
 		ResourceName res = m_aSpawnQueue[0];
 		vector pos = m_aSpawnPositions[0];
 		vector targetPos = m_aSpawnTargets[0];
 		
-		array<vector> waypoints();
-		waypoints.Insert(targetPos);
+		BaseWorld world = GetGame().GetWorld();
+			
+		EntitySpawnParams spawnParams = new EntitySpawnParams;
+		spawnParams.TransformMode = ETransformMode.WORLD;						
+		spawnParams.Transform[3] = pos;
+		IEntity group = GetGame().SpawnEntityPrefab(Resource.Load(res), world, spawnParams);
+				
+		SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
+		m_Groups.Insert(group.GetID());
 		
-		OVT_VirtualizedGroupData data = virt.Create(res, pos, waypoints, false, OVT_GroupOrder.ATTACK, OVT_GroupSpeed.RUNNING, false);		
-		m_Groups.Insert(data.id);		
+		aigroup.AddWaypoint(OVT_Global.GetConfig().SpawnSearchAndDestroyWaypoint(targetPos));
+		aigroup.AddWaypoint(OVT_Global.GetConfig().SpawnDefendWaypoint(targetPos));
 		
 		m_aSpawnQueue.Remove(0);
 		m_aSpawnPositions.Remove(0);

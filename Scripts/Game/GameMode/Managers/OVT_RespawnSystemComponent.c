@@ -63,32 +63,68 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 		super.OnCharacterCreated(playerId, characterPersistenceId, character);
 		
 		InventoryStorageManagerComponent storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(character);
+		
+		array<ResourceName> doneStartingItems = {};
+		OVT_PlayerData player = OVT_PlayerData.Get(characterPersistenceId);
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		
 		if(storageManager)
 		{
 			foreach (OVT_LoadoutSlot loadoutItem : OVT_Global.GetConfig().m_CivilianLoadout.m_aSlots)
 			{
+				if(loadoutItem.m_fSkipChance > 0)
+				{
+					float rnd = s_AIRandomGenerator.RandFloat01();
+					if(rnd <= loadoutItem.m_fSkipChance) continue; 
+				}
+				
 				IEntity slotEntity = SpawnDefaultCharacterItem(storageManager, loadoutItem);
 				if (!slotEntity) continue;
+				
+				if(config && config.m_Difficulty && player && player.firstSpawn)
+				{				
+					foreach(ResourceName res : config.m_Difficulty.startingItems)
+					{
+						if(doneStartingItems.Contains(res)) continue;
+						
+						EntitySpawnParams spawnParams();
+						spawnParams.Transform[3] = storageManager.GetOwner().GetOrigin();
+		
+						IEntity spawnedItem = GetGame().SpawnEntityPrefab(Resource.Load(res), GetGame().GetWorld(), spawnParams);
+						if(!spawnedItem)
+						{
+							doneStartingItems.Insert(res);
+							continue;	
+						}
+						bool foundStorage = false;
+						array<Managed> outComponents();
+						slotEntity.FindComponents(BaseInventoryStorageComponent, outComponents);
+						foreach (Managed componentRef : outComponents)
+						{
+							BaseInventoryStorageComponent storageComponent = BaseInventoryStorageComponent.Cast(componentRef);
+					
+							if(storageComponent.GetPurpose() & EStoragePurpose.PURPOSE_DEPOSIT)
+							{
+								if (!storageManager.TryInsertItemInStorage(spawnedItem, storageComponent)) continue;
+								
+								InventoryItemComponent inventoryItemComponent = InventoryItemComponent.Cast(spawnedItem.FindComponent(InventoryItemComponent));
+								if (inventoryItemComponent && !inventoryItemComponent.GetParentSlot()) continue;
+								
+								foundStorage = true;
+								doneStartingItems.Insert(res);
+								break;
+							}
+						}
+						if(!foundStorage)
+						{
+							SCR_EntityHelper.DeleteEntityAndChildren(spawnedItem);
+						}
+					}
+				}
 				
 				if (!storageManager.TryInsertItem(slotEntity, EStoragePurpose.PURPOSE_LOADOUT_PROXY))
 				{
 					SCR_EntityHelper.DeleteEntityAndChildren(slotEntity);
-				}
-			}
-			
-			OVT_PlayerData player = OVT_PlayerData.Get(characterPersistenceId);
-			OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-			if(config && config.m_Difficulty && player && player.firstSpawn)
-			{				
-				foreach(ResourceName res : config.m_Difficulty.startingItems)
-				{
-					IEntity spawnedItem = GetGame().SpawnEntityPrefab(Resource.Load(res));
-					if(!spawnedItem) continue;
-					
-					if (!storageManager.TryInsertItem(spawnedItem))
-					{
-						SCR_EntityHelper.DeleteEntityAndChildren(spawnedItem);
-					}
 				}
 			}
 			
@@ -103,7 +139,10 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 		int selection = s_AIRandomGenerator.RandInt(0, loadoutItem.m_aChoices.Count() - 1);
 		ResourceName prefab = loadoutItem.m_aChoices[selection];
 		
-		IEntity slotEntity = GetGame().SpawnEntityPrefab(Resource.Load(prefab));
+		EntitySpawnParams spawnParams();
+		spawnParams.Transform[3] = storageManager.GetOwner().GetOrigin();
+		
+		IEntity slotEntity = GetGame().SpawnEntityPrefab(Resource.Load(prefab), GetGame().GetWorld(), spawnParams);
 		if (!slotEntity) return null;
 		
 		if (loadoutItem.m_aStoredItems)
@@ -113,14 +152,15 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 
 			foreach (ResourceName storedItem : loadoutItem.m_aStoredItems)
 			{				
-				IEntity spawnedItem = GetGame().SpawnEntityPrefab(Resource.Load(storedItem));
+				IEntity spawnedItem = GetGame().SpawnEntityPrefab(Resource.Load(storedItem), GetGame().GetWorld(), spawnParams);
 				if(!spawnedItem) continue;
 
 				foreach (Managed componentRef : outComponents)
 				{
 					BaseInventoryStorageComponent storageComponent = BaseInventoryStorageComponent.Cast(componentRef);
 					
-					if(storageComponent.GetPurpose() & EStoragePurpose.PURPOSE_DEPOSIT){
+					if(storageComponent.GetPurpose() & EStoragePurpose.PURPOSE_DEPOSIT)
+					{
 						if (!storageManager.TryInsertItemInStorage(spawnedItem, storageComponent)) continue;
 	
 						InventoryItemComponent inventoryItemComponent = InventoryItemComponent.Cast(spawnedItem.FindComponent(InventoryItemComponent));
@@ -132,5 +172,13 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 		}
 		
 		return slotEntity;
+	}
+	
+	override void OnPlayerKilled_S(int playerId, IEntity playerEntity, IEntity killerEntity, notnull Instigator killer)
+	{
+		super.OnPlayerKilled_S(playerId, playerEntity, killerEntity, killer);
+		
+		if (!Replication.IsServer()) return;
+		OVT_Global.GetEconomy().ChargeRespawn(playerId);
 	}
 }

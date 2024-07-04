@@ -12,19 +12,19 @@ class OVT_WarehouseContext : OVT_UIContext
 	{	
 		
 		Widget take1 = m_wRoot.FindAnyWidget("Take1Button");
-		ButtonActionComponent action = ButtonActionComponent.Cast(take1.FindHandler(ButtonActionComponent));		
-		action.GetOnAction().Insert(TakeOne);
+		SCR_InputButtonComponent action = SCR_InputButtonComponent.Cast(take1.FindHandler(SCR_InputButtonComponent));
+		action.m_OnActivated.Insert(TakeOne);
 		
 		Widget take10 = m_wRoot.FindAnyWidget("Take10Button");
-		action = ButtonActionComponent.Cast(take10.FindHandler(ButtonActionComponent));		
-		action.GetOnAction().Insert(TakeTen);
+		action = SCR_InputButtonComponent.Cast(take1.FindHandler(SCR_InputButtonComponent));
+		action.m_OnActivated.Insert(TakeTen);
 		
 		Widget take100 = m_wRoot.FindAnyWidget("Take100Button");
-		action = ButtonActionComponent.Cast(take100.FindHandler(ButtonActionComponent));		
-		action.GetOnAction().Insert(TakeHundred);
+		action = SCR_InputButtonComponent.Cast(take1.FindHandler(SCR_InputButtonComponent));
+		action.m_OnActivated.Insert(TakeHundred);
 		
 		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");
-		SCR_NavigationButtonComponent btn = SCR_NavigationButtonComponent.Cast(closeButton.FindHandler(SCR_NavigationButtonComponent));		
+		SCR_InputButtonComponent btn = SCR_InputButtonComponent.Cast(closeButton.FindHandler(SCR_InputButtonComponent));		
 		btn.m_OnClicked.Insert(CloseLayout);
 		
 		Refresh();		
@@ -82,7 +82,8 @@ class OVT_WarehouseContext : OVT_UIContext
 			desc.SetText(info.GetDescription());
 		}	
 		
-		ItemPreviewManagerEntity manager = GetGame().GetItemPreviewManager();
+		ChimeraWorld world = GetGame().GetWorld();
+		ItemPreviewManagerEntity manager = world.GetItemPreviewManager();
 		if (!manager)
 			return;
 		

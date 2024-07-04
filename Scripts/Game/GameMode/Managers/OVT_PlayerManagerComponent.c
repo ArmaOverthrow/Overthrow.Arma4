@@ -17,13 +17,13 @@ class OVT_PlayerManagerComponent: OVT_Component
 		return s_Instance;
 	}
 	
-	ref ScriptInvoker m_OnPlayerDataLoaded = new ref ScriptInvoker();
+	ref ScriptInvoker m_OnPlayerDataLoaded = new ScriptInvoker();
 	
 	protected ref map<int, string> m_mPersistentIDs;
 	protected ref map<string, int> m_mPlayerIDs;
 	ref map<string, ref OVT_PlayerData> m_mPlayers;
 	
-	void OVT_PlayerManagerComponent(IEntityComponentSource src, IEntity ent, IEntity parent)
+	void Init(IEntity owner)
 	{
 		m_mPersistentIDs = new map<int, string>;
 		m_mPlayerIDs = new map<string, int>;
@@ -112,17 +112,6 @@ class OVT_PlayerManagerComponent: OVT_Component
 			Rpc(RpcDo_RegisterPlayer, playerId, persistentId);
 	}
 	
-	void TeleportPlayer(int playerId, vector pos)
-	{
-		int localId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
-		if(playerId == localId){
-			RpcDo_TeleportPlayer(playerId, pos);
-			return;
-		}
-		
-		Rpc(RpcDo_TeleportPlayer, playerId, pos);
-	}
-	
 	//RPC Methods
 	
 	override bool RplSave(ScriptBitWriter writer)
@@ -195,17 +184,6 @@ class OVT_PlayerManagerComponent: OVT_Component
 			OVT_Global.GetSkills().OnPlayerDataLoaded(player, persId);
 		}
 		return true;
-	}
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_TeleportPlayer(int playerId, vector pos)
-	{
-		int localId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
-		if(playerId != localId) return;
-		
-		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
-		vector spawn = OVT_Global.FindSafeSpawnPosition(pos);
-		SCR_Global.TeleportPlayer(localId, spawn);
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]

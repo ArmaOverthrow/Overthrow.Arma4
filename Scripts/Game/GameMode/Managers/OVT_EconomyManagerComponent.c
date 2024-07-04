@@ -84,16 +84,20 @@ class OVT_EconomyManagerComponent: OVT_Component
 	protected ref array<int> m_aLegalVehicles;
 	protected ref array<int> m_aAllVehicles;
 	protected ref map<int,OVT_ParkingType> m_mVehicleParking;
+
+  	protected int m_iHourPaidIncome = -1;
+	protected int m_iHourPaidStock = -1;
+	protected int m_iHourPaidRent = -1;
 	
 	//Streamed to clients..			
 	int m_iResistanceMoney = 0;
 	float m_fResistanceTax = 0;
 	
 	//Events
-	ref ScriptInvoker m_OnPlayerMoneyChanged = new ref ScriptInvoker();
-	ref ScriptInvoker m_OnResistanceMoneyChanged = new ref ScriptInvoker();
-	ref ScriptInvoker m_OnPlayerBuy = new ref ScriptInvoker();
-	ref ScriptInvoker m_OnPlayerSell = new ref ScriptInvoker();
+	ref ScriptInvoker m_OnPlayerMoneyChanged = new ScriptInvoker();
+	ref ScriptInvoker m_OnResistanceMoneyChanged = new ScriptInvoker();
+	ref ScriptInvoker m_OnPlayerBuy = new ScriptInvoker();
+	ref ScriptInvoker m_OnPlayerSell = new ScriptInvoker();
 		
 	static OVT_EconomyManagerComponent s_Instance;	
 	static OVT_EconomyManagerComponent GetInstance()
@@ -127,7 +131,11 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	void CheckUpdate()
 	{
-		if(!m_Time) m_Time = GetGame().GetTimeAndWeatherManager();
+		if(!m_Time) 
+		{
+			ChimeraWorld world = GetOwner().GetWorld();
+			m_Time = world.GetTimeAndWeatherManager();
+		}
 		
 		PlayerManager mgr = GetGame().GetPlayerManager();		
 		if(mgr.GetPlayerCount() == 0)
@@ -143,24 +151,33 @@ class OVT_EconomyManagerComponent: OVT_Component
 			|| time.m_iHours == 12 
 			|| time.m_iHours == 18)
 			 && 
-			time.m_iMinutes == 0)
+			m_iHourPaidIncome != time.m_iHours)
 		{
+			m_iHourPaidIncome = time.m_iHours;
 			CalculateIncome();
 			UpdateShops();
 		}
 		
 		//Every morning at 7am replenish stock
-		if(time.m_iHours == 7 &&
-			time.m_iMinutes == 0)
+		if(time.m_iHours == 7)
 		{
-			ReplenishStock();
+			if (m_iHourPaidStock != time.m_iHours) {
+				m_iHourPaidStock = time.m_iHours;
+				ReplenishStock();
+			}
+		} else {
+			m_iHourPaidStock = -1;
 		}
 		
 		//Every midnight calculate rents
-		if(time.m_iHours == 0 &&
-			time.m_iMinutes == 0)
+		if(time.m_iHours == 0)
 		{
-			UpdateRents();
+			if (m_iHourPaidRent != time.m_iHours) {
+				m_iHourPaidRent = time.m_iHours;
+				UpdateRents();
+			}
+		} else {
+			m_iHourPaidRent = -1;
 		}
 	}
 	
@@ -818,14 +835,8 @@ class OVT_EconomyManagerComponent: OVT_Component
 				if(res.IndexOf("Campaign") > -1) continue;
 				if(!m_aResources.Contains(res))
 				{
-					m_aResources.Insert(res);
-					int id = m_aResources.Count()-1;
-					m_aResourceIndex[res] = id;
-					m_aEntityCatalogEntries.Insert(item);
-					m_mFactionResources[factionId].Insert(id);
-					m_aAllVehicles.Insert(id);
-					
-					bool illegal = true;
+					bool illegal = false;
+					bool hidden = false;
 					int cost = 500000;
 					OVT_ParkingType parkingType = OVT_ParkingType.PARKING_CAR;
 					//Set it's price
@@ -833,16 +844,80 @@ class OVT_EconomyManagerComponent: OVT_Component
 					{
 						if(cfg.prefab != "") continue;
 						if(cfg.m_sFind == "" || res.IndexOf(cfg.m_sFind) > -1)
-						{
+						{							
+							if(cfg.hidden) {
+								Print("Hiding " + res);
+								hidden = true;
+								break;
+							}
 							cost = cfg.cost;
 							illegal = cfg.illegal;
 							parkingType = cfg.parking;
 						}
 					}
+					
+					if(hidden) continue;
+					
+					m_aResources.Insert(res);
+					int id = m_aResources.Count()-1;
+					m_aResourceIndex[res] = id;
+					m_aEntityCatalogEntries.Insert(item);
+					m_mFactionResources[factionId].Insert(id);
+					m_aAllVehicles.Insert(id);					
+					
 					m_mVehicleParking[id] = parkingType;
 					SetPrice(id, cost);
 					if(!illegal) m_aLegalVehicles.Insert(id);
 				}
+			}
+		}
+		
+		//Get civilian vehicles
+		array<SCR_EntityCatalogEntry> civVehicles();
+		OVT_VehicleManagerComponent vm = OVT_Global.GetVehicles();
+		vm.m_CivilianVehicleEntityCatalog.GetEntityList(civVehicles);
+		m_mFactionResources[-1] = new array<int>;
+		
+		foreach(SCR_EntityCatalogEntry item : civVehicles) 
+		{
+			ResourceName res = item.GetPrefab();
+			if(res == "") continue;
+			if(res.IndexOf("Campaign") > -1) continue;
+			if(!m_aResources.Contains(res))
+			{
+				bool illegal = false;
+				bool hidden = false;
+				int cost = 500000;
+				OVT_ParkingType parkingType = OVT_ParkingType.PARKING_CAR;
+				//Set it's price
+				foreach(OVT_VehiclePriceConfig cfg : m_VehiclePriceConfig.m_aPrices)
+				{
+					if(cfg.prefab != "") continue;
+					if(cfg.m_sFind == "" || res.IndexOf(cfg.m_sFind) > -1)
+					{
+						if(cfg.hidden) {
+							hidden = true;
+							break;
+						}
+						cost = cfg.cost;
+						illegal = cfg.illegal;
+						parkingType = cfg.parking;
+					}
+				}
+				
+				if(hidden) continue;
+				
+				m_aResources.Insert(res);
+				int id = m_aResources.Count()-1;
+				m_aResourceIndex[res] = id;
+				m_aEntityCatalogEntries.Insert(item);
+				m_mFactionResources[-1].Insert(id);
+				m_aAllVehicles.Insert(id);
+				
+				
+				m_mVehicleParking[id] = parkingType;
+				SetPrice(id, cost);
+				if(!illegal) m_aLegalVehicles.Insert(id);
 			}
 		}
 		
@@ -1077,7 +1152,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 			
 			if(!m_mTownShops.Contains(townID))
 			{				
-				m_mTownShops[townID] = new ref array<RplId>;	
+				m_mTownShops[townID] = {};	
 			}
 			
 			m_mTownShops[townID].Insert(id);
@@ -1118,6 +1193,16 @@ class OVT_EconomyManagerComponent: OVT_Component
 		if(port) return true;
 
 		return false;
+	}
+
+	void ChargeRespawn(int playerId)
+	{
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		int money = GetPlayerMoney(persId);
+		if (money > 500) {
+			int cost = OVT_Global.GetConfig().m_Difficulty.respawnCost;
+			TakePlayerMoney(playerId, cost);
+		}
 	}
 	
 	//RPC Methods

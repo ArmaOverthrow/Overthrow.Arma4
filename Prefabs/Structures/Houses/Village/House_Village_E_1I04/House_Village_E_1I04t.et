@@ -1,0 +1,22 @@
+SCR_DestructibleBuildingEntity : "{578B698AE1F03DE9}Prefabs/Structures/Houses/Village/House_Village_E_1I04/House_Village_E_1I04_base.et" {
+ ID "3A2A66C270AC77FE"
+ components {
+  OVT_ParkingComponent "{5F0264072FD5222D}" {
+   m_aParkingSpots {
+    OVT_ParkingPointInfo "{5F0264072D63563E}" {
+     Offset 6.6263 0 0
+     m_Type PARKING_CAR
+    }
+   }
+  }
+  OVT_SpawnPointComponent "{5F0264077E8E779C}" {
+   m_vPoint PointInfo "{5F0264077CDA76E2}" {
+    Offset -8.0011 0.107 0.0925
+   }
+  }
+  RplComponent "{50A4E7C9B5728062}" {
+   Enabled 1
+  }
+ }
+ coords -0.002 0 0
+}

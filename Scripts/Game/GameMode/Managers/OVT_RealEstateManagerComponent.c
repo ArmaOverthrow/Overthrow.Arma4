@@ -20,8 +20,9 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	static OVT_RealEstateManagerComponent s_Instance;
 	
 	protected ref array<IEntity> m_aEntitySearch;
+	protected ref array<EntityID> m_aStartingHomes;
 	
-	ref array<ref OVT_WarehouseData> m_aWarehouses;
+	ref array<ref OVT_WarehouseData> m_aWarehouses = new array<ref OVT_WarehouseData>;
 	
 	static OVT_RealEstateManagerComponent GetInstance()
 	{
@@ -39,6 +40,36 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	{		
 		m_aEntitySearch = new array<IEntity>;
 		m_aWarehouses = new array<ref OVT_WarehouseData>;
+		m_aStartingHomes = new array<EntityID>;
+	}
+	
+	void OnPostLoad(IEntity owner)	
+	{
+		#ifdef OVERTHROW_DEBUG
+		Print("Finding starting homes");
+		#endif
+
+		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, null, FindStartingHomeEntities, EQueryEntitiesFlags.STATIC);
+		
+		Print("Found " + m_aStartingHomes.Count() + " Starting Homes");
+	}
+	
+	bool FindStartingHomeEntities(IEntity entity)
+	{
+		if(entity.ClassName() == "SCR_DestructibleBuildingEntity"){
+			ResourceName res = entity.GetPrefabData().GetPrefabName();
+			if(res.IndexOf("_furniture") > -1) return false;
+			foreach(string s : OVT_Global.GetConfig().m_aStartingHouseFilters)
+			{
+				if(res.IndexOf(s) > -1) {
+					EntityID id = entity.GetID();
+					if(!IsOwned(id))
+						m_aStartingHomes.Insert(id);
+					continue;
+				}
+			}			
+		}
+		return false;
 	}
 	
 	override void OnPostInit(IEntity owner)
@@ -48,6 +79,17 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		if (SCR_Global.IsEditMode()) return;		
 		
 		m_Town = OVT_TownManagerComponent.Cast(GetOwner().FindComponent(OVT_TownManagerComponent));	
+	}
+	
+	IEntity GetRandomStartingHouse()
+	{
+		int numHouses = m_aStartingHomes.Count();
+		if(numHouses == 0) return null;
+				
+		int i = s_AIRandomGenerator.RandInt(0, numHouses - 1);
+		EntityID id = m_aStartingHomes[i];
+		m_aStartingHomes.Remove(i);
+		return GetGame().GetWorld().FindEntityByID(id);
 	}
 	
 	override void SetOwner(int playerId, IEntity building)
@@ -387,8 +429,10 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		super.RplSave(writer);
 		
 		//Send JIP warehouses
-		writer.WriteInt(m_aWarehouses.Count());
-		for(int i=0; i<m_aWarehouses.Count(); i++)
+		int count = 0;
+		if(m_aWarehouses) count = m_aWarehouses.Count();
+		writer.WriteInt(count);
+		for(int i=0; i<count; i++)
 		{
 			OVT_WarehouseData data = m_aWarehouses[i];
 			writer.WriteInt(data.id);

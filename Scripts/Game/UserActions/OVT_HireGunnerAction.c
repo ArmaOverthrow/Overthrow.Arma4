@@ -16,7 +16,7 @@ class OVT_HireGunnerAction : ScriptedUserAction
 		if(!comp) return;
 		
 		array<BaseCompartmentSlot> slots = {};		
-		comp.GetCompartmentsOfType(slots, ECompartmentType.Turret);
+		comp.GetCompartmentsOfType(slots, ECompartmentType.TURRET);
 		if(slots.Count() == 0) return;
 		
 		BaseCompartmentSlot slot = slots[0];

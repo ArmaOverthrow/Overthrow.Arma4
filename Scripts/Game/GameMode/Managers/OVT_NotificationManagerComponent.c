@@ -114,7 +114,13 @@ class OVT_NotificationManagerComponent: OVT_Component
 		data.param2 = param2;
 		data.param3 = param3;
 		
-		data.time = GetGame().GetTimeAndWeatherManager().GetTime();
+		if(!m_Time) 
+		{
+			ChimeraWorld world = GetOwner().GetWorld();
+			m_Time = world.GetTimeAndWeatherManager();
+		}
+		
+		data.time = m_Time.GetTime();
 		
 		m_aNotifications.InsertAt(data, 0);
 		

@@ -248,7 +248,7 @@ FrameWidgetClass {
                    Slot LayoutSlot "{598EF9F53F730301}" {
                     Padding 10 10 10 30
                    }
-                   Text "Type Name"
+                   Text ""
                    "Font Size" 28
                    "Min Font Size" 25
                   }
@@ -257,7 +257,7 @@ FrameWidgetClass {
                    Slot LayoutSlot "{598EF9F53F730347}" {
                     Padding 10 0 10 30
                    }
-                   Text "Qty in stock: 12"
+                   Text ""
                    "Font Size" 25
                    "Min Font Size" 20
                   }
@@ -266,7 +266,7 @@ FrameWidgetClass {
                    Slot LayoutSlot "{598EF9F53F73034B}" {
                     Padding 10 0 10 12
                    }
-                   Text "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In dapibus ipsum vulputate posuere consequat. Suspendisse bibendum lectus a lacus posuere, a rutrum massa dictum. Praesent posuere lectus sit amet magna feugiat, vitae egestas dui sagittis. Quisque mi elit, varius quis justo eget, lobortis congue nibh. Fusce fringilla urna eu neque commodo condimentum. Vestibulum placerat sapien non scelerisque tristique. Aliquam erat volutpat. Sed nisl risus, imperdiet accumsan lectus a, dignissim egestas velit. Suspendisse potenti. Morbi vel mi fringilla, lacinia lectus id, molestie magna. Etiam faucibus justo purus, vitae faucibus est vehicula id. Suspendisse nec nunc mattis, fringilla tortor et, ullamcorper magna."
+                   Text ""
                    "Font Size" 20
                    "Min Font Size" 12
                    Wrap 1
@@ -295,30 +295,9 @@ FrameWidgetClass {
                     Padding 0 0 0 0
                    }
                    components {
-                    SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
-                     m_sLabel "#OVT-Port_Buy_10"
+                    SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
                      m_sActionName "OverthrowPortBuyTen"
-                    }
-                    ButtonActionComponent "{56EEDE0026B19E2C}" {
-                     m_bActionName "OverthrowPortBuyTen"
-                    }
-                   }
-                   {
-                    SizeLayoutWidgetClass "{5562AD435529FB36}" {
-                     Prefab "{5562AD435529FB36}"
-                     {
-                      OverlayWidgetClass "{000000005E70868E}" {
-                       Prefab "{000000005E70868E}"
-                       {
-                        HorizontalLayoutWidgetClass "{00000000E3602307}" {
-                         Prefab "{00000000E3602307}"
-                         Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
-                          Padding 10 10 16 10
-                         }
-                        }
-                       }
-                      }
-                     }
+                     m_sLabel "#OVT-Port_Buy_10"
                     }
                    }
                   }
@@ -328,30 +307,9 @@ FrameWidgetClass {
                     Padding 0 0 0 0
                    }
                    components {
-                    SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
-                     m_sLabel "#OVT-Port_Buy_100"
+                    SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
                      m_sActionName "OverthrowPortBuyHundred"
-                    }
-                    ButtonActionComponent "{56EEDE0026B19E2C}" {
-                     m_bActionName "OverthrowPortBuyHundred"
-                    }
-                   }
-                   {
-                    SizeLayoutWidgetClass "{5562AD435529FB36}" {
-                     Prefab "{5562AD435529FB36}"
-                     {
-                      OverlayWidgetClass "{000000005E70868E}" {
-                       Prefab "{000000005E70868E}"
-                       {
-                        HorizontalLayoutWidgetClass "{00000000E3602307}" {
-                         Prefab "{00000000E3602307}"
-                         Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
-                          Padding 10 10 16 10
-                         }
-                        }
-                       }
-                      }
-                     }
+                     m_sLabel "#OVT-Port_Buy_100"
                     }
                    }
                   }
@@ -385,31 +343,11 @@ FrameWidgetClass {
             Padding 0 0 10 0
            }
            components {
-            SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
-             m_sSoundClicked "SOUND_FE_BUTTON_CANCEL"
-             m_sLabel "#AR-Editor_ContentBrowser_ButtonClose"
-             m_sActionName "MenuBack"
+            SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+             m_sLabel "#AR-Menu_Back"
             }
             ButtonActionComponent "{56EEDE01BE93EE7D}" {
              m_bActionName "MenuBack"
-            }
-           }
-           {
-            SizeLayoutWidgetClass "{5562AD435529FB36}" {
-             Prefab "{5562AD435529FB36}"
-             {
-              OverlayWidgetClass "{000000005E70868E}" {
-               Prefab "{000000005E70868E}"
-               {
-                HorizontalLayoutWidgetClass "{00000000E3602307}" {
-                 Prefab "{00000000E3602307}"
-                 Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
-                  Padding 10 10 16 10
-                 }
-                }
-               }
-              }
-             }
             }
            }
           }
@@ -419,30 +357,11 @@ FrameWidgetClass {
             Padding 0 0 10 0
            }
            components {
-            SCR_NavigationButtonComponent "{5474BAC5DBCF129A}" {
-             m_sLabel "#AR-Editor_ContentBrowser_ButtonSelect"
-             m_sActionName "MenuSelect"
+            SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+             m_sLabel "#AR-Menu_Select"
             }
             SCR_DeviceSpecificComponent "{56EEDE01335EDAD4}" {
              m_bControllerOnly 1
-            }
-           }
-           {
-            SizeLayoutWidgetClass "{5562AD435529FB36}" {
-             Prefab "{5562AD435529FB36}"
-             {
-              OverlayWidgetClass "{000000005E70868E}" {
-               Prefab "{000000005E70868E}"
-               {
-                HorizontalLayoutWidgetClass "{00000000E3602307}" {
-                 Prefab "{00000000E3602307}"
-                 Slot OverlayWidgetSlot "{547290FBCA5E9358}" {
-                  Padding 10 10 16 10
-                 }
-                }
-               }
-              }
-             }
             }
            }
           }

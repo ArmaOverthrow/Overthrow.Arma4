@@ -10,6 +10,13 @@ SCR_AIWorld : "{E0A05C76552E7F58}Prefabs/AI/SCR_AIWorld.et" {
     }
    }
   }
+  NavmeshWorldComponent "{5584F30EEFEE1223}" {
+   NavmeshSettings ChimeraNavmeshWorld "{50FC63BEBE3973C5}" {
+    NavmeshFilesConfig BaseNavmeshFilesConfig "{60CA9BE5536BF701}" {
+     NavmeshFile "{97770339E1784B6D}Worlds/MP/OVT_Campaign_Test_btrlike.nmn"
+    }
+   }
+  }
   NavmeshWorldComponent "{5C8C9B750D124A63}" {
    NavmeshSettings NavmeshWorld "{5C8C9B750B60C6E2}" {
     NavmeshFilesConfig BaseNavmeshFilesConfig "{5C90BD0EC793647D}" {
@@ -25,274 +32,33 @@ PerceptionManager PerceptionManager1 : "{028DAEAD63E056BE}Prefabs/World/Game/Per
 }
 OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMode/OVT_OverthrowGameMode.et" {
  components {
-  OVT_EconomyManagerComponent "{5988DB0008700592}" {
-   m_aShopConfigs {
-    OVT_ShopInventoryConfig "{598EDB5225F92650}" {
-     type SHOP_GENERAL
-     m_aInventoryItems {
-      OVT_ShopInventoryItem "{5D72C37A46875E13}" {
-       m_eItemType EQUIPMENT
-       m_sFind "PaperMap_"
-      }
-      OVT_ShopInventoryItem "{5D72C37A4BAD0E98}" {
-       m_eItemType HEAL
-      }
-      OVT_ShopInventoryItem "{5D72C37A5AA12A12}" {
-       m_eItemType BACKPACK
-      }
-      OVT_ShopInventoryItem "{5D72C37A16A30DB6}" {
-       m_eItemType EQUIPMENT
-       m_sFind "Binoculars_"
-      }
-      OVT_ShopInventoryItem "{5D72C37AEF296A2A}" {
-       m_eItemType EQUIPMENT
-       m_sFind "Watch_"
-      }
-     }
-    }
-    OVT_ShopInventoryConfig "{598EF98CB5D3159F}" {
-     type SHOP_ELECTRONIC
-     m_aInventoryItems {
-      OVT_ShopInventoryItem "{5D72C37A679ACC6A}" {
-       m_eItemType EQUIPMENT
-      }
-     }
-    }
-    OVT_ShopInventoryConfig "{59953E645BFCDAB7}" {
-     m_aInventoryItems {
-      OVT_ShopInventoryItem "{5D72C37AF08C5B5F}" {
-       m_eItemType HEAL
-      }
-     }
-    }
-    OVT_ShopInventoryConfig "{59953E64E1FAC553}" {
-     type SHOP_CLOTHES
-     m_aInventoryItems {
-      OVT_ShopInventoryItem "{5D72C37496CF7A55}" {
-       m_eItemType BACKPACK
-      }
-      OVT_ShopInventoryItem "{5D72C37BC1D7EBFB}" {
-       m_eItemType HEADWEAR
-      }
-      OVT_ShopInventoryItem "{5D72C37BD513D3A3}" {
-       m_eItemType TORSO
-      }
-      OVT_ShopInventoryItem "{5D72C37BD257E66B}" {
-       m_eItemType LEGS
-      }
-      OVT_ShopInventoryItem "{5D72C37BD86B3370}" {
-       m_eItemType FOOTWEAR
-      }
-     }
-    }
-    OVT_ShopInventoryConfig "{599680393904D480}" {
-     type SHOP_VEHICLE
-    }
-   }
-   m_aGunDealerItems {
-    OVT_ShopInventoryItem "{5D72C37AC3500B92}" {
-     m_eItemType PISTOL
-    }
-    OVT_ShopInventoryItem "{5D72C37ACC17963D}" {
-     m_eItemType WEAPON_ATTACHMENT
-    }
-    OVT_ShopInventoryItem "{5D72C37AA6061534}" {
-     m_eItemType LETHAL_THROWABLE
-    }
-    OVT_ShopInventoryItem "{5D72C37AAF2FE72E}" {
-     m_eItemType NON_LETHAL_THROWABLE
-    }
-    OVT_ShopInventoryItem "{5D72C37AAD851814}" {
-     m_eItemType EXPLOSIVES
-    }
-    OVT_ShopInventoryItem "{5D86A3EE6DA96AE9}" {
-     m_eItemMode AMMUNITION
-     m_bNotOccupyingFaction 1
-    }
-    OVT_ShopInventoryItem "{5D86A3EE71CC805E}" {
-     m_eItemMode WEAPON
-     m_bNotOccupyingFaction 1
-     m_bSingleRandomItem 1
-    }
-    OVT_ShopInventoryItem "{5D86A3E31C0D0CBA}" {
-     m_eItemType ROCKET_LAUNCHER
-     m_eItemMode AMMUNITION
-     m_bNotOccupyingFaction 1
-    }
-    OVT_ShopInventoryItem "{5D86A3E3F7943E98}" {
-     m_eItemType ROCKET_LAUNCHER
-     m_eItemMode WEAPON
-     m_bNotOccupyingFaction 1
-     m_bSingleRandomItem 1
-    }
-    OVT_ShopInventoryItem "{5D86A3E3F1EA1F8C}" {
-     m_eItemMode ATTACHMENT
-     m_bNotOccupyingFaction 1
-    }
-    OVT_ShopInventoryItem "{5D86A3E3F80E67EC}" {
-     m_eItemType SNIPER_RIFLE
-     m_eItemMode AMMUNITION
-     m_bNotOccupyingFaction 1
-    }
-    OVT_ShopInventoryItem "{5D86A3E3AC5F7CA6}" {
-     m_eItemType SNIPER_RIFLE
-     m_eItemMode WEAPON
-     m_bNotOccupyingFaction 1
-     m_bSingleRandomItem 1
-    }
-    OVT_ShopInventoryItem "{5D86A3E3B2C9B30C}" {
-     m_eItemType MACHINE_GUN
-     m_eItemMode AMMUNITION
-     m_bNotOccupyingFaction 1
-    }
-    OVT_ShopInventoryItem "{5D86A3E3B9AFAD7C}" {
-     m_eItemType MACHINE_GUN
-     m_eItemMode WEAPON
-     m_bNotOccupyingFaction 1
-     m_bSingleRandomItem 1
-    }
-   }
-   m_aGunDealerItemPrefabs {
-    OVT_PrefabItemCostConfig "{5D822436E980BEB7}" {
-     m_sEntityPrefab "{9068EA9DDD7CB805}Prefabs/Items/Equipment/Drugs/DrugsWeed_01.et"
-     cost 75
-     maxStock 25
-    }
-   }
-  }
-  OVT_JobManagerComponent "{59A8D178EC1AA2AE}" {
-   m_aJobConfigs {
-    OVT_JobConfig "{5D9C33D67790A077}" : "{440607BAB7BD6B1C}Configs/Jobs/assassinateTraitor.conf" {
-    }
-    OVT_JobConfig "{5D9C33D67575FF25}" : "{8263088AF3FD648B}Configs/Jobs/baseRecon.conf" {
-    }
-    OVT_JobConfig "{5D9C33D6746B603D}" : "{A66B34BC59667AE6}Configs/Jobs/findGunDealer.conf" {
-    }
-    OVT_JobConfig "{5D9C33D67348B567}" : "{A885604D1141044D}Configs/Jobs/raiseSupport.conf" {
-    }
-    OVT_JobConfig "{5D9C33D122545AFD}" : "{11EE393C09B6A661}Configs/Jobs/findShop.conf" {
-    }
-   }
-  }
-  OVT_NotificationManagerComponent "{5D8680DB07CF50FD}" {
-   m_Messages SCR_SimpleMessagePresets "{5D8680DB04A58A20}" : "{36405F298C9B3186}Configs/overthrowBroadcastMessages.conf" {
-   }
-  }
-  OVT_OccupyingFactionManager "{59845E732755785F}" {
-   m_pQRFControllerPrefab "{A7D27DFA72B705D0}Prefabs/Controllers/OVT_QRFController.et"
-  }
   OVT_OverthrowConfigComponent "{59724C8C935D8E5D}" {
    m_Difficulty OVT_DifficultySettings "{598AD54E1DA56EB1}" : "{0BA489F3657E13D8}Configs/Difficulty/Difficulty_TestWorld.conf" {
    }
   }
-  OVT_PersistenceManagerComponent "{5D7009B844876186}" {
-   m_pConnectionInfo EDF_JsonFileDbConnectionInfo "{5D7009B8408E1A9D}" {
-    m_sDatabaseName "Overthrow"
-   }
-  }
-  OVT_ResistanceFactionManager "{59A49A9CD87CBC92}" {
-   m_rPlaceablesConfigFile "{A4E760D069AE00F8}Configs/Resistance/placeables.conf"
-   m_rBuildablesConfigFile "{430C71DF4386D868}Configs/Resistance/buildables.conf"
-   m_aVehicleUpgrades {
-    OVT_VehicleUpgrades "{59CF1963D54690F3}" {
-     m_pBasePrefab "{F649585ABB3706C4}Prefabs/Vehicles/Wheeled/M151A2/M151A2.et"
-     m_aUpgrades {
-      OVT_VehicleUpgrade "{59CF196388095600}" {
-       m_pUpgradePrefab "{F6B23D17D5067C11}Prefabs/Vehicles/Wheeled/M151A2/M151A2_M2HB.et"
-       m_iCost 14000
-      }
-     }
-    }
-   }
-   m_pHiredCivilianPrefab "{365CD448A5DABCCC}Prefabs/Groups/INDFOR/Group_CIV_Recruit.et"
-  }
-  OVT_SkillManagerComponent "{5D90EE077169A8A2}" {
-   m_Skills OVT_SkillsConfig "{5D91035951D22CD1}" : "{F7740B6A7C4F6FB7}Configs/Player/overthrowSkills.conf" {
-   }
-  }
-  OVT_TownManagerComponent "{59724C983BF56C3B}" {
-   m_iVillageRange 100
-  }
   OVT_VehicleManagerComponent "{5D707B3386AF876D}" {
-   m_pStartingCarPrefab "{259EE7B78C51B624}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469.et"
-  }
-  SCR_GroupsManagerComponent "{5DDAD8A30938E391}" {
-   m_sDefaultGroupPrefab "{8B4D49A9F324E7D5}Prefabs/Groups/PlayableGroup.et"
-  }
-  SCR_InitWeatherComponent "{597CE04456F991A8}" {
-   m_sInitialStartingWeatherId "Cloudy"
-   m_initialWeatherDurationMin 0.2
-   m_initialWeatherDurationMax 0.5
-  }
-  SCR_NotificationSenderComponent "{5D7A443FDCA27CAE}" {
-   m_iReceiveKillFeedType SAME_FACTION_ONLY
-   m_aKillfeedTypeNames {
-    SCR_NotificationKillfeedTypeName "{5D7A4439A46B176A}" {
-     m_iKillfeedType DISABLED
-     m_sKillfeedTypeName "#AR-Notification_KillfeedType_DISABLED"
-    }
-    SCR_NotificationKillfeedTypeName "{5D7A4439ACBBFC32}" {
-     m_iKillfeedType UNKNOWN_KILLER
-     m_sKillfeedTypeName "#AR-Notification_KillfeedType_UNKNOWN_KILLER"
-    }
-    SCR_NotificationKillfeedTypeName "{5D7A4439B4AC4DEC}" {
-     m_iKillfeedType FULL
-     m_sKillfeedTypeName "#AR-Notification_KillfeedType_FULL"
-    }
+   m_CivilianVehicleEntityCatalog SCR_EntityCatalogMultiList "{5EE4E8D8F96B3B17}" : "{77243A71AF0E5A75}Configs/EntityCatalog/FactionLess/Vehicles_EntityCatalog_Factionless.conf" {
    }
-   m_aKillfeedReceiveTypeNames {
-    SCR_NotificationKillfeedreceiveTypeName "{5D7A4439957C2FF2}" {
-     m_iKillfeedreceiveType ALL
-     m_sKillfeedReceiveTypeName "#AR-Notification_KillfeedReceiveType_ALL"
-    }
-    SCR_NotificationKillfeedreceiveTypeName "{5D7A4439916A94CD}" {
-     m_iKillfeedreceiveType ENEMIES_ONLY
-     m_sKillfeedReceiveTypeName "#AR-Notification_KillfeedReceiveType_ENEMIES_ONLY"
-    }
-    SCR_NotificationKillfeedreceiveTypeName "{5D7A44399A3B00F5}" {
-     m_iKillfeedreceiveType ALLIES_ONLY
-     m_sKillfeedReceiveTypeName "#AR-Notification_KillfeedReceiveType_ALLIES_ONLY"
-    }
-    SCR_NotificationKillfeedreceiveTypeName "{5D7A442665D40F6F}" {
-     m_iKillfeedreceiveType SAME_FACTION_ONLY
-     m_sKillfeedReceiveTypeName "#AR-Notification_KillfeedReceiveType_SAME_FACTION_ONLY"
-    }
-    SCR_NotificationKillfeedreceiveTypeName "{5D7A44266056A71D}" {
-     m_iKillfeedreceiveType GROUP_ONLY
-     m_sKillfeedReceiveTypeName "#AR-Notification_KillfeedReceiveType_GROUP_ONLY"
-    }
-   }
-   m_PlayerKickReasonsConfig SCR_ConfigurableDialogUiPresets "{5D7A443943FDACDA}" {
-   }
-  }
-  SCR_RadialMenuGameModeComponent "{5D7EADAF1949CAD1}" {
-   m_Menu SCR_RadialMenu "{5D7EADAFE1EB1C74}" : "{D9448EF097CB0ACB}Configs/HUD/RadialMenu/GlobalRadialMenu.conf" {
-   }
-  }
-  SCR_RadialMenuItemsComponent "{5D7EADAFC9902670}" {
-   m_MenuController SCR_RadialMenuController "{5D7EADAFC88B4B33}" {
-    m_RMControls SCR_RadialMenuControllerInputs "{5D7EADAFD4ED2D14}" {
-     m_sControllerContext "WeaponSelectionContext"
-     m_sOpenAction "Inventory_WeaponSwitchingRadial"
-    }
-   }
-  }
-  SCR_RespawnSystemComponent "{5DDAD8AC95899E7A}" {
-   m_SpawnLogic OVT_PersistentRespawnLogic "{5DDAD8AC93B51D0C}" {
-    m_PlayerPrefab "{3A99A99836F6B3DC}Prefabs/Characters/Factions/INDFOR/FIA/Character_Player.et"
-   }
-  }
-  SCR_RespawnTimerComponent "{59C30B0685EFBB8C}" {
-   m_fRespawnTime 2
-  }
-  RplComponent "{59724C8C935D8E18}" {
-   Streamable Disabled
   }
  }
  coords 208.286 1.001 116.919
 }
 OVT_OverthrowFactionManager OVT_OverthrowFactionManager : "{51EBC0CFD56DA130}Prefabs/GameMode/OVT_OverthrowFactionManager.et" {
  coords 0 0 0
+ Factions {
+  SCR_Faction "{5D8CB0700C13A528}" : "{09727032415AC39B}Configs/Factions/USSR.conf" {
+   m_bIsPlayable 0
+  }
+  SCR_Faction "{5D8CB07009D3FA5D}" : "{5EB46557DF2AA24F}Configs/Factions/US.conf" {
+   m_bIsPlayable 0
+  }
+  SCR_Faction "{5D8CB07017FAD571}" : "{8053DB656DD18B14}Configs/Factions/FIA.conf" {
+   m_bIsPlayable 0
+  }
+ }
+}
+ScriptedChatEntity : "{F69BC912AC8236F9}Prefabs/MP/ScriptedChatEntity.et" {
+ coords 54.102 1 133.598
 }
 $grp GenericEntity {
  Town {
@@ -311,11 +77,16 @@ $grp GenericEntity {
     MainType Transmitter
    }
   }
-  coords 29.444 1.001 220.242
+  coords 29.444 1.001 116.796
   Flags 1027
  }
 }
 SCR_DestructibleBuildingEntity : "{00FD2B4A0BDEC271}Prefabs/Structures/Commercial/FuelStations/FuelStation_E_01_building.et" {
+ components {
+  RplComponent "{50A4E7C9B5728062}" {
+   Enabled 0
+  }
+ }
  coords 240.87 0.001 76.83
  angleY -89.85
 }
@@ -372,11 +143,12 @@ $grp SCR_SiteSlotEntity : "{588A3DAF0296B0C1}PrefabsEditable/Slots/Flat/E_SlotFl
 SCR_DestructibleBuildingEntity : "{5CADC96916FF1CC4}Prefabs/Structures/Houses/Villa/Villa_E_2I01/Villa_E_2I01.et" {
  coords 217.228 0.001 144.688
 }
-SCR_DestructibleBuildingEntity : "{60333F74EE12B52F}Prefabs/Structures/Houses/Village/House_Village_E_1I05/House_Village_E_1I05s.et" {
- coords 239.643 0.412 168.588
- angleY 90
-}
 GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.et" {
+ components {
+  SCR_FactionAffiliationComponent "{5E66A8EA8F5BA794}" {
+   "faction affiliation" "USSR"
+  }
+ }
  coords 55.331 1 128.241
 }
 Tree : "{7BAA3CF64495B691}Prefabs/Vegetation/Bush/b_rubus_idaeus_0s.et" {
@@ -389,7 +161,15 @@ Tree : "{9025E96A11516E7A}Prefabs/Vegetation/Bush/b_juniperus_communis_2w.et" {
  coords 182.721 0.001 126.162
 }
 SCR_DestructibleBuildingEntity : "{92E8F78BCF17D93D}Prefabs/Structures/Commercial/Shops/ShopHouse_E_2I01t_clothesstore.et" {
+ components {
+  RplComponent "{50A4E7C9B5728062}" {
+   Enabled 1
+  }
+ }
  coords 191.848 0.001 87.529
+}
+SCR_MPDestructionManager : "{9BB369F2803C6F71}Prefabs/MP/MPDestructionManager.et" {
+ coords 100.821 1 49.288
 }
 GenericEntity : "{9BF7399A6F63D480}Prefabs/GameMode/OVT_Port.et" {
  coords 143.682 1.001 246.857
@@ -407,14 +187,26 @@ Tree : "{AED5759B653DF6D0}Prefabs/Vegetation/Bush/b_rosa_canina_1s.et" {
 Tree : "{AF4BFBE29028A9FD}Prefabs/Vegetation/Bush/b_corylus_avellana_1l.et" {
  coords 182.406 0.001 117.203
 }
+EnvironmentProbeEntity : "{B6B6A21399C5571B}Prefabs/World/DefaultWorld/EnvProbe_Default.et" {
+ coords 112.285 2.18 89.264
+}
 Tree : "{BA785041AC632123}Prefabs/Vegetation/Bush/b_salix_cinerea_1.et" {
  coords 179.952 0.001 121.315
 }
 SCR_DestructibleBuildingEntity : "{CFE8511B2B7E8AAA}Prefabs/Structures/Commercial/Shops/ShopModern_E_01.et" {
+ components {
+  RplComponent "{50A4E7C9B5728062}" {
+   Enabled 1
+  }
+ }
  coords 210.935 0.001 93.913
 }
 Tree : "{D9DF1D13919F19A0}Prefabs/Vegetation/Bush/b_rosa_canina_0s.et" {
  coords 182.829 0.001 130.379
+}
+SCR_DestructibleBuildingEntity : "{DE43119351D125AC}Prefabs/Structures/Houses/Village/House_Village_E_1L02/House_Village_E_1L02t.et" {
+ coords 226.19 0.655 193.901
+ angleY -122.007
 }
 SCR_SiteSlotEntity : "{F4066B8425BEC47C}PrefabsEditable/Slots/Road/E_SlotRoadMedium.et" {
  coords 68.924 1.001 146.036
@@ -426,6 +218,11 @@ SCR_SiteSlotEntity : "{F4066B8425BEC47C}PrefabsEditable/Slots/Road/E_SlotRoadMed
  }
 }
 SCR_DestructibleBuildingEntity : "{F51B9B9BD15BBE64}Prefabs/Structures/Commercial/Shops/ShopHouse_E_2I01t_householdwares.et" {
+ components {
+  RplComponent "{50A4E7C9B5728062}" {
+   Enabled 1
+  }
+ }
  coords 166.601 0.001 87.468
 }
 StaticModelEntity : "{F808145ADD4EF885}PrefabLibrary/Walls/Metal/MetalGate_01_Long.et" {
@@ -437,5 +234,10 @@ SCR_DestructibleBuildingEntity : "{FBCE1861B987EA68}Prefabs/Structures/Military/
  angleY -90.081
 }
 SCR_DestructibleBuildingEntity : "{FF48B5059EB0AC65}Prefabs/Structures/Commercial/Shops/ShopHouse_E_2I01t_drugstore.et" {
+ components {
+  RplComponent "{50A4E7C9B5728062}" {
+   Enabled 1
+  }
+ }
  coords 179.27 0.001 87.654
 }
