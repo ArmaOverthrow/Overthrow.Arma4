@@ -173,7 +173,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		OVT_Global.GetConfig().m_iOccupyingFactionIndex = -1;
 		foreach(OVT_BaseData data : m_Bases)
 		{
-			data.faction = OVT_Global.GetConfig().GetOccupyingFactionKey();
+			data.faction = OVT_Global.GetConfig().GetOccupyingFactionIndex();
 		}
 	}
 

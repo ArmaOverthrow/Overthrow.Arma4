@@ -101,6 +101,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 	void OVT_ResistanceFactionManager(IEntityComponentSource src, IEntity ent, IEntity parent)
 	{
 		m_FOBs = new array<ref OVT_FOBData>;
+		m_Camps = new array<ref OVT_CampData>;
 	}
 	
 	void Init(IEntity owner)
@@ -503,7 +504,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		OVT_Global.TransferStorage(vehicle, newrpl.Id());
 		SCR_EntityHelper.DeleteEntityAndChildren(entity);	
 
-		RegisterFOB(entity, -1);		
+		RegisterFOB(newveh, -1);		
 
 	}
 	
@@ -528,7 +529,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		OVT_Global.TransferStorage(vehicle, newrpl.Id());
 		SCR_EntityHelper.DeleteEntityAndChildren(entity);		
 
-		UnregisterFOB(entity.GetOrigin());
+		UnregisterFOB(newveh.GetOrigin());
 	}
 	
 	//RPC Methods	

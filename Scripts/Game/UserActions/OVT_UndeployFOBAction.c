@@ -4,7 +4,8 @@ class OVT_UndeployFOBAction : ScriptedUserAction
 	//---------------------------------------------------------
  	override void PerformAction(IEntity pOwnerEntity, IEntity pUserEntity) 
  	{
-		OVT_Global.GetServer().UndeployFOB(pOwnerEntity.GetParent());
+		IEntity parent = pOwnerEntity.GetParent();
+		OVT_Global.GetServer().UndeployFOB(parent);
  	}
 		
 	override bool GetActionNameScript(out string outName)
