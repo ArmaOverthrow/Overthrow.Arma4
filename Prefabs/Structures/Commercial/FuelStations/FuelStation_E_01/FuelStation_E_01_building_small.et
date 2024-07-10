@@ -1,0 +1,21 @@
+SCR_DestructibleBuildingEntity : "{614555E9CD7A4399}Prefabs/Structures/Commercial/FuelStations/FuelStation_E_01/FuelStation_E_01_building_small_base.et" {
+ ID "F0DBA538AC2A0552"
+ {
+  GenericEntity {
+   ID "58EA8658C574D24C"
+   {
+    GenericEntity {
+     ID "58EA8658FA034261"
+     components {
+      SCR_ArsenalComponent "{5E56AE26E386A584}" {
+       Enabled 0
+      }
+      SCR_ArsenalInventoryStorageManagerComponent "{5E56AE26EAD6FF8A}" {
+       Enabled 0
+      }
+     }
+    }
+   }
+  }
+ }
+}

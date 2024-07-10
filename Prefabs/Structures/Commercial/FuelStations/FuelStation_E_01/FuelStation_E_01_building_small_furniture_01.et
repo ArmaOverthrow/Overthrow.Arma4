@@ -1,0 +1,20 @@
+GenericEntity : "{28411B0C79460DF8}Prefabs/Structures/Core/BuildingFurniture_base.et" {
+ ID "56A8CBB92342240A"
+ {
+  GenericEntity {
+   ID "58EA8658FA034261"
+   components {
+    SCR_ArsenalComponent "{5E56AE26E386A584}" {
+     Enabled 0
+    }
+    SCR_ArsenalInventoryStorageManagerComponent "{5E56AE26EAD6FF8A}" {
+     Enabled 0
+    }
+   }
+  }
+  GenericEntity {
+   ID "58EA8658FA034296"
+   coords 1.08 1.56 -1.828
+  }
+ }
+}
