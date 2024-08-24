@@ -78,6 +78,9 @@ class OVT_DifficultySettings : ScriptAndConfig
 	[Attribute(defvalue: "1000", desc: "Max size of QRF in resources", category: "QRF")]
 	int maxQRF;
 	
-	[Attribute("", UIWidgets.ResourcePickerThumbnail, "Items given to player when first spawned in")]
+	[Attribute(defvalue: "1", desc: "Add the items below only on first spawn", category: "Loadout", params: "0 1 1")]
+	int startingItemsSingleShot;
+	
+	[Attribute("", UIWidgets.ResourcePickerThumbnail, "Items given to player when first spawned in", category: "Loadout")]
 	ref array<ResourceName> startingItems;
 }

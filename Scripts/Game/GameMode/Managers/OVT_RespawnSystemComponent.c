@@ -63,73 +63,49 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 		super.OnCharacterCreated(playerId, characterPersistenceId, character);
 		
 		InventoryStorageManagerComponent storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(character);
+		if (!storageManager) return;
 		
 		array<ResourceName> doneStartingItems = {};
+		array<IEntity> slotEntities = {};
+		
 		OVT_PlayerData player = OVT_PlayerData.Get(characterPersistenceId);
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
 		
-		if(storageManager)
-		{
-			foreach (OVT_LoadoutSlot loadoutItem : OVT_Global.GetConfig().m_CivilianLoadout.m_aSlots)
-			{
-				if(loadoutItem.m_fSkipChance > 0)
-				{
-					float rnd = s_AIRandomGenerator.RandFloat01();
-					if(rnd <= loadoutItem.m_fSkipChance) continue; 
-				}
-				
-				IEntity slotEntity = SpawnDefaultCharacterItem(storageManager, loadoutItem);
-				if (!slotEntity) continue;
-				
-				if(config && config.m_Difficulty && player && player.firstSpawn)
-				{				
-					foreach(ResourceName res : config.m_Difficulty.startingItems)
-					{
-						if(doneStartingItems.Contains(res)) continue;
-						
-						EntitySpawnParams spawnParams();
-						spawnParams.Transform[3] = storageManager.GetOwner().GetOrigin();
+		// handle loadout items
 		
-						IEntity spawnedItem = GetGame().SpawnEntityPrefab(Resource.Load(res), GetGame().GetWorld(), spawnParams);
-						if(!spawnedItem)
-						{
-							doneStartingItems.Insert(res);
-							continue;	
-						}
-						bool foundStorage = false;
-						array<Managed> outComponents();
-						slotEntity.FindComponents(BaseInventoryStorageComponent, outComponents);
-						foreach (Managed componentRef : outComponents)
-						{
-							BaseInventoryStorageComponent storageComponent = BaseInventoryStorageComponent.Cast(componentRef);
-					
-							if(storageComponent.GetPurpose() & EStoragePurpose.PURPOSE_DEPOSIT)
-							{
-								if (!storageManager.TryInsertItemInStorage(spawnedItem, storageComponent)) continue;
-								
-								InventoryItemComponent inventoryItemComponent = InventoryItemComponent.Cast(spawnedItem.FindComponent(InventoryItemComponent));
-								if (inventoryItemComponent && !inventoryItemComponent.GetParentSlot()) continue;
-								
-								foundStorage = true;
-								doneStartingItems.Insert(res);
-								break;
-							}
-						}
-						if(!foundStorage)
-						{
-							SCR_EntityHelper.DeleteEntityAndChildren(spawnedItem);
-						}
-					}
-				}
-				
-				if (!storageManager.TryInsertItem(slotEntity, EStoragePurpose.PURPOSE_LOADOUT_PROXY))
-				{
-					SCR_EntityHelper.DeleteEntityAndChildren(slotEntity);
-				}
+		foreach (OVT_LoadoutSlot loadoutItem : config.m_CivilianLoadout.m_aSlots)
+		{
+			if(loadoutItem.m_fSkipChance > 0)
+			{
+				float rnd = s_AIRandomGenerator.RandFloat01();
+				if(rnd <= loadoutItem.m_fSkipChance) continue; 
 			}
 			
-			player.firstSpawn = false;
-		}		
+			IEntity slotEntity = SpawnDefaultCharacterItem(storageManager, loadoutItem);
+			if (!slotEntity) continue;
+			
+			if (storageManager.TryInsertItem(slotEntity, EStoragePurpose.PURPOSE_LOADOUT_PROXY))
+			{
+				slotEntities.Insert(slotEntity);
+			} else {
+				SCR_EntityHelper.DeleteEntityAndChildren(slotEntity);
+			}
+		}
+		
+		// now handle insertable items
+		
+		if (config && config.m_Difficulty && player && (player.firstSpawn || !config.m_Difficulty.startingItemsSingleShot))
+		{
+			foreach(ResourceName res : config.m_Difficulty.startingItems)
+			{
+				foreach (IEntity slotEntity : slotEntities)
+				{
+					if (TryInsertStartingItem(storageManager, res, slotEntity)) break;
+				}
+			}
+		}
+		
+		player.firstSpawn = false;
 	}
 	
 	protected IEntity SpawnDefaultCharacterItem(InventoryStorageManagerComponent storageManager, OVT_LoadoutSlot loadoutItem)
@@ -172,6 +148,43 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 		}
 		
 		return slotEntity;
+	}
+	
+	/**
+	 * Returns true if the item was inserted or the item is invalid.
+	 * False if it cannot be inserted to given 
+	 */
+	protected bool TryInsertStartingItem(InventoryStorageManagerComponent storageManager, ResourceName res, IEntity slotEntity)
+	{
+		EntitySpawnParams spawnParams();
+		spawnParams.Transform[3] = storageManager.GetOwner().GetOrigin();
+
+		IEntity spawnedItem = GetGame().SpawnEntityPrefab(Resource.Load(res), GetGame().GetWorld(), spawnParams);
+		if(!spawnedItem)
+		{
+			// did not spawn, but we don't want to attempt again
+			return true;
+		}
+		
+		array<Managed> outComponents();
+		slotEntity.FindComponents(BaseInventoryStorageComponent, outComponents);
+		foreach (Managed componentRef : outComponents)
+		{
+			BaseInventoryStorageComponent storageComponent = BaseInventoryStorageComponent.Cast(componentRef);
+	
+			if(storageComponent.GetPurpose() & EStoragePurpose.PURPOSE_DEPOSIT)
+			{
+				if (!storageManager.TryInsertItemInStorage(spawnedItem, storageComponent)) continue;
+				
+				InventoryItemComponent inventoryItemComponent = InventoryItemComponent.Cast(spawnedItem.FindComponent(InventoryItemComponent));
+				if (inventoryItemComponent && !inventoryItemComponent.GetParentSlot()) continue;
+				
+				return true;
+			}
+		}
+		
+		SCR_EntityHelper.DeleteEntityAndChildren(spawnedItem);
+		return false;
 	}
 	
 	override void OnPlayerKilled_S(int playerId, IEntity playerEntity, IEntity killerEntity, notnull Instigator killer)
