@@ -676,6 +676,7 @@ class OVT_TownManagerComponent: OVT_Component
 			
 		townID = m_iTownCount;
 		town.location = entity.GetOrigin();
+		town.location[1] = GetGame().GetWorld().GetSurfaceY(town.location[0], town.location[2]);
 		town.population = 0;
 		town.support = 0;
 		town.faction = GetGame().GetFactionManager().GetFactionIndex(faction);
