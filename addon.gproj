@@ -29,6 +29,10 @@ GameProject {
         Code "ru_ru"
         StringTableRuntime "{487CD323BF6347F4}Language/localization_Overthrow.ru-ru.conf"
        }
+       LanguageDefinition "{62DD671FA5FE3755}" {
+        Code "uk_ua"
+        StringTableRuntime "{C6B83A608B373ADE}Language/localization_Overthrow.uk_ua.conf"
+       }
       }
      }
     }
@@ -40,7 +44,7 @@ GameProject {
   }
   GameProjectConfig PS4 {
   }
-  GameProjectConfig PS5 : PC {
+  GameProjectConfig PS5 {
    PlatformHardware PS5
   }
   GameProjectConfig HEADLESS {
