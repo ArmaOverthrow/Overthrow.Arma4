@@ -119,9 +119,9 @@ class OVT_SkillManagerComponent: OVT_Component
 		GiveXP(playerId, buildable.m_iRewardXP);
 	}
 	
-	void OnPlayerKilled(int playerId, IEntity playerEntity, IEntity killerEntity, notnull Instigator killer)
+	void OnPlayerKilled(notnull SCR_InstigatorContextData instigatorContextData)
 	{
-		TakeXP(playerId, 1);
+		TakeXP(instigatorContextData.GetVictimPlayerID(), 1);
 	}
 	
 	void OnPlayerBuy(int playerId, int amount)

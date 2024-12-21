@@ -1,9 +1,8 @@
 
 modded class SCR_AIConfigComponent : ScriptComponent
 {
-	override bool PerformDangerReaction(SCR_AIUtilityComponent utility, AIDangerEvent dangerEvent)
+	override bool PerformDangerReaction(SCR_AIUtilityComponent utility, AIDangerEvent dangerEvent, int dangerEventCount)
 	{
-		
 		EAIDangerEventType type = dangerEvent.GetDangerType();
 		
 		if(type == EAIDangerEventType.Danger_WeaponFire)
@@ -20,12 +19,6 @@ modded class SCR_AIConfigComponent : ScriptComponent
 			}
 		}
 		
-		
-		SCR_AIDangerReaction reaction = m_mDangerReactions[dangerEvent.GetDangerType()];
-		if (reaction)
-		{
-			return reaction.PerformReaction(utility, utility.m_ThreatSystem, dangerEvent);
-		}
-		return false;
+		return super.PerformDangerReaction(utility, dangerEvent, dangerEventCount);
 	}
 }

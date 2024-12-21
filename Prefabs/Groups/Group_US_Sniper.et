@@ -10,9 +10,6 @@ SCR_AIGroup {
   }
   AIGroupMovementComponent "{598739094D660463}" {
   }
-  AIGroupSteeringComponent "{598739094D660456}" {
-   "Using Railroad" 0
-  }
   AIPathfindingComponent "{598739094D660459}" {
    NavmeshProject "Soldiers"
   }
@@ -54,17 +51,8 @@ SCR_AIGroup {
     }
    }
    m_aInfoReactions {
-    SCR_AIInfoReaction_Contact "{598739094D6604AF}" {
-     m_eType CONTACT
-    }
-    SCR_AIInfoReaction_TargetEliminated "{598739094D6604AA}" {
-     m_eType TARGET_ELIMINATED
-    }
     SCR_AIInfoReaction_Wounded "{598739094D660493}" {
      m_eType WOUNDED
-    }
-    SCR_AIInfoReaction_TargetLost "{598739094D66049E}" {
-     m_eType TARGET_LOST
     }
     SCR_AIInfoReaction_NoAmmo "{598739094D660498}" {
      m_eType NO_AMMO
@@ -81,7 +69,6 @@ SCR_AIGroup {
    m_EntityType GROUP
    m_UIInfo SCR_EditableGroupUIInfo "{598739094D66050E}" {
     Name "#AR-Group_SniperTeam"
-    Icon "{BAC8DDD536E23946}UI/Textures/Editor/EditableEntities/Groups/EditableEntity_Group_Blufor_Infantry.edds"
     m_Image "{BC3B6D475EFE3C31}UI/Textures/EditorPreviews/Groups/BLUFOR/Group_US_SniperTeam.edds"
     m_sFaction "US"
     m_aAuthoredLabels {
@@ -122,7 +109,6 @@ SCR_AIGroup {
      m_Flags 3
      m_Shape MESH
      m_iPivotID ""
-     m_fScale 1
      m_vPosition 0 0 0
      m_vAngles 0 0 0
     }
@@ -132,7 +118,6 @@ SCR_AIGroup {
      m_Flags 0
      m_Shape PREFAB
      m_iPivotID ""
-     m_fScale 1
      m_vPosition 0 0 0
      m_vAngles 0 0 0
     }
@@ -142,7 +127,6 @@ SCR_AIGroup {
      m_Flags 0
      m_Shape PREFAB
      m_iPivotID ""
-     m_fScale 1
      m_vPosition 3 0 -3
      m_vAngles 0 0 0
     }

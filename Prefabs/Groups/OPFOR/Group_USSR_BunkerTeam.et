@@ -4,7 +4,6 @@ SCR_AIGroup : "{8DE0C0830FE0C33D}Prefabs/Groups/OPFOR/Group_USSR_Base.et" {
   SCR_EditableGroupComponent "{50D291F6C83FA532}" {
    m_UIInfo SCR_EditableGroupUIInfo "{5298E609432D192D}" {
     Name "#AR-Group_MGTeam"
-    Icon "{0F4B6077ACB2FC1D}UI/Textures/Editor/EditableEntities/Groups/EditableEntity_Group_Opfor_Infantry.edds"
     m_Image "{9C1586D1D8CB77BE}UI/Textures/EditorPreviews/Groups/OPFOR/Group_USSR_MachinegunTeam.edds"
     m_aAuthoredLabels + {
      34 27
@@ -41,7 +40,6 @@ SCR_AIGroup : "{8DE0C0830FE0C33D}Prefabs/Groups/OPFOR/Group_USSR_Base.et" {
      m_Flags 3
      m_Shape MESH
      m_iPivotID ""
-     m_fScale 1
      m_vPosition 0 0 0
      m_vAngles 0 0 0
     }
@@ -51,7 +49,6 @@ SCR_AIGroup : "{8DE0C0830FE0C33D}Prefabs/Groups/OPFOR/Group_USSR_Base.et" {
      m_Flags 0
      m_Shape PREFAB
      m_iPivotID ""
-     m_fScale 1
      m_vPosition 0 0 0
      m_vAngles 0 0 0
     }
@@ -61,7 +58,6 @@ SCR_AIGroup : "{8DE0C0830FE0C33D}Prefabs/Groups/OPFOR/Group_USSR_Base.et" {
      m_Flags 0
      m_Shape PREFAB
      m_iPivotID ""
-     m_fScale 1
      m_vPosition 3 0 -3
      m_vAngles 0 0 0
     }

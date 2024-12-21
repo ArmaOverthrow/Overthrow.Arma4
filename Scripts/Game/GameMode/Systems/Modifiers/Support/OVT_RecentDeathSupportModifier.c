@@ -24,8 +24,8 @@ class OVT_RecentDeathSupportModifier : OVT_SupportModifier
 		AddModifierToNearestTownInRange(entity.GetOrigin());
 	}
 	
-	protected void OnPlayerKilled(int playerId, IEntity playerEntity, IEntity killerEntity, notnull Instigator killer)
+	protected void OnPlayerKilled(notnull SCR_InstigatorContextData instigatorContextData)
 	{
-		AddModifierToNearestTownInRange(playerEntity.GetOrigin());
+		AddModifierToNearestTownInRange(instigatorContextData.GetVictimEntity().GetOrigin());
 	}
 }
