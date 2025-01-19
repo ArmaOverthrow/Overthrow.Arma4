@@ -425,6 +425,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	int GetSellPrice(int id, vector pos = "0 0 0")
 	{		
 		int price = GetPrice(id);
+		if(m_aAllVehicles.Contains(id)) return price;
 		if(pos[0] != 0)
 		{
 			OVT_TownData town = OVT_Global.GetTowns().GetNearestTown(pos);
@@ -858,6 +859,13 @@ class OVT_EconomyManagerComponent: OVT_Component
 					
 					if(hidden) continue;
 					
+					if(fac.GetFactionKey() == "CIV") {
+						illegal = false;
+					}
+					
+					Print(res);
+					Print(cost.ToString());
+					
 					m_aResources.Insert(res);
 					int id = m_aResources.Count()-1;
 					m_aResourceIndex[res] = id;
@@ -870,56 +878,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 					if(!illegal) m_aLegalVehicles.Insert(id);
 				}
 			}
-		}
-		
-		//Get civilian vehicles
-		array<SCR_EntityCatalogEntry> civVehicles();
-		OVT_VehicleManagerComponent vm = OVT_Global.GetVehicles();
-		vm.m_CivilianVehicleEntityCatalog.GetEntityList(civVehicles);
-		m_mFactionResources[-1] = new array<int>;
-		
-		foreach(SCR_EntityCatalogEntry item : civVehicles) 
-		{
-			ResourceName res = item.GetPrefab();
-			if(res == "") continue;
-			if(res.IndexOf("Campaign") > -1) continue;
-			if(!m_aResources.Contains(res))
-			{
-				bool illegal = false;
-				bool hidden = false;
-				int cost = 500000;
-				OVT_ParkingType parkingType = OVT_ParkingType.PARKING_CAR;
-				//Set it's price
-				foreach(OVT_VehiclePriceConfig cfg : m_VehiclePriceConfig.m_aPrices)
-				{
-					if(cfg.prefab != "") continue;
-					if(cfg.m_sFind == "" || res.IndexOf(cfg.m_sFind) > -1)
-					{
-						if(cfg.hidden) {
-							hidden = true;
-							break;
-						}
-						cost = cfg.cost;
-						illegal = cfg.illegal;
-						parkingType = cfg.parking;
-					}
-				}
-				
-				if(hidden) continue;
-				
-				m_aResources.Insert(res);
-				int id = m_aResources.Count()-1;
-				m_aResourceIndex[res] = id;
-				m_aEntityCatalogEntries.Insert(item);
-				m_mFactionResources[-1].Insert(id);
-				m_aAllVehicles.Insert(id);
-				
-				
-				m_mVehicleParking[id] = parkingType;
-				SetPrice(id, cost);
-				if(!illegal) m_aLegalVehicles.Insert(id);
-			}
-		}
+		}		
 		
 		foreach(OVT_PrefabItemCostConfig item : m_aGunDealerItemPrefabs)
 		{
@@ -1101,7 +1060,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 			
 			int occupyingFactionId = OVT_Global.GetConfig().GetOccupyingFactionIndex();
 			
-			int townID = OVT_Global.GetTowns().GetTownID(town);
+			int townID = OVT_Global.GetTowns().GetTownID(town);			
 			
 			if(shop.m_ShopType == OVT_ShopType.SHOP_VEHICLE)
 			{
@@ -1110,7 +1069,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 				foreach(ResourceName res : vehicles)
 				{
 					int id = GetInventoryId(res);
-					shop.AddToInventory(id, 10);
+					shop.AddToInventory(id, 100);
 				}
 			}else{		
 				OVT_ShopInventoryConfig config = GetShopConfig(shop.m_ShopType);
@@ -1136,11 +1095,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	}
 	
 	protected bool CheckShopInit(IEntity entity)
-	{	
-		#ifdef OVERTHROW_DEBUG
-		Print("Found Shop");
-		#endif
-		
+	{		
 		RplComponent rpl = RplComponent.Cast(entity.FindComponent(RplComponent));
 		if(rpl)
 		{

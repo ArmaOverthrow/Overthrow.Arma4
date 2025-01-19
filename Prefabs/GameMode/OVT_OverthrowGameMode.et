@@ -194,6 +194,11 @@ OVT_OverthrowGameMode {
       cost 4200
       illegal 0
      }
+     OVT_VehiclePriceConfig "{6466809ACB90F2F7}" {
+      m_sFind "S105_"
+      cost 450
+      illegal 0
+     }
     }
    }
   }

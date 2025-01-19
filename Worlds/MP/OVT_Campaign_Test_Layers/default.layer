@@ -32,12 +32,15 @@ PerceptionManager PerceptionManager1 : "{028DAEAD63E056BE}Prefabs/World/Game/Per
 }
 OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMode/OVT_OverthrowGameMode.et" {
  components {
-  OVT_OverthrowConfigComponent "{59724C8C935D8E5D}" {
-   m_Difficulty OVT_DifficultySettings "{598AD54E1DA56EB1}" : "{0BA489F3657E13D8}Configs/Difficulty/Difficulty_TestWorld.conf" {
-   }
-  }
-  OVT_VehicleManagerComponent "{5D707B3386AF876D}" {
-   m_CivilianVehicleEntityCatalog SCR_EntityCatalogMultiList "{5EE4E8D8F96B3B17}" : "{77243A71AF0E5A75}Configs/EntityCatalog/FactionLess/Vehicles_EntityCatalog_Factionless.conf" {
+  OVT_EconomyManagerComponent "{5988DB0008700592}" {
+   m_VehiclePriceConfig OVT_VehiclePricesConfig "{5D96A5A380C4B791}" {
+    m_aPrices {
+     OVT_VehiclePriceConfig "{6466809A8B3EEDF4}" {
+      m_sFind "S1203_"
+      cost 1000
+      illegal 0
+     }
+    }
    }
   }
  }
@@ -49,11 +52,23 @@ OVT_OverthrowFactionManager OVT_OverthrowFactionManager : "{51EBC0CFD56DA130}Pre
   SCR_Faction "{5D8CB0700C13A528}" : "{09727032415AC39B}Configs/Factions/USSR.conf" {
    m_bIsPlayable 0
   }
+  SCR_Faction "{6466809F3C7BD364}" : "{00C219DF633474D1}Configs/Factions/CIV.conf" {
+  }
   SCR_Faction "{5D8CB07009D3FA5D}" : "{5EB46557DF2AA24F}Configs/Factions/US.conf" {
    m_bIsPlayable 0
   }
   SCR_Faction "{5D8CB07017FAD571}" : "{8053DB656DD18B14}Configs/Factions/FIA.conf" {
    m_bIsPlayable 0
+  }
+ }
+ m_aOverthrowFactions {
+  OVT_Faction "{5D8CB07C7A41E854}" : "{09727032415AC39C}Configs/Factions/USSR_OverthrowData.conf" {
+  }
+  OVT_Faction "{5D8CB07F1A072D18}" : "{EF3B64A93DC980EF}Configs/Factions/US_OverthrowData.conf" {
+  }
+  OVT_Faction "{6466809FAE1E6294}" : "{68DD6AA07EE8788A}Configs/Factions/CIV_OverthrowData.conf" {
+  }
+  OVT_Faction "{5D8CB07FC36DF5F6}" : "{581BA9D7260E4FB7}Configs/Factions/FIA_OverthrowData.conf" {
   }
  }
 }
@@ -82,11 +97,6 @@ $grp GenericEntity {
  }
 }
 SCR_DestructibleBuildingEntity : "{00FD2B4A0BDEC271}Prefabs/Structures/Commercial/FuelStations/FuelStation_E_01_building.et" {
- components {
-  RplComponent "{50A4E7C9B5728062}" {
-   Enabled 0
-  }
- }
  coords 240.87 0.001 76.83
  angleY -89.85
 }
