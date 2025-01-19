@@ -43,7 +43,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 
 	void DoStartNewGame()
 	{
-		bool isDedicated = RplSession.Mode() == RplMode.Dedicated;
+		bool isDedicated = RplSession.Mode() == RplMode.Dedicated || RplSession.Mode() == RplMode.Listen;
 #ifdef WORKBENCH
 		isDedicated = true; //To test dedicated server config
 #endif
