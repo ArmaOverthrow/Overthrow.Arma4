@@ -72,8 +72,12 @@ class OVT_BaseControllerComponent: OVT_Component
 	bool IsOccupyingFaction()
 	{
 		SCR_FactionAffiliationComponent affiliation = EPF_Component<SCR_FactionAffiliationComponent>.Find(GetOwner());
-		string occupyingFaction = OVT_Global.GetConfig().GetOccupyingFactionData().GetFactionKey();
-		return affiliation.GetAffiliatedFaction().GetFactionKey() == occupyingFaction;
+		Faction occupyingFactionData = OVT_Global.GetConfig().GetOccupyingFactionData();
+		FactionKey occupyingFaction = occupyingFactionData.GetFactionKey();
+		
+		Faction affiliatedFactionData = affiliation.GetAffiliatedFaction();
+		FactionKey affiliatedFaction = affiliatedFactionData.GetFactionKey();
+		return affiliatedFaction == occupyingFaction;
 	}
 
 	int GetControllingFaction()
