@@ -81,7 +81,9 @@ class OVT_OwnerManagerComponent: OVT_Component
 	{
 		if(!m_mOwned.Contains(playerId)) return false;
 		IEntity building = GetGame().GetWorld().FindEntityByID(entityId);
+		if (!building) return false;
 		RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
+		if (!rpl) return false;
 		set<RplId> owner = m_mOwned[playerId];
 		return owner.Contains(rpl.Id());
 	}
@@ -204,7 +206,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 			{
 				if (!reader.ReadRplId(id)) return false;				
 				DoSetOwnerPersistentId(playerId, id);
-			}			
+			}		
 		}
 		
 		//Recieve JIP rented
@@ -219,7 +221,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 			{
 				if (!reader.ReadRplId(id)) return false;
 				DoSetRenterPersistentId(playerId, id);
-			}			
+			}		
 		}
 		return true;
 	}
@@ -243,9 +245,9 @@ class OVT_OwnerManagerComponent: OVT_Component
 		}else{
 			string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 			DoSetOwnerPersistentId(persId, id);
-		}		
+		}
 	}
-		
+	
 	void DoSetRenter(int playerId, RplId id)
 	{
 		if(playerId == -1) {
@@ -262,6 +264,11 @@ class OVT_OwnerManagerComponent: OVT_Component
 		if(!rpl) return;		
 		
 		string persId = GetOwnerID(rpl.GetEntity());
+		
+		if (!m_mOwned.Contains(persId)) {
+			return;
+		}
+		
 		int i = m_mOwned[persId].Find(id);
 		if(i == -1) return;
 		m_mOwned[persId].Remove(i);
@@ -273,7 +280,12 @@ class OVT_OwnerManagerComponent: OVT_Component
 		RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
 		if(!rpl) return;		
 		
-		string persId = GetOwnerID(rpl.GetEntity());
+		string persId = GetRenterID(rpl.GetEntity());
+		
+		if (!m_mRented.Contains(persId)) {
+			return;
+		}
+		
 		int i = m_mRented[persId].Find(id);
 		if(i == -1) return;
 		m_mRented[persId].Remove(i);
@@ -296,14 +308,10 @@ class OVT_OwnerManagerComponent: OVT_Component
 	void DoSetRenterPersistentId(string persId, RplId id)
 	{
 		if(!m_mRented.Contains(persId)) m_mRented[persId] = new set<RplId>;
-		set<RplId> owner = m_mRented[persId];
-		owner.Insert(id);
+		set<RplId> renter = m_mRented[persId];
+		renter.Insert(id);
 		
 		m_mRenters[id] = persId;
-		
-		RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
-		if(!rpl) return;
-		m_mLocations[id] = rpl.GetEntity().GetOrigin();
 	}
 	
 	void ~OVT_OwnerManagerComponent()

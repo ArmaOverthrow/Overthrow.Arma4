@@ -4,3 +4,13 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode1 : "{4DC10DCB8BE06D32}Prefabs/GameMo
 OVT_OverthrowFactionManager OVT_OverthrowFactionManager1 : "{51EBC0CFD56DA130}Prefabs/GameMode/OVT_OverthrowFactionManager.et" {
  coords 2202.962 18.664 2466.576
 }
+$grp SCR_DestructibleBuildingEntity : "{60333F74EE12B52F}Prefabs/Structures/Houses/Village/House_Village_E_1I05/House_Village_E_1I05s.et" {
+ {
+  coords 2152.521 0.685 2056.144
+  angleY 85.737
+ }
+ {
+  coords 2150.415 0.607 2084.225
+  angleY 85.737
+ }
+}
