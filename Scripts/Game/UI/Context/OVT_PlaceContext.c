@@ -229,6 +229,13 @@ class OVT_PlaceContext : OVT_UIContext
 	void StartPlace(OVT_Placeable placeable)
 	{
 		if(m_bIsActive) CloseLayout();
+		
+		// Already placing something, remove the old one
+		if (m_bPlacing)
+		{
+			RemoveGhost();
+			m_bPlacing = false;
+		}
 
 		IEntity player = SCR_PlayerController.GetLocalControlledEntity();
 
@@ -249,8 +256,11 @@ class OVT_PlaceContext : OVT_UIContext
 			return;
 		}
 
-		WorkspaceWidget workspace = GetGame().GetWorkspace();
-		m_PlaceWidget = workspace.CreateWidgets(m_PlaceLayout);
+		if (!m_PlaceWidget)
+		{
+			WorkspaceWidget workspace = GetGame().GetWorkspace();
+			m_PlaceWidget = workspace.CreateWidgets(m_PlaceLayout);
+		}
 
 		m_bPlacing = true;
 		m_iPrefabIndex = 0;
