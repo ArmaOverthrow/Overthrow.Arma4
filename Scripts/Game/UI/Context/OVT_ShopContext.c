@@ -32,7 +32,8 @@ class OVT_ShopContext : OVT_UIContext
 		action.m_OnActivated.Insert(Buy);
 		
 		Widget sellButton = m_wRoot.FindAnyWidget("SellButton");
-		if(m_Shop.m_ShopType == OVT_ShopType.SHOP_GUNDEALER || m_Shop.m_ShopType == OVT_ShopType.SHOP_VEHICLE)
+		//if(m_Shop.m_ShopType == OVT_ShopType.SHOP_GUNDEALER || m_Shop.m_ShopType == OVT_ShopType.SHOP_VEHICLE) - Original Changes by Chris
+		if(m_Shop.m_ShopType == OVT_ShopType.SHOP_VEHICLE)
 		{
 			sellButton.SetVisible(false);
 		}else{
@@ -269,8 +270,26 @@ class OVT_ShopContext : OVT_UIContext
 		ResourceName res = m_Economy.GetResource(m_SelectedResource);
 		
 		foreach(IEntity ent : items)
+		//Chris - Make this work better for variants
 		{
-			if(ent.GetPrefabData().GetPrefabName() == res)
+			string prefab = ent.GetPrefabData().GetPrefabName();
+			if (prefab == "{63E8322E2ADD4AA7}Prefabs/Weapons/Rifles/AK74/Rifle_AK74_GP25.et")
+			{
+			prefab = "{FA5C25BF66A53DCF}Prefabs/Weapons/Rifles/AK74/Rifle_AK74.et";
+			}
+			if (prefab == "{EB404DC9E1BCB750}Prefabs/Weapons/Rifles/AK74/Rifle_AK74N_1P29.et" || prefab == "{BC6C9476FB3219A7}Prefabs/Weapons/Rifles/AK74/Rifle_AK74N_GP25.et")
+			{
+			prefab = "{96DFD2E7E63B3386}Prefabs/Weapons/Rifles/AK74/Rifle_AK74N.et";
+			}
+			if (res == "{7A82FE978603F137}Prefabs/Weapons/Launchers/RPG7/Launcher_RPG7.et" && prefab == "{E8A55396050E1762}Prefabs/Weapons/Launchers/RPG7/Launcher_RPG7_PGO7.et")
+			{
+			prefab = res;
+			}			
+			if (res == "{E8A55396050E1762}Prefabs/Weapons/Launchers/RPG7/Launcher_RPG7_PGO7.et" && prefab == "{7A82FE978603F137}Prefabs/Weapons/Launchers/RPG7/Launcher_RPG7.et")
+			{
+			prefab = res;
+			}			
+			if(prefab == res)
 			{
 				if(inventory.TryDeleteItem(ent))
 				{

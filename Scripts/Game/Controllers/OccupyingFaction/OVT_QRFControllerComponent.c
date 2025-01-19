@@ -1,7 +1,8 @@
 class OVT_QRFControllerComponentClass: OVT_ComponentClass
 {
 };
-
+vector Goodqrfpos = "0 0 0";
+vector Goodqrfbasepos = "0 0 0";
 class OVT_QRFControllerComponent: OVT_Component
 {
 	[RplProp()]
@@ -15,8 +16,11 @@ class OVT_QRFControllerComponent: OVT_Component
 	ref array<ref EntityID> m_Groups;
 	
 	protected const int UPDATE_FREQUENCY = 10000;
-	const int QRF_RANGE = 1000;
-	const int QRF_POINT_RANGE = 220;
+	const float QRF_RANGE = 750;
+	const float QRF_DEPTH = 200;
+	const float QRF_MAXRANGE = QRF_RANGE+QRF_DEPTH;
+	const float QRF_POINT_RANGE = 220;
+
 	
 	ref ScriptInvoker m_OnFinished = new ScriptInvoker();
 	
@@ -214,7 +218,8 @@ class OVT_QRFControllerComponent: OVT_Component
 		
 		int max = OVT_Global.GetConfig().m_Difficulty.maxQRF;
 		int numPlayersOnline = GetGame().GetPlayerManager().GetPlayerCount();
-		
+		Goodqrfpos = "0 0 0";
+		Goodqrfbasepos = "0 0 0";
 		//Scale max QRF size by number of players online
 		if(numPlayersOnline > 32)
 		{
@@ -260,7 +265,7 @@ class OVT_QRFControllerComponent: OVT_Component
 			int allocated = 0;
 			
 			vector lz = GetLandingZone(base);
-			vector target = GetTargetZone();
+			vector target = GetTargetZone(base);
 			int ii = 0;
 			while(allocated < allocate && ii < 6)
 			{
@@ -300,6 +305,52 @@ class OVT_QRFControllerComponent: OVT_Component
 		return newres;
 	}
 	
+	//Chris Schedule WP
+	// Corrected waypoint creation and handling
+	protected AIWaypoint CreateWaypoint(string waypointType, vector targetPos) {
+	    switch (waypointType) {
+	        case "SearchAndDestroy":
+	            return OVT_Global.GetConfig().SpawnSearchAndDestroyWaypoint(targetPos);
+			case "DefendBase":
+	            return OVT_Global.GetConfig().SpawnDefendBaseWaypoint(targetPos);
+	        case "GetIn"://nearest
+	            return OVT_Global.GetConfig().SpawnGetInWaypoint(targetPos);
+	        case "GetOut":
+	            return OVT_Global.GetConfig().SpawnGetOutWaypoint(targetPos);
+	        case "Loiter":
+	            return OVT_Global.GetConfig().SpawnLoiterWaypoint(targetPos);
+	        case "Patrol":
+	            return OVT_Global.GetConfig().SpawnBasicPatrolWaypoint(targetPos);
+	        case "Cycle":
+	            return OVT_Global.GetConfig().SpawnLoiterWaypoint(targetPos);
+	        case "DefendBase":
+	            return OVT_Global.GetConfig().SpawnBasicCycleWaypoint(targetPos);
+	        case "Scout":
+	            return OVT_Global.GetConfig().SpawnScoutWaypoint(targetPos);
+	        case "Defend":
+	            return OVT_Global.GetConfig().SpawnDefendWaypoint(targetPos);
+	        default:
+	            return OVT_Global.GetConfig().SpawnSearchAndDestroyWaypoint(targetPos); // Default case, ensures return
+	    }
+		return OVT_Global.GetConfig().SpawnSearchAndDestroyWaypoint(targetPos);
+	}
+
+	protected void AddWaypoint(vector targetPos, SCR_AIGroup aigroup, string waypointType)
+	{
+	    if (aigroup) // Check if the AI group still exists
+	    {
+	        AIWaypoint waypoint = CreateWaypoint(waypointType, targetPos);
+	        aigroup.AddWaypoint(waypoint);
+	        Print("[Debug] Waypoint added after delay.");
+	    }
+	}
+		
+	protected void ScheduleWaypoint(vector targetPos, float delay, SCR_AIGroup aigroup, string waypointType)
+	{
+	    // Correctly scheduling a waypoint addition without assignment
+		GetGame().GetCallqueue().CallLater(AddWaypoint, delay * 1000, false, targetPos, aigroup, waypointType);
+	}
+	//----------------------------------------------------
 	protected void SpawnFromQueue()
 	{
 		if(m_aSpawnQueue.Count() == 0) return;
@@ -317,69 +368,132 @@ class OVT_QRFControllerComponent: OVT_Component
 				
 		SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
 		m_Groups.Insert(group.GetID());
-		
-		aigroup.AddWaypoint(OVT_Global.GetConfig().SpawnSearchAndDestroyWaypoint(targetPos));
-		aigroup.AddWaypoint(OVT_Global.GetConfig().SpawnDefendWaypoint(targetPos));
+		//aigroup.AddWaypoint(OVT_Global.GetConfig().SpawnSearchAndDestroyWaypoint(targetPos));
+		//aigroup.AddWaypoint(OVT_Global.GetConfig().SpawnDefendWaypoint(targetPos));
+		ScheduleWaypoint(targetPos,5,aigroup,"Scout");
+		ScheduleWaypoint(targetPos,15,aigroup,"Scout");
+		ScheduleWaypoint(targetPos,30,aigroup,"SearchAndDestroy");
+		ScheduleWaypoint(targetPos,60,aigroup,"SearchAndDestroy");
 		
 		m_aSpawnQueue.Remove(0);
 		m_aSpawnPositions.Remove(0);
 		m_aSpawnTargets.Remove(0);
 	}
+
+	//Check over our good position memory
+	bool IsZeroVector(vector vec)
+	{
+    return vec[0] == 0 && vec[1] == 0 && vec[2] == 0;
+	}
+		
+	//Chris Get Random Dir
 	
-	protected vector GetTargetZone()
-	{		
-		return OVT_Global.GetRandomNonOceanPositionNear(GetOwner().GetOrigin(),QRF_POINT_RANGE);
+	protected vector GetRandomDirection()
+	{
+	    float angle1 = Math.RandomFloatInclusive(0, 2 * Math.PI); // Random angle for azimuth
+	    float angle2 = Math.RandomFloatInclusive(-Math.PI/2, Math.PI/2); // Random angle for elevation
+	    float x = Math.Cos(angle1) * Math.Cos(angle2);
+	    float y = Math.Sin(angle2);
+	    float z = Math.Sin(angle1) * Math.Cos(angle2);
+	
+	    return Vector(x, y, z).Normalized(); // Return a normalized direction vector
 	}
 	
+	
+	//Chris Gat Target Zone
+	protected vector GetTargetZone(vector origin)
+	{
+	    origin = GetOwner().GetOrigin(); // Starting position
+	    float searchRadius = 50.0; // Define the radius
+	    int maxAttempts = 450; // Maximum attempts to find a valid position
+	    int attempts = 0;
+	    vector targetZone;
+	    while (attempts < maxAttempts)
+	    {
+	        attempts++;
+	
+	        // Generate a random position within the radius
+	        targetZone = s_AIRandomGenerator.GenerateRandomPointInRadius(0, searchRadius, origin);
+	
+	        // Check if the position is not in the ocean
+	        if (!OVT_Global.IsOceanAtPosition(targetZone))
+	        {
+	            Print("[Debug] Found valid target zone: " + targetZone);
+				Goodqrfbasepos = targetZone;
+	            return targetZone; // Return the valid position
+	        }
+	    }
+		//Reuse any good qrf position if found
+		if (!IsZeroVector(Goodqrfbasepos)){return Goodqrfbasepos;}
+	    // If no valid position is found, return the original position as fallback
+	    Print("[Debug] No valid target zone found. Returning origin as fallback.");
+		//
+	    return origin;
+	}
+	//Chris Get Random LZ
 	protected vector GetLandingZone(vector pos)
 	{
-		vector qrfpos = GetOwner().GetOrigin();
-		vector dir = vector.Direction(qrfpos, pos);		
-		dir.Normalize();
+		//Reuse any good QRF position if found
+		if (!IsZeroVector(Goodqrfpos)){return Goodqrfpos;}
+	    vector qrfpos = GetOwner().GetOrigin(); // Position of the QRF
+	    vector dir = GetRandomDirection();//dir = vector.Direction(qrfpos, pos);
+	    dir.Normalize();
+	
+	    float distToPos = vector.Distance(qrfpos, pos);
+	
+	    // If the position is within QRF_RANGE, just use the target position
+	    //if (distToPos < QRF_RANGE) return pos;
+	
+	    //float dist = QRF_RANGE; // Start from the minimum range
+	    vector checkpos = qrfpos + (dir * (QRF_RANGE + Math.RandomIntInclusive(0,QRF_DEPTH))); // Update check position//s_AIRandomGenerator.GenerateRandomPointInRadius(0, 50, qrfpos + (dir * dist));
+		vector safepos = checkpos;
+	
+	    BaseWorld world = GetGame().GetWorld();
+	
+	    int maxAttempts = 450; // Maximum attempts to find a valid position
+	    int attempts = 0;
 		
-		float distToPos = vector.Distance(qrfpos, pos);
-		
-		if(distToPos < QRF_RANGE) return pos; //Just walk, its close
-		
-		float dist = QRF_RANGE;
-		vector checkpos = s_AIRandomGenerator.GenerateRandomPointInRadius(0,50,qrfpos + (dir * dist));
-		
-		BaseWorld world = GetGame().GetWorld();
-		
-		int i = 0;
-		while(i < 30 && dist < distToPos)
-		{
-			i++;			
+	    while (attempts < maxAttempts)
+	    {
+	        attempts++;
 			
-			if(!OVT_Global.IsOceanAtPosition(checkpos))
-			{		
-				//Check for clear LZ (20x20x20)
-				vector mins = "-10 0 -10";
-				vector maxs = "10 20 10";
-				autoptr TraceBox trace = new TraceBox;
-				trace.Flags = TraceFlags.ENTS;
-				trace.Start = checkpos;
-				trace.Mins = mins;
-				trace.Maxs = maxs;
-				trace.Exclude = GetOwner();
-				
-				float result = GetOwner().GetWorld().TracePosition(trace, null);
-					
-				if (result >= 0)
-				{				
-					break;
-				}
-			}
-			
-			dist += 20;
-			//Randomize the position a little bit
-			checkpos = s_AIRandomGenerator.GenerateRandomPointInRadius(0,50,qrfpos + (dir * dist));
-		}
-		
-		if(dist > distToPos) return pos;
-						
-		return checkpos;
+
+	
+	        // Ensure the position is not in the ocean
+	        if (!OVT_Global.IsOceanAtPosition(checkpos))
+	        {
+				safepos = checkpos;
+	            // Check for a clear landing zone (10x10x10)
+	            vector mins = "-5 0 -5";
+	            vector maxs = "5 10 5";
+	            autoptr TraceBox trace = new TraceBox;
+	            trace.Flags = TraceFlags.ENTS;
+	            trace.Start = checkpos;
+	            trace.Mins = mins;
+	            trace.Maxs = maxs;
+	            trace.Exclude = GetOwner();
+	            float result = GetOwner().GetWorld().TracePosition(trace, null);
+	            // If a clear LZ is found, return it
+	            if (result >= 0)
+	            {
+					Goodqrfpos = checkpos;
+	                return checkpos;
+	            }
+	        }
+	
+	        // Randomize distance and try again
+	        // Randomize the position slightly and ensure it's within bounds
+	        //checkpos = s_AIRandomGenerator.GenerateRandomPointInRadius(0, 50, qrfpos + (dir * dist));
+			//dir = vector.Direction(qrfpos, pos);
+			// Generate a random direction each time
+  		    dir = GetRandomDirection(); // Get a new random direction each time
+      		checkpos = qrfpos + (dir * (QRF_RANGE + Math.RandomIntInclusive(0,QRF_DEPTH))); // Update check position
+	    }
+	    // If no suitable LZ is found and distance exceeds QRF_MAXRANGE, return the original position
+	    // Default to the last checked position if no better options were found
+	    return safepos;
 	}
+
 		
 	void ~OVT_QRFControllerComponent()
 	{

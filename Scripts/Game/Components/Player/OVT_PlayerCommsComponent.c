@@ -461,6 +461,7 @@ class OVT_PlayerCommsComponent: OVT_Component
 	
 	void AddToShopInventory(OVT_ShopComponent shop, int id, int num)
 	{
+		num = Math.Round(num);
 		RplComponent rpl = RplComponent.Cast(shop.GetOwner().FindComponent(RplComponent));
 		Rpc(RpcAsk_AddToInventory, rpl.Id(), id, num);
 	}

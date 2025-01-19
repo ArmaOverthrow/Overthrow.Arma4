@@ -78,10 +78,29 @@ class OVT_OverthrowConfigComponent: OVT_Component
 
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Defend Waypoint Prefab", params: "et", category: "Waypoints")]
 	ResourceName m_pDefendWaypointPrefab;
-
+	//Chris Added wps
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Defend Base Waypoint Prefab", params: "et", category: "Waypoints")]
+	ResourceName m_pDefendBaseWaypointPrefab;
+	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Loiter Waypoint Prefab", params: "et", category: "Waypoints")]
+	ResourceName m_pLoiterWaypointPrefab;
+	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Get In Basic Waypoint Prefab", params: "et", category: "Waypoints")]
+	ResourceName m_pGetInWaypointBPrefab;
+	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Get Out Waypoint Prefab", params: "et", category: "Waypoints")]
+	ResourceName m_pGetOutWaypointBPrefab;
+	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Patrol Basic Waypoint Prefab", params: "et", category: "Waypoints")]
+	ResourceName m_pPatrolBasicWaypointPrefab;
+	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Scout Waypoint Prefab", params: "et", category: "Waypoints")]
+	ResourceName m_pScoutWaypointPrefab;
+	
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Patrol Waypoint Prefab", params: "et", category: "Waypoints")]
 	ResourceName m_pPatrolWaypointPrefab;
 
+	//--------------------
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Wait Waypoint Prefab", params: "et", category: "Waypoints")]
 	ResourceName m_pWaitWaypointPrefab;
 
@@ -301,7 +320,50 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		AIWaypoint wp = SpawnWaypoint(m_pSearchAndDestroyWaypointPrefab, pos);
 		return wp;
 	}
+	//Chris Added Wps
+	AIWaypoint SpawnDefendBaseWaypoint(vector pos)
+	{
+		AIWaypoint wp = SpawnWaypoint(m_pDefendBaseWaypointPrefab, pos);
+		return wp;
+	}
+	
+	AIWaypoint SpawnGetInWaypoint(vector pos)
+	{
+		AIWaypoint wp = SpawnWaypoint(m_pGetOutWaypointBPrefab, pos);
+		return wp;
+	}
+	
+	AIWaypoint SpawnGetOutWaypoint(vector pos)
+	{
+		AIWaypoint wp = SpawnWaypoint(m_pGetOutWaypointBPrefab, pos);
+		return wp;
+	}
+	
+	AIWaypoint SpawnLoiterWaypoint(vector pos)
+	{
+		AIWaypoint wp = SpawnWaypoint(m_pLoiterWaypointPrefab, pos);
+		return wp;
+	}
 
+	AIWaypoint SpawnBasicPatrolWaypoint(vector pos)
+	{
+		AIWaypoint wp = SpawnWaypoint(m_pPatrolBasicWaypointPrefab, pos);
+		return wp;
+	}
+	
+		AIWaypoint SpawnScoutWaypoint(vector pos)
+	{
+		AIWaypoint wp = SpawnWaypoint(m_pScoutWaypointPrefab, pos);
+		return wp;
+	}
+	
+	AIWaypoint SpawnBasicCycleWaypoint(vector pos)
+	{
+		AIWaypoint wp = SpawnWaypoint(m_pCycleWaypointPrefab, pos);
+		return wp;
+	}
+	
+	//------------------------------------------------
 	AIWaypoint SpawnDefendWaypoint(vector pos, int preset = 0)
 	{
 		AIWaypoint wp = SpawnWaypoint(m_pDefendWaypointPrefab, pos);

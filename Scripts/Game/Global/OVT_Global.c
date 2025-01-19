@@ -154,8 +154,8 @@ class OVT_Global : Managed
 		{
 			i++;
 			
-			//Get a random vector in a 3m radius sphere centered on pos and above the ground
-			checkpos = s_AIRandomGenerator.GenerateRandomPointInRadius(0,3,pos,false);
+			//Get a random vector in a 2m radius sphere centered on pos and above the ground
+			checkpos = s_AIRandomGenerator.GenerateRandomPointInRadius(0,2,pos,false);
 			checkpos[1] = pos[1] + s_AIRandomGenerator.RandFloatXY(0, 2);
 						
 			//check if a box on that position collides with anything
@@ -323,6 +323,7 @@ class OVT_Global : Managed
 	static bool IsOceanAtPosition(vector checkpos)
 	{		
 		World world = GetGame().GetWorld();
+		return 1 > world.GetSurfaceY(checkpos[0],checkpos[2]);
 		return world.GetOceanBaseHeight() > world.GetSurfaceY(checkpos[0],checkpos[2]);
 	}
 	
