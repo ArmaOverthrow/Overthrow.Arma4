@@ -862,10 +862,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 					if(fac.GetFactionKey() == "CIV") {
 						illegal = false;
 					}
-					
-					Print(res);
-					Print(cost.ToString());
-					
+										
 					m_aResources.Insert(res);
 					int id = m_aResources.Count()-1;
 					m_aResourceIndex[res] = id;

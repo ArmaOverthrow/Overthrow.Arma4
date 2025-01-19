@@ -10,6 +10,12 @@ class OVT_DifficultySettings : ScriptAndConfig
 	[Attribute()]
 	string name;
 	
+	[Attribute()]
+	string description;
+	
+	[Attribute()]
+	bool showPlayerOnMap;
+	
 	//Wanted system
 	[Attribute(defvalue: "30000", desc: "Timeout in ms for wanted levels 2-5 (per level)", category: "Wanted System")]
 	int wantedTimeout;
@@ -29,8 +35,10 @@ class OVT_DifficultySettings : ScriptAndConfig
 	float radioTowerRange;
 	[Attribute(defvalue: "750", desc: "Base Support Range", category: "Occupying Faction")]
 	float baseSupportRange;
-	[Attribute(defvalue: "2", desc: "Number of defense groups at radio towers", category: "Occupying Faction")]
-	int radioTowerGroups;	
+	[Attribute(defvalue: "2", desc: "Minimum number of defense groups at radio towers", category: "Occupying Faction")]
+	int radioTowerGroupsMin;
+	[Attribute(defvalue: "3", desc: "Maximum number of defense groups at radio towers", category: "Occupying Faction")]
+	int radioTowerGroupsMax;	
 	[Attribute("280")]
 	float baseRange;
 	[Attribute("220")]
@@ -57,6 +65,8 @@ class OVT_DifficultySettings : ScriptAndConfig
 	int busTicketPrice;
 	[Attribute(defvalue: "250", desc: "Base price for AI recruit", category: "Economy")]
 	int baseRecruitCost;
+	[Attribute(defvalue: "0.5", desc: "Multiplier when selling to a gun dealer", category: "Economy")]
+	int gunDealerSellPriceMultiplier;
 	
 	//RF
 	[Attribute(defvalue: "0", desc: "Base RF threat", category: "Resistance Faction")]

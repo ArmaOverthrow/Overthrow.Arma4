@@ -82,6 +82,28 @@ FrameWidgetClass {
         }
        }
       }
+      ButtonWidgetClass "{6466E3EDEAB4B02F}" : "{C9DF0E6590F6C388}UI/layouts/WidgetLibrary/SpinBox/WLib_SpinBox.layout" {
+       Name "DifficultySpinner"
+       Slot LayoutSlot "{59BA5A735A7D34E2}" {
+        HorizontalAlign 3
+        Padding 4 4 4 4
+       }
+       components {
+        SCR_SpinBoxComponent "{5472C6CBC0640458}" {
+         m_sLabel "#OVT-Difficulty"
+        }
+       }
+      }
+      TextWidgetClass "{6466E3EAD3800BA0}" {
+       Name "DifficultyDescription"
+       Slot LayoutSlot "{6466E3EAD3800B8B}" {
+        Padding 10 10 10 10
+       }
+       Text "Difficulty Description"
+       "Font Size" 18
+       "Min Font Size" 18
+       "Horizontal Alignment" Right
+      }
       FrameWidgetClass "{599D315A49A619C7}" {
        Name "Fill"
        Slot LayoutSlot "{599D315A49A619AE}" {

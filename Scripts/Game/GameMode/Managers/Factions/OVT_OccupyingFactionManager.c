@@ -211,8 +211,12 @@ class OVT_OccupyingFactionManager: OVT_Component
 					{
 						pos[1] = surfaceY;
 					}
+					
+					OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+					
+					int numGroups = s_AIRandomGenerator.RandInt(config.m_Difficulty.radioTowerGroupsMin,config.m_Difficulty.radioTowerGroupsMax);
 
-					for(int t = 0; t < OVT_Global.GetConfig().m_Difficulty.radioTowerGroups; t++)
+					for(int t = 0; t < numGroups; t++)
 					{
 						IEntity group = OVT_Global.SpawnEntityPrefab(faction.m_aTowerDefensePatrolPrefab, pos);
 						tower.garrison.Insert(group.GetID());

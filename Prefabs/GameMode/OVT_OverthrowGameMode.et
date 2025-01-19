@@ -246,30 +246,13 @@ OVT_OverthrowGameMode {
    m_Difficulty OVT_DifficultySettings "{598AD54E1DA56EB1}" : "{C0CB40B3E8B87FD4}Configs/Difficulty/Difficulty_Normal.conf" {
    }
    m_aDifficultyPresets {
-    OVT_DifficultySettings "{598AD54F821FB8D9}" {
-     name "#OVT_Difficulty-Easy"
-     wantedTimeout 20000
-     wantedOneTimeout 60000
-     startingResources 2500
-     baseResourcesPerTick 250
-     resourcesPerTick 500
-     startingCash 250
-     respawnCost 0
-     placeableCostMultiplier 0.5
+    OVT_DifficultySettings "{6466E3EA3337FBBF}" : "{647A73DAAF55A0A6}Configs/Difficulty/Difficulty_Easy.conf" {
     }
-    OVT_DifficultySettings "{598AD54F805D7FB1}" {
-     name "#OVT_Difficulty-Normal"
+    OVT_DifficultySettings "{6466E3EA33057A85}" : "{C0CB40B3E8B87FD4}Configs/Difficulty/Difficulty_Normal.conf" {
     }
-    OVT_DifficultySettings "{598AD54F803D9AE8}" {
-     name "#OVT_Difficulty-Hard"
-     wantedTimeout 60000
-     wantedOneTimeout 240000
-     startingResources 10000
-     baseResourcesPerTick 1000
-     resourcesPerTick 2000
-     startingCash 0
-     respawnCost 10
-     placeableCostMultiplier 2
+    OVT_DifficultySettings "{6466E3EA33D240F9}" : "{0FA2C3AE29A3A93B}Configs/Difficulty/Difficulty_Hard.conf" {
+    }
+    OVT_DifficultySettings "{6466E3EA33A737F7}" : "{70CC1650D9BE0DDC}Configs/Difficulty/Difficulty_Extreme.conf" {
     }
    }
    m_pGunDealerPrefab "{59929550D81A3045}Prefabs/Characters/Factions/INDFOR/FIA/Character_FIA_GunDealer.et"

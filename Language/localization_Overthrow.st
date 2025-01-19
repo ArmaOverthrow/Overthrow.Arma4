@@ -666,6 +666,13 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6466E3EDBB9A2E23}" {
+   Id "OVT-Difficulty"
+   Target_en_us "Difficulty"
+   Modified 1684466398
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59C84C639B645258}" {
    Id "OVT-DonateFunds"
    Target_en_us "Donate Funds"
