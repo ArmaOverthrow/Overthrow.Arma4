@@ -338,7 +338,14 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		{
 			return false;
 		}
-		
+
+		// Check for RplComponent
+		RplComponent rpl = RplComponent.Cast(entity.FindComponent(RplComponent));
+		if(!rpl)
+		{
+			return false;
+		}
+
 		ResourceName res = entity.GetPrefabData().GetPrefabName();
 		foreach(OVT_RealEstateConfig config : OVT_Global.GetConfig().m_aBuildingTypes)
 		{
