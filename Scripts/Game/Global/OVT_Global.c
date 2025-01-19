@@ -439,27 +439,39 @@ class OVT_Global : Managed
 		return null;
 	}
 	
-	static void RandomizeCivilianClothes(SCR_AIGroup aigroup)
+	//! call RandomizeCivilianClothes for whole group
+	static void RandomizeCivilianGroupClothes(SCR_AIGroup aigroup)
 	{
-		array<AIAgent> civs  = new array<AIAgent>;
+		array<AIAgent> civs = new array<AIAgent>;
 		aigroup.GetAgents(civs);
-		IEntity civ;
-		InventoryStorageManagerComponent storageManager;
 		foreach(AIAgent agent : civs)
 		{
-			civ = agent.GetControlledEntity();
-			storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(civ);
-			if(!storageManager) continue;
-			IEntity slotEntity;
-			foreach (OVT_LoadoutSlot loadoutItem : OVT_Global.GetConfig().m_CivilianLoadout.m_aSlots)
+			RandomizeCivilianClothes(agent);
+		}
+	}
+	
+	//! Randomize clothes for civilian. Accounts for config properties like SkipChance and PlayerOnly.
+	static void RandomizeCivilianClothes(AIAgent agent)
+	{
+		IEntity civ = agent.GetControlledEntity();
+		InventoryStorageManagerComponent storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(civ);
+		if (!storageManager) return;
+		foreach (OVT_LoadoutSlot loadoutItem : OVT_Global.GetConfig().m_CivilianLoadout.m_aSlots)
+		{
+			if (loadoutItem.m_bPlayerOnly) continue;
+			
+			if (loadoutItem.m_fSkipChance > 0)
 			{
-				slotEntity = SpawnDefaultCharacterItem(storageManager, loadoutItem);
-				if (!slotEntity) continue;
-				
-				if (!storageManager.TryInsertItem(slotEntity, EStoragePurpose.PURPOSE_LOADOUT_PROXY))
-				{
-					SCR_EntityHelper.DeleteEntityAndChildren(slotEntity);
-				}
+				float rnd = s_AIRandomGenerator.RandFloat01();
+				if(rnd <= loadoutItem.m_fSkipChance) continue; 
+			}
+			
+			IEntity slotEntity = OVT_Global.SpawnDefaultCharacterItem(storageManager, loadoutItem);
+			if (!slotEntity) continue;
+			
+			if (!storageManager.TryInsertItem(slotEntity, EStoragePurpose.PURPOSE_LOADOUT_PROXY))
+			{
+				SCR_EntityHelper.DeleteEntityAndChildren(slotEntity);
 			}
 		}
 	}
