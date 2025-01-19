@@ -53,6 +53,11 @@ class OVT_MapPlayerLocation : SCR_MapUIBaseComponent
 			return;
 		}
 		
+		if(!OVT_Global.GetConfig().m_Difficulty.showPlayerOnMap)
+		{
+			return;
+		}
+		
 		m_iLocalPlayerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(player);
 		
 		if(!m_Widgets) m_Widgets = new map<int,ref Widget>;

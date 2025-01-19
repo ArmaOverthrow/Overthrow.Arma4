@@ -29,11 +29,15 @@ class OVT_OverthrowConfigStruct
 	string occupyingFaction;
 	string discordWebHookURL;
 	ref array<string> officers;
+	string difficulty;
+	bool showPlayerPosition;
 	void SetDefaults()
 	{
 		discordWebHookURL = "see wiki: https://github.com/ArmaOverthrow/Overthrow.Arma4/wiki/Discord-Web-Hook";
 		occupyingFaction = "";
 		officers = new array<string>;
+		difficulty = "Normal";	
+		showPlayerPosition = true;	
 	}
 }
 
@@ -167,10 +171,11 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	bool LoadConfig()
 	{
 		Print("Overthrow: Trying to load configuration file "+m_sConfigFilePath, LogLevel.NORMAL);
-
-#ifdef PLATFORM_XBOX
+		
 		m_ConfigFile = new OVT_OverthrowConfigStruct();
 		m_ConfigFile.SetDefaults();
+
+#ifdef PLATFORM_XBOX		
 		return true;
 #endif
 
@@ -178,11 +183,9 @@ class OVT_OverthrowConfigComponent: OVT_Component
 
 		if (!FileIO.FileExists( m_sConfigFilePath ))
 		{
-			Print("Overthrow: Configuration file does not exist. Creating new one.", LogLevel.WARNING);
-			m_ConfigFile = new OVT_OverthrowConfigStruct();
-			m_ConfigFile.SetDefaults();
-
+			Print("Overthrow: Configuration file does not exist. Creating new one.", LogLevel.WARNING);			
 			SaveConfig();
+			return true;
 		};
 
 		if (!configLoadContext.LoadFromFile( m_sConfigFilePath ))
@@ -196,6 +199,8 @@ class OVT_OverthrowConfigComponent: OVT_Component
 			Print("Overthrow: Configuration load failed", LogLevel.ERROR);
 			return false;
 		};
+		
+		SaveConfig();
 
 		return true;
 	};

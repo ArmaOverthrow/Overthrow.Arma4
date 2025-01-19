@@ -51,14 +51,17 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		m_Config = config;
 		
 		if(isDedicated)
-		{
-			if(config.m_ConfigFile && config.m_ConfigFile.occupyingFaction != "" && config.m_ConfigFile.occupyingFaction != "FIA")
+		{			
+			if(config.m_ConfigFile)
 			{
-				Print("[Overthrow] Overthrow: Setting occupying faction to config value (" + config.m_ConfigFile.occupyingFaction + ")");
-				config.SetOccupyingFaction(config.m_ConfigFile.occupyingFaction);
-			}else{
-				Print("[Overthrow] Overthrow: Setting occupying faction to default (" + config.m_sDefaultOccupyingFaction + ")");
-				config.SetOccupyingFaction(config.m_sDefaultOccupyingFaction);
+				if(config.m_ConfigFile.occupyingFaction != "" && config.m_ConfigFile.occupyingFaction != "FIA")
+				{
+					Print("[Overthrow] Overthrow: Setting occupying faction to config value (" + config.m_ConfigFile.occupyingFaction + ")");
+					config.SetOccupyingFaction(config.m_ConfigFile.occupyingFaction);
+				}else{
+					Print("[Overthrow] Overthrow: Setting occupying faction to default (" + config.m_sDefaultOccupyingFaction + ")");
+					config.SetOccupyingFaction(config.m_sDefaultOccupyingFaction);
+				}
 			}
 		}
 		m_Config.SetBaseAndTownOwners();
@@ -131,6 +134,24 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			Print("[Overthrow] Starting Skills");
 
 			m_SkillManager.PostGameStart();
+		}
+		
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if(config.m_ConfigFile)
+		{			
+			if(config.m_ConfigFile.difficulty != "")
+			{
+				foreach(OVT_DifficultySettings preset : config.m_aDifficultyPresets)
+				{
+					if(preset.name == config.m_ConfigFile.difficulty)
+					{
+						config.m_Difficulty = preset;
+						break;
+					}
+				}
+			}
+			
+			config.m_Difficulty.showPlayerOnMap = config.m_ConfigFile.showPlayerPosition;
 		}
 
 		Print("[Overthrow] Overthrow Starting");
