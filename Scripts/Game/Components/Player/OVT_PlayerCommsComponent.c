@@ -432,6 +432,7 @@ class OVT_PlayerCommsComponent: OVT_Component
 		if(shop.m_bProcurement)
 		{
 			cost = economy.GetPrice(id);
+			cost = cost * OVT_Global.GetConfig().m_Difficulty.procurementMultiplier;
 		}
 		if(!economy.PlayerHasMoney(playerPersId, cost)) return;
 		

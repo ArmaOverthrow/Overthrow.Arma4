@@ -66,7 +66,9 @@ class OVT_DifficultySettings : ScriptAndConfig
 	[Attribute(defvalue: "250", desc: "Base price for AI recruit", category: "Economy")]
 	int baseRecruitCost;
 	[Attribute(defvalue: "0.5", desc: "Multiplier when selling to a gun dealer", category: "Economy")]
-	int gunDealerSellPriceMultiplier;
+	float gunDealerSellPriceMultiplier;
+	[Attribute(defvalue: "0.8", desc: "Multiplier when buying vehicles at an owned base", category: "Economy")]
+	float procurementMultiplier;
 	
 	//RF
 	[Attribute(defvalue: "0", desc: "Base RF threat", category: "Resistance Faction")]

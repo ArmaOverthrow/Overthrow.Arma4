@@ -31,6 +31,13 @@ class OVT_OverthrowConfigStruct
 	ref array<string> officers;
 	string difficulty;
 	bool showPlayerPosition;
+	
+	//Difficulty settings
+	bool overrideDifficulty;
+	int startingCash;
+	float gunDealerSellPriceMultiplier;
+	float procurementMultiplier;
+	
 	void SetDefaults()
 	{
 		discordWebHookURL = "see wiki: https://github.com/ArmaOverthrow/Overthrow.Arma4/wiki/Discord-Web-Hook";
@@ -38,6 +45,11 @@ class OVT_OverthrowConfigStruct
 		officers = new array<string>;
 		difficulty = "Normal";	
 		showPlayerPosition = true;	
+		
+		overrideDifficulty = false;
+		startingCash = 100;
+		gunDealerSellPriceMultiplier = 0.5;
+		procurementMultiplier = 0.8;
 	}
 }
 

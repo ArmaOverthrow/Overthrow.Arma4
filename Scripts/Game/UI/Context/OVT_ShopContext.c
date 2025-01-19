@@ -37,10 +37,17 @@ class OVT_ShopContext : OVT_UIContext
 		{
 			sellButton.SetVisible(false);
 		}else{
-			SCR_InputButtonComponent sellAction = SCR_InputButtonComponent.Cast(sellButton.FindHandler(SCR_InputButtonComponent));
-		
-			sellAction.m_OnActivated.Insert(Sell);
+			if(m_Shop.m_ShopType == OVT_ShopType.SHOP_GUNDEALER && OVT_Global.GetConfig().m_Difficulty.gunDealerSellPriceMultiplier == 0)
+			{
+				sellButton.SetVisible(false);
+			}else{
+				SCR_InputButtonComponent sellAction = SCR_InputButtonComponent.Cast(sellButton.FindHandler(SCR_InputButtonComponent));
+			
+				sellAction.m_OnActivated.Insert(Sell);
+			}
 		}
+		
+		
 		
 		Widget prevButton = m_wRoot.FindAnyWidget("PrevButton");
 		SCR_InputButtonComponent btn = SCR_InputButtonComponent.Cast(prevButton.FindHandler(SCR_InputButtonComponent));
@@ -119,6 +126,7 @@ class OVT_ShopContext : OVT_UIContext
 				OVT_ShopMenuCardComponent card = OVT_ShopMenuCardComponent.Cast(w.FindHandler(OVT_ShopMenuCardComponent));
 				
 				int buy = m_Economy.GetPrice(id);
+				buy = buy * OVT_Global.GetConfig().m_Difficulty.procurementMultiplier;
 								
 				card.Init(res, buy, 100, this);
 				
@@ -260,6 +268,7 @@ class OVT_ShopContext : OVT_UIContext
 		if(!player) return;
 		
 		int cost = m_Economy.GetSellPrice(m_SelectedResource, m_Shop.GetOwner().GetOrigin());
+		cost = cost * OVT_Global.GetConfig().m_Difficulty.gunDealerSellPriceMultiplier;
 		
 		SCR_InventoryStorageManagerComponent inventory = SCR_InventoryStorageManagerComponent.Cast(player.FindComponent( SCR_InventoryStorageManagerComponent ));
 		if(!inventory) return;

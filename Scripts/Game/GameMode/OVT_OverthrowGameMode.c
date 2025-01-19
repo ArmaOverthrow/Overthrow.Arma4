@@ -152,6 +152,13 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			}
 			
 			config.m_Difficulty.showPlayerOnMap = config.m_ConfigFile.showPlayerPosition;
+			
+			if(config.m_ConfigFile.overrideDifficulty)
+			{
+				config.m_Difficulty.gunDealerSellPriceMultiplier = config.m_ConfigFile.gunDealerSellPriceMultiplier;
+				config.m_Difficulty.startingCash = config.m_ConfigFile.startingCash;
+				config.m_Difficulty.procurementMultiplier = config.m_ConfigFile.procurementMultiplier;
+			}
 		}
 
 		Print("[Overthrow] Overthrow Starting");
