@@ -33,6 +33,10 @@ GameProject {
         Code "uk_ua"
         StringTableRuntime "{C6B83A608B373ADE}Language/localization_Overthrow.uk_ua.conf"
        }
+       LanguageDefinition "{646857CD06BA8B3A}" {
+        Code "fr_fr"
+        StringTableRuntime "{A01E5D02FF0F0756}Language/localization_Overthrow.fr_fr.conf"
+       }
       }
      }
     }

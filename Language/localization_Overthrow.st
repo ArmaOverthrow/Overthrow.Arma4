@@ -23,6 +23,7 @@ StringTable {
   CustomStringTableItem "{59C84C2687EAA6DD}" {
    Id "OVT-AddToGarrison"
    Target_en_us "Add To Garrison"
+   Target_fr_fr "Ajouter à la garnison"
    Target_ru_ru "Добавить в гарнизон"
    Target_uk_ua "Додати до гарнізону"
    Comment ""
@@ -33,15 +34,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59DA69F6CA52A3DC}" {
    Id "OVT-AlreadyOccupied"
    Target_en_us "Position is already occupied"
+   Target_fr_fr "La position est déjà occupée"
    Target_ru_ru "Точка уже захвачена"
    Target_uk_ua "Позиція вже захоплена"
    Comment ""
@@ -52,15 +54,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59C84C79CA882ABD}" {
    Id "OVT-Amount"
    Target_en_us "Amount"
+   Target_fr_fr "Montant"
    Target_ru_ru "Количество"
    Target_uk_ua "Кількість"
    Comment ""
@@ -71,15 +74,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59B518A9E7140382}" {
    Id "OVT-BaseNear"
    Target_en_us "Base near"
+   Target_fr_fr "Base proche"
    Target_ru_ru "База около"
    Target_uk_ua "База поруч"
    Comment ""
@@ -90,15 +94,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59B4F0BA1C3CB517}" {
    Id "OVT-BattleProgress"
    Target_en_us "Battle In Progress"
+   Target_fr_fr "Bataille en cours"
    Target_ru_ru "Идет бой"
    Target_uk_ua "Бій триває"
    Comment ""
@@ -109,15 +114,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59B4F0BA13E340D4}" {
    Id "OVT-BattleStartsIn"
    Target_en_us "Battle Starts In"
+   Target_fr_fr "La Bataille commence dans"
    Target_ru_ru "Бой начнется через"
    Target_uk_ua "Бій почнеться через"
    Comment ""
@@ -128,9 +134,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -194,6 +200,7 @@ StringTable {
   CustomStringTableItem "{59C4F15B8934641B}" {
    Id "OVT-Build_MedicalTent"
    Target_en_us "Medical Tent"
+   Target_fr_fr "Tente Médicale"
    Target_ru_ru "Медицинский тент"
    Target_uk_ua "Медичний намет"
    Comment ""
@@ -204,9 +211,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -270,6 +277,7 @@ StringTable {
   CustomStringTableItem "{59D030D767EAB683}" {
    Id "OVT-Build_VehicleMaintenanceRamp"
    Target_en_us "Vehicle Maintenance Ramp"
+   Target_fr_fr "Rampe de Maintenance de Véhicules"
    Target_ru_ru "Рампа для обслуживания техники"
    Target_uk_ua "Рампа для обслуговування техніки"
    Comment ""
@@ -280,9 +288,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -308,6 +316,7 @@ StringTable {
   CustomStringTableItem "{59A5462B60C888FA}" {
    Id "OVT-Cancel"
    Target_en_us "Cancel"
+   Target_fr_fr "Annuler"
    Target_ru_ru "Отмена"
    Target_uk_ua "Скасувати"
    Comment ""
@@ -318,15 +327,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{598C5127A5D2149E}" {
    Id "OVT-CannotAfford"
    Target_en_us "You cannot afford that"
+   Target_fr_fr "Vous n'avez pas assez d'argent"
    Target_ru_ru "Вы не можете себе это позволить"
    Target_uk_ua "Ви не можете собі цього дозволити"
    Comment ""
@@ -337,15 +347,16 @@ StringTable {
    Status DEVELOPMENT_DONE
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59C4F15B7BFD22D6}" {
    Id "OVT-CannotBuildAnythingHere"
    Target_en_us "You cannot build anything here. Try at an FOB or a captured town/base."
+   Target_fr_fr "Vous ne pouvez rien placer ici, réessayez dans un avant-poste ou une commune/base capturée"
    Target_ru_ru "Вы не можете здесь ничего построить. Попробуйте на FOB или в захваченом городе или базе"
    Target_uk_ua "Тут не можна нічого будувати. Спробуйте на FOB або в захопленому місті/базі."
    Comment ""
@@ -356,15 +367,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59C4F15B5D50BCD3}" {
    Id "OVT-CannotBuildHere"
    Target_en_us "You cannot build that here"
+   Target_fr_fr "Vous ne pas pouvez construire ceci ici"
    Target_ru_ru "Вы не можете строить здесь"
    Target_uk_ua "Ви не можете побудувати це тут"
    Comment ""
@@ -375,15 +387,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59C4F15B2987932A}" {
    Id "OVT-CannotBuildTown"
    Target_en_us "You can only build that in small villages"
+   Target_fr_fr "Vous pouvez construire ceci uniquement dans un village."
    Target_ru_ru "Вы можете это построить только в  деревнях"
    Target_uk_ua "Ви можете побудувати це лише в маленькому селі"
    Comment ""
@@ -394,15 +407,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59C4F15B22A9F14E}" {
    Id "OVT-CannotBuildVillage"
    Target_en_us "You cannot build that in a small village"
+   Target_fr_fr "Vous ne pouvez pas construire ceci dans un petit village"
    Target_ru_ru "Вы не можете это простроить в деревне"
    Target_uk_ua "Ви не можете побудувати це в маленькому селі"
    Comment ""
@@ -413,15 +427,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A49A9BE80620C3}" {
    Id "OVT-CannotFastTravelDistance"
    Target_en_us "That is too short of a distance to fast travel"
+   Target_fr_fr "Vous ne pouvez pas effectuer un Déplacement Rapide pour si peu, vous avez des jambes !"
    Target_ru_ru "Это очень маленькая дистанция для быстрого перемещения"
    Target_uk_ua "Це замала відстань для швидкої подорожі"
    Comment ""
@@ -432,15 +447,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59B4F0B91B3216F6}" {
    Id "OVT-CannotFastTravelDuringQRF"
    Target_en_us "You cannot fast travel during a battle"
+   Target_fr_fr "Vous ne pouvez pas effectuer un Déplacement Rapide pendant une contre attaque"
    Target_ru_ru "Вы не можете переместиться в бою"
    Target_uk_ua "Ви не можете швидко подорожувати під час бою"
    Comment ""
@@ -451,15 +467,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A49A9B02ABC32B}" {
    Id "OVT-CannotFastTravelThere"
    Target_en_us "You cannot fast travel there. Must be near an owned house, camp, FOB or controlled base"
+   Target_fr_fr "Vous ne pouvez pas effectuer un Déplacement Rapide ici. Vous devez sélectionner une propriété ou un avant-poste/base que vous controllez"
    Target_ru_ru "Вы не можете переместиться сюда. Точка должна быть возле купленого дома, лагеря, FOB или контролируемой базы"
    Target_uk_ua "Ви не можете швидко подорожувати сюди. Пунк призначення має бути поблизу власного будинку, табору, FOB або контрольованої бази"
    Comment ""
@@ -470,15 +487,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59B4F0B9EBF698FF}" {
    Id "OVT-CannotFastTravelToQRF"
    Target_en_us "You cannot fast travel to a battle in progress"
+   Target_fr_fr "Vous ne pouvez pas effectuer un Déplacement Rapide ependant une bataille"
    Target_ru_ru "Вы не можете переместиться к зоне боевых действий"
    Target_uk_ua "Ви не можете швидко подорожувати в зону бойових дій"
    Comment ""
@@ -489,15 +507,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A49A9B1B4C8E20}" {
    Id "OVT-CannotFastTravelWanted"
    Target_en_us "You cannot fast travel while wanted"
+   Target_fr_fr "Vous ne pouvez pas effectuer un Déplacement Rapide en étant recherché"
    Target_ru_ru "Вы не можете переместиться во время розыска"
    Target_uk_ua "Ви не можете швидко подорожувати, поки в розшуку"
    Comment ""
@@ -508,9 +527,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -536,6 +555,7 @@ StringTable {
   CustomStringTableItem "{5992E2F582B25E27}" {
    Id "OVT-CannotPlaceHere"
    Target_en_us "You cannot place that item here, you must be near a house you own, an FOB or a controlled base"
+   Target_fr_fr "Vous ne pouvez pas placer cet objet ici, vous devez être proche d'une maison que vous possédez ou d'un avant-poste/base que vous controllez"
    Target_ru_ru "Вы не можете разместить это предмет здесь, вы должны быть возле купленного дома, FOB или захваченой базы"
    Target_uk_ua "Ви не можете розміщувати цей предмет тут, ви повинні бути поблизу будинку, яким ви володієте, FOB або контрольованої бази"
    Comment ""
@@ -546,15 +566,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59B4D7D75C4B5A65}" {
    Id "OVT-CaptureBase"
    Target_en_us "Capture Base"
+   Target_fr_fr "Capturer la base"
    Target_ru_ru "Захват базы"
    Target_uk_ua "Захопити базу"
    Comment ""
@@ -565,15 +586,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A6ED8D1D1EF6CA}" {
    Id "OVT-CatchBus"
    Target_en_us "Catch a bus"
+   Target_fr_fr "Prendre un bus"
    Target_ru_ru "Поймать автобус"
    Target_uk_ua "Сісти на автобус"
    Comment ""
@@ -584,15 +606,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59C30B007FD079D1}" {
    Id "OVT-ContinueSave"
    Target_en_us "Continue Save"
+   Target_fr_fr "Reprendre la sauvegarde"
    Target_ru_ru "Продлжить сохранение"
    Target_uk_ua "Продовжити збереження"
    Comment ""
@@ -603,9 +626,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -650,6 +673,7 @@ StringTable {
   CustomStringTableItem "{59A6ED95F1AB81D0}" {
    Id "OVT-DeliverMedicalSupplies"
    Target_en_us "Deliver Medical Supplies"
+   Target_fr_fr "Livrer le Matériel Médical"
    Target_ru_ru "Доставить медикаменты"
    Target_uk_ua "Доставка медичних товарів"
    Comment ""
@@ -660,9 +684,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -676,6 +700,7 @@ StringTable {
   CustomStringTableItem "{59C84C639B645258}" {
    Id "OVT-DonateFunds"
    Target_en_us "Donate Funds"
+   Target_fr_fr "Donner des fonds"
    Target_ru_ru "Переслать деньги"
    Target_uk_ua "Пожертвувати кошти в фонд"
    Comment ""
@@ -686,15 +711,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59CEA732CF3E444B}" {
    Id "OVT-DriverMustExit"
    Target_en_us "Driver must exit vehicle first"
+   Target_fr_fr "Le conducteur doit d'abord sortir du véhicule"
    Target_ru_ru "Водитель сперва должен покинуть транспорт"
    Target_uk_ua "Водій повинен спочатку залишити транспорт"
    Comment ""
@@ -705,15 +731,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59CC0DA6CE6D0311}" {
    Id "OVT-EquipmentCost"
    Target_en_us "Equipment Cost"
+   Target_fr_fr "Coût de l'équipement"
    Target_ru_ru "Стоймость снаряжения"
    Target_uk_ua "Ціна спорядження"
    Comment ""
@@ -724,15 +751,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5990833697321087}" {
    Id "OVT-FieldManual_Category_Overthrow_Title"
    Target_en_us "Overthrow"
+   Target_fr_fr "Overthrow"
    Target_ru_ru "Overthrow"
    Target_uk_ua "Overthrow"
    Comment ""
@@ -743,15 +771,16 @@ StringTable {
    Status DEVELOPMENT_DONE
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5992D5041850CA26}" {
    Id "OVT-FieldManual_FastTravel_Text"
    Target_en_us "You must have a map in your inventory to use \"Fast Travel\". The map will open and you can click on any owned house, camp, FOB or base that the resistance currently controls to instantly travel there. You will be charged a small fee for this service according to the difficulty level."
+   Target_fr_fr "Vous devez avoir une carte dans votre inventaire pour utiliser le \"Déplacement Rapide\". La carte s'ouvrira et vous pourrez cliquer sur n'importe quelle Maison, Camp, Avant poste ou base que vous ou la résistance possédez/controllez pour vous y déplacer. Selon la difficulé, cela peut vous coûter de l'argent."
    Target_ru_ru "Вы должны иметь карту в инвентаре для использования \"Быстрого перемещения\". Откроется карта и вы можете нажать на любой купленый дом, построеный лагерь, FOB или захваченную базу. Вы заплатите небольое колличество денег за эту услугу в зависимости от уровня сложности."
    Target_uk_ua "Щоб використовувати \"Швидку подорож\", у вашому інвентарі повинна бути карта. Відкриється карта, і ви зможете натиснути на будь-який будинок, табір, FOB або базу, яку зараз контролює Опір, щоб миттєво відправитися туди. За цю послугу з вас стягуватиметься невелика плата залежно від рівня складності."
    Comment ""
@@ -762,15 +791,16 @@ StringTable {
    Status DEVELOPMENT_DONE
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{599083306EFCACF6}" {
    Id "OVT-FieldManual_MainMenu_Text"
    Target_en_us "Open the main menu with <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color> to access most of the features of Overthrow."
+   Target_fr_fr "Ouvrez le menu principal avec <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color> pour accéder à la plupart des fonctions d'Overthrow"
    Target_ru_ru "Откройте главное меню нажатем кнопки <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color>для доступа ко всем основным возможностям Overthrow."
    Target_uk_ua "Відкрийте головне меню за допомогою <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color> щоб отримати доступ до більшості функцій Overthrow."
    Comment ""
@@ -781,15 +811,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5990833199C7A051}" {
    Id "OVT-FieldManual_MainMenu_Title"
    Target_en_us "Main Menu"
+   Target_fr_fr "Menu Principal"
    Target_ru_ru "Главное меню"
    Target_uk_ua "Головне меню"
    Comment ""
@@ -800,15 +831,16 @@ StringTable {
    Status DEVELOPMENT_DONE
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5992D5044118B4C5}" {
    Id "OVT-FieldManual_MapInfo_Text"
    Target_en_us "You must have a map in your inventory to use \"Map Info\". Clicking on this in the main menu will open the map, then you can click anywhere on the map to show info about that location, including any intel known about the area."
+   Target_fr_fr "Vous devez avoir une carte dans votre inventaire pour utiliser \"Infos Carte\". La carte s'ouvrira lorsque vous cliquerez, puis vous pourrez sélectionner un endroit sur la carte pour voir toutes les informations connues à son sujet."
    Target_ru_ru "Вы должны иметь карту в инвентаре для использования \"Информации о карте\". Нажав на эту  кнопку из главного меню, в открывшейся карте, вы  нажать на любую точку на карте, чтобы посмотреть информацию об этой локации, включая разведданые известные об этой точке."
    Target_uk_ua "Ви повинні мати мапу у вашому інвентарі для користуватися \"Інформації про мапу\". Якщо натиснути на це в головному меню, відкриється карта, а потім ви можете клацнути будь-де на карті, щоб показати інформацію про це місце, включно з будь-якою відомою інформацією про цю місцевість."
    Comment ""
@@ -819,15 +851,16 @@ StringTable {
    Status DEVELOPMENT_DONE
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5992D5049E68387B}" {
    Id "OVT-FieldManual_Resistance_Text"
    Target_en_us "Opens a menu allowing you to see info or change settings about the resistance. Officers can assign other officers here or set a tax rate (Default is 0%) that will deposit an amount of the regular income directly to the Resistance Funds instead. Officers can withdraw money from resistance funds here or send it to another player. Any player can donate money to the resistance efforts here as well."
+   Target_fr_fr "Ouvre un menu vous permettant de voir & modifier les paramètres de la résistance. Les officiers peuvent définir d'autres officiers et régler les impôts (0% par défaut) que chaque membre de la résistance doit payer aux fonds communs. Les officiers peuvent retirer de l'argent des fonds communs ou en envoyer à d'autres joueurs. N'importe quel joueur peut donner de l'argent pour la résistance."
    Target_ru_ru "Меню позволяющее посмотреть иноформацию или изменить настройки сопротивления. Офицер здесь может назначать на должность других офицеров, а так же задавать размер налогов. (По умолчанию 0%)  это позволит вместо этого вносить сумму регулярного дохода непосредственно в фонды сопротивления. Офицер здесь может снимать деньги со счета сопротивления или передавать другому игроку. Любой игрок может делать взносы на счёт сопротивления, для его усиления."
    Target_uk_ua "Відкриває меню, що дозволяє переглянути інформацію або змінити налаштування спротиву. Офіцери можуть призначати інших офіцерів тут або встановлювати податкову ставку (за замовчуванням 0%), яка буде переводити частину регулярного доходу безпосередньо до Фонду Спротиву. Офіцери можуть знімати кошти з фонду спротиву або переказувати їх іншому гравцю. Будь-який гравець також може пожертвувати кошти на підтримку спротиву тут."
    Comment ""
@@ -838,9 +871,9 @@ StringTable {
    Status DEVELOPMENT_DONE
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -865,6 +898,7 @@ StringTable {
   CustomStringTableItem "{59D05007F9A93F67}" {
    Id "OVT-Fuel"
    Target_en_us "Fuel"
+   Target_fr_fr "Carburant"
    Target_ru_ru "Топливо"
    Target_uk_ua "Паливо"
    Comment ""
@@ -875,9 +909,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -922,6 +956,7 @@ StringTable {
   CustomStringTableItem "{59C84C260326A9DB}" {
    Id "OVT-Garrison"
    Target_en_us "Garrison"
+   Target_fr_fr "Garnison"
    Target_ru_ru "Гарнизон"
    Target_uk_ua "Гарнізон"
    Comment ""
@@ -932,15 +967,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59908363B46DA2C7}" {
    Id "OVT-GunDealer"
    Target_en_us "Gun Dealer"
+   Target_fr_fr "Marchant d'Armes"
    Target_ru_ru "Торговец оружием"
    Target_uk_ua "Торговець зброєю"
    Comment ""
@@ -951,15 +987,16 @@ StringTable {
    Status DEVELOPMENT_DONE
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59C527544D0B9EF0}" {
    Id "OVT-Heal"
    Target_en_us "Heal"
+   Target_fr_fr "Soigner"
    Target_ru_ru "Лечить"
    Target_uk_ua "Лікувати"
    Comment ""
@@ -970,15 +1007,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59C5275449083085}" {
    Id "OVT-Healed"
    Target_en_us "You have been healed"
+   Target_fr_fr "Vous avez été soigné"
    Target_ru_ru "Вы были вылечены"
    Target_uk_ua "Ви були виліковані"
    Comment ""
@@ -989,15 +1027,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59D05007FF9B8533}" {
    Id "OVT-Health"
    Target_en_us "Health"
+   Target_fr_fr "Santé"
    Target_ru_ru "Здоровье"
    Target_uk_ua "Здоров'я"
    Comment ""
@@ -1008,9 +1047,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -1053,6 +1092,7 @@ StringTable {
   CustomStringTableItem "{59C527545D12FEDB}" {
    Id "OVT-HomeSet"
    Target_en_us "Your home is now set to here"
+   Target_fr_fr "Votre domicile est désormais ici"
    Target_ru_ru "Ваш дом теперь установлен в этой точке"
    Target_uk_ua "Тепер ваш дім встановлено тут"
    Comment ""
@@ -1063,15 +1103,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5AD8A5702C6A81}" {
    Id "OVT-Import"
    Target_en_us "Import"
+   Target_fr_fr "Importer"
    Target_ru_ru "Импорт"
    Target_uk_ua "Імпорт"
    Comment ""
@@ -1082,15 +1123,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A6DA4F01F49A60}" {
    Id "OVT-Income"
    Target_en_us "Income"
+   Target_fr_fr "Revenu"
    Target_ru_ru "Доход"
    Target_uk_ua "Прибуток"
    Comment ""
@@ -1101,9 +1143,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -1116,6 +1158,9 @@ StringTable {
    "If you are new to Overthrow, there is a set of tutorials in the \"Jobs\" section in the main Overthrow menu."\
    ""\
    "For more info on Overthrow's features and gameplay just have a look at the \"Field Manual\""
+   Target_fr_fr "Bienvenue sur Overthrow! Ceci est votre domicile, vous réapparaitrez ici et pourrez y effectuer des déplacement rapides pour pas très cher dans le menu principal <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color>. Vous possédez également une voiture dans le garage."\
+   ""\
+   "Pour plus d'informations sur les fonctionnalités d'Overthrow, ouvrez le \"Manuel de terrain\""
    Target_ru_ru "Приветствую в Overthrow! Этой ваш дом, вы будете здесь возрождаться, вы можете быстро перемещаться сюда с небольшой платой, через главное меню <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color>. В гараже стоит ваша машина."\
    ""\
    "Для дополнительной информации о возможностях и геймплее вы можете посмотреть в \"Полевом мануале\"."
@@ -1132,7 +1177,7 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1684558850
+   Modified 1684559858
    Author "Aaron Static"
    LastChanged "Aaron Static"
    ImageLink ""
@@ -1141,6 +1186,7 @@ StringTable {
   CustomStringTableItem "{5D34246EAE2E228C}" {
    Id "OVT-IsHome"
    Target_en_us "Your Home (Respawn Point)"
+   Target_fr_fr "Domicile (Point de réapparition)"
    Target_ru_ru "Ваш дом (Точка возрождения)"
    Target_uk_ua "Ваша домівка (Точка відродження)"
    Comment ""
@@ -1151,18 +1197,19 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D346D5D199B4849}" {
    Id "OVT-Item_Weed_Description"
    Target_en_us "A quarter ounce of the finest sticky icky. Can be sold to civilians for a small profit."
+   Target_fr_fr "C'est de la bonne mais il faut pas y toucher. Peut être vendu aux civils pour gagner un peu d'argent"
    Target_ru_ru "Четверть унции высококласной травки. Может быть продан гражданским лицам с небольшой прибылью."
    Target_uk_ua "Чверть унції найкращої травки. Можна продати цивільним з невеликим прибутком."
-   Comment ""
+   Comment "First half hard to translate, but I used some french expression to mention it"
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -1170,15 +1217,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D346D5D0FC98EAB}" {
    Id "OVT-Item_Weed_Name"
    Target_en_us "Weed"
+   Target_fr_fr "Weed"
    Target_ru_ru "Травка"
    Target_uk_ua "Травка"
    Comment ""
@@ -1189,15 +1237,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59AEEB5827181BD1}" {
    Id "OVT-Job_AddedWaypoint"
    Target_en_us "A waypoint marker has been added to your map"
+   Target_fr_fr "Un marqueur a été placé sur la carte"
    Target_ru_ru "Маркер с маршрутной точкой добавлен на карту"
    Target_uk_ua "Маркер з маршрутної точкою доданий на мапу"
    Comment ""
@@ -1208,15 +1257,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59AEEB5F91CFCA25}" {
    Id "OVT-Job_AssassinateTraitor"
    Target_en_us "Assassinate Traitor"
+   Target_fr_fr "Élimination de déserteur"
    Target_ru_ru "Уничтожить предателя"
    Target_uk_ua "Знищити зрадника"
    Comment ""
@@ -1227,9 +1277,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -1238,6 +1288,7 @@ StringTable {
    Target_en_us "A member of the resistance has defected and is being held in protective custody. We have tracked down their location to a house. "\
    ""\
    "Eliminate this traitor before they can reveal any information."
+   Target_fr_fr "Un membre de la résistance a déserté et est désormais sous haute protection. Nous l'avons repéré dans une planque. Éliminez le traitre avant qu'il ne puisse révéler quoi que ce soit."
    Target_ru_ru "Один из членов сопротивления предал нас и теперь находится под охраной противника. Мы отследили дом, где он скрывается. "\
    ""\
    "Устраните предателя до того, как он сможет раскрыть какую-либо информацию."
@@ -1252,15 +1303,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59B540560DE6D9B3}" {
    Id "OVT-Job_BaseRecon"
    Target_en_us "Reconnaissance"
+   Target_fr_fr "Reconnaissance"
    Target_ru_ru "Разведка"
    Target_uk_ua "Розвідка"
    Comment ""
@@ -1271,9 +1323,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -1282,6 +1334,7 @@ StringTable {
    Target_en_us "Visit a nearby base to determine the strength of it's defenses. You will need to get within 100m of the base flag to get a good look at it."\
    ""\
    "Be careful not to get seen within the restricted area marked as red on your map or you will be shot at."
+   Target_fr_fr "Approchez vous d'une base pour en étudier l'importance de ses défenses. Vous devez vous trouvez à moins de 100 mètres de la base pour avoir un bon point de vue. Faites attention à ne pas vous faire repérer dans les zones interdites marquées en rouge sur la carte, au risque de vous faire tirer dessus"
    Target_ru_ru "Подойдите к близжайшей базе, чтобы определить насколько сильно построена оборона. Вам нужно будет подойти на расстояние не более 100 метров к базе, чтобы хорошенько ее рассмотреть."\
    ""\
    "Будьте осторожны, чтобы вас не заметили в пределах запретной зоны, отмеченной красным цветом на вашей карте, иначе в вас будут стрелять."
@@ -1296,7 +1349,7 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1684558674
+   Modified 1684559858
    Author "Aaron Static"
    LastChanged "Aaron Static"
    ImageLink ""
@@ -1305,6 +1358,7 @@ StringTable {
   CustomStringTableItem "{5D5080D0358FFA9F}" {
    Id "OVT-Job_FindGunDealer"
    Target_en_us "Tutorial - Find a gun dealer"
+   Target_fr_fr "Trouver un marchant d'armes"
    Target_ru_ru "Найти торговца оружием"
    Target_uk_ua "Знайти торговця зброєю"
    Comment ""
@@ -1315,7 +1369,7 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1684542424
+   Modified 1684559858
    Author "Aaron Static"
    LastChanged "Aaron Static"
    ImageLink ""
@@ -1326,6 +1380,7 @@ StringTable {
    Target_en_us "Gun dealers are located in the larger towns and cities. They are independant merchants who stock weapons and other illegal items. Each gun dealer will sell all ammunition plus one random gun of each type, so try different towns to find the weapon you're looking for."\
    ""\
    "Visit the nearest gun dealer to see what items they have available."
+   Target_fr_fr "Les marchants d'armes peuvent être trouvés dans les grands bourgs & villes. Ce sont des marchants indépendants qui stockent des armes et d'autres objets illégaux. Rendez vous au plus proche pour voir quels objets sont disponibles."
    Target_ru_ru "Торговцы оружием расположены в крупных городах. Это независимые торговцы, которые торгуют оружием и другими незаконными товарами."\
    ""\
    "Посетите ближайшего торговца оружием, чтобы узнать, какие товары у него есть в наличии."\
@@ -1342,7 +1397,7 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1684551939
+   Modified 1684559858
    Author "Aaron Static"
    LastChanged "Aaron Static"
    ImageLink ""
@@ -1414,6 +1469,7 @@ StringTable {
   CustomStringTableItem "{59B518B28C1095CF}" {
    Id "OVT-Job_RaiseSupport"
    Target_en_us "Tutorial - Raise Support"
+   Target_fr_fr "Augmenter le soutien"
    Target_ru_ru "Увеличить поддержку"
    Target_uk_ua "Збільшити підтримку"
    Comment ""
@@ -1424,7 +1480,7 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1684542469
+   Modified 1684559858
    Author "Aaron Static"
    LastChanged "Aaron Static"
    ImageLink ""
@@ -1437,6 +1493,7 @@ StringTable {
    "Raise support by placing posters in and around the town using the \"Place\" option in the Overthrow menu and waiting for them to catch the eye of 15% of the town's citizens. You can also deliver medical supplies like Bandages and Aspirin bottles by placing them in your car and using the \"Deliver Medical Supplies\" option in your trunk."\
    ""\
    "Check your progress using the \"Map Info\" menu option. You can raise support in any village, town or city without needing a job to do it."
+   Target_fr_fr "Les partisans représentent une importante source de revenus pour la résistance. Ralliez les à votre cause en collant des affiches dans et autour de la commune en utilisant l'option \"Placer\" du menu, puis attendez qu'au moins 15% y prêtent attention. Vous pouvez également leur fournir du matériel médical comme des bandages ou de l'insuline pour accélérer leur ralliement."
    Target_ru_ru "Сторонники в этом городе принесут столь необходимый сопротивлению источник дохода в виде пожертвований."\
    ""\
    "Соберите поддержку людей, разместив плакаты в городе и его окрестностях, используя опцию \"Разместить\" в главном меню \"Overthtow\" и дождитесь, пока они привлекут внимание 15% жителей города. Вы также можете доставить медицинские принадлежности, такие как бинты и флаконы с аспирином, поместив их в свой автомобиль и воспользовавшись опцией \"Доставить медицину\" в багажнике."\
@@ -1455,7 +1512,7 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1684542538
+   Modified 1684559858
    Author "Aaron Static"
    LastChanged "Aaron Static"
    ImageLink ""
@@ -1464,6 +1521,7 @@ StringTable {
   CustomStringTableItem "{5D5080D395D01E22}" {
    Id "OVT-Jobs_Accept"
    Target_en_us "Accept"
+   Target_fr_fr "Accepter"
    Target_ru_ru "Принять"
    Target_uk_ua "Прийняти"
    Comment ""
@@ -1474,15 +1532,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59AEEB5A77561A7F}" {
    Id "OVT-Jobs_Completed"
    Target_en_us "Job Completed"
+   Target_fr_fr "Accompli"
    Target_ru_ru "Работа выполнена"
    Target_uk_ua "Робота виконана"
    Comment ""
@@ -1493,15 +1552,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5080D2669C4FC6}" {
    Id "OVT-Jobs_Decline"
    Target_en_us "Decline"
+   Target_fr_fr "Refuser"
    Target_ru_ru "Отказаться"
    Target_uk_ua "Відмовитися"
    Comment ""
@@ -1512,15 +1572,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59AEEB58378EB9DE}" {
    Id "OVT-Jobs_NoJobs"
    Target_en_us "There are currently no jobs available"
+   Target_fr_fr "Il n'y a actuellement aucun Jobs disponible"
    Target_ru_ru "На текущий момент нет доступной работы"
    Target_uk_ua "Зараз немає доступної роботи"
    Comment ""
@@ -1531,15 +1592,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A8D254C85421A6}" {
    Id "OVT-Jobs_ShowOnMap"
    Target_en_us "Show On Map"
+   Target_fr_fr "Montrer sur la carte"
    Target_ru_ru "Показать на карте"
    Target_uk_ua "Показати на мапі"
    Comment ""
@@ -1550,9 +1612,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -1566,6 +1628,7 @@ StringTable {
   CustomStringTableItem "{59A2BD308A7926FA}" {
    Id "OVT-LoadStorage"
    Target_en_us "Load Into vehicle"
+   Target_fr_fr "Charger dans le véhicule"
    Target_ru_ru "Загрузить в транспорт"
    Target_uk_ua "Завантажити в транспорт"
    Comment ""
@@ -1576,9 +1639,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -1639,6 +1702,7 @@ StringTable {
   CustomStringTableItem "{598AB67692AD5DBB}" {
    Id "OVT-MainMenu_Build"
    Target_en_us "Build"
+   Target_fr_fr "Construire"
    Target_ru_ru "Строительство"
    Target_uk_ua "Будівництво"
    Comment ""
@@ -1649,15 +1713,16 @@ StringTable {
    Status DEVELOPMENT_DONE
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{598AB6769C0D5394}" {
    Id "OVT-MainMenu_CharacterSheet"
    Target_en_us "Character Sheet"
+   Target_fr_fr "Arbre de compétences"
    Target_ru_ru "Прокачка персонажа"
    Target_uk_ua "Навички персонажа"
    Comment ""
@@ -1668,15 +1733,16 @@ StringTable {
    Status DEVELOPMENT_DONE
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{598AB6768B0BDF7E}" {
    Id "OVT-MainMenu_FastTravel"
    Target_en_us "Fast Travel"
+   Target_fr_fr "Déplacement Rapide"
    Target_ru_ru "Быстрое перемещение"
    Target_uk_ua "Швидка подорож"
    Comment ""
@@ -1687,15 +1753,16 @@ StringTable {
    Status DEVELOPMENT_DONE
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A8D26B9BC69C64}" {
    Id "OVT-MainMenu_Jobs"
    Target_en_us "Jobs"
+   Target_fr_fr "Jobs"
    Target_ru_ru "Работа"
    Target_uk_ua "Робота"
    Comment ""
@@ -1706,15 +1773,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{598AB6769FBB6531}" {
    Id "OVT-MainMenu_ManageRecruits"
    Target_en_us "Manage Recruits"
+   Target_fr_fr "Gérer les recrues"
    Target_ru_ru "Управление бойцами"
    Target_uk_ua "Управління бійцями"
    Comment ""
@@ -1725,9 +1793,9 @@ StringTable {
    Status DEVELOPMENT_DONE
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -1748,15 +1816,16 @@ StringTable {
    Status DEVELOPMENT_DONE
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{598AB6769A9A471C}" {
    Id "OVT-MainMenu_Options"
    Target_en_us "Options"
+   Target_fr_fr "Options"
    Target_ru_ru "Опции"
    Target_uk_ua "Опції"
    Comment ""
@@ -1767,15 +1836,16 @@ StringTable {
    Status DEVELOPMENT_DONE
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{598AB67694121E5D}" {
    Id "OVT-MainMenu_Place"
    Target_en_us "Place"
+   Target_fr_fr "Placer"
    Target_ru_ru "Разместить"
    Target_uk_ua "Розмістити"
    Comment ""
@@ -1786,15 +1856,16 @@ StringTable {
    Status DEVELOPMENT_DONE
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D305CF3CF05C921}" {
    Id "OVT-MainMenu_RealEstate"
    Target_en_us "Real Estate"
+   Target_fr_fr "Immobilier"
    Target_ru_ru "Недвижимость"
    Target_uk_ua "Нерухомість"
    Comment ""
@@ -1805,15 +1876,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{598AB676970E6911}" {
    Id "OVT-MainMenu_Resistance"
    Target_en_us "Resistance"
+   Target_fr_fr "Résistance"
    Target_ru_ru "Сопротивление"
    Target_uk_ua "Опір"
    Comment ""
@@ -1824,15 +1896,16 @@ StringTable {
    Status DEVELOPMENT_DONE
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59C84C7D5793F882}" {
    Id "OVT-MakeOfficer"
    Target_en_us "Make Officer"
+   Target_fr_fr "Promouvoir Officier"
    Target_ru_ru "Сделать офицером"
    Target_uk_ua "Призначити офіцером"
    Comment ""
@@ -1843,15 +1916,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59C84C21E97284F1}" {
    Id "OVT-ManageBase"
    Target_en_us "Manage Base"
+   Target_fr_fr "Gérer Base"
    Target_ru_ru "Управление базой"
    Target_uk_ua "Управління базою"
    Comment ""
@@ -1862,15 +1936,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D582605F2DE0E0B}" {
    Id "OVT-ManageFOB"
    Target_en_us "Manage FOB"
+   Target_fr_fr "Gérer Avant Poste"
    Target_ru_ru "Управление FOB"
    Target_uk_ua "Управління FOB"
    Comment ""
@@ -1881,15 +1956,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59CF196E2474961C}" {
    Id "OVT-ManageVehicle"
    Target_en_us "Manage Vehicle"
+   Target_fr_fr "Gérer Véhicule"
    Target_ru_ru "Управление техникой"
    Target_uk_ua "Управління технікою"
    Comment ""
@@ -1900,15 +1976,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A6ED9A0E302C5E}" {
    Id "OVT-MedicalSupplies"
    Target_en_us "Medical Supplies"
+   Target_fr_fr "Matériel Médical"
    Target_ru_ru "Медикаменты"
    Target_uk_ua "Медикаменти"
    Comment ""
@@ -1919,15 +1996,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A6ED9645E233BB}" {
    Id "OVT-MedicalSupplies_TooFar"
    Target_en_us "You are too far from any towns to deliver medical supplies"
+   Target_fr_fr "Vous êtes trop loin d'une commune pour livrer le matériel médical"
    Target_ru_ru "Вы слишком далеко от насленого пункта, чтобы доставить медикаменты"
    Target_uk_ua "Ви занадто далеко від будь-якого населеного пункта, щоб доставити медикаменти"
    Comment ""
@@ -1938,15 +2016,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A6ED9BB773C165}" {
    Id "OVT-MedicalSuppliesDelivered"
    Target_en_us "Medical supplies delivered to the value of"
+   Target_fr_fr "Matériel Médical livré pour "
    Target_ru_ru "Медикаменты доставлены на сумму"
    Target_uk_ua "Медикаменти доставлені на суму"
    Comment ""
@@ -1957,9 +2036,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -1985,6 +2064,7 @@ StringTable {
   CustomStringTableItem "{5D64799EE068B0DB}" {
    Id "OVT-Modifier_RecentBattle"
    Target_en_us "Recent Battle"
+   Target_fr_fr "Batailles Récentes"
    Target_ru_ru "Недавние бои"
    Target_uk_ua "Недавній бій"
    Comment ""
@@ -1995,9 +2075,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -2023,6 +2103,7 @@ StringTable {
   CustomStringTableItem "{59B4F0A361F5ADF0}" {
    Id "OVT-Msg-BaseControlledOccupying"
    Target_en_us "The resistance has lost control of %1 base"
+   Target_fr_fr "La résistance a perdu le contrôle d'une base"
    Target_ru_ru "Сопротивление утратило контроль над базой %1"
    Target_uk_ua "Опір втратив контроль над базою %1"
    Comment ""
@@ -2033,15 +2114,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59B4F0A294E1135C}" {
    Id "OVT-Msg-BaseControlledResistance"
    Target_en_us "The resistance has captured %1 base"
+   Target_fr_fr "La résistance a capturé une base ennemie"
    Target_ru_ru "Сопротивление взяло под контроль базу  %1"
    Target_uk_ua "Опір захопив базу %1"
    Comment ""
@@ -2052,15 +2134,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D64799026B5CA0A}" {
    Id "OVT-Msg-CityBattle"
    Target_en_us "The battle for the city of %1 will begin shortly"
+   Target_fr_fr "La bataille pour le contrôle de la ville va bientôt commencer"
    Target_ru_ru "Бой за город %1 скоро начнётся"
    Target_uk_ua "Бій за населений пункт %1 розпочнеться незабаром"
    Comment ""
@@ -2071,15 +2154,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D647993297FAA09}" {
    Id "OVT-Msg-CityControlledOccupying"
    Target_en_us "The resistance has lost control of the city of %1"
+   Target_fr_fr "La résistance a perdu le contrôle de la ville"
    Target_ru_ru "Сопротивление потеряло контроль над городом %1"
    Target_uk_ua "Опір втратив контроль над населеним пунктом %1"
    Comment ""
@@ -2090,15 +2174,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D6479933F0A23F6}" {
    Id "OVT-Msg-CityControlledResistance"
    Target_en_us "The city of %1 is now under control by the resistance"
+   Target_fr_fr "La ville est maintenant sous contrôle de la résistance"
    Target_ru_ru "Город %1 теперь контроллируется сопротивлением"
    Target_uk_ua "Населений пункт %1 тепер під контролем опору"
    Comment ""
@@ -2109,15 +2194,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A49A822C192F63}" {
    Id "OVT-Msg-HasPlacedFOB"
    Target_en_us "%1 has placed a new FOB near %2. It is now available for fast travel and more"
+   Target_fr_fr "a placé un nouvel avant poste. Vous pouvez désormais y faire un déplacement rapide"
    Target_ru_ru "%1 разместил FOB вблизи %2. Точка доступна для быстрого перемещения"
    Target_uk_ua "%1 розмістив новий FOB поряд з  %2. Тепер він доступний для швидких подорожей тощо"
    Comment ""
@@ -2128,9 +2214,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -2156,6 +2242,7 @@ StringTable {
   CustomStringTableItem "{59A49A823A9D330A}" {
    Id "OVT-Msg-NewFOB"
    Target_en_us "New FOB"
+   Target_fr_fr "Nouvel avant poste"
    Target_ru_ru "Новая FOB"
    Target_uk_ua "Нова FOB"
    Comment ""
@@ -2166,9 +2253,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -2308,6 +2395,7 @@ StringTable {
   CustomStringTableItem "{5D6051C94F256E7F}" {
    Id "OVT-Msg-TowerControlledResistance"
    Target_en_us "The resistance has captured an enemy radio tower near %1"
+   Target_fr_fr "La résistance a capturé la tour radio ennemie"
    Target_ru_ru "Сопротивление взяло под контроль радиовышку вблизи %1"
    Target_uk_ua "Опір захопив ворожу радіовежу біля %1"
    Comment ""
@@ -2318,15 +2406,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D647993F9896F6F}" {
    Id "OVT-Msg-TownBattle"
    Target_en_us "The battle for the town of %1 will begin shortly"
+   Target_fr_fr "La bataille pour le contrôle du bourg va bientôt commencer"
    Target_ru_ru "Бой за город %1 скоро начнется"
    Target_uk_ua "Бій за населений пункт %1 скоро розпочнеться"
    Comment ""
@@ -2337,15 +2426,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D6479932650745D}" {
    Id "OVT-Msg-TownControlledOccupying"
    Target_en_us "The resistance has lost control of the town of %1"
+   Target_fr_fr "La résistance ne contrôle plus le bourg dû au manque de soutien des habitants"
    Target_ru_ru "Сопротивление потеряло контроль над городом %1"
    Target_uk_ua "Опір втратив контроль над містом %1"
    Comment ""
@@ -2356,15 +2446,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D6479934B14F461}" {
    Id "OVT-Msg-TownControlledResistance"
    Target_en_us "The town of %1 is now under control by the resistance"
+   Target_fr_fr "Le bourg est maintenant sous le contrôle de la résistance"
    Target_ru_ru "Город %1 теперь под контролем сопротивления"
    Target_uk_ua "Населений пункт %1 тепер під контролем опору"
    Comment ""
@@ -2375,15 +2466,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A49AC5C2FC26C2}" {
    Id "OVT-Msg-VillageControlledOccupying"
    Target_en_us "Resistance has lost control of the village of %1 due to low support"
+   Target_fr_fr "La résistance ne contrôle plus le village dû au manque de soutien des habitants"
    Target_ru_ru "Сопротивление утратило контроль над населенным пунктом %1 в следствии низкой поддержки населением"
    Target_uk_ua "Опір втратив контроль над селом %1 через низьку підтримку"
    Comment ""
@@ -2394,15 +2486,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A49AC9A028CADB}" {
    Id "OVT-Msg-VillageControlledResistance"
    Target_en_us "The village of %1 is now under control by the resistance due to overwhelming support"
+   Target_fr_fr "Le village est maintenant sous le contrôle de la résistance en raison d'un soutien écrasant"
    Target_ru_ru "Населенный пункт %1 теперь находится под контролем сопротивления из-за подавляющей поддержки"\
    "населением"
    Target_uk_ua "Населений пункт %1 тепер під контролем опору завдяки переважній підтримці"
@@ -2414,15 +2507,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{599B1780E41380D7}" {
    Id "OVT-MustBeDriver"
    Target_en_us "You must be the driver of the vehicle to fast travel all occupants"
+   Target_fr_fr "Vous devez être le conducteur pour effectuer le déplacement rapide avec tous les passagers"
    Target_ru_ru "Вы должны быть водителем транспортного средства, чтобы быстро перевезти всех пассажиров"
    Target_uk_ua "Ви повинні бути водієм транспортного засобу, щоб швидко пересуватися з усіма пасажирами"
    Comment ""
@@ -2433,15 +2527,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59B518AA296EFB7F}" {
    Id "OVT-MustBeNearTown"
    Target_en_us "This item must be placed inside a town to have any effect"
+   Target_fr_fr "L'objet doit être placé dans une commune pour avoir un effet"
    Target_ru_ru "Этот предмет должен быть помещен внутри города, чтобы иметь какой-либо эффект"
    Target_uk_ua "Цей предмет має бути розміщений у населеному пункті, щоб мати будь-який ефект"
    Comment ""
@@ -2452,15 +2547,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A94391828}" {
    Id "OVT-MustBeOfficer"
    Target_en_us "You must be an officer to do that"
+   Target_fr_fr "Vous devez être officier pour effectuer cela"
    Target_ru_ru "Вы должны быть офицером, чтобы сделать это"
    Target_uk_ua "Ви повинні бути офіцером, щоб зробити це"
    Comment ""
@@ -2471,15 +2567,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A6ED92C4FDB9FD}" {
    Id "OVT-MustExitVehicle"
    Target_en_us "You must exit your vehicle first"
+   Target_fr_fr "Vous devez d'abord sortir du véhicule"
    Target_ru_ru "Сначало вы должны выйти из автомобиля."
    Target_uk_ua "Спочатку ви повинні вийти з автомобіля"
    Comment ""
@@ -2490,15 +2587,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59DA66363F3C1321}" {
    Id "OVT-MustHaveMap"
    Target_en_us "You must have a map equipped"
+   Target_fr_fr "Il vous faut une carte"
    Target_ru_ru "Вы должны иметь при себе карту"
    Target_uk_ua "Ви повинні мати у себе карту"
    Comment ""
@@ -2509,9 +2607,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -2537,6 +2635,7 @@ StringTable {
   CustomStringTableItem "{59A6ED92E301B152}" {
    Id "OVT-NeedBusStop"
    Target_en_us "You must click near another bus stop"
+   Target_fr_fr "Cliquez près d'un autre arrêt de bus"
    Target_ru_ru "Вы должны нажать на карту  возле автобусной остановки"
    Target_uk_ua "Ви повинні натиснути біля іншої автобусної зупинки"
    Comment ""
@@ -2547,15 +2646,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59C90534E23FD594}" {
    Id "OVT-NewOfficer"
    Target_en_us "has been made an officer"
+   Target_fr_fr "a été promu officier"
    Target_ru_ru "был назначен офицером"
    Target_uk_ua "був призначений офіцером"
    Comment ""
@@ -2566,15 +2666,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59C905341F0718F9}" {
    Id "OVT-NewOfficerYou"
    Target_en_us "You have been made an officer"
+   Target_fr_fr "Vous avez été promu officier"
    Target_ru_ru "Вы назначены офицером"
    Target_uk_ua "Ви призначені офіцером"
    Comment ""
@@ -2585,9 +2686,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -2613,6 +2714,7 @@ StringTable {
   CustomStringTableItem "{5D346D4FFDAE200A}" {
    Id "OVT-NoDrugs"
    Target_en_us "You are not carrying any drugs. Buy them from a gun dealer."
+   Target_fr_fr "Vous ne transportez pas de drogue. Achetez en d'abord au vendeur d'armes."
    Target_ru_ru "У вас нет с собой никаких наркотиков. Купите их у торговца оружием."
    Target_uk_ua "У вас немає наркотиків. Придбайте їх у продавця зброї."
    Comment ""
@@ -2623,15 +2725,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A6ED9B869DC04C}" {
    Id "OVT-NoMedicalSupplies"
    Target_en_us "No medical supplies found in vehicle"
+   Target_fr_fr "Pas de matériel médical dans le véhicule"
    Target_ru_ru "В машине нет медикаментов"
    Target_uk_ua "Відсутні медикаменті в техніці"
    Comment ""
@@ -2642,15 +2745,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59DA69F4EADC4C3E}" {
    Id "OVT-NoSupportersToRecruit"
    Target_en_us "There are not enough supporters in the nearest town to recruit"
+   Target_fr_fr "Il n'y a pas assez de soutien dans le village à proximité pour recruter"
    Target_ru_ru "В блзжайшем населенном пункте не хватает сторонников для найма."
    Target_uk_ua "Недостатньо прихільників в населеному пункті поряд для найму"
    Comment ""
@@ -2661,9 +2765,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -2689,6 +2793,7 @@ StringTable {
   CustomStringTableItem "{59CF196EEADAB2A1}" {
    Id "OVT-NoVehicleOnRamp"
    Target_en_us "No Vehicle on ramp"
+   Target_fr_fr "Pas de véhicule sur la rampe"
    Target_ru_ru "Нет техники на рампе"
    Target_uk_ua "Відсутня техніка на рампі"
    Comment ""
@@ -2699,15 +2804,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A2BD317EE6028A}" {
    Id "OVT-NoVehiclesNearby"
    Target_en_us "There are no vehicles nearby"
+   Target_fr_fr "Pas de véhicule à proximité"
    Target_ru_ru "Нет машин рядом"
    Target_uk_ua "Відсутня техніки поряд"
    Comment ""
@@ -2718,15 +2824,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{599D3A640FAF1233}" {
    Id "OVT-OccupyingFaction"
    Target_en_us "Occupying Faction"
+   Target_fr_fr "Faction dominante"
    Target_ru_ru "Фракция оккупантов"
    Target_uk_ua "Фракція окупантів"
    Comment ""
@@ -2737,15 +2844,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{599A1C5F66015FAB}" {
    Id "OVT-Overthrow"
    Target_en_us "Overthrow"
+   Target_fr_fr "Overthrow"
    Target_ru_ru "Overthrow"
    Target_uk_ua "Overthrow"
    Comment ""
@@ -2756,15 +2864,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D305DE5B6029A1B}" {
    Id "OVT-Owned"
    Target_en_us "Owned"
+   Target_fr_fr "Possédé"
    Target_ru_ru "Во владении"
    Target_uk_ua "У власності"
    Comment ""
@@ -2775,15 +2884,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D34F5770B8834D2}" {
    Id "OVT-Owner"
    Target_en_us "Owner"
+   Target_fr_fr "Propriétaire"
    Target_ru_ru "Владелец"
    Target_uk_ua "Власник"
    Comment ""
@@ -2794,15 +2904,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D305CF7F4C3B9F3}" {
    Id "OVT-PerDay"
    Target_en_us "per day"
+   Target_fr_fr "par jour"
    Target_ru_ru "в день"
    Target_uk_ua "у день"
    Comment ""
@@ -2813,15 +2924,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{598AD5529A3EEA5D}" {
    Id "OVT-Place_Camp"
    Target_en_us "Camp"
+   Target_fr_fr "Camp"
    Target_ru_ru "Лагерь"
    Target_uk_ua "Табір"
    Comment ""
@@ -2832,9 +2944,9 @@ StringTable {
    Status DEVELOPMENT_DONE
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -2860,6 +2972,7 @@ StringTable {
   CustomStringTableItem "{598AD55D632ED8B6}" {
    Id "OVT-Place_EquipmentBox"
    Target_en_us "Equipment Box"
+   Target_fr_fr "Caisse d'Équipement"
    Target_ru_ru "Ящик для снаряжения"
    Target_uk_ua "Ящик для спорядження"
    Comment ""
@@ -2870,9 +2983,9 @@ StringTable {
    Status DEVELOPMENT_DONE
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -2898,6 +3011,7 @@ StringTable {
   CustomStringTableItem "{598AD554852E3A84}" {
    Id "OVT-Place_Floodlights"
    Target_en_us "Floodlights"
+   Target_fr_fr "Projecteurs"
    Target_ru_ru "Прожектор"
    Target_uk_ua "Прожектори"
    Comment ""
@@ -2908,9 +3022,9 @@ StringTable {
    Status DEVELOPMENT_DONE
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -2936,6 +3050,7 @@ StringTable {
   CustomStringTableItem "{598AD553667F76AF}" {
    Id "OVT-Place_FOB"
    Target_en_us "FOB"
+   Target_fr_fr "Avant poste"
    Target_ru_ru "FOB"
    Target_uk_ua "FOB"
    Comment ""
@@ -2946,9 +3061,9 @@ StringTable {
    Status DEVELOPMENT_DONE
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -2974,6 +3089,7 @@ StringTable {
   CustomStringTableItem "{598AD55488E14CB4}" {
    Id "OVT-Place_Hedgehog"
    Target_en_us "Hedgehog"
+   Target_fr_fr "Obstacle"
    Target_ru_ru "Ёж"
    Target_uk_ua "Їжак"
    Comment ""
@@ -2984,9 +3100,9 @@ StringTable {
    Status DEVELOPMENT_DONE
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -3012,6 +3128,7 @@ StringTable {
   CustomStringTableItem "{59CC0DB81CE327C8}" {
    Id "OVT-Place_Lamps"
    Target_en_us "Lamps"
+   Target_fr_fr "Lampes"
    Target_ru_ru "Лампа"
    Target_uk_ua "Лампи"
    Comment ""
@@ -3022,15 +3139,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A5462C8A52FFB8}" {
    Id "OVT-Place_NextItem"
    Target_en_us "Next Item"
+   Target_fr_fr "Item Suivant"
    Target_ru_ru "Следующий предмет"
    Target_uk_ua "Наступний предмет"
    Comment ""
@@ -3041,15 +3159,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A2BD9099621079}" {
    Id "OVT-Place_Poster"
    Target_en_us "Recruitment Posters"
+   Target_fr_fr "Affiche"
    Target_ru_ru "Постер"
    Target_uk_ua "Рекрутингові плакати"
    Comment ""
@@ -3060,9 +3179,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -3088,6 +3207,7 @@ StringTable {
   CustomStringTableItem "{59A5462C90703535}" {
    Id "OVT-Place_PrevItem"
    Target_en_us "Previous Item"
+   Target_fr_fr "Item Précédent"
    Target_ru_ru "Предыдущий предмет"
    Target_uk_ua "Попередній предмет"
    Comment ""
@@ -3098,15 +3218,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A5462CB0574E5C}" {
    Id "OVT-Place_RotateLeft"
    Target_en_us "Rotate Left"
+   Target_fr_fr "Rotation Gauche"
    Target_ru_ru "Повернуть влево"
    Target_uk_ua "Повернути вліво"
    Comment ""
@@ -3117,15 +3238,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A5462CB9759E35}" {
    Id "OVT-Place_RotateRight"
    Target_en_us "Rotate Right"
+   Target_fr_fr "Rotation Droite"
    Target_ru_ru "Повернуть вправо"
    Target_uk_ua "Повернути вправо"
    Comment ""
@@ -3136,15 +3258,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{598AD55456A8B23F}" {
    Id "OVT-Place_Sandbags"
    Target_en_us "Sandbags"
+   Target_fr_fr "Sacs de sable"
    Target_ru_ru "Мешки с песком"
    Target_uk_ua "Мішки з піском"
    Comment ""
@@ -3155,9 +3278,9 @@ StringTable {
    Status DEVELOPMENT_DONE
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -3183,6 +3306,7 @@ StringTable {
   CustomStringTableItem "{598AD552913ABE10}" {
    Id "OVT-Place_Signs"
    Target_en_us "Signs"
+   Target_fr_fr "Panneaux"
    Target_ru_ru "Указатель"
    Target_uk_ua "Знаки"
    Comment ""
@@ -3193,15 +3317,16 @@ StringTable {
    Status DEVELOPMENT_DONE
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59C84C79C2AB441A}" {
    Id "OVT-Player"
    Target_en_us "Player"
+   Target_fr_fr "Joueur"
    Target_ru_ru "Игрок"
    Target_uk_ua "Гравець"
    Comment ""
@@ -3212,15 +3337,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5976AC6DDD54D1E4}" {
    Id "OVT-Population"
    Target_en_us "Population"
+   Target_fr_fr "Population"
    Target_ru_ru "Население"
    Target_uk_ua "Населення"
    Comment ""
@@ -3231,15 +3357,16 @@ StringTable {
    Status DEVELOPMENT_DONE
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5AD8AF15D8A1B9}" {
    Id "OVT-Port"
    Target_en_us "Port"
+   Target_fr_fr "Port"
    Target_ru_ru "Порт"
    Target_uk_ua "Порт"
    Comment ""
@@ -3250,15 +3377,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5AD8AFF9999255}" {
    Id "OVT-Port_Buy_10"
    Target_en_us "Buy 10"
+   Target_fr_fr "Acheter 10"
    Target_ru_ru "Купить 10"
    Target_uk_ua "Купити 10"
    Comment ""
@@ -3269,15 +3397,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5AD8AFCF71A6EB}" {
    Id "OVT-Port_Buy_100"
    Target_en_us "Buy 100"
+   Target_fr_fr "Acheter 100"
    Target_ru_ru "Купить 100"
    Target_uk_ua "Купити 100"
    Comment ""
@@ -3288,9 +3417,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -3315,6 +3444,7 @@ StringTable {
   CustomStringTableItem "{5D34EBA09AC421EB}" {
    Id "OVT-PutInWarehouse"
    Target_en_us "Put In Warehouse"
+   Target_fr_fr "Mettre dans l'Entrepôt"
    Target_ru_ru "Поместить на склад"
    Target_uk_ua "Покласти на склад"
    Comment ""
@@ -3325,15 +3455,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59DA76A7366B7006}" {
    Id "OVT-RecruitGunner"
    Target_en_us "Recruit Gunner"
+   Target_fr_fr "Recruter Homme de main"
    Target_ru_ru "Нанять пулеметчика"
    Target_uk_ua "Найняти стрілка"
    Comment ""
@@ -3344,15 +3475,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D305CF6351DD698}" {
    Id "OVT-Rent"
    Target_en_us "Rent"
+   Target_fr_fr "Louer"
    Target_ru_ru "Арендовать"
    Target_uk_ua "Оренда"
    Comment ""
@@ -3363,15 +3495,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D342475BAF79297}" {
    Id "OVT-RentIncome"
    Target_en_us "Rent Income"
+   Target_fr_fr "Loyer"
    Target_ru_ru "Доход с сдачи в аренду"
    Target_uk_ua "Дохід від оренди"
    Comment ""
@@ -3382,15 +3515,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D305DE90B69493E}" {
    Id "OVT-Renting"
    Target_en_us "Renting"
+   Target_fr_fr "En Location"
    Target_ru_ru "Арендуется"
    Target_uk_ua "Орендується"
    Comment ""
@@ -3401,15 +3535,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59D0228A8D1E8EE6}" {
    Id "OVT-RepairVehicle"
    Target_en_us "Repair Vehicle"
+   Target_fr_fr "Réparer Véhicule"
    Target_ru_ru "Починить технику"
    Target_uk_ua "Відремонтувати техніку"
    Comment ""
@@ -3420,15 +3555,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A6DA4EA0AEA2B4}" {
    Id "OVT-Resistance_Funds"
    Target_en_us "Total Funds"
+   Target_fr_fr "Total des Fonds"
    Target_ru_ru "Всего средств"
    Target_uk_ua "Загальні кошти фонду"
    Comment ""
@@ -3439,15 +3575,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A6DA490E88EB49}" {
    Id "OVT-Resistance_NextIncome"
    Target_en_us "Next income is at"
+   Target_fr_fr "Prochain Revenu à"
    Target_ru_ru "Следущий доход в"
    Target_uk_ua "Наступний прибуток в"
    Comment ""
@@ -3458,15 +3595,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A6DA4F1007870D}" {
    Id "OVT-Resistance_SupporterDonations"
    Target_en_us "Supporter Donations"
+   Target_fr_fr "Dons des Partisans"
    Target_ru_ru "Помощь сторонников"
    Target_uk_ua "Пожертвування прихильників"
    Comment ""
@@ -3477,15 +3615,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A6DA4E32870B30}" {
    Id "OVT-Resistance_TotalTaxes"
    Target_en_us "Total Taxes"
+   Target_fr_fr "Impôt Total"
    Target_ru_ru "Всего налогов"
    Target_uk_ua "Загальні податки"
    Comment ""
@@ -3496,9 +3635,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -3524,6 +3663,7 @@ StringTable {
   CustomStringTableItem "{59C84C6734016F2F}" {
    Id "OVT-ResistanceTax"
    Target_en_us "Resistance Tax"
+   Target_fr_fr "Impôt de la résistance"
    Target_ru_ru "Налоги сопротивления"
    Target_uk_ua "Податки спротиву"
    Comment ""
@@ -3534,15 +3674,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A4B6DA3CC}" {
    Id "OVT-Save"
    Target_en_us "Save"
+   Target_fr_fr "Sauvegarder"
    Target_ru_ru "Сохранить"
    Target_uk_ua "Зберегти"
    Comment ""
@@ -3553,15 +3694,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C55886813A4AB}" {
    Id "OVT-Saved"
    Target_en_us "Game Saved"
+   Target_fr_fr "Partie Sauvegardée"
    Target_ru_ru "Игра сохранена"
    Target_uk_ua "Гра збережена"
    Comment ""
@@ -3572,15 +3714,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D346D4FE8D27151}" {
    Id "OVT-SellDrugs"
    Target_en_us "Sell Drugs"
+   Target_fr_fr "Vendre la Drogue"
    Target_ru_ru "Продать наркотики"
    Target_uk_ua "Продати наркотики"
    Comment ""
@@ -3591,15 +3734,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59C84C7D7D70BC9B}" {
    Id "OVT-SendFunds"
    Target_en_us "Send Funds"
+   Target_fr_fr "Envoyer des Fonds"
    Target_ru_ru "Отправить средства"
    Target_uk_ua "Надіслати кошти з фонду"
    Comment ""
@@ -3610,15 +3754,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59C84C79FA503BB0}" {
    Id "OVT-SendFundsMoney"
    Target_en_us "Send Money"
+   Target_fr_fr "Envoyer de l'Argent"
    Target_ru_ru "Отправить деньги"
    Target_uk_ua "Надіслати гроші"
    Comment ""
@@ -3629,15 +3774,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59C84C7D798A8CAE}" {
    Id "OVT-SendMoney"
    Target_en_us "Send Money"
+   Target_fr_fr "Envoyer de l'Argent"
    Target_ru_ru "Отправить деньги"
    Target_uk_ua "Надіслати гроші"
    Comment ""
@@ -3648,15 +3794,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D34246ED529442C}" {
    Id "OVT-SetAsHome"
    Target_en_us "Set As Home"
+   Target_fr_fr "Définir comme Domicile"
    Target_ru_ru "Сделать домом"
    Target_uk_ua "Зробити домом"
    Comment ""
@@ -3667,15 +3814,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59C5275452D1E646}" {
    Id "OVT-SetHome"
    Target_en_us "Set Home"
+   Target_fr_fr "Définir Domicile"
    Target_ru_ru "Сделать домом"
    Target_uk_ua "Зробити домом"
    Comment ""
@@ -3686,15 +3834,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{598EF9FA0D65B880}" {
    Id "OVT-Shop"
    Target_en_us "Shop"
+   Target_fr_fr "Magasin"
    Target_ru_ru "Магазин"
    Target_uk_ua "Магазин"
    Comment ""
@@ -3705,15 +3854,16 @@ StringTable {
    Status DEVELOPMENT_DONE
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{598EF9F5BEC520FE}" {
    Id "OVT-Shop_Buy"
    Target_en_us "Buy"
+   Target_fr_fr "Acheter"
    Target_ru_ru "Купить"
    Target_uk_ua "Купити"
    Comment ""
@@ -3724,15 +3874,16 @@ StringTable {
    Status DEVELOPMENT_DONE
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D2847DF447B51C3}" {
    Id "OVT-Shop_Buying"
    Target_en_us "Buy for"
+   Target_fr_fr "Acheter pour"
    Target_ru_ru "Купить за"
    Target_uk_ua "Купити за"
    Comment ""
@@ -3743,15 +3894,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{599070D91BB49BFF}" {
    Id "OVT-Shop_InStock"
    Target_en_us "In Stock"
+   Target_fr_fr "En stock"
    Target_ru_ru "В наличии"
    Target_uk_ua "В наявності"
    Comment ""
@@ -3762,15 +3914,16 @@ StringTable {
    Status DEVELOPMENT_DONE
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{598EF98DD5C74403}" {
    Id "OVT-Shop_Open"
    Target_en_us "Open Shop"
+   Target_fr_fr "Ouvrir magasin"
    Target_ru_ru "Открыть магазин"
    Target_uk_ua "Відкрити магазин"
    Comment ""
@@ -3781,15 +3934,16 @@ StringTable {
    Status DEVELOPMENT_DONE
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D305CF7EDB14774}" {
    Id "OVT-Shop_Renting"
    Target_en_us "Rent for"
+   Target_fr_fr "Louer pour"
    Target_ru_ru "Арендовать за"
    Target_uk_ua "Орендувати за"
    Comment ""
@@ -3800,15 +3954,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{598EF9F4548C4AF0}" {
    Id "OVT-Shop_Sell"
    Target_en_us "Sell"
+   Target_fr_fr "Vendre"
    Target_ru_ru "Продать"
    Target_uk_ua "Продати"
    Comment ""
@@ -3819,15 +3974,16 @@ StringTable {
    Status DEVELOPMENT_DONE
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D2847DF5BAEC7BF}" {
    Id "OVT-Shop_Selling"
    Target_en_us "Sell for"
+   Target_fr_fr "Vendre pour"
    Target_ru_ru "Продать за"
    Target_uk_ua "Продати за"
    Comment ""
@@ -3838,9 +3994,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -4096,6 +4252,7 @@ StringTable {
   CustomStringTableItem "{59CC0DA6C7151F8E}" {
    Id "OVT-SoldierCost"
    Target_en_us "Soldier Cost"
+   Target_fr_fr "Coût Soldat"
    Target_ru_ru "Стоймость бойца"
    Target_uk_ua "Вартість солдата"
    Comment ""
@@ -4106,15 +4263,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5976AC6DA44FAA95}" {
    Id "OVT-Stability"
    Target_en_us "Stability"
+   Target_fr_fr "Stabilité"
    Target_ru_ru "Стабильность"
    Target_uk_ua "Стабільність"
    Comment ""
@@ -4125,15 +4283,16 @@ StringTable {
    Status DEVELOPMENT_DONE
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{599EDE889725FB78}" {
    Id "OVT-StabilityMod_CorruptMayor"
    Target_en_us "Corrupt Mayor"
+   Target_fr_fr "Maire Corrompu"
    Target_ru_ru "Коррумпированый мэр"
    Target_uk_ua "Корумпований мер"
    Comment ""
@@ -4144,15 +4303,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{599EDE89679CDCF8}" {
    Id "OVT-StabilityMod_DrugProblems"
    Target_en_us "Drug Problems"
+   Target_fr_fr "Problème de Drogue"
    Target_ru_ru "Проблемы с наркотиками"
    Target_uk_ua "Проблеми з наркотиками"
    Comment ""
@@ -4163,15 +4323,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5ECE59227BBB1D}" {
    Id "OVT-StabilityMod_NearbyTower"
    Target_en_us "Nearby Radio Tower"
+   Target_fr_fr "Tour Radio Proche"
    Target_ru_ru "Радио вышка поблизости"
    Target_uk_ua "Радіовежа поряд"
    Comment ""
@@ -4182,15 +4343,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{599EDE889FDE918F}" {
    Id "OVT-StabilityMod_OrganizedCrime"
    Target_en_us "Organized Crime"
+   Target_fr_fr "Crime Organisé"
    Target_ru_ru "Организованные преступные группировки"
    Target_uk_ua "Організована злочинність"
    Comment ""
@@ -4201,15 +4363,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{599EDE88A96FB592}" {
    Id "OVT-StabilityMod_RecentDeath"
    Target_en_us "Recent Deaths"
+   Target_fr_fr "Morts Récentes"
    Target_ru_ru "Недавние смерти"
    Target_uk_ua "Остінні смерті"
    Comment ""
@@ -4220,15 +4383,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{599EDE88A12DC28E}" {
    Id "OVT-StabilityMod_RecentGunfire"
    Target_en_us "Recent Gunfire"
+   Target_fr_fr "Coups de feu Récents"
    Target_ru_ru "Недавняя стрельба"
    Target_uk_ua "Нещодавня стрільба"
    Comment ""
@@ -4239,15 +4403,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{599EDE88BA907EC8}" {
    Id "OVT-StabilityMod_RecentPatrol"
    Target_en_us "Recent Patrol"
+   Target_fr_fr "Patrouille Récente"
    Target_ru_ru "Недавний патруль"
    Target_uk_ua "Недавній патруль"
    Comment ""
@@ -4258,15 +4423,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A2BDB5E41019D9}" {
    Id "OVT-StabilityMod_StrongEconomy"
    Target_en_us "Strong Economy"
+   Target_fr_fr "Economie fleurissante"
    Target_ru_ru "Сильная экономика"
    Target_uk_ua "Потужна економіка"
    Comment ""
@@ -4277,15 +4443,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{599D315AC7BF1F3F}" {
    Id "OVT-StartGame"
    Target_en_us "Start Game"
+   Target_fr_fr "Lancer le jeu"
    Target_ru_ru "Начать игру"
    Target_uk_ua "Почати гру"
    Comment ""
@@ -4296,15 +4463,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D305DE5A4ECB590}" {
    Id "OVT-StopRenting"
    Target_en_us "Stop Renting"
+   Target_fr_fr "Ne plus louer"
    Target_ru_ru "Завершить аренду"
    Target_uk_ua "Припинити оренду"
    Comment ""
@@ -4315,15 +4483,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A45C635CF39E07}" {
    Id "OVT-StorageEmpty"
    Target_en_us "Equipment Box is empty"
+   Target_fr_fr "La caisse est vide"
    Target_ru_ru "Ящик со снаряжением пуст"
    Target_uk_ua "Ящик зі спорядженням порожній"
    Comment ""
@@ -4334,15 +4503,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5976AC6DA03E2264}" {
    Id "OVT-Support"
    Target_en_us "Support"
+   Target_fr_fr "Support"
    Target_ru_ru "Поддержка"
    Target_uk_ua "Підтримка"
    Comment ""
@@ -4353,15 +4523,16 @@ StringTable {
    Status DEVELOPMENT_DONE
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59B2E6B07F085219}" {
    Id "OVT-Supporters"
    Target_en_us "Supporters"
+   Target_fr_fr "Partisans"
    Target_ru_ru "Сторонники"
    Target_uk_ua "Прибічники"
    Comment ""
@@ -4372,18 +4543,19 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A2BDA8428BCAC2}" {
    Id "OVT-SupportMod_RecruitmentPosters"
    Target_en_us "Recruitment Posters"
+   Target_fr_fr "Affiches de propagande"
    Target_ru_ru "Постеры"
    Target_uk_ua "Рекрутингові плакати"
-   Comment ""
+   Comment "Sounds weird in french so i've put \"Propaganda\" instead"
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -4391,15 +4563,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D34EBA0F73327D6}" {
    Id "OVT-TakeFromWarehouse"
    Target_en_us "Take From Warehouse"
+   Target_fr_fr "Prendre de l'entrepôt"
    Target_ru_ru "Взять со склада"
    Target_uk_ua "Взяти зі складу"
    Comment ""
@@ -4410,15 +4583,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A49A81DADADDD9}" {
    Id "OVT-TooCloseBase"
    Target_en_us "You cannot place that here, it is too close to a military base"
+   Target_fr_fr "Impossible de placer ici, trop près d'une Base"
    Target_ru_ru "Вы не можете поставить это здесь, слишком близко к военной базе"
    Target_uk_ua "Ви не можете розташувати це тут, занадто близько до військової бази"
    Comment ""
@@ -4429,15 +4603,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A49A8618B96EBF}" {
    Id "OVT-TooCloseBuilding"
    Target_en_us "You cannot place that here, it is too close to a building"
+   Target_fr_fr "Impossible de placer ici, trop près d'un batiment"
    Target_ru_ru "Вы не можете поставить это здесь, слишком близко к постройке"
    Target_uk_ua "Ви не можете розташувати це тут, занадто близько до будівлі"
    Comment ""
@@ -4448,15 +4623,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D58260519D9B5F3}" {
    Id "OVT-TooCloseFOB"
    Target_en_us "You cannot place that here, it is too close to an FOB"
+   Target_fr_fr "Impossible de placer ici, trop près d'un avant poste"
    Target_ru_ru "Вы не можете поставить это здесь, слишком близко к FOB"
    Target_uk_ua "Ви не можете розташувати це тут, занадто близько до FOB"
    Comment ""
@@ -4467,15 +4643,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A49A81B65FE81A}" {
    Id "OVT-TooCloseTown"
    Target_en_us "You cannot place that here, it is too close to a town"
+   Target_fr_fr "Impossible de placer ici, trop près d'un village"
    Target_ru_ru "Вы не можете поставить это здесь, слишком близко к населенному пункту"
    Target_uk_ua "Ви не можете розташувати це тут, занадто близько до населеного пункту"
    Comment ""
@@ -4486,15 +4663,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59CC0DA6C9595E99}" {
    Id "OVT-Total"
    Target_en_us "Total"
+   Target_fr_fr "Total"
    Target_ru_ru "Всего"
    Target_uk_ua "Загалом"
    Comment ""
@@ -4505,15 +4683,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A2BD31647163FE}" {
    Id "OVT-UnloadStorage"
    Target_en_us "Unload from vehicle"
+   Target_fr_fr "Décharger cargaison"
    Target_ru_ru "Выгрузить из транспорта"
    Target_uk_ua "Вивантажити з техніки"
    Comment ""
@@ -4524,9 +4703,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -4569,6 +4748,7 @@ StringTable {
   CustomStringTableItem "{59CF196279F7E5EB}" {
    Id "OVT-Upgrades"
    Target_en_us "Upgrades"
+   Target_fr_fr "Améliorations"
    Target_ru_ru "Улучшения"
    Target_uk_ua "Покращення"
    Comment ""
@@ -4579,15 +4759,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59D0228A83C99C85}" {
    Id "OVT-UpgradeVehicle"
    Target_en_us "Upgrade Vehicle"
+   Target_fr_fr "Amélioration du véhicule"
    Target_ru_ru "Улучшить технику"
    Target_uk_ua "Покращити техніку"
    Comment ""
@@ -4598,15 +4779,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A45C63209BFF7C}" {
    Id "OVT-VehicleEmpty"
    Target_en_us "Vehicle is empty"
+   Target_fr_fr "Le véhicule est vide"
    Target_ru_ru "Техника пуста"
    Target_uk_ua "Техніка порожня"
    Comment ""
@@ -4617,15 +4799,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59CF1968DDFE36E4}" {
    Id "OVT-VehicleLoaded"
    Target_en_us "Vehicle has been loaded"
+   Target_fr_fr "Le véhicule a été chargé"
    Target_ru_ru "Техника была загружена"
    Target_uk_ua "Техніка була завантажена"
    Comment ""
@@ -4636,15 +4819,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59D05006BA9FDE60}" {
    Id "OVT-VehicleRepaired"
    Target_en_us "Vehicle has been repaired"
+   Target_fr_fr "Le véhicule a été réparé"
    Target_ru_ru "Техника была починена"
    Target_uk_ua "Техніка була відремонтована"
    Comment ""
@@ -4655,15 +4839,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59CF1968C9785E22}" {
    Id "OVT-VehicleUnloaded"
    Target_en_us "Vehicle has been unloaded into storage"
+   Target_fr_fr "Le véhicule a été déchargé"
    Target_ru_ru "Техника была выгружена в хранилище"
    Target_uk_ua "Техніка була вивантажена в сховище"
    Comment ""
@@ -4674,15 +4859,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59D05006B011C8B2}" {
    Id "OVT-VehicleUpgraded"
    Target_en_us "Vehicle has been upgraded"
+   Target_fr_fr "Le véhicule a été amélioré"
    Target_ru_ru "Техника была улучшена"
    Target_uk_ua "Техніка була покращена"
    Comment ""
@@ -4693,15 +4879,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D48A6A90A8A2177}" {
    Id "OVT-Warehouse"
    Target_en_us "Warehouse"
+   Target_fr_fr "Entrepôt"
    Target_ru_ru "Склад"
    Target_uk_ua "Склад"
    Comment ""
@@ -4712,15 +4899,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D48A6A70B5716E0}" {
    Id "OVT-Warehouse_Take_1"
    Target_en_us "Take 1"
+   Target_fr_fr "Prendre 1"
    Target_ru_ru "Взять 1"
    Target_uk_ua "Взяти 1"
    Comment ""
@@ -4731,15 +4919,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D48A6A7175CDEFD}" {
    Id "OVT-Warehouse_Take_10"
    Target_en_us "Take 10"
+   Target_fr_fr "Prendre 10"
    Target_ru_ru "Взять 10"
    Target_uk_ua "Взяти 10"
    Comment ""
@@ -4750,15 +4939,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D48A6A714F7BA51}" {
    Id "OVT-Warehouse_Take_100"
    Target_en_us "Take 100"
+   Target_fr_fr "Prendre 100"
    Target_ru_ru "Взять 100"
    Target_uk_ua "Взяти 100"
    Comment ""
@@ -4769,9 +4959,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -4797,6 +4987,7 @@ StringTable {
   CustomStringTableItem "{59C84C26FD19B1CA}" {
    Id "OVT_Group"
    Target_en_us "Group"
+   Target_fr_fr "Groupe"
    Target_ru_ru "Группа"
    Target_uk_ua "Група"
    Comment ""
@@ -4807,18 +4998,19 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A550CC7B4FE9CA}" {
    Id "OVT_Mission_Eden_Description"
    Target_en_us "The persistent and dynamic revolution simulator"
+   Target_fr_fr "Le simulateur de révolte dynamique"
    Target_ru_ru "Сохраняемый и динамический симулятор революции"
    Target_uk_ua "Зберігаємий та динамічний симулятор революції"
-   Comment ""
+   Comment "This doesn't make a lot of sense, I interpreted otherwise"
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -4826,9 +5018,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684559858
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
