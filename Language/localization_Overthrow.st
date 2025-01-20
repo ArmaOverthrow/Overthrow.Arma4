@@ -1554,6 +1554,13 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{64685092EE73FE51}" {
+   Id "OVT-JobsMenuDescription"
+   Target_en_us "These jobs are designed to be a tutorial for the game mode. They are not a great source of income and just show you what is possible. Overthrow is an open-world game mode where YOU decide how to further the cause of the revolution. You will make a lot more money by raising support and taking towns. So get out there and raise support, capture bases and take over the island!"
+   Modified 1684558608
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59A2BD308A7926FA}" {
    Id "OVT-LoadStorage"
    Target_en_us "Load Into vehicle"
