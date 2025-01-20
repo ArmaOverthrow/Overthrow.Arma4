@@ -223,6 +223,10 @@ class OVT_MainMenuContext : OVT_UIContext
 	private void Build()
 	{
 		CloseLayout();
+		if (m_UIManager.GetContext(OVT_PlaceContext))
+		{	// A hack, we need to close PlaceContext to avoid both of them being open at the same time
+			OVT_PlaceContext.Cast(m_UIManager.GetContext(OVT_PlaceContext)).Cancel();
+		}
 		m_UIManager.ShowContext(OVT_BuildContext);		
 	}
 	
