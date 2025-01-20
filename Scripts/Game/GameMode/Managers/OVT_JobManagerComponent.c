@@ -37,7 +37,7 @@ class OVT_JobManagerComponent: OVT_Component
 	ref map<int, ref set<int>> m_aTownJobs;
 	ref map<int, ref set<int>> m_aBaseJobs;
 	ref map<int, int> m_aJobCounts;
-	ref map<string, map<int, int>> m_mPlayerJobCounts;
+	ref map<string, ref map<int, int>> m_mPlayerJobCounts;
 	
 	protected OVT_TownManagerComponent m_Towns;
 	protected OVT_OccupyingFactionManager m_OccupyingFaction;
@@ -66,7 +66,7 @@ class OVT_JobManagerComponent: OVT_Component
 		m_aBaseJobs = new map<int, ref set<int>>;
 		m_aJobs = new array<ref OVT_Job>;
 		m_aJobCounts = new map<int, int>;
-		m_mPlayerJobCounts = new map<string, map<int, int>>;
+		m_mPlayerJobCounts = new map<string, ref map<int, int>>;
 	}
 	
 	void Init(IEntity owner)

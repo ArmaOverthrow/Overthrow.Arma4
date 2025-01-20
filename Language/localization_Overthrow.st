@@ -1321,7 +1321,7 @@ StringTable {
   }
   CustomStringTableItem "{5D5080D03B975F22}" {
    Id "OVT-Job_FindGunDealerDescription"
-   Target_en_us "Gun dealers are located in the larger towns and cities. They are independant merchants who stock weapons and other illegal items."\
+   Target_en_us "Gun dealers are located in the larger towns and cities. They are independant merchants who stock weapons and other illegal items. Each gun dealer will sell all ammunition plus one random gun of each type, so try different towns to find the weapon you're looking for."\
    ""\
    "Visit the nearest gun dealer to see what items they have available."
    Target_ru_ru "Торговцы оружием расположены в крупных городах. Это независимые торговцы, которые торгуют оружием и другими незаконными товарами."\
@@ -1340,9 +1340,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684551939
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }

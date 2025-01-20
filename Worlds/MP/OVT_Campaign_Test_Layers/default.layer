@@ -121,6 +121,8 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMod
    m_Difficulty OVT_DifficultySettings "{598AD54E1DA56EB1}" : "{C0CB40B3E8B87FD4}Configs/Difficulty/Difficulty_Normal.conf" {
    }
    m_aDifficultyPresets {
+    OVT_DifficultySettings "{64681391C940045B}" : "{0BA489F3657E13D8}Configs/Difficulty/Difficulty_TestWorld.conf" {
+    }
     OVT_DifficultySettings "{6466E3EA3337FBBF}" : "{647A73DAAF55A0A6}Configs/Difficulty/Difficulty_Easy.conf" {
     }
     OVT_DifficultySettings "{6466E3EA33057A85}" : "{C0CB40B3E8B87FD4}Configs/Difficulty/Difficulty_Normal.conf" {
