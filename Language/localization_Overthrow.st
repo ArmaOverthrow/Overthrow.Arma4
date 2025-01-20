@@ -1302,7 +1302,7 @@ StringTable {
   }
   CustomStringTableItem "{5D5080D0358FFA9F}" {
    Id "OVT-Job_FindGunDealer"
-   Target_en_us "Find a gun dealer"
+   Target_en_us "Tutorial - Find a gun dealer"
    Target_ru_ru "Найти торговца оружием"
    Target_uk_ua "Знайти торговця зброєю"
    Comment ""
@@ -1313,9 +1313,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684542424
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -1348,7 +1348,7 @@ StringTable {
   }
   CustomStringTableItem "{5D9E51CB2C43D69B}" {
    Id "OVT-Job_FindShop"
-   Target_en_us "Find a shop"
+   Target_en_us "Tutorial - Find a shop"
    Target_ru_ru "Найти магазин"
    Target_uk_ua "Знайти магазин"
    Comment ""
@@ -1359,9 +1359,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684542447
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -1411,7 +1411,7 @@ StringTable {
   }
   CustomStringTableItem "{59B518B28C1095CF}" {
    Id "OVT-Job_RaiseSupport"
-   Target_en_us "Raise Support"
+   Target_en_us "Tutorial - Raise Support"
    Target_ru_ru "Увеличить поддержку"
    Target_uk_ua "Збільшити підтримку"
    Comment ""
@@ -1422,9 +1422,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684542469
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -1434,7 +1434,7 @@ StringTable {
    ""\
    "Raise support by placing posters in and around the town using the \"Place\" option in the Overthrow menu and waiting for them to catch the eye of 15% of the town's citizens. You can also deliver medical supplies like Bandages and Aspirin bottles by placing them in your car and using the \"Deliver Medical Supplies\" option in your trunk."\
    ""\
-   "Check your progress using the \"Map Info\" menu option."
+   "Check your progress using the \"Map Info\" menu option. You can raise support in any village, town or city without needing a job to do it."
    Target_ru_ru "Сторонники в этом городе принесут столь необходимый сопротивлению источник дохода в виде пожертвований."\
    ""\
    "Соберите поддержку людей, разместив плакаты в городе и его окрестностях, используя опцию \"Разместить\" в главном меню \"Overthtow\" и дождитесь, пока они привлекут внимание 15% жителей города. Вы также можете доставить медицинские принадлежности, такие как бинты и флаконы с аспирином, поместив их в свой автомобиль и воспользовавшись опцией \"Доставить медицину\" в багажнике."\
@@ -1453,9 +1453,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684542538
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }

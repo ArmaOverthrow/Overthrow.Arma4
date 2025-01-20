@@ -58,11 +58,14 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	{
 		if(entity.ClassName() == "SCR_DestructibleBuildingEntity"){
 			ResourceName res = entity.GetPrefabData().GetPrefabName();
-			if(res.IndexOf("_furniture") > -1) return false;
+			if(res.IndexOf("_furniture") > -1) return false;	
+			OVT_TownManagerComponent towns = OVT_Global.GetTowns();		
 			foreach(string s : OVT_Global.GetConfig().m_aStartingHouseFilters)
 			{
 				if(res.IndexOf(s) > -1) {
 					EntityID id = entity.GetID();
+					OVT_TownData closestTown = towns.GetNearestTown(entity.GetOrigin());
+					if(towns.m_aIgnoreTowns.Find(towns.GetTownName(towns.GetTownID(closestTown))) > -1) return false;
 					if(!IsOwned(id))
 						m_aStartingHomes.Insert(id);
 					continue;

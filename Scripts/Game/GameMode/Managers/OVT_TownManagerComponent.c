@@ -708,8 +708,7 @@ class OVT_TownManagerComponent: OVT_Component
 	protected bool FilterCityTownEntities(IEntity entity) 
 	{		
 		MapDescriptorComponent mapdesc = MapDescriptorComponent.Cast(entity.FindComponent(MapDescriptorComponent));
-		if (mapdesc){	
-			if(m_aIgnoreTowns.Find(mapdesc.Item().GetDisplayName()) > -1) return false;
+		if (mapdesc){			
 			int type = mapdesc.GetBaseType();
 			if(type == EMapDescriptorType.MDT_NAME_CITY) return true;
 			if(type == EMapDescriptorType.MDT_NAME_VILLAGE) return true;
