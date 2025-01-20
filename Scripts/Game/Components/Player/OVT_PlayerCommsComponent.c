@@ -515,7 +515,7 @@ class OVT_PlayerCommsComponent: OVT_Component
 	protected void RpcAsk_AddPlayerMoney(int playerId, int amount, bool doEvent)
 	{
 		OVT_Global.GetEconomy().DoAddPlayerMoney(playerId, amount);
-		Rpc(RpcDo_DoneAddingMoney, playerId);	
+		Rpc(RpcDo_DoneAddingMoney);	
 		if(doEvent)
 		{
 			OVT_Global.GetEconomy().m_OnPlayerSell.Invoke(playerId, amount);
@@ -534,27 +534,19 @@ class OVT_PlayerCommsComponent: OVT_Component
 	protected void RpcAsk_TakePlayerMoney(int playerId, int amount)
 	{
 		OVT_Global.GetEconomy().DoTakePlayerMoney(playerId, amount);	
-		Rpc(RpcDo_DoneTakingMoney, playerId);	
+		Rpc(RpcDo_DoneTakingMoney);	
 	}
 	
-	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_DoneTakingMoney(int playerId)
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void RpcDo_DoneTakingMoney()
 	{
-		int localPlayerId = SCR_PlayerController.GetLocalPlayerId();
-		if(localPlayerId == playerId)
-		{
-			takingMoney = false;
-		}
+		takingMoney = false;
 	}
 	
-	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_DoneAddingMoney(int playerId)
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void RpcDo_DoneAddingMoney()
 	{
-		int localPlayerId = SCR_PlayerController.GetLocalPlayerId();
-		if(localPlayerId == playerId)
-		{
-			addingMoney = false;
-		}
+		addingMoney = false;
 	}
 	
 	void AddResistanceMoney(int amount)
