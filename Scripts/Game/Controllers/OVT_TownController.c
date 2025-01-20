@@ -91,7 +91,7 @@ class OVT_TownControllerComponent: OVT_Component
 		m_aCivilians.Insert(civId);
 
 		SCR_AIGroup aigroup = SCR_AIGroup.Cast(civ);
-		aigroup.GetOnAgentAdded().Insert(RandomizeCivilianClothes);
+		aigroup.GetOnAgentAdded().Insert(OVT_Global.RandomizeCivilianClothes);
 		
 		array<AIWaypoint> queueOfWaypoints = new array<AIWaypoint>();
 
@@ -105,31 +105,6 @@ class OVT_TownControllerComponent: OVT_Component
 		cycle.SetWaypoints(queueOfWaypoints);
 		cycle.SetRerunCounter(-1);
 		aigroup.AddWaypoint(cycle);
-	}
-	
-	protected void RandomizeCivilianClothes(AIAgent agent)
-	{
-		IEntity civ = agent.GetControlledEntity();
-		InventoryStorageManagerComponent storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(civ);
-		if(!storageManager) return;
-		foreach (OVT_LoadoutSlot loadoutItem : OVT_Global.GetConfig().m_CivilianLoadout.m_aSlots)
-		{
-			if(loadoutItem.m_bPlayerOnly) continue;
-			
-			if(loadoutItem.m_fSkipChance > 0)
-			{
-				float rnd = s_AIRandomGenerator.RandFloat01();
-				if(rnd <= loadoutItem.m_fSkipChance) continue; 
-			}
-			
-			IEntity slotEntity = OVT_Global.SpawnDefaultCharacterItem(storageManager, loadoutItem);
-			if (!slotEntity) continue;
-			
-			if (!storageManager.TryInsertItem(slotEntity, EStoragePurpose.PURPOSE_LOADOUT_PROXY))
-			{
-				SCR_EntityHelper.DeleteEntityAndChildren(slotEntity);
-			}
-		}
 	}
 
 	protected void SpawnGunDealer()

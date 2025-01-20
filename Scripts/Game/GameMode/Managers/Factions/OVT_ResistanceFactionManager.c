@@ -417,7 +417,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
 		if(!aigroup) return;
 		
-		OVT_Global.RandomizeCivilianClothes(aigroup);
+		OVT_Global.RandomizeCivilianGroupClothes(aigroup);
 		
 		m_TempVehicle = vehicle;
 		m_TempGroup = aigroup;
