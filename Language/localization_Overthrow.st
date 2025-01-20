@@ -1113,6 +1113,8 @@ StringTable {
    ""\
    "You own a car parked in your garage, and a handgun is in your pants. The enemy considers you a civilian if they don't see you carrying a weapon and will not shoot you, so be careful when equipping your weapon around them. Stars will appear in the top right if you are \"wanted\" by the enemy."\
    ""\
+   "If you are new to Overthrow, there is a set of tutorials in the \"Jobs\" section in the main Overthrow menu."\
+   ""\
    "For more info on Overthrow's features and gameplay just have a look at the \"Field Manual\""
    Target_ru_ru "Приветствую в Overthrow! Этой ваш дом, вы будете здесь возрождаться, вы можете быстро перемещаться сюда с небольшой платой, через главное меню <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color>. В гараже стоит ваша машина."\
    ""\
@@ -1130,9 +1132,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684558850
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -1277,7 +1279,7 @@ StringTable {
   }
   CustomStringTableItem "{59B54056E3C62299}" {
    Id "OVT-Job_BaseReconDescription"
-   Target_en_us "Visit a nearby base to determine the strength of it's defenses. You will need to get within 100m of the base to get a good look at it."\
+   Target_en_us "Visit a nearby base to determine the strength of it's defenses. You will need to get within 100m of the base flag to get a good look at it."\
    ""\
    "Be careful not to get seen within the restricted area marked as red on your map or you will be shot at."
    Target_ru_ru "Подойдите к близжайшей базе, чтобы определить насколько сильно построена оборона. Вам нужно будет подойти на расстояние не более 100 метров к базе, чтобы хорошенько ее рассмотреть."\
@@ -1294,9 +1296,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684558674
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
