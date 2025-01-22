@@ -737,7 +737,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 			{
 				OVT_BaseControllerComponent base = GetBase(randomBase.entId);
 				StartBaseQRF(base);
-				m_bCounterAttackTimeout = m_Config.m_Difficulty.counterAttackTimeout; //Hold off counter attacks for a little
+				int timeout = Math.RandomIntInclusive(m_Config.m_Difficulty.counterAttackTimeout - 20, m_Config.m_Difficulty.counterAttackTimeout + 20);
+				m_bCounterAttackTimeout = timeout; //Hold off counter attacks for a little
 				return;
 			}
 		}
@@ -811,6 +812,25 @@ class OVT_OccupyingFactionManager: OVT_Component
 	{
 		//To-Do: target discovery not by magic
 		OVT_ResistanceFactionManager resistance = OVT_Global.GetResistanceFaction();
+		
+		foreach(OVT_RadioTowerData data : m_RadioTowers)
+		{
+			if(data.IsOccupyingFaction()){
+				if(IsKnownTarget(data.location))
+				{
+					m_aKnownTargets.RemoveItem(GetNearestKnownTarget(data.location));
+				}
+				continue;
+			}
+			if(!IsKnownTarget(data.location))
+			{
+				OVT_TargetData target = new OVT_TargetData();
+				target.location = data.location;
+				target.type = OVT_TargetType.BROADCAST_TOWER;
+				target.order = OVT_OrderType.ATTACK;
+				m_aKnownTargets.Insert(target);
+			}
+		}
 
 		foreach(OVT_FOBData fob : resistance.m_FOBs)
 		{
@@ -842,25 +862,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 				m_aKnownTargets.Insert(target);
 			}
 		}
-
-		foreach(OVT_RadioTowerData data : m_RadioTowers)
-		{
-			if(data.IsOccupyingFaction()){
-				if(IsKnownTarget(data.location))
-				{
-					m_aKnownTargets.RemoveItem(GetNearestKnownTarget(data.location));
-				}
-				continue;
-			}
-			if(!IsKnownTarget(data.location))
-			{
-				OVT_TargetData target = new OVT_TargetData();
-				target.location = data.location;
-				target.type = OVT_TargetType.BROADCAST_TOWER;
-				target.order = OVT_OrderType.ATTACK;
-				m_aKnownTargets.Insert(target);
-			}
-		}
+		
 	}
 
 	bool IsKnownTarget(vector pos)
