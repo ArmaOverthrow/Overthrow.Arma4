@@ -43,6 +43,8 @@ class OVT_DifficultySettings : ScriptAndConfig
 	float baseRange;
 	[Attribute("220")]
 	float baseCloseRange;
+	[Attribute("120")]
+	float counterAttackTimeout;
 	
 	//Economy
 	[Attribute(defvalue: "100", desc: "Player starting cash", category: "Economy")]

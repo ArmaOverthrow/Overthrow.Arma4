@@ -3,6 +3,11 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
   coords 7457.223 164.562 4278.119
  }
  OVT_Base_StPierre {
+  components {
+   OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
+    m_iAttackPreferredDirection 270
+   }
+  }
   coords 9398.637 196.296 1170.662
  }
  OVT_Base_Lamentin {
@@ -15,9 +20,21 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
   coords 5343.506 43.617 10535.197
  }
  OVT_Base_Airport {
+  components {
+   OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
+    m_iAttackDistanceMin 300
+    m_iAttackDistanceMax 500
+    m_iAttackPreferredDirection 180
+   }
+  }
   coords 4961.688 28.343 11878.047
  }
  OVT_Base_TrainingGrounds {
+  components {
+   OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
+    m_iAttackPreferredDirection 300
+   }
+  }
   coords 7729.433 13.656 8154.407
  }
  Base_PowerPlant {

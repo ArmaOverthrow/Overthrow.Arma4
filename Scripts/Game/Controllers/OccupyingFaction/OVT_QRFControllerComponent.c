@@ -18,9 +18,7 @@ class OVT_QRFControllerComponent: OVT_Component
 	protected const int UPDATE_FREQUENCY = 10000;
 	const float QRF_RANGE = 750;
 	const float QRF_DEPTH = 200;
-	const float QRF_MAXRANGE = QRF_RANGE+QRF_DEPTH;
 	const float QRF_POINT_RANGE = 220;
-
 	
 	ref ScriptInvoker m_OnFinished = new ScriptInvoker();
 	
@@ -34,6 +32,9 @@ class OVT_QRFControllerComponent: OVT_Component
 	
 	ref array<vector> m_Bases = {};
 	int m_iResourcesLeft = 0;
+	int m_iLZMax = 750;
+	int m_iLZMin = 250;
+	int m_iPreferredDirection = -1;
 	
 	override void OnPostInit(IEntity owner)
 	{
@@ -390,7 +391,16 @@ class OVT_QRFControllerComponent: OVT_Component
 	
 	protected vector GetRandomDirection()
 	{
-	    float angle1 = Math.RandomFloatInclusive(0, 2 * Math.PI); // Random angle for azimuth
+		float angle1 = Math.RandomFloatInclusive(0, 2 * Math.PI); // Random angle for azimuth
+		if(m_iPreferredDirection > -1)
+		{
+			float min = m_iPreferredDirection - 30;
+			if(min < 0) min += 360;			
+			float max = m_iPreferredDirection + 30;
+			if(min > 360) min -= 360;
+			angle1 = Math.RandomFloatInclusive(min * Math.DEG2RAD, max * Math.DEG2RAD);
+		}		
+	    
 	    float angle2 = Math.RandomFloatInclusive(-Math.PI/2, Math.PI/2); // Random angle for elevation
 	    float x = Math.Cos(angle1) * Math.Cos(angle2);
 	    float y = Math.Sin(angle2);
@@ -436,16 +446,14 @@ class OVT_QRFControllerComponent: OVT_Component
 		//Reuse any good QRF position if found
 		if (!IsZeroVector(Goodqrfpos)){return Goodqrfpos;}
 	    vector qrfpos = GetOwner().GetOrigin(); // Position of the QRF
-	    vector dir = GetRandomDirection();//dir = vector.Direction(qrfpos, pos);
-	    dir.Normalize();
+	    vector dir = GetRandomDirection();//dir = vector.Direction(qrfpos, pos);	    
 	
 	    float distToPos = vector.Distance(qrfpos, pos);
 	
 	    // If the position is within QRF_RANGE, just use the target position
 	    //if (distToPos < QRF_RANGE) return pos;
 	
-	    //float dist = QRF_RANGE; // Start from the minimum range
-	    vector checkpos = qrfpos + (dir * (QRF_RANGE + Math.RandomIntInclusive(0,QRF_DEPTH))); // Update check position//s_AIRandomGenerator.GenerateRandomPointInRadius(0, 50, qrfpos + (dir * dist));
+	    vector checkpos = qrfpos + (dir * Math.RandomFloatInclusive(m_iLZMin,m_iLZMax)); 
 		vector safepos = checkpos;
 	
 	    BaseWorld world = GetGame().GetWorld();
@@ -487,9 +495,8 @@ class OVT_QRFControllerComponent: OVT_Component
 			//dir = vector.Direction(qrfpos, pos);
 			// Generate a random direction each time
   		    dir = GetRandomDirection(); // Get a new random direction each time
-      		checkpos = qrfpos + (dir * (QRF_RANGE + Math.RandomIntInclusive(0,QRF_DEPTH))); // Update check position
-	    }
-	    // If no suitable LZ is found and distance exceeds QRF_MAXRANGE, return the original position
+      		checkpos = qrfpos + (dir * Math.RandomFloatInclusive(m_iLZMin,m_iLZMax)); // Update check position
+	    }	    
 	    // Default to the last checked position if no better options were found
 	    return safepos;
 	}

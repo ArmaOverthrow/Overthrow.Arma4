@@ -118,7 +118,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 	int m_iQRFPoints = 0;
 	int m_iQRFTimer = 0;
 
-	bool m_bNoCounterAttack = false;
+	int m_bCounterAttackTimeout = 0;
 
 	const int OF_UPDATE_FREQUENCY = 60000;
 
@@ -473,6 +473,10 @@ class OVT_OccupyingFactionManager: OVT_Component
 		OVT_BaseData data = GetNearestBase(base.GetOwner().GetOrigin());
 
 		m_CurrentQRF = SpawnQRFController(base.GetOwner().GetOrigin());
+		m_CurrentQRF.m_iLZMin = base.m_iAttackDistanceMin;
+		m_CurrentQRF.m_iLZMax = base.m_iAttackDistanceMax;
+		m_CurrentQRF.m_iPreferredDirection = base.m_iAttackPreferredDirection;
+		
 		RplComponent rpl = RplComponent.Cast(m_CurrentQRF.GetOwner().FindComponent(RplComponent));
 
 		m_CurrentQRF.m_OnFinished.Insert(OnQRFFinishedBase);
@@ -654,6 +658,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 	void CheckUpdate()
 	{
+		m_bCounterAttackTimeout--;
+		if(m_bCounterAttackTimeout < 0) m_bCounterAttackTimeout = 0;
+		
 		if(!m_Time)
 		{
 			ChimeraWorld world = GetOwner().GetWorld();
@@ -721,7 +728,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 		}
 		//If we have a surplus of resources, try to take a random base back
-		if(time.m_iMinutes == 0 && m_iResources > 2000 && !m_bNoCounterAttack)
+		float rand = s_AIRandomGenerator.RandFloat01();
+		if(time.m_iMinutes == 0 && m_iResources > 2000 && m_bCounterAttackTimeout == 0 && rand > 0.9)
 		{
 			Print("[Overthrow.OccupyingFactionManager] Surplus of resources, attempting counter attack");
 			OVT_BaseData randomBase = m_Bases[s_AIRandomGenerator.RandInt(0,m_Bases.Count()-1)];
@@ -729,11 +737,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 			{
 				OVT_BaseControllerComponent base = GetBase(randomBase.entId);
 				StartBaseQRF(base);
-				m_bNoCounterAttack = true; //Hold off counter attacks for a little
+				m_bCounterAttackTimeout = m_Config.m_Difficulty.counterAttackTimeout; //Hold off counter attacks for a little
 				return;
 			}
-		}else{
-			m_bNoCounterAttack = false;
 		}
 
 		//Every 15 mins reduce threat and check if we wanna start a battle for a town

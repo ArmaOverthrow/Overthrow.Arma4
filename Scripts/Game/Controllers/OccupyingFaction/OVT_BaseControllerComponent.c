@@ -9,6 +9,15 @@ class OVT_BaseControllerComponent: OVT_Component
 
 	[Attribute("", UIWidgets.Object)]
 	ref array<ref OVT_BaseUpgrade> m_aBaseUpgrades;
+	
+	[Attribute("400")]
+	int m_iAttackDistanceMin;
+	
+	[Attribute("800")]
+	int m_iAttackDistanceMax;
+	
+	[Attribute("-1")]
+	int m_iAttackPreferredDirection;
 
 	string m_sName;
 
