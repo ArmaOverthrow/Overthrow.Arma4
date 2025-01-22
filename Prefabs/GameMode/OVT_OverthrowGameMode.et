@@ -199,6 +199,14 @@ OVT_OverthrowGameMode {
       cost 450
       illegal 0
      }
+     OVT_VehiclePriceConfig "{646D013740B7724C}" {
+      m_sFind "UAZ469_UK59"
+      cost 15000
+     }
+     OVT_VehiclePriceConfig "{646D013749186D29}" {
+      m_sFind "UAZ469_PKM"
+      cost 15000
+     }
     }
    }
   }
