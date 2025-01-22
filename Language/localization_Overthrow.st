@@ -80,6 +80,41 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6468E2321E96E602}" {
+   Id "OVT-Base_Chotain"
+   Target_en_us "Chotain Base"
+   Modified 1684858756
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{6468E2320833D633}" {
+   Id "OVT-Base_Lamentin"
+   Target_en_us "Lamentin Harbour"
+   Modified 1684858735
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{6468E232050364DF}" {
+   Id "OVT-Base_Levie"
+   Target_en_us "Levie Base"
+   Modified 1684858716
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{6468E232E3F6812C}" {
+   Id "OVT-Base_StPhillipe"
+   Target_en_us "St Phillipe Base"
+   Modified 1684858775
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{6468E232F36B047A}" {
+   Id "OVT-Base_TrainingGrounds"
+   Target_en_us "Training Grounds"
+   Modified 1684858802
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59B518A9E7140382}" {
    Id "OVT-BaseNear"
    Target_en_us "Base near"
@@ -2083,7 +2118,7 @@ StringTable {
   }
   CustomStringTableItem "{5D86A3C8844B8729}" {
    Id "OVT-Msg-BaseBattle"
-   Target_en_us "The battle for %1 base will begin shortly"
+   Target_en_us "The battle for %1 will begin shortly"
    Target_ru_ru "Бой за базу %1 скоро начнётся"
    Target_uk_ua "Бій за базу %1 розпочнеться незабаром"
    Comment ""
@@ -2094,9 +2129,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1684858873
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }

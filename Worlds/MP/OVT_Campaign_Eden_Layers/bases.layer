@@ -1,27 +1,50 @@
 $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.et" {
  OVT_Base_Levie {
+  components {
+   OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
+    m_sName "#OVT-Base_Levie"
+   }
+  }
   coords 7457.223 164.562 4278.119
  }
  OVT_Base_StPierre {
   components {
    OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
+    m_sName "#AR-MapLocation_MontfortCastle"
     m_iAttackPreferredDirection 270
    }
   }
   coords 9398.637 196.296 1170.662
  }
  OVT_Base_Lamentin {
+  components {
+   OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
+    m_sName "#OVT-Base_Lamentin"
+   }
+  }
   coords 924.679 2.75 6059.404
  }
  OVT_Base_Chotain {
+  components {
+   OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
+    m_sName "#OVT-Base_Chotain"
+    m_iAttackPreferredDirection 330
+   }
+  }
   coords 7462.8 7.814 6727.422
  }
  OVT_Base_SaintPhillipe {
+  components {
+   OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
+    m_sName "#OVT-Base_StPhillipe"
+   }
+  }
   coords 5343.506 43.617 10535.197
  }
  OVT_Base_Airport {
   components {
    OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
+    m_sName "#AR-MapLocation_Airport"
     m_iAttackDistanceMin 300
     m_iAttackDistanceMax 500
     m_iAttackPreferredDirection 180
@@ -32,6 +55,7 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
  OVT_Base_TrainingGrounds {
   components {
    OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
+    m_sName "#OVT-Base_TrainingGrounds"
     m_iAttackPreferredDirection 300
    }
   }
@@ -42,6 +66,9 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
    MapDescriptorComponent "{5E4852B860CE2C30}" {
     DisplayName "#AR-MapLocation_Military"
     MainType "Name Generic"
+   }
+   OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
+    m_sName "#AR-MapLocation_PowerPlant"
    }
   }
   coords 5841.275 4.563 9794.273

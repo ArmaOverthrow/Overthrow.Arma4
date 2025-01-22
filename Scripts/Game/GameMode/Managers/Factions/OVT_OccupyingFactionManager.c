@@ -486,8 +486,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_vQRFLocation = base.GetOwner().GetOrigin();
 		m_iCurrentQRFBase= GetBaseIndex(data);
 
-		OVT_Global.GetNotify().SendTextNotification("BaseBattle", -1, OVT_Global.GetTowns().GetTownName(m_vQRFLocation));
-		OVT_Global.GetNotify().SendExternalNotifications("BaseBattle", OVT_Global.GetTowns().GetTownName(m_vQRFLocation));
+		OVT_Global.GetNotify().SendTextNotification("BaseBattle", -1, base.m_sName);
+		OVT_Global.GetNotify().SendExternalNotifications("BaseBattle", base.m_sName);
 
 		Rpc(RpcDo_SetQRFBase, m_iCurrentQRFBase);
 		Rpc(RpcDo_SetQRFActive, m_vQRFLocation);

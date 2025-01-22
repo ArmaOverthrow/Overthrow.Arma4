@@ -4,6 +4,9 @@ class OVT_BaseControllerComponentClass: OVT_ComponentClass
 
 class OVT_BaseControllerComponent: OVT_Component
 {
+	[Attribute("")]
+	string m_sName;
+	
 	[Attribute(defvalue: "0", UIWidgets.EditBox, desc: "Resources to allocate for testing only")]
 	int m_iTestingResources;
 
@@ -18,8 +21,6 @@ class OVT_BaseControllerComponent: OVT_Component
 	
 	[Attribute("-1")]
 	int m_iAttackPreferredDirection;
-
-	string m_sName;
 
 	ref array<ref EntityID> m_AllSlots;
 	ref array<ref EntityID> m_AllCloseSlots;
