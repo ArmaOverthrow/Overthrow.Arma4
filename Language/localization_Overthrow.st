@@ -4195,7 +4195,7 @@ StringTable {
    Id "OVT-StabilityMod_RecentDeath"
    Target_en_us "Recent Deaths"
    Target_ru_ru "Недавние смерти"
-   Target_uk_ua "Остінні смерті"
+   Target_uk_ua "Останні смерті"
    Comment ""
    DevNote ""
    Repro ""
