@@ -48,11 +48,15 @@ class OVT_QRFControllerComponent: OVT_Component
 		
 		GetGame().GetCallqueue().CallLater(CheckUpdateTimer, 1000, true, owner);		
 		
-		m_Groups = new array<ref EntityID>;
-		SendTroops();
+		m_Groups = new array<ref EntityID>;		
 		Replication.BumpMe();		
 		
 		GetGame().GetCallqueue().CallLater(CheckUpdatePoints, UPDATE_FREQUENCY, true, owner);		
+	}
+	
+	void Start()
+	{
+		SendTroops();
 	}
 	
 	protected void CheckUpdateTimer()
@@ -260,13 +264,18 @@ class OVT_QRFControllerComponent: OVT_Component
 			allocate = 16 * OVT_Global.GetConfig().m_Difficulty.baseResourceCost;
 		}
 		
+		Print("Distance min: " + m_iLZMin.ToString());
+		Print("Distance max: " + m_iLZMax.ToString());
+		
+		vector qrfpos = GetOwner().GetOrigin();
+		
 		foreach(vector base : m_Bases)
 		{
 			if(m_iResourcesLeft <= 0) break;
 			int allocated = 0;
 			
-			vector lz = GetLandingZone(base);
-			vector target = GetTargetZone(base);
+			vector lz = GetLandingZone();
+			vector target = GetTargetZone(qrfpos);
 			int ii = 0;
 			while(allocated < allocate && ii < 6)
 			{
@@ -275,7 +284,7 @@ class OVT_QRFControllerComponent: OVT_Component
 			}
 			spent += allocated;
 			m_iResourcesLeft -= allocated;
-			Print("[Overthrow.QRFControllerComponent] Sent wave from " + lz.ToString() + ": " + allocated.ToString());
+			Print("[Overthrow.QRFControllerComponent] Sent troops from " + lz.ToString() + ": " + allocated.ToString());
 		}
 		
 		if(m_iResourcesLeft > 0)
@@ -342,7 +351,6 @@ class OVT_QRFControllerComponent: OVT_Component
 	    {
 	        AIWaypoint waypoint = CreateWaypoint(waypointType, targetPos);
 	        aigroup.AddWaypoint(waypoint);
-	        Print("[Debug] Waypoint added after delay.");
 	    }
 	}
 		
@@ -369,8 +377,7 @@ class OVT_QRFControllerComponent: OVT_Component
 				
 		SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
 		m_Groups.Insert(group.GetID());
-		//aigroup.AddWaypoint(OVT_Global.GetConfig().SpawnSearchAndDestroyWaypoint(targetPos));
-		//aigroup.AddWaypoint(OVT_Global.GetConfig().SpawnDefendWaypoint(targetPos));
+		
 		ScheduleWaypoint(targetPos,5,aigroup,"Scout");
 		ScheduleWaypoint(targetPos,15,aigroup,"Scout");
 		ScheduleWaypoint(targetPos,30,aigroup,"SearchAndDestroy");
@@ -381,38 +388,29 @@ class OVT_QRFControllerComponent: OVT_Component
 		m_aSpawnTargets.Remove(0);
 	}
 
-	//Check over our good position memory
 	bool IsZeroVector(vector vec)
 	{
     	return vec[0] == 0 && vec[1] == 0 && vec[2] == 0;
 	}
-		
-	//Chris Get Random Dir
 	
 	protected vector GetRandomDirection()
 	{
-		float angle1 = Math.RandomFloatInclusive(0, 2 * Math.PI); // Random angle for azimuth
+		float angle = Math.RandomFloatInclusive(0, 359); // Random angle for azimuth		
 		if(m_iPreferredDirection > -1)
 		{
-			float min = m_iPreferredDirection - 30 + 180;
+			float min = m_iPreferredDirection - 30 - 90;
 			if(min < 0) min += 360;			
 			if(min > 360) min -= 360;
-			float max = m_iPreferredDirection + 30;
+			float max = m_iPreferredDirection + 30 - 90;
 			if(max < 0) max += 360;			
 			if(max > 360) max -= 360;
-			angle1 = Math.RandomFloatInclusive(min * Math.DEG2RAD, max * Math.DEG2RAD);
+			angle = Math.RandomFloatInclusive(min, max);
 		}		
-	    
-	    float angle2 = Math.RandomFloatInclusive(-Math.PI/2, Math.PI/2); // Random angle for elevation
-	    float x = Math.Cos(angle1) * Math.Cos(angle2);
-	    float y = Math.Sin(angle2);
-	    float z = Math.Sin(angle1) * Math.Cos(angle2);
-	
-	    return Vector(x, y, z).Normalized(); // Return a normalized direction vector
+	 
+		vector dir = {Math.Cos(angle * Math.DEG2RAD), 0, Math.Sin(angle * Math.DEG2RAD)};
+	    return dir.Normalized(); // Return a normalized direction vector
 	}
 	
-	
-	//Chris Gat Target Zone
 	protected vector GetTargetZone(vector origin)
 	{
 	    origin = GetOwner().GetOrigin(); // Starting position
@@ -442,20 +440,18 @@ class OVT_QRFControllerComponent: OVT_Component
 		//
 	    return origin;
 	}
-	//Chris Get Random LZ
-	protected vector GetLandingZone(vector pos)
+	
+	protected vector GetLandingZone()
 	{
 		//Reuse any good QRF position if found
 		if (!IsZeroVector(Goodqrfpos)){return Goodqrfpos;}
 	    vector qrfpos = GetOwner().GetOrigin(); // Position of the QRF
 	    vector dir = GetRandomDirection();//dir = vector.Direction(qrfpos, pos);	    
+		
+		float distance = Math.RandomFloatInclusive(m_iLZMin,m_iLZMax);
+		Print("Distance: " + distance.ToString());
 	
-	    float distToPos = vector.Distance(qrfpos, pos);
-	
-	    // If the position is within QRF_RANGE, just use the target position
-	    //if (distToPos < QRF_RANGE) return pos;
-	
-	    vector checkpos = qrfpos + (dir * Math.RandomFloatInclusive(m_iLZMin,m_iLZMax)); 
+	    vector checkpos = qrfpos + (dir * distance); 
 		vector safepos = checkpos;
 	
 	    BaseWorld world = GetGame().GetWorld();
@@ -466,9 +462,7 @@ class OVT_QRFControllerComponent: OVT_Component
 	    while (attempts < maxAttempts)
 	    {
 	        attempts++;
-			
-
-	
+				
 	        // Ensure the position is not in the ocean
 	        if (!OVT_Global.IsOceanAtPosition(checkpos))
 	        {
@@ -487,17 +481,16 @@ class OVT_QRFControllerComponent: OVT_Component
 	            if (result >= 0)
 	            {
 					Goodqrfpos = checkpos;
+					Print("Found LZ: " + checkpos.ToString());
 	                return checkpos;
 	            }
 	        }
 	
-	        // Randomize distance and try again
-	        // Randomize the position slightly and ensure it's within bounds
-	        //checkpos = s_AIRandomGenerator.GenerateRandomPointInRadius(0, 50, qrfpos + (dir * dist));
-			//dir = vector.Direction(qrfpos, pos);
-			// Generate a random direction each time
+	        // Randomize direction and try again
   		    dir = GetRandomDirection(); // Get a new random direction each time
-      		checkpos = qrfpos + (dir * Math.RandomFloatInclusive(m_iLZMin,m_iLZMax)); // Update check position
+			distance = Math.RandomFloatInclusive(m_iLZMin,m_iLZMax);
+			Print("Distance: " + distance.ToString());
+      		checkpos = qrfpos + (dir * distance); // Update check position
 	    }	    
 	    // Default to the last checked position if no better options were found
 	    return safepos;

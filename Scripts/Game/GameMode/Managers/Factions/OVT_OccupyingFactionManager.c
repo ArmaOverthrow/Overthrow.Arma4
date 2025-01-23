@@ -475,6 +475,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_CurrentQRF.m_iLZMax = base.m_iAttackDistanceMax;
 		m_CurrentQRF.m_iPreferredDirection = base.m_iAttackPreferredDirection;
 		
+		m_CurrentQRF.Start();
+		
 		RplComponent rpl = RplComponent.Cast(m_CurrentQRF.GetOwner().FindComponent(RplComponent));
 
 		m_CurrentQRF.m_OnFinished.Insert(OnQRFFinishedBase);
@@ -499,6 +501,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 		m_CurrentQRF = SpawnQRFController(town.location);
 		RplComponent rpl = RplComponent.Cast(m_CurrentQRF.GetOwner().FindComponent(RplComponent));
+		
+		m_CurrentQRF.Start();
 
 		m_CurrentQRF.m_OnFinished.Insert(OnQRFFinishedTown);
 		m_CurrentQRFTown = town;
