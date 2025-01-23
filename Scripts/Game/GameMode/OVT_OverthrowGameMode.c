@@ -254,8 +254,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 
 	}
 	
-	//chris set spawnlocations manually
-	bool HasHome = false;
 	protected ref array<IEntity> m_BusStops = {};
 		
 	protected ref array<vector> m_HardcodedBusStopLocations = {
@@ -283,7 +281,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			{
 			    Print("[Overthrow] Spawning player at hard Coded bus stop: " + spawnLocation.ToString());
 			    m_RealEstate.SetHomePos(playerId, spawnLocation);
-				HasHome = false;
 			}
 			else
 			 {
@@ -293,7 +290,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		            if (town)
 		            {
 		                m_RealEstate.SetHomePos(playerId, town.location);
-						HasHome = false; 
 		                break;
 		            }
 		        }
@@ -350,7 +346,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	void PreparePlayer(int playerId, string persistentId)
 	{
 	    if (!Replication.IsServer()) return;
-		HasHome = false;
 	    m_PlayerManager.SetupPlayer(playerId, persistentId);
 	    OVT_PlayerData player = m_PlayerManager.GetPlayer(persistentId);
 	
@@ -380,7 +375,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	            m_VehicleManager.SpawnStartingCar(house, persistentId);
 	        }
 	    }
-		if (home[0] != 0){HasHome = true;}
 	    if (player.initialized)
 	    {
 	        // Handle existing players
@@ -429,14 +423,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			Print("[Overthrow] Player spawn prefab is missing OVT_PlayerWantedComponent!");
 		}else{
 			wanted.SetWantedLevel(0);
-		}
-		if(!HasHome){
-			Print("Player has no home");
-			m_RealEstate.SetHomePos(playerId, vector.Zero); // Set the home position to an empty vector
-			SpawnPlayerAtBusStop(playerId);
-			}
-			else
-			Print("Player has a home");
+		}		
 	}
 
 	protected void SetRandomCameraPosition()
