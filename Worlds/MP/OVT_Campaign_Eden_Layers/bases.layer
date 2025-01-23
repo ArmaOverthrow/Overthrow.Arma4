@@ -11,6 +11,7 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
   components {
    OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
     m_sName "#AR-MapLocation_MontfortCastle"
+    m_fStartingResourcesMultiplier 1.2
     m_iAttackPreferredDirection 270
    }
   }
@@ -45,6 +46,7 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
   components {
    OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
     m_sName "#AR-MapLocation_Airport"
+    m_fStartingResourcesMultiplier 2
     m_iAttackDistanceMin 300
     m_iAttackDistanceMax 500
     m_iAttackPreferredDirection 180
@@ -56,6 +58,7 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
   components {
    OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
     m_sName "#OVT-Base_TrainingGrounds"
+    m_fStartingResourcesMultiplier 0.8
     m_iAttackPreferredDirection 300
    }
   }
@@ -69,6 +72,7 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
    }
    OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
     m_sName "#AR-MapLocation_PowerPlant"
+    m_fStartingResourcesMultiplier 1.5
    }
   }
   coords 5841.275 4.563 9794.273

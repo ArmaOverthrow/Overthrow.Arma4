@@ -23,7 +23,7 @@ class OVT_DifficultySettings : ScriptAndConfig
 	int wantedOneTimeout;
 	
 	//OF
-	[Attribute(defvalue: "3000", desc: "OF starting resources", category: "Occupying Faction")]
+	[Attribute(defvalue: "3000", desc: "OF starting resources per base", category: "Occupying Faction")]
 	int startingResources;
 	[Attribute(defvalue: "250", desc: "OF resources per 6 hrs", category: "Occupying Faction")]
 	int baseResourcesPerTick;
@@ -39,11 +39,11 @@ class OVT_DifficultySettings : ScriptAndConfig
 	int radioTowerGroupsMin;
 	[Attribute(defvalue: "3", desc: "Maximum number of defense groups at radio towers", category: "Occupying Faction")]
 	int radioTowerGroupsMax;	
-	[Attribute("280")]
+	[Attribute("280", category: "Occupying Faction")]
 	float baseRange;
-	[Attribute("220")]
+	[Attribute("220", category: "Occupying Faction")]
 	float baseCloseRange;
-	[Attribute("120")]
+	[Attribute("120", category: "Occupying Faction")]
 	float counterAttackTimeout;
 	
 	//Economy

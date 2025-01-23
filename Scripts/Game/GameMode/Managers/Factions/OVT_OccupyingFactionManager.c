@@ -36,6 +36,9 @@ class OVT_BaseData : Managed
 	ref array<ref EntityID> garrisonEntities = {};
 
 	ref array<ref ResourceName> garrison = {};
+	
+	[SortAttribute(),NonSerialized()]
+	int sortBy;
 
 	bool IsOccupyingFaction()
 	{
@@ -152,7 +155,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		if(!Replication.IsServer()) return;
 
 		m_iThreat = m_Config.m_Difficulty.baseThreat;
-		m_iResources = m_Config.m_Difficulty.startingResources;
+		m_iResources = 0;
 
 		Faction playerFaction = GetGame().GetFactionManager().GetFactionByKey(m_Config.m_sPlayerFaction);
 		m_iPlayerFactionIndex = GetGame().GetFactionManager().GetFactionIndex(playerFaction);
@@ -406,20 +409,23 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 	protected void DistributeInitialResources()
 	{
-		//Distribute initial resources
-
-		int resourcesPerBase = Math.Floor(m_iResources / m_Bases.Count());
-
+		//Distribute initial resources		
+		float totalMultiplier = 0;
 		foreach(OVT_BaseData data : m_Bases)
 		{
 			OVT_BaseControllerComponent base = GetBase(data.entId);
-			m_iResources -= base.SpendResources(resourcesPerBase, m_iThreat);
-
-			if(m_iResources <= 0) break;
+			totalMultiplier += base.m_fStartingResourcesMultiplier;
 		}
-		UpdateSpecops();
-		if(m_iResources < 0) m_iResources = 0;
-		Print("[Overthrow.OccupyingFactionManager] Remaining Resources: " + m_iResources.ToString());
+		int resourcesPerBase = Math.Floor(m_iResources / totalMultiplier);
+		
+		foreach(OVT_BaseData data : m_Bases)
+		{
+			OVT_BaseControllerComponent base = GetBase(data.entId);
+			int toSpend = Math.Floor(m_Config.m_Difficulty.startingResources * base.m_fStartingResourcesMultiplier);
+			Print("[Overthrow.OccupyingFactionManager] Distributing " + toSpend.ToString() + " resources to " + base.m_sName);
+			base.SpendResources(toSpend, m_iThreat);
+		}
+		UpdateSpecops();	
 	}
 
 	OVT_BaseControllerComponent GetBase(EntityID id)
@@ -656,6 +662,49 @@ class OVT_OccupyingFactionManager: OVT_Component
 		return false;
 	}
 
+	int getBaseThreat(OVT_BaseData base)
+	{
+		int score = 0;
+		foreach(OVT_TargetData target : m_aKnownTargets)
+		{
+			if(vector.Distance(target.location, base.location) < 3000)
+			{
+				if(target.type == OVT_TargetType.BASE)
+				{
+					score += 20;
+				}else if(target.type == OVT_TargetType.BROADCAST_TOWER)
+				{
+					score += 10;
+				}else if(target.type == OVT_TargetType.FOB)
+				{
+					score += 5;
+				}else if(target.type == OVT_TargetType.WAREHOUSE)
+				{
+					score += 1;
+				}				
+			}
+		}
+		foreach(OVT_TownData town : OVT_Global.GetTowns().m_Towns)
+		{
+			if(town.IsOccupyingFaction()) continue;
+			if(vector.Distance(town.location, base.location) < 3000)
+			{
+				if(town.size == 1)
+				{
+					score += 5;
+				}else if(town.size == 2)
+				{
+					score += 10;
+				}else if(town.size == 3)
+				{
+					score += 20;
+				}
+			}
+		}
+
+		return score;
+	}
+
 	void CheckUpdate()
 	{
 		m_bCounterAttackTimeout--;
@@ -703,10 +752,21 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 			int toSpend = Math.Floor((float)newResources * 0.8);
 			UpdateKnownTargets();
-			//To-Do: prioritize bases that need it/are under threat
+
+			//sort bases by threat score
+			array<OVT_BaseData> sortedBases = new array<OVT_BaseData>;
 			foreach(OVT_BaseData data : m_Bases)
 			{
 				if(!data.IsOccupyingFaction()) continue;
+				data.sortBy = getBaseThreat(data);
+				sortedBases.Insert(data);
+			}
+			sortedBases.Sort(true);	
+
+			int perBase = Math.Floor((float)toSpend / sortedBases.Count());		
+			
+			foreach(OVT_BaseData data : sortedBases)
+			{				
 				OVT_BaseControllerComponent base = GetBase(data.entId);
 
 				//Dont spawn stuff if a player is watching lol

@@ -7,8 +7,8 @@ class OVT_BaseControllerComponent: OVT_Component
 	[Attribute("")]
 	string m_sName;
 	
-	[Attribute(defvalue: "0", UIWidgets.EditBox, desc: "Resources to allocate for testing only")]
-	int m_iTestingResources;
+	[Attribute(defvalue: "1", UIWidgets.EditBox, desc: "Initial Resource Multiplier")]
+	float m_fStartingResourcesMultiplier;
 
 	[Attribute("", UIWidgets.Object)]
 	ref array<ref OVT_BaseUpgrade> m_aBaseUpgrades;
@@ -137,10 +137,6 @@ class OVT_BaseControllerComponent: OVT_Component
 			upgrade.Init(this, m_occupyingFactionManager, OVT_Global.GetConfig());
 		}
 
-		//Spend testing resources (if any)
-		if(m_iTestingResources > 0){
-			SpendResources(m_iTestingResources);
-		}
 	}
 
 	OVT_BaseUpgrade FindUpgrade(string type, string tag = "")
