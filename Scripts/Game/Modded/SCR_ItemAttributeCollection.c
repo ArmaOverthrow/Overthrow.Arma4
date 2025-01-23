@@ -1,4 +1,4 @@
-/* Copyright © 2024 Integrity Gaming Group <integritygaming.org> */
+/* Credit to Integrity Gaming Group <integritygaming.org> */
 #ifndef DISABLE_INVENTORY
 modded class SCR_ItemAttributeCollection
 {
