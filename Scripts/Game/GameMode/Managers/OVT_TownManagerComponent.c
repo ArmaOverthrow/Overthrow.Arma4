@@ -161,6 +161,12 @@ class OVT_TownManagerComponent: OVT_Component
 				Rpc(RpcDo_StreamModifiers, playerId, townID, stability, support);
 		}
 	}
+
+	OVT_TownData GetRandomTown()
+	{
+		if(m_Towns.Count() == 0) return null;
+		return m_Towns.GetRandomElement();		
+	}
 	
 	/*
 	Town Modifier Systems

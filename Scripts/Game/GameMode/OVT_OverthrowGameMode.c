@@ -373,6 +373,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	            m_RealEstate.SetOwner(playerId, house);
 	            m_RealEstate.SetHome(playerId, house);
 	            m_VehicleManager.SpawnStartingCar(house, persistentId);
+				Print("[Overthrow] Player assigned home at " + house.GetOrigin());
 	        }
 	    }
 	    if (player.initialized)

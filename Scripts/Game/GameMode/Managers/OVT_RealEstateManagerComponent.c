@@ -21,6 +21,8 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	
 	protected ref array<IEntity> m_aEntitySearch;
 	protected ref array<EntityID> m_aStartingHomes;
+	protected ref array<EntityID> m_aTownStartingHomes;
+	int m_iStartingTownId = -1;
 	
 	ref array<ref OVT_WarehouseData> m_aWarehouses = new array<ref OVT_WarehouseData>;
 	
@@ -41,6 +43,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		m_aEntitySearch = new array<IEntity>;
 		m_aWarehouses = new array<ref OVT_WarehouseData>;
 		m_aStartingHomes = new array<EntityID>;
+		m_aTownStartingHomes = new array<EntityID>;
 	}
 	
 	void OnPostLoad(IEntity owner)	
@@ -84,14 +87,58 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		m_Town = OVT_TownManagerComponent.Cast(GetOwner().FindComponent(OVT_TownManagerComponent));	
 	}
 	
+	void NewStartingTown()
+	{
+		int attempts = 0;
+		while(attempts < 50)
+		{
+			attempts++;
+			OVT_TownData town = m_Town.GetRandomTown();
+			int townId = m_Town.GetTownID(town);
+			if(town && townId != m_iStartingTownId)
+			{
+				m_iStartingTownId = townId;
+				m_aTownStartingHomes.Clear();
+				foreach(EntityID id : m_aStartingHomes)
+				{
+					IEntity ent = GetGame().GetWorld().FindEntityByID(id);
+					OVT_TownData nearestTown = m_Town.GetNearestTown(ent.GetOrigin());
+					int nearestId = m_Town.GetTownID(nearestTown);
+					if(nearestId == m_iStartingTownId)
+					{
+						m_aTownStartingHomes.Insert(id);
+					}
+				}
+				if(m_aTownStartingHomes.Count() > 0) 
+				{
+					Print("New Starting Home Town: " + m_Town.GetTownName(m_iStartingTownId));
+					return;
+				}
+			}
+		}
+		//Cannot find a new starting town
+		m_iStartingTownId = -1;
+	}
+	
 	IEntity GetRandomStartingHouse()
 	{
 		int numHouses = m_aStartingHomes.Count();
 		if(numHouses == 0) return null;
+		
+		if(m_iStartingTownId == -1 || m_aTownStartingHomes.Count() == 0)
+		{
+			NewStartingTown();
+		}
+
+		if(m_iStartingTownId == -1) return null;
 				
-		int i = s_AIRandomGenerator.RandInt(0, numHouses - 1);
-		EntityID id = m_aStartingHomes[i];
-		m_aStartingHomes.Remove(i);
+		int i = s_AIRandomGenerator.RandInt(0, m_aTownStartingHomes.Count() - 1);
+				
+		EntityID id = m_aTownStartingHomes[i];
+		m_aTownStartingHomes.Remove(i);
+		int index = m_aStartingHomes.Find(id);
+		if(index > -1) m_aStartingHomes.Remove(index);
+
 		return GetGame().GetWorld().FindEntityByID(id);
 	}
 	
