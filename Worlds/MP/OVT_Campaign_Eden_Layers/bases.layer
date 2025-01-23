@@ -78,4 +78,14 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
   coords 5841.275 4.563 9794.273
   Flags 1027
  }
+ OVT_Base_Erquy {
+  components {
+   OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
+    m_sName "#OVT-Base_Erquy"
+    m_fStartingResourcesMultiplier 0.8
+    m_iAttackPreferredDirection 90
+   }
+  }
+  coords 10633.771 2.343 11841.762
+ }
 }

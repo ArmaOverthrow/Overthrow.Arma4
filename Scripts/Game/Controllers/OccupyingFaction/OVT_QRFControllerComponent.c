@@ -384,7 +384,7 @@ class OVT_QRFControllerComponent: OVT_Component
 	//Check over our good position memory
 	bool IsZeroVector(vector vec)
 	{
-    return vec[0] == 0 && vec[1] == 0 && vec[2] == 0;
+    	return vec[0] == 0 && vec[1] == 0 && vec[2] == 0;
 	}
 		
 	//Chris Get Random Dir
@@ -394,10 +394,12 @@ class OVT_QRFControllerComponent: OVT_Component
 		float angle1 = Math.RandomFloatInclusive(0, 2 * Math.PI); // Random angle for azimuth
 		if(m_iPreferredDirection > -1)
 		{
-			float min = m_iPreferredDirection - 30;
+			float min = m_iPreferredDirection - 30 + 180;
 			if(min < 0) min += 360;			
-			float max = m_iPreferredDirection + 30;
 			if(min > 360) min -= 360;
+			float max = m_iPreferredDirection + 30;
+			if(max < 0) max += 360;			
+			if(max > 360) max -= 360;
 			angle1 = Math.RandomFloatInclusive(min * Math.DEG2RAD, max * Math.DEG2RAD);
 		}		
 	    

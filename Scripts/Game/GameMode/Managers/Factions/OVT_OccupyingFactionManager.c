@@ -154,9 +154,6 @@ class OVT_OccupyingFactionManager: OVT_Component
 	{
 		if(!Replication.IsServer()) return;
 
-		m_iThreat = m_Config.m_Difficulty.baseThreat;
-		m_iResources = 0;
-
 		Faction playerFaction = GetGame().GetFactionManager().GetFactionByKey(m_Config.m_sPlayerFaction);
 		m_iPlayerFactionIndex = GetGame().GetFactionManager().GetFactionIndex(playerFaction);
 
@@ -171,6 +168,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 	void NewGameStart()
 	{
 		OVT_Global.GetConfig().m_iOccupyingFactionIndex = -1;
+		m_iThreat = m_Config.m_Difficulty.baseThreat;
+		m_iResources = m_Config.m_Difficulty.maxQRF;
+		
 		foreach(OVT_BaseData data : m_Bases)
 		{
 			data.faction = OVT_Global.GetConfig().GetOccupyingFactionIndex();

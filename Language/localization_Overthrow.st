@@ -87,6 +87,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{646E48D7E93CDF0B}" {
+   Id "OVT-Base_Erquy"
+   Target_en_us "Erquy Harbour"
+   Modified 1684952021
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{6468E2320833D633}" {
    Id "OVT-Base_Lamentin"
    Target_en_us "Lamentin Harbour"
