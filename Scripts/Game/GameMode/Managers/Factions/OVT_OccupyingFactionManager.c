@@ -410,14 +410,6 @@ class OVT_OccupyingFactionManager: OVT_Component
 	protected void DistributeInitialResources()
 	{
 		//Distribute initial resources		
-		float totalMultiplier = 0;
-		foreach(OVT_BaseData data : m_Bases)
-		{
-			OVT_BaseControllerComponent base = GetBase(data.entId);
-			totalMultiplier += base.m_fStartingResourcesMultiplier;
-		}
-		int resourcesPerBase = Math.Floor(m_iResources / totalMultiplier);
-		
 		foreach(OVT_BaseData data : m_Bases)
 		{
 			OVT_BaseControllerComponent base = GetBase(data.entId);
