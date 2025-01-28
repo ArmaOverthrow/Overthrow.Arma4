@@ -28,10 +28,15 @@ class OVT_StartGameContext : OVT_UIContext
 		m_Factions.GetFactionsList(factions);
 		
 		Widget of = m_wRoot.FindAnyWidget("OccupyingFactionSpinner");
-		SCR_SpinBoxComponent spin = SCR_SpinBoxComponent.Cast(of.FindHandler(SCR_SpinBoxComponent));
-		spin.m_OnChanged.Insert(OnSpinFaction);
+		SCR_SpinBoxComponent ofSpin = SCR_SpinBoxComponent.Cast(of.FindHandler(SCR_SpinBoxComponent));
+		ofSpin.m_OnChanged.Insert(OnSpinOccupyingFaction);
+		
+		Widget sf = m_wRoot.FindAnyWidget("SupportingFactionSpinner");
+		SCR_SpinBoxComponent sfSpin = SCR_SpinBoxComponent.Cast(sf.FindHandler(SCR_SpinBoxComponent));
+		sfSpin.m_OnChanged.Insert(OnSpinSupportingFaction);
 				
-		int selectedFaction = 0;
+		int selectedOccupyingFaction = 0;
+		int selectedSupportingFaction = 0;
 		
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
 		
@@ -42,16 +47,19 @@ class OVT_StartGameContext : OVT_UIContext
 			if(faction.IsPlayable()) continue;
 			if(faction.GetFactionKey() == "CIV") continue;
 			
-			spin.AddItem(fac.GetUIInfo().GetName(),false,fac);
+			ofSpin.AddItem(fac.GetUIInfo().GetName(),false,fac);
+			sfSpin.AddItem(fac.GetUIInfo().GetName(),false,fac);
 						
-			if(faction.GetFactionKey() == config.m_sDefaultOccupyingFaction) selectedFaction = i;
+			if(faction.GetFactionKey() == config.m_sDefaultOccupyingFaction) selectedOccupyingFaction = i;
+			if(faction.GetFactionKey() == config.m_sDefaultSupportingFaction) selectedSupportingFaction = i;
 			
 			i++;
 		}
-		spin.SetCurrentItem(selectedFaction);
+		ofSpin.SetCurrentItem(selectedOccupyingFaction);
+		sfSpin.SetCurrentItem(selectedSupportingFaction);
 		
 		Widget diff = m_wRoot.FindAnyWidget("DifficultySpinner");
-		spin = SCR_SpinBoxComponent.Cast(diff.FindHandler(SCR_SpinBoxComponent));
+		SCR_SpinBoxComponent spin = SCR_SpinBoxComponent.Cast(diff.FindHandler(SCR_SpinBoxComponent));
 		spin.m_OnChanged.Insert(OnSpinDifficulty);
 		
 		foreach(OVT_DifficultySettings preset : config.m_aDifficultyPresets)
@@ -80,10 +88,16 @@ class OVT_StartGameContext : OVT_UIContext
 		
 	}
 	
-	protected void OnSpinFaction(SCR_SpinBoxComponent spinner, int index)
+	protected void OnSpinOccupyingFaction(SCR_SpinBoxComponent spinner, int index)
 	{
 		Faction data = Faction.Cast(spinner.GetItemData(index));
 		OVT_Global.GetConfig().SetOccupyingFaction(data.GetFactionKey());	
+	}
+	
+	protected void OnSpinSupportingFaction(SCR_SpinBoxComponent spinner, int index)
+	{
+		Faction data = Faction.Cast(spinner.GetItemData(index));
+		OVT_Global.GetConfig().SetSupportingFaction(data.GetFactionKey());	
 	}
 	
 	protected void OnSpinDifficulty(SCR_SpinBoxComponent spinner, int index)
