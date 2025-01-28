@@ -82,6 +82,18 @@ FrameWidgetClass {
         }
        }
       }
+      ButtonWidgetClass "{6478C5E471B46CC1}" : "{C9DF0E6590F6C388}UI/layouts/WidgetLibrary/SpinBox/WLib_SpinBox.layout" {
+       Name "SupportingFactionSpinner"
+       Slot LayoutSlot "{59BA5A735A7D34E2}" {
+        HorizontalAlign 3
+        Padding 4 4 4 4
+       }
+       components {
+        SCR_SpinBoxComponent "{5472C6CBC0640458}" {
+         m_sLabel "#OVT-SupportingFaction"
+        }
+       }
+      }
       ButtonWidgetClass "{6466E3EDEAB4B02F}" : "{C9DF0E6590F6C388}UI/layouts/WidgetLibrary/SpinBox/WLib_SpinBox.layout" {
        Name "DifficultySpinner"
        Slot LayoutSlot "{59BA5A735A7D34E2}" {
