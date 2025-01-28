@@ -214,7 +214,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 				if(OVT_Global.GetConfig().m_sPlayerFaction.IsEmpty()) OVT_Global.GetConfig().m_sPlayerFaction = "FIA";
 				vfac.SetAffiliatedFactionByKey(OVT_Global.GetConfig().m_sPlayerFaction);
 			}
-			if(m_iWantedLevel < 1 && currentFaction)
+			if(m_iWantedLevel < 1 && vehFaction)
 			{
 				vfac.SetAffiliatedFactionByKey("");
 			}
