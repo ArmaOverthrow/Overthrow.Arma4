@@ -57,6 +57,10 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMod
    }
   }
   OVT_EconomyManagerComponent "{5988DB0008700592}" {
+   m_ShopConfig OVT_ShopConfig "{647C9C5F3B7244AD}" : "{CA8AAD31D0E7E0B5}Configs/System/ShopConfig.conf" {
+   }
+   m_GunDealerConfig OVT_GunDealerConfig "{647C9C5F3A3FADA9}" : "{A8A5CE6C72E6D899}Configs/System/GunDealerConfig.conf" {
+   }
    m_VehiclePriceConfig OVT_VehiclePricesConfig "{5D96A5A380C4B791}" {
     m_aPrices {
      OVT_VehiclePriceConfig "{5DE72AF17F14214D}" {
@@ -121,8 +125,6 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMod
    m_Difficulty OVT_DifficultySettings "{598AD54E1DA56EB1}" : "{C0CB40B3E8B87FD4}Configs/Difficulty/Difficulty_Normal.conf" {
    }
    m_aDifficultyPresets {
-    OVT_DifficultySettings "{64681391C940045B}" : "{0BA489F3657E13D8}Configs/Difficulty/Difficulty_TestWorld.conf" {
-    }
     OVT_DifficultySettings "{6466E3EA3337FBBF}" : "{647A73DAAF55A0A6}Configs/Difficulty/Difficulty_Easy.conf" {
     }
     OVT_DifficultySettings "{6466E3EA33057A85}" : "{C0CB40B3E8B87FD4}Configs/Difficulty/Difficulty_Normal.conf" {
@@ -130,6 +132,8 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMod
     OVT_DifficultySettings "{6466E3EA33D240F9}" : "{0FA2C3AE29A3A93B}Configs/Difficulty/Difficulty_Hard.conf" {
     }
     OVT_DifficultySettings "{6466E3EA33A737F7}" : "{70CC1650D9BE0DDC}Configs/Difficulty/Difficulty_Extreme.conf" {
+    }
+    OVT_DifficultySettings "{64681391C940045B}" : "{0BA489F3657E13D8}Configs/Difficulty/Difficulty_TestWorld.conf" {
     }
    }
    m_pGunDealerPrefab "{59929550D81A3045}Prefabs/Characters/Factions/INDFOR/FIA/Character_FIA_GunDealer.et"
