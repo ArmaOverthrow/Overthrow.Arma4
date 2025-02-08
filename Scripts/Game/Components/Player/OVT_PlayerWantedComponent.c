@@ -86,6 +86,16 @@ class OVT_PlayerWantedComponent: OVT_Component
 			FactionManager mgr = GetGame().GetFactionManager();
 			Faction civ = mgr.GetFactionByKey("CIV");
 			aff.RequestFaction(civ);
+			
+			SCR_PlayerControllerGroupComponent group = SCR_PlayerControllerGroupComponent.Cast(pc.FindComponent(SCR_PlayerControllerGroupComponent));
+			if(group)
+			{
+				int groupId = group.GetGroupID();
+				if(groupId == -1)
+				{
+					group.CreateAndJoinGroup(civ);
+				}
+			}
 		}
 	}
 	

@@ -302,7 +302,7 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMod
  }
  coords 208.286 1.001 116.919
 }
-OVT_OverthrowFactionManager OVT_OverthrowFactionManager : "{51EBC0CFD56DA130}Prefabs/GameMode/OVT_OverthrowFactionManager.et" {
+OVT_OverthrowFactionManager "6490CD9767C0A45B" : "{51EBC0CFD56DA130}Prefabs/GameMode/OVT_OverthrowFactionManager.et" {
  coords 0 0 0
  Factions {
   SCR_Faction "{5D8CB0700C13A528}" : "{09727032415AC39B}Configs/Factions/USSR.conf" {
@@ -314,7 +314,7 @@ OVT_OverthrowFactionManager OVT_OverthrowFactionManager : "{51EBC0CFD56DA130}Pre
   SCR_Faction "{5D8CB07017FAD571}" : "{8053DB656DD18B14}Configs/Factions/FIA.conf" {
    m_bIsPlayable 0
   }
-  SCR_Faction "{6466809F3C7BD364}" : "{00C219DF633474D1}Configs/Factions/CIV.conf" {
+  SCR_Faction "{6490AAF9D5710EF1}" : "{00C219DF633474D1}Configs/Factions/CIV.conf" {
   }
  }
  m_aOverthrowFactions {
@@ -324,7 +324,7 @@ OVT_OverthrowFactionManager OVT_OverthrowFactionManager : "{51EBC0CFD56DA130}Pre
   }
   OVT_Faction "{5D8CB07FC36DF5F6}" : "{581BA9D7260E4FB7}Configs/Factions/FIA_OverthrowData.conf" {
   }
-  OVT_Faction "{6466809FAE1E6294}" : "{68DD6AA07EE8788A}Configs/Factions/CIV_OverthrowData.conf" {
+  OVT_Faction "{6490AAF9DC0AC6C2}" : "{68DD6AA07EE8788A}Configs/Factions/CIV_OverthrowData.conf" {
   }
  }
 }
