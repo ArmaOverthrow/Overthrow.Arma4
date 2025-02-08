@@ -59,9 +59,6 @@ class OVT_EconomyManagerComponent: OVT_Component
 	protected ref array<RplId> m_aAllShops;
 	protected ref array<RplId> m_aAllPorts;
 	protected ref array<RplId> m_aGunDealers;
-	
-	protected OVT_TownManagerComponent m_Towns;
-	protected OVT_PlayerManagerComponent m_Players;
 		
 	const int ECONOMY_UPDATE_FREQUENCY = 60000;
 	
@@ -243,7 +240,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	protected void ReplenishStock()
 	{
 		//Shops restocking		
-		foreach(OVT_TownData town : m_Towns.m_Towns)
+		foreach(OVT_TownData town : OVT_Global.GetTowns().GetTowns())
 		{
 			int townID = OVT_Global.GetTowns().GetTownID(town);
 			if(!m_mTownShops.Contains(townID)) continue;			
@@ -282,7 +279,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	protected void UpdateShops()
 	{
 		//NPCs Buying stock
-		foreach(OVT_TownData town : m_Towns.m_Towns)
+		foreach(OVT_TownData town : OVT_Global.GetTowns().GetTowns())
 		{
 			int townID = OVT_Global.GetTowns().GetTownID(town);
 			if(!m_mTownShops.Contains(townID)) continue;
@@ -381,7 +378,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	int GetDonationIncome()
 	{
 		int income = 0;
-		foreach(OVT_TownData town : m_Towns.m_Towns)
+		foreach(OVT_TownData town : OVT_Global.GetTowns().GetTowns())
 		{
 			int increase = OVT_Global.GetConfig().m_Difficulty.donationIncome * town.support;
 			if(town.stability > 75)
@@ -397,7 +394,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	{
 		int income = 0;
 		
-		foreach(OVT_TownData town : m_Towns.m_Towns)
+		foreach(OVT_TownData town : OVT_Global.GetTowns().GetTowns())
 		{
 			if(town.IsOccupyingFaction()) continue;
 			income += (int)Math.Round(OVT_Global.GetConfig().m_Difficulty.taxIncome * town.population * (town.stability / 100));
@@ -465,7 +462,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	int GetTownMaxStock(int townId, int id)
 	{
-		OVT_TownData town = m_Towns.GetTown(townId);
+		OVT_TownData town = OVT_Global.GetTowns().GetTown(townId);
 		if(!town) return 100;
 		return Math.Round(1 + (town.population * OVT_Global.GetConfig().m_fNPCBuyRate * GetDemand(id) * ((float)town.stability / 100)));
 	}	
@@ -545,9 +542,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	array<RplId> GetAllShopsInTown(OVT_TownData town)
 	{
-		int range = m_Towns.m_iCityRange;
-		if(town.size == 2) range = m_Towns.m_iTownRange;
-		if(town.size == 1) range = m_Towns.m_iVillageRange;
+		int range = OVT_Global.GetTowns().m_iCityRange;
+		if(town.size == 2) range = OVT_Global.GetTowns().m_iTownRange;
+		if(town.size == 1) range = OVT_Global.GetTowns().m_iVillageRange;
 		array<RplId> shops = new array<RplId>;
 		foreach(RplId id : m_aAllShops)
 		{
@@ -569,7 +566,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	int GetPlayerMoney(string playerId)
 	{
-		OVT_PlayerData player = m_Players.GetPlayer(playerId);
+		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(playerId);
 		if(!player) return 0;
 		return player.money;
 	}
@@ -589,7 +586,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	bool PlayerHasMoney(string playerId, int amount)
 	{
-		OVT_PlayerData player = m_Players.GetPlayer(playerId);
+		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(playerId);
 		if(!player) return false;
 		return player.money >= amount;
 	}
@@ -608,7 +605,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		
-		OVT_PlayerData player = m_Players.GetPlayer(persId);
+		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(persId);
 		if(!player) return;
 		
 		player.money = player.money + amount;
@@ -682,7 +679,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	void TakePlayerMoneyPersistentId(string persId, int amount)
 	{
-		OVT_PlayerData player = m_Players.GetPlayer(persId);
+		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(persId);
 		if(!player) return;		
 		
 		player.money = player.money - amount;
@@ -697,7 +694,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	void AddPlayerMoneyPersistentId(string persId, int amount)
 	{
-		OVT_PlayerData player = m_Players.GetPlayer(persId);
+		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(persId);
 		if(!player) return;
 		
 		player.money = player.money + amount;
@@ -712,7 +709,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	void DoTakePlayerMoney(int playerId, int amount)
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
-		OVT_PlayerData player = m_Players.GetPlayer(persId);
+		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(persId);
 		if(!player) return;
 		
 		player.money = player.money - amount;
@@ -746,8 +743,8 @@ class OVT_EconomyManagerComponent: OVT_Component
 		
 		if(tw) timeMul = tw.GetDayTimeMultiplier();
 		
-		m_Towns = OVT_Global.GetTowns();
-		m_Players = OVT_Global.GetPlayers();
+		OVT_Global.GetTowns() = OVT_Global.GetTowns();
+		OVT_Global.GetPlayers() = OVT_Global.GetPlayers();
 		
 		GetGame().GetCallqueue().CallLater(AfterInit, 0);		
 		
@@ -1096,7 +1093,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 			RplId id = rpl.Id();
 			m_aAllShops.Insert(id);
 		
-			OVT_TownData town = m_Towns.GetNearestTown(entity.GetOrigin());
+			OVT_TownData town = OVT_Global.GetTowns().GetNearestTown(entity.GetOrigin());
 			int townID = OVT_Global.GetTowns().GetTownID(town);
 			
 			if(!m_mTownShops.Contains(townID))
@@ -1236,7 +1233,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	void StreamPlayerMoney(int playerId)
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
-		OVT_PlayerData player = m_Players.GetPlayer(persId);
+		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(persId);
 		if(!player) return;
 		
 		Rpc(RpcDo_SetPlayerMoney, playerId, player.money);
@@ -1246,7 +1243,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	protected void RpcDo_SetPlayerMoney(int playerId, int amount)
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
-		OVT_PlayerData player = m_Players.GetPlayer(persId);
+		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(persId);
 		if(!player) return;
 		player.money = amount;
 		m_OnPlayerMoneyChanged.Invoke(persId, player.money);

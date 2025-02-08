@@ -78,6 +78,15 @@ class OVT_PlayerWantedComponent: OVT_Component
 		GetGame().GetCallqueue().CallLater(CheckUpdate, WANTED_SYSTEM_FREQUENCY, true, owner);		
 		
 		OVT_Global.GetOccupyingFaction().m_OnPlayerLoot.Insert(OnPlayerLoot);
+		
+		PlayerController pc = GetGame().GetPlayerController();
+		if (pc)
+		{
+			SCR_PlayerFactionAffiliationComponent aff = SCR_PlayerFactionAffiliationComponent.Cast(pc.FindComponent(SCR_PlayerFactionAffiliationComponent));
+			FactionManager mgr = GetGame().GetFactionManager();
+			Faction civ = mgr.GetFactionByKey("CIV");
+			aff.RequestFaction(civ);
+		}
 	}
 	
 	void OnPlayerLoot(IEntity player)
@@ -191,17 +200,19 @@ class OVT_PlayerWantedComponent: OVT_Component
 	protected void CheckWanted()
 	{		
 		Faction currentFaction = m_Faction.GetAffiliatedFaction();
-		if(m_iWantedLevel > 1 && !currentFaction)
+		string factionKey = currentFaction.GetFactionKey();
+		
+		if(m_iWantedLevel > 1 && factionKey == "CIV")
 		{
 			//Print("You are wanted now");
 			if(OVT_Global.GetConfig().m_sPlayerFaction.IsEmpty()) OVT_Global.GetConfig().m_sPlayerFaction = "FIA";
 			m_Faction.SetAffiliatedFactionByKey(OVT_Global.GetConfig().m_sPlayerFaction);
 		}
 		
-		if(m_iWantedLevel < 1 && currentFaction)
+		if(m_iWantedLevel < 1 && factionKey != "CIV")
 		{
 			//Print("You are no longer wanted");
-			m_Faction.SetAffiliatedFactionByKey("");
+			m_Faction.SetAffiliatedFactionByKey("CIV");
 		}
 		
 		if(m_Compartment && m_Compartment.IsInCompartment())
@@ -209,14 +220,15 @@ class OVT_PlayerWantedComponent: OVT_Component
 			//Player is in a vehicle, may need to update vehicle's faction
 			SCR_VehicleFactionAffiliationComponent vfac = EPF_Component<SCR_VehicleFactionAffiliationComponent>.Find(m_Compartment.GetVehicle());
 			Faction vehFaction = vfac.GetAffiliatedFaction();
-			if(m_iWantedLevel > 1 && !vehFaction)
+			string vehFactionKey = vehFaction.GetFactionKey();
+			if(m_iWantedLevel > 1 && vehFactionKey == "CIV")
 			{
 				if(OVT_Global.GetConfig().m_sPlayerFaction.IsEmpty()) OVT_Global.GetConfig().m_sPlayerFaction = "FIA";
 				vfac.SetAffiliatedFactionByKey(OVT_Global.GetConfig().m_sPlayerFaction);
 			}
-			if(m_iWantedLevel < 1 && vehFaction)
+			if(m_iWantedLevel < 1 && vehFactionKey != "CIV")
 			{
-				vfac.SetAffiliatedFactionByKey("");
+				vfac.SetAffiliatedFactionByKey("CIV");
 			}
 		}	
 	}
@@ -231,11 +243,11 @@ class OVT_PlayerWantedComponent: OVT_Component
 		PerceptionComponent perceptComp = PerceptionComponent.Cast(entity.FindComponent(PerceptionComponent));
 		if(!perceptComp) return true;
 		
-		if(perceptComp.GetTargetCount(ETargetCategory.FACTIONLESS) == 0) return true;
+		if(perceptComp.GetTargetCount(ETargetCategory.FRIENDLY) == 0) return true;
 		
 		autoptr array<BaseTarget> targets = new array<BaseTarget>;
 		
-		perceptComp.GetTargetsList(targets, ETargetCategory.FACTIONLESS);
+		perceptComp.GetTargetsList(targets, ETargetCategory.FRIENDLY);
 		
 		float dist = vector.Distance(GetOwner().GetOrigin(), entity.GetOrigin());
 		
