@@ -28,33 +28,27 @@ class OVT_ShopInventoryItem : ScriptAndConfig
 	
 	[Attribute(desc: "String to search in prefab name, blank for all")]
 	string m_sFind;
+
+	[Attribute("true", desc: "Include buy/sell occupying faction's gear for this item")]
+	bool m_bIncludeOccupyingFactionItems;
 	
-	[Attribute(desc: "Don't buy/sell occupying faction's gear for this item")]
-	bool m_bNotOccupyingFaction;
+	[Attribute("true", desc: "Include buy/sell supporting faction's gear for this item")]
+	bool m_bIncludeSupportingFactionItems;
 	
+	[Attribute("true", desc: "Include buy/sell other faction's gear for this item")]
+	bool m_bIncludeOtherFactionItems;
+		
 	[Attribute(desc: "Choose a single and random item from this category")]
 	bool m_bSingleRandomItem;
-}
-
-class OVT_ShopInventoryConfig : ScriptAndConfig
-{
-	[Attribute("1", UIWidgets.ComboBox, "Shop type", "", ParamEnumArray.FromEnum(OVT_ShopType) )]
-	OVT_ShopType type;
-	
-	[Attribute("", UIWidgets.Object)]
-	ref array<ref OVT_ShopInventoryItem> m_aInventoryItems;
 }
 
 class OVT_EconomyManagerComponent: OVT_Component
 {
 	[Attribute("", UIWidgets.Object)]
-	ref array<ref OVT_ShopInventoryConfig> m_aShopConfigs;
+	ref OVT_ShopConfig m_ShopConfig;
 	
 	[Attribute("", UIWidgets.Object)]
-	ref array<ref OVT_ShopInventoryItem> m_aGunDealerItems;
-	
-	[Attribute("", UIWidgets.Object)]
-	ref array<ref OVT_PrefabItemCostConfig> m_aGunDealerItemPrefabs;
+	ref OVT_GunDealerConfig m_GunDealerConfig;
 		
 	[Attribute("", UIWidgets.Object)]
 	ref OVT_PricesConfig m_PriceConfig;
@@ -566,7 +560,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	OVT_ShopInventoryConfig GetShopConfig(OVT_ShopType shopType)
 	{		
-		foreach(OVT_ShopInventoryConfig config : m_aShopConfigs)
+		foreach(OVT_ShopInventoryConfig config : m_ShopConfig.m_aShopConfigs)
 		{
 			if(config.type == shopType) return config;
 		}
@@ -877,7 +871,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 			}
 		}		
 		
-		foreach(OVT_PrefabItemCostConfig item : m_aGunDealerItemPrefabs)
+		foreach(OVT_PrefabItemCostConfig item : m_GunDealerConfig.m_aGunDealerItemPrefabs)
 		{
 			ResourceName res = item.m_sEntityPrefab;
 			if(res == "") continue;
@@ -1056,6 +1050,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 			OVT_TownData town = shop.GetTown();
 			
 			int occupyingFactionId = OVT_Global.GetConfig().GetOccupyingFactionIndex();
+			int supportingFactionId = OVT_Global.GetConfig().GetSupportingFactionIndex();
 			
 			int townID = OVT_Global.GetTowns().GetTownID(town);			
 			
@@ -1079,7 +1074,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 					{
 						int id = GetInventoryId(entry.GetPrefab());
 						
-						if(item.m_bNotOccupyingFaction && ItemIsFromFaction(id, occupyingFactionId)) continue;
+						if(!item.m_bIncludeOccupyingFactionItems && ItemIsFromFaction(id, occupyingFactionId)) continue;
+						if(!item.m_bIncludeSupportingFactionItems && ItemIsFromFaction(id, supportingFactionId)) continue;
+						if(!item.m_bIncludeOtherFactionItems) continue;
 						int max = GetTownMaxStock(townID, id);
 					
 						int num = Math.Round(s_AIRandomGenerator.RandFloatXY(1,max));
