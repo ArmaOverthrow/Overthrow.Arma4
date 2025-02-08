@@ -490,4 +490,65 @@ class OVT_OverthrowConfigComponent: OVT_Component
 			return;
 		}
 	}
+	
+	//RPC Methods
+	
+	override bool RplSave(ScriptBitWriter writer)
+	{	
+			
+		//Send needed difficulty items		
+		writer.WriteBool(m_Difficulty.showPlayerOnMap);
+		writer.WriteInt(m_Difficulty.wantedTimeout);
+		writer.WriteInt(m_Difficulty.wantedOneTimeout);
+		writer.WriteFloat(m_Difficulty.placeableCostMultiplier);
+		writer.WriteFloat(m_Difficulty.buildableCostMultiplier);
+		writer.WriteFloat(m_Difficulty.realEstateCostMultiplier);
+		writer.WriteInt(m_Difficulty.busTicketPrice);
+		writer.WriteInt(m_Difficulty.baseRecruitCost);
+		writer.WriteInt(m_Difficulty.gunDealerSellPriceMultiplier);
+		writer.WriteInt(m_Difficulty.procurementMultiplier);		
+		
+		return true;
+	}
+	
+	override bool RplLoad(ScriptBitReader reader)
+	{		
+				
+		//Recieve difficulty items
+		int i;
+		float f;
+		bool b;
+		
+		if (!reader.ReadBool(b)) return false;
+		m_Difficulty.showPlayerOnMap = b;
+		
+		if (!reader.ReadInt(i)) return false;
+		m_Difficulty.wantedTimeout = i;
+		
+		if (!reader.ReadInt(i)) return false;
+		m_Difficulty.wantedOneTimeout = i;
+		
+		if (!reader.ReadFloat(f)) return false;
+		m_Difficulty.placeableCostMultiplier = f;
+		
+		if (!reader.ReadFloat(f)) return false;
+		m_Difficulty.buildableCostMultiplier = f;
+		
+		if (!reader.ReadFloat(f)) return false;
+		m_Difficulty.realEstateCostMultiplier = f;
+		
+		if (!reader.ReadInt(i)) return false;
+		m_Difficulty.busTicketPrice = i;
+		
+		if (!reader.ReadInt(i)) return false;
+		m_Difficulty.baseRecruitCost = i;
+		
+		if (!reader.ReadInt(i)) return false;
+		m_Difficulty.gunDealerSellPriceMultiplier = i;
+		
+		if (!reader.ReadInt(i)) return false;
+		m_Difficulty.procurementMultiplier = i;
+		
+		return true;
+	}
 }
