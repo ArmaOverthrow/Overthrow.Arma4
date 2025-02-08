@@ -56,31 +56,6 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMod
     }
    }
   }
-  OVT_EconomyManagerComponent "{5988DB0008700592}" {
-   m_ShopConfig OVT_ShopConfig "{647C9C5F3B7244AD}" : "{CA8AAD31D0E7E0B5}Configs/System/ShopConfig.conf" {
-   }
-   m_GunDealerConfig OVT_GunDealerConfig "{647C9C5F3A3FADA9}" : "{A8A5CE6C72E6D899}Configs/System/GunDealerConfig.conf" {
-   }
-   m_VehiclePriceConfig OVT_VehiclePricesConfig "{5D96A5A380C4B791}" {
-    m_aPrices {
-     OVT_VehiclePriceConfig "{5DE72AF17F14214D}" {
-      m_sFind "_ambulance"
-      cost 4200
-      illegal 0
-     }
-     OVT_VehiclePriceConfig "{6466809ACB90F2F7}" {
-      m_sFind "S105_"
-      cost 450
-      illegal 0
-     }
-     OVT_VehiclePriceConfig "{6466809A8B3EEDF4}" {
-      m_sFind "S1203_"
-      cost 1000
-      illegal 0
-     }
-    }
-   }
-  }
   OVT_JobManagerComponent "{59A8D178EC1AA2AE}" {
    m_aJobConfigs {
     OVT_JobConfig "{5D9C33D67790A077}" : "{440607BAB7BD6B1C}Configs/Jobs/assassinateTraitor.conf" {
