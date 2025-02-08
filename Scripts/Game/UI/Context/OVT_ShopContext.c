@@ -184,12 +184,17 @@ class OVT_ShopContext : OVT_UIContext
 		if(m_Shop.m_bProcurement)
 		{
 			buy = m_Economy.GetPrice(id);
+			buy = buy * OVT_Global.GetConfig().m_Difficulty.procurementMultiplier;
 			sell = buy;
 			qty = 100;
 			max = 100;
 		}else{
 			buy = m_Economy.GetBuyPrice(id, m_Shop.GetOwner().GetOrigin(),m_iPlayerID);
 			sell = m_Economy.GetSellPrice(id, m_Shop.GetOwner().GetOrigin());
+			if(m_Shop.m_ShopType == OVT_ShopType.SHOP_GUNDEALER)
+			{
+				sell = sell * OVT_Global.GetConfig().m_Difficulty.gunDealerSellPriceMultiplier;
+			}
 			qty = m_Shop.GetStock(id);
 			OVT_TownData town = m_Shop.GetTown();
 			int townID = OVT_Global.GetTowns().GetTownID(town);
@@ -268,7 +273,10 @@ class OVT_ShopContext : OVT_UIContext
 		if(!player) return;
 		
 		int cost = m_Economy.GetSellPrice(m_SelectedResource, m_Shop.GetOwner().GetOrigin());
-		cost = cost * OVT_Global.GetConfig().m_Difficulty.gunDealerSellPriceMultiplier;
+		if(m_Shop.m_ShopType == OVT_ShopType.SHOP_GUNDEALER)
+		{
+			cost = cost * OVT_Global.GetConfig().m_Difficulty.gunDealerSellPriceMultiplier;
+		}
 		
 		SCR_InventoryStorageManagerComponent inventory = SCR_InventoryStorageManagerComponent.Cast(player.FindComponent( SCR_InventoryStorageManagerComponent ));
 		if(!inventory) return;
