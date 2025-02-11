@@ -172,7 +172,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 		writer.WriteInt(m_mOwned.Count()); 
 		for(int i=0; i<m_mOwned.Count(); i++)
 		{		
-			set<vector> ownedArray = m_mOwned.GetElement(i);
+			set<RplId> ownedArray = m_mOwned.GetElement(i);
 			writer.WriteString(m_mOwned.GetKey(i));			
 			writer.WriteInt(ownedArray.Count());
 			for(int t=0; t<ownedArray.Count(); t++)
@@ -185,7 +185,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 		writer.WriteInt(m_mRented.Count()); 
 		for(int i=0; i<m_mRented.Count(); i++)
 		{		
-			set<vector> rentedArray = m_mRented.GetElement(i);
+			set<RplId> rentedArray = m_mRented.GetElement(i);
 			writer.WriteString(m_mRented.GetKey(i));			
 			writer.WriteInt(rentedArray.Count());
 			for(int t=0; t<rentedArray.Count(); t++)
