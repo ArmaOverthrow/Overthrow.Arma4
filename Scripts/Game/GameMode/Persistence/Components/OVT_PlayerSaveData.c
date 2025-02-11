@@ -22,6 +22,10 @@ class OVT_PlayerSaveData : EPF_ComponentSaveData
 		OVT_PlayerManagerComponent players = OVT_PlayerManagerComponent.Cast(component);
 		
 		if(!m_mPlayers) return EPF_EApplyResult.OK;
+		if(!players.m_mPlayers)
+		{
+			players.m_mPlayers = new map<string, ref OVT_PlayerData>();
+		}
 		
 		for(int t=0; t< m_mPlayers.Count(); t++)
 		{

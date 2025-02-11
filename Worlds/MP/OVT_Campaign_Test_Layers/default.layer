@@ -238,9 +238,6 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMod
    m_sDefaultGroupPrefab "{8B4D49A9F324E7D5}Prefabs/Groups/PlayableGroup.et"
    m_iPlayableGroupFrequencyOffset 500
   }
-  SCR_NametagConfigComponent "{59724C8C935D8E28}" {
-   m_sConfigPath "{09F7AAA14A642683}Configs/NameTags/NametagFriendlies.conf"
-  }
   SCR_NotificationSenderComponent "{5D7A443FDCA27CAE}" {
    m_iReceiveKillFeedType SAME_FACTION_ONLY
    m_aKillfeedTypeNames {
@@ -375,7 +372,7 @@ Tree : "{23C0BE9D80929DBD}Prefabs/Vegetation/Bush/b_salix_cinerea_1w.et" {
  coords 180.297 0.001 117.938
 }
 SCR_DestructibleBuildingEntity : "{322D245123EEDC90}Prefabs/Structures/Houses/Village/House_Village_E_1I01/House_Village_E_1I01_V2.et" {
- coords 228.846 -0 219.201
+ coords 228.846 0 219.201
 }
 SCR_DestructibleBuildingEntity : "{38A5F3E4578087AB}Prefabs/Structures/Houses/Town/House_Town_E_2I01/House_Town_E_2I01.et" {
  coords 241.413 0.001 118.064

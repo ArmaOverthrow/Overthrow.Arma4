@@ -296,7 +296,7 @@ OVT_OverthrowGameMode {
   SCR_MapMarkerManagerComponent "{5E4852B941E83CA7}" {
   }
   SCR_NametagConfigComponent "{59724C8C935D8E28}" {
-   m_sConfigPath "{09F7AAA14A642683}Configs/NameTags/NametagFriendlies.conf"
+   m_sConfigPath "{73BD756CAE48F88C}Configs/NameTags/NametagCIV.conf"
   }
   SCR_NightModeGameModeComponent "{6490AAF2054227BA}" {
   }
