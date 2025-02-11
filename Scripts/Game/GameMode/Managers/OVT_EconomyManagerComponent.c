@@ -198,10 +198,11 @@ class OVT_EconomyManagerComponent: OVT_Component
 		OVT_RealEstateManagerComponent realEstate = OVT_Global.GetRealEstate();
 		for(int i = 0; i < realEstate.m_mRenters.Count(); i++)
 		{
-			vector pos = realEstate.m_mRenters.GetKey(i);
-			string playerId = realEstate.m_mRenters[pos];
-
-			IEntity building = realEstate.GetNearestBuilding(pos);
+			RplId rid = realEstate.m_mRenters.GetKey(i);
+			string playerId = realEstate.m_mRenters[rid];
+			RplComponent rpl = RplComponent.Cast(Replication.FindItem(rid));
+			if(!rpl) continue;
+			IEntity building = rpl.GetEntity();
 			EntityID id = building.GetID();
 			int cost = realEstate.GetRentPrice(building);
 			

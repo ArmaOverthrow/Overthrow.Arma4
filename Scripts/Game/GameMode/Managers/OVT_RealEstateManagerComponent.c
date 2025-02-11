@@ -314,21 +314,23 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		if(!m_mOwned.Contains(playerId)) return null;
 		
 		float nearest = -1;
-		vector nearestPos;		
+		IEntity nearestEnt;		
 		
-		set<vector> owner = m_mOwned[playerId];
-		foreach(vector buildingPos : owner)
-		{			
-			float dist = vector.Distance(buildingPos, pos);
+		set<RplId> owner = m_mOwned[playerId];
+		foreach(RplId id : owner)
+		{
+			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+			IEntity ent = rpl.GetEntity();
+			float dist = vector.Distance(ent.GetOrigin(), pos);
 			if(range > -1 && dist > range) continue;
 			if(nearest == -1 || dist < nearest)
 			{
 				nearest = dist;
-				nearestPos = buildingPos;
+				nearestEnt = ent;
 			}
 		}
 		
-		return GetNearestBuilding(nearestPos);
+		return nearestEnt;
 	}
 	
 	IEntity GetNearestRented(string playerId, vector pos, float range = -1)
@@ -336,27 +338,60 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		if(!m_mRented.Contains(playerId)) return null;
 		
 		float nearest = -1;
-		vector nearestPos;		
+		IEntity nearestEnt;		
 		
-		set<vector> owner = m_mRented[playerId];
-		foreach(vector buildingPos : owner)
+		set<RplId> owner = m_mRented[playerId];
+		foreach(RplId id : owner)
 		{
-			float dist = vector.Distance(buildingPos, pos);
+			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+			IEntity ent = rpl.GetEntity();
+			float dist = vector.Distance(ent.GetOrigin(), pos);
 			if(range > -1 && dist > range) continue;
 			if(nearest == -1 || dist < nearest)
 			{
 				nearest = dist;
-				nearestPos = buildingPos;
+				nearestEnt = ent;
 			}
 		}
 		
-		return GetNearestBuilding(nearestPos);
+		return nearestEnt;
+	}
+	
+	IEntity GetNearestBuilding(vector pos, float range = 40)
+	{
+		m_aEntitySearch.Clear();
+		GetGame().GetWorld().QueryEntitiesBySphere(pos, range, null, FilterBuildingToArray, EQueryEntitiesFlags.STATIC);
+		
+		if(m_aEntitySearch.Count() == 0)
+		{
+			return null;
+		}
+		float nearest = range;
+		IEntity nearestEnt;	
+		
+		foreach(IEntity ent : m_aEntitySearch)
+		{
+			float dist = vector.Distance(ent.GetOrigin(), pos);
+			if(dist < nearest)
+			{
+				nearest = dist;
+				nearestEnt = ent;
+			}
+		}
+		return nearestEnt;
 	}
 	
 	bool BuildingIsOwnable(IEntity entity)
 	{
 		if(!entity) return false;
 		if(entity.ClassName() != "SCR_DestructibleBuildingEntity")
+		{
+			return false;
+		}
+
+		// Check for RplComponent
+		RplComponent rpl = RplComponent.Cast(entity.FindComponent(RplComponent));
+		if(!rpl)
 		{
 			return false;
 		}

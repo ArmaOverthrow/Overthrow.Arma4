@@ -20,18 +20,28 @@ class OVT_RealEstateSaveData : EPF_ComponentSaveData
 		
 		for(int i=0; i<re.m_mOwned.Count(); i++)
 		{		
-			set<vector> ownedArray = re.m_mOwned.GetElement(i);
+			set<RplId> ownedArray = re.m_mOwned.GetElement(i);
 			string playerId = re.m_mOwned.GetKey(i);
-			m_mOwned[playerId] = ownedArray;
+			m_mOwned[playerId] = new array<vector>;
+			
+			foreach(RplId id : ownedArray)
+			{				
+				m_mOwned[playerId].Insert(re.GetLocationFromId(id));
+			}
 		}
 		
 		m_mRented = new map<string, ref array<vector>>;
 		
 		for(int i=0; i<re.m_mRented.Count(); i++)
 		{		
-			set<vector> ownedArray = re.m_mRented.GetElement(i);
+			set<RplId> ownedArray = re.m_mRented.GetElement(i);
 			string playerId = re.m_mRented.GetKey(i);
-			m_mRented[playerId] = ownedArray;			
+			m_mRented[playerId] = new array<vector>;
+			
+			foreach(RplId id : ownedArray)
+			{
+				m_mRented[playerId].Insert(re.GetLocationFromId(id));
+			}
 		}
 		
 		return EPF_EReadResult.OK;
@@ -52,7 +62,9 @@ class OVT_RealEstateSaveData : EPF_ComponentSaveData
 			{
 				IEntity building = re.GetNearestBuilding(pos, 5);
 				if(!building) continue;
-				re.DoSetOwnerPersistentId(playerId, pos);
+				RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
+				if(!rpl) continue;
+				re.DoSetOwnerPersistentId(playerId, rpl.Id());
 			}
 		}
 		
@@ -65,7 +77,9 @@ class OVT_RealEstateSaveData : EPF_ComponentSaveData
 			{
 				IEntity building = re.GetNearestBuilding(pos, 5);
 				if(!building) continue;
-				re.DoSetRenterPersistentId(playerId, pos);
+				RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
+				if(!rpl) continue;
+				re.DoSetRenterPersistentId(playerId, rpl.Id());
 			}
 		}
 				

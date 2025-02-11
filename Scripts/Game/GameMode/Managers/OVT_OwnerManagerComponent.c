@@ -5,69 +5,76 @@ class OVT_OwnerManagerComponentClass: OVT_ComponentClass
 
 class OVT_OwnerManagerComponent: OVT_Component
 {
-	ref map<string, ref set<vector>> m_mOwned;
-	ref map<string, ref set<vector>> m_mRented;
-	ref map<vector, string> m_mOwners;
-	ref map<vector, string> m_mRenters;
+	ref map<string, ref set<RplId>> m_mOwned;
+	ref map<string, ref set<RplId>> m_mRented;
+	ref map<ref RplId, string> m_mOwners;
+	ref map<ref RplId, string> m_mRenters;
+	ref map<ref RplId, vector> m_mLocations;
 	
 	void OVT_OwnerManagerComponent(IEntityComponentSource src, IEntity ent, IEntity parent)
 	{
-		m_mOwned = new map<string, ref set<vector>>;
-		m_mOwners = new map<vector, string>;
-		m_mRented = new map<string, ref set<vector>>;
-		m_mRenters = new map<vector, string>;
+		m_mOwned = new map<string, ref set<RplId>>;
+		m_mOwners = new map<ref RplId, string>;
+		m_mRented = new map<string, ref set<RplId>>;
+		m_mRenters = new map<ref RplId, string>;
+		m_mLocations = new map<ref RplId, vector>;
+	}
+	
+	vector GetLocationFromId(RplId id)
+	{
+		if(!m_mLocations.Contains(id)) return "0 0 0";
+		return m_mLocations[id];
 	}
 	
 	void SetOwner(int playerId, IEntity building)
-	{		
-		DoSetOwner(playerId, building.GetOrigin());		
-		Rpc(RpcDo_SetOwner, playerId, building.GetOrigin());		
+	{
+		RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
+		
+		RplId rplId = null;
+		if(rpl != null) rplId = rpl.Id();
+		
+		DoSetOwner(playerId, rplId);		
+		Rpc(RpcDo_SetOwner, playerId, rplId);		
 	}
 	
 	void SetOwnerPersistentId(string persId, IEntity building)
 	{
+		RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
 		int playerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(persId);
-		DoSetOwnerPersistentId(persId, building.GetOrigin());		
-		Rpc(RpcDo_SetOwner, playerId, building.GetOrigin());		
+		DoSetOwnerPersistentId(persId, rpl.Id());		
+		Rpc(RpcDo_SetOwner, playerId, rpl.Id());		
 	}
 	
 	void SetRenter(int playerId, IEntity building)
-	{		
-		DoSetRenter(playerId, building.GetOrigin());		
-		Rpc(RpcDo_SetRenter, playerId, building.GetOrigin());		
+	{
+		RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
+		DoSetRenter(playerId, rpl.Id());		
+		Rpc(RpcDo_SetRenter, playerId, rpl.Id());		
 	}
 	
 	void SetRenterPersistentId(string persId, IEntity building)
 	{
+		RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
 		int playerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(persId);
-		DoSetRenterPersistentId(persId, building.GetOrigin());		
-		Rpc(RpcDo_SetRenter, playerId, building.GetOrigin());		
+		DoSetRenterPersistentId(persId, rpl.Id());		
+		Rpc(RpcDo_SetRenter, playerId, rpl.Id());		
 	}
 	
 	string GetOwnerID(IEntity building)
 	{
 		if(!building) return "";
-		vector pos = building.GetOrigin();
-		return GetOwnerIDFromPos(pos);
-	}
-	
-	string GetOwnerIDFromPos(vector pos)
-	{
-		if(!m_mOwners.Contains(pos)) return "";
-		return m_mOwners[pos];
+		RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
+		if(!rpl) return "";
+		if(!m_mOwners.Contains(rpl.Id())) return "";
+		return m_mOwners[rpl.Id()];
 	}
 	
 	string GetRenterID(IEntity building)
 	{
-		if(!building) return "";
-		vector pos = building.GetOrigin();
-		return GetRenterIDFromPos(pos);
-	}
-	
-	string GetRenterIDFromPos(vector pos)
-	{
-		if(!m_mRenters.Contains(pos)) return "";
-		return m_mRenters[pos];
+		RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
+		if(!rpl) return "";
+		if(!m_mRenters.Contains(rpl.Id())) return "";
+		return m_mRenters[rpl.Id()];
 	}
 	
 	bool IsOwner(string playerId, EntityID entityId)
@@ -75,25 +82,29 @@ class OVT_OwnerManagerComponent: OVT_Component
 		if(!m_mOwned.Contains(playerId)) return false;
 		IEntity building = GetGame().GetWorld().FindEntityByID(entityId);
 		if (!building) return false;
-		set<vector> owner = m_mOwned[playerId];
-		return owner.Contains(building.GetOrigin());
+		RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
+		if (!rpl) return false;
+		set<RplId> owner = m_mOwned[playerId];
+		return owner.Contains(rpl.Id());
 	}
 	
 	bool IsRenter(string playerId, EntityID entityId)
 	{
 		if(!m_mRented.Contains(playerId)) return false;
 		IEntity building = GetGame().GetWorld().FindEntityByID(entityId);
-		set<vector> rented = m_mRented[playerId];
-		return rented.Contains(building.GetOrigin());
+		RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
+		set<RplId> rented = m_mRented[playerId];
+		return rented.Contains(rpl.Id());
 	}
 	
 	bool IsOwned(EntityID entityId)
 	{
 		IEntity building = GetGame().GetWorld().FindEntityByID(entityId);
+		RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
 		for(int i=0; i< m_mOwned.Count(); i++)
 		{
-			set<vector> owner = m_mOwned.GetElement(i);
-			if(owner.Contains(building.GetOrigin()))
+			set<RplId> owner = m_mOwned.GetElement(i);
+			if(owner.Contains(rpl.Id()))
 			{
 				return true;
 			}
@@ -104,10 +115,11 @@ class OVT_OwnerManagerComponent: OVT_Component
 	bool IsRented(EntityID entityId)
 	{
 		IEntity building = GetGame().GetWorld().FindEntityByID(entityId);
+		RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
 		for(int i=0; i< m_mRented.Count(); i++)
 		{
-			set<vector> rented = m_mRented.GetElement(i);
-			if(rented.Contains(building.GetOrigin()))
+			set<RplId> rented = m_mRented.GetElement(i);
+			if(rented.Contains(rpl.Id()))
 			{
 				return true;
 			}
@@ -115,38 +127,15 @@ class OVT_OwnerManagerComponent: OVT_Component
 		return false;
 	}
 	
-	IEntity GetNearestBuilding(vector pos, float range = 40)
-	{
-		m_aEntitySearch.Clear();
-		GetGame().GetWorld().QueryEntitiesBySphere(pos, range, null, FilterBuildingToArray, EQueryEntitiesFlags.STATIC);
-		
-		if(m_aEntitySearch.Count() == 0)
-		{
-			return null;
-		}
-		float nearest = range;
-		IEntity nearestEnt;	
-		
-		foreach(IEntity ent : m_aEntitySearch)
-		{
-			float dist = vector.Distance(ent.GetOrigin(), pos);
-			if(dist < nearest)
-			{
-				nearest = dist;
-				nearestEnt = ent;
-			}
-		}
-		return nearestEnt;
-	}
-	
 	set<EntityID> GetOwned(string playerId)
 	{
 		if(!m_mOwned.Contains(playerId)) return new set<EntityID>;
 		set<EntityID> entities = new set<EntityID>;
-		foreach(vector pos : m_mOwned[playerId])
+		foreach(RplId id : m_mOwned[playerId])
 		{
-			IEntity building = GetNearestBuilding(pos);
-			entities.Insert(building.GetID());
+			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+			if(!rpl) continue;
+			entities.Insert(rpl.GetEntity().GetID());
 		}
 		return entities;
 	}
@@ -155,10 +144,11 @@ class OVT_OwnerManagerComponent: OVT_Component
 	{
 		if(!m_mRented.Contains(playerId)) return new set<EntityID>;
 		set<EntityID> entities = new set<EntityID>;
-		foreach(vector pos : m_mRented[playerId])
+		foreach(RplId id : m_mRented[playerId])
 		{
-			IEntity building = GetNearestBuilding(pos);
-			entities.Insert(building.GetID());
+			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+			if(!rpl) continue;
+			entities.Insert(rpl.GetEntity().GetID());
 		}
 		return entities;
 	}
@@ -177,7 +167,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 			writer.WriteInt(ownedArray.Count());
 			for(int t=0; t<ownedArray.Count(); t++)
 			{	
-				writer.WriteVector(ownedArray[t]);
+				writer.WriteRplId(ownedArray[t]);
 			}
 		}
 		
@@ -190,7 +180,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 			writer.WriteInt(rentedArray.Count());
 			for(int t=0; t<rentedArray.Count(); t++)
 			{	
-				writer.WriteVector(rentedArray[t]);
+				writer.WriteRplId(rentedArray[t]);
 			}
 		}
 		
@@ -202,7 +192,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 		
 		int length, ownedlength;
 		string playerId;
-		vector pos;
+		RplId id;
 			
 		//Recieve JIP owned
 		if (!reader.ReadInt(length)) return false;
@@ -214,8 +204,8 @@ class OVT_OwnerManagerComponent: OVT_Component
 			if (!reader.ReadInt(ownedlength)) return false;			
 			for(int t=0; t<ownedlength; t++)
 			{
-				if (!reader.ReadVector(pos)) return false;				
-				DoSetOwnerPersistentId(playerId, pos);
+				if (!reader.ReadRplId(id)) return false;				
+				DoSetOwnerPersistentId(playerId, id);
 			}		
 		}
 		
@@ -229,62 +219,68 @@ class OVT_OwnerManagerComponent: OVT_Component
 			if (!reader.ReadInt(ownedlength)) return false;
 			for(int t=0; t<ownedlength; t++)
 			{
-				if (!reader.ReadVector(pos)) return false;
-				DoSetRenterPersistentId(playerId, pos);
+				if (!reader.ReadRplId(id)) return false;
+				DoSetRenterPersistentId(playerId, id);
 			}		
 		}
 		return true;
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_SetOwner(int playerId, vector pos)
+	protected void RpcDo_SetOwner(int playerId, RplId id)
 	{
-		DoSetOwner(playerId, pos);	
+		DoSetOwner(playerId, id);	
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_SetRenter(int playerId, vector pos)
+	protected void RpcDo_SetRenter(int playerId, RplId id)
 	{
-		DoSetRenter(playerId, pos);	
+		DoSetRenter(playerId, id);	
 	}
 	
-	void DoSetOwner(int playerId, vector pos)
+	void DoSetOwner(int playerId, RplId id)
 	{
 		if(playerId == -1) {
 			DoRemoveOwner(id);
 		}else{
 			string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
-			DoSetOwnerPersistentId(persId, pos);
+			DoSetOwnerPersistentId(persId, id);
 		}
 	}
 	
-	void DoSetRenter(int playerId, vector pos)
+	void DoSetRenter(int playerId, RplId id)
 	{
 		if(playerId == -1) {
 			DoRemoveRenter(id);
 		}else{
 			string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
-			DoSetRenterPersistentId(persId, pos);
+			DoSetRenterPersistentId(persId, id);
 		}
 	}
 	
-	void DoRemoveOwner(vector pos)
-	{				
-		string persId = GetOwnerIDFromPos(pos);
+	void DoRemoveOwner(RplId id)
+	{
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+		if(!rpl) return;		
+		
+		string persId = GetOwnerID(rpl.GetEntity());
 		
 		if (!m_mOwned.Contains(persId)) {
 			return;
 		}
 		
-		int i = m_mOwned[persId].Find(pos);
+		int i = m_mOwned[persId].Find(id);
 		if(i == -1) return;
 		m_mOwned[persId].Remove(i);
-		m_mOwners.Remove(pos);
+		m_mOwners.Remove(id);
 	}
 	
-	void DoRemoveRenter(vector pos)
-	{		
-		string persId = GetRenterIDFromPos(pos);
+	void DoRemoveRenter(RplId id)
+	{
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+		if(!rpl) return;		
+		
+		string persId = GetRenterID(rpl.GetEntity());
 		
 		if (!m_mRented.Contains(persId)) {
 			return;
@@ -296,22 +292,26 @@ class OVT_OwnerManagerComponent: OVT_Component
 		m_mRenters.Remove(id);
 	}
 	
-	void DoSetOwnerPersistentId(string persId, vector pos)
+	void DoSetOwnerPersistentId(string persId, RplId id)
 	{		
-		if(!m_mOwned.Contains(persId)) m_mOwned[persId] = new set<vector>;
-		set<vector> owner = m_mOwned[persId];
-		owner.Insert(pos);
+		if(!m_mOwned.Contains(persId)) m_mOwned[persId] = new set<RplId>;
+		set<RplId> owner = m_mOwned[persId];
+		owner.Insert(id);
 		
-		m_mOwners[pos] = persId;
+		m_mOwners[id] = persId;
+		
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+		if(!rpl) return;
+		m_mLocations[id] = rpl.GetEntity().GetOrigin();
 	}
 	
-	void DoSetRenterPersistentId(string persId, vector pos)
+	void DoSetRenterPersistentId(string persId, RplId id)
 	{
-		if(!m_mRented.Contains(persId)) m_mRented[persId] = new set<vector>;
-		set<vector> renter = m_mRented[persId];
-		renter.Insert(pos);
+		if(!m_mRented.Contains(persId)) m_mRented[persId] = new set<RplId>;
+		set<RplId> renter = m_mRented[persId];
+		renter.Insert(id);
 		
-		m_mRenters[pos] = persId;
+		m_mRenters[id] = persId;
 	}
 	
 	void ~OVT_OwnerManagerComponent()
@@ -335,6 +335,11 @@ class OVT_OwnerManagerComponent: OVT_Component
 		{
 			m_mRenters.Clear();
 			m_mRenters = null;
+		}
+		if(m_mLocations)
+		{
+			m_mLocations.Clear();
+			m_mLocations = null;
 		}
 	}
 }

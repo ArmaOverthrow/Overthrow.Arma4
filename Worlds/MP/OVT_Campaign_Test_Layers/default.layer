@@ -369,9 +369,6 @@ SCR_DestructibleBuildingEntity : "{230EB641379A24C0}Prefabs/Structures/Houses/Vi
 Tree : "{23C0BE9D80929DBD}Prefabs/Vegetation/Bush/b_salix_cinerea_1w.et" {
  coords 180.297 0.001 117.938
 }
-SCR_DestructibleBuildingEntity : "{322D245123EEDC90}Prefabs/Structures/Houses/Village/House_Village_E_1I01/House_Village_E_1I01_V2.et" {
- coords 215.216 0 201.545
-}
 SCR_DestructibleBuildingEntity : "{38A5F3E4578087AB}Prefabs/Structures/Houses/Town/House_Town_E_2I01/House_Town_E_2I01.et" {
  coords 241.413 0.001 118.064
  angleY -91.024
@@ -459,9 +456,6 @@ GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.et" {
 Tree : "{7BAA3CF64495B691}Prefabs/Vegetation/Bush/b_rubus_idaeus_0s.et" {
  coords 179.619 0.001 124.94
 }
-SCR_DestructibleBuildingEntity : "{81E83A74C5FF26DF}Prefabs/Structures/Houses/Village/House_Village_E_1I02/House_Village_E_1I02.et" {
- coords 232.723 -0 226.625
-}
 SCR_SiteSlotEntity : "{881CE7B0098504C2}PrefabsEditable/Slots/Road/E_SlotRoadLarge.et" {
  coords 70.335 1.001 119.549
 }
@@ -513,8 +507,8 @@ Tree : "{D9DF1D13919F19A0}Prefabs/Vegetation/Bush/b_rosa_canina_0s.et" {
  coords 182.829 0.001 130.379
 }
 SCR_DestructibleBuildingEntity : "{DE43119351D125AC}Prefabs/Structures/Houses/Village/House_Village_E_1L02/House_Village_E_1L02t.et" {
- coords 204.772 0.655 177.303
- angleY 178.817
+ coords 226.19 0.655 193.901
+ angleY -122.007
 }
 SCR_SiteSlotEntity : "{F4066B8425BEC47C}PrefabsEditable/Slots/Road/E_SlotRoadMedium.et" {
  coords 68.924 1.001 146.036
