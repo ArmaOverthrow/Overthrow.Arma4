@@ -276,29 +276,31 @@ class OVT_PlayerCommsComponent: OVT_Component
 	}
 	
 	void SetBuildingOwner(int playerId, IEntity building)
-	{		
-		RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
-		Rpc(RpcAsk_SetBuildingOwner, playerId, rpl.Id());
+	{
+		Rpc(RpcAsk_SetBuildingOwner, playerId, building.GetOrigin());
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_SetBuildingOwner(int playerId, RplId id)
+	protected void RpcAsk_SetBuildingOwner(int playerId, vector pos)
 	{	
-		RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
-		OVT_Global.GetRealEstate().SetOwner(playerId, rpl.GetEntity());
+		OVT_RealEstateManagerComponent re = OVT_Global.GetRealEstate();
+		IEntity building = re.GetNearestBuilding(pos);
+		if(!building) return;
+		re.SetOwner(playerId, building);
 	}
 	
 	void SetBuildingOwner(string playerPersistentId, IEntity building)
-	{		
-		RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
-		Rpc(RpcAsk_SetBuildingOwnerPersistent, playerPersistentId, rpl.Id());
+	{
+		Rpc(RpcAsk_SetBuildingOwnerPersistent, playerPersistentId, building.GetOrigin());
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_SetBuildingOwnerPersistent(string playerId, RplId id)
+	protected void RpcAsk_SetBuildingOwnerPersistent(string playerId, vector pos)
 	{	
-		RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
-		OVT_Global.GetRealEstate().SetOwnerPersistentId(playerId, rpl.GetEntity());
+		OVT_RealEstateManagerComponent re = OVT_Global.GetRealEstate();
+		IEntity building = re.GetNearestBuilding(pos);
+		if(!building) return;
+		re.SetOwnerPersistentId(playerId, building);
 	}
 	
 	void SetBuildingRenter(int playerId, vector pos)

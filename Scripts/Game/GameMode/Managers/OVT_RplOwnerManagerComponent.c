@@ -11,7 +11,7 @@ class OVT_RplOwnerManagerComponent: OVT_Component
 	ref map<ref RplId, string> m_mRenters;
 	ref map<ref RplId, vector> m_mLocations;
 	
-	void OVT_OwnerManagerComponent(IEntityComponentSource src, IEntity ent, IEntity parent)
+	void OVT_RplOwnerManagerComponent(IEntityComponentSource src, IEntity ent, IEntity parent)
 	{
 		m_mOwned = new map<string, ref set<RplId>>;
 		m_mOwners = new map<ref RplId, string>;

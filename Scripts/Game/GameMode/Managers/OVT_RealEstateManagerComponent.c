@@ -315,9 +315,10 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		float nearest = -1;
 		vector nearestPos;		
 		
-		array<vector> owner = m_mOwned[playerId];
-		foreach(vector buildingPos : owner)
+		array<string> owner = m_mOwned[playerId];
+		foreach(string buildingPosString : owner)
 		{			
+			vector buildingPos = buildingPosString.ToVector();
 			float dist = vector.Distance(buildingPos, pos);
 			if(range > -1 && dist > range) continue;
 			if(nearest == -1 || dist < nearest)
@@ -337,9 +338,10 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		float nearest = -1;
 		vector nearestPos;		
 		
-		array<vector> owner = m_mRented[playerId];
-		foreach(vector buildingPos : owner)
+		array<string> owner = m_mRented[playerId];
+		foreach(string buildingPosString : owner)
 		{
+			vector buildingPos = buildingPosString.ToVector();
 			float dist = vector.Distance(buildingPos, pos);
 			if(range > -1 && dist > range) continue;
 			if(nearest == -1 || dist < nearest)
