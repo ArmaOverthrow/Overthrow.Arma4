@@ -20,7 +20,7 @@ class OVT_RealEstateSaveData : EPF_ComponentSaveData
 		
 		for(int i=0; i<re.m_mOwned.Count(); i++)
 		{		
-			set<vector> ownedArray = re.m_mOwned.GetElement(i);
+			array<vector> ownedArray = re.m_mOwned.GetElement(i);
 			string playerId = re.m_mOwned.GetKey(i);
 			m_mOwned[playerId] = ownedArray;
 		}
@@ -29,7 +29,7 @@ class OVT_RealEstateSaveData : EPF_ComponentSaveData
 		
 		for(int i=0; i<re.m_mRented.Count(); i++)
 		{		
-			set<vector> ownedArray = re.m_mRented.GetElement(i);
+			array<vector> ownedArray = re.m_mRented.GetElement(i);
 			string playerId = re.m_mRented.GetKey(i);
 			m_mRented[playerId] = ownedArray;			
 		}

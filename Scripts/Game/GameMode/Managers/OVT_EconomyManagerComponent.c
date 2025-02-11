@@ -198,8 +198,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 		OVT_RealEstateManagerComponent realEstate = OVT_Global.GetRealEstate();
 		for(int i = 0; i < realEstate.m_mRenters.Count(); i++)
 		{
-			vector pos = realEstate.m_mRenters.GetKey(i);
-			string playerId = realEstate.m_mRenters[pos];
+			string posString = realEstate.m_mRenters.GetKey(i);
+			vector pos = posString.ToVector();			
+			string playerId = realEstate.m_mRenters[posString];
 
 			IEntity building = realEstate.GetNearestBuilding(pos);
 			EntityID id = building.GetID();

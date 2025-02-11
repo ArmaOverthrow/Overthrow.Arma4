@@ -5,17 +5,20 @@ class OVT_OwnerManagerComponentClass: OVT_ComponentClass
 
 class OVT_OwnerManagerComponent: OVT_Component
 {
-	ref map<string, ref set<vector>> m_mOwned;
-	ref map<string, ref set<vector>> m_mRented;
-	ref map<vector, string> m_mOwners;
-	ref map<vector, string> m_mRenters;
+	ref map<string, ref array<vector>> m_mOwned;
+	ref map<string, ref array<vector>> m_mRented;
+	ref map<string, string> m_mOwners;
+	ref map<string, string> m_mRenters;
+	
+	protected ref array<IEntity> m_aEntitySearch;
 	
 	void OVT_OwnerManagerComponent(IEntityComponentSource src, IEntity ent, IEntity parent)
 	{
-		m_mOwned = new map<string, ref set<vector>>;
-		m_mOwners = new map<vector, string>;
-		m_mRented = new map<string, ref set<vector>>;
-		m_mRenters = new map<vector, string>;
+		m_mOwned = new map<string, ref array<vector>>;
+		m_mOwners = new map<string, string>;
+		m_mRented = new map<string, ref array<vector>>;
+		m_mRenters = new map<string, string>;
+		m_aEntitySearch = new array<IEntity>;
 	}
 	
 	void SetOwner(int playerId, IEntity building)
@@ -53,8 +56,8 @@ class OVT_OwnerManagerComponent: OVT_Component
 	
 	string GetOwnerIDFromPos(vector pos)
 	{
-		if(!m_mOwners.Contains(pos)) return "";
-		return m_mOwners[pos];
+		if(!m_mOwners.Contains(pos.ToString())) return "";
+		return m_mOwners[pos.ToString()];
 	}
 	
 	string GetRenterID(IEntity building)
@@ -66,8 +69,8 @@ class OVT_OwnerManagerComponent: OVT_Component
 	
 	string GetRenterIDFromPos(vector pos)
 	{
-		if(!m_mRenters.Contains(pos)) return "";
-		return m_mRenters[pos];
+		if(!m_mRenters.Contains(pos.ToString())) return "";
+		return m_mRenters[pos.ToString()];
 	}
 	
 	bool IsOwner(string playerId, EntityID entityId)
@@ -75,7 +78,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 		if(!m_mOwned.Contains(playerId)) return false;
 		IEntity building = GetGame().GetWorld().FindEntityByID(entityId);
 		if (!building) return false;
-		set<vector> owner = m_mOwned[playerId];
+		array<vector> owner = m_mOwned[playerId];
 		return owner.Contains(building.GetOrigin());
 	}
 	
@@ -83,7 +86,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 	{
 		if(!m_mRented.Contains(playerId)) return false;
 		IEntity building = GetGame().GetWorld().FindEntityByID(entityId);
-		set<vector> rented = m_mRented[playerId];
+		array<vector> rented = m_mRented[playerId];
 		return rented.Contains(building.GetOrigin());
 	}
 	
@@ -92,7 +95,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 		IEntity building = GetGame().GetWorld().FindEntityByID(entityId);
 		for(int i=0; i< m_mOwned.Count(); i++)
 		{
-			set<vector> owner = m_mOwned.GetElement(i);
+			array<vector> owner = m_mOwned.GetElement(i);
 			if(owner.Contains(building.GetOrigin()))
 			{
 				return true;
@@ -106,7 +109,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 		IEntity building = GetGame().GetWorld().FindEntityByID(entityId);
 		for(int i=0; i< m_mRented.Count(); i++)
 		{
-			set<vector> rented = m_mRented.GetElement(i);
+			array<vector> rented = m_mRented.GetElement(i);
 			if(rented.Contains(building.GetOrigin()))
 			{
 				return true;
@@ -137,6 +140,15 @@ class OVT_OwnerManagerComponent: OVT_Component
 			}
 		}
 		return nearestEnt;
+	}	
+	
+	bool FilterBuildingToArray(IEntity entity)
+	{
+		if(entity.ClassName() == "SCR_DestructibleBuildingEntity")
+		{
+			m_aEntitySearch.Insert(entity);
+		}
+		return false;
 	}
 	
 	set<EntityID> GetOwned(string playerId)
@@ -172,7 +184,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 		writer.WriteInt(m_mOwned.Count()); 
 		for(int i=0; i<m_mOwned.Count(); i++)
 		{		
-			set<vector> ownedArray = m_mOwned.GetElement(i);
+			array<vector> ownedArray = m_mOwned.GetElement(i);
 			writer.WriteString(m_mOwned.GetKey(i));			
 			writer.WriteInt(ownedArray.Count());
 			for(int t=0; t<ownedArray.Count(); t++)
@@ -185,7 +197,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 		writer.WriteInt(m_mRented.Count()); 
 		for(int i=0; i<m_mRented.Count(); i++)
 		{		
-			set<vector> rentedArray = m_mRented.GetElement(i);
+			array<vector> rentedArray = m_mRented.GetElement(i);
 			writer.WriteString(m_mRented.GetKey(i));			
 			writer.WriteInt(rentedArray.Count());
 			for(int t=0; t<rentedArray.Count(); t++)
@@ -251,7 +263,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 	void DoSetOwner(int playerId, vector pos)
 	{
 		if(playerId == -1) {
-			DoRemoveOwner(id);
+			DoRemoveOwner(pos);
 		}else{
 			string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 			DoSetOwnerPersistentId(persId, pos);
@@ -261,7 +273,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 	void DoSetRenter(int playerId, vector pos)
 	{
 		if(playerId == -1) {
-			DoRemoveRenter(id);
+			DoRemoveRenter(pos);
 		}else{
 			string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 			DoSetRenterPersistentId(persId, pos);
@@ -279,7 +291,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 		int i = m_mOwned[persId].Find(pos);
 		if(i == -1) return;
 		m_mOwned[persId].Remove(i);
-		m_mOwners.Remove(pos);
+		m_mOwners.Remove(pos.ToString());
 	}
 	
 	void DoRemoveRenter(vector pos)
@@ -290,28 +302,28 @@ class OVT_OwnerManagerComponent: OVT_Component
 			return;
 		}
 		
-		int i = m_mRented[persId].Find(id);
+		int i = m_mRented[persId].Find(pos);
 		if(i == -1) return;
 		m_mRented[persId].Remove(i);
-		m_mRenters.Remove(id);
+		m_mRenters.Remove(pos.ToString());
 	}
 	
 	void DoSetOwnerPersistentId(string persId, vector pos)
 	{		
-		if(!m_mOwned.Contains(persId)) m_mOwned[persId] = new set<vector>;
-		set<vector> owner = m_mOwned[persId];
+		if(!m_mOwned.Contains(persId)) m_mOwned[persId] = new array<vector>;
+		array<vector> owner = m_mOwned[persId];
 		owner.Insert(pos);
 		
-		m_mOwners[pos] = persId;
+		m_mOwners[pos.ToString()] = persId;
 	}
 	
 	void DoSetRenterPersistentId(string persId, vector pos)
 	{
-		if(!m_mRented.Contains(persId)) m_mRented[persId] = new set<vector>;
-		set<vector> renter = m_mRented[persId];
+		if(!m_mRented.Contains(persId)) m_mRented[persId] = new array<vector>;
+		array<vector> renter = m_mRented[persId];
 		renter.Insert(pos);
 		
-		m_mRenters[pos] = persId;
+		m_mRenters[pos.ToString()] = persId;
 	}
 	
 	void ~OVT_OwnerManagerComponent()

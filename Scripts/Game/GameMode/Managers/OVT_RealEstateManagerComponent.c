@@ -19,7 +19,6 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	
 	static OVT_RealEstateManagerComponent s_Instance;
 	
-	protected ref array<IEntity> m_aEntitySearch;
 	protected ref array<EntityID> m_aStartingHomes;
 	protected ref array<EntityID> m_aTownStartingHomes;
 	int m_iStartingTownId = -1;
@@ -316,7 +315,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		float nearest = -1;
 		vector nearestPos;		
 		
-		set<vector> owner = m_mOwned[playerId];
+		array<vector> owner = m_mOwned[playerId];
 		foreach(vector buildingPos : owner)
 		{			
 			float dist = vector.Distance(buildingPos, pos);
@@ -338,7 +337,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		float nearest = -1;
 		vector nearestPos;		
 		
-		set<vector> owner = m_mRented[playerId];
+		array<vector> owner = m_mRented[playerId];
 		foreach(vector buildingPos : owner)
 		{
 			float dist = vector.Distance(buildingPos, pos);
@@ -419,15 +418,6 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		}
 		
 		return config.m_BaseRent + (config.m_BaseRent * (config.m_DemandMultiplier * town.population * ((float)town.stability / 100)));
-	}
-	
-	bool FilterBuildingToArray(IEntity entity)
-	{
-		if(entity.ClassName() == "SCR_DestructibleBuildingEntity")
-		{
-			m_aEntitySearch.Insert(entity);
-		}
-		return false;
 	}
 	
 	vector GetHome(string playerId)
