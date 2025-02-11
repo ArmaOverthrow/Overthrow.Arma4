@@ -9,6 +9,9 @@ class OVT_PrefabItemCostConfig : ScriptAndConfig
 	
 	[Attribute("50", desc: "The cost")]
 	int cost;
+
+	[Attribute("1", desc: "Minimum number to stock")]
+	int minStock;
 	
 	[Attribute("10", desc: "Maximum number to stock")]
 	int maxStock;
@@ -272,6 +275,22 @@ class OVT_EconomyManagerComponent: OVT_Component
 						shop.AddToInventory(id, half - stock);
 					}
 				}
+			}
+		}
+
+		//Gun dealer restocking (Item prefabs only ie weed)
+		foreach(RplId id : m_aGunDealers)
+		{
+			OVT_ShopComponent shop = GetShopByRplId(id);
+			if(!shop) continue;
+			foreach(OVT_PrefabItemCostConfig item : m_GunDealerConfig.m_aGunDealerItemPrefabs)
+			{
+				int currentStock = shop.GetStock(GetInventoryId(item.m_sEntityPrefab));
+				if(currentStock < item.minStock)
+				{
+					int num = Math.Round(s_AIRandomGenerator.RandInt(item.minStock,item.maxStock));
+					shop.AddToInventory(GetInventoryId(item.m_sEntityPrefab), num);
+				}				
 			}
 		}
 	}

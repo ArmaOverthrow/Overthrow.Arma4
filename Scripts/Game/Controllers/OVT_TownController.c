@@ -134,13 +134,10 @@ class OVT_TownControllerComponent: OVT_Component
 		OVT_ShopComponent shop = OVT_ShopComponent.Cast(dealer.FindComponent(OVT_ShopComponent));
 		shop.m_iTownId = townID;
 
-		RandomGenerator generator = new RandomGenerator;
-		generator.SetSeed(Math.RandomInt(0,100));
-
 		foreach(OVT_PrefabItemCostConfig item : m_Economy.m_GunDealerConfig.m_aGunDealerItemPrefabs)
 		{
 			int id = m_Economy.GetInventoryId(item.m_sEntityPrefab);
-			int num = Math.Round(generator.RandFloatXY(1,item.maxStock));
+			int num = Math.Round(s_AIRandomGenerator.RandInt(item.minStock,item.maxStock));
 
 			shop.AddToInventory(id, num);
 		}
@@ -160,7 +157,7 @@ class OVT_TownControllerComponent: OVT_Component
 				while(!entries.IsEmpty() && !found && t < 20)
 				{
 					t++;
-					int index = generator.RandInt(0,entries.Count()-1);
+					int index = s_AIRandomGenerator.RandInt(0,entries.Count()-1);
 					SCR_EntityCatalogEntry check = entries[index];
 					int id = m_Economy.GetInventoryId(check.GetPrefab());
 					if(!item.m_bIncludeOccupyingFactionItems && m_Economy.ItemIsFromFaction(id, occupyingFactionId)) continue;
@@ -171,8 +168,8 @@ class OVT_TownControllerComponent: OVT_Component
 				if(found)
 				{
 					int id = m_Economy.GetInventoryId(found.GetPrefab());
-					int num = Math.Round(generator.RandFloatXY(1,m_Economy.GetTownMaxStock(townID, id)));
-
+					int num = Math.Round(s_AIRandomGenerator.RandFloatXY(1,m_Economy.GetTownMaxStock(townID, id)));
+					
 					shop.AddToInventory(id, num);
 				}
 			}else{
@@ -183,7 +180,7 @@ class OVT_TownControllerComponent: OVT_Component
 					if(!item.m_bIncludeSupportingFactionItems && m_Economy.ItemIsFromFaction(id, supportingFactionId)) continue;
 					if(!item.m_bIncludeOtherFactionItems) continue;
 
-					int num = Math.Round(generator.RandFloatXY(1,m_Economy.GetTownMaxStock(townID, id)));
+					int num = Math.Round(s_AIRandomGenerator.RandFloatXY(1,m_Economy.GetTownMaxStock(townID, id)));
 
 					shop.AddToInventory(id, num);
 				}
