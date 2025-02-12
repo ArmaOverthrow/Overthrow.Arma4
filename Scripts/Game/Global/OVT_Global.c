@@ -185,38 +185,47 @@ class OVT_Global : Managed
 	{
 		IEntity fromEntity = RplComponent.Cast(Replication.FindItem(from)).GetEntity();
 		IEntity toEntity = RplComponent.Cast(Replication.FindItem(to)).GetEntity();
-		
-		if(!fromEntity || !toEntity) return;
-		
-		InventoryStorageManagerComponent fromStorage = InventoryStorageManagerComponent.Cast(fromEntity.FindComponent(InventoryStorageManagerComponent));		
-		UniversalInventoryStorageComponent toStorage = UniversalInventoryStorageComponent.Cast(toEntity.FindComponent(UniversalInventoryStorageComponent));
-		
-		if(!toStorage || !fromStorage) return;
-				
-		array<IEntity> items = new array<IEntity>;
-		fromStorage.GetItems(items);
-		if(items.Count() == 0) return;
-				
-		foreach(IEntity item : items)
+
+		if (!fromEntity || !toEntity) return;
+
+		InventoryStorageManagerComponent storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(toEntity);
+		if (!storageManager) storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(fromEntity);
+		UniversalInventoryStorageComponent fromStorage = EPF_Component<UniversalInventoryStorageComponent>.Find(fromEntity);
+		UniversalInventoryStorageComponent toStorage = EPF_Component<UniversalInventoryStorageComponent>.Find(toEntity);
+
+		if (!storageManager || !toStorage || !fromStorage) return;
+
+		array<InventoryItemComponent> itemComps = new array<InventoryItemComponent>();
+		fromStorage.GetOwnedItems(itemComps);
+		if (itemComps.IsEmpty()) return;
+
+		foreach (InventoryItemComponent itemComp : itemComps)
 		{
-			if(!item) continue;
-			fromStorage.TryMoveItemToStorage(item, toStorage);				
+			IEntity item = itemComp.GetOwner();
+			if (!item) continue;
+			InventoryStorageSlot itemSlot = toStorage.FindSuitableSlotForItem(item);
+			int slotID = -1;
+			if (itemSlot) slotID = itemSlot.GetID();
+			storageManager.TryMoveItemToStorage(item, toStorage, slotID);
 		}
-		
+
 		// Play sound if one is defined
-		SimpleSoundComponent simpleSoundComp = SimpleSoundComponent.Cast(toEntity.FindComponent(SimpleSoundComponent));
-		if(!simpleSoundComp)
-		{
-			simpleSoundComp = SimpleSoundComponent.Cast(fromEntity.FindComponent(SimpleSoundComponent));
+
+		array<IEntity> sourceEntities = {toEntity, fromEntity};
+		array<ref array<string>> soundEventsAll = {{"SOUND_SUPPLIES_PARTIAL_LOAD", "SOUND_SUPPLIES_PARTIAL_UNLOAD"}, {"LOAD_VEHICLE", "UNLOAD_VEHICLE"}};
+		foreach (ref array<string> soundEvents : soundEventsAll) {
+			foreach (int idx, string soundEvent : soundEvents) {
+				IEntity source = sourceEntities[idx];
+				SimpleSoundComponent simpleSoundComp = SimpleSoundComponent.Cast(source.FindComponent(SimpleSoundComponent));
+				if (!simpleSoundComp || simpleSoundComp.GetEventIndex(soundEvent) == -1) continue;
+				vector mat[4];
+				source.GetWorldTransform(mat);
+
+				simpleSoundComp.SetTransformation(mat);
+				simpleSoundComp.PlayStr(soundEvent);
+				return;
+			}
 		}
-		if (simpleSoundComp)
-		{
-			vector mat[4];
-			toEntity.GetWorldTransform(mat);
-			
-			simpleSoundComp.SetTransformation(mat);
-			simpleSoundComp.PlayStr("LOAD_VEHICLE");
-		}	
 	}
 	
 	static void TransferToWarehouse(RplId from)
