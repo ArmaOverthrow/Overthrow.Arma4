@@ -78,25 +78,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		GetGame().GetCallqueue().CallLater(CheckUpdate, WANTED_SYSTEM_FREQUENCY, true, owner);		
 		
 		OVT_Global.GetOccupyingFaction().m_OnPlayerLoot.Insert(OnPlayerLoot);
-		
-		PlayerController pc = GetGame().GetPlayerController();
-		if (pc)
-		{
-			SCR_PlayerFactionAffiliationComponent aff = SCR_PlayerFactionAffiliationComponent.Cast(pc.FindComponent(SCR_PlayerFactionAffiliationComponent));
-			FactionManager mgr = GetGame().GetFactionManager();
-			Faction civ = mgr.GetFactionByKey("CIV");
-			aff.RequestFaction(civ);
-			
-			SCR_PlayerControllerGroupComponent group = SCR_PlayerControllerGroupComponent.Cast(pc.FindComponent(SCR_PlayerControllerGroupComponent));
-			if(group)
-			{
-				int groupId = group.GetGroupID();
-				if(groupId == -1)
-				{
-					group.CreateAndJoinGroup(civ);
-				}
-			}
-		}
+
 	}
 	
 	void OnPlayerLoot(IEntity player)
