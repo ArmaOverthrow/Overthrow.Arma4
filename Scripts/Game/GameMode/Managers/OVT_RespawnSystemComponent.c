@@ -58,6 +58,58 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 		}
 	}
 	
+	void CreateAndJoinGroup(int playerId)
+	{
+		SCR_PlayerController playerController = SCR_PlayerController.Cast(m_pPlayerManager.GetPlayerController(playerId));
+		SCR_PlayerControllerGroupComponent group = SCR_PlayerControllerGroupComponent.Cast(playerController.FindComponent(SCR_PlayerControllerGroupComponent));
+		if(group)
+		{
+			int groupId = group.GetGroupID();
+			//Is the player not already in a group?
+			if(groupId == -1)
+			{
+				SCR_GroupsManagerComponent groupsManager = SCR_GroupsManagerComponent.GetInstance();
+				if (!groupsManager)
+					return;
+				
+				FactionManager mgr = GetGame().GetFactionManager();
+				Faction faction = mgr.GetFactionByKey("CIV");
+				
+				SCR_AIGroup newGroup = groupsManager.CreateNewPlayableGroup(faction);
+				string playerName = GetGame().GetPlayerManager().GetPlayerName(playerId);
+				
+				newGroup.SetName(playerName);
+				
+				// No new group was created, return
+				if (!newGroup)
+					return;
+				
+				int groupID = newGroup.GetGroupID();
+				
+				groupsManager.AddPlayerToGroup(groupID, playerId);				
+			}
+		}		
+	}
+	
+	void SetCivilianFaction(int playerId)
+	{
+		SCR_PlayerController playerController = SCR_PlayerController.Cast(m_pPlayerManager.GetPlayerController(playerId));		
+		if (playerController)
+		{
+			SCR_PlayerFactionAffiliationComponent aff = SCR_PlayerFactionAffiliationComponent.Cast(playerController.FindComponent(SCR_PlayerFactionAffiliationComponent));
+			FactionManager mgr = GetGame().GetFactionManager();
+			Faction civ = mgr.GetFactionByKey("CIV");
+			aff.RequestFaction(civ);
+		}
+	}
+	
+	override void OnCharacterLoadComplete(int playerId, EPF_EntitySaveData saveData, EPF_PersistenceComponent persistenceComponent)
+	{			
+		SetCivilianFaction(playerId);
+		CreateAndJoinGroup(playerId);
+		super.OnCharacterLoadComplete(playerId, saveData, persistenceComponent);	
+	}
+	
 	protected override void OnCharacterCreated(int playerId, string characterPersistenceId, IEntity character)
 	{
 		super.OnCharacterCreated(playerId, characterPersistenceId, character);
@@ -131,51 +183,10 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 			player.firstSpawn = false;
 		}		
 		
-		SCR_PlayerController playerController = SCR_PlayerController.Cast(m_pPlayerManager.GetPlayerController(playerId));
-		if (playerController)
-		{
-			SCR_PlayerFactionAffiliationComponent aff = SCR_PlayerFactionAffiliationComponent.Cast(playerController.FindComponent(SCR_PlayerFactionAffiliationComponent));
-			FactionManager mgr = GetGame().GetFactionManager();
-			Faction civ = mgr.GetFactionByKey("CIV");
-			aff.RequestFaction(civ);
-			
-			SCR_PlayerControllerGroupComponent group = SCR_PlayerControllerGroupComponent.Cast(playerController.FindComponent(SCR_PlayerControllerGroupComponent));
-			if(group)
-			{
-				int groupId = group.GetGroupID();
-				//Is the player not already in a group?
-				if(groupId == -1)
-				{
-					CreateAndJoinGroup(playerId, character);						
-				}
-			}
-		}
+		SetCivilianFaction(playerId);
+		CreateAndJoinGroup(playerId);
 	}
-	
-	protected void CreateAndJoinGroup(int playerId, IEntity character)
-	{
-		SCR_GroupsManagerComponent groupsManager = SCR_GroupsManagerComponent.GetInstance();
-		if (!groupsManager)
-			return;
 		
-		FactionManager mgr = GetGame().GetFactionManager();
-		Faction faction = mgr.GetFactionByKey("CIV");
-		
-		SCR_AIGroup newGroup = groupsManager.CreateNewPlayableGroup(faction);
-		string playerName = GetGame().GetPlayerManager().GetPlayerName(playerId);
-		
-		newGroup.SetName(playerName);
-		
-		// No new group was created, return
-		if (!newGroup)
-			return;
-		
-		int groupID = newGroup.GetGroupID();
-		
-		groupsManager.AddPlayerToGroup(groupID, playerId);				
-		
-	}
-	
 	protected IEntity SpawnDefaultCharacterItem(InventoryStorageManagerComponent storageManager, OVT_LoadoutSlot loadoutItem)
 	{
 		if(!storageManager) return null;
