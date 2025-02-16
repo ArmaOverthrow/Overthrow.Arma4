@@ -42,6 +42,12 @@ class OVT_RecruitCivilianAction : ScriptedUserAction
 		if (!character)
 			return;
 		
+		FactionAffiliationComponent aff = FactionAffiliationComponent.Cast(character.FindComponent(FactionAffiliationComponent));
+		if(!aff)
+			return;
+		
+		aff.SetAffiliatedFactionByKey("CIV");
+		
 		if (GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(character) == 0)
 			groupController.RequestAddAIAgent(character, playerId);
  	}

@@ -86,7 +86,8 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 				
 				int groupID = newGroup.GetGroupID();
 				
-				groupsManager.AddPlayerToGroup(groupID, playerId);				
+				groupsManager.AddPlayerToGroup(groupID, playerId);	
+				group.RequestJoinGroup(groupID);		
 			}
 		}		
 	}
