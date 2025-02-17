@@ -213,9 +213,10 @@ class OVT_BuildContext : OVT_UIContext
 			if(dist < MAX_CAMP_BUILD_DIS) return true;	
 		}
 		
-		if(buildable.m_bBuildAtFOB && m_Resistance.m_bFOBDeployed)
+		if(buildable.m_bBuildAtFOB)
 		{
-			dist = vector.Distance(m_Resistance.m_vFOBLocation, pos);
+			vector fob = m_Resistance.GetNearestFOB(pos);		
+			dist = vector.Distance(fob, pos);
 			if(dist < MAX_FOB_BUILD_DIS) return true;
 		}
 							

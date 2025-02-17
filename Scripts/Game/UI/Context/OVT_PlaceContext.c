@@ -144,6 +144,19 @@ class OVT_PlaceContext : OVT_UIContext
 		float dist;
 		OVT_TownData town = m_Towns.GetNearestTown(pos);
 
+		if(placeable.m_bAwayFromBases)
+		{
+			OVT_BaseData base = m_OccupyingFaction.GetNearestBase(pos);
+			dist = vector.Distance(base.location,pos);
+			if(dist < OVT_Global.GetConfig().m_Difficulty.baseRange)
+			{
+				reason = "#OVT-TooCloseBase";
+				return false;
+			}			
+
+			return true;
+		}
+		
 		if(placeable.m_bAwayFromTownsBases)
 		{
 			IEntity building = m_RealEstate.GetNearestBuilding(pos, MAX_HOUSE_PLACE_DIS);
@@ -213,17 +226,18 @@ class OVT_PlaceContext : OVT_UIContext
 			if(dist < MAX_HOUSE_PLACE_DIS) return true;
 		}
 		
-		OVT_CampData fob = m_Resistance.GetNearestCampData(pos);	
+		OVT_CampData camp = m_Resistance.GetNearestCampData(pos);	
+		if(camp)
+		{	
+			dist = vector.Distance(camp.location, pos);
+			if(dist < MAX_CAMP_PLACE_DIS && camp.owner == m_sPlayerID) return true;	
+		}
+		
+		OVT_FOBData fob = m_Resistance.GetNearestFOBData(pos);	
 		if(fob)
 		{	
 			dist = vector.Distance(fob.location, pos);
-			if(dist < MAX_CAMP_PLACE_DIS && fob.owner == m_sPlayerID) return true;	
-		}
-		
-		if(m_Resistance.m_bFOBDeployed)
-		{
-			dist = vector.Distance(m_Resistance.m_vFOBLocation, pos);
-			if(dist < MAX_FOB_PLACE_DIS) return true;
+			if(dist < MAX_FOB_PLACE_DIS) return true;	
 		}
 		
 		OVT_BaseData base = m_OccupyingFaction.GetNearestBase(pos);

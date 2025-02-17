@@ -4,6 +4,8 @@ class OVT_DeployFOBAction : ScriptedUserAction
 	//---------------------------------------------------------
  	override void PerformAction(IEntity pOwnerEntity, IEntity pUserEntity) 
  	{
+		Print(pOwnerEntity);
+		Print(pOwnerEntity.GetParent());
 		OVT_Global.GetServer().DeployFOB(pOwnerEntity.GetParent());
  	}
 		

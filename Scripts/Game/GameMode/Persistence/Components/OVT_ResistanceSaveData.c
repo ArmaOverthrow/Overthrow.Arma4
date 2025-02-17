@@ -8,8 +8,8 @@ class OVT_ResistanceSaveData : EPF_ComponentSaveData
 {
 	ref array<ref OVT_CampData> m_Camps;
 	string m_sPlayerFactionKey;
-	bool m_bFOBDeployed = false;
-	vector m_vFOBLocation;
+	ref array<ref OVT_FOBData> m_FOBs;
+	
 	
 	//Jobs
 	ref set<int> m_aGlobalJobs;
@@ -26,11 +26,9 @@ class OVT_ResistanceSaveData : EPF_ComponentSaveData
 		OVT_ResistanceFactionManager resistance = OVT_ResistanceFactionManager.Cast(component);
 		
 		m_Camps = new array<ref OVT_CampData>;
+		m_FOBs = new array<ref OVT_FOBData>;
 		m_sPlayerFactionKey = OVT_Global.GetConfig().m_sPlayerFaction;
-		
-		m_bFOBDeployed = resistance.m_bFOBDeployed;
-		m_vFOBLocation = resistance.m_vFOBLocation;
-		
+				
 		foreach(OVT_CampData fob : resistance.m_Camps)
 		{
 			fob.garrison.Clear();
@@ -45,6 +43,22 @@ class OVT_ResistanceSaveData : EPF_ComponentSaveData
 				}
 			}	
 			m_Camps.Insert(fob);
+		}
+		
+		foreach(OVT_FOBData fob : resistance.m_FOBs)
+		{
+			fob.garrison.Clear();
+			foreach(EntityID id : fob.garrisonEntities)
+			{
+				SCR_AIGroup aigroup = SCR_AIGroup.Cast(GetGame().GetWorld().FindEntityByID(id));
+				if(!aigroup) continue;
+				if(aigroup.GetAgentsCount() > 0)
+				{
+					ResourceName res = EPF_Utils.GetPrefabName(aigroup);
+					fob.garrison.Insert(res);					
+				}
+			}	
+			m_FOBs.Insert(fob);
 		}
 		
 		//Jobs
@@ -115,9 +129,6 @@ class OVT_ResistanceSaveData : EPF_ComponentSaveData
 	{
 		OVT_ResistanceFactionManager resistance = OVT_ResistanceFactionManager.Cast(component);
 		
-		resistance.m_bFOBDeployed = m_bFOBDeployed;
-		resistance.m_vFOBLocation = m_vFOBLocation;
-
 		if (m_sPlayerFactionKey.IsEmpty())
 		{
 			Print("Player faction key is invalid, setting to FIA", LogLevel.WARNING);
@@ -128,10 +139,22 @@ class OVT_ResistanceSaveData : EPF_ComponentSaveData
 		int playerFactionIndex = GetGame().GetFactionManager().GetFactionIndex(GetGame().GetFactionManager().GetFactionByKey(m_sPlayerFactionKey));
 		OVT_Global.GetConfig().m_iPlayerFactionIndex = playerFactionIndex;
 
-		foreach(OVT_CampData fob : m_Camps)
-		{	
-			fob.id = resistance.m_Camps.Count();			
-			resistance.m_Camps.Insert(fob);
+		if(m_Camps)
+		{
+			foreach(OVT_CampData fob : m_Camps)
+			{	
+				fob.id = resistance.m_Camps.Count();			
+				resistance.m_Camps.Insert(fob);
+			}
+		}
+		
+		if(m_FOBs)
+		{
+			foreach(OVT_FOBData fob : m_FOBs)
+			{	
+				fob.id = resistance.m_FOBs.Count();			
+				resistance.m_FOBs.Insert(fob);
+			}
 		}
 		
 		//Jobs

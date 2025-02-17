@@ -110,13 +110,11 @@ class OVT_MapContext : OVT_UIContext
 			return true;
 		}
 		
-		if(m_Resistance.m_bFOBDeployed)
-		{
-			dist = vector.Distance(m_Resistance.m_vFOBLocation, pos);
-			if(dist < MAX_FOB_TRAVEL_DIS) return true;
-		}
-		
 		vector fob = m_Resistance.GetNearestCamp(pos);		
+		dist = vector.Distance(fob, pos);
+		if(dist < MAX_FOB_TRAVEL_DIS) return true;
+		
+		fob = m_Resistance.GetNearestFOB(pos);		
 		dist = vector.Distance(fob, pos);
 		if(dist < MAX_FOB_TRAVEL_DIS) return true;		
 		

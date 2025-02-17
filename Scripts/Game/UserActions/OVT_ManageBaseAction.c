@@ -7,20 +7,47 @@ class OVT_ManageBaseAction : ScriptedUserAction
 		OVT_UIManagerComponent ui = OVT_UIManagerComponent.Cast(pUserEntity.FindComponent(OVT_UIManagerComponent));
 		if(!ui) return;
 		
-		if(m_bIsBase)
+		OVT_OccupyingFactionManager of = OVT_Global.GetOccupyingFaction();
+		OVT_ResistanceFactionManager rf = OVT_Global.GetResistanceFaction();
+		vector location = pOwnerEntity.GetOrigin();
+		
+		OVT_BaseData nearestBase = of.GetNearestBase(location);
+		float dist = vector.Distance(nearestBase.location, location);
+		
+		if(dist < 10)
 		{
 			OVT_BaseMenuContext context = OVT_BaseMenuContext.Cast(ui.GetContext(OVT_BaseMenuContext));
 			if(!context) return;
 		
-			context.m_Base = m_BaseData;
+			context.m_Base = nearestBase;
 			context.ShowLayout();
-		}else{
-			OVT_CampData fob = OVT_Global.GetResistanceFaction().GetNearestCampData(pOwnerEntity.GetOrigin());
+			return;
+		}
+		
+		OVT_FOBData nearestFOB = rf.GetNearestFOBData(location);
+		dist = vector.Distance(nearestFOB.location, location);
+		
+		if(dist < 10)
+		{			
 			OVT_FOBMenuContext context = OVT_FOBMenuContext.Cast(ui.GetContext(OVT_FOBMenuContext));
 			if(!context) return;
 		
-			context.m_FOB = fob;
+			context.m_FOB = nearestFOB;
 			context.ShowLayout();
+			return;
+		}
+		
+		OVT_CampData nearestCamp = rf.GetNearestCampData(location);
+		dist = vector.Distance(nearestCamp.location, location);
+		
+		if(dist < 10)
+		{			
+			OVT_FOBMenuContext context = OVT_FOBMenuContext.Cast(ui.GetContext(OVT_FOBMenuContext));
+			if(!context) return;
+		
+			context.m_Camp = nearestCamp;
+			context.ShowLayout();
+			return;
 		}
  	}
 

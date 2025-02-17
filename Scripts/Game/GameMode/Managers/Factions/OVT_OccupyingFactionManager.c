@@ -931,6 +931,18 @@ class OVT_OccupyingFactionManager: OVT_Component
 				m_aKnownTargets.Insert(target);
 			}
 		}
+		
+		foreach(OVT_CampData fob : resistance.m_Camps)
+		{
+			if(!IsKnownTarget(fob.location))
+			{
+				OVT_TargetData target = new OVT_TargetData();
+				target.location = fob.location;
+				target.type = OVT_TargetType.CAMP;
+				target.order = OVT_OrderType.ATTACK;
+				m_aKnownTargets.Insert(target);
+			}
+		}
 
 		foreach(OVT_BaseData data : m_Bases)
 		{

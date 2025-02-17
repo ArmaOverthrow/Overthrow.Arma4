@@ -38,6 +38,9 @@ class OVT_Placeable
 	[Attribute(defvalue: "0", desc: "Cannot place near towns or bases")]
 	bool m_bAwayFromTownsBases;
 	
+	[Attribute(defvalue: "0", desc: "Cannot place near bases")]
+	bool m_bAwayFromBases;
+	
 	[Attribute(defvalue: "0", desc: "Must be placed near a town")]
 	bool m_bNearTown;
 	

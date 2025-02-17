@@ -17,6 +17,22 @@ class OVT_CampData
 	ref array<ref ResourceName> garrison = {};
 }
 
+class OVT_FOBData
+{
+	[NonSerialized()]
+	int id;
+	
+	string name;	
+	vector location;
+	string owner;
+	
+	[NonSerialized()]
+	ref array<ref EntityID> garrisonEntities = {};
+	
+	ref array<ref ResourceName> garrison = {};
+}
+
+
 class OVT_VehicleUpgrades : ScriptAndConfig
 {
 	[Attribute()]
@@ -60,6 +76,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 	ResourceName m_pMobileFOBDeployedPrefab;
 	
 	ref array<ref OVT_CampData> m_Camps;
+	ref array<ref OVT_FOBData> m_FOBs;
 	
 	OVT_PlayerManagerComponent m_Players;
 	
@@ -96,6 +113,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 	void OVT_ResistanceFactionManager(IEntityComponentSource src, IEntity ent, IEntity parent)
 	{
 		m_Camps = new array<ref OVT_CampData>;
+		m_FOBs = new array<ref OVT_FOBData>;
 	}
 	
 	void Init(IEntity owner)
@@ -150,6 +168,13 @@ class OVT_ResistanceFactionManager: OVT_Component
 		{
 			foreach(ResourceName res : fob.garrison)
 			{
+				fob.garrisonEntities.Insert(OVT_Global.GetResistanceFaction().SpawnGarrisonCamp(fob, res).GetID());
+			}
+		}
+		foreach(OVT_FOBData fob : m_FOBs)
+		{
+			foreach(ResourceName res : fob.garrison)
+			{
 				fob.garrisonEntities.Insert(OVT_Global.GetResistanceFaction().SpawnGarrisonFOB(fob, res).GetID());
 			}
 		}
@@ -194,6 +219,10 @@ class OVT_ResistanceFactionManager: OVT_Component
 		OVT_Global.TransferStorage(vehicle, newrpl.Id());
 		SCR_EntityHelper.DeleteEntityAndChildren(entity);	
 		
+		int playerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(ownerId);
+		
+		RegisterFOB(newveh, playerId);
+		
 		Replication.BumpMe();	
 	}
 	
@@ -216,7 +245,9 @@ class OVT_ResistanceFactionManager: OVT_Component
 		OVT_Global.GetVehicles().m_aVehicles.RemoveItem(entity.GetID());
 		
 		OVT_Global.TransferStorage(vehicle, newrpl.Id());
-		SCR_EntityHelper.DeleteEntityAndChildren(entity);		
+		SCR_EntityHelper.DeleteEntityAndChildren(entity);
+		
+				
 		
 		Replication.BumpMe();
 	}
@@ -303,7 +334,22 @@ class OVT_ResistanceFactionManager: OVT_Component
 		}
 	}
 	
-	void AddGarrisonFOB(OVT_CampData fob, int prefabIndex, bool takeSupporters = true)
+	void AddGarrisonCamp(OVT_CampData fob, int prefabIndex, bool takeSupporters = true)
+	{		
+		OVT_Faction faction = OVT_Global.GetConfig().GetPlayerFaction();
+		ResourceName res = faction.m_aGroupPrefabSlots[prefabIndex];
+				
+		SCR_AIGroup group = SpawnGarrisonCamp(fob, res);
+		
+		fob.garrisonEntities.Insert(group.GetID());
+				
+		if(takeSupporters)
+		{
+			OVT_Global.GetTowns().TakeSupportersFromNearestTown(fob.location, group.m_aUnitPrefabSlots.Count());
+		}
+	}
+	
+	void AddGarrisonFOB(OVT_FOBData fob, int prefabIndex, bool takeSupporters = true)
 	{		
 		OVT_Faction faction = OVT_Global.GetConfig().GetPlayerFaction();
 		ResourceName res = faction.m_aGroupPrefabSlots[prefabIndex];
@@ -326,7 +372,18 @@ class OVT_ResistanceFactionManager: OVT_Component
 		return group;
 	}
 	
-	SCR_AIGroup SpawnGarrisonFOB(OVT_CampData fob, ResourceName res)
+	SCR_AIGroup SpawnGarrisonCamp(OVT_CampData fob, ResourceName res)
+	{	
+		IEntity entity = OVT_Global.SpawnEntityPrefab(res, fob.location + "1 0 0");
+		SCR_AIGroup group = SCR_AIGroup.Cast(entity);
+		
+		AIWaypoint wp = OVT_Global.GetConfig().SpawnDefendWaypoint(fob.location);
+		group.AddWaypoint(wp);	
+		
+		return group;
+	}
+	
+	SCR_AIGroup SpawnGarrisonFOB(OVT_FOBData fob, ResourceName res)
 	{	
 		IEntity entity = OVT_Global.SpawnEntityPrefab(res, fob.location + "1 0 0");
 		SCR_AIGroup group = SCR_AIGroup.Cast(entity);
@@ -389,6 +446,28 @@ class OVT_ResistanceFactionManager: OVT_Component
 		OVT_Global.GetNotify().SendTextNotification("PlacedCamp",-1,OVT_Global.GetPlayers().GetPlayerName(playerId),OVT_Global.GetTowns().GetTownName(pos));
 	}
 	
+	void RegisterFOB(IEntity ent, int playerId)
+	{
+		vector pos = ent.GetOrigin();	
+		
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);	
+		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(persId);
+		OVT_FOBData fob = new OVT_FOBData;
+		fob.owner = persId;		
+		
+		fob.location = pos;
+		m_FOBs.Insert(fob);
+				
+		Rpc(RpcDo_RegisterFOB, pos, fob.name, playerId);
+		OVT_Global.GetNotify().SendTextNotification("DeployedFOB",-1,OVT_Global.GetPlayers().GetPlayerName(playerId),OVT_Global.GetTowns().GetTownName(pos));
+	}
+
+	void UnregisterFOB(vector pos)
+	{
+		RpcDo_RemoveFOB(pos);
+		Rpc(RpcDo_RemoveFOB, pos);		
+	}
+	
 	protected bool FindAndDeleteCamps(IEntity ent)
 	{
 		if(ent.ClassName() != "GenericEntity") return false;
@@ -429,6 +508,36 @@ class OVT_ResistanceFactionManager: OVT_Component
 		OVT_CampData nearestBase;
 		float nearest = -1;
 		foreach(OVT_CampData fob : m_Camps)
+		{
+			float distance = vector.Distance(fob.location, pos);
+			if(nearest == -1 || distance < nearest){
+				nearest = distance;
+				nearestBase = fob;
+			}
+		}
+		return nearestBase;
+	}
+	
+	vector GetNearestFOB(vector pos)
+	{
+		vector nearestBase;
+		float nearest = -1;
+		foreach(OVT_FOBData fob : m_FOBs)
+		{
+			float distance = vector.Distance(fob.location, pos);
+			if(nearest == -1 || distance < nearest){
+				nearest = distance;
+				nearestBase = fob.location;
+			}
+		}
+		return nearestBase;
+	}
+	
+	OVT_FOBData GetNearestFOBData(vector pos)
+	{
+		OVT_FOBData nearestBase;
+		float nearest = -1;
+		foreach(OVT_FOBData fob : m_FOBs)
 		{
 			float distance = vector.Distance(fob.location, pos);
 			if(nearest == -1 || distance < nearest){
@@ -527,6 +636,35 @@ class OVT_ResistanceFactionManager: OVT_Component
 		if(player)
 		{
 			player.camp = pos;
+		}
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_RegisterFOB(vector pos, string name, int playerId)
+	{		
+		OVT_FOBData fob = new OVT_FOBData;
+		fob.location = pos;
+		fob.name = name;
+		m_FOBs.Insert(fob);
+
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		fob.owner = persId;
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_RemoveFOB(vector pos)
+	{		
+		int index = -1;
+		foreach(int t, OVT_FOBData fob : m_FOBs)
+		{
+			if(fob.location == pos)
+			{
+				index = t;
+			}
+		}
+		if(index > -1)
+		{
+			m_FOBs.Remove(index);
 		}
 	}
 	
