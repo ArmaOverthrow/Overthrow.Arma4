@@ -62,6 +62,15 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 					Print("[Overthrow] Overthrow: Setting occupying faction to default (" + config.m_sDefaultOccupyingFaction + ")");
 					config.SetOccupyingFaction(config.m_sDefaultOccupyingFaction);
 				}
+				
+				if(config.m_ConfigFile.supportingFaction != "" && config.m_ConfigFile.supportingFaction != "FIA")
+				{
+					Print("[Overthrow] Overthrow: Setting supporting faction to config value (" + config.m_ConfigFile.supportingFaction + ")");
+					config.SetSupportingFaction(config.m_ConfigFile.supportingFaction);
+				}else{
+					Print("[Overthrow] Overthrow: Setting supporting faction to default (" + config.m_sDefaultSupportingFaction + ")");
+					config.SetSupportingFaction(config.m_sDefaultSupportingFaction);
+				}
 			}
 		}
 		m_Config.SetBaseAndTownOwners();
@@ -83,6 +92,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	{
 		FactionManager fm = GetGame().GetFactionManager();
 		OVT_Global.GetConfig().m_iPlayerFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(OVT_Global.GetConfig().m_sPlayerFaction));
+		OVT_Global.GetConfig().m_iSupportingFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(OVT_Global.GetConfig().m_sSupportingFaction));
 		OVT_Global.GetConfig().m_iOccupyingFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(OVT_Global.GetConfig().m_sOccupyingFaction));
 
 		m_StartGameUIContext.CloseLayout();

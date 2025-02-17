@@ -646,6 +646,11 @@ class OVT_TownManagerComponent: OVT_Component
 		}
 	}
 	
+	array<ref OVT_TownData> GetTowns()
+	{
+		return m_Towns;
+	}
+	
 	protected void InitializeTowns()
 	{
 		#ifdef OVERTHROW_DEBUG

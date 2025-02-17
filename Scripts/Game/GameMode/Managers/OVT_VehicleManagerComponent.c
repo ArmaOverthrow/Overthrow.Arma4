@@ -1,8 +1,8 @@
-class OVT_VehicleManagerComponentClass: OVT_OwnerManagerComponentClass
+class OVT_VehicleManagerComponentClass: OVT_RplOwnerManagerComponentClass
 {
 };
 
-class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
+class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 {	
 
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Players starting cars", params: "et", category: "Vehicles")]
@@ -12,13 +12,14 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 	ref SCR_EntityCatalogMultiList m_CivilianVehicleEntityCatalog;
 		
 	ref array<EntityID> m_aAllVehicleShops;	
-	ref array<EntityID> m_aEntitySearch;
 	
 	ref array<ref EntityID> m_aVehicles;
 	
 	OVT_RealEstateManagerComponent m_RealEstate;
 		
 	static OVT_VehicleManagerComponent s_Instance;	
+	
+	protected ref array<EntityID> m_aParkingSearch;
 	
 	static OVT_VehicleManagerComponent GetInstance()
 	{
@@ -34,8 +35,7 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 	
 	void OVT_VehicleManagerComponent(IEntityComponentSource src, IEntity ent, IEntity parent)
 	{		
-		m_aAllVehicleShops = new array<EntityID>;	
-		m_aEntitySearch = new array<EntityID>;
+		m_aAllVehicleShops = new array<EntityID>;		
 		m_aVehicles = new array<ref EntityID>;
 	}
 	
@@ -84,25 +84,25 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 	
 	bool GetNearestParkingSpot(vector pos, out vector outMat[4], OVT_ParkingType type = OVT_ParkingType.PARKING_CAR)
 	{
-		m_aEntitySearch.Clear();
+		m_aParkingSearch.Clear();
 		GetGame().GetWorld().QueryEntitiesBySphere(pos, 15, null, FilterParkingAddToArray, EQueryEntitiesFlags.ALL);
 		
-		if(m_aEntitySearch.Count() == 0) return false;
+		if(m_aParkingSearch.Count() == 0) return false;
 		
-		return GetParkingSpot(GetGame().GetWorld().FindEntityByID(m_aEntitySearch[0]), outMat, type);
+		return GetParkingSpot(GetGame().GetWorld().FindEntityByID(m_aParkingSearch[0]), outMat, type);
 	}
 	
 	bool FindNearestKerbParking(vector pos, float range, out vector outMat[4])
 	{
-		m_aEntitySearch.Clear();
+		m_aParkingSearch.Clear();
 		GetGame().GetWorld().QueryEntitiesBySphere(pos, range, null, FilterKerbAddToArray, EQueryEntitiesFlags.STATIC);
 		
-		if(m_aEntitySearch.Count() == 0) return false;
+		if(m_aParkingSearch.Count() == 0) return false;
 		
 		float nearestDistance = range;
 		IEntity nearest;
 		
-		foreach(EntityID id : m_aEntitySearch)
+		foreach(EntityID id : m_aParkingSearch)
 		{
 			IEntity kerb = GetGame().GetWorld().FindEntityByID(id);
 			float distance = vector.Distance(kerb.GetOrigin(), pos);
@@ -139,8 +139,8 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 			
 			if(mesh){
 				string res = mesh.GetResourceName();
-				if(res.IndexOf("Pavement_") > -1) m_aEntitySearch.Insert(entity.GetID());
-				if(res.IndexOf("Kerb_") > -1) m_aEntitySearch.Insert(entity.GetID());				
+				if(res.IndexOf("Pavement_") > -1) m_aParkingSearch.Insert(entity.GetID());
+				if(res.IndexOf("Kerb_") > -1) m_aParkingSearch.Insert(entity.GetID());				
 			}
 		}
 		return false;
@@ -149,7 +149,7 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 	bool FilterParkingAddToArray(IEntity entity)
 	{
 		if(entity.FindComponent(OVT_ParkingComponent)){
-			m_aEntitySearch.Insert(entity.GetID());
+			m_aParkingSearch.Insert(entity.GetID());
 		}
 		return false;
 	}
@@ -257,10 +257,10 @@ class OVT_VehicleManagerComponent: OVT_OwnerManagerComponent
 			m_aAllVehicleShops.Clear();
 			m_aAllVehicleShops = null;
 		}
-		if(m_aEntitySearch)
+		if(m_aParkingSearch)
 		{
-			m_aEntitySearch.Clear();
-			m_aEntitySearch = null;
+			m_aParkingSearch.Clear();
+			m_aParkingSearch = null;
 		}
 	}
 }

@@ -19,7 +19,6 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	
 	static OVT_RealEstateManagerComponent s_Instance;
 	
-	protected ref array<IEntity> m_aEntitySearch;
 	protected ref array<EntityID> m_aStartingHomes;
 	protected ref array<EntityID> m_aTownStartingHomes;
 	int m_iStartingTownId = -1;
@@ -314,23 +313,22 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		if(!m_mOwned.Contains(playerId)) return null;
 		
 		float nearest = -1;
-		IEntity nearestEnt;		
+		vector nearestPos;		
 		
-		set<RplId> owner = m_mOwned[playerId];
-		foreach(RplId id : owner)
-		{
-			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
-			IEntity ent = rpl.GetEntity();
-			float dist = vector.Distance(ent.GetOrigin(), pos);
+		array<string> owner = m_mOwned[playerId];
+		foreach(string buildingPosString : owner)
+		{			
+			vector buildingPos = buildingPosString.ToVector();
+			float dist = vector.Distance(buildingPos, pos);
 			if(range > -1 && dist > range) continue;
 			if(nearest == -1 || dist < nearest)
 			{
 				nearest = dist;
-				nearestEnt = ent;
+				nearestPos = buildingPos;
 			}
 		}
 		
-		return nearestEnt;
+		return GetNearestBuilding(nearestPos);
 	}
 	
 	IEntity GetNearestRented(string playerId, vector pos, float range = -1)
@@ -338,60 +336,28 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		if(!m_mRented.Contains(playerId)) return null;
 		
 		float nearest = -1;
-		IEntity nearestEnt;		
+		vector nearestPos;		
 		
-		set<RplId> owner = m_mRented[playerId];
-		foreach(RplId id : owner)
+		array<string> owner = m_mRented[playerId];
+		foreach(string buildingPosString : owner)
 		{
-			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
-			IEntity ent = rpl.GetEntity();
-			float dist = vector.Distance(ent.GetOrigin(), pos);
+			vector buildingPos = buildingPosString.ToVector();
+			float dist = vector.Distance(buildingPos, pos);
 			if(range > -1 && dist > range) continue;
 			if(nearest == -1 || dist < nearest)
 			{
 				nearest = dist;
-				nearestEnt = ent;
+				nearestPos = buildingPos;
 			}
 		}
 		
-		return nearestEnt;
-	}
-	
-	IEntity GetNearestBuilding(vector pos, float range = 40)
-	{
-		m_aEntitySearch.Clear();
-		GetGame().GetWorld().QueryEntitiesBySphere(pos, range, null, FilterBuildingToArray, EQueryEntitiesFlags.STATIC);
-		
-		if(m_aEntitySearch.Count() == 0)
-		{
-			return null;
-		}
-		float nearest = range;
-		IEntity nearestEnt;	
-		
-		foreach(IEntity ent : m_aEntitySearch)
-		{
-			float dist = vector.Distance(ent.GetOrigin(), pos);
-			if(dist < nearest)
-			{
-				nearest = dist;
-				nearestEnt = ent;
-			}
-		}
-		return nearestEnt;
+		return GetNearestBuilding(nearestPos);
 	}
 	
 	bool BuildingIsOwnable(IEntity entity)
 	{
 		if(!entity) return false;
 		if(entity.ClassName() != "SCR_DestructibleBuildingEntity")
-		{
-			return false;
-		}
-
-		// Check for RplComponent
-		RplComponent rpl = RplComponent.Cast(entity.FindComponent(RplComponent));
-		if(!rpl)
 		{
 			return false;
 		}
@@ -454,15 +420,6 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		}
 		
 		return config.m_BaseRent + (config.m_BaseRent * (config.m_DemandMultiplier * town.population * ((float)town.stability / 100)));
-	}
-	
-	bool FilterBuildingToArray(IEntity entity)
-	{
-		if(entity.ClassName() == "SCR_DestructibleBuildingEntity")
-		{
-			m_aEntitySearch.Insert(entity);
-		}
-		return false;
 	}
 	
 	vector GetHome(string playerId)

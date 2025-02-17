@@ -179,10 +179,8 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 		
 		for(int i = 0; i < realEstate.m_mOwners.Count(); i++)
 		{
-			RplId id = realEstate.m_mOwners.GetKey(i);
-			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
-			if(!rpl) continue;
-			IEntity ent = rpl.GetEntity();
+			vector pos = realEstate.m_mOwners.GetKey(i).ToVector();			
+			IEntity ent = realEstate.GetNearestBuilding(pos);
 			OVT_RealEstateConfig bdgConfig = realEstate.GetConfig(ent);
 			if(!bdgConfig.m_IsWarehouse)
 			{
@@ -202,10 +200,8 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 		
 		for(int i = 0; i < realEstate.m_mRenters.Count(); i++)
 		{
-			RplId id = realEstate.m_mRenters.GetKey(i);
-			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
-			if(!rpl) continue;
-			IEntity ent = rpl.GetEntity();
+			vector pos = realEstate.m_mRenters.GetKey(i).ToVector();
+			IEntity ent = realEstate.GetNearestBuilding(pos);
 			OVT_RealEstateConfig bdgConfig = realEstate.GetConfig(ent);
 			if(!bdgConfig.m_IsWarehouse)
 			{

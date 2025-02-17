@@ -4844,6 +4844,17 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6478C5E37CF8C172}" {
+   Id "OVT-SupportingFaction"
+   Target_en_us "Supporting Faction"
+   Target_fr_fr "Faction de soutien"
+   Target_ru_ru "Поддерживающая фракция"
+   Target_uk_ua "Фракція підтримки"
+   Terminology NONE
+   Modified 1685646746
+   Author "theonegfrost"
+   LastChanged "gfros"
+  }
   CustomStringTableItem "{59A2BDA8428BCAC2}" {
    Id "OVT-SupportMod_RecruitmentPosters"
    Target_en_us "Recruitment Posters"

@@ -123,14 +123,14 @@ OverlayWidgetClass {
      Name "EconomyInfoPanel"
      Slot FrameWidgetSlot "{56E0F185ADC1E20E}" {
       Anchor 1 0 1 0
-      PositionX -16
-      OffsetLeft -16
-      PositionY 55
-      OffsetTop 55
+      PositionX -20
+      OffsetLeft -20
+      PositionY 45
+      OffsetTop 45
       SizeX 100
-      OffsetRight -84
+      OffsetRight -80
       SizeY 23.8
-      OffsetBottom -78.8
+      OffsetBottom -68.8
       Alignment 1 0
       SizeToContent 1
      }
@@ -155,7 +155,7 @@ OverlayWidgetClass {
          Color 1 1 1 1
          "Inherit Color" 1
          Text "$100"
-         "Font Size" 30
+         "Font Size" 25
          "Min Font Size" 20
          "Horizontal Alignment" Right
          "Vertical Alignment" Center

@@ -27,6 +27,7 @@ class OVT_CameraPosition : ScriptAndConfig
 class OVT_OverthrowConfigStruct
 {
 	string occupyingFaction;
+	string supportingFaction;
 	string discordWebHookURL;
 	ref array<string> officers;
 	string difficulty;
@@ -42,6 +43,7 @@ class OVT_OverthrowConfigStruct
 	{
 		discordWebHookURL = "see wiki: https://github.com/ArmaOverthrow/Overthrow.Arma4/wiki/Discord-Web-Hook";
 		occupyingFaction = "";
+		supportingFaction = "";
 		officers = new array<string>;
 		difficulty = "Normal";	
 		showPlayerPosition = true;	
@@ -68,8 +70,10 @@ class OVT_OverthrowConfigComponent: OVT_Component
 
 	string m_sOccupyingFaction = "USSR";
 
-	[Attribute( defvalue: "US", uiwidget: UIWidgets.EditBox, desc: "The faction supporting the player", category: "Factions")]
-	string m_sSupportingFaction;
+	[Attribute( defvalue: "US", uiwidget: UIWidgets.EditBox, desc: "The faction supporting the player faction", category: "Factions")]
+	string m_sDefaultSupportingFaction;
+
+	string m_sSupportingFaction = "US";
 
 	[Attribute("", UIWidgets.Object)]
 	ref array<ref OVT_CameraPosition> m_aCameraPositions;
@@ -160,6 +164,7 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	ref OVT_LoadoutConfig m_CivilianLoadout;
 
 	int m_iOccupyingFactionIndex = -1;
+	int m_iSupportingFactionIndex = -1;
 	int m_iPlayerFactionIndex = -1;
 
 	[Attribute(defvalue: "false", UIWidgets.EditBox, desc: "Debug Mode")]
@@ -252,6 +257,17 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		m_sOccupyingFaction = faction.GetFactionKey();
 	}
 
+	void SetSupportingFaction(string key)
+	{
+		OVT_Faction sf = GetSupportingFaction();
+		if(key == sf.GetFactionKey()) return;
+		FactionManager factionMgr = GetGame().GetFactionManager();
+		Faction faction = factionMgr.GetFactionByKey(key);
+		m_iSupportingFactionIndex = factionMgr.GetFactionIndex(faction);
+
+		m_sSupportingFaction = faction.GetFactionKey();
+	}
+
 	void SetBaseAndTownOwners()
 	{
 		foreach(OVT_BaseData base : OVT_Global.GetOccupyingFaction().m_Bases)
@@ -290,6 +306,26 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		return m_iOccupyingFactionIndex;
 	}
 
+	OVT_Faction GetSupportingFaction()
+	{
+		return OVT_Global.GetFactions().GetOverthrowFactionByKey(m_sSupportingFaction);
+	}
+
+	Faction GetSupportingFactionData()
+	{
+		return GetGame().GetFactionManager().GetFactionByKey(m_sSupportingFaction);
+	}
+
+	int GetSupportingFactionIndex()
+	{
+		if(m_iSupportingFactionIndex == -1)
+		{
+			FactionManager fm = GetGame().GetFactionManager();
+			m_iSupportingFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(m_sSupportingFaction));
+		}
+		return m_iSupportingFactionIndex;
+	}
+
 	OVT_Faction GetPlayerFaction()
 	{
 		return OVT_Global.GetFactions().GetOverthrowFactionByKey(m_sPlayerFaction);
@@ -316,6 +352,8 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		{
 			case OVT_FactionType.OCCUPYING_FACTION:
 				return GetOccupyingFaction();
+			case OVT_FactionType.SUPPORTING_FACTION:
+				return GetSupportingFaction();
 		}
 		return GetPlayerFaction();
 	}
@@ -451,5 +489,66 @@ class OVT_OverthrowConfigComponent: OVT_Component
 			aigroup.AddWaypoint(cycle);
 			return;
 		}
+	}
+	
+	//RPC Methods
+	
+	override bool RplSave(ScriptBitWriter writer)
+	{	
+			
+		//Send needed difficulty items		
+		writer.WriteBool(m_Difficulty.showPlayerOnMap);
+		writer.WriteInt(m_Difficulty.wantedTimeout);
+		writer.WriteInt(m_Difficulty.wantedOneTimeout);
+		writer.WriteFloat(m_Difficulty.placeableCostMultiplier);
+		writer.WriteFloat(m_Difficulty.buildableCostMultiplier);
+		writer.WriteFloat(m_Difficulty.realEstateCostMultiplier);
+		writer.WriteInt(m_Difficulty.busTicketPrice);
+		writer.WriteInt(m_Difficulty.baseRecruitCost);
+		writer.WriteInt(m_Difficulty.gunDealerSellPriceMultiplier);
+		writer.WriteInt(m_Difficulty.procurementMultiplier);		
+		
+		return true;
+	}
+	
+	override bool RplLoad(ScriptBitReader reader)
+	{		
+				
+		//Recieve difficulty items
+		int i;
+		float f;
+		bool b;
+		
+		if (!reader.ReadBool(b)) return false;
+		m_Difficulty.showPlayerOnMap = b;
+		
+		if (!reader.ReadInt(i)) return false;
+		m_Difficulty.wantedTimeout = i;
+		
+		if (!reader.ReadInt(i)) return false;
+		m_Difficulty.wantedOneTimeout = i;
+		
+		if (!reader.ReadFloat(f)) return false;
+		m_Difficulty.placeableCostMultiplier = f;
+		
+		if (!reader.ReadFloat(f)) return false;
+		m_Difficulty.buildableCostMultiplier = f;
+		
+		if (!reader.ReadFloat(f)) return false;
+		m_Difficulty.realEstateCostMultiplier = f;
+		
+		if (!reader.ReadInt(i)) return false;
+		m_Difficulty.busTicketPrice = i;
+		
+		if (!reader.ReadInt(i)) return false;
+		m_Difficulty.baseRecruitCost = i;
+		
+		if (!reader.ReadInt(i)) return false;
+		m_Difficulty.gunDealerSellPriceMultiplier = i;
+		
+		if (!reader.ReadInt(i)) return false;
+		m_Difficulty.procurementMultiplier = i;
+		
+		return true;
 	}
 }

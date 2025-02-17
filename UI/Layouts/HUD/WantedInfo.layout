@@ -22,14 +22,14 @@ OverlayWidgetClass {
      Name "WantedLevel"
      Slot FrameWidgetSlot "{5988DB08DC69F5F6}" {
       Anchor 1 0 1 0
-      PositionX -20
-      OffsetLeft -20
-      PositionY 40
-      OffsetTop 40
+      PositionX -80
+      OffsetLeft -80
+      PositionY 10
+      OffsetTop 10
       SizeX 100
-      OffsetRight -80
+      OffsetRight -20
       SizeY 30
-      OffsetBottom -70
+      OffsetBottom -40
       Alignment 1 0
       SizeToContent 1
      }
@@ -88,12 +88,12 @@ OverlayWidgetClass {
       Anchor 1 0 1 0
       PositionX -20
       OffsetLeft -20
-      PositionY 78
-      OffsetTop 78
+      PositionY 10
+      OffsetTop 10
       SizeX 100
       OffsetRight -80
       SizeY 30
-      OffsetBottom -108
+      OffsetBottom -40
       Alignment 1 0
       SizeToContent 1
      }

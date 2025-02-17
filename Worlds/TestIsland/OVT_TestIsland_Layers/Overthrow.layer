@@ -1,4 +1,12 @@
 OVT_OverthrowGameMode OVT_OverthrowGameMode1 : "{4DC10DCB8BE06D32}Prefabs/GameMode/OVT_OverthrowGameMode.et" {
+ components {
+  OVT_EconomyManagerComponent "{5988DB0008700592}" {
+   m_ShopConfig OVT_ShopConfig "{647C9C5ED6C6191A}" : "{CA8AAD31D0E7E0B5}Configs/System/ShopConfig.conf" {
+   }
+   m_GunDealerConfig OVT_GunDealerConfig "{647C9C5ED5BFBC48}" : "{A8A5CE6C72E6D899}Configs/System/GunDealerConfig.conf" {
+   }
+  }
+ }
  coords 2219.029 12.249 1867.513
 }
 OVT_OverthrowFactionManager OVT_OverthrowFactionManager1 : "{51EBC0CFD56DA130}Prefabs/GameMode/OVT_OverthrowFactionManager.et" {
