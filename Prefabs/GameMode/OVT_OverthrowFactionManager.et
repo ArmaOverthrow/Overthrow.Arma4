@@ -8,6 +8,8 @@ OVT_OverthrowFactionManager {
   }
   SCR_Faction "{5D8CB07017FAD571}" : "{8053DB656DD18B14}Configs/Factions/FIA.conf" {
   }
+  SCR_Faction "{6490AAF9D5710EF1}" : "{00C219DF633474D1}Configs/Factions/CIV.conf" {
+  }
  }
  m_bCanChangeFactionsPlayable 0
  m_aOverthrowFactions {
@@ -16,6 +18,8 @@ OVT_OverthrowFactionManager {
   OVT_Faction "{5D8CB07F1A072D18}" : "{EF3B64A93DC980EF}Configs/Factions/US_OverthrowData.conf" {
   }
   OVT_Faction "{5D8CB07FC36DF5F6}" : "{581BA9D7260E4FB7}Configs/Factions/FIA_OverthrowData.conf" {
+  }
+  OVT_Faction "{6490AAF9DC0AC6C2}" : "{68DD6AA07EE8788A}Configs/Factions/CIV_OverthrowData.conf" {
   }
  }
 }

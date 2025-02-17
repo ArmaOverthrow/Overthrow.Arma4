@@ -78,6 +78,9 @@ class OVT_BaseData : OVT_MapLocationData
 	ref array<ref EntityID> garrisonEntities = {};
 
 	ref array<ref ResourceName> garrison = {};
+	
+	[SortAttribute(),NonSerialized()]
+	int sortBy;
 
 	static OVT_BaseData Get(vector pos)
 	{
@@ -144,7 +147,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 	int m_iQRFPoints = 0;
 	int m_iQRFTimer = 0;
 
-	bool m_bNoCounterAttack = false;
+	int m_bCounterAttackTimeout = 0;
 
 	const int OF_UPDATE_FREQUENCY = 60000;
 
@@ -177,9 +180,6 @@ class OVT_OccupyingFactionManager: OVT_Component
 	{
 		if(!Replication.IsServer()) return;
 
-		m_iThreat = m_Config.m_Difficulty.baseThreat;
-		m_iResources = m_Config.m_Difficulty.startingResources;
-
 		Faction playerFaction = GetGame().GetFactionManager().GetFactionByKey(m_Config.m_sPlayerFaction);
 		m_iPlayerFactionIndex = GetGame().GetFactionManager().GetFactionIndex(playerFaction);
 
@@ -194,6 +194,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 	void NewGameStart()
 	{
 		OVT_Global.GetConfig().m_iOccupyingFactionIndex = -1;
+		m_iThreat = m_Config.m_Difficulty.baseThreat;
+		m_iResources = m_Config.m_Difficulty.maxQRF;
+		
 		foreach(OVT_BaseData data : m_Bases)
 		{
 			data.faction = OVT_Global.GetConfig().GetOccupyingFactionIndex();
@@ -237,8 +240,12 @@ class OVT_OccupyingFactionManager: OVT_Component
 					{
 						pos[1] = surfaceY;
 					}
+					
+					OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+					
+					int numGroups = s_AIRandomGenerator.RandInt(config.m_Difficulty.radioTowerGroupsMin,config.m_Difficulty.radioTowerGroupsMax);
 
-					for(int t = 0; t < OVT_Global.GetConfig().m_Difficulty.radioTowerGroups; t++)
+					for(int t = 0; t < numGroups; t++)
 					{
 						IEntity group = OVT_Global.SpawnEntityPrefab(faction.m_aTowerDefensePatrolPrefab, pos);
 						tower.garrison.Insert(group.GetID());
@@ -428,23 +435,15 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 	protected void DistributeInitialResources()
 	{
-		//Distribute initial resources
-
-		int resourcesPerBase = Math.Floor(m_iResources / m_Bases.Count());
-
+		//Distribute initial resources		
 		foreach(OVT_BaseData data : m_Bases)
 		{			
 			OVT_BaseControllerComponent base = GetBase(data.entId);
-			
-			int spent = base.SpendResources(resourcesPerBase, m_iThreat);
-			Print("[Overthrow.OccupyingFactionManager] Distributed " + spent.ToString() + " resources to " + base.m_sName);			
-			m_iResources -= spent;
-
-			if(m_iResources <= 0) break;
+			int toSpend = Math.Floor(m_Config.m_Difficulty.startingResources * base.m_fStartingResourcesMultiplier);
+			Print("[Overthrow.OccupyingFactionManager] Distributing " + toSpend.ToString() + " resources to " + base.m_sName);
+			base.SpendResources(toSpend, m_iThreat);
 		}
-		UpdateSpecops();
-		if(m_iResources < 0) m_iResources = 0;
-		Print("[Overthrow.OccupyingFactionManager] Remaining Resources: " + m_iResources.ToString());
+		UpdateSpecops();	
 	}
 
 	OVT_BaseControllerComponent GetBase(EntityID id)
@@ -498,6 +497,12 @@ class OVT_OccupyingFactionManager: OVT_Component
 		OVT_BaseData data = GetNearestBase(base.GetOwner().GetOrigin());
 
 		m_CurrentQRF = SpawnQRFController(base.GetOwner().GetOrigin());
+		m_CurrentQRF.m_iLZMin = base.m_iAttackDistanceMin;
+		m_CurrentQRF.m_iLZMax = base.m_iAttackDistanceMax;
+		m_CurrentQRF.m_iPreferredDirection = base.m_iAttackPreferredDirection;
+		
+		m_CurrentQRF.Start();
+		
 		RplComponent rpl = RplComponent.Cast(m_CurrentQRF.GetOwner().FindComponent(RplComponent));
 
 		m_CurrentQRF.m_OnFinished.Insert(OnQRFFinishedBase);
@@ -507,8 +512,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_vQRFLocation = base.GetOwner().GetOrigin();
 		m_iCurrentQRFBase= GetBaseIndex(data);
 
-		OVT_Global.GetNotify().SendTextNotification("BaseBattle", -1, OVT_Global.GetTowns().GetTownName(m_vQRFLocation));
-		OVT_Global.GetNotify().SendExternalNotifications("BaseBattle", OVT_Global.GetTowns().GetTownName(m_vQRFLocation));
+		OVT_Global.GetNotify().SendTextNotification("BaseBattle", -1, base.m_sName);
+		OVT_Global.GetNotify().SendExternalNotifications("BaseBattle", base.m_sName);
 
 		Rpc(RpcDo_SetQRFBase, m_iCurrentQRFBase);
 		Rpc(RpcDo_SetQRFActive, m_vQRFLocation);
@@ -522,6 +527,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 		m_CurrentQRF = SpawnQRFController(town.location);
 		RplComponent rpl = RplComponent.Cast(m_CurrentQRF.GetOwner().FindComponent(RplComponent));
+		
+		m_CurrentQRF.Start();
 
 		m_CurrentQRF.m_OnFinished.Insert(OnQRFFinishedTown);
 		m_CurrentQRFTown = town;
@@ -685,8 +692,54 @@ class OVT_OccupyingFactionManager: OVT_Component
 		return false;
 	}
 
+	int getBaseThreat(OVT_BaseData base)
+	{
+		int score = 0;
+		foreach(OVT_TargetData target : m_aKnownTargets)
+		{
+			if(vector.Distance(target.location, base.location) < 3000)
+			{
+				if(target.type == OVT_TargetType.BASE)
+				{
+					score += 20;
+				}else if(target.type == OVT_TargetType.BROADCAST_TOWER)
+				{
+					score += 10;
+				}else if(target.type == OVT_TargetType.FOB)
+				{
+					score += 5;
+				}else if(target.type == OVT_TargetType.WAREHOUSE)
+				{
+					score += 1;
+				}				
+			}
+		}
+		foreach(OVT_TownData town : OVT_Global.GetTowns().m_Towns)
+		{
+			if(town.IsOccupyingFaction()) continue;
+			if(vector.Distance(town.location, base.location) < 3000)
+			{
+				if(town.size == 1)
+				{
+					score += 5;
+				}else if(town.size == 2)
+				{
+					score += 10;
+				}else if(town.size == 3)
+				{
+					score += 20;
+				}
+			}
+		}
+
+		return score;
+	}
+
 	void CheckUpdate()
 	{
+		m_bCounterAttackTimeout--;
+		if(m_bCounterAttackTimeout < 0) m_bCounterAttackTimeout = 0;
+		
 		if(!m_Time)
 		{
 			ChimeraWorld world = GetOwner().GetWorld();
@@ -729,10 +782,21 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 			int toSpend = Math.Floor((float)newResources * 0.8);
 			UpdateKnownTargets();
-			//To-Do: prioritize bases that need it/are under threat
+
+			//sort bases by threat score
+			array<OVT_BaseData> sortedBases = new array<OVT_BaseData>;
 			foreach(OVT_BaseData data : m_Bases)
 			{
 				if(!data.IsOccupyingFaction()) continue;
+				data.sortBy = getBaseThreat(data);
+				sortedBases.Insert(data);
+			}
+			sortedBases.Sort(true);	
+
+			int perBase = Math.Floor((float)toSpend / sortedBases.Count());		
+			
+			foreach(OVT_BaseData data : sortedBases)
+			{				
 				OVT_BaseControllerComponent base = GetBase(data.entId);
 
 				//Dont spawn stuff if a player is watching lol
@@ -756,7 +820,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 		}
 		//If we have a surplus of resources, try to take a random base back
-		if(time.m_iMinutes == 0 && m_iResources > 2000 && !m_bNoCounterAttack)
+		float rand = s_AIRandomGenerator.RandFloat01();
+		if(time.m_iMinutes == 0 && m_iResources > 2000 && m_bCounterAttackTimeout == 0 && rand > 0.9)
 		{
 			Print("[Overthrow.OccupyingFactionManager] Surplus of resources, attempting counter attack");
 			OVT_BaseData randomBase = m_Bases[s_AIRandomGenerator.RandInt(0,m_Bases.Count()-1)];
@@ -764,11 +829,10 @@ class OVT_OccupyingFactionManager: OVT_Component
 			{
 				OVT_BaseControllerComponent base = GetBase(randomBase.entId);
 				StartBaseQRF(base);
-				m_bNoCounterAttack = true; //Hold off counter attacks for a little
+				int timeout = Math.RandomIntInclusive(m_Config.m_Difficulty.counterAttackTimeout - 20, m_Config.m_Difficulty.counterAttackTimeout + 20);
+				m_bCounterAttackTimeout = timeout; //Hold off counter attacks for a little
 				return;
 			}
-		}else{
-			m_bNoCounterAttack = false;
 		}
 
 		//Every 15 mins reduce threat and check if we wanna start a battle for a town
@@ -840,6 +904,25 @@ class OVT_OccupyingFactionManager: OVT_Component
 	{
 		//To-Do: target discovery not by magic
 		OVT_ResistanceFactionManager resistance = OVT_Global.GetResistanceFaction();
+		
+		foreach(OVT_RadioTowerData data : m_RadioTowers)
+		{
+			if(data.IsOccupyingFaction()){
+				if(IsKnownTarget(data.location))
+				{
+					m_aKnownTargets.RemoveItem(GetNearestKnownTarget(data.location));
+				}
+				continue;
+			}
+			if(!IsKnownTarget(data.location))
+			{
+				OVT_TargetData target = new OVT_TargetData();
+				target.location = data.location;
+				target.type = OVT_TargetType.BROADCAST_TOWER;
+				target.order = OVT_OrderType.ATTACK;
+				m_aKnownTargets.Insert(target);
+			}
+		}
 
 		foreach(OVT_FOBData fob : resistance.m_FOBs)
 		{
@@ -871,25 +954,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 				m_aKnownTargets.Insert(target);
 			}
 		}
-
-		foreach(OVT_RadioTowerData data : m_RadioTowers)
-		{
-			if(data.IsOccupyingFaction()){
-				if(IsKnownTarget(data.location))
-				{
-					m_aKnownTargets.RemoveItem(GetNearestKnownTarget(data.location));
-				}
-				continue;
-			}
-			if(!IsKnownTarget(data.location))
-			{
-				OVT_TargetData target = new OVT_TargetData();
-				target.location = data.location;
-				target.type = OVT_TargetType.BROADCAST_TOWER;
-				target.order = OVT_OrderType.ATTACK;
-				m_aKnownTargets.Insert(target);
-			}
-		}
+		
 	}
 
 	bool IsKnownTarget(vector pos)

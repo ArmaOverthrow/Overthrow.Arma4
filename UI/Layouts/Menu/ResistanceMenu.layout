@@ -410,6 +410,8 @@ FrameWidgetClass {
                      m_sLabel "#OVT-ResistanceTax"
                      m_fValue 0
                      m_fShownValueMultiplier 100
+                     m_bClampValue 1
+                     m_bRoundValue 1
                     }
                    }
                   }

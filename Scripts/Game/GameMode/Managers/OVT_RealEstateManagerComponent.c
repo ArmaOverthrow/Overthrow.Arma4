@@ -19,8 +19,9 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	
 	static OVT_RealEstateManagerComponent s_Instance;
 	
-	protected ref array<IEntity> m_aEntitySearch;
 	protected ref array<EntityID> m_aStartingHomes;
+	protected ref array<EntityID> m_aTownStartingHomes;
+	int m_iStartingTownId = -1;
 	
 	ref array<ref OVT_WarehouseData> m_aWarehouses = new array<ref OVT_WarehouseData>;
 	
@@ -41,6 +42,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		m_aEntitySearch = new array<IEntity>;
 		m_aWarehouses = new array<ref OVT_WarehouseData>;
 		m_aStartingHomes = new array<EntityID>;
+		m_aTownStartingHomes = new array<EntityID>;
 	}
 	
 	void OnPostLoad(IEntity owner)	
@@ -58,11 +60,14 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	{
 		if(entity.ClassName() == "SCR_DestructibleBuildingEntity"){
 			ResourceName res = entity.GetPrefabData().GetPrefabName();
-			if(res.IndexOf("_furniture") > -1) return false;
+			if(res.IndexOf("_furniture") > -1) return false;	
+			OVT_TownManagerComponent towns = OVT_Global.GetTowns();		
 			foreach(string s : OVT_Global.GetConfig().m_aStartingHouseFilters)
 			{
 				if(res.IndexOf(s) > -1) {
 					EntityID id = entity.GetID();
+					OVT_TownData closestTown = towns.GetNearestTown(entity.GetOrigin());
+					if(towns.m_aIgnoreTowns.Find(towns.GetTownName(towns.GetTownID(closestTown))) > -1) return false;
 					if(!IsOwned(id))
 						m_aStartingHomes.Insert(id);
 					continue;
@@ -81,14 +86,58 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		m_Town = OVT_TownManagerComponent.Cast(GetOwner().FindComponent(OVT_TownManagerComponent));	
 	}
 	
+	void NewStartingTown()
+	{
+		int attempts = 0;
+		while(attempts < 50)
+		{
+			attempts++;
+			OVT_TownData town = m_Town.GetRandomTown();
+			int townId = m_Town.GetTownID(town);
+			if(town && townId != m_iStartingTownId)
+			{
+				m_iStartingTownId = townId;
+				m_aTownStartingHomes.Clear();
+				foreach(EntityID id : m_aStartingHomes)
+				{
+					IEntity ent = GetGame().GetWorld().FindEntityByID(id);
+					OVT_TownData nearestTown = m_Town.GetNearestTown(ent.GetOrigin());
+					int nearestId = m_Town.GetTownID(nearestTown);
+					if(nearestId == m_iStartingTownId)
+					{
+						m_aTownStartingHomes.Insert(id);
+					}
+				}
+				if(m_aTownStartingHomes.Count() > 0) 
+				{
+					Print("New Starting Home Town: " + m_Town.GetTownName(m_iStartingTownId));
+					return;
+				}
+			}
+		}
+		//Cannot find a new starting town
+		m_iStartingTownId = -1;
+	}
+	
 	IEntity GetRandomStartingHouse()
 	{
 		int numHouses = m_aStartingHomes.Count();
 		if(numHouses == 0) return null;
+		
+		if(m_iStartingTownId == -1 || m_aTownStartingHomes.Count() == 0)
+		{
+			NewStartingTown();
+		}
+
+		if(m_iStartingTownId == -1) return null;
 				
-		int i = s_AIRandomGenerator.RandInt(0, numHouses - 1);
-		EntityID id = m_aStartingHomes[i];
-		m_aStartingHomes.Remove(i);
+		int i = s_AIRandomGenerator.RandInt(0, m_aTownStartingHomes.Count() - 1);
+				
+		EntityID id = m_aTownStartingHomes[i];
+		m_aTownStartingHomes.Remove(i);
+		int index = m_aStartingHomes.Find(id);
+		if(index > -1) m_aStartingHomes.Remove(index);
+
 		return GetGame().GetWorld().FindEntityByID(id);
 	}
 	
@@ -264,23 +313,22 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		if(!m_mOwned.Contains(playerId)) return null;
 		
 		float nearest = -1;
-		IEntity nearestEnt;		
+		vector nearestPos;		
 		
-		set<RplId> owner = m_mOwned[playerId];
-		foreach(RplId id : owner)
-		{
-			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
-			IEntity ent = rpl.GetEntity();
-			float dist = vector.Distance(ent.GetOrigin(), pos);
+		array<string> owner = m_mOwned[playerId];
+		foreach(string buildingPosString : owner)
+		{			
+			vector buildingPos = buildingPosString.ToVector();
+			float dist = vector.Distance(buildingPos, pos);
 			if(range > -1 && dist > range) continue;
 			if(nearest == -1 || dist < nearest)
 			{
 				nearest = dist;
-				nearestEnt = ent;
+				nearestPos = buildingPos;
 			}
 		}
 		
-		return nearestEnt;
+		return GetNearestBuilding(nearestPos);
 	}
 	
 	IEntity GetNearestRented(string playerId, vector pos, float range = -1)
@@ -288,47 +336,22 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		if(!m_mRented.Contains(playerId)) return null;
 		
 		float nearest = -1;
-		IEntity nearestEnt;		
+		vector nearestPos;		
 		
-		set<RplId> owner = m_mRented[playerId];
-		foreach(RplId id : owner)
+		array<string> owner = m_mRented[playerId];
+		foreach(string buildingPosString : owner)
 		{
-			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
-			IEntity ent = rpl.GetEntity();
-			float dist = vector.Distance(ent.GetOrigin(), pos);
+			vector buildingPos = buildingPosString.ToVector();
+			float dist = vector.Distance(buildingPos, pos);
 			if(range > -1 && dist > range) continue;
 			if(nearest == -1 || dist < nearest)
 			{
 				nearest = dist;
-				nearestEnt = ent;
+				nearestPos = buildingPos;
 			}
 		}
 		
-		return nearestEnt;
-	}
-	
-	IEntity GetNearestBuilding(vector pos, float range = 40)
-	{
-		m_aEntitySearch.Clear();
-		GetGame().GetWorld().QueryEntitiesBySphere(pos, range, null, FilterBuildingToArray, EQueryEntitiesFlags.STATIC);
-		
-		if(m_aEntitySearch.Count() == 0)
-		{
-			return null;
-		}
-		float nearest = range;
-		IEntity nearestEnt;	
-		
-		foreach(IEntity ent : m_aEntitySearch)
-		{
-			float dist = vector.Distance(ent.GetOrigin(), pos);
-			if(dist < nearest)
-			{
-				nearest = dist;
-				nearestEnt = ent;
-			}
-		}
-		return nearestEnt;
+		return GetNearestBuilding(nearestPos);
 	}
 	
 	bool BuildingIsOwnable(IEntity entity)
@@ -338,7 +361,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		{
 			return false;
 		}
-		
+
 		ResourceName res = entity.GetPrefabData().GetPrefabName();
 		foreach(OVT_RealEstateConfig config : OVT_Global.GetConfig().m_aBuildingTypes)
 		{
@@ -397,15 +420,6 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		}
 		
 		return config.m_BaseRent + (config.m_BaseRent * (config.m_DemandMultiplier * town.population * ((float)town.stability / 100)));
-	}
-	
-	bool FilterBuildingToArray(IEntity entity)
-	{
-		if(entity.ClassName() == "SCR_DestructibleBuildingEntity")
-		{
-			m_aEntitySearch.Insert(entity);
-		}
-		return false;
 	}
 	
 	vector GetHome(string playerId)

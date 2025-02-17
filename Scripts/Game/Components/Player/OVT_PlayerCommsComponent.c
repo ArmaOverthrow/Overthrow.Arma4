@@ -4,6 +4,8 @@ class OVT_PlayerCommsComponentClass: OVT_ComponentClass
 
 class OVT_PlayerCommsComponent: OVT_Component
 {
+	bool takingMoney = false;
+	bool addingMoney = false;
 	
 	void RequestSave()
 	{
@@ -274,29 +276,31 @@ class OVT_PlayerCommsComponent: OVT_Component
 	}
 	
 	void SetBuildingOwner(int playerId, IEntity building)
-	{		
-		RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
-		Rpc(RpcAsk_SetBuildingOwner, playerId, rpl.Id());
+	{
+		Rpc(RpcAsk_SetBuildingOwner, playerId, building.GetOrigin());
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_SetBuildingOwner(int playerId, RplId id)
+	protected void RpcAsk_SetBuildingOwner(int playerId, vector pos)
 	{	
-		RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
-		OVT_Global.GetRealEstate().SetOwner(playerId, rpl.GetEntity());
+		OVT_RealEstateManagerComponent re = OVT_Global.GetRealEstate();
+		IEntity building = re.GetNearestBuilding(pos);
+		if(!building) return;
+		re.SetOwner(playerId, building);
 	}
 	
 	void SetBuildingOwner(string playerPersistentId, IEntity building)
-	{		
-		RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
-		Rpc(RpcAsk_SetBuildingOwnerPersistent, playerPersistentId, rpl.Id());
+	{
+		Rpc(RpcAsk_SetBuildingOwnerPersistent, playerPersistentId, building.GetOrigin());
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_SetBuildingOwnerPersistent(string playerId, RplId id)
+	protected void RpcAsk_SetBuildingOwnerPersistent(string playerId, vector pos)
 	{	
-		RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
-		OVT_Global.GetRealEstate().SetOwnerPersistentId(playerId, rpl.GetEntity());
+		OVT_RealEstateManagerComponent re = OVT_Global.GetRealEstate();
+		IEntity building = re.GetNearestBuilding(pos);
+		if(!building) return;
+		re.SetOwnerPersistentId(playerId, building);
 	}
 	
 	void SetBuildingRenter(int playerId, vector pos)
@@ -432,6 +436,7 @@ class OVT_PlayerCommsComponent: OVT_Component
 		if(shop.m_bProcurement)
 		{
 			cost = economy.GetPrice(id);
+			cost = cost * OVT_Global.GetConfig().m_Difficulty.procurementMultiplier;
 		}
 		if(!economy.PlayerHasMoney(playerPersId, cost)) return;
 		
@@ -461,6 +466,7 @@ class OVT_PlayerCommsComponent: OVT_Component
 	
 	void AddToShopInventory(OVT_ShopComponent shop, int id, int num)
 	{
+		num = Math.Round(num);
 		RplComponent rpl = RplComponent.Cast(shop.GetOwner().FindComponent(RplComponent));
 		Rpc(RpcAsk_AddToInventory, rpl.Id(), id, num);
 	}
@@ -501,6 +507,9 @@ class OVT_PlayerCommsComponent: OVT_Component
 	
 	void AddPlayerMoney(int playerId, int amount, bool doEvent=false)
 	{
+		//Stop money glitch
+		if(addingMoney) return;
+		addingMoney = true;
 		Rpc(RpcAsk_AddPlayerMoney, playerId, amount, doEvent);
 	}
 	
@@ -508,6 +517,7 @@ class OVT_PlayerCommsComponent: OVT_Component
 	protected void RpcAsk_AddPlayerMoney(int playerId, int amount, bool doEvent)
 	{
 		OVT_Global.GetEconomy().DoAddPlayerMoney(playerId, amount);
+		Rpc(RpcDo_DoneAddingMoney);	
 		if(doEvent)
 		{
 			OVT_Global.GetEconomy().m_OnPlayerSell.Invoke(playerId, amount);
@@ -516,13 +526,29 @@ class OVT_PlayerCommsComponent: OVT_Component
 	
 	void TakePlayerMoney(int playerId, int amount)
 	{
+		//Stop money glitch
+		if(takingMoney) return;
+		takingMoney = true;
 		Rpc(RpcAsk_TakePlayerMoney, playerId, amount);
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_TakePlayerMoney(int playerId, int amount)
 	{
-		OVT_Global.GetEconomy().DoTakePlayerMoney(playerId, amount);		
+		OVT_Global.GetEconomy().DoTakePlayerMoney(playerId, amount);	
+		Rpc(RpcDo_DoneTakingMoney);	
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void RpcDo_DoneTakingMoney()
+	{
+		takingMoney = false;
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void RpcDo_DoneAddingMoney()
+	{
+		addingMoney = false;
 	}
 	
 	void AddResistanceMoney(int amount)

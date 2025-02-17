@@ -10,9 +10,6 @@ SCR_AIGroup {
   }
   AIGroupMovementComponent "{59873909638CF1FB}" {
   }
-  AIGroupSteeringComponent "{59873909638CF1EE}" {
-   "Using Railroad" 0
-  }
   AIPathfindingComponent "{59873909638CF1D9}" {
    NavmeshProject "Soldiers"
   }
@@ -54,17 +51,8 @@ SCR_AIGroup {
     }
    }
    m_aInfoReactions {
-    SCR_AIInfoReaction_Contact "{59873909638CF21E}" {
-     m_eType CONTACT
-    }
-    SCR_AIInfoReaction_TargetEliminated "{59873909638CF207}" {
-     m_eType TARGET_ELIMINATED
-    }
     SCR_AIInfoReaction_Wounded "{59873909638CF20D}" {
      m_eType WOUNDED
-    }
-    SCR_AIInfoReaction_TargetLost "{59873909638CF2F5}" {
-     m_eType TARGET_LOST
     }
     SCR_AIInfoReaction_NoAmmo "{59873909638CF2F8}" {
      m_eType NO_AMMO
@@ -124,7 +112,6 @@ SCR_AIGroup {
      m_Flags 3
      m_Shape MESH
      m_iPivotID ""
-     m_fScale 1
      m_vPosition 0 0 0
      m_vAngles 0 0 0
     }
@@ -134,7 +121,6 @@ SCR_AIGroup {
      m_Flags 0
      m_Shape PREFAB
      m_iPivotID ""
-     m_fScale 1
      m_vPosition 0 0 0
      m_vAngles 0 0 0
     }
@@ -144,7 +130,6 @@ SCR_AIGroup {
      m_Flags 0
      m_Shape PREFAB
      m_iPivotID ""
-     m_fScale 1
      m_vPosition 3 0 -3
      m_vAngles 0 0 0
     }

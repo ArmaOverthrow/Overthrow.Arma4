@@ -10,6 +10,12 @@ class OVT_DifficultySettings : ScriptAndConfig
 	[Attribute()]
 	string name;
 	
+	[Attribute()]
+	string description;
+	
+	[Attribute()]
+	bool showPlayerOnMap;
+	
 	//Wanted system
 	[Attribute(defvalue: "30000", desc: "Timeout in ms for wanted levels 2-5 (per level)", category: "Wanted System")]
 	int wantedTimeout;
@@ -17,7 +23,7 @@ class OVT_DifficultySettings : ScriptAndConfig
 	int wantedOneTimeout;
 	
 	//OF
-	[Attribute(defvalue: "3000", desc: "OF starting resources", category: "Occupying Faction")]
+	[Attribute(defvalue: "3000", desc: "OF starting resources per base", category: "Occupying Faction")]
 	int startingResources;
 	[Attribute(defvalue: "250", desc: "OF resources per 6 hrs", category: "Occupying Faction")]
 	int baseResourcesPerTick;
@@ -29,12 +35,16 @@ class OVT_DifficultySettings : ScriptAndConfig
 	float radioTowerRange;
 	[Attribute(defvalue: "750", desc: "Base Support Range", category: "Occupying Faction")]
 	float baseSupportRange;
-	[Attribute(defvalue: "2", desc: "Number of defense groups at radio towers", category: "Occupying Faction")]
-	int radioTowerGroups;	
-	[Attribute("280")]
+	[Attribute(defvalue: "2", desc: "Minimum number of defense groups at radio towers", category: "Occupying Faction")]
+	int radioTowerGroupsMin;
+	[Attribute(defvalue: "3", desc: "Maximum number of defense groups at radio towers", category: "Occupying Faction")]
+	int radioTowerGroupsMax;	
+	[Attribute("280", category: "Occupying Faction")]
 	float baseRange;
-	[Attribute("220")]
+	[Attribute("220", category: "Occupying Faction")]
 	float baseCloseRange;
+	[Attribute("120", category: "Occupying Faction")]
+	float counterAttackTimeout;
 	
 	//Economy
 	[Attribute(defvalue: "100", desc: "Player starting cash", category: "Economy")]
@@ -57,6 +67,10 @@ class OVT_DifficultySettings : ScriptAndConfig
 	int busTicketPrice;
 	[Attribute(defvalue: "250", desc: "Base price for AI recruit", category: "Economy")]
 	int baseRecruitCost;
+	[Attribute(defvalue: "0.5", desc: "Multiplier when selling to a gun dealer", category: "Economy")]
+	float gunDealerSellPriceMultiplier;
+	[Attribute(defvalue: "0.8", desc: "Multiplier when buying vehicles at an owned base", category: "Economy")]
+	float procurementMultiplier;
 	
 	//RF
 	[Attribute(defvalue: "0", desc: "Base RF threat", category: "Resistance Faction")]

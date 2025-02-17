@@ -32,14 +32,22 @@ class OVT_ShopContext : OVT_UIContext
 		action.m_OnActivated.Insert(Buy);
 		
 		Widget sellButton = m_wRoot.FindAnyWidget("SellButton");
-		if(m_Shop.m_ShopType == OVT_ShopType.SHOP_GUNDEALER || m_Shop.m_ShopType == OVT_ShopType.SHOP_VEHICLE)
+		//if(m_Shop.m_ShopType == OVT_ShopType.SHOP_GUNDEALER || m_Shop.m_ShopType == OVT_ShopType.SHOP_VEHICLE) - Original Changes by Chris
+		if(m_Shop.m_ShopType == OVT_ShopType.SHOP_VEHICLE)
 		{
 			sellButton.SetVisible(false);
 		}else{
-			SCR_InputButtonComponent sellAction = SCR_InputButtonComponent.Cast(sellButton.FindHandler(SCR_InputButtonComponent));
-		
-			sellAction.m_OnActivated.Insert(Sell);
+			if(m_Shop.m_ShopType == OVT_ShopType.SHOP_GUNDEALER && OVT_Global.GetConfig().m_Difficulty.gunDealerSellPriceMultiplier == 0)
+			{
+				sellButton.SetVisible(false);
+			}else{
+				SCR_InputButtonComponent sellAction = SCR_InputButtonComponent.Cast(sellButton.FindHandler(SCR_InputButtonComponent));
+			
+				sellAction.m_OnActivated.Insert(Sell);
+			}
 		}
+		
+		
 		
 		Widget prevButton = m_wRoot.FindAnyWidget("PrevButton");
 		SCR_InputButtonComponent btn = SCR_InputButtonComponent.Cast(prevButton.FindHandler(SCR_InputButtonComponent));
@@ -118,6 +126,7 @@ class OVT_ShopContext : OVT_UIContext
 				OVT_ShopMenuCardComponent card = OVT_ShopMenuCardComponent.Cast(w.FindHandler(OVT_ShopMenuCardComponent));
 				
 				int buy = m_Economy.GetPrice(id);
+				buy = buy * OVT_Global.GetConfig().m_Difficulty.procurementMultiplier;
 								
 				card.Init(res, buy, 100, this);
 				
@@ -175,12 +184,17 @@ class OVT_ShopContext : OVT_UIContext
 		if(m_Shop.m_bProcurement)
 		{
 			buy = m_Economy.GetPrice(id);
+			buy = buy * OVT_Global.GetConfig().m_Difficulty.procurementMultiplier;
 			sell = buy;
 			qty = 100;
 			max = 100;
 		}else{
 			buy = m_Economy.GetBuyPrice(id, m_Shop.GetOwner().GetOrigin(),m_iPlayerID);
 			sell = m_Economy.GetSellPrice(id, m_Shop.GetOwner().GetOrigin());
+			if(m_Shop.m_ShopType == OVT_ShopType.SHOP_GUNDEALER)
+			{
+				sell = sell * OVT_Global.GetConfig().m_Difficulty.gunDealerSellPriceMultiplier;
+			}
 			qty = m_Shop.GetStock(id);
 			OVT_TownData town = m_Shop.GetTown();
 			int townID = OVT_Global.GetTowns().GetTownID(town);
@@ -259,6 +273,10 @@ class OVT_ShopContext : OVT_UIContext
 		if(!player) return;
 		
 		int cost = m_Economy.GetSellPrice(m_SelectedResource, m_Shop.GetOwner().GetOrigin());
+		if(m_Shop.m_ShopType == OVT_ShopType.SHOP_GUNDEALER)
+		{
+			cost = cost * OVT_Global.GetConfig().m_Difficulty.gunDealerSellPriceMultiplier;
+		}
 		
 		SCR_InventoryStorageManagerComponent inventory = SCR_InventoryStorageManagerComponent.Cast(player.FindComponent( SCR_InventoryStorageManagerComponent ));
 		if(!inventory) return;
@@ -269,8 +287,26 @@ class OVT_ShopContext : OVT_UIContext
 		ResourceName res = m_Economy.GetResource(m_SelectedResource);
 		
 		foreach(IEntity ent : items)
+		//Chris - Make this work better for variants
 		{
-			if(ent.GetPrefabData().GetPrefabName() == res)
+			string prefab = ent.GetPrefabData().GetPrefabName();
+			if (prefab == "{63E8322E2ADD4AA7}Prefabs/Weapons/Rifles/AK74/Rifle_AK74_GP25.et")
+			{
+			prefab = "{FA5C25BF66A53DCF}Prefabs/Weapons/Rifles/AK74/Rifle_AK74.et";
+			}
+			if (prefab == "{EB404DC9E1BCB750}Prefabs/Weapons/Rifles/AK74/Rifle_AK74N_1P29.et" || prefab == "{BC6C9476FB3219A7}Prefabs/Weapons/Rifles/AK74/Rifle_AK74N_GP25.et")
+			{
+			prefab = "{96DFD2E7E63B3386}Prefabs/Weapons/Rifles/AK74/Rifle_AK74N.et";
+			}
+			if (res == "{7A82FE978603F137}Prefabs/Weapons/Launchers/RPG7/Launcher_RPG7.et" && prefab == "{E8A55396050E1762}Prefabs/Weapons/Launchers/RPG7/Launcher_RPG7_PGO7.et")
+			{
+			prefab = res;
+			}			
+			if (res == "{E8A55396050E1762}Prefabs/Weapons/Launchers/RPG7/Launcher_RPG7_PGO7.et" && prefab == "{7A82FE978603F137}Prefabs/Weapons/Launchers/RPG7/Launcher_RPG7.et")
+			{
+			prefab = res;
+			}			
+			if(prefab == res)
 			{
 				if(inventory.TryDeleteItem(ent))
 				{

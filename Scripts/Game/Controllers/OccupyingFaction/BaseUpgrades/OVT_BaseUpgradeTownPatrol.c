@@ -70,16 +70,18 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		foreach(OVT_TownData town : m_TownsInRange)
 		{		
 			int townID = m_Towns.GetTownID(town);	
-			if(resources <= 0) break;
+
 			if(!m_Patrols.Contains(townID))
 			{
 				if(OVT_Global.PlayerInRange(town.location, 5000)){
 					int newres = BuyTownPatrol(town, threat);
-					
 					spent += newres;
 					resources -= newres;
+					if(resources<0){resources=0}
 				}
-			}else{
+			}
+			if(resources <= 0) break;
+			if(m_Patrols.Contains(townID)){
 				//Check if theyre back
 				SCR_AIGroup aigroup = GetGroup(m_Patrols[townID]);
 				if(!aigroup) {

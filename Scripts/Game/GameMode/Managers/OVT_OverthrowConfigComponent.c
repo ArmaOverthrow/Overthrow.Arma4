@@ -27,13 +27,31 @@ class OVT_CameraPosition : ScriptAndConfig
 class OVT_OverthrowConfigStruct
 {
 	string occupyingFaction;
+	string supportingFaction;
 	string discordWebHookURL;
 	ref array<string> officers;
+	string difficulty;
+	bool showPlayerPosition;
+	
+	//Difficulty settings
+	bool overrideDifficulty;
+	int startingCash;
+	float gunDealerSellPriceMultiplier;
+	float procurementMultiplier;
+	
 	void SetDefaults()
 	{
 		discordWebHookURL = "see wiki: https://github.com/ArmaOverthrow/Overthrow.Arma4/wiki/Discord-Web-Hook";
 		occupyingFaction = "";
+		supportingFaction = "";
 		officers = new array<string>;
+		difficulty = "Normal";	
+		showPlayerPosition = true;	
+		
+		overrideDifficulty = false;
+		startingCash = 100;
+		gunDealerSellPriceMultiplier = 0.5;
+		procurementMultiplier = 0.8;
 	}
 }
 
@@ -52,8 +70,10 @@ class OVT_OverthrowConfigComponent: OVT_Component
 
 	string m_sOccupyingFaction = "USSR";
 
-	[Attribute( defvalue: "US", uiwidget: UIWidgets.EditBox, desc: "The faction supporting the player", category: "Factions")]
-	string m_sSupportingFaction;
+	[Attribute( defvalue: "US", uiwidget: UIWidgets.EditBox, desc: "The faction supporting the player faction", category: "Factions")]
+	string m_sDefaultSupportingFaction;
+
+	string m_sSupportingFaction = "US";
 
 	[Attribute("", UIWidgets.Object)]
 	ref array<ref OVT_CameraPosition> m_aCameraPositions;
@@ -78,10 +98,29 @@ class OVT_OverthrowConfigComponent: OVT_Component
 
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Defend Waypoint Prefab", params: "et", category: "Waypoints")]
 	ResourceName m_pDefendWaypointPrefab;
-
+	//Chris Added wps
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Defend Base Waypoint Prefab", params: "et", category: "Waypoints")]
+	ResourceName m_pDefendBaseWaypointPrefab;
+	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Loiter Waypoint Prefab", params: "et", category: "Waypoints")]
+	ResourceName m_pLoiterWaypointPrefab;
+	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Get In Basic Waypoint Prefab", params: "et", category: "Waypoints")]
+	ResourceName m_pGetInWaypointBPrefab;
+	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Get Out Waypoint Prefab", params: "et", category: "Waypoints")]
+	ResourceName m_pGetOutWaypointBPrefab;
+	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Patrol Basic Waypoint Prefab", params: "et", category: "Waypoints")]
+	ResourceName m_pPatrolBasicWaypointPrefab;
+	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Scout Waypoint Prefab", params: "et", category: "Waypoints")]
+	ResourceName m_pScoutWaypointPrefab;
+	
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Patrol Waypoint Prefab", params: "et", category: "Waypoints")]
 	ResourceName m_pPatrolWaypointPrefab;
 
+	//--------------------
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Wait Waypoint Prefab", params: "et", category: "Waypoints")]
 	ResourceName m_pWaitWaypointPrefab;
 
@@ -125,6 +164,7 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	ref OVT_LoadoutConfig m_CivilianLoadout;
 
 	int m_iOccupyingFactionIndex = -1;
+	int m_iSupportingFactionIndex = -1;
 	int m_iPlayerFactionIndex = -1;
 
 	[Attribute(defvalue: "false", UIWidgets.EditBox, desc: "Debug Mode")]
@@ -148,10 +188,11 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	bool LoadConfig()
 	{
 		Print("Overthrow: Trying to load configuration file "+m_sConfigFilePath, LogLevel.NORMAL);
-
-#ifdef PLATFORM_XBOX
+		
 		m_ConfigFile = new OVT_OverthrowConfigStruct();
 		m_ConfigFile.SetDefaults();
+
+#ifdef PLATFORM_XBOX		
 		return true;
 #endif
 
@@ -159,11 +200,9 @@ class OVT_OverthrowConfigComponent: OVT_Component
 
 		if (!FileIO.FileExists( m_sConfigFilePath ))
 		{
-			Print("Overthrow: Configuration file does not exist. Creating new one.", LogLevel.WARNING);
-			m_ConfigFile = new OVT_OverthrowConfigStruct();
-			m_ConfigFile.SetDefaults();
-
+			Print("Overthrow: Configuration file does not exist. Creating new one.", LogLevel.WARNING);			
 			SaveConfig();
+			return true;
 		};
 
 		if (!configLoadContext.LoadFromFile( m_sConfigFilePath ))
@@ -177,6 +216,8 @@ class OVT_OverthrowConfigComponent: OVT_Component
 			Print("Overthrow: Configuration load failed", LogLevel.ERROR);
 			return false;
 		};
+		
+		SaveConfig();
 
 		return true;
 	};
@@ -214,6 +255,17 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		m_iOccupyingFactionIndex = factionMgr.GetFactionIndex(faction);
 
 		m_sOccupyingFaction = faction.GetFactionKey();
+	}
+
+	void SetSupportingFaction(string key)
+	{
+		OVT_Faction sf = GetSupportingFaction();
+		if(key == sf.GetFactionKey()) return;
+		FactionManager factionMgr = GetGame().GetFactionManager();
+		Faction faction = factionMgr.GetFactionByKey(key);
+		m_iSupportingFactionIndex = factionMgr.GetFactionIndex(faction);
+
+		m_sSupportingFaction = faction.GetFactionKey();
 	}
 
 	void SetBaseAndTownOwners()
@@ -259,6 +311,26 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		return m_sOccupyingFaction;
 	}
 
+	OVT_Faction GetSupportingFaction()
+	{
+		return OVT_Global.GetFactions().GetOverthrowFactionByKey(m_sSupportingFaction);
+	}
+
+	Faction GetSupportingFactionData()
+	{
+		return GetGame().GetFactionManager().GetFactionByKey(m_sSupportingFaction);
+	}
+
+	int GetSupportingFactionIndex()
+	{
+		if(m_iSupportingFactionIndex == -1)
+		{
+			FactionManager fm = GetGame().GetFactionManager();
+			m_iSupportingFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(m_sSupportingFaction));
+		}
+		return m_iSupportingFactionIndex;
+	}
+
 	OVT_Faction GetPlayerFaction()
 	{
 		return OVT_Global.GetFactions().GetOverthrowFactionByKey(m_sPlayerFaction);
@@ -285,6 +357,8 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		{
 			case OVT_FactionType.OCCUPYING_FACTION:
 				return GetOccupyingFaction();
+			case OVT_FactionType.SUPPORTING_FACTION:
+				return GetSupportingFaction();
 		}
 		return GetPlayerFaction();
 	}
@@ -306,7 +380,50 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		AIWaypoint wp = SpawnWaypoint(m_pSearchAndDestroyWaypointPrefab, pos);
 		return wp;
 	}
+	//Chris Added Wps
+	AIWaypoint SpawnDefendBaseWaypoint(vector pos)
+	{
+		AIWaypoint wp = SpawnWaypoint(m_pDefendBaseWaypointPrefab, pos);
+		return wp;
+	}
+	
+	AIWaypoint SpawnGetInWaypoint(vector pos)
+	{
+		AIWaypoint wp = SpawnWaypoint(m_pGetOutWaypointBPrefab, pos);
+		return wp;
+	}
+	
+	AIWaypoint SpawnGetOutWaypoint(vector pos)
+	{
+		AIWaypoint wp = SpawnWaypoint(m_pGetOutWaypointBPrefab, pos);
+		return wp;
+	}
+	
+	AIWaypoint SpawnLoiterWaypoint(vector pos)
+	{
+		AIWaypoint wp = SpawnWaypoint(m_pLoiterWaypointPrefab, pos);
+		return wp;
+	}
 
+	AIWaypoint SpawnBasicPatrolWaypoint(vector pos)
+	{
+		AIWaypoint wp = SpawnWaypoint(m_pPatrolBasicWaypointPrefab, pos);
+		return wp;
+	}
+	
+		AIWaypoint SpawnScoutWaypoint(vector pos)
+	{
+		AIWaypoint wp = SpawnWaypoint(m_pScoutWaypointPrefab, pos);
+		return wp;
+	}
+	
+	AIWaypoint SpawnBasicCycleWaypoint(vector pos)
+	{
+		AIWaypoint wp = SpawnWaypoint(m_pCycleWaypointPrefab, pos);
+		return wp;
+	}
+	
+	//------------------------------------------------
 	AIWaypoint SpawnDefendWaypoint(vector pos, int preset = 0)
 	{
 		AIWaypoint wp = SpawnWaypoint(m_pDefendWaypointPrefab, pos);
@@ -377,5 +494,66 @@ class OVT_OverthrowConfigComponent: OVT_Component
 			aigroup.AddWaypoint(cycle);
 			return;
 		}
+	}
+	
+	//RPC Methods
+	
+	override bool RplSave(ScriptBitWriter writer)
+	{	
+			
+		//Send needed difficulty items		
+		writer.WriteBool(m_Difficulty.showPlayerOnMap);
+		writer.WriteInt(m_Difficulty.wantedTimeout);
+		writer.WriteInt(m_Difficulty.wantedOneTimeout);
+		writer.WriteFloat(m_Difficulty.placeableCostMultiplier);
+		writer.WriteFloat(m_Difficulty.buildableCostMultiplier);
+		writer.WriteFloat(m_Difficulty.realEstateCostMultiplier);
+		writer.WriteInt(m_Difficulty.busTicketPrice);
+		writer.WriteInt(m_Difficulty.baseRecruitCost);
+		writer.WriteInt(m_Difficulty.gunDealerSellPriceMultiplier);
+		writer.WriteInt(m_Difficulty.procurementMultiplier);		
+		
+		return true;
+	}
+	
+	override bool RplLoad(ScriptBitReader reader)
+	{		
+				
+		//Recieve difficulty items
+		int i;
+		float f;
+		bool b;
+		
+		if (!reader.ReadBool(b)) return false;
+		m_Difficulty.showPlayerOnMap = b;
+		
+		if (!reader.ReadInt(i)) return false;
+		m_Difficulty.wantedTimeout = i;
+		
+		if (!reader.ReadInt(i)) return false;
+		m_Difficulty.wantedOneTimeout = i;
+		
+		if (!reader.ReadFloat(f)) return false;
+		m_Difficulty.placeableCostMultiplier = f;
+		
+		if (!reader.ReadFloat(f)) return false;
+		m_Difficulty.buildableCostMultiplier = f;
+		
+		if (!reader.ReadFloat(f)) return false;
+		m_Difficulty.realEstateCostMultiplier = f;
+		
+		if (!reader.ReadInt(i)) return false;
+		m_Difficulty.busTicketPrice = i;
+		
+		if (!reader.ReadInt(i)) return false;
+		m_Difficulty.baseRecruitCost = i;
+		
+		if (!reader.ReadInt(i)) return false;
+		m_Difficulty.gunDealerSellPriceMultiplier = i;
+		
+		if (!reader.ReadInt(i)) return false;
+		m_Difficulty.procurementMultiplier = i;
+		
+		return true;
 	}
 }

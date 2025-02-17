@@ -28,145 +28,9 @@ OVT_OverthrowGameMode {
    }
   }
   OVT_EconomyManagerComponent "{5988DB0008700592}" {
-   m_aShopConfigs {
-    OVT_ShopInventoryConfig "{598EDB5225F92650}" {
-     type SHOP_GENERAL
-     m_aInventoryItems {
-      OVT_ShopInventoryItem "{5D72C37A46875E13}" {
-       m_eItemType EQUIPMENT
-       m_sFind "PaperMap_"
-      }
-      OVT_ShopInventoryItem "{5D72C37A4BAD0E98}" {
-       m_eItemType HEAL
-      }
-      OVT_ShopInventoryItem "{5D72C37A5AA12A12}" {
-       m_eItemType BACKPACK
-      }
-      OVT_ShopInventoryItem "{5D72C37A16A30DB6}" {
-       m_eItemType EQUIPMENT
-       m_sFind "Binoculars_"
-      }
-      OVT_ShopInventoryItem "{5D72C37AEF296A2A}" {
-       m_eItemType EQUIPMENT
-       m_sFind "Watch_"
-      }
-     }
-    }
-    OVT_ShopInventoryConfig "{598EF98CB5D3159F}" {
-     type SHOP_ELECTRONIC
-     m_aInventoryItems {
-      OVT_ShopInventoryItem "{5D72C37A679ACC6A}" {
-       m_eItemType EQUIPMENT
-      }
-     }
-    }
-    OVT_ShopInventoryConfig "{59953E645BFCDAB7}" {
-     m_aInventoryItems {
-      OVT_ShopInventoryItem "{5D72C37AF08C5B5F}" {
-       m_eItemType HEAL
-      }
-     }
-    }
-    OVT_ShopInventoryConfig "{59953E64E1FAC553}" {
-     type SHOP_CLOTHES
-     m_aInventoryItems {
-      OVT_ShopInventoryItem "{5D72C37496CF7A55}" {
-       m_eItemType BACKPACK
-      }
-      OVT_ShopInventoryItem "{5D72C37BC1D7EBFB}" {
-       m_eItemType HEADWEAR
-       m_bNotOccupyingFaction 1
-      }
-      OVT_ShopInventoryItem "{5D72C37BD513D3A3}" {
-       m_eItemType TORSO
-       m_bNotOccupyingFaction 1
-      }
-      OVT_ShopInventoryItem "{5D72C37BD257E66B}" {
-       m_eItemType LEGS
-       m_bNotOccupyingFaction 1
-      }
-      OVT_ShopInventoryItem "{5D72C37BD86B3370}" {
-       m_eItemType FOOTWEAR
-       m_bNotOccupyingFaction 1
-      }
-     }
-    }
-    OVT_ShopInventoryConfig "{599680393904D480}" {
-     type SHOP_VEHICLE
-    }
+   m_ShopConfig OVT_ShopConfig "{6490AAF29D7D5707}" : "{CA8AAD31D0E7E0B5}Configs/System/ShopConfig.conf" {
    }
-   m_aGunDealerItems {
-    OVT_ShopInventoryItem "{5D72C37AC3500B92}" {
-     m_eItemType PISTOL
-    }
-    OVT_ShopInventoryItem "{5D72C37ACC17963D}" {
-     m_eItemType WEAPON_ATTACHMENT
-     m_bNotOccupyingFaction 1
-    }
-    OVT_ShopInventoryItem "{5D72C37AA6061534}" {
-     m_eItemType LETHAL_THROWABLE
-     m_bNotOccupyingFaction 1
-    }
-    OVT_ShopInventoryItem "{5D72C37AAF2FE72E}" {
-     m_eItemType NON_LETHAL_THROWABLE
-    }
-    OVT_ShopInventoryItem "{5D72C37AAD851814}" {
-     m_eItemType EXPLOSIVES
-     m_bNotOccupyingFaction 1
-    }
-    OVT_ShopInventoryItem "{5D86A3EE6DA96AE9}" {
-     m_eItemMode AMMUNITION
-     m_bNotOccupyingFaction 1
-    }
-    OVT_ShopInventoryItem "{5D86A3EE71CC805E}" {
-     m_eItemMode WEAPON
-     m_bNotOccupyingFaction 1
-     m_bSingleRandomItem 1
-    }
-    OVT_ShopInventoryItem "{5D86A3E31C0D0CBA}" {
-     m_eItemType ROCKET_LAUNCHER
-     m_eItemMode AMMUNITION
-     m_bNotOccupyingFaction 1
-    }
-    OVT_ShopInventoryItem "{5D86A3E3F7943E98}" {
-     m_eItemType ROCKET_LAUNCHER
-     m_eItemMode WEAPON
-     m_bNotOccupyingFaction 1
-     m_bSingleRandomItem 1
-    }
-    OVT_ShopInventoryItem "{5D86A3E3F1EA1F8C}" {
-     m_eItemMode ATTACHMENT
-     m_bNotOccupyingFaction 1
-    }
-    OVT_ShopInventoryItem "{5D86A3E3F80E67EC}" {
-     m_eItemType SNIPER_RIFLE
-     m_eItemMode AMMUNITION
-     m_bNotOccupyingFaction 1
-    }
-    OVT_ShopInventoryItem "{5D86A3E3AC5F7CA6}" {
-     m_eItemType SNIPER_RIFLE
-     m_eItemMode WEAPON
-     m_bNotOccupyingFaction 1
-     m_bSingleRandomItem 1
-    }
-    OVT_ShopInventoryItem "{5D86A3E3B2C9B30C}" {
-     m_eItemType MACHINE_GUN
-     m_eItemMode AMMUNITION
-     m_bNotOccupyingFaction 1
-    }
-    OVT_ShopInventoryItem "{5D86A3E3B9AFAD7C}" {
-     m_eItemType MACHINE_GUN
-     m_eItemMode WEAPON
-     m_bNotOccupyingFaction 1
-     m_bSingleRandomItem 1
-    }
-   }
-   m_aGunDealerItemPrefabs {
-    OVT_PrefabItemCostConfig "{5D822436E980BEB7}" {
-     m_sEntityPrefab "{9068EA9DDD7CB805}Prefabs/Items/Equipment/Drugs/DrugsWeed_01.et"
-     cost 75
-     maxStock 25
-    }
+   m_GunDealerConfig OVT_GunDealerConfig "{6490AAF29FB3FA5B}" : "{A8A5CE6C72E6D899}Configs/System/GunDealerConfig.conf" {
    }
    m_PriceConfig OVT_PricesConfig "{5D96A5A422244BBD}" : "{F1E25EE7797A3B80}Configs/Pricing/itemPrices.conf" {
     m_aPrices {
@@ -195,6 +59,19 @@ OVT_OverthrowGameMode {
       m_sFind "_ambulance"
       cost 4200
       illegal 0
+     }
+     OVT_VehiclePriceConfig "{6466809ACB90F2F7}" {
+      m_sFind "S105_"
+      cost 450
+      illegal 0
+     }
+     OVT_VehiclePriceConfig "{646D013740B7724C}" {
+      m_sFind "UAZ469_UK59"
+      cost 15000
+     }
+     OVT_VehiclePriceConfig "{646D013749186D29}" {
+      m_sFind "UAZ469_PKM"
+      cost 15000
      }
     }
    }
@@ -243,36 +120,25 @@ OVT_OverthrowGameMode {
    m_Difficulty OVT_DifficultySettings "{598AD54E1DA56EB1}" : "{C0CB40B3E8B87FD4}Configs/Difficulty/Difficulty_Normal.conf" {
    }
    m_aDifficultyPresets {
-    OVT_DifficultySettings "{598AD54F821FB8D9}" {
-     name "#OVT_Difficulty-Easy"
-     wantedTimeout 20000
-     wantedOneTimeout 60000
-     startingResources 2500
-     baseResourcesPerTick 250
-     resourcesPerTick 500
-     startingCash 250
-     respawnCost 0
-     placeableCostMultiplier 0.5
+    OVT_DifficultySettings "{6466E3EA3337FBBF}" : "{647A73DAAF55A0A6}Configs/Difficulty/Difficulty_Easy.conf" {
     }
-    OVT_DifficultySettings "{598AD54F805D7FB1}" {
-     name "#OVT_Difficulty-Normal"
+    OVT_DifficultySettings "{6466E3EA33057A85}" : "{C0CB40B3E8B87FD4}Configs/Difficulty/Difficulty_Normal.conf" {
     }
-    OVT_DifficultySettings "{598AD54F803D9AE8}" {
-     name "#OVT_Difficulty-Hard"
-     wantedTimeout 60000
-     wantedOneTimeout 240000
-     startingResources 10000
-     baseResourcesPerTick 1000
-     resourcesPerTick 2000
-     startingCash 0
-     respawnCost 10
-     placeableCostMultiplier 2
+    OVT_DifficultySettings "{6466E3EA33D240F9}" : "{0FA2C3AE29A3A93B}Configs/Difficulty/Difficulty_Hard.conf" {
+    }
+    OVT_DifficultySettings "{6466E3EA33A737F7}" : "{70CC1650D9BE0DDC}Configs/Difficulty/Difficulty_Extreme.conf" {
     }
    }
    m_pGunDealerPrefab "{59929550D81A3045}Prefabs/Characters/Factions/INDFOR/FIA/Character_FIA_GunDealer.et"
    m_pCivilianPrefab "{1AF5B9AE5CFD4434}Prefabs/Groups/INDFOR/Group_CIV.et"
    m_pMoveWaypointPrefab "{750A8D1695BD6998}Prefabs/AI/Waypoints/AIWaypoint_Move.et"
    m_pDefendWaypointPrefab "{93291E72AC23930F}Prefabs/AI/Waypoints/AIWaypoint_Defend.et"
+   m_pDefendBaseWaypointPrefab "{06B1B14B6DE3C983}Prefabs/AI/Waypoints/AIWaypoint_Defend_ConflictBaseTeamPatrol.et"
+   m_pLoiterWaypointPrefab "{4ECD14650D82F5CA}Prefabs/AI/Waypoints/AIWaypoint_Loiter_CO.et"
+   m_pGetInWaypointBPrefab "{712F4795CF8B91C7}Prefabs/AI/Waypoints/AIWaypoint_GetIn.et"
+   m_pGetOutWaypointBPrefab "{C40316EE26846CAB}Prefabs/AI/Waypoints/AIWaypoint_GetOut.et"
+   m_pPatrolBasicWaypointPrefab "{22A875E30470BD4F}Prefabs/AI/Waypoints/AIWaypoint_Patrol.et"
+   m_pScoutWaypointPrefab "{A88F0B6CF25BD1DE}Prefabs/AI/Waypoints/AIWaypoint_Scout.et"
    m_pPatrolWaypointPrefab "{22A875E30470BD4F}Prefabs/AI/Waypoints/AIWaypoint_Patrol.et"
    m_pWaitWaypointPrefab "{531EC45063C1F57B}Prefabs/AI/Waypoints/AIWaypoint_Wait.et"
    m_pCycleWaypointPrefab "{35BD6541CBB8AC08}Prefabs/AI/Waypoints/AIWaypoint_Cycle.et"
@@ -435,6 +301,8 @@ OVT_OverthrowGameMode {
   SCR_GroupsManagerComponent "{5DDAD8A30938E391}" {
    m_sDefaultGroupPrefab "{8B4D49A9F324E7D5}Prefabs/Groups/PlayableGroup.et"
    m_iPlayableGroupFrequencyOffset 500
+   m_aGroupFlags {
+   }
   }
   SCR_HintManagerComponent "{59724C8C935D8E2C}" {
   }
@@ -443,7 +311,9 @@ OVT_OverthrowGameMode {
   SCR_MapMarkerManagerComponent "{5E4852B941E83CA7}" {
   }
   SCR_NametagConfigComponent "{59724C8C935D8E28}" {
-   m_sConfigPath "{09F7AAA14A642683}Configs/NameTags/NametagFriendlies.conf"
+   m_sConfigPath "{73BD756CAE48F88C}Configs/NameTags/NametagCIV.conf"
+  }
+  SCR_NightModeGameModeComponent "{6490AAF2054227BA}" {
   }
   SCR_NotificationSenderComponent "{5D7A443FDCA27CAE}" {
    m_iReceiveKillFeedType SAME_FACTION_ONLY
@@ -486,6 +356,8 @@ OVT_OverthrowGameMode {
    m_PlayerKickReasonsConfig SCR_ConfigurableDialogUiPresets "{5D7A443943FDACDA}" {
    }
   }
+  SCR_PlayerListedAdminManagerComponent "{6490AAF2138445FA}" {
+  }
   SCR_PlayerProfileManagerComponent "{59724C8C935D8E14}" {
   }
   SCR_PossessingManagerComponent "{5EE26402F4693B94}" {
@@ -500,6 +372,8 @@ OVT_OverthrowGameMode {
   }
   SCR_RespawnTimerComponent "{59C30B0685EFBB8C}" {
    m_fRespawnTime 2
+  }
+  SCR_SpawnerAIGroupManagerComponent "{6490AAF2CCDA46C2}" {
   }
   SCR_SupportStationManagerComponent "{5EE26402C9203074}" {
   }

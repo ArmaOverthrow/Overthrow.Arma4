@@ -12,7 +12,6 @@ SCR_AIGroup : "{242BC3C6BCE96EA5}Prefabs/Groups/INDFOR/Group_FIA_Base.et" {
   SCR_EditableGroupComponent "{50D291F6C83FA532}" {
    m_UIInfo SCR_EditableGroupUIInfo "{5298E609432D192D}" {
     Name "#AR-Group_Guerrilla_FireTeam"
-    Icon "{C8ACE2D5D972EEE3}UI/Textures/Editor/EditableEntities/Groups/EditableEntity_Group_Indep_Infantry.edds"
     m_Image "{BC60DB5B677B2F91}UI/Textures/EditorPreviews/Groups/INDFOR/Group_FIA_FireTeam.edds"
     m_aAuthoredLabels + {
      25

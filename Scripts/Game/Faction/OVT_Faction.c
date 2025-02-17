@@ -54,8 +54,26 @@ class OVT_Faction
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (Sniper)", params: "et", category: "Faction Groups")]
 	ResourceName m_aGroupSniperPrefab;
 	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (Sniper)", params: "et", category: "Faction Groups")]
+	ResourceName m_aGroupSniper2Prefab;
+	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (MG)", params: "et", category: "Faction Groups")]
+	ResourceName m_aGroupMGPrefab;
+	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (AT)", params: "et", category: "Faction Groups")]
+	ResourceName m_aGroupATPrefab;
+	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (FRAG)", params: "et", category: "Faction Groups")]
+	ResourceName m_aGroupFRAGPrefab;
+	
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (Light Town Patrol)", params: "et", category: "Faction Groups")]
 	ResourceName m_aLightTownPatrolPrefab;
+	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (Heavy Town Patrol)", params: "et", category: "Faction Groups")]
+	ResourceName m_aHeavyTownPatrolPrefab;
+	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (SpecOps Patrol)", params: "et", category: "Faction Groups")]
+	ResourceName m_aSpecOpsPatrolPrefab;
 	
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (Tower Defense Patrol)", params: "et", category: "Faction Groups")]
 	ResourceName m_aTowerDefensePatrolPrefab;

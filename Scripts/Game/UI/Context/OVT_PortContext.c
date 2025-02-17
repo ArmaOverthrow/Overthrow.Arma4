@@ -76,7 +76,7 @@ class OVT_PortContext : OVT_UIContext
 				wi++;
 			}				
 		}else{		
-			foreach(OVT_ShopInventoryConfig shop : m_Economy.m_aShopConfigs)
+			foreach(OVT_ShopInventoryConfig shop : m_Economy.m_ShopConfig.m_aShopConfigs)
 			{			
 				if(shop.type == OVT_ShopType.SHOP_VEHICLE) continue;
 				

@@ -159,8 +159,8 @@ class OVT_Global : Managed
 		{
 			i++;
 			
-			//Get a random vector in a 3m radius sphere centered on pos and above the ground
-			checkpos = s_AIRandomGenerator.GenerateRandomPointInRadius(0,3,pos,false);
+			//Get a random vector in a 2m radius sphere centered on pos and above the ground
+			checkpos = s_AIRandomGenerator.GenerateRandomPointInRadius(0,2,pos,false);
 			checkpos[1] = pos[1] + s_AIRandomGenerator.RandFloatXY(0, 2);
 						
 			//check if a box on that position collides with anything
@@ -190,38 +190,47 @@ class OVT_Global : Managed
 	{
 		IEntity fromEntity = RplComponent.Cast(Replication.FindItem(from)).GetEntity();
 		IEntity toEntity = RplComponent.Cast(Replication.FindItem(to)).GetEntity();
-		
-		if(!fromEntity || !toEntity) return;
-		
-		InventoryStorageManagerComponent fromStorage = InventoryStorageManagerComponent.Cast(fromEntity.FindComponent(InventoryStorageManagerComponent));		
-		UniversalInventoryStorageComponent toStorage = UniversalInventoryStorageComponent.Cast(toEntity.FindComponent(UniversalInventoryStorageComponent));
-		
-		if(!toStorage || !fromStorage) return;
-				
-		array<IEntity> items = new array<IEntity>;
-		fromStorage.GetItems(items);
-		if(items.Count() == 0) return;
-				
-		foreach(IEntity item : items)
+
+		if (!fromEntity || !toEntity) return;
+
+		InventoryStorageManagerComponent storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(toEntity);
+		if (!storageManager) storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(fromEntity);
+		UniversalInventoryStorageComponent fromStorage = EPF_Component<UniversalInventoryStorageComponent>.Find(fromEntity);
+		UniversalInventoryStorageComponent toStorage = EPF_Component<UniversalInventoryStorageComponent>.Find(toEntity);
+
+		if (!storageManager || !toStorage || !fromStorage) return;
+
+		array<InventoryItemComponent> itemComps = new array<InventoryItemComponent>();
+		fromStorage.GetOwnedItems(itemComps);
+		if (itemComps.IsEmpty()) return;
+
+		foreach (InventoryItemComponent itemComp : itemComps)
 		{
-			if(!item) continue;
-			fromStorage.TryMoveItemToStorage(item, toStorage);				
+			IEntity item = itemComp.GetOwner();
+			if (!item) continue;
+			InventoryStorageSlot itemSlot = toStorage.FindSuitableSlotForItem(item);
+			int slotID = -1;
+			if (itemSlot) slotID = itemSlot.GetID();
+			storageManager.TryMoveItemToStorage(item, toStorage, slotID);
 		}
-		
+
 		// Play sound if one is defined
-		SimpleSoundComponent simpleSoundComp = SimpleSoundComponent.Cast(toEntity.FindComponent(SimpleSoundComponent));
-		if(!simpleSoundComp)
-		{
-			simpleSoundComp = SimpleSoundComponent.Cast(fromEntity.FindComponent(SimpleSoundComponent));
+
+		array<IEntity> sourceEntities = {toEntity, fromEntity};
+		array<ref array<string>> soundEventsAll = {{"SOUND_SUPPLIES_PARTIAL_LOAD", "SOUND_SUPPLIES_PARTIAL_UNLOAD"}, {"LOAD_VEHICLE", "UNLOAD_VEHICLE"}};
+		foreach (ref array<string> soundEvents : soundEventsAll) {
+			foreach (int idx, string soundEvent : soundEvents) {
+				IEntity source = sourceEntities[idx];
+				SimpleSoundComponent simpleSoundComp = SimpleSoundComponent.Cast(source.FindComponent(SimpleSoundComponent));
+				if (!simpleSoundComp || simpleSoundComp.GetEventIndex(soundEvent) == -1) continue;
+				vector mat[4];
+				source.GetWorldTransform(mat);
+
+				simpleSoundComp.SetTransformation(mat);
+				simpleSoundComp.PlayStr(soundEvent);
+				return;
+			}
 		}
-		if (simpleSoundComp)
-		{
-			vector mat[4];
-			toEntity.GetWorldTransform(mat);
-			
-			simpleSoundComp.SetTransformation(mat);
-			simpleSoundComp.PlayStr("LOAD_VEHICLE");
-		}	
 	}
 	
 	static void TransferToWarehouse(RplId from)
@@ -328,6 +337,7 @@ class OVT_Global : Managed
 	static bool IsOceanAtPosition(vector checkpos)
 	{		
 		World world = GetGame().GetWorld();
+		return 1 > world.GetSurfaceY(checkpos[0],checkpos[2]);
 		return world.GetOceanBaseHeight() > world.GetSurfaceY(checkpos[0],checkpos[2]);
 	}
 	
@@ -443,41 +453,39 @@ class OVT_Global : Managed
 		return null;
 	}
 	
-	static void RandomizeCivilianClothes(SCR_AIGroup aigroup)
+	//! call RandomizeCivilianClothes for whole group
+	static void RandomizeCivilianGroupClothes(SCR_AIGroup aigroup)
 	{
-		array<AIAgent> civs  = new array<AIAgent>;
+		array<AIAgent> civs = new array<AIAgent>;
 		aigroup.GetAgents(civs);
-		IEntity civ;
-		InventoryStorageManagerComponent storageManager;
 		foreach(AIAgent agent : civs)
 		{
-			civ = agent.GetControlledEntity();
-			storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(civ);
-			if(!storageManager) continue;
-			IEntity slotEntity;
-			foreach (OVT_LoadoutSlot loadoutItem : OVT_Global.GetConfig().m_CivilianLoadout.m_aSlots)
+			RandomizeCivilianClothes(agent);
+		}
+	}
+	
+	//! Randomize clothes for civilian. Accounts for config properties like SkipChance and PlayerOnly.
+	static void RandomizeCivilianClothes(AIAgent agent)
+	{
+		IEntity civ = agent.GetControlledEntity();
+		InventoryStorageManagerComponent storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(civ);
+		if (!storageManager) return;
+		foreach (OVT_LoadoutSlot loadoutItem : OVT_Global.GetConfig().m_CivilianLoadout.m_aSlots)
+		{
+			if (loadoutItem.m_bPlayerOnly) continue;
+			
+			if (loadoutItem.m_fSkipChance > 0)
 			{
-				slotEntity = SpawnDefaultCharacterItem(storageManager, loadoutItem);
-				if (!slotEntity) continue;
-				
-				array<BaseInventoryStorageComponent> storages = new array<BaseInventoryStorageComponent>;
-				storageManager.GetStorages(storages, EStoragePurpose.PURPOSE_LOADOUT_PROXY);
-				
-				BaseInventoryStorageComponent loadoutStorage;
-				int suitableSlotId = -1;
-				if (!storages.IsEmpty()) {
-					loadoutStorage = storages[0];
-					InventoryStorageSlot suitableSlot = loadoutStorage.FindSuitableSlotForItem(slotEntity);
-					if (suitableSlot) {
-						suitableSlotId = suitableSlot.GetID();
-					}
-				}
-	            
-				if (!loadoutStorage || suitableSlotId == -1 || !storageManager.TryReplaceItem(slotEntity, loadoutStorage, suitableSlotId))
-				{
-					Print("Failed to insert item " + slotEntity + " " + loadoutStorage + " " + suitableSlotId, LogLevel.WARNING); 
-					SCR_EntityHelper.DeleteEntityAndChildren(slotEntity);
-				}
+				float rnd = s_AIRandomGenerator.RandFloat01();
+				if(rnd <= loadoutItem.m_fSkipChance) continue; 
+			}
+			
+			IEntity slotEntity = OVT_Global.SpawnDefaultCharacterItem(storageManager, loadoutItem);
+			if (!slotEntity) continue;
+			
+			if (!storageManager.TryInsertItem(slotEntity, EStoragePurpose.PURPOSE_LOADOUT_PROXY))
+			{
+				SCR_EntityHelper.DeleteEntityAndChildren(slotEntity);
 			}
 		}
 	}

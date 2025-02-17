@@ -4,14 +4,23 @@ class OVT_BaseControllerComponentClass: OVT_ComponentClass
 
 class OVT_BaseControllerComponent: OVT_Component
 {
-	[Attribute()]
+	[Attribute("")]
 	string m_sName;
 	
-	[Attribute(defvalue: "0", UIWidgets.EditBox, desc: "Resources to allocate for testing only")]
-	int m_iTestingResources;
+	[Attribute(defvalue: "1", UIWidgets.EditBox, desc: "Initial Resource Multiplier")]
+	float m_fStartingResourcesMultiplier;
 
 	[Attribute("", UIWidgets.Object)]
 	ref array<ref OVT_BaseUpgrade> m_aBaseUpgrades;
+	
+	[Attribute("400")]
+	int m_iAttackDistanceMin;
+	
+	[Attribute("800")]
+	int m_iAttackDistanceMax;
+	
+	[Attribute("-1")]
+	int m_iAttackPreferredDirection;
 
 	ref array<ref EntityID> m_AllSlots;
 	ref array<ref EntityID> m_AllCloseSlots;
@@ -73,8 +82,12 @@ class OVT_BaseControllerComponent: OVT_Component
 	bool IsOccupyingFaction()
 	{
 		SCR_FactionAffiliationComponent affiliation = EPF_Component<SCR_FactionAffiliationComponent>.Find(GetOwner());
-		string occupyingFaction = OVT_Global.GetConfig().GetOccupyingFactionData().GetFactionKey();
-		return affiliation.GetAffiliatedFaction().GetFactionKey() == occupyingFaction;
+		Faction occupyingFactionData = OVT_Global.GetConfig().GetOccupyingFactionData();
+		FactionKey occupyingFaction = occupyingFactionData.GetFactionKey();
+		
+		Faction affiliatedFactionData = affiliation.GetAffiliatedFaction();
+		FactionKey affiliatedFaction = affiliatedFactionData.GetFactionKey();
+		return affiliatedFaction == occupyingFaction;
 	}
 
 	int GetControllingFaction()
@@ -124,10 +137,6 @@ class OVT_BaseControllerComponent: OVT_Component
 			upgrade.Init(this, m_occupyingFactionManager, OVT_Global.GetConfig());
 		}
 
-		//Spend testing resources (if any)
-		if(m_iTestingResources > 0){
-			SpendResources(m_iTestingResources);
-		}
 	}
 
 	OVT_BaseUpgrade FindUpgrade(string type, string tag = "")

@@ -9,6 +9,9 @@ class OVT_PrefabItemCostConfig : ScriptAndConfig
 	
 	[Attribute("50", desc: "The cost")]
 	int cost;
+
+	[Attribute("1", desc: "Minimum number to stock")]
+	int minStock;
 	
 	[Attribute("10", desc: "Maximum number to stock")]
 	int maxStock;
@@ -28,48 +31,27 @@ class OVT_ShopInventoryItem : ScriptAndConfig
 	
 	[Attribute(desc: "String to search in prefab name, blank for all")]
 	string m_sFind;
+
+	[Attribute("true", desc: "Include buy/sell occupying faction's gear for this item")]
+	bool m_bIncludeOccupyingFactionItems;
 	
-	[Attribute(desc: "Don't buy/sell occupying faction's gear for this item")]
-	bool m_bNotOccupyingFaction;
+	[Attribute("true", desc: "Include buy/sell supporting faction's gear for this item")]
+	bool m_bIncludeSupportingFactionItems;
 	
+	[Attribute("true", desc: "Include buy/sell other faction's gear for this item")]
+	bool m_bIncludeOtherFactionItems;
+		
 	[Attribute(desc: "Choose a single and random item from this category")]
 	bool m_bSingleRandomItem;
-}
-
-class OVT_ShopInventoryConfig : ScriptAndConfig
-{
-	[Attribute("1", UIWidgets.ComboBox, "Shop type", "", ParamEnumArray.FromEnum(OVT_ShopType) )]
-	OVT_ShopType type;
-	
-	[Attribute("", UIWidgets.Object)]
-	ref array<ref OVT_ShopInventoryItem> m_aInventoryItems;
-}
-
-class OVT_ShopData : OVT_MapLocationData
-{
-	
-}
-
-class OVT_GunDealerData : OVT_MapLocationData
-{
-	
-}
-
-class OVT_PortData : OVT_MapLocationData
-{
-	
 }
 
 class OVT_EconomyManagerComponent: OVT_Component
 {
 	[Attribute("", UIWidgets.Object)]
-	ref array<ref OVT_ShopInventoryConfig> m_aShopConfigs;
+	ref OVT_ShopConfig m_ShopConfig;
 	
 	[Attribute("", UIWidgets.Object)]
-	ref array<ref OVT_ShopInventoryItem> m_aGunDealerItems;
-	
-	[Attribute("", UIWidgets.Object)]
-	ref array<ref OVT_PrefabItemCostConfig> m_aGunDealerItemPrefabs;
+	ref OVT_GunDealerConfig m_GunDealerConfig;
 		
 	[Attribute("", UIWidgets.Object)]
 	ref OVT_PricesConfig m_PriceConfig;
@@ -80,9 +62,6 @@ class OVT_EconomyManagerComponent: OVT_Component
 	protected ref array<RplId> m_aAllShops;
 	protected ref array<RplId> m_aAllPorts;
 	protected ref array<RplId> m_aGunDealers;
-	
-	protected OVT_TownManagerComponent m_Towns;
-	protected OVT_PlayerManagerComponent m_Players;
 		
 	const int ECONOMY_UPDATE_FREQUENCY = 60000;
 	
@@ -222,11 +201,11 @@ class OVT_EconomyManagerComponent: OVT_Component
 		OVT_RealEstateManagerComponent realEstate = OVT_Global.GetRealEstate();
 		for(int i = 0; i < realEstate.m_mRenters.Count(); i++)
 		{
-			RplId rid = realEstate.m_mRenters.GetKey(i);
-			string playerId = realEstate.m_mRenters[rid];
-			RplComponent rpl = RplComponent.Cast(Replication.FindItem(rid));
-			if(!rpl) continue;
-			IEntity building = rpl.GetEntity();
+			string posString = realEstate.m_mRenters.GetKey(i);
+			vector pos = posString.ToVector();			
+			string playerId = realEstate.m_mRenters[posString];
+
+			IEntity building = realEstate.GetNearestBuilding(pos);
 			EntityID id = building.GetID();
 			int cost = realEstate.GetRentPrice(building);
 			
@@ -267,7 +246,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	protected void ReplenishStock()
 	{
 		//Shops restocking		
-		foreach(OVT_TownData town : m_Towns.m_Towns)
+		foreach(OVT_TownData town : OVT_Global.GetTowns().GetTowns())
 		{
 			int townID = OVT_Global.GetTowns().GetTownID(town);
 			if(!m_mTownShops.Contains(townID)) continue;			
@@ -301,12 +280,28 @@ class OVT_EconomyManagerComponent: OVT_Component
 				}
 			}
 		}
+
+		//Gun dealer restocking (Item prefabs only ie weed)
+		foreach(RplId id : m_aGunDealers)
+		{
+			OVT_ShopComponent shop = GetShopByRplId(id);
+			if(!shop) continue;
+			foreach(OVT_PrefabItemCostConfig item : m_GunDealerConfig.m_aGunDealerItemPrefabs)
+			{
+				int currentStock = shop.GetStock(GetInventoryId(item.m_sEntityPrefab));
+				if(currentStock < item.minStock)
+				{
+					int num = Math.Round(s_AIRandomGenerator.RandInt(item.minStock,item.maxStock));
+					shop.AddToInventory(GetInventoryId(item.m_sEntityPrefab), num);
+				}				
+			}
+		}
 	}
 	
 	protected void UpdateShops()
 	{
 		//NPCs Buying stock
-		foreach(OVT_TownData town : m_Towns.m_Towns)
+		foreach(OVT_TownData town : OVT_Global.GetTowns().GetTowns())
 		{
 			int townID = OVT_Global.GetTowns().GetTownID(town);
 			if(!m_mTownShops.Contains(townID)) continue;
@@ -405,7 +400,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	int GetDonationIncome()
 	{
 		int income = 0;
-		foreach(OVT_TownData town : m_Towns.m_Towns)
+		foreach(OVT_TownData town : OVT_Global.GetTowns().GetTowns())
 		{
 			int increase = OVT_Global.GetConfig().m_Difficulty.donationIncome * town.support;
 			if(town.stability > 75)
@@ -421,7 +416,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	{
 		int income = 0;
 		
-		foreach(OVT_TownData town : m_Towns.m_Towns)
+		foreach(OVT_TownData town : OVT_Global.GetTowns().GetTowns())
 		{
 			if(town.IsOccupyingFaction()) continue;
 			income += (int)Math.Round(OVT_Global.GetConfig().m_Difficulty.taxIncome * town.population * (town.stability / 100));
@@ -443,6 +438,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	int GetSellPrice(int id, vector pos = "0 0 0")
 	{		
 		int price = GetPrice(id);
+		if(m_aAllVehicles.Contains(id)) return price;
 		if(pos[0] != 0)
 		{
 			OVT_TownData town = OVT_Global.GetTowns().GetNearestTown(pos);
@@ -488,7 +484,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	int GetTownMaxStock(int townId, int id)
 	{
-		OVT_TownData town = m_Towns.GetTown(townId);
+		OVT_TownData town = OVT_Global.GetTowns().GetTown(townId);
 		if(!town) return 100;
 		return Math.Round(1 + (town.population * OVT_Global.GetConfig().m_fNPCBuyRate * GetDemand(id) * ((float)town.stability / 100)));
 	}	
@@ -568,9 +564,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	array<RplId> GetAllShopsInTown(OVT_TownData town)
 	{
-		int range = m_Towns.m_iCityRange;
-		if(town.size == 2) range = m_Towns.m_iTownRange;
-		if(town.size == 1) range = m_Towns.m_iVillageRange;
+		int range = OVT_Global.GetTowns().m_iCityRange;
+		if(town.size == 2) range = OVT_Global.GetTowns().m_iTownRange;
+		if(town.size == 1) range = OVT_Global.GetTowns().m_iVillageRange;
 		array<RplId> shops = new array<RplId>;
 		foreach(RplId id : m_aAllShops)
 		{
@@ -583,7 +579,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	OVT_ShopInventoryConfig GetShopConfig(OVT_ShopType shopType)
 	{		
-		foreach(OVT_ShopInventoryConfig config : m_aShopConfigs)
+		foreach(OVT_ShopInventoryConfig config : m_ShopConfig.m_aShopConfigs)
 		{
 			if(config.type == shopType) return config;
 		}
@@ -592,7 +588,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	int GetPlayerMoney(string playerId)
 	{
-		OVT_PlayerData player = m_Players.GetPlayer(playerId);
+		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(playerId);
 		if(!player) return 0;
 		return player.money;
 	}
@@ -612,7 +608,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	bool PlayerHasMoney(string playerId, int amount)
 	{
-		OVT_PlayerData player = m_Players.GetPlayer(playerId);
+		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(playerId);
 		if(!player) return false;
 		return player.money >= amount;
 	}
@@ -631,7 +627,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		
-		OVT_PlayerData player = m_Players.GetPlayer(persId);
+		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(persId);
 		if(!player) return;
 		
 		player.money = player.money + amount;
@@ -705,7 +701,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	void TakePlayerMoneyPersistentId(string persId, int amount)
 	{
-		OVT_PlayerData player = m_Players.GetPlayer(persId);
+		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(persId);
 		if(!player) return;		
 		
 		player.money = player.money - amount;
@@ -720,7 +716,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	void AddPlayerMoneyPersistentId(string persId, int amount)
 	{
-		OVT_PlayerData player = m_Players.GetPlayer(persId);
+		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(persId);
 		if(!player) return;
 		
 		player.money = player.money + amount;
@@ -735,7 +731,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	void DoTakePlayerMoney(int playerId, int amount)
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
-		OVT_PlayerData player = m_Players.GetPlayer(persId);
+		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(persId);
 		if(!player) return;
 		
 		player.money = player.money - amount;
@@ -769,8 +765,8 @@ class OVT_EconomyManagerComponent: OVT_Component
 		
 		if(tw) timeMul = tw.GetDayTimeMultiplier();
 		
-		m_Towns = OVT_Global.GetTowns();
-		m_Players = OVT_Global.GetPlayers();
+		OVT_Global.GetTowns() = OVT_Global.GetTowns();
+		OVT_Global.GetPlayers() = OVT_Global.GetPlayers();
 		
 		GetGame().GetCallqueue().CallLater(AfterInit, 0);		
 		
@@ -876,6 +872,10 @@ class OVT_EconomyManagerComponent: OVT_Component
 					
 					if(hidden) continue;
 					
+					if(fac.GetFactionKey() == "CIV") {
+						illegal = false;
+					}
+										
 					m_aResources.Insert(res);
 					int id = m_aResources.Count()-1;
 					m_aResourceIndex[res] = id;
@@ -888,58 +888,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 					if(!illegal) m_aLegalVehicles.Insert(id);
 				}
 			}
-		}
+		}		
 		
-		//Get civilian vehicles
-		array<SCR_EntityCatalogEntry> civVehicles();
-		OVT_VehicleManagerComponent vm = OVT_Global.GetVehicles();
-		vm.m_CivilianVehicleEntityCatalog.GetEntityList(civVehicles);
-		m_mFactionResources[-1] = new array<int>;
-		
-		foreach(SCR_EntityCatalogEntry item : civVehicles) 
-		{
-			ResourceName res = item.GetPrefab();
-			if(res == "") continue;
-			if(res.IndexOf("Campaign") > -1) continue;
-			if(!m_aResources.Contains(res))
-			{
-				bool illegal = false;
-				bool hidden = false;
-				int cost = 500000;
-				OVT_ParkingType parkingType = OVT_ParkingType.PARKING_CAR;
-				//Set it's price
-				foreach(OVT_VehiclePriceConfig cfg : m_VehiclePriceConfig.m_aPrices)
-				{
-					if(cfg.prefab != "") continue;
-					if(cfg.m_sFind == "" || res.IndexOf(cfg.m_sFind) > -1)
-					{
-						if(cfg.hidden) {
-							hidden = true;
-							break;
-						}
-						cost = cfg.cost;
-						illegal = cfg.illegal;
-						parkingType = cfg.parking;
-					}
-				}
-				
-				if(hidden) continue;
-				
-				m_aResources.Insert(res);
-				int id = m_aResources.Count()-1;
-				m_aResourceIndex[res] = id;
-				m_aEntityCatalogEntries.Insert(item);
-				m_mFactionResources[-1].Insert(id);
-				m_aAllVehicles.Insert(id);
-				
-				
-				m_mVehicleParking[id] = parkingType;
-				SetPrice(id, cost);
-				if(!illegal) m_aLegalVehicles.Insert(id);
-			}
-		}
-		
-		foreach(OVT_PrefabItemCostConfig item : m_aGunDealerItemPrefabs)
+		foreach(OVT_PrefabItemCostConfig item : m_GunDealerConfig.m_aGunDealerItemPrefabs)
 		{
 			ResourceName res = item.m_sEntityPrefab;
 			if(res == "") continue;
@@ -1118,8 +1069,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 			OVT_TownData town = shop.GetTown();
 			
 			int occupyingFactionId = OVT_Global.GetConfig().GetOccupyingFactionIndex();
+			int supportingFactionId = OVT_Global.GetConfig().GetSupportingFactionIndex();
 			
-			int townID = OVT_Global.GetTowns().GetTownID(town);
+			int townID = OVT_Global.GetTowns().GetTownID(town);			
 			
 			if(shop.m_ShopType == OVT_ShopType.SHOP_VEHICLE)
 			{
@@ -1128,7 +1080,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 				foreach(ResourceName res : vehicles)
 				{
 					int id = GetInventoryId(res);
-					shop.AddToInventory(id, 10);
+					shop.AddToInventory(id, 100);
 				}
 			}else{		
 				OVT_ShopInventoryConfig config = GetShopConfig(shop.m_ShopType);
@@ -1141,7 +1093,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 					{
 						int id = GetInventoryId(entry.GetPrefab());
 						
-						if(item.m_bNotOccupyingFaction && ItemIsFromFaction(id, occupyingFactionId)) continue;
+						if(!item.m_bIncludeOccupyingFactionItems && ItemIsFromFaction(id, occupyingFactionId)) continue;
+						if(!item.m_bIncludeSupportingFactionItems && ItemIsFromFaction(id, supportingFactionId)) continue;
+						if(!item.m_bIncludeOtherFactionItems) continue;
 						int max = GetTownMaxStock(townID, id);
 					
 						int num = Math.Round(s_AIRandomGenerator.RandFloatXY(1,max));
@@ -1154,18 +1108,14 @@ class OVT_EconomyManagerComponent: OVT_Component
 	}
 	
 	protected bool CheckShopInit(IEntity entity)
-	{	
-		#ifdef OVERTHROW_DEBUG
-		Print("Found Shop");
-		#endif
-		
+	{		
 		RplComponent rpl = RplComponent.Cast(entity.FindComponent(RplComponent));
 		if(rpl)
 		{
 			RplId id = rpl.Id();
 			m_aAllShops.Insert(id);
 		
-			OVT_TownData town = m_Towns.GetNearestTown(entity.GetOrigin());
+			OVT_TownData town = OVT_Global.GetTowns().GetNearestTown(entity.GetOrigin());
 			int townID = OVT_Global.GetTowns().GetTownID(town);
 			
 			if(!m_mTownShops.Contains(townID))
@@ -1324,7 +1274,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	{
 		if(!m_Players) m_Players = OVT_Global.GetPlayers();
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
-		OVT_PlayerData player = m_Players.GetPlayer(persId);
+		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(persId);
 		if(!player) return;
 		
 		Rpc(RpcDo_SetPlayerMoney, playerId, player.money);
@@ -1334,7 +1284,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	protected void RpcDo_SetPlayerMoney(int playerId, int amount)
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
-		OVT_PlayerData player = m_Players.GetPlayer(persId);
+		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(persId);
 		if(!player) return;
 		player.money = amount;
 		m_OnPlayerMoneyChanged.Invoke(persId, player.money);

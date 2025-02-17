@@ -44,7 +44,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 
 	void DoStartNewGame()
 	{
-		bool isDedicated = RplSession.Mode() == RplMode.Dedicated;
+		bool isDedicated = RplSession.Mode() == RplMode.Dedicated || RplSession.Mode() == RplMode.Listen;
 #ifdef WORKBENCH
 		isDedicated = true; //To test dedicated server config
 #endif
@@ -52,14 +52,26 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		m_Config = config;
 
 		if(isDedicated)
-		{
-			if(config.m_ConfigFile && config.m_ConfigFile.occupyingFaction != "" && config.m_ConfigFile.occupyingFaction != "FIA")
+		{			
+			if(config.m_ConfigFile)
 			{
-				Print("[Overthrow] Overthrow: Setting occupying faction to config value (" + config.m_ConfigFile.occupyingFaction + ")");
-				config.SetOccupyingFaction(config.m_ConfigFile.occupyingFaction);
-			}else{
-				Print("[Overthrow] Overthrow: Setting occupying faction to default (" + config.m_sDefaultOccupyingFaction + ")");
-				config.SetOccupyingFaction(config.m_sDefaultOccupyingFaction);
+				if(config.m_ConfigFile.occupyingFaction != "" && config.m_ConfigFile.occupyingFaction != "FIA")
+				{
+					Print("[Overthrow] Overthrow: Setting occupying faction to config value (" + config.m_ConfigFile.occupyingFaction + ")");
+					config.SetOccupyingFaction(config.m_ConfigFile.occupyingFaction);
+				}else{
+					Print("[Overthrow] Overthrow: Setting occupying faction to default (" + config.m_sDefaultOccupyingFaction + ")");
+					config.SetOccupyingFaction(config.m_sDefaultOccupyingFaction);
+				}
+				
+				if(config.m_ConfigFile.supportingFaction != "" && config.m_ConfigFile.supportingFaction != "FIA")
+				{
+					Print("[Overthrow] Overthrow: Setting supporting faction to config value (" + config.m_ConfigFile.supportingFaction + ")");
+					config.SetSupportingFaction(config.m_ConfigFile.supportingFaction);
+				}else{
+					Print("[Overthrow] Overthrow: Setting supporting faction to default (" + config.m_sDefaultSupportingFaction + ")");
+					config.SetSupportingFaction(config.m_sDefaultSupportingFaction);
+				}
 			}
 		}
 		m_Config.SetBaseAndTownOwners();
@@ -81,6 +93,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	{
 		FactionManager fm = GetGame().GetFactionManager();
 		OVT_Global.GetConfig().m_iPlayerFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(OVT_Global.GetConfig().m_sPlayerFaction));
+		OVT_Global.GetConfig().m_iSupportingFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(OVT_Global.GetConfig().m_sSupportingFaction));
 		OVT_Global.GetConfig().m_iOccupyingFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(OVT_Global.GetConfig().m_sOccupyingFaction));
 
 		m_StartGameUIContext.CloseLayout();
@@ -132,6 +145,31 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			Print("[Overthrow] Starting Skills");
 
 			m_SkillManager.PostGameStart();
+		}
+		
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if(config.m_ConfigFile)
+		{			
+			if(config.m_ConfigFile.difficulty != "")
+			{
+				foreach(OVT_DifficultySettings preset : config.m_aDifficultyPresets)
+				{
+					if(preset.name == config.m_ConfigFile.difficulty)
+					{
+						config.m_Difficulty = preset;
+						break;
+					}
+				}
+			}
+			
+			config.m_Difficulty.showPlayerOnMap = config.m_ConfigFile.showPlayerPosition;
+			
+			if(config.m_ConfigFile.overrideDifficulty)
+			{
+				config.m_Difficulty.gunDealerSellPriceMultiplier = config.m_ConfigFile.gunDealerSellPriceMultiplier;
+				config.m_Difficulty.startingCash = config.m_ConfigFile.startingCash;
+				config.m_Difficulty.procurementMultiplier = config.m_ConfigFile.procurementMultiplier;
+			}
 		}
 
 		Print("[Overthrow] Overthrow Starting");
@@ -226,6 +264,50 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	{
 
 	}
+	
+	protected ref array<IEntity> m_BusStops = {};
+		
+	protected ref array<vector> m_HardcodedBusStopLocations = {
+	    "4413.912 12.042 10687.312", 
+	    "4824.945 169.693 6968.863", 
+	    "9706.01 12.132 1565.451"
+	};
+	
+	protected vector GetRandomHardcodedBusStop()
+	{
+	    if (m_HardcodedBusStopLocations.Count() > 0)
+	    {
+	        int randomIndex = s_AIRandomGenerator.RandInt(0, m_HardcodedBusStopLocations.Count() - 1);
+	        return m_HardcodedBusStopLocations[randomIndex];
+	    }
+	
+	    return vector.Zero; // No hardcoded bus stops found
+	}
+	 vector spawnLocation
+	
+	void SpawnPlayerAtBusStop(int playerId)
+	{
+			spawnLocation = GetRandomHardcodedBusStop();
+			if (spawnLocation != vector.Zero)
+			{
+			    Print("[Overthrow] Spawning player at hard Coded bus stop: " + spawnLocation.ToString());
+			    m_RealEstate.SetHomePos(playerId, spawnLocation);
+			}
+			else
+			 {
+		       	Print("[Overthrow] No bus stops found. Using fallback.");
+		        foreach (OVT_TownData town : m_TownManager.m_Towns)
+		        {
+		            if (town)
+		            {
+		                m_RealEstate.SetHomePos(playerId, town.location);
+		                break;
+		            }
+		        }
+	    	}
+		
+
+	}
 
 	protected override void OnPlayerRoleChange(int playerId, EPlayerRole roleFlags)
 	{
@@ -271,70 +353,80 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 
 		super.OnPlayerDisconnected(playerId, cause, timeout);
 	}
-
+	
 	void PreparePlayer(int playerId, string persistentId)
 	{
-		if(!Replication.IsServer()) return;
-
-		m_PlayerManager.SetupPlayer(playerId, persistentId);
-		OVT_PlayerData player = m_PlayerManager.GetPlayer(persistentId);
-
-		if(!player.isOfficer && RplSession.Mode() == RplMode.None)
-		{
-			//In single player, make the player an officer
-			m_ResistanceFactionManager.AddOfficer(playerId);
-		}
-
-		if(player.initialized)
-		{
-			//Existing player
-			if(m_aInitializedPlayers.Contains(persistentId))
-			{
-				//m_EconomyManager.ChargeRespawn(playerId);
-			}else{
-				Print("[Overthrow] Preparing returning player: " + persistentId);
-				//This is a returning player, don't charge them hospital fees
-				m_aInitializedPlayers.Insert(persistentId);
-			}
-			player.firstSpawn = false;
-		}else{
-			//New player
-			Print("[Overthrow] Preparing NEW player: " + persistentId);
-			int cash = OVT_Global.GetConfig().m_Difficulty.startingCash;
-			m_EconomyManager.AddPlayerMoney(playerId, cash);
-
-			vector home = m_RealEstate.GetHome(persistentId);
-			if(home[0] == 0)
-			{
-				IEntity house = OVT_Global.GetRealEstate().GetRandomStartingHouse();
-				if(!house)
-				{
-					Print("[Overthrow] No Starting homes left");
-					//No houses left on the map, spawn in a town
-					int index = s_AIRandomGenerator.RandInt(0, m_TownManager.m_Towns.Count()-1);
-					OVT_TownData town = m_TownManager.m_Towns[index];
-					m_RealEstate.SetHomePos(playerId, town.location);
-				}else{
-					m_RealEstate.SetOwner(playerId, house);
-					m_RealEstate.SetHome(playerId, house);
-
-					m_VehicleManager.SpawnStartingCar(house, persistentId);
-				}
-			}
-			player.initialized = true;
-			player.firstSpawn = true;
-			m_aInitializedPlayers.Insert(persistentId);
-		}
-
-		if(!player.isOfficer)
-		{
-			OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-			if(config.m_ConfigFile && config.m_ConfigFile.officers && config.m_ConfigFile.officers.Find(persistentId) > -1)
-			{
-				m_ResistanceFactionManager.AddOfficer(playerId);
-			}
-		}
+	    if (!Replication.IsServer()) return;
+	    m_PlayerManager.SetupPlayer(playerId, persistentId);
+	    OVT_PlayerData player = m_PlayerManager.GetPlayer(persistentId);
+	
+	    // Ensure the player is an officer in single-player mode
+	    if (!player.isOfficer && RplSession.Mode() == RplMode.None)
+	    {
+	        m_ResistanceFactionManager.AddOfficer(playerId);
+	    }
+	
+	    // Check if the player has a valid home
+	    vector home = m_RealEstate.GetHome(persistentId);
+		Print(home.ToString() + " Home status");
+	    if (home[0] == 0) // No home assigned
+	    {
+	        IEntity house = OVT_Global.GetRealEstate().GetRandomStartingHouse();
+	        if (!house)
+	        {
+	            // No starting houses available, spawn at a bus stop
+	            Print("[Overthrow] No Starting homes left. Spawning at bus stop.");
+	            SpawnPlayerAtBusStop(playerId);
+	        }
+	        else
+	        {
+	            // Assign a house and spawn a starting car
+	            m_RealEstate.SetOwner(playerId, house);
+	            m_RealEstate.SetHome(playerId, house);
+	            m_VehicleManager.SpawnStartingCar(house, persistentId);
+				Print("[Overthrow] Player assigned home at " + house.GetOrigin());
+	        }
+	    }
+	    if (player.initialized)
+	    {
+	        // Handle existing players
+	        if (m_aInitializedPlayers.Contains(persistentId))
+	        {
+	            // Optionally, handle respawn costs or penalties here
+	            Print("[Overthrow] Respawning existing player: " + persistentId);
+	        }
+	        else
+	        {
+	            // Returning players who weren't marked as initialized
+	            Print("[Overthrow] Preparing returning player: " + persistentId);
+	            m_aInitializedPlayers.Insert(persistentId);
+	        }
+	        player.firstSpawn = false; // Not the first spawn
+	    }
+	    else
+	    {
+	        // Handle new players
+	        Print("[Overthrow] Preparing NEW player: " + persistentId);
+	
+	        int cash = OVT_Global.GetConfig().m_Difficulty.startingCash;
+	        m_EconomyManager.AddPlayerMoney(playerId, cash);
+	
+	        player.initialized = true;
+	        player.firstSpawn = true; // Mark as first spawn
+	        m_aInitializedPlayers.Insert(persistentId);
+	    }
+	
+	    // Ensure the player is an officer if listed in the config file
+	    if (!player.isOfficer)
+	    {
+	        OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+	        if (config.m_ConfigFile && config.m_ConfigFile.officers && config.m_ConfigFile.officers.Find(persistentId) > -1)
+	        {
+	            m_ResistanceFactionManager.AddOfficer(playerId);
+	        }
+	    }
 	}
+
 
 	protected override void OnPlayerSpawned(int playerId, IEntity controlledEntity)
 	{
@@ -343,7 +435,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			Print("[Overthrow] Player spawn prefab is missing OVT_PlayerWantedComponent!");
 		}else{
 			wanted.SetWantedLevel(0);
-		}
+		}		
 	}
 
 	protected void SetRandomCameraPosition()
@@ -515,6 +607,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	{
 		Print("[Overthrow] World Post Processing complete..");
 		super.OnWorldPostProcess(world);
+		SCR_FuelConsumptionComponent.SetGlobalFuelConsumptionScale(1.0);//Chris - Changed Global Fuel Consumption to 1
 		GetGame().GetCallqueue().CallLater(DoPostLoad);
 		if(m_bRequestStartOnPostProcess)
 		{

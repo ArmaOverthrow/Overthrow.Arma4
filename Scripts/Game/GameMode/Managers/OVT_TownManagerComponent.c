@@ -155,6 +155,12 @@ class OVT_TownManagerComponent: OVT_Component
 				Rpc(RpcDo_StreamModifiers, playerId, townID, stability, support);
 		}
 	}
+
+	OVT_TownData GetRandomTown()
+	{
+		if(m_Towns.Count() == 0) return null;
+		return m_Towns.GetRandomElement();		
+	}
 	
 	/*
 	Town Modifier Systems
@@ -634,6 +640,11 @@ class OVT_TownManagerComponent: OVT_Component
 		}
 	}
 	
+	array<ref OVT_TownData> GetTowns()
+	{
+		return m_Towns;
+	}
+	
 	protected void InitializeTowns()
 	{
 		#ifdef OVERTHROW_DEBUG
@@ -704,8 +715,7 @@ class OVT_TownManagerComponent: OVT_Component
 	protected bool FilterCityTownEntities(IEntity entity) 
 	{		
 		MapDescriptorComponent mapdesc = MapDescriptorComponent.Cast(entity.FindComponent(MapDescriptorComponent));
-		if (mapdesc){	
-			if(m_aIgnoreTowns.Find(mapdesc.Item().GetDisplayName()) > -1) return false;
+		if (mapdesc){			
 			int type = mapdesc.GetBaseType();
 			if(type == EMapDescriptorType.MDT_NAME_CITY) return true;
 			if(type == EMapDescriptorType.MDT_NAME_VILLAGE) return true;

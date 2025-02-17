@@ -85,6 +85,16 @@ FrameWidgetClass {
               }
              }
             }
+            TextWidgetClass "{646850921735FD8B}" {
+             Name "Text0"
+             Slot LayoutSlot "{646850921735FE6F}" {
+              Padding 10 10 10 10
+             }
+             Text "#OVT-JobsMenuDescription"
+             "Font Size" 16
+             "Min Font Size" 12
+             Wrap 1
+            }
             ImageWidgetClass "{59A8D26AE875CA39}" {
              Name "UpperStripe"
              Slot LayoutSlot "{56EEDE07C9F827C2}" {
