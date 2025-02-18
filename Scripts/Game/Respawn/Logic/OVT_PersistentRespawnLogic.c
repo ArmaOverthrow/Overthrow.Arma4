@@ -153,8 +153,22 @@ class OVT_PersistentRespawnLogic : SCR_SpawnLogic
 			IEntity slotEntity = SpawnDefaultCharacterItem(storageManager, loadoutItem);
 			if (!slotEntity) continue;
 			
-			if (!storageManager.TryInsertItem(slotEntity, EStoragePurpose.PURPOSE_LOADOUT_PROXY))
+			array<BaseInventoryStorageComponent> storages = new array<BaseInventoryStorageComponent>;
+			storageManager.GetStorages(storages, EStoragePurpose.PURPOSE_LOADOUT_PROXY);
+			
+			BaseInventoryStorageComponent loadoutStorage;
+			int suitableSlotId = -1;
+			if (!storages.IsEmpty()) {
+				loadoutStorage = storages[0];
+				InventoryStorageSlot suitableSlot = loadoutStorage.FindSuitableSlotForItem(slotEntity);
+				if (suitableSlot) {
+					suitableSlotId = suitableSlot.GetID();
+				}
+			}
+            
+			if (!loadoutStorage || suitableSlotId == -1 || !storageManager.TryReplaceItem(slotEntity, loadoutStorage, suitableSlotId))
 			{
+				Print("Failed to insert item " + slotEntity + " " + loadoutStorage + " " + suitableSlotId, LogLevel.WARNING); 
 				SCR_EntityHelper.DeleteEntityAndChildren(slotEntity);
 			}
 		}
