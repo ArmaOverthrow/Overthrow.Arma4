@@ -20,7 +20,7 @@ modded class SCR_InventorySlotUI
 		if (tempAttrib) {
 			OVT_PlayerOwnerComponent comp = OVT_PlayerOwnerComponent.Cast(pComponent.GetOwner().FindComponent(OVT_PlayerOwnerComponent));
 			if (comp && comp.IsLocked()) {
-				revertVisible = tempAttrib.IsVisible();
+				revertVisible = tempAttrib.IsVisible(pComponent);
 				tempAttrib.SetVisible(false);
 			}
 		}

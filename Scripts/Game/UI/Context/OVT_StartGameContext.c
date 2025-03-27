@@ -3,7 +3,6 @@ class OVT_StartGameContext : OVT_UIContext
 	protected FactionManager m_Factions;
 	
 	protected ref array<FactionKey> m_FactionKeys;
-	protected ref array<OVT_KeyButtonComponent> m_FactionCards;
 	
 	override void OnShow()
 	{		
