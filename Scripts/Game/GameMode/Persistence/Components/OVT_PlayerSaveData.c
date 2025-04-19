@@ -12,7 +12,24 @@ class OVT_PlayerSaveData : EPF_ComponentSaveData
 	{		
 		OVT_PlayerManagerComponent players = OVT_PlayerManagerComponent.Cast(component);
 		
-		m_mPlayers = players.m_mPlayers;
+		m_mPlayers = new map<string, ref OVT_PlayerData>;
+		
+		Print(players.m_mPlayers);
+		
+		if(!players.m_mPlayers)
+		{
+			Print("[Overthrow] Error saving players");
+			m_mPlayers = new map<string, ref OVT_PlayerData>;
+			return EPF_EReadResult.OK;
+		}
+		
+		for(int t=0; t< players.m_mPlayers.Count(); t++)
+		{
+			string persId = players.m_mPlayers.GetKey(t);
+			OVT_PlayerData player = players.m_mPlayers.GetElement(t);
+			Print("[Overthrow] Saving player " + persId + " (" + player.name + ")");
+			m_mPlayers[persId] = player;
+		}
 		
 		return EPF_EReadResult.OK;
 	}
@@ -21,7 +38,11 @@ class OVT_PlayerSaveData : EPF_ComponentSaveData
 	{
 		OVT_PlayerManagerComponent players = OVT_PlayerManagerComponent.Cast(component);
 		
-		if(!m_mPlayers) return EPF_EApplyResult.OK;
+		if(!m_mPlayers)
+		{
+			Print("[Overthrow] No player save data found");
+			return EPF_EApplyResult.OK;
+		}
 		if(!players.m_mPlayers)
 		{
 			players.m_mPlayers = new map<string, ref OVT_PlayerData>();
@@ -33,6 +54,7 @@ class OVT_PlayerSaveData : EPF_ComponentSaveData
 			OVT_PlayerData player = m_mPlayers.GetElement(t);
 			players.m_mPlayers[persId] = player;
 			players.m_OnPlayerDataLoaded.Invoke(player, persId);
+			Print("[Overthrow] Loading player " + persId + " (" + player.name + ")");
 		}
 				
 		return EPF_EApplyResult.OK;
