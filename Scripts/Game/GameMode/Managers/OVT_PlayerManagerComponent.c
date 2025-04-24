@@ -3,10 +3,9 @@ class OVT_PlayerManagerComponentClass: OVT_ComponentClass
 };
 
 //------------------------------------------------------------------------------------------------
-/*!
-Manages player data persistence and access across the game session.
-Handles mapping between player IDs and persistent IDs, storing player-specific data like money, home location, skills, etc.
-Also responsible for replicating player data to clients joining in progress (JIP).
+//! Manages player data persistence and access across the game session.
+//! Handles mapping between player IDs and persistent IDs, storing player-specific data like money, home location, skills, etc.
+//! Also responsible for replicating player data to clients joining in progress (JIP).
 */
 class OVT_PlayerManagerComponent: OVT_Component
 {		
