@@ -45,55 +45,63 @@ class OVT_ShopInventoryItem : ScriptAndConfig
 	bool m_bSingleRandomItem;
 }
 
+//------------------------------------------------------------------------------------------------
+//! Manages the overall economy in the Overthrow game mode.
+//! Handles prices, stock levels, player and resistance money, taxes, donations, and shop/port registration.
+//! This is a singleton component accessible via OVT_EconomyManagerComponent.GetInstance().
 class OVT_EconomyManagerComponent: OVT_Component
 {
 	[Attribute("", UIWidgets.Object)]
-	ref OVT_ShopConfig m_ShopConfig;
-	
-	[Attribute("", UIWidgets.Object)]
-	ref OVT_GunDealerConfig m_GunDealerConfig;
-		
-	[Attribute("", UIWidgets.Object)]
-	ref OVT_PricesConfig m_PriceConfig;
-	
-	[Attribute("", UIWidgets.Object)]
-	ref OVT_VehiclePricesConfig m_VehiclePriceConfig;
-			
-	protected ref array<RplId> m_aAllShops;
-	protected ref array<RplId> m_aAllPorts;
-	protected ref array<RplId> m_aGunDealers;
-		
-	const int ECONOMY_UPDATE_FREQUENCY = 60000;
-	
-	protected ref array<ref ResourceName> m_aResources;
-	protected ref map<ref ResourceName,int> m_aResourceIndex;
-	protected ref array<ref SCR_EntityCatalogEntry> m_aEntityCatalogEntries;
-	protected ref map<int,ref array<int>> m_mFactionResources;
-	
-	ref map<int, ref array<RplId>> m_mTownShops;
-	
-	protected ref map<int, int> m_mItemCosts;
-	protected ref map<int, int> m_mItemDemand;	
-	
-	protected ref array<int> m_aLegalVehicles;
-	protected ref array<int> m_aAllVehicles;
-	protected ref map<int,OVT_ParkingType> m_mVehicleParking;
+	ref OVT_ShopConfig m_ShopConfig; //!< Configuration for general shops.
 
-  	protected int m_iHourPaidIncome = -1;
-	protected int m_iHourPaidStock = -1;
-	protected int m_iHourPaidRent = -1;
+	[Attribute("", UIWidgets.Object)]
+	ref OVT_GunDealerConfig m_GunDealerConfig; //!< Configuration specific to gun dealers.
+		
+	[Attribute("", UIWidgets.Object)]
+	ref OVT_PricesConfig m_PriceConfig; //!< Configuration for item prices.
+	
+	[Attribute("", UIWidgets.Object)]
+	ref OVT_VehiclePricesConfig m_VehiclePriceConfig; //!< Configuration for vehicle prices.
+			
+	protected ref array<RplId> m_aAllShops; //!< List of all registered shop RplIds.
+	protected ref array<RplId> m_aAllPorts; //!< List of all registered port RplIds.
+	protected ref array<RplId> m_aGunDealers; //!< List of all registered gun dealer RplIds.
+		
+	const int ECONOMY_UPDATE_FREQUENCY = 60000; //!< Frequency (in ms) for periodic economy updates (income, stock).
+	
+	protected ref array<ref ResourceName> m_aResources; //!< Database of all known item/vehicle ResourceNames.
+	protected ref map<ref ResourceName,int> m_aResourceIndex; //!< Mapping from ResourceName to its integer ID in m_aResources.
+	protected ref array<ref SCR_EntityCatalogEntry> m_aEntityCatalogEntries; //!< Cached entity catalog entries for faster lookup.
+	protected ref map<int,ref array<int>> m_mFactionResources; //!< Mapping from Faction ID to an array of resource IDs belonging to that faction.
+	
+	ref map<int, ref array<RplId>> m_mTownShops; //!< Mapping from Town ID to an array of shop RplIds within that town.
+	
+	protected ref map<int, int> m_mItemCosts; //!< Mapping from Resource ID to its base cost.
+	protected ref map<int, int> m_mItemDemand; //!< Mapping from Resource ID to its demand value (influences stock and prices).
+	
+	protected ref array<int> m_aLegalVehicles; //!< List of resource IDs for vehicles considered legal.
+	protected ref array<int> m_aAllVehicles; //!< List of resource IDs for all vehicles.
+	protected ref map<int,OVT_ParkingType> m_mVehicleParking; //!< Mapping from vehicle resource ID to its required parking type.
+
+  	protected int m_iHourPaidIncome = -1; //!< Tracks the hour when income was last calculated to prevent double payments.
+	protected int m_iHourPaidStock = -1; //!< Tracks the hour when stock was last replenished.
+	protected int m_iHourPaidRent = -1; //!< Tracks the hour when rent was last calculated.
 	
 	//Streamed to clients..			
-	int m_iResistanceMoney = 0;
-	float m_fResistanceTax = 0;
+	int m_iResistanceMoney = 0; //!< Current amount of money held by the resistance faction. Streamed to clients.
+	float m_fResistanceTax = 0; //!< Current tax rate applied to player income, benefiting the resistance. Streamed to clients.
 	
 	//Events
-	ref ScriptInvoker m_OnPlayerMoneyChanged = new ScriptInvoker();
-	ref ScriptInvoker m_OnResistanceMoneyChanged = new ScriptInvoker();
-	ref ScriptInvoker m_OnPlayerBuy = new ScriptInvoker();
-	ref ScriptInvoker m_OnPlayerSell = new ScriptInvoker();
+	ref ScriptInvoker m_OnPlayerMoneyChanged = new ScriptInvoker(); //!< Invoked when a player's money changes. Args: string persId, int newAmount
+	ref ScriptInvoker m_OnResistanceMoneyChanged = new ScriptInvoker(); //!< Invoked when the resistance money changes. Args: int newAmount
+	ref ScriptInvoker m_OnPlayerBuy = new ScriptInvoker(); //!< Invoked when a player buys an item. Args: int playerId, int cost, ResourceName item, int quantity
+	ref ScriptInvoker m_OnPlayerSell = new ScriptInvoker(); //!< Invoked when a player sells an item. Args: int playerId, int cost, ResourceName item, int quantity
 		
-	static OVT_EconomyManagerComponent s_Instance;	
+	static OVT_EconomyManagerComponent s_Instance; //!< Static instance for singleton access.
+	
+	//------------------------------------------------------------------------------------------------
+	//! Gets the singleton instance of the OVT_EconomyManagerComponent.
+	//! \return The static instance or null if not found.
 	static OVT_EconomyManagerComponent GetInstance()
 	{
 		if (!s_Instance)
@@ -106,6 +114,8 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return s_Instance;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Constructor for the OVT_EconomyManagerComponent. Initializes internal data structures.
 	void OVT_EconomyManagerComponent(IEntityComponentSource src, IEntity ent, IEntity parent)
 	{
 		m_aResources = new array<ref ResourceName>;
@@ -123,6 +133,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 		m_mVehicleParking = new map<int,OVT_ParkingType>;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Periodically checks game time to trigger economy updates like income calculation, stock replenishment, and rent collection.
+	//! Called automatically by a timer.
 	void CheckUpdate()
 	{
 		if(!m_Time) 
@@ -175,24 +188,39 @@ class OVT_EconomyManagerComponent: OVT_Component
 		}
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Gets the base price of an item by its resource ID.
+	//! \param[in] id The resource ID of the item.
+	//! \return The base price, or 500 if not found.
 	int GetPrice(int id)
 	{
 		if(!m_mItemCosts.Contains(id)) return 500;
 		return m_mItemCosts[id];
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Gets the demand value for an item by its resource ID.
+	//! \param[in] id The resource ID of the item.
+	//! \return The demand value, or 5 if not found.
 	int GetDemand(int id)
 	{
 		if(!m_mItemDemand.Contains(id)) return 5;
 		return m_mItemDemand[id];
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Gets the required parking type for a vehicle by its resource ID.
+	//! \param[in] id The resource ID of the vehicle.
+	//! \return The OVT_ParkingType, defaulting to PARKING_CAR if not found.
 	OVT_ParkingType GetParkingType(int id)
 	{
 		if(!m_mVehicleParking.Contains(id)) return OVT_ParkingType.PARKING_CAR;
 		return m_mVehicleParking[id];
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Calculates and distributes rent payments for all rented properties at midnight.
+	//! Owners receive rent, renters pay rent (from player or resistance funds).
 	protected void UpdateRents()
 	{
 		OVT_RealEstateManagerComponent realEstate = OVT_Global.GetRealEstate();
@@ -240,6 +268,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 		}
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Replenishes stock in shops and gun dealers based on configured minimums and maximums.
+	//! Typically occurs once per day (e.g., at 7 AM).
 	protected void ReplenishStock()
 	{
 		//Shops restocking		
@@ -295,6 +326,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 		}
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Simulates NPCs buying items from shops based on town population, stability, and item demand.
+	//! Drives stock reduction and generates income for shop owners (indirectly).
 	protected void UpdateShops()
 	{
 		//NPCs Buying stock
@@ -338,6 +372,10 @@ class OVT_EconomyManagerComponent: OVT_Component
 		}
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Groups shops within a town by their OVT_ShopType.
+	//! \param[in] townId The ID of the town.
+	//! \return A map where keys are shop types (int) and values are arrays of RplIds for shops of that type.
 	protected map<int, ref array<RplId>> GetShopTypes(int townId)
 	{
 		map<int, ref array<RplId>> typeShops = new map<int, ref array<RplId>>;
@@ -355,6 +393,10 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return typeShops;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Retrieves the OVT_ShopComponent associated with a given RplId.
+	//! \param[in] shopId The RplId of the shop entity.
+	//! \return The OVT_ShopComponent instance, or null if the entity or component is not found.
 	OVT_ShopComponent GetShopByRplId(RplId shopId)
 	{
 		RplComponent rpl = RplComponent.Cast(Replication.FindItem(shopId));
@@ -363,6 +405,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return OVT_ShopComponent.Cast(entity.FindComponent(OVT_ShopComponent));
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Calculates income from donations and taxes, applies the resistance tax, and distributes the remaining amount to online players.
+	//! Typically called periodically (e.g., every 6 hours).
 	protected void CalculateIncome()
 	{
 		//Support donations
@@ -394,6 +439,10 @@ class OVT_EconomyManagerComponent: OVT_Component
 		OVT_Global.GetNotify().SendTextNotification("TaxesDonationsPlayer",-1,incomePerPlayer.ToString());
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Calculates total income generated from town support donations.
+	//! Higher support and stability increase donations.
+	//! \return The total donation income.
 	int GetDonationIncome()
 	{
 		int income = 0;
@@ -409,6 +458,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return income;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Calculates total income generated from taxes based on town population and stability (excluding occupying faction towns).
+	//! \return The total tax income.
 	int GetTaxIncome()
 	{
 		int income = 0;
@@ -422,16 +474,31 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return income;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Sets the base price for an item. Used during initialization.
+	//! \param[in] id The resource ID of the item.
+	//! \param[in] cost The new base cost.
 	void SetPrice(int id, int cost)
 	{
 		m_mItemCosts[id] = cost;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Sets the demand value for an item. Used during initialization.
+	//! \param[in] id The resource ID of the item.
+	//! \param[in] demand The new demand value.
 	void SetDemand(int id, int demand)
 	{
 		m_mItemDemand[id] = demand;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Calculates the dynamic selling price of an item at a specific location.
+	//! Price is adjusted based on local town stock levels and distance to the nearest port.
+	//! For vehicles, returns the base price.
+	//! \param[in] id The resource ID of the item.
+	//! \param[in] pos The world position where the item is being sold (optional, uses base price if "0 0 0").
+	//! \return The calculated sell price.
 	int GetSellPrice(int id, vector pos = "0 0 0")
 	{		
 		int price = GetPrice(id);
@@ -453,6 +520,13 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return price;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Calculates the dynamic buying price of an item at a specific location for a specific player.
+	//! Based on the sell price plus a profit margin, potentially modified by player-specific multipliers.
+	//! \param[in] id The resource ID of the item.
+	//! \param[in] pos The world position where the item is being bought (optional).
+	//! \param[in] playerId The ID of the buying player (optional, influences price multipliers).
+	//! \return The calculated buy price.
 	int GetBuyPrice(int id, vector pos = "0 0 0", int playerId=-1)
 	{
 		int price = GetSellPrice(id, pos);
@@ -467,6 +541,11 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return buy;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Gets the total stock level of a specific item across all shops in a given town.
+	//! \param[in] townId The ID of the town.
+	//! \param[in] id The resource ID of the item.
+	//! \return The total stock count, or 0 if the town has no shops.
 	int GetTownStock(int townId, int id)
 	{
 		if(!m_mTownShops.Contains(townId)) return 0;
@@ -479,6 +558,12 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return stock;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Calculates the theoretical maximum stock level for an item in a town.
+	//! Based on population, buy rate, item demand, and town stability.
+	//! \param[in] townId The ID of the town.
+	//! \param[in] id The resource ID of the item.
+	//! \return The calculated maximum stock capacity.
 	int GetTownMaxStock(int townId, int id)
 	{
 		OVT_TownData town = OVT_Global.GetTowns().GetTown(townId);
@@ -486,12 +571,22 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return Math.Round(1 + (town.population * OVT_Global.GetConfig().m_fNPCBuyRate * GetDemand(id) * ((float)town.stability / 100)));
 	}	
 	
+	//------------------------------------------------------------------------------------------------
+	//! Gets the dynamic sell price of an item by its ResourceName. Convenience wrapper for GetSellPrice.
+	//! \param[in] res The ResourceName of the item.
+	//! \param[in] pos The world position (optional).
+	//! \return The calculated sell price.
 	int GetPriceByResource(ResourceName res, vector pos = "0 0 0")
 	{
 		int id = GetInventoryId(res);
 		return GetSellPrice(id, pos);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Checks if a specific item resource is typically sold at a given shop type based on its configuration.
+	//! \param[in] res The ResourceName of the item.
+	//! \param[in] shopType The type of shop to check against.
+	//! \return True if the item is found in the shop type's inventory configuration, false otherwise.
 	bool IsSoldAtShop(ResourceName res, OVT_ShopType shopType)
 	{
 		OVT_ShopInventoryConfig config = GetShopConfig(shopType);
@@ -508,6 +603,10 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return false;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Finds the RplId of the nearest port entity to a given position.
+	//! \param[in] pos The world position to check from.
+	//! \return The RplId of the nearest port, or an invalid RplId if no ports are registered.
 	RplId GetNearestPort(vector pos)
 	{
 		RplId nearestPort;
@@ -524,6 +623,10 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return nearestPort;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Calculates the distance to the nearest registered port from a given position.
+	//! \param[in] pos The world position to check from.
+	//! \return The distance in meters, or -1 if no ports are registered.
 	float DistanceToNearestPort(vector pos)
 	{
 		float nearest = -1;
@@ -538,27 +641,45 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return nearest;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Gets a list of RplIds for all registered shops.
+	//! \return An array containing the RplIds of all shops.
 	array<RplId> GetAllShops()
 	{
 		return m_aAllShops;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Gets a list of RplIds for all registered ports.
+	//! \return An array containing the RplIds of all ports.
 	array<RplId> GetAllPorts()
 	{
 		return m_aAllPorts;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Gets a list of RplIds for all registered gun dealers.
+	//! \return An array containing the RplIds of all gun dealers.
 	array<RplId> GetGunDealers()
 	{
 		return m_aGunDealers;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Checks if an item (by resource ID) belongs to a specific faction.
+	//! \param[in] id The resource ID of the item.
+	//! \param[in] factionId The index of the faction.
+	//! \return True if the item belongs to the faction, false otherwise.
 	bool ItemIsFromFaction(int id, int factionId)
 	{
 		if(!m_mFactionResources.Contains(factionId)) return false;
 		return m_mFactionResources[factionId].Contains(id);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Gets a list of RplIds for all shops located within the radius of a given town.
+	//! \param[in] town The OVT_TownData object representing the town.
+	//! \return An array of RplIds for shops within the town's range.
 	array<RplId> GetAllShopsInTown(OVT_TownData town)
 	{
 		int range = OVT_Global.GetTowns().m_iCityRange;
@@ -574,6 +695,10 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return shops;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Retrieves the inventory configuration for a specific shop type.
+	//! \param[in] shopType The OVT_ShopType enum value.
+	//! \return The corresponding OVT_ShopInventoryConfig, or a new empty config if not found.
 	OVT_ShopInventoryConfig GetShopConfig(OVT_ShopType shopType)
 	{		
 		foreach(OVT_ShopInventoryConfig config : m_ShopConfig.m_aShopConfigs)
@@ -583,6 +708,10 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return new OVT_ShopInventoryConfig();
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Gets the current amount of money for a player identified by their persistent ID.
+	//! \param[in] playerId The persistent string ID of the player.
+	//! \return The player's money amount, or 0 if the player data is not found.
 	int GetPlayerMoney(string playerId)
 	{
 		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(playerId);
@@ -590,6 +719,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return player.money;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Gets the current amount of money for the local player.
+	//! \return The local player's money amount.
 	int GetLocalPlayerMoney()
 	{
 		string playerId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(SCR_PlayerController.GetLocalPlayerId());
@@ -597,12 +729,21 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return GetPlayerMoney(playerId);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Checks if the local player has a sufficient amount of money.
+	//! \param[in] amount The amount to check against.
+	//! \return True if the local player has enough money, false otherwise.
 	int LocalPlayerHasMoney(int amount)
 	{
 		string playerId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(SCR_PlayerController.GetLocalPlayerId());		
 		return PlayerHasMoney(playerId, amount);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Checks if a specific player (by persistent ID) has a sufficient amount of money.
+	//! \param[in] playerId The persistent string ID of the player.
+	//! \param[in] amount The amount to check against.
+	//! \return True if the player has enough money, false otherwise.
 	bool PlayerHasMoney(string playerId, int amount)
 	{
 		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(playerId);
@@ -610,6 +751,12 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return player.money >= amount;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Adds money to a player's account. Handles server/client distinction.
+	//! Use this method for external calls.
+	//! \param[in] playerId The runtime Player ID.
+	//! \param[in] amount The amount of money to add.
+	//! \param[in] doEvent If true, invokes the m_OnPlayerMoneyChanged event (currently unused).
 	void AddPlayerMoney(int playerId, int amount, bool doEvent=false)
 	{
 		if(Replication.IsServer())
@@ -620,6 +767,10 @@ class OVT_EconomyManagerComponent: OVT_Component
 		OVT_Global.GetServer().AddPlayerMoney(playerId, amount, doEvent);		
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Server-side implementation to add money to a player's account and stream the update.
+	//! \param[in] playerId The runtime Player ID.
+	//! \param[in] amount The amount of money to add.
 	void DoAddPlayerMoney(int playerId, int amount)
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
@@ -632,6 +783,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 		m_OnPlayerMoneyChanged.Invoke(persId, player.money);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Adds money to the resistance faction's funds. Handles server/client distinction.
+	//! \param[in] amount The amount of money to add.
 	void AddResistanceMoney(int amount)
 	{
 		if(Replication.IsServer())
@@ -642,12 +796,18 @@ class OVT_EconomyManagerComponent: OVT_Component
 		OVT_Global.GetServer().AddResistanceMoney(amount);		
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Server-side implementation to add money to resistance funds and stream the update.
+	//! \param[in] amount The amount of money to add.
 	void DoAddResistanceMoney(int amount)
 	{		
 		RpcDo_SetResistanceMoney(m_iResistanceMoney + amount);
 		StreamResistanceMoney();
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Takes money from the resistance faction's funds. Handles server/client distinction.
+	//! \param[in] amount The amount of money to take.
 	void TakeResistanceMoney(int amount)
 	{
 		if(Replication.IsServer())
@@ -658,12 +818,18 @@ class OVT_EconomyManagerComponent: OVT_Component
 		OVT_Global.GetServer().TakeResistanceMoney(amount);		
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Server-side implementation to take money from resistance funds and stream the update.
+	//! \param[in] amount The amount of money to take.
 	void DoTakeResistanceMoney(int amount)
 	{		
 		RpcDo_SetResistanceMoney(m_iResistanceMoney - amount);
 		StreamResistanceMoney();
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Sets the resistance tax rate. Handles server/client distinction.
+	//! \param[in] amount The new tax rate (0.0 to 1.0).
 	void SetResistanceTax(float amount)
 	{
 		if(Replication.IsServer())
@@ -674,18 +840,29 @@ class OVT_EconomyManagerComponent: OVT_Component
 		OVT_Global.GetServer().SetResistanceTax(amount);		
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Server-side implementation to set the resistance tax rate and stream the update.
+	//! \param[in] amount The new tax rate.
 	void DoSetResistanceTax(float amount)
 	{		
 		RpcDo_SetResistanceTax(amount);
 		StreamResistanceTax();
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Takes money from the local player's account. Convenience wrapper for TakePlayerMoney.
+	//! \param[in] amount The amount of money to take.
 	void TakeLocalPlayerMoney(int amount)
 	{
 		int id = SCR_PlayerController.GetLocalPlayerId();
 		TakePlayerMoney(id, amount);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Takes money from a player's account. Handles server/client distinction.
+	//! Use this method for external calls.
+	//! \param[in] playerId The runtime Player ID.
+	//! \param[in] amount The amount of money to take.
 	void TakePlayerMoney(int playerId, int amount)
 	{
 		if(Replication.IsServer())
@@ -696,6 +873,11 @@ class OVT_EconomyManagerComponent: OVT_Component
 		OVT_Global.GetServer().TakePlayerMoney(playerId, amount);	
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Server-side method to take money directly using the persistent ID. Does not handle server/client distinction.
+	//! Updates player data and invokes the money changed event. Streams update if player is online.
+	//! \param[in] persId The persistent string ID of the player.
+	//! \param[in] amount The amount of money to take.
 	void TakePlayerMoneyPersistentId(string persId, int amount)
 	{
 		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(persId);
@@ -711,6 +893,11 @@ class OVT_EconomyManagerComponent: OVT_Component
 		m_OnPlayerMoneyChanged.Invoke(persId, player.money);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Server-side method to add money directly using the persistent ID. Does not handle server/client distinction.
+	//! Updates player data and invokes the money changed event. Streams update if player is online.
+	//! \param[in] persId The persistent string ID of the player.
+	//! \param[in] amount The amount of money to add.
 	void AddPlayerMoneyPersistentId(string persId, int amount)
 	{
 		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(persId);
@@ -725,6 +912,10 @@ class OVT_EconomyManagerComponent: OVT_Component
 		m_OnPlayerMoneyChanged.Invoke(persId, player.money);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Server-side implementation to take money from a player's account and stream the update.
+	//! \param[in] playerId The runtime Player ID.
+	//! \param[in] amount The amount of money to take.
 	void DoTakePlayerMoney(int playerId, int amount)
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
@@ -737,16 +928,27 @@ class OVT_EconomyManagerComponent: OVT_Component
 		m_OnPlayerMoneyChanged.Invoke(persId, player.money);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Checks if the resistance faction has a sufficient amount of money.
+	//! \param[in] amount The amount to check against.
+	//! \return True if the resistance has enough money, false otherwise.
 	bool ResistanceHasMoney(int amount)
 	{
 		return m_iResistanceMoney >= amount;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Gets the current amount of money held by the resistance faction.
+	//! \return The resistance money amount.
 	int GetResistanceMoney()
 	{
 		return m_iResistanceMoney;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Registers a gun dealer entity with the economy manager.
+	//! Adds the entity's RplId to the list of gun dealers.
+	//! \param[in] id The EntityID of the gun dealer entity.
 	void RegisterGunDealer(EntityID id)
 	{
 		IEntity entity = GetGame().GetWorld().FindEntityByID(id);
@@ -755,6 +957,10 @@ class OVT_EconomyManagerComponent: OVT_Component
 			m_aGunDealers.Insert(rpl.Id());
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Initialization logic called shortly after the component is created.
+	//! Sets up timers and calls AfterInit.
+	//! \param[in] owner The owner entity of this component.
 	void Init(IEntity owner)
 	{			
 		float timeMul = 6;
@@ -772,6 +978,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 		
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Post-initialization logic called after Init.
+	//! Builds the resource database and initializes ports and shops.
 	protected void AfterInit()
 	{
 		BuildResourceDatabase();
@@ -781,6 +990,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 		InitializeShops();		
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Registers a resource (item or vehicle prefab) in the internal database if not already present.
+	//! \param[in] res The ResourceName to register.
 	void RegisterResource(ResourceName res)
 	{
 		if(!m_aResources.Contains(res))
@@ -791,6 +1003,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 		}
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Builds the complete database of resources (items, vehicles) from configurations and faction data.
+	//! Assigns resource IDs, sets prices, determines legality, parking types, and faction ownership.
 	void BuildResourceDatabase()
 	{	
 		//Process non EntityCatalog vehicles
@@ -914,6 +1129,13 @@ class OVT_EconomyManagerComponent: OVT_Component
 		}
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Finds inventory items matching specific criteria within the cached entity catalog entries.
+	//! \param[in] type The SCR_EArsenalItemType to filter by.
+	//! \param[in] mode The SCR_EArsenalItemMode to filter by (DEFAULT matches any).
+	//! \param[in] search A string to search within the prefab name (case-sensitive). Blank matches all.
+	//! \param[out] inventoryItems An array to populate with matching SCR_EntityCatalogEntry objects.
+	//! \return True if the search was performed (doesn't guarantee items were found).
 	bool FindInventoryItems(SCR_EArsenalItemType type, SCR_EArsenalItemMode mode, string search, out array<SCR_EntityCatalogEntry> inventoryItems)
 	{	
 		foreach(SCR_EntityCatalogEntry entry : m_aEntityCatalogEntries)
@@ -936,6 +1158,10 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return true;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Retrieves all non-clothing items belonging to the occupying faction.
+	//! \param[out] resources An array to populate with the ResourceNames of the matching items.
+	//! \return True.
 	bool GetAllNonClothingOccupyingFactionItems(out array<ResourceName> resources)
 	{
 		array<SCR_EArsenalItemType> ignore = {
@@ -963,17 +1189,29 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return true;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Checks if a resource ID corresponds to a vehicle.
+	//! \param[in] id The resource ID.
+	//! \return True if the ID is in the list of all vehicles, false otherwise.
 	bool IsVehicle(int id)
 	{
 		return m_aAllVehicles.Contains(id);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Checks if a ResourceName corresponds to a vehicle.
+	//! \param[in] res The ResourceName.
+	//! \return True if the resource is a vehicle, false otherwise.
 	bool IsVehicle(ResourceName res)
 	{
 		int id = GetInventoryId(res);
 		return IsVehicle(id);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Retrieves all arsenal items (non-vehicles) that do not belong to the occupying faction.
+	//! \param[out] resources An array to populate with the ResourceNames of the matching items.
+	//! \return True.
 	bool GetAllNonOccupyingFactionItems(out array<ResourceName> resources)
 	{
 		int occupyingFactionIndex = OVT_Global.GetConfig().GetOccupyingFactionIndex();
@@ -991,6 +1229,11 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return true;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Retrieves all vehicles that do not belong to the occupying faction.
+	//! \param[out] resources An array to populate with the ResourceNames of the matching vehicles.
+	//! \param[in] includeIllegal If true, includes vehicles marked as illegal. Defaults to false.
+	//! \return True.
 	bool GetAllNonOccupyingFactionVehicles(out array<ResourceName> resources, bool includeIllegal = false)
 	{
 		int occupyingFactionIndex = OVT_Global.GetConfig().GetOccupyingFactionIndex();
@@ -1006,6 +1249,12 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return true;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Retrieves all non-occupying faction vehicles that match specific parking types.
+	//! \param[out] resources An array to populate with the ResourceNames of the matching vehicles.
+	//! \param[in] parkingTypes An array of OVT_ParkingType enums to filter by.
+	//! \param[in] includeIllegal If true, includes vehicles marked as illegal. Defaults to false.
+	//! \return True.
 	bool GetAllNonOccupyingFactionVehiclesByParking(out array<ResourceName> resources, array<OVT_ParkingType> parkingTypes, bool includeIllegal = false)
 	{
 		int occupyingFactionIndex = OVT_Global.GetConfig().GetOccupyingFactionIndex();
@@ -1022,11 +1271,15 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return true;
 	}
 			
+	//------------------------------------------------------------------------------------------------
+	//! Called after the game has fully started. Triggers shop inventory initialization.
 	void PostGameStart()
 	{		
 		GetGame().GetCallqueue().CallLater(InitShopInventory, 0);				
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Finds and registers all port entities in the world.
 	protected void InitializePorts()
 	{
 		#ifdef OVERTHROW_DEBUG
@@ -1036,6 +1289,8 @@ class OVT_EconomyManagerComponent: OVT_Component
 		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, CheckPortInit, FilterPortEntities);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Finds and registers all shop entities in the world (Server only).
 	protected void InitializeShops()
 	{
 		#ifdef OVERTHROW_DEBUG
@@ -1045,16 +1300,28 @@ class OVT_EconomyManagerComponent: OVT_Component
 		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, CheckShopInit, FilterShopEntities, EQueryEntitiesFlags.STATIC);
 	}
 		
+	//------------------------------------------------------------------------------------------------
+	//! Gets the internal integer ID for a given resource name.
+	//! Requires the resource to have been registered via BuildResourceDatabase or RegisterResource.
+	//! \param[in] res The ResourceName.
+	//! \return The integer ID, or potentially an error/invalid ID if not found.
 	int GetInventoryId(ResourceName res)
 	{		
 		return m_aResourceIndex[res];
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Gets the ResourceName corresponding to an internal integer ID.
+	//! \param[in] id The integer ID.
+	//! \return The ResourceName, or potentially null/empty if the ID is invalid.
 	ResourceName GetResource(int id)
 	{
 		return m_aResources[id];
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Initializes the inventory of all registered shops based on their type configuration and town context.
+	//! Populates shops with appropriate items and initial stock levels. (Server only).
 	protected void InitShopInventory()
 	{
 		foreach(RplId shopId : m_aAllShops)
@@ -1104,6 +1371,11 @@ class OVT_EconomyManagerComponent: OVT_Component
 		}
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Callback function used by QueryEntitiesBySphere during shop initialization.
+	//! Registers the shop's RplId, associates it with the nearest town, and sets the town ID on the shop component.
+	//! \param[in] entity The potential shop entity found by the query.
+	//! \return True to continue the query.
 	protected bool CheckShopInit(IEntity entity)
 	{		
 		RplComponent rpl = RplComponent.Cast(entity.FindComponent(RplComponent));
@@ -1129,6 +1401,11 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return true;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Filter function used by QueryEntitiesBySphere during shop initialization.
+	//! Ensures the entity is a building with an OVT_ShopComponent that is not a procurement shop.
+	//! \param[in] entity The entity to filter.
+	//! \return True if the entity is a valid shop building, false otherwise.
 	protected bool FilterShopEntities(IEntity entity)
 	{	
 		if(entity.ClassName() == "SCR_DestructibleBuildingEntity")
@@ -1139,6 +1416,11 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return false;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Callback function used by QueryEntitiesBySphere during port initialization.
+	//! Registers the port's RplId.
+	//! \param[in] entity The potential port entity found by the query.
+	//! \return True to continue the query.
 	protected bool CheckPortInit(IEntity entity)
 	{		
 		RplComponent rpl = RplComponent.Cast(entity.FindComponent(RplComponent));
@@ -1151,6 +1433,11 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return true;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Filter function used by QueryEntitiesBySphere during port initialization.
+	//! Ensures the entity has an OVT_PortControllerComponent.
+	//! \param[in] entity The entity to filter.
+	//! \return True if the entity has the port controller component, false otherwise.
 	protected bool FilterPortEntities(IEntity entity)
 	{	
 
@@ -1160,6 +1447,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return false;
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! Charges a player a fee upon respawning, if they have sufficient funds.
+	//! \param[in] playerId The runtime Player ID of the respawning player.
 	void ChargeRespawn(int playerId)
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
@@ -1173,6 +1463,8 @@ class OVT_EconomyManagerComponent: OVT_Component
 	//RPC Methods
 	
 	
+	//------------------------------------------------------------------------------------------------
+	//! Saves component state for persistence or JIP.
 	override bool RplSave(ScriptBitWriter writer)
 	{		
 		writer.WriteInt(m_iResistanceMoney);
@@ -1206,6 +1498,8 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return true;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Loads component state for persistence or JIP.
 	override bool RplLoad(ScriptBitReader reader)
 	{	
 		int length, keylength, price;
@@ -1249,6 +1543,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 	}
 	
 	
+	//------------------------------------------------------------------------------------------------
+	//! Streams the latest money amount for a specific player to all clients via RPC.
+	//! \param[in] playerId The runtime Player ID.
 	void StreamPlayerMoney(int playerId)
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
@@ -1258,6 +1555,10 @@ class OVT_EconomyManagerComponent: OVT_Component
 		Rpc(RpcDo_SetPlayerMoney, playerId, player.money);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! RPC called on clients to update a player's money locally and invoke the change event.
+	//! \param[in] playerId The runtime Player ID.
+	//! \param[in] amount The new money amount.
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_SetPlayerMoney(int playerId, int amount)
 	{
@@ -1268,11 +1569,16 @@ class OVT_EconomyManagerComponent: OVT_Component
 		m_OnPlayerMoneyChanged.Invoke(persId, player.money);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Streams the latest resistance money amount to all clients via RPC.
 	protected void StreamResistanceMoney()
 	{
 		Rpc(RpcDo_SetResistanceMoney, m_iResistanceMoney);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! RPC called on clients to update the resistance money locally and invoke the change event.
+	//! \param[in] amount The new resistance money amount.
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_SetResistanceMoney(int amount)
 	{
@@ -1280,17 +1586,24 @@ class OVT_EconomyManagerComponent: OVT_Component
 		m_OnResistanceMoneyChanged.Invoke(m_iResistanceMoney);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Streams the latest resistance tax rate to all clients via RPC.
 	protected void StreamResistanceTax()
 	{
 		Rpc(RpcDo_SetResistanceTax, m_fResistanceTax);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! RPC called on clients to update the resistance tax rate locally.
+	//! \param[in] amount The new resistance tax rate.
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_SetResistanceTax(float amount)
 	{
 		m_fResistanceTax = amount;
 	}
 		
+	//------------------------------------------------------------------------------------------------
+	//! Destructor for the OVT_EconomyManagerComponent. Cleans up timers and allocated memory.
 	void ~OVT_EconomyManagerComponent()
 	{
 		GetGame().GetCallqueue().Remove(CheckUpdate);	

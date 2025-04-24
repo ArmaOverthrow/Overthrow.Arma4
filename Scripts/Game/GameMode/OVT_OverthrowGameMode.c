@@ -2,45 +2,76 @@ class OVT_OverthrowGameModeClass: SCR_BaseGameModeClass
 {
 };
 
+//------------------------------------------------------------------------------------------------
+//! Main game mode logic for Overthrow.
+//! Handles game initialization, player management, component lifecycle, and core game flow.
 class OVT_OverthrowGameMode : SCR_BaseGameMode
 {
+	//! UI Context for the start game menu.
 	[Attribute()]
 	ref OVT_UIContext m_StartGameUIContext;
 
+	//! Prefab resource for the camera used for the single player menu at the start of the game.
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Start Camera Prefab", params: "et")]
 	ResourceName m_StartCameraPrefab;
 
+	//! Reference to the Overthrow configuration component.
 	protected OVT_OverthrowConfigComponent m_Config;
+	//! Reference to the town manager component.
 	protected OVT_TownManagerComponent m_TownManager;
+	//! Reference to the occupying faction manager component.
 	protected OVT_OccupyingFactionManager m_OccupyingFactionManager;
+	//! Reference to the resistance faction manager component.
 	protected OVT_ResistanceFactionManager m_ResistanceFactionManager;
+	//! Reference to the real estate manager component.
 	protected OVT_RealEstateManagerComponent m_RealEstate;
+	//! Reference to the vehicle manager component.
 	protected OVT_VehicleManagerComponent m_VehicleManager;
+	//! Reference to the economy manager component.
 	protected OVT_EconomyManagerComponent m_EconomyManager;
+	//! Reference to the player manager component.
 	protected OVT_PlayerManagerComponent m_PlayerManager;
+	//! Reference to the job manager component.
 	protected OVT_JobManagerComponent m_JobManager;
+	//! Reference to the skill manager component.
 	protected OVT_SkillManagerComponent m_SkillManager;
+	//! Reference to the persistence manager component.
 	protected OVT_PersistenceManagerComponent m_Persistence;
 
+	//! Reference to the start camera entity.
 	protected CameraBase m_pCamera;
 
+	//! Set of persistent IDs for players who have fully initialized.
 	ref set<string> m_aInitializedPlayers;
+	//! Set of persistent IDs for players who have received the intro hint.
 	ref set<string> m_aHintedPlayers;
 
+	//! Map of persistent player IDs to their group entity IDs.
 	ref map<string, EntityID> m_mPlayerGroups;
 
+	//! Flag indicating if the core game components and logic have been initialized.
 	protected bool m_bGameInitialized = false;
+	//! Flag indicating if the initial start camera has been positioned.
 	protected bool m_bCameraSet = false;
+	//! Flag indicating if the game has officially started (after potential setup phases).
 	protected bool m_bGameStarted = false;
+	//! Flag to trigger game start during the OnWorldPostProcess phase, typically used after loading a save.
 	protected bool m_bRequestStartOnPostProcess = false;
 
+	//! Tracks if the player has opened the Overthrow menu at least once.
 	bool m_bHasOpenedMenu = false;
 
+	//------------------------------------------------------------------------------------------------
+	//! Checks if the game mode has completed its initialization process.
+	//! \\return True if the game is initialized, false otherwise.
 	bool IsInitialized()
 	{
 		return m_bGameInitialized;
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! Initializes settings and components for a new game session.
+	//! Reads configuration for factions and sets initial ownership.
 	void DoStartNewGame()
 	{
 		bool isDedicated = RplSession.Mode() == RplMode.Dedicated || RplSession.Mode() == RplMode.Listen;
@@ -83,11 +114,17 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		}
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! Retrieves the persistence manager component instance.
+	//! \\return The persistence manager component.
 	OVT_PersistenceManagerComponent GetPersistence()
 	{
 		return m_Persistence;
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! Finalizes game startup, initializes various managers, and sets difficulty.
+	//! Closes the start game UI and transitions into the active game state.
 	void DoStartGame()
 	{
 		FactionManager fm = GetGame().GetFactionManager();
@@ -175,6 +212,9 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		m_bGameInitialized = true;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Executes post-load logic after persistence data has been loaded.
+	//! Primarily handles real estate post-load procedures.
 	void DoPostLoad()
 	{
 		if(!IsMaster()) return;
@@ -187,6 +227,10 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		}
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! Called every frame. Handles debug commands and manages the start camera lifecycle.
+	//! \\param[in] owner The entity owning this component (the GameMode entity).
+	//! \\param[in] timeSlice The time elapsed since the last frame.
 	override void EOnFrame(IEntity owner, float timeSlice)
 	{
 		super.EOnFrame(owner, timeSlice);
@@ -259,19 +303,27 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		m_StartGameUIContext.EOnFrame(owner, timeSlice);
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! Persists necessary data before the game mode shuts down.
+	//! (Currently empty)
 	void PreShutdownPersist()
 	{
 
 	}
 	
+	//! Array to store references to bus stop entities (currently unused).
 	protected ref array<IEntity> m_BusStops = {};
 		
+	//! Predefined locations for potential bus stop spawns.
 	protected ref array<vector> m_HardcodedBusStopLocations = {
 	    "4413.912 12.042 10687.312", 
 	    "4824.945 169.693 6968.863", 
 	    "9706.01 12.132 1565.451"
 	};
 	
+	//------------------------------------------------------------------------------------------------
+	//! Selects a random bus stop location from the hardcoded list.
+	//! \\return A random vector position from m_HardcodedBusStopLocations, or vector.Zero if the list is empty.
 	protected vector GetRandomHardcodedBusStop()
 	{
 	    if (m_HardcodedBusStopLocations.Count() > 0)
@@ -284,6 +336,10 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	}
 	 vector spawnLocation
 	
+	//------------------------------------------------------------------------------------------------
+	//! Spawns a player at a randomly selected hardcoded bus stop location.
+	//! If no hardcoded locations exist, attempts to spawn at the first available town center.
+	//! \\param[in] playerId The ID of the player to spawn.
 	void SpawnPlayerAtBusStop(int playerId)
 	{
 			spawnLocation = GetRandomHardcodedBusStop();
@@ -308,6 +364,10 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! Handles player role changes. Grants officer status if the player becomes an admin.
+	//! \\param[in] playerId The ID of the player whose role changed.
+	//! \\param[in] roleFlags The new EPlayerRole flags assigned to the player.
 	protected override void OnPlayerRoleChange(int playerId, EPlayerRole roleFlags)
 	{
 		super.OnPlayerRoleChange(playerId, roleFlags);
@@ -324,6 +384,11 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		}
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! Handles player disconnection. Pauses persistence tracking and removes the player from the initialized list.
+	//! \\param[in] playerId The ID of the disconnecting player.
+	//! \\param[in] cause The reason for disconnection.
+	//! \\param[in] timeout The disconnection timeout duration.
 	protected override void OnPlayerDisconnected(int playerId, KickCauseCode cause, int timeout)
 	{
 		string persId = m_PlayerManager.GetPersistentIDFromPlayerID(playerId);
@@ -353,6 +418,11 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		super.OnPlayerDisconnected(playerId, cause, timeout);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Prepares a player for entry into the game. Sets up player data, assigns officer status if needed,
+	//! finds or assigns a home (house or bus stop), spawns a starting car if applicable, and manages initial state.
+	//! \\param[in] playerId The numeric ID of the player.
+	//! \\param[in] persistentId The persistent string ID of the player.
 	void PreparePlayer(int playerId, string persistentId)
 	{
 	    if (!Replication.IsServer()) return;
@@ -427,6 +497,11 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	}
 
 
+	//------------------------------------------------------------------------------------------------
+	//! Called when a player character entity is spawned into the world.
+	//! Resets the player's wanted level.
+	//! \\param[in] playerId The ID of the player whose character spawned.
+	//! \\param[in] controlledEntity The newly spawned character entity.
 	protected override void OnPlayerSpawned(int playerId, IEntity controlledEntity)
 	{
 		OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(controlledEntity.FindComponent(OVT_PlayerWantedComponent));
@@ -437,6 +512,9 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		}		
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! Sets the main menu camera to a random predefined position.
+	//! Only executes if the camera hasn't been set already.
 	protected void SetRandomCameraPosition()
 	{
 		CameraManager cameraMgr = GetGame().GetCameraManager();
@@ -458,6 +536,10 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		}
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! Called when the entity is initialized. Initializes managers, UI contexts, persistence, and diag menus.
+	//! Determines whether to start a new game, load a save, or show the start menu.
+	//! \\param[in] owner The entity owning this component (the GameMode entity).
 	override void EOnInit(IEntity owner) //!EntityEvent.INIT
 	{
 		super.EOnInit(owner);
@@ -591,11 +673,18 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		}
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Client-side callback when a player spawns (currently empty).
+	//! \\param[in] entity The spawned player entity.
 	protected void OnPlayerSpawnClient(IEntity entity)
 	{
 		
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! Called after the world finishes its post-processing phase.
+	//! Schedules post-load logic and potential game start calls.
+	//! \\param[in] world The game world.
 	override event void OnWorldPostProcess(World world)
 	{
 		Print("[Overthrow] World Post Processing complete..");
@@ -608,6 +697,9 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		}
 	};
 
+	//------------------------------------------------------------------------------------------------
+	//! Called locally when the local player spawns. Shows an introductory hint if not already shown.
+	//! \\param[in] playerId The persistent ID of the local player.
 	void OnPlayerSpawnedLocal(string playerId)
 	{
 		if(!m_aHintedPlayers.Contains(playerId))
@@ -618,11 +710,16 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Constructor for OVT_OverthrowGameMode. Initializes player group map.
+	//! \\param[in] src Entity source information.
+	//! \\param[in] parent Parent entity.
 	void OVT_OverthrowGameMode(IEntitySource src, IEntity parent)
 	{		
 		m_mPlayerGroups = new map<string, EntityID>;
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! Destructor for OVT_OverthrowGameMode. Clears internal collections.
 	void ~OVT_OverthrowGameMode()
 	{
 		m_aInitializedPlayers.Clear();
