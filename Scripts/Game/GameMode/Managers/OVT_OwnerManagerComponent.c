@@ -421,7 +421,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 	//! Internal logic to set the owner using the player's persistent ID. Updates internal maps.
 	//! \param[in] persId The persistent ID of the player.
 	//! \param[in] pos The position of the entity.
-	protected void DoSetOwnerPersistentId(string persId, vector pos)
+	void DoSetOwnerPersistentId(string persId, vector pos)
 	{		
 		if(!m_mOwned.Contains(persId)) m_mOwned[persId] = new array<string>;
 		array<string> owner = m_mOwned[persId];
@@ -434,7 +434,7 @@ class OVT_OwnerManagerComponent: OVT_Component
 	//! Internal logic to set the renter using the player's persistent ID. Updates internal maps.
 	//! \param[in] persId The persistent ID of the player.
 	//! \param[in] pos The position of the entity.
-	protected void DoSetRenterPersistentId(string persId, vector pos)
+	void DoSetRenterPersistentId(string persId, vector pos)
 	{
 		if(!m_mRented.Contains(persId)) m_mRented[persId] = new array<string>;
 		array<string> renter = m_mRented[persId];
