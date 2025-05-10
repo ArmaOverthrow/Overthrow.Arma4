@@ -50,6 +50,7 @@ class OVT_PlayerManagerComponent: OVT_Component
 	//! \param owner The entity this component is attached to.
 	void Init(IEntity owner)
 	{
+		Print("[Overthrow] PlayerManager init");
 		m_mPersistentIDs = new map<int, string>;
 		m_mPlayerIDs = new map<string, int>;
 		m_mPlayers = new map<string, ref OVT_PlayerData>;
@@ -285,6 +286,11 @@ class OVT_PlayerManagerComponent: OVT_Component
 		{
 			m_mPlayerIDs.Clear();
 			m_mPlayerIDs = null;
+		}
+		if(m_mPlayers)
+		{
+			m_mPlayers.Clear();
+			m_mPlayers = null;
 		}
 	}
 }

@@ -10,7 +10,7 @@ class OVT_PlayerSaveData : EPF_ComponentSaveData
 	
 	override EPF_EReadResult ReadFrom(IEntity owner, GenericComponent component, EPF_ComponentSaveDataClass attributes)
 	{		
-		OVT_PlayerManagerComponent players = OVT_PlayerManagerComponent.Cast(component);
+		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
 		
 		m_mPlayers = new map<string, ref OVT_PlayerData>;
 		

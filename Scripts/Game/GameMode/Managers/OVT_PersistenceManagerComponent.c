@@ -20,8 +20,9 @@ class OVT_PersistenceManagerComponent : EPF_PersistenceManagerComponent
 	
 	void SaveGame()
 	{
-		if (m_pPersistenceManager)
+		if (m_pPersistenceManager){
 			m_pPersistenceManager.AutoSave();
+		}
 	}
 	
 	bool HasSaveGame()
@@ -47,5 +48,18 @@ class OVT_PersistenceManagerComponent : EPF_PersistenceManagerComponent
 	protected void DeleteFileCallback(string path, FileAttribute attributes)
 	{
 		FileIO.DeleteFile(path);
+	}
+	
+	override event void OnPostInit(IEntity owner)
+	{
+		super.OnPostInit(owner);
+		if (m_pPersistenceManager){
+			m_pPersistenceManager.OnAutoSaveCompleteEvent().Insert(OnAutoSaveComplete);
+		}		
+	}
+	
+	protected void OnAutoSaveComplete()
+	{
+		Print("[Overthrow] autosave completed");
 	}
 }
