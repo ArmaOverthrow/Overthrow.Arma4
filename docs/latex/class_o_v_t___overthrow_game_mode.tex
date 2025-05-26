@@ -1,0 +1,274 @@
+\doxysection{OVT\+\_\+\+Overthrow\+Game\+Mode Class Reference}
+\hypertarget{class_o_v_t___overthrow_game_mode}{}\label{class_o_v_t___overthrow_game_mode}\index{OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}}
+Inheritance diagram for OVT\+\_\+\+Overthrow\+Game\+Mode\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_o_v_t___overthrow_game_mode}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+bool \mbox{\hyperlink{class_o_v_t___overthrow_game_mode_aebdafc9615d71f149ad0a10ecf1c78cd}{Is\+Initialized}} ()
+\item 
+void \mbox{\hyperlink{class_o_v_t___overthrow_game_mode_a684a39a5fe0d916fdd350d909c36e0d7}{Do\+Start\+New\+Game}} ()
+\item 
+OVT\+\_\+\+Persistence\+Manager\+Component \mbox{\hyperlink{class_o_v_t___overthrow_game_mode_a2fb53b0c68c4c23cbf4cc5b40466e649}{Get\+Persistence}} ()
+\item 
+void \mbox{\hyperlink{class_o_v_t___overthrow_game_mode_a416f7d0877d608e4e49bba17980a1fc4}{Do\+Start\+Game}} ()
+\item 
+void \mbox{\hyperlink{class_o_v_t___overthrow_game_mode_a942b26d53299dc61cc0d3ad35d31a31a}{Do\+Post\+Load}} ()
+\item 
+override void \mbox{\hyperlink{class_o_v_t___overthrow_game_mode_a66f9fd061c94057b62b9baedcd2bb192}{EOn\+Frame}} (IEntity owner, float time\+Slice)
+\item 
+void \mbox{\hyperlink{class_o_v_t___overthrow_game_mode_ab3f212751c4abb3c8a6dca1b242ead23}{Pre\+Shutdown\+Persist}} ()
+\item 
+vector \mbox{\hyperlink{class_o_v_t___overthrow_game_mode_ae34ecdb2a8d2bf084bf42a197f3627d8}{Get\+Random\+Hardcoded\+Bus\+Stop}} ()
+\item 
+vector spawn\+Location void \mbox{\hyperlink{class_o_v_t___overthrow_game_mode_adff038c73d43cf59433e3e938858b85c}{Spawn\+Player\+At\+Bus\+Stop}} (int player\+Id)
+\item 
+override void \mbox{\hyperlink{class_o_v_t___overthrow_game_mode_a79ff842a104f091337adb84d968010aa}{On\+Player\+Role\+Change}} (int player\+Id, EPlayer\+Role role\+Flags)
+\item 
+override void \mbox{\hyperlink{class_o_v_t___overthrow_game_mode_a2036aba9be6ed63e0290958d39e098d8}{On\+Player\+Disconnected}} (int player\+Id, Kick\+Cause\+Code cause, int timeout)
+\item 
+void \mbox{\hyperlink{class_o_v_t___overthrow_game_mode_a942607a81106c94406320877d8ebe186}{Prepare\+Player}} (int player\+Id, string persistent\+Id)
+\item 
+override void \mbox{\hyperlink{class_o_v_t___overthrow_game_mode_a70c41cbbfe32a58c1be40fd5911a92a4}{On\+Player\+Spawned}} (int player\+Id, IEntity controlled\+Entity)
+\item 
+void \mbox{\hyperlink{class_o_v_t___overthrow_game_mode_aec047612fd6ba1992e217c360d366ae0}{Set\+Random\+Camera\+Position}} ()
+\item 
+override void \mbox{\hyperlink{class_o_v_t___overthrow_game_mode_a2cdb1fa4070f8d79e11968b7a179d95b}{EOn\+Init}} (IEntity owner)
+\begin{DoxyCompactList}\small\item\em Entity\+Event.\+INIT. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{class_o_v_t___overthrow_game_mode_a29245b86b49beebb914120b831b0195c}{On\+Player\+Spawn\+Client}} (IEntity entity)
+\item 
+override event void \mbox{\hyperlink{class_o_v_t___overthrow_game_mode_aab1b8e9ee7fcfd3df0659a4e59f9066b}{On\+World\+Post\+Process}} (World world)
+\item 
+void \mbox{\hyperlink{class_o_v_t___overthrow_game_mode_a101dec702757075bb7c927dacdd5e940}{On\+Player\+Spawned\+Local}} (string player\+Id)
+\item 
+void \mbox{\hyperlink{class_o_v_t___overthrow_game_mode_a3d9fed2b801dee715599bb6fe86cdd43}{OVT\+\_\+\+Overthrow\+Game\+Mode}} (IEntity\+Source src, IEntity parent)
+\item 
+\Hypertarget{class_o_v_t___overthrow_game_mode_a63eb4409bb97a3e00a7f4eeabc78bb6d}\label{class_o_v_t___overthrow_game_mode_a63eb4409bb97a3e00a7f4eeabc78bb6d} 
+void {\bfseries \texorpdfstring{$\sim$}{\string~}\+OVT\+\_\+\+Overthrow\+Game\+Mode} ()
+\begin{DoxyCompactList}\small\item\em Destructor for \doxylink{class_o_v_t___overthrow_game_mode}{OVT\+\_\+\+Overthrow\+Game\+Mode}. Clears internal collections. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_o_v_t___overthrow_game_mode_aa106bb016535aa79d1a6e8114b32745c}\label{class_o_v_t___overthrow_game_mode_aa106bb016535aa79d1a6e8114b32745c} 
+OVT\+\_\+\+Overthrow\+Config\+Component {\bfseries m\+\_\+\+Config}
+\begin{DoxyCompactList}\small\item\em Reference to the Overthrow configuration component. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___overthrow_game_mode_a5e906a33ccd488fed781fbca0dade17d}\label{class_o_v_t___overthrow_game_mode_a5e906a33ccd488fed781fbca0dade17d} 
+\mbox{\hyperlink{class_o_v_t___town_manager_component}{OVT\+\_\+\+Town\+Manager\+Component}} {\bfseries m\+\_\+\+Town\+Manager}
+\begin{DoxyCompactList}\small\item\em Reference to the town manager component. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___overthrow_game_mode_a924f03d537690cb9c2b086b984f15592}\label{class_o_v_t___overthrow_game_mode_a924f03d537690cb9c2b086b984f15592} 
+\mbox{\hyperlink{class_o_v_t___occupying_faction_manager}{OVT\+\_\+\+Occupying\+Faction\+Manager}} {\bfseries m\+\_\+\+Occupying\+Faction\+Manager}
+\begin{DoxyCompactList}\small\item\em Reference to the occupying faction manager component. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___overthrow_game_mode_af7bf155911fa1b6f16d725f627b92de1}\label{class_o_v_t___overthrow_game_mode_af7bf155911fa1b6f16d725f627b92de1} 
+\mbox{\hyperlink{class_o_v_t___resistance_faction_manager}{OVT\+\_\+\+Resistance\+Faction\+Manager}} {\bfseries m\+\_\+\+Resistance\+Faction\+Manager}
+\begin{DoxyCompactList}\small\item\em Reference to the resistance faction manager component. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___overthrow_game_mode_a4d1a23de534bcb9328604f8330a88b11}\label{class_o_v_t___overthrow_game_mode_a4d1a23de534bcb9328604f8330a88b11} 
+OVT\+\_\+\+Real\+Estate\+Manager\+Component {\bfseries m\+\_\+\+Real\+Estate}
+\begin{DoxyCompactList}\small\item\em Reference to the real estate manager component. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___overthrow_game_mode_a0f5267198eaff4382934f992b01def93}\label{class_o_v_t___overthrow_game_mode_a0f5267198eaff4382934f992b01def93} 
+\mbox{\hyperlink{class_o_v_t___vehicle_manager_component}{OVT\+\_\+\+Vehicle\+Manager\+Component}} {\bfseries m\+\_\+\+Vehicle\+Manager}
+\begin{DoxyCompactList}\small\item\em Reference to the vehicle manager component. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___overthrow_game_mode_a58cdd1d78471391c09aa9731c0c9299c}\label{class_o_v_t___overthrow_game_mode_a58cdd1d78471391c09aa9731c0c9299c} 
+\mbox{\hyperlink{class_o_v_t___economy_manager_component}{OVT\+\_\+\+Economy\+Manager\+Component}} {\bfseries m\+\_\+\+Economy\+Manager}
+\begin{DoxyCompactList}\small\item\em Reference to the economy manager component. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___overthrow_game_mode_ad74ec9b71d2eb2985c09010853e0dc15}\label{class_o_v_t___overthrow_game_mode_ad74ec9b71d2eb2985c09010853e0dc15} 
+\mbox{\hyperlink{class_o_v_t___player_manager_component}{OVT\+\_\+\+Player\+Manager\+Component}} {\bfseries m\+\_\+\+Player\+Manager}
+\begin{DoxyCompactList}\small\item\em Reference to the player manager component. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___overthrow_game_mode_ae4c733aa8294e447748c047526d7e1d9}\label{class_o_v_t___overthrow_game_mode_ae4c733aa8294e447748c047526d7e1d9} 
+OVT\+\_\+\+Job\+Manager\+Component {\bfseries m\+\_\+\+Job\+Manager}
+\begin{DoxyCompactList}\small\item\em Reference to the job manager component. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___overthrow_game_mode_a772b49e51401b80d6f62472182f45953}\label{class_o_v_t___overthrow_game_mode_a772b49e51401b80d6f62472182f45953} 
+\mbox{\hyperlink{class_o_v_t___skill_manager_component}{OVT\+\_\+\+Skill\+Manager\+Component}} {\bfseries m\+\_\+\+Skill\+Manager}
+\begin{DoxyCompactList}\small\item\em Reference to the skill manager component. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___overthrow_game_mode_acf82518e6dc95773de3d438f3a58adf4}\label{class_o_v_t___overthrow_game_mode_acf82518e6dc95773de3d438f3a58adf4} 
+OVT\+\_\+\+Persistence\+Manager\+Component {\bfseries m\+\_\+\+Persistence}
+\begin{DoxyCompactList}\small\item\em Reference to the persistence manager component. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___overthrow_game_mode_a5d65fdbae7496407a8728712cd26bda4}\label{class_o_v_t___overthrow_game_mode_a5d65fdbae7496407a8728712cd26bda4} 
+Camera\+Base {\bfseries m\+\_\+p\+Camera}
+\begin{DoxyCompactList}\small\item\em Reference to the start camera entity. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___overthrow_game_mode_a5616e1e56d8959bf57f80856c4d4a8d8}\label{class_o_v_t___overthrow_game_mode_a5616e1e56d8959bf57f80856c4d4a8d8} 
+ref set$<$ string $>$ {\bfseries m\+\_\+a\+Initialized\+Players}
+\begin{DoxyCompactList}\small\item\em Set of persistent IDs for players who have fully initialized. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___overthrow_game_mode_a68e2fcb94a171fcf54a06a7fc247bb50}\label{class_o_v_t___overthrow_game_mode_a68e2fcb94a171fcf54a06a7fc247bb50} 
+ref set$<$ string $>$ {\bfseries m\+\_\+a\+Hinted\+Players}
+\begin{DoxyCompactList}\small\item\em Set of persistent IDs for players who have received the intro hint. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___overthrow_game_mode_a952eb0530f7d3f6b71b869e835d701b5}\label{class_o_v_t___overthrow_game_mode_a952eb0530f7d3f6b71b869e835d701b5} 
+ref map$<$ string, Entity\+ID $>$ {\bfseries m\+\_\+m\+Player\+Groups}
+\begin{DoxyCompactList}\small\item\em Map of persistent player IDs to their group entity IDs. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___overthrow_game_mode_a1d3a4315673c352496d528aa048a92bb}\label{class_o_v_t___overthrow_game_mode_a1d3a4315673c352496d528aa048a92bb} 
+bool {\bfseries m\+\_\+b\+Game\+Initialized} = false
+\begin{DoxyCompactList}\small\item\em Flag indicating if the core game components and logic have been initialized. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___overthrow_game_mode_ad53db371765c51f86e813488741003ee}\label{class_o_v_t___overthrow_game_mode_ad53db371765c51f86e813488741003ee} 
+bool {\bfseries m\+\_\+b\+Camera\+Set} = false
+\begin{DoxyCompactList}\small\item\em Flag indicating if the initial start camera has been positioned. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___overthrow_game_mode_a7bc86044e2985441e044e986235b2cb9}\label{class_o_v_t___overthrow_game_mode_a7bc86044e2985441e044e986235b2cb9} 
+bool {\bfseries m\+\_\+b\+Game\+Started} = false
+\begin{DoxyCompactList}\small\item\em Flag indicating if the game has officially started (after potential setup phases). \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___overthrow_game_mode_a22a4b224e042472816f1e3bf5ca89cfc}\label{class_o_v_t___overthrow_game_mode_a22a4b224e042472816f1e3bf5ca89cfc} 
+bool {\bfseries m\+\_\+b\+Request\+Start\+On\+Post\+Process} = false
+\begin{DoxyCompactList}\small\item\em Flag to trigger game start during the On\+World\+Post\+Process phase, typically used after loading a save. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___overthrow_game_mode_af844af8af7787f3485378648425154ea}\label{class_o_v_t___overthrow_game_mode_af844af8af7787f3485378648425154ea} 
+bool {\bfseries m\+\_\+b\+Has\+Opened\+Menu} = false
+\begin{DoxyCompactList}\small\item\em Tracks if the player has opened the Overthrow menu at least once. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___overthrow_game_mode_a8b81588a078e23736ec511fad62a1c85}\label{class_o_v_t___overthrow_game_mode_a8b81588a078e23736ec511fad62a1c85} 
+ref array$<$ IEntity $>$ {\bfseries m\+\_\+\+Bus\+Stops} = \{\}
+\begin{DoxyCompactList}\small\item\em Array to store references to bus stop entities (currently unused). \end{DoxyCompactList}\item 
+ref array$<$ vector $>$ \mbox{\hyperlink{class_o_v_t___overthrow_game_mode_a83fe3102a9e1ec08720e28153fb05230}{m\+\_\+\+Hardcoded\+Bus\+Stop\+Locations}}
+\begin{DoxyCompactList}\small\item\em Predefined locations for potential bus stop spawns. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Main game mode logic for Overthrow. Handles game initialization, player management, component lifecycle, and core game flow. 
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{class_o_v_t___overthrow_game_mode_a3d9fed2b801dee715599bb6fe86cdd43}\index{OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}!OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}}
+\index{OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}!OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}}
+\doxysubsubsection{\texorpdfstring{OVT\_OverthrowGameMode()}{OVT\_OverthrowGameMode()}}
+{\footnotesize\ttfamily \label{class_o_v_t___overthrow_game_mode_a3d9fed2b801dee715599bb6fe86cdd43} 
+void OVT\+\_\+\+Overthrow\+Game\+Mode\+::\+OVT\+\_\+\+Overthrow\+Game\+Mode (\begin{DoxyParamCaption}\item[{IEntity\+Source}]{src}{, }\item[{IEntity}]{parent}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Constructor for \doxylink{class_o_v_t___overthrow_game_mode}{OVT\+\_\+\+Overthrow\+Game\+Mode}. Initializes player group map. \textbackslash{}param\mbox{[}in\mbox{]} src Entity source information. \textbackslash{}param\mbox{[}in\mbox{]} parent Parent entity. 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_o_v_t___overthrow_game_mode_a942b26d53299dc61cc0d3ad35d31a31a}\index{OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}!DoPostLoad@{DoPostLoad}}
+\index{DoPostLoad@{DoPostLoad}!OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}}
+\doxysubsubsection{\texorpdfstring{DoPostLoad()}{DoPostLoad()}}
+{\footnotesize\ttfamily \label{class_o_v_t___overthrow_game_mode_a942b26d53299dc61cc0d3ad35d31a31a} 
+void OVT\+\_\+\+Overthrow\+Game\+Mode\+::\+Do\+Post\+Load (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Executes post-\/load logic after persistence data has been loaded. Primarily handles real estate post-\/load procedures. \Hypertarget{class_o_v_t___overthrow_game_mode_a416f7d0877d608e4e49bba17980a1fc4}\index{OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}!DoStartGame@{DoStartGame}}
+\index{DoStartGame@{DoStartGame}!OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}}
+\doxysubsubsection{\texorpdfstring{DoStartGame()}{DoStartGame()}}
+{\footnotesize\ttfamily \label{class_o_v_t___overthrow_game_mode_a416f7d0877d608e4e49bba17980a1fc4} 
+void OVT\+\_\+\+Overthrow\+Game\+Mode\+::\+Do\+Start\+Game (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Finalizes game startup, initializes various managers, and sets difficulty. Closes the start game UI and transitions into the active game state. \Hypertarget{class_o_v_t___overthrow_game_mode_a684a39a5fe0d916fdd350d909c36e0d7}\index{OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}!DoStartNewGame@{DoStartNewGame}}
+\index{DoStartNewGame@{DoStartNewGame}!OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}}
+\doxysubsubsection{\texorpdfstring{DoStartNewGame()}{DoStartNewGame()}}
+{\footnotesize\ttfamily \label{class_o_v_t___overthrow_game_mode_a684a39a5fe0d916fdd350d909c36e0d7} 
+void OVT\+\_\+\+Overthrow\+Game\+Mode\+::\+Do\+Start\+New\+Game (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Initializes settings and components for a new game session. Reads configuration for factions and sets initial ownership. \Hypertarget{class_o_v_t___overthrow_game_mode_a66f9fd061c94057b62b9baedcd2bb192}\index{OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}!EOnFrame@{EOnFrame}}
+\index{EOnFrame@{EOnFrame}!OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}}
+\doxysubsubsection{\texorpdfstring{EOnFrame()}{EOnFrame()}}
+{\footnotesize\ttfamily \label{class_o_v_t___overthrow_game_mode_a66f9fd061c94057b62b9baedcd2bb192} 
+override void OVT\+\_\+\+Overthrow\+Game\+Mode\+::\+EOn\+Frame (\begin{DoxyParamCaption}\item[{IEntity}]{owner}{, }\item[{float}]{time\+Slice}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Called every frame. Handles debug commands and manages the start camera lifecycle. \textbackslash{}param\mbox{[}in\mbox{]} owner The entity owning this component (the Game\+Mode entity). \textbackslash{}param\mbox{[}in\mbox{]} time\+Slice The time elapsed since the last frame. \Hypertarget{class_o_v_t___overthrow_game_mode_a2cdb1fa4070f8d79e11968b7a179d95b}\index{OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}!EOnInit@{EOnInit}}
+\index{EOnInit@{EOnInit}!OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}}
+\doxysubsubsection{\texorpdfstring{EOnInit()}{EOnInit()}}
+{\footnotesize\ttfamily \label{class_o_v_t___overthrow_game_mode_a2cdb1fa4070f8d79e11968b7a179d95b} 
+override void OVT\+\_\+\+Overthrow\+Game\+Mode\+::\+EOn\+Init (\begin{DoxyParamCaption}\item[{IEntity}]{owner}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+
+
+Entity\+Event.\+INIT. 
+
+Called when the entity is initialized. Initializes managers, UI contexts, persistence, and diag menus. Determines whether to start a new game, load a save, or show the start menu. \textbackslash{}param\mbox{[}in\mbox{]} owner The entity owning this component (the Game\+Mode entity). \Hypertarget{class_o_v_t___overthrow_game_mode_a2fb53b0c68c4c23cbf4cc5b40466e649}\index{OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}!GetPersistence@{GetPersistence}}
+\index{GetPersistence@{GetPersistence}!OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}}
+\doxysubsubsection{\texorpdfstring{GetPersistence()}{GetPersistence()}}
+{\footnotesize\ttfamily \label{class_o_v_t___overthrow_game_mode_a2fb53b0c68c4c23cbf4cc5b40466e649} 
+OVT\+\_\+\+Persistence\+Manager\+Component OVT\+\_\+\+Overthrow\+Game\+Mode\+::\+Get\+Persistence (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Retrieves the persistence manager component instance. \textbackslash{}return The persistence manager component. \Hypertarget{class_o_v_t___overthrow_game_mode_ae34ecdb2a8d2bf084bf42a197f3627d8}\index{OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}!GetRandomHardcodedBusStop@{GetRandomHardcodedBusStop}}
+\index{GetRandomHardcodedBusStop@{GetRandomHardcodedBusStop}!OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}}
+\doxysubsubsection{\texorpdfstring{GetRandomHardcodedBusStop()}{GetRandomHardcodedBusStop()}}
+{\footnotesize\ttfamily \label{class_o_v_t___overthrow_game_mode_ae34ecdb2a8d2bf084bf42a197f3627d8} 
+vector OVT\+\_\+\+Overthrow\+Game\+Mode\+::\+Get\+Random\+Hardcoded\+Bus\+Stop (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Selects a random bus stop location from the hardcoded list. \textbackslash{}return A random vector position from m\+\_\+\+Hardcoded\+Bus\+Stop\+Locations, or vector.\+Zero if the list is empty. \Hypertarget{class_o_v_t___overthrow_game_mode_aebdafc9615d71f149ad0a10ecf1c78cd}\index{OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}!IsInitialized@{IsInitialized}}
+\index{IsInitialized@{IsInitialized}!OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}}
+\doxysubsubsection{\texorpdfstring{IsInitialized()}{IsInitialized()}}
+{\footnotesize\ttfamily \label{class_o_v_t___overthrow_game_mode_aebdafc9615d71f149ad0a10ecf1c78cd} 
+bool OVT\+\_\+\+Overthrow\+Game\+Mode\+::\+Is\+Initialized (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Checks if the game mode has completed its initialization process. \textbackslash{}return True if the game is initialized, false otherwise. \Hypertarget{class_o_v_t___overthrow_game_mode_a2036aba9be6ed63e0290958d39e098d8}\index{OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}!OnPlayerDisconnected@{OnPlayerDisconnected}}
+\index{OnPlayerDisconnected@{OnPlayerDisconnected}!OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}}
+\doxysubsubsection{\texorpdfstring{OnPlayerDisconnected()}{OnPlayerDisconnected()}}
+{\footnotesize\ttfamily \label{class_o_v_t___overthrow_game_mode_a2036aba9be6ed63e0290958d39e098d8} 
+override void OVT\+\_\+\+Overthrow\+Game\+Mode\+::\+On\+Player\+Disconnected (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{, }\item[{Kick\+Cause\+Code}]{cause}{, }\item[{int}]{timeout}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Handles player disconnection. Pauses persistence tracking and removes the player from the initialized list. \textbackslash{}param\mbox{[}in\mbox{]} player\+Id The ID of the disconnecting player. \textbackslash{}param\mbox{[}in\mbox{]} cause The reason for disconnection. \textbackslash{}param\mbox{[}in\mbox{]} timeout The disconnection timeout duration. \Hypertarget{class_o_v_t___overthrow_game_mode_a79ff842a104f091337adb84d968010aa}\index{OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}!OnPlayerRoleChange@{OnPlayerRoleChange}}
+\index{OnPlayerRoleChange@{OnPlayerRoleChange}!OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}}
+\doxysubsubsection{\texorpdfstring{OnPlayerRoleChange()}{OnPlayerRoleChange()}}
+{\footnotesize\ttfamily \label{class_o_v_t___overthrow_game_mode_a79ff842a104f091337adb84d968010aa} 
+override void OVT\+\_\+\+Overthrow\+Game\+Mode\+::\+On\+Player\+Role\+Change (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{, }\item[{EPlayer\+Role}]{role\+Flags}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Handles player role changes. Grants officer status if the player becomes an admin. \textbackslash{}param\mbox{[}in\mbox{]} player\+Id The ID of the player whose role changed. \textbackslash{}param\mbox{[}in\mbox{]} role\+Flags The new EPlayer\+Role flags assigned to the player. \Hypertarget{class_o_v_t___overthrow_game_mode_a29245b86b49beebb914120b831b0195c}\index{OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}!OnPlayerSpawnClient@{OnPlayerSpawnClient}}
+\index{OnPlayerSpawnClient@{OnPlayerSpawnClient}!OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}}
+\doxysubsubsection{\texorpdfstring{OnPlayerSpawnClient()}{OnPlayerSpawnClient()}}
+{\footnotesize\ttfamily \label{class_o_v_t___overthrow_game_mode_a29245b86b49beebb914120b831b0195c} 
+void OVT\+\_\+\+Overthrow\+Game\+Mode\+::\+On\+Player\+Spawn\+Client (\begin{DoxyParamCaption}\item[{IEntity}]{entity}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Client-\/side callback when a player spawns (currently empty). \textbackslash{}param\mbox{[}in\mbox{]} entity The spawned player entity. \Hypertarget{class_o_v_t___overthrow_game_mode_a70c41cbbfe32a58c1be40fd5911a92a4}\index{OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}!OnPlayerSpawned@{OnPlayerSpawned}}
+\index{OnPlayerSpawned@{OnPlayerSpawned}!OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}}
+\doxysubsubsection{\texorpdfstring{OnPlayerSpawned()}{OnPlayerSpawned()}}
+{\footnotesize\ttfamily \label{class_o_v_t___overthrow_game_mode_a70c41cbbfe32a58c1be40fd5911a92a4} 
+override void OVT\+\_\+\+Overthrow\+Game\+Mode\+::\+On\+Player\+Spawned (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{, }\item[{IEntity}]{controlled\+Entity}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Called when a player character entity is spawned into the world. Resets the player\textquotesingle{}s wanted level. \textbackslash{}param\mbox{[}in\mbox{]} player\+Id The ID of the player whose character spawned. \textbackslash{}param\mbox{[}in\mbox{]} controlled\+Entity The newly spawned character entity. \Hypertarget{class_o_v_t___overthrow_game_mode_a101dec702757075bb7c927dacdd5e940}\index{OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}!OnPlayerSpawnedLocal@{OnPlayerSpawnedLocal}}
+\index{OnPlayerSpawnedLocal@{OnPlayerSpawnedLocal}!OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}}
+\doxysubsubsection{\texorpdfstring{OnPlayerSpawnedLocal()}{OnPlayerSpawnedLocal()}}
+{\footnotesize\ttfamily \label{class_o_v_t___overthrow_game_mode_a101dec702757075bb7c927dacdd5e940} 
+void OVT\+\_\+\+Overthrow\+Game\+Mode\+::\+On\+Player\+Spawned\+Local (\begin{DoxyParamCaption}\item[{string}]{player\+Id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Called locally when the local player spawns. Shows an introductory hint if not already shown. \textbackslash{}param\mbox{[}in\mbox{]} player\+Id The persistent ID of the local player. \Hypertarget{class_o_v_t___overthrow_game_mode_aab1b8e9ee7fcfd3df0659a4e59f9066b}\index{OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}!OnWorldPostProcess@{OnWorldPostProcess}}
+\index{OnWorldPostProcess@{OnWorldPostProcess}!OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}}
+\doxysubsubsection{\texorpdfstring{OnWorldPostProcess()}{OnWorldPostProcess()}}
+{\footnotesize\ttfamily \label{class_o_v_t___overthrow_game_mode_aab1b8e9ee7fcfd3df0659a4e59f9066b} 
+override event void OVT\+\_\+\+Overthrow\+Game\+Mode\+::\+On\+World\+Post\+Process (\begin{DoxyParamCaption}\item[{World}]{world}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Called after the world finishes its post-\/processing phase. Schedules post-\/load logic and potential game start calls. \textbackslash{}param\mbox{[}in\mbox{]} world The game world. \Hypertarget{class_o_v_t___overthrow_game_mode_a942607a81106c94406320877d8ebe186}\index{OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}!PreparePlayer@{PreparePlayer}}
+\index{PreparePlayer@{PreparePlayer}!OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}}
+\doxysubsubsection{\texorpdfstring{PreparePlayer()}{PreparePlayer()}}
+{\footnotesize\ttfamily \label{class_o_v_t___overthrow_game_mode_a942607a81106c94406320877d8ebe186} 
+void OVT\+\_\+\+Overthrow\+Game\+Mode\+::\+Prepare\+Player (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{, }\item[{string}]{persistent\+Id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Prepares a player for entry into the game. Sets up player data, assigns officer status if needed, finds or assigns a home (house or bus stop), spawns a starting car if applicable, and manages initial state. \textbackslash{}param\mbox{[}in\mbox{]} player\+Id The numeric ID of the player. \textbackslash{}param\mbox{[}in\mbox{]} persistent\+Id The persistent string ID of the player. \Hypertarget{class_o_v_t___overthrow_game_mode_ab3f212751c4abb3c8a6dca1b242ead23}\index{OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}!PreShutdownPersist@{PreShutdownPersist}}
+\index{PreShutdownPersist@{PreShutdownPersist}!OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}}
+\doxysubsubsection{\texorpdfstring{PreShutdownPersist()}{PreShutdownPersist()}}
+{\footnotesize\ttfamily \label{class_o_v_t___overthrow_game_mode_ab3f212751c4abb3c8a6dca1b242ead23} 
+void OVT\+\_\+\+Overthrow\+Game\+Mode\+::\+Pre\+Shutdown\+Persist (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Persists necessary data before the game mode shuts down. (Currently empty) \Hypertarget{class_o_v_t___overthrow_game_mode_aec047612fd6ba1992e217c360d366ae0}\index{OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}!SetRandomCameraPosition@{SetRandomCameraPosition}}
+\index{SetRandomCameraPosition@{SetRandomCameraPosition}!OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}}
+\doxysubsubsection{\texorpdfstring{SetRandomCameraPosition()}{SetRandomCameraPosition()}}
+{\footnotesize\ttfamily \label{class_o_v_t___overthrow_game_mode_aec047612fd6ba1992e217c360d366ae0} 
+void OVT\+\_\+\+Overthrow\+Game\+Mode\+::\+Set\+Random\+Camera\+Position (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Sets the main menu camera to a random predefined position. Only executes if the camera hasn\textquotesingle{}t been set already. \Hypertarget{class_o_v_t___overthrow_game_mode_adff038c73d43cf59433e3e938858b85c}\index{OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}!SpawnPlayerAtBusStop@{SpawnPlayerAtBusStop}}
+\index{SpawnPlayerAtBusStop@{SpawnPlayerAtBusStop}!OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}}
+\doxysubsubsection{\texorpdfstring{SpawnPlayerAtBusStop()}{SpawnPlayerAtBusStop()}}
+{\footnotesize\ttfamily \label{class_o_v_t___overthrow_game_mode_adff038c73d43cf59433e3e938858b85c} 
+vector spawn\+Location void OVT\+\_\+\+Overthrow\+Game\+Mode\+::\+Spawn\+Player\+At\+Bus\+Stop (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Spawns a player at a randomly selected hardcoded bus stop location. If no hardcoded locations exist, attempts to spawn at the first available town center. \textbackslash{}param\mbox{[}in\mbox{]} player\+Id The ID of the player to spawn. 
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{class_o_v_t___overthrow_game_mode_a83fe3102a9e1ec08720e28153fb05230}\index{OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}!m\_HardcodedBusStopLocations@{m\_HardcodedBusStopLocations}}
+\index{m\_HardcodedBusStopLocations@{m\_HardcodedBusStopLocations}!OVT\_OverthrowGameMode@{OVT\_OverthrowGameMode}}
+\doxysubsubsection{\texorpdfstring{m\_HardcodedBusStopLocations}{m\_HardcodedBusStopLocations}}
+{\footnotesize\ttfamily \label{class_o_v_t___overthrow_game_mode_a83fe3102a9e1ec08720e28153fb05230} 
+ref array$<$vector$>$ OVT\+\_\+\+Overthrow\+Game\+Mode\+::m\+\_\+\+Hardcoded\+Bus\+Stop\+Locations\hspace{0.3cm}{\ttfamily [protected]}}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}4413.912\ 12.042\ 10687.312"{}},\ }
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}4824.945\ 169.693\ 6968.863"{}},\ }
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}9706.01\ 12.132\ 1565.451"{}}}
+\DoxyCodeLine{\ \ \ \ \}}
+
+\end{DoxyCode}
+
+
+Predefined locations for potential bus stop spawns. 
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+C\+:/\+Users/austi/\+Documents/\+Git\+Hub/\+Overthrow.\+Arma4/\+Scripts/\+Game/\+Game\+Mode/OVT\+\_\+\+Overthrow\+Game\+Mode.\+c\end{DoxyCompactItemize}

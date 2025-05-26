@@ -1,0 +1,1032 @@
+\doxysection{OVT\+\_\+\+Town\+Manager\+Component Class Reference}
+\hypertarget{class_o_v_t___town_manager_component}{}\label{class_o_v_t___town_manager_component}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+Inheritance diagram for OVT\+\_\+\+Town\+Manager\+Component\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_o_v_t___town_manager_component}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_o_v_t___town_manager_component_a1379e4f35a3ae2256819efdc4f275767}\label{class_o_v_t___town_manager_component_a1379e4f35a3ae2256819efdc4f275767} 
+void {\bfseries OVT\+\_\+\+Town\+Manager\+Component} (IEntity\+Component\+Source src, IEntity ent, IEntity parent)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_acca3c3f1e1bc073e4423a20fe26954dd}{Init}} (IEntity owner)
+\item 
+\Hypertarget{class_o_v_t___town_manager_component_a2358472922af5379de8b6ac82e959a67}\label{class_o_v_t___town_manager_component_a2358472922af5379de8b6ac82e959a67} 
+void {\bfseries Post\+Game\+Start} ()
+\begin{DoxyCompactList}\small\item\em Called after the game has started, schedules recurring updates and spawns controllers. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_ab24a08ddb42fa5b5f4a59144690080f7}{Stream\+Town\+Modifiers}} (int player\+Id)
+\item 
+OVT\+\_\+\+Town\+Data \mbox{\hyperlink{class_o_v_t___town_manager_component_afe01d1b6c58c2f40dc75e316484d2754}{Get\+Random\+Town}} ()
+\item 
+\mbox{\hyperlink{class_o_v_t___town_modifier_system}{OVT\+\_\+\+Town\+Modifier\+System}} \mbox{\hyperlink{class_o_v_t___town_manager_component_a0658e3d59afad31ee3b214ec449748bc}{Get\+Modifier\+System}} (typename type\+Name)
+\item 
+\Hypertarget{class_o_v_t___town_manager_component_a2c3207e74265efaf006e646b538680fd}\label{class_o_v_t___town_manager_component_a2c3207e74265efaf006e646b538680fd} 
+void {\bfseries Check\+Update\+Modifiers} ()
+\begin{DoxyCompactList}\small\item\em Periodically checks and updates town modifiers (stability, support) and related effects (towers, bases). \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_aee43ddf13ade05d45272f213985a5b89}{Get\+Total\+Population\+Stats}} (out int population, out int supporters)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_a124589e068a65f1a43bebbf8bf8e0dcb}{Remove\+Stability\+Modifier}} (int town\+Id, int index)
+\item 
+int \mbox{\hyperlink{class_o_v_t___town_manager_component_abb2566069bd9eae1cf89437140369e62}{Get\+Town\+ID}} (OVT\+\_\+\+Town\+Data town)
+\item 
+int \mbox{\hyperlink{class_o_v_t___town_manager_component_aabb6ba792a67c84e45e0005915e7ce9a}{Get\+Modifier\+Index}} (array$<$ ref \mbox{\hyperlink{class_o_v_t___town_modifier_data}{OVT\+\_\+\+Town\+Modifier\+Data}} $>$ modifiers, int id)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_a58048cb29b2104dadf659eb7e63f845b}{Try\+Add\+Stability\+Modifier\+By\+Name}} (int town\+Id, string name)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_aa447a2bfbcdf31b212d6b6b03874f104}{Try\+Add\+Support\+Modifier\+By\+Name}} (int town\+Id, string name)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_a5ec7f5fde5995f0426649637737c7867}{Remove\+Support\+Modifier\+By\+Name}} (int town\+Id, string name)
+\item 
+bool \mbox{\hyperlink{class_o_v_t___town_manager_component_a79f7d6c6fc0d359d289ea67dc4c6acde}{Try\+Add\+Stability\+Modifier}} (int town\+Id, int index)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_a11b8372e58de7ccd47c6b0f3b430d8d5}{Add\+Stability\+Modifier}} (int town\+Id, int index)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_ae50a3f1e5ecacde614d346be9e7fd0ec}{Remove\+Support\+Modifier}} (int town\+Id, int index)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_a0ce06ded45daaecd050b7e07749220a8}{Timeout\+Support\+Modifier}} (int town\+Id, int index)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_a5ade73f2b1195b2376a1854301f9e972}{Timeout\+Stability\+Modifier}} (int town\+Id, int index)
+\item 
+bool \mbox{\hyperlink{class_o_v_t___town_manager_component_a167b3c39e018ce8144d42b0442cfff42}{Try\+Add\+Support\+Modifier}} (int town\+Id, int index)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_a6b54046f9ce25c85d12c58fbd5efee1d}{Add\+Support\+Modifier}} (int town\+Id, int index)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_a202be80ef7150f5e7c917101a4a1d551}{Recalculate\+Stability}} (int town\+Id)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_a94af378c60f5996f67b5519c88f99cdd}{Recalculate\+Support}} (int town\+Id)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_a2380033abd4c7b3c61c5c01b316f6e5a}{Reset\+Support}} (OVT\+\_\+\+Town\+Data town)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_a45bf4d4e83e59f266f4eaf0a0ea3a0d9}{Change\+Town\+Control}} (OVT\+\_\+\+Town\+Data town, int faction)
+\item 
+IEntity \mbox{\hyperlink{class_o_v_t___town_manager_component_a8c7dcbaa3ad2c0cd3e1144aece74e140}{Get\+Random\+House}} ()
+\item 
+IEntity \mbox{\hyperlink{class_o_v_t___town_manager_component_af02829eb4aace12f2681279f4469bd6c}{Get\+Nearest\+House}} (vector pos)
+\item 
+IEntity \mbox{\hyperlink{class_o_v_t___town_manager_component_a82c98360ef9dfb2e2dc1b1f7f259861a}{Get\+Random\+House\+In\+Town}} (OVT\+\_\+\+Town\+Data town)
+\item 
+OVT\+\_\+\+Town\+Data \mbox{\hyperlink{class_o_v_t___town_manager_component_a7762a1727e53780d990edc1022b9cfff}{Get\+Nearest\+Town}} (vector pos)
+\item 
+float \mbox{\hyperlink{class_o_v_t___town_manager_component_a071b76da5bc5733a14e7f36ede20742b}{Get\+Town\+Range}} (OVT\+\_\+\+Town\+Data town)
+\item 
+OVT\+\_\+\+Town\+Data \mbox{\hyperlink{class_o_v_t___town_manager_component_a6b6e34e780f10dc7095f0e47b685806e}{Get\+Nearest\+Town\+In\+Range}} (vector pos)
+\item 
+SCR\+\_\+\+Map\+Descriptor\+Component \mbox{\hyperlink{class_o_v_t___town_manager_component_a99e26ca19e3e7695427c2b8a261c2c22}{Get\+Nearest\+Town\+Marker}} (vector pos)
+\item 
+OVT\+\_\+\+Town\+Data \mbox{\hyperlink{class_o_v_t___town_manager_component_a97f1cf4bd21175671d4ce05590acea82}{Get\+Town}} (int town\+Id)
+\item 
+string \mbox{\hyperlink{class_o_v_t___town_manager_component_a81b0f3e0b7fe9ee332b2b12e28f03335}{Get\+Town\+Name}} (int town\+Id)
+\item 
+string \mbox{\hyperlink{class_o_v_t___town_manager_component_a8d442fca93a808f3906ffc0185990c1b}{Get\+Town\+Name}} (vector location)
+\item 
+SCR\+\_\+\+Map\+Descriptor\+Component \mbox{\hyperlink{class_o_v_t___town_manager_component_a7acf681666aefd12908f4de21b97c676}{Get\+Nearest\+Bus\+Stop}} (vector pos)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_a3298081b1c7773c535e89d5506f9ab37}{Get\+Towns\+Within\+Distance}} (vector pos, float max\+Distance, out array$<$ ref OVT\+\_\+\+Town\+Data $>$ towns)
+\item 
+array$<$ ref OVT\+\_\+\+Town\+Data $>$ \mbox{\hyperlink{class_o_v_t___town_manager_component_ae88bd6ffb93fbbb2522bbcfe3af89297}{Get\+Towns}} ()
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_ab28dc80bf64c554995edeb2b4b5dee2d}{Initialize\+Towns}} ()
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_aed22cecdd293ceae687caeb5415eb0a2}{Spawn\+Town\+Controllers}} ()
+\item 
+bool \mbox{\hyperlink{class_o_v_t___town_manager_component_ab1808d7c14109b4202560aed801cb21d}{Check\+City\+Town\+Add\+Population}} (IEntity entity)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_a5a73ec06da8709d601a739d24ba41b74}{Process\+Town}} (IEntity entity, Map\+Descriptor\+Component mapdesc)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_a111be8de4baa5843468e5e89280a4f01}{Setup\+Towns}} ()
+\item 
+bool \mbox{\hyperlink{class_o_v_t___town_manager_component_a93583c7ecf7d3ba35feca337895b8529}{Filter\+City\+Town\+Entities}} (IEntity entity)
+\item 
+bool \mbox{\hyperlink{class_o_v_t___town_manager_component_a197f77588bcee4d37114a12ea365a22b}{Find\+Town\+Marker}} (IEntity entity)
+\item 
+bool \mbox{\hyperlink{class_o_v_t___town_manager_component_ad322b78c3470c33789e8582b8c95fbbc}{Find\+Bus\+Stop}} (IEntity entity)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_a146560a88f9877203812decd1f141716}{Take\+Supporters\+From\+Nearest\+Town}} (vector pos, int num=1)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_ac38cee72f9e44c657e813da969c36084}{Add\+Support}} (vector pos, int num=1)
+\item 
+bool \mbox{\hyperlink{class_o_v_t___town_manager_component_ab1b5bf2dcb943c06bdc2fc2bb991714f}{Check\+House\+Add\+Population}} (IEntity entity)
+\item 
+bool \mbox{\hyperlink{class_o_v_t___town_manager_component_a7875884debe8c8ef497380c291ffb2ea}{Check\+House\+Add\+To\+Array}} (IEntity entity)
+\item 
+bool \mbox{\hyperlink{class_o_v_t___town_manager_component_a8c6885b4c183ce90cd312012668fca3d}{Filter\+House\+Entities}} (IEntity entity)
+\item 
+override bool \mbox{\hyperlink{class_o_v_t___town_manager_component_a15660407b83748c5d5840f0ea0d23293}{Rpl\+Save}} (Script\+Bit\+Writer writer)
+\item 
+override bool \mbox{\hyperlink{class_o_v_t___town_manager_component_a1b10b0b529ad34bb72dadd7b1ec7b8ff}{Rpl\+Load}} (Script\+Bit\+Reader reader)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_a55f60dc31d6fba44482cdf0e7df919bc}{Rpc\+Ask\+\_\+\+Add\+Stability\+Modifier}} (int town\+Id, int index)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_a74ab2478d654e393b8696e15d07fc2bc}{Rpc\+Ask\+\_\+\+Add\+Support\+Modifier}} (int town\+Id, int index)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_a52134b079f6a261b19bfcfbe288db7a1}{Rpc\+Do\+\_\+\+Set\+Stability}} (int town\+Id, int value)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_a45ebefa462cc0f55650f159475612570}{Rpc\+Do\+\_\+\+Set\+Support}} (int town\+Id, int value)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_a2dda8ed79e617f589e5bb273a8ebad96}{Rpc\+Do\+\_\+\+Set\+Population}} (int town\+Id, int value)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_a6d6e606b7484ca8140f2d128004d864e}{Rpc\+Do\+\_\+\+Add\+Stability\+Modifier}} (int town\+Id, int index, int timer)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_a5329fc6d97f3b21b1e644aa226c485a2}{Rpc\+Do\+\_\+\+Add\+Support\+Modifier}} (int town\+Id, int index, int timer)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_a28588cfae9cd6c1be6f29082e7973fb5}{Rpc\+Do\+\_\+\+Remove\+Stability\+Modifier}} (int town\+Id, int index)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_aaa0a8d5f1848c0f805b68fb27574ce48}{Rpc\+Do\+\_\+\+Remove\+Support\+Modifier}} (int town\+Id, int index)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_acf55560c43196fa95d465209408a3948}{Rpc\+Do\+\_\+\+Reset\+Stability\+Modifier}} (int town\+Id, int index)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_af347f8373b33b205cb783a75e0ab16e9}{Rpc\+Do\+\_\+\+Reset\+Support\+Modifier}} (int town\+Id, int index)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_a503cce346bee243c1f781eb0d9f9a5d4}{Rpc\+Do\+\_\+\+Stream\+Modifiers}} (int player\+Id, int town\+Id, array$<$ int $>$ stability, array$<$ int $>$ support)
+\item 
+void \mbox{\hyperlink{class_o_v_t___town_manager_component_a41168b77a3742ec17de265f7301297fa}{Rpc\+Do\+\_\+\+Set\+Town\+Faction}} (int town\+Id, int index)
+\item 
+\Hypertarget{class_o_v_t___town_manager_component_a08eb30b843e5542705563bd2b4eadad6}\label{class_o_v_t___town_manager_component_a08eb30b843e5542705563bd2b4eadad6} 
+void {\bfseries \texorpdfstring{$\sim$}{\string~}\+OVT\+\_\+\+Town\+Manager\+Component} ()
+\begin{DoxyCompactList}\small\item\em Destructor, clears managed arrays. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static \mbox{\hyperlink{class_o_v_t___town_manager_component}{OVT\+\_\+\+Town\+Manager\+Component}} \mbox{\hyperlink{class_o_v_t___town_manager_component_af0d06f3c3196382329b741745f9e18e4}{Get\+Instance}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_o_v_t___town_manager_component_aca9fcf1fa2112b2df0ea53cf6ac00b6b}\label{class_o_v_t___town_manager_component_aca9fcf1fa2112b2df0ea53cf6ac00b6b} 
+int {\bfseries m\+\_\+i\+Town\+Count} =0
+\item 
+\Hypertarget{class_o_v_t___town_manager_component_a8dc63a7c0b81e03ec09c3991a2af1bac}\label{class_o_v_t___town_manager_component_a8dc63a7c0b81e03ec09c3991a2af1bac} 
+ref array$<$ ref OVT\+\_\+\+Town\+Data $>$ {\bfseries m\+\_\+\+Towns}
+\begin{DoxyCompactList}\small\item\em Array of all towns managed by this component. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___town_manager_component_a5712d3e84627e2328e603135c722e0f1}\label{class_o_v_t___town_manager_component_a5712d3e84627e2328e603135c722e0f1} 
+ref array$<$ ref string $>$ {\bfseries m\+\_\+\+Town\+Names}
+\begin{DoxyCompactList}\small\item\em Array of town names, corresponding to the m\+\_\+\+Towns array by index. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___town_manager_component_a3ef2a822f28981f2fd82f483d5d347ce}\label{class_o_v_t___town_manager_component_a3ef2a822f28981f2fd82f483d5d347ce} 
+IEntity {\bfseries m\+\_\+\+Entity\+Searched}
+\item 
+\Hypertarget{class_o_v_t___town_manager_component_a5b3821c145e43388f3624f55c2c1c70b}\label{class_o_v_t___town_manager_component_a5b3821c145e43388f3624f55c2c1c70b} 
+OVT\+\_\+\+Town\+Data {\bfseries m\+\_\+\+Check\+Town}
+\item 
+\Hypertarget{class_o_v_t___town_manager_component_afd193e238ffd9c70c07349fb9d44ac38}\label{class_o_v_t___town_manager_component_afd193e238ffd9c70c07349fb9d44ac38} 
+ref array$<$ ref Entity\+ID $>$ {\bfseries m\+\_\+\+Houses}
+\item 
+\Hypertarget{class_o_v_t___town_manager_component_a1a2c854cd5453b4acee3cfe60d6f4fde}\label{class_o_v_t___town_manager_component_a1a2c854cd5453b4acee3cfe60d6f4fde} 
+OVT\+\_\+\+Real\+Estate\+Manager\+Component {\bfseries m\+\_\+\+Real\+Estate}
+\item 
+\Hypertarget{class_o_v_t___town_manager_component_a629b725dcc445cc2cf7cb7865363f1a8}\label{class_o_v_t___town_manager_component_a629b725dcc445cc2cf7cb7865363f1a8} 
+ref Script\+Invoker$<$ IEntity $>$ {\bfseries m\+\_\+\+On\+Town\+Control\+Change} = new Script\+Invoker$<$IEntity$>$
+\begin{DoxyCompactList}\small\item\em Invoked when a town\textquotesingle{}s controlling faction changes. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___town_manager_component_a16e41a02f7d191e9f3b1e518ab8a6643}\label{class_o_v_t___town_manager_component_a16e41a02f7d191e9f3b1e518ab8a6643} 
+const int {\bfseries MODIFIER\+\_\+\+FREQUENCY} = 10000
+\item 
+\Hypertarget{class_o_v_t___town_manager_component_a6b0391382bd77b6e6bcb45c60f30fb7d}\label{class_o_v_t___town_manager_component_a6b0391382bd77b6e6bcb45c60f30fb7d} 
+int {\bfseries m\+\_\+i\+Support\+Counter} = 0
+\item 
+\Hypertarget{class_o_v_t___town_manager_component_aa92a0257b9caa2cd96b9a2324499988b}\label{class_o_v_t___town_manager_component_aa92a0257b9caa2cd96b9a2324499988b} 
+const int {\bfseries SUPPORT\+\_\+\+FREQUENCY} = 6
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_o_v_t___town_manager_component_a18c5d7b900bd446f312a0d9eb2d5bdc3}\label{class_o_v_t___town_manager_component_a18c5d7b900bd446f312a0d9eb2d5bdc3} 
+static \mbox{\hyperlink{class_o_v_t___town_manager_component}{OVT\+\_\+\+Town\+Manager\+Component}} {\bfseries s\+\_\+\+Instance}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Manages towns, their populations, stability, support, and controlling factions within the Overthrow gamemode. Handles town initialization, modifier systems, house queries, and network synchronization of town data. 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_o_v_t___town_manager_component_a11b8372e58de7ccd47c6b0f3b430d8d5}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!AddStabilityModifier@{AddStabilityModifier}}
+\index{AddStabilityModifier@{AddStabilityModifier}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{AddStabilityModifier()}{AddStabilityModifier()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a11b8372e58de7ccd47c6b0f3b430d8d5} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Add\+Stability\+Modifier (\begin{DoxyParamCaption}\item[{int}]{town\+Id}{, }\item[{int}]{index}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Initiates the process to add a stability modifier via RPC. 
+\begin{DoxyParams}{Parameters}
+{\em town\+Id} & The ID of the town \\
+\hline
+{\em index} & The index ID of the stability modifier \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_ac38cee72f9e44c657e813da969c36084}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!AddSupport@{AddSupport}}
+\index{AddSupport@{AddSupport}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{AddSupport()}{AddSupport()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_ac38cee72f9e44c657e813da969c36084} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Add\+Support (\begin{DoxyParamCaption}\item[{vector}]{pos}{, }\item[{int}]{num}{ = {\ttfamily 1}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Adds a specified number of supporters to the town nearest to a position. Synchronizes changes via RPC. 
+\begin{DoxyParams}{Parameters}
+{\em pos} & The position vector to find the nearest town from \\
+\hline
+{\em num} & The number of supporters to add (default\+: 1) \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_a6b54046f9ce25c85d12c58fbd5efee1d}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!AddSupportModifier@{AddSupportModifier}}
+\index{AddSupportModifier@{AddSupportModifier}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{AddSupportModifier()}{AddSupportModifier()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a6b54046f9ce25c85d12c58fbd5efee1d} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Add\+Support\+Modifier (\begin{DoxyParamCaption}\item[{int}]{town\+Id}{, }\item[{int}]{index}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Initiates the process to add a support modifier via RPC. 
+\begin{DoxyParams}{Parameters}
+{\em town\+Id} & The ID of the town \\
+\hline
+{\em index} & The index ID of the support modifier \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_a45bf4d4e83e59f266f4eaf0a0ea3a0d9}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!ChangeTownControl@{ChangeTownControl}}
+\index{ChangeTownControl@{ChangeTownControl}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{ChangeTownControl()}{ChangeTownControl()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a45bf4d4e83e59f266f4eaf0a0ea3a0d9} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Change\+Town\+Control (\begin{DoxyParamCaption}\item[{OVT\+\_\+\+Town\+Data}]{town}{, }\item[{int}]{faction}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Changes the controlling faction of a town and notifies relevant systems. 
+\begin{DoxyParams}{Parameters}
+{\em town} & The OVT\+\_\+\+Town\+Data instance of the town \\
+\hline
+{\em faction} & The new controlling faction index \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_ab1808d7c14109b4202560aed801cb21d}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!CheckCityTownAddPopulation@{CheckCityTownAddPopulation}}
+\index{CheckCityTownAddPopulation@{CheckCityTownAddPopulation}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{CheckCityTownAddPopulation()}{CheckCityTownAddPopulation()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_ab1808d7c14109b4202560aed801cb21d} 
+bool OVT\+\_\+\+Town\+Manager\+Component\+::\+Check\+City\+Town\+Add\+Population (\begin{DoxyParamCaption}\item[{IEntity}]{entity}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Query callback function used during town initialization (Initialize\+Towns). Processes found town map markers. 
+\begin{DoxyParams}{Parameters}
+{\em entity} & The entity found by the query (potential town marker) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Always true to continue the query 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___town_manager_component_ab1b5bf2dcb943c06bdc2fc2bb991714f}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!CheckHouseAddPopulation@{CheckHouseAddPopulation}}
+\index{CheckHouseAddPopulation@{CheckHouseAddPopulation}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{CheckHouseAddPopulation()}{CheckHouseAddPopulation()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_ab1b5bf2dcb943c06bdc2fc2bb991714f} 
+bool OVT\+\_\+\+Town\+Manager\+Component\+::\+Check\+House\+Add\+Population (\begin{DoxyParamCaption}\item[{IEntity}]{entity}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Query callback function used during town setup (Setup\+Towns). Adds population to the currently checked town (m\+\_\+\+Check\+Town) based on the house type found. 
+\begin{DoxyParams}{Parameters}
+{\em entity} & The house entity found by the query \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Always true to continue the query 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___town_manager_component_a7875884debe8c8ef497380c291ffb2ea}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!CheckHouseAddToArray@{CheckHouseAddToArray}}
+\index{CheckHouseAddToArray@{CheckHouseAddToArray}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{CheckHouseAddToArray()}{CheckHouseAddToArray()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a7875884debe8c8ef497380c291ffb2ea} 
+bool OVT\+\_\+\+Town\+Manager\+Component\+::\+Check\+House\+Add\+To\+Array (\begin{DoxyParamCaption}\item[{IEntity}]{entity}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Query callback function used by house-\/finding methods (Get\+Random\+House, Get\+Nearest\+House, etc.). Adds the ID of an unowned house entity to the m\+\_\+\+Houses array. 
+\begin{DoxyParams}{Parameters}
+{\em entity} & The house entity found by the query \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Always true to continue the query 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___town_manager_component_a93583c7ecf7d3ba35feca337895b8529}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!FilterCityTownEntities@{FilterCityTownEntities}}
+\index{FilterCityTownEntities@{FilterCityTownEntities}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{FilterCityTownEntities()}{FilterCityTownEntities()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a93583c7ecf7d3ba35feca337895b8529} 
+bool OVT\+\_\+\+Town\+Manager\+Component\+::\+Filter\+City\+Town\+Entities (\begin{DoxyParamCaption}\item[{IEntity}]{entity}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Query filter function used during town initialization (Initialize\+Towns). Checks if an entity is a city, town, or village map marker. 
+\begin{DoxyParams}{Parameters}
+{\em entity} & The entity to filter \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true if the entity is a valid town marker type, false otherwise 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___town_manager_component_a8c6885b4c183ce90cd312012668fca3d}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!FilterHouseEntities@{FilterHouseEntities}}
+\index{FilterHouseEntities@{FilterHouseEntities}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{FilterHouseEntities()}{FilterHouseEntities()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a8c6885b4c183ce90cd312012668fca3d} 
+bool OVT\+\_\+\+Town\+Manager\+Component\+::\+Filter\+House\+Entities (\begin{DoxyParamCaption}\item[{IEntity}]{entity}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Query filter function used by house-\/finding and population calculation methods. Checks if an entity is a valid, non-\/military/industrial/ruined house building. 
+\begin{DoxyParams}{Parameters}
+{\em entity} & The entity to filter \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true if the entity is a valid house for population/ownership, false otherwise 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___town_manager_component_ad322b78c3470c33789e8582b8c95fbbc}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!FindBusStop@{FindBusStop}}
+\index{FindBusStop@{FindBusStop}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{FindBusStop()}{FindBusStop()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_ad322b78c3470c33789e8582b8c95fbbc} 
+bool OVT\+\_\+\+Town\+Manager\+Component\+::\+Find\+Bus\+Stop (\begin{DoxyParamCaption}\item[{IEntity}]{entity}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Query filter function used by Get\+Nearest\+Bus\+Stop. Checks if an entity is a bus stop map marker and stores it if found. 
+\begin{DoxyParams}{Parameters}
+{\em entity} & The entity to check \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+false once a marker is found to stop the query, true otherwise 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___town_manager_component_a197f77588bcee4d37114a12ea365a22b}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!FindTownMarker@{FindTownMarker}}
+\index{FindTownMarker@{FindTownMarker}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{FindTownMarker()}{FindTownMarker()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a197f77588bcee4d37114a12ea365a22b} 
+bool OVT\+\_\+\+Town\+Manager\+Component\+::\+Find\+Town\+Marker (\begin{DoxyParamCaption}\item[{IEntity}]{entity}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Query filter function used by Get\+Nearest\+Town\+Marker. Checks if an entity is a city, town, or village map marker and stores it if found. 
+\begin{DoxyParams}{Parameters}
+{\em entity} & The entity to check \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+false once a marker is found to stop the query, true otherwise 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___town_manager_component_af0d06f3c3196382329b741745f9e18e4}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!GetInstance@{GetInstance}}
+\index{GetInstance@{GetInstance}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetInstance()}{GetInstance()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_af0d06f3c3196382329b741745f9e18e4} 
+static \mbox{\hyperlink{class_o_v_t___town_manager_component}{OVT\+\_\+\+Town\+Manager\+Component}} OVT\+\_\+\+Town\+Manager\+Component\+::\+Get\+Instance (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}, {\ttfamily [protected]}}
+
+Returns the singleton instance of the Town Manager Component \begin{DoxyReturn}{Returns}
+\doxylink{class_o_v_t___town_manager_component}{OVT\+\_\+\+Town\+Manager\+Component} instance or null if not found 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___town_manager_component_aabb6ba792a67c84e45e0005915e7ce9a}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!GetModifierIndex@{GetModifierIndex}}
+\index{GetModifierIndex@{GetModifierIndex}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetModifierIndex()}{GetModifierIndex()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_aabb6ba792a67c84e45e0005915e7ce9a} 
+int OVT\+\_\+\+Town\+Manager\+Component\+::\+Get\+Modifier\+Index (\begin{DoxyParamCaption}\item[{array$<$ ref \mbox{\hyperlink{class_o_v_t___town_modifier_data}{OVT\+\_\+\+Town\+Modifier\+Data}} $>$}]{modifiers}{, }\item[{int}]{id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Finds the index of a modifier within a modifier array based on its ID. 
+\begin{DoxyParams}{Parameters}
+{\em modifiers} & The array of \doxylink{class_o_v_t___town_modifier_data}{OVT\+\_\+\+Town\+Modifier\+Data} to search within \\
+\hline
+{\em id} & The ID of the modifier to find \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The index of the modifier in the array, or -\/1 if not found 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___town_manager_component_a0658e3d59afad31ee3b214ec449748bc}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!GetModifierSystem@{GetModifierSystem}}
+\index{GetModifierSystem@{GetModifierSystem}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetModifierSystem()}{GetModifierSystem()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a0658e3d59afad31ee3b214ec449748bc} 
+\mbox{\hyperlink{class_o_v_t___town_modifier_system}{OVT\+\_\+\+Town\+Modifier\+System}} OVT\+\_\+\+Town\+Manager\+Component\+::\+Get\+Modifier\+System (\begin{DoxyParamCaption}\item[{typename type\+Name}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Retrieves a specific town modifier system by its class type. 
+\begin{DoxyParams}{Parameters}
+{\em type\+Name} & The typename of the modifier system to retrieve \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The \doxylink{class_o_v_t___town_modifier_system}{OVT\+\_\+\+Town\+Modifier\+System} instance or null if not found 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___town_manager_component_a7acf681666aefd12908f4de21b97c676}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!GetNearestBusStop@{GetNearestBusStop}}
+\index{GetNearestBusStop@{GetNearestBusStop}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetNearestBusStop()}{GetNearestBusStop()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a7acf681666aefd12908f4de21b97c676} 
+SCR\+\_\+\+Map\+Descriptor\+Component OVT\+\_\+\+Town\+Manager\+Component\+::\+Get\+Nearest\+Bus\+Stop (\begin{DoxyParamCaption}\item[{vector}]{pos}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Finds the nearest bus stop map marker entity within a radius (15m) of a position. 
+\begin{DoxyParams}{Parameters}
+{\em pos} & The position vector to search around \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The SCR\+\_\+\+Map\+Descriptor\+Component of the nearest bus stop marker, or null if none found 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___town_manager_component_af02829eb4aace12f2681279f4469bd6c}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!GetNearestHouse@{GetNearestHouse}}
+\index{GetNearestHouse@{GetNearestHouse}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetNearestHouse()}{GetNearestHouse()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_af02829eb4aace12f2681279f4469bd6c} 
+IEntity OVT\+\_\+\+Town\+Manager\+Component\+::\+Get\+Nearest\+House (\begin{DoxyParamCaption}\item[{vector}]{pos}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Finds the nearest house entity within a small radius (25m) of a given position. 
+\begin{DoxyParams}{Parameters}
+{\em pos} & The position vector to search around \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The nearest house IEntity or null if none found within range 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___town_manager_component_a7762a1727e53780d990edc1022b9cfff}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!GetNearestTown@{GetNearestTown}}
+\index{GetNearestTown@{GetNearestTown}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetNearestTown()}{GetNearestTown()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a7762a1727e53780d990edc1022b9cfff} 
+OVT\+\_\+\+Town\+Data OVT\+\_\+\+Town\+Manager\+Component\+::\+Get\+Nearest\+Town (\begin{DoxyParamCaption}\item[{vector}]{pos}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Finds the town whose center is geographically nearest to the given position. 
+\begin{DoxyParams}{Parameters}
+{\em pos} & The position vector to check from \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The OVT\+\_\+\+Town\+Data of the nearest town 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___town_manager_component_a6b6e34e780f10dc7095f0e47b685806e}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!GetNearestTownInRange@{GetNearestTownInRange}}
+\index{GetNearestTownInRange@{GetNearestTownInRange}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetNearestTownInRange()}{GetNearestTownInRange()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a6b6e34e780f10dc7095f0e47b685806e} 
+OVT\+\_\+\+Town\+Data OVT\+\_\+\+Town\+Manager\+Component\+::\+Get\+Nearest\+Town\+In\+Range (\begin{DoxyParamCaption}\item[{vector}]{pos}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Finds the nearest town that contains the given position within its effective radius. 
+\begin{DoxyParams}{Parameters}
+{\em pos} & The position vector to check \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The OVT\+\_\+\+Town\+Data of the containing town, or null if the position is not within any town\textquotesingle{}s range 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___town_manager_component_a99e26ca19e3e7695427c2b8a261c2c22}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!GetNearestTownMarker@{GetNearestTownMarker}}
+\index{GetNearestTownMarker@{GetNearestTownMarker}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetNearestTownMarker()}{GetNearestTownMarker()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a99e26ca19e3e7695427c2b8a261c2c22} 
+SCR\+\_\+\+Map\+Descriptor\+Component OVT\+\_\+\+Town\+Manager\+Component\+::\+Get\+Nearest\+Town\+Marker (\begin{DoxyParamCaption}\item[{vector}]{pos}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Finds the nearest town map marker entity (City, Town, Village) within a small radius (5m) of a position. 
+\begin{DoxyParams}{Parameters}
+{\em pos} & The position vector to search around \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The SCR\+\_\+\+Map\+Descriptor\+Component of the nearest town marker, or null if none found 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___town_manager_component_a8c7dcbaa3ad2c0cd3e1144aece74e140}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!GetRandomHouse@{GetRandomHouse}}
+\index{GetRandomHouse@{GetRandomHouse}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetRandomHouse()}{GetRandomHouse()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a8c7dcbaa3ad2c0cd3e1144aece74e140} 
+IEntity OVT\+\_\+\+Town\+Manager\+Component\+::\+Get\+Random\+House (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Gets a random, unowned house entity from any town. Tries multiple times if the first attempt fails or finds an owned house. \begin{DoxyReturn}{Returns}
+A random house IEntity or null if none found after attempts 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___town_manager_component_a82c98360ef9dfb2e2dc1b1f7f259861a}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!GetRandomHouseInTown@{GetRandomHouseInTown}}
+\index{GetRandomHouseInTown@{GetRandomHouseInTown}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetRandomHouseInTown()}{GetRandomHouseInTown()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a82c98360ef9dfb2e2dc1b1f7f259861a} 
+IEntity OVT\+\_\+\+Town\+Manager\+Component\+::\+Get\+Random\+House\+In\+Town (\begin{DoxyParamCaption}\item[{OVT\+\_\+\+Town\+Data}]{town}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Gets a random house entity within the bounds of a specific town. 
+\begin{DoxyParams}{Parameters}
+{\em town} & The OVT\+\_\+\+Town\+Data instance of the town \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+A random house IEntity within the town, or null if no houses found 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___town_manager_component_afe01d1b6c58c2f40dc75e316484d2754}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!GetRandomTown@{GetRandomTown}}
+\index{GetRandomTown@{GetRandomTown}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetRandomTown()}{GetRandomTown()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_afe01d1b6c58c2f40dc75e316484d2754} 
+OVT\+\_\+\+Town\+Data OVT\+\_\+\+Town\+Manager\+Component\+::\+Get\+Random\+Town (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Gets a random town from the list of managed towns. \begin{DoxyReturn}{Returns}
+A random OVT\+\_\+\+Town\+Data instance or null if no towns exist 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___town_manager_component_aee43ddf13ade05d45272f213985a5b89}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!GetTotalPopulationStats@{GetTotalPopulationStats}}
+\index{GetTotalPopulationStats@{GetTotalPopulationStats}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetTotalPopulationStats()}{GetTotalPopulationStats()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_aee43ddf13ade05d45272f213985a5b89} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Get\+Total\+Population\+Stats (\begin{DoxyParamCaption}\item[{out int}]{population}{, }\item[{out int}]{supporters}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Calculates the total population and total supporters across all towns. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ out}}  & {\em population} & Total population count \\
+\hline
+\mbox{\texttt{ out}}  & {\em supporters} & Total supporter count \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_a97f1cf4bd21175671d4ce05590acea82}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!GetTown@{GetTown}}
+\index{GetTown@{GetTown}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetTown()}{GetTown()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a97f1cf4bd21175671d4ce05590acea82} 
+OVT\+\_\+\+Town\+Data OVT\+\_\+\+Town\+Manager\+Component\+::\+Get\+Town (\begin{DoxyParamCaption}\item[{int}]{town\+Id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Retrieves the OVT\+\_\+\+Town\+Data instance for a given town ID. 
+\begin{DoxyParams}{Parameters}
+{\em town\+Id} & The ID of the town (index in m\+\_\+\+Towns) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The OVT\+\_\+\+Town\+Data instance 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___town_manager_component_abb2566069bd9eae1cf89437140369e62}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!GetTownID@{GetTownID}}
+\index{GetTownID@{GetTownID}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetTownID()}{GetTownID()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_abb2566069bd9eae1cf89437140369e62} 
+int OVT\+\_\+\+Town\+Manager\+Component\+::\+Get\+Town\+ID (\begin{DoxyParamCaption}\item[{OVT\+\_\+\+Town\+Data}]{town}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Gets the ID (index in the m\+\_\+\+Towns array) of a given town. 
+\begin{DoxyParams}{Parameters}
+{\em town} & The OVT\+\_\+\+Town\+Data instance \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The integer ID of the town 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___town_manager_component_a81b0f3e0b7fe9ee332b2b12e28f03335}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!GetTownName@{GetTownName}}
+\index{GetTownName@{GetTownName}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetTownName()}{GetTownName()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a81b0f3e0b7fe9ee332b2b12e28f03335} 
+string OVT\+\_\+\+Town\+Manager\+Component\+::\+Get\+Town\+Name (\begin{DoxyParamCaption}\item[{int}]{town\+Id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Gets the display name of a town from its map marker, caching the result. 
+\begin{DoxyParams}{Parameters}
+{\em town\+Id} & The ID of the town \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The string name of the town 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___town_manager_component_a8d442fca93a808f3906ffc0185990c1b}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!GetTownName@{GetTownName}}
+\index{GetTownName@{GetTownName}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetTownName()}{GetTownName()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a8d442fca93a808f3906ffc0185990c1b} 
+string OVT\+\_\+\+Town\+Manager\+Component\+::\+Get\+Town\+Name (\begin{DoxyParamCaption}\item[{vector}]{location}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Gets the display name of the town nearest to a given location. 
+\begin{DoxyParams}{Parameters}
+{\em location} & The position vector \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The string name of the nearest town 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___town_manager_component_a071b76da5bc5733a14e7f36ede20742b}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!GetTownRange@{GetTownRange}}
+\index{GetTownRange@{GetTownRange}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetTownRange()}{GetTownRange()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a071b76da5bc5733a14e7f36ede20742b} 
+float OVT\+\_\+\+Town\+Manager\+Component\+::\+Get\+Town\+Range (\begin{DoxyParamCaption}\item[{OVT\+\_\+\+Town\+Data}]{town}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Gets the effective radius of a town based on its size (village, town, city). 
+\begin{DoxyParams}{Parameters}
+{\em town} & The OVT\+\_\+\+Town\+Data instance \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The radius in meters 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___town_manager_component_ae88bd6ffb93fbbb2522bbcfe3af89297}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!GetTowns@{GetTowns}}
+\index{GetTowns@{GetTowns}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetTowns()}{GetTowns()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_ae88bd6ffb93fbbb2522bbcfe3af89297} 
+array$<$ ref OVT\+\_\+\+Town\+Data $>$ OVT\+\_\+\+Town\+Manager\+Component\+::\+Get\+Towns (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Returns the array containing all managed towns. \begin{DoxyReturn}{Returns}
+Reference to the array$<$ref OVT\+\_\+\+Town\+Data$>$ m\+\_\+\+Towns 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___town_manager_component_a3298081b1c7773c535e89d5506f9ab37}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!GetTownsWithinDistance@{GetTownsWithinDistance}}
+\index{GetTownsWithinDistance@{GetTownsWithinDistance}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetTownsWithinDistance()}{GetTownsWithinDistance()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a3298081b1c7773c535e89d5506f9ab37} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Get\+Towns\+Within\+Distance (\begin{DoxyParamCaption}\item[{vector}]{pos}{, }\item[{float}]{max\+Distance}{, }\item[{out array$<$ ref OVT\+\_\+\+Town\+Data $>$}]{towns}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Fills an array with references to all towns located within a specified distance from a position. 
+\begin{DoxyParams}[1]{Parameters}
+ & {\em pos} & The center position vector for the search \\
+\hline
+ & {\em max\+Distance} & The maximum distance (radius) to search within \\
+\hline
+\mbox{\texttt{ out}}  & {\em towns} & The array to be filled with OVT\+\_\+\+Town\+Data references \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_acca3c3f1e1bc073e4423a20fe26954dd}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!Init@{Init}}
+\index{Init@{Init}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{Init()}{Init()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_acca3c3f1e1bc073e4423a20fe26954dd} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Init (\begin{DoxyParamCaption}\item[{IEntity}]{owner}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Initializes the Town Manager Component, finding towns and setting up modifiers. Called once during game initialization. 
+\begin{DoxyParams}{Parameters}
+{\em owner} & The owning entity of this component \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_ab28dc80bf64c554995edeb2b4b5dee2d}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!InitializeTowns@{InitializeTowns}}
+\index{InitializeTowns@{InitializeTowns}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{InitializeTowns()}{InitializeTowns()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_ab28dc80bf64c554995edeb2b4b5dee2d} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Initialize\+Towns (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Initializes town data by querying map markers across the entire world. Called once during Init. \Hypertarget{class_o_v_t___town_manager_component_a5a73ec06da8709d601a739d24ba41b74}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!ProcessTown@{ProcessTown}}
+\index{ProcessTown@{ProcessTown}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{ProcessTown()}{ProcessTown()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a5a73ec06da8709d601a739d24ba41b74} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Process\+Town (\begin{DoxyParamCaption}\item[{IEntity}]{entity}{, }\item[{Map\+Descriptor\+Component}]{mapdesc}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Creates and initializes an OVT\+\_\+\+Town\+Data object based on a map marker entity. Adds the new town data to the m\+\_\+\+Towns and m\+\_\+\+Town\+Names arrays. 
+\begin{DoxyParams}{Parameters}
+{\em entity} & The town map marker entity \\
+\hline
+{\em mapdesc} & The Map\+Descriptor\+Component of the entity \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_a202be80ef7150f5e7c917101a4a1d551}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!RecalculateStability@{RecalculateStability}}
+\index{RecalculateStability@{RecalculateStability}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RecalculateStability()}{RecalculateStability()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a202be80ef7150f5e7c917101a4a1d551} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Recalculate\+Stability (\begin{DoxyParamCaption}\item[{int}]{town\+Id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Recalculates the stability value for a town based on its active stability modifiers. Updates the town\textquotesingle{}s stability if changed and synchronizes via RPC. 
+\begin{DoxyParams}{Parameters}
+{\em town\+Id} & The ID of the town to recalculate \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_a94af378c60f5996f67b5519c88f99cdd}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!RecalculateSupport@{RecalculateSupport}}
+\index{RecalculateSupport@{RecalculateSupport}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RecalculateSupport()}{RecalculateSupport()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a94af378c60f5996f67b5519c88f99cdd} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Recalculate\+Support (\begin{DoxyParamCaption}\item[{int}]{town\+Id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Recalculates the support value for a town based on its active support modifiers. Updates the town\textquotesingle{}s support if changed and synchronizes via RPC. Also handles potential peaceful faction flips for villages based on support and stability thresholds. 
+\begin{DoxyParams}{Parameters}
+{\em town\+Id} & The ID of the town to recalculate \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_a124589e068a65f1a43bebbf8bf8e0dcb}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!RemoveStabilityModifier@{RemoveStabilityModifier}}
+\index{RemoveStabilityModifier@{RemoveStabilityModifier}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RemoveStabilityModifier()}{RemoveStabilityModifier()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a124589e068a65f1a43bebbf8bf8e0dcb} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Remove\+Stability\+Modifier (\begin{DoxyParamCaption}\item[{int}]{town\+Id}{, }\item[{int}]{index}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Removes a stability modifier from a specific town by its modifier index. 
+\begin{DoxyParams}{Parameters}
+{\em town\+Id} & The ID of the town \\
+\hline
+{\em index} & The index ID of the stability modifier to remove \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_ae50a3f1e5ecacde614d346be9e7fd0ec}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!RemoveSupportModifier@{RemoveSupportModifier}}
+\index{RemoveSupportModifier@{RemoveSupportModifier}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RemoveSupportModifier()}{RemoveSupportModifier()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_ae50a3f1e5ecacde614d346be9e7fd0ec} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Remove\+Support\+Modifier (\begin{DoxyParamCaption}\item[{int}]{town\+Id}{, }\item[{int}]{index}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Removes a support modifier from a specific town by its modifier index. 
+\begin{DoxyParams}{Parameters}
+{\em town\+Id} & The ID of the town \\
+\hline
+{\em index} & The index ID of the support modifier to remove \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_a5ec7f5fde5995f0426649637737c7867}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!RemoveSupportModifierByName@{RemoveSupportModifierByName}}
+\index{RemoveSupportModifierByName@{RemoveSupportModifierByName}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RemoveSupportModifierByName()}{RemoveSupportModifierByName()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a5ec7f5fde5995f0426649637737c7867} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Remove\+Support\+Modifier\+By\+Name (\begin{DoxyParamCaption}\item[{int}]{town\+Id}{, }\item[{string}]{name}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Removes a support modifier from a town by its configuration name. 
+\begin{DoxyParams}{Parameters}
+{\em town\+Id} & The ID of the town \\
+\hline
+{\em name} & The name of the support modifier as defined in the config \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_a2380033abd4c7b3c61c5c01b316f6e5a}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!ResetSupport@{ResetSupport}}
+\index{ResetSupport@{ResetSupport}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{ResetSupport()}{ResetSupport()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a2380033abd4c7b3c61c5c01b316f6e5a} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Reset\+Support (\begin{DoxyParamCaption}\item[{OVT\+\_\+\+Town\+Data}]{town}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Resets the support value of a town to 0 and synchronizes via RPC. 
+\begin{DoxyParams}{Parameters}
+{\em town} & The town data to reset support for \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_a55f60dc31d6fba44482cdf0e7df919bc}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!RpcAsk\_AddStabilityModifier@{RpcAsk\_AddStabilityModifier}}
+\index{RpcAsk\_AddStabilityModifier@{RpcAsk\_AddStabilityModifier}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RpcAsk\_AddStabilityModifier()}{RpcAsk\_AddStabilityModifier()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a55f60dc31d6fba44482cdf0e7df919bc} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Rpc\+Ask\+\_\+\+Add\+Stability\+Modifier (\begin{DoxyParamCaption}\item[{int}]{town\+Id}{, }\item[{int}]{index}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Server-\/side RPC handler for adding a stability modifier. Creates the modifier data, applies it, recalculates stability, and broadcasts the addition. 
+\begin{DoxyParams}{Parameters}
+{\em town\+Id} & The ID of the town \\
+\hline
+{\em index} & The index ID of the stability modifier \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_a74ab2478d654e393b8696e15d07fc2bc}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!RpcAsk\_AddSupportModifier@{RpcAsk\_AddSupportModifier}}
+\index{RpcAsk\_AddSupportModifier@{RpcAsk\_AddSupportModifier}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RpcAsk\_AddSupportModifier()}{RpcAsk\_AddSupportModifier()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a74ab2478d654e393b8696e15d07fc2bc} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Rpc\+Ask\+\_\+\+Add\+Support\+Modifier (\begin{DoxyParamCaption}\item[{int}]{town\+Id}{, }\item[{int}]{index}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Server-\/side RPC handler for adding a support modifier. Creates the modifier data, applies it, and broadcasts the addition. 
+\begin{DoxyParams}{Parameters}
+{\em town\+Id} & The ID of the town \\
+\hline
+{\em index} & The index ID of the support modifier \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_a6d6e606b7484ca8140f2d128004d864e}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!RpcDo\_AddStabilityModifier@{RpcDo\_AddStabilityModifier}}
+\index{RpcDo\_AddStabilityModifier@{RpcDo\_AddStabilityModifier}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RpcDo\_AddStabilityModifier()}{RpcDo\_AddStabilityModifier()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a6d6e606b7484ca8140f2d128004d864e} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Rpc\+Do\+\_\+\+Add\+Stability\+Modifier (\begin{DoxyParamCaption}\item[{int}]{town\+Id}{, }\item[{int}]{index}{, }\item[{int}]{timer}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Broadcast RPC to add a stability modifier to a town on all clients. 
+\begin{DoxyParams}{Parameters}
+{\em town\+Id} & The ID of the town \\
+\hline
+{\em index} & The index ID of the stability modifier \\
+\hline
+{\em timer} & The initial timer value for the modifier \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_a5329fc6d97f3b21b1e644aa226c485a2}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!RpcDo\_AddSupportModifier@{RpcDo\_AddSupportModifier}}
+\index{RpcDo\_AddSupportModifier@{RpcDo\_AddSupportModifier}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RpcDo\_AddSupportModifier()}{RpcDo\_AddSupportModifier()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a5329fc6d97f3b21b1e644aa226c485a2} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Rpc\+Do\+\_\+\+Add\+Support\+Modifier (\begin{DoxyParamCaption}\item[{int}]{town\+Id}{, }\item[{int}]{index}{, }\item[{int}]{timer}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Broadcast RPC to add a support modifier to a town on all clients. 
+\begin{DoxyParams}{Parameters}
+{\em town\+Id} & The ID of the town \\
+\hline
+{\em index} & The index ID of the support modifier \\
+\hline
+{\em timer} & The initial timer value for the modifier \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_a28588cfae9cd6c1be6f29082e7973fb5}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!RpcDo\_RemoveStabilityModifier@{RpcDo\_RemoveStabilityModifier}}
+\index{RpcDo\_RemoveStabilityModifier@{RpcDo\_RemoveStabilityModifier}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RpcDo\_RemoveStabilityModifier()}{RpcDo\_RemoveStabilityModifier()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a28588cfae9cd6c1be6f29082e7973fb5} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Rpc\+Do\+\_\+\+Remove\+Stability\+Modifier (\begin{DoxyParamCaption}\item[{int}]{town\+Id}{, }\item[{int}]{index}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Broadcast RPC to remove a stability modifier from a town on all clients. 
+\begin{DoxyParams}{Parameters}
+{\em town\+Id} & The ID of the town \\
+\hline
+{\em index} & The index ID of the stability modifier to remove \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_aaa0a8d5f1848c0f805b68fb27574ce48}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!RpcDo\_RemoveSupportModifier@{RpcDo\_RemoveSupportModifier}}
+\index{RpcDo\_RemoveSupportModifier@{RpcDo\_RemoveSupportModifier}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RpcDo\_RemoveSupportModifier()}{RpcDo\_RemoveSupportModifier()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_aaa0a8d5f1848c0f805b68fb27574ce48} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Rpc\+Do\+\_\+\+Remove\+Support\+Modifier (\begin{DoxyParamCaption}\item[{int}]{town\+Id}{, }\item[{int}]{index}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Broadcast RPC to remove a support modifier from a town on all clients. 
+\begin{DoxyParams}{Parameters}
+{\em town\+Id} & The ID of the town \\
+\hline
+{\em index} & The index ID of the support modifier to remove \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_acf55560c43196fa95d465209408a3948}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!RpcDo\_ResetStabilityModifier@{RpcDo\_ResetStabilityModifier}}
+\index{RpcDo\_ResetStabilityModifier@{RpcDo\_ResetStabilityModifier}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RpcDo\_ResetStabilityModifier()}{RpcDo\_ResetStabilityModifier()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_acf55560c43196fa95d465209408a3948} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Rpc\+Do\+\_\+\+Reset\+Stability\+Modifier (\begin{DoxyParamCaption}\item[{int}]{town\+Id}{, }\item[{int}]{index}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Broadcast RPC to reset the timer of an existing stability modifier on all clients. 
+\begin{DoxyParams}{Parameters}
+{\em town\+Id} & The ID of the town \\
+\hline
+{\em index} & The index ID of the stability modifier to reset \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_af347f8373b33b205cb783a75e0ab16e9}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!RpcDo\_ResetSupportModifier@{RpcDo\_ResetSupportModifier}}
+\index{RpcDo\_ResetSupportModifier@{RpcDo\_ResetSupportModifier}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RpcDo\_ResetSupportModifier()}{RpcDo\_ResetSupportModifier()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_af347f8373b33b205cb783a75e0ab16e9} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Rpc\+Do\+\_\+\+Reset\+Support\+Modifier (\begin{DoxyParamCaption}\item[{int}]{town\+Id}{, }\item[{int}]{index}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Broadcast RPC to reset the timer of an existing support modifier on all clients. 
+\begin{DoxyParams}{Parameters}
+{\em town\+Id} & The ID of the town \\
+\hline
+{\em index} & The index ID of the support modifier to reset \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_a2dda8ed79e617f589e5bb273a8ebad96}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!RpcDo\_SetPopulation@{RpcDo\_SetPopulation}}
+\index{RpcDo\_SetPopulation@{RpcDo\_SetPopulation}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RpcDo\_SetPopulation()}{RpcDo\_SetPopulation()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a2dda8ed79e617f589e5bb273a8ebad96} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Rpc\+Do\+\_\+\+Set\+Population (\begin{DoxyParamCaption}\item[{int}]{town\+Id}{, }\item[{int}]{value}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Broadcast RPC to update the population value of a town on all clients. 
+\begin{DoxyParams}{Parameters}
+{\em town\+Id} & The ID of the town \\
+\hline
+{\em value} & The new population value \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_a52134b079f6a261b19bfcfbe288db7a1}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!RpcDo\_SetStability@{RpcDo\_SetStability}}
+\index{RpcDo\_SetStability@{RpcDo\_SetStability}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RpcDo\_SetStability()}{RpcDo\_SetStability()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a52134b079f6a261b19bfcfbe288db7a1} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Rpc\+Do\+\_\+\+Set\+Stability (\begin{DoxyParamCaption}\item[{int}]{town\+Id}{, }\item[{int}]{value}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Broadcast RPC to update the stability value of a town on all clients. 
+\begin{DoxyParams}{Parameters}
+{\em town\+Id} & The ID of the town \\
+\hline
+{\em value} & The new stability value \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_a45ebefa462cc0f55650f159475612570}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!RpcDo\_SetSupport@{RpcDo\_SetSupport}}
+\index{RpcDo\_SetSupport@{RpcDo\_SetSupport}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RpcDo\_SetSupport()}{RpcDo\_SetSupport()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a45ebefa462cc0f55650f159475612570} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Rpc\+Do\+\_\+\+Set\+Support (\begin{DoxyParamCaption}\item[{int}]{town\+Id}{, }\item[{int}]{value}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Broadcast RPC to update the support value of a town on all clients. 
+\begin{DoxyParams}{Parameters}
+{\em town\+Id} & The ID of the town \\
+\hline
+{\em value} & The new support value \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_a41168b77a3742ec17de265f7301297fa}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!RpcDo\_SetTownFaction@{RpcDo\_SetTownFaction}}
+\index{RpcDo\_SetTownFaction@{RpcDo\_SetTownFaction}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RpcDo\_SetTownFaction()}{RpcDo\_SetTownFaction()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a41168b77a3742ec17de265f7301297fa} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Rpc\+Do\+\_\+\+Set\+Town\+Faction (\begin{DoxyParamCaption}\item[{int}]{town\+Id}{, }\item[{int}]{index}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Broadcast RPC to set the controlling faction of a town on all clients. 
+\begin{DoxyParams}{Parameters}
+{\em town\+Id} & The ID of the town \\
+\hline
+{\em index} & The new faction index \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_a503cce346bee243c1f781eb0d9f9a5d4}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!RpcDo\_StreamModifiers@{RpcDo\_StreamModifiers}}
+\index{RpcDo\_StreamModifiers@{RpcDo\_StreamModifiers}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RpcDo\_StreamModifiers()}{RpcDo\_StreamModifiers()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a503cce346bee243c1f781eb0d9f9a5d4} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Rpc\+Do\+\_\+\+Stream\+Modifiers (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{, }\item[{int}]{town\+Id}{, }\item[{array$<$ int $>$}]{stability}{, }\item[{array$<$ int $>$}]{support}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Targeted RPC (effectively broadcast, but filtered locally) to stream initial modifiers to a joining player. 
+\begin{DoxyParams}{Parameters}
+{\em player\+Id} & The ID of the player the modifiers are intended for \\
+\hline
+{\em town\+Id} & The ID of the town whose modifiers are being streamed \\
+\hline
+{\em stability} & Array of stability modifier IDs active in the town \\
+\hline
+{\em support} & Array of support modifier IDs active in the town \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_a1b10b0b529ad34bb72dadd7b1ec7b8ff}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!RplLoad@{RplLoad}}
+\index{RplLoad@{RplLoad}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RplLoad()}{RplLoad()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a1b10b0b529ad34bb72dadd7b1ec7b8ff} 
+override bool OVT\+\_\+\+Town\+Manager\+Component\+::\+Rpl\+Load (\begin{DoxyParamCaption}\item[{Script\+Bit\+Reader}]{reader}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Loads town data (population, stability, support, faction) received from the server during Join-\/\+In-\/\+Progress. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em reader} & The Script\+Bit\+Reader to read data from \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true if deserialization is successful 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___town_manager_component_a15660407b83748c5d5840f0ea0d23293}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!RplSave@{RplSave}}
+\index{RplSave@{RplSave}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RplSave()}{RplSave()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a15660407b83748c5d5840f0ea0d23293} 
+override bool OVT\+\_\+\+Town\+Manager\+Component\+::\+Rpl\+Save (\begin{DoxyParamCaption}\item[{Script\+Bit\+Writer}]{writer}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Saves town data (population, stability, support, faction) for network replication (Join-\/\+In-\/\+Progress). 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em writer} & The Script\+Bit\+Writer to write data to \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true if serialization is successful 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___town_manager_component_a111be8de4baa5843468e5e89280a4f01}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!SetupTowns@{SetupTowns}}
+\index{SetupTowns@{SetupTowns}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{SetupTowns()}{SetupTowns()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a111be8de4baa5843468e5e89280a4f01} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Setup\+Towns (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Calculates the initial population for each town by querying nearby house entities. Called once during server Init. \Hypertarget{class_o_v_t___town_manager_component_aed22cecdd293ceae687caeb5415eb0a2}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!SpawnTownControllers@{SpawnTownControllers}}
+\index{SpawnTownControllers@{SpawnTownControllers}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{SpawnTownControllers()}{SpawnTownControllers()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_aed22cecdd293ceae687caeb5415eb0a2} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Spawn\+Town\+Controllers (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Spawns a town controller prefab at the location of each managed town. Called once after game start. \Hypertarget{class_o_v_t___town_manager_component_ab24a08ddb42fa5b5f4a59144690080f7}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!StreamTownModifiers@{StreamTownModifiers}}
+\index{StreamTownModifiers@{StreamTownModifiers}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{StreamTownModifiers()}{StreamTownModifiers()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_ab24a08ddb42fa5b5f4a59144690080f7} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Stream\+Town\+Modifiers (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Streams the current town modifiers (stability and support) to a specific player. 
+\begin{DoxyParams}{Parameters}
+{\em player\+Id} & The ID of the player to stream modifiers to \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_a146560a88f9877203812decd1f141716}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!TakeSupportersFromNearestTown@{TakeSupportersFromNearestTown}}
+\index{TakeSupportersFromNearestTown@{TakeSupportersFromNearestTown}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{TakeSupportersFromNearestTown()}{TakeSupportersFromNearestTown()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a146560a88f9877203812decd1f141716} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Take\+Supporters\+From\+Nearest\+Town (\begin{DoxyParamCaption}\item[{vector}]{pos}{, }\item[{int}]{num}{ = {\ttfamily 1}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Removes a specified number of supporters and population from the town nearest to a position. Synchronizes changes via RPC. 
+\begin{DoxyParams}{Parameters}
+{\em pos} & The position vector to find the nearest town from \\
+\hline
+{\em num} & The number of supporters/population to remove (default\+: 1) \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_a5ade73f2b1195b2376a1854301f9e972}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!TimeoutStabilityModifier@{TimeoutStabilityModifier}}
+\index{TimeoutStabilityModifier@{TimeoutStabilityModifier}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{TimeoutStabilityModifier()}{TimeoutStabilityModifier()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a5ade73f2b1195b2376a1854301f9e972} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Timeout\+Stability\+Modifier (\begin{DoxyParamCaption}\item[{int}]{town\+Id}{, }\item[{int}]{index}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Requests removal of a timed-\/out stability modifier via RPC. 
+\begin{DoxyParams}{Parameters}
+{\em town\+Id} & The ID of the town \\
+\hline
+{\em index} & The index ID of the timed-\/out stability modifier \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_a0ce06ded45daaecd050b7e07749220a8}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!TimeoutSupportModifier@{TimeoutSupportModifier}}
+\index{TimeoutSupportModifier@{TimeoutSupportModifier}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{TimeoutSupportModifier()}{TimeoutSupportModifier()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a0ce06ded45daaecd050b7e07749220a8} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Timeout\+Support\+Modifier (\begin{DoxyParamCaption}\item[{int}]{town\+Id}{, }\item[{int}]{index}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Requests removal of a timed-\/out support modifier via RPC. 
+\begin{DoxyParams}{Parameters}
+{\em town\+Id} & The ID of the town \\
+\hline
+{\em index} & The index ID of the timed-\/out support modifier \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_a79f7d6c6fc0d359d289ea67dc4c6acde}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!TryAddStabilityModifier@{TryAddStabilityModifier}}
+\index{TryAddStabilityModifier@{TryAddStabilityModifier}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{TryAddStabilityModifier()}{TryAddStabilityModifier()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a79f7d6c6fc0d359d289ea67dc4c6acde} 
+bool OVT\+\_\+\+Town\+Manager\+Component\+::\+Try\+Add\+Stability\+Modifier (\begin{DoxyParamCaption}\item[{int}]{town\+Id}{, }\item[{int}]{index}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Attempts to add a stability modifier to a town by its index ID. Handles stacking and timer resets. 
+\begin{DoxyParams}{Parameters}
+{\em town\+Id} & The ID of the town \\
+\hline
+{\em index} & The index ID of the stability modifier \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true if the modifier was added or refreshed, false if stacking limit reached 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___town_manager_component_a58048cb29b2104dadf659eb7e63f845b}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!TryAddStabilityModifierByName@{TryAddStabilityModifierByName}}
+\index{TryAddStabilityModifierByName@{TryAddStabilityModifierByName}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{TryAddStabilityModifierByName()}{TryAddStabilityModifierByName()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a58048cb29b2104dadf659eb7e63f845b} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Try\+Add\+Stability\+Modifier\+By\+Name (\begin{DoxyParamCaption}\item[{int}]{town\+Id}{, }\item[{string}]{name}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Attempts to add a stability modifier to a town by its configuration name. 
+\begin{DoxyParams}{Parameters}
+{\em town\+Id} & The ID of the town \\
+\hline
+{\em name} & The name of the stability modifier as defined in the config \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___town_manager_component_a167b3c39e018ce8144d42b0442cfff42}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!TryAddSupportModifier@{TryAddSupportModifier}}
+\index{TryAddSupportModifier@{TryAddSupportModifier}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{TryAddSupportModifier()}{TryAddSupportModifier()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_a167b3c39e018ce8144d42b0442cfff42} 
+bool OVT\+\_\+\+Town\+Manager\+Component\+::\+Try\+Add\+Support\+Modifier (\begin{DoxyParamCaption}\item[{int}]{town\+Id}{, }\item[{int}]{index}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Attempts to add a support modifier to a town by its index ID. Handles stacking and timer resets. 
+\begin{DoxyParams}{Parameters}
+{\em town\+Id} & The ID of the town \\
+\hline
+{\em index} & The index ID of the support modifier \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true if the modifier was added or refreshed, false if stacking limit reached 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___town_manager_component_aa447a2bfbcdf31b212d6b6b03874f104}\index{OVT\_TownManagerComponent@{OVT\_TownManagerComponent}!TryAddSupportModifierByName@{TryAddSupportModifierByName}}
+\index{TryAddSupportModifierByName@{TryAddSupportModifierByName}!OVT\_TownManagerComponent@{OVT\_TownManagerComponent}}
+\doxysubsubsection{\texorpdfstring{TryAddSupportModifierByName()}{TryAddSupportModifierByName()}}
+{\footnotesize\ttfamily \label{class_o_v_t___town_manager_component_aa447a2bfbcdf31b212d6b6b03874f104} 
+void OVT\+\_\+\+Town\+Manager\+Component\+::\+Try\+Add\+Support\+Modifier\+By\+Name (\begin{DoxyParamCaption}\item[{int}]{town\+Id}{, }\item[{string}]{name}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Attempts to add a support modifier to a town by its configuration name. 
+\begin{DoxyParams}{Parameters}
+{\em town\+Id} & The ID of the town \\
+\hline
+{\em name} & The name of the support modifier as defined in the config \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+C\+:/\+Users/austi/\+Documents/\+Git\+Hub/\+Overthrow.\+Arma4/\+Scripts/\+Game/\+Game\+Mode/\+Managers/OVT\+\_\+\+Town\+Manager\+Component.\+c\end{DoxyCompactItemize}

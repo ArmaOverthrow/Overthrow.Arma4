@@ -1,0 +1,268 @@
+\doxysection{OVT\+\_\+\+Skill\+Manager\+Component Class Reference}
+\hypertarget{class_o_v_t___skill_manager_component}{}\label{class_o_v_t___skill_manager_component}\index{OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}}
+Inheritance diagram for OVT\+\_\+\+Skill\+Manager\+Component\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_o_v_t___skill_manager_component}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{class_o_v_t___skill_manager_component_a25a306b8268b3731ec68182dfc6b65a9}{Do\+Invoke\+Skill\+Data}} (int player\+Id, string key, int newlevel)
+\item 
+void \mbox{\hyperlink{class_o_v_t___skill_manager_component_a832f80503984dda4b2593958ee423de3}{Do\+Invoke\+Skill\+Spawn}} (int player\+Id, string key, int newlevel)
+\item 
+void \mbox{\hyperlink{class_o_v_t___skill_manager_component_a43356eb03b99b5c21f86f281bfd7fd17}{On\+Place}} (IEntity entity, OVT\+\_\+\+Placeable placeable, int player\+Id)
+\item 
+void \mbox{\hyperlink{class_o_v_t___skill_manager_component_a85574de86cce5507f701edcf1207572d}{On\+Build}} (IEntity entity, OVT\+\_\+\+Buildable buildable, int player\+Id)
+\item 
+void \mbox{\hyperlink{class_o_v_t___skill_manager_component_a5947d04c6a3a732e47371fc0209223c2}{On\+Player\+Killed}} (notnull SCR\+\_\+\+Instigator\+Context\+Data instigator\+Context\+Data)
+\item 
+void \mbox{\hyperlink{class_o_v_t___skill_manager_component_a1294bd937757356feb0c29713598762c}{On\+Player\+Buy}} (int player\+Id, int amount)
+\item 
+void \mbox{\hyperlink{class_o_v_t___skill_manager_component_af22eac81e98de22c0592c81907bd8b54}{On\+Player\+Sell}} (int player\+Id, int amount)
+\item 
+void \mbox{\hyperlink{class_o_v_t___skill_manager_component_ac13ffe49b1277a15d887f3b4923104bc}{On\+AIKilled}} (IEntity killed, IEntity instigator)
+\item 
+void \mbox{\hyperlink{class_o_v_t___skill_manager_component_a6871884db425d0edb812f8268f287ce5}{Take\+XP}} (int player\+Id, int num)
+\item 
+void \mbox{\hyperlink{class_o_v_t___skill_manager_component_a91686125d60f2afe90d33f88d2b7535b}{Give\+XP}} (int player\+Id, int num)
+\item 
+OVT\+\_\+\+Skill\+Config \mbox{\hyperlink{class_o_v_t___skill_manager_component_a68f4c9fd58e7f02767c2ae9a2e5ae1eb}{Get\+Skill}} (string key)
+\item 
+void \mbox{\hyperlink{class_o_v_t___skill_manager_component_ae36c53093f1ab748bb05100865bacc8c}{Stream\+Player\+Kills}} (int player\+Id, int kills)
+\item 
+void \mbox{\hyperlink{class_o_v_t___skill_manager_component_aa01c6280e33f539a81bdf7bfe1823e12}{Rpc\+Do\+\_\+\+Set\+Player\+Kills}} (int player\+Id, int kills)
+\item 
+void \mbox{\hyperlink{class_o_v_t___skill_manager_component_a868037c70aacb14cf3ad1fa54d0cb0da}{Stream\+Player\+XP}} (int player\+Id, int xp)
+\item 
+void \mbox{\hyperlink{class_o_v_t___skill_manager_component_ab21ad68968f58db32c70afdfbc6fdbfb}{Rpc\+Do\+\_\+\+Set\+Player\+XP}} (int player\+Id, int xp)
+\item 
+void \mbox{\hyperlink{class_o_v_t___skill_manager_component_a7108ec94c57be5ca3174a65763fbd6f6}{Rpc\+Do\+\_\+\+Set\+Player\+Skill}} (int player\+Id, string key, int level)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_o_v_t___skill_manager_component_a25a306b8268b3731ec68182dfc6b65a9}\index{OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}!DoInvokeSkillData@{DoInvokeSkillData}}
+\index{DoInvokeSkillData@{DoInvokeSkillData}!OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}}
+\doxysubsubsection{\texorpdfstring{DoInvokeSkillData()}{DoInvokeSkillData()}}
+{\footnotesize\ttfamily \label{class_o_v_t___skill_manager_component_a25a306b8268b3731ec68182dfc6b65a9} 
+void OVT\+\_\+\+Skill\+Manager\+Component\+::\+Do\+Invoke\+Skill\+Data (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{, }\item[{string}]{key}{, }\item[{int}]{newlevel}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Invokes the data-\/related effects of a skill level for a specific player. 
+\begin{DoxyParams}{Parameters}
+{\em player\+Id} & The ID of the player. \\
+\hline
+{\em key} & The string identifier of the skill. \\
+\hline
+{\em newlevel} & The new level of the skill. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___skill_manager_component_a832f80503984dda4b2593958ee423de3}\index{OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}!DoInvokeSkillSpawn@{DoInvokeSkillSpawn}}
+\index{DoInvokeSkillSpawn@{DoInvokeSkillSpawn}!OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}}
+\doxysubsubsection{\texorpdfstring{DoInvokeSkillSpawn()}{DoInvokeSkillSpawn()}}
+{\footnotesize\ttfamily \label{class_o_v_t___skill_manager_component_a832f80503984dda4b2593958ee423de3} 
+void OVT\+\_\+\+Skill\+Manager\+Component\+::\+Do\+Invoke\+Skill\+Spawn (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{, }\item[{string}]{key}{, }\item[{int}]{newlevel}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Invokes the spawn-\/related effects of a skill level for a specific player\textquotesingle{}s character. 
+\begin{DoxyParams}{Parameters}
+{\em player\+Id} & The ID of the player. \\
+\hline
+{\em key} & The string identifier of the skill. \\
+\hline
+{\em newlevel} & The new level of the skill. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___skill_manager_component_a68f4c9fd58e7f02767c2ae9a2e5ae1eb}\index{OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}!GetSkill@{GetSkill}}
+\index{GetSkill@{GetSkill}!OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetSkill()}{GetSkill()}}
+{\footnotesize\ttfamily \label{class_o_v_t___skill_manager_component_a68f4c9fd58e7f02767c2ae9a2e5ae1eb} 
+OVT\+\_\+\+Skill\+Config OVT\+\_\+\+Skill\+Manager\+Component\+::\+Get\+Skill (\begin{DoxyParamCaption}\item[{string}]{key}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Retrieves the skill configuration for a given skill key. 
+\begin{DoxyParams}{Parameters}
+{\em key} & The string identifier of the skill. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The OVT\+\_\+\+Skill\+Config object, or null if not found. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___skill_manager_component_a91686125d60f2afe90d33f88d2b7535b}\index{OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}!GiveXP@{GiveXP}}
+\index{GiveXP@{GiveXP}!OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GiveXP()}{GiveXP()}}
+{\footnotesize\ttfamily \label{class_o_v_t___skill_manager_component_a91686125d60f2afe90d33f88d2b7535b} 
+void OVT\+\_\+\+Skill\+Manager\+Component\+::\+Give\+XP (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{, }\item[{int}]{num}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Awards XP to a player and handles level-\/up notifications. 
+\begin{DoxyParams}{Parameters}
+{\em player\+Id} & The ID of the player gaining XP. \\
+\hline
+{\em num} & The amount of XP to give. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___skill_manager_component_ac13ffe49b1277a15d887f3b4923104bc}\index{OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}!OnAIKilled@{OnAIKilled}}
+\index{OnAIKilled@{OnAIKilled}!OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}}
+\doxysubsubsection{\texorpdfstring{OnAIKilled()}{OnAIKilled()}}
+{\footnotesize\ttfamily \label{class_o_v_t___skill_manager_component_ac13ffe49b1277a15d887f3b4923104bc} 
+void OVT\+\_\+\+Skill\+Manager\+Component\+::\+On\+AIKilled (\begin{DoxyParamCaption}\item[{IEntity}]{killed}{, }\item[{IEntity}]{instigator}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Callback executed when an AI unit is killed. Awards XP and increments kill count if killed by a player and belongs to the occupying faction. 
+\begin{DoxyParams}{Parameters}
+{\em killed} & The AI entity that was killed. \\
+\hline
+{\em instigator} & The entity that killed the AI. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___skill_manager_component_a85574de86cce5507f701edcf1207572d}\index{OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}!OnBuild@{OnBuild}}
+\index{OnBuild@{OnBuild}!OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}}
+\doxysubsubsection{\texorpdfstring{OnBuild()}{OnBuild()}}
+{\footnotesize\ttfamily \label{class_o_v_t___skill_manager_component_a85574de86cce5507f701edcf1207572d} 
+void OVT\+\_\+\+Skill\+Manager\+Component\+::\+On\+Build (\begin{DoxyParamCaption}\item[{IEntity}]{entity}{, }\item[{OVT\+\_\+\+Buildable}]{buildable}{, }\item[{int}]{player\+Id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Callback executed when a player builds a buildable entity. Awards XP to the player. 
+\begin{DoxyParams}{Parameters}
+{\em entity} & The built entity. \\
+\hline
+{\em buildable} & The OVT\+\_\+\+Buildable component of the entity. \\
+\hline
+{\em player\+Id} & The ID of the player who built the entity. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___skill_manager_component_a43356eb03b99b5c21f86f281bfd7fd17}\index{OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}!OnPlace@{OnPlace}}
+\index{OnPlace@{OnPlace}!OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}}
+\doxysubsubsection{\texorpdfstring{OnPlace()}{OnPlace()}}
+{\footnotesize\ttfamily \label{class_o_v_t___skill_manager_component_a43356eb03b99b5c21f86f281bfd7fd17} 
+void OVT\+\_\+\+Skill\+Manager\+Component\+::\+On\+Place (\begin{DoxyParamCaption}\item[{IEntity}]{entity}{, }\item[{OVT\+\_\+\+Placeable}]{placeable}{, }\item[{int}]{player\+Id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Callback executed when a player places a placeable entity. Awards XP to the player. 
+\begin{DoxyParams}{Parameters}
+{\em entity} & The placed entity. \\
+\hline
+{\em placeable} & The OVT\+\_\+\+Placeable component of the entity. \\
+\hline
+{\em player\+Id} & The ID of the player who placed the entity. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___skill_manager_component_a1294bd937757356feb0c29713598762c}\index{OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}!OnPlayerBuy@{OnPlayerBuy}}
+\index{OnPlayerBuy@{OnPlayerBuy}!OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}}
+\doxysubsubsection{\texorpdfstring{OnPlayerBuy()}{OnPlayerBuy()}}
+{\footnotesize\ttfamily \label{class_o_v_t___skill_manager_component_a1294bd937757356feb0c29713598762c} 
+void OVT\+\_\+\+Skill\+Manager\+Component\+::\+On\+Player\+Buy (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{, }\item[{int}]{amount}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Callback executed when a player buys items. Awards a small amount of XP. 
+\begin{DoxyParams}{Parameters}
+{\em player\+Id} & The ID of the player who bought items. \\
+\hline
+{\em amount} & The total amount spent. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___skill_manager_component_a5947d04c6a3a732e47371fc0209223c2}\index{OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}!OnPlayerKilled@{OnPlayerKilled}}
+\index{OnPlayerKilled@{OnPlayerKilled}!OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}}
+\doxysubsubsection{\texorpdfstring{OnPlayerKilled()}{OnPlayerKilled()}}
+{\footnotesize\ttfamily \label{class_o_v_t___skill_manager_component_a5947d04c6a3a732e47371fc0209223c2} 
+void OVT\+\_\+\+Skill\+Manager\+Component\+::\+On\+Player\+Killed (\begin{DoxyParamCaption}\item[{notnull SCR\+\_\+\+Instigator\+Context\+Data}]{instigator\+Context\+Data}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Callback executed when a player is killed. Takes away XP from the victim. 
+\begin{DoxyParams}{Parameters}
+{\em instigator\+Context\+Data} & Context data about the kill event. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___skill_manager_component_af22eac81e98de22c0592c81907bd8b54}\index{OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}!OnPlayerSell@{OnPlayerSell}}
+\index{OnPlayerSell@{OnPlayerSell}!OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}}
+\doxysubsubsection{\texorpdfstring{OnPlayerSell()}{OnPlayerSell()}}
+{\footnotesize\ttfamily \label{class_o_v_t___skill_manager_component_af22eac81e98de22c0592c81907bd8b54} 
+void OVT\+\_\+\+Skill\+Manager\+Component\+::\+On\+Player\+Sell (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{, }\item[{int}]{amount}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Callback executed when a player sells items. Awards XP based on the sell amount. 
+\begin{DoxyParams}{Parameters}
+{\em player\+Id} & The ID of the player who sold items. \\
+\hline
+{\em amount} & The total amount received. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___skill_manager_component_aa01c6280e33f539a81bdf7bfe1823e12}\index{OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}!RpcDo\_SetPlayerKills@{RpcDo\_SetPlayerKills}}
+\index{RpcDo\_SetPlayerKills@{RpcDo\_SetPlayerKills}!OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RpcDo\_SetPlayerKills()}{RpcDo\_SetPlayerKills()}}
+{\footnotesize\ttfamily \label{class_o_v_t___skill_manager_component_aa01c6280e33f539a81bdf7bfe1823e12} 
+void OVT\+\_\+\+Skill\+Manager\+Component\+::\+Rpc\+Do\+\_\+\+Set\+Player\+Kills (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{, }\item[{int}]{kills}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+RPC method to set the player\textquotesingle{}s kill count on clients. 
+\begin{DoxyParams}{Parameters}
+{\em player\+Id} & The ID of the player. \\
+\hline
+{\em kills} & The kill count to set. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___skill_manager_component_a7108ec94c57be5ca3174a65763fbd6f6}\index{OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}!RpcDo\_SetPlayerSkill@{RpcDo\_SetPlayerSkill}}
+\index{RpcDo\_SetPlayerSkill@{RpcDo\_SetPlayerSkill}!OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RpcDo\_SetPlayerSkill()}{RpcDo\_SetPlayerSkill()}}
+{\footnotesize\ttfamily \label{class_o_v_t___skill_manager_component_a7108ec94c57be5ca3174a65763fbd6f6} 
+void OVT\+\_\+\+Skill\+Manager\+Component\+::\+Rpc\+Do\+\_\+\+Set\+Player\+Skill (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{, }\item[{string}]{key}{, }\item[{int}]{level}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+RPC method to set a player\textquotesingle{}s skill level on clients. Invokes local skill effects if the RPC is received by the owning client. 
+\begin{DoxyParams}{Parameters}
+{\em player\+Id} & The ID of the player. \\
+\hline
+{\em key} & The string identifier of the skill. \\
+\hline
+{\em level} & The new level of the skill. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___skill_manager_component_ab21ad68968f58db32c70afdfbc6fdbfb}\index{OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}!RpcDo\_SetPlayerXP@{RpcDo\_SetPlayerXP}}
+\index{RpcDo\_SetPlayerXP@{RpcDo\_SetPlayerXP}!OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RpcDo\_SetPlayerXP()}{RpcDo\_SetPlayerXP()}}
+{\footnotesize\ttfamily \label{class_o_v_t___skill_manager_component_ab21ad68968f58db32c70afdfbc6fdbfb} 
+void OVT\+\_\+\+Skill\+Manager\+Component\+::\+Rpc\+Do\+\_\+\+Set\+Player\+XP (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{, }\item[{int}]{xp}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+RPC method to set the player\textquotesingle{}s XP on clients. 
+\begin{DoxyParams}{Parameters}
+{\em player\+Id} & The ID of the player. \\
+\hline
+{\em xp} & The XP value to set. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___skill_manager_component_ae36c53093f1ab748bb05100865bacc8c}\index{OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}!StreamPlayerKills@{StreamPlayerKills}}
+\index{StreamPlayerKills@{StreamPlayerKills}!OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}}
+\doxysubsubsection{\texorpdfstring{StreamPlayerKills()}{StreamPlayerKills()}}
+{\footnotesize\ttfamily \label{class_o_v_t___skill_manager_component_ae36c53093f1ab748bb05100865bacc8c} 
+void OVT\+\_\+\+Skill\+Manager\+Component\+::\+Stream\+Player\+Kills (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{, }\item[{int}]{kills}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Sends an RPC to update the kill count for a player on all clients. 
+\begin{DoxyParams}{Parameters}
+{\em player\+Id} & The ID of the player. \\
+\hline
+{\em kills} & The new kill count. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___skill_manager_component_a868037c70aacb14cf3ad1fa54d0cb0da}\index{OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}!StreamPlayerXP@{StreamPlayerXP}}
+\index{StreamPlayerXP@{StreamPlayerXP}!OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}}
+\doxysubsubsection{\texorpdfstring{StreamPlayerXP()}{StreamPlayerXP()}}
+{\footnotesize\ttfamily \label{class_o_v_t___skill_manager_component_a868037c70aacb14cf3ad1fa54d0cb0da} 
+void OVT\+\_\+\+Skill\+Manager\+Component\+::\+Stream\+Player\+XP (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{, }\item[{int}]{xp}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Sends an RPC to update the XP for a player on all clients. 
+\begin{DoxyParams}{Parameters}
+{\em player\+Id} & The ID of the player. \\
+\hline
+{\em xp} & The new XP value. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___skill_manager_component_a6871884db425d0edb812f8268f287ce5}\index{OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}!TakeXP@{TakeXP}}
+\index{TakeXP@{TakeXP}!OVT\_SkillManagerComponent@{OVT\_SkillManagerComponent}}
+\doxysubsubsection{\texorpdfstring{TakeXP()}{TakeXP()}}
+{\footnotesize\ttfamily \label{class_o_v_t___skill_manager_component_a6871884db425d0edb812f8268f287ce5} 
+void OVT\+\_\+\+Skill\+Manager\+Component\+::\+Take\+XP (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{, }\item[{int}]{num}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Reduces the XP of a player. Ensures XP does not go below zero. 
+\begin{DoxyParams}{Parameters}
+{\em player\+Id} & The ID of the player losing XP. \\
+\hline
+{\em num} & The amount of XP to take away. \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+C\+:/\+Users/austi/\+Documents/\+Git\+Hub/\+Overthrow.\+Arma4/\+Scripts/\+Game/\+Game\+Mode/\+Managers/OVT\+\_\+\+Skill\+Manager\+Component.\+c\end{DoxyCompactItemize}

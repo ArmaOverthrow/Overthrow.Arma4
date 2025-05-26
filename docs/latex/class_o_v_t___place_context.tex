@@ -1,0 +1,118 @@
+\doxysection{OVT\+\_\+\+Place\+Context Class Reference}
+\hypertarget{class_o_v_t___place_context}{}\label{class_o_v_t___place_context}\index{OVT\_PlaceContext@{OVT\_PlaceContext}}
+Inheritance diagram for OVT\+\_\+\+Place\+Context\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_o_v_t___place_context}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_o_v_t___place_context_a814f0f1117e29931f9e464dff03db94c}\label{class_o_v_t___place_context_a814f0f1117e29931f9e464dff03db94c} 
+override void {\bfseries Post\+Init} ()
+\item 
+\Hypertarget{class_o_v_t___place_context_a52d9a9e2a9c004996e8ac8f8f086cf66}\label{class_o_v_t___place_context_a52d9a9e2a9c004996e8ac8f8f086cf66} 
+override void {\bfseries On\+Frame} (float time\+Slice)
+\item 
+\Hypertarget{class_o_v_t___place_context_ab471da015762047f12f6859d190d42eb}\label{class_o_v_t___place_context_ab471da015762047f12f6859d190d42eb} 
+override void {\bfseries On\+Show} ()
+\item 
+\Hypertarget{class_o_v_t___place_context_ac45774d0d07202d4a9d66514eb3c1d44}\label{class_o_v_t___place_context_ac45774d0d07202d4a9d66514eb3c1d44} 
+override void {\bfseries Register\+Inputs} ()
+\item 
+\Hypertarget{class_o_v_t___place_context_a04f3b2392f98cc91cc93abb4579c7949}\label{class_o_v_t___place_context_a04f3b2392f98cc91cc93abb4579c7949} 
+override void {\bfseries Unregister\+Inputs} ()
+\item 
+\Hypertarget{class_o_v_t___place_context_a2c15fcfa2429c10fa455a25d08ae96bf}\label{class_o_v_t___place_context_a2c15fcfa2429c10fa455a25d08ae96bf} 
+void {\bfseries Cancel} (float value=1, EAction\+Trigger reason=EAction\+Trigger.\+DOWN)
+\item 
+\Hypertarget{class_o_v_t___place_context_a3b5ced72eb693c1e7eabc58398f941f2}\label{class_o_v_t___place_context_a3b5ced72eb693c1e7eabc58398f941f2} 
+bool {\bfseries Can\+Place} (OVT\+\_\+\+Placeable placeable, vector pos, out string reason)
+\item 
+\Hypertarget{class_o_v_t___place_context_aa44d70e7c6f981b5b751119ba5e73095}\label{class_o_v_t___place_context_aa44d70e7c6f981b5b751119ba5e73095} 
+void {\bfseries Start\+Place} (OVT\+\_\+\+Placeable placeable)
+\item 
+\Hypertarget{class_o_v_t___place_context_a410b052984b78995b6a1e671a0bf79e2}\label{class_o_v_t___place_context_a410b052984b78995b6a1e671a0bf79e2} 
+void {\bfseries Spawn\+Ghost} ()
+\item 
+\Hypertarget{class_o_v_t___place_context_a72307684d061eb19fe274a45a79151d6}\label{class_o_v_t___place_context_a72307684d061eb19fe274a45a79151d6} 
+void {\bfseries Remove\+Ghost} ()
+\item 
+\Hypertarget{class_o_v_t___place_context_a713382b8e44a886bc625501b1bbb9eba}\label{class_o_v_t___place_context_a713382b8e44a886bc625501b1bbb9eba} 
+void {\bfseries Do\+Place} (float value=1, EAction\+Trigger reason=EAction\+Trigger.\+DOWN)
+\item 
+\Hypertarget{class_o_v_t___place_context_a016926d408bdefe85d4f896e5e617b44}\label{class_o_v_t___place_context_a016926d408bdefe85d4f896e5e617b44} 
+void {\bfseries Next\+Item} (float value=1, EAction\+Trigger reason=EAction\+Trigger.\+DOWN)
+\item 
+\Hypertarget{class_o_v_t___place_context_a2920618786933b6bb479afdb40c50e48}\label{class_o_v_t___place_context_a2920618786933b6bb479afdb40c50e48} 
+void {\bfseries Prev\+Item} (float value=1, EAction\+Trigger reason=EAction\+Trigger.\+DOWN)
+\item 
+\Hypertarget{class_o_v_t___place_context_aa676ba9f75dc85022703db02cb8c95ad}\label{class_o_v_t___place_context_aa676ba9f75dc85022703db02cb8c95ad} 
+void {\bfseries Rotate\+Left} (float value=1, EAction\+Trigger reason=EAction\+Trigger.\+DOWN)
+\item 
+\Hypertarget{class_o_v_t___place_context_a3250ec1e6516dda5e9daf107ea1b4e01}\label{class_o_v_t___place_context_a3250ec1e6516dda5e9daf107ea1b4e01} 
+void {\bfseries Rotate\+Right} (float value=1, EAction\+Trigger reason=EAction\+Trigger.\+DOWN)
+\item 
+\Hypertarget{class_o_v_t___place_context_a8c15379aee53823240d5d6ac8940c0ca}\label{class_o_v_t___place_context_a8c15379aee53823240d5d6ac8940c0ca} 
+vector {\bfseries Get\+Place\+Position} (out vector normal)
+\item 
+\Hypertarget{class_o_v_t___place_context_a02d2e9c54a9dbd5acc22bc57f8243070}\label{class_o_v_t___place_context_a02d2e9c54a9dbd5acc22bc57f8243070} 
+float {\bfseries Get\+Trace\+Dis} (vector pos, vector dir, float camera\+Height, out vector hit\+Normal)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_o_v_t___place_context_a18bdd53266b8e31ec9bf4c24a845d529}\label{class_o_v_t___place_context_a18bdd53266b8e31ec9bf4c24a845d529} 
+Widget {\bfseries m\+\_\+\+Place\+Widget}
+\item 
+\Hypertarget{class_o_v_t___place_context_a546db5b852cc058a8ebabf0ed03abadf}\label{class_o_v_t___place_context_a546db5b852cc058a8ebabf0ed03abadf} 
+ref \mbox{\hyperlink{class_o_v_t___place_menu_widgets}{OVT\+\_\+\+Place\+Menu\+Widgets}} {\bfseries m\+\_\+\+Widgets}
+\item 
+\Hypertarget{class_o_v_t___place_context_a2bafe3d156943088f0de909722694a1b}\label{class_o_v_t___place_context_a2bafe3d156943088f0de909722694a1b} 
+IEntity {\bfseries m\+\_\+e\+Placing\+Entity}
+\item 
+\Hypertarget{class_o_v_t___place_context_a04d7a9c2aa7f4ab4eff1fbaf117f51e2}\label{class_o_v_t___place_context_a04d7a9c2aa7f4ab4eff1fbaf117f51e2} 
+Resource\+Name {\bfseries m\+\_\+p\+Placing\+Prefab}
+\item 
+\Hypertarget{class_o_v_t___place_context_aade7f7e8c5978f8c11501bf859541ff1}\label{class_o_v_t___place_context_aade7f7e8c5978f8c11501bf859541ff1} 
+OVT\+\_\+\+Placeable {\bfseries m\+\_\+\+Placeable}
+\item 
+\Hypertarget{class_o_v_t___place_context_ab372d3d4a9cc5ea44f0d23cbe17fa049}\label{class_o_v_t___place_context_ab372d3d4a9cc5ea44f0d23cbe17fa049} 
+vector\mbox{[}$\,$\mbox{]} {\bfseries m\+\_\+v\+Current\+Transform} \mbox{[}4\mbox{]}
+\item 
+\Hypertarget{class_o_v_t___place_context_a4ab176b9fa062cf1bd6bc393928c8425}\label{class_o_v_t___place_context_a4ab176b9fa062cf1bd6bc393928c8425} 
+const float {\bfseries TRACE\+\_\+\+DIS} = 15
+\item 
+\Hypertarget{class_o_v_t___place_context_a28527282cb26f577bf8e19e93fc74634}\label{class_o_v_t___place_context_a28527282cb26f577bf8e19e93fc74634} 
+const float {\bfseries MAX\+\_\+\+PREVIEW\+\_\+\+DIS} = 15
+\item 
+\Hypertarget{class_o_v_t___place_context_acf43bb07cfa2d2ae55041a8b38f8c1ca}\label{class_o_v_t___place_context_acf43bb07cfa2d2ae55041a8b38f8c1ca} 
+const float {\bfseries MAX\+\_\+\+HOUSE\+\_\+\+PLACE\+\_\+\+DIS} = 30
+\item 
+\Hypertarget{class_o_v_t___place_context_a0ecf082fe17918411de8bde6a7eb112e}\label{class_o_v_t___place_context_a0ecf082fe17918411de8bde6a7eb112e} 
+const float {\bfseries MAX\+\_\+\+FOB\+\_\+\+PLACE\+\_\+\+DIS} = 60
+\item 
+\Hypertarget{class_o_v_t___place_context_a262e7325b98370594948bc8f48aa5270}\label{class_o_v_t___place_context_a262e7325b98370594948bc8f48aa5270} 
+OVT\+\_\+\+Real\+Estate\+Manager\+Component {\bfseries m\+\_\+\+Real\+Estate}
+\item 
+\Hypertarget{class_o_v_t___place_context_a95fc6b549f353a97402663e383baa45a}\label{class_o_v_t___place_context_a95fc6b549f353a97402663e383baa45a} 
+\mbox{\hyperlink{class_o_v_t___occupying_faction_manager}{OVT\+\_\+\+Occupying\+Faction\+Manager}} {\bfseries m\+\_\+\+Occupying\+Faction}
+\item 
+\Hypertarget{class_o_v_t___place_context_a787b41f785db4f2963b3f63e77989853}\label{class_o_v_t___place_context_a787b41f785db4f2963b3f63e77989853} 
+\mbox{\hyperlink{class_o_v_t___resistance_faction_manager}{OVT\+\_\+\+Resistance\+Faction\+Manager}} {\bfseries m\+\_\+\+Resistance}
+\item 
+\Hypertarget{class_o_v_t___place_context_abe1b2b3628df91934f476f6377c0ee46}\label{class_o_v_t___place_context_abe1b2b3628df91934f476f6377c0ee46} 
+\mbox{\hyperlink{class_o_v_t___town_manager_component}{OVT\+\_\+\+Town\+Manager\+Component}} {\bfseries m\+\_\+\+Towns}
+\item 
+\Hypertarget{class_o_v_t___place_context_a962aa31ca0031689d088c3dfc8050278}\label{class_o_v_t___place_context_a962aa31ca0031689d088c3dfc8050278} 
+bool {\bfseries m\+\_\+b\+Placing} = false
+\item 
+\Hypertarget{class_o_v_t___place_context_aea9a76808badb278c416dbed21d9f4a0}\label{class_o_v_t___place_context_aea9a76808badb278c416dbed21d9f4a0} 
+int {\bfseries m\+\_\+i\+Prefab\+Index} = 0
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+C\+:/\+Users/austi/\+Documents/\+Git\+Hub/\+Overthrow.\+Arma4/\+Scripts/\+Game/\+UI/\+Context/OVT\+\_\+\+Place\+Context.\+c\end{DoxyCompactItemize}
