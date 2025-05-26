@@ -1,0 +1,235 @@
+\doxysection{OVT\+\_\+\+Player\+Manager\+Component Class Reference}
+\hypertarget{class_o_v_t___player_manager_component}{}\label{class_o_v_t___player_manager_component}\index{OVT\_PlayerManagerComponent@{OVT\_PlayerManagerComponent}}
+Inheritance diagram for OVT\+\_\+\+Player\+Manager\+Component\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_o_v_t___player_manager_component}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{class_o_v_t___player_manager_component_a300fc939026adfd065b95154f2a0d8a0}{Init}} (IEntity owner)
+\item 
+\mbox{\hyperlink{class_o_v_t___player_data}{OVT\+\_\+\+Player\+Data}} \mbox{\hyperlink{class_o_v_t___player_manager_component_ae3d922919bd45726db57d4430666e2d8}{Get\+Player}} (string pers\+Id)
+\item 
+bool \mbox{\hyperlink{class_o_v_t___player_manager_component_a924c14f8cbd1ea5d649a1e8841a9384f}{Local\+Player\+Is\+Officer}} ()
+\item 
+\mbox{\hyperlink{class_o_v_t___player_data}{OVT\+\_\+\+Player\+Data}} \mbox{\hyperlink{class_o_v_t___player_manager_component_aceff2bbaa7de31af4b6df1bbb4fe62ab}{Get\+Player}} (int player\+Id)
+\item 
+string \mbox{\hyperlink{class_o_v_t___player_manager_component_a0aa87882c810364caa063c073f10dc56}{Get\+Player\+Name}} (string pers\+Id)
+\item 
+string \mbox{\hyperlink{class_o_v_t___player_manager_component_ae726efea3bbd52121c79e6daaec951c7}{Get\+Player\+Name}} (int player\+Id)
+\item 
+string \mbox{\hyperlink{class_o_v_t___player_manager_component_a56c9cb39b623f9d7eac836a67037f3a4}{Get\+Persistent\+IDFrom\+Player\+ID}} (int player\+Id)
+\item 
+string \mbox{\hyperlink{class_o_v_t___player_manager_component_ae2a02bf0fb4908bd2637b57ed43aab56}{Get\+Persistent\+IDFrom\+Controlled\+Entity}} (IEntity controlled)
+\item 
+int \mbox{\hyperlink{class_o_v_t___player_manager_component_ad32061ac4ebc74cc0e8f948341a1d66a}{Get\+Player\+IDFrom\+Persistent\+ID}} (string id)
+\item 
+void \mbox{\hyperlink{class_o_v_t___player_manager_component_a4b985712dd5ceb1860def5d051d1765e}{Setup\+Player}} (int player\+Id, string persistent\+Id)
+\item 
+override bool \mbox{\hyperlink{class_o_v_t___player_manager_component_aa7c3293d529315a6cf4d85a171bf4056}{Rpl\+Save}} (Script\+Bit\+Writer writer)
+\item 
+override bool \mbox{\hyperlink{class_o_v_t___player_manager_component_a66c469a79ab1a35a466966bd60626733}{Rpl\+Load}} (Script\+Bit\+Reader reader)
+\item 
+void \mbox{\hyperlink{class_o_v_t___player_manager_component_a901c69b6f7a942a9ba867fb1087330ba}{Rpc\+Do\+\_\+\+Register\+Player}} (int player\+Id, string s)
+\item 
+\Hypertarget{class_o_v_t___player_manager_component_ad67cb4aa885f90685a060b611c2047ac}\label{class_o_v_t___player_manager_component_ad67cb4aa885f90685a060b611c2047ac} 
+void {\bfseries \texorpdfstring{$\sim$}{\string~}\+OVT\+\_\+\+Player\+Manager\+Component} ()
+\begin{DoxyCompactList}\small\item\em Cleans up the component\textquotesingle{}s maps when destroyed. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_o_v_t___player_manager_component_aaa1e2b4f19b4ff47b1a438d850903f2f}\label{class_o_v_t___player_manager_component_aaa1e2b4f19b4ff47b1a438d850903f2f} 
+ref map$<$ int, string $>$ {\bfseries m\+\_\+m\+Persistent\+IDs}
+\begin{DoxyCompactList}\small\item\em Maps runtime Player IDs (int) to their persistent string IDs (string). \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___player_manager_component_aa0f818d1546c924ca4555b1ea62d3499}\label{class_o_v_t___player_manager_component_aa0f818d1546c924ca4555b1ea62d3499} 
+ref map$<$ string, int $>$ {\bfseries m\+\_\+m\+Player\+IDs}
+\begin{DoxyCompactList}\small\item\em Maps persistent string IDs (string) back to runtime Player IDs (int). \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___player_manager_component_aef88216d35506e8cbc35803da593fa4f}\label{class_o_v_t___player_manager_component_aef88216d35506e8cbc35803da593fa4f} 
+ref map$<$ string, ref \mbox{\hyperlink{class_o_v_t___player_data}{OVT\+\_\+\+Player\+Data}} $>$ {\bfseries m\+\_\+m\+Players}
+\begin{DoxyCompactList}\small\item\em Stores the \doxylink{class_o_v_t___player_data}{OVT\+\_\+\+Player\+Data} object for each player, keyed by their persistent ID (string). \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Manages player data persistence and access across the game session. Handles mapping between player IDs and persistent IDs, storing player-\/specific data like money, home location, skills, etc. Also responsible for replicating player data to clients joining in progress (JIP). 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_o_v_t___player_manager_component_ae2a02bf0fb4908bd2637b57ed43aab56}\index{OVT\_PlayerManagerComponent@{OVT\_PlayerManagerComponent}!GetPersistentIDFromControlledEntity@{GetPersistentIDFromControlledEntity}}
+\index{GetPersistentIDFromControlledEntity@{GetPersistentIDFromControlledEntity}!OVT\_PlayerManagerComponent@{OVT\_PlayerManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetPersistentIDFromControlledEntity()}{GetPersistentIDFromControlledEntity()}}
+{\footnotesize\ttfamily \label{class_o_v_t___player_manager_component_ae2a02bf0fb4908bd2637b57ed43aab56} 
+string OVT\+\_\+\+Player\+Manager\+Component\+::\+Get\+Persistent\+IDFrom\+Controlled\+Entity (\begin{DoxyParamCaption}\item[{IEntity}]{controlled}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Retrieves the persistent string ID associated with a player\textquotesingle{}s controlled entity. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em controlled} & The entity controlled by the player. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The persistent string ID for the player controlling the entity. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___player_manager_component_a56c9cb39b623f9d7eac836a67037f3a4}\index{OVT\_PlayerManagerComponent@{OVT\_PlayerManagerComponent}!GetPersistentIDFromPlayerID@{GetPersistentIDFromPlayerID}}
+\index{GetPersistentIDFromPlayerID@{GetPersistentIDFromPlayerID}!OVT\_PlayerManagerComponent@{OVT\_PlayerManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetPersistentIDFromPlayerID()}{GetPersistentIDFromPlayerID()}}
+{\footnotesize\ttfamily \label{class_o_v_t___player_manager_component_a56c9cb39b623f9d7eac836a67037f3a4} 
+string OVT\+\_\+\+Player\+Manager\+Component\+::\+Get\+Persistent\+IDFrom\+Player\+ID (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Retrieves the persistent string ID associated with a runtime player ID. If the mapping doesn\textquotesingle{}t exist, it attempts to create it using EPF\+\_\+\+Utils.\+Get\+Player\+UID and calls Setup\+Player. Includes a Workbench-\/specific hack to limit player IDs for testing. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em player\+Id} & The runtime integer ID of the player. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The persistent string ID for the player. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___player_manager_component_aceff2bbaa7de31af4b6df1bbb4fe62ab}\index{OVT\_PlayerManagerComponent@{OVT\_PlayerManagerComponent}!GetPlayer@{GetPlayer}}
+\index{GetPlayer@{GetPlayer}!OVT\_PlayerManagerComponent@{OVT\_PlayerManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetPlayer()}{GetPlayer()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily \label{class_o_v_t___player_manager_component_aceff2bbaa7de31af4b6df1bbb4fe62ab} 
+\mbox{\hyperlink{class_o_v_t___player_data}{OVT\+\_\+\+Player\+Data}} OVT\+\_\+\+Player\+Manager\+Component\+::\+Get\+Player (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Retrieves the player data object for a given runtime player ID. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em player\+Id} & The runtime integer ID of the player. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The \doxylink{class_o_v_t___player_data}{OVT\+\_\+\+Player\+Data} object for the player, or null if not found. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___player_manager_component_ae3d922919bd45726db57d4430666e2d8}\index{OVT\_PlayerManagerComponent@{OVT\_PlayerManagerComponent}!GetPlayer@{GetPlayer}}
+\index{GetPlayer@{GetPlayer}!OVT\_PlayerManagerComponent@{OVT\_PlayerManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetPlayer()}{GetPlayer()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily \label{class_o_v_t___player_manager_component_ae3d922919bd45726db57d4430666e2d8} 
+\mbox{\hyperlink{class_o_v_t___player_data}{OVT\+\_\+\+Player\+Data}} OVT\+\_\+\+Player\+Manager\+Component\+::\+Get\+Player (\begin{DoxyParamCaption}\item[{string}]{pers\+Id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Retrieves the player data object for a given persistent ID. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em pers\+Id} & The persistent string ID of the player. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The \doxylink{class_o_v_t___player_data}{OVT\+\_\+\+Player\+Data} object for the player, or null if not found. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___player_manager_component_ad32061ac4ebc74cc0e8f948341a1d66a}\index{OVT\_PlayerManagerComponent@{OVT\_PlayerManagerComponent}!GetPlayerIDFromPersistentID@{GetPlayerIDFromPersistentID}}
+\index{GetPlayerIDFromPersistentID@{GetPlayerIDFromPersistentID}!OVT\_PlayerManagerComponent@{OVT\_PlayerManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetPlayerIDFromPersistentID()}{GetPlayerIDFromPersistentID()}}
+{\footnotesize\ttfamily \label{class_o_v_t___player_manager_component_ad32061ac4ebc74cc0e8f948341a1d66a} 
+int OVT\+\_\+\+Player\+Manager\+Component\+::\+Get\+Player\+IDFrom\+Persistent\+ID (\begin{DoxyParamCaption}\item[{string}]{id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Retrieves the runtime player ID associated with a persistent string ID. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em id} & The persistent string ID of the player. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The runtime integer ID for the player, or -\/1 if not found. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___player_manager_component_ae726efea3bbd52121c79e6daaec951c7}\index{OVT\_PlayerManagerComponent@{OVT\_PlayerManagerComponent}!GetPlayerName@{GetPlayerName}}
+\index{GetPlayerName@{GetPlayerName}!OVT\_PlayerManagerComponent@{OVT\_PlayerManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetPlayerName()}{GetPlayerName()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily \label{class_o_v_t___player_manager_component_ae726efea3bbd52121c79e6daaec951c7} 
+string OVT\+\_\+\+Player\+Manager\+Component\+::\+Get\+Player\+Name (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Retrieves the player\textquotesingle{}s name using their runtime player ID. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em player\+Id} & The runtime integer ID of the player. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The player\textquotesingle{}s name, or an empty string if the player is not found. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___player_manager_component_a0aa87882c810364caa063c073f10dc56}\index{OVT\_PlayerManagerComponent@{OVT\_PlayerManagerComponent}!GetPlayerName@{GetPlayerName}}
+\index{GetPlayerName@{GetPlayerName}!OVT\_PlayerManagerComponent@{OVT\_PlayerManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetPlayerName()}{GetPlayerName()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily \label{class_o_v_t___player_manager_component_a0aa87882c810364caa063c073f10dc56} 
+string OVT\+\_\+\+Player\+Manager\+Component\+::\+Get\+Player\+Name (\begin{DoxyParamCaption}\item[{string}]{pers\+Id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Retrieves the player\textquotesingle{}s name using their persistent ID. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em pers\+Id} & The persistent string ID of the player. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The player\textquotesingle{}s name, or an empty string if the player is not found. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___player_manager_component_a300fc939026adfd065b95154f2a0d8a0}\index{OVT\_PlayerManagerComponent@{OVT\_PlayerManagerComponent}!Init@{Init}}
+\index{Init@{Init}!OVT\_PlayerManagerComponent@{OVT\_PlayerManagerComponent}}
+\doxysubsubsection{\texorpdfstring{Init()}{Init()}}
+{\footnotesize\ttfamily \label{class_o_v_t___player_manager_component_a300fc939026adfd065b95154f2a0d8a0} 
+void OVT\+\_\+\+Player\+Manager\+Component\+::\+Init (\begin{DoxyParamCaption}\item[{IEntity}]{owner}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Initializes the component\textquotesingle{}s internal maps. 
+\begin{DoxyParams}{Parameters}
+{\em owner} & The entity this component is attached to. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___player_manager_component_a924c14f8cbd1ea5d649a1e8841a9384f}\index{OVT\_PlayerManagerComponent@{OVT\_PlayerManagerComponent}!LocalPlayerIsOfficer@{LocalPlayerIsOfficer}}
+\index{LocalPlayerIsOfficer@{LocalPlayerIsOfficer}!OVT\_PlayerManagerComponent@{OVT\_PlayerManagerComponent}}
+\doxysubsubsection{\texorpdfstring{LocalPlayerIsOfficer()}{LocalPlayerIsOfficer()}}
+{\footnotesize\ttfamily \label{class_o_v_t___player_manager_component_a924c14f8cbd1ea5d649a1e8841a9384f} 
+bool OVT\+\_\+\+Player\+Manager\+Component\+::\+Local\+Player\+Is\+Officer (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Checks if the local player holds the officer role. \begin{DoxyReturn}{Returns}
+True if the local player is an officer, false otherwise. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___player_manager_component_a901c69b6f7a942a9ba867fb1087330ba}\index{OVT\_PlayerManagerComponent@{OVT\_PlayerManagerComponent}!RpcDo\_RegisterPlayer@{RpcDo\_RegisterPlayer}}
+\index{RpcDo\_RegisterPlayer@{RpcDo\_RegisterPlayer}!OVT\_PlayerManagerComponent@{OVT\_PlayerManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RpcDo\_RegisterPlayer()}{RpcDo\_RegisterPlayer()}}
+{\footnotesize\ttfamily \label{class_o_v_t___player_manager_component_a901c69b6f7a942a9ba867fb1087330ba} 
+void OVT\+\_\+\+Player\+Manager\+Component\+::\+Rpc\+Do\+\_\+\+Register\+Player (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{, }\item[{string}]{s}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+RPC call invoked on all clients (Broadcast) to register a player. Calls Setup\+Player locally to ensure all clients have the player\textquotesingle{}s mappings and basic data. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em player\+Id} & The runtime integer ID of the player being registered. \\
+\hline
+\mbox{\texttt{ in}}  & {\em s} & The persistent string ID of the player being registered. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___player_manager_component_a66c469a79ab1a35a466966bd60626733}\index{OVT\_PlayerManagerComponent@{OVT\_PlayerManagerComponent}!RplLoad@{RplLoad}}
+\index{RplLoad@{RplLoad}!OVT\_PlayerManagerComponent@{OVT\_PlayerManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RplLoad()}{RplLoad()}}
+{\footnotesize\ttfamily \label{class_o_v_t___player_manager_component_a66c469a79ab1a35a466966bd60626733} 
+override bool OVT\+\_\+\+Player\+Manager\+Component\+::\+Rpl\+Load (\begin{DoxyParamCaption}\item[{Script\+Bit\+Reader}]{reader}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Loads the state of players received via replication (e.\+g., for JIP clients). Reads player count, then iterates reading persistent ID and runtime ID. If the player data doesn\textquotesingle{}t exist locally, it\textquotesingle{}s created. Populates the \doxylink{class_o_v_t___player_data}{OVT\+\_\+\+Player\+Data} fields from the stream and updates ID mappings. Finally notifies the skill system. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in,out}}  & {\em reader} & The Script\+Bit\+Reader to read data from. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+True if loading was successful, false on read error. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___player_manager_component_aa7c3293d529315a6cf4d85a171bf4056}\index{OVT\_PlayerManagerComponent@{OVT\_PlayerManagerComponent}!RplSave@{RplSave}}
+\index{RplSave@{RplSave}!OVT\_PlayerManagerComponent@{OVT\_PlayerManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RplSave()}{RplSave()}}
+{\footnotesize\ttfamily \label{class_o_v_t___player_manager_component_aa7c3293d529315a6cf4d85a171bf4056} 
+override bool OVT\+\_\+\+Player\+Manager\+Component\+::\+Rpl\+Save (\begin{DoxyParamCaption}\item[{Script\+Bit\+Writer}]{writer}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Saves the state of all managed players for replication (e.\+g., for JIP). Writes player count, then iterates through players writing persistent ID, runtime ID, and all \doxylink{class_o_v_t___player_data}{OVT\+\_\+\+Player\+Data} fields. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in,out}}  & {\em writer} & The Script\+Bit\+Writer to write data to. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+True if saving was successful. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___player_manager_component_a4b985712dd5ceb1860def5d051d1765e}\index{OVT\_PlayerManagerComponent@{OVT\_PlayerManagerComponent}!SetupPlayer@{SetupPlayer}}
+\index{SetupPlayer@{SetupPlayer}!OVT\_PlayerManagerComponent@{OVT\_PlayerManagerComponent}}
+\doxysubsubsection{\texorpdfstring{SetupPlayer()}{SetupPlayer()}}
+{\footnotesize\ttfamily \label{class_o_v_t___player_manager_component_a4b985712dd5ceb1860def5d051d1765e} 
+void OVT\+\_\+\+Player\+Manager\+Component\+::\+Setup\+Player (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{, }\item[{string}]{persistent\+Id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Sets up the player\textquotesingle{}s data mappings and initializes their \doxylink{class_o_v_t___player_data}{OVT\+\_\+\+Player\+Data} if it doesn\textquotesingle{}t exist. Stores the mapping between runtime ID and persistent ID, retrieves the player name, and assigns the runtime ID to the data object. If running on the server, it replicates this registration to all clients. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em player\+Id} & The runtime integer ID of the player. \\
+\hline
+\mbox{\texttt{ in}}  & {\em persistent\+Id} & The persistent string ID of the player. \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+C\+:/\+Users/austi/\+Documents/\+Git\+Hub/\+Overthrow.\+Arma4/\+Scripts/\+Game/\+Game\+Mode/\+Managers/OVT\+\_\+\+Player\+Manager\+Component.\+c\end{DoxyCompactItemize}
