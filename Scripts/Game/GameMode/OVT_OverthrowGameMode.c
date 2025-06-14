@@ -647,10 +647,10 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 
 		OVT_Global.GetConfig().LoadConfig();
 
-		//Default weather (add config for this later)
-		ChimeraWorld world = GetGame().GetWorld();
-		TimeAndWeatherManagerEntity time = world.GetTimeAndWeatherManager();
-		time.ForceWeatherTo(false, "Cloudy");
+		//Dynamic weather enabled by default (add config for this later)
+		//ChimeraWorld world = GetGame().GetWorld();
+		//TimeAndWeatherManagerEntity time = world.GetTimeAndWeatherManager();
+		//time.ForceWeatherTo(false, "Cloudy");
 
 		m_Persistence = OVT_PersistenceManagerComponent.Cast(FindComponent(OVT_PersistenceManagerComponent));
 		if(m_Persistence)

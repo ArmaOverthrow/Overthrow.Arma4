@@ -8,7 +8,7 @@ class OVT_WaitTillPlayerInRangeJobStage : OVT_JobStage
 		if(job.owner == "") return true;
 		
 		OVT_PlayerData playerData = OVT_Global.GetPlayers().GetPlayer(job.owner);
-		if(playerData.IsOffline()) return true;
+		if(!playerData || playerData.IsOffline()) return true;
 		
 		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerData.id);		
 		if(!player) return true;

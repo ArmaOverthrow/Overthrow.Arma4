@@ -382,6 +382,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	{
 		IEntity building = GetGame().GetWorld().FindEntityByID(entityId);
 		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(playerId);
+		if(!player) return false;
 		float dist = vector.Distance(building.GetOrigin(), player.home);
 		return dist < 1;
 	}
