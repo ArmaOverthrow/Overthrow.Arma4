@@ -90,7 +90,6 @@ class OVT_StartGameContext : OVT_UIContext
 	protected void OnSpinOccupyingFaction(SCR_SpinBoxComponent spinner, int index)
 	{
 		Faction data = Faction.Cast(spinner.GetItemData(index));
-		Print("[Overthrow] DEBUG: User selected occupying faction: " + data.GetFactionKey());
 		
 		// Check if this conflicts with supporting faction
 		string currentSupporting = OVT_Global.GetConfig().m_sSupportingFaction;
@@ -108,20 +107,17 @@ class OVT_StartGameContext : OVT_UIContext
 				{
 					sfSpin.SetCurrentItem(i);
 					OVT_Global.GetConfig().SetSupportingFaction(altFaction.GetFactionKey());
-					Print("[Overthrow] DEBUG: Auto-swapped supporting faction to: " + altFaction.GetFactionKey());
 					break;
 				}
 			}
 		}
 		
-		OVT_Global.GetConfig().SetOccupyingFaction(data.GetFactionKey());	
-		Print("[Overthrow] DEBUG: After SetOccupyingFaction, m_sOccupyingFaction: " + OVT_Global.GetConfig().m_sOccupyingFaction);
+		OVT_Global.GetConfig().SetOccupyingFaction(data.GetFactionKey());
 	}
 	
 	protected void OnSpinSupportingFaction(SCR_SpinBoxComponent spinner, int index)
 	{
 		Faction data = Faction.Cast(spinner.GetItemData(index));
-		Print("[Overthrow] DEBUG: User selected supporting faction: " + data.GetFactionKey());
 		
 		// Check if this conflicts with occupying faction
 		string currentOccupying = OVT_Global.GetConfig().m_sOccupyingFaction;
@@ -139,14 +135,12 @@ class OVT_StartGameContext : OVT_UIContext
 				{
 					ofSpin.SetCurrentItem(i);
 					OVT_Global.GetConfig().SetOccupyingFaction(altFaction.GetFactionKey());
-					Print("[Overthrow] DEBUG: Auto-swapped occupying faction to: " + altFaction.GetFactionKey());
 					break;
 				}
 			}
 		}
 		
-		OVT_Global.GetConfig().SetSupportingFaction(data.GetFactionKey());	
-		Print("[Overthrow] DEBUG: After SetSupportingFaction, m_sSupportingFaction: " + OVT_Global.GetConfig().m_sSupportingFaction);
+		OVT_Global.GetConfig().SetSupportingFaction(data.GetFactionKey());
 	}
 	
 	protected void OnSpinDifficulty(SCR_SpinBoxComponent spinner, int index)
