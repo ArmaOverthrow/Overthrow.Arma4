@@ -76,7 +76,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	{
 		bool isDedicated = RplSession.Mode() == RplMode.Dedicated || RplSession.Mode() == RplMode.Listen;
 #ifdef WORKBENCH
-		isDedicated = true; //To test dedicated server config
+		// Only treat as dedicated if actually running as dedicated/listen server
+		// isDedicated = true; //To test dedicated server config
 #endif
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
 		m_Config = config;
@@ -206,6 +207,19 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 				config.m_Difficulty.startingCash = config.m_ConfigFile.startingCash;
 				config.m_Difficulty.procurementMultiplier = config.m_ConfigFile.procurementMultiplier;
 			}
+		}
+
+		// Save config with user selections after game start
+		if(RplSession.Mode() == RplMode.None || RplSession.Mode() == RplMode.Listen)
+		{
+			// Update config with current faction selections
+			if(config.m_ConfigFile)
+			{
+				config.m_ConfigFile.occupyingFaction = config.m_sOccupyingFaction;
+				config.m_ConfigFile.supportingFaction = config.m_sSupportingFaction;
+			}
+			config.SaveConfig();
+			Print("[Overthrow] Configuration saved with user selections");
 		}
 
 		Print("[Overthrow] Overthrow Starting");

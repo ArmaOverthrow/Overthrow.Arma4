@@ -200,8 +200,7 @@ class OVT_OverthrowConfigComponent: OVT_Component
 
 		if (!FileIO.FileExists( m_sConfigFilePath ))
 		{
-			Print("Overthrow: Configuration file does not exist. Creating new one.", LogLevel.WARNING);			
-			SaveConfig();
+			Print("Overthrow: Configuration file does not exist. Will create after game start.", LogLevel.WARNING);			
 			return true;
 		};
 
@@ -216,8 +215,6 @@ class OVT_OverthrowConfigComponent: OVT_Component
 			Print("Overthrow: Configuration load failed", LogLevel.ERROR);
 			return false;
 		};
-		
-		SaveConfig();
 
 		return true;
 	};
