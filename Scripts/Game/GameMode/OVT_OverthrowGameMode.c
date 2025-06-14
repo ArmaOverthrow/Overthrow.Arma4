@@ -571,11 +571,12 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		Print("[Overthrow] Initializing Overthrow");
 
 		OVT_Global.GetConfig() = OVT_Global.GetConfig();
-		m_PlayerManager = OVT_Global.GetPlayers();
+		m_PlayerManager = OVT_PlayerManagerComponent.Cast(FindComponent(OVT_PlayerManagerComponent));
 		if(m_PlayerManager)
 		{
 			Print("[Overthrow] Initializing Players");
-
+			// Ensure singleton points to the actual component instance
+			OVT_PlayerManagerComponent.s_Instance = m_PlayerManager;
 			m_PlayerManager.Init(this);
 		}
 		

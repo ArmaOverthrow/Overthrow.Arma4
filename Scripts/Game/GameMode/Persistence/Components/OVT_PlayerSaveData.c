@@ -10,15 +10,23 @@ class OVT_PlayerSaveData : EPF_ComponentSaveData
 	
 	override EPF_EReadResult ReadFrom(IEntity owner, GenericComponent component, EPF_ComponentSaveDataClass attributes)
 	{		
-		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
+		Print("[Overthrow] PlayerSaveData.ReadFrom called - component: " + component);
+		OVT_PlayerManagerComponent players = OVT_PlayerManagerComponent.Cast(component);
+		Print("[Overthrow] PlayerSaveData.ReadFrom - cast result: " + players);
 		
 		m_mPlayers = new map<string, ref OVT_PlayerData>;
 		
-		Print(players.m_mPlayers);
+		if(!players)
+		{
+			Print("[Overthrow] Error saving players - component is null");
+			m_mPlayers = new map<string, ref OVT_PlayerData>;
+			return EPF_EReadResult.OK;
+		}
 		
+		Print("[Overthrow] PlayerSaveData.ReadFrom - players.m_mPlayers: " + players.m_mPlayers);
 		if(!players.m_mPlayers)
 		{
-			Print("[Overthrow] Error saving players");
+			Print("[Overthrow] Error saving players - players map is null");
 			m_mPlayers = new map<string, ref OVT_PlayerData>;
 			return EPF_EReadResult.OK;
 		}

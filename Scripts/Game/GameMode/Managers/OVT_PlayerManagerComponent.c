@@ -50,10 +50,15 @@ class OVT_PlayerManagerComponent: OVT_Component
 	//! \param owner The entity this component is attached to.
 	void Init(IEntity owner)
 	{
-		Print("[Overthrow] PlayerManager init");
+		Print("[Overthrow] PlayerManager init - existing m_mPlayers: " + m_mPlayers);
+		if(m_mPlayers)
+		{
+			Print("[Overthrow] WARNING: PlayerManager Init() called but m_mPlayers already exists with " + m_mPlayers.Count() + " players");
+		}
 		m_mPersistentIDs = new map<int, string>;
 		m_mPlayerIDs = new map<string, int>;
 		m_mPlayers = new map<string, ref OVT_PlayerData>;
+		Print("[Overthrow] PlayerManager init complete - new m_mPlayers: " + m_mPlayers);
 	}
 	
 	//------------------------------------------------------------------------------------------------
