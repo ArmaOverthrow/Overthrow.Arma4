@@ -1328,24 +1328,4 @@ class OVT_TownManagerComponent: OVT_Component
 	}
 	
 	
-	//------------------------------------------------------------------------------------------------
-	//! Destructor, clears managed arrays.
-	void ~OVT_TownManagerComponent()
-	{
-		if(m_Towns)
-		{
-			m_Towns.Clear();
-			m_Towns = null;
-		}
-		if(m_TownNames)
-		{
-			m_TownNames.Clear();
-			m_TownNames = null;
-		}
-		if(m_Houses)
-		{
-			m_Houses.Clear();
-			m_Houses = null;
-		}
-	}
 }

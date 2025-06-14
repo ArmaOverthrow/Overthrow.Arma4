@@ -505,12 +505,4 @@ class OVT_ResistanceFactionManager: OVT_Component
 		}
 	}
 	
-	void ~OVT_ResistanceFactionManager()
-	{		
-		if(m_FOBs)
-		{
-			m_FOBs.Clear();
-			m_FOBs = null;
-		}			
-	}
 }

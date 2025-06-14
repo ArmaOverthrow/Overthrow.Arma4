@@ -497,13 +497,4 @@ class OVT_QRFControllerComponent: OVT_Component
 	}
 
 		
-	void ~OVT_QRFControllerComponent()
-	{
-		GetGame().GetCallqueue().Remove(CheckUpdateTimer);
-		GetGame().GetCallqueue().Remove(CheckUpdatePoints);
-		m_Groups.Clear();
-		m_aSpawnQueue.Clear();
-		m_aSpawnTargets.Clear();
-		m_aSpawnPositions.Clear();
-	}
 }

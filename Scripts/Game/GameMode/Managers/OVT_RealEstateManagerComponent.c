@@ -725,12 +725,4 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		player.home = loc;
 	}
 	
-	void ~OVT_RealEstateManagerComponent()
-	{		
-		if(m_aEntitySearch)
-		{
-			m_aEntitySearch.Clear();
-			m_aEntitySearch = null;
-		}
-	}
 }

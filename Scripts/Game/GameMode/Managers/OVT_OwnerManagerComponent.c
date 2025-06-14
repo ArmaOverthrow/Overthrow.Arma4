@@ -443,29 +443,4 @@ class OVT_OwnerManagerComponent: OVT_Component
 		m_mRenters[pos.ToString(false)] = persId;
 	}
 	
-	//------------------------------------------------------------------------------------------------
-	//! Destructor for the OVT_OwnerManagerComponent. Clears internal maps.
-	void ~OVT_OwnerManagerComponent()
-	{
-		if(m_mOwned)
-		{
-			m_mOwned.Clear();
-			m_mOwned = null;
-		}
-		if(m_mRented)
-		{
-			m_mRented.Clear();
-			m_mRented = null;
-		}
-		if(m_mOwners)
-		{
-			m_mOwners.Clear();
-			m_mOwners = null;
-		}
-		if(m_mRenters)
-		{
-			m_mRenters.Clear();
-			m_mRenters = null;
-		}
-	}
 }

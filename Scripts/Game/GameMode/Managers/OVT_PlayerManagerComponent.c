@@ -273,24 +273,4 @@ class OVT_PlayerManagerComponent: OVT_Component
 		SetupPlayer(playerId, s);
 	}
 	
-	//------------------------------------------------------------------------------------------------
-	//! Cleans up the component's maps when destroyed.
-	void ~OVT_PlayerManagerComponent()
-	{
-		if(m_mPersistentIDs)
-		{
-			m_mPersistentIDs.Clear();
-			m_mPersistentIDs = null;
-		}
-		if(m_mPlayerIDs)
-		{
-			m_mPlayerIDs.Clear();
-			m_mPlayerIDs = null;
-		}
-		if(m_mPlayers)
-		{
-			m_mPlayers.Clear();
-			m_mPlayers = null;
-		}
-	}
 }

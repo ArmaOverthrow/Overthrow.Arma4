@@ -173,9 +173,4 @@ class OVT_PortContext : OVT_UIContext
 		Buy(100);
 	}
 	
-	void ~OVT_PortContext()
-	{
-		if(!m_Economy) return;
-		m_Economy.m_OnPlayerMoneyChanged.Remove(OnPlayerMoneyChanged);
-	}
 }

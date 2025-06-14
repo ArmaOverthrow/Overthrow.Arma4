@@ -718,12 +718,4 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		m_mPlayerGroups = new map<string, EntityID>;
 	}
 
-	//------------------------------------------------------------------------------------------------
-	//! Destructor for OVT_OverthrowGameMode. Clears internal collections.
-	void ~OVT_OverthrowGameMode()
-	{
-		m_aInitializedPlayers.Clear();
-		m_aHintedPlayers.Clear();
-		m_mPlayerGroups.Clear();
-	}
 }

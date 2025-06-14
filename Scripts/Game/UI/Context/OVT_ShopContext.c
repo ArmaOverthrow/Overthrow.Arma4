@@ -378,9 +378,4 @@ class OVT_ShopContext : OVT_UIContext
 		}
 	}
 	
-	void ~OVT_ShopContext()
-	{
-		if(!m_Economy) return;
-		m_Economy.m_OnPlayerMoneyChanged.Remove(OnPlayerMoneyChanged);
-	}
 }

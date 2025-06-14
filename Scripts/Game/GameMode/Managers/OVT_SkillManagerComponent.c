@@ -316,8 +316,4 @@ class OVT_SkillManagerComponent: OVT_Component
 		}
 	}
 	
-	void ~OVT_SkillManagerComponent()
-	{
-		
-	}
 }
