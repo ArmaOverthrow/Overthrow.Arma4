@@ -6,7 +6,7 @@ class OVT_StartGameContext : OVT_UIContext
 	
 	override void OnShow()
 	{		
-#ifdef PLATFORM_XBOX		
+#ifdef PLATFORM_CONSOLE	
 		Widget xbox = m_wRoot.FindAnyWidget("XBOXWarning");
 		xbox.SetVisible(true);
 #endif

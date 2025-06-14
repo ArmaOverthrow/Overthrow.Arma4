@@ -192,7 +192,7 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		m_ConfigFile = new OVT_OverthrowConfigStruct();
 		m_ConfigFile.SetDefaults();
 
-#ifdef PLATFORM_XBOX		
+#ifdef PLATFORM_CONSOLE		
 		return true;
 #endif
 
@@ -224,6 +224,9 @@ class OVT_OverthrowConfigComponent: OVT_Component
 
 	bool SaveConfig()
 	{
+#ifdef PLATFORM_CONSOLE
+		return true;
+#endif
 		SCR_JsonSaveContext configSaveContext = new SCR_JsonSaveContext();
 		configSaveContext.WriteValue("", m_ConfigFile);
 

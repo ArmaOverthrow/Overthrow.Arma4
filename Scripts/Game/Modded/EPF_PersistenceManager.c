@@ -2,7 +2,7 @@ modded class EPF_PersistenceManager
 {
 	override static bool IsPersistenceMaster()
 	{
-#ifdef PLATFORM_XBOX
+#ifdef PLATFORM_CONSOLE
 		return false;
 #endif
 		
@@ -15,7 +15,7 @@ modded class EPF_PersistenceManager
 	
 	protected override bool CheckLoaded()
 	{
-#ifdef PLATFORM_XBOX
+#ifdef PLATFORM_CONSOLE
 		return false;
 #endif
 		

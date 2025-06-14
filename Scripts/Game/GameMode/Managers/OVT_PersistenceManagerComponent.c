@@ -27,7 +27,7 @@ class OVT_PersistenceManagerComponent : EPF_PersistenceManagerComponent
 	
 	bool HasSaveGame()
 	{
-#ifdef PLATFORM_XBOX
+#ifdef PLATFORM_CONSOLE
 		return false;
 #endif
 		return FileIO.FileExists(DB_BASE_DIR + "/RootEntityCollections");
@@ -35,7 +35,7 @@ class OVT_PersistenceManagerComponent : EPF_PersistenceManagerComponent
 	
 	void WipeSave()
 	{
-#ifdef PLATFORM_XBOX
+#ifdef PLATFORM_CONSOLE
 		return;
 #endif
 		FileIO.FindFiles(DeleteFileCallback, DB_BASE_DIR, ".json");

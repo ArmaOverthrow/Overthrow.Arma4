@@ -73,3 +73,20 @@ class OVT_SomeSaveData : EPF_ComponentSaveData {
 - Always use `OVT_Global.GetXXX()` to access manager instances
 - Follow existing patterns when adding new components or systems
 - Test in `OVT_Campaign_Test.ent` for faster iteration
+
+## External Dependencies
+
+### EPF (Enfusion Persistence Framework)
+- Location: `/mnt/d/Projects/Arma 4/EnfusionPersistenceFramework`
+- Handles save/load operations and data persistence
+- Console platforms (Xbox/PlayStation) don't support disk access - EPF must be disabled
+
+### EDF (Enfusion Database Framework) 
+- Location: `/mnt/d/Projects/Arma 4/EnfusionDatabaseFramework`
+- Dependency of EPF for database operations
+
+### Console Platform Handling
+- Use `#ifdef PLATFORM_CONSOLE` for both Xbox and PlayStation (Arma Reforger only provides PLATFORM_CONSOLE and PLATFORM_WINDOWS)
+- Console platforms cannot access disk, causing game hangs
+- Persistence must be disabled on consoles while keeping game playable
+- All FileIO operations and EPF persistence calls must be wrapped in PLATFORM_CONSOLE checks
