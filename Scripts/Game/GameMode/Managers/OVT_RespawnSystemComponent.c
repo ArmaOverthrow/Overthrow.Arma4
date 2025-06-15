@@ -11,6 +11,7 @@ class OVT_RespawnSystemComponentClass : EPF_BaseRespawnSystemComponentClass
 class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 {	
 	protected OVT_OverthrowGameMode m_Overthrow;
+	protected ref array<IEntity> m_FoundBases = {};
 	
 	[Attribute(defvalue: "{3A99A99836F6B3DC}Prefabs/Characters/Factions/INDFOR/FIA/Character_Player.et")]
 	ResourceName m_rDefaultPrefab;
@@ -73,9 +74,150 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 		OVT_PlayerData player = OVT_PlayerData.Get(characterPersistenceId);
 		if(player)
 		{
-			position = player.home;
-			yawPitchRoll = "0 0 0";
+			vector homePos = player.home;
+			
+			// Check if the home location is safe to spawn at
+			if(IsSpawnLocationSafe(homePos))
+			{
+				position = homePos;
+				yawPitchRoll = "0 0 0";
+			}
+			else
+			{
+				// Home is not safe, find alternative spawn location
+				vector safePos = FindSafeSpawnLocation(playerId, characterPersistenceId);
+				position = safePos;
+				yawPitchRoll = "0 0 0";
+			}
 		}
+	}
+	
+	//! Check if a spawn location is safe (not controlled by occupying faction)
+	protected bool IsSpawnLocationSafe(vector location)
+	{
+		// Check if there's a base near this location
+		OVT_BaseControllerComponent nearbyBase = GetNearbyBase(location, 100); // 100m radius
+		
+		if(nearbyBase)
+		{
+			// Check if base is controlled by occupying faction
+			int baseFaction = nearbyBase.GetControllingFaction();
+			int occupyingFactionIndex = OVT_Global.GetConfig().GetOccupyingFactionIndex();
+			
+			if(baseFaction == occupyingFactionIndex)
+			{
+				return false;
+			}
+		}
+		
+		return true;
+	}
+	
+	//! Find a nearby base within the specified radius
+	protected OVT_BaseControllerComponent GetNearbyBase(vector location, float radius)
+	{
+		// Clear previous results
+		m_FoundBases.Clear();
+		
+		// Query for base controllers near the location
+		GetGame().GetWorld().QueryEntitiesBySphere(location, radius, CheckForBaseController, FilterBaseEntities, EQueryEntitiesFlags.ALL);
+		
+		// Return the first base found (if any)
+		foreach(IEntity entity : m_FoundBases)
+		{
+			OVT_BaseControllerComponent baseController = OVT_BaseControllerComponent.Cast(entity.FindComponent(OVT_BaseControllerComponent));
+			if(baseController)
+				return baseController;
+		}
+		
+		return null;
+	}
+	
+	//! Filter for entities that might have base controllers
+	protected bool FilterBaseEntities(IEntity entity)
+	{
+		return entity.FindComponent(OVT_BaseControllerComponent) != null;
+	}
+	
+	//! Check if entity has base controller and add to found bases
+	protected bool CheckForBaseController(IEntity entity)
+	{
+		if(entity.FindComponent(OVT_BaseControllerComponent))
+		{
+			m_FoundBases.Insert(entity);
+		}
+		return true;
+	}
+	
+	//! Find a safe spawn location when home is compromised
+	protected vector FindSafeSpawnLocation(int playerId, string characterPersistenceId)
+	{
+		OVT_PlayerData player = OVT_PlayerData.Get(characterPersistenceId);
+		
+		// First try: Check if player has an owned house that's safe
+		OVT_RealEstateManagerComponent realEstate = OVT_Global.GetRealEstate();
+		if(realEstate)
+		{
+			vector safeHousePos = FindSafeOwnedHouse(playerId, realEstate);
+			if(safeHousePos != vector.Zero)
+			{
+				// Update their home to this safe house
+				realEstate.SetHomePos(playerId, safeHousePos);
+				return safeHousePos;
+			}
+		}
+		
+		// Second try: Find a random safe town location
+		OVT_TownManagerComponent townManager = OVT_Global.GetTowns();
+		if(townManager && townManager.m_Towns)
+		{
+			foreach(OVT_TownData town : townManager.m_Towns)
+			{
+				if(town && IsSpawnLocationSafe(town.location))
+				{
+					vector safeSpawn = OVT_Global.FindSafeSpawnPosition(town.location);
+					// Update their home to this safe town
+					if(realEstate)
+						realEstate.SetHomePos(playerId, safeSpawn);
+					return safeSpawn;
+				}
+			}
+		}
+		
+		// Last resort: Use default spawn location
+		vector fallbackPos = "5000 0 5000"; // Default fallback position
+		if(realEstate)
+			realEstate.SetHomePos(playerId, fallbackPos);
+		return fallbackPos;
+	}
+	
+	//! Find a safe house that the player owns
+	protected vector FindSafeOwnedHouse(int playerId, OVT_RealEstateManagerComponent realEstate)
+	{
+		// Get player's persistent ID
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		
+		// Get all owned buildings using the existing method
+		set<EntityID> ownedBuildings = realEstate.GetOwned(persId);
+		
+		if(!ownedBuildings || ownedBuildings.IsEmpty())
+		{
+			return vector.Zero;
+		}
+		
+		// Check each owned building for safety
+		foreach(EntityID buildingId : ownedBuildings)
+		{
+			IEntity building = GetGame().GetWorld().FindEntityByID(buildingId);
+			if(!building) continue;
+			
+			vector housePos = building.GetOrigin();
+			if(IsSpawnLocationSafe(housePos))
+			{
+				return housePos;
+			}
+		}
+		return vector.Zero;
 	}
 	
 	//------------------------------------------------------------------------------------------------

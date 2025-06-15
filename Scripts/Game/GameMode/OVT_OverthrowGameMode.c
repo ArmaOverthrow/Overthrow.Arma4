@@ -448,11 +448,10 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	        return;
 	    }
 	    
-	    // Check if this player has already been prepared (to prevent duplicates in hosted multiplayer)
-	    OVT_PlayerData existingPlayer = m_PlayerManager.GetPlayer(persistentId);
-	    if(existingPlayer && existingPlayer.initialized)
+	    // Check if this player has already been prepared in this session (to prevent duplicates in hosted multiplayer)
+	    if(m_aInitializedPlayers.Contains(persistentId))
 	    {
-	        Print("[Overthrow] Player " + persistentId + " already prepared, skipping duplicate PreparePlayer call");
+	        Print("[Overthrow] Player " + persistentId + " already prepared in this session, skipping duplicate PreparePlayer call");
 	        return;
 	    }
 	    
