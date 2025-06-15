@@ -448,12 +448,21 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	        return;
 	    }
 	    
+	    // Check if this player has already been prepared (to prevent duplicates in hosted multiplayer)
+	    OVT_PlayerData existingPlayer = m_PlayerManager.GetPlayer(persistentId);
+	    if(existingPlayer && existingPlayer.initialized)
+	    {
+	        Print("[Overthrow] Player " + persistentId + " already prepared, skipping duplicate PreparePlayer call");
+	        return;
+	    }
+	    
 	    m_PlayerManager.SetupPlayer(playerId, persistentId);
 	    OVT_PlayerData player = m_PlayerManager.GetPlayer(persistentId);
 	
-	    // Ensure the player is an officer in single-player mode
-	    if (!player.isOfficer && RplSession.Mode() == RplMode.None)
+	    // Ensure the player is an officer in single-player mode or if they're the host in hosted multiplayer
+	    if (!player.isOfficer && (RplSession.Mode() == RplMode.None || (RplSession.Mode() == RplMode.Listen && playerId == 1)))
 	    {
+	        Print("[Overthrow] Making player " + playerId + " an officer (Mode: " + RplSession.Mode() + ")");
 	        m_ResistanceFactionManager.AddOfficer(playerId);
 	    }
 	

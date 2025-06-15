@@ -178,7 +178,19 @@ class OVT_PlayerManagerComponent: OVT_Component
 			return;
 		}
 		
-		Print("Setting up player: " + persistentId);
+		Print("Setting up player: " + persistentId + " with playerId: " + playerId);
+		
+		// Check if this persistent ID is already mapped to a different player ID
+		if(m_mPlayerIDs.Contains(persistentId))
+		{
+			int existingPlayerId = m_mPlayerIDs[persistentId];
+			if(existingPlayerId != playerId)
+			{
+				Print("[Overthrow] WARNING: Persistent ID " + persistentId + " already mapped to playerId " + existingPlayerId + ", now being mapped to " + playerId);
+				Print("[Overthrow] This may indicate player duplication in hosted multiplayer mode");
+			}
+		}
+		
 		m_mPersistentIDs[playerId] = persistentId;
 		m_mPlayerIDs[persistentId] = playerId;
 		
