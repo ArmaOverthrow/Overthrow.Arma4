@@ -440,6 +440,14 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	void PreparePlayer(int playerId, string persistentId)
 	{
 	    if (!Replication.IsServer()) return;
+	    
+	    // Validate persistent ID
+	    if(!persistentId || persistentId.IsEmpty())
+	    {
+	        Print("[Overthrow] ERROR: PreparePlayer called with empty/null persistentId for playerId: " + playerId);
+	        return;
+	    }
+	    
 	    m_PlayerManager.SetupPlayer(playerId, persistentId);
 	    OVT_PlayerData player = m_PlayerManager.GetPlayer(persistentId);
 	

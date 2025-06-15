@@ -121,6 +121,15 @@ class OVT_PlayerManagerComponent: OVT_Component
 	{
 		if(!m_mPersistentIDs.Contains(playerId)) {
 			string persistentId = EPF_Utils.GetPlayerUID(playerId);
+			
+			// Log if we get an empty persistent ID
+			if(!persistentId || persistentId.IsEmpty())
+			{
+				Print("[Overthrow] ERROR: EPF_Utils.GetPlayerUID returned empty/null for playerId: " + playerId);
+				// Don't set up a player with empty ID
+				return "";
+			}
+			
 #ifdef WORKBENCH
 			//Force only two players in workbench to test reconnection
 			if(playerId > 2)
@@ -162,6 +171,13 @@ class OVT_PlayerManagerComponent: OVT_Component
 	//! \param[in] persistentId The persistent string ID of the player.
 	void SetupPlayer(int playerId, string persistentId)
 	{
+		// Validate persistent ID
+		if(!persistentId || persistentId.IsEmpty())
+		{
+			Print("[Overthrow] ERROR: SetupPlayer called with empty/null persistentId for playerId: " + playerId);
+			return;
+		}
+		
 		Print("Setting up player: " + persistentId);
 		m_mPersistentIDs[playerId] = persistentId;
 		m_mPlayerIDs[persistentId] = playerId;

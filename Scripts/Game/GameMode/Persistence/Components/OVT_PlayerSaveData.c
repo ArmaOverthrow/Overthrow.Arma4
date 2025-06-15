@@ -35,6 +35,27 @@ class OVT_PlayerSaveData : EPF_ComponentSaveData
 		{
 			string persId = players.m_mPlayers.GetKey(t);
 			OVT_PlayerData player = players.m_mPlayers.GetElement(t);
+			
+			// Validate player data before saving
+			if(!persId || persId.IsEmpty())
+			{
+				Print("[Overthrow] WARNING: Skipping player with empty/null ID");
+				continue;
+			}
+			
+			if(!player)
+			{
+				Print("[Overthrow] WARNING: Skipping null player data for ID: " + persId);
+				continue;
+			}
+			
+			// Additional validation - ensure the player has been properly initialized
+			if(player.name.IsEmpty() && !player.initialized && player.money == 0)
+			{
+				Print("[Overthrow] WARNING: Skipping uninitialized player with ID: " + persId);
+				continue;
+			}
+			
 			Print("[Overthrow] Saving player " + persId + " (" + player.name + ")");
 			m_mPlayers[persId] = player;
 		}
@@ -60,6 +81,20 @@ class OVT_PlayerSaveData : EPF_ComponentSaveData
 		{
 			string persId = m_mPlayers.GetKey(t);
 			OVT_PlayerData player = m_mPlayers.GetElement(t);
+			
+			// Validate player data before loading
+			if(!persId || persId.IsEmpty())
+			{
+				Print("[Overthrow] WARNING: Skipping loading player with empty/null ID");
+				continue;
+			}
+			
+			if(!player)
+			{
+				Print("[Overthrow] WARNING: Skipping loading null player data for ID: " + persId);
+				continue;
+			}
+			
 			players.m_mPlayers[persId] = player;
 			players.m_OnPlayerDataLoaded.Invoke(player, persId);
 			Print("[Overthrow] Loading player " + persId + " (" + player.name + ")");
