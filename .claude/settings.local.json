@@ -5,7 +5,8 @@
       "Bash(find:*)",
       "Bash(rg:*)",
       "Bash(gh issue view:*)",
-      "Bash(gh api:*)"
+      "Bash(gh api:*)",
+      "WebFetch(domain:community.bistudio.com)"
     ],
     "deny": []
   }
