@@ -32,6 +32,9 @@ class OVT_JobConfig
 	[Attribute(defvalue: "0", desc:"Maximum number of times this job will spawn")]
 	int m_iMaxTimes;
 	
+	[Attribute(defvalue: "0", desc:"Maximum number of times this job will spawn for a player")]
+	int m_iMaxTimesPlayer;
+	
 	[Attribute("", UIWidgets.Object)]
 	ref array<ref OVT_JobCondition> m_aConditions;
 	

@@ -105,12 +105,4 @@ class OVT_ShopComponent: OVT_Component
 	}
 
 	
-	void ~OVT_ShopComponent()
-	{
-		if(m_aInventory)
-		{
-			m_aInventory.Clear();
-			m_aInventory = null;
-		}
-	}
 }

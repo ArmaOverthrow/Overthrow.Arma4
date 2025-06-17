@@ -80,9 +80,4 @@ class OVT_RealEstateSaveData : EPF_ComponentSaveData
 		return EPF_EApplyResult.OK;
 	}
 	
-	void ~OVT_RealEstateSaveData()
-	{
-		m_mOwned.Clear();
-		m_mRented.Clear();
-	}
 }

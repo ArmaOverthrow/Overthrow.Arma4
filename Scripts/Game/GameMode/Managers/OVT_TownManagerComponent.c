@@ -58,6 +58,9 @@ class OVT_TownData : Managed
 	}
 }
 
+//------------------------------------------------------------------------------------------------
+//! Manages towns, their populations, stability, support, and controlling factions within the Overthrow gamemode.
+//! Handles town initialization, modifier systems, house queries, and network synchronization of town data.
 class OVT_TownManagerComponent: OVT_Component
 {
 	[Attribute( defvalue: "1200", desc: "Range to search cities for houses")]
@@ -86,7 +89,9 @@ class OVT_TownManagerComponent: OVT_Component
 	
 	protected int m_iTownCount=0;
 	
+	//! Array of all towns managed by this component
 	ref array<ref OVT_TownData> m_Towns;
+	//! Array of town names, corresponding to the m_Towns array by index
 	ref array<ref string> m_TownNames;
 	
 	protected IEntity m_EntitySearched;
@@ -97,6 +102,7 @@ class OVT_TownManagerComponent: OVT_Component
 	
 	OVT_RealEstateManagerComponent m_RealEstate;
 	
+	//! Invoked when a town's controlling faction changes
 	ref ScriptInvoker<IEntity> m_OnTownControlChange = new ScriptInvoker<IEntity>;
 	
 	const int MODIFIER_FREQUENCY = 10000;
@@ -104,6 +110,10 @@ class OVT_TownManagerComponent: OVT_Component
 	protected const int SUPPORT_FREQUENCY = 6; // * MODIFIER_FREQUENCY
 	 
 	static OVT_TownManagerComponent s_Instance;	
+	
+	//------------------------------------------------------------------------------------------------
+	//! Returns the singleton instance of the Town Manager Component
+	//! \return OVT_TownManagerComponent instance or null if not found
 	static OVT_TownManagerComponent GetInstance()
 	{
 		if (!s_Instance)
@@ -122,6 +132,10 @@ class OVT_TownManagerComponent: OVT_Component
 		m_TownNames = new array<ref string>;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Initializes the Town Manager Component, finding towns and setting up modifiers.
+	//! Called once during game initialization.
+	//! \param owner The owning entity of this component
 	void Init(IEntity owner)
 	{		
 		m_RealEstate = OVT_Global.GetRealEstate();		
@@ -136,12 +150,17 @@ class OVT_TownManagerComponent: OVT_Component
 		SetupTowns();
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Called after the game has started, schedules recurring updates and spawns controllers.
 	void PostGameStart()
 	{
 		GetGame().GetCallqueue().CallLater(CheckUpdateModifiers, MODIFIER_FREQUENCY, true, GetOwner());		
 		GetGame().GetCallqueue().CallLater(SpawnTownControllers, 0);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Streams the current town modifiers (stability and support) to a specific player.
+	//! \param playerId The ID of the player to stream modifiers to
 	void StreamTownModifiers(int playerId)
 	{
 		foreach(int townID, OVT_TownData town : m_Towns)
@@ -162,6 +181,9 @@ class OVT_TownManagerComponent: OVT_Component
 		}
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! Gets a random town from the list of managed towns.
+	//! \return A random OVT_TownData instance or null if no towns exist
 	OVT_TownData GetRandomTown()
 	{
 		if(m_Towns.Count() == 0) return null;
@@ -171,6 +193,10 @@ class OVT_TownManagerComponent: OVT_Component
 	/*
 	Town Modifier Systems
 	*/
+	//------------------------------------------------------------------------------------------------
+	//! Retrieves a specific town modifier system by its class type.
+	//! \param typeName The typename of the modifier system to retrieve
+	//! \return The OVT_TownModifierSystem instance or null if not found
 	OVT_TownModifierSystem GetModifierSystem(typename typeName)
 	{
 		foreach(OVT_TownModifierSystem system : m_aTownModifiers)
@@ -183,6 +209,8 @@ class OVT_TownManagerComponent: OVT_Component
 		return null;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Periodically checks and updates town modifiers (stability, support) and related effects (towers, bases).
 	protected void CheckUpdateModifiers()
 	{
 		OVT_OccupyingFactionManager of = OVT_Global.GetOccupyingFaction();
@@ -270,6 +298,10 @@ class OVT_TownManagerComponent: OVT_Component
 		}
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Calculates the total population and total supporters across all towns.
+	//! \param[out] population Total population count
+	//! \param[out] supporters Total supporter count
 	void GetTotalPopulationStats(out int population, out int supporters)
 	{
 		population = 0;
@@ -281,6 +313,10 @@ class OVT_TownManagerComponent: OVT_Component
 		}
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! Removes a stability modifier from a specific town by its modifier index.
+	//! \param townId The ID of the town
+	//! \param index The index ID of the stability modifier to remove
 	void RemoveStabilityModifier(int townId, int index)
 	{
 		OVT_TownData town = m_Towns[townId];		
@@ -293,11 +329,20 @@ class OVT_TownManagerComponent: OVT_Component
 		}		
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Gets the ID (index in the m_Towns array) of a given town.
+	//! \param town The OVT_TownData instance
+	//! \return The integer ID of the town
 	int GetTownID(OVT_TownData town)
 	{
 		return m_Towns.Find(town);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Finds the index of a modifier within a modifier array based on its ID.
+	//! \param modifiers The array of OVT_TownModifierData to search within
+	//! \param id The ID of the modifier to find
+	//! \return The index of the modifier in the array, or -1 if not found
 	protected int GetModifierIndex(array<ref OVT_TownModifierData> modifiers, int id)
 	{
 		int i = -1;
@@ -314,24 +359,41 @@ class OVT_TownManagerComponent: OVT_Component
 		return i;
 	}
 		
+	//------------------------------------------------------------------------------------------------
+	//! Attempts to add a stability modifier to a town by its configuration name.
+	//! \param townId The ID of the town
+	//! \param name The name of the stability modifier as defined in the config
 	void TryAddStabilityModifierByName(int townId, string name)
 	{
 		OVT_TownModifierSystem system = GetModifierSystem(OVT_TownStabilityModifierSystem);
 		system.TryAddByName(townId, name);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Attempts to add a support modifier to a town by its configuration name.
+	//! \param townId The ID of the town
+	//! \param name The name of the support modifier as defined in the config
 	void TryAddSupportModifierByName(int townId, string name)
 	{
 		OVT_TownModifierSystem system = GetModifierSystem(OVT_TownSupportModifierSystem);
 		system.TryAddByName(townId, name);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Removes a support modifier from a town by its configuration name.
+	//! \param townId The ID of the town
+	//! \param name The name of the support modifier as defined in the config
 	void RemoveSupportModifierByName(int townId, string name)
 	{
 		OVT_TownModifierSystem system = GetModifierSystem(OVT_TownSupportModifierSystem);
 		system.RemoveByName(townId, name);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Attempts to add a stability modifier to a town by its index ID. Handles stacking and timer resets.
+	//! \param townId The ID of the town
+	//! \param index The index ID of the stability modifier
+	//! \return true if the modifier was added or refreshed, false if stacking limit reached
 	bool TryAddStabilityModifier(int townId, int index)
 	{
 		OVT_TownData town = m_Towns[townId];
@@ -362,12 +424,20 @@ class OVT_TownManagerComponent: OVT_Component
 		return true;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Initiates the process to add a stability modifier via RPC.
+	//! \param townId The ID of the town
+	//! \param index The index ID of the stability modifier
 	void AddStabilityModifier(int townId, int index)
 	{
 		Rpc(RpcAsk_AddStabilityModifier, townId, index);
 	}
 	
 		
+	//------------------------------------------------------------------------------------------------
+	//! Removes a support modifier from a specific town by its modifier index.
+	//! \param townId The ID of the town
+	//! \param index The index ID of the support modifier to remove
 	void RemoveSupportModifier(int townId, int index)
 	{
 		OVT_TownData town = m_Towns[townId];		
@@ -379,16 +449,29 @@ class OVT_TownManagerComponent: OVT_Component
 		}		
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Requests removal of a timed-out support modifier via RPC.
+	//! \param townId The ID of the town
+	//! \param index The index ID of the timed-out support modifier
 	void TimeoutSupportModifier(int townId, int index)
 	{		
 		Rpc(RpcDo_RemoveSupportModifier, townId, index);	
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Requests removal of a timed-out stability modifier via RPC.
+	//! \param townId The ID of the town
+	//! \param index The index ID of the timed-out stability modifier
 	void TimeoutStabilityModifier(int townId, int index)
 	{		
 		Rpc(RpcDo_RemoveStabilityModifier, townId, index);	
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Attempts to add a support modifier to a town by its index ID. Handles stacking and timer resets.
+	//! \param townId The ID of the town
+	//! \param index The index ID of the support modifier
+	//! \return true if the modifier was added or refreshed, false if stacking limit reached
 	bool TryAddSupportModifier(int townId, int index)
 	{
 		OVT_TownData town = m_Towns[townId];
@@ -420,11 +503,19 @@ class OVT_TownManagerComponent: OVT_Component
 		return true;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Initiates the process to add a support modifier via RPC.
+	//! \param townId The ID of the town
+	//! \param index The index ID of the support modifier
 	void AddSupportModifier(int townId, int index)
 	{
 		Rpc(RpcAsk_AddSupportModifier, townId, index);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Recalculates the stability value for a town based on its active stability modifiers.
+	//! Updates the town's stability if changed and synchronizes via RPC.
+	//! \param townId The ID of the town to recalculate
 	protected void RecalculateStability(int townId)
 	{
 		OVT_TownData town = m_Towns[townId];		
@@ -439,6 +530,11 @@ class OVT_TownManagerComponent: OVT_Component
 		}		
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Recalculates the support value for a town based on its active support modifiers.
+	//! Updates the town's support if changed and synchronizes via RPC.
+	//! Also handles potential peaceful faction flips for villages based on support and stability thresholds.
+	//! \param townId The ID of the town to recalculate
 	protected void RecalculateSupport(int townId)
 	{
 		Faction playerFaction = GetGame().GetFactionManager().GetFactionByKey(OVT_Global.GetConfig().m_sPlayerFaction);
@@ -479,6 +575,9 @@ class OVT_TownManagerComponent: OVT_Component
 		}
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Resets the support value of a town to 0 and synchronizes via RPC.
+	//! \param town The town data to reset support for
 	void ResetSupport(OVT_TownData town)
 	{
 		town.support = 0;
@@ -486,6 +585,10 @@ class OVT_TownManagerComponent: OVT_Component
 		Rpc(RpcDo_SetSupport, townID, 0);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Changes the controlling faction of a town and notifies relevant systems.
+	//! \param town The OVT_TownData instance of the town
+	//! \param faction The new controlling faction index
 	void ChangeTownControl(OVT_TownData town, int faction)
 	{
 		int townID = GetTownID(town);
@@ -505,6 +608,10 @@ class OVT_TownManagerComponent: OVT_Component
 		OVT_Global.GetNotify().SendExternalNotifications(type + "Controlled" + factionType, GetTownName(townID));
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Gets a random, unowned house entity from any town.
+	//! Tries multiple times if the first attempt fails or finds an owned house.
+	//! \return A random house IEntity or null if none found after attempts
 	IEntity GetRandomHouse()
 	{
 		m_Houses = new array<ref EntityID>;
@@ -525,6 +632,10 @@ class OVT_TownManagerComponent: OVT_Component
 		return house;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Finds the nearest house entity within a small radius (25m) of a given position.
+	//! \param pos The position vector to search around
+	//! \return The nearest house IEntity or null if none found within range
 	IEntity GetNearestHouse(vector pos)
 	{
 		m_Houses = new array<ref EntityID>;		
@@ -547,6 +658,10 @@ class OVT_TownManagerComponent: OVT_Component
 		return nearestEnt;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Gets a random house entity within the bounds of a specific town.
+	//! \param town The OVT_TownData instance of the town
+	//! \return A random house IEntity within the town, or null if no houses found
 	IEntity GetRandomHouseInTown(OVT_TownData town)
 	{
 		m_Houses = new array<ref EntityID>;		
@@ -556,6 +671,10 @@ class OVT_TownManagerComponent: OVT_Component
 		return GetGame().GetWorld().FindEntityByID(m_Houses.GetRandomElement());
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Finds the town whose center is geographically nearest to the given position.
+	//! \param pos The position vector to check from
+	//! \return The OVT_TownData of the nearest town
 	OVT_TownData GetNearestTown(vector pos)
 	{
 		OVT_TownData nearestTown;
@@ -571,6 +690,10 @@ class OVT_TownManagerComponent: OVT_Component
 		return nearestTown;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Gets the effective radius of a town based on its size (village, town, city).
+	//! \param town The OVT_TownData instance
+	//! \return The radius in meters
 	float GetTownRange(OVT_TownData town)
 	{
 		float range = m_iCityRange;
@@ -579,6 +702,10 @@ class OVT_TownManagerComponent: OVT_Component
 		return range;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Finds the nearest town that contains the given position within its effective radius.
+	//! \param pos The position vector to check
+	//! \return The OVT_TownData of the containing town, or null if the position is not within any town's range
 	OVT_TownData GetNearestTownInRange(vector pos)
 	{
 		foreach(OVT_TownData town : m_Towns)
@@ -594,6 +721,10 @@ class OVT_TownManagerComponent: OVT_Component
 		return null;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Finds the nearest town map marker entity (City, Town, Village) within a small radius (5m) of a position.
+	//! \param pos The position vector to search around
+	//! \return The SCR_MapDescriptorComponent of the nearest town marker, or null if none found
 	SCR_MapDescriptorComponent GetNearestTownMarker(vector pos)
 	{	
 		m_EntitySearched = null;	
@@ -603,11 +734,19 @@ class OVT_TownManagerComponent: OVT_Component
 		return SCR_MapDescriptorComponent.Cast(m_EntitySearched.FindComponent(SCR_MapDescriptorComponent));
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Retrieves the OVT_TownData instance for a given town ID.
+	//! \param townId The ID of the town (index in m_Towns)
+	//! \return The OVT_TownData instance
 	OVT_TownData GetTown(int townId)
 	{
 		return m_Towns[townId];
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Gets the display name of a town from its map marker, caching the result.
+	//! \param townId The ID of the town
+	//! \return The string name of the town
 	string GetTownName(int townId)
 	{
 		if(m_TownNames[townId] == "")
@@ -618,6 +757,10 @@ class OVT_TownManagerComponent: OVT_Component
 		return m_TownNames[townId];
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Gets the display name of the town nearest to a given location.
+	//! \param location The position vector
+	//! \return The string name of the nearest town
 	string GetTownName(vector location)
 	{
 		OVT_TownData town = GetNearestTown(location);
@@ -626,6 +769,10 @@ class OVT_TownManagerComponent: OVT_Component
 		return GetTownName(townId);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Finds the nearest bus stop map marker entity within a radius (15m) of a position.
+	//! \param pos The position vector to search around
+	//! \return The SCR_MapDescriptorComponent of the nearest bus stop marker, or null if none found
 	SCR_MapDescriptorComponent GetNearestBusStop(vector pos)
 	{	
 		m_EntitySearched = null;	
@@ -635,6 +782,11 @@ class OVT_TownManagerComponent: OVT_Component
 		return SCR_MapDescriptorComponent.Cast(m_EntitySearched.FindComponent(SCR_MapDescriptorComponent));
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Fills an array with references to all towns located within a specified distance from a position.
+	//! \param pos The center position vector for the search
+	//! \param maxDistance The maximum distance (radius) to search within
+	//! \param[out] towns The array to be filled with OVT_TownData references
 	void GetTownsWithinDistance(vector pos, float maxDistance, out array<ref OVT_TownData> towns)
 	{
 		foreach(OVT_TownData town : m_Towns)
@@ -646,11 +798,17 @@ class OVT_TownManagerComponent: OVT_Component
 		}
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Returns the array containing all managed towns.
+	//! \return Reference to the array<ref OVT_TownData> m_Towns
 	array<ref OVT_TownData> GetTowns()
 	{
 		return m_Towns;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Initializes town data by querying map markers across the entire world.
+	//! Called once during Init.
 	protected void InitializeTowns()
 	{
 		#ifdef OVERTHROW_DEBUG
@@ -661,6 +819,9 @@ class OVT_TownManagerComponent: OVT_Component
 		
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Spawns a town controller prefab at the location of each managed town.
+	//! Called once after game start.
 	protected void SpawnTownControllers()
 	{
 		foreach(OVT_TownData town : m_Towns)
@@ -669,6 +830,11 @@ class OVT_TownManagerComponent: OVT_Component
 		}
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Query callback function used during town initialization (InitializeTowns).
+	//! Processes found town map markers.
+	//! \param entity The entity found by the query (potential town marker)
+	//! \return Always true to continue the query
 	protected bool CheckCityTownAddPopulation(IEntity entity)
 	{	
 		MapDescriptorComponent mapdesc = MapDescriptorComponent.Cast(entity.FindComponent(MapDescriptorComponent));
@@ -678,6 +844,11 @@ class OVT_TownManagerComponent: OVT_Component
 		return true;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Creates and initializes an OVT_TownData object based on a map marker entity.
+	//! Adds the new town data to the m_Towns and m_TownNames arrays.
+	//! \param entity The town map marker entity
+	//! \param mapdesc The MapDescriptorComponent of the entity
 	protected void ProcessTown(IEntity entity, MapDescriptorComponent mapdesc)
 	{
 		OVT_TownData town = new OVT_TownData();
@@ -702,6 +873,9 @@ class OVT_TownManagerComponent: OVT_Component
 		m_TownNames.Insert(mapdesc.Item().GetDisplayName());
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Calculates the initial population for each town by querying nearby house entities.
+	//! Called once during server Init.
 	protected void SetupTowns()
 	{
 		foreach(OVT_TownData town : m_Towns)
@@ -716,6 +890,11 @@ class OVT_TownManagerComponent: OVT_Component
 		}
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Query filter function used during town initialization (InitializeTowns).
+	//! Checks if an entity is a city, town, or village map marker.
+	//! \param entity The entity to filter
+	//! \return true if the entity is a valid town marker type, false otherwise
 	protected bool FilterCityTownEntities(IEntity entity) 
 	{		
 		MapDescriptorComponent mapdesc = MapDescriptorComponent.Cast(entity.FindComponent(MapDescriptorComponent));
@@ -729,6 +908,11 @@ class OVT_TownManagerComponent: OVT_Component
 		return false;		
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Query filter function used by GetNearestTownMarker.
+	//! Checks if an entity is a city, town, or village map marker and stores it if found.
+	//! \param entity The entity to check
+	//! \return false once a marker is found to stop the query, true otherwise
 	protected bool FindTownMarker(IEntity entity) 
 	{		
 		bool got = false;
@@ -748,6 +932,11 @@ class OVT_TownManagerComponent: OVT_Component
 		return false;		
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Query filter function used by GetNearestBusStop.
+	//! Checks if an entity is a bus stop map marker and stores it if found.
+	//! \param entity The entity to check
+	//! \return false once a marker is found to stop the query, true otherwise
 	protected bool FindBusStop(IEntity entity) 
 	{		
 		bool got = false;
@@ -766,6 +955,11 @@ class OVT_TownManagerComponent: OVT_Component
 	}
 	
 
+	//------------------------------------------------------------------------------------------------
+	//! Removes a specified number of supporters and population from the town nearest to a position.
+	//! Synchronizes changes via RPC.
+	//! \param pos The position vector to find the nearest town from
+	//! \param num The number of supporters/population to remove (default: 1)
 	void TakeSupportersFromNearestTown(vector pos, int num = 1)
 	{
 		OVT_TownData town = GetNearestTown(pos);
@@ -778,6 +972,11 @@ class OVT_TownManagerComponent: OVT_Component
 		Rpc(RpcDo_SetPopulation, townID, town.population - num);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Adds a specified number of supporters to the town nearest to a position.
+	//! Synchronizes changes via RPC.
+	//! \param pos The position vector to find the nearest town from
+	//! \param num The number of supporters to add (default: 1)
 	void AddSupport(vector pos, int num = 1)
 	{
 		OVT_TownData town = GetNearestTown(pos);
@@ -787,6 +986,11 @@ class OVT_TownManagerComponent: OVT_Component
 		Rpc(RpcDo_SetSupport, townID, town.support + num);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Query callback function used during town setup (SetupTowns).
+	//! Adds population to the currently checked town (m_CheckTown) based on the house type found.
+	//! \param entity The house entity found by the query
+	//! \return Always true to continue the query
 	protected bool CheckHouseAddPopulation(IEntity entity)
 	{
 		VObject mesh = entity.GetVObject();
@@ -804,6 +1008,11 @@ class OVT_TownManagerComponent: OVT_Component
 		return true;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Query callback function used by house-finding methods (GetRandomHouse, GetNearestHouse, etc.).
+	//! Adds the ID of an unowned house entity to the m_Houses array.
+	//! \param entity The house entity found by the query
+	//! \return Always true to continue the query
 	protected bool CheckHouseAddToArray(IEntity entity)
 	{
 		EntityID id = entity.GetID();
@@ -813,6 +1022,11 @@ class OVT_TownManagerComponent: OVT_Component
 		return true;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Query filter function used by house-finding and population calculation methods.
+	//! Checks if an entity is a valid, non-military/industrial/ruined house building.
+	//! \param entity The entity to filter
+	//! \return true if the entity is a valid house for population/ownership, false otherwise
 	protected bool FilterHouseEntities(IEntity entity) 
 	{
 		if(entity.ClassName() == "SCR_DestructibleBuildingEntity"){
@@ -845,6 +1059,10 @@ class OVT_TownManagerComponent: OVT_Component
 	
 	//RPC Methods
 	
+	//------------------------------------------------------------------------------------------------
+	//! Saves town data (population, stability, support, faction) for network replication (Join-In-Progress).
+	//! \param[in] writer The ScriptBitWriter to write data to
+	//! \return true if serialization is successful
 	override bool RplSave(ScriptBitWriter writer)
 	{	
 			
@@ -867,6 +1085,10 @@ class OVT_TownManagerComponent: OVT_Component
 		return true;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Loads town data (population, stability, support, faction) received from the server during Join-In-Progress.
+	//! \param[in] reader The ScriptBitReader to read data from
+	//! \return true if deserialization is successful
 	override bool RplLoad(ScriptBitReader reader)
 	{		
 				
@@ -890,6 +1112,11 @@ class OVT_TownManagerComponent: OVT_Component
 		return true;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Server-side RPC handler for adding a stability modifier.
+	//! Creates the modifier data, applies it, recalculates stability, and broadcasts the addition.
+	//! \param townId The ID of the town
+	//! \param index The index ID of the stability modifier
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_AddStabilityModifier(int townId, int index)
 	{
@@ -907,6 +1134,11 @@ class OVT_TownManagerComponent: OVT_Component
 		Rpc(RpcDo_AddStabilityModifier, townId, index, mod.timeout);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Server-side RPC handler for adding a support modifier.
+	//! Creates the modifier data, applies it, and broadcasts the addition.
+	//! \param townId The ID of the town
+	//! \param index The index ID of the support modifier
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_AddSupportModifier(int townId, int index)
 	{
@@ -923,6 +1155,10 @@ class OVT_TownManagerComponent: OVT_Component
 		Rpc(RpcDo_AddSupportModifier, townId, index, mod.timeout);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Broadcast RPC to update the stability value of a town on all clients.
+	//! \param townId The ID of the town
+	//! \param value The new stability value
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_SetStability(int townId, int value)
 	{
@@ -930,6 +1166,10 @@ class OVT_TownManagerComponent: OVT_Component
 		town.stability = value;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Broadcast RPC to update the support value of a town on all clients.
+	//! \param townId The ID of the town
+	//! \param value The new support value
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_SetSupport(int townId, int value)
 	{
@@ -937,6 +1177,10 @@ class OVT_TownManagerComponent: OVT_Component
 		town.support = value;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Broadcast RPC to update the population value of a town on all clients.
+	//! \param townId The ID of the town
+	//! \param value The new population value
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_SetPopulation(int townId, int value)
 	{
@@ -944,6 +1188,11 @@ class OVT_TownManagerComponent: OVT_Component
 		town.population = value;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Broadcast RPC to add a stability modifier to a town on all clients.
+	//! \param townId The ID of the town
+	//! \param index The index ID of the stability modifier
+	//! \param timer The initial timer value for the modifier
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_AddStabilityModifier(int townId, int index, int timer)
 	{
@@ -955,6 +1204,11 @@ class OVT_TownManagerComponent: OVT_Component
 		town.stabilityModifiers.Insert(data);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Broadcast RPC to add a support modifier to a town on all clients.
+	//! \param townId The ID of the town
+	//! \param index The index ID of the support modifier
+	//! \param timer The initial timer value for the modifier
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_AddSupportModifier(int townId, int index, int timer)
 	{
@@ -967,6 +1221,10 @@ class OVT_TownManagerComponent: OVT_Component
 		town.supportModifiers.Insert(data);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Broadcast RPC to remove a stability modifier from a town on all clients.
+	//! \param townId The ID of the town
+	//! \param index The index ID of the stability modifier to remove
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_RemoveStabilityModifier(int townId, int index)
 	{
@@ -978,6 +1236,10 @@ class OVT_TownManagerComponent: OVT_Component
 		}
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Broadcast RPC to remove a support modifier from a town on all clients.
+	//! \param townId The ID of the town
+	//! \param index The index ID of the support modifier to remove
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_RemoveSupportModifier(int townId, int index)
 	{
@@ -989,6 +1251,10 @@ class OVT_TownManagerComponent: OVT_Component
 		}
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Broadcast RPC to reset the timer of an existing stability modifier on all clients.
+	//! \param townId The ID of the town
+	//! \param index The index ID of the stability modifier to reset
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_ResetStabilityModifier(int townId, int index)
 	{
@@ -1002,6 +1268,10 @@ class OVT_TownManagerComponent: OVT_Component
 		}
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Broadcast RPC to reset the timer of an existing support modifier on all clients.
+	//! \param townId The ID of the town
+	//! \param index The index ID of the support modifier to reset
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_ResetSupportModifier(int townId, int index)
 	{
@@ -1015,6 +1285,12 @@ class OVT_TownManagerComponent: OVT_Component
 		}
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Targeted RPC (effectively broadcast, but filtered locally) to stream initial modifiers to a joining player.
+	//! \param playerId The ID of the player the modifiers are intended for
+	//! \param townId The ID of the town whose modifiers are being streamed
+	//! \param stability Array of stability modifier IDs active in the town
+	//! \param support Array of support modifier IDs active in the town
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_StreamModifiers(int playerId, int townId, array<int> stability, array<int> support)
 	{
@@ -1040,6 +1316,10 @@ class OVT_TownManagerComponent: OVT_Component
 		}
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Broadcast RPC to set the controlling faction of a town on all clients.
+	//! \param townId The ID of the town
+	//! \param index The new faction index
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_SetTownFaction(int townId, int index)
 	{
@@ -1048,22 +1328,4 @@ class OVT_TownManagerComponent: OVT_Component
 	}
 	
 	
-	void ~OVT_TownManagerComponent()
-	{
-		if(m_Towns)
-		{
-			m_Towns.Clear();
-			m_Towns = null;
-		}
-		if(m_TownNames)
-		{
-			m_TownNames.Clear();
-			m_TownNames = null;
-		}
-		if(m_Houses)
-		{
-			m_Houses.Clear();
-			m_Houses = null;
-		}
-	}
 }

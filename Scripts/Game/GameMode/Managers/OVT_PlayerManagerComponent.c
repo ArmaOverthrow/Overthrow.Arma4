@@ -2,9 +2,21 @@ class OVT_PlayerManagerComponentClass: OVT_ComponentClass
 {
 };
 
+//------------------------------------------------------------------------------------------------
+//! Manages player data persistence and access across the game session.
+//! Handles mapping between player IDs and persistent IDs, storing player-specific data like money, home location, skills, etc.
+//! Also responsible for replicating player data to clients joining in progress (JIP).
+
 class OVT_PlayerManagerComponent: OVT_Component
 {		
+	//------------------------------------------------------------------------------------------------
+	//! Static instance of the player manager component for easy access.
 	static OVT_PlayerManagerComponent s_Instance;
+	
+	//------------------------------------------------------------------------------------------------
+	//! Returns the static instance of the OVT_PlayerManagerComponent.
+	//! Creates the instance if it doesn't exist by finding it on the active GameMode.
+	//! \return The singleton instance of OVT_PlayerManagerComponent, or null if not found.
 	static OVT_PlayerManagerComponent GetInstance()
 	{
 		if (!s_Instance)
@@ -17,25 +29,51 @@ class OVT_PlayerManagerComponent: OVT_Component
 		return s_Instance;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Invoker called when player data is fully loaded (e.g., after replication).
 	ref ScriptInvoker m_OnPlayerDataLoaded = new ScriptInvoker();
 	
+	//------------------------------------------------------------------------------------------------
+	//! Maps runtime Player IDs (int) to their persistent string IDs (string).
 	protected ref map<int, string> m_mPersistentIDs;
+	
+	//------------------------------------------------------------------------------------------------
+	//! Maps persistent string IDs (string) back to runtime Player IDs (int).
 	protected ref map<string, int> m_mPlayerIDs;
+	
+	//------------------------------------------------------------------------------------------------
+	//! Stores the OVT_PlayerData object for each player, keyed by their persistent ID (string).
 	ref map<string, ref OVT_PlayerData> m_mPlayers;
 	
+	//------------------------------------------------------------------------------------------------
+	//! Initializes the component's internal maps.
+	//! \param owner The entity this component is attached to.
 	void Init(IEntity owner)
 	{
+		Print("[Overthrow] PlayerManager init - existing m_mPlayers: " + m_mPlayers);
+		if(m_mPlayers)
+		{
+			Print("[Overthrow] WARNING: PlayerManager Init() called but m_mPlayers already exists with " + m_mPlayers.Count() + " players");
+		}
 		m_mPersistentIDs = new map<int, string>;
 		m_mPlayerIDs = new map<string, int>;
 		m_mPlayers = new map<string, ref OVT_PlayerData>;
+		Print("[Overthrow] PlayerManager init complete - new m_mPlayers: " + m_mPlayers);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Retrieves the player data object for a given persistent ID.
+	//! \param[in] persId The persistent string ID of the player.
+	//! \return The OVT_PlayerData object for the player, or null if not found.
 	OVT_PlayerData GetPlayer(string persId)
 	{
 		if(m_mPlayers.Contains(persId)) return m_mPlayers[persId];
 		return null;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Checks if the local player holds the officer role.
+	//! \return True if the local player is an officer, false otherwise.
 	bool LocalPlayerIsOfficer()
 	{
 		int localId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
@@ -44,11 +82,19 @@ class OVT_PlayerManagerComponent: OVT_Component
 		return player.isOfficer;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Retrieves the player data object for a given runtime player ID.
+	//! \param[in] playerId The runtime integer ID of the player.
+	//! \return The OVT_PlayerData object for the player, or null if not found.
 	OVT_PlayerData GetPlayer(int playerId)
 	{		
 		return GetPlayer(GetPersistentIDFromPlayerID(playerId));
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Retrieves the player's name using their persistent ID.
+	//! \param[in] persId The persistent string ID of the player.
+	//! \return The player's name, or an empty string if the player is not found.
 	string GetPlayerName(string persId)
 	{
 		OVT_PlayerData player = GetPlayer(persId);
@@ -56,15 +102,34 @@ class OVT_PlayerManagerComponent: OVT_Component
 		return "";
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Retrieves the player's name using their runtime player ID.
+	//! \param[in] playerId The runtime integer ID of the player.
+	//! \return The player's name, or an empty string if the player is not found.
 	string GetPlayerName(int playerId)
 	{
 		return GetPlayerName(GetPersistentIDFromPlayerID(playerId));
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Retrieves the persistent string ID associated with a runtime player ID.
+	//! If the mapping doesn't exist, it attempts to create it using EPF_Utils.GetPlayerUID and calls SetupPlayer.
+	//! Includes a Workbench-specific hack to limit player IDs for testing.
+	//! \param[in] playerId The runtime integer ID of the player.
+	//! \return The persistent string ID for the player.
 	string GetPersistentIDFromPlayerID(int playerId)
 	{
 		if(!m_mPersistentIDs.Contains(playerId)) {
 			string persistentId = EPF_Utils.GetPlayerUID(playerId);
+			
+			// Log if we get an empty persistent ID
+			if(!persistentId || persistentId.IsEmpty())
+			{
+				Print("[Overthrow] ERROR: EPF_Utils.GetPlayerUID returned empty/null for playerId: " + playerId);
+				// Don't set up a player with empty ID
+				return "";
+			}
+			
 #ifdef WORKBENCH
 			//Force only two players in workbench to test reconnection
 			if(playerId > 2)
@@ -78,21 +143,54 @@ class OVT_PlayerManagerComponent: OVT_Component
 		return m_mPersistentIDs[playerId];
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Retrieves the persistent string ID associated with a player's controlled entity.
+	//! \param[in] controlled The entity controlled by the player.
+	//! \return The persistent string ID for the player controlling the entity.
 	string GetPersistentIDFromControlledEntity(IEntity controlled)
 	{
 		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(controlled);
 		return GetPersistentIDFromPlayerID(playerId);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Retrieves the runtime player ID associated with a persistent string ID.
+	//! \param[in] id The persistent string ID of the player.
+	//! \return The runtime integer ID for the player, or -1 if not found.
 	int GetPlayerIDFromPersistentID(string id)
 	{
 		if(!m_mPlayerIDs.Contains(id)) return -1;
 		return m_mPlayerIDs[id];
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Sets up the player's data mappings and initializes their OVT_PlayerData if it doesn't exist.
+	//! Stores the mapping between runtime ID and persistent ID, retrieves the player name, and assigns the runtime ID to the data object.
+	//! If running on the server, it replicates this registration to all clients.
+	//! \param[in] playerId The runtime integer ID of the player.
+	//! \param[in] persistentId The persistent string ID of the player.
 	void SetupPlayer(int playerId, string persistentId)
 	{
-		Print("Setting up player: " + persistentId);
+		// Validate persistent ID
+		if(!persistentId || persistentId.IsEmpty())
+		{
+			Print("[Overthrow] ERROR: SetupPlayer called with empty/null persistentId for playerId: " + playerId);
+			return;
+		}
+		
+		Print("Setting up player: " + persistentId + " with playerId: " + playerId);
+		
+		// Check if this persistent ID is already mapped to a different player ID
+		if(m_mPlayerIDs.Contains(persistentId))
+		{
+			int existingPlayerId = m_mPlayerIDs[persistentId];
+			if(existingPlayerId != playerId)
+			{
+				Print("[Overthrow] WARNING: Persistent ID " + persistentId + " already mapped to playerId " + existingPlayerId + ", now being mapped to " + playerId);
+				Print("[Overthrow] This may indicate player duplication in hosted multiplayer mode");
+			}
+		}
+		
 		m_mPersistentIDs[playerId] = persistentId;
 		m_mPlayerIDs[persistentId] = playerId;
 		
@@ -114,6 +212,11 @@ class OVT_PlayerManagerComponent: OVT_Component
 	
 	//RPC Methods
 	
+	//------------------------------------------------------------------------------------------------
+	//! Saves the state of all managed players for replication (e.g., for JIP).
+	//! Writes player count, then iterates through players writing persistent ID, runtime ID, and all OVT_PlayerData fields.
+	//! \param[in,out] writer The ScriptBitWriter to write data to.
+	//! \return True if saving was successful.
 	override bool RplSave(ScriptBitWriter writer)
 	{
 		//Send JIP Players
@@ -142,6 +245,12 @@ class OVT_PlayerManagerComponent: OVT_Component
 		return true;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Loads the state of players received via replication (e.g., for JIP clients).
+	//! Reads player count, then iterates reading persistent ID and runtime ID. If the player data doesn't exist locally, it's created.
+	//! Populates the OVT_PlayerData fields from the stream and updates ID mappings. Finally notifies the skill system.
+	//! \param[in,out] reader The ScriptBitReader to read data from.
+	//! \return True if loading was successful, false on read error.
 	override bool RplLoad(ScriptBitReader reader)
 	{		
 		
@@ -186,23 +295,15 @@ class OVT_PlayerManagerComponent: OVT_Component
 		return true;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! RPC call invoked on all clients (Broadcast) to register a player.
+	//! Calls SetupPlayer locally to ensure all clients have the player's mappings and basic data.
+	//! \param[in] playerId The runtime integer ID of the player being registered.
+	//! \param[in] s The persistent string ID of the player being registered.
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_RegisterPlayer(int playerId, string s)
 	{
 		SetupPlayer(playerId, s);
 	}
 	
-	void ~OVT_PlayerManagerComponent()
-	{
-		if(m_mPersistentIDs)
-		{
-			m_mPersistentIDs.Clear();
-			m_mPersistentIDs = null;
-		}
-		if(m_mPlayerIDs)
-		{
-			m_mPlayerIDs.Clear();
-			m_mPlayerIDs = null;
-		}
-	}
 }

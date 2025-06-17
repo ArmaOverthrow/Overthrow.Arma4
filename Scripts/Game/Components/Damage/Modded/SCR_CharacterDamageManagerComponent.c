@@ -4,18 +4,10 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 	protected bool m_bIsOccupyingFaction = false;
 	protected IEntity m_eLastInstigator;
 	
-	override void OnInit(IEntity owner)
+	override void OnPostInit(IEntity owner)
 	{
-		SCR_BaseGameMode baseGameMode = SCR_BaseGameMode.Cast(GetGame().GetGameMode());
-		if (baseGameMode)
-			s_HealthSettings = baseGameMode.GetGameModeHealthSettings();
+		super.OnPostInit(owner);
 		
-		LIMB_GROUPS = {};
-		SCR_Enum.GetEnumValues(ECharacterHitZoneGroup, LIMB_GROUPS);
-		
-#ifdef ENABLE_DIAG
-		DiagInit(owner);
-#endif
 		GetOnDamage().Insert(WhenDamaged);
 		GetOnDamageStateChanged().Insert(WhenDamageStateChanged);
 	}

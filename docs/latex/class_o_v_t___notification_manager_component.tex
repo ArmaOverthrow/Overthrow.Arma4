@@ -1,0 +1,55 @@
+\doxysection{OVT\+\_\+\+Notification\+Manager\+Component Class Reference}
+\hypertarget{class_o_v_t___notification_manager_component}{}\label{class_o_v_t___notification_manager_component}\index{OVT\_NotificationManagerComponent@{OVT\_NotificationManagerComponent}}
+Inheritance diagram for OVT\+\_\+\+Notification\+Manager\+Component\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_o_v_t___notification_manager_component}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{class_o_v_t___notification_manager_component_aeecc11410dc1493ffce2532b609529cc}{Rpc\+Do\+\_\+\+Rcv\+Text\+Notification}} (string tag, int player\+Id, string param1, string param2, string param3)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_o_v_t___notification_manager_component_a4ea1cdcb5710e4fd0a6980aa87866578}\label{class_o_v_t___notification_manager_component_a4ea1cdcb5710e4fd0a6980aa87866578} 
+ref SCR\+\_\+\+Simple\+Message\+Presets {\bfseries m\+\_\+\+Messages}
+\begin{DoxyCompactList}\small\item\em Reference to the SCR\+\_\+\+Simple\+Message\+Presets configuration. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___notification_manager_component_abe483e83d9c69c3b80e8d1ccb53e4700}\label{class_o_v_t___notification_manager_component_abe483e83d9c69c3b80e8d1ccb53e4700} 
+int {\bfseries m\+\_\+i\+Max\+Notifications}
+\begin{DoxyCompactList}\small\item\em Maximum number of notifications to keep in the history. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___notification_manager_component_a121444ce7d0f8ffd3c00b136ff69d557}\label{class_o_v_t___notification_manager_component_a121444ce7d0f8ffd3c00b136ff69d557} 
+ref array$<$ ref \mbox{\hyperlink{class_o_v_t___notification_data}{OVT\+\_\+\+Notification\+Data}} $>$ {\bfseries m\+\_\+a\+Notifications} = \{\}
+\begin{DoxyCompactList}\small\item\em Array storing the recent notification data. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Manages sending and displaying notifications to players and external systems like Discord. Handles both in-\/game text notifications and external webhook posts. 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_o_v_t___notification_manager_component_aeecc11410dc1493ffce2532b609529cc}\index{OVT\_NotificationManagerComponent@{OVT\_NotificationManagerComponent}!RpcDo\_RcvTextNotification@{RpcDo\_RcvTextNotification}}
+\index{RpcDo\_RcvTextNotification@{RpcDo\_RcvTextNotification}!OVT\_NotificationManagerComponent@{OVT\_NotificationManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RpcDo\_RcvTextNotification()}{RpcDo\_RcvTextNotification()}}
+{\footnotesize\ttfamily \label{class_o_v_t___notification_manager_component_aeecc11410dc1493ffce2532b609529cc} 
+void OVT\+\_\+\+Notification\+Manager\+Component\+::\+Rpc\+Do\+\_\+\+Rcv\+Text\+Notification (\begin{DoxyParamCaption}\item[{string}]{tag}{, }\item[{int}]{player\+Id}{, }\item[{string}]{param1}{, }\item[{string}]{param2}{, }\item[{string}]{param3}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+RPC method called on clients to receive and process a text notification. Adds the received notification data to the local notification history. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em tag} & The identifier tag for the message preset. \\
+\hline
+\mbox{\texttt{ in}}  & {\em player\+Id} & The target player ID (-\/1 if broadcast). \\
+\hline
+\mbox{\texttt{ in}}  & {\em param1} & Optional first parameter for localization. \\
+\hline
+\mbox{\texttt{ in}}  & {\em param2} & Optional second parameter for localization. \\
+\hline
+\mbox{\texttt{ in}}  & {\em param3} & Optional third parameter for localization. \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+C\+:/\+Users/austi/\+Documents/\+Git\+Hub/\+Overthrow.\+Arma4/\+Scripts/\+Game/\+Game\+Mode/\+Managers/OVT\+\_\+\+Notification\+Manager\+Component.\+c\end{DoxyCompactItemize}

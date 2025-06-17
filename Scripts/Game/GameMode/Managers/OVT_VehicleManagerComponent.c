@@ -250,17 +250,4 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 		}
 	}
 	
-	void ~OVT_VehicleManagerComponent()
-	{
-		if(m_aAllVehicleShops)
-		{
-			m_aAllVehicleShops.Clear();
-			m_aAllVehicleShops = null;
-		}
-		if(m_aParkingSearch)
-		{
-			m_aParkingSearch.Clear();
-			m_aParkingSearch = null;
-		}
-	}
 }

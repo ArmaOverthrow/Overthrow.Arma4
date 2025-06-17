@@ -226,24 +226,4 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 		return true;
 	}
 	
-	void ~OVT_BasePatrolUpgrade()
-	{
-		GetGame().GetCallqueue().Remove(CheckUpdate);	
-		
-		if(m_Groups)
-		{
-			m_Groups.Clear();
-			m_Groups = null;
-		}
-		if(m_ProxiedGroups)
-		{
-			m_ProxiedGroups.Clear();
-			m_ProxiedGroups = null;
-		}
-		if(m_ProxiedPositions)
-		{
-			m_ProxiedPositions.Clear();
-			m_ProxiedPositions = null;
-		}		
-	}
 }

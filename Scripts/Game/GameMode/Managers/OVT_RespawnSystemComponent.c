@@ -3,21 +3,33 @@ class OVT_RespawnSystemComponentClass : EPF_BaseRespawnSystemComponentClass
 {
 };
 
-//! Scripted implementation that handles spawning and respawning of players.
-//! Should be attached to a GameMode entity.
+//------------------------------------------------------------------------------------------------
+//! Handles the spawning and respawning logic for players within the Overthrow game mode.
+//! Extends the base EPF respawn system to integrate with Overthrow-specific player data and spawning rules.
+//! Should be attached to the OVT_OverthrowGameMode entity.
 [ComponentEditorProps(icon: HYBRID_COMPONENT_ICON)]
 class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 {	
 	protected OVT_OverthrowGameMode m_Overthrow;
+	protected ref array<IEntity> m_FoundBases = {};
 	
 	[Attribute(defvalue: "{3A99A99836F6B3DC}Prefabs/Characters/Factions/INDFOR/FIA/Character_Player.et")]
 	ResourceName m_rDefaultPrefab;
 	
+	//------------------------------------------------------------------------------------------------
+	//! Gets the default player character prefab resource name.
+	//! \param playerId ID of the player for whom the prefab is requested (unused).
+	//! \param characterPersistenceId Persistence ID of the character (unused).
+	//! \return The resource name of the default player character prefab.
 	override protected ResourceName GetCreationPrefab(int playerId, string characterPersistenceId)
 	{
 		return m_rDefaultPrefab;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Called when the player's unique ID becomes available. Prepares the player in the game mode.
+	//! Retries if the game mode is not initialized or the UID is not yet available.
+	//! \param playerId ID of the player whose UID is now available.
 	protected override void OnUidAvailable(int playerId)
 	{
 		OVT_OverthrowGameMode mode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
@@ -42,19 +54,41 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 		super.OnUidAvailable(playerId);		
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Handles failed player registration attempts by scheduling a retry.
+	//! \param playerId ID of the player whose registration failed.
 	void OnPlayerRegisterFailed(int playerId)
 	{
 		int delay = Math.RandomFloat(900, 1100);
 		GetGame().GetCallqueue().CallLater(OnPlayerRegistered_S, delay, false, playerId);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Determines the spawn position and orientation for a player character based on their home location.
+	//! \param[in] playerId ID of the player being spawned (unused).
+	//! \param[in] characterPersistenceId Persistence ID used to retrieve player data.
+	//! \param[out] position The calculated spawn position vector.
+	//! \param[out] yawPitchRoll The calculated spawn orientation vector (defaults to "0 0 0").
 	protected override void GetCreationPosition(int playerId, string characterPersistenceId, out vector position, out vector yawPitchRoll)
 	{
 		OVT_PlayerData player = OVT_PlayerData.Get(characterPersistenceId);
 		if(player)
 		{
-			position = player.home;
-			yawPitchRoll = "0 0 0";
+			vector homePos = player.home;
+			
+			// Check if the home location is safe to spawn at
+			if(IsSpawnLocationSafe(homePos))
+			{
+				position = homePos;
+				yawPitchRoll = "0 0 0";
+			}
+			else
+			{
+				// Home is not safe, find alternative spawn location
+				vector safePos = FindSafeSpawnLocation(playerId, characterPersistenceId);
+				position = safePos;
+				yawPitchRoll = "0 0 0";
+			}
 		}
 	}
 	
@@ -111,6 +145,141 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 		super.OnCharacterLoadComplete(playerId, saveData, persistenceComponent);	
 	}
 	
+	//! Check if a spawn location is safe (not controlled by occupying faction)
+	protected bool IsSpawnLocationSafe(vector location)
+	{
+		// Check if there's a base near this location
+		OVT_BaseControllerComponent nearbyBase = GetNearbyBase(location, 100); // 100m radius
+		
+		if(nearbyBase)
+		{
+			// Check if base is controlled by occupying faction
+			int baseFaction = nearbyBase.GetControllingFaction();
+			int occupyingFactionIndex = OVT_Global.GetConfig().GetOccupyingFactionIndex();
+			
+			if(baseFaction == occupyingFactionIndex)
+			{
+				return false;
+			}
+		}
+		
+		return true;
+	}
+	
+	//! Find a nearby base within the specified radius
+	protected OVT_BaseControllerComponent GetNearbyBase(vector location, float radius)
+	{
+		// Clear previous results
+		m_FoundBases.Clear();
+		
+		// Query for base controllers near the location
+		GetGame().GetWorld().QueryEntitiesBySphere(location, radius, CheckForBaseController, FilterBaseEntities, EQueryEntitiesFlags.ALL);
+		
+		// Return the first base found (if any)
+		foreach(IEntity entity : m_FoundBases)
+		{
+			OVT_BaseControllerComponent baseController = OVT_BaseControllerComponent.Cast(entity.FindComponent(OVT_BaseControllerComponent));
+			if(baseController)
+				return baseController;
+		}
+		
+		return null;
+	}
+	
+	//! Filter for entities that might have base controllers
+	protected bool FilterBaseEntities(IEntity entity)
+	{
+		return entity.FindComponent(OVT_BaseControllerComponent) != null;
+	}
+	
+	//! Check if entity has base controller and add to found bases
+	protected bool CheckForBaseController(IEntity entity)
+	{
+		if(entity.FindComponent(OVT_BaseControllerComponent))
+		{
+			m_FoundBases.Insert(entity);
+		}
+		return true;
+	}
+	
+	//! Find a safe spawn location when home is compromised
+	protected vector FindSafeSpawnLocation(int playerId, string characterPersistenceId)
+	{
+		OVT_PlayerData player = OVT_PlayerData.Get(characterPersistenceId);
+		
+		// First try: Check if player has an owned house that's safe
+		OVT_RealEstateManagerComponent realEstate = OVT_Global.GetRealEstate();
+		if(realEstate)
+		{
+			vector safeHousePos = FindSafeOwnedHouse(playerId, realEstate);
+			if(safeHousePos != vector.Zero)
+			{
+				// Update their home to this safe house
+				realEstate.SetHomePos(playerId, safeHousePos);
+				return safeHousePos;
+			}
+		}
+		
+		// Second try: Find a random safe town location
+		OVT_TownManagerComponent townManager = OVT_Global.GetTowns();
+		if(townManager && townManager.m_Towns)
+		{
+			foreach(OVT_TownData town : townManager.m_Towns)
+			{
+				if(town && IsSpawnLocationSafe(town.location))
+				{
+					vector safeSpawn = OVT_Global.FindSafeSpawnPosition(town.location);
+					// Update their home to this safe town
+					if(realEstate)
+						realEstate.SetHomePos(playerId, safeSpawn);
+					return safeSpawn;
+				}
+			}
+		}
+		
+		// Last resort: Use default spawn location
+		vector fallbackPos = "5000 0 5000"; // Default fallback position
+		if(realEstate)
+			realEstate.SetHomePos(playerId, fallbackPos);
+		return fallbackPos;
+	}
+	
+	//! Find a safe house that the player owns
+	protected vector FindSafeOwnedHouse(int playerId, OVT_RealEstateManagerComponent realEstate)
+	{
+		// Get player's persistent ID
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		
+		// Get all owned buildings using the existing method
+		set<EntityID> ownedBuildings = realEstate.GetOwned(persId);
+		
+		if(!ownedBuildings || ownedBuildings.IsEmpty())
+		{
+			return vector.Zero;
+		}
+		
+		// Check each owned building for safety
+		foreach(EntityID buildingId : ownedBuildings)
+		{
+			IEntity building = GetGame().GetWorld().FindEntityByID(buildingId);
+			if(!building) continue;
+			
+			vector housePos = building.GetOrigin();
+			if(IsSpawnLocationSafe(housePos))
+			{
+				return housePos;
+			}
+		}
+		return vector.Zero;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Called after a player character has been created and spawned into the world.
+	//! Initializes the character's inventory with the default civilian loadout and difficulty-specific starting items.
+	//! Marks the player's first spawn as complete.
+	//! \param playerId ID of the player whose character was created.
+	//! \param characterPersistenceId Persistence ID of the created character.
+	//! \param character The newly created character entity.
 	protected override void OnCharacterCreated(int playerId, string characterPersistenceId, IEntity character)
 	{
 		super.OnCharacterCreated(playerId, characterPersistenceId, character);
@@ -201,7 +370,13 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 		SetCivilianFaction(playerId);
 		CreateAndJoinGroup(playerId);
 	}
-		
+	
+	//------------------------------------------------------------------------------------------------
+	//! Spawns a default item based on a loadout slot definition and attempts to place it in the character's inventory.
+	//! Handles random selection from choices within the loadout slot and spawning of nested items.
+	//! \param storageManager The inventory manager component of the character.
+	//! \param loadoutItem The loadout slot definition containing item choices and stored items.
+	//! \return The spawned entity representing the primary item from the slot, or null if spawning failed.
 	protected IEntity SpawnDefaultCharacterItem(InventoryStorageManagerComponent storageManager, OVT_LoadoutSlot loadoutItem)
 	{
 		if(!storageManager) return null;
@@ -244,7 +419,13 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 		return slotEntity;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------
+	//! Called on the server when a player is killed.
+	//! Charges the player the respawn cost via the economy system.
+	//! \param playerId ID of the player who was killed.
+	//! \param playerEntity Entity of the killed player.
+	//! \param killerEntity Entity that killed the player (can be null).
+	//! \param killer Instigator information about the killer.
 	override void OnPlayerKilled_S(int playerId, IEntity playerEntity, IEntity killerEntity, notnull Instigator killer)
 	{
 		super.OnPlayerKilled_S(playerId, playerEntity, killerEntity, killer);

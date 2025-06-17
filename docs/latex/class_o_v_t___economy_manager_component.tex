@@ -1,0 +1,1159 @@
+\doxysection{OVT\+\_\+\+Economy\+Manager\+Component Class Reference}
+\hypertarget{class_o_v_t___economy_manager_component}{}\label{class_o_v_t___economy_manager_component}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+Inheritance diagram for OVT\+\_\+\+Economy\+Manager\+Component\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_o_v_t___economy_manager_component}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_o_v_t___economy_manager_component_ad3d8550c974a72b6a668ebd48915fa2a}\label{class_o_v_t___economy_manager_component_ad3d8550c974a72b6a668ebd48915fa2a} 
+void {\bfseries OVT\+\_\+\+Economy\+Manager\+Component} (IEntity\+Component\+Source src, IEntity ent, IEntity parent)
+\begin{DoxyCompactList}\small\item\em Constructor for the \doxylink{class_o_v_t___economy_manager_component}{OVT\+\_\+\+Economy\+Manager\+Component}. Initializes internal data structures. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{class_o_v_t___economy_manager_component_adcd496be90e75ad809016bbbbe506978}{Check\+Update}} ()
+\item 
+int \mbox{\hyperlink{class_o_v_t___economy_manager_component_a195cc50aa10525e0f97aef809be811dd}{Get\+Price}} (int id)
+\item 
+int \mbox{\hyperlink{class_o_v_t___economy_manager_component_adbcd104867b4e66b0d14d09f2428866c}{Get\+Demand}} (int id)
+\item 
+OVT\+\_\+\+Parking\+Type \mbox{\hyperlink{class_o_v_t___economy_manager_component_acfbee60a6152c653e1b0e2a895e9e14e}{Get\+Parking\+Type}} (int id)
+\item 
+void \mbox{\hyperlink{class_o_v_t___economy_manager_component_a1ec84da2b00ca82eb62493dfdc4a55ef}{Update\+Rents}} ()
+\item 
+void \mbox{\hyperlink{class_o_v_t___economy_manager_component_a2814e6062756ee67edd8ab715e1e299c}{Replenish\+Stock}} ()
+\item 
+void \mbox{\hyperlink{class_o_v_t___economy_manager_component_a40ae0d1b77b0f5a0214e90a0f351e252}{Update\+Shops}} ()
+\item 
+map$<$ int, ref array$<$ Rpl\+Id $>$ $>$ \mbox{\hyperlink{class_o_v_t___economy_manager_component_a6518cd0efb686fce8056195ac315aa84}{Get\+Shop\+Types}} (int town\+Id)
+\item 
+OVT\+\_\+\+Shop\+Component \mbox{\hyperlink{class_o_v_t___economy_manager_component_a5e105aed0544064ec803811db4eefc9d}{Get\+Shop\+By\+Rpl\+Id}} (Rpl\+Id shop\+Id)
+\item 
+void \mbox{\hyperlink{class_o_v_t___economy_manager_component_a3a094993bf11d83e4a1401cd696e79a2}{Calculate\+Income}} ()
+\item 
+int \mbox{\hyperlink{class_o_v_t___economy_manager_component_aee67aa3194f52e4e9c5adc6daf03048f}{Get\+Donation\+Income}} ()
+\item 
+int \mbox{\hyperlink{class_o_v_t___economy_manager_component_adc2ff34e5b5f0f51090b83ffb108e812}{Get\+Tax\+Income}} ()
+\item 
+void \mbox{\hyperlink{class_o_v_t___economy_manager_component_aa08ee9bfaf9c84a2541d4b6973614f79}{Set\+Price}} (int id, int cost)
+\item 
+void \mbox{\hyperlink{class_o_v_t___economy_manager_component_a828c4d4e9917e725ab70ac1affa36d80}{Set\+Demand}} (int id, int demand)
+\item 
+int \mbox{\hyperlink{class_o_v_t___economy_manager_component_af2d4bc8981da2cec2eacdabcf05801b9}{Get\+Sell\+Price}} (int id, vector pos="{}0 0 0"{})
+\item 
+int \mbox{\hyperlink{class_o_v_t___economy_manager_component_ab9ceddadce043b867051f9c67ca83e71}{Get\+Buy\+Price}} (int id, vector pos="{}0 0 0"{}, int player\+Id=-\/1)
+\item 
+int \mbox{\hyperlink{class_o_v_t___economy_manager_component_a07b804593fc493e44dde548e58f30ffb}{Get\+Town\+Stock}} (int town\+Id, int id)
+\item 
+int \mbox{\hyperlink{class_o_v_t___economy_manager_component_af0af65ae85cc75486a79ffcffa9f26f2}{Get\+Town\+Max\+Stock}} (int town\+Id, int id)
+\item 
+int \mbox{\hyperlink{class_o_v_t___economy_manager_component_a450389fc94752aa5dbeca5ceceb20168}{Get\+Price\+By\+Resource}} (Resource\+Name res, vector pos="{}0 0 0"{})
+\item 
+bool \mbox{\hyperlink{class_o_v_t___economy_manager_component_afb6c5ed8a9ce0ba5e0ac84453872b441}{Is\+Sold\+At\+Shop}} (Resource\+Name res, OVT\+\_\+\+Shop\+Type shop\+Type)
+\item 
+Rpl\+Id \mbox{\hyperlink{class_o_v_t___economy_manager_component_a0a0a2bd1e654178b82fa6ebfe16f158b}{Get\+Nearest\+Port}} (vector pos)
+\item 
+float \mbox{\hyperlink{class_o_v_t___economy_manager_component_aee5355ab70da08b9c6e724bb8afaf3c7}{Distance\+To\+Nearest\+Port}} (vector pos)
+\item 
+array$<$ Rpl\+Id $>$ \mbox{\hyperlink{class_o_v_t___economy_manager_component_a308f7ae53994e6ca72b61a4c5b26e0b1}{Get\+All\+Shops}} ()
+\item 
+array$<$ Rpl\+Id $>$ \mbox{\hyperlink{class_o_v_t___economy_manager_component_a894f5a241c3d0f3a93924e3fbf7d96c4}{Get\+All\+Ports}} ()
+\item 
+array$<$ Rpl\+Id $>$ \mbox{\hyperlink{class_o_v_t___economy_manager_component_ac13af1a1b0be6e263e6a5f7b5369f76e}{Get\+Gun\+Dealers}} ()
+\item 
+bool \mbox{\hyperlink{class_o_v_t___economy_manager_component_ab2d6792919365437180c9ead8a9477ce}{Item\+Is\+From\+Faction}} (int id, int faction\+Id)
+\item 
+array$<$ Rpl\+Id $>$ \mbox{\hyperlink{class_o_v_t___economy_manager_component_acc5c91415e61d0c4357599c591bc933e}{Get\+All\+Shops\+In\+Town}} (OVT\+\_\+\+Town\+Data town)
+\item 
+OVT\+\_\+\+Shop\+Inventory\+Config \mbox{\hyperlink{class_o_v_t___economy_manager_component_a59bcbbb1837d9498bea2cbfb0cb41d14}{Get\+Shop\+Config}} (OVT\+\_\+\+Shop\+Type shop\+Type)
+\item 
+int \mbox{\hyperlink{class_o_v_t___economy_manager_component_a7664f02d720cf09abada9206255e5bc9}{Get\+Player\+Money}} (string player\+Id)
+\item 
+int \mbox{\hyperlink{class_o_v_t___economy_manager_component_a054c133de5935ff7647cf466b9cf7ed6}{Get\+Local\+Player\+Money}} ()
+\item 
+int \mbox{\hyperlink{class_o_v_t___economy_manager_component_a7fef5cdc5e3bf580c6a1986576ca242d}{Local\+Player\+Has\+Money}} (int amount)
+\item 
+bool \mbox{\hyperlink{class_o_v_t___economy_manager_component_a7617253bb21c618799779fc92d7285be}{Player\+Has\+Money}} (string player\+Id, int amount)
+\item 
+void \mbox{\hyperlink{class_o_v_t___economy_manager_component_a3e1fb270c9eff7e2f604abd096580de4}{Add\+Player\+Money}} (int player\+Id, int amount, bool do\+Event=false)
+\item 
+void \mbox{\hyperlink{class_o_v_t___economy_manager_component_a4790096bedfa0a019961c1d2002c6812}{Do\+Add\+Player\+Money}} (int player\+Id, int amount)
+\item 
+void \mbox{\hyperlink{class_o_v_t___economy_manager_component_a998b7a21c758aa4a2ff21c920a075489}{Add\+Resistance\+Money}} (int amount)
+\item 
+void \mbox{\hyperlink{class_o_v_t___economy_manager_component_a6290438b96d6054b8cfcecefe6024e0c}{Do\+Add\+Resistance\+Money}} (int amount)
+\item 
+void \mbox{\hyperlink{class_o_v_t___economy_manager_component_af5a8a0ba6c6081cef0fb83d025cd1b68}{Take\+Resistance\+Money}} (int amount)
+\item 
+void \mbox{\hyperlink{class_o_v_t___economy_manager_component_a22db2d6b15d2baaaff9798ceeb975967}{Do\+Take\+Resistance\+Money}} (int amount)
+\item 
+void \mbox{\hyperlink{class_o_v_t___economy_manager_component_a52937bbf46076dabddadeb98d8bfaf68}{Set\+Resistance\+Tax}} (float amount)
+\item 
+void \mbox{\hyperlink{class_o_v_t___economy_manager_component_a6a6830045431a3818d6b03fd405a4a25}{Do\+Set\+Resistance\+Tax}} (float amount)
+\item 
+void \mbox{\hyperlink{class_o_v_t___economy_manager_component_a6d60d2a2e22638f98687e7991d80db5d}{Take\+Local\+Player\+Money}} (int amount)
+\item 
+void \mbox{\hyperlink{class_o_v_t___economy_manager_component_a22804145cfa5dd6f2dc73884444414d0}{Take\+Player\+Money}} (int player\+Id, int amount)
+\item 
+void \mbox{\hyperlink{class_o_v_t___economy_manager_component_afa4ffe28c7c5de76efad782195e15745}{Take\+Player\+Money\+Persistent\+Id}} (string pers\+Id, int amount)
+\item 
+void \mbox{\hyperlink{class_o_v_t___economy_manager_component_a1553a1665ea9510159713f44964684a6}{Add\+Player\+Money\+Persistent\+Id}} (string pers\+Id, int amount)
+\item 
+void \mbox{\hyperlink{class_o_v_t___economy_manager_component_abf7f6c8ebb1d356fbe40ea2fc02baa56}{Do\+Take\+Player\+Money}} (int player\+Id, int amount)
+\item 
+bool \mbox{\hyperlink{class_o_v_t___economy_manager_component_a5edcf686af59f52a028a09abc0a05809}{Resistance\+Has\+Money}} (int amount)
+\item 
+int \mbox{\hyperlink{class_o_v_t___economy_manager_component_ade0dcc5f601fd8fe7e65bf6313de3973}{Get\+Resistance\+Money}} ()
+\item 
+void \mbox{\hyperlink{class_o_v_t___economy_manager_component_aa69c2dba2024c364bc956d7e40c28222}{Register\+Gun\+Dealer}} (Entity\+ID id)
+\item 
+void \mbox{\hyperlink{class_o_v_t___economy_manager_component_a5991fb9efe106c232a78e6fd87461d03}{Init}} (IEntity owner)
+\item 
+void \mbox{\hyperlink{class_o_v_t___economy_manager_component_a1afc407b78ec9b6228680207cb4a4d0f}{After\+Init}} ()
+\item 
+void \mbox{\hyperlink{class_o_v_t___economy_manager_component_a9a99173eec6bc44eabe06d9c4defc5c9}{Register\+Resource}} (Resource\+Name res)
+\item 
+void \mbox{\hyperlink{class_o_v_t___economy_manager_component_a382472ccb19f03e41633019753d7ed71}{Build\+Resource\+Database}} ()
+\item 
+bool \mbox{\hyperlink{class_o_v_t___economy_manager_component_a2e230708df9e84c8b5dd6b0ddfdd4105}{Find\+Inventory\+Items}} (SCR\+\_\+\+EArsenal\+Item\+Type type, SCR\+\_\+\+EArsenal\+Item\+Mode mode, string search, out array$<$ SCR\+\_\+\+Entity\+Catalog\+Entry $>$ inventory\+Items)
+\item 
+bool \mbox{\hyperlink{class_o_v_t___economy_manager_component_aa017b1cd6ce95ac6029db203700c8d1f}{Get\+All\+Non\+Clothing\+Occupying\+Faction\+Items}} (out array$<$ Resource\+Name $>$ resources)
+\item 
+bool \mbox{\hyperlink{class_o_v_t___economy_manager_component_a4139bea317df602d8c624f77f3a46f6e}{Is\+Vehicle}} (int id)
+\item 
+bool \mbox{\hyperlink{class_o_v_t___economy_manager_component_a7c754c6215a422d9c41cf94902888fc8}{Is\+Vehicle}} (Resource\+Name res)
+\item 
+bool \mbox{\hyperlink{class_o_v_t___economy_manager_component_afa6a50626c0922e987e2a6bd2c7b52b0}{Get\+All\+Non\+Occupying\+Faction\+Items}} (out array$<$ Resource\+Name $>$ resources)
+\item 
+bool \mbox{\hyperlink{class_o_v_t___economy_manager_component_a6ed9d6cc937997f0a4d7c9378cb24e84}{Get\+All\+Non\+Occupying\+Faction\+Vehicles}} (out array$<$ Resource\+Name $>$ resources, bool include\+Illegal=false)
+\item 
+bool \mbox{\hyperlink{class_o_v_t___economy_manager_component_a1f18df1c974a3e40f22d79a83bef27de}{Get\+All\+Non\+Occupying\+Faction\+Vehicles\+By\+Parking}} (out array$<$ Resource\+Name $>$ resources, array$<$ OVT\+\_\+\+Parking\+Type $>$ parking\+Types, bool include\+Illegal=false)
+\item 
+\Hypertarget{class_o_v_t___economy_manager_component_a12cd3e52f63596a01636b9677614db8d}\label{class_o_v_t___economy_manager_component_a12cd3e52f63596a01636b9677614db8d} 
+void {\bfseries Post\+Game\+Start} ()
+\begin{DoxyCompactList}\small\item\em Called after the game has fully started. Triggers shop inventory initialization. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___economy_manager_component_a4ef935ff134b057508961ec4b2f24911}\label{class_o_v_t___economy_manager_component_a4ef935ff134b057508961ec4b2f24911} 
+void {\bfseries Initialize\+Ports} ()
+\begin{DoxyCompactList}\small\item\em Finds and registers all port entities in the world. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___economy_manager_component_a2c35513ebcd3eac8872b605a66051610}\label{class_o_v_t___economy_manager_component_a2c35513ebcd3eac8872b605a66051610} 
+void {\bfseries Initialize\+Shops} ()
+\begin{DoxyCompactList}\small\item\em Finds and registers all shop entities in the world (Server only). \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{class_o_v_t___economy_manager_component_a4ea479e0aff538ca8a38475e74a29746}{Get\+Inventory\+Id}} (Resource\+Name res)
+\item 
+Resource\+Name \mbox{\hyperlink{class_o_v_t___economy_manager_component_a152279433936ee618db4d28fb533f6e7}{Get\+Resource}} (int id)
+\item 
+void \mbox{\hyperlink{class_o_v_t___economy_manager_component_a12d08a62204228757984e80af68f74a3}{Init\+Shop\+Inventory}} ()
+\item 
+bool \mbox{\hyperlink{class_o_v_t___economy_manager_component_aa10e7c77492504db0a715558f48978f7}{Check\+Shop\+Init}} (IEntity entity)
+\item 
+bool \mbox{\hyperlink{class_o_v_t___economy_manager_component_ac62b2571516d9d14ba0ab193fc3b85c2}{Filter\+Shop\+Entities}} (IEntity entity)
+\item 
+bool \mbox{\hyperlink{class_o_v_t___economy_manager_component_a7900146dfe928c7c367a6f5242bb511f}{Check\+Port\+Init}} (IEntity entity)
+\item 
+bool \mbox{\hyperlink{class_o_v_t___economy_manager_component_a39b41856bf8db19ef4b5847c538b209c}{Filter\+Port\+Entities}} (IEntity entity)
+\item 
+void \mbox{\hyperlink{class_o_v_t___economy_manager_component_a1f03f2658e270ad94acd66b4bd99efda}{Charge\+Respawn}} (int player\+Id)
+\item 
+\Hypertarget{class_o_v_t___economy_manager_component_aca532fe67b0e8ff7de0a2cb4edbe4d11}\label{class_o_v_t___economy_manager_component_aca532fe67b0e8ff7de0a2cb4edbe4d11} 
+override bool {\bfseries Rpl\+Save} (Script\+Bit\+Writer writer)
+\begin{DoxyCompactList}\small\item\em Saves component state for persistence or JIP. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___economy_manager_component_a20f68b4464fc9b41c39d7e90f1c0044b}\label{class_o_v_t___economy_manager_component_a20f68b4464fc9b41c39d7e90f1c0044b} 
+override bool {\bfseries Rpl\+Load} (Script\+Bit\+Reader reader)
+\begin{DoxyCompactList}\small\item\em Loads component state for persistence or JIP. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{class_o_v_t___economy_manager_component_a06f89dd14e50059c72692cb88f9610b9}{Stream\+Player\+Money}} (int player\+Id)
+\item 
+void \mbox{\hyperlink{class_o_v_t___economy_manager_component_a39b8043070d822400548e57795fc56c9}{Rpc\+Do\+\_\+\+Set\+Player\+Money}} (int player\+Id, int amount)
+\item 
+\Hypertarget{class_o_v_t___economy_manager_component_af5c7e47c89063446771ff91657f7e887}\label{class_o_v_t___economy_manager_component_af5c7e47c89063446771ff91657f7e887} 
+void {\bfseries Stream\+Resistance\+Money} ()
+\begin{DoxyCompactList}\small\item\em Streams the latest resistance money amount to all clients via RPC. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{class_o_v_t___economy_manager_component_abfcedb17f94e01cca8ccd597b5c717ea}{Rpc\+Do\+\_\+\+Set\+Resistance\+Money}} (int amount)
+\item 
+\Hypertarget{class_o_v_t___economy_manager_component_a908ec4a99229ae4b0bcbb3e555947880}\label{class_o_v_t___economy_manager_component_a908ec4a99229ae4b0bcbb3e555947880} 
+void {\bfseries Stream\+Resistance\+Tax} ()
+\begin{DoxyCompactList}\small\item\em Streams the latest resistance tax rate to all clients via RPC. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{class_o_v_t___economy_manager_component_ac496b43711cefee92864895272e16d26}{Rpc\+Do\+\_\+\+Set\+Resistance\+Tax}} (float amount)
+\item 
+\Hypertarget{class_o_v_t___economy_manager_component_a9f49869fa2ed4339169411cf1bdd680d}\label{class_o_v_t___economy_manager_component_a9f49869fa2ed4339169411cf1bdd680d} 
+void {\bfseries \texorpdfstring{$\sim$}{\string~}\+OVT\+\_\+\+Economy\+Manager\+Component} ()
+\begin{DoxyCompactList}\small\item\em Destructor for the \doxylink{class_o_v_t___economy_manager_component}{OVT\+\_\+\+Economy\+Manager\+Component}. Cleans up timers and allocated memory. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static \mbox{\hyperlink{class_o_v_t___economy_manager_component}{OVT\+\_\+\+Economy\+Manager\+Component}} \mbox{\hyperlink{class_o_v_t___economy_manager_component_ab8623ea08f426f786595912ac4f21d06}{Get\+Instance}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_o_v_t___economy_manager_component_abf499c3ed61146b55f52a74bf8e94418}\label{class_o_v_t___economy_manager_component_abf499c3ed61146b55f52a74bf8e94418} 
+ref array$<$ Rpl\+Id $>$ {\bfseries m\+\_\+a\+All\+Shops}
+\begin{DoxyCompactList}\small\item\em List of all registered shop Rpl\+Ids. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___economy_manager_component_a50de629971c0730bbbac984eca38b3ad}\label{class_o_v_t___economy_manager_component_a50de629971c0730bbbac984eca38b3ad} 
+ref array$<$ Rpl\+Id $>$ {\bfseries m\+\_\+a\+All\+Ports}
+\begin{DoxyCompactList}\small\item\em List of all registered port Rpl\+Ids. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___economy_manager_component_afd6ca92c5188b887fdb5bf0b5ce1549b}\label{class_o_v_t___economy_manager_component_afd6ca92c5188b887fdb5bf0b5ce1549b} 
+ref array$<$ Rpl\+Id $>$ {\bfseries m\+\_\+a\+Gun\+Dealers}
+\begin{DoxyCompactList}\small\item\em List of all registered gun dealer Rpl\+Ids. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___economy_manager_component_a6fe09fbcea00959335ebef304c577d38}\label{class_o_v_t___economy_manager_component_a6fe09fbcea00959335ebef304c577d38} 
+const int {\bfseries ECONOMY\+\_\+\+UPDATE\+\_\+\+FREQUENCY} = 60000
+\begin{DoxyCompactList}\small\item\em Frequency (in ms) for periodic economy updates (income, stock). \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___economy_manager_component_adbdfd4740c4409f55c46e40c03b18a76}\label{class_o_v_t___economy_manager_component_adbdfd4740c4409f55c46e40c03b18a76} 
+ref array$<$ ref Resource\+Name $>$ {\bfseries m\+\_\+a\+Resources}
+\begin{DoxyCompactList}\small\item\em Database of all known item/vehicle Resource\+Names. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___economy_manager_component_ab0b2540df296e2bba831dd9494b3967f}\label{class_o_v_t___economy_manager_component_ab0b2540df296e2bba831dd9494b3967f} 
+ref map$<$ ref Resource\+Name, int $>$ {\bfseries m\+\_\+a\+Resource\+Index}
+\begin{DoxyCompactList}\small\item\em Mapping from Resource\+Name to its integer ID in m\+\_\+a\+Resources. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___economy_manager_component_af7c23363adb2022d5c785d3dfe189f92}\label{class_o_v_t___economy_manager_component_af7c23363adb2022d5c785d3dfe189f92} 
+ref array$<$ ref SCR\+\_\+\+Entity\+Catalog\+Entry $>$ {\bfseries m\+\_\+a\+Entity\+Catalog\+Entries}
+\begin{DoxyCompactList}\small\item\em Cached entity catalog entries for faster lookup. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___economy_manager_component_a1fb0e0c6d3e0464958c2f95f8b7f49cb}\label{class_o_v_t___economy_manager_component_a1fb0e0c6d3e0464958c2f95f8b7f49cb} 
+ref map$<$ int, ref array$<$ int $>$ $>$ {\bfseries m\+\_\+m\+Faction\+Resources}
+\begin{DoxyCompactList}\small\item\em Mapping from Faction ID to an array of resource IDs belonging to that faction. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___economy_manager_component_a0dc178d3eb689d12cac2f27cd6176dbf}\label{class_o_v_t___economy_manager_component_a0dc178d3eb689d12cac2f27cd6176dbf} 
+ref map$<$ int, ref array$<$ Rpl\+Id $>$ $>$ {\bfseries m\+\_\+m\+Town\+Shops}
+\begin{DoxyCompactList}\small\item\em Mapping from Town ID to an array of shop Rpl\+Ids within that town. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___economy_manager_component_aef2011e75c3d66cfe53f7ced922f8946}\label{class_o_v_t___economy_manager_component_aef2011e75c3d66cfe53f7ced922f8946} 
+ref map$<$ int, int $>$ {\bfseries m\+\_\+m\+Item\+Costs}
+\begin{DoxyCompactList}\small\item\em Mapping from Resource ID to its base cost. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___economy_manager_component_ac1d86ace1c83c1ec2eec1cc93e3fdaa4}\label{class_o_v_t___economy_manager_component_ac1d86ace1c83c1ec2eec1cc93e3fdaa4} 
+ref map$<$ int, int $>$ {\bfseries m\+\_\+m\+Item\+Demand}
+\begin{DoxyCompactList}\small\item\em Mapping from Resource ID to its demand value (influences stock and prices). \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___economy_manager_component_aebcdc5ab74b7aed301014078f4ce59ec}\label{class_o_v_t___economy_manager_component_aebcdc5ab74b7aed301014078f4ce59ec} 
+ref array$<$ int $>$ {\bfseries m\+\_\+a\+Legal\+Vehicles}
+\begin{DoxyCompactList}\small\item\em List of resource IDs for vehicles considered legal. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___economy_manager_component_aded9df9448a36fa52a3a6aa91579d97b}\label{class_o_v_t___economy_manager_component_aded9df9448a36fa52a3a6aa91579d97b} 
+ref array$<$ int $>$ {\bfseries m\+\_\+a\+All\+Vehicles}
+\begin{DoxyCompactList}\small\item\em List of resource IDs for all vehicles. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___economy_manager_component_a41d6f6ea91b15886c4d2e5cf1decd552}\label{class_o_v_t___economy_manager_component_a41d6f6ea91b15886c4d2e5cf1decd552} 
+ref map$<$ int, OVT\+\_\+\+Parking\+Type $>$ {\bfseries m\+\_\+m\+Vehicle\+Parking}
+\begin{DoxyCompactList}\small\item\em Mapping from vehicle resource ID to its required parking type. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___economy_manager_component_a104be48641ce102b022d7866ab93616c}\label{class_o_v_t___economy_manager_component_a104be48641ce102b022d7866ab93616c} 
+int {\bfseries m\+\_\+i\+Hour\+Paid\+Income} = -\/1
+\begin{DoxyCompactList}\small\item\em Tracks the hour when income was last calculated to prevent double payments. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___economy_manager_component_a850f3ce19ffe49a3e9fbd786300e465b}\label{class_o_v_t___economy_manager_component_a850f3ce19ffe49a3e9fbd786300e465b} 
+int {\bfseries m\+\_\+i\+Hour\+Paid\+Stock} = -\/1
+\begin{DoxyCompactList}\small\item\em Tracks the hour when stock was last replenished. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___economy_manager_component_a2cd98f12d3163d90e0b18591ad3cb53f}\label{class_o_v_t___economy_manager_component_a2cd98f12d3163d90e0b18591ad3cb53f} 
+int {\bfseries m\+\_\+i\+Hour\+Paid\+Rent} = -\/1
+\begin{DoxyCompactList}\small\item\em Tracks the hour when rent was last calculated. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___economy_manager_component_a3460b959f084675f55de75d8d6697ef5}\label{class_o_v_t___economy_manager_component_a3460b959f084675f55de75d8d6697ef5} 
+int {\bfseries m\+\_\+i\+Resistance\+Money} = 0
+\begin{DoxyCompactList}\small\item\em Current amount of money held by the resistance faction. Streamed to clients. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___economy_manager_component_abdf3e7b523f72861d51c0f25e8c62089}\label{class_o_v_t___economy_manager_component_abdf3e7b523f72861d51c0f25e8c62089} 
+float {\bfseries m\+\_\+f\+Resistance\+Tax} = 0
+\begin{DoxyCompactList}\small\item\em Current tax rate applied to player income, benefiting the resistance. Streamed to clients. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___economy_manager_component_a469912179dd7b6ecf06c5a7d991fc3f1}\label{class_o_v_t___economy_manager_component_a469912179dd7b6ecf06c5a7d991fc3f1} 
+ref Script\+Invoker {\bfseries m\+\_\+\+On\+Player\+Money\+Changed} = new Script\+Invoker()
+\begin{DoxyCompactList}\small\item\em Invoked when a player\textquotesingle{}s money changes. Args\+: string pers\+Id, int new\+Amount. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___economy_manager_component_aa29924223c942bdb0eec04de4ed762d8}\label{class_o_v_t___economy_manager_component_aa29924223c942bdb0eec04de4ed762d8} 
+ref Script\+Invoker {\bfseries m\+\_\+\+On\+Resistance\+Money\+Changed} = new Script\+Invoker()
+\begin{DoxyCompactList}\small\item\em Invoked when the resistance money changes. Args\+: int new\+Amount. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___economy_manager_component_a4e28fc68e0a150b5024be7ab227338b1}\label{class_o_v_t___economy_manager_component_a4e28fc68e0a150b5024be7ab227338b1} 
+ref Script\+Invoker {\bfseries m\+\_\+\+On\+Player\+Buy} = new Script\+Invoker()
+\begin{DoxyCompactList}\small\item\em Invoked when a player buys an item. Args\+: int player\+Id, int cost, Resource\+Name item, int quantity. \end{DoxyCompactList}\item 
+\Hypertarget{class_o_v_t___economy_manager_component_a71463dee79d53bdb0596b16693fc86bf}\label{class_o_v_t___economy_manager_component_a71463dee79d53bdb0596b16693fc86bf} 
+ref Script\+Invoker {\bfseries m\+\_\+\+On\+Player\+Sell} = new Script\+Invoker()
+\begin{DoxyCompactList}\small\item\em Invoked when a player sells an item. Args\+: int player\+Id, int cost, Resource\+Name item, int quantity. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_o_v_t___economy_manager_component_a0870c20572eb21cf7a2dd6a5c5408fde}\label{class_o_v_t___economy_manager_component_a0870c20572eb21cf7a2dd6a5c5408fde} 
+static \mbox{\hyperlink{class_o_v_t___economy_manager_component}{OVT\+\_\+\+Economy\+Manager\+Component}} {\bfseries s\+\_\+\+Instance}
+\begin{DoxyCompactList}\small\item\em Static instance for singleton access. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Manages the overall economy in the Overthrow game mode. Handles prices, stock levels, player and resistance money, taxes, donations, and shop/port registration. This is a singleton component accessible via \doxylink{class_o_v_t___economy_manager_component_ab8623ea08f426f786595912ac4f21d06}{OVT\+\_\+\+Economy\+Manager\+Component.\+Get\+Instance()}. 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_o_v_t___economy_manager_component_a3e1fb270c9eff7e2f604abd096580de4}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!AddPlayerMoney@{AddPlayerMoney}}
+\index{AddPlayerMoney@{AddPlayerMoney}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{AddPlayerMoney()}{AddPlayerMoney()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a3e1fb270c9eff7e2f604abd096580de4} 
+void OVT\+\_\+\+Economy\+Manager\+Component\+::\+Add\+Player\+Money (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{, }\item[{int}]{amount}{, }\item[{bool}]{do\+Event}{ = {\ttfamily false}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Adds money to a player\textquotesingle{}s account. Handles server/client distinction. Use this method for external calls. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em player\+Id} & The runtime Player ID. \\
+\hline
+\mbox{\texttt{ in}}  & {\em amount} & The amount of money to add. \\
+\hline
+\mbox{\texttt{ in}}  & {\em do\+Event} & If true, invokes the m\+\_\+\+On\+Player\+Money\+Changed event (currently unused). \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___economy_manager_component_a1553a1665ea9510159713f44964684a6}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!AddPlayerMoneyPersistentId@{AddPlayerMoneyPersistentId}}
+\index{AddPlayerMoneyPersistentId@{AddPlayerMoneyPersistentId}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{AddPlayerMoneyPersistentId()}{AddPlayerMoneyPersistentId()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a1553a1665ea9510159713f44964684a6} 
+void OVT\+\_\+\+Economy\+Manager\+Component\+::\+Add\+Player\+Money\+Persistent\+Id (\begin{DoxyParamCaption}\item[{string}]{pers\+Id}{, }\item[{int}]{amount}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Server-\/side method to add money directly using the persistent ID. Does not handle server/client distinction. Updates player data and invokes the money changed event. Streams update if player is online. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em pers\+Id} & The persistent string ID of the player. \\
+\hline
+\mbox{\texttt{ in}}  & {\em amount} & The amount of money to add. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___economy_manager_component_a998b7a21c758aa4a2ff21c920a075489}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!AddResistanceMoney@{AddResistanceMoney}}
+\index{AddResistanceMoney@{AddResistanceMoney}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{AddResistanceMoney()}{AddResistanceMoney()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a998b7a21c758aa4a2ff21c920a075489} 
+void OVT\+\_\+\+Economy\+Manager\+Component\+::\+Add\+Resistance\+Money (\begin{DoxyParamCaption}\item[{int}]{amount}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Adds money to the resistance faction\textquotesingle{}s funds. Handles server/client distinction. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em amount} & The amount of money to add. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___economy_manager_component_a1afc407b78ec9b6228680207cb4a4d0f}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!AfterInit@{AfterInit}}
+\index{AfterInit@{AfterInit}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{AfterInit()}{AfterInit()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a1afc407b78ec9b6228680207cb4a4d0f} 
+void OVT\+\_\+\+Economy\+Manager\+Component\+::\+After\+Init (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Post-\/initialization logic called after Init. Builds the resource database and initializes ports and shops. \Hypertarget{class_o_v_t___economy_manager_component_a382472ccb19f03e41633019753d7ed71}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!BuildResourceDatabase@{BuildResourceDatabase}}
+\index{BuildResourceDatabase@{BuildResourceDatabase}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{BuildResourceDatabase()}{BuildResourceDatabase()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a382472ccb19f03e41633019753d7ed71} 
+void OVT\+\_\+\+Economy\+Manager\+Component\+::\+Build\+Resource\+Database (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Builds the complete database of resources (items, vehicles) from configurations and faction data. Assigns resource IDs, sets prices, determines legality, parking types, and faction ownership. \Hypertarget{class_o_v_t___economy_manager_component_a3a094993bf11d83e4a1401cd696e79a2}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!CalculateIncome@{CalculateIncome}}
+\index{CalculateIncome@{CalculateIncome}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{CalculateIncome()}{CalculateIncome()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a3a094993bf11d83e4a1401cd696e79a2} 
+void OVT\+\_\+\+Economy\+Manager\+Component\+::\+Calculate\+Income (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Calculates income from donations and taxes, applies the resistance tax, and distributes the remaining amount to online players. Typically called periodically (e.\+g., every 6 hours). \Hypertarget{class_o_v_t___economy_manager_component_a1f03f2658e270ad94acd66b4bd99efda}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!ChargeRespawn@{ChargeRespawn}}
+\index{ChargeRespawn@{ChargeRespawn}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{ChargeRespawn()}{ChargeRespawn()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a1f03f2658e270ad94acd66b4bd99efda} 
+void OVT\+\_\+\+Economy\+Manager\+Component\+::\+Charge\+Respawn (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Charges a player a fee upon respawning, if they have sufficient funds. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em player\+Id} & The runtime Player ID of the respawning player. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___economy_manager_component_a7900146dfe928c7c367a6f5242bb511f}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!CheckPortInit@{CheckPortInit}}
+\index{CheckPortInit@{CheckPortInit}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{CheckPortInit()}{CheckPortInit()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a7900146dfe928c7c367a6f5242bb511f} 
+bool OVT\+\_\+\+Economy\+Manager\+Component\+::\+Check\+Port\+Init (\begin{DoxyParamCaption}\item[{IEntity}]{entity}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Callback function used by Query\+Entities\+By\+Sphere during port initialization. Registers the port\textquotesingle{}s Rpl\+Id. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em entity} & The potential port entity found by the query. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+True to continue the query. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_aa10e7c77492504db0a715558f48978f7}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!CheckShopInit@{CheckShopInit}}
+\index{CheckShopInit@{CheckShopInit}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{CheckShopInit()}{CheckShopInit()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_aa10e7c77492504db0a715558f48978f7} 
+bool OVT\+\_\+\+Economy\+Manager\+Component\+::\+Check\+Shop\+Init (\begin{DoxyParamCaption}\item[{IEntity}]{entity}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Callback function used by Query\+Entities\+By\+Sphere during shop initialization. Registers the shop\textquotesingle{}s Rpl\+Id, associates it with the nearest town, and sets the town ID on the shop component. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em entity} & The potential shop entity found by the query. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+True to continue the query. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_adcd496be90e75ad809016bbbbe506978}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!CheckUpdate@{CheckUpdate}}
+\index{CheckUpdate@{CheckUpdate}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{CheckUpdate()}{CheckUpdate()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_adcd496be90e75ad809016bbbbe506978} 
+void OVT\+\_\+\+Economy\+Manager\+Component\+::\+Check\+Update (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Periodically checks game time to trigger economy updates like income calculation, stock replenishment, and rent collection. Called automatically by a timer. \Hypertarget{class_o_v_t___economy_manager_component_aee5355ab70da08b9c6e724bb8afaf3c7}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!DistanceToNearestPort@{DistanceToNearestPort}}
+\index{DistanceToNearestPort@{DistanceToNearestPort}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{DistanceToNearestPort()}{DistanceToNearestPort()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_aee5355ab70da08b9c6e724bb8afaf3c7} 
+float OVT\+\_\+\+Economy\+Manager\+Component\+::\+Distance\+To\+Nearest\+Port (\begin{DoxyParamCaption}\item[{vector}]{pos}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Calculates the distance to the nearest registered port from a given position. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em pos} & The world position to check from. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The distance in meters, or -\/1 if no ports are registered. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_a4790096bedfa0a019961c1d2002c6812}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!DoAddPlayerMoney@{DoAddPlayerMoney}}
+\index{DoAddPlayerMoney@{DoAddPlayerMoney}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{DoAddPlayerMoney()}{DoAddPlayerMoney()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a4790096bedfa0a019961c1d2002c6812} 
+void OVT\+\_\+\+Economy\+Manager\+Component\+::\+Do\+Add\+Player\+Money (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{, }\item[{int}]{amount}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Server-\/side implementation to add money to a player\textquotesingle{}s account and stream the update. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em player\+Id} & The runtime Player ID. \\
+\hline
+\mbox{\texttt{ in}}  & {\em amount} & The amount of money to add. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___economy_manager_component_a6290438b96d6054b8cfcecefe6024e0c}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!DoAddResistanceMoney@{DoAddResistanceMoney}}
+\index{DoAddResistanceMoney@{DoAddResistanceMoney}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{DoAddResistanceMoney()}{DoAddResistanceMoney()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a6290438b96d6054b8cfcecefe6024e0c} 
+void OVT\+\_\+\+Economy\+Manager\+Component\+::\+Do\+Add\+Resistance\+Money (\begin{DoxyParamCaption}\item[{int}]{amount}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Server-\/side implementation to add money to resistance funds and stream the update. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em amount} & The amount of money to add. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___economy_manager_component_a6a6830045431a3818d6b03fd405a4a25}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!DoSetResistanceTax@{DoSetResistanceTax}}
+\index{DoSetResistanceTax@{DoSetResistanceTax}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{DoSetResistanceTax()}{DoSetResistanceTax()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a6a6830045431a3818d6b03fd405a4a25} 
+void OVT\+\_\+\+Economy\+Manager\+Component\+::\+Do\+Set\+Resistance\+Tax (\begin{DoxyParamCaption}\item[{float}]{amount}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Server-\/side implementation to set the resistance tax rate and stream the update. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em amount} & The new tax rate. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___economy_manager_component_abf7f6c8ebb1d356fbe40ea2fc02baa56}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!DoTakePlayerMoney@{DoTakePlayerMoney}}
+\index{DoTakePlayerMoney@{DoTakePlayerMoney}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{DoTakePlayerMoney()}{DoTakePlayerMoney()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_abf7f6c8ebb1d356fbe40ea2fc02baa56} 
+void OVT\+\_\+\+Economy\+Manager\+Component\+::\+Do\+Take\+Player\+Money (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{, }\item[{int}]{amount}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Server-\/side implementation to take money from a player\textquotesingle{}s account and stream the update. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em player\+Id} & The runtime Player ID. \\
+\hline
+\mbox{\texttt{ in}}  & {\em amount} & The amount of money to take. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___economy_manager_component_a22db2d6b15d2baaaff9798ceeb975967}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!DoTakeResistanceMoney@{DoTakeResistanceMoney}}
+\index{DoTakeResistanceMoney@{DoTakeResistanceMoney}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{DoTakeResistanceMoney()}{DoTakeResistanceMoney()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a22db2d6b15d2baaaff9798ceeb975967} 
+void OVT\+\_\+\+Economy\+Manager\+Component\+::\+Do\+Take\+Resistance\+Money (\begin{DoxyParamCaption}\item[{int}]{amount}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Server-\/side implementation to take money from resistance funds and stream the update. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em amount} & The amount of money to take. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___economy_manager_component_a39b41856bf8db19ef4b5847c538b209c}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!FilterPortEntities@{FilterPortEntities}}
+\index{FilterPortEntities@{FilterPortEntities}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{FilterPortEntities()}{FilterPortEntities()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a39b41856bf8db19ef4b5847c538b209c} 
+bool OVT\+\_\+\+Economy\+Manager\+Component\+::\+Filter\+Port\+Entities (\begin{DoxyParamCaption}\item[{IEntity}]{entity}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Filter function used by Query\+Entities\+By\+Sphere during port initialization. Ensures the entity has an \doxylink{class_o_v_t___port_controller_component}{OVT\+\_\+\+Port\+Controller\+Component}. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em entity} & The entity to filter. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+True if the entity has the port controller component, false otherwise. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_ac62b2571516d9d14ba0ab193fc3b85c2}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!FilterShopEntities@{FilterShopEntities}}
+\index{FilterShopEntities@{FilterShopEntities}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{FilterShopEntities()}{FilterShopEntities()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_ac62b2571516d9d14ba0ab193fc3b85c2} 
+bool OVT\+\_\+\+Economy\+Manager\+Component\+::\+Filter\+Shop\+Entities (\begin{DoxyParamCaption}\item[{IEntity}]{entity}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Filter function used by Query\+Entities\+By\+Sphere during shop initialization. Ensures the entity is a building with an OVT\+\_\+\+Shop\+Component that is not a procurement shop. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em entity} & The entity to filter. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+True if the entity is a valid shop building, false otherwise. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_a2e230708df9e84c8b5dd6b0ddfdd4105}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!FindInventoryItems@{FindInventoryItems}}
+\index{FindInventoryItems@{FindInventoryItems}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{FindInventoryItems()}{FindInventoryItems()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a2e230708df9e84c8b5dd6b0ddfdd4105} 
+bool OVT\+\_\+\+Economy\+Manager\+Component\+::\+Find\+Inventory\+Items (\begin{DoxyParamCaption}\item[{SCR\+\_\+\+EArsenal\+Item\+Type}]{type}{, }\item[{SCR\+\_\+\+EArsenal\+Item\+Mode}]{mode}{, }\item[{string}]{search}{, }\item[{out array$<$ SCR\+\_\+\+Entity\+Catalog\+Entry $>$}]{inventory\+Items}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Finds inventory items matching specific criteria within the cached entity catalog entries. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em type} & The SCR\+\_\+\+EArsenal\+Item\+Type to filter by. \\
+\hline
+\mbox{\texttt{ in}}  & {\em mode} & The SCR\+\_\+\+EArsenal\+Item\+Mode to filter by (DEFAULT matches any). \\
+\hline
+\mbox{\texttt{ in}}  & {\em search} & A string to search within the prefab name (case-\/sensitive). Blank matches all. \\
+\hline
+\mbox{\texttt{ out}}  & {\em inventory\+Items} & An array to populate with matching SCR\+\_\+\+Entity\+Catalog\+Entry objects. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+True if the search was performed (doesn\textquotesingle{}t guarantee items were found). 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_aa017b1cd6ce95ac6029db203700c8d1f}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!GetAllNonClothingOccupyingFactionItems@{GetAllNonClothingOccupyingFactionItems}}
+\index{GetAllNonClothingOccupyingFactionItems@{GetAllNonClothingOccupyingFactionItems}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetAllNonClothingOccupyingFactionItems()}{GetAllNonClothingOccupyingFactionItems()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_aa017b1cd6ce95ac6029db203700c8d1f} 
+bool OVT\+\_\+\+Economy\+Manager\+Component\+::\+Get\+All\+Non\+Clothing\+Occupying\+Faction\+Items (\begin{DoxyParamCaption}\item[{out array$<$ Resource\+Name $>$}]{resources}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Retrieves all non-\/clothing items belonging to the occupying faction. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ out}}  & {\em resources} & An array to populate with the Resource\+Names of the matching items. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+True. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_afa6a50626c0922e987e2a6bd2c7b52b0}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!GetAllNonOccupyingFactionItems@{GetAllNonOccupyingFactionItems}}
+\index{GetAllNonOccupyingFactionItems@{GetAllNonOccupyingFactionItems}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetAllNonOccupyingFactionItems()}{GetAllNonOccupyingFactionItems()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_afa6a50626c0922e987e2a6bd2c7b52b0} 
+bool OVT\+\_\+\+Economy\+Manager\+Component\+::\+Get\+All\+Non\+Occupying\+Faction\+Items (\begin{DoxyParamCaption}\item[{out array$<$ Resource\+Name $>$}]{resources}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Retrieves all arsenal items (non-\/vehicles) that do not belong to the occupying faction. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ out}}  & {\em resources} & An array to populate with the Resource\+Names of the matching items. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+True. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_a6ed9d6cc937997f0a4d7c9378cb24e84}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!GetAllNonOccupyingFactionVehicles@{GetAllNonOccupyingFactionVehicles}}
+\index{GetAllNonOccupyingFactionVehicles@{GetAllNonOccupyingFactionVehicles}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetAllNonOccupyingFactionVehicles()}{GetAllNonOccupyingFactionVehicles()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a6ed9d6cc937997f0a4d7c9378cb24e84} 
+bool OVT\+\_\+\+Economy\+Manager\+Component\+::\+Get\+All\+Non\+Occupying\+Faction\+Vehicles (\begin{DoxyParamCaption}\item[{out array$<$ Resource\+Name $>$}]{resources}{, }\item[{bool}]{include\+Illegal}{ = {\ttfamily false}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Retrieves all vehicles that do not belong to the occupying faction. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ out}}  & {\em resources} & An array to populate with the Resource\+Names of the matching vehicles. \\
+\hline
+\mbox{\texttt{ in}}  & {\em include\+Illegal} & If true, includes vehicles marked as illegal. Defaults to false. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+True. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_a1f18df1c974a3e40f22d79a83bef27de}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!GetAllNonOccupyingFactionVehiclesByParking@{GetAllNonOccupyingFactionVehiclesByParking}}
+\index{GetAllNonOccupyingFactionVehiclesByParking@{GetAllNonOccupyingFactionVehiclesByParking}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetAllNonOccupyingFactionVehiclesByParking()}{GetAllNonOccupyingFactionVehiclesByParking()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a1f18df1c974a3e40f22d79a83bef27de} 
+bool OVT\+\_\+\+Economy\+Manager\+Component\+::\+Get\+All\+Non\+Occupying\+Faction\+Vehicles\+By\+Parking (\begin{DoxyParamCaption}\item[{out array$<$ Resource\+Name $>$}]{resources}{, }\item[{array$<$ OVT\+\_\+\+Parking\+Type $>$}]{parking\+Types}{, }\item[{bool}]{include\+Illegal}{ = {\ttfamily false}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Retrieves all non-\/occupying faction vehicles that match specific parking types. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ out}}  & {\em resources} & An array to populate with the Resource\+Names of the matching vehicles. \\
+\hline
+\mbox{\texttt{ in}}  & {\em parking\+Types} & An array of OVT\+\_\+\+Parking\+Type enums to filter by. \\
+\hline
+\mbox{\texttt{ in}}  & {\em include\+Illegal} & If true, includes vehicles marked as illegal. Defaults to false. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+True. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_a894f5a241c3d0f3a93924e3fbf7d96c4}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!GetAllPorts@{GetAllPorts}}
+\index{GetAllPorts@{GetAllPorts}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetAllPorts()}{GetAllPorts()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a894f5a241c3d0f3a93924e3fbf7d96c4} 
+array$<$ Rpl\+Id $>$ OVT\+\_\+\+Economy\+Manager\+Component\+::\+Get\+All\+Ports (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Gets a list of Rpl\+Ids for all registered ports. \begin{DoxyReturn}{Returns}
+An array containing the Rpl\+Ids of all ports. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_a308f7ae53994e6ca72b61a4c5b26e0b1}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!GetAllShops@{GetAllShops}}
+\index{GetAllShops@{GetAllShops}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetAllShops()}{GetAllShops()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a308f7ae53994e6ca72b61a4c5b26e0b1} 
+array$<$ Rpl\+Id $>$ OVT\+\_\+\+Economy\+Manager\+Component\+::\+Get\+All\+Shops (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Gets a list of Rpl\+Ids for all registered shops. \begin{DoxyReturn}{Returns}
+An array containing the Rpl\+Ids of all shops. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_acc5c91415e61d0c4357599c591bc933e}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!GetAllShopsInTown@{GetAllShopsInTown}}
+\index{GetAllShopsInTown@{GetAllShopsInTown}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetAllShopsInTown()}{GetAllShopsInTown()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_acc5c91415e61d0c4357599c591bc933e} 
+array$<$ Rpl\+Id $>$ OVT\+\_\+\+Economy\+Manager\+Component\+::\+Get\+All\+Shops\+In\+Town (\begin{DoxyParamCaption}\item[{OVT\+\_\+\+Town\+Data}]{town}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Gets a list of Rpl\+Ids for all shops located within the radius of a given town. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em town} & The OVT\+\_\+\+Town\+Data object representing the town. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+An array of Rpl\+Ids for shops within the town\textquotesingle{}s range. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_ab9ceddadce043b867051f9c67ca83e71}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!GetBuyPrice@{GetBuyPrice}}
+\index{GetBuyPrice@{GetBuyPrice}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetBuyPrice()}{GetBuyPrice()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_ab9ceddadce043b867051f9c67ca83e71} 
+int OVT\+\_\+\+Economy\+Manager\+Component\+::\+Get\+Buy\+Price (\begin{DoxyParamCaption}\item[{int}]{id}{, }\item[{vector}]{pos}{ = {\ttfamily "{}0~0~0"{}}, }\item[{int}]{player\+Id}{ = {\ttfamily -\/1}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Calculates the dynamic buying price of an item at a specific location for a specific player. Based on the sell price plus a profit margin, potentially modified by player-\/specific multipliers. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em id} & The resource ID of the item. \\
+\hline
+\mbox{\texttt{ in}}  & {\em pos} & The world position where the item is being bought (optional). \\
+\hline
+\mbox{\texttt{ in}}  & {\em player\+Id} & The ID of the buying player (optional, influences price multipliers). \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The calculated buy price. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_adbcd104867b4e66b0d14d09f2428866c}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!GetDemand@{GetDemand}}
+\index{GetDemand@{GetDemand}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetDemand()}{GetDemand()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_adbcd104867b4e66b0d14d09f2428866c} 
+int OVT\+\_\+\+Economy\+Manager\+Component\+::\+Get\+Demand (\begin{DoxyParamCaption}\item[{int}]{id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Gets the demand value for an item by its resource ID. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em id} & The resource ID of the item. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The demand value, or 5 if not found. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_aee67aa3194f52e4e9c5adc6daf03048f}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!GetDonationIncome@{GetDonationIncome}}
+\index{GetDonationIncome@{GetDonationIncome}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetDonationIncome()}{GetDonationIncome()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_aee67aa3194f52e4e9c5adc6daf03048f} 
+int OVT\+\_\+\+Economy\+Manager\+Component\+::\+Get\+Donation\+Income (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Calculates total income generated from town support donations. Higher support and stability increase donations. \begin{DoxyReturn}{Returns}
+The total donation income. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_ac13af1a1b0be6e263e6a5f7b5369f76e}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!GetGunDealers@{GetGunDealers}}
+\index{GetGunDealers@{GetGunDealers}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetGunDealers()}{GetGunDealers()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_ac13af1a1b0be6e263e6a5f7b5369f76e} 
+array$<$ Rpl\+Id $>$ OVT\+\_\+\+Economy\+Manager\+Component\+::\+Get\+Gun\+Dealers (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Gets a list of Rpl\+Ids for all registered gun dealers. \begin{DoxyReturn}{Returns}
+An array containing the Rpl\+Ids of all gun dealers. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_ab8623ea08f426f786595912ac4f21d06}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!GetInstance@{GetInstance}}
+\index{GetInstance@{GetInstance}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetInstance()}{GetInstance()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_ab8623ea08f426f786595912ac4f21d06} 
+static \mbox{\hyperlink{class_o_v_t___economy_manager_component}{OVT\+\_\+\+Economy\+Manager\+Component}} OVT\+\_\+\+Economy\+Manager\+Component\+::\+Get\+Instance (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}, {\ttfamily [protected]}}
+
+Gets the singleton instance of the \doxylink{class_o_v_t___economy_manager_component}{OVT\+\_\+\+Economy\+Manager\+Component}. \begin{DoxyReturn}{Returns}
+The static instance or null if not found. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_a4ea479e0aff538ca8a38475e74a29746}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!GetInventoryId@{GetInventoryId}}
+\index{GetInventoryId@{GetInventoryId}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetInventoryId()}{GetInventoryId()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a4ea479e0aff538ca8a38475e74a29746} 
+int OVT\+\_\+\+Economy\+Manager\+Component\+::\+Get\+Inventory\+Id (\begin{DoxyParamCaption}\item[{Resource\+Name}]{res}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Gets the internal integer ID for a given resource name. Requires the resource to have been registered via Build\+Resource\+Database or Register\+Resource. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em res} & The Resource\+Name. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The integer ID, or potentially an error/invalid ID if not found. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_a054c133de5935ff7647cf466b9cf7ed6}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!GetLocalPlayerMoney@{GetLocalPlayerMoney}}
+\index{GetLocalPlayerMoney@{GetLocalPlayerMoney}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetLocalPlayerMoney()}{GetLocalPlayerMoney()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a054c133de5935ff7647cf466b9cf7ed6} 
+int OVT\+\_\+\+Economy\+Manager\+Component\+::\+Get\+Local\+Player\+Money (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Gets the current amount of money for the local player. \begin{DoxyReturn}{Returns}
+The local player\textquotesingle{}s money amount. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_a0a0a2bd1e654178b82fa6ebfe16f158b}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!GetNearestPort@{GetNearestPort}}
+\index{GetNearestPort@{GetNearestPort}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetNearestPort()}{GetNearestPort()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a0a0a2bd1e654178b82fa6ebfe16f158b} 
+Rpl\+Id OVT\+\_\+\+Economy\+Manager\+Component\+::\+Get\+Nearest\+Port (\begin{DoxyParamCaption}\item[{vector}]{pos}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Finds the Rpl\+Id of the nearest port entity to a given position. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em pos} & The world position to check from. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The Rpl\+Id of the nearest port, or an invalid Rpl\+Id if no ports are registered. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_acfbee60a6152c653e1b0e2a895e9e14e}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!GetParkingType@{GetParkingType}}
+\index{GetParkingType@{GetParkingType}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetParkingType()}{GetParkingType()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_acfbee60a6152c653e1b0e2a895e9e14e} 
+OVT\+\_\+\+Parking\+Type OVT\+\_\+\+Economy\+Manager\+Component\+::\+Get\+Parking\+Type (\begin{DoxyParamCaption}\item[{int}]{id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Gets the required parking type for a vehicle by its resource ID. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em id} & The resource ID of the vehicle. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The OVT\+\_\+\+Parking\+Type, defaulting to PARKING\+\_\+\+CAR if not found. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_a7664f02d720cf09abada9206255e5bc9}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!GetPlayerMoney@{GetPlayerMoney}}
+\index{GetPlayerMoney@{GetPlayerMoney}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetPlayerMoney()}{GetPlayerMoney()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a7664f02d720cf09abada9206255e5bc9} 
+int OVT\+\_\+\+Economy\+Manager\+Component\+::\+Get\+Player\+Money (\begin{DoxyParamCaption}\item[{string}]{player\+Id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Gets the current amount of money for a player identified by their persistent ID. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em player\+Id} & The persistent string ID of the player. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The player\textquotesingle{}s money amount, or 0 if the player data is not found. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_a195cc50aa10525e0f97aef809be811dd}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!GetPrice@{GetPrice}}
+\index{GetPrice@{GetPrice}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetPrice()}{GetPrice()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a195cc50aa10525e0f97aef809be811dd} 
+int OVT\+\_\+\+Economy\+Manager\+Component\+::\+Get\+Price (\begin{DoxyParamCaption}\item[{int}]{id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Gets the base price of an item by its resource ID. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em id} & The resource ID of the item. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The base price, or 500 if not found. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_a450389fc94752aa5dbeca5ceceb20168}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!GetPriceByResource@{GetPriceByResource}}
+\index{GetPriceByResource@{GetPriceByResource}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetPriceByResource()}{GetPriceByResource()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a450389fc94752aa5dbeca5ceceb20168} 
+int OVT\+\_\+\+Economy\+Manager\+Component\+::\+Get\+Price\+By\+Resource (\begin{DoxyParamCaption}\item[{Resource\+Name}]{res}{, }\item[{vector}]{pos}{ = {\ttfamily "{}0~0~0"{}}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Gets the dynamic sell price of an item by its Resource\+Name. Convenience wrapper for Get\+Sell\+Price. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em res} & The Resource\+Name of the item. \\
+\hline
+\mbox{\texttt{ in}}  & {\em pos} & The world position (optional). \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The calculated sell price. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_ade0dcc5f601fd8fe7e65bf6313de3973}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!GetResistanceMoney@{GetResistanceMoney}}
+\index{GetResistanceMoney@{GetResistanceMoney}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetResistanceMoney()}{GetResistanceMoney()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_ade0dcc5f601fd8fe7e65bf6313de3973} 
+int OVT\+\_\+\+Economy\+Manager\+Component\+::\+Get\+Resistance\+Money (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Gets the current amount of money held by the resistance faction. \begin{DoxyReturn}{Returns}
+The resistance money amount. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_a152279433936ee618db4d28fb533f6e7}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!GetResource@{GetResource}}
+\index{GetResource@{GetResource}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetResource()}{GetResource()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a152279433936ee618db4d28fb533f6e7} 
+Resource\+Name OVT\+\_\+\+Economy\+Manager\+Component\+::\+Get\+Resource (\begin{DoxyParamCaption}\item[{int}]{id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Gets the Resource\+Name corresponding to an internal integer ID. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em id} & The integer ID. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The Resource\+Name, or potentially null/empty if the ID is invalid. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_af2d4bc8981da2cec2eacdabcf05801b9}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!GetSellPrice@{GetSellPrice}}
+\index{GetSellPrice@{GetSellPrice}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetSellPrice()}{GetSellPrice()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_af2d4bc8981da2cec2eacdabcf05801b9} 
+int OVT\+\_\+\+Economy\+Manager\+Component\+::\+Get\+Sell\+Price (\begin{DoxyParamCaption}\item[{int}]{id}{, }\item[{vector}]{pos}{ = {\ttfamily "{}0~0~0"{}}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Calculates the dynamic selling price of an item at a specific location. Price is adjusted based on local town stock levels and distance to the nearest port. For vehicles, returns the base price. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em id} & The resource ID of the item. \\
+\hline
+\mbox{\texttt{ in}}  & {\em pos} & The world position where the item is being sold (optional, uses base price if "{}0 0 0"{}). \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The calculated sell price. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_a5e105aed0544064ec803811db4eefc9d}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!GetShopByRplId@{GetShopByRplId}}
+\index{GetShopByRplId@{GetShopByRplId}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetShopByRplId()}{GetShopByRplId()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a5e105aed0544064ec803811db4eefc9d} 
+OVT\+\_\+\+Shop\+Component OVT\+\_\+\+Economy\+Manager\+Component\+::\+Get\+Shop\+By\+Rpl\+Id (\begin{DoxyParamCaption}\item[{Rpl\+Id}]{shop\+Id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Retrieves the OVT\+\_\+\+Shop\+Component associated with a given Rpl\+Id. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em shop\+Id} & The Rpl\+Id of the shop entity. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The OVT\+\_\+\+Shop\+Component instance, or null if the entity or component is not found. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_a59bcbbb1837d9498bea2cbfb0cb41d14}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!GetShopConfig@{GetShopConfig}}
+\index{GetShopConfig@{GetShopConfig}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetShopConfig()}{GetShopConfig()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a59bcbbb1837d9498bea2cbfb0cb41d14} 
+OVT\+\_\+\+Shop\+Inventory\+Config OVT\+\_\+\+Economy\+Manager\+Component\+::\+Get\+Shop\+Config (\begin{DoxyParamCaption}\item[{OVT\+\_\+\+Shop\+Type}]{shop\+Type}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Retrieves the inventory configuration for a specific shop type. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em shop\+Type} & The OVT\+\_\+\+Shop\+Type enum value. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The corresponding OVT\+\_\+\+Shop\+Inventory\+Config, or a new empty config if not found. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_a6518cd0efb686fce8056195ac315aa84}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!GetShopTypes@{GetShopTypes}}
+\index{GetShopTypes@{GetShopTypes}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetShopTypes()}{GetShopTypes()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a6518cd0efb686fce8056195ac315aa84} 
+map$<$ int, ref array$<$ Rpl\+Id $>$ $>$ OVT\+\_\+\+Economy\+Manager\+Component\+::\+Get\+Shop\+Types (\begin{DoxyParamCaption}\item[{int}]{town\+Id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Groups shops within a town by their OVT\+\_\+\+Shop\+Type. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em town\+Id} & The ID of the town. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+A map where keys are shop types (int) and values are arrays of Rpl\+Ids for shops of that type. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_adc2ff34e5b5f0f51090b83ffb108e812}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!GetTaxIncome@{GetTaxIncome}}
+\index{GetTaxIncome@{GetTaxIncome}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetTaxIncome()}{GetTaxIncome()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_adc2ff34e5b5f0f51090b83ffb108e812} 
+int OVT\+\_\+\+Economy\+Manager\+Component\+::\+Get\+Tax\+Income (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Calculates total income generated from taxes based on town population and stability (excluding occupying faction towns). \begin{DoxyReturn}{Returns}
+The total tax income. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_af0af65ae85cc75486a79ffcffa9f26f2}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!GetTownMaxStock@{GetTownMaxStock}}
+\index{GetTownMaxStock@{GetTownMaxStock}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetTownMaxStock()}{GetTownMaxStock()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_af0af65ae85cc75486a79ffcffa9f26f2} 
+int OVT\+\_\+\+Economy\+Manager\+Component\+::\+Get\+Town\+Max\+Stock (\begin{DoxyParamCaption}\item[{int}]{town\+Id}{, }\item[{int}]{id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Calculates the theoretical maximum stock level for an item in a town. Based on population, buy rate, item demand, and town stability. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em town\+Id} & The ID of the town. \\
+\hline
+\mbox{\texttt{ in}}  & {\em id} & The resource ID of the item. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The calculated maximum stock capacity. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_a07b804593fc493e44dde548e58f30ffb}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!GetTownStock@{GetTownStock}}
+\index{GetTownStock@{GetTownStock}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{GetTownStock()}{GetTownStock()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a07b804593fc493e44dde548e58f30ffb} 
+int OVT\+\_\+\+Economy\+Manager\+Component\+::\+Get\+Town\+Stock (\begin{DoxyParamCaption}\item[{int}]{town\+Id}{, }\item[{int}]{id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Gets the total stock level of a specific item across all shops in a given town. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em town\+Id} & The ID of the town. \\
+\hline
+\mbox{\texttt{ in}}  & {\em id} & The resource ID of the item. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The total stock count, or 0 if the town has no shops. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_a5991fb9efe106c232a78e6fd87461d03}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!Init@{Init}}
+\index{Init@{Init}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{Init()}{Init()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a5991fb9efe106c232a78e6fd87461d03} 
+void OVT\+\_\+\+Economy\+Manager\+Component\+::\+Init (\begin{DoxyParamCaption}\item[{IEntity}]{owner}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Initialization logic called shortly after the component is created. Sets up timers and calls After\+Init. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em owner} & The owner entity of this component. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___economy_manager_component_a12d08a62204228757984e80af68f74a3}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!InitShopInventory@{InitShopInventory}}
+\index{InitShopInventory@{InitShopInventory}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{InitShopInventory()}{InitShopInventory()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a12d08a62204228757984e80af68f74a3} 
+void OVT\+\_\+\+Economy\+Manager\+Component\+::\+Init\+Shop\+Inventory (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Initializes the inventory of all registered shops based on their type configuration and town context. Populates shops with appropriate items and initial stock levels. (Server only). \Hypertarget{class_o_v_t___economy_manager_component_afb6c5ed8a9ce0ba5e0ac84453872b441}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!IsSoldAtShop@{IsSoldAtShop}}
+\index{IsSoldAtShop@{IsSoldAtShop}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{IsSoldAtShop()}{IsSoldAtShop()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_afb6c5ed8a9ce0ba5e0ac84453872b441} 
+bool OVT\+\_\+\+Economy\+Manager\+Component\+::\+Is\+Sold\+At\+Shop (\begin{DoxyParamCaption}\item[{Resource\+Name}]{res}{, }\item[{OVT\+\_\+\+Shop\+Type}]{shop\+Type}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Checks if a specific item resource is typically sold at a given shop type based on its configuration. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em res} & The Resource\+Name of the item. \\
+\hline
+\mbox{\texttt{ in}}  & {\em shop\+Type} & The type of shop to check against. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+True if the item is found in the shop type\textquotesingle{}s inventory configuration, false otherwise. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_a4139bea317df602d8c624f77f3a46f6e}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!IsVehicle@{IsVehicle}}
+\index{IsVehicle@{IsVehicle}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{IsVehicle()}{IsVehicle()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a4139bea317df602d8c624f77f3a46f6e} 
+bool OVT\+\_\+\+Economy\+Manager\+Component\+::\+Is\+Vehicle (\begin{DoxyParamCaption}\item[{int}]{id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Checks if a resource ID corresponds to a vehicle. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em id} & The resource ID. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+True if the ID is in the list of all vehicles, false otherwise. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_a7c754c6215a422d9c41cf94902888fc8}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!IsVehicle@{IsVehicle}}
+\index{IsVehicle@{IsVehicle}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{IsVehicle()}{IsVehicle()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a7c754c6215a422d9c41cf94902888fc8} 
+bool OVT\+\_\+\+Economy\+Manager\+Component\+::\+Is\+Vehicle (\begin{DoxyParamCaption}\item[{Resource\+Name}]{res}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Checks if a Resource\+Name corresponds to a vehicle. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em res} & The Resource\+Name. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+True if the resource is a vehicle, false otherwise. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_ab2d6792919365437180c9ead8a9477ce}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!ItemIsFromFaction@{ItemIsFromFaction}}
+\index{ItemIsFromFaction@{ItemIsFromFaction}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{ItemIsFromFaction()}{ItemIsFromFaction()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_ab2d6792919365437180c9ead8a9477ce} 
+bool OVT\+\_\+\+Economy\+Manager\+Component\+::\+Item\+Is\+From\+Faction (\begin{DoxyParamCaption}\item[{int}]{id}{, }\item[{int}]{faction\+Id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Checks if an item (by resource ID) belongs to a specific faction. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em id} & The resource ID of the item. \\
+\hline
+\mbox{\texttt{ in}}  & {\em faction\+Id} & The index of the faction. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+True if the item belongs to the faction, false otherwise. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_a7fef5cdc5e3bf580c6a1986576ca242d}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!LocalPlayerHasMoney@{LocalPlayerHasMoney}}
+\index{LocalPlayerHasMoney@{LocalPlayerHasMoney}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{LocalPlayerHasMoney()}{LocalPlayerHasMoney()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a7fef5cdc5e3bf580c6a1986576ca242d} 
+int OVT\+\_\+\+Economy\+Manager\+Component\+::\+Local\+Player\+Has\+Money (\begin{DoxyParamCaption}\item[{int}]{amount}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Checks if the local player has a sufficient amount of money. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em amount} & The amount to check against. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+True if the local player has enough money, false otherwise. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_a7617253bb21c618799779fc92d7285be}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!PlayerHasMoney@{PlayerHasMoney}}
+\index{PlayerHasMoney@{PlayerHasMoney}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{PlayerHasMoney()}{PlayerHasMoney()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a7617253bb21c618799779fc92d7285be} 
+bool OVT\+\_\+\+Economy\+Manager\+Component\+::\+Player\+Has\+Money (\begin{DoxyParamCaption}\item[{string}]{player\+Id}{, }\item[{int}]{amount}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Checks if a specific player (by persistent ID) has a sufficient amount of money. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em player\+Id} & The persistent string ID of the player. \\
+\hline
+\mbox{\texttt{ in}}  & {\em amount} & The amount to check against. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+True if the player has enough money, false otherwise. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_aa69c2dba2024c364bc956d7e40c28222}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!RegisterGunDealer@{RegisterGunDealer}}
+\index{RegisterGunDealer@{RegisterGunDealer}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RegisterGunDealer()}{RegisterGunDealer()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_aa69c2dba2024c364bc956d7e40c28222} 
+void OVT\+\_\+\+Economy\+Manager\+Component\+::\+Register\+Gun\+Dealer (\begin{DoxyParamCaption}\item[{Entity\+ID}]{id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Registers a gun dealer entity with the economy manager. Adds the entity\textquotesingle{}s Rpl\+Id to the list of gun dealers. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em id} & The Entity\+ID of the gun dealer entity. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___economy_manager_component_a9a99173eec6bc44eabe06d9c4defc5c9}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!RegisterResource@{RegisterResource}}
+\index{RegisterResource@{RegisterResource}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RegisterResource()}{RegisterResource()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a9a99173eec6bc44eabe06d9c4defc5c9} 
+void OVT\+\_\+\+Economy\+Manager\+Component\+::\+Register\+Resource (\begin{DoxyParamCaption}\item[{Resource\+Name}]{res}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Registers a resource (item or vehicle prefab) in the internal database if not already present. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em res} & The Resource\+Name to register. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___economy_manager_component_a2814e6062756ee67edd8ab715e1e299c}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!ReplenishStock@{ReplenishStock}}
+\index{ReplenishStock@{ReplenishStock}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{ReplenishStock()}{ReplenishStock()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a2814e6062756ee67edd8ab715e1e299c} 
+void OVT\+\_\+\+Economy\+Manager\+Component\+::\+Replenish\+Stock (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Replenishes stock in shops and gun dealers based on configured minimums and maximums. Typically occurs once per day (e.\+g., at 7 AM). \Hypertarget{class_o_v_t___economy_manager_component_a5edcf686af59f52a028a09abc0a05809}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!ResistanceHasMoney@{ResistanceHasMoney}}
+\index{ResistanceHasMoney@{ResistanceHasMoney}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{ResistanceHasMoney()}{ResistanceHasMoney()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a5edcf686af59f52a028a09abc0a05809} 
+bool OVT\+\_\+\+Economy\+Manager\+Component\+::\+Resistance\+Has\+Money (\begin{DoxyParamCaption}\item[{int}]{amount}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Checks if the resistance faction has a sufficient amount of money. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em amount} & The amount to check against. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+True if the resistance has enough money, false otherwise. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___economy_manager_component_a39b8043070d822400548e57795fc56c9}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!RpcDo\_SetPlayerMoney@{RpcDo\_SetPlayerMoney}}
+\index{RpcDo\_SetPlayerMoney@{RpcDo\_SetPlayerMoney}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RpcDo\_SetPlayerMoney()}{RpcDo\_SetPlayerMoney()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a39b8043070d822400548e57795fc56c9} 
+void OVT\+\_\+\+Economy\+Manager\+Component\+::\+Rpc\+Do\+\_\+\+Set\+Player\+Money (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{, }\item[{int}]{amount}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+RPC called on clients to update a player\textquotesingle{}s money locally and invoke the change event. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em player\+Id} & The runtime Player ID. \\
+\hline
+\mbox{\texttt{ in}}  & {\em amount} & The new money amount. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___economy_manager_component_abfcedb17f94e01cca8ccd597b5c717ea}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!RpcDo\_SetResistanceMoney@{RpcDo\_SetResistanceMoney}}
+\index{RpcDo\_SetResistanceMoney@{RpcDo\_SetResistanceMoney}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RpcDo\_SetResistanceMoney()}{RpcDo\_SetResistanceMoney()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_abfcedb17f94e01cca8ccd597b5c717ea} 
+void OVT\+\_\+\+Economy\+Manager\+Component\+::\+Rpc\+Do\+\_\+\+Set\+Resistance\+Money (\begin{DoxyParamCaption}\item[{int}]{amount}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+RPC called on clients to update the resistance money locally and invoke the change event. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em amount} & The new resistance money amount. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___economy_manager_component_ac496b43711cefee92864895272e16d26}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!RpcDo\_SetResistanceTax@{RpcDo\_SetResistanceTax}}
+\index{RpcDo\_SetResistanceTax@{RpcDo\_SetResistanceTax}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{RpcDo\_SetResistanceTax()}{RpcDo\_SetResistanceTax()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_ac496b43711cefee92864895272e16d26} 
+void OVT\+\_\+\+Economy\+Manager\+Component\+::\+Rpc\+Do\+\_\+\+Set\+Resistance\+Tax (\begin{DoxyParamCaption}\item[{float}]{amount}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+RPC called on clients to update the resistance tax rate locally. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em amount} & The new resistance tax rate. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___economy_manager_component_a828c4d4e9917e725ab70ac1affa36d80}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!SetDemand@{SetDemand}}
+\index{SetDemand@{SetDemand}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{SetDemand()}{SetDemand()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a828c4d4e9917e725ab70ac1affa36d80} 
+void OVT\+\_\+\+Economy\+Manager\+Component\+::\+Set\+Demand (\begin{DoxyParamCaption}\item[{int}]{id}{, }\item[{int}]{demand}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Sets the demand value for an item. Used during initialization. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em id} & The resource ID of the item. \\
+\hline
+\mbox{\texttt{ in}}  & {\em demand} & The new demand value. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___economy_manager_component_aa08ee9bfaf9c84a2541d4b6973614f79}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!SetPrice@{SetPrice}}
+\index{SetPrice@{SetPrice}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{SetPrice()}{SetPrice()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_aa08ee9bfaf9c84a2541d4b6973614f79} 
+void OVT\+\_\+\+Economy\+Manager\+Component\+::\+Set\+Price (\begin{DoxyParamCaption}\item[{int}]{id}{, }\item[{int}]{cost}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Sets the base price for an item. Used during initialization. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em id} & The resource ID of the item. \\
+\hline
+\mbox{\texttt{ in}}  & {\em cost} & The new base cost. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___economy_manager_component_a52937bbf46076dabddadeb98d8bfaf68}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!SetResistanceTax@{SetResistanceTax}}
+\index{SetResistanceTax@{SetResistanceTax}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{SetResistanceTax()}{SetResistanceTax()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a52937bbf46076dabddadeb98d8bfaf68} 
+void OVT\+\_\+\+Economy\+Manager\+Component\+::\+Set\+Resistance\+Tax (\begin{DoxyParamCaption}\item[{float}]{amount}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Sets the resistance tax rate. Handles server/client distinction. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em amount} & The new tax rate (0.\+0 to 1.\+0). \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___economy_manager_component_a06f89dd14e50059c72692cb88f9610b9}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!StreamPlayerMoney@{StreamPlayerMoney}}
+\index{StreamPlayerMoney@{StreamPlayerMoney}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{StreamPlayerMoney()}{StreamPlayerMoney()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a06f89dd14e50059c72692cb88f9610b9} 
+void OVT\+\_\+\+Economy\+Manager\+Component\+::\+Stream\+Player\+Money (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Streams the latest money amount for a specific player to all clients via RPC. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em player\+Id} & The runtime Player ID. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___economy_manager_component_a6d60d2a2e22638f98687e7991d80db5d}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!TakeLocalPlayerMoney@{TakeLocalPlayerMoney}}
+\index{TakeLocalPlayerMoney@{TakeLocalPlayerMoney}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{TakeLocalPlayerMoney()}{TakeLocalPlayerMoney()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a6d60d2a2e22638f98687e7991d80db5d} 
+void OVT\+\_\+\+Economy\+Manager\+Component\+::\+Take\+Local\+Player\+Money (\begin{DoxyParamCaption}\item[{int}]{amount}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Takes money from the local player\textquotesingle{}s account. Convenience wrapper for Take\+Player\+Money. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em amount} & The amount of money to take. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___economy_manager_component_a22804145cfa5dd6f2dc73884444414d0}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!TakePlayerMoney@{TakePlayerMoney}}
+\index{TakePlayerMoney@{TakePlayerMoney}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{TakePlayerMoney()}{TakePlayerMoney()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a22804145cfa5dd6f2dc73884444414d0} 
+void OVT\+\_\+\+Economy\+Manager\+Component\+::\+Take\+Player\+Money (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{, }\item[{int}]{amount}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Takes money from a player\textquotesingle{}s account. Handles server/client distinction. Use this method for external calls. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em player\+Id} & The runtime Player ID. \\
+\hline
+\mbox{\texttt{ in}}  & {\em amount} & The amount of money to take. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___economy_manager_component_afa4ffe28c7c5de76efad782195e15745}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!TakePlayerMoneyPersistentId@{TakePlayerMoneyPersistentId}}
+\index{TakePlayerMoneyPersistentId@{TakePlayerMoneyPersistentId}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{TakePlayerMoneyPersistentId()}{TakePlayerMoneyPersistentId()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_afa4ffe28c7c5de76efad782195e15745} 
+void OVT\+\_\+\+Economy\+Manager\+Component\+::\+Take\+Player\+Money\+Persistent\+Id (\begin{DoxyParamCaption}\item[{string}]{pers\+Id}{, }\item[{int}]{amount}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Server-\/side method to take money directly using the persistent ID. Does not handle server/client distinction. Updates player data and invokes the money changed event. Streams update if player is online. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em pers\+Id} & The persistent string ID of the player. \\
+\hline
+\mbox{\texttt{ in}}  & {\em amount} & The amount of money to take. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___economy_manager_component_af5a8a0ba6c6081cef0fb83d025cd1b68}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!TakeResistanceMoney@{TakeResistanceMoney}}
+\index{TakeResistanceMoney@{TakeResistanceMoney}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{TakeResistanceMoney()}{TakeResistanceMoney()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_af5a8a0ba6c6081cef0fb83d025cd1b68} 
+void OVT\+\_\+\+Economy\+Manager\+Component\+::\+Take\+Resistance\+Money (\begin{DoxyParamCaption}\item[{int}]{amount}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Takes money from the resistance faction\textquotesingle{}s funds. Handles server/client distinction. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em amount} & The amount of money to take. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___economy_manager_component_a1ec84da2b00ca82eb62493dfdc4a55ef}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!UpdateRents@{UpdateRents}}
+\index{UpdateRents@{UpdateRents}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{UpdateRents()}{UpdateRents()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a1ec84da2b00ca82eb62493dfdc4a55ef} 
+void OVT\+\_\+\+Economy\+Manager\+Component\+::\+Update\+Rents (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Calculates and distributes rent payments for all rented properties at midnight. Owners receive rent, renters pay rent (from player or resistance funds). \Hypertarget{class_o_v_t___economy_manager_component_a40ae0d1b77b0f5a0214e90a0f351e252}\index{OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}!UpdateShops@{UpdateShops}}
+\index{UpdateShops@{UpdateShops}!OVT\_EconomyManagerComponent@{OVT\_EconomyManagerComponent}}
+\doxysubsubsection{\texorpdfstring{UpdateShops()}{UpdateShops()}}
+{\footnotesize\ttfamily \label{class_o_v_t___economy_manager_component_a40ae0d1b77b0f5a0214e90a0f351e252} 
+void OVT\+\_\+\+Economy\+Manager\+Component\+::\+Update\+Shops (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Simulates NPCs buying items from shops based on town population, stability, and item demand. Drives stock reduction and generates income for shop owners (indirectly). 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+C\+:/\+Users/austi/\+Documents/\+Git\+Hub/\+Overthrow.\+Arma4/\+Scripts/\+Game/\+Game\+Mode/\+Managers/OVT\+\_\+\+Economy\+Manager\+Component.\+c\end{DoxyCompactItemize}

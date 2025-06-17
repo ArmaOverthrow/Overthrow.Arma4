@@ -157,6 +157,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(persId);
+		if(!player) return false;
 		return player.isOfficer;
 	}
 	
@@ -505,12 +506,4 @@ class OVT_ResistanceFactionManager: OVT_Component
 		}
 	}
 	
-	void ~OVT_ResistanceFactionManager()
-	{		
-		if(m_FOBs)
-		{
-			m_FOBs.Clear();
-			m_FOBs = null;
-		}			
-	}
 }

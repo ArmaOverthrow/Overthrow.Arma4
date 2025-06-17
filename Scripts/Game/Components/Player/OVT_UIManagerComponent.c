@@ -120,23 +120,4 @@ class OVT_UIManagerComponent: OVT_Component
 		GetGame().GetCallqueue().CallLater(AfterControlledByPlayer, 0, false, owner, controlled);
 	}
 	
-	void ~OVT_UIManagerComponent()
-	{
-		if(m_aContexts)
-		{	
-			foreach(OVT_UIContext context : m_aContexts)
-			{
-				context.UnregisterInputs();
-			}
-			m_aContexts.Clear();
-			m_aContexts = null;
-		}
-		if(m_Controller)
-		{
-			m_Controller.m_OnControlledByPlayer.Remove(this.OnControlledByPlayer);
-			m_Controller.m_OnPlayerDeath.Remove(this.OnPlayerDeath);
-		}
-		
-		
-	}
 }

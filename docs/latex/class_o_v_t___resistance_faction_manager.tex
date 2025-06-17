@@ -1,0 +1,133 @@
+\doxysection{OVT\+\_\+\+Resistance\+Faction\+Manager Class Reference}
+\hypertarget{class_o_v_t___resistance_faction_manager}{}\label{class_o_v_t___resistance_faction_manager}\index{OVT\_ResistanceFactionManager@{OVT\_ResistanceFactionManager}}
+Inheritance diagram for OVT\+\_\+\+Resistance\+Faction\+Manager\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_o_v_t___resistance_faction_manager}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_ae5a7acb6e3448af7d57ccd121032ee28}\label{class_o_v_t___resistance_faction_manager_ae5a7acb6e3448af7d57ccd121032ee28} 
+override void {\bfseries On\+Post\+Init} (IEntity owner)
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_ae49f772ad96b6330141dc7c17246299d}\label{class_o_v_t___resistance_faction_manager_ae49f772ad96b6330141dc7c17246299d} 
+void {\bfseries OVT\+\_\+\+Resistance\+Faction\+Manager} (IEntity\+Component\+Source src, IEntity ent, IEntity parent)
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_ac2de663ff71994bdaef5083321e24d8f}\label{class_o_v_t___resistance_faction_manager_ac2de663ff71994bdaef5083321e24d8f} 
+void {\bfseries Init} (IEntity owner)
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_abb9688fd73e31a1443863bd96f5a086d}\label{class_o_v_t___resistance_faction_manager_abb9688fd73e31a1443863bd96f5a086d} 
+void {\bfseries Load\+Configs} ()
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_a388c0136b1cf9306dd6e67d3c5a75813}\label{class_o_v_t___resistance_faction_manager_a388c0136b1cf9306dd6e67d3c5a75813} 
+void {\bfseries Register\+Upgrades} ()
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_ab8318b64d798dc9ad9448894b4093448}\label{class_o_v_t___resistance_faction_manager_ab8318b64d798dc9ad9448894b4093448} 
+void {\bfseries Post\+Game\+Start} ()
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_abe81ef60fe49f5716ed905f4e409e118}\label{class_o_v_t___resistance_faction_manager_abe81ef60fe49f5716ed905f4e409e118} 
+void {\bfseries Spawn\+Garrisons} ()
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_a46e3bc3183c026748f11afc5fc1095ee}\label{class_o_v_t___resistance_faction_manager_a46e3bc3183c026748f11afc5fc1095ee} 
+bool {\bfseries Is\+Officer} (int player\+Id)
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_a6fe36af37bbaecec33a640375995df3b}\label{class_o_v_t___resistance_faction_manager_a6fe36af37bbaecec33a640375995df3b} 
+bool {\bfseries Is\+Local\+Player\+Officer} ()
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_a37640489e4def041db484f685670f73d}\label{class_o_v_t___resistance_faction_manager_a37640489e4def041db484f685670f73d} 
+void {\bfseries Add\+Officer} (int player\+Id)
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_a4138b2bbe5aa452b639f7caca5294cc3}\label{class_o_v_t___resistance_faction_manager_a4138b2bbe5aa452b639f7caca5294cc3} 
+IEntity {\bfseries Place\+Item} (int placeable\+Index, int prefab\+Index, vector pos, vector angles, int player\+Id, bool run\+Handler=true)
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_a960dac922d5ec107910f11a61fa67b4f}\label{class_o_v_t___resistance_faction_manager_a960dac922d5ec107910f11a61fa67b4f} 
+IEntity {\bfseries Build\+Item} (int buildable\+Index, int prefab\+Index, vector pos, vector angles, int player\+Id, bool run\+Handler=true)
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_a8b6365cb214fc648844cdb42ba794a89}\label{class_o_v_t___resistance_faction_manager_a8b6365cb214fc648844cdb42ba794a89} 
+void {\bfseries Add\+Garrison} (int base\+Id, int prefab\+Index, bool take\+Supporters=true)
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_a552bb86f5f5f90eb6fb34eb5aac59e56}\label{class_o_v_t___resistance_faction_manager_a552bb86f5f5f90eb6fb34eb5aac59e56} 
+void {\bfseries Add\+Garrison\+FOB} (OVT\+\_\+\+FOBData fob, int prefab\+Index, bool take\+Supporters=true)
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_aefbbcf0e518962978f1b1748b3cd8038}\label{class_o_v_t___resistance_faction_manager_aefbbcf0e518962978f1b1748b3cd8038} 
+SCR\+\_\+\+AIGroup {\bfseries Spawn\+Garrison} (OVT\+\_\+\+Base\+Data base, Resource\+Name res)
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_a8f366da37231c8123a627b77688627e3}\label{class_o_v_t___resistance_faction_manager_a8f366da37231c8123a627b77688627e3} 
+SCR\+\_\+\+AIGroup {\bfseries Spawn\+Garrison\+FOB} (OVT\+\_\+\+FOBData fob, Resource\+Name res)
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_a9d96d8e3922a9d62aedff2003903bdfe}\label{class_o_v_t___resistance_faction_manager_a9d96d8e3922a9d62aedff2003903bdfe} 
+void {\bfseries Add\+Patrol\+Waypoints} (SCR\+\_\+\+AIGroup aigroup, OVT\+\_\+\+Base\+Data base)
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_a6b5d79a49bf718d8d584d37e2300375a}\label{class_o_v_t___resistance_faction_manager_a6b5d79a49bf718d8d584d37e2300375a} 
+void {\bfseries Register\+FOB} (IEntity ent, int player\+Id)
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_aa1ed7481c4a04063da83f5cf955b2f71}\label{class_o_v_t___resistance_faction_manager_aa1ed7481c4a04063da83f5cf955b2f71} 
+void {\bfseries Register\+Camp} (IEntity ent, int player\+Id)
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_a8f3d76cdaefa9ecbfde694a93a08e586}\label{class_o_v_t___resistance_faction_manager_a8f3d76cdaefa9ecbfde694a93a08e586} 
+bool {\bfseries Find\+And\+Delete\+Camps} (IEntity ent)
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_a979a241db9510a407942302605dee9b6}\label{class_o_v_t___resistance_faction_manager_a979a241db9510a407942302605dee9b6} 
+float {\bfseries Distance\+To\+Camp} (vector pos, string player\+Id)
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_a325342ae600af876785c243af661c46b}\label{class_o_v_t___resistance_faction_manager_a325342ae600af876785c243af661c46b} 
+vector {\bfseries Get\+Nearest\+FOB} (vector pos)
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_a00293eea016de25bfc7bf76983209518}\label{class_o_v_t___resistance_faction_manager_a00293eea016de25bfc7bf76983209518} 
+OVT\+\_\+\+FOBData {\bfseries Get\+Nearest\+FOBData} (vector pos)
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_a48897fa6b0668cb8d5aa058dd65a6c29}\label{class_o_v_t___resistance_faction_manager_a48897fa6b0668cb8d5aa058dd65a6c29} 
+void {\bfseries Move\+In\+Gunner} ()
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_a666ee60532f5997c06d82a41a93a67ea}\label{class_o_v_t___resistance_faction_manager_a666ee60532f5997c06d82a41a93a67ea} 
+void {\bfseries Spawn\+Gunner} (Rpl\+Id turret, int player\+Id=-\/1, bool take\+Supporter=true)
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_ae76c3ea283a4d8185de1416d54e2dbd6}\label{class_o_v_t___resistance_faction_manager_ae76c3ea283a4d8185de1416d54e2dbd6} 
+override bool {\bfseries Rpl\+Save} (Script\+Bit\+Writer writer)
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_a4efeac8af91545028e40c7b8d93dcf21}\label{class_o_v_t___resistance_faction_manager_a4efeac8af91545028e40c7b8d93dcf21} 
+override bool {\bfseries Rpl\+Load} (Script\+Bit\+Reader reader)
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_ac944f13f8b20da11951fb53ba0c64095}\label{class_o_v_t___resistance_faction_manager_ac944f13f8b20da11951fb53ba0c64095} 
+void {\bfseries Rpc\+Do\+\_\+\+Register\+FOB} (vector pos)
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_acde784d98293900bafc15918df43fc72}\label{class_o_v_t___resistance_faction_manager_acde784d98293900bafc15918df43fc72} 
+void {\bfseries Rpc\+Do\+\_\+\+Register\+Camp} (vector pos, int player\+Id)
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_a36920aa223c308cf3448cd91b77c59c2}\label{class_o_v_t___resistance_faction_manager_a36920aa223c308cf3448cd91b77c59c2} 
+void {\bfseries Rpc\+Do\+\_\+\+Add\+Officer} (int player\+Id)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_a973f14f39521efb5335c35f8a3fd597d}\label{class_o_v_t___resistance_faction_manager_a973f14f39521efb5335c35f8a3fd597d} 
+static \mbox{\hyperlink{class_o_v_t___resistance_faction_manager}{OVT\+\_\+\+Resistance\+Faction\+Manager}} {\bfseries Get\+Instance} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_ab4688d41fd7610965da5bd55c6fbe0e0}\label{class_o_v_t___resistance_faction_manager_ab4688d41fd7610965da5bd55c6fbe0e0} 
+IEntity {\bfseries m\+\_\+\+Temp\+Vehicle}
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_a572d17799ead5f397a98a7f0f8269a0e}\label{class_o_v_t___resistance_faction_manager_a572d17799ead5f397a98a7f0f8269a0e} 
+SCR\+\_\+\+AIGroup {\bfseries m\+\_\+\+Temp\+Group}
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_a9f99f428211c8f9bbbd8f64c7dcf0b56}\label{class_o_v_t___resistance_faction_manager_a9f99f428211c8f9bbbd8f64c7dcf0b56} 
+ref Script\+Invoker {\bfseries m\+\_\+\+On\+Place} = new Script\+Invoker()
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_a14888d11a9ec3749ba88a8280770e8e9}\label{class_o_v_t___resistance_faction_manager_a14888d11a9ec3749ba88a8280770e8e9} 
+ref Script\+Invoker {\bfseries m\+\_\+\+On\+Build} = new Script\+Invoker()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_o_v_t___resistance_faction_manager_ade86cc597efe3447a648da9d47f0e2ae}\label{class_o_v_t___resistance_faction_manager_ade86cc597efe3447a648da9d47f0e2ae} 
+static \mbox{\hyperlink{class_o_v_t___resistance_faction_manager}{OVT\+\_\+\+Resistance\+Faction\+Manager}} {\bfseries s\+\_\+\+Instance}
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+C\+:/\+Users/austi/\+Documents/\+Git\+Hub/\+Overthrow.\+Arma4/\+Scripts/\+Game/\+Game\+Mode/\+Managers/\+Factions/OVT\+\_\+\+Resistance\+Faction\+Manager.\+c\end{DoxyCompactItemize}

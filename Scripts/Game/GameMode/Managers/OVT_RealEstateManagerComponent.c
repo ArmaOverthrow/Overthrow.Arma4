@@ -13,6 +13,10 @@ class OVT_WarehouseData : Managed
 	ref map<string,int> inventory;	
 }
 
+//------------------------------------------------------------------------------------------------
+//! Manages real estate ownership, renting, warehouses, and starting homes within the game mode.
+//! Provides functionality for players to buy, rent, and manage properties, including setting home spawn points
+//! and utilizing warehouse storage.
 class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 {		
 	protected OVT_TownManagerComponent m_Town;
@@ -25,6 +29,9 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	
 	ref array<ref OVT_WarehouseData> m_aWarehouses = new array<ref OVT_WarehouseData>;
 	
+	//------------------------------------------------------------------------------------------------
+	//! Returns the singleton instance of the OVT_RealEstateManagerComponent
+	//! \return The singleton instance
 	static OVT_RealEstateManagerComponent GetInstance()
 	{
 		if (!s_Instance)
@@ -45,6 +52,9 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		m_aTownStartingHomes = new array<EntityID>;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Called after the entity loading process. Finds potential starting homes across the map.
+	//! \param[in] owner The entity this component is attached to
 	void OnPostLoad(IEntity owner)	
 	{
 		#ifdef OVERTHROW_DEBUG
@@ -56,6 +66,11 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		Print("Found " + m_aStartingHomes.Count() + " Starting Homes");
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Callback function used by QueryEntitiesBySphere to identify potential starting home buildings.
+	//! Checks if the building is a destructible building, not furniture, matches starting house filters, and is not already owned.
+	//! \param[in] entity The entity to check
+	//! \return true if the entity is added to the starting homes list, false otherwise
 	bool FindStartingHomeEntities(IEntity entity)
 	{
 		if(entity.ClassName() == "SCR_DestructibleBuildingEntity"){
@@ -77,6 +92,9 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		return false;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Called after the entity initialization process. Gets a reference to the town manager component.
+	//! \param[in] owner The entity this component is attached to
 	override void OnPostInit(IEntity owner)
 	{	
 		super.OnPostInit(owner);
@@ -86,6 +104,9 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		m_Town = OVT_TownManagerComponent.Cast(GetOwner().FindComponent(OVT_TownManagerComponent));	
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Selects a new town to be the source of starting homes and populates the town-specific starting homes list.
+	//! Attempts to find a town with suitable starting homes that hasn't been used recently.
 	void NewStartingTown()
 	{
 		int attempts = 0;
@@ -119,6 +140,11 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		m_iStartingTownId = -1;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Gets a random, unowned starting house from the currently selected starting town.
+	//! If no starting town is selected or the current town runs out of houses, it calls NewStartingTown().
+	//! Removes the selected house from the available pool.
+	//! \return A random starting house entity, or null if none are available.
 	IEntity GetRandomStartingHouse()
 	{
 		int numHouses = m_aStartingHomes.Count();
@@ -141,6 +167,10 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		return GetGame().GetWorld().FindEntityByID(id);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Sets the owner of a building. If the building is a warehouse, creates or updates warehouse data.
+	//! \param[in] playerId The ID of the player to set as owner
+	//! \param[in] building The building entity to assign ownership to
 	override void SetOwner(int playerId, IEntity building)
 	{
 		super.SetOwner(playerId, building);
@@ -175,6 +205,10 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		}
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Sets the owner of a building using a persistent ID. If the building is a warehouse, creates or updates warehouse data.
+	//! \param[in] persId The persistent ID of the player to set as owner
+	//! \param[in] building The building entity to assign ownership to
 	override void SetOwnerPersistentId(string persId, IEntity building)
 	{
 		super.SetOwnerPersistentId(persId, building);
@@ -209,6 +243,11 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		}
 	}
 			
+	//------------------------------------------------------------------------------------------------
+	//! Finds the nearest warehouse to a given position within an optional range.
+	//! \param[in] pos The position to search near
+	//! \param[in] range Optional maximum distance to search (default: 9999999)
+	//! \return The OVT_WarehouseData of the nearest warehouse, or null if none found within range
 	OVT_WarehouseData GetNearestWarehouse(vector pos, int range=9999999)
 	{
 		OVT_WarehouseData nearestWarehouse;
@@ -224,6 +263,10 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		return nearestWarehouse;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Gets the inventory of a specific warehouse. If the warehouse is linked, it aggregates inventory from all linked warehouses.
+	//! \param[in] warehouse The warehouse data object
+	//! \return A map representing the inventory (resource name string -> quantity int)
 	map<string,int> GetWarehouseInventory(OVT_WarehouseData warehouse)
 	{
 		if(warehouse.isLinked)
@@ -245,6 +288,11 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		}
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Adds items to a warehouse. Handles server/client logic.
+	//! \param[in] warehouse The warehouse data object
+	//! \param[in] res The ResourceName of the item to add
+	//! \param[in] count The quantity to add (default: 1)
 	void AddToWarehouse(OVT_WarehouseData warehouse, ResourceName res, int count = 1)
 	{		
 		if(Replication.IsServer())
@@ -255,6 +303,11 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		OVT_Global.GetServer().AddToWarehouse(warehouse.id, res, count);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Server-side logic to add items to a warehouse's inventory and replicate the change.
+	//! \param[in] warehouseId The ID of the warehouse
+	//! \param[in] id The ResourceName string of the item to add
+	//! \param[in] count The quantity to add
 	void DoAddToWarehouse(int warehouseId, string id, int count)
 	{
 		OVT_WarehouseData warehouse = m_aWarehouses[warehouseId];
@@ -263,6 +316,11 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		Rpc(RpcDo_SetWarehouseInventory, warehouseId, id, warehouse.inventory[id]);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Takes items from a warehouse. Handles server/client logic.
+	//! \param[in] warehouse The warehouse data object
+	//! \param[in] res The ResourceName of the item to take
+	//! \param[in] count The quantity to take (default: 1)
 	void TakeFromWarehouse(OVT_WarehouseData warehouse, ResourceName res, int count = 1)
 	{		
 		if(Replication.IsServer())
@@ -273,6 +331,11 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		OVT_Global.GetServer().TakeFromWarehouse(warehouse.id, res, count);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Server-side logic to remove items from a warehouse's inventory and replicate the change. Ensures quantity doesn't go below zero.
+	//! \param[in] warehouseId The ID of the warehouse
+	//! \param[in] id The ResourceName string of the item to take
+	//! \param[in] count The quantity to take
 	void DoTakeFromWarehouse(int warehouseId, string id, int count)
 	{
 		OVT_WarehouseData warehouse = m_aWarehouses[warehouseId];
@@ -282,6 +345,11 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		Rpc(RpcDo_SetWarehouseInventory, warehouseId, id, warehouse.inventory[id]);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Sets the home spawn location for a player based on a building entity. Uses OVT_SpawnPointComponent if available.
+	//! Replicates the change to clients.
+	//! \param[in] playerId The ID of the player
+	//! \param[in] building The building entity to set as home
 	void SetHome(int playerId, IEntity building)
 	{	
 		OVT_SpawnPointComponent spawn = OVT_SpawnPointComponent.Cast(building.FindComponent(OVT_SpawnPointComponent));
@@ -294,20 +362,37 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		Rpc(RpcDo_SetHome, playerId, pos);		
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Sets the home spawn location for a player directly using a position vector.
+	//! Replicates the change to clients.
+	//! \param[in] playerId The ID of the player
+	//! \param[in] pos The position vector for the home spawn
 	void SetHomePos(int playerId, vector pos)
 	{	
 		DoSetHome(playerId, pos);
 		Rpc(RpcDo_SetHome, playerId, pos);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Checks if a given building entity is the registered home for a player.
+	//! \param[in] playerId The persistent ID of the player
+	//! \param[in] entityId The EntityID of the building to check
+	//! \return true if the building's origin is very close to the player's home position, false otherwise
 	bool IsHome(string playerId, EntityID entityId)
 	{
 		IEntity building = GetGame().GetWorld().FindEntityByID(entityId);
 		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(playerId);
+		if(!player) return false;
 		float dist = vector.Distance(building.GetOrigin(), player.home);
 		return dist < 1;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Finds the nearest building owned by a specific player to a given position, within an optional range.
+	//! \param[in] playerId The persistent ID of the player
+	//! \param[in] pos The position to search near
+	//! \param[in] range Optional maximum distance to search (default: -1, no limit)
+	//! \return The nearest owned building entity, or null if none found
 	IEntity GetNearestOwned(string playerId, vector pos, float range = -1)
 	{
 		if(!m_mOwned.Contains(playerId)) return null;
@@ -331,6 +416,12 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		return GetNearestBuilding(nearestPos);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Finds the nearest building rented by a specific player to a given position, within an optional range.
+	//! \param[in] playerId The persistent ID of the player
+	//! \param[in] pos The position to search near
+	//! \param[in] range Optional maximum distance to search (default: -1, no limit)
+	//! \return The nearest rented building entity, or null if none found
 	IEntity GetNearestRented(string playerId, vector pos, float range = -1)
 	{
 		if(!m_mRented.Contains(playerId)) return null;
@@ -354,6 +445,10 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		return GetNearestBuilding(nearestPos);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Checks if a building entity is of a type that can be owned according to the configuration.
+	//! \param[in] entity The building entity to check
+	//! \return true if the building is ownable, false otherwise
 	bool BuildingIsOwnable(IEntity entity)
 	{
 		if(!entity) return false;
@@ -373,6 +468,10 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		return false;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Gets the real estate configuration associated with a building entity based on its prefab resource name.
+	//! \param[in] entity The building entity
+	//! \return The matching OVT_RealEstateConfig, or null if none found or not an ownable building type
 	OVT_RealEstateConfig GetConfig(IEntity entity)
 	{
 		if(!entity) return null;
@@ -392,6 +491,10 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		return null;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Calculates the purchase price for a building based on its config and the nearest town's economy.
+	//! \param[in] entity The building entity
+	//! \return The calculated purchase price, or 0 if no config found
 	int GetBuyPrice(IEntity entity)
 	{
 		OVT_RealEstateConfig config = GetConfig(entity);
@@ -407,6 +510,10 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		return config.m_BasePrice + (config.m_BasePrice * (config.m_DemandMultiplier * town.population * ((float)town.stability / 100)));
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Calculates the rental price for a building based on its config and the nearest town's economy.
+	//! \param[in] entity The building entity
+	//! \return The calculated rental price, or 0 if no config found
 	int GetRentPrice(IEntity entity)
 	{
 		OVT_RealEstateConfig config = GetConfig(entity);
@@ -422,6 +529,10 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		return config.m_BaseRent + (config.m_BaseRent * (config.m_DemandMultiplier * town.population * ((float)town.stability / 100)));
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Gets the home spawn position vector for a given player.
+	//! \param[in] playerId The persistent ID of the player
+	//! \return The player's home position vector, or "0 0 0" if player data not found
 	vector GetHome(string playerId)
 	{				
 		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(playerId);
@@ -430,14 +541,19 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		return player.home;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Initiates teleporting a player to their registered home spawn location.
+	//! \param[in] playerId The ID of the player to teleport
 	void TeleportHome(int playerId)
 	{
 		RpcDo_TeleportHome(playerId);
 		Rpc(RpcDo_TeleportHome, playerId);
 	}
 	
-	//RPC Methods
-	
+	//------------------------------------------------------------------------------------------------
+	//! Saves replication data for the component, including warehouse information.
+	//! \param[in,out] writer The ScriptBitWriter to write data to
+	//! \return true on success
 	override bool RplSave(ScriptBitWriter writer)
 	{
 		super.RplSave(writer);
@@ -465,6 +581,10 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		return true;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Loads replication data for the component, including warehouse information for JIP clients.
+	//! \param[in] reader The ScriptBitReader to read data from
+	//! \return true on success, false on failure
 	override bool RplLoad(ScriptBitReader reader)
 	{
 		if(!super.RplLoad(reader)) return false;
@@ -499,18 +619,31 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		return true;
 	}	
 
+	//------------------------------------------------------------------------------------------------
+	//! RPC handler to set the home location for a player. Called on all clients.
+	//! \param[in] playerId The ID of the player
+	//! \param[in] loc The new home location vector
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_SetHome(int playerId, vector loc)
 	{
 		DoSetHome(playerId, loc);	
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! RPC handler to update the quantity of a specific item in a specific warehouse's inventory. Called on all clients.
+	//! \param[in] warehouseId The ID of the warehouse
+	//! \param[in] id The ResourceName string of the item
+	//! \param[in] qty The new quantity of the item
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_SetWarehouseInventory(int warehouseId, string id, int qty)
 	{
 		m_aWarehouses[warehouseId].inventory[id] = qty;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! RPC handler to set the owner of a warehouse based on its location. Creates warehouse data if it doesn't exist. Called on all clients.
+	//! \param[in] location The location vector of the warehouse
+	//! \param[in] playerId The ID of the new owner player
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_SetWarehouseOwner(vector location, int playerId)
 	{
@@ -537,6 +670,10 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		warehouseData.owner = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! RPC handler to set the owner of a warehouse based on its location using a persistent ID. Creates warehouse data if it doesn't exist. Called on all clients.
+	//! \param[in] location The location vector of the warehouse
+	//! \param[in] playerId The persistent ID of the new owner player
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_SetWarehouseOwnerPersistent(vector location, string playerId)
 	{
@@ -563,6 +700,9 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		warehouseData.owner = playerId;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! RPC handler to teleport a player to their home. Only executes on the target player's client.
+	//! \param[in] playerId The ID of the player to teleport
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_TeleportHome(int playerId)
 	{
@@ -574,6 +714,10 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		SCR_Global.TeleportPlayer(localId, spawn);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Internal logic to set the home location in the player's data.
+	//! \param[in] playerId The ID of the player
+	//! \param[in] loc The new home location vector
 	void DoSetHome(int playerId, vector loc)
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
@@ -582,12 +726,4 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		player.home = loc;
 	}
 	
-	void ~OVT_RealEstateManagerComponent()
-	{		
-		if(m_aEntitySearch)
-		{
-			m_aEntitySearch.Clear();
-			m_aEntitySearch = null;
-		}
-	}
 }

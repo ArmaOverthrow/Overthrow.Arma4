@@ -156,7 +156,7 @@ FrameWidgetClass {
            Slot LayoutSlot "{5DBCDD9011FBF7B6}" {
             Padding 5 15 5 15
            }
-           Text "XBOX Single player is currently NOT WORKING due to limitations in Arma Reforger."\
+           Text "Single player is currently NOT WORKING due to limitations in Arma Reforger on consoles (XBOX and PS5)"\
            ""\
            "There is no indication of when this will be fixed by Bohemia Interactive. We are trying to make it work without saving but having trouble getting it to work. You can try to hit the Start Game button but it may not work and get stuck on this screen forever."\
            ""\
