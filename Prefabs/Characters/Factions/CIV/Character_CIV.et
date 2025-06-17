@@ -1,7 +1,9 @@
 SCR_ChimeraCharacter : "{99F600AD4C6BA6A4}Prefabs/Characters/Factions/CIV/Character_CIV_base.et" {
  ID "520EC961A090B1EE"
-  components {
-    ActionsManagerComponent "{520EA1D2F659CE02}" {
+ components {
+  OVT_PlayerWantedComponent "{65A2B5AE0D3BB360}" {
+  }
+  ActionsManagerComponent "{520EA1D2F659CE02}" {
    ActionContexts {
     UserActionContext "{520EA1D2F659CE17}" {
      Radius 2

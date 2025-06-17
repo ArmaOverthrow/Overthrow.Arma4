@@ -22,6 +22,10 @@ class OVT_ConvertSupporterAction : ScriptedUserAction
 	
 	override bool CanBePerformedScript(IEntity user)
 	{
+		// Don't allow converting someone who is already a recruit
+		if (IsRecruit(GetOwner()))
+			return false;
+			
 		return !m_bHasBeenConverted;
 	}
 		
@@ -31,8 +35,25 @@ class OVT_ConvertSupporterAction : ScriptedUserAction
 	}	
 	
 	override bool CanBeShownScript(IEntity user) {
+		// Don't show for recruits
+		if (IsRecruit(GetOwner()))
+			return false;
+			
 		return !m_bHasBeenConverted;
 	}
 	
 	override bool HasLocalEffectOnlyScript() { return true; }
+	
+	//! Check if the entity is a recruit
+	protected bool IsRecruit(IEntity entity)
+	{
+		if (!entity)
+			return false;
+			
+		OVT_RecruitManagerComponent recruitManager = OVT_Global.GetRecruits();
+		if (!recruitManager)
+			return false;
+			
+		return recruitManager.GetRecruitFromEntity(entity) != null;
+	}
 }

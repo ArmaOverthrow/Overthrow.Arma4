@@ -351,6 +351,13 @@ class OVT_RecruitManagerComponent : OVT_Component
 		// Double-check recruit limit on server
 		if (!CanRecruit(persId)) return;
 		
+		// Enable wanted system for the recruited civilian
+		OVT_PlayerWantedComponent wantedComp = OVT_PlayerWantedComponent.Cast(civilian.FindComponent(OVT_PlayerWantedComponent));
+		if (wantedComp)
+		{
+			wantedComp.EnableWantedSystem();
+		}
+		
 		// Add to recruit manager
 		string recruitId = AddRecruit(persId, civilian);
 		
