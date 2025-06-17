@@ -6,7 +6,9 @@
       "Bash(rg:*)",
       "Bash(gh issue view:*)",
       "Bash(gh api:*)",
-      "WebFetch(domain:community.bistudio.com)"
+      "WebFetch(domain:community.bistudio.com)",
+      "Bash(dos2unix:*)",
+      "Bash(sed:*)"
     ],
     "deny": []
   }

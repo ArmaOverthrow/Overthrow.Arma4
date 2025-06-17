@@ -710,6 +710,29 @@ class OVT_PlayerCommsComponent: OVT_Component
 		OVT_Global.GetResistanceFaction().SpawnGunner(turret, playerId);
 	}
 	
+	void RecruitCivilian(IEntity civilian, int playerId = -1)
+	{		
+		RplComponent rpl = RplComponent.Cast(civilian.FindComponent(RplComponent));
+		
+		Rpc(RpcAsk_RecruitCivilian, rpl.Id(), playerId);
+	}	
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_RecruitCivilian(RplId civilian, int playerId)
+	{
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(civilian));
+		if (!rpl) return;
+		
+		IEntity civilianEntity = rpl.GetEntity();
+		SCR_ChimeraCharacter character = SCR_ChimeraCharacter.Cast(civilianEntity);
+		if (!character) return;
+		
+		OVT_RecruitManagerComponent recruitManager = OVT_RecruitManagerComponent.GetInstance();
+		if (!recruitManager) return;
+		
+		recruitManager.RecruitCivilian(character, playerId);
+	}
+	
 	//WAREHOUSES
 	void AddToWarehouse(int warehouseId, string id, int count)
 	{

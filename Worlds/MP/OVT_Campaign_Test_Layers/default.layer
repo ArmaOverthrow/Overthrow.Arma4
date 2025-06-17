@@ -234,10 +234,6 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMod
   SCR_CommandingManagerComponent "{5DFEE7C53D7244B0}" {
    m_sCommandsConfigPath "{54764D4E706F348C}Configs/Commanding/Commands.conf"
   }
-  SCR_GroupsManagerComponent "{5DDAD8A30938E391}" {
-   m_sDefaultGroupPrefab "{8B4D49A9F324E7D5}Prefabs/Groups/PlayableGroup.et"
-   m_iPlayableGroupFrequencyOffset 500
-  }
   SCR_NotificationSenderComponent "{5D7A443FDCA27CAE}" {
    m_iReceiveKillFeedType SAME_FACTION_ONLY
    m_aKillfeedTypeNames {
@@ -336,8 +332,8 @@ $grp GenericEntity {
     MainType "Name Town"
    }
   }
-  coords 221.182 1.001 107.325
   Flags 1027
+  coords 221.182 1.001 107.325
  }
  RadioTower {
   components {
@@ -345,8 +341,8 @@ $grp GenericEntity {
     MainType Transmitter
    }
   }
-  coords 29.444 1.001 116.796
   Flags 1027
+  coords 29.444 1.001 116.796
  }
 }
 SCR_DestructibleBuildingEntity : "{00FD2B4A0BDEC271}Prefabs/Structures/Commercial/FuelStations/FuelStation_E_01_building.et" {
@@ -470,9 +466,6 @@ SCR_SiteSlotEntity : "{881CE7B0098504C2}PrefabsEditable/Slots/Road/E_SlotRoadLar
 SCR_DestructibleBuildingEntity : "{8ACC8A8EB87A28FF}Prefabs/Structures/Houses/Village/House_Village_E_1I03/House_Village_E_1I03.et" {
  coords 207.502 0 182.332
 }
-Tree : "{9025E96A11516E7A}Prefabs/Vegetation/Bush/b_juniperus_communis_2w.et" {
- coords 182.721 0.001 126.162
-}
 SCR_DestructibleBuildingEntity : "{92E8F78BCF17D93D}Prefabs/Structures/Commercial/Shops/ShopHouse_E_2I01t_clothesstore.et" {
  components {
   RplComponent "{50A4E7C9B5728062}" {
@@ -486,6 +479,9 @@ SCR_MPDestructionManager : "{9BB369F2803C6F71}Prefabs/MP/MPDestructionManager.et
 }
 GenericEntity : "{9BF7399A6F63D480}Prefabs/GameMode/OVT_Port.et" {
  coords 143.682 1.001 246.857
+}
+Tree : "{A43BE7E364B5CD67}Prefabs/Vegetation/Bush/b_juniperus_communis_2w.et" {
+ coords 182.721 0.001 126.162
 }
 Tree : "{A5DE58FC9FB6BA60}Prefabs/Vegetation/Bush/b_corylus_avellana_2.et" {
  coords 183.058 0.001 122.114

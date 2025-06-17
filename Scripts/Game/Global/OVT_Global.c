@@ -80,6 +80,11 @@ class OVT_Global : Managed
 		return OVT_SkillManagerComponent.GetInstance();
 	}
 	
+	static OVT_RecruitManagerComponent GetRecruits()
+	{
+		return OVT_RecruitManagerComponent.GetInstance();
+	}
+	
 	static bool PlayerInRange(vector pos, int range)
 	{		
 		array<int> players = new array<int>;
@@ -329,6 +334,44 @@ class OVT_Global : Managed
 		return GetGame().SpawnEntityPrefab(Resource.Load(prefab), GetGame().GetWorld(), spawnParams);
 	}
 	
+	//! Spawn a character entity directly without creating a group
+	static SCR_ChimeraCharacter SpawnCharacterEntity(ResourceName prefab, vector origin, vector orientation = "0 0 0")
+	{
+		EntitySpawnParams spawnParams();
+		spawnParams.TransformMode = ETransformMode.WORLD;
+		
+		Math3D.AnglesToMatrix(orientation, spawnParams.Transform);
+		spawnParams.Transform[3] = origin;
+		
+		// Load the prefab resource
+		Resource resource = Resource.Load(prefab);
+		if (!resource)
+		{
+			Print("[Overthrow] Error: Could not load prefab resource: " + prefab);
+			return null;
+		}
+		
+		// Spawn the entity directly
+		IEntity spawnedEntity = GetGame().SpawnEntityPrefab(resource, GetGame().GetWorld(), spawnParams);
+		if (!spawnedEntity)
+		{
+			Print("[Overthrow] Error: Failed to spawn entity from prefab: " + prefab);
+			return null;
+		}
+		
+		// Cast to character and return
+		SCR_ChimeraCharacter character = SCR_ChimeraCharacter.Cast(spawnedEntity);
+		if (!character)
+		{
+			Print("[Overthrow] Error: Spawned entity is not a SCR_ChimeraCharacter: " + spawnedEntity);
+			// Clean up the spawned entity since it's not what we expected
+			SCR_EntityHelper.DeleteEntityAndChildren(spawnedEntity);
+			return null;
+		}
+		
+		return character;
+	}
+	
 	static bool IsOceanAtPosition(vector checkpos)
 	{		
 		World world = GetGame().GetWorld();
@@ -463,8 +506,15 @@ class OVT_Global : Managed
 	static void RandomizeCivilianClothes(AIAgent agent)
 	{
 		IEntity civ = agent.GetControlledEntity();
-		InventoryStorageManagerComponent storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(civ);
-		if (!storageManager) return;
+		ApplyCivilianLoadout(civ);
+	}
+	
+	//! Apply civilian loadout to any character entity
+	static void ApplyCivilianLoadout(IEntity character)
+	{
+		InventoryStorageManagerComponent storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(character);
+		if (!storageManager) 
+			return;
 		foreach (OVT_LoadoutSlot loadoutItem : OVT_Global.GetConfig().m_CivilianLoadout.m_aSlots)
 		{
 			if (loadoutItem.m_bPlayerOnly) continue;
@@ -493,7 +543,6 @@ class OVT_Global : Managed
 			
 			if (!loadoutStorage || suitableSlotId == -1 || !storageManager.TryReplaceItem(slotEntity, loadoutStorage, suitableSlotId))
 			{
-				Print("Failed to insert item " + slotEntity + " " + loadoutStorage + " " + suitableSlotId, LogLevel.WARNING); 
 				SCR_EntityHelper.DeleteEntityAndChildren(slotEntity);
 			}
 		}

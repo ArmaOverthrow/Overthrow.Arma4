@@ -249,39 +249,39 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	{
 		super.EOnFrame(owner, timeSlice);
 
-		if(DiagMenu.GetValue(200))
+		if(DiagMenu.GetValue(251))
 		{
 			m_EconomyManager.DoAddPlayerMoney(SCR_PlayerController.GetLocalPlayerId(),1000);
-			DiagMenu.SetValue(200,0);
+			DiagMenu.SetValue(251,0);
 		}
 
-		if(DiagMenu.GetValue(201))
+		if(DiagMenu.GetValue(252))
 		{
 			OVT_TownData town = OVT_Global.GetTowns().GetNearestTown(SCR_PlayerController.GetLocalControlledEntity().GetOrigin());
 			if(town)
 			{
 				town.support = town.population;
 			}
-			DiagMenu.SetValue(201,0);
+			DiagMenu.SetValue(252,0);
 		}
 
-		if(DiagMenu.GetValue(202))
+		if(DiagMenu.GetValue(253))
 		{
 			OVT_TownData town = OVT_Global.GetTowns().GetNearestTown(SCR_PlayerController.GetLocalControlledEntity().GetOrigin());
 			if(town)
 			{
 				OVT_Global.GetTowns().ChangeTownControl(town, OVT_Global.GetConfig().GetPlayerFactionIndex());
 			}
-			DiagMenu.SetValue(202,0);
+			DiagMenu.SetValue(253,0);
 		}
 
-		if(DiagMenu.GetValue(203))
+		if(DiagMenu.GetValue(254))
 		{
 			OVT_Global.GetOccupyingFaction().WinBattle();
-			DiagMenu.SetValue(203,0);
+			DiagMenu.SetValue(254,0);
 		}
 
-		if(DiagMenu.GetValue(204))
+		if(DiagMenu.GetValue(255))
 		{
 			foreach(OVT_TownData town : m_TownManager.m_Towns)
 			{
@@ -292,13 +292,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 				m_TownManager.TryAddSupportModifierByName(townID, "RecruitmentPosters");
 				m_TownManager.TryAddSupportModifierByName(townID, "RecruitmentPosters");
 			}
-			DiagMenu.SetValue(204,0);
-		}
-
-		if(DiagMenu.GetValue(205))
-		{
-			OVT_Global.GetSkills().GiveXP(SCR_PlayerController.GetLocalPlayerId(),100);
-			DiagMenu.SetValue(205,0);
+			DiagMenu.SetValue(255,0);
 		}
 
 		if((IsMaster() && (RplSession.Mode() == RplMode.None || RplSession.Mode() == RplMode.Listen)) && !m_bCameraSet)
@@ -577,23 +571,23 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		m_aInitializedPlayers = new set<string>;
 		m_aHintedPlayers = new set<string>;
 
-		DiagMenu.RegisterBool(200, "lctrl+lalt+g", "Give $1000", "Cheats");
-		DiagMenu.SetValue(200, 0);
+		// Register Overthrow cheat menu with IDs 250-255 (safe range under 256 limit)
+		DiagMenu.RegisterMenu(250, "Overthrow", "Overthrow Cheats");
+		
+		DiagMenu.RegisterBool(251, "lctrl+lalt+g", "Give $1000", "Overthrow");
+		DiagMenu.SetValue(251, 0);
 
-		DiagMenu.RegisterBool(201, "lctrl+lalt+s", "Give 100% support", "Cheats");
-		DiagMenu.SetValue(201, 0);
+		DiagMenu.RegisterBool(252, "lctrl+lalt+s", "Give 100% support", "Overthrow");
+		DiagMenu.SetValue(252, 0);
 
-		DiagMenu.RegisterBool(202, "lctrl+lalt+c", "Capture Town", "Cheats");
-		DiagMenu.SetValue(202, 0);
+		DiagMenu.RegisterBool(253, "lctrl+lalt+c", "Capture Town", "Overthrow");
+		DiagMenu.SetValue(253, 0);
 
-		DiagMenu.RegisterBool(203, "lctrl+lalt+w", "Win Battle", "Cheats");
-		DiagMenu.SetValue(203, 0);
+		DiagMenu.RegisterBool(254, "lctrl+lalt+w", "Win Battle", "Overthrow");
+		DiagMenu.SetValue(254, 0);
 
-		DiagMenu.RegisterBool(204, "lctrl+lalt+r", "Poster all towns", "Cheats");
-		DiagMenu.SetValue(204, 0);
-
-		DiagMenu.RegisterBool(205, "lctrl+lalt+x", "Give 100 XP", "Cheats");
-		DiagMenu.SetValue(205, 0);
+		DiagMenu.RegisterBool(255, "lctrl+lalt+r", "Poster all towns", "Overthrow");
+		DiagMenu.SetValue(255, 0);
 
 		if(SCR_Global.IsEditMode())
 			return;

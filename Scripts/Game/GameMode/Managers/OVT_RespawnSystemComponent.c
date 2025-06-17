@@ -95,35 +95,101 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 	void CreateAndJoinGroup(int playerId)
 	{
 		SCR_PlayerController playerController = SCR_PlayerController.Cast(m_pPlayerManager.GetPlayerController(playerId));
-		SCR_PlayerControllerGroupComponent group = SCR_PlayerControllerGroupComponent.Cast(playerController.FindComponent(SCR_PlayerControllerGroupComponent));
-		if(group)
+		if (!playerController)
 		{
-			int groupId = group.GetGroupID();
-			//Is the player not already in a group?
-			if(groupId == -1)
+			// Player controller not ready yet, retry later
+			GetGame().GetCallqueue().CallLater(CreateAndJoinGroupDelayed, 500, false, playerId, 0);
+			return;
+		}
+		
+		// Check if the player has a controlled entity
+		IEntity controlledEntity = playerController.GetControlledEntity();
+		if (!controlledEntity)
+		{
+			// Player doesn't have a controlled entity yet, retry later
+			GetGame().GetCallqueue().CallLater(CreateAndJoinGroupDelayed, 500, false, playerId, 0);
+			return;
+		}
+		
+		SCR_PlayerControllerGroupComponent group = SCR_PlayerControllerGroupComponent.Cast(playerController.FindComponent(SCR_PlayerControllerGroupComponent));
+		if(!group)
+		{
+			Print("[Overthrow] ERROR: Player controller has no group component! Player ID: " + playerId, LogLevel.ERROR);
+			return;
+		}
+		
+		int groupId = group.GetGroupID();
+		//Is the player not already in a group?
+		if(groupId == -1)
+		{
+			SCR_GroupsManagerComponent groupsManager = SCR_GroupsManagerComponent.GetInstance();
+			if (!groupsManager)
 			{
-				SCR_GroupsManagerComponent groupsManager = SCR_GroupsManagerComponent.GetInstance();
-				if (!groupsManager)
-					return;
-				
-				FactionManager mgr = GetGame().GetFactionManager();
-				Faction faction = mgr.GetFactionByKey("CIV");
-				
-				SCR_AIGroup newGroup = groupsManager.CreateNewPlayableGroup(faction);
-				string playerName = GetGame().GetPlayerManager().GetPlayerName(playerId);
-				
-				newGroup.SetName(playerName);
-				
-				// No new group was created, return
-				if (!newGroup)
-					return;
-				
-				int groupID = newGroup.GetGroupID();
-				
-				groupsManager.AddPlayerToGroup(groupID, playerId);	
-				group.RequestJoinGroup(groupID);		
+				// Groups manager not ready, retry later
+				GetGame().GetCallqueue().CallLater(CreateAndJoinGroupDelayed, 500, false, playerId, 0);
+				return;
 			}
-		}		
+			
+			SCR_FactionManager factionManager = SCR_FactionManager.Cast(GetGame().GetFactionManager());
+			if (!factionManager)
+				return;
+
+			Faction faction = factionManager.GetPlayerFaction(playerId);
+			if (!faction)
+				return;
+			
+			SCR_AIGroup newGroup = groupsManager.CreateNewPlayableGroup(faction);
+			if (!newGroup)
+			{
+				Print("[Overthrow] Failed to create group for player " + playerId, LogLevel.WARNING);
+				return;
+			}
+			
+			string playerName = GetGame().GetPlayerManager().GetPlayerName(playerId);
+			newGroup.SetName(playerName);
+			
+			int groupID = newGroup.GetGroupID();
+
+			SCR_PlayerControllerGroupComponent groupController = SCR_PlayerControllerGroupComponent.GetPlayerControllerComponent(playerId);
+			if (!groupController)
+			{
+				Print("[Overthrow] Failed to get group controller for player " + playerId, LogLevel.WARNING);
+				return;
+			}
+			
+			groupController.RequestJoinGroup(groupID);
+			
+			// Set the player as group leader
+			newGroup.SetGroupLeader(playerId);
+			
+			Print("[Overthrow] Created group " + groupID + " for player " + playerName + " (ID: " + playerId + ")", LogLevel.NORMAL);
+			Print("[Overthrow] Group faction: " + faction.GetFactionKey() + ", Player entity: " + playerController.GetControlledEntity(), LogLevel.NORMAL);
+		}
+		else
+		{
+			Print("[Overthrow] Player " + playerId + " already in group " + groupId, LogLevel.NORMAL);
+		}
+	}
+	
+	//! Delayed group creation with retry mechanism
+	void CreateAndJoinGroupDelayed(int playerId, int retryCount)
+	{
+		if (retryCount > 10)
+		{
+			Print("[Overthrow] Failed to create group for player " + playerId + " after 10 retries", LogLevel.ERROR);
+			return;
+		}
+		
+		SCR_PlayerController playerController = SCR_PlayerController.Cast(m_pPlayerManager.GetPlayerController(playerId));
+		if (!playerController)
+		{
+			// Still not ready, retry again
+			GetGame().GetCallqueue().CallLater(CreateAndJoinGroupDelayed, 500, false, playerId, retryCount + 1);
+			return;
+		}
+		
+		// Player controller is ready, proceed with group creation
+		CreateAndJoinGroup(playerId);
 	}
 	
 	void SetCivilianFaction(int playerId)
@@ -141,7 +207,7 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 	override void OnCharacterLoadComplete(int playerId, EPF_EntitySaveData saveData, EPF_PersistenceComponent persistenceComponent)
 	{			
 		SetCivilianFaction(playerId);
-		CreateAndJoinGroup(playerId);
+		// Group creation now happens in HandoverToPlayer
 		super.OnCharacterLoadComplete(playerId, saveData, persistenceComponent);	
 	}
 	
@@ -274,6 +340,16 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Override HandoverToPlayer to ensure group creation happens after player takes control
+	protected override void HandoverToPlayer(int playerId, IEntity character)
+	{
+		super.HandoverToPlayer(playerId, character);
+		
+		// Schedule group creation after handover completes
+		GetGame().GetCallqueue().CallLater(CreateAndJoinGroup, 100, false, playerId);
+	}
+	
+	//------------------------------------------------------------------------------------------------
 	//! Called after a player character has been created and spawned into the world.
 	//! Initializes the character's inventory with the default civilian loadout and difficulty-specific starting items.
 	//! Marks the player's first spawn as complete.
@@ -368,7 +444,7 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 		}		
 		
 		SetCivilianFaction(playerId);
-		CreateAndJoinGroup(playerId);
+		// Group creation now happens in HandoverToPlayer
 	}
 	
 	//------------------------------------------------------------------------------------------------
