@@ -419,6 +419,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		if(!aigroup) return;
 		
 		OVT_Global.RandomizeCivilianGroupClothes(aigroup);
+		aigroup.GetOnAgentAdded().Insert(DisableCivilianPersistence);
 		
 		m_TempVehicle = vehicle;
 		m_TempGroup = aigroup;
@@ -429,6 +430,20 @@ class OVT_ResistanceFactionManager: OVT_Component
 		{
 			OVT_Global.GetTowns().TakeSupportersFromNearestTown(turretEntity.GetOrigin());
 		}		
+	}
+	
+	//! Callback to disable EPF persistence for newly spawned civilians
+	protected void DisableCivilianPersistence(IEntity characterEntity)
+	{
+		if (!characterEntity)
+			return;
+			
+		EPF_PersistenceComponent persistenceComp = EPF_PersistenceComponent.Cast(characterEntity.FindComponent(EPF_PersistenceComponent));
+		if (persistenceComp)
+		{
+			persistenceComp.Deactivate(characterEntity);
+			Print("[Overthrow] Disabled EPF persistence for hired civilian: " + characterEntity);
+		}
 	}
 	
 	//RPC Methods	

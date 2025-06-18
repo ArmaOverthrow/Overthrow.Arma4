@@ -164,9 +164,9 @@ class OVT_RecruitSaveData : EPF_ComponentSaveData
 		
 		Print("[Overthrow] Loaded " + recruitManager.m_mRecruits.Count() + " total recruits");
 		
-		// TODO: Restore character entities from saved data
-		// This will need to spawn characters at their last known positions
-		// and re-establish the entity-to-recruit mappings
+		// Note: Character entities are handled automatically by EPF
+		// We only need to track recruit metadata here
+		// EPF will handle spawning and restoring character entities with their persistence IDs
 		
 		return EPF_EApplyResult.OK;
 	}

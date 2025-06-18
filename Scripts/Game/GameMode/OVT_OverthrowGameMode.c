@@ -422,6 +422,9 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 
 		if(i > -1)
 			m_aInitializedPlayers.Remove(i);
+		
+		// Notify listeners that player has disconnected
+		m_PlayerManager.m_OnPlayerDisconnected.Invoke(persId, playerId);
 
 		super.OnPlayerDisconnected(playerId, cause, timeout);
 	}
@@ -450,6 +453,9 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	    }
 	    
 	    m_PlayerManager.SetupPlayer(playerId, persistentId);
+	    
+	    // Notify listeners that player has connected
+	    m_PlayerManager.m_OnPlayerConnected.Invoke(persistentId, playerId);
 	    OVT_PlayerData player = m_PlayerManager.GetPlayer(persistentId);
 	
 	    // Ensure the player is an officer in single-player mode or if they're the host in hosted multiplayer

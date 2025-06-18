@@ -1,6 +1,10 @@
 SCR_ChimeraCharacter : "{99F600AD4C6BA6A4}Prefabs/Characters/Factions/CIV/Character_CIV_base.et" {
  ID "520EC961A090B1EE"
  components {
+  EPF_PersistenceComponent "{5A12D8F4DFED6D84}" {
+   Enabled 1
+   m_eSaveType MANUAL
+  }
   OVT_PlayerWantedComponent "{65A2B5AE0D3BB360}" {
   }
   ActionsManagerComponent "{520EA1D2F659CE02}" {

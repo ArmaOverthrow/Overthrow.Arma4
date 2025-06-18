@@ -1,6 +1,11 @@
 SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA/Character_FIA_base.et" {
  ID "520EC961A090B1EE"
  components {
+  EPF_PersistenceComponent "{5A12D8F4DFED6D84}" {
+   Enabled 1
+  }
+  OVT_PlayerWantedComponent "{596EE382181C58FB}" {
+  }
   SCR_CharacterInventoryStorageComponent "{520EA1D2DB118DAC}" {
    components {
     SCR_EquipmentStorageComponent "{56B49DA9722B635D}" {

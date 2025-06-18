@@ -29,6 +29,13 @@ class OVT_RecruitManagerComponent : OVT_Component
 	[NonSerialized()]
 	ref map<EntityID, string> m_mEntityToRecruit;
 	
+	//! Offline player timers for recruit despawning
+	[NonSerialized()]
+	ref map<string, float> m_mOfflinePlayerTimers;
+	
+	//! Despawn time for recruits when player is offline (10 minutes)
+	static const float OFFLINE_DESPAWN_TIME = 600.0;
+	
 	//! Event fired when a recruit is added
 	ref ScriptInvoker m_OnRecruitAdded = new ScriptInvoker();
 	
@@ -55,8 +62,27 @@ class OVT_RecruitManagerComponent : OVT_Component
 		m_mRecruits = new map<string, ref OVT_RecruitData>;
 		m_mRecruitsByOwner = new map<string, ref array<string>>;
 		m_mEntityToRecruit = new map<EntityID, string>;
+		m_mOfflinePlayerTimers = new map<string, float>;
 		
 		SetEventMask(owner, EntityEvent.INIT);
+		
+		if (SCR_Global.IsEditMode())
+			return;
+			
+		// Connect to player events
+		OVT_PlayerManagerComponent playerManager = OVT_Global.GetPlayers();
+		if (playerManager)
+		{
+			playerManager.m_OnPlayerConnected.Insert(OnPlayerConnected);
+			playerManager.m_OnPlayerDisconnected.Insert(OnPlayerDisconnected);
+		}
+		
+		// Connect to respawn system events
+		OVT_RespawnSystemComponent respawnSystem = OVT_RespawnSystemComponent.Cast(owner.FindComponent(OVT_RespawnSystemComponent));
+		if (respawnSystem)
+		{
+			respawnSystem.m_OnPlayerGroupCreated.Insert(OnPlayerGroupCreated);
+		}
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -80,6 +106,17 @@ class OVT_RecruitManagerComponent : OVT_Component
 		{
 			occupyingFaction.m_OnAIKilled.Insert(OnAIKilled);
 		}
+		
+		// Subscribe to player connect/disconnect events
+		OVT_PlayerManagerComponent playerManager = OVT_Global.GetPlayers();
+		if (playerManager)
+		{
+			playerManager.m_OnPlayerConnected.Insert(OnPlayerConnected);
+			playerManager.m_OnPlayerDisconnected.Insert(OnPlayerDisconnected);
+		}
+		
+		// Start offline timer processing
+		GetGame().GetCallqueue().CallLater(ProcessOfflineTimers, 1000, true);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -151,17 +188,43 @@ class OVT_RecruitManagerComponent : OVT_Component
 		if (!CanRecruit(ownerPersistentId))
 			return "";
 			
-		// Generate unique ID
-		string recruitId = GenerateRecruitId();
+		// Generate unique EPF-compatible ID
+		int sequence = GetNextRecruitSequence(ownerPersistentId);
+		string recruitId = GenerateRecruitId(ownerPersistentId, sequence);
 		
 		// Create recruit data
 		OVT_RecruitData recruit = new OVT_RecruitData();
 		recruit.m_sRecruitId = recruitId;
 		recruit.m_sOwnerPersistentId = ownerPersistentId;
+		recruit.m_sEntityPersistentId = recruitId; // Same as recruit ID for EPF
 		recruit.m_sName = name;
 		
 		if (name.IsEmpty())
-			recruit.m_sName = GenerateRecruitName();
+		{
+			// Get the civilian's actual name from the identity component
+			SCR_CharacterIdentityComponent identity = SCR_CharacterIdentityComponent.Cast(characterEntity.FindComponent(SCR_CharacterIdentityComponent));
+			if (identity)
+			{
+				string format, firstName, alias, surname;
+				identity.GetFormattedFullName(format, firstName, alias, surname);
+				
+				// Build the full name manually instead of using the format string
+				if (!alias.IsEmpty())
+				{
+					recruit.m_sName = firstName + " \"" + alias + "\" " + surname;
+				}
+				else
+				{
+					recruit.m_sName = firstName + " " + surname;
+				}
+				
+				Print("[Overthrow] Extracted name from identity: " + recruit.m_sName);
+			}
+			else
+			{
+				recruit.m_sName = GenerateRecruitName();
+			}
+		}
 			
 		// Store position
 		recruit.m_vLastKnownPosition = characterEntity.GetOrigin();
@@ -177,16 +240,28 @@ class OVT_RecruitManagerComponent : OVT_Component
 		// Map entity to recruit
 		m_mEntityToRecruit[characterEntity.GetID()] = recruitId;
 		
-		// Add persistence component to character
-		if (!characterEntity.FindComponent(EPF_PersistenceComponent))
+		// Enable EPF persistence for recruit (disabled for regular civilians)
+		EPF_PersistenceComponent persistenceComp = EPF_PersistenceComponent.Cast(
+			characterEntity.FindComponent(EPF_PersistenceComponent)
+		);
+		
+		if (!persistenceComp)
 		{
-			EPF_PersistenceComponent persistenceComp = EPF_PersistenceComponent.Cast(
-				characterEntity.FindComponent(EPF_PersistenceComponent)
-			);
-			if (!persistenceComp)
+			Print("[Overthrow] WARNING: Character entity missing EPF_PersistenceComponent! Recruit persistence may not work correctly.");
+		}
+		else
+		{
+			// Change save type from MANUAL to INTERVAL_SHUTDOWN for recruits
+			EPF_PersistenceComponentClass persistenceSettings = EPF_PersistenceComponentClass.Cast(persistenceComp.GetComponentData(characterEntity));
+			if (persistenceSettings)
 			{
-				// TODO: Add persistence component dynamically if possible
+				persistenceSettings.m_eSaveType = EPF_ESaveType.INTERVAL_SHUTDOWN;
+				Print("[Overthrow] Set recruit save type to INTERVAL_SHUTDOWN: " + recruitId);
 			}
+			
+			// Set unique persistent ID for EPF
+			persistenceComp.SetPersistentId(recruitId);
+			Print("[Overthrow] Enabled EPF persistence for recruit: " + recruitId);
 		}
 		
 		m_OnRecruitAdded.Invoke(recruit);
@@ -310,10 +385,20 @@ class OVT_RecruitManagerComponent : OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Generate unique recruit ID
-	protected string GenerateRecruitId()
+	//! Generate unique recruit ID compatible with EPF persistence
+	protected string GenerateRecruitId(string ownerPersistentId, int sequence)
 	{
-		return System.GetMachineName() + "_" + System.GetTickCount().ToString();
+		return string.Format("recruit_%1_%2", ownerPersistentId, sequence);
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Get next recruit sequence number for an owner
+	protected int GetNextRecruitSequence(string ownerPersistentId)
+	{
+		if (!m_mRecruitsByOwner.Contains(ownerPersistentId))
+			return 1;
+			
+		return m_mRecruitsByOwner[ownerPersistentId].Count() + 1;
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -398,4 +483,416 @@ class OVT_RecruitManagerComponent : OVT_Component
 		
 		return firstNames[firstIndex] + " " + lastNames[lastIndex];
 	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Restore character identity name after loading from EPF
+	protected void RestoreCharacterIdentity(IEntity characterEntity, string fullName)
+	{
+		SCR_CharacterIdentityComponent identity = SCR_CharacterIdentityComponent.Cast(characterEntity.FindComponent(SCR_CharacterIdentityComponent));
+		if (!identity)
+		{
+			Print("[Overthrow] WARNING: No identity component found for recruit restore");
+			return;
+		}
+		
+		// Parse the stored name back into parts
+		string firstName, alias, surname;
+		ParseFullName(fullName, firstName, alias, surname);
+		
+		// Set the identity parts
+		Identity characterIdentity = identity.GetIdentity();
+		if (characterIdentity)
+		{
+			characterIdentity.SetName(firstName);
+			characterIdentity.SetAlias(alias);
+			characterIdentity.SetSurname(surname);
+			Print("[Overthrow] Restored identity for recruit: " + fullName);
+		}
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Parse full name back into components
+	protected void ParseFullName(string fullName, out string firstName, out string alias, out string surname)
+	{
+		firstName = "";
+		alias = "";
+		surname = "";
+		
+		// Handle format: John "Alias" Doe or John Doe
+		if (fullName.Contains("\""))
+		{
+			// Format with alias: John "Alias" Doe
+			array<string> parts = {};
+			fullName.Split(" ", parts, true);
+			
+			if (parts.Count() >= 3)
+			{
+				firstName = parts[0];
+				
+				// Find alias between quotes
+				for (int i = 1; i < parts.Count(); i++)
+				{
+					if (parts[i].StartsWith("\"") && parts[i].EndsWith("\""))
+					{
+						alias = parts[i].Substring(1, parts[i].Length() - 2); // Remove quotes
+						
+						// Everything after alias is surname
+						for (int j = i + 1; j < parts.Count(); j++)
+						{
+							if (!surname.IsEmpty()) surname += " ";
+							surname += parts[j];
+						}
+						break;
+					}
+				}
+			}
+		}
+		else
+		{
+			// Simple format: John Doe
+			array<string> parts = {};
+			fullName.Split(" ", parts, true);
+			
+			if (parts.Count() >= 2)
+			{
+				firstName = parts[0];
+				for (int i = 1; i < parts.Count(); i++)
+				{
+					if (!surname.IsEmpty()) surname += " ";
+					surname += parts[i];
+				}
+			}
+			else if (parts.Count() == 1)
+			{
+				firstName = parts[0];
+			}
+		}
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Handle player connection - respawn their recruits
+	protected void OnPlayerConnected(string playerPersistentId, int playerId)
+	{
+		Print("[Overthrow] Player connected: " + playerPersistentId);
+		
+		// Cancel offline timer
+		if (m_mOfflinePlayerTimers.Contains(playerPersistentId))
+		{
+			m_mOfflinePlayerTimers.Remove(playerPersistentId);
+			Print("[Overthrow] Cancelled offline timer for player: " + playerPersistentId);
+		}
+		
+		// Recruit respawning will be triggered when player group is created
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Handle player disconnection - start offline timer
+	protected void OnPlayerDisconnected(string playerPersistentId, int playerId)
+	{
+		Print("[Overthrow] Player disconnected: " + playerPersistentId);
+		
+		// Start offline timer
+		m_mOfflinePlayerTimers[playerPersistentId] = OFFLINE_DESPAWN_TIME;
+		
+		// Save all recruit states
+		SavePlayerRecruits(playerPersistentId);
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Respawn recruits for a player using EPF
+	protected void RespawnPlayerRecruits(string playerPersistentId)
+	{
+		if (!m_mRecruitsByOwner.Contains(playerPersistentId))
+			return;
+			
+		array<string> recruitIds = m_mRecruitsByOwner[playerPersistentId];
+		Print("[Overthrow] Respawning " + recruitIds.Count() + " recruits for player: " + playerPersistentId);
+		
+		foreach (string recruitId : recruitIds)
+		{
+			OVT_RecruitData recruit = m_mRecruits[recruitId];
+			if (!recruit || recruit.m_bIsDead)
+				continue;
+				
+			// Check if recruit is already spawned in world
+			IEntity existingEntity = FindRecruitEntity(recruitId);
+			if (existingEntity)
+			{
+				Print("[Overthrow] Recruit " + recruitId + " already in world, adding to group");
+				AddRecruitToPlayerGroup(playerPersistentId, existingEntity);
+				continue;
+			}
+			
+			// Load recruit character via EPF
+			EPF_PersistenceManager persistenceManager = EPF_PersistenceManager.GetInstance();
+			if (persistenceManager)
+			{
+				Print("[Overthrow] Loading recruit from EPF: " + recruitId);
+				// Create callback context with player and recruit info
+				ref Tuple2<string, string> context = new Tuple2<string, string>(playerPersistentId, recruitId);
+				EDF_DataCallbackSingle<IEntity> callback(this, "OnRecruitLoaded", context);
+				
+				// Use EPF_PersistentWorldEntityLoader to load the recruit
+				EPF_PersistentWorldEntityLoader.LoadAsync(EPF_CharacterSaveData, recruitId, callback);
+			}
+		}
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Callback when recruit is loaded from EPF
+	void OnRecruitLoaded(IEntity recruitEntity, Managed context)
+	{
+		if (!recruitEntity)
+		{
+			Print("[Overthrow] Failed to load recruit entity from EPF");
+			return;
+		}
+		
+		Tuple2<string, string> recruitContext = Tuple2<string, string>.Cast(context);
+		if (!recruitContext)
+		{
+			Print("[Overthrow] Invalid context in OnRecruitLoaded");
+			return;
+		}
+		
+		string playerPersistentId = recruitContext.param1;
+		string recruitId = recruitContext.param2;
+		
+		Print("[Overthrow] Successfully loaded recruit: " + recruitId);
+		
+		// Activate AI for the loaded recruit
+		AIControlComponent aiControl = AIControlComponent.Cast(recruitEntity.FindComponent(AIControlComponent));
+		if (aiControl)
+		{
+			aiControl.ActivateAI();
+			Print("[Overthrow] Activated AI for recruit: " + recruitId);
+			
+			// Ensure the AI agent has a proper group
+			AIAgent agent = aiControl.GetAIAgent();
+			if (agent)
+			{
+				SCR_AIGroup aiGroup = SCR_AIGroup.Cast(agent.GetParentGroup());
+				if (!aiGroup)
+				{
+					Print("[Overthrow] Recruit has no AI group, will be handled by player group assignment");
+				}
+			}
+		}
+		else
+		{
+			Print("[Overthrow] WARNING: No AIControlComponent found on recruit: " + recruitId);
+		}
+		
+		// Update entity mapping
+		m_mEntityToRecruit[recruitEntity.GetID()] = recruitId;
+		
+		// Get recruit data
+		OVT_RecruitData recruit = m_mRecruits[recruitId];
+		if (!recruit)
+		{
+			Print("[Overthrow] WARNING: No recruit data found for: " + recruitId);
+			return;
+		}
+		
+		// Restore the character's name to the identity component (EPF doesn't save this)
+		RestoreCharacterIdentity(recruitEntity, recruit.m_sName);
+		
+		// Add to player's group
+		AddRecruitToPlayerGroup(playerPersistentId, recruitEntity);
+		
+		Print("[Overthrow] Recruit " + recruitId + " respawned and added to group");
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Save all recruits for a player via EPF
+	protected void SavePlayerRecruits(string playerPersistentId)
+	{
+		if (!m_mRecruitsByOwner.Contains(playerPersistentId))
+			return;
+			
+		array<string> recruitIds = m_mRecruitsByOwner[playerPersistentId];
+		Print("[Overthrow] Saving " + recruitIds.Count() + " recruits for player: " + playerPersistentId);
+		
+		foreach (string recruitId : recruitIds)
+		{
+			OVT_RecruitData recruit = m_mRecruits[recruitId];
+			if (!recruit || recruit.m_bIsDead)
+				continue;
+				
+			// Find character entity
+			IEntity recruitEntity = FindRecruitEntity(recruitId);
+			if (!recruitEntity)
+				continue;
+				
+			// Force save via EPF
+			EPF_PersistenceComponent persistence = EPF_PersistenceComponent.Cast(
+				recruitEntity.FindComponent(EPF_PersistenceComponent)
+			);
+			
+			if (persistence)
+			{
+				persistence.Save();
+				Print("[Overthrow] Saved recruit via EPF: " + recruitId);
+			}
+		}
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Process offline timers for recruit despawning
+	protected void ProcessOfflineTimers()
+	{
+		if (m_mOfflinePlayerTimers.IsEmpty())
+			return;
+			
+		array<string> toRemove = {};
+		
+		foreach (string playerPersistentId, float timer : m_mOfflinePlayerTimers)
+		{
+			timer -= 1.0;
+			
+			if (timer <= 0)
+			{
+				Print("[Overthrow] Offline timer expired for player: " + playerPersistentId);
+				DespawnPlayerRecruits(playerPersistentId);
+				toRemove.Insert(playerPersistentId);
+			}
+			else
+			{
+				m_mOfflinePlayerTimers[playerPersistentId] = timer;
+			}
+		}
+		
+		// Remove expired timers
+		foreach (string playerPersistentId : toRemove)
+		{
+			m_mOfflinePlayerTimers.Remove(playerPersistentId);
+		}
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Despawn recruits for an offline player but keep database records
+	protected void DespawnPlayerRecruits(string playerPersistentId)
+	{
+		if (!m_mRecruitsByOwner.Contains(playerPersistentId))
+			return;
+			
+		array<string> recruitIds = m_mRecruitsByOwner[playerPersistentId];
+		Print("[Overthrow] Despawning " + recruitIds.Count() + " recruits for offline player: " + playerPersistentId);
+		
+		foreach (string recruitId : recruitIds)
+		{
+			OVT_RecruitData recruit = m_mRecruits[recruitId];
+			if (!recruit || recruit.m_bIsDead)
+				continue;
+				
+			IEntity recruitEntity = FindRecruitEntity(recruitId);
+			if (!recruitEntity)
+				continue;
+				
+			// Save current state before despawn
+			EPF_PersistenceComponent persistence = EPF_PersistenceComponent.Cast(
+				recruitEntity.FindComponent(EPF_PersistenceComponent)
+			);
+			
+			if (persistence)
+			{
+				persistence.Save();
+				Print("[Overthrow] Saved recruit before despawn: " + recruitId);
+			}
+			
+			// Remove entity mapping
+			m_mEntityToRecruit.Remove(recruitEntity.GetID());
+			
+			// Remove from world
+			SCR_EntityHelper.DeleteEntityAndChildren(recruitEntity);
+			
+			Print("[Overthrow] Despawned recruit: " + recruitId);
+		}
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Find recruit entity by persistent ID
+	protected IEntity FindRecruitEntity(string recruitId)
+	{
+		// Search through all entities with EPF persistence
+		foreach (EntityID entityId, string mappedRecruitId : m_mEntityToRecruit)
+		{
+			if (mappedRecruitId == recruitId)
+			{
+				IEntity entity = GetGame().GetWorld().FindEntityByID(entityId);
+				if (entity)
+					return entity;
+				else
+					m_mEntityToRecruit.Remove(entityId); // Clean up stale mapping
+			}
+		}
+		
+		return null;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Add recruit to player's group
+	protected void AddRecruitToPlayerGroup(string playerPersistentId, IEntity recruitEntity)
+	{
+		// Find player by persistent ID
+		OVT_PlayerManagerComponent playerManager = OVT_Global.GetPlayers();
+		if (!playerManager)
+			return;
+			
+		int playerId = playerManager.GetPlayerIDFromPersistentID(playerPersistentId);
+		if (playerId == 0)
+		{
+			Print("[Overthrow] Player not online, cannot add recruit to group: " + playerPersistentId);
+			return;
+		}
+		
+		// Get player controller
+		SCR_PlayerController playerController = SCR_PlayerController.Cast(
+			GetGame().GetPlayerManager().GetPlayerController(playerId)
+		);
+		
+		if (!playerController)
+		{
+			Print("[Overthrow] No player controller found for ID: " + playerId);
+			return;
+		}
+		
+		// Get group component
+		SCR_PlayerControllerGroupComponent groupController = SCR_PlayerControllerGroupComponent.Cast(
+			playerController.FindComponent(SCR_PlayerControllerGroupComponent)
+		);
+		
+		if (!groupController)
+		{
+			Print("[Overthrow] No group controller found for player: " + playerId);
+			return;
+		}
+		
+		// Add as AI agent to player's group
+		SCR_ChimeraCharacter recruitCharacter = SCR_ChimeraCharacter.Cast(recruitEntity);
+		if (!recruitCharacter)
+		{
+			Print("[Overthrow] Failed to cast recruit entity to SCR_ChimeraCharacter");
+			return;
+		}
+		
+		groupController.RequestAddAIAgent(recruitCharacter, playerId);
+		Print("[Overthrow] Added recruit to player group: " + playerId);
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Called when a player group is created - triggers recruit respawning
+	protected void OnPlayerGroupCreated(int playerId, int groupId, string playerName)
+	{
+		Print("[Overthrow] Player group created, respawning recruits for player: " + playerId);
+		
+		// Get player's persistent ID
+		string playerPersistentId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		if (playerPersistentId.IsEmpty())
+			return;
+			
+		// Now it's safe to respawn recruits
+		RespawnPlayerRecruits(playerPersistentId);
+	}
+	
 }

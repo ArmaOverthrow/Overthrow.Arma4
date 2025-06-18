@@ -13,6 +13,10 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 	protected OVT_OverthrowGameMode m_Overthrow;
 	protected ref array<IEntity> m_FoundBases = {};
 	
+	//! Event fired when a player group is created
+	//! Parameters: playerId, groupId, playerName
+	ref ScriptInvoker m_OnPlayerGroupCreated = new ScriptInvoker();
+	
 	[Attribute(defvalue: "{3A99A99836F6B3DC}Prefabs/Characters/Factions/INDFOR/FIA/Character_Player.et")]
 	ResourceName m_rDefaultPrefab;
 	
@@ -164,6 +168,9 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 			
 			Print("[Overthrow] Created group " + groupID + " for player " + playerName + " (ID: " + playerId + ")", LogLevel.NORMAL);
 			Print("[Overthrow] Group faction: " + faction.GetFactionKey() + ", Player entity: " + playerController.GetControlledEntity(), LogLevel.NORMAL);
+			
+			// Fire the group created event
+			m_OnPlayerGroupCreated.Invoke(playerId, groupID, playerName);
 		}
 		else
 		{
