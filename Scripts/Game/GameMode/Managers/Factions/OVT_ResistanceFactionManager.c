@@ -403,48 +403,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		if(!access) return;
 		
 		access.MoveInVehicle(m_TempVehicle, ECompartmentType.TURRET);
-	}
-	
-	void SpawnGunner(RplId turret, int playerId = -1, bool takeSupporter = true)
-	{
-		RplComponent rpl = RplComponent.Cast(Replication.FindItem(turret));
-		if(!rpl) return;
-		
-		IEntity turretEntity = rpl.GetEntity();	
-		IEntity vehicle = turretEntity.GetParent();
-		if(!vehicle) vehicle = turretEntity;	
-				
-		IEntity group = OVT_Global.SpawnEntityPrefab(m_pHiredCivilianPrefab, vehicle.GetOrigin());
-		SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
-		if(!aigroup) return;
-		
-		OVT_Global.RandomizeCivilianGroupClothes(aigroup);
-		aigroup.GetOnAgentAdded().Insert(DisableCivilianPersistence);
-		
-		m_TempVehicle = vehicle;
-		m_TempGroup = aigroup;
-		
-		GetGame().GetCallqueue().CallLater(MoveInGunner, 5);
-		
-		if(takeSupporter)
-		{
-			OVT_Global.GetTowns().TakeSupportersFromNearestTown(turretEntity.GetOrigin());
-		}		
-	}
-	
-	//! Callback to disable EPF persistence for newly spawned civilians
-	protected void DisableCivilianPersistence(IEntity characterEntity)
-	{
-		if (!characterEntity)
-			return;
-			
-		EPF_PersistenceComponent persistenceComp = EPF_PersistenceComponent.Cast(characterEntity.FindComponent(EPF_PersistenceComponent));
-		if (persistenceComp)
-		{
-			persistenceComp.Deactivate(characterEntity);
-			Print("[Overthrow] Disabled EPF persistence for hired civilian: " + characterEntity);
-		}
-	}
+	}		
 	
 	//RPC Methods	
 	override bool RplSave(ScriptBitWriter writer)
