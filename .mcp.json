@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "reforger": {
+      "type": "stdio",
+      "command": ".scripts/reforger-mcp/.venv/bin/python3",
+      "args": [
+        ".scripts/reforger-mcp/server.py"
+      ],
+      "env": {}
+    }
+  }
+}
