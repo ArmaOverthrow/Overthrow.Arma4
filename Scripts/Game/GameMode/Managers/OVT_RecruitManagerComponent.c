@@ -509,6 +509,18 @@ class OVT_RecruitManagerComponent : OVT_Component
 				
 		OVT_Global.ApplyCivilianLoadout(recruitEntity);
 		
+		// Activate AI for the spawned recruit
+		AIControlComponent aiControl = AIControlComponent.Cast(recruitEntity.FindComponent(AIControlComponent));
+		if (aiControl)
+		{
+			aiControl.ActivateAI();
+			Print("[Overthrow] Activated AI for spawned recruit");
+		}
+		else
+		{
+			Print("[Overthrow] WARNING: No AIControlComponent found on spawned recruit");
+		}
+		
 		return recruitEntity;
 	}
 	

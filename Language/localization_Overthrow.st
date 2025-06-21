@@ -377,6 +377,111 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{5DA486E22A59D4C7}" {
+   Id "OVT-Build_RecruitmentTent"
+   Target_en_us "Recruitment Tent"
+   Target_fr_fr "Tente de recrutement"
+   Target_ru_ru "Палатка вербовки"
+   Target_zh_cn "招募帐篷"
+   Target_uk_ua "Наметна вербування"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1640995200
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5DA486E22A59D4C8}" {
+   Id "OVT-Build_RecruitmentTent_Description"
+   Target_en_us "Recruit civilians from nearby towns at reduced cost"
+   Target_fr_fr "Recruter des civils des villes voisines à coût réduit"
+   Target_ru_ru "Нанимать гражданских из близлежащих городов по сниженной стоимости"
+   Target_zh_cn "以低价从附近城镇招募平民"
+   Target_uk_ua "Набирати цивільних з навколишніх міст за зниженою вартістю"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1640995200
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5DA486E22A59D4C9}" {
+   Id "OVT-RecruitFromTent"
+   Target_en_us "Recruit from Tent"
+   Target_fr_fr "Recruter de la tente"
+   Target_ru_ru "Завербовать из палатки"
+   Target_zh_cn "从帐篷招募"
+   Target_uk_ua "Завербувати з намету"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1640995200
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5DA486E22A59D4CA}" {
+   Id "OVT-NoSupportersAvailable"
+   Target_en_us "No supporters available in nearby towns"
+   Target_fr_fr "Aucun partisan disponible dans les villes voisines"
+   Target_ru_ru "Нет доступных сторонников в близлежащих городах"
+   Target_zh_cn "附近城镇没有可用的支持者"
+   Target_uk_ua "Немає доступних прихильників у навколишніх містах"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1640995200
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5DA486E22A59D4CB}" {
+   Id "OVT-RecruitedFromTent"
+   Target_en_us "Recruited supporter from nearby town"
+   Target_fr_fr "Partisan recruté de la ville voisine"
+   Target_ru_ru "Завербован сторонник из близлежащего города"
+   Target_zh_cn "从附近城镇招募了支持者"
+   Target_uk_ua "Завербовано прихильника з навколишнього міста"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1640995200
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{59A5462B60C888FA}" {
    Id "OVT-Cancel"
    Target_en_us "Cancel"

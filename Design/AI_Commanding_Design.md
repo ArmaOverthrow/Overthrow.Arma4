@@ -35,15 +35,17 @@ The AI Commanding feature allows players to recruit and command AI civilians in 
    - Leverage existing character persistence for loadout/inventory (same as player)
    - Work out respawn mechanics when player logs back in
 
-2. **Equipment System** 🔄
+2. **Recruit Management UI** ✅
+   - Basic management screen accessible from main menu
+   - Rename recruits functionality with proper name parsing (first/alias/surname)
+   - Remove/dismiss recruits option
+   - Keyboard/controller support for console players
+   - Real-time status updates (alive/dead/distance)
+
+3. **Equipment System** ✅
    - Remote inventory access for recruits (since base game offers no equipping interface)
    - Allow recruits to pick up items from ground/containers
    - Manual equipment management
-
-3. **Recruit Management UI** 📋
-   - Basic management screen accessible from main menu
-   - Rename recruits functionality
-   - Remove/dismiss recruits option
 
 4. **Recruitment Tent/Center** 📋
    - Buildable structure at FOBs
@@ -77,12 +79,14 @@ The AI Commanding feature allows players to recruit and command AI civilians in 
   - Time/cost increases with level
   - Recruits temporarily unavailable during training
 
-### 3. Recruit Management
-- **Management UI**
+### 3. Recruit Management ✅
+- **Management UI** ✅
   - Access from main menu
   - View recruit stats, XP, level
-  - Rename recruits
-  - Manage equipment/loadouts
+  - Rename recruits with proper CharacterIdentity updating
+  - Dismiss recruits with confirmation dialog
+  - Real-time status display (alive/dead/distance from player)
+  - Controller support for console platforms
 
 - **Map Integration**
   - Unique map icons for AI recruits
@@ -95,9 +99,9 @@ The AI Commanding feature allows players to recruit and command AI civilians in 
   - Not targeted when unarmed unless in restricted areas
   - Inherit player's wanted level when in group
 
-- **Equipment System**
+- **Equipment System** ✅
   - Start with civilian clothes, no weapons
-  - Manual inventory management
+  - Manual inventory management via remote access
   - Future: Loadout templates and quick-equip
 
 - **Death Handling**
@@ -119,8 +123,8 @@ The AI Commanding feature allows players to recruit and command AI civilians in 
 1. ✅ Basic recruitment action
 2. ✅ Group management integration  
 3. ✅ EPF recruit persistence system
-4. 🔄 Remote inventory/equipment interface
-5. 📋 Recruit management UI (rename, dismiss)
+4. ✅ Recruit management UI (rename, dismiss, status tracking)
+5. ✅ Remote inventory/equipment interface
 6. 📋 Recruitment tent/center building
 7. 📋 Loadout save/apply system with EPF persistence
 
@@ -569,11 +573,22 @@ class OVT_RecruitSaveData : EPF_ComponentSaveData
 4. Save data size with many recruits
 
 ## Next Steps (Phase 1 Completion)
-1. **Remote Equipment Interface** - Create inventory access system for recruit equipment management  
-2. **Recruit Management UI** - Basic screen for renaming and dismissing recruits
-3. **Recruitment Tent** - Buildable structure for cheaper recruitment from town supporters
-4. **Loadout System** - Save/apply loadout functionality with EPF persistence
-5. **Beta Testing** - Release on dev branch for community feedback
+1. **Recruitment Tent** - Buildable structure for cheaper recruitment from town supporters
+2. **Loadout System** - Save/apply loadout functionality with EPF persistence
+3. **Beta Testing** - Release on dev branch for community feedback
+
+## Recently Completed ✅
+1. **Recruit Management UI** ✅ - Complete management interface with rename, dismiss, and status tracking
+   - **Rename System**: Full name parsing supporting first/alias/surname with proper CharacterIdentity updates
+   - **Dismiss System**: Confirmation dialogs with proper entity cleanup and group removal
+   - **Status Display**: Real-time recruit status (alive/dead/distance) with color coding
+   - **Navigation**: Keyboard/controller support for console players
+   - **Architecture**: Clean separation of concerns with business logic in RecruitManager
+
+2. **Remote Equipment Interface** ✅ - Complete inventory management system for recruits
+   - **Remote Access**: Full inventory access without physical proximity requirements
+   - **Equipment Management**: Transfer items to/from recruit inventories
+   - **Integration**: Seamless integration with existing inventory systems
 
 ## Design Decisions
 1. **Maximum recruits per player**: 16 recruits
