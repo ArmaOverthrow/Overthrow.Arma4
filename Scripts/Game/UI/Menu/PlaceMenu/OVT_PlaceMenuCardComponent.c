@@ -2,11 +2,15 @@ class OVT_PlaceMenuCardComponent : SCR_ScriptedWidgetComponent
 {
 	protected OVT_Placeable m_Placeable;
 	protected OVT_PlaceContext m_Context;
+	protected bool m_bCanPlace;
+	protected string m_sRestrictionReason;
 	
-	void Init(OVT_Placeable placeable, OVT_PlaceContext context)
+	void Init(OVT_Placeable placeable, OVT_PlaceContext context, bool canPlace = true, string reason = "")
 	{
 		m_Placeable = placeable;
 		m_Context = context;
+		m_bCanPlace = canPlace;
+		m_sRestrictionReason = reason;
 		
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
 		
@@ -20,7 +24,27 @@ class OVT_PlaceMenuCardComponent : SCR_ScriptedWidgetComponent
 		img.LoadImageTexture(0, placeable.m_tPreview);
 		
 		TextWidget desc = TextWidget.Cast(m_wRoot.FindAnyWidget("EntityDescription"));
-		desc.SetText(placeable.m_sDescription);
+		if (!m_bCanPlace && m_sRestrictionReason != "")
+		{
+			// Show restriction reason in description
+			desc.SetText(placeable.m_sDescription + "\n\n" + m_sRestrictionReason);
+		}
+		else
+		{
+			desc.SetText(placeable.m_sDescription);
+		}
+		
+		// Visual feedback for non-placeable items
+		if (!m_bCanPlace)
+		{
+			m_wRoot.SetOpacity(0.5);
+			m_wRoot.SetColor(Color.FromInt(0xFFFF4444)); // Red tint
+		}
+		else
+		{
+			m_wRoot.SetOpacity(1.0);
+			m_wRoot.SetColor(Color.White);
+		}
 	}
 	
 	override bool OnClick(Widget w, int x, int y, int button)
@@ -28,6 +52,14 @@ class OVT_PlaceMenuCardComponent : SCR_ScriptedWidgetComponent
 		super.OnClick(w, x, y, button);
 		if (button != 0)
 			return false;
+		
+		if (!m_bCanPlace)
+		{
+			// Show restriction reason instead of attempting to place
+			m_Context.ShowHint(m_sRestrictionReason);
+			SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.ERROR);
+			return true;
+		}
 		
 		m_Context.StartPlace(m_Placeable);
 		

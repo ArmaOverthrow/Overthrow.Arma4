@@ -75,34 +75,21 @@ class OVT_BuildContext : OVT_UIContext
 	{			
 				
 		int done = 0;
-		autoptr array<OVT_Buildable> valid = new array<OVT_Buildable>;
 		IEntity player = SCR_PlayerController.GetLocalControlledEntity();
-				
-		string reason;		
-		foreach(int i, OVT_Buildable buildable : m_Resistance.m_BuildablesConfig.m_aBuildables)
-		{
-			if(CanBuild(buildable, player.GetOrigin(), reason))
-			{
-				valid.Insert(buildable);
-			} 
-		}
-		
-		if(valid.Count() == 0)
-		{			
-			SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.ERROR);
-			CloseLayout();
-			ShowHint("#OVT-CannotBuildAnythingHere");
-			return;
-		}
 		
 		Widget root = m_wRoot.FindAnyWidget("m_BrowserGrid");
 		
-		foreach(int i, OVT_Buildable buildable : valid)
+		// Show all buildables instead of filtering
+		foreach(int i, OVT_Buildable buildable : m_Resistance.m_BuildablesConfig.m_aBuildables)
 		{
 			Widget w = root.FindWidget("BuildMenu_Card" + i);
 			OVT_BuildMenuCardComponent card = OVT_BuildMenuCardComponent.Cast(w.FindHandler(OVT_BuildMenuCardComponent));
 			
-			card.Init(buildable, this);
+			// Check if buildable can be built at current location
+			string reason;
+			bool canBuild = CanBuild(buildable, player.GetOrigin(), reason);
+			
+			card.Init(buildable, this, canBuild, reason);
 			
 			done++;
 		}
