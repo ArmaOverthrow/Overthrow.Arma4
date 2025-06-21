@@ -12,25 +12,22 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 		GetOnDamageStateChanged().Insert(WhenDamageStateChanged);
 	}
 	
-	void WhenDamaged(EDamageType type,
-				  float damage,
-				  HitZone pHitZone,
-				  notnull Instigator instigator,
-				  inout vector hitTransform[3],
-				  float speed,
-				  int colliderID,
-				  int nodeID)
+	void WhenDamaged(BaseDamageContext damageContext)
 	{		
-		if(instigator)
+		if(damageContext)
 		{	
-			IEntity entity = instigator.GetInstigatorEntity();
-			if(entity) 
+			Instigator instigator = damageContext.instigator;
+			if(instigator)
 			{
-				OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(entity.FindComponent(OVT_PlayerWantedComponent));
-				
-				if(wanted)
+				IEntity entity = instigator.GetInstigatorEntity();
+				if(entity) 
 				{
-					wanted.SetBaseWantedLevel(2);
+					OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(entity.FindComponent(OVT_PlayerWantedComponent));
+					
+					if(wanted)
+					{
+						wanted.SetBaseWantedLevel(2);
+					}
 				}
 			}
 		}

@@ -3757,6 +3757,167 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{5D5C558A6E391A01}" {
+   Id "OVT-Recruits_YourRecruits"
+   Target_en_us "Your Recruits"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A02}" {
+   Id "OVT-Recruits_NoRecruitsHelp"
+   Target_en_us "You have no recruits yet. Recruit civilians by approaching them in towns with high support and using the Recruit Civilian action."
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A03}" {
+   Id "OVT-Recruits_ShowOnMap"
+   Target_en_us "Show on Map"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A04}" {
+   Id "OVT-Recruits_Rename"
+   Target_en_us "Rename"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A05}" {
+   Id "OVT-Recruits_Dismiss"
+   Target_en_us "Dismiss"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A06}" {
+   Id "OVT-Recruit_Level"
+   Target_en_us "Level %1"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A07}" {
+   Id "OVT-Recruit_LevelXP"
+   Target_en_us "Level: %1 (%2/%3 XP)"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A08}" {
+   Id "OVT-Recruit_Kills"
+   Target_en_us "Kills: %1"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A09}" {
+   Id "OVT-Recruit_Dead"
+   Target_en_us "Dead"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A10}" {
+   Id "OVT-Recruit_Active"
+   Target_en_us "Active"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A11}" {
+   Id "OVT-Recruit_Offline"
+   Target_en_us "Offline"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A12}" {
+   Id "OVT-Recruit_StatusDead"
+   Target_en_us "Status: Dead"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A13}" {
+   Id "OVT-Recruit_StatusActive"
+   Target_en_us "Status: Active (Distance: %1m)"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A14}" {
+   Id "OVT-Recruit_StatusOffline"
+   Target_en_us "Status: Offline"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A15}" {
+   Id "OVT-Recruit_Dismissed"
+   Target_en_us "Recruit dismissed"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A16}" {
+   Id "OVT-Recruit_MarkedOnMap"
+   Target_en_us "Recruit location marked on map"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A17}" {
+   Id "OVT-Recruits_DismissTitle"
+   Target_en_us "Dismiss Recruit"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A18}" {
+   Id "OVT-Recruits_DismissMessage"
+   Target_en_us "Are you sure you want to dismiss this recruit? This action cannot be undone."
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A20}" {
+   Id "OVT-Recruits_RenameTitle"
+   Target_en_us "Rename Recruit"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A21}" {
+   Id "OVT-Recruits_RenameMessage"
+   Target_en_us "Enter a new name for this recruit:"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A22}" {
+   Id "OVT-Recruits_RenamePrompt"
+   Target_en_us "Recruit Name"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A23}" {
+   Id "OVT-Recruit_Renamed"
+   Target_en_us "Recruit renamed successfully"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A19}" {
+   Id "OVT-Feature_NotImplemented"
+   Target_en_us "Feature not yet implemented"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
   CustomStringTableItem "{5D305CF6351DD698}" {
    Id "OVT-Rent"
    Target_en_us "Rent"

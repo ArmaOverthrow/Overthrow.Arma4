@@ -108,4 +108,18 @@ class OVT_RecruitData : Managed
 		else
 			m_mSkills[skillName] = level;
 	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Set the recruit's display name
+	void SetName(string name)
+	{
+		m_sName = name;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Get the recruit's display name
+	string GetName()
+	{
+		return m_sName;
+	}
 }

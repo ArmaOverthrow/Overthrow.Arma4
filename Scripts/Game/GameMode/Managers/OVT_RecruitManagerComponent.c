@@ -182,6 +182,13 @@ class OVT_RecruitManagerComponent : OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Get recruit entity by recruit ID
+	IEntity GetRecruitEntity(string recruitId)
+	{
+		return FindRecruitEntity(recruitId);
+	}
+	
+	//------------------------------------------------------------------------------------------------
 	//! Add a new recruit
 	string AddRecruit(string ownerPersistentId, IEntity characterEntity, string name = "")
 	{
@@ -189,8 +196,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 			return "";
 			
 		// Generate unique EPF-compatible ID
-		int sequence = GetNextRecruitSequence(ownerPersistentId);
-		string recruitId = GenerateRecruitId(ownerPersistentId, sequence);
+		string recruitId = GenerateRecruitId(ownerPersistentId);
 		
 		// Create recruit data
 		OVT_RecruitData recruit = new OVT_RecruitData();
@@ -319,6 +325,66 @@ class OVT_RecruitManagerComponent : OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Rename a recruit and update both data and CharacterIdentityComponent
+	bool RenameRecruit(string recruitId, string newName)
+	{
+		OVT_RecruitData recruit = GetRecruit(recruitId);
+		if (!recruit)
+			return false;
+			
+		// Validate name
+		if (newName.IsEmpty() || newName.Length() > 32)
+			return false;
+		
+		// Update recruit name in data
+		recruit.SetName(newName);
+		
+		// Update the entity's CharacterIdentityComponent for visual display
+		IEntity recruitEntity = GetRecruitEntity(recruitId);
+		if (recruitEntity)
+		{
+			CharacterIdentityComponent identityComponent = CharacterIdentityComponent.Cast(recruitEntity.FindComponent(CharacterIdentityComponent));
+			if (identityComponent)
+			{
+				Identity identity = identityComponent.GetIdentity();
+				if (identity)
+				{
+					// Parse the new name into parts (First, Last, or First Middle Last)
+					array<string> nameParts = {};
+					newName.Split(" ", nameParts, true); // true = keep empty strings
+					
+					if (nameParts.Count() == 1)
+					{
+						// Single name - set as first name, clear alias and surname
+						identity.SetName(nameParts[0]);
+						identity.SetAlias("");
+						identity.SetSurname("");
+					}
+					else if (nameParts.Count() == 2)
+					{
+						// Two names - first and last, clear alias
+						identity.SetName(nameParts[0]);
+						identity.SetAlias("");
+						identity.SetSurname(nameParts[1]);
+					}
+					else if (nameParts.Count() >= 3)
+					{
+						// Three or more names - first, middle as alias, last as surname
+						identity.SetName(nameParts[0]);
+						identity.SetAlias(nameParts[1]);
+						identity.SetSurname(nameParts[2]);
+					}
+					
+					// Commit changes to apply them
+					identityComponent.CommitChanges();
+				}
+			}
+		}
+		
+		return true;
+	}
+	
+	//------------------------------------------------------------------------------------------------
 	//! Handle universal character death (works for all characters including recruits)
 	protected void OnCharacterKilled(IEntity victim, IEntity instigator)
 	{
@@ -382,19 +448,48 @@ class OVT_RecruitManagerComponent : OVT_Component
 	
 	//------------------------------------------------------------------------------------------------
 	//! Generate unique recruit ID compatible with EPF persistence
-	protected string GenerateRecruitId(string ownerPersistentId, int sequence)
+	protected string GenerateRecruitId(string ownerPersistentId)
 	{
-		return string.Format("recruit_%1_%2", ownerPersistentId, sequence);
+		string randomId;
+		int maxAttempts = 100;
+		int attempts = 0;
+		
+		// Keep generating until we get a unique ID
+		while (attempts < maxAttempts)
+		{
+			// Generate random ID: recruit_playerid_timestamp_randomhex
+			int timestamp = System.GetUnixTime();
+			string randomHex = GenerateRandomHex(6); // 6 character hex string
+			randomId = string.Format("recruit_%1_%2_%3", ownerPersistentId, timestamp, randomHex);
+			attempts++;
+			
+			// Break if we found a unique ID
+			if (!m_mRecruits.Contains(randomId))
+				break;
+		}
+		
+		if (attempts >= maxAttempts)
+		{
+			Print("[Overthrow] Warning: Failed to generate unique recruit ID after " + maxAttempts + " attempts");
+		}
+		
+		return randomId;
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Get next recruit sequence number for an owner
-	protected int GetNextRecruitSequence(string ownerPersistentId)
+	//! Generate random hexadecimal string of specified length
+	protected string GenerateRandomHex(int length)
 	{
-		if (!m_mRecruitsByOwner.Contains(ownerPersistentId))
-			return 1;
-			
-		return m_mRecruitsByOwner[ownerPersistentId].Count() + 1;
+		string hex = "0123456789abcdef";
+		string result = "";
+		
+		for (int i = 0; i < length; i++)
+		{
+			int randomIndex = Math.RandomInt(0, hex.Length());
+			result += hex.Get(randomIndex);
+		}
+		
+		return result;
 	}
 	
 	//------------------------------------------------------------------------------------------------

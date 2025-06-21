@@ -5,3 +5,4 @@ __pycache__
 .claude/settings.local.json
 CLAUDE.md
 claude.bat
+claude.sh

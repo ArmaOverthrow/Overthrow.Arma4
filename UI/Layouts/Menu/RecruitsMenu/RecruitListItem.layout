@@ -1,0 +1,90 @@
+ButtonWidgetClass {
+ Name "RecruitListItem"
+ Slot LayoutSlot "{5D5C558A6E391680}" {
+  Padding 0 0 0 2
+ }
+ Color 0.018 0.018 0.018 1
+ components {
+  OVT_RecruitListEntryHandler "{5D5C558A6E391679}" {
+   m_BackgroundDefault 0.018 0.018 0.018 0.102
+   m_BackgroundHovered 0.041 0.041 0.041 0.302
+   m_BackgroundSelected 0.018 0.011 0.004 0.302
+   m_BackgroundSelectedHovered 0.024 0.016 0.008 1
+   m_BackgroundClicked 0.031 0.02 0.009 1
+  }
+ }
+ {
+  OverlayWidgetClass "{5D5C558A6E391683}" {
+   Name "Overlay0"
+   Slot ButtonWidgetSlot "{5D5C558A6E391684}" {
+    HorizontalAlign 3
+    VerticalAlign 3
+   }
+   {
+    ImageWidgetClass "{5D5C558A6E391681}" {
+     Name "Background"
+     Slot OverlayWidgetSlot "{5D5C558A6E391682}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+      Padding 2 2 2 2
+     }
+     Color 0.005 0.005 0.005 1
+    }
+    HorizontalLayoutWidgetClass "{5D5C558A6E391685}" {
+     Name "Content"
+     Slot OverlayWidgetSlot "{5D5C558A6E391686}" {
+      HorizontalAlign 3
+      Padding 10 10 10 10
+     }
+     {
+      VerticalLayoutWidgetClass "{5D5C558A6E391687}" {
+       Name "NameLevel"
+       Slot LayoutSlot "{5D5C558A6E391688}" {
+        SizeMode Fill
+       }
+       {
+        TextWidgetClass "{5D5C558A6E391689}" {
+         Name "RecruitName"
+         Slot LayoutSlot "{5D5C558A6E39168A}" {
+          Padding 0 0 0 2
+         }
+         Text "Recruit Name"
+         "Font Size" 18
+         "Min Font Size" 14
+         FontProperties FontProperties "{5D5C558A6E39168B}" {
+          Bold 1
+         }
+        }
+        TextWidgetClass "{5D5C558A6E39168C}" {
+         Name "RecruitLevel"
+         Slot LayoutSlot "{5D5C558A6E39168D}" {
+         }
+         Text "Level 1"
+         "Font Size" 14
+         "Min Font Size" 12
+        }
+       }
+      }
+      FrameWidgetClass "{5D5C558A6E39168E}" {
+       Name "Spacer"
+       Slot LayoutSlot "{5D5C558A6E39168F}" {
+        SizeMode Fill
+       }
+      }
+      TextWidgetClass "{5D5C558A6E391690}" {
+       Name "RecruitStatus"
+       Slot LayoutSlot "{5D5C558A6E391691}" {
+        HorizontalAlign 2
+        VerticalAlign 1
+       }
+       Text "Active"
+       "Font Size" 16
+       "Min Font Size" 12
+       "Horizontal Alignment" Right
+      }
+     }
+    }
+   }
+  }
+ }
+}
