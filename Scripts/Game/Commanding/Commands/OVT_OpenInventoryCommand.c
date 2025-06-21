@@ -4,9 +4,6 @@ class OVT_OpenInventoryCommand : SCR_BaseGroupCommand
 {
     //! Stored player controller for restoration
     protected SCR_PlayerController m_StoredPlayerController;
-    
-    //! Stored original entity for restoration
-    protected IEntity m_StoredOriginalEntity;
     //------------------------------------------------------------------------------------------------
     override bool Execute(IEntity cursorTarget, IEntity target, vector targetPosition, int playerID, bool isClient)
     {
@@ -81,8 +78,6 @@ class OVT_OpenInventoryCommand : SCR_BaseGroupCommand
 		if (!playerController)
 			return false;
             
-        // Store the original possessed entity
-        IEntity originalEntity = playerController.GetControlledEntity();
         
         // Possess the recruit temporarily
         playerController.SetPossessedEntity(targetCharacter);
@@ -97,9 +92,8 @@ class OVT_OpenInventoryCommand : SCR_BaseGroupCommand
             // Listen for inventory close event to restore possession
             recruitInventoryManager.m_OnInventoryOpenInvoker.Insert(OnInventoryOpenStateChanged);
             
-            // Store the player controller and original entity for later restoration
+            // Store the player controller for later restoration
             m_StoredPlayerController = playerController;
-            m_StoredOriginalEntity = originalEntity;
             
             recruitInventoryManager.OpenInventory();
         }
@@ -112,25 +106,15 @@ class OVT_OpenInventoryCommand : SCR_BaseGroupCommand
     protected void OnInventoryOpenStateChanged(bool isOpen)
     {
         // When inventory is closed (isOpen = false), restore possession
-        if (!isOpen && m_StoredPlayerController && m_StoredOriginalEntity)
+        if (!isOpen && m_StoredPlayerController)
         {
-            m_StoredPlayerController.SetPossessedEntity(m_StoredOriginalEntity);
+            m_StoredPlayerController.SetPossessedEntity(null);
             
-            // Clean up stored references
+            // Clean up stored reference
             m_StoredPlayerController = null;
-            m_StoredOriginalEntity = null;
         }
     }
     
-    //------------------------------------------------------------------------------------------------
-    //! Restore possession to the original player entity
-    protected void RestorePossession(SCR_PlayerController playerController, IEntity originalEntity)
-    {
-        if (playerController && originalEntity)
-        {
-            playerController.SetPossessedEntity(originalEntity);
-        }
-    }
     
     //------------------------------------------------------------------------------------------------
     override bool CanBeShown()
