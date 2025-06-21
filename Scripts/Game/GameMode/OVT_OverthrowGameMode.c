@@ -60,6 +60,9 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 
 	//! Tracks if the player has opened the Overthrow menu at least once.
 	bool m_bHasOpenedMenu = false;
+	
+	//! Event fired when any character is killed (regardless of faction)
+	ref ScriptInvoker<IEntity, IEntity> m_OnCharacterKilled = new ScriptInvoker<IEntity, IEntity>();
 
 	//------------------------------------------------------------------------------------------------
 	//! Checks if the game mode has completed its initialization process.
@@ -121,6 +124,14 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	OVT_PersistenceManagerComponent GetPersistence()
 	{
 		return m_Persistence;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Gets the universal character killed event
+	//! \\return Script invoker for character killed events (victim, instigator)
+	ScriptInvoker<IEntity, IEntity> GetOnCharacterKilled()
+	{
+		return m_OnCharacterKilled;
 	}
 
 	//------------------------------------------------------------------------------------------------

@@ -265,7 +265,13 @@ class OVT_PlayerWantedComponent: OVT_Component
 		{		
 			//Player is in a vehicle, may need to update vehicle's faction
 			SCR_VehicleFactionAffiliationComponent vfac = EPF_Component<SCR_VehicleFactionAffiliationComponent>.Find(m_Compartment.GetVehicle());
+			if (!vfac)
+				return;
+				
 			Faction vehFaction = vfac.GetAffiliatedFaction();
+			if (!vehFaction)
+				return;
+				
 			string vehFactionKey = vehFaction.GetFactionKey();
 			if(m_iWantedLevel > 1 && vehFactionKey == "CIV")
 			{

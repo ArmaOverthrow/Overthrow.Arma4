@@ -93,14 +93,14 @@ class OVT_RecruitManagerComponent : OVT_Component
 		if (!GetGame().InPlayMode())
 			return;
 			
-		// Subscribe to character death events
-		SCR_BaseGameMode gameMode = SCR_BaseGameMode.Cast(GetGame().GetGameMode());
-		if (gameMode)
+		// Subscribe to universal character death events
+		OVT_OverthrowGameMode overthrowGameMode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
+		if (overthrowGameMode)
 		{
-			gameMode.GetOnPlayerKilled().Insert(OnCharacterKilled);
+			overthrowGameMode.GetOnCharacterKilled().Insert(OnCharacterKilled);
 		}
 		
-		// Subscribe to AI kills for XP tracking
+		// Subscribe to AI kills for XP tracking (still needed for faction-specific rewards)
 		OVT_OccupyingFactionManager occupyingFaction = OVT_Global.GetOccupyingFaction();
 		if (occupyingFaction)
 		{
@@ -149,7 +149,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 		foreach (string recruitId : recruitIds)
 		{
 			OVT_RecruitData recruit = m_mRecruits[recruitId];
-			if (recruit && !recruit.m_bIsDead)
+			if (recruit)
 				recruits.Insert(recruit);
 		}
 		
@@ -319,53 +319,49 @@ class OVT_RecruitManagerComponent : OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Handle character death
-	protected void OnCharacterKilled(notnull SCR_InstigatorContextData instigatorContextData)
+	//! Handle universal character death (works for all characters including recruits)
+	protected void OnCharacterKilled(IEntity victim, IEntity instigator)
 	{
-		IEntity victimEntity = instigatorContextData.GetVictimEntity();
-		if (!victimEntity)
+		if (!victim)
 			return;
 			
-		// Check if the killed entity is a recruit
-		OVT_RecruitData recruit = GetRecruitFromEntity(victimEntity);
-		if (!recruit)
+		// Check if the victim is a recruit
+		OVT_RecruitData victimRecruit = GetRecruitFromEntity(victim);
+		if (!victimRecruit)
 			return;
 			
-		// Mark as dead
-		recruit.m_bIsDead = true;
-		recruit.m_vLastKnownPosition = victimEntity.GetOrigin();
-		
-		// Remove entity mapping
-		m_mEntityToRecruit.Remove(victimEntity.GetID());
-		
-		// Notify owner
-		OVT_PlayerData ownerData = OVT_Global.GetPlayers().GetPlayer(recruit.m_sOwnerPersistentId);
+		// Notify owner before removing the recruit
+		OVT_PlayerData ownerData = OVT_Global.GetPlayers().GetPlayer(victimRecruit.m_sOwnerPersistentId);
 		if (ownerData && !ownerData.IsOffline())
 		{
-			OVT_Global.GetNotify().SendTextNotification("RecruitDied", ownerData.id, recruit.m_sName);
+			OVT_Global.GetNotify().SendTextNotification("RecruitDied", ownerData.id, victimRecruit.m_sName);
 		}
 		
-		// Don't process further - no XP for recruit vs recruit kills
+		// Remove entity mapping
+		m_mEntityToRecruit.Remove(victim.GetID());
+		
+		// Remove the recruit entirely from the system
+		RemoveRecruit(victimRecruit.m_sRecruitId);
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Handle AI kills by recruits for XP rewards
+	//! Handle AI kills by recruits for XP rewards (recruit death detection moved to OnCharacterKilled)
 	protected void OnAIKilled(IEntity victim, IEntity instigator)
 	{
-		if (!instigator || !victim)
+		if (!victim || !instigator)
 			return;
 			
-		// Check if killer is a recruit
+		// Check if killer is a recruit (for XP rewards)
 		OVT_RecruitData killerRecruit = GetRecruitFromEntity(instigator);
 		if (!killerRecruit)
 			return;
 			
-		// Make sure victim is not a recruit or civilian
+		// Check if victim is also a recruit - don't award XP for recruit vs recruit kills
 		OVT_RecruitData victimRecruit = GetRecruitFromEntity(victim);
 		if (victimRecruit)
-			return; // Don't reward for killing other recruits
+			return;
 			
-		// Check faction to ensure it's an enemy
+		// Check faction to ensure victim is an enemy
 		FactionAffiliationComponent victimFaction = FactionAffiliationComponent.Cast(victim.FindComponent(FactionAffiliationComponent));
 		if (!victimFaction)
 			return;
@@ -618,7 +614,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 		foreach (string recruitId : recruitIds)
 		{
 			OVT_RecruitData recruit = m_mRecruits[recruitId];
-			if (!recruit || recruit.m_bIsDead)
+			if (!recruit)
 				continue;
 				
 			// Check if recruit is already spawned in world
@@ -723,7 +719,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 		foreach (string recruitId : recruitIds)
 		{
 			OVT_RecruitData recruit = m_mRecruits[recruitId];
-			if (!recruit || recruit.m_bIsDead)
+			if (!recruit)
 				continue;
 				
 			// Find character entity
@@ -789,7 +785,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 		foreach (string recruitId : recruitIds)
 		{
 			OVT_RecruitData recruit = m_mRecruits[recruitId];
-			if (!recruit || recruit.m_bIsDead)
+			if (!recruit)
 				continue;
 				
 			IEntity recruitEntity = FindRecruitEntity(recruitId);

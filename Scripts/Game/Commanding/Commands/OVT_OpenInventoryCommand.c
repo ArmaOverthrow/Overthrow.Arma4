@@ -53,6 +53,7 @@ class OVT_OpenInventoryCommand : SCR_BaseGroupCommand
 		if (!characterController)
             return false;     
 		
+		// Don't allow opening inventory of dead recruits
 		if (characterController.GetLifeState() != ECharacterLifeState.ALIVE)
 			return false;
                 

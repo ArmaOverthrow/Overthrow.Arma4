@@ -2538,6 +2538,13 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{65AA3C7A9ED20711}" {
+   Id "OVT-Msg-RecruitDied"
+   Target_en_us "%1 has died"
+   Modified 1705668072
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5D86A3C7B5BAFA27}" {
    Id "OVT-Msg-TaxesDonationsPlayer"
    Target_en_us "You have received $%1 in donations and taxes"
@@ -3056,6 +3063,27 @@ StringTable {
    Modified 1684559858
    Author "Aaron Static"
    LastChanged "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5E4852B16105E7FD}" {
+   Id "OVT-OpenInventory"
+   Target_en_us "Open Inventory"
+   Target_fr_fr "Ouvrir l'inventaire"
+   Target_ru_ru "Открыть инвентарь"
+   Target_zh_cn "打开库存"
+   Target_uk_ua "Відкрити інвентар"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1658678321
+   Author "Claude"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
@@ -5377,27 +5405,6 @@ StringTable {
    Modified 1658678321
    Author "Aaron Static"
    LastChanged "CrioUA"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{5E4852B16105E7FD}" {
-   Id "OVT-OpenInventory"
-   Target_en_us "Open Inventory"
-   Target_fr_fr "Ouvrir l'inventaire"
-   Target_ru_ru "Открыть инвентарь"
-   Target_zh_cn "打开库存"
-   Target_uk_ua "Відкрити інвентар"
-   Comment ""
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1658678321
-   Author "Claude"
-   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
