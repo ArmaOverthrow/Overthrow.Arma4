@@ -4,6 +4,14 @@ SCR_ChimeraCharacter : "{99F600AD4C6BA6A4}Prefabs/Characters/Factions/CIV/Charac
   EPF_PersistenceComponent "{5A12D8F4DFED6D84}" {
    Enabled 1
    m_eSaveType MANUAL
+   m_pSaveData EPF_CharacterSaveDataClass "{5A12D8F4DA8632DC}" {
+    m_aComponents {
+     OVT_PlayerOwnerDataClass "{65AA315492A6B069}" {
+     }
+    }
+   }
+  }
+  OVT_PlayerOwnerComponent "{65AA31548E47F2B5}" {
   }
   OVT_PlayerWantedComponent "{65A2B5AE0D3BB360}" {
   }

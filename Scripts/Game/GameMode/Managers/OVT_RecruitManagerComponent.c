@@ -443,6 +443,13 @@ class OVT_RecruitManagerComponent : OVT_Component
 			wantedComp.EnableWantedSystem();
 		}
 		
+		// Set the player owner component
+		OVT_PlayerOwnerComponent ownerComp = OVT_PlayerOwnerComponent.Cast(civilian.FindComponent(OVT_PlayerOwnerComponent));
+		if (ownerComp)
+		{
+			ownerComp.SetPlayerOwner(persId);
+		}
+		
 		// Add to recruit manager
 		string recruitId = AddRecruit(persId, civilian);
 		

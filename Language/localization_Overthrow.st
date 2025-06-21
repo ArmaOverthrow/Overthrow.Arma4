@@ -5380,5 +5380,26 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{5E4852B16105E7FD}" {
+   Id "OVT-OpenInventory"
+   Target_en_us "Open Inventory"
+   Target_fr_fr "Ouvrir l'inventaire"
+   Target_ru_ru "Открыть инвентарь"
+   Target_zh_cn "打开库存"
+   Target_uk_ua "Відкрити інвентар"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1658678321
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
  }
 }
