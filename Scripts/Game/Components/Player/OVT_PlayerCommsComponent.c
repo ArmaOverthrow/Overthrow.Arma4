@@ -818,6 +818,137 @@ class OVT_PlayerCommsComponent: OVT_Component
 	void RpcAsk_RequestFastTravel(int playerId, vector pos)	
 	{
 		SCR_Global.TeleportPlayer(playerId, pos);
-	}	
+	}
+	
+	//LOADOUTS
+	
+	//! Save a loadout for a player
+	void SaveLoadout(string playerId, string loadoutName, string description = "", bool isOfficerTemplate = false)
+	{
+		Rpc(RpcAsk_SaveLoadout, playerId, loadoutName, description, isOfficerTemplate);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_SaveLoadout(string playerId, string loadoutName, string description, bool isOfficerTemplate)
+	{
+		// Get the player entity
+		OVT_PlayerManagerComponent playerMgr = OVT_Global.GetPlayers();
+		int playerIdInt = playerMgr.GetPlayerIDFromPersistentID(playerId);
+		IEntity playerEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerIdInt);
+		
+		if (!playerEntity)
+		{
+			Print(string.Format("[OVT_PlayerCommsComponent] Could not find player entity for ID: %1", playerId), LogLevel.ERROR);
+			return;
+		}
+		
+		// Get loadout manager
+		OVT_LoadoutManagerComponent loadoutManager = OVT_Global.GetLoadouts();
+		if (!loadoutManager)
+		{
+			Print("[OVT_PlayerCommsComponent] Loadout manager not available", LogLevel.ERROR);
+			return;
+		}
+		
+		// Save the loadout
+		if (isOfficerTemplate)
+		{
+			loadoutManager.SaveOfficerTemplate(playerId, loadoutName, playerEntity, description);
+		}
+		else
+		{
+			loadoutManager.SaveLoadout(playerId, loadoutName, playerEntity, description);
+		}
+	}
+	
+	//! Load a loadout for a player
+	void LoadLoadout(string playerId, string loadoutName)
+	{
+		Rpc(RpcAsk_LoadLoadout, playerId, loadoutName);
+	}
+	
+	//! Load a loadout for a player from equipment box
+	void LoadLoadoutFromBox(string playerId, string loadoutName, IEntity equipmentBox, IEntity targetEntity)
+	{
+		Print(string.Format("[OVT_PlayerCommsComponent] LoadLoadoutFromBox called - PlayerID: %1, LoadoutName: %2", playerId, loadoutName));
+		
+		RplComponent equipmentBoxRpl = RplComponent.Cast(equipmentBox.FindComponent(RplComponent));
+		RplComponent targetEntityRpl = RplComponent.Cast(targetEntity.FindComponent(RplComponent));
+		
+		if (!equipmentBoxRpl || !targetEntityRpl)
+		{
+			Print(string.Format("[OVT_PlayerCommsComponent] Could not get RplComponent - EquipmentBox: %1, TargetEntity: %2", 
+				!equipmentBoxRpl, !targetEntityRpl), LogLevel.ERROR);
+			return;
+		}
+		
+		Print(string.Format("[OVT_PlayerCommsComponent] Sending RPC with IDs - EquipmentBox: %1, TargetEntity: %2", 
+			equipmentBoxRpl.Id(), targetEntityRpl.Id()));
+		Rpc(RpcAsk_LoadLoadoutFromBox, playerId, loadoutName, equipmentBoxRpl.Id(), targetEntityRpl.Id());
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_LoadLoadout(string playerId, string loadoutName)
+	{
+		// Get the player entity
+		OVT_PlayerManagerComponent playerMgr = OVT_Global.GetPlayers();
+		int playerIdInt = playerMgr.GetPlayerIDFromPersistentID(playerId);
+		IEntity playerEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerIdInt);
+		
+		if (!playerEntity)
+		{
+			Print(string.Format("[OVT_PlayerCommsComponent] Could not find player entity for ID: %1", playerId), LogLevel.ERROR);
+			return;
+		}
+		
+		// Get loadout manager
+		OVT_LoadoutManagerComponent loadoutManager = OVT_Global.GetLoadouts();
+		if (!loadoutManager)
+		{
+			Print("[OVT_PlayerCommsComponent] Loadout manager not available", LogLevel.ERROR);
+			return;
+		}
+		
+		// Load the loadout
+		loadoutManager.LoadLoadout(playerId, loadoutName, playerEntity);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_LoadLoadoutFromBox(string playerId, string loadoutName, RplId equipmentBoxId, RplId targetEntityId)
+	{
+		Print(string.Format("[OVT_PlayerCommsComponent] RpcAsk_LoadLoadoutFromBox received - PlayerID: %1, LoadoutName: %2", playerId, loadoutName));
+		
+		// Get equipment box entity
+		RplComponent equipmentBoxRpl = RplComponent.Cast(Replication.FindItem(equipmentBoxId));
+		if (!equipmentBoxRpl)
+		{
+			Print(string.Format("[OVT_PlayerCommsComponent] Could not find equipment box with RplId: %1", equipmentBoxId), LogLevel.ERROR);
+			return;
+		}
+		IEntity equipmentBox = equipmentBoxRpl.GetEntity();
+		Print(string.Format("[OVT_PlayerCommsComponent] Found equipment box: %1", equipmentBox));
+		
+		// Get target entity
+		RplComponent targetEntityRpl = RplComponent.Cast(Replication.FindItem(targetEntityId));
+		if (!targetEntityRpl)
+		{
+			Print(string.Format("[OVT_PlayerCommsComponent] Could not find target entity with RplId: %1", targetEntityId), LogLevel.ERROR);
+			return;
+		}
+		IEntity targetEntity = targetEntityRpl.GetEntity();
+		Print(string.Format("[OVT_PlayerCommsComponent] Found target entity: %1", targetEntity));
+		
+		// Get loadout manager
+		OVT_LoadoutManagerComponent loadoutManager = OVT_Global.GetLoadouts();
+		if (!loadoutManager)
+		{
+			Print("[OVT_PlayerCommsComponent] Loadout manager not available", LogLevel.ERROR);
+			return;
+		}
+		
+		Print(string.Format("[OVT_PlayerCommsComponent] Calling LoadoutManager.LoadLoadout"));
+		// Load the loadout from equipment box
+		loadoutManager.LoadLoadout(playerId, loadoutName, targetEntity, equipmentBox);
+	}
 	
 }

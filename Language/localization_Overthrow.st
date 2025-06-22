@@ -92,6 +92,142 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5D5C558A6E391693}" {
+   Id "OVT-Loadouts_ManageLoadouts"
+   Target_en_us "Manage Loadouts"
+   Comment "Title for loadout management screen"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E391694}" {
+   Id "OVT-Loadouts_YourLoadouts"
+   Target_en_us "Your Loadouts"
+   Comment "Title for player loadouts list"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E391695}" {
+   Id "OVT-Loadouts_NoLoadoutsHelp"
+   Target_en_us "No loadouts saved yet. Use an equipment box to save your current loadout, then come back here to manage and apply them."
+   Comment "Help text when no loadouts exist"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E391696}" {
+   Id "OVT-Loadouts_Apply"
+   Target_en_us "Apply"
+   Comment "Button to apply selected loadout"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E391697}" {
+   Id "OVT-Loadouts_Delete"
+   Target_en_us "Delete"
+   Comment "Button to delete selected loadout"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E391698}" {
+   Id "OVT-Loadouts_PersonalLoadout"
+   Target_en_us "Personal loadout"
+   Comment "Label for personal loadouts in list"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E391699}" {
+   Id "OVT-Loadouts_Ready"
+   Target_en_us "Ready"
+   Comment "Status text for available loadouts"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E39169A}" {
+   Id "OVT-LoadoutApplied"
+   Target_en_us "Loadout applied successfully"
+   Comment "Confirmation message when loadout is applied"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{646E48D7E93CDF0B}" {
    Id "OVT-Base_Erquy"
    Target_en_us "Erquy Harbour"
@@ -5671,6 +5807,108 @@ StringTable {
    Modified 1658678321
    Author "Aaron Static"
    LastChanged "CrioUA"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{A1B2C3D4E5F60001}" {
+   Id "OVT-SaveLoadout"
+   Target_en_us "Save Loadout"
+   Comment "UserAction for saving player equipment loadouts"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1658678321
+   Author "Claude AI"
+   LastChanged "Claude AI"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{A1B2C3D4E5F60003}" {
+   Id "OVT-SaveLoadoutMessage"
+   Target_en_us "Enter a name for your loadout:"
+   Comment "Message for save loadout dialog"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1658678321
+   Author "Claude AI"
+   LastChanged "Claude AI"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{A1B2C3D4E5F60004}" {
+   Id "OVT-SaveLoadoutPrompt"
+   Target_en_us "Loadout Name"
+   Comment "Prompt for loadout name input field"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1658678321
+   Author "Claude AI"
+   LastChanged "Claude AI"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{A1B2C3D4E5F60005}" {
+   Id "OVT-LoadLoadoutMessage"
+   Target_en_us "Select a loadout to apply:"
+   Comment "Message for load loadout dialog"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1658678321
+   Author "Claude AI"
+   LastChanged "Claude AI"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{A1B2C3D4E5F60002}" {
+   Id "OVT-LoadLoadout"
+   Target_en_us "Load Loadout"
+   Comment "UserAction for loading player equipment loadouts"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1658678321
+   Author "Claude AI"
+   LastChanged "Claude AI"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{A1B2C3D4E5F60003}" {
+   Id "OVT-SaveOfficerLoadout"
+   Target_en_us "Save Officer Template"
+   Comment "UserAction for officers to save template loadouts"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1658678321
+   Author "Claude AI"
+   LastChanged "Claude AI"
    ImageLink ""
    Hidden 0
   }

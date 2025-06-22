@@ -85,6 +85,11 @@ class OVT_Global : Managed
 		return OVT_RecruitManagerComponent.GetInstance();
 	}
 	
+	static OVT_LoadoutManagerComponent GetLoadouts()
+	{
+		return OVT_LoadoutManagerComponent.GetInstance();
+	}
+	
 	static bool PlayerInRange(vector pos, int range)
 	{		
 		array<int> players = new array<int>;

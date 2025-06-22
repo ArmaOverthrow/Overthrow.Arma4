@@ -24,6 +24,8 @@ OVT_OverthrowGameMode {
      }
      OVT_RecruitSaveDataClass "{65A26826DE2960DA}" {
      }
+     OVT_LoadoutManagerSaveDataClass "{65AAD8FBE5BDC6EE}" {
+     }
     }
    }
   }
@@ -89,6 +91,8 @@ OVT_OverthrowGameMode {
     OVT_JobConfig "{5D9C33D122545AFD}" : "{11EE393C09B6A661}Configs/Jobs/findShop.conf" {
     }
    }
+  }
+  OVT_LoadoutManagerComponent "{65AAD8FB1BAFD652}" {
   }
   OVT_NotificationManagerComponent "{5D8680DB07CF50FD}" {
    m_Messages SCR_SimpleMessagePresets "{5D8680DB04A58A20}" : "{36405F298C9B3186}Configs/overthrowBroadcastMessages.conf" {

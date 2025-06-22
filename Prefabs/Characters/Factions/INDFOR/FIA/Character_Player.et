@@ -132,11 +132,17 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      m_SkillEffectLayout "{B40D2F7787BB6248}UI/Layouts/Menu/CharacterSheet/CharacterSheetSkillEffect.layout"
     }
     OVT_RecruitsContext "{5D5C558A6E391680}" {
-     m_Layout "{5D5C558A6E391690}UI/Layouts/Menu/RecruitsMenu.layout"
+     m_Layout "{7479003E04D0D1ED}UI/Layouts/Menu/RecruitsMenu.layout"
      m_sContextName "OverthrowRecruitsMenuContext"
      m_sCloseAction "MenuBack"
      m_bOpenActionCloses 0
-     m_RecruitItemLayout "{5D5C558A6E391690}UI/Layouts/Menu/RecruitsMenu/RecruitListItem.layout"
+     m_RecruitItemLayout "{AA94A214B16CB2C8}UI/Layouts/Menu/RecruitsMenu/RecruitListItem.layout"
+    }
+    OVT_LoadoutsContext "{65AB140F49501632}" {
+     m_Layout "{0C2D8BB696089B2A}UI/Layouts/Menu/LoadoutsMenu.layout"
+     m_sContextName "OverthrowLoadoutsMenuContext"
+     m_sCloseAction "MenuBack"
+     m_bOpenActionCloses 0
     }
    }
   }
