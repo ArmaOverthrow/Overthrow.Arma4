@@ -159,7 +159,7 @@ class OVT_RecruitsContext : OVT_UIContext
 		if (!handler)
 			return;
 			
-		SelectRecruitByIndex(handler.m_iIndex);
+		SelectRecruitByIndex(handler.GetIndex());
 	}
 	
 	void SelectRecruit(OVT_RecruitData recruit, Widget widget)

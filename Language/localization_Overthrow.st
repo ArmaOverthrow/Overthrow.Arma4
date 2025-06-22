@@ -145,8 +145,8 @@ StringTable {
   }
   CustomStringTableItem "{5D5C558A6E391696}" {
    Id "OVT-Loadouts_Apply"
-   Target_en_us "Apply"
-   Comment "Button to apply selected loadout"
+   Target_en_us "Apply to Self"
+   Comment "Button to apply selected loadout to player"
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -215,6 +215,244 @@ StringTable {
    Id "OVT-LoadoutApplied"
    Target_en_us "Loadout applied successfully"
    Comment "Confirmation message when loadout is applied"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E39169B}" {
+   Id "OVT-Loadouts_NearbyRecruits"
+   Target_en_us "Nearby Recruits"
+   Comment "Title for nearby recruits section"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E39169C}" {
+   Id "OVT-Loadouts_NoRecruitsNearby"
+   Target_en_us "No recruits nearby"
+   Comment "Message when no recruits are found nearby"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E39169D}" {
+   Id "OVT-Loadouts_ApplyToSelected"
+   Target_en_us "Apply to Selected"
+   Comment "Button to apply loadout to selected recruit"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E39169E}" {
+   Id "OVT-Loadouts_ApplyToAll"
+   Target_en_us "Apply to All"
+   Comment "Button to apply loadout to all nearby recruits"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E39169F}" {
+   Id "OVT-Loadouts_RecruitReady"
+   Target_en_us "Ready"
+   Comment "Status for recruit that is ready for loadout"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E3916A0}" {
+   Id "OVT-Loadouts_RecruitUnconscious"
+   Target_en_us "Unconscious"
+   Comment "Status for recruit that is unconscious"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E3916A1}" {
+   Id "OVT-Loadouts_RecruitDead"
+   Target_en_us "Dead"
+   Comment "Status for recruit that is dead"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E3916A2}" {
+   Id "OVT-Loadouts_RecruitUnknown"
+   Target_en_us "Unknown"
+   Comment "Status for recruit with unknown state"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E3916A3}" {
+   Id "OVT-Loadouts_NoRecruitSelected"
+   Target_en_us "No recruit selected"
+   Comment "Error message when no recruit is selected"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E3916A4}" {
+   Id "OVT-Loadouts_AppliedToRecruit"
+   Target_en_us "Applied loadout '%1' to %2"
+   Comment "Success message when loadout is applied to a recruit"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E3916A5}" {
+   Id "OVT-Loadouts_AppliedToAllRecruits"
+   Target_en_us "Applied loadout '%1' to %2 recruits"
+   Comment "Success message when loadout is applied to all recruits"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E3916A6}" {
+   Id "OVT-Loadouts_SelectedRecruit"
+   Target_en_us "Selected: %1"
+   Comment "Shows the name of the currently selected recruit"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E3916A7}" {
+   Id "OVT-Loadouts_NoEquipmentBox"
+   Target_en_us "No equipment box available"
+   Comment "Error message when trying to apply loadout without equipment box"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E3916A8}" {
+   Id "OVT-Loadouts_FailedToApply"
+   Target_en_us "Failed to apply loadout"
+   Comment "Error message when loadout application fails"
    DevNote ""
    Repro ""
    ActorGender NONE

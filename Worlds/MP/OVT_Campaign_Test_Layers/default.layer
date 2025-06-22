@@ -374,6 +374,9 @@ SCR_DestructibleBuildingEntity : "{38A5F3E4578087AB}Prefabs/Structures/Houses/To
  coords 241.413 0.001 118.064
  angleY -91.024
 }
+GenericEntity OVT_AmmoBox_Dev_65AB2E787B444A1B : "{3CD4A789AFF69FFA}Prefabs/Props/Military/AmmoBoxes/OVT_AmmoBox_Dev.et" {
+ coords 226.531 1 207.75
+}
 SCR_SiteSlotEntity : "{4B1C4BDDF6683101}PrefabsEditable/Slots/Flat/E_SlotFlatMedium.et" {
  coords 30 1.001 70
  {

@@ -514,7 +514,6 @@ class OVT_RecruitManagerComponent : OVT_Component
 		if (aiControl)
 		{
 			aiControl.ActivateAI();
-			Print("[Overthrow] Activated AI for spawned recruit");
 		}
 		else
 		{
@@ -682,14 +681,11 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//------------------------------------------------------------------------------------------------
 	//! Handle player connection - respawn their recruits
 	protected void OnPlayerConnected(string playerPersistentId, int playerId)
-	{
-		Print("[Overthrow] Player connected: " + playerPersistentId);
-		
+	{		
 		// Cancel offline timer
 		if (m_mOfflinePlayerTimers.Contains(playerPersistentId))
 		{
 			m_mOfflinePlayerTimers.Remove(playerPersistentId);
-			Print("[Overthrow] Cancelled offline timer for player: " + playerPersistentId);
 		}
 		
 		// Recruit respawning will be triggered when player group is created
@@ -698,9 +694,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//------------------------------------------------------------------------------------------------
 	//! Handle player disconnection - start offline timer
 	protected void OnPlayerDisconnected(string playerPersistentId, int playerId)
-	{
-		Print("[Overthrow] Player disconnected: " + playerPersistentId);
-		
+	{		
 		// Start offline timer
 		m_mOfflinePlayerTimers[playerPersistentId] = OFFLINE_DESPAWN_TIME;
 		
@@ -716,7 +710,6 @@ class OVT_RecruitManagerComponent : OVT_Component
 			return;
 			
 		array<string> recruitIds = m_mRecruitsByOwner[playerPersistentId];
-		Print("[Overthrow] Respawning " + recruitIds.Count() + " recruits for player: " + playerPersistentId);
 		
 		foreach (string recruitId : recruitIds)
 		{
@@ -791,6 +784,26 @@ class OVT_RecruitManagerComponent : OVT_Component
 		else
 		{
 			Print("[Overthrow] WARNING: No AIControlComponent found on recruit: " + recruitId);
+		}
+		
+		//Enable EPF Saving
+		// Enable EPF persistence for recruit (disabled for regular civilians)
+		EPF_PersistenceComponent persistenceComp = EPF_PersistenceComponent.Cast(
+			recruitEntity.FindComponent(EPF_PersistenceComponent)
+		);
+		
+		if (!persistenceComp)
+		{
+			Print("[Overthrow] WARNING: Character entity missing EPF_PersistenceComponent! Recruit persistence may not work correctly.");
+		}
+		else
+		{
+			// Change save type from MANUAL to INTERVAL_SHUTDOWN for recruits
+			EPF_PersistenceComponentClass persistenceSettings = EPF_PersistenceComponentClass.Cast(persistenceComp.GetComponentData(recruitEntity));
+			if (persistenceSettings)
+			{
+				persistenceSettings.m_eSaveType = EPF_ESaveType.INTERVAL_SHUTDOWN;
+			}
 		}
 		
 		// Update entity mapping

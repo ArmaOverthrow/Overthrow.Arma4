@@ -183,6 +183,49 @@ FrameWidgetClass {
                    "Font Size" 16
                    "Min Font Size" 12
                   }
+                  VerticalLayoutWidgetClass "{5D5C558A6E391671}" {
+                   Name "RecruitSection"
+                   Slot LayoutSlot "{5D5C558A6E391672}" {
+                    Padding 10 10 10 10
+                   }
+                   {
+                    TextWidgetClass "{5D5C558A6E391673}" {
+                     Name "RecruitsTitle"
+                     Slot LayoutSlot "{5D5C558A6E391674}" {
+                      Padding 0 0 0 5
+                     }
+                     Text "#OVT-Loadouts_NearbyRecruits"
+                     "Font Size" 18
+                     "Min Font Size" 14
+                    }
+                    ScrollLayoutWidgetClass "{5D5C558A6E391675}" {
+                     Name "RecruitsScrollContainer"
+                     Slot LayoutSlot "{5D5C558A6E391676}" {
+                      SizeMode Auto
+                      MaxHeight 120
+                     }
+                     {
+                      VerticalLayoutWidgetClass "{5D5C558A6E391677}" {
+                       Name "RecruitsList"
+                       Slot OverlayWidgetSlot "{5D5C558A6E391678}" {
+                        HorizontalAlign 3
+                        VerticalAlign 0
+                       }
+                      }
+                     }
+                    }
+                    TextWidgetClass "{5D5C558A6E391679}" {
+                     Name "NoRecruitsText"
+                     Slot LayoutSlot "{5D5C558A6E39167A}" {
+                      Padding 0 5 0 5
+                     }
+                     Text "#OVT-Loadouts_NoRecruitsNearby"
+                     "Font Size" 14
+                     "Min Font Size" 12
+                     Color 0.6 0.6 0.6 1
+                    }
+                   }
+                  }
                   HorizontalLayoutWidgetClass "{5D5C558A6E391668}" {
                    Name "ActionButtons"
                    Slot LayoutSlot "{5D5C558A6E391669}" {
@@ -210,6 +253,48 @@ FrameWidgetClass {
                       SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
                        m_sActionName "OverthrowLoadoutsDelete"
                        m_sLabel "#OVT-Loadouts_Delete"
+                      }
+                     }
+                    }
+                   }
+                  }
+                  TextWidgetClass "{5D5C558A6E391683}" {
+                   Name "SelectedRecruitName"
+                   Slot LayoutSlot "{5D5C558A6E391684}" {
+                    Padding 10 5 10 5
+                   }
+                   Text "Selected: None"
+                   "Font Size" 16
+                   "Min Font Size" 12
+                   Color 0.8 0.8 0.8 1
+                  }
+                  HorizontalLayoutWidgetClass "{5D5C558A6E39167B}" {
+                   Name "RecruitButtons"
+                   Slot LayoutSlot "{5D5C558A6E39167C}" {
+                    Padding 10 0 10 10
+                   }
+                   {
+                    ButtonWidgetClass "{5D5C558A6E39167D}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+                     Name "ApplyToSelectedRecruitButton"
+                     Slot LayoutSlot "{5D5C558A6E39167E}" {
+                      Padding 0 0 5 0
+                     }
+                     components {
+                      SCR_InputButtonComponent "{5D5C558A6E39167F}" {
+                       m_sActionName "OverthrowLoadoutsApplyToRecruit"
+                       m_sLabel "#OVT-Loadouts_ApplyToSelected"
+                      }
+                     }
+                    }
+                    ButtonWidgetClass "{5D5C558A6E391680}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+                     Name "ApplyToAllRecruitsButton"
+                     Slot LayoutSlot "{5D5C558A6E391681}" {
+                      Padding 5 0 0 0
+                     }
+                     components {
+                      SCR_InputButtonComponent "{5D5C558A6E391682}" {
+                       m_sActionName "OverthrowLoadoutsApplyToAll"
+                       m_sLabel "#OVT-Loadouts_ApplyToAll"
                       }
                      }
                     }

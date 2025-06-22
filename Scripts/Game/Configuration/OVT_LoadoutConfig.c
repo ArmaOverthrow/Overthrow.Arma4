@@ -8,7 +8,7 @@ class OVT_LoadoutSlot
 	bool m_bPlayerOnly;
 	
 	[Attribute("Skip Chance", desc: "The chance that this item will be skipped")]
-	float m_fSkipChance = 0;
+	float m_fSkipChance;
 
 	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Available choices", params: "et")]
 	ref array<ResourceName> m_aChoices;

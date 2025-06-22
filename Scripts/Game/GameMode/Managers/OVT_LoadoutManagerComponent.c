@@ -48,15 +48,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		
 		SetEventMask(owner, EntityEvent.INIT);
 	}
-	
-	//! Initialize after game loads - load existing loadouts to prevent duplicates
-	override void EOnInit(IEntity owner)
-	{
-		super.EOnInit(owner);
 		
-		// TODO: In Phase 3, we should load existing loadouts here to populate cache
-	}
-	
 	//! Save current equipment of entity as a loadout
 	void SaveLoadout(string playerId, string loadoutName, IEntity sourceEntity, string description = "", bool isOfficerTemplate = false)
 	{
@@ -177,7 +169,6 @@ class OVT_LoadoutManagerComponent: OVT_Component
 			return;
 		}
 		
-		// TODO: Implement async loadout loading in Phase 2
 	}
 	
 	//! Apply loadout directly to entity
@@ -870,10 +861,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 	array<string> GetAvailableLoadouts(string playerId)
 	{
 		array<string> loadoutNames = new array<string>();
-		
-		// Add officer templates first (if player is officer or if loadouts are public)
-		// TODO: In Phase 4, we could load officer templates from EPF
-		
+				
 		// Add player's personal loadouts from cache
 		for (int i = 0; i < m_mLoadoutIdMapping.Count(); i++)
 		{

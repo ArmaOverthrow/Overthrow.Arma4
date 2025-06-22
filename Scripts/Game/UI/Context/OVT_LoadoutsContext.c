@@ -1,7 +1,9 @@
 class OVT_LoadoutsContext : OVT_UIContext
 {
-	[Attribute("UI/Layouts/Menu/LoadoutsMenu/LoadoutListItem.layout", uiwidget: UIWidgets.ResourceNamePicker, desc: "Layout for loadout list items", params: "layout")]
+	[Attribute("{5D5C558A6E391692}UI/Layouts/Menu/LoadoutsMenu/LoadoutListItem.layout", uiwidget: UIWidgets.ResourceNamePicker, desc: "Layout for loadout list items", params: "layout")]
 	ResourceName m_LoadoutItemLayout;
+	[Attribute("{5D5C558A6E391693}UI/Layouts/Menu/RecruitsMenu/RecruitListItem.layout", uiwidget: UIWidgets.ResourceNamePicker, desc: "Layout for recruit list items", params: "layout")]
+	ResourceName m_RecruitItemLayout;
 	
 	protected OVT_LoadoutManagerComponent m_LoadoutManager;
 	protected ref array<string> m_aPlayerLoadoutNames;
@@ -9,10 +11,17 @@ class OVT_LoadoutsContext : OVT_UIContext
 	protected Widget m_wSelectedWidget;
 	protected int m_iSelectedIndex = -1;
 	protected IEntity m_EquipmentBox;
+	protected ref array<IEntity> m_aNearbyRecruits;
+	protected IEntity m_SelectedRecruit;
+	protected Widget m_wSelectedRecruitWidget;
+	protected int m_iSelectedRecruitIndex = -1;
 	
 	override void PostInit()
 	{		
 		m_LoadoutManager = OVT_Global.GetLoadouts();
+		
+		// Initialize arrays
+		m_aNearbyRecruits = new array<IEntity>();
 		
 		// Set the main layout if not already set through attributes
 		if (!m_Layout)
@@ -40,9 +49,26 @@ class OVT_LoadoutsContext : OVT_UIContext
 				action.m_OnActivated.Insert(DeleteLoadout);
 		}
 		
+		Widget applyToSelectedRecruitButton = m_wRoot.FindAnyWidget("ApplyToSelectedRecruitButton");
+		if (applyToSelectedRecruitButton)
+		{
+			SCR_InputButtonComponent action = SCR_InputButtonComponent.Cast(applyToSelectedRecruitButton.FindHandler(SCR_InputButtonComponent));
+			if (action)
+				action.m_OnActivated.Insert(ApplyLoadoutToSelectedRecruit);
+		}
+		
+		Widget applyToAllRecruitsButton = m_wRoot.FindAnyWidget("ApplyToAllRecruitsButton");
+		if (applyToAllRecruitsButton)
+		{
+			SCR_InputButtonComponent action = SCR_InputButtonComponent.Cast(applyToAllRecruitsButton.FindHandler(SCR_InputButtonComponent));
+			if (action)
+				action.m_OnActivated.Insert(ApplyLoadoutToAllRecruits);
+		}
+		
 		// Use the owner entity for applying loadouts
 		
 		Refresh();
+		RefreshRecruits();
 	}
 	
 	override void OnFrame(float timeSlice)
@@ -191,6 +217,9 @@ class OVT_LoadoutsContext : OVT_UIContext
 		TextWidget statusText = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedStatus"));
 		if (statusText)
 			statusText.SetText("Ready to apply");
+		
+	// Update recruit button visibility when loadout selection changes
+	UpdateRecruitButtonVisibility();
 	}
 	
 	protected void SelectPreviousLoadout()
@@ -271,7 +300,7 @@ class OVT_LoadoutsContext : OVT_UIContext
 		}
 			
 		// Apply the selected loadout via server RPC
-		OVT_PlayerCommsComponent comms = OVT_PlayerCommsComponent.Cast(m_Owner.FindComponent(OVT_PlayerCommsComponent));
+		OVT_PlayerCommsComponent comms = OVT_Global.GetServer();
 		if (comms)
 		{
 			Print(string.Format("[OVT_LoadoutsContext] Sending RPC for loadout: %1", m_SelectedLoadoutName));
@@ -281,7 +310,7 @@ class OVT_LoadoutsContext : OVT_UIContext
 		}
 		else
 		{
-			Print("[OVT_LoadoutsContext] No PlayerCommsComponent found on owner");
+			Print("[OVT_LoadoutsContext] No server comms component found");
 		}
 	}
 	
@@ -298,5 +327,314 @@ class OVT_LoadoutsContext : OVT_UIContext
 			
 		// TODO: Add confirmation dialog and delete functionality
 		ShowHint("Delete loadout feature coming soon!");
+	}
+	
+	protected void RefreshRecruits()
+	{
+		if (!m_Owner)
+			return;
+		
+		// Ensure array is initialized
+		if (!m_aNearbyRecruits)
+			m_aNearbyRecruits = new array<IEntity>();
+		
+		m_aNearbyRecruits.Clear();
+		
+		DiscoverNearbyRecruits();
+		
+		Widget recruitContainer = m_wRoot.FindAnyWidget("RecruitsList");
+		if (!recruitContainer)
+			return;
+			
+		Widget child = recruitContainer.GetChildren();
+		while(child)
+		{
+			recruitContainer.RemoveChild(child);
+			child = recruitContainer.GetChildren();
+		}
+		
+		Widget noRecruitsText = m_wRoot.FindAnyWidget("NoRecruitsText");
+		Widget recruitsTitle = m_wRoot.FindAnyWidget("RecruitsTitle");
+		
+		if (m_aNearbyRecruits.IsEmpty())
+		{
+			if (noRecruitsText)
+				noRecruitsText.SetVisible(true);
+			if (recruitsTitle)
+				recruitsTitle.SetVisible(false);
+				
+			SetRecruitButtonsVisible(false);
+			
+			m_SelectedRecruit = null;
+			m_iSelectedRecruitIndex = -1;
+			UpdateSelectedRecruitDisplay();
+			return;
+		}
+		else
+		{
+			if (noRecruitsText)
+				noRecruitsText.SetVisible(false);
+			if (recruitsTitle)
+				recruitsTitle.SetVisible(true);
+		}
+		
+		WorkspaceWidget workspace = GetGame().GetWorkspace();
+		
+		foreach (int i, IEntity recruitEntity : m_aNearbyRecruits)
+		{
+			Widget itemWidget = workspace.CreateWidgets(m_RecruitItemLayout, recruitContainer);
+			if (!itemWidget)
+				continue;
+				
+			string recruitName = GetCharacterName(recruitEntity);
+			
+			OVT_RecruitListEntryHandler handler = OVT_RecruitListEntryHandler.Cast(itemWidget.FindHandler(OVT_RecruitListEntryHandler));
+			if (handler)
+			{
+				handler.PopulateFromEntity(recruitEntity, recruitName, i);
+				handler.m_OnClicked.Insert(OnRecruitItemClicked);
+			}
+			
+			if (i == 0)
+			{
+				m_iSelectedRecruitIndex = 0;
+				SelectRecruit(recruitEntity, itemWidget);
+			}
+		}
+		
+		UpdateRecruitButtonVisibility();
+	}
+	
+	protected void DiscoverNearbyRecruits()
+	{
+		if (!m_Owner)
+			return;
+		
+		vector playerPos = m_Owner.GetOrigin();
+		float searchRadius = 5.0;
+		
+		GetGame().GetWorld().QueryEntitiesBySphere(playerPos, searchRadius, null, FilterRecruitEntities, EQueryEntitiesFlags.ALL);
+	}
+	
+	protected bool FilterRecruitEntities(IEntity entity)
+	{
+		SCR_ChimeraCharacter character = SCR_ChimeraCharacter.Cast(entity);
+		if (!character || character == m_Owner)
+			return false;
+			
+		OVT_PlayerOwnerComponent ownerComp = OVT_PlayerOwnerComponent.Cast(entity.FindComponent(OVT_PlayerOwnerComponent));
+		if (!ownerComp)
+			return false;
+			
+		string ownerUID = ownerComp.GetPlayerOwnerUid();
+		if (ownerUID == m_sPlayerID)
+		{
+			m_aNearbyRecruits.Insert(entity);
+		}
+		
+		return false;
+	}
+	
+	protected string GetCharacterName(IEntity character)
+	{
+		// First try to get name from recruit manager
+		OVT_RecruitManagerComponent recruitManager = OVT_Global.GetRecruits();
+		if (recruitManager)
+		{
+			OVT_RecruitData recruitData = recruitManager.GetRecruitFromEntity(character);
+			if (recruitData)
+			{
+				string recruitName = recruitData.GetName();
+				if (!recruitName.IsEmpty())
+					return recruitName;
+			}
+		}
+		
+		// Fallback to editable character component
+		SCR_EditableCharacterComponent editableChar = SCR_EditableCharacterComponent.Cast(character.FindComponent(SCR_EditableCharacterComponent));
+		if (editableChar)
+		{
+			string displayName = editableChar.GetDisplayName();
+			if (!displayName.IsEmpty())
+				return displayName;
+		}
+		
+		return "Recruit";
+	}
+	
+	protected void OnRecruitItemClicked(SCR_ButtonBaseComponent button)
+	{
+		OVT_RecruitListEntryHandler handler = OVT_RecruitListEntryHandler.Cast(button);
+		if (!handler)
+			return;
+			
+		SelectRecruitByIndex(handler.GetIndex());
+	}
+	
+	void SelectRecruit(IEntity recruitEntity, Widget widget)
+	{
+		if (m_wSelectedRecruitWidget)
+		{
+			ImageWidget bg = ImageWidget.Cast(m_wSelectedRecruitWidget.FindAnyWidget("Background"));
+			if (bg)
+				bg.SetOpacity(0);
+		}
+		
+		m_SelectedRecruit = recruitEntity;
+		m_wSelectedRecruitWidget = widget;
+		
+		if (widget)
+		{
+			ImageWidget bg = ImageWidget.Cast(widget.FindAnyWidget("Background"));
+			if (bg)
+				bg.SetOpacity(0.3);
+		}
+		
+		UpdateSelectedRecruitDisplay();
+		UpdateRecruitButtonVisibility();
+	}
+	
+	protected void SelectRecruitByIndex(int index)
+	{
+		if (!m_aNearbyRecruits || index < 0 || index >= m_aNearbyRecruits.Count())
+			return;
+			
+		m_iSelectedRecruitIndex = index;
+		IEntity recruitEntity = m_aNearbyRecruits[index];
+		
+		Widget container = m_wRoot.FindAnyWidget("RecruitsList");
+		if (!container)
+			return;
+			
+		Widget child = container.GetChildren();
+		int i = 0;
+		while (child && i <= index)
+		{
+			if (i == index)
+			{
+				SelectRecruit(recruitEntity, child);
+				break;
+			}
+			child = child.GetSibling();
+			i++;
+		}
+	}
+	
+	protected void UpdateSelectedRecruitDisplay()
+	{
+		TextWidget selectedRecruitText = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedRecruitName"));
+		if (!selectedRecruitText)
+			return;
+			
+		if (m_SelectedRecruit)
+		{
+			string recruitName = GetCharacterName(m_SelectedRecruit);
+			selectedRecruitText.SetText(string.Format("#OVT-Loadouts_SelectedRecruit %1", recruitName));
+		}
+		else
+		{
+			selectedRecruitText.SetText("#OVT-Loadouts_NoRecruitSelected");
+		}
+	}
+
+	protected void UpdateRecruitButtonVisibility()
+	{
+		bool hasLoadout = !m_SelectedLoadoutName.IsEmpty();
+		bool hasRecruits = m_aNearbyRecruits && !m_aNearbyRecruits.IsEmpty();
+		bool hasSelectedRecruit = m_SelectedRecruit != null;
+		
+		SetRecruitButtonsVisible(hasLoadout && hasRecruits);
+		
+		Widget applyToSelectedButton = m_wRoot.FindAnyWidget("ApplyToSelectedRecruitButton");
+		if (applyToSelectedButton)
+			applyToSelectedButton.SetEnabled(hasLoadout && hasSelectedRecruit);
+			
+		Widget applyToAllButton = m_wRoot.FindAnyWidget("ApplyToAllRecruitsButton");
+		if (applyToAllButton)
+			applyToAllButton.SetEnabled(hasLoadout && hasRecruits);
+	}
+	
+	protected void SetRecruitButtonsVisible(bool visible)
+	{
+		array<string> buttonNames = {
+			"ApplyToSelectedRecruitButton",
+			"ApplyToAllRecruitsButton"
+		};
+		
+		foreach (string name : buttonNames)
+		{
+			Widget button = m_wRoot.FindAnyWidget(name);
+			if (button)
+				button.SetVisible(visible);
+		}
+	}
+	
+	protected void ApplyLoadoutToSelectedRecruit()
+	{
+		if (m_SelectedLoadoutName.IsEmpty() || !m_SelectedRecruit)
+		{
+			ShowHint("#OVT-Loadouts_NoRecruitSelected");
+			return;
+		}
+		
+		if (!m_EquipmentBox)
+		{
+			ShowHint("#OVT-Loadouts_NoEquipmentBox");
+			return;
+		}
+		
+		if (ApplyLoadoutToRecruit(m_SelectedRecruit))
+		{
+			string recruitName = GetCharacterName(m_SelectedRecruit);
+			ShowHint(string.Format("#OVT-Loadouts_AppliedToRecruit", m_SelectedLoadoutName, recruitName));
+		}
+		else
+		{
+			ShowHint("#OVT-Loadouts_FailedToApply");
+		}
+	}
+	
+	protected void ApplyLoadoutToAllRecruits()
+	{
+		if (m_SelectedLoadoutName.IsEmpty() || !m_aNearbyRecruits || m_aNearbyRecruits.IsEmpty())
+		{
+			ShowHint("#OVT-Loadouts_NoRecruitsNearby");
+			return;
+		}
+		
+		if (!m_EquipmentBox)
+		{
+			ShowHint("#OVT-Loadouts_NoEquipmentBox");
+			return;
+		}
+		
+		int successCount = 0;
+		foreach (IEntity recruit : m_aNearbyRecruits)
+		{
+			if (ApplyLoadoutToRecruit(recruit))
+				successCount++;
+		}
+		
+		ShowHint(string.Format("#OVT-Loadouts_AppliedToAllRecruits", m_SelectedLoadoutName, successCount));
+	}
+	
+	protected bool ApplyLoadoutToRecruit(IEntity recruitEntity)
+	{
+		if (!recruitEntity || m_SelectedLoadoutName.IsEmpty() || !m_EquipmentBox)
+			return false;
+		
+		// Apply loadout via server RPC
+		OVT_PlayerCommsComponent comms = OVT_Global.GetServer();
+		if (comms)
+		{
+			Print(string.Format("[OVT_LoadoutsContext] Sending RPC to apply loadout to recruit: %1", m_SelectedLoadoutName));
+			comms.LoadLoadoutFromBox(m_sPlayerID, m_SelectedLoadoutName, m_EquipmentBox, recruitEntity);
+			return true;
+		}
+		else
+		{
+			Print("[OVT_LoadoutsContext] No server comms component found");
+			return false;
+		}
 	}
 }
