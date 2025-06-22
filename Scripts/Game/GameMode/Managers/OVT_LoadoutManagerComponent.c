@@ -258,29 +258,6 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		
 		}
 	
-	//! Get all loadouts for a player (simplified for Phase 1)
-	void GetPlayerLoadouts(string playerId)
-	{
-		OVT_LoadoutRepository.GetPlayerLoadouts(playerId);
-	}
-	
-	//! Get template loadouts (simplified for Phase 1)
-	void GetTemplateLoadouts()
-	{
-		OVT_LoadoutRepository.GetTemplateLoadouts();
-	}
-	
-	//! Get officer template loadouts (simplified for Phase 1)
-	void GetOfficerTemplateLoadouts()
-	{
-		OVT_LoadoutRepository.GetOfficerTemplateLoadouts();
-	}
-	
-	//! Get regular template loadouts (simplified for Phase 1)
-	void GetRegularTemplateLoadouts()
-	{
-		OVT_LoadoutRepository.GetRegularTemplateLoadouts();
-	}
 	
 	//! Save officer template loadout (officer-only function)
 	void SaveOfficerTemplate(string playerId, string loadoutName, IEntity sourceEntity, string description = "")
@@ -298,12 +275,6 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		SaveLoadout(playerId, loadoutName, sourceEntity, description, true);
 	}
 	
-	//! Check if loadout exists
-	bool LoadoutExists(string playerId, string loadoutName)
-	{
-		string key = GetLoadoutKey(playerId, loadoutName);
-		return m_mActiveLoadouts.Contains(key);
-	}
 	
 	//! Extract equipment from entity and populate loadout
 	protected bool ExtractEquipmentFromEntity(IEntity entity, OVT_PlayerLoadout loadout)
@@ -470,29 +441,6 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		return successCount > 0;
 	}
 	
-	//! Collect current equipment from entity before replacing
-	protected void CollectCurrentEquipment(IEntity entity, InventoryStorageManagerComponent storageManager, out array<IEntity> removedItems)
-	{
-		array<BaseInventoryStorageComponent> storages = new array<BaseInventoryStorageComponent>();
-		
-		// Get all storages from entity
-		storageManager.GetStorages(storages, EStoragePurpose.PURPOSE_LOADOUT_PROXY);
-		storageManager.GetStorages(storages, EStoragePurpose.PURPOSE_DEPOSIT);
-		
-		foreach (BaseInventoryStorageComponent storage : storages)
-		{
-			array<IEntity> items = new array<IEntity>();
-			storage.GetAll(items);
-			
-			foreach (IEntity item : items)
-			{
-				if (storageManager.TryRemoveItemFromStorage(item, storage))
-				{
-					removedItems.Insert(item);
-				}
-			}
-		}
-	}
 	
 	//! Apply a single loadout item from equipment box (EPF-style with exact slot targeting)
 	protected bool ApplyLoadoutItemFromBox(OVT_LoadoutItem loadoutItem, IEntity targetEntity, InventoryStorageManagerComponent targetStorageManager, InventoryStorageManagerComponent boxStorageManager)
@@ -886,11 +834,6 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		return string.Format("%1_%2", playerId, loadoutName);
 	}
 	
-	//! Clear all cached loadouts
-	void ClearCache()
-	{
-		m_mActiveLoadouts.Clear();
-	}
 	
 	//! Get cached loadout count
 	int GetCachedLoadoutCount()
@@ -1150,28 +1093,6 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		}
 	}
 	
-	//! Get slot type from storage component
-	protected int GetSlotTypeFromStorage(BaseInventoryStorageComponent storage)
-	{
-		if (!storage)
-			return -1;
-		
-		// Get storage purpose to determine slot type
-		EStoragePurpose purpose = storage.GetPurpose();
-		
-		switch (purpose)
-		{
-			case EStoragePurpose.PURPOSE_LOADOUT_PROXY:
-				return 0; // Equipment slot (uniform, vest, helmet, etc.)
-			case EStoragePurpose.PURPOSE_DEPOSIT:
-				return 1; // Storage slot (backpack, ammo pouches, etc.)
-			default:
-				// Most character equipment seems to use purpose 9, treat as equipment
-				return 0; // Equipment slot
-		}
-		
-		return -1; // Fallback (should not reach here)
-	}
 	
 	//! Add custom properties to loadout item
 	protected void AddItemProperties(IEntity item, OVT_LoadoutItem loadoutItem)
@@ -1836,28 +1757,6 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		// Add more property applications here as needed
 	}
 	
-	//! Sanitize string for use in IDs
-	protected string SanitizeForId(string input)
-	{
-		string result = "";
-		for (int i = 0; i < input.Length(); i++)
-		{
-			string char = input.Get(i);
-			// Only allow alphanumeric and underscore
-			if ((char >= "a" && char <= "z") || 
-			    (char >= "A" && char <= "Z") || 
-			    (char >= "0" && char <= "9") || 
-			    char == "_")
-			{
-				result += char;
-			}
-			else
-			{
-				result += "_"; // Replace special chars with underscore
-			}
-		}
-		return result;
-	}
 	
 	//! Delete loadout by EPF ID
 	protected void DeleteLoadoutByEpfId(string epfId)
