@@ -325,8 +325,20 @@ class OVT_LoadoutsContext : OVT_UIContext
 		if (m_SelectedLoadoutName.IsEmpty())
 			return;
 			
-		// TODO: Add confirmation dialog and delete functionality
-		ShowHint("Delete loadout feature coming soon!");
+		// Delete the selected loadout via server RPC
+		OVT_PlayerCommsComponent comms = OVT_Global.GetServer();
+		if (comms)
+		{
+			comms.DeleteLoadout(m_sPlayerID, m_SelectedLoadoutName, false); // Assume personal loadout for now
+			ShowHint(string.Format("Loadout '%1' deleted", m_SelectedLoadoutName));
+			
+			// Refresh the loadout list
+			Refresh();
+		}
+		else
+		{
+			ShowHint("Failed to delete loadout - server communication error");
+		}
 	}
 	
 	protected void RefreshRecruits()

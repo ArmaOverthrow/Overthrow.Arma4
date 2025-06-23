@@ -2,8 +2,8 @@
 [BaseContainerProps(), SCR_BaseGroupCommandTitleField("m_sCommandName")]
 class OVT_OpenInventoryCommand : SCR_BaseGroupCommand
 {
-    //! Stored player controller for restoration
-    protected SCR_PlayerController m_StoredPlayerController;
+    //! Stored player ID for restoration
+    protected int m_iStoredPlayerId;
     //------------------------------------------------------------------------------------------------
     override bool Execute(IEntity cursorTarget, IEntity target, vector targetPosition, int playerID, bool isClient)
     {
@@ -74,30 +74,19 @@ class OVT_OpenInventoryCommand : SCR_BaseGroupCommand
 		
 		int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(playerEntity);
         
-        // Temporarily possess the recruit to open their inventory
-        SCR_PlayerController playerController = SCR_PlayerController.Cast(GetGame().GetPlayerManager().GetPlayerController(playerId));
-		if (!playerController)
-			return false;
-            
+        // Use RPC to set possessed entity on server and open inventory on client
+        OVT_PlayerCommsComponent comms = OVT_Global.GetServer();
+        if (!comms)
+            return false;
         
-        // Possess the recruit temporarily
-        playerController.SetPossessedEntity(targetCharacter);
+        // Listen for inventory close event to restore possession
+        targetInventoryManager.m_OnInventoryOpenInvoker.Insert(OnInventoryOpenStateChanged);
         
-        // Open inventory (will now show recruit's inventory)
-        SCR_InventoryStorageManagerComponent recruitInventoryManager = SCR_InventoryStorageManagerComponent.Cast(
-            targetCharacter.FindComponent(SCR_InventoryStorageManagerComponent)
-        );
+        // Store player ID for restoration
+        m_iStoredPlayerId = playerId;
         
-        if (recruitInventoryManager)
-        {
-            // Listen for inventory close event to restore possession
-            recruitInventoryManager.m_OnInventoryOpenInvoker.Insert(OnInventoryOpenStateChanged);
-            
-            // Store the player controller for later restoration
-            m_StoredPlayerController = playerController;
-            
-            recruitInventoryManager.OpenInventory();
-        }
+        // Call RPC to possess on server and open inventory on client
+        comms.SetPossessedEntityAndOpenInventory(playerId, targetCharacter);
         
         return true;
     }
@@ -107,12 +96,17 @@ class OVT_OpenInventoryCommand : SCR_BaseGroupCommand
     protected void OnInventoryOpenStateChanged(bool isOpen)
     {
         // When inventory is closed (isOpen = false), restore possession
-        if (!isOpen && m_StoredPlayerController)
+        if (!isOpen && m_iStoredPlayerId > 0)
         {
-            m_StoredPlayerController.SetPossessedEntity(null);
+            // Use RPC to restore possessed entity on server
+            OVT_PlayerCommsComponent comms = OVT_Global.GetServer();
+            if (comms)
+            {
+                comms.RestorePossessedEntity(m_iStoredPlayerId);
+            }
             
             // Clean up stored reference
-            m_StoredPlayerController = null;
+            m_iStoredPlayerId = 0;
         }
     }
     

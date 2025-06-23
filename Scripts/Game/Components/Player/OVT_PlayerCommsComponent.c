@@ -943,4 +943,132 @@ class OVT_PlayerCommsComponent: OVT_Component
 		loadoutManager.LoadLoadout(playerId, loadoutName, targetEntity, equipmentBox);
 	}
 	
+	//! Delete a loadout (client to server)
+	void DeleteLoadout(string playerId, string loadoutName, bool isOfficerTemplate = false)
+	{
+		Rpc(RpcAsk_DeleteLoadout, playerId, loadoutName, isOfficerTemplate);
+	}
+	
+	//! Server-side RPC handler for deleting loadouts
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_DeleteLoadout(string playerId, string loadoutName, bool isOfficerTemplate)
+	{
+		OVT_LoadoutManagerComponent loadoutManager = OVT_Global.GetLoadouts();
+		if (!loadoutManager)
+		{
+			Print("[OVT_PlayerCommsComponent] LoadoutManager not found", LogLevel.ERROR);
+			return;
+		}
+		
+		// Delete the loadout
+		loadoutManager.DeleteLoadout(playerId, loadoutName, isOfficerTemplate);
+	}
+	
+	//! Set possessed entity on server and notify client to open inventory
+	void SetPossessedEntityAndOpenInventory(int playerId, IEntity targetEntity)
+	{
+		RplComponent rpl = RplComponent.Cast(targetEntity.FindComponent(RplComponent));
+		if (!rpl)
+		{
+			Print("[OVT_PlayerCommsComponent] Target entity has no RplComponent", LogLevel.ERROR);
+			return;
+		}
+		
+		Rpc(RpcAsk_SetPossessedEntityAndOpenInventory, playerId, rpl.Id());
+	}
+	
+	//! Server-side RPC handler for setting possessed entity and notifying client
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_SetPossessedEntityAndOpenInventory(int playerId, RplId targetEntityId)
+	{
+		// Get the target entity from RplId
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(targetEntityId));
+		if (!rpl)
+		{
+			Print("[OVT_PlayerCommsComponent] Could not find target entity", LogLevel.ERROR);
+			return;
+		}
+		
+		IEntity targetEntity = rpl.GetEntity();
+		if (!targetEntity)
+		{
+			Print("[OVT_PlayerCommsComponent] Target entity is null", LogLevel.ERROR);
+			return;
+		}
+		
+		// Get player controller
+		SCR_PlayerController playerController = SCR_PlayerController.Cast(GetGame().GetPlayerManager().GetPlayerController(playerId));
+		if (!playerController)
+		{
+			Print("[OVT_PlayerCommsComponent] Player controller not found", LogLevel.ERROR);
+			return;
+		}
+		
+		// Set possessed entity on server
+		playerController.SetPossessedEntity(targetEntity);
+		
+		// Notify the specific client to open inventory
+		Rpc(RpcDo_OpenInventory, targetEntityId);
+	}
+	
+	//! Client-side RPC handler to open inventory
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void RpcDo_OpenInventory(RplId targetEntityId)
+	{
+		// Only process on clients
+		if (Replication.IsServer())
+			return;
+			
+		// Get the target entity from RplId
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(targetEntityId));
+		if (!rpl)
+		{
+			Print("[OVT_PlayerCommsComponent] Client: Could not find target entity", LogLevel.ERROR);
+			return;
+		}
+		
+		IEntity targetEntity = rpl.GetEntity();
+		if (!targetEntity)
+		{
+			Print("[OVT_PlayerCommsComponent] Client: Target entity is null", LogLevel.ERROR);
+			return;
+		}
+		
+		// Open inventory on client
+		SCR_InventoryStorageManagerComponent inventoryManager = SCR_InventoryStorageManagerComponent.Cast(
+			targetEntity.FindComponent(SCR_InventoryStorageManagerComponent)
+		);
+		
+		if (inventoryManager)
+		{
+			inventoryManager.OpenInventory();
+		}
+		else
+		{
+			Print("[OVT_PlayerCommsComponent] Client: No inventory manager found", LogLevel.ERROR);
+		}
+	}
+	
+	//! Restore possessed entity on server and notify client inventory closed
+	void RestorePossessedEntity(int playerId)
+	{
+		Rpc(RpcAsk_RestorePossessedEntity, playerId);
+	}
+	
+	//! Server-side RPC handler for restoring possessed entity
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_RestorePossessedEntity(int playerId)
+	{
+		// Get player controller
+		SCR_PlayerController playerController = SCR_PlayerController.Cast(GetGame().GetPlayerManager().GetPlayerController(playerId));
+		if (!playerController)
+		{
+			Print("[OVT_PlayerCommsComponent] Player controller not found for restore", LogLevel.ERROR);
+			return;
+		}
+		
+		// Restore possession to null (back to original entity)
+		playerController.SetPossessedEntity(null);
+	}
+	
 }

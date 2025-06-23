@@ -95,6 +95,9 @@ class OVT_LoadoutManagerComponent: OVT_Component
 					
 				// Notify listeners
 				m_OnLoadoutSaved.Invoke(playerId, loadoutName);
+				
+				// Broadcast to all clients for multiplayer synchronization
+				BroadcastLoadoutSaved(playerId, loadoutName, isOfficerTemplate);
 			}
 			else
 			{
@@ -235,7 +238,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 	}
 	
 	//! Delete a loadout
-	void DeleteLoadout(string playerId, string loadoutName)
+	void DeleteLoadout(string playerId, string loadoutName, bool isOfficerTemplate = false)
 	{
 		if (loadoutName.IsEmpty() || playerId.IsEmpty())
 			return;
@@ -247,6 +250,8 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		// Delete from repository
 		OVT_LoadoutRepository.DeleteLoadout(playerId, loadoutName);
 		
+		// Broadcast to all clients for multiplayer synchronization
+		BroadcastLoadoutDeleted(playerId, loadoutName, isOfficerTemplate);
 		}
 	
 	
@@ -1941,4 +1946,61 @@ class OVT_LoadoutManagerComponent: OVT_Component
 			}
 		}
 	}
+
+	//------------------------------------------------------------------------------------------------
+	// Multiplayer Broadcast Methods
+	//------------------------------------------------------------------------------------------------
+	
+	//! Broadcast loadout creation to all clients
+	void BroadcastLoadoutSaved(string ownerPlayerId, string loadoutName, bool isOfficerTemplate)
+	{
+		Rpc(RpcDo_LoadoutSaved, ownerPlayerId, loadoutName, isOfficerTemplate);
+	}
+	
+	//! Broadcast loadout deletion to all clients  
+	void BroadcastLoadoutDeleted(string ownerPlayerId, string loadoutName, bool isOfficerTemplate)
+	{
+		Rpc(RpcDo_LoadoutDeleted, ownerPlayerId, loadoutName, isOfficerTemplate);
+	}
+	
+	
+	//! RPC handler - loadout saved notification for clients
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_LoadoutSaved(string ownerPlayerId, string loadoutName, bool isOfficerTemplate)
+	{
+		// Only process on clients, server already handled the save
+		if (Replication.IsServer())
+			return;
+			
+		// Update client's local cache - we don't have the full loadout data, 
+		// but we can mark it as available for the next GetAvailableLoadouts() call
+		string key = GetLoadoutKey(ownerPlayerId, loadoutName);
+		
+		// Add a placeholder entry to indicate this loadout exists
+		// The actual loadout data will be loaded from EPF when needed
+		if (!m_mLoadoutIdMapping.Contains(key))
+		{
+			// Use empty string as placeholder - will be populated when loadout is actually loaded
+			m_mLoadoutIdMapping.Set(key, "");
+		}
+		
+	}
+	
+	//! RPC handler - loadout deleted notification for clients
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]  
+	protected void RpcDo_LoadoutDeleted(string ownerPlayerId, string loadoutName, bool isOfficerTemplate)
+	{
+		// Only process on clients, server already handled the deletion
+		if (Replication.IsServer())
+			return;
+			
+		// Update client's local cache by removing the deleted loadout
+		string key = GetLoadoutKey(ownerPlayerId, loadoutName);
+		
+		// Remove from both caches
+		m_mActiveLoadouts.Remove(key);
+		m_mLoadoutIdMapping.Remove(key);
+		
+	}
+	
 }

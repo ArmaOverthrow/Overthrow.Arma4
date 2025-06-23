@@ -30,8 +30,8 @@ class OVT_RecruitFromTentAction : ScriptedUserAction
 			return;
 		}
 			
-		// Reduced cost for tent recruitment (typically 25% of base cost)
-		int cost = Math.Round(config.m_Difficulty.baseRecruitCost * 0.25);
+		// Reduced cost for tent recruitment (typically 50% of base cost)
+		int cost = Math.Round(config.m_Difficulty.baseRecruitCost * 0.5);
 		
 		if(!economy.LocalPlayerHasMoney(cost)) {
 			SCR_HintManagerComponent.ShowCustomHint("#OVT-CannotAfford");

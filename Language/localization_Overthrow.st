@@ -6150,5 +6150,26 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{5D5C558A6E3916A9}" {
+   Id "OVT-RecruitLimitReached"
+   Target_en_us "You have reached the maximum number of recruits (16)"
+   Target_fr_fr "Vous avez atteint le nombre maximum de recrues (16)"
+   Target_ru_ru "Вы достигли максимального количества бойцов (16)"
+   Target_zh_cn "你已达到招募人员的最大数量 (16)"
+   Target_uk_ua "Ви досягли максимальної кількості рекрутів (16)"
+   Comment "Error message when player tries to recruit but has reached the limit"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1640995200
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
  }
 }

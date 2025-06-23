@@ -274,6 +274,8 @@ class OVT_RecruitManagerComponent : OVT_Component
 		OVT_RecruitData recruit = GetRecruit(recruitId);
 		if (!recruit)
 			return;
+		
+		string ownerPersistentId = recruit.m_sOwnerPersistentId;
 			
 		// Remove from owner's list
 		if (m_mRecruitsByOwner.Contains(recruit.m_sOwnerPersistentId))
@@ -287,6 +289,9 @@ class OVT_RecruitManagerComponent : OVT_Component
 		
 		// Remove from main collection
 		m_mRecruits.Remove(recruitId);
+		
+		// Broadcast recruit removal to all clients
+		BroadcastRecruitRemoved(recruitId, ownerPersistentId);
 		
 		m_OnRecruitRemoved.Invoke(recruit);
 	}
@@ -546,6 +551,16 @@ class OVT_RecruitManagerComponent : OVT_Component
 		
 		// Add to recruit manager
 		string recruitId = AddRecruit(persId, civilian);
+		
+		// Broadcast recruit creation to all clients
+		if (!recruitId.IsEmpty())
+		{
+			OVT_RecruitData recruit = GetRecruit(recruitId);
+			if (recruit)
+			{
+				BroadcastRecruitCreated(recruitId, persId, recruit.m_sName, civilian.GetOrigin());
+			}
+		}
 		
 		// Add to player's group using the proper API
 		SCR_PlayerController playerController = SCR_PlayerController.Cast(GetGame().GetPlayerManager().GetPlayerController(playerId));
@@ -1117,6 +1132,89 @@ class OVT_RecruitManagerComponent : OVT_Component
 			
 		// Now it's safe to respawn recruits
 		RespawnPlayerRecruits(playerPersistentId);
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Broadcast recruit creation to all clients (server only)
+	void BroadcastRecruitCreated(string recruitId, string ownerPersistentId, string recruitName, vector position)
+	{
+		Rpc(RpcDo_RecruitCreated, recruitId, ownerPersistentId, recruitName, position);
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Broadcast recruit removal to all clients (server only) 
+	void BroadcastRecruitRemoved(string recruitId, string ownerPersistentId)
+	{
+		Rpc(RpcDo_RecruitRemoved, recruitId, ownerPersistentId);
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! RPC method to handle recruit creation on clients
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_RecruitCreated(string recruitId, string ownerPersistentId, string recruitName, vector position)
+	{
+		// Only create recruit data on clients, not the server (server already has it)
+		if (RplSession.Mode() != RplMode.Client)
+			return;
+			
+		// Create recruit data on client
+		OVT_RecruitData recruit = new OVT_RecruitData();
+		recruit.m_sEntityPersistentId = recruitId;
+		recruit.m_sOwnerPersistentId = ownerPersistentId;
+		recruit.m_sName = recruitName;
+		recruit.m_vLastKnownPosition = position;
+		recruit.m_bIsDead = false;
+		recruit.m_bIsTraining = false;
+		recruit.m_iXP = 0;
+		recruit.m_iLevel = 1;
+		recruit.m_iKills = 0;
+		recruit.m_fTrainingCompleteTime = 0;
+		
+		// Add to collections
+		m_mRecruits[recruitId] = recruit;
+		
+		if (!m_mRecruitsByOwner.Contains(ownerPersistentId))
+			m_mRecruitsByOwner[ownerPersistentId] = new array<string>;
+		m_mRecruitsByOwner[ownerPersistentId].Insert(recruitId);
+		
+		Print("[Overthrow] Client received recruit creation broadcast: " + recruitName + " (ID: " + recruitId + ")");
+		
+		// Fire event
+		m_OnRecruitAdded.Invoke(recruit);
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! RPC method to handle recruit removal on clients
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_RecruitRemoved(string recruitId, string ownerPersistentId)
+	{
+		// Only process on clients, not the server (server already handled it)
+		if (RplSession.Mode() != RplMode.Client)
+			return;
+			
+		// Get recruit data before removing
+		OVT_RecruitData recruit = m_mRecruits.Get(recruitId);
+		
+		// Remove from collections
+		m_mRecruits.Remove(recruitId);
+		
+		if (m_mRecruitsByOwner.Contains(ownerPersistentId))
+		{
+			array<string> ownerRecruits = m_mRecruitsByOwner[ownerPersistentId];
+			int index = ownerRecruits.Find(recruitId);
+			if (index != -1)
+				ownerRecruits.Remove(index);
+				
+			// Clean up empty arrays
+			if (ownerRecruits.Count() == 0)
+				m_mRecruitsByOwner.Remove(ownerPersistentId);
+		}
+		
+		Print("[Overthrow] Client received recruit removal broadcast: " + recruitId);
+		
+		// Fire event
+		if (recruit)
+			m_OnRecruitRemoved.Invoke(recruit);
 	}
 	
 }
