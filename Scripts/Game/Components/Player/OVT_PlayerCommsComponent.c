@@ -851,6 +851,64 @@ class OVT_PlayerCommsComponent: OVT_Component
 	void RpcAsk_RequestFastTravel(int playerId, vector pos)	
 	{
 		SCR_Global.TeleportPlayer(playerId, pos);
-	}	
+	}
 	
+	void SetCampPrivacy(OVT_CampData camp, bool isPrivate)
+	{
+		Rpc(RpcAsk_SetCampPrivacy, camp.location, isPrivate);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	void RpcAsk_SetCampPrivacy(vector pos, bool isPrivate)
+	{
+		OVT_ResistanceFactionManager rf = OVT_Global.GetResistanceFaction();
+		rf.SetCampPrivacy(pos, isPrivate);
+	}
+	
+	void DeleteCamp(OVT_CampData camp)
+	{
+		// Store camp location for callback
+		m_vDeleteCampLocation = camp.location;
+		
+		// Find the camp entity to get its RplId
+		BaseWorld world = GetGame().GetWorld();
+		world.QueryEntitiesBySphere(camp.location, 10, null, FindCampEntityCallback, EQueryEntitiesFlags.ALL);
+	}
+	
+	protected vector m_vDeleteCampLocation;
+	
+	protected bool FindCampEntityCallback(IEntity entity)
+	{
+		if (!entity) 
+			return false;
+		
+		// Check if this is a camp entity by looking for the manage camp action
+		ActionsManagerComponent actionsManager = ActionsManagerComponent.Cast(entity.FindComponent(ActionsManagerComponent));
+		if (actionsManager)
+		{
+			array<BaseUserAction> actions = {};
+			actionsManager.GetActionsList(actions);
+			foreach (BaseUserAction action : actions)
+			{
+				if (OVT_ManageCampAction.Cast(action))
+				{
+					RplComponent rpl = RplComponent.Cast(entity.FindComponent(RplComponent));
+					if (rpl)
+					{
+						Rpc(RpcAsk_DeleteCamp, rpl.Id(), m_vDeleteCampLocation);
+						return true; // Found the camp, stop searching
+					}
+				}
+			}
+		}
+		
+		return false; // Continue searching
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	void RpcAsk_DeleteCamp(RplId campEntityId, vector pos)
+	{
+		OVT_ResistanceFactionManager rf = OVT_Global.GetResistanceFaction();
+		rf.RemoveCamp(campEntityId, pos);
+	}
 }

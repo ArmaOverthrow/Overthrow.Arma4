@@ -4,7 +4,14 @@ SCR_DestructibleBuildingEntity : "{CBE5E0D2DC08E178}Prefabs/Structures/Military/
   EPF_PersistenceComponent "{5D7C4894D78EE0AB}" {
    m_bUpdateNavmesh 1
    m_pSaveData OVT_BuildingSaveDataClass "{5D7C4894D47812BC}" {
+    m_aComponents {
+     OVT_BuildableDataClass "{5D7C4894D47812BD}" {
+     }
+    }
    }
+  }
+  OVT_BuildableComponent "{5D7C4894D47812BE}" {
+   m_sBuildableType "MedicalTent"
   }
   ActionsManagerComponent "{59C5275583D9D629}" {
    ActionContexts {

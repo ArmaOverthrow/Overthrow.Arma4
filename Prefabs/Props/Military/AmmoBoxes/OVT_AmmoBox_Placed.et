@@ -6,10 +6,14 @@ GenericEntity : "{71BD5B9F53DF8CF6}Prefabs/Props/Military/AmmoBoxes/OVT_AmmoBox_
     m_aComponents {
      OVT_PlayerOwnerDataClass "{5E68F6591A05B624}" {
      }
+     OVT_PlaceableDataClass "{5E68F6591A05B625}" {
+     }
     }
    }
   }
   OVT_PlayerOwnerComponent "{5E68F65911AA6ADA}" {
+  }
+  OVT_PlaceableComponent "{5E68F65911AA6ADB}" {
   }
   ActionsManagerComponent "{5992E2EE5A9EEC18}" {
    additionalActions {

@@ -4,7 +4,14 @@ GenericEntity {
   EPF_PersistenceComponent "{5D78E466B3EA6347}" {
    m_bUpdateNavmesh 1
    m_pSaveData OVT_BuildingSaveDataClass "{5D78E466B2B9488C}" {
+    m_aComponents {
+     OVT_BuildableDataClass "{5D78E466B2B9488D}" {
+     }
+    }
    }
+  }
+  OVT_BuildableComponent "{5D78E466B2B9488E}" {
+   m_sBuildableType "VehicleMaintenanceRamp"
   }
   Hierarchy "{59D05009C322FE87}" {
   }

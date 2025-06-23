@@ -37,18 +37,6 @@ class OVT_ManageBaseAction : ScriptedUserAction
 			return;
 		}
 		
-		OVT_CampData nearestCamp = rf.GetNearestCampData(location);
-		dist = vector.Distance(nearestCamp.location, location);
-		
-		if(dist < 10)
-		{			
-			OVT_FOBMenuContext context = OVT_FOBMenuContext.Cast(ui.GetContext(OVT_FOBMenuContext));
-			if(!context) return;
-		
-			context.m_Camp = nearestCamp;
-			context.ShowLayout();
-			return;
-		}
  	}
 
 	override bool GetActionNameScript(out string outName)
@@ -62,7 +50,6 @@ class OVT_ManageBaseAction : ScriptedUserAction
 		OVT_BaseControllerComponent baseController = EPF_Component<OVT_BaseControllerComponent>.Find(GetOwner());
 		if (!baseController)
 		{
-			Print("OVT_ManageBaseAction.CanBeShownScript: Null BaseControllerComponent! Exiting", LogLevel.WARNING);
 			return false;
 		}
 		return !baseController.IsOccupyingFaction();

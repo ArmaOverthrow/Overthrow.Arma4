@@ -285,9 +285,13 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 			m_Widgets.Insert(w);
 		}
 		
-		foreach(OVT_CampData fob : resistance.m_Camps)
+		foreach(OVT_CampData camp : resistance.m_Camps)
 		{			
-			m_Centers.Insert(fob.location);
+			// Only show public camps or camps owned by the current player
+			if(camp.isPrivate && camp.owner != persId)
+				continue;
+				
+			m_Centers.Insert(camp.location);
 			m_Ranges.Insert(m_fCeiling);
 			
 			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);

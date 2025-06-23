@@ -7,9 +7,11 @@ class OVT_CampData
 	[NonSerialized()]
 	int id;
 	
+	string persistentId; // Unique persistent string ID for EPF
 	string name;	
 	vector location;
 	string owner;
+	bool isPrivate = false; // Default to public for collaboration
 	
 	[NonSerialized()]
 	ref array<ref EntityID> garrisonEntities = {};
@@ -22,6 +24,7 @@ class OVT_FOBData
 	[NonSerialized()]
 	int id;
 	
+	string persistentId; // Unique persistent string ID for EPF
 	string name;	
 	vector location;
 	string owner;
@@ -86,6 +89,10 @@ class OVT_ResistanceFactionManager: OVT_Component
 	ref ScriptInvoker m_OnPlace = new ScriptInvoker();
 	ref ScriptInvoker m_OnBuild = new ScriptInvoker();
 	
+	// Camp cleanup search variables
+	protected ref array<EntityID> m_aCampCleanupEntities;
+	protected string m_sCampCleanupId;
+	
 	static OVT_ResistanceFactionManager s_Instance;
 	
 	static OVT_ResistanceFactionManager GetInstance()
@@ -114,11 +121,21 @@ class OVT_ResistanceFactionManager: OVT_Component
 	{
 		m_Camps = new array<ref OVT_CampData>;
 		m_FOBs = new array<ref OVT_FOBData>;
+		m_aCampCleanupEntities = new array<EntityID>;
 	}
 	
 	void Init(IEntity owner)
 	{
 		GetGame().GetCallqueue().CallLater(RegisterUpgrades, 0);		
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Generate a unique persistent ID for camps and FOBs
+	protected string GenerateUniquePersistentId(string prefix)
+	{
+		string timeStamp = string.Format("%1", System.GetUnixTime());
+		string randomPart = string.Format("%1", Math.RandomInt(10000, 99999));
+		return string.Format("%1_%2_%3", prefix, timeStamp, randomPart);
 	}
 	
 	protected void LoadConfigs()
@@ -267,6 +284,30 @@ class OVT_ResistanceFactionManager: OVT_Component
 		
 		IEntity entity = OVT_Global.SpawnEntityPrefabMatrix(res, mat);
 		
+		// Check for OVT_PlaceableComponent and warn if missing
+		OVT_PlaceableComponent placeableComp = OVT_PlaceableComponent.Cast(entity.FindComponent(OVT_PlaceableComponent));
+		if (!placeableComp)
+		{
+			Print(string.Format("[Overthrow] WARNING: Placeable entity '%1' missing OVT_PlaceableComponent!", res), LogLevel.WARNING);
+		}
+		else
+		{
+			// Set ownership and association
+			string playerUid = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+			placeableComp.SetOwnerPersistentId(playerUid);
+			
+			// Find nearest base/camp/FOB to associate with (if enabled)
+			if (placeable.m_bAssociateWithNearest)
+			{
+				string baseId;
+				EOVTBaseType baseType;
+				if (FindNearestBase(pos, baseId, baseType))
+				{
+					placeableComp.SetAssociatedBase(baseId, baseType);
+				}
+			}
+		}
+		
 		if(placeable.handler && runHandler)
 		{
 			if(!placeable.handler.OnPlace(entity, playerId))
@@ -305,6 +346,27 @@ class OVT_ResistanceFactionManager: OVT_Component
 		mat[3] = pos;
 		
 		IEntity entity = OVT_Global.SpawnEntityPrefabMatrix(res, mat);
+		
+		// Check for OVT_BuildableComponent and warn if missing
+		OVT_BuildableComponent buildableComp = OVT_BuildableComponent.Cast(entity.FindComponent(OVT_BuildableComponent));
+		if (!buildableComp)
+		{
+			Print(string.Format("[Overthrow] WARNING: Buildable entity '%1' missing OVT_BuildableComponent!", res), LogLevel.WARNING);
+		}
+		else
+		{
+			// Set ownership and association
+			string playerUid = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+			buildableComp.SetOwnerPersistentId(playerUid);
+			
+			// Find nearest base/camp/FOB to associate with
+			string baseId;
+			EOVTBaseType baseType;
+			if (FindNearestBase(pos, baseId, baseType))
+			{
+				buildableComp.SetAssociatedBase(baseId, baseType);
+			}
+		}
 		
 		SCR_AIWorld aiworld = SCR_AIWorld.Cast(GetGame().GetAIWorld());
 		aiworld.RequestNavmeshRebuildEntity(entity);
@@ -427,14 +489,14 @@ class OVT_ResistanceFactionManager: OVT_Component
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);	
 		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(persId);
 		OVT_CampData fob = new OVT_CampData;
+		fob.persistentId = GenerateUniquePersistentId("CAMP");
 		fob.owner = persId;
 		if(player)
 		{
 			if(player.camp[0] != 0)
 			{
-				RpcDo_RemoveCamp(player.camp);
-				Rpc(RpcDo_RemoveCamp, player.camp);
-				GetGame().GetWorld().QueryEntitiesBySphere(player.camp, 10, null, FindAndDeleteCamps);
+				// Remove old camp using proper server method
+				RemoveOldCamp(player.camp);
 			}			
 			player.camp = pos;
 			fob.name = "#OVT-Place_Camp " + player.name;
@@ -443,7 +505,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		fob.location = pos;
 		m_Camps.Insert(fob);
 				
-		Rpc(RpcDo_RegisterCamp, pos, fob.name, playerId);
+		Rpc(RpcDo_RegisterCamp, pos, fob.name, playerId, fob.persistentId);
 		OVT_Global.GetNotify().SendTextNotification("PlacedCamp",-1,OVT_Global.GetPlayers().GetPlayerName(playerId),OVT_Global.GetTowns().GetTownName(pos));
 	}
 	
@@ -454,12 +516,13 @@ class OVT_ResistanceFactionManager: OVT_Component
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);	
 		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(persId);
 		OVT_FOBData fob = new OVT_FOBData;
+		fob.persistentId = GenerateUniquePersistentId("FOB");
 		fob.owner = persId;		
 		
 		fob.location = pos;
 		m_FOBs.Insert(fob);
 				
-		Rpc(RpcDo_RegisterFOB, pos, fob.name, playerId);
+		Rpc(RpcDo_RegisterFOB, pos, fob.name, playerId, fob.persistentId);
 		OVT_Global.GetNotify().SendTextNotification("DeployedFOB",-1,OVT_Global.GetPlayers().GetPlayerName(playerId),OVT_Global.GetTowns().GetTownName(pos));
 	}
 
@@ -469,16 +532,6 @@ class OVT_ResistanceFactionManager: OVT_Component
 		Rpc(RpcDo_RemoveFOB, pos);		
 	}
 	
-	protected bool FindAndDeleteCamps(IEntity ent)
-	{
-		if(ent.ClassName() != "GenericEntity") return false;
-		string res = EPF_Utils.GetPrefabName(ent);
-		if(res.Contains("TentSmallUS"))
-		{
-			SCR_EntityHelper.DeleteEntityAndChildren(ent);
-		}
-		return false;
-	}
 	
 	float DistanceToCamp(vector pos, string playerId)
 	{
@@ -624,11 +677,12 @@ class OVT_ResistanceFactionManager: OVT_Component
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_RegisterCamp(vector pos, string name, int playerId)
+	protected void RpcDo_RegisterCamp(vector pos, string name, int playerId, string persistentId)
 	{		
 		OVT_CampData fob = new OVT_CampData;
 		fob.location = pos;
 		fob.name = name;
+		fob.persistentId = persistentId;
 		m_Camps.Insert(fob);
 		
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
@@ -641,11 +695,12 @@ class OVT_ResistanceFactionManager: OVT_Component
 	}
 
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_RegisterFOB(vector pos, string name, int playerId)
+	protected void RpcDo_RegisterFOB(vector pos, string name, int playerId, string persistentId)
 	{		
 		OVT_FOBData fob = new OVT_FOBData;
 		fob.location = pos;
 		fob.name = name;
+		fob.persistentId = persistentId;
 		m_FOBs.Insert(fob);
 
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
@@ -669,6 +724,54 @@ class OVT_ResistanceFactionManager: OVT_Component
 		}
 	}
 	
+	void SetCampPrivacy(vector pos, bool isPrivate)
+	{
+		foreach(OVT_CampData camp : m_Camps)
+		{
+			if(camp.location == pos)
+			{
+				camp.isPrivate = isPrivate;
+				break;
+			}
+		}
+		Rpc(RpcDo_SetCampPrivacy, pos, isPrivate);
+	}
+	
+	void RemoveCamp(RplId campEntityId, vector pos)
+	{
+		int index = -1;
+		OVT_CampData campToRemove;
+		foreach(int t, OVT_CampData camp : m_Camps)
+		{
+			if(camp.location == pos)
+			{
+				index = t;
+				campToRemove = camp;
+				break;
+			}
+		}
+		if(index > -1)
+		{
+			// Clean up associated placeable and buildable objects
+			CleanupCampObjects(campToRemove);
+			
+			// Delete the actual camp entity itself using RplId
+			RplComponent rpl = RplComponent.Cast(Replication.FindItem(campEntityId));
+			if (rpl)
+			{
+				IEntity campEntity = rpl.GetEntity();
+				if (campEntity)
+				{
+					Print(string.Format("[Overthrow] Deleting camp entity: %1", campEntity.GetPrefabData().GetPrefabName()));
+					SCR_EntityHelper.DeleteEntityAndChildren(campEntity);
+				}
+			}
+			
+			m_Camps.Remove(index);
+		}
+		Rpc(RpcDo_RemoveCamp, pos);
+	}
+
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_RemoveCamp(vector pos)
 	{		
@@ -678,11 +781,25 @@ class OVT_ResistanceFactionManager: OVT_Component
 			if(camp.location == pos)
 			{
 				index = t;
+				break;
 			}
 		}
 		if(index > -1)
 		{
 			m_Camps.Remove(index);
+		}
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_SetCampPrivacy(vector pos, bool isPrivate)
+	{		
+		foreach(OVT_CampData camp : m_Camps)
+		{
+			if(camp.location == pos)
+			{
+				camp.isPrivate = isPrivate;
+				break;
+			}
 		}
 	}
 	
@@ -703,6 +820,173 @@ class OVT_ResistanceFactionManager: OVT_Component
 			string playerName = GetGame().GetPlayerManager().GetPlayerName(playerId);
 			SCR_HintManagerComponent.GetInstance().ShowCustom(playerName + " #OVT-NewOfficer", "", 10, true);
 		}
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Remove old camp when player places a new one (server-side only)
+	protected void RemoveOldCamp(vector pos)
+	{
+		// Find camp data
+		int index = -1;
+		OVT_CampData campToRemove;
+		foreach(int t, OVT_CampData camp : m_Camps)
+		{
+			if(camp.location == pos)
+			{
+				index = t;
+				campToRemove = camp;
+				break;
+			}
+		}
+		
+		if(index > -1)
+		{
+			// Clean up associated objects
+			CleanupCampObjects(campToRemove);
+			
+			// Find and delete the camp entity using callback
+			GetGame().GetWorld().QueryEntitiesBySphere(pos, 10, null, FindAndDeleteOldCamp, EQueryEntitiesFlags.ALL);
+			
+			// Remove from data and sync
+			m_Camps.Remove(index);
+			Rpc(RpcDo_RemoveCamp, pos);
+		}
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Callback to find and delete old camp entity
+	protected bool FindAndDeleteOldCamp(IEntity entity)
+	{
+		if (!entity) return false;
+		
+		ActionsManagerComponent actionsManager = ActionsManagerComponent.Cast(entity.FindComponent(ActionsManagerComponent));
+		if (actionsManager)
+		{
+			array<BaseUserAction> actions = {};
+			actionsManager.GetActionsList(actions);
+			foreach (BaseUserAction action : actions)
+			{
+				if (OVT_ManageCampAction.Cast(action))
+				{
+					Print(string.Format("[Overthrow] Deleting old camp entity: %1", entity.GetPrefabData().GetPrefabName()));
+					SCR_EntityHelper.DeleteEntityAndChildren(entity);
+					return false;
+				}
+			}
+		}
+		return false;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Callback function to filter entities during camp cleanup
+	protected bool FilterCampCleanupEntities(IEntity entity)
+	{
+		if (!entity)
+			return false;
+			
+		// Check for placeable component
+		OVT_PlaceableComponent placeableComp = OVT_PlaceableComponent.Cast(entity.FindComponent(OVT_PlaceableComponent));
+		if (placeableComp && placeableComp.BelongsTo(m_sCampCleanupId, EOVTBaseType.CAMP))
+		{
+			m_aCampCleanupEntities.Insert(entity.GetID());
+			return false; // Continue searching
+		}
+		
+		// Check for buildable component
+		OVT_BuildableComponent buildableComp = OVT_BuildableComponent.Cast(entity.FindComponent(OVT_BuildableComponent));
+		if (buildableComp && buildableComp.BelongsTo(m_sCampCleanupId, EOVTBaseType.CAMP))
+		{
+			m_aCampCleanupEntities.Insert(entity.GetID());
+		}
+		
+		return false; // Continue searching
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Clean up all placeable and buildable objects associated with a camp
+	protected void CleanupCampObjects(OVT_CampData camp)
+	{
+		if (!camp)
+			return;
+			
+		m_sCampCleanupId = camp.persistentId;
+		m_aCampCleanupEntities.Clear();
+		
+		float searchRadius = 75; // Same as MAX_CAMP_PLACE_DIS from PlaceContext
+		
+		// Query entities around the camp location
+		GetGame().GetWorld().QueryEntitiesBySphere(camp.location, searchRadius, null, FilterCampCleanupEntities, EQueryEntitiesFlags.ALL);
+		
+		// Delete all found entities
+		foreach (EntityID entityId : m_aCampCleanupEntities)
+		{
+			IEntity entity = GetGame().GetWorld().FindEntityByID(entityId);
+			if (entity)
+			{
+				Print(string.Format("[Overthrow] Removing object '%1' associated with deleted camp", entity.GetPrefabData().GetPrefabName()));
+				SCR_EntityHelper.DeleteEntityAndChildren(entity);
+			}
+		}
+		
+		m_aCampCleanupEntities.Clear();
+		m_sCampCleanupId = "";
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Find the nearest base/camp/FOB to a position and return its ID and type
+	protected bool FindNearestBase(vector pos, out string baseId, out EOVTBaseType baseType)
+	{
+		float nearestDistance = -1;
+		string nearestId = "";
+		EOVTBaseType nearestType = EOVTBaseType.NONE;
+		
+		// Check camps
+		OVT_CampData nearestCamp = GetNearestCampData(pos);
+		if (nearestCamp)
+		{
+			float campDist = vector.Distance(nearestCamp.location, pos);
+			if (nearestDistance == -1 || campDist < nearestDistance)
+			{
+				nearestDistance = campDist;
+				nearestId = nearestCamp.persistentId;
+				nearestType = EOVTBaseType.CAMP;
+			}
+		}
+		
+		// Check FOBs
+		OVT_FOBData nearestFOB = GetNearestFOBData(pos);
+		if (nearestFOB)
+		{
+			float fobDist = vector.Distance(nearestFOB.location, pos);
+			if (nearestDistance == -1 || fobDist < nearestDistance)
+			{
+				nearestDistance = fobDist;
+				nearestId = nearestFOB.persistentId;
+				nearestType = EOVTBaseType.FOB;
+			}
+		}
+		
+		// Check bases using the existing method
+		OVT_BaseData nearestBase = OVT_Global.GetOccupyingFaction().GetNearestBase(pos);
+		if (nearestBase && !nearestBase.IsOccupyingFaction())
+		{
+			float baseDist = vector.Distance(nearestBase.location, pos);
+			if (nearestDistance == -1 || baseDist < nearestDistance)
+			{
+				nearestDistance = baseDist;
+				nearestId = nearestBase.id.ToString();
+				nearestType = EOVTBaseType.BASE;
+			}
+		}
+		
+		if (nearestType != EOVTBaseType.NONE)
+		{
+			baseId = nearestId;
+			baseType = nearestType;
+			return true;
+		}
+		
+		return false;
 	}
 	
 }

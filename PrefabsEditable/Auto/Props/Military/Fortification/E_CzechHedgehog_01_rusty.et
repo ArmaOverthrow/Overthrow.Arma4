@@ -4,7 +4,13 @@ StaticModelEntity : "{AE28D47CF26E91EA}Prefabs/Props/Military/Fortification/Czec
   EPF_PersistenceComponent "{5D7C4898BDE2E6A2}" {
    m_bUpdateNavmesh 1
    m_pSaveData OVT_PlaceableSaveDataClass "{5D7C4898BB5209CB}" {
+    m_aComponents {
+     OVT_PlaceableDataClass "{5D7C4898BB5209CC}" {
+     }
+    }
    }
+  }
+  OVT_PlaceableComponent "{5D7C4898BB5209CD}" {
   }
  }
 }

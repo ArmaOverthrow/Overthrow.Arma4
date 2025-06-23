@@ -110,11 +110,18 @@ class OVT_MapContext : OVT_UIContext
 			return true;
 		}
 		
-		vector fob = m_Resistance.GetNearestCamp(pos);		
-		dist = vector.Distance(fob, pos);
-		if(dist < MAX_FOB_TRAVEL_DIS) return true;
+		OVT_CampData camp = m_Resistance.GetNearestCampData(pos);
+		if(camp) {
+			dist = vector.Distance(camp.location, pos);
+			if(dist < MAX_FOB_TRAVEL_DIS) {
+				// Allow fast travel if it's the player's own camp or if it's public
+				if(camp.owner == m_sPlayerID || !camp.isPrivate) {
+					return true;
+				}
+			}
+		}
 		
-		fob = m_Resistance.GetNearestFOB(pos);		
+		vector fob = m_Resistance.GetNearestFOB(pos);		
 		dist = vector.Distance(fob, pos);
 		if(dist < MAX_FOB_TRAVEL_DIS) return true;		
 		

@@ -130,6 +130,22 @@ class OVT_PlaceContext : OVT_UIContext
 
 		float dist;
 		OVT_TownData town = m_Towns.GetNearestTown(pos);
+		
+		if(placeable.m_bAwayFromCamps)
+		{
+			OVT_CampData camp = m_Resistance.GetNearestCampData(pos);
+			if(camp)
+			{
+				dist = vector.Distance(camp.location, pos);
+				if(dist < 100) // 100m minimum distance from other camps
+				{
+					reason = "#OVT-TooCloseCamp";
+					return false;
+				}
+			}
+
+			return true;
+		}
 
 		if(placeable.m_bAwayFromBases)
 		{

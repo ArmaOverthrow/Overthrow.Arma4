@@ -3,7 +3,13 @@ GenericEntity : "{4106EBCD72532DA4}Prefabs/Props/Commercial/Posters/PosterSingle
  components {
   EPF_PersistenceComponent "{5D78D824B3FA6D99}" {
    m_pSaveData OVT_PlaceableSaveDataClass "{5D78D824B2A1AA00}" {
+    m_aComponents {
+     OVT_PlaceableDataClass "{5D78D824B2A1AA01}" {
+     }
+    }
    }
+  }
+  OVT_PlaceableComponent "{5D78D824B2A1AA02}" {
   }
   MeshObject "{5872F0EB7FA40561}" {
    Materials {

@@ -4,7 +4,14 @@ SCR_DestructibleBuildingEntity : "{33F50E1C918159AB}Prefabs/Structures/Military/
   EPF_PersistenceComponent "{5D7C4896F6510BAF}" {
    m_bUpdateNavmesh 1
    m_pSaveData OVT_BuildingSaveDataClass "{5D7C4896F5867BB6}" {
+    m_aComponents {
+     OVT_BuildableDataClass "{5D7C4896F5867BB7}" {
+     }
+    }
    }
+  }
+  OVT_BuildableComponent "{5D7C4896F5867BB8}" {
+   m_sBuildableType "GuardTower"
   }
  }
  {
