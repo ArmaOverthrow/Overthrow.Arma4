@@ -20,13 +20,14 @@ class OVT_PersistenceManagerComponent : EPF_PersistenceManagerComponent
 	
 	void SaveGame()
 	{
-		if (m_pPersistenceManager)
+		if (m_pPersistenceManager){
 			m_pPersistenceManager.AutoSave();
+		}
 	}
 	
 	bool HasSaveGame()
 	{
-#ifdef PLATFORM_XBOX
+#ifdef PLATFORM_CONSOLE
 		return false;
 #endif
 		return FileIO.FileExists(DB_BASE_DIR + "/RootEntityCollections");
@@ -34,7 +35,7 @@ class OVT_PersistenceManagerComponent : EPF_PersistenceManagerComponent
 	
 	void WipeSave()
 	{
-#ifdef PLATFORM_XBOX
+#ifdef PLATFORM_CONSOLE
 		return;
 #endif
 		FileIO.FindFiles(DeleteFileCallback, DB_BASE_DIR, ".json");
@@ -47,5 +48,18 @@ class OVT_PersistenceManagerComponent : EPF_PersistenceManagerComponent
 	protected void DeleteFileCallback(string path, FileAttribute attributes)
 	{
 		FileIO.DeleteFile(path);
+	}
+	
+	override event void OnPostInit(IEntity owner)
+	{
+		super.OnPostInit(owner);
+		if (m_pPersistenceManager){
+			m_pPersistenceManager.OnAutoSaveCompleteEvent().Insert(OnAutoSaveComplete);
+		}		
+	}
+	
+	protected void OnAutoSaveComplete()
+	{
+		Print("[Overthrow] autosave completed");
 	}
 }

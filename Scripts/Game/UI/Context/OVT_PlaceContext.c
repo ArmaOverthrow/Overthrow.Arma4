@@ -64,32 +64,19 @@ class OVT_PlaceContext : OVT_UIContext
 		m_Widgets.Init(m_wRoot);
 
 		int done = 0;
-		array<OVT_Placeable> valid = new array<OVT_Placeable>;
 		IEntity player = SCR_PlayerController.GetLocalControlledEntity();
 
-		string reason;
+		// Show all placeables instead of filtering
 		foreach(int i, OVT_Placeable placeable : m_Resistance.m_PlaceablesConfig.m_aPlaceables)
-		{
-			if(CanPlace(placeable, player.GetOrigin(), reason))
-			{
-				valid.Insert(placeable);
-			}
-		}
-
-		if(valid.Count() == 0)
-		{
-			SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.ERROR);
-			CloseLayout();
-			ShowHint("#OVT-CannotPlaceAnythingHere");
-			return;
-		}
-
-		foreach(int i, OVT_Placeable placeable : valid)
 		{
 			Widget w = m_Widgets.m_BrowserGrid.FindWidget("PlaceMenu_Card" + i);
 			OVT_PlaceMenuCardComponent card = OVT_PlaceMenuCardComponent.Cast(w.FindHandler(OVT_PlaceMenuCardComponent));
 
-			card.Init(placeable, this);
+			// Check if placeable can be placed at current location
+			string reason;
+			bool canPlace = CanPlace(placeable, player.GetOrigin(), reason);
+			
+			card.Init(placeable, this, canPlace, reason);
 
 			done++;
 		}
@@ -202,6 +189,20 @@ class OVT_PlaceContext : OVT_UIContext
 					reason = "#OVT-TooCloseCamp";
 					return false;
 				}
+			}
+
+			return true;
+		}
+
+		if(placeable.m_bAwayFromBases)
+		{
+			OVT_BaseData base = m_OccupyingFaction.GetNearestBase(pos);
+			
+			dist = vector.Distance(base.location,pos);
+			if(dist < OVT_Global.GetConfig().m_Difficulty.baseRange)
+			{
+				reason = "#OVT-TooCloseBase";
+				return false;
 			}
 
 			return true;

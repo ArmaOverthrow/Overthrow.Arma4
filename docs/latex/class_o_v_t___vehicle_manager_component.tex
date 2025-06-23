@@ -1,0 +1,70 @@
+\doxysection{OVT\+\_\+\+Vehicle\+Manager\+Component Class Reference}
+\hypertarget{class_o_v_t___vehicle_manager_component}{}\label{class_o_v_t___vehicle_manager_component}\index{OVT\_VehicleManagerComponent@{OVT\_VehicleManagerComponent}}
+Inheritance diagram for OVT\+\_\+\+Vehicle\+Manager\+Component\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_o_v_t___vehicle_manager_component}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_o_v_t___vehicle_manager_component_a0fa821269d09c860c207e1f4c42b4746}\label{class_o_v_t___vehicle_manager_component_a0fa821269d09c860c207e1f4c42b4746} 
+void {\bfseries OVT\+\_\+\+Vehicle\+Manager\+Component} (IEntity\+Component\+Source src, IEntity ent, IEntity parent)
+\item 
+\Hypertarget{class_o_v_t___vehicle_manager_component_a4c492a5874ea76a5bee5d4feb5eb909b}\label{class_o_v_t___vehicle_manager_component_a4c492a5874ea76a5bee5d4feb5eb909b} 
+void {\bfseries Init} (IEntity owner)
+\item 
+\Hypertarget{class_o_v_t___vehicle_manager_component_a3a27cab96e2f32bd9c7efbb31bb1d316}\label{class_o_v_t___vehicle_manager_component_a3a27cab96e2f32bd9c7efbb31bb1d316} 
+void {\bfseries Spawn\+Starting\+Car} (IEntity home, string player\+Id)
+\item 
+\Hypertarget{class_o_v_t___vehicle_manager_component_ae6e613a8d57df02329f397660636f144}\label{class_o_v_t___vehicle_manager_component_ae6e613a8d57df02329f397660636f144} 
+bool {\bfseries Get\+Parking\+Spot} (IEntity building, out vector out\+Mat\mbox{[}4\mbox{]}, OVT\+\_\+\+Parking\+Type type=OVT\+\_\+\+Parking\+Type.\+PARKING\+\_\+\+CAR, bool skip\+Obstruction\+Check=false)
+\item 
+\Hypertarget{class_o_v_t___vehicle_manager_component_a243e894b8366a3c4f58ff32b4029280a}\label{class_o_v_t___vehicle_manager_component_a243e894b8366a3c4f58ff32b4029280a} 
+bool {\bfseries Get\+Nearest\+Parking\+Spot} (vector pos, out vector out\+Mat\mbox{[}4\mbox{]}, OVT\+\_\+\+Parking\+Type type=OVT\+\_\+\+Parking\+Type.\+PARKING\+\_\+\+CAR)
+\item 
+\Hypertarget{class_o_v_t___vehicle_manager_component_a2a869bd8d599409388c914a658a640cf}\label{class_o_v_t___vehicle_manager_component_a2a869bd8d599409388c914a658a640cf} 
+bool {\bfseries Find\+Nearest\+Kerb\+Parking} (vector pos, float range, out vector out\+Mat\mbox{[}4\mbox{]})
+\item 
+\Hypertarget{class_o_v_t___vehicle_manager_component_aa75c22bd56939c516d4662d4f1ced74d}\label{class_o_v_t___vehicle_manager_component_aa75c22bd56939c516d4662d4f1ced74d} 
+bool {\bfseries Filter\+Kerb\+Add\+To\+Array} (IEntity entity)
+\item 
+\Hypertarget{class_o_v_t___vehicle_manager_component_aa90505bb67191572887c6b97117cdbc2}\label{class_o_v_t___vehicle_manager_component_aa90505bb67191572887c6b97117cdbc2} 
+bool {\bfseries Filter\+Parking\+Add\+To\+Array} (IEntity entity)
+\item 
+\Hypertarget{class_o_v_t___vehicle_manager_component_aea3bb046e0436c5faf808f669fc61df2}\label{class_o_v_t___vehicle_manager_component_aea3bb046e0436c5faf808f669fc61df2} 
+IEntity {\bfseries Spawn\+Vehicle} (Resource\+Name prefab, vector pos, int owner\+Id=0, float rotation=0)
+\item 
+\Hypertarget{class_o_v_t___vehicle_manager_component_ad2a3e8f4e4e96bd3e1bff0b1c27cdc51}\label{class_o_v_t___vehicle_manager_component_ad2a3e8f4e4e96bd3e1bff0b1c27cdc51} 
+IEntity {\bfseries Spawn\+Vehicle\+Nearest\+Parking} (Resource\+Name prefab, vector pos, string owner\+Id="{}"{})
+\item 
+\Hypertarget{class_o_v_t___vehicle_manager_component_a623f75c6ca1e547d28c0a4313132809e}\label{class_o_v_t___vehicle_manager_component_a623f75c6ca1e547d28c0a4313132809e} 
+IEntity {\bfseries Spawn\+Vehicle\+Behind} (Resource\+Name prefab, IEntity entity, string owner\+Id="{}"{})
+\item 
+\Hypertarget{class_o_v_t___vehicle_manager_component_aa2e88862f66dbf9bc0cbe63a9f575b99}\label{class_o_v_t___vehicle_manager_component_aa2e88862f66dbf9bc0cbe63a9f575b99} 
+IEntity {\bfseries Spawn\+Vehicle\+Matrix} (Resource\+Name prefab, vector mat\mbox{[}4\mbox{]}, string owner\+Id="{}"{})
+\item 
+\Hypertarget{class_o_v_t___vehicle_manager_component_aac6148bf47c1f524e8f5a1890445d065}\label{class_o_v_t___vehicle_manager_component_aac6148bf47c1f524e8f5a1890445d065} 
+void {\bfseries Upgrade\+Vehicle} (Rpl\+Id vehicle, int id)
+\item 
+\Hypertarget{class_o_v_t___vehicle_manager_component_af046f8ec2150c221bbbd2d514921b317}\label{class_o_v_t___vehicle_manager_component_af046f8ec2150c221bbbd2d514921b317} 
+void {\bfseries Repair\+Vehicle} (Rpl\+Id vehicle)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_o_v_t___vehicle_manager_component_a6f9b124915b3745506a9fadd5045617b}\label{class_o_v_t___vehicle_manager_component_a6f9b124915b3745506a9fadd5045617b} 
+static \mbox{\hyperlink{class_o_v_t___vehicle_manager_component}{OVT\+\_\+\+Vehicle\+Manager\+Component}} {\bfseries Get\+Instance} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_o_v_t___vehicle_manager_component_af14fa6ab5e2569974d7246ff0c8c2f74}\label{class_o_v_t___vehicle_manager_component_af14fa6ab5e2569974d7246ff0c8c2f74} 
+ref array$<$ Entity\+ID $>$ {\bfseries m\+\_\+a\+Parking\+Search}
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+C\+:/\+Users/austi/\+Documents/\+Git\+Hub/\+Overthrow.\+Arma4/\+Scripts/\+Game/\+Game\+Mode/\+Managers/OVT\+\_\+\+Vehicle\+Manager\+Component.\+c\end{DoxyCompactItemize}

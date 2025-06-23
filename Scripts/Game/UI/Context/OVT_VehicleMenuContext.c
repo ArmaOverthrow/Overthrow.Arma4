@@ -44,7 +44,8 @@ class OVT_VehicleMenuContext : OVT_UIContext
 		if(owner != "")
 		{
 			OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(owner);
-			ownerName = player.name;
+			if(player)
+				ownerName = player.name;
 		}
 		
 		TextWidget w = TextWidget.Cast(m_wRoot.FindAnyWidget("VehicleInfoText"));

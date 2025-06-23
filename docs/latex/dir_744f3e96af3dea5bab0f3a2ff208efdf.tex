@@ -1,0 +1,27 @@
+\doxysection{C\+:/\+Users/austi/\+Documents/\+Git\+Hub/\+Overthrow.Arma4/\+Scripts/\+Game/\+Game\+Mode/\+Placeables Directory Reference}
+\hypertarget{dir_744f3e96af3dea5bab0f3a2ff208efdf}{}\label{dir_744f3e96af3dea5bab0f3a2ff208efdf}\index{C:/Users/austi/Documents/GitHub/Overthrow.Arma4/Scripts/Game/GameMode/Placeables Directory Reference@{C:/Users/austi/Documents/GitHub/Overthrow.Arma4/Scripts/Game/GameMode/Placeables Directory Reference}}
+
+
+\doxysubsection{Detailed Description}
+This directory contains components that handle placeable objects in the Overthrow game mode. Placeables are structures that players can build and deploy in the game world to expand their resistance operations.\hypertarget{README.md_autotoc_md80}{}\doxysubsection{\texorpdfstring{Core Components}{Core Components}}\label{README.md_autotoc_md80}
+\hypertarget{README.md_autotoc_md81}{}\doxysubsubsection{\texorpdfstring{OVT\+\_\+\+Placeable\+Handler}{OVT\+\_\+\+Placeable\+Handler}}\label{README.md_autotoc_md81}
+Base class for all placeable handlers, providing common functionality and interfaces for different types of placeables. This abstract class defines the core behavior that specific placeable types inherit.\hypertarget{README.md_autotoc_md82}{}\doxysubsection{\texorpdfstring{Specific Placeable Handlers}{Specific Placeable Handlers}}\label{README.md_autotoc_md82}
+\hypertarget{README.md_autotoc_md83}{}\doxysubsubsection{\texorpdfstring{OVT\+\_\+\+Placeable\+FOBHandler}{OVT\+\_\+\+Placeable\+FOBHandler}}\label{README.md_autotoc_md83}
+Handles Forward Operating Base (FOB) placeables, which serve as advanced resistance outposts with expanded functionality. FOBs allow players to establish strategic positions across the map.\hypertarget{README.md_autotoc_md84}{}\doxysubsubsection{\texorpdfstring{OVT\+\_\+\+Placeable\+Camp\+Handler}{OVT\+\_\+\+Placeable\+Camp\+Handler}}\label{README.md_autotoc_md84}
+Manages resistance camp placeables, which serve as fast travel destinations and basic operational positions for resistance forces.\hypertarget{README.md_autotoc_md85}{}\doxysubsubsection{\texorpdfstring{OVT\+\_\+\+Placeable\+Support\+Mod\+Handler}{OVT\+\_\+\+Placeable\+Support\+Mod\+Handler}}\label{README.md_autotoc_md85}
+Handles placeables that add a support modifier to towns (such as posters)\hypertarget{README.md_autotoc_md86}{}\doxysubsection{\texorpdfstring{Integration with Other Systems}{Integration with Other Systems}}\label{README.md_autotoc_md86}
+Placeables work closely with several other systems in Overthrow\+:
+
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Persistence}} -\/ Placeables are saved between game sessions using the \href{https://github.com/Arkensor/EnfusionPersistenceFramework/}{\texttt{ Enfusion Persistence Framework}}
+\item {\bfseries{Resistance Faction}} -\/ Placeables provide infrastructure for resistance operations
+\item {\bfseries{Economy}} -\/ Building placeables requires resources from the game\textquotesingle{}s economy system
+\end{DoxyEnumerate}
+
+When players place these structures, the appropriate handler is invoked to manage the placement, validation, construction, and functionality of the placeable object. Each handler implements specific logic for its placeable type while sharing common behavior through the base handler class.
+
+\DoxyHorRuler{0}
+
+
+For more information about Overthrow\textquotesingle{}s development, visit our \href{https://github.com/ArmaOverthrow/Overthrow.Arma4}{\texttt{ Git\+Hub repository}} or join our \href{https://discord.gg/j6CvmFfZ95}{\texttt{ Discord}}. 

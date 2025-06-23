@@ -1164,14 +1164,4 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_iCurrentQRFTown = -1;
 	}
 
-	void ~OVT_OccupyingFactionManager()
-	{
-		GetGame().GetCallqueue().Remove(CheckUpdate);
-
-		if(m_Bases)
-		{
-			m_Bases.Clear();
-			m_Bases = null;
-		}
-	}
 }

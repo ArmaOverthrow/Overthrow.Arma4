@@ -1,0 +1,148 @@
+\doxysection{OVT\+\_\+\+Respawn\+System\+Component Class Reference}
+\hypertarget{class_o_v_t___respawn_system_component}{}\label{class_o_v_t___respawn_system_component}\index{OVT\_RespawnSystemComponent@{OVT\_RespawnSystemComponent}}
+Inheritance diagram for OVT\+\_\+\+Respawn\+System\+Component\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_o_v_t___respawn_system_component}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+Resource\+Name \mbox{\hyperlink{class_o_v_t___respawn_system_component_a3065daec47f354c5516ac91e85d28cf8}{Get\+Creation\+Prefab}} (int player\+Id, string character\+Persistence\+Id)
+\item 
+override void \mbox{\hyperlink{class_o_v_t___respawn_system_component_af1d893a8c569b12d875da5dcf2f86323}{On\+Uid\+Available}} (int player\+Id)
+\item 
+void \mbox{\hyperlink{class_o_v_t___respawn_system_component_a227dc00b5d2e7c72787db160c22fc469}{On\+Player\+Register\+Failed}} (int player\+Id)
+\item 
+override void \mbox{\hyperlink{class_o_v_t___respawn_system_component_affaf85a703d52b195997f179101e196e}{Get\+Creation\+Position}} (int player\+Id, string character\+Persistence\+Id, out vector position, out vector yaw\+Pitch\+Roll)
+\item 
+override void \mbox{\hyperlink{class_o_v_t___respawn_system_component_a921f553e41bac29b956ab4d88656a8fe}{On\+Character\+Created}} (int player\+Id, string character\+Persistence\+Id, IEntity character)
+\item 
+IEntity \mbox{\hyperlink{class_o_v_t___respawn_system_component_aa3af2c19b22b3a1ca1368e93ac007e43}{Spawn\+Default\+Character\+Item}} (Inventory\+Storage\+Manager\+Component storage\+Manager, \mbox{\hyperlink{class_o_v_t___loadout_slot}{OVT\+\_\+\+Loadout\+Slot}} loadout\+Item)
+\item 
+override void \mbox{\hyperlink{class_o_v_t___respawn_system_component_acf6ee4acf083138ead40bd5b92bdea0a}{On\+Player\+Killed\+\_\+S}} (int player\+Id, IEntity player\+Entity, IEntity killer\+Entity, notnull Instigator killer)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_o_v_t___respawn_system_component_a4ad3212b62e11e3f60684b8ed20039e9}\label{class_o_v_t___respawn_system_component_a4ad3212b62e11e3f60684b8ed20039e9} 
+\mbox{\hyperlink{class_o_v_t___overthrow_game_mode}{OVT\+\_\+\+Overthrow\+Game\+Mode}} {\bfseries m\+\_\+\+Overthrow}
+\item 
+\Hypertarget{class_o_v_t___respawn_system_component_a1668189dc6a33ca6812540247491f73f}\label{class_o_v_t___respawn_system_component_a1668189dc6a33ca6812540247491f73f} 
+Resource\+Name {\bfseries m\+\_\+r\+Default\+Prefab}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Handles the spawning and respawning logic for players within the Overthrow game mode. Extends the base EPF respawn system to integrate with Overthrow-\/specific player data and spawning rules. Should be attached to the \doxylink{class_o_v_t___overthrow_game_mode}{OVT\+\_\+\+Overthrow\+Game\+Mode} entity. 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_o_v_t___respawn_system_component_affaf85a703d52b195997f179101e196e}\index{OVT\_RespawnSystemComponent@{OVT\_RespawnSystemComponent}!GetCreationPosition@{GetCreationPosition}}
+\index{GetCreationPosition@{GetCreationPosition}!OVT\_RespawnSystemComponent@{OVT\_RespawnSystemComponent}}
+\doxysubsubsection{\texorpdfstring{GetCreationPosition()}{GetCreationPosition()}}
+{\footnotesize\ttfamily \label{class_o_v_t___respawn_system_component_affaf85a703d52b195997f179101e196e} 
+override void OVT\+\_\+\+Respawn\+System\+Component\+::\+Get\+Creation\+Position (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{, }\item[{string}]{character\+Persistence\+Id}{, }\item[{out vector}]{position}{, }\item[{out vector}]{yaw\+Pitch\+Roll}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Determines the spawn position and orientation for a player character based on their home location. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em player\+Id} & ID of the player being spawned (unused). \\
+\hline
+\mbox{\texttt{ in}}  & {\em character\+Persistence\+Id} & Persistence ID used to retrieve player data. \\
+\hline
+\mbox{\texttt{ out}}  & {\em position} & The calculated spawn position vector. \\
+\hline
+\mbox{\texttt{ out}}  & {\em yaw\+Pitch\+Roll} & The calculated spawn orientation vector (defaults to "{}0 0 0"{}). \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___respawn_system_component_a3065daec47f354c5516ac91e85d28cf8}\index{OVT\_RespawnSystemComponent@{OVT\_RespawnSystemComponent}!GetCreationPrefab@{GetCreationPrefab}}
+\index{GetCreationPrefab@{GetCreationPrefab}!OVT\_RespawnSystemComponent@{OVT\_RespawnSystemComponent}}
+\doxysubsubsection{\texorpdfstring{GetCreationPrefab()}{GetCreationPrefab()}}
+{\footnotesize\ttfamily \label{class_o_v_t___respawn_system_component_a3065daec47f354c5516ac91e85d28cf8} 
+Resource\+Name OVT\+\_\+\+Respawn\+System\+Component\+::\+Get\+Creation\+Prefab (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{, }\item[{string}]{character\+Persistence\+Id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Gets the default player character prefab resource name. 
+\begin{DoxyParams}{Parameters}
+{\em player\+Id} & ID of the player for whom the prefab is requested (unused). \\
+\hline
+{\em character\+Persistence\+Id} & Persistence ID of the character (unused). \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The resource name of the default player character prefab. 
+\end{DoxyReturn}
+\Hypertarget{class_o_v_t___respawn_system_component_a921f553e41bac29b956ab4d88656a8fe}\index{OVT\_RespawnSystemComponent@{OVT\_RespawnSystemComponent}!OnCharacterCreated@{OnCharacterCreated}}
+\index{OnCharacterCreated@{OnCharacterCreated}!OVT\_RespawnSystemComponent@{OVT\_RespawnSystemComponent}}
+\doxysubsubsection{\texorpdfstring{OnCharacterCreated()}{OnCharacterCreated()}}
+{\footnotesize\ttfamily \label{class_o_v_t___respawn_system_component_a921f553e41bac29b956ab4d88656a8fe} 
+override void OVT\+\_\+\+Respawn\+System\+Component\+::\+On\+Character\+Created (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{, }\item[{string}]{character\+Persistence\+Id}{, }\item[{IEntity}]{character}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Called after a player character has been created and spawned into the world. Initializes the character\textquotesingle{}s inventory with the default civilian loadout and difficulty-\/specific starting items. Marks the player\textquotesingle{}s first spawn as complete. 
+\begin{DoxyParams}{Parameters}
+{\em player\+Id} & ID of the player whose character was created. \\
+\hline
+{\em character\+Persistence\+Id} & Persistence ID of the created character. \\
+\hline
+{\em character} & The newly created character entity. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___respawn_system_component_acf6ee4acf083138ead40bd5b92bdea0a}\index{OVT\_RespawnSystemComponent@{OVT\_RespawnSystemComponent}!OnPlayerKilled\_S@{OnPlayerKilled\_S}}
+\index{OnPlayerKilled\_S@{OnPlayerKilled\_S}!OVT\_RespawnSystemComponent@{OVT\_RespawnSystemComponent}}
+\doxysubsubsection{\texorpdfstring{OnPlayerKilled\_S()}{OnPlayerKilled\_S()}}
+{\footnotesize\ttfamily \label{class_o_v_t___respawn_system_component_acf6ee4acf083138ead40bd5b92bdea0a} 
+override void OVT\+\_\+\+Respawn\+System\+Component\+::\+On\+Player\+Killed\+\_\+S (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{, }\item[{IEntity}]{player\+Entity}{, }\item[{IEntity}]{killer\+Entity}{, }\item[{notnull Instigator}]{killer}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Called on the server when a player is killed. Charges the player the respawn cost via the economy system. 
+\begin{DoxyParams}{Parameters}
+{\em player\+Id} & ID of the player who was killed. \\
+\hline
+{\em player\+Entity} & Entity of the killed player. \\
+\hline
+{\em killer\+Entity} & Entity that killed the player (can be null). \\
+\hline
+{\em killer} & Instigator information about the killer. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___respawn_system_component_a227dc00b5d2e7c72787db160c22fc469}\index{OVT\_RespawnSystemComponent@{OVT\_RespawnSystemComponent}!OnPlayerRegisterFailed@{OnPlayerRegisterFailed}}
+\index{OnPlayerRegisterFailed@{OnPlayerRegisterFailed}!OVT\_RespawnSystemComponent@{OVT\_RespawnSystemComponent}}
+\doxysubsubsection{\texorpdfstring{OnPlayerRegisterFailed()}{OnPlayerRegisterFailed()}}
+{\footnotesize\ttfamily \label{class_o_v_t___respawn_system_component_a227dc00b5d2e7c72787db160c22fc469} 
+void OVT\+\_\+\+Respawn\+System\+Component\+::\+On\+Player\+Register\+Failed (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Handles failed player registration attempts by scheduling a retry. 
+\begin{DoxyParams}{Parameters}
+{\em player\+Id} & ID of the player whose registration failed. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___respawn_system_component_af1d893a8c569b12d875da5dcf2f86323}\index{OVT\_RespawnSystemComponent@{OVT\_RespawnSystemComponent}!OnUidAvailable@{OnUidAvailable}}
+\index{OnUidAvailable@{OnUidAvailable}!OVT\_RespawnSystemComponent@{OVT\_RespawnSystemComponent}}
+\doxysubsubsection{\texorpdfstring{OnUidAvailable()}{OnUidAvailable()}}
+{\footnotesize\ttfamily \label{class_o_v_t___respawn_system_component_af1d893a8c569b12d875da5dcf2f86323} 
+override void OVT\+\_\+\+Respawn\+System\+Component\+::\+On\+Uid\+Available (\begin{DoxyParamCaption}\item[{int}]{player\+Id}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Called when the player\textquotesingle{}s unique ID becomes available. Prepares the player in the game mode. Retries if the game mode is not initialized or the UID is not yet available. 
+\begin{DoxyParams}{Parameters}
+{\em player\+Id} & ID of the player whose UID is now available. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_o_v_t___respawn_system_component_aa3af2c19b22b3a1ca1368e93ac007e43}\index{OVT\_RespawnSystemComponent@{OVT\_RespawnSystemComponent}!SpawnDefaultCharacterItem@{SpawnDefaultCharacterItem}}
+\index{SpawnDefaultCharacterItem@{SpawnDefaultCharacterItem}!OVT\_RespawnSystemComponent@{OVT\_RespawnSystemComponent}}
+\doxysubsubsection{\texorpdfstring{SpawnDefaultCharacterItem()}{SpawnDefaultCharacterItem()}}
+{\footnotesize\ttfamily \label{class_o_v_t___respawn_system_component_aa3af2c19b22b3a1ca1368e93ac007e43} 
+IEntity OVT\+\_\+\+Respawn\+System\+Component\+::\+Spawn\+Default\+Character\+Item (\begin{DoxyParamCaption}\item[{Inventory\+Storage\+Manager\+Component}]{storage\+Manager}{, }\item[{\mbox{\hyperlink{class_o_v_t___loadout_slot}{OVT\+\_\+\+Loadout\+Slot}}}]{loadout\+Item}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Spawns a default item based on a loadout slot definition and attempts to place it in the character\textquotesingle{}s inventory. Handles random selection from choices within the loadout slot and spawning of nested items. 
+\begin{DoxyParams}{Parameters}
+{\em storage\+Manager} & The inventory manager component of the character. \\
+\hline
+{\em loadout\+Item} & The loadout slot definition containing item choices and stored items. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The spawned entity representing the primary item from the slot, or null if spawning failed. 
+\end{DoxyReturn}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+C\+:/\+Users/austi/\+Documents/\+Git\+Hub/\+Overthrow.\+Arma4/\+Scripts/\+Game/\+Game\+Mode/\+Managers/OVT\+\_\+\+Respawn\+System\+Component.\+c\end{DoxyCompactItemize}

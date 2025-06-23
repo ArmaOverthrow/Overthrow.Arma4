@@ -3,11 +3,10 @@ class OVT_StartGameContext : OVT_UIContext
 	protected FactionManager m_Factions;
 	
 	protected ref array<FactionKey> m_FactionKeys;
-	protected ref array<OVT_KeyButtonComponent> m_FactionCards;
 	
 	override void OnShow()
 	{		
-#ifdef PLATFORM_XBOX		
+#ifdef PLATFORM_CONSOLE	
 		Widget xbox = m_wRoot.FindAnyWidget("XBOXWarning");
 		xbox.SetVisible(true);
 #endif
@@ -91,13 +90,57 @@ class OVT_StartGameContext : OVT_UIContext
 	protected void OnSpinOccupyingFaction(SCR_SpinBoxComponent spinner, int index)
 	{
 		Faction data = Faction.Cast(spinner.GetItemData(index));
-		OVT_Global.GetConfig().SetOccupyingFaction(data.GetFactionKey());	
+		
+		// Check if this conflicts with supporting faction
+		string currentSupporting = OVT_Global.GetConfig().m_sSupportingFaction;
+		if(data.GetFactionKey() == currentSupporting)
+		{
+			// Find supporting faction spinner and change it to a different faction
+			Widget sf = m_wRoot.FindAnyWidget("SupportingFactionSpinner");
+			SCR_SpinBoxComponent sfSpin = SCR_SpinBoxComponent.Cast(sf.FindHandler(SCR_SpinBoxComponent));
+			
+			// Find a different faction (not the one we just selected)
+			for(int i = 0; i < sfSpin.GetNumItems(); i++)
+			{
+				Faction altFaction = Faction.Cast(sfSpin.GetItemData(i));
+				if(altFaction.GetFactionKey() != data.GetFactionKey())
+				{
+					sfSpin.SetCurrentItem(i);
+					OVT_Global.GetConfig().SetSupportingFaction(altFaction.GetFactionKey());
+					break;
+				}
+			}
+		}
+		
+		OVT_Global.GetConfig().SetOccupyingFaction(data.GetFactionKey());
 	}
 	
 	protected void OnSpinSupportingFaction(SCR_SpinBoxComponent spinner, int index)
 	{
 		Faction data = Faction.Cast(spinner.GetItemData(index));
-		OVT_Global.GetConfig().SetSupportingFaction(data.GetFactionKey());	
+		
+		// Check if this conflicts with occupying faction
+		string currentOccupying = OVT_Global.GetConfig().m_sOccupyingFaction;
+		if(data.GetFactionKey() == currentOccupying)
+		{
+			// Find occupying faction spinner and change it to a different faction
+			Widget of = m_wRoot.FindAnyWidget("OccupyingFactionSpinner");
+			SCR_SpinBoxComponent ofSpin = SCR_SpinBoxComponent.Cast(of.FindHandler(SCR_SpinBoxComponent));
+			
+			// Find a different faction (not the one we just selected)
+			for(int i = 0; i < ofSpin.GetNumItems(); i++)
+			{
+				Faction altFaction = Faction.Cast(ofSpin.GetItemData(i));
+				if(altFaction.GetFactionKey() != data.GetFactionKey())
+				{
+					ofSpin.SetCurrentItem(i);
+					OVT_Global.GetConfig().SetOccupyingFaction(altFaction.GetFactionKey());
+					break;
+				}
+			}
+		}
+		
+		OVT_Global.GetConfig().SetSupportingFaction(data.GetFactionKey());
 	}
 	
 	protected void OnSpinDifficulty(SCR_SpinBoxComponent spinner, int index)

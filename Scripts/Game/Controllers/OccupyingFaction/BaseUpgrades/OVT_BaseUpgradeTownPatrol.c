@@ -174,17 +174,4 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		return null;
 	}
 	
-	void ~OVT_BaseUpgradeTownPatrol()
-	{
-		if(m_Patrols)
-		{
-			m_Patrols.Clear();
-			m_Patrols = null;
-		}
-		if(m_TownsInRange)
-		{
-			m_TownsInRange.Clear();
-			m_TownsInRange = null;
-		}
-	}
 }

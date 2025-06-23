@@ -1,1 +1,7 @@
 *.rdb
+reforger_classes.json
+.venv
+__pycache__
+.claude/settings.local.json
+CLAUDE.md
+claude.bat

@@ -1,0 +1,78 @@
+\doxysection{C\+:/\+Users/austi/\+Documents/\+Git\+Hub/\+Overthrow.Arma4/\+Scripts/\+Game/\+Game\+Mode/\+Systems Directory Reference}
+\hypertarget{dir_8bf9ece93549a9b62aafe668bc5da078}{}\label{dir_8bf9ece93549a9b62aafe668bc5da078}\index{C:/Users/austi/Documents/GitHub/Overthrow.Arma4/Scripts/Game/GameMode/Systems Directory Reference@{C:/Users/austi/Documents/GitHub/Overthrow.Arma4/Scripts/Game/GameMode/Systems Directory Reference}}
+\doxysubsubsection*{Directories}
+\begin{DoxyCompactItemize}
+\item 
+directory \mbox{\hyperlink{dir_f312ec9fcd8e4c90ac7255916ea18d54}{Jobs}}
+\item 
+directory \mbox{\hyperlink{dir_cd23d95dfd5c68132fb6244335a330e9}{Modifiers}}
+\item 
+directory \mbox{\hyperlink{dir_0203272f685d5bd73f7f71adeabd4814}{Skill\+Effects}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+This directory contains various gameplay systems that power the Overthrow game mode. These systems implement specific mechanics and features that work together to create the dynamic gameplay experience.\hypertarget{README.md_autotoc_md100}{}\doxysubsection{\texorpdfstring{Core Systems}{Core Systems}}\label{README.md_autotoc_md100}
+\hypertarget{README.md_autotoc_md101}{}\doxysubsubsection{\texorpdfstring{OVT\+\_\+\+Town\+Modifier\+System}{OVT\+\_\+\+Town\+Modifier\+System}}\label{README.md_autotoc_md101}
+Manages modifiers that affect towns, including support and stability values. This system applies, updates, and removes modifiers based on game events and player actions.\hypertarget{README.md_autotoc_md102}{}\doxysubsection{\texorpdfstring{Jobs System}{Jobs System}}\label{README.md_autotoc_md102}
+Located in the {\ttfamily Jobs} subdirectory\+:
+
+The Jobs system handles the creation, management, and completion of missions and tasks for players. It uses a modular structure with conditions and stages to create dynamic missions.\hypertarget{README.md_autotoc_md103}{}\doxysubsubsection{\texorpdfstring{Base Components}{Base Components}}\label{README.md_autotoc_md103}
+
+\begin{DoxyItemize}
+\item {\bfseries{\doxylink{class_o_v_t___job_condition}{OVT\+\_\+\+Job\+Condition}}}\+: Base class for conditions that determine if a job can be generated or completed
+\item {\bfseries{\doxylink{class_o_v_t___job_stage}{OVT\+\_\+\+Job\+Stage}}}\+: Base class for job stages that define the sequence of objectives in a job
+\end{DoxyItemize}\hypertarget{README.md_autotoc_md104}{}\doxysubsubsection{\texorpdfstring{Conditions}{Conditions}}\label{README.md_autotoc_md104}
+Located in {\ttfamily Jobs/\+Conditions/}\+:
+
+Conditions determine when and where jobs can be generated, accessed, or completed\+:
+\begin{DoxyItemize}
+\item Town-\/related conditions (support levels, dealers, shops)
+\item Player-\/related conditions (proximity, range)
+\item Randomization conditions
+\end{DoxyItemize}\hypertarget{README.md_autotoc_md105}{}\doxysubsubsection{\texorpdfstring{Stages}{Stages}}\label{README.md_autotoc_md105}
+Located in {\ttfamily Jobs/\+Stages/}\+:
+
+Stages define the sequence of objectives that make up a job\+:
+\begin{DoxyItemize}
+\item Location finding (houses, dealers, shops)
+\item Entity spawning (civilians, enemy groups)
+\item Wait conditions (deaths, player acceptance, proximity)
+\item Support change triggers
+\end{DoxyItemize}\hypertarget{README.md_autotoc_md106}{}\doxysubsection{\texorpdfstring{Modifiers System}{Modifiers System}}\label{README.md_autotoc_md106}
+Located in the {\ttfamily Modifiers} subdirectory\+:
+
+The Modifiers system handles temporary and permanent effects on gameplay elements such as towns, implementing changes to support and stability values.\hypertarget{README.md_autotoc_md107}{}\doxysubsubsection{\texorpdfstring{Base Components}{Base Components}}\label{README.md_autotoc_md107}
+
+\begin{DoxyItemize}
+\item {\bfseries{\doxylink{class_o_v_t___modifier}{OVT\+\_\+\+Modifier}}}\+: Base class for all modifiers
+\item {\bfseries{\doxylink{class_o_v_t___modifier_config}{OVT\+\_\+\+Modifier\+Config}}}\+: Configuration class for modifier settings
+\item {\bfseries{\doxylink{class_o_v_t___stability_modifier}{OVT\+\_\+\+Stability\+Modifier}}}\+: Base class for modifiers affecting town stability
+\item {\bfseries{\doxylink{class_o_v_t___support_modifier}{OVT\+\_\+\+Support\+Modifier}}}\+: Base class for modifiers affecting resistance support
+\item {\bfseries{\doxylink{class_o_v_t___town_stability_modifier_system}{OVT\+\_\+\+Town\+Stability\+Modifier\+System}}}\+: Manages stability modifiers for towns
+\item {\bfseries{\doxylink{class_o_v_t___town_support_modifier_system}{OVT\+\_\+\+Town\+Support\+Modifier\+System}}}\+: Manages support modifiers for towns
+\end{DoxyItemize}\hypertarget{README.md_autotoc_md108}{}\doxysubsubsection{\texorpdfstring{Support Modifiers}{Support Modifiers}}\label{README.md_autotoc_md108}
+Located in {\ttfamily Modifiers/\+Support/}\+:
+\begin{DoxyItemize}
+\item {\bfseries{\doxylink{class_o_v_t___recent_death_support_modifier}{OVT\+\_\+\+Recent\+Death\+Support\+Modifier}}}\+: Applies support changes when a civilian or faction member dies
+\end{DoxyItemize}\hypertarget{README.md_autotoc_md109}{}\doxysubsubsection{\texorpdfstring{Stability Modifiers}{Stability Modifiers}}\label{README.md_autotoc_md109}
+Located in {\ttfamily Modifiers/\+Stability/}\+:
+\begin{DoxyItemize}
+\item {\bfseries{\doxylink{class_o_v_t___recent_death_stability_modifier}{OVT\+\_\+\+Recent\+Death\+Stability\+Modifier}}}\+: Applies stability changes when a civilian or faction member dies
+\item {\bfseries{\doxylink{class_o_v_t___random_stability_modifier}{OVT\+\_\+\+Random\+Stability\+Modifier}}}\+: Generates random fluctuations in stability to simulate dynamic town conditions
+\end{DoxyItemize}\hypertarget{README.md_autotoc_md110}{}\doxysubsection{\texorpdfstring{Skill Effects}{Skill Effects}}\label{README.md_autotoc_md110}
+Located in the {\ttfamily Skill\+Effects} subdirectory\+:
+
+The Skill Effects system implements the gameplay effects of player skills and abilities\+:
+\begin{DoxyItemize}
+\item {\bfseries{\doxylink{class_o_v_t___give_permission_skill_effect}{OVT\+\_\+\+Give\+Permission\+Skill\+Effect}}}\+: Grants special permissions based on skill level
+\item {\bfseries{\doxylink{class_o_v_t___stamina_skill_effect}{OVT\+\_\+\+Stamina\+Skill\+Effect}}}\+: Modifies player stamina attributes
+\item {\bfseries{\doxylink{class_o_v_t___stealth_skill_effect}{OVT\+\_\+\+Stealth\+Skill\+Effect}}}\+: Enhances player stealth capabilities
+\item {\bfseries{\doxylink{class_o_v_t___support_skill_effect}{OVT\+\_\+\+Support\+Skill\+Effect}}}\+: Improves player influence on town support
+\item {\bfseries{\doxylink{class_o_v_t___trade_discount_skill_effect}{OVT\+\_\+\+Trade\+Discount\+Skill\+Effect}}}\+: Provides economic benefits when trading
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+
+
+For more information about Overthrow\textquotesingle{}s development, visit our \href{https://github.com/ArmaOverthrow/Overthrow.Arma4}{\texttt{ Git\+Hub repository}} or join our \href{https://discord.gg/j6CvmFfZ95}{\texttt{ Discord}}. 

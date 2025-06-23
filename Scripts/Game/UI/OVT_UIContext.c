@@ -180,7 +180,7 @@ class OVT_UIContext : ScriptAndConfig
 		m_bIsActive = false;
 	}
 	
-	protected void ShowHint(string text)
+	void ShowHint(string text)
 	{		
 		SCR_HintManagerComponent.GetInstance().ShowCustom(text);		
 	}

@@ -192,7 +192,7 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		m_ConfigFile = new OVT_OverthrowConfigStruct();
 		m_ConfigFile.SetDefaults();
 
-#ifdef PLATFORM_XBOX		
+#ifdef PLATFORM_CONSOLE		
 		return true;
 #endif
 
@@ -200,8 +200,7 @@ class OVT_OverthrowConfigComponent: OVT_Component
 
 		if (!FileIO.FileExists( m_sConfigFilePath ))
 		{
-			Print("Overthrow: Configuration file does not exist. Creating new one.", LogLevel.WARNING);			
-			SaveConfig();
+			Print("Overthrow: Configuration file does not exist. Will create after game start.", LogLevel.WARNING);			
 			return true;
 		};
 
@@ -216,14 +215,15 @@ class OVT_OverthrowConfigComponent: OVT_Component
 			Print("Overthrow: Configuration load failed", LogLevel.ERROR);
 			return false;
 		};
-		
-		SaveConfig();
 
 		return true;
 	};
 
 	bool SaveConfig()
 	{
+#ifdef PLATFORM_CONSOLE
+		return true;
+#endif
 		SCR_JsonSaveContext configSaveContext = new SCR_JsonSaveContext();
 		configSaveContext.WriteValue("", m_ConfigFile);
 
@@ -505,7 +505,8 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		writer.WriteFloat(m_Difficulty.realEstateCostMultiplier);
 		writer.WriteInt(m_Difficulty.busTicketPrice);
 		writer.WriteInt(m_Difficulty.baseRecruitCost);
-		writer.WriteInt(m_Difficulty.gunDealerSellPriceMultiplier);
+		//SPARKNUTZ changing WriteInt to WriteFloat because gun DealerSellPriceMultiplier is a Float
+		writer.WriteFloat(m_Difficulty.gunDealerSellPriceMultiplier);
 		writer.WriteInt(m_Difficulty.procurementMultiplier);		
 		
 		return true;
@@ -543,8 +544,10 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		if (!reader.ReadInt(i)) return false;
 		m_Difficulty.baseRecruitCost = i;
 		
-		if (!reader.ReadInt(i)) return false;
-		m_Difficulty.gunDealerSellPriceMultiplier = i;
+		//SPARKNUTZ changed Int to Float since the variable called is a float
+		
+		if (!reader.ReadFloat(f)) return false;
+		m_Difficulty.gunDealerSellPriceMultiplier = f;
 		
 		if (!reader.ReadInt(i)) return false;
 		m_Difficulty.procurementMultiplier = i;
