@@ -167,6 +167,19 @@ class OVT_ShopContext : OVT_UIContext
 			array<ResourceName> vehicles();
 			m_Economy.GetAllNonOccupyingFactionVehiclesByParking(vehicles, parkingTypes, true);
 			
+			// Filter out Mobile FOB vehicles if restricted to officers only
+			if(OVT_Global.GetConfig().m_ConfigFile.mobileFOBOfficersOnly && !OVT_Global.GetPlayers().LocalPlayerIsOfficer())
+			{
+				for(int j = vehicles.Count() - 1; j >= 0; j--)
+				{
+					string vehiclePath = vehicles[j];
+					if(vehiclePath.Contains("OverthrowMobileFOB"))
+					{
+						vehicles.Remove(j);
+					}
+				}
+			}
+			
 			m_iNumPages = Math.Ceil(vehicles.Count() / 15);
 			if(m_iPageNum >= m_iNumPages) m_iPageNum = 0;
 			string pageNumText = (m_iPageNum + 1).ToString();

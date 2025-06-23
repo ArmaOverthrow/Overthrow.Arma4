@@ -15,7 +15,11 @@ class OVT_DeployFOBAction : ScriptedUserAction
 	}	
 			
 	override bool CanBeShownScript(IEntity user) {
-		if(!OVT_Global.GetPlayers().LocalPlayerIsOfficer()) return false;
+		// Check server config to see if FOB deployment is restricted to officers only
+		if(OVT_Global.GetConfig().m_ConfigFile.mobileFOBOfficersOnly)
+		{
+			if(!OVT_Global.GetPlayers().LocalPlayerIsOfficer()) return false;
+		}
 		return true;
 	}
 	

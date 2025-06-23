@@ -32,6 +32,7 @@ class OVT_OverthrowConfigStruct
 	ref array<string> officers;
 	string difficulty;
 	bool showPlayerPosition;
+	bool mobileFOBOfficersOnly;
 	
 	//Difficulty settings
 	bool overrideDifficulty;
@@ -47,6 +48,7 @@ class OVT_OverthrowConfigStruct
 		officers = new array<string>;
 		difficulty = "Normal";	
 		showPlayerPosition = true;	
+		mobileFOBOfficersOnly = true; // Default: restrict Mobile FOB deployment to officers only
 		
 		overrideDifficulty = false;
 		startingCash = 100;
@@ -507,7 +509,10 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		writer.WriteInt(m_Difficulty.baseRecruitCost);
 		//SPARKNUTZ changing WriteInt to WriteFloat because gun DealerSellPriceMultiplier is a Float
 		writer.WriteFloat(m_Difficulty.gunDealerSellPriceMultiplier);
-		writer.WriteInt(m_Difficulty.procurementMultiplier);		
+		writer.WriteInt(m_Difficulty.procurementMultiplier);
+		
+		//Send server config options
+		writer.WriteBool(m_ConfigFile.mobileFOBOfficersOnly);
 		
 		return true;
 	}
@@ -551,6 +556,18 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		
 		if (!reader.ReadInt(i)) return false;
 		m_Difficulty.procurementMultiplier = i;
+		
+		//Receive server config options
+		if (!reader.ReadBool(b)) return false;
+		
+		// Create config file structure if it doesn't exist (for clients)
+		if (!m_ConfigFile)
+		{
+			m_ConfigFile = new OVT_OverthrowConfigStruct();
+			m_ConfigFile.SetDefaults();
+		}
+		
+		m_ConfigFile.mobileFOBOfficersOnly = b;
 		
 		return true;
 	}

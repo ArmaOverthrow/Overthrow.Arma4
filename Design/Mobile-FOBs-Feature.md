@@ -102,7 +102,7 @@ The Mobile FOBs feature represents a significant evolution in Overthrow's base b
 ### Implementation Details
 
 #### File Changes Summary
-- **33 files modified** with **864 additions, 280 deletions**
+- **50+ files modified** across multiple implementation phases
 - **Key Areas**:
   - Configuration files (pricing, buildables, placeables)
   - Localization files (English, Russian, other languages)
@@ -110,12 +110,44 @@ The Mobile FOBs feature represents a significant evolution in Overthrow's base b
   - Manager component updates
   - UI context modifications
   - User action implementations
+  - Object tracking components and persistence
+  - All placeable and buildable prefabs updated with tracking components
+  - Enhanced placement validation system
 
 #### Technical Architecture
 - **Component-Based Design**: Follows Overthrow's established component pattern
 - **Persistence Support**: Integration with EPF save/load system
 - **Network Sync**: RPC-based multiplayer synchronization
 - **Officer Permissions**: Role-based access control for deployment actions
+
+#### Object Tracking System ✅
+- **Tracking Components**:
+  - `OVT_PlaceableComponent` - Tracks ownership and base association for placed items
+  - `OVT_BuildableComponent` - Tracks ownership and base association for built structures
+  - Both components include EPF persistence for save/load functionality
+- **Persistent Identification**:
+  - Added persistent string IDs to `OVT_CampData` and `OVT_FOBData` 
+  - Generated unique IDs (e.g., "CAMP_1719936000_54321") for reliable cross-session tracking
+  - Updated all creation and RPC methods to handle persistent IDs
+- **Association Logic**:
+  - Automatic association of placed/built objects with nearest base/camp/FOB
+  - Configurable via `m_bAssociateWithNearest` flag in placeable configuration
+  - Distance-based association using `FindNearestBase()` method
+- **Camp Cleanup System**:
+  - Comprehensive cleanup when camps are deleted
+  - Removes all associated placed items and built structures within 75m radius
+  - Uses persistent IDs for reliable object identification and removal
+  - Server-only deletion with RplId to prevent accidental deletions
+
+#### Enhanced Placement System ✅
+- **Distance Validation**:
+  - Added `m_bAwayFromCamps` configuration flag
+  - Enforces 100m minimum distance from existing camps when enabled
+  - Uses existing "#OVT-TooCloseCamp" localization string
+- **Flexible Association**:
+  - `m_bAssociateWithNearest` flag controls object-to-base association
+  - Allows independent objects that aren't tied to specific bases/camps
+  - Still tracks ownership for all placed items
 
 ### Remaining Work 🚧
 
@@ -174,15 +206,25 @@ The updated design creates a more inclusive and flexible tactical system:
 - ✅ Basic camp-to-FOB distinction established
 - ✅ Officer-only deployment actions (original design)
 - ✅ Single FOB deployment limitation (original design)
+- ✅ Object tracking system with persistent IDs
+- ✅ Camp cleanup and deletion system
+- ✅ Enhanced placement validation with distance controls
+- ✅ Configurable object association system
 - ⚠️ Partially implemented based on Issue #28 specs
 
 ### Next Steps
 The implementation needs updating to match the revised design:
-1. Enhance camp system with privacy and building capabilities
+1. ~~Enhance camp system with privacy and building capabilities~~ ✅ **COMPLETED** - Object tracking and cleanup system implemented
 2. Remove FOB deployment restrictions (make configurable)
 3. Enable multiple simultaneous FOBs
 4. Implement priority FOB designation system
 5. Add server configuration options
+
+### Recently Completed ✅
+- **Object Tracking & Camp Cleanup**: Full implementation of object association and automatic cleanup when camps are deleted
+- **Enhanced Placement Validation**: Distance controls and configurable association system
+- **Persistent ID System**: Reliable cross-session tracking using string-based persistent IDs
+- **Component-Based Tracking**: Both placeable and buildable objects now track ownership and base association
 
 ## Conclusion
 
