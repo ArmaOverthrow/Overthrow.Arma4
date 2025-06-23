@@ -911,4 +911,25 @@ class OVT_PlayerCommsComponent: OVT_Component
 		OVT_ResistanceFactionManager rf = OVT_Global.GetResistanceFaction();
 		rf.RemoveCamp(campEntityId, pos);
 	}
+	
+	void SetPriorityFOB(IEntity fobEntity)
+	{
+		if (!fobEntity) return;
+		RplComponent rpl = RplComponent.Cast(fobEntity.FindComponent(RplComponent));
+		if (!rpl) return;
+		
+		Rpc(RpcAsk_SetPriorityFOB, rpl.Id());
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	void RpcAsk_SetPriorityFOB(RplId fobEntityId)
+	{
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(fobEntityId));
+		if (!rpl) return;
+		IEntity fobEntity = rpl.GetEntity();
+		if (!fobEntity) return;
+		
+		OVT_ResistanceFactionManager rf = OVT_Global.GetResistanceFaction();
+		rf.SetPriorityFOB(fobEntity);
+	}
 }

@@ -2,7 +2,7 @@ class OVT_ResistanceFactionManagerClass: OVT_ComponentClass
 {	
 }
 
-class OVT_CampData
+class OVT_CampData : Managed
 {
 	[NonSerialized()]
 	int id;
@@ -19,7 +19,7 @@ class OVT_CampData
 	ref array<ref ResourceName> garrison = {};
 }
 
-class OVT_FOBData
+class OVT_FOBData : Managed
 {
 	[NonSerialized()]
 	int id;
@@ -28,6 +28,7 @@ class OVT_FOBData
 	string name;	
 	vector location;
 	string owner;
+	bool isPriority = false; // Priority FOB for enhanced map visibility
 	
 	[NonSerialized()]
 	ref array<ref EntityID> garrisonEntities = {};
@@ -266,6 +267,46 @@ class OVT_ResistanceFactionManager: OVT_Component
 		SCR_EntityHelper.DeleteEntityAndChildren(entity);
 		
 				
+		
+		Replication.BumpMe();
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Set a FOB as priority (only one priority FOB allowed at a time)
+	void SetPriorityFOB(IEntity fobEntity)
+	{
+		if (!fobEntity) return;
+		
+		vector fobPos = fobEntity.GetOrigin();
+		
+		// Find the FOB data for this entity
+		OVT_FOBData targetFOB = null;
+		foreach (OVT_FOBData fob : m_FOBs)
+		{
+			if (vector.Distance(fob.location, fobPos) < 10) // Close enough to be the same FOB
+			{
+				targetFOB = fob;
+				break;
+			}
+		}
+		
+		if (!targetFOB) return;
+		
+		// Clear priority from all other FOBs
+		foreach (OVT_FOBData fob : m_FOBs)
+		{
+			if (fob != targetFOB)
+				fob.isPriority = false;
+		}
+		
+		// Set this FOB as priority
+		targetFOB.isPriority = true;
+		
+		// Notify clients about priority change
+		Rpc(RpcDo_SetPriorityFOB, fobPos);
+		
+		// Notify players
+		OVT_Global.GetNotify().SendTextNotification("PriorityFOBSet", -1, targetFOB.name);
 		
 		Replication.BumpMe();
 	}
@@ -650,9 +691,24 @@ class OVT_ResistanceFactionManager: OVT_Component
 		writer.WriteInt(m_Camps.Count()); 
 		for(int i=0; i<m_Camps.Count(); i++)
 		{
-			OVT_CampData fob = m_Camps[i];
+			OVT_CampData camp = m_Camps[i];
+			writer.WriteString(camp.persistentId);
+			writer.WriteString(camp.name);
+			writer.WriteVector(camp.location);
+			writer.WriteString(camp.owner);
+			writer.WriteBool(camp.isPrivate);
+		}
+		
+		//Send JIP FOBs
+		writer.WriteInt(m_FOBs.Count()); 
+		for(int i=0; i<m_FOBs.Count(); i++)
+		{
+			OVT_FOBData fob = m_FOBs[i];
+			writer.WriteString(fob.persistentId);
 			writer.WriteString(fob.name);
 			writer.WriteVector(fob.location);
+			writer.WriteString(fob.owner);
+			writer.WriteBool(fob.isPriority);
 		}
 		
 		return true;
@@ -660,19 +716,47 @@ class OVT_ResistanceFactionManager: OVT_Component
 	
 	override bool RplLoad(ScriptBitReader reader)
 	{						
-		//Recieve JIP Camps
+		//Receive JIP Camps
 		int length;
-		string id;
-		vector pos;
+		string s;
+		vector v;
+		bool b;
 		
 		if (!reader.ReadInt(length)) return false;
 		for(int i=0; i<length; i++)
 		{			
-			OVT_CampData fob = new OVT_CampData;			
-			if (!reader.ReadString(fob.name)) return false;
-			if (!reader.ReadVector(fob.location)) return false;
-			m_Camps.Insert(fob);
+			OVT_CampData camp = new OVT_CampData;			
+			if (!reader.ReadString(s)) return false;
+			camp.persistentId = s;
+			if (!reader.ReadString(s)) return false;
+			camp.name = s;
+			if (!reader.ReadVector(v)) return false;
+			camp.location = v;
+			if (!reader.ReadString(s)) return false;
+			camp.owner = s;
+			if (!reader.ReadBool(b)) return false;
+			camp.isPrivate = b;
+			m_Camps.Insert(camp);
 		}
+		
+		//Receive JIP FOBs
+		if (!reader.ReadInt(length)) return false;
+		for(int i=0; i<length; i++)
+		{			
+			OVT_FOBData fob = new OVT_FOBData;			
+			if (!reader.ReadString(s)) return false;
+			fob.persistentId = s;
+			if (!reader.ReadString(s)) return false;
+			fob.name = s;
+			if (!reader.ReadVector(v)) return false;
+			fob.location = v;
+			if (!reader.ReadString(s)) return false;
+			fob.owner = s;
+			if (!reader.ReadBool(b)) return false;
+			fob.isPriority = b;
+			m_FOBs.Insert(fob);
+		}
+		
 		return true;
 	}
 	
@@ -721,6 +805,26 @@ class OVT_ResistanceFactionManager: OVT_Component
 		if(index > -1)
 		{
 			m_FOBs.Remove(index);
+		}
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_SetPriorityFOB(vector pos)
+	{
+		// Clear priority from all FOBs
+		foreach (OVT_FOBData fob : m_FOBs)
+		{
+			fob.isPriority = false;
+		}
+		
+		// Set priority for the FOB at this position
+		foreach (OVT_FOBData fob : m_FOBs)
+		{
+			if (vector.Distance(fob.location, pos) < 10) // Close enough to be the same FOB
+			{
+				fob.isPriority = true;
+				break;
+			}
 		}
 	}
 	

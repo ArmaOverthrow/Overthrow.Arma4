@@ -308,15 +308,26 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 		foreach(OVT_FOBData fob : resistance.m_FOBs)
 		{			
 			m_Centers.Insert(fob.location);
-			m_Ranges.Insert(m_fCeiling);
+			
+			// Priority FOBs are always visible (range 0), regular FOBs hidden when zoomed out
+			float range = m_fCeiling;
+			if (fob.isPriority)
+				range = 0;
+			m_Ranges.Insert(range);
 			
 			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
 			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
-						
-			image.LoadImageFromSet(0, m_Imageset, "fob");
+			
+			// Use different icon for priority FOB
+			string iconName = "fob";
+			if (fob.isPriority)
+				iconName = "fob_priority";
+			image.LoadImageFromSet(0, m_Imageset, iconName);
 			
 			Faction faction = GetGame().GetFactionManager().GetFactionByKey("FIA");
-			image.SetColor(faction.GetFactionColor());
+			Color fobColor = faction.GetFactionColor();
+						
+			image.SetColor(fobColor);
 			
 			m_Widgets.Insert(w);
 		}

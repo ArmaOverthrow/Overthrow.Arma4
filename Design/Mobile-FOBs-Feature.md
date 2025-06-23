@@ -149,6 +149,28 @@ The Mobile FOBs feature represents a significant evolution in Overthrow's base b
   - Allows independent objects that aren't tied to specific bases/camps
   - Still tracks ownership for all placed items
 
+#### Priority FOB System ✅
+- **Data Structure**:
+  - Added `isPriority` boolean flag to `OVT_FOBData`
+  - Exclusive priority system (only one priority FOB at a time)
+- **Officer Control**:
+  - `OVT_SetPriorityFOBAction` user action (officers only)
+  - Right-click context menu on deployed Mobile FOBs
+  - 2-second action duration with clear UI feedback
+- **Server Logic**:
+  - `SetPriorityFOB()` method with automatic priority clearing
+  - `RpcDo_SetPriorityFOB()` for real-time client synchronization
+  - Position-based FOB identification (10m tolerance)
+- **Enhanced Map Display**:
+  - Priority FOBs: Always visible at all zoom levels (range = 0)
+  - Regular FOBs: Hidden when fully zoomed out (range = m_fCeiling)
+  - Bright green color coding for priority FOBs
+  - Fallback to standard "fob" icon if "fob_priority" not available
+- **User Notifications**:
+  - Broadcast message system integration
+  - Localized success notifications
+  - Clear action labeling and feedback
+
 ### Remaining Work 🚧
 
 Based on the updated design specifications, the following features need implementation:
@@ -210,6 +232,9 @@ The updated design creates a more inclusive and flexible tactical system:
 - ✅ Camp cleanup and deletion system
 - ✅ Enhanced placement validation with distance controls
 - ✅ Configurable object association system
+- ✅ Server-configurable FOB deployment restrictions
+- ✅ Priority FOB designation system
+- ✅ Enhanced map rendering for priority FOBs
 - ⚠️ Partially implemented based on Issue #28 specs
 
 ### Next Steps
@@ -225,6 +250,8 @@ The implementation needs updating to match the revised design:
 - **Enhanced Placement Validation**: Distance controls and configurable association system
 - **Persistent ID System**: Reliable cross-session tracking using string-based persistent IDs
 - **Component-Based Tracking**: Both placeable and buildable objects now track ownership and base association
+- **Server-Configurable FOB Restrictions**: `mobileFOBOfficersOnly` option with network synchronization
+- **Priority FOB System**: Officer-designated priority FOBs with enhanced map visibility and strategic coordination
 
 ## Conclusion
 

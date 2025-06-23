@@ -11,5 +11,7 @@ MetaFileClass {
   }
   TIFFResourceClass HEADLESS : "{15892FB1C3E30D2C}Configs/System/ResourceTypes/HEADLESS/TextureUIAtlas.conf" {
   }
+  TIFFResourceClass PS5 : PC {
+  }
  }
 }
