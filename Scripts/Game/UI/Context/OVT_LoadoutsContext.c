@@ -529,7 +529,7 @@ class OVT_LoadoutsContext : OVT_UIContext
 		if (m_SelectedRecruit)
 		{
 			string recruitName = GetCharacterName(m_SelectedRecruit);
-			selectedRecruitText.SetText(string.Format("#OVT-Loadouts_SelectedRecruit %1", recruitName));
+			selectedRecruitText.SetTextFormat("#OVT-Loadouts_SelectedRecruit", recruitName);
 		}
 		else
 		{

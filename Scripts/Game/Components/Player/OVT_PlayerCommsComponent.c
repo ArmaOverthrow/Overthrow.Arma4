@@ -869,9 +869,7 @@ class OVT_PlayerCommsComponent: OVT_Component
 	
 	//! Load a loadout for a player from equipment box
 	void LoadLoadoutFromBox(string playerId, string loadoutName, IEntity equipmentBox, IEntity targetEntity)
-	{
-		Print(string.Format("[OVT_PlayerCommsComponent] LoadLoadoutFromBox called - PlayerID: %1, LoadoutName: %2", playerId, loadoutName));
-		
+	{		
 		RplComponent equipmentBoxRpl = RplComponent.Cast(equipmentBox.FindComponent(RplComponent));
 		RplComponent targetEntityRpl = RplComponent.Cast(targetEntity.FindComponent(RplComponent));
 		
@@ -882,8 +880,6 @@ class OVT_PlayerCommsComponent: OVT_Component
 			return;
 		}
 		
-		Print(string.Format("[OVT_PlayerCommsComponent] Sending RPC with IDs - EquipmentBox: %1, TargetEntity: %2", 
-			equipmentBoxRpl.Id(), targetEntityRpl.Id()));
 		Rpc(RpcAsk_LoadLoadoutFromBox, playerId, loadoutName, equipmentBoxRpl.Id(), targetEntityRpl.Id());
 	}
 	
@@ -916,7 +912,6 @@ class OVT_PlayerCommsComponent: OVT_Component
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_LoadLoadoutFromBox(string playerId, string loadoutName, RplId equipmentBoxId, RplId targetEntityId)
 	{
-		Print(string.Format("[OVT_PlayerCommsComponent] RpcAsk_LoadLoadoutFromBox received - PlayerID: %1, LoadoutName: %2", playerId, loadoutName));
 		
 		// Get equipment box entity
 		RplComponent equipmentBoxRpl = RplComponent.Cast(Replication.FindItem(equipmentBoxId));
@@ -926,7 +921,6 @@ class OVT_PlayerCommsComponent: OVT_Component
 			return;
 		}
 		IEntity equipmentBox = equipmentBoxRpl.GetEntity();
-		Print(string.Format("[OVT_PlayerCommsComponent] Found equipment box: %1", equipmentBox));
 		
 		// Get target entity
 		RplComponent targetEntityRpl = RplComponent.Cast(Replication.FindItem(targetEntityId));
@@ -936,7 +930,6 @@ class OVT_PlayerCommsComponent: OVT_Component
 			return;
 		}
 		IEntity targetEntity = targetEntityRpl.GetEntity();
-		Print(string.Format("[OVT_PlayerCommsComponent] Found target entity: %1", targetEntity));
 		
 		// Get loadout manager
 		OVT_LoadoutManagerComponent loadoutManager = OVT_Global.GetLoadouts();
@@ -946,7 +939,6 @@ class OVT_PlayerCommsComponent: OVT_Component
 			return;
 		}
 		
-		Print(string.Format("[OVT_PlayerCommsComponent] Calling LoadoutManager.LoadLoadout"));
 		// Load the loadout from equipment box
 		loadoutManager.LoadLoadout(playerId, loadoutName, targetEntity, equipmentBox);
 	}

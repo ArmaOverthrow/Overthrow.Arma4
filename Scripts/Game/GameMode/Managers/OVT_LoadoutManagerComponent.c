@@ -349,7 +349,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 			itemCount++;
 		}
 		
-		return itemCount > 0;
+		return !(itemCount == 0 && equippedItems.Count() == 0 && loadout.GetQuickSlotItems().Count() == 0);
 	}
 	
 	//! Apply equipment from loadout to entity
@@ -408,7 +408,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 			bool success = false;
 			if (item.m_bIsEquipped)
 			{
-				// Equipped items can't come from box - they need to be spawned
+				// Equipped items need to be spawned and placed in weapon slots
 				success = ApplyEquippedItem(item, targetEntity);
 			}
 			else
@@ -427,7 +427,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		}
 		
 		// Apply quick slots after all items are in place
-		ApplyQuickSlots(targetEntity, loadout);
+		ApplyQuickSlots(targetEntity, loadout, boxStorageManager);
 		
 		return successCount > 0;
 	}
@@ -897,32 +897,32 @@ class OVT_LoadoutManagerComponent: OVT_Component
 			BaseWeaponManagerComponent weaponManager = BaseWeaponManagerComponent.Cast(entity.FindComponent(BaseWeaponManagerComponent));
 			if (weaponManager)
 			{
-				BaseWeaponComponent currentWeapon = weaponManager.GetCurrent();
+				CharacterWeaponSlotComponent currentWeaponSlot = CharacterWeaponSlotComponent.Cast(weaponManager.GetCurrent());
+				if(!currentWeaponSlot) return;				
+				IEntity weaponEntity = currentWeaponSlot.GetWeaponEntity();
+				if(!weaponEntity) return;
+				BaseWeaponComponent currentWeapon = BaseWeaponComponent.Cast(weaponEntity.FindComponent(BaseWeaponComponent));
 				if (currentWeapon)
-				{
-					IEntity weaponEntity = currentWeapon.GetOwner();
-					if (weaponEntity)
+				{					
+					ResourceName weaponPrefab = EPF_Utils.GetPrefabName(weaponEntity);
+					if (!weaponPrefab.IsEmpty())
 					{
-						ResourceName weaponPrefab = EPF_Utils.GetPrefabName(weaponEntity);
-						if (!weaponPrefab.IsEmpty())
-						{
-							// Create loadout item for equipped weapon
-							OVT_LoadoutItem weaponItem = new OVT_LoadoutItem();
-							weaponItem.m_sResourceName = weaponPrefab;
-							weaponItem.m_bIsEquipped = true;
-							weaponItem.m_iSlotIndex = -1; // Special value for equipped items
-							weaponItem.m_iStoragePriority = -1;
-							weaponItem.m_eStoragePurpose = EStoragePurpose.PURPOSE_ANY;
-							
-							// Extract weapon attachments
-							ExtractWeaponAttachments(weaponEntity, weaponItem);
-							
-							loadout.AddItem(weaponItem);
-							equippedItems.Insert(weaponEntity);
-							
-							Print(string.Format("[OVT_LoadoutManagerComponent] Extracted equipped weapon: %1", weaponPrefab));
-						}
-					}
+						// Create loadout item for equipped weapon
+						OVT_LoadoutItem weaponItem = new OVT_LoadoutItem();
+						weaponItem.m_sResourceName = weaponPrefab;
+						weaponItem.m_bIsEquipped = true;
+						weaponItem.m_iSlotIndex = -1; // Special value for equipped items
+						weaponItem.m_iStoragePriority = -1;
+						weaponItem.m_eStoragePurpose = EStoragePurpose.PURPOSE_ANY;
+						
+						// Extract weapon attachments
+						ExtractWeaponAttachments(weaponEntity, weaponItem);
+						
+						loadout.AddItem(weaponItem);
+						equippedItems.Insert(weaponEntity);
+						
+						Print(string.Format("[OVT_LoadoutManagerComponent] Extracted equipped weapon: %1", weaponPrefab));
+					}					
 				}
 			}
 		}
@@ -1161,17 +1161,20 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		// Apply custom properties
 		ApplyItemProperties(weaponEntity, loadoutItem);
 		
-		// Equip the weapon to the character
+		// Get required components
 		BaseWeaponManagerComponent weaponManager = BaseWeaponManagerComponent.Cast(entity.FindComponent(BaseWeaponManagerComponent));
-		if (!weaponManager)
+		InventoryStorageManagerComponent storageManager = InventoryStorageManagerComponent.Cast(entity.FindComponent(InventoryStorageManagerComponent));
+		EquipedWeaponStorageComponent weaponStorage = EquipedWeaponStorageComponent.Cast(entity.FindComponent(EquipedWeaponStorageComponent));
+		
+		if (!weaponManager || !storageManager || !weaponStorage)
 		{
-			Print("[OVT_LoadoutManagerComponent] No weapon manager found on entity", LogLevel.WARNING);
+			Print("[OVT_LoadoutManagerComponent] Missing required components for weapon equipping", LogLevel.WARNING);
 			SCR_EntityHelper.DeleteEntityAndChildren(weaponEntity);
 			return false;
 		}
 		
-		// Get the weapon component and try to equip it
-		BaseWeaponComponent weaponComponent = BaseWeaponComponent.Cast(weaponEntity.FindComponent(BaseWeaponComponent));
+		// Get the weapon component
+		WeaponComponent weaponComponent = WeaponComponent.Cast(weaponEntity.FindComponent(WeaponComponent));
 		if (!weaponComponent)
 		{
 			Print(string.Format("[OVT_LoadoutManagerComponent] No weapon component found on weapon entity: %1", loadoutItem.m_sResourceName), LogLevel.WARNING);
@@ -1179,10 +1182,48 @@ class OVT_LoadoutManagerComponent: OVT_Component
 			return false;
 		}
 		
-		// Try to select the weapon (this should add it to the weapon manager)
-		weaponManager.SelectWeapon(weaponComponent);
+		// Find a suitable weapon slot
+		array<WeaponSlotComponent> weaponSlots = new array<WeaponSlotComponent>();
+		weaponManager.GetWeaponsSlots(weaponSlots);
 		
-		return true;
+		foreach (WeaponSlotComponent slot : weaponSlots)
+		{
+			string weaponSlotType = slot.GetWeaponSlotType();
+			
+			// Check if slot type matches weapon type
+			if (weaponSlotType.Compare(weaponComponent.GetWeaponSlotType()) != 0)
+				continue;
+			
+			// Check if slot is empty
+			if (slot.GetWeaponEntity())
+				continue;
+			
+			// Try to insert weapon into the weapon slot
+			if (storageManager.TryInsertItemInStorage(weaponEntity, weaponStorage, slot.GetWeaponSlotIndex()))
+			{
+				return true;
+			}
+		}
+		
+		// If we couldn't find an empty slot, try to replace in the first suitable slot
+		foreach (WeaponSlotComponent slot : weaponSlots)
+		{
+			string weaponSlotType = slot.GetWeaponSlotType();
+			
+			// Check if slot type matches weapon type
+			if (weaponSlotType.Compare(weaponComponent.GetWeaponSlotType()) != 0)
+				continue;
+			
+			// Try to replace weapon in the slot
+			if (storageManager.TryReplaceItem(weaponEntity, weaponStorage, slot.GetWeaponSlotIndex()))
+			{
+				return true;
+			}
+		}
+		
+		Print(string.Format("[OVT_LoadoutManagerComponent] Could not find suitable slot for weapon: %1", loadoutItem.m_sResourceName), LogLevel.WARNING);
+		SCR_EntityHelper.DeleteEntityAndChildren(weaponEntity);
+		return false;
 	}
 	
 	//! Apply individual loadout item to entity
@@ -1596,17 +1637,22 @@ class OVT_LoadoutManagerComponent: OVT_Component
 	}
 	
 	//! Apply quick slots to entity
-	protected void ApplyQuickSlots(IEntity entity, OVT_PlayerLoadout loadout)
+	protected void ApplyQuickSlots(IEntity entity, OVT_PlayerLoadout loadout, InventoryStorageManagerComponent boxStorageManager = null)
 	{
 		SCR_CharacterInventoryStorageComponent charInventory = SCR_CharacterInventoryStorageComponent.Cast(entity.FindComponent(SCR_CharacterInventoryStorageComponent));
-		if (!charInventory)
-			return;
 		
 		array<string> quickSlotItems = loadout.GetQuickSlotItems();
 		if (!quickSlotItems)
 			return;
 		
-		// Apply items to quick slots
+		// Check if this is an AI character - they don't support quick slots
+		AIControlComponent aiControl = AIControlComponent.Cast(entity.FindComponent(AIControlComponent));
+		if (aiControl && aiControl.IsAIActivated())
+			return;
+		
+		if (!charInventory)
+			return;
+		
 		for (int i = 0; i < quickSlotItems.Count() && i < 10; i++)
 		{
 			string itemPrefab = quickSlotItems[i];

@@ -257,14 +257,6 @@ class OVT_RecruitManagerComponent : OVT_Component
 		}
 		else
 		{
-			// Change save type from MANUAL to INTERVAL_SHUTDOWN for recruits
-			EPF_PersistenceComponentClass persistenceSettings = EPF_PersistenceComponentClass.Cast(persistenceComp.GetComponentData(characterEntity));
-			if (persistenceSettings)
-			{
-				persistenceSettings.m_eSaveType = EPF_ESaveType.INTERVAL_SHUTDOWN;
-				Print("[Overthrow] Set recruit save type to INTERVAL_SHUTDOWN: " + recruitId);
-			}
-			
 			// Set unique persistent ID for EPF
 			persistenceComp.SetPersistentId(recruitId);
 			Print("[Overthrow] Enabled EPF persistence for recruit: " + recruitId);
@@ -795,15 +787,6 @@ class OVT_RecruitManagerComponent : OVT_Component
 		if (!persistenceComp)
 		{
 			Print("[Overthrow] WARNING: Character entity missing EPF_PersistenceComponent! Recruit persistence may not work correctly.");
-		}
-		else
-		{
-			// Change save type from MANUAL to INTERVAL_SHUTDOWN for recruits
-			EPF_PersistenceComponentClass persistenceSettings = EPF_PersistenceComponentClass.Cast(persistenceComp.GetComponentData(recruitEntity));
-			if (persistenceSettings)
-			{
-				persistenceSettings.m_eSaveType = EPF_ESaveType.INTERVAL_SHUTDOWN;
-			}
 		}
 		
 		// Update entity mapping
