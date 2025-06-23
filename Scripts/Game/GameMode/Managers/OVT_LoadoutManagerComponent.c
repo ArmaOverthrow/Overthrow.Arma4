@@ -1792,6 +1792,128 @@ class OVT_LoadoutManagerComponent: OVT_Component
 	}
 	
 	
+	//------------------------------------------------------------------------------------------------
+	//! Saves loadout metadata for network replication (Join-In-Progress)
+	//! \param[in] writer The ScriptBitWriter to write data to
+	//! \return true if serialization is successful
+	override bool RplSave(ScriptBitWriter writer)
+	{
+		// Write loadout ID mappings count
+		int mappingCount = m_mLoadoutIdMapping.Count();
+		writer.WriteInt(mappingCount);
+		
+		// Write each loadout ID mapping (key = playerId_loadoutName, value = EPF ID)
+		for (int i = 0; i < mappingCount; i++)
+		{
+			string key = m_mLoadoutIdMapping.GetKey(i);
+			string epfId = m_mLoadoutIdMapping.GetElement(i);
+			
+			writer.WriteString(key);
+			writer.WriteString(epfId);
+		}
+		
+		// Write active loadouts metadata for quick access
+		int activeCount = m_mActiveLoadouts.Count();
+		writer.WriteInt(activeCount);
+		
+		// Write basic metadata for each active loadout
+		for (int i = 0; i < activeCount; i++)
+		{
+			string key = m_mActiveLoadouts.GetKey(i);
+			OVT_PlayerLoadout loadout = m_mActiveLoadouts.GetElement(i);
+			
+			if (!loadout)
+				continue;
+			
+			// Write loadout metadata
+			writer.WriteString(key);
+			writer.WriteString(loadout.m_sLoadoutName);
+			writer.WriteString(loadout.m_sPlayerId);
+			writer.WriteString(loadout.m_sDescription);
+			writer.WriteBool(loadout.m_bIsOfficerTemplate);
+			writer.WriteInt(loadout.m_iCreatedTimestamp);
+			writer.WriteInt(loadout.m_iLastUsedTimestamp);
+			
+			// Write usage count from metadata (with null check)
+			int usageCount = 0;
+			if (loadout.m_Metadata)
+				usageCount = loadout.m_Metadata.m_iUsageCount;
+			writer.WriteInt(usageCount);
+		}
+		
+		return true;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Loads loadout metadata received from server during Join-In-Progress
+	//! \param[in] reader The ScriptBitReader to read data from
+	//! \return true if deserialization is successful
+	override bool RplLoad(ScriptBitReader reader)
+	{
+		// Read loadout ID mappings
+		int mappingCount;
+		if (!reader.ReadInt(mappingCount))
+			return false;
+		
+		// Clear existing mappings
+		m_mLoadoutIdMapping.Clear();
+		
+		// Read each loadout ID mapping
+		for (int i = 0; i < mappingCount; i++)
+		{
+			string key, epfId;
+			
+			if (!reader.ReadString(key)) return false;
+			if (!reader.ReadString(epfId)) return false;
+			
+			m_mLoadoutIdMapping[key] = epfId;
+		}
+		
+		// Read active loadouts metadata
+		int activeCount;
+		if (!reader.ReadInt(activeCount))
+			return false;
+		
+		// Clear existing active loadouts
+		m_mActiveLoadouts.Clear();
+		
+		// Read each active loadout metadata
+		for (int i = 0; i < activeCount; i++)
+		{
+			string key, loadoutName, playerId, description;
+			bool isOfficerTemplate;
+			int createdTimestamp, lastUsedTimestamp, usageCount;
+			
+			if (!reader.ReadString(key)) return false;
+			if (!reader.ReadString(loadoutName)) return false;
+			if (!reader.ReadString(playerId)) return false;
+			if (!reader.ReadString(description)) return false;
+			if (!reader.ReadBool(isOfficerTemplate)) return false;
+			if (!reader.ReadInt(createdTimestamp)) return false;
+			if (!reader.ReadInt(lastUsedTimestamp)) return false;
+			if (!reader.ReadInt(usageCount)) return false;
+			
+			// Create minimal loadout metadata object for JIP clients
+			OVT_PlayerLoadout loadout = new OVT_PlayerLoadout();
+			loadout.m_sLoadoutName = loadoutName;
+			loadout.m_sPlayerId = playerId;
+			loadout.m_sDescription = description;
+			loadout.m_bIsOfficerTemplate = isOfficerTemplate;
+			loadout.m_iCreatedTimestamp = createdTimestamp;
+			loadout.m_iLastUsedTimestamp = lastUsedTimestamp;
+			
+			// Initialize metadata and set usage count
+			if (!loadout.m_Metadata)
+				loadout.m_Metadata = new OVT_LoadoutMetadata();
+			loadout.m_Metadata.m_iUsageCount = usageCount;
+			
+			// Add to active loadouts cache (without item data, which will be loaded from EPF when needed)
+			m_mActiveLoadouts[key] = loadout;
+		}
+		
+		return true;
+	}
+	
 	//! Delete loadout by EPF ID
 	protected void DeleteLoadoutByEpfId(string epfId)
 	{

@@ -987,6 +987,124 @@ class OVT_RecruitManagerComponent : OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Saves recruit data for network replication (Join-In-Progress)
+	//! \param[in] writer The ScriptBitWriter to write data to
+	//! \return true if serialization is successful
+	override bool RplSave(ScriptBitWriter writer)
+	{
+		// Write number of recruits
+		int recruitCount = m_mRecruits.Count();
+		writer.WriteInt(recruitCount);
+		
+		// Write each recruit's data
+		for (int i = 0; i < recruitCount; i++)
+		{
+			string recruitId = m_mRecruits.GetKey(i);
+			OVT_RecruitData recruit = m_mRecruits.GetElement(i);
+			
+			if (!recruit)
+				continue;
+			
+			// Write basic recruit data
+			writer.WriteString(recruitId);
+			writer.WriteString(recruit.m_sOwnerPersistentId);
+			writer.WriteString(recruit.m_sName);
+			writer.WriteInt(recruit.m_iXP);
+			writer.WriteInt(recruit.m_iKills);
+			writer.WriteInt(recruit.m_iLevel);
+			writer.WriteVector(recruit.m_vLastKnownPosition);
+			writer.WriteBool(recruit.m_bIsTraining);
+			writer.WriteFloat(recruit.m_fTrainingCompleteTime);
+			writer.WriteBool(recruit.m_bIsDead);
+			
+			// Write skills map
+			int skillCount = recruit.m_mSkills.Count();
+			writer.WriteInt(skillCount);
+			for (int j = 0; j < skillCount; j++)
+			{
+				string skillName = recruit.m_mSkills.GetKey(j);
+				int skillLevel = recruit.m_mSkills.GetElement(j);
+				writer.WriteString(skillName);
+				writer.WriteInt(skillLevel);
+			}
+		}
+		
+		return true;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Loads recruit data received from server during Join-In-Progress
+	//! \param[in] reader The ScriptBitReader to read data from
+	//! \return true if deserialization is successful
+	override bool RplLoad(ScriptBitReader reader)
+	{
+		int recruitCount;
+		if (!reader.ReadInt(recruitCount))
+			return false;
+		
+		// Clear existing data
+		m_mRecruits.Clear();
+		m_mRecruitsByOwner.Clear();
+		
+		// Read each recruit's data
+		for (int i = 0; i < recruitCount; i++)
+		{
+			string recruitId, ownerPersistentId, name;
+			int xp, kills, level;
+			vector lastKnownPosition;
+			bool isTraining, isDead;
+			float trainingCompleteTime;
+			
+			// Read basic recruit data
+			if (!reader.ReadString(recruitId)) return false;
+			if (!reader.ReadString(ownerPersistentId)) return false;
+			if (!reader.ReadString(name)) return false;
+			if (!reader.ReadInt(xp)) return false;
+			if (!reader.ReadInt(kills)) return false;
+			if (!reader.ReadInt(level)) return false;
+			if (!reader.ReadVector(lastKnownPosition)) return false;
+			if (!reader.ReadBool(isTraining)) return false;
+			if (!reader.ReadFloat(trainingCompleteTime)) return false;
+			if (!reader.ReadBool(isDead)) return false;
+			
+			// Create recruit data
+			OVT_RecruitData recruit = new OVT_RecruitData();
+			recruit.m_sRecruitId = recruitId;
+			recruit.m_sOwnerPersistentId = ownerPersistentId;
+			recruit.m_sEntityPersistentId = recruitId;
+			recruit.m_sName = name;
+			recruit.m_iXP = xp;
+			recruit.m_iKills = kills;
+			recruit.m_iLevel = level;
+			recruit.m_vLastKnownPosition = lastKnownPosition;
+			recruit.m_bIsTraining = isTraining;
+			recruit.m_fTrainingCompleteTime = trainingCompleteTime;
+			recruit.m_bIsDead = isDead;
+			
+			// Read skills map
+			int skillCount;
+			if (!reader.ReadInt(skillCount)) return false;
+			for (int j = 0; j < skillCount; j++)
+			{
+				string skillName;
+				int skillLevel;
+				if (!reader.ReadString(skillName)) return false;
+				if (!reader.ReadInt(skillLevel)) return false;
+				recruit.m_mSkills[skillName] = skillLevel;
+			}
+			
+			// Add to collections
+			m_mRecruits[recruitId] = recruit;
+			
+			if (!m_mRecruitsByOwner.Contains(ownerPersistentId))
+				m_mRecruitsByOwner[ownerPersistentId] = new array<string>;
+			m_mRecruitsByOwner[ownerPersistentId].Insert(recruitId);
+		}
+		
+		return true;
+	}
+	
+	//------------------------------------------------------------------------------------------------
 	//! Called when a player group is created - triggers recruit respawning
 	protected void OnPlayerGroupCreated(int playerId, int groupId, string playerName)
 	{
