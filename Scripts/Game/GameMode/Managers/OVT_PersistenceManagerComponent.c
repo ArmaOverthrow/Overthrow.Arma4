@@ -21,7 +21,6 @@ class OVT_PersistenceManagerComponent : EPF_PersistenceManagerComponent
 	
 	void SaveGame()
 	{
-		SaveRecruits();
 		if (m_pPersistenceManager){
 			m_pPersistenceManager.AutoSave();
 		}
@@ -93,6 +92,7 @@ class OVT_PersistenceManagerComponent : EPF_PersistenceManagerComponent
 	
 	protected void OnAutoSaveComplete()
 	{
+		SaveRecruits();
 		Print("[Overthrow] autosave completed");
 	}
 }

@@ -235,6 +235,9 @@ class OVT_RecruitManagerComponent : OVT_Component
 		// Store position
 		recruit.m_vLastKnownPosition = characterEntity.GetOrigin();
 		
+		// Mark as online since entity exists
+		recruit.m_bIsOnline = true;
+		
 		// Add to collections
 		m_mRecruits[recruitId] = recruit;
 		
@@ -263,6 +266,9 @@ class OVT_RecruitManagerComponent : OVT_Component
 		}
 		
 		m_OnRecruitAdded.Invoke(recruit);
+		
+		// Broadcast recruit creation to all clients
+		BroadcastRecruitCreated(recruitId, ownerPersistentId, recruit.m_sName, recruit.m_vLastKnownPosition);
 		
 		return recruitId;
 	}
@@ -818,8 +824,14 @@ class OVT_RecruitManagerComponent : OVT_Component
 		// Restore the character's name to the identity component (EPF doesn't save this)
 		RestoreCharacterIdentity(recruitEntity, recruit.m_sName);
 		
+		// Mark recruit as online
+		recruit.m_bIsOnline = true;
+		
 		// Add to player's group
 		AddRecruitToPlayerGroup(playerPersistentId, recruitEntity);
+		
+		// Broadcast updated recruit status to all clients
+		BroadcastRecruitUpdate(recruit);
 		
 		Print("[Overthrow] Recruit " + recruitId + " respawned and added to group");
 	}
@@ -921,11 +933,17 @@ class OVT_RecruitManagerComponent : OVT_Component
 				Print("[Overthrow] Saved recruit before despawn: " + recruitId);
 			}
 			
+			// Mark recruit as offline
+			recruit.m_bIsOnline = false;
+			
 			// Remove entity mapping
 			m_mEntityToRecruit.Remove(recruitEntity.GetID());
 			
 			// Remove from world
 			SCR_EntityHelper.DeleteEntityAndChildren(recruitEntity);
+			
+			// Broadcast updated recruit status to all clients
+			BroadcastRecruitUpdate(recruit);
 			
 			Print("[Overthrow] Despawned recruit: " + recruitId);
 		}
@@ -1030,7 +1048,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 			writer.WriteVector(recruit.m_vLastKnownPosition);
 			writer.WriteBool(recruit.m_bIsTraining);
 			writer.WriteFloat(recruit.m_fTrainingCompleteTime);
-			writer.WriteBool(recruit.m_bIsDead);
+			writer.WriteBool(recruit.m_bIsOnline);
 			
 			// Write skills map
 			int skillCount = recruit.m_mSkills.Count();
@@ -1067,7 +1085,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 			string recruitId, ownerPersistentId, name;
 			int xp, kills, level;
 			vector lastKnownPosition;
-			bool isTraining, isDead;
+			bool isTraining, isOnline;
 			float trainingCompleteTime;
 			
 			// Read basic recruit data
@@ -1080,7 +1098,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 			if (!reader.ReadVector(lastKnownPosition)) return false;
 			if (!reader.ReadBool(isTraining)) return false;
 			if (!reader.ReadFloat(trainingCompleteTime)) return false;
-			if (!reader.ReadBool(isDead)) return false;
+			if (!reader.ReadBool(isOnline)) return false;
 			
 			// Create recruit data
 			OVT_RecruitData recruit = new OVT_RecruitData();
@@ -1094,7 +1112,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 			recruit.m_vLastKnownPosition = lastKnownPosition;
 			recruit.m_bIsTraining = isTraining;
 			recruit.m_fTrainingCompleteTime = trainingCompleteTime;
-			recruit.m_bIsDead = isDead;
+			recruit.m_bIsOnline = isOnline;
 			
 			// Read skills map
 			int skillCount;
@@ -1149,6 +1167,18 @@ class OVT_RecruitManagerComponent : OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Broadcast recruit update to all clients (server only)
+	void BroadcastRecruitUpdate(OVT_RecruitData recruit)
+	{
+		if (!recruit)
+			return;
+			
+		// Split into two RPC calls due to 8 parameter limit
+		Rpc(RpcDo_RecruitUpdated, recruit.m_sRecruitId, recruit.m_sOwnerPersistentId, recruit.m_sName, 
+			recruit.m_iXP, recruit.m_iKills, recruit.m_iLevel, recruit.m_vLastKnownPosition, recruit.m_bIsOnline);
+	}
+	
+	//------------------------------------------------------------------------------------------------
 	//! RPC method to handle recruit creation on clients
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_RecruitCreated(string recruitId, string ownerPersistentId, string recruitName, vector position)
@@ -1163,7 +1193,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 		recruit.m_sOwnerPersistentId = ownerPersistentId;
 		recruit.m_sName = recruitName;
 		recruit.m_vLastKnownPosition = position;
-		recruit.m_bIsDead = false;
+		recruit.m_bIsOnline = true; // Newly created recruits are online
 		recruit.m_bIsTraining = false;
 		recruit.m_iXP = 0;
 		recruit.m_iLevel = 1;
@@ -1215,6 +1245,45 @@ class OVT_RecruitManagerComponent : OVT_Component
 		// Fire event
 		if (recruit)
 			m_OnRecruitRemoved.Invoke(recruit);
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! RPC method to handle recruit updates on clients
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_RecruitUpdated(string recruitId, string ownerPersistentId, string name, 
+		int xp, int kills, int level, vector lastKnownPosition, bool isOnline)
+	{
+		// Only process on clients, not the server (server already handled it)
+		if (RplSession.Mode() != RplMode.Client)
+			return;
+			
+		// Find existing recruit data
+		OVT_RecruitData recruit = m_mRecruits.Get(recruitId);
+		if (!recruit)
+		{
+			// Recruit doesn't exist on client, create it
+			recruit = new OVT_RecruitData();
+			recruit.m_sRecruitId = recruitId;
+			recruit.m_sEntityPersistentId = recruitId;
+			recruit.m_sOwnerPersistentId = ownerPersistentId;
+			
+			// Add to collections
+			m_mRecruits[recruitId] = recruit;
+			
+			if (!m_mRecruitsByOwner.Contains(ownerPersistentId))
+				m_mRecruitsByOwner[ownerPersistentId] = new array<string>;
+			m_mRecruitsByOwner[ownerPersistentId].Insert(recruitId);
+		}
+		
+		// Update recruit data (most important fields for status display)
+		recruit.m_sName = name;
+		recruit.m_iXP = xp;
+		recruit.m_iKills = kills;
+		recruit.m_iLevel = level;
+		recruit.m_vLastKnownPosition = lastKnownPosition;
+		recruit.m_bIsOnline = isOnline;
+		
+		Print("[Overthrow] Client received recruit update broadcast: " + name + " (ID: " + recruitId + ", Online: " + isOnline + ")");
 	}
 	
 }

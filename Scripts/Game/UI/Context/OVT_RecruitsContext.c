@@ -220,30 +220,24 @@ class OVT_RecruitsContext : OVT_UIContext
 		TextWidget statusText = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedStatus"));
 		if (statusText)
 		{
-			IEntity recruitEntity = m_RecruitManager.GetRecruitEntity(m_SelectedRecruit.m_sRecruitId);
-			if (recruitEntity)
+			if (m_SelectedRecruit.m_bIsOnline)
 			{
-				SCR_CharacterDamageManagerComponent damageManager = SCR_CharacterDamageManagerComponent.Cast(
-					recruitEntity.FindComponent(SCR_CharacterDamageManagerComponent)
-				);
-				
-				if (damageManager && damageManager.GetState() == EDamageState.DESTROYED)
-				{
-					statusText.SetText("#OVT-Recruit_StatusDead");
-					statusText.SetColor(Color.Red);
-					
-					// Disable action buttons for dead recruits
-					SetButtonEnabled("ShowOnMapButton", false);
-				}
-				else
+				// Try to get entity for distance calculation, but don't rely on it for status
+				IEntity recruitEntity = m_RecruitManager.GetRecruitEntity(m_SelectedRecruit.m_sRecruitId);
+				if (recruitEntity)
 				{
 					float distance = vector.Distance(m_Owner.GetOrigin(), recruitEntity.GetOrigin());
 					statusText.SetTextFormat("#OVT-Recruit_StatusActive", Math.Round(distance));
-					statusText.SetColor(Color.Green);
-					
-					// Enable action buttons for alive recruits
-					SetButtonEnabled("ShowOnMapButton", true);
 				}
+				else
+				{
+					// Fallback if entity lookup fails but recruit is marked online
+					statusText.SetTextFormat("#OVT-Recruit_StatusActive", "?");
+				}
+				statusText.SetColor(Color.Green);
+				
+				// Enable action buttons for online recruits
+				SetButtonEnabled("ShowOnMapButton", true);
 			}
 			else
 			{

@@ -34,8 +34,8 @@ class OVT_RecruitData : Managed
 	//! EPF persistent ID for the character entity (same as recruit ID)
 	string m_sEntityPersistentId;
 	
-	//! Whether the recruit is dead
-	bool m_bIsDead = false;
+	//! Whether the recruit entity is currently spawned in the world
+	bool m_bIsOnline = false;
 	
 	//------------------------------------------------------------------------------------------------
 	//! Calculate level from XP (same formula as player)
