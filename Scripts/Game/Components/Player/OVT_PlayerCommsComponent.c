@@ -704,13 +704,17 @@ class OVT_PlayerCommsComponent: OVT_Component
 		if(!vehicle) return;
 		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
 		
-		Rpc(RpcAsk_UndeployFOB, rpl.Id());
+		// Get the local player ID to pass to the server
+		IEntity playerEntity = SCR_PlayerController.GetLocalControlledEntity();
+		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(playerEntity);
+		
+		Rpc(RpcAsk_UndeployFOB, rpl.Id(), playerId);
 	}	
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_UndeployFOB(RplId vehicle)
+	protected void RpcAsk_UndeployFOB(RplId vehicle, int playerId)
 	{
-		OVT_Global.GetResistanceFaction().UndeployFOB(vehicle);
+		OVT_Global.GetResistanceFaction().UndeployFOB(vehicle, playerId);
 	}
 	
 	void UpgradeVehicle(Vehicle vehicle, OVT_VehicleUpgrade upgrade)

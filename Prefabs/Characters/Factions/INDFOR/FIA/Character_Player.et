@@ -116,7 +116,7 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      m_bOpenActionCloses 0
     }
     OVT_CampMenuContext "{5D5A4DE34B7EB499}" {
-     m_Layout "{5B25C5434C2C566F}UI/Layouts/Menu/CampMenu.layout"
+     m_Layout "{4D721E71A88C4C5F}UI/Layouts/Menu/CampMenu.layout"
      m_sContextName "OverthrowCampMenuContext"
      m_sCloseAction "MenuBack"
      m_bOpenActionCloses 0
@@ -136,6 +136,11 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      m_SkillLayout "{7E15B98B24697DD9}UI/Layouts/Menu/CharacterSheet/CharacterSheetSkill.layout"
      m_SkillLevelLayout "{97679790AD4184BF}UI/Layouts/Menu/CharacterSheet/CharacterSheetSkillLevel.layout"
      m_SkillEffectLayout "{B40D2F7787BB6248}UI/Layouts/Menu/CharacterSheet/CharacterSheetSkillEffect.layout"
+    }
+    OVT_StorageProgressUIContext "{65B09EF9048D8EBB}" {
+     m_Layout "{F701351008A1B6AF}UI/Layouts/Menu/StorageProgressMenu.layout"
+     m_sContextName "OverthrowProgressContext"
+     m_bHideHUDOnShow 0
     }
    }
   }

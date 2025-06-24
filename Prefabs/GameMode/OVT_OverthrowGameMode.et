@@ -74,6 +74,8 @@ OVT_OverthrowGameMode {
     }
    }
   }
+  OVT_InventoryManagerComponent "{65B09EE7D3217F5A}" {
+  }
   OVT_JobManagerComponent "{59A8D178EC1AA2AE}" {
    m_aJobConfigs {
     OVT_JobConfig "{5D9C33D67790A077}" : "{440607BAB7BD6B1C}Configs/Jobs/assassinateTraitor.conf" {
@@ -384,8 +386,8 @@ OVT_OverthrowGameMode {
    Streamable Disabled
   }
  }
- coords 208.286 1.001 116.919
  Flags 0
+ coords 208.286 1.001 116.919
  m_bAutoPlayerRespawn 0
  m_StartGameUIContext OVT_StartGameContext "{599D315949D3D5D0}" {
   m_Layout "{4A7A8EED9F6F2A92}UI/Layouts/Menu/StartGameMenu.layout"

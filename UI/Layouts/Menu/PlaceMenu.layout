@@ -42,6 +42,7 @@ FrameWidgetClass {
        Slot OverlayWidgetSlot "{56EEDE05D754F42B}" {
         HorizontalAlign 3
         VerticalAlign 3
+        Padding 0 4 0 4
        }
        Color 0.305 0.305 0.305 1
        Intensity 0.7
@@ -84,6 +85,14 @@ FrameWidgetClass {
              }
              Text "#ovt-mainmenu_place"
             }
+            TextWidgetClass "{65B0DAD9F1BCEFDC}" {
+             Name "Text0"
+             Slot LayoutSlot "{65B0DAD9F1BCE87F}" {
+             }
+             Text "#OVT-MobileFOBHelp"
+             "Font Size" 17
+             "Min Font Size" 17
+            }
             ImageWidgetClass "{598AD54B90E1C374}" {
              Name "UpperStripe"
              Slot LayoutSlot "{56EEDE07C9F827C2}" {
@@ -113,8 +122,6 @@ FrameWidgetClass {
                   HorizontalAlign Left
                   VerticalAlign Top
                  }
-                 {
-                 }
                 }
                 ButtonWidgetClass "{598AD5467A81C7FF}" : "{3085A6607EC9985C}UI/Layouts/Menu/PlaceMenu/PlaceMenu_Card.layout" {
                  Name "PlaceMenu_Card1"
@@ -122,8 +129,6 @@ FrameWidgetClass {
                   HorizontalAlign Left
                   VerticalAlign Top
                   Column 1
-                 }
-                 {
                  }
                 }
                 ButtonWidgetClass "{598AD5464683007B}" : "{3085A6607EC9985C}UI/Layouts/Menu/PlaceMenu/PlaceMenu_Card.layout" {
@@ -133,8 +138,6 @@ FrameWidgetClass {
                   VerticalAlign Top
                   Column 2
                  }
-                 {
-                 }
                 }
                 ButtonWidgetClass "{598AD54642DAD2DC}" : "{3085A6607EC9985C}UI/Layouts/Menu/PlaceMenu/PlaceMenu_Card.layout" {
                  Name "PlaceMenu_Card3"
@@ -142,8 +145,6 @@ FrameWidgetClass {
                   HorizontalAlign Left
                   VerticalAlign Top
                   Column 3
-                 }
-                 {
                  }
                 }
                 ButtonWidgetClass "{598AD5464EF1534E}" : "{3085A6607EC9985C}UI/Layouts/Menu/PlaceMenu/PlaceMenu_Card.layout" {
@@ -153,8 +154,6 @@ FrameWidgetClass {
                   VerticalAlign Top
                   Column 4
                  }
-                 {
-                 }
                 }
                 ButtonWidgetClass "{598AD546515B6A73}" : "{3085A6607EC9985C}UI/Layouts/Menu/PlaceMenu/PlaceMenu_Card.layout" {
                  Name "PlaceMenu_Card5"
@@ -162,8 +161,6 @@ FrameWidgetClass {
                   HorizontalAlign Left
                   VerticalAlign Top
                   Row 1
-                 }
-                 {
                  }
                 }
                 ButtonWidgetClass "{598AD546515983ED}" : "{3085A6607EC9985C}UI/Layouts/Menu/PlaceMenu/PlaceMenu_Card.layout" {
@@ -174,8 +171,6 @@ FrameWidgetClass {
                   Row 1
                   Column 1
                  }
-                 {
-                 }
                 }
                 ButtonWidgetClass "{598AD546515CEF4C}" : "{3085A6607EC9985C}UI/Layouts/Menu/PlaceMenu/PlaceMenu_Card.layout" {
                  Name "PlaceMenu_Card7"
@@ -184,8 +179,6 @@ FrameWidgetClass {
                   VerticalAlign Top
                   Row 1
                   Column 2
-                 }
-                 {
                  }
                 }
                 ButtonWidgetClass "{598AD5465143E52A}" : "{3085A6607EC9985C}UI/Layouts/Menu/PlaceMenu/PlaceMenu_Card.layout" {
@@ -196,8 +189,6 @@ FrameWidgetClass {
                   Row 1
                   Column 3
                  }
-                 {
-                 }
                 }
                 ButtonWidgetClass "{598AD5465146B8C1}" : "{3085A6607EC9985C}UI/Layouts/Menu/PlaceMenu/PlaceMenu_Card.layout" {
                  Name "PlaceMenu_Card9"
@@ -207,8 +198,6 @@ FrameWidgetClass {
                   Row 1
                   Column 4
                  }
-                 {
-                 }
                 }
                 ButtonWidgetClass "{598AD5462B0D09FC}" : "{3085A6607EC9985C}UI/Layouts/Menu/PlaceMenu/PlaceMenu_Card.layout" {
                  Name "PlaceMenu_Card10"
@@ -216,8 +205,6 @@ FrameWidgetClass {
                   HorizontalAlign Left
                   VerticalAlign Top
                   Row 2
-                 }
-                 {
                  }
                 }
                 ButtonWidgetClass "{598AD5462BF08770}" : "{3085A6607EC9985C}UI/Layouts/Menu/PlaceMenu/PlaceMenu_Card.layout" {
@@ -228,8 +215,6 @@ FrameWidgetClass {
                   Row 2
                   Column 1
                  }
-                 {
-                 }
                 }
                 ButtonWidgetClass "{598AD5462BF4DB4D}" : "{3085A6607EC9985C}UI/Layouts/Menu/PlaceMenu/PlaceMenu_Card.layout" {
                  Name "PlaceMenu_Card12"
@@ -238,8 +223,6 @@ FrameWidgetClass {
                   VerticalAlign Top
                   Row 2
                   Column 2
-                 }
-                 {
                  }
                 }
                 ButtonWidgetClass "{598AD5462BF80037}" : "{3085A6607EC9985C}UI/Layouts/Menu/PlaceMenu/PlaceMenu_Card.layout" {
@@ -250,8 +233,6 @@ FrameWidgetClass {
                   Row 2
                   Column 3
                  }
-                 {
-                 }
                 }
                 ButtonWidgetClass "{598AD5462BFC0409}" : "{3085A6607EC9985C}UI/Layouts/Menu/PlaceMenu/PlaceMenu_Card.layout" {
                  Name "PlaceMenu_Card14"
@@ -260,8 +241,6 @@ FrameWidgetClass {
                   VerticalAlign Top
                   Row 2
                   Column 4
-                 }
-                 {
                  }
                 }
                }

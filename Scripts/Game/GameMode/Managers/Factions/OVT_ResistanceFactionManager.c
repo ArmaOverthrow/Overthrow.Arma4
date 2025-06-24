@@ -94,6 +94,9 @@ class OVT_ResistanceFactionManager: OVT_Component
 	protected ref array<EntityID> m_aCampCleanupEntities;
 	protected string m_sCampCleanupId;
 	
+	// FOB cleanup search variables
+	protected ref array<IEntity> m_aFOBCleanupEntities;
+	
 	static OVT_ResistanceFactionManager s_Instance;
 	
 	static OVT_ResistanceFactionManager GetInstance()
@@ -241,12 +244,17 @@ class OVT_ResistanceFactionManager: OVT_Component
 		int playerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(ownerId);
 		
 		RegisterFOB(newveh, playerId);
-		
-		Replication.BumpMe();	
 	}
 	
-	void UndeployFOB(RplId vehicle)
+	void UndeployFOB(RplId vehicle, int playerId = -1)
 	{		
+		// SERVER-SIDE ONLY: FOB operations must happen on server
+		if (!Replication.IsServer())
+		{
+			Print("UndeployFOB: Attempted to run on client - FOB operations are server-side only!", LogLevel.WARNING);
+			return;
+		}
+		
 		RplComponent rpl = RplComponent.Cast(Replication.FindItem(vehicle));
 		if(!rpl) return;
 		IEntity entity = rpl.GetEntity();
@@ -263,12 +271,29 @@ class OVT_ResistanceFactionManager: OVT_Component
 		
 		OVT_Global.GetVehicles().m_aVehicles.RemoveItem(entity.GetID());
 		
-		OVT_Global.TransferStorage(vehicle, newrpl.Id());
-		SCR_EntityHelper.DeleteEntityAndChildren(entity);
-		
-				
-		
-		Replication.BumpMe();
+		// Use enhanced inventory manager for FOB undeployment with container collection
+		OVT_InventoryManagerComponent inventoryMgr = OVT_Global.GetInventory();
+		if (inventoryMgr)
+		{
+			Print("Starting enhanced FOB undeployment with progress dialog and container collection...");
+			
+			// Create a callback to handle completion AND comprehensive cleanup
+			OVT_FOBUndeploymentCallback callback = new OVT_FOBUndeploymentCallback(entity, newveh);
+			
+			// Use enhanced FOB undeployment with automatic progress dialog
+			// Only show progress dialog if we have a valid player ID
+			bool showProgress = (playerId != -1);
+			string operationId = inventoryMgr.UndeployFOBWithProgress(entity, newveh, showProgress, playerId, callback);
+			
+			Print(string.Format("FOB undeployment operation started with ID: %1 (player: %2)", operationId, playerId));
+		}
+		else
+		{
+			// Fallback to basic transfer if inventory manager not available
+			Print("Inventory manager not available, using basic FOB undeployment", LogLevel.WARNING);
+			OVT_Global.TransferStorage(vehicle, newrpl.Id());
+			SCR_EntityHelper.DeleteEntityAndChildren(entity);
+		}
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -307,8 +332,6 @@ class OVT_ResistanceFactionManager: OVT_Component
 		
 		// Notify players
 		OVT_Global.GetNotify().SendTextNotification("PriorityFOBSet", -1, targetFOB.name);
-		
-		Replication.BumpMe();
 	}
 	
 	IEntity PlaceItem(int placeableIndex, int prefabIndex, vector pos, vector angles, int playerId, bool runHandler = true)
@@ -1091,6 +1114,94 @@ class OVT_ResistanceFactionManager: OVT_Component
 		}
 		
 		return false;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Comprehensive cleanup of FOB area - removes all placed and built items
+	//! \param centerPos Center position of FOB area
+	//! \param radius Cleanup radius in meters
+	void CleanupFOBArea(vector centerPos, float radius)
+	{
+		Print(string.Format("Starting comprehensive FOB area cleanup at %1 with radius %2m", centerPos.ToString(), radius));
+		
+		// Clear and prepare the cleanup results array
+		m_aFOBCleanupEntities = new array<IEntity>();
+		
+		// Find all entities in the FOB radius
+		GetGame().GetWorld().QueryEntitiesBySphere(centerPos, radius, null, 
+			FOBAreaCleanupCallback, EQueryEntitiesFlags.ALL);
+		
+		// Delete all found placeable/buildable items
+		int deletedCount = 0;
+		foreach (IEntity entity : m_aFOBCleanupEntities)
+		{
+			if (entity)
+			{
+				Print(string.Format("Deleting FOB item: %1", GetEntityDisplayName(entity)));
+				SCR_EntityHelper.DeleteEntityAndChildren(entity);
+				deletedCount++;
+			}
+		}
+		
+		Print(string.Format("FOB area cleanup completed: %1 items removed", deletedCount));
+		
+		// Clear the cleanup array
+		m_aFOBCleanupEntities = null;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Callback for FOB area cleanup - identifies placeable and buildable items to remove
+	//! \param entity Entity being checked
+	//! \return Always returns false to continue searching
+	protected bool FOBAreaCleanupCallback(IEntity entity)
+	{
+		if (!entity || !m_aFOBCleanupEntities) return false;
+		
+		// Check for placeable component (tents, equipment boxes, etc.)
+		OVT_PlaceableComponent placeable = EPF_Component<OVT_PlaceableComponent>.Find(entity);
+		if (placeable)
+		{
+			m_aFOBCleanupEntities.Insert(entity);
+			return false;
+		}
+		
+		// Check for buildable component (guard towers, medical tents, etc.)
+		OVT_BuildableComponent buildable = EPF_Component<OVT_BuildableComponent>.Find(entity);
+		if (buildable)
+		{
+			m_aFOBCleanupEntities.Insert(entity);
+			return false;
+		}
+		
+		// Could add more specific checks here for other types of items
+		// that should be cleaned up when an FOB is undeployed
+		
+		return false; // Continue searching
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Gets a display name for an entity for logging purposes
+	//! \param entity Entity to get name for
+	//! \return Display name or fallback
+	protected string GetEntityDisplayName(IEntity entity)
+	{
+		if (!entity) return "Unknown";
+		
+		EntityPrefabData prefabData = entity.GetPrefabData();
+		if (prefabData)
+		{
+			ResourceName prefab = prefabData.GetPrefabName();
+			if (!prefab.IsEmpty())
+			{
+				int lastSlash = prefab.LastIndexOf("/");
+				if (lastSlash >= 0)
+					return prefab.Substring(lastSlash + 1, prefab.Length() - lastSlash - 1);
+				else
+					return prefab;
+			}
+		}
+		
+		return "Entity";
 	}
 	
 }

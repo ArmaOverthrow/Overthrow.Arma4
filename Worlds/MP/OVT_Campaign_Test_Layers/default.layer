@@ -342,8 +342,8 @@ $grp GenericEntity {
     MainType "Name Village"
    }
   }
-  coords 221.182 1.001 107.325
   Flags 1027
+  coords 221.182 1.001 107.325
  }
  RadioTower {
   components {
@@ -351,8 +351,8 @@ $grp GenericEntity {
     MainType Transmitter
    }
   }
-  coords 29.444 1.001 116.796
   Flags 1027
+  coords 29.444 1.001 116.796
  }
 }
 SCR_DestructibleBuildingEntity : "{00FD2B4A0BDEC271}Prefabs/Structures/Commercial/FuelStations/FuelStation_E_01_building.et" {
@@ -476,9 +476,6 @@ SCR_SiteSlotEntity : "{881CE7B0098504C2}PrefabsEditable/Slots/Road/E_SlotRoadLar
 SCR_DestructibleBuildingEntity : "{8ACC8A8EB87A28FF}Prefabs/Structures/Houses/Village/House_Village_E_1I03/House_Village_E_1I03.et" {
  coords 207.502 0 182.332
 }
-Tree : "{9025E96A11516E7A}Prefabs/Vegetation/Bush/b_juniperus_communis_2w.et" {
- coords 182.721 0.001 126.162
-}
 SCR_DestructibleBuildingEntity : "{92E8F78BCF17D93D}Prefabs/Structures/Commercial/Shops/ShopHouse_E_2I01t_clothesstore.et" {
  components {
   RplComponent "{50A4E7C9B5728062}" {
@@ -492,6 +489,9 @@ SCR_MPDestructionManager : "{9BB369F2803C6F71}Prefabs/MP/MPDestructionManager.et
 }
 GenericEntity : "{9BF7399A6F63D480}Prefabs/GameMode/OVT_Port.et" {
  coords 143.682 1.001 246.857
+}
+Tree : "{A43BE7E364B5CD67}Prefabs/Vegetation/Bush/b_juniperus_communis_2w.et" {
+ coords 182.721 0.001 126.162
 }
 Tree : "{A5DE58FC9FB6BA60}Prefabs/Vegetation/Bush/b_corylus_avellana_2.et" {
  coords 183.058 0.001 122.114
@@ -526,6 +526,9 @@ Tree : "{D9DF1D13919F19A0}Prefabs/Vegetation/Bush/b_rosa_canina_0s.et" {
 SCR_DestructibleBuildingEntity : "{DE43119351D125AC}Prefabs/Structures/Houses/Village/House_Village_E_1L02/House_Village_E_1L02t.et" {
  coords 226.19 0.655 193.901
  angleY -177.67
+}
+Vehicle OverthrowMobileFOB1 : "{E6A31A5A6EA0AF04}Prefabs/Vehicles/Wheeled/M923A1/OverthrowMobileFOB.et" {
+ coords 213.556 1 40.364
 }
 SCR_SiteSlotEntity : "{F4066B8425BEC47C}PrefabsEditable/Slots/Road/E_SlotRoadMedium.et" {
  coords 68.924 1.001 146.036

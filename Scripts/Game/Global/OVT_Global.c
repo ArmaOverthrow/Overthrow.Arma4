@@ -80,6 +80,11 @@ class OVT_Global : Managed
 		return OVT_SkillManagerComponent.GetInstance();
 	}
 	
+	static OVT_InventoryManagerComponent GetInventory()
+	{
+		return OVT_InventoryManagerComponent.GetInstance();
+	}
+	
 	static bool PlayerInRange(vector pos, int range)
 	{		
 		array<int> players = new array<int>;
@@ -183,6 +188,26 @@ class OVT_Global : Managed
 	
 	static void TransferStorage(RplId from, RplId to)
 	{
+		// SERVER-SIDE ONLY: All inventory operations must happen on server
+		if (!Replication.IsServer())
+		{
+			Print("TransferStorage: Attempted to run on client - inventory operations are server-side only!", LogLevel.WARNING);
+			return;
+		}
+		
+		// Use the new inventory manager for enhanced transfer capabilities
+		OVT_InventoryManagerComponent inventoryMgr = GetInventory();
+		if (inventoryMgr)
+		{
+			// Use new system with basic configuration (no progress bar for legacy calls)
+			OVT_StorageOperationConfig config = new OVT_StorageOperationConfig(false, true, false, 50, 100, 75.0, 3);
+			inventoryMgr.TransferStorageByRplId(from, to, config, null);
+			return;
+		}
+		
+		// Fallback to legacy implementation if inventory manager not available
+		Print("Inventory manager not available, using legacy transfer method", LogLevel.WARNING);
+		
 		IEntity fromEntity = RplComponent.Cast(Replication.FindItem(from)).GetEntity();
 		IEntity toEntity = RplComponent.Cast(Replication.FindItem(to)).GetEntity();
 
@@ -210,7 +235,6 @@ class OVT_Global : Managed
 		}
 
 		// Play sound if one is defined
-
 		array<IEntity> sourceEntities = {toEntity, fromEntity};
 		array<ref array<string>> soundEventsAll = {{"SOUND_SUPPLIES_PARTIAL_LOAD", "SOUND_SUPPLIES_PARTIAL_UNLOAD"}, {"LOAD_VEHICLE", "UNLOAD_VEHICLE"}};
 		foreach (ref array<string> soundEvents : soundEventsAll) {
