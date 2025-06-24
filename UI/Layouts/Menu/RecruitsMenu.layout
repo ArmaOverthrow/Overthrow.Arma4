@@ -192,6 +192,15 @@ FrameWidgetClass {
                    "Font Size" 16
                    "Min Font Size" 12
                   }
+                  TextWidgetClass "{5D5C558A6E391668}" {
+                   Name "SelectedHometown"
+                   Slot LayoutSlot "{5D5C558A6E391669}" {
+                    Padding 10 5 10 5
+                   }
+                   Text "Hometown: Unknown"
+                   "Font Size" 16
+                   "Min Font Size" 12
+                  }
                   TextWidgetClass "{5D5C558A6E391666}" {
                    Name "SelectedStatus"
                    Slot LayoutSlot "{5D5C558A6E391667}" {

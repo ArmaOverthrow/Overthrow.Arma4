@@ -18,6 +18,13 @@ class OVT_RecruitsContext : OVT_UIContext
 	
 	override void OnShow()
 	{			
+		// Set up event listeners for recruit changes
+		if (m_RecruitManager)
+		{
+			m_RecruitManager.m_OnRecruitRemoved.Insert(OnRecruitRemoved);
+			m_RecruitManager.m_OnRecruitAdded.Insert(OnRecruitAdded);
+		}
+		
 		// Set up button click handlers
 		Widget showOnMapButton = m_wRoot.FindAnyWidget("ShowOnMapButton");
 		if (showOnMapButton)
@@ -43,6 +50,30 @@ class OVT_RecruitsContext : OVT_UIContext
 				action.m_OnActivated.Insert(DismissRecruit);
 		}
 		
+		Refresh();
+	}
+	
+	override void OnClose()
+	{
+		// Clean up event listeners
+		if (m_RecruitManager)
+		{
+			m_RecruitManager.m_OnRecruitRemoved.Remove(OnRecruitRemoved);
+			m_RecruitManager.m_OnRecruitAdded.Remove(OnRecruitAdded);
+		}
+	}
+	
+	//! Event handler for when recruits are removed
+	protected void OnRecruitRemoved(OVT_RecruitData recruit)
+	{
+		// Refresh UI when a recruit is removed
+		Refresh();
+	}
+	
+	//! Event handler for when recruits are added
+	protected void OnRecruitAdded(OVT_RecruitData recruit)
+	{
+		// Refresh UI when a recruit is added
 		Refresh();
 	}
 	
@@ -216,6 +247,11 @@ class OVT_RecruitsContext : OVT_UIContext
 		if (killsText)
 			killsText.SetTextFormat("#OVT-Recruit_Kills", m_SelectedRecruit.m_iKills);
 		
+		// Update hometown
+		TextWidget hometownText = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedHometown"));
+		if (hometownText)
+			hometownText.SetTextFormat("#OVT-Recruit_Hometown", m_SelectedRecruit.GetHometown());
+		
 		// Update status
 		TextWidget statusText = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedStatus"));
 		if (statusText)
@@ -345,32 +381,16 @@ class OVT_RecruitsContext : OVT_UIContext
 		if (!m_SelectedRecruit)
 			return;
 			
-		// Find recruit entity
-		IEntity recruitEntity = m_RecruitManager.GetRecruitEntity(m_SelectedRecruit.m_sRecruitId);
-		if (recruitEntity)
+		// Request dismissal from server via player comms component
+		OVT_PlayerCommsComponent comms = OVT_Global.GetServer();
+		if (comms)
 		{
-			// Remove from group
-			AIControlComponent aiControl = AIControlComponent.Cast(recruitEntity.FindComponent(AIControlComponent));
-			if (aiControl)
-			{
-				AIAgent agent = aiControl.GetAIAgent();
-				if (agent && agent.GetParentGroup())
-				{
-					agent.GetParentGroup().RemoveAgent(agent);
-				}
-			}
-			
-			// Delete entity
-			SCR_EntityHelper.DeleteEntityAndChildren(recruitEntity);
+			comms.DismissRecruit(m_SelectedRecruit.m_sRecruitId);
 		}
 		
-		// Remove from manager
-		m_RecruitManager.RemoveRecruit(m_SelectedRecruit.m_sRecruitId);
-		
-		// Refresh UI
+		// Clear UI selection (the actual recruit removal will be handled when server broadcasts)
 		m_SelectedRecruit = null;
 		m_wSelectedWidget = null;
-		Refresh();
 		
 		ShowHint("#OVT-Recruit_Dismissed");
 	}

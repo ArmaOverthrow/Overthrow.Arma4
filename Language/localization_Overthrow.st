@@ -4292,6 +4292,13 @@ StringTable {
    Author "Claude Code"
    LastChanged "Claude Code"
   }
+  CustomStringTableItem "{5D5C558A6E391A20}" {
+   Id "OVT-Recruit_Hometown"
+   Target_en_us "Hometown: %1"
+   Modified 1735049000
+   Author "Claude"
+   LastChanged "Claude"
+  }
   CustomStringTableItem "{5D5C558A6E391A09}" {
    Id "OVT-Recruit_Dead"
    Target_en_us "Dead"

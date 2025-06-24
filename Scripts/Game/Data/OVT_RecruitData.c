@@ -37,6 +37,9 @@ class OVT_RecruitData : Managed
 	//! Whether the recruit entity is currently spawned in the world
 	bool m_bIsOnline = false;
 	
+	//! ID of the town where this recruit was hired from
+	int m_iTownId = -1;
+	
 	//------------------------------------------------------------------------------------------------
 	//! Calculate level from XP (same formula as player)
 	int GetLevel()
@@ -121,5 +124,17 @@ class OVT_RecruitData : Managed
 	string GetName()
 	{
 		return m_sName;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Get the recruit's hometown name
+	string GetHometown()
+	{
+		OVT_TownManagerComponent townManager = OVT_Global.GetTowns();
+		if (townManager && m_iTownId != -1)
+		{
+			return townManager.GetTownName(m_iTownId);
+		}
+		return "Unknown";
 	}
 }

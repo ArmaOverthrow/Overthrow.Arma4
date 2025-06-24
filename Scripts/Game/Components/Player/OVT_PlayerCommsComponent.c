@@ -1108,4 +1108,55 @@ class OVT_PlayerCommsComponent: OVT_Component
 		Print(string.Format("[OVT_PlayerCommsComponent] Restored to entity: %1", restoredEntity), LogLevel.NORMAL);
 	}
 	
+	//! Request recruit dismissal from client
+	void DismissRecruit(string recruitId)
+	{
+		Rpc(RpcAsk_DismissRecruit, recruitId);
+	}
+	
+	//! Server-side RPC handler for recruit dismissal requests
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_DismissRecruit(string recruitId)
+	{
+		// Get the recruit manager
+		OVT_RecruitManagerComponent recruitManager = OVT_RecruitManagerComponent.GetInstance();
+		if (!recruitManager)
+		{
+			Print("[OVT_PlayerCommsComponent] Server: Recruit manager not found", LogLevel.ERROR);
+			return;
+		}
+		
+		// Validate the recruit exists
+		OVT_RecruitData recruit = recruitManager.GetRecruit(recruitId);
+		if (!recruit)
+		{
+			Print("[OVT_PlayerCommsComponent] Server: Recruit not found for dismissal: " + recruitId, LogLevel.ERROR);
+			return;
+		}
+		
+		// Find and delete the recruit entity on server
+		IEntity recruitEntity = recruitManager.FindRecruitEntity(recruitId);
+		if (recruitEntity)
+		{
+			// Remove from group first
+			AIControlComponent aiControl = AIControlComponent.Cast(recruitEntity.FindComponent(AIControlComponent));
+			if (aiControl)
+			{
+				AIAgent agent = aiControl.GetAIAgent();
+				if (agent && agent.GetParentGroup())
+				{
+					agent.GetParentGroup().RemoveAgent(agent);
+				}
+			}
+			
+			// Delete entity on server
+			SCR_EntityHelper.DeleteEntityAndChildren(recruitEntity);
+		}
+		
+		// Remove from manager (this will broadcast to all clients)
+		recruitManager.RemoveRecruit(recruitId);
+		
+		Print("[OVT_PlayerCommsComponent] Server: Dismissed recruit: " + recruitId, LogLevel.NORMAL);
+	}
+	
 }

@@ -256,6 +256,17 @@ class OVT_RecruitManagerComponent : OVT_Component
 		// Store position
 		recruit.m_vLastKnownPosition = characterEntity.GetOrigin();
 		
+		// Set hometown to nearest town
+		OVT_TownManagerComponent townManager = OVT_Global.GetTowns();
+		if (townManager)
+		{
+			OVT_TownData nearestTown = townManager.GetNearestTown(characterEntity.GetOrigin());
+			if (nearestTown)
+			{
+				recruit.m_iTownId = townManager.GetTownID(nearestTown);
+			}
+		}
+		
 		// Mark as online since entity exists
 		recruit.m_bIsOnline = true;
 		
@@ -975,7 +986,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 	
 	//------------------------------------------------------------------------------------------------
 	//! Find recruit entity by persistent ID
-	protected IEntity FindRecruitEntity(string recruitId)
+	IEntity FindRecruitEntity(string recruitId)
 	{
 		// On server, use entity ID mapping
 		if (Replication.IsServer())
@@ -1154,6 +1165,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 			writer.WriteBool(recruit.m_bIsTraining);
 			writer.WriteFloat(recruit.m_fTrainingCompleteTime);
 			writer.WriteBool(recruit.m_bIsOnline);
+			writer.WriteInt(recruit.m_iTownId);
 			
 			// Write replication ID for client entity mapping
 			RplId recruitRplId = RplId.Invalid();
@@ -1200,7 +1212,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 		for (int i = 0; i < recruitCount; i++)
 		{
 			string recruitId, ownerPersistentId, name;
-			int xp, kills, level;
+			int xp, kills, level, townId;
 			vector lastKnownPosition;
 			bool isTraining, isOnline;
 			float trainingCompleteTime;
@@ -1216,6 +1228,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 			if (!reader.ReadBool(isTraining)) return false;
 			if (!reader.ReadFloat(trainingCompleteTime)) return false;
 			if (!reader.ReadBool(isOnline)) return false;
+			if (!reader.ReadInt(townId)) return false;
 			
 			// Read replication ID for client entity mapping
 			RplId recruitRplId;
@@ -1234,6 +1247,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 			recruit.m_bIsTraining = isTraining;
 			recruit.m_fTrainingCompleteTime = trainingCompleteTime;
 			recruit.m_bIsOnline = isOnline;
+			recruit.m_iTownId = townId;
 			
 			// Read skills map
 			int skillCount;
@@ -1388,6 +1402,17 @@ class OVT_RecruitManagerComponent : OVT_Component
 		recruit.m_iLevel = 1;
 		recruit.m_iKills = 0;
 		recruit.m_fTrainingCompleteTime = 0;
+		
+		// Set hometown to nearest town on client
+		OVT_TownManagerComponent townManager = OVT_Global.GetTowns();
+		if (townManager)
+		{
+			OVT_TownData nearestTown = townManager.GetNearestTown(position);
+			if (nearestTown)
+			{
+				recruit.m_iTownId = townManager.GetTownID(nearestTown);
+			}
+		}
 		
 		// Add to collections
 		m_mRecruits[recruitId] = recruit;
