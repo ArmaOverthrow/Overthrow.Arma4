@@ -77,9 +77,9 @@ class OVT_RecruitsContext : OVT_UIContext
 		Refresh();
 	}
 	
-	override void OnFrame(float timeSlice)
+	override void OnActiveFrame(float timeSlice)
 	{
-		super.OnFrame(timeSlice);
+		super.OnActiveFrame(timeSlice);
 		
 		// Handle recruit list navigation
 		if (m_InputManager.GetActionTriggered("MenuUp"))

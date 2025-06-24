@@ -71,9 +71,9 @@ class OVT_LoadoutsContext : OVT_UIContext
 		RefreshRecruits();
 	}
 	
-	override void OnFrame(float timeSlice)
+	override void OnActiveFrame(float timeSlice)
 	{
-		super.OnFrame(timeSlice);
+		super.OnActiveFrame(timeSlice);
 		
 		// Handle loadout list navigation
 		if (m_InputManager.GetActionTriggered("MenuUp"))
