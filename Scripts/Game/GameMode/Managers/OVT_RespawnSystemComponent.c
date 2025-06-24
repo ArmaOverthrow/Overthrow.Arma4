@@ -231,18 +231,49 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 	
 	void SetCivilianFaction(int playerId)
 	{
-		SCR_PlayerController playerController = SCR_PlayerController.Cast(m_pPlayerManager.GetPlayerController(playerId));		
-		if (playerController)
+		PlayerController playerController = GetGame().GetPlayerManager().GetPlayerController(playerId);
+		if (!playerController) return;
+		
+		SCR_PlayerFactionAffiliationComponent factionComponent = SCR_PlayerFactionAffiliationComponent.Cast(playerController.FindComponent(SCR_PlayerFactionAffiliationComponent));
+		if (!factionComponent) return;
+		
+		FactionManager mgr = GetGame().GetFactionManager();
+		if (!mgr) return;
+		
+		Faction civ = mgr.GetFactionByKey("CIV");
+		if (!civ) return;
+		
+		// This properly triggers faction manager updates and replication
+		factionComponent.RequestFaction(civ);
+		
+		// Force client-side faction mapping via RPC as backup
+		if (Replication.IsServer())
 		{
-			SCR_PlayerFactionAffiliationComponent aff = SCR_PlayerFactionAffiliationComponent.Cast(playerController.FindComponent(SCR_PlayerFactionAffiliationComponent));
-			FactionManager mgr = GetGame().GetFactionManager();
-			Faction civ = mgr.GetFactionByKey("CIV");
-			aff.RequestFaction(civ);
+			SCR_FactionManager factionManager = SCR_FactionManager.Cast(mgr);
+			if (factionManager)
+			{
+				int factionIndex = factionManager.GetFactionIndex(civ);
+				Rpc(RPC_ForceClientFactionMapping, playerId, factionIndex);
+			}
 		}
+	}
+	
+	//! Force client to add player faction mapping when normal replication fails
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	void RPC_ForceClientFactionMapping(int playerId, int factionIndex)
+	{
+		if (Replication.IsServer()) return; // Only execute on clients
+		
+		OVT_OverthrowFactionManager factionManager = OVT_OverthrowFactionManager.Cast(GetGame().GetFactionManager());
+		if (!factionManager) return;
+		
+		// Use our extended faction manager to force the mapping
+		factionManager.ForceClientFactionMapping(playerId, factionIndex);
 	}
 	
 	override void OnCharacterLoadComplete(int playerId, EPF_EntitySaveData saveData, EPF_PersistenceComponent persistenceComponent)
 	{			
+		// Delay faction assignment to ensure player controller is fully initialized
 		SetCivilianFaction(playerId);
 		// Group creation now happens in HandoverToPlayer
 		super.OnCharacterLoadComplete(playerId, saveData, persistenceComponent);	
@@ -480,7 +511,8 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 			player.firstSpawn = false;
 		}		
 		
-		SetCivilianFaction(playerId);
+		// Delay faction assignment to ensure player controller is fully initialized
+		GetGame().GetCallqueue().CallLater(SetCivilianFaction, 500, false, playerId);
 		// Group creation now happens in HandoverToPlayer
 	}
 	

@@ -1008,15 +1008,21 @@ class OVT_PlayerCommsComponent: OVT_Component
 		playerController.SetPossessedEntity(targetEntity);
 		
 		// Notify the specific client to open inventory
-		Rpc(RpcDo_OpenInventory, targetEntityId);
+		RplId playerControllerId = Replication.FindId(playerController);
+		Rpc(RpcDo_OpenInventory, targetEntityId, playerId, playerControllerId);
 	}
 	
 	//! Client-side RPC handler to open inventory
-	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
-	protected void RpcDo_OpenInventory(RplId targetEntityId)
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_OpenInventory(RplId targetEntityId, int playerId, RplId playerControllerId)
 	{
-		// Only process on clients
+		// Only process on clients and only for the specified player
 		if (Replication.IsServer())
+			return;
+			
+		// Check if this is for the local player
+		int localPlayerId = SCR_PlayerController.GetLocalPlayerId();
+		if (localPlayerId != playerId)
 			return;
 			
 		// Get the target entity from RplId
@@ -1041,11 +1047,37 @@ class OVT_PlayerCommsComponent: OVT_Component
 		
 		if (inventoryManager)
 		{
+			// Set up close listener on the client side
+			inventoryManager.m_OnInventoryOpenInvoker.Insert(OnClientInventoryStateChanged);
 			inventoryManager.OpenInventory();
 		}
 		else
 		{
 			Print("[OVT_PlayerCommsComponent] Client: No inventory manager found", LogLevel.ERROR);
+		}
+	}
+	
+	//! Client-side inventory state change handler
+	protected void OnClientInventoryStateChanged(bool isOpen)
+	{
+		Print(string.Format("[OVT_PlayerCommsComponent] Client: Inventory state changed - isOpen: %1", isOpen), LogLevel.NORMAL);
+		
+		// When inventory closes on client, notify server to restore possession
+		if (!isOpen)
+		{
+			Print("[OVT_PlayerCommsComponent] Client: Inventory closed, requesting possession restore", LogLevel.NORMAL);
+			
+			// Get the player controller which maintains authority
+			SCR_PlayerController playerController = SCR_PlayerController.Cast(GetGame().GetPlayerController());
+			if (playerController)
+			{
+				// Use the player controller's method which can send RPCs even when possessed
+				playerController.RequestRestorePossession();
+			}
+			else
+			{
+				Print("[OVT_PlayerCommsComponent] Client: Could not get player controller", LogLevel.ERROR);
+			}
 		}
 	}
 	
@@ -1059,6 +1091,8 @@ class OVT_PlayerCommsComponent: OVT_Component
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_RestorePossessedEntity(int playerId)
 	{
+		Print(string.Format("[OVT_PlayerCommsComponent] Server: Restoring possession for player %1", playerId), LogLevel.NORMAL);
+		
 		// Get player controller
 		SCR_PlayerController playerController = SCR_PlayerController.Cast(GetGame().GetPlayerManager().GetPlayerController(playerId));
 		if (!playerController)
@@ -1067,8 +1101,14 @@ class OVT_PlayerCommsComponent: OVT_Component
 			return;
 		}
 		
+		IEntity currentPossessed = playerController.GetControlledEntity();
+		Print(string.Format("[OVT_PlayerCommsComponent] Current possessed entity: %1", currentPossessed), LogLevel.NORMAL);
+		
 		// Restore possession to null (back to original entity)
 		playerController.SetPossessedEntity(null);
+		
+		IEntity restoredEntity = playerController.GetControlledEntity();
+		Print(string.Format("[OVT_PlayerCommsComponent] Restored to entity: %1", restoredEntity), LogLevel.NORMAL);
 	}
 	
 }

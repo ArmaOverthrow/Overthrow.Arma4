@@ -2,8 +2,6 @@
 [BaseContainerProps(), SCR_BaseGroupCommandTitleField("m_sCommandName")]
 class OVT_OpenInventoryCommand : SCR_BaseGroupCommand
 {
-    //! Stored player ID for restoration
-    protected int m_iStoredPlayerId;
     //------------------------------------------------------------------------------------------------
     override bool Execute(IEntity cursorTarget, IEntity target, vector targetPosition, int playerID, bool isClient)
     {
@@ -79,37 +77,14 @@ class OVT_OpenInventoryCommand : SCR_BaseGroupCommand
         if (!comms)
             return false;
         
-        // Listen for inventory close event to restore possession
-        targetInventoryManager.m_OnInventoryOpenInvoker.Insert(OnInventoryOpenStateChanged);
-        
-        // Store player ID for restoration
-        m_iStoredPlayerId = playerId;
+        // Note: We don't set up inventory listener here because this runs on server
+        // The client will handle inventory close detection
         
         // Call RPC to possess on server and open inventory on client
         comms.SetPossessedEntityAndOpenInventory(playerId, targetCharacter);
         
         return true;
     }
-    
-    //------------------------------------------------------------------------------------------------
-    //! Called when inventory open state changes
-    protected void OnInventoryOpenStateChanged(bool isOpen)
-    {
-        // When inventory is closed (isOpen = false), restore possession
-        if (!isOpen && m_iStoredPlayerId > 0)
-        {
-            // Use RPC to restore possessed entity on server
-            OVT_PlayerCommsComponent comms = OVT_Global.GetServer();
-            if (comms)
-            {
-                comms.RestorePossessedEntity(m_iStoredPlayerId);
-            }
-            
-            // Clean up stored reference
-            m_iStoredPlayerId = 0;
-        }
-    }
-    
     
     //------------------------------------------------------------------------------------------------
     override bool CanBeShown()
