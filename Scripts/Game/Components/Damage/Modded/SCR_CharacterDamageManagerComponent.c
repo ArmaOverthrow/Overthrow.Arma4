@@ -14,22 +14,27 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 	
 	void WhenDamaged(BaseDamageContext damageContext)
 	{		
-		if(damageContext)
+		if(!damageContext)
 		{	
-			Instigator instigator = damageContext.instigator;
-			if(instigator)
-			{
-				IEntity entity = instigator.GetInstigatorEntity();
-				if(entity) 
-				{
-					OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(entity.FindComponent(OVT_PlayerWantedComponent));
-					
-					if(wanted)
-					{
-						wanted.SetBaseWantedLevel(2);
-					}
-				}
-			}
+			return;
+		}
+
+		Instigator instigator = damageContext.instigator;
+		if(!instigator)
+		{
+			return;
+		}
+
+		IEntity entity = instigator.GetInstigatorEntity();
+		if(!entity) 
+		{
+			return;
+		}
+
+		OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(entity.FindComponent(OVT_PlayerWantedComponent));		
+		if(wanted)
+		{
+			wanted.SetBaseWantedLevel(2);
 		}
 	}
 	
