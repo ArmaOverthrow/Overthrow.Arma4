@@ -29,6 +29,10 @@ class OVT_RecruitManagerComponent : OVT_Component
 	[NonSerialized()]
 	ref map<EntityID, string> m_mEntityToRecruit;
 	
+	//! Client-side mapping using replication IDs for cross-network entity identification
+	[NonSerialized()]
+	ref map<RplId, string> m_mRplIdToRecruit;
+	
 	//! Offline player timers for recruit despawning
 	[NonSerialized()]
 	ref map<string, float> m_mOfflinePlayerTimers;
@@ -62,6 +66,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 		m_mRecruits = new map<string, ref OVT_RecruitData>;
 		m_mRecruitsByOwner = new map<string, ref array<string>>;
 		m_mEntityToRecruit = new map<EntityID, string>;
+		m_mRplIdToRecruit = new map<RplId, string>;
 		m_mOfflinePlayerTimers = new map<string, float>;
 		
 		SetEventMask(owner, EntityEvent.INIT);
@@ -172,12 +177,28 @@ class OVT_RecruitManagerComponent : OVT_Component
 	{
 		if (!entity)
 			return null;
-			
-		EntityID entityId = entity.GetID();
-		if (!m_mEntityToRecruit.Contains(entityId))
+		
+		// On server, use entity ID mapping
+		if (Replication.IsServer())
+		{
+			EntityID entityId = entity.GetID();
+			if (!m_mEntityToRecruit.Contains(entityId))
+				return null;
+				
+			string recruitId = m_mEntityToRecruit[entityId];
+			return GetRecruit(recruitId);
+		}
+		
+		// On client, use replication ID mapping
+		RplComponent rplComponent = RplComponent.Cast(entity.FindComponent(RplComponent));
+		if (!rplComponent)
 			return null;
 			
-		string recruitId = m_mEntityToRecruit[entityId];
+		RplId rplId = rplComponent.Id();
+		if (!m_mRplIdToRecruit.Contains(rplId))
+			return null;
+			
+		string recruitId = m_mRplIdToRecruit[rplId];
 		return GetRecruit(recruitId);
 	}
 	
@@ -813,6 +834,13 @@ class OVT_RecruitManagerComponent : OVT_Component
 		// Update entity mapping
 		m_mEntityToRecruit[recruitEntity.GetID()] = recruitId;
 		
+		// Update replication ID mapping for client access
+		RplComponent rplComponent = RplComponent.Cast(recruitEntity.FindComponent(RplComponent));
+		if (rplComponent)
+		{
+			m_mRplIdToRecruit[rplComponent.Id()] = recruitId;
+		}
+		
 		// Get recruit data
 		OVT_RecruitData recruit = m_mRecruits[recruitId];
 		if (!recruit)
@@ -826,6 +854,9 @@ class OVT_RecruitManagerComponent : OVT_Component
 		
 		// Mark recruit as online
 		recruit.m_bIsOnline = true;
+		
+		// Set recruit faction to match player faction before adding to group
+		SetRecruitFaction(playerPersistentId, recruitEntity);
 		
 		// Add to player's group
 		AddRecruitToPlayerGroup(playerPersistentId, recruitEntity);
@@ -953,20 +984,86 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//! Find recruit entity by persistent ID
 	protected IEntity FindRecruitEntity(string recruitId)
 	{
-		// Search through all entities with EPF persistence
-		foreach (EntityID entityId, string mappedRecruitId : m_mEntityToRecruit)
+		// On server, use entity ID mapping
+		if (Replication.IsServer())
+		{
+			foreach (EntityID entityId, string mappedRecruitId : m_mEntityToRecruit)
+			{
+				if (mappedRecruitId == recruitId)
+				{
+					IEntity entity = GetGame().GetWorld().FindEntityByID(entityId);
+					if (entity)
+						return entity;
+					else
+						m_mEntityToRecruit.Remove(entityId); // Clean up stale mapping
+				}
+			}
+			return null;
+		}
+		
+		// On client, use replication ID mapping
+		foreach (RplId rplId, string mappedRecruitId : m_mRplIdToRecruit)
 		{
 			if (mappedRecruitId == recruitId)
 			{
-				IEntity entity = GetGame().GetWorld().FindEntityByID(entityId);
-				if (entity)
-					return entity;
-				else
-					m_mEntityToRecruit.Remove(entityId); // Clean up stale mapping
+				RplComponent rplComponent = RplComponent.Cast(Replication.FindItem(rplId));
+				if (rplComponent)
+					return rplComponent.GetEntity();
 			}
 		}
 		
 		return null;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Set recruit faction to match player faction
+	protected void SetRecruitFaction(string playerPersistentId, IEntity recruitEntity)
+	{
+		// Find player by persistent ID
+		OVT_PlayerManagerComponent playerManager = OVT_Global.GetPlayers();
+		if (!playerManager)
+			return;
+			
+		int playerId = playerManager.GetPlayerIDFromPersistentID(playerPersistentId);
+		if (playerId == 0)
+		{
+			Print("[Overthrow] Player not online for faction setting: " + playerPersistentId);
+			return;
+		}
+		
+		// Get player faction
+		SCR_FactionManager factionManager = SCR_FactionManager.Cast(GetGame().GetFactionManager());
+		if (!factionManager)
+		{
+			Print("[Overthrow] No faction manager available");
+			return;
+		}
+		
+		Faction playerFaction = factionManager.GetPlayerFaction(playerId);
+		if (!playerFaction)
+		{
+			Print("[Overthrow] No player faction found for ID: " + playerId);
+			return;
+		}
+		
+		// Get recruit's current faction
+		SCR_CharacterFactionAffiliationComponent recruitFactionComp = SCR_CharacterFactionAffiliationComponent.Cast(
+			recruitEntity.FindComponent(SCR_CharacterFactionAffiliationComponent)
+		);
+		
+		if (!recruitFactionComp)
+		{
+			Print("[Overthrow] No character faction component found on recruit");
+			return;
+		}
+		
+		Faction currentFaction = recruitFactionComp.GetAffiliatedFaction();
+		
+		// Set recruit faction to match player
+		if (currentFaction != playerFaction)
+		{
+			recruitFactionComp.SetAffiliatedFaction(playerFaction);
+		}
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -1007,6 +1104,22 @@ class OVT_RecruitManagerComponent : OVT_Component
 			return;
 		}
 		
+		// Verify player has a group and is the leader
+		int groupId = groupController.GetGroupID();
+		if (groupId == -1)
+			return;
+		
+		SCR_GroupsManagerComponent groupsManager = SCR_GroupsManagerComponent.GetInstance();
+		if (!groupsManager)
+			return;
+		
+		SCR_AIGroup group = groupsManager.FindGroup(groupId);
+		if (!group)
+			return;
+		
+		if (group.GetLeaderID() != playerId)
+			return;
+		
 		// Add as AI agent to player's group
 		SCR_ChimeraCharacter recruitCharacter = SCR_ChimeraCharacter.Cast(recruitEntity);
 		if (!recruitCharacter)
@@ -1016,7 +1129,6 @@ class OVT_RecruitManagerComponent : OVT_Component
 		}
 		
 		groupController.RequestAddAIAgent(recruitCharacter, playerId);
-		Print("[Overthrow] Added recruit to player group: " + playerId);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -1050,6 +1162,17 @@ class OVT_RecruitManagerComponent : OVT_Component
 			writer.WriteFloat(recruit.m_fTrainingCompleteTime);
 			writer.WriteBool(recruit.m_bIsOnline);
 			
+			// Write replication ID for client entity mapping
+			RplId recruitRplId = RplId.Invalid();
+			IEntity recruitEntity = FindRecruitEntity(recruitId);
+			if (recruitEntity)
+			{
+				RplComponent rplComponent = RplComponent.Cast(recruitEntity.FindComponent(RplComponent));
+				if (rplComponent)
+					recruitRplId = rplComponent.Id();
+			}
+			writer.WriteRplId(recruitRplId);
+			
 			// Write skills map
 			int skillCount = recruit.m_mSkills.Count();
 			writer.WriteInt(skillCount);
@@ -1078,6 +1201,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 		// Clear existing data
 		m_mRecruits.Clear();
 		m_mRecruitsByOwner.Clear();
+		m_mRplIdToRecruit.Clear();
 		
 		// Read each recruit's data
 		for (int i = 0; i < recruitCount; i++)
@@ -1099,6 +1223,10 @@ class OVT_RecruitManagerComponent : OVT_Component
 			if (!reader.ReadBool(isTraining)) return false;
 			if (!reader.ReadFloat(trainingCompleteTime)) return false;
 			if (!reader.ReadBool(isOnline)) return false;
+			
+			// Read replication ID for client entity mapping
+			RplId recruitRplId;
+			if (!reader.ReadRplId(recruitRplId)) return false;
 			
 			// Create recruit data
 			OVT_RecruitData recruit = new OVT_RecruitData();
@@ -1129,6 +1257,12 @@ class OVT_RecruitManagerComponent : OVT_Component
 			// Add to collections
 			m_mRecruits[recruitId] = recruit;
 			
+			// Add replication ID mapping if valid
+			if (recruitRplId != RplId.Invalid())
+			{
+				m_mRplIdToRecruit[recruitRplId] = recruitId;
+			}
+			
 			if (!m_mRecruitsByOwner.Contains(ownerPersistentId))
 				m_mRecruitsByOwner[ownerPersistentId] = new array<string>;
 			m_mRecruitsByOwner[ownerPersistentId].Insert(recruitId);
@@ -1141,13 +1275,59 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//! Called when a player group is created - triggers recruit respawning
 	protected void OnPlayerGroupCreated(int playerId, int groupId, string playerName)
 	{
-		Print("[Overthrow] Player group created, respawning recruits for player: " + playerId);
-		
+		// Delay recruit respawning to ensure player is set as group leader first
+		// The respawn system sets group leadership with a 200ms delay, so we wait 500ms to be safe
+		GetGame().GetCallqueue().CallLater(RespawnRecruitsDelayed, 500, false, playerId);
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Delayed recruit respawning to ensure player is group leader
+	protected void RespawnRecruitsDelayed(int playerId)
+	{
 		// Get player's persistent ID
 		string playerPersistentId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		if (playerPersistentId.IsEmpty())
 			return;
 			
+		// Verify player is actually a group leader before respawning recruits
+		SCR_PlayerController playerController = SCR_PlayerController.Cast(
+			GetGame().GetPlayerManager().GetPlayerController(playerId)
+		);
+		
+		if (!playerController)
+			return;
+		
+		SCR_PlayerControllerGroupComponent groupController = SCR_PlayerControllerGroupComponent.Cast(
+			playerController.FindComponent(SCR_PlayerControllerGroupComponent)
+		);
+		
+		if (!groupController)
+			return;
+		
+		int groupId = groupController.GetGroupID();
+		if (groupId == -1)
+		{
+			// Retry after another delay
+			GetGame().GetCallqueue().CallLater(RespawnRecruitsDelayed, 500, false, playerId);
+			return;
+		}
+		
+		// Check if player is group leader
+		SCR_GroupsManagerComponent groupsManager = SCR_GroupsManagerComponent.GetInstance();
+		if (!groupsManager)
+			return;
+		
+		SCR_AIGroup group = groupsManager.FindGroup(groupId);
+		if (!group)
+			return;
+		
+		if (group.GetLeaderID() != playerId)
+		{
+			// Retry after another delay
+			GetGame().GetCallqueue().CallLater(RespawnRecruitsDelayed, 500, false, playerId);
+			return;
+		}
+		
 		// Now it's safe to respawn recruits
 		RespawnPlayerRecruits(playerPersistentId);
 	}
@@ -1156,7 +1336,17 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//! Broadcast recruit creation to all clients (server only)
 	void BroadcastRecruitCreated(string recruitId, string ownerPersistentId, string recruitName, vector position)
 	{
-		Rpc(RpcDo_RecruitCreated, recruitId, ownerPersistentId, recruitName, position);
+		// Get replication ID for entity mapping
+		RplId recruitRplId = RplId.Invalid();
+		IEntity recruitEntity = FindRecruitEntity(recruitId);
+		if (recruitEntity)
+		{
+			RplComponent rplComponent = RplComponent.Cast(recruitEntity.FindComponent(RplComponent));
+			if (rplComponent)
+				recruitRplId = rplComponent.Id();
+		}
+		
+		Rpc(RpcDo_RecruitCreated, recruitId, ownerPersistentId, recruitName, position, recruitRplId);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -1173,20 +1363,26 @@ class OVT_RecruitManagerComponent : OVT_Component
 		if (!recruit)
 			return;
 			
-		// Split into two RPC calls due to 8 parameter limit
+		// Get replication ID for entity mapping
+		RplId recruitRplId = RplId.Invalid();
+		IEntity recruitEntity = FindRecruitEntity(recruit.m_sRecruitId);
+		if (recruitEntity)
+		{
+			RplComponent rplComponent = RplComponent.Cast(recruitEntity.FindComponent(RplComponent));
+			if (rplComponent)
+				recruitRplId = rplComponent.Id();
+		}
+		
+		// Note: Using 8 parameters (limit), including replication ID
 		Rpc(RpcDo_RecruitUpdated, recruit.m_sRecruitId, recruit.m_sOwnerPersistentId, recruit.m_sName, 
-			recruit.m_iXP, recruit.m_iKills, recruit.m_iLevel, recruit.m_vLastKnownPosition, recruit.m_bIsOnline);
+			recruit.m_iXP, recruit.m_iKills, recruit.m_iLevel, recruit.m_vLastKnownPosition, recruitRplId);
 	}
 	
 	//------------------------------------------------------------------------------------------------
 	//! RPC method to handle recruit creation on clients
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_RecruitCreated(string recruitId, string ownerPersistentId, string recruitName, vector position)
-	{
-		// Only create recruit data on clients, not the server (server already has it)
-		if (RplSession.Mode() != RplMode.Client)
-			return;
-			
+	protected void RpcDo_RecruitCreated(string recruitId, string ownerPersistentId, string recruitName, vector position, RplId recruitRplId)
+	{			
 		// Create recruit data on client
 		OVT_RecruitData recruit = new OVT_RecruitData();
 		recruit.m_sEntityPersistentId = recruitId;
@@ -1203,11 +1399,15 @@ class OVT_RecruitManagerComponent : OVT_Component
 		// Add to collections
 		m_mRecruits[recruitId] = recruit;
 		
+		// Add replication ID mapping for client-side entity lookup
+		if (recruitRplId != RplId.Invalid())
+		{
+			m_mRplIdToRecruit[recruitRplId] = recruitId;
+		}
+		
 		if (!m_mRecruitsByOwner.Contains(ownerPersistentId))
 			m_mRecruitsByOwner[ownerPersistentId] = new array<string>;
 		m_mRecruitsByOwner[ownerPersistentId].Insert(recruitId);
-		
-		Print("[Overthrow] Client received recruit creation broadcast: " + recruitName + " (ID: " + recruitId + ")");
 		
 		// Fire event
 		m_OnRecruitAdded.Invoke(recruit);
@@ -1225,6 +1425,16 @@ class OVT_RecruitManagerComponent : OVT_Component
 		// Get recruit data before removing
 		OVT_RecruitData recruit = m_mRecruits.Get(recruitId);
 		
+		// Clean up replication ID mapping
+		for (int i = m_mRplIdToRecruit.Count() - 1; i >= 0; i--)
+		{
+			if (m_mRplIdToRecruit.GetElement(i) == recruitId)
+			{
+				m_mRplIdToRecruit.RemoveElement(i);
+				break;
+			}
+		}
+		
 		// Remove from collections
 		m_mRecruits.Remove(recruitId);
 		
@@ -1240,8 +1450,6 @@ class OVT_RecruitManagerComponent : OVT_Component
 				m_mRecruitsByOwner.Remove(ownerPersistentId);
 		}
 		
-		Print("[Overthrow] Client received recruit removal broadcast: " + recruitId);
-		
 		// Fire event
 		if (recruit)
 			m_OnRecruitRemoved.Invoke(recruit);
@@ -1251,7 +1459,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//! RPC method to handle recruit updates on clients
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_RecruitUpdated(string recruitId, string ownerPersistentId, string name, 
-		int xp, int kills, int level, vector lastKnownPosition, bool isOnline)
+		int xp, int kills, int level, vector lastKnownPosition, RplId recruitRplId)
 	{
 		// Only process on clients, not the server (server already handled it)
 		if (RplSession.Mode() != RplMode.Client)
@@ -1275,15 +1483,21 @@ class OVT_RecruitManagerComponent : OVT_Component
 			m_mRecruitsByOwner[ownerPersistentId].Insert(recruitId);
 		}
 		
+		// Add/update replication ID mapping for client-side entity lookup
+		if (recruitRplId != RplId.Invalid())
+		{
+			m_mRplIdToRecruit[recruitRplId] = recruitId;
+		}
+		
 		// Update recruit data (most important fields for status display)
 		recruit.m_sName = name;
 		recruit.m_iXP = xp;
 		recruit.m_iKills = kills;
 		recruit.m_iLevel = level;
 		recruit.m_vLastKnownPosition = lastKnownPosition;
-		recruit.m_bIsOnline = isOnline;
 		
-		Print("[Overthrow] Client received recruit update broadcast: " + name + " (ID: " + recruitId + ", Online: " + isOnline + ")");
+		// Determine online status from replication ID
+		recruit.m_bIsOnline = (recruitRplId != RplId.Invalid());
 	}
 	
 }

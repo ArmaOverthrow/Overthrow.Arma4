@@ -162,10 +162,7 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 			}
 			
 			groupController.RequestJoinGroup(groupID);
-			
-			// Schedule setting leadership after join completes
-			GetGame().GetCallqueue().CallLater(SetGroupLeaderDelayed, 200, false, playerId, groupID, 0);
-			
+						
 			Print("[Overthrow] Created group " + groupID + " for player " + playerName + " (ID: " + playerId + ")", LogLevel.NORMAL);
 			Print("[Overthrow] Group faction: " + faction.GetFactionKey() + ", Player entity: " + playerController.GetControlledEntity(), LogLevel.NORMAL);
 			
@@ -198,37 +195,7 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 		// Player controller is ready, proceed with group creation
 		CreateAndJoinGroup(playerId);
 	}
-	
-	//! Set group leader after ensuring player has joined the group
-	void SetGroupLeaderDelayed(int playerId, int groupID, int retryCount = 0)
-	{
-		Print("[Overthrow] SetGroupLeaderDelayed called for player " + playerId + " in group " + groupID + " (retry " + retryCount + ")", LogLevel.NORMAL);
-		SCR_GroupsManagerComponent groupsManager = SCR_GroupsManagerComponent.GetInstance();
-		if (!groupsManager) return;
 		
-		SCR_AIGroup group = groupsManager.FindGroup(groupID);
-		if (!group) return;
-		
-		// Verify player is actually in the group before setting as leader
-		if (group.IsPlayerInGroup(playerId))
-		{
-			group.SetGroupLeader(playerId);
-			Print("[Overthrow] Set player " + playerId + " as leader of group " + groupID, LogLevel.NORMAL);
-		}
-		else
-		{
-			// Retry if player hasn't joined yet (max 5 retries = 5 seconds)
-			if (retryCount < 5)
-			{
-				GetGame().GetCallqueue().CallLater(SetGroupLeaderDelayed, 1000, false, playerId, groupID, retryCount + 1);
-			}
-			else
-			{
-				Print("[Overthrow] Failed to set group leader - player " + playerId + " never joined group " + groupID, LogLevel.WARNING);
-			}
-		}
-	}
-	
 	void SetCivilianFaction(int playerId)
 	{
 		PlayerController playerController = GetGame().GetPlayerManager().GetPlayerController(playerId);
@@ -414,7 +381,7 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 		super.HandoverToPlayer(playerId, character);
 		
 		// Schedule group creation after handover completes
-		GetGame().GetCallqueue().CallLater(CreateAndJoinGroup, 1000, false, playerId);
+		GetGame().GetCallqueue().CallLater(CreateAndJoinGroup, 100, false, playerId);
 	}
 	
 	//------------------------------------------------------------------------------------------------

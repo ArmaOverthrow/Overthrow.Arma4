@@ -222,7 +222,7 @@ class OVT_RecruitsContext : OVT_UIContext
 		{
 			if (m_SelectedRecruit.m_bIsOnline)
 			{
-				// Try to get entity for distance calculation, but don't rely on it for status
+				// Get entity for distance calculation - now works reliably on clients too
 				IEntity recruitEntity = m_RecruitManager.GetRecruitEntity(m_SelectedRecruit.m_sRecruitId);
 				if (recruitEntity)
 				{
@@ -231,8 +231,7 @@ class OVT_RecruitsContext : OVT_UIContext
 				}
 				else
 				{
-					// Fallback if entity lookup fails but recruit is marked online
-					statusText.SetTextFormat("#OVT-Recruit_StatusActive", "?");
+					statusText.SetText("#OVT-Recruit_StatusActive");
 				}
 				statusText.SetColor(Color.Green);
 				
