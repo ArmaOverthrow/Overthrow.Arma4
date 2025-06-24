@@ -579,15 +579,8 @@ class OVT_RecruitManagerComponent : OVT_Component
 		// Add to recruit manager
 		string recruitId = AddRecruit(persId, civilian);
 		
-		// Broadcast recruit creation to all clients
-		if (!recruitId.IsEmpty())
-		{
-			OVT_RecruitData recruit = GetRecruit(recruitId);
-			if (recruit)
-			{
-				BroadcastRecruitCreated(recruitId, persId, recruit.m_sName, civilian.GetOrigin());
-			}
-		}
+		// Note: BroadcastRecruitCreated is already called in AddRecruit method
+		// No need to broadcast again here to avoid duplicates
 		
 		// Add to player's group using the proper API
 		SCR_PlayerController playerController = SCR_PlayerController.Cast(GetGame().GetPlayerManager().GetPlayerController(playerId));

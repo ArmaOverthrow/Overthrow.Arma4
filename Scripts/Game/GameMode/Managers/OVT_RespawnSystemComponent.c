@@ -97,7 +97,8 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 	}
 	
 	void CreateAndJoinGroup(int playerId)
-	{
+	{		
+		
 		SCR_PlayerController playerController = SCR_PlayerController.Cast(m_pPlayerManager.GetPlayerController(playerId));
 		if (!playerController)
 		{
@@ -121,6 +122,8 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 			Print("[Overthrow] ERROR: Player controller has no group component! Player ID: " + playerId, LogLevel.ERROR);
 			return;
 		}
+		
+		SetCivilianFaction(playerId);
 		
 		int groupId = group.GetGroupID();
 		//Is the player not already in a group?
@@ -220,6 +223,7 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 			if (factionManager)
 			{
 				int factionIndex = factionManager.GetFactionIndex(civ);
+				RPC_ForceClientFactionMapping(playerId, factionIndex);
 				Rpc(RPC_ForceClientFactionMapping, playerId, factionIndex);
 			}
 		}
@@ -240,8 +244,6 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 	
 	override void OnCharacterLoadComplete(int playerId, EPF_EntitySaveData saveData, EPF_PersistenceComponent persistenceComponent)
 	{			
-		// Delay faction assignment to ensure player controller is fully initialized
-		SetCivilianFaction(playerId);
 		// Group creation now happens in HandoverToPlayer
 		super.OnCharacterLoadComplete(playerId, saveData, persistenceComponent);	
 	}
@@ -381,7 +383,7 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 		super.HandoverToPlayer(playerId, character);
 		
 		// Schedule group creation after handover completes
-		GetGame().GetCallqueue().CallLater(CreateAndJoinGroup, 100, false, playerId);
+		GetGame().GetCallqueue().CallLater(CreateAndJoinGroup, 1000, false, playerId);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -476,11 +478,7 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 			}
 			
 			player.firstSpawn = false;
-		}		
-		
-		// Delay faction assignment to ensure player controller is fully initialized
-		GetGame().GetCallqueue().CallLater(SetCivilianFaction, 500, false, playerId);
-		// Group creation now happens in HandoverToPlayer
+		}				
 	}
 	
 	//------------------------------------------------------------------------------------------------
