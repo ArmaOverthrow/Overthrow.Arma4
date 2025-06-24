@@ -1009,6 +1009,7 @@ class OVT_PlayerCommsComponent: OVT_Component
 		
 		// Notify the specific client to open inventory
 		RplId playerControllerId = Replication.FindId(playerController);
+		RpcDo_OpenInventory(targetEntityId, playerId, playerControllerId);
 		Rpc(RpcDo_OpenInventory, targetEntityId, playerId, playerControllerId);
 	}
 	
@@ -1016,15 +1017,11 @@ class OVT_PlayerCommsComponent: OVT_Component
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_OpenInventory(RplId targetEntityId, int playerId, RplId playerControllerId)
 	{
-		// Only process on clients and only for the specified player
-		if (Replication.IsServer())
-			return;
-			
-		// Check if this is for the local player
+		// Check if this is for the local player first
 		int localPlayerId = SCR_PlayerController.GetLocalPlayerId();
 		if (localPlayerId != playerId)
 			return;
-			
+						
 		// Get the target entity from RplId
 		RplComponent rpl = RplComponent.Cast(Replication.FindItem(targetEntityId));
 		if (!rpl)
