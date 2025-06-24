@@ -362,9 +362,6 @@ OVT_OverthrowGameMode {
   }
   SCR_SupportStationManagerComponent "{5EE26402C9203074}" {
   }
-  SCR_TimeAndWeatherHandlerComponent "{5EE26402AC31F891}" {
-   m_bRandomWeatherChanges 1
-  }
   SCR_VotingManagerComponent "{5EE26402B4C7BB47}" {
   }
   SerializerInventoryStorageManagerComponent "{5EE26402B9CEA8E5}" {
@@ -373,8 +370,8 @@ OVT_OverthrowGameMode {
    Streamable Disabled
   }
  }
- coords 208.286 1.001 116.919
  Flags 0
+ coords 208.286 1.001 116.919
  m_bAutoPlayerRespawn 0
  m_StartGameUIContext OVT_StartGameContext "{599D315949D3D5D0}" {
   m_Layout "{4A7A8EED9F6F2A92}UI/Layouts/Menu/StartGameMenu.layout"
