@@ -223,7 +223,6 @@ class OVT_RecruitManagerComponent : OVT_Component
 		OVT_RecruitData recruit = new OVT_RecruitData();
 		recruit.m_sRecruitId = recruitId;
 		recruit.m_sOwnerPersistentId = ownerPersistentId;
-		recruit.m_sEntityPersistentId = recruitId; // Same as recruit ID for EPF
 		recruit.m_sName = name;
 		
 		if (name.IsEmpty())
@@ -300,7 +299,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 		m_OnRecruitAdded.Invoke(recruit);
 		
 		// Broadcast recruit creation to all clients
-		BroadcastRecruitCreated(recruitId, ownerPersistentId, recruit.m_sName, recruit.m_vLastKnownPosition);
+		BroadcastRecruitCreated(recruitId, ownerPersistentId, recruit.m_sName, recruit.m_vLastKnownPosition, characterEntity);
 		
 		return recruitId;
 	}
@@ -1238,7 +1237,6 @@ class OVT_RecruitManagerComponent : OVT_Component
 			OVT_RecruitData recruit = new OVT_RecruitData();
 			recruit.m_sRecruitId = recruitId;
 			recruit.m_sOwnerPersistentId = ownerPersistentId;
-			recruit.m_sEntityPersistentId = recruitId;
 			recruit.m_sName = name;
 			recruit.m_iXP = xp;
 			recruit.m_iKills = kills;
@@ -1341,16 +1339,26 @@ class OVT_RecruitManagerComponent : OVT_Component
 	
 	//------------------------------------------------------------------------------------------------
 	//! Broadcast recruit creation to all clients (server only)
-	void BroadcastRecruitCreated(string recruitId, string ownerPersistentId, string recruitName, vector position)
+	void BroadcastRecruitCreated(string recruitId, string ownerPersistentId, string recruitName, vector position, IEntity recruitEntity = null)
 	{
 		// Get replication ID for entity mapping
 		RplId recruitRplId = RplId.Invalid();
-		IEntity recruitEntity = FindRecruitEntity(recruitId);
 		if (recruitEntity)
 		{
 			RplComponent rplComponent = RplComponent.Cast(recruitEntity.FindComponent(RplComponent));
 			if (rplComponent)
 				recruitRplId = rplComponent.Id();
+		}
+		else
+		{
+			// Fallback to finding entity (for compatibility)
+			IEntity foundEntity = FindRecruitEntity(recruitId);
+			if (foundEntity)
+			{
+				RplComponent rplComponent = RplComponent.Cast(foundEntity.FindComponent(RplComponent));
+				if (rplComponent)
+					recruitRplId = rplComponent.Id();
+			}
 		}
 		
 		Rpc(RpcDo_RecruitCreated, recruitId, ownerPersistentId, recruitName, position, recruitRplId);
@@ -1392,7 +1400,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 	{			
 		// Create recruit data on client
 		OVT_RecruitData recruit = new OVT_RecruitData();
-		recruit.m_sEntityPersistentId = recruitId;
+		recruit.m_sRecruitId = recruitId;
 		recruit.m_sOwnerPersistentId = ownerPersistentId;
 		recruit.m_sName = recruitName;
 		recruit.m_vLastKnownPosition = position;
@@ -1490,7 +1498,6 @@ class OVT_RecruitManagerComponent : OVT_Component
 			// Recruit doesn't exist on client, create it
 			recruit = new OVT_RecruitData();
 			recruit.m_sRecruitId = recruitId;
-			recruit.m_sEntityPersistentId = recruitId;
 			recruit.m_sOwnerPersistentId = ownerPersistentId;
 			
 			// Add to collections

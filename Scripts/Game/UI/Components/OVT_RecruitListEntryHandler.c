@@ -35,18 +35,14 @@ class OVT_RecruitListEntryHandler : SCR_ButtonBaseComponent
 			
 			if (recruitEntity)
 			{
-				// Check if alive
-				SCR_CharacterDamageManagerComponent damageManager = SCR_CharacterDamageManagerComponent.Cast(
-					recruitEntity.FindComponent(SCR_CharacterDamageManagerComponent)
-				);
-				
-				if (damageManager && damageManager.GetState() == EDamageState.DESTROYED)
+				// Check if unconscious
+				ChimeraCharacter character = ChimeraCharacter.Cast(recruitEntity);
+				CharacterControllerComponent controller = character.GetCharacterController();
+				if (controller && controller.GetLifeState() == ECharacterLifeState.INCAPACITATED)
 				{
-					statusWidget.SetText("#OVT-Recruit_Dead");
+					statusWidget.SetText("#OVT-Recruit_Unconscious");
 					statusWidget.SetColor(Color.Red);
-				}
-				else
-				{
+				}else{
 					statusWidget.SetText("#OVT-Recruit_Active");
 					statusWidget.SetColor(Color.Green);
 				}

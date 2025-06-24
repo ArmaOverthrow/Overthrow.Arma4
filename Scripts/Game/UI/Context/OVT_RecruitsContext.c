@@ -256,22 +256,12 @@ class OVT_RecruitsContext : OVT_UIContext
 		TextWidget statusText = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedStatus"));
 		if (statusText)
 		{
-			if (m_SelectedRecruit.m_bIsOnline)
+			IEntity recruitEntity = m_RecruitManager.GetRecruitEntity(m_SelectedRecruit.m_sRecruitId);
+			if (recruitEntity)
 			{
-				// Get entity for distance calculation - now works reliably on clients too
-				IEntity recruitEntity = m_RecruitManager.GetRecruitEntity(m_SelectedRecruit.m_sRecruitId);
-				if (recruitEntity)
-				{
-					float distance = vector.Distance(m_Owner.GetOrigin(), recruitEntity.GetOrigin());
-					statusText.SetTextFormat("#OVT-Recruit_StatusActive", Math.Round(distance));
-				}
-				else
-				{
-					statusText.SetText("#OVT-Recruit_StatusActive");
-				}
+				float distance = vector.Distance(m_Owner.GetOrigin(), recruitEntity.GetOrigin());
+				statusText.SetTextFormat("#OVT-Recruit_StatusActive", Math.Round(distance));
 				statusText.SetColor(Color.Green);
-				
-				// Enable action buttons for online recruits
 				SetButtonEnabled("ShowOnMapButton", true);
 			}
 			else
@@ -282,6 +272,7 @@ class OVT_RecruitsContext : OVT_UIContext
 				// Disable action buttons for offline recruits
 				SetButtonEnabled("ShowOnMapButton", false);
 			}
+			
 		}
 	}
 	

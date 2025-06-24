@@ -30,10 +30,7 @@ class OVT_RecruitData : Managed
 	
 	//! Last known position of the recruit
 	vector m_vLastKnownPosition = "0 0 0";
-	
-	//! EPF persistent ID for the character entity (same as recruit ID)
-	string m_sEntityPersistentId;
-	
+		
 	//! Whether the recruit entity is currently spawned in the world
 	bool m_bIsOnline = false;
 	
