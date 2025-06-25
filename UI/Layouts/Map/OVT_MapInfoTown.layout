@@ -1,0 +1,151 @@
+VerticalLayoutWidgetClass {
+ Name "TownInfo"
+ {
+  // Population info
+  HorizontalLayoutWidgetClass "{OVT_PopulationLayout}" {
+   Name "PopulationLayout"
+   Slot LayoutSlot "{OVT_PopulationLayoutSlot}" {
+    Padding 0 0 0 5
+   }
+   {
+    TextWidgetClass "{OVT_PopulationLabel}" {
+     Name "PopulationLabel"
+     Slot LayoutSlot "{OVT_PopulationLabelSlot}" {
+      Padding 0 0 5 0
+     }
+     Text "#OVT-Population:"
+     Color 0.8 0.8 0.8 1
+     "Font Size" 11
+     "Min Font Size" 11
+     "Horizontal Alignment" Left
+     "Vertical Alignment" Center
+    }
+    
+    TextWidgetClass "{OVT_Population}" {
+     Name "Population"
+     Slot LayoutSlot "{OVT_PopulationSlot}" {
+      Padding 0 0 0 0
+     }
+     Text "1250"
+     Color 1 1 1 1
+     "Font Size" 11
+     "Min Font Size" 11
+     "Horizontal Alignment" Left
+     "Vertical Alignment" Center
+     FontProperties FontProperties {
+      Font "{EABA4FE9D014CCEF}UI/Fonts/RobotoCondensed/RobotoCondensed_Bold.fnt"
+     }
+    }
+   }
+  }
+  
+  // Support info
+  HorizontalLayoutWidgetClass "{OVT_SupportLayout}" {
+   Name "SupportLayout"
+   Slot LayoutSlot "{OVT_SupportLayoutSlot}" {
+    Padding 0 0 0 5
+   }
+   {
+    TextWidgetClass "{OVT_SupportLabel}" {
+     Name "SupportLabel"
+     Slot LayoutSlot "{OVT_SupportLabelSlot}" {
+      Padding 0 0 5 0
+     }
+     Text "#OVT-Support:"
+     Color 0.8 0.8 0.8 1
+     "Font Size" 11
+     "Min Font Size" 11
+     "Horizontal Alignment" Left
+     "Vertical Alignment" Center
+    }
+    
+    TextWidgetClass "{OVT_Support}" {
+     Name "Support"
+     Slot LayoutSlot "{OVT_SupportSlot}" {
+      Padding 0 0 0 0
+     }
+     Text "45 (15%)"
+     Color 1 1 1 1
+     "Font Size" 11
+     "Min Font Size" 11
+     "Horizontal Alignment" Left
+     "Vertical Alignment" Center
+     FontProperties FontProperties {
+      Font "{EABA4FE9D014CCEF}UI/Fonts/RobotoCondensed/RobotoCondensed_Bold.fnt"
+     }
+    }
+   }
+  }
+  
+  // Stability info
+  HorizontalLayoutWidgetClass "{OVT_StabilityLayout}" {
+   Name "StabilityLayout"
+   Slot LayoutSlot "{OVT_StabilityLayoutSlot}" {
+    Padding 0 0 0 5
+   }
+   {
+    TextWidgetClass "{OVT_StabilityLabel}" {
+     Name "StabilityLabel"
+     Slot LayoutSlot "{OVT_StabilityLabelSlot}" {
+      Padding 0 0 5 0
+     }
+     Text "#OVT-Stability:"
+     Color 0.8 0.8 0.8 1
+     "Font Size" 11
+     "Min Font Size" 11
+     "Horizontal Alignment" Left
+     "Vertical Alignment" Center
+    }
+    
+    TextWidgetClass "{OVT_Stability}" {
+     Name "Stability"
+     Slot LayoutSlot "{OVT_StabilitySlot}" {
+      Padding 0 0 0 0
+     }
+     Text "78%"
+     Color 1 1 1 1
+     "Font Size" 11
+     "Min Font Size" 11
+     "Horizontal Alignment" Left
+     "Vertical Alignment" Center
+     FontProperties FontProperties {
+      Font "{EABA4FE9D014CCEF}UI/Fonts/RobotoCondensed/RobotoCondensed_Bold.fnt"
+     }
+    }
+   }
+  }
+  
+  // Controlling faction
+  HorizontalLayoutWidgetClass "{OVT_FactionLayout}" {
+   Name "FactionLayout"
+   Slot LayoutSlot "{OVT_FactionLayoutSlot}" {
+    Padding 0 0 0 10
+   }
+   {
+    TextWidgetClass "{OVT_FactionLabel}" {
+     Name "FactionLabel"
+     Slot LayoutSlot "{OVT_FactionLabelSlot}" {
+      Padding 0 0 5 0
+     }
+     Text "Controlled by:"
+     Color 0.8 0.8 0.8 1
+     "Font Size" 11
+     "Min Font Size" 11
+     "Horizontal Alignment" Left
+     "Vertical Alignment" Center
+    }
+    
+    ImageWidgetClass "{OVT_FactionIcon}" {
+     Name "FactionIcon"
+     Slot LayoutSlot "{OVT_FactionIconSlot}" {
+      Padding 0 0 0 0
+     }
+     Color 1 1 1 1
+     Size 20 20
+     "Blend Mode" Blend
+    }
+   }
+  }
+ }
+}
+}

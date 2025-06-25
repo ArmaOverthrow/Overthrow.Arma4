@@ -512,4 +512,12 @@ class OVT_Global : Managed
 		
 		return slotEntity;
 	}
+	
+	//! Centralized method to show hints throughout Overthrow
+	static void ShowHint(string text)
+	{
+		SCR_HintManagerComponent hintManager = SCR_HintManagerComponent.GetInstance();
+		if (hintManager)
+			hintManager.ShowCustom(text);
+	}
 }

@@ -1,0 +1,103 @@
+FrameWidgetClass {
+ Name "rootFrame"
+ "Z Order" 8
+ Clipping False
+ components {
+  OVT_MapLocationElement "{65B1281D2F6C0C46}" {
+  }
+ }
+ {
+  FrameWidgetClass "{OVT_IconContainer}" {
+   Name "IconContainer"
+   Slot FrameWidgetSlot "{OVT_IconContainerSlot}" {
+    Anchor 0 0 0 0
+    PositionX 0
+    OffsetLeft 0
+    PositionY 0
+    OffsetTop 0
+    SizeX 32
+    OffsetRight -32
+    SizeY 32
+    OffsetBottom -32
+    Alignment 0.5 0.5
+   }
+   {
+    PanelWidgetClass "{OVT_SelectionHighlight}" {
+     Name "SelectionHighlight"
+     Slot AlignableSlot "{OVT_SelectionSlot}" {
+      HorizontalAlign 1
+      VerticalAlign 1
+      Padding -4 -4 -4 -4
+     }
+     "Z Order" 0
+     Color 1 1 0 0.5
+    }
+    SizeLayoutWidgetClass "{OVT_IconLayout}" {
+     Name "IconLayout"
+     Slot AlignableSlot "{OVT_IconLayoutSlot}" {
+      HorizontalAlign 1
+      VerticalAlign 1
+      Padding 0 0 0 0
+     }
+     {
+      ButtonWidgetClass "{OVT_Button}" {
+       Name "Button"
+       Slot AlignableSlot "{OVT_ButtonSlot}" {
+        HorizontalAlign 1
+        VerticalAlign 1
+        Padding -4 -4 -4 -4
+       }
+       "Z Order" 3
+       "Ignore Cursor" 0
+      }
+      ImageWidgetClass "{OVT_Icon}" {
+       Name "Icon"
+       Slot AlignableSlot "{OVT_IconSlot}" {
+        HorizontalAlign 1
+        VerticalAlign 1
+        Padding 0 0 0 0
+       }
+       "Z Order" 1
+       Color 1 1 1 1
+       Size 24 24
+       "Blend Mode" Blend
+      }
+      ImageWidgetClass "{OVT_FastTravelIndicator}" {
+       Name "FastTravelIndicator"
+       Slot AlignableSlot "{OVT_FastTravelSlot}" {
+        HorizontalAlign 2
+        VerticalAlign 0
+        Padding 0 -2 -2 0
+       }
+       "Z Order" 2
+       Color 0 1 0 0.8
+       Texture "{C7691945DE01FB28}UI/Imagesets/overthrow_mapicons.imageset"
+       Image "waypoint"
+       Size 8 8
+       "Blend Mode" Blend
+      }
+     }
+    }
+   }
+  }
+  TextWidgetClass "{OVT_Distance}" {
+   Name "Distance"
+   Slot FrameWidgetSlot "{OVT_DistanceSlot}" {
+    Anchor 0 0 0 0
+    PositionX 0
+    OffsetLeft 0
+    PositionY 0
+    OffsetTop 36
+    SizeX 0
+    OffsetRight 0
+    SizeY 0
+    OffsetBottom 0
+    Alignment 0.5 0
+   }
+   "Z Order" 3
+   Color 1 1 1 0.8
+   Text "1.2 km"
+   "Font Size" 10
+  }
+ }
+}
