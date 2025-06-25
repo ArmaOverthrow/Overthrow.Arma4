@@ -80,9 +80,9 @@ class OVT_Global : Managed
 		return OVT_SkillManagerComponent.GetInstance();
 	}
 	
-	static OVT_DeploymentManager GetDeploymentManager()
+	static OVT_DeploymentManagerComponent GetDeploymentManager()
 	{
-		return OVT_DeploymentManager.GetInstance();
+		return OVT_DeploymentManagerComponent.GetInstance();
 	}
 	
 	static bool PlayerInRange(vector pos, int range)

@@ -29,7 +29,7 @@ class OVT_DeploymentComponent : OVT_Component
 		m_vPosition = owner.GetOrigin();
 		
 		// Register with manager
-		OVT_DeploymentManager manager = OVT_Global.GetDeploymentManager();
+		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
 		if (manager)
 			manager.RegisterDeployment(this);
 	}
@@ -169,7 +169,7 @@ class OVT_DeploymentComponent : OVT_Component
 		m_aActiveModules.Clear();
 		
 		// Unregister from manager
-		OVT_DeploymentManager manager = OVT_Global.GetDeploymentManager();
+		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
 		if (manager)
 			manager.UnregisterDeployment(this);
 			
@@ -266,7 +266,7 @@ class OVT_DeploymentComponent : OVT_Component
 			return false;
 			
 		// Check faction type
-		if (!config.m_aAllowedFactionTypes.IsEmpty())
+		if (config.m_iAllowedFactionTypes != 0)
 		{
 			FactionManager factionManager = GetGame().GetFactionManager();
 			if (!factionManager)
@@ -276,8 +276,8 @@ class OVT_DeploymentComponent : OVT_Component
 			if (!faction)
 				return false;
 				
-			string factionType = GetFactionType(faction);
-			if (!config.m_aAllowedFactionTypes.Contains(factionType))
+			OVT_FactionType factionType = GetFactionType(faction);
+			if (!config.CanFactionUse(factionType))
 				return false;
 		}
 		
@@ -293,19 +293,19 @@ class OVT_DeploymentComponent : OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	protected static string GetFactionType(Faction faction)
+	protected static OVT_FactionType GetFactionType(Faction faction)
 	{
 		// Determine faction type based on faction key
 		string factionKey = faction.GetFactionKey();
 		
 		if (factionKey == OVT_Global.GetConfig().GetOccupyingFaction().GetFactionKey())
-			return "occupying";
-		else if (factionKey == OVT_Global.GetConfig().GetOccupyingFaction().GetFactionKey())
-			return "resistance";
+			return OVT_FactionType.OCCUPYING_FACTION;
+		else if (factionKey == OVT_Global.GetConfig().GetPlayerFaction().GetFactionKey())
+			return OVT_FactionType.RESISTANCE_FACTION;
 		else if (factionKey == OVT_Global.GetConfig().GetSupportingFaction().GetFactionKey())
-			return "supporting";
+			return OVT_FactionType.SUPPORTING_FACTION;
 		
-		return "";
+		return 0;
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -365,7 +365,7 @@ class OVT_DeploymentSaveData : EPF_ComponentSaveData
 		// Restore config by looking it up in the deployment registry
 		if (!m_sDeploymentConfigName.IsEmpty())
 		{
-			OVT_DeploymentManager manager = OVT_Global.GetDeploymentManager();
+			OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
 			if (manager && manager.m_DeploymentRegistry)
 			{
 				OVT_DeploymentConfig config = manager.m_DeploymentRegistry.FindConfigByName(m_sDeploymentConfigName);

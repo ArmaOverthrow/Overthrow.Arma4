@@ -37,6 +37,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	protected OVT_SkillManagerComponent m_SkillManager;
 	//! Reference to the persistence manager component.
 	protected OVT_PersistenceManagerComponent m_Persistence;
+	//! Reference to the deployment manager component.
+	protected OVT_DeploymentManagerComponent m_Deployment;
 
 	//! Reference to the start camera entity.
 	protected CameraBase m_pCamera;
@@ -666,6 +668,14 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			Print("[Overthrow] Initializing Skills");
 
 			m_SkillManager.Init(this);
+		}
+		
+		m_Deployment = OVT_DeploymentManagerComponent.Cast(FindComponent(OVT_DeploymentManagerComponent));
+		if(m_Deployment)
+		{
+			Print("[Overthrow] Initializing Deployment");
+
+			m_Deployment.Init(this);
 		}
 
 		m_StartGameUIContext.Init(owner, null);

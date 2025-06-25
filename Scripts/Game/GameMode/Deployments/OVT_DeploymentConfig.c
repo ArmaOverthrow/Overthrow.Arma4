@@ -7,8 +7,8 @@ class OVT_DeploymentConfig : ScriptAndConfig
 	[Attribute(desc: "Modules that make up this deployment")]
 	ref array<ref OVT_BaseDeploymentModule> m_aModules;
 	
-	[Attribute(desc: "Faction types allowed to use this deployment")]
-	ref array<string> m_aAllowedFactionTypes;
+	[Attribute("1", UIWidgets.Flags, enums: ParamEnumArray.FromEnum(OVT_FactionTypeFlag))]
+	OVT_FactionTypeFlag m_iAllowedFactionTypes;
 	
 	[Attribute(defvalue: "100", desc: "Base resource cost to create this deployment")]
 	int m_iBaseCost;
@@ -31,8 +31,9 @@ class OVT_DeploymentConfig : ScriptAndConfig
 		if (!m_aModules)
 			m_aModules = new array<ref OVT_BaseDeploymentModule>;
 			
-		if (!m_aAllowedFactionTypes)
-			m_aAllowedFactionTypes = new array<string>;
+		// Set default to allow only occupying faction
+		if (m_iAllowedFactionTypes == 0)
+			m_iAllowedFactionTypes = 1;
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -67,12 +68,12 @@ class OVT_DeploymentConfig : ScriptAndConfig
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	bool CanFactionUse(string factionType)
+	bool CanFactionUse(OVT_FactionTypeFlag factionType)
 	{
-		if (!m_aAllowedFactionTypes || m_aAllowedFactionTypes.IsEmpty())
+		if (m_iAllowedFactionTypes == 7)
 			return true; // No restrictions
 			
-		return m_aAllowedFactionTypes.Contains(factionType);
+		return (factionType & m_iAllowedFactionTypes) != 0;
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -175,13 +176,15 @@ class OVT_DeploymentConfig : ScriptAndConfig
 			Print(string.Format("    - %1", module.Type().ToString()));
 		}
 		
-		if (!m_aAllowedFactionTypes.IsEmpty())
+		if (m_iAllowedFactionTypes != 0)
 		{
 			Print("  Allowed Factions:");
-			foreach (string factionType : m_aAllowedFactionTypes)
-			{
-				Print(string.Format("    - %1", factionType));
-			}
+			if (m_iAllowedFactionTypes & OVT_FactionTypeFlag.OCCUPYING_FACTION)
+				Print("    - Occupying");
+			if (m_iAllowedFactionTypes & OVT_FactionTypeFlag.RESISTANCE_FACTION)
+				Print("    - Resistance");
+			if (m_iAllowedFactionTypes & OVT_FactionTypeFlag.SUPPORTING_FACTION)
+				Print("    - Supporting");
 		}
 	}
 }

@@ -28,7 +28,7 @@ class OVT_DeploymentRegistry : ScriptAndConfig
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	array<OVT_DeploymentConfig> GetConfigsForFaction(string factionType)
+	array<OVT_DeploymentConfig> GetConfigsForFaction(OVT_FactionType factionType)
 	{
 		array<OVT_DeploymentConfig> configs = new array<OVT_DeploymentConfig>;
 		
@@ -96,20 +96,38 @@ class OVT_DeploymentRegistry : ScriptAndConfig
 		Print(string.Format("Deployment Registry: %1", m_sRegistryName));
 		Print(string.Format("  Total Configs: %1", m_aDeploymentConfigs.Count()));
 		
-		map<string, int> factionCounts = new map<string, int>;
+		map<int, int> factionCounts = new map<int, int>;
 		
 		foreach (OVT_DeploymentConfig config : m_aDeploymentConfigs)
 		{
-			foreach (string factionType : config.m_aAllowedFactionTypes)
+			// Count deployments available to each faction type
+			if (config.m_iAllowedFactionTypes & OVT_FactionTypeFlag.OCCUPYING_FACTION)
 			{
-				int count = factionCounts.Get(factionType);
-				factionCounts.Set(factionType, count + 1);
+				int count = factionCounts.Get(OVT_FactionTypeFlag.OCCUPYING_FACTION);
+				factionCounts.Set(OVT_FactionTypeFlag.OCCUPYING_FACTION, count + 1);
+			}
+			if (config.m_iAllowedFactionTypes & OVT_FactionTypeFlag.RESISTANCE_FACTION)
+			{
+				int count = factionCounts.Get(OVT_FactionTypeFlag.RESISTANCE_FACTION);
+				factionCounts.Set(OVT_FactionTypeFlag.RESISTANCE_FACTION, count + 1);
+			}
+			if (config.m_iAllowedFactionTypes & OVT_FactionTypeFlag.SUPPORTING_FACTION)
+			{
+				int count = factionCounts.Get(OVT_FactionTypeFlag.SUPPORTING_FACTION);
+				factionCounts.Set(OVT_FactionTypeFlag.SUPPORTING_FACTION, count + 1);
 			}
 		}
 		
-		foreach (string factionType, int count : factionCounts)
+		foreach (int factionType, int count : factionCounts)
 		{
-			Print(string.Format("  %1: %2 configs", factionType, count));
+			string factionName = "";
+			switch (factionType)
+			{
+				case OVT_FactionType.OCCUPYING_FACTION: factionName = "Occupying"; break;
+				case OVT_FactionType.RESISTANCE_FACTION: factionName = "Resistance"; break;
+				case OVT_FactionType.SUPPORTING_FACTION: factionName = "Supporting"; break;
+			}
+			Print(string.Format("  %1: %2 configs", factionName, count));
 		}
 	}
 }

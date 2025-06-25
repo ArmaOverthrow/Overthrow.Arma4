@@ -1,12 +1,15 @@
 [EntityEditorProps(category: "Overthrow/Managers", description: "Manages all deployments across factions")]
-class OVT_DeploymentManagerClass : OVT_ComponentClass
+class OVT_DeploymentManagerComponentClass : OVT_ComponentClass
 {
 }
 
-class OVT_DeploymentManager : OVT_Component
+class OVT_DeploymentManagerComponent : OVT_Component
 {
 	[Attribute(desc: "Deployment registry containing all available deployment configs")]
 	ref OVT_DeploymentRegistry m_DeploymentRegistry;
+	
+	[Attribute(defvalue: "{53D8FEE526831693}Prefabs/GameMode/OVT_Deployment.et", desc: "Prefab to use for deployment entities")]
+	ResourceName m_DeploymentPrefab;
 	
 	[Attribute(defvalue: "30000", desc: "Interval for deployment evaluation in milliseconds")]
 	int m_iEvaluationInterval;
@@ -23,16 +26,18 @@ class OVT_DeploymentManager : OVT_Component
 	static const float THREAT_EVALUATION_RADIUS = 2000; // 2km
 	static const int MIN_DEPLOYMENT_DISTANCE = 500; // 500m minimum between deployments
 	
-	static OVT_DeploymentManager s_Instance;
+	static OVT_DeploymentManagerComponent s_Instance;
+	
+	private ref array<IEntity> m_aFoundSlots;
 	
 	//------------------------------------------------------------------------------------------------
-	static OVT_DeploymentManager GetInstance()
+	static OVT_DeploymentManagerComponent GetInstance()
 	{
 		if (!s_Instance)
 		{
 			BaseGameMode gameMode = GetGame().GetGameMode();
 			if (gameMode)
-				s_Instance = OVT_DeploymentManager.Cast(gameMode.FindComponent(OVT_DeploymentManager));
+				s_Instance = OVT_DeploymentManagerComponent.Cast(gameMode.FindComponent(OVT_DeploymentManagerComponent));
 		}
 		return s_Instance;
 	}
@@ -72,7 +77,7 @@ class OVT_DeploymentManager : OVT_Component
 		// Initialize faction resources
 		InitializeFactionResources();
 		
-		Print("DeploymentManager initialized with " + m_DeploymentRegistry.m_aDeploymentConfigs.Count() + " deployment configs", LogLevel.NORMAL);
+		Print("[Overthrow] DeploymentManager initialized with " + m_DeploymentRegistry.m_aDeploymentConfigs.Count() + " deployment configs", LogLevel.NORMAL);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -82,15 +87,15 @@ class OVT_DeploymentManager : OVT_Component
 		
 		// Query for all slot entities in the world
 		// This will depend on how slots are implemented in the base upgrade system
-		array<IEntity> slotEntities = new array<IEntity>;
-		GetGame().GetWorld().QueryEntitiesBySphere(vector.Zero, 50000, null, FilterSlotEntities, EQueryEntitiesFlags.ALL);
+		m_aFoundSlots = new array<IEntity>;
+		GetGame().GetWorld().QueryEntitiesBySphere(vector.Zero, 50000, FilterSlotEntities, null, EQueryEntitiesFlags.ALL);
 		
-		foreach (IEntity slotEntity : slotEntities)
+		foreach (IEntity slotEntity : m_aFoundSlots)
 		{
 			m_aAvailableSlots.Insert(slotEntity.GetOrigin());
 		}
 		
-		Print("Cached " + m_aAvailableSlots.Count() + " available deployment slots", LogLevel.NORMAL);
+		Print("[Overthrow] Cached " + m_aAvailableSlots.Count() + " available deployment slots", LogLevel.NORMAL);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -99,9 +104,9 @@ class OVT_DeploymentManager : OVT_Component
 		SCR_EditableEntityComponent editable = EPF_Component<SCR_EditableEntityComponent>.Find(entity);
 		if (editable && editable.GetEntityType() == EEditableEntityType.SLOT)
 		{
-			return true;
+			m_aFoundSlots.Insert(entity);
 		}
-		return false;
+		return true;
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -378,7 +383,7 @@ class OVT_DeploymentManager : OVT_Component
 				continue;
 			
 			// Check if faction can use this config
-			string factionType = GetFactionTypeString(factionIndex);
+			OVT_FactionType factionType = GetFactionType(factionIndex);
 			if (!config.CanFactionUse(factionType))
 				continue;
 			
@@ -415,26 +420,26 @@ class OVT_DeploymentManager : OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	protected string GetFactionTypeString(int factionIndex)
+	protected OVT_FactionType GetFactionType(int factionIndex)
 	{
 		FactionManager factionManager = GetGame().GetFactionManager();
 		if (!factionManager)
-			return "";
+			return 0;
 		
 		Faction faction = factionManager.GetFactionByIndex(factionIndex);
 		if (!faction)
-			return "";
+			return 0;
 		
 		string factionKey = faction.GetFactionKey();
 		
 		if (factionKey == OVT_Global.GetConfig().GetOccupyingFaction().GetFactionKey())
-			return "occupying";
+			return OVT_FactionType.OCCUPYING_FACTION;
 		else if (factionKey == OVT_Global.GetConfig().GetPlayerFaction().GetFactionKey())
-			return "resistance";
+			return OVT_FactionType.RESISTANCE_FACTION;
 		else if (factionKey == OVT_Global.GetConfig().GetSupportingFaction().GetFactionKey())
-			return "supporting";
+			return OVT_FactionType.SUPPORTING_FACTION;
 		
-		return "";
+		return 0;
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -444,10 +449,16 @@ class OVT_DeploymentManager : OVT_Component
 			return null;
 		
 		// Create deployment entity
-		Resource deploymentPrefab = Resource.Load("{6735AA75C381F8F5}Prefabs/Overthrow/Deployments/OVT_Deployment.et");
+		if (!m_DeploymentPrefab || m_DeploymentPrefab.IsEmpty())
+		{
+			Print("Deployment prefab not configured", LogLevel.ERROR);
+			return null;
+		}
+		
+		Resource deploymentPrefab = Resource.Load(m_DeploymentPrefab);
 		if (!deploymentPrefab)
 		{
-			Print("Failed to load deployment prefab", LogLevel.ERROR);
+			Print(string.Format("Failed to load deployment prefab: %1", m_DeploymentPrefab), LogLevel.ERROR);
 			return null;
 		}
 		
@@ -659,19 +670,19 @@ class OVT_DeploymentManager : OVT_Component
 }
 
 // EPF Save Data
-[EPF_ComponentSaveDataType(OVT_DeploymentManager), BaseContainerProps()]
-class OVT_DeploymentManagerSaveDataClass : EPF_ComponentSaveDataClass
+[EPF_ComponentSaveDataType(OVT_DeploymentManagerComponent), BaseContainerProps()]
+class OVT_DeploymentManagerComponentSaveDataClass : EPF_ComponentSaveDataClass
 {
 }
 
 [EDF_DbName.Automatic()]
-class OVT_DeploymentManagerSaveData : EPF_ComponentSaveData
+class OVT_DeploymentManagerComponentSaveData : EPF_ComponentSaveData
 {
 	ref map<int, int> m_mFactionResources;
 	
 	override EPF_EReadResult ReadFrom(IEntity owner, GenericComponent component, EPF_ComponentSaveDataClass attributes)
 	{
-		OVT_DeploymentManager manager = OVT_DeploymentManager.Cast(component);
+		OVT_DeploymentManagerComponent manager = OVT_DeploymentManagerComponent.Cast(component);
 		if (!manager)
 			return EPF_EReadResult.ERROR;
 		
@@ -688,7 +699,7 @@ class OVT_DeploymentManagerSaveData : EPF_ComponentSaveData
 	
 	override EPF_EApplyResult ApplyTo(IEntity owner, GenericComponent component, EPF_ComponentSaveDataClass attributes)
 	{
-		OVT_DeploymentManager manager = OVT_DeploymentManager.Cast(component);
+		OVT_DeploymentManagerComponent manager = OVT_DeploymentManagerComponent.Cast(component);
 		if (!manager)
 			return EPF_EApplyResult.ERROR;
 		

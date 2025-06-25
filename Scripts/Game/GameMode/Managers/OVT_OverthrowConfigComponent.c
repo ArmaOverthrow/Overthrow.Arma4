@@ -10,6 +10,12 @@ enum OVT_FactionType {
 	SUPPORTING_FACTION
 }
 
+enum OVT_FactionTypeFlag {
+	OCCUPYING_FACTION = 1,
+	RESISTANCE_FACTION = 2,
+	SUPPORTING_FACTION = 4
+}
+
 enum OVT_PatrolType {
 	DEFEND,
 	PERIMETER

@@ -1,0 +1,18 @@
+GenericEntity {
+ ID "65B2DE4CA8BDB00C"
+ components {
+  EPF_PersistenceComponent "{65B2DE4CC63454C1}" {
+   m_pSaveData EPF_EntitySaveDataClass "{65B2DE4CC244FC83}" {
+    m_aComponents {
+     OVT_DeploymentSaveDataClass "{65B2DE4CCFCFDE7A}" {
+     }
+    }
+   }
+  }
+  OVT_DeploymentComponent "{65B2DE4CFAD412BA}" {
+  }
+  RplComponent "{65B2DE4CD5522FEE}" {
+  }
+ }
+ coords 79.383 1 130.345
+}

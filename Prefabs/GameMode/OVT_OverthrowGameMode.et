@@ -22,7 +22,13 @@ OVT_OverthrowGameMode {
      }
      OVT_ConfigSaveDataClass "{5D9E53AFE550A24E}" {
      }
+     OVT_DeploymentManagerComponentSaveDataClass "{65B2DE4DE0F7175D}" {
+     }
     }
+   }
+  }
+  OVT_DeploymentManagerComponent "{65B2DE4D19F8D47E}" {
+   m_DeploymentRegistry OVT_DeploymentRegistry "{65B2DE433E54414A}" : "{C9A38056910495A2}Configs/Deployment/overthrowDeployments.conf" {
    }
   }
   OVT_EconomyManagerComponent "{5988DB0008700592}" {
