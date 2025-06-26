@@ -364,6 +364,12 @@ OVT_OverthrowGameMode {
   }
   SCR_VotingManagerComponent "{5EE26402B4C7BB47}" {
   }
+  SCR_PerceivedFactionManagerComponent "{67890123ABCDEF01}" {
+   m_eOutfitType HIGHEST_VALUE
+   m_fPunishment 0
+   m_bAIAffects 1
+   m_sFallbackFaction "CIV"
+  }
   SerializerInventoryStorageManagerComponent "{5EE26402B9CEA8E5}" {
   }
   RplComponent "{59724C8C935D8E18}" {

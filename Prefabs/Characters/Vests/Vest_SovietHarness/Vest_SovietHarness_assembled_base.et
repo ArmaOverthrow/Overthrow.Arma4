@@ -1,0 +1,19 @@
+GenericEntity : "{E05D296E39EC9E00}Prefabs/Characters/Vests/Vest_SovietHarness/Vest_SovietHarness_base.et" {
+ ID "50D8C49B3558F152"
+ components {
+  SCR_ItemOutfitFactionComponent "{65B3754EF1C9A07F}" {
+   m_OutfitDataHolder SCR_OutfitFactionDataHolder "{65B3754EF11F6961}" {
+    m_aOutfitFactionData {
+     SCR_OutfitFactionData "{65B3754EF25EAE6D}" {
+      m_AffiliatedFactionKey "USSR"
+      m_iOutfitFactionValue 30
+     }
+     SCR_OutfitFactionData "{65B3754EFD3317AB}" {
+      m_AffiliatedFactionKey "FIA"
+      m_iOutfitFactionValue 30
+     }
+    }
+   }
+  }
+ }
+}

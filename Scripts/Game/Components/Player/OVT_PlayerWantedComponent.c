@@ -23,6 +23,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 	protected const int WANTED_SYSTEM_FREQUENCY = 1000;
 	
 	protected FactionAffiliationComponent m_Faction;
+	protected SCR_CharacterFactionAffiliationComponent m_CharacterFaction;
 	protected BaseWeaponManagerComponent m_Weapon;
 	protected SCR_CharacterControllerComponent m_Character;
 	protected SCR_CompartmentAccessComponent m_Compartment;
@@ -53,6 +54,46 @@ class OVT_PlayerWantedComponent: OVT_Component
 		return m_iWantedLevel;
 	}
 	
+	//! Gets the effective wanted level after applying disguise reduction
+	int GetEffectiveWantedLevel()
+	{
+		// No disguise reduction for now - may add later
+		return m_iWantedLevel;
+	}
+	
+	//! Check if player is disguised as occupying faction
+	bool IsDisguisedAsOccupying()
+	{
+		if (!m_CharacterFaction)
+			return false;
+			
+		Faction perceivedFaction = m_CharacterFaction.GetPerceivedFaction();
+		
+		// If no perceived faction from base game, check our manual detection
+		if (!perceivedFaction)
+		{
+			// Check if we manually detected Soviet gear
+			int sovietScore = CalculateSovietOutfitScore();
+			return (sovietScore > 50);
+		}
+			
+		string perceivedKey = perceivedFaction.GetFactionKey();
+		return (perceivedKey == "US" || perceivedKey == "USSR");
+	}
+	
+	//! Check if player is disguised as FIA/resistance
+	bool IsDisguisedAsFIA()
+	{
+		if (!m_CharacterFaction)
+			return false;
+			
+		Faction perceivedFaction = m_CharacterFaction.GetPerceivedFaction();
+		if (!perceivedFaction)
+			return false;
+			
+		return perceivedFaction.GetFactionKey() == "FIA";
+	}
+	
 	bool IsSeen()
 	{
 		return m_bIsSeen;
@@ -68,6 +109,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		m_iWantedTimer = OVT_Global.GetConfig().m_Difficulty.wantedTimeout;
 		
 		m_Faction = FactionAffiliationComponent.Cast(owner.FindComponent(FactionAffiliationComponent));
+		m_CharacterFaction = SCR_CharacterFactionAffiliationComponent.Cast(owner.FindComponent(SCR_CharacterFactionAffiliationComponent));
 		m_Weapon = BaseWeaponManagerComponent.Cast(owner.FindComponent(BaseWeaponManagerComponent));
 		m_Character = SCR_CharacterControllerComponent.Cast(owner.FindComponent(SCR_CharacterControllerComponent));
 		m_Compartment = SCR_CompartmentAccessComponent.Cast(owner.FindComponent(SCR_CompartmentAccessComponent));
@@ -101,10 +143,83 @@ class OVT_PlayerWantedComponent: OVT_Component
 	
 	void OnPlayerLoot(IEntity player)
 	{
+		// Only increase wanted level if player is seen while looting
 		if(m_bIsSeen)
 		{
 			SetBaseWantedLevel(2);
 			CheckWanted();
+			
+			// Store suspicious behavior for area heat tracking (Phase 4 enhancement)
+			RecordSuspiciousActivity("looting", GetOwner().GetOrigin());
+		}
+	}
+	
+	//! Records suspicious activity for area heat tracking
+	protected void RecordSuspiciousActivity(string activityType, vector location)
+	{
+		// Performance-efficient: only record if actually seen by enemies
+		if(!m_bIsSeen) return;
+		
+		// Store area heat in EDF database for persistence
+		// This is a lightweight operation that doesn't impact performance
+		OVT_TownManagerComponent townManager = OVT_Global.GetTowns();
+		if(!townManager) return;
+		
+		OVT_TownData nearestTown = townManager.GetNearestTown(location);
+		if(!nearestTown) return;
+		
+		// Simple heat level increase - stored with town data
+		float currentHeat = nearestTown.GetAreaHeat();
+		nearestTown.SetAreaHeat(currentHeat + 0.1); // Small increment per suspicious activity
+		
+		Print("[Overthrow] Suspicious activity (" + activityType + ") recorded in area. Heat level: " + nearestTown.GetAreaHeat());
+	}
+	
+	//! Check detection when disguised as occupying faction
+	protected void CheckDisguisedAsOccupying()
+	{
+		// Get close range distance from difficulty settings (default 15m)
+		float closeRangeDistance = 15.0;
+		if (OVT_Global.GetConfig() && OVT_Global.GetConfig().m_Difficulty)
+		{
+			closeRangeDistance = OVT_Global.GetConfig().m_Difficulty.disguiseDetectionDistance;
+		}
+		
+		vector pos = GetOwner().GetOrigin();
+		
+		array<AIAgent> agents();
+		AIWorld aiworld = GetGame().GetAIWorld();
+		aiworld.GetAIAgents(agents);
+		
+		foreach(AIAgent agent : agents)
+		{
+			AIGroup group = AIGroup.Cast(agent);
+			if(!group) continue;
+			
+			array<AIAgent> groupAgents();
+			group.GetAgents(groupAgents);
+			
+			foreach(AIAgent member : groupAgents)
+			{			
+				IEntity entity = member.GetControlledEntity();
+				if(!entity) continue;
+				
+				float dist = vector.Distance(entity.GetOrigin(), pos);
+				if(dist > closeRangeDistance) continue;
+				
+				if(FilterEntities(entity))
+				{
+					// Check if they can see us at close range
+					if(TraceLOS(entity, GetOwner()))
+					{
+						// Busted! Set wanted level 2
+						SetBaseWantedLevel(2);
+						m_bTempSeen = true;
+						RecordSuspiciousActivity("DISGUISE_BLOWN", pos);
+						return;
+					}
+				}
+			}
 		}
 	}
 	
@@ -126,6 +241,99 @@ class OVT_PlayerWantedComponent: OVT_Component
 		
 		m_fVisualRecognitionFactor = m_Percieve.GetVisualRecognitionFactor();
 		
+		// Check perceived faction for disguise
+		bool skipNormalDetection = false;
+		if (m_CharacterFaction)
+		{
+			// Debug: Force recalculation and log outfit faction info
+			m_CharacterFaction.RecalculateOutfitFaction();
+			
+			Faction perceivedFaction = m_CharacterFaction.GetPerceivedFaction();
+			Faction defaultFaction = m_CharacterFaction.GetDefaultAffiliatedFaction();
+			
+			// Additional debug: Check if we have faction affiliation properly set
+			Faction affiliatedFaction = m_Faction.GetAffiliatedFaction();
+			if (affiliatedFaction)
+				Print(string.Format("[Overthrow Debug] Current affiliated faction: %1", affiliatedFaction.GetFactionKey()));
+			
+			// Debug logging
+			if (perceivedFaction)
+				Print(string.Format("[Overthrow Debug] Perceived faction: %1", perceivedFaction.GetFactionKey()));
+			else
+				Print("[Overthrow Debug] No perceived faction (appears as civilian)");
+				
+			if (defaultFaction)
+				Print(string.Format("[Overthrow Debug] Default faction: %1", defaultFaction.GetFactionKey()));
+			
+			// Log if full outfit is worn
+			if (m_CharacterFaction.IsCharacterWearingFullOutfit())
+				Print("[Overthrow Debug] Character is wearing a full outfit");
+			else
+				Print("[Overthrow Debug] Character is NOT wearing a full outfit");
+				
+			// Debug: Log outfit values
+			map<Faction, int> outfitValues = new map<Faction, int>();
+			int outfitCount = m_CharacterFaction.GetCharacterOutfitValues(outfitValues);
+			Print(string.Format("[Overthrow Debug] Found %1 outfit factions", outfitCount));
+			foreach(Faction faction, int value : outfitValues)
+			{
+				Print(string.Format("[Overthrow Debug] Outfit faction %1: %2 points", faction.GetFactionKey(), value));
+			}
+			
+			// Force initial outfit calculation on first run
+			if (outfitCount == 0)
+			{
+				Print("[Overthrow Debug] No outfit values found, forcing initial calculation");
+				m_CharacterFaction.InitPlayerOutfitFaction_S();
+			}
+			
+			// Workaround: If outfit values are still empty or low, check equipped items manually
+			if (outfitValues.IsEmpty() || (outfitValues.Contains(GetGame().GetFactionManager().GetFactionByKey("USSR")) && outfitValues[GetGame().GetFactionManager().GetFactionByKey("USSR")] < 50))
+			{
+				Print("[Overthrow Debug] Checking equipped items manually for Soviet gear");
+				int sovietScore = CalculateSovietOutfitScore();
+				if (sovietScore > 50)
+				{
+					Print(string.Format("[Overthrow Debug] Manual Soviet outfit score: %1 - DISGUISED AS USSR!", sovietScore));
+					// Override perceived faction for disguise check
+					perceivedFaction = GetGame().GetFactionManager().GetFactionByKey("USSR");
+					Print("[Overthrow Debug] Overriding perceived faction to USSR");
+				}
+			}
+			
+			if (perceivedFaction)
+			{
+				string perceivedKey = perceivedFaction.GetFactionKey();
+				
+				// If disguised as occupying faction (US/USSR)
+				if (perceivedKey == "US" || perceivedKey == "USSR")
+				{
+					Print(string.Format("[Overthrow Debug] DISGUISED! Perceived as %1 - skipping normal detection", perceivedKey));
+					// Only check close distance (15m default)
+					skipNormalDetection = true;
+					CheckDisguisedAsOccupying();
+				}
+				// If perceived as FIA/resistance - instant wanted
+				else if (perceivedKey == "FIA")
+				{
+					// Will be handled by normal detection at any distance
+					skipNormalDetection = false;
+				}
+			}
+		}
+		
+		if (skipNormalDetection)
+		{
+			// When disguised, we still need to update the seen status
+			// but we skip normal long-range detection
+			if(m_bTempSeen != m_bIsSeen)
+			{
+				m_bIsSeen = m_bTempSeen;
+				Replication.BumpMe();
+			}
+			return;
+		}
+		
 		//GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), 250, CheckEntity, FilterEntities, EQueryEntitiesFlags.DYNAMIC);
 		
 		array<AIAgent> agents();
@@ -134,7 +342,9 @@ class OVT_PlayerWantedComponent: OVT_Component
 		aiworld.GetAIAgents(agents);
 		
 		vector pos = GetOwner().GetOrigin();
-		float distanceSeen = 5 + (m_fBaseDistanceSeenAt * m_PlayerData.stealthMultiplier); 
+		float baseDistance = 5 + (m_fBaseDistanceSeenAt * m_PlayerData.stealthMultiplier);
+		
+		float distanceSeen = baseDistance;
 		
 		foreach(AIAgent agent : agents)
 		{
@@ -212,19 +422,34 @@ class OVT_PlayerWantedComponent: OVT_Component
 		Faction currentFaction = m_Faction.GetAffiliatedFaction();
 		string factionKey = currentFaction.GetFactionKey();
 		
-		if(m_iWantedLevel > 1 && factionKey == "CIV")
+		// Handle faction changes based on wanted level and disguise
+		bool isDisguised = IsDisguisedAsOccupying();
+		Print(string.Format("[Overthrow Debug] CheckWanted - Current faction: %1, Disguised: %2", factionKey, isDisguised));
+		
+		if (isDisguised)
 		{
-			//Print("You are wanted now");
-			if(OVT_Global.GetConfig().m_sPlayerFaction.IsEmpty()) OVT_Global.GetConfig().m_sPlayerFaction = "FIA";
+			// When disguised, temporarily set faction to prevent AI hostility
+			string occupyingFaction = OVT_Global.GetConfig().m_sOccupyingFaction;
+			if (factionKey != occupyingFaction)
+			{
+				Print("[Overthrow Debug] Setting faction to " + occupyingFaction + " for disguise");
+				m_Faction.SetAffiliatedFactionByKey(occupyingFaction);
+			}
+		}
+		else if(m_iWantedLevel > 1 && factionKey == "CIV")
+		{
+			// When wanted and not disguised, set to FIA
+			if(OVT_Global.GetConfig().m_sPlayerFaction.IsEmpty()) 
+				OVT_Global.GetConfig().m_sPlayerFaction = "FIA";
 			m_Faction.SetAffiliatedFactionByKey(OVT_Global.GetConfig().m_sPlayerFaction);
 		}
-		
-		if(m_iWantedLevel < 1 && factionKey != "CIV")
+		else if(m_iWantedLevel < 1 && factionKey != "CIV" && !IsDisguisedAsOccupying())
 		{
-			//Print("You are no longer wanted");
+			// When not wanted and not disguised, return to civilian
 			m_Faction.SetAffiliatedFactionByKey("CIV");
 		}
 		
+		/*
 		if(m_Compartment && m_Compartment.IsInCompartment())
 		{		
 			//Player is in a vehicle, may need to update vehicle's faction
@@ -240,7 +465,8 @@ class OVT_PlayerWantedComponent: OVT_Component
 			{
 				vfac.SetAffiliatedFactionByKey("CIV");
 			}
-		}	
+		}
+		*/	
 	}
 	
 	bool CheckEntity(IEntity entity)
@@ -269,7 +495,8 @@ class OVT_PlayerWantedComponent: OVT_Component
 			inVehicle = true;
 		}		
 		
-		if(m_fVisualRecognitionFactor < 0.2 && dist > (10 * m_PlayerData.stealthMultiplier) && !inVehicle)
+		float effectiveDetectionDistance = 10 * m_PlayerData.stealthMultiplier;
+		if(m_fVisualRecognitionFactor < 0.2 && dist > effectiveDetectionDistance && !inVehicle)
 		{
 			//Definitely can't see you, but continue search
 			return true;
@@ -459,5 +686,86 @@ class OVT_PlayerWantedComponent: OVT_Component
 	override void OnDelete(IEntity owner)
 	{		
 		GetGame().GetCallqueue().Remove(CheckUpdate);
+	}
+	
+	//! Manual calculation of Soviet outfit score as a workaround for base game items with 0 faction values
+	int CalculateSovietOutfitScore()
+	{
+		int score = 0;
+		
+		SCR_CharacterInventoryStorageComponent inventory = SCR_CharacterInventoryStorageComponent.Cast(GetOwner().FindComponent(SCR_CharacterInventoryStorageComponent));
+		if (!inventory)
+			return score;
+			
+		// Get equipped loadout storage component
+		EquipedLoadoutStorageComponent loadoutStorage = EquipedLoadoutStorageComponent.Cast(GetOwner().FindComponent(EquipedLoadoutStorageComponent));
+		if (!loadoutStorage)
+			return score;
+			
+		// Check helmet slot
+		IEntity helmet = loadoutStorage.GetClothFromArea(LoadoutHeadCoverArea);
+		if (helmet)
+		{
+			EntityPrefabData prefabData = helmet.GetPrefabData();
+			if (prefabData)
+			{
+				ResourceName prefabName = prefabData.GetPrefabName();
+				if (prefabName.Contains("SSh68") || prefabName.Contains("SSH68"))
+				{
+					score += 15;
+					Print("[Overthrow Debug] Found Soviet helmet: +15");
+				}
+			}
+		}
+		
+		// Check jacket slot
+		IEntity jacket = loadoutStorage.GetClothFromArea(LoadoutJacketArea);
+		if (jacket)
+		{
+			EntityPrefabData prefabData = jacket.GetPrefabData();
+			if (prefabData)
+			{
+				ResourceName prefabName = prefabData.GetPrefabName();
+				if (prefabName.Contains("M88") || prefabName.Contains("m88"))
+				{
+					score += 40;
+					Print("[Overthrow Debug] Found Soviet jacket: +40");
+				}
+			}
+		}
+		
+		// Check pants slot
+		IEntity pants = loadoutStorage.GetClothFromArea(LoadoutPantsArea);
+		if (pants)
+		{
+			EntityPrefabData prefabData = pants.GetPrefabData();
+			if (prefabData)
+			{
+				ResourceName prefabName = prefabData.GetPrefabName();
+				if (prefabName.Contains("M88") || prefabName.Contains("m88"))
+				{
+					score += 30;
+					Print("[Overthrow Debug] Found Soviet pants: +30");
+				}
+			}
+		}
+		
+		// Check boots slot
+		IEntity boots = loadoutStorage.GetClothFromArea(LoadoutBootsArea);
+		if (boots)
+		{
+			EntityPrefabData prefabData = boots.GetPrefabData();
+			if (prefabData)
+			{
+				ResourceName prefabName = prefabData.GetPrefabName();
+				if (prefabName.Contains("Soviet") || prefabName.Contains("soviet"))
+				{
+					score += 10;
+					Print("[Overthrow Debug] Found Soviet boots: +10");
+				}
+			}
+		}
+		
+		return score;
 	}
 }
