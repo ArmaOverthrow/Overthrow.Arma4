@@ -1,3 +1,15 @@
+// Location type flags for deployments
+enum OVT_LocationTypeFlag
+{
+	TOWN = 1,
+	BASE = 2,
+	PORT = 4,
+	AIRFIELD = 8,
+	RADIO_TOWER = 16,
+	CHECKPOINT = 32,
+	OPEN_TERRAIN = 64
+}
+
 [BaseContainerProps(configRoot: true), BaseContainerCustomTitleField("m_sDeploymentName")]
 class OVT_DeploymentConfig : ScriptAndConfig
 {
@@ -9,6 +21,9 @@ class OVT_DeploymentConfig : ScriptAndConfig
 	
 	[Attribute("1", UIWidgets.Flags, enums: ParamEnumArray.FromEnum(OVT_FactionTypeFlag))]
 	OVT_FactionTypeFlag m_iAllowedFactionTypes;
+	
+	[Attribute("1", UIWidgets.Flags, enums: ParamEnumArray.FromEnum(OVT_LocationTypeFlag), desc: "Valid location types for this deployment")]
+	OVT_LocationTypeFlag m_iAllowedLocationTypes;
 	
 	[Attribute(defvalue: "100", desc: "Base resource cost to create this deployment")]
 	int m_iBaseCost;
@@ -74,6 +89,15 @@ class OVT_DeploymentConfig : ScriptAndConfig
 			return true; // No restrictions
 			
 		return (factionType & m_iAllowedFactionTypes) != 0;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	bool CanUseLocationType(OVT_LocationTypeFlag locationType)
+	{
+		if (m_iAllowedLocationTypes == 0)
+			return true; // No restrictions if not set
+			
+		return (locationType & m_iAllowedLocationTypes) != 0;
 	}
 	
 	//------------------------------------------------------------------------------------------------

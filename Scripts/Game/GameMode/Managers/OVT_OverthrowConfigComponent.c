@@ -458,7 +458,7 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		return wp;
 	}
 
-	void GivePatrolWaypoints(SCR_AIGroup aigroup, OVT_PatrolType type, vector center = "0 0 0")
+	void GivePatrolWaypoints(SCR_AIGroup aigroup, OVT_PatrolType type, vector center = "0 0 0", float radius = 0)
 	{
 		if(center[0] == 0) center = aigroup.GetOrigin();
 
@@ -470,7 +470,11 @@ class OVT_OverthrowConfigComponent: OVT_Component
 
 		if(type == OVT_PatrolType.PERIMETER)
 		{
-			float dist = vector.Distance(aigroup.GetOrigin(), center);
+			float dist = radius;
+			if(radius == 0)
+			{
+				dist = vector.Distance(aigroup.GetOrigin(), center);
+			}
 			vector dir = vector.Direction(aigroup.GetOrigin(), center);
 			float angle = dir.VectorToAngles()[1];
 
@@ -479,6 +483,12 @@ class OVT_OverthrowConfigComponent: OVT_Component
 			for(int i=0; i< 4; i++)
 			{
 				vector pos = center + (Vector(0,angle,0).AnglesToVector() * dist);
+				ChimeraWorld world = GetGame().GetWorld();
+				float surfaceY = world.GetSurfaceY(pos[0], pos[2]);
+				if (pos[1] < surfaceY)
+				{
+					pos[1] = surfaceY;
+				}
 
 				AIWaypoint wp = SpawnPatrolWaypoint(pos);
 				queueOfWaypoints.Insert(wp);

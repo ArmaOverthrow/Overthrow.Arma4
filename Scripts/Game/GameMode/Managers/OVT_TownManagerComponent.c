@@ -46,6 +46,12 @@ class OVT_TownData : Managed
 		return faction == OVT_Global.GetConfig().GetOccupyingFactionIndex();
 	}
 	
+	bool IsWithinTownBounds(vector position)
+	{
+		float distance = vector.Distance(position, location);
+		return distance < 500;
+	}
+	
 	void CopyFrom(OVT_TownData town)
 	{
 		population = town.population;
@@ -688,6 +694,28 @@ class OVT_TownManagerComponent: OVT_Component
 			}
 		}
 		return nearestTown;
+	}
+	
+	int GetNearestTownId(vector pos)
+	{
+		int nearestTown;
+		float nearest = -1;
+		int i = 0;
+		foreach(OVT_TownData town : m_Towns)
+		{
+			float distance = vector.Distance(town.location, pos);
+			if(nearest == -1 || distance < nearest){
+				nearest = distance;
+				nearestTown = i;
+			}
+			i++;
+		}
+		return nearestTown;
+	}
+	
+	string GetNearestTownName(vector pos)
+	{
+		return GetTownName(GetNearestTownId(pos));
 	}
 	
 	//------------------------------------------------------------------------------------------------

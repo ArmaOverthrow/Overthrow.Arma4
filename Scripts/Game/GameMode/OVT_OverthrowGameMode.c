@@ -186,6 +186,13 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			m_SkillManager.PostGameStart();
 		}
 		
+		if(m_Deployment)
+		{
+			Print("[Overthrow] Starting Deployment");
+
+			m_Deployment.PostGameStart();
+		}
+		
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
 		if(config.m_ConfigFile)
 		{			

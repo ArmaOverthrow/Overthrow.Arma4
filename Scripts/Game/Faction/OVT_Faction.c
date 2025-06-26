@@ -14,6 +14,104 @@ enum OVT_GroupType
 	SNIPER
 }
 
+//! New string-based group registry entry
+[BaseContainerProps(), SCR_BaseContainerCustomTitleField("m_sGroupName")]
+class OVT_FactionGroupEntry
+{
+	[Attribute(desc: "Unique name for this group type")]
+	string m_sGroupName;
+	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Group prefab", params: "et")]
+	ResourceName m_sGroupPrefab;
+	
+	[Attribute(defvalue: "10", desc: "Resource cost for this group")]
+	int m_iCost;
+	
+	[Attribute(defvalue: "1", desc: "Relative spawn weight (higher = more likely to be selected)")]
+	int m_iWeight;
+	
+	[Attribute(desc: "Optional description")]
+	string m_sDescription;
+}
+
+//! Group registry for flexible group management
+[BaseContainerProps()]
+class OVT_FactionGroupRegistry
+{
+	[Attribute(desc: "Available group types for this faction")]
+	ref array<ref OVT_FactionGroupEntry> m_aGroupEntries;
+	
+	//------------------------------------------------------------------------------------------------
+	void OVT_FactionGroupRegistry()
+	{
+		if (!m_aGroupEntries)
+			m_aGroupEntries = new array<ref OVT_FactionGroupEntry>;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	OVT_FactionGroupEntry FindGroupByName(string groupName)
+	{
+		foreach (OVT_FactionGroupEntry entry : m_aGroupEntries)
+		{
+			if (entry.m_sGroupName == groupName)
+				return entry;
+		}
+		return null;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	ResourceName GetGroupPrefab(string groupName)
+	{
+		OVT_FactionGroupEntry entry = FindGroupByName(groupName);
+		if (entry)
+			return entry.m_sGroupPrefab;
+		return "";
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	int GetGroupCost(string groupName)
+	{
+		OVT_FactionGroupEntry entry = FindGroupByName(groupName);
+		if (entry)
+			return entry.m_iCost;
+		return 0;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	ResourceName GetRandomGroupPrefab()
+	{
+		if (m_aGroupEntries.IsEmpty())
+			return "";
+		
+		// Build weighted selection array
+		array<OVT_FactionGroupEntry> weightedEntries = new array<OVT_FactionGroupEntry>;
+		foreach (OVT_FactionGroupEntry entry : m_aGroupEntries)
+		{
+			for (int i = 0; i < entry.m_iWeight; i++)
+			{
+				weightedEntries.Insert(entry);
+			}
+		}
+		
+		if (weightedEntries.IsEmpty())
+			return "";
+		
+		OVT_FactionGroupEntry selected = weightedEntries.GetRandomElement();
+		return selected.m_sGroupPrefab;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	array<string> GetAllGroupNames()
+	{
+		array<string> names = new array<string>;
+		foreach (OVT_FactionGroupEntry entry : m_aGroupEntries)
+		{
+			names.Insert(entry.m_sGroupName);
+		}
+		return names;
+	}
+}
+
 [BaseContainerProps(), SCR_BaseContainerCustomTitleField("m_sTag")]
 class OVT_FactionComposition
 {
@@ -38,8 +136,14 @@ class OVT_Faction
 	
 	[Attribute()]
 	bool m_bIsPlayable;
+	
+	//! New group registry system - use this for new deployments
+	[Attribute(desc: "Group registry for deployment system", category: "Group Registry")]
+	ref OVT_FactionGroupRegistry m_GroupRegistry;
 		
-	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Faction groups (Light Infantry)", params: "et", category: "Faction Groups")]
+	//! Legacy group prefabs - deprecated, use m_GroupRegistry instead
+	//! Kept for compatibility with BaseUpgrade systems
+	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "LEGACY: Faction groups (Light Infantry)", params: "et", category: "Legacy Faction Groups")]
 	ref array<ResourceName> m_aGroupInfantryPrefabSlots;
 	
 	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Faction groups (Heavy Infantry)", params: "et", category: "Faction Groups")]
@@ -179,5 +283,65 @@ class OVT_Faction
 		}
 		
 		return m_aGroupPrefabSlots.GetRandomElement();
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	// New group registry methods
+	//------------------------------------------------------------------------------------------------
+	void InitializeGroupRegistry()
+	{
+		if (!m_GroupRegistry)
+			m_GroupRegistry = new OVT_FactionGroupRegistry();
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	ResourceName GetGroupPrefabByName(string groupName)
+	{
+		if (!m_GroupRegistry)
+		{
+			Print(string.Format("Group registry not initialized for faction %1", m_sFactionKey), LogLevel.WARNING);
+			return "";
+		}
+		
+		return m_GroupRegistry.GetGroupPrefab(groupName);
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	int GetGroupCostByName(string groupName)
+	{
+		if (!m_GroupRegistry)
+			return 0;
+		
+		return m_GroupRegistry.GetGroupCost(groupName);
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	array<string> GetAvailableGroupNames()
+	{
+		if (!m_GroupRegistry)
+		{
+			array<string> empty = new array<string>;
+			return empty;
+		}
+		
+		return m_GroupRegistry.GetAllGroupNames();
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	bool HasGroupType(string groupName)
+	{
+		if (!m_GroupRegistry)
+			return false;
+		
+		return m_GroupRegistry.FindGroupByName(groupName) != null;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	ResourceName GetRandomGroupPrefab()
+	{
+		if (!m_GroupRegistry)
+			return "";
+		
+		return m_GroupRegistry.GetRandomGroupPrefab();
 	}
 }

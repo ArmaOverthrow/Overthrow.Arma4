@@ -2,9 +2,9 @@ GenericEntity {
  ID "65B2DE4CA8BDB00C"
  components {
   EPF_PersistenceComponent "{65B2DE4CC63454C1}" {
-   m_pSaveData EPF_EntitySaveDataClass "{65B2DE4CC244FC83}" {
+   m_pSaveData OVT_DeploymentSaveDataClass "{65B2DE4CC244FC83}" {
     m_aComponents {
-     OVT_DeploymentSaveDataClass "{65B2DE4CCFCFDE7A}" {
+     OVT_DeploymentComponentSaveDataClass "{65B2DE4CCFCFDE7A}" {
      }
     }
    }

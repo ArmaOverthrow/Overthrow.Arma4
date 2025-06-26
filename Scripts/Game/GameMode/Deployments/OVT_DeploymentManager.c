@@ -1,3 +1,22 @@
+// Helper class for sorting candidate positions by threat level
+class OVT_CandidatePosition
+{
+	vector position;
+	float threatLevel;
+	
+	void OVT_CandidatePosition(vector pos, float threat)
+	{
+		position = pos;
+		threatLevel = threat;
+	}
+	
+	// Compare method for sorting (returns true if this should come before other)
+	bool CompareTo(OVT_CandidatePosition other)
+	{
+		return threatLevel > other.threatLevel; // Higher threat first
+	}
+}
+
 [EntityEditorProps(category: "Overthrow/Managers", description: "Manages all deployments across factions")]
 class OVT_DeploymentManagerComponentClass : OVT_ComponentClass
 {
@@ -17,14 +36,15 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	[Attribute(defvalue: "100", desc: "Maximum deployments per faction")]
 	int m_iMaxDeploymentsPerFaction;
 	
-	protected ref array<OVT_DeploymentComponent> m_aActiveDeployments;
-	protected ref map<int, ref array<OVT_DeploymentComponent>> m_mFactionDeployments; // factionIndex -> deployments
+	protected ref array<ref EntityID> m_aActiveDeployments;
+	protected ref map<int, ref array<ref EntityID>> m_mFactionDeployments; // factionIndex -> deployments
 	protected ref map<int, int> m_mFactionResources; // factionIndex -> available resources
 	protected ref array<vector> m_aAvailableSlots; // Cached slot positions
 	protected bool m_bInitialized;
 	
 	static const float THREAT_EVALUATION_RADIUS = 2000; // 2km
-	static const int MIN_DEPLOYMENT_DISTANCE = 500; // 500m minimum between deployments
+	static const int MIN_DEPLOYMENT_DISTANCE = 100; // 100m minimum between deployments
+	static const int MAX_DEPLOYMENTS_PER_EVALUATION = 10; // Maximum deployments per evaluation cycle
 	
 	static OVT_DeploymentManagerComponent s_Instance;
 	
@@ -50,8 +70,8 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		if (!Replication.IsServer())
 			return;
 			
-		m_aActiveDeployments = new array<OVT_DeploymentComponent>;
-		m_mFactionDeployments = new map<int, ref array<OVT_DeploymentComponent>>;
+		m_aActiveDeployments = new array<ref EntityID>;
+		m_mFactionDeployments = new map<int, ref array<ref EntityID>>;
 		m_mFactionResources = new map<int, int>;
 		m_aAvailableSlots = new array<vector>;
 		
@@ -62,10 +82,16 @@ class OVT_DeploymentManagerComponent : OVT_Component
 			m_DeploymentRegistry.m_sRegistryName = "Default Registry";
 		}
 		
+		m_bInitialized = true;
+	}
+	
+	void PostGameStart()
+	{
+		//First evaluation sooner
+		GetGame().GetCallqueue().CallLater(EvaluateDeployments, 10000, false);
+		
 		// Start evaluation timer
 		GetGame().GetCallqueue().CallLater(EvaluateDeployments, m_iEvaluationInterval, true);
-		
-		m_bInitialized = true;
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -73,12 +99,10 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	{		
 		// Cache available slots from the world
 		CacheAvailableSlots();
-		
-		// Initialize faction resources
-		InitializeFactionResources();
-		
+				
 		Print("[Overthrow] DeploymentManager initialized with " + m_DeploymentRegistry.m_aDeploymentConfigs.Count() + " deployment configs", LogLevel.NORMAL);
 	}
+	
 	
 	//------------------------------------------------------------------------------------------------
 	protected void CacheAvailableSlots()
@@ -108,25 +132,7 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		}
 		return true;
 	}
-	
-	//------------------------------------------------------------------------------------------------
-	protected void InitializeFactionResources()
-	{
-		FactionManager factionManager = GetGame().GetFactionManager();
-		if (!factionManager)
-			return;
 		
-		array<Faction> factions = new array<Faction>;
-		factionManager.GetFactionsList(factions);
-		
-		foreach (Faction faction : factions)
-		{
-			int factionIndex = factionManager.GetFactionIndex(faction);
-			m_mFactionResources.Set(factionIndex, 1000); // Starting resources
-			m_mFactionDeployments.Set(factionIndex, new array<OVT_DeploymentComponent>);
-		}
-	}
-	
 	//------------------------------------------------------------------------------------------------
 	void EvaluateDeployments()
 	{
@@ -154,37 +160,83 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	//------------------------------------------------------------------------------------------------
 	protected void EvaluateFactionDeployments(int factionIndex)
 	{
-		array<OVT_DeploymentComponent> factionDeployments = m_mFactionDeployments.Get(factionIndex);
+		array<ref EntityID> factionDeployments = m_mFactionDeployments.Get(factionIndex);
 		if (!factionDeployments)
-			return;
+		{
+			factionDeployments = new array<ref EntityID>();
+			m_mFactionDeployments.Set(factionIndex, factionDeployments);
+		}
+			
 		
 		// Skip if faction has reached deployment limit
 		if (factionDeployments.Count() >= m_iMaxDeploymentsPerFaction)
 			return;
 		
 		int availableResources = m_mFactionResources.Get(factionIndex);
-		if (availableResources <= 0)
-			return;
 		
 		// Find potential deployment locations
 		array<vector> candidatePositions = FindDeploymentCandidates(factionIndex);
-		
-		// Evaluate each candidate position
+
+		// Calculate threat levels for all candidates and add randomness
+		array<ref OVT_CandidatePosition> candidatesWithThreat = new array<ref OVT_CandidatePosition>;
 		foreach (vector position : candidatePositions)
 		{
-			float threatLevel = CalculateThreatLevel(position, factionIndex);
+			float baseThreatLevel = CalculateThreatLevel(position, factionIndex);
+			// Add randomness: ±20% of base threat level
+			float randomModifier = s_AIRandomGenerator.RandFloatXY(-0.2, 0.2);
+			float finalThreatLevel = baseThreatLevel * (1.0 + randomModifier);
 			
+			candidatesWithThreat.Insert(new OVT_CandidatePosition(position, finalThreatLevel));
+		}
+		
+		// Sort candidates by threat level (highest first) using bubble sort
+		SortCandidatesByThreat(candidatesWithThreat);
+		
+		int numDeployments = 0;
+		
+		// Evaluate each candidate position in order of threat level
+		foreach (OVT_CandidatePosition candidate : candidatesWithThreat)
+		{
 			// Find suitable deployment config for this position and threat level
-			OVT_DeploymentConfig bestConfig = FindBestDeploymentConfig(position, factionIndex, threatLevel, availableResources);
+			OVT_DeploymentConfig bestConfig = FindBestDeploymentConfig(candidate.position, factionIndex, candidate.threatLevel, availableResources);
 			if (bestConfig)
 			{
+				// Check if we already have this type of deployment nearby
+				if (HasExistingDeploymentOfType(candidate.position, factionIndex, bestConfig.m_sDeploymentName))
+				{
+					continue; // Skip this position, deployment already exists nearby
+				}
+				
 				int deploymentCost = bestConfig.GetTotalResourceCost();
 				if (availableResources >= deploymentCost)
 				{
-					CreateDeployment(bestConfig, position, factionIndex);
+					CreateDeployment(bestConfig, candidate.position, factionIndex);
 					availableResources -= deploymentCost;
 					m_mFactionResources.Set(factionIndex, availableResources);
-					break; // Only create one deployment per evaluation cycle
+					numDeployments++;
+				}
+			}
+
+			if (numDeployments >= MAX_DEPLOYMENTS_PER_EVALUATION)
+				break;
+		}
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	protected void SortCandidatesByThreat(array<ref OVT_CandidatePosition> candidates)
+	{
+		// Simple bubble sort - good enough for small arrays of deployment candidates
+		int n = candidates.Count();
+		for (int i = 0; i < n - 1; i++)
+		{
+			for (int j = 0; j < n - i - 1; j++)
+			{
+				if (candidates[j].threatLevel < candidates[j + 1].threatLevel)
+				{
+					// Swap elements
+					OVT_CandidatePosition temp = candidates[j];
+					candidates[j] = candidates[j + 1];
+					candidates[j + 1] = temp;
 				}
 			}
 		}
@@ -195,72 +247,75 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	{
 		array<vector> candidates = new array<vector>;
 		
-		// Start with cached slot positions
-		foreach (vector slotPos : m_aAvailableSlots)
-		{
-			if (IsPositionSuitableForDeployment(slotPos, factionIndex))
-				candidates.Insert(slotPos);
-		}
+		// Get faction type to determine which configs this faction can use
+		OVT_FactionTypeFlag factionType = GetFactionType(factionIndex);
 		
-		// Add strategic positions near faction assets
-		array<vector> strategicPositions = FindStrategicPositions(factionIndex);
-		foreach (vector pos : strategicPositions)
+		// Collect all location types needed by available configs for this faction
+		OVT_LocationTypeFlag neededLocationTypes = 0;
+		foreach (OVT_DeploymentConfig config : m_DeploymentRegistry.m_aDeploymentConfigs)
 		{
-			if (IsPositionSuitableForDeployment(pos, factionIndex))
-				candidates.Insert(pos);
-		}
-		
-		// Limit candidates for performance
-		if (candidates.Count() > 20)
-		{
-			// Sort by importance and take top 20
-			candidates.Resize(20);
-		}
-		
-		return candidates;
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	protected array<vector> FindStrategicPositions(int factionIndex)
-	{
-		array<vector> positions = new array<vector>;
-		
-		// Add positions near faction-controlled bases
-		OVT_OccupyingFactionManager ofManager = OVT_Global.GetOccupyingFaction();
-		if (ofManager)
-		{
-			foreach (OVT_BaseData baseData : ofManager.m_Bases)
+			if (config.IsValidConfig() && config.CanFactionUse(factionType))
 			{
-				if (baseData.faction == factionIndex)
-				{
-					// Add positions around the base
-					for (int i = 0; i < 4; i++)
-					{
-						float angle = (i / 4.0) * Math.PI2;
-						vector offset = Vector(Math.Cos(angle) * 1000, 0, Math.Sin(angle) * 1000);
-						positions.Insert(baseData.location + offset);
-					}
-				}
+				neededLocationTypes = neededLocationTypes | config.m_iAllowedLocationTypes;
 			}
 		}
 		
-		// Add positions near towns with faction support
-		OVT_TownManagerComponent townManager = OVT_Global.GetTowns();
-		if (townManager)
+		// Generate candidates based on needed location types
+		if (neededLocationTypes & OVT_LocationTypeFlag.TOWN)
 		{
-			foreach (OVT_TownData townData : townManager.m_Towns)
+			candidates.InsertAll(GetTownPositions(factionIndex));
+		}
+		
+		if (neededLocationTypes & OVT_LocationTypeFlag.BASE)
+		{
+			candidates.InsertAll(GetBasePositions(factionIndex));
+		}
+		
+		if (neededLocationTypes & OVT_LocationTypeFlag.PORT)
+		{
+			candidates.InsertAll(GetPortPositions(factionIndex));
+		}
+		
+		if (neededLocationTypes & OVT_LocationTypeFlag.AIRFIELD)
+		{
+			candidates.InsertAll(GetAirfieldPositions(factionIndex));
+		}
+		
+		if (neededLocationTypes & OVT_LocationTypeFlag.RADIO_TOWER)
+		{
+			candidates.InsertAll(GetRadioTowerPositions(factionIndex));
+		}
+		
+		if (neededLocationTypes & OVT_LocationTypeFlag.CHECKPOINT)
+		{
+			candidates.InsertAll(GetCheckpointPositions(factionIndex));
+		}
+		
+		// Filter by suitability
+		array<vector> suitableCandidates = new array<vector>;
+		foreach (vector pos : candidates)
+		{
+			if (IsPositionSuitableForDeployment(pos, factionIndex))
+				suitableCandidates.Insert(pos);
+		}
+		
+		return suitableCandidates;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	protected array<vector> GetTownPositions(int factionIndex)
+	{
+		array<vector> positions = new array<vector>;
+		
+		OVT_TownManagerComponent townManager = OVT_Global.GetTowns();
+		if (!townManager)
+			return positions;
+			
+		foreach (OVT_TownData townData : townManager.m_Towns)
+		{
+			if (townData && IsPositionRelevantToFaction(townData.location, factionIndex))
 			{
-				if (townData && IsPositionRelevantToFaction(townData.location, factionIndex))
-				{
-					// Add positions around the town
-					float radius = Math.Max(townData.size * 100, 500); // Scale with town size
-					for (int j = 0; j < 3; j++)
-					{
-						float angle = (j / 3.0) * Math.PI2;
-						vector offset = Vector(Math.Cos(angle) * radius, 0, Math.Sin(angle) * radius);
-						positions.Insert(townData.location + offset);
-					}
-				}
+				positions.Insert(townData.location);
 			}
 		}
 		
@@ -268,11 +323,146 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	protected array<vector> GetBasePositions(int factionIndex)
+	{
+		array<vector> positions = new array<vector>;
+		
+		OVT_OccupyingFactionManager ofManager = OVT_Global.GetOccupyingFaction();
+		if (!ofManager)
+			return positions;
+			
+		foreach (OVT_BaseData baseData : ofManager.m_Bases)
+		{
+			if (baseData && IsPositionRelevantToFaction(baseData.location, factionIndex))
+			{
+				positions.Insert(baseData.location);
+			}
+		}
+		
+		return positions;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	protected array<vector> GetPortPositions(int factionIndex)
+	{
+		array<vector> positions = new array<vector>;
+		
+		// TODO: Implement port detection based on actual port entities in the world
+		
+		return positions;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	protected array<vector> GetAirfieldPositions(int factionIndex)
+	{
+		array<vector> positions = new array<vector>;
+		
+		// TODO: Implement airfield detection based on actual airfield entities in the world
+		
+		return positions;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	protected array<vector> GetRadioTowerPositions(int factionIndex)
+	{
+		array<vector> positions = new array<vector>;
+		
+		OVT_OccupyingFactionManager ofManager = OVT_Global.GetOccupyingFaction();
+		if (!ofManager)
+			return positions;
+			
+		foreach (OVT_RadioTowerData towerData : ofManager.m_RadioTowers)
+		{
+			if (towerData && IsPositionRelevantToFaction(towerData.location, factionIndex))
+			{
+				positions.Insert(towerData.location);
+			}
+		}
+		
+		return positions;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	protected array<vector> GetCheckpointPositions(int factionIndex)
+	{
+		array<vector> positions = new array<vector>;
+		
+		// TODO: Implement checkpoint detection based on actual checkpoint entities or road intersections
+		
+		return positions;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	protected bool IsPositionNearWater(vector position)
+	{
+		// TODO: Implement proper water detection
+		// For now, return false - this would need proper terrain analysis
+		return false;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	protected bool IsPositionSuitableForAirfield(vector position)
+	{
+		// TODO: Implement terrain analysis for airfield suitability
+		// For now, return false - this would need terrain slope and size analysis
+		return false;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	protected bool IsPositionBetweenMajorLocations(vector position)
+	{
+		// Check if position is roughly between a town and a base
+		OVT_TownManagerComponent townManager = OVT_Global.GetTowns();
+		OVT_OccupyingFactionManager ofManager = OVT_Global.GetOccupyingFaction();
+		
+		if (!townManager || !ofManager)
+			return false;
+			
+		foreach (OVT_TownData townData : townManager.m_Towns)
+		{
+			if (!townData)
+				continue;
+				
+			foreach (OVT_BaseData baseData : ofManager.m_Bases)
+			{
+				if (!baseData)
+					continue;
+					
+				float townDistance = vector.Distance(position, townData.location);
+				float baseDistance = vector.Distance(position, baseData.location);
+				float townToBaseDistance = vector.Distance(townData.location, baseData.location);
+				
+				// Check if position is roughly on the line between town and base
+				if (townDistance > 500 && baseDistance > 500 && // Not too close to either
+					townDistance + baseDistance < townToBaseDistance * 1.2) // Roughly on the path
+				{
+					return true;
+				}
+			}
+		}
+		
+		return false;
+	}
+	
+	protected OVT_DeploymentComponent GetDeploymentFromEntity(IEntity entity)
+	{
+		return OVT_DeploymentComponent.Cast(entity.FindComponent(OVT_DeploymentComponent));
+	}
+	
+	//------------------------------------------------------------------------------------------------
 	protected bool IsPositionSuitableForDeployment(vector position, int factionIndex)
 	{
 		// Check minimum distance to existing deployments
-		foreach (OVT_DeploymentComponent deployment : m_aActiveDeployments)
+		foreach (EntityID deploymentID : m_aActiveDeployments)
 		{
+			IEntity entity = GetGame().GetWorld().FindEntityByID(deploymentID);
+			if (!entity)
+				continue;
+				
+			OVT_DeploymentComponent deployment = GetDeploymentFromEntity(entity);
+			if (!deployment)
+				continue;
+				
 			float distance = vector.Distance(position, deployment.GetPosition());
 			if (distance < MIN_DEPLOYMENT_DISTANCE)
 				return false;
@@ -294,6 +484,30 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		// - Suitable for faction type
 		
 		return true;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	protected bool HasExistingDeploymentOfType(vector position, int factionIndex, string deploymentName, float radius = 250)
+	{
+		foreach (EntityID deploymentID : m_aActiveDeployments)
+		{
+			IEntity entity = GetGame().GetWorld().FindEntityByID(deploymentID);
+			if (!entity)
+				continue;
+				
+			OVT_DeploymentComponent deployment = GetDeploymentFromEntity(entity);
+			if (!deployment)
+				continue;
+				
+			if (deployment.GetControllingFaction() == factionIndex && 
+				deployment.GetDeploymentName() == deploymentName)
+			{
+				float distance = vector.Distance(position, deployment.GetPosition());
+				if (distance <= radius)
+					return true;
+			}
+		}
+		return false;
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -383,9 +597,18 @@ class OVT_DeploymentManagerComponent : OVT_Component
 				continue;
 			
 			// Check if faction can use this config
-			OVT_FactionType factionType = GetFactionType(factionIndex);
+			OVT_FactionTypeFlag factionType = GetFactionType(factionIndex);
 			if (!config.CanFactionUse(factionType))
+			{				
 				continue;
+			}
+			
+			// Check if location type is compatible
+			OVT_LocationTypeFlag locationType = GetLocationTypeAtPosition(position);
+			if (!config.CanUseLocationType(locationType))
+			{
+				continue;
+			}
 			
 			// Check resource cost
 			int cost = config.GetTotalResourceCost();
@@ -420,7 +643,7 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	protected OVT_FactionType GetFactionType(int factionIndex)
+	protected OVT_FactionTypeFlag GetFactionType(int factionIndex)
 	{
 		FactionManager factionManager = GetGame().GetFactionManager();
 		if (!factionManager)
@@ -432,19 +655,89 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		
 		string factionKey = faction.GetFactionKey();
 		
-		if (factionKey == OVT_Global.GetConfig().GetOccupyingFaction().GetFactionKey())
-			return OVT_FactionType.OCCUPYING_FACTION;
-		else if (factionKey == OVT_Global.GetConfig().GetPlayerFaction().GetFactionKey())
-			return OVT_FactionType.RESISTANCE_FACTION;
-		else if (factionKey == OVT_Global.GetConfig().GetSupportingFaction().GetFactionKey())
-			return OVT_FactionType.SUPPORTING_FACTION;
+		string occupyingKey = OVT_Global.GetConfig().GetOccupyingFaction().GetFactionKey();
+		string playerKey = OVT_Global.GetConfig().GetPlayerFaction().GetFactionKey();
+		string supportingKey = OVT_Global.GetConfig().GetSupportingFaction().GetFactionKey();
+		
+		if (factionKey == occupyingKey)
+			return OVT_FactionTypeFlag.OCCUPYING_FACTION;
+		else if (factionKey == playerKey)
+			return OVT_FactionTypeFlag.RESISTANCE_FACTION;
+		else if (factionKey == supportingKey)
+			return OVT_FactionTypeFlag.SUPPORTING_FACTION;
 		
 		return 0;
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	protected OVT_LocationTypeFlag GetLocationTypeAtPosition(vector position)
+	{
+		OVT_TownManagerComponent townManager = OVT_Global.GetTowns();
+		if (!townManager)
+			return OVT_LocationTypeFlag.OPEN_TERRAIN;
+		
+		// Check if position is in a town
+		OVT_TownData townData = townManager.GetNearestTown(position);
+		if (townData && townData.IsWithinTownBounds(position))
+		{
+			return OVT_LocationTypeFlag.TOWN;
+		}
+		
+		// Check if position is near a base
+		OVT_OccupyingFactionManager of = OVT_Global.GetOccupyingFaction();
+		if (of)
+		{
+			OVT_BaseData baseData = of.GetNearestBase(position);
+			if (baseData && vector.Distance(position, baseData.location) < 500) // 500m radius for base
+			{
+				// Could differentiate between different base types here
+				return OVT_LocationTypeFlag.BASE;
+			}
+		}
+		
+		// Check if position is near water (potential port)
+		if (IsPositionNearWater(position))
+		{
+			return OVT_LocationTypeFlag.PORT;
+		}
+		
+		// Check if position is suitable for airfield
+		if (IsPositionSuitableForAirfield(position))
+		{
+			return OVT_LocationTypeFlag.AIRFIELD;
+		}
+		
+		// Check if position is near an actual radio tower
+		OVT_OccupyingFactionManager ofManager2 = OVT_Global.GetOccupyingFaction();
+		if (ofManager2)
+		{
+			foreach (OVT_RadioTowerData towerData : ofManager2.m_RadioTowers)
+			{
+				if (towerData && vector.Distance(position, towerData.location) < 300) // 300m radius for radio tower
+				{
+					return OVT_LocationTypeFlag.RADIO_TOWER;
+				}
+			}
+		}
+		
+		// Check if position could be a checkpoint (between towns/bases)
+		// TODO: Implement proper road intersection detection
+		// For now, check if it's between major locations
+		if (IsPositionBetweenMajorLocations(position))
+		{
+			return OVT_LocationTypeFlag.CHECKPOINT;
+		}
+		
+		// Default to open terrain
+		return OVT_LocationTypeFlag.OPEN_TERRAIN;
+	}
+	
+	//------------------------------------------------------------------------------------------------
 	OVT_DeploymentComponent CreateDeployment(OVT_DeploymentConfig config, vector position, int factionIndex)
 	{
+		if (config)
+			Print(string.Format("[Overthrow] Creating deployment '%1' for faction %2", config.m_sDeploymentName, factionIndex), LogLevel.NORMAL);
+		
 		if (!config || !config.IsValidConfig())
 			return null;
 		
@@ -486,7 +779,9 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		
 		deployment.InitializeDeployment(config, factionIndex);
 		
-		Print(string.Format("Created deployment '%1' for faction %2 at %3", config.m_sDeploymentName, factionIndex, position.ToString()), LogLevel.NORMAL);
+		string townName = OVT_Global.GetTowns().GetNearestTownName(position);
+				
+		Print(string.Format("[Overthrow] Created deployment '%1' for faction %2 near %3", config.m_sDeploymentName, factionIndex, townName), LogLevel.NORMAL);
 		
 		return deployment;
 	}
@@ -494,17 +789,23 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	//------------------------------------------------------------------------------------------------
 	void RegisterDeployment(OVT_DeploymentComponent deployment)
 	{
-		if (!deployment || m_aActiveDeployments.Contains(deployment))
+		if (!deployment)
+			return;
+			
+		EntityID deploymentID = deployment.GetOwner().GetID();
+		if (m_aActiveDeployments.Contains(deploymentID))
 			return;
 		
-		m_aActiveDeployments.Insert(deployment);
+		m_aActiveDeployments.Insert(deploymentID);
+		
+		Print(string.Format("[Overthrow] Registering Deployment %1 at %2", deployment.GetDeploymentName(), deployment.GetPosition()));
 		
 		// Add to faction-specific list
 		int factionIndex = deployment.GetControllingFaction();
-		array<OVT_DeploymentComponent> factionDeployments = m_mFactionDeployments.Get(factionIndex);
-		if (factionDeployments && !factionDeployments.Contains(deployment))
+		array<ref EntityID> factionDeployments = m_mFactionDeployments.Get(factionIndex);
+		if (factionDeployments && !factionDeployments.Contains(deploymentID))
 		{
-			factionDeployments.Insert(deployment);
+			factionDeployments.Insert(deploymentID);
 		}
 	}
 	
@@ -514,18 +815,19 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		if (!deployment)
 			return;
 		
-		int index = m_aActiveDeployments.Find(deployment);
+		EntityID deploymentID = deployment.GetOwner().GetID();
+		int index = m_aActiveDeployments.Find(deploymentID);
 		if (index != -1)
 			m_aActiveDeployments.Remove(index);
 		
 		// Remove from faction-specific list
 		int factionIndex = deployment.GetControllingFaction();
-		array<OVT_DeploymentComponent> factionDeployments = m_mFactionDeployments.Get(factionIndex);
+		array<ref EntityID> factionDeployments = m_mFactionDeployments.Get(factionIndex);
 		if (factionDeployments)
 		{
-			int factionIndex2 = factionDeployments.Find(deployment);
-			if (factionIndex2 != -1)
-				factionDeployments.Remove(factionIndex2);
+			int deploymentIndex = factionDeployments.Find(deploymentID);
+			if (deploymentIndex != -1)
+				factionDeployments.Remove(deploymentIndex);
 		}
 	}
 	
@@ -534,8 +836,9 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	{
 		for (int i = m_aActiveDeployments.Count() - 1; i >= 0; i--)
 		{
-			OVT_DeploymentComponent deployment = m_aActiveDeployments[i];
-			if (!deployment || !deployment.GetOwner())
+			EntityID deploymentID = m_aActiveDeployments[i];
+			IEntity deployment = GetGame().GetWorld().FindEntityByID(deploymentID);
+			if (!deployment)
 			{
 				m_aActiveDeployments.Remove(i);
 			}
@@ -583,8 +886,16 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	{
 		array<OVT_DeploymentComponent> nearbyDeployments = new array<OVT_DeploymentComponent>;
 		
-		foreach (OVT_DeploymentComponent deployment : m_aActiveDeployments)
+		foreach (EntityID deploymentID : m_aActiveDeployments)
 		{
+			IEntity entity = GetGame().GetWorld().FindEntityByID(deploymentID);
+			if (!entity)
+				continue;
+				
+			OVT_DeploymentComponent deployment = GetDeploymentFromEntity(entity);
+			if (!deployment)
+				continue;
+				
 			float distance = vector.Distance(position, deployment.GetPosition());
 			if (distance <= radius)
 				nearbyDeployments.Insert(deployment);
@@ -628,16 +939,39 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	//------------------------------------------------------------------------------------------------
 	array<OVT_DeploymentComponent> GetAllDeployments()
 	{
-		return m_aActiveDeployments;
+		array<OVT_DeploymentComponent> deployments = new array<OVT_DeploymentComponent>;
+		foreach (EntityID deploymentID : m_aActiveDeployments)
+		{
+			IEntity entity = GetGame().GetWorld().FindEntityByID(deploymentID);
+			if (!entity)
+				continue;
+				
+			OVT_DeploymentComponent deployment = GetDeploymentFromEntity(entity);
+			if (deployment)
+				deployments.Insert(deployment);
+		}
+		return deployments;
 	}
 	
 	//------------------------------------------------------------------------------------------------
 	array<OVT_DeploymentComponent> GetFactionDeployments(int factionIndex)
 	{
-		array<OVT_DeploymentComponent> factionDeployments = m_mFactionDeployments.Get(factionIndex);
-		if (!factionDeployments)
-			return new array<OVT_DeploymentComponent>;
-		return factionDeployments;
+		array<OVT_DeploymentComponent> deployments = new array<OVT_DeploymentComponent>;
+		array<ref EntityID> factionDeploymentIDs = m_mFactionDeployments.Get(factionIndex);
+		if (!factionDeploymentIDs)
+			return deployments;
+			
+		foreach (EntityID deploymentID : factionDeploymentIDs)
+		{
+			IEntity entity = GetGame().GetWorld().FindEntityByID(deploymentID);
+			if (!entity)
+				continue;
+				
+			OVT_DeploymentComponent deployment = GetDeploymentFromEntity(entity);
+			if (deployment)
+				deployments.Insert(deployment);
+		}
+		return deployments;
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -654,6 +988,13 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	void DeleteDeployment(OVT_DeploymentComponent deployment)
+	{
+		if (deployment)
+			deployment.DestroyDeployment();
+	}
+	
+	//------------------------------------------------------------------------------------------------
 	void PrintDebugInfo()
 	{
 		Print("=== Deployment Manager Debug Info ===");
@@ -661,10 +1002,10 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		Print(string.Format("Available Configs: %1", m_DeploymentRegistry.m_aDeploymentConfigs.Count()));
 		Print(string.Format("Cached Slots: %1", m_aAvailableSlots.Count()));
 		
-		foreach (int factionIndex, array<OVT_DeploymentComponent> deployments : m_mFactionDeployments)
-		{
+		foreach (int factionIndex, array<ref EntityID> deploymentIDs : m_mFactionDeployments)
+		{			
 			int resources = m_mFactionResources.Get(factionIndex);
-			Print(string.Format("Faction %1: %2 deployments, %3 resources", factionIndex, deployments.Count(), resources));
+			Print(string.Format("Faction %1: %2 deployments, %3 resources", factionIndex, deploymentIDs.Count(), resources));
 		}
 	}
 }

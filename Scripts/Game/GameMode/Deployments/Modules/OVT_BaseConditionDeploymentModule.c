@@ -12,6 +12,16 @@ class OVT_BaseConditionDeploymentModule : OVT_BaseDeploymentModule
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	// Dynamic condition evaluation for active deployments
+	//------------------------------------------------------------------------------------------------
+	bool EvaluateCondition()
+	{
+		// Override in derived classes to implement runtime condition logic
+		// This is called periodically to check if deployment should remain active
+		return true;
+	}
+	
+	//------------------------------------------------------------------------------------------------
 	// Utility methods for condition evaluation
 	//------------------------------------------------------------------------------------------------
 	protected bool IsTimeInRange(int startHour, int endHour)

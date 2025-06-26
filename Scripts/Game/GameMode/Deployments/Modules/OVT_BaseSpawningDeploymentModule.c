@@ -2,12 +2,33 @@
 class OVT_BaseSpawningDeploymentModule : OVT_BaseDeploymentModule
 {
 	protected ref array<ref EntityID> m_aSpawnedEntities;
+	protected bool m_bSpawnedUnitsEliminated; // Flag to track if all spawned units have been killed
 	
 	//------------------------------------------------------------------------------------------------
 	override void Initialize(OVT_DeploymentComponent parent)
 	{
 		super.Initialize(parent);
 		m_aSpawnedEntities = new array<ref EntityID>;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	// Elimination tracking
+	//------------------------------------------------------------------------------------------------
+	bool AreSpawnedUnitsEliminated()
+	{
+		return m_bSpawnedUnitsEliminated;
+	}
+	
+	void SetSpawnedUnitsEliminated(bool eliminated)
+	{
+		m_bSpawnedUnitsEliminated = eliminated;
+	}
+	
+	// Virtual method for subclasses to implement their own elimination checking
+	protected bool CheckIfUnitsEliminated()
+	{
+		// Default implementation - subclasses should override this
+		return false;
 	}
 	
 	//------------------------------------------------------------------------------------------------

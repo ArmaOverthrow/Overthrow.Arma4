@@ -14,8 +14,9 @@ class OVT_DeploymentComponent : OVT_Component
 	protected int m_iResourcesInvested;
 	protected bool m_bActive;
 	protected vector m_vPosition;
+	protected bool m_bSpawnedUnitsEliminated; // Flag to track if spawned units have been eliminated
 	
-	static const int UPDATE_FREQUENCY = 1000; // 1 second
+	static const int UPDATE_FREQUENCY = 10000; // 10 seconds
 	
 	//------------------------------------------------------------------------------------------------
 	override void OnPostInit(IEntity owner)
@@ -27,11 +28,6 @@ class OVT_DeploymentComponent : OVT_Component
 			
 		m_aActiveModules = new array<ref OVT_BaseDeploymentModule>;
 		m_vPosition = owner.GetOrigin();
-		
-		// Register with manager
-		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
-		if (manager)
-			manager.RegisterDeployment(this);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -43,6 +39,11 @@ class OVT_DeploymentComponent : OVT_Component
 		m_DeploymentConfig = config;
 		m_iControllingFaction = factionIndex;
 		
+		// Register with manager
+		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
+		if (manager)
+			manager.RegisterDeployment(this);
+		
 		// Create module instances from config
 		foreach (OVT_BaseDeploymentModule moduleTemplate : config.m_aModules)
 		{
@@ -53,8 +54,21 @@ class OVT_DeploymentComponent : OVT_Component
 			}
 		}
 		
+		// If this deployment was loaded with spawned units eliminated, set all spawning modules as eliminated
+		if (m_bSpawnedUnitsEliminated)
+		{
+			array<OVT_BaseSpawningDeploymentModule> spawningModules = GetSpawningModules();
+			foreach (OVT_BaseSpawningDeploymentModule spawningModule : spawningModules)
+			{
+				spawningModule.SetSpawnedUnitsEliminated(true);
+				Print(string.Format("Set spawning module as eliminated on load for deployment '%1'", GetDeploymentName()), LogLevel.VERBOSE);
+			}
+		}
+		
 		// Start update loop
-		GetGame().GetCallqueue().CallLater(UpdateDeployment, UPDATE_FREQUENCY, true);
+		float mul = s_AIRandomGenerator.RandFloatXY(0.8, 1.2);
+		int frequency = (int)((float)UPDATE_FREQUENCY * mul); //Stagger these updates
+		GetGame().GetCallqueue().CallLater(UpdateDeployment, frequency, true);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -65,8 +79,25 @@ class OVT_DeploymentComponent : OVT_Component
 			
 		m_bActive = true;
 		
-		// Activate all modules
-		foreach (OVT_BaseDeploymentModule module : m_aActiveModules)
+		// Activate modules in the correct order: spawning → behavior → condition
+		
+		// First: Activate spawning modules
+		array<OVT_BaseSpawningDeploymentModule> spawningModules = GetSpawningModules();
+		foreach (OVT_BaseSpawningDeploymentModule module : spawningModules)
+		{
+			module.Activate();
+		}
+		
+		// Second: Activate behavior modules
+		array<OVT_BaseBehaviorDeploymentModule> behaviorModules = GetBehaviorModules();
+		foreach (OVT_BaseBehaviorDeploymentModule module : behaviorModules)
+		{
+			module.Activate();
+		}
+		
+		// Third: Activate condition modules
+		array<OVT_BaseConditionDeploymentModule> conditionModules = GetConditionModules();
+		foreach (OVT_BaseConditionDeploymentModule module : conditionModules)
 		{
 			module.Activate();
 		}
@@ -80,8 +111,25 @@ class OVT_DeploymentComponent : OVT_Component
 			
 		m_bActive = false;
 		
-		// Deactivate all modules
-		foreach (OVT_BaseDeploymentModule module : m_aActiveModules)
+		// Deactivate modules in reverse order: condition → behavior → spawning
+		
+		// First: Deactivate condition modules
+		array<OVT_BaseConditionDeploymentModule> conditionModules = GetConditionModules();
+		foreach (OVT_BaseConditionDeploymentModule module : conditionModules)
+		{
+			module.Deactivate();
+		}
+		
+		// Second: Deactivate behavior modules
+		array<OVT_BaseBehaviorDeploymentModule> behaviorModules = GetBehaviorModules();
+		foreach (OVT_BaseBehaviorDeploymentModule module : behaviorModules)
+		{
+			module.Deactivate();
+		}
+		
+		// Third: Deactivate spawning modules
+		array<OVT_BaseSpawningDeploymentModule> spawningModules = GetSpawningModules();
+		foreach (OVT_BaseSpawningDeploymentModule module : spawningModules)
 		{
 			module.Deactivate();
 		}
@@ -93,10 +141,34 @@ class OVT_DeploymentComponent : OVT_Component
 		if (!Replication.IsServer())
 			return;
 			
-		// Update all modules
-		foreach (OVT_BaseDeploymentModule module : m_aActiveModules)
+		// Safety check to prevent crashes during cleanup
+		if (!m_aActiveModules)
+			return;
+			
+		// Update modules in order: spawning → behavior → condition
+		
+		// First: Update spawning modules
+		array<OVT_BaseSpawningDeploymentModule> spawningModules = GetSpawningModules();
+		foreach (OVT_BaseSpawningDeploymentModule module : spawningModules)
 		{
-			module.Update(UPDATE_FREQUENCY);
+			if (module)
+				module.Update(UPDATE_FREQUENCY);
+		}
+		
+		// Second: Update behavior modules
+		array<OVT_BaseBehaviorDeploymentModule> behaviorModules = GetBehaviorModules();
+		foreach (OVT_BaseBehaviorDeploymentModule module : behaviorModules)
+		{
+			if (module)
+				module.Update(UPDATE_FREQUENCY);
+		}
+		
+		// Third: Update condition modules
+		array<OVT_BaseConditionDeploymentModule> conditionModules = GetConditionModules();
+		foreach (OVT_BaseConditionDeploymentModule module : conditionModules)
+		{
+			if (module)
+				module.Update(UPDATE_FREQUENCY);
 		}
 		
 		// Check proximity for activation (will be replaced by virtualization system)
@@ -115,26 +187,7 @@ class OVT_DeploymentComponent : OVT_Component
 	//------------------------------------------------------------------------------------------------
 	protected bool IsPlayerInRange()
 	{
-		// Simple proximity check - will be replaced by virtualization system
-		float activationRange = 1000; // Default 1km
-		if (m_DeploymentConfig)
-			activationRange = m_DeploymentConfig.m_fActivationRange;
-			
-		array<int> players = new array<int>;
-		GetGame().GetPlayerManager().GetPlayers(players);
-		
-		foreach (int playerId : players)
-		{
-			IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
-			if (!player)
-				continue;
-				
-			float distance = vector.Distance(player.GetOrigin(), m_vPosition);
-			if (distance <= activationRange)
-				return true;
-		}
-		
-		return false;
+		return OVT_Global.PlayerInRange(GetOwner().GetOrigin(), OVT_Global.GetConfig().m_iMilitarySpawnDistance);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -160,8 +213,25 @@ class OVT_DeploymentComponent : OVT_Component
 		// Stop update loop
 		GetGame().GetCallqueue().Remove(UpdateDeployment);
 		
-		// Cleanup all modules
-		foreach (OVT_BaseDeploymentModule module : m_aActiveModules)
+		// Cleanup modules in reverse order: condition → behavior → spawning
+		
+		// First: Cleanup condition modules
+		array<OVT_BaseConditionDeploymentModule> conditionModules = GetConditionModules();
+		foreach (OVT_BaseConditionDeploymentModule module : conditionModules)
+		{
+			module.Cleanup();
+		}
+		
+		// Second: Cleanup behavior modules
+		array<OVT_BaseBehaviorDeploymentModule> behaviorModules = GetBehaviorModules();
+		foreach (OVT_BaseBehaviorDeploymentModule module : behaviorModules)
+		{
+			module.Cleanup();
+		}
+		
+		// Third: Cleanup spawning modules
+		array<OVT_BaseSpawningDeploymentModule> spawningModules = GetSpawningModules();
+		foreach (OVT_BaseSpawningDeploymentModule module : spawningModules)
 		{
 			module.Cleanup();
 		}
@@ -264,22 +334,6 @@ class OVT_DeploymentComponent : OVT_Component
 		// Check threat level requirement
 		if (config.m_iMinimumThreatLevel > 0 && threatLevel < config.m_iMinimumThreatLevel)
 			return false;
-			
-		// Check faction type
-		if (config.m_iAllowedFactionTypes != 0)
-		{
-			FactionManager factionManager = GetGame().GetFactionManager();
-			if (!factionManager)
-				return false;
-				
-			Faction faction = factionManager.GetFactionByIndex(factionIndex);
-			if (!faction)
-				return false;
-				
-			OVT_FactionType factionType = GetFactionType(faction);
-			if (!config.CanFactionUse(factionType))
-				return false;
-		}
 		
 		// Check module-specific conditions
 		foreach (OVT_BaseDeploymentModule moduleTemplate : config.m_aModules)
@@ -315,28 +369,85 @@ class OVT_DeploymentComponent : OVT_Component
 	float GetThreatLevel() { return m_fThreatLevel; }
 	int GetResourcesInvested() { return m_iResourcesInvested; }
 	bool IsDeploymentActive() { return m_bActive; }
-	vector GetPosition() { return m_vPosition; }
+	vector GetPosition() { return GetOwner().GetOrigin(); }
 	OVT_DeploymentConfig GetConfig() { return m_DeploymentConfig; }
+	string GetDeploymentName() 
+	{ 
+		if (m_DeploymentConfig)
+			return m_DeploymentConfig.m_sDeploymentName;
+		return "Unknown Deployment";
+	}
 	
 	//------------------------------------------------------------------------------------------------
 	void SetThreatLevel(float threat) { m_fThreatLevel = threat; }
 	void SetControllingFaction(int factionIndex) { m_iControllingFaction = factionIndex; }
+	
+	//------------------------------------------------------------------------------------------------
+	void CheckAllSpawningModulesEliminated()
+	{
+		array<OVT_BaseSpawningDeploymentModule> spawningModules = GetSpawningModules();
+		if (spawningModules.IsEmpty())
+		{
+			// No spawning modules, so nothing to eliminate
+			m_bSpawnedUnitsEliminated = false;
+			return;
+		}
+		
+		// Check if ALL spawning modules have been eliminated
+		bool allEliminated = true;
+		foreach (OVT_BaseSpawningDeploymentModule module : spawningModules)
+		{
+			if (!module.AreSpawnedUnitsEliminated())
+			{
+				allEliminated = false;
+				break;
+			}
+		}
+		
+		bool previousState = m_bSpawnedUnitsEliminated;
+		m_bSpawnedUnitsEliminated = allEliminated;
+		
+		// Log state change
+		if (previousState != m_bSpawnedUnitsEliminated)
+		{
+			if (m_bSpawnedUnitsEliminated)
+				Print(string.Format("All spawned units for deployment '%1' have been eliminated", GetDeploymentName()), LogLevel.NORMAL);
+			else
+				Print(string.Format("Spawned units for deployment '%1' are no longer eliminated (reinforcements successful)", GetDeploymentName()), LogLevel.NORMAL);
+		}
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	bool GetSpawnedUnitsEliminated() { return m_bSpawnedUnitsEliminated; }
+	void SetSpawnedUnitsEliminated(bool eliminated) { m_bSpawnedUnitsEliminated = eliminated; }
 }
 
 // EPF Save Data
+
+[BaseContainerProps()]
+class OVT_DeploymentSaveDataClass : EPF_ItemSaveDataClass
+{
+};
+
+[EDF_DbName.Automatic()]
+class OVT_DeploymentSaveData : EPF_ItemSaveData
+{
+};
+
+
 [EPF_ComponentSaveDataType(OVT_DeploymentComponent), BaseContainerProps()]
-class OVT_DeploymentSaveDataClass : EPF_ComponentSaveDataClass
+class OVT_DeploymentComponentSaveDataClass : EPF_ComponentSaveDataClass
 {
 }
 
 [EDF_DbName.Automatic()]
-class OVT_DeploymentSaveData : EPF_ComponentSaveData
+class OVT_DeploymentComponentSaveData : EPF_ComponentSaveData
 {
 	int m_iControllingFaction;
 	float m_fThreatLevel;
 	int m_iResourcesInvested;
-	bool m_bActive;
 	string m_sDeploymentConfigName;
+	bool m_bSpawnedUnitsEliminated;
 	
 	override EPF_EReadResult ReadFrom(IEntity owner, GenericComponent component, EPF_ComponentSaveDataClass attributes)
 	{
@@ -347,7 +458,7 @@ class OVT_DeploymentSaveData : EPF_ComponentSaveData
 		m_iControllingFaction = deployment.GetControllingFaction();
 		m_fThreatLevel = deployment.GetThreatLevel();
 		m_iResourcesInvested = deployment.GetResourcesInvested();
-		m_bActive = deployment.IsDeploymentActive();
+		m_bSpawnedUnitsEliminated = deployment.GetSpawnedUnitsEliminated();
 		
 		// Save config name for restoration
 		if (deployment.GetConfig())
@@ -378,10 +489,8 @@ class OVT_DeploymentSaveData : EPF_ComponentSaveData
 		
 		deployment.SetThreatLevel(m_fThreatLevel);
 		deployment.SetControllingFaction(m_iControllingFaction);
-		
-		if (m_bActive)
-			deployment.ActivateDeployment();
-			
+		deployment.SetSpawnedUnitsEliminated(m_bSpawnedUnitsEliminated);
+					
 		return EPF_EApplyResult.OK;
 	}
 }

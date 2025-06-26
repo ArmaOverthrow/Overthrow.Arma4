@@ -175,6 +175,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 		{
 			data.faction = OVT_Global.GetConfig().GetOccupyingFactionIndex();
 		}
+		
+		// Allocate initial resources to deployment manager
+		AllocateDeploymentResources(m_Config.m_Difficulty.baseResourcesPerTick);
 	}
 
 	void PostGameStart()
@@ -217,7 +220,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 					
 					OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
 					
-					int numGroups = s_AIRandomGenerator.RandInt(config.m_Difficulty.radioTowerGroupsMin,config.m_Difficulty.radioTowerGroupsMax);
+					int numGroups = s_AIRandomGenerator.RandInt(config.m_Difficulty.patrolGroupsMin,config.m_Difficulty.patrolGroupsMax);
 
 					for(int t = 0; t < numGroups; t++)
 					{
@@ -969,8 +972,48 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_iResources += newResources;
 
 		Print ("[Overthrow.OccupyingFactionManager] Gained Resources: " + newResources.ToString());
+		
+		// Allocate resources to deployment manager if it's running low
+		AllocateDeploymentResourcesIfNeeded(newResources);
 
 		return newResources;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	// Deployment Manager Resource Allocation
+	//------------------------------------------------------------------------------------------------
+	protected void AllocateDeploymentResources(int amount)
+	{
+		OVT_DeploymentManagerComponent deploymentManager = OVT_Global.GetDeploymentManager();
+		if (!deploymentManager)
+			return;
+			
+		int occupyingFactionIndex = OVT_Global.GetConfig().GetOccupyingFactionIndex();
+		deploymentManager.AddFactionResources(occupyingFactionIndex, amount);
+		
+		Print(string.Format("[Overthrow.OccupyingFactionManager] Allocated %1 resources to deployment manager", amount));
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	protected void AllocateDeploymentResourcesIfNeeded(int newResources)
+	{
+		OVT_DeploymentManagerComponent deploymentManager = OVT_Global.GetDeploymentManager();
+		if (!deploymentManager)
+			return;
+			
+		int occupyingFactionIndex = OVT_Global.GetConfig().GetOccupyingFactionIndex();
+		int deploymentResources = deploymentManager.GetFactionResources(occupyingFactionIndex);
+		
+		// If deployment manager has less than 500 resources and we have surplus
+		if (deploymentResources < 500 && m_iResources > 1000)
+		{
+			int toAllocate = Math.Min(newResources / 2, m_iResources - 1000);
+			if (toAllocate > 0)
+			{
+				AllocateDeploymentResources(toAllocate);
+				m_iResources -= toAllocate;
+			}
+		}
 	}
 
 	void OnAIKilled(IEntity ai, IEntity instigator)
