@@ -125,12 +125,12 @@ OverlayWidgetClass {
       Anchor 1 0 1 0
       PositionX -20
       OffsetLeft -20
-      PositionY 45
-      OffsetTop 45
+      PositionY 50
+      OffsetTop 50
       SizeX 100
       OffsetRight -80
       SizeY 23.8
-      OffsetBottom -68.8
+      OffsetBottom -73.8
       Alignment 1 0
       SizeToContent 1
      }
