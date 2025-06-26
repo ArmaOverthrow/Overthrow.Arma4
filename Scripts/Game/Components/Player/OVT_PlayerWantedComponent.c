@@ -62,23 +62,12 @@ class OVT_PlayerWantedComponent: OVT_Component
 	}
 	
 	//! Check if player is disguised as occupying faction
+	// Track disguise state
+	protected bool m_bIsDisguised = false;
+	
 	bool IsDisguisedAsOccupying()
 	{
-		if (!m_CharacterFaction)
-			return false;
-			
-		Faction perceivedFaction = m_CharacterFaction.GetPerceivedFaction();
-		
-		// If no perceived faction from base game, check our manual detection
-		if (!perceivedFaction)
-		{
-			// Check if we manually detected Soviet gear
-			int sovietScore = CalculateSovietOutfitScore();
-			return (sovietScore > 50);
-		}
-			
-		string perceivedKey = perceivedFaction.GetFactionKey();
-		return (perceivedKey == "US" || perceivedKey == "USSR");
+		return m_bIsDisguised;
 	}
 	
 	//! Check if player is disguised as FIA/resistance
@@ -215,7 +204,9 @@ class OVT_PlayerWantedComponent: OVT_Component
 						// Busted! Set wanted level 2
 						SetBaseWantedLevel(2);
 						m_bTempSeen = true;
+						m_bIsDisguised = false; // Disguise blown
 						RecordSuspiciousActivity("DISGUISE_BLOWN", pos);
+						Print("[Overthrow Debug] Disguise blown at close range!");
 						return;
 					}
 				}
@@ -298,6 +289,15 @@ class OVT_PlayerWantedComponent: OVT_Component
 					// Override perceived faction for disguise check
 					perceivedFaction = GetGame().GetFactionManager().GetFactionByKey("USSR");
 					Print("[Overthrow Debug] Overriding perceived faction to USSR");
+					
+					// Set disguise state when manual detection succeeds
+					m_bIsDisguised = true;
+					Print("[Overthrow Debug] Setting m_bIsDisguised = true");
+				}
+				else
+				{
+					// Not enough Soviet gear points
+					m_bIsDisguised = false;
 				}
 			}
 			
@@ -309,6 +309,8 @@ class OVT_PlayerWantedComponent: OVT_Component
 				if (perceivedKey == "US" || perceivedKey == "USSR")
 				{
 					Print(string.Format("[Overthrow Debug] DISGUISED! Perceived as %1 - skipping normal detection", perceivedKey));
+					// Set disguise state
+					m_bIsDisguised = true;
 					// Only check close distance (15m default)
 					skipNormalDetection = true;
 					CheckDisguisedAsOccupying();
@@ -316,9 +318,21 @@ class OVT_PlayerWantedComponent: OVT_Component
 				// If perceived as FIA/resistance - instant wanted
 				else if (perceivedKey == "FIA")
 				{
+					// Not disguised
+					m_bIsDisguised = false;
 					// Will be handled by normal detection at any distance
 					skipNormalDetection = false;
 				}
+				else
+				{
+					// Perceived as civilian or other - not disguised
+					m_bIsDisguised = false;
+				}
+			}
+			else
+			{
+				// No perceived faction - not disguised
+				m_bIsDisguised = false;
 			}
 		}
 		
@@ -693,14 +707,22 @@ class OVT_PlayerWantedComponent: OVT_Component
 	{
 		int score = 0;
 		
+		Print("[Overthrow Debug] CalculateSovietOutfitScore() called");
+		
 		SCR_CharacterInventoryStorageComponent inventory = SCR_CharacterInventoryStorageComponent.Cast(GetOwner().FindComponent(SCR_CharacterInventoryStorageComponent));
 		if (!inventory)
+		{
+			Print("[Overthrow Debug] No inventory component found!");
 			return score;
+		}
 			
 		// Get equipped loadout storage component
 		EquipedLoadoutStorageComponent loadoutStorage = EquipedLoadoutStorageComponent.Cast(GetOwner().FindComponent(EquipedLoadoutStorageComponent));
 		if (!loadoutStorage)
+		{
+			Print("[Overthrow Debug] No EquipedLoadoutStorageComponent found!");
 			return score;
+		}
 			
 		// Check helmet slot
 		IEntity helmet = loadoutStorage.GetClothFromArea(LoadoutHeadCoverArea);
