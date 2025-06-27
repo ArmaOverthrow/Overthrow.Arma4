@@ -1,13 +1,10 @@
 //! UserAction for saving player equipment loadouts from equipment boxes
-class OVT_SaveLoadoutAction : ScriptedUserAction
+class OVT_SaveLoadoutAction : OVT_DialogUserAction
 {
-	protected SCR_ConfigurableDialogUi m_SaveDialog;
-	protected IEntity m_UserEntity;
-	
 	//! Perform the save loadout action
 	override void PerformAction(IEntity pOwnerEntity, IEntity pUserEntity)
 	{
-		m_UserEntity = pUserEntity;
+		SetUserEntity(pUserEntity);
 		
 		// Show name input dialog
 		ShowSaveLoadoutDialog();
@@ -20,25 +17,13 @@ class OVT_SaveLoadoutAction : ScriptedUserAction
 		return true;
 	}
 	
-	//! Check if action can be shown
-	override bool CanBeShownScript(IEntity user)
-	{
-		// Only show if user has inventory manager (is a character)
-		InventoryStorageManagerComponent storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(user);
-		return storageManager != null;
-	}
-	
-	//! Local effect only (no network sync needed for UI)
-	override bool HasLocalEffectOnlyScript() 
-	{ 
-		return true; 
-	}
+	// Inherits CanBeShownScript and HasLocalEffectOnlyScript from base class
 	
 	//! Show dialog for entering loadout name
 	protected void ShowSaveLoadoutDialog()
 	{
-		// Create configurable dialog with EditBox support
-		SCR_ConfigurableDialogUi dialog = SCR_ConfigurableDialogUi.CreateFromPreset(
+		// Create configurable dialog with EditBox support (automatically closes interaction menu)
+		SCR_ConfigurableDialogUi dialog = CreateDialog(
 			"{272B6C4030554E27}Configs/UI/Dialogs/DialogPresets_Campaign.conf", 
 			"SAVE_LOADOUT" // Use dedicated save loadout dialog with medium layout
 		);
@@ -56,9 +41,6 @@ class OVT_SaveLoadoutAction : ScriptedUserAction
 			editBox.SetValue("My Loadout"); // Default name
 		}
 		
-		// Store dialog reference for callback
-		m_SaveDialog = dialog;
-		
 		// Set up callbacks
 		dialog.m_OnConfirm.Insert(OnSaveConfirmed);
 		dialog.m_OnCancel.Insert(OnSaveCancel);
@@ -67,15 +49,18 @@ class OVT_SaveLoadoutAction : ScriptedUserAction
 	//! Handle save confirmation
 	protected void OnSaveConfirmed()
 	{
-		if (!m_SaveDialog || !m_UserEntity)
+		SCR_ConfigurableDialogUi dialog = GetDialog();
+		IEntity userEntity = GetUserEntity();
+		
+		if (!dialog || !userEntity)
 			return;
 		
 		// Get the entered loadout name
-		SCR_EditBoxComponent editBox = SCR_EditBoxComponent.GetEditBoxComponent("EditBox", m_SaveDialog.GetRootWidget());
+		SCR_EditBoxComponent editBox = SCR_EditBoxComponent.GetEditBoxComponent("EditBox", dialog.GetRootWidget());
 		if (!editBox)
 		{
 			SCR_HintManagerComponent.ShowCustomHint("Failed to get loadout name", "Error", 3.0);
-			m_SaveDialog = null;
+			ClearDialog();
 			return;
 		}
 		
@@ -85,16 +70,16 @@ class OVT_SaveLoadoutAction : ScriptedUserAction
 		if (loadoutName.IsEmpty() || loadoutName.Length() > 32)
 		{
 			SCR_HintManagerComponent.ShowCustomHint("Invalid name length (1-32 characters)", "Error", 3.0);
-			m_SaveDialog = null;
+			ClearDialog();
 			return;
 		}
 		
 		// Get player persistent ID
-		string playerId = OVT_Global.GetPlayers().GetPersistentIDFromControlledEntity(m_UserEntity);
+		string playerId = OVT_Global.GetPlayers().GetPersistentIDFromControlledEntity(userEntity);
 		if (playerId.IsEmpty())
 		{
 			SCR_HintManagerComponent.ShowCustomHint("Failed to get player ID", "Error", 3.0);
-			m_SaveDialog = null;
+			ClearDialog();
 			return;
 		}
 		
@@ -114,12 +99,12 @@ class OVT_SaveLoadoutAction : ScriptedUserAction
 			SCR_HintManagerComponent.ShowCustomHint("Communication component not available", "Error", 3.0);
 		}
 		
-		m_SaveDialog = null;
+		ClearDialog();
 	}
 	
 	//! Handle save cancellation
 	protected void OnSaveCancel()
 	{
-		m_SaveDialog = null;
+		ClearDialog();
 	}
 }
