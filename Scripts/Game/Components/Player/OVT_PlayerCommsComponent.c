@@ -820,6 +820,56 @@ class OVT_PlayerCommsComponent: OVT_Component
 		SCR_Global.TeleportPlayer(playerId, pos);
 	}
 	
+	void RequestFastTravelWithRecruits(int playerId, vector pos, float recruitRadius)	
+	{		
+		Rpc(RpcAsk_RequestFastTravelWithRecruits, playerId, pos, recruitRadius);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	void RpcAsk_RequestFastTravelWithRecruits(int playerId, vector pos, float recruitRadius)	
+	{
+		// Get player's persistent ID
+		string playerPersistentId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		if (playerPersistentId.IsEmpty())
+			return;
+		
+		// Get player entity for position reference
+		IEntity playerEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+		if (!playerEntity)
+			return;
+		
+		// Teleport player first
+		SCR_Global.TeleportPlayer(playerId, pos);
+		
+		// Get nearby recruits
+		OVT_RecruitManagerComponent recruitManager = OVT_RecruitManagerComponent.GetInstance();
+		if (!recruitManager)
+			return;
+			
+		array<IEntity> nearbyRecruits = recruitManager.GetPlayerRecruitEntitiesInRadius(playerPersistentId, playerEntity.GetOrigin(), recruitRadius);
+		
+		// Teleport each nearby recruit to the same destination
+		int recruitIndex = 0;
+		foreach (IEntity recruitEntity : nearbyRecruits)
+		{
+			if (!recruitEntity)
+				continue;
+				
+			// Calculate offset position in a circle around the player destination
+			float angle = (recruitIndex * 360.0 / nearbyRecruits.Count()) * Math.DEG2RAD;
+			float radius = 3.0 + (recruitIndex * 0.5); // Start at 3m and expand outward
+			vector offset = Vector(Math.Sin(angle) * radius, 0, Math.Cos(angle) * radius);
+			vector recruitPos = pos + offset;
+			
+			// Find a safe position near the calculated spot
+			recruitPos = OVT_Global.FindSafeSpawnPosition(recruitPos);
+			
+			// Teleport the recruit
+			recruitEntity.SetOrigin(recruitPos);
+			recruitIndex++;
+		}
+	}
+	
 	//LOADOUTS
 	
 	//! Save a loadout for a player

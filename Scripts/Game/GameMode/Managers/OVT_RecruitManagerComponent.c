@@ -210,6 +210,70 @@ class OVT_RecruitManagerComponent : OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Get recruits owned by a player within a specified radius of a position
+	array<ref OVT_RecruitData> GetPlayerRecruitsInRadius(string playerPersistentId, vector position, float radius)
+	{
+		array<ref OVT_RecruitData> nearbyRecruits = new array<ref OVT_RecruitData>;
+		
+		if (!m_mRecruitsByOwner.Contains(playerPersistentId))
+			return nearbyRecruits;
+			
+		array<string> recruitIds = m_mRecruitsByOwner[playerPersistentId];
+		foreach (string recruitId : recruitIds)
+		{
+			OVT_RecruitData recruit = m_mRecruits[recruitId];
+			if (!recruit || !recruit.m_bIsOnline)
+				continue;
+				
+			// Find the recruit entity to get current position
+			IEntity recruitEntity = FindRecruitEntity(recruitId);
+			if (!recruitEntity)
+				continue;
+				
+			// Check if recruit is within radius
+			float distance = vector.Distance(position, recruitEntity.GetOrigin());
+			if (distance <= radius)
+			{
+				nearbyRecruits.Insert(recruit);
+			}
+		}
+		
+		return nearbyRecruits;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Get recruit entities owned by a player within a specified radius of a position
+	array<IEntity> GetPlayerRecruitEntitiesInRadius(string playerPersistentId, vector position, float radius)
+	{
+		array<IEntity> nearbyRecruitEntities = new array<IEntity>;
+		
+		if (!m_mRecruitsByOwner.Contains(playerPersistentId))
+			return nearbyRecruitEntities;
+			
+		array<string> recruitIds = m_mRecruitsByOwner[playerPersistentId];
+		foreach (string recruitId : recruitIds)
+		{
+			OVT_RecruitData recruit = m_mRecruits[recruitId];
+			if (!recruit || !recruit.m_bIsOnline)
+				continue;
+				
+			// Find the recruit entity to get current position
+			IEntity recruitEntity = FindRecruitEntity(recruitId);
+			if (!recruitEntity)
+				continue;
+				
+			// Check if recruit is within radius
+			float distance = vector.Distance(position, recruitEntity.GetOrigin());
+			if (distance <= radius)
+			{
+				nearbyRecruitEntities.Insert(recruitEntity);
+			}
+		}
+		
+		return nearbyRecruitEntities;
+	}
+	
+	//------------------------------------------------------------------------------------------------
 	//! Add a new recruit
 	string AddRecruit(string ownerPersistentId, IEntity characterEntity, string name = "")
 	{
