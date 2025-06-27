@@ -10,6 +10,8 @@ class OVT_PlayerWantedComponent: OVT_Component
 	protected bool m_bIsSeen = false;	
 	[RplProp()]
 	float m_fVisualRecognitionFactor = 1;
+	[RplProp()]
+	float m_bWantedSystemEnabled = true;
 	
 	[Attribute("250")]
 	float m_fBaseDistanceSeenAt;
@@ -33,6 +35,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 	protected ref TraceParam m_TraceParams;
 	
 	protected ref OVT_PlayerData m_PlayerData;
+	protected ref OVT_RecruitData m_RecruitData;
 	
 	void SetWantedLevel(int level)
 	{
@@ -58,6 +61,26 @@ class OVT_PlayerWantedComponent: OVT_Component
 		return m_bIsSeen;
 	}
 	
+	//! Enable the wanted system for this entity
+	void EnableWantedSystem()
+	{
+		m_bWantedSystemEnabled = true;
+	}
+	
+	//! Disable the wanted system for this entity
+	void DisableWantedSystem()
+	{
+		m_bWantedSystemEnabled = false;
+		// Reset wanted level when disabling
+		SetWantedLevel(0);
+	}
+	
+	//! Check if wanted system is enabled
+	bool IsWantedSystemEnabled()
+	{
+		return m_bWantedSystemEnabled;
+	}
+	
 	override void OnPostInit(IEntity owner)
 	{
 		super.OnPostInit(owner);
@@ -78,25 +101,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		GetGame().GetCallqueue().CallLater(CheckUpdate, WANTED_SYSTEM_FREQUENCY, true, owner);		
 		
 		OVT_Global.GetOccupyingFaction().m_OnPlayerLoot.Insert(OnPlayerLoot);
-		
-		PlayerController pc = GetGame().GetPlayerController();
-		if (pc)
-		{
-			SCR_PlayerFactionAffiliationComponent aff = SCR_PlayerFactionAffiliationComponent.Cast(pc.FindComponent(SCR_PlayerFactionAffiliationComponent));
-			FactionManager mgr = GetGame().GetFactionManager();
-			Faction civ = mgr.GetFactionByKey("CIV");
-			aff.RequestFaction(civ);
-			
-			SCR_PlayerControllerGroupComponent group = SCR_PlayerControllerGroupComponent.Cast(pc.FindComponent(SCR_PlayerControllerGroupComponent));
-			if(group)
-			{
-				int groupId = group.GetGroupID();
-				if(groupId == -1)
-				{
-					group.CreateAndJoinGroup(civ);
-				}
-			}
-		}
+
 	}
 	
 	void OnPlayerLoot(IEntity player)
@@ -110,14 +115,28 @@ class OVT_PlayerWantedComponent: OVT_Component
 	
 	void CheckUpdate()
 	{
-		if(!m_PlayerData)
+		if(!m_bWantedSystemEnabled) return;
+		
+		// Check if this is a player or recruit
+		if(!m_PlayerData && !m_RecruitData)
 		{
 			int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(GetOwner());
 			if(playerId > 0)
 			{
 				m_PlayerData = OVT_PlayerData.Get(playerId);
-			}else{
-				return;
+			}
+			else
+			{
+				// Check if this is a recruit
+				OVT_RecruitManagerComponent recruitManager = OVT_Global.GetRecruits();
+				if(recruitManager)
+				{
+					m_RecruitData = recruitManager.GetRecruitFromEntity(GetOwner());
+				}
+				
+				// If neither player nor recruit, exit
+				if(!m_RecruitData)
+					return;
 			}
 		}
 		
@@ -134,7 +153,24 @@ class OVT_PlayerWantedComponent: OVT_Component
 		aiworld.GetAIAgents(agents);
 		
 		vector pos = GetOwner().GetOrigin();
-		float distanceSeen = 5 + (m_fBaseDistanceSeenAt * m_PlayerData.stealthMultiplier); 
+		
+		// Get stealth multiplier from player or recruit
+		float stealthMultiplier = 1.0;
+		if(m_PlayerData)
+		{
+			stealthMultiplier = m_PlayerData.stealthMultiplier;
+		}
+		else if(m_RecruitData)
+		{
+			// Recruits inherit stealth from their owner's skills
+			OVT_PlayerData ownerData = OVT_Global.GetPlayers().GetPlayer(m_RecruitData.m_sOwnerPersistentId);
+			if(ownerData)
+			{
+				stealthMultiplier = ownerData.stealthMultiplier;
+			}
+		}
+		
+		float distanceSeen = 5 + (m_fBaseDistanceSeenAt * stealthMultiplier); 
 		
 		foreach(AIAgent agent : agents)
 		{
@@ -229,7 +265,13 @@ class OVT_PlayerWantedComponent: OVT_Component
 		{		
 			//Player is in a vehicle, may need to update vehicle's faction
 			SCR_VehicleFactionAffiliationComponent vfac = EPF_Component<SCR_VehicleFactionAffiliationComponent>.Find(m_Compartment.GetVehicle());
+			if (!vfac)
+				return;
+				
 			Faction vehFaction = vfac.GetAffiliatedFaction();
+			if (!vehFaction)
+				return;
+				
 			string vehFactionKey = vehFaction.GetFactionKey();
 			if(m_iWantedLevel > 1 && vehFactionKey == "CIV")
 			{
@@ -269,7 +311,23 @@ class OVT_PlayerWantedComponent: OVT_Component
 			inVehicle = true;
 		}		
 		
-		if(m_fVisualRecognitionFactor < 0.2 && dist > (10 * m_PlayerData.stealthMultiplier) && !inVehicle)
+		// Get stealth multiplier for this check
+		float stealthMult = 1.0;
+		if(m_PlayerData)
+		{
+			stealthMult = m_PlayerData.stealthMultiplier;
+		}
+		else if(m_RecruitData)
+		{
+			// Recruits inherit stealth from their owner's skills
+			OVT_PlayerData ownerData = OVT_Global.GetPlayers().GetPlayer(m_RecruitData.m_sOwnerPersistentId);
+			if(ownerData)
+			{
+				stealthMult = ownerData.stealthMultiplier;
+			}
+		}
+		
+		if(m_fVisualRecognitionFactor < 0.2 && dist > (10 * stealthMult) && !inVehicle)
 		{
 			//Definitely can't see you, but continue search
 			return true;

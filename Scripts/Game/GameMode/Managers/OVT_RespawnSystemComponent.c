@@ -13,6 +13,10 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 	protected OVT_OverthrowGameMode m_Overthrow;
 	protected ref array<IEntity> m_FoundBases = {};
 	
+	//! Event fired when a player group is created
+	//! Parameters: playerId, groupId, playerName
+	ref ScriptInvoker m_OnPlayerGroupCreated = new ScriptInvoker();
+	
 	[Attribute(defvalue: "{3A99A99836F6B3DC}Prefabs/Characters/Factions/INDFOR/FIA/Character_Player.et")]
 	ResourceName m_rDefaultPrefab;
 	
@@ -90,6 +94,158 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 				yawPitchRoll = "0 0 0";
 			}
 		}
+	}
+	
+	void CreateAndJoinGroup(int playerId)
+	{		
+		
+		SCR_PlayerController playerController = SCR_PlayerController.Cast(m_pPlayerManager.GetPlayerController(playerId));
+		if (!playerController)
+		{
+			// Player controller not ready yet, retry later
+			GetGame().GetCallqueue().CallLater(CreateAndJoinGroupDelayed, 500, false, playerId, 0);
+			return;
+		}
+		
+		// Check if the player has a controlled entity
+		IEntity controlledEntity = playerController.GetControlledEntity();
+		if (!controlledEntity)
+		{
+			// Player doesn't have a controlled entity yet, retry later
+			GetGame().GetCallqueue().CallLater(CreateAndJoinGroupDelayed, 500, false, playerId, 0);
+			return;
+		}
+		
+		SCR_PlayerControllerGroupComponent group = SCR_PlayerControllerGroupComponent.Cast(playerController.FindComponent(SCR_PlayerControllerGroupComponent));
+		if(!group)
+		{
+			Print("[Overthrow] ERROR: Player controller has no group component! Player ID: " + playerId, LogLevel.ERROR);
+			return;
+		}
+		
+		SetCivilianFaction(playerId);
+		
+		int groupId = group.GetGroupID();
+		//Is the player not already in a group?
+		if(groupId == -1)
+		{
+			SCR_GroupsManagerComponent groupsManager = SCR_GroupsManagerComponent.GetInstance();
+			if (!groupsManager)
+			{
+				// Groups manager not ready, retry later
+				GetGame().GetCallqueue().CallLater(CreateAndJoinGroupDelayed, 500, false, playerId, 0);
+				return;
+			}
+			
+			SCR_FactionManager factionManager = SCR_FactionManager.Cast(GetGame().GetFactionManager());
+			if (!factionManager)
+				return;
+
+			Faction faction = factionManager.GetPlayerFaction(playerId);
+			if (!faction)
+				return;
+			
+			SCR_AIGroup newGroup = groupsManager.CreateNewPlayableGroup(faction);
+			if (!newGroup)
+			{
+				Print("[Overthrow] Failed to create group for player " + playerId, LogLevel.WARNING);
+				return;
+			}
+			
+			string playerName = GetGame().GetPlayerManager().GetPlayerName(playerId);
+			newGroup.SetName(playerName);
+			
+			int groupID = newGroup.GetGroupID();
+
+			SCR_PlayerControllerGroupComponent groupController = SCR_PlayerControllerGroupComponent.GetPlayerControllerComponent(playerId);
+			if (!groupController)
+			{
+				Print("[Overthrow] Failed to get group controller for player " + playerId, LogLevel.WARNING);
+				return;
+			}
+			
+			groupController.RequestJoinGroup(groupID);
+						
+			Print("[Overthrow] Created group " + groupID + " for player " + playerName + " (ID: " + playerId + ")", LogLevel.NORMAL);
+			Print("[Overthrow] Group faction: " + faction.GetFactionKey() + ", Player entity: " + playerController.GetControlledEntity(), LogLevel.NORMAL);
+			
+			// Fire the group created event
+			m_OnPlayerGroupCreated.Invoke(playerId, groupID, playerName);
+		}
+		else
+		{
+			Print("[Overthrow] Player " + playerId + " already in group " + groupId, LogLevel.NORMAL);
+		}
+	}
+	
+	//! Delayed group creation with retry mechanism
+	void CreateAndJoinGroupDelayed(int playerId, int retryCount)
+	{
+		if (retryCount > 10)
+		{
+			Print("[Overthrow] Failed to create group for player " + playerId + " after 10 retries", LogLevel.ERROR);
+			return;
+		}
+		
+		SCR_PlayerController playerController = SCR_PlayerController.Cast(m_pPlayerManager.GetPlayerController(playerId));
+		if (!playerController)
+		{
+			// Still not ready, retry again
+			GetGame().GetCallqueue().CallLater(CreateAndJoinGroupDelayed, 500, false, playerId, retryCount + 1);
+			return;
+		}
+		
+		// Player controller is ready, proceed with group creation
+		CreateAndJoinGroup(playerId);
+	}
+		
+	void SetCivilianFaction(int playerId)
+	{
+		PlayerController playerController = GetGame().GetPlayerManager().GetPlayerController(playerId);
+		if (!playerController) return;
+		
+		SCR_PlayerFactionAffiliationComponent factionComponent = SCR_PlayerFactionAffiliationComponent.Cast(playerController.FindComponent(SCR_PlayerFactionAffiliationComponent));
+		if (!factionComponent) return;
+		
+		FactionManager mgr = GetGame().GetFactionManager();
+		if (!mgr) return;
+		
+		Faction civ = mgr.GetFactionByKey("CIV");
+		if (!civ) return;
+		
+		// This properly triggers faction manager updates and replication
+		factionComponent.RequestFaction(civ);
+		
+		// Force client-side faction mapping via RPC as backup
+		if (Replication.IsServer())
+		{
+			SCR_FactionManager factionManager = SCR_FactionManager.Cast(mgr);
+			if (factionManager)
+			{
+				int factionIndex = factionManager.GetFactionIndex(civ);
+				RPC_ForceClientFactionMapping(playerId, factionIndex);
+				Rpc(RPC_ForceClientFactionMapping, playerId, factionIndex);
+			}
+		}
+	}
+	
+	//! Force client to add player faction mapping when normal replication fails
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	void RPC_ForceClientFactionMapping(int playerId, int factionIndex)
+	{
+		if (Replication.IsServer()) return; // Only execute on clients
+		
+		OVT_OverthrowFactionManager factionManager = OVT_OverthrowFactionManager.Cast(GetGame().GetFactionManager());
+		if (!factionManager) return;
+		
+		// Use our extended faction manager to force the mapping
+		factionManager.ForceClientFactionMapping(playerId, factionIndex);
+	}
+	
+	override void OnCharacterLoadComplete(int playerId, EPF_EntitySaveData saveData, EPF_PersistenceComponent persistenceComponent)
+	{			
+		// Group creation now happens in HandoverToPlayer
+		super.OnCharacterLoadComplete(playerId, saveData, persistenceComponent);	
 	}
 	
 	//! Check if a spawn location is safe (not controlled by occupying faction)
@@ -221,6 +377,16 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Override HandoverToPlayer to ensure group creation happens after player takes control
+	protected override void HandoverToPlayer(int playerId, IEntity character)
+	{
+		super.HandoverToPlayer(playerId, character);
+		
+		// Schedule group creation after handover completes
+		GetGame().GetCallqueue().CallLater(CreateAndJoinGroup, 1000, false, playerId);
+	}
+	
+	//------------------------------------------------------------------------------------------------
 	//! Called after a player character has been created and spawned into the world.
 	//! Initializes the character's inventory with the default civilian loadout and difficulty-specific starting items.
 	//! Marks the player's first spawn as complete.
@@ -312,7 +478,7 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 			}
 			
 			player.firstSpawn = false;
-		}		
+		}				
 	}
 	
 	//------------------------------------------------------------------------------------------------

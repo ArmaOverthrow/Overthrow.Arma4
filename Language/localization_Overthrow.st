@@ -5,8 +5,8 @@ StringTable {
    Id "OVT-Account"
    Target_en_us "Account"
    Target_ru_ru "Кошелёк"
-   Target_uk_ua "Рахунок"
    Target_zh_cn "账户"
+   Target_uk_ua "Рахунок"
    Comment ""
    DevNote ""
    Repro ""
@@ -26,8 +26,8 @@ StringTable {
    Target_en_us "Add To Garrison"
    Target_fr_fr "Ajouter à la garnison"
    Target_ru_ru "Добавить в гарнизон"
-   Target_uk_ua "Додати до гарнізону"
    Target_zh_cn "添加驻守"
+   Target_uk_ua "Додати до гарнізону"
    Comment ""
    DevNote ""
    Repro ""
@@ -47,8 +47,8 @@ StringTable {
    Target_en_us "Position is already occupied"
    Target_fr_fr "La position est déjà occupée"
    Target_ru_ru "Точка уже захвачена"
-   Target_uk_ua "Позиція вже захоплена"
    Target_zh_cn "该位置已被占用"
+   Target_uk_ua "Позиція вже захоплена"
    Comment ""
    DevNote ""
    Repro ""
@@ -68,8 +68,8 @@ StringTable {
    Target_en_us "Amount"
    Target_fr_fr "Montant"
    Target_ru_ru "Количество"
-   Target_uk_ua "Кількість"
    Target_zh_cn "数量"
+   Target_uk_ua "Кількість"
    Comment ""
    DevNote ""
    Repro ""
@@ -137,8 +137,8 @@ StringTable {
    Target_en_us "Base near"
    Target_fr_fr "Base proche"
    Target_ru_ru "База около"
-   Target_uk_ua "База поруч"
    Target_zh_cn "基地附近"
+   Target_uk_ua "База поруч"
    Comment ""
    DevNote ""
    Repro ""
@@ -158,8 +158,8 @@ StringTable {
    Target_en_us "Battle In Progress"
    Target_fr_fr "Bataille en cours"
    Target_ru_ru "Идет бой"
-   Target_uk_ua "Бій триває"
    Target_zh_cn "战斗正在进行"
+   Target_uk_ua "Бій триває"
    Comment ""
    DevNote ""
    Repro ""
@@ -179,8 +179,8 @@ StringTable {
    Target_en_us "Battle Starts In"
    Target_fr_fr "La Bataille commence dans"
    Target_ru_ru "Бой начнется через"
-   Target_uk_ua "Бій почнеться через"
    Target_zh_cn "战斗开始于"
+   Target_uk_ua "Бій почнеться через"
    Comment ""
    DevNote ""
    Repro ""
@@ -199,8 +199,8 @@ StringTable {
    Id "OVT-BodiesLooted"
    Target_en_us "Dead bodies and weapons within 25m have looted into the vehicle"
    Target_ru_ru "Снаряжения и оружие в радиусе 25м загружены в машину"
-   Target_uk_ua "Спорядження та зброя в радіусі 25м завантажені в техніку"
    Target_zh_cn "25米范围内尸体和武器被洗劫到车内"
+   Target_uk_ua "Спорядження та зброя в радіусі 25м завантажені в техніку"
    Comment ""
    DevNote ""
    Repro ""
@@ -219,8 +219,8 @@ StringTable {
    Id "OVT-Build_GuardTower"
    Target_en_us "Guard Tower"
    Target_ru_ru "Башня охраны"
-   Target_uk_ua "Вартова башта"
    Target_zh_cn "哨塔"
+   Target_uk_ua "Вартова башта"
    Comment ""
    DevNote ""
    Repro ""
@@ -239,8 +239,8 @@ StringTable {
    Id "OVT-Build_GuardTower_Description"
    Target_en_us "Provides a better view"
    Target_ru_ru "Дает хорошую просматриваемость"
-   Target_uk_ua "Забезпечує кращий огляд"
    Target_zh_cn "提供更好的视野"
+   Target_uk_ua "Забезпечує кращий огляд"
    Comment ""
    DevNote ""
    Repro ""
@@ -260,8 +260,8 @@ StringTable {
    Target_en_us "Medical Tent"
    Target_fr_fr "Tente Médicale"
    Target_ru_ru "Медицинский тент"
-   Target_uk_ua "Медичний намет"
    Target_zh_cn "医疗帐篷"
+   Target_uk_ua "Медичний намет"
    Comment ""
    DevNote ""
    Repro ""
@@ -280,8 +280,8 @@ StringTable {
    Id "OVT-Build_MedicalTent_Description"
    Target_en_us "Heals players"
    Target_ru_ru "Лечит  игроков"
-   Target_uk_ua "Лікує гравців"
    Target_zh_cn "治愈玩家"
+   Target_uk_ua "Лікує гравців"
    Comment ""
    DevNote ""
    Repro ""
@@ -296,12 +296,54 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{5DA486E22A59D4C7}" {
+   Id "OVT-Build_RecruitmentTent"
+   Target_en_us "Recruitment Tent"
+   Target_fr_fr "Tente de recrutement"
+   Target_ru_ru "Палатка вербовки"
+   Target_zh_cn "招募帐篷"
+   Target_uk_ua "Наметна вербування"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1640995200
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5DA486E22A59D4C8}" {
+   Id "OVT-Build_RecruitmentTent_Description"
+   Target_en_us "Recruit civilians from nearby towns at reduced cost"
+   Target_fr_fr "Recruter des civils des villes voisines à coût réduit"
+   Target_ru_ru "Нанимать гражданских из близлежащих городов по сниженной стоимости"
+   Target_zh_cn "以低价从附近城镇招募平民"
+   Target_uk_ua "Набирати цивільних з навколишніх міст за зниженою вартістю"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1640995200
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{5D7C5DE39344EAE9}" {
    Id "OVT-Build_Tent"
    Target_en_us "Tent"
    Target_ru_ru "Палатка"
-   Target_uk_ua "Намет"
    Target_zh_cn "帐篷"
+   Target_uk_ua "Намет"
    Comment ""
    DevNote ""
    Repro ""
@@ -320,8 +362,8 @@ StringTable {
    Id "OVT-Build_Tent_Description"
    Target_en_us "A roof over your head"
    Target_ru_ru "Крыша над головой"
-   Target_uk_ua "Дах над головою"
    Target_zh_cn "栖身之处"
+   Target_uk_ua "Дах над головою"
    Comment ""
    DevNote ""
    Repro ""
@@ -341,8 +383,8 @@ StringTable {
    Target_en_us "Vehicle Maintenance Ramp"
    Target_fr_fr "Rampe de Maintenance de Véhicules"
    Target_ru_ru "Рампа для обслуживания техники"
-   Target_uk_ua "Рампа для обслуговування техніки"
    Target_zh_cn "车辆维修斜坡"
+   Target_uk_ua "Рампа для обслуговування техніки"
    Comment ""
    DevNote ""
    Repro ""
@@ -361,8 +403,8 @@ StringTable {
    Id "OVT-Build_VehicleMaintenanceRamp_Description"
    Target_en_us "Can repair and upgrade vehicles"
    Target_ru_ru "Может чинить и улучшать технику"
-   Target_uk_ua "Може ремонтувати та покращувати техніку"
    Target_zh_cn "可以修理和升级车辆"
+   Target_uk_ua "Може ремонтувати та покращувати техніку"
    Comment ""
    DevNote ""
    Repro ""
@@ -382,8 +424,8 @@ StringTable {
    Target_en_us "Cancel"
    Target_fr_fr "Annuler"
    Target_ru_ru "Отмена"
-   Target_uk_ua "Скасувати"
    Target_zh_cn "取消"
+   Target_uk_ua "Скасувати"
    Comment ""
    DevNote ""
    Repro ""
@@ -403,8 +445,8 @@ StringTable {
    Target_en_us "You cannot afford that"
    Target_fr_fr "Vous n'avez pas assez d'argent"
    Target_ru_ru "Вы не можете себе это позволить"
-   Target_uk_ua "Ви не можете собі цього дозволити"
    Target_zh_cn "你负担不起"
+   Target_uk_ua "Ви не можете собі цього дозволити"
    Comment ""
    DevNote ""
    Repro ""
@@ -424,8 +466,8 @@ StringTable {
    Target_en_us "You cannot build anything here. Try at an FOB or a captured town/base."
    Target_fr_fr "Vous ne pouvez rien placer ici, réessayez dans un avant-poste ou une commune/base capturée"
    Target_ru_ru "Вы не можете здесь ничего построить. Попробуйте на FOB или в захваченом городе или базе"
-   Target_uk_ua "Тут не можна нічого будувати. Спробуйте на FOB або в захопленому місті/базі."
    Target_zh_cn "你无法在此建造任何东西。尝试在FOB或被占领的城镇/基地建造。"
+   Target_uk_ua "Тут не можна нічого будувати. Спробуйте на FOB або в захопленому місті/базі."
    Comment ""
    DevNote ""
    Repro ""
@@ -445,8 +487,8 @@ StringTable {
    Target_en_us "You cannot build that here"
    Target_fr_fr "Vous ne pas pouvez construire ceci ici"
    Target_ru_ru "Вы не можете строить здесь"
-   Target_uk_ua "Ви не можете побудувати це тут"
    Target_zh_cn "你无法在此建造"
+   Target_uk_ua "Ви не можете побудувати це тут"
    Comment ""
    DevNote ""
    Repro ""
@@ -466,8 +508,8 @@ StringTable {
    Target_en_us "You can only build that in small villages"
    Target_fr_fr "Vous pouvez construire ceci uniquement dans un village."
    Target_ru_ru "Вы можете это построить только в  деревнях"
-   Target_uk_ua "Ви можете побудувати це лише в маленькому селі"
    Target_zh_cn "你只能在小村庄里建造它"
+   Target_uk_ua "Ви можете побудувати це лише в маленькому селі"
    Comment ""
    DevNote ""
    Repro ""
@@ -487,8 +529,8 @@ StringTable {
    Target_en_us "You cannot build that in a small village"
    Target_fr_fr "Vous ne pouvez pas construire ceci dans un petit village"
    Target_ru_ru "Вы не можете это простроить в деревне"
-   Target_uk_ua "Ви не можете побудувати це в маленькому селі"
    Target_zh_cn "你不可能在一个小村庄里建造它"
+   Target_uk_ua "Ви не можете побудувати це в маленькому селі"
    Comment ""
    DevNote ""
    Repro ""
@@ -508,8 +550,8 @@ StringTable {
    Target_en_us "That is too short of a distance to fast travel"
    Target_fr_fr "Vous ne pouvez pas effectuer un Déplacement Rapide pour si peu, vous avez des jambes !"
    Target_ru_ru "Это очень маленькая дистанция для быстрого перемещения"
-   Target_uk_ua "Це замала відстань для швидкої подорожі"
    Target_zh_cn "距离太近，无法快速移动"
+   Target_uk_ua "Це замала відстань для швидкої подорожі"
    Comment ""
    DevNote ""
    Repro ""
@@ -529,8 +571,8 @@ StringTable {
    Target_en_us "You cannot fast travel during a battle"
    Target_fr_fr "Vous ne pouvez pas effectuer un Déplacement Rapide pendant une contre attaque"
    Target_ru_ru "Вы не можете переместиться в бою"
-   Target_uk_ua "Ви не можете швидко подорожувати під час бою"
    Target_zh_cn "战斗期间无法快速移动"
+   Target_uk_ua "Ви не можете швидко подорожувати під час бою"
    Comment ""
    DevNote ""
    Repro ""
@@ -550,8 +592,8 @@ StringTable {
    Target_en_us "You cannot fast travel there. Must be near an owned house, camp, FOB or controlled base"
    Target_fr_fr "Vous ne pouvez pas effectuer un Déplacement Rapide ici. Vous devez sélectionner une propriété ou un avant-poste/base que vous controllez"
    Target_ru_ru "Вы не можете переместиться сюда. Точка должна быть возле купленого дома, лагеря, FOB или контролируемой базы"
-   Target_uk_ua "Ви не можете швидко подорожувати сюди. Пунк призначення має бути поблизу власного будинку, табору, FOB або контрольованої бази"
    Target_zh_cn "你不能快速前往那里。必须靠近拥有的房屋、营地、FOB或受控基地"
+   Target_uk_ua "Ви не можете швидко подорожувати сюди. Пунк призначення має бути поблизу власного будинку, табору, FOB або контрольованої бази"
    Comment ""
    DevNote ""
    Repro ""
@@ -571,8 +613,8 @@ StringTable {
    Target_en_us "You cannot fast travel to a battle in progress"
    Target_fr_fr "Vous ne pouvez pas effectuer un Déplacement Rapide ependant une bataille"
    Target_ru_ru "Вы не можете переместиться к зоне боевых действий"
-   Target_uk_ua "Ви не можете швидко подорожувати в зону бойових дій"
    Target_zh_cn "你不能快速前往正在进行的战场"
+   Target_uk_ua "Ви не можете швидко подорожувати в зону бойових дій"
    Comment ""
    DevNote ""
    Repro ""
@@ -592,8 +634,8 @@ StringTable {
    Target_en_us "You cannot fast travel while wanted"
    Target_fr_fr "Vous ne pouvez pas effectuer un Déplacement Rapide en étant recherché"
    Target_ru_ru "Вы не можете переместиться во время розыска"
-   Target_uk_ua "Ви не можете швидко подорожувати, поки в розшуку"
    Target_zh_cn "你不能在被通缉时快速移动"
+   Target_uk_ua "Ви не можете швидко подорожувати, поки в розшуку"
    Comment ""
    DevNote ""
    Repro ""
@@ -612,8 +654,8 @@ StringTable {
    Id "OVT-CannotImport"
    Target_en_us "Trade skill level 1 is required to import"
    Target_ru_ru "Необходим 1 уровень прокаченой торговли для импорта"
-   Target_uk_ua "Для імпорту потрібен рівень торгових навичок 1"
    Target_zh_cn "进口需要贸易技能等级1"
+   Target_uk_ua "Для імпорту потрібен рівень торгових навичок 1"
    Comment ""
    DevNote ""
    Repro ""
@@ -633,8 +675,8 @@ StringTable {
    Target_en_us "You cannot place that item here, you must be near a house you own, an FOB or a controlled base"
    Target_fr_fr "Vous ne pouvez pas placer cet objet ici, vous devez être proche d'une maison que vous possédez ou d'un avant-poste/base que vous controllez"
    Target_ru_ru "Вы не можете разместить это предмет здесь, вы должны быть возле купленного дома, FOB или захваченой базы"
-   Target_uk_ua "Ви не можете розміщувати цей предмет тут, ви повинні бути поблизу будинку, яким ви володієте, FOB або контрольованої бази"
    Target_zh_cn "你不能把那个物品放在这里，你必须靠近你自己的房子、FOB或受控基地"
+   Target_uk_ua "Ви не можете розміщувати цей предмет тут, ви повинні бути поблизу будинку, яким ви володієте, FOB або контрольованої бази"
    Comment ""
    DevNote ""
    Repro ""
@@ -654,8 +696,8 @@ StringTable {
    Target_en_us "Capture Base"
    Target_fr_fr "Capturer la base"
    Target_ru_ru "Захват базы"
-   Target_uk_ua "Захопити базу"
    Target_zh_cn "占领基地"
+   Target_uk_ua "Захопити базу"
    Comment ""
    DevNote ""
    Repro ""
@@ -675,8 +717,8 @@ StringTable {
    Target_en_us "Catch a bus"
    Target_fr_fr "Prendre un bus"
    Target_ru_ru "Поймать автобус"
-   Target_uk_ua "Сісти на автобус"
    Target_zh_cn "搭乘公交车"
+   Target_uk_ua "Сісти на автобус"
    Comment ""
    DevNote ""
    Repro ""
@@ -696,8 +738,8 @@ StringTable {
    Target_en_us "Continue Save"
    Target_fr_fr "Reprendre la sauvegarde"
    Target_ru_ru "Продлжить сохранение"
-   Target_uk_ua "Продовжити збереження"
    Target_zh_cn "继续保存"
+   Target_uk_ua "Продовжити збереження"
    Comment ""
    DevNote ""
    Repro ""
@@ -716,8 +758,8 @@ StringTable {
    Id "OVT-ConvertedSupporter"
    Target_en_us "This citizen now supports the resistance"
    Target_ru_ru "Этот горожанин теперь поддерживает сопротивление"
-   Target_uk_ua "Цей громадянин тепер підтримує спротив"
    Target_zh_cn "这位公民现在支持抵抗运动"
+   Target_uk_ua "Цей громадянин тепер підтримує спротив"
    Comment ""
    DevNote ""
    Repro ""
@@ -736,8 +778,8 @@ StringTable {
    Id "OVT-ConvertSupporter"
    Target_en_us "Convert supporter"
    Target_ru_ru "Призвать присоединиться к сопротивлению"
-   Target_uk_ua "Закликати приєднатися до опору"
    Target_zh_cn "转变的支持者"
+   Target_uk_ua "Закликати приєднатися до опору"
    Comment ""
    DevNote ""
    Repro ""
@@ -757,8 +799,8 @@ StringTable {
    Target_en_us "Deliver Medical Supplies"
    Target_fr_fr "Livrer le Matériel Médical"
    Target_ru_ru "Доставить медикаменты"
-   Target_uk_ua "Доставка медичних товарів"
    Target_zh_cn "运送医疗物资"
+   Target_uk_ua "Доставка медичних товарів"
    Comment ""
    DevNote ""
    Repro ""
@@ -786,8 +828,8 @@ StringTable {
    Target_en_us "Donate Funds"
    Target_fr_fr "Donner des fonds"
    Target_ru_ru "Переслать деньги"
-   Target_uk_ua "Пожертвувати кошти в фонд"
    Target_zh_cn "捐款"
+   Target_uk_ua "Пожертвувати кошти в фонд"
    Comment ""
    DevNote ""
    Repro ""
@@ -807,8 +849,8 @@ StringTable {
    Target_en_us "Driver must exit vehicle first"
    Target_fr_fr "Le conducteur doit d'abord sortir du véhicule"
    Target_ru_ru "Водитель сперва должен покинуть транспорт"
-   Target_uk_ua "Водій повинен спочатку залишити транспорт"
    Target_zh_cn "驾驶员必须先下车"
+   Target_uk_ua "Водій повинен спочатку залишити транспорт"
    Comment ""
    DevNote ""
    Repro ""
@@ -828,8 +870,8 @@ StringTable {
    Target_en_us "Equipment Cost"
    Target_fr_fr "Coût de l'équipement"
    Target_ru_ru "Стоймость снаряжения"
-   Target_uk_ua "Ціна спорядження"
    Target_zh_cn "装备成本"
+   Target_uk_ua "Ціна спорядження"
    Comment ""
    DevNote ""
    Repro ""
@@ -844,13 +886,20 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{5D5C558A6E391A19}" {
+   Id "OVT-Feature_NotImplemented"
+   Target_en_us "Feature not yet implemented"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
   CustomStringTableItem "{5990833697321087}" {
    Id "OVT-FieldManual_Category_Overthrow_Title"
    Target_en_us "Overthrow"
    Target_fr_fr "Overthrow"
    Target_ru_ru "Overthrow"
-   Target_uk_ua "Overthrow"
    Target_zh_cn "抵抗"
+   Target_uk_ua "Overthrow"
    Comment ""
    DevNote ""
    Repro ""
@@ -870,8 +919,8 @@ StringTable {
    Target_en_us "You must have a map in your inventory to use \"Fast Travel\". The map will open and you can click on any owned house, camp, FOB or base that the resistance currently controls to instantly travel there. You will be charged a small fee for this service according to the difficulty level."
    Target_fr_fr "Vous devez avoir une carte dans votre inventaire pour utiliser le \"Déplacement Rapide\". La carte s'ouvrira et vous pourrez cliquer sur n'importe quelle Maison, Camp, Avant poste ou base que vous ou la résistance possédez/controllez pour vous y déplacer. Selon la difficulé, cela peut vous coûter de l'argent."
    Target_ru_ru "Вы должны иметь карту в инвентаре для использования \"Быстрого перемещения\". Откроется карта и вы можете нажать на любой купленый дом, построеный лагерь, FOB или захваченную базу. Вы заплатите небольое колличество денег за эту услугу в зависимости от уровня сложности."
-   Target_uk_ua "Щоб використовувати \"Швидку подорож\", у вашому інвентарі повинна бути карта. Відкриється карта, і ви зможете натиснути на будь-який будинок, табір, FOB або базу, яку зараз контролює Опір, щоб миттєво відправитися туди. За цю послугу з вас стягуватиметься невелика плата залежно від рівня складності."
    Target_zh_cn "你必须在库存中拥有地图才能使用 \"快速移动\". 地图将打开，你可以点击任何由反抗军控制的房屋、营地、FOB或基地，立即前往那里。根据难度等级，你将需要为此项服务支付少量费用。"
+   Target_uk_ua "Щоб використовувати \"Швидку подорож\", у вашому інвентарі повинна бути карта. Відкриється карта, і ви зможете натиснути на будь-який будинок, табір, FOB або базу, яку зараз контролює Опір, щоб миттєво відправитися туди. За цю послугу з вас стягуватиметься невелика плата залежно від рівня складності."
    Comment ""
    DevNote ""
    Repro ""
@@ -891,8 +940,8 @@ StringTable {
    Target_en_us "Open the main menu with <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color> to access most of the features of Overthrow."
    Target_fr_fr "Ouvrez le menu principal avec <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color> pour accéder à la plupart des fonctions d'Overthrow"
    Target_ru_ru "Откройте главное меню нажатем кнопки <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color>для доступа ко всем основным возможностям Overthrow."
-   Target_uk_ua "Відкрийте головне меню за допомогою <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color> щоб отримати доступ до більшості функцій Overthrow."
    Target_zh_cn "使用以下方式打开主菜单 <color rgba='226,168,79,255'><action name=\"抵抗主菜单\"/></color> 可以访问抵抗的大部分功能。"
+   Target_uk_ua "Відкрийте головне меню за допомогою <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color> щоб отримати доступ до більшості функцій Overthrow."
    Comment ""
    DevNote ""
    Repro ""
@@ -912,8 +961,8 @@ StringTable {
    Target_en_us "Main Menu"
    Target_fr_fr "Menu Principal"
    Target_ru_ru "Главное меню"
-   Target_uk_ua "Головне меню"
    Target_zh_cn "主菜单"
+   Target_uk_ua "Головне меню"
    Comment ""
    DevNote ""
    Repro ""
@@ -933,8 +982,8 @@ StringTable {
    Target_en_us "You must have a map in your inventory to use \"Map Info\". Clicking on this in the main menu will open the map, then you can click anywhere on the map to show info about that location, including any intel known about the area."
    Target_fr_fr "Vous devez avoir une carte dans votre inventaire pour utiliser \"Infos Carte\". La carte s'ouvrira lorsque vous cliquerez, puis vous pourrez sélectionner un endroit sur la carte pour voir toutes les informations connues à son sujet."
    Target_ru_ru "Вы должны иметь карту в инвентаре для использования \"Информации о карте\". Нажав на эту  кнопку из главного меню, в открывшейся карте, вы  нажать на любую точку на карте, чтобы посмотреть информацию об этой локации, включая разведданые известные об этой точке."
-   Target_uk_ua "Ви повинні мати мапу у вашому інвентарі для користуватися \"Інформації про мапу\". Якщо натиснути на це в головному меню, відкриється карта, а потім ви можете клацнути будь-де на карті, щоб показати інформацію про це місце, включно з будь-якою відомою інформацією про цю місцевість."
    Target_zh_cn "你必须在库存中拥有地图才能使用 \"地区信息\". 在主菜单中单击此按钮将打开地图，然后你可以单击地图上的任意位置来显示有关该地区的信息，包括有关该地区的任何已知信息。"
+   Target_uk_ua "Ви повинні мати мапу у вашому інвентарі для користуватися \"Інформації про мапу\". Якщо натиснути на це в головному меню, відкриється карта, а потім ви можете клацнути будь-де на карті, щоб показати інформацію про це місце, включно з будь-якою відомою інформацією про цю місцевість."
    Comment ""
    DevNote ""
    Repro ""
@@ -954,8 +1003,8 @@ StringTable {
    Target_en_us "Opens a menu allowing you to see info or change settings about the resistance. Officers can assign other officers here or set a tax rate (Default is 0%) that will deposit an amount of the regular income directly to the Resistance Funds instead. Officers can withdraw money from resistance funds here or send it to another player. Any player can donate money to the resistance efforts here as well."
    Target_fr_fr "Ouvre un menu vous permettant de voir & modifier les paramètres de la résistance. Les officiers peuvent définir d'autres officiers et régler les impôts (0% par défaut) que chaque membre de la résistance doit payer aux fonds communs. Les officiers peuvent retirer de l'argent des fonds communs ou en envoyer à d'autres joueurs. N'importe quel joueur peut donner de l'argent pour la résistance."
    Target_ru_ru "Меню позволяющее посмотреть иноформацию или изменить настройки сопротивления. Офицер здесь может назначать на должность других офицеров, а так же задавать размер налогов. (По умолчанию 0%)  это позволит вместо этого вносить сумму регулярного дохода непосредственно в фонды сопротивления. Офицер здесь может снимать деньги со счета сопротивления или передавать другому игроку. Любой игрок может делать взносы на счёт сопротивления, для его усиления."
-   Target_uk_ua "Відкриває меню, що дозволяє переглянути інформацію або змінити налаштування спротиву. Офіцери можуть призначати інших офіцерів тут або встановлювати податкову ставку (за замовчуванням 0%), яка буде переводити частину регулярного доходу безпосередньо до Фонду Спротиву. Офіцери можуть знімати кошти з фонду спротиву або переказувати їх іншому гравцю. Будь-який гравець також може пожертвувати кошти на підтримку спротиву тут."
    Target_zh_cn "打开菜单，你可以查看有关抵抗的信息或更改设置。 指挥官可以在这里指派其他官员或设定税率（默认为 0%），将一定比例的固定收入直接存入抵抗基金。指挥官可以在这里从抵抗基金中提取资金或将其发送给其他玩家。任何玩家也可以从这里向抵抗运动捐款。"
+   Target_uk_ua "Відкриває меню, що дозволяє переглянути інформацію або змінити налаштування спротиву. Офіцери можуть призначати інших офіцерів тут або встановлювати податкову ставку (за замовчуванням 0%), яка буде переводити частину регулярного доходу безпосередньо до Фонду Спротиву. Офіцери можуть знімати кошти з фонду спротиву або переказувати їх іншому гравцю. Будь-який гравець також може пожертвувати кошти на підтримку спротиву тут."
    Comment ""
    DevNote ""
    Repro ""
@@ -973,8 +1022,8 @@ StringTable {
   CustomStringTableItem "{5E68F65B3B222D82}" {
    Id "OVT-FlipVehicle"
    Target_en_us "Flip Vehicle"
-   Target_uk_ua "Перевернута техніка"
    Target_zh_cn "翻正车辆"
+   Target_uk_ua "Перевернута техніка"
    Comment ""
    DevNote ""
    Repro ""
@@ -994,8 +1043,8 @@ StringTable {
    Target_en_us "Fuel"
    Target_fr_fr "Carburant"
    Target_ru_ru "Топливо"
-   Target_uk_ua "Паливо"
    Target_zh_cn "油料"
+   Target_uk_ua "Паливо"
    Comment ""
    DevNote ""
    Repro ""
@@ -1014,8 +1063,8 @@ StringTable {
    Id "OVT-Garage"
    Target_en_us "Garage"
    Target_ru_ru "Гараж"
-   Target_uk_ua "Гараж"
    Target_zh_cn "车库"
+   Target_uk_ua "Гараж"
    Comment ""
    DevNote ""
    Repro ""
@@ -1034,8 +1083,8 @@ StringTable {
    Id "OVT-Garage_Description"
    Target_en_us "Allows purchase of vehicles"
    Target_ru_ru "Позволяет покупать технику"
-   Target_uk_ua "Дозволяє придбати транспортні засоби"
    Target_zh_cn "允许购买车辆"
+   Target_uk_ua "Дозволяє придбати транспортні засоби"
    Comment ""
    DevNote ""
    Repro ""
@@ -1055,8 +1104,8 @@ StringTable {
    Target_en_us "Garrison"
    Target_fr_fr "Garnison"
    Target_ru_ru "Гарнизон"
-   Target_uk_ua "Гарнізон"
    Target_zh_cn "守备部队"
+   Target_uk_ua "Гарнізон"
    Comment ""
    DevNote ""
    Repro ""
@@ -1076,8 +1125,8 @@ StringTable {
    Target_en_us "Gun Dealer"
    Target_fr_fr "Marchant d'Armes"
    Target_ru_ru "Торговец оружием"
-   Target_uk_ua "Торговець зброєю"
    Target_zh_cn "军火商"
+   Target_uk_ua "Торговець зброєю"
    Comment ""
    DevNote ""
    Repro ""
@@ -1097,8 +1146,8 @@ StringTable {
    Target_en_us "Heal"
    Target_fr_fr "Soigner"
    Target_ru_ru "Лечить"
-   Target_uk_ua "Лікувати"
    Target_zh_cn "治愈"
+   Target_uk_ua "Лікувати"
    Comment ""
    DevNote ""
    Repro ""
@@ -1118,8 +1167,8 @@ StringTable {
    Target_en_us "You have been healed"
    Target_fr_fr "Vous avez été soigné"
    Target_ru_ru "Вы были вылечены"
-   Target_uk_ua "Ви були виліковані"
    Target_zh_cn "你已经痊愈"
+   Target_uk_ua "Ви були виліковані"
    Comment ""
    DevNote ""
    Repro ""
@@ -1139,8 +1188,8 @@ StringTable {
    Target_en_us "Health"
    Target_fr_fr "Santé"
    Target_ru_ru "Здоровье"
-   Target_uk_ua "Здоров'я"
    Target_zh_cn "健康"
+   Target_uk_ua "Здоров'я"
    Comment ""
    DevNote ""
    Repro ""
@@ -1158,8 +1207,8 @@ StringTable {
   CustomStringTableItem "{5E648245F29C7998}" {
    Id "OVT-Helipad"
    Target_en_us "Helipad"
-   Target_uk_ua "Вертолітний майданчик"
    Target_zh_cn "直升机停机坪"
+   Target_uk_ua "Вертолітний майданчик"
    Comment ""
    DevNote ""
    Repro ""
@@ -1177,8 +1226,8 @@ StringTable {
   CustomStringTableItem "{5E6482493A453E1C}" {
    Id "OVT-Helipad_Description"
    Target_en_us "Allows purchase of helicopters"
-   Target_uk_ua "Дозволяє придбати вертольоти"
    Target_zh_cn "允许购买直升机"
+   Target_uk_ua "Дозволяє придбати вертольоти"
    Comment ""
    DevNote ""
    Repro ""
@@ -1198,8 +1247,8 @@ StringTable {
    Target_en_us "Your home is now set to here"
    Target_fr_fr "Votre domicile est désormais ici"
    Target_ru_ru "Ваш дом теперь установлен в этой точке"
-   Target_uk_ua "Тепер ваш дім встановлено тут"
    Target_zh_cn "你的家现在设置为这里"
+   Target_uk_ua "Тепер ваш дім встановлено тут"
    Comment ""
    DevNote ""
    Repro ""
@@ -1219,8 +1268,8 @@ StringTable {
    Target_en_us "Import"
    Target_fr_fr "Importer"
    Target_ru_ru "Импорт"
-   Target_uk_ua "Імпорт"
    Target_zh_cn "进口"
+   Target_uk_ua "Імпорт"
    Comment ""
    DevNote ""
    Repro ""
@@ -1240,8 +1289,8 @@ StringTable {
    Target_en_us "Income"
    Target_fr_fr "Revenu"
    Target_ru_ru "Доход"
-   Target_uk_ua "Прибуток"
    Target_zh_cn "出口"
+   Target_uk_ua "Прибуток"
    Comment ""
    DevNote ""
    Repro ""
@@ -1271,11 +1320,6 @@ StringTable {
    Target_ru_ru "Приветствую в Overthrow! Этой ваш дом, вы будете здесь возрождаться, вы можете быстро перемещаться сюда с небольшой платой, через главное меню <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color>. В гараже стоит ваша машина."\
    ""\
    "Для дополнительной информации о возможностях и геймплее вы можете посмотреть в \"Полевом мануале\"."
-   Target_uk_ua "Ласкаво просимо до Overthrow! Це ваш дім, ви відродитеся тут і зможете швидко подорожувати сюди за невелику плату, відкривши головне меню <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color>. "\
-   ""\
-   "У вас є машина, припаркована у вашому гаражі, а пістолет у ваших штанях. Ворог вважає вас цивільним, якщо вони не бачать у вас зброї, і не стрілятимуть у вас, тому будьте обережні, споряджаючи зброю навколо них. Зірки з’являться у верхньому правому куті, якщо вас \"розшукує\" ворог."\
-   ""\
-   "Для отримання додаткової інформації про функції та ігровий процес Повалення просто подивіться на \"Польовий посібник\""
    Target_zh_cn "欢迎来到抵抗！这是你的家，你将在这里重生，只需支付少量费用，打开主菜单即可快速前往这里 <color rgba='226,168,79,255'><action name=\"抵抗主菜单\"/></color>. "\
    ""\
    "你有一辆汽车，停在你的车库里，身上有一把手枪。如果敌人没有看到你携带武器，他们会认为你是平民，不会向你开枪，所以在他们周围装备武器时要小心。如果你被敌人\"通缉\"，右上角就会出现星星。"\
@@ -1283,6 +1327,11 @@ StringTable {
    "如果你是第一次接触的新玩家，那么在抵抗主菜单的 \"工作\" 部分中有一系列教程。"\
    ""\
    "有关抵抗的功能和游戏玩法的更多信息，请查看 \"战地手册\""
+   Target_uk_ua "Ласкаво просимо до Overthrow! Це ваш дім, ви відродитеся тут і зможете швидко подорожувати сюди за невелику плату, відкривши головне меню <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color>. "\
+   ""\
+   "У вас є машина, припаркована у вашому гаражі, а пістолет у ваших штанях. Ворог вважає вас цивільним, якщо вони не бачать у вас зброї, і не стрілятимуть у вас, тому будьте обережні, споряджаючи зброю навколо них. Зірки з’являться у верхньому правому куті, якщо вас \"розшукує\" ворог."\
+   ""\
+   "Для отримання додаткової інформації про функції та ігровий процес Повалення просто подивіться на \"Польовий посібник\""
    Comment ""
    DevNote ""
    Repro ""
@@ -1302,8 +1351,8 @@ StringTable {
    Target_en_us "Your Home (Respawn Point)"
    Target_fr_fr "Domicile (Point de réapparition)"
    Target_ru_ru "Ваш дом (Точка возрождения)"
-   Target_uk_ua "Ваша домівка (Точка відродження)"
    Target_zh_cn "你的房子（重生点）"
+   Target_uk_ua "Ваша домівка (Точка відродження)"
    Comment ""
    DevNote ""
    Repro ""
@@ -1323,8 +1372,8 @@ StringTable {
    Target_en_us "A quarter ounce of the finest sticky icky. Can be sold to civilians for a small profit."
    Target_fr_fr "C'est de la bonne mais il faut pas y toucher. Peut être vendu aux civils pour gagner un peu d'argent"
    Target_ru_ru "Четверть унции высококласной травки. Может быть продан гражданским лицам с небольшой прибылью."
-   Target_uk_ua "Чверть унції найкращої травки. Можна продати цивільним з невеликим прибутком."
    Target_zh_cn "四分之一盎司的高品质大麻，可以卖给平民赚点小钱。"
+   Target_uk_ua "Чверть унції найкращої травки. Можна продати цивільним з невеликим прибутком."
    Comment "First half hard to translate, but I used some french expression to mention it"
    DevNote ""
    Repro ""
@@ -1344,8 +1393,8 @@ StringTable {
    Target_en_us "Weed"
    Target_fr_fr "Weed"
    Target_ru_ru "Травка"
-   Target_uk_ua "Травка"
    Target_zh_cn "烟草"
+   Target_uk_ua "Травка"
    Comment ""
    DevNote ""
    Repro ""
@@ -1365,8 +1414,8 @@ StringTable {
    Target_en_us "A waypoint marker has been added to your map"
    Target_fr_fr "Un marqueur a été placé sur la carte"
    Target_ru_ru "Маркер с маршрутной точкой добавлен на карту"
-   Target_uk_ua "Маркер з маршрутної точкою доданий на мапу"
    Target_zh_cn "路点标记已添加到你的地图"
+   Target_uk_ua "Маркер з маршрутної точкою доданий на мапу"
    Comment ""
    DevNote ""
    Repro ""
@@ -1386,8 +1435,8 @@ StringTable {
    Target_en_us "Assassinate Traitor"
    Target_fr_fr "Élimination de déserteur"
    Target_ru_ru "Уничтожить предателя"
-   Target_uk_ua "Знищити зрадника"
    Target_zh_cn "刺杀叛徒"
+   Target_uk_ua "Знищити зрадника"
    Comment ""
    DevNote ""
    Repro ""
@@ -1411,12 +1460,12 @@ StringTable {
    Target_ru_ru "Один из членов сопротивления предал нас и теперь находится под охраной противника. Мы отследили дом, где он скрывается. "\
    ""\
    "Устраните предателя до того, как он сможет раскрыть какую-либо информацию."
-   Target_uk_ua "Учасник опору дезертирував і перебуває під охороною ворога. Ми відстежили місцезнаходження його будинку."\
-   ""\
-   "Усуньте цього зрадника, перш ніж він зможе розкрити будь-яку інформацію."
    Target_zh_cn "一名抵抗组织成员已经叛逃，目前正被保护性拘留。我们已经追踪到他们藏身在一所房子中。"\
    ""\
    "在他们泄露任何信息之前，将此叛徒除掉"
+   Target_uk_ua "Учасник опору дезертирував і перебуває під охороною ворога. Ми відстежили місцезнаходження його будинку."\
+   ""\
+   "Усуньте цього зрадника, перш ніж він зможе розкрити будь-яку інформацію."
    Comment ""
    DevNote ""
    Repro ""
@@ -1436,8 +1485,8 @@ StringTable {
    Target_en_us "Reconnaissance"
    Target_fr_fr "Reconnaissance"
    Target_ru_ru "Разведка"
-   Target_uk_ua "Розвідка"
    Target_zh_cn "侦察"
+   Target_uk_ua "Розвідка"
    Comment ""
    DevNote ""
    Repro ""
@@ -1461,12 +1510,12 @@ StringTable {
    Target_ru_ru "Подойдите к близжайшей базе, чтобы определить насколько сильно построена оборона. Вам нужно будет подойти на расстояние не более 100 метров к базе, чтобы хорошенько ее рассмотреть."\
    ""\
    "Будьте осторожны, чтобы вас не заметили в пределах запретной зоны, отмеченной красным цветом на вашей карте, иначе в вас будут стрелять."
-   Target_uk_ua "Відвідайте сусідню базу, щоб визначити силу її захисту. Щоб добре роздивитися базу, вам потрібно підійти на відстань до 100 метрів."\
-   ""\
-   "Будьте обережні, щоб вас не побачили в забороненій зоні, позначеній на вашій мапі червоним кольором, інакше по вас стрілятимуть."
    Target_zh_cn "前往附近敌军基地，评估其防御力量。你需要接近基地旗至100米以内，才能仔细观察情况。"\
    ""\
    "小心不要在地图上标为红色的禁区内被发现，否则你会被射杀。"
+   Target_uk_ua "Відвідайте сусідню базу, щоб визначити силу її захисту. Щоб добре роздивитися базу, вам потрібно підійти на відстань до 100 метрів."\
+   ""\
+   "Будьте обережні, щоб вас не побачили в забороненій зоні, позначеній на вашій мапі червоним кольором, інакше по вас стрілятимуть."
    Comment ""
    DevNote ""
    Repro ""
@@ -1486,8 +1535,8 @@ StringTable {
    Target_en_us "Tutorial - Find a gun dealer"
    Target_fr_fr "Trouver un marchant d'armes"
    Target_ru_ru "Найти торговца оружием"
-   Target_uk_ua "Знайти торговця зброєю"
    Target_zh_cn "教程 - 寻找军火商"
+   Target_uk_ua "Знайти торговця зброєю"
    Comment ""
    DevNote ""
    Repro ""
@@ -1513,12 +1562,12 @@ StringTable {
    "Посетите ближайшего торговца оружием, чтобы узнать, какие товары у него есть в наличии."\
    ""\
    "Вы получите бесплатный пистолет с боеприпасами"
-   Target_uk_ua "Торговці зброєю розташовані у великих містах. Це незалежні торговці, які зберігають зброю та інші незаконні предмети."\
-   ""\
-   "Зверніться до найближчого дилера зброї, щоб дізнатися, які предмети є в наявності."
    Target_zh_cn "军火商位于较大的城镇。他们是独立的商人，出售武器以及其他非法物品。每名军火商都会出售所有弹药，并随机提供每种枪械中的一款，因此请尝试前往不同的城镇来寻找你想要的武器。"\
    ""\
    "访问最近的军火商，看看他们有哪些物品可供选择。"
+   Target_uk_ua "Торговці зброєю розташовані у великих містах. Це незалежні торговці, які зберігають зброю та інші незаконні предмети."\
+   ""\
+   "Зверніться до найближчого дилера зброї, щоб дізнатися, які предмети є в наявності."
    Comment ""
    DevNote ""
    Repro ""
@@ -1537,8 +1586,8 @@ StringTable {
    Id "OVT-Job_FindShop"
    Target_en_us "Tutorial - Find a shop"
    Target_ru_ru "Найти магазин"
-   Target_uk_ua "Знайти магазин"
    Target_zh_cn "教程 - 寻找商店"
+   Target_uk_ua "Знайти магазин"
    Comment ""
    DevNote ""
    Repro ""
@@ -1561,12 +1610,12 @@ StringTable {
    Target_ru_ru "Во многих городах на карте есть различные магазины, где вы можете приобрести легальные товары. Они отмечены на карте различными значками, обозначающими тип магазина."\
    ""\
    "Посетите ближайший магазин и посмотрите, какие товары у них есть в наличии, нажав на кассовый аппарат."
-   Target_uk_ua "У багатьох населених пунктах на карті є різні магазини, де можна придбати легальні речі. Вони позначаються на карті різними значками, що представляють тип магазину."\
-   ""\
-   "Відвідайте найближчий магазин і подивіться, які товари там є, виконавши дію на касовому апараті."
    Target_zh_cn "地图上的许多城镇都有各种商店，你可以在这些商店购买合法物品。它们在地图上以不同的图标标记，代表不同类型的商店。"\
    ""\
    "访问最近的商店并通过与收银机互动来查看可用物品。"
+   Target_uk_ua "У багатьох населених пунктах на карті є різні магазини, де можна придбати легальні речі. Вони позначаються на карті різними значками, що представляють тип магазину."\
+   ""\
+   "Відвідайте найближчий магазин і подивіться, які товари там є, виконавши дію на касовому апараті."
    Comment ""
    DevNote ""
    Repro ""
@@ -1585,8 +1634,8 @@ StringTable {
    Id "OVT-Job_InProgress"
    Target_en_us "In Progress:"
    Target_ru_ru "В работе:"
-   Target_uk_ua "Виконується:"
    Target_zh_cn "正在进行中:"
+   Target_uk_ua "Виконується:"
    Comment ""
    DevNote ""
    Repro ""
@@ -1606,8 +1655,8 @@ StringTable {
    Target_en_us "Tutorial - Raise Support"
    Target_fr_fr "Augmenter le soutien"
    Target_ru_ru "Увеличить поддержку"
-   Target_uk_ua "Збільшити підтримку"
    Target_zh_cn "教程 - 提高支持度"
+   Target_uk_ua "Збільшити підтримку"
    Comment ""
    DevNote ""
    Repro ""
@@ -1635,16 +1684,16 @@ StringTable {
    "Соберите поддержку людей, разместив плакаты в городе и его окрестностях, используя опцию \"Разместить\" в главном меню \"Overthtow\" и дождитесь, пока они привлекут внимание 15% жителей города. Вы также можете доставить медицинские принадлежности, такие как бинты и флаконы с аспирином, поместив их в свой автомобиль и воспользовавшись опцией \"Доставить медицину\" в багажнике."\
    ""\
    "Проверьте свой прогресс, используя пункт меню \"Информация о карте\"."
-   Target_uk_ua "Прихильники в цьому населеному пункті принесуть необхідне джерело доходу опору у вигляді пожертвувань."\
-   ""\
-   "Залучайте підтримку, розміщуючи плакати в населеному пункті та навколо нього за допомогою опції \"Розмістити\" в меню Overthrow та чекаючи, поки вони привернуть увагу 15% мешканців. Ви також можете доставити медичні товари, як-от бинти та пляшки з аспірином, помістивши їх у свій автомобіль і скориставшись опцією \"Доставити медичні товари\" у своєму багажнику."\
-   ""\
-   "Перевірте свій прогрес за допомогою пункту меню \"Інформація про мапу\"."
    Target_zh_cn "城镇中的支持者将通过捐款的形式为抵抗运动带来急需的收入来源。"\
    ""\
    "使用抵抗菜单中的\"放置\"选项在城镇内张贴海报，等待海报吸引15%的城镇居民的注意，从而提高支持率。你还可以将绷带和吗啡等医疗用品放在车内，然后使用后备箱中的\"运送医疗用品\"选项分发它们。"\
    ""\
    "使用\"地区信息\"菜单选项检查你的进度。你可以在任何村庄、乡镇或城市筹集支持，而无需依赖特定工作。"
+   Target_uk_ua "Прихильники в цьому населеному пункті принесуть необхідне джерело доходу опору у вигляді пожертвувань."\
+   ""\
+   "Залучайте підтримку, розміщуючи плакати в населеному пункті та навколо нього за допомогою опції \"Розмістити\" в меню Overthrow та чекаючи, поки вони привернуть увагу 15% мешканців. Ви також можете доставити медичні товари, як-от бинти та пляшки з аспірином, помістивши їх у свій автомобіль і скориставшись опцією \"Доставити медичні товари\" у своєму багажнику."\
+   ""\
+   "Перевірте свій прогрес за допомогою пункту меню \"Інформація про мапу\"."
    Comment ""
    DevNote ""
    Repro ""
@@ -1664,8 +1713,8 @@ StringTable {
    Target_en_us "Accept"
    Target_fr_fr "Accepter"
    Target_ru_ru "Принять"
-   Target_uk_ua "Прийняти"
    Target_zh_cn "接受"
+   Target_uk_ua "Прийняти"
    Comment ""
    DevNote ""
    Repro ""
@@ -1685,8 +1734,8 @@ StringTable {
    Target_en_us "Job Completed"
    Target_fr_fr "Accompli"
    Target_ru_ru "Работа выполнена"
-   Target_uk_ua "Робота виконана"
    Target_zh_cn "工作完成"
+   Target_uk_ua "Робота виконана"
    Comment ""
    DevNote ""
    Repro ""
@@ -1706,8 +1755,8 @@ StringTable {
    Target_en_us "Decline"
    Target_fr_fr "Refuser"
    Target_ru_ru "Отказаться"
-   Target_uk_ua "Відмовитися"
    Target_zh_cn "拒绝"
+   Target_uk_ua "Відмовитися"
    Comment ""
    DevNote ""
    Repro ""
@@ -1727,8 +1776,8 @@ StringTable {
    Target_en_us "There are currently no jobs available"
    Target_fr_fr "Il n'y a actuellement aucun Jobs disponible"
    Target_ru_ru "На текущий момент нет доступной работы"
-   Target_uk_ua "Зараз немає доступної роботи"
    Target_zh_cn "当前没有可用的任务"
+   Target_uk_ua "Зараз немає доступної роботи"
    Comment ""
    DevNote ""
    Repro ""
@@ -1748,8 +1797,8 @@ StringTable {
    Target_en_us "Show On Map"
    Target_fr_fr "Montrer sur la carte"
    Target_ru_ru "Показать на карте"
-   Target_uk_ua "Показати на мапі"
    Target_zh_cn "在地图上显示"
+   Target_uk_ua "Показати на мапі"
    Comment ""
    DevNote ""
    Repro ""
@@ -1772,13 +1821,421 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{A1B2C3D4E5F60002}" {
+   Id "OVT-LoadLoadout"
+   Target_en_us "Load Loadout"
+   Comment "UserAction for loading player equipment loadouts"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1658678321
+   Author "Claude AI"
+   LastChanged "Claude AI"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{A1B2C3D4E5F60005}" {
+   Id "OVT-LoadLoadoutMessage"
+   Target_en_us "Select a loadout to apply:"
+   Comment "Message for load loadout dialog"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1658678321
+   Author "Claude AI"
+   LastChanged "Claude AI"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E39169A}" {
+   Id "OVT-LoadoutApplied"
+   Target_en_us "Loadout applied successfully"
+   Comment "Confirmation message when loadout is applied"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E3916A5}" {
+   Id "OVT-Loadouts_AppliedToAllRecruits"
+   Target_en_us "Applied loadout '%1' to %2 recruits"
+   Comment "Success message when loadout is applied to all recruits"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E3916A4}" {
+   Id "OVT-Loadouts_AppliedToRecruit"
+   Target_en_us "Applied loadout '%1' to %2"
+   Comment "Success message when loadout is applied to a recruit"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E391696}" {
+   Id "OVT-Loadouts_Apply"
+   Target_en_us "Apply to Self"
+   Comment "Button to apply selected loadout to player"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E39169E}" {
+   Id "OVT-Loadouts_ApplyToAll"
+   Target_en_us "Apply to All"
+   Comment "Button to apply loadout to all nearby recruits"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E39169D}" {
+   Id "OVT-Loadouts_ApplyToSelected"
+   Target_en_us "Apply to Selected"
+   Comment "Button to apply loadout to selected recruit"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E391697}" {
+   Id "OVT-Loadouts_Delete"
+   Target_en_us "Delete"
+   Comment "Button to delete selected loadout"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E3916A8}" {
+   Id "OVT-Loadouts_FailedToApply"
+   Target_en_us "Failed to apply loadout"
+   Comment "Error message when loadout application fails"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E391693}" {
+   Id "OVT-Loadouts_ManageLoadouts"
+   Target_en_us "Manage Loadouts"
+   Comment "Title for loadout management screen"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E39169B}" {
+   Id "OVT-Loadouts_NearbyRecruits"
+   Target_en_us "Nearby Recruits"
+   Comment "Title for nearby recruits section"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E3916A7}" {
+   Id "OVT-Loadouts_NoEquipmentBox"
+   Target_en_us "No equipment box available"
+   Comment "Error message when trying to apply loadout without equipment box"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E391695}" {
+   Id "OVT-Loadouts_NoLoadoutsHelp"
+   Target_en_us "No loadouts saved yet. Use an equipment box to save your current loadout, then come back here to manage and apply them."
+   Comment "Help text when no loadouts exist"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E3916A3}" {
+   Id "OVT-Loadouts_NoRecruitSelected"
+   Target_en_us "No recruit selected"
+   Comment "Error message when no recruit is selected"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E39169C}" {
+   Id "OVT-Loadouts_NoRecruitsNearby"
+   Target_en_us "No recruits nearby"
+   Comment "Message when no recruits are found nearby"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E391698}" {
+   Id "OVT-Loadouts_PersonalLoadout"
+   Target_en_us "Personal loadout"
+   Comment "Label for personal loadouts in list"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E391699}" {
+   Id "OVT-Loadouts_Ready"
+   Target_en_us "Ready"
+   Comment "Status text for available loadouts"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E3916A1}" {
+   Id "OVT-Loadouts_RecruitDead"
+   Target_en_us "Dead"
+   Comment "Status for recruit that is dead"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E39169F}" {
+   Id "OVT-Loadouts_RecruitReady"
+   Target_en_us "Ready"
+   Comment "Status for recruit that is ready for loadout"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E3916A0}" {
+   Id "OVT-Loadouts_RecruitUnconscious"
+   Target_en_us "Unconscious"
+   Comment "Status for recruit that is unconscious"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E3916A2}" {
+   Id "OVT-Loadouts_RecruitUnknown"
+   Target_en_us "Unknown"
+   Comment "Status for recruit with unknown state"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E3916A6}" {
+   Id "OVT-Loadouts_SelectedRecruit"
+   Target_en_us "Selected: %1"
+   Comment "Shows the name of the currently selected recruit"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E391694}" {
+   Id "OVT-Loadouts_YourLoadouts"
+   Target_en_us "Your Loadouts"
+   Comment "Title for player loadouts list"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1700000000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{59A2BD308A7926FA}" {
    Id "OVT-LoadStorage"
    Target_en_us "Load Into vehicle"
    Target_fr_fr "Charger dans le véhicule"
    Target_ru_ru "Загрузить в транспорт"
-   Target_uk_ua "Завантажити в транспорт"
    Target_zh_cn "装入车辆"
+   Target_uk_ua "Завантажити в транспорт"
    Comment ""
    DevNote ""
    Repro ""
@@ -1796,8 +2253,8 @@ StringTable {
   CustomStringTableItem "{5E68F659A1044CB6}" {
    Id "OVT-Lock"
    Target_en_us "Lock"
-   Target_uk_ua "Блокування"
    Target_zh_cn "锁车"
+   Target_uk_ua "Блокування"
    Comment ""
    DevNote ""
    Repro ""
@@ -1815,8 +2272,8 @@ StringTable {
   CustomStringTableItem "{5E68DB10BD28E109}" {
    Id "OVT-Locked"
    Target_en_us "Locked"
-   Target_uk_ua "Заблоковано"
    Target_zh_cn "已锁"
+   Target_uk_ua "Заблоковано"
    Comment ""
    DevNote ""
    Repro ""
@@ -1834,8 +2291,8 @@ StringTable {
   CustomStringTableItem "{5E68DB1CEC304F21}" {
    Id "OVT-LockVehicle"
    Target_en_us "Lock Vehicle"
-   Target_uk_ua "Заблокувати техніку"
    Target_zh_cn "锁车"
+   Target_uk_ua "Заблокувати техніку"
    Comment ""
    DevNote ""
    Repro ""
@@ -1855,8 +2312,8 @@ StringTable {
    Target_en_us "Build"
    Target_fr_fr "Construire"
    Target_ru_ru "Строительство"
-   Target_uk_ua "Будівництво"
    Target_zh_cn "建造"
+   Target_uk_ua "Будівництво"
    Comment ""
    DevNote ""
    Repro ""
@@ -1876,8 +2333,8 @@ StringTable {
    Target_en_us "Character Sheet"
    Target_fr_fr "Arbre de compétences"
    Target_ru_ru "Прокачка персонажа"
-   Target_uk_ua "Навички персонажа"
    Target_zh_cn "人物卡"
+   Target_uk_ua "Навички персонажа"
    Comment ""
    DevNote ""
    Repro ""
@@ -1897,8 +2354,8 @@ StringTable {
    Target_en_us "Fast Travel"
    Target_fr_fr "Déplacement Rapide"
    Target_ru_ru "Быстрое перемещение"
-   Target_uk_ua "Швидка подорож"
    Target_zh_cn "快速移动"
+   Target_uk_ua "Швидка подорож"
    Comment ""
    DevNote ""
    Repro ""
@@ -1918,8 +2375,8 @@ StringTable {
    Target_en_us "Jobs"
    Target_fr_fr "Jobs"
    Target_ru_ru "Работа"
-   Target_uk_ua "Робота"
    Target_zh_cn "工作"
+   Target_uk_ua "Робота"
    Comment ""
    DevNote ""
    Repro ""
@@ -1939,8 +2396,8 @@ StringTable {
    Target_en_us "Manage Recruits"
    Target_fr_fr "Gérer les recrues"
    Target_ru_ru "Управление бойцами"
-   Target_uk_ua "Управління бійцями"
    Target_zh_cn "管理招募"
+   Target_uk_ua "Управління бійцями"
    Comment ""
    DevNote ""
    Repro ""
@@ -1963,8 +2420,8 @@ StringTable {
    Target_de_de "Karteninfo"
    Target_es_es "Información del mapa"
    Target_ru_ru "Информация о карте"
-   Target_uk_ua "Інформація про мапу"
    Target_zh_cn "地区信息"
+   Target_uk_ua "Інформація про мапу"
    Comment ""
    DevNote ""
    Repro ""
@@ -1984,8 +2441,8 @@ StringTable {
    Target_en_us "Options"
    Target_fr_fr "Options"
    Target_ru_ru "Опции"
-   Target_uk_ua "Опції"
    Target_zh_cn "选项"
+   Target_uk_ua "Опції"
    Comment ""
    DevNote ""
    Repro ""
@@ -2005,8 +2462,8 @@ StringTable {
    Target_en_us "Place"
    Target_fr_fr "Placer"
    Target_ru_ru "Разместить"
-   Target_uk_ua "Розмістити"
    Target_zh_cn "放置"
+   Target_uk_ua "Розмістити"
    Comment ""
    DevNote ""
    Repro ""
@@ -2026,8 +2483,8 @@ StringTable {
    Target_en_us "Real Estate"
    Target_fr_fr "Immobilier"
    Target_ru_ru "Недвижимость"
-   Target_uk_ua "Нерухомість"
    Target_zh_cn "房产"
+   Target_uk_ua "Нерухомість"
    Comment ""
    DevNote ""
    Repro ""
@@ -2047,8 +2504,8 @@ StringTable {
    Target_en_us "Resistance"
    Target_fr_fr "Résistance"
    Target_ru_ru "Сопротивление"
-   Target_uk_ua "Опір"
    Target_zh_cn "抵抗"
+   Target_uk_ua "Опір"
    Comment ""
    DevNote ""
    Repro ""
@@ -2068,8 +2525,8 @@ StringTable {
    Target_en_us "Make Officer"
    Target_fr_fr "Promouvoir Officier"
    Target_ru_ru "Сделать офицером"
-   Target_uk_ua "Призначити офіцером"
    Target_zh_cn "任命指挥官"
+   Target_uk_ua "Призначити офіцером"
    Comment ""
    DevNote ""
    Repro ""
@@ -2089,8 +2546,8 @@ StringTable {
    Target_en_us "Manage Base"
    Target_fr_fr "Gérer Base"
    Target_ru_ru "Управление базой"
-   Target_uk_ua "Управління базою"
    Target_zh_cn "管理基地"
+   Target_uk_ua "Управління базою"
    Comment ""
    DevNote ""
    Repro ""
@@ -2110,8 +2567,8 @@ StringTable {
    Target_en_us "Manage FOB"
    Target_fr_fr "Gérer Avant Poste"
    Target_ru_ru "Управление FOB"
-   Target_uk_ua "Управління FOB"
    Target_zh_cn "管理FOB"
+   Target_uk_ua "Управління FOB"
    Comment ""
    DevNote ""
    Repro ""
@@ -2131,8 +2588,8 @@ StringTable {
    Target_en_us "Manage Vehicle"
    Target_fr_fr "Gérer Véhicule"
    Target_ru_ru "Управление техникой"
-   Target_uk_ua "Управління технікою"
    Target_zh_cn "管理车辆"
+   Target_uk_ua "Управління технікою"
    Comment ""
    DevNote ""
    Repro ""
@@ -2152,8 +2609,8 @@ StringTable {
    Target_en_us "Medical Supplies"
    Target_fr_fr "Matériel Médical"
    Target_ru_ru "Медикаменты"
-   Target_uk_ua "Медикаменти"
    Target_zh_cn "医疗用品"
+   Target_uk_ua "Медикаменти"
    Comment ""
    DevNote ""
    Repro ""
@@ -2173,8 +2630,8 @@ StringTable {
    Target_en_us "You are too far from any towns to deliver medical supplies"
    Target_fr_fr "Vous êtes trop loin d'une commune pour livrer le matériel médical"
    Target_ru_ru "Вы слишком далеко от насленого пункта, чтобы доставить медикаменты"
-   Target_uk_ua "Ви занадто далеко від будь-якого населеного пункта, щоб доставити медикаменти"
    Target_zh_cn "你距离任何城镇都太远，无法分发医疗物资"
+   Target_uk_ua "Ви занадто далеко від будь-якого населеного пункта, щоб доставити медикаменти"
    Comment ""
    DevNote ""
    Repro ""
@@ -2194,8 +2651,8 @@ StringTable {
    Target_en_us "Medical supplies delivered to the value of"
    Target_fr_fr "Matériel Médical livré pour "
    Target_ru_ru "Медикаменты доставлены на сумму"
-   Target_uk_ua "Медикаменти доставлені на суму"
    Target_zh_cn "医疗物资交付价值"
+   Target_uk_ua "Медикаменти доставлені на суму"
    Comment ""
    DevNote ""
    Repro ""
@@ -2214,8 +2671,8 @@ StringTable {
    Id "OVT-Modifier_NearbyBase"
    Target_en_us "Nearby Base"
    Target_ru_ru "База поблизости"
-   Target_uk_ua "База поряд"
    Target_zh_cn "附近基地"
+   Target_uk_ua "База поряд"
    Comment ""
    DevNote ""
    Repro ""
@@ -2235,8 +2692,8 @@ StringTable {
    Target_en_us "Recent Battle"
    Target_fr_fr "Batailles Récentes"
    Target_ru_ru "Недавние бои"
-   Target_uk_ua "Недавній бій"
    Target_zh_cn "附近战斗"
+   Target_uk_ua "Недавній бій"
    Comment ""
    DevNote ""
    Repro ""
@@ -2255,8 +2712,8 @@ StringTable {
    Id "OVT-Msg-BaseBattle"
    Target_en_us "The battle for %1 will begin shortly"
    Target_ru_ru "Бой за базу %1 скоро начнётся"
-   Target_uk_ua "Бій за базу %1 розпочнеться незабаром"
    Target_zh_cn "%1之战即将开始"
+   Target_uk_ua "Бій за базу %1 розпочнеться незабаром"
    Comment ""
    DevNote ""
    Repro ""
@@ -2276,8 +2733,8 @@ StringTable {
    Target_en_us "The resistance has lost control of %1 base"
    Target_fr_fr "La résistance a perdu le contrôle d'une base"
    Target_ru_ru "Сопротивление утратило контроль над базой %1"
-   Target_uk_ua "Опір втратив контроль над базою %1"
    Target_zh_cn "抵抗力量已失去对%1基地的控制"
+   Target_uk_ua "Опір втратив контроль над базою %1"
    Comment ""
    DevNote ""
    Repro ""
@@ -2297,8 +2754,8 @@ StringTable {
    Target_en_us "The resistance has captured %1 base"
    Target_fr_fr "La résistance a capturé une base ennemie"
    Target_ru_ru "Сопротивление взяло под контроль базу  %1"
-   Target_uk_ua "Опір захопив базу %1"
    Target_zh_cn "抵抗力量已占领%1基地"
+   Target_uk_ua "Опір захопив базу %1"
    Comment ""
    DevNote ""
    Repro ""
@@ -2318,8 +2775,8 @@ StringTable {
    Target_en_us "The battle for the city of %1 will begin shortly"
    Target_fr_fr "La bataille pour le contrôle de la ville va bientôt commencer"
    Target_ru_ru "Бой за город %1 скоро начнётся"
-   Target_uk_ua "Бій за населений пункт %1 розпочнеться незабаром"
    Target_zh_cn "争夺%1城镇的战斗即将开始"
+   Target_uk_ua "Бій за населений пункт %1 розпочнеться незабаром"
    Comment ""
    DevNote ""
    Repro ""
@@ -2339,8 +2796,8 @@ StringTable {
    Target_en_us "The resistance has lost control of the city of %1"
    Target_fr_fr "La résistance a perdu le contrôle de la ville"
    Target_ru_ru "Сопротивление потеряло контроль над городом %1"
-   Target_uk_ua "Опір втратив контроль над населеним пунктом %1"
    Target_zh_cn "抵抗力量已经失去了对%1城镇的控制"
+   Target_uk_ua "Опір втратив контроль над населеним пунктом %1"
    Comment ""
    DevNote ""
    Repro ""
@@ -2360,8 +2817,8 @@ StringTable {
    Target_en_us "The city of %1 is now under control by the resistance"
    Target_fr_fr "La ville est maintenant sous contrôle de la résistance"
    Target_ru_ru "Город %1 теперь контроллируется сопротивлением"
-   Target_uk_ua "Населений пункт %1 тепер під контролем опору"
    Target_zh_cn "%1城镇现已被抵抗力量控制"
+   Target_uk_ua "Населений пункт %1 тепер під контролем опору"
    Comment ""
    DevNote ""
    Repro ""
@@ -2381,8 +2838,8 @@ StringTable {
    Target_en_us "%1 has placed a new FOB near %2. It is now available for fast travel and more"
    Target_fr_fr "a placé un nouvel avant poste. Vous pouvez désormais y faire un déplacement rapide"
    Target_ru_ru "%1 разместил FOB вблизи %2. Точка доступна для быстрого перемещения"
-   Target_uk_ua "%1 розмістив новий FOB поряд з  %2. Тепер він доступний для швидких подорожей тощо"
    Target_zh_cn "%1在%2附近建立了一个新FOB。现在可用于快速移动和更多功能。"
+   Target_uk_ua "%1 розмістив новий FOB поряд з  %2. Тепер він доступний для швидких подорожей тощо"
    Comment ""
    DevNote ""
    Repro ""
@@ -2401,8 +2858,8 @@ StringTable {
    Id "OVT-Msg-LevelledUp"
    Target_en_us "You have reached level %1 and have a skill point to spend in the Character Sheet"
    Target_ru_ru "Вы достигли %1 уровня и у вас есть очко навыка, которое можно потратить в прокачке персонажа"
-   Target_uk_ua "Ви досягли рівня %1 і маєте бал навичок, яке можна витратити для покращення персонажу"
    Target_zh_cn "你已达到%1级，并且在角色表中有一个技能点可供使用"
+   Target_uk_ua "Ви досягли рівня %1 і маєте бал навичок, яке можна витратити для покращення персонажу"
    Comment ""
    DevNote ""
    Repro ""
@@ -2417,13 +2874,118 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{5D5C558A6E391710}" {
+   Id "OVT-Msg-LoadoutApplied"
+   Target_en_us "Loadout '%1' applied - %2 items equipped"
+   Target_fr_fr "Équipement '%1' appliqué - %2 objets équipés"
+   Target_ru_ru "Экипировка '%1' применена - %2 предметов установлено"
+   Target_zh_cn "装备'%1'已应用 - %2个物品已装备"
+   Target_uk_ua "Спорядження '%1' застосовано - %2 предметів встановлено"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E391711}" {
+   Id "OVT-Msg-LoadoutAppliedPartial"
+   Target_en_us "Loadout '%1' partially applied - %2 of %3 items equipped"
+   Target_fr_fr "Équipement '%1' partiellement appliqué - %2 sur %3 objets équipés"
+   Target_ru_ru "Экипировка '%1' частично применена - %2 из %3 предметов установлено"
+   Target_zh_cn "装备'%1'部分应用 - %2/%3个物品已装备"
+   Target_uk_ua "Спорядження '%1' частково застосовано - %2 з %3 предметів встановлено"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E391712}" {
+   Id "OVT-Msg-LoadoutAppliedToRecruit"
+   Target_en_us "Loadout '%1' applied to %2 - %3 items equipped"
+   Target_fr_fr "Équipement '%1' appliqué à %2 - %3 objets équipés"
+   Target_ru_ru "Экипировка '%1' применена к %2 - %3 предметов установлено"
+   Target_zh_cn "装备'%1'已应用到%2 - %3个物品已装备"
+   Target_uk_ua "Спорядження '%1' застосовано до %2 - %3 предметів встановлено"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E391713}" {
+   Id "OVT-Msg-LoadoutAppliedToRecruits"
+   Target_en_us "Loadout '%1' applied to %2 recruits"
+   Target_fr_fr "Équipement '%1' appliqué à %2 recrues"
+   Target_ru_ru "Экипировка '%1' применена к %2 бойцам"
+   Target_zh_cn "装备'%1'已应用到%2名新兵"
+   Target_uk_ua "Спорядження '%1' застосовано до %2 бійців"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E391714}" {
+   Id "OVT-Msg-LoadoutDeleted"
+   Target_en_us "Loadout '%1' deleted"
+   Target_fr_fr "Équipement '%1' supprimé"
+   Target_ru_ru "Экипировка '%1' удалена"
+   Target_zh_cn "装备'%1'已删除"
+   Target_uk_ua "Спорядження '%1' видалено"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{59A49A823A9D330A}" {
    Id "OVT-Msg-NewFOB"
    Target_en_us "New FOB"
    Target_fr_fr "Nouvel avant poste"
    Target_ru_ru "Новая FOB"
-   Target_uk_ua "Нова FOB"
    Target_zh_cn "新FOB"
+   Target_uk_ua "Нова FOB"
    Comment ""
    DevNote ""
    Repro ""
@@ -2442,8 +3004,8 @@ StringTable {
    Id "OVT-Msg-PatrolSpotted"
    Target_en_us "Supporters have spotted a patrol in %1"
    Target_ru_ru "Жители заметили патруль в %1"
-   Target_uk_ua "Прихильники помітили патруль у %1"
    Target_zh_cn "支持者在%1发现了巡逻队"
+   Target_uk_ua "Прихильники помітили патруль у %1"
    Comment ""
    DevNote ""
    Repro ""
@@ -2462,8 +3024,8 @@ StringTable {
    Id "OVT-Msg-PlayerDonated"
    Target_en_us "%1 has donated $%2 to the resistance funds"
    Target_ru_ru "%1 пожертвовал $%2 на нужды сопротивления"
-   Target_uk_ua "%1 пожертвував $%2 на потреби опору"
    Target_zh_cn "%1已向抵抗基金捐赠%2$"
+   Target_uk_ua "%1 пожертвував $%2 на потреби опору"
    Comment ""
    DevNote ""
    Repro ""
@@ -2482,8 +3044,8 @@ StringTable {
    Id "OVT-Msg-PlayerSentFunds"
    Target_en_us "An officer has sent you $%1 in resistance funds"
    Target_ru_ru "Офицер отправил вам $%1 со счёта сопротивления"
-   Target_uk_ua "Офіцер надіслав вам $%1 з рахунку опору"
    Target_zh_cn "一名指挥官已向你发送了%1$的抵抗资金"
+   Target_uk_ua "Офіцер надіслав вам $%1 з рахунку опору"
    Comment ""
    DevNote ""
    Repro ""
@@ -2502,8 +3064,8 @@ StringTable {
    Id "OVT-Msg-PlayerSentMoney"
    Target_en_us "%1 has sent you $%2"
    Target_ru_ru "%1 отправил вам $%2"
-   Target_uk_ua "%1 надіслав вам $%2"
    Target_zh_cn "%1已向你发送%2$"
+   Target_uk_ua "%1 надіслав вам $%2"
    Comment ""
    DevNote ""
    Repro ""
@@ -2522,8 +3084,8 @@ StringTable {
    Id "OVT-Msg-RadioTowerCapture"
    Target_en_us "The enemy is attempting to capture a radio tower near %1"
    Target_ru_ru "Противник пытается захватить радиовышку вблизи %1"
-   Target_uk_ua "Ворог намагається захопити радіовежу поряд з %1"
    Target_zh_cn "敌人正试图占领%1附近的无线电塔"
+   Target_uk_ua "Ворог намагається захопити радіовежу поряд з %1"
    Comment ""
    DevNote ""
    Repro ""
@@ -2538,12 +3100,19 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{65AA3C7A9ED20711}" {
+   Id "OVT-Msg-RecruitDied"
+   Target_en_us "%1 has died"
+   Modified 1705668072
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5D86A3C7B5BAFA27}" {
    Id "OVT-Msg-TaxesDonationsPlayer"
    Target_en_us "You have received $%1 in donations and taxes"
    Target_ru_ru "Вы получили $%1 налогов и пожертвований"
-   Target_uk_ua "Ви отримали $%1 у вигляді пожертвувань та податків"
    Target_zh_cn "你已收到%1$的捐款和税收"
+   Target_uk_ua "Ви отримали $%1 у вигляді пожертвувань та податків"
    Comment ""
    DevNote ""
    Repro ""
@@ -2562,8 +3131,8 @@ StringTable {
    Id "OVT-Msg-TowerControlledOccupying"
    Target_en_us "The resistance has lost control of a radio tower near %1"
    Target_ru_ru "Сопротивление потеряло контроль над радиовышкой вблизи %1"
-   Target_uk_ua "Опір втратив контроль над радіовежею біля %1"
    Target_zh_cn "抵抗力量已经失去了对%1附近一座无线电塔的控制"
+   Target_uk_ua "Опір втратив контроль над радіовежею біля %1"
    Comment ""
    DevNote ""
    Repro ""
@@ -2583,8 +3152,8 @@ StringTable {
    Target_en_us "The resistance has captured an enemy radio tower near %1"
    Target_fr_fr "La résistance a capturé la tour radio ennemie"
    Target_ru_ru "Сопротивление взяло под контроль радиовышку вблизи %1"
-   Target_uk_ua "Опір захопив ворожу радіовежу біля %1"
    Target_zh_cn "抵抗力量已占领%1附近的敌方无线电塔"
+   Target_uk_ua "Опір захопив ворожу радіовежу біля %1"
    Comment ""
    DevNote ""
    Repro ""
@@ -2604,8 +3173,8 @@ StringTable {
    Target_en_us "The battle for the town of %1 will begin shortly"
    Target_fr_fr "La bataille pour le contrôle du bourg va bientôt commencer"
    Target_ru_ru "Бой за город %1 скоро начнется"
-   Target_uk_ua "Бій за населений пункт %1 скоро розпочнеться"
    Target_zh_cn "%1镇争夺战即将开始"
+   Target_uk_ua "Бій за населений пункт %1 скоро розпочнеться"
    Comment ""
    DevNote ""
    Repro ""
@@ -2625,8 +3194,8 @@ StringTable {
    Target_en_us "The resistance has lost control of the town of %1"
    Target_fr_fr "La résistance ne contrôle plus le bourg dû au manque de soutien des habitants"
    Target_ru_ru "Сопротивление потеряло контроль над городом %1"
-   Target_uk_ua "Опір втратив контроль над містом %1"
    Target_zh_cn "抵抗力量已经失去了对%1镇的控制"
+   Target_uk_ua "Опір втратив контроль над містом %1"
    Comment ""
    DevNote ""
    Repro ""
@@ -2646,8 +3215,8 @@ StringTable {
    Target_en_us "The town of %1 is now under control by the resistance"
    Target_fr_fr "Le bourg est maintenant sous le contrôle de la résistance"
    Target_ru_ru "Город %1 теперь под контролем сопротивления"
-   Target_uk_ua "Населений пункт %1 тепер під контролем опору"
    Target_zh_cn "%1镇现已被抵抗力量控制"
+   Target_uk_ua "Населений пункт %1 тепер під контролем опору"
    Comment ""
    DevNote ""
    Repro ""
@@ -2667,8 +3236,8 @@ StringTable {
    Target_en_us "Resistance has lost control of the village of %1 due to low support"
    Target_fr_fr "La résistance ne contrôle plus le village dû au manque de soutien des habitants"
    Target_ru_ru "Сопротивление утратило контроль над населенным пунктом %1 в следствии низкой поддержки населением"
-   Target_uk_ua "Опір втратив контроль над селом %1 через низьку підтримку"
    Target_zh_cn "由于支持率低迷，抵抗力量已经失去了对%1村的控制"
+   Target_uk_ua "Опір втратив контроль над селом %1 через низьку підтримку"
    Comment ""
    DevNote ""
    Repro ""
@@ -2689,8 +3258,8 @@ StringTable {
    Target_fr_fr "Le village est maintenant sous le contrôle de la résistance en raison d'un soutien écrasant"
    Target_ru_ru "Населенный пункт %1 теперь находится под контролем сопротивления из-за подавляющей поддержки"\
    "населением"
-   Target_uk_ua "Населений пункт %1 тепер під контролем опору завдяки переважній підтримці"
    Target_zh_cn "由于压倒性支持，%1村现已被抵抗力量控制"
+   Target_uk_ua "Населений пункт %1 тепер під контролем опору завдяки переважній підтримці"
    Comment ""
    DevNote ""
    Repro ""
@@ -2710,8 +3279,8 @@ StringTable {
    Target_en_us "You must be the driver of the vehicle to fast travel all occupants"
    Target_fr_fr "Vous devez être le conducteur pour effectuer le déplacement rapide avec tous les passagers"
    Target_ru_ru "Вы должны быть водителем транспортного средства, чтобы быстро перевезти всех пассажиров"
-   Target_uk_ua "Ви повинні бути водієм транспортного засобу, щоб швидко пересуватися з усіма пасажирами"
    Target_zh_cn "你必须是车辆驾驶员才能快速传送所有乘客"
+   Target_uk_ua "Ви повинні бути водієм транспортного засобу, щоб швидко пересуватися з усіма пасажирами"
    Comment ""
    DevNote ""
    Repro ""
@@ -2731,8 +3300,8 @@ StringTable {
    Target_en_us "This item must be placed inside a town to have any effect"
    Target_fr_fr "L'objet doit être placé dans une commune pour avoir un effet"
    Target_ru_ru "Этот предмет должен быть помещен внутри города, чтобы иметь какой-либо эффект"
-   Target_uk_ua "Цей предмет має бути розміщений у населеному пункті, щоб мати будь-який ефект"
    Target_zh_cn "此物品必须放置在城镇内才能产生效果"
+   Target_uk_ua "Цей предмет має бути розміщений у населеному пункті, щоб мати будь-який ефект"
    Comment ""
    DevNote ""
    Repro ""
@@ -2752,8 +3321,8 @@ StringTable {
    Target_en_us "You must be an officer to do that"
    Target_fr_fr "Vous devez être officier pour effectuer cela"
    Target_ru_ru "Вы должны быть офицером, чтобы сделать это"
-   Target_uk_ua "Ви повинні бути офіцером, щоб зробити це"
    Target_zh_cn "你必须是一名指挥官才能这么做"
+   Target_uk_ua "Ви повинні бути офіцером, щоб зробити це"
    Comment ""
    DevNote ""
    Repro ""
@@ -2773,8 +3342,8 @@ StringTable {
    Target_en_us "You must exit your vehicle first"
    Target_fr_fr "Vous devez d'abord sortir du véhicule"
    Target_ru_ru "Сначало вы должны выйти из автомобиля."
-   Target_uk_ua "Спочатку ви повинні вийти з автомобіля"
    Target_zh_cn "你必须先下车"
+   Target_uk_ua "Спочатку ви повинні вийти з автомобіля"
    Comment ""
    DevNote ""
    Repro ""
@@ -2794,8 +3363,8 @@ StringTable {
    Target_en_us "You must have a map equipped"
    Target_fr_fr "Il vous faut une carte"
    Target_ru_ru "Вы должны иметь при себе карту"
-   Target_uk_ua "Ви повинні мати у себе карту"
    Target_zh_cn "你必须配备地图"
+   Target_uk_ua "Ви повинні мати у себе карту"
    Comment ""
    DevNote ""
    Repro ""
@@ -2814,8 +3383,8 @@ StringTable {
    Id "OVT-MyAccount"
    Target_en_us "My Account"
    Target_ru_ru "Мой Кошелёк"
-   Target_uk_ua "Мій Рахунок"
    Target_zh_cn "我的账户"
+   Target_uk_ua "Мій Рахунок"
    Comment ""
    DevNote ""
    Repro ""
@@ -2835,8 +3404,8 @@ StringTable {
    Target_en_us "You must click near another bus stop"
    Target_fr_fr "Cliquez près d'un autre arrêt de bus"
    Target_ru_ru "Вы должны нажать на карту  возле автобусной остановки"
-   Target_uk_ua "Ви повинні натиснути біля іншої автобусної зупинки"
    Target_zh_cn "你必须在另一个公交车站附近点击"
+   Target_uk_ua "Ви повинні натиснути біля іншої автобусної зупинки"
    Comment ""
    DevNote ""
    Repro ""
@@ -2856,8 +3425,8 @@ StringTable {
    Target_en_us "has been made an officer"
    Target_fr_fr "a été promu officier"
    Target_ru_ru "был назначен офицером"
-   Target_uk_ua "був призначений офіцером"
    Target_zh_cn "已被任命为指挥官"
+   Target_uk_ua "був призначений офіцером"
    Comment ""
    DevNote ""
    Repro ""
@@ -2877,8 +3446,8 @@ StringTable {
    Target_en_us "You have been made an officer"
    Target_fr_fr "Vous avez été promu officier"
    Target_ru_ru "Вы назначены офицером"
-   Target_uk_ua "Ви призначені офіцером"
    Target_zh_cn "你已被任命为指挥官"
+   Target_uk_ua "Ви призначені офіцером"
    Comment ""
    DevNote ""
    Repro ""
@@ -2897,8 +3466,8 @@ StringTable {
    Id "OVT-NoDeadBodiesNearby"
    Target_en_us "There are no dead bodies or weapons within 25m"
    Target_ru_ru "Здесь нет мертвых тел или оружия в пределах 25м"
-   Target_uk_ua "У радіусі 25 метрів немає трупів чи зброї"
    Target_zh_cn "25米内没有尸体或武器"
+   Target_uk_ua "У радіусі 25 метрів немає трупів чи зброї"
    Comment ""
    DevNote ""
    Repro ""
@@ -2918,8 +3487,8 @@ StringTable {
    Target_en_us "You are not carrying any drugs. Buy them from a gun dealer."
    Target_fr_fr "Vous ne transportez pas de drogue. Achetez en d'abord au vendeur d'armes."
    Target_ru_ru "У вас нет с собой никаких наркотиков. Купите их у торговца оружием."
-   Target_uk_ua "У вас немає наркотиків. Придбайте їх у продавця зброї."
    Target_zh_cn "你没有携带任何毒品。请从军火商处购买。"
+   Target_uk_ua "У вас немає наркотиків. Придбайте їх у продавця зброї."
    Comment ""
    DevNote ""
    Repro ""
@@ -2939,8 +3508,8 @@ StringTable {
    Target_en_us "No medical supplies found in vehicle"
    Target_fr_fr "Pas de matériel médical dans le véhicule"
    Target_ru_ru "В машине нет медикаментов"
-   Target_uk_ua "Відсутні медикаменті в техніці"
    Target_zh_cn "车内未发现医疗用品"
+   Target_uk_ua "Відсутні медикаменті в техніці"
    Comment ""
    DevNote ""
    Repro ""
@@ -2955,13 +3524,34 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{5DA486E22A59D4CA}" {
+   Id "OVT-NoSupportersAvailable"
+   Target_en_us "No supporters available in nearby towns"
+   Target_fr_fr "Aucun partisan disponible dans les villes voisines"
+   Target_ru_ru "Нет доступных сторонников в близлежащих городах"
+   Target_zh_cn "附近城镇没有可用的支持者"
+   Target_uk_ua "Немає доступних прихильників у навколишніх містах"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1640995200
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{59DA69F4EADC4C3E}" {
    Id "OVT-NoSupportersToRecruit"
    Target_en_us "There are not enough supporters in the nearest town to recruit"
    Target_fr_fr "Il n'y a pas assez de soutien dans le village à proximité pour recruter"
    Target_ru_ru "В блзжайшем населенном пункте не хватает сторонников для найма."
-   Target_uk_ua "Недостатньо прихільників в населеному пункті поряд для найму"
    Target_zh_cn "附近城镇没有足够的支持者来招募"
+   Target_uk_ua "Недостатньо прихільників в населеному пункті поряд для найму"
    Comment ""
    DevNote ""
    Repro ""
@@ -2980,8 +3570,8 @@ StringTable {
    Id "OVT-NotConvertedSupporter"
    Target_en_us "This civilian was not interested in supporting the resistance"
    Target_ru_ru "Житель не заинтересован в поддержке сопротивления"
-   Target_uk_ua "Мешканець не зацікавлений у підтримці опору"
    Target_zh_cn "这位平民对支持抵抗运动不感兴趣"
+   Target_uk_ua "Мешканець не зацікавлений у підтримці опору"
    Comment ""
    DevNote ""
    Repro ""
@@ -3001,8 +3591,8 @@ StringTable {
    Target_en_us "No Vehicle on ramp"
    Target_fr_fr "Pas de véhicule sur la rampe"
    Target_ru_ru "Нет техники на рампе"
-   Target_uk_ua "Відсутня техніка на рампі"
    Target_zh_cn "匝道禁止车辆通行"
+   Target_uk_ua "Відсутня техніка на рампі"
    Comment ""
    DevNote ""
    Repro ""
@@ -3022,8 +3612,8 @@ StringTable {
    Target_en_us "There are no vehicles nearby"
    Target_fr_fr "Pas de véhicule à proximité"
    Target_ru_ru "Нет машин рядом"
-   Target_uk_ua "Відсутня техніки поряд"
    Target_zh_cn "附近没有车辆"
+   Target_uk_ua "Відсутня техніки поряд"
    Comment ""
    DevNote ""
    Repro ""
@@ -3043,8 +3633,8 @@ StringTable {
    Target_en_us "Occupying Faction"
    Target_fr_fr "Faction dominante"
    Target_ru_ru "Фракция оккупантов"
-   Target_uk_ua "Фракція окупантів"
    Target_zh_cn "占领军"
+   Target_uk_ua "Фракція окупантів"
    Comment ""
    DevNote ""
    Repro ""
@@ -3059,13 +3649,34 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{5E4852B16105E7FD}" {
+   Id "OVT-OpenInventory"
+   Target_en_us "Open Inventory"
+   Target_fr_fr "Ouvrir l'inventaire"
+   Target_ru_ru "Открыть инвентарь"
+   Target_zh_cn "打开库存"
+   Target_uk_ua "Відкрити інвентар"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1658678321
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{599A1C5F66015FAB}" {
    Id "OVT-Overthrow"
    Target_en_us "Overthrow"
    Target_fr_fr "Overthrow"
    Target_ru_ru "Overthrow"
-   Target_uk_ua "Overthrow"
    Target_zh_cn "抵抗"
+   Target_uk_ua "Overthrow"
    Comment ""
    DevNote ""
    Repro ""
@@ -3085,8 +3696,8 @@ StringTable {
    Target_en_us "Owned"
    Target_fr_fr "Possédé"
    Target_ru_ru "Во владении"
-   Target_uk_ua "У власності"
    Target_zh_cn "拥有"
+   Target_uk_ua "У власності"
    Comment ""
    DevNote ""
    Repro ""
@@ -3106,8 +3717,8 @@ StringTable {
    Target_en_us "Owner"
    Target_fr_fr "Propriétaire"
    Target_ru_ru "Владелец"
-   Target_uk_ua "Власник"
    Target_zh_cn "所有者"
+   Target_uk_ua "Власник"
    Comment ""
    DevNote ""
    Repro ""
@@ -3127,8 +3738,8 @@ StringTable {
    Target_en_us "per day"
    Target_fr_fr "par jour"
    Target_ru_ru "в день"
-   Target_uk_ua "у день"
    Target_zh_cn "每天"
+   Target_uk_ua "у день"
    Comment ""
    DevNote ""
    Repro ""
@@ -3148,8 +3759,8 @@ StringTable {
    Target_en_us "Camp"
    Target_fr_fr "Camp"
    Target_ru_ru "Лагерь"
-   Target_uk_ua "Табір"
    Target_zh_cn "营地"
+   Target_uk_ua "Табір"
    Comment ""
    DevNote ""
    Repro ""
@@ -3168,8 +3779,8 @@ StringTable {
    Id "OVT-Place_Camp_Description"
    Target_en_us "A personal fast-travel destination"
    Target_ru_ru "Персональная точка быстрого перемещения"
-   Target_uk_ua "Персональна точка швидкого переміщення"
    Target_zh_cn "个人快速移动目的地"
+   Target_uk_ua "Персональна точка швидкого переміщення"
    Comment ""
    DevNote ""
    Repro ""
@@ -3189,8 +3800,8 @@ StringTable {
    Target_en_us "Equipment Box"
    Target_fr_fr "Caisse d'Équipement"
    Target_ru_ru "Ящик для снаряжения"
-   Target_uk_ua "Ящик для спорядження"
    Target_zh_cn "装备箱"
+   Target_uk_ua "Ящик для спорядження"
    Comment ""
    DevNote ""
    Repro ""
@@ -3209,8 +3820,8 @@ StringTable {
    Id "OVT-Place_EquipmentBox_Description"
    Target_en_us "Somewhere to put your stuff"
    Target_ru_ru "Место для ваших вещей"
-   Target_uk_ua "Місце для ваших речей"
    Target_zh_cn "放个人东西的地方"
+   Target_uk_ua "Місце для ваших речей"
    Comment ""
    DevNote ""
    Repro ""
@@ -3230,8 +3841,8 @@ StringTable {
    Target_en_us "Floodlights"
    Target_fr_fr "Projecteurs"
    Target_ru_ru "Прожектор"
-   Target_uk_ua "Прожектори"
    Target_zh_cn "泛光灯"
+   Target_uk_ua "Прожектори"
    Comment ""
    DevNote ""
    Repro ""
@@ -3250,8 +3861,8 @@ StringTable {
    Id "OVT-Place_Floodlights_Description"
    Target_en_us "Provides light at night"
    Target_ru_ru "Дает свет ночью"
-   Target_uk_ua "Дає світло вночі"
    Target_zh_cn "夜间提供照明"
+   Target_uk_ua "Дає світло вночі"
    Comment ""
    DevNote ""
    Repro ""
@@ -3271,8 +3882,8 @@ StringTable {
    Target_en_us "FOB"
    Target_fr_fr "Avant poste"
    Target_ru_ru "FOB"
-   Target_uk_ua "FOB"
    Target_zh_cn "FOB"
+   Target_uk_ua "FOB"
    Comment ""
    DevNote ""
    Repro ""
@@ -3291,8 +3902,8 @@ StringTable {
    Id "OVT-Place_FOB_Description"
    Target_en_us "Forward Operating Base"
    Target_ru_ru "База передового развёртывания"
-   Target_uk_ua "Передова оперативна база"
    Target_zh_cn "前进作战基地"
+   Target_uk_ua "Передова оперативна база"
    Comment ""
    DevNote ""
    Repro ""
@@ -3312,8 +3923,8 @@ StringTable {
    Target_en_us "Hedgehog"
    Target_fr_fr "Obstacle"
    Target_ru_ru "Ёж"
-   Target_uk_ua "Їжак"
    Target_zh_cn "刺猬桩"
+   Target_uk_ua "Їжак"
    Comment ""
    DevNote ""
    Repro ""
@@ -3332,8 +3943,8 @@ StringTable {
    Id "OVT-Place_Hedgehog_Description"
    Target_en_us "Slows down vehicles"
    Target_ru_ru "Препятствует перемещению техники"
-   Target_uk_ua "Уповільнює транспортні засоби"
    Target_zh_cn "使车辆减速"
+   Target_uk_ua "Уповільнює транспортні засоби"
    Comment ""
    DevNote ""
    Repro ""
@@ -3353,8 +3964,8 @@ StringTable {
    Target_en_us "Lamps"
    Target_fr_fr "Lampes"
    Target_ru_ru "Лампа"
-   Target_uk_ua "Лампи"
    Target_zh_cn "灯"
+   Target_uk_ua "Лампи"
    Comment ""
    DevNote ""
    Repro ""
@@ -3374,8 +3985,8 @@ StringTable {
    Target_en_us "Next Item"
    Target_fr_fr "Item Suivant"
    Target_ru_ru "Следующий предмет"
-   Target_uk_ua "Наступний предмет"
    Target_zh_cn "下一项"
+   Target_uk_ua "Наступний предмет"
    Comment ""
    DevNote ""
    Repro ""
@@ -3395,8 +4006,8 @@ StringTable {
    Target_en_us "Recruitment Posters"
    Target_fr_fr "Affiche"
    Target_ru_ru "Постер"
-   Target_uk_ua "Рекрутингові плакати"
    Target_zh_cn "征兵海报"
+   Target_uk_ua "Рекрутингові плакати"
    Comment ""
    DevNote ""
    Repro ""
@@ -3415,8 +4026,8 @@ StringTable {
    Id "OVT-Place_Poster_Description"
    Target_en_us "Raises support (max 5/town)"
    Target_ru_ru "Увеличиват уровень поддержки населением (макс 5/населенный пункт)"
-   Target_uk_ua "Підвищує підтримку спротиву (макс 5/населений пункт)"
    Target_zh_cn "提高支持率（每个城镇最多5张）"
+   Target_uk_ua "Підвищує підтримку спротиву (макс 5/населений пункт)"
    Comment ""
    DevNote ""
    Repro ""
@@ -3436,8 +4047,8 @@ StringTable {
    Target_en_us "Previous Item"
    Target_fr_fr "Item Précédent"
    Target_ru_ru "Предыдущий предмет"
-   Target_uk_ua "Попередній предмет"
    Target_zh_cn "上一个项目"
+   Target_uk_ua "Попередній предмет"
    Comment ""
    DevNote ""
    Repro ""
@@ -3457,8 +4068,8 @@ StringTable {
    Target_en_us "Rotate Left"
    Target_fr_fr "Rotation Gauche"
    Target_ru_ru "Повернуть влево"
-   Target_uk_ua "Повернути вліво"
    Target_zh_cn "向左旋转"
+   Target_uk_ua "Повернути вліво"
    Comment ""
    DevNote ""
    Repro ""
@@ -3478,8 +4089,8 @@ StringTable {
    Target_en_us "Rotate Right"
    Target_fr_fr "Rotation Droite"
    Target_ru_ru "Повернуть вправо"
-   Target_uk_ua "Повернути вправо"
    Target_zh_cn "向右旋转"
+   Target_uk_ua "Повернути вправо"
    Comment ""
    DevNote ""
    Repro ""
@@ -3499,8 +4110,8 @@ StringTable {
    Target_en_us "Sandbags"
    Target_fr_fr "Sacs de sable"
    Target_ru_ru "Мешки с песком"
-   Target_uk_ua "Мішки з піском"
    Target_zh_cn "沙袋"
+   Target_uk_ua "Мішки з піском"
    Comment ""
    DevNote ""
    Repro ""
@@ -3519,8 +4130,8 @@ StringTable {
    Id "OVT-Place_Sandbags_Description"
    Target_en_us "Makes it harder to get shot at"
    Target_ru_ru "Повышает шансы не быть застреленным"
-   Target_uk_ua "Підвищує шанс не бути застреленим"
    Target_zh_cn "更不容易中枪"
+   Target_uk_ua "Підвищує шанс не бути застреленим"
    Comment ""
    DevNote ""
    Repro ""
@@ -3540,8 +4151,8 @@ StringTable {
    Target_en_us "Signs"
    Target_fr_fr "Panneaux"
    Target_ru_ru "Указатель"
-   Target_uk_ua "Знаки"
    Target_zh_cn "标记"
+   Target_uk_ua "Знаки"
    Comment ""
    DevNote ""
    Repro ""
@@ -3561,8 +4172,8 @@ StringTable {
    Target_en_us "Player"
    Target_fr_fr "Joueur"
    Target_ru_ru "Игрок"
-   Target_uk_ua "Гравець"
    Target_zh_cn "玩家"
+   Target_uk_ua "Гравець"
    Comment ""
    DevNote ""
    Repro ""
@@ -3582,8 +4193,8 @@ StringTable {
    Target_en_us "Population"
    Target_fr_fr "Population"
    Target_ru_ru "Население"
-   Target_uk_ua "Населення"
    Target_zh_cn "人口"
+   Target_uk_ua "Населення"
    Comment ""
    DevNote ""
    Repro ""
@@ -3603,8 +4214,8 @@ StringTable {
    Target_en_us "Port"
    Target_fr_fr "Port"
    Target_ru_ru "Порт"
-   Target_uk_ua "Порт"
    Target_zh_cn "港口"
+   Target_uk_ua "Порт"
    Comment ""
    DevNote ""
    Repro ""
@@ -3624,8 +4235,8 @@ StringTable {
    Target_en_us "Buy 10"
    Target_fr_fr "Acheter 10"
    Target_ru_ru "Купить 10"
-   Target_uk_ua "Купити 10"
    Target_zh_cn "购买10"
+   Target_uk_ua "Купити 10"
    Comment ""
    DevNote ""
    Repro ""
@@ -3645,8 +4256,8 @@ StringTable {
    Target_en_us "Buy 100"
    Target_fr_fr "Acheter 100"
    Target_ru_ru "Купить 100"
-   Target_uk_ua "Купити 100"
    Target_zh_cn "购买100"
+   Target_uk_ua "Купити 100"
    Comment ""
    DevNote ""
    Repro ""
@@ -3664,8 +4275,8 @@ StringTable {
   CustomStringTableItem "{5E4A6E76C0D01F62}" {
    Id "OVT-Procurement"
    Target_en_us "Procurement"
-   Target_uk_ua "Закупівлі"
    Target_zh_cn "采购"
+   Target_uk_ua "Закупівлі"
    Comment ""
    DevNote ""
    Repro ""
@@ -3685,8 +4296,8 @@ StringTable {
    Target_en_us "Put In Warehouse"
    Target_fr_fr "Mettre dans l'Entrepôt"
    Target_ru_ru "Поместить на склад"
-   Target_uk_ua "Покласти на склад"
    Target_zh_cn "入库"
+   Target_uk_ua "Покласти на склад"
    Comment ""
    DevNote ""
    Repro ""
@@ -3698,6 +4309,146 @@ StringTable {
    Modified 1684559858
    Author "Aaron Static"
    LastChanged "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E391A10}" {
+   Id "OVT-Recruit_Active"
+   Target_en_us "Active"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A15}" {
+   Id "OVT-Recruit_Dismissed"
+   Target_en_us "Recruit dismissed"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A20}" {
+   Id "OVT-Recruit_Hometown"
+   Target_en_us "Hometown: %1"
+   Modified 1735049000
+   Author "Claude"
+   LastChanged "Claude"
+  }
+  CustomStringTableItem "{5D5C558A6E391A08}" {
+   Id "OVT-Recruit_Kills"
+   Target_en_us "Kills: %1"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A06}" {
+   Id "OVT-Recruit_Level"
+   Target_en_us "Level %1"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A07}" {
+   Id "OVT-Recruit_LevelXP"
+   Target_en_us "Level: %1 (%2/%3 XP)"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A16}" {
+   Id "OVT-Recruit_MarkedOnMap"
+   Target_en_us "Recruit location marked on map"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A11}" {
+   Id "OVT-Recruit_Offline"
+   Target_en_us "Offline"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A23}" {
+   Id "OVT-Recruit_Renamed"
+   Target_en_us "Recruit renamed successfully"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A13}" {
+   Id "OVT-Recruit_StatusActive"
+   Target_en_us "Status: Active (Distance: %1m)"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A12}" {
+   Id "OVT-Recruit_StatusDead"
+   Target_en_us "Status: Dead"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A14}" {
+   Id "OVT-Recruit_StatusOffline"
+   Target_en_us "Status: Offline"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A09}" {
+   Id "OVT-Recruit_Unconscious"
+   Target_en_us "Unconscious"
+   Modified 1706105316
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{64A10301CB5B1FEF}" {
+   Id "OVT-RecruitCivilian"
+   Target_en_us "Recruit Civilian"
+   Modified 1688275821
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5DA486E22A59D4CB}" {
+   Id "OVT-RecruitedFromTent"
+   Target_en_us "Recruited supporter from nearby town"
+   Target_fr_fr "Partisan recruté de la ville voisine"
+   Target_ru_ru "Завербован сторонник из близлежащего города"
+   Target_zh_cn "从附近城镇招募了支持者"
+   Target_uk_ua "Завербовано прихильника з навколишнього міста"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1640995200
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5DA486E22A59D4C9}" {
+   Id "OVT-RecruitFromTent"
+   Target_en_us "Recruit from Tent"
+   Target_fr_fr "Recruter de la tente"
+   Target_ru_ru "Завербовать из палатки"
+   Target_zh_cn "从帐篷招募"
+   Target_uk_ua "Завербувати з намету"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1640995200
+   Author "Claude Code"
+   LastChanged "Claude Code"
    ImageLink ""
    Hidden 0
   }
@@ -3706,8 +4457,8 @@ StringTable {
    Target_en_us "Recruit Gunner"
    Target_fr_fr "Recruter Homme de main"
    Target_ru_ru "Нанять пулеметчика"
-   Target_uk_ua "Найняти стрілка"
    Target_zh_cn "招募枪手"
+   Target_uk_ua "Найняти стрілка"
    Comment ""
    DevNote ""
    Repro ""
@@ -3722,13 +4473,104 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{5D5C558A6E3916A9}" {
+   Id "OVT-RecruitLimitReached"
+   Target_en_us "You have reached the maximum number of recruits (16)"
+   Target_fr_fr "Vous avez atteint le nombre maximum de recrues (16)"
+   Target_ru_ru "Вы достигли максимального количества бойцов (16)"
+   Target_zh_cn "你已达到招募人员的最大数量 (16)"
+   Target_uk_ua "Ви досягли максимальної кількості рекрутів (16)"
+   Comment "Error message when player tries to recruit but has reached the limit"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1640995200
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E391A05}" {
+   Id "OVT-Recruits_Dismiss"
+   Target_en_us "Dismiss"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A18}" {
+   Id "OVT-Recruits_DismissMessage"
+   Target_en_us "Are you sure you want to dismiss this recruit? This action cannot be undone."
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A17}" {
+   Id "OVT-Recruits_DismissTitle"
+   Target_en_us "Dismiss Recruit"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A02}" {
+   Id "OVT-Recruits_NoRecruitsHelp"
+   Target_en_us "You have no recruits yet. Recruit civilians by approaching them in towns with high support and using the Recruit Civilian action."
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A04}" {
+   Id "OVT-Recruits_Rename"
+   Target_en_us "Rename"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A21}" {
+   Id "OVT-Recruits_RenameMessage"
+   Target_en_us "Enter a new name for this recruit:"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A22}" {
+   Id "OVT-Recruits_RenamePrompt"
+   Target_en_us "Recruit Name"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A20}" {
+   Id "OVT-Recruits_RenameTitle"
+   Target_en_us "Rename Recruit"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A03}" {
+   Id "OVT-Recruits_ShowOnMap"
+   Target_en_us "Show on Map"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
+  CustomStringTableItem "{5D5C558A6E391A01}" {
+   Id "OVT-Recruits_YourRecruits"
+   Target_en_us "Your Recruits"
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+  }
   CustomStringTableItem "{5D305CF6351DD698}" {
    Id "OVT-Rent"
    Target_en_us "Rent"
    Target_fr_fr "Louer"
    Target_ru_ru "Арендовать"
-   Target_uk_ua "Оренда"
    Target_zh_cn "租借"
+   Target_uk_ua "Оренда"
    Comment ""
    DevNote ""
    Repro ""
@@ -3748,8 +4590,8 @@ StringTable {
    Target_en_us "Rent Income"
    Target_fr_fr "Loyer"
    Target_ru_ru "Доход с сдачи в аренду"
-   Target_uk_ua "Дохід від оренди"
    Target_zh_cn "租金收入"
+   Target_uk_ua "Дохід від оренди"
    Comment ""
    DevNote ""
    Repro ""
@@ -3769,8 +4611,8 @@ StringTable {
    Target_en_us "Renting"
    Target_fr_fr "En Location"
    Target_ru_ru "Арендуется"
-   Target_uk_ua "Орендується"
    Target_zh_cn "租赁"
+   Target_uk_ua "Орендується"
    Comment ""
    DevNote ""
    Repro ""
@@ -3790,8 +4632,8 @@ StringTable {
    Target_en_us "Repair Vehicle"
    Target_fr_fr "Réparer Véhicule"
    Target_ru_ru "Починить технику"
-   Target_uk_ua "Відремонтувати техніку"
    Target_zh_cn "修理车辆"
+   Target_uk_ua "Відремонтувати техніку"
    Comment ""
    DevNote ""
    Repro ""
@@ -3811,8 +4653,8 @@ StringTable {
    Target_en_us "Total Funds"
    Target_fr_fr "Total des Fonds"
    Target_ru_ru "Всего средств"
-   Target_uk_ua "Загальні кошти фонду"
    Target_zh_cn "总资金"
+   Target_uk_ua "Загальні кошти фонду"
    Comment ""
    DevNote ""
    Repro ""
@@ -3832,8 +4674,8 @@ StringTable {
    Target_en_us "Next income is at"
    Target_fr_fr "Prochain Revenu à"
    Target_ru_ru "Следущий доход в"
-   Target_uk_ua "Наступний прибуток в"
    Target_zh_cn "下一笔收入是"
+   Target_uk_ua "Наступний прибуток в"
    Comment ""
    DevNote ""
    Repro ""
@@ -3853,8 +4695,8 @@ StringTable {
    Target_en_us "Supporter Donations"
    Target_fr_fr "Dons des Partisans"
    Target_ru_ru "Помощь сторонников"
-   Target_uk_ua "Пожертвування прихильників"
    Target_zh_cn "支持者捐款"
+   Target_uk_ua "Пожертвування прихильників"
    Comment ""
    DevNote ""
    Repro ""
@@ -3874,8 +4716,8 @@ StringTable {
    Target_en_us "Total Taxes"
    Target_fr_fr "Impôt Total"
    Target_ru_ru "Всего налогов"
-   Target_uk_ua "Загальні податки"
    Target_zh_cn "总税额"
+   Target_uk_ua "Загальні податки"
    Comment ""
    DevNote ""
    Repro ""
@@ -3894,8 +4736,8 @@ StringTable {
    Id "OVT-ResistanceFunds"
    Target_en_us "Resistance Funds"
    Target_ru_ru "Денег у сопротивления"
-   Target_uk_ua "Кошти фонда"
    Target_zh_cn "抵抗基金"
+   Target_uk_ua "Кошти фонда"
    Comment ""
    DevNote ""
    Repro ""
@@ -3915,8 +4757,8 @@ StringTable {
    Target_en_us "Resistance Tax"
    Target_fr_fr "Impôt de la résistance"
    Target_ru_ru "Налоги сопротивления"
-   Target_uk_ua "Податки спротиву"
    Target_zh_cn "抵抗税收"
+   Target_uk_ua "Податки спротиву"
    Comment ""
    DevNote ""
    Repro ""
@@ -3936,8 +4778,8 @@ StringTable {
    Target_en_us "Save"
    Target_fr_fr "Sauvegarder"
    Target_ru_ru "Сохранить"
-   Target_uk_ua "Зберегти"
    Target_zh_cn "保存"
+   Target_uk_ua "Зберегти"
    Comment ""
    DevNote ""
    Repro ""
@@ -3957,8 +4799,8 @@ StringTable {
    Target_en_us "Game Saved"
    Target_fr_fr "Partie Sauvegardée"
    Target_ru_ru "Игра сохранена"
-   Target_uk_ua "Гра збережена"
    Target_zh_cn "游戏已保存"
+   Target_uk_ua "Гра збережена"
    Comment ""
    DevNote ""
    Repro ""
@@ -3973,13 +4815,81 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{A1B2C3D4E5F60001}" {
+   Id "OVT-SaveLoadout"
+   Target_en_us "Save Loadout"
+   Comment "UserAction for saving player equipment loadouts"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1658678321
+   Author "Claude AI"
+   LastChanged "Claude AI"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{A1B2C3D4E5F60003}" {
+   Id "OVT-SaveLoadoutMessage"
+   Target_en_us "Enter a name for your loadout, using an existing name will override the loadout:"
+   Comment "Message for save loadout dialog"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1706484995
+   Author "Claude AI"
+   LastChanged "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{A1B2C3D4E5F60004}" {
+   Id "OVT-SaveLoadoutPrompt"
+   Target_en_us "Loadout Name"
+   Comment "Prompt for loadout name input field"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1658678321
+   Author "Claude AI"
+   LastChanged "Claude AI"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{A1B2C3D4E5F60003}" {
+   Id "OVT-SaveOfficerLoadout"
+   Target_en_us "Save Resistance Loadout"
+   Comment "UserAction for officers to save template loadouts"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1706484961
+   Author "Claude AI"
+   LastChanged "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{5D346D4FE8D27151}" {
    Id "OVT-SellDrugs"
    Target_en_us "Sell Drugs"
    Target_fr_fr "Vendre la Drogue"
    Target_ru_ru "Продать наркотики"
-   Target_uk_ua "Продати наркотики"
    Target_zh_cn "贩卖毒品"
+   Target_uk_ua "Продати наркотики"
    Comment ""
    DevNote ""
    Repro ""
@@ -3999,8 +4909,8 @@ StringTable {
    Target_en_us "Send Funds"
    Target_fr_fr "Envoyer des Fonds"
    Target_ru_ru "Отправить средства"
-   Target_uk_ua "Надіслати кошти з фонду"
    Target_zh_cn "发送资金"
+   Target_uk_ua "Надіслати кошти з фонду"
    Comment ""
    DevNote ""
    Repro ""
@@ -4020,8 +4930,8 @@ StringTable {
    Target_en_us "Send Money"
    Target_fr_fr "Envoyer de l'Argent"
    Target_ru_ru "Отправить деньги"
-   Target_uk_ua "Надіслати гроші"
    Target_zh_cn "汇款"
+   Target_uk_ua "Надіслати гроші"
    Comment ""
    DevNote ""
    Repro ""
@@ -4041,8 +4951,8 @@ StringTable {
    Target_en_us "Send Money"
    Target_fr_fr "Envoyer de l'Argent"
    Target_ru_ru "Отправить деньги"
-   Target_uk_ua "Надіслати гроші"
    Target_zh_cn "汇款"
+   Target_uk_ua "Надіслати гроші"
    Comment ""
    DevNote ""
    Repro ""
@@ -4062,8 +4972,8 @@ StringTable {
    Target_en_us "Set As Home"
    Target_fr_fr "Définir comme Domicile"
    Target_ru_ru "Сделать домом"
-   Target_uk_ua "Зробити домом"
    Target_zh_cn "以此为家"
+   Target_uk_ua "Зробити домом"
    Comment ""
    DevNote ""
    Repro ""
@@ -4083,8 +4993,8 @@ StringTable {
    Target_en_us "Set Home"
    Target_fr_fr "Définir Domicile"
    Target_ru_ru "Сделать домом"
-   Target_uk_ua "Зробити домом"
    Target_zh_cn "回家"
+   Target_uk_ua "Зробити домом"
    Comment ""
    DevNote ""
    Repro ""
@@ -4104,8 +5014,8 @@ StringTable {
    Target_en_us "Shop"
    Target_fr_fr "Magasin"
    Target_ru_ru "Магазин"
-   Target_uk_ua "Магазин"
    Target_zh_cn "商店"
+   Target_uk_ua "Магазин"
    Comment ""
    DevNote ""
    Repro ""
@@ -4125,8 +5035,8 @@ StringTable {
    Target_en_us "Buy"
    Target_fr_fr "Acheter"
    Target_ru_ru "Купить"
-   Target_uk_ua "Купити"
    Target_zh_cn "购买"
+   Target_uk_ua "Купити"
    Comment ""
    DevNote ""
    Repro ""
@@ -4146,8 +5056,8 @@ StringTable {
    Target_en_us "Buy for"
    Target_fr_fr "Acheter pour"
    Target_ru_ru "Купить за"
-   Target_uk_ua "Купити за"
    Target_zh_cn "购买"
+   Target_uk_ua "Купити за"
    Comment ""
    DevNote ""
    Repro ""
@@ -4167,8 +5077,8 @@ StringTable {
    Target_en_us "In Stock"
    Target_fr_fr "En stock"
    Target_ru_ru "В наличии"
-   Target_uk_ua "В наявності"
    Target_zh_cn "有存货"
+   Target_uk_ua "В наявності"
    Comment ""
    DevNote ""
    Repro ""
@@ -4188,8 +5098,8 @@ StringTable {
    Target_en_us "Open Shop"
    Target_fr_fr "Ouvrir magasin"
    Target_ru_ru "Открыть магазин"
-   Target_uk_ua "Відкрити магазин"
    Target_zh_cn "打开商店"
+   Target_uk_ua "Відкрити магазин"
    Comment ""
    DevNote ""
    Repro ""
@@ -4209,8 +5119,8 @@ StringTable {
    Target_en_us "Rent for"
    Target_fr_fr "Louer pour"
    Target_ru_ru "Арендовать за"
-   Target_uk_ua "Орендувати за"
    Target_zh_cn "出租"
+   Target_uk_ua "Орендувати за"
    Comment ""
    DevNote ""
    Repro ""
@@ -4230,8 +5140,8 @@ StringTable {
    Target_en_us "Sell"
    Target_fr_fr "Vendre"
    Target_ru_ru "Продать"
-   Target_uk_ua "Продати"
    Target_zh_cn "出售"
+   Target_uk_ua "Продати"
    Comment ""
    DevNote ""
    Repro ""
@@ -4251,8 +5161,8 @@ StringTable {
    Target_en_us "Sell for"
    Target_fr_fr "Vendre pour"
    Target_ru_ru "Продать за"
-   Target_uk_ua "Продати за"
    Target_zh_cn "出售"
+   Target_uk_ua "Продати за"
    Comment ""
    DevNote ""
    Repro ""
@@ -4271,8 +5181,8 @@ StringTable {
    Id "OVT-Skill_Diplomacy"
    Target_en_us "Diplomacy"
    Target_ru_ru "Дипломатия"
-   Target_uk_ua "Дипломатія"
    Target_zh_cn "外交技巧"
+   Target_uk_ua "Дипломатія"
    Comment ""
    DevNote ""
    Repro ""
@@ -4291,8 +5201,8 @@ StringTable {
    Id "OVT-Skill_Diplomacy_Description"
    Target_en_us "Skill at raising support and the profile of the resistance"
    Target_ru_ru "Умение повышать уровень поддержки и популярность сопротивления"
-   Target_uk_ua "Вміння підвищувати підтримку та популярність опору"
    Target_zh_cn "提高支持率和声望的技能"
+   Target_uk_ua "Вміння підвищувати підтримку та популярність опору"
    Comment ""
    DevNote ""
    Repro ""
@@ -4311,8 +5221,8 @@ StringTable {
    Id "OVT-Skill_Stealth"
    Target_en_us "Stealth"
    Target_ru_ru "Невидимка"
-   Target_uk_ua "Непомітність"
    Target_zh_cn "隐身"
+   Target_uk_ua "Непомітність"
    Comment ""
    DevNote ""
    Repro ""
@@ -4331,8 +5241,8 @@ StringTable {
    Id "OVT-Skill_Stealth_Description"
    Target_en_us "Skill at remaining unseen for longer"
    Target_ru_ru "Умение дольше оставаться невидимым"
-   Target_uk_ua "Уміння довше залишатися непоміченим"
    Target_zh_cn "提升隐蔽、不被关注的技能"
+   Target_uk_ua "Уміння довше залишатися непоміченим"
    Comment ""
    DevNote ""
    Repro ""
@@ -4351,8 +5261,8 @@ StringTable {
    Id "OVT-Skill_Trade"
    Target_en_us "Trade"
    Target_ru_ru "Торг"
-   Target_uk_ua "Торгівля"
    Target_zh_cn "贸易"
+   Target_uk_ua "Торгівля"
    Comment ""
    DevNote ""
    Repro ""
@@ -4371,8 +5281,8 @@ StringTable {
    Id "OVT-Skill_Trade_Description"
    Target_en_us "Skill at getting good deals for the resistance on items"
    Target_ru_ru "Умение заключать выгодные сделки за сопротивление"
-   Target_uk_ua "Вміння отримувати вигідні пропозиції за опір"
    Target_zh_cn "为抵抗力量争取价格折扣的技能"
+   Target_uk_ua "Вміння отримувати вигідні пропозиції за опір"
    Comment ""
    DevNote ""
    Repro ""
@@ -4392,8 +5302,8 @@ StringTable {
    Target_en_us "Unlocks import of illegal goods at ports"
    Target_ru_ru "Открывает доступ к ввозу нелегальных товаров в портах"\
    ""
-   Target_uk_ua "Відкриває доступ до нелегального імпорту в портах"
    Target_zh_cn "解除港口非法货物进口禁令"
+   Target_uk_ua "Відкриває доступ до нелегального імпорту в портах"
    Comment ""
    DevNote ""
    Repro ""
@@ -4413,8 +5323,8 @@ StringTable {
    Target_en_us "Unlocks import of legal goods at ports"
    Target_ru_ru "Открывает доступ к легальному импорту товаров в портах"\
    ""
-   Target_uk_ua "Відкриває доступ до легального імпорту в портах"
    Target_zh_cn "解除港口合法货物进口禁令"
+   Target_uk_ua "Відкриває доступ до легального імпорту в портах"
    Comment ""
    DevNote ""
    Repro ""
@@ -4433,8 +5343,8 @@ StringTable {
    Id "OVT-SkillEffect_Stealth"
    Target_en_us "%1% Reduction in distance seen from"
    Target_ru_ru "%1% Уменьшение дальности видимости"
-   Target_uk_ua "%1% Зменшення відстані видимості"
    Target_zh_cn "%1%距离减少"
+   Target_uk_ua "%1% Зменшення відстані видимості"
    Comment ""
    DevNote ""
    Repro ""
@@ -4453,8 +5363,8 @@ StringTable {
    Id "OVT-SkillEffect_Support"
    Target_en_us "%1% Chance at converting a supporter"
    Target_ru_ru "%1% Шанс к присоединению к сопротивлению"
-   Target_uk_ua "%1% Шанс на приєднання до опору"
    Target_zh_cn "%1%转化为支持者的机会"
+   Target_uk_ua "%1% Шанс на приєднання до опору"
    Comment ""
    DevNote ""
    Repro ""
@@ -4473,8 +5383,8 @@ StringTable {
    Id "OVT-SkillEffect_TradeDiscount"
    Target_en_us "%1% Discount when buying items at shops"
    Target_ru_ru "%1% Скидка на покупки в магазинах"
-   Target_uk_ua "%1% Знижка при купівлі товару в магазинах"
    Target_zh_cn "在商店购买商品时享受折扣%1%"
+   Target_uk_ua "%1% Знижка при купівлі товару в магазинах"
    Comment ""
    DevNote ""
    Repro ""
@@ -4493,8 +5403,8 @@ StringTable {
    Id "OVT-SkillPointsToSpend"
    Target_en_us "%1 Skill points to spend"
    Target_ru_ru "%1 Очков доступно"
-   Target_uk_ua "%1 Балів навичок доступно"
    Target_zh_cn "消耗技能点数%1"
+   Target_uk_ua "%1 Балів навичок доступно"
    Comment ""
    DevNote ""
    Repro ""
@@ -4513,8 +5423,8 @@ StringTable {
    Id "OVT-SkillPointToSpend"
    Target_en_us "%1 Skill point to spend"
    Target_ru_ru "%1 Очко доступно"
-   Target_uk_ua "%1 Бал навичок доступно"
    Target_zh_cn "%1技能点消耗"
+   Target_uk_ua "%1 Бал навичок доступно"
    Comment ""
    DevNote ""
    Repro ""
@@ -4534,8 +5444,8 @@ StringTable {
    Target_en_us "Soldier Cost"
    Target_fr_fr "Coût Soldat"
    Target_ru_ru "Стоймость бойца"
-   Target_uk_ua "Вартість солдата"
    Target_zh_cn "士兵成本"
+   Target_uk_ua "Вартість солдата"
    Comment ""
    DevNote ""
    Repro ""
@@ -4555,8 +5465,8 @@ StringTable {
    Target_en_us "Stability"
    Target_fr_fr "Stabilité"
    Target_ru_ru "Стабильность"
-   Target_uk_ua "Стабільність"
    Target_zh_cn "稳定"
+   Target_uk_ua "Стабільність"
    Comment ""
    DevNote ""
    Repro ""
@@ -4576,8 +5486,8 @@ StringTable {
    Target_en_us "Corrupt Mayor"
    Target_fr_fr "Maire Corrompu"
    Target_ru_ru "Коррумпированый мэр"
-   Target_uk_ua "Корумпований мер"
    Target_zh_cn "腐败官员"
+   Target_uk_ua "Корумпований мер"
    Comment ""
    DevNote ""
    Repro ""
@@ -4597,8 +5507,8 @@ StringTable {
    Target_en_us "Drug Problems"
    Target_fr_fr "Problème de Drogue"
    Target_ru_ru "Проблемы с наркотиками"
-   Target_uk_ua "Проблеми з наркотиками"
    Target_zh_cn "毒品问题"
+   Target_uk_ua "Проблеми з наркотиками"
    Comment ""
    DevNote ""
    Repro ""
@@ -4618,8 +5528,8 @@ StringTable {
    Target_en_us "Nearby Radio Tower"
    Target_fr_fr "Tour Radio Proche"
    Target_ru_ru "Радио вышка поблизости"
-   Target_uk_ua "Радіовежа поряд"
    Target_zh_cn "附近的无线电塔"
+   Target_uk_ua "Радіовежа поряд"
    Comment ""
    DevNote ""
    Repro ""
@@ -4639,8 +5549,8 @@ StringTable {
    Target_en_us "Organized Crime"
    Target_fr_fr "Crime Organisé"
    Target_ru_ru "Организованные преступные группировки"
-   Target_uk_ua "Організована злочинність"
    Target_zh_cn "犯罪集团"
+   Target_uk_ua "Організована злочинність"
    Comment ""
    DevNote ""
    Repro ""
@@ -4660,8 +5570,8 @@ StringTable {
    Target_en_us "Recent Deaths"
    Target_fr_fr "Morts Récentes"
    Target_ru_ru "Недавние смерти"
-   Target_uk_ua "Останні смерті"
    Target_zh_cn "附近尸体"
+   Target_uk_ua "Останні смерті"
    Comment ""
    DevNote ""
    Repro ""
@@ -4681,8 +5591,8 @@ StringTable {
    Target_en_us "Recent Gunfire"
    Target_fr_fr "Coups de feu Récents"
    Target_ru_ru "Недавняя стрельба"
-   Target_uk_ua "Нещодавня стрільба"
    Target_zh_cn "附近枪战"
+   Target_uk_ua "Нещодавня стрільба"
    Comment ""
    DevNote ""
    Repro ""
@@ -4702,8 +5612,8 @@ StringTable {
    Target_en_us "Recent Patrol"
    Target_fr_fr "Patrouille Récente"
    Target_ru_ru "Недавний патруль"
-   Target_uk_ua "Недавній патруль"
    Target_zh_cn "附近巡逻队"
+   Target_uk_ua "Недавній патруль"
    Comment ""
    DevNote ""
    Repro ""
@@ -4723,8 +5633,8 @@ StringTable {
    Target_en_us "Strong Economy"
    Target_fr_fr "Economie fleurissante"
    Target_ru_ru "Сильная экономика"
-   Target_uk_ua "Потужна економіка"
    Target_zh_cn "经济实力雄厚"
+   Target_uk_ua "Потужна економіка"
    Comment ""
    DevNote ""
    Repro ""
@@ -4744,8 +5654,8 @@ StringTable {
    Target_en_us "Start Game"
    Target_fr_fr "Lancer le jeu"
    Target_ru_ru "Начать игру"
-   Target_uk_ua "Почати гру"
    Target_zh_cn "开始游戏"
+   Target_uk_ua "Почати гру"
    Comment ""
    DevNote ""
    Repro ""
@@ -4765,8 +5675,8 @@ StringTable {
    Target_en_us "Stop Renting"
    Target_fr_fr "Ne plus louer"
    Target_ru_ru "Завершить аренду"
-   Target_uk_ua "Припинити оренду"
    Target_zh_cn "停止租赁"
+   Target_uk_ua "Припинити оренду"
    Comment ""
    DevNote ""
    Repro ""
@@ -4786,8 +5696,8 @@ StringTable {
    Target_en_us "Equipment Box is empty"
    Target_fr_fr "La caisse est vide"
    Target_ru_ru "Ящик со снаряжением пуст"
-   Target_uk_ua "Ящик зі спорядженням порожній"
    Target_zh_cn "装备箱是空的"
+   Target_uk_ua "Ящик зі спорядженням порожній"
    Comment ""
    DevNote ""
    Repro ""
@@ -4807,8 +5717,8 @@ StringTable {
    Target_en_us "Support"
    Target_fr_fr "Support"
    Target_ru_ru "Поддержка"
-   Target_uk_ua "Підтримка"
    Target_zh_cn "支持"
+   Target_uk_ua "Підтримка"
    Comment ""
    DevNote ""
    Repro ""
@@ -4828,8 +5738,8 @@ StringTable {
    Target_en_us "Supporters"
    Target_fr_fr "Partisans"
    Target_ru_ru "Сторонники"
-   Target_uk_ua "Прибічники"
    Target_zh_cn "支持者"
+   Target_uk_ua "Прибічники"
    Comment ""
    DevNote ""
    Repro ""
@@ -4860,8 +5770,8 @@ StringTable {
    Target_en_us "Recruitment Posters"
    Target_fr_fr "Affiches de propagande"
    Target_ru_ru "Постеры"
-   Target_uk_ua "Рекрутингові плакати"
    Target_zh_cn "招聘海报"
+   Target_uk_ua "Рекрутингові плакати"
    Comment "Sounds weird in french so i've put \"Propaganda\" instead"
    DevNote ""
    Repro ""
@@ -4881,8 +5791,8 @@ StringTable {
    Target_en_us "Take From Warehouse"
    Target_fr_fr "Prendre de l'entrepôt"
    Target_ru_ru "Взять со склада"
-   Target_uk_ua "Взяти зі складу"
    Target_zh_cn "从仓库取出"
+   Target_uk_ua "Взяти зі складу"
    Comment ""
    DevNote ""
    Repro ""
@@ -4902,8 +5812,8 @@ StringTable {
    Target_en_us "You cannot place that here, it is too close to a military base"
    Target_fr_fr "Impossible de placer ici, trop près d'une Base"
    Target_ru_ru "Вы не можете поставить это здесь, слишком близко к военной базе"
-   Target_uk_ua "Ви не можете розташувати це тут, занадто близько до військової бази"
    Target_zh_cn "你不能把它放在这里，它离军事基地太近了"
+   Target_uk_ua "Ви не можете розташувати це тут, занадто близько до військової бази"
    Comment ""
    DevNote ""
    Repro ""
@@ -4923,8 +5833,8 @@ StringTable {
    Target_en_us "You cannot place that here, it is too close to a building"
    Target_fr_fr "Impossible de placer ici, trop près d'un batiment"
    Target_ru_ru "Вы не можете поставить это здесь, слишком близко к постройке"
-   Target_uk_ua "Ви не можете розташувати це тут, занадто близько до будівлі"
    Target_zh_cn "你不能把它放在这里，它离建筑物太近了"
+   Target_uk_ua "Ви не можете розташувати це тут, занадто близько до будівлі"
    Comment ""
    DevNote ""
    Repro ""
@@ -4944,8 +5854,8 @@ StringTable {
    Target_en_us "You cannot place that here, it is too close to an FOB"
    Target_fr_fr "Impossible de placer ici, trop près d'un avant poste"
    Target_ru_ru "Вы не можете поставить это здесь, слишком близко к FOB"
-   Target_uk_ua "Ви не можете розташувати це тут, занадто близько до FOB"
    Target_zh_cn "你不能把它放在这里，它离FOB太近了"
+   Target_uk_ua "Ви не можете розташувати це тут, занадто близько до FOB"
    Comment ""
    DevNote ""
    Repro ""
@@ -4965,8 +5875,8 @@ StringTable {
    Target_en_us "You cannot place that here, it is too close to a town"
    Target_fr_fr "Impossible de placer ici, trop près d'un village"
    Target_ru_ru "Вы не можете поставить это здесь, слишком близко к населенному пункту"
-   Target_uk_ua "Ви не можете розташувати це тут, занадто близько до населеного пункту"
    Target_zh_cn "你不能把它放在这里，它离城镇太近了"
+   Target_uk_ua "Ви не можете розташувати це тут, занадто близько до населеного пункту"
    Comment ""
    DevNote ""
    Repro ""
@@ -4986,8 +5896,8 @@ StringTable {
    Target_en_us "Total"
    Target_fr_fr "Total"
    Target_ru_ru "Всего"
-   Target_uk_ua "Загалом"
    Target_zh_cn "全部"
+   Target_uk_ua "Загалом"
    Comment ""
    DevNote ""
    Repro ""
@@ -5007,8 +5917,8 @@ StringTable {
    Target_en_us "Unload from vehicle"
    Target_fr_fr "Décharger cargaison"
    Target_ru_ru "Выгрузить из транспорта"
-   Target_uk_ua "Вивантажити з техніки"
    Target_zh_cn "从车辆上卸下"
+   Target_uk_ua "Вивантажити з техніки"
    Comment ""
    DevNote ""
    Repro ""
@@ -5026,8 +5936,8 @@ StringTable {
   CustomStringTableItem "{5E68F659AB46ED4B}" {
    Id "OVT-Unlock"
    Target_en_us "Unlock"
-   Target_uk_ua "Розблокувати"
    Target_zh_cn "解锁"
+   Target_uk_ua "Розблокувати"
    Comment ""
    DevNote ""
    Repro ""
@@ -5045,8 +5955,8 @@ StringTable {
   CustomStringTableItem "{5E68DB1CF6BF6571}" {
    Id "OVT-UnlockVehicle"
    Target_en_us "Unlock Vehicle"
-   Target_uk_ua "Розблокувати техніку"
    Target_zh_cn "解锁车辆"
+   Target_uk_ua "Розблокувати техніку"
    Comment ""
    DevNote ""
    Repro ""
@@ -5066,8 +5976,8 @@ StringTable {
    Target_en_us "Upgrades"
    Target_fr_fr "Améliorations"
    Target_ru_ru "Улучшения"
-   Target_uk_ua "Покращення"
    Target_zh_cn "升级"
+   Target_uk_ua "Покращення"
    Comment ""
    DevNote ""
    Repro ""
@@ -5087,8 +5997,8 @@ StringTable {
    Target_en_us "Upgrade Vehicle"
    Target_fr_fr "Amélioration du véhicule"
    Target_ru_ru "Улучшить технику"
-   Target_uk_ua "Покращити техніку"
    Target_zh_cn "升级车辆"
+   Target_uk_ua "Покращити техніку"
    Comment ""
    DevNote ""
    Repro ""
@@ -5108,8 +6018,8 @@ StringTable {
    Target_en_us "Vehicle is empty"
    Target_fr_fr "Le véhicule est vide"
    Target_ru_ru "Техника пуста"
-   Target_uk_ua "Техніка порожня"
    Target_zh_cn "车辆是空的"
+   Target_uk_ua "Техніка порожня"
    Comment ""
    DevNote ""
    Repro ""
@@ -5129,8 +6039,8 @@ StringTable {
    Target_en_us "Vehicle has been loaded"
    Target_fr_fr "Le véhicule a été chargé"
    Target_ru_ru "Техника была загружена"
-   Target_uk_ua "Техніка була завантажена"
    Target_zh_cn "车辆已装载"
+   Target_uk_ua "Техніка була завантажена"
    Comment ""
    DevNote ""
    Repro ""
@@ -5150,8 +6060,8 @@ StringTable {
    Target_en_us "Vehicle has been repaired"
    Target_fr_fr "Le véhicule a été réparé"
    Target_ru_ru "Техника была починена"
-   Target_uk_ua "Техніка була відремонтована"
    Target_zh_cn "车辆已修复"
+   Target_uk_ua "Техніка була відремонтована"
    Comment ""
    DevNote ""
    Repro ""
@@ -5171,8 +6081,8 @@ StringTable {
    Target_en_us "Vehicle has been unloaded into storage"
    Target_fr_fr "Le véhicule a été déchargé"
    Target_ru_ru "Техника была выгружена в хранилище"
-   Target_uk_ua "Техніка була вивантажена в сховище"
    Target_zh_cn "车辆已卸入仓库"
+   Target_uk_ua "Техніка була вивантажена в сховище"
    Comment ""
    DevNote ""
    Repro ""
@@ -5192,8 +6102,8 @@ StringTable {
    Target_en_us "Vehicle has been upgraded"
    Target_fr_fr "Le véhicule a été amélioré"
    Target_ru_ru "Техника была улучшена"
-   Target_uk_ua "Техніка була покращена"
    Target_zh_cn "车辆已升级"
+   Target_uk_ua "Техніка була покращена"
    Comment ""
    DevNote ""
    Repro ""
@@ -5213,8 +6123,8 @@ StringTable {
    Target_en_us "Warehouse"
    Target_fr_fr "Entrepôt"
    Target_ru_ru "Склад"
-   Target_uk_ua "Склад"
    Target_zh_cn "仓库"
+   Target_uk_ua "Склад"
    Comment ""
    DevNote ""
    Repro ""
@@ -5234,8 +6144,8 @@ StringTable {
    Target_en_us "Take 1"
    Target_fr_fr "Prendre 1"
    Target_ru_ru "Взять 1"
-   Target_uk_ua "Взяти 1"
    Target_zh_cn "拿取1"
+   Target_uk_ua "Взяти 1"
    Comment ""
    DevNote ""
    Repro ""
@@ -5255,8 +6165,8 @@ StringTable {
    Target_en_us "Take 10"
    Target_fr_fr "Prendre 10"
    Target_ru_ru "Взять 10"
-   Target_uk_ua "Взяти 10"
    Target_zh_cn "拿取10"
+   Target_uk_ua "Взяти 10"
    Comment ""
    DevNote ""
    Repro ""
@@ -5276,8 +6186,8 @@ StringTable {
    Target_en_us "Take 100"
    Target_fr_fr "Prendre 100"
    Target_ru_ru "Взять 100"
-   Target_uk_ua "Взяти 100"
    Target_zh_cn "拿取100"
+   Target_uk_ua "Взяти 100"
    Comment ""
    DevNote ""
    Repro ""
@@ -5296,8 +6206,8 @@ StringTable {
    Id "OVT_Action-Loot"
    Target_en_us "Loot"
    Target_ru_ru "Залутать"
-   Target_uk_ua "Обшукати"
    Target_zh_cn "洗劫"
+   Target_uk_ua "Обшукати"
    Comment ""
    DevNote ""
    Repro ""
@@ -5317,8 +6227,8 @@ StringTable {
    Target_en_us "Group"
    Target_fr_fr "Groupe"
    Target_ru_ru "Группа"
-   Target_uk_ua "Група"
    Target_zh_cn "群组"
+   Target_uk_ua "Група"
    Comment ""
    DevNote ""
    Repro ""
@@ -5338,8 +6248,8 @@ StringTable {
    Target_en_us "The persistent and dynamic revolution simulator"
    Target_fr_fr "Le simulateur de révolte dynamique"
    Target_ru_ru "Сохраняемый и динамический симулятор революции"
-   Target_uk_ua "Зберігаємий та динамічний симулятор революції"
    Target_zh_cn "持续而动态的革命模拟器"
+   Target_uk_ua "Зберігаємий та динамічний симулятор революції"
    Comment "This doesn't make a lot of sense, I interpreted otherwise"
    DevNote ""
    Repro ""
@@ -5357,8 +6267,8 @@ StringTable {
   CustomStringTableItem "{5E4852B16105E7FC}" {
    Id "OVT_Open_Overthrow_Menu"
    Target_en_us "Open Overthrow Menu"
-   Target_uk_ua "Відкрити Overthrow меню"
    Target_zh_cn "打开抵抗菜单"
+   Target_uk_ua "Відкрити Overthrow меню"
    Comment ""
    DevNote ""
    Repro ""

@@ -92,6 +92,7 @@ class OVT_TownControllerComponent: OVT_Component
 
 		SCR_AIGroup aigroup = SCR_AIGroup.Cast(civ);
 		aigroup.GetOnAgentAdded().Insert(OVT_Global.RandomizeCivilianClothes);
+		aigroup.GetOnAgentAdded().Insert(DisableCivilianWantedSystem);
 		
 		array<AIWaypoint> queueOfWaypoints = new array<AIWaypoint>();
 
@@ -105,6 +106,19 @@ class OVT_TownControllerComponent: OVT_Component
 		cycle.SetWaypoints(queueOfWaypoints);
 		cycle.SetRerunCounter(-1);
 		aigroup.AddWaypoint(cycle);
+	}
+	
+	//! Callback to disable wanted system for newly spawned civilians
+	protected void DisableCivilianWantedSystem(IEntity characterEntity)
+	{
+		if (!characterEntity)
+			return;
+			
+		OVT_PlayerWantedComponent wantedComp = OVT_PlayerWantedComponent.Cast(characterEntity.FindComponent(OVT_PlayerWantedComponent));
+		if (wantedComp)
+		{
+			wantedComp.DisableWantedSystem();
+		}
 	}
 
 	protected void SpawnGunDealer()

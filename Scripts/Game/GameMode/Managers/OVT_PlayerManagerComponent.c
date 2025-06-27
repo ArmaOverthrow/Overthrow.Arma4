@@ -34,6 +34,14 @@ class OVT_PlayerManagerComponent: OVT_Component
 	ref ScriptInvoker m_OnPlayerDataLoaded = new ScriptInvoker();
 	
 	//------------------------------------------------------------------------------------------------
+	//! Invoker called when a player connects (args: string persistentId, int playerId)
+	ref ScriptInvoker m_OnPlayerConnected = new ScriptInvoker();
+	
+	//------------------------------------------------------------------------------------------------
+	//! Invoker called when a player disconnects (args: string persistentId, int playerId)
+	ref ScriptInvoker m_OnPlayerDisconnected = new ScriptInvoker();
+	
+	//------------------------------------------------------------------------------------------------
 	//! Maps runtime Player IDs (int) to their persistent string IDs (string).
 	protected ref map<int, string> m_mPersistentIDs;
 	

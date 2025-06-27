@@ -12,27 +12,29 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 		GetOnDamageStateChanged().Insert(WhenDamageStateChanged);
 	}
 	
-	void WhenDamaged(EDamageType type,
-				  float damage,
-				  HitZone pHitZone,
-				  notnull Instigator instigator,
-				  inout vector hitTransform[3],
-				  float speed,
-				  int colliderID,
-				  int nodeID)
+	void WhenDamaged(BaseDamageContext damageContext)
 	{		
-		if(instigator)
+		if(!damageContext)
 		{	
-			IEntity entity = instigator.GetInstigatorEntity();
-			if(entity) 
-			{
-				OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(entity.FindComponent(OVT_PlayerWantedComponent));
-				
-				if(wanted)
-				{
-					wanted.SetBaseWantedLevel(2);
-				}
-			}
+			return;
+		}
+
+		Instigator instigator = damageContext.instigator;
+		if(!instigator)
+		{
+			return;
+		}
+
+		IEntity entity = instigator.GetInstigatorEntity();
+		if(!entity) 
+		{
+			return;
+		}
+
+		OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(entity.FindComponent(OVT_PlayerWantedComponent));		
+		if(wanted)
+		{
+			wanted.SetBaseWantedLevel(2);
 		}
 	}
 	
@@ -42,6 +44,13 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 	{		
 		IEntity instigator = GetInstigator().GetInstigatorEntity();				
 		if(state == EDamageState.DESTROYED){
+			// Fire universal character killed event for all characters regardless of faction
+			OVT_OverthrowGameMode gameMode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
+			if(gameMode)
+			{
+				gameMode.GetOnCharacterKilled().Invoke(GetOwner(), instigator);
+			}
+			
 			if(IsOccupyingFaction())
 			{
 				OVT_Global.GetOccupyingFaction().OnAIKilled(GetOwner(), instigator);			

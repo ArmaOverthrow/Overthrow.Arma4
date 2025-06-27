@@ -1,11 +1,8 @@
-class OVT_ConvertSupporterAction : ScriptedUserAction
+class OVT_ConvertSupporterAction : OVT_BaseCivilianUserAction
 {	
-	bool m_bHasBeenConverted;
 	//---------------------------------------------------------
- 	override void PerformAction(IEntity pOwnerEntity, IEntity pUserEntity) 
+ 	override protected void PerformCivilianAction(IEntity pOwnerEntity, IEntity pUserEntity) 
  	{
-		if(m_bHasBeenConverted) return;
-		
 		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
 		OVT_PlayerData player = OVT_PlayerData.Get(playerId);
 		
@@ -17,22 +14,11 @@ class OVT_ConvertSupporterAction : ScriptedUserAction
 			SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-NotConvertedSupporter");
 		}
 		
-		m_bHasBeenConverted = true;						
+		MarkAsPerformed();					
  	}
-	
-	override bool CanBePerformedScript(IEntity user)
-	{
-		return !m_bHasBeenConverted;
-	}
 		
 	override bool GetActionNameScript(out string outName)
 	{
 		return false;
-	}	
-	
-	override bool CanBeShownScript(IEntity user) {
-		return !m_bHasBeenConverted;
 	}
-	
-	override bool HasLocalEffectOnlyScript() { return true; }
 }
