@@ -444,7 +444,6 @@ FrameWidgetClass {
        Name "Manage Recruits"
        Slot LayoutSlot "{557478C3F0230865}" {
        }
-       "Is Enabled" 0
        components {
         SCR_ButtonTextComponent "{5548F0143AE99095}" {
          m_BackgroundSelected 1 1 1 0.196

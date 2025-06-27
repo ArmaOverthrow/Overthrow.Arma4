@@ -1,5 +1,5 @@
 MetaFileClass {
- Name "{4AD877DEA242E512}Prefabs/Weapons/Core/Turret_Base.et"
+ Name "{8B4D49A9F324E7D5}Prefabs/Groups/PlayableGroup.et"
  Configurations {
   EntityTemplateResourceClass PC {
   }
@@ -8,6 +8,8 @@ MetaFileClass {
   EntityTemplateResourceClass XBOX_SERIES : PC {
   }
   EntityTemplateResourceClass PS4 : PC {
+  }
+  EntityTemplateResourceClass PS5 : PC {
   }
   EntityTemplateResourceClass HEADLESS : PC {
   }

@@ -263,10 +263,7 @@ class OVT_QRFControllerComponent: OVT_Component
 		{
 			allocate = 16 * OVT_Global.GetConfig().m_Difficulty.baseResourceCost;
 		}
-		
-		Print("Distance min: " + m_iLZMin.ToString());
-		Print("Distance max: " + m_iLZMax.ToString());
-		
+				
 		vector qrfpos = GetOwner().GetOrigin();
 		
 		foreach(vector base : m_Bases)
@@ -449,7 +446,6 @@ class OVT_QRFControllerComponent: OVT_Component
 	    vector dir = GetRandomDirection();//dir = vector.Direction(qrfpos, pos);	    
 		
 		float distance = Math.RandomFloatInclusive(m_iLZMin,m_iLZMax);
-		Print("Distance: " + distance.ToString());
 	
 	    vector checkpos = qrfpos + (dir * distance); 
 		vector safepos = checkpos;
@@ -489,7 +485,6 @@ class OVT_QRFControllerComponent: OVT_Component
 	        // Randomize direction and try again
   		    dir = GetRandomDirection(); // Get a new random direction each time
 			distance = Math.RandomFloatInclusive(m_iLZMin,m_iLZMax);
-			Print("Distance: " + distance.ToString());
       		checkpos = qrfpos + (dir * distance); // Update check position
 	    }	    
 	    // Default to the last checked position if no better options were found

@@ -1,0 +1,53 @@
+SCR_ChimeraCharacter : "{99F600AD4C6BA6A4}Prefabs/Characters/Factions/CIV/Character_CIV_base.et" {
+ ID "520EC961A090B1EE"
+ components {
+  EPF_PersistenceComponent "{5A12D8F4DFED6D84}" {
+   Enabled 1
+   m_eSaveType MANUAL
+   m_pSaveData EPF_CharacterSaveDataClass "{5A12D8F4DA8632DC}" {
+    m_aComponents {
+     OVT_PlayerOwnerDataClass "{65AA315492A6B069}" {
+     }
+    }
+   }
+  }
+  OVT_PlayerOwnerComponent "{65AA31548E47F2B5}" {
+  }
+  OVT_PlayerWantedComponent "{65A2B5AE0D3BB360}" {
+  }
+  ActionsManagerComponent "{520EA1D2F659CE02}" {
+   ActionContexts {
+    UserActionContext "{520EA1D2F659CE17}" {
+     Radius 2
+    }
+   }
+   additionalActions {
+    OVT_SellDrugsAction "{5D346D72DFDCB6CB}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{5D346D72DBBA8B7E}" {
+      Name "#OVT-SellDrugs"
+     }
+     "Sort Priority" 1
+    }
+    OVT_RecruitCivilianAction "{64A1030368A4C529}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{64A103037A210059}" {
+      Name "#OVT-RecruitCivilian"
+     }
+    }
+    OVT_ConvertSupporterAction "{5D94EE3C6F34DDC0}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{5D94EE3C69CD6B85}" {
+      Name "#OVT-ConvertSupporter"
+     }
+    }
+   }
+  }
+ }
+}

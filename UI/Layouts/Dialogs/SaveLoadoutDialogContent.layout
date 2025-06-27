@@ -1,0 +1,63 @@
+ VerticalLayoutWidgetClass {
+ Name "ContentRoot"
+ Slot LayoutSlot "{5CAEF0BC92702DCA}" {
+ }
+ {
+  ButtonWidgetClass "{5CAEF0BC18D77C7D}" : "{0022F0B45ADBC5AC}UI/layouts/WidgetLibrary/EditBox/WLib_EditBox.layout" {
+   Name "EditBox"
+   Slot LayoutSlot "{56F4D7D4EBB1BCF5}" {
+   }
+   components {
+    SCR_EditBoxComponent "{547290FFBD5B33E9}" {
+     m_sLabel "#OVT-SaveLoadoutPrompt"
+     m_bShowWriteIcon 0
+    }
+   }
+   {
+    VerticalLayoutWidgetClass "{5AA4D27F39EB2514}" {
+     Prefab "{5AA4D27F39EB2514}"
+     {
+      SizeLayoutWidgetClass "{5538C205B27B0F5D}" {
+       Prefab "{5538C205B27B0F5D}"
+       {
+        OverlayWidgetClass "{55367D8E531FD623}" {
+         Prefab "{55367D8E531FD623}"
+         Slot AlignableSlot "{55367D8E531FD640}" {
+          Padding 0 2 0 2
+         }
+         {
+          PanelWidgetClass "{55367D8E4A135500}" {
+           Prefab "{55367D8E4A135500}"
+           Slot OverlayWidgetSlot "{55367D8E4A13554A}" {
+            Padding 0 0 0 0
+           }
+          }
+          HorizontalLayoutWidgetClass "{55367D8E4592BC6E}" {
+           Prefab "{55367D8E4592BC6E}"
+           {
+            OverlayWidgetClass "{5538C2059A570E94}" {
+             Prefab "{5538C2059A570E94}"
+             {
+              HorizontalLayoutWidgetClass "{58D095EE846E2B93}" {
+               Prefab "{58D095EE846E2B93}"
+               {
+                EditBoxWidgetClass "{5538C2058B18F877}" {
+                 Prefab "{5538C2058B18F877}"
+                 "Placeholder text" "#OVT-SaveLoadoutPrompt"
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

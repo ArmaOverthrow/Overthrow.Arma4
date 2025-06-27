@@ -1,8 +1,6 @@
 SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA/Character_FIA_base.et" {
  ID "520EC961A090B1EE"
  components {
-  FactionAffiliationComponent "{555C98D1CD949F3E}" {
-  }
   SCR_BaseHUDComponent "{520EA1D2DB118134}" {
    InfoDisplays {
     OVT_WantedInfo "{5D346D5C5623F1F5}" {
@@ -38,9 +36,6 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
   }
   BaseLoadoutManagerComponent "{520EA1D2DB11821E}" {
    Slots {
-    LoadoutSlotInfo Boots {
-     Prefab ""
-    }
     LoadoutSlotInfo Hat {
      Prefab ""
     }
@@ -48,6 +43,9 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      Prefab ""
     }
     LoadoutSlotInfo Pants {
+     Prefab ""
+    }
+    LoadoutSlotInfo Boots {
      Prefab ""
     }
    }
@@ -86,6 +84,14 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
       Name "#OVT-SellDrugs"
      }
      "Sort Priority" 1
+    }
+    OVT_RecruitCivilianAction "{64A1030368A4C529}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{64A103037A210059}" {
+      Name "#OVT-RecruitCivilian"
+     }
     }
     OVT_ConvertSupporterAction "{5D94EE3C6F34DDC0}" {
      ParentContextList {

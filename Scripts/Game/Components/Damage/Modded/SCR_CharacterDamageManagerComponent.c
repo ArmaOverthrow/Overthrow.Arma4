@@ -35,6 +35,13 @@ modded class SCR_CharacterDamageManagerComponent : SCR_ExtendedDamageManagerComp
 	{		
 		IEntity instigator = GetInstigator().GetInstigatorEntity();				
 		if(state == EDamageState.DESTROYED){
+			// Fire universal character killed event for all characters regardless of faction
+			OVT_OverthrowGameMode gameMode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
+			if(gameMode)
+			{
+				gameMode.GetOnCharacterKilled().Invoke(GetOwner(), instigator);
+			}
+			
 			if(IsOccupyingFaction())
 			{
 				OVT_Global.GetOccupyingFaction().OnAIKilled(GetOwner(), instigator);			

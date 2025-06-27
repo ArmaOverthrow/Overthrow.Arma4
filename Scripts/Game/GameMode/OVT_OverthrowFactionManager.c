@@ -31,5 +31,18 @@ class OVT_OverthrowFactionManager : SCR_FactionManager
 			faction.Init();
 		}
 	}
+	
+	//! Force add player faction mapping on client (workaround for replication issues)
+	void ForceClientFactionMapping(int playerId, int factionIndex)
+	{
+		// Create player faction info using the static factory method
+		SCR_PlayerFactionInfo playerFactionInfo = SCR_PlayerFactionInfo.Create(playerId);
+		playerFactionInfo.SetFactionIndex(factionIndex);
+		
+		// Add to protected mapping (we can access this since we extend SCR_FactionManager)
+		m_MappedPlayerFactionInfo.Set(playerId, playerFactionInfo);
+		
+		Print(string.Format("[Overthrow] Force-added faction mapping for player %1 to faction index %2", playerId, factionIndex));
+	}
 }
 
