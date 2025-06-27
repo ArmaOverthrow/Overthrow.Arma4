@@ -38,6 +38,10 @@ class OVT_LoadoutManagerComponent: OVT_Component
 	//! Mapping from logical keys to EPF IDs (key = playerId_loadoutName, value = EPF ID)
 	protected ref map<string, string> m_mLoadoutIdMapping;
 	
+	//! Last loadout apply results for notifications
+	protected int m_iLastApplySuccessCount = 0;
+	protected int m_iLastApplyTotalCount = 0;
+	
 	//! Initialize component
 	override void OnPostInit(IEntity owner)
 	{
@@ -227,6 +231,8 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		// Apply equipment from box to entity
 		bool success = ApplyEquipmentFromBox(loadout, targetEntity, targetStorageManager, equipmentBox, boxStorageManager);
 		
+		// Send notification about loadout application
+		SendLoadoutApplicationNotification(loadout.m_sLoadoutName, targetEntity, success);
 		
 		if (success)
 		{
@@ -235,6 +241,72 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		}
 		
 		return success;
+	}
+	
+	//! Send notification about loadout application results
+	protected void SendLoadoutApplicationNotification(string loadoutName, IEntity targetEntity, bool success)
+	{
+		if (!success || m_iLastApplyTotalCount == 0)
+			return;
+			
+		OVT_NotificationManagerComponent notifyMgr = OVT_Global.GetNotify();
+		if (!notifyMgr)
+			return;
+		
+		int playerId = 0;
+			
+		// Get owner player ID from target entity
+		OVT_PlayerOwnerComponent ownerComp = OVT_PlayerOwnerComponent.Cast(targetEntity.FindComponent(OVT_PlayerOwnerComponent));
+		if (ownerComp)
+		{
+			string ownerUID = ownerComp.GetPlayerOwnerUid();
+			OVT_PlayerManagerComponent playerMgr = OVT_Global.GetPlayers();
+			if (playerMgr)
+			{
+				playerId = playerMgr.GetPlayerIDFromPersistentID(ownerUID);
+			}
+		}
+		
+		if (playerId < 1)
+			return;
+			
+		// Get character name if it's a recruit
+		string targetName = "";
+		bool isRecruit = false;
+		
+		// Check if this is a recruit by looking for the recruit component
+		OVT_RecruitData recruitData = OVT_RecruitData.GetRecruitDataFromEntity(targetEntity);
+		if (recruitData)
+		{
+			isRecruit = true;
+			targetName = recruitData.m_sName;
+		}
+		
+		// Send appropriate notification based on success rate and target
+		if (m_iLastApplySuccessCount == m_iLastApplyTotalCount)
+		{
+			// All items applied successfully
+			if (isRecruit)
+			{
+				notifyMgr.SendTextNotification("LoadoutAppliedToRecruit", playerId, loadoutName, targetName, m_iLastApplySuccessCount.ToString());
+			}
+			else
+			{
+				notifyMgr.SendTextNotification("LoadoutApplied", playerId, loadoutName, m_iLastApplySuccessCount.ToString());
+			}
+		}
+		else if (m_iLastApplySuccessCount > 0)
+		{
+			// Partial success
+			if (isRecruit)
+			{
+				notifyMgr.SendTextNotification("LoadoutAppliedToRecruit", playerId, loadoutName, targetName, string.Format("%1/%2", m_iLastApplySuccessCount, m_iLastApplyTotalCount));
+			}
+			else
+			{
+				notifyMgr.SendTextNotification("LoadoutAppliedPartial", playerId, loadoutName, m_iLastApplySuccessCount.ToString(), m_iLastApplyTotalCount.ToString());
+			}
+		}
 	}
 	
 	//! Delete a loadout
@@ -249,6 +321,21 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		
 		// Delete from repository
 		OVT_LoadoutRepository.DeleteLoadout(playerId, loadoutName);
+		
+		// Send notification to player about deletion
+		OVT_NotificationManagerComponent notifyMgr = OVT_Global.GetNotify();
+		if (notifyMgr)
+		{
+			OVT_PlayerManagerComponent playerMgr = OVT_Global.GetPlayers();
+			if (playerMgr)
+			{
+				int playerIdInt = playerMgr.GetPlayerIDFromPersistentID(playerId);
+				if (playerIdInt != -1)
+				{
+					notifyMgr.SendTextNotification("LoadoutDeleted", playerIdInt, loadoutName);
+				}
+			}
+		}
 		
 		// Broadcast to all clients for multiplayer synchronization
 		BroadcastLoadoutDeleted(playerId, loadoutName, isOfficerTemplate);
@@ -433,6 +520,10 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		
 		// Apply quick slots after all items are in place
 		ApplyQuickSlots(targetEntity, loadout, boxStorageManager);
+		
+		// Store result counts for notification
+		m_iLastApplySuccessCount = successCount;
+		m_iLastApplyTotalCount = totalItems;
 		
 		return successCount > 0;
 	}

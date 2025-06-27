@@ -2874,6 +2874,111 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{5D5C558A6E391710}" {
+   Id "OVT-Msg-LoadoutApplied"
+   Target_en_us "Loadout '%1' applied - %2 items equipped"
+   Target_fr_fr "Équipement '%1' appliqué - %2 objets équipés"
+   Target_ru_ru "Экипировка '%1' применена - %2 предметов установлено"
+   Target_zh_cn "装备'%1'已应用 - %2个物品已装备"
+   Target_uk_ua "Спорядження '%1' застосовано - %2 предметів встановлено"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E391711}" {
+   Id "OVT-Msg-LoadoutAppliedPartial"
+   Target_en_us "Loadout '%1' partially applied - %2 of %3 items equipped"
+   Target_fr_fr "Équipement '%1' partiellement appliqué - %2 sur %3 objets équipés"
+   Target_ru_ru "Экипировка '%1' частично применена - %2 из %3 предметов установлено"
+   Target_zh_cn "装备'%1'部分应用 - %2/%3个物品已装备"
+   Target_uk_ua "Спорядження '%1' частково застосовано - %2 з %3 предметів встановлено"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E391712}" {
+   Id "OVT-Msg-LoadoutAppliedToRecruit"
+   Target_en_us "Loadout '%1' applied to %2 - %3 items equipped"
+   Target_fr_fr "Équipement '%1' appliqué à %2 - %3 objets équipés"
+   Target_ru_ru "Экипировка '%1' применена к %2 - %3 предметов установлено"
+   Target_zh_cn "装备'%1'已应用到%2 - %3个物品已装备"
+   Target_uk_ua "Спорядження '%1' застосовано до %2 - %3 предметів встановлено"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E391713}" {
+   Id "OVT-Msg-LoadoutAppliedToRecruits"
+   Target_en_us "Loadout '%1' applied to %2 recruits"
+   Target_fr_fr "Équipement '%1' appliqué à %2 recrues"
+   Target_ru_ru "Экипировка '%1' применена к %2 бойцам"
+   Target_zh_cn "装备'%1'已应用到%2名新兵"
+   Target_uk_ua "Спорядження '%1' застосовано до %2 бійців"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D5C558A6E391714}" {
+   Id "OVT-Msg-LoadoutDeleted"
+   Target_en_us "Loadout '%1' deleted"
+   Target_fr_fr "Équipement '%1' supprimé"
+   Target_ru_ru "Экипировка '%1' удалена"
+   Target_zh_cn "装备'%1'已删除"
+   Target_uk_ua "Спорядження '%1' видалено"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1735682400
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{59A49A823A9D330A}" {
    Id "OVT-Msg-NewFOB"
    Target_en_us "New FOB"
@@ -4729,7 +4834,7 @@ StringTable {
   }
   CustomStringTableItem "{A1B2C3D4E5F60003}" {
    Id "OVT-SaveLoadoutMessage"
-   Target_en_us "Enter a name for your loadout:"
+   Target_en_us "Enter a name for your loadout, using an existing name will override the loadout:"
    Comment "Message for save loadout dialog"
    DevNote ""
    Repro ""
@@ -4738,9 +4843,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1706484995
    Author "Claude AI"
-   LastChanged "Claude AI"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -4763,7 +4868,7 @@ StringTable {
   }
   CustomStringTableItem "{A1B2C3D4E5F60003}" {
    Id "OVT-SaveOfficerLoadout"
-   Target_en_us "Save Officer Template"
+   Target_en_us "Save Resistance Loadout"
    Comment "UserAction for officers to save template loadouts"
    DevNote ""
    Repro ""
@@ -4772,9 +4877,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1706484961
    Author "Claude AI"
-   LastChanged "Claude AI"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }

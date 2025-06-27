@@ -134,4 +134,18 @@ class OVT_RecruitData : Managed
 		}
 		return "Unknown";
 	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Static method to get recruit data from entity
+	static OVT_RecruitData GetRecruitDataFromEntity(IEntity entity)
+	{
+		if (!entity)
+			return null;
+			
+		OVT_RecruitManagerComponent recruitManager = OVT_Global.GetRecruits();
+		if (!recruitManager)
+			return null;
+			
+		return recruitManager.GetRecruitFromEntity(entity);
+	}
 }

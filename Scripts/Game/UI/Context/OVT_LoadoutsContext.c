@@ -306,7 +306,7 @@ class OVT_LoadoutsContext : OVT_UIContext
 			Print(string.Format("[OVT_LoadoutsContext] Sending RPC for loadout: %1", m_SelectedLoadoutName));
 			comms.LoadLoadoutFromBox(m_sPlayerID, m_SelectedLoadoutName, m_EquipmentBox, m_Owner);
 			CloseLayout();
-			ShowHint("#OVT-LoadoutApplied");
+			// Notification will be sent by the loadout manager after processing
 		}
 		else
 		{
@@ -330,14 +330,14 @@ class OVT_LoadoutsContext : OVT_UIContext
 		if (comms)
 		{
 			comms.DeleteLoadout(m_sPlayerID, m_SelectedLoadoutName, false); // Assume personal loadout for now
-			ShowHint(string.Format("Loadout '%1' deleted", m_SelectedLoadoutName));
+			// Notification will be sent by the loadout manager after processing
 			
 			// Refresh the loadout list
 			Refresh();
 		}
 		else
 		{
-			ShowHint("Failed to delete loadout - server communication error");
+			Print("[OVT_LoadoutsContext] Failed to delete loadout - no server communication");
 		}
 	}
 	
@@ -585,49 +585,42 @@ class OVT_LoadoutsContext : OVT_UIContext
 	{
 		if (m_SelectedLoadoutName.IsEmpty() || !m_SelectedRecruit)
 		{
-			ShowHint("#OVT-Loadouts_NoRecruitSelected");
+			Print("[OVT_LoadoutsContext] No recruit selected for loadout application");
 			return;
 		}
 		
 		if (!m_EquipmentBox)
 		{
-			ShowHint("#OVT-Loadouts_NoEquipmentBox");
+			Print("[OVT_LoadoutsContext] No equipment box available for loadout application");
 			return;
 		}
 		
-		if (ApplyLoadoutToRecruit(m_SelectedRecruit))
-		{
-			string recruitName = GetCharacterName(m_SelectedRecruit);
-			ShowHint(string.Format("#OVT-Loadouts_AppliedToRecruit", m_SelectedLoadoutName, recruitName));
-		}
-		else
-		{
-			ShowHint("#OVT-Loadouts_FailedToApply");
-		}
+		ApplyLoadoutToRecruit(m_SelectedRecruit);
+		CloseLayout();
+		// Notification will be sent by the loadout manager after processing
 	}
 	
 	protected void ApplyLoadoutToAllRecruits()
 	{
 		if (m_SelectedLoadoutName.IsEmpty() || !m_aNearbyRecruits || m_aNearbyRecruits.IsEmpty())
 		{
-			ShowHint("#OVT-Loadouts_NoRecruitsNearby");
+			Print("[OVT_LoadoutsContext] No recruits nearby for loadout application");
 			return;
 		}
 		
 		if (!m_EquipmentBox)
 		{
-			ShowHint("#OVT-Loadouts_NoEquipmentBox");
+			Print("[OVT_LoadoutsContext] No equipment box available for loadout application");
 			return;
 		}
 		
-		int successCount = 0;
+		// Apply loadout to all recruits - each will send its own notification
 		foreach (IEntity recruit : m_aNearbyRecruits)
 		{
-			if (ApplyLoadoutToRecruit(recruit))
-				successCount++;
+			ApplyLoadoutToRecruit(recruit);
 		}
-		
-		ShowHint(string.Format("#OVT-Loadouts_AppliedToAllRecruits", m_SelectedLoadoutName, successCount));
+		CloseLayout();
+		// Individual notifications will be sent by the loadout manager for each recruit
 	}
 	
 	protected bool ApplyLoadoutToRecruit(IEntity recruitEntity)
