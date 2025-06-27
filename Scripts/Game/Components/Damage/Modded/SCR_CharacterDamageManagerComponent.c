@@ -1,4 +1,4 @@
-modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponent
+modded class SCR_CharacterDamageManagerComponent : SCR_ExtendedDamageManagerComponent
 {
 	protected bool m_bCheckedFaction = false;
 	protected bool m_bIsOccupyingFaction = false;
@@ -12,18 +12,11 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 		GetOnDamageStateChanged().Insert(WhenDamageStateChanged);
 	}
 	
-	void WhenDamaged(EDamageType type,
-				  float damage,
-				  HitZone pHitZone,
-				  notnull Instigator instigator,
-				  inout vector hitTransform[3],
-				  float speed,
-				  int colliderID,
-				  int nodeID)
+	void WhenDamaged(BaseDamageContext damageContext)
 	{		
-		if(instigator)
+		if(damageContext.instigator)
 		{	
-			IEntity entity = instigator.GetInstigatorEntity();
+			IEntity entity = damageContext.instigator.GetInstigatorEntity();
 			if(entity) 
 			{
 				OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(entity.FindComponent(OVT_PlayerWantedComponent));

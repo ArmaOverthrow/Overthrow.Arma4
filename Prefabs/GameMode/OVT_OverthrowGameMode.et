@@ -254,7 +254,6 @@ OVT_OverthrowGameMode {
    m_bRandomStartingWeather 1
   }
   OVT_TownManagerComponent "{59724C983BF56C3B}" {
-   m_iVillageRange 100
    m_aTownModifiers {
     OVT_TownStabilityModifierSystem "{59A2BDDB065D9242}" {
      m_rConfigFile "{FD430627EAC5BDBC}Configs/Modifiers/stabilityModifiers.conf"

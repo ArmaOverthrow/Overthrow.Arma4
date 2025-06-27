@@ -517,4 +517,35 @@ class OVT_Global : Managed
 		
 		return slotEntity;
 	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Find the nearest road position to a given location
+	//! @param center Starting position to search from
+	//! @param searchRadius Maximum distance to search for roads
+	//! @return Position on nearest road, or original position if no road found
+	static vector FindNearestRoad(vector center)
+	{
+		SCR_AIWorld aiWorld = SCR_AIWorld.Cast(GetGame().GetAIWorld());
+		if (!aiWorld)
+			return center;
+			
+		RoadNetworkManager roadManager = aiWorld.GetRoadNetworkManager();
+		if (!roadManager)
+			return center;
+			
+		BaseRoad foundRoad;
+		float distance;
+		int result = roadManager.GetClosestRoad(center, foundRoad, distance, false);
+				
+		if (result >= 0 && foundRoad && foundRoad.GetWidth() > 0)
+		{
+			// Try to get a reachable waypoint on the road
+			vector roadPos;
+			if (roadManager.GetReachableWaypointInRoad(center, center, 500, roadPos))
+				return roadPos;
+		}
+		
+		// If no road found within range, return original position
+		return center;
+	}
 }

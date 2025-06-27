@@ -37,8 +37,14 @@ class OVT_DeploymentConfig : ScriptAndConfig
 	[Attribute(defvalue: "1000", desc: "Range for proximity-based activation")]
 	float m_fActivationRange;
 	
+	[Attribute(defvalue: "1", desc: "When false, will always be activated/spawned regardless of player proximity")]
+	bool m_bEnableProximityActivation;
+	
 	[Attribute(defvalue: "-1", desc: "Resource allocation limit (-1 = no limit)")]
 	int m_iResourceAllocation;
+	
+	[Attribute(defvalue: "100", desc: "Chance this deployment will be created (0-100, where 100 = 100% chance)")]
+	float m_fChance;
 	
 	//------------------------------------------------------------------------------------------------
 	void OVT_DeploymentConfig()

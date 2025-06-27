@@ -34,6 +34,110 @@ class OVT_FactionGroupEntry
 	string m_sDescription;
 }
 
+//! Vehicle registry entry
+[BaseContainerProps(), SCR_BaseContainerCustomTitleField("m_sVehicleName")]
+class OVT_FactionVehicleEntry
+{
+	[Attribute(desc: "Unique name for this vehicle type")]
+	string m_sVehicleName;
+	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Vehicle prefab", params: "et")]
+	ResourceName m_sVehiclePrefab;
+	
+	[Attribute(defvalue: "50", desc: "Resource cost for this vehicle")]
+	int m_iCost;
+	
+	[Attribute(defvalue: "1", desc: "Relative spawn weight (higher = more likely to be selected)")]
+	int m_iWeight;
+	
+	[Attribute(defvalue: "1", desc: "Minimum crew size needed")]
+	int m_iMinCrew;
+	
+	[Attribute(defvalue: "4", desc: "Maximum capacity including crew")]
+	int m_iMaxCapacity;
+	
+	[Attribute(desc: "Optional description")]
+	string m_sDescription;
+}
+
+//! Vehicle registry for flexible vehicle management
+[BaseContainerProps()]
+class OVT_FactionVehicleRegistry
+{
+	[Attribute(desc: "Available vehicle types for this faction")]
+	ref array<ref OVT_FactionVehicleEntry> m_aVehicleEntries;
+	
+	//------------------------------------------------------------------------------------------------
+	void OVT_FactionVehicleRegistry()
+	{
+		if (!m_aVehicleEntries)
+			m_aVehicleEntries = new array<ref OVT_FactionVehicleEntry>;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	OVT_FactionVehicleEntry FindVehicleByName(string vehicleName)
+	{
+		foreach (OVT_FactionVehicleEntry entry : m_aVehicleEntries)
+		{
+			if (entry.m_sVehicleName == vehicleName)
+				return entry;
+		}
+		return null;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	ResourceName GetVehiclePrefab(string vehicleName)
+	{
+		OVT_FactionVehicleEntry entry = FindVehicleByName(vehicleName);
+		if (entry)
+			return entry.m_sVehiclePrefab;
+		return "";
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	int GetVehicleCost(string vehicleName)
+	{
+		OVT_FactionVehicleEntry entry = FindVehicleByName(vehicleName);
+		if (entry)
+			return entry.m_iCost;
+		return 0;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	ResourceName GetRandomVehiclePrefab()
+	{
+		if (m_aVehicleEntries.IsEmpty())
+			return "";
+		
+		// Build weighted selection array
+		array<OVT_FactionVehicleEntry> weightedEntries = new array<OVT_FactionVehicleEntry>;
+		foreach (OVT_FactionVehicleEntry entry : m_aVehicleEntries)
+		{
+			for (int i = 0; i < entry.m_iWeight; i++)
+			{
+				weightedEntries.Insert(entry);
+			}
+		}
+		
+		if (weightedEntries.IsEmpty())
+			return "";
+		
+		OVT_FactionVehicleEntry selected = weightedEntries.GetRandomElement();
+		return selected.m_sVehiclePrefab;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	array<string> GetAllVehicleNames()
+	{
+		array<string> names = new array<string>;
+		foreach (OVT_FactionVehicleEntry entry : m_aVehicleEntries)
+		{
+			names.Insert(entry.m_sVehicleName);
+		}
+		return names;
+	}
+}
+
 //! Group registry for flexible group management
 [BaseContainerProps()]
 class OVT_FactionGroupRegistry
@@ -140,6 +244,10 @@ class OVT_Faction
 	//! New group registry system - use this for new deployments
 	[Attribute(desc: "Group registry for deployment system", category: "Group Registry")]
 	ref OVT_FactionGroupRegistry m_GroupRegistry;
+	
+	//! Vehicle registry system for deployments
+	[Attribute(desc: "Vehicle registry for deployment system", category: "Vehicle Registry")]
+	ref OVT_FactionVehicleRegistry m_VehicleRegistry;
 		
 	//! Legacy group prefabs - deprecated, use m_GroupRegistry instead
 	//! Kept for compatibility with BaseUpgrade systems
@@ -343,5 +451,65 @@ class OVT_Faction
 			return "";
 		
 		return m_GroupRegistry.GetRandomGroupPrefab();
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	// Vehicle registry methods
+	//------------------------------------------------------------------------------------------------
+	void InitializeVehicleRegistry()
+	{
+		if (!m_VehicleRegistry)
+			m_VehicleRegistry = new OVT_FactionVehicleRegistry();
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	ResourceName GetVehiclePrefabByName(string vehicleName)
+	{
+		if (!m_VehicleRegistry)
+		{
+			Print(string.Format("Vehicle registry not initialized for faction %1", m_sFactionKey), LogLevel.WARNING);
+			return "";
+		}
+		
+		return m_VehicleRegistry.GetVehiclePrefab(vehicleName);
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	int GetVehicleCostByName(string vehicleName)
+	{
+		if (!m_VehicleRegistry)
+			return 0;
+		
+		return m_VehicleRegistry.GetVehicleCost(vehicleName);
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	array<string> GetAvailableVehicleNames()
+	{
+		if (!m_VehicleRegistry)
+		{
+			array<string> empty = new array<string>;
+			return empty;
+		}
+		
+		return m_VehicleRegistry.GetAllVehicleNames();
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	bool HasVehicleType(string vehicleName)
+	{
+		if (!m_VehicleRegistry)
+			return false;
+		
+		return m_VehicleRegistry.FindVehicleByName(vehicleName) != null;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	ResourceName GetRandomVehiclePrefab()
+	{
+		if (!m_VehicleRegistry)
+			return "";
+		
+		return m_VehicleRegistry.GetRandomVehiclePrefab();
 	}
 }

@@ -101,7 +101,7 @@ class OVT_OverthrowConfigComponent: OVT_Component
 
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Move Waypoint Prefab", params: "et", category: "Waypoints")]
 	ResourceName m_pMoveWaypointPrefab;
-
+	
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Defend Waypoint Prefab", params: "et", category: "Waypoints")]
 	ResourceName m_pDefendWaypointPrefab;
 	//Chris Added wps
@@ -375,6 +375,12 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		AIWaypoint wp = SpawnWaypoint(m_pPatrolWaypointPrefab, pos);
 		return wp;
 	}
+	
+	AIWaypoint SpawnMoveWaypoint(vector pos)
+	{
+		AIWaypoint wp = SpawnWaypoint(m_pMoveWaypointPrefab, pos);
+		return wp;
+	}
 
 	AIWaypoint SpawnSearchAndDestroyWaypoint(vector pos)
 	{
@@ -483,17 +489,12 @@ class OVT_OverthrowConfigComponent: OVT_Component
 			for(int i=0; i< 4; i++)
 			{
 				vector pos = center + (Vector(0,angle,0).AnglesToVector() * dist);
-				ChimeraWorld world = GetGame().GetWorld();
-				float surfaceY = world.GetSurfaceY(pos[0], pos[2]);
-				if (pos[1] < surfaceY)
-				{
-					pos[1] = surfaceY;
-				}
+				vector roadPos = OVT_Global.FindNearestRoad(pos);
 
-				AIWaypoint wp = SpawnPatrolWaypoint(pos);
+				AIWaypoint wp = SpawnPatrolWaypoint(roadPos);
 				queueOfWaypoints.Insert(wp);
 
-				AIWaypoint wait = SpawnWaitWaypoint(pos, s_AIRandomGenerator.RandFloatXY(45, 75));
+				AIWaypoint wait = SpawnWaitWaypoint(roadPos, s_AIRandomGenerator.RandFloatXY(45, 75));
 				queueOfWaypoints.Insert(wait);
 
 				angle += 90;

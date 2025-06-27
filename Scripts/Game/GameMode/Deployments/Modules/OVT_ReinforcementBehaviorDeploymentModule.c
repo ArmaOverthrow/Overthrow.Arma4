@@ -95,7 +95,7 @@ class OVT_ReinforcementBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModu
 	{
 		if (!m_ParentDeployment)
 			return;
-		
+				
 		// Get all spawning modules
 		array<OVT_BaseSpawningDeploymentModule> spawningModules =  m_ParentDeployment.GetSpawningModules();
 		
@@ -141,7 +141,7 @@ class OVT_ReinforcementBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModu
 	
 	//------------------------------------------------------------------------------------------------
 	protected bool EvaluateReinforcementConditions()
-	{
+	{		
 		// Check town size requirement if enabled
 		if (m_bRequireTownSizeCheck)
 		{
@@ -155,7 +155,6 @@ class OVT_ReinforcementBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModu
 				OVT_TownData nearestTown = townCondition.GetNearestTown();
 				if (!nearestTown || nearestTown.size <= 1)
 				{
-					Print("Reinforcement denied: Town too small (villages don't get reinforcements)", LogLevel.NORMAL);
 					return false;
 				}
 			}

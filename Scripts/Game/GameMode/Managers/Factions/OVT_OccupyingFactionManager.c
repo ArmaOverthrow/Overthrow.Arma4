@@ -186,6 +186,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 		OVT_TimeAndWeatherHandlerComponent tw = OVT_TimeAndWeatherHandlerComponent.Cast(GetGame().GetGameMode().FindComponent(OVT_TimeAndWeatherHandlerComponent));
 
 		if(tw) timeMul = tw.GetDayTimeMultiplier();
+		
+		UpdateKnownTargets();
 
 		GetGame().GetCallqueue().CallLater(InitBaseControllers, 0);
 
@@ -661,47 +663,68 @@ class OVT_OccupyingFactionManager: OVT_Component
 		return false;
 	}
 
-	int getBaseThreat(OVT_BaseData base)
+	int GetThreatByLocation(vector pos)
 	{
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		int villageRange = towns.m_iVillageRange;
+		int townRange = towns.m_iTownRange;
+		int cityRange = towns.m_iCityRange;
+		
+		
 		int score = 0;
 		foreach(OVT_TargetData target : m_aKnownTargets)
 		{
-			if(vector.Distance(target.location, base.location) < 3000)
+			float distance = vector.Distance(target.location, pos);
+			if(distance < 1000)
 			{
+				float distanceFactor = 1.0 - (distance / 1000);
 				if(target.type == OVT_TargetType.BASE)
 				{
-					score += 20;
-				}else if(target.type == OVT_TargetType.BROADCAST_TOWER)
+					score += (int)Math.Round(10 * distanceFactor);
+				}
+				if(target.type == OVT_TargetType.BROADCAST_TOWER)
 				{
-					score += 10;
-				}else if(target.type == OVT_TargetType.FOB)
+					score += (int)Math.Round(5 * distanceFactor);
+				}
+				if(target.type == OVT_TargetType.FOB)
 				{
-					score += 5;
-				}else if(target.type == OVT_TargetType.WAREHOUSE)
+					score += (int)Math.Round(5 * distanceFactor);
+				}
+				if(target.type == OVT_TargetType.WAREHOUSE)
 				{
 					score += 1;
-				}				
+				}
 			}
 		}
 		foreach(OVT_TownData town : OVT_Global.GetTowns().m_Towns)
 		{
-			if(town.IsOccupyingFaction()) continue;
-			if(vector.Distance(town.location, base.location) < 3000)
+			int range = villageRange;
+			if(town.size == 2) range = townRange;
+			if(town.size == 3) range = cityRange;
+			
+			float distance = vector.Distance(town.location, pos);
+			if(distance > range * 3) continue;
+			
+			float distanceFactor = 1.0 - (distance / ((float)range * 3));
+			
+			if(town.IsOccupyingFaction())
 			{
-				if(town.size == 1)
-				{
-					score += 5;
-				}else if(town.size == 2)
-				{
-					score += 10;
-				}else if(town.size == 3)
-				{
-					score += 20;
-				}
-			}
+				int supportScore = (int)Math.Round(((float)town.SupportPercentage() / 100) * distanceFactor * 5 * town.size);
+				int stabilityScore = (int)Math.Round((1 - ((float)town.stability / 100)) * distanceFactor * 5 * town.size);				
+				score += supportScore + stabilityScore;
+			}else{
+				int townScore = (int)Math.Round(5 * distanceFactor * town.size);
+				score += townScore;
+			}	
 		}
-
 		return score;
+	}
+
+	int GetThreatLevel() {return m_iThreat;}
+
+	int GetBaseThreat(OVT_BaseData base)
+	{
+		return GetThreatByLocation(base.location);
 	}
 
 	void CheckUpdate()
@@ -757,7 +780,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 			foreach(OVT_BaseData data : m_Bases)
 			{
 				if(!data.IsOccupyingFaction()) continue;
-				data.sortBy = getBaseThreat(data);
+				data.sortBy = GetBaseThreat(data);
 				sortedBases.Insert(data);
 			}
 			sortedBases.Sort(true);	
@@ -811,6 +834,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 			int threatReduce = Math.Ceil((float)m_iThreat * OVT_Global.GetDifficulty().threatReductionFactor);
 			m_iThreat -= threatReduce;
 			if(m_iThreat < 0) m_iThreat = 0;
+			
+			Print("[Overthrow.OccupyingFactionManager] Reduced Threat to: " + m_iThreat.ToString());
 
 			int playerFaction = m_Config.GetPlayerFactionIndex();
 			int occupyingFaction = m_Config.GetOccupyingFactionIndex();

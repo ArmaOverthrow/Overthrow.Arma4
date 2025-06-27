@@ -171,6 +171,15 @@ class OVT_DeploymentComponent : OVT_Component
 				module.Update(UPDATE_FREQUENCY);
 		}
 		
+		if(!m_DeploymentConfig.m_bEnableProximityActivation)
+		{
+			if(!m_bActive)
+			{
+				ActivateDeployment();				
+			}
+			return;
+		}
+		
 		// Check proximity for activation (will be replaced by virtualization system)
 		bool shouldBeActive = IsPlayerInRange();
 		

@@ -1,0 +1,17 @@
+MetaFileClass {
+ Name "{B8F4C6A8C9D3E4F1}Scripts/Game/UI/Map/OVT_MapThreatGrid.c"
+ Configurations {
+  ArmaReforgerScriptModuleConfig PC {
+  }
+  ArmaReforgerScriptModuleConfig XBOX_ONE : PC {
+  }
+  ArmaReforgerScriptModuleConfig XBOX_SERIES : PC {
+  }
+  ArmaReforgerScriptModuleConfig PS4 : PC {
+  }
+  ArmaReforgerScriptModuleConfig PS5 : PC {
+  }
+  ArmaReforgerScriptModuleConfig HEADLESS : PC {
+  }
+ }
+}

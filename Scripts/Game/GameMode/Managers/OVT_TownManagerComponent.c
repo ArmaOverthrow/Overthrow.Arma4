@@ -69,22 +69,22 @@ class OVT_TownData : Managed
 //! Handles town initialization, modifier systems, house queries, and network synchronization of town data.
 class OVT_TownManagerComponent: OVT_Component
 {
-	[Attribute( defvalue: "1200", desc: "Range to search cities for houses")]
+	[Attribute( defvalue: "600", desc: "Range to search cities for houses")]
 	int m_iCityRange;
 	
-	[Attribute( defvalue: "600", desc: "Range to search towns for houses")]
+	[Attribute( defvalue: "400", desc: "Range to search towns for houses")]
 	int m_iTownRange;
 	
 	[Attribute( defvalue: "250", desc: "Range to search villages for houses")]
 	int m_iVillageRange;
 	
-	[Attribute( defvalue: "2", desc: "Default occupants per house")]
+	[Attribute( defvalue: "4", desc: "Default occupants per house")]
 	int m_iDefaultHouseOccupants;
 	
-	[Attribute( defvalue: "3", desc: "Occupants per villa house")]
+	[Attribute( defvalue: "6", desc: "Occupants per villa house")]
 	int m_iVillaOccupants;
 	
-	[Attribute( defvalue: "5", desc: "Occupants per town house")]
+	[Attribute( defvalue: "8", desc: "Occupants per town house")]
 	int m_iTownOccupants;
 	
 	[Attribute("", UIWidgets.Object)]	

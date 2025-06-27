@@ -4,16 +4,14 @@ class OVT_CandidatePosition
 	vector position;
 	float threatLevel;
 	
+	[SortAttribute(),NonSerialized()]
+	float sortBy;
+	
 	void OVT_CandidatePosition(vector pos, float threat)
 	{
 		position = pos;
 		threatLevel = threat;
-	}
-	
-	// Compare method for sorting (returns true if this should come before other)
-	bool CompareTo(OVT_CandidatePosition other)
-	{
-		return threatLevel > other.threatLevel; // Higher threat first
+		sortBy = threat;
 	}
 }
 
@@ -186,11 +184,12 @@ class OVT_DeploymentManagerComponent : OVT_Component
 			float randomModifier = s_AIRandomGenerator.RandFloatXY(-0.2, 0.2);
 			float finalThreatLevel = baseThreatLevel * (1.0 + randomModifier);
 			
-			candidatesWithThreat.Insert(new OVT_CandidatePosition(position, finalThreatLevel));
+			OVT_CandidatePosition candidate = new OVT_CandidatePosition(position, finalThreatLevel);
+			candidatesWithThreat.Insert(candidate);
 		}
 		
-		// Sort candidates by threat level (highest first) using bubble sort
-		SortCandidatesByThreat(candidatesWithThreat);
+		// Sort candidates by threat level (highest first)
+		candidatesWithThreat.Sort(true);
 		
 		int numDeployments = 0;
 		
@@ -222,25 +221,6 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		}
 	}
 	
-	//------------------------------------------------------------------------------------------------
-	protected void SortCandidatesByThreat(array<ref OVT_CandidatePosition> candidates)
-	{
-		// Simple bubble sort - good enough for small arrays of deployment candidates
-		int n = candidates.Count();
-		for (int i = 0; i < n - 1; i++)
-		{
-			for (int j = 0; j < n - i - 1; j++)
-			{
-				if (candidates[j].threatLevel < candidates[j + 1].threatLevel)
-				{
-					// Swap elements
-					OVT_CandidatePosition temp = candidates[j];
-					candidates[j] = candidates[j + 1];
-					candidates[j + 1] = temp;
-				}
-			}
-		}
-	}
 	
 	//------------------------------------------------------------------------------------------------
 	protected array<vector> FindDeploymentCandidates(int factionIndex)
@@ -557,17 +537,10 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		float threat = 0;
 		
 		// Base threat level
-		threat += 10;
+		OVT_OccupyingFactionManager ofManager = OVT_Global.GetOccupyingFaction();
+		threat += ofManager.GetThreatLevel();
 		
-		// Increase threat based on nearby enemy assets
-		array<OVT_DeploymentComponent> nearbyDeployments = GetDeploymentsInRadius(position, THREAT_EVALUATION_RADIUS);
-		foreach (OVT_DeploymentComponent deployment : nearbyDeployments)
-		{
-			if (deployment.GetControllingFaction() != factionIndex)
-			{
-				threat += 20; // Enemy deployment increases threat
-			}
-		}
+		threat += ofManager.GetThreatByLocation(position);
 		
 		// Increase threat based on player activity
 		float playerProximity = GetNearestPlayerDistance(position);
@@ -576,13 +549,7 @@ class OVT_DeploymentManagerComponent : OVT_Component
 			threat += (1000 - playerProximity) / 50; // Closer players = higher threat
 		}
 		
-		// Increase threat based on recent battles
-		if (HasRecentBattleNearby(position))
-		{
-			threat += 30;
-		}
-		
-		return Math.Clamp(threat, 0, 100);
+		return threat;
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -618,7 +585,11 @@ class OVT_DeploymentManagerComponent : OVT_Component
 			// Check deployment conditions
 			if (OVT_DeploymentComponent.CheckDeploymentConditions(config, position, factionIndex, threatLevel))
 			{
-				suitableConfigs.Insert(config);
+				// Check chance - if less than 1.0, roll for deployment creation
+				if (config.m_fChance >= 100.0 || s_AIRandomGenerator.RandFloatXY(0,100) <= config.m_fChance)
+				{
+					suitableConfigs.Insert(config);
+				}
 			}
 		}
 		
@@ -797,9 +768,7 @@ class OVT_DeploymentManagerComponent : OVT_Component
 			return;
 		
 		m_aActiveDeployments.Insert(deploymentID);
-		
-		Print(string.Format("[Overthrow] Registering Deployment %1 at %2", deployment.GetDeploymentName(), deployment.GetPosition()));
-		
+						
 		// Add to faction-specific list
 		int factionIndex = deployment.GetControllingFaction();
 		array<ref EntityID> factionDeployments = m_mFactionDeployments.Get(factionIndex);

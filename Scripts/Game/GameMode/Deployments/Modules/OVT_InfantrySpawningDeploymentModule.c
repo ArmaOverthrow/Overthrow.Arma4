@@ -32,6 +32,12 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 	[Attribute(defvalue: "15", desc: "Reinforcement cost per group")]
 	int m_iReinforcementCost;
 	
+	[Attribute(defvalue: "false", desc: "Spawn initial groups at nearest faction-controlled base instead of deployment location")]
+	bool m_bSpawnAtNearestBase;
+	
+	[Attribute(defvalue: "true", desc: "Spawn reinforcement groups at nearest faction-controlled base instead of deployment location")]
+	bool m_bReinforceFromNearestBase;
+	
 	protected ref array<SCR_AIGroup> m_aSpawnedGroups;
 	protected int m_iSpawnedCount;
 	
@@ -59,8 +65,7 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 		
 		// Check if groups have been eliminated previously - if so, don't spawn unless reinforcement resets this
 		if (m_bSpawnedUnitsEliminated || m_ParentDeployment.GetSpawnedUnitsEliminated())
-		{
-			Print(string.Format("Infantry groups for deployment '%1' were previously eliminated and will not respawn", m_ParentDeployment.GetDeploymentName()), LogLevel.NORMAL);
+		{			
 			return;
 		}
 			
@@ -71,9 +76,7 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 	override void OnDeactivate()
 	{
 		super.OnDeactivate();
-		
-		Print(string.Format("[Overthrow] Infantry despawning near %1", OVT_Global.GetTowns().GetNearestTownName(m_ParentDeployment.GetOwner().GetOrigin())), LogLevel.NORMAL);
-		
+				
 		// Clean up spawned groups
 		foreach (SCR_AIGroup group : m_aSpawnedGroups)
 		{
@@ -123,6 +126,8 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 		clone.m_iCostPerGroup = m_iCostPerGroup;
 		clone.m_bAllowReinforcement = m_bAllowReinforcement;
 		clone.m_iReinforcementCost = m_iReinforcementCost;
+		clone.m_bSpawnAtNearestBase = m_bSpawnAtNearestBase;
+		clone.m_bReinforceFromNearestBase = m_bReinforceFromNearestBase;
 		
 		return clone;
 	}
@@ -135,6 +140,23 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 			
 		vector deploymentPos = m_ParentDeployment.GetPosition();
 		int factionIndex = m_ParentDeployment.GetControllingFaction();
+		
+		// Determine spawn position based on settings
+		vector baseSpawnPos = deploymentPos;
+		if (m_bSpawnAtNearestBase)
+		{
+			vector nearestBasePos = GetNearestControlledBasePosition(factionIndex);
+			if (nearestBasePos != vector.Zero)
+			{
+				baseSpawnPos = nearestBasePos;
+				Print(string.Format("Infantry will spawn at nearest base: %1", baseSpawnPos.ToString()), LogLevel.NORMAL);
+			}
+			else
+			{
+				Print("No controlled base found, aborting initial spawn", LogLevel.WARNING);
+				return;
+			}
+		}
 		
 		// Calculate actual group count based on difficulty and town size
 		m_iActualGroupCount = CalculateGroupCount(deploymentPos);
@@ -149,7 +171,7 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 		
 		for (int i = 0; i < m_iActualGroupCount; i++)
 		{
-			vector spawnPos = GetRandomSpawnPosition(deploymentPos);
+			vector spawnPos = GetRandomSpawnPosition(baseSpawnPos);
 			
 			SCR_AIGroup group = OVT_EntitySpawningAPI.SpawnInfantryGroup(
 				groupPrefab, 
@@ -170,8 +192,6 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 				Print(string.Format("Failed to spawn infantry group %1 (%2)", i + 1, m_sGroupType), LogLevel.ERROR);
 			}
 		}
-		
-		Print(string.Format("[Overthrow] Infantry spawning complete: %1/%2 groups spawned for type '%3' near %4", m_aSpawnedGroups.Count(), m_iActualGroupCount, m_sGroupType, OVT_Global.GetTowns().GetNearestTownName(deploymentPos)), LogLevel.NORMAL);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -183,10 +203,10 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 		vector offset = Vector(Math.Cos(angle) * distance, 0, Math.Sin(angle) * distance);
 		vector spawnPos = center + offset;
 		
-		// Adjust Y coordinate to ground level
-		spawnPos[1] = GetGame().GetWorld().GetSurfaceY(spawnPos[0], spawnPos[2]);
-		
-		return spawnPos;
+		//Find nearest road
+		vector roadPos = OVT_Global.FindNearestRoad(spawnPos);
+				
+		return roadPos;
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -251,12 +271,11 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 		// Use the base class elimination checking
 		bool wasEliminated = m_bSpawnedUnitsEliminated;
 		bool isNowEliminated = CheckIfUnitsEliminated();
-		
+				
 		// Update elimination state if changed
 		if (!wasEliminated && isNowEliminated)
 		{
 			m_bSpawnedUnitsEliminated = true;
-			Print(string.Format("All infantry groups for deployment '%1' have been eliminated", m_ParentDeployment.GetDeploymentName()), LogLevel.NORMAL);
 			
 			// Check if ALL spawning modules in this deployment have been eliminated
 			if (m_ParentDeployment)
@@ -316,6 +335,24 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 		manager.SubtractFactionResources(factionIndex, totalCost);
 		
 		vector deploymentPos = m_ParentDeployment.GetPosition();
+		
+		// Determine spawn position for reinforcements
+		vector baseSpawnPos = deploymentPos;
+		if (m_bReinforceFromNearestBase)
+		{
+			vector nearestBasePos = GetNearestControlledBasePosition(factionIndex);
+			if (nearestBasePos != vector.Zero)
+			{
+				baseSpawnPos = nearestBasePos;
+				Print(string.Format("Reinforcements will spawn at nearest base: %1", baseSpawnPos.ToString()), LogLevel.NORMAL);
+			}
+			else
+			{
+				Print("No controlled base found, aborting reinforcement", LogLevel.WARNING);
+				return false;
+			}
+		}
+		
 		int successfulSpawns = 0;
 		
 		// Get the group prefab from faction registry
@@ -328,7 +365,7 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 		
 		for (int i = 0; i < groupsNeeded; i++)
 		{
-			vector spawnPos = GetRandomSpawnPosition(deploymentPos);
+			vector spawnPos = GetRandomSpawnPosition(baseSpawnPos);
 			
 			SCR_AIGroup group = OVT_EntitySpawningAPI.SpawnInfantryGroup(
 				groupPrefab, 
@@ -357,6 +394,29 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 		
 		Print(string.Format("Reinforced with %1/%2 groups, cost: %3 resources", successfulSpawns, groupsNeeded, totalCost), LogLevel.NORMAL);
 		return successfulSpawns > 0;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	protected vector GetNearestControlledBasePosition(int factionIndex)
+	{
+		if (!m_ParentDeployment)
+			return vector.Zero;
+			
+		vector deploymentPos = m_ParentDeployment.GetPosition();
+		
+		// Get occupying faction manager to check bases
+		OVT_OccupyingFactionManager ofManager = OVT_Global.GetOccupyingFaction();
+		if (!ofManager)
+			return vector.Zero;
+		
+		// Get nearest base and check if it's controlled by our faction
+		OVT_BaseData nearestBase = ofManager.GetNearestBase(deploymentPos);
+		if (nearestBase && nearestBase.faction == factionIndex)
+		{
+			return nearestBase.location;
+		}
+		
+		return vector.Zero;
 	}
 	
 	//------------------------------------------------------------------------------------------------
