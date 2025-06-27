@@ -308,9 +308,6 @@ class OVT_PlayerWantedComponent: OVT_Component
 					{
 						BaseWeaponComponent weapon = m_Weapon.GetCurrentWeapon();
 						if(weapon){
-							Print(weapon);
-							//Player is brandishing a weapon
-							Print("Weapon");
 							newLevel = 2;
 						}
 					}	
