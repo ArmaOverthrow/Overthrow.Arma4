@@ -221,7 +221,7 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 		}
 		
 		// Base randomized group count from difficulty settings
-		int numGroups = s_AIRandomGenerator.RandInt(config.m_Difficulty.patrolGroupsMin, config.m_Difficulty.patrolGroupsMax);
+		int numGroups = s_AIRandomGenerator.RandInt(Math.Ceil((float)config.m_Difficulty.patrolGroupsMin * 0.5), Math.Ceil((float)config.m_Difficulty.patrolGroupsMax * 0.5));
 		
 		// Scale by town size if enabled
 		if (m_bScaleByTownSize)
