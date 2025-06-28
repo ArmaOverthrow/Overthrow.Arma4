@@ -137,6 +137,12 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		if (!m_bInitialized || !Replication.IsServer())
 			return;
 		
+		//Don't create deployments if all players are offline
+		PlayerManager mgr = GetGame().GetPlayerManager();
+		if(mgr.GetPlayerCount() == 0)
+			return;
+	
+		
 		FactionManager factionManager = GetGame().GetFactionManager();
 		if (!factionManager)
 			return;
