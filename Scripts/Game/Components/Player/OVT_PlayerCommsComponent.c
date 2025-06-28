@@ -370,6 +370,19 @@ class OVT_PlayerCommsComponent: OVT_Component
 			Rpc(RpcAsk_TakePlayerMoney, playerId, total);
 			Rpc(RpcAsk_TakeFromInventory, shopId, id, totalnum);
 			economy.m_OnPlayerBuy.Invoke(playerId, total);
+			
+			// Get shop component for transaction event
+			RplComponent rpl = RplComponent.Cast(Replication.FindItem(shopId));
+			if(!rpl) return;
+			
+			IEntity shopEntity = rpl.GetEntity();
+			if(!shopEntity) return;
+			
+			OVT_ShopComponent shop = OVT_ShopComponent.Cast(shopEntity.FindComponent(OVT_ShopComponent));
+			if(shop)
+			{
+				economy.m_OnPlayerTransaction.Invoke(playerId, shop, true, total);
+			}
 		}
 		
 	}

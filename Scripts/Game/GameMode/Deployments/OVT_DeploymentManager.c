@@ -977,6 +977,76 @@ class OVT_DeploymentManagerComponent : OVT_Component
 			Print(string.Format("Faction %1: %2 deployments, %3 resources", factionIndex, deploymentIDs.Count(), resources));
 		}
 	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Check if a deployment with the specified name exists near the given position
+	//! \param deploymentName The name of the deployment to search for
+	//! \param position The position to search around
+	//! \param radius The search radius in meters
+	//! \return True if a deployment with that name exists within the radius
+	bool HasDeploymentNearPosition(string deploymentName, vector position, float radius = 1000)
+	{
+		if (!m_aActiveDeployments)
+			return false;
+			
+		foreach (EntityID deploymentID : m_aActiveDeployments)
+		{
+			IEntity deploymentEntity = GetGame().GetWorld().FindEntityByID(deploymentID);
+			if (!deploymentEntity)
+				continue;
+				
+			OVT_DeploymentComponent deploymentComp = OVT_DeploymentComponent.Cast(deploymentEntity.FindComponent(OVT_DeploymentComponent));
+			if (!deploymentComp)
+				continue;
+				
+			// Check if deployment name matches
+			OVT_DeploymentConfig config = deploymentComp.GetConfig();
+			if (!config || config.m_sDeploymentName != deploymentName)
+				continue;
+				
+			// Check if within radius
+			float distance = vector.Distance(position, deploymentEntity.GetOrigin());
+			if (distance <= radius)
+				return true;
+		}
+		
+		return false;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Get the first active deployment with the specified name near the given position
+	//! \param deploymentName The name of the deployment to search for
+	//! \param position The position to search around
+	//! \param radius The search radius in meters
+	//! \return The deployment component if found, null otherwise
+	OVT_DeploymentComponent GetDeploymentNearPosition(string deploymentName, vector position, float radius = 1000)
+	{
+		if (!m_aActiveDeployments)
+			return null;
+			
+		foreach (EntityID deploymentID : m_aActiveDeployments)
+		{
+			IEntity deploymentEntity = GetGame().GetWorld().FindEntityByID(deploymentID);
+			if (!deploymentEntity)
+				continue;
+				
+			OVT_DeploymentComponent deploymentComp = OVT_DeploymentComponent.Cast(deploymentEntity.FindComponent(OVT_DeploymentComponent));
+			if (!deploymentComp)
+				continue;
+				
+			// Check if deployment name matches
+			OVT_DeploymentConfig config = deploymentComp.GetConfig();
+			if (!config || config.m_sDeploymentName != deploymentName)
+				continue;
+				
+			// Check if within radius
+			float distance = vector.Distance(position, deploymentEntity.GetOrigin());
+			if (distance <= radius)
+				return deploymentComp;
+		}
+		
+		return null;
+	}
 }
 
 // EPF Save Data

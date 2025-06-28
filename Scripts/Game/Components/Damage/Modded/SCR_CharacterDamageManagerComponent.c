@@ -44,7 +44,10 @@ modded class SCR_CharacterDamageManagerComponent : SCR_ExtendedDamageManagerComp
 			
 			if(IsOccupyingFaction())
 			{
-				OVT_Global.GetOccupyingFaction().OnAIKilled(GetOwner(), instigator);			
+				OVT_Global.GetOccupyingFaction().OnAIKilled(GetOwner(), instigator);	
+				
+				//Check immediate surrounds for a vehicle (hoping for a better way soon pls BI)
+				GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), 5, CheckVehicleSetWanted, FilterVehicleEntities, EQueryEntitiesFlags.ALL);		
 			}
 			if(instigator)
 			{			
@@ -72,18 +75,6 @@ modded class SCR_CharacterDamageManagerComponent : SCR_ExtendedDamageManagerComp
 			m_bCheckedFaction = true;
 		}
 		return m_bIsOccupyingFaction;
-	}
-	
-	protected override void OnDamageStateChanged(EDamageState state)
-	{
-		super.OnDamageStateChanged(state);
-		
-		if(IsOccupyingFaction())
-			OVT_Global.GetOccupyingFaction().OnAIKilled(GetOwner(), null);
-		
-		//Check immediate surrounds for a vehicle (hoping for a better way soon pls BI)
-		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), 5, CheckVehicleSetWanted, FilterVehicleEntities, EQueryEntitiesFlags.ALL);
-		
 	}
 	
 	protected bool FilterVehicleEntities(IEntity entity)
