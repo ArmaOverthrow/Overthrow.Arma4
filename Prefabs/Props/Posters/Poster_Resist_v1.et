@@ -1,0 +1,24 @@
+GenericEntity : "{4106EBCD72532DA4}Prefabs/Props/Commercial/Posters/PosterSingle_40x40_01_base.et" {
+ ID "F0DBA538AC2A0552"
+ components {
+  EPF_PersistenceComponent "{65B90A20665B489A}" {
+   m_pSaveData OVT_PlaceableSaveDataClass "{65B90A20665B488C}" {
+   }
+  }
+  MeshObject "{5872F0EB7FA40561}" {
+   Materials {
+    MaterialAssignClass "{65B90A2061D7A4E9}" {
+     SourceMaterial "PosterLarge_BakeryFestival"
+     AssignedMaterial "{772A6C8F3814B0A4}Assets/Posters/Poster_Resist_v1.emat"
+    }
+   }
+  }
+  RigidBody "{5872F0EB7DFB5A9D}" {
+   ResponseIndex "TinyDestructible"
+  }
+  RplComponent "{5624A88DC2D9928D}" {
+   Enabled 1
+  }
+ }
+ scale 2.5
+}

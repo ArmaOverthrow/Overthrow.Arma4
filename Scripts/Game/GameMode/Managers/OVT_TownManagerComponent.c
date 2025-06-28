@@ -46,6 +46,12 @@ class OVT_TownData : Managed
 		return faction == OVT_Global.GetConfig().GetOccupyingFactionIndex();
 	}
 	
+	bool IsWithinTownBounds(vector position)
+	{
+		float distance = vector.Distance(position, location);
+		return distance < 500;
+	}
+	
 	void CopyFrom(OVT_TownData town)
 	{
 		population = town.population;
@@ -63,22 +69,22 @@ class OVT_TownData : Managed
 //! Handles town initialization, modifier systems, house queries, and network synchronization of town data.
 class OVT_TownManagerComponent: OVT_Component
 {
-	[Attribute( defvalue: "1200", desc: "Range to search cities for houses")]
+	[Attribute( defvalue: "600", desc: "Range to search cities for houses")]
 	int m_iCityRange;
 	
-	[Attribute( defvalue: "600", desc: "Range to search towns for houses")]
+	[Attribute( defvalue: "400", desc: "Range to search towns for houses")]
 	int m_iTownRange;
 	
 	[Attribute( defvalue: "250", desc: "Range to search villages for houses")]
 	int m_iVillageRange;
 	
-	[Attribute( defvalue: "2", desc: "Default occupants per house")]
+	[Attribute( defvalue: "4", desc: "Default occupants per house")]
 	int m_iDefaultHouseOccupants;
 	
-	[Attribute( defvalue: "3", desc: "Occupants per villa house")]
+	[Attribute( defvalue: "6", desc: "Occupants per villa house")]
 	int m_iVillaOccupants;
 	
-	[Attribute( defvalue: "5", desc: "Occupants per town house")]
+	[Attribute( defvalue: "8", desc: "Occupants per town house")]
 	int m_iTownOccupants;
 	
 	[Attribute("", UIWidgets.Object)]	
@@ -688,6 +694,28 @@ class OVT_TownManagerComponent: OVT_Component
 			}
 		}
 		return nearestTown;
+	}
+	
+	int GetNearestTownId(vector pos)
+	{
+		int nearestTown;
+		float nearest = -1;
+		int i = 0;
+		foreach(OVT_TownData town : m_Towns)
+		{
+			float distance = vector.Distance(town.location, pos);
+			if(nearest == -1 || distance < nearest){
+				nearest = distance;
+				nearestTown = i;
+			}
+			i++;
+		}
+		return nearestTown;
+	}
+	
+	string GetNearestTownName(vector pos)
+	{
+		return GetTownName(GetNearestTownId(pos));
 	}
 	
 	//------------------------------------------------------------------------------------------------

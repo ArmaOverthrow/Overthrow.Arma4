@@ -264,7 +264,14 @@ class OVT_PlaceContext : OVT_UIContext
 		}
 
 		m_bPlacing = true;
-		m_iPrefabIndex = 0;
+		if (m_Placeable.m_bRandomizePrefab && m_Placeable.m_aPrefabs.Count() > 1)
+		{
+			m_iPrefabIndex = Math.RandomInt(0, m_Placeable.m_aPrefabs.Count());
+		}
+		else
+		{
+			m_iPrefabIndex = 0;
+		}
 
 		SpawnGhost();
 	}
@@ -340,6 +347,10 @@ class OVT_PlaceContext : OVT_UIContext
 
 		if(m_Economy.PlayerHasMoney(m_sPlayerID, cost))
 		{
+			if (m_Placeable.m_bRandomizePrefab && m_Placeable.m_aPrefabs.Count() > 1)
+			{
+				m_iPrefabIndex = Math.RandomInt(0, m_Placeable.m_aPrefabs.Count());
+			}
 			SpawnGhost(); //Start all over again
 		}else{
 			Cancel();

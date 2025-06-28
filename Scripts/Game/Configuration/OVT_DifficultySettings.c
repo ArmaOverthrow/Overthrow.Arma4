@@ -36,9 +36,9 @@ class OVT_DifficultySettings : ScriptAndConfig
 	[Attribute(defvalue: "750", desc: "Base Support Range", category: "Occupying Faction")]
 	float baseSupportRange;
 	[Attribute(defvalue: "2", desc: "Minimum number of defense groups at radio towers", category: "Occupying Faction")]
-	int radioTowerGroupsMin;
+	int patrolGroupsMin;
 	[Attribute(defvalue: "3", desc: "Maximum number of defense groups at radio towers", category: "Occupying Faction")]
-	int radioTowerGroupsMax;	
+	int patrolGroupsMax;	
 	[Attribute("280", category: "Occupying Faction")]
 	float baseRange;
 	[Attribute("220", category: "Occupying Faction")]

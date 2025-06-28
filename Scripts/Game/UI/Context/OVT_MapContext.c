@@ -500,7 +500,9 @@ class OVT_MapContext : OVT_UIContext
 		
 		if(m_bMapInfoActive)
 		{
-			m_SelectedTown = m_TownManager.GetNearestTown(pos);		
+			m_SelectedTown = m_TownManager.GetNearestTown(pos);
+			Print(string.Format("[Overthrow] Threat at clicked location: %1",OVT_Global.GetOccupyingFaction().GetThreatByLocation(pos)));
+				
 			ShowTownInfo();
 		}	
 	}

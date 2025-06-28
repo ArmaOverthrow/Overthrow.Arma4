@@ -32,6 +32,9 @@ class OVT_Placeable
 	[Attribute(defvalue: "0", desc: "Place on walls")]
 	bool m_bPlaceOnWall;
 	
+	[Attribute(defvalue: "0", desc: "Randomize prefab on each placement")]
+	bool m_bRandomizePrefab;
+	
 	[Attribute(defvalue: "0", desc: "Can place it anywhere")]
 	bool m_bIgnoreLocation;
 	

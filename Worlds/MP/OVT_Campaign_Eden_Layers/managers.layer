@@ -6,6 +6,12 @@ SCR_AIWorld : "{70CCCF16487C927F}Prefabs/AI/SCR_AIWorld_Eden.et" {
     }
    }
   }
+  NavmeshWorldComponent "{5584F30EEFEE1223}" {
+   NavmeshSettings ChimeraNavmeshWorld "{50FC63BEBE3973C5}" {
+    NavmeshFilesConfig BaseNavmeshFilesConfig "{60B8A297F3B4EE8A}" : "{0228A79846FD8A97}Configs/Navmesh/Navmesh_GM_Eden_Vehicle.conf" {
+    }
+   }
+  }
  }
  coords 7456.035 165.562 4307.494
 }
@@ -280,9 +286,6 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode1 : "{4DC10DCB8BE06D32}Prefabs/GameMo
   }
   SCR_RespawnTimerComponent "{59C30B0685EFBB8C}" {
    m_fRespawnTime 2
-  }
-  SCR_TimeAndWeatherHandlerComponent "{5EE26402AC31F891}" {
-   m_bRandomWeatherChanges 1
   }
   RplComponent "{59724C8C935D8E18}" {
    Streamable Disabled

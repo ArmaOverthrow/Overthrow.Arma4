@@ -80,10 +80,11 @@ class OVT_TownControllerComponent: OVT_Component
 		vector spawnPosition = OVT_Global.GetRandomNonOceanPositionNear(m_Town.location, m_TownManager.GetTownRange(m_Town));
 
 		vector targetPos = OVT_Global.GetRandomNonOceanPositionNear(m_Town.location, m_TownManager.GetTownRange(m_Town));
-
+		targetPos = OVT_Global.FindNearestRoad(targetPos);
+		
 		BaseWorld world = GetGame().GetWorld();
 
-		spawnPosition = OVT_Global.FindSafeSpawnPosition(spawnPosition);
+		spawnPosition = OVT_Global.FindNearestRoad(spawnPosition);
 		IEntity civ = OVT_Global.SpawnEntityPrefab(OVT_Global.GetConfig().m_pCivilianPrefab, spawnPosition);
 
 		EntityID civId = civ.GetID();

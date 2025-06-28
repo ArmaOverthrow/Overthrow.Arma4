@@ -5586,6 +5586,153 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{5E4852B16105E7FE}" {
+   Id "OVT-Modifier_CivilianDeath"
+   Target_en_us "Civilian Deaths"
+   Target_fr_fr "Morts Civiles"
+   Target_ru_ru "Смерти гражданских"
+   Target_zh_cn "平民死亡"
+   Target_uk_ua "Смерті цивільних"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1684559858
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5E4852B16105E7FF}" {
+   Id "OVT-Modifier_OccupyingFactionDeath"
+   Target_en_us "Occupier Deaths"
+   Target_fr_fr "Morts des Occupants"
+   Target_ru_ru "Смерти оккупантов"
+   Target_zh_cn "占领军死亡"
+   Target_uk_ua "Смерті окупантів"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1684559858
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5E4852B16105E800}" {
+   Id "OVT-Modifier_ResistanceVictory"
+   Target_en_us "Resistance Victory"
+   Target_fr_fr "Victoire de la Résistance"
+   Target_ru_ru "Победа сопротивления"
+   Target_zh_cn "抵抗胜利"
+   Target_uk_ua "Перемога опору"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1684559858
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5E4852B16105E801}" {
+   Id "OVT-Modifier_BlackMarket"
+   Target_en_us "Black Market Activity"
+   Target_fr_fr "Activité du Marché Noir"
+   Target_ru_ru "Активность черного рынка"
+   Target_zh_cn "黑市活动"
+   Target_uk_ua "Активність чорного ринку"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1684559858
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5E4852B16105E802}" {
+   Id "OVT-Modifier_GrowingDiscontent"
+   Target_en_us "Growing Discontent"
+   Target_fr_fr "Mécontentement Croissant"
+   Target_ru_ru "Растущее недовольство"
+   Target_zh_cn "日益不满"
+   Target_uk_ua "Зростаюче невдоволення"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1684559858
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5E4852B16105E803}" {
+   Id "OVT-Modifier_RevolutionaryMomentum"
+   Target_en_us "Revolutionary Momentum"
+   Target_fr_fr "Élan Révolutionnaire"
+   Target_ru_ru "Революционный импульс"
+   Target_zh_cn "革命势头"
+   Target_uk_ua "Революційний імпульс"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1684559858
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5E4852B16105E804}" {
+   Id "OVT-Modifier_PatrolHarassment"
+   Target_en_us "Patrol Harassment"
+   Target_fr_fr "Harcèlement de Patrouille"
+   Target_ru_ru "Преследование патрулем"
+   Target_zh_cn "巡逻骚扰"
+   Target_uk_ua "Переслідування патрулем"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1684559858
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{599EDE88A12DC28E}" {
    Id "OVT-StabilityMod_RecentGunfire"
    Target_en_us "Recent Gunfire"
