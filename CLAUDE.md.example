@@ -76,7 +76,18 @@ class OVT_TownManagerComponent: OVT_Component
   ref map<int, ref OVT_TownData> m_mTowns;
 }
 ```
-You do not need to strong ref int, string, float, bool etc. Only class instances
+You do not need to strong ref int, string, float, bool etc. Only class instances.
+
+You cannot use "ref" on an IEntity, the compiler will disallow the ref keyword. You can store an IEntity if needed but its usually best to store an EntityID instead and fetch it when needed and always check if the entity still exists:
+
+```cpp
+// Store the id
+EntityID id = entity.GetID();
+
+//Fetch it later
+IEntity entity = GetGame().GetWorld().FindEntityByID(id);
+if(!entity) return;
+```
 
 ### Key Systems
 - **OVT_OverthrowGameMode**: Central game mode coordinating all systems
