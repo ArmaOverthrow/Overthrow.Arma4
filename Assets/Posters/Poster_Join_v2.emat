@@ -1,0 +1,9 @@
+MatPBRBasic {
+ BCRMap "{790866294816F2D2}Assets/Posters/Poster_Join_v2.edds"
+ DetailNormalPower 0.5
+ DetailNormalMap "{4F0A9CA08EF30D8B}Assets/Props/Commercial/Posters/Data/PosterSet_01_NMO.edds"
+ UVSrcDetailNormalMap "UV set 2"
+ DetailNormalMapUVTransform MatUVTransform "{58D63791B8E71F65}" {
+  OffsetU 0.33
+ }
+}
