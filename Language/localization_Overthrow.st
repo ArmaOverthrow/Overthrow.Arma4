@@ -215,6 +215,20 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{65B90A1309A95BE3}" {
+   Id "OVT-Build_Bunkers"
+   Target_en_us "Bunker"
+   Modified 1706641744
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{65B90A13E7E87AEF}" {
+   Id "OVT-Build_Bunkers_Description"
+   Target_en_us "A hidey-hole to shoot out of"
+   Modified 1706641519
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5D7C5DE3BEE5FBE3}" {
    Id "OVT-Build_GuardTower"
    Target_en_us "Guard Tower"
