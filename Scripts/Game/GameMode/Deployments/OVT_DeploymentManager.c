@@ -142,6 +142,9 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		if(mgr.GetPlayerCount() == 0)
 			return;
 	
+		//Don't create deployments during a QRF
+		if(OVT_Global.GetOccupyingFaction().m_CurrentQRF)
+			return;
 		
 		FactionManager factionManager = GetGame().GetFactionManager();
 		if (!factionManager)
