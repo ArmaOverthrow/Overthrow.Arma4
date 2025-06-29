@@ -71,6 +71,35 @@ class OVT_PlayerCommsComponent: OVT_Component
 		of.StartBaseQRF(base);
 	}
 	
+	void InstantCaptureBase(vector loc, int playerId)
+	{
+		Rpc(RpcAsk_InstantCaptureBase, loc, playerId);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_InstantCaptureBase(vector loc, int playerId)
+	{
+		OVT_OccupyingFactionManager of = OVT_Global.GetOccupyingFaction();
+		OVT_BaseData data = of.GetNearestBase(loc);
+		OVT_BaseControllerComponent base = of.GetBase(data.entId);
+		
+		// Determine the winning faction based on current control
+		int winningFactionIndex;
+		if (base.IsOccupyingFaction())
+		{
+			// Currently occupied by enemy, capture for resistance
+			winningFactionIndex = OVT_Global.GetConfig().GetPlayerFactionIndex();
+		}
+		else
+		{
+			// Currently controlled by resistance, capture for occupying faction
+			winningFactionIndex = OVT_Global.GetConfig().GetOccupyingFactionIndex();
+		}
+		
+		// Instantly change base control
+		of.ChangeBaseControl(base, winningFactionIndex);
+	}
+	
 	void LootIntoVehicle(IEntity vehicle)
 	{
 		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));

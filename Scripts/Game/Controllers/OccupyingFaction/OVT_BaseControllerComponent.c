@@ -37,6 +37,16 @@ class OVT_BaseControllerComponent: OVT_Component
 	protected OVT_OccupyingFactionManager m_occupyingFactionManager;
 
 	protected const int UPGRADE_UPDATE_FREQUENCY = 10000;
+	
+	void InitBaseClient()
+	{
+		if(Replication.IsServer()) return;
+		SCR_FactionAffiliationComponent affiliation = EPF_Component<SCR_FactionAffiliationComponent>.Find(GetOwner());
+		if(affiliation)
+		{
+			affiliation.GetOnFactionChanged().Insert(OnFactionChanged);
+		}
+	}
 		
 	void InitBase()
 	{
@@ -74,9 +84,30 @@ class OVT_BaseControllerComponent: OVT_Component
 	
 	void OnFactionChanged(FactionAffiliationComponent owner, Faction previousFaction, Faction newFaction)
 	{
+		// Get the faction index
+		FactionManager factionManager = GetGame().GetFactionManager();
+		int factionIndex = factionManager.GetFactionIndex(newFaction);
+						
+		// Update flag
+		UpdateFlagMaterial(factionIndex);	
+	}
+	
+	void UpdateFlagMaterial(int factionIndex)
+	{
+		FactionManager factionManager = GetGame().GetFactionManager();
+		Faction faction = factionManager.GetFactionByIndex(factionIndex);
+		if (!faction)
+			return;
+		
+		SCR_Faction scrFaction = SCR_Faction.Cast(faction);
+		if (!scrFaction)
+			return;
+		
 		SCR_FlagComponent flag = EPF_Component<SCR_FlagComponent>.Find(GetOwner());
-		SCR_Faction faction = SCR_Faction.Cast(newFaction);
-		flag.ChangeMaterial(faction.GetFactionFlagMaterial());
+		if (!flag)
+			return;
+		
+		flag.ChangeMaterial(scrFaction.GetFactionFlagMaterial());
 	}
 
 	bool IsOccupyingFaction()
