@@ -11,7 +11,7 @@ class OVT_BuildContext : OVT_UIContext
 	
 	Widget m_BuildWidget;
 		
-	protected IEntity m_eBuildingEntity;
+	protected SCR_PrefabPreviewEntity m_eBuildingEntity;
 	protected ResourceName m_pBuildingPrefab;
 	protected OVT_Buildable m_Buildable;
 	
@@ -338,28 +338,13 @@ class OVT_BuildContext : OVT_UIContext
 		params.TransformMode = ETransformMode.WORLD;
 		params.Transform[3] = pos;
 		m_pBuildingPrefab = m_Buildable.m_aPrefabs[m_iPrefabIndex];
-		m_eBuildingEntity = GetGame().SpawnEntityPrefabLocal(Resource.Load(m_pBuildingPrefab), null, params);
+		//m_eBuildingEntity = GetGame().SpawnEntityPrefabLocal(Resource.Load(m_pBuildingPrefab), null, params);
+		m_eBuildingEntity = SCR_PrefabPreviewEntity.Cast(SCR_PrefabPreviewEntity.SpawnPreviewFromPrefab(Resource.Load(m_pBuildingPrefab), "SCR_PrefabPreviewEntity", null, params, "{58F07022C12D0CF5}Assets/Editor/PlacingPreview/Preview.emat"));
 		
 		if(m_vCurrentTransform)
 		{
-			m_eBuildingEntity.SetTransform(m_vCurrentTransform);
+			m_eBuildingEntity.SetPreviewTransform(m_vCurrentTransform, EEditorTransformVertical.TERRAIN);
 		}
-		//SCR_Global.SetMaterial(m_eBuildingEntity, "{E0FECF0FE7457A54}Assets/Editor/PlacingPreview/Preview_03.emat", true);
-		
-		Physics phys = m_eBuildingEntity.GetPhysics();
-		if(phys)
-		{
-			phys.SetActive(0);
-		}
-		
-		OVT_MainMenuContextOverrideComponent over = EPF_Component<OVT_MainMenuContextOverrideComponent>.Find(m_eBuildingEntity);
-		if(over)
-		{
-			//Disable map icon showing for ghost
-			over.m_UiInfo = null;
-		}
-		
-		m_eBuildingEntity.SetFlags(EntityFlags.VISIBLE, true);
 	}
 	
 	protected void RemoveGhost()
