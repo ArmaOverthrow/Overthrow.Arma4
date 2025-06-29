@@ -29,9 +29,16 @@ modded class SCR_GetInUserAction : SCR_CompartmentUserAction
 				string ownerUid = playerowner.GetPlayerOwnerUid();
 				if(ownerUid == "")
 				{
-					string playerUid = OVT_Global.GetPlayers().GetPersistentIDFromControlledEntity(pUserEntity);
-					playerowner.SetLocked(false);
-					playerowner.SetPlayerOwner(playerUid);
+					// Get the player ID and request ownership on server
+					int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(pUserEntity);
+					if (playerId > 0)
+					{
+						OVT_PlayerCommsComponent comms = OVT_Global.GetServer();
+						if (comms)
+						{
+							comms.ClaimUnownedVehicle(pOwnerEntity, playerId);
+						}
+					}
 				}
 			}
 		}

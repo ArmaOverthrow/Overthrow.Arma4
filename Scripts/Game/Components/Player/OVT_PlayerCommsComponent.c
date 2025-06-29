@@ -248,6 +248,34 @@ class OVT_PlayerCommsComponent: OVT_Component
 		if(playerOwner) playerOwner.SetLocked(locked);
 	}
 	
+	void ClaimUnownedVehicle(IEntity vehicle, int playerId)
+	{
+		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
+		Rpc(RpcAsk_ClaimUnownedVehicle, rpl.Id(), playerId);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	void RpcAsk_ClaimUnownedVehicle(RplId vehicleId, int playerId)
+	{
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(vehicleId));
+		if (!rpl) return;
+		
+		IEntity vehicle = rpl.GetEntity();
+		if (!vehicle) return;
+		
+		OVT_PlayerOwnerComponent playerOwner = EPF_Component<OVT_PlayerOwnerComponent>.Find(vehicle);
+		if (!playerOwner) return;
+		
+		// Only set owner if vehicle is currently unowned
+		string currentOwner = playerOwner.GetPlayerOwnerUid();
+		if (currentOwner == "")
+		{
+			string playerUid = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+			playerOwner.SetPlayerOwner(playerUid);
+			playerOwner.SetLocked(false);
+		}
+	}
+	
 	//REAL ESTATE
 	
 	void SetHome(int playerId)
