@@ -92,6 +92,16 @@ class OVT_DifficultySettings : ScriptAndConfig
 	[Attribute(defvalue: "1000", desc: "Max size of QRF in resources", category: "QRF")]
 	int maxQRF;
 	
+	//Undercover System
+	[Attribute(defvalue: "15", desc: "Distance at which enemies can see through disguises (meters)", category: "Undercover System")]
+	float disguiseDetectionDistance;
+	[Attribute(defvalue: "0.8", desc: "Base disguise effectiveness when fully disguised", category: "Undercover System")]
+	float baseDisguiseEffectiveness;
+	[Attribute(defvalue: "0.7", desc: "Maximum wanted level reduction from disguises", category: "Undercover System")]
+	float wantedReductionMultiplier;
+	[Attribute(defvalue: "0.6", desc: "Detection range multiplier when disguised", category: "Undercover System")]
+	float detectionRangeMultiplier;
+	
 	[Attribute("", UIWidgets.ResourcePickerThumbnail, "Items given to player when first spawned in")]
 	ref array<ResourceName> startingItems;
 }

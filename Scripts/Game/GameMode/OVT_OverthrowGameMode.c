@@ -39,6 +39,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	protected OVT_PersistenceManagerComponent m_Persistence;
 	//! Reference to the deployment manager component.
 	protected OVT_DeploymentManagerComponent m_Deployment;
+	//! Reference to the perceived faction manager component.
+	protected SCR_PerceivedFactionManagerComponent m_PerceivedFactionManager;
 
 	//! Reference to the start camera entity.
 	protected CameraBase m_pCamera;
@@ -134,6 +136,14 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	ScriptInvoker<IEntity, IEntity> GetOnCharacterKilled()
 	{
 		return m_OnCharacterKilled;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Retrieves the perceived faction manager component instance.
+	//! \\return The perceived faction manager component.
+	SCR_PerceivedFactionManagerComponent GetPerceivedFactionManager()
+	{
+		return m_PerceivedFactionManager;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -724,6 +734,12 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 					m_StartGameUIContext.ShowLayout();
 				}
 			}
+		}
+
+		m_PerceivedFactionManager = SCR_PerceivedFactionManagerComponent.Cast(FindComponent(SCR_PerceivedFactionManagerComponent));
+		if(m_PerceivedFactionManager)
+		{
+			Print("[Overthrow] Initializing Perceived Faction Manager");
 		}
 	}
 	

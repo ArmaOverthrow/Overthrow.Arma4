@@ -22,12 +22,12 @@ OverlayWidgetClass {
      Name "WantedLevel"
      Slot FrameWidgetSlot "{5988DB08DC69F5F6}" {
       Anchor 1 0 1 0
-      PositionX -80
-      OffsetLeft -80
+      PositionX -110
+      OffsetLeft -110
       PositionY 10
       OffsetTop 10
       SizeX 100
-      OffsetRight -20
+      OffsetRight 10
       SizeY 30
       OffsetBottom -40
       Alignment 1 0
@@ -86,12 +86,12 @@ OverlayWidgetClass {
      Name "Seen"
      Slot FrameWidgetSlot "{5988DB08DC69F5CF}" {
       Anchor 1 0 1 0
-      PositionX -20
-      OffsetLeft -20
+      PositionX -52
+      OffsetLeft -52
       PositionY 10
       OffsetTop 10
       SizeX 100
-      OffsetRight -80
+      OffsetRight -48
       SizeY 30
       OffsetBottom -40
       Alignment 1 0
@@ -106,6 +106,34 @@ OverlayWidgetClass {
        Texture "{A5F5778DD6FF81CB}UI/Textures/Icons/icon_seen_ui.edds"
        Image ""
        Size 48 48
+      }
+     }
+    }
+    HorizontalLayoutWidgetClass "{5988DB0B2183F999}" {
+     Name "Undercover"
+     Slot FrameWidgetSlot "{5988DB08DC69F777}" {
+      Anchor 1 0 1 0
+      PositionX -10
+      OffsetLeft -10
+      PositionY 10
+      OffsetTop 10
+      SizeX 100
+      OffsetRight -90
+      SizeY 30
+      OffsetBottom -40
+      Alignment 1 0
+      SizeToContent 1
+     }
+     "Inherit Color" 1
+     {
+      ImageWidgetClass "{59A2BD22D634BC99}" {
+       Name "UndercoverIcon"
+       Slot LayoutSlot "{59A2BD22D634BC88}" {
+        Padding 0 3 0 0
+       }
+       Texture "{C7691945DE01FB28}UI/Imagesets/overthrow_mapicons.imageset"
+       Image "clothes"
+       Size 38 38
       }
      }
     }

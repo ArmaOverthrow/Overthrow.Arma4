@@ -355,6 +355,10 @@ OVT_OverthrowGameMode {
    m_PlayerKickReasonsConfig SCR_ConfigurableDialogUiPresets "{5D7A443943FDACDA}" {
    }
   }
+  SCR_PerceivedFactionManagerComponent "{67890123ABCDEF01}" {
+   m_eCharacterPerceivedFactionOutfitType HIGHEST_VALUE
+   m_bNoOutfitFactionSetsDefaultFaction 1
+  }
   SCR_PlayerListedAdminManagerComponent "{6490AAF2138445FA}" {
   }
   SCR_PlayerProfileManagerComponent "{59724C8C935D8E14}" {

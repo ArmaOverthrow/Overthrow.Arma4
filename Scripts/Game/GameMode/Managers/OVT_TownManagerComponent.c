@@ -24,6 +24,9 @@ class OVT_TownData : Managed
 	
 	vector gunDealerPosition;
 	
+	//! Area heat level for undercover system (persisted)
+	float areaHeat = 0.0;
+	
 	int SupportPercentage()
 	{
 		if(population == 0) 
@@ -50,6 +53,19 @@ class OVT_TownData : Managed
 	{
 		float distance = vector.Distance(position, location);
 		return distance < 500;
+
+	}
+	
+	//! Gets the current area heat level
+	float GetAreaHeat()
+	{
+		return areaHeat;
+	}
+	
+	//! Sets the area heat level
+	void SetAreaHeat(float heat)
+	{
+		areaHeat = Math.Max(0.0, heat); // Prevent negative heat
 	}
 	
 	void CopyFrom(OVT_TownData town)
@@ -61,6 +77,7 @@ class OVT_TownData : Managed
 		stabilityModifiers = town.stabilityModifiers;
 		supportModifiers = town.supportModifiers;
 		gunDealerPosition = town.gunDealerPosition;
+		areaHeat = town.areaHeat;
 	}
 }
 
