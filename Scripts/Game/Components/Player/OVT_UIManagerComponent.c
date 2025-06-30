@@ -119,5 +119,4 @@ class OVT_UIManagerComponent: OVT_Component
 	{		
 		GetGame().GetCallqueue().CallLater(AfterControlledByPlayer, 0, false, owner, controlled);
 	}
-	
 }

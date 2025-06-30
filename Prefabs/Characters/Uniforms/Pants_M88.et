@@ -1,0 +1,15 @@
+GameEntity : "{4EF74D1922997E84}Prefabs/Characters/Uniforms/Pants_M88_base.et" {
+ ID "5104869D194C6243"
+ components {
+  SCR_ItemOutfitFactionComponent "{618AD7B9978F2816}" {
+   m_OutfitDataHolder SCR_OutfitFactionDataHolder "{61A8A841E90BF8D6}" {
+    m_aOutfitFactionData {
+     SCR_OutfitFactionData "{61A8A841E893212E}" {
+      m_AffiliatedFactionKey "USSR"
+      m_iOutfitFactionValue 30
+     }
+    }
+   }
+  }
+ }
+}

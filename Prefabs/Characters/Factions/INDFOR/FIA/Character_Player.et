@@ -15,7 +15,7 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
   EPF_PersistenceComponent "{5A12D8F4DFED6D84}" {
    Enabled 1
   }
-  FactionAffiliationComponent "{555C98D1CD949F3E}" {
+  SCR_CharacterFactionAffiliationComponent "{555C98D1CD949F3E}" {
    "faction affiliation" "CIV"
   }
   OVT_PlayerCommsComponent "{5D7ACE122292D0CF}" {
