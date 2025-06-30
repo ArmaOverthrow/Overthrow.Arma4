@@ -13,6 +13,8 @@ if [ ! -d "$SAVE_DIR" ]; then
     exit 1
 fi
 
+echo "Suggested naming scheme: <testworld|everon>_<situation>_<MP|SP>"
+
 # Ask for backup name
 read -p "Enter a name for this save backup: " SAVE_NAME
 

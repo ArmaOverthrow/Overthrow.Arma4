@@ -85,6 +85,9 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	
 	void PostGameStart()
 	{
+		if(!Replication.IsServer())
+			return;
+			
 		//First evaluation sooner
 		GetGame().GetCallqueue().CallLater(EvaluateDeployments, 10000, false);
 		
@@ -94,7 +97,11 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	
 	//------------------------------------------------------------------------------------------------
 	void Init(IEntity owner)
-	{		
+	{	
+		// Only initialize on server
+		if(!Replication.IsServer())
+			return;
+			
 		// Cache available slots from the world
 		CacheAvailableSlots();
 				

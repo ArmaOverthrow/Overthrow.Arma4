@@ -1187,7 +1187,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 		if (group.GetLeaderID() != playerId)
 			return;
 		
-		// Add as AI agent to player's group
+		// Add as AI agent to player's group via RPC to client
 		SCR_ChimeraCharacter recruitCharacter = SCR_ChimeraCharacter.Cast(recruitEntity);
 		if (!recruitCharacter)
 		{
@@ -1195,7 +1195,26 @@ class OVT_RecruitManagerComponent : OVT_Component
 			return;
 		}
 		
-		groupController.RequestAddAIAgent(recruitCharacter, playerId);
+		// Use RPC to client to trigger proper group join notifications
+		RplComponent rplComponent = RplComponent.Cast(recruitEntity.FindComponent(RplComponent));
+		if (rplComponent)
+		{
+			int localPlayerId = SCR_PlayerController.GetLocalPlayerId();
+			if (localPlayerId == playerId)
+			{
+				// Host/server - execute immediately
+				RpcDo_AddRecruitToGroup(rplComponent.Id(), playerId);
+			}
+			else
+			{
+				// Client - delay RPC to allow entity replication
+				GetGame().GetCallqueue().CallLater(DelayedRpcAddRecruitToGroup, 6000, false, rplComponent.Id(), playerId);
+			}
+		}
+		else
+		{
+			Print("[Overthrow] No RplComponent found on recruit entity for group addition");
+		}
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -1344,9 +1363,8 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//! Called when a player group is created - triggers recruit respawning
 	protected void OnPlayerGroupCreated(int playerId, int groupId, string playerName)
 	{
-		// Delay recruit respawning to ensure player is set as group leader first
-		// The respawn system sets group leadership with a 200ms delay, so we wait 500ms to be safe
-		GetGame().GetCallqueue().CallLater(RespawnRecruitsDelayed, 500, false, playerId);
+		// Wait 2000ms to ensure player is in a group and the leader
+		GetGame().GetCallqueue().CallLater(RespawnRecruitsDelayed, 2000, false, playerId);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -1587,6 +1605,89 @@ class OVT_RecruitManagerComponent : OVT_Component
 		
 		// Determine online status from replication ID
 		recruit.m_bIsOnline = (recruitRplId != RplId.Invalid());
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Delayed RPC call to allow entity replication to clients
+	protected void DelayedRpcAddRecruitToGroup(RplId recruitRplId, int playerId)
+	{
+		Rpc(RpcDo_AddRecruitToGroup, recruitRplId, playerId);
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! RPC method to request client add AI to group
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_AddRecruitToGroup(RplId recruitRplId, int targetPlayerId)
+	{			
+		// Only process if this is the target player
+		int localPlayerId = SCR_PlayerController.GetLocalPlayerId();
+		if (localPlayerId != targetPlayerId)
+			return;
+		
+		RpcDo_AddRecruitToGroupWithRetry(recruitRplId, targetPlayerId, 0);
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Retry logic for adding recruit to group on client
+	protected void RpcDo_AddRecruitToGroupWithRetry(RplId recruitRplId, int targetPlayerId, int attemptCount)
+	{
+		// Find the recruit entity on client
+		RplComponent rplComponent = RplComponent.Cast(Replication.FindItem(recruitRplId));
+		if (!rplComponent)
+		{
+			// Retry up to 10 times (20 seconds total)
+			if (attemptCount < 10)
+			{
+				GetGame().GetCallqueue().CallLater(RpcDo_AddRecruitToGroupWithRetry, 2000, false, recruitRplId, targetPlayerId, attemptCount + 1);
+				return;
+			}
+			else
+			{
+				Print("[Overthrow] Failed to find recruit entity after 10 retry attempts");
+				return;
+			}
+		}
+			
+		IEntity recruitEntity = rplComponent.GetEntity();
+		if (!recruitEntity)
+		{
+			// Retry if entity not available yet
+			if (attemptCount < 10)
+			{
+				GetGame().GetCallqueue().CallLater(RpcDo_AddRecruitToGroupWithRetry, 2000, false, recruitRplId, targetPlayerId, attemptCount + 1);
+				return;
+			}
+			else
+			{
+				Print("[Overthrow] Failed to get recruit entity after 10 retry attempts");
+				return;
+			}
+		}
+		
+		//Make sure AI is activated
+		AIControlComponent aiControl = AIControlComponent.Cast(recruitEntity.FindComponent(AIControlComponent));
+		if (aiControl)
+		{
+			aiControl.ActivateAI();
+		}
+		
+		// Get local player controller and add AI to group
+		int localPlayerId = SCR_PlayerController.GetLocalPlayerId();
+		SCR_PlayerController playerController = SCR_PlayerController.Cast(
+			GetGame().GetPlayerManager().GetPlayerController(localPlayerId)
+		);
+		
+		if (!playerController)
+			return;
+			
+		SCR_PlayerControllerGroupComponent groupController = SCR_PlayerControllerGroupComponent.Cast(
+			playerController.FindComponent(SCR_PlayerControllerGroupComponent)
+		);
+		
+		if (groupController)
+		{
+			groupController.RequestAddAIAgent(SCR_ChimeraCharacter.Cast(recruitEntity), localPlayerId);
+		}
 	}
 	
 }
