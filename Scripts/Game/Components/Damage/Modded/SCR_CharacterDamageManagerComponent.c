@@ -23,7 +23,17 @@ modded class SCR_CharacterDamageManagerComponent : SCR_ExtendedDamageManagerComp
 				
 				if(wanted)
 				{
-					wanted.SetBaseWantedLevel(2);
+					// Check if player was disguised - if so, blow their cover
+					if(wanted.IsDisguisedAsOccupying())
+					{
+						wanted.SetBaseWantedLevel(2, "WantedDisguiseBlown");
+						wanted.BlowDisguise();
+					}
+					else
+					{
+						// Not disguised, normal wanted level increase
+						wanted.SetBaseWantedLevel(2);
+					}
 				}
 			}
 		}
@@ -55,7 +65,17 @@ modded class SCR_CharacterDamageManagerComponent : SCR_ExtendedDamageManagerComp
 				
 				if(wanted)
 				{
-					wanted.SetBaseWantedLevel(3);
+					// Check if player was disguised - if so, blow their cover
+					if(wanted.IsDisguisedAsOccupying())
+					{
+						wanted.SetBaseWantedLevel(3, "WantedDisguiseBlown");
+						wanted.BlowDisguise();
+					}
+					else
+					{
+						// Not disguised, normal wanted level increase
+						wanted.SetBaseWantedLevel(3);
+					}
 				}
 			}
 		}		
@@ -97,7 +117,17 @@ modded class SCR_CharacterDamageManagerComponent : SCR_ExtendedDamageManagerComp
 		
 			if(wanted)
 			{
-				wanted.SetBaseWantedLevel(3);
+				// Check if player was disguised - if so, blow their cover
+				if(wanted.IsDisguisedAsOccupying())
+				{
+					wanted.SetBaseWantedLevel(3, "WantedDisguiseBlown");
+					wanted.BlowDisguise();
+				}
+				else
+				{
+					// Not disguised, normal wanted level increase
+					wanted.SetBaseWantedLevel(3);
+				}
 			}
 		}
 		

@@ -138,6 +138,35 @@ class OVT_PlayerWantedComponent: OVT_Component
 			notificationManager.SendTextNotification(reason, playerId);
 		}
 	}
+	
+	//! Force faction change and perceived faction override when disguise is blown
+	void BlowDisguise()
+	{
+		if (!IsDisguisedAsOccupying())
+			return;
+			
+		// Set disguise as blown
+		m_bIsDisguised = false;
+		
+		// Force faction change
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if(config.m_sPlayerFaction.IsEmpty()) 
+			config.m_sPlayerFaction = "FIA";
+		
+		if (m_Faction)
+		{
+			m_Faction.SetAffiliatedFactionByKey(config.m_sPlayerFaction);
+		}
+		
+		// Override perceived faction to ensure AI sees us as enemy
+		if (m_Percieve)
+		{
+			FactionManager factionMgr = GetGame().GetFactionManager();
+			Faction playerFaction = factionMgr.GetFactionByKey(config.m_sPlayerFaction);
+			if (playerFaction)
+				m_Percieve.SetPerceivedFactionOverride(playerFaction);
+		}
+	}
 
 	//! Enable the wanted system for this entity
 	void EnableWantedSystem()
@@ -255,22 +284,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 						// Busted! Set wanted level 2
 						SetBaseWantedLevel(2, "WantedDisguiseBlown");
 						m_bTempSeen = true;
-						m_bIsDisguised = false; // Disguise blown
-						
-						// Force faction change immediately when disguise is blown
-						// This ensures AI will attack even though player still wears enemy uniform
-						if(OVT_Global.GetConfig().m_sPlayerFaction.IsEmpty()) 
-							OVT_Global.GetConfig().m_sPlayerFaction = "FIA";
-						m_Faction.SetAffiliatedFactionByKey(OVT_Global.GetConfig().m_sPlayerFaction);
-						
-						// Override perceived faction to ensure AI sees us as enemy
-						if (m_Percieve)
-						{
-							FactionManager factionMgr = GetGame().GetFactionManager();
-							Faction playerFaction = factionMgr.GetFactionByKey(OVT_Global.GetConfig().m_sPlayerFaction);
-							if (playerFaction)
-								m_Percieve.SetPerceivedFactionOverride(playerFaction);
-						}
+						BlowDisguise();
 						
 						RecordSuspiciousActivity("DISGUISE_BLOWN", pos);
 						return;

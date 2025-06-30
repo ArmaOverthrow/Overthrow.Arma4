@@ -1,0 +1,17 @@
+Turret {
+ ID "51ACD0965653D003"
+ components {
+  SCR_BaseHUDComponent "{51ACD09C5E194510}" {
+   InfoDisplays {
+    OVT_WantedInfo "{65BCF3E268C51A7A}" {
+     m_LayoutPath "{472DF3D2F7500FEB}UI/Layouts/HUD/WantedInfo.layout"
+     m_eLayer OVERLAY
+    }
+    OVT_EconomyInfo "{65BCF3E27AE88175}" {
+     m_LayoutPath "{3C972A84DC44F671}UI/Layouts/HUD/EconomyInfo.layout"
+     m_eLayer OVERLAY
+    }
+   }
+  }
+ }
+}
