@@ -371,9 +371,6 @@ SCR_DestructibleBuildingEntity : "{38A5F3E4578087AB}Prefabs/Structures/Houses/To
  coords 241.413 0.001 118.064
  angleY -91.024
 }
-GenericEntity OVT_AmmoBox_Dev_65AB2E787B444A1B : "{3CD4A789AFF69FFA}Prefabs/Props/Military/AmmoBoxes/OVT_AmmoBox_Dev.et" {
- coords 226.531 1 207.75
-}
 SCR_SiteSlotEntity : "{4B1C4BDDF6683101}PrefabsEditable/Slots/Flat/E_SlotFlatMedium.et" {
  coords 30 1.001 70
  {
@@ -448,11 +445,24 @@ SCR_DestructibleBuildingEntity : "{5CADC96916FF1CC4}Prefabs/Structures/Houses/Vi
 }
 GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.et" {
  components {
+  OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
+   m_sName "Base"
+  }
   SCR_FactionAffiliationComponent "{5E66A8EA8F5BA794}" {
    "faction affiliation" "USSR"
   }
  }
  coords 55.331 1 128.241
+}
+GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.et" {
+ components {
+  OVT_TownControllerComponent "{59908365ED5E1344}" {
+   m_sName "Town"
+   m_iPopulation 50
+   m_iTownRange 80
+  }
+ }
+ coords 208.237 1 102.173
 }
 Tree : "{7BAA3CF64495B691}Prefabs/Vegetation/Bush/b_rubus_idaeus_0s.et" {
  coords 179.619 0.001 124.94

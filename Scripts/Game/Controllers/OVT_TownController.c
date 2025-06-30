@@ -35,16 +35,21 @@ class OVT_TownControllerComponent: OVT_Component
 		m_Economy = OVT_Global.GetEconomy();
 		m_Town = m_TownManager.GetNearestTown(GetOwner().GetOrigin());
 		m_aCivilians = new array<ref EntityID>;
-
-		if(!Replication.IsServer()) return;
-
-		if(m_Town.size > 1)
+		
+	}
+	
+	void ActivateTown()
+	{
+		m_Town = m_TownManager.GetNearestTown(GetOwner().GetOrigin());
+		
+		if(m_Town.size != OVT_TownSize.VILLAGE)
 			GetGame().GetCallqueue().CallLater(SpawnGunDealer, 0);
 
 		GetGame().GetCallqueue().CallLater(CheckSpawnCivilian, 10000, true);
 
 		CheckSpawnCivilian();
 	}
+	
 
 	protected void CheckSpawnCivilian()
 	{

@@ -122,6 +122,7 @@ class OVT_TownManagerComponent: OVT_Component
 	
 	//! Array of all towns managed by this component
 	ref array<ref OVT_TownData> m_Towns;
+	ref array<ref EntityID> m_TownControllers = {};
 	//! Array of town names, corresponding to the m_Towns array by index
 	ref array<ref string> m_TownNames;
 	
@@ -192,6 +193,13 @@ class OVT_TownManagerComponent: OVT_Component
 		
 		if(!m_bUseDefinedTowns)
 			GetGame().GetCallqueue().CallLater(SpawnTownControllers, 0);
+		
+		foreach(int townID, EntityID townEntityID : m_TownControllers)
+		{
+			IEntity townEntity = GetGame().GetWorld().FindEntityByID(townEntityID);
+			OVT_TownControllerComponent town = OVT_TownControllerComponent.Cast(townEntity.FindComponent(OVT_TownControllerComponent));
+			town.ActivateTown();
+		}
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -1004,6 +1012,7 @@ class OVT_TownManagerComponent: OVT_Component
 		
 		m_Towns.Insert(town);
 		m_TownNames.Insert(townController.m_sName);
+		m_TownControllers.Insert(entity.GetID());
 		return true;
 	}
 	
