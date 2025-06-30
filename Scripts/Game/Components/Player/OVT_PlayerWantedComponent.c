@@ -20,6 +20,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 	int m_iLastSeen;
 	
 	protected bool m_bTempSeen = false;
+	protected float m_fStealthMultiplier = 1.0;
 	
 	protected const int LAST_SEEN_MAX = 15;
 	protected const int WANTED_SYSTEM_FREQUENCY = 1000;
@@ -44,11 +45,18 @@ class OVT_PlayerWantedComponent: OVT_Component
 		Replication.BumpMe();
 	}
 	
-	void SetBaseWantedLevel(int level)
+	void SetBaseWantedLevel(int level, string reason = "")
 	{
 		if(m_iWantedLevel < level){
+			int oldLevel = m_iWantedLevel;
 			m_iWantedLevel = level;
 			Replication.BumpMe();
+			
+			// Send notification only when going from 0 to wanted (not when already wanted)
+			if(oldLevel == 0 && level > 0 && reason != "")
+			{
+				SendWantedNotification(reason);
+			}
 		}		
 	}
 	
@@ -111,7 +119,25 @@ class OVT_PlayerWantedComponent: OVT_Component
 			
 		BaseWeaponComponent weapon = m_Weapon.GetCurrentWeapon();
 		return weapon != null;
-  }
+	}
+	
+	//! Send notification about becoming wanted
+	protected void SendWantedNotification(string reason)
+	{
+		// Only send notifications to players, not recruits
+		if (!m_PlayerData)
+			return;
+			
+		OVT_NotificationManagerComponent notificationManager = OVT_NotificationManagerComponent.GetInstance();
+		if (!notificationManager)
+			return;
+			
+		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(GetOwner());
+		if (playerId > 0)
+		{
+			notificationManager.SendTextNotification(reason, playerId);
+		}
+	}
 
 	//! Enable the wanted system for this entity
 	void EnableWantedSystem()
@@ -227,7 +253,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 					if(TraceLOS(entity, GetOwner()))
 					{
 						// Busted! Set wanted level 2
-						SetBaseWantedLevel(2);
+						SetBaseWantedLevel(2, "WantedDisguiseBlown");
 						m_bTempSeen = true;
 						m_bIsDisguised = false; // Disguise blown
 						
@@ -358,16 +384,12 @@ class OVT_PlayerWantedComponent: OVT_Component
 		aiworld.GetAIAgents(agents);
 		
 		vector pos = GetOwner().GetOrigin();
-    
-		float baseDistance = 5 + (m_fBaseDistanceSeenAt * m_PlayerData.stealthMultiplier);
 		
-		float distanceSeen = baseDistance;
-		
-		// Get stealth multiplier from player or recruit
-		float stealthMultiplier = 1.0;
+		// Cache stealth multiplier from player or recruit
+		m_fStealthMultiplier = 1.0;
 		if(m_PlayerData)
 		{
-			stealthMultiplier = m_PlayerData.stealthMultiplier;
+			m_fStealthMultiplier = m_PlayerData.stealthMultiplier;
 		}
 		else if(m_RecruitData)
 		{
@@ -375,11 +397,11 @@ class OVT_PlayerWantedComponent: OVT_Component
 			OVT_PlayerData ownerData = OVT_Global.GetPlayers().GetPlayer(m_RecruitData.m_sOwnerPersistentId);
 			if(ownerData)
 			{
-				stealthMultiplier = ownerData.stealthMultiplier;
+				m_fStealthMultiplier = ownerData.stealthMultiplier;
 			}
 		}
 		
-		float distanceSeen = 5 + (m_fBaseDistanceSeenAt * stealthMultiplier); 
+		float distanceSeen = 5 + (m_fBaseDistanceSeenAt * m_fStealthMultiplier); 
 		
 		foreach(AIAgent agent : agents)
 		{
@@ -411,7 +433,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 				float distanceToBase = vector.Distance(base.location, GetOwner().GetOrigin());
 				if(m_iWantedLevel < 2 && distanceToBase < OVT_Global.GetConfig().m_Difficulty.baseCloseRange && m_bTempSeen)
 				{
-					SetBaseWantedLevel(2);
+					SetBaseWantedLevel(2, "WantedBaseProximity");
 				}		
 			}
 			
@@ -421,7 +443,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 				float distanceToBase = vector.Distance(tower.location, GetOwner().GetOrigin());
 				if(m_iWantedLevel < 2 && distanceToBase < 20 && m_bTempSeen)
 				{
-					SetBaseWantedLevel(2);
+					SetBaseWantedLevel(2, "WantedBaseProximity");
 				}		
 			}
 		}
@@ -524,26 +546,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 			inVehicle = true;
 		}		
 		
-		float effectiveDetectionDistance = 10 * m_PlayerData.stealthMultiplier;
-		if(m_fVisualRecognitionFactor < 0.2 && dist > effectiveDetectionDistance && !inVehicle)
-    
-		// Get stealth multiplier for this check
-		float stealthMult = 1.0;
-		if(m_PlayerData)
-		{
-			stealthMult = m_PlayerData.stealthMultiplier;
-		}
-		else if(m_RecruitData)
-		{
-			// Recruits inherit stealth from their owner's skills
-			OVT_PlayerData ownerData = OVT_Global.GetPlayers().GetPlayer(m_RecruitData.m_sOwnerPersistentId);
-			if(ownerData)
-			{
-				stealthMult = ownerData.stealthMultiplier;
-			}
-		}
-		
-		if(m_fVisualRecognitionFactor < 0.2 && dist > (10 * stealthMult) && !inVehicle)
+		if(m_fVisualRecognitionFactor < 0.2 && dist > (10 * m_fStealthMultiplier) && !inVehicle)
 		{
 			//Definitely can't see you, but continue search
 			return true;
@@ -634,7 +637,22 @@ class OVT_PlayerWantedComponent: OVT_Component
 					
 					if(newLevel != m_iWantedLevel)
 					{
-						SetBaseWantedLevel(newLevel);						
+						// Determine notification reason based on why wanted level increased
+						string reason = "";
+						if (isHostileFaction)
+						{
+							reason = "WantedHostileFaction";
+						}
+						else if (IsVisiblyArmed())
+						{
+							reason = "WantedWeapon";
+						}
+						else if (inVehicle && newLevel >= 4)
+						{
+							reason = "WantedArmedVehicle";
+						}
+						
+						SetBaseWantedLevel(newLevel, reason);						
 					}
 					
 					//We can see and have checked this player, we don't need to continue the search

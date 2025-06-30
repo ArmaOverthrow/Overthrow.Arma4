@@ -6797,6 +6797,91 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A1B2C3D4E5F6789}" {
+   Id "OVT-Msg-WantedWeapon"
+   Target_en_us "You are now wanted for carrying a weapon!"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1733000000
+   Author "Claude AI"
+   LastChanged "Claude AI"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A1B2C3D4E5F678B}" {
+   Id "OVT-Msg-WantedHostileFaction"
+   Target_en_us "You are now wanted for wearing hostile faction uniform!"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1733000000
+   Author "Claude AI"
+   LastChanged "Claude AI"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A1B2C3D4E5F678D}" {
+   Id "OVT-Msg-WantedDisguiseBlown"
+   Target_en_us "Your disguise has been blown! You are now wanted!"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1733000000
+   Author "Claude AI"
+   LastChanged "Claude AI"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A1B2C3D4E5F678F}" {
+   Id "OVT-Msg-WantedBaseProximity"
+   Target_en_us "You are now wanted for being too close to an enemy base!"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1733000000
+   Author "Claude AI"
+   LastChanged "Claude AI"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A1B2C3D4E5F6791}" {
+   Id "OVT-Msg-WantedArmedVehicle"
+   Target_en_us "You are now wanted for operating an armed vehicle!"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1733000000
+   Author "Claude AI"
+   LastChanged "Claude AI"
+   ImageLink ""
+   Hidden 0
+  }
 
  }
 }
