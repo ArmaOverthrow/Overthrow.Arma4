@@ -22,12 +22,12 @@ OverlayWidgetClass {
      Name "WantedLevel"
      Slot FrameWidgetSlot "{5988DB08DC69F5F6}" {
       Anchor 1 0 1 0
-      PositionX -120
-      OffsetLeft -120
+      PositionX -110
+      OffsetLeft -110
       PositionY 10
       OffsetTop 10
       SizeX 100
-      OffsetRight 20
+      OffsetRight 10
       SizeY 30
       OffsetBottom -40
       Alignment 1 0
@@ -86,12 +86,12 @@ OverlayWidgetClass {
      Name "Seen"
      Slot FrameWidgetSlot "{5988DB08DC69F5CF}" {
       Anchor 1 0 1 0
-      PositionX -60
-      OffsetLeft -60
+      PositionX -52
+      OffsetLeft -52
       PositionY 10
       OffsetTop 10
       SizeX 100
-      OffsetRight -40
+      OffsetRight -48
       SizeY 30
       OffsetBottom -40
       Alignment 1 0
@@ -133,7 +133,7 @@ OverlayWidgetClass {
        }
        Texture "{C7691945DE01FB28}UI/Imagesets/overthrow_mapicons.imageset"
        Image "clothes"
-       Size 40 40
+       Size 38 38
       }
      }
     }

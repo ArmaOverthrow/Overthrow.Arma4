@@ -341,6 +341,10 @@ OVT_OverthrowGameMode {
    m_PlayerKickReasonsConfig SCR_ConfigurableDialogUiPresets "{5D7A443943FDACDA}" {
    }
   }
+  SCR_PerceivedFactionManagerComponent "{67890123ABCDEF01}" {
+   m_eCharacterPerceivedFactionOutfitType HIGHEST_VALUE
+   m_bNoOutfitFactionSetsDefaultFaction 1
+  }
   SCR_PlayerListedAdminManagerComponent "{6490AAF2138445FA}" {
   }
   SCR_PlayerProfileManagerComponent "{59724C8C935D8E14}" {
@@ -363,12 +367,6 @@ OVT_OverthrowGameMode {
   SCR_SupportStationManagerComponent "{5EE26402C9203074}" {
   }
   SCR_VotingManagerComponent "{5EE26402B4C7BB47}" {
-  }
-  SCR_PerceivedFactionManagerComponent "{67890123ABCDEF01}" {
-   m_eOutfitType HIGHEST_VALUE
-   m_fPunishment 0
-   m_bAIAffects 1
-   m_sFallbackFaction "CIV"
   }
   SerializerInventoryStorageManagerComponent "{5EE26402B9CEA8E5}" {
   }

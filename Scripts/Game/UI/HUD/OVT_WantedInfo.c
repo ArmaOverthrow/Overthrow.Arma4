@@ -11,7 +11,7 @@ class OVT_WantedInfo : SCR_InfoDisplay {
 	protected ImageWidget m_wUndercoverIcon = null;
 	protected Widget m_wUndercoverFrame = null;
 	
-	protected float m_fUpdateCounter = 0;
+	protected float m_fUpdateCounter = 1;
 	
 	protected void InitCharacter()
 	{
@@ -40,7 +40,7 @@ class OVT_WantedInfo : SCR_InfoDisplay {
 		{
 			InitCharacter();
 		}
-		if(m_fUpdateCounter > 1.0)
+		if(m_fUpdateCounter >= 1.0)
 		{
 			m_fUpdateCounter = 0;
 			UpdateWantedLevel();
@@ -129,11 +129,19 @@ class OVT_WantedInfo : SCR_InfoDisplay {
 		if (m_Wanted)
 		{
 			bool isDisguised = m_Wanted.IsDisguisedAsOccupying();
+			int wantedLevel = m_Wanted.GetWantedLevel();
 			
 			if (isDisguised)
 			{
-				// Blue icon for disguised as occupying faction
-				iconColor = Color.FromSRGBA(0, 100, 200, 255); // Blue color
+				// Red icon if wanted while disguised, blue if not wanted
+				if (wantedLevel > 0)
+				{
+					iconColor = Color.FromSRGBA(200, 50, 50, 255); // Red color - disguise compromised
+				}
+				else
+				{
+					iconColor = Color.FromSRGBA(0, 100, 200, 255); // Blue color - disguise active
+				}
 				showIcon = true;
 			}
 		}
@@ -142,38 +150,60 @@ class OVT_WantedInfo : SCR_InfoDisplay {
 			Print("[Overthrow] WARNING: m_Wanted is null!");
 		}
 		
-		// If not disguised, check normal faction
+		// If not disguised, check perceived faction
 		if (!showIcon && m_FactionAffiliation)
 		{
-			// Get current faction (not perceived - we want actual faction)
-			FactionAffiliationComponent factionComp = FactionAffiliationComponent.Cast(SCR_PlayerController.GetLocalControlledEntity().FindComponent(FactionAffiliationComponent));
-			if (factionComp)
+			// Check perceived faction first (what enemies see us as)
+			Faction perceivedFaction = m_FactionAffiliation.GetPerceivedFaction();
+			string factionKey = "";
+			
+			if (perceivedFaction)
 			{
-				Faction currentFaction = factionComp.GetAffiliatedFaction();
-				if (currentFaction)
+				factionKey = perceivedFaction.GetFactionKey();
+			}
+			else
+			{
+				// No perceived faction means we appear as civilian
+				factionKey = "CIV";
+			}
+			
+			// Set icon color based on current faction and wanted level
+			int wantedLevel = 0;
+			if (m_Wanted)
+			{
+				wantedLevel = m_Wanted.GetWantedLevel();
+			}
+			
+			if(factionKey == "CIV")
+			{
+				// Red if wanted or visibly armed, white if not
+				bool isArmed = false;
+				if (m_Wanted)
 				{
-					string factionKey = currentFaction.GetFactionKey();
-					
-					// Set icon color based on current faction
-					if(factionKey == "CIV")
-					{
-						// White icon for civilian
-						iconColor = Color.White;
-						showIcon = true;
-					}
-					else if(factionKey == occupyingFactionKey)
-					{
-						// Blue icon when actually part of occupying faction (disguised)
-						iconColor = Color.FromSRGBA(0, 100, 200, 255); // Blue color
-						showIcon = true;
-					}
-					else if(factionKey == playerFactionKey || factionKey == supportingFactionKey)
-					{
-						// Red icon for FIA/resistance or supporting faction
-						iconColor = Color.FromSRGBA(200, 50, 50, 255); // Red color
-						showIcon = true;
-					}
+					isArmed = m_Wanted.IsVisiblyArmed();
 				}
+				if (wantedLevel > 0 || isArmed)
+				{
+					iconColor = Color.FromSRGBA(200, 50, 50, 255); // Red color - wanted or armed
+				}
+				else
+				{
+					iconColor = Color.White; // White - normal civilian
+				}
+				showIcon = true;
+			}
+			else if(factionKey == occupyingFactionKey)
+			{
+				// This shouldn't happen unless disguised (handled above)
+				// But just in case, show blue
+				iconColor = Color.FromSRGBA(0, 100, 200, 255); // Blue color
+				showIcon = true;
+			}
+			else if(factionKey == playerFactionKey || factionKey == supportingFactionKey)
+			{
+				// Always red for FIA/resistance or supporting faction
+				iconColor = Color.FromSRGBA(200, 50, 50, 255); // Red color
+				showIcon = true;
 			}
 		}
 		

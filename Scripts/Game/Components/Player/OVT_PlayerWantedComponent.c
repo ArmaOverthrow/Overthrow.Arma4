@@ -83,9 +83,32 @@ class OVT_PlayerWantedComponent: OVT_Component
 		return perceivedFaction.GetFactionKey() == OVT_Global.GetConfig().GetPlayerFaction().GetFactionKey();
 	}
 	
+	//! Check if player is disguised as supporting faction
+	bool IsDisguisedAsSupporting()
+	{
+		if (!m_CharacterFaction)
+			return false;
+			
+		Faction perceivedFaction = m_CharacterFaction.GetPerceivedFaction();
+		if (!perceivedFaction)
+			return false;
+			
+		return perceivedFaction.GetFactionKey() == OVT_Global.GetConfig().GetSupportingFaction().GetFactionKey();
+	}
+	
 	bool IsSeen()
 	{
 		return m_bIsSeen;
+	}
+	
+	//! Check if player is visibly carrying a weapon
+	bool IsVisiblyArmed()
+	{
+		if (!m_Weapon)
+			return false;
+			
+		BaseWeaponComponent weapon = m_Weapon.GetCurrentWeapon();
+		return weapon != null;
 	}
 	
 	override void OnPostInit(IEntity owner)
@@ -203,6 +226,22 @@ class OVT_PlayerWantedComponent: OVT_Component
 						SetBaseWantedLevel(2);
 						m_bTempSeen = true;
 						m_bIsDisguised = false; // Disguise blown
+						
+						// Force faction change immediately when disguise is blown
+						// This ensures AI will attack even though player still wears enemy uniform
+						if(OVT_Global.GetConfig().m_sPlayerFaction.IsEmpty()) 
+							OVT_Global.GetConfig().m_sPlayerFaction = "FIA";
+						m_Faction.SetAffiliatedFactionByKey(OVT_Global.GetConfig().m_sPlayerFaction);
+						
+						// Override perceived faction to ensure AI sees us as enemy
+						if (m_Percieve)
+						{
+							FactionManager factionMgr = GetGame().GetFactionManager();
+							Faction playerFaction = factionMgr.GetFactionByKey(OVT_Global.GetConfig().m_sPlayerFaction);
+							if (playerFaction)
+								m_Percieve.SetPerceivedFactionOverride(playerFaction);
+						}
+						
 						RecordSuspiciousActivity("DISGUISE_BLOWN", pos);
 						return;
 					}
@@ -290,17 +329,8 @@ class OVT_PlayerWantedComponent: OVT_Component
 			}
 		}
 		
-		if (skipNormalDetection)
-		{
-			// When disguised, we still need to update the seen status
-			// but we skip normal long-range detection
-			if(m_bTempSeen != m_bIsSeen)
-			{
-				m_bIsSeen = m_bTempSeen;
-				Replication.BumpMe();
-			}
-			return;
-		}
+		// Always run normal detection to update m_bTempSeen for visibility indicator
+		// Even when disguised, players should see if they're being watched
 		
 		//GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), 250, CheckEntity, FilterEntities, EQueryEntitiesFlags.DYNAMIC);
 		
@@ -335,24 +365,28 @@ class OVT_PlayerWantedComponent: OVT_Component
 			}
 		}		
 						
-		OVT_BaseData base = OVT_Global.GetOccupyingFaction().GetNearestBase(GetOwner().GetOrigin());
-		if(base && base.IsOccupyingFaction())
+		// Only increase wanted level for base/tower proximity if not disguised
+		if (!m_bIsDisguised)
 		{
-			float distanceToBase = vector.Distance(base.location, GetOwner().GetOrigin());
-			if(m_iWantedLevel < 2 && distanceToBase < OVT_Global.GetConfig().m_Difficulty.baseCloseRange && m_bTempSeen)
+			OVT_BaseData base = OVT_Global.GetOccupyingFaction().GetNearestBase(GetOwner().GetOrigin());
+			if(base && base.IsOccupyingFaction())
 			{
-				SetBaseWantedLevel(2);
-			}		
-		}
-		
-		OVT_RadioTowerData tower = OVT_Global.GetOccupyingFaction().GetNearestRadioTower(GetOwner().GetOrigin());
-		if(tower && tower.IsOccupyingFaction())
-		{
-			float distanceToBase = vector.Distance(tower.location, GetOwner().GetOrigin());
-			if(m_iWantedLevel < 2 && distanceToBase < 20 && m_bTempSeen)
+				float distanceToBase = vector.Distance(base.location, GetOwner().GetOrigin());
+				if(m_iWantedLevel < 2 && distanceToBase < OVT_Global.GetConfig().m_Difficulty.baseCloseRange && m_bTempSeen)
+				{
+					SetBaseWantedLevel(2);
+				}		
+			}
+			
+			OVT_RadioTowerData tower = OVT_Global.GetOccupyingFaction().GetNearestRadioTower(GetOwner().GetOrigin());
+			if(tower && tower.IsOccupyingFaction())
 			{
-				SetBaseWantedLevel(2);
-			}		
+				float distanceToBase = vector.Distance(tower.location, GetOwner().GetOrigin());
+				if(m_iWantedLevel < 2 && distanceToBase < 20 && m_bTempSeen)
+				{
+					SetBaseWantedLevel(2);
+				}		
+			}
 		}
 		
 		//Print("Last seen is: " + m_iLastSeen);
@@ -372,7 +406,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 					m_iWantedTimer = OVT_Global.GetConfig().m_Difficulty.wantedOneTimeout;
 				}
 			}
-		}else if(m_iWantedLevel == 1 && m_bTempSeen) {
+		}else if(m_iWantedLevel == 1 && m_bTempSeen && !m_bIsDisguised) {
 			SetWantedLevel(2);			
 		}
 		
@@ -393,13 +427,18 @@ class OVT_PlayerWantedComponent: OVT_Component
 		// Handle faction changes based on wanted level and disguise
 		bool isDisguised = IsDisguisedAsOccupying();
 		
-		if (isDisguised)
+		if (isDisguised && m_iWantedLevel < 2)
 		{
-			// When disguised, temporarily set faction to prevent AI hostility
+			// When disguised and not wanted, temporarily set faction to prevent AI hostility
 			string occupyingFaction = OVT_Global.GetConfig().m_sOccupyingFaction;
 			if (factionKey != occupyingFaction)
 			{
 				m_Faction.SetAffiliatedFactionByKey(occupyingFaction);
+			}
+			// Clear any perceived faction override only when safe (not seen and wanted level 0)
+			if (m_Percieve && m_iWantedLevel == 0 && !m_bIsSeen)
+			{
+				m_Percieve.SetPerceivedFactionOverride(null);
 			}
 		}
 		else if(m_iWantedLevel > 1 && factionKey == "CIV")
@@ -413,6 +452,11 @@ class OVT_PlayerWantedComponent: OVT_Component
 		{
 			// When not wanted and not disguised, return to civilian
 			m_Faction.SetAffiliatedFactionByKey("CIV");
+			// Clear any perceived faction override only when safe (not seen and wanted level 0)
+			if (m_Percieve && m_iWantedLevel == 0 && !m_bIsSeen)
+			{
+				m_Percieve.SetPerceivedFactionOverride(null);
+			}
 		}
 		
 	}
@@ -477,21 +521,37 @@ class OVT_PlayerWantedComponent: OVT_Component
 					}
 				}
 				
-				if(m_bTempSeen)
-				{					
-					if (m_Weapon)
+				if(m_bTempSeen && !m_bIsDisguised)
+				{
+					// Check if player is perceived as hostile faction first
+					bool isHostileFaction = false;
+					if (m_CharacterFaction)
 					{
-						BaseWeaponComponent weapon = m_Weapon.GetCurrentWeapon();
-						if(weapon){
-							Print(weapon);
-							//Player is brandishing a weapon
-							Print("Weapon");
-							newLevel = 2;
+						Faction perceivedFaction = m_CharacterFaction.GetPerceivedFaction();
+						if (perceivedFaction)
+						{
+							string perceivedKey = perceivedFaction.GetFactionKey();
+							string playerFactionKey = OVT_Global.GetConfig().GetPlayerFaction().GetFactionKey();
+							string supportingFactionKey = OVT_Global.GetConfig().GetSupportingFaction().GetFactionKey();
+							
+							if (perceivedKey == playerFactionKey || perceivedKey == supportingFactionKey)
+							{
+								isHostileFaction = true;
+								newLevel = 2; // Instant wanted level 2 for hostile faction
+							}
 						}
+					}
+					
+					// Only check weapons if not already wanted for being hostile faction
+					if (!isHostileFaction && IsVisiblyArmed())
+					{
+						//Player is brandishing a weapon
+						newLevel = 2;
 					}	
 					//To-Do: check for illegal attire (uniforms, etc)
 					
-					if(inVehicle)
+					// Only check vehicle if not already wanted for being hostile faction
+					if (!isHostileFaction && inVehicle)
 					{
 						IEntity veh = m_Compartment.GetVehicle();
 						if(veh){
