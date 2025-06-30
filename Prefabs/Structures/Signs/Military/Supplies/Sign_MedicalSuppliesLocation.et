@@ -1,0 +1,35 @@
+GenericEntity : "{1FF9F2538A23172B}Prefabs/Structures/Signs/Military/Supplies/Sign_SupplyStorage_02_Hospital_Base.et" {
+ ID "50D67C36F4200F97"
+ components {
+  EPF_PersistenceComponent "{65B90A2DF9A3B16A}" {
+   Enabled 0
+  }
+  InventoryItemComponent "{5E9697F253F88D41}" {
+   Enabled 0
+   Attributes SCR_ItemAttributeCollection "{5E9697F25AD51313}" {
+    ItemDisplayName SCR_InventoryUIInfo "{5E329893CBDBB1E3}" {
+     Name "#AR-Supplies_Storage_Hospital_US_Name"
+     Description "#AR-Supplies_Storage_Hospital_US_Description"
+    }
+   }
+  }
+  MeshObject "{54969A6AAAADA251}" {
+   Materials {
+    MaterialAssignClass "{65BD30BCADAE3086}" {
+     SourceMaterial "SignRectangle_01_140x100"
+     AssignedMaterial "{DDC92161249051E0}Assets/Signs/Sign_Medical_Supply_01.emat"
+    }
+    MaterialAssignClass "{65BD30BCADAE317A}" {
+     SourceMaterial "SignRectangle_01_140x100_MLOD"
+     AssignedMaterial "{081A32584025F42B}Assets/Signs/Sign_Medical_Supply_Dropoff.emat"
+    }
+   }
+  }
+  SCR_ResourceComponent "{5E3298BE225F0743}" {
+   Enabled 0
+  }
+  ActionsManagerComponent "{5E3298BE3694CAAB}" {
+   Enabled 0
+  }
+ }
+}

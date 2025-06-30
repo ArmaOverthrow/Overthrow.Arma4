@@ -613,7 +613,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		Print("[Overthrow] Initializing Overthrow");
 		
 		//Find fallback spawn positions
-		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, null, FilterHomePosEntities, EQueryEntitiesFlags.STATIC);
+		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, FilterHomePosEntities, null, EQueryEntitiesFlags.STATIC);
 		
 		Print(string.Format("[Overthrow] Found %1 fallback home spawns", m_aFallbackSpawnPositions.Count().ToString()));
 
@@ -741,10 +741,9 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		if(pos)
 		{
 			m_aFallbackSpawnPositions.Insert(entity);
-			return true;
 		}
 
-		return false;
+		return true;
 	}
 	
 	//------------------------------------------------------------------------------------------------

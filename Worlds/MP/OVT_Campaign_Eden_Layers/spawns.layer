@@ -5,4 +5,7 @@ $grp OVT_FallbackHomePos : "{B06F0465F862CA4C}Prefabs/GameMode/OVT_FallbackHomeP
  {
   coords 4823.104 169.782 6967.794
  }
+ {
+  coords 9704.37 12.063 1563.14
+ }
 }

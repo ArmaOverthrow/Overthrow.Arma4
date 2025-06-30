@@ -1,0 +1,228 @@
+$grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.et" {
+ Town_StPhillipe {
+  components {
+   OVT_TownControllerComponent "{59908365ED5E1344}" {
+    m_sName "#AR-MapLocation_StPhillipe"
+    m_Size CITY
+    m_iPopulation 283
+    m_iTownRange 300
+   }
+  }
+  coords 4442.495 10.965 10761.012
+  angleY -26.483
+ }
+ Town_Meaux {
+  components {
+   OVT_TownControllerComponent "{59908365ED5E1344}" {
+    m_sName "#AR-MapLocation_Meaux"
+    m_Size TOWN
+    m_iPopulation 64
+    m_iTownRange 170
+   }
+  }
+  coords 4520.712 14.228 9471.291
+ }
+ Town_Tyrone {
+  components {
+   OVT_TownControllerComponent "{59908365ED5E1344}" {
+    m_sName "#AR-MapLocation_Tyrone"
+    m_iPopulation 38
+    m_iTownRange 100
+   }
+  }
+  coords 4927.087 36.393 9083.621
+  angleY -58.507
+ }
+ Town_Gravette {
+  components {
+   OVT_TownControllerComponent "{59908365ED5E1344}" {
+    m_sName "#AR-MapLocation_Gravette"
+    m_iPopulation 27
+    m_iTownRange 120
+   }
+  }
+  coords 4127 35.563 7799.027
+  angleY 164.443
+ }
+ Town_Montignac {
+  components {
+   OVT_TownControllerComponent "{59908365ED5E1344}" {
+    m_sName "#AR-MapLocation_Montignac"
+    m_Size CITY
+    m_iPopulation 147
+    m_iTownRange 300
+   }
+  }
+  coords 4788.69 163.389 7113.211
+  angleY 62.909
+ }
+ Town_Villeneuve {
+  components {
+   OVT_TownControllerComponent "{59908365ED5E1344}" {
+    m_sName "#AR-MapLocation_Villeneuf"
+    m_iPopulation 45
+    m_iTownRange 110
+   }
+  }
+  coords 2858.224 86.734 6345.545
+  angleY -102.087
+ }
+ Town_LeMoule {
+  components {
+   OVT_TownControllerComponent "{59908365ED5E1344}" {
+    m_sName "#AR-MapLocation_LeMoule"
+    m_iPopulation 31
+    m_iTownRange 213
+   }
+  }
+  coords 2604.95 92.264 5387.095
+  angleY 127.35
+ }
+ Town_Morton {
+  components {
+   OVT_TownControllerComponent "{59908365ED5E1344}" {
+    m_sName "#AR-MapLocation_Morton"
+    m_Size TOWN
+    m_iPopulation 96
+    m_iTownRange 260
+   }
+  }
+  coords 5135.043 14.586 4028.731
+  angleY -19.967
+ }
+ Town_Lamentin {
+  components {
+   OVT_TownControllerComponent "{59908365ED5E1344}" {
+    m_sName "#AR-MapLocation_Lamentin"
+    m_Size TOWN
+    m_iPopulation 104
+    m_iTownRange 220
+   }
+  }
+  coords 1272.44 37.449 5926.417
+  angleY 50.923
+ }
+ Town_Figari {
+  components {
+   OVT_TownControllerComponent "{59908365ED5E1344}" {
+    m_sName "#AR-MapLocation_Figari"
+    m_iPopulation 53
+    m_iTownRange 150
+   }
+  }
+  coords 5256.276 64.281 5322.948
+  angleY -152.175
+ }
+ Town_Provins {
+  components {
+   OVT_TownControllerComponent "{59908365ED5E1344}" {
+    m_sName "#AR-MapLocation_Provins"
+    m_iPopulation 28
+    m_iTownRange 110
+   }
+  }
+  coords 5502.828 95.612 6076.546
+  angleY 29.327
+ }
+ Town_EntreDeux {
+  components {
+   OVT_TownControllerComponent "{59908365ED5E1344}" {
+    m_sName "#AR-MapLocation_EntreDeux"
+    m_iPopulation 44
+    m_iTownRange 130
+   }
+  }
+  coords 5754.916 217.74 7062.12
+  angleY 8.632
+ }
+ Town_Chotain {
+  components {
+   OVT_TownControllerComponent "{59908365ED5E1344}" {
+    m_sName "#AR-MapLocation_Chotain"
+    m_iPopulation 43
+    m_iTownRange 130
+   }
+  }
+  coords 7076.712 118.796 6023.646
+  angleY -30.718
+ }
+ Town_Laruns {
+  components {
+   OVT_TownControllerComponent "{59908365ED5E1344}" {
+    m_sName "#AR-MapLocation_Laruns"
+    m_iPopulation 43
+    m_iTownRange 105
+   }
+  }
+  coords 7562.082 82.706 5536.986
+  angleY -42.484
+ }
+ Town_Levie {
+  components {
+   OVT_TownControllerComponent "{59908365ED5E1344}" {
+    m_sName "#AR-MapLocation_Levie"
+    m_Size TOWN
+    m_iPopulation 62
+    m_iTownRange 180
+   }
+  }
+  coords 7490.123 137.56 4729.356
+  angleY -87.587
+ }
+ Town_Durras {
+  components {
+   OVT_TownControllerComponent "{59908365ED5E1344}" {
+    m_sName "#AR-MapLocation_Durras"
+    m_iPopulation 42
+    m_iTownRange 110
+   }
+  }
+  coords 8826.591 94.724 2756.529
+  angleY -109.02
+ }
+ Town_Vernon {
+  components {
+   OVT_TownControllerComponent "{59908365ED5E1344}" {
+    m_sName "#AR-MapLocation_Vernon"
+    m_iPopulation 29
+    m_iTownRange 105
+   }
+  }
+  coords 9252.985 58.555 2071.683
+  angleY 22.94
+ }
+ Town_StPierre {
+  components {
+   OVT_TownControllerComponent "{59908365ED5E1344}" {
+    m_sName "#AR-MapLocation_StPierre"
+    m_Size CITY
+    m_iPopulation 174
+    m_iTownRange 350
+   }
+  }
+  coords 9697.526 12.78 1548.97
+  angleY 45.41
+ }
+ Town_Erquy {
+  components {
+   OVT_TownControllerComponent "{59908365ED5E1344}" {
+    m_sName "#AR-MapLocation_Erquy"
+    m_iPopulation 38
+    m_iTownRange 100
+   }
+  }
+  coords 10925.94 24.889 11703.107
+  angleY -126.918
+ }
+ Town_Regina {
+  components {
+   OVT_TownControllerComponent "{59908365ED5E1344}" {
+    m_sName "#AR-MapLocation_Regina"
+    m_iPopulation 34
+    m_iTownRange 140
+   }
+  }
+  coords 7189.877 137.254 2344.089
+  angleY -103.743
+ }
+}

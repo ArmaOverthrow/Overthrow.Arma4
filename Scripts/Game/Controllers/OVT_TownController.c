@@ -4,6 +4,18 @@ class OVT_TownControllerComponentClass: OVT_ComponentClass
 
 class OVT_TownControllerComponent: OVT_Component
 {
+	[Attribute("")]
+	string m_sName;
+	
+	[Attribute("1", UIWidgets.ComboBox, "Town size", "", ParamEnumArray.FromEnum(OVT_TownSize) )]
+	OVT_TownSize m_Size;	
+		
+	[Attribute("400", desc:"Target population, and population at game start")]
+	int m_iPopulation;
+	
+	[Attribute("800", desc:"Range to spawn civilians")]
+	int m_iTownRange;
+	
 	protected OVT_TownManagerComponent m_TownManager;
 	protected OVT_EconomyManagerComponent m_Economy;
 	protected OVT_TownData m_Town;
@@ -77,9 +89,9 @@ class OVT_TownControllerComponent: OVT_Component
 
 	protected void SpawnCivilian()
 	{
-		vector spawnPosition = OVT_Global.GetRandomNonOceanPositionNear(m_Town.location, m_TownManager.GetTownRange(m_Town));
+		vector spawnPosition = OVT_Global.GetRandomNonOceanPositionNear(m_Town.location, m_iTownRange);
 
-		vector targetPos = OVT_Global.GetRandomNonOceanPositionNear(m_Town.location, m_TownManager.GetTownRange(m_Town));
+		vector targetPos = OVT_Global.GetRandomNonOceanPositionNear(m_Town.location, m_iTownRange);
 		targetPos = OVT_Global.FindNearestRoad(targetPos);
 		
 		BaseWorld world = GetGame().GetWorld();

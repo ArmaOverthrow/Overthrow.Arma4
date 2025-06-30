@@ -1,0 +1,19 @@
+$grp GenericEntity : "{7FCD4E7C25D886A8}Prefabs/Structures/Signs/Traffic/SignBusStop_01.et" {
+ SignBusStop_01_65BD30A3304F7747 {
+  coords 1140.66 42.33 11509.643
+ }
+ SignBusStop_01_65BD30A378782580 {
+  coords 10929.944 24.978 11697.396
+  angleY -38.064
+ }
+ SignBusStop_01_65BD30A314D0B20A {
+  coords 10834.053 8.182 8718.068
+ }
+ SignBusStop_01_65BD30A303284769 {
+  coords 3151.943 2.963 2151.121
+ }
+ SignBusStop_01_65BD30A325B4F141 {
+  coords 2909.509 6.713 2171.141
+  angleY -87.137
+ }
+}
