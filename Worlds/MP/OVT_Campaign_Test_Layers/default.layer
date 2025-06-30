@@ -496,6 +496,9 @@ Tree : "{AED5759B653DF6D0}Prefabs/Vegetation/Bush/b_rosa_canina_1s.et" {
 Tree : "{AF4BFBE29028A9FD}Prefabs/Vegetation/Bush/b_corylus_avellana_1l.et" {
  coords 182.406 0.001 117.203
 }
+OVT_FallbackHomePos : "{B06F0465F862CA4C}Prefabs/GameMode/OVT_FallbackHomePos.et" {
+ coords 212.4 1 109.191
+}
 EnvironmentProbeEntity : "{B6B6A21399C5571B}Prefabs/World/DefaultWorld/EnvProbe_Default.et" {
  coords 112.285 2.18 89.264
 }

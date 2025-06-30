@@ -14,6 +14,9 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	//! Prefab resource for the camera used for the single player menu at the start of the game.
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Start Camera Prefab", params: "et")]
 	ResourceName m_StartCameraPrefab;
+	
+	//! Array of fallback home positions if no houses are available
+	protected ref array<IEntity> m_aFallbackSpawnPositions = {};
 
 	//! Reference to the Overthrow configuration component.
 	protected OVT_OverthrowConfigComponent m_Config;
@@ -344,54 +347,37 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 
 	}
 	
-	//! Array to store references to bus stop entities (currently unused).
-	protected ref array<IEntity> m_BusStops = {};
-		
-	//! Predefined locations for potential bus stop spawns.
-	protected ref array<vector> m_HardcodedBusStopLocations = {
-	    "4413.912 12.042 10687.312", 
-	    "4824.945 169.693 6968.863", 
-	    "9706.01 12.132 1565.451"
-	};
 	
 	//------------------------------------------------------------------------------------------------
-	//! Selects a random bus stop location from the hardcoded list.
-	//! \\return A random vector position from m_HardcodedBusStopLocations, or vector.Zero if the list is empty.
-	protected vector GetRandomHardcodedBusStop()
+	//! Selects a random fallback location from the detected list.
+	//! \\return A random vector position from m_aFallbackSpawnPositions, or vector.Zero if the list is empty.
+	protected vector GetRandomFallbackPosition()
 	{
-	    if (m_HardcodedBusStopLocations.Count() > 0)
+	    if (m_aFallbackSpawnPositions.Count() > 0)
 	    {
-	        int randomIndex = s_AIRandomGenerator.RandInt(0, m_HardcodedBusStopLocations.Count() - 1);
-	        return m_HardcodedBusStopLocations[randomIndex];
+	        int randomIndex = s_AIRandomGenerator.RandInt(0, m_aFallbackSpawnPositions.Count() - 1);
+	        return m_aFallbackSpawnPositions[randomIndex].GetOrigin();
 	    }
 	
-	    return vector.Zero; // No hardcoded bus stops found
+	    return vector.Zero;
 	}
-	 vector spawnLocation
 	
 	//------------------------------------------------------------------------------------------------
 	//! Spawns a player at a randomly selected hardcoded bus stop location.
 	//! If no hardcoded locations exist, attempts to spawn at the first available town center.
 	//! \\param[in] playerId The ID of the player to spawn.
-	void SpawnPlayerAtBusStop(int playerId)
+	void SpawnPlayerAtFallbackPosition(int playerId)
 	{
-			spawnLocation = GetRandomHardcodedBusStop();
+			vector spawnLocation = GetRandomFallbackPosition();
 			if (spawnLocation != vector.Zero)
 			{
-			    Print("[Overthrow] Spawning player at hard Coded bus stop: " + spawnLocation.ToString());
+			    Print("[Overthrow] Spawning player at fallback position: " + spawnLocation.ToString());
 			    m_RealEstate.SetHomePos(playerId, spawnLocation);
 			}
 			else
 			 {
-		       	Print("[Overthrow] No bus stops found. Using fallback.");
-		        foreach (OVT_TownData town : m_TownManager.m_Towns)
-		        {
-		            if (town)
-		            {
-		                m_RealEstate.SetHomePos(playerId, town.location);
-		                break;
-		            }
-		        }
+		       	Print("[Overthrow] No bus stops found. Use current town center");
+		        m_RealEstate.SetHomePos(playerId, m_TownManager.m_Towns[m_RealEstate.m_iStartingTownId].location);
 	    	}
 		
 
@@ -408,6 +394,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		if(SCR_Global.IsAdminRole(roleFlags))
 		{
 			string persId = m_PlayerManager.GetPersistentIDFromPlayerID(playerId);
+			if(persId == "") return;
 			OVT_PlayerData player = m_PlayerManager.GetPlayer(persId);
 			if(!player) return;
 			if(!player.isOfficer)
@@ -500,7 +487,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	        {
 	            // No starting houses available, spawn at a bus stop
 	            Print("[Overthrow] No Starting homes left. Spawning at bus stop.");
-	            SpawnPlayerAtBusStop(playerId);
+	            SpawnPlayerAtFallbackPosition(playerId);
 	        }
 	        else
 	        {
@@ -624,6 +611,11 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			return;
 
 		Print("[Overthrow] Initializing Overthrow");
+		
+		//Find fallback spawn positions
+		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, null, FilterHomePosEntities, EQueryEntitiesFlags.STATIC);
+		
+		Print(string.Format("[Overthrow] Found %1 fallback home spawns", m_aFallbackSpawnPositions.Count().ToString()));
 
 		OVT_Global.GetConfig() = OVT_Global.GetConfig();
 		m_PlayerManager = OVT_PlayerManagerComponent.Cast(FindComponent(OVT_PlayerManagerComponent));
@@ -741,6 +733,18 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		{
 			Print("[Overthrow] Initializing Perceived Faction Manager");
 		}
+	}
+	
+	bool FilterHomePosEntities(IEntity entity)
+	{
+		OVT_FallbackHomePos pos = OVT_FallbackHomePos.Cast(entity);
+		if(pos)
+		{
+			m_aFallbackSpawnPositions.Insert(entity);
+			return true;
+		}
+
+		return false;
 	}
 	
 	//------------------------------------------------------------------------------------------------
