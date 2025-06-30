@@ -297,21 +297,16 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 
 		if(DiagMenu.GetValue(254))
 		{
-			OVT_Global.GetOccupyingFaction().WinBattle();
+			vector origin = SCR_PlayerController.GetLocalControlledEntity().GetOrigin();
+			int playerId = SCR_PlayerController.GetLocalPlayerId();
+
+			OVT_Global.GetServer().InstantCaptureBase(origin, playerId);
 			DiagMenu.SetValue(254,0);
 		}
 
 		if(DiagMenu.GetValue(255))
 		{
-			foreach(OVT_TownData town : m_TownManager.m_Towns)
-			{
-				int townID = OVT_Global.GetTowns().GetTownID(town);
-				m_TownManager.TryAddSupportModifierByName(townID, "RecruitmentPosters");
-				m_TownManager.TryAddSupportModifierByName(townID, "RecruitmentPosters");
-				m_TownManager.TryAddSupportModifierByName(townID, "RecruitmentPosters");
-				m_TownManager.TryAddSupportModifierByName(townID, "RecruitmentPosters");
-				m_TownManager.TryAddSupportModifierByName(townID, "RecruitmentPosters");
-			}
+			OVT_Global.GetSkills().GiveXP(SCR_PlayerController.GetLocalPlayerId(),100);
 			DiagMenu.SetValue(255,0);
 		}
 
@@ -597,22 +592,22 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		m_aInitializedPlayers = new set<string>;
 		m_aHintedPlayers = new set<string>;
 
-		// Register Overthrow cheat menu with IDs 250-255 (safe range under 256 limit)
-		DiagMenu.RegisterMenu(250, "Overthrow", "Overthrow Cheats");
-		
-		DiagMenu.RegisterBool(251, "lctrl+lalt+g", "Give $1000", "Overthrow");
+		DiagMenu.RegisterBool(250, "lctrl+lalt+g", "Give $1000", "Overthrow");
+		DiagMenu.SetValue(250, 0);
+
+		DiagMenu.RegisterBool(251, "lctrl+lalt+s", "Give 100% support", "Overthrow");
 		DiagMenu.SetValue(251, 0);
 
-		DiagMenu.RegisterBool(252, "lctrl+lalt+s", "Give 100% support", "Overthrow");
+		DiagMenu.RegisterBool(252, "lctrl+lalt+c", "Capture Town", "Overthrow");
 		DiagMenu.SetValue(252, 0);
 
-		DiagMenu.RegisterBool(253, "lctrl+lalt+c", "Capture Town", "Overthrow");
+		DiagMenu.RegisterBool(253, "lctrl+lalt+w", "Win Battle", "Overthrow");
 		DiagMenu.SetValue(253, 0);
 
-		DiagMenu.RegisterBool(254, "lctrl+lalt+w", "Win Battle", "Overthrow");
+		DiagMenu.RegisterBool(254, "lctrl+lalt+r", "Capture Nearest Base", "Overthrow");
 		DiagMenu.SetValue(254, 0);
 
-		DiagMenu.RegisterBool(255, "lctrl+lalt+r", "Poster all towns", "Overthrow");
+		DiagMenu.RegisterBool(255, "lctrl+lalt+x", "Give 100 XP", "Overthrow");
 		DiagMenu.SetValue(255, 0);
 
 		if(SCR_Global.IsEditMode())

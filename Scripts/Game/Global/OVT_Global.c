@@ -9,6 +9,12 @@ class OVT_Global : Managed
 		IEntity player = SCR_PlayerController.GetLocalControlledEntity();
 		return OVT_PlayerCommsComponent.Cast(player.FindComponent(OVT_PlayerCommsComponent));
 	}
+
+	static OVT_UIManagerComponent GetUI()
+	{	
+		IEntity player = SCR_PlayerController.GetLocalControlledEntity();
+		return OVT_UIManagerComponent.Cast(player.FindComponent(OVT_UIManagerComponent));
+	}
 	
 	static OVT_OverthrowGameMode GetOverthrow()
 	{

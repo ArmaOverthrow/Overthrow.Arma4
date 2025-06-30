@@ -4,5 +4,6 @@ reforger_classes.json
 __pycache__
 .claude/settings.local.json
 CLAUDE.md
+GEMINI.md
 claude.bat
 claude.sh
