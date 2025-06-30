@@ -371,9 +371,6 @@ OVT_OverthrowGameMode {
   }
   SCR_SupportStationManagerComponent "{5EE26402C9203074}" {
   }
-  SCR_TimeAndWeatherHandlerComponent "{5EE26402AC31F891}" {
-   m_bRandomWeatherChanges 1
-  }
   SCR_VotingManagerComponent "{5EE26402B4C7BB47}" {
   }
   SerializerInventoryStorageManagerComponent "{5EE26402B9CEA8E5}" {

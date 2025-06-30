@@ -152,7 +152,12 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 	void Init(IEntity owner)
 	{
-		if(!Replication.IsServer()) return;
+		if(!Replication.IsServer()) 
+		{
+			// On clients, set up base faction affiliations after JIP data is loaded
+			GetGame().GetCallqueue().CallLater(SetClientBaseFactions, 1000);
+			return;
+		}
 
 		Faction playerFaction = GetGame().GetFactionManager().GetFactionByKey(m_Config.m_sPlayerFaction);
 		m_iPlayerFactionIndex = GetGame().GetFactionManager().GetFactionIndex(playerFaction);
@@ -163,6 +168,45 @@ class OVT_OccupyingFactionManager: OVT_Component
 		OVT_Global.GetTowns().m_OnTownControlChange.Insert(OnTownControlChanged);
 
 		InitializeBases();
+	}
+	
+	void SetClientBaseFactions()
+	{
+		if (Replication.IsServer()) return;
+		
+		// Iterate through all bases and set their faction affiliations on the client
+		foreach (OVT_BaseData base : m_Bases)
+		{
+			BaseWorld world = GetOwner().GetWorld();
+			world.QueryEntitiesBySphere(base.location, 5, CheckBaseAndSetFaction, null, EQueryEntitiesFlags.STATIC);
+		}
+	}
+	
+	bool CheckBaseAndSetFaction(IEntity entity)
+	{
+		OVT_BaseControllerComponent baseController = OVT_BaseControllerComponent.Cast(entity.FindComponent(OVT_BaseControllerComponent));
+		if (!baseController) return true;
+		
+		//Initialize the base controller for the client
+		baseController.InitBaseClient();		
+		
+		// Find the base data for this location
+		OVT_BaseData baseData = GetNearestBase(entity.GetOrigin());
+		if (!baseData) return true;
+		
+		// Set the faction affiliation
+		SCR_FactionAffiliationComponent affiliation = EPF_Component<SCR_FactionAffiliationComponent>.Find(entity);
+		if (affiliation)
+		{
+			FactionManager factionManager = GetGame().GetFactionManager();
+			Faction faction = factionManager.GetFactionByIndex(baseData.faction);
+			if (faction)
+			{
+				affiliation.SetAffiliatedFaction(faction);
+			}
+		}
+		
+		return true;
 	}
 
 	void NewGameStart()
@@ -525,20 +569,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 	{
 		if(m_CurrentQRF.m_iWinningFaction != m_CurrentQRFBase.GetControllingFaction())
 		{
-			string townName = OVT_Global.GetTowns().GetTownName(m_CurrentQRFBase.GetOwner().GetOrigin());
-			if(m_CurrentQRFBase.IsOccupyingFaction())
-			{
-				m_iThreat += 250;
-				OVT_Global.GetNotify().SendTextNotification("BaseControlledResistance",-1,townName);
-				OVT_Global.GetNotify().SendExternalNotifications("BaseControlledResistance",townName);
-			}else{
-				m_iThreat -= 250;
-				OVT_Global.GetNotify().SendTextNotification("BaseControlledOccupying",-1,townName);
-				OVT_Global.GetNotify().SendExternalNotifications("BaseControlledOccupying",townName);
-			}			
-			m_Bases[m_iCurrentQRFBase].faction = m_CurrentQRF.m_iWinningFaction;
-			m_CurrentQRFBase.SetControllingFaction(m_CurrentQRF.m_iWinningFaction);
-			Rpc(RpcDo_SetBaseFaction, m_iCurrentQRFBase, m_CurrentQRF.m_iWinningFaction);
+			ChangeBaseControl(m_CurrentQRFBase, m_CurrentQRF.m_iWinningFaction);
 		}
 
 		SCR_EntityHelper.DeleteEntityAndChildren(m_CurrentQRF.GetOwner());
@@ -549,6 +580,28 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_iCurrentQRFTown = -1;
 
 		Rpc(RpcDo_SetQRFInactive);
+	}
+	
+	void ChangeBaseControl(OVT_BaseControllerComponent base, int newFactionIndex)
+	{
+		string townName = OVT_Global.GetTowns().GetTownName(base.GetOwner().GetOrigin());
+		if(base.IsOccupyingFaction())
+		{
+			m_iThreat += 250;
+			OVT_Global.GetNotify().SendTextNotification("BaseControlledResistance",-1,townName);
+			OVT_Global.GetNotify().SendExternalNotifications("BaseControlledResistance",townName);
+		}else{
+			m_iThreat -= 250;
+			OVT_Global.GetNotify().SendTextNotification("BaseControlledOccupying",-1,townName);
+			OVT_Global.GetNotify().SendExternalNotifications("BaseControlledOccupying",townName);
+		}
+		
+		OVT_BaseData baseData = GetNearestBase(base.GetOwner().GetOrigin());
+		int baseIndex = GetBaseIndex(baseData);
+		
+		m_Bases[baseIndex].faction = newFactionIndex;
+		base.SetControllingFaction(newFactionIndex);
+		Rpc(RpcDo_SetBaseFaction, baseIndex, newFactionIndex);
 	}
 
 	void OnQRFFinishedTown()

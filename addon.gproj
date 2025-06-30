@@ -37,6 +37,14 @@ GameProject {
         Code "fr_fr"
         StringTableRuntime "{A01E5D02FF0F0756}Language/localization_Overthrow.fr_fr.conf"
        }
+       LanguageDefinition "{65BAFB8A482A90AF}" {
+        Code "ko_kr"
+        StringTableRuntime "{943BFBBDA70B7444}Language/localization_Overthrow.ko_kr.conf"
+       }
+       LanguageDefinition "{65BAFB8A295CF3D7}" {
+        Code "zh_cn"
+        StringTableRuntime "{1C08545DB297EAC3}Language/localization_Overthrow.zh_cn.conf"
+       }
       }
      }
     }

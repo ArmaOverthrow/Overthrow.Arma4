@@ -25,6 +25,8 @@ class OVT_PlaceContext : OVT_UIContext
 
 	bool m_bPlacing = false;
 	int m_iPrefabIndex = 0;
+	int m_iPageNum = 0;
+	int m_iNumPages = 0;
 
 	override void PostInit()
 	{
@@ -61,14 +63,64 @@ class OVT_PlaceContext : OVT_UIContext
 	override void OnShow()
 	{
 		m_Widgets.Init(m_wRoot);
-
+		m_iPageNum = 0;
+		
+		// Set up the previous button
+		Widget prevButton = m_wRoot.FindAnyWidget("PrevButton");
+		SCR_InputButtonComponent btn = SCR_InputButtonComponent.Cast(prevButton.FindHandler(SCR_InputButtonComponent));
+		btn.m_OnActivated.Insert(PreviousPage);
+		
+		// Set up the next button
+		Widget nextButton = m_wRoot.FindAnyWidget("NextButton");
+		btn = SCR_InputButtonComponent.Cast(nextButton.FindHandler(SCR_InputButtonComponent));
+		btn.m_OnActivated.Insert(NextPage);
+		
+		// Set up the close button
+		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");
+		btn = SCR_InputButtonComponent.Cast(closeButton.FindHandler(SCR_InputButtonComponent));		
+		btn.m_OnActivated.Insert(CloseLayout);
+		
+		Refresh();
+	}
+	
+	void PreviousPage()
+	{
+		if(!m_wRoot) return;
+		m_iPageNum--;
+		if(m_iPageNum < 0) m_iPageNum = 0;
+		
+		Refresh();
+	}
+	
+	void NextPage()
+	{
+		if(!m_wRoot) return;
+		m_iPageNum++;
+		if(m_iPageNum > m_iNumPages-1) m_iPageNum = m_iNumPages-1;
+		
+		Refresh();
+	}
+	
+	void Refresh()
+	{
+		if(!m_wRoot) return;
+		
+		TextWidget pages = TextWidget.Cast(m_wRoot.FindAnyWidget("Pages"));
+		
 		int done = 0;
 		IEntity player = SCR_PlayerController.GetLocalControlledEntity();
-
-		// Show all placeables instead of filtering
-		foreach(int i, OVT_Placeable placeable : m_Resistance.m_PlaceablesConfig.m_aPlaceables)
+		
+		m_iNumPages = Math.Ceil(m_Resistance.m_PlaceablesConfig.m_aPlaceables.Count() / 15);
+		if(m_iPageNum >= m_iNumPages) m_iPageNum = 0;
+		string pageNumText = (m_iPageNum + 1).ToString();
+		
+		pages.SetText(pageNumText + "/" + m_iNumPages);
+		
+		// Show placeables for current page
+		for(int i = m_iPageNum * 15; i < (m_iPageNum + 1) * 15 && i < m_Resistance.m_PlaceablesConfig.m_aPlaceables.Count(); i++)
 		{
-			Widget w = m_Widgets.m_BrowserGrid.FindWidget("PlaceMenu_Card" + i);
+			OVT_Placeable placeable = m_Resistance.m_PlaceablesConfig.m_aPlaceables[i];
+			Widget w = m_Widgets.m_BrowserGrid.FindWidget("PlaceMenu_Card" + done);
 			OVT_PlaceMenuCardComponent card = OVT_PlaceMenuCardComponent.Cast(w.FindHandler(OVT_PlaceMenuCardComponent));
 
 			// Check if placeable can be placed at current location
@@ -76,10 +128,12 @@ class OVT_PlaceContext : OVT_UIContext
 			bool canPlace = CanPlace(placeable, player.GetOrigin(), reason);
 			
 			card.Init(placeable, this, canPlace, reason);
+			w.SetOpacity(1);
 
 			done++;
 		}
 
+		// Hide unused cards
 		for(int i=done; i < 15; i++)
 		{
 			Widget w = m_Widgets.m_BrowserGrid.FindWidget("PlaceMenu_Card" + i);
