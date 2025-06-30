@@ -989,6 +989,20 @@ class OVT_TownManagerComponent: OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Checks if the nearest town to a position has available supporters for recruitment.
+	//! \param pos The position vector to find the nearest town from
+	//! \param num The number of supporters needed (default: 1)
+	//! \return true if the nearest town has enough supporters and population, false otherwise
+	bool NearestTownHasSupporters(vector pos, int num = 1)
+	{
+		OVT_TownData town = GetNearestTown(pos);
+		if (!town)
+			return false;
+			
+		return (town.support >= num && town.population >= num);
+	}
+	
+	//------------------------------------------------------------------------------------------------
 	//! Adds a specified number of supporters to the town nearest to a position.
 	//! Synchronizes changes via RPC.
 	//! \param pos The position vector to find the nearest town from

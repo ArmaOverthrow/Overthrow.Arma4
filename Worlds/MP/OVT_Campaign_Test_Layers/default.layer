@@ -234,10 +234,6 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMod
   SCR_CommandingManagerComponent "{5DFEE7C53D7244B0}" {
    m_sCommandsConfigPath "{54764D4E706F348C}Configs/Commanding/Commands.conf"
   }
-  SCR_GroupsManagerComponent "{5DDAD8A30938E391}" {
-   m_sDefaultGroupPrefab "{8B4D49A9F324E7D5}Prefabs/Groups/PlayableGroup.et"
-   m_iPlayableGroupFrequencyOffset 500
-  }
   SCR_NotificationSenderComponent "{5D7A443FDCA27CAE}" {
    m_iReceiveKillFeedType SAME_FACTION_ONLY
    m_aKillfeedTypeNames {
@@ -374,6 +370,9 @@ SCR_DestructibleBuildingEntity : "{322D245123EEDC90}Prefabs/Structures/Houses/Vi
 SCR_DestructibleBuildingEntity : "{38A5F3E4578087AB}Prefabs/Structures/Houses/Town/House_Town_E_2I01/House_Town_E_2I01.et" {
  coords 241.413 0.001 118.064
  angleY -91.024
+}
+GenericEntity OVT_AmmoBox_Dev_65AB2E787B444A1B : "{3CD4A789AFF69FFA}Prefabs/Props/Military/AmmoBoxes/OVT_AmmoBox_Dev.et" {
+ coords 226.531 1 207.75
 }
 SCR_SiteSlotEntity : "{4B1C4BDDF6683101}PrefabsEditable/Slots/Flat/E_SlotFlatMedium.et" {
  coords 30 1.001 70
@@ -514,9 +513,15 @@ SCR_DestructibleBuildingEntity : "{CFE8511B2B7E8AAA}Prefabs/Structures/Commercia
 Tree : "{D9DF1D13919F19A0}Prefabs/Vegetation/Bush/b_rosa_canina_0s.et" {
  coords 182.829 0.001 130.379
 }
-SCR_DestructibleBuildingEntity : "{DE43119351D125AC}Prefabs/Structures/Houses/Village/House_Village_E_1L02/House_Village_E_1L02t.et" {
- coords 226.19 0.655 193.901
- angleY -177.67
+$grp SCR_DestructibleBuildingEntity : "{DE43119351D125AC}Prefabs/Structures/Houses/Village/House_Village_E_1L02/House_Village_E_1L02t.et" {
+ {
+  coords 226.19 0.655 193.901
+  angleY -177.67
+ }
+ {
+  coords 234.776 0.718 58.224
+  angleY -177.67
+ }
 }
 SCR_SiteSlotEntity : "{F4066B8425BEC47C}PrefabsEditable/Slots/Road/E_SlotRoadMedium.et" {
  coords 68.924 1.001 146.036

@@ -1,10 +1,8 @@
-class OVT_SellDrugsAction : ScriptedUserAction
+class OVT_SellDrugsAction : OVT_BaseCivilianUserAction
 {	
-	bool m_bHasBeenSold;
 	//---------------------------------------------------------
- 	override void PerformAction(IEntity pOwnerEntity, IEntity pUserEntity) 
+ 	override protected void PerformCivilianAction(IEntity pOwnerEntity, IEntity pUserEntity) 
  	{
-		if(m_bHasBeenSold) return;
 		SCR_InventoryStorageManagerComponent inventory = SCR_InventoryStorageManagerComponent.Cast(pUserEntity.FindComponent( SCR_InventoryStorageManagerComponent ));
 		if(!inventory) return;
 		
@@ -28,7 +26,7 @@ class OVT_SellDrugsAction : ScriptedUserAction
 					int cost = economy.GetBuyPrice(id, pUserEntity.GetOrigin()) * 1.25;
 					economy.AddPlayerMoney(playerId, cost);	
 					if(s_AIRandomGenerator.RandFloat01() > 0.25)	
-						m_bHasBeenSold = true;	
+						MarkAsPerformed();	
 					hasDrugs = true;		
 					break;
 				}
@@ -40,20 +38,9 @@ class OVT_SellDrugsAction : ScriptedUserAction
 			SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-NoDrugs");
 		}
  	}
-	
-	override bool CanBePerformedScript(IEntity user)
-	{
-		return !m_bHasBeenSold;
-	}
 		
 	override bool GetActionNameScript(out string outName)
 	{
 		return false;
-	}	
-	
-	override bool CanBeShownScript(IEntity user) {
-		return !m_bHasBeenSold;
 	}
-	
-	override bool HasLocalEffectOnlyScript() { return true; }
 }

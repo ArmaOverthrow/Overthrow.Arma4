@@ -22,6 +22,10 @@ OVT_OverthrowGameMode {
      }
      OVT_ConfigSaveDataClass "{5D9E53AFE550A24E}" {
      }
+     OVT_RecruitSaveDataClass "{65A26826DE2960DA}" {
+     }
+     OVT_LoadoutManagerSaveDataClass "{65AAD8FBE5BDC6EE}" {
+     }
     }
    }
   }
@@ -87,6 +91,8 @@ OVT_OverthrowGameMode {
     OVT_JobConfig "{5D9C33D122545AFD}" : "{11EE393C09B6A661}Configs/Jobs/findShop.conf" {
     }
    }
+  }
+  OVT_LoadoutManagerComponent "{65AAD8FB1BAFD652}" {
   }
   OVT_NotificationManagerComponent "{5D8680DB07CF50FD}" {
    m_Messages SCR_SimpleMessagePresets "{5D8680DB04A58A20}" : "{36405F298C9B3186}Configs/overthrowBroadcastMessages.conf" {
@@ -219,6 +225,9 @@ OVT_OverthrowGameMode {
   }
   OVT_RealEstateManagerComponent "{59724C983E7EF811}" {
   }
+  OVT_RecruitManagerComponent "{65A26826DE2960D9}" {
+   m_sRecruitPrefab "{F38D366DDC666132}Prefabs/Characters/Factions/CIV/Character_CIV_Recruit.et"
+  }
   OVT_ResistanceFactionManager "{59A49A9CD87CBC92}" {
    m_rPlaceablesConfigFile "{A4E760D069AE00F8}Configs/Resistance/placeables.conf"
    m_rBuildablesConfigFile "{430C71DF4386D868}Configs/Resistance/buildables.conf"
@@ -272,6 +281,7 @@ OVT_OverthrowGameMode {
   }
   SCR_CommandingManagerComponent "{5DFEE7C53D7244B0}" {
    m_sCommandsConfigPath "{54764D4E706F348C}Configs/Commanding/Commands.conf"
+   m_iMaxAIPerGroup 16
   }
   SCR_CompositionSlotManagerComponent "{5EE264023189375A}" {
   }
@@ -285,7 +295,6 @@ OVT_OverthrowGameMode {
   }
   SCR_GroupsManagerComponent "{5DDAD8A30938E391}" {
    m_sDefaultGroupPrefab "{8B4D49A9F324E7D5}Prefabs/Groups/PlayableGroup.et"
-   m_iPlayableGroupFrequencyOffset 500
    m_aGroupFlags {
    }
   }

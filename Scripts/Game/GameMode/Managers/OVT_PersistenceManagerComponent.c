@@ -11,6 +11,7 @@ class OVT_PersistenceManagerComponent : EPF_PersistenceManagerComponent
 	
 	override event void OnGameEnd()
 	{
+		SaveRecruits();
 		OVT_OverthrowGameMode mode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
 		if(mode)
 			mode.PreShutdownPersist();
@@ -22,6 +23,37 @@ class OVT_PersistenceManagerComponent : EPF_PersistenceManagerComponent
 	{
 		if (m_pPersistenceManager){
 			m_pPersistenceManager.AutoSave();
+		}
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Save all currently spawned recruits manually via EPF
+	void SaveRecruits()
+	{
+#ifdef PLATFORM_CONSOLE
+		return;
+#endif
+		OVT_RecruitManagerComponent recruitManager = OVT_Global.GetRecruits();
+		if (!recruitManager)
+			return;
+			
+		// Iterate through all currently spawned recruit entities and save them
+		foreach (EntityID entityId, string recruitId : recruitManager.m_mEntityToRecruit)
+		{
+			IEntity recruitEntity = GetGame().GetWorld().FindEntityByID(entityId);
+			if (!recruitEntity)
+				continue;
+				
+			EPF_PersistenceComponent persistence = EPF_PersistenceComponent.Cast(
+				recruitEntity.FindComponent(EPF_PersistenceComponent)
+			);
+			
+			if (persistence)
+			{
+				EPF_EReadResult readResult;
+				persistence.Save(readResult);
+				Print("[Overthrow] Manually saved recruit: " + recruitId);
+			}
 		}
 	}
 	
@@ -60,6 +92,7 @@ class OVT_PersistenceManagerComponent : EPF_PersistenceManagerComponent
 	
 	protected void OnAutoSaveComplete()
 	{
+		SaveRecruits();
 		Print("[Overthrow] autosave completed");
 	}
 }
