@@ -129,10 +129,11 @@ OverlayWidgetClass {
       ImageWidgetClass "{59A2BD22D634BC99}" {
        Name "UndercoverIcon"
        Slot LayoutSlot "{59A2BD22D634BC88}" {
+        Padding 0 3 0 0
        }
        Texture "{C7691945DE01FB28}UI/Imagesets/overthrow_mapicons.imageset"
        Image "clothes"
-       Size 48 48
+       Size 40 40
       }
      }
     }

@@ -11,6 +11,8 @@ class OVT_WantedInfo : SCR_InfoDisplay {
 	protected ImageWidget m_wUndercoverIcon = null;
 	protected Widget m_wUndercoverFrame = null;
 	
+	protected float m_fUpdateCounter = 0;
+	
 	protected void InitCharacter()
 	{
 		SCR_ChimeraCharacter character = SCR_ChimeraCharacter.Cast(SCR_PlayerController.GetLocalControlledEntity());
@@ -33,13 +35,18 @@ class OVT_WantedInfo : SCR_InfoDisplay {
 		
 	private override event void UpdateValues(IEntity owner, float timeSlice)
 	{	
+		m_fUpdateCounter += timeSlice;		
 		if(!m_Wanted)
 		{
 			InitCharacter();
 		}
-		UpdateWantedLevel();
-		UpdateSeen();
-		UpdateUndercoverStatus();
+		if(m_fUpdateCounter > 1.0)
+		{
+			m_fUpdateCounter = 0;
+			UpdateWantedLevel();
+			UpdateSeen();
+			UpdateUndercoverStatus();
+		}
 	}
 
 			
@@ -93,6 +100,10 @@ class OVT_WantedInfo : SCR_InfoDisplay {
 	//------------------------------------------------------------------------------------------------
 	void UpdateUndercoverStatus()
 	{
+		string occupyingFactionKey = OVT_Global.GetConfig().GetOccupyingFaction().GetFactionKey();
+		string supportingFactionKey = OVT_Global.GetConfig().GetSupportingFaction().GetFactionKey();
+		string playerFactionKey = OVT_Global.GetConfig().GetPlayerFaction().GetFactionKey();
+		
 		// Use cached widget if available, otherwise find it
 		if (!m_wUndercoverIcon)
 		{
@@ -118,14 +129,12 @@ class OVT_WantedInfo : SCR_InfoDisplay {
 		if (m_Wanted)
 		{
 			bool isDisguised = m_Wanted.IsDisguisedAsOccupying();
-			Print(string.Format("[Overthrow] IsDisguisedAsOccupying() returned: %1", isDisguised));
 			
 			if (isDisguised)
 			{
 				// Blue icon for disguised as occupying faction
 				iconColor = Color.FromSRGBA(0, 100, 200, 255); // Blue color
 				showIcon = true;
-				Print("[Overthrow] Setting icon color to BLUE - disguised as occupying");
 			}
 		}
 		else
@@ -151,21 +160,18 @@ class OVT_WantedInfo : SCR_InfoDisplay {
 						// White icon for civilian
 						iconColor = Color.White;
 						showIcon = true;
-						Print("[Overthrow] Setting icon color to WHITE - civilian");
 					}
-					else if(factionKey == "US" || factionKey == "USSR")
+					else if(factionKey == occupyingFactionKey)
 					{
 						// Blue icon when actually part of occupying faction (disguised)
 						iconColor = Color.FromSRGBA(0, 100, 200, 255); // Blue color
 						showIcon = true;
-						Print("[Overthrow] Setting icon color to BLUE - occupying faction");
 					}
-					else if(factionKey == "FIA")
+					else if(factionKey == playerFactionKey || factionKey == supportingFactionKey)
 					{
-						// Red icon for FIA/resistance  
+						// Red icon for FIA/resistance or supporting faction
 						iconColor = Color.FromSRGBA(200, 50, 50, 255); // Red color
 						showIcon = true;
-						Print("[Overthrow] Setting icon color to RED - FIA");
 					}
 				}
 			}
@@ -189,13 +195,6 @@ class OVT_WantedInfo : SCR_InfoDisplay {
 			{
 				m_wUndercoverFrame.SetColor(iconColor);
 			}
-			
-			// Debug logging
-			Print(string.Format("[Overthrow] Icon color set to - R=%1 G=%2 B=%3 A=%4", 
-				iconColor.R() * 255, 
-				iconColor.G() * 255, 
-				iconColor.B() * 255, 
-				iconColor.A() * 255));
 		}
 		else
 		{

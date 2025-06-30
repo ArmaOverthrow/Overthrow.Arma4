@@ -6,3 +6,4 @@ __pycache__
 CLAUDE.md
 claude.bat
 claude.sh
+.saves/
