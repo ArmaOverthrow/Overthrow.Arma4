@@ -209,19 +209,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			}
 		}
 
-		// Save config with user selections after game start
-		if(RplSession.Mode() == RplMode.None || RplSession.Mode() == RplMode.Listen)
-		{
-			// Update config with current faction selections
-			if(config.m_ConfigFile)
-			{
-				config.m_ConfigFile.occupyingFaction = config.m_sOccupyingFaction;
-				config.m_ConfigFile.supportingFaction = config.m_sSupportingFaction;
-			}
-			config.SaveConfig();
-			Print("[Overthrow] Configuration saved with user selections");
-		}
-
 		Print("[Overthrow] Overthrow Starting");
 		m_bGameInitialized = true;
 	}
