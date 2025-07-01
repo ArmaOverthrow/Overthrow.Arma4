@@ -506,9 +506,8 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		writer.WriteFloat(m_Difficulty.realEstateCostMultiplier);
 		writer.WriteInt(m_Difficulty.busTicketPrice);
 		writer.WriteInt(m_Difficulty.baseRecruitCost);
-		//SPARKNUTZ changing WriteInt to WriteFloat because gun DealerSellPriceMultiplier is a Float
 		writer.WriteFloat(m_Difficulty.gunDealerSellPriceMultiplier);
-		writer.WriteInt(m_Difficulty.procurementMultiplier);		
+		writer.WriteFloat(m_Difficulty.procurementMultiplier);		
 		
 		return true;
 	}
@@ -545,13 +544,11 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		if (!reader.ReadInt(i)) return false;
 		m_Difficulty.baseRecruitCost = i;
 		
-		//SPARKNUTZ changed Int to Float since the variable called is a float
-		
 		if (!reader.ReadFloat(f)) return false;
 		m_Difficulty.gunDealerSellPriceMultiplier = f;
 		
-		if (!reader.ReadInt(i)) return false;
-		m_Difficulty.procurementMultiplier = i;
+		if (!reader.ReadFloat(f)) return false;
+		m_Difficulty.procurementMultiplier = f;
 		
 		return true;
 	}
