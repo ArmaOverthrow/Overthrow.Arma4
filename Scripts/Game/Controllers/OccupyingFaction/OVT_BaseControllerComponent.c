@@ -330,11 +330,15 @@ class OVT_BaseControllerComponent: OVT_Component
 		if (m_iAttackPreferredDirection != -1)
 		{
 			vector basePos = owner.GetOrigin();
+			// Convert to radians directly - preferred direction is already in compass bearings (0° = North)
 			float directionRad = m_iAttackPreferredDirection * Math.DEG2RAD;
 			
 			// Calculate arrow start and end points
-			vector from = basePos + Vector(Math.Cos(directionRad) * m_iAttackDistanceMax, 0, Math.Sin(directionRad) * m_iAttackDistanceMax);
-			vector to = basePos + Vector(Math.Cos(directionRad) * m_iAttackDistanceMin, 0, Math.Sin(directionRad) * m_iAttackDistanceMin);
+			// In Arma: X = East, Z = South
+			// For compass bearings: 0° = North, 90° = East, 180° = South, 270° = West
+			// North = -Z, East = +X, South = +Z, West = -X
+			vector from = basePos + Vector(Math.Sin(directionRad) * m_iAttackDistanceMax, 0, -Math.Cos(directionRad) * m_iAttackDistanceMax);
+			vector to = basePos + Vector(Math.Sin(directionRad) * m_iAttackDistanceMin, 0, -Math.Cos(directionRad) * m_iAttackDistanceMin);
 			
 			// Draw arrow with semi-transparent red color
 			m_aDirectionArrow = Shape.CreateArrow(from, to, 5, Color.FromRGBA(255, 0, 0, 255).PackToInt(),ShapeFlags.ONCE | ShapeFlags.NOZBUFFER | ShapeFlags.TRANSP | ShapeFlags.DOUBLESIDE | ShapeFlags.NOOUTLINE);

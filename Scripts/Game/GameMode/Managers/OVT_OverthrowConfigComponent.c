@@ -51,7 +51,7 @@ class OVT_OverthrowConfigStruct
 		occupyingFaction = "";
 		supportingFaction = "";
 		officers = new array<string>;
-		difficulty = "Normal";	
+		difficulty = "";	
 		showPlayerPosition = true;	
 		
 		overrideDifficulty = false;

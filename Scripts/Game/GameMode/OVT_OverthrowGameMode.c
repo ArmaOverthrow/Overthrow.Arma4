@@ -98,19 +98,19 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			{
 				if(config.m_ConfigFile.occupyingFaction != "" && config.m_ConfigFile.occupyingFaction != "FIA")
 				{
-					Print("[Overthrow] Overthrow: Setting occupying faction to config value (" + config.m_ConfigFile.occupyingFaction + ")");
+					Print("[Overthrow] Overthrow_Config.json: Setting occupying faction to config value (" + config.m_ConfigFile.occupyingFaction + ")");
 					config.SetOccupyingFaction(config.m_ConfigFile.occupyingFaction);
 				}else{
-					Print("[Overthrow] Overthrow: Setting occupying faction to default (" + config.m_sDefaultOccupyingFaction + ")");
+					Print("[Overthrow] Overthrow_Config.json: Setting occupying faction to default (" + config.m_sDefaultOccupyingFaction + ")");
 					config.SetOccupyingFaction(config.m_sDefaultOccupyingFaction);
 				}
 				
 				if(config.m_ConfigFile.supportingFaction != "" && config.m_ConfigFile.supportingFaction != "FIA")
 				{
-					Print("[Overthrow] Overthrow: Setting supporting faction to config value (" + config.m_ConfigFile.supportingFaction + ")");
+					Print("[Overthrow] Overthrow_Config.json: Setting supporting faction to config value (" + config.m_ConfigFile.supportingFaction + ")");
 					config.SetSupportingFaction(config.m_ConfigFile.supportingFaction);
 				}else{
-					Print("[Overthrow] Overthrow: Setting supporting faction to default (" + config.m_sDefaultSupportingFaction + ")");
+					Print("[Overthrow] Overthrow_Config.json: Setting supporting faction to default (" + config.m_sDefaultSupportingFaction + ")");
 					config.SetSupportingFaction(config.m_sDefaultSupportingFaction);
 				}
 			}
@@ -222,6 +222,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		{			
 			if(config.m_ConfigFile.difficulty != "")
 			{
+				Print("[Overthrow] Overthrow_Config.json - setting difficulty to " + config.m_ConfigFile.difficulty);
 				foreach(OVT_DifficultySettings preset : config.m_aDifficultyPresets)
 				{
 					if(preset.name == config.m_ConfigFile.difficulty)
@@ -236,23 +237,11 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			
 			if(config.m_ConfigFile.overrideDifficulty)
 			{
+				Print("[Overthrow] Overthrow_Config.json - overriding difficulty settings in config");
 				config.m_Difficulty.gunDealerSellPriceMultiplier = config.m_ConfigFile.gunDealerSellPriceMultiplier;
 				config.m_Difficulty.startingCash = config.m_ConfigFile.startingCash;
 				config.m_Difficulty.procurementMultiplier = config.m_ConfigFile.procurementMultiplier;
 			}
-		}
-
-		// Save config with user selections after game start
-		if(RplSession.Mode() == RplMode.None || RplSession.Mode() == RplMode.Listen)
-		{
-			// Update config with current faction selections
-			if(config.m_ConfigFile)
-			{
-				config.m_ConfigFile.occupyingFaction = config.m_sOccupyingFaction;
-				config.m_ConfigFile.supportingFaction = config.m_sSupportingFaction;
-			}
-			config.SaveConfig();
-			Print("[Overthrow] Configuration saved with user selections");
 		}
 
 		Print("[Overthrow] Overthrow Starting");

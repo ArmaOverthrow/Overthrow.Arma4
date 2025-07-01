@@ -524,6 +524,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_CurrentQRF.m_iLZMax = base.m_iAttackDistanceMax;
 		m_CurrentQRF.m_iPreferredDirection = base.m_iAttackPreferredDirection;
 		
+		if(base.m_iAttackPreferredDirection > -1)
+			Print("[Overthrow] QRF starting from preferred direction: " + base.m_iAttackPreferredDirection.ToString());
+		
 		m_CurrentQRF.Start();
 		
 		RplComponent rpl = RplComponent.Cast(m_CurrentQRF.GetOwner().FindComponent(RplComponent));
