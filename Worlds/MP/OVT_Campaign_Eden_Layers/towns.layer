@@ -6,6 +6,8 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
     m_Size CITY
     m_iPopulation 283
     m_iTownRange 300
+    m_iAttackPreferredDirection 75
+    m_iAttackDirectionVariance 80
    }
   }
   coords 4442.495 10.965 10761.012
@@ -17,7 +19,7 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
     m_sName "#AR-MapLocation_Meaux"
     m_Size TOWN
     m_iPopulation 64
-    m_iTownRange 170
+    m_iTownRange 140
    }
   }
   coords 4520.712 14.228 9471.291
@@ -84,7 +86,9 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
     m_sName "#AR-MapLocation_Morton"
     m_Size TOWN
     m_iPopulation 96
-    m_iTownRange 260
+    m_iTownRange 230
+    m_iAttackPreferredDirection 182
+    m_iAttackDirectionVariance 65
    }
   }
   coords 5135.043 14.586 4028.731
@@ -97,6 +101,7 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
     m_Size TOWN
     m_iPopulation 104
     m_iTownRange 220
+    m_iAttackPreferredDirection 66
    }
   }
   coords 1272.44 37.449 5926.417
@@ -141,6 +146,9 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
     m_sName "#AR-MapLocation_Chotain"
     m_iPopulation 43
     m_iTownRange 130
+    m_iAttackDistanceMin 500
+    m_iAttackPreferredDirection 294
+    m_iAttackDirectionVariance 95
    }
   }
   coords 7076.712 118.796 6023.646
@@ -174,7 +182,7 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
    OVT_TownControllerComponent "{59908365ED5E1344}" {
     m_sName "#AR-MapLocation_Durras"
     m_iPopulation 42
-    m_iTownRange 110
+    m_iTownRange 170
    }
   }
   coords 8826.591 94.724 2756.529
@@ -198,6 +206,7 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
     m_Size CITY
     m_iPopulation 174
     m_iTownRange 350
+    m_iAttackPreferredDirection 224
    }
   }
   coords 9697.526 12.78 1548.97
@@ -208,7 +217,7 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
    OVT_TownControllerComponent "{59908365ED5E1344}" {
     m_sName "#AR-MapLocation_Erquy"
     m_iPopulation 38
-    m_iTownRange 100
+    m_iTownRange 130
    }
   }
   coords 10925.94 24.889 11703.107

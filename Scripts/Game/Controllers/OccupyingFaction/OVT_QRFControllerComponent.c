@@ -35,6 +35,7 @@ class OVT_QRFControllerComponent: OVT_Component
 	int m_iLZMax = 750;
 	int m_iLZMin = 250;
 	int m_iPreferredDirection = -1;
+	int m_iDirectionVariance = 30;
 	
 	override void OnPostInit(IEntity owner)
 	{
@@ -395,11 +396,11 @@ class OVT_QRFControllerComponent: OVT_Component
 		float angle = Math.RandomFloatInclusive(0, 359); // Random angle for azimuth		
 		if(m_iPreferredDirection > -1)
 		{
-			// Add +/- 30 degree variation to preferred direction
-			float min = m_iPreferredDirection - 30;
+			// Add +/- variance degree variation to preferred direction
+			float min = m_iPreferredDirection - m_iDirectionVariance;
 			if(min < 0) min += 360;			
 			if(min > 360) min -= 360;
-			float max = m_iPreferredDirection + 30;
+			float max = m_iPreferredDirection + m_iDirectionVariance;
 			if(max < 0) max += 360;			
 			if(max > 360) max -= 360;
 			Print("[Overthrow.QRFControllerComponent] Angle range: " + min.ToString() + " to " + max.ToString());

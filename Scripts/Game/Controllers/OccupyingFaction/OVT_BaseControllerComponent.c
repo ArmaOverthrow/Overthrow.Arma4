@@ -21,6 +21,9 @@ class OVT_BaseControllerComponent: OVT_Component
 	
 	[Attribute("-1", UIWidgets.Slider, "Preferred direction to spawn QRF (randomized slightly, -1 means any direction)", "-1 359 1")]
 	int m_iAttackPreferredDirection;
+	
+	[Attribute("30", UIWidgets.Slider, "Direction variance in degrees (QRF can spawn within +/- this many degrees from preferred direction)", "0 180 5")]
+	int m_iAttackDirectionVariance;
 
 	ref array<ref EntityID> m_AllSlots;
 	ref array<ref EntityID> m_AllCloseSlots;
@@ -317,9 +320,11 @@ class OVT_BaseControllerComponent: OVT_Component
 	}
 
 #ifdef WORKBENCH
-	protected ref Shape m_aDirectionArrow;
+	protected ref Shape m_aDirectionArrowCenter;
+	protected ref Shape m_aDirectionArrowMin;
+	protected ref Shape m_aDirectionArrowMax;
 	
-	//Draw attack preferred direction as an arrow
+	//Draw attack preferred direction as arrows showing variance
 	override int _WB_GetAfterWorldUpdateSpecs(IEntity owner, IEntitySource src)
 	{
 		return EEntityFrameUpdateSpecs.CALL_WHEN_ENTITY_SELECTED;
@@ -330,18 +335,23 @@ class OVT_BaseControllerComponent: OVT_Component
 		if (m_iAttackPreferredDirection != -1)
 		{
 			vector basePos = owner.GetOrigin();
-			// Convert to radians directly - preferred direction is already in compass bearings (0° = North)
-			float directionRad = m_iAttackPreferredDirection * Math.DEG2RAD;
 			
-			// Calculate arrow start and end points
-			// In Arma: X = East, Z = South
-			// For compass bearings: 0° = North, 90° = East, 180° = South, 270° = West
-			// North = -Z, East = +X, South = +Z, West = -X
-			vector from = basePos + Vector(Math.Sin(directionRad) * m_iAttackDistanceMax, 0, -Math.Cos(directionRad) * m_iAttackDistanceMax);
-			vector to = basePos + Vector(Math.Sin(directionRad) * m_iAttackDistanceMin, 0, -Math.Cos(directionRad) * m_iAttackDistanceMin);
+			// Draw center arrow (main direction)
+			float centerRad = m_iAttackPreferredDirection * Math.DEG2RAD;
+			vector fromCenter = basePos + Vector(Math.Sin(centerRad) * m_iAttackDistanceMax, 0, -Math.Cos(centerRad) * m_iAttackDistanceMax);
+			vector toCenter = basePos + Vector(Math.Sin(centerRad) * m_iAttackDistanceMin, 0, -Math.Cos(centerRad) * m_iAttackDistanceMin);
+			m_aDirectionArrowCenter = Shape.CreateArrow(fromCenter, toCenter, 10, Color.FromRGBA(255, 0, 0, 255).PackToInt(), ShapeFlags.ONCE | ShapeFlags.NOZBUFFER | ShapeFlags.TRANSP | ShapeFlags.DOUBLESIDE | ShapeFlags.NOOUTLINE);
 			
-			// Draw arrow with semi-transparent red color
-			m_aDirectionArrow = Shape.CreateArrow(from, to, 5, Color.FromRGBA(255, 0, 0, 255).PackToInt(),ShapeFlags.ONCE | ShapeFlags.NOZBUFFER | ShapeFlags.TRANSP | ShapeFlags.DOUBLESIDE | ShapeFlags.NOOUTLINE);
+			// Draw variance arrows (showing the extremes)
+			float minRad = (m_iAttackPreferredDirection - m_iAttackDirectionVariance) * Math.DEG2RAD;
+			vector fromMin = basePos + Vector(Math.Sin(minRad) * m_iAttackDistanceMax, 0, -Math.Cos(minRad) * m_iAttackDistanceMax);
+			vector toMin = basePos + Vector(Math.Sin(minRad) * m_iAttackDistanceMin, 0, -Math.Cos(minRad) * m_iAttackDistanceMin);
+			m_aDirectionArrowMin = Shape.CreateArrow(fromMin, toMin, 6, Color.FromRGBA(255, 0, 0, 128).PackToInt(), ShapeFlags.ONCE | ShapeFlags.NOZBUFFER | ShapeFlags.TRANSP | ShapeFlags.DOUBLESIDE | ShapeFlags.NOOUTLINE);
+			
+			float maxRad = (m_iAttackPreferredDirection + m_iAttackDirectionVariance) * Math.DEG2RAD;
+			vector fromMax = basePos + Vector(Math.Sin(maxRad) * m_iAttackDistanceMax, 0, -Math.Cos(maxRad) * m_iAttackDistanceMax);
+			vector toMax = basePos + Vector(Math.Sin(maxRad) * m_iAttackDistanceMin, 0, -Math.Cos(maxRad) * m_iAttackDistanceMin);
+			m_aDirectionArrowMax = Shape.CreateArrow(fromMax, toMax, 6, Color.FromRGBA(255, 0, 0, 128).PackToInt(), ShapeFlags.ONCE | ShapeFlags.NOZBUFFER | ShapeFlags.TRANSP | ShapeFlags.DOUBLESIDE | ShapeFlags.NOOUTLINE);
 		}
 		
 		super._WB_AfterWorldUpdate(owner, timeSlice);

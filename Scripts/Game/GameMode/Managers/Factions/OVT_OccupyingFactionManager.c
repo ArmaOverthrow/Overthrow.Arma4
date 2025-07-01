@@ -523,9 +523,10 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_CurrentQRF.m_iLZMin = base.m_iAttackDistanceMin;
 		m_CurrentQRF.m_iLZMax = base.m_iAttackDistanceMax;
 		m_CurrentQRF.m_iPreferredDirection = base.m_iAttackPreferredDirection;
+		m_CurrentQRF.m_iDirectionVariance = base.m_iAttackDirectionVariance;
 		
 		if(base.m_iAttackPreferredDirection > -1)
-			Print("[Overthrow] QRF starting from preferred direction: " + base.m_iAttackPreferredDirection.ToString());
+			Print("[Overthrow] QRF starting from preferred direction: " + base.m_iAttackPreferredDirection.ToString() + " +/- " + base.m_iAttackDirectionVariance.ToString());
 		
 		m_CurrentQRF.Start();
 		
@@ -567,9 +568,10 @@ class OVT_OccupyingFactionManager: OVT_Component
 					m_CurrentQRF.m_iLZMin = townController.m_iAttackDistanceMin;
 					m_CurrentQRF.m_iLZMax = townController.m_iAttackDistanceMax;
 					m_CurrentQRF.m_iPreferredDirection = townController.m_iAttackPreferredDirection;
+					m_CurrentQRF.m_iDirectionVariance = townController.m_iAttackDirectionVariance;
 					
 					if(townController.m_iAttackPreferredDirection > -1)
-						Print("[Overthrow] Town QRF starting from preferred direction: " + townController.m_iAttackPreferredDirection.ToString());
+						Print("[Overthrow] Town QRF starting from preferred direction: " + townController.m_iAttackPreferredDirection.ToString() + " +/- " + townController.m_iAttackDirectionVariance.ToString());
 				}
 			}
 		}
