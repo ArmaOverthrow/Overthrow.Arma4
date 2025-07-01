@@ -447,6 +447,9 @@ GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.et" {
  components {
   OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
    m_sName "Base"
+   m_iAttackDistanceMin 75
+   m_iAttackDistanceMax 150
+   m_iAttackPreferredDirection 0
   }
   SCR_FactionAffiliationComponent "{5E66A8EA8F5BA794}" {
    "faction affiliation" "USSR"

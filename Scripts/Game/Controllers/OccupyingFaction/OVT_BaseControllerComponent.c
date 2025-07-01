@@ -13,13 +13,13 @@ class OVT_BaseControllerComponent: OVT_Component
 	[Attribute("", UIWidgets.Object)]
 	ref array<ref OVT_BaseUpgrade> m_aBaseUpgrades;
 	
-	[Attribute("400")]
+	[Attribute("400", UIWidgets.Slider, "Minimum distance to spawn QRF", "50 1000 25")]
 	int m_iAttackDistanceMin;
 	
-	[Attribute("800")]
+	[Attribute("800", UIWidgets.Slider, "Maximum distance to spawn QRF", "100 1000 25")]
 	int m_iAttackDistanceMax;
 	
-	[Attribute("-1")]
+	[Attribute("-1", UIWidgets.Slider, "Preferred direction to spawn QRF (randomized slightly, -1 means any direction)", "-1 359 1")]
 	int m_iAttackPreferredDirection;
 
 	ref array<ref EntityID> m_AllSlots;
@@ -315,6 +315,34 @@ class OVT_BaseControllerComponent: OVT_Component
 		}
 		return nearest;
 	}
+
+#ifdef WORKBENCH
+	protected ref Shape m_aDirectionArrow;
+	
+	//Draw attack preferred direction as an arrow
+	override int _WB_GetAfterWorldUpdateSpecs(IEntity owner, IEntitySource src)
+	{
+		return EEntityFrameUpdateSpecs.CALL_WHEN_ENTITY_SELECTED;
+	}
+	
+	protected override void _WB_AfterWorldUpdate(IEntity owner, float timeSlice)
+	{
+		if (m_iAttackPreferredDirection != -1)
+		{
+			vector basePos = owner.GetOrigin();
+			float directionRad = m_iAttackPreferredDirection * Math.DEG2RAD;
+			
+			// Calculate arrow start and end points
+			vector from = basePos + Vector(Math.Cos(directionRad) * m_iAttackDistanceMax, 0, Math.Sin(directionRad) * m_iAttackDistanceMax);
+			vector to = basePos + Vector(Math.Cos(directionRad) * m_iAttackDistanceMin, 0, Math.Sin(directionRad) * m_iAttackDistanceMin);
+			
+			// Draw arrow with semi-transparent red color
+			m_aDirectionArrow = Shape.CreateArrow(from, to, 5, Color.FromRGBA(255, 0, 0, 255).PackToInt(),ShapeFlags.ONCE | ShapeFlags.NOZBUFFER | ShapeFlags.TRANSP | ShapeFlags.DOUBLESIDE | ShapeFlags.NOOUTLINE);
+		}
+		
+		super._WB_AfterWorldUpdate(owner, timeSlice);
+	}
+#endif
 
 	//RPC methods
 
