@@ -552,6 +552,28 @@ class OVT_OccupyingFactionManager: OVT_Component
 		int townID = OVT_Global.GetTowns().GetTownID(town);
 
 		m_CurrentQRF = SpawnQRFController(town.location);
+		
+		// Find the town controller to get QRF parameters
+		OVT_TownManagerComponent townManager = OVT_Global.GetTowns();
+		EntityID townControllerID = townManager.m_TownControllers.Get(townID);
+		if(townControllerID)
+		{
+			IEntity townEntity = GetGame().GetWorld().FindEntityByID(townControllerID);
+			if(townEntity)
+			{
+				OVT_TownControllerComponent townController = OVT_TownControllerComponent.Cast(townEntity.FindComponent(OVT_TownControllerComponent));
+				if(townController)
+				{
+					m_CurrentQRF.m_iLZMin = townController.m_iAttackDistanceMin;
+					m_CurrentQRF.m_iLZMax = townController.m_iAttackDistanceMax;
+					m_CurrentQRF.m_iPreferredDirection = townController.m_iAttackPreferredDirection;
+					
+					if(townController.m_iAttackPreferredDirection > -1)
+						Print("[Overthrow] Town QRF starting from preferred direction: " + townController.m_iAttackPreferredDirection.ToString());
+				}
+			}
+		}
+		
 		RplComponent rpl = RplComponent.Cast(m_CurrentQRF.GetOwner().FindComponent(RplComponent));
 		
 		m_CurrentQRF.Start();

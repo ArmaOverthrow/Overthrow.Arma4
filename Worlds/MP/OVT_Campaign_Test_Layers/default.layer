@@ -463,6 +463,9 @@ GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.et" {
    m_sName "Town"
    m_iPopulation 50
    m_iTownRange 80
+   m_iAttackDistanceMin 125
+   m_iAttackDistanceMax 175
+   m_iAttackPreferredDirection 256
   }
  }
  coords 208.237 1 102.173

@@ -16,6 +16,15 @@ class OVT_TownControllerComponent: OVT_Component
 	[Attribute("800", UIWidgets.Slider, "Range to spawn civilians", "50 500 10")]
 	int m_iTownRange;
 	
+	[Attribute("400", UIWidgets.Slider, "Minimum distance to spawn QRF", "50 1000 25")]
+	int m_iAttackDistanceMin;
+	
+	[Attribute("800", UIWidgets.Slider, "Maximum distance to spawn QRF", "100 1000 25")]
+	int m_iAttackDistanceMax;
+	
+	[Attribute("-1", UIWidgets.Slider, "Preferred direction to spawn QRF (randomized slightly, -1 means any direction)", "-1 359 1")]
+	int m_iAttackPreferredDirection;
+	
 	protected OVT_TownManagerComponent m_TownManager;
 	protected OVT_EconomyManagerComponent m_Economy;
 	protected OVT_TownData m_Town;
@@ -27,8 +36,9 @@ class OVT_TownControllerComponent: OVT_Component
 	
 #ifdef WORKBENCH
 	protected ref Shape m_aRangeShape;
+	protected ref Shape m_aDirectionArrow;
 	
-	//Draw town range as a sphere
+	//Draw town range as a sphere and attack direction as an arrow
 	override int _WB_GetAfterWorldUpdateSpecs(IEntity owner, IEntitySource src)
 	{
 		return EEntityFrameUpdateSpecs.CALL_WHEN_ENTITY_SELECTED;
@@ -37,7 +47,26 @@ class OVT_TownControllerComponent: OVT_Component
 	protected override void _WB_AfterWorldUpdate(IEntity owner, float timeSlice)
 	{		
 		m_aRangeShape = Shape.CreateSphere(Color.FromRGBA(255,255,255,20).PackToInt(), ShapeFlags.TRANSP | ShapeFlags.NOOUTLINE, owner.GetOrigin(), (float)m_iTownRange);
-		super._WB_AfterWorldUpdate(timeSlice);
+		
+		// Draw attack preferred direction arrow if set
+		if (m_iAttackPreferredDirection != -1)
+		{
+			vector townPos = owner.GetOrigin();
+			// Convert to radians directly - preferred direction is already in compass bearings (0° = North)
+			float directionRad = m_iAttackPreferredDirection * Math.DEG2RAD;
+			
+			// Calculate arrow start and end points
+			// In Arma: X = East, Z = South
+			// For compass bearings: 0° = North, 90° = East, 180° = South, 270° = West
+			// North = -Z, East = +X, South = +Z, West = -X
+			vector from = townPos + Vector(Math.Sin(directionRad) * m_iAttackDistanceMax, 0, -Math.Cos(directionRad) * m_iAttackDistanceMax);
+			vector to = townPos + Vector(Math.Sin(directionRad) * m_iAttackDistanceMin, 0, -Math.Cos(directionRad) * m_iAttackDistanceMin);
+			
+			// Draw arrow with semi-transparent blue color (to distinguish from base arrows)
+			m_aDirectionArrow = Shape.CreateArrow(from, to, 5, Color.FromRGBA(0, 0, 255, 255).PackToInt(), ShapeFlags.ONCE | ShapeFlags.NOZBUFFER | ShapeFlags.TRANSP | ShapeFlags.DOUBLESIDE | ShapeFlags.NOOUTLINE);
+		}
+		
+		super._WB_AfterWorldUpdate(owner, timeSlice);
 	}
 #endif
 
