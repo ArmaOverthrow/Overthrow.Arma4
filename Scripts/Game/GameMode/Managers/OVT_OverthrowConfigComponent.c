@@ -21,15 +21,6 @@ enum OVT_PatrolType {
 	PERIMETER
 }
 
-class OVT_CameraPosition : ScriptAndConfig
-{
-	[Attribute("0 0 0", UIWidgets.Coords)]
-	vector position;
-
-	[Attribute("0 0 0", UIWidgets.Coords)]
-	vector angles;
-}
-
 class OVT_OverthrowConfigStruct
 {
 	string occupyingFaction;
@@ -80,9 +71,6 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	string m_sDefaultSupportingFaction;
 
 	string m_sSupportingFaction = "US";
-
-	[Attribute("", UIWidgets.Object)]
-	ref array<ref OVT_CameraPosition> m_aCameraPositions;
 
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Town Controller Prefab", params: "et", category: "Controllers")]
 	ResourceName m_pTownControllerPrefab;

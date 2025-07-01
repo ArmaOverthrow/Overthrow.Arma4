@@ -17,6 +17,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	
 	//! Array of fallback home positions if no houses are available
 	protected ref array<IEntity> m_aFallbackSpawnPositions = {};
+	protected ref array<IEntity> m_aStartCameraPositions = {};
 
 	//! Reference to the Overthrow configuration component.
 	protected OVT_OverthrowConfigComponent m_Config;
@@ -352,6 +353,20 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Selects a random start camera location from the detected list.
+	//! \\return A random entity from m_aStartCameraPositions, or the game mode if the list is empty.
+	protected IEntity GetRandomStartCameraPosition()
+	{
+	    if (m_aStartCameraPositions.Count() > 0)
+	    {
+	        int randomIndex = s_AIRandomGenerator.RandInt(0, m_aStartCameraPositions.Count() - 1);
+	        return m_aStartCameraPositions[randomIndex];
+	    }
+	
+	    return this;
+	}
+	
+	//------------------------------------------------------------------------------------------------
 	//! Spawns a player at a randomly selected hardcoded bus stop location.
 	//! If no hardcoded locations exist, attempts to spawn at the first available town center.
 	//! \\param[in] playerId The ID of the player to spawn.
@@ -550,17 +565,15 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	{
 		CameraManager cameraMgr = GetGame().GetCameraManager();
 		if(!cameraMgr) return;
-		BaseWorld world = GetGame().GetWorld();
-
-		int cameraIndex = s_AIRandomGenerator.RandInt(0, OVT_Global.GetConfig().m_aCameraPositions.Count()-1);
-		OVT_CameraPosition pos = OVT_Global.GetConfig().m_aCameraPositions[cameraIndex];
-
-		IEntity cam = OVT_Global.SpawnEntityPrefab(m_StartCameraPrefab, pos.position, "0 0 0", false);
+		
+		IEntity startCameraPos = GetRandomStartCameraPosition();
+		
+		IEntity cam = OVT_Global.SpawnEntityPrefab(m_StartCameraPrefab, startCameraPos.GetOrigin(), "0 0 0", false);
 		if(cam)
 		{
 			CameraBase camera = CameraBase.Cast(cam);
 			camera.SetName("StartCam");
-			camera.SetAngles(pos.angles);
+			camera.SetAngles(startCameraPos.GetAngles());
 			cameraMgr.SetCamera(camera);
 			m_bCameraSet = true;
 			m_pCamera = camera;
@@ -601,8 +614,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 
 		Print("[Overthrow] Initializing Overthrow");
 		
-		//Find fallback spawn positions
-		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, FilterHomePosEntities, null, EQueryEntitiesFlags.STATIC);
+		//Find fallback spawn positions and start camera positions
+		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, FilterPositionEntities, null, EQueryEntitiesFlags.STATIC);
 		
 		Print(string.Format("[Overthrow] Found %1 fallback home spawns", m_aFallbackSpawnPositions.Count().ToString()));
 
@@ -724,17 +737,23 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		}
 	}
 	
-	bool FilterHomePosEntities(IEntity entity)
+	bool FilterPositionEntities(IEntity entity)
 	{
 		OVT_FallbackHomePos pos = OVT_FallbackHomePos.Cast(entity);
 		if(pos)
 		{
 			m_aFallbackSpawnPositions.Insert(entity);
+		}else{
+			OVT_StartCameraPos cameraPos = OVT_StartCameraPos.Cast(entity);
+			if(cameraPos)
+			{
+				m_aStartCameraPositions.Insert(entity);
+			}
 		}
 
 		return true;
 	}
-	
+		
 	//------------------------------------------------------------------------------------------------
 	//! Client-side callback when a player spawns (currently empty).
 	//! \\param[in] entity The spawned player entity.

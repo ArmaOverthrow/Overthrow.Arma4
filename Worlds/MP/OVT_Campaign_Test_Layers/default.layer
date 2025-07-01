@@ -78,24 +78,6 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMod
    m_pQRFControllerPrefab "{A7D27DFA72B705D0}Prefabs/Controllers/OVT_QRFController.et"
   }
   OVT_OverthrowConfigComponent "{59724C8C935D8E5D}" {
-   m_aCameraPositions {
-    OVT_CameraPosition "{5D5826DD31952987}" {
-     position 10455.49 40.22 413.76
-     angles 5.1 -498.11 0
-    }
-    OVT_CameraPosition "{5D5826D532072C15}" {
-     position 4875.03 53.47 10470.618
-     angles -0.21 702.18 0
-    }
-    OVT_CameraPosition "{5D5826D5F3BEBDD1}" {
-     position 8100.65 380.56 2753.78
-     angles -5.31 962.88 0
-    }
-    OVT_CameraPosition "{5D5826D5A7568205}" {
-     position 9973.95 333.08 2269.49
-     angles -12.81 1270.68 0
-    }
-   }
    m_pTownControllerPrefab "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.et"
    m_Difficulty OVT_DifficultySettings "{598AD54E1DA56EB1}" : "{C0CB40B3E8B87FD4}Configs/Difficulty/Difficulty_Normal.conf" {
    }
@@ -498,6 +480,11 @@ GenericEntity : "{9BF7399A6F63D480}Prefabs/GameMode/OVT_Port.et" {
 }
 Tree : "{A43BE7E364B5CD67}Prefabs/Vegetation/Bush/b_juniperus_communis_2w.et" {
  coords 182.721 0.001 126.162
+}
+OVT_StartCameraPos : "{A4FAD321E704BE95}Prefabs/GameMode/OVT_StartCameraPos.et" {
+ coords 263.519 24.144 46.733
+ angleX -8.555
+ angleY -56.81
 }
 Tree : "{A5DE58FC9FB6BA60}Prefabs/Vegetation/Bush/b_corylus_avellana_2.et" {
  coords 183.058 0.001 122.114
