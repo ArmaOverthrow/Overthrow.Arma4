@@ -13,7 +13,7 @@ class OVT_TownControllerComponent: OVT_Component
 	[Attribute("400", desc:"Target population, and population at game start")]
 	int m_iPopulation;
 	
-	[Attribute("800", desc:"Range to spawn civilians")]
+	[Attribute("800", UIWidgets.Slider, "Range to spawn civilians", "50 500 10")]
 	int m_iTownRange;
 	
 	protected OVT_TownManagerComponent m_TownManager;
@@ -24,6 +24,22 @@ class OVT_TownControllerComponent: OVT_Component
 	protected bool m_bCiviliansSpawned;
 
 	protected ref array<ref EntityID> m_aCivilians;
+	
+#ifdef WORKBENCH
+	protected ref Shape m_aRangeShape;
+	
+	//Draw town range as a sphere
+	override int _WB_GetAfterWorldUpdateSpecs(IEntity owner, IEntitySource src)
+	{
+		return EEntityFrameUpdateSpecs.CALL_WHEN_ENTITY_SELECTED;
+	}
+	
+	protected override void _WB_AfterWorldUpdate(IEntity owner, float timeSlice)
+	{		
+		m_aRangeShape = Shape.CreateSphere(Color.FromRGBA(255,255,255,20).PackToInt(), ShapeFlags.TRANSP | ShapeFlags.NOOUTLINE, owner.GetOrigin(), (float)m_iTownRange);
+		super._WB_AfterWorldUpdate(timeSlice);
+	}
+#endif
 
 	override void OnPostInit(IEntity owner)
 	{
