@@ -1073,7 +1073,6 @@ class OVT_EconomyManagerComponent: OVT_Component
 						if(cfg.m_sFind == "" || res.IndexOf(cfg.m_sFind) > -1)
 						{							
 							if(cfg.hidden) {
-								Print("Hiding " + res);
 								hidden = true;
 								break;
 							}
