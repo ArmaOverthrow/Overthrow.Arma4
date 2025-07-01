@@ -186,7 +186,8 @@ class OVT_VehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 		
 		for (int i = 0; i < m_iVehicleCount; i++)
 		{
-			vector spawnPos = GetRandomSpawnPosition(deploymentPos);
+			vector spawnAngles;
+			vector spawnPos = GetRandomSpawnPosition(deploymentPos, spawnAngles);
 			
 			//Move deployment to this position, so we know when to clean it up
 			m_ParentDeployment.GetOwner().SetOrigin(spawnPos);
@@ -197,6 +198,12 @@ class OVT_VehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 			{
 				Print(string.Format("Failed to spawn vehicle %1 (%2)", i + 1, m_sVehicleType), LogLevel.ERROR);
 				continue;
+			}
+			
+			// Apply spawn angles if we got them from a vehicle patrol spawn
+			if (spawnAngles != vector.Zero)
+			{
+				vehicle.SetAngles(spawnAngles);
 			}
 			
 			m_aSpawnedVehicles.Insert(vehicle);
@@ -367,8 +374,31 @@ class OVT_VehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	protected vector GetRandomSpawnPosition(vector center)
+	protected vector GetRandomSpawnPosition(vector center, out vector spawnAngles)
 	{	
+		// Initialize spawn angles to zero
+		spawnAngles = vector.Zero;
+		
+		// Try to get a vehicle patrol spawn from the nearest base
+		OVT_BaseData nearestBase = OVT_Global.GetOccupyingFaction().GetNearestBase(center);
+		if (nearestBase && nearestBase.entId)
+		{
+			IEntity baseEntity = GetGame().GetWorld().FindEntityByID(nearestBase.entId);
+			if (baseEntity)
+			{
+				OVT_BaseControllerComponent baseController = OVT_BaseControllerComponent.Cast(baseEntity.FindComponent(OVT_BaseControllerComponent));
+				if (baseController)
+				{
+					vector spawnPos;
+					if (baseController.GetRandomVehiclePatrolSpawn(spawnPos, spawnAngles))
+					{
+						return spawnPos;
+					}
+				}
+			}
+		}
+		
+		// Fall back to finding a random road position
 		return OVT_Global.FindNearestRoad(center);
 	}
 	

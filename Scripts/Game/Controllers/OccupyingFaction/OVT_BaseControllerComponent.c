@@ -36,6 +36,7 @@ class OVT_BaseControllerComponent: OVT_Component
 	ref array<ref EntityID> m_Parking;
 	ref array<ref EntityID> m_aSlotsFilled;
 	ref array<ref vector> m_aDefendPositions;
+	ref array<ref EntityID> m_aVehiclePatrolSpawns;
 
 	protected OVT_OccupyingFactionManager m_occupyingFactionManager;
 
@@ -162,6 +163,7 @@ class OVT_BaseControllerComponent: OVT_Component
 		m_Parking = new array<ref EntityID>;
 		m_aSlotsFilled = new array<ref EntityID>;
 		m_aDefendPositions = new array<ref vector>;
+		m_aVehiclePatrolSpawns = new array<ref EntityID>;
 
 		FindSlots();
 		FindParking();
@@ -200,6 +202,13 @@ class OVT_BaseControllerComponent: OVT_Component
 
 	bool FilterSlotEntities(IEntity entity)
 	{
+		OVT_VehiclePatrolSpawn vehicleSpawn = OVT_VehiclePatrolSpawn.Cast(entity);
+		if(vehicleSpawn)
+		{
+			m_aVehiclePatrolSpawns.Insert(entity.GetID());
+			return true;
+		}
+		
 		SCR_EditableEntityComponent editable = EPF_Component<SCR_EditableEntityComponent>.Find(entity);
 		if(editable && editable.GetEntityType() == EEditableEntityType.SLOT)
 		{
@@ -360,6 +369,40 @@ class OVT_BaseControllerComponent: OVT_Component
 
 	//RPC methods
 
+	//------------------------------------------------------------------------------------------------
+	//! Get a random vehicle patrol spawn point from the base
+	//! Returns true if a spawn point was found, false if none exist
+	//! @param[out] outPosition The spawn position
+	//! @param[out] outAngles The spawn angles in format "yaw pitch roll"
+	bool GetRandomVehiclePatrolSpawn(out vector outPosition, out vector outAngles)
+	{
+		// Check if we have any vehicle patrol spawns
+		if (m_aVehiclePatrolSpawns.IsEmpty())
+			return false;
+		
+		// Get a random spawn
+		int randomIndex = Math.RandomInt(0, m_aVehiclePatrolSpawns.Count());
+		EntityID spawnID = m_aVehiclePatrolSpawns[randomIndex];
+		
+		IEntity spawnEntity = GetGame().GetWorld().FindEntityByID(spawnID);
+		if (!spawnEntity)
+		{
+			// Clean up invalid entity reference
+			m_aVehiclePatrolSpawns.Remove(randomIndex);
+			
+			// Try again if we still have spawns
+			if (!m_aVehiclePatrolSpawns.IsEmpty())
+				return GetRandomVehiclePatrolSpawn(outPosition, outAngles);
+			
+			return false;
+		}
+		
+		// Get position and angles
+		outPosition = spawnEntity.GetOrigin();
+		outAngles = spawnEntity.GetAngles();
+		
+		return true;
+	}
 
 
 }

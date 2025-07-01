@@ -44,7 +44,6 @@ SCR_DestructibleBuildingEntity : "{9D656741EA2AABC5}Prefabs/Structures/Industria
   }
   RplComponent "{50A4E7C9B5728062}" {
    Enabled 1
-   Streamable Disabled
   }
  }
 }

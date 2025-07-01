@@ -1,0 +1,6 @@
+OVT_VehiclePatrolSpawn {
+ ID "65C30765DCA521A4"
+ Flags 1027
+ coords 9291.582 190.884 1150.999
+ angleY -172.727
+}
