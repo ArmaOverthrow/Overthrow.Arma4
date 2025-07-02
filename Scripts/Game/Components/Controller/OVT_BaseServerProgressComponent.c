@@ -24,20 +24,18 @@ class OVT_BaseServerProgressComponent : OVT_Component
 	//! \param[in] progress Progress value from 0.0 to 1.0
 	//! \param[in] current Current item being processed
 	//! \param[in] total Total items to process
-	//! \param[in] operation Description of current operation
 	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
-	void RpcDo_UpdateProgress(float progress, int current, int total, string operation)
+	void RpcDo_UpdateProgress(float progress, int current, int total)
 	{
 		m_fProgress = progress;
 		m_iItemsProcessed = current;
 		m_iTotalItems = total;
-		m_sCurrentOperation = operation;
-		m_OnProgressUpdate.Invoke(progress, current, total, operation);
+		m_OnProgressUpdate.Invoke(progress, current, total, m_sCurrentOperation);
 		
 		// Also notify the controller
 		OVT_OverthrowController controller = OVT_OverthrowController.Cast(GetOwner());
 		if (controller && controller.GetProgressEvents())
-			controller.GetProgressEvents().InvokeProgressUpdate(progress, current, total, operation);
+			controller.GetProgressEvents().InvokeProgressUpdate(progress, current, total);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -99,11 +97,11 @@ class OVT_BaseServerProgressComponent : OVT_Component
 		m_iTotalItems = 0;
 		m_sCurrentOperation = operationNameKey;
 		
-		// Notify client of start
-		Rpc(RpcDo_UpdateProgress, 0.0, 0, 0, operationNameKey);
-		
-		// Also send a separate RPC to notify operation start
+		// Send operation start RPC with the operation name
 		Rpc(RpcDo_OperationStart, operationNameKey);
+		
+		// Send initial progress update (without redundant operation text)
+		Rpc(RpcDo_UpdateProgress, 0.0, 0, 0);
 	}
 	
 	//------------------------------------------------------------------------------------------------

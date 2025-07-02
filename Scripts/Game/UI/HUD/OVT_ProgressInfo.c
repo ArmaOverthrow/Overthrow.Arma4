@@ -110,10 +110,9 @@ class OVT_ProgressInfo : SCR_InfoDisplay
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	protected void OnProgressUpdate(float progress, int current, int total, string operation)
+	protected void OnProgressUpdate(float progress, int current, int total)
 	{
 		m_fCurrentProgress = progress;
-		m_sCurrentOperation = operation;
 		m_iCurrentItems = current;
 		m_iTotalItems = total;
 				

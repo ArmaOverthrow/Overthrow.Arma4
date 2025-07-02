@@ -3,7 +3,7 @@ void ScriptInvokerProgressStartMethod(string operationName);
 typedef func ScriptInvokerProgressStartMethod;
 typedef ScriptInvokerBase<ScriptInvokerProgressStartMethod> ScriptInvokerProgressStart;
 
-void ScriptInvokerProgressUpdateMethod(float progress, int current, int total, string operation);
+void ScriptInvokerProgressUpdateMethod(float progress, int current, int total);
 typedef func ScriptInvokerProgressUpdateMethod;
 typedef ScriptInvokerBase<ScriptInvokerProgressUpdateMethod> ScriptInvokerProgressUpdate;
 
@@ -62,9 +62,9 @@ class OVT_ProgressEventHandler : Managed
 	
 	//------------------------------------------------------------------------------------------------
 	//! Invoke progress update event
-	void InvokeProgressUpdate(float progress, int current, int total, string operation)
+	void InvokeProgressUpdate(float progress, int current, int total)
 	{
-		m_OnProgressUpdate.Invoke(progress, current, total, operation);
+		m_OnProgressUpdate.Invoke(progress, current, total);
 	}
 	
 	//------------------------------------------------------------------------------------------------
