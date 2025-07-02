@@ -11,5 +11,21 @@ Vehicle : "{4085446E2B406849}Prefabs/Vehicles/Core/Vehicle_Base.et" {
   }
   OVT_PlayerOwnerComponent "{5F1EC253F0A9CC36}" {
   }
+  BaseVehicleNodeComponent "{57DA667544C3090A}" {
+   components {
+    BaseHUDComponent "{50F09A38B4352300}" {
+     InfoDisplays {
+      OVT_WantedInfo "{65BCF3EA73BC20CF}" {
+       m_LayoutPath "{472DF3D2F7500FEB}UI/Layouts/HUD/WantedInfo.layout"
+       m_eLayer OVERLAY
+      }
+      OVT_EconomyInfo "{65BCF3EA716A270E}" {
+       m_LayoutPath "{3C972A84DC44F671}UI/Layouts/HUD/EconomyInfo.layout"
+       m_eLayer OVERLAY
+      }
+     }
+    }
+   }
+  }
  }
 }

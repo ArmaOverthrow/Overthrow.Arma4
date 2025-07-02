@@ -50,7 +50,8 @@ class OVT_ManageBaseAction : ScriptedUserAction
 		OVT_BaseControllerComponent baseController = EPF_Component<OVT_BaseControllerComponent>.Find(GetOwner());
 		if (!baseController)
 		{
-			return false;
+			//is an FOB
+			return true;
 		}
 		return !baseController.IsOccupyingFaction();
 	}

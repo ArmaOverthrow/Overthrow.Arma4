@@ -96,6 +96,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	ref ScriptInvoker m_OnResistanceMoneyChanged = new ScriptInvoker(); //!< Invoked when the resistance money changes. Args: int newAmount
 	ref ScriptInvoker m_OnPlayerBuy = new ScriptInvoker(); //!< Invoked when a player buys an item. Args: int playerId, int cost, ResourceName item, int quantity
 	ref ScriptInvoker m_OnPlayerSell = new ScriptInvoker(); //!< Invoked when a player sells an item. Args: int playerId, int cost, ResourceName item, int quantity
+	ref ScriptInvoker m_OnPlayerTransaction = new ScriptInvoker(); //!< Invoked when any transaction occurs (server-side). Args: int playerId, OVT_ShopComponent shop, bool isBuying, int amount
 		
 	static OVT_EconomyManagerComponent s_Instance; //!< Static instance for singleton access.
 	
@@ -1072,7 +1073,6 @@ class OVT_EconomyManagerComponent: OVT_Component
 						if(cfg.m_sFind == "" || res.IndexOf(cfg.m_sFind) > -1)
 						{							
 							if(cfg.hidden) {
-								Print("Hiding " + res);
 								hidden = true;
 								break;
 							}

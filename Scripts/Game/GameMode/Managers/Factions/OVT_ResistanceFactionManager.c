@@ -670,33 +670,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		if(!access) return;
 		
 		access.MoveInVehicle(m_TempVehicle, ECompartmentType.TURRET);
-	}
-	
-	void SpawnGunner(RplId turret, int playerId = -1, bool takeSupporter = true)
-	{
-		RplComponent rpl = RplComponent.Cast(Replication.FindItem(turret));
-		if(!rpl) return;
-		
-		IEntity turretEntity = rpl.GetEntity();	
-		IEntity vehicle = turretEntity.GetParent();
-		if(!vehicle) vehicle = turretEntity;	
-				
-		IEntity group = OVT_Global.SpawnEntityPrefab(m_pHiredCivilianPrefab, vehicle.GetOrigin());
-		SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
-		if(!aigroup) return;
-		
-		OVT_Global.RandomizeCivilianGroupClothes(aigroup);
-		
-		m_TempVehicle = vehicle;
-		m_TempGroup = aigroup;
-		
-		GetGame().GetCallqueue().CallLater(MoveInGunner, 5);
-		
-		if(takeSupporter)
-		{
-			OVT_Global.GetTowns().TakeSupportersFromNearestTown(turretEntity.GetOrigin());
-		}		
-	}
+	}		
 	
 	//RPC Methods	
 	override bool RplSave(ScriptBitWriter writer)

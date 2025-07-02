@@ -153,7 +153,12 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 	void Init(IEntity owner)
 	{
-		if(!Replication.IsServer()) return;
+		if(!Replication.IsServer()) 
+		{
+			// On clients, set up base faction affiliations after JIP data is loaded
+			GetGame().GetCallqueue().CallLater(SetClientBaseFactions, 1000);
+			return;
+		}
 
 		Faction playerFaction = GetGame().GetFactionManager().GetFactionByKey(m_Config.m_sPlayerFaction);
 		m_iPlayerFactionIndex = GetGame().GetFactionManager().GetFactionIndex(playerFaction);
@@ -164,6 +169,45 @@ class OVT_OccupyingFactionManager: OVT_Component
 		OVT_Global.GetTowns().m_OnTownControlChange.Insert(OnTownControlChanged);
 
 		InitializeBases();
+	}
+	
+	void SetClientBaseFactions()
+	{
+		if (Replication.IsServer()) return;
+		
+		// Iterate through all bases and set their faction affiliations on the client
+		foreach (OVT_BaseData base : m_Bases)
+		{
+			BaseWorld world = GetOwner().GetWorld();
+			world.QueryEntitiesBySphere(base.location, 5, CheckBaseAndSetFaction, null, EQueryEntitiesFlags.STATIC);
+		}
+	}
+	
+	bool CheckBaseAndSetFaction(IEntity entity)
+	{
+		OVT_BaseControllerComponent baseController = OVT_BaseControllerComponent.Cast(entity.FindComponent(OVT_BaseControllerComponent));
+		if (!baseController) return true;
+		
+		//Initialize the base controller for the client
+		baseController.InitBaseClient();		
+		
+		// Find the base data for this location
+		OVT_BaseData baseData = GetNearestBase(entity.GetOrigin());
+		if (!baseData) return true;
+		
+		// Set the faction affiliation
+		SCR_FactionAffiliationComponent affiliation = EPF_Component<SCR_FactionAffiliationComponent>.Find(entity);
+		if (affiliation)
+		{
+			FactionManager factionManager = GetGame().GetFactionManager();
+			Faction faction = factionManager.GetFactionByIndex(baseData.faction);
+			if (faction)
+			{
+				affiliation.SetAffiliatedFaction(faction);
+			}
+		}
+		
+		return true;
 	}
 
 	void NewGameStart()
@@ -176,6 +220,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 		{
 			data.faction = OVT_Global.GetConfig().GetOccupyingFactionIndex();
 		}
+		
+		// Allocate initial resources to deployment manager
+		AllocateDeploymentResources(m_Config.m_Difficulty.baseResourcesPerTick);
 	}
 
 	void PostGameStart()
@@ -184,6 +231,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 		OVT_TimeAndWeatherHandlerComponent tw = OVT_TimeAndWeatherHandlerComponent.Cast(GetGame().GetGameMode().FindComponent(OVT_TimeAndWeatherHandlerComponent));
 
 		if(tw) timeMul = tw.GetDayTimeMultiplier();
+		
+		UpdateKnownTargets();
 
 		GetGame().GetCallqueue().CallLater(InitBaseControllers, 0);
 
@@ -218,7 +267,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 					
 					OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
 					
-					int numGroups = s_AIRandomGenerator.RandInt(config.m_Difficulty.radioTowerGroupsMin,config.m_Difficulty.radioTowerGroupsMax);
+					int numGroups = s_AIRandomGenerator.RandInt(config.m_Difficulty.patrolGroupsMin,config.m_Difficulty.patrolGroupsMax);
 
 					for(int t = 0; t < numGroups; t++)
 					{
@@ -475,6 +524,10 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_CurrentQRF.m_iLZMin = base.m_iAttackDistanceMin;
 		m_CurrentQRF.m_iLZMax = base.m_iAttackDistanceMax;
 		m_CurrentQRF.m_iPreferredDirection = base.m_iAttackPreferredDirection;
+		m_CurrentQRF.m_iDirectionVariance = base.m_iAttackDirectionVariance;
+		
+		if(base.m_iAttackPreferredDirection > -1)
+			Print("[Overthrow] QRF starting from preferred direction: " + base.m_iAttackPreferredDirection.ToString() + " +/- " + base.m_iAttackDirectionVariance.ToString());
 		
 		m_CurrentQRF.Start();
 		
@@ -501,6 +554,29 @@ class OVT_OccupyingFactionManager: OVT_Component
 		int townID = OVT_Global.GetTowns().GetTownID(town);
 
 		m_CurrentQRF = SpawnQRFController(town.location);
+		
+		// Find the town controller to get QRF parameters
+		OVT_TownManagerComponent townManager = OVT_Global.GetTowns();
+		EntityID townControllerID = townManager.m_TownControllers.Get(townID);
+		if(townControllerID)
+		{
+			IEntity townEntity = GetGame().GetWorld().FindEntityByID(townControllerID);
+			if(townEntity)
+			{
+				OVT_TownControllerComponent townController = OVT_TownControllerComponent.Cast(townEntity.FindComponent(OVT_TownControllerComponent));
+				if(townController)
+				{
+					m_CurrentQRF.m_iLZMin = townController.m_iAttackDistanceMin;
+					m_CurrentQRF.m_iLZMax = townController.m_iAttackDistanceMax;
+					m_CurrentQRF.m_iPreferredDirection = townController.m_iAttackPreferredDirection;
+					m_CurrentQRF.m_iDirectionVariance = townController.m_iAttackDirectionVariance;
+					
+					if(townController.m_iAttackPreferredDirection > -1)
+						Print("[Overthrow] Town QRF starting from preferred direction: " + townController.m_iAttackPreferredDirection.ToString() + " +/- " + townController.m_iAttackDirectionVariance.ToString());
+				}
+			}
+		}
+		
 		RplComponent rpl = RplComponent.Cast(m_CurrentQRF.GetOwner().FindComponent(RplComponent));
 		
 		m_CurrentQRF.Start();
@@ -526,20 +602,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 	{
 		if(m_CurrentQRF.m_iWinningFaction != m_CurrentQRFBase.GetControllingFaction())
 		{
-			string townName = OVT_Global.GetTowns().GetTownName(m_CurrentQRFBase.GetOwner().GetOrigin());
-			if(m_CurrentQRFBase.IsOccupyingFaction())
-			{
-				m_iThreat += 250;
-				OVT_Global.GetNotify().SendTextNotification("BaseControlledResistance",-1,townName);
-				OVT_Global.GetNotify().SendExternalNotifications("BaseControlledResistance",townName);
-			}else{
-				m_iThreat -= 250;
-				OVT_Global.GetNotify().SendTextNotification("BaseControlledOccupying",-1,townName);
-				OVT_Global.GetNotify().SendExternalNotifications("BaseControlledOccupying",townName);
-			}			
-			m_Bases[m_iCurrentQRFBase].faction = m_CurrentQRF.m_iWinningFaction;
-			m_CurrentQRFBase.SetControllingFaction(m_CurrentQRF.m_iWinningFaction);
-			Rpc(RpcDo_SetBaseFaction, m_iCurrentQRFBase, m_CurrentQRF.m_iWinningFaction);
+			ChangeBaseControl(m_CurrentQRFBase, m_CurrentQRF.m_iWinningFaction);
 		}
 
 		SCR_EntityHelper.DeleteEntityAndChildren(m_CurrentQRF.GetOwner());
@@ -550,6 +613,28 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_iCurrentQRFTown = -1;
 
 		Rpc(RpcDo_SetQRFInactive);
+	}
+	
+	void ChangeBaseControl(OVT_BaseControllerComponent base, int newFactionIndex)
+	{
+		string townName = OVT_Global.GetTowns().GetTownName(base.GetOwner().GetOrigin());
+		if(base.IsOccupyingFaction())
+		{
+			m_iThreat += 250;
+			OVT_Global.GetNotify().SendTextNotification("BaseControlledResistance",-1,townName);
+			OVT_Global.GetNotify().SendExternalNotifications("BaseControlledResistance",townName);
+		}else{
+			m_iThreat -= 250;
+			OVT_Global.GetNotify().SendTextNotification("BaseControlledOccupying",-1,townName);
+			OVT_Global.GetNotify().SendExternalNotifications("BaseControlledOccupying",townName);
+		}
+		
+		OVT_BaseData baseData = GetNearestBase(base.GetOwner().GetOrigin());
+		int baseIndex = GetBaseIndex(baseData);
+		
+		m_Bases[baseIndex].faction = newFactionIndex;
+		base.SetControllingFaction(newFactionIndex);
+		Rpc(RpcDo_SetBaseFaction, baseIndex, newFactionIndex);
 	}
 
 	void OnQRFFinishedTown()
@@ -659,47 +744,68 @@ class OVT_OccupyingFactionManager: OVT_Component
 		return false;
 	}
 
-	int getBaseThreat(OVT_BaseData base)
+	int GetThreatByLocation(vector pos)
 	{
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		int villageRange = towns.m_iVillageRange;
+		int townRange = towns.m_iTownRange;
+		int cityRange = towns.m_iCityRange;
+		
+		
 		int score = 0;
 		foreach(OVT_TargetData target : m_aKnownTargets)
 		{
-			if(vector.Distance(target.location, base.location) < 3000)
+			float distance = vector.Distance(target.location, pos);
+			if(distance < 1000)
 			{
+				float distanceFactor = 1.0 - (distance / 1000);
 				if(target.type == OVT_TargetType.BASE)
 				{
-					score += 20;
-				}else if(target.type == OVT_TargetType.BROADCAST_TOWER)
+					score += (int)Math.Round(10 * distanceFactor);
+				}
+				if(target.type == OVT_TargetType.BROADCAST_TOWER)
 				{
-					score += 10;
-				}else if(target.type == OVT_TargetType.FOB)
+					score += (int)Math.Round(5 * distanceFactor);
+				}
+				if(target.type == OVT_TargetType.FOB)
 				{
-					score += 5;
-				}else if(target.type == OVT_TargetType.WAREHOUSE)
+					score += (int)Math.Round(5 * distanceFactor);
+				}
+				if(target.type == OVT_TargetType.WAREHOUSE)
 				{
 					score += 1;
-				}				
+				}
 			}
 		}
 		foreach(OVT_TownData town : OVT_Global.GetTowns().m_Towns)
 		{
-			if(town.IsOccupyingFaction()) continue;
-			if(vector.Distance(town.location, base.location) < 3000)
+			int range = villageRange;
+			if(town.size == 2) range = townRange;
+			if(town.size == 3) range = cityRange;
+			
+			float distance = vector.Distance(town.location, pos);
+			if(distance > range * 3) continue;
+			
+			float distanceFactor = 1.0 - (distance / ((float)range * 3));
+			
+			if(town.IsOccupyingFaction())
 			{
-				if(town.size == 1)
-				{
-					score += 5;
-				}else if(town.size == 2)
-				{
-					score += 10;
-				}else if(town.size == 3)
-				{
-					score += 20;
-				}
-			}
+				int supportScore = (int)Math.Round(((float)town.SupportPercentage() / 100) * distanceFactor * 5 * town.size);
+				int stabilityScore = (int)Math.Round((1 - ((float)town.stability / 100)) * distanceFactor * 5 * town.size);				
+				score += supportScore + stabilityScore;
+			}else{
+				int townScore = (int)Math.Round(5 * distanceFactor * town.size);
+				score += townScore;
+			}	
 		}
-
 		return score;
+	}
+
+	int GetThreatLevel() {return m_iThreat;}
+
+	int GetBaseThreat(OVT_BaseData base)
+	{
+		return GetThreatByLocation(base.location);
 	}
 
 	void CheckUpdate()
@@ -755,7 +861,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 			foreach(OVT_BaseData data : m_Bases)
 			{
 				if(!data.IsOccupyingFaction()) continue;
-				data.sortBy = getBaseThreat(data);
+				data.sortBy = GetBaseThreat(data);
 				sortedBases.Insert(data);
 			}
 			sortedBases.Sort(true);	
@@ -809,6 +915,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 			int threatReduce = Math.Ceil((float)m_iThreat * OVT_Global.GetDifficulty().threatReductionFactor);
 			m_iThreat -= threatReduce;
 			if(m_iThreat < 0) m_iThreat = 0;
+			
+			Print("[Overthrow.OccupyingFactionManager] Reduced Threat to: " + m_iThreat.ToString());
 
 			int playerFaction = m_Config.GetPlayerFactionIndex();
 			int occupyingFaction = m_Config.GetOccupyingFactionIndex();
@@ -1013,8 +1121,48 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_iResources += newResources;
 
 		Print ("[Overthrow.OccupyingFactionManager] Gained Resources: " + newResources.ToString());
+		
+		// Allocate resources to deployment manager if it's running low
+		AllocateDeploymentResourcesIfNeeded(newResources);
 
 		return newResources;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	// Deployment Manager Resource Allocation
+	//------------------------------------------------------------------------------------------------
+	protected void AllocateDeploymentResources(int amount)
+	{
+		OVT_DeploymentManagerComponent deploymentManager = OVT_Global.GetDeploymentManager();
+		if (!deploymentManager)
+			return;
+			
+		int occupyingFactionIndex = OVT_Global.GetConfig().GetOccupyingFactionIndex();
+		deploymentManager.AddFactionResources(occupyingFactionIndex, amount);
+		
+		Print(string.Format("[Overthrow.OccupyingFactionManager] Allocated %1 resources to deployment manager", amount));
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	protected void AllocateDeploymentResourcesIfNeeded(int newResources)
+	{
+		OVT_DeploymentManagerComponent deploymentManager = OVT_Global.GetDeploymentManager();
+		if (!deploymentManager)
+			return;
+			
+		int occupyingFactionIndex = OVT_Global.GetConfig().GetOccupyingFactionIndex();
+		int deploymentResources = deploymentManager.GetFactionResources(occupyingFactionIndex);
+		
+		// If deployment manager has less than 500 resources and we have surplus
+		if (deploymentResources < 500 && m_iResources > 1000)
+		{
+			int toAllocate = Math.Min(newResources / 2, m_iResources - 1000);
+			if (toAllocate > 0)
+			{
+				AllocateDeploymentResources(toAllocate);
+				m_iResources -= toAllocate;
+			}
+		}
 	}
 
 	void OnAIKilled(IEntity ai, IEntity instigator)

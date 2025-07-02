@@ -25,6 +25,13 @@ GenericEntity : "{4106EBCD72532DA4}Prefabs/Props/Commercial/Posters/PosterSingle
   RplComponent "{5624A88DC2D9928D}" {
    Enabled 1
   }
+  SCR_EditableEntityComponent "{65B90A24B6E114CC}" {
+   m_UIInfo SCR_EditableEntityUIInfo "{65B90A2B75ED14CD}" {
+    Name "#OVT-Place_Poster"
+    Description "#OVT-Place_Poster_Description"
+   }
+   m_Flags PLACEABLE
+  }
  }
  scale 2.5
 }

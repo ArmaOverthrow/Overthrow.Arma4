@@ -1,0 +1,17 @@
+MetaFileClass {
+ Name "{6D73271C8E13155C}Prefabs/Structures/Military/Camps/TentFIA_01/OVT_RecruitmentTent.et"
+ Configurations {
+  EntityTemplateResourceClass PC {
+  }
+  EntityTemplateResourceClass XBOX_ONE : PC {
+  }
+  EntityTemplateResourceClass XBOX_SERIES : PC {
+  }
+  EntityTemplateResourceClass PS4 : PC {
+  }
+  EntityTemplateResourceClass PS5 : PC {
+  }
+  EntityTemplateResourceClass HEADLESS : PC {
+  }
+ }
+}

@@ -70,6 +70,35 @@ class OVT_PlayerCommsComponent: OVT_Component
 		OVT_BaseControllerComponent base = of.GetBase(data.entId);
 		of.StartBaseQRF(base);
 	}
+	
+	void InstantCaptureBase(vector loc, int playerId)
+	{
+		Rpc(RpcAsk_InstantCaptureBase, loc, playerId);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_InstantCaptureBase(vector loc, int playerId)
+	{
+		OVT_OccupyingFactionManager of = OVT_Global.GetOccupyingFaction();
+		OVT_BaseData data = of.GetNearestBase(loc);
+		OVT_BaseControllerComponent base = of.GetBase(data.entId);
+		
+		// Determine the winning faction based on current control
+		int winningFactionIndex;
+		if (base.IsOccupyingFaction())
+		{
+			// Currently occupied by enemy, capture for resistance
+			winningFactionIndex = OVT_Global.GetConfig().GetPlayerFactionIndex();
+		}
+		else
+		{
+			// Currently controlled by resistance, capture for occupying faction
+			winningFactionIndex = OVT_Global.GetConfig().GetOccupyingFactionIndex();
+		}
+		
+		// Instantly change base control
+		of.ChangeBaseControl(base, winningFactionIndex);
+	}
 		
 	void DeliverMedicalSupplies(IEntity vehicle)
 	{
@@ -152,6 +181,34 @@ class OVT_PlayerCommsComponent: OVT_Component
 		IEntity entity = rpl.GetEntity();
 		OVT_PlayerOwnerComponent playerOwner = EPF_Component<OVT_PlayerOwnerComponent>.Find(entity);
 		if(playerOwner) playerOwner.SetLocked(locked);
+	}
+	
+	void ClaimUnownedVehicle(IEntity vehicle, int playerId)
+	{
+		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
+		Rpc(RpcAsk_ClaimUnownedVehicle, rpl.Id(), playerId);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	void RpcAsk_ClaimUnownedVehicle(RplId vehicleId, int playerId)
+	{
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(vehicleId));
+		if (!rpl) return;
+		
+		IEntity vehicle = rpl.GetEntity();
+		if (!vehicle) return;
+		
+		OVT_PlayerOwnerComponent playerOwner = EPF_Component<OVT_PlayerOwnerComponent>.Find(vehicle);
+		if (!playerOwner) return;
+		
+		// Only set owner if vehicle is currently unowned
+		string currentOwner = playerOwner.GetPlayerOwnerUid();
+		if (currentOwner == "")
+		{
+			string playerUid = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+			playerOwner.SetPlayerOwner(playerUid);
+			playerOwner.SetLocked(false);
+		}
 	}
 	
 	//REAL ESTATE
@@ -276,6 +333,13 @@ class OVT_PlayerCommsComponent: OVT_Component
 			Rpc(RpcAsk_TakePlayerMoney, playerId, total);
 			Rpc(RpcAsk_TakeFromInventory, shopId, id, totalnum);
 			economy.m_OnPlayerBuy.Invoke(playerId, total);
+			
+			// Get shop component for transaction event			
+			OVT_ShopComponent shop = economy.GetShopByRplId(shopId);
+			if(shop)
+			{
+				economy.m_OnPlayerTransaction.Invoke(playerId, shop, true, total);
+			}
 		}
 		
 	}
@@ -617,18 +681,28 @@ class OVT_PlayerCommsComponent: OVT_Component
 	{
 		OVT_Global.GetVehicles().RepairVehicle(vehicle);
 	}
-	
-	void SpawnGunner(IEntity turret, int playerId = -1)
-	{		
-		RplComponent rpl = RplComponent.Cast(turret.FindComponent(RplComponent));
 		
-		Rpc(RpcAsk_SpawnGunner, rpl.Id(), playerId);
+	void RecruitCivilian(IEntity civilian, int playerId = -1)
+	{		
+		RplComponent rpl = RplComponent.Cast(civilian.FindComponent(RplComponent));
+		
+		Rpc(RpcAsk_RecruitCivilian, rpl.Id(), playerId);
 	}	
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_SpawnGunner(RplId turret, int playerId)
+	protected void RpcAsk_RecruitCivilian(RplId civilian, int playerId)
 	{
-		OVT_Global.GetResistanceFaction().SpawnGunner(turret, playerId);
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(civilian));
+		if (!rpl) return;
+		
+		IEntity civilianEntity = rpl.GetEntity();
+		SCR_ChimeraCharacter character = SCR_ChimeraCharacter.Cast(civilianEntity);
+		if (!character) return;
+		
+		OVT_RecruitManagerComponent recruitManager = OVT_RecruitManagerComponent.GetInstance();
+		if (!recruitManager) return;
+		
+		recruitManager.RecruitCivilian(character, playerId);
 	}
 	
 	//WAREHOUSES
@@ -729,6 +803,395 @@ class OVT_PlayerCommsComponent: OVT_Component
 	void RpcAsk_RequestFastTravel(int playerId, vector pos)	
 	{
 		SCR_Global.TeleportPlayer(playerId, pos);
+	}
+	
+	void RequestFastTravelWithRecruits(int playerId, vector pos, float recruitRadius)	
+	{		
+		Rpc(RpcAsk_RequestFastTravelWithRecruits, playerId, pos, recruitRadius);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	void RpcAsk_RequestFastTravelWithRecruits(int playerId, vector pos, float recruitRadius)	
+	{
+		// Get player's persistent ID
+		string playerPersistentId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		if (playerPersistentId.IsEmpty())
+			return;
+		
+		// Get player entity for position reference
+		IEntity playerEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+		if (!playerEntity)
+			return;
+		
+		// Teleport player first
+		SCR_Global.TeleportPlayer(playerId, pos);
+		
+		// Get nearby recruits
+		OVT_RecruitManagerComponent recruitManager = OVT_RecruitManagerComponent.GetInstance();
+		if (!recruitManager)
+			return;
+			
+		array<IEntity> nearbyRecruits = recruitManager.GetPlayerRecruitEntitiesInRadius(playerPersistentId, playerEntity.GetOrigin(), recruitRadius);
+		
+		// Teleport each nearby recruit to the same destination
+		int recruitIndex = 0;
+		foreach (IEntity recruitEntity : nearbyRecruits)
+		{
+			if (!recruitEntity)
+				continue;
+				
+			// Calculate offset position in a circle around the player destination
+			float angle = (recruitIndex * 360.0 / nearbyRecruits.Count()) * Math.DEG2RAD;
+			float radius = 3.0 + (recruitIndex * 0.5); // Start at 3m and expand outward
+			vector offset = Vector(Math.Sin(angle) * radius, 0, Math.Cos(angle) * radius);
+			vector recruitPos = pos + offset;
+			
+			// Find a safe position near the calculated spot
+			recruitPos = OVT_Global.FindSafeSpawnPosition(recruitPos);
+			
+			// Teleport the recruit
+			recruitEntity.SetOrigin(recruitPos);
+			recruitIndex++;
+		}
+	}
+	
+	//LOADOUTS
+	
+	//! Save a loadout for a player
+	void SaveLoadout(string playerId, string loadoutName, string description = "", bool isOfficerTemplate = false)
+	{
+		Rpc(RpcAsk_SaveLoadout, playerId, loadoutName, description, isOfficerTemplate);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_SaveLoadout(string playerId, string loadoutName, string description, bool isOfficerTemplate)
+	{
+		// Get the player entity
+		OVT_PlayerManagerComponent playerMgr = OVT_Global.GetPlayers();
+		int playerIdInt = playerMgr.GetPlayerIDFromPersistentID(playerId);
+		IEntity playerEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerIdInt);
+		
+		if (!playerEntity)
+		{
+			Print(string.Format("[OVT_PlayerCommsComponent] Could not find player entity for ID: %1", playerId), LogLevel.ERROR);
+			return;
+		}
+		
+		// Get loadout manager
+		OVT_LoadoutManagerComponent loadoutManager = OVT_Global.GetLoadouts();
+		if (!loadoutManager)
+		{
+			Print("[OVT_PlayerCommsComponent] Loadout manager not available", LogLevel.ERROR);
+			return;
+		}
+		
+		// Save the loadout
+		if (isOfficerTemplate)
+		{
+			loadoutManager.SaveOfficerTemplate(playerId, loadoutName, playerEntity, description);
+		}
+		else
+		{
+			loadoutManager.SaveLoadout(playerId, loadoutName, playerEntity, description);
+		}
+	}
+	
+	//! Load a loadout for a player
+	void LoadLoadout(string playerId, string loadoutName)
+	{
+		Rpc(RpcAsk_LoadLoadout, playerId, loadoutName);
+	}
+	
+	//! Load a loadout for a player from equipment box
+	void LoadLoadoutFromBox(string playerId, string loadoutName, IEntity equipmentBox, IEntity targetEntity)
+	{		
+		RplComponent equipmentBoxRpl = RplComponent.Cast(equipmentBox.FindComponent(RplComponent));
+		RplComponent targetEntityRpl = RplComponent.Cast(targetEntity.FindComponent(RplComponent));
+		
+		if (!equipmentBoxRpl || !targetEntityRpl)
+		{
+			Print(string.Format("[OVT_PlayerCommsComponent] Could not get RplComponent - EquipmentBox: %1, TargetEntity: %2", 
+				!equipmentBoxRpl, !targetEntityRpl), LogLevel.ERROR);
+			return;
+		}
+		
+		Rpc(RpcAsk_LoadLoadoutFromBox, playerId, loadoutName, equipmentBoxRpl.Id(), targetEntityRpl.Id());
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_LoadLoadout(string playerId, string loadoutName)
+	{
+		// Get the player entity
+		OVT_PlayerManagerComponent playerMgr = OVT_Global.GetPlayers();
+		int playerIdInt = playerMgr.GetPlayerIDFromPersistentID(playerId);
+		IEntity playerEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerIdInt);
+		
+		if (!playerEntity)
+		{
+			Print(string.Format("[OVT_PlayerCommsComponent] Could not find player entity for ID: %1", playerId), LogLevel.ERROR);
+			return;
+		}
+		
+		// Get loadout manager
+		OVT_LoadoutManagerComponent loadoutManager = OVT_Global.GetLoadouts();
+		if (!loadoutManager)
+		{
+			Print("[OVT_PlayerCommsComponent] Loadout manager not available", LogLevel.ERROR);
+			return;
+		}
+		
+		// Load the loadout
+		loadoutManager.LoadLoadout(playerId, loadoutName, playerEntity);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_LoadLoadoutFromBox(string playerId, string loadoutName, RplId equipmentBoxId, RplId targetEntityId)
+	{
+		
+		// Get equipment box entity
+		RplComponent equipmentBoxRpl = RplComponent.Cast(Replication.FindItem(equipmentBoxId));
+		if (!equipmentBoxRpl)
+		{
+			Print(string.Format("[OVT_PlayerCommsComponent] Could not find equipment box with RplId: %1", equipmentBoxId), LogLevel.ERROR);
+			return;
+		}
+		IEntity equipmentBox = equipmentBoxRpl.GetEntity();
+		
+		// Get target entity
+		RplComponent targetEntityRpl = RplComponent.Cast(Replication.FindItem(targetEntityId));
+		if (!targetEntityRpl)
+		{
+			Print(string.Format("[OVT_PlayerCommsComponent] Could not find target entity with RplId: %1", targetEntityId), LogLevel.ERROR);
+			return;
+		}
+		IEntity targetEntity = targetEntityRpl.GetEntity();
+		
+		// Get loadout manager
+		OVT_LoadoutManagerComponent loadoutManager = OVT_Global.GetLoadouts();
+		if (!loadoutManager)
+		{
+			Print("[OVT_PlayerCommsComponent] Loadout manager not available", LogLevel.ERROR);
+			return;
+		}
+		
+		// Load the loadout from equipment box
+		loadoutManager.LoadLoadout(playerId, loadoutName, targetEntity, equipmentBox);
+	}
+	
+	//! Delete a loadout (client to server)
+	void DeleteLoadout(string playerId, string loadoutName, bool isOfficerTemplate = false)
+	{
+		Rpc(RpcAsk_DeleteLoadout, playerId, loadoutName, isOfficerTemplate);
+	}
+	
+	//! Server-side RPC handler for deleting loadouts
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_DeleteLoadout(string playerId, string loadoutName, bool isOfficerTemplate)
+	{
+		OVT_LoadoutManagerComponent loadoutManager = OVT_Global.GetLoadouts();
+		if (!loadoutManager)
+		{
+			Print("[OVT_PlayerCommsComponent] LoadoutManager not found", LogLevel.ERROR);
+			return;
+		}
+		
+		// Delete the loadout
+		loadoutManager.DeleteLoadout(playerId, loadoutName, isOfficerTemplate);
+	}
+	
+	//! Set possessed entity on server and notify client to open inventory
+	void SetPossessedEntityAndOpenInventory(int playerId, IEntity targetEntity)
+	{
+		RplComponent rpl = RplComponent.Cast(targetEntity.FindComponent(RplComponent));
+		if (!rpl)
+		{
+			Print("[OVT_PlayerCommsComponent] Target entity has no RplComponent", LogLevel.ERROR);
+			return;
+		}
+		
+		Rpc(RpcAsk_SetPossessedEntityAndOpenInventory, playerId, rpl.Id());
+	}
+	
+	//! Server-side RPC handler for setting possessed entity and notifying client
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_SetPossessedEntityAndOpenInventory(int playerId, RplId targetEntityId)
+	{
+		// Get the target entity from RplId
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(targetEntityId));
+		if (!rpl)
+		{
+			Print("[OVT_PlayerCommsComponent] Could not find target entity", LogLevel.ERROR);
+			return;
+		}
+		
+		IEntity targetEntity = rpl.GetEntity();
+		if (!targetEntity)
+		{
+			Print("[OVT_PlayerCommsComponent] Target entity is null", LogLevel.ERROR);
+			return;
+		}
+		
+		// Get player controller
+		SCR_PlayerController playerController = SCR_PlayerController.Cast(GetGame().GetPlayerManager().GetPlayerController(playerId));
+		if (!playerController)
+		{
+			Print("[OVT_PlayerCommsComponent] Player controller not found", LogLevel.ERROR);
+			return;
+		}
+		
+		// Set possessed entity on server
+		playerController.SetPossessedEntity(targetEntity);
+		
+		// Notify the specific client to open inventory
+		RplId playerControllerId = Replication.FindId(playerController);
+		RpcDo_OpenInventory(targetEntityId, playerId, playerControllerId);
+		Rpc(RpcDo_OpenInventory, targetEntityId, playerId, playerControllerId);
+	}
+	
+	//! Client-side RPC handler to open inventory
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_OpenInventory(RplId targetEntityId, int playerId, RplId playerControllerId)
+	{
+		// Check if this is for the local player first
+		int localPlayerId = SCR_PlayerController.GetLocalPlayerId();
+		if (localPlayerId != playerId)
+			return;
+						
+		// Get the target entity from RplId
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(targetEntityId));
+		if (!rpl)
+		{
+			Print("[OVT_PlayerCommsComponent] Client: Could not find target entity", LogLevel.ERROR);
+			return;
+		}
+		
+		IEntity targetEntity = rpl.GetEntity();
+		if (!targetEntity)
+		{
+			Print("[OVT_PlayerCommsComponent] Client: Target entity is null", LogLevel.ERROR);
+			return;
+		}
+		
+		// Open inventory on client
+		SCR_InventoryStorageManagerComponent inventoryManager = SCR_InventoryStorageManagerComponent.Cast(
+			targetEntity.FindComponent(SCR_InventoryStorageManagerComponent)
+		);
+		
+		if (inventoryManager)
+		{
+			// Set up close listener on the client side
+			inventoryManager.m_OnInventoryOpenInvoker.Insert(OnClientInventoryStateChanged);
+			inventoryManager.OpenInventory();
+		}
+		else
+		{
+			Print("[OVT_PlayerCommsComponent] Client: No inventory manager found", LogLevel.ERROR);
+		}
+	}
+	
+	//! Client-side inventory state change handler
+	protected void OnClientInventoryStateChanged(bool isOpen)
+	{
+		Print(string.Format("[OVT_PlayerCommsComponent] Client: Inventory state changed - isOpen: %1", isOpen), LogLevel.NORMAL);
+		
+		// When inventory closes on client, notify server to restore possession
+		if (!isOpen)
+		{
+			Print("[OVT_PlayerCommsComponent] Client: Inventory closed, requesting possession restore", LogLevel.NORMAL);
+			
+			// Get the player controller which maintains authority
+			SCR_PlayerController playerController = SCR_PlayerController.Cast(GetGame().GetPlayerController());
+			if (playerController)
+			{
+				// Use the player controller's method which can send RPCs even when possessed
+				playerController.RequestRestorePossession();
+			}
+			else
+			{
+				Print("[OVT_PlayerCommsComponent] Client: Could not get player controller", LogLevel.ERROR);
+			}
+		}
+	}
+	
+	//! Restore possessed entity on server and notify client inventory closed
+	void RestorePossessedEntity(int playerId)
+	{
+		Rpc(RpcAsk_RestorePossessedEntity, playerId);
+	}
+	
+	//! Server-side RPC handler for restoring possessed entity
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_RestorePossessedEntity(int playerId)
+	{
+		Print(string.Format("[OVT_PlayerCommsComponent] Server: Restoring possession for player %1", playerId), LogLevel.NORMAL);
+		
+		// Get player controller
+		SCR_PlayerController playerController = SCR_PlayerController.Cast(GetGame().GetPlayerManager().GetPlayerController(playerId));
+		if (!playerController)
+		{
+			Print("[OVT_PlayerCommsComponent] Player controller not found for restore", LogLevel.ERROR);
+			return;
+		}
+		
+		IEntity currentPossessed = playerController.GetControlledEntity();
+		Print(string.Format("[OVT_PlayerCommsComponent] Current possessed entity: %1", currentPossessed), LogLevel.NORMAL);
+		
+		// Restore possession to null (back to original entity)
+		playerController.SetPossessedEntity(null);
+		
+		IEntity restoredEntity = playerController.GetControlledEntity();
+		Print(string.Format("[OVT_PlayerCommsComponent] Restored to entity: %1", restoredEntity), LogLevel.NORMAL);
+	}
+	
+	//! Request recruit dismissal from client
+	void DismissRecruit(string recruitId)
+	{
+		Rpc(RpcAsk_DismissRecruit, recruitId);
+	}
+	
+	//! Server-side RPC handler for recruit dismissal requests
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_DismissRecruit(string recruitId)
+	{
+		// Get the recruit manager
+		OVT_RecruitManagerComponent recruitManager = OVT_RecruitManagerComponent.GetInstance();
+		if (!recruitManager)
+		{
+			Print("[OVT_PlayerCommsComponent] Server: Recruit manager not found", LogLevel.ERROR);
+			return;
+		}
+		
+		// Validate the recruit exists
+		OVT_RecruitData recruit = recruitManager.GetRecruit(recruitId);
+		if (!recruit)
+		{
+			Print("[OVT_PlayerCommsComponent] Server: Recruit not found for dismissal: " + recruitId, LogLevel.ERROR);
+			return;
+		}
+		
+		// Find and delete the recruit entity on server
+		IEntity recruitEntity = recruitManager.FindRecruitEntity(recruitId);
+		if (recruitEntity)
+		{
+			// Remove from group first
+			AIControlComponent aiControl = AIControlComponent.Cast(recruitEntity.FindComponent(AIControlComponent));
+			if (aiControl)
+			{
+				AIAgent agent = aiControl.GetAIAgent();
+				if (agent && agent.GetParentGroup())
+				{
+					agent.GetParentGroup().RemoveAgent(agent);
+				}
+			}
+			
+			// Delete entity on server
+			SCR_EntityHelper.DeleteEntityAndChildren(recruitEntity);
+		}
+		
+		// Remove from manager (this will broadcast to all clients)
+		recruitManager.RemoveRecruit(recruitId);
+		
+		Print("[OVT_PlayerCommsComponent] Server: Dismissed recruit: " + recruitId, LogLevel.NORMAL);
 	}
 	
 	void SetCampPrivacy(OVT_CampData camp, bool isPrivate)

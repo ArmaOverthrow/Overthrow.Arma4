@@ -23,7 +23,16 @@ GenericEntity {
     IconSetName "repair"
    }
   }
+  SCR_EditableEntityComponent "{65B90A2908DB72F3}" {
+   m_UIInfo SCR_EditableEntityUIInfo "{65B90A2913E48FE2}" {
+    Name "#OVT-Build_VehicleMaintenanceRamp"
+    Description "#OVT-Build_VehicleMaintenanceRamp_Description"
+   }
+   m_Flags PLACEABLE
+  }
   RplComponent "{59CF196A053B1B4F}" {
+  }
+  Hierarchy "{59D05009C322FE87}" {
   }
  }
  coords 0 0 0
@@ -44,10 +53,10 @@ GenericEntity {
   GenericEntity : "{50A752B7D5E679A2}Prefabs/Props/Industrial/Repair/GasWelder_01.et" {
    ID "59CF196E7B468CD7"
    components {
-    Hierarchy "{59CF196C78239E29}" {
-    }
     RplComponent "{5624A88DC2D9928D}" {
      Enabled 1
+    }
+    Hierarchy "{59CF196C78239E29}" {
     }
    }
    coords 2.063 0.923 0.184

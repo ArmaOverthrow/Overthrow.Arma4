@@ -1,0 +1,95 @@
+SCR_DestructibleBuildingEntity : "{BE5D5CFA90224646}Prefabs/Structures/Military/Camps/TentUSSR_01/TentUSSR_01_base.et" {
+ ID "F0DBA538AC2A0552"
+ components {
+  EPF_PersistenceComponent "{65AAD8EE1984CCCD}" {
+   m_bUpdateNavmesh 1
+   m_pSaveData OVT_BuildingSaveDataClass "{65AAD8EEE42AC7EB}" {
+   }
+  }
+  MeshObject "{506EDA9D46FC6C06}" {
+   Materials {
+    MaterialAssignClass "{65AAD8E2BE19D653}" {
+     SourceMaterial "BaseFabric_Tent"
+     AssignedMaterial "{0C2A70FDB9D874BE}Assets/Structures/Military/Camps/TentUSSR_01/Data/Tent_Soviet_01_Fabric_FIA.emat"
+    }
+    MaterialAssignClass "{65AAD8E2BE19D64E}" {
+     SourceMaterial "Tent_Soviet_01_Fabric_MLOD"
+     AssignedMaterial "{3C5C70981B855375}Assets/Structures/Military/Camps/TentUSSR_01/Data/Tent_FIA_01_Fabric_MLOD.emat"
+    }
+   }
+  }
+  SCR_EditableEntityComponent "{65B90A294FA187CE}" {
+   m_UIInfo SCR_EditableEntityUIInfo "{65B90A29491D080A}" {
+    Name "#OVT-Build_RecruitmentTent"
+    Description "#OVT-Build_RecruitmentTent_Description"
+   }
+   m_Flags PLACEABLE
+  }
+ }
+ {
+  GenericEntity : "{03B44EA7652D0D17}Prefabs/Props/Military/Radios/RadioStation_R123M_01.et" {
+   ID "65AAD8EE0865F8DE"
+   coords -0.284 0.945 -2.45
+   angleY 21.639
+  }
+  GenericEntity : "{1304FA1829C44690}Prefabs/Structures/Military/Camps/TentFIA_01/TentFIA_01_floor.et" {
+   ID "65AAD8E2BE19D587"
+  }
+  GameEntity : "{2CB0AA2A87842C18}Prefabs/Props/Civilian/LampKerosene_01/LampKerosene_01_military_USSR.et" {
+   ID "65AAD8EE0865F8B8"
+   components {
+    Hierarchy "{65AAD8EF8931F0C9}" {
+    }
+   }
+   coords 0.398 0.942 -2.495
+  }
+  GenericEntity : "{642101F827FFA52D}Prefabs/Props/Military/Manuals/Manual_Soviet_01.et" {
+   ID "65AAD8EE0865F897"
+   components {
+    Hierarchy "{65AAD8EF95501AFE}" {
+    }
+   }
+   coords 0.076 0.945 -1.979
+  }
+  StaticModelEntity : "{7762F50A860DD074}Prefabs/Props/Military/Furniture/TableMilitary_US_01.et" {
+   ID "65AAD8ED9FEDD969"
+   components {
+    ActionsManagerComponent "{65AAD8EEC379D6E1}" {
+     ActionContexts {
+      UserActionContext "{65AAD8EEC2C3AD20}" {
+       ContextName "tabletop"
+       Position PointInfo "{65AAD8EEB029470B}" {
+        Offset 0 0.9253 0
+       }
+       Radius 0.65
+      }
+     }
+     additionalActions {
+      OVT_RecruitFromTentAction "{65AAD8EEDDEC94CC}" {
+       ParentContextList {
+        "tabletop"
+       }
+       UIInfo UIInfo "{65AAD8EEAD50E97D}" {
+        Name "#OVT-RecruitCivilian"
+       }
+       ActionTitle "Recruit Civilian"
+      }
+     }
+    }
+    Hierarchy "{65AAD8EF8332C263}" {
+    }
+   }
+   coords -0.088 0.045 -2.3
+   angleY 0
+  }
+  StaticModelEntity : "{C9CFDED29542A968}Prefabs/Props/Military/Furniture/CotMilitary_US_01.et" {
+   ID "65AAD8EE0865F8FF"
+   components {
+    Hierarchy "{65AAD8EF8F05D49E}" {
+    }
+   }
+   coords 2.106 0.038 -1.529
+   angleY 85.455
+  }
+ }
+}

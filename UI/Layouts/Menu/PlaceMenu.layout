@@ -266,12 +266,24 @@ FrameWidgetClass {
                 HorizontalAlign 3
                }
                {
-                FrameWidgetClass "{598AD54B90E1C34A}" {
-                 Name "Spacer"
-                 Slot LayoutSlot "{56EEDE032971134A}" {
-                  SizeMode Fill
+                ButtonWidgetClass "{599070D31AD02ECE}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+                 Name "CloseButton"
+                 Slot LayoutSlot "{56EEDE01982D053A}" {
+                  Padding 0 0 10 0
+                 }
+                 components {
+                  SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                   m_sActionName "MenuBack"
+                   m_sLabel "#AR-Menu_Back"
+                  }
                  }
                 }
+               }
+              }
+              HorizontalLayoutWidgetClass "{598AD54B90E1C368}" : "{D0FC6BB2485677C4}UI/layouts/Common/Buttons/PagingButtons.layout" {
+               Name "Pagination"
+               Slot OverlayWidgetSlot "{56EEDE03221863B0}" {
+                VerticalAlign 3
                }
               }
              }

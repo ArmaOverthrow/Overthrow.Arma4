@@ -1,0 +1,15 @@
+GenericEntity Poster_Join_v2_65C296D9E75A0EB6 : "{A1277C7EA79FBA1E}Prefabs/Props/Posters/Poster_Join_v2.et" {
+ coords 2905.426 9.422 2180.169
+ angleY 90.062
+ scale 1
+}
+GenericEntity Poster_Resist_v1_65C296D9314FA1F0 : "{A3F34DF44939D26E}Prefabs/Props/Posters/Poster_Resist_v1.et" {
+ components {
+  EPF_PersistenceComponent "{65B90A20665B489A}" {
+   Enabled 0
+  }
+ }
+ coords 2905.42 8.956 2179.967
+ angleY 90.506
+ scale 1
+}

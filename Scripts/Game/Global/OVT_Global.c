@@ -9,6 +9,12 @@ class OVT_Global : Managed
 		IEntity player = SCR_PlayerController.GetLocalControlledEntity();
 		return OVT_PlayerCommsComponent.Cast(player.FindComponent(OVT_PlayerCommsComponent));
 	}
+
+	static OVT_UIManagerComponent GetUI()
+	{	
+		IEntity player = SCR_PlayerController.GetLocalControlledEntity();
+		return OVT_UIManagerComponent.Cast(player.FindComponent(OVT_UIManagerComponent));
+	}
 	
 	//------------------------------------------------------------------------------------------------
 	//! Get the local player's overthrow controller entity
@@ -119,6 +125,21 @@ class OVT_Global : Managed
 	static OVT_InventoryManagerComponent GetInventory()
 	{
 		return OVT_InventoryManagerComponent.GetInstance();
+	}
+	
+	static OVT_DeploymentManagerComponent GetDeploymentManager()
+	{
+		return OVT_DeploymentManagerComponent.GetInstance();
+	}
+	
+	static OVT_RecruitManagerComponent GetRecruits()
+	{
+		return OVT_RecruitManagerComponent.GetInstance();
+	}
+	
+	static OVT_LoadoutManagerComponent GetLoadouts()
+	{
+		return OVT_LoadoutManagerComponent.GetInstance();
 	}
 	
 	static bool PlayerInRange(vector pos, int range)
@@ -389,6 +410,44 @@ class OVT_Global : Managed
 		return GetGame().SpawnEntityPrefab(Resource.Load(prefab), GetGame().GetWorld(), spawnParams);
 	}
 	
+	//! Spawn a character entity directly without creating a group
+	static SCR_ChimeraCharacter SpawnCharacterEntity(ResourceName prefab, vector origin, vector orientation = "0 0 0")
+	{
+		EntitySpawnParams spawnParams();
+		spawnParams.TransformMode = ETransformMode.WORLD;
+		
+		Math3D.AnglesToMatrix(orientation, spawnParams.Transform);
+		spawnParams.Transform[3] = origin;
+		
+		// Load the prefab resource
+		Resource resource = Resource.Load(prefab);
+		if (!resource)
+		{
+			Print("[Overthrow] Error: Could not load prefab resource: " + prefab);
+			return null;
+		}
+		
+		// Spawn the entity directly
+		IEntity spawnedEntity = GetGame().SpawnEntityPrefab(resource, GetGame().GetWorld(), spawnParams);
+		if (!spawnedEntity)
+		{
+			Print("[Overthrow] Error: Failed to spawn entity from prefab: " + prefab);
+			return null;
+		}
+		
+		// Cast to character and return
+		SCR_ChimeraCharacter character = SCR_ChimeraCharacter.Cast(spawnedEntity);
+		if (!character)
+		{
+			Print("[Overthrow] Error: Spawned entity is not a SCR_ChimeraCharacter: " + spawnedEntity);
+			// Clean up the spawned entity since it's not what we expected
+			SCR_EntityHelper.DeleteEntityAndChildren(spawnedEntity);
+			return null;
+		}
+		
+		return character;
+	}
+	
 	static bool IsOceanAtPosition(vector checkpos)
 	{		
 		World world = GetGame().GetWorld();
@@ -523,8 +582,15 @@ class OVT_Global : Managed
 	static void RandomizeCivilianClothes(AIAgent agent)
 	{
 		IEntity civ = agent.GetControlledEntity();
-		InventoryStorageManagerComponent storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(civ);
-		if (!storageManager) return;
+		ApplyCivilianLoadout(civ);
+	}
+	
+	//! Apply civilian loadout to any character entity
+	static void ApplyCivilianLoadout(IEntity character)
+	{
+		InventoryStorageManagerComponent storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(character);
+		if (!storageManager) 
+			return;
 		foreach (OVT_LoadoutSlot loadoutItem : OVT_Global.GetConfig().m_CivilianLoadout.m_aSlots)
 		{
 			if (loadoutItem.m_bPlayerOnly) continue;
@@ -553,7 +619,6 @@ class OVT_Global : Managed
 			
 			if (!loadoutStorage || suitableSlotId == -1 || !storageManager.TryReplaceItem(slotEntity, loadoutStorage, suitableSlotId))
 			{
-				Print("Failed to insert item " + slotEntity + " " + loadoutStorage + " " + suitableSlotId, LogLevel.WARNING); 
 				SCR_EntityHelper.DeleteEntityAndChildren(slotEntity);
 			}
 		}
@@ -571,5 +636,36 @@ class OVT_Global : Managed
 		if (!slotEntity) return null;
 		
 		return slotEntity;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Find the nearest road position to a given location
+	//! @param center Starting position to search from
+	//! @param searchRadius Maximum distance to search for roads
+	//! @return Position on nearest road, or original position if no road found
+	static vector FindNearestRoad(vector center)
+	{
+		SCR_AIWorld aiWorld = SCR_AIWorld.Cast(GetGame().GetAIWorld());
+		if (!aiWorld)
+			return center;
+			
+		RoadNetworkManager roadManager = aiWorld.GetRoadNetworkManager();
+		if (!roadManager)
+			return center;
+			
+		BaseRoad foundRoad;
+		float distance;
+		int result = roadManager.GetClosestRoad(center, foundRoad, distance, false);
+				
+		if (result >= 0 && foundRoad && foundRoad.GetWidth() > 0)
+		{
+			// Try to get a reachable waypoint on the road
+			vector roadPos;
+			if (roadManager.GetReachableWaypointInRoad(center, center, 500, roadPos))
+				return roadPos;
+		}
+		
+		// If no road found within range, return original position
+		return center;
 	}
 }

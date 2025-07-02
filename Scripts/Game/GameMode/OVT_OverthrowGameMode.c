@@ -14,6 +14,10 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	//! Prefab resource for the camera used for the single player menu at the start of the game.
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Start Camera Prefab", params: "et")]
 	ResourceName m_StartCameraPrefab;
+	
+	//! Array of fallback home positions if no houses are available
+	protected ref array<IEntity> m_aFallbackSpawnPositions = {};
+	protected ref array<IEntity> m_aStartCameraPositions = {};
 
 	//! Reference to the Overthrow configuration component.
 	protected OVT_OverthrowConfigComponent m_Config;
@@ -37,6 +41,10 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	protected OVT_SkillManagerComponent m_SkillManager;
 	//! Reference to the persistence manager component.
 	protected OVT_PersistenceManagerComponent m_Persistence;
+	//! Reference to the deployment manager component.
+	protected OVT_DeploymentManagerComponent m_Deployment;
+	//! Reference to the perceived faction manager component.
+	protected SCR_PerceivedFactionManagerComponent m_PerceivedFactionManager;
 
 	//! Reference to the start camera entity.
 	protected CameraBase m_pCamera;
@@ -60,6 +68,9 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 
 	//! Tracks if the player has opened the Overthrow menu at least once.
 	bool m_bHasOpenedMenu = false;
+	
+	//! Event fired when any character is killed (regardless of faction)
+	ref ScriptInvoker<IEntity, IEntity> m_OnCharacterKilled = new ScriptInvoker<IEntity, IEntity>();
 
 	//------------------------------------------------------------------------------------------------
 	//! Checks if the game mode has completed its initialization process.
@@ -88,19 +99,19 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			{
 				if(config.m_ConfigFile.occupyingFaction != "" && config.m_ConfigFile.occupyingFaction != "FIA")
 				{
-					Print("[Overthrow] Overthrow: Setting occupying faction to config value (" + config.m_ConfigFile.occupyingFaction + ")");
+					Print("[Overthrow] Overthrow_Config.json: Setting occupying faction to config value (" + config.m_ConfigFile.occupyingFaction + ")");
 					config.SetOccupyingFaction(config.m_ConfigFile.occupyingFaction);
 				}else{
-					Print("[Overthrow] Overthrow: Setting occupying faction to default (" + config.m_sDefaultOccupyingFaction + ")");
+					Print("[Overthrow] Overthrow_Config.json: Setting occupying faction to default (" + config.m_sDefaultOccupyingFaction + ")");
 					config.SetOccupyingFaction(config.m_sDefaultOccupyingFaction);
 				}
 				
 				if(config.m_ConfigFile.supportingFaction != "" && config.m_ConfigFile.supportingFaction != "FIA")
 				{
-					Print("[Overthrow] Overthrow: Setting supporting faction to config value (" + config.m_ConfigFile.supportingFaction + ")");
+					Print("[Overthrow] Overthrow_Config.json: Setting supporting faction to config value (" + config.m_ConfigFile.supportingFaction + ")");
 					config.SetSupportingFaction(config.m_ConfigFile.supportingFaction);
 				}else{
-					Print("[Overthrow] Overthrow: Setting supporting faction to default (" + config.m_sDefaultSupportingFaction + ")");
+					Print("[Overthrow] Overthrow_Config.json: Setting supporting faction to default (" + config.m_sDefaultSupportingFaction + ")");
 					config.SetSupportingFaction(config.m_sDefaultSupportingFaction);
 				}
 			}
@@ -121,6 +132,22 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	OVT_PersistenceManagerComponent GetPersistence()
 	{
 		return m_Persistence;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Gets the universal character killed event
+	//! \\return Script invoker for character killed events (victim, instigator)
+	ScriptInvoker<IEntity, IEntity> GetOnCharacterKilled()
+	{
+		return m_OnCharacterKilled;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Retrieves the perceived faction manager component instance.
+	//! \\return The perceived faction manager component.
+	SCR_PerceivedFactionManagerComponent GetPerceivedFactionManager()
+	{
+		return m_PerceivedFactionManager;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -184,11 +211,19 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			m_SkillManager.PostGameStart();
 		}
 		
+		if(m_Deployment)
+		{
+			Print("[Overthrow] Starting Deployment");
+
+			m_Deployment.PostGameStart();
+		}
+		
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
 		if(config.m_ConfigFile)
 		{			
 			if(config.m_ConfigFile.difficulty != "")
 			{
+				Print("[Overthrow] Overthrow_Config.json - setting difficulty to " + config.m_ConfigFile.difficulty);
 				foreach(OVT_DifficultySettings preset : config.m_aDifficultyPresets)
 				{
 					if(preset.name == config.m_ConfigFile.difficulty)
@@ -203,23 +238,11 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			
 			if(config.m_ConfigFile.overrideDifficulty)
 			{
+				Print("[Overthrow] Overthrow_Config.json - overriding difficulty settings in config");
 				config.m_Difficulty.gunDealerSellPriceMultiplier = config.m_ConfigFile.gunDealerSellPriceMultiplier;
 				config.m_Difficulty.startingCash = config.m_ConfigFile.startingCash;
 				config.m_Difficulty.procurementMultiplier = config.m_ConfigFile.procurementMultiplier;
 			}
-		}
-
-		// Save config with user selections after game start
-		if(RplSession.Mode() == RplMode.None || RplSession.Mode() == RplMode.Listen)
-		{
-			// Update config with current faction selections
-			if(config.m_ConfigFile)
-			{
-				config.m_ConfigFile.occupyingFaction = config.m_sOccupyingFaction;
-				config.m_ConfigFile.supportingFaction = config.m_sSupportingFaction;
-			}
-			config.SaveConfig();
-			Print("[Overthrow] Configuration saved with user selections");
 		}
 
 		Print("[Overthrow] Overthrow Starting");
@@ -249,19 +272,9 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	{
 		super.EOnFrame(owner, timeSlice);
 
-		if(DiagMenu.GetValue(250))
-		{
-			m_EconomyManager.DoAddPlayerMoney(SCR_PlayerController.GetLocalPlayerId(),1000);
-			DiagMenu.SetValue(250,0);
-		}
-
 		if(DiagMenu.GetValue(251))
 		{
-			OVT_TownData town = OVT_Global.GetTowns().GetNearestTown(SCR_PlayerController.GetLocalControlledEntity().GetOrigin());
-			if(town)
-			{
-				town.support = town.population;
-			}
+			m_EconomyManager.DoAddPlayerMoney(SCR_PlayerController.GetLocalPlayerId(),1000);
 			DiagMenu.SetValue(251,0);
 		}
 
@@ -270,28 +283,27 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			OVT_TownData town = OVT_Global.GetTowns().GetNearestTown(SCR_PlayerController.GetLocalControlledEntity().GetOrigin());
 			if(town)
 			{
-				OVT_Global.GetTowns().ChangeTownControl(town, OVT_Global.GetConfig().GetPlayerFactionIndex());
+				town.support = town.population;
 			}
 			DiagMenu.SetValue(252,0);
 		}
 
 		if(DiagMenu.GetValue(253))
 		{
-			OVT_Global.GetOccupyingFaction().WinBattle();
+			OVT_TownData town = OVT_Global.GetTowns().GetNearestTown(SCR_PlayerController.GetLocalControlledEntity().GetOrigin());
+			if(town)
+			{
+				OVT_Global.GetTowns().ChangeTownControl(town, OVT_Global.GetConfig().GetPlayerFactionIndex());
+			}
 			DiagMenu.SetValue(253,0);
 		}
 
 		if(DiagMenu.GetValue(254))
 		{
-			foreach(OVT_TownData town : m_TownManager.m_Towns)
-			{
-				int townID = OVT_Global.GetTowns().GetTownID(town);
-				m_TownManager.TryAddSupportModifierByName(townID, "RecruitmentPosters");
-				m_TownManager.TryAddSupportModifierByName(townID, "RecruitmentPosters");
-				m_TownManager.TryAddSupportModifierByName(townID, "RecruitmentPosters");
-				m_TownManager.TryAddSupportModifierByName(townID, "RecruitmentPosters");
-				m_TownManager.TryAddSupportModifierByName(townID, "RecruitmentPosters");
-			}
+			vector origin = SCR_PlayerController.GetLocalControlledEntity().GetOrigin();
+			int playerId = SCR_PlayerController.GetLocalPlayerId();
+
+			OVT_Global.GetServer().InstantCaptureBase(origin, playerId);
 			DiagMenu.SetValue(254,0);
 		}
 
@@ -325,54 +337,51 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 
 	}
 	
-	//! Array to store references to bus stop entities (currently unused).
-	protected ref array<IEntity> m_BusStops = {};
-		
-	//! Predefined locations for potential bus stop spawns.
-	protected ref array<vector> m_HardcodedBusStopLocations = {
-	    "4413.912 12.042 10687.312", 
-	    "4824.945 169.693 6968.863", 
-	    "9706.01 12.132 1565.451"
-	};
 	
 	//------------------------------------------------------------------------------------------------
-	//! Selects a random bus stop location from the hardcoded list.
-	//! \\return A random vector position from m_HardcodedBusStopLocations, or vector.Zero if the list is empty.
-	protected vector GetRandomHardcodedBusStop()
+	//! Selects a random fallback location from the detected list.
+	//! \\return A random vector position from m_aFallbackSpawnPositions, or vector.Zero if the list is empty.
+	protected vector GetRandomFallbackPosition()
 	{
-	    if (m_HardcodedBusStopLocations.Count() > 0)
+	    if (m_aFallbackSpawnPositions.Count() > 0)
 	    {
-	        int randomIndex = s_AIRandomGenerator.RandInt(0, m_HardcodedBusStopLocations.Count() - 1);
-	        return m_HardcodedBusStopLocations[randomIndex];
+	        int randomIndex = s_AIRandomGenerator.RandInt(0, m_aFallbackSpawnPositions.Count() - 1);
+	        return m_aFallbackSpawnPositions[randomIndex].GetOrigin();
 	    }
 	
-	    return vector.Zero; // No hardcoded bus stops found
+	    return vector.Zero;
 	}
-	 vector spawnLocation
+	
+	//------------------------------------------------------------------------------------------------
+	//! Selects a random start camera location from the detected list.
+	//! \\return A random entity from m_aStartCameraPositions, or the game mode if the list is empty.
+	protected IEntity GetRandomStartCameraPosition()
+	{
+	    if (m_aStartCameraPositions.Count() > 0)
+	    {
+	        int randomIndex = s_AIRandomGenerator.RandInt(0, m_aStartCameraPositions.Count() - 1);
+	        return m_aStartCameraPositions[randomIndex];
+	    }
+	
+	    return this;
+	}
 	
 	//------------------------------------------------------------------------------------------------
 	//! Spawns a player at a randomly selected hardcoded bus stop location.
 	//! If no hardcoded locations exist, attempts to spawn at the first available town center.
 	//! \\param[in] playerId The ID of the player to spawn.
-	void SpawnPlayerAtBusStop(int playerId)
+	void SpawnPlayerAtFallbackPosition(int playerId)
 	{
-			spawnLocation = GetRandomHardcodedBusStop();
+			vector spawnLocation = GetRandomFallbackPosition();
 			if (spawnLocation != vector.Zero)
 			{
-			    Print("[Overthrow] Spawning player at hard Coded bus stop: " + spawnLocation.ToString());
+			    Print("[Overthrow] Spawning player at fallback position: " + spawnLocation.ToString());
 			    m_RealEstate.SetHomePos(playerId, spawnLocation);
 			}
 			else
 			 {
-		       	Print("[Overthrow] No bus stops found. Using fallback.");
-		        foreach (OVT_TownData town : m_TownManager.m_Towns)
-		        {
-		            if (town)
-		            {
-		                m_RealEstate.SetHomePos(playerId, town.location);
-		                break;
-		            }
-		        }
+		       	Print("[Overthrow] No bus stops found. Use current town center");
+		        m_RealEstate.SetHomePos(playerId, m_TownManager.m_Towns[m_RealEstate.m_iStartingTownId].location);
 	    	}
 		
 
@@ -389,6 +398,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		if(SCR_Global.IsAdminRole(roleFlags))
 		{
 			string persId = m_PlayerManager.GetPersistentIDFromPlayerID(playerId);
+			if(persId == "") return;
 			OVT_PlayerData player = m_PlayerManager.GetPlayer(persId);
 			if(!player) return;
 			if(!player.isOfficer)
@@ -428,6 +438,9 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 
 		if(i > -1)
 			m_aInitializedPlayers.Remove(i);
+		
+		// Notify listeners that player has disconnected
+		m_PlayerManager.m_OnPlayerDisconnected.Invoke(persId, playerId);
 
 		super.OnPlayerDisconnected(playerId, cause, timeout);
 	}
@@ -456,6 +469,9 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	    }
 	    
 	    m_PlayerManager.SetupPlayer(playerId, persistentId);
+	    
+	    // Notify listeners that player has connected
+	    m_PlayerManager.m_OnPlayerConnected.Invoke(persistentId, playerId);
 	    OVT_PlayerData player = m_PlayerManager.GetPlayer(persistentId);
 	
 	    // Ensure the player is an officer in single-player mode or if they're the host in hosted multiplayer
@@ -475,7 +491,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	        {
 	            // No starting houses available, spawn at a bus stop
 	            Print("[Overthrow] No Starting homes left. Spawning at bus stop.");
-	            SpawnPlayerAtBusStop(playerId);
+	            SpawnPlayerAtFallbackPosition(playerId);
 	        }
 	        else
 	        {
@@ -549,17 +565,15 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	{
 		CameraManager cameraMgr = GetGame().GetCameraManager();
 		if(!cameraMgr) return;
-		BaseWorld world = GetGame().GetWorld();
-
-		int cameraIndex = s_AIRandomGenerator.RandInt(0, OVT_Global.GetConfig().m_aCameraPositions.Count()-1);
-		OVT_CameraPosition pos = OVT_Global.GetConfig().m_aCameraPositions[cameraIndex];
-
-		IEntity cam = OVT_Global.SpawnEntityPrefab(m_StartCameraPrefab, pos.position, "0 0 0", false);
+		
+		IEntity startCameraPos = GetRandomStartCameraPosition();
+		
+		IEntity cam = OVT_Global.SpawnEntityPrefab(m_StartCameraPrefab, startCameraPos.GetOrigin(), "0 0 0", false);
 		if(cam)
 		{
 			CameraBase camera = CameraBase.Cast(cam);
 			camera.SetName("StartCam");
-			camera.SetAngles(pos.angles);
+			camera.SetAngles(startCameraPos.GetAngles());
 			cameraMgr.SetCamera(camera);
 			m_bCameraSet = true;
 			m_pCamera = camera;
@@ -578,27 +592,32 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		m_aHintedPlayers = new set<string>;
 
 		DiagMenu.RegisterBool(250, "lctrl+lalt+g", "Give $1000", "Overthrow");
-		DiagMenu.SetValue(200, 0);
+		DiagMenu.SetValue(250, 0);
 
 		DiagMenu.RegisterBool(251, "lctrl+lalt+s", "Give 100% support", "Overthrow");
-		DiagMenu.SetValue(201, 0);
+		DiagMenu.SetValue(251, 0);
 
 		DiagMenu.RegisterBool(252, "lctrl+lalt+c", "Capture Town", "Overthrow");
-		DiagMenu.SetValue(202, 0);
+		DiagMenu.SetValue(252, 0);
 
 		DiagMenu.RegisterBool(253, "lctrl+lalt+w", "Win Battle", "Overthrow");
-		DiagMenu.SetValue(203, 0);
+		DiagMenu.SetValue(253, 0);
 
-		DiagMenu.RegisterBool(254, "lctrl+lalt+r", "Poster all towns", "Overthrow");
-		DiagMenu.SetValue(204, 0);
+		DiagMenu.RegisterBool(254, "lctrl+lalt+r", "Capture Nearest Base", "Overthrow");
+		DiagMenu.SetValue(254, 0);
 
 		DiagMenu.RegisterBool(255, "lctrl+lalt+x", "Give 100 XP", "Overthrow");
-		DiagMenu.SetValue(205, 0);
+		DiagMenu.SetValue(255, 0);
 
 		if(SCR_Global.IsEditMode())
 			return;
 
 		Print("[Overthrow] Initializing Overthrow");
+		
+		//Find fallback spawn positions and start camera positions
+		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, FilterPositionEntities, null, EQueryEntitiesFlags.STATIC);
+		
+		Print(string.Format("[Overthrow] Found %1 fallback home spawns", m_aFallbackSpawnPositions.Count().ToString()));
 
 		OVT_Global.GetConfig() = OVT_Global.GetConfig();
 		m_PlayerManager = OVT_PlayerManagerComponent.Cast(FindComponent(OVT_PlayerManagerComponent));
@@ -667,6 +686,14 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 
 			m_SkillManager.Init(this);
 		}
+		
+		m_Deployment = OVT_DeploymentManagerComponent.Cast(FindComponent(OVT_DeploymentManagerComponent));
+		if(m_Deployment)
+		{
+			Print("[Overthrow] Initializing Deployment");
+
+			m_Deployment.Init(this);
+		}
 
 		m_StartGameUIContext.Init(owner, null);
 		m_StartGameUIContext.RegisterInputs();
@@ -702,8 +729,31 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 				}
 			}
 		}
+
+		m_PerceivedFactionManager = SCR_PerceivedFactionManagerComponent.Cast(FindComponent(SCR_PerceivedFactionManagerComponent));
+		if(m_PerceivedFactionManager)
+		{
+			Print("[Overthrow] Initializing Perceived Faction Manager");
+		}
 	}
 	
+	bool FilterPositionEntities(IEntity entity)
+	{
+		OVT_FallbackHomePos pos = OVT_FallbackHomePos.Cast(entity);
+		if(pos)
+		{
+			m_aFallbackSpawnPositions.Insert(entity);
+		}else{
+			OVT_StartCameraPos cameraPos = OVT_StartCameraPos.Cast(entity);
+			if(cameraPos)
+			{
+				m_aStartCameraPositions.Insert(entity);
+			}
+		}
+
+		return true;
+	}
+		
 	//------------------------------------------------------------------------------------------------
 	//! Client-side callback when a player spawns (currently empty).
 	//! \\param[in] entity The spawned player entity.
