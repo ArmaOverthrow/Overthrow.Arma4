@@ -60,7 +60,12 @@ class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 		
 		if (!fromRpl || !toRpl) return;
 		
-		Rpc(RpcAsk_TransferStorage, fromRpl.Id(), toRpl.Id(), deleteEmpty);
+		if(Replication.IsServer())
+		{
+			RpcAsk_TransferStorage(fromRpl.Id(),toRpl.Id(), deleteEmpty);
+		}else{
+			Rpc(RpcAsk_TransferStorage, fromRpl.Id(), toRpl.Id(), deleteEmpty);
+		}
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -99,7 +104,12 @@ class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 		RplComponent vehicleRpl = RplComponent.Cast(targetVehicle.FindComponent(RplComponent));
 		if (!vehicleRpl) return;
 		
-		Rpc(RpcAsk_CollectContainers, pos, vehicleRpl.Id(), radius);
+		if(Replication.IsServer())
+		{
+			RpcAsk_CollectContainers(pos, vehicleRpl.Id(), radius);
+		}else{
+			Rpc(RpcAsk_CollectContainers, pos, vehicleRpl.Id(), radius);
+		}
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -143,7 +153,12 @@ class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 		RplComponent fromRpl = RplComponent.Cast(from.FindComponent(RplComponent));
 		if (!fromRpl) return;
 		
-		Rpc(RpcAsk_TransferToWarehouse, fromRpl.Id());
+		if(Replication.IsServer())
+		{
+			RpcAsk_TransferToWarehouse(fromRpl.Id());
+		}else{
+			Rpc(RpcAsk_TransferToWarehouse, fromRpl.Id());
+		}
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -176,7 +191,12 @@ class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 		
 		if (!fobRpl || !vehicleRpl) return;
 		
-		Rpc(RpcAsk_UndeployFOB, fobRpl.Id(), vehicleRpl.Id());
+		if(Replication.IsServer())
+		{
+			RpcAsk_UndeployFOB(fobRpl.Id(), vehicleRpl.Id());
+		}else{
+			Rpc(RpcAsk_UndeployFOB, fobRpl.Id(), vehicleRpl.Id());
+		}
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -223,7 +243,12 @@ class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 		RplComponent vehicleRpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
 		if (!vehicleRpl) return;
 		
-		Rpc(RpcAsk_LootBattlefield, vehicleRpl.Id(), searchRadius);
+		if(Replication.IsServer())
+		{
+			RpcAsk_LootBattlefield(vehicleRpl.Id(), searchRadius);
+		}else{
+			Rpc(RpcAsk_LootBattlefield, vehicleRpl.Id(), searchRadius);
+		}
 	}
 	
 	//------------------------------------------------------------------------------------------------

@@ -1,4 +1,10 @@
 OVT_OverthrowController {
  ID "65C34AD2CF25646C"
+ components {
+  OVT_ContainerTransferComponent "{65C4B2D67885EBBF}" {
+  }
+  RplComponent "{65C4B2D3DE955867}" {
+  }
+ }
  coords 206.506 1 110.866
 }

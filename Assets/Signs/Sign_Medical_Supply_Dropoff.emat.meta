@@ -1,5 +1,5 @@
 MetaFileClass {
- Name "{081A32584025F42B}Assets/Structures/Signs/Military/Data/Sign_Medical_Supply_Dropoff.emat"
+ Name "{081A32584025F42B}Assets/Signs/Sign_Medical_Supply_Dropoff.emat"
  Configurations {
   EMATResourceClass PC {
   }

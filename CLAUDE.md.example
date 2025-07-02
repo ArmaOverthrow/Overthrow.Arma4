@@ -2,6 +2,9 @@
 
 Overthrow is a dynamic and persistent revolution mod for Arma Reforger/Arma 4. It's built using EnforceScript and the Enfusion engine's entity-component-based architecture.
 
+## Important notes about EnforceScript
+- Ternary operators are NOT supported, use fully-qualified if statements
+
 ## Development Workflow
 
 Development is done through Arma Reforger Tools:
@@ -135,6 +138,20 @@ class OVT_SomeSaveData : EPF_ComponentSaveData
 - A multiplayer client must be the "owner" of an entity with a component in order to ask the server to perform tasks
 - Every player in Overthrow is assigned an entity on join with the component `OVT_PlayerCommsComponent` and server requests from local client UI MUST go via this component in order to perform "Ask" RPC commands. You can get the singleton on any client using `OVT_Global.GetServer()`
 
+#### RPC Pattern for Server Calls
+When making RPC calls to server methods (RpcAsk_ methods), always check if the current instance is already the server to avoid unnecessary RPC overhead. The server can also be the host client:
+
+```cpp
+if(Replication.IsServer())
+{
+    RpcAsk_MethodName(params);  // Direct call if we're already on server
+}else{
+    Rpc(RpcAsk_MethodName, params);  // RPC call if we're on client
+}
+```
+
+This pattern ensures that when the server is also the host client, we don't make an unnecessary RPC call to ourselves.
+
 ### User Interface
 - Every player entity has a `OVT_UIManagerComponent` that handles UI context
 - Any screen in Overthrow defines a context class extending `OVT_UIContext` and is registered with the UI Manager on the player prefab. The base class has a `ResourceName m_Layout` member property that defines a .layout file configured in the workbench and shown automatically when the context is activated.
@@ -159,16 +176,16 @@ ui.ShowContext(OVT_ShopContext);
 ## External Dependencies
 
 ### Arma Reforger
-- All base game scripts, configs and UI layouts can be found in: `/mnt/d/Projects/Arma 4/ArmaReforger`
+- All base game scripts, configs and UI layouts can be found in: `/mnt/n/Projects/Arma 4/ArmaReforger`
 - Always look here if you need to understand how something works in the game or accepted patterns for mod development
 
 ### EPF (Enfusion Persistence Framework)
-- Location: `/mnt/d/Projects/Arma 4/EnfusionPersistenceFramework`
+- Location: `/mnt/n/Projects/Arma 4/EnfusionPersistenceFramework`
 - Handles save/load operations and data persistence
 - Console platforms (Xbox/PlayStation) don't support disk access - EPF must be disabled
 
 ### EDF (Enfusion Database Framework) 
-- Location: `/mnt/d/Projects/Arma 4/EnfusionDatabaseFramework`
+- Location: `/mnt/n/Projects/Arma 4/EnfusionDatabaseFramework`
 - Dependency of EPF for database operations
 
 ### Console Platform Handling
