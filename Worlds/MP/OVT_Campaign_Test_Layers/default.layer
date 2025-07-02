@@ -31,6 +31,14 @@ PerceptionManager PerceptionManager1 : "{028DAEAD63E056BE}Prefabs/World/Game/Per
  coords 129.083 1.001 186.739
 }
 OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMode/OVT_OverthrowGameMode.et" {
+ components {
+  OVT_OverthrowConfigComponent "{59724C8C935D8E5D}" {
+   m_aDifficultyPresets {
+    OVT_DifficultySettings "{65C4B2C2C69EE70E}" : "{0BA489F3657E13D8}Configs/Difficulty/Difficulty_TestWorld.conf" {
+    }
+   }
+  }
+ }
  coords 208.286 1.001 116.919
 }
 OVT_OverthrowFactionManager "6490CD9767C0A45B" : "{51EBC0CFD56DA130}Prefabs/GameMode/OVT_OverthrowFactionManager.et" {

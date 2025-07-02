@@ -85,6 +85,12 @@ class OVT_ResistanceFactionManager: OVT_Component
 	OVT_PlayerManagerComponent m_Players;
 	
 	protected IEntity m_TempVehicle;
+	
+	// FOB operation tracking
+	protected IEntity m_pCurrentUndeployedFOB;
+	protected IEntity m_pCurrentMobileFOB;
+	protected IEntity m_pCurrentDeploymentSource;
+	protected IEntity m_pCurrentDeploymentTarget;
 	protected SCR_AIGroup m_TempGroup;
 	
 	ref ScriptInvoker m_OnPlace = new ScriptInvoker();
@@ -220,8 +226,14 @@ class OVT_ResistanceFactionManager: OVT_Component
 		Rpc(RpcDo_AddOfficer, playerId);
 	}
 	
-	void DeployFOB(RplId vehicle)
+	void DeployFOB(RplId vehicle, int playerId = -1)
 	{		
+		// SERVER-SIDE ONLY: FOB operations must happen on server
+		if (!Replication.IsServer())
+		{
+			return;
+		}
+		
 		RplComponent rpl = RplComponent.Cast(Replication.FindItem(vehicle));
 		if(!rpl) return;
 		IEntity entity = rpl.GetEntity();
@@ -236,14 +248,37 @@ class OVT_ResistanceFactionManager: OVT_Component
 		IEntity newveh = vm.SpawnVehicleMatrix(m_pMobileFOBDeployedPrefab, mat, ownerId);
 		RplComponent newrpl = RplComponent.Cast(newveh.FindComponent(RplComponent));
 		
-		OVT_Global.GetVehicles().m_aVehicles.RemoveItem(entity.GetID());
-		
-		OVT_Global.TransferStorage(vehicle, newrpl.Id());
-		SCR_EntityHelper.DeleteEntityAndChildren(entity);	
-		
-		int playerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(ownerId);
-		
-		RegisterFOB(newveh, playerId);
+		// Use the new container transfer component for FOB deployment with progress tracking
+		if (playerId != -1)
+		{
+			OVT_OverthrowController controller = OVT_Global.GetPlayers().GetController(playerId);
+			if (controller)
+			{
+				OVT_ContainerTransferComponent transfer = OVT_ContainerTransferComponent.Cast(controller.FindComponent(OVT_ContainerTransferComponent));
+				if (transfer && transfer.IsAvailable())
+				{
+					Print("Using new progress system for FOB deployment transfer...");
+					
+					// Clear any existing callbacks first
+					transfer.m_OnOperationComplete.Remove(OnFOBCollectionComplete);
+					transfer.m_OnOperationComplete.Remove(OnFOBDeploymentComplete);
+					transfer.m_OnOperationError.Remove(OnFOBCollectionError);
+					transfer.m_OnOperationError.Remove(OnFOBDeploymentError);
+					
+					// Store entities for cleanup after transfer
+					m_pCurrentDeploymentSource = entity; // mobile FOB to be deleted
+					m_pCurrentDeploymentTarget = newveh; // deployed FOB that was created
+					
+					// Subscribe to completion event to handle cleanup
+					transfer.m_OnOperationComplete.Insert(OnFOBDeploymentComplete);
+					transfer.m_OnOperationError.Insert(OnFOBDeploymentError);
+					
+					// Transfer items from mobile FOB to deployed FOB
+					transfer.TransferStorage(entity, newveh, false);
+					return;
+				}
+			}
+		}
 	}
 	
 	void UndeployFOB(RplId vehicle, int playerId = -1)
@@ -251,7 +286,6 @@ class OVT_ResistanceFactionManager: OVT_Component
 		// SERVER-SIDE ONLY: FOB operations must happen on server
 		if (!Replication.IsServer())
 		{
-			Print("UndeployFOB: Attempted to run on client - FOB operations are server-side only!", LogLevel.WARNING);
 			return;
 		}
 		
@@ -269,21 +303,46 @@ class OVT_ResistanceFactionManager: OVT_Component
 		IEntity newveh = vm.SpawnVehicleMatrix(m_pMobileFOBPrefab, mat, ownerId);
 		RplComponent newrpl = RplComponent.Cast(newveh.FindComponent(RplComponent));
 		
+		// Deactivate physics immediately on the mobile FOB to prevent physics conflicts
+		Physics physics = newveh.GetPhysics();
+		if (physics)
+		{
+			physics.SetActive(ActiveState.INACTIVE);
+			Print("Deactivated physics on mobile FOB immediately after creation");
+		}
+		
 		OVT_Global.GetVehicles().m_aVehicles.RemoveItem(entity.GetID());
 		
-		// Use enhanced inventory manager for FOB undeployment with container collection
-		OVT_InventoryManagerComponent inventoryMgr = OVT_Global.GetInventory();
-		if (inventoryMgr)
+		// Use the new container transfer component for container collection with progress tracking
+		if (playerId != -1)
 		{
-			Print("Starting enhanced FOB undeployment with progress dialog and container collection...");
-			
-			// Create a callback to handle completion AND comprehensive cleanup
-			OVT_FOBUndeploymentCallback callback = new OVT_FOBUndeploymentCallback(entity, newveh);
-			
-			// Use enhanced FOB undeployment with container collection
-			string operationId = inventoryMgr.UndeployFOBWithCollection(entity, newveh, callback);
-			
-			Print(string.Format("FOB undeployment operation started with ID: %1 (player: %2)", operationId, playerId));
+			OVT_OverthrowController controller = OVT_Global.GetPlayers().GetController(playerId);
+			if (controller)
+			{
+				OVT_ContainerTransferComponent transfer = OVT_ContainerTransferComponent.Cast(controller.FindComponent(OVT_ContainerTransferComponent));
+				if (transfer && transfer.IsAvailable())
+				{					
+					Print("Using new progress system for FOB container collection...");
+					
+					// Clear any existing callbacks first
+					transfer.m_OnOperationComplete.Remove(OnFOBCollectionComplete);
+					transfer.m_OnOperationComplete.Remove(OnFOBDeploymentComplete);
+					transfer.m_OnOperationError.Remove(OnFOBCollectionError);
+					transfer.m_OnOperationError.Remove(OnFOBDeploymentError);
+					
+					// Subscribe to completion event to handle FOB cleanup
+					transfer.m_OnOperationComplete.Insert(OnFOBCollectionComplete);
+					transfer.m_OnOperationError.Insert(OnFOBCollectionError);
+					
+					// Store FOB entities for cleanup (using member variables)
+					m_pCurrentUndeployedFOB = entity;
+					m_pCurrentMobileFOB = newveh;
+					
+					// Start container collection with the new progress system
+					transfer.UndeployFOBWithCollection(entity, newveh);
+					return;
+				}
+			}
 		}
 	}
 	
@@ -1167,6 +1226,207 @@ class OVT_ResistanceFactionManager: OVT_Component
 		}
 		
 		return "Entity";
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Called when FOB container collection completes successfully
+	void OnFOBCollectionComplete(int itemsTransferred, int itemsSkipped)
+	{
+		Print("FOB container collection completed, starting cleanup...");
+		
+		if (!m_pCurrentUndeployedFOB || !m_pCurrentMobileFOB)
+		{
+			Print("ERROR: FOB entities are null during completion!");
+			return;
+		}
+		
+		// Clean up all placed/built items in FOB area
+		vector fobPosition = m_pCurrentUndeployedFOB.GetOrigin();
+		Print(string.Format("Cleaning up FOB area at position: %1", fobPosition.ToString()));
+		CleanupFOBArea(fobPosition, 75.0);
+		
+		// Delete the deployed FOB entity
+		Print("Deleting deployed FOB entity...");
+		SCR_EntityHelper.DeleteEntityAndChildren(m_pCurrentUndeployedFOB);
+		
+		// Reactivate physics on the mobile FOB
+		Physics physics = m_pCurrentMobileFOB.GetPhysics();
+		if (physics)
+		{
+			physics.SetActive(ActiveState.ACTIVE);
+			Print("Reactivated physics on mobile FOB");
+		}
+		
+		// Send notification
+		string ownerPersistentId = "";
+		OVT_VehicleManagerComponent vm = OVT_Global.GetVehicles();
+		if (vm)
+			ownerPersistentId = vm.GetOwnerID(m_pCurrentMobileFOB);
+		
+		if (!ownerPersistentId.IsEmpty())
+		{
+			int playerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(ownerPersistentId);
+			if (playerId > 0)
+			{
+				OVT_Global.GetNotify().SendTextNotification("#OVT-FOBUndeployed", playerId, 
+					itemsTransferred.ToString(), "3");
+			}
+		}
+		
+		// Unsubscribe from events
+		OVT_OverthrowController controller = OVT_OverthrowController.Cast(GetOwner());
+		if (controller)
+		{
+			OVT_ContainerTransferComponent transfer = OVT_ContainerTransferComponent.Cast(controller.FindComponent(OVT_ContainerTransferComponent));
+			if (transfer)
+			{
+				transfer.m_OnOperationComplete.Remove(OnFOBCollectionComplete);
+				transfer.m_OnOperationError.Remove(OnFOBCollectionError);
+			}
+		}
+		
+		// Clean up references
+		m_pCurrentUndeployedFOB = null;
+		m_pCurrentMobileFOB = null;
+		
+		Print("FOB undeployment cleanup completed");
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Called when FOB container collection fails
+	void OnFOBCollectionError(string errorMessage)
+	{
+		Print(string.Format("FOB container collection failed: %1", errorMessage), LogLevel.ERROR);
+		
+		// Still delete deployed FOB to prevent it being stuck
+		if (m_pCurrentUndeployedFOB)
+		{
+			Print("Performing fallback deletion of deployed FOB due to error");
+			SCR_EntityHelper.DeleteEntityAndChildren(m_pCurrentUndeployedFOB);
+		}
+		
+		// Send error notification
+		if (m_pCurrentMobileFOB)
+		{
+			string ownerPersistentId = "";
+			OVT_VehicleManagerComponent vm = OVT_Global.GetVehicles();
+			if (vm)
+				ownerPersistentId = vm.GetOwnerID(m_pCurrentMobileFOB);
+			
+			if (!ownerPersistentId.IsEmpty())
+			{
+				int playerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(ownerPersistentId);
+				if (playerId > 0)
+				{
+					OVT_Global.GetNotify().SendTextNotification("#OVT-FOBUndeployFailed", playerId, 
+						errorMessage);
+				}
+			}
+		}
+		
+		// Unsubscribe from events
+		OVT_OverthrowController controller = OVT_OverthrowController.Cast(GetOwner());
+		if (controller)
+		{
+			OVT_ContainerTransferComponent transfer = OVT_ContainerTransferComponent.Cast(controller.FindComponent(OVT_ContainerTransferComponent));
+			if (transfer)
+			{
+				transfer.m_OnOperationComplete.Remove(OnFOBCollectionComplete);
+				transfer.m_OnOperationError.Remove(OnFOBCollectionError);
+			}
+		}
+		
+		// Clean up references
+		m_pCurrentUndeployedFOB = null;
+		m_pCurrentMobileFOB = null;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Called when FOB deployment transfer completes successfully
+	void OnFOBDeploymentComplete(int itemsTransferred, int itemsSkipped)
+	{
+		Print("FOB deployment transfer completed, performing cleanup...");
+		
+		if (!m_pCurrentDeploymentSource || !m_pCurrentDeploymentTarget)
+		{
+			Print("ERROR: FOB deployment entities are null during completion!");
+			return;
+		}
+		
+		// Remove from vehicle manager and delete the mobile FOB entity after transfer
+		Print("Removing mobile FOB from vehicle manager and deleting entity...");
+		OVT_Global.GetVehicles().m_aVehicles.RemoveItem(m_pCurrentDeploymentSource.GetID());
+		SCR_EntityHelper.DeleteEntityAndChildren(m_pCurrentDeploymentSource);
+		
+		// Register the deployed FOB
+		OVT_VehicleManagerComponent vm = OVT_Global.GetVehicles();
+		if (vm)
+		{
+			string ownerId = vm.GetOwnerID(m_pCurrentDeploymentTarget);
+			int playerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(ownerId);
+			RegisterFOB(m_pCurrentDeploymentTarget, playerId);
+		}
+		
+		// Unsubscribe from events
+		OVT_OverthrowController controller = OVT_OverthrowController.Cast(GetOwner());
+		if (controller)
+		{
+			OVT_ContainerTransferComponent transfer = OVT_ContainerTransferComponent.Cast(controller.FindComponent(OVT_ContainerTransferComponent));
+			if (transfer)
+			{
+				transfer.m_OnOperationComplete.Remove(OnFOBDeploymentComplete);
+				transfer.m_OnOperationError.Remove(OnFOBDeploymentError);
+			}
+		}
+		
+		// Clean up references
+		m_pCurrentDeploymentSource = null;
+		m_pCurrentDeploymentTarget = null;
+		
+		Print("FOB deployment completed successfully");
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Called when FOB deployment transfer fails
+	void OnFOBDeploymentError(string errorMessage)
+	{
+		Print(string.Format("FOB deployment transfer failed: %1", errorMessage), LogLevel.ERROR);
+		
+		// Still register the deployed FOB even if transfer failed
+		if (m_pCurrentDeploymentTarget)
+		{
+			OVT_VehicleManagerComponent vm = OVT_Global.GetVehicles();
+			if (vm)
+			{
+				string ownerId = vm.GetOwnerID(m_pCurrentDeploymentTarget);
+				int playerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(ownerId);
+				RegisterFOB(m_pCurrentDeploymentTarget, playerId);
+			}
+		}
+		
+		// Still delete the mobile FOB
+		if (m_pCurrentDeploymentSource)
+		{
+			Print("Removing mobile FOB from vehicle manager and deleting after failed transfer");
+			OVT_Global.GetVehicles().m_aVehicles.RemoveItem(m_pCurrentDeploymentSource.GetID());
+			SCR_EntityHelper.DeleteEntityAndChildren(m_pCurrentDeploymentSource);
+		}
+		
+		// Unsubscribe from events
+		OVT_OverthrowController controller = OVT_OverthrowController.Cast(GetOwner());
+		if (controller)
+		{
+			OVT_ContainerTransferComponent transfer = OVT_ContainerTransferComponent.Cast(controller.FindComponent(OVT_ContainerTransferComponent));
+			if (transfer)
+			{
+				transfer.m_OnOperationComplete.Remove(OnFOBDeploymentComplete);
+				transfer.m_OnOperationError.Remove(OnFOBDeploymentError);
+			}
+		}
+		
+		// Clean up references
+		m_pCurrentDeploymentSource = null;
+		m_pCurrentDeploymentTarget = null;
 	}
 	
 }

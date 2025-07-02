@@ -1,22 +1,25 @@
 Vehicle : "{14FD2616BAB3157D}Prefabs/Vehicles/Wheeled/M923A1/M923A1_MERDC.et" {
  ID "BBCBA43A9778AE21"
  components {
+  RigidBody "{51DAA09FECF52BBF}" {
+   Static 1
+  }
+  SCR_VehicleFactionAffiliationComponent "{5882CBD9AC741CEC}" {
+   "faction affiliation" "FIA"
+  }
   BaseVehicleNodeComponent "{20FB66C5B2237133}" {
    Enabled 0
    components {
     ControllersManagerComponent "{20FB66C5C1BE9DA0}" {
      Enabled 0
     }
-    SCR_CarControllerComponent_SA "{20FB66C5BC92275B}" {
-     Enabled 0
-    }
     SCR_BaseHUDComponent "{37C2676694790BC7}" {
      Enabled 0
     }
+    SCR_CarControllerComponent "{20FB66C5BC92275B}" {
+     Enabled 0
+    }
    }
-  }
-  SCR_VehicleFactionAffiliationComponent "{5882CBD9AC741CEC}" {
-   "faction affiliation" "FIA"
   }
   VehiclePerceivableComponent "{566CD04B8A6107DD}" {
    UnitType VehicleHeavy

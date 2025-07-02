@@ -19,7 +19,6 @@ class OVT_FOBUndeploymentCallback : OVT_StorageProgressCallback
 			if (physics)
 			{
 				physics.SetActive(ActiveState.INACTIVE);
-				Print("Deactivated physics on mobile FOB during transfer");
 			}
 		}
 	}

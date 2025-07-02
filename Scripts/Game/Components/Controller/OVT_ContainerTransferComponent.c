@@ -69,6 +69,28 @@ class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Transfer contents for FOB deployment with custom progress message
+	//! \param[in] from Source container entity (mobile FOB)
+	//! \param[in] to Target container entity (deployed FOB)
+	//! \param[in] deleteEmpty Delete source if empty after transfer
+	void TransferStorageForDeployment(IEntity from, IEntity to, bool deleteEmpty = false)
+	{
+		if (!from || !to) return;
+		
+		RplComponent fromRpl = RplComponent.Cast(from.FindComponent(RplComponent));
+		RplComponent toRpl = RplComponent.Cast(to.FindComponent(RplComponent));
+		
+		if (!fromRpl || !toRpl) return;
+		
+		if(Replication.IsServer())
+		{
+			RpcAsk_TransferStorageForDeployment(fromRpl.Id(),toRpl.Id(), deleteEmpty);
+		}else{
+			Rpc(RpcAsk_TransferStorageForDeployment, fromRpl.Id(), toRpl.Id(), deleteEmpty);
+		}
+	}
+	
+	//------------------------------------------------------------------------------------------------
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_TransferStorage(RplId fromId, RplId toId, bool deleteEmpty)
 	{
@@ -77,6 +99,30 @@ class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 		
 		// Start the operation
 		StartOperation("#OVT-Progress-TransferringItems");
+		
+		// Configure transfer
+		OVT_StorageOperationConfig config = new OVT_StorageOperationConfig(
+			deleteEmpty,// skipWeaponsOnGround
+			false,      // deleteEmptyContainers
+			50,         // itemsPerBatch
+			100,        // batchDelayMs
+			-1,         // searchRadius (not needed for direct transfer)
+			1           // maxBatchesPerFrame
+		);
+		
+		// Use inventory manager with our callback
+		OVT_Global.GetInventory().TransferStorageByRplId(fromId, toId, config, GetCallback());
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_TransferStorageForDeployment(RplId fromId, RplId toId, bool deleteEmpty)
+	{
+		// Validate we're on server
+		if (!Replication.IsServer()) return;
+		
+		// Start the operation with deployment message
+		StartOperation("#OVT-Progress-DeployingFOB");
 		
 		// Configure transfer
 		OVT_StorageOperationConfig config = new OVT_StorageOperationConfig(
@@ -218,7 +264,7 @@ class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 		// Start the operation
 		StartOperation("#OVT-Progress-UndeployingFOB");
 		
-		// Use specialized FOB collection config
+		// Use container collection which handles placeables + the deployed FOB
 		OVT_StorageOperationConfig config = new OVT_StorageOperationConfig(
 			true,       // skipWeaponsOnGround
 			true,       // deleteEmptyContainers
@@ -228,7 +274,6 @@ class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 			3           // maxBatchesPerFrame
 		);
 		
-		// Use inventory manager with our callback
 		OVT_Global.GetInventory().CollectContainersToVehicle(fob.GetOrigin(), vehicle, config, GetCallback());
 	}
 	

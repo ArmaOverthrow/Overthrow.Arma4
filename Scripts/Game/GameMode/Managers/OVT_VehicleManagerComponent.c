@@ -232,7 +232,7 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 		
 		m_aVehicles.RemoveItem(entity.GetID());
 		
-		OVT_Global.TransferStorage(vehicle, newrpl.Id());
+		//OVT_Global.TransferStorage(vehicle, newrpl.Id());
 		SCR_EntityHelper.DeleteEntityAndChildren(entity);		
 	}
 	
