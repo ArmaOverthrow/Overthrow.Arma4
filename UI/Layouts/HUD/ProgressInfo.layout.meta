@@ -1,5 +1,5 @@
 MetaFileClass {
- Name "{F701351008A1B6AF}UI/Layouts/Menu/StorageProgressMenu.layout"
+ Name "{2AB6AD04B7B6262A}UI/Layouts/HUD/ProgressInfo.layout"
  Configurations {
   LayoutResourceClass PC {
   }

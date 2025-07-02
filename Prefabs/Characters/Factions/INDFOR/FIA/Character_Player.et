@@ -15,9 +15,6 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
   EPF_PersistenceComponent "{5A12D8F4DFED6D84}" {
    Enabled 1
   }
-  SCR_CharacterFactionAffiliationComponent "{555C98D1CD949F3E}" {
-   "faction affiliation" "CIV"
-  }
   OVT_PlayerCommsComponent "{5D7ACE122292D0CF}" {
   }
   OVT_PlayerWantedComponent "{596EE382181C58FB}" {
@@ -160,7 +157,13 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
     OVT_EconomyInfo "{5988DB0A05162D4F}" {
      m_LayoutPath "{3C972A84DC44F671}UI/Layouts/HUD/EconomyInfo.layout"
     }
+    OVT_ProgressInfo "{65C4B2DA956034BF}" {
+     m_LayoutPath "{2AB6AD04B7B6262A}UI/Layouts/HUD/ProgressInfo.layout"
+    }
    }
+  }
+  SCR_CharacterFactionAffiliationComponent "{555C98D1CD949F3E}" {
+   "faction affiliation" "CIV"
   }
   SCR_EditableCharacterComponent "{520EA1D2F659C85C}" {
    m_UIInfo SCR_EditableEntityUIInfo "{5298E609432D192D}" {

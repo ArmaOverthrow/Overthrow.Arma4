@@ -33,6 +33,11 @@ class OVT_BaseServerProgressComponent : OVT_Component
 		m_iTotalItems = total;
 		m_sCurrentOperation = operation;
 		m_OnProgressUpdate.Invoke(progress, current, total, operation);
+		
+		// Also notify the controller
+		OVT_OverthrowController controller = OVT_OverthrowController.Cast(GetOwner());
+		if (controller && controller.GetProgressEvents())
+			controller.GetProgressEvents().InvokeProgressUpdate(progress, current, total, operation);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -45,6 +50,11 @@ class OVT_BaseServerProgressComponent : OVT_Component
 		m_bIsRunning = false;
 		m_fProgress = 1.0;
 		m_OnOperationComplete.Invoke(itemsTransferred, itemsSkipped);
+		
+		// Also notify the controller
+		OVT_OverthrowController controller = OVT_OverthrowController.Cast(GetOwner());
+		if (controller && controller.GetProgressEvents())
+			controller.GetProgressEvents().InvokeProgressComplete(itemsTransferred, itemsSkipped);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -56,20 +66,44 @@ class OVT_BaseServerProgressComponent : OVT_Component
 		m_bIsRunning = false;
 		m_fProgress = 0.0;
 		m_OnOperationError.Invoke(errorMessage);
+		
+		// Also notify the controller
+		OVT_OverthrowController controller = OVT_OverthrowController.Cast(GetOwner());
+		if (controller && controller.GetProgressEvents())
+			controller.GetProgressEvents().InvokeProgressError(errorMessage);
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Notifies client that a new operation has started.
+	//! \param[in] operationName Name of the operation
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	void RpcDo_OperationStart(string operationName)
+	{
+		m_bIsRunning = true;
+		m_sCurrentOperation = operationName;
+		
+		// Notify the controller about the operation start
+		OVT_OverthrowController controller = OVT_OverthrowController.Cast(GetOwner());
+		if (controller && controller.GetProgressEvents())
+			controller.GetProgressEvents().InvokeProgressStart(operationName);
 	}
 	
 	//------------------------------------------------------------------------------------------------
 	//! Called from server when starting an operation
-	protected void StartOperation(string operationName)
+	//! \param[in] operationNameKey Localized string key (e.g., "#OVT-Progress-TransferringItems")
+	protected void StartOperation(string operationNameKey)
 	{
 		m_bIsRunning = true;
 		m_fProgress = 0.0;
 		m_iItemsProcessed = 0;
 		m_iTotalItems = 0;
-		m_sCurrentOperation = operationName;
+		m_sCurrentOperation = operationNameKey;
 		
 		// Notify client of start
-		Rpc(RpcDo_UpdateProgress, 0.0, 0, 0, operationName);
+		Rpc(RpcDo_UpdateProgress, 0.0, 0, 0, operationNameKey);
+		
+		// Also send a separate RPC to notify operation start
+		Rpc(RpcDo_OperationStart, operationNameKey);
 	}
 	
 	//------------------------------------------------------------------------------------------------

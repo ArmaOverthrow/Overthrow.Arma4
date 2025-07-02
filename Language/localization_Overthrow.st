@@ -7283,6 +7283,182 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A1B2C3D4E5F6792}" {
+   Id "OVT-Progress-TransferringItems"
+   Target_en_us "Transferring items"
+   Target_fr_fr "Transfert d'objets"
+   Target_ru_ru "Передача предметов"
+   Target_ko_kr "아이템 이동 중"
+   Target_zh_cn "转移物品中"
+   Target_uk_ua "Переміщення предметів"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1733000000
+   Author "Claude AI"
+   LastChanged "Claude AI"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A1B2C3D4E5F6793}" {
+   Id "OVT-Progress-CollectingContainers"
+   Target_en_us "Collecting containers"
+   Target_fr_fr "Collecte de conteneurs"
+   Target_ru_ru "Сбор контейнеров"
+   Target_ko_kr "컨테이너 수집 중"
+   Target_zh_cn "收集容器中"
+   Target_uk_ua "Збір контейнерів"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1733000000
+   Author "Claude AI"
+   LastChanged "Claude AI"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A1B2C3D4E5F6794}" {
+   Id "OVT-Progress-LootingBattlefield"
+   Target_en_us "Looting battlefield"
+   Target_fr_fr "Pillage du champ de bataille"
+   Target_ru_ru "Сбор трофеев"
+   Target_ko_kr "전리품 수집 중"
+   Target_zh_cn "战场搜刮中"
+   Target_uk_ua "Збір трофеїв"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1733000000
+   Author "Claude AI"
+   LastChanged "Claude AI"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A1B2C3D4E5F6795}" {
+   Id "OVT-Progress-UndeployingFOB"
+   Target_en_us "Undeploying FOB"
+   Target_fr_fr "Déploiement de la FOB"
+   Target_ru_ru "Сворачивание передовой базы"
+   Target_ko_kr "FOB 철수 중"
+   Target_zh_cn "撤收前进基地中"
+   Target_uk_ua "Згортання передової бази"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1733000000
+   Author "Claude AI"
+   LastChanged "Claude AI"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A1B2C3D4E5F6796}" {
+   Id "OVT-Progress-TransferringToWarehouse"
+   Target_en_us "Transferring to warehouse"
+   Target_fr_fr "Transfert vers l'entrepôt"
+   Target_ru_ru "Передача на склад"
+   Target_ko_kr "창고로 이동 중"
+   Target_zh_cn "转移至仓库中"
+   Target_uk_ua "Переміщення на склад"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1733000000
+   Author "Claude AI"
+   LastChanged "Claude AI"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A1B2C3D4E5F6797}" {
+   Id "OVT-Progress-Completed"
+   Target_en_us "Completed: %1 items"
+   Target_fr_fr "Terminé : %1 objets"
+   Target_ru_ru "Завершено: %1 предметов"
+   Target_ko_kr "완료: %1 아이템"
+   Target_zh_cn "完成：%1 个物品"
+   Target_uk_ua "Завершено: %1 предметів"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1733000000
+   Author "Claude AI"
+   LastChanged "Claude AI"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A1B2C3D4E5F6798}" {
+   Id "OVT-Progress-CompletedWithSkipped"
+   Target_en_us "Completed: %1 items (%2 skipped)"
+   Target_fr_fr "Terminé : %1 objets (%2 ignorés)"
+   Target_ru_ru "Завершено: %1 предметов (%2 пропущено)"
+   Target_ko_kr "완료: %1 아이템 (%2 스킵됨)"
+   Target_zh_cn "完成：%1 个物品（%2 个跳过）"
+   Target_uk_ua "Завершено: %1 предметів (%2 пропущено)"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1733000000
+   Author "Claude AI"
+   LastChanged "Claude AI"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A1B2C3D4E5F6799}" {
+   Id "OVT-Progress-Error"
+   Target_en_us "Error: %1"
+   Target_fr_fr "Erreur : %1"
+   Target_ru_ru "Ошибка: %1"
+   Target_ko_kr "오류: %1"
+   Target_zh_cn "错误：%1"
+   Target_uk_ua "Помилка: %1"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1733000000
+   Author "Claude AI"
+   LastChanged "Claude AI"
+   ImageLink ""
+   Hidden 0
+  }
 
  }
 }

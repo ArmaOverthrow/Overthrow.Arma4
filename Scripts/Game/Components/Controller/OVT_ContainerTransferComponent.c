@@ -76,7 +76,7 @@ class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 		if (!Replication.IsServer()) return;
 		
 		// Start the operation
-		StartOperation("Transferring items");
+		StartOperation("#OVT-Progress-TransferringItems");
 		
 		// Configure transfer
 		OVT_StorageOperationConfig config = new OVT_StorageOperationConfig(
@@ -127,7 +127,7 @@ class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 		}
 		
 		// Start the operation
-		StartOperation("Collecting containers");
+		StartOperation("#OVT-Progress-CollectingContainers");
 		
 		// Configure collection
 		OVT_StorageOperationConfig config = new OVT_StorageOperationConfig(
@@ -169,7 +169,7 @@ class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 		if (!Replication.IsServer()) return;
 		
 		// Start the operation
-		StartOperation("Transferring to warehouse");
+		StartOperation("#OVT-Progress-TransferringToWarehouse");
 		
 		// This uses the existing warehouse transfer logic which is instant
 		OVT_Global.TransferToWarehouse(fromId);
@@ -216,7 +216,7 @@ class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 		}
 		
 		// Start the operation
-		StartOperation("Undeploying FOB");
+		StartOperation("#OVT-Progress-UndeployingFOB");
 		
 		// Use specialized FOB collection config
 		OVT_StorageOperationConfig config = new OVT_StorageOperationConfig(
@@ -266,7 +266,7 @@ class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 		}
 		
 		// Start the operation
-		StartOperation("Looting battlefield");
+		StartOperation("#OVT-Progress-LootingBattlefield");
 		
 		// Use inventory manager for battlefield looting
 		OVT_Global.GetInventory().LootBattlefieldIntoVehicle(vehicle, searchRadius, GetCallback());
