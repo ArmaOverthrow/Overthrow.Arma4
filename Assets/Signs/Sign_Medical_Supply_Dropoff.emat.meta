@@ -1,0 +1,17 @@
+MetaFileClass {
+ Name "{081A32584025F42B}Assets/Structures/Signs/Military/Data/Sign_Medical_Supply_Dropoff.emat"
+ Configurations {
+  EMATResourceClass PC {
+  }
+  EMATResourceClass XBOX_ONE : PC {
+  }
+  EMATResourceClass XBOX_SERIES : PC {
+  }
+  EMATResourceClass PS4 : PC {
+  }
+  EMATResourceClass PS5 : PC {
+  }
+  EMATResourceClass HEADLESS : PC {
+  }
+ }
+}

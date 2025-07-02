@@ -21,8 +21,8 @@ class OVT_NotificationData : Managed
 	//! Optional third parameter for message localization.
 	string param3;
 	
-	//! Duration in milliseconds for how long the notification should be displayed (currently unused).
-	int displayTimer = 5000;
+	//! Duration for how long the notification should be displayed
+	int displayTimer = 500;
 }
 
 //------------------------------------------------------------------------------------------------

@@ -427,6 +427,13 @@ class OVT_PlayerCommsComponent: OVT_Component
 			Rpc(RpcAsk_TakePlayerMoney, playerId, total);
 			Rpc(RpcAsk_TakeFromInventory, shopId, id, totalnum);
 			economy.m_OnPlayerBuy.Invoke(playerId, total);
+			
+			// Get shop component for transaction event			
+			OVT_ShopComponent shop = economy.GetShopByRplId(shopId);
+			if(shop)
+			{
+				economy.m_OnPlayerTransaction.Invoke(playerId, shop, true, total);
+			}
 		}
 		
 	}

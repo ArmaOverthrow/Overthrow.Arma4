@@ -229,6 +229,20 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{65B90A1309A95BE3}" {
+   Id "OVT-Build_Bunkers"
+   Target_en_us "Bunker"
+   Modified 1706641744
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{65B90A13E7E87AEF}" {
+   Id "OVT-Build_Bunkers_Description"
+   Target_en_us "A hidey-hole to shoot out of"
+   Modified 1706641519
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5D7C5DE3BEE5FBE3}" {
    Id "OVT-Build_GuardTower"
    Target_en_us "Guard Tower"
@@ -2341,6 +2355,69 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{5E4852B16105E801}" {
+   Id "OVT-Modifier_BlackMarket"
+   Target_en_us "Black Market Activity"
+   Target_fr_fr "Activité du Marché Noir"
+   Target_ru_ru "Активность черного рынка"
+   Target_zh_cn "黑市活动"
+   Target_uk_ua "Активність чорного ринку"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1684559858
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5E4852B16105E7FE}" {
+   Id "OVT-Modifier_CivilianDeath"
+   Target_en_us "Civilian Deaths"
+   Target_fr_fr "Morts Civiles"
+   Target_ru_ru "Смерти гражданских"
+   Target_zh_cn "平民死亡"
+   Target_uk_ua "Смерті цивільних"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1684559858
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5E4852B16105E802}" {
+   Id "OVT-Modifier_GrowingDiscontent"
+   Target_en_us "Growing Discontent"
+   Target_fr_fr "Mécontentement Croissant"
+   Target_ru_ru "Растущее недовольство"
+   Target_zh_cn "日益不满"
+   Target_uk_ua "Зростаюче невдоволення"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1684559858
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{5D6C212548EA9183}" {
    Id "OVT-Modifier_NearbyBase"
    Target_en_us "Nearby Base"
@@ -2359,6 +2436,48 @@ StringTable {
    Modified 1706584985
    Author "Aaron Static"
    LastChanged "parkj_c3c9hji"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5E4852B16105E7FF}" {
+   Id "OVT-Modifier_OccupyingFactionDeath"
+   Target_en_us "Occupier Deaths"
+   Target_fr_fr "Morts des Occupants"
+   Target_ru_ru "Смерти оккупантов"
+   Target_zh_cn "占领军死亡"
+   Target_uk_ua "Смерті окупантів"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1684559858
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5E4852B16105E804}" {
+   Id "OVT-Modifier_PatrolHarassment"
+   Target_en_us "Patrol Harassment"
+   Target_fr_fr "Harcèlement de Patrouille"
+   Target_ru_ru "Преследование патрулем"
+   Target_zh_cn "巡逻骚扰"
+   Target_uk_ua "Переслідування патрулем"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1684559858
+   Author "Claude Code"
+   LastChanged "Claude Code"
    ImageLink ""
    Hidden 0
   }
@@ -2381,6 +2500,48 @@ StringTable {
    Modified 1706584992
    Author "Aaron Static"
    LastChanged "parkj_c3c9hji"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5E4852B16105E800}" {
+   Id "OVT-Modifier_ResistanceVictory"
+   Target_en_us "Resistance Victory"
+   Target_fr_fr "Victoire de la Résistance"
+   Target_ru_ru "Победа сопротивления"
+   Target_zh_cn "抵抗胜利"
+   Target_uk_ua "Перемога опору"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1684559858
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5E4852B16105E803}" {
+   Id "OVT-Modifier_RevolutionaryMomentum"
+   Target_en_us "Revolutionary Momentum"
+   Target_fr_fr "Élan Révolutionnaire"
+   Target_ru_ru "Революционный импульс"
+   Target_zh_cn "革命势头"
+   Target_uk_ua "Революційний імпульс"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1684559858
+   Author "Claude Code"
+   LastChanged "Claude Code"
    ImageLink ""
    Hidden 0
   }
@@ -3749,6 +3910,13 @@ StringTable {
    LastChanged "parkj_c3c9hji"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{65B90A2D9E4D747F}" {
+   Id "OVT-Place_Signs_Description"
+   Target_en_us "Tells people stuff"
+   Modified 1706640836
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{59C84C79C2AB441A}" {
    Id "OVT-Player"
@@ -6626,6 +6794,91 @@ StringTable {
    Modified 1706484961
    Author "Claude AI"
    LastChanged "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A1B2C3D4E5F6789}" {
+   Id "OVT-Msg-WantedWeapon"
+   Target_en_us "You are now wanted for carrying a weapon!"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1733000000
+   Author "Claude AI"
+   LastChanged "Claude AI"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A1B2C3D4E5F678B}" {
+   Id "OVT-Msg-WantedHostileFaction"
+   Target_en_us "You are now wanted for wearing hostile faction uniform!"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1733000000
+   Author "Claude AI"
+   LastChanged "Claude AI"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A1B2C3D4E5F678D}" {
+   Id "OVT-Msg-WantedDisguiseBlown"
+   Target_en_us "Your disguise has been blown! You are now wanted!"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1733000000
+   Author "Claude AI"
+   LastChanged "Claude AI"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A1B2C3D4E5F678F}" {
+   Id "OVT-Msg-WantedBaseProximity"
+   Target_en_us "You are now wanted for being too close to an enemy base!"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1733000000
+   Author "Claude AI"
+   LastChanged "Claude AI"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A1B2C3D4E5F6791}" {
+   Id "OVT-Msg-WantedArmedVehicle"
+   Target_en_us "You are now wanted for operating an armed vehicle!"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1733000000
+   Author "Claude AI"
+   LastChanged "Claude AI"
    ImageLink ""
    Hidden 0
   }

@@ -1,0 +1,17 @@
+MetaFileClass {
+ Name "{FE3F109FFC8F6C5A}PrefabsEditable/Auto/Props/Military/Sandbags/E_Sandbag_01_bunker_plastic_foundation_camonet.et"
+ Configurations {
+  EntityTemplateResourceClass PC {
+  }
+  EntityTemplateResourceClass XBOX_ONE : PC {
+  }
+  EntityTemplateResourceClass XBOX_SERIES : PC {
+  }
+  EntityTemplateResourceClass PS4 : PC {
+  }
+  EntityTemplateResourceClass PS5 : PC {
+  }
+  EntityTemplateResourceClass HEADLESS : PC {
+  }
+ }
+}

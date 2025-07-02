@@ -78,24 +78,6 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMod
    m_pQRFControllerPrefab "{A7D27DFA72B705D0}Prefabs/Controllers/OVT_QRFController.et"
   }
   OVT_OverthrowConfigComponent "{59724C8C935D8E5D}" {
-   m_aCameraPositions {
-    OVT_CameraPosition "{5D5826DD31952987}" {
-     position 10455.49 40.22 413.76
-     angles 5.1 -498.11 0
-    }
-    OVT_CameraPosition "{5D5826D532072C15}" {
-     position 4875.03 53.47 10470.618
-     angles -0.21 702.18 0
-    }
-    OVT_CameraPosition "{5D5826D5F3BEBDD1}" {
-     position 8100.65 380.56 2753.78
-     angles -5.31 962.88 0
-    }
-    OVT_CameraPosition "{5D5826D5A7568205}" {
-     position 9973.95 333.08 2269.49
-     angles -12.81 1270.68 0
-    }
-   }
    m_pTownControllerPrefab "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.et"
    m_Difficulty OVT_DifficultySettings "{598AD54E1DA56EB1}" : "{C0CB40B3E8B87FD4}Configs/Difficulty/Difficulty_Normal.conf" {
    }
@@ -342,6 +324,10 @@ $grp GenericEntity {
   coords 29.444 1.001 116.796
  }
 }
+OVT_VehiclePatrolSpawn {
+ coords 82.991 1 107.357
+ angleY 85.773
+}
 SCR_DestructibleBuildingEntity : "{00FD2B4A0BDEC271}Prefabs/Structures/Commercial/FuelStations/FuelStation_E_01_building.et" {
  coords 240.87 0.001 76.83
  angleY -89.85
@@ -370,9 +356,6 @@ SCR_DestructibleBuildingEntity : "{322D245123EEDC90}Prefabs/Structures/Houses/Vi
 SCR_DestructibleBuildingEntity : "{38A5F3E4578087AB}Prefabs/Structures/Houses/Town/House_Town_E_2I01/House_Town_E_2I01.et" {
  coords 241.413 0.001 118.064
  angleY -91.024
-}
-GenericEntity OVT_AmmoBox_Dev_65AB2E787B444A1B : "{3CD4A789AFF69FFA}Prefabs/Props/Military/AmmoBoxes/OVT_AmmoBox_Dev.et" {
- coords 226.531 1 207.75
 }
 SCR_SiteSlotEntity : "{4B1C4BDDF6683101}PrefabsEditable/Slots/Flat/E_SlotFlatMedium.et" {
  coords 30 1.001 70
@@ -448,11 +431,30 @@ SCR_DestructibleBuildingEntity : "{5CADC96916FF1CC4}Prefabs/Structures/Houses/Vi
 }
 GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.et" {
  components {
+  OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
+   m_sName "Base"
+   m_iAttackDistanceMin 75
+   m_iAttackDistanceMax 150
+   m_iAttackPreferredDirection 90
+  }
   SCR_FactionAffiliationComponent "{5E66A8EA8F5BA794}" {
    "faction affiliation" "USSR"
   }
  }
  coords 55.331 1 128.241
+}
+GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.et" {
+ components {
+  OVT_TownControllerComponent "{59908365ED5E1344}" {
+   m_sName "Town"
+   m_iPopulation 50
+   m_iTownRange 80
+   m_iAttackDistanceMin 125
+   m_iAttackDistanceMax 175
+   m_iAttackPreferredDirection 256
+  }
+ }
+ coords 208.237 1 102.173
 }
 Tree : "{7BAA3CF64495B691}Prefabs/Vegetation/Bush/b_rubus_idaeus_0s.et" {
  coords 179.619 0.001 124.94
@@ -483,6 +485,11 @@ GenericEntity : "{9BF7399A6F63D480}Prefabs/GameMode/OVT_Port.et" {
 Tree : "{A43BE7E364B5CD67}Prefabs/Vegetation/Bush/b_juniperus_communis_2w.et" {
  coords 182.721 0.001 126.162
 }
+OVT_StartCameraPos : "{A4FAD321E704BE95}Prefabs/GameMode/OVT_StartCameraPos.et" {
+ coords 263.519 24.144 46.733
+ angleX -8.555
+ angleY -56.81
+}
 Tree : "{A5DE58FC9FB6BA60}Prefabs/Vegetation/Bush/b_corylus_avellana_2.et" {
  coords 183.058 0.001 122.114
 }
@@ -495,6 +502,9 @@ Tree : "{AED5759B653DF6D0}Prefabs/Vegetation/Bush/b_rosa_canina_1s.et" {
 }
 Tree : "{AF4BFBE29028A9FD}Prefabs/Vegetation/Bush/b_corylus_avellana_1l.et" {
  coords 182.406 0.001 117.203
+}
+OVT_FallbackHomePos : "{B06F0465F862CA4C}Prefabs/GameMode/OVT_FallbackHomePos.et" {
+ coords 212.4 1 109.191
 }
 EnvironmentProbeEntity : "{B6B6A21399C5571B}Prefabs/World/DefaultWorld/EnvProbe_Default.et" {
  coords 112.285 2.18 89.264

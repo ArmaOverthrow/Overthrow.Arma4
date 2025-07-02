@@ -1,0 +1,5 @@
+MatPBRBasic {
+ Color 0.456 0.456 0.456 1
+ MetalnessScale 0
+ BCRMap "{A5FA6435335D1897}Assets/Signs/Sign_Medical_Supply_Dropoff.edds"
+}

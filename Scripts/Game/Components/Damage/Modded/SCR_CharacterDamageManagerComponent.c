@@ -1,4 +1,4 @@
-modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponent
+modded class SCR_CharacterDamageManagerComponent : SCR_ExtendedDamageManagerComponent
 {
 	protected bool m_bCheckedFaction = false;
 	protected bool m_bIsOccupyingFaction = false;
@@ -14,27 +14,28 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 	
 	void WhenDamaged(BaseDamageContext damageContext)
 	{		
-		if(!damageContext)
+		if(damageContext.instigator)
 		{	
-			return;
-		}
-
-		Instigator instigator = damageContext.instigator;
-		if(!instigator)
-		{
-			return;
-		}
-
-		IEntity entity = instigator.GetInstigatorEntity();
-		if(!entity) 
-		{
-			return;
-		}
-
-		OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(entity.FindComponent(OVT_PlayerWantedComponent));		
-		if(wanted)
-		{
-			wanted.SetBaseWantedLevel(2);
+			IEntity entity = damageContext.instigator.GetInstigatorEntity();
+			if(entity) 
+			{
+				OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(entity.FindComponent(OVT_PlayerWantedComponent));
+				
+				if(wanted)
+				{
+					// Check if player was disguised - if so, blow their cover
+					if(wanted.IsDisguisedAsOccupying())
+					{
+						wanted.SetBaseWantedLevel(2, "WantedDisguiseBlown");
+						wanted.BlowDisguise();
+					}
+					else
+					{
+						// Not disguised, normal wanted level increase
+						wanted.SetBaseWantedLevel(2);
+					}
+				}
+			}
 		}
 	}
 	
@@ -53,7 +54,10 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 			
 			if(IsOccupyingFaction())
 			{
-				OVT_Global.GetOccupyingFaction().OnAIKilled(GetOwner(), instigator);			
+				OVT_Global.GetOccupyingFaction().OnAIKilled(GetOwner(), instigator);	
+				
+				//Check immediate surrounds for a vehicle (hoping for a better way soon pls BI)
+				GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), 5, CheckVehicleSetWanted, FilterVehicleEntities, EQueryEntitiesFlags.ALL);		
 			}
 			if(instigator)
 			{			
@@ -61,7 +65,17 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 				
 				if(wanted)
 				{
-					wanted.SetBaseWantedLevel(3);
+					// Check if player was disguised - if so, blow their cover
+					if(wanted.IsDisguisedAsOccupying())
+					{
+						wanted.SetBaseWantedLevel(3, "WantedDisguiseBlown");
+						wanted.BlowDisguise();
+					}
+					else
+					{
+						// Not disguised, normal wanted level increase
+						wanted.SetBaseWantedLevel(3);
+					}
 				}
 			}
 		}		
@@ -81,18 +95,6 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 			m_bCheckedFaction = true;
 		}
 		return m_bIsOccupyingFaction;
-	}
-	
-	protected override void OnDamageStateChanged(EDamageState state)
-	{
-		super.OnDamageStateChanged(state);
-		
-		if(IsOccupyingFaction())
-			OVT_Global.GetOccupyingFaction().OnAIKilled(GetOwner(), null);
-		
-		//Check immediate surrounds for a vehicle (hoping for a better way soon pls BI)
-		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), 5, CheckVehicleSetWanted, FilterVehicleEntities, EQueryEntitiesFlags.ALL);
-		
 	}
 	
 	protected bool FilterVehicleEntities(IEntity entity)
@@ -115,7 +117,17 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 		
 			if(wanted)
 			{
-				wanted.SetBaseWantedLevel(3);
+				// Check if player was disguised - if so, blow their cover
+				if(wanted.IsDisguisedAsOccupying())
+				{
+					wanted.SetBaseWantedLevel(3, "WantedDisguiseBlown");
+					wanted.BlowDisguise();
+				}
+				else
+				{
+					// Not disguised, normal wanted level increase
+					wanted.SetBaseWantedLevel(3);
+				}
 			}
 		}
 		

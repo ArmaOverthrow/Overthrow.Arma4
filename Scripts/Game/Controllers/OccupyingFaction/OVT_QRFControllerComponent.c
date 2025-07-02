@@ -35,6 +35,7 @@ class OVT_QRFControllerComponent: OVT_Component
 	int m_iLZMax = 750;
 	int m_iLZMin = 250;
 	int m_iPreferredDirection = -1;
+	int m_iDirectionVariance = 30;
 	
 	override void OnPostInit(IEntity owner)
 	{
@@ -395,16 +396,24 @@ class OVT_QRFControllerComponent: OVT_Component
 		float angle = Math.RandomFloatInclusive(0, 359); // Random angle for azimuth		
 		if(m_iPreferredDirection > -1)
 		{
-			float min = m_iPreferredDirection - 30 - 90;
+			// Add +/- variance degree variation to preferred direction
+			float min = m_iPreferredDirection - m_iDirectionVariance;
 			if(min < 0) min += 360;			
 			if(min > 360) min -= 360;
-			float max = m_iPreferredDirection + 30 - 90;
+			float max = m_iPreferredDirection + m_iDirectionVariance;
 			if(max < 0) max += 360;			
 			if(max > 360) max -= 360;
+			Print("[Overthrow.QRFControllerComponent] Angle range: " + min.ToString() + " to " + max.ToString());
 			angle = Math.RandomFloatInclusive(min, max);
-		}		
+		}	
+		
+		Print("[Overthrow.QRFControllerComponent] Picked angle: " + angle.ToString());
 	 
-		vector dir = {Math.Cos(angle * Math.DEG2RAD), 0, Math.Sin(angle * Math.DEG2RAD)};
+		// In Arma: X = East, Z = South
+		// For compass bearings: 0° = North, 90° = East, 180° = South, 270° = West
+		// North = -Z, East = +X, South = +Z, West = -X
+		// So we use sin for X and -cos for Z
+		vector dir = {Math.Sin(angle * Math.DEG2RAD), 0, -Math.Cos(angle * Math.DEG2RAD)};
 	    return dir.Normalized(); // Return a normalized direction vector
 	}
 	
@@ -442,10 +451,13 @@ class OVT_QRFControllerComponent: OVT_Component
 	{
 		//Reuse any good QRF position if found
 		if (!IsZeroVector(Goodqrfpos)){return Goodqrfpos;}
-	    vector qrfpos = GetOwner().GetOrigin(); // Position of the QRF
-	    vector dir = GetRandomDirection();//dir = vector.Direction(qrfpos, pos);	    
+	    vector qrfpos = GetOwner().GetOrigin(); // Position of the QRF target (base being attacked)
+	    Print("[Overthrow.QRFControllerComponent] QRF target position: " + qrfpos.ToString());
+	    vector dir = GetRandomDirection(); // Get direction FROM which QRF should come
+	    Print("[Overthrow.QRFControllerComponent] Direction vector: " + dir.ToString());
 		
 		float distance = Math.RandomFloatInclusive(m_iLZMin,m_iLZMax);
+		Print("[Overthrow.QRFControllerComponent] Distance: " + distance.ToString());
 	
 	    vector checkpos = qrfpos + (dir * distance); 
 		vector safepos = checkpos;

@@ -8,6 +8,14 @@ class OVT_TownModifierData : Managed
 	int timer;
 }
 
+enum OVT_TownSize
+{
+	VILLAGE = 1,
+	TOWN = 2,
+	CITY = 3,
+	CAPITAL = 4
+}
+
 class OVT_TownData : Managed
 {
 	vector location;
@@ -17,7 +25,7 @@ class OVT_TownData : Managed
 	int faction;
 	
 	[NonSerialized()]
-	int size;
+	OVT_TownSize size;
 	
 	ref array<ref OVT_TownModifierData> stabilityModifiers = {};
 	ref array<ref OVT_TownModifierData> supportModifiers = {};
@@ -47,6 +55,13 @@ class OVT_TownData : Managed
 	bool IsOccupyingFaction()
 	{
 		return faction == OVT_Global.GetConfig().GetOccupyingFactionIndex();
+	}
+	
+	bool IsWithinTownBounds(vector position)
+	{
+		float distance = vector.Distance(position, location);
+		return distance < 500;
+
 	}
 	
 	//! Gets the current area heat level
@@ -79,22 +94,22 @@ class OVT_TownData : Managed
 //! Handles town initialization, modifier systems, house queries, and network synchronization of town data.
 class OVT_TownManagerComponent: OVT_Component
 {
-	[Attribute( defvalue: "1200", desc: "Range to search cities for houses")]
+	[Attribute( defvalue: "600", desc: "Range to search cities for houses (deprecated)")]
 	int m_iCityRange;
 	
-	[Attribute( defvalue: "600", desc: "Range to search towns for houses")]
+	[Attribute( defvalue: "400", desc: "Range to search towns for houses (deprecated)")]
 	int m_iTownRange;
 	
-	[Attribute( defvalue: "250", desc: "Range to search villages for houses")]
+	[Attribute( defvalue: "250", desc: "Range to search villages for houses (deprecated)")]
 	int m_iVillageRange;
 	
-	[Attribute( defvalue: "2", desc: "Default occupants per house")]
+	[Attribute( defvalue: "4", desc: "Default occupants per house (deprecated)")]
 	int m_iDefaultHouseOccupants;
 	
-	[Attribute( defvalue: "3", desc: "Occupants per villa house")]
+	[Attribute( defvalue: "6", desc: "Occupants per villa house (deprecated)")]
 	int m_iVillaOccupants;
 	
-	[Attribute( defvalue: "5", desc: "Occupants per town house")]
+	[Attribute( defvalue: "8", desc: "Occupants per town house (deprecated)")]
 	int m_iTownOccupants;
 	
 	[Attribute("", UIWidgets.Object)]	
@@ -107,6 +122,7 @@ class OVT_TownManagerComponent: OVT_Component
 	
 	//! Array of all towns managed by this component
 	ref array<ref OVT_TownData> m_Towns;
+	ref array<ref EntityID> m_TownControllers = {};
 	//! Array of town names, corresponding to the m_Towns array by index
 	ref array<ref string> m_TownNames;
 	
@@ -126,6 +142,8 @@ class OVT_TownManagerComponent: OVT_Component
 	protected const int SUPPORT_FREQUENCY = 6; // * MODIFIER_FREQUENCY
 	 
 	static OVT_TownManagerComponent s_Instance;	
+	
+	protected bool m_bUseDefinedTowns = false;
 	
 	//------------------------------------------------------------------------------------------------
 	//! Returns the singleton instance of the Town Manager Component
@@ -163,7 +181,8 @@ class OVT_TownManagerComponent: OVT_Component
 		InitializeTowns();
 		
 		if(!Replication.IsServer()) return;
-		SetupTowns();
+		if(!m_bUseDefinedTowns)
+			SetupTowns();
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -171,7 +190,16 @@ class OVT_TownManagerComponent: OVT_Component
 	void PostGameStart()
 	{
 		GetGame().GetCallqueue().CallLater(CheckUpdateModifiers, MODIFIER_FREQUENCY, true, GetOwner());		
-		GetGame().GetCallqueue().CallLater(SpawnTownControllers, 0);
+		
+		if(!m_bUseDefinedTowns)
+			GetGame().GetCallqueue().CallLater(SpawnTownControllers, 0);
+		
+		foreach(int townID, EntityID townEntityID : m_TownControllers)
+		{
+			IEntity townEntity = GetGame().GetWorld().FindEntityByID(townEntityID);
+			OVT_TownControllerComponent town = OVT_TownControllerComponent.Cast(townEntity.FindComponent(OVT_TownControllerComponent));
+			town.ActivateTown();
+		}
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -706,6 +734,28 @@ class OVT_TownManagerComponent: OVT_Component
 		return nearestTown;
 	}
 	
+	int GetNearestTownId(vector pos)
+	{
+		int nearestTown;
+		float nearest = -1;
+		int i = 0;
+		foreach(OVT_TownData town : m_Towns)
+		{
+			float distance = vector.Distance(town.location, pos);
+			if(nearest == -1 || distance < nearest){
+				nearest = distance;
+				nearestTown = i;
+			}
+			i++;
+		}
+		return nearestTown;
+	}
+	
+	string GetNearestTownName(vector pos)
+	{
+		return GetTownName(GetNearestTownId(pos));
+	}
+	
 	//------------------------------------------------------------------------------------------------
 	//! Gets the effective radius of a town based on its size (village, town, city).
 	//! \param town The OVT_TownData instance
@@ -826,23 +876,40 @@ class OVT_TownManagerComponent: OVT_Component
 	//! Initializes town data by querying map markers across the entire world.
 	//! Called once during Init.
 	protected void InitializeTowns()
-	{
-		#ifdef OVERTHROW_DEBUG
-		Print("Finding cities, towns and villages");
-		#endif	
-		
+	{		
+		//New defined town system
+		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, FilterTownControllerEntities, null, EQueryEntitiesFlags.STATIC);
+		if(m_Towns.Count() > 0)
+		{
+			Print(string.Format("[Overthrow] Found %1 towns", m_Towns.Count()));
+			m_bUseDefinedTowns = true;
+			return;
+		}
+				
+		Print("[Overthrow] Deprecation warning: Auto-detecting towns. Maps should now include OVT_TownController prefabs instead");
+		//Use legacy town detection via markers (deprecated)
 		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, CheckCityTownAddPopulation, FilterCityTownEntities, EQueryEntitiesFlags.STATIC);
 		
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Spawns a town controller prefab at the location of each managed town.
+	//! Spawns a town controller prefab at the location of each managed town (deprecated, maps should now include town controller prefabs)
 	//! Called once after game start.
 	protected void SpawnTownControllers()
-	{
+	{		
+		int i = 0;
 		foreach(OVT_TownData town : m_Towns)
 		{
 			IEntity controller = OVT_Global.SpawnEntityPrefab(OVT_Global.GetConfig().m_pTownControllerPrefab, town.location);
+			OVT_TownControllerComponent townController = OVT_TownControllerComponent.Cast(controller.FindComponent(OVT_TownControllerComponent));
+			if(townController)
+			{
+				townController.m_iTownRange = GetTownRange(town);
+				townController.m_sName = GetTownName(i);
+				townController.m_iPopulation = town.population;
+				townController.m_Size = town.size;
+			}
+			i++;
 		}
 	}
 	
@@ -922,6 +989,31 @@ class OVT_TownManagerComponent: OVT_Component
 		}
 				
 		return false;		
+	}
+	
+	protected bool FilterTownControllerEntities(IEntity entity) 
+	{
+		OVT_TownControllerComponent townController = OVT_TownControllerComponent.Cast(entity.FindComponent(OVT_TownControllerComponent));
+		if(!townController) return true;
+		
+		OVT_TownData town = new OVT_TownData();
+		
+		Faction faction = GetGame().GetFactionManager().GetFactionByKey(OVT_Global.GetConfig().m_sOccupyingFaction);
+			
+		town.location = entity.GetOrigin();
+		town.population = townController.m_iPopulation;
+		town.support = 0;
+		town.faction = GetGame().GetFactionManager().GetFactionIndex(faction);
+		town.stability = 100;
+		
+		m_iTownCount++;
+		
+		town.size = townController.m_Size;
+		
+		m_Towns.Insert(town);
+		m_TownNames.Insert(townController.m_sName);
+		m_TownControllers.Insert(entity.GetID());
+		return true;
 	}
 	
 	//------------------------------------------------------------------------------------------------

@@ -18,6 +18,13 @@ SCR_DestructibleBuildingEntity : "{BE5D5CFA90224646}Prefabs/Structures/Military/
     }
    }
   }
+  SCR_EditableEntityComponent "{65B90A294FA187CE}" {
+   m_UIInfo SCR_EditableEntityUIInfo "{65B90A29491D080A}" {
+    Name "#OVT-Build_RecruitmentTent"
+    Description "#OVT-Build_RecruitmentTent_Description"
+   }
+   m_Flags PLACEABLE
+  }
  }
  {
   GenericEntity : "{03B44EA7652D0D17}Prefabs/Props/Military/Radios/RadioStation_R123M_01.et" {

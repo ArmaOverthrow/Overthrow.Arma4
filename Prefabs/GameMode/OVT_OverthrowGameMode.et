@@ -22,11 +22,17 @@ OVT_OverthrowGameMode {
      }
      OVT_ConfigSaveDataClass "{5D9E53AFE550A24E}" {
      }
+     OVT_DeploymentManagerComponentSaveDataClass "{65B2DE4DE0F7175D}" {
+     }
      OVT_RecruitSaveDataClass "{65A26826DE2960DA}" {
      }
      OVT_LoadoutManagerSaveDataClass "{65AAD8FBE5BDC6EE}" {
      }
     }
+   }
+  }
+  OVT_DeploymentManagerComponent "{65B2DE4D19F8D47E}" {
+   m_DeploymentRegistry OVT_DeploymentRegistry "{65B2DE433E54414A}" : "{C9A38056910495A2}Configs/Deployment/overthrowDeployments.conf" {
    }
   }
   OVT_EconomyManagerComponent "{5988DB0008700592}" {
@@ -257,7 +263,6 @@ OVT_OverthrowGameMode {
    m_bRandomStartingWeather 1
   }
   OVT_TownManagerComponent "{59724C983BF56C3B}" {
-   m_iVillageRange 100
    m_aTownModifiers {
     OVT_TownStabilityModifierSystem "{59A2BDDB065D9242}" {
      m_rConfigFile "{FD430627EAC5BDBC}Configs/Modifiers/stabilityModifiers.conf"

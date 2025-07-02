@@ -6,6 +6,13 @@ SCR_DestructibleBuildingEntity : "{33F50E1C918159AB}Prefabs/Structures/Military/
    m_pSaveData OVT_BuildingSaveDataClass "{5D7C4896F5867BB6}" {
    }
   }
+  SCR_EditableEntityComponent "{65B90A24B6E114CC}" {
+   m_UIInfo SCR_EditableEntityUIInfo "{65B90A2B75ED14CD}" {
+    Name "#OVT-Build_GuardTower"
+    Description "#OVT-Build_GuardTower_Description"
+   }
+   m_Flags PLACEABLE
+  }
  }
  {
   $grp GenericEntity : "{465E10879E936748}Prefabs/Structures/BuildingParts/Windows/Glass_42x43/Glass_42x43.et" {

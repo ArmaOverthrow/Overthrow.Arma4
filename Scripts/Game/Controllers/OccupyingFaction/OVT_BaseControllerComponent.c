@@ -13,14 +13,17 @@ class OVT_BaseControllerComponent: OVT_Component
 	[Attribute("", UIWidgets.Object)]
 	ref array<ref OVT_BaseUpgrade> m_aBaseUpgrades;
 	
-	[Attribute("400")]
+	[Attribute("400", UIWidgets.Slider, "Minimum distance to spawn QRF", "50 1000 25")]
 	int m_iAttackDistanceMin;
 	
-	[Attribute("800")]
+	[Attribute("800", UIWidgets.Slider, "Maximum distance to spawn QRF", "100 1000 25")]
 	int m_iAttackDistanceMax;
 	
-	[Attribute("-1")]
+	[Attribute("-1", UIWidgets.Slider, "Preferred direction to spawn QRF (randomized slightly, -1 means any direction)", "-1 359 1")]
 	int m_iAttackPreferredDirection;
+	
+	[Attribute("30", UIWidgets.Slider, "Direction variance in degrees (QRF can spawn within +/- this many degrees from preferred direction)", "0 180 5")]
+	int m_iAttackDirectionVariance;
 
 	ref array<ref EntityID> m_AllSlots;
 	ref array<ref EntityID> m_AllCloseSlots;
@@ -33,6 +36,7 @@ class OVT_BaseControllerComponent: OVT_Component
 	ref array<ref EntityID> m_Parking;
 	ref array<ref EntityID> m_aSlotsFilled;
 	ref array<ref vector> m_aDefendPositions;
+	ref array<ref EntityID> m_aVehiclePatrolSpawns;
 
 	protected OVT_OccupyingFactionManager m_occupyingFactionManager;
 
@@ -159,6 +163,7 @@ class OVT_BaseControllerComponent: OVT_Component
 		m_Parking = new array<ref EntityID>;
 		m_aSlotsFilled = new array<ref EntityID>;
 		m_aDefendPositions = new array<ref vector>;
+		m_aVehiclePatrolSpawns = new array<ref EntityID>;
 
 		FindSlots();
 		FindParking();
@@ -197,6 +202,13 @@ class OVT_BaseControllerComponent: OVT_Component
 
 	bool FilterSlotEntities(IEntity entity)
 	{
+		OVT_VehiclePatrolSpawn vehicleSpawn = OVT_VehiclePatrolSpawn.Cast(entity);
+		if(vehicleSpawn)
+		{
+			m_aVehiclePatrolSpawns.Insert(entity.GetID());
+			return true;
+		}
+		
 		SCR_EditableEntityComponent editable = EPF_Component<SCR_EditableEntityComponent>.Find(entity);
 		if(editable && editable.GetEntityType() == EEditableEntityType.SLOT)
 		{
@@ -316,8 +328,81 @@ class OVT_BaseControllerComponent: OVT_Component
 		return nearest;
 	}
 
+#ifdef WORKBENCH
+	protected ref Shape m_aDirectionArrowCenter;
+	protected ref Shape m_aDirectionArrowMin;
+	protected ref Shape m_aDirectionArrowMax;
+	
+	//Draw attack preferred direction as arrows showing variance
+	override int _WB_GetAfterWorldUpdateSpecs(IEntity owner, IEntitySource src)
+	{
+		return EEntityFrameUpdateSpecs.CALL_WHEN_ENTITY_SELECTED;
+	}
+	
+	protected override void _WB_AfterWorldUpdate(IEntity owner, float timeSlice)
+	{
+		if (m_iAttackPreferredDirection != -1)
+		{
+			vector basePos = owner.GetOrigin();
+			
+			// Draw center arrow (main direction)
+			float centerRad = m_iAttackPreferredDirection * Math.DEG2RAD;
+			vector fromCenter = basePos + Vector(Math.Sin(centerRad) * m_iAttackDistanceMax, 0, -Math.Cos(centerRad) * m_iAttackDistanceMax);
+			vector toCenter = basePos + Vector(Math.Sin(centerRad) * m_iAttackDistanceMin, 0, -Math.Cos(centerRad) * m_iAttackDistanceMin);
+			m_aDirectionArrowCenter = Shape.CreateArrow(fromCenter, toCenter, 10, Color.FromRGBA(255, 0, 0, 255).PackToInt(), ShapeFlags.ONCE | ShapeFlags.NOZBUFFER | ShapeFlags.TRANSP | ShapeFlags.DOUBLESIDE | ShapeFlags.NOOUTLINE);
+			
+			// Draw variance arrows (showing the extremes)
+			float minRad = (m_iAttackPreferredDirection - m_iAttackDirectionVariance) * Math.DEG2RAD;
+			vector fromMin = basePos + Vector(Math.Sin(minRad) * m_iAttackDistanceMax, 0, -Math.Cos(minRad) * m_iAttackDistanceMax);
+			vector toMin = basePos + Vector(Math.Sin(minRad) * m_iAttackDistanceMin, 0, -Math.Cos(minRad) * m_iAttackDistanceMin);
+			m_aDirectionArrowMin = Shape.CreateArrow(fromMin, toMin, 6, Color.FromRGBA(255, 0, 0, 128).PackToInt(), ShapeFlags.ONCE | ShapeFlags.NOZBUFFER | ShapeFlags.TRANSP | ShapeFlags.DOUBLESIDE | ShapeFlags.NOOUTLINE);
+			
+			float maxRad = (m_iAttackPreferredDirection + m_iAttackDirectionVariance) * Math.DEG2RAD;
+			vector fromMax = basePos + Vector(Math.Sin(maxRad) * m_iAttackDistanceMax, 0, -Math.Cos(maxRad) * m_iAttackDistanceMax);
+			vector toMax = basePos + Vector(Math.Sin(maxRad) * m_iAttackDistanceMin, 0, -Math.Cos(maxRad) * m_iAttackDistanceMin);
+			m_aDirectionArrowMax = Shape.CreateArrow(fromMax, toMax, 6, Color.FromRGBA(255, 0, 0, 128).PackToInt(), ShapeFlags.ONCE | ShapeFlags.NOZBUFFER | ShapeFlags.TRANSP | ShapeFlags.DOUBLESIDE | ShapeFlags.NOOUTLINE);
+		}
+		
+		super._WB_AfterWorldUpdate(owner, timeSlice);
+	}
+#endif
+
 	//RPC methods
 
+	//------------------------------------------------------------------------------------------------
+	//! Get a random vehicle patrol spawn point from the base
+	//! Returns true if a spawn point was found, false if none exist
+	//! @param[out] outPosition The spawn position
+	//! @param[out] outAngles The spawn angles in format "yaw pitch roll"
+	bool GetRandomVehiclePatrolSpawn(out vector outPosition, out vector outAngles)
+	{
+		// Check if we have any vehicle patrol spawns
+		if (m_aVehiclePatrolSpawns.IsEmpty())
+			return false;
+		
+		// Get a random spawn
+		int randomIndex = Math.RandomInt(0, m_aVehiclePatrolSpawns.Count());
+		EntityID spawnID = m_aVehiclePatrolSpawns[randomIndex];
+		
+		IEntity spawnEntity = GetGame().GetWorld().FindEntityByID(spawnID);
+		if (!spawnEntity)
+		{
+			// Clean up invalid entity reference
+			m_aVehiclePatrolSpawns.Remove(randomIndex);
+			
+			// Try again if we still have spawns
+			if (!m_aVehiclePatrolSpawns.IsEmpty())
+				return GetRandomVehiclePatrolSpawn(outPosition, outAngles);
+			
+			return false;
+		}
+		
+		// Get position and angles
+		outPosition = spawnEntity.GetOrigin();
+		outAngles = spawnEntity.GetAngles();
+		
+		return true;
+	}
 
 
 }

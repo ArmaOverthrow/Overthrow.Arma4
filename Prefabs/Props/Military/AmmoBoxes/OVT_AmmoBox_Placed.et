@@ -62,5 +62,12 @@ GenericEntity : "{71BD5B9F53DF8CF6}Prefabs/Props/Military/AmmoBoxes/OVT_AmmoBox_
     }
    }
   }
+  SCR_EditableEntityComponent "{65B90A24B6E114CC}" {
+   m_UIInfo SCR_EditableEntityUIInfo "{65B90A2B75ED14CD}" {
+    Name "#OVT-Place_AmmoBox"
+    Description "#OVT-Place_AmmoBox_Description"
+   }
+   m_Flags PLACEABLE
+  }
  }
 }

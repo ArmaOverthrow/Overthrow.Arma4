@@ -11,7 +11,7 @@ class OVT_WantedInfo : SCR_InfoDisplay {
 	protected ImageWidget m_wUndercoverIcon = null;
 	protected Widget m_wUndercoverFrame = null;
 	
-	protected float m_fUpdateCounter = 1;
+	protected float m_fUpdateCounter = 2;
 	
 	protected void InitCharacter()
 	{

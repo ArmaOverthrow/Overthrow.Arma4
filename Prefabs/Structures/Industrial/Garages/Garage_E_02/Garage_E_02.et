@@ -35,9 +35,15 @@ SCR_DestructibleBuildingEntity : "{9D656741EA2AABC5}Prefabs/Structures/Industria
    m_ShopType SHOP_VEHICLE
    m_bProcurement 1
   }
+  SCR_EditableEntityComponent "{65B90A29EC1C157B}" {
+   m_UIInfo SCR_EditableEntityUIInfo "{65B90A29F5529710}" {
+    Name "#OVT-Garage"
+    Description "#OVT-Garage_Description"
+   }
+   m_Flags PLACEABLE
+  }
   RplComponent "{50A4E7C9B5728062}" {
    Enabled 1
-   Streamable Disabled
   }
  }
 }

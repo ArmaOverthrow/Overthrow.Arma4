@@ -10,18 +10,15 @@ enum OVT_FactionType {
 	SUPPORTING_FACTION
 }
 
+enum OVT_FactionTypeFlag {
+	OCCUPYING_FACTION = 1,
+	RESISTANCE_FACTION = 2,
+	SUPPORTING_FACTION = 4
+}
+
 enum OVT_PatrolType {
 	DEFEND,
 	PERIMETER
-}
-
-class OVT_CameraPosition : ScriptAndConfig
-{
-	[Attribute("0 0 0", UIWidgets.Coords)]
-	vector position;
-
-	[Attribute("0 0 0", UIWidgets.Coords)]
-	vector angles;
 }
 
 class OVT_OverthrowConfigStruct
@@ -45,7 +42,7 @@ class OVT_OverthrowConfigStruct
 		occupyingFaction = "";
 		supportingFaction = "";
 		officers = new array<string>;
-		difficulty = "Normal";	
+		difficulty = "";	
 		showPlayerPosition = true;	
 		
 		overrideDifficulty = false;
@@ -75,9 +72,6 @@ class OVT_OverthrowConfigComponent: OVT_Component
 
 	string m_sSupportingFaction = "US";
 
-	[Attribute("", UIWidgets.Object)]
-	ref array<ref OVT_CameraPosition> m_aCameraPositions;
-
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Town Controller Prefab", params: "et", category: "Controllers")]
 	ResourceName m_pTownControllerPrefab;
 
@@ -95,7 +89,7 @@ class OVT_OverthrowConfigComponent: OVT_Component
 
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Move Waypoint Prefab", params: "et", category: "Waypoints")]
 	ResourceName m_pMoveWaypointPrefab;
-
+	
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Defend Waypoint Prefab", params: "et", category: "Waypoints")]
 	ResourceName m_pDefendWaypointPrefab;
 	//Chris Added wps
@@ -370,6 +364,12 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		AIWaypoint wp = SpawnWaypoint(m_pPatrolWaypointPrefab, pos);
 		return wp;
 	}
+	
+	AIWaypoint SpawnMoveWaypoint(vector pos)
+	{
+		AIWaypoint wp = SpawnWaypoint(m_pMoveWaypointPrefab, pos);
+		return wp;
+	}
 
 	AIWaypoint SpawnSearchAndDestroyWaypoint(vector pos)
 	{
@@ -453,7 +453,7 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		return wp;
 	}
 
-	void GivePatrolWaypoints(SCR_AIGroup aigroup, OVT_PatrolType type, vector center = "0 0 0")
+	void GivePatrolWaypoints(SCR_AIGroup aigroup, OVT_PatrolType type, vector center = "0 0 0", float radius = 0)
 	{
 		if(center[0] == 0) center = aigroup.GetOrigin();
 
@@ -465,7 +465,11 @@ class OVT_OverthrowConfigComponent: OVT_Component
 
 		if(type == OVT_PatrolType.PERIMETER)
 		{
-			float dist = vector.Distance(aigroup.GetOrigin(), center);
+			float dist = radius;
+			if(radius == 0)
+			{
+				dist = vector.Distance(aigroup.GetOrigin(), center);
+			}
 			vector dir = vector.Direction(aigroup.GetOrigin(), center);
 			float angle = dir.VectorToAngles()[1];
 
@@ -474,11 +478,12 @@ class OVT_OverthrowConfigComponent: OVT_Component
 			for(int i=0; i< 4; i++)
 			{
 				vector pos = center + (Vector(0,angle,0).AnglesToVector() * dist);
+				vector roadPos = OVT_Global.FindNearestRoad(pos);
 
-				AIWaypoint wp = SpawnPatrolWaypoint(pos);
+				AIWaypoint wp = SpawnPatrolWaypoint(roadPos);
 				queueOfWaypoints.Insert(wp);
 
-				AIWaypoint wait = SpawnWaitWaypoint(pos, s_AIRandomGenerator.RandFloatXY(45, 75));
+				AIWaypoint wait = SpawnWaitWaypoint(roadPos, s_AIRandomGenerator.RandFloatXY(45, 75));
 				queueOfWaypoints.Insert(wait);
 
 				angle += 90;
