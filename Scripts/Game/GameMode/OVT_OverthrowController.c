@@ -17,4 +17,18 @@ class OVT_OverthrowController : GenericEntity
 	{
 		return m_ProgressEvents;
 	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! RPC to notify the owning client about their player ID assignment
+	//! This allows the client's PlayerManager to properly map the controller
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	void RpcDo_NotifyOwnerAssignment(int playerId)
+	{
+		// Update the local player manager's controller mapping
+		OVT_PlayerManagerComponent playerManager = OVT_Global.GetPlayers();
+		if (playerManager)
+		{
+			playerManager.RegisterControllerForPlayer(playerId, this);
+		}
+	}
 }

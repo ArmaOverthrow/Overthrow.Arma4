@@ -19,14 +19,18 @@ class OVT_ContainerTransferCallback : OVT_StorageProgressCallback
 	
 	override void OnComplete(int itemsTransferred, int itemsSkipped)
 	{
-		if (m_Component && Replication.IsServer())
+		if (m_Component && Replication.IsServer()){
+			m_Component.RpcDo_OperationComplete(itemsTransferred, itemsSkipped);
 			m_Component.Rpc(m_Component.RpcDo_OperationComplete, itemsTransferred, itemsSkipped);
+		}
 	}
 	
 	override void OnError(string errorMessage)
 	{
-		if (m_Component && Replication.IsServer())
+		if (m_Component && Replication.IsServer()){
+			m_Component.RpcDo_OperationError(errorMessage);
 			m_Component.Rpc(m_Component.RpcDo_OperationError, errorMessage);
+		}
 	}
 }
 

@@ -186,6 +186,19 @@ class OVT_PlayerManagerComponent: OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Registers a controller entity for a player (called by the controller's RPC on clients)
+	//! \param[in] playerId The runtime integer ID of the player.
+	//! \param[in] controller The controller entity to register.
+	void RegisterControllerForPlayer(int playerId, IEntity controller)
+	{
+		if (controller)
+		{
+			m_mPlayerControllers[playerId] = controller;
+			Print("[Overthrow] Client registered controller for player " + playerId);
+		}
+	}
+	
+	//------------------------------------------------------------------------------------------------
 	//! Retrieves the controller entity for a given persistent ID.
 	//! \param[in] persistentId The persistent string ID of the player.
 	//! \return The OVT_OverthrowController for the player, or null if not found.
@@ -271,6 +284,13 @@ class OVT_PlayerManagerComponent: OVT_Component
 					}
 					
 					Print("[Overthrow] Created controller entity for player " + playerId + " (" + persistentId + ")");
+					
+					// Notify the owning client about their controller assignment
+					OVT_OverthrowController overthrowController = OVT_OverthrowController.Cast(controller);
+					if (overthrowController)
+					{
+						overthrowController.Rpc(overthrowController.RpcDo_NotifyOwnerAssignment, playerId);
+					}
 				}
 				else
 				{
