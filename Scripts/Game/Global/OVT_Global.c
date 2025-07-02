@@ -10,6 +10,42 @@ class OVT_Global : Managed
 		return OVT_PlayerCommsComponent.Cast(player.FindComponent(OVT_PlayerCommsComponent));
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Get the local player's overthrow controller entity
+	//! \return Controller entity or null if not found/on server
+	static OVT_OverthrowController GetController()
+	{		
+		IEntity player = SCR_PlayerController.GetLocalControlledEntity();
+		if (!player) return null;
+		
+		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(player);
+		return GetPlayers().GetController(playerId);
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Convenience method to get container transfer component
+	//! \return Container transfer component or null
+	static OVT_ContainerTransferComponent GetContainerTransfer()
+	{
+		OVT_OverthrowController controller = GetController();
+		if (!controller) return null;
+		
+		return OVT_ContainerTransferComponent.Cast(controller.FindComponent(OVT_ContainerTransferComponent));
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Convenience method for battlefield looting
+	//! \param[in] vehicle Target vehicle to loot into
+	//! \param[in] searchRadius Search radius for lootable items
+	static void LootBattlefield(IEntity vehicle, float searchRadius = 25.0)
+	{
+		OVT_ContainerTransferComponent transfer = GetContainerTransfer();
+		if (transfer && transfer.IsAvailable())
+		{
+			transfer.LootBattlefield(vehicle, searchRadius);
+		}
+	}
+	
 	static OVT_OverthrowGameMode GetOverthrow()
 	{
 		return OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
@@ -199,8 +235,8 @@ class OVT_Global : Managed
 		OVT_InventoryManagerComponent inventoryMgr = GetInventory();
 		if (inventoryMgr)
 		{
-			// Use new system with basic configuration (no progress bar for legacy calls)
-			OVT_StorageOperationConfig config = new OVT_StorageOperationConfig(false, true, false, 50, 100, 75.0, 3);
+			// Use new system with basic configuration for legacy calls
+			OVT_StorageOperationConfig config = new OVT_StorageOperationConfig(true, false, 50, 100, 75.0, 3);
 			inventoryMgr.TransferStorageByRplId(from, to, config, null);
 			return;
 		}

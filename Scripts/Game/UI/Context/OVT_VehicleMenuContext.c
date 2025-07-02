@@ -127,7 +127,11 @@ class OVT_VehicleMenuContext : OVT_UIContext
 			return;
 		}
 		
-		OVT_Global.GetServer().TransferToWarehouse(nearestVeh);	
+		OVT_ContainerTransferComponent transfer = OVT_Global.GetContainerTransfer();
+		if (transfer && transfer.IsAvailable())
+		{
+			transfer.TransferToWarehouse(nearestVeh);
+		}	
 		CloseLayout();
 		SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-VehicleUnloaded");
 	}

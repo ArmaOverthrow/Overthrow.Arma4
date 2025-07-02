@@ -280,19 +280,10 @@ class OVT_ResistanceFactionManager: OVT_Component
 			// Create a callback to handle completion AND comprehensive cleanup
 			OVT_FOBUndeploymentCallback callback = new OVT_FOBUndeploymentCallback(entity, newveh);
 			
-			// Use enhanced FOB undeployment with automatic progress dialog
-			// Only show progress dialog if we have a valid player ID
-			bool showProgress = (playerId != -1);
-			string operationId = inventoryMgr.UndeployFOBWithProgress(entity, newveh, showProgress, playerId, callback);
+			// Use enhanced FOB undeployment with container collection
+			string operationId = inventoryMgr.UndeployFOBWithCollection(entity, newveh, callback);
 			
 			Print(string.Format("FOB undeployment operation started with ID: %1 (player: %2)", operationId, playerId));
-		}
-		else
-		{
-			// Fallback to basic transfer if inventory manager not available
-			Print("Inventory manager not available, using basic FOB undeployment", LogLevel.WARNING);
-			OVT_Global.TransferStorage(vehicle, newrpl.Id());
-			SCR_EntityHelper.DeleteEntityAndChildren(entity);
 		}
 	}
 	

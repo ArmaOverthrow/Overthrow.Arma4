@@ -70,101 +70,7 @@ class OVT_PlayerCommsComponent: OVT_Component
 		OVT_BaseControllerComponent base = of.GetBase(data.entId);
 		of.StartBaseQRF(base);
 	}
-	
-	void LootIntoVehicle(IEntity vehicle)
-	{
-		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
-		Rpc(RpcAsk_LootIntoVehicle, rpl.Id());
-	}
-	
-	ref array<IEntity> m_aLootBodies;
-	RplId m_LootVehicle;
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_LootIntoVehicle(RplId vehicleId)
-	{	
-		m_LootVehicle = vehicleId;
-		RplComponent rplComp = RplComponent.Cast(Replication.FindItem(vehicleId));
-		if(!rplComp) return;
 		
-		IEntity vehicle = rplComp.GetEntity();
-		
-		UniversalInventoryStorageComponent vehicleStorage = EPF_Component<UniversalInventoryStorageComponent>.Find(vehicle);
-		if(!vehicleStorage) return;
-		
-		InventoryStorageManagerComponent vehicleStorageMgr = EPF_Component<InventoryStorageManagerComponent>.Find(vehicle);
-		if(!vehicleStorageMgr) return;
-		
-		m_aLootBodies = new array<IEntity>;
-		
-		//Query the nearby world for weapons and bodies
-		OVT_Global.GetNearbyBodiesAndWeapons(vehicle.GetOrigin(), 25, m_aLootBodies);
-			
-		if(m_aLootBodies.Count() == 0) return;
-		
-		GetGame().GetCallqueue().CallLater(LootNextBody, 100);
-	}
-	
-	protected void LootNextBody()
-	{
-		if(m_aLootBodies.Count() == 0) return;
-		RplComponent rplComp = RplComponent.Cast(Replication.FindItem(m_LootVehicle));
-		if(!rplComp) return;
-		
-		IEntity vehicle = rplComp.GetEntity();
-		
-		UniversalInventoryStorageComponent vehicleStorage = EPF_Component<UniversalInventoryStorageComponent>.Find(vehicle);
-		if(!vehicleStorage) return;
-		
-		InventoryStorageManagerComponent vehicleStorageMgr = EPF_Component<InventoryStorageManagerComponent>.Find(vehicle);
-		if(!vehicleStorageMgr) return;
-		
-		IEntity body = m_aLootBodies[0];
-		
-		InventoryStorageManagerComponent inv = EPF_Component<InventoryStorageManagerComponent>.Find(body);
-		if(!inv) {
-			//Might be a weapon
-			WeaponComponent weapon = EPF_Component<WeaponComponent>.Find(body);
-			if(weapon)
-			{
-				vehicleStorageMgr.TryInsertItem(body);					
-			}
-		}else{
-			bool allMovesSucceeded = LootBody(inv, vehicleStorage);
-			if(allMovesSucceeded) {
-				SCR_EntityHelper.DeleteEntityAndChildren(body);
-			}
-		}
-		
-		m_aLootBodies.Remove(0);
-		
-		if(m_aLootBodies.Count() == 0) return;
-		
-		GetGame().GetCallqueue().CallLater(LootNextBody, 100);
-	}
-
-	bool LootBody(InventoryStorageManagerComponent inv, UniversalInventoryStorageComponent vehicleStorage)
-	{
-		array<IEntity> items = new array<IEntity>;
-		inv.GetItems(items);
-		if(items.Count() == 0) return false;
-		bool allMovesSucceeded = true;
-		foreach(IEntity item : items)
-		{
-			//Ignore clothes (but get helmets, backpacks, etc)
-			BaseLoadoutClothComponent cloth = EPF_Component<BaseLoadoutClothComponent>.Find(item);
-			if(cloth && cloth.GetAreaType())
-			{
-				if(cloth.GetAreaType().ClassName() == "LoadoutPantsArea") continue;
-				if(cloth.GetAreaType().ClassName() == "LoadoutJacketArea") continue;
-				if(cloth.GetAreaType().ClassName() == "LoadoutBootsArea") continue;
-			}
-			bool couldMove = inv.TryMoveItemToStorage(item, vehicleStorage);
-			allMovesSucceeded = allMovesSucceeded && couldMove;
-		}
-		return allMovesSucceeded;
-	}
-	
 	void DeliverMedicalSupplies(IEntity vehicle)
 	{
 		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
@@ -650,38 +556,6 @@ class OVT_PlayerCommsComponent: OVT_Component
 		OVT_ResistanceFactionManager rf = OVT_Global.GetResistanceFaction();
 		OVT_FOBData fob = rf.GetNearestFOBData(pos);
 		rf.AddGarrisonFOB(fob, prefabIndex);
-	}
-	
-	//INVENTORY
-	void TransferStorage(IEntity from, IEntity to)
-	{
-		RplComponent fromRpl = RplComponent.Cast(from.FindComponent(RplComponent));
-		RplComponent toRpl = RplComponent.Cast(to.FindComponent(RplComponent));
-		
-		if(!fromRpl || !toRpl) return;
-		
-		Rpc(RpcAsk_TransferStorage, fromRpl.Id(), toRpl.Id());
-	}
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_TransferStorage(RplId from, RplId to)
-	{
-		OVT_Global.TransferStorage(from, to);
-	}
-	
-	void TransferToWarehouse(IEntity from)
-	{
-		RplComponent fromRpl = RplComponent.Cast(from.FindComponent(RplComponent));
-		
-		if(!fromRpl) return;
-		
-		Rpc(RpcAsk_TransferToWarehouse, fromRpl.Id());
-	}
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_TransferToWarehouse(RplId from)
-	{
-		OVT_Global.TransferToWarehouse(from);
 	}
 	
 	//VEHICLES

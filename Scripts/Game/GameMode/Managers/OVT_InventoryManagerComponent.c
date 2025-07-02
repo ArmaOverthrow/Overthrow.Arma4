@@ -79,63 +79,21 @@ class OVT_ChainedProgressCallback : OVT_StorageProgressCallback
 	}
 }
 
-//------------------------------------------------------------------------------------------------
-//! Wrapper class to connect UI context with progress callback interface
-class OVT_ProgressUICallbackWrapper : OVT_StorageProgressCallback
-{
-	protected ref OVT_StorageProgressUIContext m_UIContext;
-	protected int m_iCurrentContainer = 0;
-	protected int m_iTotalContainers = 0;
-	
-	void OVT_ProgressUICallbackWrapper(OVT_StorageProgressUIContext uiContext)
-	{
-		m_UIContext = uiContext;
-	}
-	
-	override void OnProgressUpdate(float progress, int currentItem, int totalItems, string operation)
-	{
-		if (!m_UIContext) return;
-		
-		// Update the UI context with progress information
-		m_UIContext.UpdateProgress(progress, m_iCurrentContainer, m_iTotalContainers, currentItem, totalItems, operation);
-	}
-	
-	override void OnComplete(int itemsTransferred, int itemsSkipped)
-	{
-		m_UIContext.OnOperationComplete(itemsTransferred, itemsSkipped);
-	}
-	
-	override void OnError(string errorMessage)
-	{
-		if (!m_UIContext) return;
-		
-		m_UIContext.OnOperationError(errorMessage);
-	}
-	
-	//! Sets container progress information
-	void SetContainerProgress(int currentContainer, int totalContainers)
-	{
-		m_iCurrentContainer = currentContainer;
-		m_iTotalContainers = totalContainers;
-	}
-}
 
 //------------------------------------------------------------------------------------------------
 //! Storage operation configuration
 class OVT_StorageOperationConfig
 {
-	bool showProgress = true;
-	bool playSound = true;
+	bool skipWeaponsOnGround = true;
 	bool removeEmptyContainers = false;
 	float delayBetweenItems = 150; // milliseconds - increased for server performance
 	float delayBetweenContainers = 300; // milliseconds - delay between containers
 	float searchRadius = 75.0; // meters for container collection
 	int itemsPerChunk = 5; // items to process per frame to prevent server hitches
 	
-	void OVT_StorageOperationConfig(bool progress = true, bool sound = true, bool cleanup = false, float itemDelay = 150, float containerDelay = 300, float radius = 75.0, int chunkSize = 5)
+	void OVT_StorageOperationConfig(bool skipWeapons = true, bool cleanup = false, float itemDelay = 150, float containerDelay = 300, float radius = 75.0, int chunkSize = 5)
 	{
-		showProgress = progress;
-		playSound = sound;
+		skipWeaponsOnGround = skipWeapons;
 		removeEmptyContainers = cleanup;
 		delayBetweenItems = itemDelay;
 		delayBetweenContainers = containerDelay;
@@ -270,98 +228,32 @@ class OVT_InventoryManagerComponent: OVT_Component
 	//! \return Operation ID for tracking
 	string UndeployFOBWithCollection(IEntity deployedFOB, IEntity mobileFOB, OVT_StorageProgressCallback callback = null)
 	{
-		OVT_StorageOperationConfig config = new OVT_StorageOperationConfig(true, true, true, 100, 300, 75.0, 3);
+		OVT_StorageOperationConfig config = new OVT_StorageOperationConfig(true, true, 100, 300, 75.0, 3);
 		return CollectContainersToVehicle(deployedFOB.GetOrigin(), mobileFOB, config, callback);
 	}
 	
-	//------------------------------------------------------------------------------------------------
-	//! Enhanced FOB undeployment with automatic progress dialog
-	//! \param deployedFOB Deployed FOB entity
-	//! \param mobileFOB Mobile FOB truck entity
-	//! \param showProgressDialog Whether to show progress dialog
-	//! \param playerId Player ID for UI context (required for progress dialog)
-	//! \param callback Progress callback (optional)
-	//! \return Operation ID for tracking
-	string UndeployFOBWithProgress(IEntity deployedFOB, IEntity mobileFOB, bool showProgressDialog = true, int playerId = -1, OVT_StorageProgressCallback callback = null)
-	{
-		if (!showProgressDialog || playerId == -1)
-		{
-			return UndeployFOBWithCollection(deployedFOB, mobileFOB, callback);
-		}
-		
-		// Get player entity and UI manager
-		IEntity playerEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
-		if (!playerEntity)
-		{
-			Print("[Overthrow] UndeployFOBWithProgress: Could not find player entity, proceeding without UI", LogLevel.WARNING);
-			return UndeployFOBWithCollection(deployedFOB, mobileFOB, null);
-		}
-		
-		OVT_UIManagerComponent uiManager = EPF_Component<OVT_UIManagerComponent>.Find(playerEntity);
-		if (!uiManager)
-		{
-			Print("[Overthrow] UndeployFOBWithProgress: Could not find UI manager, proceeding without UI", LogLevel.WARNING);
-			return UndeployFOBWithCollection(deployedFOB, mobileFOB, null);
-		}
-		
-		// Get the storage progress context
-		OVT_StorageProgressUIContext progressContext = OVT_StorageProgressUIContext.Cast(uiManager.GetContext(OVT_StorageProgressUIContext));
-		if (!progressContext)
-		{
-			Print("[Overthrow] UndeployFOBWithProgress: Could not find storage progress context, proceeding without UI", LogLevel.WARNING);
-			return UndeployFOBWithCollection(deployedFOB, mobileFOB, null);
-		}
-		
-		// Set up progress context
-		string operationId = GenerateOperationId();
-		progressContext.SetupOperation("FOB Undeployment", operationId, true);
-		progressContext.ShowLayout();
-		
-		// Create progress callback wrapper for the UI context
-		OVT_ProgressUICallbackWrapper callbackWrapper = new OVT_ProgressUICallbackWrapper(progressContext);
-		
-		// Use enhanced configuration for FOB operations
-		OVT_StorageOperationConfig config = new OVT_StorageOperationConfig(true, true, true, 150, 400, 75.0, 3);
-		
-		// Chain callbacks - if we have a provided callback, create a chained callback
-		OVT_StorageProgressCallback finalCallback = callbackWrapper;
-		if (callback)
-		{
-			// Create a chained callback that calls both UI wrapper and provided callback
-			finalCallback = new OVT_ChainedProgressCallback(callbackWrapper, callback);
-		}
-		
-		// Start the operation with the chained callback
-		if (finalCallback) 
-		{
-			m_mActiveOperations.Set(operationId, finalCallback);
-		}
-		GetGame().GetCallqueue().CallLater(StartContainerCollection, 50, false, 
-			operationId, deployedFOB.GetOrigin(), mobileFOB, config);
-		
-		return operationId;
-	}
+	
 	
 	//------------------------------------------------------------------------------------------------
-	//! Transfer storage with automatic progress dialog
-	//! \param fromEntity Source entity
-	//! \param toEntity Target entity
-	//! \param showProgressDialog Whether to show progress dialog
-	//! \param operationTitle Title for progress dialog
+	//! Loot battlefield items (bodies and weapons) into a vehicle
+	//! \param vehicle Target vehicle to loot into
+	//! \param searchRadius Radius to search for lootable items
+	//! \param callback Progress callback (optional)
 	//! \return Operation ID for tracking
-	string TransferStorageWithProgress(IEntity fromEntity, IEntity toEntity, bool showProgressDialog = true, string operationTitle = "Storage Transfer")
+	string LootBattlefieldIntoVehicle(IEntity vehicle, float searchRadius = 25.0, OVT_StorageProgressCallback callback = null)
 	{
-		if (!showProgressDialog)
+		if (!vehicle)
 		{
-			return TransferStorage(fromEntity, toEntity, null, null);
+			if (callback) callback.OnError("Invalid target vehicle");
+			return "";
 		}
 		
-		// Use enhanced configuration for visible transfers
-		OVT_StorageOperationConfig config = new OVT_StorageOperationConfig(true, true, false, 100, 200, 10.0, 5);
+		string operationId = GenerateOperationId();
+		if (callback) m_mActiveOperations.Set(operationId, callback);
 		
-		// Note: Progress UI must be shown from client-side code before calling this method
-		// The server-side inventory manager cannot create UI elements
-		return TransferStorage(fromEntity, toEntity, config, null);
+		GetGame().GetCallqueue().CallLater(StartBattlefieldLooting, 10, false, operationId, vehicle, searchRadius);
+		
+		return operationId;
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -529,8 +421,7 @@ class OVT_InventoryManagerComponent: OVT_Component
 			if (callback) callback.OnComplete(successCount, skipCount);
 			m_mActiveOperations.Remove(operationId);
 			
-			if (config.playSound)
-				PlayTransferSound(targetStorage.GetOwner());
+			PlayTransferSound(targetStorage.GetOwner());
 			
 			return;
 		}
@@ -685,8 +576,7 @@ class OVT_InventoryManagerComponent: OVT_Component
 			}
 			m_mActiveOperations.Remove(operationId);
 			
-			if (config.playSound)
-				PlayTransferSound(targetVehicle);
+			PlayTransferSound(targetVehicle);
 			
 			return;
 		}
@@ -711,7 +601,7 @@ class OVT_InventoryManagerComponent: OVT_Component
 		
 		// Transfer items from this container to target vehicle
 		string transferId = TransferStorage(currentContainer, targetVehicle, 
-			new OVT_StorageOperationConfig(false, false, false, 10), null);
+			new OVT_StorageOperationConfig(false, false, 10), null);
 		
 		// Remove container if configured to do so
 		if (config.removeEmptyContainers)
@@ -798,6 +688,161 @@ class OVT_InventoryManagerComponent: OVT_Component
 		}
 		
 		return "Container";
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Start battlefield looting operation
+	protected void StartBattlefieldLooting(string operationId, IEntity vehicle, float searchRadius)
+	{
+		OVT_StorageProgressCallback callback = m_mActiveOperations.Get(operationId);
+		
+		// Get storage components
+		UniversalInventoryStorageComponent vehicleStorage = EPF_Component<UniversalInventoryStorageComponent>.Find(vehicle);
+		InventoryStorageManagerComponent vehicleStorageMgr = EPF_Component<InventoryStorageManagerComponent>.Find(vehicle);
+		
+		if (!vehicleStorage || !vehicleStorageMgr)
+		{
+			if (callback) callback.OnError("Vehicle has no storage components");
+			m_mActiveOperations.Remove(operationId);
+			return;
+		}
+		
+		// Find nearby bodies and weapons
+		array<IEntity> lootableItems = {};
+		OVT_Global.GetNearbyBodiesAndWeapons(vehicle.GetOrigin(), searchRadius, lootableItems);
+		
+		if (lootableItems.IsEmpty())
+		{
+			if (callback) callback.OnComplete(0, 0);
+			m_mActiveOperations.Remove(operationId);
+			return;
+		}
+		
+		// Start processing items
+		if (callback) callback.OnProgressUpdate(0.0, 0, lootableItems.Count(), "Looting battlefield");
+		
+		// Start the looting process
+		GetGame().GetCallqueue().CallLater(ProcessBattlefieldLoot, 50, false, 
+			operationId, vehicle, lootableItems, 0, 0, 0);
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Process battlefield loot items one by one
+	protected void ProcessBattlefieldLoot(string operationId, IEntity vehicle, array<IEntity> lootableItems, 
+		int currentIndex, int totalLooted, int totalSkipped)
+	{
+		OVT_StorageProgressCallback callback = m_mActiveOperations.Get(operationId);
+		
+		// Check if operation was cancelled
+		if (!callback)
+			return;
+		
+		// Check if we're done
+		if (currentIndex >= lootableItems.Count())
+		{
+			callback.OnComplete(totalLooted, totalSkipped);
+			m_mActiveOperations.Remove(operationId);
+			PlayTransferSound(vehicle);
+			return;
+		}
+		
+		// Get storage components
+		UniversalInventoryStorageComponent vehicleStorage = EPF_Component<UniversalInventoryStorageComponent>.Find(vehicle);
+		InventoryStorageManagerComponent vehicleStorageMgr = EPF_Component<InventoryStorageManagerComponent>.Find(vehicle);
+		
+		if (!vehicleStorage || !vehicleStorageMgr)
+		{
+			callback.OnError("Vehicle storage components unavailable");
+			m_mActiveOperations.Remove(operationId);
+			return;
+		}
+		
+		IEntity currentItem = lootableItems[currentIndex];
+		if (!currentItem)
+		{
+			// Skip null items
+			GetGame().GetCallqueue().CallLater(ProcessBattlefieldLoot, 100, false, 
+				operationId, vehicle, lootableItems, currentIndex + 1, totalLooted, totalSkipped + 1);
+			return;
+		}
+		
+		int itemsLooted = 0;
+		bool canDelete = false;
+		
+		// Check if it's a weapon
+		WeaponComponent weapon = EPF_Component<WeaponComponent>.Find(currentItem);
+		if (weapon)
+		{
+			if (vehicleStorageMgr.TryInsertItem(currentItem))
+			{
+				itemsLooted = 1;
+			}
+		}
+		else
+		{
+			// Check if it's a body with inventory
+			InventoryStorageManagerComponent bodyInventory = EPF_Component<InventoryStorageManagerComponent>.Find(currentItem);
+			if (bodyInventory)
+			{
+				int bodyItemsLooted = LootBodyItems(bodyInventory, vehicleStorage);
+				if (bodyItemsLooted > 0)
+				{
+					itemsLooted = bodyItemsLooted;
+					// Check if body is now empty
+					array<IEntity> remainingItems = {};
+					bodyInventory.GetItems(remainingItems);
+					canDelete = remainingItems.IsEmpty();
+				}
+			}
+		}
+		
+		// Delete empty bodies
+		if (canDelete)
+		{
+			SCR_EntityHelper.DeleteEntityAndChildren(currentItem);
+		}
+		
+		// Update progress
+		float progress = (currentIndex + 1) / (float)lootableItems.Count();
+		callback.OnProgressUpdate(progress, currentIndex + 1, lootableItems.Count(), "Looting battlefield");
+		
+		// Continue with next item
+		GetGame().GetCallqueue().CallLater(ProcessBattlefieldLoot, 100, false, 
+			operationId, vehicle, lootableItems, currentIndex + 1, totalLooted + itemsLooted, totalSkipped);
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Loot items from a body, excluding certain clothing types
+	protected int LootBodyItems(InventoryStorageManagerComponent bodyInventory, UniversalInventoryStorageComponent vehicleStorage)
+	{
+		array<IEntity> items = {};
+		bodyInventory.GetItems(items);
+		if (items.IsEmpty()) return 0;
+		
+		int itemsLooted = 0;
+		foreach (IEntity item : items)
+		{
+			// Skip certain clothing types
+			BaseLoadoutClothComponent cloth = EPF_Component<BaseLoadoutClothComponent>.Find(item);
+			if (cloth && cloth.GetAreaType())
+			{
+				string areaType = cloth.GetAreaType().ClassName();
+				if (areaType == "LoadoutPantsArea" || 
+					areaType == "LoadoutJacketArea" || 
+					areaType == "LoadoutBootsArea")
+				{
+					continue;
+				}
+			}
+			
+			// Try to move item to vehicle
+			if (bodyInventory.TryMoveItemToStorage(item, vehicleStorage))
+			{
+				itemsLooted++;
+			}
+		}
+		
+		return itemsLooted;
 	}
 	
 	//------------------------------------------------------------------------------------------------

@@ -17,7 +17,16 @@ class OVT_LootIntoVehicleAction : SCR_VehicleActionBase
 			return;
 		}		
 		
-		OVT_Global.GetServer().LootIntoVehicle(pOwnerEntity);
+		// Check if container transfer component is available
+		OVT_ContainerTransferComponent transfer = OVT_Global.GetContainerTransfer();
+		if (!transfer || !transfer.IsAvailable())
+		{
+			SCR_HintManagerComponent.GetInstance().ShowCustom("Looting system busy, try again later");
+			return;
+		}
+		
+		// Use new battlefield looting system
+		OVT_Global.LootBattlefield(pOwnerEntity, 25.0);
 		
 		SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-BodiesLooted");
 	}
