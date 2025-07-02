@@ -256,9 +256,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 			{
 				OVT_ContainerTransferComponent transfer = OVT_ContainerTransferComponent.Cast(controller.FindComponent(OVT_ContainerTransferComponent));
 				if (transfer && transfer.IsAvailable())
-				{
-					Print("Using new progress system for FOB deployment transfer...");
-					
+				{					
 					// Clear any existing callbacks first
 					transfer.m_OnOperationComplete.Remove(OnFOBCollectionComplete);
 					transfer.m_OnOperationComplete.Remove(OnFOBDeploymentComplete);
@@ -308,7 +306,6 @@ class OVT_ResistanceFactionManager: OVT_Component
 		if (physics)
 		{
 			physics.SetActive(ActiveState.INACTIVE);
-			Print("Deactivated physics on mobile FOB immediately after creation");
 		}
 		
 		OVT_Global.GetVehicles().m_aVehicles.RemoveItem(entity.GetID());
@@ -322,7 +319,6 @@ class OVT_ResistanceFactionManager: OVT_Component
 				OVT_ContainerTransferComponent transfer = OVT_ContainerTransferComponent.Cast(controller.FindComponent(OVT_ContainerTransferComponent));
 				if (transfer && transfer.IsAvailable())
 				{					
-					Print("Using new progress system for FOB container collection...");
 					
 					// Clear any existing callbacks first
 					transfer.m_OnOperationComplete.Remove(OnFOBCollectionComplete);
@@ -913,7 +909,6 @@ class OVT_ResistanceFactionManager: OVT_Component
 				IEntity campEntity = rpl.GetEntity();
 				if (campEntity)
 				{
-					Print(string.Format("[Overthrow] Deleting camp entity: %1", campEntity.GetPrefabData().GetPrefabName()));
 					SCR_EntityHelper.DeleteEntityAndChildren(campEntity);
 				}
 			}
@@ -1019,7 +1014,6 @@ class OVT_ResistanceFactionManager: OVT_Component
 			{
 				if (OVT_ManageCampAction.Cast(action))
 				{
-					Print(string.Format("[Overthrow] Deleting old camp entity: %1", entity.GetPrefabData().GetPrefabName()));
 					SCR_EntityHelper.DeleteEntityAndChildren(entity);
 					return false;
 				}
@@ -1074,7 +1068,6 @@ class OVT_ResistanceFactionManager: OVT_Component
 			IEntity entity = GetGame().GetWorld().FindEntityByID(entityId);
 			if (entity)
 			{
-				Print(string.Format("[Overthrow] Removing object '%1' associated with deleted camp", entity.GetPrefabData().GetPrefabName()));
 				SCR_EntityHelper.DeleteEntityAndChildren(entity);
 			}
 		}
@@ -1145,9 +1138,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 	//! \param centerPos Center position of FOB area
 	//! \param radius Cleanup radius in meters
 	void CleanupFOBArea(vector centerPos, float radius)
-	{
-		Print(string.Format("Starting comprehensive FOB area cleanup at %1 with radius %2m", centerPos.ToString(), radius));
-		
+	{		
 		// Clear and prepare the cleanup results array
 		m_aFOBCleanupEntities = new array<IEntity>();
 		
@@ -1161,14 +1152,11 @@ class OVT_ResistanceFactionManager: OVT_Component
 		{
 			if (entity)
 			{
-				Print(string.Format("Deleting FOB item: %1", GetEntityDisplayName(entity)));
 				SCR_EntityHelper.DeleteEntityAndChildren(entity);
 				deletedCount++;
 			}
 		}
-		
-		Print(string.Format("FOB area cleanup completed: %1 items removed", deletedCount));
-		
+				
 		// Clear the cleanup array
 		m_aFOBCleanupEntities = null;
 	}
@@ -1232,7 +1220,6 @@ class OVT_ResistanceFactionManager: OVT_Component
 	//! Called when FOB container collection completes successfully
 	void OnFOBCollectionComplete(int itemsTransferred, int itemsSkipped)
 	{
-		Print("FOB container collection completed, starting cleanup...");
 		
 		if (!m_pCurrentUndeployedFOB || !m_pCurrentMobileFOB)
 		{
@@ -1242,11 +1229,9 @@ class OVT_ResistanceFactionManager: OVT_Component
 		
 		// Clean up all placed/built items in FOB area
 		vector fobPosition = m_pCurrentUndeployedFOB.GetOrigin();
-		Print(string.Format("Cleaning up FOB area at position: %1", fobPosition.ToString()));
 		CleanupFOBArea(fobPosition, 75.0);
 		
 		// Delete the deployed FOB entity
-		Print("Deleting deployed FOB entity...");
 		SCR_EntityHelper.DeleteEntityAndChildren(m_pCurrentUndeployedFOB);
 		
 		// Reactivate physics on the mobile FOB
@@ -1254,7 +1239,6 @@ class OVT_ResistanceFactionManager: OVT_Component
 		if (physics)
 		{
 			physics.SetActive(ActiveState.ACTIVE);
-			Print("Reactivated physics on mobile FOB");
 		}
 		
 		// Send notification
@@ -1288,20 +1272,16 @@ class OVT_ResistanceFactionManager: OVT_Component
 		// Clean up references
 		m_pCurrentUndeployedFOB = null;
 		m_pCurrentMobileFOB = null;
-		
-		Print("FOB undeployment cleanup completed");
 	}
 	
 	//------------------------------------------------------------------------------------------------
 	//! Called when FOB container collection fails
 	void OnFOBCollectionError(string errorMessage)
 	{
-		Print(string.Format("FOB container collection failed: %1", errorMessage), LogLevel.ERROR);
 		
 		// Still delete deployed FOB to prevent it being stuck
 		if (m_pCurrentUndeployedFOB)
 		{
-			Print("Performing fallback deletion of deployed FOB due to error");
 			SCR_EntityHelper.DeleteEntityAndChildren(m_pCurrentUndeployedFOB);
 		}
 		
@@ -1345,7 +1325,6 @@ class OVT_ResistanceFactionManager: OVT_Component
 	//! Called when FOB deployment transfer completes successfully
 	void OnFOBDeploymentComplete(int itemsTransferred, int itemsSkipped)
 	{
-		Print("FOB deployment transfer completed, performing cleanup...");
 		
 		if (!m_pCurrentDeploymentSource || !m_pCurrentDeploymentTarget)
 		{
@@ -1354,7 +1333,6 @@ class OVT_ResistanceFactionManager: OVT_Component
 		}
 		
 		// Remove from vehicle manager and delete the mobile FOB entity after transfer
-		Print("Removing mobile FOB from vehicle manager and deleting entity...");
 		OVT_Global.GetVehicles().m_aVehicles.RemoveItem(m_pCurrentDeploymentSource.GetID());
 		SCR_EntityHelper.DeleteEntityAndChildren(m_pCurrentDeploymentSource);
 		
@@ -1382,8 +1360,6 @@ class OVT_ResistanceFactionManager: OVT_Component
 		// Clean up references
 		m_pCurrentDeploymentSource = null;
 		m_pCurrentDeploymentTarget = null;
-		
-		Print("FOB deployment completed successfully");
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -1407,7 +1383,6 @@ class OVT_ResistanceFactionManager: OVT_Component
 		// Still delete the mobile FOB
 		if (m_pCurrentDeploymentSource)
 		{
-			Print("Removing mobile FOB from vehicle manager and deleting after failed transfer");
 			OVT_Global.GetVehicles().m_aVehicles.RemoveItem(m_pCurrentDeploymentSource.GetID());
 			SCR_EntityHelper.DeleteEntityAndChildren(m_pCurrentDeploymentSource);
 		}
