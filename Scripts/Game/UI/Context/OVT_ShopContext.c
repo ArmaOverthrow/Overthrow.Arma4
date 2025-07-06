@@ -147,9 +147,7 @@ class OVT_ShopContext : OVT_UIContext
 				w.SetOpacity(1);
 				OVT_ShopMenuCardComponent card = OVT_ShopMenuCardComponent.Cast(w.FindHandler(OVT_ShopMenuCardComponent));
 				
-				int buy = m_Economy.GetPrice(id);
-				buy = buy * OVT_Global.GetConfig().m_Difficulty.procurementMultiplier;
-				buy = buy * OVT_Global.GetConfig().m_Difficulty.vehiclePriceMultiplier;
+				int buy = m_Economy.GetShopBuyPrice(id, m_Shop, m_Shop.GetOwner().GetOrigin(), m_iPlayerID);
 								
 				card.Init(res, buy, 100, this);
 				
@@ -176,7 +174,7 @@ class OVT_ShopContext : OVT_UIContext
 				w.SetOpacity(1);
 				OVT_ShopMenuCardComponent card = OVT_ShopMenuCardComponent.Cast(w.FindHandler(OVT_ShopMenuCardComponent));
 				
-				int buy = m_Economy.GetBuyPrice(id, m_Shop.GetOwner().GetOrigin(),m_iPlayerID);
+				int buy = m_Economy.GetShopBuyPrice(id, m_Shop, m_Shop.GetOwner().GetOrigin(), m_iPlayerID);
 				int qty = m_Shop.GetStock(id);
 				
 				card.Init(res, buy, qty, this);
@@ -206,19 +204,12 @@ class OVT_ShopContext : OVT_UIContext
 		
 		if(m_Shop.m_bProcurement)
 		{
-			buy = m_Economy.GetPrice(id);
-			buy = buy * OVT_Global.GetConfig().m_Difficulty.procurementMultiplier;
-			buy = buy * OVT_Global.GetConfig().m_Difficulty.vehiclePriceMultiplier;
+			buy = m_Economy.GetShopBuyPrice(id, m_Shop, m_Shop.GetOwner().GetOrigin(), m_iPlayerID);
 			sell = buy;
 			qty = 100;
 			max = 100;
 		}else{
-			buy = m_Economy.GetBuyPrice(id, m_Shop.GetOwner().GetOrigin(),m_iPlayerID);
-			// Apply vehicle price multiplier for vehicle shops
-			if(m_Shop.m_ShopType == OVT_ShopType.SHOP_VEHICLE)
-			{
-				buy = buy * OVT_Global.GetConfig().m_Difficulty.vehiclePriceMultiplier;
-			}
+			buy = m_Economy.GetShopBuyPrice(id, m_Shop, m_Shop.GetOwner().GetOrigin(), m_iPlayerID);
 			sell = m_Economy.GetSellPrice(id, m_Shop.GetOwner().GetOrigin());
 			if(m_Shop.m_ShopType == OVT_ShopType.SHOP_GUNDEALER)
 			{
@@ -272,18 +263,7 @@ class OVT_ShopContext : OVT_UIContext
 		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
 		if(!player) return;
 		
-		int cost = m_Economy.GetBuyPrice(m_SelectedResource, m_Shop.GetOwner().GetOrigin(),m_iPlayerID);
-		
-		if(m_Shop.m_bProcurement)
-		{
-			cost = m_Economy.GetPrice(m_SelectedResource);
-			cost = cost * OVT_Global.GetConfig().m_Difficulty.procurementMultiplier;
-			cost = cost * OVT_Global.GetConfig().m_Difficulty.vehiclePriceMultiplier;
-		}else if(m_Shop.m_ShopType == OVT_ShopType.SHOP_VEHICLE)
-		{
-			// Apply vehicle price multiplier for vehicle shops
-			cost = cost * OVT_Global.GetConfig().m_Difficulty.vehiclePriceMultiplier;
-		}
+		int cost = m_Economy.GetShopBuyPrice(m_SelectedResource, m_Shop, m_Shop.GetOwner().GetOrigin(), m_iPlayerID);
 		
 		if(!m_Economy.PlayerHasMoney(m_sPlayerID, cost)) return;
 				

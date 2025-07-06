@@ -573,6 +573,39 @@ class OVT_EconomyManagerComponent: OVT_Component
 	}	
 	
 	//------------------------------------------------------------------------------------------------
+	//! Gets the shop-specific buy price including all applicable multipliers.
+	//! \param[in] id The resource ID of the item.
+	//! \param[in] shop The shop component for shop-specific pricing.
+	//! \param[in] pos The world position (optional).
+	//! \param[in] playerId The player ID for player-specific pricing (optional).
+	//! \return The calculated shop buy price with all multipliers applied.
+	int GetShopBuyPrice(int id, OVT_ShopComponent shop, vector pos = "0 0 0", int playerId = -1)
+	{
+		int cost;
+		
+		if (shop && shop.m_bProcurement)
+		{
+			// Procurement pricing
+			cost = GetPrice(id);
+			cost = cost * OVT_Global.GetConfig().m_Difficulty.procurementMultiplier;
+			cost = cost * OVT_Global.GetConfig().m_Difficulty.vehiclePriceMultiplier;
+		}
+		else
+		{
+			// Regular shop pricing
+			cost = GetBuyPrice(id, pos, playerId);
+			
+			// Apply shop-specific multipliers
+			if (shop && shop.m_ShopType == OVT_ShopType.SHOP_VEHICLE)
+			{
+				cost = cost * OVT_Global.GetConfig().m_Difficulty.vehiclePriceMultiplier;
+			}
+		}
+		
+		return cost;
+	}
+	
+	//------------------------------------------------------------------------------------------------
 	//! Gets the dynamic sell price of an item by its ResourceName. Convenience wrapper for GetSellPrice.
 	//! \param[in] res The ResourceName of the item.
 	//! \param[in] pos The world position (optional).

@@ -7423,5 +7423,56 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A82FE978603F139}" {
+   Id "OVT-PurchaseFailedInsufficientFunds"
+   Target_en_us "Purchase failed: Insufficient funds"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1706589010
+   Author "Aaron Static"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A82FE978603F13A}" {
+   Id "OVT-PurchaseFailedInventoryFull"
+   Target_en_us "Purchase failed: Inventory full"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1706589010
+   Author "Aaron Static"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A82FE978603F13C}" {
+   Id "OVT-PurchasePartialSuccess"
+   Target_en_us "Purchase partially successful: Got %1 out of %2 items"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1706589010
+   Author "Aaron Static"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
  }
 }
