@@ -20,6 +20,7 @@ class OVT_TownData : Managed
 {
 	vector location;
 	int population;
+	int targetPopulation;
 	int stability;
 	int support;
 	int faction;
@@ -79,6 +80,7 @@ class OVT_TownData : Managed
 	void CopyFrom(OVT_TownData town)
 	{
 		population = town.population;
+		targetPopulation = town.targetPopulation;
 		stability = town.stability;
 		support = town.support;
 		faction = town.faction;
@@ -338,6 +340,7 @@ class OVT_TownManagerComponent: OVT_Component
 			{
 				//We always recalculate support modifiers and add/remove supporters, but less often
 				RecalculateSupport(townID);
+				RecalculatePopulationGrowth(townID);
 			}
 		}
 	}
@@ -615,6 +618,43 @@ class OVT_TownManagerComponent: OVT_Component
 			if(support < 15 || s_AIRandomGenerator.RandFloat01() < 0.5)
 			{
 				ChangeTownControl(town, occupyingFactionIndex);
+			}
+		}
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Recalculates population growth for a town based on stability and target population gap.
+	//! Updates the town's population if growth occurs and synchronizes via RPC.
+	//! \param townId The ID of the town to calculate population growth for
+	protected void RecalculatePopulationGrowth(int townId)
+	{
+		OVT_TownData town = m_Towns[townId];
+		
+		// Check if population needs to grow towards target
+		if(town.population < town.targetPopulation)
+		{
+			// Calculate population growth based on stability and population gap
+			float stabilityFactor = town.stability / 100.0; // 0.0 to 1.0
+			int populationGap = town.targetPopulation - town.population;
+			
+			// Scale growth based on gap size (more growth when further from target)
+			float gapFactor = Math.Min(populationGap / 10.0, 1.0); // Cap at 1.0
+			
+			// Calculate base growth (1-3 people per growth cycle)
+			int baseGrowth = Math.RandomInt(1, 4);
+			
+			// Apply factors - no growth if stability is 0%
+			int growthAmount = Math.Round(baseGrowth * stabilityFactor * gapFactor);
+			
+			if(growthAmount > 0)
+			{
+				// Ensure we don't exceed target population
+				growthAmount = Math.Min(growthAmount, populationGap);
+				
+				// Update population
+				int newPopulation = town.population + growthAmount;
+				RpcDo_SetPopulation(townId, newPopulation);
+				Rpc(RpcDo_SetPopulation, townId, newPopulation);
 			}
 		}
 	}
@@ -1002,6 +1042,7 @@ class OVT_TownManagerComponent: OVT_Component
 			
 		town.location = entity.GetOrigin();
 		town.population = townController.m_iPopulation;
+		town.targetPopulation = townController.m_iPopulation;
 		town.support = 0;
 		town.faction = GetGame().GetFactionManager().GetFactionIndex(faction);
 		town.stability = 100;
@@ -1125,6 +1166,7 @@ class OVT_TownManagerComponent: OVT_Component
 				pop = m_iTownOccupants;
 			
 			m_CheckTown.population += pop;
+			m_CheckTown.targetPopulation += pop;
 		}
 				
 		return true;
@@ -1199,6 +1241,7 @@ class OVT_TownManagerComponent: OVT_Component
 			//Print("Writing town ID " + townID);
 			
 			writer.WriteInt(town.population);
+			writer.WriteInt(town.targetPopulation);
 			writer.WriteInt(town.stability);
 			writer.WriteInt(town.support);
 			writer.WriteInt(town.faction);
@@ -1227,6 +1270,7 @@ class OVT_TownManagerComponent: OVT_Component
 			//Print("Replicating town ID " + i);
 				
 			if (!reader.ReadInt(town.population)) return false;		
+			if (!reader.ReadInt(town.targetPopulation)) return false;		
 			if (!reader.ReadInt(town.stability)) return false;		
 			if (!reader.ReadInt(town.support)) return false;		
 			if (!reader.ReadInt(town.faction)) return false;
