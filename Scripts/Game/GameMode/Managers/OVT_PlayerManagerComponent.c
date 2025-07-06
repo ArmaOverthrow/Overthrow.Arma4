@@ -252,54 +252,59 @@ class OVT_PlayerManagerComponent: OVT_Component
 		
 		player.id = playerId;
 		
-		if(Replication.IsServer())
+		if(!Replication.IsServer())
 		{
-			// Spawn controller entity for the player
-			if(m_OverthrowControllerPrefab && !m_mPlayerControllers.Contains(playerId))
+			return;
+		}
+		
+		// Spawn controller entity for the player
+		if(!m_OverthrowControllerPrefab || m_mPlayerControllers.Contains(playerId))
+		{
+			Rpc(RpcDo_RegisterPlayer, playerId, persistentId);
+			return;
+		}
+		
+		EntitySpawnParams params = EntitySpawnParams();
+		params.TransformMode = ETransformMode.WORLD;
+		
+		IEntity controller = GetGame().SpawnEntityPrefab(Resource.Load(m_OverthrowControllerPrefab), null, params);
+		if(!controller)
+		{
+			Print("[Overthrow] ERROR: Failed to spawn controller entity for player " + playerId);
+			Rpc(RpcDo_RegisterPlayer, playerId, persistentId);
+			return;
+		}
+		
+		m_mPlayerControllers[playerId] = controller;
+		
+		// Give ownership to the player
+		RplComponent rplComponent = RplComponent.Cast(controller.FindComponent(RplComponent));
+		if(rplComponent)
+		{
+			// Get player controller and its replication identity
+			PlayerController playerController = GetGame().GetPlayerManager().GetPlayerController(playerId);
+			if(playerController)
 			{
-				EntitySpawnParams params = EntitySpawnParams();
-				params.TransformMode = ETransformMode.WORLD;
-				
-				IEntity controller = GetGame().SpawnEntityPrefab(Resource.Load(m_OverthrowControllerPrefab), null, params);
-				if(controller)
+				// Get player replication ID (not identical to player ID!)
+				RplIdentity playerRplID = playerController.GetRplIdentity();
+				if(playerRplID.IsValid())
 				{
-					m_mPlayerControllers[playerId] = controller;
-					
-					// Give ownership to the player
-					RplComponent rplComponent = RplComponent.Cast(controller.FindComponent(RplComponent));
-					if(rplComponent)
-					{
-						// Get player controller and its replication identity
-						PlayerController playerController = GetGame().GetPlayerManager().GetPlayerController(playerId);
-						if(playerController)
-						{
-							// Get player replication ID (not identical to player ID!)
-							RplIdentity playerRplID = playerController.GetRplIdentity();
-							if(playerRplID.IsValid())
-							{
-								// Give ownership with notification
-								rplComponent.GiveExt(playerRplID, true);
-							}
-						}
-					}
-					
-					Print("[Overthrow] Created controller entity for player " + playerId + " (" + persistentId + ")");
-					
-					// Notify the owning client about their controller assignment
-					OVT_OverthrowController overthrowController = OVT_OverthrowController.Cast(controller);
-					if (overthrowController)
-					{
-						overthrowController.Rpc(overthrowController.RpcDo_NotifyOwnerAssignment, playerId);
-					}
-				}
-				else
-				{
-					Print("[Overthrow] ERROR: Failed to spawn controller entity for player " + playerId);
+					// Give ownership with notification
+					rplComponent.GiveExt(playerRplID, true);
 				}
 			}
-			
-			Rpc(RpcDo_RegisterPlayer, playerId, persistentId);
 		}
+		
+		Print("[Overthrow] Created controller entity for player " + playerId + " (" + persistentId + ")");
+		
+		// Notify the owning client about their controller assignment
+		OVT_OverthrowController overthrowController = OVT_OverthrowController.Cast(controller);
+		if (overthrowController)
+		{
+			overthrowController.Rpc(overthrowController.RpcDo_NotifyOwnerAssignment, playerId);
+		}
+		
+		Rpc(RpcDo_RegisterPlayer, playerId, persistentId);
 	}
 	
 	//------------------------------------------------------------------------------------------------
