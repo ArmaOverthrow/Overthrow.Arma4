@@ -273,18 +273,15 @@ FrameWidgetClass {
                "Font Size" 23
                "Min Font Size" 20
               }
-              TextWidgetClass "{59A8D26AE875CAF7}" : "{9D643D214767D616}UI/layouts/WidgetLibrary/TextWidgets/Text_Heading2.layout" {
+              RichTextWidgetClass "{65CD1C83127DC54F}" {
                Name "SelectedDescription"
-               Slot LayoutSlot "{598EF9F53F73034B}" {
+               Slot LayoutSlot "{65CD1C83127DC5C0}" {
                 Padding 10 0 10 12
                }
                Text "Select a job on the left"
                "Font Size" 19
-               "Min Font Size" 12
+               "Min Font Size" 19
                Wrap 1
-               FontProperties FontProperties "{546AF489DFD25402}" {
-                Font "{E2CBA6F76AAA42AF}UI/Fonts/Roboto/Roboto_Regular.fnt"
-               }
               }
              }
             }

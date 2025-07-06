@@ -7,13 +7,7 @@ class OVT_PlaceableItemJobStage : OVT_JobStage
 	float m_fSearchRadius;
 	
 	protected ref array<IEntity> m_aFoundEntities;
-	
-	override bool OnStart(OVT_Job job)
-	{
-		m_aFoundEntities = new array<IEntity>();
-		return true;
-	}
-	
+		
 	override bool OnTick(OVT_Job job)
 	{
 		if (m_sPlaceableName.IsEmpty())
@@ -36,7 +30,7 @@ class OVT_PlaceableItemJobStage : OVT_JobStage
 		string jobOwnerPersistentId = job.owner;
 		
 		// Clear previous results
-		m_aFoundEntities.Clear();
+		m_aFoundEntities = new array<IEntity>();
 		
 		// Query entities in sphere around player position
 		GetGame().GetWorld().QueryEntitiesBySphere(player.GetOrigin(), m_fSearchRadius, null, FilterPlaceableEntities, EQueryEntitiesFlags.STATIC | EQueryEntitiesFlags.DYNAMIC);

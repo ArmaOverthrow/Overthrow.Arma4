@@ -61,6 +61,8 @@ OVT_OverthrowGameMode {
     }
     OVT_JobConfig "{65CD0E98C7F3EDD1}" : "{C791AAAF88555841}Configs/Jobs/placeEquipmentBox.conf" {
     }
+    OVT_JobConfig "{65CD1C80C1CC8883}" : "{696B3B013BFD45FF}Configs/Jobs/recruitACivilian.conf" {
+    }
    }
   }
   OVT_LoadoutManagerComponent "{65AAD8FB1BAFD652}" {

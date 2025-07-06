@@ -2016,6 +2016,26 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{65CD1C80A56DB4F2}" {
+   Id "OVT-Job_RecruitACivilian"
+   Target_en_us "Tutorial - Recruit a civilian"
+   Modified 1707942065
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{65CD1C80A8F890D1}" {
+   Id "OVT-Job_RecruitACivilian_Description"
+   Target_en_us "Civilians can be recruited into your squad."\
+   ""\
+   "There are two ways to recruit them:"\
+   "1. Walk up to them in the street and recruit them directly"\
+   "2. Build a \"Recruitment Tent\" at an FOB"\
+   ""\
+   "Once recruited you can command them using the \"Command menu\" with <color rgba='226,168,79,255'><action name=\"OpenCommandMenu\"/></color>"
+   Modified 1707942532
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5D5080D395D01E22}" {
    Id "OVT-Jobs_Accept"
    Target_en_us "Accept"
