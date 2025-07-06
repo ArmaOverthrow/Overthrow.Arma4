@@ -1257,6 +1257,9 @@ class OVT_ResistanceFactionManager: OVT_Component
 			}
 		}
 		
+		// Unregister the FOB
+		UnregisterFOB(m_pCurrentMobileFOB.GetOrigin());
+		
 		// Unsubscribe from events
 		OVT_OverthrowController controller = OVT_OverthrowController.Cast(GetOwner());
 		if (controller)

@@ -1,5 +1,5 @@
 
-class OVT_LootIntoVehicleAction : SCR_VehicleActionBase
+class OVT_LootIntoVehicleAction : ScriptedUserAction
 {
 	
 	#ifndef DISABLE_INVENTORY
@@ -25,8 +25,37 @@ class OVT_LootIntoVehicleAction : SCR_VehicleActionBase
 			return;
 		}
 		
-		// Use new battlefield looting system
-		OVT_Global.LootBattlefield(pOwnerEntity, 25.0);
+		// Determine the actual vehicle entity with storage
+		IEntity vehicleEntity = pOwnerEntity;
+		
+		// Check if the entity has inventory storage, if not try parent
+		InventoryStorageManagerComponent storageManager = InventoryStorageManagerComponent.Cast(
+			vehicleEntity.FindComponent(InventoryStorageManagerComponent));
+		
+		if (!storageManager)
+		{
+			// Try parent entity (for vehicle compartments)
+			IEntity parentEntity = vehicleEntity.GetParent();
+			if (parentEntity)
+			{
+				storageManager = InventoryStorageManagerComponent.Cast(
+					parentEntity.FindComponent(InventoryStorageManagerComponent));
+				
+				if (storageManager)
+				{
+					vehicleEntity = parentEntity;
+				}
+			}
+		}
+		
+		if (!storageManager)
+		{
+			SCR_HintManagerComponent.GetInstance().ShowCustom("Vehicle has no storage capacity");
+			return;
+		}
+		
+		// Use new battlefield looting system with the correct entity
+		OVT_Global.LootBattlefield(vehicleEntity, 25.0);
 		
 		SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-BodiesLooted");
 	}

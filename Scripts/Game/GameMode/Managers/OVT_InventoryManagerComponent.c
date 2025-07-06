@@ -787,16 +787,13 @@ class OVT_InventoryManagerComponent: OVT_Component
 				int bodyItemsLooted = LootBodyItems(bodyInventory, vehicleStorage);
 				if (bodyItemsLooted > 0)
 				{
-					itemsLooted = bodyItemsLooted;
-					// Check if body is now empty
-					array<IEntity> remainingItems = {};
-					bodyInventory.GetItems(remainingItems);
-					canDelete = remainingItems.IsEmpty();
+					itemsLooted = bodyItemsLooted;					
+					canDelete = true;
 				}
 			}
 		}
 		
-		// Delete empty bodies
+		// Delete looted bodies
 		if (canDelete)
 		{
 			SCR_EntityHelper.DeleteEntityAndChildren(currentItem);
@@ -812,7 +809,7 @@ class OVT_InventoryManagerComponent: OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Loot items from a body, excluding certain clothing types
+	//! Loot items from a body, excluding certain clothing types but extracting their contents first
 	protected int LootBodyItems(InventoryStorageManagerComponent bodyInventory, UniversalInventoryStorageComponent vehicleStorage)
 	{
 		array<IEntity> items = {};
@@ -820,17 +817,27 @@ class OVT_InventoryManagerComponent: OVT_Component
 		if (items.IsEmpty()) return 0;
 		
 		int itemsLooted = 0;
+		InventoryStorageManagerComponent vehicleStorageMgr = EPF_Component<InventoryStorageManagerComponent>.Find(vehicleStorage.GetOwner());
+		
 		foreach (IEntity item : items)
 		{
-			// Skip certain clothing types
+			// Check if this is a clothing item we want to skip
 			BaseLoadoutClothComponent cloth = EPF_Component<BaseLoadoutClothComponent>.Find(item);
 			if (cloth && cloth.GetAreaType())
 			{
 				string areaType = cloth.GetAreaType().ClassName();
 				if (areaType == "LoadoutPantsArea" || 
 					areaType == "LoadoutJacketArea" || 
-					areaType == "LoadoutBootsArea")
+					areaType == "LoadoutBootsArea" ||
+					areaType == "LoadoutArmoredVestSlotArea" ||
+					areaType == "LoadoutVestArea" ||
+					areaType == "LoadoutBackpackArea" ||
+					areaType == "LoadoutHeadCoverArea" ||
+					areaType == "LoadoutHandwearArea"
+				)
 				{
+					// Before skipping, extract any items contained within this clothing
+					itemsLooted += ExtractItemsFromClothing(item, vehicleStorage, vehicleStorageMgr);
 					continue;
 				}
 			}
@@ -843,6 +850,62 @@ class OVT_InventoryManagerComponent: OVT_Component
 		}
 		
 		return itemsLooted;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Extract items from clothing container (vests, backpacks, etc.) before discarding the clothing
+	protected int ExtractItemsFromClothing(IEntity clothingItem, UniversalInventoryStorageComponent vehicleStorage, InventoryStorageManagerComponent vehicleStorageMgr)
+	{
+		if (!clothingItem || !vehicleStorage || !vehicleStorageMgr) return 0;
+		
+		int itemsExtracted = 0;
+		
+		// First check for UniversalInventoryStorageComponent (most common for clothing with storage)
+		UniversalInventoryStorageComponent clothingStorage = UniversalInventoryStorageComponent.Cast(
+			clothingItem.FindComponent(UniversalInventoryStorageComponent));
+		
+		if (clothingStorage)
+		{
+			// Get all items from the clothing storage
+			array<IEntity> containedItems = {};
+			clothingStorage.GetAll(containedItems);
+			
+			foreach (IEntity containedItem : containedItems)
+			{
+				if (!containedItem) continue;
+				
+				// Try to move the item to the vehicle
+				if (vehicleStorageMgr.TryMoveItemToStorage(containedItem, vehicleStorage))
+				{
+					itemsExtracted++;
+				}
+			}
+		}
+		else
+		{
+			// Fallback: Check for InventoryStorageManagerComponent (less common but possible)
+			InventoryStorageManagerComponent clothingStorageMgr = InventoryStorageManagerComponent.Cast(
+				clothingItem.FindComponent(InventoryStorageManagerComponent));
+			
+			if (clothingStorageMgr)
+			{
+				array<IEntity> containedItems = {};
+				clothingStorageMgr.GetItems(containedItems);
+				
+				foreach (IEntity containedItem : containedItems)
+				{
+					if (!containedItem) continue;
+					
+					// Try to move the item to the vehicle
+					if (vehicleStorageMgr.TryMoveItemToStorage(containedItem, vehicleStorage))
+					{
+						itemsExtracted++;
+					}
+				}
+			}
+		}
+		
+		return itemsExtracted;
 	}
 	
 	//------------------------------------------------------------------------------------------------

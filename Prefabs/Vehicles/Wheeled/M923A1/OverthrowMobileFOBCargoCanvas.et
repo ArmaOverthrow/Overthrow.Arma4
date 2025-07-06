@@ -14,7 +14,7 @@ GenericEntity : "{F109C8DFC6DB0C92}Prefabs/Vehicles/Wheeled/M923A1/M923A1_cargo_
       Name "#OVT-DeployFOB"
      }
      Duration 5
-     "Sort Priority" 15
+     "Sort Priority" 17
     }
    }
   }
