@@ -23,7 +23,8 @@ class OVT_ShopContext : OVT_UIContext
 		
 	override void OnShow()
 	{	
-		m_iPageNum = 0;	
+		m_iPageNum = 0;
+		m_SelectedResource = -1; // Reset selection to ensure first item gets selected	
 		
 		// Set up the buy button
 		Widget buyButton = m_wRoot.FindAnyWidget("BuyButton");
