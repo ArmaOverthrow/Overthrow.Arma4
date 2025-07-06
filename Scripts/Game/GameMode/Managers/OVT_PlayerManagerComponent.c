@@ -261,6 +261,8 @@ class OVT_PlayerManagerComponent: OVT_Component
 		if(!m_OverthrowControllerPrefab || m_mPlayerControllers.Contains(playerId))
 		{
 			Rpc(RpcDo_RegisterPlayer, playerId, persistentId);
+			// Could be a reconnection with still existing controller, re-assign ownership and notify the client
+			AssignControllerOwnership(playerId);
 			return;
 		}
 		
@@ -277,36 +279,48 @@ class OVT_PlayerManagerComponent: OVT_Component
 		
 		m_mPlayerControllers[playerId] = controller;
 		
-		// Give ownership to the player
-		RplComponent rplComponent = RplComponent.Cast(controller.FindComponent(RplComponent));
-		if(rplComponent)
-		{
-			// Get player controller and its replication identity
-			PlayerController playerController = GetGame().GetPlayerManager().GetPlayerController(playerId);
-			if(playerController)
-			{
-				// Get player replication ID (not identical to player ID!)
-				RplIdentity playerRplID = playerController.GetRplIdentity();
-				if(playerRplID.IsValid())
-				{
-					// Give ownership with notification
-					rplComponent.GiveExt(playerRplID, true);
-				}
-			}
-		}
-		
+		// Assign ownership to the player and notify the client
+		AssignControllerOwnership(playerId);
+
 		Print("[Overthrow] Created controller entity for player " + playerId + " (" + persistentId + ")");
-		
-		// Notify the owning client about their controller assignment
-		OVT_OverthrowController overthrowController = OVT_OverthrowController.Cast(controller);
-		if (overthrowController)
-		{
-			overthrowController.Rpc(overthrowController.RpcDo_NotifyOwnerAssignment, playerId);
-		}
-		
+				
 		Rpc(RpcDo_RegisterPlayer, playerId, persistentId);
 	}
-	
+
+	void AssignControllerOwnership(int playerId)
+	{
+		IEntity controller = m_mPlayerControllers[playerId];
+		if(controller)
+		{
+			RplComponent rplComponent = RplComponent.Cast(controller.FindComponent(RplComponent));
+			if(rplComponent)
+			{
+				// Get player controller and its replication identity
+				PlayerController playerController = GetGame().GetPlayerManager().GetPlayerController(playerId);
+				if(playerController)
+				{
+					// Get player replication ID (not identical to player ID!)
+					RplIdentity playerRplID = playerController.GetRplIdentity();
+					if(playerRplID.IsValid())
+					{
+						// Give ownership with notification
+						rplComponent.GiveExt(playerRplID, true);
+					}
+				}
+			}
+			// Notify the owning client about their controller assignment
+			OVT_OverthrowController overthrowController = OVT_OverthrowController.Cast(controller);
+			if (overthrowController)
+			{
+				overthrowController.Rpc(overthrowController.RpcDo_NotifyOwnerAssignment, playerId);
+			}
+		}
+		else
+		{
+			Print("[Overthrow] ERROR: No controller found for player " + playerId);
+		}
+	}
+
 	//------------------------------------------------------------------------------------------------
 	//! Periodically checks for disconnected players and cleans up their controller entities.
 	//! Only runs on the server. Iterates through all tracked player controllers and removes
