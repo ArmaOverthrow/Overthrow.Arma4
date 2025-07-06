@@ -26,6 +26,15 @@ GenericEntity : "{F109C8DFC6DB0C92}Prefabs/Vehicles/Wheeled/M923A1/M923A1_cargo_
      Duration 2
      "Sort Priority" 18
     }
+    OVT_SetHomeAction "{65CC94797E171771}" {
+     ParentContextList {
+      "door_rear"
+     }
+     UIInfo UIInfo "{65CC9479422A3869}" {
+      Name "#OVT-SetAsHome"
+     }
+     "Sort Priority" 110
+    }
    }
   }
  }

@@ -32,6 +32,12 @@ StaticModelEntity : "{C0B710154C14FC9B}Prefabs/Structures/Military/Camps/TentSma
      }
      ActionTitle "Manage Camp"
     }
+    OVT_SetHomeAction "{65CC9479367B99C0}" {
+     UIInfo UIInfo "{65CC947935EAE2C7}" {
+      Name "#OVT-SetAsHome"
+     }
+     "Sort Priority" 1
+    }
    }
   }
  }
