@@ -1045,7 +1045,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		//Process non EntityCatalog vehicles
 		foreach(OVT_VehiclePriceConfig cfg : m_VehiclePriceConfig.m_aPrices)
 		{
-			if(cfg.m_sFind == "" && cfg.prefab != "")
+			if(cfg.m_sFind == "" && cfg.prefab != "" && !cfg.hidden)
 			{
 				ResourceName res = cfg.prefab;
 				if(!m_aResources.Contains(res))
@@ -1074,15 +1074,57 @@ class OVT_EconomyManagerComponent: OVT_Component
 			foreach(SCR_EntityCatalogEntry item : items) 
 			{
 				ResourceName res = item.GetPrefab();
-				if(res == "") continue;
-				if(!m_aResources.Contains(res))
+				if(res == "" || m_aResources.Contains(res) || !item.IsEnabled()) continue;
+				
+				bool hidden = false;
+				int cost = 50;
+				int demand = 5;
+				
+				// Check price configs sequentially until one matches
+				foreach(OVT_PriceConfig config : m_PriceConfig.m_aPrices)
 				{
-					m_aResources.Insert(res);
-					int id = m_aResources.Count()-1;
-					m_aResourceIndex[res] = id;
-					m_aEntityCatalogEntries.Insert(item);
-					m_mFactionResources[factionId].Insert(id);
+					bool matches = false;
+					
+					// Check if this config matches the item
+					if(config.m_sFind == "")
+					{
+						// Empty find string matches all items of the specified type/mode
+						SCR_ArsenalItem arsenalItem = SCR_ArsenalItem.Cast(item.GetEntityDataOfType(SCR_ArsenalItem));
+						if(arsenalItem && arsenalItem.GetItemType() == config.m_eItemType)
+						{
+							if(config.m_eItemMode == SCR_EArsenalItemMode.DEFAULT || arsenalItem.GetItemMode() == config.m_eItemMode)
+							{
+								matches = true;
+							}
+						}
+					}
+					else
+					{
+						// Find string found in prefab name
+						matches = res.IndexOf(config.m_sFind) > -1;
+					}
+					
+					if(!matches) continue;
+					
+					if(config.hidden) 
+					{
+						hidden = true;
+						break;
+					}
+					cost = config.cost;
+					demand = config.demand;
+					break;
 				}
+				
+				if(hidden) continue;
+				
+				m_aResources.Insert(res);
+				int id = m_aResources.Count()-1;
+				m_aResourceIndex[res] = id;
+				m_aEntityCatalogEntries.Insert(item);
+				m_mFactionResources[factionId].Insert(id);
+				SetPrice(id, cost);
+				SetDemand(id, demand);
 			}
 			
 			array<SCR_EntityCatalogEntry> vehicles = new array<SCR_EntityCatalogEntry>;
@@ -1093,6 +1135,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 				ResourceName res = item.GetPrefab();
 				if(res == "") continue;
 				if(res.IndexOf("Campaign") > -1) continue;
+				if(!item.IsEnabled()) continue;
 				if(!m_aResources.Contains(res))
 				{
 					bool illegal = false;
@@ -1148,18 +1191,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 			}			
 		}
 		
-		//Set Prices
-		foreach(OVT_PriceConfig config : m_PriceConfig.m_aPrices)
-		{
-			array<SCR_EntityCatalogEntry> items = new array<SCR_EntityCatalogEntry>;
-			FindInventoryItems(config.m_eItemType, config.m_eItemMode, config.m_sFind, items);
-			foreach(SCR_EntityCatalogEntry entry : items)
-			{
-				int id = GetInventoryId(entry.GetPrefab());
-				SetPrice(id, config.cost);
-				SetDemand(id, config.demand);
-			}
-		}
+		//Set Prices (this section is now handled during item loading above)
+		// Price configs are now processed during the GetAllInventoryItems phase
+		// to support the hidden property and ensure consistent behavior with vehicles
 	}
 	
 	//------------------------------------------------------------------------------------------------

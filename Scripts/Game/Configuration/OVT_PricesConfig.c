@@ -21,4 +21,7 @@ class OVT_PriceConfig : ScriptAndConfig
 	
 	[Attribute("5", desc: "Demand Multiplier")]
 	int demand;
+	
+	[Attribute("0", desc: "If true, will not be available for sale anywhere")]
+	bool hidden;
 }
