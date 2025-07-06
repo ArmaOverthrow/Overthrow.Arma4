@@ -41,25 +41,6 @@ OVT_OverthrowGameMode {
    m_GunDealerConfig OVT_GunDealerConfig "{6490AAF29FB3FA5B}" : "{A8A5CE6C72E6D899}Configs/System/GunDealerConfig.conf" {
    }
    m_PriceConfig OVT_PricesConfig "{5D96A5A422244BBD}" : "{F1E25EE7797A3B80}Configs/Pricing/itemPrices.conf" {
-    m_aPrices {
-     OVT_PriceConfig "{5DE7112A8B010D05}" {
-      m_eItemType HEAL
-      m_sFind "Tourniquet_"
-      cost 6
-      demand 50
-     }
-     OVT_PriceConfig "{5DE7112A9CD2851C}" {
-      m_eItemType HEAL
-      m_sFind "SalineBag_"
-      cost 8
-      demand 25
-     }
-     OVT_PriceConfig "{5DE7112D042BE9F0}" {
-      m_eItemType HEAL
-      m_sFind "MorphineInjection_"
-      cost 10
-     }
-    }
    }
    m_VehiclePriceConfig OVT_VehiclePricesConfig "{5D96A5A380C4B791}" : "{8787FC0A63F99EF8}Configs/Pricing/vehiclePrices.conf" {
    }
