@@ -46,6 +46,9 @@ class OVT_DeploymentConfig : ScriptAndConfig
 	[Attribute(defvalue: "100", desc: "Chance this deployment will be created (0-100, where 100 = 100% chance)")]
 	float m_fChance;
 	
+	[Attribute(defvalue: "-1", desc: "Maximum number of active instances of this deployment type (-1 = no limit)")]
+	int m_iMaxInstances;
+	
 	//------------------------------------------------------------------------------------------------
 	void OVT_DeploymentConfig()
 	{

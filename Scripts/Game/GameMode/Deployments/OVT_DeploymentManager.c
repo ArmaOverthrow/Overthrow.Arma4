@@ -558,13 +558,6 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		
 		threat += ofManager.GetThreatByLocation(position);
 		
-		// Increase threat based on player activity
-		float playerProximity = GetNearestPlayerDistance(position);
-		if (playerProximity < 1000)
-		{
-			threat += (1000 - playerProximity) / 50; // Closer players = higher threat
-		}
-		
 		return threat;
 	}
 	
@@ -601,6 +594,12 @@ class OVT_DeploymentManagerComponent : OVT_Component
 			// Check deployment conditions
 			if (OVT_DeploymentComponent.CheckDeploymentConditions(config, position, factionIndex, threatLevel))
 			{
+				// Check maximum instances limit
+				if (config.m_iMaxInstances > 0 && GetActiveInstancesOfType(config.m_sDeploymentName, factionIndex) >= config.m_iMaxInstances)
+				{
+					continue; // Skip this config - max instances reached
+				}
+				
 				// Check chance - if less than 1.0, roll for deployment creation
 				if (config.m_fChance >= 100.0 || s_AIRandomGenerator.RandFloatXY(0,100) <= config.m_fChance)
 				{
@@ -887,6 +886,31 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		}
 		
 		return nearbyDeployments;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Get the number of active instances of a specific deployment type for a faction
+	protected int GetActiveInstancesOfType(string deploymentName, int factionIndex)
+	{
+		int instanceCount = 0;
+		
+		foreach (EntityID deploymentID : m_aActiveDeployments)
+		{
+			IEntity entity = GetGame().GetWorld().FindEntityByID(deploymentID);
+			if (!entity)
+				continue;
+				
+			OVT_DeploymentComponent deployment = GetDeploymentFromEntity(entity);
+			if (!deployment)
+				continue;
+				
+			if (deployment.GetControllingFaction() == factionIndex && deployment.GetDeploymentName() == deploymentName)
+			{
+				instanceCount++;
+			}
+		}
+		
+		return instanceCount;
 	}
 	
 	//------------------------------------------------------------------------------------------------
