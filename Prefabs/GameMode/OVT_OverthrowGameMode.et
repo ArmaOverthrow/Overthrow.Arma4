@@ -59,6 +59,8 @@ OVT_OverthrowGameMode {
     }
     OVT_JobConfig "{5D9C33D122545AFD}" : "{11EE393C09B6A661}Configs/Jobs/findShop.conf" {
     }
+    OVT_JobConfig "{65CD0E98C7F3EDD1}" : "{C791AAAF88555841}Configs/Jobs/placeEquipmentBox.conf" {
+    }
    }
   }
   OVT_LoadoutManagerComponent "{65AAD8FB1BAFD652}" {

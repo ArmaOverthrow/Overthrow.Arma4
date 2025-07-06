@@ -252,8 +252,8 @@ FrameWidgetClass {
                 Padding 10 10 10 10
                }
                Text ""
-               "Font Size" 28
-               "Min Font Size" 25
+               "Font Size" 25
+               "Min Font Size" 23
               }
               TextWidgetClass "{59A8D2505466CFD4}" : "{9D643D214767D616}UI/layouts/WidgetLibrary/TextWidgets/Text_Heading2.layout" {
                Name "SelectedLocation"
@@ -261,7 +261,7 @@ FrameWidgetClass {
                 Padding 10 0 10 30
                }
                Text ""
-               "Font Size" 25
+               "Font Size" 23
                "Min Font Size" 20
               }
               TextWidgetClass "{59A8D26AE875CA08}" : "{9D643D214767D616}UI/layouts/WidgetLibrary/TextWidgets/Text_Heading2.layout" {
@@ -270,7 +270,7 @@ FrameWidgetClass {
                 Padding 10 0 10 30
                }
                Text ""
-               "Font Size" 25
+               "Font Size" 23
                "Min Font Size" 20
               }
               TextWidgetClass "{59A8D26AE875CAF7}" : "{9D643D214767D616}UI/layouts/WidgetLibrary/TextWidgets/Text_Heading2.layout" {
@@ -279,7 +279,7 @@ FrameWidgetClass {
                 Padding 10 0 10 12
                }
                Text "Select a job on the left"
-               "Font Size" 20
+               "Font Size" 19
                "Min Font Size" 12
                Wrap 1
                FontProperties FontProperties "{546AF489DFD25402}" {

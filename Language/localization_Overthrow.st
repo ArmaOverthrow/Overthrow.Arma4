@@ -1927,6 +1927,29 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{65CD0E9BACF7992F}" {
+   Id "OVT-Job_PlaceEquipmentBox"
+   Target_en_us "Tutorial - Place an Equipment Box"
+   Modified 1707940608
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{65CD0E9BBC6527A5}" {
+   Id "OVT-Job_PlaceEquipmentBox_Description"
+   Target_en_us "An Equipment Box is a very useful storage container with extra functionality in Overthrow."\
+   ""\
+   "It can:"\
+   "- Store all sorts of equipment"\
+   "- Be locked so other players can't access it"\
+   "- Be unloaded into a nearby vehicle"\
+   "- Be loaded from a nearby vehicle"\
+   "- Save your current loadout and apply it to yourself or nearby recruits"\
+   ""\
+   "Use the \"Place\" option in the Overthrow menu to place one at your house, your camp, an FOB or a base."
+   Modified 1707940528
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59B518B28C1095CF}" {
    Id "OVT-Job_RaiseSupport"
    Target_en_us "Tutorial - Raise Support"
@@ -5218,6 +5241,57 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A82FE978603F139}" {
+   Id "OVT-PurchaseFailedInsufficientFunds"
+   Target_en_us "Purchase failed: Insufficient funds"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1706589010
+   Author "Aaron Static"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A82FE978603F13A}" {
+   Id "OVT-PurchaseFailedInventoryFull"
+   Target_en_us "Purchase failed: Inventory full"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1706589010
+   Author "Aaron Static"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A82FE978603F13C}" {
+   Id "OVT-PurchasePartialSuccess"
+   Target_en_us "Purchase partially successful: Got %1 out of %2 items"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1706589010
+   Author "Aaron Static"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{5D34EBA09AC421EB}" {
    Id "OVT-PutInWarehouse"
    Target_en_us "Put In Warehouse"
@@ -7420,57 +7494,6 @@ StringTable {
    Modified 1706589010
    Author "Aaron Static"
    LastChanged "parkj_c3c9hji"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A82FE978603F139}" {
-   Id "OVT-PurchaseFailedInsufficientFunds"
-   Target_en_us "Purchase failed: Insufficient funds"
-   Comment ""
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1706589010
-   Author "Aaron Static"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A82FE978603F13A}" {
-   Id "OVT-PurchaseFailedInventoryFull"
-   Target_en_us "Purchase failed: Inventory full"
-   Comment ""
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1706589010
-   Author "Aaron Static"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A82FE978603F13C}" {
-   Id "OVT-PurchasePartialSuccess"
-   Target_en_us "Purchase partially successful: Got %1 out of %2 items"
-   Comment ""
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1706589010
-   Author "Aaron Static"
-   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
