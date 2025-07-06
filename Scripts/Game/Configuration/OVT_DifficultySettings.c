@@ -71,6 +71,8 @@ class OVT_DifficultySettings : ScriptAndConfig
 	float gunDealerSellPriceMultiplier;
 	[Attribute(defvalue: "0.8", desc: "Multiplier when buying vehicles at an owned base", category: "Economy")]
 	float procurementMultiplier;
+	[Attribute(defvalue: "1.0", desc: "Multiplier for vehicle purchase prices", category: "Economy")]
+	float vehiclePriceMultiplier;
 	
 	//RF
 	[Attribute(defvalue: "0", desc: "Base RF threat", category: "Resistance Faction")]

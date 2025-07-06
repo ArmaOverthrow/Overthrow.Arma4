@@ -36,6 +36,7 @@ class OVT_OverthrowConfigStruct
 	int startingCash;
 	float gunDealerSellPriceMultiplier;
 	float procurementMultiplier;
+	float vehiclePriceMultiplier;
 	
 	void SetDefaults()
 	{
@@ -51,6 +52,7 @@ class OVT_OverthrowConfigStruct
 		startingCash = 100;
 		gunDealerSellPriceMultiplier = 0.5;
 		procurementMultiplier = 0.8;
+		vehiclePriceMultiplier = 1.0;
 	}
 }
 
@@ -515,6 +517,7 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		writer.WriteInt(m_Difficulty.baseRecruitCost);
 		writer.WriteFloat(m_Difficulty.gunDealerSellPriceMultiplier);		
 		writer.WriteFloat(m_Difficulty.procurementMultiplier);	
+		writer.WriteFloat(m_Difficulty.vehiclePriceMultiplier);
 		
 		//Send server config options	
 		writer.WriteBool(m_ConfigFile.mobileFOBOfficersOnly);	
@@ -559,6 +562,9 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		
 		if (!reader.ReadFloat(f)) return false;
 		m_Difficulty.procurementMultiplier = f;
+		
+		if (!reader.ReadFloat(f)) return false;
+		m_Difficulty.vehiclePriceMultiplier = f;
 		
 		//Receive server config options
 		if (!reader.ReadBool(b)) return false;

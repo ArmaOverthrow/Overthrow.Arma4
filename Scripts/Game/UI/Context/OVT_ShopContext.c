@@ -149,6 +149,7 @@ class OVT_ShopContext : OVT_UIContext
 				
 				int buy = m_Economy.GetPrice(id);
 				buy = buy * OVT_Global.GetConfig().m_Difficulty.procurementMultiplier;
+				buy = buy * OVT_Global.GetConfig().m_Difficulty.vehiclePriceMultiplier;
 								
 				card.Init(res, buy, 100, this);
 				
@@ -207,11 +208,17 @@ class OVT_ShopContext : OVT_UIContext
 		{
 			buy = m_Economy.GetPrice(id);
 			buy = buy * OVT_Global.GetConfig().m_Difficulty.procurementMultiplier;
+			buy = buy * OVT_Global.GetConfig().m_Difficulty.vehiclePriceMultiplier;
 			sell = buy;
 			qty = 100;
 			max = 100;
 		}else{
 			buy = m_Economy.GetBuyPrice(id, m_Shop.GetOwner().GetOrigin(),m_iPlayerID);
+			// Apply vehicle price multiplier for vehicle shops
+			if(m_Shop.m_ShopType == OVT_ShopType.SHOP_VEHICLE)
+			{
+				buy = buy * OVT_Global.GetConfig().m_Difficulty.vehiclePriceMultiplier;
+			}
 			sell = m_Economy.GetSellPrice(id, m_Shop.GetOwner().GetOrigin());
 			if(m_Shop.m_ShopType == OVT_ShopType.SHOP_GUNDEALER)
 			{
@@ -270,6 +277,12 @@ class OVT_ShopContext : OVT_UIContext
 		if(m_Shop.m_bProcurement)
 		{
 			cost = m_Economy.GetPrice(m_SelectedResource);
+			cost = cost * OVT_Global.GetConfig().m_Difficulty.procurementMultiplier;
+			cost = cost * OVT_Global.GetConfig().m_Difficulty.vehiclePriceMultiplier;
+		}else if(m_Shop.m_ShopType == OVT_ShopType.SHOP_VEHICLE)
+		{
+			// Apply vehicle price multiplier for vehicle shops
+			cost = cost * OVT_Global.GetConfig().m_Difficulty.vehiclePriceMultiplier;
 		}
 		
 		if(!m_Economy.PlayerHasMoney(m_sPlayerID, cost)) return;
