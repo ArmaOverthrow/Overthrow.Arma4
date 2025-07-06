@@ -1070,11 +1070,19 @@ class OVT_EconomyManagerComponent: OVT_Component
 			int factionId = factionMgr.GetFactionIndex(faction);
 			m_mFactionResources[factionId] = new array<int>;
 			array<SCR_EntityCatalogEntry> items = new array<SCR_EntityCatalogEntry>;
-			fac.GetAllInventoryItems(items);
+			fac.GetAllInventoryItems(items);			
 			foreach(SCR_EntityCatalogEntry item : items) 
 			{
+				bool configMatched = false;
 				ResourceName res = item.GetPrefab();
 				if(res == "" || m_aResources.Contains(res) || !item.IsEnabled()) continue;
+				
+				//Filter out non-arsenal items
+				SCR_NonArsenalItemCostCatalogData nonArsenalData = SCR_NonArsenalItemCostCatalogData.Cast(item.GetEntityDataOfType(SCR_NonArsenalItemCostCatalogData));
+				if(nonArsenalData)
+				{
+					continue;
+				}
 				
 				bool hidden = false;
 				int cost = 50;
@@ -1113,10 +1121,22 @@ class OVT_EconomyManagerComponent: OVT_Component
 					}
 					cost = config.cost;
 					demand = config.demand;
+					configMatched = true;
 					break;
 				}
 				
 				if(hidden) continue;
+				
+				if(!configMatched)
+				{
+					Print("[Overthrow] Matching item price config not found for " + res);
+					//Try to use Conflict game mode supply cost
+					SCR_ArsenalItem arsenalItem = SCR_ArsenalItem.Cast(item.GetEntityDataOfType(SCR_ArsenalItem));
+					if(arsenalItem)
+					{
+						cost = arsenalItem.GetSupplyCost(SCR_EArsenalSupplyCostType.DEFAULT);
+					}
+				}
 				
 				m_aResources.Insert(res);
 				int id = m_aResources.Count()-1;
