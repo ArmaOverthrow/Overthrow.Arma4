@@ -62,29 +62,6 @@ OVT_OverthrowGameMode {
     }
    }
    m_VehiclePriceConfig OVT_VehiclePricesConfig "{5D96A5A380C4B791}" : "{8787FC0A63F99EF8}Configs/Pricing/vehiclePrices.conf" {
-    m_aPrices {
-     OVT_VehiclePriceConfig "{64A2EC51ACD1DAA3}" {
-      parking PARKING_TRUCK
-     }
-     OVT_VehiclePriceConfig "{5DE72AF17F14214D}" {
-      m_sFind "_ambulance"
-      cost 4200
-      illegal 0
-     }
-     OVT_VehiclePriceConfig "{6466809ACB90F2F7}" {
-      m_sFind "S105_"
-      cost 450
-      illegal 0
-     }
-     OVT_VehiclePriceConfig "{646D013740B7724C}" {
-      m_sFind "UAZ469_UK59"
-      cost 15000
-     }
-     OVT_VehiclePriceConfig "{646D013749186D29}" {
-      m_sFind "UAZ469_PKM"
-      cost 15000
-     }
-    }
    }
   }
   OVT_InventoryManagerComponent "{65B09EE7D3217F5A}" {
