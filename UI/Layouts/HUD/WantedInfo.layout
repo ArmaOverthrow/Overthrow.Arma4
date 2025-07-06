@@ -40,6 +40,7 @@ OverlayWidgetClass {
        Slot LayoutSlot "{59A2BD22573D2B29}" {
         Padding -8 0 -8 0
        }
+       "Is Visible" 0
        Texture "{9DA6A249AD4D71C4}UI/Textures/Icons/icons_wrapperUI-48.imageset"
        Image "favourite"
        Size 48 48
@@ -49,6 +50,7 @@ OverlayWidgetClass {
        Slot LayoutSlot "{59A2BD22573D2B29}" {
         Padding -8 0 -8 0
        }
+       "Is Visible" 0
        Texture "{9DA6A249AD4D71C4}UI/Textures/Icons/icons_wrapperUI-48.imageset"
        Image "favourite"
        Size 48 48
@@ -58,6 +60,7 @@ OverlayWidgetClass {
        Slot LayoutSlot "{59A2BD22573D2B29}" {
         Padding -8 0 -8 0
        }
+       "Is Visible" 0
        Texture "{9DA6A249AD4D71C4}UI/Textures/Icons/icons_wrapperUI-48.imageset"
        Image "favourite"
        Size 48 48
@@ -67,6 +70,7 @@ OverlayWidgetClass {
        Slot LayoutSlot "{59A2BD22573D2B29}" {
         Padding -8 0 -8 0
        }
+       "Is Visible" 0
        Texture "{9DA6A249AD4D71C4}UI/Textures/Icons/icons_wrapperUI-48.imageset"
        Image "favourite"
        Size 48 48
@@ -76,6 +80,7 @@ OverlayWidgetClass {
        Slot LayoutSlot "{59A2BD22573D2B29}" {
         Padding -8 0 -8 0
        }
+       "Is Visible" 0
        Texture "{9DA6A249AD4D71C4}UI/Textures/Icons/icons_wrapperUI-48.imageset"
        Image "favourite"
        Size 48 48
@@ -103,6 +108,7 @@ OverlayWidgetClass {
        Name "SeenEye"
        Slot LayoutSlot "{59A2BD22D634BC07}" {
        }
+       "Is Visible" 0
        Texture "{A5F5778DD6FF81CB}UI/Textures/Icons/icon_seen_ui.edds"
        Image ""
        Size 48 48
