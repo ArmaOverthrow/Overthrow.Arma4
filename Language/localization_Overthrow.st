@@ -1927,6 +1927,30 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{65CD1C84C885C17F}" {
+   Id "OVT-Job_PlaceCamp"
+   Target_en_us "Tutorial - Place a camp"
+   Modified 1707943858
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{65CD1C84DFC4F3AD}" {
+   Id "OVT-Job_PlaceCamp_Description"
+   Target_en_us "Camps can be placed anywhere that isnt too close to a base."\
+   ""\
+   "It creates a fast travel point that any player can use, and allows you to place/build some basic items around it."\
+   ""\
+   "You can also \"Manage Camp\" to set your camp as private if you don't want other players to fast travel to it."\
+   ""\
+   "Players are only allowed one camp at a time. Placing a new camp will delete your old one and any items you placed/built around it."\
+   ""\
+   "You can also set a camp as \"home' so you will respawn there on your death."\
+   ""\
+   "Place a camp by opening the Overthrow menu and choosing \"Place\". Put it somewhere useful so you can easily get back to an area where you are currently operating or where you parked your vehicle."
+   Modified 1707944104
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{65CD0E9BACF7992F}" {
    Id "OVT-Job_PlaceEquipmentBox"
    Target_en_us "Tutorial - Place an Equipment Box"

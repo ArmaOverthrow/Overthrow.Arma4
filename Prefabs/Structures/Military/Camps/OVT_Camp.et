@@ -11,6 +11,7 @@ StaticModelEntity : "{C0B710154C14FC9B}Prefabs/Structures/Military/Camps/TentSma
    }
   }
   OVT_PlaceableComponent "{65AEB8AAAA64BAE2}" {
+   m_sPlaceableType "Camp"
   }
   ActionsManagerComponent "{65AEA1BA3284814D}" {
    ActionContexts {
