@@ -96,7 +96,17 @@ OVT_VehiclePatrolSpawn {
  angleY 85.773
 }
 SCR_DestructibleBuildingEntity : "{00FD2B4A0BDEC271}Prefabs/Structures/Commercial/FuelStations/FuelStation_E_01_building.et" {
- coords 240.87 0.001 76.83
+ components {
+  OVT_ParkingComponent "{59D030D1D4B18E18}" {
+   m_aParkingSpots {
+    OVT_ParkingPointInfo "{65CF136366099860}" {
+     Offset -13.276 0.1 34.9412
+     m_Type PARKING_HELI
+    }
+   }
+  }
+ }
+ coords 238.569 0.001 74.077
  angleY -89.85
 }
 SCR_DestructibleBuildingEntity : "{05446F713779A94D}Prefabs/Structures/Military/Houses/GuardHouse_02/GuardHouse_02.et" {
@@ -234,6 +244,9 @@ SCR_SiteSlotEntity : "{881CE7B0098504C2}PrefabsEditable/Slots/Road/E_SlotRoadLar
 }
 SCR_DestructibleBuildingEntity : "{8ACC8A8EB87A28FF}Prefabs/Structures/Houses/Village/House_Village_E_1I03/House_Village_E_1I03.et" {
  coords 207.502 0 182.332
+}
+StaticModelEntity : "{8CDB9C117669AF4A}Prefabs/Structures/Military/Camps/HelipadImprovised_01/HelipadImprovised_USSR_01.et" {
+ coords 203.528 -0.189 60.217
 }
 SCR_DestructibleBuildingEntity : "{92E8F78BCF17D93D}Prefabs/Structures/Commercial/Shops/ShopHouse_E_2I01t_clothesstore.et" {
  components {

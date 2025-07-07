@@ -1174,7 +1174,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 							}
 							cost = cfg.cost;
 							illegal = cfg.illegal;
-							parkingType = cfg.parking;
+							parkingType = cfg.parking;							
 						}
 					}
 					
@@ -1189,7 +1189,12 @@ class OVT_EconomyManagerComponent: OVT_Component
 					m_aResourceIndex[res] = id;
 					m_aEntityCatalogEntries.Insert(item);
 					m_mFactionResources[factionId].Insert(id);
-					m_aAllVehicles.Insert(id);					
+					m_aAllVehicles.Insert(id);			
+					
+					if(cost == 50000)
+					{
+						Print("[Overthrow] Default price being set for: " + res);
+					}
 					
 					m_mVehicleParking[id] = parkingType;
 					SetPrice(id, cost);
@@ -1428,9 +1433,19 @@ class OVT_EconomyManagerComponent: OVT_Component
 			{
 				array<ResourceName> vehicles();
 				GetAllNonOccupyingFactionVehicles(vehicles);
+				
+				OVT_ParkingComponent parking = EPF_Component<OVT_ParkingComponent>.Find(shop.GetOwner());
+				array<OVT_ParkingType> parkingTypes();
+				parking.GetParkingTypes(parkingTypes);
+				
 				foreach(ResourceName res : vehicles)
 				{
 					int id = GetInventoryId(res);
+					OVT_ParkingType parkingType = GetParkingType(id);
+					if(parkingTypes.Find(parkingType) == -1)
+					{
+						continue;
+					}
 					shop.AddToInventory(id, 100);
 				}
 			}else{		

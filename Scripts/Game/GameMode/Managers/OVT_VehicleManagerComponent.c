@@ -117,7 +117,7 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 	
 	bool GetNearestParkingSpot(vector pos, out vector outMat[4], OVT_ParkingType type = OVT_ParkingType.PARKING_CAR)
 	{
-		m_aParkingSearch.Clear();
+		m_aParkingSearch = new array<EntityID>();
 		GetGame().GetWorld().QueryEntitiesBySphere(pos, 15, null, FilterParkingAddToArray, EQueryEntitiesFlags.ALL);
 		
 		if(m_aParkingSearch.Count() == 0) return false;
@@ -194,8 +194,17 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 	
 	IEntity SpawnVehicleNearestParking(ResourceName prefab, vector pos,  string ownerId = "")
 	{
-		vector mat[4];
-		if(!GetNearestParkingSpot(pos, mat))
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		OVT_ParkingType parkingType = OVT_ParkingType.PARKING_CAR;
+		
+		int id = economy.GetInventoryId(prefab);
+		if(id > -1)
+		{
+			parkingType = economy.GetParkingType(id);
+		}
+		
+		vector mat[4];		
+		if(!GetNearestParkingSpot(pos, mat, parkingType))
 		{
 			if(!FindNearestKerbParking(pos, 30, mat))
 			{				

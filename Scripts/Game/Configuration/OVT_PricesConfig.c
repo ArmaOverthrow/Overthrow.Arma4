@@ -5,7 +5,8 @@ class OVT_PricesConfig
 	ref array<ref OVT_PriceConfig> m_aPrices;		
 }
 
-class OVT_PriceConfig : ScriptAndConfig
+[BaseContainerProps(), OVT_PriceConfigEntry()]
+class OVT_PriceConfig
 {
 	[Attribute("2", desc: "Type of item", uiwidget: UIWidgets.SearchComboBox, enums: ParamEnumArray.FromEnum(SCR_EArsenalItemType))]
 	SCR_EArsenalItemType m_eItemType;
@@ -24,4 +25,55 @@ class OVT_PriceConfig : ScriptAndConfig
 	
 	[Attribute("0", desc: "If true, will not be available for sale anywhere")]
 	bool hidden;
+}
+
+//~ Custom title to show config
+class OVT_PriceConfigEntry : BaseContainerCustomTitle
+{
+	//------------------------------------------------------------------------------------------------
+	override bool _WB_GetCustomTitle(BaseContainer source, out string title)	
+	{	
+		bool hidden;
+		if (!source.Get("hidden", hidden))
+			return false;
+		if(hidden)
+		{
+			title = "Hide   ~   ";
+		}
+
+		SCR_EArsenalItemType type;
+		if (!source.Get("m_eItemType", type))
+			return false;
+		
+		title = title + typename.EnumToString(SCR_EArsenalItemType, type) + " / ";
+
+		SCR_EArsenalItemMode mode;
+		if (!source.Get("m_eItemMode", mode))
+			return false;
+		
+		title = title + typename.EnumToString(SCR_EArsenalItemMode, mode);
+		
+		string find;
+		if (!source.Get("m_sFind", find))
+			return false;
+		
+		if(find != "")
+		{
+			title = title + " '" + find + "'";
+		}else{
+			title = title + " Default";
+		}
+
+		if(hidden){
+			return true;
+		}
+
+		int cost;
+		if (!source.Get("cost", cost))
+			return false;
+		
+		title = title + " = " + cost.ToString();
+
+		return true; 
+	}
 }
