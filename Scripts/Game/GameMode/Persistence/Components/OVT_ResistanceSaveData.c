@@ -202,6 +202,9 @@ class OVT_ResistanceSaveData : EPF_ComponentSaveData
 		foreach(OVT_Job job : m_aJobs)
 		{
 			jobs.m_aJobs.Insert(job);
+			
+			// Restore job state by running all stages up to current stage
+			jobs.RunJobToCurrentStage(job);
 		}
 
 		return EPF_EApplyResult.OK;
