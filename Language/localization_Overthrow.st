@@ -4622,6 +4622,20 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{65CE9A28E959892F}" {
+   Id "OVT-Place_Furniture"
+   Target_en_us "Furniture"
+   Modified 1708055521
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{65CE9A28FB5BD02E}" {
+   Id "OVT-Place_Furniture_Description"
+   Target_en_us "Lanterns, tables, chairs, etc"
+   Modified 1708055560
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{598AD55488E14CB4}" {
    Id "OVT-Place_Hedgehog"
    Target_en_us "Hedgehog"
