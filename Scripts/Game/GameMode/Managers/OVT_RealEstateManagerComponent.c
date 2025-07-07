@@ -27,7 +27,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	protected ref array<EntityID> m_aTownStartingHomes;
 	int m_iStartingTownId = -1;
 	
-	ref array<ref OVT_WarehouseData> m_aWarehouses = new array<ref OVT_WarehouseData>;
+	ref array<ref OVT_WarehouseData> m_aWarehouses;
 	
 	//------------------------------------------------------------------------------------------------
 	//! Returns the singleton instance of the OVT_RealEstateManagerComponent
@@ -46,8 +46,8 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	
 	void OVT_RealEstateManagerComponent(IEntityComponentSource src, IEntity ent, IEntity parent)
 	{		
-		m_aEntitySearch = new array<IEntity>;
 		m_aWarehouses = new array<ref OVT_WarehouseData>;
+		m_aEntitySearch = new array<IEntity>;		
 		m_aStartingHomes = new array<EntityID>;
 		m_aTownStartingHomes = new array<EntityID>;
 	}
@@ -182,6 +182,10 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		{
 			bool hasData = false;
 			OVT_WarehouseData warehouseData;
+			if(!m_aWarehouses)
+			{
+				m_aWarehouses = new array<ref OVT_WarehouseData>();
+			}
 			foreach(OVT_WarehouseData warehouse : m_aWarehouses)
 			{
 				if(vector.Distance(warehouse.location, building.GetOrigin()) < 10)

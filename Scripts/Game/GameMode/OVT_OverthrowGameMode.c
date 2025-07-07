@@ -273,9 +273,19 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	{
 		super.EOnFrame(owner, timeSlice);
 
-		if(DiagMenu.GetValue(251))
+		if(DiagMenu.GetValue(250))
 		{
 			m_EconomyManager.DoAddPlayerMoney(SCR_PlayerController.GetLocalPlayerId(),1000);
+			DiagMenu.SetValue(250,0);
+		}
+
+		if(DiagMenu.GetValue(251))
+		{
+			OVT_TownData town = OVT_Global.GetTowns().GetNearestTown(SCR_PlayerController.GetLocalControlledEntity().GetOrigin());
+			if(town)
+			{
+				town.support = town.population;
+			}
 			DiagMenu.SetValue(251,0);
 		}
 
@@ -284,19 +294,9 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			OVT_TownData town = OVT_Global.GetTowns().GetNearestTown(SCR_PlayerController.GetLocalControlledEntity().GetOrigin());
 			if(town)
 			{
-				town.support = town.population;
-			}
-			DiagMenu.SetValue(252,0);
-		}
-
-		if(DiagMenu.GetValue(253))
-		{
-			OVT_TownData town = OVT_Global.GetTowns().GetNearestTown(SCR_PlayerController.GetLocalControlledEntity().GetOrigin());
-			if(town)
-			{
 				OVT_Global.GetTowns().ChangeTownControl(town, OVT_Global.GetConfig().GetPlayerFactionIndex());
 			}
-			DiagMenu.SetValue(253,0);
+			DiagMenu.SetValue(252,0);
 		}
 
 		if(DiagMenu.GetValue(254))
@@ -600,9 +600,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 
 		DiagMenu.RegisterBool(252, "lctrl+lalt+c", "Capture Town", "Overthrow");
 		DiagMenu.SetValue(252, 0);
-
-		DiagMenu.RegisterBool(253, "lctrl+lalt+w", "Win Battle", "Overthrow");
-		DiagMenu.SetValue(253, 0);
 
 		DiagMenu.RegisterBool(254, "lctrl+lalt+r", "Capture Nearest Base", "Overthrow");
 		DiagMenu.SetValue(254, 0);

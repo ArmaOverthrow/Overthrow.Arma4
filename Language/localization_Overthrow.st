@@ -7541,5 +7541,12 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{65CE9A0D3DF93914}" {
+   Id "OVT_Vehicle_Menu"
+   Target_en_us "Open Vehicle Menu"
+   Modified 1708042299
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
  }
 }

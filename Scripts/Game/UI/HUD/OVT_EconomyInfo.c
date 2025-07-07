@@ -2,6 +2,7 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 	OVT_EconomyManagerComponent m_Economy;
 	OVT_OccupyingFactionManager m_OccupyingFaction;
 	OVT_NotificationManagerComponent m_Notify;
+	OVT_RealEstateManagerComponent m_RealEstate;
 	string m_playerId;
 	SCR_ChimeraCharacter m_player;
 	
@@ -21,6 +22,7 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 		m_Economy = OVT_Global.GetEconomy();
 		m_OccupyingFaction = OVT_Global.GetOccupyingFaction();
 		m_Notify = OVT_Global.GetNotify();
+		m_RealEstate = OVT_Global.GetRealEstate();
 	}
 	
 	protected void InitCharacter()
@@ -53,7 +55,10 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 		if(m_fOverrideCounter >= 1)
 		{
 			m_fOverrideCounter = 0;
-			UpdateOverride();
+			if(!UpdateVehicleHint())
+			{
+				UpdateOverride();
+			}
 		}
 		
 		UpdateNotification(timeSlice);
@@ -84,14 +89,14 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 			if(info)
 				text.SetTextFormat("<color rgba='226,168,79,255'><action name='OverthrowMainMenu'/></color> %1",info.GetName());
 		}else{
-			if(!OVT_Global.GetOverthrow().m_bHasOpenedMenu)
+			if(OVT_Global.GetOverthrow().m_bHasOpenedMenu)
 			{
-				RichTextWidget text = RichTextWidget.Cast(m_wRoot.FindAnyWidget("MainMenuOverrideText"));
-				text.SetText("<color rgba='226,168,79,255'><action name='OverthrowMainMenu'/></color> #OVT_Open_Overthrow_Menu");
-				m_wRoot.FindAnyWidget("MainMenuOverride").SetVisible(true);
-			}else{
 				m_wRoot.FindAnyWidget("MainMenuOverride").SetVisible(false);
-			}
+				return;
+			}			
+			RichTextWidget text = RichTextWidget.Cast(m_wRoot.FindAnyWidget("MainMenuOverrideText"));
+			text.SetText("<color rgba='226,168,79,255'><action name='OverthrowMainMenu'/></color> #OVT_Open_Overthrow_Menu");
+			m_wRoot.FindAnyWidget("MainMenuOverride").SetVisible(true);
 		}
 	}
 	
@@ -124,6 +129,59 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 				m_FoundOverride = m_overrideComponent;
 				m_fFoundRange = dist;
 			}
+		}
+		
+		return false;
+	}
+	
+	bool UpdateVehicleHint()
+	{
+		if(!m_player) return false;
+		
+		SCR_CompartmentAccessComponent compartment = SCR_CompartmentAccessComponent.Cast(m_player.FindComponent(SCR_CompartmentAccessComponent));
+		if(!compartment || !compartment.IsInCompartment() || compartment.GetCompartment().GetType() != ECompartmentType.PILOT)
+		{
+			return false;
+		}
+		
+		vector pos = m_player.GetOrigin();
+		bool hasButtons = false;
+		
+		OVT_WarehouseData warehouse = m_RealEstate.GetNearestWarehouse(pos, 40);
+		if(warehouse)
+		{
+			IEntity warehouseEntity = m_RealEstate.GetNearestBuilding(warehouse.location, 10);
+			if(warehouseEntity)
+			{
+				EntityID id = warehouseEntity.GetID();
+				bool isOwned = m_RealEstate.IsOwned(id);
+				bool isOwner = m_RealEstate.IsOwner(m_playerId, id);
+				bool isRented = m_RealEstate.IsRented(id);
+				bool isAccessible = (!warehouse.isPrivate && isOwned && !isRented) || (warehouse.isPrivate && isOwner && !isRented) || isRented;
+				if(isAccessible) hasButtons = true;
+			}
+		}
+		
+		if(!hasButtons)
+		{
+			RplId port = m_Economy.GetNearestPort(pos);
+			if(port)
+			{
+				RplComponent rpl = RplComponent.Cast(Replication.FindItem(port));
+				if(rpl)
+				{
+					float dist = vector.Distance(pos, rpl.GetEntity().GetOrigin());
+					if(dist < 20) hasButtons = true;
+				}
+			}
+		}
+		
+		if(hasButtons)
+		{
+			m_wRoot.FindAnyWidget("MainMenuOverride").SetVisible(true);
+			RichTextWidget text = RichTextWidget.Cast(m_wRoot.FindAnyWidget("MainMenuOverrideText"));
+			text.SetText("<color rgba='226,168,79,255'><action name='OverthrowVehicleMenu'/></color> #OVT_Vehicle_Menu");
+			return true;
 		}
 		
 		return false;

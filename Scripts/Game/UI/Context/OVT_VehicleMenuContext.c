@@ -70,11 +70,11 @@ class OVT_VehicleMenuContext : OVT_UIContext
 		if (comp)
 		{
 			if(isAccessible){
-				comp.SetEnabled(true);
+				comp.SetVisible(true);
 				GetGame().GetWorkspace().SetFocusedWidget(comp.GetRootWidget());
 				comp.m_OnClicked.Insert(PutInWarehouse);
 			}else{
-				comp.SetEnabled(false);
+				comp.SetVisible(false);
 			}
 		}
 		
@@ -82,11 +82,11 @@ class OVT_VehicleMenuContext : OVT_UIContext
 		if (comp)
 		{
 			if(isAccessible){
-				comp.SetEnabled(true);
+				comp.SetVisible(true);
 				GetGame().GetWorkspace().SetFocusedWidget(comp.GetRootWidget());
 				comp.m_OnClicked.Insert(TakeFromWarehouse);
 			}else{
-				comp.SetEnabled(false);
+				comp.SetVisible(false);
 			}
 		}
 		
@@ -97,11 +97,11 @@ class OVT_VehicleMenuContext : OVT_UIContext
 			RplComponent rpl = RplComponent.Cast(Replication.FindItem(port));
 			float dist = vector.Distance(pos, rpl.GetEntity().GetOrigin()); 
 			if(dist < 20){
-				comp.SetEnabled(true);
+				comp.SetVisible(true);
 				GetGame().GetWorkspace().SetFocusedWidget(comp.GetRootWidget());
 				comp.m_OnClicked.Insert(Import);
 			}else{
-				comp.SetEnabled(false);
+				comp.SetVisible(false);
 			}
 		}
 		
