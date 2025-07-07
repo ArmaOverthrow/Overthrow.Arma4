@@ -756,6 +756,31 @@ class OVT_PlayerCommsComponent: OVT_Component
 		recruitManager.RecruitCivilian(character, playerId);
 	}
 	
+	void RecruitFromTent(vector tentPos, int playerId)
+	{		
+		Rpc(RpcAsk_RecruitFromTent, tentPos, playerId);
+	}	
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_RecruitFromTent(vector tentPos, int playerId)
+	{
+		OVT_TownManagerComponent townManager = OVT_Global.GetTowns();
+		OVT_RecruitManagerComponent recruitManager = OVT_RecruitManagerComponent.GetInstance();
+		
+		if (!townManager || !recruitManager) return;
+		
+		// Take supporters from nearest town (1 supporter per recruit)
+		townManager.TakeSupportersFromNearestTown(tentPos, 1);
+		
+		// Spawn recruit at tent location
+		SCR_ChimeraCharacter recruit = recruitManager.SpawnRecruit(tentPos + "2 0 2"); // Offset from tent
+		if (recruit)
+		{
+			// Add to recruit manager
+			recruitManager.RecruitCivilian(recruit, playerId);
+		}
+	}
+	
 	//WAREHOUSES
 	void AddToWarehouse(int warehouseId, string id, int count)
 	{

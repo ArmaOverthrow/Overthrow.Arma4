@@ -1,5 +1,17 @@
 class OVT_RecruitFromTentAction : ScriptedUserAction
 {	
+	[Attribute()]
+	protected ref SCR_HintUIInfo m_RecruitLimitReachedHint;
+	
+	[Attribute()]
+	protected ref SCR_HintUIInfo m_NoSupportersAvailableHint;
+
+	[Attribute()]
+	protected ref SCR_HintUIInfo m_CannotAffordHint;
+	
+	[Attribute()]
+	protected ref SCR_HintUIInfo m_RecruitedFromTentHint;
+
 	//---------------------------------------------------------
  	override void PerformAction(IEntity pOwnerEntity, IEntity pUserEntity) 
  	{
@@ -18,7 +30,7 @@ class OVT_RecruitFromTentAction : ScriptedUserAction
 		// Check recruit limit
 		if (!recruitManager.CanRecruit(persId))
 		{
-			SCR_HintManagerComponent.ShowCustomHint("#OVT-RecruitLimitReached");
+			SCR_HintManagerComponent.ShowHint(m_RecruitLimitReachedHint);
 			return;
 		}
 		
@@ -26,7 +38,7 @@ class OVT_RecruitFromTentAction : ScriptedUserAction
 		vector tentPos = pOwnerEntity.GetOrigin();
 		if (!townManager.NearestTownHasSupporters(tentPos))
 		{
-			SCR_HintManagerComponent.ShowCustomHint("#OVT-NoSupportersAvailable");
+			SCR_HintManagerComponent.ShowHint(m_NoSupportersAvailableHint);
 			return;
 		}
 			
@@ -34,24 +46,16 @@ class OVT_RecruitFromTentAction : ScriptedUserAction
 		int cost = Math.Round(config.m_Difficulty.baseRecruitCost * 0.5);
 		
 		if(!economy.LocalPlayerHasMoney(cost)) {
-			SCR_HintManagerComponent.ShowCustomHint("#OVT-CannotAfford");
+			SCR_HintManagerComponent.ShowHint(m_CannotAffordHint);
 			return;
 		}
 		
 		economy.TakeLocalPlayerMoney(cost);
 		
-		// Take supporters from nearest town (1 supporter per recruit)
-		townManager.TakeSupportersFromNearestTown(tentPos, 1);
+		// Call server to handle the actual recruitment
+		OVT_Global.GetServer().RecruitFromTent(tentPos, playerId);
 		
-		// Spawn recruit at tent location
-		SCR_ChimeraCharacter recruit = recruitManager.SpawnRecruit(tentPos + "2 0 2"); // Offset from tent
-		if (recruit)
-		{
-			// Add to recruit manager
-			recruitManager.RecruitCivilian(recruit, playerId);
-			
-			SCR_HintManagerComponent.ShowCustomHint("#OVT-RecruitedFromTent");
-		}
+		SCR_HintManagerComponent.ShowHint(m_RecruitedFromTentHint);
  	}
 	
 	override bool CanBePerformedScript(IEntity user)
