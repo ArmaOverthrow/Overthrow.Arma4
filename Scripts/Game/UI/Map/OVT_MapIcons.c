@@ -770,6 +770,22 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 			}
 		}
 		
+		// Job waypoints
+		OVT_JobManagerComponent jobs = OVT_Global.GetJobs();
+		if(jobs && jobs.m_vCurrentWaypoint)
+		{
+			m_Centers.Insert(jobs.m_vCurrentWaypoint);
+			m_Ranges.Insert(0);
+			
+			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
+			if(!w) return;
+			
+			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
+			if(image)
+				image.LoadImageFromSet(0, m_Imageset, "waypoint");			
+			m_Widgets.Insert(w);
+		}
+		
 		// Create fallback icons for any that failed initially
 		if(m_aFailedGunDealers.Count() > 0 || m_aFailedShops.Count() > 0 || m_aFailedPorts.Count() > 0)
 		{
