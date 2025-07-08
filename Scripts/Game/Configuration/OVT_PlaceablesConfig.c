@@ -32,17 +32,26 @@ class OVT_Placeable
 	[Attribute(defvalue: "0", desc: "Place on walls")]
 	bool m_bPlaceOnWall;
 	
+	[Attribute(defvalue: "0", desc: "Randomize prefab on each placement")]
+	bool m_bRandomizePrefab;
+	
 	[Attribute(defvalue: "0", desc: "Can place it anywhere")]
 	bool m_bIgnoreLocation;
 	
 	[Attribute(defvalue: "0", desc: "Cannot place near towns or bases")]
 	bool m_bAwayFromTownsBases;
+	
+	[Attribute(defvalue: "0", desc: "Cannot place near camps")]
+	bool m_bAwayFromCamps;
 
 	[Attribute(defvalue: "0", desc: "Cannot place near bases")]
 	bool m_bAwayFromBases;
 	
 	[Attribute(defvalue: "0", desc: "Must be placed near a town")]
 	bool m_bNearTown;
+	
+	[Attribute(defvalue: "1", desc: "Associate with nearest base/camp/fob")]
+	bool m_bAssociateWithNearest;
 	
 	[Attribute("", UIWidgets.Object)]
 	ref OVT_PlaceableHandler handler;

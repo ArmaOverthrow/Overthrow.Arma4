@@ -13,6 +13,9 @@ class OVT_PlayerManagerComponent: OVT_Component
 	//! Static instance of the player manager component for easy access.
 	static OVT_PlayerManagerComponent s_Instance;
 	
+	[Attribute("{6246D0740A99F50B}Prefabs/GameMode/OVT_OverthrowController.et", uiwidget: UIWidgets.ResourceNamePicker, desc: "Overthrow Controller Prefab", params: "et")]
+	ResourceName m_OverthrowControllerPrefab;
+
 	//------------------------------------------------------------------------------------------------
 	//! Returns the static instance of the OVT_PlayerManagerComponent.
 	//! Creates the instance if it doesn't exist by finding it on the active GameMode.
@@ -34,6 +37,14 @@ class OVT_PlayerManagerComponent: OVT_Component
 	ref ScriptInvoker m_OnPlayerDataLoaded = new ScriptInvoker();
 	
 	//------------------------------------------------------------------------------------------------
+	//! Invoker called when a player connects (args: string persistentId, int playerId)
+	ref ScriptInvoker m_OnPlayerConnected = new ScriptInvoker();
+	
+	//------------------------------------------------------------------------------------------------
+	//! Invoker called when a player disconnects (args: string persistentId, int playerId)
+	ref ScriptInvoker m_OnPlayerDisconnected = new ScriptInvoker();
+	
+	//------------------------------------------------------------------------------------------------
 	//! Maps runtime Player IDs (int) to their persistent string IDs (string).
 	protected ref map<int, string> m_mPersistentIDs;
 	
@@ -44,6 +55,10 @@ class OVT_PlayerManagerComponent: OVT_Component
 	//------------------------------------------------------------------------------------------------
 	//! Stores the OVT_PlayerData object for each player, keyed by their persistent ID (string).
 	ref map<string, ref OVT_PlayerData> m_mPlayers;
+	
+	//------------------------------------------------------------------------------------------------
+	//! Maps player IDs to their controller entities for network ownership management.
+	protected ref map<int, IEntity> m_mPlayerControllers;
 	
 	//------------------------------------------------------------------------------------------------
 	//! Initializes the component's internal maps.
@@ -58,7 +73,14 @@ class OVT_PlayerManagerComponent: OVT_Component
 		m_mPersistentIDs = new map<int, string>;
 		m_mPlayerIDs = new map<string, int>;
 		m_mPlayers = new map<string, ref OVT_PlayerData>;
+		m_mPlayerControllers = new map<int, IEntity>;
 		Print("[Overthrow] PlayerManager init complete - new m_mPlayers: " + m_mPlayers);
+		
+		// Subscribe to player disconnect events
+		if(Replication.IsServer())
+		{
+			GetGame().GetCallqueue().CallLater(CheckDisconnectedPlayers, 5000, true); // Check every 5 seconds
+		}
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -119,26 +141,9 @@ class OVT_PlayerManagerComponent: OVT_Component
 	//! \return The persistent string ID for the player.
 	string GetPersistentIDFromPlayerID(int playerId)
 	{
+		if(playerId < 1) return "";
 		if(!m_mPersistentIDs.Contains(playerId)) {
-			string persistentId = EPF_Utils.GetPlayerUID(playerId);
-			
-			// Log if we get an empty persistent ID
-			if(!persistentId || persistentId.IsEmpty())
-			{
-				Print("[Overthrow] ERROR: EPF_Utils.GetPlayerUID returned empty/null for playerId: " + playerId);
-				// Don't set up a player with empty ID
-				return "";
-			}
-			
-#ifdef WORKBENCH
-			//Force only two players in workbench to test reconnection
-			if(playerId > 2)
-			{
-				persistentId = EPF_Utils.GetPlayerUID(2);
-			}
-#endif
-			SetupPlayer(playerId, persistentId);
-			return persistentId;
+			return "";
 		}
 		return m_mPersistentIDs[playerId];
 	}
@@ -161,6 +166,47 @@ class OVT_PlayerManagerComponent: OVT_Component
 	{
 		if(!m_mPlayerIDs.Contains(id)) return -1;
 		return m_mPlayerIDs[id];
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Retrieves the controller entity for a given player ID.
+	//! \param[in] playerId The runtime integer ID of the player.
+	//! \return The OVT_OverthrowController for the player, or null if not found.
+	OVT_OverthrowController GetController(int playerId)
+	{
+		if(!m_mPlayerControllers.Contains(playerId)) return null;
+		IEntity controller = m_mPlayerControllers[playerId];
+		// Check if entity still exists
+		if(!controller || controller.IsDeleted()) 
+		{
+			m_mPlayerControllers.Remove(playerId);
+			return null;
+		}
+		return OVT_OverthrowController.Cast(controller);
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Registers a controller entity for a player (called by the controller's RPC on clients)
+	//! \param[in] playerId The runtime integer ID of the player.
+	//! \param[in] controller The controller entity to register.
+	void RegisterControllerForPlayer(int playerId, IEntity controller)
+	{
+		if (controller)
+		{
+			m_mPlayerControllers[playerId] = controller;
+			Print("[Overthrow] Client registered controller for player " + playerId);
+		}
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Retrieves the controller entity for a given persistent ID.
+	//! \param[in] persistentId The persistent string ID of the player.
+	//! \return The OVT_OverthrowController for the player, or null if not found.
+	OVT_OverthrowController GetController(string persistentId)
+	{
+		int playerId = GetPlayerIDFromPersistentID(persistentId);
+		if(playerId == -1) return null;
+		return GetController(playerId);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -206,8 +252,123 @@ class OVT_PlayerManagerComponent: OVT_Component
 		
 		player.id = playerId;
 		
-		if(Replication.IsServer())	
+		if(!Replication.IsServer())
+		{
+			return;
+		}
+		
+		// Spawn controller entity for the player
+		if(!m_OverthrowControllerPrefab || m_mPlayerControllers.Contains(playerId))
+		{
 			Rpc(RpcDo_RegisterPlayer, playerId, persistentId);
+			// Could be a reconnection with still existing controller, re-assign ownership and notify the client
+			AssignControllerOwnership(playerId);
+			return;
+		}
+		
+		EntitySpawnParams params = EntitySpawnParams();
+		params.TransformMode = ETransformMode.WORLD;
+		
+		IEntity controller = GetGame().SpawnEntityPrefab(Resource.Load(m_OverthrowControllerPrefab), null, params);
+		if(!controller)
+		{
+			Print("[Overthrow] ERROR: Failed to spawn controller entity for player " + playerId);
+			Rpc(RpcDo_RegisterPlayer, playerId, persistentId);
+			return;
+		}
+		
+		m_mPlayerControllers[playerId] = controller;
+		
+		// Assign ownership to the player and notify the client
+		AssignControllerOwnership(playerId);
+
+		Print("[Overthrow] Created controller entity for player " + playerId + " (" + persistentId + ")");
+				
+		Rpc(RpcDo_RegisterPlayer, playerId, persistentId);
+	}
+
+	void AssignControllerOwnership(int playerId)
+	{
+		IEntity controller = m_mPlayerControllers[playerId];
+		if(controller)
+		{
+			RplComponent rplComponent = RplComponent.Cast(controller.FindComponent(RplComponent));
+			if(rplComponent)
+			{
+				// Get player controller and its replication identity
+				PlayerController playerController = GetGame().GetPlayerManager().GetPlayerController(playerId);
+				if(playerController)
+				{
+					// Get player replication ID (not identical to player ID!)
+					RplIdentity playerRplID = playerController.GetRplIdentity();
+					if(playerRplID.IsValid())
+					{
+						// Give ownership with notification
+						rplComponent.GiveExt(playerRplID, true);
+					}
+				}
+			}
+			// Notify the owning client about their controller assignment
+			OVT_OverthrowController overthrowController = OVT_OverthrowController.Cast(controller);
+			if (overthrowController)
+			{
+				overthrowController.Rpc(overthrowController.RpcDo_NotifyOwnerAssignment, playerId);
+			}
+		}
+		else
+		{
+			Print("[Overthrow] ERROR: No controller found for player " + playerId);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Periodically checks for disconnected players and cleans up their controller entities.
+	//! Only runs on the server. Iterates through all tracked player controllers and removes
+	//! entities for players who are no longer connected.
+	void CheckDisconnectedPlayers()
+	{
+		if(!Replication.IsServer()) return;
+		
+		array<int> disconnectedPlayers = {};
+		PlayerManager playerManager = GetGame().GetPlayerManager();
+		
+		// Find disconnected players
+		foreach(int playerId, IEntity controller : m_mPlayerControllers)
+		{
+			// Check if player is still connected
+			if(!playerManager.IsPlayerConnected(playerId))
+			{
+				disconnectedPlayers.Insert(playerId);
+			}
+		}
+		
+		// Clean up disconnected player controllers
+		foreach(int playerId : disconnectedPlayers)
+		{
+			CleanupPlayerController(playerId);
+		}
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Cleans up the controller entity for a specific player.
+	//! Removes the entity from the world and from tracking maps.
+	//! \param[in] playerId The runtime integer ID of the player whose controller should be cleaned up.
+	void CleanupPlayerController(int playerId)
+	{
+		if(!m_mPlayerControllers.Contains(playerId)) return;
+		
+		IEntity controller = m_mPlayerControllers[playerId];
+		if(controller && !controller.IsDeleted())
+		{
+			// Delete the entity
+			delete controller;
+			Print("[Overthrow] Cleaned up controller entity for disconnected player " + playerId);
+		}
+		
+		// Remove from tracking
+		m_mPlayerControllers.Remove(playerId);
+		
+		// Note: We keep the player data and persistent ID mappings for when they reconnect
 	}
 	
 	//RPC Methods

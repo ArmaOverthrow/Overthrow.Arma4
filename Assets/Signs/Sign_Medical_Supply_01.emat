@@ -1,0 +1,40 @@
+MatPBRMulti {
+ UVSrcGlobalMaps "UV set 2"
+ MaskMap "{44ABE9B54D0C8E3E}Assets/Structures/Signs/Military/Data/SignRectangle_01_140x100_GLOBAL_MASK.edds"
+ MaskGreenScale 0.434
+ Enabled_4 1
+ Color_4 0.456 0.456 0.456 1
+ BCR_4 "{A5FA6435335D1897}Assets/Signs/Sign_Medical_Supply_Dropoff.edds"
+ NMO_4 "{844236632B9A841A}Assets/_SharedData/Wood/ST_WoodPlain_Clean_01_NMO.edds"
+ MaskSharpness_4 2
+ Mask_4 "{40C5F6C5EAB5C60E}Assets/_SharedData/DetailMask/ST_Wood_01_Mask1.edds"
+ MaskUVScale_4 0.6
+ UVTransform_4 MatUVTransform "{5616249C41537FD7}" {
+ }
+ DetNormal_4 0.5
+ Metalness_4 0
+ Enabled_3 1
+ Color_3 0.03 0.03 0.03 1
+ MaskSharpness_3 0.58
+ Mask_3 "{A074608E879A25CB}Assets/_SharedData/DetailMask/ST_Dirt_01_Mask1.edds"
+ Enabled_2 1
+ Color_2 0.296 0.239 0.166 1
+ BCR_2 "{A4514F137C0238D2}Assets/_SharedData/Wood/ST_WoodPlain_Mid_03_BCR.edds"
+ NMO_2 "{6E8CE1807D694599}Assets/_SharedData/Wood/ST_WoodPlain_Rough_01_NMO.edds"
+ MaskSharpness_2 0.733
+ MaskOffset_2 0.12
+ Mask_2 "{A3B4218CCE57A275}Assets/_SharedData/DetailMask/ST_Paint_peeling_03_Mask1.edds"
+ MaskUVScale_2 3
+ UVTransform_2 MatUVTransform "{55F67BAE9F7AB231}" {
+  OffsetU -0.413
+  OffsetV -0.118
+ }
+ DetNormal_2 0.6
+ Roughness_2 1.179
+ Color_1 0.287 0.27 0.2 1
+ BCR_1 "{42D93EA9992BB127}Assets/_SharedData/Wood/ST_WoodPlanks_02_BCR.edds"
+ NMO_1 "{844236632B9A841A}Assets/_SharedData/Wood/ST_WoodPlain_Clean_01_NMO.edds"
+ UVTransform_1 MatUVTransform "{55F67BAEABC9DF13}" {
+ }
+ Metalness_1 0
+}

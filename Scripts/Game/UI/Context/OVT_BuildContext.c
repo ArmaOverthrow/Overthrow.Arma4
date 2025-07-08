@@ -11,7 +11,7 @@ class OVT_BuildContext : OVT_UIContext
 	
 	Widget m_BuildWidget;
 		
-	protected IEntity m_eBuildingEntity;
+	protected SCR_PrefabPreviewEntity m_eBuildingEntity;
 	protected ResourceName m_pBuildingPrefab;
 	protected OVT_Buildable m_Buildable;
 	
@@ -24,9 +24,12 @@ class OVT_BuildContext : OVT_UIContext
 	protected CameraManager m_CameraManager;
 	
 	const int MAX_FOB_BUILD_DIS = 100;
+	const int MAX_CAMP_BUILD_DIS = 50;
 	
 	bool m_bBuilding = false;
 	int m_iPrefabIndex = 0;
+	int m_iPageNum = 0;
+	int m_iNumPages = 0;
 		
 	override void PostInit()
 	{
@@ -72,17 +75,66 @@ class OVT_BuildContext : OVT_UIContext
 	}
 	
 	override void OnShow()
-	{			
-				
+	{
+		m_iPageNum = 0;
+
+		// Set up the previous button
+		Widget prevButton = m_wRoot.FindAnyWidget("PrevButton");
+		SCR_InputButtonComponent btn = SCR_InputButtonComponent.Cast(prevButton.FindHandler(SCR_InputButtonComponent));
+		btn.m_OnActivated.Insert(PreviousPage);
+
+		// Set up the next button
+		Widget nextButton = m_wRoot.FindAnyWidget("NextButton");
+		btn = SCR_InputButtonComponent.Cast(nextButton.FindHandler(SCR_InputButtonComponent));
+		btn.m_OnActivated.Insert(NextPage);
+
+		// Set up the close button
+		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");
+		btn = SCR_InputButtonComponent.Cast(closeButton.FindHandler(SCR_InputButtonComponent));
+		btn.m_OnActivated.Insert(CloseLayout);
+
+		Refresh();
+	}
+	
+	void PreviousPage()
+	{
+		if(!m_wRoot) return;
+		m_iPageNum--;
+		if(m_iPageNum < 0) m_iPageNum = 0;
+		
+		Refresh();
+	}
+	
+	void NextPage()
+	{
+		if(!m_wRoot) return;
+		m_iPageNum++;
+		if(m_iPageNum > m_iNumPages-1) m_iPageNum = m_iNumPages-1;
+		
+		Refresh();
+	}
+	
+	void Refresh()
+	{
+		if(!m_wRoot) return;
+		
+		TextWidget pages = TextWidget.Cast(m_wRoot.FindAnyWidget("Pages"));
+		Widget root = m_wRoot.FindAnyWidget("m_BrowserGrid");
+		
 		int done = 0;
 		IEntity player = SCR_PlayerController.GetLocalControlledEntity();
 		
-		Widget root = m_wRoot.FindAnyWidget("m_BrowserGrid");
+		m_iNumPages = Math.Ceil(m_Resistance.m_BuildablesConfig.m_aBuildables.Count() / 15);
+		if(m_iPageNum >= m_iNumPages) m_iPageNum = 0;
+		string pageNumText = (m_iPageNum + 1).ToString();
 		
-		// Show all buildables instead of filtering
-		foreach(int i, OVT_Buildable buildable : m_Resistance.m_BuildablesConfig.m_aBuildables)
+		pages.SetText(pageNumText + "/" + m_iNumPages);
+		
+		// Show buildables for current page
+		for(int i = m_iPageNum * 15; i < (m_iPageNum + 1) * 15 && i < m_Resistance.m_BuildablesConfig.m_aBuildables.Count(); i++)
 		{
-			Widget w = root.FindWidget("BuildMenu_Card" + i);
+			OVT_Buildable buildable = m_Resistance.m_BuildablesConfig.m_aBuildables[i];
+			Widget w = root.FindWidget("BuildMenu_Card" + done);
 			OVT_BuildMenuCardComponent card = OVT_BuildMenuCardComponent.Cast(w.FindHandler(OVT_BuildMenuCardComponent));
 			
 			// Check if buildable can be built at current location
@@ -90,10 +142,12 @@ class OVT_BuildContext : OVT_UIContext
 			bool canBuild = CanBuild(buildable, player.GetOrigin(), reason);
 			
 			card.Init(buildable, this, canBuild, reason);
+			w.SetOpacity(1);
 			
 			done++;
 		}
 		
+		// Hide unused cards
 		for(int i=done; i < 15; i++)
 		{
 			Widget w = root.FindWidget("BuildMenu_Card" + i);
@@ -192,11 +246,18 @@ class OVT_BuildContext : OVT_UIContext
 			}
 		}
 		
-		if(buildable.m_bBuildAtFOB)
+		if(buildable.m_bBuildAtCamp)
 		{	
+			vector fob = m_Resistance.GetNearestCamp(pos);		
+			dist = vector.Distance(fob, pos);
+			if(dist < MAX_CAMP_BUILD_DIS) return true;	
+		}
+		
+		if(buildable.m_bBuildAtFOB)
+		{
 			vector fob = m_Resistance.GetNearestFOB(pos);		
 			dist = vector.Distance(fob, pos);
-			if(dist < MAX_FOB_BUILD_DIS) return true;	
+			if(dist < MAX_FOB_BUILD_DIS) return true;
 		}
 							
 		return false;
@@ -338,28 +399,13 @@ class OVT_BuildContext : OVT_UIContext
 		params.TransformMode = ETransformMode.WORLD;
 		params.Transform[3] = pos;
 		m_pBuildingPrefab = m_Buildable.m_aPrefabs[m_iPrefabIndex];
-		m_eBuildingEntity = GetGame().SpawnEntityPrefabLocal(Resource.Load(m_pBuildingPrefab), null, params);
+		//m_eBuildingEntity = GetGame().SpawnEntityPrefabLocal(Resource.Load(m_pBuildingPrefab), null, params);
+		m_eBuildingEntity = SCR_PrefabPreviewEntity.Cast(SCR_PrefabPreviewEntity.SpawnPreviewFromPrefab(Resource.Load(m_pBuildingPrefab), "SCR_PrefabPreviewEntity", null, params, "{58F07022C12D0CF5}Assets/Editor/PlacingPreview/Preview.emat"));
 		
 		if(m_vCurrentTransform)
 		{
-			m_eBuildingEntity.SetTransform(m_vCurrentTransform);
+			m_eBuildingEntity.SetPreviewTransform(m_vCurrentTransform, EEditorTransformVertical.TERRAIN);
 		}
-		//SCR_Global.SetMaterial(m_eBuildingEntity, "{E0FECF0FE7457A54}Assets/Editor/PlacingPreview/Preview_03.emat", true);
-		
-		Physics phys = m_eBuildingEntity.GetPhysics();
-		if(phys)
-		{
-			phys.SetActive(0);
-		}
-		
-		OVT_MainMenuContextOverrideComponent over = EPF_Component<OVT_MainMenuContextOverrideComponent>.Find(m_eBuildingEntity);
-		if(over)
-		{
-			//Disable map icon showing for ghost
-			over.m_UiInfo = null;
-		}
-		
-		m_eBuildingEntity.SetFlags(EntityFlags.VISIBLE, true);
 	}
 	
 	protected void RemoveGhost()

@@ -3,7 +3,13 @@ GenericEntity : "{4106EBCD72532DA4}Prefabs/Props/Commercial/Posters/PosterSingle
  components {
   EPF_PersistenceComponent "{5D78D824B3FA6D99}" {
    m_pSaveData OVT_PlaceableSaveDataClass "{5D78D824B2A1AA00}" {
+    m_aComponents {
+     OVT_PlaceableDataClass "{5D78D824B2A1AA01}" {
+     }
+    }
    }
+  }
+  OVT_PlaceableComponent "{5D78D824B2A1AA02}" {
   }
   MeshObject "{5872F0EB7FA40561}" {
    Materials {
@@ -18,6 +24,13 @@ GenericEntity : "{4106EBCD72532DA4}Prefabs/Props/Commercial/Posters/PosterSingle
   }
   RplComponent "{5624A88DC2D9928D}" {
    Enabled 1
+  }
+  SCR_EditableEntityComponent "{65B90A24B6E114CC}" {
+   m_UIInfo SCR_EditableEntityUIInfo "{65B90A2B75ED14CD}" {
+    Name "#OVT-Place_Poster"
+    Description "#OVT-Place_Poster_Description"
+   }
+   m_Flags PLACEABLE
   }
  }
  scale 2.5

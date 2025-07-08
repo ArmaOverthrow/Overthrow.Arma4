@@ -1,0 +1,17 @@
+MetaFileClass {
+ Name "{3CD4A789AFF69FFA}Prefabs/Props/Military/AmmoBoxes/OVT_AmmoBox_Dev.et"
+ Configurations {
+  EntityTemplateResourceClass PC {
+  }
+  EntityTemplateResourceClass XBOX_ONE : PC {
+  }
+  EntityTemplateResourceClass XBOX_SERIES : PC {
+  }
+  EntityTemplateResourceClass PS4 : PC {
+  }
+  EntityTemplateResourceClass PS5 : PC {
+  }
+  EntityTemplateResourceClass HEADLESS : PC {
+  }
+ }
+}

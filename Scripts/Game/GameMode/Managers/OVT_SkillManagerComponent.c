@@ -202,7 +202,7 @@ class OVT_SkillManagerComponent: OVT_Component
 		if(fac.GetAffiliatedFaction().GetFactionKey() == OVT_Global.GetConfig().m_sOccupyingFaction)
 		{
 			int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(instigator);
-			if(playerId > -1)
+			if(playerId > 0)
 			{
 				string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 				OVT_PlayerData player = OVT_PlayerData.Get(persId);

@@ -1,0 +1,12 @@
+GenericEntity {
+ ID "50D67C36F4200F97"
+ components {
+  EPF_PersistenceComponent "{65B90A2DF9A3B16A}" {
+   m_pSaveData OVT_PlaceableSaveDataClass "{65B90A2DCB992F69}" {
+   }
+  }
+  OVT_PlaceableComponent "{65C4DD9D62B7AF93}" {
+   m_sPlaceableType "Sign"
+  }
+ }
+}

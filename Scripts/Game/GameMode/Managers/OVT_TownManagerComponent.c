@@ -8,21 +8,33 @@ class OVT_TownModifierData : Managed
 	int timer;
 }
 
+enum OVT_TownSize
+{
+	VILLAGE = 1,
+	TOWN = 2,
+	CITY = 3,
+	CAPITAL = 4
+}
+
 class OVT_TownData : Managed
 {
 	vector location;
 	int population;
+	int targetPopulation;
 	int stability;
 	int support;
 	int faction;
 	
 	[NonSerialized()]
-	int size;
+	OVT_TownSize size;
 	
 	ref array<ref OVT_TownModifierData> stabilityModifiers = {};
 	ref array<ref OVT_TownModifierData> supportModifiers = {};
 	
 	vector gunDealerPosition;
+	
+	//! Area heat level for undercover system (persisted)
+	float areaHeat = 0.0;
 	
 	int SupportPercentage()
 	{
@@ -46,15 +58,36 @@ class OVT_TownData : Managed
 		return faction == OVT_Global.GetConfig().GetOccupyingFactionIndex();
 	}
 	
+	bool IsWithinTownBounds(vector position)
+	{
+		float distance = vector.Distance(position, location);
+		return distance < 500;
+
+	}
+	
+	//! Gets the current area heat level
+	float GetAreaHeat()
+	{
+		return areaHeat;
+	}
+	
+	//! Sets the area heat level
+	void SetAreaHeat(float heat)
+	{
+		areaHeat = Math.Max(0.0, heat); // Prevent negative heat
+	}
+	
 	void CopyFrom(OVT_TownData town)
 	{
 		population = town.population;
+		targetPopulation = town.targetPopulation;
 		stability = town.stability;
 		support = town.support;
 		faction = town.faction;
 		stabilityModifiers = town.stabilityModifiers;
 		supportModifiers = town.supportModifiers;
 		gunDealerPosition = town.gunDealerPosition;
+		areaHeat = town.areaHeat;
 	}
 }
 
@@ -63,22 +96,22 @@ class OVT_TownData : Managed
 //! Handles town initialization, modifier systems, house queries, and network synchronization of town data.
 class OVT_TownManagerComponent: OVT_Component
 {
-	[Attribute( defvalue: "1200", desc: "Range to search cities for houses")]
+	[Attribute( defvalue: "600", desc: "Range to search cities for houses (deprecated)")]
 	int m_iCityRange;
 	
-	[Attribute( defvalue: "600", desc: "Range to search towns for houses")]
+	[Attribute( defvalue: "400", desc: "Range to search towns for houses (deprecated)")]
 	int m_iTownRange;
 	
-	[Attribute( defvalue: "250", desc: "Range to search villages for houses")]
+	[Attribute( defvalue: "250", desc: "Range to search villages for houses (deprecated)")]
 	int m_iVillageRange;
 	
-	[Attribute( defvalue: "2", desc: "Default occupants per house")]
+	[Attribute( defvalue: "4", desc: "Default occupants per house (deprecated)")]
 	int m_iDefaultHouseOccupants;
 	
-	[Attribute( defvalue: "3", desc: "Occupants per villa house")]
+	[Attribute( defvalue: "6", desc: "Occupants per villa house (deprecated)")]
 	int m_iVillaOccupants;
 	
-	[Attribute( defvalue: "5", desc: "Occupants per town house")]
+	[Attribute( defvalue: "8", desc: "Occupants per town house (deprecated)")]
 	int m_iTownOccupants;
 	
 	[Attribute("", UIWidgets.Object)]	
@@ -91,6 +124,7 @@ class OVT_TownManagerComponent: OVT_Component
 	
 	//! Array of all towns managed by this component
 	ref array<ref OVT_TownData> m_Towns;
+	ref array<ref EntityID> m_TownControllers = {};
 	//! Array of town names, corresponding to the m_Towns array by index
 	ref array<ref string> m_TownNames;
 	
@@ -110,6 +144,8 @@ class OVT_TownManagerComponent: OVT_Component
 	protected const int SUPPORT_FREQUENCY = 6; // * MODIFIER_FREQUENCY
 	 
 	static OVT_TownManagerComponent s_Instance;	
+	
+	protected bool m_bUseDefinedTowns = false;
 	
 	//------------------------------------------------------------------------------------------------
 	//! Returns the singleton instance of the Town Manager Component
@@ -147,7 +183,8 @@ class OVT_TownManagerComponent: OVT_Component
 		InitializeTowns();
 		
 		if(!Replication.IsServer()) return;
-		SetupTowns();
+		if(!m_bUseDefinedTowns)
+			SetupTowns();
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -155,7 +192,16 @@ class OVT_TownManagerComponent: OVT_Component
 	void PostGameStart()
 	{
 		GetGame().GetCallqueue().CallLater(CheckUpdateModifiers, MODIFIER_FREQUENCY, true, GetOwner());		
-		GetGame().GetCallqueue().CallLater(SpawnTownControllers, 0);
+		
+		if(!m_bUseDefinedTowns)
+			GetGame().GetCallqueue().CallLater(SpawnTownControllers, 0);
+		
+		foreach(int townID, EntityID townEntityID : m_TownControllers)
+		{
+			IEntity townEntity = GetGame().GetWorld().FindEntityByID(townEntityID);
+			OVT_TownControllerComponent town = OVT_TownControllerComponent.Cast(townEntity.FindComponent(OVT_TownControllerComponent));
+			town.ActivateTown();
+		}
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -294,6 +340,7 @@ class OVT_TownManagerComponent: OVT_Component
 			{
 				//We always recalculate support modifiers and add/remove supporters, but less often
 				RecalculateSupport(townID);
+				RecalculatePopulationGrowth(townID);
 			}
 		}
 	}
@@ -576,6 +623,43 @@ class OVT_TownManagerComponent: OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Recalculates population growth for a town based on stability and target population gap.
+	//! Updates the town's population if growth occurs and synchronizes via RPC.
+	//! \param townId The ID of the town to calculate population growth for
+	protected void RecalculatePopulationGrowth(int townId)
+	{
+		OVT_TownData town = m_Towns[townId];
+		
+		// Check if population needs to grow towards target
+		if(town.population < town.targetPopulation)
+		{
+			// Calculate population growth based on stability and population gap
+			float stabilityFactor = town.stability / 100.0; // 0.0 to 1.0
+			int populationGap = town.targetPopulation - town.population;
+			
+			// Scale growth based on gap size (more growth when further from target)
+			float gapFactor = Math.Min(populationGap / 10.0, 1.0); // Cap at 1.0
+			
+			// Calculate base growth (1-3 people per growth cycle)
+			int baseGrowth = Math.RandomInt(1, 4);
+			
+			// Apply factors - no growth if stability is 0%
+			int growthAmount = Math.Round(baseGrowth * stabilityFactor * gapFactor);
+			
+			if(growthAmount > 0)
+			{
+				// Ensure we don't exceed target population
+				growthAmount = Math.Min(growthAmount, populationGap);
+				
+				// Update population
+				int newPopulation = town.population + growthAmount;
+				RpcDo_SetPopulation(townId, newPopulation);
+				Rpc(RpcDo_SetPopulation, townId, newPopulation);
+			}
+		}
+	}
+	
+	//------------------------------------------------------------------------------------------------
 	//! Resets the support value of a town to 0 and synchronizes via RPC.
 	//! \param town The town data to reset support for
 	void ResetSupport(OVT_TownData town)
@@ -688,6 +772,28 @@ class OVT_TownManagerComponent: OVT_Component
 			}
 		}
 		return nearestTown;
+	}
+	
+	int GetNearestTownId(vector pos)
+	{
+		int nearestTown;
+		float nearest = -1;
+		int i = 0;
+		foreach(OVT_TownData town : m_Towns)
+		{
+			float distance = vector.Distance(town.location, pos);
+			if(nearest == -1 || distance < nearest){
+				nearest = distance;
+				nearestTown = i;
+			}
+			i++;
+		}
+		return nearestTown;
+	}
+	
+	string GetNearestTownName(vector pos)
+	{
+		return GetTownName(GetNearestTownId(pos));
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -810,23 +916,40 @@ class OVT_TownManagerComponent: OVT_Component
 	//! Initializes town data by querying map markers across the entire world.
 	//! Called once during Init.
 	protected void InitializeTowns()
-	{
-		#ifdef OVERTHROW_DEBUG
-		Print("Finding cities, towns and villages");
-		#endif	
-		
+	{		
+		//New defined town system
+		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, FilterTownControllerEntities, null, EQueryEntitiesFlags.STATIC);
+		if(m_Towns.Count() > 0)
+		{
+			Print(string.Format("[Overthrow] Found %1 towns", m_Towns.Count()));
+			m_bUseDefinedTowns = true;
+			return;
+		}
+				
+		Print("[Overthrow] Deprecation warning: Auto-detecting towns. Maps should now include OVT_TownController prefabs instead");
+		//Use legacy town detection via markers (deprecated)
 		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999999, CheckCityTownAddPopulation, FilterCityTownEntities, EQueryEntitiesFlags.STATIC);
 		
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Spawns a town controller prefab at the location of each managed town.
+	//! Spawns a town controller prefab at the location of each managed town (deprecated, maps should now include town controller prefabs)
 	//! Called once after game start.
 	protected void SpawnTownControllers()
-	{
+	{		
+		int i = 0;
 		foreach(OVT_TownData town : m_Towns)
 		{
 			IEntity controller = OVT_Global.SpawnEntityPrefab(OVT_Global.GetConfig().m_pTownControllerPrefab, town.location);
+			OVT_TownControllerComponent townController = OVT_TownControllerComponent.Cast(controller.FindComponent(OVT_TownControllerComponent));
+			if(townController)
+			{
+				townController.m_iTownRange = GetTownRange(town);
+				townController.m_sName = GetTownName(i);
+				townController.m_iPopulation = town.population;
+				townController.m_Size = town.size;
+			}
+			i++;
 		}
 	}
 	
@@ -908,6 +1031,32 @@ class OVT_TownManagerComponent: OVT_Component
 		return false;		
 	}
 	
+	protected bool FilterTownControllerEntities(IEntity entity) 
+	{
+		OVT_TownControllerComponent townController = OVT_TownControllerComponent.Cast(entity.FindComponent(OVT_TownControllerComponent));
+		if(!townController) return true;
+		
+		OVT_TownData town = new OVT_TownData();
+		
+		Faction faction = GetGame().GetFactionManager().GetFactionByKey(OVT_Global.GetConfig().m_sOccupyingFaction);
+			
+		town.location = entity.GetOrigin();
+		town.population = townController.m_iPopulation;
+		town.targetPopulation = townController.m_iPopulation;
+		town.support = 0;
+		town.faction = GetGame().GetFactionManager().GetFactionIndex(faction);
+		town.stability = 100;
+		
+		m_iTownCount++;
+		
+		town.size = townController.m_Size;
+		
+		m_Towns.Insert(town);
+		m_TownNames.Insert(townController.m_sName);
+		m_TownControllers.Insert(entity.GetID());
+		return true;
+	}
+	
 	//------------------------------------------------------------------------------------------------
 	//! Query filter function used by GetNearestTownMarker.
 	//! Checks if an entity is a city, town, or village map marker and stores it if found.
@@ -973,6 +1122,20 @@ class OVT_TownManagerComponent: OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Checks if the nearest town to a position has available supporters for recruitment.
+	//! \param pos The position vector to find the nearest town from
+	//! \param num The number of supporters needed (default: 1)
+	//! \return true if the nearest town has enough supporters and population, false otherwise
+	bool NearestTownHasSupporters(vector pos, int num = 1)
+	{
+		OVT_TownData town = GetNearestTown(pos);
+		if (!town)
+			return false;
+			
+		return (town.support >= num && town.population >= num);
+	}
+	
+	//------------------------------------------------------------------------------------------------
 	//! Adds a specified number of supporters to the town nearest to a position.
 	//! Synchronizes changes via RPC.
 	//! \param pos The position vector to find the nearest town from
@@ -1003,6 +1166,7 @@ class OVT_TownManagerComponent: OVT_Component
 				pop = m_iTownOccupants;
 			
 			m_CheckTown.population += pop;
+			m_CheckTown.targetPopulation += pop;
 		}
 				
 		return true;
@@ -1077,6 +1241,7 @@ class OVT_TownManagerComponent: OVT_Component
 			//Print("Writing town ID " + townID);
 			
 			writer.WriteInt(town.population);
+			writer.WriteInt(town.targetPopulation);
 			writer.WriteInt(town.stability);
 			writer.WriteInt(town.support);
 			writer.WriteInt(town.faction);
@@ -1105,6 +1270,7 @@ class OVT_TownManagerComponent: OVT_Component
 			//Print("Replicating town ID " + i);
 				
 			if (!reader.ReadInt(town.population)) return false;		
+			if (!reader.ReadInt(town.targetPopulation)) return false;		
 			if (!reader.ReadInt(town.stability)) return false;		
 			if (!reader.ReadInt(town.support)) return false;		
 			if (!reader.ReadInt(town.faction)) return false;

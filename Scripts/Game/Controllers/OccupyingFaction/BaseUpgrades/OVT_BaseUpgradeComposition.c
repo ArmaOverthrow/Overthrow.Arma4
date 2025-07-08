@@ -55,6 +55,9 @@ class OVT_BaseUpgradeComposition : OVT_SlottedBaseUpgrade
 		
 		array<ResourceName> prefabs();
 		OVT_Global.GetEconomy().GetAllNonClothingOccupyingFactionItems(prefabs);
+		
+		// Check if prefabs array is empty to prevent index out of bounds
+		if(prefabs.Count() == 0) return;
 				
 		foreach(EntitySlotInfo slot : slotInfos)
 		{

@@ -15,9 +15,6 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
   EPF_PersistenceComponent "{5A12D8F4DFED6D84}" {
    Enabled 1
   }
-  FactionAffiliationComponent "{555C98D1CD949F3E}" {
-   "faction affiliation" "CIV"
-  }
   OVT_PlayerCommsComponent "{5D7ACE122292D0CF}" {
   }
   OVT_PlayerWantedComponent "{596EE382181C58FB}" {
@@ -115,6 +112,12 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      m_sCloseAction "MenuBack"
      m_bOpenActionCloses 0
     }
+    OVT_CampMenuContext "{5D5A4DE34B7EB499}" {
+     m_Layout "{4D721E71A88C4C5F}UI/Layouts/Menu/CampMenu.layout"
+     m_sContextName "OverthrowCampMenuContext"
+     m_sCloseAction "MenuBack"
+     m_bOpenActionCloses 0
+    }
     OVT_PortContext "{5D5AD8A58B5B6AF8}" {
      m_Layout "{5F8E0A3F4911D5F2}UI/Layouts/Menu/PortMenu.layout"
      m_sContextName "OverthrowPortContext"
@@ -131,6 +134,19 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      m_SkillLevelLayout "{97679790AD4184BF}UI/Layouts/Menu/CharacterSheet/CharacterSheetSkillLevel.layout"
      m_SkillEffectLayout "{B40D2F7787BB6248}UI/Layouts/Menu/CharacterSheet/CharacterSheetSkillEffect.layout"
     }
+    OVT_RecruitsContext "{5D5C558A6E391680}" {
+     m_Layout "{7479003E04D0D1ED}UI/Layouts/Menu/RecruitsMenu.layout"
+     m_sContextName "OverthrowRecruitsMenuContext"
+     m_sCloseAction "MenuBack"
+     m_bOpenActionCloses 0
+     m_RecruitItemLayout "{AA94A214B16CB2C8}UI/Layouts/Menu/RecruitsMenu/RecruitListItem.layout"
+    }
+    OVT_LoadoutsContext "{65AB140F49501632}" {
+     m_Layout "{0C2D8BB696089B2A}UI/Layouts/Menu/LoadoutsMenu.layout"
+     m_sContextName "OverthrowLoadoutsMenuContext"
+     m_sCloseAction "MenuBack"
+     m_bOpenActionCloses 0
+    }
    }
   }
   SCR_BaseHUDComponent "{520EA1D2DB118134}" {
@@ -141,7 +157,13 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
     OVT_EconomyInfo "{5988DB0A05162D4F}" {
      m_LayoutPath "{3C972A84DC44F671}UI/Layouts/HUD/EconomyInfo.layout"
     }
+    OVT_ProgressInfo "{65C4B2DA956034BF}" {
+     m_LayoutPath "{2AB6AD04B7B6262A}UI/Layouts/HUD/ProgressInfo.layout"
+    }
    }
+  }
+  SCR_CharacterFactionAffiliationComponent "{555C98D1CD949F3E}" {
+   "faction affiliation" "CIV"
   }
   SCR_EditableCharacterComponent "{520EA1D2F659C85C}" {
    m_UIInfo SCR_EditableEntityUIInfo "{5298E609432D192D}" {

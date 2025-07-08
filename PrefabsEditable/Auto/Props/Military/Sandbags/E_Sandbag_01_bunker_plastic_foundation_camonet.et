@@ -1,0 +1,9 @@
+StaticModelEntity : "{23BB711062057CC5}Prefabs/Props/Military/Sandbags/Sandbag_01_bunker_plastic_foundation_camonet.et" {
+ ID "5A532DC567D4E321"
+ components {
+  EPF_PersistenceComponent "{65B90A1324B9C538}" {
+   m_pSaveData OVT_BuildingSaveDataClass "{65B90A1320758A5E}" {
+   }
+  }
+ }
+}

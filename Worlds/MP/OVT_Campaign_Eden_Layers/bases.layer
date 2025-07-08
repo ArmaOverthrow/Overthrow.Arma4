@@ -3,6 +3,9 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
   components {
    OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
     m_sName "#OVT-Base_Levie"
+    m_iAttackDistanceMax 750
+    m_iAttackPreferredDirection 201
+    m_iAttackDirectionVariance 55
    }
   }
   coords 7457.223 164.562 4278.119
@@ -12,7 +15,10 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
    OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
     m_sName "#AR-MapLocation_MontfortCastle"
     m_fStartingResourcesMultiplier 1.2
-    m_iAttackPreferredDirection 270
+    m_iAttackDistanceMin 375
+    m_iAttackDistanceMax 550
+    m_iAttackPreferredDirection 266
+    m_iAttackDirectionVariance 20
    }
   }
   coords 9398.637 196.296 1170.662
@@ -21,6 +27,9 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
   components {
    OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
     m_sName "#OVT-Base_Lamentin"
+    m_iAttackDistanceMin 450
+    m_iAttackPreferredDirection 75
+    m_iAttackDirectionVariance 20
    }
   }
   coords 924.679 2.75 6059.404
@@ -29,7 +38,10 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
   components {
    OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
     m_sName "#OVT-Base_Chotain"
-    m_iAttackPreferredDirection 330
+    m_iAttackDistanceMin 475
+    m_iAttackDistanceMax 725
+    m_iAttackPreferredDirection 272
+    m_iAttackDirectionVariance 60
    }
   }
   coords 7462.8 7.814 6727.422
@@ -38,6 +50,8 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
   components {
    OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
     m_sName "#OVT-Base_StPhillipe"
+    m_iAttackDistanceMin 350
+    m_iAttackDistanceMax 500
    }
   }
   coords 5343.506 43.617 10535.197
@@ -47,9 +61,10 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
    OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
     m_sName "#AR-MapLocation_Airport"
     m_fStartingResourcesMultiplier 2
-    m_iAttackDistanceMin 300
-    m_iAttackDistanceMax 500
-    m_iAttackPreferredDirection 180
+    m_iAttackDistanceMin 475
+    m_iAttackDistanceMax 700
+    m_iAttackPreferredDirection 1
+    m_iAttackDirectionVariance 35
    }
   }
   coords 4961.688 28.343 11878.047
@@ -59,7 +74,7 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
    OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
     m_sName "#OVT-Base_TrainingGrounds"
     m_fStartingResourcesMultiplier 0.8
-    m_iAttackPreferredDirection 300
+    m_iAttackPreferredDirection 240
    }
   }
   coords 7729.433 13.656 8154.407
@@ -73,17 +88,20 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
    OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
     m_sName "#AR-MapLocation_PowerPlant"
     m_fStartingResourcesMultiplier 1.5
+    m_iAttackPreferredDirection 246
+    m_iAttackDirectionVariance 60
    }
   }
-  coords 5841.275 4.563 9794.273
   Flags 1027
+  coords 5841.275 4.563 9794.273
  }
  OVT_Base_Erquy {
   components {
    OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
     m_sName "#OVT-Base_Erquy"
     m_fStartingResourcesMultiplier 0.8
-    m_iAttackPreferredDirection 90
+    m_iAttackDistanceMax 700
+    m_iAttackPreferredDirection 75
    }
   }
   coords 10633.771 2.343 11841.762

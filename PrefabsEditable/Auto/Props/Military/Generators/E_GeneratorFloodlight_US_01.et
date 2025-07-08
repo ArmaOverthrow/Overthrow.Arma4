@@ -4,7 +4,13 @@ GameEntity : "{0E94F28FD722B1D8}Prefabs/Props/Military/Generators/GeneratorFlood
   EPF_PersistenceComponent "{5D7C48988CA3E03D}" {
    m_bUpdateNavmesh 1
    m_pSaveData OVT_PlaceableSaveDataClass "{5D7C48988A452E7B}" {
+    m_aComponents {
+     OVT_PlaceableDataClass "{5D7C48988A452E7C}" {
+     }
+    }
    }
+  }
+  OVT_PlaceableComponent "{5D7C48988A452E7D}" {
   }
  }
 }

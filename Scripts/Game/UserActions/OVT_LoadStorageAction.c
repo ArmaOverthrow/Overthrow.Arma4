@@ -60,9 +60,11 @@ class OVT_LoadStorageAction : SCR_InventoryAction
 			return;
 		}
 		
-		OVT_Global.GetServer().TransferStorage(pOwnerEntity, nearestVeh);
-		
-		SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-VehicleLoaded");
+		OVT_ContainerTransferComponent transfer = OVT_Global.GetContainerTransfer();
+		if (transfer && transfer.IsAvailable())
+		{
+			transfer.TransferStorage(pOwnerEntity, nearestVeh);
+		}
 	}
 	
 	override bool CanBePerformedScript(IEntity user)

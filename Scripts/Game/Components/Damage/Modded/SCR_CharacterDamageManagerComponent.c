@@ -1,4 +1,4 @@
-modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponent
+modded class SCR_CharacterDamageManagerComponent : SCR_ExtendedDamageManagerComponent
 {
 	protected bool m_bCheckedFaction = false;
 	protected bool m_bIsOccupyingFaction = false;
@@ -12,25 +12,28 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 		GetOnDamageStateChanged().Insert(WhenDamageStateChanged);
 	}
 	
-	void WhenDamaged(EDamageType type,
-				  float damage,
-				  HitZone pHitZone,
-				  notnull Instigator instigator,
-				  inout vector hitTransform[3],
-				  float speed,
-				  int colliderID,
-				  int nodeID)
+	void WhenDamaged(BaseDamageContext damageContext)
 	{		
-		if(instigator)
+		if(damageContext.instigator)
 		{	
-			IEntity entity = instigator.GetInstigatorEntity();
+			IEntity entity = damageContext.instigator.GetInstigatorEntity();
 			if(entity) 
 			{
 				OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(entity.FindComponent(OVT_PlayerWantedComponent));
 				
 				if(wanted)
 				{
-					wanted.SetBaseWantedLevel(2);
+					// Check if player was disguised - if so, blow their cover
+					if(wanted.IsDisguisedAsOccupying())
+					{
+						wanted.SetBaseWantedLevel(2, "WantedDisguiseBlown");
+						wanted.BlowDisguise();
+					}
+					else
+					{
+						// Not disguised, normal wanted level increase
+						wanted.SetBaseWantedLevel(2);
+					}
 				}
 			}
 		}
@@ -42,9 +45,19 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 	{		
 		IEntity instigator = GetInstigator().GetInstigatorEntity();				
 		if(state == EDamageState.DESTROYED){
+			// Fire universal character killed event for all characters regardless of faction
+			OVT_OverthrowGameMode gameMode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
+			if(gameMode)
+			{
+				gameMode.GetOnCharacterKilled().Invoke(GetOwner(), instigator);
+			}
+			
 			if(IsOccupyingFaction())
 			{
-				OVT_Global.GetOccupyingFaction().OnAIKilled(GetOwner(), instigator);			
+				OVT_Global.GetOccupyingFaction().OnAIKilled(GetOwner(), instigator);	
+				
+				//Check immediate surrounds for a vehicle (hoping for a better way soon pls BI)
+				GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), 5, CheckVehicleSetWanted, FilterVehicleEntities, EQueryEntitiesFlags.ALL);		
 			}
 			if(instigator)
 			{			
@@ -52,7 +65,17 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 				
 				if(wanted)
 				{
-					wanted.SetBaseWantedLevel(3);
+					// Check if player was disguised - if so, blow their cover
+					if(wanted.IsDisguisedAsOccupying())
+					{
+						wanted.SetBaseWantedLevel(3, "WantedDisguiseBlown");
+						wanted.BlowDisguise();
+					}
+					else
+					{
+						// Not disguised, normal wanted level increase
+						wanted.SetBaseWantedLevel(3);
+					}
 				}
 			}
 		}		
@@ -72,18 +95,6 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 			m_bCheckedFaction = true;
 		}
 		return m_bIsOccupyingFaction;
-	}
-	
-	protected override void OnDamageStateChanged(EDamageState state)
-	{
-		super.OnDamageStateChanged(state);
-		
-		if(IsOccupyingFaction())
-			OVT_Global.GetOccupyingFaction().OnAIKilled(GetOwner(), null);
-		
-		//Check immediate surrounds for a vehicle (hoping for a better way soon pls BI)
-		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(), 5, CheckVehicleSetWanted, FilterVehicleEntities, EQueryEntitiesFlags.ALL);
-		
 	}
 	
 	protected bool FilterVehicleEntities(IEntity entity)
@@ -106,7 +117,17 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 		
 			if(wanted)
 			{
-				wanted.SetBaseWantedLevel(3);
+				// Check if player was disguised - if so, blow their cover
+				if(wanted.IsDisguisedAsOccupying())
+				{
+					wanted.SetBaseWantedLevel(3, "WantedDisguiseBlown");
+					wanted.BlowDisguise();
+				}
+				else
+				{
+					// Not disguised, normal wanted level increase
+					wanted.SetBaseWantedLevel(3);
+				}
 			}
 		}
 		

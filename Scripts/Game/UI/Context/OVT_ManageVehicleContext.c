@@ -4,7 +4,15 @@ class OVT_ManageVehicleContext : OVT_UIContext
 	OVT_VehicleUpgrade m_SelectedUpgrade;
 		
 	override void OnShow()
-	{			
+	{		
+		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");
+		if (closeButton)
+		{
+			SCR_InputButtonComponent action = SCR_InputButtonComponent.Cast(closeButton.FindHandler(SCR_InputButtonComponent));
+			if (action)
+				action.m_OnActivated.Insert(CloseLayout);
+		}
+		
 		m_Vehicle = null;
 		GetGame().GetWorld().QueryEntitiesBySphere(m_Owner.GetOrigin(), 5, null, FilterVehicleEntities, EQueryEntitiesFlags.ALL);
 		
