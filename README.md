@@ -17,7 +17,9 @@ A dynamic and persistent revolution platform for Arma Reforger (and eventually A
 Overthrow is available in early access from the ARMA Reforger Workshop. Just search for "Overthrow".
 
 ## Playing
-The key to open the Overthrow menu is "U" (not "Y" due to key binding conflicts in Arma Reforger). 
+See the wiki:
+- **[Overthrow Reforger Wiki](https://wiki.armaoverthrow.com/)**
+- **[Getting Started](https://wiki.armaoverthrow.com/en/getting-started)**
 
 ## Development
 
