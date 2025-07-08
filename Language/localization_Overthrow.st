@@ -3088,6 +3088,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{65D08ACC7FDB3C67}" {
+   Id "OVT-MobileFOBHelp"
+   Target_en_us "FOBs are now deployed from a \"Mobile FOB\" truck, purchase one at any vehicle store"
+   Modified 1708170285
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5E4852B16105E801}" {
    Id "OVT-Modifier_BlackMarket"
    Target_en_us "Black Market Activity"
