@@ -15,15 +15,27 @@ class OVT_MapLocationElement : SCR_MapUIElement
 	//! Reference to the map entity for zoom level access
 	protected SCR_MapEntity m_MapEntity;
 	
+	
 	//! Cached widget references for performance
-	protected Widget m_wIconContainer;
+	protected SizeLayoutWidget m_wIconContainer;
 	protected ImageWidget m_wIcon;
 	protected TextWidget m_wDistance;
+	protected TextWidget m_wLocationName;
 	protected Widget m_wSelectionHighlight;
 	protected Widget m_wFastTravelIndicator;
+	protected Widget m_wHoverOverlay;
+	protected ImageWidget m_wBackgroundGradient;
+	protected ImageWidget m_wHighlight;
 	
-	//! Whether this element is currently selected
+	//! State tracking
 	protected bool m_bSelected = false;
+	protected bool m_bIsHovered = false;
+	protected bool m_bInfoPopupVisible = false;
+	
+	
+	//! Sound attributes
+	[Attribute(SCR_SoundEvent.SOUND_MAP_HOVER_BASE, desc: "Sound played on click")]
+	protected string m_sSoundClick;
 	
 	//! Set parent container (required by base class)
 	override void SetParent(SCR_MapUIElementContainer parent)
@@ -40,6 +52,9 @@ class OVT_MapLocationElement : SCR_MapUIElement
 		m_ParentMapUI = parentMapUI;
 		m_MapEntity = SCR_MapEntity.GetMapInstance();
 		m_bVisible = true;
+		
+		// Now that we have location data, update the display
+		UpdateDisplay();
 	}
 	
 	//! Get location data for external access
@@ -65,16 +80,15 @@ class OVT_MapLocationElement : SCR_MapUIElement
 			return;
 		
 		// Cache widget references for performance
-		m_wIconContainer = w.FindAnyWidget("IconContainer");
+		m_wIconContainer = SizeLayoutWidget.Cast(w.FindAnyWidget("IconContainer"));
 		m_wIcon = ImageWidget.Cast(w.FindAnyWidget("Icon"));
 		m_wDistance = TextWidget.Cast(w.FindAnyWidget("Distance"));
+		m_wLocationName = TextWidget.Cast(w.FindAnyWidget("LocationName"));
 		m_wSelectionHighlight = w.FindAnyWidget("SelectionHighlight");
 		m_wFastTravelIndicator = w.FindAnyWidget("FastTravelIndicator");
-		
-		// Setup initial state
-		UpdateIcon();
-		UpdateSelection();
-		UpdateFastTravelIndicator();
+		m_wHoverOverlay = w.FindAnyWidget("HoverOverlay");
+		m_wBackgroundGradient = ImageWidget.Cast(w.FindAnyWidget("BackgroundGradient"));
+		m_wHighlight = ImageWidget.Cast(w.FindAnyWidget("Highlight"));
 	}
 	
 	//! Handle click on this element
@@ -85,16 +99,32 @@ class OVT_MapLocationElement : SCR_MapUIElement
 				
 		if (button == 0) // Left mouse button
 		{
-			// Notify parent container of selection
-			if (m_Parent)
-				m_Parent.OnElementSelected(this);
+			// Play click sound
+			PlayHoverSound(m_sSoundClick);
 			
-			// Select this element
-			if (m_ParentMapUI)
-				m_ParentMapUI.SelectLocation(this);
-			
-			// Notify location type of click
-			m_LocationType.OnLocationClicked(m_LocationData, this);
+			// If already selected, deselect and hide info panel
+			if (m_bSelected)
+			{
+				Select(false);
+				if (m_ParentMapUI)
+					m_ParentMapUI.HideLocationInfo();
+			}
+			else
+			{
+				// Select this element
+				Select(true);
+				
+				// Notify parent container of selection
+				if (m_Parent)
+					m_Parent.OnElementSelected(this);
+				
+				// Notify parent map UI
+				if (m_ParentMapUI)
+					m_ParentMapUI.SelectLocation(this);
+				
+				// Notify location type of click
+				m_LocationType.OnLocationClicked(m_LocationData, this);
+			}
 			
 			return true;
 		}
@@ -108,7 +138,10 @@ class OVT_MapLocationElement : SCR_MapUIElement
 		if (!m_bVisible)
 			return false;
 		
-		// Could add hover effects here
+		m_bIsHovered = true;
+		ShowHoverEffects(true);
+		PlayHoverSound(m_sSoundHover);
+				
 		return false;
 	}
 	
@@ -118,21 +151,50 @@ class OVT_MapLocationElement : SCR_MapUIElement
 		if (!m_bVisible)
 			return false;
 		
-		// Could remove hover effects here
+		m_bIsHovered = false;
+		ShowHoverEffects(false);
+		
 		return false;
 	}
 	
 	//! Set selection state
 	void SetSelected(bool selected)
 	{
-		if (m_bSelected == selected)
+		Select(selected);
+	}
+	
+	//! Select this element with proper static tracking
+	override void Select(bool select = true)
+	{
+		// Handle static selection tracking
+		if (select && s_SelectedElement)
+		{
+			SCR_MapUIElement otherElement = SCR_MapUIElement.Cast(s_SelectedElement);
+			if (otherElement && otherElement != this)
+				otherElement.Select(false);
+		}
+		
+		if (m_bSelected == select)
 			return;
 		
-		m_bSelected = selected;
+		m_bSelected = select;
+		
+		if (select)
+		{
+			s_SelectedElement = this;
+			AnimExpand();
+		}
+		else
+		{
+			if (s_SelectedElement == this)
+				s_SelectedElement = null;
+			AnimCollapse();
+		}
+		
 		UpdateSelection();
 		
 		// Notify location type of selection change
-		if (m_LocationType && selected)
+		if (m_LocationType && select)
 			m_LocationType.OnLocationSelected(m_LocationData, this);
 	}
 	
@@ -149,6 +211,16 @@ class OVT_MapLocationElement : SCR_MapUIElement
 		return m_LocationType;
 	}
 	
+	//! Unified display update method
+	void UpdateDisplay()
+	{
+		UpdateIcon();
+		UpdateSelection();
+		UpdateFastTravelIndicator();
+		UpdateLocationName();
+		UpdateDistance();
+	}
+	
 	//! Update the icon display based on current state
 	void UpdateIcon()
 	{
@@ -162,16 +234,31 @@ class OVT_MapLocationElement : SCR_MapUIElement
 	//! Update selection highlight
 	protected void UpdateSelection()
 	{
-		if (!m_wSelectionHighlight)
-			return;
+		if (m_wSelectionHighlight)
+			m_wSelectionHighlight.SetVisible(m_bSelected);
 		
-		m_wSelectionHighlight.SetVisible(m_bSelected);
+		if (m_wBackgroundGradient)
+			m_wBackgroundGradient.SetVisible(m_bSelected);
+	}
+	
+	//! Animate expansion when selected
+	protected override void AnimExpand()
+	{
 		
-		// Could add animation or color changes here
-		if (m_bSelected)
-		{
-			// Add selection effects
-		}
+		if (m_wSelectionHighlight)
+			AnimateWidget.Opacity(m_wSelectionHighlight, 1.0, ANIM_SPEED);
+		
+		// Scale up animation could be added here in the future
+	}
+	
+	//! Animate collapse when deselected
+	protected override void AnimCollapse()
+	{
+		
+		if (m_wSelectionHighlight)
+			AnimateWidget.Opacity(m_wSelectionHighlight, 0.0, ANIM_SPEED);
+		
+		// Scale down animation could be added here in the future
 	}
 	
 	//! Update fast travel indicator
@@ -201,6 +288,18 @@ class OVT_MapLocationElement : SCR_MapUIElement
 		return currentZoom < visibilityZoom;
 	}
 	
+	//! Check if name should show at current zoom level
+	protected bool ShouldShowNameAtCurrentZoom()
+	{
+		if (!m_LocationType || !m_MapEntity)
+			return false;
+		
+		float currentZoom = m_MapEntity.GetCurrentZoom();
+		float showNameZoom = m_LocationType.GetShowNameZoom();
+		
+		return currentZoom >= showNameZoom;
+	}
+	
 	//! Get current player ID
 	protected string GetCurrentPlayerID()
 	{
@@ -216,18 +315,119 @@ class OVT_MapLocationElement : SCR_MapUIElement
 		return players.GetPersistentIDFromPlayerID(playerID);
 	}
 	
+	
+	//! Show or hide hover effects
+	protected void ShowHoverEffects(bool show)
+	{
+		if (m_wHoverOverlay)
+			m_wHoverOverlay.SetVisible(show);
+		
+		if (m_wHighlight && !m_bSelected)
+		{
+			m_wHighlight.SetVisible(show);
+			if (show)
+				AnimateWidget.Opacity(m_wHighlight, 0.5, ANIM_SPEED);
+			else
+				AnimateWidget.Opacity(m_wHighlight, 0.0, ANIM_SPEED);
+		}
+	}
+	
+	//! Update location name display
+	protected void UpdateLocationName()
+	{
+		if (!m_wLocationName || !m_LocationData || !m_LocationType)
+			return;
+		
+		// Check if location type should show name
+		if (!m_LocationType.ShouldShowName())
+		{
+			m_wLocationName.SetVisible(false);
+			return;
+		}
+		
+		// Check zoom level and popup state
+		bool shouldShow = ShouldShowNameAtCurrentZoom() && !IsInfoPopupVisible();
+		m_wLocationName.SetVisible(shouldShow);
+		
+		if (shouldShow)
+		{
+			string name = m_LocationType.GetLocationName(m_LocationData);
+			m_wLocationName.SetText(name);
+		}
+	}
+	
+	//! Update distance display
+	protected void UpdateDistance()
+	{
+		if (!m_wDistance || !m_LocationData || !m_LocationType)
+			return;
+		
+		// Only update if location type shows distance
+		if (!m_LocationType.ShouldShowDistance())
+		{
+			m_wDistance.SetVisible(false);
+			return;
+		}
+		
+		// Check zoom level and popup state - distance should show when name shows
+		bool shouldShow = ShouldShowNameAtCurrentZoom() && !IsInfoPopupVisible();
+		if (!shouldShow)
+		{
+			m_wDistance.SetVisible(false);
+			return;
+		}
+		
+		// Calculate distance from player
+		ChimeraCharacter playerEntity = ChimeraCharacter.Cast(SCR_PlayerController.GetLocalControlledEntity());
+		if (!playerEntity)
+		{
+			m_wDistance.SetVisible(false);
+			return;
+		}
+		
+		vector playerPos = playerEntity.GetOrigin();
+		float distance = vector.Distance(playerPos, m_LocationData.m_vPosition);
+		
+		// Format distance text
+		string distanceText;
+		if (distance < 1000)
+			distanceText = string.Format("%1 m", Math.Round(distance));
+		else
+			distanceText = string.Format("%.1f km", distance / 1000);
+		
+		m_wDistance.SetText(distanceText);
+		m_wDistance.SetVisible(true);
+	}
+	
 	//! Called when the map zoom level changes
 	void OnZoomChanged()
 	{
-		UpdateIcon();
-		UpdateFastTravelIndicator();
+		UpdateDisplay();
 	}
 	
 	//! Called when the location data is updated
 	void OnLocationDataChanged()
 	{
-		UpdateIcon();
-		UpdateFastTravelIndicator();
+		UpdateDisplay();
+	}
+	
+	//! Check if info popup is currently visible
+	protected bool IsInfoPopupVisible()
+	{
+		return m_bInfoPopupVisible;
+	}
+	
+	//! Set info popup visibility state
+	void SetInfoPopupVisible(bool visible)
+	{
+		if (m_bInfoPopupVisible == visible)
+			return;
+		
+		m_bInfoPopupVisible = visible;
+		
+		// Update name and distance visibility when popup state changes
+		UpdateLocationName();
+		UpdateDistance();
 	}
 	
 	//! Check if this element should be visible at current zoom level

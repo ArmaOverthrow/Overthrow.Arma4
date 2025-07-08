@@ -201,6 +201,10 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 		SetupFastTravelButton(location);
 		
 		m_bInfoPanelVisible = true;
+		
+		// Notify the selected element that info popup is visible
+		if (m_SelectedElement)
+			m_SelectedElement.SetInfoPopupVisible(true);
 	}
 	
 	//! Hide location info panel
@@ -213,6 +217,10 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 		}
 		
 		m_bInfoPanelVisible = false;
+		
+		// Notify the selected element that info popup is hidden
+		if (m_SelectedElement)
+			m_SelectedElement.SetInfoPopupVisible(false);
 	}
 	
 	//! Setup base location info (name, distance, etc.)
@@ -241,7 +249,7 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 			OVT_MapLocationType locationType = GetLocationTypeByName(location.m_sTypeName);
 			string typeName;
 			if (locationType)
-				typeName = locationType.GetDisplayName();
+				typeName = locationType.GetDisplayNameForLocation(location);
 			else
 				typeName = "Unknown";
 			typeText.SetText(typeName);

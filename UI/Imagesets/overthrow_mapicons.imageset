@@ -98,5 +98,23 @@ ImageSetClass {
    Size 128 128
    Flags 0
   }
+  ImageSetDefClass village {
+   Name "village"
+   Pos 392 262
+   Size 128 128
+   Flags 0
+  }
+  ImageSetDefClass town {
+   Name "town"
+   Pos 522 262
+   Size 128 128
+   Flags 0
+  }
+  ImageSetDefClass city {
+   Name "city"
+   Pos 652 262
+   Size 128 128
+   Flags 0
+  }
  }
 }

@@ -1,151 +1,241 @@
-VerticalLayoutWidgetClass {
+SizeLayoutWidgetClass {
  Name "TownInfo"
+ Slot FrameWidgetSlot "{65D0CCF71218D728}" {
+  OffsetLeft 0
+  OffsetTop 0
+  SizeX 240
+  OffsetRight -240
+  SizeY 240
+  OffsetBottom -240
+  SizeToContent 1
+ }
+ AllowWidthOverride 1
+ WidthOverride 260
+ AllowMinDesiredWidth 1
+ MinDesiredWidth 260
  {
-  // Population info
-  HorizontalLayoutWidgetClass "{OVT_PopulationLayout}" {
-   Name "PopulationLayout"
-   Slot LayoutSlot "{OVT_PopulationLayoutSlot}" {
-    Padding 0 0 0 5
+  VerticalLayoutWidgetClass "{65D0CCEA1C3DC82A}" {
+   Name "Layout"
+   Slot AlignableSlot "{65D0CCEAFD4CFF1E}" {
+    HorizontalAlign 3
+    VerticalAlign 3
    }
    {
-    TextWidgetClass "{OVT_PopulationLabel}" {
-     Name "PopulationLabel"
-     Slot LayoutSlot "{OVT_PopulationLabelSlot}" {
-      Padding 0 0 5 0
+    HorizontalLayoutWidgetClass "{65D0CCE221EA6BF3}" {
+     Name "Statistics"
+     Slot LayoutSlot "{599D5970B9AE5E6C}" {
+      HorizontalAlign 1
+      Padding 0 0 0 5
      }
-     Text "#OVT-Population:"
-     Color 0.8 0.8 0.8 1
-     "Font Size" 11
-     "Min Font Size" 11
-     "Horizontal Alignment" Left
-     "Vertical Alignment" Center
-    }
-    
-    TextWidgetClass "{OVT_Population}" {
-     Name "Population"
-     Slot LayoutSlot "{OVT_PopulationSlot}" {
-      Padding 0 0 0 0
-     }
-     Text "1250"
-     Color 1 1 1 1
-     "Font Size" 11
-     "Min Font Size" 11
-     "Horizontal Alignment" Left
-     "Vertical Alignment" Center
-     FontProperties FontProperties {
-      Font "{EABA4FE9D014CCEF}UI/Fonts/RobotoCondensed/RobotoCondensed_Bold.fnt"
-     }
-    }
-   }
-  }
-  
-  // Support info
-  HorizontalLayoutWidgetClass "{OVT_SupportLayout}" {
-   Name "SupportLayout"
-   Slot LayoutSlot "{OVT_SupportLayoutSlot}" {
-    Padding 0 0 0 5
-   }
-   {
-    TextWidgetClass "{OVT_SupportLabel}" {
-     Name "SupportLabel"
-     Slot LayoutSlot "{OVT_SupportLabelSlot}" {
-      Padding 0 0 5 0
-     }
-     Text "#OVT-Support:"
-     Color 0.8 0.8 0.8 1
-     "Font Size" 11
-     "Min Font Size" 11
-     "Horizontal Alignment" Left
-     "Vertical Alignment" Center
-    }
-    
-    TextWidgetClass "{OVT_Support}" {
-     Name "Support"
-     Slot LayoutSlot "{OVT_SupportSlot}" {
-      Padding 0 0 0 0
-     }
-     Text "45 (15%)"
-     Color 1 1 1 1
-     "Font Size" 11
-     "Min Font Size" 11
-     "Horizontal Alignment" Left
-     "Vertical Alignment" Center
-     FontProperties FontProperties {
-      Font "{EABA4FE9D014CCEF}UI/Fonts/RobotoCondensed/RobotoCondensed_Bold.fnt"
+     {
+      FrameWidgetClass "{65D0CCE221EA5029}" {
+       Name "Item0"
+       Slot LayoutSlot "{599D59708511F811}" {
+        Padding 10 0 5 0
+       }
+       {
+        HorizontalLayoutWidgetClass "{65D0CCE221EA502A}" {
+         Name "Layout"
+         Slot FrameWidgetSlot "{599D5970212AC99D}" {
+          OffsetLeft 0
+          OffsetTop 0
+          SizeX 0
+          OffsetRight 0
+          SizeY 0
+          OffsetBottom 0
+          SizeToContent 1
+         }
+         {
+          ImageWidgetClass "{OVT_FactionIcon}" {
+           Name "FactionIcon"
+           Slot LayoutSlot "{OVT_FactionIconSlot}" {
+            Padding 0 0 10 0
+           }
+           Color 1 1 1 1
+           Texture "{40B12B0DF911B856}UI/Textures/Editor/EditableEntities/Factions/EditableEntity_Faction_USSR.edds"
+           Size 24 24
+           "Blend Mode" Blend
+          }
+          ImageWidgetClass "{65D0CCE221EA502D}" {
+           Name "Icon"
+           Slot LayoutSlot "{599D5971CDC4D980}" {
+           }
+           Texture "{D17288006833490F}UI/Textures/Icons/icons_wrapperUI-32.imageset"
+           Image "players"
+           Size 24 24
+          }
+          TextWidgetClass "{65D0CCE221EA502C}" {
+           Name "Population"
+           Slot LayoutSlot "{599D5973F64E4A59}" {
+            VerticalAlign 1
+            Padding 0 0 0 0
+           }
+           Text "123"
+           "Font Size" 14
+           "Min Font Size" 11
+           "Horizontal Alignment" Center
+          }
+         }
+        }
+       }
+      }
      }
     }
-   }
-  }
-  
-  // Stability info
-  HorizontalLayoutWidgetClass "{OVT_StabilityLayout}" {
-   Name "StabilityLayout"
-   Slot LayoutSlot "{OVT_StabilityLayoutSlot}" {
-    Padding 0 0 0 5
-   }
-   {
-    TextWidgetClass "{OVT_StabilityLabel}" {
-     Name "StabilityLabel"
-     Slot LayoutSlot "{OVT_StabilityLabelSlot}" {
-      Padding 0 0 5 0
+    OverlayWidgetClass "{65D0CCE00F4D2F06}" {
+     Name "SupportBar"
+     Slot LayoutSlot "{65D0CCE00F4D2F6D}" {
      }
-     Text "#OVT-Stability:"
-     Color 0.8 0.8 0.8 1
-     "Font Size" 11
-     "Min Font Size" 11
-     "Horizontal Alignment" Left
-     "Vertical Alignment" Center
+     {
+      PanelWidgetClass "{65D0CCE0E7CBE949}" {
+       Name "Panel0"
+       Slot OverlayWidgetSlot "{65D0CCE0E7CBE8AB}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       Color 0.0471 0.0471 0.0471 1
+       style full
+      }
+      HorizontalLayoutWidgetClass "{OVT_SupportLayout}" {
+       Name "SupportLayout"
+       Slot OverlayWidgetSlot {
+        Padding 5 5 5 5
+       }
+       {
+        TextWidgetClass "{OVT_SupportLabel}" {
+         Name "SupportLabel"
+         Slot LayoutSlot "{OVT_SupportLabelSlot}" {
+          Padding 0 0 5 0
+         }
+         Color 0.8 0.8 0.8 1
+         Text "#OVT-Support:"
+         "Font Size" 14
+         "Min Font Size" 14
+         "Horizontal Alignment" Left
+         "Vertical Alignment" Center
+        }
+        TextWidgetClass "{OVT_Support}" {
+         Name "Support"
+         Slot LayoutSlot "{OVT_SupportSlot}" {
+          Padding 0 0 0 0
+         }
+         Color 1 1 1 1
+         Text "45 (15%)"
+         "Font Size" 14
+         "Min Font Size" 14
+         "Horizontal Alignment" Left
+         "Vertical Alignment" Center
+         FontProperties FontProperties "{65D0CCF73FC13669}" {
+          Font "{EABA4FE9D014CCEF}UI/Fonts/RobotoCondensed/RobotoCondensed_Bold.fnt"
+         }
+        }
+       }
+      }
+     }
     }
-    
-    TextWidgetClass "{OVT_Stability}" {
-     Name "Stability"
-     Slot LayoutSlot "{OVT_StabilitySlot}" {
-      Padding 0 0 0 0
+    VerticalLayoutWidgetClass "{OVT_SupportModifiersSection}" {
+     Name "SupportModifiersSection"
+     Slot LayoutSlot "{OVT_SupportModifiersSectionSlot}" {
+      Padding 0 1 0 5
      }
-     Text "78%"
-     Color 1 1 1 1
-     "Font Size" 11
-     "Min Font Size" 11
-     "Horizontal Alignment" Left
-     "Vertical Alignment" Center
-     FontProperties FontProperties {
-      Font "{EABA4FE9D014CCEF}UI/Fonts/RobotoCondensed/RobotoCondensed_Bold.fnt"
+     {
+      WrapLayoutWidgetClass "{OVT_SupportModifiersContainer}" {
+       Name "SupportModifiersContainer"
+       Slot LayoutSlot "{OVT_SupportModifiersContainerSlot}" {
+        Padding 0 0 0 0
+       }
+       {
+        FrameWidgetClass "{65D0CCEAAD57F3C5}" : "{EAA13B9FD255CB26}UI/Layouts/Map/OVT_TownModifierWidget.layout" {
+         Name "ModifierFrame0"
+         Slot WrapLayoutWidgetSlot "{65D0CCEAAD57F3A2}" {
+         }
+        }
+        FrameWidgetClass "{65D0CCEAA9733905}" : "{EAA13B9FD255CB26}UI/Layouts/Map/OVT_TownModifierWidget.layout" {
+         Name "ModifierFrame1"
+         Slot WrapLayoutWidgetSlot "{65D0CCEAAD57F3A2}" {
+         }
+        }
+       }
+      }
      }
     }
-   }
-  }
-  
-  // Controlling faction
-  HorizontalLayoutWidgetClass "{OVT_FactionLayout}" {
-   Name "FactionLayout"
-   Slot LayoutSlot "{OVT_FactionLayoutSlot}" {
-    Padding 0 0 0 10
-   }
-   {
-    TextWidgetClass "{OVT_FactionLabel}" {
-     Name "FactionLabel"
-     Slot LayoutSlot "{OVT_FactionLabelSlot}" {
-      Padding 0 0 5 0
+    OverlayWidgetClass "{65D0CCE03D6D1492}" {
+     Name "StabilityBar"
+     Slot LayoutSlot "{65D0CCE03D6D14C4}" {
      }
-     Text "Controlled by:"
-     Color 0.8 0.8 0.8 1
-     "Font Size" 11
-     "Min Font Size" 11
-     "Horizontal Alignment" Left
-     "Vertical Alignment" Center
+     {
+      PanelWidgetClass "{65D0CCE09829C5AA}" {
+       Name "Panel0"
+       Slot OverlayWidgetSlot "{65D0CCE09829C593}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       Color 0.0471 0.0471 0.0471 1
+       style full
+      }
+      HorizontalLayoutWidgetClass "{OVT_StabilityLayout}" {
+       Name "StabilityLayout"
+       Slot OverlayWidgetSlot {
+        Padding 5 5 5 5
+       }
+       {
+        TextWidgetClass "{OVT_StabilityLabel}" {
+         Name "StabilityLabel"
+         Slot LayoutSlot "{OVT_StabilityLabelSlot}" {
+          Padding 0 0 5 0
+         }
+         Color 0.8 0.8 0.8 1
+         Text "#OVT-Stability:"
+         "Font Size" 14
+         "Min Font Size" 14
+         "Horizontal Alignment" Left
+         "Vertical Alignment" Center
+        }
+        TextWidgetClass "{OVT_Stability}" {
+         Name "Stability"
+         Slot LayoutSlot "{OVT_StabilitySlot}" {
+          Padding 0 0 0 0
+         }
+         Color 1 1 1 1
+         Text "78%"
+         "Font Size" 14
+         "Min Font Size" 14
+         "Horizontal Alignment" Left
+         "Vertical Alignment" Center
+         FontProperties FontProperties "{65D0CCF73FC1361C}" {
+          Font "{EABA4FE9D014CCEF}UI/Fonts/RobotoCondensed/RobotoCondensed_Bold.fnt"
+         }
+        }
+       }
+      }
+     }
     }
-    
-    ImageWidgetClass "{OVT_FactionIcon}" {
-     Name "FactionIcon"
-     Slot LayoutSlot "{OVT_FactionIconSlot}" {
-      Padding 0 0 0 0
+    VerticalLayoutWidgetClass "{OVT_StabilityModifiersSection}" {
+     Name "StabilityModifiersSection"
+     Slot LayoutSlot "{OVT_StabilityModifiersSectionSlot}" {
+      Padding 0 1 0 5
      }
-     Color 1 1 1 1
-     Size 20 20
-     "Blend Mode" Blend
+     {
+      WrapLayoutWidgetClass "{OVT_StabilityModifiersContainer}" {
+       Name "StabilityModifiersContainer"
+       Slot LayoutSlot "{OVT_StabilityModifiersContainerSlot}" {
+        Padding 0 0 0 0
+       }
+       {
+        FrameWidgetClass "{65D0CCEAA89F7370}" : "{EAA13B9FD255CB26}UI/Layouts/Map/OVT_TownModifierWidget.layout" {
+         Name "ModifierFrame0"
+         Slot WrapLayoutWidgetSlot "{65D0CCEAAD57F3A2}" {
+         }
+        }
+        FrameWidgetClass "{65D0CCEAB5210FA9}" : "{EAA13B9FD255CB26}UI/Layouts/Map/OVT_TownModifierWidget.layout" {
+         Name "ModifierFrame1"
+         Slot WrapLayoutWidgetSlot "{65D0CCEAAD57F3A2}" {
+         }
+        }
+       }
+      }
+     }
     }
    }
   }
  }
-}
 }

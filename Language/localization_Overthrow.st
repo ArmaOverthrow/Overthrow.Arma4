@@ -843,6 +843,13 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{65D0CCE5C1759927}" {
+   Id "OVT-City"
+   Target_en_us "City"
+   Modified 1708198306
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5D86A310C893DBE0}" {
    Id "OVT-ContainerProgress"
    Target_en_us "Container %1 of %2"
@@ -7166,6 +7173,13 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{65D0CCE5C784D4F8}" {
+   Id "OVT-Town"
+   Target_en_us "Town"
+   Modified 1708198297
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5E04888F00ABCED0}" {
    Id "OVT-UndeployFOB"
    Target_en_us "Undeploy FOB"
@@ -7388,6 +7402,13 @@ StringTable {
    LastChanged "parkj_c3c9hji"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{65D0CCE5FBF5456C}" {
+   Id "OVT-Village"
+   Target_en_us "Village"
+   Modified 1708198289
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{5D48A6A90A8A2177}" {
    Id "OVT-Warehouse"

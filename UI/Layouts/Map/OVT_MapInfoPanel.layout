@@ -1,11 +1,20 @@
 FrameWidgetClass {
  Name "rootFrame"
+ Slot FrameWidgetSlot "{65D0CCFD24DDB1F0}" {
+  OffsetLeft 0
+  OffsetTop 0
+  SizeX 400
+  OffsetRight -400
+  SizeY 800
+  OffsetBottom -800
+  SizeToContent 1
+ }
  "Z Order" 20
  Clipping False
  {
-  PanelWidgetClass "{OVT_InfoBackground}" {
-   Name "InfoBackground"
-   Slot FrameWidgetSlot "{OVT_InfoBackgroundSlot}" {
+  SizeLayoutWidgetClass "{OVT_InfoContainer}" {
+   Name "InfoContainer"
+   Slot FrameWidgetSlot "{OVT_InfoContainerSlot}" {
     Anchor 0 0 0 0
     PositionX 0
     OffsetLeft 0
@@ -13,115 +22,144 @@ FrameWidgetClass {
     OffsetTop 0
     SizeX 300
     OffsetRight -300
-    SizeY 0
-    OffsetBottom 0
+    SizeY 400
+    OffsetBottom -400
     Alignment 0 0
+    SizeToContent 1
    }
-   Color 0.1 0.1 0.1 0.9
+   "Z Order" 20
+   AllowWidthOverride 1
+   WidthOverride 260
+   HeightOverride 0
+   AllowMinDesiredWidth 1
+   MinDesiredWidth 260
+   AllowMinDesiredHeight 1
+   MinDesiredHeight 200
+   AllowMaxDesiredWidth 1
+   MaxDesiredWidth 400
+   AllowMaxDesiredHeight 1
+   MaxDesiredHeight 800
    {
-    VerticalLayoutWidgetClass "{OVT_MainLayout}" {
-     Name "MainLayout"
-     Slot AlignableSlot "{OVT_MainLayoutSlot}" {
+    OverlayWidgetClass "{OVT_InfoOverlay}" {
+     Name "InfoOverlay"
+     Slot AlignableSlot "{OVT_InfoOverlaySlot}" {
       HorizontalAlign 3
       VerticalAlign 3
-      Padding 10 10 10 10
      }
      {
-      // Title bar
-      HorizontalLayoutWidgetClass "{OVT_TitleBar}" {
-       Name "TitleBar"
-       Slot LayoutSlot "{OVT_TitleBarSlot}" {
-        Padding 0 0 0 5
+      PanelWidgetClass "{OVT_InfoBackground}" {
+       Name "InfoBackground"
+       Slot AlignableSlot "{OVT_InfoBackgroundSlot}" {
+        HorizontalAlign 3
+        VerticalAlign 3
        }
+       "Z Order" 0
+       Color 0.0314 0.0314 0.0314 1
+       style full
+      }
+      VerticalLayoutWidgetClass "{OVT_MainLayout}" {
+       Name "MainLayout"
+       Slot AlignableSlot "{OVT_MainLayoutSlot}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       "Z Order" 1
        {
-        VerticalLayoutWidgetClass "{OVT_TitleInfo}" {
-         Name "TitleInfo"
-         Slot LayoutSlot "{OVT_TitleInfoSlot}" {
-          Padding 0 0 5 0
+        OverlayWidgetClass "{65D0CCECA254771D}" {
+         Name "Header"
+         Slot LayoutSlot "{65D0CCECA25477E7}" {
+          Padding 0 0 0 5
          }
          {
-          TextWidgetClass "{OVT_LocationName}" {
-           Name "LocationName"
-           Slot LayoutSlot "{OVT_LocationNameSlot}" {
-            Padding 0 0 0 2
+          ImageWidgetClass "{65D0CCEC8F7DCD84}" {
+           Name "HeaderBG"
+           Slot OverlayWidgetSlot "{65D0CCE2F201932C}" {
+            HorizontalAlign 3
+            VerticalAlign 3
            }
-           Text "Location Name"
-           Color 1 1 1 1
-           "Font Size" 14
-           "Min Font Size" 14
-           "Horizontal Alignment" Left
-           "Vertical Alignment" Center
+           Color 0.0252 0.0252 0.0252 1
+           Texture "{7DE73FC8A57B6A2D}UI/Textures/QuickMenu/backgroundNoise.edds"
+           Size 32 32
+           Tiling Wrap
           }
-          
-          TextWidgetClass "{OVT_LocationType}" {
-           Name "LocationType"
-           Slot LayoutSlot "{OVT_LocationTypeSlot}" {
-            Padding 0 0 0 0
+          VerticalLayoutWidgetClass "{65D0CCED27B12A78}" {
+           Name "VerticalLayout0"
+           Slot OverlayWidgetSlot "{65D0CCED27B12A40}" {
+            HorizontalAlign 3
+            VerticalAlign 3
+            Padding 10 10 10 10
            }
-           Text "Location Type"
-           Color 0.8 0.8 0.8 1
-           "Font Size" 10
-           "Min Font Size" 10
-           "Horizontal Alignment" Left
-           "Vertical Alignment" Center
+           {
+            TextWidgetClass "{OVT_LocationName}" {
+             Name "LocationName"
+             Slot LayoutSlot "{OVT_LocationNameSlot}" {
+              Padding 0 0 0 2
+             }
+             Color 1 1 1 1
+             Text "Location Name"
+             "Font Size" 16
+             "Min Font Size" 14
+             "Horizontal Alignment" Left
+             "Vertical Alignment" Center
+             FontProperties FontProperties "{65D0CCE260143650}" {
+              Bold 1
+             }
+            }
+            TextWidgetClass "{OVT_LocationType}" {
+             Name "LocationType"
+             Slot LayoutSlot "{OVT_LocationTypeSlot}" {
+              Padding 0 0 0 4
+             }
+             Color 0.8 0.8 0.8 1
+             Text "Location Type"
+             "Font Size" 10
+             "Min Font Size" 10
+             "Horizontal Alignment" Left
+             "Vertical Alignment" Center
+            }
+            TextWidgetClass "{OVT_Distance}" {
+             Name "Distance"
+             Slot LayoutSlot "{65D0CCE2F20192B6}" {
+             }
+             Color 0.9 0.9 0.9 1
+             Text "Distance: 1.2 km"
+             "Font Size" 10
+             "Min Font Size" 10
+             "Horizontal Alignment" Left
+             "Vertical Alignment" Center
+            }
+           }
           }
          }
         }
-        
-        ButtonWidgetClass "{OVT_CloseButton}" {
-         Name "CloseButton"
-         Slot LayoutSlot "{OVT_CloseButtonSlot}" {
-          Padding 0 0 0 0
+        ButtonWidgetClass "{OVT_FastTravelButton}" {
+         Name "FastTravelButton"
+         Slot LayoutSlot "{OVT_FastTravelButtonSlot}" {
+          Padding 0 0 0 10
          }
-         Text "×"
-         "Font Size" 16
-         "Min Font Size" 16
+         "Is Visible" 0
          Color 1 1 1 1
-         "Horizontal Alignment" Center
-         "Vertical Alignment" Center
         }
-       }
-      }
-      
-      // Distance info
-      TextWidgetClass "{OVT_Distance}" {
-       Name "Distance"
-       Slot LayoutSlot "{OVT_DistanceSlot}" {
-        Padding 0 0 0 10
-       }
-       Text "Distance: 1.2 km"
-       Color 0.9 0.9 0.9 1
-       "Font Size" 11
-       "Min Font Size" 11
-       "Horizontal Alignment" Left
-       "Vertical Alignment" Center
-      }
-      
-      // Fast travel button
-      ButtonWidgetClass "{OVT_FastTravelButton}" {
-       Name "FastTravelButton"
-       Slot LayoutSlot "{OVT_FastTravelButtonSlot}" {
-        Padding 0 0 0 10
-       }
-       Text "#OVT-MainMenu_FastTravel"
-       "Font Size" 12
-       "Min Font Size" 12
-       Size 0 30
-       Color 1 1 1 1
-       "Horizontal Alignment" Center
-       "Vertical Alignment" Center
-       "Is Visible" 0
-      }
-      
-      // Content slot for location-specific information
-      FrameWidgetClass "{OVT_ContentSlot}" {
-       Name "ContentSlot"
-       Slot LayoutSlot "{OVT_ContentSlotSlot}" {
-        Padding 0 10 0 0
-       }
-       Clipping False
-       {
-        // This will be populated by location types
+        FrameWidgetClass "{OVT_ContentSlot}" {
+         Name "ContentSlot"
+         Slot LayoutSlot "{OVT_ContentSlotSlot}" {
+         }
+         Clipping False
+         {
+          SizeLayoutWidgetClass "{65D0CCE0C5D5DCF1}" : "{4DD35ACC1CB7006F}UI/Layouts/Map/OVT_MapInfoTown.layout" {
+           Name "TownInfo0"
+           Slot FrameWidgetSlot "{65D0CCF71218D728}" {
+            OffsetLeft 0
+            OffsetTop 0
+            SizeX 250
+            OffsetRight -250
+            SizeY 250
+            OffsetBottom -250
+           }
+           WidthOverride 260
+          }
+         }
+        }
        }
       }
      }
@@ -129,5 +167,4 @@ FrameWidgetClass {
    }
   }
  }
-}
 }

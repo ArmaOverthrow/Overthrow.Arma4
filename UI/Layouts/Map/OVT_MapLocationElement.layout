@@ -1,103 +1,179 @@
 FrameWidgetClass {
  Name "rootFrame"
- "Z Order" 8
+ Slot FrameWidgetSlot "{5E9888C3791AC614}" {
+  OffsetLeft 0
+  OffsetTop 0
+  OffsetRight -100
+  SizeY 100
+  OffsetBottom -100
+ }
+ "Z Order" 20
  Clipping False
  components {
   OVT_MapLocationElement "{65B1281D2F6C0C46}" {
   }
  }
  {
-  FrameWidgetClass "{OVT_IconContainer}" {
-   Name "IconContainer"
-   Slot FrameWidgetSlot "{OVT_IconContainerSlot}" {
-    Anchor 0 0 0 0
-    PositionX 0
+  SizeLayoutWidgetClass "{5E8683A8458B3FC0}" {
+   Name "SizeLayout0"
+   Slot FrameWidgetSlot "{5E8683A8458B3F14}" {
+    Anchor 0.5 0.5 0.5 0.5
     OffsetLeft 0
-    PositionY 0
     OffsetTop 0
-    SizeX 32
-    OffsetRight -32
-    SizeY 32
-    OffsetBottom -32
+    OffsetRight -100
+    SizeY 100
+    OffsetBottom -100
     Alignment 0.5 0.5
+    SizeToContent 1
    }
+   AllowWidthOverride 1
+   WidthOverride 32
+   AllowHeightOverride 1
+   HeightOverride 60
+   AllowMinDesiredWidth 1
+   MinDesiredWidth 24
+   AllowMinDesiredHeight 1
+   MinDesiredHeight 40
+   AllowMaxDesiredWidth 1
+   MaxDesiredWidth 64
+   AllowMaxDesiredHeight 1
+   MaxDesiredHeight 100
    {
-    PanelWidgetClass "{OVT_SelectionHighlight}" {
-     Name "SelectionHighlight"
-     Slot AlignableSlot "{OVT_SelectionSlot}" {
-      HorizontalAlign 1
-      VerticalAlign 1
-      Padding -4 -4 -4 -4
-     }
-     "Z Order" 0
-     Color 1 1 0 0.5
-    }
-    SizeLayoutWidgetClass "{OVT_IconLayout}" {
-     Name "IconLayout"
-     Slot AlignableSlot "{OVT_IconLayoutSlot}" {
-      HorizontalAlign 1
-      VerticalAlign 1
-      Padding 0 0 0 0
+    VerticalLayoutWidgetClass "{5E848303D0D9D76B}" {
+     Name "ContentLayout"
+     Slot AlignableSlot "{5E8683A8459BA105}" {
+      HorizontalAlign 3
+      VerticalAlign 3
      }
      {
-      ButtonWidgetClass "{OVT_Button}" {
-       Name "Button"
-       Slot AlignableSlot "{OVT_ButtonSlot}" {
-        HorizontalAlign 1
-        VerticalAlign 1
-        Padding -4 -4 -4 -4
+      TextWidgetClass "{54C8838024B49F61}" {
+       Name "LocationName"
+       Slot LayoutSlot "{5E8683A55F5C74D1}" {
+        VerticalAlign 3
        }
-       "Z Order" 3
-       "Ignore Cursor" 0
+       "Z Order" 11
+       Color 0 0 0 1
+       Text "Location"
+       "Font Size" 12
       }
-      ImageWidgetClass "{OVT_Icon}" {
-       Name "Icon"
-       Slot AlignableSlot "{OVT_IconSlot}" {
-        HorizontalAlign 1
-        VerticalAlign 1
-        Padding 0 0 0 0
+      SizeLayoutWidgetClass "{5E8683A55F5C7487}" {
+       Name "IconContainer"
+       Slot LayoutSlot "{5E8683A55F5C74D2}" {
+        VerticalAlign 3
        }
-       "Z Order" 1
-       Color 1 1 1 1
-       Size 24 24
-       "Blend Mode" Blend
+       AllowWidthOverride 1
+       WidthOverride 32
+       AllowHeightOverride 1
+       HeightOverride 32
+       {
+        OverlayWidgetClass "{5E8683A8458B3FC1}" {
+         Name "IconOverlay"
+         Slot AlignableSlot "{5E8683A8458B3FC2}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+         }
+         {
+          ImageWidgetClass "{5E8683A8458B3FC5}" {
+           Name "BackgroundGradient"
+           Slot OverlayWidgetSlot "{65D0CCDA33B738F6}" {
+           }
+           "Z Order" -1
+           Color 1 1 1 0.2875
+           Size 200 200
+          }
+          ImageWidgetClass "{56B5003E7879A6C4}" {
+           Name "Highlight"
+           Slot AlignableSlot "{56B5003E7879A6C7}" {
+            HorizontalAlign 3
+            VerticalAlign 3
+           }
+           "Z Order" 0
+           Opacity 0
+           Color 1 1 1 0.2
+           Texture "{3262679C50EF4F01}UI/Textures/Icons/icons_wrapperUI.imageset"
+           Image "slot-primary-hover"
+          }
+          PanelWidgetClass "{56B5003E7879A6C5}" {
+           Name "SelectionHighlight"
+           Slot AlignableSlot "{56B5003E7879A6C8}" {
+            HorizontalAlign 3
+            VerticalAlign 3
+           }
+           "Z Order" 1
+           Opacity 0
+           style outline_2px
+          }
+          PanelWidgetClass "{5E8683A8458B3FC7}" {
+           Name "HoverOverlay"
+           Slot AlignableSlot "{5E8683A8458B3FC8}" {
+            HorizontalAlign 3
+            VerticalAlign 3
+           }
+           "Z Order" 2
+           Color 1 1 1 0.1
+          }
+          ButtonWidgetClass "{5E8683A8458B3FCB}" {
+           Name "Button"
+           Slot AlignableSlot "{5E8683A8458B3FCC}" {
+            HorizontalAlign 3
+            VerticalAlign 3
+           }
+           "Z Order" 10
+           style blank
+          }
+          ScaleWidgetClass "{5E8683A8458B3FC9}" {
+           Name "IconScale"
+           Slot AlignableSlot "{5E8683A8458B3FCA}" {
+            HorizontalAlign 3
+            VerticalAlign 3
+           }
+           "Z Order" 3
+           {
+            ImageWidgetClass "{54C883BFA081E18C}" {
+             Name "Icon"
+             Slot AlignableSlot "{5E8683A8458B3FCD}" {
+              HorizontalAlign 3
+              VerticalAlign 3
+             }
+             Color 0 0 0 1
+             Texture "{C7691945DE01FB28}UI/Imagesets/overthrow_mapicons.imageset"
+             Image "waypoint"
+             Size 128 128
+             "Shadow Offset" 1 1
+             "Shadow Size Increase" 0 0
+             "Shadow Color" 0 0 0 0.3875
+            }
+           }
+          }
+          ImageWidgetClass "{5E8683A8458B3FCE}" {
+           Name "FastTravelIndicator"
+           Slot AlignableSlot "{5E8683A8458B3FCF}" {
+            HorizontalAlign 2
+            VerticalAlign 0
+           }
+           "Z Order" 4
+           Color 0 1 0 0.8
+           Texture "{C7691945DE01FB28}UI/Imagesets/overthrow_mapicons.imageset"
+           Image "waypoint"
+           Size 8 8
+          }
+         }
+        }
+       }
       }
-      ImageWidgetClass "{OVT_FastTravelIndicator}" {
-       Name "FastTravelIndicator"
-       Slot AlignableSlot "{OVT_FastTravelSlot}" {
-        HorizontalAlign 2
-        VerticalAlign 0
-        Padding 0 -2 -2 0
+      TextWidgetClass "{5E8683A8458B3FD0}" {
+       Name "Distance"
+       Slot LayoutSlot "{5E8683A8458B3FD1}" {
+        VerticalAlign 3
        }
-       "Z Order" 2
-       Color 0 1 0 0.8
-       Texture "{C7691945DE01FB28}UI/Imagesets/overthrow_mapicons.imageset"
-       Image "waypoint"
-       Size 8 8
-       "Blend Mode" Blend
+       "Z Order" 12
+       Color 0 0 0 0.8
+       Text "1.2 km"
+       "Font Size" 10
       }
      }
     }
    }
-  }
-  TextWidgetClass "{OVT_Distance}" {
-   Name "Distance"
-   Slot FrameWidgetSlot "{OVT_DistanceSlot}" {
-    Anchor 0 0 0 0
-    PositionX 0
-    OffsetLeft 0
-    PositionY 0
-    OffsetTop 36
-    SizeX 0
-    OffsetRight 0
-    SizeY 0
-    OffsetBottom 0
-    Alignment 0.5 0
-   }
-   "Z Order" 3
-   Color 1 1 1 0.8
-   Text "1.2 km"
-   "Font Size" 10
   }
  }
 }

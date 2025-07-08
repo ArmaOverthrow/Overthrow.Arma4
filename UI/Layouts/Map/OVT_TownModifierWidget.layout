@@ -1,0 +1,74 @@
+FrameWidgetClass {
+ Name "ModifierFrame"
+ Slot LayoutSlot "{65D0CCEB71947E51}" {
+  HorizontalAlign 0
+  VerticalAlign 0
+  Padding 0 0 3 3
+ }
+ components {
+  OVT_TownModifierWidgetHandler "{65D0CCE82780E753}" {
+   m_PositiveColor 0 0.301 0 1
+   m_NegativeColor 0.216 0 0 1
+  }
+ }
+ {
+  SizeLayoutWidgetClass "{OVT_ModifierContainer}" {
+   Name "ModifierContainer"
+   Slot FrameWidgetSlot "{OVT_ModifierContainerSlot}" {
+    OffsetLeft 0
+    OffsetTop 0
+    SizeX 120
+    OffsetRight -120
+    SizeY 24
+    OffsetBottom -24
+    SizeToContent 1
+   }
+   AllowWidthOverride 1
+   WidthOverride 120
+   AllowHeightOverride 1
+   HeightOverride 24
+   AllowMinDesiredWidth 1
+   MinDesiredWidth 120
+   AllowMaxDesiredWidth 1
+   MaxDesiredWidth 200
+   {
+    OverlayWidgetClass "{OVT_ModifierOverlay}" {
+     Name "ModifierOverlay"
+     Slot AlignableSlot "{OVT_ModifierOverlaySlot}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+     }
+     {
+      PanelWidgetClass "{OVT_ModifierBackground}" {
+       Name "ModifierBackground"
+       Slot AlignableSlot "{OVT_ModifierBackgroundSlot}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       "Z Order" 0
+       Color 0.3 0 0 1
+       style magazine_small_progress
+      }
+      TextWidgetClass "{OVT_ModifierText}" {
+       Name "ModifierText"
+       Slot AlignableSlot "{OVT_ModifierTextSlot}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+        Padding 8 4 8 4
+       }
+       "Z Order" 1
+       Color 1 1 1 1
+       Text "+5% Example Modifier"
+       "Font Size" 10
+       "Min Font Size" 10
+       "Horizontal Alignment" Center
+       "Vertical Alignment" Center
+       FontProperties FontProperties "{65D0CCF0BABD93BA}" {
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

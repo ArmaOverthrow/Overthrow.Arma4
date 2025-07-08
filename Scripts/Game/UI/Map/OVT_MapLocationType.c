@@ -1,7 +1,7 @@
 //! Base class for map location types using hybrid config/code pattern
 //! Follows the same pattern as OVT_BaseUpgrade for extensibility
 [BaseContainerProps(), SCR_BaseContainerCustomTitleField("m_sDisplayName")]
-class OVT_MapLocationType : Managed
+class OVT_MapLocationType
 {
 	[Attribute(defvalue: "Generic Location", desc: "Display name for location type")]
 	protected string m_sDisplayName;
@@ -32,6 +32,12 @@ class OVT_MapLocationType : Managed
 	
 	[Attribute(defvalue: "24", desc: "Icon size when zoomed in")]
 	protected int m_iIconSizeLarge;
+	
+	[Attribute(defvalue: "2", desc: "Zoom level to show location name (0=always, higher=closer zoom)")]
+	protected float m_fShowNameZoom;
+	
+	[Attribute(defvalue: "true", desc: "Show location name when zoomed in")]
+	protected bool m_bShowName;
 	
 	//! Reference to the map UI that owns this location type
 	protected OVT_OverthrowMapUI m_MapUI;
@@ -105,6 +111,30 @@ class OVT_MapLocationType : Managed
 	//! Update location-specific UI info panel
 	void UpdateInfoPanel(OVT_MapLocationData location, Widget infoPanel)
 	{
+		if (!infoPanel || !location || m_InfoLayout.IsEmpty())
+			return;
+		
+		// Clear existing content in the content slot
+		Widget child = infoPanel.GetChildren();
+		while (child)
+		{
+			infoPanel.RemoveChild(child);
+			child = infoPanel.GetChildren();
+		}
+		
+		// Create location-specific info layout in the content slot
+		WorkspaceWidget workspace = GetGame().GetWorkspace();
+		Widget locationInfoWidget = workspace.CreateWidgets(m_InfoLayout, infoPanel);
+		if (!locationInfoWidget)
+			return;
+		
+		// Call derived class to populate location-specific data
+		OnSetupLocationInfo(locationInfoWidget, location);
+	}
+	
+	//! Override this in derived classes to populate location-specific info
+	protected void OnSetupLocationInfo(Widget locationInfoWidget, OVT_MapLocationData location)
+	{
 		// Override in derived classes to populate location-specific info
 	}
 	
@@ -156,16 +186,40 @@ class OVT_MapLocationType : Managed
 		return m_sDisplayName;
 	}
 	
+	//! Get the display name for a specific location (can be overridden for location-specific names)
+	string GetDisplayNameForLocation(OVT_MapLocationData location)
+	{
+		return GetDisplayName();
+	}
+	
 	//! Get the visibility zoom level
 	float GetVisibilityZoom()
 	{
 		return m_fVisibilityZoom;
 	}
 	
-	//! Should show distance for this location type
+	//! Check if this location type should show distance
 	bool ShouldShowDistance()
 	{
 		return m_bShowDistance;
+	}
+	
+	//! Check if this location type should show location name
+	bool ShouldShowName()
+	{
+		return m_bShowName;
+	}
+	
+	//! Get the zoom level at which to show location name
+	float GetShowNameZoom()
+	{
+		return m_fShowNameZoom;
+	}
+	
+	//! Get the icon color for this location (override in derived classes)
+	Color GetIconColor(OVT_MapLocationData location)
+	{
+		return Color.Black; // Default black color for visibility on bright maps
 	}
 	
 	//! Get small icon size
@@ -190,6 +244,10 @@ class OVT_MapLocationType : Managed
 		if (image && !m_IconImageset.IsEmpty() && !m_sIconName.IsEmpty())
 		{
 			image.LoadImageFromSet(0, m_IconImageset, m_sIconName);
+			
+			// Apply icon color
+			Color iconColor = GetIconColor(location);
+			image.SetColor(iconColor);
 		}
 		
 		// Set icon size based on zoom level

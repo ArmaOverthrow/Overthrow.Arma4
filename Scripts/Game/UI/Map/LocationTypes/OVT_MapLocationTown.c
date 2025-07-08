@@ -2,38 +2,20 @@
 //! Handles towns and cities with support/stability display
 [BaseContainerProps()]
 class OVT_MapLocationTown : OVT_MapLocationType
-{
-	[Attribute(defvalue: "Town", desc: "Display name for town locations")]
-	protected string m_sTownDisplayName;
+{	
 	
-	[Attribute(defvalue: "1.5", desc: "Visibility zoom level for towns")]
-	protected float m_fTownVisibilityZoom;
+	[Attribute(defvalue: "{EAA13B9FD255CB26}UI/Layouts/Map/OVT_TownModifierWidget.layout", UIWidgets.ResourceNamePicker, desc: "Town modifier widget layout", params: "layout")]
+	protected ResourceName m_sTownModifierLayout;
 	
-	[Attribute(defvalue: "{6ACF6BED95B2BC1E}UI/Layouts/Map/OVT_MapLocationElement.layout", UIWidgets.ResourceNamePicker, desc: "Town icon layout", params: "layout")]
-	protected ResourceName m_sTownIconLayout;
+	[Attribute(defvalue: "waypoint", desc: "Icon name for villages (size 1)")]
+	protected string m_sVillageIconName;
 	
-	[Attribute(defvalue: "{6ACF6BED95B2BC20}UI/Layouts/Map/OVT_MapInfoTown.layout", UIWidgets.ResourceNamePicker, desc: "Town info layout", params: "layout")]
-	protected ResourceName m_sTownInfoLayout;
+	[Attribute(defvalue: "waypoint", desc: "Icon name for towns (size 2)")]
+	protected string m_sTownIconName;
 	
-	[Attribute(defvalue: "{C7691945DE01FB28}UI/Imagesets/overthrow_mapicons.imageset", UIWidgets.ResourceNamePicker, desc: "Town icon imageset", params: "imageset")]
-	protected ResourceName m_sTownImageset;
+	[Attribute(defvalue: "waypoint", desc: "Icon name for cities (size 3)")]
+	protected string m_sCityIconName;
 	
-	[Attribute(defvalue: "false", desc: "Allow fast travel to towns by default")]
-	protected bool m_bTownFastTravel;
-	
-	override void PostInit()
-	{
-		super.PostInit();
-		
-		// Override base attributes with town-specific values
-		m_sDisplayName = m_sTownDisplayName;
-		m_fVisibilityZoom = m_fTownVisibilityZoom;
-		m_IconLayout = m_sTownIconLayout;
-		m_InfoLayout = m_sTownInfoLayout;
-		m_IconImageset = m_sTownImageset;
-		m_bCanFastTravel = m_bTownFastTravel;
-		m_bShowDistance = true;
-	}
 	
 	//! Populate town locations from the town manager
 	override void PopulateLocations(array<ref OVT_MapLocationData> locations)
@@ -59,42 +41,22 @@ class OVT_MapLocationTown : OVT_MapLocationType
 			locationData.SetDataInt("stability", town.stability);
 			locationData.SetDataInt("faction", town.faction);
 			locationData.SetDataString("townType", GetTownTypeString(town));
-			
-			// Set visibility based on town size or other criteria
-			locationData.m_bVisible = ShouldShowTown(town, i);
-			
+						
 			locations.Insert(locationData);
 		}
 	}
-		
-	//! Handle town selection
-	override void OnLocationSelected(OVT_MapLocationData location, OVT_MapLocationElement element)
-	{
-		// Could add selection sound or visual feedback here
-		Print(location.m_sName);
-	}
 	
-	//! Handle town click
-	override void OnLocationClicked(OVT_MapLocationData location, OVT_MapLocationElement element)
+	//! Setup town-specific info panel content
+	protected override void OnSetupLocationInfo(Widget locationInfoWidget, OVT_MapLocationData location)
 	{
-		// Show town info panel
-		super.OnLocationClicked(location, element);
-	}
-	
-	//! Update town-specific info panel
-	override void UpdateInfoPanel(OVT_MapLocationData location, Widget infoPanel)
-	{
-		if (!infoPanel || !location)
-			return;
-		
-		// Create town info layout in the content slot
-		WorkspaceWidget workspace = GetGame().GetWorkspace();
-		Widget townInfoWidget = workspace.CreateWidgets(m_InfoLayout, infoPanel);
-		if (!townInfoWidget)
+		if (!locationInfoWidget || !location)
 			return;
 		
 		// Populate town data
-		SetupTownInfo(townInfoWidget, location);
+		SetupTownInfo(locationInfoWidget, location);
+		
+		// Setup modifiers
+		SetupTownModifiers(locationInfoWidget, location);
 	}
 	
 	//! Setup town-specific information in the info widget
@@ -118,7 +80,7 @@ class OVT_MapLocationTown : OVT_MapLocationType
 			int support = location.GetDataInt("support", 0);
 			int population = location.GetDataInt("population", 1);
 			float supportPercentage = (support * 100.0) / population;
-			supportText.SetText(string.Format("%1 (%2%)", support, Math.Round(supportPercentage)));
+			supportText.SetText(string.Format("%1 (%2%%)", support, Math.Round(supportPercentage)));
 		}
 		
 		// Stability
@@ -151,53 +113,32 @@ class OVT_MapLocationTown : OVT_MapLocationType
 		}
 	}
 	
-	//! Get location name with town type prefix
-	override string GetLocationName(OVT_MapLocationData location)
+	//! Get display name - returns the specific town type (Village, Town, City)
+	override string GetDisplayName()
 	{
-		if (!location)
-			return "";
-		
-		string townType = location.GetDataString("townType", "");
-		if (!townType.IsEmpty())
-			return townType + " of " + location.m_sName;
-		
-		return location.m_sName;
+		// This will be overridden per location in GetDisplayNameForLocation
+		return m_sDisplayName;
 	}
 	
-	//! Get town description
-	override string GetLocationDescription(OVT_MapLocationData location)
+	//! Get display name for a specific location - returns the town type
+	override string GetDisplayNameForLocation(OVT_MapLocationData location)
 	{
 		if (!location)
 			return m_sDisplayName;
 		
-		int population = location.GetDataInt("population", 0);
-		if (population > 0)
-			return string.Format("%1 (Pop: %2)", m_sDisplayName, population);
+		string townType = location.GetDataString("townType", "");
+		if (!townType.IsEmpty())
+			return townType;
 		
 		return m_sDisplayName;
 	}
 	
-	//! Check if town should be visible
-	override bool ShouldShowLocation(OVT_MapLocationData location, string playerID)
+	//! Get icon color based on controlling faction
+	override Color GetIconColor(OVT_MapLocationData location)
 	{
-		// Always show towns for now
-		// Could add fog of war or discovery mechanics here
-		return location.m_bVisible;
-	}
-	
-	//! Custom icon setup for towns
-	override protected void OnSetupIconWidget(Widget iconWidget, OVT_MapLocationData location, bool isSmall)
-	{
-		if (!iconWidget || !location)
-			return;
+		if (!location)
+			return Color.Black;
 		
-		ImageWidget icon = ImageWidget.Cast(iconWidget.FindAnyWidget("Icon"));
-		if (!icon)
-			return;
-		
-		// Set icon based on town size/type
-		string iconName = m_sIconName;
-				
 		// Color based on faction control
 		int townFaction = location.GetDataInt("faction", -1);
 		if (townFaction >= 0)
@@ -208,10 +149,53 @@ class OVT_MapLocationTown : OVT_MapLocationType
 				Faction faction = factionManager.GetFactionByIndex(townFaction);
 				if (faction)
 				{
-					icon.SetColor(faction.GetFactionColor());
+					return faction.GetFactionColor();
 				}
 			}
 		}
+		
+		// Default to black if no faction control
+		return Color.Black;
+	}
+	
+	//! Custom icon setup for towns - sets icon based on town size
+	override protected void OnSetupIconWidget(Widget iconWidget, OVT_MapLocationData location, bool isSmall)
+	{
+		if (!iconWidget || !location)
+			return;
+		
+		// Get the appropriate icon name based on town size
+		string iconName = GetIconNameForTownSize(location);
+		
+		// Update the icon with the size-specific icon name
+		ImageWidget image = ImageWidget.Cast(iconWidget.FindAnyWidget("Icon"));
+		if (image && !m_IconImageset.IsEmpty() && !iconName.IsEmpty())
+		{
+			image.LoadImageFromSet(0, m_IconImageset, iconName);
+			
+			// Apply icon color (handled by base class but we need to reapply after changing icon)
+			Color iconColor = GetIconColor(location);
+			image.SetColor(iconColor);
+		}
+	}
+	
+	//! Get the appropriate icon name based on town size
+	protected string GetIconNameForTownSize(OVT_MapLocationData location)
+	{
+		if (!location)
+			return m_sIconName;
+		
+		string townType = location.GetDataString("townType", "");
+		
+		if (townType == "#OVT-Village")
+			return m_sVillageIconName;
+		else if (townType == "#OVT-Town")
+			return m_sTownIconName;
+		else if (townType == "#OVT-City")
+			return m_sCityIconName;
+		
+		// Default fallback
+		return m_sTownIconName;
 	}
 		
 	//! Get town type string for display
@@ -222,23 +206,97 @@ class OVT_MapLocationTown : OVT_MapLocationType
 		
 		// Determine type based on population
 		if (town.size == 1)
-			return "Village";
+			return "#OVT-Village";
 		else if (town.size == 2)
-			return "Town";
+			return "#OVT-Town";
 		else if (town.size == 3)
-			return "City";
-		return "Town";
+			return "#OVT-City";
+		return "#OVT-Town";
+	}
+		
+	//! Setup town modifiers display
+	protected void SetupTownModifiers(Widget townInfoWidget, OVT_MapLocationData location)
+	{
+		if (!townInfoWidget || !location || !m_TownManager)
+			return;
+		
+		// Get the actual town data
+		int townID = location.m_iID;
+		if (townID < 0 || townID >= m_TownManager.m_Towns.Count())
+			return;
+		
+		OVT_TownData townData = m_TownManager.m_Towns[townID];
+		if (!townData)
+			return;
+		
+		// Setup support modifiers
+		SetupModifierContainer(townInfoWidget, "SupportModifiersContainer", townData.supportModifiers, OVT_TownSupportModifierSystem);
+		
+		// Setup stability modifiers
+		SetupModifierContainer(townInfoWidget, "StabilityModifiersContainer", townData.stabilityModifiers, OVT_TownStabilityModifierSystem);
 	}
 	
-	//! Check if town should be shown based on size and other criteria
-	protected bool ShouldShowTown(OVT_TownData town, int townIndex)
+	//! Setup a specific modifier container
+	protected void SetupModifierContainer(Widget parentWidget, string containerName, array<ref OVT_TownModifierData> modifiers, typename systemType)
 	{
-		if (!town)
-			return false;
+		if (!parentWidget || !m_TownManager)
+			return;
 		
-		// Show all towns for now
-		// Could add filters based on size, discovery, etc.
-		return true;
+		Widget container = parentWidget.FindAnyWidget(containerName);
+		if (!container)
+			return;
+		
+		// Clear existing modifiers
+		Widget child = container.GetChildren();
+		while (child)
+		{
+			container.RemoveChild(child);
+			child = container.GetChildren();
+		}
+		
+		// Get the modifier system
+		OVT_TownModifierSystem modifierSystem = m_TownManager.GetModifierSystem(systemType);
+		if (!modifierSystem)
+			return;
+		
+		// Track processed modifier IDs to handle stackable modifiers
+		array<int> processedIDs = new array<int>;
+		
+		WorkspaceWidget workspace = GetGame().GetWorkspace();
+		
+		foreach (OVT_TownModifierData modifierData : modifiers)
+		{
+			if (processedIDs.Contains(modifierData.id))
+				continue;
+			
+			OVT_ModifierConfig modifierConfig = modifierSystem.m_Config.m_aModifiers[modifierData.id];
+			if (!modifierConfig)
+				continue;
+			
+			// Calculate effect value (handle stackable modifiers)
+			int effectValue = modifierConfig.baseEffect;
+			if (modifierConfig.flags & OVT_ModifierFlags.STACKABLE)
+			{
+				effectValue = 0;
+				foreach (OVT_TownModifierData checkData : modifiers)
+				{
+					if (checkData.id == modifierData.id)
+						effectValue += modifierConfig.baseEffect;
+				}
+			}
+			
+			// Create modifier widget
+			Widget modifierWidget = workspace.CreateWidgets(m_sTownModifierLayout, container);
+			if (!modifierWidget)
+				continue;
+			
+			// Get the handler and initialize it
+			OVT_TownModifierWidgetHandler handler = OVT_TownModifierWidgetHandler.Cast(modifierWidget.FindHandler(OVT_TownModifierWidgetHandler));
+			if (handler)
+				handler.Init(modifierData, modifierConfig, effectValue);
+			
+			processedIDs.Insert(modifierData.id);
+		}
 	}
 	
 	//! Towns don't allow fast travel - player must use other locations
