@@ -35,7 +35,8 @@ class OVT_SomeManagerComponent: OVT_Component {
 
       return s_Instance;
     }
-    void Init(IEntity owner) { ... }
+    void Init(IEntity owner) { ... } //Is called manually by OVT_OverthrowGameMode for initialization if needed
+    void PostGameStart() { ... } //Is called manually by OVT_OverthrowGameMode after a new game is started
 }
 ```
 #### Controller Components
@@ -51,7 +52,13 @@ class OVT_SomeControllerComponent: OVT_Component
     [Attribute("1", desc: "A parameter description")]
     protected int m_iSomeParameter; //A parameter configurable in the Arma Reforger Tools
     
-    void Init(IEntity owner) { ... }
+    void OVT_SomeControllerComponent(IEntityComponentSource src, IEntity ent, IEntity parent)
+    {
+      OVT_Global.GetManager().RegisterSomeController(this);
+    }
+
+    void Init(IEntity owner) { ... } //May not be called unless manager registration calls it manually
+    
     //use getters and setters to expose parameters
     int GetSomeParameter() {return m_iSomeParameter;}
     void SetSomeParameter(int someParameter){m_iSomeParameter = someParameter;}
@@ -120,9 +127,13 @@ if(!entity) return; //clean up anything you need to if the entity no longer exis
 - **OVT_OverthrowController**: Client-side entity for one to one client-server communication callbacks and events
 - **Manager Components**: Manages entire systems and features, keeps track of controller instances, replicates and persists global state of systems
 - **Controller Components**: Manages single instances of entities, replicates and persists state of these entities
-- **Global Access**: `OVT_Global` provides static methods to access all managers
+- **OVT_Global**: Provides static methods to access all casted manager singletons easily on client or server
 
-### Coding Conventions
+### Legacy components
+- **OVT_OverthrowConfigComponent**: Global configuration, do not add anything to this anymore. Managers and controllers should define their own configuration from now.
+- **OVT_PlayerCommsComponent**: Legacy client-to-server communication. Do not use anymore, see "Network Synchronization" below
+
+## Coding Conventions
 - Class prefix: `OVT_`
 - Member variables: `m_` prefix
 - Type-specific prefixes: `m_a` (array), `m_m` (map), `m_i` (int), `m_f` (float), `m_s` (string), `m_b` (bool)
@@ -130,7 +141,7 @@ if(!entity) return; //clean up anything you need to if the entity no longer exis
 - Documentation: Doxygen style with `//!` comments
 - Attributes: `[Attribute()]` for editor-exposed properties
 
-### File Organization
+## File Organization
 - `Design/`: Design docs
 - `Scripts/Game/Components/`: Entity components and UI components
 - `Scripts/Game/GameMode/`: Core game logic and managers
@@ -142,7 +153,7 @@ if(!entity) return; //clean up anything you need to if the entity no longer exis
 - `Configs/`: Game configuration files
 - `Prefabs/`: Entity prefabs and compositions
 
-### Persistence
+## Persistence
 Components that require persistence need to define a SaveData class extending `EPF_ComponentSaveDataClass`:
 ```cpp
 [EPF_ComponentSaveDataType(OVT_SomeManagerOrControllerComponent)]
@@ -154,14 +165,86 @@ class OVT_SomeSaveData : EPF_ComponentSaveData
 }
 ```
 
-### Network Synchronization
-- Components use RPC for multiplayer sync
-- Rpl system handles replication
+## Network Synchronization
 - Do not identify entities across the network using EntityIDs as these can be different between server/client. Instead use RplId and the Replication singleton to manage entities across the network.
 - Manager components typically exist and operate only on the server and notify the client if needed
-- Components (any class that extends OVT_Component) with data that needs to be replicated to clients must implement RplLoad and RplSave overrided methods to provide JIP (Join in progress) data streams to new joining players
 
-#### Client-to-server
+### Replication
+Most replication can be handled with the RplProp attribute
+
+```cpp
+class ExampleComponent : OVT_Component
+{
+    // We mark param as replicated property using RplProp attribute, making
+    // it part of replicated state. If we need the client to do anything when it changes
+    // then we specify a method to be invoked whenever replication updates the value
+    [RplProp(onRplName: "OnExampleParamChanged")]
+    protected int m_iExampleParam;
+
+    protected void OnExampleParamChanged()
+    {
+        //perform any updates required on the client when m_iExampleParam changes
+    }
+
+    void SetExampleParam(int exampleParam) 
+    {
+      m_iExampleParam = exampleParam;
+      Replication.BumpMe(); //Broadcast change to all clients
+    }
+}
+```
+- Do not RplProp arrays, maps, entities or classes, only simple variables (int, bool, float, short strings). Arrays/Maps/Data classes should use RPC calls and JIP if they are required
+- Try to avoid replicating long strings, use localization or create a registry of strings if needed that lives on client and server and use an int
+- Avoid too many value changes too often or you will flood replication
+- Never replicate an IEntity or EntityID, use RplId
+
+### Server-to-client RPC
+To request all clients performs a task, use a broadcast RPC.
+
+```cpp
+void PerformTask(float value)
+{
+  RpcDo_PerformTask(); //Call directly in case we are a host
+  Rpc(RpcDo_PerformTask, value)
+}
+
+[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+void RpcDo_PerformTask(float value)
+{
+  //All clients do a thing
+}
+```
+
+To request a specific client do a task:
+```cpp
+//Get overthrow controller for specific player id (persistent string id or connected int id)
+OVT_OverthrowController clientController = OVT_Global.GetPlayers().GetController(playerId);
+if(!clientController) return; //Player may be offline, fail silently
+
+OVT_MyServerTaskComponent component = OVT_MyServerTaskComponent.Cast(clientController.FindComponent(OVT_MyServerTaskComponent));
+if(!component) return; //Entity is missing the required component, fail silently (it may be disabled for whatever reason)
+
+clientController.PerformTask(value);
+
+//In OVT_MyServerTaskComponent...
+void PerformTask(float value)
+{ 
+  Rpc(RpcDo_PerformTask, value);
+}
+
+[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+void RpcDo_PerformTask(float value)
+{
+  //Specific client does a thing
+}
+```
+
+#### Join-In-Progress (JIP)
+- Components that need to replicate any extra data to clients when joining need to define RplLoad and RplSave overrides to stream this data
+- RplProp decorated parameters will be replicated automatically, this should be used only for any extra data such as lists and maps
+- See any existing implementations for examples
+
+### Client-to-server
 - A multiplayer client must be the "owner" of an entity with a component in order to ask the server to perform tasks
 - `OVT_Global.GetServer()` is deprecated and should not be used anymore
 - Instead, groups of server request types should be put in a component that is added to the `OVT_OverthrowController` entity that is assigned to each client on join
@@ -194,10 +277,10 @@ if(Replication.IsServer())
     Rpc(RpcAsk_MethodName, params);  // RPC call if we're on client
 }
 ```
-
 This pattern ensures that when the server is also the host client, we don't make an unnecessary RPC call to ourselves.
 
-### User Interface
+
+## User Interface
 - Every player entity has a `OVT_UIManagerComponent` that handles UI context
 - Any screen in Overthrow defines a context class extending `OVT_UIContext` and is registered with the UI Manager on the player prefab. The base class has a `ResourceName m_Layout` member property that defines a .layout file configured in the workbench and shown automatically when the context is activated.
 - Example of activating a context to show a screen:
@@ -213,11 +296,6 @@ context.SetShop(shop);
 
 ui.ShowContext(OVT_ShopContext);
 ```
-
-### Important Notes
-- Always use `OVT_Global.GetXXX()` to access manager instances
-- Follow existing patterns when adding new components or systems
-
 ## External Dependencies
 
 ### Arma Reforger
