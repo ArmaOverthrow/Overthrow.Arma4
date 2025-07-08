@@ -15,7 +15,7 @@ Development is done through Arma Reforger Tools:
 
 ### Class Patterns
 #### Manager Components
-Overthrow Manager components are singletons placed on the OVT_OverthrowGameMode.et prefab and tasked with management of a single system or feature within the game mode. Manager components should follow this pattern:
+Overthrow Manager components are singletons placed on the `OVT_OverthrowGameMode.et` prefab and tasked with management of a single system or feature within the game mode. Manager components should follow this pattern:
 
 ```cpp
 class OVT_SomeManagerComponentClass: OVT_ComponentClass {};
