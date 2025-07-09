@@ -5,5 +5,8 @@ GenericEntity {
    m_pSaveData OVT_PlaceableSaveDataClass "{65B90A2DCB992F69}" {
    }
   }
+  OVT_PlaceableComponent "{65C4DD9D62B7AF93}" {
+   m_sPlaceableType "Sign"
+  }
  }
 }

@@ -500,6 +500,11 @@ class OVT_RecruitManagerComponent : OVT_Component
 		{
 			OVT_Global.GetNotify().SendTextNotification("RecruitDied", ownerData.id, victimRecruit.m_sName);
 		}
+
+		Print("[Overthrow] Recruit died: " + victimRecruit.m_sRecruitId);
+		
+		// Delete from EPF persistence before removing from system
+		DeleteRecruitFromEPF(victimRecruit.m_sRecruitId);
 		
 		// Remove entity mapping
 		m_mEntityToRecruit.Remove(victim.GetID());
@@ -1044,6 +1049,36 @@ class OVT_RecruitManagerComponent : OVT_Component
 			BroadcastRecruitUpdate(recruit);
 			
 			Print("[Overthrow] Despawned recruit: " + recruitId);
+		}
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Delete recruit from EPF persistence when they die using EPF's built-in helper
+	protected void DeleteRecruitFromEPF(string recruitId)
+	{
+		if (recruitId.IsEmpty())
+			return;
+			
+		// Find the recruit entity first
+		IEntity recruitEntity = FindRecruitEntity(recruitId);
+		if (!recruitEntity)
+		{
+			Print("[Overthrow] WARNING: Could not find recruit entity to delete from persistence: " + recruitId);
+			return;
+		}
+		
+		// Get the EPF persistence component and use its Delete() method
+		EPF_PersistenceComponent persistenceComp = EPF_PersistenceComponent.Cast(
+			recruitEntity.FindComponent(EPF_PersistenceComponent));
+			
+		if (persistenceComp)
+		{
+			persistenceComp.Delete();
+			Print("[Overthrow] Deleted recruit from EPF persistence using component: " + recruitId);
+		}
+		else
+		{
+			Print("[Overthrow] WARNING: No EPF_PersistenceComponent found on recruit entity: " + recruitId);
 		}
 	}
 	

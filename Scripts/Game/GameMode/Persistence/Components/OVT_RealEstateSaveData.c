@@ -6,7 +6,7 @@ class OVT_RealEstateSaveDataClass : EPF_ComponentSaveDataClass
 [EDF_DbName.Automatic()]
 class OVT_RealEstateSaveData : EPF_ComponentSaveData
 {
-	array<ref OVT_WarehouseData> m_aWarehouses;
+	ref array<ref OVT_WarehouseData> m_aWarehouses;
 	ref map<string, ref array<vector>> m_mOwned;
 	ref map<string, ref array<vector>> m_mRented;
 	
@@ -49,7 +49,8 @@ class OVT_RealEstateSaveData : EPF_ComponentSaveData
 	{
 		OVT_RealEstateManagerComponent re = OVT_RealEstateManagerComponent.Cast(component);
 		
-		re.m_aWarehouses = m_aWarehouses;
+		if(m_aWarehouses)
+			re.m_aWarehouses = m_aWarehouses;
 		
 		for(int i=0; i<m_mOwned.Count(); i++)
 		{

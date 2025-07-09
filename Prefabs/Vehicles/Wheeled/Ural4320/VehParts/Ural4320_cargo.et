@@ -1,0 +1,27 @@
+GenericEntity : "{278E487E19D82680}Prefabs/Vehicles/Core/Vehicle_Cargo_Base.et" {
+ ID "4B42E71698F5739C"
+ components {
+  ActionsManagerComponent "{2CD4A765B4482F53}" {
+   additionalActions {
+    SCR_ResourceContainerVehicleLoadAction "{5DAD751E929D8B88}" {
+     ParentContextList {
+     }
+    }
+    SCR_ResourceContainerVehicleUnloadAction "{5DAD751E91EC6D3B}" {
+     ParentContextList {
+     }
+    }
+    OVT_LootIntoVehicleAction "{65CC8B53339DA133}" {
+     ParentContextList {
+      "door_rear"
+     }
+     UIInfo UIInfo "{65CC8B5318A1B733}" {
+      Name "#OVT_Action-Loot"
+     }
+     Duration 2
+     "Sort Priority" 17
+    }
+   }
+  }
+ }
+}

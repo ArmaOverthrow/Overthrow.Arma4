@@ -28,6 +28,9 @@ class OVT_VehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 	
 	[Attribute(defvalue: "25", desc: "Reinforcement cost per vehicle")]
 	int m_iReinforcementCost;
+
+	[Attribute(defvalue: "50", uiwidget: UIWidgets.EditBox, desc: "Max cruise speed of vehicles in km/h.", params: "0 inf 0.5")]
+	float m_fMaxCruiseSpeed;
 	
 	protected ref array<Vehicle> m_aSpawnedVehicles;
 	protected ref array<SCR_AIGroup> m_aSpawnedGroups;
@@ -198,6 +201,12 @@ class OVT_VehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 			{
 				Print(string.Format("Failed to spawn vehicle %1 (%2)", i + 1, m_sVehicleType), LogLevel.ERROR);
 				continue;
+			}
+
+			AICarMovementComponent carMovementComp = AICarMovementComponent.Cast(vehicle.FindComponent(AICarMovementComponent));
+			if(carMovementComp)
+			{
+				carMovementComp.SetCruiseSpeed(m_fMaxCruiseSpeed);
 			}
 			
 			// Apply spawn angles if we got them from a vehicle patrol spawn

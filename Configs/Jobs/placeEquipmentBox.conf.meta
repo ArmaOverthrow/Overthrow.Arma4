@@ -1,5 +1,5 @@
 MetaFileClass {
- Name "{E908001749419691}Configs/EntityCatalog/FIA/FIA_InventoryItems.conf"
+ Name "{C791AAAF88555841}Configs/Jobs/placeEquipmentBox.conf"
  Configurations {
   CONFResourceClass PC {
   }
@@ -8,6 +8,8 @@ MetaFileClass {
   CONFResourceClass XBOX_SERIES : PC {
   }
   CONFResourceClass PS4 : PC {
+  }
+  CONFResourceClass PS5 : PC {
   }
   CONFResourceClass HEADLESS : PC {
   }

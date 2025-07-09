@@ -2,8 +2,16 @@ SCR_DestructibleBuildingEntity : "{9D656741EA2AABC5}Prefabs/Structures/Industria
  ID "F0DBA538AC2A0552"
  components {
   EPF_PersistenceComponent "{5D98AC7A15809A56}" {
+   m_bUpdateNavmesh 1
    m_pSaveData OVT_BuildingSaveDataClass "{5D98AC7A138A7DCF}" {
+    m_aComponents {
+     OVT_BuildableDataClass "{5D98AC7A138A7DD0}" {
+     }
+    }
    }
+  }
+  OVT_BuildableComponent "{5D98AC7A138A7DD1}" {
+   m_sBuildableType "VehicleGarage"
   }
   OVT_MainMenuContextOverrideComponent "{5D98AC7A1790B552}" {
    m_ContextName "OVT_ShopContext"

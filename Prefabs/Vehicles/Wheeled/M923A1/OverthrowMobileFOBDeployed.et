@@ -1,0 +1,76 @@
+Vehicle : "{14FD2616BAB3157D}Prefabs/Vehicles/Wheeled/M923A1/M923A1_MERDC.et" {
+ ID "BBCBA43A9778AE21"
+ components {
+  RigidBody "{51DAA09FECF52BBF}" {
+   Static 1
+  }
+  SCR_VehicleFactionAffiliationComponent "{5882CBD9AC741CEC}" {
+   "faction affiliation" "FIA"
+  }
+  BaseVehicleNodeComponent "{20FB66C5B2237133}" {
+   Enabled 0
+   components {
+    ControllersManagerComponent "{20FB66C5C1BE9DA0}" {
+     Enabled 0
+    }
+    SCR_BaseHUDComponent "{37C2676694790BC7}" {
+     Enabled 0
+    }
+    SCR_CarControllerComponent "{20FB66C5BC92275B}" {
+     Enabled 0
+    }
+   }
+  }
+  VehiclePerceivableComponent "{566CD04B8A6107DD}" {
+   UnitType VehicleHeavy
+  }
+  SlotManagerComponent "{55BCE45E438E4CFF}" {
+   Slots {
+    RegisteringComponentSlotInfo Cargo {
+     Prefab "{1322881CCDD818B5}Prefabs/Vehicles/Wheeled/M923A1/OverthrowMobileFOBDeployedCargoCanvas.et"
+     RegisterActions 1
+     RegisterDamage 1
+     RegisterControllers 1
+     RegisterCompartments 1
+     RegisterLights 1
+    }
+   }
+  }
+ }
+ {
+  GenericEntity : "{160E4E4110803F26}Prefabs/Structures/Military/Flags/FlagPole_02/FlagPole_02_V1_FIA.et" {
+   ID "5E02EBD2CAD894D7"
+   components {
+    Hierarchy "{5E0488898C4F693F}" {
+    }
+   }
+   coords 2.306 5.27 3.325
+  }
+  GenericEntity : "{192A4FF528CB9DD0}Prefabs/Structures/Military/Camps/Foundations/Foundation_TentUS_01.et" {
+   ID "5E02EBD1878890D7"
+   coords 0 0 0
+  }
+  $grp StaticModelEntity : "{7F8D6A0D827EA34B}Prefabs/Props/Military/Fortification/CzechHedgehog_01_base.et" {
+   {
+    ID "5E02EBD18788900E"
+    components {
+     Hierarchy "{5E04888983F998DA}" {
+     }
+    }
+    coords -3.632 0 6.785
+   }
+   {
+    ID "5E02EBD18788969E"
+    components {
+     Hierarchy "{5E04888987B4C279}" {
+     }
+    }
+    coords 1.569 0 6.785
+   }
+  }
+  GenericEntity : "{CD8641F8E583489F}Prefabs/Structures/Military/CamoNets/US/CamoNet_Large_US.et" {
+   ID "5E02EBD055FD2F9F"
+   coords 0 0 0
+  }
+ }
+}

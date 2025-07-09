@@ -17,23 +17,31 @@ A dynamic and persistent revolution platform for Arma Reforger (and eventually A
 Overthrow is available in early access from the ARMA Reforger Workshop. Just search for "Overthrow".
 
 ## Playing
-The key to open the Overthrow menu is not "Y", its now "U" (due to key binding conflicts in Arma Reforger). Read the [Wiki](https://github.com/ArmaOverthrow/Overthrow.Arma4/wiki) for more info.
+See the wiki:
+- **[Overthrow Reforger Wiki](https://wiki.armaoverthrow.com/)**
+- **[Getting Started](https://wiki.armaoverthrow.com/en/getting-started)**
 
 ## Development
-If you want to setup a dev environment for Overthrow and help with development..
 
-Start by cloning or downloading this Github repository. For Windows/MacOS we recommend using [Github Desktop](https://desktop.github.com/). 
- - [Installing Github Desktop](https://docs.github.com/en/desktop/installing-and-configuring-github-desktop/installing-and-authenticating-to-github-desktop/installing-github-desktop)
- - [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)
-1. Install the "Arma Reforger Tools" in Steam. Find it by switching from "Games" to "Tools" in your Steam library.
-1. Run the Arma Reforger Tools and click "Add Existing"
-1. Navigate to the folder you cloned the Overthrow Github into and select `addon.gproj`
-1. Before opening the project, copy the 3 dependancies into `My Documents/My Games/ArmaReforgerWorkbench/addons` from `My Documents/My Games/ArmaReforger/addons`
-1. Double click on the Overthrow mod to open it in the Workbench
-1. Double click on `Overthrow/Worlds/MP/OVT_Campaign_Test.ent` in the Enfusion Workbench resource browser
-1. In the World Editor that opens, click on the Green Play button or press F5
+### For New Developers
+Complete development setup instructions are available in our comprehensive documentation:
 
-We recommend using the "test" world for most things as it's much smaller and loads much faster, if you need to test things on a full map, open `Overthrow/Worlds/MP/OVT_Campaign_Eden.ent` instead
+📚 **[Development Documentation](https://wiki.armaoverthrow.com/en/development-documentation)**
+
+Key resources:
+- **[Environment Setup Guide](https://wiki.armaoverthrow.com/en/development-documentation/development-environment-setup)** - Complete setup walkthrough
+- **[Architecture Guide](https://wiki.armaoverthrow.com/en/development-documentation/architecture)** - Understanding Overthrow's component system
+- **[Coding Standards](https://wiki.armaoverthrow.com/en/development-documentation/coding-standards)** - EnforceScript conventions
+- **[Development Workflow](https://wiki.armaoverthrow.com/en/development-documentation/development-workflow)** - Testing and compilation procedures
+
+### Quick Start
+1. Clone this repository using [GitHub Desktop](https://desktop.github.com/) (recommended)
+2. Install "Arma Reforger Tools" from Steam (under Tools section)
+3. Copy dependencies from `ArmaReforger/addons` to `ArmaReforgerWorkbench/addons`
+4. Open `addon.gproj` in Workbench
+5. Load `Overthrow/Worlds/MP/OVT_Campaign_Test.ent` for testing
+
+**Tip**: Use the "test" world for development as it loads much faster than the full Eden map.
 
 ## Updating
 Updates will be pushed to github often (sometimes multiple times a day). 

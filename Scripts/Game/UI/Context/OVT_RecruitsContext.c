@@ -49,6 +49,14 @@ class OVT_RecruitsContext : OVT_UIContext
 			if (action)
 				action.m_OnActivated.Insert(DismissRecruit);
 		}
+
+		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");
+		if (closeButton)
+		{
+			SCR_InputButtonComponent action = SCR_InputButtonComponent.Cast(closeButton.FindHandler(SCR_InputButtonComponent));
+			if (action)
+				action.m_OnActivated.Insert(CloseLayout);
+		}
 		
 		Refresh();
 	}

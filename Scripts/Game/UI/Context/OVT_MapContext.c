@@ -93,11 +93,6 @@ class OVT_MapContext : OVT_UIContext
 			}
 		}
 		
-		if(m_Resistance.DistanceToCamp(pos, m_sPlayerID) < MAX_HOUSE_TRAVEL_DIS)
-		{
-			return true;
-		}
-		
 		IEntity house = m_RealEstate.GetNearestOwned(m_sPlayerID, pos, MAX_HOUSE_TRAVEL_DIS);
 		if(house)
 		{
@@ -113,6 +108,17 @@ class OVT_MapContext : OVT_UIContext
 			OVT_RealEstateConfig config = m_RealEstate.GetConfig(house);
 			if(config.m_IsWarehouse) return false;
 			return true;
+		}
+		
+		OVT_CampData camp = m_Resistance.GetNearestCampData(pos);
+		if(camp) {
+			dist = vector.Distance(camp.location, pos);
+			if(dist < MAX_FOB_TRAVEL_DIS) {
+				// Allow fast travel if it's the player's own camp or if it's public
+				if(camp.owner == m_sPlayerID || !camp.isPrivate) {
+					return true;
+				}
+			}
 		}
 		
 		vector fob = m_Resistance.GetNearestFOB(pos);		

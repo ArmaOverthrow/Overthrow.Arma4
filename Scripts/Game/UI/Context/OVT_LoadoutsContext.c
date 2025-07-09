@@ -31,7 +31,15 @@ class OVT_LoadoutsContext : OVT_UIContext
 	}
 	
 	override void OnShow()
-	{			
+	{		
+		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");
+		if (closeButton)
+		{
+			SCR_InputButtonComponent action = SCR_InputButtonComponent.Cast(closeButton.FindHandler(SCR_InputButtonComponent));
+			if (action)
+				action.m_OnActivated.Insert(CloseLayout);
+		}
+		
 		// Set up button click handlers
 		Widget applyButton = m_wRoot.FindAnyWidget("ApplyButton");
 		if (applyButton)

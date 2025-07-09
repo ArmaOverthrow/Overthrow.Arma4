@@ -99,101 +99,7 @@ class OVT_PlayerCommsComponent: OVT_Component
 		// Instantly change base control
 		of.ChangeBaseControl(base, winningFactionIndex);
 	}
-	
-	void LootIntoVehicle(IEntity vehicle)
-	{
-		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
-		Rpc(RpcAsk_LootIntoVehicle, rpl.Id());
-	}
-	
-	ref array<IEntity> m_aLootBodies;
-	RplId m_LootVehicle;
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_LootIntoVehicle(RplId vehicleId)
-	{	
-		m_LootVehicle = vehicleId;
-		RplComponent rplComp = RplComponent.Cast(Replication.FindItem(vehicleId));
-		if(!rplComp) return;
 		
-		IEntity vehicle = rplComp.GetEntity();
-		
-		UniversalInventoryStorageComponent vehicleStorage = EPF_Component<UniversalInventoryStorageComponent>.Find(vehicle);
-		if(!vehicleStorage) return;
-		
-		InventoryStorageManagerComponent vehicleStorageMgr = EPF_Component<InventoryStorageManagerComponent>.Find(vehicle);
-		if(!vehicleStorageMgr) return;
-		
-		m_aLootBodies = new array<IEntity>;
-		
-		//Query the nearby world for weapons and bodies
-		OVT_Global.GetNearbyBodiesAndWeapons(vehicle.GetOrigin(), 25, m_aLootBodies);
-			
-		if(m_aLootBodies.Count() == 0) return;
-		
-		GetGame().GetCallqueue().CallLater(LootNextBody, 100);
-	}
-	
-	protected void LootNextBody()
-	{
-		if(m_aLootBodies.Count() == 0) return;
-		RplComponent rplComp = RplComponent.Cast(Replication.FindItem(m_LootVehicle));
-		if(!rplComp) return;
-		
-		IEntity vehicle = rplComp.GetEntity();
-		
-		UniversalInventoryStorageComponent vehicleStorage = EPF_Component<UniversalInventoryStorageComponent>.Find(vehicle);
-		if(!vehicleStorage) return;
-		
-		InventoryStorageManagerComponent vehicleStorageMgr = EPF_Component<InventoryStorageManagerComponent>.Find(vehicle);
-		if(!vehicleStorageMgr) return;
-		
-		IEntity body = m_aLootBodies[0];
-		
-		InventoryStorageManagerComponent inv = EPF_Component<InventoryStorageManagerComponent>.Find(body);
-		if(!inv) {
-			//Might be a weapon
-			WeaponComponent weapon = EPF_Component<WeaponComponent>.Find(body);
-			if(weapon)
-			{
-				vehicleStorageMgr.TryInsertItem(body);					
-			}
-		}else{
-			bool allMovesSucceeded = LootBody(inv, vehicleStorage);
-			if(allMovesSucceeded) {
-				SCR_EntityHelper.DeleteEntityAndChildren(body);
-			}
-		}
-		
-		m_aLootBodies.Remove(0);
-		
-		if(m_aLootBodies.Count() == 0) return;
-		
-		GetGame().GetCallqueue().CallLater(LootNextBody, 100);
-	}
-
-	bool LootBody(InventoryStorageManagerComponent inv, UniversalInventoryStorageComponent vehicleStorage)
-	{
-		array<IEntity> items = new array<IEntity>;
-		inv.GetItems(items);
-		if(items.Count() == 0) return false;
-		bool allMovesSucceeded = true;
-		foreach(IEntity item : items)
-		{
-			//Ignore clothes (but get helmets, backpacks, etc)
-			BaseLoadoutClothComponent cloth = EPF_Component<BaseLoadoutClothComponent>.Find(item);
-			if(cloth && cloth.GetAreaType())
-			{
-				if(cloth.GetAreaType().ClassName() == "LoadoutPantsArea") continue;
-				if(cloth.GetAreaType().ClassName() == "LoadoutJacketArea") continue;
-				if(cloth.GetAreaType().ClassName() == "LoadoutBootsArea") continue;
-			}
-			bool couldMove = inv.TryMoveItemToStorage(item, vehicleStorage);
-			allMovesSucceeded = allMovesSucceeded && couldMove;
-		}
-		return allMovesSucceeded;
-	}
-	
 	void DeliverMedicalSupplies(IEntity vehicle)
 	{
 		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
@@ -406,36 +312,83 @@ class OVT_PlayerCommsComponent: OVT_Component
 		if(!inventory) return;
 		
 		string playerPersId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
-		
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
 		
-		int cost = economy.GetBuyPrice(id, player.GetOrigin(),playerId);		
-		if(!economy.PlayerHasMoney(playerPersId, cost)) return;
+		// Get shop component for pricing
+		RplComponent shopRpl = RplComponent.Cast(Replication.FindItem(shopId));
+		if(!shopRpl) return;
+		OVT_ShopComponent shop = OVT_ShopComponent.Cast(shopRpl.GetEntity().FindComponent(OVT_ShopComponent));
+		if(!shop) return;
 		
-		int total = 0;
-		int totalnum = 0;
-		for(int i = 0; i<num; i++)
-		{		
-			if(inventory.TrySpawnPrefabToStorage(economy.GetResource(id)))
-			{
-				total += cost;
-				totalnum++;
-			}
-		}
-		if(total > 0)
+		// Use same cost calculation as client to ensure consistency
+		int unitCost = economy.GetShopBuyPrice(id, shop, player.GetOrigin(), playerId);
+		int totalCost = unitCost * num;
+		if(!economy.PlayerHasMoney(playerPersId, totalCost)) 
 		{
-			Rpc(RpcAsk_TakePlayerMoney, playerId, total);
-			Rpc(RpcAsk_TakeFromInventory, shopId, id, totalnum);
-			economy.m_OnPlayerBuy.Invoke(playerId, total);
-			
-			// Get shop component for transaction event			
-			OVT_ShopComponent shop = economy.GetShopByRplId(shopId);
-			if(shop)
+			SendBuyFailureNotification(playerId, "PurchaseFailedInsufficientFunds");
+			return;
+		}
+		
+		// Check if inventory is completely full before attempting any purchases
+		ResourceName itemResource = economy.GetResource(id);
+		if(!inventory.CanInsertResource(itemResource, EStoragePurpose.PURPOSE_DEPOSIT))
+		{
+			SendBuyFailureNotification(playerId, "PurchaseFailedInventoryFull");
+			return;
+		}
+		
+		// Attempt to spawn and insert items one by one until inventory is full
+		int successfulPurchases = 0;
+		
+		for(int i = 0; i < num; i++)
+		{
+			// Check if inventory can fit another item before spawning
+			if(!inventory.CanInsertResource(itemResource, EStoragePurpose.PURPOSE_DEPOSIT))
 			{
-				economy.m_OnPlayerTransaction.Invoke(playerId, shop, true, total);
+				// Inventory full, stop here
+				break;
+			}
+			
+			// Try to spawn the item
+			IEntity spawnedItem = SpawnItemForPlayer(itemResource, player.GetOrigin());
+			if(!spawnedItem)
+			{
+				// Failed to spawn, stop here
+				break;
+			}
+			
+			// Try to insert into player inventory
+			if(inventory.TryInsertItem(spawnedItem))
+			{
+				successfulPurchases++;
+			}
+			else
+			{
+				// Failed to insert - clean up and stop
+				SCR_EntityHelper.DeleteEntityAndChildren(spawnedItem);
+				break;
 			}
 		}
 		
+		// Handle results
+		if(successfulPurchases > 0)
+		{
+			// Take money for successful purchases only
+			int actualCost = successfulPurchases * unitCost;
+			Rpc(RpcAsk_TakePlayerMoney, playerId, actualCost);
+			Rpc(RpcAsk_TakeFromInventory, shopId, id, successfulPurchases);
+			economy.m_OnPlayerBuy.Invoke(playerId, actualCost);
+			
+			// Trigger transaction event
+			economy.m_OnPlayerTransaction.Invoke(playerId, shop, true, actualCost);
+			
+			// Notify player only for partial purchases (failures)
+			if(successfulPurchases < num)
+			{
+				SendBuyPartialNotification(playerId, successfulPurchases, num);
+			}
+		}
+		// Complete failure - fail silently
 	}
 	
 	void ImportToVehicle(int id, int qty, IEntity vehicle, int playerId)
@@ -660,6 +613,17 @@ class OVT_PlayerCommsComponent: OVT_Component
 		OVT_Global.GetResistanceFaction().PlaceItem(placeableIndex, prefabIndex, pos, angles, playerId);
 	}
 	
+	void RemovePlacedItem(EntityID entityId, int playerId)
+	{
+		Rpc(RpcAsk_RemovePlacedItem, entityId, playerId);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_RemovePlacedItem(EntityID entityId, int playerId)
+	{
+		OVT_Global.GetResistanceFaction().RemovePlacedItem(entityId, playerId);
+	}
+	
 	//BUILDING
 	void BuildItem(int buildableIndex, int prefabIndex, vector pos, vector angles, int playerId)
 	{
@@ -686,6 +650,21 @@ class OVT_PlayerCommsComponent: OVT_Component
 		OVT_Global.GetResistanceFaction().AddGarrison(baseId, prefabIndex);
 	}
 	
+	void AddGarrisonCamp(OVT_CampData base, ResourceName res)
+	{
+		OVT_Faction faction = OVT_Global.GetConfig().GetPlayerFaction();
+		int index = faction.m_aGroupPrefabSlots.Find(res);
+		if(index == -1) return;
+		Rpc(RpcAsk_AddGarrisonCamp, base.location, index);		
+	}
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_AddGarrisonCamp(vector pos, int prefabIndex)
+	{
+		OVT_ResistanceFactionManager rf = OVT_Global.GetResistanceFaction();
+		OVT_CampData fob = rf.GetNearestCampData(pos);
+		rf.AddGarrisonCamp(fob, prefabIndex);
+	}
+	
 	void AddGarrisonFOB(OVT_FOBData base, ResourceName res)
 	{
 		OVT_Faction faction = OVT_Global.GetConfig().GetPlayerFaction();
@@ -701,39 +680,43 @@ class OVT_PlayerCommsComponent: OVT_Component
 		rf.AddGarrisonFOB(fob, prefabIndex);
 	}
 	
-	//INVENTORY
-	void TransferStorage(IEntity from, IEntity to)
-	{
-		RplComponent fromRpl = RplComponent.Cast(from.FindComponent(RplComponent));
-		RplComponent toRpl = RplComponent.Cast(to.FindComponent(RplComponent));
-		
-		if(!fromRpl || !toRpl) return;
-		
-		Rpc(RpcAsk_TransferStorage, fromRpl.Id(), toRpl.Id());
-	}
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_TransferStorage(RplId from, RplId to)
-	{
-		OVT_Global.TransferStorage(from, to);
-	}
-	
-	void TransferToWarehouse(IEntity from)
-	{
-		RplComponent fromRpl = RplComponent.Cast(from.FindComponent(RplComponent));
-		
-		if(!fromRpl) return;
-		
-		Rpc(RpcAsk_TransferToWarehouse, fromRpl.Id());
-	}
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_TransferToWarehouse(RplId from)
-	{
-		OVT_Global.TransferToWarehouse(from);
-	}
-	
 	//VEHICLES
+	void DeployFOB(IEntity vehicle)
+	{
+		if(!vehicle) return;
+		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
+		
+		// Get the local player ID to pass to the server
+		IEntity playerEntity = SCR_PlayerController.GetLocalControlledEntity();
+		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(playerEntity);
+		
+		Rpc(RpcAsk_DeployFOB, rpl.Id(), playerId);
+	}	
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_DeployFOB(RplId vehicle, int playerId)
+	{
+		OVT_Global.GetResistanceFaction().DeployFOB(vehicle, playerId);
+	}
+	
+	void UndeployFOB(IEntity vehicle)
+	{
+		if(!vehicle) return;
+		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
+		
+		// Get the local player ID to pass to the server
+		IEntity playerEntity = SCR_PlayerController.GetLocalControlledEntity();
+		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(playerEntity);
+		
+		Rpc(RpcAsk_UndeployFOB, rpl.Id(), playerId);
+	}	
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_UndeployFOB(RplId vehicle, int playerId)
+	{
+		OVT_Global.GetResistanceFaction().UndeployFOB(vehicle, playerId);
+	}
+	
 	void UpgradeVehicle(Vehicle vehicle, OVT_VehicleUpgrade upgrade)
 	{
 		int id = OVT_Global.GetEconomy().GetInventoryId(upgrade.m_pUpgradePrefab);
@@ -782,6 +765,31 @@ class OVT_PlayerCommsComponent: OVT_Component
 		if (!recruitManager) return;
 		
 		recruitManager.RecruitCivilian(character, playerId);
+	}
+	
+	void RecruitFromTent(vector tentPos, int playerId)
+	{		
+		Rpc(RpcAsk_RecruitFromTent, tentPos, playerId);
+	}	
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_RecruitFromTent(vector tentPos, int playerId)
+	{
+		OVT_TownManagerComponent townManager = OVT_Global.GetTowns();
+		OVT_RecruitManagerComponent recruitManager = OVT_RecruitManagerComponent.GetInstance();
+		
+		if (!townManager || !recruitManager) return;
+		
+		// Take supporters from nearest town (1 supporter per recruit)
+		townManager.TakeSupportersFromNearestTown(tentPos, 1);
+		
+		// Spawn recruit at tent location
+		SCR_ChimeraCharacter recruit = recruitManager.SpawnRecruit(tentPos + "2 0 2"); // Offset from tent
+		if (recruit)
+		{
+			// Add to recruit manager
+			recruitManager.RecruitCivilian(recruit, playerId);
+		}
 	}
 	
 	//WAREHOUSES
@@ -1273,4 +1281,125 @@ class OVT_PlayerCommsComponent: OVT_Component
 		Print("[OVT_PlayerCommsComponent] Server: Dismissed recruit: " + recruitId, LogLevel.NORMAL);
 	}
 	
+	void SetCampPrivacy(OVT_CampData camp, bool isPrivate)
+	{
+		Rpc(RpcAsk_SetCampPrivacy, camp.location, isPrivate);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	void RpcAsk_SetCampPrivacy(vector pos, bool isPrivate)
+	{
+		OVT_ResistanceFactionManager rf = OVT_Global.GetResistanceFaction();
+		rf.SetCampPrivacy(pos, isPrivate);
+	}
+	
+	void DeleteCamp(OVT_CampData camp)
+	{
+		// Store camp location for callback
+		m_vDeleteCampLocation = camp.location;
+		
+		// Find the camp entity to get its RplId
+		BaseWorld world = GetGame().GetWorld();
+		world.QueryEntitiesBySphere(camp.location, 10, null, FindCampEntityCallback, EQueryEntitiesFlags.ALL);
+	}
+	
+	protected vector m_vDeleteCampLocation;
+	
+	protected bool FindCampEntityCallback(IEntity entity)
+	{
+		if (!entity) 
+			return false;
+		
+		// Check if this is a camp entity by looking for the manage camp action
+		ActionsManagerComponent actionsManager = ActionsManagerComponent.Cast(entity.FindComponent(ActionsManagerComponent));
+		if (actionsManager)
+		{
+			array<BaseUserAction> actions = {};
+			actionsManager.GetActionsList(actions);
+			foreach (BaseUserAction action : actions)
+			{
+				if (OVT_ManageCampAction.Cast(action))
+				{
+					RplComponent rpl = RplComponent.Cast(entity.FindComponent(RplComponent));
+					if (rpl)
+					{
+						Rpc(RpcAsk_DeleteCamp, rpl.Id(), m_vDeleteCampLocation);
+						return true; // Found the camp, stop searching
+					}
+				}
+			}
+		}
+		
+		return false; // Continue searching
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	void RpcAsk_DeleteCamp(RplId campEntityId, vector pos)
+	{
+		OVT_ResistanceFactionManager rf = OVT_Global.GetResistanceFaction();
+		rf.RemoveCamp(campEntityId, pos);
+	}
+	
+	void SetPriorityFOB(IEntity fobEntity)
+	{
+		if (!fobEntity) return;
+		RplComponent rpl = RplComponent.Cast(fobEntity.FindComponent(RplComponent));
+		if (!rpl) return;
+		
+		Rpc(RpcAsk_SetPriorityFOB, rpl.Id());
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	void RpcAsk_SetPriorityFOB(RplId fobEntityId)
+	{
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(fobEntityId));
+		if (!rpl) return;
+		IEntity fobEntity = rpl.GetEntity();
+		if (!fobEntity) return;
+		
+		OVT_ResistanceFactionManager rf = OVT_Global.GetResistanceFaction();
+		rf.SetPriorityFOB(fobEntity);
+	}
+	
+	//! Helper methods for item purchasing
+	
+	//! Spawn an item for the player
+	protected IEntity SpawnItemForPlayer(ResourceName itemResource, vector location)
+	{
+		if (itemResource.IsEmpty()) return null;
+		
+		EntitySpawnParams params = EntitySpawnParams();
+		params.TransformMode = ETransformMode.WORLD;
+		params.Transform[3] = location;
+		
+		Resource resource = Resource.Load(itemResource);
+		if (!resource) 
+		{
+			Print(string.Format("[OVT_PlayerCommsComponent] Failed to load resource: %1", itemResource), LogLevel.WARNING);
+			return null;
+		}
+		
+		IEntity spawnedItem = GetGame().SpawnEntityPrefab(resource, null, params);
+		return spawnedItem;
+	}
+	
+	//! Send failure notification to player
+	protected void SendBuyFailureNotification(int playerId, string messageTag)
+	{
+		OVT_NotificationManagerComponent notificationManager = OVT_Global.GetNotify();
+		if (notificationManager)
+		{
+			notificationManager.SendTextNotification(messageTag, playerId);
+		}
+	}
+	
+	//! Send partial success notification to player
+	protected void SendBuyPartialNotification(int playerId, int successCount, int totalRequested)
+	{
+		OVT_NotificationManagerComponent notificationManager = OVT_Global.GetNotify();
+		if (notificationManager)
+		{
+			notificationManager.SendTextNotification("PurchasePartialSuccess", playerId, successCount.ToString(), totalRequested.ToString());
+		}
+	}
 }

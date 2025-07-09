@@ -6,8 +6,8 @@
 
 set -e  # Exit on any error
 
-SOURCE_DIR="/mnt/d/Projects/Arma 4/Overthrow.Arma4"
-DEST_DIR="/mnt/d/Projects/Arma 4/Overthrow.Dev"
+SOURCE_DIR="/mnt/n/Projects/Arma 4/Overthrow.Arma4"
+DEST_DIR="/mnt/n/Projects/Arma 4/Overthrow.Dev"
 
 echo "Staging development build..."
 

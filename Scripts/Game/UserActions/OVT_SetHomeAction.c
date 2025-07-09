@@ -31,7 +31,7 @@ class OVT_SetHomeAction : ScriptedUserAction
 		OVT_BaseControllerComponent baseController = EPF_Component<OVT_BaseControllerComponent>.Find(GetOwner());
 		if (!baseController)
 		{
-			//is an FOB
+			//is an FOB or camp
 			return true;
 		}
 		return !baseController.IsOccupyingFaction();

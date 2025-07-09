@@ -92,5 +92,11 @@ ImageSetClass {
    Size 128 128
    Flags 0
   }
+  ImageSetDefClass fob_priority {
+   Name "fob_priority"
+   Pos 262 262
+   Size 128 128
+   Flags 0
+  }
  }
 }

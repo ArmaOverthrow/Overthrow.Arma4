@@ -1,0 +1,16 @@
+StaticModelEntity : "{4CC2C69DE1AEF103}Prefabs/Props/Core/Destructible_Props_Base.et" {
+ ID "F0DBA538AC2A0552"
+ components {
+  EPF_PersistenceComponent "{65CE9A2EC7B59827}" {
+   m_pSaveData OVT_PlaceableSaveDataClass "{65CE9A2EC4F00E68}" {
+    m_aComponents {
+     OVT_PlaceableDataClass "{65D288B172BD7A9E}" {
+     }
+    }
+   }
+  }
+  OVT_PlaceableComponent "{65CE9A2ECEC30E10}" {
+   m_sPlaceableType "Furniture"
+  }
+ }
+}

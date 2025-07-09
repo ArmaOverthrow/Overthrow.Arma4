@@ -6,10 +6,22 @@ GenericEntity : "{71BD5B9F53DF8CF6}Prefabs/Props/Military/AmmoBoxes/OVT_AmmoBox_
     m_aComponents {
      OVT_PlayerOwnerDataClass "{5E68F6591A05B624}" {
      }
+     OVT_PlaceableDataClass "{5E68F6591A05B625}" {
+     }
     }
    }
   }
+  OVT_PlaceableComponent "{5E68F65911AA6ADB}" {
+   m_sPlaceableType "Ammobox"
+  }
   OVT_PlayerOwnerComponent "{5E68F65911AA6ADA}" {
+  }
+  SCR_EditableEntityComponent "{65B90A24B6E114CC}" {
+   m_UIInfo SCR_EditableEntityUIInfo "{65B90A2B75ED14CD}" {
+    Name "#OVT-Place_AmmoBox"
+    Description "#OVT-Place_AmmoBox_Description"
+   }
+   m_Flags PLACEABLE
   }
   ActionsManagerComponent "{5992E2EE5A9EEC18}" {
    additionalActions {
@@ -61,13 +73,6 @@ GenericEntity : "{71BD5B9F53DF8CF6}Prefabs/Props/Military/AmmoBoxes/OVT_AmmoBox_
      "Sort Priority" 10
     }
    }
-  }
-  SCR_EditableEntityComponent "{65B90A24B6E114CC}" {
-   m_UIInfo SCR_EditableEntityUIInfo "{65B90A2B75ED14CD}" {
-    Name "#OVT-Place_AmmoBox"
-    Description "#OVT-Place_AmmoBox_Description"
-   }
-   m_Flags PLACEABLE
   }
  }
 }

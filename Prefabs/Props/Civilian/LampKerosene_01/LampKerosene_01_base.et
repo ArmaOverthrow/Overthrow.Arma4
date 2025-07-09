@@ -1,0 +1,16 @@
+GameEntity : "{4CC2C69DE1AEF103}Prefabs/Props/Core/Destructible_Props_Base.et" {
+ ID "F0DBA538AC2A0552"
+ components {
+  EPF_PersistenceComponent "{65CE9A2885945B74}" {
+   m_pSaveData OVT_PlaceableSaveDataClass "{65CE9A28835B2C6C}" {
+    m_aComponents {
+     OVT_PlaceableDataClass "{65D288B15205D519}" {
+     }
+    }
+   }
+  }
+  OVT_PlaceableComponent "{65CE9A2880D53521}" {
+   m_sPlaceableType "Lantern"
+  }
+ }
+}

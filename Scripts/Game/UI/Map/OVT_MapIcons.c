@@ -638,6 +638,53 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 			}
 		}
 		
+		foreach(OVT_CampData camp : resistance.m_Camps)
+		{			
+			// Only show public camps or camps owned by the current player
+			if(camp.isPrivate && camp.owner != persId)
+				continue;
+				
+			m_Centers.Insert(camp.location);
+			m_Ranges.Insert(m_fCeiling);
+			
+			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
+			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
+						
+			image.LoadImageFromSet(0, m_Imageset, "camp");
+			
+			Faction faction = GetGame().GetFactionManager().GetFactionByKey("FIA");
+			image.SetColor(faction.GetFactionColor());
+			
+			m_Widgets.Insert(w);
+		}
+		
+		foreach(OVT_FOBData fob : resistance.m_FOBs)
+		{			
+			m_Centers.Insert(fob.location);
+			
+			// Priority FOBs are always visible (range 0), regular FOBs hidden when zoomed out
+			float range = m_fCeiling;
+			if (fob.isPriority)
+				range = 0;
+			m_Ranges.Insert(range);
+			
+			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
+			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
+			
+			// Use different icon for priority FOB
+			string iconName = "fob";
+			if (fob.isPriority)
+				iconName = "fob_priority";
+			image.LoadImageFromSet(0, m_Imageset, iconName);
+			
+			Faction faction = GetGame().GetFactionManager().GetFactionByKey("FIA");
+			Color fobColor = faction.GetFactionColor();
+						
+			image.SetColor(fobColor);
+			
+			m_Widgets.Insert(w);
+		}
+		
 		// Shops with retry logic
 		array<RplId> allShops = economy.GetAllShops();
 		if(allShops)
@@ -680,32 +727,6 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 			}
 		}
 		
-		// FOBs with enhanced validation
-		if(resistance.m_FOBs)
-		{
-			foreach(OVT_FOBData fob : resistance.m_FOBs)
-			{	
-				if(!fob) continue; // Add null check
-				
-				m_Centers.Insert(fob.location);
-				m_Ranges.Insert(0);
-				
-				Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
-				if(!w) continue;
-				
-				ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
-				if(image)
-				{
-					image.LoadImageFromSet(0, m_Imageset, "fob");			
-					
-					Faction faction = GetGame().GetFactionManager().GetFactionByIndex(fob.faction);
-					if(faction)
-						image.SetColor(faction.GetFactionColor());
-				}
-				
-				m_Widgets.Insert(w);
-			}
-		}
 		
 		// Radio Towers with enhanced validation
 		if(occupying.m_RadioTowers)
@@ -733,20 +754,7 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 				m_Widgets.Insert(w);
 			}
 		}
-		
-		if(player && player.camp[0] != 0)
-		{
-			m_Centers.Insert(player.camp);
-			m_Ranges.Insert(0);
-			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
-			if(!w) return; // If we can't create widgets, something is seriously wrong
-			
-			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
-			if(image)
-				image.LoadImageFromSet(0, m_Imageset, "camp");			
-			m_Widgets.Insert(w);
-		}
-		
+				
 		// Ports with retry logic
 		array<RplId> allPorts = economy.GetAllPorts();
 		if(allPorts)
@@ -760,6 +768,22 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 					Print("Failed to create port icon, added to retry list");
 				}
 			}
+		}
+		
+		// Job waypoints
+		OVT_JobManagerComponent jobs = OVT_Global.GetJobs();
+		if(jobs && jobs.m_vCurrentWaypoint)
+		{
+			m_Centers.Insert(jobs.m_vCurrentWaypoint);
+			m_Ranges.Insert(0);
+			
+			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
+			if(!w) return;
+			
+			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
+			if(image)
+				image.LoadImageFromSet(0, m_Imageset, "waypoint");			
+			m_Widgets.Insert(w);
 		}
 		
 		// Create fallback icons for any that failed initially

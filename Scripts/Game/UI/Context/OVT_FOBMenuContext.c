@@ -1,5 +1,6 @@
 class OVT_FOBMenuContext : OVT_UIContext
 {	
+	OVT_CampData m_Camp;
 	OVT_FOBData m_FOB;
 	ref SCR_SpinBoxComponent m_GroupSpin;
 	ref SCR_ButtonTextComponent m_GarrisonButton;
@@ -82,7 +83,13 @@ class OVT_FOBMenuContext : OVT_UIContext
 		}
 		
 		m_Economy.TakeLocalPlayerMoney(cost);
-		OVT_Global.GetServer().AddGarrisonFOB(m_FOB, uiinfo.resource);
+		if(m_FOB)
+		{
+			OVT_Global.GetServer().AddGarrisonFOB(m_FOB, uiinfo.resource);
+		}else{
+			OVT_Global.GetServer().AddGarrisonCamp(m_Camp, uiinfo.resource);
+		}
+		
 	}
 	
 	protected void UpdateInfo()

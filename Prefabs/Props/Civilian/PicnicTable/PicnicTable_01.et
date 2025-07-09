@@ -1,0 +1,19 @@
+SCR_DestructibleEntity : "{4CC2C69DE1AEF103}Prefabs/Props/Core/Destructible_Props_Base.et" {
+ ID "6222A6AEFE8ACA5F"
+ components {
+  EPF_PersistenceComponent "{65CE9A29CB2C7279}" {
+   m_pSaveData OVT_PlaceableSaveDataClass "{65CE9A29C98EE2C2}" {
+    m_aComponents {
+     OVT_PlaceableDataClass "{65D288B126D63025}" {
+     }
+    }
+   }
+  }
+  OVT_PlaceableComponent "{65CE9A29D5C58EDB}" {
+   m_sPlaceableType "Table"
+  }
+  RplComponent "{5624A88DC2D9928D}" {
+   Enabled 1
+  }
+ }
+}

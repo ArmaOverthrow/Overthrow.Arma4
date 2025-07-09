@@ -620,13 +620,20 @@ class OVT_PlayerWantedComponent: OVT_Component
 						//Player is brandishing a weapon
 						newLevel = 2;
 					}	
-					//To-Do: check for illegal attire (uniforms, etc)
 					
 					// Only check vehicle if not already wanted for being hostile faction
 					if (!isHostileFaction && inVehicle)
 					{
 						IEntity veh = m_Compartment.GetVehicle();
 						if(veh){
+							//Special case for Mobile FOBs
+							ResourceName prefab = veh.GetPrefabData().GetPrefabName();
+							if(prefab == "{E6A31A5A6EA0AF04}Prefabs/Vehicles/Wheeled/M923A1/OverthrowMobileFOB.et")
+							{
+								newLevel = 4;
+								SetVehicleAsEnemy(veh);
+							}
+
 							//Check if vehicle is armed
 							SCR_EditableVehicleComponent editable = SCR_EditableVehicleComponent.Cast(veh.FindComponent(SCR_EditableVehicleComponent));
 							if(editable)
@@ -642,6 +649,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 										if(entityLabels.Contains(EEditableEntityLabel.TRAIT_ARMED))
 										{
 											newLevel = 4;
+											SetVehicleAsEnemy(veh);
 										}
 									}
 								}
@@ -677,6 +685,15 @@ class OVT_PlayerWantedComponent: OVT_Component
 		
 		//Continue search
 		return true;
+	}
+
+	private void SetVehicleAsEnemy(IEntity veh)
+	{
+		SCR_VehicleFactionAffiliationComponent faction = SCR_VehicleFactionAffiliationComponent.Cast(veh.FindComponent(SCR_VehicleFactionAffiliationComponent));
+		if(faction)
+		{
+			faction.SetAffiliatedFaction(OVT_Global.GetConfig().GetPlayerFactionData());
+		}
 	}
 	
 	private bool TraceLOS(IEntity source, IEntity dest)

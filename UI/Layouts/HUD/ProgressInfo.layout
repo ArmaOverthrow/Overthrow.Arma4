@@ -1,0 +1,82 @@
+OverlayWidgetClass {
+ Name "rootFrame"
+ {
+  OverlayWidgetClass "{65C4B2DD2D1E6803}" {
+   Name "ProgressFrame"
+   Slot OverlayWidgetSlot "{65C4B2DC5F18116F}" {
+    VerticalAlign 0
+    Padding 0 180 0 0
+   }
+   {
+    SizeLayoutWidgetClass "{65C4B2DC8003DA44}" {
+     Name "SizeLayout0"
+     Slot OverlayWidgetSlot "{65C4B2DBB47C1B57}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+     }
+     {
+      OverlayWidgetClass "{65C4B2DBF3E879D8}" {
+       Name "Overlay0"
+       Slot AlignableSlot "{65C4B2DBF3E879A4}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       {
+        ImageWidgetClass "{65C4B2DCB83F9220}" {
+         Name "Image0"
+         Slot OverlayWidgetSlot "{65C4B2D8CCF009E8}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+         }
+         Color 0 0 0 0.525
+        }
+       }
+      }
+     }
+    }
+    VerticalLayoutWidgetClass "{65C4B2DBBD9CBB13}" {
+     Name "VerticalLayout0"
+     Slot OverlayWidgetSlot "{65C4B2DBBD9CBBF3}" {
+      Padding 10 10 10 10
+     }
+     {
+      TextWidgetClass "{65C4B2DC17553F43}" {
+       Name "OperationText"
+       Slot LayoutSlot "{65C4B2D8CCF0099D}" {
+        Padding 0 0 0 10
+       }
+       Text "Current Operation"
+       "Min Font Size" 24
+       "Horizontal Alignment" Center
+      }
+      TextWidgetClass "{65C4B2DC15644FE5}" {
+       Name "ProgressText"
+       Slot LayoutSlot "{65C4B2D8CCF00A62}" {
+       }
+       Text "Items 4/56"
+       "Font Size" 16
+       "Min Font Size" 16
+       "Horizontal Alignment" Center
+      }
+      SizeLayoutWidgetClass "{65C4B2DA098E77F5}" : "{84D812964985CED4}UI/layouts/Menus/Inventory/InventoryProgressBar.layout" {
+       Name "ProgressBar"
+       Slot LayoutSlot "{65C4B2DA098E77D7}" {
+        Padding 0 10 0 0
+       }
+       components {
+        SCR_InventoryProgressBar "{6046898B5BF2804D}" {
+         m_ColorLow 0.175 0.175 0.175 1
+         m_ColorMiddle 0.175 0.175 0.175 1
+         m_ColorHigh 0.175 0.175 0.175 1
+         m_ColorPreviewNegative 0.175 0.175 0.175 1
+        }
+       }
+       AllowHeightOverride 1
+       HeightOverride 20
+      }
+     }
+    }
+   }
+  }
+ }
+}

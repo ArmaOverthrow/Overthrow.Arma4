@@ -16,6 +16,42 @@ class OVT_Global : Managed
 		return OVT_UIManagerComponent.Cast(player.FindComponent(OVT_UIManagerComponent));
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Get the local player's overthrow controller entity
+	//! \return Controller entity or null if not found/on server
+	static OVT_OverthrowController GetController()
+	{		
+		IEntity player = SCR_PlayerController.GetLocalControlledEntity();
+		if (!player) return null;
+		
+		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(player);
+		return GetPlayers().GetController(playerId);
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Convenience method to get container transfer component
+	//! \return Container transfer component or null
+	static OVT_ContainerTransferComponent GetContainerTransfer()
+	{
+		OVT_OverthrowController controller = GetController();
+		if (!controller) return null;
+		
+		return OVT_ContainerTransferComponent.Cast(controller.FindComponent(OVT_ContainerTransferComponent));
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Convenience method for battlefield looting
+	//! \param[in] vehicle Target vehicle to loot into
+	//! \param[in] searchRadius Search radius for lootable items
+	static void LootBattlefield(IEntity vehicle, float searchRadius = 25.0)
+	{
+		OVT_ContainerTransferComponent transfer = GetContainerTransfer();
+		if (transfer && transfer.IsAvailable())
+		{
+			transfer.LootBattlefield(vehicle, searchRadius);
+		}
+	}
+	
 	static OVT_OverthrowGameMode GetOverthrow()
 	{
 		return OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
@@ -84,6 +120,11 @@ class OVT_Global : Managed
 	static OVT_SkillManagerComponent GetSkills()
 	{
 		return OVT_SkillManagerComponent.GetInstance();
+	}
+	
+	static OVT_InventoryManagerComponent GetInventory()
+	{
+		return OVT_InventoryManagerComponent.GetInstance();
 	}
 	
 	static OVT_DeploymentManagerComponent GetDeploymentManager()
@@ -200,53 +241,6 @@ class OVT_Global : Managed
 		}
 		
 		return foundpos;
-	}
-	
-	static void TransferStorage(RplId from, RplId to)
-	{
-		IEntity fromEntity = RplComponent.Cast(Replication.FindItem(from)).GetEntity();
-		IEntity toEntity = RplComponent.Cast(Replication.FindItem(to)).GetEntity();
-
-		if (!fromEntity || !toEntity) return;
-
-		InventoryStorageManagerComponent storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(toEntity);
-		if (!storageManager) storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(fromEntity);
-		UniversalInventoryStorageComponent fromStorage = EPF_Component<UniversalInventoryStorageComponent>.Find(fromEntity);
-		UniversalInventoryStorageComponent toStorage = EPF_Component<UniversalInventoryStorageComponent>.Find(toEntity);
-
-		if (!storageManager || !toStorage || !fromStorage) return;
-
-		array<InventoryItemComponent> itemComps = new array<InventoryItemComponent>();
-		fromStorage.GetOwnedItems(itemComps);
-		if (itemComps.IsEmpty()) return;
-
-		foreach (InventoryItemComponent itemComp : itemComps)
-		{
-			IEntity item = itemComp.GetOwner();
-			if (!item) continue;
-			InventoryStorageSlot itemSlot = toStorage.FindSuitableSlotForItem(item);
-			int slotID = -1;
-			if (itemSlot) slotID = itemSlot.GetID();
-			storageManager.TryMoveItemToStorage(item, toStorage, slotID);
-		}
-
-		// Play sound if one is defined
-
-		array<IEntity> sourceEntities = {toEntity, fromEntity};
-		array<ref array<string>> soundEventsAll = {{"SOUND_SUPPLIES_PARTIAL_LOAD", "SOUND_SUPPLIES_PARTIAL_UNLOAD"}, {"LOAD_VEHICLE", "UNLOAD_VEHICLE"}};
-		foreach (ref array<string> soundEvents : soundEventsAll) {
-			foreach (int idx, string soundEvent : soundEvents) {
-				IEntity source = sourceEntities[idx];
-				SimpleSoundComponent simpleSoundComp = SimpleSoundComponent.Cast(source.FindComponent(SimpleSoundComponent));
-				if (!simpleSoundComp || simpleSoundComp.GetEventIndex(soundEvent) == -1) continue;
-				vector mat[4];
-				source.GetWorldTransform(mat);
-
-				simpleSoundComp.SetTransformation(mat);
-				simpleSoundComp.PlayStr(soundEvent);
-				return;
-			}
-		}
 	}
 	
 	static void TransferToWarehouse(RplId from)

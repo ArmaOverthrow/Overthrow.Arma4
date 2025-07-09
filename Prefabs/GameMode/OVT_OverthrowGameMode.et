@@ -41,48 +41,11 @@ OVT_OverthrowGameMode {
    m_GunDealerConfig OVT_GunDealerConfig "{6490AAF29FB3FA5B}" : "{A8A5CE6C72E6D899}Configs/System/GunDealerConfig.conf" {
    }
    m_PriceConfig OVT_PricesConfig "{5D96A5A422244BBD}" : "{F1E25EE7797A3B80}Configs/Pricing/itemPrices.conf" {
-    m_aPrices {
-     OVT_PriceConfig "{5DE7112A8B010D05}" {
-      m_eItemType HEAL
-      m_sFind "Tourniquet_"
-      cost 6
-      demand 50
-     }
-     OVT_PriceConfig "{5DE7112A9CD2851C}" {
-      m_eItemType HEAL
-      m_sFind "SalineBag_"
-      cost 8
-      demand 25
-     }
-     OVT_PriceConfig "{5DE7112D042BE9F0}" {
-      m_eItemType HEAL
-      m_sFind "MorphineInjection_"
-      cost 10
-     }
-    }
    }
    m_VehiclePriceConfig OVT_VehiclePricesConfig "{5D96A5A380C4B791}" : "{8787FC0A63F99EF8}Configs/Pricing/vehiclePrices.conf" {
-    m_aPrices {
-     OVT_VehiclePriceConfig "{5DE72AF17F14214D}" {
-      m_sFind "_ambulance"
-      cost 4200
-      illegal 0
-     }
-     OVT_VehiclePriceConfig "{6466809ACB90F2F7}" {
-      m_sFind "S105_"
-      cost 450
-      illegal 0
-     }
-     OVT_VehiclePriceConfig "{646D013740B7724C}" {
-      m_sFind "UAZ469_UK59"
-      cost 15000
-     }
-     OVT_VehiclePriceConfig "{646D013749186D29}" {
-      m_sFind "UAZ469_PKM"
-      cost 15000
-     }
-    }
    }
+  }
+  OVT_InventoryManagerComponent "{65B09EE7D3217F5A}" {
   }
   OVT_JobManagerComponent "{59A8D178EC1AA2AE}" {
    m_aJobConfigs {
@@ -96,6 +59,12 @@ OVT_OverthrowGameMode {
     }
     OVT_JobConfig "{5D9C33D122545AFD}" : "{11EE393C09B6A661}Configs/Jobs/findShop.conf" {
     }
+    OVT_JobConfig "{65CD0E98C7F3EDD1}" : "{C791AAAF88555841}Configs/Jobs/placeEquipmentBox.conf" {
+    }
+    OVT_JobConfig "{65CD1C80C1CC8883}" : "{696B3B013BFD45FF}Configs/Jobs/recruitACivilian.conf" {
+    }
+    OVT_JobConfig "{65CD1C846520EBD8}" : "{56139D1CED432410}Configs/Jobs/placeACamp.conf" {
+    }
    }
   }
   OVT_LoadoutManagerComponent "{65AAD8FB1BAFD652}" {
@@ -108,24 +77,6 @@ OVT_OverthrowGameMode {
    m_pQRFControllerPrefab "{A7D27DFA72B705D0}Prefabs/Controllers/OVT_QRFController.et"
   }
   OVT_OverthrowConfigComponent "{59724C8C935D8E5D}" {
-   m_aCameraPositions {
-    OVT_CameraPosition "{5D5826DD31952987}" {
-     position 10455.49 40.22 413.76
-     angles 5.1 -498.11 0
-    }
-    OVT_CameraPosition "{5D5826D532072C15}" {
-     position 4875.03 53.47 10470.618
-     angles -0.21 702.18 0
-    }
-    OVT_CameraPosition "{5D5826D5F3BEBDD1}" {
-     position 8100.65 380.56 2753.78
-     angles -5.31 962.88 0
-    }
-    OVT_CameraPosition "{5D5826D5A7568205}" {
-     position 9973.95 333.08 2269.49
-     angles -12.81 1270.68 0
-    }
-   }
    m_pTownControllerPrefab "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.et"
    m_Difficulty OVT_DifficultySettings "{598AD54E1DA56EB1}" : "{C0CB40B3E8B87FD4}Configs/Difficulty/Difficulty_Normal.conf" {
    }
@@ -247,8 +198,19 @@ OVT_OverthrowGameMode {
       }
      }
     }
+    OVT_VehicleUpgrades "{5E02EBD7116F279B}" {
+     m_pBasePrefab "{F1FBD0972FA5FE09}Prefabs/Vehicles/Wheeled/M923A1/M923A1_transport.et"
+     m_aUpgrades {
+      OVT_VehicleUpgrade "{5E02EBD7F727B31C}" {
+       m_pUpgradePrefab "{E6A31A5A6EA0AF04}Prefabs/Vehicles/Wheeled/M923A1/OverthrowMobileFOB.et"
+       m_iCost 10000
+      }
+     }
+    }
    }
    m_pHiredCivilianPrefab "{365CD448A5DABCCC}Prefabs/Groups/INDFOR/Group_CIV_Recruit.et"
+   m_pMobileFOBPrefab "{E6A31A5A6EA0AF04}Prefabs/Vehicles/Wheeled/M923A1/OverthrowMobileFOB.et"
+   m_pMobileFOBDeployedPrefab "{ABF741C3184846E9}Prefabs/Vehicles/Wheeled/M923A1/OverthrowMobileFOBDeployed.et"
   }
   OVT_RespawnSystemComponent "{5DEA8B45ED838B55}" {
    m_rDefaultPrefab "{3A99A99836F6B3DC}Prefabs/Characters/Factions/INDFOR/FIA/Character_Player.et"

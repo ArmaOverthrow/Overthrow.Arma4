@@ -13,7 +13,15 @@ class OVT_JobsContext : OVT_UIContext
 	}
 	
 	override void OnShow()
-	{			
+	{		
+		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");
+		if (closeButton)
+		{
+			SCR_InputButtonComponent action = SCR_InputButtonComponent.Cast(closeButton.FindHandler(SCR_InputButtonComponent));
+			if (action)
+				action.m_OnActivated.Insert(CloseLayout);
+		}
+		
 		Widget ww = m_wRoot.FindAnyWidget("ShowOnMap");
 		SCR_InputButtonComponent btn = SCR_InputButtonComponent.Cast(ww.FindHandler(SCR_InputButtonComponent));		
 		btn.m_OnActivated.Insert(ShowOnMap);
