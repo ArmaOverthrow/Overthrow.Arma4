@@ -193,6 +193,10 @@ class OVT_MapLocationElement : SCR_MapUIElement
 		
 		UpdateSelection();
 		
+		// Update name and distance visibility when selection state changes
+		UpdateLocationName();
+		UpdateDistance();
+		
 		// Notify location type of selection change
 		if (m_LocationType && select)
 			m_LocationType.OnLocationSelected(m_LocationData, this);
@@ -345,8 +349,9 @@ class OVT_MapLocationElement : SCR_MapUIElement
 			return;
 		}
 		
-		// Check zoom level and popup state
-		bool shouldShow = ShouldShowNameAtCurrentZoom() && !IsInfoPopupVisible();
+		// Check zoom level and selection state
+		// Show name if zoom level is sufficient AND element is not selected (selected elements only show popup)
+		bool shouldShow = ShouldShowNameAtCurrentZoom() && !m_bSelected;
 		m_wLocationName.SetVisible(shouldShow);
 		
 		if (shouldShow)
@@ -369,8 +374,8 @@ class OVT_MapLocationElement : SCR_MapUIElement
 			return;
 		}
 		
-		// Check zoom level and popup state - distance should show when name shows
-		bool shouldShow = ShouldShowNameAtCurrentZoom() && !IsInfoPopupVisible();
+		// Check zoom level and selection state - distance should show when name shows
+		bool shouldShow = ShouldShowNameAtCurrentZoom() && !m_bSelected;
 		if (!shouldShow)
 		{
 			m_wDistance.SetVisible(false);
@@ -393,7 +398,7 @@ class OVT_MapLocationElement : SCR_MapUIElement
 		if (distance < 1000)
 			distanceText = string.Format("%1 m", Math.Round(distance));
 		else
-			distanceText = string.Format("%.1f km", distance / 1000);
+			distanceText = string.Format("%1 km", (distance / 1000).ToString(-1, 1));
 		
 		m_wDistance.SetText(distanceText);
 		m_wDistance.SetVisible(true);
@@ -402,6 +407,10 @@ class OVT_MapLocationElement : SCR_MapUIElement
 	//! Called when the map zoom level changes
 	void OnZoomChanged()
 	{
+		// Update visibility based on new zoom level
+		SetVisible(m_bVisible);
+		
+		// Update display elements
 		UpdateDisplay();
 	}
 	

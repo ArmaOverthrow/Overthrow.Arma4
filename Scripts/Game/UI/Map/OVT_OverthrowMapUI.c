@@ -1,3 +1,10 @@
+[BaseContainerProps(configRoot: true)]
+class OVT_OverthrowMapConfig
+{
+	[Attribute("", UIWidgets.Object, "Overthrow Map Location Types")]
+	ref array<ref OVT_MapLocationType> m_aLocationTypes;
+}
+
 //! Main Overthrow map UI component that manages all interactive map elements
 //! Extends base game SCR_MapUIElementContainer for proper integration
 class OVT_OverthrowMapUI : SCR_MapUIElementContainer
@@ -8,8 +15,8 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 	[Attribute(defvalue: "", UIWidgets.ResourceNamePicker, desc: "Info panel layout", params: "layout")]
 	protected ResourceName m_InfoPanelLayout;
 	
-	[Attribute("", UIWidgets.Object, "Overthrow Map Location Types")]
-	protected ref array<ref OVT_MapLocationType> m_aLocationTypes;
+	[Attribute(defvalue: "OVT_OverthrowMapConfig", UIWidgets.Object, "Overthrow Map Config")]
+	protected ref OVT_OverthrowMapConfig m_Config;
 	
 	//! All location instances managed by this UI
 	protected ref array<ref OVT_MapLocationData> m_aLocations;
@@ -39,11 +46,17 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 		
 		// Create location elements
 		CreateLocationElements();
+		
+		// Connect to map zoom event
+		m_MapEntity.GetOnMapZoom().Insert(OnMapZoom);
 	}
 	
 	override void OnMapClose(MapConfiguration config)
 	{
 		super.OnMapClose(config);
+		
+		// Disconnect from map zoom event
+		m_MapEntity.GetOnMapZoom().Remove(OnMapZoom);
 		
 		// Hide info panel
 		HideLocationInfo();
@@ -64,13 +77,25 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 		}
 	}
 	
+	//! Called when the map zoom level changes
+	protected void OnMapZoom(float zoomVal)
+	{
+		// Notify all location elements about zoom change
+		foreach (Widget widget, SCR_MapUIElement element : m_mIcons)
+		{
+			OVT_MapLocationElement locationElement = OVT_MapLocationElement.Cast(element);
+			if (locationElement)
+				locationElement.OnZoomChanged();
+		}
+	}
+	
 	//! Initialize all location types
 	protected void InitializeLocationTypes()
 	{
-		if (!m_aLocationTypes)
+		if (!m_Config.m_aLocationTypes)
 			return;
 		
-		foreach (OVT_MapLocationType locationType : m_aLocationTypes)
+		foreach (OVT_MapLocationType locationType : m_Config.m_aLocationTypes)
 		{
 			if (locationType)
 				locationType.Init(this);
@@ -80,10 +105,10 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 	//! Populate locations from all location types
 	protected void PopulateAllLocations()
 	{
-		if (!m_aLocationTypes)
+		if (!m_Config.m_aLocationTypes)
 			return;
 		
-		foreach (OVT_MapLocationType locationType : m_aLocationTypes)
+		foreach (OVT_MapLocationType locationType : m_Config.m_aLocationTypes)
 		{
 			if (locationType)
 				locationType.PopulateLocations(m_aLocations);
@@ -133,10 +158,10 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 	//! Get location type by class name
 	protected OVT_MapLocationType GetLocationTypeByName(string typeName)
 	{
-		if (!m_aLocationTypes)
+		if (!m_Config.m_aLocationTypes)
 			return null;
 		
-		foreach (OVT_MapLocationType locationType : m_aLocationTypes)
+		foreach (OVT_MapLocationType locationType : m_Config.m_aLocationTypes)
 		{
 			if (locationType && locationType.ClassName() == typeName)
 				return locationType;
@@ -173,6 +198,8 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 		if (!m_wInfoPanel)
 			return;
 		
+		m_wInfoPanel.SetZOrder(20);
+				
 		// Setup base info
 		SetupLocationInfoBase(location);
 		
@@ -340,8 +367,8 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 		y = GetGame().GetWorkspace().DPIUnscale(y);
 		
 		// Offset to avoid overlapping with icon
-		x += 50;
-		y -= 50;
+		x += 13;
+		y -= 31;
 		
 		// Keep within screen bounds
 		float panelWidth, panelHeight;

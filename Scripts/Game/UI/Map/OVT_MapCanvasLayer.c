@@ -1,11 +1,8 @@
 [BaseContainerProps()]
 class OVT_MapCanvasLayer : SCR_MapModuleBase
 {		
-	protected Widget m_Widget;
 	protected CanvasWidget m_Canvas;
 	protected ref array<ref CanvasWidgetCommand> m_Commands;
-	
-	protected ResourceName m_Layout = "{A6A79ABB08D490BE}UI/Layouts/Map/MapCanvasLayer.layout";
 		
 	void Draw()
 	{		
@@ -88,17 +85,7 @@ class OVT_MapCanvasLayer : SCR_MapModuleBase
 		super.OnMapOpen(config);
 		
 		m_Commands = new array<ref CanvasWidgetCommand>();
-		
-		m_Widget = GetGame().GetWorkspace().CreateWidgets(m_Layout);
 
-		m_Canvas = CanvasWidget.Cast(m_Widget.FindAnyWidget("Canvas"));
-	}
-	
-	override void OnMapClose(MapConfiguration config)
-	{
-		super.OnMapClose(config);
-		
-		m_Widget.RemoveFromHierarchy();
-
+		m_Canvas = CanvasWidget.Cast(config.RootWidgetRef.FindAnyWidget(SCR_MapConstants.DRAWING_WIDGET_NAME));
 	}
 }

@@ -31,6 +31,12 @@ class OVT_MapLocationData : Managed
 	//! Whether this location supports fast travel
 	bool m_bCanFastTravel = false;
 	
+	//! Shop type (for shop locations)
+	OVT_ShopType m_ShopType;
+	
+	//! Direct entity reference (for quick access)
+	IEntity m_pEntity;
+	
 	void OVT_MapLocationData(vector position, string name, string typeName)
 	{
 		m_vPosition = position;

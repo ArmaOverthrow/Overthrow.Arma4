@@ -9,7 +9,7 @@ FrameWidgetClass {
   OffsetBottom -800
   SizeToContent 1
  }
- "Z Order" 20
+ "Z Order" 9999
  Clipping False
  {
   SizeLayoutWidgetClass "{OVT_InfoContainer}" {
@@ -24,16 +24,14 @@ FrameWidgetClass {
     OffsetRight -300
     SizeY 400
     OffsetBottom -400
-    Alignment 0 0
+    Alignment -0.05 0
     SizeToContent 1
    }
-   "Z Order" 20
    AllowWidthOverride 1
    WidthOverride 260
    HeightOverride 0
    AllowMinDesiredWidth 1
    MinDesiredWidth 260
-   AllowMinDesiredHeight 1
    MinDesiredHeight 200
    AllowMaxDesiredWidth 1
    MaxDesiredWidth 400
@@ -47,6 +45,18 @@ FrameWidgetClass {
       VerticalAlign 3
      }
      {
+      ImageWidgetClass "{65D33899A2B04849}" {
+       Name "Image0"
+       Slot OverlayWidgetSlot "{65D33899A2B04807}" {
+        HorizontalAlign 0
+        VerticalAlign 0
+        Padding -16 15 0 0
+       }
+       Pivot 1 0.5
+       Texture "{8479B3B5347DF5CF}UI/Imagesets/MilitarySymbol/ID_D.imageset"
+       Image "Hostile_Land_Bcg"
+       Size 32 32
+      }
       PanelWidgetClass "{OVT_InfoBackground}" {
        Name "InfoBackground"
        Slot AlignableSlot "{OVT_InfoBackgroundSlot}" {
@@ -68,7 +78,6 @@ FrameWidgetClass {
         OverlayWidgetClass "{65D0CCECA254771D}" {
          Name "Header"
          Slot LayoutSlot "{65D0CCECA25477E7}" {
-          Padding 0 0 0 5
          }
          {
           ImageWidgetClass "{65D0CCEC8F7DCD84}" {
@@ -149,14 +158,26 @@ FrameWidgetClass {
           SizeLayoutWidgetClass "{65D0CCE0C5D5DCF1}" : "{4DD35ACC1CB7006F}UI/Layouts/Map/OVT_MapInfoTown.layout" {
            Name "TownInfo0"
            Slot FrameWidgetSlot "{65D0CCF71218D728}" {
+            Anchor 0 0 0 0
+            PositionX 0
             OffsetLeft 0
+            PositionY 0
             OffsetTop 0
             SizeX 250
             OffsetRight -250
             SizeY 250
             OffsetBottom -250
            }
+           "Is Visible" 0
            WidthOverride 260
+           {
+            VerticalLayoutWidgetClass "{65D0CCEA1C3DC82A}" {
+             Prefab "{65D0CCEA1C3DC82A}"
+             Slot AlignableSlot "{65D0CCEAFD4CFF1E}" {
+              Padding 0 5 0 0
+             }
+            }
+           }
           }
          }
         }
