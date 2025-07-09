@@ -863,6 +863,14 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5992E2F582B25E31}" {
+   Id "OVT-TooCloseToRadioTower"
+   Target_en_us "Cannot deploy FOB - too close to radio tower"
+   Target_ru_ru "Невозможно развернуть FOB - слишком близко к радиовышке"
+   Modified 1577249155
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59B4D7D75C4B5A65}" {
    Id "OVT-CaptureBase"
    Target_en_us "Capture Base"

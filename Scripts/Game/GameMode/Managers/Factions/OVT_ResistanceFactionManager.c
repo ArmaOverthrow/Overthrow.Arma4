@@ -238,6 +238,37 @@ class OVT_ResistanceFactionManager: OVT_Component
 		if(!rpl) return;
 		IEntity entity = rpl.GetEntity();
 		
+		// Server-side validation: Check if too close to enemy bases
+		vector fobPos = entity.GetOrigin();
+		OVT_OccupyingFactionManager occupyingFaction = OVT_Global.GetOccupyingFaction();
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		
+		// Check distance to ALL bases (occupying faction and resistance)
+		foreach(OVT_BaseData base : occupyingFaction.m_Bases)
+		{
+			float distance = vector.Distance(base.location, fobPos);
+			// Use base close range + extra buffer (50m)
+			float restrictedDistance = config.m_Difficulty.baseCloseRange + 50;
+			
+			if(distance < restrictedDistance)
+			{
+				return; // Silently fail - client should have already validated
+			}
+		}
+		
+		// Check distance to ALL radio towers (occupying faction and resistance)
+		foreach(OVT_RadioTowerData tower : occupyingFaction.m_RadioTowers)
+		{
+			float distance = vector.Distance(tower.location, fobPos);
+			// Radio towers have 20m range + extra buffer (50m)
+			float restrictedDistance = 20 + 50;
+			
+			if(distance < restrictedDistance)
+			{
+				return; // Silently fail - client should have already validated
+			}
+		}
+		
 		OVT_VehicleManagerComponent vm = OVT_Global.GetVehicles();
 		
 		string ownerId = vm.GetOwnerID(entity);
