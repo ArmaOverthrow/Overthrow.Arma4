@@ -491,6 +491,35 @@ class OVT_ResistanceFactionManager: OVT_Component
 		return entity;
 	}
 	
+	//! Remove a placed item from the world
+	void RemovePlacedItem(EntityID entityId, int playerId)
+	{
+		IEntity entity = GetGame().GetWorld().FindEntityByID(entityId);
+		if(!entity) return;
+		
+		OVT_PlaceableComponent placeableComp = OVT_PlaceableComponent.Cast(entity.FindComponent(OVT_PlaceableComponent));
+		OVT_BuildableComponent buildableComp = OVT_BuildableComponent.Cast(entity.FindComponent(OVT_BuildableComponent));
+		
+		if(!placeableComp && !buildableComp) return;
+		
+		// Check permissions
+		string playerUid = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(playerUid);
+		bool isOfficer = player && player.isOfficer;
+		
+		string ownerUid = "";
+		if(placeableComp)
+			ownerUid = placeableComp.GetOwnerPersistentId();
+		else if(buildableComp)
+			ownerUid = buildableComp.GetOwnerPersistentId();
+		
+		// Only allow removal if player is owner or officer
+		if(ownerUid != playerUid && !isOfficer) return;
+		
+		// Delete the entity
+		SCR_EntityHelper.DeleteEntityAndChildren(entity);
+	}
+	
 	void AddGarrison(int baseId, int prefabIndex, bool takeSupporters = true)
 	{
 		OVT_BaseData base = OVT_Global.GetOccupyingFaction().m_Bases[baseId];

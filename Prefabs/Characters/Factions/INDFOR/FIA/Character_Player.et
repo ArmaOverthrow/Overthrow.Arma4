@@ -34,6 +34,8 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      m_sOpenAction "OverthrowPlaceMenu"
      m_sCloseAction "MenuBack"
      m_PlaceLayout "{25CA38A255CE0416}UI/Layouts/HUD/PlaceInfo.layout"
+     m_RemovalLayout "{80B48F7680D7FFA7}UI/Layouts/HUD/RemoveInfo.layout"
+     m_RemoveIcon "{23D6992A3432F75A}UI/Textures/Icons/card_remove.edds"
     }
     OVT_MapContext "{598E83B6A7175CBE}" {
      m_Layout "{0EC60966C99CE954}UI/Layouts/Map/MapInfo.layout"
@@ -72,6 +74,8 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      m_sCloseAction "MenuBack"
      m_bOpenActionCloses 0
      m_BuildLayout "{A07C65DB3FF77D40}UI/Layouts/HUD/BuildInfo.layout"
+     m_RemovalLayout "{80B48F7680D7FFA7}UI/Layouts/HUD/RemoveInfo.layout"
+     m_RemoveIcon "{23D6992A3432F75A}UI/Textures/Icons/card_remove.edds"
      m_BuildCameraPrefab "{27E3E078BAE54DE8}Prefabs/GameMode/OVT_BuildCamera_2.et"
     }
     OVT_BaseMenuContext "{59C8F617A8CC47E0}" {

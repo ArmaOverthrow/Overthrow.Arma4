@@ -613,6 +613,17 @@ class OVT_PlayerCommsComponent: OVT_Component
 		OVT_Global.GetResistanceFaction().PlaceItem(placeableIndex, prefabIndex, pos, angles, playerId);
 	}
 	
+	void RemovePlacedItem(EntityID entityId, int playerId)
+	{
+		Rpc(RpcAsk_RemovePlacedItem, entityId, playerId);
+	}
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_RemovePlacedItem(EntityID entityId, int playerId)
+	{
+		OVT_Global.GetResistanceFaction().RemovePlacedItem(entityId, playerId);
+	}
+	
 	//BUILDING
 	void BuildItem(int buildableIndex, int prefabIndex, vector pos, vector angles, int playerId)
 	{

@@ -807,6 +807,62 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5992E2F582B25E29}" {
+   Id "OVT-RemovalModeActive"
+   Target_en_us "Removal mode active - look at items to remove them"
+   Target_ru_ru "Режим удаления активен - смотрите на предметы, чтобы удалить их"
+   Modified 1577249155
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5992E2F582B25E2A}" {
+   Id "OVT-ItemRemoved"
+   Target_en_us "Item removed"
+   Target_ru_ru "Предмет удален"
+   Modified 1577249155
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5992E2F582B25E2B}" {
+   Id "OVT-CannotRemoveItem"
+   Target_en_us "Cannot remove this item"
+   Target_ru_ru "Невозможно удалить этот предмет"
+   Modified 1577249155
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5992E2F582B25E2C}" {
+   Id "OVT-Remove"
+   Target_en_us "Remove"
+   Target_ru_ru "Удалить"
+   Modified 1577249155
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5992E2F582B25E2D}" {
+   Id "OVT-RemoveDescription"
+   Target_en_us "Remove placed or built items"
+   Target_ru_ru "Удалить размещенные или построенные предметы"
+   Modified 1577249155
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5992E2F582B25E2E}" {
+   Id "OVT-ItemLimitReached"
+   Target_en_us "Item limit reached for this location"
+   Target_ru_ru "Достигнут лимит предметов для этого местоположения"
+   Modified 1577249155
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5992E2F582B25E2F}" {
+   Id "OVT-RemovalModeActive"
+   Target_en_us "Removal mode active - look at an item and click to remove it"
+   Target_ru_ru "Режим удаления активен - посмотрите на предмет и нажмите, чтобы удалить его"
+   Modified 1577249155
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59B4D7D75C4B5A65}" {
    Id "OVT-CaptureBase"
    Target_en_us "Capture Base"
