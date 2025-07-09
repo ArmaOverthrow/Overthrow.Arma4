@@ -31,6 +31,11 @@ class OVT_OverthrowConfigStruct
 	bool showPlayerPosition;
 	bool mobileFOBOfficersOnly;
 	
+	//Item placement limits
+	int houseItemLimit;
+	int campItemLimit;
+	int fobItemLimit;
+	
 	//Difficulty settings
 	bool overrideDifficulty;
 	int startingCash;
@@ -47,6 +52,10 @@ class OVT_OverthrowConfigStruct
 		difficulty = "";	
 		showPlayerPosition = true;	
 		mobileFOBOfficersOnly = true; // Default: restrict Mobile FOB deployment to officers only
+		
+		houseItemLimit = 20;
+		campItemLimit = 40;
+		fobItemLimit = 100;
 		
 		overrideDifficulty = false;
 		startingCash = 100;
@@ -243,6 +252,21 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	int GetBuildableCost(OVT_Buildable buildable)
 	{
 		return Math.Round(m_Difficulty.buildableCostMultiplier * buildable.m_iCost);
+	}
+	
+	int GetHouseItemLimit()
+	{
+		return m_ConfigFile.houseItemLimit;
+	}
+	
+	int GetCampItemLimit()
+	{
+		return m_ConfigFile.campItemLimit;
+	}
+	
+	int GetFOBItemLimit()
+	{
+		return m_ConfigFile.fobItemLimit;
 	}
 
 	void SetOccupyingFaction(string key)
@@ -521,6 +545,9 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		
 		//Send server config options	
 		writer.WriteBool(m_ConfigFile.mobileFOBOfficersOnly);	
+		writer.WriteInt(m_ConfigFile.houseItemLimit);
+		writer.WriteInt(m_ConfigFile.campItemLimit);
+		writer.WriteInt(m_ConfigFile.fobItemLimit);
 		
 		return true;
 	}
@@ -577,6 +604,15 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		}
 		
 		m_ConfigFile.mobileFOBOfficersOnly = b;
+		
+		if (!reader.ReadInt(i)) return false;
+		m_ConfigFile.houseItemLimit = i;
+		
+		if (!reader.ReadInt(i)) return false;
+		m_ConfigFile.campItemLimit = i;
+		
+		if (!reader.ReadInt(i)) return false;
+		m_ConfigFile.fobItemLimit = i;
 		
 		return true;
 	}

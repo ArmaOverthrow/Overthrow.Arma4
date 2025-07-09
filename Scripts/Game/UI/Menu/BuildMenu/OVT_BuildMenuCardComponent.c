@@ -47,6 +47,36 @@ class OVT_BuildMenuCardComponent : SCR_ScriptedWidgetComponent
 		}
 	}
 	
+	void InitRemoveCard(OVT_BuildContext context, ResourceName removeIcon = "")
+	{
+		m_Context = context;
+		m_bCanBuild = true;
+		m_sRestrictionReason = "";
+		
+		TextWidget text = TextWidget.Cast(m_wRoot.FindAnyWidget("EntityName"));
+		text.SetText("#OVT-Remove");
+		
+		TextWidget cost = TextWidget.Cast(m_wRoot.FindAnyWidget("Cost"));
+		cost.SetText(""); // No cost for removal
+		
+		ImageWidget img = ImageWidget.Cast(m_wRoot.FindAnyWidget("Image"));
+		if (removeIcon != "")
+		{
+			img.LoadImageTexture(0, removeIcon);
+		}
+		else
+		{
+			img.LoadImageTexture(0, "");
+		}
+		
+		TextWidget desc = TextWidget.Cast(m_wRoot.FindAnyWidget("EntityDescription"));
+		desc.SetText("#OVT-RemoveDescription");
+		
+		// Use normal styling (no special coloring)
+		m_wRoot.SetOpacity(1.0);
+		m_wRoot.SetColor(Color.White);
+	}
+	
 	override bool OnClick(Widget w, int x, int y, int button)
 	{
 		super.OnClick(w, x, y, button);
@@ -54,6 +84,13 @@ class OVT_BuildMenuCardComponent : SCR_ScriptedWidgetComponent
 			return false;
 		
 		if(!m_Context) return false;
+		
+		// Check if this is the remove card (no buildable set)
+		if (!m_Buildable)
+		{
+			m_Context.StartRemovalMode();
+			return true;
+		}
 		
 		if (!m_bCanBuild)
 		{

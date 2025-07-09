@@ -1,0 +1,17 @@
+MetaFileClass {
+ Name "{80B48F7680D7FFA7}UI/Layouts/HUD/RemoveInfo.layout"
+ Configurations {
+  LayoutResourceClass PC {
+  }
+  LayoutResourceClass XBOX_ONE : PC {
+  }
+  LayoutResourceClass XBOX_SERIES : PC {
+  }
+  LayoutResourceClass PS4 : PC {
+  }
+  LayoutResourceClass HEADLESS : PC {
+  }
+  LayoutResourceClass PS5 : PC {
+  }
+ }
+}

@@ -238,6 +238,37 @@ class OVT_ResistanceFactionManager: OVT_Component
 		if(!rpl) return;
 		IEntity entity = rpl.GetEntity();
 		
+		// Server-side validation: Check if too close to enemy bases
+		vector fobPos = entity.GetOrigin();
+		OVT_OccupyingFactionManager occupyingFaction = OVT_Global.GetOccupyingFaction();
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		
+		// Check distance to ALL bases (occupying faction and resistance)
+		foreach(OVT_BaseData base : occupyingFaction.m_Bases)
+		{
+			float distance = vector.Distance(base.location, fobPos);
+			// Use base close range + extra buffer (50m)
+			float restrictedDistance = config.m_Difficulty.baseCloseRange + 50;
+			
+			if(distance < restrictedDistance)
+			{
+				return; // Silently fail - client should have already validated
+			}
+		}
+		
+		// Check distance to ALL radio towers (occupying faction and resistance)
+		foreach(OVT_RadioTowerData tower : occupyingFaction.m_RadioTowers)
+		{
+			float distance = vector.Distance(tower.location, fobPos);
+			// Radio towers have 20m range + extra buffer (50m)
+			float restrictedDistance = 20 + 50;
+			
+			if(distance < restrictedDistance)
+			{
+				return; // Silently fail - client should have already validated
+			}
+		}
+		
 		OVT_VehicleManagerComponent vm = OVT_Global.GetVehicles();
 		
 		string ownerId = vm.GetOwnerID(entity);
@@ -489,6 +520,35 @@ class OVT_ResistanceFactionManager: OVT_Component
 		m_OnBuild.Invoke(entity, buildable, playerId);
 		
 		return entity;
+	}
+	
+	//! Remove a placed item from the world
+	void RemovePlacedItem(EntityID entityId, int playerId)
+	{
+		IEntity entity = GetGame().GetWorld().FindEntityByID(entityId);
+		if(!entity) return;
+		
+		OVT_PlaceableComponent placeableComp = OVT_PlaceableComponent.Cast(entity.FindComponent(OVT_PlaceableComponent));
+		OVT_BuildableComponent buildableComp = OVT_BuildableComponent.Cast(entity.FindComponent(OVT_BuildableComponent));
+		
+		if(!placeableComp && !buildableComp) return;
+		
+		// Check permissions
+		string playerUid = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(playerUid);
+		bool isOfficer = player && player.isOfficer;
+		
+		string ownerUid = "";
+		if(placeableComp)
+			ownerUid = placeableComp.GetOwnerPersistentId();
+		else if(buildableComp)
+			ownerUid = buildableComp.GetOwnerPersistentId();
+		
+		// Only allow removal if player is owner or officer
+		if(ownerUid != playerUid && !isOfficer) return;
+		
+		// Delete the entity
+		SCR_EntityHelper.DeleteEntityAndChildren(entity);
 	}
 	
 	void AddGarrison(int baseId, int prefabIndex, bool takeSupporters = true)
