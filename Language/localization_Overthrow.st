@@ -799,6 +799,14 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{5992E2F582B25E28}" {
+   Id "OVT-ItemLimitReached"
+   Target_en_us "Item limit reached at this location"
+   Target_ru_ru "Достигнут лимит предметов в этом месте"
+   Modified 1577249155
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59B4D7D75C4B5A65}" {
    Id "OVT-CaptureBase"
    Target_en_us "Capture Base"

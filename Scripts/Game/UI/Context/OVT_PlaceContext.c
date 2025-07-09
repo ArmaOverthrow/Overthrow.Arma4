@@ -23,6 +23,7 @@ class OVT_PlaceContext : OVT_UIContext
 	protected OVT_OccupyingFactionManager m_OccupyingFaction;
 	protected OVT_ResistanceFactionManager m_Resistance;
 	protected OVT_TownManagerComponent m_Towns;
+	protected ref OVT_ItemLimitChecker m_ItemLimitChecker;
 
 	bool m_bPlacing = false;
 	int m_iPrefabIndex = 0;
@@ -36,6 +37,7 @@ class OVT_PlaceContext : OVT_UIContext
 		m_OccupyingFaction = OVT_Global.GetOccupyingFaction();
 		m_Resistance = OVT_Global.GetResistanceFaction();
 		m_Towns = OVT_Global.GetTowns();
+		m_ItemLimitChecker = new OVT_ItemLimitChecker();
 	}
 
 	override void OnFrame(float timeSlice)
@@ -177,10 +179,17 @@ class OVT_PlaceContext : OVT_UIContext
 			m_PlaceWidget.RemoveFromHierarchy();
 	}
 
+
 	bool CanPlace(OVT_Placeable placeable, vector pos, out string reason)
 	{
 		reason = "#OVT-CannotPlaceHere";
 		if(placeable.m_bIgnoreLocation) return true;
+		
+		if(!m_ItemLimitChecker.CanPlaceItem(pos, m_sPlayerID, reason))
+		{
+			CloseLayout();
+			return false;
+		}
 
 		float dist;
 		OVT_TownData town = m_Towns.GetNearestTown(pos);

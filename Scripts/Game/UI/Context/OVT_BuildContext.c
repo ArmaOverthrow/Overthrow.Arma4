@@ -22,6 +22,7 @@ class OVT_BuildContext : OVT_UIContext
 	protected OVT_ResistanceFactionManager m_Resistance;
 	protected OVT_TownManagerComponent m_Towns;
 	protected CameraManager m_CameraManager;
+	protected ref OVT_ItemLimitChecker m_ItemLimitChecker;
 	
 	const int MAX_FOB_BUILD_DIS = 100;
 	const int MAX_CAMP_BUILD_DIS = 50;
@@ -38,6 +39,7 @@ class OVT_BuildContext : OVT_UIContext
 		m_Resistance = OVT_Global.GetResistanceFaction();
 		m_Towns = OVT_Global.GetTowns();		
 		m_CameraManager = GetGame().GetCameraManager();
+		m_ItemLimitChecker = new OVT_ItemLimitChecker();
 	}
 	
 	override void OnFrame(float timeSlice)
@@ -199,9 +201,35 @@ class OVT_BuildContext : OVT_UIContext
 			m_BuildWidget.RemoveFromHierarchy();
 	}
 	
+
 	bool CanBuild(OVT_Buildable buildable, vector pos, out string reason)
 	{
 		reason = "#OVT-CannotBuildHere";
+		
+		// Check item limits using the build-specific location detection
+		string tempReason;
+		string locationId;
+		EOVTBaseType baseType;
+		int itemCount = m_ItemLimitChecker.CountItemsAtLocationForBuild(pos, locationId, baseType);
+		
+		if(itemCount > 0)
+		{
+			int limit = 0;
+			if(baseType == EOVTBaseType.NONE)
+				limit = OVT_Global.GetConfig().GetHouseItemLimit();
+			else if(baseType == EOVTBaseType.CAMP)
+				limit = OVT_Global.GetConfig().GetCampItemLimit();
+			else if(baseType == EOVTBaseType.FOB || baseType == EOVTBaseType.BASE)
+				limit = OVT_Global.GetConfig().GetFOBItemLimit();
+			
+			// If limit is 0 or negative, allow unlimited items
+			if(limit > 0 && itemCount >= limit)
+			{
+				reason = "#OVT-ItemLimitReached";
+				CloseLayout();
+				return false;
+			}
+		}
 		
 		float dist;
 		

@@ -3,7 +3,14 @@ StaticModelEntity : "{23BB711062057CC5}Prefabs/Props/Military/Sandbags/Sandbag_0
  components {
   EPF_PersistenceComponent "{65B90A1324B9C538}" {
    m_pSaveData OVT_BuildingSaveDataClass "{65B90A1320758A5E}" {
+    m_aComponents {
+     OVT_BuildableDataClass "{65D288B07BB1216C}" {
+     }
+    }
    }
+  }
+  OVT_BuildableComponent "{65D288B0759157C1}" {
+   m_sBuildableType "Bunker"
   }
  }
 }
