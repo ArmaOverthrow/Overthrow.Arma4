@@ -2,8 +2,16 @@ StaticModelEntity : "{CF1FFB7BAA1A0769}Prefabs/Structures/Military/Camps/Helipad
  ID "56ACD1C4DB91DB10"
  components {
   EPF_PersistenceComponent "{5EE4E8DFCFC695BB}" {
+   m_bUpdateNavmesh 1
    m_pSaveData OVT_BuildingSaveDataClass "{5EE4E8DFCB5B743C}" {
+    m_aComponents {
+     OVT_BuildableDataClass "{5EE4E8DFCB5B743D}" {
+     }
+    }
    }
+  }
+  OVT_BuildableComponent "{5EE4E8DFCB5B743E}" {
+   m_sBuildableType "Helipad"
   }
   OVT_MainMenuContextOverrideComponent "{5EE4F8205A6FCEEB}" {
    m_ContextName "OVT_ShopContext"

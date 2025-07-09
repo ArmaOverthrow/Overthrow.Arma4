@@ -3,6 +3,12 @@ class OVT_BuildContext : OVT_UIContext
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Layout to show when building", params: "layout")]
 	ResourceName m_BuildLayout;	
 	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Layout to show when removing", params: "layout")]
+	ResourceName m_RemovalLayout;
+	
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Icon to show on remove card", params: "edds")]
+	ResourceName m_RemoveIcon;
+	
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Build Camera Prefab", params: "et")]
 	ResourceName m_BuildCameraPrefab;
 	
@@ -10,6 +16,7 @@ class OVT_BuildContext : OVT_UIContext
 	CameraBase m_PlayerCamera;
 	
 	Widget m_BuildWidget;
+	Widget m_RemovalWidget;
 		
 	protected SCR_PrefabPreviewEntity m_eBuildingEntity;
 	protected ResourceName m_pBuildingPrefab;
@@ -22,10 +29,14 @@ class OVT_BuildContext : OVT_UIContext
 	protected OVT_ResistanceFactionManager m_Resistance;
 	protected OVT_TownManagerComponent m_Towns;
 	protected CameraManager m_CameraManager;
+	protected ref OVT_ItemLimitChecker m_ItemLimitChecker;
 	
 	const int MAX_FOB_BUILD_DIS = 100;
+	const int MAX_CAMP_BUILD_DIS = 50;
 	
 	bool m_bBuilding = false;
+	bool m_bRemovalMode = false;
+	protected IEntity m_eHighlightedEntity = null;
 	int m_iPrefabIndex = 0;
 	int m_iPageNum = 0;
 	int m_iNumPages = 0;
@@ -37,6 +48,7 @@ class OVT_BuildContext : OVT_UIContext
 		m_Resistance = OVT_Global.GetResistanceFaction();
 		m_Towns = OVT_Global.GetTowns();		
 		m_CameraManager = GetGame().GetCameraManager();
+		m_ItemLimitChecker = new OVT_ItemLimitChecker();
 	}
 	
 	override void OnFrame(float timeSlice)
@@ -45,7 +57,7 @@ class OVT_BuildContext : OVT_UIContext
 		{
 			TryForceCamera();
 			
-			//m_InputManager.ActivateContext("OverthrowBuildContext");
+			m_InputManager.ActivateContext("OverthrowBuildContext");
 			
 			if(m_eBuildingEntity)
 			{
@@ -54,6 +66,16 @@ class OVT_BuildContext : OVT_UIContext
 				m_eBuildingEntity.GetTransform(m_vCurrentTransform);				
 				m_eBuildingEntity.Update();			
 			}
+		}
+		
+		if (m_bRemovalMode)
+		{
+			if (m_Camera)
+			{
+				TryForceCamera();
+			}
+			m_InputManager.ActivateContext("OverthrowBuildContext");
+			HighlightRemovableItems();
 		}
 	}
 	
@@ -92,6 +114,7 @@ class OVT_BuildContext : OVT_UIContext
 		btn = SCR_InputButtonComponent.Cast(closeButton.FindHandler(SCR_InputButtonComponent));
 		btn.m_OnActivated.Insert(CloseLayout);
 
+
 		Refresh();
 	}
 	
@@ -123,14 +146,26 @@ class OVT_BuildContext : OVT_UIContext
 		int done = 0;
 		IEntity player = SCR_PlayerController.GetLocalControlledEntity();
 		
-		m_iNumPages = Math.Ceil(m_Resistance.m_BuildablesConfig.m_aBuildables.Count() / 15);
+		// Show Remove card as first item
+		Widget removeCard = root.FindWidget("BuildMenu_Card" + done);
+		OVT_BuildMenuCardComponent removeCardComponent = OVT_BuildMenuCardComponent.Cast(removeCard.FindHandler(OVT_BuildMenuCardComponent));
+		if(removeCardComponent)
+		{
+			removeCardComponent.InitRemoveCard(this, m_RemoveIcon);
+		}
+		removeCard.SetOpacity(1);
+		done++;
+		
+		// Calculate pages based on remaining items
+		int totalBuildables = m_Resistance.m_BuildablesConfig.m_aBuildables.Count();
+		m_iNumPages = Math.Ceil(totalBuildables / 14); // 14 items per page (leaving room for remove card)
 		if(m_iPageNum >= m_iNumPages) m_iPageNum = 0;
 		string pageNumText = (m_iPageNum + 1).ToString();
 		
 		pages.SetText(pageNumText + "/" + m_iNumPages);
 		
-		// Show buildables for current page
-		for(int i = m_iPageNum * 15; i < (m_iPageNum + 1) * 15 && i < m_Resistance.m_BuildablesConfig.m_aBuildables.Count(); i++)
+		// Show buildables for current page (14 items instead of 15)
+		for(int i = m_iPageNum * 14; i < (m_iPageNum + 1) * 14 && i < m_Resistance.m_BuildablesConfig.m_aBuildables.Count(); i++)
 		{
 			OVT_Buildable buildable = m_Resistance.m_BuildablesConfig.m_aBuildables[i];
 			Widget w = root.FindWidget("BuildMenu_Card" + done);
@@ -190,17 +225,55 @@ class OVT_BuildContext : OVT_UIContext
 	
 	void Cancel(float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
 	{
-		if(!m_bBuilding) return;
-		m_bBuilding = false;
-		RemoveGhost();
-		RevertCamera();
-		if(m_BuildWidget)
-			m_BuildWidget.RemoveFromHierarchy();
+		if(m_bBuilding)
+		{
+			m_bBuilding = false;
+			RemoveGhost();
+			RevertCamera();
+			if(m_BuildWidget)
+				m_BuildWidget.RemoveFromHierarchy();
+			return;
+		}
+		
+		if(m_bRemovalMode)
+		{
+			m_bRemovalMode = false;
+			ClearHighlights();
+			RevertCamera();
+			if(m_RemovalWidget)
+				m_RemovalWidget.RemoveFromHierarchy();
+			return;
+		}
 	}
 	
+
 	bool CanBuild(OVT_Buildable buildable, vector pos, out string reason)
 	{
 		reason = "#OVT-CannotBuildHere";
+		
+		// Check item limits using the build-specific location detection
+		string tempReason;
+		string locationId;
+		EOVTBaseType baseType;
+		int itemCount = m_ItemLimitChecker.CountItemsAtLocationForBuild(pos, locationId, baseType);
+		
+		if(itemCount > 0)
+		{
+			int limit = 0;
+			if(baseType == EOVTBaseType.NONE)
+				limit = OVT_Global.GetConfig().GetHouseItemLimit();
+			else if(baseType == EOVTBaseType.CAMP)
+				limit = OVT_Global.GetConfig().GetCampItemLimit();
+			else if(baseType == EOVTBaseType.FOB || baseType == EOVTBaseType.BASE)
+				limit = OVT_Global.GetConfig().GetFOBItemLimit();
+			
+			// If limit is 0 or negative, allow unlimited items
+			if(limit > 0 && itemCount >= limit)
+			{
+				reason = "#OVT-ItemLimitReached";
+				return false;
+			}
+		}
 		
 		float dist;
 		
@@ -245,11 +318,18 @@ class OVT_BuildContext : OVT_UIContext
 			}
 		}
 		
-		if(buildable.m_bBuildAtFOB)
+		if(buildable.m_bBuildAtCamp)
 		{	
+			vector fob = m_Resistance.GetNearestCamp(pos);		
+			dist = vector.Distance(fob, pos);
+			if(dist < MAX_CAMP_BUILD_DIS) return true;	
+		}
+		
+		if(buildable.m_bBuildAtFOB)
+		{
 			vector fob = m_Resistance.GetNearestFOB(pos);		
 			dist = vector.Distance(fob, pos);
-			if(dist < MAX_FOB_BUILD_DIS) return true;	
+			if(dist < MAX_FOB_BUILD_DIS) return true;
 		}
 							
 		return false;
@@ -328,7 +408,7 @@ class OVT_BuildContext : OVT_UIContext
 	
 	void MoveRight(float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
 	{
-		if(!m_bBuilding) return;
+		if(!m_bBuilding && !m_bRemovalMode) return;
 		
 		vector move = "0 0 0";
 		move[0] = value * 0.07;
@@ -344,7 +424,7 @@ class OVT_BuildContext : OVT_UIContext
 	
 	void MoveForward(float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
 	{
-		if(!m_bBuilding) return;
+		if(!m_bBuilding && !m_bRemovalMode) return;
 		vector move = "0 0 0";
 		move[2] = value * 0.07;
 		vector pos = m_Camera.GetOrigin() + move;
@@ -359,7 +439,7 @@ class OVT_BuildContext : OVT_UIContext
 	
 	void Zoom(float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
 	{
-		if(!m_bBuilding) return;
+		if(!m_bBuilding && !m_bRemovalMode) return;
 		vector move = "0 0 0";
 		move[1] = value * -0.005;
 		
@@ -407,7 +487,13 @@ class OVT_BuildContext : OVT_UIContext
 	}
 	
 	void DoBuild(float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
-	{	
+	{
+		if(m_bRemovalMode)
+		{
+			DoRemove();
+			return;
+		}
+		
 		if(!m_bBuilding) return;
 			
 		int cost = OVT_Global.GetConfig().GetBuildableCost(m_Buildable);
@@ -422,6 +508,12 @@ class OVT_BuildContext : OVT_UIContext
 			{
 				ShowHint(error);
 				SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.ERROR);
+				
+				// Close layout if item limit was reached during build attempt
+				if(error == "#OVT-ItemLimitReached")
+				{
+					CloseLayout();
+				}
 				return;
 			}
 			
@@ -533,5 +625,147 @@ class OVT_BuildContext : OVT_UIContext
 		hitNormal = trace.TraceNorm;
 		
 		return dis;
+	}
+	
+	//! Start removal mode
+	void StartRemovalMode()
+	{
+		if(m_bIsActive) CloseLayout();
+		
+		m_bRemovalMode = true;
+		m_bBuilding = false;
+		
+		if(m_eBuildingEntity)
+		{
+			RemoveGhost();
+		}
+		
+		CreateCamera();
+		MoveCamera();
+		
+		if (!m_RemovalWidget && m_RemovalLayout != "")
+		{
+			WorkspaceWidget workspace = GetGame().GetWorkspace();
+			m_RemovalWidget = workspace.CreateWidgets(m_RemovalLayout);
+		}
+		
+		ShowHint("#OVT-RemovalModeActive");
+	}
+	
+	//! Highlight the item the player is looking at (if removable)
+	void HighlightRemovableItems()
+	{
+		IEntity player = SCR_PlayerController.GetLocalControlledEntity();
+		if(!player) return;
+		
+		// Raycast to find what the player is looking at
+		vector cameraPos, cameraDir;
+		WorkspaceWidget workspace = GetGame().GetWorkspace();
+		BaseWorld world = GetGame().GetWorld();
+		
+		float screenW, screenH;
+		workspace.GetScreenSize(screenW, screenH);
+		cameraPos = workspace.ProjScreenToWorldNative(screenW / 2, screenH / 2, cameraDir, world, -1);
+		
+		// Trace to find what the player is looking at
+		autoptr TraceParam trace = new TraceParam();
+		trace.Start = cameraPos;
+		trace.End = cameraPos + cameraDir * 50; // 50m range
+		trace.Flags = TraceFlags.WORLD | TraceFlags.ENTS;
+		
+		float traceDis = world.TraceMove(trace, null);
+		if(traceDis < 1)
+		{
+			IEntity hitEntity = trace.TraceEnt;
+			if(hitEntity)
+			{
+				OVT_BuildableComponent buildableComp = OVT_BuildableComponent.Cast(hitEntity.FindComponent(OVT_BuildableComponent));
+				if(buildableComp && CanRemoveItem(buildableComp))
+				{
+					// Only highlight if it's a different entity
+					if(hitEntity != m_eHighlightedEntity)
+					{
+						ClearHighlights();
+						m_eHighlightedEntity = hitEntity;
+						// Apply red highlighting using the CannotBuild material for consistency
+						SCR_Global.SetMaterial(hitEntity, "{14A9DCEA57D1C381}Assets/Conflict/CannotBuild.emat");
+					}
+					return;
+				}
+			}
+		}
+		
+		// No valid target found, clear highlights
+		ClearHighlights();
+	}
+	
+	//! Check if player can remove an item
+	bool CanRemoveItem(OVT_BuildableComponent buildableComp)
+	{
+		// Officers can remove any item
+		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(m_sPlayerID);
+		if(player && player.isOfficer)
+			return true;
+		
+		// Players can remove their own items
+		if(buildableComp.GetOwnerPersistentId() == m_sPlayerID)
+			return true;
+		
+		return false;
+	}
+	
+	//! Remove the item the player is looking at
+	void DoRemove()
+	{
+		IEntity player = SCR_PlayerController.GetLocalControlledEntity();
+		if(!player) return;
+		
+		// Raycast to find the item the player is looking at
+		vector cameraPos, cameraDir;
+		WorkspaceWidget workspace = GetGame().GetWorkspace();
+		BaseWorld world = GetGame().GetWorld();
+		
+		float screenW, screenH;
+		workspace.GetScreenSize(screenW, screenH);
+		cameraPos = workspace.ProjScreenToWorldNative(screenW / 2, screenH / 2, cameraDir, world, -1);
+		
+		// Trace to find what the player is looking at
+		autoptr TraceParam trace = new TraceParam();
+		trace.Start = cameraPos;
+		trace.End = cameraPos + cameraDir * 50; // 50m range
+		trace.Flags = TraceFlags.WORLD | TraceFlags.ENTS;
+		
+		float traceDis = world.TraceMove(trace, null);
+		if(traceDis < 1)
+		{
+			IEntity hitEntity = trace.TraceEnt;
+			if(hitEntity)
+			{
+				OVT_BuildableComponent buildableComp = OVT_BuildableComponent.Cast(hitEntity.FindComponent(OVT_BuildableComponent));
+				if(buildableComp && CanRemoveItem(buildableComp))
+				{
+					// Send removal request to server
+					OVT_Global.GetServer().RemovePlacedItem(hitEntity.GetID(), m_iPlayerID);
+					ShowHint("#OVT-ItemRemoved");
+					SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.CLICK);
+				}
+				else
+				{
+					ShowHint("#OVT-CannotRemoveItem");
+					SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.ERROR);
+				}
+			}
+		}
+	}
+	
+	//! Clear highlighting from all items
+	void ClearHighlights()
+	{
+		if(m_eHighlightedEntity)
+		{
+			// Reset material to empty string to restore original
+			SCR_Global.SetMaterial(m_eHighlightedEntity, "");
+			m_eHighlightedEntity = null;
+		}
 	}
 }

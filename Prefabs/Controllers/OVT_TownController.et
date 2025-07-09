@@ -8,6 +8,17 @@ GenericEntity {
   }
   RplComponent "{599AA7491CA2D761}" {
   }
+  Hierarchy "{65BD30BC85438596}" {
+  }
  }
- coords 5484.924 96.098 6096.409
+ Flags 1027
+ {
+  GenericEntity : "{806FEF6C37A7CB17}Prefabs/Structures/Signs/Military/Supplies/Sign_MedicalSuppliesLocation.et" {
+   ID "65BD30BCBA1C5735"
+   components {
+    Hierarchy "{65BD30BC8192F801}" {
+    }
+   }
+  }
+ }
 }

@@ -1,0 +1,66 @@
+FrameWidgetClass {
+ Name "rootFrame"
+ {
+  OverlayWidgetClass "{65D288B8D218C63B}" {
+   Name "Overlay0"
+   Slot FrameWidgetSlot "{59A5462D1F5603DD}" {
+    Anchor 1 1 1 1
+    PositionX -50
+    OffsetLeft -50
+    PositionY -50
+    OffsetTop -50
+    SizeX 100
+    OffsetRight -50
+    SizeY 30
+    OffsetBottom 20
+    Alignment 1 1
+    SizeToContent 1
+   }
+   {
+    VerticalLayoutWidgetClass "{65D288B8D218C639}" {
+     Name "VerticalLayout0"
+     Slot OverlayWidgetSlot "{59A5462C09DE52D6}" {
+     }
+     {
+      HorizontalLayoutWidgetClass "{65D288B8D218C617}" {
+       Name "HorizontalLayout2"
+       Slot LayoutSlot "{59A5462C17CD0EF8}" {
+        HorizontalAlign 2
+       }
+       {
+        ButtonWidgetClass "{65D288B8D218C616}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+         Name "CancelButton"
+         Slot LayoutSlot "{59A5462C005E2D26}" {
+         }
+         components {
+          SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+           m_sActionName "MenuBack"
+           m_sLabel "#OVT-Cancel"
+          }
+          ButtonActionComponent "{56EEDE0026B19E2C}" {
+           m_bActionName "MenuBack"
+          }
+         }
+        }
+        ButtonWidgetClass "{65D288B8D218C614}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+         Name "PlaceButton"
+         Slot LayoutSlot "{59A5462C005E2D26}" {
+         }
+         components {
+          SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+           m_sActionName "MenuSelect"
+           m_sLabel "#OVT-Remove"
+          }
+          ButtonActionComponent "{56EEDE0026B19E2C}" {
+           m_bActionName "CharacterFire"
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

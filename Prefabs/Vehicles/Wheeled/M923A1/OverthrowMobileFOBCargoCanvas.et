@@ -1,0 +1,22 @@
+GenericEntity : "{F109C8DFC6DB0C92}Prefabs/Vehicles/Wheeled/M923A1/M923A1_cargo_canvas_closed_MERDC.et" {
+ ID "4B42E71698F5739C"
+ components {
+  SCR_BaseCompartmentManagerComponent "{2CD4A765A7D52986}" {
+   Enabled 0
+  }
+  ActionsManagerComponent "{2CD4A765B4482F53}" {
+   additionalActions {
+    OVT_DeployFOBAction "{5E04888F5C293688}" {
+     ParentContextList {
+      "door_rear"
+     }
+     UIInfo UIInfo "{5E04888F24061D11}" {
+      Name "#OVT-DeployFOB"
+     }
+     Duration 5
+     "Sort Priority" 17
+    }
+   }
+  }
+ }
+}

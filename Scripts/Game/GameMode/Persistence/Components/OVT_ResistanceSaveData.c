@@ -6,8 +6,10 @@ class OVT_ResistanceSaveDataClass : EPF_ComponentSaveDataClass
 [EDF_DbName.Automatic()]
 class OVT_ResistanceSaveData : EPF_ComponentSaveData
 {
-	ref array<ref OVT_FOBData> m_FOBs;
+	ref array<ref OVT_CampData> m_Camps;
 	string m_sPlayerFactionKey;
+	ref array<ref OVT_FOBData> m_FOBs;
+	
 	
 	//Jobs
 	ref set<int> m_aGlobalJobs;
@@ -23,8 +25,25 @@ class OVT_ResistanceSaveData : EPF_ComponentSaveData
 	{		
 		OVT_ResistanceFactionManager resistance = OVT_ResistanceFactionManager.Cast(component);
 		
+		m_Camps = new array<ref OVT_CampData>;
 		m_FOBs = new array<ref OVT_FOBData>;
 		m_sPlayerFactionKey = OVT_Global.GetConfig().m_sPlayerFaction;
+				
+		foreach(OVT_CampData fob : resistance.m_Camps)
+		{
+			fob.garrison.Clear();
+			foreach(EntityID id : fob.garrisonEntities)
+			{
+				SCR_AIGroup aigroup = SCR_AIGroup.Cast(GetGame().GetWorld().FindEntityByID(id));
+				if(!aigroup) continue;
+				if(aigroup.GetAgentsCount() > 0)
+				{
+					ResourceName res = EPF_Utils.GetPrefabName(aigroup);
+					fob.garrison.Insert(res);					
+				}
+			}	
+			m_Camps.Insert(fob);
+		}
 		
 		foreach(OVT_FOBData fob : resistance.m_FOBs)
 		{
@@ -109,7 +128,7 @@ class OVT_ResistanceSaveData : EPF_ComponentSaveData
 	override EPF_EApplyResult ApplyTo(IEntity owner, GenericComponent component, EPF_ComponentSaveDataClass attributes)
 	{
 		OVT_ResistanceFactionManager resistance = OVT_ResistanceFactionManager.Cast(component);
-
+		
 		if (m_sPlayerFactionKey.IsEmpty())
 		{
 			Print("Player faction key is invalid, setting to FIA", LogLevel.WARNING);
@@ -120,15 +139,22 @@ class OVT_ResistanceSaveData : EPF_ComponentSaveData
 		int playerFactionIndex = GetGame().GetFactionManager().GetFactionIndex(GetGame().GetFactionManager().GetFactionByKey(m_sPlayerFactionKey));
 		OVT_Global.GetConfig().m_iPlayerFactionIndex = playerFactionIndex;
 
-		foreach(OVT_FOBData fob : m_FOBs)
-		{	
-			fob.id = resistance.m_FOBs.Count();
-			if (fob.faction < 0)
-			{
-				Print(string.Format("FOB with invalid owner faction index found, setting to default of %1", playerFactionIndex), LogLevel.WARNING);
-				fob.faction = playerFactionIndex;
+		if(m_Camps)
+		{
+			foreach(OVT_CampData fob : m_Camps)
+			{	
+				fob.id = resistance.m_Camps.Count();			
+				resistance.m_Camps.Insert(fob);
 			}
-			resistance.m_FOBs.Insert(fob);
+		}
+		
+		if(m_FOBs)
+		{
+			foreach(OVT_FOBData fob : m_FOBs)
+			{	
+				fob.id = resistance.m_FOBs.Count();			
+				resistance.m_FOBs.Insert(fob);
+			}
 		}
 		
 		//Jobs
@@ -176,6 +202,9 @@ class OVT_ResistanceSaveData : EPF_ComponentSaveData
 		foreach(OVT_Job job : m_aJobs)
 		{
 			jobs.m_aJobs.Insert(job);
+			
+			// Restore job state by running all stages up to current stage
+			jobs.RunJobToCurrentStage(job);
 		}
 
 		return EPF_EApplyResult.OK;

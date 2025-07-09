@@ -2,6 +2,35 @@ class OVT_VehicleManagerComponentClass: OVT_RplOwnerManagerComponentClass
 {
 };
 
+//------------------------------------------------------------------------------------------------
+//! Callback class for vehicle upgrade transfers
+class OVT_VehicleUpgradeCallback : OVT_StorageProgressCallback
+{
+	protected OVT_VehicleManagerComponent m_Component;
+	
+	void OVT_VehicleUpgradeCallback(OVT_VehicleManagerComponent component)
+	{
+		m_Component = component;
+	}
+	
+	override void OnProgressUpdate(float progress, int currentItem, int totalItems, string operation)
+	{
+		// No progress tracking needed for vehicle upgrades
+	}
+	
+	override void OnComplete(int itemsTransferred, int itemsSkipped)
+	{
+		if (m_Component)
+			m_Component.OnUpgradeTransferComplete(itemsTransferred, itemsSkipped);
+	}
+	
+	override void OnError(string errorMessage)
+	{
+		if (m_Component)
+			m_Component.OnUpgradeTransferError(errorMessage);
+	}
+};
+
 class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 {	
 
@@ -20,6 +49,10 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 	static OVT_VehicleManagerComponent s_Instance;	
 	
 	protected ref array<EntityID> m_aParkingSearch;
+	
+	// Vehicle upgrade tracking
+	protected IEntity m_pUpgradeOldVehicle;
+	protected ref OVT_VehicleUpgradeCallback m_UpgradeCallback;
 	
 	static OVT_VehicleManagerComponent GetInstance()
 	{
@@ -84,7 +117,7 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 	
 	bool GetNearestParkingSpot(vector pos, out vector outMat[4], OVT_ParkingType type = OVT_ParkingType.PARKING_CAR)
 	{
-		m_aParkingSearch.Clear();
+		m_aParkingSearch = new array<EntityID>();
 		GetGame().GetWorld().QueryEntitiesBySphere(pos, 15, null, FilterParkingAddToArray, EQueryEntitiesFlags.ALL);
 		
 		if(m_aParkingSearch.Count() == 0) return false;
@@ -161,8 +194,17 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 	
 	IEntity SpawnVehicleNearestParking(ResourceName prefab, vector pos,  string ownerId = "")
 	{
-		vector mat[4];
-		if(!GetNearestParkingSpot(pos, mat))
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		OVT_ParkingType parkingType = OVT_ParkingType.PARKING_CAR;
+		
+		int id = economy.GetInventoryId(prefab);
+		if(id > -1)
+		{
+			parkingType = economy.GetParkingType(id);
+		}
+		
+		vector mat[4];		
+		if(!GetNearestParkingSpot(pos, mat, parkingType))
 		{
 			if(!FindNearestKerbParking(pos, 30, mat))
 			{				
@@ -232,8 +274,20 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 		
 		m_aVehicles.RemoveItem(entity.GetID());
 		
-		OVT_Global.TransferStorage(vehicle, newrpl.Id());
-		SCR_EntityHelper.DeleteEntityAndChildren(entity);		
+		// Store old vehicle for deletion after transfer completes
+		m_pUpgradeOldVehicle = entity;
+		
+		// Transfer storage from old vehicle to new vehicle using inventory manager
+		OVT_StorageOperationConfig config = new OVT_StorageOperationConfig(
+			false,      // skipWeaponsOnGround
+			false,      // deleteEmptyContainers
+			50,         // itemsPerBatch
+			100,        // batchDelayMs (normal delay to prevent crashes)
+			-1,         // searchRadius (not needed for direct transfer)
+			1           // maxBatchesPerFrame (normal batching)
+		);
+		
+		OVT_Global.GetInventory().TransferStorageByRplId(rpl.Id(), newrpl.Id(), config, GetUpgradeCallback());		
 	}
 	
 	void RepairVehicle(RplId vehicle)
@@ -247,6 +301,40 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 		{
 			dmg.FullHeal();
 			dmg.SetHealthScaled(dmg.GetMaxHealth());
+		}
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Get or create the upgrade callback instance
+	protected OVT_VehicleUpgradeCallback GetUpgradeCallback()
+	{
+		if (!m_UpgradeCallback)
+			m_UpgradeCallback = new OVT_VehicleUpgradeCallback(this);
+		return m_UpgradeCallback;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Called when vehicle upgrade transfer completes successfully
+	void OnUpgradeTransferComplete(int itemsTransferred, int itemsSkipped)
+	{		
+		if (m_pUpgradeOldVehicle)
+		{
+			SCR_EntityHelper.DeleteEntityAndChildren(m_pUpgradeOldVehicle);
+			m_pUpgradeOldVehicle = null;
+		}
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Called when vehicle upgrade transfer fails
+	void OnUpgradeTransferError(string errorMessage)
+	{
+		Print(string.Format("Vehicle upgrade transfer failed: %1", errorMessage), LogLevel.ERROR);
+		
+		// Still delete old vehicle to prevent it being stuck
+		if (m_pUpgradeOldVehicle)
+		{
+			SCR_EntityHelper.DeleteEntityAndChildren(m_pUpgradeOldVehicle);
+			m_pUpgradeOldVehicle = null;
 		}
 	}
 	

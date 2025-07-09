@@ -1,6 +1,9 @@
 ## Project Overview
 
-Overthrow is a dynamic and persistent revolution mod for Arma Reforger/Arma 4. It's built using EnforceScript and the Enfusion engine's entity-component-based architecture.
+Overthrow is a dynamic and persistent revolution mod for Arma Reforger. It's built using EnforceScript and the Enfusion engine's entity-component-based architecture.
+
+## Important notes about EnforceScript
+- Ternary operators are NOT supported, use fully-qualified if statements ALWAYS
 
 ## Development Workflow
 
@@ -12,7 +15,7 @@ Development is done through Arma Reforger Tools:
 
 ### Class Patterns
 #### Manager Components
-Overthrow Manager components are singletons placed on the OVT_OverthrowGameMode.et prefab and tasked with management of a single system or feature within the game mode. Manager components should follow this pattern:
+Overthrow Manager components are singletons placed on the `OVT_OverthrowGameMode.et` prefab and tasked with management of a single system or feature within the game mode. Manager components should follow this pattern:
 
 ```cpp
 class OVT_SomeManagerComponentClass: OVT_ComponentClass {};
@@ -32,24 +35,54 @@ class OVT_SomeManagerComponent: OVT_Component {
 
       return s_Instance;
     }
-    void Init(IEntity owner) { ... }
+    void Init(IEntity owner) { ... } //Is called manually by OVT_OverthrowGameMode for initialization if needed
+    void PostGameStart() { ... } //Is called manually by OVT_OverthrowGameMode after a new game is started
 }
 ```
-#### Non-manager component classes
-An individual component that manages a single instance of an entity (such as a deployment managed by the Deployment Manager, or the `OVT_PlayerWantedComponent` on the player entity) will NOT be a singleton, but should still extend OVT_Component:
+#### Controller Components
+Controllers manage a single instance of an entity on the server (for example a base, a town, a camp etc), replication of the state of that instance to all clients, and persistence of that state if required in EPF. It is an `OVT_Component` extended component attached to an entity that is spawned at runtime or added to the world in the editor. These should NOT be singletons.
+
+- Legacy controllers (base, town, etc) are detected by `QueryEntitiesBySphere` on startup or registered with their respective managers manually, but this method is now deprecated.
+- Instead, in the controller component's constructor it should register itself with it's respective manager (both on client and server) as needed
+
+```cpp
+class OVT_SomeControllerComponentClass: OVT_ComponentClass {};
+class OVT_SomeControllerComponent: OVT_Component 
+{
+    [Attribute("1", desc: "A parameter description")]
+    protected int m_iSomeParameter; //A parameter configurable in the Arma Reforger Tools
+    
+    void OVT_SomeControllerComponent(IEntityComponentSource src, IEntity ent, IEntity parent)
+    {
+      OVT_Global.GetManager().RegisterSomeController(this);
+    }
+
+    void Init(IEntity owner) { ... } //May not be called unless manager registration calls it manually
+    
+    //use getters and setters to expose parameters
+    int GetSomeParameter() {return m_iSomeParameter;}
+    void SetSomeParameter(int someParameter){m_iSomeParameter = someParameter;}
+}
+```
+
+#### Other component classes
+Don't make monolithic controllers, split their systems up as required with non-controller sub-components that manage a specific system on the same entity.
 
 ```cpp
 class OVT_SomeComponentClass: OVT_ComponentClass {};
 class OVT_SomeComponent: OVT_Component 
 {
     [Attribute("1", desc: "A parameter description")]
-    int m_iSomeParameter; //A parameter configurable in the Arma Reforger Tools
+    protected int m_iSomeParameter; //A parameter configurable in the Arma Reforger Tools
     
     void Init(IEntity owner) { ... }
+    //use getters and setters to expose parameters
+    int GetSomeParameter() {return m_iSomeParameter;}
+    void SetSomeParameter(int someParameter){m_iSomeParameter = someParameter;}
 }
 ```
 
-Only components that are placed on entities (managers and not) require a corresponding `OVT_ComponentClass`.
+Only components that are placed on entities (managers, controllers etc) require a corresponding `OVT_ComponentClass`.
 
 #### Data structs
 Simple data classes should extend `Managed`. These can be persisted easily if needed in EPF. They should not contain any [Attribute()] decorators. 
@@ -67,7 +100,7 @@ class OVT_TownData : Managed
 
 #### Garbage Collection and strong refs
 
-Any reference to all of the above classes be a strong ref to ensure they are only garbage collected when no references remain, otherwise they will be deleted at the end of frames. Always use "ref" keyword for arrays, maps and instances of Managed classes within arrays/maps
+Any reference to all of the above classes must be a strong ref to ensure they are only garbage collected when no references remain, otherwise they will be deleted at the end of frames. Always use "ref" keyword for arrays, maps and instances of Managed classes within arrays/maps
 ```cpp
 class OVT_TownManagerComponent: OVT_Component
 {
@@ -76,9 +109,9 @@ class OVT_TownManagerComponent: OVT_Component
   ref map<int, ref OVT_TownData> m_mTowns;
 }
 ```
-You do not need to strong ref int, string, float, bool etc. Only class instances.
+You do not need to and cannot strong ref int, string, float, bool, IEntity or EntityID. Only class instances.
 
-You cannot use "ref" on an IEntity, the compiler will disallow the ref keyword. You can store an IEntity if needed but its usually best to store an EntityID instead and fetch it when needed and always check if the entity still exists:
+You can store an IEntity or arrays of IEntities but its usually best to store an EntityID instead and fetch it when needed and always check if the entity still exists:
 
 ```cpp
 // Store the id
@@ -86,16 +119,21 @@ EntityID id = entity.GetID();
 
 //Fetch it later
 IEntity entity = GetGame().GetWorld().FindEntityByID(id);
-if(!entity) return;
+if(!entity) return; //clean up anything you need to if the entity no longer exists
 ```
 
-### Key Systems
-- **OVT_OverthrowGameMode**: Central game mode coordinating all systems
-- **Manager Components**: Economy, Player, Town, Vehicle, RealEstate, Job, Skill managers
-- **Persistence**: Each manager has corresponding SaveData class using EPF framework
-- **Global Access**: `OVT_Global` provides static methods to access all managers
+### Key entities and component types
+- **OVT_OverthrowGameMode**: Central game mode entity coordinating all systems and managers + global events
+- **OVT_OverthrowController**: Client-side entity for one to one client-server communication callbacks and events
+- **Manager Components**: Manages entire systems and features, keeps track of controller instances, replicates and persists global state of systems
+- **Controller Components**: Manages single instances of entities, replicates and persists state of these entities
+- **OVT_Global**: Provides static methods to access all casted manager singletons easily on client or server
 
-### Coding Conventions
+### Legacy components
+- **OVT_OverthrowConfigComponent**: Global configuration, do not add anything to this anymore. Managers and controllers should define their own configuration from now.
+- **OVT_PlayerCommsComponent**: Legacy client-to-server communication. Do not use anymore, see "Network Synchronization" below
+
+## Coding Conventions
 - Class prefix: `OVT_`
 - Member variables: `m_` prefix
 - Type-specific prefixes: `m_a` (array), `m_m` (map), `m_i` (int), `m_f` (float), `m_s` (string), `m_b` (bool)
@@ -103,39 +141,146 @@ if(!entity) return;
 - Documentation: Doxygen style with `//!` comments
 - Attributes: `[Attribute()]` for editor-exposed properties
 
-### File Organization
+## File Organization
 - `Design/`: Design docs
 - `Scripts/Game/Components/`: Entity components and UI components
 - `Scripts/Game/GameMode/`: Core game logic and managers
-- `Scripts/Game/Controllers/`: Base, town, and faction controllers
+- `Scripts/Game/Entities/`: Entity classes
+- `Scripts/Game/Controllers/`: Controller components
 - `Scripts/Game/Configuration/`: Config classes for game systems
 - `Scripts/Game/UI/`: UI contexts and widgets
 - `Scripts/Game/UserActions/`: Player interaction actions
 - `Configs/`: Game configuration files
 - `Prefabs/`: Entity prefabs and compositions
 
-### Persistence Pattern
-SaveData classes follow this structure:
+## Persistence
+Components that require persistence need to define a SaveData class extending `EPF_ComponentSaveDataClass`:
 ```cpp
-[EPF_ComponentSaveDataType(OVT_SomeManagerComponent)]
+[EPF_ComponentSaveDataType(OVT_SomeManagerOrControllerComponent)]
 class OVT_SomeSaveDataClass : EPF_ComponentSaveDataClass {};
 class OVT_SomeSaveData : EPF_ComponentSaveData 
 {
-    void ReadFrom(OVT_SomeManagerComponent component) { ... }
-    void ApplyTo(OVT_SomeManagerComponent component) { ... }
+    void ReadFrom(OVT_SomeManagerOrControllerComponent component) { ... }
+    void ApplyTo(OVT_SomeManagerOrControllerComponent component) { ... }
 }
 ```
 
-### Network Synchronization
-- Components use RPC for multiplayer sync
-- Rpl system handles replication
+## Network Synchronization
 - Do not identify entities across the network using EntityIDs as these can be different between server/client. Instead use RplId and the Replication singleton to manage entities across the network.
 - Manager components typically exist and operate only on the server and notify the client if needed
-- Components (any class that extends OVT_Component) with data that needs to be replicated to clients must implement RplLoad and RplSave overrided methods to provide JIP (Join in progress) data streams to new joining players
-- A multiplayer client must be the "owner" of an entity with a component in order to ask the server to perform tasks
-- Every player in Overthrow is assigned an entity on join with the component `OVT_PlayerCommsComponent` and server requests from local client UI MUST go via this component in order to perform "Ask" RPC commands. You can get the singleton on any client using `OVT_Global.GetServer()`
 
-### User Interface
+### Replication
+Most replication can be handled with the RplProp attribute
+
+```cpp
+class ExampleComponent : OVT_Component
+{
+    // We mark param as replicated property using RplProp attribute, making
+    // it part of replicated state. If we need the client to do anything when it changes
+    // then we specify a method to be invoked whenever replication updates the value
+    [RplProp(onRplName: "OnExampleParamChanged")]
+    protected int m_iExampleParam;
+
+    protected void OnExampleParamChanged()
+    {
+        //perform any updates required on the client when m_iExampleParam changes
+    }
+
+    void SetExampleParam(int exampleParam) 
+    {
+      m_iExampleParam = exampleParam;
+      Replication.BumpMe(); //Broadcast change to all clients
+    }
+}
+```
+- Do not RplProp arrays, maps, entities or classes, only simple variables (int, bool, float, short strings). Arrays/Maps/Data classes should use RPC calls and JIP if they are required
+- Try to avoid replicating long strings, use localization or create a registry of strings if needed that lives on client and server and use an int
+- Avoid too many value changes too often or you will flood replication
+- Never replicate an IEntity or EntityID, use RplId
+
+### Server-to-client RPC
+To request all clients performs a task, use a broadcast RPC.
+
+```cpp
+void PerformTask(float value)
+{
+  RpcDo_PerformTask(); //Call directly in case we are a host
+  Rpc(RpcDo_PerformTask, value)
+}
+
+[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+void RpcDo_PerformTask(float value)
+{
+  //All clients do a thing
+}
+```
+
+To request a specific client do a task:
+```cpp
+//Get overthrow controller for specific player id (persistent string id or connected int id)
+OVT_OverthrowController clientController = OVT_Global.GetPlayers().GetController(playerId);
+if(!clientController) return; //Player may be offline, fail silently
+
+OVT_MyServerTaskComponent component = OVT_MyServerTaskComponent.Cast(clientController.FindComponent(OVT_MyServerTaskComponent));
+if(!component) return; //Entity is missing the required component, fail silently (it may be disabled for whatever reason)
+
+clientController.PerformTask(value);
+
+//In OVT_MyServerTaskComponent...
+void PerformTask(float value)
+{ 
+  Rpc(RpcDo_PerformTask, value);
+}
+
+[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+void RpcDo_PerformTask(float value)
+{
+  //Specific client does a thing
+}
+```
+
+#### Join-In-Progress (JIP)
+- Components that need to replicate any extra data to clients when joining need to define RplLoad and RplSave overrides to stream this data
+- RplProp decorated parameters will be replicated automatically, this should be used only for any extra data such as lists and maps
+- See any existing implementations for examples
+
+### Client-to-server
+- A multiplayer client must be the "owner" of an entity with a component in order to ask the server to perform tasks
+- `OVT_Global.GetServer()` is deprecated and should not be used anymore
+- Instead, groups of server request types should be put in a component that is added to the `OVT_OverthrowController` entity that is assigned to each client on join
+- Server requests should just accept tasks, delegate them to the required manager and track progress if needed
+- If a progress bar for server requests is required, you can extend `OVT_BaseServerProgressComponent` and use similar patterns to `OVT_ContainerTransferComponent`. The UI will be handled automatically.
+
+Pattern for calling a component on the Overthrow controller entity:
+```cpp
+//Get the locally controlled entity
+OVT_OverthrowController controller = OVT_Global.GetController();
+if(!controller) return; //we are on a dedicated server and therefore don't own a controller entity, fail silently
+
+OVT_MyServerTaskComponent component = OVT_MyServerTaskComponent.Cast(controller.FindComponent(OVT_MyServerTaskComponent));
+if(!component) return; //Entity is missing the required component, fail silently (it may be disabled for whatever reason)
+
+component.MyTask(myParam); //component should RpcAsk and handle any response/callbacks as required
+```
+
+#### Global client-specific events
+If a component on the `OVT_OverthrowController` component needs to invoke events available to other local components or entities on the client (such as UI events), you can add `ScriptInvoker` members to the controller entity. Use type-safety and wrap related events into a class if there are multiple needed. See `OVT_ProgressEventHandler` for an example.
+
+#### RPC Pattern for Server Calls
+When making RPC calls to server methods (RpcAsk_ methods), always check if the current instance is already the server to avoid unnecessary RPC overhead. The server can also be the host client:
+
+```cpp
+if(Replication.IsServer())
+{
+    RpcAsk_MethodName(params);  // Direct call if we're already on server
+}else{
+    Rpc(RpcAsk_MethodName, params);  // RPC call if we're on client
+}
+```
+This pattern ensures that when the server is also the host client, we don't make an unnecessary RPC call to ourselves.
+
+
+## User Interface
 - Every player entity has a `OVT_UIManagerComponent` that handles UI context
 - Any screen in Overthrow defines a context class extending `OVT_UIContext` and is registered with the UI Manager on the player prefab. The base class has a `ResourceName m_Layout` member property that defines a .layout file configured in the workbench and shown automatically when the context is activated.
 - Example of activating a context to show a screen:
@@ -151,28 +296,21 @@ context.SetShop(shop);
 
 ui.ShowContext(OVT_ShopContext);
 ```
-
-### Important Notes
-- Always use `OVT_Global.GetXXX()` to access manager instances
-- Follow existing patterns when adding new components or systems
-
 ## External Dependencies
 
 ### Arma Reforger
-- All base game scripts, configs and UI layouts can be found in: `/mnt/d/Projects/Arma 4/ArmaReforger`
+- All base game scripts, configs and UI layouts can be found in: `/mnt/n/Projects/Arma 4/ArmaReforger`
 - Always look here if you need to understand how something works in the game or accepted patterns for mod development
 
 ### EPF (Enfusion Persistence Framework)
-- Location: `/mnt/d/Projects/Arma 4/EnfusionPersistenceFramework`
+- Location: `/mnt/n/Projects/Arma 4/EnfusionPersistenceFramework`
 - Handles save/load operations and data persistence
 - Console platforms (Xbox/PlayStation) don't support disk access - EPF must be disabled
 
 ### EDF (Enfusion Database Framework) 
-- Location: `/mnt/d/Projects/Arma 4/EnfusionDatabaseFramework`
+- Location: `/mnt/n/Projects/Arma 4/EnfusionDatabaseFramework`
 - Dependency of EPF for database operations
 
 ### Console Platform Handling
 - Use `#ifdef PLATFORM_CONSOLE` for both Xbox and PlayStation (Arma Reforger only provides PLATFORM_CONSOLE and PLATFORM_WINDOWS)
-- Console platforms cannot access disk, causing game hangs
-- Persistence must be disabled on consoles while keeping game playable
 - All FileIO operations and EPF persistence calls must be wrapped in PLATFORM_CONSOLE checks

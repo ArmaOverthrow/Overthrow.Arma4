@@ -1,0 +1,45 @@
+StaticModelEntity : "{C0B710154C14FC9B}Prefabs/Structures/Military/Camps/TentSmallFIA_01/TentSmallFIA_01_Base.et" {
+ ID "527A8AD695FFFB56"
+ components {
+  EPF_PersistenceComponent "{65AEA1BA2709A8E0}" {
+   m_bUpdateNavmesh 1
+   m_pSaveData OVT_PlaceableSaveDataClass "{65AEA1BA226DA4A8}" {
+    m_aComponents {
+     OVT_PlaceableDataClass "{65AEB8AA8C4BAFED}" {
+     }
+    }
+   }
+  }
+  OVT_PlaceableComponent "{65AEB8AAAA64BAE2}" {
+   m_sPlaceableType "Camp"
+  }
+  ActionsManagerComponent "{65AEA1BA3284814D}" {
+   ActionContexts {
+    UserActionContext "{65AEA1BA30B59E16}" {
+     ContextName "default"
+     Position PointInfo "{65AEA1BA3C40BC24}" {
+      Offset 0 0.7 0
+     }
+     Radius 2
+    }
+   }
+   additionalActions {
+    OVT_ManageCampAction "{65AEA1BA1060F48D}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{65AEA1BA1DEB6EC3}" {
+      Name "#OVT-ManageCamp"
+     }
+     ActionTitle "Manage Camp"
+    }
+    OVT_SetHomeAction "{65CC9479367B99C0}" {
+     UIInfo UIInfo "{65CC947935EAE2C7}" {
+      Name "#OVT-SetAsHome"
+     }
+     "Sort Priority" 1
+    }
+   }
+  }
+ }
+}

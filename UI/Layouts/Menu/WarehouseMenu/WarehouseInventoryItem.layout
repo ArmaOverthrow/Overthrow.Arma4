@@ -6,6 +6,8 @@ ButtonWidgetClass {
  components {
   SCR_ButtonComponent "{5D48A6A5583303E0}" {
    m_bMouseOverToFocus 1
+   m_bShowBackgroundOnFocus 1
+   m_bShowBorderOnHover 1
   }
   OVT_WarehouseInventoryItemComponent "{5D48CA0294CB7794}" {
   }
@@ -77,6 +79,13 @@ ButtonWidgetClass {
         }
        }
       }
+      ImageWidgetClass "{5D48CA00C9F69471}" {
+       Name "Background"
+       Slot OverlayWidgetSlot "{5D48CA00C9F6945E}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+      }
       PanelWidgetClass "{5D48CA00F4DE6623}" {
        Name "Border"
        Slot OverlayWidgetSlot "{56EF0B195DBB5E79}" {
@@ -86,13 +95,6 @@ ButtonWidgetClass {
        }
        Color 0.761 0.392 0.08 1
        style outline_2px
-      }
-      ImageWidgetClass "{5D48CA00C9F69471}" {
-       Name "Background"
-       Slot OverlayWidgetSlot "{5D48CA00C9F6945E}" {
-        HorizontalAlign 3
-        VerticalAlign 3
-       }
       }
      }
     }

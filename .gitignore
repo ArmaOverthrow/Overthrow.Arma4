@@ -7,3 +7,5 @@ CLAUDE.md
 GEMINI.md
 claude.bat
 claude.sh
+.saves/
+.mcp.json

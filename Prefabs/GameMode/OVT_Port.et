@@ -1,20 +1,17 @@
 GenericEntity {
  ID "5DA8D85C8B8B1E67"
  components {
-  OVT_MainMenuContextOverrideComponent "{5DA8D85D04925F5B}" {
-   m_ContextName "OVT_PortContext"
-   m_UiInfo SCR_UIInfo "{5DA8D85D89907346}" {
-    Name "#OVT-Import"
-    Description ""
-   }
-   m_fRange 15
-   m_bMustBeDriving 1
-  }
   OVT_PortControllerComponent "{5D86A31491FBD971}" {
   }
   RplComponent "{5D86A32B2B3E4FF5}" {
   }
  }
- coords 143.682 1.001 246.857
  Flags 1027
+ coords 143.682 1.001 246.857
+ {
+  GenericEntity : "{8F08705D73A7C711}Prefabs/Props/Industrial/CargoContainers/CargoContainer_01/CargoContainer_01_20ft_red.et" {
+   ID "65CE9A0184C6B996"
+   coords 0 0 0
+  }
+ }
 }

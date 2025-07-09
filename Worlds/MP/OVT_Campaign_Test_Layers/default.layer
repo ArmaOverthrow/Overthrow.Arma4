@@ -32,266 +32,11 @@ PerceptionManager PerceptionManager1 : "{028DAEAD63E056BE}Prefabs/World/Game/Per
 }
 OVT_OverthrowGameMode OVT_OverthrowGameMode : "{4DC10DCB8BE06D32}Prefabs/GameMode/OVT_OverthrowGameMode.et" {
  components {
-  EPF_PersistenceComponent "{5D7009A1AB220903}" {
-   m_bSelfSpawn 0
-   m_bSelfDelete 0
-   m_pSaveData OVT_OverthrowSaveDataClass "{5D7009A22C40BEE5}" {
-    m_eTranformSaveFlags 0
-    m_bSaveRemainingLifetime 0
-    m_aComponents {
-     OVT_EconomySaveDataClass "{5D7009A2B14C4055}" {
-     }
-     OVT_PlayerSaveDataClass "{5D7009AA91A43E6F}" {
-     }
-     OVT_OccupyingFactionSaveDataClass "{5D70099DAD21A0F3}" {
-     }
-     OVT_RealEstateSaveDataClass "{5D707B33903B8735}" {
-     }
-     OVT_TownSaveDataClass "{5D70912C42B66D9E}" {
-     }
-     OVT_ResistanceSaveDataClass "{5D70912B726E1A32}" {
-     }
-     OVT_ConfigSaveDataClass "{5D9E53AFE550A24E}" {
-     }
-    }
-   }
-  }
-  OVT_JobManagerComponent "{59A8D178EC1AA2AE}" {
-   m_aJobConfigs {
-    OVT_JobConfig "{5D9C33D67790A077}" : "{440607BAB7BD6B1C}Configs/Jobs/assassinateTraitor.conf" {
-    }
-    OVT_JobConfig "{5D9C33D67575FF25}" : "{8263088AF3FD648B}Configs/Jobs/baseRecon.conf" {
-    }
-    OVT_JobConfig "{5D9C33D6746B603D}" : "{A66B34BC59667AE6}Configs/Jobs/findGunDealer.conf" {
-    }
-    OVT_JobConfig "{5D9C33D67348B567}" : "{A885604D1141044D}Configs/Jobs/raiseSupport.conf" {
-    }
-    OVT_JobConfig "{5D9C33D122545AFD}" : "{11EE393C09B6A661}Configs/Jobs/findShop.conf" {
-    }
-   }
-  }
-  OVT_NotificationManagerComponent "{5D8680DB07CF50FD}" {
-   m_Messages SCR_SimpleMessagePresets "{5D8680DB04A58A20}" : "{36405F298C9B3186}Configs/overthrowBroadcastMessages.conf" {
-   }
-  }
-  OVT_OccupyingFactionManager "{59845E732755785F}" {
-   m_pQRFControllerPrefab "{A7D27DFA72B705D0}Prefabs/Controllers/OVT_QRFController.et"
-  }
   OVT_OverthrowConfigComponent "{59724C8C935D8E5D}" {
-   m_aCameraPositions {
-    OVT_CameraPosition "{5D5826DD31952987}" {
-     position 10455.49 40.22 413.76
-     angles 5.1 -498.11 0
-    }
-    OVT_CameraPosition "{5D5826D532072C15}" {
-     position 4875.03 53.47 10470.618
-     angles -0.21 702.18 0
-    }
-    OVT_CameraPosition "{5D5826D5F3BEBDD1}" {
-     position 8100.65 380.56 2753.78
-     angles -5.31 962.88 0
-    }
-    OVT_CameraPosition "{5D5826D5A7568205}" {
-     position 9973.95 333.08 2269.49
-     angles -12.81 1270.68 0
-    }
-   }
-   m_pTownControllerPrefab "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.et"
-   m_Difficulty OVT_DifficultySettings "{598AD54E1DA56EB1}" : "{C0CB40B3E8B87FD4}Configs/Difficulty/Difficulty_Normal.conf" {
-   }
    m_aDifficultyPresets {
-    OVT_DifficultySettings "{6466E3EA3337FBBF}" : "{647A73DAAF55A0A6}Configs/Difficulty/Difficulty_Easy.conf" {
-    }
-    OVT_DifficultySettings "{6466E3EA33057A85}" : "{C0CB40B3E8B87FD4}Configs/Difficulty/Difficulty_Normal.conf" {
-    }
-    OVT_DifficultySettings "{6466E3EA33D240F9}" : "{0FA2C3AE29A3A93B}Configs/Difficulty/Difficulty_Hard.conf" {
-    }
-    OVT_DifficultySettings "{6466E3EA33A737F7}" : "{70CC1650D9BE0DDC}Configs/Difficulty/Difficulty_Extreme.conf" {
-    }
-    OVT_DifficultySettings "{64681391C940045B}" : "{0BA489F3657E13D8}Configs/Difficulty/Difficulty_TestWorld.conf" {
+    OVT_DifficultySettings "{65C4B2C2C69EE70E}" : "{0BA489F3657E13D8}Configs/Difficulty/Difficulty_TestWorld.conf" {
     }
    }
-   m_pGunDealerPrefab "{59929550D81A3045}Prefabs/Characters/Factions/INDFOR/FIA/Character_FIA_GunDealer.et"
-   m_pCivilianPrefab "{1AF5B9AE5CFD4434}Prefabs/Groups/INDFOR/Group_CIV.et"
-   m_pMoveWaypointPrefab "{750A8D1695BD6998}Prefabs/AI/Waypoints/AIWaypoint_Move.et"
-   m_pDefendWaypointPrefab "{93291E72AC23930F}Prefabs/AI/Waypoints/AIWaypoint_Defend.et"
-   m_pPatrolWaypointPrefab "{22A875E30470BD4F}Prefabs/AI/Waypoints/AIWaypoint_Patrol.et"
-   m_pWaitWaypointPrefab "{531EC45063C1F57B}Prefabs/AI/Waypoints/AIWaypoint_Wait.et"
-   m_pCycleWaypointPrefab "{35BD6541CBB8AC08}Prefabs/AI/Waypoints/AIWaypoint_Cycle.et"
-   m_pSearchAndDestroyWaypointPrefab "{B3E7B8DC2BAB8ACC}Prefabs/AI/Waypoints/AIWaypoint_SearchAndDestroy.et"
-   m_pGetInWaypointPrefab "{712F4795CF8B91C7}Prefabs/AI/Waypoints/AIWaypoint_GetIn.et"
-   m_pSmartActionWaypointPrefab "{04A06A6742FB0AF8}Prefabs/AI/Waypoints/AIWaypoint_UserAction.et"
-   m_aStartingHouseFilters +{
-   }
-   m_aBuildingTypes {
-    OVT_RealEstateConfig "{5D2EDC0DFB761194}" {
-     m_Name "Starting House"
-     m_aResourceNameFilters +{
-     }
-     m_BasePrice 25000
-     m_BaseRent 1000
-     m_DemandMultiplier 0.005
-    }
-    OVT_RealEstateConfig "{5D2EDC0C4C018B4C}" {
-     m_Name "Small House"
-     m_aResourceNameFilters +{
-     }
-     m_BasePrice 32000
-     m_BaseRent 1500
-     m_DemandMultiplier 0.02
-    }
-    OVT_RealEstateConfig "{5D2EDC0C01CF2CDD}" {
-     m_Name "Medium House"
-     m_aResourceNameFilters +{
-     }
-     m_BasePrice 48000
-     m_BaseRent 1800
-     m_DemandMultiplier 0.02
-    }
-    OVT_RealEstateConfig "{5D2EDC0A45D424DB}" {
-     m_Name "Large House"
-     m_aResourceNameFilters +{
-     }
-     m_BasePrice 60000
-     m_BaseRent 2200
-     m_DemandMultiplier 0.02
-    }
-    OVT_RealEstateConfig "{5D2EDC0A34D912FC}" {
-     m_Name "Villa"
-     m_aResourceNameFilters +{
-     }
-     m_BasePrice 120000
-     m_BaseRent 4500
-     m_DemandMultiplier 0.02
-    }
-    OVT_RealEstateConfig "{5D2EDC0AEC9FDDB6}" {
-     m_Name "Warehouse"
-     m_aResourceNameFilters +{
-     }
-     m_BasePrice 150000
-     m_BaseRent 2500
-     m_DemandMultiplier 0.01
-     m_IsWarehouse 1
-    }
-   }
-   m_pPlayerGroupPrefab "{9BED5CCD52C87E26}Prefabs/Groups/INDFOR/Group_Player.et"
-   m_CivilianLoadout OVT_LoadoutConfig "{61C8AC0BB681EDAF}" : "{AB39AD8BD8554967}Configs/Civilians/CivilianClothes.conf" {
-   }
-   m_bDebugMode 0
-  }
-  OVT_PersistenceManagerComponent "{5D7009B844876186}" {
-   m_pConnectionInfo EDF_JsonFileDbConnectionInfo "{5D7009B8408E1A9D}" {
-    m_sDatabaseName "Overthrow"
-   }
-  }
-  OVT_ResistanceFactionManager "{59A49A9CD87CBC92}" {
-   m_rPlaceablesConfigFile "{A4E760D069AE00F8}Configs/Resistance/placeables.conf"
-   m_rBuildablesConfigFile "{430C71DF4386D868}Configs/Resistance/buildables.conf"
-   m_aVehicleUpgrades {
-    OVT_VehicleUpgrades "{59CF1963D54690F3}" {
-     m_pBasePrefab "{F649585ABB3706C4}Prefabs/Vehicles/Wheeled/M151A2/M151A2.et"
-     m_aUpgrades {
-      OVT_VehicleUpgrade "{59CF196388095600}" {
-       m_pUpgradePrefab "{F6B23D17D5067C11}Prefabs/Vehicles/Wheeled/M151A2/M151A2_M2HB.et"
-       m_iCost 14000
-      }
-     }
-    }
-   }
-   m_pHiredCivilianPrefab "{365CD448A5DABCCC}Prefabs/Groups/INDFOR/Group_CIV_Recruit.et"
-  }
-  OVT_RespawnSystemComponent "{5DEA8B45ED838B55}" {
-   m_rDefaultPrefab "{3A99A99836F6B3DC}Prefabs/Characters/Factions/INDFOR/FIA/Character_Player.et"
-  }
-  OVT_SkillManagerComponent "{5D90EE077169A8A2}" {
-   m_Skills OVT_SkillsConfig "{5D91035951D22CD1}" : "{F7740B6A7C4F6FB7}Configs/Player/overthrowSkills.conf" {
-   }
-  }
-  OVT_TimeAndWeatherHandlerComponent "{5E02BE29723C0739}" {
-   m_fDayTimeAcceleration 6
-   m_fNightTimeAcceleration 12
-   m_bRandomStartingWeather 1
-  }
-  OVT_TownManagerComponent "{59724C983BF56C3B}" {
-   m_iVillageRange 100
-   m_aTownModifiers {
-    OVT_TownStabilityModifierSystem "{59A2BDDB065D9242}" {
-     m_rConfigFile "{FD430627EAC5BDBC}Configs/Modifiers/stabilityModifiers.conf"
-    }
-    OVT_TownSupportModifierSystem "{59A2BDDB000FF00C}" {
-     m_rConfigFile "{AB1726E5220F21F1}Configs/Modifiers/supportModifiers.conf"
-    }
-   }
-   m_aIgnoreTowns +{
-   }
-  }
-  OVT_VehicleManagerComponent "{5D707B3386AF876D}" {
-   m_pStartingCarPrefabs +{
-   }
-   m_CivilianVehicleEntityCatalog SCR_EntityCatalogMultiList "{5EE51BB6ADFBE791}" : "{77243A71AF0E5A75}Configs/EntityCatalog/FactionLess/Vehicles_EntityCatalog_Factionless.conf" {
-   }
-  }
-  SCR_CommandingManagerComponent "{5DFEE7C53D7244B0}" {
-   m_sCommandsConfigPath "{54764D4E706F348C}Configs/Commanding/Commands.conf"
-  }
-  SCR_GroupsManagerComponent "{5DDAD8A30938E391}" {
-   m_sDefaultGroupPrefab "{8B4D49A9F324E7D5}Prefabs/Groups/PlayableGroup.et"
-   m_iPlayableGroupFrequencyOffset 500
-  }
-  SCR_NotificationSenderComponent "{5D7A443FDCA27CAE}" {
-   m_iReceiveKillFeedType SAME_FACTION_ONLY
-   m_aKillfeedTypeNames {
-    SCR_NotificationKillfeedTypeName "{5D7A4439A46B176A}" {
-     m_iKillfeedType DISABLED
-     m_sKillfeedTypeName "#AR-Notification_KillfeedType_DISABLED"
-    }
-    SCR_NotificationKillfeedTypeName "{5D7A4439ACBBFC32}" {
-     m_iKillfeedType UNKNOWN_KILLER
-     m_sKillfeedTypeName "#AR-Notification_KillfeedType_UNKNOWN_KILLER"
-    }
-    SCR_NotificationKillfeedTypeName "{5D7A4439B4AC4DEC}" {
-     m_iKillfeedType FULL
-     m_sKillfeedTypeName "#AR-Notification_KillfeedType_FULL"
-    }
-   }
-   m_aKillfeedReceiveTypeNames {
-    SCR_NotificationKillfeedreceiveTypeName "{5D7A4439957C2FF2}" {
-     m_iKillfeedreceiveType ALL
-     m_sKillfeedReceiveTypeName "#AR-Notification_KillfeedReceiveType_ALL"
-    }
-    SCR_NotificationKillfeedreceiveTypeName "{5D7A4439916A94CD}" {
-     m_iKillfeedreceiveType ENEMIES_ONLY
-     m_sKillfeedReceiveTypeName "#AR-Notification_KillfeedReceiveType_ENEMIES_ONLY"
-    }
-    SCR_NotificationKillfeedreceiveTypeName "{5D7A44399A3B00F5}" {
-     m_iKillfeedreceiveType ALLIES_ONLY
-     m_sKillfeedReceiveTypeName "#AR-Notification_KillfeedReceiveType_ALLIES_ONLY"
-    }
-    SCR_NotificationKillfeedreceiveTypeName "{5D7A442665D40F6F}" {
-     m_iKillfeedreceiveType SAME_FACTION_ONLY
-     m_sKillfeedReceiveTypeName "#AR-Notification_KillfeedReceiveType_SAME_FACTION_ONLY"
-    }
-    SCR_NotificationKillfeedreceiveTypeName "{5D7A44266056A71D}" {
-     m_iKillfeedreceiveType GROUP_ONLY
-     m_sKillfeedReceiveTypeName "#AR-Notification_KillfeedReceiveType_GROUP_ONLY"
-    }
-   }
-   m_PlayerKickReasonsConfig SCR_ConfigurableDialogUiPresets "{5D7A443943FDACDA}" {
-   }
-  }
-  SCR_RadialMenuItemsComponent "{5D7EADAFC9902670}" {
-   m_MenuController SCR_RadialMenuController "{5D7EADAFC88B4B33}" {
-    m_RMControls SCR_RadialMenuControllerInputs "{5D7EADAFD4ED2D14}" {
-     m_sControllerContext "WeaponSelectionContext"
-     m_sOpenAction "Inventory_WeaponSwitchingRadial"
-    }
-   }
-  }
-  SCR_RespawnTimerComponent "{59C30B0685EFBB8C}" {
-   m_fRespawnTime 2
-  }
-  RplComponent "{59724C8C935D8E18}" {
-   Streamable Disabled
   }
  }
  coords 208.286 1.001 116.919
@@ -330,7 +75,7 @@ $grp GenericEntity {
   components {
    SCR_MapDescriptorComponent "{5D8680D15B3CF38E}" {
     DisplayName "Town"
-    MainType "Name Town"
+    MainType "Name Village"
    }
   }
   Flags 1027
@@ -346,8 +91,22 @@ $grp GenericEntity {
   coords 29.444 1.001 116.796
  }
 }
+OVT_VehiclePatrolSpawn {
+ coords 82.991 1 107.357
+ angleY 85.773
+}
 SCR_DestructibleBuildingEntity : "{00FD2B4A0BDEC271}Prefabs/Structures/Commercial/FuelStations/FuelStation_E_01_building.et" {
- coords 240.87 0.001 76.83
+ components {
+  OVT_ParkingComponent "{59D030D1D4B18E18}" {
+   m_aParkingSpots {
+    OVT_ParkingPointInfo "{65CF136366099860}" {
+     Offset -13.276 0.1 34.9412
+     m_Type PARKING_HELI
+    }
+   }
+  }
+ }
+ coords 238.569 0.001 74.077
  angleY -89.85
 }
 SCR_DestructibleBuildingEntity : "{05446F713779A94D}Prefabs/Structures/Military/Houses/GuardHouse_02/GuardHouse_02.et" {
@@ -449,11 +208,30 @@ SCR_DestructibleBuildingEntity : "{5CADC96916FF1CC4}Prefabs/Structures/Houses/Vi
 }
 GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.et" {
  components {
+  OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
+   m_sName "Base"
+   m_iAttackDistanceMin 75
+   m_iAttackDistanceMax 150
+   m_iAttackPreferredDirection 90
+  }
   SCR_FactionAffiliationComponent "{5E66A8EA8F5BA794}" {
    "faction affiliation" "USSR"
   }
  }
  coords 55.331 1 128.241
+}
+GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.et" {
+ components {
+  OVT_TownControllerComponent "{59908365ED5E1344}" {
+   m_sName "Town"
+   m_iPopulation 50
+   m_iTownRange 80
+   m_iAttackDistanceMin 125
+   m_iAttackDistanceMax 175
+   m_iAttackPreferredDirection 256
+  }
+ }
+ coords 208.237 1 102.173
 }
 Tree : "{7BAA3CF64495B691}Prefabs/Vegetation/Bush/b_rubus_idaeus_0s.et" {
  coords 179.619 0.001 124.94
@@ -466,6 +244,9 @@ SCR_SiteSlotEntity : "{881CE7B0098504C2}PrefabsEditable/Slots/Road/E_SlotRoadLar
 }
 SCR_DestructibleBuildingEntity : "{8ACC8A8EB87A28FF}Prefabs/Structures/Houses/Village/House_Village_E_1I03/House_Village_E_1I03.et" {
  coords 207.502 0 182.332
+}
+StaticModelEntity : "{8CDB9C117669AF4A}Prefabs/Structures/Military/Camps/HelipadImprovised_01/HelipadImprovised_USSR_01.et" {
+ coords 203.528 -0.189 60.217
 }
 SCR_DestructibleBuildingEntity : "{92E8F78BCF17D93D}Prefabs/Structures/Commercial/Shops/ShopHouse_E_2I01t_clothesstore.et" {
  components {
@@ -484,6 +265,11 @@ GenericEntity : "{9BF7399A6F63D480}Prefabs/GameMode/OVT_Port.et" {
 Tree : "{A43BE7E364B5CD67}Prefabs/Vegetation/Bush/b_juniperus_communis_2w.et" {
  coords 182.721 0.001 126.162
 }
+OVT_StartCameraPos : "{A4FAD321E704BE95}Prefabs/GameMode/OVT_StartCameraPos.et" {
+ coords 263.519 24.144 46.733
+ angleX -8.555
+ angleY -56.81
+}
 Tree : "{A5DE58FC9FB6BA60}Prefabs/Vegetation/Bush/b_corylus_avellana_2.et" {
  coords 183.058 0.001 122.114
 }
@@ -496,6 +282,9 @@ Tree : "{AED5759B653DF6D0}Prefabs/Vegetation/Bush/b_rosa_canina_1s.et" {
 }
 Tree : "{AF4BFBE29028A9FD}Prefabs/Vegetation/Bush/b_corylus_avellana_1l.et" {
  coords 182.406 0.001 117.203
+}
+OVT_FallbackHomePos : "{B06F0465F862CA4C}Prefabs/GameMode/OVT_FallbackHomePos.et" {
+ coords 212.4 1 109.191
 }
 EnvironmentProbeEntity : "{B6B6A21399C5571B}Prefabs/World/DefaultWorld/EnvProbe_Default.et" {
  coords 112.285 2.18 89.264
@@ -514,9 +303,18 @@ SCR_DestructibleBuildingEntity : "{CFE8511B2B7E8AAA}Prefabs/Structures/Commercia
 Tree : "{D9DF1D13919F19A0}Prefabs/Vegetation/Bush/b_rosa_canina_0s.et" {
  coords 182.829 0.001 130.379
 }
-SCR_DestructibleBuildingEntity : "{DE43119351D125AC}Prefabs/Structures/Houses/Village/House_Village_E_1L02/House_Village_E_1L02t.et" {
- coords 226.19 0.655 193.901
- angleY -177.67
+$grp SCR_DestructibleBuildingEntity : "{DE43119351D125AC}Prefabs/Structures/Houses/Village/House_Village_E_1L02/House_Village_E_1L02t.et" {
+ {
+  coords 226.19 0.655 193.901
+  angleY -177.67
+ }
+ {
+  coords 234.776 0.718 58.224
+  angleY -177.67
+ }
+}
+Vehicle OverthrowMobileFOB1 : "{E6A31A5A6EA0AF04}Prefabs/Vehicles/Wheeled/M923A1/OverthrowMobileFOB.et" {
+ coords 213.556 1 40.364
 }
 SCR_SiteSlotEntity : "{F4066B8425BEC47C}PrefabsEditable/Slots/Road/E_SlotRoadMedium.et" {
  coords 68.924 1.001 146.036

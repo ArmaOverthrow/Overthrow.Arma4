@@ -36,9 +36,9 @@ class OVT_DifficultySettings : ScriptAndConfig
 	[Attribute(defvalue: "750", desc: "Base Support Range", category: "Occupying Faction")]
 	float baseSupportRange;
 	[Attribute(defvalue: "2", desc: "Minimum number of defense groups at radio towers", category: "Occupying Faction")]
-	int radioTowerGroupsMin;
+	int patrolGroupsMin;
 	[Attribute(defvalue: "3", desc: "Maximum number of defense groups at radio towers", category: "Occupying Faction")]
-	int radioTowerGroupsMax;	
+	int patrolGroupsMax;	
 	[Attribute("280", category: "Occupying Faction")]
 	float baseRange;
 	[Attribute("220", category: "Occupying Faction")]
@@ -71,6 +71,8 @@ class OVT_DifficultySettings : ScriptAndConfig
 	float gunDealerSellPriceMultiplier;
 	[Attribute(defvalue: "0.8", desc: "Multiplier when buying vehicles at an owned base", category: "Economy")]
 	float procurementMultiplier;
+	[Attribute(defvalue: "1.0", desc: "Multiplier for vehicle purchase prices", category: "Economy")]
+	float vehiclePriceMultiplier;
 	
 	//RF
 	[Attribute(defvalue: "0", desc: "Base RF threat", category: "Resistance Faction")]
@@ -91,6 +93,16 @@ class OVT_DifficultySettings : ScriptAndConfig
 	
 	[Attribute(defvalue: "1000", desc: "Max size of QRF in resources", category: "QRF")]
 	int maxQRF;
+	
+	//Undercover System
+	[Attribute(defvalue: "15", desc: "Distance at which enemies can see through disguises (meters)", category: "Undercover System")]
+	float disguiseDetectionDistance;
+	[Attribute(defvalue: "0.8", desc: "Base disguise effectiveness when fully disguised", category: "Undercover System")]
+	float baseDisguiseEffectiveness;
+	[Attribute(defvalue: "0.7", desc: "Maximum wanted level reduction from disguises", category: "Undercover System")]
+	float wantedReductionMultiplier;
+	[Attribute(defvalue: "0.6", desc: "Detection range multiplier when disguised", category: "Undercover System")]
+	float detectionRangeMultiplier;
 	
 	[Attribute("", UIWidgets.ResourcePickerThumbnail, "Items given to player when first spawned in")]
 	ref array<ResourceName> startingItems;

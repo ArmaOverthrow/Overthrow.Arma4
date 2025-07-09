@@ -2,7 +2,7 @@
 
 # Script to reset Overthrow save data by deleting the save directory
 
-SAVE_PATH="/mnt/c/Users/Aaron Static/OneDrive/Documents/My Games/ArmaReforgerWorkbench/profile/.db/Overthrow"
+SAVE_PATH="${OVERTHROW_SAVE_DIR:-/mnt/c/Users/Aaron Static/OneDrive/Documents/My Games/ArmaReforgerWorkbench/profile/.db/Overthrow}"
 
 echo "Resetting Overthrow save data..."
 

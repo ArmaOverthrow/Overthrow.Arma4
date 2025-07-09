@@ -31,6 +31,10 @@ class OVT_MainMenuContext : OVT_UIContext
 				OVT_UIContext context = ui.GetContextByString(m_FoundOverride.m_ContextName);
 				if(context)
 				{
+					// Check if context is already active to prevent multiple instances
+					if(context.IsActive())
+						return;
+						
 					if(m_FoundOverride.m_ContextName == "OVT_ShopContext")
 					{
 						OVT_ShopComponent shop = EPF_Component<OVT_ShopComponent>.Find(m_FoundOverride.GetOwner());
@@ -147,6 +151,13 @@ class OVT_MainMenuContext : OVT_UIContext
 			}
 		}
 		
+		// Manage Recruits
+		comp = SCR_ButtonTextComponent.GetButtonText("Manage Recruits", m_wRoot);
+		if (comp)
+		{
+			comp.m_OnClicked.Insert(ManageRecruits);
+		}
+		
 		// Character Sheet
 		comp = SCR_ButtonTextComponent.GetButtonText("Character Sheet", m_wRoot);
 		if (comp)
@@ -234,6 +245,12 @@ class OVT_MainMenuContext : OVT_UIContext
 	{
 		CloseLayout();
 		m_UIManager.ShowContext(OVT_RealEstateContext);		
+	}
+	
+	private void ManageRecruits()
+	{
+		CloseLayout();
+		m_UIManager.ShowContext(OVT_RecruitsContext);		
 	}
 	
 	private void CharacterSheet()

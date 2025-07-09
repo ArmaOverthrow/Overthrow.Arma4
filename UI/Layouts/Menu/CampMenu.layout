@@ -1,0 +1,245 @@
+FrameWidgetClass {
+ Name "rootFrame"
+ {
+  PanelWidgetClass "{5D58260584643825}" {
+   Name "ResistancePanel"
+   Slot FrameWidgetSlot "{597282644EB209C6}" {
+    Anchor 0.5 0.5 0.5 0.5
+    PositionX 0
+    OffsetLeft 0
+    PositionY 0
+    OffsetTop 0
+    SizeX 600
+    OffsetRight -600
+    SizeY 400
+    OffsetBottom -400
+    Alignment 0.5 0.5
+   }
+   "Z Order" 100000
+   {
+    BlurWidgetClass "{5D58260584643821}" : "{352322057FD78AE1}UI/layouts/WidgetLibrary/BaseElements/WLib_Blur.layout" {
+     Name "BackgroundBlur"
+     Slot FrameWidgetSlot "{5982E26F6316DE4F}" {
+      Anchor 0 0 1 1
+      PositionX 0
+      OffsetLeft 0
+      PositionY 0
+      OffsetTop 0
+      SizeX -200
+      OffsetRight 0
+      SizeY -1050
+      OffsetBottom 0
+     }
+     Color 0.127 0.127 0.127 1
+     Intensity 0.8
+    }
+    VerticalLayoutWidgetClass "{5D58260584643820}" {
+     Name "VerticalLayout0"
+     Slot FrameWidgetSlot "{59728267ECC2178F}" {
+      Anchor 0 0 1 1
+      PositionX 1
+      OffsetLeft 10
+      PositionY 0
+      OffsetTop 10
+      SizeX 0
+      OffsetRight 10
+      SizeY 0
+      OffsetBottom 10
+     }
+     {
+      HorizontalLayoutWidgetClass "{5D5826058464382F}" {
+       Name "Header"
+       Slot LayoutSlot "{59A6DA4C43CC721E}" {
+        HorizontalAlign 0
+       }
+       {
+        ImageWidgetClass "{5D5826058464382D}" {
+         Name "Image0"
+         Slot LayoutSlot "{59A6DA4C4FC5D425}" {
+         }
+         Texture "{FB266CDD4502D60B}UI/Textures/Editor/EditableEntities/Factions/EditableEntity_Faction_Fia.edds"
+         Image ""
+         Size 64 64
+        }
+        TextWidgetClass "{5D5826058464382C}" {
+         Name "Text0"
+         Slot LayoutSlot "{59A6DA4C57D30E9F}" {
+          HorizontalAlign 1
+          VerticalAlign 1
+          Padding 10 0 0 0
+         }
+         Clipping False
+         Text "#OVT-ManageCamp"
+         "Font Size" 36
+        }
+       }
+      }
+      OverlayWidgetClass "{5D5826058464382B}" {
+       Name "Camp Info"
+       Slot LayoutSlot "{599D59771F18D990}" {
+        Padding 0 20 0 0
+       }
+       {
+        PanelWidgetClass "{5D5826058464382A}" {
+         Name "BG"
+         Slot OverlayWidgetSlot "{599D5977F1E3F8A8}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+         }
+         Color 1 1 1 0.035
+         style debugUI
+        }
+        VerticalLayoutWidgetClass "{5D58260584643829}" {
+         Name "Layout"
+         Slot OverlayWidgetSlot "{599D59771EB55F47}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+          Padding 5 5 5 5
+         }
+         {
+          HorizontalLayoutWidgetClass "{5D58260584643816}" {
+           Name "CampNameRow"
+           Slot LayoutSlot "{599D5977351D294A}" {
+            Padding 5 5 5 5
+           }
+           {
+            TextWidgetClass "{5D58260584643828}" {
+             Name "Label"
+             Slot LayoutSlot "{599D5977351D294A}" {
+             }
+             Text "#OVT-CampName:"
+             "Font Size" 22
+            }
+            TextWidgetClass "{5D58260584643815}" {
+             Name "CampName"
+             Slot LayoutSlot "{599D5977351D294B}" {
+              Padding 10 0 0 0
+             }
+             Text "Camp Alpha"
+             "Font Size" 22
+            }
+           }
+          }
+          HorizontalLayoutWidgetClass "{5D58260584643814}" {
+           Name "PrivacyRow"
+           Slot LayoutSlot "{599D5977351D294C}" {
+            Padding 5 5 5 5
+           }
+           {
+            TextWidgetClass "{5D58260584643813}" {
+             Name "Label"
+             Slot LayoutSlot "{599D5977351D294D}" {
+             }
+             Text "#OVT-Privacy:"
+             "Font Size" 20
+            }
+            TextWidgetClass "{5D58260584643812}" {
+             Name "PrivacyStatus"
+             Slot LayoutSlot "{599D5977351D294E}" {
+              Padding 10 0 0 0
+             }
+             Text "#OVT-CampPublic"
+             "Font Size" 20
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+      VerticalLayoutWidgetClass "{5D5826058464381F}" {
+       Name "Info"
+       Slot LayoutSlot "{59CC0DA662F5710A}" {
+        Padding 10 10 10 10
+       }
+       {
+        TextWidgetClass "{5D5826058464381E}" {
+         Name "InfoText"
+         Slot LayoutSlot "{59CC0DA67F245EA8}" {
+          HorizontalAlign 0
+         }
+         Color 0.607 0.607 0.607 1
+         Text "#OVT-CampInfo"
+         "Font Size" 16
+         "Min Font Size" 16
+         Wrap 1
+        }
+       }
+      }
+      HorizontalLayoutWidgetClass "{5D58260584643804}" {
+       Name "ActionButtons"
+       Slot LayoutSlot "{59A6DA4B67F90A9C}" {
+        Padding 0 0 0 0
+       }
+       {
+        FrameWidgetClass "{5D58260584643803}" {
+         Name "Fill"
+         Slot LayoutSlot "{59A6DA4FA28C85D1}" {
+          SizeMode Fill
+         }
+        }
+        ButtonWidgetClass "{5D58260584643802}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+         Name "TogglePrivacy"
+         Slot LayoutSlot "{59C84C7C117A2068}" {
+          Padding 5 5 5 5
+         }
+         components {
+          SCR_InputButtonComponent "{5548F0143AE99095}" {
+           m_sActionName "OverthrowCampTogglePrivacy"
+           m_sLabel "#OVT-MakeCampPrivate"
+          }
+         }
+        }
+        ButtonWidgetClass "{5D58260584643801}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+         Name "DeleteCamp"
+         Slot LayoutSlot "{59C84C7C117A2069}" {
+          Padding 5 5 5 5
+         }
+         components {
+          SCR_InputButtonComponent "{5548F0143AE99096}" {
+           m_sActionName "OverthrowCampDelete"
+           m_sLabel "#OVT-DeleteCamp"
+          }
+         }
+        }
+       }
+      }
+      FrameWidgetClass "{5D5826058464380F}" {
+       Name "Fill"
+       Slot LayoutSlot "{59A6DA4FA28C85D1}" {
+        SizeMode Fill
+       }
+      }
+      OverlayWidgetClass "{5D5826058464380E}" {
+       Name "Footer"
+       Slot LayoutSlot "{56EEDE03DE14A911}" {
+       }
+       {
+        HorizontalLayoutWidgetClass "{5D5826058464380D}" {
+         Name "Buttons"
+         Slot OverlayWidgetSlot "{56EEDE03DED9A743}" {
+          HorizontalAlign 3
+         }
+         {
+          ButtonWidgetClass "{5D5826058464380B}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+           Name "CloseButton"
+           Slot LayoutSlot "{56EEDE01982D053A}" {
+            Padding 0 0 10 0
+           }
+           components {
+            SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+             m_sActionName "MenuBack"
+             m_sLabel "#AR-Menu_Back"
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

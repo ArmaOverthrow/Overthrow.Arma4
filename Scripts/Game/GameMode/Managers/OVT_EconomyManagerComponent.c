@@ -96,6 +96,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	ref ScriptInvoker m_OnResistanceMoneyChanged = new ScriptInvoker(); //!< Invoked when the resistance money changes. Args: int newAmount
 	ref ScriptInvoker m_OnPlayerBuy = new ScriptInvoker(); //!< Invoked when a player buys an item. Args: int playerId, int cost, ResourceName item, int quantity
 	ref ScriptInvoker m_OnPlayerSell = new ScriptInvoker(); //!< Invoked when a player sells an item. Args: int playerId, int cost, ResourceName item, int quantity
+	ref ScriptInvoker m_OnPlayerTransaction = new ScriptInvoker(); //!< Invoked when any transaction occurs (server-side). Args: int playerId, OVT_ShopComponent shop, bool isBuying, int amount
 		
 	static OVT_EconomyManagerComponent s_Instance; //!< Static instance for singleton access.
 	
@@ -572,6 +573,39 @@ class OVT_EconomyManagerComponent: OVT_Component
 	}	
 	
 	//------------------------------------------------------------------------------------------------
+	//! Gets the shop-specific buy price including all applicable multipliers.
+	//! \param[in] id The resource ID of the item.
+	//! \param[in] shop The shop component for shop-specific pricing.
+	//! \param[in] pos The world position (optional).
+	//! \param[in] playerId The player ID for player-specific pricing (optional).
+	//! \return The calculated shop buy price with all multipliers applied.
+	int GetShopBuyPrice(int id, OVT_ShopComponent shop, vector pos = "0 0 0", int playerId = -1)
+	{
+		int cost;
+		
+		if (shop && shop.m_bProcurement)
+		{
+			// Procurement pricing
+			cost = GetPrice(id);
+			cost = cost * OVT_Global.GetConfig().m_Difficulty.procurementMultiplier;
+			cost = cost * OVT_Global.GetConfig().m_Difficulty.vehiclePriceMultiplier;
+		}
+		else
+		{
+			// Regular shop pricing
+			cost = GetBuyPrice(id, pos, playerId);
+			
+			// Apply shop-specific multipliers
+			if (shop && shop.m_ShopType == OVT_ShopType.SHOP_VEHICLE)
+			{
+				cost = cost * OVT_Global.GetConfig().m_Difficulty.vehiclePriceMultiplier;
+			}
+		}
+		
+		return cost;
+	}
+	
+	//------------------------------------------------------------------------------------------------
 	//! Gets the dynamic sell price of an item by its ResourceName. Convenience wrapper for GetSellPrice.
 	//! \param[in] res The ResourceName of the item.
 	//! \param[in] pos The world position (optional).
@@ -1011,7 +1045,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		//Process non EntityCatalog vehicles
 		foreach(OVT_VehiclePriceConfig cfg : m_VehiclePriceConfig.m_aPrices)
 		{
-			if(cfg.m_sFind == "" && cfg.prefab != "")
+			if(cfg.m_sFind == "" && cfg.prefab != "" && !cfg.hidden)
 			{
 				ResourceName res = cfg.prefab;
 				if(!m_aResources.Contains(res))
@@ -1036,19 +1070,81 @@ class OVT_EconomyManagerComponent: OVT_Component
 			int factionId = factionMgr.GetFactionIndex(faction);
 			m_mFactionResources[factionId] = new array<int>;
 			array<SCR_EntityCatalogEntry> items = new array<SCR_EntityCatalogEntry>;
-			fac.GetAllInventoryItems(items);
+			fac.GetAllInventoryItems(items);			
 			foreach(SCR_EntityCatalogEntry item : items) 
 			{
+				bool configMatched = false;
 				ResourceName res = item.GetPrefab();
-				if(res == "") continue;
-				if(!m_aResources.Contains(res))
+				if(res == "" || m_aResources.Contains(res) || !item.IsEnabled()) continue;
+				
+				//Filter out non-arsenal items
+				SCR_NonArsenalItemCostCatalogData nonArsenalData = SCR_NonArsenalItemCostCatalogData.Cast(item.GetEntityDataOfType(SCR_NonArsenalItemCostCatalogData));
+				if(nonArsenalData)
 				{
-					m_aResources.Insert(res);
-					int id = m_aResources.Count()-1;
-					m_aResourceIndex[res] = id;
-					m_aEntityCatalogEntries.Insert(item);
-					m_mFactionResources[factionId].Insert(id);
+					continue;
 				}
+				
+				bool hidden = false;
+				int cost = 50;
+				int demand = 5;
+				
+				// Check price configs sequentially until one matches
+				foreach(OVT_PriceConfig config : m_PriceConfig.m_aPrices)
+				{
+					bool matches = false;
+					
+					// Check if this config matches the item
+					if(config.m_sFind == "")
+					{
+						// Empty find string matches all items of the specified type/mode
+						SCR_ArsenalItem arsenalItem = SCR_ArsenalItem.Cast(item.GetEntityDataOfType(SCR_ArsenalItem));
+						if(arsenalItem && arsenalItem.GetItemType() == config.m_eItemType)
+						{
+							if(config.m_eItemMode == SCR_EArsenalItemMode.DEFAULT || arsenalItem.GetItemMode() == config.m_eItemMode)
+							{
+								matches = true;
+							}
+						}
+					}
+					else
+					{
+						// Find string found in prefab name
+						matches = res.IndexOf(config.m_sFind) > -1;
+					}
+					
+					if(!matches) continue;
+					
+					if(config.hidden) 
+					{
+						hidden = true;
+						break;
+					}
+					cost = config.cost;
+					demand = config.demand;
+					configMatched = true;
+					break;
+				}
+				
+				if(hidden) continue;
+				
+				if(!configMatched)
+				{
+					Print("[Overthrow] Matching item price config not found for " + res);
+					//Try to use Conflict game mode supply cost
+					SCR_ArsenalItem arsenalItem = SCR_ArsenalItem.Cast(item.GetEntityDataOfType(SCR_ArsenalItem));
+					if(arsenalItem)
+					{
+						cost = arsenalItem.GetSupplyCost(SCR_EArsenalSupplyCostType.DEFAULT);
+					}
+				}
+				
+				m_aResources.Insert(res);
+				int id = m_aResources.Count()-1;
+				m_aResourceIndex[res] = id;
+				m_aEntityCatalogEntries.Insert(item);
+				m_mFactionResources[factionId].Insert(id);
+				SetPrice(id, cost);
+				SetDemand(id, demand);
 			}
 			
 			array<SCR_EntityCatalogEntry> vehicles = new array<SCR_EntityCatalogEntry>;
@@ -1059,6 +1155,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 				ResourceName res = item.GetPrefab();
 				if(res == "") continue;
 				if(res.IndexOf("Campaign") > -1) continue;
+				if(!item.IsEnabled()) continue;
 				if(!m_aResources.Contains(res))
 				{
 					bool illegal = false;
@@ -1077,7 +1174,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 							}
 							cost = cfg.cost;
 							illegal = cfg.illegal;
-							parkingType = cfg.parking;
+							parkingType = cfg.parking;							
 						}
 					}
 					
@@ -1092,7 +1189,12 @@ class OVT_EconomyManagerComponent: OVT_Component
 					m_aResourceIndex[res] = id;
 					m_aEntityCatalogEntries.Insert(item);
 					m_mFactionResources[factionId].Insert(id);
-					m_aAllVehicles.Insert(id);					
+					m_aAllVehicles.Insert(id);			
+					
+					if(cost == 50000)
+					{
+						Print("[Overthrow] Default price being set for: " + res);
+					}
 					
 					m_mVehicleParking[id] = parkingType;
 					SetPrice(id, cost);
@@ -1114,18 +1216,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 			}			
 		}
 		
-		//Set Prices
-		foreach(OVT_PriceConfig config : m_PriceConfig.m_aPrices)
-		{
-			array<SCR_EntityCatalogEntry> items = new array<SCR_EntityCatalogEntry>;
-			FindInventoryItems(config.m_eItemType, config.m_eItemMode, config.m_sFind, items);
-			foreach(SCR_EntityCatalogEntry entry : items)
-			{
-				int id = GetInventoryId(entry.GetPrefab());
-				SetPrice(id, config.cost);
-				SetDemand(id, config.demand);
-			}
-		}
+		//Set Prices (this section is now handled during item loading above)
+		// Price configs are now processed during the GetAllInventoryItems phase
+		// to support the hidden property and ensure consistent behavior with vehicles
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -1340,9 +1433,19 @@ class OVT_EconomyManagerComponent: OVT_Component
 			{
 				array<ResourceName> vehicles();
 				GetAllNonOccupyingFactionVehicles(vehicles);
+				
+				OVT_ParkingComponent parking = EPF_Component<OVT_ParkingComponent>.Find(shop.GetOwner());
+				array<OVT_ParkingType> parkingTypes();
+				parking.GetParkingTypes(parkingTypes);
+				
 				foreach(ResourceName res : vehicles)
 				{
 					int id = GetInventoryId(res);
+					OVT_ParkingType parkingType = GetParkingType(id);
+					if(parkingTypes.Find(parkingType) == -1)
+					{
+						continue;
+					}
 					shop.AddToInventory(id, 100);
 				}
 			}else{		
@@ -1546,7 +1649,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	//! Streams the latest money amount for a specific player to all clients via RPC.
 	//! \param[in] playerId The runtime Player ID.
 	void StreamPlayerMoney(int playerId)
-	{
+	{		
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(persId);
 		if(!player) return;

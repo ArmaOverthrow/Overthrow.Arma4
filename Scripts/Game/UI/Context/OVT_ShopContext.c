@@ -20,12 +20,11 @@ class OVT_ShopContext : OVT_UIContext
 			money.SetText("$" + amount);
 		}
 	}
-	
-	//SPARKNUTZ CHANGED CODE
-	
+		
 	override void OnShow()
 	{	
-		m_iPageNum = 0;	
+		m_iPageNum = 0;
+		m_SelectedResource = -1; // Reset selection to ensure first item gets selected	
 		
 		// Set up the buy button
 		Widget buyButton = m_wRoot.FindAnyWidget("BuyButton");
@@ -75,55 +74,7 @@ class OVT_ShopContext : OVT_UIContext
 		}
 		return true; // Show for all other shop types
 	}
-	
-		//SPARKNUTZ CHANGED CODE
-	
-//	override void OnShow()
-//	{	
-//		m_iPageNum = 0;	
-//		
-//		
-//		Widget buyButton = m_wRoot.FindAnyWidget("BuyButton");
-//		SCR_InputButtonComponent action = SCR_InputButtonComponent.Cast(buyButton.FindHandler(SCR_InputButtonComponent));
-//				
-//		action.m_OnActivated.Insert(Buy);
-//		
-//		Widget sellButton = m_wRoot.FindAnyWidget("SellButton");
-//		//if(m_Shop.m_ShopType == OVT_ShopType.SHOP_GUNDEALER || m_Shop.m_ShopType == OVT_ShopType.SHOP_VEHICLE) - Original Changes by Chris
-//		if(m_Shop.m_ShopType == OVT_ShopType.SHOP_VEHICLE)
-//		{
-//			sellButton.SetVisible(false);
-//		}else{
-//			//Sparknutz - adding a print for debugging//
-//			Print("gunDealerSellPriceMultiplier: " + OVT_Global.GetConfig().m_Difficulty.gunDealerSellPriceMultiplier);
-//			if(m_Shop.m_ShopType == OVT_ShopType.SHOP_GUNDEALER && OVT_Global.GetConfig().m_Difficulty.gunDealerSellPriceMultiplier == 0)
-//			{
-//				sellButton.SetVisible(false);
-//			}else{
-//				SCR_InputButtonComponent sellAction = SCR_InputButtonComponent.Cast(sellButton.FindHandler(SCR_InputButtonComponent));
-//			
-//				sellAction.m_OnActivated.Insert(Sell);
-//			}
-//		}
-//		
-//		
-//		
-//		Widget prevButton = m_wRoot.FindAnyWidget("PrevButton");
-//		SCR_InputButtonComponent btn = SCR_InputButtonComponent.Cast(prevButton.FindHandler(SCR_InputButtonComponent));
-//		
-//		btn.m_OnActivated.Insert(PreviousPage);
-//		
-//		Widget nextButton = m_wRoot.FindAnyWidget("NextButton");
-//		btn = SCR_InputButtonComponent.Cast(nextButton.FindHandler(SCR_InputButtonComponent));
-//		
-//		btn.m_OnActivated.Insert(NextPage);
-//		
-//		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");
-//		btn = SCR_InputButtonComponent.Cast(closeButton.FindHandler(SCR_InputButtonComponent));		
-//		btn.m_OnActivated.Insert(CloseLayout);
-//		
-//		Refresh();		
-//	}
+
 	
 	void PreviousPage()
 	{
@@ -167,6 +118,19 @@ class OVT_ShopContext : OVT_UIContext
 			array<ResourceName> vehicles();
 			m_Economy.GetAllNonOccupyingFactionVehiclesByParking(vehicles, parkingTypes, true);
 			
+			// Filter out Mobile FOB vehicles if restricted to officers only
+			if(OVT_Global.GetConfig().m_ConfigFile.mobileFOBOfficersOnly && !OVT_Global.GetPlayers().LocalPlayerIsOfficer())
+			{
+				for(int j = vehicles.Count() - 1; j >= 0; j--)
+				{
+					string vehiclePath = vehicles[j];
+					if(vehiclePath.Contains("OverthrowMobileFOB"))
+					{
+						vehicles.Remove(j);
+					}
+				}
+			}
+			
 			m_iNumPages = Math.Ceil(vehicles.Count() / 15);
 			if(m_iPageNum >= m_iNumPages) m_iPageNum = 0;
 			string pageNumText = (m_iPageNum + 1).ToString();
@@ -184,8 +148,7 @@ class OVT_ShopContext : OVT_UIContext
 				w.SetOpacity(1);
 				OVT_ShopMenuCardComponent card = OVT_ShopMenuCardComponent.Cast(w.FindHandler(OVT_ShopMenuCardComponent));
 				
-				int buy = m_Economy.GetPrice(id);
-				buy = buy * OVT_Global.GetConfig().m_Difficulty.procurementMultiplier;
+				int buy = m_Economy.GetShopBuyPrice(id, m_Shop, m_Shop.GetOwner().GetOrigin(), m_iPlayerID);
 								
 				card.Init(res, buy, 100, this);
 				
@@ -212,7 +175,7 @@ class OVT_ShopContext : OVT_UIContext
 				w.SetOpacity(1);
 				OVT_ShopMenuCardComponent card = OVT_ShopMenuCardComponent.Cast(w.FindHandler(OVT_ShopMenuCardComponent));
 				
-				int buy = m_Economy.GetBuyPrice(id, m_Shop.GetOwner().GetOrigin(),m_iPlayerID);
+				int buy = m_Economy.GetShopBuyPrice(id, m_Shop, m_Shop.GetOwner().GetOrigin(), m_iPlayerID);
 				int qty = m_Shop.GetStock(id);
 				
 				card.Init(res, buy, qty, this);
@@ -242,13 +205,12 @@ class OVT_ShopContext : OVT_UIContext
 		
 		if(m_Shop.m_bProcurement)
 		{
-			buy = m_Economy.GetPrice(id);
-			buy = buy * OVT_Global.GetConfig().m_Difficulty.procurementMultiplier;
+			buy = m_Economy.GetShopBuyPrice(id, m_Shop, m_Shop.GetOwner().GetOrigin(), m_iPlayerID);
 			sell = buy;
 			qty = 100;
 			max = 100;
 		}else{
-			buy = m_Economy.GetBuyPrice(id, m_Shop.GetOwner().GetOrigin(),m_iPlayerID);
+			buy = m_Economy.GetShopBuyPrice(id, m_Shop, m_Shop.GetOwner().GetOrigin(), m_iPlayerID);
 			sell = m_Economy.GetSellPrice(id, m_Shop.GetOwner().GetOrigin());
 			if(m_Shop.m_ShopType == OVT_ShopType.SHOP_GUNDEALER)
 			{
@@ -302,12 +264,7 @@ class OVT_ShopContext : OVT_UIContext
 		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
 		if(!player) return;
 		
-		int cost = m_Economy.GetBuyPrice(m_SelectedResource, m_Shop.GetOwner().GetOrigin(),m_iPlayerID);
-		
-		if(m_Shop.m_bProcurement)
-		{
-			cost = m_Economy.GetPrice(m_SelectedResource);
-		}
+		int cost = m_Economy.GetShopBuyPrice(m_SelectedResource, m_Shop, m_Shop.GetOwner().GetOrigin(), m_iPlayerID);
 		
 		if(!m_Economy.PlayerHasMoney(m_sPlayerID, cost)) return;
 				

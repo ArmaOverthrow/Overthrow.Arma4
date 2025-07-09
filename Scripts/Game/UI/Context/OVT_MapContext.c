@@ -22,6 +22,7 @@ class OVT_MapContext : OVT_UIContext
 	
 	protected const int MAX_HOUSE_TRAVEL_DIS = 25;
 	protected const int MAX_FOB_TRAVEL_DIS = 40;
+	protected const float RECRUIT_TRAVEL_RADIUS = 50.0; // Radius to search for recruits to fast travel with
 	
 	override void PostInit()
 	{		
@@ -92,11 +93,6 @@ class OVT_MapContext : OVT_UIContext
 			}
 		}
 		
-		if(m_Resistance.DistanceToCamp(pos, m_sPlayerID) < MAX_HOUSE_TRAVEL_DIS)
-		{
-			return true;
-		}
-		
 		IEntity house = m_RealEstate.GetNearestOwned(m_sPlayerID, pos, MAX_HOUSE_TRAVEL_DIS);
 		if(house)
 		{
@@ -112,6 +108,17 @@ class OVT_MapContext : OVT_UIContext
 			OVT_RealEstateConfig config = m_RealEstate.GetConfig(house);
 			if(config.m_IsWarehouse) return false;
 			return true;
+		}
+		
+		OVT_CampData camp = m_Resistance.GetNearestCampData(pos);
+		if(camp) {
+			dist = vector.Distance(camp.location, pos);
+			if(dist < MAX_FOB_TRAVEL_DIS) {
+				// Allow fast travel if it's the player's own camp or if it's public
+				if(camp.owner == m_sPlayerID || !camp.isPrivate) {
+					return true;
+				}
+			}
 		}
 		
 		vector fob = m_Resistance.GetNearestFOB(pos);		
@@ -371,6 +378,19 @@ class OVT_MapContext : OVT_UIContext
 			
 			int cost = OVT_Global.GetConfig().m_Difficulty.fastTravelCost;
 			
+			// Calculate additional cost for nearby recruits
+			int recruitCount = 0;
+			if (!OVT_Global.GetConfig().m_bDebugMode)
+			{
+				OVT_RecruitManagerComponent recruitManager = OVT_RecruitManagerComponent.GetInstance();
+				if (recruitManager)
+				{
+					array<ref OVT_RecruitData> nearbyRecruits = recruitManager.GetPlayerRecruitsInRadius(m_sPlayerID, m_Owner.GetOrigin(), RECRUIT_TRAVEL_RADIUS);
+					recruitCount = nearbyRecruits.Count();
+					cost += recruitCount * OVT_Global.GetConfig().m_Difficulty.fastTravelCost; // Same cost per recruit
+				}
+			}
+			
 			if(OVT_Global.GetConfig().m_bDebugMode) cost = 0;
 			
 			if(!m_Economy.PlayerHasMoney(m_sPlayerID, cost))
@@ -409,7 +429,16 @@ class OVT_MapContext : OVT_UIContext
 				}else{
 					if(cost > 0)
 						m_Economy.TakePlayerMoney(m_iPlayerID, cost);
-					SCR_Global.TeleportPlayer(m_iPlayerID, pos);					
+					
+					// Use recruit-aware fast travel for non-vehicle travel
+					if (recruitCount > 0)
+					{
+						OVT_Global.GetServer().RequestFastTravelWithRecruits(m_iPlayerID, pos, RECRUIT_TRAVEL_RADIUS);
+					}
+					else
+					{
+						SCR_Global.TeleportPlayer(m_iPlayerID, pos);
+					}					
 				}				
 			}			
 		}	
@@ -426,6 +455,16 @@ class OVT_MapContext : OVT_UIContext
 			}
 			float dist = vector.Distance(pos, m_Owner.GetOrigin());
 			int cost = Math.Round((dist / 1000) * OVT_Global.GetConfig().m_Difficulty.busTicketPrice);
+			
+			// Calculate additional cost for nearby recruits
+			int recruitCount = 0;
+			OVT_RecruitManagerComponent recruitManager = OVT_RecruitManagerComponent.GetInstance();
+			if (recruitManager)
+			{
+				array<ref OVT_RecruitData> nearbyRecruits = recruitManager.GetPlayerRecruitsInRadius(m_sPlayerID, m_Owner.GetOrigin(), RECRUIT_TRAVEL_RADIUS);
+				recruitCount = nearbyRecruits.Count();
+				cost += recruitCount * Math.Round((dist / 1000) * OVT_Global.GetConfig().m_Difficulty.busTicketPrice); // Same cost per recruit
+			}
 			
 			if(!m_Economy.PlayerHasMoney(m_sPlayerID, cost))
 			{
@@ -452,13 +491,24 @@ class OVT_MapContext : OVT_UIContext
 				
 				if(cost > 0)
 					m_Economy.TakePlayerMoney(m_iPlayerID, cost);
-				SCR_Global.TeleportPlayer(m_iPlayerID, pos);
+				
+				// Use recruit-aware fast travel for bus travel as well
+				if (recruitCount > 0)
+				{
+					OVT_Global.GetServer().RequestFastTravelWithRecruits(m_iPlayerID, pos, RECRUIT_TRAVEL_RADIUS);
+				}
+				else
+				{
+					SCR_Global.TeleportPlayer(m_iPlayerID, pos);
+				}
 			}
 		}
 		
 		if(m_bMapInfoActive)
 		{
-			m_SelectedTown = m_TownManager.GetNearestTown(pos);		
+			m_SelectedTown = m_TownManager.GetNearestTown(pos);
+			Print(string.Format("[Overthrow] Threat at clicked location: %1",OVT_Global.GetOccupyingFaction().GetThreatByLocation(pos)));
+				
 			ShowTownInfo();
 		}	
 	}

@@ -1,4 +1,4 @@
-SCR_DestructibleBuildingEntity : "{D2A960D237D786F5}Prefabs/Structures/Commercial/FuelStations/FuelStation_E_01/FuelStation_E_01_building_base.et" {
+SCR_DestructibleBuildingEntity : "{D2A960D237D786F5}Prefabs/Structures/Commercial/FuelStations/FuelStation_E_01/HouseAddons/FuelStation_E_01_building_base.et" {
  ID "F0DBA538AC2A0552"
  components {
   OVT_ParkingComponent "{59D030D1D4B18E18}" {
@@ -8,8 +8,17 @@ SCR_DestructibleBuildingEntity : "{D2A960D237D786F5}Prefabs/Structures/Commercia
      m_Type PARKING_CAR
     }
     OVT_ParkingPointInfo "{59D030D1B5AAF761}" {
-     Offset 12.998 0 4.827
+     Offset 12.998 0 5
+     Angles 0 90 0
      m_Type PARKING_CAR
+    }
+    OVT_ParkingPointInfo "{65CF136073600D75}" {
+     Offset 20.7234 0 5
+     Angles 0 90 0
+     m_Type PARKING_CAR
+    }
+    OVT_ParkingPointInfo "{65CF1364056E1796}" {
+     Offset -4.392 0 8.7314
     }
    }
   }

@@ -31,8 +31,8 @@ class OVT_SetHomeAction : ScriptedUserAction
 		OVT_BaseControllerComponent baseController = EPF_Component<OVT_BaseControllerComponent>.Find(GetOwner());
 		if (!baseController)
 		{
-			Print("OVT_SetHomeAction.CanBeShownScript: Null BaseControllerComponent! Exiting", LogLevel.WARNING);
-			return false;
+			//is an FOB or camp
+			return true;
 		}
 		return !baseController.IsOccupyingFaction();
 	}
