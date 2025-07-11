@@ -697,6 +697,13 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{65D6C329AA15E1D7}" {
+   Id "OVT-CannotFastTravelEnemyBase"
+   Target_en_us "You cannot fast travel to enemy bases"
+   Modified 1708574797
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59A49A9B02ABC32B}" {
    Id "OVT-CannotFastTravelThere"
    Target_en_us "You cannot fast travel there. Must be near an owned house, camp, FOB or controlled base"
@@ -1506,6 +1513,13 @@ StringTable {
    LastChanged "parkj_c3c9hji"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{65D6C32BD9BC2121}" {
+   Id "OVT-House"
+   Target_en_us "House"
+   Modified 1708573829
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{5D5AD8A5702C6A81}" {
    Id "OVT-Import"
@@ -5716,6 +5730,13 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{65D6C32968AF3759}" {
+   Id "OVT-Rented"
+   Target_en_us "Rented"
+   Modified 1708574432
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5D342475BAF79297}" {
    Id "OVT-RentIncome"
    Target_en_us "Rent Income"
@@ -7346,6 +7367,13 @@ StringTable {
    LastChanged "parkj_c3c9hji"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{65D6C32A9AAF1AD1}" {
+   Id "OVT-Unowned"
+   Target_en_us "Unowned"
+   Modified 1708574401
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{59CF196279F7E5EB}" {
    Id "OVT-Upgrades"

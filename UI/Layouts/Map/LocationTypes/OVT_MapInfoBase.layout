@@ -19,6 +19,7 @@ SizeLayoutWidgetClass {
    Slot AlignableSlot "{65D0CCEAFD4CFF1E}" {
     HorizontalAlign 3
     VerticalAlign 3
+    Padding 0 4 0 0
    }
    {
     HorizontalLayoutWidgetClass "{65D0CCE221EA6BF3}" {

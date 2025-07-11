@@ -269,17 +269,17 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 			nameText.SetText(name);
 		}
 		
-		// Set location type
+		// Set location type (description)
 		TextWidget typeText = TextWidget.Cast(m_wInfoPanel.FindAnyWidget("LocationType"));
 		if (typeText)
 		{
 			OVT_MapLocationType locationType = GetLocationTypeByName(location.m_sTypeName);
-			string typeName;
+			string description;
 			if (locationType)
-				typeName = locationType.GetDisplayNameForLocation(location);
+				description = locationType.GetLocationDescription(location);
 			else
-				typeName = "Unknown";
-			typeText.SetText(typeName);
+				description = "Unknown";
+			typeText.SetText(description);
 		}
 		
 		// Set distance

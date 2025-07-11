@@ -19,6 +19,7 @@ SizeLayoutWidgetClass {
    Slot AlignableSlot "{65D0CCEAFD4CFF1E}" {
     HorizontalAlign 3
     VerticalAlign 3
+    Padding 0 4 0 0
    }
    {
     HorizontalLayoutWidgetClass "{65D0CCE221EA6BF3}" {
@@ -97,7 +98,7 @@ SizeLayoutWidgetClass {
       }
       HorizontalLayoutWidgetClass "{OVT_SupportLayout}" {
        Name "SupportLayout"
-       Slot OverlayWidgetSlot {
+       Slot OverlayWidgetSlot "{65D6C329901EF0D0}" {
         Padding 5 5 5 5
        }
        {
@@ -144,12 +145,12 @@ SizeLayoutWidgetClass {
         Padding 0 0 0 0
        }
        {
-        FrameWidgetClass "{65D0CCEAAD57F3C5}" : "{EAA13B9FD255CB26}UI/Layouts/Map/OVT_TownModifierWidget.layout" {
+        FrameWidgetClass "{65D0CCEAAD57F3C5}" : "{EAA13B9FD255CB26}UI/Layouts/Map/LocationTypes/Town/OVT_TownModifierWidget.layout" {
          Name "ModifierFrame0"
          Slot WrapLayoutWidgetSlot "{65D0CCEAAD57F3A2}" {
          }
         }
-        FrameWidgetClass "{65D0CCEAA9733905}" : "{EAA13B9FD255CB26}UI/Layouts/Map/OVT_TownModifierWidget.layout" {
+        FrameWidgetClass "{65D0CCEAA9733905}" : "{EAA13B9FD255CB26}UI/Layouts/Map/LocationTypes/Town/OVT_TownModifierWidget.layout" {
          Name "ModifierFrame1"
          Slot WrapLayoutWidgetSlot "{65D0CCEAAD57F3A2}" {
          }
@@ -174,7 +175,7 @@ SizeLayoutWidgetClass {
       }
       HorizontalLayoutWidgetClass "{OVT_StabilityLayout}" {
        Name "StabilityLayout"
-       Slot OverlayWidgetSlot {
+       Slot OverlayWidgetSlot "{65D6C329901EF236}" {
         Padding 5 5 5 5
        }
        {
@@ -221,12 +222,12 @@ SizeLayoutWidgetClass {
         Padding 0 0 0 0
        }
        {
-        FrameWidgetClass "{65D0CCEAA89F7370}" : "{EAA13B9FD255CB26}UI/Layouts/Map/OVT_TownModifierWidget.layout" {
+        FrameWidgetClass "{65D0CCEAA89F7370}" : "{EAA13B9FD255CB26}UI/Layouts/Map/LocationTypes/Town/OVT_TownModifierWidget.layout" {
          Name "ModifierFrame0"
          Slot WrapLayoutWidgetSlot "{65D0CCEAAD57F3A2}" {
          }
         }
-        FrameWidgetClass "{65D0CCEAB5210FA9}" : "{EAA13B9FD255CB26}UI/Layouts/Map/OVT_TownModifierWidget.layout" {
+        FrameWidgetClass "{65D0CCEAB5210FA9}" : "{EAA13B9FD255CB26}UI/Layouts/Map/LocationTypes/Town/OVT_TownModifierWidget.layout" {
          Name "ModifierFrame1"
          Slot WrapLayoutWidgetSlot "{65D0CCEAAD57F3A2}" {
          }
