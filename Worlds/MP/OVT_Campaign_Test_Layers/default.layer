@@ -224,6 +224,7 @@ GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.et" {
  components {
   OVT_TownControllerComponent "{59908365ED5E1344}" {
    m_sName "Town"
+   m_Size TOWN
    m_iPopulation 50
    m_iTownRange 80
    m_iAttackDistanceMin 125
