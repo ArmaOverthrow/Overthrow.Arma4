@@ -799,74 +799,10 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
-  CustomStringTableItem "{5992E2F582B25E28}" {
-   Id "OVT-ItemLimitReached"
-   Target_en_us "Item limit reached at this location"
-   Target_ru_ru "Достигнут лимит предметов в этом месте"
-   Modified 1577249155
-   Author "Aaron Static"
-   LastChanged "Aaron Static"
-  }
-  CustomStringTableItem "{5992E2F582B25E29}" {
-   Id "OVT-RemovalModeActive"
-   Target_en_us "Removal mode active - look at items to remove them"
-   Target_ru_ru "Режим удаления активен - смотрите на предметы, чтобы удалить их"
-   Modified 1577249155
-   Author "Aaron Static"
-   LastChanged "Aaron Static"
-  }
-  CustomStringTableItem "{5992E2F582B25E2A}" {
-   Id "OVT-ItemRemoved"
-   Target_en_us "Item removed"
-   Target_ru_ru "Предмет удален"
-   Modified 1577249155
-   Author "Aaron Static"
-   LastChanged "Aaron Static"
-  }
   CustomStringTableItem "{5992E2F582B25E2B}" {
    Id "OVT-CannotRemoveItem"
    Target_en_us "Cannot remove this item"
    Target_ru_ru "Невозможно удалить этот предмет"
-   Modified 1577249155
-   Author "Aaron Static"
-   LastChanged "Aaron Static"
-  }
-  CustomStringTableItem "{5992E2F582B25E2C}" {
-   Id "OVT-Remove"
-   Target_en_us "Remove"
-   Target_ru_ru "Удалить"
-   Modified 1577249155
-   Author "Aaron Static"
-   LastChanged "Aaron Static"
-  }
-  CustomStringTableItem "{5992E2F582B25E2D}" {
-   Id "OVT-RemoveDescription"
-   Target_en_us "Remove placed or built items"
-   Target_ru_ru "Удалить размещенные или построенные предметы"
-   Modified 1577249155
-   Author "Aaron Static"
-   LastChanged "Aaron Static"
-  }
-  CustomStringTableItem "{5992E2F582B25E2E}" {
-   Id "OVT-ItemLimitReached"
-   Target_en_us "Item limit reached for this location"
-   Target_ru_ru "Достигнут лимит предметов для этого местоположения"
-   Modified 1577249155
-   Author "Aaron Static"
-   LastChanged "Aaron Static"
-  }
-  CustomStringTableItem "{5992E2F582B25E2F}" {
-   Id "OVT-RemovalModeActive"
-   Target_en_us "Removal mode active - look at an item and click to remove it"
-   Target_ru_ru "Режим удаления активен - посмотрите на предмет и нажмите, чтобы удалить его"
-   Modified 1577249155
-   Author "Aaron Static"
-   LastChanged "Aaron Static"
-  }
-  CustomStringTableItem "{5992E2F582B25E31}" {
-   Id "OVT-TooCloseToRadioTower"
-   Target_en_us "Cannot deploy FOB - too close to radio tower"
-   Target_ru_ru "Невозможно развернуть FOB - слишком близко к радиовышке"
    Modified 1577249155
    Author "Aaron Static"
    LastChanged "Aaron Static"
@@ -1722,6 +1658,14 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{5992E2F582B25E28}" {
+   Id "OVT-ItemLimitReached"
+   Target_en_us "Item limit reached at this location"
+   Target_ru_ru "Достигнут лимит предметов в этом месте"
+   Modified 1577249155
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5D86A310C893DBE1}" {
    Id "OVT-ItemProgress"
    Target_en_us "Item %1 of %2"
@@ -1738,6 +1682,14 @@ StringTable {
    LastChanged "Claude"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{5992E2F582B25E2A}" {
+   Id "OVT-ItemRemoved"
+   Target_en_us "Item removed"
+   Target_ru_ru "Предмет удален"
+   Modified 1577249155
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{59AEEB5827181BD1}" {
    Id "OVT-Job_AddedWaypoint"
@@ -3487,6 +3439,13 @@ StringTable {
    LastChanged "parkj_c3c9hji"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{65D6231551A70A67}" {
+   Id "OVT-Msg-HasPlacedCamp"
+   Target_en_us "%1 has placed a camp"
+   Modified 1708532612
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{59A49A822C192F63}" {
    Id "OVT-Msg-HasPlacedFOB"
@@ -5704,6 +5663,30 @@ StringTable {
    Author "Claude Code"
    LastChanged "Claude Code"
   }
+  CustomStringTableItem "{5992E2F582B25E29}" {
+   Id "OVT-RemovalModeActive"
+   Target_en_us "Removal mode active - look at items to remove them"
+   Target_ru_ru "Режим удаления активен - смотрите на предметы, чтобы удалить их"
+   Modified 1577249155
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5992E2F582B25E2C}" {
+   Id "OVT-Remove"
+   Target_en_us "Remove"
+   Target_ru_ru "Удалить"
+   Modified 1577249155
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{5992E2F582B25E2D}" {
+   Id "OVT-RemoveDescription"
+   Target_en_us "Remove placed or built items"
+   Target_ru_ru "Удалить размещенные или построенные предметы"
+   Modified 1577249155
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5D305CF6351DD698}" {
    Id "OVT-Rent"
    Target_en_us "Rent"
@@ -7193,6 +7176,14 @@ StringTable {
    LastChanged "parkj_c3c9hji"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{5992E2F582B25E31}" {
+   Id "OVT-TooCloseToRadioTower"
+   Target_en_us "Cannot deploy FOB - too close to radio tower"
+   Target_ru_ru "Невозможно развернуть FOB - слишком близко к радиовышке"
+   Modified 1577249155
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{59A49A81B65FE81A}" {
    Id "OVT-TooCloseTown"
