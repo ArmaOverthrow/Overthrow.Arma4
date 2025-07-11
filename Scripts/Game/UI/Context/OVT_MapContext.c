@@ -57,13 +57,13 @@ class OVT_MapContext : OVT_UIContext
 	{	
 		if(OVT_Global.GetConfig().m_bDebugMode) return true;
 		
-		reason = "#OVT-CannotFastTravelThere";	
+		reason = "CannotFastTravelThere";	
 		float dist;
 		
 		dist = vector.Distance(pos, m_Owner.GetOrigin());
 		if(dist < OVT_Global.GetConfig().m_Difficulty.minFastTravelDistance)
 		{
-			reason = "#OVT-CannotFastTravelDistance";
+			reason = "CannotFastTravelDistance";
 			return false;	
 		}
 		
@@ -74,7 +74,7 @@ class OVT_MapContext : OVT_UIContext
 		OVT_PlayerWantedComponent m_Wanted = OVT_PlayerWantedComponent.Cast(character.FindComponent(OVT_PlayerWantedComponent));
 		if(m_Wanted.GetWantedLevel() > 0)
 		{
-			reason = "#OVT-CannotFastTravelWanted";
+			reason = "CannotFastTravelWanted";
 			return false;
 		}		
 		
@@ -82,13 +82,13 @@ class OVT_MapContext : OVT_UIContext
 		{
 			if(OVT_Global.GetConfig().m_Difficulty.QRFFastTravelMode == OVT_QRFFastTravelMode.DISABLED)
 			{
-				reason = "#OVT-CannotFastTravelDuringQRF";
+				reason = "CannotFastTravelDuringQRF";
 				return false;
 			}
 			dist = vector.Distance(m_OccupyingFaction.m_vQRFLocation, pos);		
 			if(dist < OVT_QRFControllerComponent.QRF_RANGE)
 			{
-				reason = "#OVT-CannotFastTravelToQRF";
+				reason = "CannotFastTravelToQRF";
 				return false;
 			}
 		}
@@ -156,7 +156,7 @@ class OVT_MapContext : OVT_UIContext
 	{		
 		if(!ShowMap())
 		{
-			ShowHint("#OVT-MustHaveMap");
+			ShowNotification("MustHaveMap");
 			return;
 		}
 		m_bMapInfoActive = true;
@@ -281,7 +281,7 @@ class OVT_MapContext : OVT_UIContext
 	{
 		if(!ShowMap())
 		{
-			ShowHint("#OVT-MustHaveMap");
+			ShowNotification("MustHaveMap");
 			return;
 		}
 		m_bFastTravelActive = true;
@@ -291,7 +291,7 @@ class OVT_MapContext : OVT_UIContext
 	{
 		if(!ShowMap())
 		{
-			ShowHint("#OVT-MustHaveMap");
+			ShowNotification("MustHaveMap");
 			return;
 		}
 		m_bBusTravelActive = true;
@@ -370,7 +370,7 @@ class OVT_MapContext : OVT_UIContext
 			string error;
 			if(!CanFastTravel(pos, error))
 			{
-				ShowHint(error);
+				ShowNotification(error);
 				HideMap();
 				DisableFastTravel();
 				return;
@@ -395,7 +395,7 @@ class OVT_MapContext : OVT_UIContext
 			
 			if(!m_Economy.PlayerHasMoney(m_sPlayerID, cost))
 			{
-				ShowHint("#OVT-CannotAfford");
+				ShowNotification("CannotAfford");
 				HideMap();
 				DisableFastTravel();
 				return;
@@ -423,7 +423,7 @@ class OVT_MapContext : OVT_UIContext
 								m_Economy.TakePlayerMoney(m_iPlayerID, cost);
 							OVT_Global.GetServer().RequestFastTravel(m_iPlayerID, pos);
 						}else{
-							ShowHint("#OVT-MustBeDriver");
+							ShowNotification("MustBeDriver");
 						}
 					}
 				}else{
@@ -448,7 +448,7 @@ class OVT_MapContext : OVT_UIContext
 			SCR_MapDescriptorComponent stop = m_TownManager.GetNearestBusStop(pos);
 			if(!stop)
 			{
-				ShowHint("#OVT-NeedBusStop");
+				ShowNotification("NeedBusStop");
 				DisableBusTravel();
 				HideMap();
 				return;
@@ -468,7 +468,7 @@ class OVT_MapContext : OVT_UIContext
 			
 			if(!m_Economy.PlayerHasMoney(m_sPlayerID, cost))
 			{
-				ShowHint("#OVT-CannotAfford");
+				ShowNotification("CannotAfford");
 				HideMap();
 				DisableBusTravel();
 				return;
@@ -483,7 +483,7 @@ class OVT_MapContext : OVT_UIContext
 				ChimeraCharacter character = ChimeraCharacter.Cast(player);
 				if(character && character.IsInVehicle())
 				{
-					ShowHint("#OVT-MustExitVehicle");
+					ShowNotification("MustExitVehicle");
 					DisableBusTravel();
 					HideMap();
 					return;

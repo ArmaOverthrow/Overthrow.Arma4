@@ -184,4 +184,22 @@ class OVT_UIContext : ScriptAndConfig
 	{		
 		SCR_HintManagerComponent.GetInstance().ShowCustom(text);		
 	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Shows a notification using the OVT notification system with preset tags.
+	//! More efficient than ShowHint for network communication.
+	//! \\param[in] tag The preset tag to send.
+	void ShowNotification(string tag)
+	{
+		OVT_NotificationManagerComponent notify = OVT_Global.GetNotify();
+		if(notify) 
+		{
+			notify.SendTextNotification(tag, m_iPlayerID);
+		}
+		else
+		{
+			// Fallback - this shouldn't happen in normal gameplay
+			Print("[Overthrow] Notification system unavailable, tried to send notification: " + tag);
+		}
+	}
 }
