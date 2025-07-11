@@ -9,7 +9,7 @@ class OVT_SpawnCivilianJobStage : OVT_JobStage
 				
 		BaseWorld world = GetGame().GetWorld();
 		
-		spawnPosition = OVT_Global.FindSafeSpawnPosition(spawnPosition);			
+		spawnPosition = OVT_Global.FindSafeSpawnPosition(spawnPosition, "-0.5 0 -0.5", "0.5 2 0.5", true);			
 		
 		IEntity entity = OVT_Global.SpawnEntityPrefab(m_pPrefab, spawnPosition);
 		

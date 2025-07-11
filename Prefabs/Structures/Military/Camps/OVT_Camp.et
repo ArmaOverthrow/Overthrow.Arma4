@@ -13,6 +13,22 @@ StaticModelEntity : "{C0B710154C14FC9B}Prefabs/Structures/Military/Camps/TentSma
   OVT_PlaceableComponent "{65AEB8AAAA64BAE2}" {
    m_sPlaceableType "Camp"
   }
+  OVT_SpawnPointComponent "{65D69CE0017723FC}" {
+   m_aPoints {
+    PointInfo "{65D69CE00FA346EA}" {
+     Offset 0 0 -2.2753
+    }
+    PointInfo "{65D69CE0DF3FE3CE}" {
+     Offset 0 0 2.0509
+    }
+    PointInfo "{65D69CE0D98CE08E}" {
+     Offset -2.5791 0 0
+    }
+    PointInfo "{65D69CE0A3369E1A}" {
+     Offset 2.5436 0 0
+    }
+   }
+  }
   ActionsManagerComponent "{65AEA1BA3284814D}" {
    ActionContexts {
     UserActionContext "{65AEA1BA30B59E16}" {

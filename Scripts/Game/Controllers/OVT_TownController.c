@@ -208,7 +208,7 @@ class OVT_TownControllerComponent: OVT_Component
 
 		BaseWorld world = GetGame().GetWorld();
 
-		spawnPosition = OVT_Global.FindSafeSpawnPosition(spawnPosition);
+		spawnPosition = OVT_Global.FindSafeSpawnPosition(spawnPosition, "-0.5 0 -0.5", "0.5 2 0.5", true);
 
 		IEntity dealer = OVT_Global.SpawnEntityPrefab(OVT_Global.GetConfig().m_pGunDealerPrefab, spawnPosition);
 

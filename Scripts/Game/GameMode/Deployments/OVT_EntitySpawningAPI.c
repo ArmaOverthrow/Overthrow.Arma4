@@ -97,8 +97,8 @@ class OVT_EntitySpawningAPI : Managed
 		if (!soldierPrefab || soldierPrefab.IsEmpty())
 			return null;
 			
-		// Find a safe spawn position
-		vector safePosition = OVT_Global.FindSafeSpawnPosition(position);
+		// Find a safe spawn position (skip spawn point search for AI performance)
+		vector safePosition = OVT_Global.FindSafeSpawnPosition(position, "-0.5 0 -0.5", "0.5 2 0.5", true);
 		
 		// Create spawn parameters
 		EntitySpawnParams spawnParams();

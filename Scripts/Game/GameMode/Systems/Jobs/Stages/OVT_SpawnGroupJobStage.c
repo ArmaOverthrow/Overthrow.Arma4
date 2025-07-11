@@ -21,7 +21,7 @@ class OVT_SpawnGroupJobStage : OVT_JobStage
 		
 		BaseWorld world = GetGame().GetWorld();
 		
-		spawnPosition = OVT_Global.FindSafeSpawnPosition(spawnPosition);	
+		spawnPosition = OVT_Global.FindSafeSpawnPosition(spawnPosition, "-0.5 0 -0.5", "0.5 2 0.5", true);	
 		
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
 		

@@ -113,9 +113,6 @@ class OVT_FastTravelService
 			return;
 		}
 		
-		// Find safe spawn position
-		targetPos = OVT_Global.FindSafeSpawnPosition(targetPos);
-		
 		// Get player entity
 		IEntity player = SCR_PlayerController.GetLocalControlledEntity();
 		if (!player)
@@ -132,9 +129,15 @@ class OVT_FastTravelService
 				if (slot.GetType() == ECompartmentType.PILOT)
 				{
 					// Player is driver, can fast travel vehicle
+					vector vehicleSpawnPos;
+					vector vehicleSpawnAngles;
+					
+					// Find safe vehicle spawn position
+					OVT_Global.FindSafeVehicleSpawnPosition(targetPos, vehicleSpawnPos, vehicleSpawnAngles);
+					
 					if (cost > 0)
 						economy.TakePlayerMoneyPersistentId(playerPersistentID, cost);
-					OVT_Global.GetServer().RequestFastTravel(playerID, targetPos);
+					OVT_Global.GetServer().RequestFastTravel(playerID, vehicleSpawnPos);
 				}
 				else
 				{
@@ -146,6 +149,7 @@ class OVT_FastTravelService
 		else
 		{
 			// Player is on foot, normal fast travel
+			targetPos = OVT_Global.FindSafeSpawnPosition(targetPos);
 			if (cost > 0)
 				economy.TakePlayerMoneyPersistentId(playerPersistentID, cost);
 			SCR_Global.TeleportPlayer(playerID, targetPos);

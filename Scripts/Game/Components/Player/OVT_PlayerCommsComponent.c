@@ -933,8 +933,8 @@ class OVT_PlayerCommsComponent: OVT_Component
 			vector offset = Vector(Math.Sin(angle) * radius, 0, Math.Cos(angle) * radius);
 			vector recruitPos = pos + offset;
 			
-			// Find a safe position near the calculated spot
-			recruitPos = OVT_Global.FindSafeSpawnPosition(recruitPos);
+			// Find a safe position near the calculated spot (skip spawn point search for performance with multiple recruits)
+			recruitPos = OVT_Global.FindSafeSpawnPosition(recruitPos, "-0.5 0 -0.5", "0.5 2 0.5", true);
 			
 			// Teleport the recruit
 			recruitEntity.SetOrigin(recruitPos);

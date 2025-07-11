@@ -1,6 +1,30 @@
 Vehicle : "{14FD2616BAB3157D}Prefabs/Vehicles/Wheeled/M923A1/M923A1_MERDC.et" {
  ID "BBCBA43A9778AE21"
  components {
+  OVT_SpawnPointComponent "{65D69CE073A53270}" {
+   m_aPoints {
+    PointInfo "{65D69CE07EB7DFAC}" {
+     Offset -2.627 0 0
+    }
+    PointInfo "{65D69CE05A91D281}" {
+     Offset 3.0712 0 0
+    }
+    PointInfo "{65D69CE0243497B4}" {
+     Offset 0 0 4.7548
+    }
+    PointInfo "{65D69CE02EF1AD02}" {
+     Offset 0 0 -5.6996
+    }
+   }
+   m_aVehiclePoints {
+    PointInfo "{65D6B18452B93A2E}" {
+     Offset -11 0 0
+    }
+    PointInfo "{65D6B184261A696D}" {
+     Offset 11 0 0
+    }
+   }
+  }
   RigidBody "{51DAA09FECF52BBF}" {
    Static 1
   }

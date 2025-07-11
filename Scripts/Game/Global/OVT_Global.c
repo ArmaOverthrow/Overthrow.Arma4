@@ -201,8 +201,48 @@ class OVT_Global : Managed
 		return nearest;
 	}
 	
-	static vector FindSafeSpawnPosition(vector pos, vector mins = "-0.5 0 -0.5", vector maxs = "0.5 2 0.5")
+	// Static array for spawn point search results
+	static ref array<IEntity> s_SpawnPointSearchResults;
+	
+	static vector FindSafeSpawnPosition(vector pos, vector mins = "-0.5 0 -0.5", vector maxs = "0.5 2 0.5", bool skipSpawnPointSearch = false)
 	{
+		// First check for nearby entities with spawn point components (unless skipped for performance)
+		if (!skipSpawnPointSearch)
+		{
+			if (!s_SpawnPointSearchResults)
+				s_SpawnPointSearchResults = {};
+			
+			s_SpawnPointSearchResults.Clear();
+			GetGame().GetWorld().QueryEntitiesBySphere(pos, 15, null, FilterSpawnPointEntities, EQueryEntitiesFlags.ALL);
+			
+			// If we found spawn point components, use the closest one exactly (no ground adjustment)
+			if (s_SpawnPointSearchResults.Count() > 0)
+			{
+				IEntity closestEntity = null;
+				float closestDistance = 999999;
+				
+				// Find the closest spawn point entity
+				foreach (IEntity entity : s_SpawnPointSearchResults)
+				{
+					float distance = vector.Distance(entity.GetOrigin(), pos);
+					if (distance < closestDistance)
+					{
+						closestDistance = distance;
+						closestEntity = entity;
+					}
+				}
+				
+				if (closestEntity)
+				{
+					OVT_SpawnPointComponent spawnComp = OVT_SpawnPointComponent.Cast(closestEntity.FindComponent(OVT_SpawnPointComponent));
+					if (spawnComp)
+					{
+						return spawnComp.GetSpawnPoint();
+					}
+				}
+			}
+		}
+		
 		//a crude and brute-force way to find a spawn position, try to improve this later
 		vector foundpos = pos;
 		int i = 0;
@@ -241,6 +281,112 @@ class OVT_Global : Managed
 		}
 		
 		return foundpos;
+	}
+	
+	//! Find safe vehicle spawn position with rotation
+	static bool FindSafeVehicleSpawnPosition(vector pos, out vector position, out vector angles, bool skipSpawnPointSearch = false)
+	{
+		// First check for nearby entities with parking or vehicle spawn point components (unless skipped for performance)
+		if (!skipSpawnPointSearch)
+		{
+			if (!s_SpawnPointSearchResults)
+				s_SpawnPointSearchResults = {};
+			
+			s_SpawnPointSearchResults.Clear();
+			GetGame().GetWorld().QueryEntitiesBySphere(pos, 15, null, FilterVehicleSpawnEntities, EQueryEntitiesFlags.ALL);
+			
+			// First priority: Find the closest parking component
+			if (s_SpawnPointSearchResults.Count() > 0)
+			{
+				IEntity closestParkingEntity = null;
+				IEntity closestSpawnEntity = null;
+				float closestParkingDistance = 999999;
+				float closestSpawnDistance = 999999;
+				
+				foreach (IEntity entity : s_SpawnPointSearchResults)
+				{
+					float distance = vector.Distance(entity.GetOrigin(), pos);
+					
+					// Check for parking component first (priority)
+					OVT_ParkingComponent parkingComp = OVT_ParkingComponent.Cast(entity.FindComponent(OVT_ParkingComponent));
+					if (parkingComp && distance < closestParkingDistance)
+					{
+						closestParkingDistance = distance;
+						closestParkingEntity = entity;
+					}
+					
+					// Also check for spawn point component with vehicle spawn points (fallback)
+					OVT_SpawnPointComponent spawnComp = OVT_SpawnPointComponent.Cast(entity.FindComponent(OVT_SpawnPointComponent));
+					if (spawnComp && spawnComp.HasVehicleSpawnPoints() && distance < closestSpawnDistance)
+					{
+						closestSpawnDistance = distance;
+						closestSpawnEntity = entity;
+					}
+				}
+				
+				// Use parking component if available (higher priority)
+				if (closestParkingEntity)
+				{
+					OVT_ParkingComponent parkingComp = OVT_ParkingComponent.Cast(closestParkingEntity.FindComponent(OVT_ParkingComponent));
+					if (parkingComp)
+					{
+						vector parkingMat[4];
+						if (parkingComp.GetParkingSpot(parkingMat, OVT_ParkingType.PARKING_CAR, true)) // Skip obstruction check for fast travel
+						{
+							position = parkingMat[3];
+							angles = Math3D.MatrixToAngles(parkingMat);
+							return true;
+						}
+					}
+				}
+				
+				// Fallback to spawn point component with vehicle spawn points
+				if (closestSpawnEntity)
+				{
+					OVT_SpawnPointComponent spawnComp = OVT_SpawnPointComponent.Cast(closestSpawnEntity.FindComponent(OVT_SpawnPointComponent));
+					if (spawnComp && spawnComp.GetVehicleSpawnPoint(position, angles))
+					{
+						return true;
+					}
+				}
+			}
+		}
+		
+		// Final fallback to regular safe spawn position with default angles
+		position = FindSafeSpawnPosition(pos, "-1.5 0 -3", "1.5 2.5 3", skipSpawnPointSearch);
+		angles = "0 0 0";
+		return false; // Indicates fallback was used
+	}
+	
+	//! Filter function to find entities with parking or vehicle spawn point components
+	static bool FilterVehicleSpawnEntities(IEntity entity)
+	{
+		// Check for parking component (priority)
+		OVT_ParkingComponent parkingComp = OVT_ParkingComponent.Cast(entity.FindComponent(OVT_ParkingComponent));
+		if (parkingComp)
+		{
+			s_SpawnPointSearchResults.Insert(entity);
+			return false;
+		}
+		
+		// Check for spawn point component with vehicle spawn points
+		OVT_SpawnPointComponent spawnComp = OVT_SpawnPointComponent.Cast(entity.FindComponent(OVT_SpawnPointComponent));
+		if (spawnComp && spawnComp.HasVehicleSpawnPoints())
+		{
+			s_SpawnPointSearchResults.Insert(entity);
+		}
+		return false;
+	}
+	
+	//! Filter function to find entities with spawn point components
+	static bool FilterSpawnPointEntities(IEntity entity)
+	{
+		OVT_SpawnPointComponent spawnComp = OVT_SpawnPointComponent.Cast(entity.FindComponent(OVT_SpawnPointComponent));
+		if (spawnComp)
+		{
+			s_SpawnPointSearchResults.Insert(entity);
+		}
+		return false;
 	}
 	
 	static void TransferToWarehouse(RplId from)
