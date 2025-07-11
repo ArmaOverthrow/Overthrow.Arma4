@@ -1164,7 +1164,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 		// Set recruit faction to match player
 		if (currentFaction != playerFaction)
 		{
-			recruitFactionComp.SetAffiliatedFaction(playerFaction);
+			recruitFactionComp.SetAffiliatedFactionByKey("CIV");
 		}
 	}
 	

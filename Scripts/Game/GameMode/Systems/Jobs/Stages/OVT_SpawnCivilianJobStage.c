@@ -19,7 +19,7 @@ class OVT_SpawnCivilianJobStage : OVT_JobStage
 		FactionAffiliationComponent fac = FactionAffiliationComponent.Cast(entity.FindComponent(FactionAffiliationComponent));
 		if(fac)
 		{
-			fac.SetAffiliatedFactionByKey("");
+			fac.SetAffiliatedFactionByKey("CIV");
 		}
 		
 		return false;

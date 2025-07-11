@@ -139,7 +139,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		}
 	}
 	
-	//! Force faction change and perceived faction override when disguise is blown
+	//! Force perceived faction override when disguise is blown
 	void BlowDisguise()
 	{
 		if (!IsDisguisedAsOccupying())
@@ -147,22 +147,17 @@ class OVT_PlayerWantedComponent: OVT_Component
 			
 		// Set disguise as blown
 		m_bIsDisguised = false;
-		
-		// Force faction change
-		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-		if(config.m_sPlayerFaction.IsEmpty()) 
-			config.m_sPlayerFaction = "FIA";
-		
-		if (m_Faction)
-		{
-			m_Faction.SetAffiliatedFactionByKey(config.m_sPlayerFaction);
-		}
-		
+				
 		// Override perceived faction to ensure AI sees us as enemy
 		if (m_Percieve)
 		{
+			OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+			string playerFactionKey = config.m_sPlayerFaction;
+			if(playerFactionKey.IsEmpty()) 
+				playerFactionKey = "FIA"; // Fallback only
+				
 			FactionManager factionMgr = GetGame().GetFactionManager();
-			Faction playerFaction = factionMgr.GetFactionByKey(config.m_sPlayerFaction);
+			Faction playerFaction = factionMgr.GetFactionByKey(playerFactionKey);
 			if (playerFaction)
 				m_Percieve.SetPerceivedFactionOverride(playerFaction);
 		}
@@ -494,40 +489,43 @@ class OVT_PlayerWantedComponent: OVT_Component
 	
 	protected void CheckWanted()
 	{		
+		// Players and recruits should always stay in civilian faction for vehicle access
+		// Only change perceived faction for AI recognition
 		Faction currentFaction = m_Faction.GetAffiliatedFaction();
 		string factionKey = currentFaction.GetFactionKey();
 		
-		// Handle faction changes based on wanted level and disguise
+		// Handle perceived faction changes based on wanted level and disguise
 		bool isDisguised = IsDisguisedAsOccupying();
 		
-		if (isDisguised && m_iWantedLevel < 2)
+		if (m_Percieve)
 		{
-			// When disguised and not wanted, temporarily set faction to prevent AI hostility
-			string occupyingFaction = OVT_Global.GetConfig().m_sOccupyingFaction;
-			if (factionKey != occupyingFaction)
+			FactionManager factionMgr = GetGame().GetFactionManager();
+			
+			if (isDisguised && m_iWantedLevel < 2)
 			{
-				m_Faction.SetAffiliatedFactionByKey(occupyingFaction);
+				// When disguised and not wanted, make AI perceive us as occupying faction
+				Faction occupyingFaction = factionMgr.GetFactionByKey(OVT_Global.GetConfig().m_sOccupyingFaction);
+				if (occupyingFaction)
+				{
+					m_Percieve.SetPerceivedFactionOverride(occupyingFaction);
+				}
 			}
-			// Clear any perceived faction override only when safe (not seen and wanted level 0)
-			if (m_Percieve && m_iWantedLevel == 0 && !m_bIsSeen)
+			else if(m_iWantedLevel > 1)
 			{
-				m_Percieve.SetPerceivedFactionOverride(null);
+				// When wanted, make AI perceive us as hostile player faction
+				string playerFactionKey = OVT_Global.GetConfig().m_sPlayerFaction;
+				if(playerFactionKey.IsEmpty()) 
+					playerFactionKey = "FIA"; // Fallback only
+				
+				Faction playerFaction = factionMgr.GetFactionByKey(playerFactionKey);
+				if (playerFaction)
+				{
+					m_Percieve.SetPerceivedFactionOverride(playerFaction);
+				}
 			}
-		}
-		else if(m_iWantedLevel > 1 && factionKey == "CIV")
-		{
-			// When wanted and not disguised, set to FIA
-			if(OVT_Global.GetConfig().m_sPlayerFaction.IsEmpty()) 
-				OVT_Global.GetConfig().m_sPlayerFaction = "FIA";
-			m_Faction.SetAffiliatedFactionByKey(OVT_Global.GetConfig().m_sPlayerFaction);
-		}
-		else if(m_iWantedLevel < 1 && factionKey != "CIV" && !IsDisguisedAsOccupying())
-		{
-			// When not wanted and not disguised, return to civilian
-			m_Faction.SetAffiliatedFactionByKey("CIV");
-			// Clear any perceived faction override only when safe (not seen and wanted level 0)
-			if (m_Percieve && m_iWantedLevel == 0 && !m_bIsSeen)
+			else if(m_iWantedLevel < 1 && !IsDisguisedAsOccupying())
 			{
+				// When not wanted and not disguised, clear perceived faction override (be seen as civilian)
 				m_Percieve.SetPerceivedFactionOverride(null);
 			}
 		}
