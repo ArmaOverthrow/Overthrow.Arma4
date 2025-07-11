@@ -336,30 +336,70 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 			return;
 		
 		ButtonWidget fastTravelButton = ButtonWidget.Cast(m_wInfoPanel.FindAnyWidget("FastTravelButton"));
+		TextWidget reasonText = TextWidget.Cast(m_wInfoPanel.FindAnyWidget("FastTravelReason"));
+		
 		if (!fastTravelButton)
 			return;
 		
-		// Check if fast travel is available
+		// Check if fast travel is available for this location type
 		OVT_MapLocationType locationType = GetLocationTypeByName(location.m_sTypeName);
 		if (!locationType)
 		{
 			fastTravelButton.SetVisible(false);
+			if (reasonText)
+				reasonText.SetVisible(false);
 			return;
 		}
 		
+		// Check if the location type supports fast travel at all
+		if (!locationType.m_bCanFastTravel)
+		{
+			fastTravelButton.SetVisible(false);
+			if (reasonText)
+				reasonText.SetVisible(false);
+			return;
+		}
+		
+		// Location type supports fast travel, always show button
+		fastTravelButton.SetVisible(true);
+		
+		// Check if fast travel is currently allowed
 		string playerID = GetCurrentPlayerID();
 		string reason;
 		bool canFastTravel = locationType.CanFastTravel(location, playerID, reason);
 		
-		fastTravelButton.SetVisible(canFastTravel);
+		// Enable/disable button based on availability
+		fastTravelButton.SetEnabled(canFastTravel);
 		
-		if (canFastTravel)
+		// Show/hide reason text
+		if (reasonText)
 		{
-			SCR_ButtonBaseComponent buttonComp = SCR_ButtonBaseComponent.Cast(fastTravelButton.FindHandler(SCR_ButtonBaseComponent));
-			if (buttonComp)
+			if (canFastTravel)
 			{
-				buttonComp.m_OnClicked.Insert(OnFastTravelClicked);
+				reasonText.SetVisible(false);
 			}
+			else
+			{
+				reasonText.SetText(reason);
+				reasonText.SetVisible(true);
+			}
+		}
+		
+		// Update button text with cost
+		SCR_InputButtonComponent buttonComp = SCR_InputButtonComponent.Cast(fastTravelButton.FindHandler(SCR_InputButtonComponent));
+		if (buttonComp)
+		{
+			// Calculate fast travel cost and update button text
+			int cost = GetFastTravelCost(location.m_vPosition);
+			string buttonText = "#OVT-MainMenu_FastTravel";
+			if (cost > 0)
+				buttonText = buttonText + " ($" + cost.ToString() + ")";
+			
+			buttonComp.SetLabel(buttonText);
+			
+			// Setup button click handler (always setup, button enable state handles availability)
+			buttonComp.m_OnActivated.Clear();
+			buttonComp.m_OnActivated.Insert(OnFastTravelClicked);
 		}
 	}
 	
@@ -374,12 +414,19 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 		if (!location)
 			return;
 		
-		// Execute fast travel through the service
-		OVT_FastTravelService.ExecuteFastTravel(location.m_vPosition, GetCurrentPlayerIDInt());
-		
-		// Hide info panel and close map
+		// Hide info panel and close map first
 		HideLocationInfo();
 		HideMap();
+		
+		// Execute fast travel through the service
+		OVT_FastTravelService.ExecuteFastTravel(location.m_vPosition, GetCurrentPlayerIDInt());
+	}
+	
+	//! Get fast travel cost based on distance
+	protected int GetFastTravelCost(vector targetPos)
+	{
+		// Use the centralized cost calculation from the service
+		return OVT_FastTravelService.CalculateFastTravelCost(targetPos, GetCurrentPlayerIDInt());
 	}
 	
 	//! Update info panel position
@@ -439,12 +486,35 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 		return GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(playerEntity);
 	}
 	
+	SCR_MapGadgetComponent GetMap()
+	{
+		ChimeraCharacter playerEntity = ChimeraCharacter.Cast(SCR_PlayerController.GetLocalControlledEntity());
+		if (!playerEntity)
+			return null;
+			
+		SCR_GadgetManagerComponent mgr = SCR_GadgetManagerComponent.Cast(playerEntity.FindComponent(SCR_GadgetManagerComponent));
+		if(!mgr) return null;
+		
+		IEntity ent = mgr.GetQuickslotGadgetByType(EGadgetType.MAP);
+		if(!ent) {		
+			ent = mgr.GetGadgetByType(EGadgetType.MAP);
+		}
+		
+		if(!ent) return null;
+				
+		SCR_MapGadgetComponent comp = SCR_MapGadgetComponent.Cast(ent.FindComponent(SCR_MapGadgetComponent));
+		if(!comp) return null;
+		
+		return comp;
+	}
+	
 	//! Hide the map
 	protected void HideMap()
 	{
-		// Find and trigger map close
-		if (m_MapEntity)
-			m_MapEntity.CloseMap();
+		SCR_MapGadgetComponent comp = GetMap();
+		if(!comp) return;
+		
+		comp.SetMapMode(false);
 	}
 	
 }

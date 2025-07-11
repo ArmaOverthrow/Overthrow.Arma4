@@ -50,7 +50,48 @@ class OVT_FastTravelService
 			}
 		}
 		
+		// Check if player can afford fast travel
+		OVT_PlayerManagerComponent playerManager = OVT_Global.GetPlayers();
+		if (!playerManager)
+			return false;
+			
+		int intPlayerID = playerManager.GetPlayerIDFromPersistentID(playerID);
+		if (intPlayerID < 0)
+			return false;
+			
+		int cost = CalculateFastTravelCost(targetPos, intPlayerID);
+		if (cost > 0)
+		{
+			OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+			if (!economy || !economy.PlayerHasMoney(playerID, cost))
+			{
+				reason = "#OVT-CannotAfford";
+				return false;
+			}
+		}
+		
 		return true;
+	}
+	
+	//! Calculate fast travel cost based on distance
+	static int CalculateFastTravelCost(vector targetPos, int playerID)
+	{
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!config || config.m_bDebugMode)
+			return 0;
+		
+		// Get player entity
+		PlayerManager playerManager = GetGame().GetPlayerManager();
+		IEntity playerEntity = playerManager.GetPlayerControlledEntity(playerID);
+		if (!playerEntity)
+			return 0;
+		
+		// Calculate distance in kilometers with minimum of 1km
+		float dist = vector.Distance(targetPos, playerEntity.GetOrigin());
+		float distKm = Math.Max(1.0, dist / 1000);
+		
+		// Calculate cost per km
+		return Math.Round(distKm * config.m_Difficulty.fastTravelCost);
 	}
 	
 	//! Execute fast travel with cost calculation
@@ -59,10 +100,8 @@ class OVT_FastTravelService
 		if (playerID < 0)
 			return;
 		
-		// Calculate cost
-		int cost = OVT_Global.GetConfig().m_Difficulty.fastTravelCost;
-		if (OVT_Global.GetConfig().m_bDebugMode) 
-			cost = 0;
+		// Calculate distance-based cost
+		int cost = CalculateFastTravelCost(targetPos, playerID);
 		
 		// Check if player can afford it
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();

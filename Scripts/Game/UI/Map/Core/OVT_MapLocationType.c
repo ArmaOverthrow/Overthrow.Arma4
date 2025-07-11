@@ -37,7 +37,7 @@ class OVT_MapLocationType
 	protected bool m_bShowDistance;
 	
 	[Attribute(defvalue: "false", desc: "Can fast travel to this location type by default")]
-	protected bool m_bCanFastTravel;
+	bool m_bCanFastTravel;
 	
 	[Attribute(defvalue: "12", desc: "Icon size when zoomed out", category: "Icon")]
 	protected int m_iIconSizeSmall;

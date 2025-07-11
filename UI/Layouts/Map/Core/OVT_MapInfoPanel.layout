@@ -102,7 +102,7 @@ FrameWidgetClass {
             TextWidgetClass "{OVT_LocationName}" {
              Name "LocationName"
              Slot LayoutSlot "{OVT_LocationNameSlot}" {
-              Padding 0 0 0 2
+              Padding 0 0 0 6
              }
              Color 1 1 1 1
              Text "Location Name"
@@ -129,6 +129,7 @@ FrameWidgetClass {
             TextWidgetClass "{OVT_Distance}" {
              Name "Distance"
              Slot LayoutSlot "{65D0CCE2F20192B6}" {
+              Padding 0 0 0 4
              }
              Color 0.9 0.9 0.9 1
              Text "Distance: 1.2 km"
@@ -153,21 +154,13 @@ FrameWidgetClass {
           }
          }
         }
-        ButtonWidgetClass "{OVT_FastTravelButton}" {
-         Name "FastTravelButton"
-         Slot LayoutSlot "{OVT_FastTravelButtonSlot}" {
-          Padding 0 0 0 10
-         }
-         "Is Visible" 0
-         Color 1 1 1 1
-        }
         FrameWidgetClass "{OVT_ContentSlot}" {
          Name "ContentSlot"
          Slot LayoutSlot "{OVT_ContentSlotSlot}" {
          }
          Clipping False
          {
-          SizeLayoutWidgetClass "{65D0CCE0C5D5DCF1}" : "{4DD35ACC1CB7006F}UI/Layouts/Map/OVT_MapInfoTown.layout" {
+          SizeLayoutWidgetClass "{65D0CCE0C5D5DCF1}" : "{4DD35ACC1CB7006F}UI/Layouts/Map/LocationTypes/OVT_MapInfoTown.layout" {
            Name "TownInfo0"
            Slot FrameWidgetSlot "{65D0CCF71218D728}" {
             Anchor 0 0 0 0
@@ -192,6 +185,32 @@ FrameWidgetClass {
            }
           }
          }
+        }
+        ButtonWidgetClass "{65D68683691EF233}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+         Name "FastTravelButton"
+         Slot LayoutSlot "{56EEDE01982D053A}" {
+          Padding 0 0 0 0
+         }
+         "Is Visible" 0
+         components {
+          SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+           m_sActionName "OverthrowFastTravel"
+           m_sLabel "#OVT-MainMenu_FastTravel"
+          }
+         }
+        }
+        TextWidgetClass "{OVT_FastTravelReason}" {
+         Name "FastTravelReason"
+         Slot LayoutSlot "{OVT_FastTravelReasonSlot}" {
+          Padding 0 0 0 5
+         }
+         "Is Visible" 0
+         Color 1 0.4 0.4 1
+         Text "Cannot fast travel here"
+         "Font Size" 14
+         "Min Font Size" 14
+         "Horizontal Alignment" Center
+         "Vertical Alignment" Center
         }
        }
       }
