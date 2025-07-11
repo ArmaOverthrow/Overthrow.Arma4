@@ -134,28 +134,7 @@ class OVT_MapLocationBase : OVT_MapLocationType
 		// Default to white if no faction control
 		return Color.White;
 	}
-	
-	//! Custom icon setup for bases - sets icon based on faction control
-	override protected void OnSetupIconWidget(Widget iconWidget, OVT_MapLocationData location, bool isSmall)
-	{
-		if (!iconWidget || !location)
-			return;
 		
-		// Get the appropriate icon name based on faction control
-		string iconName = GetIconNameForBase(location);
-		
-		// Update the icon with the faction-specific icon name
-		ImageWidget image = ImageWidget.Cast(iconWidget.FindAnyWidget("Icon"));
-		if (image && !m_IconImageset.IsEmpty() && !iconName.IsEmpty())
-		{
-			image.LoadImageFromSet(0, m_IconImageset, iconName);
-			
-			// Apply icon color
-			Color iconColor = GetIconColor(location);
-			image.SetColor(iconColor);
-		}
-	}
-	
 	//! Get the appropriate icon name based on faction control
 	protected string GetIconNameForBase(OVT_MapLocationData location)
 	{

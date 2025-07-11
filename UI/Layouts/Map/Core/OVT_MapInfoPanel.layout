@@ -137,6 +137,18 @@ FrameWidgetClass {
              "Horizontal Alignment" Left
              "Vertical Alignment" Center
             }
+            TextWidgetClass "{OVT_Owner}" {
+             Name "Owner"
+             Slot LayoutSlot "{OVT_OwnerSlot}" {
+             }
+             "Is Visible" 0
+             Color 0.8 0.8 1 1
+             Text "Owner: Player Name"
+             "Font Size" 10
+             "Min Font Size" 10
+             "Horizontal Alignment" Left
+             "Vertical Alignment" Center
+            }
            }
           }
          }

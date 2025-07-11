@@ -33,7 +33,7 @@ class OVT_MapLocationType
 	[Attribute(defvalue: OVT_FactionType.OCCUPYING_FACTION.ToString(), UIWidgets.ComboBox, desc: "Faction type for color", "", ParamEnumArray.FromEnum(OVT_FactionType), category: "Icon")]
 	protected OVT_FactionType m_FactionType;
 	
-	[Attribute(defvalue: "true", desc: "Show distance to location")]
+	[Attribute(defvalue: "false", desc: "Show distance to location")]
 	protected bool m_bShowDistance;
 	
 	[Attribute(defvalue: "false", desc: "Can fast travel to this location type by default")]
@@ -255,23 +255,23 @@ class OVT_MapLocationType
 	//! Get faction color based on faction type
 	protected Color GetFactionColor(OVT_FactionType factionType)
 	{
-		FactionManager factionManager = GetGame().GetFactionManager();
-		if (!factionManager)
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!config)
 			return Color.Black;
 		
 		Faction faction;
 		switch (factionType)
 		{
 			case OVT_FactionType.OCCUPYING_FACTION:
-				faction = OVT_Global.GetConfig().GetOccupyingFactionData();
+				faction = config.GetOccupyingFactionData();
 				break;
 				
 			case OVT_FactionType.RESISTANCE_FACTION:
-				faction = OVT_Global.GetConfig().GetPlayerFactionData();
+				faction = config.GetPlayerFactionData();
 				break;
 				
 			case OVT_FactionType.SUPPORTING_FACTION:
-				faction = OVT_Global.GetConfig().GetSupportingFactionData();
+				faction = config.GetSupportingFactionData();
 				break;
 		}
 		
@@ -300,17 +300,21 @@ class OVT_MapLocationType
 			return;
 		
 		ImageWidget image = ImageWidget.Cast(iconWidget.FindAnyWidget("Icon"));
-		if (image && !m_IconImageset.IsEmpty())
+		if (image)
 		{
-			string iconName = GetIconName(location);
-			if (!iconName.IsEmpty())
+			// Load icon if imageset and icon name are available
+			if (!m_IconImageset.IsEmpty())
 			{
-				image.LoadImageFromSet(0, m_IconImageset, iconName);
-				
-				// Apply icon color
-				Color iconColor = GetIconColor(location);
-				image.SetColor(iconColor);
+				string iconName = GetIconName(location);
+				if (!iconName.IsEmpty())
+				{
+					image.LoadImageFromSet(0, m_IconImageset, iconName);
+				}
 			}
+			
+			// Always apply icon color regardless of whether icon was loaded
+			Color iconColor = GetIconColor(location);
+			image.SetColor(iconColor);
 		}
 		
 		// Set icon size based on zoom level

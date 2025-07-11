@@ -298,6 +298,35 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 				distanceText.SetText("Unknown");
 			}
 		}
+		
+		// Set owner information if available
+		TextWidget ownerText = TextWidget.Cast(m_wInfoPanel.FindAnyWidget("Owner"));
+		if (!ownerText)
+			return;
+		
+		string ownerID = location.GetDataString("owner", "");
+		if (ownerID.IsEmpty())
+		{
+			ownerText.SetVisible(false);
+			return;
+		}
+		
+		OVT_PlayerManagerComponent playerManager = OVT_Global.GetPlayers();
+		if (!playerManager)
+		{
+			ownerText.SetVisible(false);
+			return;
+		}
+		
+		string ownerName = playerManager.GetPlayerName(ownerID);
+		if (ownerName.IsEmpty())
+		{
+			ownerText.SetVisible(false);
+			return;
+		}
+		
+		ownerText.SetText("#OVT-Owner: " + ownerName);
+		ownerText.SetVisible(true);
 	}
 	
 	//! Setup fast travel button functionality
