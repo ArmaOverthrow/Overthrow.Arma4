@@ -12,17 +12,26 @@ class OVT_MapLocationType
 	[Attribute(defvalue: "1", desc: "Visibility zoom level (0=always visible, higher=visible at closer zoom)")]
 	protected float m_fVisibilityZoom;
 	
-	[Attribute(defvalue: "", UIWidgets.ResourceNamePicker, desc: "Icon widget layout", params: "layout")]
+	[Attribute(defvalue: "", UIWidgets.ResourceNamePicker, desc: "Icon widget layout", params: "layout", category: "Icon")]
 	protected ResourceName m_IconLayout;
 	
-	[Attribute(defvalue: "", UIWidgets.ResourceNamePicker, desc: "Info panel layout", params: "layout")]
+	[Attribute(defvalue: "", UIWidgets.ResourceNamePicker, desc: "Info panel layout", params: "layout", category: "Info")]
 	protected ResourceName m_InfoLayout;
 	
-	[Attribute(defvalue: "", UIWidgets.ResourceNamePicker, desc: "Icon imageset", params: "imageset")]
+	[Attribute(defvalue: "", UIWidgets.ResourceNamePicker, desc: "Icon imageset", params: "imageset", category: "Icon")]
 	protected ResourceName m_IconImageset;
 	
-	[Attribute(defvalue: "", desc: "Icon name in imageset")]
+	[Attribute(defvalue: "", desc: "Icon name in imageset", category: "Icon")]
 	protected string m_sIconName;
+	
+	[Attribute(defvalue: "0 0 0 1", UIWidgets.ColorPicker, desc: "Default icon color (black)", category: "Icon")]
+	protected ref Color m_DefaultIconColor;
+	
+	[Attribute(defvalue: "false", desc: "Use faction color instead of default color", category: "Icon")]
+	protected bool m_bUseFactionColor;
+	
+	[Attribute(defvalue: OVT_FactionType.OCCUPYING_FACTION.ToString(), UIWidgets.ComboBox, desc: "Faction type for color", "", ParamEnumArray.FromEnum(OVT_FactionType), category: "Icon")]
+	protected OVT_FactionType m_FactionType;
 	
 	[Attribute(defvalue: "true", desc: "Show distance to location")]
 	protected bool m_bShowDistance;
@@ -30,16 +39,16 @@ class OVT_MapLocationType
 	[Attribute(defvalue: "false", desc: "Can fast travel to this location type by default")]
 	protected bool m_bCanFastTravel;
 	
-	[Attribute(defvalue: "12", desc: "Icon size when zoomed out")]
+	[Attribute(defvalue: "12", desc: "Icon size when zoomed out", category: "Icon")]
 	protected int m_iIconSizeSmall;
 	
-	[Attribute(defvalue: "24", desc: "Icon size when zoomed in")]
+	[Attribute(defvalue: "24", desc: "Icon size when zoomed in", category: "Icon")]
 	protected int m_iIconSizeLarge;
 	
 	[Attribute(defvalue: "2", desc: "Zoom level to show location name (0=always, higher=closer zoom)")]
 	protected float m_fShowNameZoom;
 	
-	[Attribute(defvalue: "true", desc: "Show location name when zoomed in")]
+	[Attribute(defvalue: "true", desc: "Show location name")]
 	protected bool m_bShowName;
 	
 	//! Reference to the map UI that owns this location type
@@ -228,7 +237,48 @@ class OVT_MapLocationType
 	//! Get the icon color for this location (override in derived classes)
 	Color GetIconColor(OVT_MapLocationData location)
 	{
-		return Color.Black; // Default black color for visibility on bright maps
+		// If using faction color, try to get it
+		if (m_bUseFactionColor)
+		{
+			Color factionColor = GetFactionColor(m_FactionType);
+			if (factionColor)
+				return factionColor;
+		}
+		
+		// Use configured default color, or fallback to black
+		if (m_DefaultIconColor)
+			return m_DefaultIconColor;
+			
+		return Color.Black; // Final fallback
+	}
+	
+	//! Get faction color based on faction type
+	protected Color GetFactionColor(OVT_FactionType factionType)
+	{
+		FactionManager factionManager = GetGame().GetFactionManager();
+		if (!factionManager)
+			return Color.Black;
+		
+		Faction faction;
+		switch (factionType)
+		{
+			case OVT_FactionType.OCCUPYING_FACTION:
+				faction = OVT_Global.GetConfig().GetOccupyingFactionData();
+				break;
+				
+			case OVT_FactionType.RESISTANCE_FACTION:
+				faction = OVT_Global.GetConfig().GetPlayerFactionData();
+				break;
+				
+			case OVT_FactionType.SUPPORTING_FACTION:
+				faction = OVT_Global.GetConfig().GetSupportingFactionData();
+				break;
+		}
+		
+		if (faction)
+			return faction.GetFactionColor();
+			
+		return Color.Black;
 	}
 	
 	//! Get small icon size
