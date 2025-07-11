@@ -1,10 +1,10 @@
 //! Town location type for the new map system
 //! Handles towns and cities with support/stability display
-[BaseContainerProps()]
+[BaseContainerProps(), OVT_MapLocationTypeTitle()]
 class OVT_MapLocationTown : OVT_MapLocationType
 {	
 	
-	[Attribute(defvalue: "{EAA13B9FD255CB26}UI/Layouts/Map/OVT_TownModifierWidget.layout", UIWidgets.ResourceNamePicker, desc: "Town modifier widget layout", params: "layout")]
+	[Attribute(defvalue: "{EAA13B9FD255CB26}UI/Layouts/Map/LocationTypes/Town/OVT_TownModifierWidget.layout", UIWidgets.ResourceNamePicker, desc: "Town modifier widget layout", params: "layout")]
 	protected ResourceName m_sTownModifierLayout;
 	
 	[Attribute(defvalue: "waypoint", desc: "Icon name for villages (size 1)")]

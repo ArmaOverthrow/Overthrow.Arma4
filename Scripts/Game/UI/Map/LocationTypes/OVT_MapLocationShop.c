@@ -1,6 +1,6 @@
 //! Map location type for shops
 //! Handles display of different shop types on the map
-[BaseContainerProps()]
+[BaseContainerProps(), OVT_MapLocationTypeTitle()]
 class OVT_MapLocationShop : OVT_MapLocationType
 {
 	[Attribute("", UIWidgets.Object, "Shop Type Configurations")]
@@ -66,29 +66,18 @@ class OVT_MapLocationShop : OVT_MapLocationType
 		return m_sDefaultDisplayName;
 	}
 	
-	//! Setup icon widget based on shop type
-	override void SetupIconWidget(Widget iconWidget, OVT_MapLocationData location, bool isSmall = false)
+	//! Get icon name based on shop type
+	override string GetIconName(OVT_MapLocationData location)
 	{
-		if (!iconWidget || !location)
-			return;
-		
-		ImageWidget imageWidget = ImageWidget.Cast(iconWidget.FindAnyWidget("Icon"));
-		if (!imageWidget)
-			return;
+		if (!location)
+			return m_sDefaultIconName;
 		
 		// Find the shop type configuration
 		OVT_ShopTypeInfo shopTypeInfo = GetShopTypeInfo(location.m_ShopType);
-		string iconName = m_sDefaultIconName;
-		
 		if (shopTypeInfo && !shopTypeInfo.m_sIconName.IsEmpty())
-			iconName = shopTypeInfo.m_sIconName;
+			return shopTypeInfo.m_sIconName;
 		
-		// Set the icon
-		imageWidget.LoadImageFromSet(0, m_IconImageset, iconName);
-		imageWidget.SetImage(0);
-		
-		// Set visibility
-		imageWidget.SetVisible(true);
+		return m_sDefaultIconName;
 	}
 	
 	//! Get shop type info for a given shop type

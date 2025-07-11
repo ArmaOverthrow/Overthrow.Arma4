@@ -1,6 +1,6 @@
 //! Military base location type for the new map system
 //! Handles military bases with faction control and garrison display
-[BaseContainerProps()]
+[BaseContainerProps(), OVT_MapLocationTypeTitle()]
 class OVT_MapLocationBase : OVT_MapLocationType
 {	
 	[Attribute(defvalue: "{40B12B0DF911B856}UI/Textures/Editor/EditableEntities/Factions/EditableEntity_Faction_USSR.edds", UIWidgets.ResourceNamePicker, desc: "Default faction icon for bases", params: "edds")]

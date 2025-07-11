@@ -1,8 +1,11 @@
 //! Base class for map location types using hybrid config/code pattern
 //! Follows the same pattern as OVT_BaseUpgrade for extensibility
-[BaseContainerProps(), SCR_BaseContainerCustomTitleField("m_sDisplayName")]
+[BaseContainerProps(), OVT_MapLocationTypeTitle()]
 class OVT_MapLocationType
 {
+	[Attribute(defvalue: "Location", desc: "Name for location type")]
+	protected string m_sName;
+
 	[Attribute(defvalue: "Generic Location", desc: "Display name for location type")]
 	protected string m_sDisplayName;
 	
@@ -180,6 +183,12 @@ class OVT_MapLocationType
 		return m_sIconName;
 	}
 	
+	//! Get the icon name for a specific location (can be overridden for location-specific icons)
+	string GetIconName(OVT_MapLocationData location)
+	{
+		return m_sIconName;
+	}
+	
 	//! Get the display name for this location type
 	string GetDisplayName()
 	{
@@ -241,13 +250,17 @@ class OVT_MapLocationType
 			return;
 		
 		ImageWidget image = ImageWidget.Cast(iconWidget.FindAnyWidget("Icon"));
-		if (image && !m_IconImageset.IsEmpty() && !m_sIconName.IsEmpty())
+		if (image && !m_IconImageset.IsEmpty())
 		{
-			image.LoadImageFromSet(0, m_IconImageset, m_sIconName);
-			
-			// Apply icon color
-			Color iconColor = GetIconColor(location);
-			image.SetColor(iconColor);
+			string iconName = GetIconName(location);
+			if (!iconName.IsEmpty())
+			{
+				image.LoadImageFromSet(0, m_IconImageset, iconName);
+				
+				// Apply icon color
+				Color iconColor = GetIconColor(location);
+				image.SetColor(iconColor);
+			}
 		}
 		
 		// Set icon size based on zoom level
@@ -309,5 +322,26 @@ class OVT_MapLocationType
 		
 		int playerID = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(playerEntity);
 		return m_Players.GetPersistentIDFromPlayerID(playerID);
+	}
+}
+
+//! Custom title class for OVT_MapLocationType
+class OVT_MapLocationTypeTitle : BaseContainerCustomTitle
+{
+	override bool _WB_GetCustomTitle(BaseContainer source, out string title)
+	{
+		string displayName;
+		if (!source.Get("m_sName", displayName))
+			return false;
+		
+		title = displayName;
+		
+		float visibilityZoom;
+		if (source.Get("m_fVisibilityZoom", visibilityZoom) && visibilityZoom > 0)
+		{
+			title = title + " (zoom: " + visibilityZoom.ToString(1, 1) + ")";
+		}
+		
+		return true;
 	}
 }
