@@ -89,55 +89,71 @@ class OVT_MapLocationElement : SCR_MapUIElement
 		m_wHoverOverlay = w.FindAnyWidget("HoverOverlay");
 		m_wBackgroundGradient = ImageWidget.Cast(w.FindAnyWidget("BackgroundGradient"));
 		m_wHighlight = ImageWidget.Cast(w.FindAnyWidget("Highlight"));
+		
 	}
 	
-	//! Handle click on this element
-	override bool OnClick(Widget w, int x, int y, int button)
+	//! Handle widget detachment and cleanup
+	override void HandlerDeattached(Widget w)
+	{
+		super.HandlerDeattached(w);
+	}
+	
+	
+	
+	
+	//! Common selection logic for both mouse and controller
+	protected void HandleSelection()
+	{
+		if (!m_bVisible || !m_LocationData || !m_LocationType)
+			return;
+		
+		// Play click sound
+		PlayHoverSound(m_sSoundClick);
+		
+		// If already selected, deselect and hide info panel
+		if (m_bSelected)
+		{
+			Select(false);
+			if (m_ParentMapUI)
+				m_ParentMapUI.HideLocationInfo();
+		}
+		else
+		{
+			// Select this element
+			Select(true);
+			
+			// Notify parent container of selection
+			if (m_Parent)
+				m_Parent.OnElementSelected(this);
+			
+			// Notify parent map UI
+			if (m_ParentMapUI)
+				m_ParentMapUI.SelectLocation(this);
+			
+			// Notify location type of click
+			m_LocationType.OnLocationClicked(m_LocationData, this);
+		}
+	}
+	
+	//! Handle mouse hover enter (works for both mouse and controller)
+	override bool OnMouseEnter(Widget w, int x, int y)
 	{
 		if (!m_bVisible || !m_LocationData || !m_LocationType)
 			return false;
-				
-		if (button == 0) // Left mouse button
+		
+		
+		// Show info panel like campaign map does
+		if (m_ParentMapUI)
 		{
-			// Play click sound
-			PlayHoverSound(m_sSoundClick);
+			// Hovering a new location unpins any previously pinned location
+			m_ParentMapUI.UnpinOnHover();
 			
-			// If already selected, deselect and hide info panel
-			if (m_bSelected)
-			{
-				Select(false);
-				if (m_ParentMapUI)
-					m_ParentMapUI.HideLocationInfo();
-			}
-			else
-			{
-				// Select this element
-				Select(true);
-				
-				// Notify parent container of selection
-				if (m_Parent)
-					m_Parent.OnElementSelected(this);
-				
-				// Notify parent map UI
-				if (m_ParentMapUI)
-					m_ParentMapUI.SelectLocation(this);
-				
-				// Notify location type of click
-				m_LocationType.OnLocationClicked(m_LocationData, this);
-			}
-			
-			return true;
+			m_ParentMapUI.SetHoveredElement(this);
+			m_ParentMapUI.SelectLocation(this);
+			m_ParentMapUI.ShowLocationInfo(m_LocationData);
 		}
 		
-		return false;
-	}
-	
-	//! Handle mouse hover enter
-	override bool OnMouseEnter(Widget w, int x, int y)
-	{
-		if (!m_bVisible)
-			return false;
-		
+		// Show hover effects
 		m_bIsHovered = true;
 		ShowHoverEffects(true);
 		PlayHoverSound(m_sSoundHover);
@@ -145,12 +161,21 @@ class OVT_MapLocationElement : SCR_MapUIElement
 		return false;
 	}
 	
-	//! Handle mouse hover leave
+	//! Handle mouse hover leave (works for both mouse and controller)
 	override bool OnMouseLeave(Widget w, Widget enterW, int x, int y)
 	{
 		if (!m_bVisible)
 			return false;
 		
+		
+		// Clear hover state and hide info panel when leaving
+		if (m_ParentMapUI)
+		{
+			m_ParentMapUI.SetHoveredElement(null);
+			m_ParentMapUI.HideLocationInfo();
+		}
+		
+		// Hide hover effects
 		m_bIsHovered = false;
 		ShowHoverEffects(false);
 		
@@ -437,6 +462,23 @@ class OVT_MapLocationElement : SCR_MapUIElement
 		// Update name and distance visibility when popup state changes
 		UpdateLocationName();
 		UpdateDistance();
+	}
+	
+	//! Get click radius based on current zoom level
+	protected float GetClickRadius()
+	{
+		if (!m_MapEntity)
+			return 10; // Default radius in world units
+		
+		// Base radius in world units (meters) - small for tightly packed icons
+		float baseRadius = 8; // 8 meters for icons 15m apart
+		
+		// Scale the radius inversely with zoom level
+		// Higher zoom = smaller world area visible = smaller click radius needed
+		float currentZoom = m_MapEntity.GetCurrentZoom();
+		float zoomFactor = Math.Max(0.3, 1.5 - currentZoom); // Smaller range: 0.3 to 1.2
+		
+		return baseRadius * zoomFactor;
 	}
 	
 	//! Check if this element should be visible at current zoom level

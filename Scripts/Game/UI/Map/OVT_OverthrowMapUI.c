@@ -30,6 +30,43 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 	//! Whether the info panel is currently visible
 	protected bool m_bInfoPanelVisible = false;
 	
+	//! Whether the current selection is "pinned" (clicked) vs just hovered
+	protected bool m_bSelectionPinned = false;
+	
+	//! Currently hovered element (for temporary hover info)
+	protected ref OVT_MapLocationElement m_HoveredElement;
+	
+	//! Currently pinned element (for persistent info)
+	protected ref OVT_MapLocationElement m_PinnedElement;
+	
+	
+	//! Handle map selection events for pinning
+	protected void OnMapSelection(vector selectionPos)
+	{
+		
+		if (m_HoveredElement)
+		{
+			// Click on hovered element - pin it (replace any existing pin)
+			
+			// If clicking on a different element than currently pinned, replace it
+			if (m_PinnedElement != m_HoveredElement)
+			{
+				m_PinnedElement = m_HoveredElement;
+				m_bSelectionPinned = true;
+				
+				// Force show info for the new pinned element
+				SelectLocation(m_PinnedElement);
+				ShowLocationInfo(m_PinnedElement.GetLocationData());
+			}
+		}
+		else
+		{
+			// Click on empty space - unpin current selection
+			m_bSelectionPinned = false;
+			m_PinnedElement = null;
+			ForceHideLocationInfo();
+		}
+	}
 	
 	override void OnMapOpen(MapConfiguration config)
 	{
@@ -47,19 +84,21 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 		// Create location elements
 		CreateLocationElements();
 		
-		// Connect to map zoom event
+		// Connect to map events
 		m_MapEntity.GetOnMapZoom().Insert(OnMapZoom);
+		m_MapEntity.GetOnSelection().Insert(OnMapSelection);
 	}
 	
 	override void OnMapClose(MapConfiguration config)
 	{
 		super.OnMapClose(config);
 		
-		// Disconnect from map zoom event
+		// Disconnect from map events
 		m_MapEntity.GetOnMapZoom().Remove(OnMapZoom);
+		m_MapEntity.GetOnSelection().Remove(OnMapSelection);
 		
-		// Hide info panel
-		HideLocationInfo();
+		// Force hide info panel (even if pinned)
+		ForceHideLocationInfo();
 		
 		// Clear references
 		m_aLocations = null;
@@ -70,10 +109,20 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 	{
 		super.UpdateIcons();
 		
-		// Update info panel position if visible
-		if (m_bInfoPanelVisible && m_wInfoPanel && m_SelectedElement)
+		// Update info panel position if visible (especially important for pinned panels)
+		if (m_bInfoPanelVisible && m_wInfoPanel)
 		{
-			UpdateInfoPanelPosition();
+			// Use pinned element if available, otherwise selected element
+			OVT_MapLocationElement targetElement;
+			if (m_PinnedElement)
+				targetElement = m_PinnedElement;
+			else
+				targetElement = m_SelectedElement;
+			
+			if (targetElement)
+			{
+				UpdateInfoPanelPosition();
+			}
 		}
 	}
 	
@@ -189,8 +238,12 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 		if (!location || m_InfoPanelLayout.IsEmpty())
 			return;
 		
-		// Hide existing panel
-		HideLocationInfo();
+		// Always force hide any existing panel first to ensure only one exists
+		if (m_wInfoPanel)
+		{
+			m_wInfoPanel.RemoveFromHierarchy();
+			m_wInfoPanel = null;
+		}
 		
 		// Create info panel
 		WorkspaceWidget workspace = GetGame().GetWorkspace();
@@ -234,9 +287,15 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 			m_SelectedElement.SetInfoPopupVisible(true);
 	}
 	
-	//! Hide location info panel
+	//! Hide location info panel (only if not pinned)
 	void HideLocationInfo()
 	{
+		// Don't hide if selection is pinned
+		if (m_bSelectionPinned)
+		{
+			return;
+		}
+		
 		if (m_wInfoPanel)
 		{
 			m_wInfoPanel.RemoveFromHierarchy();
@@ -248,6 +307,47 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 		// Notify the selected element that info popup is hidden
 		if (m_SelectedElement)
 			m_SelectedElement.SetInfoPopupVisible(false);
+	}
+	
+	//! Force hide location info panel (even if pinned)
+	void ForceHideLocationInfo()
+	{
+		m_bSelectionPinned = false;
+		m_PinnedElement = null;
+		
+		if (m_wInfoPanel)
+		{
+			m_wInfoPanel.RemoveFromHierarchy();
+			m_wInfoPanel = null;
+		}
+		
+		m_bInfoPanelVisible = false;
+		
+		// Notify the selected element that info popup is hidden
+		if (m_SelectedElement)
+			m_SelectedElement.SetInfoPopupVisible(false);
+	}
+	
+	//! Unpin any pinned location when hovering a new one
+	void UnpinOnHover()
+	{
+		if (m_bSelectionPinned)
+		{
+			m_bSelectionPinned = false;
+			m_PinnedElement = null;
+		}
+	}
+	
+	//! Set the currently hovered element
+	void SetHoveredElement(OVT_MapLocationElement element)
+	{
+		m_HoveredElement = element;
+	}
+	
+	//! Get the currently hovered element
+	OVT_MapLocationElement GetHoveredElement()
+	{
+		return m_HoveredElement;
 	}
 	
 	//! Setup base location info (name, distance, etc.)
