@@ -1,0 +1,68 @@
+SizeLayoutWidgetClass "{65DAD69D9B4B5B4A}" {
+ Name "BaseInfo"
+ Slot FrameWidgetSlot "{65D0CCF71218D728}" {
+  OffsetLeft 0
+  OffsetTop 0
+  SizeX 240
+  OffsetRight -240
+  SizeY 240
+  OffsetBottom -240
+  SizeToContent 1
+ }
+ AllowWidthOverride 1
+ WidthOverride 260
+ AllowMinDesiredWidth 1
+ MinDesiredWidth 260
+ {
+  VerticalLayoutWidgetClass "{65DAD69D9B4B5B37}" {
+   Name "Layout"
+   Slot AlignableSlot "{65D0CCEAFD4CFF1E}" {
+    HorizontalAlign 3
+    VerticalAlign 3
+    Padding 0 4 0 0
+   }
+   {
+    HorizontalLayoutWidgetClass "{65DAD69D9B4B5B36}" {
+     Name "Statistics"
+     Slot LayoutSlot "{599D5970B9AE5E6C}" {
+      HorizontalAlign 1
+      Padding 0 0 0 5
+     }
+     {
+      FrameWidgetClass "{65DAD69D9B4B5B34}" {
+       Name "Item0"
+       Slot LayoutSlot "{599D59708511F811}" {
+        Padding 10 0 5 0
+       }
+       {
+        HorizontalLayoutWidgetClass "{65DAD69D9B4B6BC7}" {
+         Name "Layout"
+         Slot FrameWidgetSlot "{599D5970212AC99D}" {
+          OffsetLeft 0
+          OffsetTop 0
+          SizeX 0
+          OffsetRight 0
+          SizeY 0
+          OffsetBottom 0
+          SizeToContent 1
+         }
+         {
+          ImageWidgetClass "{65DAD69D9B4B6BC1}" {
+           Name "FactionIcon"
+           Slot LayoutSlot "{OVT_FactionIconSlot}" {
+           }
+           Color 1 1 1 1
+           Texture "{40B12B0DF911B856}UI/Textures/Editor/EditableEntities/Factions/EditableEntity_Faction_USSR.edds"
+           Size 24 24
+           "Blend Mode" Blend
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

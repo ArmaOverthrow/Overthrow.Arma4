@@ -369,7 +369,7 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 			nameText.SetText(name);
 		}
 		
-		// Set location type (description)
+		// Set location type (description) - hide if same as name
 		TextWidget typeText = TextWidget.Cast(m_wInfoPanel.FindAnyWidget("LocationType"));
 		if (typeText)
 		{
@@ -379,7 +379,23 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 				description = locationType.GetLocationDescription(location);
 			else
 				description = "Unknown";
-			typeText.SetText(description);
+			
+			// Hide type text if it's the same as the location name
+			string locationName;
+			if (locationType)
+				locationName = locationType.GetLocationName(location);
+			else
+				locationName = location.m_sName;
+			
+			if (description == locationName)
+			{
+				typeText.SetVisible(false);
+			}
+			else
+			{
+				typeText.SetVisible(true);
+				typeText.SetText(description);
+			}
 		}
 		
 		// Set distance

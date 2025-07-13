@@ -5431,6 +5431,13 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{65DAD69E45B60D49}" {
+   Id "OVT-RadioTower"
+   Target_en_us "Radio Tower"
+   Modified 1708845495
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5D5C558A6E391A10}" {
    Id "OVT-Recruit_Active"
    Target_en_us "Active"
