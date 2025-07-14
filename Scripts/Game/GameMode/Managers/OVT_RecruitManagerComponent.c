@@ -1399,7 +1399,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 	protected void OnPlayerGroupCreated(int playerId, int groupId, string playerName)
 	{
 		// Wait 2000ms to ensure player is in a group and the leader
-		GetGame().GetCallqueue().CallLater(RespawnRecruitsDelayed, 2000, false, playerId);
+		GetGame().GetCallqueue().CallLater(RespawnRecruitsDelayed, 3000, false, playerId);
 	}
 	
 	//------------------------------------------------------------------------------------------------

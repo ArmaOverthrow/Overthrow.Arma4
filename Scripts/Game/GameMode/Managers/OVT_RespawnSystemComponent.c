@@ -383,7 +383,7 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 		super.HandoverToPlayer(playerId, character);
 		
 		// Schedule group creation after handover completes
-		GetGame().GetCallqueue().CallLater(CreateAndJoinGroup, 1000, false, playerId);
+		GetGame().GetCallqueue().CallLater(CreateAndJoinGroup, 3000, false, playerId);
 	}
 	
 	//------------------------------------------------------------------------------------------------
