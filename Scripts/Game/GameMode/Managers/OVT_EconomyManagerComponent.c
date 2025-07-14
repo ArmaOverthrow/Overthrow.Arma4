@@ -1505,7 +1505,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	//------------------------------------------------------------------------------------------------
 	//! Filter function used by QueryEntitiesBySphere during shop initialization.
-	//! Ensures the entity is a building with an OVT_ShopComponent that is not a procurement shop.
+	//! Ensures the entity is a building with an OVT_ShopComponent that is not a procurement shop or gun dealer
 	//! \param[in] entity The entity to filter.
 	//! \return True if the entity is a valid shop building, false otherwise.
 	protected bool FilterShopEntities(IEntity entity)
@@ -1513,7 +1513,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		if(entity.ClassName() == "SCR_DestructibleBuildingEntity")
 		{
 			OVT_ShopComponent shop = OVT_ShopComponent.Cast(entity.FindComponent(OVT_ShopComponent));
-			if(shop) return !shop.m_bProcurement;
+			if(shop) return !shop.m_bProcurement && shop.m_ShopType != OVT_ShopType.SHOP_GUNDEALER;
 		}
 		return false;
 	}

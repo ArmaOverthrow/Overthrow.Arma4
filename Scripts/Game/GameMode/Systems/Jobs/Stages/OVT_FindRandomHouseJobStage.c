@@ -4,7 +4,7 @@ class OVT_FindRandomHouseJobStage : OVT_JobStage
 	{
 		OVT_TownManagerComponent townMgr = OVT_Global.GetTowns();
 		
-		IEntity house = townMgr.GetRandomHouseInTown(townMgr.m_Towns[job.townId]);
+		IEntity house = townMgr.GetRandomUnownedHouseInTown(townMgr.m_Towns[job.townId]);
 		
 		job.location = house.GetOrigin();
 		

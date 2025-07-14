@@ -674,7 +674,7 @@ class OVT_TownManagerComponent: OVT_Component
 	//! Gets a random, unowned house entity from any town.
 	//! Tries multiple times if the first attempt fails or finds an owned house.
 	//! \return A random house IEntity or null if none found after attempts
-	IEntity GetRandomHouse()
+	IEntity GetRandomUnownedHouse()
 	{
 		m_Houses = new array<ref EntityID>;
 		OVT_TownData town;
@@ -685,10 +685,9 @@ class OVT_TownManagerComponent: OVT_Component
 		{
 			i++;
 			town = m_Towns.GetRandomElement();
-			GetGame().GetWorld().QueryEntitiesBySphere(town.location, m_iCityRange, CheckHouseAddToArray, FilterHouseEntities, EQueryEntitiesFlags.STATIC);
+			GetGame().GetWorld().QueryEntitiesBySphere(town.location, m_iCityRange, CheckHouseAddToArray, FilterUnownedHouseEntities, EQueryEntitiesFlags.STATIC);
 			if(m_Houses.Count() == 0) continue;
-			house = GetGame().GetWorld().FindEntityByID(m_Houses.GetRandomElement());
-			if(m_RealEstate.IsOwned(house.GetID())) house = null;			
+			house = GetGame().GetWorld().FindEntityByID(m_Houses.GetRandomElement());		
 		}
 				
 		return house;
@@ -724,11 +723,11 @@ class OVT_TownManagerComponent: OVT_Component
 	//! Gets a random house entity within the bounds of a specific town.
 	//! \param town The OVT_TownData instance of the town
 	//! \return A random house IEntity within the town, or null if no houses found
-	IEntity GetRandomHouseInTown(OVT_TownData town)
+	IEntity GetRandomUnownedHouseInTown(OVT_TownData town)
 	{
 		m_Houses = new array<ref EntityID>;		
 		
-		GetGame().GetWorld().QueryEntitiesBySphere(town.location, m_iTownRange, CheckHouseAddToArray, FilterHouseEntities, EQueryEntitiesFlags.STATIC);
+		GetGame().GetWorld().QueryEntitiesBySphere(town.location, m_iTownRange, CheckHouseAddToArray, FilterUnownedHouseEntities, EQueryEntitiesFlags.STATIC);
 		
 		return GetGame().GetWorld().FindEntityByID(m_Houses.GetRandomElement());
 	}
@@ -1172,29 +1171,20 @@ class OVT_TownManagerComponent: OVT_Component
 	protected bool FilterHouseEntities(IEntity entity) 
 	{
 		if(entity.ClassName() == "SCR_DestructibleBuildingEntity"){
-			ResourceName prefab = entity.GetPrefabData().GetPrefabName();
-			foreach(string s : OVT_Global.GetConfig().m_aStartingHouseFilters)
-			{
-				if(prefab.IndexOf(s) > -1) return false;
-			}	
-			
-			VObject mesh = entity.GetVObject();
-			
-			if(mesh){
-				string res = mesh.GetResourceName();
-				if(res.IndexOf("/Military/") > -1) return false;
-				if(res.IndexOf("/Industrial/") > -1) return false;
-				if(res.IndexOf("/Recreation/") > -1) return false;
-				
-				if(res.IndexOf("/Houses/") > -1){
-					if(res.IndexOf("_ruin") > -1) return false;
-					if(res.IndexOf("/Shed/") > -1) return false;
-					if(res.IndexOf("/Garage/") > -1) return false;
-					if(res.IndexOf("/HouseAddon/") > -1) return false;
-					return true;
-				}
-					
-			}
+			return m_RealEstate.BuildingIsOwnable(entity);
+		}
+		return false;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Query filter function used by house-finding and population calculation methods.
+	//! Checks if an entity is a valid, non-military/industrial/ruined house building.
+	//! \param entity The entity to filter
+	//! \return true if the entity is a valid house for population/ownership, false otherwise
+	protected bool FilterUnownedHouseEntities(IEntity entity) 
+	{
+		if(entity.ClassName() == "SCR_DestructibleBuildingEntity"){
+			return m_RealEstate.BuildingIsOwnable(entity) && !m_RealEstate.IsOwned(entity.GetID());
 		}
 		return false;
 	}
