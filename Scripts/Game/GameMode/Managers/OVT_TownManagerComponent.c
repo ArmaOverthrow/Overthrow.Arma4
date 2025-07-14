@@ -204,28 +204,6 @@ class OVT_TownManagerComponent: OVT_Component
 		}
 	}
 	
-	//------------------------------------------------------------------------------------------------
-	//! Streams the current town modifiers (stability and support) to a specific player.
-	//! \param playerId The ID of the player to stream modifiers to
-	void StreamTownModifiers(int playerId)
-	{
-		foreach(int townID, OVT_TownData town : m_Towns)
-		{
-			array<int> stability = new array<int>;
-			foreach(OVT_TownModifierData data : town.stabilityModifiers)
-			{
-				if(data) stability.Insert(data.id);
-			}
-			array<int> support = new array<int>;
-			foreach(OVT_TownModifierData data : town.supportModifiers)
-			{
-				if(data) support.Insert(data.id);
-			}
-			
-			if(support.Count() > 0 || stability.Count() > 0)			
-				Rpc(RpcDo_StreamModifiers, playerId, townID, stability, support);
-		}
-	}
 
 	//------------------------------------------------------------------------------------------------
 	//! Gets a random town from the list of managed towns.
@@ -1245,6 +1223,26 @@ class OVT_TownManagerComponent: OVT_Component
 			writer.WriteInt(town.stability);
 			writer.WriteInt(town.support);
 			writer.WriteInt(town.faction);
+			
+			// Write stability modifiers
+			int stabilityModCount = town.stabilityModifiers.Count();
+			writer.WriteInt(stabilityModCount);
+			for(int j=0; j<stabilityModCount; j++)
+			{
+				OVT_TownModifierData modData = town.stabilityModifiers[j];
+				writer.WriteInt(modData.id);
+				writer.WriteInt(modData.timer);
+			}
+			
+			// Write support modifiers
+			int supportModCount = town.supportModifiers.Count();
+			writer.WriteInt(supportModCount);
+			for(int j=0; j<supportModCount; j++)
+			{
+				OVT_TownModifierData modData = town.supportModifiers[j];
+				writer.WriteInt(modData.id);
+				writer.WriteInt(modData.timer);
+			}
 		}
 		
 		return true;
@@ -1274,6 +1272,30 @@ class OVT_TownManagerComponent: OVT_Component
 			if (!reader.ReadInt(town.stability)) return false;		
 			if (!reader.ReadInt(town.support)) return false;		
 			if (!reader.ReadInt(town.faction)) return false;
+			
+			// Read stability modifiers
+			int stabilityModCount;
+			if (!reader.ReadInt(stabilityModCount)) return false;
+			town.stabilityModifiers.Clear();
+			for(int j=0; j<stabilityModCount; j++)
+			{
+				OVT_TownModifierData modData = new OVT_TownModifierData();
+				if (!reader.ReadInt(modData.id)) return false;
+				if (!reader.ReadInt(modData.timer)) return false;
+				town.stabilityModifiers.Insert(modData);
+			}
+			
+			// Read support modifiers
+			int supportModCount;
+			if (!reader.ReadInt(supportModCount)) return false;
+			town.supportModifiers.Clear();
+			for(int j=0; j<supportModCount; j++)
+			{
+				OVT_TownModifierData modData = new OVT_TownModifierData();
+				if (!reader.ReadInt(modData.id)) return false;
+				if (!reader.ReadInt(modData.timer)) return false;
+				town.supportModifiers.Insert(modData);
+			}
 		}
 		return true;
 	}
@@ -1451,36 +1473,6 @@ class OVT_TownManagerComponent: OVT_Component
 		}
 	}
 	
-	//------------------------------------------------------------------------------------------------
-	//! Targeted RPC (effectively broadcast, but filtered locally) to stream initial modifiers to a joining player.
-	//! \param playerId The ID of the player the modifiers are intended for
-	//! \param townId The ID of the town whose modifiers are being streamed
-	//! \param stability Array of stability modifier IDs active in the town
-	//! \param support Array of support modifier IDs active in the town
-	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_StreamModifiers(int playerId, int townId, array<int> stability, array<int> support)
-	{
-		int localId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
-		if(playerId != localId) return;
-				
-		OVT_TownData town = m_Towns[townId];
-		foreach(int id : stability)
-		{
-			OVT_TownModifierData data = new OVT_TownModifierData;
-			OVT_ModifierConfig mod = GetModifierSystem(OVT_TownStabilityModifierSystem).m_Config.m_aModifiers[id];
-			data.id = id;
-			data.timer = mod.timeout;
-			town.stabilityModifiers.Insert(data);
-		}
-		foreach(int id : support)
-		{
-			OVT_TownModifierData data = new OVT_TownModifierData;
-			OVT_ModifierConfig mod = GetModifierSystem(OVT_TownSupportModifierSystem).m_Config.m_aModifiers[id];
-			data.id = id;
-			data.timer = mod.timeout;
-			town.supportModifiers.Insert(data);
-		}
-	}
 	
 	//------------------------------------------------------------------------------------------------
 	//! Broadcast RPC to set the controlling faction of a town on all clients.
