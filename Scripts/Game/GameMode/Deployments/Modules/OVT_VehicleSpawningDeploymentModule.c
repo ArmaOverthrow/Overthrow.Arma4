@@ -203,11 +203,13 @@ class OVT_VehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 				continue;
 			}
 
+			/** Disabling this for now, is bugged in Reforger
 			AICarMovementComponent carMovementComp = AICarMovementComponent.Cast(vehicle.FindComponent(AICarMovementComponent));
 			if(carMovementComp)
 			{
 				carMovementComp.SetCruiseSpeed(m_fMaxCruiseSpeed);
 			}
+			*/
 			
 			// Apply spawn angles if we got them from a vehicle patrol spawn
 			if (spawnAngles != vector.Zero)
