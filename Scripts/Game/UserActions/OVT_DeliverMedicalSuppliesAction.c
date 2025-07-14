@@ -40,10 +40,7 @@ class OVT_DeliverMedicalSuppliesAction : ScriptedUserAction
 		foreach(IEntity item : items)
 		{
 			ResourceName res = item.GetPrefabData().GetPrefabName();
-			if(!economy.IsSoldAtShop(res, OVT_ShopType.SHOP_DRUG)) continue;
-			if(!vehicleStorage.TryDeleteItem(item)){				
-				continue;
-			}
+			if(!economy.IsSoldAtShop(res, OVT_ShopType.SHOP_DRUG)) continue;			
 			cost += economy.GetPriceByResource(res, town.location);
 		}
 		
