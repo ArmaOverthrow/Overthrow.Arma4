@@ -318,7 +318,7 @@ OVT_OverthrowGameMode {
    }
   }
   SCR_PerceivedFactionManagerComponent "{67890123ABCDEF01}" {
-   m_eCharacterPerceivedFactionOutfitType HIGHEST_VALUE
+   m_eCharacterPerceivedFactionOutfitType FULL_OUTFIT
    m_bNoOutfitFactionSetsDefaultFaction 1
   }
   SCR_PlayerListedAdminManagerComponent "{6490AAF2138445FA}" {
