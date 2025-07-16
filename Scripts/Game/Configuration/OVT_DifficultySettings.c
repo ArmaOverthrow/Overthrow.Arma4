@@ -103,6 +103,16 @@ class OVT_DifficultySettings : ScriptAndConfig
 	float wantedReductionMultiplier;
 	[Attribute(defvalue: "0.6", desc: "Detection range multiplier when disguised", category: "Undercover System")]
 	float detectionRangeMultiplier;
+	[Attribute(defvalue: "90", desc: "Minimum faction points required for successful disguise", category: "Undercover System")]
+	int minimumDisguisePoints;
+	[Attribute(defvalue: "true", desc: "Require matching helmet for disguise", category: "Undercover System")]
+	bool requireUniformHelmet;
+	[Attribute(defvalue: "true", desc: "Require matching uniform top for disguise", category: "Undercover System")]
+	bool requireUniformTop;
+	[Attribute(defvalue: "true", desc: "Require matching pants for disguise", category: "Undercover System")]
+	bool requireUniformPants;
+	[Attribute(defvalue: "true", desc: "Require matching boots for disguise", category: "Undercover System")]
+	bool requireUniformBoots;
 	
 	[Attribute("", UIWidgets.ResourcePickerThumbnail, "Items given to player when first spawned in")]
 	ref array<ResourceName> startingItems;

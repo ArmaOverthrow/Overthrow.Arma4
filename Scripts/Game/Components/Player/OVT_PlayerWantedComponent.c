@@ -74,11 +74,21 @@ class OVT_PlayerWantedComponent: OVT_Component
 	
 	//! Check if player is disguised as occupying faction
 	// Track disguise state
+	[RplProp()]
 	protected bool m_bIsDisguised = false;
+	
+	// Track if disguise was blocked due to incomplete uniform (this session only)
+	protected bool m_bDisguiseBlockedByIncompleteUniform = false;
 	
 	bool IsDisguisedAsOccupying()
 	{
 		return m_bIsDisguised;
+	}
+	
+	//! Check if disguise was blocked due to incomplete uniform
+	bool IsDisguiseBlockedByIncompleteUniform()
+	{
+		return m_bDisguiseBlockedByIncompleteUniform;
 	}
 	
 	//! Check if player is disguised as FIA/resistance
@@ -121,6 +131,177 @@ class OVT_PlayerWantedComponent: OVT_Component
 		return weapon != null;
 	}
 	
+	//! Check if a uniform item is a one-piece suit (blocks pants slot)
+	protected bool CheckIfOnePieceSuit(IEntity uniformEntity)
+	{
+		if (!uniformEntity)
+			return false;
+			
+		// Get the BaseLoadoutClothComponent to check for blocked slots
+		BaseLoadoutClothComponent clothComponent = BaseLoadoutClothComponent.Cast(uniformEntity.FindComponent(BaseLoadoutClothComponent));
+		if (!clothComponent)
+			return false;
+			
+		// Check if this item blocks the pants slot
+		array<typename> blockedSlots = {};
+		clothComponent.GetBlockedSlots(blockedSlots);
+		
+		foreach (typename slot : blockedSlots)
+		{
+			if (slot == LoadoutPantsArea)
+				return true; // This is a one-piece suit
+		}
+		
+		return false;
+	}
+	
+	//! Validate if the player has a complete enough uniform for successful disguise
+	protected bool ValidateUniformCompleteness(string factionKey, map<Faction, int> outfitValues)
+	{
+		if (!m_CharacterFaction)
+			return false;
+			
+		// Get the faction we're trying to disguise as
+		FactionManager factionMgr = GetGame().GetFactionManager();
+		Faction targetFaction = factionMgr.GetFactionByKey(factionKey);
+		if (!targetFaction)
+			return false;
+			
+		// Get the faction points for the target faction
+		int factionPoints = 0;
+		if (outfitValues.Contains(targetFaction))
+		{
+			factionPoints = outfitValues.Get(targetFaction);
+		}
+		
+		// Check individual equipment slots for faction-specific items
+		EquipedLoadoutStorageComponent loadoutStorage = EquipedLoadoutStorageComponent.Cast(GetOwner().FindComponent(EquipedLoadoutStorageComponent));
+		if (!loadoutStorage)
+			return false;
+			
+		bool hasMatchingHelmet = false;
+		bool hasMatchingTop = false;
+		bool hasMatchingPants = false;
+		bool hasMatchingBoots = false;
+		bool isOnePieceSuit = false;
+		
+		// Check helmet
+		IEntity helmetEntity = loadoutStorage.GetClothFromArea(LoadoutHeadCoverArea);
+		if (helmetEntity)
+		{
+			hasMatchingHelmet = CheckItemBelongsToFaction(helmetEntity, factionKey);
+		}
+		else
+		{
+		}
+		
+		// Check uniform top
+		IEntity uniformEntity = loadoutStorage.GetClothFromArea(LoadoutJacketArea);
+		if (uniformEntity)
+		{
+			hasMatchingTop = CheckItemBelongsToFaction(uniformEntity, factionKey);
+			
+			// Check if this is a one-piece suit (blocks pants slot)
+			isOnePieceSuit = CheckIfOnePieceSuit(uniformEntity);
+		}
+		else
+		{
+		}
+		
+		// Check pants (only if not wearing a one-piece suit)
+		if (!isOnePieceSuit)
+		{
+			IEntity pantsEntity = loadoutStorage.GetClothFromArea(LoadoutPantsArea);
+			if (pantsEntity)
+			{
+				hasMatchingPants = CheckItemBelongsToFaction(pantsEntity, factionKey);
+			}
+		}
+		else
+		{
+			// For one-piece suits, pants requirement is automatically satisfied by the suit
+			hasMatchingPants = hasMatchingTop;
+		}
+		
+		// Check boots
+		IEntity bootsEntity = loadoutStorage.GetClothFromArea(LoadoutBootsArea);
+		if (bootsEntity)
+		{
+			hasMatchingBoots = CheckItemBelongsToFaction(bootsEntity, factionKey);
+		}
+		else
+		{
+		}
+		
+		// Get difficulty settings for configurable requirements
+		OVT_DifficultySettings difficulty = OVT_Global.GetConfig().m_Difficulty;
+		
+		// Check required uniform pieces based on configuration
+		bool meetsUniformRequirements = true;
+		
+		if (difficulty.requireUniformHelmet && !hasMatchingHelmet)
+			meetsUniformRequirements = false;
+			
+		if (difficulty.requireUniformTop && !hasMatchingTop)
+			meetsUniformRequirements = false;
+			
+		if (difficulty.requireUniformPants && !hasMatchingPants)
+			meetsUniformRequirements = false;
+			
+		if (difficulty.requireUniformBoots && !hasMatchingBoots)
+			meetsUniformRequirements = false;
+		
+		// Check minimum faction points threshold
+		bool hasEnoughPoints = factionPoints >= difficulty.minimumDisguisePoints;
+		
+		
+		return meetsUniformRequirements && hasEnoughPoints;
+	}
+	
+	//! Check if a specific item belongs to the target faction
+	protected bool CheckItemBelongsToFaction(IEntity item, string factionKey)
+	{
+		if (!item)
+		{
+			return false;
+		}
+			
+		// Get item name for debugging
+		string itemName = "Unknown";
+		if (item.GetPrefabData() && item.GetPrefabData().GetPrefabName())
+		{
+			itemName = item.GetPrefabData().GetPrefabName();
+		}
+		
+		SCR_ItemOutfitFactionComponent outfitComp = SCR_ItemOutfitFactionComponent.Cast(item.FindComponent(SCR_ItemOutfitFactionComponent));
+		if (!outfitComp)
+		{
+			return false;
+		}
+			
+		// Get faction data array using the public method
+		array<SCR_OutfitFactionData> factionData = new array<SCR_OutfitFactionData>();
+		int count = outfitComp.GetOutfitFactionDataArray(factionData);
+		if (count == 0)
+		{
+			return false;
+		}
+			
+		// Check if this item has faction data for our target faction
+		foreach (SCR_OutfitFactionData data : factionData)
+		{
+			string dataFactionKey = data.GetAffiliatedFactionKey();
+			int dataValue = data.GetOutfitFactionValue();
+				
+			if (dataFactionKey == factionKey && dataValue > 0)
+			{
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
 	//! Send notification about becoming wanted
 	protected void SendWantedNotification(string reason)
 	{
@@ -147,6 +328,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 			
 		// Set disguise as blown
 		m_bIsDisguised = false;
+		Replication.BumpMe(); // Ensure UI updates
 				
 		// Override perceived faction to ensure AI sees us as enemy
 		if (m_Percieve)
@@ -323,22 +505,19 @@ class OVT_PlayerWantedComponent: OVT_Component
 		m_bTempSeen = false;
 		m_iLastSeen = LAST_SEEN_MAX;
 		
+		// Reset the disguise block flag at the start of each check
+		m_bDisguiseBlockedByIncompleteUniform = false;
+		
 		m_fVisualRecognitionFactor = m_Percieve.GetVisualRecognitionFactor();
 		
 		// Check perceived faction for disguise
 		bool skipNormalDetection = false;
 		if (m_CharacterFaction)
 		{
-			// Debug: Force recalculation and log outfit faction info
+			// Force recalculation to get current outfit values
 			m_CharacterFaction.RecalculateOutfitFaction();
 			
-			Faction perceivedFaction = m_CharacterFaction.GetPerceivedFaction();
-			Faction defaultFaction = m_CharacterFaction.GetDefaultAffiliatedFaction();
-			
-			// Additional debug: Check if we have faction affiliation properly set
-			Faction affiliatedFaction = m_Faction.GetAffiliatedFaction();
-							
-			// Debug: Log outfit values
+			// Get outfit values after recalculation
 			map<Faction, int> outfitValues = new map<Faction, int>();
 			int outfitCount = m_CharacterFaction.GetCharacterOutfitValues(outfitValues);
 			
@@ -346,39 +525,120 @@ class OVT_PlayerWantedComponent: OVT_Component
 			if (outfitCount == 0)
 			{
 				m_CharacterFaction.InitPlayerOutfitFaction_S();
+				outfitCount = m_CharacterFaction.GetCharacterOutfitValues(outfitValues);
 			}
+			
+			FactionManager factionMgr = GetGame().GetFactionManager();
+			Faction occupyingFaction = factionMgr.GetFactionByKey(occupyingFactionKey);
+			
+			// Check if player has ANY occupying faction points - if so, validate uniform FIRST
+			if (occupyingFaction && outfitValues.Contains(occupyingFaction))
+			{
+				int occupyingPoints = outfitValues.Get(occupyingFaction);
+					
+				// FIRST: Always validate uniform completeness if we have ANY faction points
+				bool hasCompleteUniform = ValidateUniformCompleteness(occupyingFactionKey, outfitValues);
+					
+				if (!hasCompleteUniform)
+				{
+					// Incomplete uniform - NEVER allow disguise regardless of points
 						
+					// Force civilian faction override permanently
+					Faction civFaction = factionMgr.GetFactionByKey("CIV");
+					if (civFaction && m_Percieve)
+					{
+						m_Percieve.SetPerceivedFactionOverride(civFaction);
+						}
+					
+					// Mark that we shouldn't be disguised AND block future disguise attempts
+					m_bIsDisguised = false;
+					m_bDisguiseBlockedByIncompleteUniform = true;
+						Replication.BumpMe(); // Ensure UI updates
+					
+					// Continue with normal detection logic - don't return early!
+				}
+				else
+				{
+					// Complete uniform - NOW check if we have enough points
+						
+					// Reset the block flag since we have a complete uniform
+					m_bDisguiseBlockedByIncompleteUniform = false;
+					
+					OVT_DifficultySettings difficulty = OVT_Global.GetConfig().m_Difficulty;
+					if (occupyingPoints >= difficulty.minimumDisguisePoints)
+					{
+						// Complete uniform AND enough points - allow normal faction detection
+							
+						// Clear any previous overrides to allow normal disguise
+						if (m_Percieve)
+						{
+							m_Percieve.SetPerceivedFactionOverride(null);
+						}
+						
+						// Force recalculation to get proper faction from complete uniform
+						m_CharacterFaction.RecalculateOutfitFaction();
+					}
+					else
+					{
+						// Complete uniform but not enough points - clear any overrides
+							
+						if (m_Percieve)
+						{
+							m_Percieve.SetPerceivedFactionOverride(null);
+						}
+					}
+				}
+			}
+			
+			// Get final perceived faction after our interventions
+			Faction perceivedFaction = m_CharacterFaction.GetPerceivedFaction();
+			
 			if (perceivedFaction)
 			{
 				string perceivedKey = perceivedFaction.GetFactionKey();
-				
+					
 				// If disguised as occupying faction
 				if (perceivedKey == occupyingFactionKey)
 				{
-					// Set disguise state
-					m_bIsDisguised = true;
-					// Only check close distance (15m default)
-					skipNormalDetection = true;
-					CheckDisguisedAsOccupying();
+					// Check if disguise was blocked due to incomplete uniform
+					if (m_bDisguiseBlockedByIncompleteUniform)
+					{
+							m_bIsDisguised = false;
+						Replication.BumpMe(); // Ensure UI updates
+						// Skip disguise logic entirely
+						skipNormalDetection = false;
+					}
+					else
+					{
+						// Set disguise state
+						m_bIsDisguised = true;
+						Replication.BumpMe(); // Ensure UI updates
+						// Only check close distance (15m default) 
+						skipNormalDetection = true;
+						CheckDisguisedAsOccupying();
+						}
 				}
 				// If perceived as player or supporting faction - instant wanted
 				else if (perceivedKey == playerFactionKey || perceivedKey == supportingFactionKey)
 				{
 					// Not disguised
 					m_bIsDisguised = false;
+					Replication.BumpMe(); // Ensure UI updates
 					// Will be handled by normal detection at any distance
 					skipNormalDetection = false;
-				}
+					}
 				else
 				{
 					// Perceived as civilian or other - not disguised
 					m_bIsDisguised = false;
-				}
+					Replication.BumpMe(); // Ensure UI updates
+					}
 			}
 			else
 			{
 				// No perceived faction - not disguised
 				m_bIsDisguised = false;
+				Replication.BumpMe(); // Ensure UI updates
 			}
 		}
 		

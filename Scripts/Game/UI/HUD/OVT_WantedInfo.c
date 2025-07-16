@@ -131,6 +131,7 @@ class OVT_WantedInfo : SCR_InfoDisplay {
 			bool isDisguised = m_Wanted.IsDisguisedAsOccupying();
 			int wantedLevel = m_Wanted.GetWantedLevel();
 			
+			
 			if (isDisguised)
 			{
 				// Red icon if wanted while disguised, blue if not wanted
@@ -144,10 +145,12 @@ class OVT_WantedInfo : SCR_InfoDisplay {
 				}
 				showIcon = true;
 			}
+			else
+			{
+			}
 		}
 		else
 		{
-			Print("[Overthrow] WARNING: m_Wanted is null!");
 		}
 		
 		// If not disguised, check perceived faction
@@ -164,6 +167,12 @@ class OVT_WantedInfo : SCR_InfoDisplay {
 			else
 			{
 				// No perceived faction means we appear as civilian
+				factionKey = "CIV";
+			}
+			
+			// WORKAROUND: If disguise was blocked due to incomplete uniform AND we're perceived as occupying faction, force civilian status
+			if (m_Wanted && m_Wanted.IsDisguiseBlockedByIncompleteUniform() && factionKey == occupyingFactionKey)
+			{
 				factionKey = "CIV";
 			}
 			
