@@ -147,7 +147,7 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
     }
     OVT_LoadoutsContext "{65AB140F49501632}" {
      m_Layout "{0C2D8BB696089B2A}UI/Layouts/Menu/LoadoutsMenu.layout"
-     m_sContextName "OverthrowLoadoutsMenuContext"
+     m_sContextName "OverthrowLoadoutsContext"
      m_sCloseAction "MenuBack"
      m_bOpenActionCloses 0
     }
