@@ -208,6 +208,13 @@ class OVT_PlayerCommsComponent: OVT_Component
 			string playerUid = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 			playerOwner.SetPlayerOwner(playerUid);
 			playerOwner.SetLocked(false);
+			
+			// Register vehicle for despawn/respawn management
+			OVT_VehicleManagerComponent vehicleManager = OVT_Global.GetVehicles();
+			if (vehicleManager && Vehicle.Cast(vehicle))
+			{
+				vehicleManager.RegisterPlayerVehicle(playerUid, vehicle);
+			}
 		}
 	}
 	

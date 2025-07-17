@@ -34,7 +34,7 @@ class OVT_PlayerData : Managed
 	
 	bool IsOffline()
 	{
-		return id == -1;
+		return id == 0;
 	}
 	
 	float GetRawLevel()

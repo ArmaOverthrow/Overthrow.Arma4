@@ -1,6 +1,9 @@
 Vehicle {
  ID "BBCBA43A9778AE21"
  components {
+  EPF_PersistenceComponent "{5A0D2D215F2F2559}" {
+   m_bSelfDelete 0
+  }
   ActionsManagerComponent "{C97BE5489221AE18}" {
    additionalActions {
     OVT_LockVehicleAction "{5E68DB1CA2EDA71E}" {
