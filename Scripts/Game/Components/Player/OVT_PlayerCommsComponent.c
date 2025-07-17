@@ -81,6 +81,8 @@ class OVT_PlayerCommsComponent: OVT_Component
 	{
 		OVT_OccupyingFactionManager of = OVT_Global.GetOccupyingFaction();
 		OVT_BaseData data = of.GetNearestBase(loc);
+		if(!data) return;
+		
 		OVT_BaseControllerComponent base = of.GetBase(data.entId);
 		
 		// Determine the winning faction based on current control
