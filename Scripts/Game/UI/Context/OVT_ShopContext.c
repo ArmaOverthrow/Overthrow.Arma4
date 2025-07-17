@@ -115,7 +115,20 @@ class OVT_ShopContext : OVT_UIContext
 			parking.GetParkingTypes(parkingTypes);
 			
 			array<ResourceName> vehicles();
-			m_Economy.GetAllNonOccupyingFactionVehiclesByParking(vehicles, parkingTypes, true);
+			// Get all vehicles (both legal and illegal) like regular vehicle shops do
+			array<ResourceName> allVehicles();
+			m_Economy.GetAllNonOccupyingFactionVehicles(allVehicles, true); // includeIllegal = true
+			
+			// Filter by parking types like regular vehicle shops do
+			foreach(ResourceName res : allVehicles)
+			{
+				int id = m_Economy.GetInventoryId(res);
+				OVT_ParkingType parkingType = m_Economy.GetParkingType(id);
+				if(parkingTypes.Contains(parkingType))
+				{
+					vehicles.Insert(res);
+				}
+			}
 			
 			// Filter out Mobile FOB vehicles if restricted to officers only
 			if(OVT_Global.GetConfig().m_ConfigFile.mobileFOBOfficersOnly && !OVT_Global.GetPlayers().LocalPlayerIsOfficer())
