@@ -1,4 +1,4 @@
-SCR_DestructibleBuildingEntity : "{EEEBF095E1B611CF}Prefabs/Structures/Industrial/Sheds/ShedMetal_02/ShedMetal_02_base.et" {
+SCR_DestructibleBuildingEntity : "{E4934008EF927FFE}Prefabs/Structures/Industrial/Sheds/ShedMetal_02/ShedMetal_02_Wall_base.et" {
  ID "F0DBA538AC2A0552"
  components {
   OVT_ParkingComponent "{59A550A910397BF9}" {

@@ -1,9 +1,9 @@
 GameProject {
- ID "Overthrow"
- GUID "59B657D731E2A11D"
- TITLE "Overthrow"
+ ID "OverthrowTSE"
+ GUID "65E92102C0378377"
+ TITLE "OverthrowTSE"
  Dependencies {
-  "58D0FB3206B6F859" "5D6EBC81EB1842EF"
+  "58D0FB3206B6F859" "5D6EBC81EB1842EF" "5D6EA74A94173EDF"
  }
  Configurations {
   GameProjectConfig PC {

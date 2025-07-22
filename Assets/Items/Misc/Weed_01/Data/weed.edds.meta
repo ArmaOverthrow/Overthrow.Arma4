@@ -11,5 +11,7 @@ MetaFileClass {
   }
   JPGResourceClass HEADLESS : "{699C82A6807668A7}Configs/System/ResourceTypes/HEADLESS/TextureUnspecified.conf" {
   }
+  JPGResourceClass PS5 : PC {
+  }
  }
 }

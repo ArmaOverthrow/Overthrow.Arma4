@@ -1,0 +1,80 @@
+GenericEntity : "{71BD5B9F53DF8CF6}Prefabs/Props/Military/AmmoBoxes/OVT_AmmoBox_Base.et" {
+ ID "5992E2EECFF48DDE"
+ components {
+  BaconLoadoutEditor_EventComponent "{65EAB608A04A6AE0}" {
+  }
+  EPF_PersistenceComponent "{5D78D8248549E11B}" {
+   m_pSaveData OVT_PlaceableSaveDataClass "{5D78D8248416F52D}" {
+    m_aComponents {
+     OVT_PlayerOwnerDataClass "{65EAA44754FA9425}" {
+     }
+     OVT_PlaceableDataClass "{65EAA44754FA945A}" {
+     }
+    }
+   }
+  }
+  OVT_PlaceableComponent "{65EAA44754FA9459}" {
+   m_sPlaceableType "Ammobox"
+  }
+  OVT_PlayerOwnerComponent "{65EAA44754FA9457}" {
+  }
+  SCR_EditableEntityComponent "{65EAA44754FA9454}" {
+   m_UIInfo SCR_EditableEntityUIInfo "{65EAA44754FA9455}" {
+    Name "#OVT-Place_AmmoBox"
+    Description "#OVT-Place_AmmoBox_Description"
+   }
+   m_Flags PLACEABLE
+  }
+  ActionsManagerComponent "{5992E2EE5A9EEC18}" {
+   additionalActions {
+    OVT_LockVehicleAction "{65EAA44754FA944F}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{65EAA44754FA944A}" {
+      Name "#OVT-Lock"
+     }
+     Duration 2
+     "Sort Priority" 3
+    }
+    OVT_UnlockVehicleAction "{65EAA44754FA9449}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{65EAA44754FA9446}" {
+      Name "#OVT-Unlock"
+     }
+     Duration 2
+     "Sort Priority" 3
+    }
+    OVT_SaveLoadoutAction "{65EAA44754FA9444}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{65EAA44754FA9445}" {
+      Name "#OVT-SaveLoadout"
+     }
+     "Sort Priority" 8
+    }
+    OVT_LoadLoadoutAction "{65EAA44754FA9443}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{65EAA44754FA947B}" {
+      Name "#OVT-LoadLoadout"
+     }
+     "Sort Priority" 9
+    }
+    OVT_SaveOfficerLoadoutAction "{65EAA44754FA9478}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{65EAA44754FA9479}" {
+      Name "#OVT-SaveOfficerLoadout"
+     }
+     "Sort Priority" 10
+    }
+   }
+  }
+ }
+}

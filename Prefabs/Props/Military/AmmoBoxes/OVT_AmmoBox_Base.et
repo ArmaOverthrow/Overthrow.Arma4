@@ -16,8 +16,6 @@ GenericEntity {
    }
    ObjectHeightmapBias 0
   }
-  Hierarchy "{5992E2EE7F601AE1}" {
-  }
   RigidBody "{5992E2EE7DCDF9DF}" {
    Mass 10
    AngularSleepingThreashold 1
@@ -86,6 +84,8 @@ GenericEntity {
    }
   }
   RplComponent "{5992E2EEFC6E557E}" {
+  }
+  Hierarchy "{5992E2EE7F601AE1}" {
   }
  }
  coords 0 0 0

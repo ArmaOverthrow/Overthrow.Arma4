@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<entity>
+    <entityClass>Entity</entityClass>
+    <entityPrefabVersion>1</entityPrefabVersion>
+    <components>
+        <item>
+            <componentName>TSE_PlayerKillMortarEffect</componentName>
+            <componentId>1</componentId>
+            <componentClass>TSE_PlayerKillMortarEffectClass</componentClass>
+            <attributes>
+                <item>
+                    <name>m_MortarBarragePrefab</name>
+                    <value>{5D48E2F7DB0C3714}PrefabsEditable/EffectsModules/Mortar/EffectModule_Zoned_MortarBarrage_Small.et</value>
+                </item>
+                <item>
+                    <name>m_fSpawnDelay</name>
+                    <value>3.0</value>
+                </item>
+                <item>
+                    <name>m_fSpawnRadius</name>
+                    <value>50.0</value>
+                </item>
+                <item>
+                    <name>m_bEnabled</name>
+                    <value>true</value>
+                </item>
+            </attributes>
+        </item>
+    </components>
+</entity> 

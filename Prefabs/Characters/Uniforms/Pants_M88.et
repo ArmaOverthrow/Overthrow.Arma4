@@ -1,4 +1,4 @@
-GameEntity : "{4EF74D1922997E84}Prefabs/Characters/Uniforms/Pants_M88_base.et" {
+GameEntity : "{B89432A8B5F489E5}Prefabs/Characters/Core/Uniform_Base.et" {
  ID "5104869D194C6243"
  components {
   SCR_ItemOutfitFactionComponent "{618AD7B9978F2816}" {

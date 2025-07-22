@@ -16,7 +16,7 @@ class OVT_LoadLoadoutAction : ScriptedUserAction
 		{
 			loadoutsContext.SetEquipmentBox(pOwnerEntity);
 		}
-			
+		// Removed invalid cast and SetEquipmentBox for GunBuilderUI_SlotCategoryUIContainer
 		uiManager.ShowContext(OVT_LoadoutsContext);
 	}
 	

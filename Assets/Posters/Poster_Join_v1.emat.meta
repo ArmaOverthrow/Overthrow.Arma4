@@ -1,5 +1,5 @@
 MetaFileClass {
- Name "{812BD5361D36C4E0}Assets/Props/Commercial/Posters/Data/Poster_Join_v1.emat"
+ Name "{812BD5361D36C4E0}Assets/Posters/Poster_Join_v1.emat"
  Configurations {
   EMATResourceClass PC {
   }
@@ -10,6 +10,8 @@ MetaFileClass {
   EMATResourceClass PS4 : PC {
   }
   EMATResourceClass HEADLESS : PC {
+  }
+  EMATResourceClass PS5 : PC {
   }
  }
 }

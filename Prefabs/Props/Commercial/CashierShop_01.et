@@ -1,8 +1,6 @@
 GenericEntity : "{4CC2C69DE1AEF103}Prefabs/Props/Core/Destructible_Props_Base.et" {
  ID "F0DBA538AC2A0552"
  components {
-  Hierarchy "{59C2C9AE803107FA}" {
-  }
   ActionsManagerComponent "{59C2C9AE7307F1B5}" {
    ActionContexts {
     UserActionContext "{59C2C9AE71EB5C51}" {
@@ -26,6 +24,8 @@ GenericEntity : "{4CC2C69DE1AEF103}Prefabs/Props/Core/Destructible_Props_Base.et
   }
   RplComponent "{5624A88DC2D9928D}" {
    Enabled 1
+  }
+  Hierarchy "{59C2C9AE803107FA}" {
   }
  }
  coords 3.143 1.255 -1.084

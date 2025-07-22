@@ -11,5 +11,7 @@ MetaFileClass {
   }
   PNGResourceClass HEADLESS : "{E604D15366D985DF}Configs/System/ResourceTypes/HEADLESS/TextureUI.conf" {
   }
+  PNGResourceClass PS5 : PC {
+  }
  }
 }

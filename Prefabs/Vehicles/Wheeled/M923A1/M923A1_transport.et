@@ -15,11 +15,6 @@ Vehicle : "{9A0D72816DFFDB7F}Prefabs/Vehicles/Wheeled/M923A1/M923A1.et" {
       Name "#OVT_Action-Loot"
      }
      "Sort Priority" 1
-     m_bIsToggle 0
-     m_bTargetState 0
-     m_sActionStateOn ""
-     m_sActionStateOff ""
-     m_bInteriorOnly 1
     }
    }
   }

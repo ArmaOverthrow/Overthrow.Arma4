@@ -344,6 +344,10 @@ OVT_OverthrowGameMode {
   }
   SCR_VotingManagerComponent "{5EE26402B4C7BB47}" {
   }
+  TSE_PlayerKillMortarEffect "{65E92D98348B7FFC}" {
+   m_fSpawnDelay 2
+   m_fSpawnRadius 10
+  }
   SerializerInventoryStorageManagerComponent "{5EE26402B9CEA8E5}" {
   }
   RplComponent "{59724C8C935D8E18}" {

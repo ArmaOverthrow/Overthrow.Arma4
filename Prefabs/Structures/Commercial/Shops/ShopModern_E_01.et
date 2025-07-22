@@ -1,4 +1,4 @@
-SCR_DestructibleBuildingEntity : "{9ABD5AF92E43D2AA}Prefabs/Structures/Commercial/Shops/ShopModern_E_01_Base.et" {
+SCR_DestructibleBuildingEntity : "{9ABD5AF92E43D2AA}Prefabs/Structures/Commercial/Shops/ShopModern_E_01/ShopModern_E_01_Base.et" {
  ID "F0DBA538AC2A0552"
  components {
   OVT_ShopComponent "{598EDB5A1677FEA3}" {

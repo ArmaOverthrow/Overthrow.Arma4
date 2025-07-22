@@ -1,0 +1,252 @@
+classes/
+├── map_canvas_layer/
+│   ├── map_canvas_layer.html
+│   └── map_canvas_layer.js
+│
+├── map_context/
+│   ├── map_context.html
+│   └── map_context.js
+│
+├── map_player_location/
+│   ├── map_player_location.html
+│   └── map_player_location.js
+│
+├── map_p_o_i_data/
+│   ├── map_p_o_i_data.html
+│   └── map_p_o_i_data.js
+│
+├── map_restricted_areas/
+│   ├── map_restricted_areas.html
+│   └── map_restricted_areas.js
+│
+├── modifier/
+│   ├── modifier.html
+│   └── modifier.js
+│
+├── modifier_config/
+│   ├── modifier_config.html
+│   └── modifier_config.js
+│
+├── name_tag_ruleset_faction/
+│   ├── name_tag_ruleset_faction.html
+│   └── name_tag_ruleset_faction.js
+│
+├── notification_data/
+│   ├── notification_data.html
+│   └── notification_data.js
+│
+├── notification_manager_component/
+│   ├── notification_manager_component.html
+│   ├── notification_manager_component.js
+│   └── notification_manager_component_class.html
+│
+├── occupying_faction_manager/
+│   ├── occupying_faction_manager.html
+│   └── occupying_faction_manager.js
+│
+├── occupying_faction_save_data/
+│   ├── occupying_faction_save_data.html
+│   └── occupying_faction_save_data.js
+│
+├── open_storage_action/
+│   ├── open_storage_action.html
+│   └── open_storage_action.js
+│
+├── overthrow/
+│   ├── overthrow_game_mode/
+│   │   ├── overthrow_game_mode.html
+│   │   └── overthrow_game_mode.js
+│   │
+│   ├── overthrow_faction_manager/
+│   │   ├── overthrow_faction_manager.html
+│   │   └── overthrow_faction_manager.js
+│   │
+│   ├── overthrow_config_component/
+│   │   ├── overthrow_config_component.html
+│   │   └── overthrow_config_component.js
+│   │
+│   └── overthrow_config_struct/
+│       ├── overthrow_config_struct.html
+│       └── overthrow_config_struct.js
+│
+├── job/
+│   ├── job.html
+│   └── job.js
+│
+├── job_condition/
+│   ├── job_condition.html
+│   └── job_condition.js
+│
+├── job_config/
+│   ├── job_config.html
+│   └── job_config.js
+│
+├── job_list_entry_handler/
+│   ├── job_list_entry_handler.html
+│   └── job_list_entry_handler.js
+│
+├── job_manager_component/
+│   ├── job_manager_component.html
+│   └── job_manager_component.js
+│
+├── job_stage/
+│   ├── job_stage.html
+│   └── job_stage.js
+│
+├── loadout_slot/
+│   ├── loadout_slot.html
+│   └── loadout_slot.js
+│
+├── main_menu_context/
+│   ├── main_menu_context.html
+│   └── main_menu_context.js
+│
+├── main_menu_context_override_component/
+│   ├── main_menu_context_override_component.html
+│   └── main_menu_context_override_component.js
+│
+├── main_menu_widgets/
+│   ├── main_menu_widgets.html
+│   └── main_menu_widgets.js
+│
+├── modifier/
+│   ├── modifier.html
+│   └── modifier.js
+│
+├── modifier_config/
+│   ├── modifier_config.html
+│   └── modifier_config.js
+│
+├── name_tag_ruleset_faction/
+│   ├── name_tag_ruleset_faction.html
+│   └── name_tag_ruleset_faction.js
+│
+├── notification_data/
+│   ├── notification_data.html
+│   └── notification_data.js
+│
+├── notification_manager_component/
+│   ├── notification_manager_component.html
+│   ├── notification_manager_component.js
+│   └── notification_manager_component_class.html
+│
+├── occupying_faction_manager/
+│   ├── occupying_faction_manager.html
+│   └── occupying_faction_manager.js
+│
+├── occupying_faction_save_data/
+│   ├── occupying_faction_save_data.html
+│   └── occupying_faction_save_data.js
+│
+├── open_storage_action/
+│   ├── open_storage_action.html
+│   └── open_storage_action.js
+│
+├── overthrow/
+│   ├── overthrow_game_mode/
+│   │   ├── overthrow_game_mode.html
+│   │   └── overthrow_game_mode.js
+│   │
+│   ├── overthrow_faction_manager/
+│   │   ├── overthrow_faction_manager.html
+│   │   └── overthrow_faction_manager.js
+│   │
+│   ├── overthrow_config_component/
+│   │   ├── overthrow_config_component.html
+│   │   └── overthrow_config_component.js
+│   │
+│   └── overthrow_config_struct/
+│       ├── overthrow_config_struct.html
+│       └── overthrow_config_struct.js
+│
+├── job/
+│   ├── job.html
+│   └── job.js
+│
+├── job_condition/
+│   ├── job_condition.html
+│   └── job_condition.js
+│
+├── job_config/
+│   ├── job_config.html
+│   └── job_config.js
+│
+├── job_list_entry_handler/
+│   ├── job_list_entry_handler.html
+│   └── job_list_entry_handler.js
+│
+├── job_manager_component/
+│   ├── job_manager_component.html
+│   └── job_manager_component.js
+│
+├── job_stage/
+│   ├── job_stage.html
+│   └── job_stage.js
+│
+├── loadout_slot/
+│   ├── loadout_slot.html
+│   └── loadout_slot.js
+│
+├── main_menu_context/
+│   ├── main_menu_context.html
+│   └── main_menu_context.js
+│
+├── main_menu_context_override_component/
+│   ├── main_menu_context_override_component.html
+│   └── main_menu_context_override_component.js
+│
+├── main_menu_widgets/
+│   ├── main_menu_widgets.html
+│   └── main_menu_widgets.js
+│
+├── modifier/
+│   ├── modifier.html
+│   └── modifier.js
+│
+├── modifier_config/
+│   ├── modifier_config.html
+│   └── modifier_config.js
+│
+├── name_tag_ruleset_faction/
+│   ├── name_tag_ruleset_faction.html
+│   └── name_tag_ruleset_faction.js
+│
+├── notification_data/
+│   ├── notification_data.html
+│   └── notification_data.js
+│
+├── notification_manager_component/
+│   ├── notification_manager_component.html
+│   ├── notification_manager_component.js
+│   └── notification_manager_component_class.html
+│
+├── occupying_faction_manager/
+│   ├── occupying_faction_manager.html
+│   └── occupying_faction_manager.js
+│
+├── occupying_faction_save_data/
+│   ├── occupying_faction_save_data.html
+│   └── occupying_faction_save_data.js
+│
+├── open_storage_action/
+│   ├── open_storage_action.html
+│   └── open_storage_action.js
+│
+├── overthrow/
+│   ├── overthrow_game_mode/
+│   │   ├── overthrow_game_mode.html
+│   │   └── overthrow_game_mode.js
+│   │
+│   ├── overthrow_faction_manager/
+│   │   ├── overthrow_faction_manager.html
+│   │   └── overthrow_faction_manager.js
+│   │
+│   ├── overthrow_config_component/
+│   │   ├── overthrow_config_component.html
+│   │   └── overthrow_config_component.js
+│   │
+│   └── overthrow_config_struct/
+│       ├── overthrow_config_struct.html
+│       └── overthrow_config_struct.js
+│
+└── ... (other directories like job_conditions, map_canvas_layer, etc.)

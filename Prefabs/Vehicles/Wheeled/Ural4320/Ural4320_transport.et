@@ -15,11 +15,6 @@ Vehicle : "{4597626AF36C0858}Prefabs/Vehicles/Wheeled/Ural4320/Ural4320.et" {
       Name "#OVT_Action-Loot"
      }
      "Sort Priority" 1
-     m_bIsToggle 0
-     m_bTargetState 0
-     m_sActionStateOn ""
-     m_sActionStateOff ""
-     m_bInteriorOnly 1
     }
    }
   }

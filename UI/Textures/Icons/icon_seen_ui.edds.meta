@@ -11,5 +11,7 @@ MetaFileClass {
   }
   TIFFResourceClass HEADLESS : "{E604D15366D985DF}Configs/System/ResourceTypes/HEADLESS/TextureUI.conf" {
   }
+  TIFFResourceClass PS5 : PC {
+  }
  }
 }
