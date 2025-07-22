@@ -20,6 +20,7 @@ class OVT_Job
 	string owner; //!< Persistent ID of the player who owns/accepted the job. Empty if unassigned or public.
 	bool accepted; //!< Flag indicating if the job has been accepted by a player.
 	ref array<string> declined = {}; //!< List of persistent IDs of players who have declined this job.
+	bool failed; //!< Flag indicating if the job has failed.
 
 	//------------------------------------------------------------------------------------------------
 	//! Retrieves the town data associated with this job.
@@ -220,15 +221,17 @@ class OVT_JobManagerComponent: OVT_Component
 					int playerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(job.owner);
 					if(playerId > -1) // Ensure player exists
 					{
-						if(config.m_iReward > 0)
-						{
-							OVT_Global.GetEconomy().AddPlayerMoney(playerId, config.m_iReward);
+						if(!job.failed) {
+							if(config.m_iReward > 0)
+							{
+								OVT_Global.GetEconomy().AddPlayerMoney(playerId, config.m_iReward);
+							}
+							if(config.m_iRewardXP > 0)
+							{
+								OVT_Global.GetSkills().GiveXP(playerId, config.m_iRewardXP);
+							}
+							SCR_HintManagerComponent.GetInstance().ShowCustom(config.m_sTitle, "#OVT-Jobs_Completed"); // Show hint to player
 						}
-						if(config.m_iRewardXP > 0)
-						{
-							OVT_Global.GetSkills().GiveXP(playerId, config.m_iRewardXP);
-						}
-						SCR_HintManagerComponent.GetInstance().ShowCustom(config.m_sTitle, "#OVT-Jobs_Completed"); // Show hint to player
 
 						// Grant reward items
 						if(config.m_aRewardItems.Count() > 0)
@@ -501,6 +504,7 @@ class OVT_JobManagerComponent: OVT_Component
 
 		job.stage = 0;
 		job.accepted = (owner != ""); // Assume accepted if initially assigned to a player
+		job.failed = false; // Initialize failed flag
 
 		m_aJobs.Insert(job);
 		m_aJobCounts[index] = m_aJobCounts[index] + 1; // Increment global start count
@@ -571,6 +575,7 @@ class OVT_JobManagerComponent: OVT_Component
 			writer.WriteRplId(job.entity);
 			writer.WriteString(job.owner);
 			writer.WriteBool(job.accepted);
+			writer.WriteBool(job.failed); // Save failed flag
 			// Serialize declined list for public jobs
 			writer.WriteInt(job.declined.Count());
 			for(int t=0; t<job.declined.Count(); t++)
@@ -592,6 +597,7 @@ class OVT_JobManagerComponent: OVT_Component
 		int length, declength;
 		string persId;
 		RplId jobEntityRplId; // Temporary variable to read RplId
+		bool jobFailed; // Temporary variable to read failed flag
 
 		if (!reader.ReadInt(length)) return false;
 		m_aJobs.Clear(); // Clear existing jobs before loading JIP data
@@ -609,6 +615,8 @@ class OVT_JobManagerComponent: OVT_Component
 			if (!reader.ReadString(persId)) return false;
 			job.owner = persId;
 			if(!reader.ReadBool(job.accepted)) return false;
+			if(!reader.ReadBool(jobFailed)) return false; // Read failed flag
+			job.failed = jobFailed; // Assign failed flag
 			// Deserialize declined list
 			if(!reader.ReadInt(declength)) return false;
 			job.declined.Clear();
@@ -636,6 +644,7 @@ class OVT_JobManagerComponent: OVT_Component
 	//! \param entity RplId of the associated entity.
 	//! \param ownerId PlayerID of the owner (-1 if unassigned/public).
 	//! \param accepted Whether the job is currently accepted.
+	//! \param failed Whether the job has failed.
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_UpdateJob(int index, vector location, int townId, int baseId, int stage, RplId entity, int ownerId, bool accepted)
 	{
@@ -732,6 +741,25 @@ class OVT_JobManagerComponent: OVT_Component
 		if(config)
 		{
 			SCR_HintManagerComponent.GetInstance().ShowCustom(config.m_sTitle, "#OVT-Jobs_Completed");
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! RPC called on clients to set the failed status of a job.
+	//! \param index Job configuration index.
+	//! \param townId Associated town ID (-1 if none).
+	//! \param baseId Associated base ID (-1 if none).
+	//! \param failed Whether the job has failed.
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_SetJobFailed(int index, int townId, int baseId, bool failed)
+	{
+		foreach(OVT_Job job : m_aJobs)
+		{
+			if(job.jobIndex == index && ((job.townId != -1 && job.townId == townId) || (job.baseId != -1 && job.baseId == baseId) || (townId == -1 && baseId == -1)))
+			{
+				job.failed = failed;
+				break;
+			}
 		}
 	}
 

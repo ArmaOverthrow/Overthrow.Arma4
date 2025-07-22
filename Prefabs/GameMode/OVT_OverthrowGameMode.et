@@ -65,6 +65,15 @@ OVT_OverthrowGameMode {
     }
     OVT_JobConfig "{65CD1C846520EBD8}" : "{56139D1CED432410}Configs/Jobs/placeACamp.conf" {
     }
+    OVT_JobConfig "{65ED2C93FD379E00}" : "{65ECF9358D9D65D8}Configs/Jobs/assassinateOfficer.conf" {
+     m_aStages {
+      OVT_JobStageConfig "{TSE_TIMEOUT_OR_DEATH_STAGE}" {
+       m_Handler OVT_TimeoutOrDeathJobStage "{65ED3419A7C29364}" {
+        m_iTimeoutMinutes 10
+       }
+      }
+     }
+    }
    }
   }
   OVT_LoadoutManagerComponent "{65AAD8FB1BAFD652}" {
