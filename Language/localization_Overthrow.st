@@ -1713,6 +1713,20 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{65ED0111B7782331}" {
+   Id "OVT-Job_AssassinateOfficer"
+   Target_en_us "Assassinate the Officer"
+   Modified 1710031697
+   Author "Osi"
+   LastChanged "Osi"
+  }
+  CustomStringTableItem "{65ED0111D491484D}" {
+   Id "OVT-Job_AssassinateOfficer_Description"
+   Target_en_us "An enemy officer has been spotted in the area. Eliminate him before he escapes or is reinforced."
+   Modified 1710031723
+   Author "Osi"
+   LastChanged "Osi"
+  }
   CustomStringTableItem "{59AEEB5F91CFCA25}" {
    Id "OVT-Job_AssassinateTraitor"
    Target_en_us "Assassinate Traitor"
@@ -1820,6 +1834,13 @@ StringTable {
    LastChanged "parkj_c3c9hji"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{65ED01113BC7B8F1}" {
+   Id "OVT-Job_Failed"
+   Target_en_us "Mission Failed"
+   Modified 1710031877
+   Author "Osi"
+   LastChanged "Osi"
   }
   CustomStringTableItem "{5D5080D0358FFA9F}" {
    Id "OVT-Job_FindGunDealer"
@@ -1950,6 +1971,20 @@ StringTable {
    LastChanged "parkj_c3c9hji"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{65ED0111FBEE0119}" {
+   Id "OVT-Job_OfficerTimeout"
+   Target_en_us "The officer escaped or was reinforced. Mission failed. We get him next time."
+   Modified 1710031779
+   Author "Osi"
+   LastChanged "Osi"
+  }
+  CustomStringTableItem "{65ED01110837D4E3}" {
+   Id "OVT-Job_OfficerTimeoutWarning"
+   Target_en_us "Officer Assassination: Time warning"
+   Modified 1710031841
+   Author "Osi"
+   LastChanged "Osi"
   }
   CustomStringTableItem "{65CD1C84C885C17F}" {
    Id "OVT-Job_PlaceCamp"

@@ -14,6 +14,9 @@ class OVT_SpawnGroupJobStage : OVT_JobStage
 	
 	[Attribute()]
 	bool m_bSetAsJobIdentity;
+
+	[Attribute("")]
+	string m_sGroupName;
 	
 	override bool OnStart(OVT_Job job)
 	{
@@ -21,13 +24,22 @@ class OVT_SpawnGroupJobStage : OVT_JobStage
 		
 		BaseWorld world = GetGame().GetWorld();
 		
-		spawnPosition = OVT_Global.FindSafeSpawnPosition(spawnPosition);	
+		spawnPosition = OVT_Global.FindSafeSpawnPosition(spawnPosition);
 		
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
 		
 		OVT_Faction faction = config.GetFactionByType(m_Faction);
+		ResourceName groupPrefab;
+		if(m_GroupType == OVT_GroupType.SPECIAL_FORCES && m_sGroupName == "")
+		{
+			groupPrefab = faction.GetGroupPrefabByName("special_forces");
+		}else if(m_sGroupName != ""){
+			groupPrefab = faction.GetGroupPrefabByName(m_sGroupName);
+		}else{
+			groupPrefab = faction.GetRandomGroupByType(m_GroupType);
+		}
 		
-		IEntity entity = OVT_Global.SpawnEntityPrefab(faction.GetRandomGroupByType(m_GroupType), spawnPosition);
+		IEntity entity = OVT_Global.SpawnEntityPrefab(groupPrefab, spawnPosition);
 		
 		SCR_AIGroup group = SCR_AIGroup.Cast(entity);
 		if(group)
@@ -37,9 +49,9 @@ class OVT_SpawnGroupJobStage : OVT_JobStage
 		
 		if(m_bSetAsJobIdentity)
 		{
-			RplComponent rpl = RplComponent.Cast(entity.FindComponent(RplComponent));		
+			RplComponent rpl = RplComponent.Cast(entity.FindComponent(RplComponent));
 			job.entity = rpl.Id();
-		}		
+		}
 		return false;
 	}
 }

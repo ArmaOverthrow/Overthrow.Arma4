@@ -66,7 +66,7 @@ OverlayWidgetClass {
         VerticalAlign 1
        }
        AllowMaxDesiredWidth 1
-       MaxDesiredWidth 400
+       MaxDesiredWidth 600
        {
         HorizontalLayoutWidgetClass "{5D8680D6C200D0F1}" {
          Name "HorizontalLayout0"
