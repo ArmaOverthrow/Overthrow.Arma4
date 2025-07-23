@@ -658,6 +658,9 @@ class OVT_RecruitManagerComponent : OVT_Component
 		// Add to recruit manager
 		string recruitId = AddRecruit(persId, civilian);
 		
+		// Set recruit faction to match player faction
+		SetRecruitFaction(persId, civilian);
+		
 		// Note: BroadcastRecruitCreated is already called in AddRecruit method
 		// No need to broadcast again here to avoid duplicates
 		
@@ -1164,7 +1167,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 		// Set recruit faction to match player
 		if (currentFaction != playerFaction)
 		{
-			recruitFactionComp.SetAffiliatedFactionByKey("CIV");
+			recruitFactionComp.SetAffiliatedFactionByKey(OVT_Global.GetConfig().GetPlayerFaction().GetFactionKey());
 		}
 	}
 	
