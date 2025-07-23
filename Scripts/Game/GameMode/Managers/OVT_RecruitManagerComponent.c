@@ -623,6 +623,16 @@ class OVT_RecruitManagerComponent : OVT_Component
 			Print("[Overthrow] WARNING: No AIControlComponent found on spawned recruit");
 		}
 		
+		// Ensure EPF persistence is enabled for the recruit
+		EPF_PersistenceComponent persistenceComp = EPF_PersistenceComponent.Cast(recruitEntity.FindComponent(EPF_PersistenceComponent));
+		if (!persistenceComp)
+		{
+			Print("[Overthrow] WARNING: Character entity missing EPF_PersistenceComponent! Recruit persistence may not work correctly.");
+		}
+		
+		// Note: OVT_PlayerOwnerComponent should be set by the caller (typically RecruitCivilian)
+		// This method just spawns the entity, ownership setup happens elsewhere
+		
 		return recruitEntity;
 	}
 	
@@ -657,6 +667,9 @@ class OVT_RecruitManagerComponent : OVT_Component
 		
 		// Add to recruit manager
 		string recruitId = AddRecruit(persId, civilian);
+		
+		// Set recruit faction to match player faction
+		SetRecruitFaction(persId, civilian);
 		
 		// Note: BroadcastRecruitCreated is already called in AddRecruit method
 		// No need to broadcast again here to avoid duplicates
@@ -927,6 +940,22 @@ class OVT_RecruitManagerComponent : OVT_Component
 		// Mark recruit as online
 		recruit.m_bIsOnline = true;
 		
+		// Ensure player owner component is set correctly (safety check for EPF loading)
+		OVT_PlayerOwnerComponent ownerComp = OVT_PlayerOwnerComponent.Cast(recruitEntity.FindComponent(OVT_PlayerOwnerComponent));
+		if (ownerComp)
+		{
+			string currentOwner = ownerComp.GetPlayerOwnerUid();
+			if (currentOwner.IsEmpty() || currentOwner != playerPersistentId)
+			{
+				Print("[Overthrow] Fixing player owner component on loaded recruit: " + recruitId);
+				ownerComp.SetPlayerOwner(playerPersistentId);
+			}
+		}
+		else
+		{
+			Print("[Overthrow] WARNING: No OVT_PlayerOwnerComponent found on loaded recruit: " + recruitId);
+		}
+		
 		// Set recruit faction to match player faction before adding to group
 		SetRecruitFaction(playerPersistentId, recruitEntity);
 		
@@ -1164,7 +1193,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 		// Set recruit faction to match player
 		if (currentFaction != playerFaction)
 		{
-			recruitFactionComp.SetAffiliatedFactionByKey("CIV");
+			recruitFactionComp.SetAffiliatedFactionByKey(OVT_Global.GetConfig().GetPlayerFaction().GetFactionKey());
 		}
 	}
 	

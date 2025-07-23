@@ -525,8 +525,17 @@ class OVT_PlayerWantedComponent: OVT_Component
 			}
 			else if(m_iWantedLevel < 1 && !IsDisguisedAsOccupying())
 			{
-				// When not wanted and not disguised, clear perceived faction override (be seen as civilian)
-				m_Percieve.SetPerceivedFactionOverride(null);
+				// When not wanted and not disguised, make AI perceive us as civilian
+				Faction civilianFaction = factionMgr.GetFactionByKey("CIV");
+				if (civilianFaction)
+				{
+					m_Percieve.SetPerceivedFactionOverride(civilianFaction);
+				}
+				else
+				{
+					// Fallback: clear override if CIV faction not found
+					m_Percieve.SetPerceivedFactionOverride(null);
+				}
 			}
 		}
 		
