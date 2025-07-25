@@ -1,0 +1,105 @@
+SCR_AIGroup : "{8DE0C0830FE0C33D}Prefabs/Groups/OPFOR/Group_USSR_Base.et" {
+ ID "0000000000000001"
+ components {
+  SCR_AIConfigComponent "{512CC1759AE69D6D}" {
+   m_Skill 0.25
+  }
+  SCR_EditableGroupComponent "{50D291F6C83FA532}" {
+   m_UIInfo SCR_EditableGroupUIInfo "{5298E609432D192D}" {
+    Name "#AR-Group_FireTeamLight"
+    m_Image "{997C1B717857C72D}UI/Textures/EditorPreviews/Groups/OPFOR/Group_USSR_LightFireTeam.edds"
+    m_sFaction "Smuglers"
+    m_aAutoLabels {
+     71
+    }
+    m_EntityBudgetCost {
+     SCR_EntityBudgetValue "{604482963251834C}" {
+      m_Value 300
+     }
+     SCR_EntityBudgetValue "{609AE1834A64CEC1}" {
+      m_Value 4
+     }
+    }
+    m_EntityChildrenBudgetCost {
+     SCR_EntityBudgetValue "{65F295C8A6FBCC9F}" {
+      m_BudgetType AI
+      m_Value 4
+     }
+    }
+    m_bUseUIInfoName 1
+    m_MilitarySymbol SCR_MilitarySymbol "{65F295C8A6FBCC97}" {
+     m_Identity OPFOR
+     m_Dimension LAND
+     m_Icons 32769
+     m_Amplifier TEAM
+    }
+   }
+  }
+  SCR_GroupIdentityComponent "{56366C5C50AD3CF2}" {
+   m_MilitarySymbol SCR_MilitarySymbol "{56366C5C4E32A359}" {
+    m_Icons 32769
+    m_Amplifier TEAM
+   }
+  }
+  SCR_PreviewEntityComponent "{56368A4E303DBA0F}" : "{6CADA7A88A6265FD}Prefabs/Editor/Components/PreviewEntityComponentClass.ct" {
+   m_bRuntime 0
+   m_aEntries {
+    SCR_BasePreviewEntry "{65F295C8A6FBCC8A}" {
+     m_iParentID -1
+     m_Mesh ""
+     m_Flags 3
+     m_Shape MESH
+     m_iPivotID ""
+     m_vScale 1 1 1
+     m_vPosition 0 0 0
+     m_vAngles 0 0 0
+    }
+    SCR_BasePreviewEntry "{65F295C8A6FBCC88}" {
+     m_iParentID 0
+     m_Mesh "{7B2420C8BC72373A}Prefabs/Characters/Core/Character_Base_Preview.et"
+     m_Flags 0
+     m_Shape PREFAB
+     m_iPivotID ""
+     m_vScale 1 1 1
+     m_vPosition 0 0 0
+     m_vAngles 0 0 0
+    }
+    SCR_BasePreviewEntry "{65F295C8A6FBCC85}" {
+     m_iParentID 0
+     m_Mesh "{7B2420C8BC72373A}Prefabs/Characters/Core/Character_Base_Preview.et"
+     m_Flags 0
+     m_Shape PREFAB
+     m_iPivotID ""
+     m_vScale 1 1 1
+     m_vPosition 3 0 -3
+     m_vAngles 0 0 0
+    }
+    SCR_BasePreviewEntry "{65F295C8A6FBCC83}" {
+     m_iParentID 0
+     m_Mesh "{7B2420C8BC72373A}Prefabs/Characters/Core/Character_Base_Preview.et"
+     m_Flags 0
+     m_Shape PREFAB
+     m_iPivotID ""
+     m_vScale 1 1 1
+     m_vPosition -3 0 -3
+     m_vAngles 0 0 0
+    }
+    SCR_BasePreviewEntry "{65F295C8A6FBCC80}" {
+     m_iParentID 0
+     m_Mesh "{7B2420C8BC72373A}Prefabs/Characters/Core/Character_Base_Preview.et"
+     m_Flags 0
+     m_Shape PREFAB
+     m_iPivotID ""
+     m_vScale 1 1 1
+     m_vPosition 6 0 -6
+     m_vAngles 0 0 0
+    }
+   }
+  }
+ }
+ coords 0 0 0
+ m_faction "Smuglers"
+ m_aUnitPrefabSlots {
+  "{3C604ABE6EC7609E}Prefabs/Characters/Factions/OPFOR/Smuglers/Character_Smuglers_Rifleman.et" "{3C604ABE6EC7609E}Prefabs/Characters/Factions/OPFOR/Smuglers/Character_Smuglers_Rifleman.et"
+ }
+}

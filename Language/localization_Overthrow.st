@@ -4977,6 +4977,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{65F10E4AC7C69E2D}" {
+   Id "OVT-Place_SmuglersCrate_Description"
+   Target_ru_ru "Неприметный ящик для хранения нелегального товара"
+   Modified 1710298945
+   Author "Osi"
+   LastChanged "Osi"
+  }
   CustomStringTableItem "{59C84C79C2AB441A}" {
    Id "OVT-Player"
    Target_en_us "Player"
@@ -6653,6 +6660,14 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{65F10E4ADDFED2CA}" {
+   Id "OVT-SmuglersCrate"
+   Target_en_us "Smuglers Crate"
+   Target_ru_ru "Ящик контрабандиста"
+   Modified 1710298896
+   Author "Osi"
+   LastChanged "Osi"
+  }
   CustomStringTableItem "{59CC0DA6C7151F8E}" {
    Id "OVT-SoldierCost"
    Target_en_us "Soldier Cost"
@@ -7666,6 +7681,38 @@ StringTable {
    Modified 1708042299
    Author "Aaron Static"
    LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{65F10E4A6EAD5929}" {
+   Id "STR_TSE_SMUGLERS_EVENT_HINT"
+   Target_en_us "Сontraband"
+   Target_ru_ru "Контрабанда"
+   Modified 1710299238
+   Author "Osi"
+   LastChanged "Osi"
+  }
+  CustomStringTableItem "{65F10E4A11CAE162}" {
+   Id "STR_TSE_SMUGLERS_EVENT_START"
+   Target_en_us "Intelligence reported that a smuggling operation was underway on the island"
+   Target_ru_ru "Разведка доложила о готовящемся сбыте контрабанды на острове"
+   Modified 1710299076
+   Author "Osi"
+   LastChanged "Osi"
+  }
+  CustomStringTableItem "{65F12B374E56DA35}" {
+   Id "STR_TSE_SMUGLERS_EVENT_SUCCESS"
+   Target_en_us "Resistance forces managed to intercept the contraband"
+   Target_ru_ru "Силам сопротивления удалось перехватить контрабанду"
+   Modified 1710307003
+   Author "Osi"
+   LastChanged "Osi"
+  }
+  CustomStringTableItem "{65F10E4BB8D8FA87}" {
+   Id "STR_TSE_SMUGLERS_EVENT_TIMEOUT"
+   Target_en_us "Resistance forces failed to intercept contraband"
+   Target_ru_ru "Силам сопротивления не удалось перехватить контрабанду"
+   Modified 1710299323
+   Author "Osi"
+   LastChanged "Osi"
   }
  }
 }

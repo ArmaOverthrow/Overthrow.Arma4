@@ -222,15 +222,15 @@ class OVT_JobManagerComponent: OVT_Component
 					if(playerId > -1) // Ensure player exists
 					{
 						if(!job.failed) {
-							if(config.m_iReward > 0)
-							{
-								OVT_Global.GetEconomy().AddPlayerMoney(playerId, config.m_iReward);
-							}
-							if(config.m_iRewardXP > 0)
-							{
-								OVT_Global.GetSkills().GiveXP(playerId, config.m_iRewardXP);
-							}
-							SCR_HintManagerComponent.GetInstance().ShowCustom(config.m_sTitle, "#OVT-Jobs_Completed"); // Show hint to player
+						if(config.m_iReward > 0)
+						{
+							OVT_Global.GetEconomy().AddPlayerMoney(playerId, config.m_iReward);
+						}
+						if(config.m_iRewardXP > 0)
+						{
+							OVT_Global.GetSkills().GiveXP(playerId, config.m_iRewardXP);
+						}
+						SCR_HintManagerComponent.GetInstance().ShowCustom(config.m_sTitle, "#OVT-Jobs_Completed"); // Show hint to player
 						}
 
 						// Grant reward items

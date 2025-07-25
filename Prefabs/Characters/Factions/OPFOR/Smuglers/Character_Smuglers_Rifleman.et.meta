@@ -1,0 +1,17 @@
+MetaFileClass {
+ Name "{3C604ABE6EC7609E}Prefabs/Characters/Factions/OPFOR/Smuglers/Character_Smuglers_Rifleman.et"
+ Configurations {
+  EntityTemplateResourceClass PC {
+  }
+  EntityTemplateResourceClass XBOX_ONE : PC {
+  }
+  EntityTemplateResourceClass XBOX_SERIES : PC {
+  }
+  EntityTemplateResourceClass PS4 : PC {
+  }
+  EntityTemplateResourceClass PS5 : PC {
+  }
+  EntityTemplateResourceClass HEADLESS : PC {
+  }
+ }
+}

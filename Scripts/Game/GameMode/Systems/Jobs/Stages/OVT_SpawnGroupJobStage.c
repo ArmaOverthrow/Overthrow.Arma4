@@ -14,7 +14,7 @@ class OVT_SpawnGroupJobStage : OVT_JobStage
 	
 	[Attribute()]
 	bool m_bSetAsJobIdentity;
-
+	
 	[Attribute("")]
 	string m_sGroupName;
 	
@@ -24,7 +24,7 @@ class OVT_SpawnGroupJobStage : OVT_JobStage
 		
 		BaseWorld world = GetGame().GetWorld();
 		
-		spawnPosition = OVT_Global.FindSafeSpawnPosition(spawnPosition);
+		spawnPosition = OVT_Global.FindSafeSpawnPosition(spawnPosition);	
 		
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
 		
@@ -49,9 +49,9 @@ class OVT_SpawnGroupJobStage : OVT_JobStage
 		
 		if(m_bSetAsJobIdentity)
 		{
-			RplComponent rpl = RplComponent.Cast(entity.FindComponent(RplComponent));
+			RplComponent rpl = RplComponent.Cast(entity.FindComponent(RplComponent));		
 			job.entity = rpl.Id();
-		}
+		}		
 		return false;
 	}
 }

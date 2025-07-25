@@ -1,5 +1,5 @@
 MetaFileClass {
- Name "{E86ACA8246D15BFB}Prefabs/Groups/OPFOR/Group_USSR_BunkerTeam.et"
+ Name "{65F295CBD0257A73}Prefabs/Groups/OPFOR/Smuglers/Group_Smuglers_Crew.et"
  Configurations {
   EntityTemplateResourceClass PC {
   }
@@ -8,6 +8,8 @@ MetaFileClass {
   EntityTemplateResourceClass XBOX_SERIES : PC {
   }
   EntityTemplateResourceClass PS4 : PC {
+  }
+  EntityTemplateResourceClass PS5 : PC {
   }
   EntityTemplateResourceClass HEADLESS : PC {
   }

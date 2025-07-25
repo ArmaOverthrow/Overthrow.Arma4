@@ -1,0 +1,33 @@
+GenericEntity : "{7030822F7A54F479}Prefabs/Props/Crates/CrateWooden_01_base.et" {
+ ID "5216C470CA548AD1"
+ components {
+  SCR_EditableEntityComponent "{65EF028CC5FD4226}" {
+   m_UIInfo SCR_EditableEntityUIInfo "{65EF36CFD7CE8DB6}" {
+    Name "#OVT-SmuglersCrate"
+    Description "#OVT-Place_SmuglersCrate_Description"
+   }
+   m_Flags PLACEABLE
+  }
+  SCR_UniversalInventoryStorageComponent "{65EF028C5A4B4437}" {
+   Attributes SCR_ItemAttributeCollection "{65EF36CF092ABBA5}" {
+    ItemDisplayName UIInfo "{5992E2EDDE65CA48}" {
+     Name "#AR-Ammobox_Name"
+     Description "#AR-Ammobox_Name"
+    }
+    m_Size SLOT_3x3
+   }
+   UseCapacityCoefficient 0
+   CapacityCoefficient 10000
+   MaxCumulativeVolume 3000000
+   m_fMaxWeight 3000000
+  }
+  SCR_InventoryStorageManagerComponent "{65EF36CEE747EA10}" {
+  }
+  ActionsManagerComponent "{65EF028C64AE089B}" {
+  }
+  RplComponent "{65EF028C7B6B9223}" {
+  }
+  Hierarchy "{65EF028CDDABA50F}" {
+  }
+ }
+}

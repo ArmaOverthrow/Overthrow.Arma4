@@ -287,6 +287,8 @@ OVT_OverthrowFactionManager OVT_OverthrowFactionManager : "{51EBC0CFD56DA130}Pre
   SCR_Faction "{5D8CB07017FAD571}" : "{8053DB656DD18B14}Configs/Factions/FIA.conf" {
    m_bIsPlayable 0
   }
+  SCR_Faction "{65F295C6A76B9BAF}" : "{70C44808045F1115}Configs/Factions/Smuglers.conf" {
+  }
  }
 }
 RadioManagerEntity RadioManager : "{B8E09FAB91C4ECCD}Prefabs/Radio/RadioManager.et" {

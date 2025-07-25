@@ -80,6 +80,26 @@ OVT_OverthrowGameMode {
   }
   OVT_NotificationManagerComponent "{5D8680DB07CF50FD}" {
    m_Messages SCR_SimpleMessagePresets "{5D8680DB04A58A20}" : "{36405F298C9B3186}Configs/overthrowBroadcastMessages.conf" {
+    m_aPresets {
+     SCR_SimpleMessagePreset "{65F10E49E2B59603}" {
+      m_sTag "SmuglersEventStart"
+      m_UIInfo SCR_SimpleMessageUIInfo "{65F10E493B0F7D6E}" {
+       Description "#STR_TSE_SMUGLERS_EVENT_START"
+      }
+     }
+     SCR_SimpleMessagePreset "{65F10E4920695E44}" {
+      m_sTag "SmuglersEventSuccess"
+      m_UIInfo SCR_SimpleMessageUIInfo "{65F10E492731FAE2}" {
+       Description "#STR_TSE_SMUGLERS_EVENT_SUCCESS"
+      }
+     }
+     SCR_SimpleMessagePreset "{65F10E494D4B86FC}" {
+      m_sTag "SmuglersEventTimeout"
+      m_UIInfo SCR_SimpleMessageUIInfo "{65F10E4943CDAF01}" {
+       Description "#STR_TSE_SMUGLERS_EVENT_TIMEOUT"
+      }
+     }
+    }
    }
   }
   OVT_OccupyingFactionManager "{59845E732755785F}" {
@@ -356,6 +376,12 @@ OVT_OverthrowGameMode {
   TSE_PlayerKillMortarEffect "{65E92D98348B7FFC}" {
    m_fSpawnDelay 2
    m_fSpawnRadius 10
+  }
+  TSE_SmuglersEventManagerComponent "{65F10411E6335C22}" {
+   m_CrateConfig TSE_SmuglerCrateContents "{65F105CA05FB61AA}" : "{2E4CFE9E28475067}Configs/Events/TSE_SmuglerCrateContents.conf" {
+   }
+  }
+  TSE_SmuglersManagerComponent "{65F10411E02DB750}" {
   }
   SerializerInventoryStorageManagerComponent "{5EE26402B9CEA8E5}" {
   }

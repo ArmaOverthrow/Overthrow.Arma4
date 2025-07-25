@@ -1,0 +1,38 @@
+$grp OVT_VehiclePatrolSpawn : "{B07A6AEDC9EE4B85}Prefabs/GameMode/TSE_SmuglersEventSpawn.et" {
+ {
+  coords 9618.746 22.433 5270.767
+  angleY 0
+ }
+ {
+  coords 11775.178 18.981 2184.431
+  angleY 0
+ }
+ {
+  coords 11642.749 13.119 1463.292
+  angleY 0
+ }
+ {
+  coords 9324.475 16.443 318.82
+  angleY 0
+ }
+ {
+  coords 5848.663 5.094 3428.477
+  angleY 0
+ }
+ {
+  coords 3302.162 8.843 3619.92
+  angleY 0
+ }
+ {
+  coords 2633.695 5.873 4144.185
+  angleY 0
+ }
+ {
+  coords 5807.451 0.643 10982.598
+  angleY 0
+ }
+ {
+  coords 9162.13 2.125 5387.542
+  angleY 0
+ }
+}

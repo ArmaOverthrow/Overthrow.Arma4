@@ -68,38 +68,26 @@ modded class SCR_ChimeraAIAgent : ChimeraAIAgent
 	//! Override IsEnemy faction overload to handle recruits appearing as civilians
 	override bool IsEnemy(Faction otherFaction)
 	{
-		// Check if we're in Overthrow game mode
 		OVT_OverthrowConfigComponent config = OVT_OverthrowConfigComponent.GetInstance();
 		if (!config)
-		{
-			// Not in Overthrow mode, use original base game logic
 			return super.IsEnemy(otherFaction);
-		}
-		
+
 		Faction myFaction;
 		if (m_FactionAffiliationComponent)
 			myFaction = m_FactionAffiliationComponent.GetAffiliatedFaction();
-		
+
 		if (!myFaction || !otherFaction)
 			return false;
-		
-		// Get player faction from config
-		string playerFactionKey = config.m_sPlayerFaction;
-		string myFactionKey = myFaction.GetFactionKey();
-		
-		// Check if I'm a recruit (in player faction) who should appear as civilian when not wanted
-		if (myFactionKey == playerFactionKey)
+
+		// Smuglers hostile to all except CIV
+		if (myFaction.GetFactionKey() == "Smuglers")
 		{
-			OVT_PlayerWantedComponent myWantedComp = OVT_PlayerWantedComponent.Cast(GetControlledEntity().FindComponent(OVT_PlayerWantedComponent));
-			if (myWantedComp && myWantedComp.GetWantedLevel() < 1)
-			{
-				// I'm a recruit appearing as civilian - no faction should be enemy to me
-				// This prevents retreat behaviors from being triggered
+			if (otherFaction.GetFactionKey() == "CIV")
 				return false;
-			}
+			return true;
 		}
-		
-		// For all other cases, use normal faction logic
+
+		// Остальные — стандартная логика
 		return super.IsEnemy(otherFaction);
 	}
 	

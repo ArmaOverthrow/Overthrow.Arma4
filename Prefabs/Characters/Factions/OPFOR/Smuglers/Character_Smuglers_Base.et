@@ -1,0 +1,45 @@
+SCR_ChimeraCharacter : "{37578B1666981FCE}Prefabs/Characters/Core/Character_Base.et" {
+ ID "520EC961A090B1EE"
+ components {
+  SCR_CommunicationSoundComponent "{54FD05D0C92D071F}" {
+   Filenames {
+    "{B42CA0D861799AE9}Sounds/RadioProtocol/RadioProtocol_Report_RU.acp" "{B9FE251CCD133367}Sounds/RadioProtocol/RadioProtocol_Movement_RU.acp" "{BB0B5594F3102B9F}Sounds/RadioProtocol/RadioProtocol_Confirmations_RU.acp" "{B3A7EF95B5D7D620}Sounds/RadioProtocol/RadioProtocol_Combat_RU.acp" "{30C6D89341B1EA1A}Sounds/Character/Character_Voice_Code.acp" "{C9BE186498C3B447}Sounds/Character/Character_Voice_Animations.acp" "{A34E22579FE69E03}Sounds/RadioProtocol/RadioProtocol_Actions_RU.acp" "{3D410BABAA71418D}Sounds/RadioProtocol/RadioProtocol_Report_2_RU.acp" "{20418BE22B3B9008}Sounds/VO/SP01/VO_Ambient.acp"
+   }
+  }
+  SCR_CharacterFactionAffiliationComponent "{65F295DC636BD4DC}" {
+   "faction affiliation" "USSR"
+  }
+  SCR_EditableCharacterComponent "{520EA1D2F659C85C}" {
+   m_UIInfo SCR_EditableEntityUIInfo "{5298E609432D192D}" {
+    Name "#AR-Role_Rifleman"
+    Icon "{A489F552FB7489C3}UI/Textures/Editor/EditableEntities/Characters/EditableEntity_Character_Custom.edds"
+    m_sFaction "USSR"
+    m_aAuthoredLabels + {
+     2 10
+    }
+    m_aAutoLabels {
+    }
+   }
+  }
+  SCR_ExtendedCharacterIdentityComponent "{5AEEA3C8B2AA118B}" {
+   m_iMaxRandomAge 28
+  }
+  CharacterWeaponSlotComponent "{520EA1D2F659CFAB}" {
+   WeaponSlotIndex 0
+  }
+  CharacterWeaponSlotComponent "{520EA1D2F659CFB7}" {
+   WeaponSlotIndex 1
+  }
+  SCR_CharacterIdentityComponent "{5584CBC63E092DBC}" {
+   Identity Identity "{5584CBC6363C648B}" {
+    VisualIdentity VisualIdentity "{56E6D9456009D1C4}" {
+     Head "{2F3375E395C46AB3}Prefabs/Characters/Heads/Head_BaseBody_01.et"
+     Body "{0023F898C0FF18AA}Prefabs/Characters/Basebody/CharacterBasebody.et"
+    }
+    SoundIdentity SoundIdentity "{56E6D945D8F79290}" {
+     VoiceID 100
+    }
+   }
+  }
+ }
+}
