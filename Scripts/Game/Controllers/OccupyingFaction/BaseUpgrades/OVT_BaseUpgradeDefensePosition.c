@@ -41,10 +41,13 @@ class OVT_BaseUpgradeDefensePosition : OVT_BasePatrolUpgrade
 	override int Spend(int resources, float threat)
 	{
 		int spent = 0;
+		int maxSpawnCount = OVT_Global.GetConfig().m_Difficulty.defenseGroupsBaseMax;
+		int spawnCount = Math.Clamp(Math.RandomInt(0, m_BaseController.m_aDefendPositions.Count()), 0, maxSpawnCount);
+		if(m_BaseController.m_aDefendPositions.Count() == 0) return spent;
 		
 		foreach(int id, vector pos : m_BaseController.m_aDefendPositions)
 		{
-			if(resources < OVT_Global.GetConfig().m_Difficulty.baseResourceCost * 4) break;
+			if(resources < OVT_Global.GetConfig().m_Difficulty.baseResourceCost * 4 || spawnCount <= 0) break;
 			
 			bool needsGuard = false;
 			if(!m_Guards.Contains(id))
@@ -62,6 +65,7 @@ class OVT_BaseUpgradeDefensePosition : OVT_BasePatrolUpgrade
 			}
 			if(needsGuard)
 			{
+				spawnCount--;
 				if(!PlayerInRange()){
 					m_iProxedResources += OVT_Global.GetConfig().m_Difficulty.baseResourceCost * 4;
 					spent += OVT_Global.GetConfig().m_Difficulty.baseResourceCost * 4;
