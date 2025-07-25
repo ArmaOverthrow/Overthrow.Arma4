@@ -39,6 +39,8 @@ class OVT_DifficultySettings : ScriptAndConfig
 	int patrolGroupsMin;
 	[Attribute(defvalue: "3", desc: "Maximum number of defense groups at radio towers", category: "Occupying Faction")]
 	int patrolGroupsMax;	
+	[Attribute(defvalue: "5", desc: "Maximum number of defense positions at bases", category: "Occupying Faction")]
+	int defenseGroupsBaseMax;
 	[Attribute("280", category: "Occupying Faction")]
 	float baseRange;
 	[Attribute("220", category: "Occupying Faction")]
