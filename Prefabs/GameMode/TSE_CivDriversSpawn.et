@@ -1,7 +1,7 @@
 OVT_VehiclePatrolSpawn {
- ID "65EF405752CE0022"
+ ID "65F48825E9A9EDC7"
  components {
-  TSE_SmuglersSpawnComponent "{65F4A71B89875E72}" {
+  TSE_CivDriverSpawnComponent "{65F49744954C8981}" {
   }
  }
  Flags 1027

@@ -373,6 +373,8 @@ OVT_OverthrowGameMode {
   }
   SCR_VotingManagerComponent "{5EE26402B4C7BB47}" {
   }
+  TSE_CivDriversManagerComponent "{65F48D5695F51F4C}" {
+  }
   TSE_PlayerKillMortarEffect "{65E92D98348B7FFC}" {
    m_fSpawnDelay 2
    m_fSpawnRadius 10

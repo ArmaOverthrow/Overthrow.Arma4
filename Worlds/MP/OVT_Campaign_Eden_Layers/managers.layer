@@ -290,6 +290,11 @@ OVT_OverthrowFactionManager OVT_OverthrowFactionManager : "{51EBC0CFD56DA130}Pre
   SCR_Faction "{65F295C6A76B9BAF}" : "{70C44808045F1115}Configs/Factions/Smuglers.conf" {
   }
  }
+ m_aOverthrowFactions {
+  OVT_Faction "{65F4A9D10CB59ED7}" {
+   m_sFactionKey "{70C44808045F1115}Configs/Factions/Smuglers.conf"
+  }
+ }
 }
 RadioManagerEntity RadioManager : "{B8E09FAB91C4ECCD}Prefabs/Radio/RadioManager.et" {
  coords 3201.473 0 11071.047
