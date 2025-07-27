@@ -1,0 +1,26 @@
+$grp OVT_VehiclePatrolSpawn : "{0EC03809AC31C2D5}Prefabs/GameMode/TSE_ConvoyDestination.et" {
+ {
+  coords 7533.251 163.355 4409.123
+  angleY 0
+ }
+ {
+  coords 7353.125 11.551 6691.784
+  angleY 0
+ }
+ {
+  coords 5153.037 40.661 10430.844
+  angleY 0
+ }
+}
+$grp OVT_VehiclePatrolSpawn : "{CDDBEAE09464B5B7}Prefabs/GameMode/TSE_ConvoySpawn.et" {
+ {
+  coords 10175.996 2.842 1490.413
+  angleY -75.9
+ }
+ {
+  coords 4496.067 7.839 11006.463
+  angleX 1.968
+  angleY 163.907
+  angleZ 0.364
+ }
+}

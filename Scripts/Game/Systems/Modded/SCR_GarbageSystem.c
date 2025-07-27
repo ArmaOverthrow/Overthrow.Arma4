@@ -1,6 +1,6 @@
 modded class SCR_GarbageSystem
 {
-	//! Override the base game garbage collection to protect player-owned vehicles
+	//! Override the base game garbage collection to protect player-owned vehicles and convoy vehicles
 	override protected float OnInsertRequested(IEntity entity, float lifetime)
 	{
 		// Check if this is a vehicle with a player owner component
@@ -10,11 +10,17 @@ modded class SCR_GarbageSystem
 			if (playerOwnerComp)
 			{
 				string ownerUID = playerOwnerComp.GetPlayerOwnerUid();
-				// If vehicle has a player owner, never garbage collect it
-				if (ownerUID != "")
+				// If vehicle has a player owner or is a convoy vehicle, never garbage collect it
+				if (ownerUID != "" || ownerUID == "CONVOY_SYSTEM")
 				{
 					return -1; // Negative value prevents insertion into garbage system
 				}
+			}
+			
+			// Also check if this is a convoy vehicle by ID tracking
+			if (TSE_ConvoyEventManagerComponent.IsConvoyVehicle(entity))
+			{
+				return -1; // Protect convoy vehicles from garbage collection
 			}
 		}
 		
