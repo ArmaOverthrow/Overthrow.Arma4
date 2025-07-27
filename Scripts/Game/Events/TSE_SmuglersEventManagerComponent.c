@@ -7,7 +7,7 @@ class TSE_SmuglersEventManagerComponentClass : ScriptComponentClass {}
 
 class TSE_SmuglersEventManagerComponent : ScriptComponent
 {
-    ref array<IEntity> m_SpawnMarkers = new array<IEntity>();
+    ref array<IEntity> m_SpawnMarkers = new array<IEntity>(); // Зарегистрированные маркеры
 
     [Attribute(defvalue: "24", uiwidget: UIWidgets.EditBox, desc: "Interval between events (hours)")]
     int m_iIntervalHours;
@@ -20,7 +20,7 @@ class TSE_SmuglersEventManagerComponent : ScriptComponent
 
     static const string CRATE_PREFAB = "{326E60F7A7358EDA}Prefabs/Props/Crates/Smuglers_Crate.et";
     static const string GUARD_GROUP_PREFAB = "{65F295CBD0257A73}Prefabs/Groups/OPFOR/Smuglers/Group_Smuglers_LightFireTeam.et";
-    static const string VEHICLE_PREFAB = "{22B327C6752EC4D4}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469_PKM_FIA.et";
+    static const string VEHICLE_PREFAB = "{442939C9617DF228}Prefabs/Vehicles/Wheeled/BRDM2/BRDM2_FIA.et";
     static const string CREW_GROUP_PREFAB = "{65F295CB4DD807B9}Prefabs/Groups/OPFOR/Smuglers/Group_Smuglers_Crew.et";
 
     float m_fEventStartHour;
@@ -52,6 +52,11 @@ class TSE_SmuglersEventManagerComponent : ScriptComponent
             return;
         }
         Print("[SmuglersEvent] OverthrowGameMode initialized, starting event logic");
+        // точки спавна должны быть зарегистрированы компонентами на префабах
+        if(m_SpawnMarkers.IsEmpty())
+        {
+            Print("[SmuglersEvent] No spawn markers registered!");
+        }
         CleanAllSpawnMarkersFromVehicles();
         GetGame().GetCallqueue().CallLater(TryStartEvent, 60000, false);
     }
@@ -59,10 +64,10 @@ class TSE_SmuglersEventManagerComponent : ScriptComponent
     void CleanAllSpawnMarkersFromVehicles()
     {
         if (!m_SpawnMarkers) m_SpawnMarkers = new array<IEntity>();
-        m_SpawnMarkers.Clear();
         BaseWorld world = GetGame().GetWorld();
         if (!world) return;
-        world.QueryEntitiesBySphere("0 0 0", 10000, null, TSE_SmuglersEventManager_FindSpawnMarkerFilter, EQueryEntitiesFlags.ALL);
+        // m_SpawnMarkers уже заполнен через регистрацию компонентов
+        if(m_SpawnMarkers.IsEmpty()) return;
         foreach (IEntity marker : m_SpawnMarkers)
         {
             CleanVehiclesNearMarker(marker.GetOrigin());
@@ -86,16 +91,6 @@ class TSE_SmuglersEventManagerComponent : ScriptComponent
         }
     }
 
-    bool VehicleFilterWheeled(IEntity ent)
-    {
-        if (!ent) return false;
-        EntityPrefabData prefabData = ent.GetPrefabData();
-        if (!prefabData) return false;
-        string prefabName = prefabData.GetPrefabName();
-        // Проверяем, что это нужный каталог
-        return prefabName.StartsWith("{22B327C6752EC4D4}Prefabs/Vehicles/Wheeled/");
-    }
-
     void TryStartEvent()
     {
         Print("[SmuglersEvent] TryStartEvent | m_bEventActive=" + m_bEventActive);
@@ -104,18 +99,14 @@ class TSE_SmuglersEventManagerComponent : ScriptComponent
         StartEvent();
     }
 
-	bool TSE_SmuglersEventManager_FindSpawnMarkerFilter(IEntity ent)
-	{
-    if (!ent) return false;
-    EntityPrefabData prefabData = ent.GetPrefabData();
-    if (prefabData && prefabData.GetPrefabName() == TSE_SMUGLERS_SPAWN_POINT_PREFAB)
+    // Регистрация маркера из компонента
+    void RegisterSpawnMarker(IEntity marker)
     {
-        m_SpawnMarkers.Insert(ent);
-        return true;
+        if(!marker) return;
+        if(m_SpawnMarkers.Contains(marker)) return;
+        m_SpawnMarkers.Insert(marker);
     }
-    return false;
-	}
-	
+
     // Добавь в localization_Overthrow.en-us.conf:
     // STR_TSE_SMUGLERS_EVENT_START "Intelligence reports a smuggler shipment is being prepared for export - intercept it."
     // Добавь в конфиг NotificationManager:
@@ -242,7 +233,7 @@ class TSE_SmuglersEventManagerComponent : ScriptComponent
         TimeContainer time = t.GetTime();
         m_fEventStartHour = time.m_iHours;
         Print("[SmuglersEvent] Event started at hour: " + m_fEventStartHour);
-        GetGame().GetCallqueue().CallLater(MonitorEvent, 5000, true);
+        GetGame().GetCallqueue().CallLater(MonitorEvent, 900000, true); // 15 минут
     }
 
     void OnCrewGroupInitialized(SCR_AIGroup group)
@@ -306,6 +297,16 @@ class TSE_SmuglersEventManagerComponent : ScriptComponent
         return access.MoveInVehicle(vehicle, type);
     }
 
+    bool VehicleFilterWheeled(IEntity ent)
+    {
+        if (!ent) return false;
+        EntityPrefabData prefabData = ent.GetPrefabData();
+        if (!prefabData) return false;
+        string prefabName = prefabData.GetPrefabName();
+        // Проверяем, что это нужный каталог
+        return prefabName.StartsWith("{22B327C6752EC4D4}Prefabs/Vehicles/Wheeled/");
+    }
+
 
     void MonitorEvent()
     {
@@ -343,7 +344,7 @@ class TSE_SmuglersEventManagerComponent : ScriptComponent
             EndEvent();
             return;
         }
-        GetGame().GetCallqueue().CallLater(MonitorEvent, 5000, true);
+        GetGame().GetCallqueue().CallLater(MonitorEvent, 900000, true); // 15 минут
     }
 
     void EndEvent()
@@ -444,8 +445,7 @@ class TSE_SmuglersEventManagerComponent : ScriptComponent
 
     vector GetRandomSpawnMarkerPosition()
     {
-        m_SpawnMarkers.Clear();
-        GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 10000, null, TSE_SmuglersEventManager_FindSpawnMarkerFilter, EQueryEntitiesFlags.ALL);
+        // список уже собран через регистрацию, ничего не делаем
         if (m_SpawnMarkers.Count() == 0)
         {
             Print("SmuglersEvent: No spawn markers found, using origin");

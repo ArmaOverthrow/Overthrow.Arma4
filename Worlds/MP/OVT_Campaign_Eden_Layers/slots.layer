@@ -96,8 +96,9 @@ $grp OVT_VehiclePatrolSpawn : "{5BF1F972169C6923}Prefabs/GameMode/OVT_VehiclePat
   angleY -32.502
  }
  {
-  coords 5837.209 4.692 9829.325
-  angleY 0
+  coords 5756.849 15.757 9927.18
+  angleX 4.1
+  angleY -67.5
  }
  {
   coords 3919.369 13.509 8531.628

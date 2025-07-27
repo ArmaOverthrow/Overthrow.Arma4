@@ -1,0 +1,8 @@
+Turret : "{7C4D1A64D60F2C92}Prefabs/Weapons/Tripods/Tripod_6T5.et" {
+ ID "52D30EFBEBC74642"
+ components {
+  EPF_PersistenceComponent "{5D46D95CC53F48C8}" {
+   Enabled 0
+  }
+ }
+}
