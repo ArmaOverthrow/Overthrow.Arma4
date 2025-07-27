@@ -1,0 +1,17 @@
+MetaFileClass {
+ Name "{50C49C1A0B08EE12}Scripts/Game/UI/Map/Modded/TSE_MapIcons.c"
+ Configurations {
+  CODEResourceClass PC {
+  }
+  CODEResourceClass XBOX_ONE : PC {
+  }
+  CODEResourceClass XBOX_SERIES : PC {
+  }
+  CODEResourceClass PS4 : PC {
+  }
+  CODEResourceClass PS5 : PC {
+  }
+  CODEResourceClass HEADLESS : PC {
+  }
+ }
+} 

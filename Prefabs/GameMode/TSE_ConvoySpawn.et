@@ -1,0 +1,10 @@
+OVT_VehiclePatrolSpawn {
+ ID "65F6982EE66C9293"
+ components {
+  TSE_ConvoySpawnComponent "{65F6982EE66C9294}" {
+  }
+ }
+ Flags 1027
+ coords 9291.582 190.884 1150.999
+ angleY -172.727
+}

@@ -377,6 +377,11 @@ OVT_OverthrowGameMode {
    m_VehicleConfig TSE_CarArrayConfig "{65F698123456ABCD}" : "{49D25A2BC48553B1}Configs/Events/TSE_CIvCarList.conf" {
    }
   }
+  TSE_ConvoyEventManagerComponent "{5EB46557DF2AA251}" {
+   m_iIntervalHours 24
+   m_CargoConfig TSE_ConvoyCargoConfig "{5EB46557DF2AA252}" : "{5EB46557DF2AA250}Configs/Events/TSE_ConvoyCargoConfig.conf" {
+   }
+  }
   TSE_PlayerKillMortarEffect "{65E92D98348B7FFC}" {
    m_fSpawnDelay 2
    m_fSpawnRadius 10
