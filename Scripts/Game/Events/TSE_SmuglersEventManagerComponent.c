@@ -31,6 +31,10 @@ class TSE_SmuglersEventManagerComponent : ScriptComponent
     ref array<IEntity> m_FoundVehicles = new array<IEntity>();
     TSE_MapSmuglersEventArea m_SmuglersEventAreaLayer;
     bool m_CrateInteracted = false; // Set to true when crate is interacted
+    
+    // Configuration override for Event Manager
+    ref TSE_SmuglersEventConfig m_ManagedConfig;
+    bool m_bManagedByEventManager = false;
 
     override void OnPostInit(IEntity owner)
     {
@@ -38,8 +42,14 @@ class TSE_SmuglersEventManagerComponent : ScriptComponent
         m_SpawnedEntities = new array<EntityID>();
         m_GuardUnitIDs = new array<EntityID>();
         Print("[SmuglersEvent] OnPostInit: " + owner.GetName() + " | m_bEventActive=" + m_bEventActive);
-        // Запускаем проверку готовности гейммода
-        GetGame().GetCallqueue().CallLater(WaitForGameModeInitialized, 1000, false);
+        
+        // Note: Event Manager will call StartEventFromManager instead of self-starting
+        // Legacy behavior kept for backward compatibility
+        if (!m_bManagedByEventManager)
+        {
+            // Запускаем проверку готовности гейммода
+            GetGame().GetCallqueue().CallLater(WaitForGameModeInitialized, 1000, false);
+        }
     }
 
     void WaitForGameModeInitialized()
@@ -97,6 +107,33 @@ class TSE_SmuglersEventManagerComponent : ScriptComponent
         if (m_bEventActive)
             return;
         StartEvent();
+    }
+    
+    // New method called by Event Manager
+    void StartEventFromManager(TSE_SmuglersEventConfig config)
+    {
+        if (m_bEventActive) {
+            Print("[SmuglersEvent] StartEventFromManager: already active, skipping");
+            return;
+        }
+        
+        Print("[SmuglersEvent] Starting event from Event Manager");
+        m_bManagedByEventManager = true;
+        m_ManagedConfig = config;
+        
+        // Override interval and duration from config
+        if (config) {
+            m_iIntervalHours = config.m_iMaxIntervalHours;
+            m_iDurationHours = config.m_iDurationHours;
+        }
+            
+        StartEvent();
+    }
+    
+    // Check if event is active (called by Event Manager)
+    bool IsEventActive()
+    {
+        return m_bEventActive;
     }
 
     // Регистрация маркера из компонента
@@ -360,8 +397,19 @@ class TSE_SmuglersEventManagerComponent : ScriptComponent
         m_GuardUnitIDs.Clear();
         m_bEventActive = false;
         GetGame().GetCallqueue().Remove(MonitorEvent);
-        Print("[SmuglersEvent] EndEvent: scheduling next event in " + m_iIntervalHours + " hours");
-        GetGame().GetCallqueue().CallLater(TryStartEvent, m_iIntervalHours * 3600 * 1000, false);
+        
+        // Only schedule next event if not managed by Event Manager
+        if (!m_bManagedByEventManager)
+        {
+            Print("[SmuglersEvent] EndEvent: scheduling next event in " + m_iIntervalHours + " hours");
+            GetGame().GetCallqueue().CallLater(TryStartEvent, m_iIntervalHours * 3600 * 1000, false);
+        }
+        else
+        {
+            Print("[SmuglersEvent] EndEvent: managed by Event Manager, not scheduling next event");
+            m_bManagedByEventManager = false; // Reset for potential future legacy use
+            m_ManagedConfig = null;
+        }
     }
 
     bool IsGuardsAlive()

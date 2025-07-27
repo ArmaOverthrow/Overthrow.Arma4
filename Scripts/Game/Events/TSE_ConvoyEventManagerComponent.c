@@ -34,6 +34,10 @@ class TSE_ConvoyEventManagerComponent : ScriptComponent
     static vector s_vActiveConvoyPos = vector.Zero;
     static bool s_bConvoyMarkerVisible = false;
 
+    // Configuration override for Event Manager
+    ref TSE_ConvoyEventConfig m_ManagedConfig;
+    bool m_bManagedByEventManager = false;
+    
     override void OnPostInit(IEntity owner)
     {
         super.OnPostInit(owner);
@@ -41,7 +45,13 @@ class TSE_ConvoyEventManagerComponent : ScriptComponent
         m_ConvoyCrewIDs = new array<EntityID>();
         
         Print("[ConvoyEvent] OnPostInit: " + owner.GetName() + " | m_bEventActive=" + m_bEventActive);
-        GetGame().GetCallqueue().CallLater(WaitForGameModeInitialized, 1000, false);
+        
+        // Note: Event Manager will call StartEventFromManager instead of self-starting
+        // Legacy behavior kept for backward compatibility
+        if (!m_bManagedByEventManager)
+        {
+            GetGame().GetCallqueue().CallLater(WaitForGameModeInitialized, 1000, false);
+        }
     }
 
     void WaitForGameModeInitialized()
@@ -75,6 +85,31 @@ class TSE_ConvoyEventManagerComponent : ScriptComponent
         if (m_bEventActive)
             return;
         StartEvent();
+    }
+    
+    // New method called by Event Manager
+    void StartEventFromManager(TSE_ConvoyEventConfig config)
+    {
+        if (m_bEventActive) {
+            Print("[ConvoyEvent] StartEventFromManager: already active, skipping");
+            return;
+        }
+        
+        Print("[ConvoyEvent] Starting event from Event Manager");
+        m_bManagedByEventManager = true;
+        m_ManagedConfig = config;
+        
+        // Override interval from config
+        if (config)
+            m_iIntervalHours = config.m_iDurationHours;
+            
+        StartEvent();
+    }
+    
+    // Check if event is active (called by Event Manager)
+    bool IsEventActive()
+    {
+        return m_bEventActive;
     }
 
     // Registration methods for spawn and destination markers
@@ -804,7 +839,18 @@ class TSE_ConvoyEventManagerComponent : ScriptComponent
         }
         
         GetGame().GetCallqueue().Remove(MonitorEvent);
-        Print("[ConvoyEvent] EndEvent: scheduling next event in " + m_iIntervalHours + " hours");
-        GetGame().GetCallqueue().CallLater(TryStartEvent, m_iIntervalHours * 3600 * 1000, false);
+        
+        // Only schedule next event if not managed by Event Manager
+        if (!m_bManagedByEventManager)
+        {
+            Print("[ConvoyEvent] EndEvent: scheduling next event in " + m_iIntervalHours + " hours");
+            GetGame().GetCallqueue().CallLater(TryStartEvent, m_iIntervalHours * 3600 * 1000, false);
+        }
+        else
+        {
+            Print("[ConvoyEvent] EndEvent: managed by Event Manager, not scheduling next event");
+            m_bManagedByEventManager = false; // Reset for potential future legacy use
+            m_ManagedConfig = null;
+        }
     }
 } 

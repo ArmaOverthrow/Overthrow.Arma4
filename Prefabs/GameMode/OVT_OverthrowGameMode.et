@@ -378,8 +378,51 @@ OVT_OverthrowGameMode {
    }
   }
   TSE_ConvoyEventManagerComponent "{5EB46557DF2AA251}" {
-   m_iIntervalHours 24
+   m_iIntervalHours 12
    m_CargoConfig TSE_ConvoyCargoConfig "{5EB46557DF2AA252}" : "{5EB46557DF2AA250}Configs/Events/TSE_ConvoyCargoConfig.conf" {
+   }
+  }
+  TSE_EventManagerComponent "{65E92D98348C0001}" {
+   m_ManagerConfig TSE_EventManagerConfig "{65E92D98348C0002}" {
+    m_fEventCheckInterval 1800
+    m_iMaxSimultaneousEvents 3
+    m_iMinGlobalCooldown 4
+    m_bEventSystemEnabled 1
+    m_iInitialDelayMinutes 6
+    m_bDebugLogging 1
+   }
+   m_ConvoyConfig TSE_ConvoyEventConfig "{65E92D98348C0003}" {
+    m_sEventName "Convoy Event"
+    m_iSpawnChance 65
+    m_iMinIntervalHours 12
+    m_iMaxIntervalHours 32
+    m_iDurationHours 8
+    m_iPriority 2
+    m_bEnabled 1
+    m_bAllowSimultaneous 0
+    m_iMinGameTimeHours 0
+    m_iMaxGameTimeHours 999999
+    m_CargoConfig TSE_ConvoyCargoConfig "{5EB46557DF2AA252}" : "{5EB46557DF2AA250}Configs/Events/TSE_ConvoyCargoConfig.conf" {
+    }
+    m_iSuccessReward 500
+    m_fDestinationTolerance 50
+    m_fMarkerUpdateInterval 300
+   }
+   m_SmuglersConfig TSE_SmuglersEventConfig "{65E92D98348C0004}" {
+    m_sEventName "Smugglers Event"
+    m_iSpawnChance 35
+    m_iMinIntervalHours 12
+    m_iMaxIntervalHours 30
+    m_iDurationHours 12
+    m_iPriority 1
+    m_bEnabled 1
+    m_bAllowSimultaneous 1
+    m_iMinGameTimeHours 0
+    m_iMaxGameTimeHours 999999
+    m_CrateConfig TSE_SmuglerCrateContents "{65F105CA05FB61AA}" : "{2E4CFE9E28475067}Configs/Events/TSE_SmuglerCrateContents.conf" {
+    }
+    m_fCleanupRadius 100
+    m_fMonitoringInterval 900
    }
   }
   TSE_PlayerKillMortarEffect "{65E92D98348B7FFC}" {
