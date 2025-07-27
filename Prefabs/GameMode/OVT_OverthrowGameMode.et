@@ -373,7 +373,9 @@ OVT_OverthrowGameMode {
   }
   SCR_VotingManagerComponent "{5EE26402B4C7BB47}" {
   }
-  TSE_CivDriversManagerComponent "{65F48D5695F51F4C}" {
+  TSE_CivDriversManagerComponent "{65F6982892CE48E4}" {
+   m_VehicleConfig TSE_CarArrayConfig "{65F698123456ABCD}" : "{49D25A2BC48553B1}Configs/Events/TSE_CIvCarList.conf" {
+   }
   }
   TSE_PlayerKillMortarEffect "{65E92D98348B7FFC}" {
    m_fSpawnDelay 2

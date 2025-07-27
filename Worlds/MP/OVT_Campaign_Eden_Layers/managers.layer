@@ -269,6 +269,11 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode1 : "{4DC10DCB8BE06D32}Prefabs/GameMo
   SCR_RespawnTimerComponent "{59C30B0685EFBB8C}" {
    m_fRespawnTime 2
   }
+  TSE_CivDriversManagerComponent "{65F6982892CE48E4}" {
+   m_VehicleConfig TSE_CarArrayConfig "{65F6982BD1C03275}" : "{49D25A2BC48553B1}Configs/Events/TSE_CIvCarList.conf" {
+    m_fPeriodicSpawnIntervalHours 4
+   }
+  }
   RplComponent "{59724C8C935D8E18}" {
    Streamable Disabled
   }
@@ -289,10 +294,14 @@ OVT_OverthrowFactionManager OVT_OverthrowFactionManager : "{51EBC0CFD56DA130}Pre
   }
   SCR_Faction "{65F295C6A76B9BAF}" : "{70C44808045F1115}Configs/Factions/Smuglers.conf" {
   }
+  SCR_Faction "{65F4E0AE7D5243FA}" : "{2C14EC9D7092BF11}Configs/Factions/UK.conf" {
+  }
  }
  m_aOverthrowFactions {
   OVT_Faction "{65F4A9D10CB59ED7}" {
    m_sFactionKey "{70C44808045F1115}Configs/Factions/Smuglers.conf"
+  }
+  OVT_Faction "{65F4E0AE69B4509B}" : "{9FBE862FFD0DE7C3}Configs/Factions/UK_OverthrowData.conf" {
   }
  }
 }

@@ -1,6 +1,9 @@
 const string TSE_CIV_DRIVER_SPAWN_POINT_PREFAB = "{51545B43C45523B6}Prefabs/GameMode/TSE_CivDriversSpawn.et";
-const string TSE_CIV_DRIVER_VEHICLE_PREFAB = "{128253A267BE9424}Prefabs/Vehicles/Wheeled/S105/S105_randomized.et";
-const string TSE_CIV_GROUP_PREFAB = "{1AF5B9AE5CFD4434}Prefabs/Groups/INDFOR/Group_CIV.et";
+// Cache of prefabs loaded from config
+ref array<ResourceName> g_aCivVehiclePrefabs = {};
+
+// Delay before spawning civilian drivers after gamemode init (milliseconds)
+const int TSE_CIV_DRIVER_SPAWN_DELAY_MS = 240000; // 4 minutes
 
 [ComponentEditorProps(category: "GameScripted/CivDrivers", description: "Civilian Drivers Manager")]
 class TSE_CivDriversManagerComponentClass : ScriptComponentClass {}
@@ -16,16 +19,43 @@ class TSE_CivDriversManagerComponent : ScriptComponent
     // Зарегистрированные маркеры (через компонент на префабе)
     ref array<IEntity> m_RegisteredMarkers = new array<IEntity>();
     ref map<EntityID, IEntity> m_mVehicleDestinations = new map<EntityID, IEntity>();
-
+	// Direct config loading
+	[Attribute("", UIWidgets.Object, desc: "Civilian vehicle config")]
+	ref TSE_CarArrayConfig m_VehicleConfig;
+	const string TSE_CIV_GROUP_PREFAB = "{1AF5B9AE5CFD4434}Prefabs/Groups/INDFOR/Group_CIV.et";
+	
     //---------------------------------------------------------
     // Lifecycle
     //---------------------------------------------------------
     override void OnPostInit(IEntity owner)
     {
         super.OnPostInit(owner);
+
+        // Load vehicle prefabs once
+        if (g_aCivVehiclePrefabs.IsEmpty())
+        {
+            g_aCivVehiclePrefabs = new array<ResourceName>();
+            
+            // Load from direct config
+            if (m_VehicleConfig && m_VehicleConfig.m_aEntityPrefab)
+            {
+                foreach (TSE_CarArrayAndChance car : m_VehicleConfig.m_aEntityPrefab)
+                {
+                    if (car && car.m_sEntityPrefab != "")
+                    {
+                        g_aCivVehiclePrefabs.Insert(car.m_sEntityPrefab);
+                    }
+                }
+            }
+            
+            Print(string.Format("[CivDrivers] Loaded %1 civilian car prefabs", g_aCivVehiclePrefabs.Count()));
+        }
+
         // Ждём инициализации гейм-мода, после чего стартуем
         GetGame().GetCallqueue().CallLater(WaitForGameModeInitialized, 1000, false);
     }
+
+
 
     void WaitForGameModeInitialized()
     {
@@ -37,8 +67,46 @@ class TSE_CivDriversManagerComponent : ScriptComponent
             return;
         }
 
+        // Делаем отложенный старт, чтобы сервер успел полностью загрузиться
+        GetGame().GetCallqueue().CallLater(SpawnDriversDelayed, TSE_CIV_DRIVER_SPAWN_DELAY_MS, false);
+    }
+
+    // Отложенный запуск спавна и монитора прибытия
+    void SpawnDriversDelayed()
+    {
         SpawnAllDrivers();
         StartArrivalMonitor();
+        StartPeriodicSpawn();
+    }
+    
+    // Запуск периодического спавна для поддержания дорожного движения
+    void StartPeriodicSpawn()
+    {
+        if (!m_VehicleConfig) return;
+        
+        // Получаем интервал из конфига (в часах) и конвертируем в миллисекунды
+        float intervalHours = m_VehicleConfig.m_fPeriodicSpawnIntervalHours;
+        if (intervalHours <= 0) intervalHours = 1.0; // Default fallback
+        
+        int intervalMs = Math.Round(intervalHours * 3600000); // часы -> миллисекунды
+        Print(string.Format("[CivDrivers] Setting periodic spawn interval: %1 hours (%2 ms)", intervalHours, intervalMs));
+        
+        GetGame().GetCallqueue().CallLater(PeriodicSpawn, intervalMs, true);
+    }
+    
+    // Периодический спавн одного водителя на случайной точке
+    void PeriodicSpawn()
+    {
+        if (m_SpawnMarkers.IsEmpty()) return;
+        
+        // Выбираем случайную точку спавна
+        int randomIndex = Math.RandomInt(0, m_SpawnMarkers.Count());
+        IEntity randomMarker = m_SpawnMarkers[randomIndex];
+        if (randomMarker)
+        {
+            SpawnDriverAt(randomMarker.GetOrigin());
+            Print("[CivDrivers] Periodic spawn: spawned driver for traffic simulation");
+        }
     }
 
     //---------------------------------------------------------
@@ -84,9 +152,21 @@ class TSE_CivDriversManagerComponent : ScriptComponent
     void SpawnDriverAt(vector pos)
     {
         //--------------------------------------------------
-        // Спавним машину
+        // Выбираем случайный префаб машины из списка
         //--------------------------------------------------
-        IEntity vehicle = OVT_Global.SpawnEntityPrefab(TSE_CIV_DRIVER_VEHICLE_PREFAB, pos);
+        ResourceName selectedPrefab = "";
+        if (g_aCivVehiclePrefabs && g_aCivVehiclePrefabs.Count() > 0)
+        {
+            int idx = s_AIRandomGenerator.RandInt(0, g_aCivVehiclePrefabs.Count());
+            selectedPrefab = g_aCivVehiclePrefabs[idx];
+        }
+        else
+        {
+            Print("[CivDrivers] Vehicle list config empty – fallback to default prefab");
+            selectedPrefab = "{128253A267BE9424}Prefabs/Vehicles/Wheeled/S105/S105_randomized.et";
+        }
+
+        IEntity vehicle = OVT_Global.SpawnEntityPrefab(selectedPrefab, pos);
         if (!vehicle)
         {
             Print("[CivDrivers] Failed to spawn vehicle at " + pos);
@@ -116,6 +196,8 @@ class TSE_CivDriversManagerComponent : ScriptComponent
         // Откладываем посадку до инициализации группы
         m_mPendingCrewAssignments.Insert(aiGroup.GetID(), vehicle.GetID());
         aiGroup.GetOnInit().Insert(OnCrewGroupInitialized);
+
+        // Note: Specific AIGroup policies not available in this env; skipping.
     }
 
     //---------------------------------------------------------
@@ -242,6 +324,10 @@ class TSE_CivDriversManagerComponent : ScriptComponent
     //---------------------------------------------------------
     void OnDestroy()
     {
+        // Останавливаем периодические таймеры
+        GetGame().GetCallqueue().Remove(PeriodicSpawn);
+        GetGame().GetCallqueue().Remove(CheckArrivals);
+        
         // Удаляем созданные сущности
         foreach (EntityID id : m_SpawnedEntities)
         {

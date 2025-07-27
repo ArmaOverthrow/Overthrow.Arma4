@@ -20,7 +20,7 @@ class TSE_SmuglersEventManagerComponent : ScriptComponent
 
     static const string CRATE_PREFAB = "{326E60F7A7358EDA}Prefabs/Props/Crates/Smuglers_Crate.et";
     static const string GUARD_GROUP_PREFAB = "{65F295CBD0257A73}Prefabs/Groups/OPFOR/Smuglers/Group_Smuglers_LightFireTeam.et";
-    static const string VEHICLE_PREFAB = "{22B327C6752EC4D4}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469_PKM_FIA.et";
+    static const string VEHICLE_PREFAB = "{442939C9617DF228}Prefabs/Vehicles/Wheeled/BRDM2/BRDM2_FIA.et";
     static const string CREW_GROUP_PREFAB = "{65F295CB4DD807B9}Prefabs/Groups/OPFOR/Smuglers/Group_Smuglers_Crew.et";
 
     float m_fEventStartHour;

@@ -1,6 +1,6 @@
 $grp OVT_VehiclePatrolSpawn : "{51545B43C45523B6}Prefabs/GameMode/TSE_CivDriversSpawn.et" {
  {
-  coords 4600.229 19.109 10678.802
+  coords 4681.114 21.067 10746.74
   angleY -123.9
  }
  {
@@ -10,5 +10,27 @@ $grp OVT_VehiclePatrolSpawn : "{51545B43C45523B6}Prefabs/GameMode/TSE_CivDrivers
  {
   coords 9693.342 23.309 1734.438
   angleY -122.8
+ }
+ {
+  coords 4539.267 14.871 9462.25
+  angleY -179.5
+ }
+ {
+  coords 4714.145 162.074 6977.969
+  angleX -1.82
+  angleY -147.467
+  angleZ -1.759
+ }
+ {
+  coords 4968.194 2.594 3869.936
+  angleY 0
+ }
+ {
+  coords 7554.244 83.143 5496.241
+  angleY -301.3
+ }
+ {
+  coords 7335.223 138.933 2237.532
+  angleY -82.3
  }
 }
