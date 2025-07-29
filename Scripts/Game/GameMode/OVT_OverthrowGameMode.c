@@ -556,7 +556,17 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			Print("[Overthrow] Player spawn prefab is missing OVT_PlayerWantedComponent!");
 		}else{
 			wanted.SetWantedLevel(0);
+			// Temporarily disable wanted system to prevent immediate re-application
+			wanted.DisableWantedSystem();
+			// Re-enable after 5 seconds to give player time to orient themselves
+			GetGame().GetCallqueue().CallLater(ReenableWantedSystem, 5000, false, wanted);
 		}		
+	}
+	
+	protected void ReenableWantedSystem(OVT_PlayerWantedComponent wanted)
+	{
+		if(wanted)
+			wanted.EnableWantedSystem();
 	}
 
 	//------------------------------------------------------------------------------------------------
