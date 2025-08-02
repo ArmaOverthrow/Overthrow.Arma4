@@ -210,11 +210,11 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 		FactionManager mgr = GetGame().GetFactionManager();
 		if (!mgr) return;
 		
-		Faction civ = mgr.GetFactionByKey("CIV");
-		if (!civ) return;
+		Faction playerFaction = mgr.GetFactionByKey(OVT_Global.GetConfig().GetPlayerFaction().GetFactionKey());
+		if (!playerFaction) return;
 		
 		// This properly triggers faction manager updates and replication
-		factionComponent.RequestFaction(civ);
+		factionComponent.RequestFaction(playerFaction);
 		
 		// Force client-side faction mapping via RPC as backup
 		if (Replication.IsServer())
@@ -222,7 +222,7 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 			SCR_FactionManager factionManager = SCR_FactionManager.Cast(mgr);
 			if (factionManager)
 			{
-				int factionIndex = factionManager.GetFactionIndex(civ);
+				int factionIndex = factionManager.GetFactionIndex(playerFaction);
 				RPC_ForceClientFactionMapping(playerId, factionIndex);
 				Rpc(RPC_ForceClientFactionMapping, playerId, factionIndex);
 			}
@@ -383,7 +383,7 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 		super.HandoverToPlayer(playerId, character);
 		
 		// Schedule group creation after handover completes
-		GetGame().GetCallqueue().CallLater(CreateAndJoinGroup, 1000, false, playerId);
+		GetGame().GetCallqueue().CallLater(CreateAndJoinGroup, 3000, false, playerId);
 	}
 	
 	//------------------------------------------------------------------------------------------------

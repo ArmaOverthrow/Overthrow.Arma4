@@ -313,6 +313,10 @@ $grp SCR_DestructibleBuildingEntity : "{DE43119351D125AC}Prefabs/Structures/Hous
   coords 234.776 0.718 58.224
   angleY -177.67
  }
+ {
+  coords 232.689 0 27.62
+  angleY -177.67
+ }
 }
 Vehicle OverthrowMobileFOB1 : "{E6A31A5A6EA0AF04}Prefabs/Vehicles/Wheeled/M923A1/OverthrowMobileFOB.et" {
  coords 182.016 1 40.364

@@ -103,10 +103,10 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 	int m_iResources;
 	float m_iThreat;
-	ref array<ref OVT_BaseData> m_Bases;
-	ref array<ref OVT_RadioTowerData> m_RadioTowers;
+	ref array<ref OVT_BaseData> m_Bases = new array<ref OVT_BaseData>;
+	ref array<ref OVT_RadioTowerData> m_RadioTowers = new array<ref OVT_RadioTowerData>;
 
-	ref array<ref OVT_TargetData> m_aKnownTargets;
+	ref array<ref OVT_TargetData> m_aKnownTargets = new array<ref OVT_TargetData>;
 
 	protected int m_iOccupyingFactionIndex;
 	protected int m_iPlayerFactionIndex;
@@ -142,13 +142,6 @@ class OVT_OccupyingFactionManager: OVT_Component
 		}
 
 		return s_Instance;
-	}
-
-	void OVT_OccupyingFactionManager(IEntityComponentSource src, IEntity ent, IEntity parent)
-	{
-		m_Bases = new array<ref OVT_BaseData>;
-		m_RadioTowers = new array<ref OVT_RadioTowerData>;
-		m_aKnownTargets = new array<ref OVT_TargetData>;
 	}
 
 	void Init(IEntity owner)

@@ -36,6 +36,8 @@ class OVT_TownControllerComponent: OVT_Component
 	protected bool m_bCiviliansSpawned;
 
 	protected ref array<ref EntityID> m_aCivilians;
+
+	protected ref array<ref EntityID> m_Houses;
 	
 #ifdef WORKBENCH
 	protected ref Shape m_aRangeShape;
@@ -194,6 +196,40 @@ class OVT_TownControllerComponent: OVT_Component
 		}
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! Gets a random house entity with a shop component set to gun dealer
+	//! \param town The OVT_TownData instance of the town
+	//! \return A random house IEntity within the town, or null if no houses found
+	IEntity GetRandomGunDealerHouse()
+	{
+		m_Houses = new array<ref EntityID>;		
+		
+		GetGame().GetWorld().QueryEntitiesBySphere(m_Town.location, m_iTownRange, null, FilterGunDealerEntities, EQueryEntitiesFlags.STATIC);
+		
+		if(m_Houses.Count() > 0)
+		{
+			return GetGame().GetWorld().FindEntityByID(m_Houses.GetRandomElement());
+		}else{
+			return null;
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Query filter function used to find gun dealer locations
+	//! Checks if an entity is a valid, non-military/industrial/ruined house building.
+	//! \param entity The entity to filter
+	//! \return true if the entity is a valid house for population/ownership, false otherwise
+	protected bool FilterGunDealerEntities(IEntity entity) 
+	{
+		OVT_ShopComponent shop = OVT_ShopComponent.Cast(entity.FindComponent(OVT_ShopComponent));
+		if(shop && shop.m_ShopType == OVT_ShopType.SHOP_GUNDEALER)
+		{
+			m_Houses.Insert(entity.GetID());
+			return false;
+		}
+		return false;
+	}
+
 	protected void SpawnGunDealer()
 	{
 		vector spawnPosition;
@@ -202,13 +238,35 @@ class OVT_TownControllerComponent: OVT_Component
 		{
 			spawnPosition = m_Town.gunDealerPosition;
 		}else{
-			IEntity house = m_TownManager.GetRandomHouseInTown(m_Town);
-			spawnPosition = house.GetOrigin();
+			IEntity entity = GetRandomGunDealerHouse();
+			if(entity)
+			{
+				OVT_SpawnPointComponent spawnPoint = OVT_SpawnPointComponent.Cast(entity.FindComponent(OVT_SpawnPointComponent));
+				if(spawnPoint)
+				{
+					spawnPosition = spawnPoint.GetSpawnPoint();
+				}else{
+					spawnPosition = OVT_Global.FindSafeSpawnPosition(entity.GetOrigin());
+				}
+			}else{
+				IEntity house = m_TownManager.GetRandomUnownedHouseInTown(m_Town);
+				if(house)
+				{
+					OVT_SpawnPointComponent spawnPoint = OVT_SpawnPointComponent.Cast(house.FindComponent(OVT_SpawnPointComponent));
+					if(spawnPoint)
+					{
+						spawnPosition = spawnPoint.GetSpawnPoint();
+					}else{
+						spawnPosition = OVT_Global.FindSafeSpawnPosition(house.GetOrigin());
+					}
+				}else{
+					Print("[Overthrow] No gun dealer locations found in town: " + m_sName);
+					return;
+				}
+			}			
 		}
 
 		BaseWorld world = GetGame().GetWorld();
-
-		spawnPosition = OVT_Global.FindSafeSpawnPosition(spawnPosition, "-0.5 0 -0.5", "0.5 2 0.5", true);
 
 		IEntity dealer = OVT_Global.SpawnEntityPrefab(OVT_Global.GetConfig().m_pGunDealerPrefab, spawnPosition);
 

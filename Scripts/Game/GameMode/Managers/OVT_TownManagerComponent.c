@@ -204,28 +204,6 @@ class OVT_TownManagerComponent: OVT_Component
 		}
 	}
 	
-	//------------------------------------------------------------------------------------------------
-	//! Streams the current town modifiers (stability and support) to a specific player.
-	//! \param playerId The ID of the player to stream modifiers to
-	void StreamTownModifiers(int playerId)
-	{
-		foreach(int townID, OVT_TownData town : m_Towns)
-		{
-			array<int> stability = new array<int>;
-			foreach(OVT_TownModifierData data : town.stabilityModifiers)
-			{
-				if(data) stability.Insert(data.id);
-			}
-			array<int> support = new array<int>;
-			foreach(OVT_TownModifierData data : town.supportModifiers)
-			{
-				if(data) support.Insert(data.id);
-			}
-			
-			if(support.Count() > 0 || stability.Count() > 0)			
-				Rpc(RpcDo_StreamModifiers, playerId, townID, stability, support);
-		}
-	}
 
 	//------------------------------------------------------------------------------------------------
 	//! Gets a random town from the list of managed towns.
@@ -696,7 +674,7 @@ class OVT_TownManagerComponent: OVT_Component
 	//! Gets a random, unowned house entity from any town.
 	//! Tries multiple times if the first attempt fails or finds an owned house.
 	//! \return A random house IEntity or null if none found after attempts
-	IEntity GetRandomHouse()
+	IEntity GetRandomUnownedHouse()
 	{
 		m_Houses = new array<ref EntityID>;
 		OVT_TownData town;
@@ -707,10 +685,9 @@ class OVT_TownManagerComponent: OVT_Component
 		{
 			i++;
 			town = m_Towns.GetRandomElement();
-			GetGame().GetWorld().QueryEntitiesBySphere(town.location, m_iCityRange, CheckHouseAddToArray, FilterHouseEntities, EQueryEntitiesFlags.STATIC);
+			GetGame().GetWorld().QueryEntitiesBySphere(town.location, m_iCityRange, CheckHouseAddToArray, FilterUnownedHouseEntities, EQueryEntitiesFlags.STATIC);
 			if(m_Houses.Count() == 0) continue;
-			house = GetGame().GetWorld().FindEntityByID(m_Houses.GetRandomElement());
-			if(m_RealEstate.IsOwned(house.GetID())) house = null;			
+			house = GetGame().GetWorld().FindEntityByID(m_Houses.GetRandomElement());		
 		}
 				
 		return house;
@@ -746,11 +723,11 @@ class OVT_TownManagerComponent: OVT_Component
 	//! Gets a random house entity within the bounds of a specific town.
 	//! \param town The OVT_TownData instance of the town
 	//! \return A random house IEntity within the town, or null if no houses found
-	IEntity GetRandomHouseInTown(OVT_TownData town)
+	IEntity GetRandomUnownedHouseInTown(OVT_TownData town)
 	{
 		m_Houses = new array<ref EntityID>;		
 		
-		GetGame().GetWorld().QueryEntitiesBySphere(town.location, m_iTownRange, CheckHouseAddToArray, FilterHouseEntities, EQueryEntitiesFlags.STATIC);
+		GetGame().GetWorld().QueryEntitiesBySphere(town.location, m_iTownRange, CheckHouseAddToArray, FilterUnownedHouseEntities, EQueryEntitiesFlags.STATIC);
 		
 		return GetGame().GetWorld().FindEntityByID(m_Houses.GetRandomElement());
 	}
@@ -1194,29 +1171,20 @@ class OVT_TownManagerComponent: OVT_Component
 	protected bool FilterHouseEntities(IEntity entity) 
 	{
 		if(entity.ClassName() == "SCR_DestructibleBuildingEntity"){
-			ResourceName prefab = entity.GetPrefabData().GetPrefabName();
-			foreach(string s : OVT_Global.GetConfig().m_aStartingHouseFilters)
-			{
-				if(prefab.IndexOf(s) > -1) return false;
-			}	
-			
-			VObject mesh = entity.GetVObject();
-			
-			if(mesh){
-				string res = mesh.GetResourceName();
-				if(res.IndexOf("/Military/") > -1) return false;
-				if(res.IndexOf("/Industrial/") > -1) return false;
-				if(res.IndexOf("/Recreation/") > -1) return false;
-				
-				if(res.IndexOf("/Houses/") > -1){
-					if(res.IndexOf("_ruin") > -1) return false;
-					if(res.IndexOf("/Shed/") > -1) return false;
-					if(res.IndexOf("/Garage/") > -1) return false;
-					if(res.IndexOf("/HouseAddon/") > -1) return false;
-					return true;
-				}
-					
-			}
+			return m_RealEstate.BuildingIsOwnable(entity);
+		}
+		return false;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Query filter function used by house-finding and population calculation methods.
+	//! Checks if an entity is a valid, non-military/industrial/ruined house building.
+	//! \param entity The entity to filter
+	//! \return true if the entity is a valid house for population/ownership, false otherwise
+	protected bool FilterUnownedHouseEntities(IEntity entity) 
+	{
+		if(entity.ClassName() == "SCR_DestructibleBuildingEntity"){
+			return m_RealEstate.BuildingIsOwnable(entity) && !m_RealEstate.IsOwned(entity.GetID());
 		}
 		return false;
 	}
@@ -1245,6 +1213,26 @@ class OVT_TownManagerComponent: OVT_Component
 			writer.WriteInt(town.stability);
 			writer.WriteInt(town.support);
 			writer.WriteInt(town.faction);
+			
+			// Write stability modifiers
+			int stabilityModCount = town.stabilityModifiers.Count();
+			writer.WriteInt(stabilityModCount);
+			for(int j=0; j<stabilityModCount; j++)
+			{
+				OVT_TownModifierData modData = town.stabilityModifiers[j];
+				writer.WriteInt(modData.id);
+				writer.WriteInt(modData.timer);
+			}
+			
+			// Write support modifiers
+			int supportModCount = town.supportModifiers.Count();
+			writer.WriteInt(supportModCount);
+			for(int j=0; j<supportModCount; j++)
+			{
+				OVT_TownModifierData modData = town.supportModifiers[j];
+				writer.WriteInt(modData.id);
+				writer.WriteInt(modData.timer);
+			}
 		}
 		
 		return true;
@@ -1274,6 +1262,30 @@ class OVT_TownManagerComponent: OVT_Component
 			if (!reader.ReadInt(town.stability)) return false;		
 			if (!reader.ReadInt(town.support)) return false;		
 			if (!reader.ReadInt(town.faction)) return false;
+			
+			// Read stability modifiers
+			int stabilityModCount;
+			if (!reader.ReadInt(stabilityModCount)) return false;
+			town.stabilityModifiers.Clear();
+			for(int j=0; j<stabilityModCount; j++)
+			{
+				OVT_TownModifierData modData = new OVT_TownModifierData();
+				if (!reader.ReadInt(modData.id)) return false;
+				if (!reader.ReadInt(modData.timer)) return false;
+				town.stabilityModifiers.Insert(modData);
+			}
+			
+			// Read support modifiers
+			int supportModCount;
+			if (!reader.ReadInt(supportModCount)) return false;
+			town.supportModifiers.Clear();
+			for(int j=0; j<supportModCount; j++)
+			{
+				OVT_TownModifierData modData = new OVT_TownModifierData();
+				if (!reader.ReadInt(modData.id)) return false;
+				if (!reader.ReadInt(modData.timer)) return false;
+				town.supportModifiers.Insert(modData);
+			}
 		}
 		return true;
 	}
@@ -1451,36 +1463,6 @@ class OVT_TownManagerComponent: OVT_Component
 		}
 	}
 	
-	//------------------------------------------------------------------------------------------------
-	//! Targeted RPC (effectively broadcast, but filtered locally) to stream initial modifiers to a joining player.
-	//! \param playerId The ID of the player the modifiers are intended for
-	//! \param townId The ID of the town whose modifiers are being streamed
-	//! \param stability Array of stability modifier IDs active in the town
-	//! \param support Array of support modifier IDs active in the town
-	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_StreamModifiers(int playerId, int townId, array<int> stability, array<int> support)
-	{
-		int localId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
-		if(playerId != localId) return;
-				
-		OVT_TownData town = m_Towns[townId];
-		foreach(int id : stability)
-		{
-			OVT_TownModifierData data = new OVT_TownModifierData;
-			OVT_ModifierConfig mod = GetModifierSystem(OVT_TownStabilityModifierSystem).m_Config.m_aModifiers[id];
-			data.id = id;
-			data.timer = mod.timeout;
-			town.stabilityModifiers.Insert(data);
-		}
-		foreach(int id : support)
-		{
-			OVT_TownModifierData data = new OVT_TownModifierData;
-			OVT_ModifierConfig mod = GetModifierSystem(OVT_TownSupportModifierSystem).m_Config.m_aModifiers[id];
-			data.id = id;
-			data.timer = mod.timeout;
-			town.supportModifiers.Insert(data);
-		}
-	}
 	
 	//------------------------------------------------------------------------------------------------
 	//! Broadcast RPC to set the controlling faction of a town on all clients.

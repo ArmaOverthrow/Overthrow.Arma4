@@ -98,6 +98,21 @@ class OVT_NotificationManagerComponent: OVT_Component
 	//! \param[in] param3 Optional third parameter for localization.
 	void SendTextNotification(string tag, int playerId = -1, string param1 = "", string param2="", string param3="")
 	{		
+		// Check if this is for the local player only to avoid unnecessary RPC
+		if(playerId > -1)
+		{
+			IEntity playerEntity = SCR_PlayerController.GetLocalControlledEntity();
+			int localPlayerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(playerEntity);
+			
+			if(playerId == localPlayerId)
+			{
+				// Local player only - call directly without RPC
+				RpcDo_RcvTextNotification(tag, playerId, param1, param2, param3);
+				return;
+			}
+		}
+		
+		// Broadcast to all clients or send to server for processing
 		Rpc(RpcDo_RcvTextNotification, tag, playerId, param1, param2, param3);
 		if(RplSession.Mode() != RplMode.Dedicated)
 		{

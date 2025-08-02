@@ -9,3 +9,4 @@ claude.bat
 claude.sh
 .saves/
 .mcp.json
+.tmp/

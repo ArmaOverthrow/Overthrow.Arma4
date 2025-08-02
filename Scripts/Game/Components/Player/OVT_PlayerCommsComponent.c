@@ -81,6 +81,8 @@ class OVT_PlayerCommsComponent: OVT_Component
 	{
 		OVT_OccupyingFactionManager of = OVT_Global.GetOccupyingFaction();
 		OVT_BaseData data = of.GetNearestBase(loc);
+		if(!data) return;
+		
 		OVT_BaseControllerComponent base = of.GetBase(data.entId);
 		
 		// Determine the winning faction based on current control
@@ -208,6 +210,13 @@ class OVT_PlayerCommsComponent: OVT_Component
 			string playerUid = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 			playerOwner.SetPlayerOwner(playerUid);
 			playerOwner.SetLocked(false);
+			
+			// Register vehicle for despawn/respawn management
+			OVT_VehicleManagerComponent vehicleManager = OVT_Global.GetVehicles();
+			if (vehicleManager && Vehicle.Cast(vehicle))
+			{
+				vehicleManager.RegisterPlayerVehicle(playerUid, vehicle);
+			}
 		}
 	}
 	
@@ -333,8 +342,8 @@ class OVT_PlayerCommsComponent: OVT_Component
 		ResourceName itemResource = economy.GetResource(id);
 		if(!inventory.CanInsertResource(itemResource, EStoragePurpose.PURPOSE_DEPOSIT))
 		{
-			SendBuyFailureNotification(playerId, "PurchaseFailedInventoryFull");
-			return;
+			// For now, we'll try to proceed anyway - the item might be equippable
+			// If it truly can't be handled, the purchase will fail gracefully below
 		}
 		
 		// Attempt to spawn and insert items one by one until inventory is full
@@ -342,13 +351,6 @@ class OVT_PlayerCommsComponent: OVT_Component
 		
 		for(int i = 0; i < num; i++)
 		{
-			// Check if inventory can fit another item before spawning
-			if(!inventory.CanInsertResource(itemResource, EStoragePurpose.PURPOSE_DEPOSIT))
-			{
-				// Inventory full, stop here
-				break;
-			}
-			
 			// Try to spawn the item
 			IEntity spawnedItem = SpawnItemForPlayer(itemResource, player.GetOrigin());
 			if(!spawnedItem)
@@ -358,13 +360,44 @@ class OVT_PlayerCommsComponent: OVT_Component
 			}
 			
 			// Try to insert into player inventory
+			bool itemHandled = false;
 			if(inventory.TryInsertItem(spawnedItem))
 			{
 				successfulPurchases++;
+				itemHandled = true;
 			}
 			else
 			{
-				// Failed to insert - clean up and stop
+				// If can't insert in inventory, try to equip directly
+				CharacterControllerComponent charController = CharacterControllerComponent.Cast(player.FindComponent(CharacterControllerComponent));
+				if(charController)
+				{
+					// Check if it's a weapon
+					BaseWeaponComponent weaponComp = BaseWeaponComponent.Cast(spawnedItem.FindComponent(BaseWeaponComponent));
+					if(weaponComp && weaponComp.CanBeEquipped(charController) == ECanBeEquippedResult.OK)
+					{
+						// Try to equip as weapon
+						if(charController.TryEquipRightHandItem(spawnedItem, EEquipItemType.EEquipTypeWeapon))
+						{
+							successfulPurchases++;
+							itemHandled = true;
+						}
+					}
+					else
+					{
+						// Try to equip as generic item (gadgets, etc)
+						if(charController.TryEquipRightHandItem(spawnedItem, EEquipItemType.EEquipTypeGeneric))
+						{
+							successfulPurchases++;
+							itemHandled = true;
+						}
+					}
+				}
+			}
+			
+			if(!itemHandled)
+			{
+				// Failed to insert or equip - clean up and stop
 				SCR_EntityHelper.DeleteEntityAndChildren(spawnedItem);
 				break;
 			}
@@ -454,6 +487,7 @@ class OVT_PlayerCommsComponent: OVT_Component
 		{
 			cost = economy.GetPrice(id);
 			cost = cost * OVT_Global.GetConfig().m_Difficulty.procurementMultiplier;
+			cost = cost * OVT_Global.GetConfig().m_Difficulty.vehiclePriceMultiplier;
 		}
 		if(!economy.PlayerHasMoney(playerPersId, cost)) return;
 		

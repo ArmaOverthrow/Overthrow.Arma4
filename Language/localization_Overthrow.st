@@ -3468,6 +3468,13 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{65D6231551A70A67}" {
+   Id "OVT-Msg-HasPlacedCamp"
+   Target_en_us "%1 has placed a camp"
+   Modified 1708532612
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59A49A822C192F63}" {
    Id "OVT-Msg-HasPlacedFOB"
    Target_en_us "%1 has placed a new FOB near %2. It is now available for fast travel and more"

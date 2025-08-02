@@ -110,6 +110,12 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	void NewStartingTown()
 	{
 		int attempts = 0;
+		
+		if(!m_Town)
+		{
+			m_Town = OVT_Global.GetTowns();
+		}
+		
 		while(attempts < 50)
 		{
 			attempts++;
