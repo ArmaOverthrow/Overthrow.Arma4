@@ -1,14 +1,9 @@
 //------------------------------------------------------------------------------------------------
-class OVT_RespawnSystemComponentClass : EPF_BaseRespawnSystemComponentClass
-{
-};
-
-//------------------------------------------------------------------------------------------------
 //! Handles the spawning and respawning logic for players within the Overthrow game mode.
 //! Extends the base EPF respawn system to integrate with Overthrow-specific player data and spawning rules.
 //! Should be attached to the OVT_OverthrowGameMode entity.
 [ComponentEditorProps(icon: HYBRID_COMPONENT_ICON)]
-class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
+class OVT_RespawnSystemComponent : EPF_BaseSpawnLogic
 {	
 	protected OVT_OverthrowGameMode m_Overthrow;
 	protected ref array<IEntity> m_FoundBases = {};
@@ -34,7 +29,7 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 	//! Called when the player's unique ID becomes available. Prepares the player in the game mode.
 	//! Retries if the game mode is not initialized or the UID is not yet available.
 	//! \param playerId ID of the player whose UID is now available.
-	protected override void OnUidAvailable(int playerId)
+	protected override void DoSpawn_S(int playerId)
 	{
 		OVT_OverthrowGameMode mode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
 		if(!mode.IsInitialized())
@@ -55,7 +50,7 @@ class OVT_RespawnSystemComponent : EPF_BaseRespawnSystemComponent
 		
 		mode.PreparePlayer(playerId, playerUid);
 		
-		super.OnUidAvailable(playerId);		
+		super.DoSpawn_S(playerId);		
 	}
 	
 	//------------------------------------------------------------------------------------------------
