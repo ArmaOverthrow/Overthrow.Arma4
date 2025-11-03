@@ -368,7 +368,7 @@ class OVT_PlayerCommsComponent: OVT_Component
 			}
 			else
 			{
-				// If can't insert in inventory, try to equip directly
+				// If can't insert in inventory, try to equip directly as weapon
 				CharacterControllerComponent charController = CharacterControllerComponent.Cast(player.FindComponent(CharacterControllerComponent));
 				if(charController)
 				{
@@ -378,15 +378,6 @@ class OVT_PlayerCommsComponent: OVT_Component
 					{
 						// Try to equip as weapon
 						if(charController.TryEquipRightHandItem(spawnedItem, EEquipItemType.EEquipTypeWeapon))
-						{
-							successfulPurchases++;
-							itemHandled = true;
-						}
-					}
-					else
-					{
-						// Try to equip as generic item (gadgets, etc)
-						if(charController.TryEquipRightHandItem(spawnedItem, EEquipItemType.EEquipTypeGeneric))
 						{
 							successfulPurchases++;
 							itemHandled = true;

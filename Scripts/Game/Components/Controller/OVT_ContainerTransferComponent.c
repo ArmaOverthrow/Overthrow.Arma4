@@ -5,32 +5,28 @@ class OVT_ContainerTransferComponentClass : OVT_BaseServerProgressComponentClass
 class OVT_ContainerTransferCallback : OVT_StorageProgressCallback
 {
 	protected OVT_ContainerTransferComponent m_Component;
-	
+
 	void OVT_ContainerTransferCallback(OVT_ContainerTransferComponent component)
 	{
 		m_Component = component;
 	}
-	
+
 	override void OnProgressUpdate(float progress, int currentItem, int totalItems, string operation)
 	{
 		if (m_Component && Replication.IsServer())
-			m_Component.Rpc(m_Component.RpcDo_UpdateProgress, progress, currentItem, totalItems, operation);
+			m_Component.SendProgressUpdate(progress, currentItem, totalItems, operation);
 	}
-	
+
 	override void OnComplete(int itemsTransferred, int itemsSkipped)
 	{
-		if (m_Component && Replication.IsServer()){
-			m_Component.RpcDo_OperationComplete(itemsTransferred, itemsSkipped);
-			m_Component.Rpc(m_Component.RpcDo_OperationComplete, itemsTransferred, itemsSkipped);
-		}
+		if (m_Component && Replication.IsServer())
+			m_Component.SendOperationComplete(itemsTransferred, itemsSkipped);
 	}
-	
+
 	override void OnError(string errorMessage)
 	{
-		if (m_Component && Replication.IsServer()){
-			m_Component.RpcDo_OperationError(errorMessage);
-			m_Component.Rpc(m_Component.RpcDo_OperationError, errorMessage);
-		}
+		if (m_Component && Replication.IsServer())
+			m_Component.SendOperationError(errorMessage);
 	}
 }
 
@@ -327,5 +323,28 @@ class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 	bool IsAvailable()
 	{
 		return !m_bIsRunning;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Internal method to send progress update RPC (called from callback)
+	void SendProgressUpdate(float progress, int currentItem, int totalItems, string operation)
+	{
+		Rpc(RpcDo_UpdateProgress, progress, currentItem, totalItems, operation);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Internal method to send operation complete RPC (called from callback)
+	void SendOperationComplete(int itemsTransferred, int itemsSkipped)
+	{
+		RpcDo_OperationComplete(itemsTransferred, itemsSkipped);
+		Rpc(RpcDo_OperationComplete, itemsTransferred, itemsSkipped);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Internal method to send operation error RPC (called from callback)
+	void SendOperationError(string errorMessage)
+	{
+		RpcDo_OperationError(errorMessage);
+		Rpc(RpcDo_OperationError, errorMessage);
 	}
 }

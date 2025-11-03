@@ -61,19 +61,18 @@ class OVT_PersistentRespawnLogic : SCR_SpawnLogic
 	private void DoInitialSpawn(int playerId)
 	{
 		// Probe reconnection component first
-		IEntity returnedEntity;
-		if (ResolveReconnection(playerId, returnedEntity))
+		if (ResolveReconnection(playerId))
 		{
 			// User was reconnected, their entity was returned
 			return;
-		}	
-		
+		}
+
 		// Spawn player the usual way, if no entity has been given yet
 		PlayerController playerController = GetGame().GetPlayerManager().GetPlayerController(playerId);
 		IEntity controlledEntity = playerController.GetControlledEntity();
 		if (controlledEntity)
 			return;
-		
+
 		Spawn(playerId);
 	}
 

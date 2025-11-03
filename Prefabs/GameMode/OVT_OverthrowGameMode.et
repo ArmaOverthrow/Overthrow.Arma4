@@ -213,7 +213,8 @@ OVT_OverthrowGameMode {
    m_pMobileFOBDeployedPrefab "{ABF741C3184846E9}Prefabs/Vehicles/Wheeled/M923A1/OverthrowMobileFOBDeployed.et"
   }
   OVT_RespawnSystemComponent "{5DEA8B45ED838B55}" {
-   m_rDefaultPrefab "{3A99A99836F6B3DC}Prefabs/Characters/Factions/INDFOR/FIA/Character_Player.et"
+   m_SpawnLogic OVT_SpawnLogic "{66C49992B43FF6C1}" {
+   }
   }
   OVT_SkillManagerComponent "{5D90EE077169A8A2}" {
    m_Skills OVT_SkillsConfig "{5D91035951D22CD1}" : "{F7740B6A7C4F6FB7}Configs/Player/overthrowSkills.conf" {
@@ -350,14 +351,13 @@ OVT_OverthrowGameMode {
    Streamable Disabled
   }
  }
- Flags 0
+ Flags 0 0x3
  coords 208.286 1.001 116.919
+ PlayerControllerPrefab "{FA2D004EF1C217BB}Prefabs/Characters/Core/OVT_PlayerController.et"
  m_bAutoPlayerRespawn 0
- m_StartGameUIContext OVT_StartGameContext "{599D315949D3D5D0}" {
+ m_StartGameUIContext OVT_StartGameContext "{66C60C8B41B3566C}" {
   m_Layout "{4A7A8EED9F6F2A92}UI/Layouts/Menu/StartGameMenu.layout"
   m_sContextName "OverthrowStartContext"
-  m_bOpenActionCloses 0
-  m_bHideHUDOnShow 0
  }
  m_StartCameraPrefab "{E8A19A7167535505}Prefabs/GameMode/OVT_StartCamera.et"
 }

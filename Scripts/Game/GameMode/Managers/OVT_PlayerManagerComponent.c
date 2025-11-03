@@ -312,7 +312,7 @@ class OVT_PlayerManagerComponent: OVT_Component
 			OVT_OverthrowController overthrowController = OVT_OverthrowController.Cast(controller);
 			if (overthrowController)
 			{
-				overthrowController.Rpc(overthrowController.RpcDo_NotifyOwnerAssignment, playerId);
+				overthrowController.NotifyOwnerAssignment(playerId);
 			}
 		}
 		else

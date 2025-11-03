@@ -86,7 +86,9 @@ class OVT_RecruitManagerComponent : OVT_Component
 		OVT_RespawnSystemComponent respawnSystem = OVT_RespawnSystemComponent.Cast(owner.FindComponent(OVT_RespawnSystemComponent));
 		if (respawnSystem)
 		{
-			respawnSystem.m_OnPlayerGroupCreated.Insert(OnPlayerGroupCreated);
+			ScriptInvoker onGroupCreated = respawnSystem.GetOnPlayerGroupCreated();
+			if (onGroupCreated)
+				onGroupCreated.Insert(OnPlayerGroupCreated);
 		}
 	}
 	

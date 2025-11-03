@@ -111,26 +111,43 @@ class OVT_UIContext : ScriptAndConfig
 	
 	void ShowLayout()
 	{
-		if(!m_Layout) return;
-		if(!CanShowLayout()) return;
-		
+		Print("[Overthrow] ShowLayout() called on " + Type());
+		Print("[Overthrow] m_Layout: " + m_Layout);
+		if(!m_Layout)
+		{
+			Print("[Overthrow] ShowLayout() failed: m_Layout is null");
+			return;
+		}
+
+		Print("[Overthrow] CanShowLayout(): " + CanShowLayout());
+		if(!CanShowLayout())
+		{
+			Print("[Overthrow] ShowLayout() failed: CanShowLayout() returned false");
+			return;
+		}
+
 		if(m_bOpenActionCloses && m_bIsActive)
 		{
+			Print("[Overthrow] ShowLayout() closing instead (already active)");
 			CloseLayout();
 			return;
 		}
-		
-		WorkspaceWidget workspace = GetGame().GetWorkspace(); 
+
+		WorkspaceWidget workspace = GetGame().GetWorkspace();
+		Print("[Overthrow] workspace: " + workspace);
 		m_wRoot = workspace.CreateWidgets(m_Layout);
-		
-		if(m_bHideHUDOnShow){		
+		Print("[Overthrow] m_wRoot created: " + m_wRoot);
+
+		if(m_bHideHUDOnShow){
 			SCR_HUDManagerComponent hud = GetGame().GetHUDManager();
 			if (hud)
 				hud.SetVisible(false);
 		}
-		
+
 		Enable();
+		Print("[Overthrow] Calling OnShow()");
 		OnShow();
+		Print("[Overthrow] ShowLayout() complete");
 	}
 	
 	bool CanShowLayout()

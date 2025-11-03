@@ -7,9 +7,9 @@ class OVT_OverthrowGameModeClass: SCR_BaseGameModeClass
 //! Handles game initialization, player management, component lifecycle, and core game flow.
 class OVT_OverthrowGameMode : SCR_BaseGameMode
 {
-	//! UI Context for the start game menu.
+	//! UI Context for the start game menu (configured in Workbench with layout)
 	[Attribute()]
-	ref OVT_UIContext m_StartGameUIContext;
+	ref OVT_StartGameContext m_StartGameUIContext;
 
 	//! Prefab resource for the camera used for the single player menu at the start of the game.
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Start Camera Prefab", params: "et")]
@@ -79,6 +79,23 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	{
 		return m_bGameInitialized;
 	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Checks if the game has actually started (user clicked start, or dedicated server auto-started).
+	//! \\return True if the game has started, false if still in menu/setup phase.
+	bool HasGameStarted()
+	{
+		return m_bGameStarted;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Gets the start game UI context (configured in the game mode prefab)
+	//! \\return The start game context with layout configured
+	OVT_StartGameContext GetStartGameContext()
+	{
+		return m_StartGameUIContext;
+	}
+
 
 	//------------------------------------------------------------------------------------------------
 	//! Initializes settings and components for a new game session.
@@ -160,7 +177,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		OVT_Global.GetConfig().m_iSupportingFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(OVT_Global.GetConfig().m_sSupportingFaction));
 		OVT_Global.GetConfig().m_iOccupyingFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(OVT_Global.GetConfig().m_sOccupyingFaction));
 
-		m_StartGameUIContext.CloseLayout();
 		m_bGameStarted = true;
 
 		if(!OVT_Global.GetConfig().m_Difficulty)
@@ -246,7 +262,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			}
 		}
 
-		Print("[Overthrow] Overthrow Starting");
+		Print("[Overthrow] Overthrow Starting - setting m_bGameInitialized = true");
 		m_bGameInitialized = true;
 	}
 	
@@ -323,11 +339,22 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		{
 			if(m_pCamera)
 			{
+				Print("[Overthrow] Switching from start camera to next available camera");
+
+				CameraManager cameraMgr = GetGame().GetCameraManager();
+				if (cameraMgr)
+				{
+					// Switch to the next camera (should be the player's camera)
+					cameraMgr.SetNextCamera();
+					Print("[Overthrow] Switched to next camera");
+				}
+
+				// Now delete the start camera
+				Print("[Overthrow] Deleting start camera");
 				SCR_EntityHelper.DeleteEntityAndChildren(m_pCamera);
 				m_pCamera = null;
 			}
 		}
-		m_StartGameUIContext.EOnFrame(owner, timeSlice);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -703,10 +730,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			m_Deployment.Init(this);
 		}
 
-		m_StartGameUIContext.Init(owner, null);
-		m_StartGameUIContext.RegisterInputs();
-
-		if(!IsMaster()) {			
+		if(!IsMaster()) {
 			return;
 		}
 
@@ -733,7 +757,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 					DoStartNewGame();
 					m_bRequestStartOnPostProcess = true;
 				}else{
-					m_StartGameUIContext.ShowLayout();
+					Print("[Overthrow] Will show start menu when player is ready");
+					// Start menu will be shown on client when NotifyReadyForSpawn is received
 				}
 			}
 		}
@@ -791,6 +816,11 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	//! \\param[in] playerId The persistent ID of the local player.
 	void OnPlayerSpawnedLocal(string playerId)
 	{
+		// Only show the hint if the game has actually started (user clicked "Start Game")
+		// Don't show it while they're still in the start menu
+		if (!m_bGameStarted)
+			return;
+
 		if(!m_aHintedPlayers.Contains(playerId))
 		{
 			SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-IntroHint","#OVT-Overthrow",20);

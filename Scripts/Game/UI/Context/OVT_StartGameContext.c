@@ -10,10 +10,7 @@ class OVT_StartGameContext : OVT_UIContext
 		Widget xbox = m_wRoot.FindAnyWidget("XBOXWarning");
 		xbox.SetVisible(true);
 #endif
-		
-		IEntity mode = GetGame().GetGameMode();
-		SCR_SaveLoadComponent saveload = SCR_SaveLoadComponent.Cast(mode.FindComponent(SCR_SaveLoadComponent));
-		
+
 		Widget startButton = m_wRoot.FindAnyWidget("StartButton");
 		SCR_InputButtonComponent action = SCR_InputButtonComponent.Cast(startButton.FindHandler(SCR_InputButtonComponent));
 		
@@ -157,11 +154,17 @@ class OVT_StartGameContext : OVT_UIContext
 	
 	protected void StartGame()
 	{
+		Print("[Overthrow] StartGame button clicked - closing menu and starting game");
 		CloseLayout();
-		
+
 		OVT_OverthrowGameMode mode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
-		
+
+		Print("[Overthrow] Calling DoStartNewGame()");
 		mode.DoStartNewGame();
+
+		Print("[Overthrow] Calling DoStartGame()");
 		mode.DoStartGame();
+
+		Print("[Overthrow] Game start complete");
 	}
 }

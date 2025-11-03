@@ -132,7 +132,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		if (!notificationManager)
 			return;
 			
-		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(GetOwner());
+		int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(GetOwner());
 		if (playerId > 0)
 		{
 			notificationManager.SendTextNotification(reason, playerId);
@@ -296,7 +296,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		// Check if this is a player or recruit
 		if(!m_PlayerData && !m_RecruitData)
 		{
-			int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(GetOwner());
+			int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(GetOwner());
 			if(playerId > 0)
 			{
 				m_PlayerData = OVT_PlayerData.Get(playerId);
