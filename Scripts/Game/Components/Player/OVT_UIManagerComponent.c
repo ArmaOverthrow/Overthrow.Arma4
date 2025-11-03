@@ -109,7 +109,7 @@ class OVT_UIManagerComponent: OVT_Component
 			}
 			
 			OVT_OverthrowGameMode gameMode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
-			int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(owner);
+			int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(owner);
 			
 			if(gameMode) gameMode.OnPlayerSpawnedLocal(OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId));
 		}

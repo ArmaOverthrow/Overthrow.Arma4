@@ -78,7 +78,7 @@ $grp GenericEntity {
     MainType "Name Village"
    }
   }
-  Flags 1027
+  Flags 0x403 0
   coords 221.182 1.001 107.325
  }
  RadioTower {
@@ -87,13 +87,13 @@ $grp GenericEntity {
     MainType Transmitter
    }
   }
-  Flags 1027
+  Flags 0x403 0
   coords 29.444 1.001 116.796
  }
 }
 OVT_VehiclePatrolSpawn {
  coords 82.991 1 107.357
- angleY 85.773
+ angles 0 85.773 0
 }
 SCR_DestructibleBuildingEntity : "{00FD2B4A0BDEC271}Prefabs/Structures/Commercial/FuelStations/FuelStation_E_01_building.et" {
  components {
@@ -107,7 +107,7 @@ SCR_DestructibleBuildingEntity : "{00FD2B4A0BDEC271}Prefabs/Structures/Commercia
   }
  }
  coords 238.569 0.001 74.077
- angleY -89.85
+ angles 0 -89.85 0
 }
 SCR_DestructibleBuildingEntity : "{05446F713779A94D}Prefabs/Structures/Military/Houses/GuardHouse_02/GuardHouse_02.et" {
  coords 73.573 0.001 90.062
@@ -118,7 +118,7 @@ SCR_DestructibleBuildingEntity : "{12310677867A85D4}Prefabs/Structures/Industria
 $grp SCR_DestructibleBuildingEntity : "{230EB641379A24C0}Prefabs/Structures/Houses/Village/House_Village_E_1I04/House_Village_E_1I04sf.et" {
  {
   coords 240.255 0 141.306
-  angleY 88.468
+  angles 0 88.468 0
  }
  {
   coords 190.432 0.975 222.774
@@ -132,7 +132,7 @@ SCR_DestructibleBuildingEntity : "{322D245123EEDC90}Prefabs/Structures/Houses/Vi
 }
 SCR_DestructibleBuildingEntity : "{38A5F3E4578087AB}Prefabs/Structures/Houses/Town/House_Town_E_2I01/House_Town_E_2I01.et" {
  coords 241.413 0.001 118.064
- angleY -91.024
+ angles 0 -91.024 0
 }
 SCR_SiteSlotEntity : "{4B1C4BDDF6683101}PrefabsEditable/Slots/Flat/E_SlotFlatMedium.et" {
  coords 30 1.001 70
@@ -145,7 +145,7 @@ SCR_SiteSlotEntity : "{4B1C4BDDF6683101}PrefabsEditable/Slots/Flat/E_SlotFlatMed
 }
 SCR_DestructibleBuildingEntity : "{54F1C704EB440885}Prefabs/Structures/Houses/Town/House_Town_E_2I02/House_Town_E_2I02.et" {
  coords 238.965 0.001 98.034
- angleY -90.115
+ angles 0 -90.115 0
 }
 $grp SCR_SiteSlotEntity : "{588A3DAF0296B0C1}PrefabsEditable/Slots/Flat/E_SlotFlatSmall.et" {
  {
@@ -268,8 +268,7 @@ Tree : "{A43BE7E364B5CD67}Prefabs/Vegetation/Bush/b_juniperus_communis_2w.et" {
 }
 OVT_StartCameraPos : "{A4FAD321E704BE95}Prefabs/GameMode/OVT_StartCameraPos.et" {
  coords 263.519 24.144 46.733
- angleX -8.555
- angleY -56.81
+ angles -8.555 -56.81 0
 }
 Tree : "{A5DE58FC9FB6BA60}Prefabs/Vegetation/Bush/b_corylus_avellana_2.et" {
  coords 183.058 0.001 122.114
@@ -279,7 +278,7 @@ SCR_LoadoutManager : "{AA4E7419A1FF65B0}Prefabs/MP/Managers/Loadouts/LoadoutMana
 }
 Tree : "{AED5759B653DF6D0}Prefabs/Vegetation/Bush/b_rosa_canina_1s.et" {
  coords 179.418 0.001 128.609
- angleY 0
+ angles 0 0 0
 }
 Tree : "{AF4BFBE29028A9FD}Prefabs/Vegetation/Bush/b_corylus_avellana_1l.et" {
  coords 182.406 0.001 117.203
@@ -287,7 +286,7 @@ Tree : "{AF4BFBE29028A9FD}Prefabs/Vegetation/Bush/b_corylus_avellana_1l.et" {
 OVT_FallbackHomePos : "{B06F0465F862CA4C}Prefabs/GameMode/OVT_FallbackHomePos.et" {
  coords 212.4 1 109.191
 }
-EnvironmentProbeEntity : "{B6B6A21399C5571B}Prefabs/World/DefaultWorld/EnvProbe_Default.et" {
+GameEnvironmentProbeEntity : "{B6B6A21399C5571B}Prefabs/World/DefaultWorld/EnvProbe_Default.et" {
  coords 112.285 2.18 89.264
 }
 Tree : "{BA785041AC632123}Prefabs/Vegetation/Bush/b_salix_cinerea_1.et" {
@@ -307,15 +306,15 @@ Tree : "{D9DF1D13919F19A0}Prefabs/Vegetation/Bush/b_rosa_canina_0s.et" {
 $grp SCR_DestructibleBuildingEntity : "{DE43119351D125AC}Prefabs/Structures/Houses/Village/House_Village_E_1L02/House_Village_E_1L02t.et" {
  {
   coords 226.19 0.655 193.901
-  angleY -177.67
+  angles 0 -177.67 0
  }
  {
   coords 234.776 0.718 58.224
-  angleY -177.67
+  angles 0 -177.67 0
  }
  {
   coords 232.689 0 27.62
-  angleY -177.67
+  angles 0 -177.67 0
  }
 }
 Vehicle OverthrowMobileFOB1 : "{E6A31A5A6EA0AF04}Prefabs/Vehicles/Wheeled/M923A1/OverthrowMobileFOB.et" {
@@ -338,13 +337,13 @@ SCR_DestructibleBuildingEntity : "{F51B9B9BD15BBE64}Prefabs/Structures/Commercia
  }
  coords 166.601 0.001 87.468
 }
-StaticModelEntity : "{F808145ADD4EF885}PrefabLibrary/Walls/Metal/MetalGate_01_Long.et" {
+StaticModelEntity : "{F808145ADD4EF885}PrefabLibrary/DefaultLibrary/Walls/Metal/MetalGate_01_Long.et" {
  coords 79.973 0.001 103.767
- angleY -93.899
+ angles 0 -93.899 0
 }
 SCR_DestructibleBuildingEntity : "{FBCE1861B987EA68}Prefabs/Structures/Military/Houses/GuardTower_01/GuardTower_01.et" {
  coords 32.833 0.001 101.143
- angleY -90.081
+ angles 0 -90.081 0
 }
 SCR_DestructibleBuildingEntity : "{FF48B5059EB0AC65}Prefabs/Structures/Commercial/Shops/ShopHouse_E_2I01t_drugstore.et" {
  components {

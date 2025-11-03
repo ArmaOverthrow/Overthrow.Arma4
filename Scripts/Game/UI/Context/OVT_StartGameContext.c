@@ -10,7 +10,7 @@ class OVT_StartGameContext : OVT_UIContext
 		Widget xbox = m_wRoot.FindAnyWidget("XBOXWarning");
 		xbox.SetVisible(true);
 #endif
-
+				
 		Widget startButton = m_wRoot.FindAnyWidget("StartButton");
 		SCR_InputButtonComponent action = SCR_InputButtonComponent.Cast(startButton.FindHandler(SCR_InputButtonComponent));
 		
@@ -35,6 +35,8 @@ class OVT_StartGameContext : OVT_UIContext
 		int selectedSupportingFaction = 0;
 		
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		
+		config.SetOccupyingFaction(config.m_sDefaultOccupyingFaction);
 		
 		foreach(Faction fac : factions)
 		{

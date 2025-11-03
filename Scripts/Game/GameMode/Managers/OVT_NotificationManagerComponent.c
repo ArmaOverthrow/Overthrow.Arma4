@@ -102,7 +102,7 @@ class OVT_NotificationManagerComponent: OVT_Component
 		if(playerId > -1)
 		{
 			IEntity playerEntity = SCR_PlayerController.GetLocalControlledEntity();
-			int localPlayerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(playerEntity);
+			int localPlayerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(playerEntity);
 			
 			if(playerId == localPlayerId)
 			{
@@ -172,7 +172,7 @@ class OVT_NotificationManagerComponent: OVT_Component
 	{
 		if(playerId > -1)
 		{
-			int localId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
+			int localId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
 			if(playerId != localId) return;
 		}
 		
@@ -188,11 +188,13 @@ class OVT_NotificationManagerComponent: OVT_Component
 		
 		if(!m_Time) 
 		{
-			ChimeraWorld world = GetOwner().GetWorld();
+			ChimeraWorld world = GetGame().GetWorld();
+			if(!world) return;
 			m_Time = world.GetTimeAndWeatherManager();
 		}
 		
-		data.time = m_Time.GetTime();
+		if(m_Time)
+			data.time = m_Time.GetTime();
 		
 		m_aNotifications.InsertAt(data, 0);
 		

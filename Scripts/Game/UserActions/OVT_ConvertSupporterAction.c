@@ -3,7 +3,7 @@ class OVT_ConvertSupporterAction : OVT_BaseCivilianUserAction
 	//---------------------------------------------------------
  	override protected void PerformCivilianAction(IEntity pOwnerEntity, IEntity pUserEntity) 
  	{
-		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
+		int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
 		OVT_PlayerData player = OVT_PlayerData.Get(playerId);
 		
 		if(s_AIRandomGenerator.RandFloat01() < player.diplomacy)

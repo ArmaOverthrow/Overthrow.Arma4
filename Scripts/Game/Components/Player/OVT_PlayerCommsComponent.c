@@ -67,6 +67,7 @@ class OVT_PlayerCommsComponent: OVT_Component
 	{	
 		OVT_OccupyingFactionManager of = OVT_Global.GetOccupyingFaction();
 		OVT_BaseData data = of.GetNearestBase(loc);
+		if(!data) return;
 		OVT_BaseControllerComponent base = of.GetBase(data.entId);
 		of.StartBaseQRF(base);
 	}
@@ -713,7 +714,7 @@ class OVT_PlayerCommsComponent: OVT_Component
 		
 		// Get the local player ID to pass to the server
 		IEntity playerEntity = SCR_PlayerController.GetLocalControlledEntity();
-		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(playerEntity);
+		int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(playerEntity);
 		
 		Rpc(RpcAsk_DeployFOB, rpl.Id(), playerId);
 	}	
@@ -731,7 +732,7 @@ class OVT_PlayerCommsComponent: OVT_Component
 		
 		// Get the local player ID to pass to the server
 		IEntity playerEntity = SCR_PlayerController.GetLocalControlledEntity();
-		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(playerEntity);
+		int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(playerEntity);
 		
 		Rpc(RpcAsk_UndeployFOB, rpl.Id(), playerId);
 	}	

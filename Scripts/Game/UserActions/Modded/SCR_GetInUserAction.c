@@ -30,7 +30,7 @@ modded class SCR_GetInUserAction : SCR_CompartmentUserAction
 				if(ownerUid == "")
 				{
 					// Get the player ID and request ownership on server
-					int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(pUserEntity);
+					int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(pUserEntity);
 					if (playerId > 0)
 					{
 						OVT_PlayerCommsComponent comms = OVT_Global.GetServer();

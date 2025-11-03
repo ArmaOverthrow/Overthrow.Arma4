@@ -24,7 +24,7 @@ class OVT_Global : Managed
 		IEntity player = SCR_PlayerController.GetLocalControlledEntity();
 		if (!player) return null;
 		
-		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(player);
+		int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(player);
 		return GetPlayers().GetController(playerId);
 	}
 	

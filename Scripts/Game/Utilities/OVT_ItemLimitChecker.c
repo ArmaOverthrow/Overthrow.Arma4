@@ -98,6 +98,7 @@ class OVT_ItemLimitChecker
 		}
 		
 		OVT_BaseData base = m_OccupyingFaction.GetNearestBase(pos);
+		if(!base) return 0;
 		float dist = vector.Distance(base.location, pos);
 		if(!base.IsOccupyingFaction() && dist < OVT_Global.GetConfig().m_Difficulty.baseRange)
 		{
@@ -116,6 +117,7 @@ class OVT_ItemLimitChecker
 		baseType = EOVTBaseType.NONE;
 		
 		OVT_BaseData base = m_OccupyingFaction.GetNearestBase(pos);
+		if(!base) return 0;
 		float dist = vector.Distance(base.location, pos);
 		if(!base.IsOccupyingFaction() && dist < OVT_Global.GetConfig().m_Difficulty.baseRange)
 		{

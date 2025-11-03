@@ -280,6 +280,7 @@ class OVT_BuildContext : OVT_UIContext
 		if(buildable.m_bBuildAtBase)
 		{			
 			OVT_BaseData base = m_OccupyingFaction.GetNearestBase(pos);			
+			if(!base) return false;
 			dist = vector.Distance(base.location,pos);
 			if(dist < OVT_Global.GetConfig().m_Difficulty.baseRange && !base.IsOccupyingFaction())
 			{

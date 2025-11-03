@@ -41,7 +41,22 @@ class OVT_BaseControllerComponent: OVT_Component
 	protected OVT_OccupyingFactionManager m_occupyingFactionManager;
 
 	protected const int UPGRADE_UPDATE_FREQUENCY = 10000;
-	
+
+	//! Constructor - registers this base controller with the manager
+	void OVT_BaseControllerComponent(IEntityComponentSource src, IEntity ent, IEntity parent)
+	{
+		// Don't register in editor mode
+		if(SCR_Global.IsEditMode()) return;
+
+		// Register with the occupying faction manager
+		// This happens after config is initialized
+		OVT_OccupyingFactionManager manager = OVT_Global.GetOccupyingFaction();
+		if(manager)
+		{
+			manager.RegisterBaseController(this);
+		}
+	}
+
 	void InitBaseClient()
 	{
 		if(Replication.IsServer()) return;

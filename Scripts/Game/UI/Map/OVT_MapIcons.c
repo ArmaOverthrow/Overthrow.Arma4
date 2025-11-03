@@ -461,7 +461,7 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 			return;
 		}
 		
-		int playerID = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(playerEntity);
+		int playerID = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(playerEntity);
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerID);
 			
 		BaseWorld world = GetGame().GetWorld();

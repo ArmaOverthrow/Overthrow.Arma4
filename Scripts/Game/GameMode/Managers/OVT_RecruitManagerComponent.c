@@ -684,7 +684,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 			if (groupController)
 			{
 				// Ensure the recruit is not controlled by any player before adding as AI agent
-				if (GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(civilian) == 0)
+				if (SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(civilian) == 0)
 				{
 					groupController.RequestAddAIAgent(civilian, playerId);
 				}

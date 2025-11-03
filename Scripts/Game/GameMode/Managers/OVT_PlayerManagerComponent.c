@@ -98,7 +98,7 @@ class OVT_PlayerManagerComponent: OVT_Component
 	//! \return True if the local player is an officer, false otherwise.
 	bool LocalPlayerIsOfficer()
 	{
-		int localId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
+		int localId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
 		string persId = GetPersistentIDFromPlayerID(localId);
 		OVT_PlayerData player = GetPlayer(persId);
 		return player.isOfficer;
@@ -154,7 +154,7 @@ class OVT_PlayerManagerComponent: OVT_Component
 	//! \return The persistent string ID for the player controlling the entity.
 	string GetPersistentIDFromControlledEntity(IEntity controlled)
 	{
-		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(controlled);
+		int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(controlled);
 		return GetPersistentIDFromPlayerID(playerId);
 	}
 	

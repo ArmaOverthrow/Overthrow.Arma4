@@ -9,7 +9,7 @@ class OVT_CaptureBaseAction : ScriptedUserAction
 		OVT_OccupyingFactionManager of = OVT_Global.GetOccupyingFaction();		
 		OVT_BaseData base = of.GetNearestBase(pOwnerEntity.GetOrigin());
 		
-		if(base.IsOccupyingFaction())
+		if(base && base.IsOccupyingFaction())
 		{
 			OVT_Global.GetServer().StartBaseCapture(base.location);
 		}

@@ -30,7 +30,7 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 		SCR_ChimeraCharacter character = SCR_ChimeraCharacter.Cast(SCR_PlayerController.GetLocalControlledEntity());
 		if (!character)
 			return;
-		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(character);
+		int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(character);
 		m_playerId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);	
 		
 		m_player = character;

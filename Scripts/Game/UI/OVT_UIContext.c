@@ -52,7 +52,7 @@ class OVT_UIContext : ScriptAndConfig
 	
 	void OnControlledByPlayer()
 	{
-		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(m_Owner);
+		int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(m_Owner);
 		m_sPlayerID = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		m_iPlayerID = playerId;
 		m_PlayerData = OVT_PlayerData.Get(m_iPlayerID);

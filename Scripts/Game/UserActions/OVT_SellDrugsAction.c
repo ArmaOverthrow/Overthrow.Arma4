@@ -12,7 +12,7 @@ class OVT_SellDrugsAction : OVT_BaseCivilianUserAction
 		
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
 		
-		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
+		int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
 			
 		
 		foreach(IEntity ent : items)

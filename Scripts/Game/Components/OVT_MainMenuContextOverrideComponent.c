@@ -70,7 +70,7 @@ class OVT_MainMenuContextOverrideComponent : OVT_Component
 		if(m_bMustOwnBase)
 		{
 			OVT_BaseData base = OVT_Global.GetOccupyingFaction().GetNearestBase(GetOwner().GetOrigin());			
-			if(base.IsOccupyingFaction()) return false;
+			if(base && base.IsOccupyingFaction()) return false;
 			return true;
 		}		
 		if(m_bMustBeDriving)
