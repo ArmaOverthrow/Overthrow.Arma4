@@ -18,11 +18,16 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 	override event void OnInit(IEntity owner)
 	{
 		super.OnInit(owner);
-				
+
 		m_Economy = OVT_Global.GetEconomy();
 		m_OccupyingFaction = OVT_Global.GetOccupyingFaction();
 		m_Notify = OVT_Global.GetNotify();
 		m_RealEstate = OVT_Global.GetRealEstate();
+
+		// Hide town panel initially until UpdateTown() populates it with correct data
+		Widget panel = m_wRoot.FindAnyWidget("Town");
+		if(panel)
+			panel.SetVisible(false);
 	}
 	
 	protected void InitCharacter()

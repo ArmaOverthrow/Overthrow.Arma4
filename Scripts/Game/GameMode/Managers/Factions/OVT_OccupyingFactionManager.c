@@ -213,12 +213,13 @@ class OVT_OccupyingFactionManager: OVT_Component
 	{
 		m_iThreat = m_Config.m_Difficulty.baseThreat;
 		m_iResources = m_Config.m_Difficulty.maxQRF;
-		
+
 		int factionIndex = OVT_Global.GetConfig().GetOccupyingFactionIndex();
 		FactionKey key = GetGame().GetFactionManager().GetFactionByIndex(factionIndex).GetFactionKey();
-				
-		Print(string.Format("[Overthrow] Starting new game, setting bases to OF Faction %1 (Total Bases Registered: %2)", key, m_Bases.Count()));
-		
+
+		Print(string.Format("[Overthrow] Starting new game, setting bases to OF Faction %1 (Total Bases: %2)", key, m_Bases.Count()));
+
+		// Set all bases to occupying faction
 		foreach(OVT_BaseData data : m_Bases)
 		{
 			data.faction = factionIndex;
@@ -226,6 +227,24 @@ class OVT_OccupyingFactionManager: OVT_Component
 			controller.SetControllingFaction(key, true);
 			controller.UpdateFlagMaterial(factionIndex);
 		}
+
+		// Set all towns to occupying faction
+		OVT_TownManagerComponent townManager = OVT_Global.GetTowns();
+		if(townManager)
+		{
+			foreach(OVT_TownData town : townManager.m_Towns)
+			{
+				town.faction = factionIndex;
+			}
+			Print(string.Format("[Overthrow] Set %1 towns to occupying faction", townManager.m_Towns.Count()));
+		}
+
+		// Set all radio towers to occupying faction
+		foreach(OVT_RadioTowerData tower : m_RadioTowers)
+		{
+			tower.faction = factionIndex;
+		}
+		Print(string.Format("[Overthrow] Set %1 radio towers to occupying faction", m_RadioTowers.Count()));
 
 		// Allocate initial resources to deployment manager
 		AllocateDeploymentResources(m_Config.m_Difficulty.baseResourcesPerTick);
