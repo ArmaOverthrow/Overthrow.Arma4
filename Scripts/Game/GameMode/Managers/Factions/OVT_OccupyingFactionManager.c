@@ -151,7 +151,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 	void Init(IEntity owner)
 	{
-		if(!Replication.IsServer()) 
+		if(!Replication.IsServer())
 		{
 			// On clients, set up base faction affiliations after JIP data is loaded
 			GetGame().GetCallqueue().CallLater(SetClientBaseFactions, 1000);
@@ -163,6 +163,23 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 		Faction occupyingFaction = GetGame().GetFactionManager().GetFactionByKey(m_Config.m_sOccupyingFaction);
 		m_iOccupyingFactionIndex = GetGame().GetFactionManager().GetFactionIndex(occupyingFaction);
+
+		// Fix faction for any bases/towers that were registered before m_Config was available
+		int occupyingFactionIndex = m_Config.GetOccupyingFactionIndex();
+		foreach (OVT_BaseData base : m_Bases)
+		{
+			if (base.faction == -1)
+			{
+				base.faction = occupyingFactionIndex;
+			}
+		}
+		foreach (OVT_RadioTowerData tower : m_RadioTowers)
+		{
+			if (tower.faction == -1)
+			{
+				tower.faction = occupyingFactionIndex;
+			}
+		}
 
 		OVT_Global.GetTowns().m_OnTownControlChange.Insert(OnTownControlChanged);
 
@@ -474,7 +491,17 @@ class OVT_OccupyingFactionManager: OVT_Component
 		data.entId = entity.GetID();
 		data.id = m_Bases.Count();
 		data.location = entityLocation;
-		data.faction = m_Config.GetOccupyingFactionIndex();
+
+		// Config may not be available yet if called from constructor
+		// Faction will be assigned later during InitBaseControllers
+		if (m_Config)
+		{
+			data.faction = m_Config.GetOccupyingFactionIndex();
+		}
+		else
+		{
+			data.faction = -1; // Will be set during Init
+		}
 
 		m_Bases.Insert(data);
 
@@ -508,7 +535,17 @@ class OVT_OccupyingFactionManager: OVT_Component
 		OVT_RadioTowerData data = new OVT_RadioTowerData();
 		data.id = m_RadioTowers.Count();
 		data.location = entityLocation;
-		data.faction = m_Config.GetOccupyingFactionIndex();
+
+		// Config may not be available yet if called from constructor
+		// Faction will be assigned later during Init
+		if (m_Config)
+		{
+			data.faction = m_Config.GetOccupyingFactionIndex();
+		}
+		else
+		{
+			data.faction = -1; // Will be set during Init
+		}
 
 		m_RadioTowers.Insert(data);
 
@@ -531,9 +568,16 @@ class OVT_OccupyingFactionManager: OVT_Component
 	{
 		OVT_ResistanceFactionManager rf = OVT_Global.GetResistanceFaction();
 		OVT_Faction resistance = m_Config.GetPlayerFaction();
+		int occupyingFactionIndex = m_Config.GetOccupyingFactionIndex();
 
 		foreach(int index, OVT_BaseData data : m_Bases)
 		{
+			// Set faction if it wasn't set during registration (timing issue)
+			if (data.faction == -1)
+			{
+				data.faction = occupyingFactionIndex;
+			}
+
 			OVT_BaseControllerComponent base = GetBase(data.entId);
 			base.InitBase();
 			base.SetControllingFaction(data.faction, true);

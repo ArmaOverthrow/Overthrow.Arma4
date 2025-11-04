@@ -179,6 +179,9 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 
 		m_bGameStarted = true;
 
+		// Prepare all connected players now that the game has started
+		PrepareConnectedPlayers();
+
 		if(!OVT_Global.GetConfig().m_Difficulty)
 		{
 			Print("[Overthrow] No difficulty settings found! Reverting to default");
@@ -272,13 +275,66 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	void DoPostLoad()
 	{
 		if(!IsMaster()) return;
-		
+
 		if(m_RealEstate)
 		{
 			Print("[Overthrow] Real Estate Post-Load");
-			
+
 			m_RealEstate.OnPostLoad(this);
 		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Prepares all currently connected players who haven't been prepared yet.
+	//! Called when starting a new game after the start menu is completed.
+	void PrepareConnectedPlayers()
+	{
+		if (!Replication.IsServer()) return;
+
+		Print("[Overthrow] Finalizing preparation for all connected players");
+
+		// Ensure initialized players set exists
+		if (!m_aInitializedPlayers)
+		{
+			m_aInitializedPlayers = new set<string>;
+		}
+
+		// Get all connected players from the player manager
+		PlayerManager playerManager = GetGame().GetPlayerManager();
+		if (!playerManager)
+		{
+			Print("[Overthrow] ERROR: PlayerManager not available in PrepareConnectedPlayers", LogLevel.ERROR);
+			return;
+		}
+
+		// Get list of connected player IDs
+		array<int> playerIds = {};
+		playerManager.GetPlayers(playerIds);
+
+		// Iterate through all connected players
+		foreach (int playerId : playerIds)
+		{
+			string playerUid = EPF_Utils.GetPlayerUID(playerId);
+
+			if (!playerUid || playerUid.IsEmpty())
+			{
+				Print("[Overthrow] WARNING: Skipping player " + playerId + " - no persistent UID available yet", LogLevel.WARNING);
+				continue;
+			}
+
+			// Check if player has already been finalized
+			if (m_aInitializedPlayers.Contains(playerUid))
+			{
+				Print("[Overthrow] Player " + playerUid + " (ID: " + playerId + ") already finalized, skipping");
+				continue;
+			}
+
+			Print("[Overthrow] Finalizing player preparation: " + playerUid + " (ID: " + playerId + ")");
+			// SetupPlayer was already called in DoSpawn_S, so just finalize (home, officer, etc.)
+			FinalizePlayerPreparation(playerId, playerUid);
+		}
+
+		Print("[Overthrow] Finished finalizing " + playerIds.Count() + " connected players");
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -481,23 +537,44 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	void PreparePlayer(int playerId, string persistentId)
 	{
 	    if (!Replication.IsServer()) return;
-	    
+
 	    // Validate persistent ID
 	    if(!persistentId || persistentId.IsEmpty())
 	    {
 	        Print("[Overthrow] ERROR: PreparePlayer called with empty/null persistentId for playerId: " + playerId);
 	        return;
 	    }
-	    
+
+	    // Setup player data first (creates OVT_PlayerData object)
+	    m_PlayerManager.SetupPlayer(playerId, persistentId);
+
+	    // Then finalize preparation (home, money, officer status, etc.)
+	    FinalizePlayerPreparation(playerId, persistentId);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Finalizes player preparation by assigning officer status, home, and starting vehicle.
+	//! This is separated from SetupPlayer so it can be deferred until the game starts.
+	//! \\param[in] playerId The numeric ID of the player.
+	//! \\param[in] persistentId The persistent string ID of the player.
+	void FinalizePlayerPreparation(int playerId, string persistentId)
+	{
+	    if (!Replication.IsServer()) return;
+
+	    // Validate persistent ID
+	    if(!persistentId || persistentId.IsEmpty())
+	    {
+	        Print("[Overthrow] ERROR: FinalizePlayerPreparation called with empty/null persistentId for playerId: " + playerId);
+	        return;
+	    }
+
 	    // Check if this player has already been prepared in this session (to prevent duplicates in hosted multiplayer)
 	    if(m_aInitializedPlayers.Contains(persistentId))
 	    {
-	        Print("[Overthrow] Player " + persistentId + " already prepared in this session, skipping duplicate PreparePlayer call");
+	        Print("[Overthrow] Player " + persistentId + " already finalized in this session, skipping duplicate FinalizePlayerPreparation call");
 	        return;
 	    }
-	    
-	    m_PlayerManager.SetupPlayer(playerId, persistentId);
-	    
+
 	    // Notify listeners that player has connected
 	    m_PlayerManager.m_OnPlayerConnected.Invoke(persistentId, playerId);
 	    OVT_PlayerData player = m_PlayerManager.GetPlayer(persistentId);
@@ -568,6 +645,42 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	            m_ResistanceFactionManager.AddOfficer(playerId);
 	        }
 	    }
+
+	    // Teleport player to their assigned home if they're already spawned
+	    TeleportPlayerToHome(playerId, persistentId);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Teleports a player to their assigned home position if they're already spawned.
+	//! \\param[in] playerId The numeric ID of the player.
+	//! \\param[in] persistentId The persistent string ID of the player.
+	protected void TeleportPlayerToHome(int playerId, string persistentId)
+	{
+	    if (!Replication.IsServer()) return;
+
+	    // Get the player's home position
+	    vector homePos = m_RealEstate.GetHome(persistentId);
+	    if (homePos[0] == 0 && homePos[1] == 0 && homePos[2] == 0)
+	    {
+	        Print("[Overthrow] WARNING: Cannot teleport player - no valid home position", LogLevel.WARNING);
+	        return;
+	    }
+
+	    // Get the player's controlled entity
+	    PlayerManager playerManager = GetGame().GetPlayerManager();
+	    if (!playerManager) return;
+
+	    IEntity playerEntity = playerManager.GetPlayerControlledEntity(playerId);
+	    if (!playerEntity)
+	    {
+	        // Player might not be spawned yet, this is fine
+	        Print("[Overthrow] Player entity not yet spawned, will spawn at home naturally");
+	        return;
+	    }
+
+	    // Teleport the player to their home
+	    Print("[Overthrow] Teleporting player " + playerId + " to home: " + homePos.ToString());
+	    SCR_Global.TeleportPlayer(playerId, homePos);
 	}
 
 

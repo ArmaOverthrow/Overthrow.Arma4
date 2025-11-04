@@ -11,16 +11,32 @@ class OVT_PersistenceManagerComponent : EPF_PersistenceManagerComponent
 	
 	override event void OnGameEnd()
 	{
-		SaveRecruits();
+		// Only save if the game was actually started
+		// If player exited from the start menu without starting, don't save
 		OVT_OverthrowGameMode mode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
+		if (!mode || !mode.HasGameStarted())
+		{
+			Print("[Overthrow] Game never started, skipping save on exit");
+			return;
+		}
+
+		SaveRecruits();
 		if(mode)
 			mode.PreShutdownPersist();
-		
+
 		super.OnGameEnd();
 	}
 	
 	void SaveGame()
 	{
+		// Only save if the game has been started
+		OVT_OverthrowGameMode mode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
+		if (!mode || !mode.HasGameStarted())
+		{
+			Print("[Overthrow] Cannot save - game not started yet", LogLevel.WARNING);
+			return;
+		}
+
 		if (m_pPersistenceManager){
 			m_pPersistenceManager.AutoSave();
 		}

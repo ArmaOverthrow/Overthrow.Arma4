@@ -27,7 +27,6 @@ class OVT_SpawnLogic : EPF_BaseSpawnLogic
 	{
 		Print("[Overthrow] OVT_SpawnLogic.DoSpawn_S called for playerId: " + playerId);
 
-		// Always proceed with spawn - the PlayerStartMenuHandlerComponent will handle showing the start menu if needed
 		string playerUid = EPF_Utils.GetPlayerUID(playerId);
 		if (!playerUid)
 		{
@@ -37,8 +36,22 @@ class OVT_SpawnLogic : EPF_BaseSpawnLogic
 		}
 
 		OVT_OverthrowGameMode mode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
-		Print("[Overthrow] Proceeding with character spawn for player: " + playerUid);
-		mode.PreparePlayer(playerId, playerUid);
+
+		// Always setup player data (creates OVT_PlayerData object needed for character creation)
+		Print("[Overthrow] Setting up player data for: " + playerUid);
+		OVT_Global.GetPlayers().SetupPlayer(playerId, playerUid);
+
+		// Only do full preparation if game has already started (loaded save or dedicated server)
+		// For new games, full preparation will be done when the user clicks "Start Game"
+		if (mode.HasGameStarted())
+		{
+			Print("[Overthrow] Game already started, fully preparing player: " + playerUid);
+			mode.FinalizePlayerPreparation(playerId, playerUid);
+		}
+		else
+		{
+			Print("[Overthrow] Game not started yet, deferring full player preparation until start menu is complete");
+		}
 
 		super.DoSpawn_S(playerId);
 	}

@@ -25,9 +25,13 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 		m_RealEstate = OVT_Global.GetRealEstate();
 
 		// Hide town panel initially until UpdateTown() populates it with correct data
-		Widget panel = m_wRoot.FindAnyWidget("Town");
-		if(panel)
-			panel.SetVisible(false);
+		// Check if m_wRoot exists first (may not be initialized yet)
+		if (m_wRoot)
+		{
+			Widget panel = m_wRoot.FindAnyWidget("Town");
+			if(panel)
+				panel.SetVisible(false);
+		}
 	}
 	
 	protected void InitCharacter()
