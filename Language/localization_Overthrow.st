@@ -93,54 +93,60 @@ StringTable {
    Target_en_us "Chotain Base"
    Target_ko_kr "초테인 기지"
    Target_zh_cn "乔坦基地"
-   Modified 1706579282
+   Target_uk_ua "База Шотен"
+   Modified 1716476324
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{646E48D7E93CDF0B}" {
    Id "OVT-Base_Erquy"
    Target_en_us "Erquy Harbour"
    Target_ko_kr "에르퀴 항구"
    Target_zh_cn "埃尔基港"
-   Modified 1706579271
+   Target_uk_ua "Гавань Еркі"
+   Modified 1716476296
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{6468E2320833D633}" {
    Id "OVT-Base_Lamentin"
    Target_en_us "Lamentin Harbour"
    Target_ko_kr "라망탱 항구"
    Target_zh_cn "拉芒廷港"
-   Modified 1706579303
+   Target_uk_ua "Гавань Ламентен"
+   Modified 1716476273
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{6468E232050364DF}" {
    Id "OVT-Base_Levie"
    Target_en_us "Levie Base"
    Target_ko_kr "레비 기지"
    Target_zh_cn "利维基地"
-   Modified 1706579315
+   Target_uk_ua "База Леві"
+   Modified 1716476246
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{6468E232E3F6812C}" {
    Id "OVT-Base_StPhillipe"
    Target_en_us "St Phillipe Base"
    Target_ko_kr "상필립 기지"
    Target_zh_cn "圣菲利普基地"
-   Modified 1706579373
+   Target_uk_ua "База Сент-Філіп"
+   Modified 1716476227
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{6468E232F36B047A}" {
    Id "OVT-Base_TrainingGrounds"
    Target_en_us "Training Grounds"
    Target_ko_kr "훈련장"
    Target_zh_cn "训练场"
-   Modified 1706579386
+   Target_uk_ua "Тренувальні майданчики"
+   Modified 1716476186
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{59B518A9E7140382}" {
    Id "OVT-BaseNear"
@@ -230,16 +236,18 @@ StringTable {
   CustomStringTableItem "{65B90A1309A95BE3}" {
    Id "OVT-Build_Bunkers"
    Target_en_us "Bunker"
-   Modified 1706641744
+   Target_uk_ua "Бункер"
+   Modified 1716476148
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{65B90A13E7E87AEF}" {
    Id "OVT-Build_Bunkers_Description"
    Target_en_us "A hidey-hole to shoot out of"
-   Modified 1706641519
+   Target_uk_ua "Схованка для стрільби"
+   Modified 1716476141
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5D7C5DE3BEE5FBE3}" {
    Id "OVT-Build_GuardTower"
@@ -456,6 +464,7 @@ StringTable {
   CustomStringTableItem "{5D86A310C893DBDB}" {
    Id "OVT-CampInfo"
    Target_en_us "Camps allow fast travel and basic building. Public camps can be used by anyone, private camps are owner-only."
+   Target_uk_ua "Табори дозволяють швидко переміщуватися та будувати базові об’єкти. Публічні табори доступні для будь-кого, приватні - лише для власника."
    Comment ""
    DevNote ""
    Repro ""
@@ -464,15 +473,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1735049000
+   Modified 1716476114
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBD3}" {
    Id "OVT-CampName"
    Target_en_us "Camp Name"
+   Target_uk_ua "Ім'я табору"
    Comment ""
    DevNote ""
    Repro ""
@@ -481,15 +491,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1735049000
+   Modified 1716476080
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBD6}" {
    Id "OVT-CampPrivate"
    Target_en_us "Private"
+   Target_uk_ua "Приватний"
    Comment ""
    DevNote ""
    Repro ""
@@ -498,15 +509,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1735049000
+   Modified 1716476065
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBD5}" {
    Id "OVT-CampPublic"
    Target_en_us "Public"
+   Target_uk_ua "Публічний"
    Comment ""
    DevNote ""
    Repro ""
@@ -515,9 +527,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1735049000
+   Modified 1716476050
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
@@ -787,25 +799,28 @@ StringTable {
   CustomStringTableItem "{5E02BE2D148E3EDB}" {
    Id "OVT-CannotPlaceAnythingHere"
    Target_en_us "You cannot place anything here, you must be near a house/camp you own, an FOB or a controlled base"
-   Modified 1577249168
+   Target_uk_ua "Ви не можете тут нічого розміщувати. Потрібно перебувати біля власного будинку/табору, FOB або контрольованої бази."
+   Modified 1716475979
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5992E2F582B25E27}" {
    Id "OVT-CannotPlaceHere"
    Target_en_us "You cannot place that item here, you must be near a house/camp you own, an FOB or a controlled base"
    Target_ru_ru "Вы не можете разместить это предмет здесь, вы должны быть возле купленного дома, FOB или захваченой базы"
-   Modified 1577249155
+   Target_uk_ua "Ви не можете розмістити цей предмет тут. Потрібно перебувати біля власного будинку/табору, FOB або контрольованої бази."
+   Modified 1716475857
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5992E2F582B25E2B}" {
    Id "OVT-CannotRemoveItem"
    Target_en_us "Cannot remove this item"
    Target_ru_ru "Невозможно удалить этот предмет"
-   Modified 1577249155
+   Target_uk_ua "Неможливо видалити цей предмет"
+   Modified 1716475826
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{59B4D7D75C4B5A65}" {
    Id "OVT-CaptureBase"
@@ -854,6 +869,7 @@ StringTable {
   CustomStringTableItem "{5D86A310C893DBE0}" {
    Id "OVT-ContainerProgress"
    Target_en_us "Container %1 of %2"
+   Target_uk_ua "Контейнер %1 з %2"
    Comment ""
    DevNote ""
    Repro ""
@@ -862,9 +878,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1735049000
+   Modified 1716475801
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
@@ -935,6 +951,7 @@ StringTable {
   CustomStringTableItem "{5D86A310C893DBD9}" {
    Id "OVT-DeleteCamp"
    Target_en_us "Delete Camp"
+   Target_uk_ua "Видалити табір"
    Comment ""
    DevNote ""
    Repro ""
@@ -943,15 +960,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1735049000
+   Modified 1716475487
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBDA}" {
    Id "OVT-DeleteCampConfirm"
    Target_en_us "Are you sure you want to delete this camp? All items will be lost."
+   Target_uk_ua "Ви впевнені, що хочете видалити цей табір? Усі предмети будуть втрачені."
    Comment ""
    DevNote ""
    Repro ""
@@ -960,9 +978,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1735049000
+   Modified 1716475540
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
@@ -991,18 +1009,20 @@ StringTable {
   CustomStringTableItem "{5E04888F0573C994}" {
    Id "OVT-DeployFOB"
    Target_en_us "Deploy FOB"
-   Modified 1577356956
+   Target_uk_ua "Розмістити FOB"
+   Modified 1716475446
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{6466E3EDBB9A2E23}" {
    Id "OVT-Difficulty"
    Target_en_us "Difficulty"
    Target_ko_kr "난이도"
    Target_zh_cn "难度"
-   Modified 1706580252
+   Target_uk_ua "Складність"
+   Modified 1716475460
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{59C84C639B645258}" {
    Id "OVT-DonateFunds"
@@ -1073,9 +1093,10 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391A19}" {
    Id "OVT-Feature_NotImplemented"
    Target_en_us "Feature not yet implemented"
-   Modified 1735682400
+   Target_uk_ua "Функція ще не реалізована"
+   Modified 1716475576
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5990833697321087}" {
    Id "OVT-FieldManual_Category_Overthrow_Title"
@@ -1215,7 +1236,7 @@ StringTable {
    Target_en_us "Flip Vehicle"
    Target_ko_kr "차량 뒤집기"
    Target_zh_cn "翻正车辆"
-   Target_uk_ua "Перевернута техніка"
+   Target_uk_ua "Перевернути техніку"
    Comment ""
    DevNote ""
    Repro ""
@@ -1224,15 +1245,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706580601
+   Modified 1716475323
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBDE}" {
    Id "OVT-FOBUndeployed"
    Target_en_us "FOB Undeployed"
+   Target_uk_ua "FOB Нерозгорнуто"
    Comment ""
    DevNote ""
    Repro ""
@@ -1241,15 +1263,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1735049000
+   Modified 1716475600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBDF}" {
    Id "OVT-FOBUndeployFailed"
    Target_en_us "FOB Undeployment Failed"
+   Target_uk_ua "Не вдалося згорнути FOB"
    Comment ""
    DevNote ""
    Repro ""
@@ -1258,9 +1281,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1735049000
+   Modified 1716475750
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
@@ -1662,13 +1685,15 @@ StringTable {
    Id "OVT-ItemLimitReached"
    Target_en_us "Item limit reached at this location"
    Target_ru_ru "Достигнут лимит предметов в этом месте"
-   Modified 1577249155
+   Target_uk_ua "Досягнуто ліміт предметів у цьому місці"
+   Modified 1716475283
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5D86A310C893DBE1}" {
    Id "OVT-ItemProgress"
    Target_en_us "Item %1 of %2"
+   Target_uk_ua "Предмет %1 з %2"
    Comment ""
    DevNote ""
    Repro ""
@@ -1677,9 +1702,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1735049000
+   Modified 1716475253
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
@@ -1687,9 +1712,10 @@ StringTable {
    Id "OVT-ItemRemoved"
    Target_en_us "Item removed"
    Target_ru_ru "Предмет удален"
-   Modified 1577249155
+   Target_uk_ua "Предмет видалено"
+   Modified 1716475235
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{59AEEB5827181BD1}" {
    Id "OVT-Job_AddedWaypoint"
@@ -1954,9 +1980,10 @@ StringTable {
   CustomStringTableItem "{65CD1C84C885C17F}" {
    Id "OVT-Job_PlaceCamp"
    Target_en_us "Tutorial - Place a camp"
-   Modified 1707943858
+   Target_uk_ua "Навчання - Розмістіть табір"
+   Modified 1716475214
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{65CD1C84DFC4F3AD}" {
    Id "OVT-Job_PlaceCamp_Description"
@@ -1971,16 +1998,28 @@ StringTable {
    "You can also set a camp as \"home' so you will respawn there on your death."\
    ""\
    "Place a camp by opening the Overthrow menu and choosing \"Place\". Put it somewhere useful so you can easily get back to an area where you are currently operating or where you parked your vehicle."
-   Modified 1707944104
+   Target_uk_ua "Табори можна розміщувати будь-де, де вони не будуть занадто близько до бази."\
+   ""\
+   "Вони створюють точку швидкого переміщення, якою може користуватися будь-який гравець, і дозволяють розміщувати/будувати базові предмети поруч."\
+   ""\
+   "Також ви можете скористатися опцією \"Керувати табором\", щоб зробити табір приватним, якщо не хочете, щоб інші гравці могли використовувати його для швидкого переміщення."\
+   ""\
+   "Кожному гравцеві дозволено мати лише один табір одночасно. Розміщення нового табору видалить ваш старий та всі предмети, які ви навколо нього розмістили або побудували."\
+   ""\
+   "Ви також можете встановити табір як \"домашній\", щоб відроджуватися там після смерті."\
+   ""\
+   "Щоб розмістити табір, відкрийте меню Overthrow і виберіть \"Розмістити\". Встановіть його у корисному місці, щоб легко повертатися до зони, де ви зараз дієте, або де залишили свій транспорт."
+   Modified 1716475188
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{65CD0E9BACF7992F}" {
    Id "OVT-Job_PlaceEquipmentBox"
    Target_en_us "Tutorial - Place an Equipment Box"
-   Modified 1707940608
+   Target_uk_ua "Навчання - Розмістіть ящик із екіпіруванням"
+   Modified 1716475027
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{65CD0E9BBC6527A5}" {
    Id "OVT-Job_PlaceEquipmentBox_Description"
@@ -1994,9 +2033,19 @@ StringTable {
    "- Save your current loadout and apply it to yourself or nearby recruits"\
    ""\
    "Use the \"Place\" option in the Overthrow menu to place one at your house, your camp, an FOB or a base."
-   Modified 1707940528
+   Target_uk_ua "Ящик із екіпіруванням — це дуже корисний контейнер для зберігання з додатковими функціями в Overthrow."\
+   ""\
+   "Він може:"\
+   "- Зберігати будь-яке спорядження"\
+   "- Бути замкненим, щоб інші гравці не мали доступу"\
+   "- Вивантажуватися у поруч розташовану техніку"\
+   "- Завантажуватися з поруч розташованої техніки"\
+   "- Зберігати ваш поточний комплект спорядження та застосовувати його до себе або рекрутів поблизу"\
+   ""\
+   "Використайте опцію \"Розмістити\" в меню Overthrow, щоб встановити його у вашому будинку, таборі, на FOB або базі."
+   Modified 1716474987
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{59B518B28C1095CF}" {
    Id "OVT-Job_RaiseSupport"
@@ -2067,9 +2116,10 @@ StringTable {
   CustomStringTableItem "{65CD1C80A56DB4F2}" {
    Id "OVT-Job_RecruitACivilian"
    Target_en_us "Tutorial - Recruit a civilian"
-   Modified 1707942065
+   Target_uk_ua "Навчання - Рекрутируйте цивільного"
+   Modified 1716474803
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{65CD1C80A8F890D1}" {
    Id "OVT-Job_RecruitACivilian_Description"
@@ -2080,9 +2130,16 @@ StringTable {
    "2. Build a \"Recruitment Tent\" at an FOB"\
    ""\
    "Once recruited you can command them using the \"Command menu\" with <color rgba='226,168,79,255'><action name=\"OpenCommandMenu\"/></color>"
-   Modified 1707942532
+   Target_uk_ua "Цивільних можна рекрутувати до вашого загону."\
+   ""\
+   "Існує два способи рекрутувати їх:"\
+   "1. Підійдіть до них на вулиці та рекрутуйте безпосередньо"\
+   "2. Побудуйте \"Рекрутинговий Намет\" на FOB"\
+   ""\
+   "Після рекрутингу ви можете командувати ними використовуючи \"Командне Меню\" with <color rgba='226,168,79,255'><action name=\"OpenCommandMenu\"/></color>"
+   Modified 1716474680
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5D5080D395D01E22}" {
    Id "OVT-Jobs_Accept"
@@ -2200,13 +2257,15 @@ StringTable {
    Target_ko_kr "이 임무들은 게임 모드의 튜토리얼용으로 설계되었습니다. 많은 수입을 기대하기보다는 가능한 활동들을 보여주기 위한 것입니다. Overthrow는 당신이 혁명의 대의를 위해 어떻게 행동할지 스스로 결정하는 오픈 월드 게임 모드입니다. 지지자를 모으고 마을을 점령하는 것이 훨씬 더 많은 돈을 벌 수 있는 방법입니다. 그러니 밖으로 나가서 지지를 모으고, 기지를 점령하며 섬을 장악하세요!"\
    ""
    Target_zh_cn "这些工作主要用于教学目的，帮助玩家熟悉游戏机制。这些任务的收入有限，旨在展示游戏中的可能性。抵抗是一个开放类世界游戏模式，你可以决定如何进一步抵抗革命事业。通过提高支持度和占领城镇，你将更多的资金和资源。因此，积极争取支持、占领基地并逐步控制整个岛屿吧！"
-   Modified 1706584730
+   Target_uk_ua "Ці завдання призначені як навчальний посібник для ігрового режиму. Вони не дають великого доходу і лише показують, що можливо зробити. Overthrow - це відкритий світовий ігровий режим, де ВИ вирішуєте, як просувати справу революції. Ви заробите набагато більше, збираючи підтримку та захоплюючи міста. Тож вирушайте туди, збирайте підтримку, захоплюйте бази та підкорюйте острів!"
+   Modified 1716474338
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{A1B2C3D4E5F60002}" {
    Id "OVT-LoadLoadout"
    Target_en_us "Load Loadout"
+   Target_uk_ua "Завантажити комплект спорядження"
    Comment "UserAction for loading player equipment loadouts"
    DevNote ""
    Repro ""
@@ -2215,15 +2274,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1716474267
    Author "Claude AI"
-   LastChanged "Claude AI"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{A1B2C3D4E5F60005}" {
    Id "OVT-LoadLoadoutMessage"
    Target_en_us "Select a loadout to apply:"
+   Target_uk_ua "Виберіть комплект спорядження для застосування:"
    Comment "Message for load loadout dialog"
    DevNote ""
    Repro ""
@@ -2232,15 +2292,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1716474250
    Author "Claude AI"
-   LastChanged "Claude AI"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E39169A}" {
    Id "OVT-LoadoutApplied"
    Target_en_us "Loadout applied successfully"
+   Target_uk_ua "Комплект спорядження застосовано успішно"
    Comment "Confirmation message when loadout is applied"
    DevNote ""
    Repro ""
@@ -2249,15 +2310,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1700000000
+   Modified 1716474226
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E3916A5}" {
    Id "OVT-Loadouts_AppliedToAllRecruits"
    Target_en_us "Applied loadout '%1' to %2 recruits"
+   Target_uk_ua "Комплект спорядження '%1' застосовано до %2 рекрутів"
    Comment "Success message when loadout is applied to all recruits"
    DevNote ""
    Repro ""
@@ -2266,15 +2328,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1700000000
+   Modified 1716474208
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E3916A4}" {
    Id "OVT-Loadouts_AppliedToRecruit"
    Target_en_us "Applied loadout '%1' to %2"
+   Target_uk_ua "Комплект спорядження '%1' застосовано до %2"
    Comment "Success message when loadout is applied to a recruit"
    DevNote ""
    Repro ""
@@ -2283,15 +2346,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1700000000
+   Modified 1716474190
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E391696}" {
    Id "OVT-Loadouts_Apply"
    Target_en_us "Apply to Self"
+   Target_uk_ua "Застосувати до себе"
    Comment "Button to apply selected loadout to player"
    DevNote ""
    Repro ""
@@ -2300,15 +2364,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1700000000
+   Modified 1716474166
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E39169E}" {
    Id "OVT-Loadouts_ApplyToAll"
    Target_en_us "Apply to All"
+   Target_uk_ua "Застосувати до всіх"
    Comment "Button to apply loadout to all nearby recruits"
    DevNote ""
    Repro ""
@@ -2317,15 +2382,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1700000000
+   Modified 1716474141
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E39169D}" {
    Id "OVT-Loadouts_ApplyToSelected"
    Target_en_us "Apply to Selected"
+   Target_uk_ua "Застосувати до вибраного"
    Comment "Button to apply loadout to selected recruit"
    DevNote ""
    Repro ""
@@ -2334,15 +2400,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1700000000
+   Modified 1716474125
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E391697}" {
    Id "OVT-Loadouts_Delete"
    Target_en_us "Delete"
+   Target_uk_ua "Видалити"
    Comment "Button to delete selected loadout"
    DevNote ""
    Repro ""
@@ -2351,15 +2418,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1700000000
+   Modified 1716474106
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E3916A8}" {
    Id "OVT-Loadouts_FailedToApply"
    Target_en_us "Failed to apply loadout"
+   Target_uk_ua "Не вдалося застосувати комплект спорядження"
    Comment "Error message when loadout application fails"
    DevNote ""
    Repro ""
@@ -2368,15 +2436,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1700000000
+   Modified 1716474098
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E391693}" {
    Id "OVT-Loadouts_ManageLoadouts"
    Target_en_us "Manage Loadouts"
+   Target_uk_ua "Керування комплектами спорядження"
    Comment "Title for loadout management screen"
    DevNote ""
    Repro ""
@@ -2385,15 +2454,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1700000000
+   Modified 1716474078
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E39169B}" {
    Id "OVT-Loadouts_NearbyRecruits"
    Target_en_us "Nearby Recruits"
+   Target_uk_ua "Рекрути поблизу"
    Comment "Title for nearby recruits section"
    DevNote ""
    Repro ""
@@ -2402,15 +2472,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1700000000
+   Modified 1716474063
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E3916A7}" {
    Id "OVT-Loadouts_NoEquipmentBox"
    Target_en_us "No equipment box available"
+   Target_uk_ua "Ящик із екіпіруванням відсутній"
    Comment "Error message when trying to apply loadout without equipment box"
    DevNote ""
    Repro ""
@@ -2419,15 +2490,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1700000000
+   Modified 1716474042
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E391695}" {
    Id "OVT-Loadouts_NoLoadoutsHelp"
    Target_en_us "No loadouts saved yet. Use an equipment box to save your current loadout, then come back here to manage and apply them."
+   Target_uk_ua "Поки що жодного комплекту спорядження не збережено. Використайте ящик із екіпіруванням, щоб зберегти ваш поточний комплект, а потім поверніться сюди, щоб керувати ними та застосовувати їх."
    Comment "Help text when no loadouts exist"
    DevNote ""
    Repro ""
@@ -2436,15 +2508,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1700000000
+   Modified 1716474023
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E3916A3}" {
    Id "OVT-Loadouts_NoRecruitSelected"
    Target_en_us "No recruit selected"
+   Target_uk_ua "Рекрут не вибраний"
    Comment "Error message when no recruit is selected"
    DevNote ""
    Repro ""
@@ -2453,15 +2526,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1700000000
+   Modified 1716473969
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E39169C}" {
    Id "OVT-Loadouts_NoRecruitsNearby"
    Target_en_us "No recruits nearby"
+   Target_uk_ua "Поруч немає рекрутів"
    Comment "Message when no recruits are found nearby"
    DevNote ""
    Repro ""
@@ -2470,15 +2544,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1700000000
+   Modified 1716473953
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E391698}" {
    Id "OVT-Loadouts_PersonalLoadout"
    Target_en_us "Personal loadout"
+   Target_uk_ua "Особистий комплект спорядження"
    Comment "Label for personal loadouts in list"
    DevNote ""
    Repro ""
@@ -2487,15 +2562,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1700000000
+   Modified 1716473933
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E391699}" {
    Id "OVT-Loadouts_Ready"
    Target_en_us "Ready"
+   Target_uk_ua "Готовий"
    Comment "Status text for available loadouts"
    DevNote ""
    Repro ""
@@ -2504,15 +2580,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1700000000
+   Modified 1716473911
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E3916A1}" {
    Id "OVT-Loadouts_RecruitDead"
    Target_en_us "Dead"
+   Target_uk_ua "Мертвий"
    Comment "Status for recruit that is dead"
    DevNote ""
    Repro ""
@@ -2521,15 +2598,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1700000000
+   Modified 1716473901
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E39169F}" {
    Id "OVT-Loadouts_RecruitReady"
    Target_en_us "Ready"
+   Target_uk_ua "Готовий"
    Comment "Status for recruit that is ready for loadout"
    DevNote ""
    Repro ""
@@ -2538,15 +2616,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1700000000
+   Modified 1716473894
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E3916A0}" {
    Id "OVT-Loadouts_RecruitUnconscious"
    Target_en_us "Unconscious"
+   Target_uk_ua "Непритомний"
    Comment "Status for recruit that is unconscious"
    DevNote ""
    Repro ""
@@ -2555,15 +2634,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1700000000
+   Modified 1716473877
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E3916A2}" {
    Id "OVT-Loadouts_RecruitUnknown"
    Target_en_us "Unknown"
+   Target_uk_ua "Невідомо"
    Comment "Status for recruit with unknown state"
    DevNote ""
    Repro ""
@@ -2572,15 +2652,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1700000000
+   Modified 1716473857
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E3916A6}" {
    Id "OVT-Loadouts_SelectedRecruit"
    Target_en_us "Selected: %1"
+   Target_uk_ua "Вибрано: %1"
    Comment "Shows the name of the currently selected recruit"
    DevNote ""
    Repro ""
@@ -2589,15 +2670,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1700000000
+   Modified 1716473579
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E391694}" {
    Id "OVT-Loadouts_YourLoadouts"
    Target_en_us "Your Loadouts"
+   Target_uk_ua "Ваші комплекти спорядження"
    Comment "Title for player loadouts list"
    DevNote ""
    Repro ""
@@ -2606,9 +2688,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1700000000
+   Modified 1716473561
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
@@ -2920,6 +3002,7 @@ StringTable {
   CustomStringTableItem "{5D86A310C893DBD7}" {
    Id "OVT-MakeCampPrivate"
    Target_en_us "Make Private"
+   Target_uk_ua "Зробити приватним"
    Comment ""
    DevNote ""
    Repro ""
@@ -2928,15 +3011,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1735049000
+   Modified 1716473537
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBD8}" {
    Id "OVT-MakeCampPublic"
    Target_en_us "Make Public"
+   Target_uk_ua "Зробити публічним"
    Comment ""
    DevNote ""
    Repro ""
@@ -2945,9 +3029,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1735049000
+   Modified 1716473515
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
@@ -3108,16 +3192,18 @@ StringTable {
   CustomStringTableItem "{65C4B2C28934AFF0}" {
    Id "OVT-MobileFOB"
    Target_en_us "Mobile FOB"
-   Modified 1707400218
+   Target_uk_ua "Мобільна FOB"
+   Modified 1716473494
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{65D08ACC7FDB3C67}" {
    Id "OVT-MobileFOBHelp"
    Target_en_us "FOBs are now deployed from a \"Mobile FOB\" truck, purchase one at any vehicle store"
-   Modified 1708170285
+   Target_uk_ua "FOB тепер розгортаються з вантажівки \"Мобільна FOB\", придбайте її в будь-якому магазині техніки"
+   Modified 1716473479
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5E4852B16105E801}" {
    Id "OVT-Modifier_BlackMarket"
@@ -3443,9 +3529,10 @@ StringTable {
   CustomStringTableItem "{65D6231551A70A67}" {
    Id "OVT-Msg-HasPlacedCamp"
    Target_en_us "%1 has placed a camp"
-   Modified 1708532612
+   Target_uk_ua "%1 розмістив табір"
+   Modified 1716473398
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{59A49A822C192F63}" {
    Id "OVT-Msg-HasPlacedFOB"
@@ -3725,9 +3812,10 @@ StringTable {
   CustomStringTableItem "{65AA3C7A9ED20711}" {
    Id "OVT-Msg-RecruitDied"
    Target_en_us "%1 has died"
-   Modified 1705668072
+   Target_uk_ua "%1 помер"
+   Modified 1716471573
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5D86A3C7B5BAFA27}" {
    Id "OVT-Msg-TaxesDonationsPlayer"
@@ -3907,6 +3995,7 @@ StringTable {
   CustomStringTableItem "{6A1B2C3D4E5F6791}" {
    Id "OVT-Msg-WantedArmedVehicle"
    Target_en_us "You are now wanted for operating an armed vehicle!"
+   Target_uk_ua "Вас оголошено в розшук за використання озброєної техніки!"
    Comment ""
    DevNote ""
    Repro ""
@@ -3915,15 +4004,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1733000000
+   Modified 1716471819
    Author "Claude AI"
-   LastChanged "Claude AI"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A1B2C3D4E5F678F}" {
    Id "OVT-Msg-WantedBaseProximity"
    Target_en_us "You are now wanted for being too close to an enemy base!"
+   Target_uk_ua "Вас оголошено в розшук за наближення до ворожої бази"
    Comment ""
    DevNote ""
    Repro ""
@@ -3932,15 +4022,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1733000000
+   Modified 1716471764
    Author "Claude AI"
-   LastChanged "Claude AI"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A1B2C3D4E5F678D}" {
    Id "OVT-Msg-WantedDisguiseBlown"
    Target_en_us "Your disguise has been blown! You are now wanted!"
+   Target_uk_ua "Ваше маскування розкрито! Вас розшукують!"
    Comment ""
    DevNote ""
    Repro ""
@@ -3949,15 +4040,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1733000000
+   Modified 1716471879
    Author "Claude AI"
-   LastChanged "Claude AI"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A1B2C3D4E5F678B}" {
    Id "OVT-Msg-WantedHostileFaction"
    Target_en_us "You are now wanted for wearing hostile faction uniform!"
+   Target_uk_ua "Вас розшукують за носіння уніформи ворожої фракції!"
    Comment ""
    DevNote ""
    Repro ""
@@ -3966,15 +4058,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1733000000
+   Modified 1716471910
    Author "Claude AI"
-   LastChanged "Claude AI"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A1B2C3D4E5F6789}" {
    Id "OVT-Msg-WantedWeapon"
    Target_en_us "You are now wanted for carrying a weapon!"
+   Target_uk_ua "Вас розшукують за носіння зброї!"
    Comment ""
    DevNote ""
    Repro ""
@@ -3983,9 +4076,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1733000000
+   Modified 1716471940
    Author "Claude AI"
-   LastChanged "Claude AI"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
@@ -4663,16 +4756,18 @@ StringTable {
   CustomStringTableItem "{65CE9A28E959892F}" {
    Id "OVT-Place_Furniture"
    Target_en_us "Furniture"
-   Modified 1708055521
+   Target_uk_ua "Меблі"
+   Modified 1716471971
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{65CE9A28FB5BD02E}" {
    Id "OVT-Place_Furniture_Description"
    Target_en_us "Lanterns, tables, chairs, etc"
-   Modified 1708055560
+   Target_uk_ua "Ліхтарі, столи, стільці тощо"
+   Modified 1716471989
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{598AD55488E14CB4}" {
    Id "OVT-Place_Hedgehog"
@@ -4938,9 +5033,10 @@ StringTable {
   CustomStringTableItem "{65B90A2D9E4D747F}" {
    Id "OVT-Place_Signs_Description"
    Target_en_us "Tells people stuff"
-   Modified 1706640836
+   Target_uk_ua "Розповідає щось людям"
+   Modified 1716472069
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{59C84C79C2AB441A}" {
    Id "OVT-Player"
@@ -5054,6 +5150,7 @@ StringTable {
   CustomStringTableItem "{5D86A310C893DBDD}" {
    Id "OVT-PriorityFOBSet"
    Target_en_us "%1 has been set as the priority FOB"
+   Target_uk_ua "%1 встановлено як головну FOB"
    Comment ""
    DevNote ""
    Repro ""
@@ -5062,15 +5159,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1735049000
+   Modified 1716472104
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBD4}" {
    Id "OVT-Privacy"
    Target_en_us "Privacy"
+   Target_uk_ua "Конфіденційність"
    Comment ""
    DevNote ""
    Repro ""
@@ -5079,9 +5177,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1735049000
+   Modified 1716472120
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
@@ -5306,6 +5404,7 @@ StringTable {
   CustomStringTableItem "{5D86A310C893DBDF}" {
    Id "OVT-ProgressComplete"
    Target_en_us "Progress: 100%"
+   Target_uk_ua "Прогрес: 100%"
    Comment ""
    DevNote ""
    Repro ""
@@ -5314,15 +5413,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1735049000
+   Modified 1716472152
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBDE}" {
    Id "OVT-ProgressPercent"
    Target_en_us "Progress: %1%"
+   Target_uk_ua "Прогрес: %1%"
    Comment ""
    DevNote ""
    Repro ""
@@ -5331,15 +5431,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1735049000
+   Modified 1716472168
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A82FE978603F139}" {
    Id "OVT-PurchaseFailedInsufficientFunds"
    Target_en_us "Purchase failed: Insufficient funds"
+   Target_uk_ua "Покупка не вдалася: недостатньо коштів"
    Comment ""
    DevNote ""
    Repro ""
@@ -5348,15 +5449,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706589010
+   Modified 1716472185
    Author "Aaron Static"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A82FE978603F13A}" {
    Id "OVT-PurchaseFailedInventoryFull"
    Target_en_us "Purchase failed: Inventory full"
+   Target_uk_ua "Покупка не вдалася: інвентар повний"
    Comment ""
    DevNote ""
    Repro ""
@@ -5365,15 +5467,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706589010
+   Modified 1716472200
    Author "Aaron Static"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A82FE978603F13C}" {
    Id "OVT-PurchasePartialSuccess"
    Target_en_us "Purchase partially successful: Got %1 out of %2 items"
+   Target_uk_ua "Покупка частково успішна: отримано %1 з %2 товарів"
    Comment ""
    DevNote ""
    Repro ""
@@ -5382,9 +5485,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706589010
+   Modified 1716472218
    Author "Aaron Static"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
@@ -5413,100 +5516,114 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391A10}" {
    Id "OVT-Recruit_Active"
    Target_en_us "Active"
-   Modified 1735682400
+   Target_uk_ua "Активний"
+   Modified 1716473362
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5D5C558A6E391A15}" {
    Id "OVT-Recruit_Dismissed"
    Target_en_us "Recruit dismissed"
-   Modified 1735682400
+   Target_uk_ua "Рекрут звільнений"
+   Modified 1716473346
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5D5C558A6E391A20}" {
    Id "OVT-Recruit_Hometown"
    Target_en_us "Hometown: %1"
-   Modified 1735049000
+   Target_uk_ua "Рідне місто: %1"
+   Modified 1716473324
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5D5C558A6E391A08}" {
    Id "OVT-Recruit_Kills"
    Target_en_us "Kills: %1"
-   Modified 1735682400
+   Target_uk_ua "Вбивств: %1"
+   Modified 1716473295
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5D5C558A6E391A06}" {
    Id "OVT-Recruit_Level"
    Target_en_us "Level %1"
-   Modified 1735682400
+   Target_uk_ua "Рівень %1"
+   Modified 1716473281
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5D5C558A6E391A07}" {
    Id "OVT-Recruit_LevelXP"
    Target_en_us "Level: %1 (%2/%3 XP)"
-   Modified 1735682400
+   Target_uk_ua "Рівень: %1 (%2 із %3 XP)"
+   Modified 1716473263
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5D5C558A6E391A16}" {
    Id "OVT-Recruit_MarkedOnMap"
    Target_en_us "Recruit location marked on map"
-   Modified 1735682400
+   Target_uk_ua "Позиція рекрута позначена на мапі"
+   Modified 1716473228
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5D5C558A6E391A11}" {
    Id "OVT-Recruit_Offline"
    Target_en_us "Offline"
-   Modified 1735682400
+   Target_uk_ua "Офлайн"
+   Modified 1716473195
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5D5C558A6E391A23}" {
    Id "OVT-Recruit_Renamed"
    Target_en_us "Recruit renamed successfully"
-   Modified 1735682400
+   Target_uk_ua "Рекрут успішно перейменований"
+   Modified 1716473182
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5D5C558A6E391A13}" {
    Id "OVT-Recruit_StatusActive"
    Target_en_us "Status: Active (Distance: %1m)"
-   Modified 1735682400
+   Target_uk_ua "Статус: активний (відстань: %1 м)"
+   Modified 1716473164
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5D5C558A6E391A12}" {
    Id "OVT-Recruit_StatusDead"
    Target_en_us "Status: Dead"
-   Modified 1735682400
+   Target_uk_ua "Статус: мертвий"
+   Modified 1716473141
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5D5C558A6E391A14}" {
    Id "OVT-Recruit_StatusOffline"
    Target_en_us "Status: Offline"
-   Modified 1735682400
+   Target_uk_ua "Статус: офлайн"
+   Modified 1716473133
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5D5C558A6E391A09}" {
    Id "OVT-Recruit_Unconscious"
    Target_en_us "Unconscious"
-   Modified 1706105316
+   Target_uk_ua "Непритомний"
+   Modified 1716473113
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{64A10301CB5B1FEF}" {
    Id "OVT-RecruitCivilian"
    Target_en_us "Recruit Civilian"
-   Modified 1688275821
+   Target_uk_ua "Вербувати цивільного"
+   Modified 1716472246
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5DA486E22A59D4CB}" {
    Id "OVT-RecruitedFromTent"
@@ -5596,96 +5713,109 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391A05}" {
    Id "OVT-Recruits_Dismiss"
    Target_en_us "Dismiss"
-   Modified 1735682400
+   Target_uk_ua "Звільнити"
+   Modified 1716473088
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5D5C558A6E391A18}" {
    Id "OVT-Recruits_DismissMessage"
    Target_en_us "Are you sure you want to dismiss this recruit? This action cannot be undone."
-   Modified 1735682400
+   Target_uk_ua "Ви дійсно хочете звільнити цього рекрута? Ця дія незворотна."
+   Modified 1716473075
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5D5C558A6E391A17}" {
    Id "OVT-Recruits_DismissTitle"
    Target_en_us "Dismiss Recruit"
-   Modified 1735682400
+   Target_uk_ua "Звільнити рекрута"
+   Modified 1716473054
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5D5C558A6E391A02}" {
    Id "OVT-Recruits_NoRecruitsHelp"
    Target_en_us "You have no recruits yet. Recruit civilians by approaching them in towns with high support and using the Recruit Civilian action."
-   Modified 1735682400
+   Target_uk_ua "У вас ще немає рекрутів. Вербуйте цивільних, наближаючись до них у населених пунктах із високою підтримкою та використовуючи дію Вербувати Цивільного."
+   Modified 1716473031
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5D5C558A6E391A04}" {
    Id "OVT-Recruits_Rename"
    Target_en_us "Rename"
-   Modified 1735682400
+   Target_uk_ua "Перейменувати"
+   Modified 1716472984
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5D5C558A6E391A21}" {
    Id "OVT-Recruits_RenameMessage"
    Target_en_us "Enter a new name for this recruit:"
-   Modified 1735682400
+   Target_uk_ua "Введіть нове ім’я для цього рекрута:"
+   Modified 1716472967
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5D5C558A6E391A22}" {
    Id "OVT-Recruits_RenamePrompt"
    Target_en_us "Recruit Name"
-   Modified 1735682400
+   Target_uk_ua "Ім'я рекрута"
+   Modified 1716472944
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5D5C558A6E391A20}" {
    Id "OVT-Recruits_RenameTitle"
    Target_en_us "Rename Recruit"
-   Modified 1735682400
+   Target_uk_ua "Перейменувати рекрута"
+   Modified 1716472924
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5D5C558A6E391A03}" {
    Id "OVT-Recruits_ShowOnMap"
    Target_en_us "Show on Map"
-   Modified 1735682400
+   Target_uk_ua "Показати на мапі"
+   Modified 1716472907
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5D5C558A6E391A01}" {
    Id "OVT-Recruits_YourRecruits"
    Target_en_us "Your Recruits"
-   Modified 1735682400
+   Target_uk_ua "Ваші рекрути"
+   Modified 1716472886
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5992E2F582B25E29}" {
    Id "OVT-RemovalModeActive"
    Target_en_us "Removal mode active - look at items to remove them"
    Target_ru_ru "Режим удаления активен - смотрите на предметы, чтобы удалить их"
-   Modified 1577249155
+   Target_uk_ua "Режим видалення активний - дивіться на предмети, щоб їх видалити"
+   Modified 1716472857
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5992E2F582B25E2C}" {
    Id "OVT-Remove"
    Target_en_us "Remove"
    Target_ru_ru "Удалить"
-   Modified 1577249155
+   Target_uk_ua "Видалити"
+   Modified 1716472827
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5992E2F582B25E2D}" {
    Id "OVT-RemoveDescription"
    Target_en_us "Remove placed or built items"
    Target_ru_ru "Удалить размещенные или построенные предметы"
-   Modified 1577249155
+   Target_uk_ua "Видалити розміщені або побудовані предмети"
+   Modified 1716472814
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5D305CF6351DD698}" {
    Id "OVT-Rent"
@@ -5953,6 +6083,7 @@ StringTable {
   CustomStringTableItem "{A1B2C3D4E5F60001}" {
    Id "OVT-SaveLoadout"
    Target_en_us "Save Loadout"
+   Target_uk_ua "Зберегти комплект спорядження"
    Comment "UserAction for saving player equipment loadouts"
    DevNote ""
    Repro ""
@@ -5961,15 +6092,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1716472778
    Author "Claude AI"
-   LastChanged "Claude AI"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{A1B2C3D4E5F60003}" {
    Id "OVT-SaveLoadoutMessage"
    Target_en_us "Enter a name for your loadout, using an existing name will override the loadout:"
+   Target_uk_ua "Введіть назву для свого комплекту спорядження, використання існуючої назви перезапише поточний комплект"
    Comment "Message for save loadout dialog"
    DevNote ""
    Repro ""
@@ -5978,15 +6110,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706484995
+   Modified 1716472756
    Author "Claude AI"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{A1B2C3D4E5F60004}" {
    Id "OVT-SaveLoadoutPrompt"
    Target_en_us "Loadout Name"
+   Target_uk_ua "Назва комплекту спорядження"
    Comment "Prompt for loadout name input field"
    DevNote ""
    Repro ""
@@ -5995,15 +6128,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1658678321
+   Modified 1716472721
    Author "Claude AI"
-   LastChanged "Claude AI"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{A1B2C3D4E5F60003}" {
    Id "OVT-SaveOfficerLoadout"
    Target_en_us "Save Resistance Loadout"
+   Target_uk_ua "Зберегти комплект спорядження Опору"
    Comment "UserAction for officers to save template loadouts"
    DevNote ""
    Repro ""
@@ -6012,9 +6146,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706484961
+   Modified 1716472698
    Author "Claude AI"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
@@ -6153,6 +6287,7 @@ StringTable {
   CustomStringTableItem "{5D86A310C893DBDC}" {
    Id "OVT-SetPriorityFOB"
    Target_en_us "Set as Priority FOB"
+   Target_uk_ua "Встановити як пріоритетну FOB"
    Comment ""
    DevNote ""
    Repro ""
@@ -6161,9 +6296,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1735049000
+   Modified 1716472664
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
@@ -6907,6 +7042,7 @@ StringTable {
   CustomStringTableItem "{5D86A310C893DBE6}" {
    Id "OVT-StorageTransferCancelled"
    Target_en_us "Storage Transfer Cancelled"
+   Target_uk_ua "Передача зі сховища скасована"
    Comment ""
    DevNote ""
    Repro ""
@@ -6915,15 +7051,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1735049000
+   Modified 1716472641
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBE7}" {
    Id "OVT-StorageTransferCancelledByUser"
    Target_en_us "Operation cancelled by user"
+   Target_uk_ua "Операцію скасовано користувачем"
    Comment ""
    DevNote ""
    Repro ""
@@ -6932,9 +7069,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1735049000
+   Modified 1716472620
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
@@ -6943,6 +7080,9 @@ StringTable {
    Target_en_us "Transfer Complete"\
    ""\
    "%1 items transferred"
+   Target_uk_ua "Передача завершена"\
+   ""\
+   "Передано %1 предметів"
    Comment ""
    DevNote ""
    Repro ""
@@ -6951,9 +7091,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706091315
+   Modified 1716472576
    Author "Claude"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
@@ -6963,6 +7103,10 @@ StringTable {
    ""\
    "%1 items transferred"\
    "%2 items skipped"
+   Target_uk_ua "Передача завершена"\
+   ""\
+   "Передано %1 предметів"\
+   "Пропущено %2 предметів"
    Comment ""
    DevNote ""
    Repro ""
@@ -6971,15 +7115,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706091336
+   Modified 1716472528
    Author "Claude"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBE4}" {
    Id "OVT-StorageTransferError"
    Target_en_us "Error: %1"
+   Target_uk_ua "Помилка: %1"
    Comment ""
    DevNote ""
    Repro ""
@@ -6988,15 +7133,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1735049000
+   Modified 1716472418
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBE5}" {
    Id "OVT-StorageTransferFailed"
    Target_en_us "Storage Transfer Failed"
+   Target_uk_ua "Передача зі сховища не вдалася"
    Comment ""
    DevNote ""
    Repro ""
@@ -7005,9 +7151,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1735049000
+   Modified 1716472401
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "CrioUA"
    ImageLink ""
    Hidden 0
   }
@@ -7181,9 +7327,10 @@ StringTable {
    Id "OVT-TooCloseToRadioTower"
    Target_en_us "Cannot deploy FOB - too close to radio tower"
    Target_ru_ru "Невозможно развернуть FOB - слишком близко к радиовышке"
-   Modified 1577249155
+   Target_uk_ua "Неможливо розгорнути FOB - занадто близько до радіовежі"
+   Modified 1716472362
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{59A49A81B65FE81A}" {
    Id "OVT-TooCloseTown"
@@ -7232,9 +7379,10 @@ StringTable {
   CustomStringTableItem "{5E04888F00ABCED0}" {
    Id "OVT-UndeployFOB"
    Target_en_us "Undeploy FOB"
-   Modified 1577356966
+   Target_uk_ua "Згорнути FOB"
+   Modified 1716472332
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{59A2BD31647163FE}" {
    Id "OVT-UnloadStorage"
@@ -7628,9 +7776,10 @@ StringTable {
   CustomStringTableItem "{65CE9A0D3DF93914}" {
    Id "OVT_Vehicle_Menu"
    Target_en_us "Open Vehicle Menu"
-   Modified 1708042299
+   Target_uk_ua "Відкрити меню техніки"
+   Modified 1716472290
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "CrioUA"
   }
  }
 }
