@@ -1,0 +1,84 @@
+{
+  "skills": {
+    "enforcescript-patterns": {
+      "type": "language-framework",
+      "enforcement": "suggest",
+      "priority": "high",
+      "promptTriggers": {
+        "keywords": [
+          "component",
+          "manager",
+          "controller",
+          "replication",
+          "RPC",
+          "RplProp",
+          "persistence",
+          "EPF",
+          "save",
+          "load",
+          "strong ref",
+          "garbage collection",
+          "EntityID",
+          "RplId",
+          "network",
+          "multiplayer",
+          "JIP",
+          "join in progress",
+          "UI context",
+          "layout",
+          "widget",
+          "memory",
+          "managed class",
+          "ternary"
+        ],
+        "intentPatterns": []
+      }
+    },
+    "overthrow-architecture": {
+      "type": "project-architecture",
+      "enforcement": "suggest",
+      "priority": "high",
+      "promptTriggers": {
+        "keywords": [
+          "OVT_",
+          "Overthrow",
+          "singleton",
+          "GetInstance",
+          "OVT_Global",
+          "naming convention",
+          "file structure",
+          "directory",
+          "where to put",
+          "coding standard",
+          "Init",
+          "PostGameStart",
+          "register"
+        ],
+        "intentPatterns": []
+      }
+    },
+    "workbench-workflow": {
+      "type": "development-workflow",
+      "enforcement": "suggest",
+      "priority": "medium",
+      "promptTriggers": {
+        "keywords": [
+          "test",
+          "testing",
+          "compile",
+          "workbench",
+          "build",
+          "debug",
+          "error",
+          "crash",
+          "prefab",
+          "config",
+          "play mode",
+          "console",
+          "Print"
+        ],
+        "intentPatterns": []
+      }
+    }
+  }
+}
