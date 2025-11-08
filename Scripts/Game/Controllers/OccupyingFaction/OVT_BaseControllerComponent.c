@@ -42,18 +42,34 @@ class OVT_BaseControllerComponent: OVT_Component
 
 	protected const int UPGRADE_UPDATE_FREQUENCY = 10000;
 
-	//! Constructor - registers this base controller with the manager
+	protected bool m_bRegistered = false;
+
+	//! Constructor
 	void OVT_BaseControllerComponent(IEntityComponentSource src, IEntity ent, IEntity parent)
 	{
 		// Don't register in editor mode
 		if(SCR_Global.IsEditMode()) return;
 
-		// Register with the occupying faction manager
-		// This happens after config is initialized
+		// Try immediate registration first
+		DeferredRegister();
+	}
+
+	//! Deferred registration - retries until manager exists
+	protected void DeferredRegister()
+	{
+		if(m_bRegistered) return;
+
 		OVT_OccupyingFactionManager manager = OVT_Global.GetOccupyingFaction();
 		if(manager)
 		{
 			manager.RegisterBaseController(this);
+			m_bRegistered = true;
+			Print(string.Format("[Overthrow] Base controller registered at %1", GetOwner().GetOrigin().ToString()), LogLevel.NORMAL);
+		}
+		else
+		{
+			// Manager not available yet - retry after 50ms
+			GetGame().GetCallqueue().CallLater(DeferredRegister, 50, false);
 		}
 	}
 

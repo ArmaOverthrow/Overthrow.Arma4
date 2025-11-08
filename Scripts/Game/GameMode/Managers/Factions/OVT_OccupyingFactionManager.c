@@ -183,7 +183,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 		OVT_Global.GetTowns().m_OnTownControlChange.Insert(OnTownControlChanged);
 
-		InitializeBases();
+		// Defer InitializeBases to allow time for base/tower controllers to register
+		// Controllers retry every 50ms until they can register
+		GetGame().GetCallqueue().CallLater(InitializeBases, 150, false);
 	}
 	
 	void SetClientBaseFactions()
@@ -556,16 +558,16 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 	void InitializeBases()
 	{
-		#ifdef OVERTHROW_DEBUG
-		Print("Bases will register via constructors");
-		#endif
+		Print(string.Format("[Overthrow] InitializeBases - waiting for bases/towers to self-register. Current count: %1 bases, %2 towers", m_Bases.Count(), m_RadioTowers.Count()));
 
-		// Bases and towers now self-register via their constructors
+		// Bases and towers now self-register via their OnPostInit
 		// This is more reliable than QueryEntitiesBySphere after Arma Reforger updates
 	}
 
 	protected void InitBaseControllers()
 	{
+		Print(string.Format("[Overthrow] InitBaseControllers called - initializing %1 bases", m_Bases.Count()));
+
 		OVT_ResistanceFactionManager rf = OVT_Global.GetResistanceFaction();
 		OVT_Faction resistance = m_Config.GetPlayerFaction();
 		int occupyingFactionIndex = m_Config.GetOccupyingFactionIndex();
@@ -575,12 +577,20 @@ class OVT_OccupyingFactionManager: OVT_Component
 			// Set faction if it wasn't set during registration (timing issue)
 			if (data.faction == -1)
 			{
+				Print(string.Format("[Overthrow] Base at %1 had faction -1, setting to %2", data.location.ToString(), occupyingFactionIndex));
 				data.faction = occupyingFactionIndex;
 			}
 
 			OVT_BaseControllerComponent base = GetBase(data.entId);
+			if (!base)
+			{
+				Print(string.Format("[Overthrow] WARNING: Could not find base controller for entity %1 at %2", data.entId, data.location.ToString()), LogLevel.WARNING);
+				continue;
+			}
+
 			base.InitBase();
 			base.SetControllingFaction(data.faction, true);
+			Print(string.Format("[Overthrow] Initialized base %1 at %2 with faction %3", index, data.location.ToString(), data.faction));
 
 			if(base.IsOccupyingFaction())
 			{
@@ -607,6 +617,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 				}
 			}
 		}
+
+		Print(string.Format("[Overthrow] InitBaseControllers complete - initialized %1 bases and %2 towers", m_Bases.Count(), m_RadioTowers.Count()));
 	}
 
 	protected void DistributeInitialResources()
