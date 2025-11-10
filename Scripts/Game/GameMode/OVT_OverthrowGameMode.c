@@ -522,7 +522,18 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 
 		if(i > -1)
 			m_aInitializedPlayers.Remove(i);
-		
+
+		// Clear pending spawn tracking in spawn logic
+		SCR_RespawnSystemComponent respawnSystem = SCR_RespawnSystemComponent.GetInstance();
+		if (respawnSystem)
+		{
+			OVT_SpawnLogic spawnLogic = OVT_SpawnLogic.Cast(respawnSystem.GetSpawnLogic());
+			if (spawnLogic)
+			{
+				spawnLogic.OnPlayerDisconnected_S(playerId);
+			}
+		}
+
 		// Notify listeners that player has disconnected
 		m_PlayerManager.m_OnPlayerDisconnected.Invoke(persId, playerId);
 

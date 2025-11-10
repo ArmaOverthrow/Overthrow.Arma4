@@ -69,18 +69,26 @@ class OVT_PlayerStartMenuHandlerComponent : ScriptComponent
 
 		// Only show start menu if game hasn't started and no save exists
 		bool hasSave = persistence.HasSaveGame();
+		bool isDedicatedServer = (RplSession.Mode() == RplMode.Dedicated);
+		bool isClientOnServer = (RplSession.Mode() == RplMode.Client);
+		bool isListenServer = (RplSession.Mode() == RplMode.Listen);
 
-		Print("[Overthrow] Game started: " + mode.HasGameStarted() + ", Has save: " + hasSave + ", Is dedicated: " + (RplSession.Mode() == RplMode.Dedicated));
+		Print("[Overthrow] Game started: " + mode.HasGameStarted() + ", Has save: " + hasSave + ", Mode: " + RplSession.Mode());
 
-		if (!mode.HasGameStarted() && !hasSave && RplSession.Mode() != RplMode.Dedicated)
+		// Only show start menu for single player (RplMode.None) with no save
+		// Never show for:
+		// - Dedicated servers (handled by config file)
+		// - Clients connecting to servers (server handles game state)
+		// - Listen servers (host handles it)
+		if (!mode.HasGameStarted() && !hasSave && !isDedicatedServer && !isClientOnServer && !isListenServer)
 		{
-			Print("[Overthrow] Showing start menu for player");
+			Print("[Overthrow] Showing start menu for single player");
 			ShowStartMenu();
 			// Keep frame updates running to activate input context
 		}
 		else
 		{
-			Print("[Overthrow] Not showing start menu (game started or has save)");
+			Print("[Overthrow] Not showing start menu (multiplayer or game already started/saved)");
 			ClearEventMask(owner, EntityEvent.FRAME);
 		}
 	}

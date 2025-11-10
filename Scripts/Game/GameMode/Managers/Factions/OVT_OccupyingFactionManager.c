@@ -164,22 +164,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 		Faction occupyingFaction = GetGame().GetFactionManager().GetFactionByKey(m_Config.m_sOccupyingFaction);
 		m_iOccupyingFactionIndex = GetGame().GetFactionManager().GetFactionIndex(occupyingFaction);
 
-		// Fix faction for any bases/towers that were registered before m_Config was available
-		int occupyingFactionIndex = m_Config.GetOccupyingFactionIndex();
-		foreach (OVT_BaseData base : m_Bases)
-		{
-			if (base.faction == -1)
-			{
-				base.faction = occupyingFactionIndex;
-			}
-		}
-		foreach (OVT_RadioTowerData tower : m_RadioTowers)
-		{
-			if (tower.faction == -1)
-			{
-				tower.faction = occupyingFactionIndex;
-			}
-		}
+		// DO NOT set faction here! Faction is set only in:
+		// - NewGameStart() for new games
+		// - EPF save/load for loaded games
 
 		OVT_Global.GetTowns().m_OnTownControlChange.Insert(OnTownControlChanged);
 
@@ -494,16 +481,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 		data.id = m_Bases.Count();
 		data.location = entityLocation;
 
-		// Config may not be available yet if called from constructor
-		// Faction will be assigned later during InitBaseControllers
-		if (m_Config)
-		{
-			data.faction = m_Config.GetOccupyingFactionIndex();
-		}
-		else
-		{
-			data.faction = -1; // Will be set during Init
-		}
+		// DO NOT set faction here!
+		// For new games: faction will be set in NewGameStart()
+		// For loaded games: faction will be restored by EPF
 
 		m_Bases.Insert(data);
 
@@ -538,16 +518,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 		data.id = m_RadioTowers.Count();
 		data.location = entityLocation;
 
-		// Config may not be available yet if called from constructor
-		// Faction will be assigned later during Init
-		if (m_Config)
-		{
-			data.faction = m_Config.GetOccupyingFactionIndex();
-		}
-		else
-		{
-			data.faction = -1; // Will be set during Init
-		}
+		// DO NOT set faction here!
+		// For new games: faction will be set in NewGameStart()
+		// For loaded games: faction will be restored by EPF
 
 		m_RadioTowers.Insert(data);
 
@@ -574,12 +547,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 		foreach(int index, OVT_BaseData data : m_Bases)
 		{
-			// Set faction if it wasn't set during registration (timing issue)
-			if (data.faction == -1)
-			{
-				Print(string.Format("[Overthrow] Base at %1 had faction -1, setting to %2", data.location.ToString(), occupyingFactionIndex));
-				data.faction = occupyingFactionIndex;
-			}
+			// DO NOT set faction here!
+			// Faction should have been set by either NewGameStart() or EPF save/load
 
 			OVT_BaseControllerComponent base = GetBase(data.entId);
 			if (!base)

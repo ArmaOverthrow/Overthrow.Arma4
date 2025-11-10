@@ -12,7 +12,7 @@ class OVT_TowerControllerComponent: OVT_Component
 		// Don't register in editor mode
 		if(SCR_Global.IsEditMode()) return;
 
-		// Try immediate registration first
+		// Register with the manager (updates entity IDs, doesn't set faction)
 		DeferredRegister();
 	}
 
