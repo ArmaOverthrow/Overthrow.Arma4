@@ -1,7 +1,7 @@
 ---
 name: solution-architect
 description: Plans features and designs component architecture for Overthrow mod. Use when starting a new feature or need architectural guidance.
-tools: Read, Glob, Grep, Task
+tools: Read, Glob, Grep, Task, Write
 model: sonnet
 ---
 
