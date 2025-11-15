@@ -10,9 +10,6 @@ class OVT_SpawnLogic : EPF_BaseSpawnLogic
 
 	protected ref array<IEntity> m_FoundBases = {};
 
-	//! Track players currently being spawned to prevent duplicates
-	protected ref set<int> m_PendingSpawns = new set<int>();
-
 	//! Event fired when a player group is created
 	//! Parameters: playerId, groupId, playerName
 	ref ScriptInvoker m_OnPlayerGroupCreated = new ScriptInvoker();
@@ -30,13 +27,6 @@ class OVT_SpawnLogic : EPF_BaseSpawnLogic
 	{
 		Print("[Overthrow] OVT_SpawnLogic.DoSpawn_S called for playerId: " + playerId);
 
-		// Prevent duplicate spawn attempts for the same player
-		if (m_PendingSpawns.Contains(playerId))
-		{
-			Print("[Overthrow] WARNING: Duplicate spawn attempt detected for playerId: " + playerId + ", ignoring", LogLevel.WARNING);
-			return;
-		}
-
 		string playerUid = EPF_Utils.GetPlayerUID(playerId);
 		if (!playerUid)
 		{
@@ -44,10 +34,6 @@ class OVT_SpawnLogic : EPF_BaseSpawnLogic
 			OnPlayerRegisterFailed(playerId);
 			return;
 		}
-
-		// Mark this player as being spawned
-		m_PendingSpawns.Insert(playerId);
-		Print("[Overthrow] Marked playerId " + playerId + " as pending spawn");
 
 		OVT_OverthrowGameMode mode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
 
@@ -384,13 +370,6 @@ class OVT_SpawnLogic : EPF_BaseSpawnLogic
 	{
 		super.OnCharacterCreated(playerId, characterPersistenceId, character);
 
-		// Clear pending spawn tracking now that character is created
-		if (m_PendingSpawns.Contains(playerId))
-		{
-			m_PendingSpawns.RemoveItem(playerId);
-			Print("[Overthrow] Cleared pending spawn for playerId: " + playerId);
-		}
-
 		InventoryStorageManagerComponent storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(character);
 
 		array<ResourceName> doneStartingItems = {};
@@ -527,27 +506,9 @@ class OVT_SpawnLogic : EPF_BaseSpawnLogic
 
 		if (!Replication.IsServer()) return;
 
-		// Clear pending spawn tracking when player dies (they'll respawn)
-		if (m_PendingSpawns.Contains(playerId))
-		{
-			m_PendingSpawns.RemoveItem(playerId);
-			Print("[Overthrow] Cleared pending spawn for killed playerId: " + playerId);
-		}
-
 		OVT_Global.GetEconomy().ChargeRespawn(playerId);
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Called when a player disconnects - clean up pending spawn tracking
-	void OnPlayerDisconnected_S(int playerId)
-	{
-		if (!Replication.IsServer()) return;
 
-		// Clear pending spawn tracking when player disconnects
-		if (m_PendingSpawns.Contains(playerId))
-		{
-			m_PendingSpawns.RemoveItem(playerId);
-			Print("[Overthrow] Cleared pending spawn for disconnected playerId: " + playerId);
-		}
-	}
 }
