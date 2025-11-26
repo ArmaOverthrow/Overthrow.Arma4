@@ -208,12 +208,35 @@ class OVT_OccupyingFactionManager: OVT_Component
 		OVT_Global.GetConfig().m_iOccupyingFactionIndex = -1;
 		m_iThreat = m_Config.m_Difficulty.baseThreat;
 		m_iResources = m_Config.m_Difficulty.maxQRF;
-		
+
+		int factionIndex = OVT_Global.GetConfig().GetOccupyingFactionIndex();
+
+		Print(string.Format("[Overthrow] NewGameStart: Setting %1 bases to occupying faction index %2", m_Bases.Count(), factionIndex));
+
+		// Set all bases to occupying faction
 		foreach(OVT_BaseData data : m_Bases)
 		{
-			data.faction = OVT_Global.GetConfig().GetOccupyingFactionIndex();
+			data.faction = factionIndex;
 		}
-		
+
+		// Set all radio towers to occupying faction
+		foreach(OVT_RadioTowerData tower : m_RadioTowers)
+		{
+			tower.faction = factionIndex;
+		}
+		Print(string.Format("[Overthrow] NewGameStart: Set %1 radio towers to occupying faction", m_RadioTowers.Count()));
+
+		// Set all towns to occupying faction
+		OVT_TownManagerComponent townManager = OVT_Global.GetTowns();
+		if(townManager)
+		{
+			foreach(OVT_TownData town : townManager.m_Towns)
+			{
+				town.faction = factionIndex;
+			}
+			Print(string.Format("[Overthrow] NewGameStart: Set %1 towns to occupying faction", townManager.m_Towns.Count()));
+		}
+
 		// Allocate initial resources to deployment manager
 		AllocateDeploymentResources(m_Config.m_Difficulty.baseResourcesPerTick);
 	}
@@ -417,11 +440,22 @@ class OVT_OccupyingFactionManager: OVT_Component
 		OVT_ResistanceFactionManager rf = OVT_Global.GetResistanceFaction();
 		OVT_Faction resistance = m_Config.GetPlayerFaction();
 
+		Print(string.Format("[Overthrow] InitBaseControllers: Initializing %1 bases", m_Bases.Count()));
+
 		foreach(int index, OVT_BaseData data : m_Bases)
 		{
 			OVT_BaseControllerComponent base = GetBase(data.entId);
+			if(!base)
+			{
+				Print(string.Format("[Overthrow] WARNING: Could not find base controller for entity at %1", data.location.ToString()), LogLevel.WARNING);
+				continue;
+			}
+
 			base.InitBase();
 			base.SetControllingFaction(data.faction, true);
+			base.UpdateFlagMaterial(data.faction);
+
+			Print(string.Format("[Overthrow] Initialized base %1 at %2 with faction %3", index, data.location.ToString(), data.faction));
 
 			if(base.IsOccupyingFaction())
 			{
@@ -430,7 +464,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 					foreach(OVT_BaseUpgradeData upgrade : data.upgrades)
 					{
 						OVT_BaseUpgrade up = base.FindUpgrade(upgrade.type, upgrade.tag);
-						up.Deserialize(upgrade);
+						if(up)
+							up.Deserialize(upgrade);
 					}
 				}
 				if(data.slotsFilled)
@@ -444,10 +479,14 @@ class OVT_OccupyingFactionManager: OVT_Component
 			}else{
 				foreach(ResourceName res : data.garrison)
 				{
-					data.garrisonEntities.Insert(OVT_Global.GetResistanceFaction().SpawnGarrison(data, res).GetID());
+					IEntity garrison = OVT_Global.GetResistanceFaction().SpawnGarrison(data, res);
+					if(garrison)
+						data.garrisonEntities.Insert(garrison.GetID());
 				}
 			}
 		}
+
+		Print(string.Format("[Overthrow] InitBaseControllers complete"));
 	}
 
 	protected void DistributeInitialResources()
