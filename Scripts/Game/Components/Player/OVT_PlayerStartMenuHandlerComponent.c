@@ -71,24 +71,30 @@ class OVT_PlayerStartMenuHandlerComponent : ScriptComponent
 		bool hasSave = persistence.HasSaveGame();
 		bool isDedicatedServer = (RplSession.Mode() == RplMode.Dedicated);
 		bool isClientOnServer = (RplSession.Mode() == RplMode.Client);
-		bool isListenServer = (RplSession.Mode() == RplMode.Listen);
+		bool isSinglePlayer = (RplSession.Mode() == RplMode.None);
+		bool isListenServerHost = (RplSession.Mode() == RplMode.Listen && Replication.IsServer());
 
-		Print("[Overthrow] Game started: " + mode.HasGameStarted() + ", Has save: " + hasSave + ", Mode: " + RplSession.Mode());
+		Print("[Overthrow] Game started: " + mode.HasGameStarted() + ", Has save: " + hasSave + ", Mode: " + RplSession.Mode() + ", IsServer: " + Replication.IsServer());
 
-		// Only show start menu for single player (RplMode.None) with no save
+		// Show start menu for:
+		// - Single player (RplMode.None) with no save
+		// - Listen server HOST with no save (host needs to configure and start the game)
 		// Never show for:
 		// - Dedicated servers (handled by config file)
-		// - Clients connecting to servers (server handles game state)
-		// - Listen servers (host handles it)
-		if (!mode.HasGameStarted() && !hasSave && !isDedicatedServer && !isClientOnServer && !isListenServer)
+		// - Clients connecting to servers (wait for server to start game)
+		// - Listen server clients (wait for host to start game)
+		if (!mode.HasGameStarted() && !hasSave && (isSinglePlayer || isListenServerHost))
 		{
-			Print("[Overthrow] Showing start menu for single player");
+			string menuType = "single player";
+			if (isListenServerHost)
+				menuType = "listen server host";
+			Print("[Overthrow] Showing start menu for " + menuType);
 			ShowStartMenu();
 			// Keep frame updates running to activate input context
 		}
 		else
 		{
-			Print("[Overthrow] Not showing start menu (multiplayer or game already started/saved)");
+			Print("[Overthrow] Not showing start menu (multiplayer client, dedicated server, or game already started/saved)");
 			ClearEventMask(owner, EntityEvent.FRAME);
 		}
 	}
