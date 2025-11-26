@@ -60,7 +60,8 @@ class OVT_ItemLimitChecker
 	{
 		locationId = "";
 		baseType = EOVTBaseType.NONE;
-		
+
+		// Check for owned house first
 		IEntity house = m_RealEstate.GetNearestOwned(playerID, pos);
 		if(house)
 		{
@@ -69,10 +70,11 @@ class OVT_ItemLimitChecker
 			{
 				locationId = house.GetID().ToString();
 				baseType = EOVTBaseType.NONE;
-				return CountItemsForLocation(locationId, baseType, house.GetOrigin());
+				// For houses, count all placeable items within range (not by association)
+				return CountItemsInRadius(house.GetOrigin(), MAX_HOUSE_PLACE_DIS);
 			}
 		}
-		
+
 		OVT_CampData camp = m_Resistance.GetNearestCampData(pos);	
 		if(camp)
 		{	
@@ -165,33 +167,48 @@ class OVT_ItemLimitChecker
 		return 0;
 	}
 	
-	//! Count items for a specific location using QueryEntitiesBySphere
+	//! Count all placeable/buildable items within a radius (for houses)
+	int CountItemsInRadius(vector center, float radius)
+	{
+		m_iItemCount = 0;
+
+		BaseWorld world = GetGame().GetWorld();
+		world.QueryEntitiesBySphere(
+			center,
+			radius,
+			CountAllItemsCallback,
+			FilterItemCallback,
+			EQueryEntitiesFlags.ALL
+		);
+
+		return m_iItemCount;
+	}
+
+	//! Count items for a specific location using QueryEntitiesBySphere (for camps/FOBs/bases)
 	int CountItemsForLocation(string locationId, EOVTBaseType baseType, vector searchCenter)
 	{
 		m_iItemCount = 0;
 		m_sTargetLocationId = locationId;
 		m_eTargetBaseType = baseType;
-		
+
 		// Determine search radius based on location type
 		float searchRadius = 200; // Default radius
-		if(baseType == EOVTBaseType.NONE) // House/Town
-			searchRadius = MAX_HOUSE_PLACE_DIS + 50;
-		else if(baseType == EOVTBaseType.CAMP)
+		if(baseType == EOVTBaseType.CAMP)
 			searchRadius = MAX_CAMP_PLACE_DIS + 50;
 		else if(baseType == EOVTBaseType.FOB)
 			searchRadius = MAX_FOB_PLACE_DIS + 50;
 		else if(baseType == EOVTBaseType.BASE)
 			searchRadius = 500; // Bases can be quite large
-		
+
 		BaseWorld world = GetGame().GetWorld();
 		world.QueryEntitiesBySphere(
-			searchCenter, 
-			searchRadius, 
-			CountItemCallback, 
-			FilterItemCallback, 
+			searchCenter,
+			searchRadius,
+			CountItemCallback,
+			FilterItemCallback,
 			EQueryEntitiesFlags.ALL // Include both static and dynamic entities
 		);
-		
+
 		return m_iItemCount;
 	}
 	
@@ -199,49 +216,62 @@ class OVT_ItemLimitChecker
 	protected bool FilterItemCallback(IEntity entity)
 	{
 		if(!entity) return false;
-		
+
 		OVT_PlaceableComponent placeableComp = OVT_PlaceableComponent.Cast(entity.FindComponent(OVT_PlaceableComponent));
 		if(placeableComp) return true;
-		
+
 		OVT_BuildableComponent buildableComp = OVT_BuildableComponent.Cast(entity.FindComponent(OVT_BuildableComponent));
 		if(buildableComp) return true;
-		
+
 		return false;
+	}
+
+	//! Simple count callback - counts all placeable/buildable items (for houses)
+	protected bool CountAllItemsCallback(IEntity entity)
+	{
+		if(!entity) return true;
+
+		OVT_PlaceableComponent placeableComp = OVT_PlaceableComponent.Cast(entity.FindComponent(OVT_PlaceableComponent));
+		if(placeableComp)
+		{
+			m_iItemCount++;
+			return true;
+		}
+
+		OVT_BuildableComponent buildableComp = OVT_BuildableComponent.Cast(entity.FindComponent(OVT_BuildableComponent));
+		if(buildableComp)
+		{
+			m_iItemCount++;
+		}
+
+		return true;
 	}
 	
 	//! Count callback - increment count for matching items
 	protected bool CountItemCallback(IEntity entity)
 	{
 		if(!entity) return true;
-		
+
 		OVT_PlaceableComponent placeableComp = OVT_PlaceableComponent.Cast(entity.FindComponent(OVT_PlaceableComponent));
 		if(placeableComp)
 		{
-			if(m_eTargetBaseType == EOVTBaseType.NONE)
-			{
-				if(placeableComp.GetAssociatedBaseId() == m_sTargetLocationId || placeableComp.GetAssociatedBaseId() == "")
-					m_iItemCount++;
-			}
-			else if(placeableComp.GetAssociatedBaseId() == m_sTargetLocationId && placeableComp.GetBaseType() == m_eTargetBaseType)
+			// Count items that match both base ID and base type
+			if(placeableComp.GetAssociatedBaseId() == m_sTargetLocationId && placeableComp.GetBaseType() == m_eTargetBaseType)
 			{
 				m_iItemCount++;
 			}
 		}
-		
+
 		OVT_BuildableComponent buildableComp = OVT_BuildableComponent.Cast(entity.FindComponent(OVT_BuildableComponent));
 		if(buildableComp)
 		{
-			if(m_eTargetBaseType == EOVTBaseType.NONE)
-			{
-				if(buildableComp.GetAssociatedBaseId() == m_sTargetLocationId || buildableComp.GetAssociatedBaseId() == "")
-					m_iItemCount++;
-			}
-			else if(buildableComp.GetAssociatedBaseId() == m_sTargetLocationId && buildableComp.GetBaseType() == m_eTargetBaseType)
+			// Count items that match both base ID and base type
+			if(buildableComp.GetAssociatedBaseId() == m_sTargetLocationId && buildableComp.GetBaseType() == m_eTargetBaseType)
 			{
 				m_iItemCount++;
 			}
 		}
-		
+
 		return true;
 	}
 }
