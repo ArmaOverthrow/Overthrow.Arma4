@@ -258,6 +258,11 @@ OVT_OverthrowGameMode {
   SCR_DestructionManagerComponent "{5DFEE7C5F4445327}" {
   }
   SCR_EntityCatalogManagerComponent "{5EE2640207CD57B9}" {
+   m_aEntityCatalogs {
+    SCR_EntityCatalog "{670303AAD2A95E6B}" {
+     m_eEntityCatalogType SUPPLY_CONTAINER_ITEM
+    }
+   }
   }
   SCR_GameModeHealthSettings "{5D7A443950718AF0}" {
   }
