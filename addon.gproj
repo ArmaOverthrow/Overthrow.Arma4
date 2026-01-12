@@ -45,6 +45,10 @@ GameProject {
         Code "zh_cn"
         StringTableRuntime "{1C08545DB297EAC3}Language/localization_Overthrow.zh_cn.conf"
        }
+       LanguageDefinition "{68581197196654C1}" {
+        Code "it_it"
+        StringTableRuntime "{2002D236522D84AF}Language/localization_Overthrow.it_it.conf"
+       }
       }
      }
     }
