@@ -102,9 +102,13 @@ Persistence has been built on the Enfusion Persistence Framework (EPF). With Ref
 
 Simple state replicates via `RplProp`; complex operations go through explicit RPCs (`RpcAsk` client→server, `RpcDo` server→client); late-join state is restored through `RplSave`/`RplLoad`. Network identity is always `RplId`, never `EntityID`. These rules are non-negotiable because violations of them fail silently and only in multiplayer.
 
-### Play-testing as the quality gate
+### Automating the quality gate
 
-There is no compiler in CI, no unit test suite and no debugger — the mod is built and reloaded in the Arma Reforger Workbench and validated by playing it, hosted and joined. The project compensates with explicit documentation, conservative patterns, and specific, reproducible test steps attached to every change.
+For most of this project's life the only quality gate was a human: build in the Workbench, host a session, join a second client, play the change. That made every edit expensive and is why the codebase has never had a test suite.
+
+Reforger 1.7.0 changed the ground. The game ships a script test framework with JUnit output, and the Workbench exposes command-line automation — so compilation and logic can now be verified without a person in the loop. The project is building that pipeline (see the `dev-ops` epic), on the principle that **automation should cover what is mechanically checkable so human testing is spent on what isn't.** Compile correctness, campaign logic and persistence round-trips are machine work. Feel, balance, and whether an emergent situation is actually fun remain human work, and always will.
+
+Until that pipeline lands, the discipline is unchanged: conservative patterns, explicit documentation, and specific reproducible test steps attached to every change.
 
 ---
 

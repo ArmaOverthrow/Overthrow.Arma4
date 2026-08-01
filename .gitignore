@@ -16,3 +16,5 @@ claude.sh
 
 # Beast Mode - Backups
 .claude/.beast-mode-backup-*/
+.beast-mode-channel.json
+claude-agent.sh

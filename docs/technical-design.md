@@ -77,8 +77,10 @@ These are not preferences. They are hard properties of the environment, and most
 
 ### What We Don't Have
 
-- **No automated builds.** Compilation happens when a human presses Build in Workbench. Claude and CI can never verify that a change compiles.
-- **No unit or integration tests.** Correctness is established by play-testing, hosted and joined.
+> ⚠️ **This section is being actively invalidated.** Reforger 1.7.0 ships a script test framework with JUnit output, and the Workbench has CLI automation flags — neither was usable when this project's workflow was established. The `dev-ops` epic (§12) is building on both. Each entry below is struck through by the feature that makes it false; do not treat this list as permanent.
+
+- **No automated builds.** Compilation happens when a human presses Build in Workbench. Claude and CI can never verify that a change compiles. *(Addressed by `dev-ops/workbench-automation`.)*
+- **No unit or integration tests.** Correctness is established by play-testing, hosted and joined. *(Addressed by `dev-ops/autotest-foundation` + `dev-ops/test-coverage`.)*
 - **No debugger.** `Print()` is the debugging tool. Debug output is read out of the Workbench console.
 - **No exceptions, no stack unwinding.** Null checks and defensive returns instead.
 - **No ternary operator.** Always full `if`/`else` — this is a compile error, not a style rule.
@@ -376,11 +378,13 @@ Almost every regression in this project is one of: **join-in-progress state**, *
 
 ## 12. Current Phase
 
-**In flight:** `vanilla-persistence` — migrating the entire persistence layer from EPF to Reforger's native system. Big-bang, breaking, no save migration. This is the priority work; see `docs/features/vanilla-persistence/{requirements,implementation,context,tasks}.md`.
+**Active priority: the `dev-ops` epic** — building an automated compile/test/release pipeline on Reforger 1.7.0's shipped `SCR_Autotest` framework and Workbench CLI automation. Five features in build order: `workbench-automation` → `autotest-foundation` → `test-coverage` → `ci-pipeline` → `release-automation`. See `docs/features/dev-ops/epic-overview.md`.
 
-**Also tracked:** `dev-ops` — the Beast Mode workflow, skills and agent tooling for this repo (`docs/features/dev-ops/`).
+This epic supersedes the persistence migration in priority. The reasoning: the migration is a big-bang, breaking rewrite of every persisted system, and there is currently no way to verify it beyond manual restart testing. Building the test harness first turns that migration from unverifiable into gated — `test-coverage` writes behaviour-level persistence tests that pass against EPF today and become the migration's acceptance criteria.
 
-> **Roadmap gap:** priorities *after* the persistence migration are not captured here. Worth filling in — `/suggest-feature` and `/plan-feature` both read this file, and they'll give better suggestions with a stated direction.
+**Paused: `vanilla-persistence`** — migrating the persistence layer from EPF to Reforger's native system. Big-bang, breaking, no save migration. Not abandoned; resumes once the test harness can validate it. See `docs/features/vanilla-persistence/`.
+
+**Branch policy:** `main` is under a **bugfix-only code freeze** until the persistence migration lands. All feature work — including this epic — happens on the `vanilla-persistence` branch.
 
 ---
 
