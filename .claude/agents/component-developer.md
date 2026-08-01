@@ -454,10 +454,10 @@ TESTING PROCEDURE:
 - ✅ Section comments (//------)
 
 ### Workbench Workflow
-- User compiles in Workbench
-- No automated builds or tests
+- Verify compilation yourself: run `tools/compile-check.sh` (exit 0 clean / 1 errors as `file:line: message` on stdout; see `tools/README.md`)
+- No automated tests yet (dev-ops epic feature #2 is building them)
 - Provide specific manual test procedures
-- User reports compile errors and test results
+- User reports runtime errors and play-test results; compile errors are yours to catch
 
 ## Quality Checklist
 

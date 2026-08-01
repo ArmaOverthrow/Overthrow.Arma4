@@ -540,7 +540,7 @@ Scripts/Game/
 ### Technical Constraints
 1. **No Ternary Operators** - EnforceScript limitation
 2. **Strong Refs Required** - Use `ref` keyword for Managed classes in arrays/maps
-3. **No Automated Builds** - User compiles in Workbench
+3. **Automated compile check** - `tools/compile-check.sh` (landed 2026-08-01 via dev-ops epic; originally: user compiles in Workbench)
 4. **No Unit Tests** - Manual play-testing only
 5. **Server Authority** - Only server persists, clients receive state via replication
 

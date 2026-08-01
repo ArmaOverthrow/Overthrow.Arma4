@@ -3,12 +3,20 @@ class OVT_PersistenceManagerComponentClass : ScriptComponentClass
 {
 }
 
+//! WORK IN PROGRESS (vanilla-persistence feature, currently paused).
+//! The original draft was written against an assumed vanilla API (SCR_PersistenceSystem.TriggerSave,
+//! PersistenceCollection.GetOrCreate, DB_BASE_DIR) that does not exist in Reforger 1.7.0.54 — the real
+//! API is per-entity PersistenceSystem.Save() and config-driven collections. Those call sites are
+//! stubbed with TODO(vanilla-persistence) markers so the project compiles; the event hooks below use
+//! the real vanilla API and are kept live.
 class OVT_PersistenceManagerComponent : ScriptComponent
 {
 	protected SCR_PersistenceSystem m_PersistenceSystem;
 	protected World m_World;
-	
-	override event void OnGameEnd()
+
+	//! Trigger the shutdown save. ScriptComponent has no OnGameEnd engine event on 1.7.0 —
+	//! this must be called explicitly (e.g. by the game mode) during shutdown.
+	void OnGameEnd()
 	{
 		// Only save if the game was actually started
 		// If player exited from the start menu without starting, don't save
@@ -22,11 +30,10 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 		if (mode)
 			mode.PreShutdownPersist();
 
-		// Trigger shutdown save via vanilla persistence system
+		// TODO(vanilla-persistence): trigger a shutdown save. SCR_PersistenceSystem has no global
+		// TriggerSave() — the real API is per-entity PersistenceSystem.Save(entityOrState, ESaveGameType.SHUTDOWN).
 		if (m_PersistenceSystem)
-			m_PersistenceSystem.TriggerSave(ESaveGameType.SHUTDOWN);
-
-		super.OnGameEnd();
+			Print("[Overthrow] Shutdown save not implemented yet (vanilla-persistence WIP)", LogLevel.WARNING);
 	}
 
 	//! Trigger a manual save via vanilla persistence system
@@ -40,11 +47,9 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 			return;
 		}
 
+		// TODO(vanilla-persistence): implement via PersistenceSystem.Save() per tracked entity/state.
 		if (m_PersistenceSystem)
-		{
-			Print("[Overthrow] Triggering manual save...", LogLevel.NORMAL);
-			m_PersistenceSystem.TriggerSave(ESaveGameType.MANUAL);
-		}
+			Print("[Overthrow] Manual save not implemented yet (vanilla-persistence WIP)", LogLevel.WARNING);
 	}
 
 	//! Trigger an auto-save via vanilla persistence system
@@ -54,39 +59,31 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 		if (!mode || !mode.HasGameStarted())
 			return;
 
+		// TODO(vanilla-persistence): implement via PersistenceSystem.Save() per tracked entity/state.
 		if (m_PersistenceSystem)
-		{
-			Print("[Overthrow] Triggering auto-save...", LogLevel.NORMAL);
-			m_PersistenceSystem.TriggerSave(ESaveGameType.AUTO);
-		}
+			Print("[Overthrow] Auto-save not implemented yet (vanilla-persistence WIP)", LogLevel.WARNING);
 	}
-	
-	
+
+
 	bool HasSaveGame()
 	{
 #ifdef PLATFORM_CONSOLE
 		return false;
 #endif
-		return FileIO.FileExists(DB_BASE_DIR + "/RootEntityCollections");
+		// TODO(vanilla-persistence): detect an existing vanilla-persistence save. The draft checked an
+		// EPF-style DB_BASE_DIR that does not exist in the vanilla API.
+		return false;
 	}
-	
+
 	void WipeSave()
 	{
 #ifdef PLATFORM_CONSOLE
 		return;
 #endif
-		FileIO.FindFiles(DeleteFileCallback, DB_BASE_DIR, ".json");
-		FileIO.FindFiles(DeleteFileCallback, DB_BASE_DIR, ".bin");
-		FileIO.FindFiles(DeleteFileCallback, DB_BASE_DIR, string.Empty);
-		FileIO.DeleteFile(DB_BASE_DIR);
+		// TODO(vanilla-persistence): wipe the vanilla-persistence save storage once its location/API is known.
+		Print("[Overthrow] WipeSave not implemented yet (vanilla-persistence WIP)", LogLevel.WARNING);
 	}
-	
-	//------------------------------------------------------------------------------------------------
-	protected void DeleteFileCallback(string path, FileAttribute attributes)
-	{
-		FileIO.DeleteFile(path);
-	}
-	
+
 	override event void OnPostInit(IEntity owner)
 	{
 		super.OnPostInit(owner);
@@ -107,65 +104,12 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 		m_PersistenceSystem.GetOnBeforeSave().Insert(OnBeforeSave);
 		m_PersistenceSystem.GetOnAfterSave().Insert(OnAfterSave);
 
-		// Configure persistence collections
-		ConfigureCollections();
+		// TODO(vanilla-persistence): collections are config-driven in the real API (PersistenceCollection
+		// is sealed with a private constructor — there is no GetOrCreate()). The draft's 12 collections
+		// (Towns, Players, Economy, Factions, RealEstate, Recruits, Config, Placeables, Buildings, Bases,
+		// Characters, Loadouts) must be defined in the persistence system config instead.
 
 		Print("[Overthrow] Persistence manager initialized with vanilla system", LogLevel.NORMAL);
-	}
-
-	//! Configure all 12 Overthrow persistence collections
-	//! Collections organize save data by system/entity type for better organization and granular control
-	protected void ConfigureCollections()
-	{
-		// Define save types mask (all collections support manual, auto, and shutdown saves)
-		ESaveGameType saveTypes = ESaveGameType.MANUAL | ESaveGameType.AUTO | ESaveGameType.SHUTDOWN;
-
-		// MANAGER COLLECTIONS (7)
-		// These save manager component data
-
-		PersistenceCollection.GetOrCreate("OverthrowTowns").SetSaveTypes(saveTypes);
-		Print("[Overthrow] Configured collection: OverthrowTowns", LogLevel.NORMAL);
-
-		PersistenceCollection.GetOrCreate("OverthrowPlayers").SetSaveTypes(saveTypes);
-		Print("[Overthrow] Configured collection: OverthrowPlayers", LogLevel.NORMAL);
-
-		PersistenceCollection.GetOrCreate("OverthrowEconomy").SetSaveTypes(saveTypes);
-		Print("[Overthrow] Configured collection: OverthrowEconomy", LogLevel.NORMAL);
-
-		PersistenceCollection.GetOrCreate("OverthrowFactions").SetSaveTypes(saveTypes);
-		Print("[Overthrow] Configured collection: OverthrowFactions", LogLevel.NORMAL);
-
-		PersistenceCollection.GetOrCreate("OverthrowRealEstate").SetSaveTypes(saveTypes);
-		Print("[Overthrow] Configured collection: OverthrowRealEstate", LogLevel.NORMAL);
-
-		PersistenceCollection.GetOrCreate("OverthrowRecruits").SetSaveTypes(saveTypes);
-		Print("[Overthrow] Configured collection: OverthrowRecruits", LogLevel.NORMAL);
-
-		PersistenceCollection.GetOrCreate("OverthrowConfig").SetSaveTypes(saveTypes);
-		Print("[Overthrow] Configured collection: OverthrowConfig", LogLevel.NORMAL);
-
-		// ENTITY COLLECTIONS (4)
-		// These save entity spawn data and state
-
-		PersistenceCollection.GetOrCreate("OverthrowPlaceables").SetSaveTypes(saveTypes);
-		Print("[Overthrow] Configured collection: OverthrowPlaceables", LogLevel.NORMAL);
-
-		PersistenceCollection.GetOrCreate("OverthrowBuildings").SetSaveTypes(saveTypes);
-		Print("[Overthrow] Configured collection: OverthrowBuildings", LogLevel.NORMAL);
-
-		PersistenceCollection.GetOrCreate("OverthrowBases").SetSaveTypes(saveTypes);
-		Print("[Overthrow] Configured collection: OverthrowBases", LogLevel.NORMAL);
-
-		PersistenceCollection.GetOrCreate("OverthrowCharacters").SetSaveTypes(saveTypes);
-		Print("[Overthrow] Configured collection: OverthrowCharacters", LogLevel.NORMAL);
-
-		// STATE COLLECTIONS (1)
-		// These save global state data via proxy PersistentState objects
-
-		PersistenceCollection.GetOrCreate("OverthrowLoadouts").SetSaveTypes(saveTypes);
-		Print("[Overthrow] Configured collection: OverthrowLoadouts", LogLevel.NORMAL);
-
-		Print("[Overthrow] Configured 12 persistence collections", LogLevel.NORMAL);
 	}
 
 	//! Called when persistence system state changes

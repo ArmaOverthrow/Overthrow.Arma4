@@ -11,6 +11,9 @@ claude.sh
 .mcp.json
 .tmp/
 
+# Workbench automation (dev-ops epic) - per-machine overrides
+tools/config.local.sh
+
 # Beast Mode - Session tracking
 .claude/session-edits.json
 

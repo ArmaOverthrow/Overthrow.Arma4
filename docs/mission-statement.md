@@ -108,7 +108,7 @@ For most of this project's life the only quality gate was a human: build in the 
 
 Reforger 1.7.0 changed the ground. The game ships a script test framework with JUnit output, and the Workbench exposes command-line automation — so compilation and logic can now be verified without a person in the loop. The project is building that pipeline (see the `dev-ops` epic), on the principle that **automation should cover what is mechanically checkable so human testing is spent on what isn't.** Compile correctness, campaign logic and persistence round-trips are machine work. Feel, balance, and whether an emergent situation is actually fun remain human work, and always will.
 
-Until that pipeline lands, the discipline is unchanged: conservative patterns, explicit documentation, and specific reproducible test steps attached to every change.
+The first stage of that pipeline landed 2026-08-01: `tools/compile-check.sh` verifies compilation automatically, so compile correctness is now machine work. Until the autotest features land, the runtime discipline is unchanged: conservative patterns, explicit documentation, and specific reproducible test steps attached to every change — verified by play-testing.
 
 ---
 

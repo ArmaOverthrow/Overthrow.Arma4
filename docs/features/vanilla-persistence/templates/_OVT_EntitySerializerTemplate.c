@@ -87,7 +87,7 @@ class _OVT_EntitySerializerTemplate : ScriptedEntitySerializer
 		BaseSerializationSaveContext context)
 	{
 		// Get component if using component-based targeting
-		OVT_MyEntityComponent comp = OVT_Component.Find<OVT_MyEntityComponent>(entity);
+		OVT_MyEntityComponent comp = OVT_ComponentFinder<OVT_MyEntityComponent>.Find(entity);
 		if (!comp)
 			return ESerializeResult.DEFAULT;
 
@@ -125,7 +125,7 @@ class _OVT_EntitySerializerTemplate : ScriptedEntitySerializer
 		BaseSerializationLoadContext context)
 	{
 		// Get component if using component-based targeting
-		OVT_MyEntityComponent comp = OVT_Component.Find<OVT_MyEntityComponent>(entity);
+		OVT_MyEntityComponent comp = OVT_ComponentFinder<OVT_MyEntityComponent>.Find(entity);
 		if (!comp)
 			return false;
 

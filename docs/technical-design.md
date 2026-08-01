@@ -4,7 +4,7 @@
 
 **A companion to the [Mission Statement](mission-statement.md) — this document guides all technical decisions for the project, from architecture to data formats.**
 
-Overthrow is a community-developed, MIT-licensed mod for Arma Reforger with a small distributed contributor base and a live player population on the Workshop. That shapes everything below: there is no CI, no automated test suite and no debugger, so correctness has to come from conservative patterns and disciplined review rather than from tooling. It is production software — servers run it for months — but it is developed and validated entirely inside the Arma Reforger Workbench by hand.
+Overthrow is a community-developed, MIT-licensed mod for Arma Reforger with a small distributed contributor base and a live player population on the Workshop. That shapes everything below: there is no CI, no automated test suite and no debugger, so correctness has to come from conservative patterns and disciplined review rather than from tooling. It is production software — servers run it for months — but runtime validation still happens inside the Arma Reforger Workbench by hand. (Compile verification is now automated — `tools/compile-check.sh`, delivered by the `dev-ops` epic, §12 — and that epic is building the rest of the pipeline.)
 
 ---
 
@@ -79,7 +79,7 @@ These are not preferences. They are hard properties of the environment, and most
 
 > ⚠️ **This section is being actively invalidated.** Reforger 1.7.0 ships a script test framework with JUnit output, and the Workbench has CLI automation flags — neither was usable when this project's workflow was established. The `dev-ops` epic (§12) is building on both. Each entry below is struck through by the feature that makes it false; do not treat this list as permanent.
 
-- **No automated builds.** Compilation happens when a human presses Build in Workbench. Claude and CI can never verify that a change compiles. *(Addressed by `dev-ops/workbench-automation`.)*
+- ~~**No automated builds.** Compilation happens when a human presses Build in Workbench. Claude and CI can never verify that a change compiles.~~ *(Invalidated 2026-08-01 by `dev-ops/workbench-automation`: `tools/compile-check.sh` compiles all of Overthrow's EnforceScript headlessly from WSL and returns a verified exit code plus `file:line: message` errors — see `tools/README.md`.)*
 - **No unit or integration tests.** Correctness is established by play-testing, hosted and joined. *(Addressed by `dev-ops/autotest-foundation` + `dev-ops/test-coverage`.)*
 - **No debugger.** `Print()` is the debugging tool. Debug output is read out of the Workbench console.
 - **No exceptions, no stack unwinding.** Null checks and defensive returns instead.
@@ -342,7 +342,7 @@ No unit tests, no integration tests, no CI. This is a property of the platform, 
 
 ### What we do instead
 
-1. **Compile in Workbench** — Build → Compile and Reload Scripts. The user does this; the assistant cannot.
+1. **Automated compile check first** — the assistant runs `tools/compile-check.sh` after code changes: exit 0 is a positively-verified clean compile, exit 1 prints errors as `file:line: message` (see `tools/README.md`). The Workbench GUI (Build → Compile and Reload Scripts) remains the interactive alternative for the user.
 2. **Test in the fast world** — `Worlds/MP/OVT_Campaign_Test.ent` loads far faster than the full Eden map. Use it for everything except map-specific work.
 3. **Test hosted, then joined** — a change that works in a hosted session but not for a joining client is the default failure mode. Both paths, every time.
 4. **Test the restart** — anything touching persistence is only verified after a save, a shutdown and a reload.

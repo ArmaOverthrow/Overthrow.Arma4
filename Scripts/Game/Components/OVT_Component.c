@@ -3,22 +3,27 @@ class OVT_ComponentClass: ScriptComponentClass
 
 }
 
-class OVT_Component: ScriptComponent
+//! Generic component finder
+//! Replaces EPF_Component<T>.Find(entity) pattern with vanilla-friendly helper
+//! Usage: OVT_ComponentFinder<OVT_TownManagerComponent>.Find(entity)
+class OVT_ComponentFinder<Class T>
 {
-	protected TimeAndWeatherManagerEntity m_Time;
-	protected OVT_OverthrowConfigComponent m_Config;
-
 	//! Find a component of type T on the given entity
-	//! Replaces EPF_Component<T>.Find(entity) pattern with vanilla-friendly helper
 	//! @param entity The entity to search for the component on
 	//! @return The component if found, null otherwise
-	static T Find<T>(IEntity entity)
+	static T Find(IEntity entity)
 	{
 		if (!entity)
 			return null;
 
 		return T.Cast(entity.FindComponent(T));
 	}
+}
+
+class OVT_Component: ScriptComponent
+{
+	protected TimeAndWeatherManagerEntity m_Time;
+	protected OVT_OverthrowConfigComponent m_Config;
 
 	override void OnPostInit(IEntity owner)
 	{

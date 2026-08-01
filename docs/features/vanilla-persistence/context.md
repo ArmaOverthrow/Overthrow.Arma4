@@ -24,7 +24,7 @@
 - 📋 Validate OVT_Component pattern in 2-3 files
 
 **Blockers:**
-- None - Ready to compile and test Phase 1 work
+- ⚠️ **Phase 1 work never compiled, and was written against an API that does not exist in Reforger 1.7.0.54** — see the 2026-08-01 session note below. The foundation must be re-done against the real vanilla persistence API before Phase 2 serializers can proceed.
 
 ---
 
@@ -147,6 +147,25 @@ PersistenceIdManager.WhenAvailable(uuid, this, "OnEntityAvailable");
 ---
 
 ## Session Notes
+
+### 2026-08-01 — Compile-reality check from dev-ops/workbench-automation (feature paused; recorded for resume)
+
+The new automated compile check (`dev-ops/workbench-automation`) revealed that this feature's Phase 1 "foundation" **never compiled** on Reforger 1.7.0.54 (engine 190965) and was written against an API that does not exist in the retail build. Minimal user-approved fixes were applied so the project compiles again; the substantive rework belongs to this feature when it resumes:
+
+**What the real vanilla 1.7.0 persistence API looks like** (reference: `/mnt/n/Projects/Arma 4/ArmaReforger/scripts/Game/generated/Plugins/Persistence/` and `.../Game/Plugins/Persistence/System/SCR_PersistenceSystem.c`):
+- There is **no `SCR_PersistenceSystem.TriggerSave()`**. Saving is per-entity/state: `PersistenceSystem.Save(notnull Managed entityOrState, ESaveGameType saveType)`.
+- There is **no `PersistenceCollection.GetOrCreate()`** — `PersistenceCollection` is `sealed` with a private constructor, "only constructed through the internal system". Collections are **config-driven**, not created from script. Decision 1's 12 collections must be defined in the persistence system config instead.
+- There is **no `DB_BASE_DIR`** constant (that was EPF's concept).
+- These exist and work: `SCR_PersistenceSystem.GetScriptedInstance()`, `GetOnStateChanged()`, `GetOnBeforeSave()`, `GetOnAfterSave()`, `ESaveGameType`, `EPersistenceSystemState`, `ScriptedEntitySerializer` (base class for serializers).
+- `ScriptComponent` has **no `OnGameEnd` engine event** — the shutdown hook must be wired explicitly (e.g. from the game mode).
+- EnforceScript does **not support generic methods** (`static T Find<T>(...)` is rejected). Generic **classes** are the legal pattern (`class Foo<Class T>`, as EPF does).
+
+**Changes applied on 2026-08-01 (minimal, to make the tree compile — review on resume):**
+1. `Scripts/Game/Components/OVT_Component.c` — the illegal `OVT_Component.Find<T>()` generic method was replaced by a standalone generic class `OVT_ComponentFinder<Class T>` with `static T Find(IEntity entity)`. Call sites change from `OVT_Component.Find<X>(e)` to `OVT_ComponentFinder<X>.Find(e)`.
+2. `Scripts/Game/GameMode/Managers/OVT_PersistenceManagerComponent.c` — all fictional API calls stubbed with `TODO(vanilla-persistence)` markers + warning Prints. The real event hooks (`GetOnStateChanged`/`GetOnBeforeSave`/`GetOnAfterSave`) are kept live. `OnGameEnd()` is now a plain method (no `override event`) that nothing calls yet. **`HasSaveGame()` currently always returns `false`** and `WipeSave()` is a no-op — the save/continue UI flow will reflect that until reimplemented.
+3. The three `_OVT_*Template.c` serializer reference files were **moved out of the compiled tree** (they reference placeholder types like `OVT_MyEntityComponent` and can never compile) to `docs/features/vanilla-persistence/templates/`. Their example calls were updated to the `OVT_ComponentFinder<T>.Find()` pattern.
+
+**Good news for this feature:** the dev-ops epic delivered a working compile check (`-wbsilent -validate`, exit 0/255) and proved the autotest loop end-to-end (`-autotest "{GUID}"` → `junit.xml`). When this feature resumes, every API assumption can be compile-verified in ~4 seconds, and dev-ops/test-coverage will provide behaviour-level persistence round-trip tests as the acceptance gate.
 
 ### 2025-11-09 00:00
 - Created dev docs structure

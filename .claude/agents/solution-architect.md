@@ -116,9 +116,9 @@ Prefabs/
 ## Important Constraints
 
 ### Workbench Limitations
-- No automated builds or tests
-- User compiles in Workbench
-- All testing manual
+- Automated compile check available: `tools/compile-check.sh` (see `tools/README.md`)
+- No automated tests yet (dev-ops epic feature #2 is building them)
+- All runtime testing manual
 - Be specific about test procedures
 
 ### EnforceScript Constraints

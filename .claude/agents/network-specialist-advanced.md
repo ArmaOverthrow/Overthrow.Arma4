@@ -449,9 +449,9 @@ integration-heavy work, and high-risk phases.
 
 - **Trace integration points before touching shared code.** Map every RplProp,
   RplSave/RplLoad path, RpcAsk/RpcDo pair, and authority check that depends on
-  what you are about to change. There is no compiler to lean on mid-edit — the
-  user compiles in Workbench afterwards, so a missed reference costs a full
-  round-trip.
+  what you are about to change. Run `tools/compile-check.sh` after edits — it
+  catches missed references in ~5s, but runtime/replication breakage only shows
+  in play-testing, so trace integration points anyway.
 - **Prefer incremental, verifiable steps.** Land a change the user can compile
   and play-test (host + client), then build the next on top of it.
 - **Call out migration risks explicitly** — JIP state gaps, replication ordering,

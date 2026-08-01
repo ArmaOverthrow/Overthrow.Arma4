@@ -454,10 +454,10 @@ TESTING PROCEDURE:
 - ✅ Section comments (//------)
 
 ### Workbench Workflow
-- User compiles in Workbench
-- No automated builds or tests
+- Verify compilation yourself: run `tools/compile-check.sh` (exit 0 clean / 1 errors as `file:line: message` on stdout; see `tools/README.md`)
+- No automated tests yet (dev-ops epic feature #2 is building them)
 - Provide specific manual test procedures
-- User reports compile errors and test results
+- User reports runtime errors and play-test results; compile errors are yours to catch
 
 ## Quality Checklist
 
@@ -521,9 +521,9 @@ integration-heavy work, and high-risk phases.
 
 - **Trace integration points before touching shared code.** Map every caller,
   RplProp, RPC, save-data class, and prefab reference that depends on what you
-  are about to change. In EnforceScript there is no compiler you can lean on
-  mid-edit — the user compiles in Workbench afterwards, so a missed reference
-  costs a full round-trip.
+  are about to change. Run `tools/compile-check.sh` after
+  edits — it catches missed references in ~5s, but it cannot catch runtime or
+  replication breakage, so trace integration points anyway.
 - **Prefer incremental, verifiable steps.** Land a change the user can compile
   and play-test, then build the next on top of it. Avoid sweeping rewrites that
   can only be validated all at once.
