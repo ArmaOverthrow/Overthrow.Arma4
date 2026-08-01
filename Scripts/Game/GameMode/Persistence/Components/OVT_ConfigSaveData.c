@@ -3,7 +3,7 @@ class OVT_ConfigSaveDataClass : EPF_ComponentSaveDataClass
 {
 };
 
-[EDF_DbName.Automatic()]
+[EDF_DbName()]
 class OVT_ConfigSaveData : EPF_ComponentSaveData
 {	
 	ref OVT_DifficultySettings m_Difficulty;

@@ -558,16 +558,14 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 			
 			if (persistence)
 			{
-				persistence.Save(); // Save current state
-				persistence.PauseTracking(); // Pause tracking to keep for auto-spawn
-				Print(string.Format("[Overthrow] Paused EPF tracking for vehicle: %1", vehicleId));
+				persistence.Save();
+				persistence.PauseTracking(); // Keep for EPF auto-spawn on restart
 			}
-			
+
 			// Remove from spawned tracking
 			m_mSpawnedVehicles.Remove(vehicleId);
 			m_aVehicles.RemoveItem(vehicle.GetID());
-			
-			// Delete from world (EPF will auto-spawn on restart)
+
 			SCR_EntityHelper.DeleteEntityAndChildren(vehicle);
 			despawnedCount++;
 		}
@@ -614,53 +612,49 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 	{
 		if (!m_mPlayerVehicleIds.Contains(playerPersistentId))
 			return;
-		
+
 		array<string> vehicleIds = m_mPlayerVehicleIds[playerPersistentId];
-		int respawnedCount = 0;
-		
+
 		foreach (string vehicleId : vehicleIds)
 		{
-			// Check if already spawned
 			IEntity existingVehicle = FindVehicleEntity(vehicleId);
 			if (existingVehicle)
 				continue;
-			
-			// Load vehicle from EPF using the proper method
-			EPF_PersistenceManager persistenceManager = EPF_PersistenceManager.GetInstance();
-			if (persistenceManager)
-			{
-				Print(string.Format("[Overthrow] Loading vehicle from EPF: %1", vehicleId));
-				
-				// Load the vehicle entity from EPF save data
-				IEntity vehicleEntity = EPF_PersistentWorldEntityLoader.Load(EPF_VehicleSaveData, vehicleId);
-				if (vehicleEntity)
-				{
-					// Resume EPF tracking for the respawned vehicle
-					EPF_PersistenceComponent persistence = EPF_PersistenceComponent.Cast(
-						vehicleEntity.FindComponent(EPF_PersistenceComponent)
-					);
-					
-					if (persistence)
-					{
-						persistence.ResumeTracking();
-					}
-					
-					// Track spawned vehicle
-					m_mSpawnedVehicles[vehicleId] = vehicleEntity.GetID();
-					m_aVehicles.Insert(vehicleEntity.GetID());
-					respawnedCount++;
-					
-					Print(string.Format("[Overthrow] Successfully respawned vehicle: %1 for player: %2", vehicleId, playerPersistentId));
-				}
-				else
-				{
-					Print(string.Format("[Overthrow] Failed to load vehicle from EPF: %1", vehicleId));
-				}
-			}
+
+			Print(string.Format("[Overthrow] Loading vehicle from EPF: %1", vehicleId));
+			ref Tuple2<string, string> context = new Tuple2<string, string>(playerPersistentId, vehicleId);
+			EDF_DataCallbackSingle<IEntity> callback(this, "OnVehicleLoaded", context);
+			EPF_PersistentWorldEntityLoader.LoadAsync(EPF_VehicleSaveData, vehicleId, callback);
 		}
-		
-		if (respawnedCount > 0)
-			Print(string.Format("[Overthrow] Respawned %1 vehicles for player: %2", respawnedCount, playerPersistentId));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Callback when a despawned vehicle is loaded from EPF on player connect
+	void OnVehicleLoaded(IEntity vehicleEntity, Managed context)
+	{
+		if (!vehicleEntity)
+		{
+			Print("[Overthrow] Failed to load vehicle entity from EPF");
+			return;
+		}
+
+		Tuple2<string, string> vehicleContext = Tuple2<string, string>.Cast(context);
+		if (!vehicleContext)
+			return;
+
+		string playerPersistentId = vehicleContext.param1;
+		string vehicleId = vehicleContext.param2;
+
+		EPF_PersistenceComponent persistence = EPF_PersistenceComponent.Cast(
+			vehicleEntity.FindComponent(EPF_PersistenceComponent)
+		);
+		if (persistence)
+			persistence.ResumeTracking();
+
+		m_mSpawnedVehicles[vehicleId] = vehicleEntity.GetID();
+		m_aVehicles.Insert(vehicleEntity.GetID());
+
+		Print(string.Format("[Overthrow] Successfully respawned vehicle: %1 for player: %2", vehicleId, playerPersistentId));
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -681,21 +675,32 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Check if a player is currently connected using EPF UID lookup
+	protected bool IsPlayerOnline(string playerPersistentId)
+	{
+		array<int> connectedPlayers = {};
+		GetGame().GetPlayerManager().GetPlayers(connectedPlayers);
+		foreach (int playerId : connectedPlayers)
+		{
+			string uid = EPF_Utils.GetPlayerUID(playerId);
+			if (!uid.IsEmpty() && uid == playerPersistentId)
+				return true;
+		}
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Initial cleanup of offline player vehicles after server restart
 	protected void InitialVehicleCleanup()
 	{
 		Print("[Overthrow] Starting initial vehicle cleanup for offline players...");
-		
+
 		// Find all player-owned vehicles in the world
 		m_aFoundPlayerVehicles.Clear();
 		GetGame().GetWorld().QueryEntitiesBySphere("0 0 0", 99999, null, FilterPlayerOwnedVehicles, EQueryEntitiesFlags.ALL);
-		
-		OVT_PlayerManagerComponent playerManager = OVT_Global.GetPlayers();
-		if (!playerManager)
-			return;
-		
+
 		int despawnedCount = 0;
-		
+
 		foreach (EntityID vehicleId : m_aFoundPlayerVehicles)
 		{
 			IEntity vehicle = GetGame().GetWorld().FindEntityByID(vehicleId);
@@ -704,17 +709,16 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 			OVT_PlayerOwnerComponent ownerComp = OVT_PlayerOwnerComponent.Cast(
 				vehicle.FindComponent(OVT_PlayerOwnerComponent)
 			);
-			
+
 			if (!ownerComp)
 				continue;
-			
+
 			string ownerUid = ownerComp.GetPlayerOwnerUid();
 			if (ownerUid.IsEmpty())
 				continue;
-			
-			// Check if player is currently online
-			OVT_PlayerData playerData = playerManager.GetPlayer(ownerUid);
-			bool isOnline = playerData && !playerData.IsOffline();
+
+			// Check if player is currently online by directly checking EPF UIDs
+			bool isOnline = IsPlayerOnline(ownerUid);
 			
 			// Only despawn locked vehicles of offline players
 			if (!isOnline && ownerComp.IsLocked())
@@ -730,16 +734,14 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 				if (persistenceComp)
 				{
 					string persistentId = persistenceComp.GetPersistentId();
-					
-					// Save current state and pause EPF tracking for auto-spawn
+
 					persistenceComp.Save();
 					persistenceComp.PauseTracking(); // Keep for EPF auto-spawn on restart
-					
+
 					// Remove from tracking
 					m_mSpawnedVehicles.Remove(persistentId);
 					m_aVehicles.RemoveItem(vehicle.GetID());
-					
-					// Delete from world (EPF will auto-spawn on restart)
+
 					SCR_EntityHelper.DeleteEntityAndChildren(vehicle);
 					despawnedCount++;
 					

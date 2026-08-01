@@ -69,7 +69,7 @@ class OVT_PlayerOwnerDataClass : EPF_ComponentSaveDataClass
 {
 };
 
-[EDF_DbName.Automatic()]
+[EDF_DbName()]
 class OVT_PlayerOwnerData : EPF_ComponentSaveData
 {
 	string m_sOwnerUID;

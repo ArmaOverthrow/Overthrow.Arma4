@@ -5,7 +5,7 @@ class OVT_RecruitSaveDataClass : EPF_ComponentSaveDataClass
 }
 
 //! Handles persistence of recruit data
-[EDF_DbName.Automatic()]
+[EDF_DbName()]
 class OVT_RecruitSaveData : EPF_ComponentSaveData
 {
 	//! All recruits indexed by recruit ID

@@ -438,7 +438,7 @@ class OVT_DeploymentSaveDataClass : EPF_ItemSaveDataClass
 {
 };
 
-[EDF_DbName.Automatic()]
+[EDF_DbName()]
 class OVT_DeploymentSaveData : EPF_ItemSaveData
 {
 };
@@ -449,7 +449,7 @@ class OVT_DeploymentComponentSaveDataClass : EPF_ComponentSaveDataClass
 {
 }
 
-[EDF_DbName.Automatic()]
+[EDF_DbName()]
 class OVT_DeploymentComponentSaveData : EPF_ComponentSaveData
 {
 	int m_iControllingFaction;

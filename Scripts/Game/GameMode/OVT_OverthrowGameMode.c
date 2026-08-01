@@ -522,11 +522,28 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 
 		if(i > -1)
 			m_aInitializedPlayers.Remove(i);
-		
+
 		// Notify listeners that player has disconnected
 		m_PlayerManager.m_OnPlayerDisconnected.Invoke(persId, playerId);
 
 		super.OnPlayerDisconnected(playerId, cause, timeout);
+
+	    m_OnPlayerDisconnected.Invoke(playerId, cause, timeout);
+	    foreach (SCR_BaseGameModeComponent comp : m_aAdditionalGamemodeComponents)
+	    {
+	        comp.OnPlayerDisconnected(playerId, cause, timeout);
+	    }
+	    m_OnPostCompPlayerDisconnected.Invoke(playerId, cause, timeout);
+	
+	    if (IsMaster())
+	    {
+	        IEntity character = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+	        
+	        // RespawnSystemComponent is not a SCR_BaseGameModeComponent, so for now we have to propagate these events manually.
+	        m_pRespawnSystemComponent.OnPlayerDisconnected_S(playerId, cause, timeout);
+	
+	        RplComponent.DeleteRplEntity(character, false);
+	    }
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -578,6 +595,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	    // Notify listeners that player has connected
 	    m_PlayerManager.m_OnPlayerConnected.Invoke(persistentId, playerId);
 	    OVT_PlayerData player = m_PlayerManager.GetPlayer(persistentId);
+	    if (!player)
+	        return;
 	
 	    // Ensure the player is an officer in single-player mode or if they're the host in hosted multiplayer
 	    if (!player.isOfficer && (RplSession.Mode() == RplMode.None || (RplSession.Mode() == RplMode.Listen && playerId == 1)))

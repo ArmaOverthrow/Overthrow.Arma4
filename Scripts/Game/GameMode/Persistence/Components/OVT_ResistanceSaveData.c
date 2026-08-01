@@ -3,7 +3,7 @@ class OVT_ResistanceSaveDataClass : EPF_ComponentSaveDataClass
 {
 };
 
-[EDF_DbName.Automatic()]
+[EDF_DbName()]
 class OVT_ResistanceSaveData : EPF_ComponentSaveData
 {
 	ref array<ref OVT_CampData> m_Camps;

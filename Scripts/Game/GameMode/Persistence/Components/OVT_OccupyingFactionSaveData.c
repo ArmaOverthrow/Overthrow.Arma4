@@ -3,7 +3,7 @@ class OVT_OccupyingFactionSaveDataClass : EPF_ComponentSaveDataClass
 {
 };
 
-[EDF_DbName.Automatic()]
+[EDF_DbName()]
 class OVT_OccupyingFactionSaveData : EPF_ComponentSaveData
 {	
 	int m_iResources;

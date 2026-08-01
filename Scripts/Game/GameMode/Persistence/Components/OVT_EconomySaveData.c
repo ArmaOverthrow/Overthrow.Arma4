@@ -3,7 +3,7 @@ class OVT_EconomySaveDataClass : EPF_ComponentSaveDataClass
 {
 };
 
-[EDF_DbName.Automatic()]
+[EDF_DbName()]
 class OVT_EconomySaveData : EPF_ComponentSaveData
 {	
 	int m_iResistanceMoney = 0;

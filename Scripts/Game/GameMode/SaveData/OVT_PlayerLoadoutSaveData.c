@@ -1,7 +1,7 @@
 //! Save data for individual player loadouts using EPF persistent scripted state
 [
 	EPF_PersistentScriptedStateSettings(OVT_PlayerLoadout),
-	EDF_DbName.Automatic()
+	EDF_DbName()
 ]
 class OVT_PlayerLoadoutSaveData : EPF_ScriptedStateSaveData
 {

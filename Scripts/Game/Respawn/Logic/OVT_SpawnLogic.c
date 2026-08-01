@@ -30,7 +30,7 @@ class OVT_SpawnLogic : EPF_BaseSpawnLogic
 		string playerUid = EPF_Utils.GetPlayerUID(playerId);
 		if (!playerUid)
 		{
-			Print("WARNING: Early OnUidAvailable detected. Retrying...", LogLevel.WARNING);
+			Print("[Overthrow] WARNING: Persistent UID not available yet for playerId: " + playerId + ", retrying...", LogLevel.WARNING);
 			OnPlayerRegisterFailed(playerId);
 			return;
 		}
@@ -505,6 +505,10 @@ class OVT_SpawnLogic : EPF_BaseSpawnLogic
 		super.OnPlayerKilled_S(playerId, playerEntity, killerEntity, killer);
 
 		if (!Replication.IsServer()) return;
+
 		OVT_Global.GetEconomy().ChargeRespawn(playerId);
 	}
+
+	//------------------------------------------------------------------------------------------------
+
 }

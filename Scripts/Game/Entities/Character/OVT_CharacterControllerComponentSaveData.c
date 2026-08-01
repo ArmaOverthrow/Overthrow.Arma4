@@ -4,7 +4,7 @@ class OVT_CharacterControllerComponentSaveDataClass : EPF_CharacterControllerCom
 	
 };
 
-[EDF_DbName.Automatic()]
+[EDF_DbName()]
 class OVT_CharacterControllerComponentSaveData : EPF_CharacterControllerComponentSaveData
 {
 	override EPF_EReadResult ReadFrom(IEntity owner, GenericComponent component, EPF_ComponentSaveDataClass attributes)

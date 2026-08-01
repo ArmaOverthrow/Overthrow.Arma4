@@ -436,7 +436,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 			// Set ownership and association
 			string playerUid = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 			placeableComp.SetOwnerPersistentId(playerUid);
-			
+
 			// Find nearest base/camp/FOB to associate with (if enabled)
 			if (placeable.m_bAssociateWithNearest)
 			{
@@ -499,7 +499,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 			// Set ownership and association
 			string playerUid = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 			buildableComp.SetOwnerPersistentId(playerUid);
-			
+
 			// Find nearest base/camp/FOB to associate with
 			string baseId;
 			EOVTBaseType baseType;
@@ -1143,7 +1143,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		float nearestDistance = -1;
 		string nearestId = "";
 		EOVTBaseType nearestType = EOVTBaseType.NONE;
-		
+
 		// Check camps
 		OVT_CampData nearestCamp = GetNearestCampData(pos);
 		if (nearestCamp)
@@ -1156,7 +1156,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 				nearestType = EOVTBaseType.CAMP;
 			}
 		}
-		
+
 		// Check FOBs
 		OVT_FOBData nearestFOB = GetNearestFOBData(pos);
 		if (nearestFOB)
@@ -1169,7 +1169,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 				nearestType = EOVTBaseType.FOB;
 			}
 		}
-		
+
 		// Check bases using the existing method
 		OVT_BaseData nearestBase = OVT_Global.GetOccupyingFaction().GetNearestBase(pos);
 		if (nearestBase && !nearestBase.IsOccupyingFaction())
@@ -1182,14 +1182,14 @@ class OVT_ResistanceFactionManager: OVT_Component
 				nearestType = EOVTBaseType.BASE;
 			}
 		}
-		
+
 		if (nearestType != EOVTBaseType.NONE)
 		{
 			baseId = nearestId;
 			baseType = nearestType;
 			return true;
 		}
-		
+
 		return false;
 	}
 	

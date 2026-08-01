@@ -3,7 +3,7 @@ class OVT_TownSaveDataClass : EPF_ComponentSaveDataClass
 {
 };
 
-[EDF_DbName.Automatic()]
+[EDF_DbName()]
 class OVT_TownSaveData : EPF_ComponentSaveData
 {
 	ref array<ref OVT_TownData> m_aTowns;

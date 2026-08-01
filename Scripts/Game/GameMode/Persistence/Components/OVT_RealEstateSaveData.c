@@ -3,7 +3,7 @@ class OVT_RealEstateSaveDataClass : EPF_ComponentSaveDataClass
 {
 };
 
-[EDF_DbName.Automatic()]
+[EDF_DbName()]
 class OVT_RealEstateSaveData : EPF_ComponentSaveData
 {
 	ref array<ref OVT_WarehouseData> m_aWarehouses;

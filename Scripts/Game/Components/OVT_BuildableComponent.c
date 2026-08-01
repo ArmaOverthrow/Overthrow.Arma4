@@ -69,7 +69,7 @@ class OVT_BuildableDataClass : EPF_ComponentSaveDataClass
 {
 }
 
-[EDF_DbName.Automatic()]
+[EDF_DbName()]
 class OVT_BuildableData : EPF_ComponentSaveData
 {
 	string m_sOwnerPersistentId;

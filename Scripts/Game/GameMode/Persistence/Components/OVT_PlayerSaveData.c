@@ -3,7 +3,7 @@ class OVT_PlayerSaveDataClass : EPF_ComponentSaveDataClass
 {
 };
 
-[EDF_DbName.Automatic()]
+[EDF_DbName()]
 class OVT_PlayerSaveData : EPF_ComponentSaveData
 {
 	ref map<string, ref OVT_PlayerData> m_mPlayers;

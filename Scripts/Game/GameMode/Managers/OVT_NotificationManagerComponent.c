@@ -151,12 +151,10 @@ class OVT_NotificationManagerComponent: OVT_Component
 	//! \return A JSON string representation of the data.
 	static string Serialize(Managed data)
 	{
-		ContainerSerializationSaveContext writer();
-		JsonSaveContainer jsonContainer = new JsonSaveContainer();
-		jsonContainer.SetMaxDecimalPlaces(5);
-		writer.SetContainer(jsonContainer);
+		JsonSaveContext writer();
+		writer.SetMaxDecimalPlaces(5);
 		writer.WriteValue("", data);
-		return jsonContainer.ExportToString();
+		return writer.SaveToString();
 	}
 	
 	//------------------------------------------------------------------------------------------------

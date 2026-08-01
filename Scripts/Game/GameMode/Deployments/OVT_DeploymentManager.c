@@ -1095,7 +1095,7 @@ class OVT_DeploymentManagerComponentSaveDataClass : EPF_ComponentSaveDataClass
 {
 }
 
-[EDF_DbName.Automatic()]
+[EDF_DbName()]
 class OVT_DeploymentManagerComponentSaveData : EPF_ComponentSaveData
 {
 	ref map<int, int> m_mFactionResources;

@@ -69,18 +69,32 @@ class OVT_PlayerStartMenuHandlerComponent : ScriptComponent
 
 		// Only show start menu if game hasn't started and no save exists
 		bool hasSave = persistence.HasSaveGame();
+		bool isDedicatedServer = (RplSession.Mode() == RplMode.Dedicated);
+		bool isClientOnServer = (RplSession.Mode() == RplMode.Client);
+		bool isSinglePlayer = (RplSession.Mode() == RplMode.None);
+		bool isListenServerHost = (RplSession.Mode() == RplMode.Listen && Replication.IsServer());
 
-		Print("[Overthrow] Game started: " + mode.HasGameStarted() + ", Has save: " + hasSave + ", Is dedicated: " + (RplSession.Mode() == RplMode.Dedicated));
+		Print("[Overthrow] Game started: " + mode.HasGameStarted() + ", Has save: " + hasSave + ", Mode: " + RplSession.Mode() + ", IsServer: " + Replication.IsServer());
 
-		if (!mode.HasGameStarted() && !hasSave && RplSession.Mode() != RplMode.Dedicated)
+		// Show start menu for:
+		// - Single player (RplMode.None) with no save
+		// - Listen server HOST with no save (host needs to configure and start the game)
+		// Never show for:
+		// - Dedicated servers (handled by config file)
+		// - Clients connecting to servers (wait for server to start game)
+		// - Listen server clients (wait for host to start game)
+		if (!mode.HasGameStarted() && !hasSave && (isSinglePlayer || isListenServerHost))
 		{
-			Print("[Overthrow] Showing start menu for player");
+			string menuType = "single player";
+			if (isListenServerHost)
+				menuType = "listen server host";
+			Print("[Overthrow] Showing start menu for " + menuType);
 			ShowStartMenu();
 			// Keep frame updates running to activate input context
 		}
 		else
 		{
-			Print("[Overthrow] Not showing start menu (game started or has save)");
+			Print("[Overthrow] Not showing start menu (multiplayer client, dedicated server, or game already started/saved)");
 			ClearEventMask(owner, EntityEvent.FRAME);
 		}
 	}
