@@ -99,8 +99,8 @@ Close the replication gap, consolidate the god object, unify the duplicate enums
 - JSON server config round-trips (writes defaults, reads overrides) with console guards
 
 ### Known Issues
-- **Client replication gap:** 7 difficulty fields read on clients but absent from `RplSave` (`minFastTravelDistance`, `QRFFastTravelMode`, `baseCloseRange`, `fastTravelCost`, `baseRange`, `QRFPointsToWin`, `disguiseDetectionDistance`) — clients silently use prefab defaults; `m_Difficulty.name` also never replicates.
-- **No null guards** in `SetOccupyingFaction`/`SetSupportingFaction` and `OVT_Faction.Init()` on user-editable faction keys — an unknown key crashes.
+- **BUG-013 — client replication gap:** 7 difficulty fields read on clients but absent from `RplSave` (`minFastTravelDistance`, `QRFFastTravelMode`, `baseCloseRange`, `fastTravelCost`, `baseRange`, `QRFPointsToWin`, `disguiseDetectionDistance`) — clients silently use prefab defaults; `m_Difficulty.name` also never replicates.
+- **BUG-014 — no null guards** in `SetOccupyingFaction`/`SetSupportingFaction` and `OVT_Faction.Init()` on user-editable faction keys — an unknown key crashes.
 - `OVT_OccupyingFactionSaveData.c:80` uses `OVT_Global().GetConfig()` (constructor-call syntax on a static class).
 - Copy-paste: `SpawnGetInWaypoint` spawns the get-*out* prefab; `SpawnWaitWaypoint` ignores its `time` parameter.
 - `OVT_DeploymentComponent.GetFactionType()` silently returns OCCUPYING on no-match.

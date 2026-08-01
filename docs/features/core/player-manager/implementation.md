@@ -108,8 +108,8 @@ Fix `IsOffline()`, prune stale ID maps, null-guard `OVT_PlayerData.Get()` consum
 - Offline-player handling in jobs/recruits/vehicles via persistent-ID timers
 
 ### Known Issues
-- **`IsOffline()` is wrong after disconnect**: it tests `id == 0`, but disconnect sets `id = -1` — a departed player reports online (affects jobs, recruits, job stages).
-- **ID maps never pruned**: stale runtime IDs can be *reused by a different joiner*; `TakePlayerMoneyPersistentId` streams against dead IDs.
+- **BUG-015 — `IsOffline()` is wrong after disconnect**: it tests `id == 0`, but disconnect sets `id = -1` — a departed player reports online (affects jobs, recruits, job stages).
+- **BUG-016 — ID maps never pruned**: stale runtime IDs can be *reused by a different joiner*; `TakePlayerMoneyPersistentId` streams against dead IDs.
 - **Unchecked nulls off `OVT_PlayerData.Get()`** across skill manager, spawn logic, and RPC receivers — a client that hasn't yet received `RpcDo_RegisterPlayer` dereferences null.
 - **SP/listen identity is name-derived** — renaming the profile creates a fresh player and orphans all state.
 - `persistence.IsActive()` call site resolves to the engine's generic "component enabled", not "persistence ready" (shared finding with `core/game-mode`).

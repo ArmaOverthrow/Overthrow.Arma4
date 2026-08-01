@@ -111,9 +111,9 @@ Migrate the remaining domains (economy, base, real-estate, job, notification…)
 - `GetPersistence()` returns null on clients; `OVT_PlayerStartMenuHandlerComponent` works around it with its own `FindComponent`.
 
 ### Technical Debt
-- Dead statement `OVT_Global.GetConfig() = OVT_Global.GetConfig();` (`OVT_OverthrowGameMode.c:789`) — almost certainly a mangled `m_Config = ...`; `m_Config` stays null through `EOnInit` and the save-load path.
+- **BUG-012**: dead statement `OVT_Global.GetConfig() = OVT_Global.GetConfig();` (`OVT_OverthrowGameMode.c:789`) — almost certainly a mangled `m_Config = ...`; `m_Config` stays null through `EOnInit` and the save-load path.
 - `OVT_ResistanceFactionManager` unsubscribe blocks cast `GetOwner()` to `OVT_OverthrowController` (always null on a game-mode component) — `Remove()` never runs; masked by defensive `Remove`-before-`Insert` at subscribe sites (L1324/1371/1412/1454).
-- `OnPlayerDisconnected` re-implements its `super` body inline after calling `super` — disconnect events likely fire twice (unverified against the 1.7.0.54 base).
+- **BUG-017**: `OnPlayerDisconnected` re-implements its `super` body inline after calling `super` — disconnect events fire twice (verified against the 1.7.0.54 base: `SCR_BaseGameMode.c:920` is not empty).
 - `persistence.IsActive()` at `OVT_PlayerCommsComponent.c:21` resolves to the engine's `GenericComponent.IsActive()` ("component enabled"), not "persistence ready".
 - `OVT_InventoryManagerComponent.Init()` is dead code (never called); `m_bHasOpenedMenu` never read/written.
 - Unguarded null derefs: `EOnFrame` debug handlers (`m_EconomyManager`, local controlled entity), `OVT_Global.GetServer()`/`GetUI()`.
