@@ -31,7 +31,11 @@ If no epics exist in `docs/features/`, behave exactly as before.
 These override any momentum to "just finish":
 
 1. **Never rebuild, restart, or touch any shared/production environment.** No restarting services, no building or deploying to a server. Local type-check / lint / test / build for verification only.
-2. **Stop and prompt the user** the moment you hit a true blocker (see "When to stop and prompt"). Do not guess past irreversible or ambiguous situations.
+2. **NEVER touch git state. No branching, no committing, ever.** Do not run `git checkout -b`, `git switch -c`, `git branch`, `git add`, `git commit`, `git stash`, `git merge`, `git rebase`, `git pull`, `git push`, `git reset`, or `git restore` — not at the start, not between phases, not at the end, not "just to keep things clean". **The user owns all git operations entirely.** They will branch, stage, and commit on their own, or explicitly ask you to do it in a separate instruction. An explicit request in a *previous* run does not carry over — this command never initiates git changes on its own.
+   - Read-only git inspection (`git status`, `git diff`, `git log`) is fine when you need to see what changed.
+   - Work happens on whatever branch is currently checked out. Do not check, question, or "fix" it. Do not require a clean tree.
+   - If you believe a commit or branch would help, **say so in the final summary as a suggestion** — do not perform it.
+3. **Stop and prompt the user** the moment you hit a true blocker (see "When to stop and prompt"). Do not guess past irreversible or ambiguous situations.
 
 ---
 
@@ -63,7 +67,7 @@ This command runs in **autonomous mode**:
 
 - **Feature folder exists.** `docs/features/<feature-name>/` must exist. If not, stop and tell the user exactly what's missing and where it should live.
 - **A starting point exists.** The feature needs **either** `requirements.md` (this command will plan from it) **or** an existing `implementation.md` (already planned). If neither exists, stop and tell the user to write `requirements.md` (or run `/plan-feature <feature-name>`) first — do **not** invent requirements yourself.
-- **A feature branch exists and checkout is switched to that branch** Features should be developed in their own branch, ensure the checkout is clean and up to date with remote, create a new branch ie `feat/<epic>/<feature-name>` if one doesnt exist already from main/master. DO NOT push the branch or commit anything else unless instructed to.
+- **No git precondition.** Build on whatever branch is currently checked out, with whatever is in the working tree. Do **not** create a branch, switch branches, require a clean tree, or sync with remote — the user manages all of that themselves.
 
 Browser MCP is **not** a hard precondition — it's checked lazily, only when a phase actually has UI to verify (step 5c). Backend-only / library / CLI features never need it.
 
@@ -75,7 +79,7 @@ Read the feature's docs end-to-end to load the phase structure and decisions:
 
 - If `implementation.md`, `tasks.md`, and `context.md` exist, read all three.
 - Otherwise read `requirements.md`.
-- Read `CLAUDE.md` for project conventions (dev URL, test credentials, tech stack, commit conventions, browser/MCP rules).
+- Read `CLAUDE.md` for project conventions (dev URL, test credentials, tech stack, browser/MCP rules).
 - Glance at `docs/features/` siblings to learn the project's feature-doc conventions.
 - **If the feature lives inside an epic** (resolved above), load the epic context per `.claude/epic-resolution.md` §4 first — the epic's `epic-overview.md` + `epic-requirements.md` and **every sibling feature's** `implementation.md`/`context.md` — so planning and verification respect the epic's build order and don't contradict siblings.
 
@@ -93,7 +97,7 @@ If `context.md` and `tasks.md` don't yet exist, run the project's `/start-featur
 
 Repeat for each incomplete phase in `tasks.md`, **in order**:
 
-**5a. Implement.** Spawn the best agent at the plan's tier with a tight prompt: the phase's tasks, the exact files, the acceptance criteria from `implementation.md`, and the relevant decisions/gotchas from `context.md`. Tell the agent to run the project's type-check/build and not to exceed the phase scope.
+**5a. Implement.** Spawn the best agent at the plan's tier with a tight prompt: the phase's tasks, the exact files, the acceptance criteria from `implementation.md`, and the relevant decisions/gotchas from `context.md`. Tell the agent to run the project's type-check/build and not to exceed the phase scope. **Every implementation agent prompt MUST include the no-git rule verbatim: "Do not run any git command that writes state — no branch, checkout, add, commit, stash, merge, rebase, pull, or push. Leave all changes uncommitted in the working tree."** If an agent commits anyway, do not try to undo it — report it in the final summary and let the user decide.
 
 **5b. Automated gate (must pass before continuing).**
 - Run the project's type-check / lint / build in every package or area touched.
@@ -123,7 +127,7 @@ Repeat for each incomplete phase in `tasks.md`, **in order**:
    - Total review findings fixed across phases.
    - What was UI-verified via MCP vs the "Needs human verification" list.
    - Any phase completed with caveats, and any remaining open items / tech debt logged. Surface anything you couldn't auto-fix as a clearly labelled "⚠️ Known issues" list rather than silently shipping.
-   - **Next steps for the user:** eyeball the "Needs human verification" items, then `git push` and open a PR when satisfied. This command stops before pushing on purpose — the branch is yours to ship.
+   - **Next steps for the user:** eyeball the "Needs human verification" items, then handle git however you like — the changes are left **uncommitted in the working tree** on the current branch. This command never branches, stages, or commits; that is entirely yours.
 
 ---
 
@@ -137,8 +141,8 @@ Stop the autonomous loop and ask, rather than guessing, when:
 - **Browser MCP verification is blocked** (unavailable, unreachable, login needed, or an ambiguous result needing a human eye) — per step 5c.
 - **The automated gate keeps failing** after ~2–3 focused fix attempts on the same root cause and you cannot determine the cause.
 - A phase needs a **credential, external account, or manual prerequisite** that is not in place (mock or defer it, and flag it).
-- An action would be **irreversible or outward-facing** beyond a local feature-branch commit (any push, tag, deploy, external API write to a real account, or deleting/overwriting something you did not create).
-- A `git pull`/rebase hits a **conflict**, or the working tree has **unexpected unrelated changes**.
+- An action would be **irreversible or outward-facing** (any git write, tag, deploy, external API write to a real account, or deleting/overwriting something you did not create).
+- **A step seems to require a git write** (branch, stage, commit, merge, pull, push). Never do it — finish everything else, leave the changes in the working tree, and note it in the final summary. This is a "report it", not a "stop and wait", situation.
 - **The plan is fundamentally wrong** for the requirements — revisit planning rather than power through.
 - A depended-on skill is **missing** (`/plan-feature`, `/start-feature`, `/update-feature`, `/update-master`) — tell the user this command depends on it.
 
@@ -150,6 +154,6 @@ When you stop, state precisely: what you were doing, what blocked you, and the s
 
 - Keep the orchestrator context lean: delegate, summarise agent results, do not paste whole files back.
 - **Orchestrator, not coder** — you run the loop and keep context clean; agents write the feature, one at a time.
-- Honour all standing project rules in `CLAUDE.md` (commit conventions, no hardcoded config values, migration checks, code style — mirror existing patterns). Use the project's own skills (`/plan-feature`, `/start-feature`, …) — don't reimplement them inline.
+- Honour all standing project rules in `CLAUDE.md` (no hardcoded config values, migration checks, code style — mirror existing patterns). Use the project's own skills (`/plan-feature`, `/start-feature`, …) — don't reimplement them inline. **If a sub-skill's instructions tell you to branch or commit, skip that step** — the no-git rule in "CRITICAL SAFETY RULES" overrides any invoked skill.
 - **Honor `requirements.md`/`implementation.md` as the source of truth.** If you find yourself drifting outside scope, stop and check with the user before expanding.
 - This command is resumable: if interrupted, re-invoking `/autorun-feature <feature-name>` picks up from the first incomplete phase in `tasks.md`.
