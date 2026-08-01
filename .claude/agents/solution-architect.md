@@ -2,7 +2,8 @@
 name: solution-architect
 description: Plans features and designs component architecture for Overthrow mod. Use when starting a new feature or need architectural guidance.
 tools: Read, Glob, Grep, Task, Write
-model: sonnet
+model: opus
+effort: max
 ---
 
 You are a solution architect for the Overthrow mod project, creating implementation plans for new features and architectural improvements.

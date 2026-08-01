@@ -1,22 +1,32 @@
 ---
-description: Update dev docs with current progress before compacting. Usage: /dev-docs-update [feature-name]
+description: "Update feature docs with current progress before compacting. Usage: /update-feature [feature-name]"
 ---
 
-You have been asked to update the dev docs before compacting the conversation.
+You have been asked to update the feature docs before compacting the conversation.
 
 **⚠️ CRITICAL: This should ALWAYS be run before compacting a conversation!**
 
 **Feature name:** `$ARGUMENTS`
+
+## Epic awareness
+
+This command is epic-aware. Before resolving `$ARGUMENTS` to a feature path,
+read `.claude/epic-resolution.md` and apply its rules: detect epics by
+`epic-overview.md`, resolve `<epic>/<feature>` references, fuzzy-fall-back into
+epic folders for bare names, and resolve `<epic>/<feature>` (auto-detect may land on a nested feature).
+If no epics exist in `docs/features/`, behave exactly as before.
+
+`.claude/epic-resolution.md` is the single source of truth for epic detection and resolution. When the feature lives inside an epic, every `docs/features/$ARGUMENTS/...` path below is the resolved nested `docs/features/<epic>/<feature>/...` location. This command's body is the update-feature workflow; it does **not** re-specify those rules.
 
 ## Process
 
 1. **Determine Feature Name:**
    - If `$ARGUMENTS` is provided (not empty), use it as the feature name
    - If `$ARGUMENTS` is empty:
-     - Try to detect from recent conversation (look for feature name mentions, file paths in `dev/active/`)
-     - If detected, confirm with user: "Updating dev docs for [detected-name]?"
-     - If unclear, list all features in `dev/active/` and ask user which one
-   - Verify `dev/active/$ARGUMENTS/` exists
+     - Try to detect from recent conversation (look for feature name mentions, file paths in `docs/features/`)
+     - If detected, confirm with user: "Updating feature docs for [detected-name]?"
+     - If unclear, list all features in `docs/features/` and ask user which one
+   - Verify `docs/features/$ARGUMENTS/` exists
 
 2. **Update tasks.md:**
 
@@ -85,15 +95,15 @@ You have been asked to update the dev docs before compacting the conversation.
    - Update "Last Updated" at top of file
    - Update current phase if changed
 
-4. **Verify plan.md:**
+4. **Verify implementation.md:**
    - Rarely needs updates
    - Only update "Last Updated" timestamp if plan itself changed
-   - If implementation significantly diverged from plan, add note in context.md (not plan.md)
+   - If implementation significantly diverged from plan, add note in context.md (not implementation.md)
 
 5. **Show Summary:**
    Display what was updated:
    ```
-   ✅ Updated dev docs for: $ARGUMENTS
+   ✅ Updated feature docs for: $ARGUMENTS
 
    📝 tasks.md:
    - Marked [X] tasks complete
@@ -131,14 +141,15 @@ Before finishing, verify:
 - **BE SPECIFIC:** "Next Steps" should be concrete, not vague
 - **BE HONEST:** If nothing was accomplished, note that
 - **BE HELPFUL:** Make it easy to resume work
+- **NEW:** All docs now in `docs/features/` (no separate `/dev` folder)
 
 ## Error Handling
 
 - If `$ARGUMENTS` is empty, try to auto-detect from conversation or list available features
 - If `$ARGUMENTS` provided but feature doesn't exist:
-  - List available features in `dev/active/`
+  - List available features in `docs/features/`
   - Ask which one to update
-- If dev docs files are missing:
+- If feature docs files are missing:
   - Offer to recreate with `/start-feature`
 - If conversation is too short to have meaningful updates:
   - Explain and ask if user still wants to update

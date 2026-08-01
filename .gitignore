@@ -10,9 +10,6 @@ claude.sh
 .saves/
 .mcp.json
 .tmp/
-# Beast Mode - Dev Docs (work in progress)
-dev/active/
-dev/completed/
 
 # Beast Mode - Session tracking
 .claude/session-edits.json
