@@ -4,7 +4,7 @@
 
 **A companion to the [Mission Statement](mission-statement.md) — this document guides all technical decisions for the project, from architecture to data formats.**
 
-Overthrow is a community-developed, MIT-licensed mod for Arma Reforger with a small distributed contributor base and a live player population on the Workshop. That shapes everything below: there is no CI, no automated test suite and no debugger, so correctness has to come from conservative patterns and disciplined review rather than from tooling. It is production software — servers run it for months — but runtime validation still happens inside the Arma Reforger Workbench by hand. (Compile verification is now automated — `tools/compile-check.sh`, delivered by the `dev-ops` epic, §12 — and that epic is building the rest of the pipeline.)
+Overthrow is a community-developed, MIT-licensed mod for Arma Reforger with a small distributed contributor base and a live player population on the Workshop. That shapes everything below: there is no CI and no debugger, and the automated test suite is one smoke test deep, so correctness still has to come from conservative patterns and disciplined review rather than from tooling. It is production software — servers run it for months — but validation of actual behaviour still happens inside the Arma Reforger Workbench by hand. (Compile verification and the autotest loop are automated — `tools/compile-check.sh` and `tools/run-tests.sh`, delivered by the `dev-ops` epic, §12 — and that epic is building the rest of the pipeline.)
 
 ---
 
@@ -80,7 +80,7 @@ These are not preferences. They are hard properties of the environment, and most
 > ⚠️ **This section is being actively invalidated.** Reforger 1.7.0 ships a script test framework with JUnit output, and the Workbench has CLI automation flags — neither was usable when this project's workflow was established. The `dev-ops` epic (§12) is building on both. Each entry below is struck through by the feature that makes it false; do not treat this list as permanent.
 
 - ~~**No automated builds.** Compilation happens when a human presses Build in Workbench. Claude and CI can never verify that a change compiles.~~ *(Invalidated 2026-08-01 by `dev-ops/workbench-automation`: `tools/compile-check.sh` compiles all of Overthrow's EnforceScript headlessly from WSL and returns a verified exit code plus `file:line: message` errors — see `tools/README.md`.)*
-- **No unit or integration tests.** Correctness is established by play-testing, hosted and joined. *(Addressed by `dev-ops/autotest-foundation` + `dev-ops/test-coverage`.)*
+- ~~**No unit or integration tests.** Correctness is established by play-testing, hosted and joined.~~ *(Invalidated 2026-08-02 by `dev-ops/autotest-foundation`: Reforger's shipped `SCR_Autotest` framework is wired in, suites live in `Scripts/Game/Tests/`, and `tools/run-tests.sh` runs them in the real client for an honest exit code from `junit.xml` — see `tools/README.md`. **Coverage is minimal** — a single smoke test that proves the harness runs and asserts nothing about Overthrow — pending `dev-ops/test-coverage` (#3). Play-testing remains the gate for everything uncovered, which is currently everything.)*
 - **No debugger.** `Print()` is the debugging tool. Debug output is read out of the Workbench console.
 - **No exceptions, no stack unwinding.** Null checks and defensive returns instead.
 - **No ternary operator.** Always full `if`/`else` — this is a compile error, not a style rule.
@@ -130,7 +130,8 @@ Overthrow.Arma4/
 │   ├── Configuration/          # Config class definitions
 │   ├── UserActions/            # Player interaction actions
 │   ├── Utilities/, Data/
-│   └── Modded/                 # `modded class` overrides of vanilla Reforger classes
+│   ├── Modded/                 # `modded class` overrides of vanilla Reforger classes
+│   └── Tests/                  # Autotest integration: TestFramework/ (glue) + TestSuites/<Area>/
 ├── Configs/                    # Tuning data (see §8)
 ├── Prefabs/, PrefabsEditable/  # Entity prefabs and editable compositions
 ├── Worlds/MP/                  # OVT_Campaign_Eden.ent (full map), OVT_Campaign_Test.ent (dev)
@@ -149,6 +150,8 @@ Overthrow.Arma4/
 **`Scripts/Game/Components/`** — reusable components attached to arbitrary entities (buildable, placeable, parking, spawn point, player owner).
 
 **`Scripts/Game/Modded/`** and the `Modded/` subfolders — `modded class` extensions of vanilla Reforger classes. Kept separate because they are the most fragile code in the project: a Reforger update can break them without any change on our side.
+
+**`Scripts/Game/Tests/`** — the entire autotest integration: `TestFramework/` holds the glue (the `modded class SCR_AutotestHelper` that picks the test world and keeps Overthrow loaded across the scenario transition, plus `OVT_TEST_SuiteBase`), and `TestSuites/<Area>/` holds the suites and their cases. **Deliberate deviation:** that `modded class` would by convention live in `Modded/`, but it is kept here so the whole test integration is one self-contained, deletable directory rather than two files that only make sense together sitting in different trees. Run with `tools/run-tests.sh` (see §10).
 
 **`Scripts/Game/Persistence/Serializers/`** — the vanilla-persistence target structure (`Components/`, `Entities/`, `States/`), being populated by the in-flight migration.
 
@@ -336,21 +339,22 @@ UI is entirely client-side and hangs off the player, never the game mode.
 
 ## 10. Testing Strategy
 
-### There is no test suite
+### The test suite is real but tiny
 
-No unit tests, no integration tests, no CI. This is a property of the platform, not a backlog item.
+Reforger 1.7.0 ships a script test framework with JUnit output, and `dev-ops/autotest-foundation` wired it into Overthrow (2026-08-02). What exists today is the **loop**, not the coverage: exactly one smoke test, which proves the harness runs and asserts nothing about Overthrow. Behaviour-level suites are `dev-ops/test-coverage` (#3), still planned. Until they exist, play-testing is the only verification of anything the mod actually does.
 
 ### What we do instead
 
 1. **Automated compile check first** — the assistant runs `tools/compile-check.sh` after code changes: exit 0 is a positively-verified clean compile, exit 1 prints errors as `file:line: message` (see `tools/README.md`). The Workbench GUI (Build → Compile and Reload Scripts) remains the interactive alternative for the user.
-2. **Test in the fast world** — `Worlds/MP/OVT_Campaign_Test.ent` loads far faster than the full Eden map. Use it for everything except map-specific work.
-3. **Test hosted, then joined** — a change that works in a hosted session but not for a joining client is the default failure mode. Both paths, every time.
-4. **Test the restart** — anything touching persistence is only verified after a save, a shutdown and a reload.
-5. **`Print()` liberally** — the console is the debugger.
+2. **Automated tests second** — `tools/run-tests.sh [<target>]` launches the real game client with `-autotest`, runs the named suite in `Worlds/MP/OVT_Campaign_Test.ent`, and derives an honest verdict from `junit.xml`: 0 = passed, 1 = test failures, 2 = indeterminate (missing artifact, bad target), 124 = timeout. ~15 s per run; artifacts in `.tmp/run-tests/`. Suites live under `Scripts/Game/Tests/TestSuites/<Area>/`, inherit `OVT_TEST_SuiteBase`, and are named `OVT_TEST_<Area>Suite` / `OVT_TEST_<Area>_<Subject>_<ExpectedBehaviour>`. There is no "run everything" form — one target per launch until a group config exists. Contract: `tools/README.md`; authoring patterns: the `workbench-workflow` skill.
+3. **Test in the fast world** — `Worlds/MP/OVT_Campaign_Test.ent` loads far faster than the full Eden map. Use it for everything except map-specific work.
+4. **Test hosted, then joined** — a change that works in a hosted session but not for a joining client is the default failure mode. Both paths, every time.
+5. **Test the restart** — anything touching persistence is only verified after a save, a shutdown and a reload.
+6. **`Print()` liberally** — the console is the debugger.
 
 ### Every change ships with test steps
 
-Because verification is manual, a change is not complete until someone has written down exactly what to do to check it: which world, hosted or joined, what actions, what to observe, whether a restart is needed. Vague test instructions produce untested code.
+Because verification of behaviour is still manual, a change is not complete until someone has written down exactly what to do to check it: which world, hosted or joined, what actions, what to observe, whether a restart is needed. Vague test instructions produce untested code.
 
 ### The three dimensions that break
 

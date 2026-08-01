@@ -1,7 +1,7 @@
 # Overthrow - Project Overview
 
-**Last Updated:** 2026-08-01
-**Version:** v1.0
+**Last Updated:** 2026-08-02
+**Version:** v1.1
 
 ## Project Summary
 
@@ -11,7 +11,7 @@ Overthrow is a dynamic, persistent revolution mod for Arma Reforger, built on En
 
 | Feature | Status | Tasks | Notes |
 |---------|--------|-------|-------|
-| dev-ops (epic) | 🟡 In Progress (1/5 features) | 56/56 (feature #1) | Automated compile, test and release pipeline built on Reforger 1.7.0's autotest framework and Workbench CLI — replaces the manual play-testing quality gate. Feature #1 `workbench-automation` ✅ complete: `tools/compile-check.sh` + `tools/launch-game.sh` + `tools/README.md` contract. Next: `autotest-foundation`. |
+| dev-ops (epic) | 🟡 In Progress (2/5 features) | 78/78 (features #1+#2) | Automated compile, test and release pipeline built on Reforger 1.7.0's autotest framework and Workbench CLI — replaces the manual play-testing quality gate. #1 `workbench-automation` ✅ (`compile-check.sh` + `launch-game.sh`); #2 `autotest-foundation` ✅ (`tools/run-tests.sh` — proven test loop, one smoke suite). Next: `test-coverage` ∥ `ci-pipeline`. |
 | vanilla-persistence | ⏸️ Paused | 6/67 (9%) | Migration from EPF to vanilla persistence. Superseded in priority by the dev-ops epic. ⚠️ Its Phase 1 "foundation" was found (2026-08-01) to target a nonexistent API and never compiled — must be re-done against the real vanilla API on resume (see its context.md). |
 
 > Epics are tracked as a single row; per-feature detail lives in `docs/features/dev-ops/epic-overview.md`.
@@ -23,4 +23,5 @@ Overthrow is a dynamic, persistent revolution mod for Arma Reforger, built on En
 
 ## Changelog
 
+- v1.1 (2026-08-02): **dev-ops/autotest-foundation complete (22/22)** — Overthrow's first automated test loop: `tools/run-tests.sh` (launch → `junit.xml` → honest 0/1/2/124 verdict, ~15s/run) on the shipped `SCR_Autotest` framework. `Scripts/Game/Tests/` tree: modded `SCR_AutotestHelper`, `OVT_TEST_SuiteBase`, one smoke suite + a kept always-red `OVT_TEST_MetaSuite` proving the failure path. All three `-autotest` forms (suite/case/`{GUID}`) verified in the retail client; test code proven inert without `-autotest`. Coverage is deliberately one smoke test — real coverage is feature #3. Docs corrected (CLAUDE.md, technical-design, mission-statement, workbench-workflow skill v1.2.0, agent definitions).
 - v1.0 (2026-08-01): **dev-ops/workbench-automation complete (56/56)** — First automated compile check for Overthrow: `tools/compile-check.sh` (Workbench `-wbsilent -validate`, honest 0/1/2/124 exit codes, gcc-style `file:line:` errors, false-pass guard) and `tools/launch-game.sh` (game-client launcher; proved the `-autotest` → `junit.xml` loop end-to-end). Empirical CLI reference in `findings.md`. Also fixed the tree to compile on Reforger 1.7.0.54 (vanilla-persistence WIP had never compiled: illegal generic method, fictional persistence API, template files in the compiled tree). Docs corrected across CLAUDE.md, technical-design, mission-statement, workbench-workflow skill and agent definitions. Created this master overview.

@@ -2,7 +2,7 @@
 
 **Epic:** dev-ops
 **Status:** 🟡 In Progress
-**Last Updated:** 2026-08-01 23:10
+**Last Updated:** 2026-08-02
 
 > **This file is the epic marker.** Its presence in `docs/features/dev-ops/` is what tells every Beast Mode command (and future Web App / Discord clients) that this folder is an **epic**, not a plain feature. Keep it present and keep the required sections below filled in. It is the epic's equivalent of the project's `docs/overview.md`, scoped to this epic. The master `docs/overview.md` tracks this epic as a **single row**; the per-feature detail lives **here**.
 
@@ -10,7 +10,7 @@
 
 ## Purpose
 
-This epic replaces Overthrow's manual, human-in-the-loop quality gate with an automated one, using first-party tooling that shipped in Arma Reforger and was not previously available. Until now every change — however small — cost a human round-trip: open Workbench, press Build, read the console, host a session, join a second client, play through the change. That cost is the single largest brake on this project's iteration speed, and it is why the codebase has had no test suite at any point in its life.
+This epic replaces Overthrow's manual, human-in-the-loop quality gate with an automated one, using first-party tooling that shipped in Arma Reforger and was not previously available. Until now every change — however small — cost a human round-trip: open Workbench, press Build, read the console, host a session, join a second client, play through the change. That cost is the single largest brake on this project's iteration speed, and it is why the codebase had no test suite at all until feature #2 landed one (2026-08-02) — a loop with a single smoke test in it; coverage is #3's job.
 
 Reforger 1.7.0 makes that obsolete. The game ships `scripts/Autotest/` — a complete script test framework with stages, async multi-tick steps, timeouts, retries and **native JUnit XML output** — wired into the base game's `game` script module, which Overthrow inherits automatically with no `addon.gproj` change. Separately, the Workbench binary exposes real automation flags (`-gproj`, `-wbmodule`, `-exitAfterInit`, `-wbsilent`, `-plugin`, plus a `-packAddon`/`-publishAddon*` family), and `WorkbenchPlugin` exposes a `RunCommandline()` hook. Together these make unattended compilation, unattended testing, and automated Workshop publishing possible for the first time.
 
@@ -25,7 +25,7 @@ The constituent features of this epic, in build order. This is the epic's equiva
 | # | Feature | Status | Tasks | Description |
 |---|---------|--------|-------|-------------|
 | 1 | workbench-automation | ✅ Complete | 56/56 | Drive Workbench headlessly from WSL; compile check with a real exit code and parsed errors |
-| 2 | autotest-foundation | 📋 Planned | — | Wire `SCR_Autotest` into Overthrow; prove `-autotest` → `junit.xml` end-to-end |
+| 2 | autotest-foundation | ✅ Complete | 22/22 | Wire `SCR_Autotest` into Overthrow; prove `-autotest` → `junit.xml` end-to-end |
 | 3 | test-coverage | 📋 Planned | — | Behaviour-level suites: persistence round-trip, economy/town logic, manager init |
 | 4 | ci-pipeline | 📋 Planned | — | Self-hosted Windows runner, GitHub Actions, JUnit results surfaced on PRs |
 | 5 | release-automation | 📋 Planned | — | Workshop pack & publish via `-packAddon` / `-publishAddon*` |
@@ -70,7 +70,7 @@ The constituent features of this epic, in build order. This is the epic's equiva
   - **The agent drives the toolchain from WSL** via `/mnt/n/...` paths and Windows binary interop. Path translation (WSL ↔ Windows) is a first-class concern owned by feature #1, not solved ad hoc five times.
   - **Docs are updated by the feature that invalidates them** — see below.
 
-- **Documentation policy for this epic:** `CLAUDE.md`, `docs/technical-design.md` §2 and §10, `docs/mission-statement.md` ("Play-testing as the quality gate") and the `workbench-workflow` skill originally asserted that this project has no automated builds, no tests and no debugger. Each of those claims becomes false at a specific point in this epic — feature #1 has already corrected the "no automated builds" claims; the no-tests and no-debugger claims remain true and stay until their invalidating feature lands. **Every feature's Definition of Done includes updating the docs it invalidates** — there is no separate docs feature, and docs are never allowed to describe capability that does not yet exist.
+- **Documentation policy for this epic:** `CLAUDE.md`, `docs/technical-design.md` §2 and §10, `docs/mission-statement.md` ("Play-testing as the quality gate") and the `workbench-workflow` skill originally asserted that this project has no automated builds, no tests and no debugger. Each of those claims becomes false at a specific point in this epic — feature #1 corrected the "no automated builds" claims and feature #2 corrected the "no tests / no test framework" claims (while stating plainly that coverage is a single smoke test until #3); the no-debugger claim remains true and stays. **Every feature's Definition of Done includes updating the docs it invalidates** — there is no separate docs feature, and docs are never allowed to describe capability that does not yet exist.
 
 ---
 
@@ -84,7 +84,7 @@ Cross-feature tech debt and review findings. **Populated and updated by `/review
 
 ## Master Overview Rollup
 
-- **Rollup status:** In Progress (1/5 features complete)
+- **Rollup status:** In Progress (2/5 features complete)
 - **One-line summary for master:** Automated compile, test and release pipeline for Overthrow, built on Reforger 1.7.0's shipped autotest framework and Workbench CLI — replaces the manual play-testing quality gate.
 
 ---
@@ -108,6 +108,8 @@ Everything this epic depends on was verified by reading the Reforger 1.7.0 files
 | No headless rendering | Both binaries: every `Headless` symbol is `PlayOnHeadlessClient` / `SimulateOnHeadless` (MP clients); no `-noRender` |
 
 **Empirically verified by feature #1** (2026-08-01, Reforger 1.7.0.54 / engine 190965, Tools stable branch): the toolchain in this table was executed end-to-end — exit codes, log formats and the compile-error surface are recorded in `workbench-automation/findings.md`, which supersedes this table where they differ. Two corrections: the shipped example suite classes are `#ifdef WORKBENCH`-guarded (and `SCR_TEST_Example1TestSuite.c` actually contains `SCR_TEST_Example1SubjectSuite`), so they are invalid in the retail client — use an `SCR_AutotestGroup` config GUID instead; and the Workbench ignores the optional `-validate [configName]` argument, so the gproj's own `workbench` script configuration always applies.
+
+**Superseded by feature #2** (2026-08-02, same build): the class-name `-autotest` forms **do** work in the retail client — both `-autotest <SuiteClass>` and `-autotest <CaseClass>` were executed successfully against Overthrow's own unguarded test classes, so the `{GUID}` group form is *not* the only option. #1's correction was a property of BI's `#ifdef WORKBENCH`-guarded example classes, not of the CLI. Class names are now the project's primary contract; see `autotest-foundation/findings.md`.
 
 ---
 

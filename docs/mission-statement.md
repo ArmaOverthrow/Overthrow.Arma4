@@ -108,7 +108,9 @@ For most of this project's life the only quality gate was a human: build in the 
 
 Reforger 1.7.0 changed the ground. The game ships a script test framework with JUnit output, and the Workbench exposes command-line automation — so compilation and logic can now be verified without a person in the loop. The project is building that pipeline (see the `dev-ops` epic), on the principle that **automation should cover what is mechanically checkable so human testing is spent on what isn't.** Compile correctness, campaign logic and persistence round-trips are machine work. Feel, balance, and whether an emergent situation is actually fun remain human work, and always will.
 
-The first stage of that pipeline landed 2026-08-01: `tools/compile-check.sh` verifies compilation automatically, so compile correctness is now machine work. Until the autotest features land, the runtime discipline is unchanged: conservative patterns, explicit documentation, and specific reproducible test steps attached to every change — verified by play-testing.
+Two stages have landed. `tools/compile-check.sh` (2026-08-01) made compile correctness machine work. `tools/run-tests.sh` (2026-08-02) made the *test loop* machine work: a command launches the game client, runs an Overthrow test suite, retrieves `junit.xml`, and returns an honest exit code — pass, fail, indeterminate, or timeout — in about fifteen seconds, with no human in the loop.
+
+What that second stage does **not** yet prove is anything about Overthrow itself. Coverage is currently a single smoke test whose only job is to demonstrate the loop works; real behaviour-level assertions — persistence round-trips, economy and town logic, manager initialisation — are the next feature in the epic. So the runtime discipline is unchanged for now: conservative patterns, explicit documentation, and specific reproducible test steps attached to every change — verified by play-testing. The difference is that the machinery to retire that discipline, piece by piece, now exists.
 
 ---
 

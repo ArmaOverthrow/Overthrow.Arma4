@@ -117,8 +117,8 @@ Prefabs/
 
 ### Workbench Limitations
 - Automated compile check available: `tools/compile-check.sh` (see `tools/README.md`)
-- No automated tests yet (dev-ops epic feature #2 is building them)
-- All runtime testing manual
+- Autotests available: `tools/run-tests.sh` (exit 0 pass / 1 fail / 2 indeterminate / 124 timeout), suites under `Scripts/Game/Tests/`
+- Coverage is currently one smoke test — real coverage is dev-ops epic feature #3, so all runtime testing is still manual in practice
 - Be specific about test procedures
 
 ### EnforceScript Constraints

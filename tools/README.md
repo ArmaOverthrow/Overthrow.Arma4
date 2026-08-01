@@ -17,7 +17,8 @@ tools/
 ├── README.md          # this contract
 ├── lib/common.sh      # sourced library — owns the WSL->Windows process boundary
 ├── compile-check.sh   # compile all EnforceScript, honest verdict + parsed errors
-└── launch-game.sh     # game-client launcher with log-dir resolution
+├── launch-game.sh     # game-client launcher with log-dir resolution
+└── run-tests.sh       # run autotests, honest verdict from junit.xml
 ```
 
 There is exactly **one process boundary**: `ovt_run_win` in `lib/common.sh`.
@@ -219,6 +220,135 @@ retail client (the run crashes out with `Invalid -autotest parameter value`).
 
 ---
 
+## `tools/run-tests.sh`
+
+Runs Overthrow's autotests in the real game client and returns an honest
+exit code derived from `junit.xml`. Launches **exclusively** through
+`tools/launch-game.sh` (it names no `.exe`, uses no `taskkill`, and resolves
+no log directory of its own — feature #1's boundary is consumed, never
+reimplemented). Feature #4 orchestrates this command; feature #3 writes the
+suites it runs. Empirical ground truth:
+`docs/features/dev-ops/autotest-foundation/findings.md` (valid for Reforger
+**1.7.0.54** / engine **190965** — re-verify after updates).
+
+```
+tools/run-tests.sh [--timeout <s>] [--keep-artifacts] [--verbose]
+                   [-h|--help] [<target>]
+```
+
+| Flag | Meaning |
+|---|---|
+| `--timeout <s>` | Kill the client after `<s>` seconds (passed through to `launch-game.sh`). Default `$OVERTHROW_TEST_TIMEOUT`, else **300**. Mandatory protection, not advisory — see Framework gaps. |
+| `--keep-artifacts` | Additionally copy the run's remaining logs (`error.log`, `script.log`) into `.tmp/run-tests/` and print the artifact dir + source log dir on stderr. |
+| `--verbose` | Extra diagnostics on stderr (target, log dir, parse counts). |
+| `-h`, `--help` | Help. |
+
+### Accepted `<target>` forms
+
+One optional positional argument — any value the engine's `-autotest`
+parameter accepts (there is deliberately no `--suite`/`--case`/`--group`
+triplet):
+
+| Form | Example |
+|---|---|
+| Suite class (inherits `SCR_AutotestSuiteBase`) | `OVT_TEST_SmokeSuite` *(the default)* |
+| Case class (inherits `SCR_AutotestCaseBase`) — runs that one test inside its owning suite | `OVT_TEST_Smoke_HarnessRuns` |
+| `{GUID}` of an `SCR_AutotestGroup` config | `"{6AB9C8EEE9A651B5}"` |
+
+**There is no "run everything" form.** The engine's default group is empty
+and its suite configuration disables every suite not explicitly named
+(verified: Overthrow suites do not leak into a group run). Running more than
+one suite in a single launch requires an `SCR_AutotestGroup` config
+(`.conf` + `.meta` with a GUID) — needed the moment a second suite exists,
+which makes it **feature #3's problem**; the hand-authoring procedure is
+pre-specified in the autotest-foundation plan (Decision 4).
+
+`tools/run-tests.sh OVT_TEST_MetaSuite` is the standing red-path check: that
+suite always fails by design (proving failures surface) and is never part of
+a default or CI run.
+
+### Exit codes
+
+| Code | Meaning |
+|---|---|
+| **0** | All tests passed — **positively verified, never assumed**. Requires ALL of: (1) `launch-game.sh` completed the run, (2) the Overthrow addon proven loaded (its `addon.gproj` inside a `Loaded addons:` block of this run's `console.log`), (3) `junit.xml` present in **this run's** log dir and parseable, (4) at least one `<testcase>`, (5) zero `<failure>`/`<error>` **elements**. |
+| **1** | At least one test failed: `<failure>`/`<error>` elements present. Failing test names on stdout. |
+| **2** | Tool failure or **indeterminate**: launcher tool failure, missing or unparseable `junit.xml` — which is exactly how an **invalid target** manifests (see Framework gaps) — zero test cases (e.g. an empty group), or addon-not-loaded. Never means "pass", never means "your tests are broken". |
+| **124** | Timed out (propagated unchanged from `launch-game.sh`; client killed by PID, kill verified). No artifacts are collected — the run did not complete. |
+| **130/143** | Interrupted (SIGINT/SIGTERM), propagated; the client is killed (verified) first. |
+
+### stdout format (the only stdout)
+
+Failing test names, one per line, nothing else:
+
+```
+OVT_TEST_Meta_AlwaysFails
+```
+
+On exit 0, 2 and 124 stdout is **empty**. Same split as `compile-check.sh`:
+all diagnostics and the summary go to stderr.
+
+### stderr summary lines (machine-greppable)
+
+```
+run-tests: OK (<N> tests, <D>s)
+run-tests: FAILED (<N> of <M>) in <D>s
+run-tests: INDETERMINATE: <reason> (artifacts: <path>)
+run-tests: TIMEOUT after <s>s (client killed and verified dead; result unknown)
+```
+
+### Artifacts
+
+Collected into `.tmp/run-tests/` under stable names after every completed
+run (including red and indeterminate ones). **Stale artifacts are deleted
+before every launch** — a previous run's `junit.xml` can never satisfy this
+run's verdict.
+
+| Path | Content |
+|---|---|
+| `.tmp/run-tests/junit.xml` | The verdict source (engine-fixed `$logs:/junit.xml`; `-autotest-output-dir` does not apply). Absent when the run produced none — which is itself the exit-2 evidence. |
+| `.tmp/run-tests/autotest.log` | Per-test framework log (UTF-8 status glyphs — expect non-ASCII). |
+| `.tmp/run-tests/autotest_failed.log` | Failing test names, one per line. Exists but **0 bytes** on a green run. |
+| `.tmp/run-tests/console.log` | Full client log for the run. |
+| `.tmp/run-tests/crash.log` | Only present when the client crashed — e.g. an invalid `-autotest` target. |
+
+### junit.xml shape (this build)
+
+A passing `<testcase>` is self-closing; a failing one wraps
+`<failure type="Result">message</failure>` with the `SetResultFailure()`
+string verbatim. **`<testsuite>` carries no `failures=`/`errors=`
+attributes** — any consumer (PR annotations in feature #4 included) must
+count `<failure>`/`<error>` *elements*, never read attributes. Verbatim
+samples: `docs/features/dev-ops/autotest-foundation/findings.md`.
+
+### Framework gaps (documented, not worked around)
+
+- **An invalid `-autotest` target is process-indistinguishable from
+  success**: the client raises a VM exception, writes `crash.log`, self-exits
+  cleanly — client exit 0, launcher rc 0, **no `junit.xml`**. The missing
+  artifact is the only detector; `run-tests.sh` classifies it as exit 2 and
+  quotes the crash reason.
+- **`Setup_AwaitWorld` has no timeout**: a world transition that never
+  completes is an infinite hang inside the harness. The `--timeout`
+  (default 300 s, >13x the worst observed 22 s green run) is the only
+  backstop — mandatory, not advisory.
+- **The harness runs twice per launch** and loads the test world twice
+  (menu → test world → test world again): doubled `CLI autotest ...` /
+  `Requesting scenario change:` console lines and a `junit.xml` `time=`
+  larger than the visible test time are **normal**, not an anomaly.
+- **No run-everything CLI form** — see Accepted target forms above.
+- The default test world boots `OVT_OverthrowGameMode` but the campaign is
+  **not started** (start menu shows); tests needing running-campaign state
+  need explicit setup (feature #3).
+
+### Timings
+
+Green run ~14–22 s, red ~13–15 s, degenerate (no world transition) ~7–8 s —
+each including full client boot and two test-world loads. Determinism:
+same tree ⇒ same exit code and same summary.
+
+---
+
 ## Log-directory resolution rule
 
 How `LOG_DIR` is determined — precise enough to rely on without reading source:
@@ -262,6 +392,7 @@ committed absolute paths. Precedence: environment variable >
 | `OVERTHROW_MYGAMES_DIR` | both | discovered: `<win user profile>/OneDrive/Documents/My Games`, else `<win user profile>/Documents/My Games` |
 | `OVERTHROW_COMPILE_TIMEOUT` | compile-check | `120` (seconds) |
 | `OVERTHROW_GAME_TIMEOUT` | launch-game | `600` (seconds) |
+| `OVERTHROW_TEST_TIMEOUT` | run-tests | `300` (seconds) |
 | `OVT_PID_REGISTRY` | lib (pidfile registry) | `<repo root>/.tmp/ovt-pids` |
 
 **`tools/config.local.sh`** (gitignored): if present at that exact path it is
