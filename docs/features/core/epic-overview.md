@@ -1,7 +1,7 @@
 # Core - Epic Overview
 
 **Epic:** core
-**Status:** ⏸️ Paused (0/1 features complete)
+**Status:** 🟡 3/4 features documented (legacy); persistence paused
 **Last Updated:** 2026-08-02
 
 > **This file is the epic marker.** Its presence in `docs/features/core/` is what tells every Beast Mode command (and future Web App / Discord clients) that this folder is an **epic**, not a plain feature. Keep it present and keep the required sections below filled in. It is the epic's equivalent of the project's `docs/overview.md`, scoped to this epic. The master `docs/overview.md` tracks this epic as a **single row**; the per-feature detail lives **here**.
@@ -20,11 +20,12 @@ The constituent features of this epic, in build order. This is the epic's equiva
 
 | # | Feature | Status | Tasks | Description |
 |---|---------|--------|-------|-------------|
-| 1 | persistence | ⏸️ Paused | 6/67 (9%) | Migration from EPF to Reforger's vanilla persistence system (big-bang, breaking, no save migration). Superseded in priority by the dev-ops epic. ⚠️ Phase 1 "foundation" targeted a nonexistent API and never compiled — must be re-done against the real vanilla API on resume (see its `context.md`). Machine-checkable definition of done exists: `OVT_TEST_PersistenceRoundTripSuite` flipping from exit 1 to exit 0. |
+| 1 | game-mode | 📄 Documented (legacy) | — | `OVT_OverthrowGameMode` lifecycle, manager init order, `OVT_Global` service locator, `OVT_OverthrowController` client→server seam. Headline debt: controller migration stalled — 57 RPCs still on `OVT_PlayerCommsComponent`. |
+| 2 | config | 📄 Documented (legacy) | — | `OVT_OverthrowConfigComponent`, 46 `.conf` files across three loading mechanisms, faction role model, difficulty presets. Headline debt: 7 client-read difficulty fields never replicate. Linked bugs: BUG-009, BUG-011. |
+| 3 | player-manager | 📄 Documented (legacy) | — | Persistent identity (backend UUID / name-derived in SP), `OVT_PlayerData` registry, two-phase registration, JIP snapshot. Headline debt: `IsOffline()` wrong after disconnect; ID maps never pruned. |
+| 4 | persistence | ⏸️ Paused | 6/67 (9%) | Migration from EPF to Reforger's vanilla persistence system (big-bang, breaking, no save migration). Superseded in priority by the dev-ops epic. ⚠️ Phase 1 "foundation" targeted a nonexistent API and never compiled — must be re-done against the real vanilla API on resume (see its `context.md`). Machine-checkable definition of done exists: `OVT_TEST_PersistenceRoundTripSuite` flipping from exit 1 to exit 0. Linked bugs: BUG-002, BUG-006. |
 
-> Reference any feature with the slash form `core/[feature-name]` (e.g. `/continue-feature core/persistence`). Task counts are pulled from each feature's own `tasks.md` and refreshed by `/update-epic`.
->
-> Discovery backfill planned (2026-08-02): `core/game-mode` (game mode, manager lifecycle, `OVT_Global`, `OVT_OverthrowController`), `core/config` (`OVT_OverthrowConfigComponent`, difficulty/faction config), `core/player-manager` (persistent player identity and data). These document existing legacy systems via `/discover-feature`; rows appear as each is discovered.
+> Reference any feature with the slash form `core/[feature-name]` (e.g. `/continue-feature core/persistence`). Task counts are pulled from each feature's own `tasks.md` and refreshed by `/update-epic`. Features #1-#3 are `/discover-feature` retrospectives of legacy code — "Documented" means the docs exist, not that improvement work is planned or complete.
 
 ---
 
@@ -32,9 +33,9 @@ The constituent features of this epic, in build order. This is the epic's equiva
 
 Which features come first, and why. This feeds planning and the next-step suggestions from `/continue-feature core`.
 
-1. **game-mode** *(discovery pending)* — foundational: manager registration/lifecycle and global access underpin everything else in the mod.
-2. **config** *(discovery pending)* — loaded by the game mode at init; other systems read it.
-3. **player-manager** *(discovery pending)* — persistent player identity; consumed by ownership, skills, and persistence.
+1. **game-mode** — foundational: manager registration/lifecycle and global access underpin everything else in the mod.
+2. **config** — loaded by the game mode at init; other systems read it.
+3. **player-manager** — persistent player identity; consumed by ownership, skills, and persistence.
 4. **persistence** — spans all of the above (it serializes their state). Paused; resumes after the dev-ops epic lands, validated by the quarantined round-trip gate.
 
 **Dependencies between features:**
@@ -67,8 +68,8 @@ Cross-feature tech debt and review findings. **Populated and updated by `/review
 
 How this epic is represented in the project's master `docs/overview.md` (one row, not its children). Kept in sync by `/update-epic` and `/update-master`.
 
-- **Rollup status:** ⏸️ Paused (0/1 features complete)
-- **One-line summary for master:** Overthrow's core systems. #1 `persistence` — migration from EPF to vanilla persistence, paused, superseded in priority by the dev-ops epic. ⚠️ Its Phase 1 "foundation" was found (2026-08-01) to target a nonexistent API and never compiled — must be re-done against the real vanilla API on resume (see its context.md). Further core-system features to be backfilled via discovery.
+- **Rollup status:** 🟡 3/4 documented; persistence ⏸️
+- **One-line summary for master:** Overthrow's core systems. `game-mode`, `config`, `player-manager` 📄 documented retrospectively (2026-08-02, `/discover-feature` — legacy code, notable debt recorded in each `implementation.md`). `persistence` — EPF → vanilla migration, paused, superseded by dev-ops. ⚠️ Its Phase 1 "foundation" targeted a nonexistent API and never compiled — must be re-done against the real vanilla API on resume. Gate: `OVT_TEST_PersistenceRoundTripSuite` exit 1 → 0.
 
 ---
 

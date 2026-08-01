@@ -114,7 +114,7 @@ No bash test framework — fixed manual checklist T1–T24 in `implementation.md
 - Headlines: `-wbsilent -validate` = the CI shape (exit 0/255 real, ~3.4s warm, no window); config arg ignored; `-addonsDir` mandatory (comma-separated; packed workshop EPF/EDF — source repos don't compile on 1.7.0.54); **false-pass trap** (unresolvable deps → silently validates base game → exit 0; parser must check `Loaded addons:` for Overthrow); bash `timeout` kills only the interop stub (need taskkill by PID); client exit code always 0; client needs cwd = game dir; `-autotest "{6AB9C8EEE9A651B5}"` wrote junit.xml (first autotest ever on this machine)
 - **Tree at HEAD didn't compile on 1.7.0.54** (vanilla-persistence WIP). User approved minimal fixes via Discord:
   1. `OVT_Component.c` — illegal generic method → new `OVT_ComponentFinder<Class T>` class (EPF-style)
-  2. `_OVT_*Template.c` reference files (placeholder types, can never compile) → moved to `docs/features/vanilla-persistence/templates/`
+  2. `_OVT_*Template.c` reference files (placeholder types, can never compile) → moved to `docs/features/core/persistence/templates/`
   3. `OVT_PersistenceManagerComponent.c` — fictional APIs (`TriggerSave`, `PersistenceCollection.GetOrCreate`, `DB_BASE_DIR`) stubbed with `TODO(vanilla-persistence)`; real vanilla event hooks kept live; `OnGameEnd` is now a plain method (no such ScriptComponent engine event) that must be called explicitly
 - Canonical validate now **exit 0** — first green automated compile check on Overthrow
 - ⚠️ For vanilla-persistence resume: draft was written against a nonexistent API; real API is per-entity `PersistenceSystem.Save()` + config-driven collections; `HasSaveGame()` stub returns false

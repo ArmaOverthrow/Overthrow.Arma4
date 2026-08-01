@@ -261,7 +261,7 @@ tools/run-tests.sh [target]
 
 **Acceptance Criteria:**
 - [ ] No file in the repo still claims Overthrow has no automated tests or no test framework.
-- [ ] No file overstates the position either — every updated doc says coverage is a single smoke test today.
+- [ ] No file overstates the position either — every updated doc says coverage is a single smoke test today. *(Superseded 2026-08-02 by `dev-ops/test-coverage` D8: coverage is now 32 cases across six suites; the current honest-position criterion lives there.)*
 - [ ] The `workbench-workflow` skill contains a test-authoring section a new agent can write a suite from without reading the base game.
 - [ ] Claims about the **debugger** are untouched.
 
@@ -382,7 +382,7 @@ All criteria must pass. Written to be verifiable by an evaluator with no impleme
 - [ ] **D4. `docs/technical-design.md` §3** — `Scripts/Game/Tests/` appears in the structure with a responsibility line.
 - [ ] **D5. `docs/mission-statement.md`** — "Automating the quality gate" reflects that the autotest stage has landed and what it does not yet prove.
 - [ ] **D6. `workbench-workflow` skill** — constraints updated and a test-authoring section added (layout, naming, attributes, stages, timeouts, assertions, how to run one suite or one case).
-- [ ] **D7.** No document overstates the capability: every one of them says coverage is currently a single smoke test.
+- [ ] **D7.** No document overstates the capability: every one of them says coverage is currently a single smoke test. *(Superseded 2026-08-02 by `dev-ops/test-coverage` D8 — the "single smoke test" claim was true at this feature's completion and is now historical.)*
 - [ ] **D8.** Claims about the **debugger** are untouched.
 
 ### Verification Method

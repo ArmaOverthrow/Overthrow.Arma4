@@ -4,7 +4,7 @@
 
 **A companion to the [Mission Statement](mission-statement.md) — this document guides all technical decisions for the project, from architecture to data formats.**
 
-Overthrow is a community-developed, MIT-licensed mod for Arma Reforger with a small distributed contributor base and a live player population on the Workshop. That shapes everything below: there is no CI and no debugger, and the automated test suite is one smoke test deep, so correctness still has to come from conservative patterns and disciplined review rather than from tooling. It is production software — servers run it for months — but validation of actual behaviour still happens inside the Arma Reforger Workbench by hand. (Compile verification and the autotest loop are automated — `tools/compile-check.sh` and `tools/run-tests.sh`, delivered by the `dev-ops` epic, §12 — and that epic is building the rest of the pipeline.)
+Overthrow is a community-developed, MIT-licensed mod for Arma Reforger with a small distributed contributor base and a live player population on the Workshop. That shapes everything below: there is no CI and no debugger, and the automated test suite covers a spine (30 assertions in the default targets) rather than the surface, so correctness still has to come from conservative patterns and disciplined review rather than from tooling. It is production software — servers run it for months — but validation of anything multiplayer, UI-facing or save/reload-dependent still happens inside the Arma Reforger Workbench by hand. (Compile verification and the autotest loop are automated — `tools/compile-check.sh` and `tools/run-tests.sh`, delivered by the `dev-ops` epic, §12 — and that epic is building the rest of the pipeline.)
 
 ---
 
@@ -80,7 +80,7 @@ These are not preferences. They are hard properties of the environment, and most
 > ⚠️ **This section is being actively invalidated.** Reforger 1.7.0 ships a script test framework with JUnit output, and the Workbench has CLI automation flags — neither was usable when this project's workflow was established. The `dev-ops` epic (§12) is building on both. Each entry below is struck through by the feature that makes it false; do not treat this list as permanent.
 
 - ~~**No automated builds.** Compilation happens when a human presses Build in Workbench. Claude and CI can never verify that a change compiles.~~ *(Invalidated 2026-08-01 by `dev-ops/workbench-automation`: `tools/compile-check.sh` compiles all of Overthrow's EnforceScript headlessly from WSL and returns a verified exit code plus `file:line: message` errors — see `tools/README.md`.)*
-- ~~**No unit or integration tests.** Correctness is established by play-testing, hosted and joined.~~ *(Invalidated 2026-08-02 by `dev-ops/autotest-foundation`: Reforger's shipped `SCR_Autotest` framework is wired in, suites live in `Scripts/Game/Tests/`, and `tools/run-tests.sh` runs them in the real client for an honest exit code from `junit.xml` — see `tools/README.md`. **Coverage is minimal** — a single smoke test that proves the harness runs and asserts nothing about Overthrow — pending `dev-ops/test-coverage` (#3). Play-testing remains the gate for everything uncovered, which is currently everything.)*
+- ~~**No unit or integration tests.** Correctness is established by play-testing, hosted and joined.~~ *(Invalidated 2026-08-02 by `dev-ops/autotest-foundation`: Reforger's shipped `SCR_Autotest` framework is wired in, suites live in `Scripts/Game/Tests/`, and `tools/run-tests.sh` runs them in the real client for an honest exit code from `junit.xml` — see `tools/README.md`. Extended 2026-08-02 by `dev-ops/test-coverage` (#3): **30 assertions across four tiers** reachable as one command (§10). **Coverage is a spine, not the surface** — JIP/multiplayer, UI, performance and the save/reload round-trip are still uncovered, and play-testing remains the gate for all of them.)*
 - **No debugger.** `Print()` is the debugging tool. Debug output is read out of the Workbench console.
 - **No exceptions, no stack unwinding.** Null checks and defensive returns instead.
 - **No ternary operator.** Always full `if`/`else` — this is a compile error, not a style rule.
@@ -88,7 +88,7 @@ These are not preferences. They are hard properties of the environment, and most
 ### What Follows From That
 
 - **Changes must be reviewable by reading.** A pattern that's easy to get subtly wrong is a bad pattern here, even if it's terser.
-- **Every change ships with test steps.** "Host a game, join with a second client, do X, restart the server, verify Y" — because that's the only verification that exists.
+- **Every change ships with test steps.** "Host a game, join with a second client, do X, restart the server, verify Y" — because for join-in-progress, UI and save/reload that is still the only verification that exists (§10).
 - **Failure modes must be loud.** Silent null propagation costs a full Workbench round-trip to diagnose. Print on the unexpected path.
 
 ### What We Avoid
@@ -153,7 +153,7 @@ Overthrow.Arma4/
 
 **`Scripts/Game/Tests/`** — the entire autotest integration: `TestFramework/` holds the glue (the `modded class SCR_AutotestHelper` that picks the test world and keeps Overthrow loaded across the scenario transition, plus `OVT_TEST_SuiteBase`), and `TestSuites/<Area>/` holds the suites and their cases. **Deliberate deviation:** that `modded class` would by convention live in `Modded/`, but it is kept here so the whole test integration is one self-contained, deletable directory rather than two files that only make sense together sitting in different trees. Run with `tools/run-tests.sh` (see §10).
 
-**`Scripts/Game/Persistence/Serializers/`** — the vanilla-persistence target structure (`Components/`, `Entities/`, `States/`), being populated by the in-flight migration.
+**`Scripts/Game/Persistence/Serializers/`** — the core/persistence target structure (`Components/`, `Entities/`, `States/`), being populated by the in-flight migration.
 
 **`Configs/`** — no code. See §8.
 
@@ -296,7 +296,9 @@ Roughly 59 script files currently reference `EPF_`.
 
 Reforger now ships first-party persistence, and Overthrow is migrating to it wholesale. The goals are native C++ save/load performance, far less custom serialization boilerplate, console support without platform carve-outs, and the `WhenAvailable` pattern for async entity references. `Scripts/Game/Persistence/Serializers/` (`Components/`, `Entities/`, `States/`) is the target structure.
 
-**This is an explicit breaking change**: existing saves will not be migrated, and it is being done big-bang rather than dual-running both systems. Full scope, file-by-file, in `docs/features/vanilla-persistence/`.
+**This is an explicit breaking change**: existing saves will not be migrated, and it is being done big-bang rather than dual-running both systems. Full scope, file-by-file, in `docs/features/core/persistence/`.
+
+**The migration has a machine-checkable acceptance gate.** `OVT_TEST_PersistenceRoundTripSuite` (§10, tier D') mutates state through Overthrow's public manager API, saves, reloads and reads it back — no EPF type, no vanilla persistence type and no `SaveData` class appears in any assertion, so the suite survives the migration unchanged and cannot report it as a regression by construction. Run it as `.scripts/reset_save.sh --profile OverthrowCI` then `tools/run-tests.sh OVT_TEST_PersistenceRoundTripSuite`: it exits **1** today with `Persistence capability absent: SaveGame() produced no save…`, and **exit 0 is the migration's definition of done**. It is quarantined out of every group target until then. Note the branch state that makes this necessary: on `vanilla-persistence` there is currently **no working save path in either system** — `OVT_PersistenceManagerComponent.SaveGame()` is a stub and re-parenting its component class away from EPF means EPF never initialises either.
 
 ### What Persists
 
@@ -339,14 +341,27 @@ UI is entirely client-side and hangs off the player, never the game mode.
 
 ## 10. Testing Strategy
 
-### The test suite is real but tiny
+### The test suite covers a spine, not the surface
 
-Reforger 1.7.0 ships a script test framework with JUnit output, and `dev-ops/autotest-foundation` wired it into Overthrow (2026-08-02). What exists today is the **loop**, not the coverage: exactly one smoke test, which proves the harness runs and asserts nothing about Overthrow. Behaviour-level suites are `dev-ops/test-coverage` (#3), still planned. Until they exist, play-testing is the only verification of anything the mod actually does.
+Reforger 1.7.0 ships a script test framework with JUnit output; `dev-ops/autotest-foundation` wired it into Overthrow and `dev-ops/test-coverage` put assertions in it (both 2026-08-02). What exists today is **32 cases across the six non-quarantined suites** — of which the 30 in the four tier suites are reachable as one command — plus a seventh suite (9 cases, 41 in the tree in total) that is quarantined and red by design. Suites are organised by setup cost rather than by subject, because the world transition and the campaign start are per-*suite* costs; coverage grows by adding a case file to an existing tier:
+
+| Tier | Suite | Cases | Covers |
+|---|---|---|---|
+| A | `OVT_TEST_LogicSuite` | 14 | Pure maths, world-free (~8 s): town record maths and modifier recalculation, job conditions, skill effects, player levelling. |
+| B | `OVT_TEST_InitSuite` | 4 | World loaded, campaign **not** started: the `OVT_Global` manager sweep, towns populated, town/base controllers registered, economy price/demand seams. |
+| C | `OVT_TEST_CampaignSuite` | 4 | Campaign started in Setup: start flags and difficulty preset, town activation, shop stocking, tax/donation income. |
+| D | `OVT_TEST_PersistenceSuite` | 8 | Same-session state round-trips through Overthrow's public manager API: money, skills/XP, real-estate ownership, recruits, town control/support/population/stability. |
+| D' | `OVT_TEST_PersistenceRoundTripSuite` | 9 *(not in the 32)* | Save + reload. **Quarantined and red by design** — it is the `core/persistence` acceptance gate (§7), and is in no group. |
+| — | `OVT_TEST_SmokeSuite` / `OVT_TEST_MetaSuite` | 1 / 1 | The harness's own green and always-red proofs, inherited from #2. Neither asserts anything about Overthrow. |
+
+Every case has a recorded proof that it can be made to fail, and `maxAttempts` appears nowhere in the tree — a test that cannot go red is treated as a defect. Method and verbatim failure text: `docs/features/dev-ops/test-coverage/findings.md`, which also carries the eleven pre-existing gameplay bugs the work uncovered (logged, deliberately not fixed).
+
+**Still entirely manual:** join-in-progress and everything else multiplayer (it needs two coordinated processes), UI, performance, AI movement (navmesh does not load in the test world), the save/reload round-trip (gated — see §7), and `modded class` overrides broken by a Reforger update. Play-testing is the only verification of any of those.
 
 ### What we do instead
 
 1. **Automated compile check first** — the assistant runs `tools/compile-check.sh` after code changes: exit 0 is a positively-verified clean compile, exit 1 prints errors as `file:line: message` (see `tools/README.md`). The Workbench GUI (Build → Compile and Reload Scripts) remains the interactive alternative for the user.
-2. **Automated tests second** — `tools/run-tests.sh [<target>]` launches the real game client with `-autotest`, runs the named suite in `Worlds/MP/OVT_Campaign_Test.ent`, and derives an honest verdict from `junit.xml`: 0 = passed, 1 = test failures, 2 = indeterminate (missing artifact, bad target), 124 = timeout. ~15 s per run; artifacts in `.tmp/run-tests/`. Suites live under `Scripts/Game/Tests/TestSuites/<Area>/`, inherit `OVT_TEST_SuiteBase`, and are named `OVT_TEST_<Area>Suite` / `OVT_TEST_<Area>_<Subject>_<ExpectedBehaviour>`. There is no "run everything" form — one target per launch until a group config exists. Contract: `tools/README.md`; authoring patterns: the `workbench-workflow` skill.
+2. **Automated tests second** — `tools/run-tests.sh [<target>]` launches the real game client with `-autotest`, runs the named target in `Worlds/MP/OVT_Campaign_Test.ent`, and derives an honest verdict from `junit.xml`: 0 = passed, 1 = test failures, 2 = indeterminate (missing artifact, bad target), 124 = timeout. Artifacts in `.tmp/run-tests/`. Two stable group targets cover the tiers in one launch — **Fast** `"{6A6E29FF47ECB840}"` (Logic + Init, 18 cases, ~16 s) for every change, **All** `"{6A6E2A002F53A581}"` (+ Campaign + Persistence, 30 cases, ~19 s) before a merge; a bare class name still runs one suite or one case for debugging. Suites live under `Scripts/Game/Tests/TestSuites/<Tier>/`, inherit `OVT_TEST_SuiteBase`, and are named `OVT_TEST_<Tier>Suite` / `OVT_TEST_<Tier>_<Subject>_<ExpectedBehaviour>`. Campaign- and persistence-tier suites need a fresh save DB first (`.scripts/reset_save.sh --profile OverthrowCI` — never without the profile). Contract: `tools/README.md`; authoring patterns: the `workbench-workflow` skill.
 3. **Test in the fast world** — `Worlds/MP/OVT_Campaign_Test.ent` loads far faster than the full Eden map. Use it for everything except map-specific work.
 4. **Test hosted, then joined** — a change that works in a hosted session but not for a joining client is the default failure mode. Both paths, every time.
 5. **Test the restart** — anything touching persistence is only verified after a save, a shutdown and a reload.
@@ -354,11 +369,17 @@ Reforger 1.7.0 ships a script test framework with JUnit output, and `dev-ops/aut
 
 ### Every change ships with test steps
 
-Because verification of behaviour is still manual, a change is not complete until someone has written down exactly what to do to check it: which world, hosted or joined, what actions, what to observe, whether a restart is needed. Vague test instructions produce untested code.
+Because verification of behaviour is still manual for everything the suites do not cover — which is every dimension below except one — a change is not complete until someone has written down exactly what to do to check it: which world, hosted or joined, what actions, what to observe, whether a restart is needed. Vague test instructions produce untested code.
 
 ### The three dimensions that break
 
-Almost every regression in this project is one of: **join-in-progress state**, **persistence round-trip**, or a **vanilla `modded class` override** broken by a Reforger update. Weight testing accordingly.
+Almost every regression in this project is one of: **join-in-progress state**, **persistence round-trip**, or a **vanilla `modded class` override** broken by a Reforger update. Only one of the three is even partly automated:
+
+- **Join-in-progress / multiplayer — entirely manual.** Two coordinated client processes are needed and the autotest harness runs one. This is the most common regression class and it has no machine check at all: host, join with a second client, and check what the joining player sees.
+- **Persistence round-trip — half automated.** `OVT_TEST_PersistenceSuite` proves state written through a manager's public mutator reads back through its public accessor within a session, which catches "setting town control doesn't stick". The save/reload half is written but **gated** behind the migration (§7), so a restart still has to be tested by hand.
+- **`modded class` overrides — entirely manual.** A base-game signature change usually fails at compile time (`tools/compile-check.sh` catches that), but an override that still compiles and no longer *does* anything is invisible to both gates. Play-test it.
+
+Weight testing accordingly: the suites are a floor, not a substitute.
 
 ---
 
@@ -384,9 +405,9 @@ Almost every regression in this project is one of: **join-in-progress state**, *
 
 **Active priority: the `dev-ops` epic** — building an automated compile/test/release pipeline on Reforger 1.7.0's shipped `SCR_Autotest` framework and Workbench CLI automation. Five features in build order: `workbench-automation` → `autotest-foundation` → `test-coverage` → `ci-pipeline` → `release-automation`. See `docs/features/dev-ops/epic-overview.md`.
 
-This epic supersedes the persistence migration in priority. The reasoning: the migration is a big-bang, breaking rewrite of every persisted system, and there is currently no way to verify it beyond manual restart testing. Building the test harness first turns that migration from unverifiable into gated — `test-coverage` writes behaviour-level persistence tests that pass against EPF today and become the migration's acceptance criteria.
+This epic supersedes the persistence migration in priority. The reasoning: the migration is a big-bang, breaking rewrite of every persisted system, and there is currently no way to verify it beyond manual restart testing. Building the test harness first turned that migration from unverifiable into gated. `test-coverage` (complete, 2026-08-02) wrote the behaviour-level persistence tests; because this branch has no working save path in *either* system, the same-session suite ships green and the save/reload suite ships quarantined and red, with its flip to exit 0 as the migration's acceptance criterion (§7).
 
-**Paused: `vanilla-persistence`** — migrating the persistence layer from EPF to Reforger's native system. Big-bang, breaking, no save migration. Not abandoned; resumes once the test harness can validate it. See `docs/features/vanilla-persistence/`.
+**Paused: `core/persistence`** — migrating the persistence layer from EPF to Reforger's native system. Big-bang, breaking, no save migration. Not abandoned; resumes once the test harness can validate it. See `docs/features/core/persistence/`.
 
 **Branch policy:** `main` is under a **bugfix-only code freeze** until the persistence migration lands. All feature work — including this epic — happens on the `vanilla-persistence` branch.
 

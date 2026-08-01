@@ -307,7 +307,7 @@ Plus an optional, gitignored `tools/config.local.sh` sourced if present, for per
 > 6. **Game client exit code is ALWAYS 0** (even on fatal errors) — task 4.7 amended: report `EXIT_CODE` but document it as meaningless; outcomes come from logs/artifacts. **Client requires cwd = game install dir** (finds `core` via `./addons`) — task 4.2 amended.
 > 7. **`-autotest` works** (first autotest ever run on this machine): `{GUID}` group form produced `junit.xml`; `SCR_TEST_Example1TestSuite` is `#ifdef WORKBENCH`-guarded and invalid in retail — task 4.8 uses `-autotest "{6AB9C8EEE9A651B5}"` (shipped empty group) as the smoke test.
 > 8. **Timings:** warm ~3.4s; one-off first-ever project scan ~56s. Default `OVERTHROW_COMPILE_TIMEOUT`: 120s.
-> 9. **Tree fixed to compile (user-approved scope addition):** `OVT_Component.c` generic method → `OVT_ComponentFinder<Class T>` class; `_OVT_*Template.c` reference files moved to `docs/features/vanilla-persistence/templates/`; `OVT_PersistenceManagerComponent.c` fictional API calls (TriggerSave/GetOrCreate/DB_BASE_DIR) stubbed with `TODO(vanilla-persistence)`. Canonical command now returns **exit 0** on the clean tree.
+> 9. **Tree fixed to compile (user-approved scope addition):** `OVT_Component.c` generic method → `OVT_ComponentFinder<Class T>` class; `_OVT_*Template.c` reference files moved to `docs/features/core/persistence/templates/`; `OVT_PersistenceManagerComponent.c` fictional API calls (TriggerSave/GetOrCreate/DB_BASE_DIR) stubbed with `TODO(vanilla-persistence)`. Canonical command now returns **exit 0** on the clean tree.
 
 ---
 

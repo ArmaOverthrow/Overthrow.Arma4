@@ -1,7 +1,7 @@
 # Dev-Ops — Epic Requirements
 
 **Created:** 2026-08-01
-**Phase:** Active — supersedes `vanilla-persistence` in priority
+**Phase:** Active — supersedes `core/persistence` in priority
 
 > Epic-level requirements — the higher-level scope for the whole epic, mirroring a feature's `requirements.md` but one level up. `/plan-epic dev-ops` reads this file (if it exists) to drive epic scoping; otherwise it uses the prompt. Each **child feature** below gets its own `requirements.md` (in the standard Overview / Requirements / Dependencies / Out of Scope shape) that `/plan-feature dev-ops/<feature-name>` consumes.
 
@@ -40,11 +40,11 @@ The features that make up this epic, in intended **build order**. `/plan-epic` c
 - **WSL ↔ Windows interop** available on the dev machine (confirmed working: `binfmt_misc/WSLInterop`, project reachable at `/mnt/n/Projects/Arma 4/Overthrow.Arma4`).
 - **The Reforger reference tree** at `/mnt/n/Projects/Arma 4/ArmaReforger`, kept current by `update-arma-scripts.ps1` — this is the source of truth for the framework's API surface.
 - **Workshop publishing credentials** for feature #5 only.
-- No dependency on `vanilla-persistence` completing. That feature is paused; this epic proceeds independently and will validate it when it resumes.
+- No dependency on `core/persistence` completing. That feature is paused; this epic proceeds independently and will validate it when it resumes.
 
 ## Out of Scope
 
-- **Migrating `vanilla-persistence` itself.** This epic tests persistence behaviour; it does not perform or complete the EPF → vanilla migration.
+- **Migrating `core/persistence` itself.** This epic tests persistence behaviour; it does not perform or complete the EPF → vanilla migration.
 - **Multiplayer / join-in-progress test automation.** JIP is the project's most common regression class but needs two coordinated processes. Out of scope here; `SCR_AutotestHelper.WORLD_MPTEST` (`worlds/MP/MpTest/MpTest.ent`) is noted as a starting point for a future epic.
 - **Performance, FPS and screenshot autotests.** The `AutotestGrid` / `Screenshot_Autotest` entities and `-autotest-output-dir` exist but target a different problem.
 - **Replacing manual play-testing.** Automation covers compile correctness, logic and persistence round-trips. Feel, balance and emergent behaviour still require a human, and this epic does not pretend otherwise.

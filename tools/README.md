@@ -253,15 +253,65 @@ triplet):
 |---|---|
 | Suite class (inherits `SCR_AutotestSuiteBase`) | `OVT_TEST_SmokeSuite` *(the default)* |
 | Case class (inherits `SCR_AutotestCaseBase`) — runs that one test inside its owning suite | `OVT_TEST_Smoke_HarnessRuns` |
-| `{GUID}` of an `SCR_AutotestGroup` config | `"{6AB9C8EEE9A651B5}"` |
+| `{GUID}` of an `SCR_AutotestGroup` config | `"{6A6E29FF47ECB840}"` — see Group targets |
 
 **There is no "run everything" form.** The engine's default group is empty
 and its suite configuration disables every suite not explicitly named
 (verified: Overthrow suites do not leak into a group run). Running more than
 one suite in a single launch requires an `SCR_AutotestGroup` config
-(`.conf` + `.meta` with a GUID) — needed the moment a second suite exists,
-which makes it **feature #3's problem**; the hand-authoring procedure is
-pre-specified in the autotest-foundation plan (Decision 4).
+(`.conf` + `.meta` with a GUID). Overthrow ships two — below.
+
+### Group targets (the fast/slow contract)
+
+Two hand-authored `SCR_AutotestGroup` configs in `Configs/Tests/`. **These two
+GUIDs are the stable contract**: quote them verbatim in CI and never read the
+`.conf` files. The braces are part of the argument — always quote it, so no
+shell ever gets a chance to interpret them.
+
+| Target | GUID | Config | Suites (execution order is alphabetical, not config order) | Cases | Typical |
+|---|---|---|---|---|---|
+| **Fast** | `"{6A6E29FF47ECB840}"` | `Configs/Tests/OVT_TestGroup_Fast.conf` | `OVT_TEST_InitSuite`, `OVT_TEST_LogicSuite` | **18** | exit 0, **13–16 s** |
+| **All** | `"{6A6E2A002F53A581}"` | `Configs/Tests/OVT_TestGroup_All.conf` | `OVT_TEST_CampaignSuite`, `OVT_TEST_InitSuite`, `OVT_TEST_LogicSuite`, `OVT_TEST_PersistenceSuite` | **30** | exit 0, **16–19 s** |
+
+```bash
+tools/run-tests.sh "{6A6E29FF47ECB840}"   # Fast — 18 cases
+tools/run-tests.sh "{6A6E2A002F53A581}"   # All  — 30 cases
+```
+
+Deliberately in **neither** group: `OVT_TEST_MetaSuite` (always red by design)
+and `OVT_TEST_PersistenceRoundTripSuite` (quarantined acceptance gate — see
+below). Verified, not assumed: in an All run the harness listing shows
+`OVT_TEST_MetaSuite: 0` and `OVT_TEST_PersistenceRoundTripSuite: 0`, and
+neither contributes a `<testcase>` to `junit.xml`. `OVT_TEST_SmokeSuite` is
+also excluded — it asserts nothing the tier suites do not.
+
+**Recommended CI usage:**
+
+```bash
+# reset the save DB first — never without --profile, see the warning below
+.scripts/reset_save.sh --profile OverthrowCI
+
+tools/run-tests.sh "{6A6E29FF47ECB840}"   # every push
+tools/run-tests.sh "{6A6E2A002F53A581}"   # nightly / pre-merge / release
+```
+
+The split buys scope, not wall time: All is only ~3 s slower than Fast, but
+Fast cannot be reddened by campaign or persistence state. Neither group needs
+`OVERTHROW_TEST_TIMEOUT` — both finish inside 20 s against a 300 s default.
+
+**What a green All run does not prove.** It is one client process, so
+join-in-progress and everything else multiplayer is untested — that is the most
+common regression class in this project. Nor does it cover UI, performance, AI
+movement (the navmesh does not load in the test world), or the save/reload
+round-trip, which is written but gated (below). Treat exit 0 as a floor, not a
+release decision.
+
+**Adding a suite to a group:** append an entry to the `.conf`'s `m_aSuites`
+with a fresh 16-uppercase-hex instance GUID, and make sure the suite class
+carries `[BaseContainerProps()]`. Without that attribute the group loads but
+instantiates nothing — `Unknown class '<Suite>'`, an empty `<testsuites>`, and
+`run-tests.sh` exit 2. Cost of one extra suite: ~+1.5 s and one world
+transition (a world-free suite adds no transition).
 
 `tools/run-tests.sh OVT_TEST_MetaSuite` is the standing red-path check: that
 suite always fails by design (proving failures surface) and is never part of
@@ -346,6 +396,149 @@ samples: `docs/features/dev-ops/autotest-foundation/findings.md`.
 Green run ~14–22 s, red ~13–15 s, degenerate (no world transition) ~7–8 s —
 each including full client boot and two test-world loads. Determinism:
 same tree ⇒ same exit code and same summary.
+
+### Persistence acceptance gate (`core/persistence`)
+
+`OVT_TEST_PersistenceRoundTripSuite` is **quarantined and red on purpose**. It
+is in no group config, is never part of a default or CI run, and **its exit
+code is the `core/persistence` migration's acceptance criterion**: the
+branch has no working save path in either persistence system, so a save +
+reload round-trip cannot pass yet.
+
+```bash
+# 1. establish the save-state precondition (REQUIRED — see below)
+.scripts/reset_save.sh --profile OverthrowCI          # fresh campaign
+# …or, for a known saved state once fixtures exist:
+.scripts/activate_save.sh <name> --profile OverthrowCI
+
+# 2. run the gate
+tools/run-tests.sh OVT_TEST_PersistenceRoundTripSuite
+```
+
+| Exit | Meaning |
+|---|---|
+| **1** | Expected **today**. `.tmp/run-tests/junit.xml` carries `Persistence capability absent: SaveGame() produced no save (HasSaveGame() still false). The vanilla-persistence migration is not complete.` on every case. |
+| **0** | **The migration is complete.** Delete the quarantine header, add the suite to the All group, and update `docs/features/core/persistence/`. |
+
+The reset is not optional decoration: the suite's first case asserts that no
+save exists *before* it saves and one exists *after*, which is what makes a
+save layer that merely claims to have saved detectable. Running the gate
+against a stale save reports a precondition violation rather than a pass.
+
+**Never run the `.scripts/` save tools without `--profile OverthrowCI` (or an
+explicit `OVERTHROW_SAVE_DIR`)** — their default target is the user's real
+Workbench campaign save. `reset_save.sh` prints the path it resolved before it
+deletes anything and refuses anything that is not an absolute path ending in
+`.db/Overthrow`. Full documentation of all three: [Save-state
+control](#save-state-control-scripts).
+
+The green companion suite, `OVT_TEST_PersistenceSuite`, covers the same state
+kinds within a single session (write through a public manager mutator, read
+back through a public manager accessor) and exits **0** today.
+
+---
+
+## Save-state control (`.scripts/`)
+
+Three save-state tools live in **`.scripts/`**, not `tools/` — they predate this
+epic, the user runs them by hand, and relocating them would break existing
+habits for no functional gain. Feature #3 added non-interactive argument forms
+so automation can call them; **every interactive path is unchanged**. This
+section is their canonical documentation.
+
+Save state is a **precondition of a run**, established before launch. The save
+DB is read during world init, long before a test step executes, so no test case
+can arrange it from inside EnforceScript.
+
+```
+.scripts/reset_save.sh    [--profile <name>] [-h|--help]
+.scripts/backup_save.sh   [--profile <name>] [<name>] [-h|--help]
+.scripts/activate_save.sh [--profile <name>] [<name-or-file>] [-h|--help]
+```
+
+| Script | Does | With an argument (automation) | Without one (interactive) |
+|---|---|---|---|
+| `reset_save.sh` | Deletes the save DB — next boot starts a fresh campaign | always non-interactive | same |
+| `backup_save.sh` | Archives the save DB into `.saves/<name>_<timestamp>.tar.gz` | `<name>` skips the suggestion line and the prompt; same sanitisation as a typed name | prompts for the name, as before |
+| `activate_save.sh` | Resets, then extracts a `.saves/` archive over the save DB | `<name-or-file>` selects: an exact path, else an exact filename in `.saves/`, else the **newest** `*<arg>*.tar.gz` by mtime | numbered menu, as before |
+
+### Which directory they act on
+
+Precedence: **`OVERTHROW_SAVE_DIR` > `--profile <name>` > built-in default.**
+
+| Source | Resolves to |
+|---|---|
+| `OVERTHROW_SAVE_DIR` | used verbatim; wins over `--profile`, and the script says so |
+| `--profile <name>` | `<My Games>/<name>/profile/.db/Overthrow`, via `tools/lib/common.sh`'s `ovt_profile_dir` — note the `profile/` level between the profile root and `.db` |
+| neither | `<My Games>/ArmaReforgerWorkbench/profile/.db/Overthrow` — **the user's real Workbench campaign save** |
+
+> ⚠️ **The default is the trap.** Tests run under the game client's
+> `OverthrowCI` profile; the scripts default to the **Workbench** profile; the
+> two are different directories. **Every automated invocation must pass
+> `--profile OverthrowCI` or set `OVERTHROW_SAVE_DIR`.** A forgotten profile
+> flag points an `rm -rf` at hours of the user's play.
+
+A **set-but-empty** `OVERTHROW_SAVE_DIR` is an error, not a fallback — `VAR=
+.scripts/reset_save.sh` used to silently fall through to the Workbench default.
+
+### The destructive-path guard
+
+`reset_save.sh` is an `rm -rf`, so it:
+
+- prints `Resolved save directory: <path>` on **every** run, before touching
+  anything;
+- **refuses** — exit 1, nothing deleted — a path that is empty, is `/`, is
+  relative, or does not end in `.db/Overthrow`;
+- treats a missing directory as "nothing to delete" (exit 0), not an error.
+
+`activate_save.sh` resets through the same guard before extracting.
+
+### Exit codes
+
+| Code | Meaning |
+|---|---|
+| **0** | Succeeded — including `reset_save.sh` finding nothing to delete, and `activate_save.sh` cancelled at the menu. |
+| **1** | Usage error, refused path, missing save directory, invalid or unmatched archive name, or a failed extract/delete. An unmatched name prints the available archives and resets nothing. |
+| **2** | `--profile` could not be resolved (propagated from `tools/lib/common.sh`). |
+
+No failure path exits 0, and nothing succeeds silently.
+
+### `.saves/` layout and naming
+
+`.saves/` (repo root, gitignored) is the **user's** fixture library, not this
+epic's — six `testworld_*` archives today. Anything an automated run creates
+there must be deleted afterwards.
+
+```
+.saves/<world>_<situation>_<MP|SP>_<YYYYmmdd>_<HHMMSS>.tar.gz
+.saves/testworld_baserecruit_SP_20250708_054422.tar.gz
+```
+
+`backup_save.sh` appends `_<timestamp>` itself — pass only the
+`<world>_<situation>_<MP|SP>` part.
+
+### Use in automation
+
+```bash
+# fresh campaign, before a campaign/persistence-tier run or the acceptance gate
+.scripts/reset_save.sh --profile OverthrowCI
+
+# known state from a local fixture (needs a working load path — see below)
+.scripts/activate_save.sh --profile OverthrowCI testworld_baserecruit_SP
+```
+
+For the tier suites this is belt-and-braces today: nothing writes a save on this
+branch (`HasSaveGame()` is hardcoded `false`), and the verdicts were verified
+identical with and without the reset. It is **load-bearing for the acceptance
+gate**, whose first case asserts that no save exists before it saves and one
+exists after.
+
+**Migration note:** all three scripts are written against **EPF's**
+`.db/Overthrow` layout. Vanilla persistence stores saves elsewhere and its
+`SaveGameManager` exposes no path to script, so the replacement location can
+only be established empirically once the migration lands — at which point the
+guard's suffix and the three `DEFAULT_SAVE_DIR` values must be updated together.
+Recorded as migration work in `docs/features/core/persistence/context.md`.
 
 ---
 

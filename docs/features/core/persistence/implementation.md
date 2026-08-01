@@ -1,6 +1,6 @@
 # Vanilla Persistence Migration - Implementation Plan
 
-**Feature Name:** vanilla-persistence
+**Feature Name:** persistence (epic: core)
 **Status:** In Progress
 **Priority:** High - Start ASAP
 **Started:** 2025-11-09
@@ -1684,8 +1684,8 @@ protected static void OnEntityAvailable(/* ... */, bool expired, /* ... */)
 ### Testing Philosophy
 
 **Manual Play-Testing Focus:**
-- Arma Reforger Workbench has no automated testing
-- All testing is manual via play-testing
+- ~~Arma Reforger Workbench has no automated testing~~ *(false since 2026-08-02: `tools/run-tests.sh` runs behaviour-level persistence suites in the real client, and `OVT_TEST_PersistenceRoundTripSuite` is this migration's acceptance gate — see `context.md`)*
+- Everything the suites do not cover — JIP, the in-game save flow, multi-session play — is still manual play-testing
 - Focus on realistic gameplay scenarios
 - Test incremental (per phase) and comprehensive (end-to-end)
 
@@ -2196,7 +2196,7 @@ High-level milestones for tracking progress:
 - `Scripts/Game/Persistence/Serializers/States/_OVT_StateSerializerTemplate.c`
 
 **Documentation (1):**
-- `docs/features/vanilla-persistence/BREAKING_CHANGE.md`
+- `docs/features/core/persistence/BREAKING_CHANGE.md`
 
 ---
 

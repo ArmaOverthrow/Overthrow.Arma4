@@ -2,7 +2,7 @@
 
 **Epic:** dev-ops
 **Status:** 🟡 In Progress
-**Last Updated:** 2026-08-02
+**Last Updated:** 2026-08-02 04:50
 
 > **This file is the epic marker.** Its presence in `docs/features/dev-ops/` is what tells every Beast Mode command (and future Web App / Discord clients) that this folder is an **epic**, not a plain feature. Keep it present and keep the required sections below filled in. It is the epic's equivalent of the project's `docs/overview.md`, scoped to this epic. The master `docs/overview.md` tracks this epic as a **single row**; the per-feature detail lives **here**.
 
@@ -10,7 +10,7 @@
 
 ## Purpose
 
-This epic replaces Overthrow's manual, human-in-the-loop quality gate with an automated one, using first-party tooling that shipped in Arma Reforger and was not previously available. Until now every change — however small — cost a human round-trip: open Workbench, press Build, read the console, host a session, join a second client, play through the change. That cost is the single largest brake on this project's iteration speed, and it is why the codebase had no test suite at all until feature #2 landed one (2026-08-02) — a loop with a single smoke test in it; coverage is #3's job.
+This epic replaces Overthrow's manual, human-in-the-loop quality gate with an automated one, using first-party tooling that shipped in Arma Reforger and was not previously available. Until now every change — however small — cost a human round-trip: open Workbench, press Build, read the console, host a session, join a second client, play through the change. That cost is the single largest brake on this project's iteration speed, and it is why the codebase had no test suite at all until feature #2 landed the loop and feature #3 filled it (both 2026-08-02) — 30 assertions over campaign logic, manager initialisation and same-session persistence, in one command. JIP/multiplayer, UI and the save/reload round-trip still cost that human round-trip.
 
 Reforger 1.7.0 makes that obsolete. The game ships `scripts/Autotest/` — a complete script test framework with stages, async multi-tick steps, timeouts, retries and **native JUnit XML output** — wired into the base game's `game` script module, which Overthrow inherits automatically with no `addon.gproj` change. Separately, the Workbench binary exposes real automation flags (`-gproj`, `-wbmodule`, `-exitAfterInit`, `-wbsilent`, `-plugin`, plus a `-packAddon`/`-publishAddon*` family), and `WorkbenchPlugin` exposes a `RunCommandline()` hook. Together these make unattended compilation, unattended testing, and automated Workshop publishing possible for the first time.
 
@@ -26,11 +26,13 @@ The constituent features of this epic, in build order. This is the epic's equiva
 |---|---------|--------|-------|-------------|
 | 1 | workbench-automation | ✅ Complete | 56/56 | Drive Workbench headlessly from WSL; compile check with a real exit code and parsed errors |
 | 2 | autotest-foundation | ✅ Complete | 22/22 | Wire `SCR_Autotest` into Overthrow; prove `-autotest` → `junit.xml` end-to-end |
-| 3 | test-coverage | 📋 Planned | — | Behaviour-level suites: persistence round-trip, economy/town logic, manager init |
+| 3 | test-coverage | ✅ Complete | 61/62 (1 optional) | Behaviour-level suites in four tiers (30 assertions) + two group targets + the quarantined `core/persistence` acceptance gate |
 | 4 | ci-pipeline | 📋 Planned | — | Self-hosted Windows runner, GitHub Actions, JUnit results surfaced on PRs |
 | 5 | release-automation | 📋 Planned | — | Workshop pack & publish via `-packAddon` / `-publishAddon*` |
 
 > Reference any feature with the slash form `dev-ops/<feature-name>` (e.g. `/continue-feature dev-ops/workbench-automation`). Task counts are pulled from each feature's own `tasks.md` and refreshed by `/update-epic`.
+>
+> Feature #3's one open task is **4.10**, an optional `main`-worktree validation of the round-trip suite against EPF. It requires explicit user approval, is off the critical path, and everything it would have validated is already covered by the quarantined gate — deliberately deferred, not forgotten.
 
 ---
 
@@ -62,7 +64,9 @@ The constituent features of this epic, in build order. This is the epic's equiva
 
 - **With the rest of the project:** This epic touches almost no gameplay code. Its one intrusion into `Scripts/Game/` is a new test tree (suites and cases) plus an `OVT_AutotestHelper` modding of `SCR_AutotestHelper`. Test classes must **not** be wrapped in `#ifdef WORKBENCH` — the shipped BI example is, but the framework runs in the retail client and guarding them would make them Workbench-only.
 
-- **Relationship to `vanilla-persistence`:** That feature is paused, not abandoned, and this epic supersedes it in priority. The two are deliberately coupled through feature #3: persistence tests are written at the **behaviour** level (does town control survive a save/reload?) with no EPF or vanilla API in the assertions. They therefore survive the migration and become its acceptance gate — reframing `vanilla-persistence` from "paused work" into "the first thing the new CI validates."
+- **Relationship to `core/persistence`:** That feature is paused, not abandoned, and this epic supersedes it in priority. The two are deliberately coupled through feature #3: persistence tests are written at the **behaviour** level (does town control survive a save/reload?) with no EPF or vanilla API in the assertions. They therefore survive the migration and become its acceptance gate — reframing `core/persistence` from "paused work" into "the first thing the new CI validates."
+
+  **That gate now exists** (2026-08-02, feature #3). `.scripts/reset_save.sh --profile OverthrowCI` then `tools/run-tests.sh OVT_TEST_PersistenceRoundTripSuite`: exit **1** today with `Persistence capability absent…`, exit **0** means the migration is complete. It is quarantined out of both group targets so it can never redden a normal run, and its green companion `OVT_TEST_PersistenceSuite` (8 same-session round-trips) ships in the All group today. The coupling turned out sharper than planned: feature #3 measured that this branch has **no working save path in *either* system** — `SaveGame()` is a stub *and* re-parenting the manager's component class away from EPF means EPF never initialises — so "persistence tests that pass against EPF today" was not satisfiable, and the honest artefact is a red gate rather than a green test that never saved anything. Recorded in `docs/features/core/persistence/context.md`, along with the note that the `.scripts/` save tools assume EPF's `.db/Overthrow` layout and must be repointed when storage moves.
 
 - **Key architectural decisions spanning the epic:**
   - **Windows-host CI is a hard constraint**, not a preference. Plan for a self-hosted runner from the start; do not design around GitHub-hosted runners.
@@ -70,7 +74,7 @@ The constituent features of this epic, in build order. This is the epic's equiva
   - **The agent drives the toolchain from WSL** via `/mnt/n/...` paths and Windows binary interop. Path translation (WSL ↔ Windows) is a first-class concern owned by feature #1, not solved ad hoc five times.
   - **Docs are updated by the feature that invalidates them** — see below.
 
-- **Documentation policy for this epic:** `CLAUDE.md`, `docs/technical-design.md` §2 and §10, `docs/mission-statement.md` ("Play-testing as the quality gate") and the `workbench-workflow` skill originally asserted that this project has no automated builds, no tests and no debugger. Each of those claims becomes false at a specific point in this epic — feature #1 corrected the "no automated builds" claims and feature #2 corrected the "no tests / no test framework" claims (while stating plainly that coverage is a single smoke test until #3); the no-debugger claim remains true and stays. **Every feature's Definition of Done includes updating the docs it invalidates** — there is no separate docs feature, and docs are never allowed to describe capability that does not yet exist.
+- **Documentation policy for this epic:** `CLAUDE.md`, `docs/technical-design.md` §2 and §10, `docs/mission-statement.md` ("Play-testing as the quality gate") and the `workbench-workflow` skill originally asserted that this project has no automated builds, no tests and no debugger. Each of those claims becomes false at a specific point in this epic — feature #1 corrected the "no automated builds" claims, feature #2 corrected the "no tests / no test framework" claims (while stating plainly that coverage was a single smoke test until #3), and feature #3 replaced that interim claim with the real coverage position — naming, in every document it touched, what is still uncovered (JIP/multiplayer, UI, performance, save/reload) so nothing overstates the position in the other direction; the no-debugger claim remains true and stays. **Every feature's Definition of Done includes updating the docs it invalidates** — there is no separate docs feature, and docs are never allowed to describe capability that does not yet exist.
 
 ---
 
@@ -84,7 +88,7 @@ Cross-feature tech debt and review findings. **Populated and updated by `/review
 
 ## Master Overview Rollup
 
-- **Rollup status:** In Progress (2/5 features complete)
+- **Rollup status:** In Progress (3/5 features complete)
 - **One-line summary for master:** Automated compile, test and release pipeline for Overthrow, built on Reforger 1.7.0's shipped autotest framework and Workbench CLI — replaces the manual play-testing quality gate.
 
 ---

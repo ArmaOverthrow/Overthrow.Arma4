@@ -1,6 +1,6 @@
 # Vanilla Persistence Migration - Requirements
 
-**Feature Name:** vanilla-persistence
+**Feature Name:** persistence (epic: core)
 **Status:** Requirements Gathering
 **Priority:** High - Start ASAP
 **Last Updated:** 2025-11-09
@@ -541,7 +541,7 @@ Scripts/Game/
 1. **No Ternary Operators** - EnforceScript limitation
 2. **Strong Refs Required** - Use `ref` keyword for Managed classes in arrays/maps
 3. **Automated compile check** - `tools/compile-check.sh` (landed 2026-08-01 via dev-ops epic; originally: user compiles in Workbench)
-4. **No Unit Tests** - Manual play-testing only
+4. **Behaviour-level persistence tests** - `tools/run-tests.sh` (landed 2026-08-02 via dev-ops epic; originally: no unit tests, manual play-testing only). `OVT_TEST_PersistenceSuite` covers same-session state round-trips through the public manager API; `OVT_TEST_PersistenceRoundTripSuite` is this migration's acceptance gate — see `context.md`. Everything else (JIP, UI, the in-game save flow) is still manual play-testing
 5. **Server Authority** - Only server persists, clients receive state via replication
 
 ### Project Constraints
@@ -712,7 +712,7 @@ Scripts/Game/
 
 ## Appendix B: Reference Documents
 
-1. **Research Document:** `docs/features/vanilla-persistence/research.md`
+1. **Research Document:** `docs/features/core/persistence/research.md`
    - Comprehensive vanilla system documentation
    - Code examples and patterns
    - Migration comparison table

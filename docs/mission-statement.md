@@ -96,7 +96,7 @@ Overthrow is written in EnforceScript against the Enfusion engine and follows it
 
 ### Native persistence, moving off third-party frameworks
 
-Persistence has been built on the Enfusion Persistence Framework (EPF). With Reforger shipping a first-party persistence system, the project is migrating to it — for native performance, less custom serialization, and console support without the `#ifdef PLATFORM_CONSOLE` carve-outs EPF requires. See `docs/features/vanilla-persistence/`.
+Persistence has been built on the Enfusion Persistence Framework (EPF). With Reforger shipping a first-party persistence system, the project is migrating to it — for native performance, less custom serialization, and console support without the `#ifdef PLATFORM_CONSOLE` carve-outs EPF requires. See `docs/features/core/persistence/`.
 
 ### Replication discipline
 
@@ -108,9 +108,11 @@ For most of this project's life the only quality gate was a human: build in the 
 
 Reforger 1.7.0 changed the ground. The game ships a script test framework with JUnit output, and the Workbench exposes command-line automation — so compilation and logic can now be verified without a person in the loop. The project is building that pipeline (see the `dev-ops` epic), on the principle that **automation should cover what is mechanically checkable so human testing is spent on what isn't.** Compile correctness, campaign logic and persistence round-trips are machine work. Feel, balance, and whether an emergent situation is actually fun remain human work, and always will.
 
-Two stages have landed. `tools/compile-check.sh` (2026-08-01) made compile correctness machine work. `tools/run-tests.sh` (2026-08-02) made the *test loop* machine work: a command launches the game client, runs an Overthrow test suite, retrieves `junit.xml`, and returns an honest exit code — pass, fail, indeterminate, or timeout — in about fifteen seconds, with no human in the loop.
+Three stages have landed. `tools/compile-check.sh` (2026-08-01) made compile correctness machine work. `tools/run-tests.sh` (2026-08-02) made the *test loop* machine work: a command launches the game client, runs an Overthrow test suite, retrieves `junit.xml`, and returns an honest exit code — pass, fail, indeterminate, or timeout — with no human in the loop. Then coverage went into that loop.
 
-What that second stage does **not** yet prove is anything about Overthrow itself. Coverage is currently a single smoke test whose only job is to demonstrate the loop works; real behaviour-level assertions — persistence round-trips, economy and town logic, manager initialisation — are the next feature in the epic. So the runtime discipline is unchanged for now: conservative patterns, explicit documentation, and specific reproducible test steps attached to every change — verified by play-testing. The difference is that the machinery to retire that discipline, piece by piece, now exists.
+What the machine now proves about Overthrow itself is real but bounded: **30 assertions in a single ~19-second command** — town and modifier maths, job conditions, skill effects and player levelling; that every manager resolves and towns, controllers and shop prices come up correctly; that a started campaign activates its towns, stocks its shops and computes tax and donation income from the state it is given; and that state written through a manager's public API — money, skills, real-estate ownership, recruits, town control and stability — reads back correctly within a session. Every one of those assertions has been made to fail on purpose once, because a test that cannot go red proves nothing.
+
+What it still does **not** prove is the harder half. Join-in-progress and everything multiplayer needs two coordinated processes and remains entirely manual, which matters because that is where most regressions actually live. UI, performance and AI behaviour are untested. And the save/reload round-trip — the thing this project cares most about — is written but *gated*: it is quarantined and red on purpose until the persistence migration makes it pass, which is exactly the point of writing it. So the runtime discipline holds where the machine cannot reach: conservative patterns, explicit documentation, and specific reproducible test steps attached to every change. The difference is that the list of things needing a human is now written down, and getting shorter.
 
 ---
 

@@ -456,7 +456,7 @@ TESTING PROCEDURE:
 ### Workbench Workflow
 - Verify compilation yourself: run `tools/compile-check.sh` (exit 0 clean / 1 errors as `file:line: message` on stdout; see `tools/README.md`)
 - Autotests available: `tools/run-tests.sh` (exit 0 pass / 1 fail / 2 indeterminate / 124 timeout); suites live in `Scripts/Game/Tests/` — see the `workbench-workflow` skill for authoring
-- Coverage is currently one smoke test (real coverage is dev-ops epic feature #3), so still provide specific manual test procedures
+- Coverage is a spine, not the surface: 30 assertions over pure logic, manager init, started-campaign state and same-session persistence. **JIP/multiplayer, UI, performance and save/reload are uncovered**, so still provide specific manual test procedures for those
 - User reports runtime errors and play-test results; compile errors are yours to catch
 
 ## Quality Checklist

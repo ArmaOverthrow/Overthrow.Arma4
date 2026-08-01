@@ -23,8 +23,21 @@
 - 📋 Create OVT_EconomyManagerComponentSerializer
 - 📋 Validate OVT_Component pattern in 2-3 files
 
+**This feature now has a machine-checkable definition of done** (delivered 2026-08-02 by `dev-ops/test-coverage` — see the session note below):
+
+```bash
+.scripts/reset_save.sh --profile OverthrowCI        # REQUIRED precondition — never without --profile
+tools/run-tests.sh OVT_TEST_PersistenceRoundTripSuite
+```
+
+- **Exit 1 today** (9 of 9 cases), with the diagnostic `Persistence capability absent: SaveGame() produced no save (HasSaveGame() still false). The vanilla-persistence migration is not complete.`
+- **Exit 0 = this migration is complete.** That is the acceptance criterion; nothing else needs to be agreed.
+- The suite asserts only through Overthrow's **public manager API** (money, skills/XP, real-estate ownership, recruits, town control/support/population/stability) — no EPF type, no vanilla persistence type, no `SaveData` class appears in any assertion, so it survives the migration unchanged and cannot report it as a regression by construction.
+- On green: delete the quarantine header, add the suite to the All group config, and update `tools/README.md` + this file.
+
 **Blockers:**
 - ⚠️ **Phase 1 work never compiled, and was written against an API that does not exist in Reforger 1.7.0.54** — see the 2026-08-01 session note below. The foundation must be re-done against the real vanilla persistence API before Phase 2 serializers can proceed.
+- ⚠️ **This branch currently has NO working save path in *either* system** — measured, not inferred (2026-08-02 note below). Nothing saves, so nothing can be verified by restart testing either.
 
 ---
 
@@ -38,7 +51,7 @@
 - `Scripts/Game/GameMode/Managers/OVT_PersistenceManagerComponent.c` - Main persistence manager
 
 ### Related Files
-- `docs/features/vanilla-persistence/prd.md` - Product requirements
+- `docs/features/core/persistence/prd.md` - Product requirements
 - `dev/active/vanilla-persistence/plan.md` - Implementation plan
 
 ---
@@ -148,6 +161,22 @@ PersistenceIdManager.WhenAvailable(uuid, this, "OnEntityAvailable");
 
 ## Session Notes
 
+### 2026-08-02 — Acceptance gate + branch findings from dev-ops/test-coverage (feature still paused; recorded for resume)
+
+`dev-ops/test-coverage` wrote this migration's acceptance gate and, in doing so, measured two things about the branch that this feature needs on resume.
+
+**1. The gate itself** — `Scripts/Game/Tests/TestSuites/Persistence/OVT_TEST_PersistenceRoundTripSuite.c`, 9 cases, quarantined (in **no** group config, never part of a default or CI run), red on purpose. Command, precondition and exit-code criterion are in Quick Status above; the full contract is `tools/README.md` → "Persistence acceptance gate". Its companion `OVT_TEST_PersistenceSuite` covers the same eight state kinds **within a single session** and is green today, so a regression in "writing state through the manager sticks" is already caught independently of saving.
+
+Two anti-vacuous-pass closures are load-bearing and must not be weakened when the gate is being made green: the capability case asserts the whole **transition** (no save before → a save after — which is why the `reset_save.sh` precondition is mandatory), and every state-kind case **dirties** the value between saving and reloading, so a reload that restores nothing cannot pass. The second does not consult `HasSaveGame()` at all, so it survives a save layer that merely claims to have saved. Renaming the suite breaks the documented gate.
+
+**2. There is no working save path on this branch, in either system.** Verified by execution, not by reading:
+
+- `SaveGame()` and `AutoSave()` return **completely silently** — `m_PersistenceSystem` is null, so even the `TODO(vanilla-persistence)` warning is guarded away. `HasSaveGame()` is hardcoded `false`, `WipeSave()` is a no-op, and a `SaveGame()` call writes **zero bytes** anywhere under the profile directory.
+- EPF is not a fallback: re-parenting `OVT_PersistenceManagerComponentClass` from `EPF_PersistenceManagerComponentClass` to `ScriptComponentClass` means `EPF_PersistenceManagerComponent.OnPostInit()` never runs, so EPF never reaches its SETUP state — no DB connection, no autosave tick, no world-load restore. The `SaveData` classes and 59 prefabs' `EPF_PersistenceComponent`s survive, driving nothing.
+- Consequence worth fixing early: **a player pressing Save today is told it worked.** `OVT_MainMenuContext` shows `#OVT-Saved` unconditionally (`OVT_MainMenuContext.c:262-271`) and nothing anywhere logs that it did not save. Logged as the highest-severity item in `docs/features/dev-ops/test-coverage/findings.md` → "Bugs found (log only)"; deliberately not fixed there.
+
+**3. The `.scripts/` save tools assume EPF's layout and will need updating when storage moves.** All three (`reset_save.sh`, `backup_save.sh`, `activate_save.sh`) are written against `<My Games>/<profile>/profile/.db/Overthrow` — EPF's `EDF_FileDbDriverBase` shape, with no named slots. Vanilla's `SaveGameManager` *does* offer slots (`RequestSavePoint`/`GetSaves`/`Load`/`Delete`) and is referenced nowhere in Overthrow, but it **exposes no path to script** (engine-sealed) and `$saves:` is not script-writable — so the replacement location can only be established **empirically**, by inspecting the profile directory after a run that actually saves. When it is known, three `DEFAULT_SAVE_DIR` values and `reset_save.sh`'s path guard (which refuses anything not ending in `.db/Overthrow`) must be updated together, plus the `.saves/` archive shape if the on-disk layout changes. Contract to keep in sync: `tools/README.md` → "Save-state control".
+
 ### 2026-08-01 — Compile-reality check from dev-ops/workbench-automation (feature paused; recorded for resume)
 
 The new automated compile check (`dev-ops/workbench-automation`) revealed that this feature's Phase 1 "foundation" **never compiled** on Reforger 1.7.0.54 (engine 190965) and was written against an API that does not exist in the retail build. Minimal user-approved fixes were applied so the project compiles again; the substantive rework belongs to this feature when it resumes:
@@ -163,7 +192,7 @@ The new automated compile check (`dev-ops/workbench-automation`) revealed that t
 **Changes applied on 2026-08-01 (minimal, to make the tree compile — review on resume):**
 1. `Scripts/Game/Components/OVT_Component.c` — the illegal `OVT_Component.Find<T>()` generic method was replaced by a standalone generic class `OVT_ComponentFinder<Class T>` with `static T Find(IEntity entity)`. Call sites change from `OVT_Component.Find<X>(e)` to `OVT_ComponentFinder<X>.Find(e)`.
 2. `Scripts/Game/GameMode/Managers/OVT_PersistenceManagerComponent.c` — all fictional API calls stubbed with `TODO(vanilla-persistence)` markers + warning Prints. The real event hooks (`GetOnStateChanged`/`GetOnBeforeSave`/`GetOnAfterSave`) are kept live. `OnGameEnd()` is now a plain method (no `override event`) that nothing calls yet. **`HasSaveGame()` currently always returns `false`** and `WipeSave()` is a no-op — the save/continue UI flow will reflect that until reimplemented.
-3. The three `_OVT_*Template.c` serializer reference files were **moved out of the compiled tree** (they reference placeholder types like `OVT_MyEntityComponent` and can never compile) to `docs/features/vanilla-persistence/templates/`. Their example calls were updated to the `OVT_ComponentFinder<T>.Find()` pattern.
+3. The three `_OVT_*Template.c` serializer reference files were **moved out of the compiled tree** (they reference placeholder types like `OVT_MyEntityComponent` and can never compile) to `docs/features/core/persistence/templates/`. Their example calls were updated to the `OVT_ComponentFinder<T>.Find()` pattern.
 
 **Good news for this feature:** the dev-ops epic delivered a working compile check (`-wbsilent -validate`, exit 0/255) and proved the autotest loop end-to-end (`-autotest "{GUID}"` → `junit.xml`). When this feature resumes, every API assumption can be compile-verified in ~4 seconds, and dev-ops/test-coverage will provide behaviour-level persistence round-trip tests as the acceptance gate.
 

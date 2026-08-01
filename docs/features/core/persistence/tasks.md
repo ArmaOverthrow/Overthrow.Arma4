@@ -408,7 +408,7 @@
 
 - [ ] **Update architecture docs**
   - Description: Update persistence section in architecture docs
-  - File(s): docs/features/vanilla-persistence/
+  - File(s): docs/features/core/persistence/
   - Estimate: 🟢 30 min
 
 - [ ] **Create troubleshooting guide**
