@@ -59,12 +59,13 @@ Cross-feature tech debt and review findings. **Populated and updated by `/review
 
 Seeded from `/discover-feature` findings (2026-08-02); `/review-epic` will refresh and extend.
 
-- [ ] 💳 **Client-authoritative money paths** — shops (sell), real-estate (all asks) — Shop *sell* and every real-estate mutation trust client-supplied amounts/IDs with money debited client-side; a modified client can mint money or claim any building. The shop *buy* path (`RpcAsk_Buy` recomputes price + checks funds server-side) is the correct pattern to align both with.
-- [ ] 💳 **Shop restocking has never worked** — market, shops — `ReplenishStock` compares `stock < Round(stock*0.5)` (never true) and iterates all shops once per town with the wrong town's max stock; town shop stock only ever decreases after the initial roll.
-- [ ] 💳 **JIP warehouse desync** — real-estate — `RplSave`/`RplLoad` warehouse inventory loops use mismatched bounds (`OVT_RealEstateManagerComponent.c:762-767, 799-805`); any server with ≠1 warehouse corrupts the joining client's stream.
+- [ ] 💳 **Client-authoritative money paths** (**BUG-020**, **BUG-021**) — shops (sell), real-estate (all asks) — Shop *sell* and every real-estate mutation trust client-supplied amounts/IDs with money debited client-side; a modified client can mint money or claim any building. The shop *buy* path (`RpcAsk_Buy` recomputes price + checks funds server-side) is the correct pattern to align both with.
+- [ ] 💳 **Shop restocking has never worked** (**BUG-019**) — market, shops — `ReplenishStock` compares `stock < Round(stock*0.5)` (never true) and iterates all shops once per town with the wrong town's max stock; town shop stock only ever decreases after the initial roll.
+- [ ] 💳 **JIP warehouse desync** (**BUG-022**) — real-estate — `RplSave`/`RplLoad` warehouse inventory loops use mismatched bounds (`OVT_RealEstateManagerComponent.c:762-767, 799-805`); any server with ≠1 warehouse corrupts the joining client's stream.
 - [ ] 💳 **`"SCR_DestructibleBuildingEntity"` literal class-name filter** — shops, real-estate — appears in ~7 places across both features; a vanilla rename silently unregisters every shop and disables real estate with no warning.
 - [ ] 💳 **Unstable int resource IDs on the wire** — market, shops — IDs are array indices built independently per machine with no client/server checksum; also blocks shop-stock persistence without a resource-name-keyed format.
-- [ ] 💳 **`UpdateRents` early-return** — market, real-estate — first resistance-owned/rented property aborts the whole nightly rent pass (`OVT_EconomyManagerComponent.c:243-256`).
+- [ ] 💳 **`UpdateRents` early-return** (**BUG-023**) — market, real-estate — first resistance-owned/rented property aborts the whole nightly rent pass (`OVT_EconomyManagerComponent.c:243-256`).
+- [ ] 💳 **Shop pagination arithmetic** (**BUG-024**) — shops — integer division hides catalogue remainders and can index the inventory map at -15.
 
 ---
 
