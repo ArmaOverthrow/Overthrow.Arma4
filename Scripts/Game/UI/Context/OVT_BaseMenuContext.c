@@ -97,7 +97,7 @@ class OVT_BaseMenuContext : OVT_UIContext
 			return;
 		}
 		
-		m_Economy.TakeLocalPlayerMoney(cost);
+		// The server charges for the garrison after validating - see OVT_ResistanceFactionManager.ChargeForGarrison
 		OVT_Global.GetServer().AddGarrison(m_Base, uiinfo.resource);
 	}
 	

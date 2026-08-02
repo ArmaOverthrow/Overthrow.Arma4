@@ -1,8 +1,8 @@
 # Core - Epic Overview
 
 **Epic:** core
-**Status:** 🟢 3/4 documented (legacy); persistence BUILT — acceptance gate discharged, awaiting play-test
-**Last Updated:** 2026-08-02 (overnight autorun)
+**Status:** 🟢 3/5 documented (legacy); persistence BUILT — awaiting play-test; controller-migration 📋 planned
+**Last Updated:** 2026-08-03
 
 > **This file is the epic marker.** Its presence in `docs/features/core/` is what tells every Beast Mode command (and future Web App / Discord clients) that this folder is an **epic**, not a plain feature. Keep it present and keep the required sections below filled in. It is the epic's equivalent of the project's `docs/overview.md`, scoped to this epic. The master `docs/overview.md` tracks this epic as a **single row**; the per-feature detail lives **here**.
 
@@ -24,6 +24,7 @@ The constituent features of this epic, in build order. This is the epic's equiva
 | 2 | config | 📄 Documented (legacy) | — | `OVT_OverthrowConfigComponent`, 46 `.conf` files across three loading mechanisms, faction role model, difficulty presets. Headline debt: 7 client-read difficulty fields never replicate. Linked bugs: BUG-009, BUG-011, BUG-013, BUG-014. |
 | 3 | player-manager | 📄 Documented (legacy) | — | Persistent identity (backend UUID / name-derived in SP), `OVT_PlayerData` registry, two-phase registration, JIP snapshot. Headline debt: `IsOffline()` wrong after disconnect; ID maps never pruned. Linked bugs: BUG-015, BUG-016. |
 | 4 | persistence | 🟢 Built — awaiting play-test | 41/42 (98%) | EPF → vanilla persistence migration, **built and gate-verified 2026-08-02** (overnight autorun: plan v2 vs real 1.7.0.54 API, then Phases 1-6). `OVT_TEST_PersistenceRoundTripSuite` flipped exit 1 → 0 and is de-quarantined into the All group (41/41 green). Zero EPF/EDF references repo-wide. Remaining: user play-test (`playtest-checklist.md`, 20 items). Linked bugs BUG-002/BUG-006 resolved-pending-play-test. |
+| 5 | controller-migration | 📋 Planned | — | Migrate the 60-RPC `OVT_PlayerCommsComponent` monolith (1,776 L, 62 call sites) onto domain components on `OVT_OverthrowController` — the engine-intended per-player client→server seam, pattern proven by `OVT_ContainerTransferComponent`. Server-side validation rides with each migrated RPC, retiring the client-trust bug class (BUG-025 family) instead of porting it. |
 
 > Reference any feature with the slash form `core/[feature-name]` (e.g. `/continue-feature core/persistence`). Task counts are pulled from each feature's own `tasks.md` and refreshed by `/update-epic`. Features #1-#3 are `/discover-feature` retrospectives of legacy code — "Documented" means the docs exist, not that improvement work is planned or complete.
 
@@ -37,11 +38,13 @@ Which features come first, and why. This feeds planning and the next-step sugges
 2. **config** — loaded by the game mode at init; other systems read it.
 3. **player-manager** — persistent player identity; consumed by ownership, skills, and persistence.
 4. **persistence** — spans all of the above (it serializes their state). Built 2026-08-02; validated by the (now de-quarantined) round-trip gate; awaiting play-test.
+5. **controller-migration** — the first *forward-work* feature on the legacy core: replaces `OVT_PlayerCommsComponent` with domain components on `OVT_OverthrowController`. Scheduled after 1.4.x settles (the monolith is being hot-patched on `1.4.0-bugfixes`); controller lifecycle hardening first, then domain-by-domain migration with validation, deleting the monolith at the end.
 
 **Dependencies between features:**
 - game-mode → config, player-manager, persistence (manager lifecycle hosts all of them)
 - persistence → everything (serializes the state the other core systems own)
-- External: dev-ops epic supersedes `core/persistence` in priority and supplies its acceptance gate (`dev-ops/test-coverage`).
+- game-mode + player-manager → controller-migration (controller spawn/ownership/registration is their code; debt items BUG-012/BUG-017 intersect)
+- External: dev-ops epic supersedes `core/persistence` in priority and supplies its acceptance gate (`dev-ops/test-coverage`). controller-migration waits for the 1.4.x patch cycle to settle (shared file churn with `1.4.0-bugfixes`) and is independent of the virtualization epic (parallel-safe).
 
 ---
 
@@ -68,8 +71,8 @@ Cross-feature tech debt and review findings. **Populated and updated by `/review
 
 How this epic is represented in the project's master `docs/overview.md` (one row, not its children). Kept in sync by `/update-epic` and `/update-master`.
 
-- **Rollup status:** 🟢 3/4 documented; persistence built (41/42, awaiting play-test)
-- **One-line summary for master:** Overthrow's core systems. `game-mode`, `config`, `player-manager` 📄 documented retrospectively. `persistence` — EPF → vanilla migration **built and gate-verified 2026-08-02**: acceptance gate flipped exit 1 → 0 and joined the All group (41/41 green), EPF/EDF fully removed, breaking save change. Awaiting the 20-item manual play-test (`playtest-checklist.md`).
+- **Rollup status:** 🟢 3/5 documented; persistence built (41/42, awaiting play-test); controller-migration planned
+- **One-line summary for master:** Overthrow's core systems. `game-mode`, `config`, `player-manager` 📄 documented retrospectively. `persistence` — EPF → vanilla migration **built and gate-verified 2026-08-02**: acceptance gate flipped exit 1 → 0 and joined the All group (41/41 green), EPF/EDF fully removed, breaking save change; awaiting the 20-item manual play-test. `controller-migration` 📋 planned 2026-08-03: retire the 60-RPC `OVT_PlayerCommsComponent` monolith onto `OVT_OverthrowController` domain components, with server-side validation riding each migrated RPC.
 
 ---
 

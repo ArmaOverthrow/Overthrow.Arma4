@@ -973,48 +973,80 @@ class OVT_PlayerCommsComponent: OVT_Component
 		OVT_Global.GetResistanceFaction().BuildItem(buildableIndex, prefabIndex, pos, angles, playerId);
 	}
 	
+	//OFFICERS
+	//------------------------------------------------------------------------------------------------
+	//! Promotes a player to officer. The promoting player is resolved server-side and must be an
+	//! officer themselves; the promotion is applied and broadcast by the server so every client and
+	//! the promotee's persisted record learn about it.
+	void AddOfficer(int playerId)
+	{
+		Rpc(RpcAsk_AddOfficer, playerId, SCR_PlayerController.GetLocalPlayerId());
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_AddOfficer(int playerId, int promoterId)
+	{
+		promoterId = ResolveSenderPlayerId(promoterId);
+
+		OVT_ResistanceFactionManager resistance = OVT_Global.GetResistanceFaction();
+		if(!resistance.IsOfficer(promoterId)) return;
+		if(resistance.IsOfficer(playerId)) return;
+
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		if(!OVT_Global.GetPlayers().GetPlayer(persId)) return;
+
+		resistance.AddOfficer(playerId);
+	}
+
 	//BASES
 	void AddGarrison(OVT_BaseData base, ResourceName res)
 	{
 		OVT_Faction faction = OVT_Global.GetConfig().GetPlayerFaction();
 		int index = faction.m_aGroupPrefabSlots.Find(res);
 		if(index == -1) return;
-		Rpc(RpcAsk_AddGarrison, base.id, index);		
+		Rpc(RpcAsk_AddGarrison, base.id, index, SCR_PlayerController.GetLocalPlayerId());
 	}
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_AddGarrison(int baseId, int prefabIndex)
+	protected void RpcAsk_AddGarrison(int baseId, int prefabIndex, int playerId)
 	{
-		OVT_Global.GetResistanceFaction().AddGarrison(baseId, prefabIndex);
+		playerId = ResolveSenderPlayerId(playerId);
+		OVT_Global.GetResistanceFaction().AddGarrison(baseId, prefabIndex, true, playerId);
 	}
-	
+
 	void AddGarrisonCamp(OVT_CampData base, ResourceName res)
 	{
 		OVT_Faction faction = OVT_Global.GetConfig().GetPlayerFaction();
 		int index = faction.m_aGroupPrefabSlots.Find(res);
 		if(index == -1) return;
-		Rpc(RpcAsk_AddGarrisonCamp, base.location, index);		
+		Rpc(RpcAsk_AddGarrisonCamp, base.location, index, SCR_PlayerController.GetLocalPlayerId());
 	}
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_AddGarrisonCamp(vector pos, int prefabIndex)
+	protected void RpcAsk_AddGarrisonCamp(vector pos, int prefabIndex, int playerId)
 	{
+		playerId = ResolveSenderPlayerId(playerId);
 		OVT_ResistanceFactionManager rf = OVT_Global.GetResistanceFaction();
 		OVT_CampData fob = rf.GetNearestCampData(pos);
-		rf.AddGarrisonCamp(fob, prefabIndex);
+		// The registry may be empty (null) and the claimed position is client-supplied - only
+		// accept a purchase made at the camp itself
+		if(!fob || vector.Distance(fob.location, pos) > 50) return;
+		rf.AddGarrisonCamp(fob, prefabIndex, true, playerId);
 	}
-	
+
 	void AddGarrisonFOB(OVT_FOBData base, ResourceName res)
 	{
 		OVT_Faction faction = OVT_Global.GetConfig().GetPlayerFaction();
 		int index = faction.m_aGroupPrefabSlots.Find(res);
 		if(index == -1) return;
-		Rpc(RpcAsk_AddGarrisonFOB, base.location, index);		
+		Rpc(RpcAsk_AddGarrisonFOB, base.location, index, SCR_PlayerController.GetLocalPlayerId());
 	}
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_AddGarrisonFOB(vector pos, int prefabIndex)
+	protected void RpcAsk_AddGarrisonFOB(vector pos, int prefabIndex, int playerId)
 	{
+		playerId = ResolveSenderPlayerId(playerId);
 		OVT_ResistanceFactionManager rf = OVT_Global.GetResistanceFaction();
 		OVT_FOBData fob = rf.GetNearestFOBData(pos);
-		rf.AddGarrisonFOB(fob, prefabIndex);
+		if(!fob || vector.Distance(fob.location, pos) > 50) return;
+		rf.AddGarrisonFOB(fob, prefabIndex, true, playerId);
 	}
 	
 	//VEHICLES

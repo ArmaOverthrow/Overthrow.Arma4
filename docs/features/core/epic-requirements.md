@@ -14,6 +14,7 @@ The `core` epic owns Overthrow's very core systems: the game-mode/manager lifecy
 - The persistence layer migrates from EPF to Reforger's vanilla persistence system (`core/persistence`, currently paused; acceptance gate: `OVT_TEST_PersistenceRoundTripSuite` exit 1 → 0).
 - The legacy core systems (game mode/manager lifecycle, config, player identity) are documented via `/discover-feature` so future work on them starts from accurate docs rather than code archaeology.
 - Core-system docs stay behaviour-accurate: what is covered by the automated test spine (Logic/Init/Campaign/Persistence tiers) and what still requires manual play-testing (JIP/MP, UI, save/reload) is stated explicitly.
+- Player→server communication moves off the `OVT_PlayerCommsComponent` monolith onto domain components on `OVT_OverthrowController`, with server-side validation on every migrated RPC and the monolith deleted at the end (`core/controller-migration`).
 
 ## Planned Features
 
@@ -23,6 +24,7 @@ The features that make up this epic, in intended **build order**. Discovery feat
 2. **config** — `OVT_OverthrowConfigComponent`, difficulty settings, faction/config registries. *(discovery backfill)*
 3. **player-manager** — Persistent player identity and player data lifecycle. *(discovery backfill)*
 4. **persistence** — EPF → vanilla persistence migration (paused; resumes after the dev-ops epic, validated by its quarantined round-trip gate). *(migrated from `vanilla-persistence`)*
+5. **controller-migration** — Retire the 60-RPC `OVT_PlayerCommsComponent` monolith onto domain components on `OVT_OverthrowController` (the engine-intended per-player client→server seam), with server-side validation landing alongside each migrated RPC — after the 1.4.x patch cycle settles. *(planned 2026-08-03)*
 
 ## Dependencies
 

@@ -158,7 +158,8 @@ class OVT_BuildContext : OVT_UIContext
 		
 		// Calculate pages based on remaining items
 		int totalBuildables = m_Resistance.m_BuildablesConfig.m_aBuildables.Count();
-		m_iNumPages = Math.Ceil(totalBuildables / 14); // 14 items per page (leaving room for remove card)
+		m_iNumPages = (totalBuildables + 13) / 14; // 14 items per page (leaving room for remove card)
+		if(m_iNumPages < 1) m_iNumPages = 1;
 		if(m_iPageNum >= m_iNumPages) m_iPageNum = 0;
 		string pageNumText = (m_iPageNum + 1).ToString();
 		

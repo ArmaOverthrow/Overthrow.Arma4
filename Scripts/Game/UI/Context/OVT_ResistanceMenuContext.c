@@ -202,8 +202,10 @@ class OVT_ResistanceMenuContext : OVT_UIContext
 		OVT_ResistancePlayerData data = OVT_ResistancePlayerData.Cast(m_PlayerSpin.GetCurrentItemData());
 		
 		if(resistance.IsOfficer(data.playerId)) return;
-		
-		resistance.AddOfficer(data.playerId);
+
+		// Promotion must round-trip through the server - the manager's AddOfficer broadcast is
+		// dropped when called from a client
+		OVT_Global.GetServer().AddOfficer(data.playerId);
 	}
 	
 	protected void DonateFunds()

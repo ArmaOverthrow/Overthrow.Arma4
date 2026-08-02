@@ -82,7 +82,8 @@ class OVT_FOBMenuContext : OVT_UIContext
 			return;
 		}
 		
-		m_Economy.TakeLocalPlayerMoney(cost);
+		// The server charges for the garrison after validating - taking money here as well would
+		// charge the player twice (or charge them for a purchase the server rejects)
 		if(m_FOB)
 		{
 			OVT_Global.GetServer().AddGarrisonFOB(m_FOB, uiinfo.resource);
