@@ -599,10 +599,12 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 
 			// An unassigned home is the zero vector - never treat it as a real position (a body at
 			// the world origin ends up underground). Pre-start-menu spawns land here and take the
-			// safe-location fallback; Start Game assigns the home and teleports the player to it.
+			// safe-location fallback WITHOUT writing it as their home: FinalizePlayerPreparation
+			// only assigns a starting house (and starting car) to a player whose home is still
+			// unset, so persisting the placeholder position would cost the player both.
 			if(homePos == vector.Zero)
 			{
-				position = FindSafeSpawnLocation(playerId, characterPersistenceId);
+				position = FindSafeSpawnLocation(playerId, characterPersistenceId, false);
 				yawPitchRoll = "0 0 0";
 			}
 			// Check if the home location is safe to spawn at
@@ -806,8 +808,11 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Find a safe spawn location when home is compromised
-	protected vector FindSafeSpawnLocation(int playerId, string characterPersistenceId)
+	//! Find a safe spawn location when home is compromised or not yet assigned.
+	//! \param[in] updateHome When true the chosen position becomes the player's new home (the
+	//! compromised-home case). Pre-start placeholder spawns pass false: their home must stay unset
+	//! so FinalizePlayerPreparation still assigns a starting house.
+	protected vector FindSafeSpawnLocation(int playerId, string characterPersistenceId, bool updateHome = true)
 	{
 		OVT_PlayerData player = OVT_PlayerData.Get(characterPersistenceId);
 
@@ -819,7 +824,8 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 			if(safeHousePos != vector.Zero)
 			{
 				// Update their home to this safe house
-				realEstate.SetHomePos(playerId, safeHousePos);
+				if(updateHome)
+					realEstate.SetHomePos(playerId, safeHousePos);
 				return safeHousePos;
 			}
 		}
@@ -834,7 +840,7 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 				{
 					vector safeSpawn = OVT_Global.FindSafeSpawnPosition(town.location);
 					// Update their home to this safe town
-					if(realEstate)
+					if(updateHome && realEstate)
 						realEstate.SetHomePos(playerId, safeSpawn);
 					return safeSpawn;
 				}
@@ -843,7 +849,7 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 
 		// Last resort: Use default spawn location
 		vector fallbackPos = "5000 0 5000"; // Default fallback position
-		if(realEstate)
+		if(updateHome && realEstate)
 			realEstate.SetHomePos(playerId, fallbackPos);
 		return fallbackPos;
 	}

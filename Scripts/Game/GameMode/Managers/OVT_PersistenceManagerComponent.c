@@ -33,6 +33,12 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 	//! and the first GetSaves callback the answer is a stale false.
 	protected bool m_bHasSaveGame;
 
+	//! True once HasSaveGame() reflects a real answer rather than the boot-time default false.
+	//! Set by the initial GetSaves() scan's callback, and by any event that proves a save exists.
+	//! A caller whose decision on a stale false would be destructive - offering a new campaign
+	//! when one already exists - must wait for this before reading HasSaveGame().
+	protected bool m_bSaveCacheSeeded;
+
 	//! True between a save request made through this component and its completion callback.
 	protected bool m_bSaveInProgress;
 
@@ -80,6 +86,13 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 	bool HasSaveGame()
 	{
 		return m_bHasSaveGame;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True once HasSaveGame() is a real answer and no longer the boot-time default.
+	bool IsSaveCacheSeeded()
+	{
+		return m_bSaveCacheSeeded;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -258,6 +271,7 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 			found = saves.Count() > 0;
 
 		m_bHasSaveGame = found;
+		m_bSaveCacheSeeded = true;
 
 		if (!found)
 		{
@@ -497,6 +511,7 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 			found = saves.Count() > 0;
 
 		m_bHasSaveGame = found;
+		m_bSaveCacheSeeded = true;
 		PrintFormat("[Overthrow] Save scan complete, save present: %1", m_bHasSaveGame.ToString());
 	}
 
@@ -514,6 +529,7 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 			return;
 
 		m_bHasSaveGame = true;
+		m_bSaveCacheSeeded = true;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -599,7 +615,10 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 
 		// Playing from a save means a save demonstrably exists, and this answer needs no round trip.
 		if (IsPlayingLoadedSave())
+		{
 			m_bHasSaveGame = true;
+			m_bSaveCacheSeeded = true;
+		}
 
 		Print("[Overthrow] Persistence system is now active", LogLevel.NORMAL);
 	}
@@ -626,6 +645,7 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 		if (success)
 		{
 			m_bHasSaveGame = true;
+			m_bSaveCacheSeeded = true;
 			PrintFormat("[Overthrow] Save completed successfully (type: %1)", saveType);
 		}
 		else

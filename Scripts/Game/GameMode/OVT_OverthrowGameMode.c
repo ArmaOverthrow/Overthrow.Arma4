@@ -331,6 +331,76 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Decides how a dedicated server starts once the async save scan has answered: continue the
+	//! existing campaign from its latest save point, or generate a new one when none exists.
+	//!
+	//! A dedicated server boots a FRESH world unless the server config loads a session save, so at
+	//! EOnInit "is there a campaign already?" cannot be answered synchronously. BOUNDED: after ~10s
+	//! without an answer the server starts a new game rather than never coming up (the pre-existing
+	//! behaviour, on a delay).
+	//! \param[in] attempt How many polls have already happened.
+	protected void DecideDedicatedStart(int attempt)
+	{
+		// Something else started the campaign meanwhile (server config loaded a session save).
+		if (m_bGameStarted)
+			return;
+
+		if (m_Persistence && !m_Persistence.IsSaveCacheSeeded() && attempt < 40)
+		{
+			GetGame().GetCallqueue().CallLater(DecideDedicatedStart, 250, false, attempt + 1);
+			return;
+		}
+
+		if (m_Persistence && m_Persistence.HasSaveGame())
+		{
+			Print("[Overthrow] Dedicated server: a save exists for this mission - continuing the campaign");
+			m_Persistence.LoadLatestSave();
+			GetGame().GetCallqueue().CallLater(CheckDedicatedContinue, 2000, false);
+			return;
+		}
+
+		Print("[Overthrow] Dedicated server: no existing campaign - starting a new game");
+		StartNewDedicatedGame();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Watches a dedicated continue that was handed to the engine. A successful load replaces the
+	//! world (this component included) and IsLoadInProgress() stays true right up to the transition,
+	//! so still being here with the load no longer in flight means it failed - fall back to a new
+	//! game rather than leaving the server sessionless.
+	protected void CheckDedicatedContinue()
+	{
+		if (m_bGameStarted)
+			return;
+
+		if (m_Persistence && m_Persistence.IsLoadInProgress())
+		{
+			GetGame().GetCallqueue().CallLater(CheckDedicatedContinue, 2000, false);
+			return;
+		}
+
+		string diagnostic = "";
+		if (m_Persistence)
+			diagnostic = m_Persistence.GetLastLoadDiagnostic();
+
+		Print("[Overthrow] Dedicated continue failed (" + diagnostic + ") - starting a new game instead", LogLevel.WARNING);
+		StartNewDedicatedGame();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Generates and starts a new campaign on a dedicated server. The decision above can land either
+	//! side of OnWorldPostProcess, so the start is requested the same both ways: through the flag
+	//! when post-process is still coming, directly when it has already been and gone (the same
+	//! two-sided pattern as RestoreStartedCampaign).
+	protected void StartNewDedicatedGame()
+	{
+		DoStartNewGame();
+		m_bRequestStartOnPostProcess = true;
+		if (m_bWorldPostProcessed)
+			ScheduleStartGame();
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Executes post-load logic after persistence data has been loaded.
 	//! Primarily handles real estate post-load procedures.
 	void DoPostLoad()
@@ -1058,15 +1128,19 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 				m_bCameraSet = true;
 				m_bRequestStartOnPostProcess = true;
 			}else{
-				Print("[Overthrow] No save game detected");
+				Print("[Overthrow] Not launched from a save point");
 				if(RplSession.Mode() == RplMode.Dedicated)
 				{
-					Print("[Overthrow] Dedicated server, starting new game");
-					DoStartNewGame();
-					m_bRequestStartOnPostProcess = true;
+					// Whether a campaign already exists is unanswerable right now: HasSaveGame()
+					// is an async cache that has not seeded yet. Starting a new game regardless
+					// (the old behaviour) generated a fresh campaign OVER an existing one and the
+					// next autosave buried it. Defer the decision until the save scan answers.
+					Print("[Overthrow] Dedicated server, waiting for the save scan before starting");
+					GetGame().GetCallqueue().CallLater(DecideDedicatedStart, 250, false, 0);
 				}else{
 					Print("[Overthrow] Will show start menu when player is ready");
-					// Start menu will be shown on client when NotifyReadyForSpawn is received
+					// Start menu (or the continue of an existing campaign) is driven by
+					// OVT_PlayerStartMenuHandlerComponent once the local player is ready
 				}
 			}
 		}
