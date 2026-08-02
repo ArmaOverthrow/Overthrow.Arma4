@@ -499,6 +499,8 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	//! \param[in] count The quantity to add
 	void DoAddToWarehouse(int warehouseId, string id, int count)
 	{
+		if(count <= 0) return;
+		if(warehouseId < 0 || warehouseId >= m_aWarehouses.Count()) return;
 		OVT_WarehouseData warehouse = m_aWarehouses[warehouseId];
 		if(!warehouse.inventory.Contains(id)) warehouse.inventory[id] = 0;
 		warehouse.inventory[id] = warehouse.inventory[id] + count;
@@ -527,6 +529,8 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	//! \param[in] count The quantity to take
 	void DoTakeFromWarehouse(int warehouseId, string id, int count)
 	{
+		if(count <= 0) return;
+		if(warehouseId < 0 || warehouseId >= m_aWarehouses.Count()) return;
 		OVT_WarehouseData warehouse = m_aWarehouses[warehouseId];
 		if(!warehouse.inventory.Contains(id)) warehouse.inventory[id] = 0;
 		warehouse.inventory[id] = warehouse.inventory[id] - count;
@@ -760,7 +764,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 			writer.WriteBool(data.isLinked);
 			writer.WriteBool(data.isPrivate);
 			writer.WriteInt(data.inventory.Count());
-			for(int ii; ii<m_aWarehouses.Count(); ii++)
+			for(int ii; ii<data.inventory.Count(); ii++)
 			{
 				writer.WriteString(data.inventory.GetKey(ii));
 				writer.WriteInt(data.inventory.GetElement(ii));
@@ -797,7 +801,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 			data.inventory = new map<string,int>;
 			
 			if (!reader.ReadInt(ownedlength)) return false;
-			for(int ii; ii<length; ii++)
+			for(int ii; ii<ownedlength; ii++)
 			{
 				if (!reader.ReadString(res)) return false;
 				if (!reader.ReadInt(qty)) return false;

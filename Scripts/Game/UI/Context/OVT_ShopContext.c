@@ -143,7 +143,8 @@ class OVT_ShopContext : OVT_UIContext
 				}
 			}
 			
-			m_iNumPages = Math.Ceil(vehicles.Count() / 15);
+			m_iNumPages = Math.Ceil(vehicles.Count() / 15.0);
+			if(m_iNumPages < 1) m_iNumPages = 1;
 			if(m_iPageNum >= m_iNumPages) m_iPageNum = 0;
 			string pageNumText = (m_iPageNum + 1).ToString();
 			
@@ -167,7 +168,8 @@ class OVT_ShopContext : OVT_UIContext
 				wi++;
 			}
 		}else{
-			m_iNumPages = Math.Ceil(m_Shop.m_aInventory.Count() / 15);
+			m_iNumPages = Math.Ceil(m_Shop.m_aInventory.Count() / 15.0);
+			if(m_iNumPages < 1) m_iNumPages = 1;
 			if(m_iPageNum >= m_iNumPages) m_iPageNum = 0;
 			string pageNumText = (m_iPageNum + 1).ToString();
 			
@@ -296,55 +298,8 @@ class OVT_ShopContext : OVT_UIContext
 	
 	void Sell(Widget src, float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
 	{
-		int playerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(m_sPlayerID);
-		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
-		if(!player) return;
-		
-		int cost = m_Economy.GetSellPrice(m_SelectedResource, m_Shop.GetOwner().GetOrigin());
-		if(m_Shop.m_ShopType == OVT_ShopType.SHOP_GUNDEALER)
-		{
-			cost = cost * OVT_Global.GetConfig().m_Difficulty.gunDealerSellPriceMultiplier;
-		}
-		
-		SCR_InventoryStorageManagerComponent inventory = SCR_InventoryStorageManagerComponent.Cast(player.FindComponent( SCR_InventoryStorageManagerComponent ));
-		if(!inventory) return;
-		
-		autoptr array<IEntity> items = new array<IEntity>;
-		inventory.GetItems(items);
-		
-		ResourceName res = m_Economy.GetResource(m_SelectedResource);
-		
-		foreach(IEntity ent : items)
-		//Chris - Make this work better for variants
-		{
-			string prefab = ent.GetPrefabData().GetPrefabName();
-			if (prefab == "{63E8322E2ADD4AA7}Prefabs/Weapons/Rifles/AK74/Rifle_AK74_GP25.et")
-			{
-			prefab = "{FA5C25BF66A53DCF}Prefabs/Weapons/Rifles/AK74/Rifle_AK74.et";
-			}
-			if (prefab == "{EB404DC9E1BCB750}Prefabs/Weapons/Rifles/AK74/Rifle_AK74N_1P29.et" || prefab == "{BC6C9476FB3219A7}Prefabs/Weapons/Rifles/AK74/Rifle_AK74N_GP25.et")
-			{
-			prefab = "{96DFD2E7E63B3386}Prefabs/Weapons/Rifles/AK74/Rifle_AK74N.et";
-			}
-			if (res == "{7A82FE978603F137}Prefabs/Weapons/Launchers/RPG7/Launcher_RPG7.et" && prefab == "{E8A55396050E1762}Prefabs/Weapons/Launchers/RPG7/Launcher_RPG7_PGO7.et")
-			{
-			prefab = res;
-			}			
-			if (res == "{E8A55396050E1762}Prefabs/Weapons/Launchers/RPG7/Launcher_RPG7_PGO7.et" && prefab == "{7A82FE978603F137}Prefabs/Weapons/Launchers/RPG7/Launcher_RPG7.et")
-			{
-			prefab = res;
-			}			
-			if(prefab == res)
-			{
-				if(inventory.TryDeleteItem(ent))
-				{
-					m_Economy.AddPlayerMoney(m_iPlayerID, cost, true);
-					m_Shop.AddToInventory(m_SelectedResource, 1);
-					SelectItem(m_SelectedResourceName);
-					break;
-				}
-			}
-		}
+		OVT_Global.GetServer().Sell(m_Shop, m_SelectedResource, 1, m_iPlayerID);
+		SelectItem(m_SelectedResourceName);
 	}
 	
 }

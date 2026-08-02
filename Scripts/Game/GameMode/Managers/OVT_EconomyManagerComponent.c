@@ -243,7 +243,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 			if(isResistanceOwned)
 			{
 				AddResistanceMoney(cost);
-				return;
+				continue;
 			}else if(isResistanceRented)
 			{
 				if(!ResistanceHasMoney(cost))
@@ -252,7 +252,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 				}else{
 					TakeResistanceMoney(cost);
 				}
-				return;
+				continue;
 			}
 			
 			if(isOwner)
@@ -289,19 +289,20 @@ class OVT_EconomyManagerComponent: OVT_Component
 				types.Insert(typeShops.GetKey(i));
 			}			
 			
-			foreach(RplId shopId : m_aAllShops)
+			foreach(RplId shopId : m_mTownShops[townID])
 			{
 				OVT_ShopComponent shop = GetShopByRplId(shopId);
+				if(!shop) continue;
 				for(int i = 0; i<shop.m_aInventory.Count(); i++)
 				{
 					int id = shop.m_aInventory.GetKey(i);
 					int max = GetTownMaxStock(townID, id);
-					int numShops = 1;					
+					int numShops = 1;
 					if(typeShops.Contains(shop.m_ShopType))
 						numShops = typeShops[shop.m_ShopType].Count();
 					max = Math.Round(max / numShops);
 					int stock = shop.GetStock(id);
-					int half = Math.Round(stock * 0.5);
+					int half = Math.Round(max * 0.5);
 					if(stock < half)
 					{
 						shop.AddToInventory(id, half - stock);
@@ -796,9 +797,13 @@ class OVT_EconomyManagerComponent: OVT_Component
 		if(Replication.IsServer())
 		{
 			DoAddPlayerMoney(playerId, amount);
+			if(doEvent)
+			{
+				m_OnPlayerSell.Invoke(playerId, amount);
+			}
 			return;
 		}
-		OVT_Global.GetServer().AddPlayerMoney(playerId, amount, doEvent);		
+		OVT_Global.GetServer().AddPlayerMoney(playerId, amount, doEvent);
 	}
 	
 	//------------------------------------------------------------------------------------------------

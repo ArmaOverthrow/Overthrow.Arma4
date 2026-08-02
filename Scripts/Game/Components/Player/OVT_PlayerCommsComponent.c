@@ -293,60 +293,149 @@ class OVT_PlayerCommsComponent: OVT_Component
 		OVT_Global.GetRealEstate().SetHome(playerId, rpl.GetEntity());
 	}
 	
-	void SetBuildingOwner(int playerId, IEntity building)
+	void BuyBuilding(int playerId, bool useResistanceFunds)
 	{
-		Rpc(RpcAsk_SetBuildingOwner, playerId, building.GetOrigin());
+		Rpc(RpcAsk_BuyBuilding, playerId, useResistanceFunds);
 	}
-	
+
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_SetBuildingOwner(int playerId, vector pos)
-	{	
-		OVT_RealEstateManagerComponent re = OVT_Global.GetRealEstate();
-		IEntity building = re.GetNearestBuilding(pos);
-		if(!building) return;
-		re.SetOwner(playerId, building);
-	}
-	
-	void SetBuildingOwner(string playerPersistentId, IEntity building)
+	protected void RpcAsk_BuyBuilding(int playerId, bool useResistanceFunds)
 	{
-		Rpc(RpcAsk_SetBuildingOwnerPersistent, playerPersistentId, building.GetOrigin());
-	}
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_SetBuildingOwnerPersistent(string playerId, vector pos)
-	{	
+		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+		if(!player) return;
+
 		OVT_RealEstateManagerComponent re = OVT_Global.GetRealEstate();
-		IEntity building = re.GetNearestBuilding(pos);
+		IEntity building = re.GetNearestBuilding(player.GetOrigin());
 		if(!building) return;
-		re.SetOwnerPersistentId(playerId, building);
+
+		EntityID entId = building.GetID();
+		if(re.IsOwned(entId) || re.IsRented(entId)) return;
+
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		int cost = re.GetBuyPrice(building);
+
+		if(useResistanceFunds)
+		{
+			if(!OVT_Global.GetResistanceFaction().IsOfficer(playerId)) return;
+			if(!economy.ResistanceHasMoney(cost)) return;
+			economy.TakeResistanceMoney(cost);
+			re.SetOwnerPersistentId("resistance", building);
+		}else{
+			string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+			if(!economy.PlayerHasMoney(persId, cost)) return;
+			economy.TakePlayerMoneyPersistentId(persId, cost);
+			re.SetOwner(playerId, building);
+		}
 	}
-	
-	void SetBuildingRenter(int playerId, vector pos)
-	{		
-		Rpc(RpcAsk_SetBuildingRenter, playerId, pos);
+
+	void SellBuilding(int playerId, bool useResistanceFunds)
+	{
+		Rpc(RpcAsk_SellBuilding, playerId, useResistanceFunds);
 	}
-	
+
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_SetBuildingRenter(int playerId, vector pos)
-	{	
+	protected void RpcAsk_SellBuilding(int playerId, bool useResistanceFunds)
+	{
+		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+		if(!player) return;
+
 		OVT_RealEstateManagerComponent re = OVT_Global.GetRealEstate();
-		IEntity building = re.GetNearestBuilding(pos, 5);
+		IEntity building = re.GetNearestBuilding(player.GetOrigin());
 		if(!building) return;
-		OVT_Global.GetRealEstate().SetRenter(playerId, building);
+
+		EntityID entId = building.GetID();
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		int cost = re.GetBuyPrice(building);
+
+		if(useResistanceFunds)
+		{
+			if(!OVT_Global.GetResistanceFaction().IsOfficer(playerId)) return;
+			if(re.GetOwnerID(building) != "resistance") return;
+			economy.AddResistanceMoney(cost);
+		}else{
+			string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+			if(!re.IsOwner(persId, entId)) return;
+			if(re.IsHome(persId, entId)) return;
+			if(re.m_mOwned.Contains(persId) && re.m_mOwned[persId].Count() == 1) return;
+			economy.AddPlayerMoneyPersistentId(persId, cost);
+		}
+		re.SetOwner(-1, building);
 	}
-	
-	void SetBuildingRenter(string playerId, vector pos)
-	{		
-		Rpc(RpcAsk_SetBuildingRenterPersistent, playerId, pos);
+
+	void RentBuilding(int playerId, bool useResistanceFunds)
+	{
+		Rpc(RpcAsk_RentBuilding, playerId, useResistanceFunds);
 	}
-	
+
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_SetBuildingRenterPersistent(string playerId, vector pos)
-	{	
+	protected void RpcAsk_RentBuilding(int playerId, bool useResistanceFunds)
+	{
+		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+		if(!player) return;
+
 		OVT_RealEstateManagerComponent re = OVT_Global.GetRealEstate();
-		IEntity building = re.GetNearestBuilding(pos, 5);
+		IEntity building = re.GetNearestBuilding(player.GetOrigin());
 		if(!building) return;
-		OVT_Global.GetRealEstate().SetRenterPersistentId(playerId, building);
+
+		EntityID entId = building.GetID();
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+
+		if(useResistanceFunds && !OVT_Global.GetResistanceFaction().IsOfficer(playerId)) return;
+
+		bool isOwner = re.IsOwner(persId, entId);
+		if(useResistanceFunds && re.GetOwnerID(building) == "resistance") isOwner = true;
+
+		if(re.IsHome(persId, entId) || re.IsRented(entId) || (re.IsOwned(entId) && !isOwner)) return;
+
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		if(!isOwner)
+		{
+			int cost = re.GetRentPrice(building);
+			if(useResistanceFunds)
+			{
+				if(!economy.ResistanceHasMoney(cost)) return;
+				economy.TakeResistanceMoney(cost);
+			}else{
+				if(!economy.PlayerHasMoney(persId, cost)) return;
+				economy.TakePlayerMoneyPersistentId(persId, cost);
+			}
+		}
+
+		if(useResistanceFunds)
+		{
+			re.SetRenterPersistentId("resistance", building);
+		}else{
+			re.SetRenter(playerId, building);
+		}
+	}
+
+	void StopRentingBuilding(int playerId, bool useResistanceFunds)
+	{
+		Rpc(RpcAsk_StopRentingBuilding, playerId, useResistanceFunds);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_StopRentingBuilding(int playerId, bool useResistanceFunds)
+	{
+		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+		if(!player) return;
+
+		OVT_RealEstateManagerComponent re = OVT_Global.GetRealEstate();
+		IEntity building = re.GetNearestBuilding(player.GetOrigin());
+		if(!building) return;
+
+		EntityID entId = building.GetID();
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+
+		bool isRenter = re.IsRenter(persId, entId);
+		if(useResistanceFunds)
+		{
+			if(!OVT_Global.GetResistanceFaction().IsOfficer(playerId)) return;
+			if(re.GetRenterID(building) == "resistance") isRenter = true;
+		}
+		if(!isRenter) return;
+
+		re.SetRenter(-1, building);
 	}
 	
 	//SHOPS
@@ -461,12 +550,123 @@ class OVT_PlayerCommsComponent: OVT_Component
 		// Complete failure - fail silently
 	}
 	
+	void Sell(OVT_ShopComponent shop, int id, int num, int playerId)
+	{
+		RplComponent rpl = RplComponent.Cast(shop.GetOwner().FindComponent(RplComponent));
+		if(!rpl) return;
+		Rpc(RpcAsk_Sell, rpl.Id(), id, num, playerId);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_Sell(RplId shopId, int id, int num, int playerId)
+	{
+		if(num <= 0) return;
+
+		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+		if(!player) return;
+
+		SCR_InventoryStorageManagerComponent inventory = SCR_InventoryStorageManagerComponent.Cast(player.FindComponent( SCR_InventoryStorageManagerComponent ));
+		if(!inventory) return;
+
+		RplComponent shopRpl = RplComponent.Cast(Replication.FindItem(shopId));
+		if(!shopRpl) return;
+		OVT_ShopComponent shop = OVT_ShopComponent.Cast(shopRpl.GetEntity().FindComponent(OVT_ShopComponent));
+		if(!shop) return;
+
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+
+		int unitPrice = economy.GetSellPrice(id, shop.GetOwner().GetOrigin());
+		if(shop.m_ShopType == OVT_ShopType.SHOP_GUNDEALER)
+		{
+			unitPrice = unitPrice * OVT_Global.GetConfig().m_Difficulty.gunDealerSellPriceMultiplier;
+		}
+		if(unitPrice <= 0) return;
+
+		ResourceName res = economy.GetResource(id);
+
+		autoptr array<IEntity> items = new array<IEntity>;
+		inventory.GetItems(items);
+
+		int sold = 0;
+		foreach(IEntity ent : items)
+		{
+			if(sold >= num) break;
+			string prefab = ent.GetPrefabData().GetPrefabName();
+			//Chris - Make this work better for variants
+			if (prefab == "{63E8322E2ADD4AA7}Prefabs/Weapons/Rifles/AK74/Rifle_AK74_GP25.et")
+			{
+				prefab = "{FA5C25BF66A53DCF}Prefabs/Weapons/Rifles/AK74/Rifle_AK74.et";
+			}
+			if (prefab == "{EB404DC9E1BCB750}Prefabs/Weapons/Rifles/AK74/Rifle_AK74N_1P29.et" || prefab == "{BC6C9476FB3219A7}Prefabs/Weapons/Rifles/AK74/Rifle_AK74N_GP25.et")
+			{
+				prefab = "{96DFD2E7E63B3386}Prefabs/Weapons/Rifles/AK74/Rifle_AK74N.et";
+			}
+			if (res == "{7A82FE978603F137}Prefabs/Weapons/Launchers/RPG7/Launcher_RPG7.et" && prefab == "{E8A55396050E1762}Prefabs/Weapons/Launchers/RPG7/Launcher_RPG7_PGO7.et")
+			{
+				prefab = res;
+			}
+			if (res == "{E8A55396050E1762}Prefabs/Weapons/Launchers/RPG7/Launcher_RPG7_PGO7.et" && prefab == "{7A82FE978603F137}Prefabs/Weapons/Launchers/RPG7/Launcher_RPG7.et")
+			{
+				prefab = res;
+			}
+			if(prefab == res)
+			{
+				if(inventory.TryDeleteItem(ent))
+				{
+					sold++;
+				}
+			}
+		}
+
+		if(sold > 0)
+		{
+			int total = unitPrice * sold;
+			OVT_Global.GetEconomy().DoAddPlayerMoney(playerId, total);
+			economy.m_OnPlayerSell.Invoke(playerId, total);
+			RpcAsk_AddToInventory(shopId, id, sold);
+			economy.m_OnPlayerTransaction.Invoke(playerId, shop, false, total);
+		}
+	}
+
+	void SellDrugs(int playerId)
+	{
+		Rpc(RpcAsk_SellDrugs, playerId);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_SellDrugs(int playerId)
+	{
+		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+		if(!player) return;
+
+		SCR_InventoryStorageManagerComponent inventory = SCR_InventoryStorageManagerComponent.Cast(player.FindComponent( SCR_InventoryStorageManagerComponent ));
+		if(!inventory) return;
+
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+
+		autoptr array<IEntity> items = new array<IEntity>;
+		inventory.GetItems(items);
+
+		foreach(IEntity ent : items)
+		{
+			ResourceName res = ent.GetPrefabData().GetPrefabName();
+			if(!res.Contains("DrugsWeed_01")) continue;
+			int id = economy.GetInventoryId(res);
+			if(inventory.TryDeleteItem(ent))
+			{
+				int cost = economy.GetBuyPrice(id, player.GetOrigin()) * 1.25;
+				economy.DoAddPlayerMoney(playerId, cost);
+			}
+			break;
+		}
+	}
+
 	void ImportToVehicle(int id, int qty, IEntity vehicle, int playerId)
 	{
 		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
 		if(!rpl) return;
-		
-		Rpc(RpcAsk_ImportToVehicle, id, qty, rpl.Id(), playerId)	
+
+		Rpc(RpcAsk_ImportToVehicle, id, qty, rpl.Id(), playerId)
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -562,9 +762,12 @@ class OVT_PlayerCommsComponent: OVT_Component
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_AddToInventory(RplId shopId, int id, int num)
 	{
+		if(num <= 0) return;
 		RplComponent rpl = RplComponent.Cast(Replication.FindItem(shopId));
+		if(!rpl) return;
 		OVT_ShopComponent shop = OVT_ShopComponent.Cast(rpl.GetEntity().FindComponent(OVT_ShopComponent));
-		
+		if(!shop) return;
+
 		if(!shop.m_aInventory.Contains(id))
 		{
 			shop.m_aInventory[id] = 0;
@@ -582,9 +785,12 @@ class OVT_PlayerCommsComponent: OVT_Component
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_TakeFromInventory(RplId shopId, RplId id, int num)
 	{
+		if(num <= 0) return;
 		RplComponent rpl = RplComponent.Cast(Replication.FindItem(shopId));
+		if(!rpl) return;
 		OVT_ShopComponent shop = OVT_ShopComponent.Cast(rpl.GetEntity().FindComponent(OVT_ShopComponent));
-				
+		if(!shop) return;
+
 		if(!shop.m_aInventory.Contains(id)) return;		
 		shop.m_aInventory[id] = shop.m_aInventory[id] - num;		
 		if(shop.m_aInventory[id] < 0) shop.m_aInventory[id] = 0;
@@ -893,8 +1099,11 @@ class OVT_PlayerCommsComponent: OVT_Component
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	void RpcAsk_TakeFromWarehouseToVehicle(int warehouseId, string id, int qty, RplId vehicleId)	
+	void RpcAsk_TakeFromWarehouseToVehicle(int warehouseId, string id, int qty, RplId vehicleId)
 	{
+		if(qty <= 0) return;
+		OVT_RealEstateManagerComponent re = OVT_Global.GetRealEstate();
+		if(warehouseId < 0 || warehouseId >= re.m_aWarehouses.Count()) return;
 		OVT_Global.TakeFromWarehouseToVehicle(warehouseId, id, qty, vehicleId);
 	}
 	
