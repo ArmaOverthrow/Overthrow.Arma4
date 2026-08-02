@@ -72,7 +72,7 @@ class OVT_MapContext : OVT_UIContext
 			return false;
 		
 		OVT_PlayerWantedComponent m_Wanted = OVT_PlayerWantedComponent.Cast(character.FindComponent(OVT_PlayerWantedComponent));
-		if(m_Wanted.GetWantedLevel() > 0)
+		if(m_Wanted && m_Wanted.GetWantedLevel() > 0)
 		{
 			reason = "CannotFastTravelWanted";
 			return false;

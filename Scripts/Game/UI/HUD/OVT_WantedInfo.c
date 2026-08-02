@@ -85,7 +85,9 @@ class OVT_WantedInfo : SCR_InfoDisplay {
 			return;
 		
 		Widget w = m_wRoot.FindWidget("Frame0.Seen.SeenEye");
-		
+		if(!w)
+			return;
+
 		if(m_Wanted.IsSeen())
 		{
 			w.SetVisible(true);
@@ -100,9 +102,13 @@ class OVT_WantedInfo : SCR_InfoDisplay {
 	//------------------------------------------------------------------------------------------------
 	void UpdateUndercoverStatus()
 	{
-		string occupyingFactionKey = OVT_Global.GetConfig().GetOccupyingFaction().GetFactionKey();
-		string supportingFactionKey = OVT_Global.GetConfig().GetSupportingFaction().GetFactionKey();
-		string playerFactionKey = OVT_Global.GetConfig().GetPlayerFaction().GetFactionKey();
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!config || !config.GetOccupyingFaction() || !config.GetSupportingFaction() || !config.GetPlayerFaction())
+			return;
+
+		string occupyingFactionKey = config.GetOccupyingFaction().GetFactionKey();
+		string supportingFactionKey = config.GetSupportingFaction().GetFactionKey();
+		string playerFactionKey = config.GetPlayerFaction().GetFactionKey();
 		
 		// Use cached widget if available, otherwise find it
 		if (!m_wUndercoverIcon)
@@ -144,10 +150,6 @@ class OVT_WantedInfo : SCR_InfoDisplay {
 				}
 				showIcon = true;
 			}
-		}
-		else
-		{
-			Print("[Overthrow] WARNING: m_Wanted is null!");
 		}
 		
 		// If not disguised, check perceived faction

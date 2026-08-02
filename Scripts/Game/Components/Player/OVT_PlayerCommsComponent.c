@@ -79,6 +79,26 @@ class OVT_PlayerCommsComponent: OVT_Component
 		OVT_Global.GetNotify().SendTextNotification(tag,playerId,param1,param2,param3);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Relays a local loot action to the server, where wanted state is authoritative (BUG-073).
+	void RequestLootWantedCheck()
+	{
+		Rpc(RpcAsk_LootWantedCheck);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_LootWantedCheck()
+	{
+		// Remote callers reach this handler on their own character's component, so the
+		// character is the server-side truth (the host applies loot escalation directly).
+		ChimeraCharacter character = ChimeraCharacter.Cast(GetOwner());
+		if(!character) return;
+
+		OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(character.FindComponent(OVT_PlayerWantedComponent));
+		if(wanted)
+			wanted.OnPlayerLoot(character);
+	}
+
 	void AddSupporters(vector location, int num)
 	{
 		Rpc(RpcAsk_AddSupporters, location, num);

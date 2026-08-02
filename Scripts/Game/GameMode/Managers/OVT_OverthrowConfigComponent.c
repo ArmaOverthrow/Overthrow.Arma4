@@ -543,11 +543,19 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	}
 	
 	//RPC Methods
-	
+
+	//! Version stamp for the hand-rolled JIP config bitstream below. RplSave and RplLoad are
+	//! positional: every field must be written and read in exactly the same order. Keep the two
+	//! functions adjacent and edit them together — and bump this constant whenever a field is
+	//! added, removed or reordered, so a mismatched client fails loudly at connect instead of
+	//! silently reading shifted garbage (BUG-078).
+	protected const int CONFIG_STREAM_VERSION = 1;
+
 	override bool RplSave(ScriptBitWriter writer)
-	{	
-			
-		//Send needed difficulty items		
+	{
+		writer.WriteInt(CONFIG_STREAM_VERSION);
+
+		//Send needed difficulty items
 		writer.WriteBool(m_Difficulty.showPlayerOnMap);
 		writer.WriteInt(m_Difficulty.wantedTimeout);
 		writer.WriteInt(m_Difficulty.wantedOneTimeout);
@@ -584,7 +592,14 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		int i;
 		float f;
 		bool b;
-		
+
+		if (!reader.ReadInt(i)) return false;
+		if (i != CONFIG_STREAM_VERSION)
+		{
+			Print(string.Format("[Overthrow] Config JIP stream version mismatch (got %1, expected %2) — client and server are running different Overthrow versions", i, CONFIG_STREAM_VERSION), LogLevel.ERROR);
+			return false;
+		}
+
 		if (!reader.ReadBool(b)) return false;
 		m_Difficulty.showPlayerOnMap = b;
 		
