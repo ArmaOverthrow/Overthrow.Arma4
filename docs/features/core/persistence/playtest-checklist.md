@@ -7,6 +7,8 @@
 
 Everything below is what the harness **cannot** reach: real quit→continue (a world transition restarts the autotest harness), JIP/MP (needs two clients), UI, and live AI behavior. Ordered by risk — **do section A first**.
 
+> **RESULTS 2026-08-03 (SP run, first clean pass):** items **1–15 all ✅** with two notes: item 10 "hard to tell but probably ok if everything else is"; **item 12c ❌ — corpses do not survive a continue → BUG-018** (user-rated minor: EPF never persisted corpses either; new capability, not a regression). Five fixes landed during the run (see context.md 2026-08-03 session notes): pre-start spawn stealing the home, continue path unwired, Restart hijacked → chooser screen (×2 UX iterations), ammo-box VME (vanilla 1.7 landmine, modded guard), chooser not closing on Continue. **Section D (items 16–20, MP/dedicated) pending a dev build on a server.**
+
 ## A. Spawn & lifecycle (highest priority — spawn logic was re-parented off EPF in Phase 5)
 
 1. **You spawn at all.** New campaign → Start. You must get a character at your home in civilian clothes. (The EPF spawn base was measurably dead on this branch — character creation is now Overthrow-owned code that has never run in this exact form.)

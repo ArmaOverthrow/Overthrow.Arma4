@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{6B0F11B0AA01C001}UI/Layouts/Menu/ContinueGameMenu.layout"
+ Configurations {
+  LayoutResourceClass PC {
+  }
+  LayoutResourceClass XBOX_ONE : PC {
+  }
+  LayoutResourceClass XBOX_SERIES : PC {
+  }
+  LayoutResourceClass PS4 : PC {
+  }
+  LayoutResourceClass HEADLESS : PC {
+  }
+ }
+}

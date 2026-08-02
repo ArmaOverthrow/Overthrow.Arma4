@@ -7,13 +7,13 @@ class OVT_PlayerStartMenuHandlerComponent : ScriptComponent
 	protected bool m_bMenuShown = false;
 	protected bool m_bCheckedForMenu = false;
 
-	//! Set when this handler triggered a continue (LoadLatestSave) instead of showing the menu.
-	//! While it holds, EOnFrame watches the load: success replaces the world (and this component);
-	//! failure falls back to showing the start menu rather than leaving the start camera up forever.
-	protected bool m_bContinueRequested = false;
+	//! Frames spent waiting for the save cache to seed before deciding on the menu.
+	protected int m_iSeedWaitFrames = 0;
 
-	//! The game mode's persistence manager, kept for the continue watch above.
-	protected OVT_PersistenceManagerComponent m_Persistence;
+	//! How many frames to wait for the async save scan before showing the menu anyway (~10s).
+	//! The scan callback always fires in practice; this only stops a pathological hang from
+	//! leaving the player on the start camera with no menu at all.
+	static const int SEED_WAIT_MAX_FRAMES = 600;
 
 	//------------------------------------------------------------------------------------------------
 	protected override void OnPostInit(IEntity owner)
@@ -44,25 +44,6 @@ class OVT_PlayerStartMenuHandlerComponent : ScriptComponent
 				ClearEventMask(owner, EntityEvent.FRAME);
 				return;
 			}
-		}
-
-		// A continue was requested instead of the menu. A SUCCESSFUL load replaces the world (and
-		// this component with it), and IsLoadInProgress() stays true right up to that transition -
-		// so still being here with the load no longer in flight means it failed, and the player
-		// must get the start menu rather than a start camera that never ends.
-		if (m_bContinueRequested)
-		{
-			if (m_Persistence && m_Persistence.IsLoadInProgress())
-				return;
-
-			string diagnostic = "";
-			if (m_Persistence)
-				diagnostic = m_Persistence.GetLastLoadDiagnostic();
-
-			Print("[Overthrow] Continue failed (" + diagnostic + ") - showing the start menu instead", LogLevel.WARNING);
-			m_bContinueRequested = false;
-			ShowStartMenu();
-			return;
 		}
 
 		// Only check once for showing menu
@@ -96,53 +77,47 @@ class OVT_PlayerStartMenuHandlerComponent : ScriptComponent
 		bool isSinglePlayer = (RplSession.Mode() == RplMode.None);
 		bool isListenServerHost = (RplSession.Mode() == RplMode.Listen && Replication.IsServer());
 
-		// The menu-or-continue decision below branches on HasSaveGame(), which is served from an
-		// ASYNC cache (GetSaves has no synchronous form). Deciding on a stale false would offer a
-		// new campaign over an existing one, so the authority waits for the scan to answer first.
-		// Only SP and the listen host branch on it - clients and dedicated decide immediately (and
-		// a client's persistence manager never seeds, so waiting there would hang forever).
+		// Which screen shows - the Continue/Start chooser or the campaign-setup menu - is decided
+		// from HasSaveGame(), which is served from an ASYNC cache (GetSaves has no synchronous
+		// form). Deciding on a stale false would skip the chooser for a campaign that exists, so
+		// the authority waits for the scan to answer first (bounded). Only SP and the listen host
+		// wait - clients and dedicated never show the menu, and a client's manager never seeds.
 		if ((isSinglePlayer || isListenServerHost) && !mode.HasGameStarted()
 			&& !persistence.IsPlayingLoadedSave() && !persistence.IsSaveCacheSeeded())
-			return;
+		{
+			m_iSeedWaitFrames++;
+			if (m_iSeedWaitFrames < SEED_WAIT_MAX_FRAMES)
+				return;
+
+			Print("[Overthrow] Save scan never answered - showing the start menu without a continue option", LogLevel.WARNING);
+		}
 
 		Print("[Overthrow] Game mode and persistence ready, checking if we should show start menu");
 		m_bCheckedForMenu = true;
-		m_Persistence = persistence;
 
 		bool hasSave = persistence.HasSaveGame();
 
 		Print("[Overthrow] Game started: " + mode.HasGameStarted() + ", Has save: " + hasSave + ", Mode: " + RplSession.Mode() + ", IsServer: " + Replication.IsServer());
 
-		// The authority's decision when the campaign has not started:
-		// - no save -> show the start menu (new campaign)
-		// - a save exists -> CONTINUE it. This session was not launched from the save point
-		//   (IsPlayingLoadedSave() is false - Workbench play, or "Play" instead of "Continue"),
-		//   and nothing else in the boot flow loads one: the game mode is waiting for a start
-		//   menu that must not show, so without this call the start camera never ends.
-		// Never decide here for:
-		// - Dedicated servers (OVT_OverthrowGameMode.EOnInit owns that decision)
+		// Show start menu for:
+		// - Single player (RplMode.None)
+		// - Listen server HOST (host needs to configure and start - or continue - the game)
+		// The menu offers "Continue Save" when a save exists (OVT_StartGameContext hides it
+		// otherwise), which is how an existing campaign is resumed from a fresh boot; the player
+		// choosing is what keeps Reforger's "Restart" meaning "start over".
+		// Never show for:
+		// - Dedicated servers (OVT_OverthrowGameMode.EOnInit decides: continue or new game)
 		// - Clients connecting to servers (wait for server to start game)
 		// - Listen server clients (wait for host to start game)
 		// - A session launched from a save point (RestoreStartedCampaign drives the start)
 		if (!mode.HasGameStarted() && (isSinglePlayer || isListenServerHost) && !persistence.IsPlayingLoadedSave())
 		{
-			if (hasSave)
-			{
-				Print("[Overthrow] A save exists for this mission - continuing the campaign from its latest save point");
-				m_bContinueRequested = true;
-				persistence.LoadLatestSave();
-				// Frame updates stay on: the watch at the top of EOnFrame falls back to the start
-				// menu if the load fails.
-			}
-			else
-			{
-				string menuType = "single player";
-				if (isListenServerHost)
-					menuType = "listen server host";
-				Print("[Overthrow] Showing start menu for " + menuType);
-				ShowStartMenu();
-				// Keep frame updates running to activate input context
-			}
+			string menuType = "single player";
+			if (isListenServerHost)
+				menuType = "listen server host";
+			Print("[Overthrow] Showing start menu for " + menuType);
+			ShowStartMenu();
+			// Keep frame updates running to activate input context
 		}
 		else
 		{

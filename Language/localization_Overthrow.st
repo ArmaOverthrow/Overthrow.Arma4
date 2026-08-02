@@ -6995,6 +6995,28 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B0F11B0AA01C030}" {
+   Id "OVT-StartNewGame"
+   Target_en_us "Start New Game"
+   Target_fr_fr "Nouvelle partie"
+   Target_ru_ru "Начать новую игру"
+   Target_ko_kr "새 게임 시작"
+   Target_zh_cn "开始新游戏"
+   Target_uk_ua "Почати нову гру"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1785715200
+   Author "Aaron Static"
+   LastChanged ""
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{5D305DE5A4ECB590}" {
    Id "OVT-StopRenting"
    Target_en_us "Stop Renting"

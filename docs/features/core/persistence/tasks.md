@@ -129,7 +129,7 @@ Run the round-trip gate after each serializer; track case flips in context.md.
   19. **YOUR gear and position survive a continue.** Kit yourself out (rifle, vest, backpack with something identifiable in it), walk somewhere that is NOT your home, save, quit, continue. You must spawn **where you saved**, carrying **exactly** what you had — not at home in a civilian shirt. Console proof: `Requesting stored body <uuid> for player 1` then `Player 1 restored from their stored body, gear intact`. Any of `Persistence answered … - spawning a fresh one`, `No answer to player … - spawning a fresh one`, `Stored body … came back dead` means a fallback fired: you still have a character, but report the exact line. **Also check you were not given the difficulty's starting items a second time.**
   20. **Death is still complete loss.** Kit up, save (so a stored body exists), then die. You must respawn at HOME in the civilian loadout with nothing you were carrying — not with your gear back — and the respawn cost must still be charged. Then save/quit/continue and confirm the fresh civilian character is what comes back, i.e. the dead body was not resurrected as yours.
   21. **Corpses are still there to loot after a continue.** Kill an armed enemy (and get a recruit of yours killed if you can), do NOT loot them, save, quit, continue. The bodies must be back where they fell, **still carrying their weapons and inventory**, and still lootable. A dead recruit must NOT come back alive or rejoin your squad. Then leave a corpse alone for a long session and confirm it eventually disappears (garbage collection) — a corpse that is still standing there an hour later, or a save file that grows without bound across many firefights, is the one residual risk in this change (vanilla's `GarbageSystemState` is supposed to carry cleanup timers across the save; that is engine-native and could not be verified statically).
-- [ ] **Address findings** from the user's play-test
+- [ ] 🔄 **Address findings** from the user's play-test — **SP half DONE 2026-08-03: items 1–15 ✅** after five same-day fixes (home-stealing pre-start spawn, unwired continue path, Restart→chooser screen, ammo-box VME modded guard, chooser close-on-continue — all in context.md session notes). One finding filed and deferred: **BUG-018** (corpses don't survive continue, low — EPF never had this either). **Remaining: section D (items 16–20, JIP/MP/dedicated) once a dev build is on a server**
 
 ## Phase 8: GitHub #143 "Vehicle/Weapons Disappear" (2/2) ✅
 
@@ -154,7 +154,8 @@ Issue #143 had three components. Two were closed by the migration itself; this p
 
 ## Bugs & Issues
 
-**Active:** BUG-002, BUG-006 (no working save path in either system) — resolved by Phase 1-2 by design.
+**Active:** BUG-018 (corpses don't survive save/continue, playtest 12c — low, deferred; suspects in the bug body; add a round-trip suite case when fixing and prove it can fail).
+**Resolved:** BUG-002, BUG-006 (no working save path in either system) — resolved by Phase 1-2 by design, confirmed by the 2026-08-03 SP playtest.
 
 ## Technical Debt
 
