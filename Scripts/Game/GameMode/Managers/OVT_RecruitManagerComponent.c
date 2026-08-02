@@ -817,8 +817,10 @@ class OVT_RecruitManagerComponent : OVT_Component
     		SCR_AIGroup playerGroup = groupsManager.GetPlayerGroup(playerId);
     		if (playerGroup)
     		{
-        	// Violently force the AI agent directly into the group array on the server
-        	playerGroup.AddAgent(civilian.GetAIAgent());
+    			// Force the AI agent directly into the group array on the server
+    			AIControlComponent aiControl = AIControlComponent.Cast(civilian.FindComponent(AIControlComponent));
+    			if (aiControl)
+    				playerGroup.AddAgent(aiControl.GetAIAgent());
     		}
 		}		
 	}
