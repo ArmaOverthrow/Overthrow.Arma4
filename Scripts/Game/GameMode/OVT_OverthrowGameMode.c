@@ -406,9 +406,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	{
 		super.EOnFrame(owner, timeSlice);
 
-		// TEMP DIAGNOSTIC (2026-08-02, loading-spinner investigation) - orchestrator removes when closed.
-		OVT_TEMP_LoadingDiag.Tick();
-
 		if(DiagMenu.GetValue(250))
 		{
 			m_EconomyManager.DoAddPlayerMoney(SCR_PlayerController.GetLocalPlayerId(),1000);
@@ -923,10 +920,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	{
 		super.EOnInit(owner);
 
-		// TEMP DIAGNOSTIC (2026-08-02, loading-spinner investigation) - orchestrator removes when closed.
-		// The diagnostic class lives at the BOTTOM OF THIS FILE so Workbench needs no new-file discovery.
-		OVT_TEMP_LoadingDiag.Subscribe();
-
 		m_aInitializedPlayers = new set<string>;
 		m_aHintedPlayers = new set<string>;
 
@@ -1153,129 +1146,4 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		m_mPlayerGroups = new map<string, EntityID>;
 	}
 
-}
-
-//------------------------------------------------------------------------------------------------
-//! TEMPORARY DIAGNOSTIC (2026-08-02, Workbench loading-spinner investigation). DELETE WHEN CLOSED.
-//!
-//! Driven from OVT_OverthrowGameMode.EOnFrame. At ~10s/30s/60s after world start it dumps, with an
-//! [OVT-DIAG] prefix: the workspace widget tree (what is actually covering the screen), the top
-//! menu, the active camera, mission-header/save state, and the loading-screen enter/exit event
-//! counts. Read the [OVT-DIAG] lines from console.log after an F5 play that shows the spinner.
-//------------------------------------------------------------------------------------------------
-class OVT_TEMP_LoadingDiag
-{
-	protected static int s_iFrames;
-	protected static int s_iEnterCount;
-	protected static int s_iExitCount;
-	protected static bool s_bSubscribed;
-
-	//------------------------------------------------------------------------------------------------
-	static void Subscribe()
-	{
-		if (s_bSubscribed)
-			return;
-		s_bSubscribed = true;
-		ArmaReforgerLoadingAnim.s_OnEnterLoadingScreen.Insert(OnLoadingEnter);
-		ArmaReforgerLoadingAnim.m_onExitLoadingScreen.Insert(OnLoadingExit);
-		Print("[OVT-DIAG] loading-screen watchers subscribed");
-	}
-
-	//------------------------------------------------------------------------------------------------
-	protected static void OnLoadingEnter()
-	{
-		s_iEnterCount += 1;
-		Print("[OVT-DIAG] loading screen ENTER (count " + s_iEnterCount + ")");
-	}
-
-	//------------------------------------------------------------------------------------------------
-	protected static void OnLoadingExit()
-	{
-		s_iExitCount += 1;
-		Print("[OVT-DIAG] loading screen EXIT (count " + s_iExitCount + ")");
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Called every frame by the game mode (server or single instance).
-	static void Tick()
-	{
-		s_iFrames += 1;
-
-		if (s_iFrames == 600 || s_iFrames == 1800 || s_iFrames == 3600)
-			Dump();
-	}
-
-	//------------------------------------------------------------------------------------------------
-	protected static void Dump()
-	{
-		Print("[OVT-DIAG] ================ dump at frame " + s_iFrames + " ================");
-		Print("[OVT-DIAG] loading events so far: enter=" + s_iEnterCount + " exit=" + s_iExitCount);
-
-		MissionHeader header = GetGame().GetMissionHeader();
-		bool hasHeader = (header != null);
-		Print("[OVT-DIAG] mission header present: " + hasHeader);
-
-		SaveGameManager saves = GetGame().GetSaveGameManager();
-		if (saves)
-			Print("[OVT-DIAG] IsSavingEnabled=" + saves.IsSavingEnabled() + " IsSavingAllowed=" + saves.IsSavingAllowed() + " IsBusy=" + saves.IsBusy());
-
-		MenuManager menus = GetGame().GetMenuManager();
-		if (menus)
-		{
-			MenuBase top = menus.GetTopMenu();
-			if (top)
-				Print("[OVT-DIAG] top menu: " + top.Type().ToString());
-			else
-				Print("[OVT-DIAG] top menu: none");
-		}
-
-		CameraManager cams = GetGame().GetCameraManager();
-		if (cams)
-		{
-			CameraBase cam = cams.CurrentCamera();
-			if (cam)
-				Print("[OVT-DIAG] current camera: " + cam.Type().ToString() + " at " + cam.GetOrigin().ToString());
-			else
-				Print("[OVT-DIAG] current camera: none");
-		}
-		else
-		{
-			Print("[OVT-DIAG] no CameraManager");
-		}
-
-		WorkspaceWidget workspace = GetGame().GetWorkspace();
-		if (!workspace)
-		{
-			Print("[OVT-DIAG] no workspace");
-			return;
-		}
-
-		Print("[OVT-DIAG] workspace children (name | visible | opacity | zorder):");
-		Widget child = workspace.GetChildren();
-		int guard = 0;
-		while (child && guard < 64)
-		{
-			guard += 1;
-			string name = child.GetName();
-			if (name == "")
-				name = "<unnamed " + child.Type().ToString() + ">";
-			Print("[OVT-DIAG]   " + name + " | vis=" + child.IsVisible() + " | op=" + child.GetOpacity() + " | z=" + child.GetZOrder());
-
-			// One level deeper for containers that could be a full-screen cover
-			Widget grand = child.GetChildren();
-			int guard2 = 0;
-			while (grand && guard2 < 16)
-			{
-				guard2 += 1;
-				string gname = grand.GetName();
-				if (gname == "")
-					gname = "<unnamed " + grand.Type().ToString() + ">";
-				Print("[OVT-DIAG]     - " + gname + " | vis=" + grand.IsVisible() + " | op=" + grand.GetOpacity());
-				grand = grand.GetSibling();
-			}
-
-			child = child.GetSibling();
-		}
-		Print("[OVT-DIAG] ================ end dump ================");
-	}
 }

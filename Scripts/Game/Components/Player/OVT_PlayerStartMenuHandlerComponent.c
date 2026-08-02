@@ -97,6 +97,17 @@ class OVT_PlayerStartMenuHandlerComponent : ScriptComponent
 			Print("[Overthrow] Not showing start menu (multiplayer client, dedicated server, or game already started/saved)");
 			ClearEventMask(owner, EntityEvent.FRAME);
 		}
+
+		// Overthrow's UX owns the screen from here (start menu, or a spawn handled by
+		// OVT_SpawnLogic). Vanilla's SCR_RespawnSystemComponent parked a full-screen loading
+		// placeholder ("LoadingScreen" widget, z 100000, spinner + black background, SFX muted)
+		// over the workspace at join, and only ITS OWN spawn/deploy flows ever destroy it -
+		// Overthrow's custom spawn flow never runs those, so without this call the placeholder
+		// covers the game forever (the 2026-08-02 Workbench "endless spinner"; also the likely
+		// mechanism behind GitHub #143's "controls stuck, screen black, can hear the world").
+		SCR_RespawnSystemComponent respawnSystem = SCR_RespawnSystemComponent.GetInstance();
+		if (respawnSystem)
+			respawnSystem.DestroyLoadingPlaceholder();
 	}
 
 	//------------------------------------------------------------------------------------------------

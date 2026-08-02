@@ -538,7 +538,10 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 		if (!m_PersistenceSystem)
 		{
 			// Not fatal for the SaveGameManager half below, but nothing will actually be serialized.
-			Print("[Overthrow] No SCR_PersistenceSystem for this world - check the SCR_PersistenceSystem entry in Configs/Systems/ChimeraSystemsConfig.conf", LogLevel.ERROR);
+			// Only an ERROR in play mode: the Workbench editor world instantiates this component too,
+			// legitimately has no game systems, and an ERROR there reads as a broken config.
+			if (GetGame().InPlayMode())
+				Print("[Overthrow] No SCR_PersistenceSystem for this world - check the SCR_PersistenceSystem entry in Configs/Systems/ChimeraSystemsConfig.conf", LogLevel.ERROR);
 		}
 		else
 		{
