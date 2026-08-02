@@ -65,6 +65,13 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	protected bool m_bGameStarted = false;
 	//! Flag to trigger game start during the OnWorldPostProcess phase, typically used after loading a save.
 	protected bool m_bRequestStartOnPostProcess = false;
+	//! Flag indicating that OnWorldPostProcess has already run for this world.
+	//! Lets a late restore (persistence deserializes after post-process) still reach DoStartGame().
+	protected bool m_bWorldPostProcessed = false;
+	//! Flag indicating that a DoStartGame() call has already been scheduled.
+	//! DoStartGame() is not idempotent - a second call re-runs every PostGameStart() and re-registers
+	//! repeating timers - so every scheduling path goes through ScheduleStartGame().
+	protected bool m_bStartGameScheduled = false;
 
 	//! Tracks if the player has opened the Overthrow menu at least once.
 	bool m_bHasOpenedMenu = false;
@@ -270,6 +277,60 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Schedules DoStartGame() for the next call-queue tick, at most once per world.
+	//!
+	//! Two independent paths want the campaign started without the start menu - EOnInit when this
+	//! session was launched from a save point, and the persistence layer when the saved game mode
+	//! says the campaign was already running. Neither knows about the other, and DoStartGame() is not
+	//! re-entrant, so both go through here.
+	protected void ScheduleStartGame()
+	{
+		if (m_bStartGameScheduled)
+			return;
+
+		m_bStartGameScheduled = true;
+		GetGame().GetCallqueue().CallLater(DoStartGame);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Restores "this campaign was already started" while loading a save point.
+	//!
+	//! Called by OVT_OverthrowGameModeSerializer when the save says the campaign was running. It
+	//! deliberately runs the SECOND start path only:
+	//!   DoStartNewGame() GENERATES a campaign (base/town ownership, occupying faction seed) and must
+	//!   never run on a restore, or freshly generated ownership overwrites what was just loaded;
+	//!   DoStartGame() flips the started/initialized flags and runs each manager's PostGameStart().
+	//! That is precisely what the old EPF path did, and doing it through the shipped flag rather than
+	//! by writing m_bGameStarted directly keeps the restore honest: HasGameStarted() becomes true
+	//! because the campaign really did start, not because a serializer said so.
+	//!
+	//! IDEMPOTENT BY CONTRACT. Saved data can also be re-applied to an ALREADY RUNNING session
+	//! (OVT_PersistenceManagerComponent.ReapplyLatestSaveData), which re-runs the game mode
+	//! serializer's Deserialize and lands here a second time. A campaign that has already started
+	//! must not have its start sequence touched again - DoStartGame() is not re-entrant - so that case
+	//! returns before anything is written. ScheduleStartGame() carries its own once-only guard as a
+	//! second line of defence.
+	void RestoreStartedCampaign()
+	{
+		if (!IsMaster())
+			return;
+
+		// Already running: nothing to restore, and nothing here may be re-applied on top of it.
+		if (m_bGameStarted)
+			return;
+
+		// The start camera belongs to the new-campaign menu flow; a continued campaign never shows it.
+		m_bCameraSet = true;
+		m_bRequestStartOnPostProcess = true;
+
+		// Deserialization can land either side of OnWorldPostProcess depending on when the persistence
+		// system reaches the game mode entity, so cover both: the flag above is read by
+		// OnWorldPostProcess, and this covers the case where it has already been and gone.
+		if (m_bWorldPostProcessed)
+			ScheduleStartGame();
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Executes post-load logic after persistence data has been loaded.
 	//! Primarily handles real estate post-load procedures.
 	void DoPostLoad()
@@ -314,7 +375,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		// Iterate through all connected players
 		foreach (int playerId : playerIds)
 		{
-			string playerUid = EPF_Utils.GetPlayerUID(playerId);
+			string playerUid = OVT_Global.GetPlayerUID(playerId);
 
 			if (!playerUid || playerUid.IsEmpty())
 			{
@@ -344,6 +405,9 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	override void EOnFrame(IEntity owner, float timeSlice)
 	{
 		super.EOnFrame(owner, timeSlice);
+
+		// TEMP DIAGNOSTIC (2026-08-02, loading-spinner investigation) - orchestrator removes when closed.
+		OVT_TEMP_LoadingDiag.Tick();
 
 		if(DiagMenu.GetValue(250))
 		{
@@ -414,14 +478,100 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Persists necessary data before the game mode shuts down.
-	//! (Currently empty)
+	//! Last chance to write live world facts back into the manager records a save point will carry.
+	//!
+	//! Called from OVT_PersistenceManagerComponent.OnBeforeSave() for EVERY save (and on the shutdown
+	//! path), on the authority. Anything a manager tracks lazily - because keeping it current every
+	//! frame would be wasted work - has to be brought up to date here, or the save stores a value that
+	//! was true some time ago.
+	//!
+	//! Serializers must not do this themselves: they are pure codecs, and a codec that goes looking
+	//! for world entities would behave differently depending on when the system reached it.
 	void PreShutdownPersist()
 	{
+		if (!IsMaster())
+			return;
 
+		// Recruit bodies are deleted and rebuilt from their record's last known position, which is only
+		// refreshed when a body appears or disappears. Without this, a save taken mid-session brings
+		// recruits back where they were hired rather than where they were left.
+		OVT_RecruitManagerComponent recruits = OVT_RecruitManagerComponent.GetInstance();
+		if (recruits)
+			recruits.SyncRecruitPositions();
+
+		// The same problem for the players themselves: a player who is standing in the world right now
+		// has never passed through the disconnect capture, so this is the only place their character's
+		// persistence id is written down before the save. Without it, quit-to-menu and continue would
+		// hand them a fresh civilian body instead of the one they were carrying gear in.
+		if (m_PlayerManager)
+			m_PlayerManager.SyncPlayerBodyIds();
 	}
-	
-	
+
+	//------------------------------------------------------------------------------------------------
+	//! Asks the persistence system to re-match a character that has just died.
+	//!
+	//! WHY A CHARACTER HAS TO BE RE-MATCHED AT ALL. Rules are evaluated when an instance starts being
+	//! tracked, and every character is tracked from the moment it spawns (Character_Base.et carries the
+	//! native Persistence component). So a character is matched ALIVE and stays matched that way for the
+	//! rest of its existence unless something asks again - which for a corpse means it would be stored
+	//! under the AI/character configuration that Overthrow sets SelfSpawn 0 on, and would therefore never
+	//! come back. PersistenceSystem.ReloadConfig() is the ask; vanilla uses it for exactly this reason
+	//! when a player stops controlling an entity (SCR_SpawnLogic.c:167-173), a path Overthrow does not
+	//! travel because it hands characters over itself.
+	//!
+	//! TWICE, ON PURPOSE. This event is raised from the damage manager's damage-state-changed invoker,
+	//! and the rule reads the CHARACTER CONTROLLER's life state - two different components reacting to
+	//! the same native death. Rather than depend on which one updates first, the config is re-matched now
+	//! and again on the next frame. ReloadConfig is idempotent and costs one rule evaluation.
+	//! \param[in] victim The character that died.
+	//! \param[in] instigator Whoever killed it, unused here.
+	protected void OnCharacterKilledPersist(IEntity victim, IEntity instigator)
+	{
+		if (!victim)
+			return;
+
+		OVT_PersistenceTracking.ReloadConfig(victim);
+
+		GetGame().GetCallqueue().CallLater(ReloadDeadCharacterConfig, 1, false, victim);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Second pass of OnCharacterKilledPersist(), one frame later.
+	//! \param[in] victim The character that died. Null-checked: it may have been removed meanwhile.
+	protected void ReloadDeadCharacterConfig(IEntity victim)
+	{
+		if (!victim)
+			return;
+
+		OVT_PersistenceTracking.ReloadConfig(victim);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Neutralizes vanilla's end-of-game save purge. Overthrow's campaign IS the save.
+	//!
+	//! Vanilla behavior being removed (SCR_BaseGameMode.HandleOnGameModeEndSaveData, 1.7.0.54):
+	//! at game-mode end the authority disables saving and then - on dedicated servers, and in the
+	//! Workbench - runs PersistenceSystem.ClearStorage(PersistenceSessionStorage) followed by
+	//! SaveGameManager.Purge() on the active playthrough, unless -keepSessionSave is passed or the
+	//! persistence config says ShouldKeepSessionData(). That is correct for a one-shot scenario whose
+	//! save is worthless once the round ends; for a persistent revolution campaign it deletes the
+	//! whole playthrough on every restart cycle.
+	//!
+	//! Only the destructive half is dropped. Saving is still turned off once the mode has ended, so
+	//! nothing writes to a finished session. Doing it here rather than relying on -keepSessionSave
+	//! means server owners cannot lose their campaign by forgetting a CLI flag.
+	protected override void HandleOnGameModeEndSaveData()
+	{
+		if (!IsMaster())
+			return;
+
+		// After the game mode completes no more saving needs to be done.
+		SaveGameManager manager = GetGame().GetSaveGameManager();
+		if (manager)
+			manager.SetSavingAllowed(false);
+	}
+
+
 	//------------------------------------------------------------------------------------------------
 	//! Selects a random fallback location from the detected list.
 	//! \\return A random vector position from m_aFallbackSpawnPositions, or vector.Zero if the list is empty.
@@ -493,7 +643,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Handles player disconnection. Pauses persistence tracking and removes the player from the initialized list.
+	//! Handles player disconnection. Persists the character, releases tracking and removes the player from the initialized list.
 	//! \\param[in] playerId The ID of the disconnecting player.
 	//! \\param[in] cause The reason for disconnection.
 	//! \\param[in] timeout The disconnection timeout duration.
@@ -510,12 +660,20 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 				player.id = -1;
 			}
 
-			EPF_PersistenceComponent persistence = EPF_PersistenceComponent.Cast(controlledEntity.FindComponent(EPF_PersistenceComponent));
-			if(persistence)
-			{
-				persistence.PauseTracking();
-				persistence.Save();
-			}
+			// Write the leaving player's character record, then release tracking without deleting it.
+			// Save-before-release is vanilla's own order for this (SCR_SpawnLogic.c:107-108, :215-216);
+			// releasing first would leave the final write with nothing to write to. Both calls are
+			// no-ops when the character is not tracked.
+			OVT_PersistenceTracking.Save(controlledEntity);
+
+			// BETWEEN THE WRITE AND THE RELEASE is the only moment this id can be read cheaply: the
+			// explicit Save() above is the materialisation, so this is a pure lookup, and after the
+			// release the system no longer has an identity to hand out. Remembering it here is what lets
+			// OVT_SpawnLogic ask for THIS character again when the player reconnects, gear intact.
+			if(player)
+				m_PlayerManager.CapturePlayerBodyId(player, controlledEntity, false);
+
+			OVT_PersistenceTracking.Untrack(controlledEntity, true);
 		}
 
 		int i = m_aInitializedPlayers.Find(persId);
@@ -667,6 +825,13 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 
 	    // Teleport player to their assigned home if they're already spawned
 	    TeleportPlayerToHome(playerId, persistentId);
+
+	    // The player's character is created only now, once a home exists to spawn at. Before the
+	    // start menu completes there deliberately IS no character (no home yet -> body at the world
+	    // origin, and possessing it steals the camera/input from the menu - 2026-08-02 play-test).
+	    OVT_SpawnLogic spawnLogic = OVT_SpawnLogic.GetInstance();
+	    if (spawnLogic)
+	        spawnLogic.SpawnDeferredPlayer(playerId);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -757,7 +922,11 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	override void EOnInit(IEntity owner) //!EntityEvent.INIT
 	{
 		super.EOnInit(owner);
-		
+
+		// TEMP DIAGNOSTIC (2026-08-02, loading-spinner investigation) - orchestrator removes when closed.
+		// The diagnostic class lives at the BOTTOM OF THIS FILE so Workbench needs no new-file discovery.
+		OVT_TEMP_LoadingDiag.Subscribe();
+
 		m_aInitializedPlayers = new set<string>;
 		m_aHintedPlayers = new set<string>;
 
@@ -866,6 +1035,14 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			return;
 		}
 
+		// A character's persistence configuration is chosen when it starts being tracked and is only
+		// re-chosen on request, so a character that DIES while tracked keeps the configuration it was
+		// matched with while alive. Corpses need their own (they self-spawn on load, live characters must
+		// not - see OVT_DeadCharacterPersistenceConfigRule), so ask for a re-match at the one moment the
+		// answer changes. Server only: the persistence system is registered SystemLocation Server, and
+		// this event is raised on clients too.
+		m_OnCharacterKilled.Insert(OnCharacterKilledPersist);
+
 		OVT_Global.GetConfig().LoadConfig();
 
 		//Dynamic weather enabled by default (add config for this later)
@@ -877,8 +1054,14 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		if(m_Persistence)
 		{
 			Print("[Overthrow] Initializing Persistence");
-			if(m_Persistence.HasSaveGame())
+			// IsPlayingLoadedSave() - not HasSaveGame() - is the question that matters here: "was THIS
+			// session launched from a save point?". It is synchronous and unambiguous, whereas
+			// HasSaveGame() answers "does a save exist somewhere on disk", is served from an async
+			// cache that has usually not resolved yet at this point in boot, and is true even when the
+			// player deliberately started a brand new playthrough.
+			if(m_Persistence.IsPlayingLoadedSave())
 			{
+				Print("[Overthrow] Session was launched from a save point, continuing the campaign");
 				m_bCameraSet = true;
 				m_bRequestStartOnPostProcess = true;
 			}else{
@@ -936,10 +1119,11 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		Print("[Overthrow] World Post Processing complete..");
 		super.OnWorldPostProcess(world);
 		SCR_FuelConsumptionComponent.SetGlobalFuelConsumptionScale(1.0);//Chris - Changed Global Fuel Consumption to 1
+		m_bWorldPostProcessed = true;
 		GetGame().GetCallqueue().CallLater(DoPostLoad);
 		if(m_bRequestStartOnPostProcess)
 		{
-			GetGame().GetCallqueue().CallLater(DoStartGame);
+			ScheduleStartGame();
 		}
 	};
 
@@ -969,4 +1153,129 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		m_mPlayerGroups = new map<string, EntityID>;
 	}
 
+}
+
+//------------------------------------------------------------------------------------------------
+//! TEMPORARY DIAGNOSTIC (2026-08-02, Workbench loading-spinner investigation). DELETE WHEN CLOSED.
+//!
+//! Driven from OVT_OverthrowGameMode.EOnFrame. At ~10s/30s/60s after world start it dumps, with an
+//! [OVT-DIAG] prefix: the workspace widget tree (what is actually covering the screen), the top
+//! menu, the active camera, mission-header/save state, and the loading-screen enter/exit event
+//! counts. Read the [OVT-DIAG] lines from console.log after an F5 play that shows the spinner.
+//------------------------------------------------------------------------------------------------
+class OVT_TEMP_LoadingDiag
+{
+	protected static int s_iFrames;
+	protected static int s_iEnterCount;
+	protected static int s_iExitCount;
+	protected static bool s_bSubscribed;
+
+	//------------------------------------------------------------------------------------------------
+	static void Subscribe()
+	{
+		if (s_bSubscribed)
+			return;
+		s_bSubscribed = true;
+		ArmaReforgerLoadingAnim.s_OnEnterLoadingScreen.Insert(OnLoadingEnter);
+		ArmaReforgerLoadingAnim.m_onExitLoadingScreen.Insert(OnLoadingExit);
+		Print("[OVT-DIAG] loading-screen watchers subscribed");
+	}
+
+	//------------------------------------------------------------------------------------------------
+	protected static void OnLoadingEnter()
+	{
+		s_iEnterCount += 1;
+		Print("[OVT-DIAG] loading screen ENTER (count " + s_iEnterCount + ")");
+	}
+
+	//------------------------------------------------------------------------------------------------
+	protected static void OnLoadingExit()
+	{
+		s_iExitCount += 1;
+		Print("[OVT-DIAG] loading screen EXIT (count " + s_iExitCount + ")");
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Called every frame by the game mode (server or single instance).
+	static void Tick()
+	{
+		s_iFrames += 1;
+
+		if (s_iFrames == 600 || s_iFrames == 1800 || s_iFrames == 3600)
+			Dump();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	protected static void Dump()
+	{
+		Print("[OVT-DIAG] ================ dump at frame " + s_iFrames + " ================");
+		Print("[OVT-DIAG] loading events so far: enter=" + s_iEnterCount + " exit=" + s_iExitCount);
+
+		MissionHeader header = GetGame().GetMissionHeader();
+		bool hasHeader = (header != null);
+		Print("[OVT-DIAG] mission header present: " + hasHeader);
+
+		SaveGameManager saves = GetGame().GetSaveGameManager();
+		if (saves)
+			Print("[OVT-DIAG] IsSavingEnabled=" + saves.IsSavingEnabled() + " IsSavingAllowed=" + saves.IsSavingAllowed() + " IsBusy=" + saves.IsBusy());
+
+		MenuManager menus = GetGame().GetMenuManager();
+		if (menus)
+		{
+			MenuBase top = menus.GetTopMenu();
+			if (top)
+				Print("[OVT-DIAG] top menu: " + top.Type().ToString());
+			else
+				Print("[OVT-DIAG] top menu: none");
+		}
+
+		CameraManager cams = GetGame().GetCameraManager();
+		if (cams)
+		{
+			CameraBase cam = cams.CurrentCamera();
+			if (cam)
+				Print("[OVT-DIAG] current camera: " + cam.Type().ToString() + " at " + cam.GetOrigin().ToString());
+			else
+				Print("[OVT-DIAG] current camera: none");
+		}
+		else
+		{
+			Print("[OVT-DIAG] no CameraManager");
+		}
+
+		WorkspaceWidget workspace = GetGame().GetWorkspace();
+		if (!workspace)
+		{
+			Print("[OVT-DIAG] no workspace");
+			return;
+		}
+
+		Print("[OVT-DIAG] workspace children (name | visible | opacity | zorder):");
+		Widget child = workspace.GetChildren();
+		int guard = 0;
+		while (child && guard < 64)
+		{
+			guard += 1;
+			string name = child.GetName();
+			if (name == "")
+				name = "<unnamed " + child.Type().ToString() + ">";
+			Print("[OVT-DIAG]   " + name + " | vis=" + child.IsVisible() + " | op=" + child.GetOpacity() + " | z=" + child.GetZOrder());
+
+			// One level deeper for containers that could be a full-screen cover
+			Widget grand = child.GetChildren();
+			int guard2 = 0;
+			while (grand && guard2 < 16)
+			{
+				guard2 += 1;
+				string gname = grand.GetName();
+				if (gname == "")
+					gname = "<unnamed " + grand.Type().ToString() + ">";
+				Print("[OVT-DIAG]     - " + gname + " | vis=" + grand.IsVisible() + " | op=" + grand.GetOpacity());
+				grand = grand.GetSibling();
+			}
+
+			child = child.GetSibling();
+		}
+		Print("[OVT-DIAG] ================ end dump ================");
+	}
 }

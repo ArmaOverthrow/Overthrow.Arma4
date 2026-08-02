@@ -189,8 +189,193 @@ class OVT_ResistanceFactionManager: OVT_Component
 		GetGame().GetCallqueue().CallLater(SpawnGarrisons, 0);
 	}	
 	
+	//------------------------------------------------------------------------------------------------
+	//! Applies the persisted resistance state: player faction, camps and FOBs.
+	//!
+	//! Called from OVT_ResistanceManagerSerializer.Deserialize().
+	//!
+	//! SPAWNS NOTHING. Restored garrison prefab lists are replayed by SpawnGarrisons() during
+	//! PostGameStart, the same path a fresh campaign start takes.
+	//!
+	//! NO RPC. Clients receive camps and FOBs through the manager's normal replication.
+	//!
+	//! IDEMPOTENT: records are matched by persistent id (or position, for saves written before ids
+	//! existed) and updated in place, so re-applying the same data on a live session cannot duplicate
+	//! a camp.
+	//! \param[in] playerFactionKey Faction key the campaign is being fought for, may be empty.
+	//! \param[in] camps Persisted camp records, may be null.
+	//! \param[in] fobs Persisted FOB records, may be null.
+	void ApplyPersistedResistance(string playerFactionKey, array<ref OVT_PersistedCamp> camps, array<ref OVT_PersistedFOB> fobs)
+	{
+		ApplyPersistedPlayerFaction(playerFactionKey);
+
+		if (!m_Camps)
+			m_Camps = new array<ref OVT_CampData>;
+
+		if (!m_FOBs)
+			m_FOBs = new array<ref OVT_FOBData>;
+
+		if (camps)
+		{
+			foreach (OVT_PersistedCamp campRecord : camps)
+			{
+				if (!campRecord)
+					continue;
+
+				OVT_CampData camp = FindPersistedCamp(campRecord);
+				if (!camp)
+				{
+					camp = new OVT_CampData();
+					camp.persistentId = campRecord.persistentId;
+					m_Camps.Insert(camp);
+				}
+
+				camp.name = campRecord.name;
+				camp.location = campRecord.location;
+				camp.owner = campRecord.owner;
+				camp.isPrivate = campRecord.isPrivate;
+				ApplyPersistedGarrison(camp.garrison, campRecord.garrison);
+			}
+		}
+
+		if (fobs)
+		{
+			foreach (OVT_PersistedFOB fobRecord : fobs)
+			{
+				if (!fobRecord)
+					continue;
+
+				OVT_FOBData fob = FindPersistedFOB(fobRecord);
+				if (!fob)
+				{
+					fob = new OVT_FOBData();
+					fob.persistentId = fobRecord.persistentId;
+					m_FOBs.Insert(fob);
+				}
+
+				fob.name = fobRecord.name;
+				fob.location = fobRecord.location;
+				fob.owner = fobRecord.owner;
+				fob.isPriority = fobRecord.isPriority;
+				ApplyPersistedGarrison(fob.garrison, fobRecord.garrison);
+			}
+		}
+
+		// id is the array index everywhere it is used, so it is re-derived rather than stored.
+		foreach (int campIndex, OVT_CampData liveCamp : m_Camps)
+		{
+			if (liveCamp)
+				liveCamp.id = campIndex;
+		}
+
+		foreach (int fobIndex, OVT_FOBData liveFob : m_FOBs)
+		{
+			if (liveFob)
+				liveFob.id = fobIndex;
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Restores the faction the player is fighting for.
+	//!
+	//! Only ever applied when the save actually names one. EPF substituted a hardcoded "FIA" for an
+	//! empty key, which could overwrite a perfectly valid live configuration with a guess.
+	//! \param[in] playerFactionKey Saved faction key, may be empty.
+	protected void ApplyPersistedPlayerFaction(string playerFactionKey)
+	{
+		if (playerFactionKey == "")
+		{
+			Print("[Overthrow] The save names no player faction - keeping the configured one", LogLevel.WARNING);
+			return;
+		}
+
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!config)
+			return;
+
+		FactionManager factionManager = GetGame().GetFactionManager();
+		if (!factionManager)
+			return;
+
+		Faction faction = factionManager.GetFactionByKey(playerFactionKey);
+		if (!faction)
+		{
+			Print(string.Format("[Overthrow] Saved player faction '%1' no longer exists - keeping the configured one", playerFactionKey), LogLevel.WARNING);
+			return;
+		}
+
+		config.m_sPlayerFaction = playerFactionKey;
+		config.m_iPlayerFactionIndex = factionManager.GetFactionIndex(faction);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Finds the live camp a save record belongs to, by persistent id or - for records written before
+	//! ids existed - by position.
+	//! \param[in] record The saved record.
+	//! \return The live camp, or null when it has to be created.
+	protected OVT_CampData FindPersistedCamp(notnull OVT_PersistedCamp record)
+	{
+		foreach (OVT_CampData camp : m_Camps)
+		{
+			if (!camp)
+				continue;
+
+			if (record.persistentId != "" && camp.persistentId == record.persistentId)
+				return camp;
+
+			if (record.persistentId == "" && camp.persistentId == "" && vector.Distance(camp.location, record.location) < 1)
+				return camp;
+		}
+
+		return null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! FOB equivalent of FindPersistedCamp().
+	//! \param[in] record The saved record.
+	//! \return The live FOB, or null when it has to be created.
+	protected OVT_FOBData FindPersistedFOB(notnull OVT_PersistedFOB record)
+	{
+		foreach (OVT_FOBData fob : m_FOBs)
+		{
+			if (!fob)
+				continue;
+
+			if (record.persistentId != "" && fob.persistentId == record.persistentId)
+				return fob;
+
+			if (record.persistentId == "" && fob.persistentId == "" && vector.Distance(fob.location, record.location) < 1)
+				return fob;
+		}
+
+		return null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Rebuilds a garrison prefab list from a save record.
+	//! \param[in] target The live prefab list, may be null.
+	//! \param[in] source The saved prefab list, may be null.
+	protected void ApplyPersistedGarrison(array<ref ResourceName> target, array<ResourceName> source)
+	{
+		if (!target)
+			return;
+
+		target.Clear();
+
+		if (!source)
+			return;
+
+		foreach (ResourceName prefab : source)
+		{
+			if (prefab.IsEmpty())
+				continue;
+
+			target.Insert(prefab);
+		}
+	}
+
 	protected void SpawnGarrisons()
-	{	
+	{
 		foreach(OVT_CampData fob : m_Camps)
 		{
 			foreach(ResourceName res : fob.garrison)
@@ -465,14 +650,20 @@ class OVT_ResistanceFactionManager: OVT_Component
 		
 		m_OnPlace.Invoke(entity, placeable, playerId);
 		
-		OVT_PlayerOwnerComponent playerowner = EPF_Component<OVT_PlayerOwnerComponent>.Find(entity);
+		OVT_PlayerOwnerComponent playerowner = OVT_ComponentFinder<OVT_PlayerOwnerComponent>.Find(entity);
 		if(playerowner)
 		{
 			string playerUid = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 			playerowner.SetPlayerOwner(playerUid);
 			playerowner.SetLocked(false);
 		}
-		
+
+		// Include the placed object in save points. Placeables are spawned from prefabs Overthrow
+		// mostly does not own, so they carry no native Persistence component and have to be
+		// registered from script - see OVT_PersistenceTracking. Done last so an object a handler
+		// rejected (deleted above) is never registered.
+		OVT_PersistenceTracking.Track(entity);
+
 		return entity;
 	}
 	
@@ -516,9 +707,12 @@ class OVT_ResistanceFactionManager: OVT_Component
 		{
 			buildable.handler.OnPlace(entity, playerId);
 		}
-		
+
 		m_OnBuild.Invoke(entity, buildable, playerId);
-		
+
+		// Include the built structure in save points - see the matching call in PlaceItem().
+		OVT_PersistenceTracking.Track(entity);
+
 		return entity;
 	}
 	
@@ -1230,7 +1424,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		if (!entity || !m_aFOBCleanupEntities) return false;
 		
 		// Check for placeable component (tents, equipment boxes, etc.)
-		OVT_PlaceableComponent placeable = EPF_Component<OVT_PlaceableComponent>.Find(entity);
+		OVT_PlaceableComponent placeable = OVT_ComponentFinder<OVT_PlaceableComponent>.Find(entity);
 		if (placeable)
 		{
 			m_aFOBCleanupEntities.Insert(entity);
@@ -1238,7 +1432,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		}
 		
 		// Check for buildable component (guard towers, medical tents, etc.)
-		OVT_BuildableComponent buildable = EPF_Component<OVT_BuildableComponent>.Find(entity);
+		OVT_BuildableComponent buildable = OVT_ComponentFinder<OVT_BuildableComponent>.Find(entity);
 		if (buildable)
 		{
 			m_aFOBCleanupEntities.Insert(entity);

@@ -203,7 +203,7 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 		
 		TextWidget text = TextWidget.Cast(m_wRoot.FindAnyWidget("DebugText"));
 		
-		CharacterPerceivableComponent percieve = EPF_Component<CharacterPerceivableComponent>.Find(m_player);
+		CharacterPerceivableComponent percieve = OVT_ComponentFinder<CharacterPerceivableComponent>.Find(m_player);
 		if(percieve)
 		{
 			text.SetText(percieve.GetVisualRecognitionFactor().ToString());

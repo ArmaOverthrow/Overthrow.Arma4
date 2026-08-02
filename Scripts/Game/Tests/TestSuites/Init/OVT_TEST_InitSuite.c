@@ -230,6 +230,117 @@ class OVT_TEST_Init_Controllers_AreRegistered : SCR_AutotestCaseBase
 }
 
 //------------------------------------------------------------------------------------------------
+//! Reforger's vanilla persistence system is registered for the Overthrow world and did not fail
+//! its own setup.
+//!
+//! Two independent failure modes, one case, because they are the same wiring:
+//!  1. GetScriptedInstance() null - Configs/Systems/ChimeraSystemsConfig.conf lost its
+//!     SCR_PersistenceSystem entry, or the world's SystemSettings chain stopped passing through it.
+//!     Nothing persistence-related can work; every save is a silent no-op.
+//!  2. State FAILURE - the system exists but Configs/Systems/Persistence/Overthrow.conf could not be
+//!     loaded (bad GUID reference, malformed conf). Hand-authored conf GUIDs fail SILENTLY in the
+//!     Workbench, so this is the only automated tripwire the migration has for that class of typo.
+//!
+//! ACTIVE is asserted rather than merely "not FAILURE" because INIT/SETUP are world-load states:
+//! vanilla treats "below ACTIVE" as "load still in progress" (SCR_PersistenceSystem.IsLoadInProgress,
+//! and SCR_SpawnLogic gives up on persistent player data when the state is not ACTIVE), and Main
+//! steps only run after Setup_AwaitWorld has completed the world load. The failure message names
+//! the observed state, so a build that turns setup asynchronous reports exactly what it reached
+//! instead of hiding behind a weaker assertion - if that ever happens, loosen this deliberately
+//! (to "not FAILURE") and record why. Never add retries.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Persistence_SystemIsOnline : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		SCR_PersistenceSystem persistence = SCR_PersistenceSystem.GetScriptedInstance();
+		if (!persistence)
+		{
+			SetResultFailure("SCR_PersistenceSystem.GetScriptedInstance() is null - the persistence system is not registered for this world. Check the SCR_PersistenceSystem entry in Configs/Systems/ChimeraSystemsConfig.conf.");
+			return true;
+		}
+
+		EPersistenceSystemState state = persistence.GetState();
+
+		if (state == EPersistenceSystemState.FAILURE)
+		{
+			SetResultFailure("Persistence system state is FAILURE - its config could not be loaded. Check Configs/Systems/Persistence/Overthrow.conf and the GUID it inherits.");
+			return true;
+		}
+
+		if (state != EPersistenceSystemState.ACTIVE)
+		{
+			SetResultFailure("Persistence system state is %1, expected ACTIVE. INIT and SETUP mean the world load has not finished setting persistence up.",
+				typename.EnumToString(EPersistenceSystemState, state));
+			return true;
+		}
+
+		PrintFormat("Persistence system online, state %1", typename.EnumToString(EPersistenceSystemState, state));
+		SetResultSuccess();
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! The persistence system that is online is running OVERTHROW's persistence config, not somebody
+//! else's.
+//!
+//! Separate from the case above on purpose. "A persistence system exists" and "our config is the one
+//! in force" are different claims with different causes, and only the second one tells us that
+//! Configs/Systems/Persistence/Overthrow.conf was actually resolved through the
+//! Configs/Systems/ChimeraSystemsConfig.conf entry. Several vanilla SystemSettings configs
+//! (MissionSystems.conf) register an SCR_PersistenceSystem of their own pointing at
+//! EditableMission.conf; if a world's chain resolves one of those instead, the case above still
+//! passes while every Overthrow collection and serializer binding silently does not exist.
+//!
+//! The probe is the "Overthrow" collection that Overthrow.conf adds on top of vanilla Common.conf -
+//! looked up by display name, the same way SCR_SpawnLogic looks up "Player"/"Character".
+//! If this goes red while the case above is green, the config is not in force: nothing about the
+//! script layer will fix it, the SystemSettings chain is what has to change.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Persistence_OverthrowConfigLoaded : SCR_AutotestCaseBase
+{
+	//! Display name of the collection declared in Configs/Systems/Persistence/Overthrow.conf.
+	static const string OVERTHROW_COLLECTION = "Overthrow";
+
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		SCR_PersistenceSystem persistence = SCR_PersistenceSystem.GetScriptedInstance();
+		if (!persistence)
+		{
+			SetResultFailure("SCR_PersistenceSystem.GetScriptedInstance() is null - see OVT_TEST_Init_Persistence_SystemIsOnline for the wiring this depends on.");
+			return true;
+		}
+
+		// Sanity anchor: an inherited vanilla collection must resolve, otherwise a null result below
+		// would only prove that collection lookup itself is broken.
+		PersistenceCollection vanillaCollection = persistence.FindCollection("Character");
+		if (!vanillaCollection)
+		{
+			SetResultFailure("FindCollection('Character') is null - the loaded persistence config does not even contain vanilla Common.conf's collections, so no config comparison is meaningful.");
+			return true;
+		}
+
+		PersistenceCollection overthrowCollection = persistence.FindCollection(OVERTHROW_COLLECTION);
+		if (!overthrowCollection)
+		{
+			SetResultFailure("FindCollection('%1') is null - the live persistence system is NOT running Configs/Systems/Persistence/Overthrow.conf. Check that the SCR_PersistenceSystem entry in Configs/Systems/ChimeraSystemsConfig.conf is the one this world's SystemSettings chain resolves.", OVERTHROW_COLLECTION);
+			return true;
+		}
+
+		PrintFormat("Overthrow persistence config in force (collection '%1' resolved)", OVERTHROW_COLLECTION);
+		SetResultSuccess();
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
 //! The economy's price and demand seams answer their own public setters, and GetBuyPrice() applies
 //! the configured shop profit margin on top of the base price.
 //!

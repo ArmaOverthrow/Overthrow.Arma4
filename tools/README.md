@@ -270,30 +270,30 @@ shell ever gets a chance to interpret them.
 
 | Target | GUID | Config | Suites (execution order is alphabetical, not config order) | Cases | Typical |
 |---|---|---|---|---|---|
-| **Fast** | `"{6A6E29FF47ECB840}"` | `Configs/Tests/OVT_TestGroup_Fast.conf` | `OVT_TEST_InitSuite`, `OVT_TEST_LogicSuite` | **18** | exit 0, **13–16 s** |
-| **All** | `"{6A6E2A002F53A581}"` | `Configs/Tests/OVT_TestGroup_All.conf` | `OVT_TEST_CampaignSuite`, `OVT_TEST_InitSuite`, `OVT_TEST_LogicSuite`, `OVT_TEST_PersistenceSuite` | **30** | exit 0, **16–19 s** |
+| **Fast** | `"{6A6E29FF47ECB840}"` | `Configs/Tests/OVT_TestGroup_Fast.conf` | `OVT_TEST_InitSuite`, `OVT_TEST_LogicSuite` | **20** | exit 0, **13–16 s** |
+| **All** | `"{6A6E2A002F53A581}"` | `Configs/Tests/OVT_TestGroup_All.conf` | `OVT_TEST_CampaignSuite`, `OVT_TEST_InitSuite`, `OVT_TEST_LogicSuite`, `OVT_TEST_PersistenceSuite`, `OVT_TEST_PersistenceRoundTripSuite` | **42** | exit 0, **~30 s** |
 
 ```bash
-tools/run-tests.sh "{6A6E29FF47ECB840}"   # Fast — 18 cases
-tools/run-tests.sh "{6A6E2A002F53A581}"   # All  — 30 cases
+tools/run-tests.sh "{6A6E29FF47ECB840}"   # Fast — 20 cases
+tools/run-tests.sh "{6A6E2A002F53A581}"   # All  — 42 cases
 ```
 
 Deliberately in **neither** group: `OVT_TEST_MetaSuite` (always red by design)
-and `OVT_TEST_PersistenceRoundTripSuite` (quarantined acceptance gate — see
-below). Verified, not assumed: in an All run the harness listing shows
-`OVT_TEST_MetaSuite: 0` and `OVT_TEST_PersistenceRoundTripSuite: 0`, and
-neither contributes a `<testcase>` to `junit.xml`. `OVT_TEST_SmokeSuite` is
-also excluded — it asserts nothing the tier suites do not.
+and `OVT_TEST_SmokeSuite` (asserts nothing the tier suites do not).
+`OVT_TEST_PersistenceRoundTripSuite` joined the All group on 2026-08-02, when
+its exit-code flip (1 → 0) discharged the `core/persistence` acceptance
+criterion and its quarantine was lifted per its own written procedure.
 
 **Recommended CI usage:**
 
 ```bash
-# reset the save DB first — never without --profile, see the warning below
-.scripts/reset_save.sh --profile OverthrowCI
-
 tools/run-tests.sh "{6A6E29FF47ECB840}"   # every push
 tools/run-tests.sh "{6A6E2A002F53A581}"   # nightly / pre-merge / release
 ```
+
+(`run-tests.sh` resets the OverthrowCI save state itself before every run —
+the round-trip suite's fresh-session precondition — unless `OVERTHROW_SAVE_DIR`
+pins a fixture.)
 
 The split buys scope, not wall time: All is only ~3 s slower than Fast, but
 Fast cannot be reddened by campaign or persistence state. Neither group needs
@@ -302,8 +302,11 @@ Fast cannot be reddened by campaign or persistence state. Neither group needs
 **What a green All run does not prove.** It is one client process, so
 join-in-progress and everything else multiplayer is untested — that is the most
 common regression class in this project. Nor does it cover UI, performance, AI
-movement (the navmesh does not load in the test world), or the save/reload
-round-trip, which is written but gated (below). Treat exit 0 as a floor, not a
+movement (the navmesh does not load in the test world), or the true
+quit-and-continue restart path (the round-trip suite exercises save → dirty →
+in-session re-apply through the persistence storage; `SaveGameManager.Load`'s
+world transition restarts the autotest harness and cannot be covered here — it
+is on the manual play-test checklist). Treat exit 0 as a floor, not a
 release decision.
 
 **Adding a suite to a group:** append an entry to the `.conf`'s `m_aSuites`
@@ -397,33 +400,32 @@ Green run ~14–22 s, red ~13–15 s, degenerate (no world transition) ~7–8 s 
 each including full client boot and two test-world loads. Determinism:
 same tree ⇒ same exit code and same summary.
 
-### Persistence acceptance gate (`core/persistence`)
+### Persistence round-trip suite (`core/persistence`)
 
-`OVT_TEST_PersistenceRoundTripSuite` is **quarantined and red on purpose**. It
-is in no group config, is never part of a default or CI run, and **its exit
-code is the `core/persistence` migration's acceptance criterion**: the
-branch has no working save path in either persistence system, so a save +
-reload round-trip cannot pass yet.
+`OVT_TEST_PersistenceRoundTripSuite` was authored quarantined and red on
+purpose: its exit-code flip from 1 to 0 **was** the `core/persistence`
+migration's acceptance criterion. The flip happened on 2026-08-02 (vanilla
+persistence landed) and the suite now runs green as part of the **All** group.
 
 ```bash
-# 1. establish the save-state precondition (REQUIRED — see below)
-.scripts/reset_save.sh --profile OverthrowCI          # fresh campaign
-# …or, for a known saved state once fixtures exist:
-.scripts/activate_save.sh <name> --profile OverthrowCI
-
-# 2. run the gate
-tools/run-tests.sh OVT_TEST_PersistenceRoundTripSuite
+tools/run-tests.sh OVT_TEST_PersistenceRoundTripSuite   # just the round trip
+tools/run-tests.sh "{6A6E2A002F53A581}"                 # whole All group
 ```
 
-| Exit | Meaning |
-|---|---|
-| **1** | Expected **today**. `.tmp/run-tests/junit.xml` carries `Persistence capability absent: SaveGame() produced no save (HasSaveGame() still false). The vanilla-persistence migration is not complete.` on every case. |
-| **0** | **The migration is complete.** Delete the quarantine header, add the suite to the All group, and update `docs/features/core/persistence/`. |
+Its capability case asserts the no-save → save **transition**, which needs a
+fresh session — `run-tests.sh` establishes that itself by running
+`reset_save.sh --profile OverthrowCI` before every launch. The reload half is
+an **in-session re-apply** through the persistence storage (save → dirty →
+re-apply → assert); the true savepoint → `SaveGameManager.Load` → restored
+campaign path restarts the autotest harness and is manual-play-test territory.
 
-The reset is not optional decoration: the suite's first case asserts that no
-save exists *before* it saves and one exists *after*, which is what makes a
-save layer that merely claims to have saved detectable. Running the gate
-against a stale save reports a precondition violation rather than a pass.
+**10 cases** since 2026-08-02: the capability gate, eight save→dirty→re-apply
+state kinds, and one **per-instance** round trip
+(`..._VehicleDespawnRespawn_KeepsOwnerAndContents`, GitHub #143) that takes no
+save point at all — it writes one vehicle's record, deletes the instance, asks
+storage for it back and asserts owner, lock state, position and fuel. That case
+uses neither of the suite's two persistence-layer seams, so it cannot disturb
+the fresh-session precondition above.
 
 **Never run the `.scripts/` save tools without `--profile OverthrowCI` (or an
 explicit `OVERTHROW_SAVE_DIR`)** — their default target is the user's real
@@ -527,18 +529,19 @@ there must be deleted afterwards.
 .scripts/activate_save.sh --profile OverthrowCI testworld_baserecruit_SP
 ```
 
-For the tier suites this is belt-and-braces today: nothing writes a save on this
-branch (`HasSaveGame()` is hardcoded `false`), and the verdicts were verified
-identical with and without the reset. It is **load-bearing for the acceptance
-gate**, whose first case asserts that no save exists before it saves and one
-exists after.
+`run-tests.sh` performs the reset itself before every launch, so the manual
+step above is only needed outside the harness. The reset is **load-bearing for
+the round-trip suite**, whose first case asserts that no save exists before it
+saves and one exists after.
 
-**Migration note:** all three scripts are written against **EPF's**
-`.db/Overthrow` layout. Vanilla persistence stores saves elsewhere and its
-`SaveGameManager` exposes no path to script, so the replacement location can
-only be established empirically once the migration lands — at which point the
-guard's suffix and the three `DEFAULT_SAVE_DIR` values must be updated together.
-Recorded as migration work in `docs/features/core/persistence/context.md`.
+**Save layout (established empirically 2026-08-02):** vanilla persistence
+writes save points to
+`<My Games>/<profile>/profile/.save/app<appid>_user<uid>/game/<mission>/playthrough<NNN>/savepoint<NNN>/`
+(`meta-info.json` + `WorldState/*.blob`); the test world's mission dir is
+`OVT-Campaign-Test`. `reset_save.sh` deletes both the legacy EPF `.db/Overthrow`
+tree and every `profile/.save/*/game` dir (never `settings/`).
+`backup_save.sh`/`activate_save.sh` still speak only EPF and are pending the
+fixture rework (`docs/features/core/persistence/tasks.md`, Phase 6).
 
 ---
 

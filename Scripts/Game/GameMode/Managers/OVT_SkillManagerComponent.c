@@ -196,7 +196,7 @@ class OVT_SkillManagerComponent: OVT_Component
 	void OnAIKilled(IEntity killed, IEntity instigator)
 	{
 		if(!instigator) return;
-		FactionAffiliationComponent fac = EPF_Component<FactionAffiliationComponent>.Find(killed);
+		FactionAffiliationComponent fac = OVT_ComponentFinder<FactionAffiliationComponent>.Find(killed);
 		if(!fac) return;
 		
 		if(fac.GetAffiliatedFaction().GetFactionKey() == OVT_Global.GetConfig().m_sOccupyingFaction)

@@ -890,6 +890,107 @@ class OVT_TownManagerComponent: OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Applies persisted town state to the live towns, matching each record to a town BY LOCATION.
+	//!
+	//! Called from OVT_TownManagerSerializer.Deserialize(). Towns themselves are world-derived and
+	//! already exist by the time this runs (Init happens in the game mode's EOnInit, deserialization
+	//! after entity finalize), so this only restores what happened to them.
+	//!
+	//! STABILITY IS RECOMPUTED FROM THE RESTORED MODIFIER LIST rather than assigned from the saved
+	//! number, because that recomputation is the invariant every other stability path maintains
+	//! (modifier change -> Recalculate -> stored value). The saved number is used only when the
+	//! modifier system or its config is unavailable. SUPPORT is assigned raw on purpose: its
+	//! recalculation folds the current support back in and would double-apply the modifiers.
+	//!
+	//! NO RPC. Clients receive all of this through RplSave/RplLoad instead - see the serializer.
+	//!
+	//! IDEMPOTENT: assignments plus a clear-and-rebuild, safe to run again on a live session.
+	//! \param[in] records Persisted town records, may be null.
+	void ApplyPersistedTowns(array<ref OVT_PersistedTown> records)
+	{
+		if (!records)
+			return;
+
+		OVT_TownModifierSystem stabilitySystem = GetModifierSystem(OVT_TownStabilityModifierSystem);
+		OVT_TownModifierSystem supportSystem = GetModifierSystem(OVT_TownSupportModifierSystem);
+
+		foreach (OVT_PersistedTown record : records)
+		{
+			if (!record)
+				continue;
+
+			OVT_TownData town = GetNearestTown(record.location);
+			if (!town)
+				continue;
+
+			town.population = record.population;
+			town.targetPopulation = record.targetPopulation;
+			town.support = record.support;
+			town.faction = record.faction;
+			town.areaHeat = record.areaHeat;
+			town.gunDealerPosition = record.gunDealerPosition;
+
+			ApplyPersistedModifiers(town.stabilityModifiers, record.stabilityModifierIds, record.stabilityModifierTimers, stabilitySystem);
+			ApplyPersistedModifiers(town.supportModifiers, record.supportModifierIds, record.supportModifierTimers, supportSystem);
+
+			int stability = record.stability;
+			if (stabilitySystem && stabilitySystem.m_Config && stabilitySystem.m_Config.m_aModifiers && town.stabilityModifiers)
+			{
+				stability = stabilitySystem.Recalculate(town.stabilityModifiers);
+			}
+
+			town.stability = stability;
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Rebuilds one modifier list from the parallel id/timer arrays a save record carries.
+	//!
+	//! Modifier ids are INDICES into the modifier config, so an id the current config no longer
+	//! defines is dropped rather than restored - Recalculate() and every modifier RPC would index
+	//! straight out of bounds on it.
+	//! \param[in] modifiers The live list to rebuild, may be null.
+	//! \param[in] ids Saved modifier ids.
+	//! \param[in] timers Saved timers, index-aligned with ids.
+	//! \param[in] system The modifier system that owns these ids, may be null.
+	protected void ApplyPersistedModifiers(array<ref OVT_TownModifierData> modifiers, array<int> ids, array<int> timers, OVT_TownModifierSystem system)
+	{
+		if (!modifiers)
+			return;
+
+		modifiers.Clear();
+
+		if (!ids || !timers)
+			return;
+
+		int limit = -1;
+		if (system && system.m_Config && system.m_Config.m_aModifiers)
+			limit = system.m_Config.m_aModifiers.Count();
+
+		int count = ids.Count();
+		if (timers.Count() < count)
+			count = timers.Count();
+
+		for (int i = 0; i < count; i++)
+		{
+			int id = ids[i];
+			if (id < 0)
+				continue;
+
+			if (limit > -1 && id >= limit)
+			{
+				Print(string.Format("[Overthrow] Dropping saved town modifier %1 - the modifier config no longer defines it", id), LogLevel.WARNING);
+				continue;
+			}
+
+			OVT_TownModifierData data = new OVT_TownModifierData();
+			data.id = id;
+			data.timer = timers[i];
+			modifiers.Insert(data);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Initializes town data by querying map markers across the entire world.
 	//! Called once during Init.
 	protected void InitializeTowns()

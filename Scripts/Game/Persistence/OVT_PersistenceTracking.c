@@ -1,0 +1,171 @@
+//------------------------------------------------------------------------------------------------
+//! Registers entities that Overthrow spawns at runtime with the vanilla persistence system.
+//!
+//! WHY THIS EXISTS. An instance is only saved if the system has been told to TRACK it. There are
+//! exactly three ways to get tracked (vanilla-api-reference.md 1.4):
+//!
+//!   1. the native `Persistence` component sitting on the prefab,
+//!   2. PersistenceSystem.StartTracking() from script,
+//!   3. a conf-declared PersistentState.
+//!
+//! Overthrow spawns its world objects from prefabs it does not own (vanilla props, signs, sandbags,
+//! compositions) or from prefabs that predate this migration, so route 1 is not available without
+//! editing dozens of prefabs. Vanilla hits the same wall and answers it the same way - see
+//! SCR_EditableEntityComponent.c:2266-2271, "Register the various entities from catalog that we do
+//! not want to put persistence component on all the base prefabs manually."
+//!
+//! WHAT TRACKING DOES NOT DO. It does not choose a serializer. The PersistenceConfig an instance
+//! gets is decided entirely by the RULES in Configs/Systems/Persistence/Overthrow.conf and the
+//! vanilla confs it inherits. Tracking an entity no rule matches is harmless and simply stores
+//! nothing - which is why calling this on every spawn of a mixed prefab list is safe.
+//!
+//! SERVER ONLY, WITHOUT A SERVER CHECK. The persistence system is registered SystemLocation Server,
+//! so GetByEntityWorld() returns null on a client and every call here becomes a no-op. Callers do
+//! not need to guard.
+//------------------------------------------------------------------------------------------------
+class OVT_PersistenceTracking
+{
+	//------------------------------------------------------------------------------------------------
+	//! Makes an entity known to the persistence system so it is included in save points.
+	//!
+	//! Safe to call more than once on the same entity: the system ignores instances it already
+	//! tracks. Registration is LAZY (the vanilla default), so the cost at the spawn site is a lookup
+	//! and a flag, not serialization work.
+	//! \param[in] entity The freshly spawned entity. Null is tolerated and reported as not tracked.
+	//! \return True when the entity is now tracked; false on clients, in worlds with no persistence
+	//! system, or when the entity was null.
+	static bool Track(IEntity entity)
+	{
+		if (!entity)
+			return false;
+
+		SCR_PersistenceSystem persistence = SCR_PersistenceSystem.GetByEntityWorld(entity);
+		if (!persistence)
+			return false;
+
+		return persistence.StartTracking(entity);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether the persistence system currently tracks an entity.
+	//!
+	//! Ask this before Track() when an entity may ALREADY be registered by another route - a prefab
+	//! carrying the native Persistence component, or an instance the system itself just spawned from
+	//! stored data (PersistenceSystem.RequestSpawn). Re-registering is a no-op in the engine, but the
+	//! question is what makes the intent legible at the call site.
+	//! \param[in] entity The entity to ask about.
+	//! \return True when the entity is tracked; false on clients, in worlds with no persistence system,
+	//! or when the entity was null.
+	static bool IsTracked(IEntity entity)
+	{
+		if (!entity)
+			return false;
+
+		SCR_PersistenceSystem persistence = SCR_PersistenceSystem.GetByEntityWorld(entity);
+		if (!persistence)
+			return false;
+
+		return persistence.IsTracked(entity);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The persistent identity of a tracked entity, as a string usable as a map key.
+	//!
+	//! This replaces the per-entity id the old persistence framework's component handed out. The id only
+	//! exists while the system tracks the entity, so an untracked entity, a client, or a world with no
+	//! persistence system all answer with an empty string - callers MUST treat that as "not manageable"
+	//! rather than as a key, because a null UUID still stringifies to a zero-filled value that every
+	//! untracked entity would share.
+	//! \param[in] entity The entity to identify.
+	//! \return Its persistent id, or an empty string.
+	static string GetPersistentId(IEntity entity)
+	{
+		if (!entity)
+			return string.Empty;
+
+		SCR_PersistenceSystem persistence = SCR_PersistenceSystem.GetByEntityWorld(entity);
+		if (!persistence)
+			return string.Empty;
+
+		UUID id = persistence.GetId(entity);
+		if (id.IsNull())
+			return string.Empty;
+
+		string persistentId = id;
+		return persistentId;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Re-evaluates the configuration rules for an already tracked entity.
+	//!
+	//! An instance is matched to a PersistenceConfig ONCE, when it starts being tracked. When the fact a
+	//! rule tests changes afterwards - a character dies, a player stops controlling something - the
+	//! matched configuration is stale until somebody asks for a re-match. This is that ask. Vanilla uses
+	//! it the same way when possession changes (SCR_SpawnLogic.c:167-173).
+	//!
+	//! Untracked instances are ignored rather than passed through: they have no configuration to reload,
+	//! and asking anyway is a needless native call on every entity a caller sweeps over.
+	//! \param[in] entity The entity to re-match.
+	//! \return True when the entity was tracked and its configuration has been re-evaluated; false on
+	//! clients, in worlds with no persistence system, for untracked entities, or when the entity was null.
+	static bool ReloadConfig(IEntity entity)
+	{
+		if (!entity)
+			return false;
+
+		SCR_PersistenceSystem persistence = SCR_PersistenceSystem.GetByEntityWorld(entity);
+		if (!persistence)
+			return false;
+
+		if (!persistence.IsTracked(entity))
+			return false;
+
+		return persistence.ReloadConfig(entity);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Writes one instance's record now, without taking a save point.
+	//!
+	//! PersistenceSystem.Save() takes a SINGLE instance - it is not a global save (that is
+	//! OVT_PersistenceManagerComponent.SaveGame()). Use it before deliberately removing an entity whose
+	//! data should outlive it.
+	//! \param[in] entity The entity to write.
+	//! \return True when the write was accepted.
+	static bool Save(IEntity entity)
+	{
+		if (!entity)
+			return false;
+
+		SCR_PersistenceSystem persistence = SCR_PersistenceSystem.GetByEntityWorld(entity);
+		if (!persistence)
+			return false;
+
+		return persistence.Save(entity);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Stops tracking an entity, optionally keeping its stored record.
+	//!
+	//! `keepData = true` is the vanilla "despawn but do not forget" idiom - SCR_SpawnLogic.c:107-108 and
+	//! :215-216 use exactly this before a disconnecting player's controller and character are destroyed,
+	//! so their record still lands in the next save point. Deleting a tracked entity WITHOUT this drops
+	//! its record as well (SelfDelete defaults to on).
+	//! \param[in] entity The entity to release.
+	//! \param[in] keepData True to leave the stored record in place.
+	//! \return True when the entity was being tracked and has now been released.
+	static bool Untrack(IEntity entity, bool keepData)
+	{
+		if (!entity)
+			return false;
+
+		SCR_PersistenceSystem persistence = SCR_PersistenceSystem.GetByEntityWorld(entity);
+		if (!persistence)
+			return false;
+
+		bool removeData = true;
+		if (keepData)
+			removeData = false;
+
+		return persistence.StopTracking(entity, removeData);
+	}
+}

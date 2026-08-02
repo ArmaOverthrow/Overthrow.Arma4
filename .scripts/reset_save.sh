@@ -9,9 +9,15 @@
 #                        tools/lib/common.sh), e.g. --profile OverthrowCI
 #   OVERTHROW_SAVE_DIR   Explicit save directory - always wins over --profile
 #
+# Deletes BOTH save systems' state (observed 2026-08-02, vanilla-persistence):
+#   1. EPF/legacy:  <root>/profile/.db/Overthrow
+#   2. Vanilla:     <root>/profile/.save/<app_user>/game/<mission>/...
+#      (savepointNNN dirs with meta-info.json + WorldState/*.blob; the sibling
+#      .save/<app_user>/settings/ dir is NEVER touched)
+#
 # This is an rm -rf, it is now called unattended from automation, and its
-# default target is a real campaign save. So: the resolved path is always
-# printed, and a path that does not look like a save DB is refused.
+# default target is a real campaign save. So: every resolved path is always
+# printed, and a path that does not look like a save location is refused.
 # See tools/README.md (Save-state control).
 #
 # Exit codes: 0 = deleted, or nothing to delete; 1 = usage error, refused
@@ -109,9 +115,12 @@ fi
 case "$GUARD_PATH" in
     /*/.db/Overthrow)
         ;;
+    /*/profile/.save/*/game)
+        # Explicit vanilla save-point dir (activate_save.sh passes this).
+        ;;
     *)
         echo "REFUSING to delete: '$SAVE_PATH'"
-        echo "That is not a save DB path (expected an absolute path ending in .db/Overthrow)."
+        echo "That is not a save path (expected .../.db/Overthrow or .../profile/.save/<app_user>/game)."
         echo "Nothing was deleted."
         exit 1
         ;;
@@ -130,5 +139,41 @@ else
     echo "Save directory not found: $SAVE_PATH"
     echo "Nothing to delete."
 fi
+
+# --- Vanilla save points ------------------------------------------------------
+# The profile root is the EPF path minus /profile/.db/Overthrow. When the EPF
+# path does not have that shape (custom OVERTHROW_SAVE_DIR), vanilla cleanup is
+# skipped with a note rather than guessed.
+case "$SAVE_PATH" in
+    /*/profile/.db/Overthrow)
+        PROFILE_ROOT="${SAVE_PATH%/profile/.db/Overthrow}"
+        VANILLA_DELETED=0
+        for GAME_DIR in "$PROFILE_ROOT"/profile/.save/*/game; do
+            [ -d "$GAME_DIR" ] || continue
+            # Guard: only ever delete an absolute .../profile/.save/<something>/game dir
+            case "$GAME_DIR" in
+                /*/profile/.save/*/game)
+                    echo "Deleting vanilla save points: $GAME_DIR"
+                    if ! rm -rf "$GAME_DIR"; then
+                        echo "Failed to delete vanilla save points: $GAME_DIR"
+                        exit 1
+                    fi
+                    VANILLA_DELETED=1
+                    ;;
+                *)
+                    echo "REFUSING to delete unexpected path: '$GAME_DIR'"
+                    echo "Nothing further was deleted."
+                    exit 1
+                    ;;
+            esac
+        done
+        if [ "$VANILLA_DELETED" -eq 0 ]; then
+            echo "No vanilla save points found under $PROFILE_ROOT/profile/.save"
+        fi
+        ;;
+    *)
+        echo "Note: custom save dir does not match */profile/.db/Overthrow - skipping vanilla save-point cleanup."
+        ;;
+esac
 
 echo "Done."

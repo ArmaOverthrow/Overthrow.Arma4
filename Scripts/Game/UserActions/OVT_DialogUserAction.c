@@ -90,7 +90,7 @@ class OVT_DialogUserAction : ScriptedUserAction
 	override bool CanBeShownScript(IEntity user)
 	{
 		// Only show if user has inventory manager (is a character)
-		InventoryStorageManagerComponent storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(user);
+		InventoryStorageManagerComponent storageManager = OVT_ComponentFinder<InventoryStorageManagerComponent>.Find(user);
 		return storageManager != null;
 	}
 }

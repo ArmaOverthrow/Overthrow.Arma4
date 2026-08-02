@@ -23,7 +23,7 @@ modded class SCR_GetInUserAction : SCR_CompartmentUserAction
 		OVT_OverthrowGameMode ot = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
 
 		if(ot && PilotCompartmentSlot.Cast(targetCompartment)) {
-			OVT_PlayerOwnerComponent playerowner = EPF_Component<OVT_PlayerOwnerComponent>.Find(pOwnerEntity);
+			OVT_PlayerOwnerComponent playerowner = OVT_ComponentFinder<OVT_PlayerOwnerComponent>.Find(pOwnerEntity);
 			if(playerowner)
 			{
 				string ownerUid = playerowner.GetPlayerOwnerUid();
@@ -99,7 +99,7 @@ modded class SCR_GetInUserAction : SCR_CompartmentUserAction
 		OVT_OverthrowGameMode ot = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
 		if(!ot) return true;
 		
-		OVT_PlayerOwnerComponent playerowner = EPF_Component<OVT_PlayerOwnerComponent>.Find(vehicle);
+		OVT_PlayerOwnerComponent playerowner = OVT_ComponentFinder<OVT_PlayerOwnerComponent>.Find(vehicle);
 		if(!playerowner || !playerowner.IsLocked()) return true;
 		
 		string ownerUid = playerowner.GetPlayerOwnerUid();

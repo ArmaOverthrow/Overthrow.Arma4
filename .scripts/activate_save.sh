@@ -23,7 +23,7 @@
 # Script directory and saves location
 SCRIPT_DIR="$(dirname "$0")"
 BACKUP_DIR="$SCRIPT_DIR/../.saves"
-DEFAULT_SAVE_DIR="/mnt/c/Users/Aaron Static/OneDrive/Documents/My Games/ArmaReforgerWorkbench/profile/.db/Overthrow"
+DEFAULT_SAVE_ROOT="/mnt/c/Users/Aaron Static/OneDrive/Documents/My Games/ArmaReforgerWorkbench"
 PROFILE_NAME=""
 SAVE_ARG=""
 
@@ -31,8 +31,10 @@ usage() {
     echo "Usage: $(basename "$0") [--profile <name>] [<name-or-file>]"
 }
 
-# Resolve <My Games>/<name>/profile/.db/Overthrow through tools/lib/common.sh.
-# Messages go to stderr - stdout is the resolved path only.
+# Resolve the vanilla save-point dir <root>/profile/.save/<app_user>/game
+# through tools/lib/common.sh. Messages go to stderr - stdout is the resolved
+# path only. Fails when the profile has no .save tree yet (nothing ever saved)
+# or more than one <app_user> dir (ambiguous).
 resolve_profile_save_dir() {
     local name="$1"
     local lib="$SCRIPT_DIR/../tools/lib/common.sh"
@@ -44,7 +46,24 @@ resolve_profile_save_dir() {
     . "$lib" || return 2
     local root
     root="$(ovt_profile_dir "$name")" || return 2
-    printf '%s/profile/.db/Overthrow\n' "$root"
+    # Key on the <app_user> dir (it persists across save wipes - it holds
+    # settings/), and return its game/ subdir whether or not that exists yet,
+    # so activation works into a freshly reset profile.
+    local matches=()
+    local d
+    for d in "$root"/profile/.save/app*_user*/; do
+        [ -d "$d" ] && matches+=("${d%/}")
+    done
+    if [ "${#matches[@]}" -eq 0 ]; then
+        echo "No app_user dir under $root/profile/.save (run the game once in this profile first)" >&2
+        return 2
+    fi
+    if [ "${#matches[@]}" -gt 1 ]; then
+        echo "Ambiguous: ${#matches[@]} app_user dirs under $root/profile/.save" >&2
+        return 2
+    fi
+    printf '%s/game
+' "${matches[0]}"
 }
 
 # Print the available backups, numbered, in the same form as the menu
@@ -113,7 +132,20 @@ if [ -n "${OVERTHROW_SAVE_DIR+set}" ]; then
 elif [ -n "$PROFILE_NAME" ]; then
     SAVE_DIR="$(resolve_profile_save_dir "$PROFILE_NAME")" || exit 2
 else
-    SAVE_DIR="$DEFAULT_SAVE_DIR"
+    SAVE_DIR=""
+    for d in "$DEFAULT_SAVE_ROOT"/profile/.save/app*_user*/; do
+        if [ -d "$d" ]; then
+            if [ -n "$SAVE_DIR" ]; then
+                echo "Ambiguous: multiple app_user dirs under $DEFAULT_SAVE_ROOT/profile/.save"
+                exit 1
+            fi
+            SAVE_DIR="${d%/}/game"
+        fi
+    done
+    if [ -z "$SAVE_DIR" ]; then
+        echo "No app_user dir under $DEFAULT_SAVE_ROOT/profile/.save (run the game once in this profile first)"
+        exit 1
+    fi
 fi
 
 # Check if .saves directory exists

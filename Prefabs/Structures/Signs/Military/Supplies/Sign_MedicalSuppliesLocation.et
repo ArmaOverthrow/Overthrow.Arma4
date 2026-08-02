@@ -1,9 +1,6 @@
 GenericEntity : "{1FF9F2538A23172B}Prefabs/Structures/Signs/Military/Supplies/Sign_SupplyStorage_02_Hospital_Base.et" {
  ID "50D67C36F4200F97"
  components {
-  EPF_PersistenceComponent "{65B90A2DF9A3B16A}" {
-   Enabled 0
-  }
   InventoryItemComponent "{5E9697F253F88D41}" {
    Enabled 0
    Attributes SCR_ItemAttributeCollection "{5E9697F25AD51313}" {

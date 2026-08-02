@@ -1,10 +1,6 @@
 GenericEntity : "{4106EBCD72532DA4}Prefabs/Props/Commercial/Posters/PosterSingle_40x40_01_base.et" {
  ID "F0DBA538AC2A0552"
  components {
-  EPF_PersistenceComponent "{65B90A2058464ADB}" {
-   m_pSaveData OVT_PlaceableSaveDataClass "{65B90A2058464ACA}" {
-   }
-  }
   MeshObject "{5872F0EB7FA40561}" {
    Materials {
     MaterialAssignClass "{65B90A20248B550D}" {

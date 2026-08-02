@@ -62,7 +62,7 @@ class OVT_DeliverMedicalSuppliesAction : ScriptedUserAction
 		OVT_OverthrowGameMode ot = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
 		if(!ot) return false;
 		
-		OVT_PlayerOwnerComponent playerowner = EPF_Component<OVT_PlayerOwnerComponent>.Find(GetOwner());
+		OVT_PlayerOwnerComponent playerowner = OVT_ComponentFinder<OVT_PlayerOwnerComponent>.Find(GetOwner());
 		if(!playerowner) return false;
 		if(!playerowner.IsLocked()) return true;
 				

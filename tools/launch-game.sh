@@ -49,7 +49,7 @@ Default client argument set (each individually overridable — see merge rule):
                                                (source Overthrow + packed
                                                 EPF/EDF; comma-separated,
                                                 single flag)
-    -addons EnfusionDatabaseFramework,EnfusionPersistenceFramework,Overthrow
+    -addons Overthrow
     -profile <name>                            (default OverthrowCI)
     -noFocus -noThrow -window -logLevel debug  (BI's own autotest defaults)
 
@@ -118,7 +118,7 @@ Environment (see tools/lib/common.sh for full resolution rules):
                               <My Games>\\ArmaReforgerWorkbench\\addons
                               (packed EPF/EDF workshop deps).
   OVERTHROW_GAME_ADDONS       -addons value. Default:
-                              EnfusionDatabaseFramework,EnfusionPersistenceFramework,Overthrow
+                              Overthrow
   OVERTHROW_PROFILE_NAME      Default profile name (default OverthrowCI).
   OVERTHROW_GAME_EXE          WSL path of ArmaReforgerSteamDiag.exe.
   OVERTHROW_GAME_GPROJ        Base game ArmaReforger.gproj (default:
@@ -236,7 +236,7 @@ IMAGE="$(basename "$GAME_EXE")"
 GAME_GPROJ="$(ovt_game_gproj)" || exit 2
 GAME_GPROJ_WIN="$(ovt_win_path "$GAME_GPROJ")" || exit 2
 ADDONS_DIR_ARG="$(game_addons_dir_arg)" || exit 2
-ADDONS_LIST="${OVERTHROW_GAME_ADDONS:-EnfusionDatabaseFramework,EnfusionPersistenceFramework,Overthrow}"
+ADDONS_LIST="${OVERTHROW_GAME_ADDONS:-Overthrow}"
 ovt_mygames_dir >/dev/null || exit 2
 
 # --- merge defaults with pass-through (drop a default the caller replaces) ------

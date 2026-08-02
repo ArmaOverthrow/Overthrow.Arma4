@@ -9,6 +9,11 @@ class OVT_MainMenuContext : OVT_UIContext
 	
 	OVT_MainMenuContextOverrideComponent m_FoundOverride;
 	protected float m_fFoundRange = -1;
+
+	//! Comms component this menu subscribed to for a pending save result.
+	//! Cached rather than re-resolved: OVT_Global.GetServer() dereferences the local controlled
+	//! entity without a null check, and the result can arrive after a respawn.
+	protected OVT_PlayerCommsComponent m_SaveRequestComms;
 		
 	override void PostInit()
 	{		
@@ -37,7 +42,7 @@ class OVT_MainMenuContext : OVT_UIContext
 						
 					if(m_FoundOverride.m_ContextName == "OVT_ShopContext")
 					{
-						OVT_ShopComponent shop = EPF_Component<OVT_ShopComponent>.Find(m_FoundOverride.GetOwner());
+						OVT_ShopComponent shop = OVT_ComponentFinder<OVT_ShopComponent>.Find(m_FoundOverride.GetOwner());
 						if(shop)
 						{
 							OVT_ShopContext shopContext = OVT_ShopContext.Cast(context);
@@ -267,7 +272,53 @@ class OVT_MainMenuContext : OVT_UIContext
 			SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-MustBeOfficer");
 			return;
 		}
-		OVT_Global.GetServer().RequestSave();
-		SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-Saved");
+
+		OVT_PlayerCommsComponent comms = OVT_Global.GetServer();
+		if(!comms)
+		{
+			ShowSaveResult(false);
+			return;
+		}
+
+		// Saving is asynchronous and can genuinely fail. Report what happened instead of claiming
+		// success the instant the request is sent (BUG-006).
+		comms.GetOnSaveResult().Remove(OnSaveResult);
+		comms.GetOnSaveResult().Insert(OnSaveResult);
+		m_SaveRequestComms = comms;
+		comms.RequestSave();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Result of the save this menu requested.
+	//! \param[in] success Whether the server actually committed a save point.
+	protected void OnSaveResult(bool success)
+	{
+		if(m_SaveRequestComms)
+		{
+			m_SaveRequestComms.GetOnSaveResult().Remove(OnSaveResult);
+			m_SaveRequestComms = null;
+		}
+
+		ShowSaveResult(success);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Shows the save outcome to the player.
+	//! \param[in] success Whether the save succeeded.
+	protected void ShowSaveResult(bool success)
+	{
+		SCR_HintManagerComponent hints = SCR_HintManagerComponent.GetInstance();
+		if(!hints)
+			return;
+
+		if(success)
+		{
+			hints.ShowCustom("#OVT-Saved");
+		}
+		else
+		{
+			// TODO: needs a localized string (no save-failure key exists in localization_Overthrow.st).
+			hints.ShowCustom("Save failed");
+		}
 	}
 }

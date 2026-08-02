@@ -18,7 +18,28 @@ class OVT_PlayerData : Managed
 	int xp = 0;
 	int levelNotified=1;
 	ref map<string,int> skills = new map<string,int>;
-	
+
+	//Persisted, SERVER ONLY
+	//------------------------------------------------------------------------------------------------
+	//! Persistence id of the player's stored CHARACTER, so the same body - with the gear it was
+	//! carrying - can be spawned back after a quit/continue or a reconnect instead of a fresh one.
+	//! Empty when no body has been stored.
+	//!
+	//! WRITTEN in exactly three places and nowhere else:
+	//!   - OVT_PlayerManagerComponent.SyncPlayerBodyIds(), from PreShutdownPersist, before every save;
+	//!   - OVT_OverthrowGameMode.OnPlayerDisconnected(), after the leaving character is written;
+	//!   - OVT_SpawnLogic, which refreshes it on handover and CLEARS it on death.
+	//!
+	//! CLEARED ON DEATH. Death is complete loss in Overthrow - a killed player respawns as a fresh
+	//! civilian and the corpse stays where it fell as lootable remains. The id is what would bring the
+	//! old body back, so OVT_SpawnLogic.OnPlayerKilled_S drops it before the respawn is scheduled.
+	//!
+	//! NEVER REPLICATED. It is a handle into the persistence system, which only exists on the authority
+	//! (SystemLocation Server); a client can neither resolve it nor spawn anything with it. It is
+	//! deliberately absent from OVT_PlayerManagerComponent's RplSave/RplLoad JIP payload - do not add
+	//! it there. It IS persisted, by OVT_PlayerManagerSerializer (version 2), which writes it by hand.
+	string m_sBodyPersistenceId = "";
+
 	//Not persisted	(controlled by skill effects)
 	[NonSerialized()]
 	float priceMultiplier=1;
@@ -35,6 +56,27 @@ class OVT_PlayerData : Managed
 	bool IsOffline()
 	{
 		return id == 0;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Resets every field that is DERIVED from skill levels back to the value a fresh player has.
+	//!
+	//! These are the [NonSerialized()] outputs of the skill effects, not stored state: they exist
+	//! only as the accumulated result of replaying each earned skill level's effects. Anything that
+	//! REPLAYS those effects (loading a saved player record, re-applying persisted data to a live
+	//! session) has to zero them first or the effects stack on top of themselves.
+	//!
+	//! The defaults here are the field initializers above and must stay in step with them.
+	void ResetSkillEffects()
+	{
+		priceMultiplier = 1;
+		stealthMultiplier = 1;
+		diplomacy = 0.1;
+
+		if (!permissions)
+			permissions = new array<string>();
+		else
+			permissions.Clear();
 	}
 	
 	float GetRawLevel()

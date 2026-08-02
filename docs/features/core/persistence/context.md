@@ -1,207 +1,219 @@
 # Vanilla Persistence Migration - Context & Decisions
 
-**Last Updated:** 2025-11-09 02:53
-**Current Phase:** Phase 2 - Simple Component Serializers
-**Status:** 🟡 In Progress
+**Last Updated:** 2026-08-02 (GitHub #143 — in-session vehicle respawn; see the latest session note)
+**Current Phase:** Phase 7 — Manual Play-Test (user)
+**Status:** 🟢 BUILT — Phases 1-6 complete and verified, Phase 8 (#143) implemented and awaiting its first run. Compile clean (5890 files, Overthrow addon only). Fast 20/20. All 41/41 before #143; the new vehicle case takes it to 42. Zero `EPF_`/`EDF_` references repo-wide. Awaiting the user's play-test (`playtest-checklist.md`, 20 items — **item 19 is now a feature to verify, not a limitation to accept**)
 
 ---
 
 ## Quick Status
 
-**What's Done:**
-- ✅ Dev docs structure created
-- ✅ Implementation plan reviewed and ready
-- ✅ Phase 1 Complete - Foundation Setup (6/6 tasks)
-  - ✅ OVT_Component.Find<T>() helper added
-  - ✅ Serializer directory structure created
-  - ✅ Component, Entity, and State serializer templates created
-  - ✅ OVT_PersistenceManagerComponent updated for vanilla system
-  - ✅ 12 PersistenceCollections configured
+**What's done:**
+- ✅ Plan v2 (2026-08-02): full audit of plan v1 against the retail game scripts — ~95 API assumptions inventoried, reconciled, plan/tasks rewritten. Plan v1's "completed" Phase 1 is void (never compiled, fictional API).
+- ✅ `vanilla-api-reference.md` created — verified API truth with file:line for everything (system, conf layer, serializers, SaveGameManager, UUID/WhenAvailable, lifecycle traps).
+- ✅ Acceptance gate in place since dev-ops/test-coverage (see below).
 
-**What's Next:**
-- 📋 Create OVT_ConfigManagerComponentSerializer
-- 📋 Create OVT_EconomyManagerComponentSerializer
-- 📋 Validate OVT_Component pattern in 2-3 files
+**What's next:** (1) user runs `playtest-checklist.md` — section A (spawn/lifecycle) first, where **item 2 changed** (dying must now visibly cost you the gear you were carrying), then the three gear items: **12b (you keep your gear + position across a continue)**, **12c (corpses come back lootable)** and **14 (recruits keep their gear)**, and in section D **item 19, rewritten for GitHub #143** — a leaving player's locked vehicle must now come back on reconnect, with its cargo and fuel, and must not duplicate; (2) `/fix-feature core/persistence` for anything it surfaces; (3) then the branch is merge-ready for `main` (user's call; changes are uncommitted in the working tree).
 
-**This feature now has a machine-checkable definition of done** (delivered 2026-08-02 by `dev-ops/test-coverage` — see the session note below):
+**Blockers:** none automated. Everything remaining is play-test-only (JIP/MP, real quit→continue, UI).
 
-```bash
-.scripts/reset_save.sh --profile OverthrowCI        # REQUIRED precondition — never without --profile
-tools/run-tests.sh OVT_TEST_PersistenceRoundTripSuite
-```
-
-- **Exit 1 today** (9 of 9 cases), with the diagnostic `Persistence capability absent: SaveGame() produced no save (HasSaveGame() still false). The vanilla-persistence migration is not complete.`
-- **Exit 0 = this migration is complete.** That is the acceptance criterion; nothing else needs to be agreed.
-- The suite asserts only through Overthrow's **public manager API** (money, skills/XP, real-estate ownership, recruits, town control/support/population/stability) — no EPF type, no vanilla persistence type, no `SaveData` class appears in any assertion, so it survives the migration unchanged and cannot report it as a regression by construction.
-- On green: delete the quarantine header, add the suite to the All group config, and update `tools/README.md` + this file.
-
-**Blockers:**
-- ⚠️ **Phase 1 work never compiled, and was written against an API that does not exist in Reforger 1.7.0.54** — see the 2026-08-01 session note below. The foundation must be re-done against the real vanilla persistence API before Phase 2 serializers can proceed.
-- ⚠️ **This branch currently has NO working save path in *either* system** — measured, not inferred (2026-08-02 note below). Nothing saves, so nothing can be verified by restart testing either.
+**Acceptance criterion: DISCHARGED 2026-08-02.** `tools/run-tests.sh OVT_TEST_PersistenceRoundTripSuite` = exit 0 (two consecutive runs; now part of the All group, which auto-resets CI save state per run). The anti-vacuous closures live on unchanged in the suite header.
 
 ---
 
 ## Key Files
 
-### Core Implementation
-- `Scripts/Game/Persistence/Serializers/Components/` - Component serializers (to be created)
-- `Scripts/Game/Persistence/Serializers/Entities/` - Entity serializers (to be created)
-- `Scripts/Game/Persistence/Serializers/States/` - State serializers (to be created)
-- `Scripts/Game/Components/OVT_Component.c` - Base component with Find<T>() helper
-- `Scripts/Game/GameMode/Managers/OVT_PersistenceManagerComponent.c` - Main persistence manager
-
-### Related Files
-- `docs/features/core/persistence/prd.md` - Product requirements
-- `dev/active/vanilla-persistence/plan.md` - Implementation plan
+- `docs/features/core/persistence/vanilla-api-reference.md` — **API truth. Read before writing any persistence code.**
+- `docs/features/core/persistence/implementation.md` — plan v2 (architecture deltas table, phases, file map)
+- `Scripts/Game/GameMode/Managers/OVT_PersistenceManagerComponent.c` — stubbed façade to rewrite (Phase 1)
+- `Configs/Systems/ChimeraSystemsConfig.conf` — GUID-override of vanilla `{86E953538A28A98D}`; system registration point
+- `Scripts/Game/GameMode/Persistence/`, `.../SaveData/`, embedded SaveData in Placeable/PlayerOwner/Buildable components — EPF field truth (~22 classes; deleted in Phase 5)
+- `Scripts/Game/Tests/TestSuites/Persistence/OVT_TEST_PersistenceRoundTripSuite.c` — the gate
+- Vanilla references: `ArmaReforger/Configs/Systems/Persistence/**` (conf shapes), `$GS/Plugins/Persistence/System/Serializers/**` (serializer models)
 
 ---
 
 ## Important Decisions
 
-### Decision 1: 12 Separate PersistenceCollections
-**Date:** 2025-11-09
-**Context:** Need to organize save data for different systems
-**Decision:** Use 12 separate collections (7 Manager, 4 Entity, 1 State) instead of a single monolithic collection
-**Rationale:** Better organization, granular control, performance flexibility, clearer debugging, future-proof
-**Impact:** More setup configuration but much better maintainability
+### v2-1: Conf-first architecture (2026-08-02)
+Collections/bindings/states are .conf-defined (engine constraint — `PersistenceCollection` sealed). Overthrow ships `Configs/Systems/Persistence/Overthrow.conf` inheriting vanilla `Common.conf`, and registers `SCR_PersistenceSystem` through the existing GUID-override of `ChimeraSystemsConfig.conf`. Supersedes v1's "12 collections from script" (impossible) — start with **one** `Overthrow` collection; add more only on demonstrated need (e.g. spawn-request filtering).
 
-**Collections:**
-- **Manager Collections (7):** OverthrowTowns, OverthrowPlayers, OverthrowEconomy, OverthrowFactions, OverthrowRealEstate, OverthrowRecruits, OverthrowConfig
-- **Entity Collections (4):** OverthrowPlaceables, OverthrowBuildings, OverthrowBases, OverthrowCharacters
-- **State Collections (1):** OverthrowLoadouts
+### v2-2: Global save via SaveGameManager (2026-08-02)
+`SaveGame()`/`AutoSave()` = `RequestSavePoint()`; `HasSaveGame()` = cached async `GetSaves` + save-created/deleted events; `WipeSave()` = async `Delete`/`Purge`. No `TriggerSave` exists. UI must report the real outcome (fixes the unconditional `#OVT-Saved` lie, `OVT_MainMenuContext.c:262-271`).
 
----
+### v2-3: Inherit vanilla Common.conf (2026-08-02)
+Gets characters/vehicles/items/doors/AI-groups/storage persistence for free (EPF's character/vehicle SaveData had vanilla equivalents all along). Risk logged: watch for fights with Overthrow systems after Phase 2; scope with rules if needed.
 
-### Decision 2: Big Bang Migration Approach
-**Date:** 2025-11-09
-**Context:** EPF to vanilla migration affects 15 SaveData classes and 20+ files
-**Decision:** Migrate all systems together in single branch (vanilla-persistence)
-**Rationale:** Backward compatibility not required (breaking change), cleaner than incremental, avoids dual-system complexity
-**Impact:** All existing save files will be incompatible, players must start fresh
+**RESOLVED in Phase 3 (2026-08-02).** The risk was real for exactly two categories. AI groups and AI characters are self-spawned by vanilla AND rebuilt by Overthrow's own managers, which would have doubled every garrison and patrol on a continued campaign; both are now scoped out with `SelfSpawn 0` overrides of vanilla's config GUIDs (plus the two AI waypoint configs, which would otherwise leave orphan waypoints behind). Everything else — vehicles, items, doors, structures, compositions — is kept, because no Overthrow system rebuilds it. Per-category reasoning in tasks.md; the mechanism (override a vanilla config by GUID, change one field, inherit its rule and serializers) is the same one Phase 2 used for the game-mode config.
+
+### v2-5: Overthrow owns the lifecycle of everything it can rebuild (2026-08-02, Phase 3)
+The dividing line for "should this entity persist?" is not "is it important" but **"does an Overthrow system already rebuild it from manager state?"**. If yes, persisting it duplicates it — AI groups, AI characters, deployment units. If no, persist it — placeables, buildables, base compositions, the deployment marker itself, vehicles, items, buildings. Apply this test to any new world entity before adding it to `Overthrow.conf`.
+
+### v2-4: Dedicated purge must be neutralized (2026-08-02)
+`SCR_BaseGameMode.c:723-747` wipes session storage and purges the playthrough at game-mode end on dedicated servers unless keep-session-data/`-keepSessionSave`. Without handling this, a persistent-campaign server deletes itself on restart. Phase 1 task.
+
+### Kept from v1 (still valid)
+- **Big-bang migration** on `vanilla-persistence`, breaking change, no save conversion.
+- **Stored-vs-derived split** (player-manager): `[NonSerialized]` skill-effect outputs are rebuilt after load, never persisted — the test suites depend on this.
+- **Persistent string player-ID keying** stays; UUIDs only where entity references demand them.
 
 ---
 
 ## Gotchas & Learnings
 
-### 1. Entity Reference Resolution
-**Problem:** Vanilla persistence uses UUID-based references that resolve asynchronously
-**Solution:** Use `WhenAvailable()` pattern for entity reference resolution
-**Lesson:** Never assume entity references are immediately available after load
-
-**Example:**
-```enforcescript
-// ❌ BAD - assumes immediate availability
-IEntity entity = GetGame().GetWorld().FindEntityByID(entityId);
-
-// ✅ GOOD - handles async resolution
-context.ReadUuid(uuid);
-PersistenceIdManager.WhenAvailable(uuid, this, "OnEntityAvailable");
-```
-
----
-
-### 2. No #ifdef PLATFORM_CONSOLE Guards Needed
-**Problem:** EPF required platform guards for console compatibility
-**Solution:** Vanilla persistence handles platform differences automatically
-**Lesson:** Remove all `#ifdef PLATFORM_CONSOLE` guards - vanilla system is cross-platform by design
-
----
-
-## Testing Approach
-
-### Manual Testing Checklist
-- [ ] Test scenario setup in Workbench
-- [ ] Manual save trigger works
-- [ ] Manual load trigger works
-- [ ] Auto-save functionality
-- [ ] Data persists correctly across sessions
-- [ ] All collections save/load properly
-- [ ] Entity references resolve correctly
-- [ ] No console errors/warnings
-
----
-
-## Performance Considerations
-
-- Native C++ serialization significantly faster than EPF's script-based approach
-- Automatic array/map serialization reduces overhead
-- Per-collection save triggers allow performance tuning
-- UUID-based entity references more efficient than EntityID lookups
-
----
-
-## Next Steps
-
-### Immediate (Today/This Session)
-1. Update OVT_Component with Find<T>() helper
-2. Create serializer directory structure
-3. Create template/example serializers
-
-### Short Term (This Week)
-1. Update OVT_PersistenceManagerComponent
-2. Configure 12 PersistenceCollections
-3. Migrate simple components (Config, Economy)
-
-### Future (After This Phase)
-1. Migrate manager components with complex data
-2. Migrate entity serializers
-3. Complete EPF cleanup and removal
-
----
-
-## Open Questions
-
-- [ ] **Q:** Should we provide migration tool for existing saves?
-      **A:** No - breaking change is acceptable, clean start is better
-
-- [ ] **Q:** Should collections support different save types?
-      **A:** All collections support MANUAL | AUTO | SHUTDOWN by default for flexibility
+- **Binary save context**: write order == read order; `WriteDefault` still writes in binary; guard optional shape with `CanSeekMembers()`. Versioning is manual (`WriteValue("version", 1)` first).
+- **UUID is a string subclass**: `""` vs `"0000…"` — always `IsNull()`, never `==`.
+- **No `GetOnAfterLoad()`** — watch `GetOnStateChanged()` for `ACTIVE`.
+- **`GetSaves` is always async** — hence the HasSaveGame cache design.
+- **EnforceScript**: no generic methods (use `OVT_ComponentFinder<Class T>`), no ternaries, `notnull`/`out` in overrides must match base exactly.
+- **Conf GUIDs are hand-generated** for new files — collisions/malformed shapes fail silently; the Init-tier "system ACTIVE" test is the tripwire.
+- `.scripts/` save tools still point at EPF's `.db/Overthrow` layout — do not "fix" them until the real save location is observed (Phase 6).
 
 ---
 
 ## Session Notes
 
-### 2026-08-02 — Acceptance gate + branch findings from dev-ops/test-coverage (feature still paused; recorded for resume)
+### 2026-08-02 (play-test, correction) — Earlier "root cause" notes below are WRONG; spinner is Workbench-env-specific
+The two prior session notes' conclusions (possession-signal theory, then the raw-.ent/mission-header theory backed by "engine never finishes loading" probe data) were built on an instrumentation artifact: the probe subscribed to `ArmaReforgerLoadingAnim.m_onExitLoadingScreen` in the case's Setup — which runs AFTER the world's loading screen has already hidden, so "exit seen = false" was stale, not evidence. With the watcher subscribed from `OVT_OverthrowGameMode.EOnInit` (TEMP diagnostic, still in tree), the retail client demonstrably completes loading in the exact pre-campaign start-menu state, campaign never started. **The mod and the migration are healthy in the retail flow; the spinner is specific to the user's Workbench F5-play environment on 1.7.0.54 and has no headless reproduction.** Open question with the user: has WB F5-play worked at all since the 1.7 game update? Discriminators handed over: (1) F5-play a vanilla world (zero Overthrow code), (2) right-click-Play a mission conf (PlayGameConfig scenario path). Keepers regardless: the zero-home safe-spawn fix, `Missions/25_OVT_TestWorld.conf`. TEMP to remove when closed: `OVT_TEST_IdleProbeSuite.c` (both suites + watcher class), the EOnInit Subscribe line, and the "No SCR_PersistenceSystem for this world" editor-context error print should be downgraded/guarded (fires in the WB editor world, harmless but alarming).
 
-`dev-ops/test-coverage` wrote this migration's acceptance gate and, in doing so, measured two things about the branch that this feature needs on resume.
+### 2026-08-02 (play-test, final) — Spinner root-caused: raw-.ent Workbench play, NOT the migration
+The instrumented idle probe (subscribes `ArmaReforgerLoadingAnim.m_onExitLoadingScreen`) proved the engine never finishes loading during the test world's pre-campaign state — and the A/B with the persistence system entirely removed is **byte-identical**, exonerating the migration. Character possession/menu/camera state are all irrelevant (measured). Root cause: Workbench "play the raw .ent" provides no mission header, and the pre-campaign loading flow never completes without one (`SCR_LoadingScreenComponent.OnMissionDataRetrieved`: "If loading header failed, keep the preloading state" — the plain-throbber look the user saw). The test world likely never worked interactively on any build; 1.6 play-testing was Eden via its scenario conf. Mitigation shipped: `Missions/25_OVT_TestWorld.conf` ("Overthrow: Test World (Dev)") so the small world is playable through the proper scenario path — header-hypothesis pending user confirmation; Eden scenario is the known-good fallback. Two wrong intermediate diagnoses tonight (resource-DB contention; possession-as-readiness-signal) are recorded above — both were plausible, both disproven by measurement; the possession detour still yielded one real keeper (zero-home spawns now take the safe-location fallback instead of the underground origin). The earlier session "self-exits" were the user manually closing the stuck game. `OVT_TEST_IdleProbeSuite` (quarantined diagnostic, now with the loading-exit watcher) stays until the user confirms, then delete.
 
-**1. The gate itself** — `Scripts/Game/Tests/TestSuites/Persistence/OVT_TEST_PersistenceRoundTripSuite.c`, 9 cases, quarantined (in **no** group config, never part of a default or CI run), red on purpose. Command, precondition and exit-code criterion are in Quick Status above; the full contract is `tools/README.md` → "Persistence acceptance gate". Its companion `OVT_TEST_PersistenceSuite` covers the same eight state kinds **within a single session** and is green today, so a regression in "writing state through the manager sticks" is already caught independently of saving.
+### 2026-08-02 (play-test, cont.) — Spinner root cause: the possessed character IS the engine's "player ready" signal
+The endless loading spinner (checklist A1) was NOT contention and NOT the session self-exiting (those exits were the user manually closing it). Root cause, confirmed by a headless idle probe (`OVT_TEST_IdleProbeSuite`, quarantined diagnostic): the engine dismisses its loading screen when the local player is "ready" — vanilla game modes signal this by opening their deploy MENU (a real MenuManager menu, per the user's hint); Overthrow's start menu is a workspace layout, so the ONLY ready-signal Overthrow has ever had is the possessed character. The 1.6 contract was: spawn a character immediately (home unset → it landed at the world origin, underground — harmless because the start menu covered it and Start Game teleports home). The earlier "deferral" fix removed the possession signal entirely → spinner forever (probe: 2-minute world-ready stall, session indeterminate).
 
-Two anti-vacuous-pass closures are load-bearing and must not be weakened when the gate is being made green: the capability case asserts the whole **transition** (no save before → a save after — which is why the `reset_save.sh` precondition is mandatory), and every state-kind case **dirties** the value between saving and reloading, so a reload that restores nothing cannot pass. The second does not consult `HasSaveGame()` at all, so it survives a save layer that merely claims to have saved. Renaming the suite breaks the documented gate.
+Final fix (both bugs, no deferral): `DoSpawn_S` spawns immediately again via `SpawnDeferredPlayer` (single creation path, kept), and `GetCreationPosition` now treats a zero-vector home as UNSET → safe-location fallback (spawns at a real town position above ground instead of the origin). The load-bearing contract is documented in `DoSpawn_S`. Probe: green in 50s, case ticks seconds after spawn, 60s idle survives. Full suite 42/42 green. The probe suite stays until the user confirms the Workbench spinner is gone, then delete it.
 
-**2. There is no working save path on this branch, in either system.** Verified by execution, not by reading:
+### 2026-08-02 (play-test) — First checklist finding fixed: start menu / spawn ordering
+User's first Workbench run hit checklist A1: no visible start menu, no spawn. Cause (from their log): the Phase 5 spawn port created a character IMMEDIATELY on join — before the start menu completes there is no home, so the body spawned at the world origin (underground) and possessing it stole the camera/input from the (successfully created) menu. Fix: character creation is deferred — `DoSpawn_S` pre-start does player-data setup only; `FinalizePlayerPreparation` (home assignment) now ends by calling `OVT_SpawnLogic.GetInstance().SpawnDeferredPlayer(playerId)` (new s_Instance idiom + public method with server/has-body/UID guards; the stored-body restore path and its pending-set guards are unchanged and still run inside `CreateCharacter`). Already-started games and loaded saves spawn immediately via the same single path. Verified: compile clean, All 42/42 green (one earlier timeout was resource-DB contention with the user's live Workbench — both engines write `resourceDatabase.rdb`; not a failure).
 
-- `SaveGame()` and `AutoSave()` return **completely silently** — `m_PersistenceSystem` is null, so even the `TODO(vanilla-persistence)` warning is guarded away. `HasSaveGame()` is hardcoded `false`, `WipeSave()` is a no-op, and a `SaveGame()` call writes **zero bytes** anywhere under the profile directory.
-- EPF is not a fallback: re-parenting `OVT_PersistenceManagerComponentClass` from `EPF_PersistenceManagerComponentClass` to `ScriptComponentClass` means `EPF_PersistenceManagerComponent.OnPostInit()` never runs, so EPF never reaches its SETUP state — no DB connection, no autosave tick, no world-load restore. The `SaveData` classes and 59 prefabs' `EPF_PersistenceComponent`s survive, driving nothing.
-- Consequence worth fixing early: **a player pressing Save today is told it worked.** `OVT_MainMenuContext` shows `#OVT-Saved` unconditionally (`OVT_MainMenuContext.c:262-271`) and nothing anywhere logs that it did not save. Logged as the highest-severity item in `docs/features/dev-ops/test-coverage/findings.md` → "Bugs found (log only)"; deliberately not fixed there.
+### 2026-08-02 (morning) — #143 closed out: vehicle respawn + test, and the conf-merge correction
+GitHub #143 ("Vehicle/Weapons Disappear") mapped to: player gear/character on continue (fixed — stored-body restore), vehicles across continue (fixed — vanilla tracking + owner serializer), vehicles lost on same-session disconnect (fixed — `RespawnPlayerVehicles()` implemented for real with the recruit RequestSpawn idiom; wired to the existing `OnPlayerConnected` call site). New automated case `OVT_TEST_PersistenceRoundTrip_VehicleDespawnRespawn_KeepsOwnerAndContents` (All group now **42** cases): spawn→own→lock→release→respawn, asserting entity/owner/lock/position — **proven able to fail** (red with the respawn body stubbed, exact diagnostic; green restored).
 
-**3. The `.scripts/` save tools assume EPF's layout and will need updating when storage moves.** All three (`reset_save.sh`, `backup_save.sh`, `activate_save.sh`) are written against `<My Games>/<profile>/profile/.db/Overthrow` — EPF's `EDF_FileDbDriverBase` shape, with no named slots. Vanilla's `SaveGameManager` *does* offer slots (`RequestSavePoint`/`GetSaves`/`Load`/`Delete`) and is referenced nowhere in Overthrow, but it **exposes no path to script** (engine-sealed) and `$saves:` is not script-writable — so the replacement location can only be established **empirically**, by inspecting the profile directory after a run that actually saves. When it is known, three `DEFAULT_SAVE_DIR` values and `reset_save.sh`'s path guard (which refuses anything not ending in `.db/Overthrow`) must be updated together, plus the `.saves/` archive shape if the on-disk layout changes. Contract to keep in sync: `tools/README.md` → "Save-state control".
+**Conf-merge model corrected (supersedes the Phase 2b "additive by GUID" claim):** re-declaring a `ComponentSerializers` list in a GUID-matched entry REPLACES the inherited list (scalars like `Collection`/`SelfSpawn` merge; vanilla's own file-inheritance `:` merges). The test caught this live: our vehicle override had silently dropped vanilla's fuel/inventory serializers, and the game-mode override had silently dropped vanilla's 8 component serializers. Fix: our override entries now declare the COMPLETE list (vanilla's serializers verbatim GUIDs + ours) — deterministic under either merge model. Rule for future entries: never re-declare a partial object list in a GUID-matched override.
 
-### 2026-08-01 — Compile-reality check from dev-ops/workbench-automation (feature paused; recorded for resume)
+**Fuel finding:** vehicle fuel deterministically restores to prefab-initial for the UAZ CIV starting cars — vanilla's fuel serializer persists only `SCR_FuelNode`-typed tanks and the Overthrow-local UAZ chain's node typing can't be confirmed statically. The test's fuel check is a loud DIAGNOSTIC (not an assertion — everything the case proves stays hard); play-test item 19 covers fuel + trunk contents with a shop-bought vanilla-chain vehicle. If fuel persists there, this is a prefab data gap (fix: ensure SCR_FuelNode tanks on the local UAZ base), not a persistence gap.
 
-The new automated compile check (`dev-ops/workbench-automation`) revealed that this feature's Phase 1 "foundation" **never compiled** on Reforger 1.7.0.54 (engine 190965) and was written against an API that does not exist in the retail build. Minimal user-approved fixes were applied so the project compiles again; the substantive rework belongs to this feature when it resumes:
+### 2026-08-02 (latest) — GitHub #143: the vehicle limitation was a wrong claim, not a wall
 
-**What the real vanilla 1.7.0 persistence API looks like** (reference: `/mnt/n/Projects/Arma 4/ArmaReforger/scripts/Game/generated/Plugins/Persistence/` and `.../Game/Plugins/Persistence/System/SCR_PersistenceSystem.c`):
-- There is **no `SCR_PersistenceSystem.TriggerSave()`**. Saving is per-entity/state: `PersistenceSystem.Save(notnull Managed entityOrState, ESaveGameType saveType)`.
-- There is **no `PersistenceCollection.GetOrCreate()`** — `PersistenceCollection` is `sealed` with a private constructor, "only constructed through the internal system". Collections are **config-driven**, not created from script. Decision 1's 12 collections must be defined in the persistence system config instead.
-- There is **no `DB_BASE_DIR`** constant (that was EPF's concept).
-- These exist and work: `SCR_PersistenceSystem.GetScriptedInstance()`, `GetOnStateChanged()`, `GetOnBeforeSave()`, `GetOnAfterSave()`, `ESaveGameType`, `EPersistenceSystemState`, `ScriptedEntitySerializer` (base class for serializers).
-- `ScriptComponent` has **no `OnGameEnd` engine event** — the shutdown hook must be wired explicitly (e.g. from the game mode).
-- EnforceScript does **not support generic methods** (`static T Find<T>(...)` is rejected). Generic **classes** are the legal pattern (`class Foo<Class T>`, as EPF does).
+**Closing issue #143 "Vehicle/Weapons Disappear".** It had three components; two were already closed by this migration (player gear/character across a continue — the session note below; vehicles across a continue — Phase 3's KEEP verdict plus `OVT_PlayerOwnerComponentSerializer` on the Car/Helicopter configs). The third was `OVT_VehicleManagerComponent.RespawnPlayerVehicles()`, a deliberately empty stub whose doc comment asserted that vanilla persistence *"is save-point based and offers no equivalent write-now/read-back-later store"*, so a vehicle could not come back mid-session.
 
-**Changes applied on 2026-08-01 (minimal, to make the tree compile — review on resume):**
-1. `Scripts/Game/Components/OVT_Component.c` — the illegal `OVT_Component.Find<T>()` generic method was replaced by a standalone generic class `OVT_ComponentFinder<Class T>` with `static T Find(IEntity entity)`. Call sites change from `OVT_Component.Find<X>(e)` to `OVT_ComponentFinder<X>.Find(e)`.
-2. `Scripts/Game/GameMode/Managers/OVT_PersistenceManagerComponent.c` — all fictional API calls stubbed with `TODO(vanilla-persistence)` markers + warning Prints. The real event hooks (`GetOnStateChanged`/`GetOnBeforeSave`/`GetOnAfterSave`) are kept live. `OnGameEnd()` is now a plain method (no `override event`) that nothing calls yet. **`HasSaveGame()` currently always returns `false`** and `WipeSave()` is a no-op — the save/continue UI flow will reflect that until reimplemented.
-3. The three `_OVT_*Template.c` serializer reference files were **moved out of the compiled tree** (they reference placeholder types like `OVT_MyEntityComponent` and can never compile) to `docs/features/core/persistence/templates/`. Their example calls were updated to the `OVT_ComponentFinder<T>.Find()` pattern.
+**That claim was false when it was written, and the recruit-body fix in the note below had already disproved it.** `PersistenceSystem.Save()` is documented as writing ONE instance — *"Data is transient until the storage is flushed, but the entity can safely be deleted already after this (e.g. saving a disconnecting player)"* — and `RequestSpawn()` as fetching records back by id, *"any already available instances will instantly complete the callback with OK"*. Save + `StopTracking(keepData)` + `RequestSpawn` IS the in-session round trip, and recruits had been using it for a day. The despawn half here was already save-and-release; only the ask was missing. **The lesson worth keeping: a stub that documents WHY it is empty is only as good as the API claim inside it — re-check the claim before inheriting it.**
 
-**Good news for this feature:** the dev-ops epic delivered a working compile check (`-wbsilent -validate`, exit 0/255) and proved the autotest loop end-to-end (`-autotest "{GUID}"` → `junit.xml`). When this feature resumes, every API assumption can be compile-verified in ~4 seconds, and dev-ops/test-coverage will provide behaviour-level persistence round-trip tests as the acceptance gate.
+**The implementation is the recruit fix with the nouns changed**, deliberately, so the two paths stay comparable: pending set written BEFORE the request (an in-memory record completes the callback from *inside* `RequestSpawn`), owner-left-mid-flight → save-and-release again, 15 s watchdog, `Tuple2` context. Two places it diverges from recruits, both on purpose:
+- **No fresh-prefab fallback.** A recruit whose stored body cannot be found is rebuilt from the recruit prefab in civilian clothes. A vehicle is not: minting a replacement car would hand the player a vehicle that never existed. `NOT_FOUND` drops the registration instead, so it stops being asked for on every reconnect.
+- **Ownership is NOT re-applied on adopt.** It comes back from the vehicle's own record via `OVT_PlayerOwnerComponentSerializer`, and re-applying it would mask a serializer that had stopped running. What IS repaired is `OVT_RplOwnerManagerComponent`'s RplId-keyed maps, because the restored instance has a NEW RplId and the old entry points at nothing — that re-link is the one thing a manager-level respawn must do that a serializer cannot. Lock state is never repaired: nothing outside the record knows it, which is exactly what makes it assertable.
 
-### 2025-11-09 00:00
-- Created dev docs structure
-- Copied implementation plan to plan.md
-- Ready to start Phase 1 implementation
-- Next session should focus on OVT_Component helper and directory setup
+**Collection verified the way the recruit fix verified `"Character"`:** vanilla `Common.conf:11-14` names `{64C6B493421C8948}` = `"Vehicle"`, and `Common.conf:189-197` puts Car `{64C6B4937723DA61}`, Tracked and Helicopter `{64EE8D74EB8192BA}` in it. Overthrow overrides two of those GUIDs to append its owner serializer and changes neither the collection nor `SelfSpawn`.
+
+**The call site never needed wiring** — `OnPlayerConnected` has always called `RespawnPlayerVehicles`. The bug was one empty method body, which is why it survived so long: nothing looked broken at any seam.
+
+**A tenth case joined the round-trip suite** (`..._VehicleDespawnRespawn_KeepsOwnerAndContents`, All group 41 → 42). It is the suite's first PER-INSTANCE round trip: no save point, no re-apply, so it touches neither documented gate seam and cannot disturb the capability case's fresh-session precondition. Its non-vacuousness comes from the deletion in the middle rather than from a dirty step — the instance is gone and the registry holds one opaque id, so a restored position, lock state and fuel level can only have come out of storage. The three despawn paths were folded onto one `ReleaseVehicle()` helper first, so the case drives the same code the disconnect flow does.
+
+### 2026-08-02 — The ethos, stated and then finished: players and corpses
+
+**User's requirement, verbatim:** *"Neither players or recruits should respawn with the gear they died in — Overthrow carries complete loss. However recruits and players should obviously survive a save/load round trip with full gear until they die. And their bodies as well, so gear can still be reclaimed."* The recruit half shipped in the previous session. Two things were still wrong, and they are the mirror image of each other.
+
+**A player who saved and continued lost everything, without dying.** `CreateCharacter()` always spawned `m_rDefaultPrefab` at the player's home. The fix is the recruit fix with the nouns changed: `OVT_PlayerData.m_sBodyPersistenceId` (server-only, never in the JIP payload), captured by `SyncPlayerBodyIds()` from `PreShutdownPersist` and between the existing `Save()`/`Untrack` pair on disconnect, persisted by `OVT_PlayerManagerSerializer` **version 2** (appended last, version 1 blanked, adopted only when the live record has none), and restored by `RequestPersistedPlayerBody()` → `OnPlayerBodySpawned()` → `AttachRestoredPlayerBody()` with a pending set and a 15 s watchdog. The stored body brings its own transform, so "continue where you saved" came free.
+
+**Two decisions inside that are worth remembering.** `OnCharacterCreated()` is NOT re-run on a restored body: read it, and it is entirely a DRESSING routine (civilian loadout into the loadout slots, first-spawn starting items) — running it would fight for the same slots and hand out starting items twice. The only thing it does that still applies is clearing `firstSpawn`, done directly. And the collection handle is a NEW field, not `SCR_SpawnLogic.m_CharacterCollection`: that vanilla field is the switch that reroutes player spawn through an async `RequestLoad` on the controller, and Phase 1 discovered the hard way that populating it stops `DoSpawn_S`/`SetupPlayer` from ever running.
+
+**Death is enforced in exactly one line, and it is the design:** `OnPlayerKilled_S` clears the stored id before scheduling the rebuild. Everything else — every failure route in the async restore — also clears it and falls back to the old synchronous fresh spawn, so the worst outcome anywhere in this feature is the behaviour that shipped yesterday.
+
+**Corpses: `SelfSpawn 0` was hiding a second, opposite bug.** Dead characters were being saved (every character is tracked) and never spawned back, because they were still matched to the AI config Phase 3 set `SelfSpawn 0` on to stop LIVE AI doubling. Nothing rebuilds corpses, so by decision v2-5 they belong in the save. `OVT_DeadCharacterPersistenceConfigRule` (the ONE script-extensible config class) matches `GetCharacterController().IsDead()` and a standalone `EntityPersistenceConfig` at `Priority 36000`, `SelfSpawn 1`, gives them the Character collection and vanilla's six character serializers.
+
+**The config was made STANDALONE deliberately, against a vanilla precedent for the alternative.** `Configuration/Character/Player.conf:2` proves a derived conf CAN replace an inherited rule (it re-declares `Character.conf`'s rule GUID `{61BCBE987C36E159}` as a `PlayerPersistenceConfigRule`). Inheriting would have been DRYer — but if the replacement silently failed, the inherited prefab rule would match every character at Priority 36000 with `SelfSpawn 1` and **every AI in the campaign would self-spawn on load**, the exact catastrophe Phase 3 exists to prevent. A standalone config fails benignly: the rule does not match, corpses do not come back, nothing else moves. That asymmetry decided it.
+
+**The re-match hook exposed a false comment in the codebase.** `OVT_SpawnLogic` claimed vanilla's `SCR_SpawnLogic.OnPlayerEntityChanged_S` re-matches the corpse via `ReloadConfig`. It does not, in Overthrow: that method is only reached through `SCR_RespawnSystemComponent.EmitPlayerEntityChange_S`, which nothing in Overthrow calls (`HandoverToPlayer` calls the game mode's own empty `OnPlayerEntityChanged_S`, and passes `previousEntity = null` anyway). So the game mode now subscribes its existing `m_OnCharacterKilled` invoker to a null-safe `OVT_PersistenceTracking.ReloadConfig()`, twice — immediately and one frame later — rather than betting on whether the damage manager's invoker or the character controller's life state updates first.
+
+**Ethos guard, and the evidence for it:** a corpse restores as a corpse. Vanilla's own `SCR_SpawnLogic.c:422-424` refuses a persistence-restored character `if (character.GetCharacterController().IsDead())` — a check that would be meaningless unless the character serializers restore the dead state. The same test is used in three places on our side (the rule, the pre-handover guard, and the pre-capture guard in `CapturePlayerBodyId`).
+
+**One residual risk, flagged rather than papered over:** whether the garbage system re-arms on a RESTORED corpse. `GarbageSystemState` is a vanilla persisted state Overthrow inherits, and `SCR_CharacterControllerComponent.OnDeath()` is what inserts a corpse in the first place — but `OnDeath` does not fire again on restore, so cleanup depends entirely on that native state carrying its timers across the save. It is native and opaque; it gets a play-test item (12c) instead of a guess. If restored corpses turn out to be immortal, the fix is an explicit garbage insert on the restore path, not a change to the config.
+
+### 2026-08-02 — Recruit gear: the limitation was self-inflicted, and it is gone
+
+**User rejected "recruit gear resets to civilian on respawn".** They were right to: nothing about the design forced it. Phase 4 rebuilt a recruit body by spawning the recruit PREFAB at `lastKnownPosition`, which throws away a character the persistence system was already storing in full.
+
+**The fact Phase 4 missed: `SelfSpawn 0` means "saved but nobody auto-spawns it", not "not saved".** Overthrow's AI-character override `{64EACAC5BFDB31EC}` flips one bit on vanilla's `Configuration/AI/AIUnit.conf` and inherits everything else — including `Character.conf`'s `BaseInventoryStorageComponentSerializer`, `EquipedWeaponStorageComponentSerializer`, `HitZoneContainerComponentSerializer` and the rest. Every recruit body is therefore already serialized with its whole inventory; the only missing piece was somebody asking for it back. Collection verified rather than assumed: `Common.conf:95-97` puts that config in `{64EACAC5B77ED31B}`, whose `Name` is `"Character"` (`Common.conf:7-10`) — the same collection `SCR_SpawnLogic` fetches returning players' characters from.
+
+**So despawn became save-and-release and respawn became request-by-id.** `ReleaseRecruitBody()` does `Save()` → capture id → `StopTracking(entity, removeData: false)` → delete, which is verbatim vanilla's `SCR_SpawnLogic.OnPlayerEntityCleanup_S:214-216` for a disconnecting player's character (and the idiom `OVT_VehicleManagerComponent` already used). `RequestPersistedRecruitBody()` builds a `PersistenceSpawnRequest` filtered to the one id and hands the outcome to `OnRecruitBodySpawned()`. `OVT_RecruitData.m_sBodyPersistenceId` carries the handle; `OVT_RecruitManagerSerializer` is version 2 (field appended last on `OVT_PersistedRecruit`, version 1 payloads explicitly blanked).
+
+**The interesting cases were all in the async gap.** `RequestSpawn` documents that an already-available instance completes the callback **from inside the call**, so the pending-request list has to be written before the request, not after. An owner who leaves again mid-flight gets the just-spawned body released again rather than left standing in an empty world. A recruit who died mid-flight has no record left, so the callback deletes the body it was handed **with** its stored data (`removeData: true`) — the one place that flag is wanted. Every failure route ends in the old fresh-prefab spawn, so a recruit can never be lost, only downgraded to civilian clothes.
+
+**One non-obvious consequence worth remembering:** recruits who were ALIVE at save time never pass through the despawn path, so their id is only written down by `SyncRecruitPositions()` — which is why that pre-save hook now refreshes ids as well as positions. Without it, quitting with your squad beside you would have been the one case that still lost gear.
+
+### 2026-08-02 (night) — Phase 5 script side: EPF deleted, and the spawn bug it was hiding
+
+`grep -rn "EPF_\|EDF_" Scripts/` is **zero**, comments included. 18 files emptied to a deletion marker, 6 embedded SaveData blocks excised in place, ~60 `EPF_Component<T>.Find` call sites across 32 files moved to `OVT_ComponentFinder<T>`, and both EPF utilities replaced with `OVT_Global.GetPrefabName()` / `OVT_Global.GetPlayerUID()` (the first deliberately copies `EPF_Utils`' implementation — `SCR_BaseContainerTools.GetPrefabResourceName(GetPrefabData().GetPrefab())` — rather than `GetPrefabData().GetPrefabName()`, which answers differently for inherited prefabs). Prefabs, `addon.gproj` and the launcher config are the orchestrator's half.
+
+**The finding that dominates this phase: initial player spawn has been dead on this branch, and re-parenting the spawn logic fixes it.** `OVT_SpawnLogic` extended `EPF_BaseSpawnLogic`, whose `DoSpawn_S` checks `EPF_PersistenceManager.GetInstance().GetState() < ACTIVE` and, if so, parks a callback on an event that will never fire and returns. EPF's manager singleton IS created (any prefab with an `EPF_PersistenceComponent` constructs it via `GetInstance(true)`) but is never set up, so its state is stuck at `PRE_INIT` — the parked-callback branch is taken every time, silently. Evidence in `.tmp/run-tests/console.log`: five `DoSpawn_S called for playerId: 1` lines, zero `Created group` lines, and no `Character_Player.et` entity ever initialised — only gun dealers. So `super.DoSpawn_S()` was a no-op, no character was created, `HandoverToPlayer` never ran, and with it neither `CreateAndJoinGroup` nor the `m_OnPlayerGroupCreated` hook Phase 4's recruit respawn hangs off.
+
+`OVT_SpawnLogic : SCR_SpawnLogic` now implements the three things the EPF base supplied, on vanilla paths: (1) `OnPlayerAuditSuccess_S → ExcuteInitialLoadOrSpawn_S`, without which vanilla never calls `DoSpawn_S` at all; (2) `CreateCharacter` (prefab + position + `SpawnEntityPrefab` + `OnCharacterCreated` + `HandoverToPlayer`) and `HandoverToPlayer` (`SetInitialMainEntity` → `OnPlayerEntityChanged_S` → `NotifySpawn`, EPF's own three calls minus its database callback); (3) the one-frame-deferred rebuild after `OnPlayerKilled_S`. EPF's character-LOADING half is deliberately not ported — Overthrow owns player identity, player characters are `SelfSpawn 0`, and `SetupPersistenceCollections()` stays a no-op. EPF's dead-body dance is not ported either: vanilla's `OnPlayerEntityChanged_S` already calls `ReloadConfig` on the entity a player stopped controlling, which re-matches the corpse as an ordinary character. **This is the one place Phase 5 changes observable behaviour, and it is a restoration of intended behaviour, not a redesign** — it is also the thing most likely to move the test suite, since the autotest world will now have a real player character in it.
+
+**Vehicle manager, second-order EPF dependency the plan did not list.** `OVT_VehicleManagerComponent`'s offline despawn/respawn system was keyed on `EPF_PersistenceComponent.GetPersistentId()` and really was running (the console log shows `Registered player vehicle <uuid>`). Identity now comes from `OVT_PersistenceTracking.GetPersistentId()` (`PersistenceSystem.GetId`, empty string when untracked so the existing guard still works), and despawn is `Save()` + `StopTracking(entity, removeData: false)` — vanilla's own "despawn but do not forget" idiom, `SCR_SpawnLogic.c:107-108`. ~~`RespawnPlayerVehicles()` is now deliberately empty and says why: EPF backed it with a live per-entity database that a single record could be written to and read back from mid-session, and vanilla's save-point store has no equivalent.~~ **SUPERSEDED 2026-08-02 (GitHub #143, latest session note): that API claim was wrong — `PersistenceSystem.Save()` writes one instance immediately and `RequestSpawn()` reads it back by id, which is exactly the store this said did not exist. `RespawnPlayerVehicles()` is implemented.** Net effect at the time of this note: in-session behaviour identical (nothing came back before either — the EPF loader had a null repository), but the vehicle now survives quit→continue instead of being deleted forever. The same Save-then-release pattern replaced the EPF calls in `OVT_OverthrowGameMode.OnPlayerDisconnected`.
+
+**Two prefab-side EPF references the plan's "59 prefabs" line missed** (and the real count is 15, not 59 — the 59 was `technical-design.md`'s count of *script* files): `Prefabs/GameMode/OVT_OverthrowGameMode.et` and `Worlds/MP/OVT_Campaign_Eden_Layers/managers.layer` both still declare `m_pConnectionInfo EDF_JsonFileDbConnectionInfo` under `OVT_PersistenceManagerComponent`, left over from before that component was re-parented. They must go with the dependency.
+
+### 2026-08-02 (night) — Phase 4: states, players, and two features that were never actually working
+
+All 6 Phase 4 tasks closed: 3 implemented, 3 verdicts with no code. Awaiting compile + All-group verification.
+
+**Loadouts: the design decision, and the bug underneath it.** Contents are folded into `OVT_LoadoutManagerSerializer` (bumped to version 2, additively) rather than given a conf-declared `PersistentState`. A `PersistentState` is a singleton per class — loadouts are per player and variable in count, so states would have meant N script-owned instances via `StartTracking()`, each with an id something has to remember and fetch by hand. That is EPF's design, and reading it is what explains why loadout contents never survived: the id index and the per-loadout rows were two halves that could disagree, and the "find a loadout whose id we lost" fallback (`ScanAndLoadFromEPF`) was a stub returning false. Writing contents into the same record as the index removes the second half. **The bigger finding is that loadouts were dead end-to-end, not just across sessions:** `SaveLoadout()` only cached a loadout if `OVT_PlayerLoadout.Save()` (EPF) returned save-data, and with EPF's DbContext null it returns null — so nothing was ever cached, nothing listed, nothing to persist. Fixing that (cache + index unconditionally, id from `GetDeterministicId()`) is what makes the serializer non-vacuous. `DeleteLoadout()` also never removed the index entry, which would have resurrected deleted loadouts once the index was persisted.
+
+**Nested payloads: matched vanilla's shape rather than trusting reflection.** Phase 2 proved that reflection round-trips a plain record with `ref array<string>` members. Every vanilla save class with a nested OBJECT graph — `SCR_TaskSave`, `SCR_ScenarioFrameworkLayerSave`, `SCR_ScenarioFrameworkActionSave` — hand-writes `SerializationSave`/`SerializationLoad` instead. So the loadout item tree gets a persistence-side mirror (`OVT_PersistedLoadoutItem`) with an explicit recursive codec and the properties map flattened to parallel arrays. No map and no gameplay class in the payload.
+
+**Recruit bodies: EPF's semantics were the right answer, and they are owner-presence semantics.** A recruit body exists only while its owner is in the game — deleted `OFFLINE_DESPAWN_TIME` (10 min) after they leave, and previously reloaded from EPF on the group-created event when they came back. So bodies are NOT respawned at campaign start; `RespawnPlayerRecruits()` rebuilds them through the same hook. `SyncRecruitPositions()` runs from `PreShutdownPersist()` — the already-wired before-every-save hook, previously empty — so the stored position is current; without it a mid-session save brings recruits back where they were hired. **SUPERSEDED IN PART:** this phase rebuilt the body from the recruit PREFAB and accepted the gear loss; the user rejected that, and the latest session note above replaces the prefab rebuild with a persistence spawn request for the stored body. The owner-presence lifecycle and the pre-save sync survive unchanged.
+
+**Three verdicts, no code.** Vanilla's reconnect state is inert (player characters are `SelfSpawn 0`, so its 60 s sweep resolves nothing; `SCR_ReconnectComponent` is not on Overthrow's game mode at all). Vanilla's `CharacterControllerComponentSerializer` is already bound to every character through `Character.conf`, and Overthrow's EPF subclass only ever SUBTRACTED from its base. The camp↔placeable join is computed fresh from persisted data in both directions (spatial query + `persistentId` + `m_sAssociatedBaseId`) — there is no in-memory map for a reload to invalidate.
+
+**Vehicles reached by GUID override**, the Phase 2 pattern: `OVT_PlayerOwnerComponentSerializer` appended to vanilla's Car `{64C6B4937723DA61}` and Helicopter `{64EE8D74EB8192BA}` configs, because Overthrow overrides exactly those two vanilla base prefabs to add the component.
+
+### 2026-08-02 (night) — Phase 3: world entities, and the coexistence audit that mattered more
+
+All 6 Phase 3 tasks implemented (5 planned + the job restore pulled forward from Phase 2). Awaiting compile + All-group verification.
+
+**The finding that justifies the phase.** Vanilla `Common.conf` — which Overthrow inherits — persists AI groups (`Prefabs/AI/Groups/Group_Base.et` carries the native `Persistence` component) and AI characters (`Character_Base.et:41`). Overthrow ALSO rebuilds every one of those on load: `InitBaseControllers()` replays base upgrades and `OVT_BasePatrolUpgrade.Deserialize()` re-buys each persisted patrol, `SpawnGarrisons()` replays camp/FOB garrisons, `CheckRadioTowers()` respawns tower defence, and deployment modules respawn their infantry on proximity. Left alone, the first real quit→continue would have produced **double AI at every base in the campaign** — the exact regression class the coexistence task existed to catch. Scoped out with four `SelfSpawn 0` GUID overrides (AI unit, AI group, both waypoint configs) in a new `AI` group in `Overthrow.conf`; vanilla's serializers and rules are untouched, only the "spawn it back" bit is flipped. Vehicles, items, doors, structures and compositions are kept — Overthrow has no system that rebuilds those, so they are a straight win. Full per-category table in tasks.md.
+
+**Verdicts recorded rather than implemented.** Base upgrades: the manager path (Phase 2) already restores upgrades, groups and filled slots, so the only real entity-level gap was the physical composition, which `OVT_BaseUpgradeComposition.Deserialize()` never rebuilds — and that needed only a `StartTracking` call, because every composition the faction configs use inherits vanilla's `CompositionBase.et` and is already configured by vanilla's `Composition.conf`. No new conf, no UUID cross-refs. Deployments: entity-level, because their AI is virtualized by design (spawn on proximity, delete on deactivate) while the deployment marker is what makes the restored resource pools mean anything.
+
+**The job restore turned out not to need a compromise.** EPF re-ran `RunJobToCurrentStage()` on load, which re-executes stage handlers. Reading all eleven stage classes showed that every stage a job can be PARKED at overrides `OnTick` only — the base `OnStart` is a no-op — and every stage with side effects returns false from `OnStart`, i.e. advances immediately and is never a resting stage. So restoring stage/location/owner verbatim and running nothing is correct, not conservative. The one genuinely unrestorable thing is `OVT_Job.entity`, an `RplId`; jobs parked on `OVT_WaitTillDeadJobStage` are dropped and re-offered rather than allowed to pay out on a stale handle. Occupancy sets are derived from the restored board instead of stored, so they cannot drift when a record is dropped.
+
+**Four StartTracking sites** (`OVT_PersistenceTracking.Track`, a thin wrapper over `SCR_PersistenceSystem.GetByEntityWorld().StartTracking()`, no-op on clients): `PlaceItem`, `BuildItem`, `OVT_SlottedBaseUpgrade.SpawnInSlot`, `OVT_DeploymentManagerComponent.CreateDeployment`.
+
+**Save-format break:** an 11th component serializer on the game-mode config changes that record's layout. Every serializer's `version` guard covers an absent payload, and `run-tests.sh` resets CI save state per run, but pre-Phase-3 saves are not expected to survive (the migration is a breaking change by design).
+
+### 2026-08-02 (night, later) — Phase 2 complete: THE ACCEPTANCE GATE FLIPPED — exit 1 → exit 0
+All 11 serializers + the game-mode entity serializer landed (12/12 Phase 2 tasks). `OVT_TEST_PersistenceRoundTripSuite`: **9/9 green, two consecutive runs** — the machine-checkable definition of done is discharged. De-quarantine executed per the suite's own procedure: header replaced, suite added to the All group (now 41 cases, verified green in-group, ~18s), `tools/README.md` + `CLAUDE.md` updated, and `run-tests.sh` now auto-resets the OverthrowCI save state before every run so the fresh-session precondition holds in group runs (skipped when `OVERTHROW_SAVE_DIR` pins a fixture).
+
+Gate-mechanics redesign that made it possible (after a structural discovery): a mid-case `SaveGameManager.Load()` world transition restarts the `-autotest` harness (looped for 300s, 27 playthroughs, no junit) — so the suite's reload is now **in-session re-application** via `PersistenceSystem.RequestLoad` on the game-mode entity (`ReapplyLatestSaveData()` on the manager; `LoadLatestSave()` remains the production continue path). All anti-vacuous closures preserved + a new one (completed-save counter baseline). The true quit→continue restart path is explicitly manual-play-test territory (Phase 7).
+
+Notable engineering in Phase 2b (full detail in tasks.md): in-place applies everywhere (no duplicate camps/players on re-apply), stability recomputed from restored modifier lists (the gate's derived-invariant), `m_bDistributeInitial=false` restore guard (no double opening build-out), unknown-skill-key drop (crash guard), InventoryManager confirmed vestigial. Deferred with reasons: job system restore (EPF's `RunJobToCurrentStage` re-executes side effects — needs an idempotent design, Phase 3), deployment/camp world entities (Phase 3), recruit bodies + per-player loadout contents (Phase 4). One reserved-word compile fix (`owned` → `ownedRecords`) and absent-payload version guards added to the 2a serializers by the orchestrator.
+
+### 2026-08-02 (night) — Phase 1 complete: system online, saves land on disk
+All 8 Phase 1 tasks done and verified (compile clean; Fast 20/20; All 32/32; both new Init cases proven able to fail by removing the system registration — which also proved no vanilla persistence system shadows ours in the test world).
+
+**Save location discovered (the empirical checkpoint):** `<My Games>/<profile>/profile/.save/app1874880_user<steamID>/game/<mission>/playthrough<NNN>/savepoint<NNN>/` with `meta-info.json` + `WorldState/<uuid>.blob`. Test world mission dir: `OVT-Campaign-Test`. The gate suite's 9 `SaveGame()` calls produced 9 savepoints — **`RequestSavePoint` works with zero serializers**. `reset_save.sh` updated early (pulled from Phase 6) to also clear `profile/.save/*/game` (never `settings/`); backup/activate still EPF-only.
+
+**Regression found & fixed:** with persistence ACTIVE, vanilla `SCR_SpawnLogic.RequestPlayerData_S` rerouted player spawn into an async `RequestLoad`, so `DoSpawn_S`/`SetupPlayer` never ran (4 same-session Persistence cases red). Fix: `OVT_SpawnLogic` overrides `SetupPersistenceCollections()` to a no-op (a documented vanilla seam) — Overthrow owns player setup. Revisit only if Phase 3/4 deliberately adopts vanilla player/character persistence.
+
+**Gate-mechanics findings for Phase 2 (from reading the round-trip suite):**
+1. The capability case checks `HasSaveGame()` in the same `Execute()` pass as `SaveGame()` — impossible with an async save + async cache. The case needs cross-frame polling (its own multi-phase machinery already exists for reload). Both anti-vacuous closures survive: fresh-session half unchanged, transition still asserted, one SaveGame call.
+2. `RequestSessionReload()` uses `SCR_AutotestHelper.WorldOpenFile` — that boots a FRESH world; vanilla loading is `SaveGameManager.Load(save)`. The gate needs a load seam through the public manager API (e.g. `persistence.LoadLatestSave()`), documented in the suite header alongside the save trigger. The suite header itself anticipated iterating here ("should not assume this part is proven").
+3. `RequireRestoredCampaign()` demands `HasGameStarted()` true after reload without the campaign-start Setup re-running — Phase 2 must therefore restore game-mode start state (what EPF's `OVT_OverthrowSaveData` did).
+4. `HasSaveGame()`'s async seed also matters at case start: `RequireFreshSession` runs frames after world init, so the GetSaves seed will normally have resolved by then.
+
+### 2026-08-02 (late) — Plan v2: full API reconciliation, feature resumed
+User direction: validate the plan against the real 1.7.0 game code, then autorun to completion overnight; user play-tests in the morning. Two research passes (plan-assumption inventory: ~95 items; real-API map: full signatures with file:line) reconciled into plan v2. Headline findings beyond the already-known fictional APIs: global save lives on `SaveGameManager` not the persistence system; the entire binding layer is .conf; scope was undercounted (~22 EPF SaveData classes, not 15 — Deployments/Inventory/embedded classes missed); vanilla Common.conf covers most world-state persistence for free; dedicated servers purge saves at game-mode end unless configured otherwise (would have destroyed persistent campaigns — caught in planning). Wiring facts verified in-repo: ChimeraSystemsConfig GUID-override reaches all Overthrow worlds incl. the test world (SubScene of MpTest_Basic); mission header defaults to all save types enabled; game-mode prefab has no vanilla ancestor so the `Persistence` component is added by hand. Old `implementation.md`/`tasks.md` replaced wholesale; v1 recoverable from git history but its code samples must not be reused.
+
+### 2026-08-02 — Acceptance gate + branch findings from dev-ops/test-coverage
+(Preserved.) Gate contract as in Quick Status. Branch findings, measured not inferred: **no working save path in either system** — `SaveGame()` writes zero bytes silently (`m_PersistenceSystem` null), `HasSaveGame()` hardcoded false, `WipeSave()` no-op; EPF dead since re-parenting (`OnPostInit` never runs → no DB, no autosave, no restore) while 59 prefabs' `EPF_PersistenceComponent`s drive nothing; the save UI lies (`#OVT-Saved` unconditional, `OVT_MainMenuContext.c:262-271`) — BUG-002/BUG-006. `.scripts/` save tools assume EPF's `<profile>/.db/Overthrow` layout; vanilla exposes no path to script, so the new location must be found empirically, then three `DEFAULT_SAVE_DIR`s + reset's path guard updated together (contract: `tools/README.md` → "Save-state control"). Companion `OVT_TEST_PersistenceSuite` (same-session, 8 state kinds) is green and catches manager-write regressions independently of saving.
+
+### 2026-08-01 — Compile-reality check from dev-ops/workbench-automation
+(Preserved, condensed.) Plan v1's Phase 1 never compiled on 1.7.0.54; fictional APIs (`TriggerSave`, `PersistenceCollection.GetOrCreate`, `DB_BASE_DIR`, generic methods, `OnGameEnd` engine event) stubbed with `TODO(vanilla-persistence)` markers; real event hooks kept live; `OVT_ComponentFinder<Class T>` replaced the illegal generic method; template serializers moved to `templates/` (out of compiled tree). Full detail in git history of this file.
+
+### 2025-11-09 — v1 planning session
+Dev docs created; v1 plan drafted against assumed API (now superseded).
 
 ---
 
-*Update this file at the end of each work session. Run `/dev-docs-update` before compacting conversations.*
+*Update this file at the end of each work session. Run `/update-feature core/persistence` before compacting conversations.*

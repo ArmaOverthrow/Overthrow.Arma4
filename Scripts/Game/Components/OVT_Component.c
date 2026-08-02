@@ -4,7 +4,8 @@ class OVT_ComponentClass: ScriptComponentClass
 }
 
 //! Generic component finder
-//! Replaces EPF_Component<T>.Find(entity) pattern with vanilla-friendly helper
+//! The project-wide way to fetch a component off an entity in one line, without repeating a Cast.
+//! EnforceScript has no generic METHODS, so this is a generic CLASS with a static.
 //! Usage: OVT_ComponentFinder<OVT_TownManagerComponent>.Find(entity)
 class OVT_ComponentFinder<Class T>
 {

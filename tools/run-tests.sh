@@ -188,6 +188,26 @@ rm -f "$OUT_DIR"/*
 vlog "target:   $TARGET"
 vlog "timeout:  ${TIMEOUT_S}s"
 
+# --- save-state precondition ---------------------------------------------------
+# The round-trip suite (in the All group since 2026-08-02) asserts the
+# no-save -> save TRANSITION, which is only meaningful in a fresh session.
+# Every run therefore starts from a clean CI save state — determinism for
+# every other suite too. Skipped when the caller pins OVERTHROW_SAVE_DIR
+# (fixture workflows manage their own state via activate_save.sh).
+RESETTER="$_RT_SCRIPT_DIR/../.scripts/reset_save.sh"
+if [[ -z "${OVERTHROW_SAVE_DIR+set}" ]]; then
+    if [[ -x "$RESETTER" ]]; then
+        "$RESETTER" --profile OverthrowCI >/dev/null || {
+            ovt_err "save-state reset failed (.scripts/reset_save.sh --profile OverthrowCI)"
+            exit 2
+        }
+        vlog "save state: reset (profile OverthrowCI)"
+    else
+        ovt_err "reset_save.sh not found/executable at '$RESETTER'"
+        exit 2
+    fi
+fi
+
 # --- launch (exclusively via feature #1's boundary) ----------------------------
 
 RC=0

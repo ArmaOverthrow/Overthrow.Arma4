@@ -7,23 +7,68 @@ class OVT_PlayerCommsComponent: OVT_Component
 	bool takingMoney = false;
 	bool addingMoney = false;
 	
+	//! Client-side: fired with (bool success) when a save this client asked for has finished on the
+	//! server. Subscribe BEFORE calling RequestSave().
+	protected ref ScriptInvoker m_OnSaveResult = new ScriptInvoker();
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Invoker fired with (bool success) when a requested save completes on the server.
+	ScriptInvoker GetOnSaveResult()
+	{
+		return m_OnSaveResult;
+	}
+
 	void RequestSave()
 	{
 		Rpc(RpcAsk_RequestSave);
 	}
-	
+
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	void RpcAsk_RequestSave()
 	{
 		OVT_OverthrowGameMode overthrow = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
-		if(!overthrow) return;
-		OVT_PersistenceManagerComponent persistence = overthrow.GetPersistence();
-		if(persistence && persistence.IsActive())
+		if(!overthrow)
 		{
-			persistence.SaveGame();
+			Rpc(RpcDo_SaveResult, false);
+			return;
 		}
+
+		OVT_PersistenceManagerComponent persistence = overthrow.GetPersistence();
+		if(!persistence)
+		{
+			Rpc(RpcDo_SaveResult, false);
+			return;
+		}
+
+		// The save is asynchronous, so the outcome is reported from its completion invoker rather
+		// than assumed here (BUG-006: the menu used to claim success unconditionally).
+		persistence.GetOnSaveFinished().Remove(OnServerSaveFinished);
+		persistence.GetOnSaveFinished().Insert(OnServerSaveFinished);
+		persistence.SaveGame();
 	}
-	
+
+	//------------------------------------------------------------------------------------------------
+	//! Server-side handler for OVT_PersistenceManagerComponent.GetOnSaveFinished().
+	//! \param[in] success Whether the save point was actually committed.
+	protected void OnServerSaveFinished(bool success)
+	{
+		OVT_OverthrowGameMode overthrow = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
+		if(overthrow)
+		{
+			OVT_PersistenceManagerComponent persistence = overthrow.GetPersistence();
+			if(persistence)
+				persistence.GetOnSaveFinished().Remove(OnServerSaveFinished);
+		}
+
+		Rpc(RpcDo_SaveResult, success);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void RpcDo_SaveResult(bool success)
+	{
+		m_OnSaveResult.Invoke(success);
+	}
+
 	void SendNotification(string tag, int playerId = -1, string param1 = "", string param2="", string param3="")
 	{
 		Rpc(RpcAsk_SendNotification, tag, playerId, param1, param2, param3);
@@ -182,7 +227,7 @@ class OVT_PlayerCommsComponent: OVT_Component
 	{
 		RplComponent rpl = RplComponent.Cast(Replication.FindItem(vehicle));
 		IEntity entity = rpl.GetEntity();
-		OVT_PlayerOwnerComponent playerOwner = EPF_Component<OVT_PlayerOwnerComponent>.Find(entity);
+		OVT_PlayerOwnerComponent playerOwner = OVT_ComponentFinder<OVT_PlayerOwnerComponent>.Find(entity);
 		if(playerOwner) playerOwner.SetLocked(locked);
 	}
 	
@@ -201,7 +246,7 @@ class OVT_PlayerCommsComponent: OVT_Component
 		IEntity vehicle = rpl.GetEntity();
 		if (!vehicle) return;
 		
-		OVT_PlayerOwnerComponent playerOwner = EPF_Component<OVT_PlayerOwnerComponent>.Find(vehicle);
+		OVT_PlayerOwnerComponent playerOwner = OVT_ComponentFinder<OVT_PlayerOwnerComponent>.Find(vehicle);
 		if (!playerOwner) return;
 		
 		// Only set owner if vehicle is currently unowned
@@ -484,7 +529,7 @@ class OVT_PlayerCommsComponent: OVT_Component
 		if(!economy.PlayerHasMoney(playerPersId, cost)) return;
 		
 		//Try to spawn the vehicle in the parking for this shop
-		OVT_ParkingComponent parking = EPF_Component<OVT_ParkingComponent>.Find(shop.GetOwner());
+		OVT_ParkingComponent parking = OVT_ComponentFinder<OVT_ParkingComponent>.Find(shop.GetOwner());
 		if(parking)
 		{
 			vector mat[4];

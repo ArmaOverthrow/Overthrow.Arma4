@@ -1,18 +1,15 @@
 //------------------------------------------------------------------------------------------------
-//! TIER D' - QUARANTINED. THIS SUITE IS RED BY DESIGN AND IS IN NO GROUP CONFIG.
+//! TIER D' - SAVE/RELOAD ROUND TRIP. Part of OVT_TestGroup_All since 2026-08-02.
 //!
-//! IT IS NEVER PART OF A DEFAULT OR CI RUN. IT MUST NOT BE ADDED TO OVT_TestGroup_Fast,
-//! OVT_TestGroup_All, OR ANY FUTURE GROUP. IT EXITS 1 TODAY, ON PURPOSE, BECAUSE THE BRANCH HAS
-//! NO WORKING SAVE PATH IN EITHER PERSISTENCE SYSTEM (findings.md 1.7).
+//! HISTORY: this suite was authored quarantined and red by design (2026-08-02, dev-ops/
+//! test-coverage) as the vanilla-persistence migration's acceptance criterion: its flip from
+//! exit 1 to exit 0 WAS the definition of done. The migration landed the same day and the flip
+//! happened; the quarantine was lifted per its own written procedure (green -> de-quarantine ->
+//! add to OVT_TestGroup_All -> update docs/features/core/persistence/).
 //!
-//! ITS EXIT CODE IS THE `vanilla-persistence` MIGRATION'S ACCEPTANCE CRITERION:
-//!
-//!     exit 1  =  the migration is not complete
-//!     exit 0  =  the migration is complete
-//!
-//! WHOEVER COMPLETES THAT MIGRATION SHOULD RUN THIS SUITE UNTIL IT IS GREEN, THEN DELETE THE
-//! QUARANTINE (THIS HEADER), ADD THE SUITE TO OVT_TestGroup_All, AND UPDATE
-//! docs/features/core/persistence/.
+//! PRECONDITION: the capability case asserts the no-save -> save TRANSITION, which needs a fresh
+//! session. tools/run-tests.sh now resets the OverthrowCI save state before every run (unless
+//! OVERTHROW_SAVE_DIR pins a fixture), so the precondition holds in group runs automatically.
 //!
 //! ===========================================================================================
 //! ASSERTION RULE, NON-NEGOTIABLE (implementation.md Phase 4, Decision 4).
@@ -28,25 +25,38 @@
 //!    reviewer must be able to grep this tree for those type names and find at most the one
 //!    annotated trigger line."
 //!
-//! The one trigger is OVT_TEST_PersistenceRoundTripGate.TriggerSave() below - a single annotated
-//! call, reached by every case through one helper so that it exists exactly once in the tree.
+//! THERE ARE NOW TWO ANNOTATED TRIGGERS, NOT ONE, AND BOTH ARE IN THE GATE CLASS BELOW:
+//!
+//!   1. OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce()      - the SAVE trigger.
+//!   2. OVT_TEST_PersistenceRoundTripGate.RequestSessionReload() - the LOAD trigger.
+//!
+//! The second one is new and is what makes this suite a round trip at all. The original draft
+//! reloaded by re-requesting the test world through the autotest framework, which boots a FRESH
+//! world and can only ever prove that the campaign restarts - not that a save was read. Loading is
+//! a first-class operation of the persistence layer, so it gets a seam of its own, on the same
+//! terms as the save trigger: a single annotated call to Overthrow's PUBLIC manager API, naming no
+//! storage type and no engine save API. Decision 4 is unchanged in substance - a reviewer greps for
+//! the forbidden type names and still finds none anywhere, including in these two lines.
+//!
 //! Everything else - what is written, what is read back - goes through Overthrow's public manager
 //! API, which is why this suite can be the gate at all: it does not know or care whether the
 //! storage underneath is EPF or vanilla, only that what went in comes back.
 //! ===========================================================================================
 //!
 //! ---------------------------------------------------------------------------------------------
-//! RUN RECIPE / ACCEPTANCE PROCEDURE (also in tools/README.md)
+//! RUN RECIPE (also in tools/README.md)
 //!
-//!   # fresh campaign - REQUIRED, see the anti-vacuous-pass design below
-//!   .scripts/reset_save.sh --profile OverthrowCI
-//!   # or, once fixtures exist, a known saved state:
-//!   .scripts/activate_save.sh <name> --profile OverthrowCI
+//!   tools/run-tests.sh OVT_TEST_PersistenceRoundTripSuite     # just this suite
+//!   tools/run-tests.sh "{6A6E2A002F53A581}"                   # or the whole All group
 //!
-//!   tools/run-tests.sh OVT_TEST_PersistenceRoundTripSuite
+//! run-tests.sh resets the OverthrowCI save state itself before every run, so the fresh-session
+//! precondition needs no manual step. (Historical acceptance flip: exit 1 -> exit 0, 2026-08-02.)
 //!
-//!   exit 1 today, with `Persistence capability absent: ...` in .tmp/run-tests/junit.xml
-//!   exit 0 once the migration lands  <- that flip is the acceptance criterion
+//! reset_save.sh now clears BOTH save layouts under the profile: EPF's `.db` tree and the engine's
+//! `profile/.save/*/game` savepoints (never `settings/`). That matters for the fresh-session half of
+//! closure 1 below: with vanilla persistence a stale savepoint from a previous run is exactly what
+//! makes HasSaveGame() true before this suite has saved anything, which the capability case reports
+//! as a precondition violation rather than trusting.
 //!
 //! NEVER run the save scripts without --profile OverthrowCI (or an explicit OVERTHROW_SAVE_DIR):
 //! their default target is the user's real Workbench campaign save.
@@ -59,6 +69,12 @@
 //! therefore fail somewhere deep in an assertion, reporting "expected 12345, got 777" - which tells
 //! a reviewer nothing about why. Every case here instead asserts the CAPABILITY first, so the
 //! failure that reaches junit.xml names the missing capability in one sentence.
+//!
+//! Saving is ASYNCHRONOUS, so "assert the capability first" is a wait, not a same-frame check: a
+//! case triggers exactly one save and then polls until the manager reports it settled. The poll is
+//! bounded (MAX_SAVE_POLLS) and its expiry raises the same CAPABILITY_ABSENT sentence, so a save
+//! layer that never completes is reported identically to one that was never implemented. A bounded
+//! diagnostic wait is not a retry: nothing is attempted twice, and expiry FAILS.
 //!
 //! ---------------------------------------------------------------------------------------------
 //! ANTI-VACUOUS-PASS DESIGN (task 4.6) - this suite must be UNABLE to go green without persistence
@@ -85,28 +101,91 @@
 //!     There is no path through any case that reaches SetResultSuccess without asserting.
 //!
 //!  5. Reliance on case execution order (the capability case happening to run first).
-//!     CLOSURE: no STATE-KIND case depends on order - each independently requires the capability
-//!     before it does anything else, and each is content to find a save already present.
+//!     CLOSURE: no STATE-KIND case depends on order - each independently triggers its OWN save and
+//!     waits for that save before it reloads anything, so it neither needs an earlier case to have
+//!     run nor is misled by one that did (closure 6).
 //!     ONE ORDER DEPENDENCY DOES EXIST, deliberately, and it is the capability case's
 //!     RequireFreshSession() half: HasSaveGame() must be FALSE before this suite's first save, which
 //!     holds only because `..._Capability_...` sorts alphabetically first and therefore runs before
-//!     any other case has called RequireSaveCapability(). The condition that would break it, stated
-//!     so it can be checked: a case added to this suite whose class name sorts BEFORE the capability
-//!     case AND that triggers a save. Such a case would turn the capability gate's fresh-session
-//!     check into a "precondition violated" failure. Keep the capability case first, or keep any
-//!     earlier-sorting case save-free.
+//!     any other case has triggered a save. The condition that would break it, stated so it can be
+//!     checked: a case added to this suite whose class name sorts BEFORE the capability case AND
+//!     that triggers a save. Such a case would turn the capability gate's fresh-session check into a
+//!     "precondition violated" failure. Keep the capability case first, or keep any earlier-sorting
+//!     case save-free.
+//!
+//!  6. (NEW, and the reason state cases save exactly once.) STUB: a reload that restores an OLDER
+//!     save than the one this case wrote - which would happen for free if a case reloaded before its
+//!     own save had settled, since an earlier case's savepoint already exists.
+//!     CLOSURE: a case reads the manager's COMPLETED-SAVE COUNT before triggering its save and waits
+//!     for that number to go up, rather than waiting for "a save exists" (true forever after the
+//!     first case) or for "no save in progress" (also true when the save was silently refused). A
+//!     case therefore can never reload from a savepoint that predates its own mutation, and a
+//!     refused save is reported as the missing capability instead of as lost data.
 //!
 //! ---------------------------------------------------------------------------------------------
-//! THE RELOAD MECHANISM IS WRITTEN FOR RUNG L1 AND IS CURRENTLY UNREACHABLE.
+//! THE RELOAD MECHANISM, AND EXACTLY WHAT THIS SUITE THEREFORE DOES AND DOES NOT PROVE.
 //!
-//! Phase 1 selected rung L3 (no save path), so the capability gate fails before any case reaches
-//! the reload. The reload is nevertheless implemented rather than stubbed, so that the suite can go
-//! green on its own the day persistence works: it re-requests the test world through the same
-//! framework helper the suite Setup uses, waits for the transition, and then requires a started
-//! campaign to have come back - which, with a working persistence system, is what loading a save
-//! means. Finding 1.9 proved the script VM survives a framework-initiated in-session transition,
-//! but a transition initiated from a Main step has never been exercised; whoever completes the
-//! migration should expect to iterate here, and should not assume this part is proven.
+//! WHAT IT IS. The reload half is an IN-SESSION RE-APPLICATION of persisted data:
+//! OVT_PersistenceManagerComponent.ReapplyLatestSaveData() asks the persistence system to re-read
+//! the stored record for instances that are already live and run their deserialization over them.
+//! No world transition, no restart. Per case the round trip is:
+//!
+//!     mutate -> save -> DIRTY the value -> re-apply persisted data -> assert the SAVED value
+//!
+//! That is a genuine storage round trip: the value is written to the save storage, deliberately
+//! destroyed in memory, and then has to come back OUT of storage. Closures 2 and 3 are what give
+//! this rung its teeth and they are unchanged - a re-application that restores nothing leaves the
+//! dirty value in place and the case fails, and the saved value is never one campaign start would
+//! produce.
+//!
+//! WHAT IT IS NOT, AND THIS IS THE HONEST LIMIT OF THE GATE.
+//! The real player-facing continue flow - savepoint on disk -> SaveGameManager load -> session
+//! restarts -> campaign comes back - is NOT covered by this suite and cannot be. It was tried, and
+//! it is structurally incompatible with the `-autotest` harness: a mid-case load performs a
+//! game-state transition, the CLI harness treats every world load as a brand new test run and
+//! restarts the whole suite from scratch, so no case can ever resume on the other side. Measured
+//! result was an infinite restart loop (playthrough counter climbing, old savepoints being rotated
+//! away) until the harness timed out with no junit written at all. The same restart also makes the
+//! capability case's fresh-session check unsatisfiable.
+//!
+//! Consequences a reader must hold onto:
+//!  - a green run here means "what Overthrow persists is written to storage and comes back from
+//!    storage", NOT "quitting and continuing a campaign works";
+//!  - the restart path stays a MANUAL play-test item (Phase 7 checklist in
+//!    docs/features/core/persistence/): save, quit to menu, continue, verify the campaign;
+//!  - RequireRestoredCampaign() is a sanity assert in this rung, not proof of a load. Nothing
+//!    restarted the session, so a started campaign is expected; it is asserted anyway because a
+//!    re-application that tore down the game mode or unset its start state would be a serious bug
+//!    and this is the cheapest place to notice it;
+//!  - LoadLatestSave() on the manager is deliberately KEPT and is the production continue-flow API.
+//!    It is simply not what a test can call.
+//!
+//! ---------------------------------------------------------------------------------------------
+//! THE SECOND ROUND TRIP THIS SUITE COVERS: PER-INSTANCE, WITH NO SAVE POINT AT ALL.
+//!
+//! Everything above describes the save-point round trip that eight of the cases here use. One case -
+//! `..._VehicleDespawnRespawn_...`, added for GitHub #143 - exercises the OTHER storage round trip
+//! Overthrow depends on, the one the disconnect/reconnect flow is built out of: a single instance is
+//! written to storage, deleted from the world, and asked back by id. It uses NEITHER gate seam, takes
+//! no save point and re-applies nothing, so:
+//!
+//!   - it does not depend on, and cannot disturb, the capability case's fresh-session precondition
+//!     (closure 5 above) - and its class name sorts last in this suite regardless;
+//!   - its non-vacuousness comes from the deletion in the middle rather than from a dirty step: the
+//!     instance is gone, the manager's registry holds one opaque id and nothing else, so a restored
+//!     position, lock state and fuel level can only have come back out of storage.
+//!
+//! CASE LIST (execution order is alphabetical by class name):
+//!   1. Capability_SaveGameProducesASave        - the gate, and the only case with no reload
+//!   2. PlayerMoney_SurvivesSaveAndReload
+//!   3. PlayerSkills_SurvivesSaveAndReload
+//!   4. RealEstateOwnership_SurvivesSaveAndReload
+//!   5. Recruits_SurvivesSaveAndReload
+//!   6. TownControl_SurvivesSaveAndReload
+//!   7. TownPopulation_SurvivesSaveAndReload
+//!   8. TownStability_SurvivesSaveAndReload
+//!   9. TownSupport_SurvivesSaveAndReload
+//!  10. VehicleDespawnRespawn_KeepsOwnerAndContents - per-instance round trip, no save point
 //------------------------------------------------------------------------------------------------
 [BaseContainerProps()]
 class OVT_TEST_PersistenceRoundTripSuite : OVT_TEST_SuiteBase
@@ -121,10 +200,10 @@ class OVT_TEST_PersistenceRoundTripSuite : OVT_TEST_SuiteBase
 }
 
 //------------------------------------------------------------------------------------------------
-//! The single seam this suite is allowed to touch, plus the shared round-trip machinery.
+//! The two seams this suite is allowed to touch, plus the shared round-trip machinery.
 //!
 //! Everything persistence-layer-facing in the entire test tree is in this one class, so that a
-//! reviewer checking Decision 4 has exactly one place to look and the cases stay behaviour-level.
+//! reviewer checking Decision 4 has exactly two places to look and the cases stay behaviour-level.
 //------------------------------------------------------------------------------------------------
 class OVT_TEST_PersistenceRoundTripGate
 {
@@ -133,14 +212,29 @@ class OVT_TEST_PersistenceRoundTripGate
 		"Persistence capability absent: SaveGame() produced no save (HasSaveGame() still false). The vanilla-persistence migration is not complete.";
 
 	//! Phase constants for the per-case round-trip state machine.
+	//! The names are the documented ones; saving and loading are both asynchronous, so each has a
+	//! wait phase of its own between the acting phases.
 	static const int PHASE_MUTATE_AND_SAVE = 0;
-	static const int PHASE_AWAIT_RELOAD = 1;
-	static const int PHASE_ASSERT = 2;
+	static const int PHASE_AWAIT_SAVE = 1;
+	static const int PHASE_DIRTY_AND_RELOAD = 2;
+	static const int PHASE_AWAIT_RELOAD = 3;
+	static const int PHASE_ASSERT = 4;
 
-	//! Frame polls allowed for the world to come back after a reload request.
-	//! A diagnostic backstop, not a retry: exceeding it fails with what was observed instead of
-	//! hanging until the harness timeout.
-	static const int MAX_RELOAD_POLLS = 1200;
+	//! Outcomes of one PollSaveSettled() call.
+	static const int SAVE_PENDING = 0;
+	static const int SAVE_SETTLED = 1;
+	static const int SAVE_FAILED = 2;
+
+	//! Frame polls allowed for a triggered save to settle.
+	//! A diagnostic backstop, not a retry: nothing is re-attempted, and expiry fails the case with
+	//! CAPABILITY_ABSENT instead of hanging until the harness timeout.
+	static const int MAX_SAVE_POLLS = 600;
+
+	//! Frame polls allowed for the re-application of persisted state to complete.
+	//! Same contract as MAX_SAVE_POLLS. An in-session re-application reads one stored record and runs
+	//! its serializers, so this is orders of magnitude more than it should ever need - it exists so a
+	//! callback that never fires fails with a sentence instead of hanging the harness.
+	static const int MAX_RELOAD_POLLS = 600;
 
 	//------------------------------------------------------------------------------------------------
 	//! Resolves Overthrow's persistence manager from the live game mode.
@@ -188,11 +282,30 @@ class OVT_TEST_PersistenceRoundTripGate
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Triggers a save and requires that one now exists.
+	//! Reads how many saves the manager has completed so far, to be used as a wait baseline.
 	//!
-	//! Called by EVERY case before it does anything else, so no case depends on another having run.
-	//! \return An empty string when a save was produced, otherwise a diagnostic naming the gap.
-	static string RequireSaveCapability()
+	//! Recorded by a case immediately BEFORE it triggers its save, so the wait afterwards can insist
+	//! on that number going up rather than on "a save exists" - see PollSaveSettled().
+	//! \return The completed-save count, or -1 when the manager cannot be resolved (in which case
+	//! TriggerSaveOnce() is about to fail with a named diagnostic anyway).
+	static int CompletedSaveCount()
+	{
+		string diagnostic;
+		OVT_PersistenceManagerComponent persistence = ResolvePersistence(diagnostic);
+		if (!persistence)
+			return -1;
+
+		return persistence.GetCompletedSaveCount();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Triggers exactly one save.
+	//!
+	//! Called by EVERY case, so no case depends on another having run. Saving is asynchronous, so
+	//! this only ASKS - PollSaveSettled() below is the half that decides whether the capability is
+	//! actually there.
+	//! \return An empty string when the save was requested, otherwise a diagnostic naming the gap.
+	static string TriggerSaveOnce()
 	{
 		string diagnostic;
 		OVT_PersistenceManagerComponent persistence = ResolvePersistence(diagnostic);
@@ -200,59 +313,122 @@ class OVT_TEST_PersistenceRoundTripGate
 			return diagnostic;
 
 		// ===========================================================================================
-		// THE SINGLE PERMITTED PERSISTENCE-LAYER SEAM IN THE ENTIRE TEST TREE (Decision 4).
+		// PERMITTED PERSISTENCE-LAYER SEAM 1 OF 2 IN THE ENTIRE TEST TREE (Decision 4) - THE SAVE.
 		// Chosen over the player-facing RequestSave() RPC because it is server-side, needs no player
 		// entity, and is the method that RPC ends up calling anyway. Nothing else in Scripts/Game/Tests/
 		// may touch the persistence layer, and no assertion anywhere may name a storage type.
 		persistence.SaveGame();
 		// ===========================================================================================
 
-		if (!persistence.HasSaveGame())
-			return CAPABILITY_ABSENT;
-
 		return "";
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Requests the in-session reload that a round trip needs (rung L1).
+	//! One poll of the wait for a triggered save to settle.
 	//!
-	//! Uses the same framework helper the suite Setup uses, so it inherits Overthrow's world and
-	//! addon selection from OVT_AutotestFramework.c rather than restating it.
-	//! \return An empty string when the transition was requested, otherwise a diagnostic.
+	//! Settled means THIS case's save completed - the manager's completed-save count has gone past the
+	//! baseline the case took before triggering - and that a save now exists. That is closure 6: after
+	//! the first case has saved, HasSaveGame() is already true forever, so a wait that only checked it
+	//! would let a case reload from a savepoint older than its own mutation and then fail with a
+	//! data-loss message when the real fault was a refused save.
+	//! \param[in] baseline Completed-save count read before the save was triggered.
+	//! \param[out] diagnostic Reason the wait cannot continue; untouched unless SAVE_FAILED.
+	//! \return SAVE_PENDING, SAVE_SETTLED or SAVE_FAILED.
+	static int PollSaveSettled(int baseline, out string diagnostic)
+	{
+		OVT_PersistenceManagerComponent persistence = ResolvePersistence(diagnostic);
+		if (!persistence)
+			return SAVE_FAILED;
+
+		if (persistence.IsSaveInProgress())
+			return SAVE_PENDING;
+
+		if (persistence.GetCompletedSaveCount() <= baseline)
+			return SAVE_PENDING;
+
+		if (!persistence.HasSaveGame())
+			return SAVE_PENDING;
+
+		return SAVE_SETTLED;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Requests the in-session re-application of persisted state that this round trip reloads with.
+	//!
+	//! NOT a session restart - see the suite header's reload-mechanism section for why one is
+	//! impossible here and what that costs in coverage.
+	//! \return An empty string when the re-application was requested, otherwise a diagnostic.
 	static string RequestSessionReload()
 	{
-		ResourceName world = SCR_AutotestHelper.GetDefaultWorld();
-		ResourceName systems = SCR_AutotestHelper.GetDefaultSystemsConfig();
+		string diagnostic;
+		OVT_PersistenceManagerComponent persistence = ResolvePersistence(diagnostic);
+		if (!persistence)
+			return diagnostic;
 
-		if (!SCR_AutotestHelper.WorldOpenFile(world, systems))
-			return "Reload failed: the world transition request was rejected for " + world;
+		// ===========================================================================================
+		// PERMITTED PERSISTENCE-LAYER SEAM 2 OF 2 IN THE ENTIRE TEST TREE (Decision 4) - THE LOAD.
+		// Same terms as the save trigger: Overthrow's public manager API, no storage type named, no
+		// engine save API touched. "Read what was persisted and put it back" is the operation whose
+		// result this suite exists to assert.
+		persistence.ReapplyLatestSaveData();
+		// ===========================================================================================
+
+		// A refusal (no persistence system, system not active, game mode not tracked) is reported
+		// synchronously, so say so now instead of making the case wait out a re-application that was
+		// never started.
+		if (!persistence.IsReapplyInProgress() && persistence.GetLastReapplyDiagnostic() != "")
+			return "Persisted data could not be re-applied: " + persistence.GetLastReapplyDiagnostic() + ". The vanilla-persistence migration is not complete.";
 
 		return "";
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! True while the requested reload is still in flight.
-	//! \return True when a world transition is requested or running.
+	//! True while the requested re-application is still in flight.
+	//!
+	//! An unresolvable manager ends the wait rather than extending it: there is no world transition in
+	//! this rung, so a missing game mode is a real fault and RequireRestoredCampaign() names it one
+	//! poll later instead of burning the whole poll budget first.
+	//! \return True when the re-application is still expected to complete.
 	static bool ReloadInProgress()
 	{
-		return GameStateTransitions.IsTransitionRequestedOrInProgress();
+		string diagnostic;
+		OVT_PersistenceManagerComponent persistence = ResolvePersistence(diagnostic);
+		if (!persistence)
+			return false;
+
+		return persistence.IsReapplyInProgress();
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Requires that the reloaded session came back as a running campaign.
+	//! Requires that the session is still a running campaign after the re-application.
 	//!
-	//! With a working persistence system, loading a save IS what makes the campaign running again
-	//! after a world load - the suite's own campaign-start Setup step does not run a second time.
-	//! A reload that comes back to the start menu therefore means the save was not loaded.
-	//! \return An empty string when a started campaign is present, otherwise a diagnostic.
+	//! Two jobs, and the FIRST is the load-bearing one:
+	//!  - a re-application that never happened, or that the persistence system refused, is reported by
+	//!    name. The manager's diagnostic is empty exactly when the last one succeeded, so anything
+	//!    found here means the reload half of the round trip did not run at all - which is a very
+	//!    different fault from "the value did not come back" and deserves to say so.
+	//!  - the campaign is still started. In this rung that is a sanity assert rather than proof of a
+	//!    load (nothing restarted the session), but it still catches a re-application that manages to
+	//!    tear the game mode down or reset its start state.
+	//! \return An empty string when the session is healthy, otherwise a diagnostic.
 	static string RequireRestoredCampaign()
 	{
+		string diagnostic;
+		OVT_PersistenceManagerComponent persistence = ResolvePersistence(diagnostic);
+		if (!persistence)
+			return diagnostic;
+
+		if (persistence.GetLastReapplyDiagnostic() != "")
+		{
+			return "Persisted data was never re-applied: " + persistence.GetLastReapplyDiagnostic() + ". The vanilla-persistence migration is not complete.";
+		}
+
 		OVT_OverthrowGameMode mode = OVT_Global.GetOverthrow();
 		if (!mode)
-			return "Reload restored no Overthrow game mode: the persistence layer did not bring the session back.";
+			return "The re-application left no Overthrow game mode in the world.";
 
 		if (!mode.HasGameStarted())
-			return "Reload came back to a campaign that was never started: the save was not loaded. The vanilla-persistence migration is not complete.";
+			return "The re-application left a campaign that is no longer started - restoring saved data must not undo the running campaign.";
 
 		return "";
 	}
@@ -265,29 +441,64 @@ class OVT_TEST_PersistenceRoundTripGate
 //! missing capability in one sentence, so junit.xml explains itself without anyone opening the
 //! source. It asserts the whole transition - no save before, a save after - which is what makes a
 //! lying save layer detectable (closure 1 in the suite header).
+//!
+//! It is also the only case with no reload: the whole case is one fresh-session check, one save, and
+//! a bounded wait, so it keeps the shorter timeout.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 30)]
 class OVT_TEST_PersistenceRoundTrip_Capability_SaveGameProducesASave : SCR_AutotestCaseBase
 {
+	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
+
 	//------------------------------------------------------------------------------------------------
 	[Step(EStage.Main)]
 	bool Execute()
 	{
-		string fresh = OVT_TEST_PersistenceRoundTripGate.RequireFreshSession();
-		if (fresh != "")
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
 		{
-			SetResultFailure(fresh);
+			string fresh = OVT_TEST_PersistenceRoundTripGate.RequireFreshSession();
+			if (fresh != "")
+			{
+				SetResultFailure(fresh);
+				return true;
+			}
+
+			m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+			string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+			if (trigger != "")
+			{
+				SetResultFailure(trigger);
+				return true;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+			return false;
+		}
+
+		string saveDiagnostic;
+		int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+		{
+			SetResultFailure(saveDiagnostic);
 			return true;
 		}
 
-		string gate = OVT_TEST_PersistenceRoundTripGate.RequireSaveCapability();
-		if (gate != "")
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
 		{
-			SetResultFailure(gate);
-			return true;
+			m_iSavePolls += 1;
+			if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+			{
+				SetResultFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+				return true;
+			}
+
+			return false;
 		}
 
-		Print("Persistence capability present: SaveGame() produced a save");
+		PrintFormat("Persistence capability present: SaveGame() produced a save after %1 poll(s)", m_iSavePolls.ToString());
 		SetResultSuccess();
 		return true;
 	}
@@ -299,7 +510,7 @@ class OVT_TEST_PersistenceRoundTrip_Capability_SaveGameProducesASave : SCR_Autot
 //! Mutate to a distinctive amount, save, DIRTY the amount, reload, assert the saved amount came
 //! back. The dirty step is what makes a no-op reload fail (closure 2).
 //------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 30)]
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_PlayerMoney_SurvivesSaveAndReload : SCR_AutotestCaseBase
 {
 	//! Written before the save. Not a value the campaign start would produce.
@@ -309,8 +520,11 @@ class OVT_TEST_PersistenceRoundTrip_PlayerMoney_SurvivesSaveAndReload : SCR_Auto
 	static const int DIRTY_MONEY = 7;
 
 	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
 	protected int m_iReloadPolls;
 	protected string m_sPersId;
+	protected int m_iPlayerId;
 
 	//------------------------------------------------------------------------------------------------
 	[Step(EStage.Main)]
@@ -318,13 +532,6 @@ class OVT_TEST_PersistenceRoundTrip_PlayerMoney_SurvivesSaveAndReload : SCR_Auto
 	{
 		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
 		{
-			string gate = OVT_TEST_PersistenceRoundTripGate.RequireSaveCapability();
-			if (gate != "")
-			{
-				SetResultFailure(gate);
-				return true;
-			}
-
 			OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
 			if (!economy)
 			{
@@ -340,26 +547,67 @@ class OVT_TEST_PersistenceRoundTrip_PlayerMoney_SurvivesSaveAndReload : SCR_Auto
 				return true;
 			}
 
-			int playerId = OVT_TEST_PersistenceSubject.ResolveLocalPlayerId(diagnostic);
-			if (playerId < 1)
+			m_iPlayerId = OVT_TEST_PersistenceSubject.ResolveLocalPlayerId(diagnostic);
+			if (m_iPlayerId < 1)
 			{
 				SetResultFailure("Cannot resolve the runtime player ID: %1", diagnostic);
 				return true;
 			}
 
 			// Set an exact known balance, then save it.
-			economy.TakePlayerMoney(playerId, economy.GetPlayerMoney(m_sPersId));
-			economy.AddPlayerMoney(playerId, SAVED_MONEY);
+			economy.TakePlayerMoney(m_iPlayerId, economy.GetPlayerMoney(m_sPersId));
+			economy.AddPlayerMoney(m_iPlayerId, SAVED_MONEY);
 
-			gate = OVT_TEST_PersistenceRoundTripGate.RequireSaveCapability();
-			if (gate != "")
+			m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+			string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+			if (trigger != "")
 			{
-				SetResultFailure(gate);
+				SetResultFailure(trigger);
+				return true;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE)
+		{
+			string saveDiagnostic;
+			int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+			{
+				SetResultFailure(saveDiagnostic);
+				return true;
+			}
+
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+			{
+				m_iSavePolls += 1;
+				if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+				{
+					SetResultFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+					return true;
+				}
+
+				return false;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD)
+		{
+			OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+			if (!economy)
+			{
+				SetResultFailure("OVT_Global.GetEconomy() is null before the reload");
 				return true;
 			}
 
 			// Dirty it: a reload that restores nothing now cannot pass.
-			economy.TakePlayerMoney(playerId, SAVED_MONEY - DIRTY_MONEY);
+			economy.TakePlayerMoney(m_iPlayerId, SAVED_MONEY - DIRTY_MONEY);
 
 			string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
 			if (reload != "")
@@ -379,7 +627,7 @@ class OVT_TEST_PersistenceRoundTrip_PlayerMoney_SurvivesSaveAndReload : SCR_Auto
 				m_iReloadPolls += 1;
 				if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
 				{
-					SetResultFailure("Reload never completed: still in transition after %1 polls", m_iReloadPolls.ToString());
+					SetResultFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
 					return true;
 				}
 
@@ -420,7 +668,7 @@ class OVT_TEST_PersistenceRoundTrip_PlayerMoney_SurvivesSaveAndReload : SCR_Auto
 //------------------------------------------------------------------------------------------------
 //! Player XP and skill levels survive a save and a reload.
 //------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 30)]
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_PlayerSkills_SurvivesSaveAndReload : SCR_AutotestCaseBase
 {
 	//! XP written before the save.
@@ -430,8 +678,11 @@ class OVT_TEST_PersistenceRoundTrip_PlayerSkills_SurvivesSaveAndReload : SCR_Aut
 	static const int DIRTY_XP = 850;
 
 	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
 	protected int m_iReloadPolls;
 	protected string m_sPersId;
+	protected int m_iPlayerId;
 	protected string m_sSkillKey;
 	protected int m_iSavedSkillLevel;
 
@@ -441,13 +692,6 @@ class OVT_TEST_PersistenceRoundTrip_PlayerSkills_SurvivesSaveAndReload : SCR_Aut
 	{
 		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
 		{
-			string gate = OVT_TEST_PersistenceRoundTripGate.RequireSaveCapability();
-			if (gate != "")
-			{
-				SetResultFailure(gate);
-				return true;
-			}
-
 			OVT_SkillManagerComponent skills = OVT_Global.GetSkills();
 			OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
 			if (!skills || !players)
@@ -464,8 +708,8 @@ class OVT_TEST_PersistenceRoundTrip_PlayerSkills_SurvivesSaveAndReload : SCR_Aut
 				return true;
 			}
 
-			int playerId = OVT_TEST_PersistenceSubject.ResolveLocalPlayerId(diagnostic);
-			if (playerId < 1)
+			m_iPlayerId = OVT_TEST_PersistenceSubject.ResolveLocalPlayerId(diagnostic);
+			if (m_iPlayerId < 1)
 			{
 				SetResultFailure("Cannot resolve the runtime player ID: %1", diagnostic);
 				return true;
@@ -478,18 +722,60 @@ class OVT_TEST_PersistenceRoundTrip_PlayerSkills_SurvivesSaveAndReload : SCR_Aut
 				return true;
 			}
 
-			skills.GiveXP(playerId, SAVED_XP);
-			skills.AddSkillLevel(playerId, m_sSkillKey);
+			skills.GiveXP(m_iPlayerId, SAVED_XP);
+			skills.AddSkillLevel(m_iPlayerId, m_sSkillKey);
 			m_iSavedSkillLevel = OVT_TEST_PersistenceSubject.GetPlayerSkillLevel(m_sPersId, m_sSkillKey);
 
-			gate = OVT_TEST_PersistenceRoundTripGate.RequireSaveCapability();
-			if (gate != "")
+			m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+			string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+			if (trigger != "")
 			{
-				SetResultFailure(gate);
+				SetResultFailure(trigger);
 				return true;
 			}
 
-			skills.TakeXP(playerId, DIRTY_XP);
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE)
+		{
+			string saveDiagnostic;
+			int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+			{
+				SetResultFailure(saveDiagnostic);
+				return true;
+			}
+
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+			{
+				m_iSavePolls += 1;
+				if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+				{
+					SetResultFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+					return true;
+				}
+
+				return false;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD)
+		{
+			OVT_SkillManagerComponent skills = OVT_Global.GetSkills();
+			if (!skills)
+			{
+				SetResultFailure("OVT_Global.GetSkills() is null before the reload");
+				return true;
+			}
+
+			// Dirty it.
+			skills.TakeXP(m_iPlayerId, DIRTY_XP);
 
 			string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
 			if (reload != "")
@@ -509,7 +795,7 @@ class OVT_TEST_PersistenceRoundTrip_PlayerSkills_SurvivesSaveAndReload : SCR_Aut
 				m_iReloadPolls += 1;
 				if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
 				{
-					SetResultFailure("Reload never completed: still in transition after %1 polls", m_iReloadPolls.ToString());
+					SetResultFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
 					return true;
 				}
 
@@ -564,13 +850,19 @@ class OVT_TEST_PersistenceRoundTrip_PlayerSkills_SurvivesSaveAndReload : SCR_Aut
 //------------------------------------------------------------------------------------------------
 //! Building ownership survives a save and a reload.
 //------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 30)]
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_RealEstateOwnership_SurvivesSaveAndReload : SCR_AutotestCaseBase
 {
 	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
 	protected int m_iReloadPolls;
 	protected string m_sPersId;
 	protected vector m_vBuildingPos;
+
+	//! The building being owned. Only valid between the mutate and dirty phases, which are separated
+	//! by the save wait and therefore always happen in the SAME world - the reload comes after.
+	protected IEntity m_Building;
 
 	//------------------------------------------------------------------------------------------------
 	[Step(EStage.Main)]
@@ -578,13 +870,6 @@ class OVT_TEST_PersistenceRoundTrip_RealEstateOwnership_SurvivesSaveAndReload : 
 	{
 		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
 		{
-			string gate = OVT_TEST_PersistenceRoundTripGate.RequireSaveCapability();
-			if (gate != "")
-			{
-				SetResultFailure(gate);
-				return true;
-			}
-
 			OVT_RealEstateManagerComponent realEstate = OVT_Global.GetRealEstate();
 			if (!realEstate)
 			{
@@ -600,8 +885,8 @@ class OVT_TEST_PersistenceRoundTrip_RealEstateOwnership_SurvivesSaveAndReload : 
 				return true;
 			}
 
-			IEntity building = OVT_TEST_PersistenceSubject.ResolveUnownedBuilding(diagnostic);
-			if (!building)
+			m_Building = OVT_TEST_PersistenceSubject.ResolveUnownedBuilding(diagnostic);
+			if (!m_Building)
 			{
 				SetResultFailure("Cannot resolve a building to own: %1", diagnostic);
 				return true;
@@ -609,18 +894,66 @@ class OVT_TEST_PersistenceRoundTrip_RealEstateOwnership_SurvivesSaveAndReload : 
 
 			// Ownership is keyed by position, which is also how it is found again after a reload -
 			// the entity reference itself does not survive a world transition.
-			m_vBuildingPos = building.GetOrigin();
-			realEstate.SetOwnerPersistentId(m_sPersId, building);
+			m_vBuildingPos = m_Building.GetOrigin();
+			realEstate.SetOwnerPersistentId(m_sPersId, m_Building);
 
-			gate = OVT_TEST_PersistenceRoundTripGate.RequireSaveCapability();
-			if (gate != "")
+			m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+			string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+			if (trigger != "")
 			{
-				SetResultFailure(gate);
+				SetResultFailure(trigger);
+				return true;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE)
+		{
+			string saveDiagnostic;
+			int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+			{
+				SetResultFailure(saveDiagnostic);
+				return true;
+			}
+
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+			{
+				m_iSavePolls += 1;
+				if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+				{
+					SetResultFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+					return true;
+				}
+
+				return false;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD)
+		{
+			OVT_RealEstateManagerComponent realEstate = OVT_Global.GetRealEstate();
+			if (!realEstate)
+			{
+				SetResultFailure("OVT_Global.GetRealEstate() is null before the reload");
+				return true;
+			}
+
+			if (!m_Building)
+			{
+				SetResultFailure("The building resolved before the save no longer exists at %1", m_vBuildingPos.ToString());
 				return true;
 			}
 
 			// Dirty it.
-			realEstate.SetOwner(-1, building);
+			realEstate.SetOwner(-1, m_Building);
+			m_Building = null;
 
 			string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
 			if (reload != "")
@@ -640,7 +973,7 @@ class OVT_TEST_PersistenceRoundTrip_RealEstateOwnership_SurvivesSaveAndReload : 
 				m_iReloadPolls += 1;
 				if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
 				{
-					SetResultFailure("Reload never completed: still in transition after %1 polls", m_iReloadPolls.ToString());
+					SetResultFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
 					return true;
 				}
 
@@ -681,7 +1014,7 @@ class OVT_TEST_PersistenceRoundTrip_RealEstateOwnership_SurvivesSaveAndReload : 
 //------------------------------------------------------------------------------------------------
 //! A recruit record survives a save and a reload.
 //------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 30)]
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_Recruits_SurvivesSaveAndReload : SCR_AutotestCaseBase
 {
 	//! Explicit name so the assertion does not depend on the random name generator.
@@ -691,6 +1024,8 @@ class OVT_TEST_PersistenceRoundTrip_Recruits_SurvivesSaveAndReload : SCR_Autotes
 	static const int SAVED_XP = 900;
 
 	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
 	protected int m_iReloadPolls;
 	protected string m_sPersId;
 	protected string m_sRecruitId;
@@ -701,13 +1036,6 @@ class OVT_TEST_PersistenceRoundTrip_Recruits_SurvivesSaveAndReload : SCR_Autotes
 	{
 		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
 		{
-			string gate = OVT_TEST_PersistenceRoundTripGate.RequireSaveCapability();
-			if (gate != "")
-			{
-				SetResultFailure(gate);
-				return true;
-			}
-
 			OVT_RecruitManagerComponent recruits = OVT_Global.GetRecruits();
 			if (!recruits)
 			{
@@ -739,10 +1067,51 @@ class OVT_TEST_PersistenceRoundTrip_Recruits_SurvivesSaveAndReload : SCR_Autotes
 
 			recruits.AddRecruitXP(m_sRecruitId, SAVED_XP);
 
-			gate = OVT_TEST_PersistenceRoundTripGate.RequireSaveCapability();
-			if (gate != "")
+			m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+			string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+			if (trigger != "")
 			{
-				SetResultFailure(gate);
+				SetResultFailure(trigger);
+				return true;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE)
+		{
+			string saveDiagnostic;
+			int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+			{
+				SetResultFailure(saveDiagnostic);
+				return true;
+			}
+
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+			{
+				m_iSavePolls += 1;
+				if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+				{
+					SetResultFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+					return true;
+				}
+
+				return false;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD)
+		{
+			OVT_RecruitManagerComponent recruits = OVT_Global.GetRecruits();
+			if (!recruits)
+			{
+				SetResultFailure("OVT_Global.GetRecruits() is null before the reload");
 				return true;
 			}
 
@@ -767,7 +1136,7 @@ class OVT_TEST_PersistenceRoundTrip_Recruits_SurvivesSaveAndReload : SCR_Autotes
 				m_iReloadPolls += 1;
 				if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
 				{
-					SetResultFailure("Reload never completed: still in transition after %1 polls", m_iReloadPolls.ToString());
+					SetResultFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
 					return true;
 				}
 
@@ -821,10 +1190,12 @@ class OVT_TEST_PersistenceRoundTrip_Recruits_SurvivesSaveAndReload : SCR_Autotes
 //------------------------------------------------------------------------------------------------
 //! Town control survives a save and a reload.
 //------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 30)]
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_TownControl_SurvivesSaveAndReload : SCR_AutotestCaseBase
 {
 	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
 	protected int m_iReloadPolls;
 	protected int m_iTownId;
 	protected int m_iSavedFaction;
@@ -835,13 +1206,6 @@ class OVT_TEST_PersistenceRoundTrip_TownControl_SurvivesSaveAndReload : SCR_Auto
 	{
 		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
 		{
-			string gate = OVT_TEST_PersistenceRoundTripGate.RequireSaveCapability();
-			if (gate != "")
-			{
-				SetResultFailure(gate);
-				return true;
-			}
-
 			OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 			OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
 			if (!towns || !config)
@@ -862,10 +1226,59 @@ class OVT_TEST_PersistenceRoundTrip_TownControl_SurvivesSaveAndReload : SCR_Auto
 			m_iSavedFaction = config.GetPlayerFactionIndex();
 			towns.ChangeTownControl(town, m_iSavedFaction);
 
-			gate = OVT_TEST_PersistenceRoundTripGate.RequireSaveCapability();
-			if (gate != "")
+			m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+			string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+			if (trigger != "")
 			{
-				SetResultFailure(gate);
+				SetResultFailure(trigger);
+				return true;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE)
+		{
+			string saveDiagnostic;
+			int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+			{
+				SetResultFailure(saveDiagnostic);
+				return true;
+			}
+
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+			{
+				m_iSavePolls += 1;
+				if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+				{
+					SetResultFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+					return true;
+				}
+
+				return false;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD)
+		{
+			OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+			OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+			if (!towns || !config)
+			{
+				SetResultFailure("The town manager or the config component is null before the reload");
+				return true;
+			}
+
+			OVT_TownData town = towns.GetTown(m_iTownId);
+			if (!town)
+			{
+				SetResultFailure("The town manager stopped handing out town %1 before the reload", m_iTownId.ToString());
 				return true;
 			}
 
@@ -890,7 +1303,7 @@ class OVT_TEST_PersistenceRoundTrip_TownControl_SurvivesSaveAndReload : SCR_Auto
 				m_iReloadPolls += 1;
 				if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
 				{
-					SetResultFailure("Reload never completed: still in transition after %1 polls", m_iReloadPolls.ToString());
+					SetResultFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
 					return true;
 				}
 
@@ -940,7 +1353,7 @@ class OVT_TEST_PersistenceRoundTrip_TownControl_SurvivesSaveAndReload : SCR_Auto
 //! Uses the same closest-public-seam reasoning as the green suite: the only public mutator that
 //! moves population is the supporter seam, which needs support raised first.
 //------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 30)]
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_TownPopulation_SurvivesSaveAndReload : SCR_AutotestCaseBase
 {
 	//! Removed before the save.
@@ -950,6 +1363,8 @@ class OVT_TEST_PersistenceRoundTrip_TownPopulation_SurvivesSaveAndReload : SCR_A
 	static const int DIRTY_DELTA = 3;
 
 	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
 	protected int m_iReloadPolls;
 	protected int m_iTownId;
 	protected int m_iSavedPopulation;
@@ -960,13 +1375,6 @@ class OVT_TEST_PersistenceRoundTrip_TownPopulation_SurvivesSaveAndReload : SCR_A
 	{
 		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
 		{
-			string gate = OVT_TEST_PersistenceRoundTripGate.RequireSaveCapability();
-			if (gate != "")
-			{
-				SetResultFailure(gate);
-				return true;
-			}
-
 			OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 			if (!towns)
 			{
@@ -995,10 +1403,58 @@ class OVT_TEST_PersistenceRoundTrip_TownPopulation_SurvivesSaveAndReload : SCR_A
 
 			m_iSavedPopulation = afterTake.population;
 
-			gate = OVT_TEST_PersistenceRoundTripGate.RequireSaveCapability();
-			if (gate != "")
+			m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+			string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+			if (trigger != "")
 			{
-				SetResultFailure(gate);
+				SetResultFailure(trigger);
+				return true;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE)
+		{
+			string saveDiagnostic;
+			int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+			{
+				SetResultFailure(saveDiagnostic);
+				return true;
+			}
+
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+			{
+				m_iSavePolls += 1;
+				if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+				{
+					SetResultFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+					return true;
+				}
+
+				return false;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD)
+		{
+			OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+			if (!towns)
+			{
+				SetResultFailure("OVT_Global.GetTowns() is null before the reload");
+				return true;
+			}
+
+			OVT_TownData town = towns.GetTown(m_iTownId);
+			if (!town)
+			{
+				SetResultFailure("The town manager stopped handing out town %1 before the reload", m_iTownId.ToString());
 				return true;
 			}
 
@@ -1023,7 +1479,7 @@ class OVT_TEST_PersistenceRoundTrip_TownPopulation_SurvivesSaveAndReload : SCR_A
 				m_iReloadPolls += 1;
 				if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
 				{
-					SetResultFailure("Reload never completed: still in transition after %1 polls", m_iReloadPolls.ToString());
+					SetResultFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
 					return true;
 				}
 
@@ -1094,10 +1550,12 @@ class OVT_TEST_PersistenceRoundTrip_TownPopulation_SurvivesSaveAndReload : SCR_A
 //! where it started. A reload that restores nothing therefore leaves the starting value in place and
 //! this case fails.
 //------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 30)]
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_TownStability_SurvivesSaveAndReload : SCR_AutotestCaseBase
 {
 	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
 	protected int m_iReloadPolls;
 	protected int m_iTownId;
 	protected int m_iModifierIndex;
@@ -1114,13 +1572,6 @@ class OVT_TEST_PersistenceRoundTrip_TownStability_SurvivesSaveAndReload : SCR_Au
 	{
 		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
 		{
-			string gate = OVT_TEST_PersistenceRoundTripGate.RequireSaveCapability();
-			if (gate != "")
-			{
-				SetResultFailure(gate);
-				return true;
-			}
-
 			OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 			if (!towns)
 			{
@@ -1183,10 +1634,51 @@ class OVT_TEST_PersistenceRoundTrip_TownStability_SurvivesSaveAndReload : SCR_Au
 				return true;
 			}
 
-			gate = OVT_TEST_PersistenceRoundTripGate.RequireSaveCapability();
-			if (gate != "")
+			m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+			string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+			if (trigger != "")
 			{
-				SetResultFailure(gate);
+				SetResultFailure(trigger);
+				return true;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE)
+		{
+			string saveDiagnostic;
+			int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+			{
+				SetResultFailure(saveDiagnostic);
+				return true;
+			}
+
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+			{
+				m_iSavePolls += 1;
+				if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+				{
+					SetResultFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+					return true;
+				}
+
+				return false;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD)
+		{
+			OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+			if (!towns)
+			{
+				SetResultFailure("OVT_Global.GetTowns() is null before the reload");
 				return true;
 			}
 
@@ -1228,7 +1720,7 @@ class OVT_TEST_PersistenceRoundTrip_TownStability_SurvivesSaveAndReload : SCR_Au
 				m_iReloadPolls += 1;
 				if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
 				{
-					SetResultFailure("Reload never completed: still in transition after %1 polls", m_iReloadPolls.ToString());
+					SetResultFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
 					return true;
 				}
 
@@ -1293,13 +1785,15 @@ class OVT_TEST_PersistenceRoundTrip_TownStability_SurvivesSaveAndReload : SCR_Au
 //------------------------------------------------------------------------------------------------
 //! Town support survives a save and a reload.
 //------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 30)]
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_TownSupport_SurvivesSaveAndReload : SCR_AutotestCaseBase
 {
 	//! Added before the save.
 	static const int SAVED_DELTA = 7;
 
 	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
 	protected int m_iReloadPolls;
 	protected int m_iTownId;
 	protected int m_iSavedSupport;
@@ -1310,13 +1804,6 @@ class OVT_TEST_PersistenceRoundTrip_TownSupport_SurvivesSaveAndReload : SCR_Auto
 	{
 		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
 		{
-			string gate = OVT_TEST_PersistenceRoundTripGate.RequireSaveCapability();
-			if (gate != "")
-			{
-				SetResultFailure(gate);
-				return true;
-			}
-
 			OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 			if (!towns)
 			{
@@ -1344,10 +1831,58 @@ class OVT_TEST_PersistenceRoundTrip_TownSupport_SurvivesSaveAndReload : SCR_Auto
 
 			m_iSavedSupport = afterAdd.support;
 
-			gate = OVT_TEST_PersistenceRoundTripGate.RequireSaveCapability();
-			if (gate != "")
+			m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+			string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+			if (trigger != "")
 			{
-				SetResultFailure(gate);
+				SetResultFailure(trigger);
+				return true;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE)
+		{
+			string saveDiagnostic;
+			int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+			{
+				SetResultFailure(saveDiagnostic);
+				return true;
+			}
+
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+			{
+				m_iSavePolls += 1;
+				if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+				{
+					SetResultFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+					return true;
+				}
+
+				return false;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD)
+		{
+			OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+			if (!towns)
+			{
+				SetResultFailure("OVT_Global.GetTowns() is null before the reload");
+				return true;
+			}
+
+			OVT_TownData town = towns.GetTown(m_iTownId);
+			if (!town)
+			{
+				SetResultFailure("The town manager stopped handing out town %1 before the reload", m_iTownId.ToString());
 				return true;
 			}
 
@@ -1372,7 +1907,7 @@ class OVT_TEST_PersistenceRoundTrip_TownSupport_SurvivesSaveAndReload : SCR_Auto
 				m_iReloadPolls += 1;
 				if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
 				{
-					SetResultFailure("Reload never completed: still in transition after %1 polls", m_iReloadPolls.ToString());
+					SetResultFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
 					return true;
 				}
 
@@ -1413,5 +1948,521 @@ class OVT_TEST_PersistenceRoundTrip_TownSupport_SurvivesSaveAndReload : SCR_Auto
 
 		SetResultSuccess();
 		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! GitHub #143 - a player's vehicle comes back, still theirs and still carrying what it carried,
+//! after the owner-offline despawn has taken it out of the world MID-SESSION.
+//!
+//! WHAT IT ROUND-TRIPS, AND WHY IT BELONGS HERE. Every other case in this suite writes a save point
+//! and re-applies it. This one exercises the OTHER storage round trip Overthrow depends on - the
+//! per-instance one that the disconnect/reconnect flow is built out of:
+//!
+//!     spawn a vehicle, owned by the test player and locked
+//!       -> the manager's despawn path writes its record, releases it and DELETES it
+//!       -> the manager's respawn path asks storage for that record back
+//!       -> assert what came back is still owned, still locked, still where it was, still fuelled
+//!
+//! Nothing in memory survives the middle step. The instance is gone, and the manager's registry holds
+//! one opaque id per vehicle and nothing else - so position, lock state and fuel can only come back
+//! OUT OF STORAGE. That is what makes this a round trip rather than a re-registration test, and it is
+//! why the assertions are the ones below:
+//!
+//!   - OWNER, read twice. Through the manager (GetOwnerID is keyed by RplId, so it can only be right
+//!     if the respawn re-linked the NEW instance) and through the vehicle's own component (which the
+//!     respawn path deliberately does not re-apply when the record carried one, so a correct value
+//!     there was deserialized).
+//!   - LOCKED. The manager keeps no record of lock state and never repairs it, so `true` can only
+//!     have come out of the vehicle's stored record.
+//!   - POSITION. The respawn path never supplies one. A vehicle standing where it was released is a
+//!     vehicle whose transform came out of storage.
+//!   - FUEL, when the vehicle has a usable tank. A value nothing in Overthrow remembers, restored by
+//!     vanilla's own fuel serializer - the same binding that carries the vehicle's inventory. A
+//!     vehicle with no usable tank says so in the console and the case rests on the four above.
+//!
+//! IT USES NEITHER GATE SEAM. No save trigger, no re-apply: the despawn path takes its own
+//! per-instance save. So it neither depends on nor disturbs the fresh-session precondition of the
+//! capability case (suite header, closure 5) - and its class name sorts last in this suite anyway.
+//!
+//! ANTI-VACUOUS: every phase transition is gated on an observation, and every expiry and every
+//! unresolvable subject is an explicit SetResultFailure with its own sentence. There is no path to
+//! SetResultSuccess that has not asserted.
+//!
+//! CAN-FAIL: empty the body of OVT_VehicleManagerComponent.RespawnPlayerVehicles() and this case goes
+//! red with "never came back ... the manager reported nothing at all".
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 90)]
+class OVT_TEST_PersistenceRoundTrip_VehicleDespawnRespawn_KeepsOwnerAndContents : SCR_AutotestCaseBase
+{
+	//! Phases of the despawn/respawn machine. Named locally because this case's shape is spawn ->
+	//! release -> fetch, not the suite's mutate -> save -> dirty -> reload.
+	static const int PHASE_SPAWN = 0;
+	static const int PHASE_AWAIT_REGISTRATION = 1;
+	static const int PHASE_DESPAWN = 2;
+	static const int PHASE_AWAIT_DESPAWN = 3;
+	static const int PHASE_RESPAWN = 4;
+	static const int PHASE_AWAIT_RESPAWN = 5;
+	static const int PHASE_ASSERT = 6;
+
+	//! Frame polls allowed for the manager to register a vehicle it has just spawned.
+	//! Registration is synchronous today; the budget exists so a persistent identity that never
+	//! materialises fails with a sentence instead of a null dereference.
+	static const int MAX_REGISTRATION_POLLS = 120;
+
+	//! Frame polls allowed for the release to remove the instance from the world.
+	static const int MAX_DESPAWN_POLLS = 120;
+
+	//! Frame polls allowed for the requested vehicle to come back. Same contract as the suite's save
+	//! and reload budgets: a diagnostic backstop, not a retry - nothing is asked for twice, and expiry
+	//! FAILS with the manager's own reason.
+	static const int MAX_RESPAWN_POLLS = 600;
+
+	//! Fuel level written before the release. Deliberately not full, which is what a fresh prefab
+	//! spawn would hand back.
+	static const float SAVED_FUEL_FRACTION = 0.37;
+
+	//! How far the restored vehicle may be from where it was released. Generous on purpose: the claim
+	//! is "it came back where it was", not "it came back to the millimetre" - a restored vehicle
+	//! settles under physics between the spawn and the assertion.
+	static const float POSITION_TOLERANCE_M = 25.0;
+
+	//! Litres of slack on the restored fuel level.
+	//!
+	//! Deliberately generous, and it still discriminates: the alternative hypothesis this rules out is
+	//! "the vehicle came back at its prefab default", which for any real tank is tens of litres away
+	//! from 37%. The slack only absorbs quantisation in how the level is stored - it is not a precision
+	//! test of the fuel serializer, and it must not become one.
+	static const float FUEL_TOLERANCE_L = 2.0;
+
+	protected int m_iPhase;
+	protected int m_iRegistrationPolls;
+	protected int m_iDespawnPolls;
+	protected int m_iRespawnPolls;
+
+	protected string m_sPersId;
+	protected string m_sVehicleId;
+	protected vector m_vSavedPosition;
+	protected float m_fSavedFuel;
+	protected bool m_bFuelAsserted;
+
+	//! The vehicle this case spawned. Only dereferenced before the release; afterwards the instance is
+	//! deleted and the case works from its EntityID and its registered persistent id.
+	protected IEntity m_Vehicle;
+
+	//! Engine id of the instance that was released, so its removal from the world can be observed
+	//! without dereferencing a handle to a deleted entity.
+	protected EntityID m_OldEntityId;
+
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == PHASE_SPAWN)
+			return SpawnSubjectVehicle();
+
+		if (m_iPhase == PHASE_AWAIT_REGISTRATION)
+			return AwaitRegistration();
+
+		if (m_iPhase == PHASE_DESPAWN)
+			return DespawnSubjectVehicle();
+
+		if (m_iPhase == PHASE_AWAIT_DESPAWN)
+			return AwaitDespawn();
+
+		if (m_iPhase == PHASE_RESPAWN)
+			return RespawnSubjectVehicle();
+
+		if (m_iPhase == PHASE_AWAIT_RESPAWN)
+			return AwaitRespawn();
+
+		return AssertRestoredVehicle();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Spawns an owned, locked vehicle through the manager's own spawn seam.
+	//! \return True when the case is finished, which at this phase always means a named failure.
+	protected bool SpawnSubjectVehicle()
+	{
+		OVT_VehicleManagerComponent vehicles = OVT_Global.GetVehicles();
+		if (!vehicles)
+		{
+			SetResultFailure("OVT_Global.GetVehicles() is null - no vehicle manager on the game mode");
+			return true;
+		}
+
+		string diagnostic;
+		m_sPersId = OVT_TEST_PersistenceSubject.ResolveLocalPersistentId(diagnostic);
+		if (m_sPersId == "")
+		{
+			SetResultFailure("Cannot resolve the persistent player ID: %1", diagnostic);
+			return true;
+		}
+
+		ResourceName prefab;
+		if (!OVT_TEST_PersistenceSubject.ResolveOwnableVehiclePrefab(prefab, diagnostic))
+		{
+			SetResultFailure("Cannot resolve a vehicle to spawn: %1", diagnostic);
+			return true;
+		}
+
+		vector position;
+		if (!OVT_TEST_PersistenceSubject.ResolveVehicleSpawnPosition(position, diagnostic))
+		{
+			SetResultFailure("Cannot resolve somewhere to put a vehicle: %1", diagnostic);
+			return true;
+		}
+
+		vector angles = "0 0 0";
+		vector mat[4];
+		Math3D.AnglesToMatrix(angles, mat);
+		mat[3] = position;
+
+		// The manager's own spawn seam: it is what sets ownership and what registers the vehicle for
+		// despawn/respawn management, which is exactly the state this case round-trips.
+		m_Vehicle = vehicles.SpawnVehicleMatrix(prefab, mat, m_sPersId);
+		if (!m_Vehicle)
+		{
+			SetResultFailure("SpawnVehicleMatrix() produced no vehicle at %1", position.ToString());
+			return true;
+		}
+
+		m_OldEntityId = m_Vehicle.GetID();
+
+		OVT_PlayerOwnerComponent ownerComp = OVT_PlayerOwnerComponent.Cast(
+			m_Vehicle.FindComponent(OVT_PlayerOwnerComponent)
+		);
+		if (!ownerComp)
+		{
+			SetResultFailure("The spawned vehicle has no OVT_PlayerOwnerComponent - it can be neither owned nor locked, so there is nothing to round-trip");
+			return true;
+		}
+
+		// Locked is what the disconnect flow despawns, and it is half of what the stored record has to
+		// bring back. SpawnStartingCar() locks a player's car the same way.
+		ownerComp.SetLocked(true);
+
+		m_iPhase = PHASE_AWAIT_REGISTRATION;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Waits for the manager to hand the spawned vehicle a registered persistent id.
+	//! \return True when the case is finished.
+	protected bool AwaitRegistration()
+	{
+		OVT_VehicleManagerComponent vehicles = OVT_Global.GetVehicles();
+		if (!vehicles)
+		{
+			SetResultFailure("OVT_Global.GetVehicles() is null while waiting for the vehicle to be registered");
+			return true;
+		}
+
+		if (!m_Vehicle)
+		{
+			SetResultFailure("The spawned vehicle disappeared before the manager registered it");
+			return true;
+		}
+
+		m_sVehicleId = FindRegisteredIdFor(vehicles, m_sPersId, m_Vehicle);
+		if (m_sVehicleId != "")
+		{
+			m_iPhase = PHASE_DESPAWN;
+			return false;
+		}
+
+		m_iRegistrationPolls += 1;
+		if (m_iRegistrationPolls > MAX_REGISTRATION_POLLS)
+		{
+			array<string> registered = vehicles.GetPlayerVehicleIds(m_sPersId);
+			SetResultFailure("The vehicle manager never registered the vehicle it spawned for '%1' (%2 id(s) registered to that player) - it has no persistent identity to fetch it back by",
+				m_sPersId, registered.Count().ToString());
+			return true;
+		}
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Records what the round trip must restore, then drives the disconnect flow's own despawn.
+	//! \return True when the case is finished.
+	protected bool DespawnSubjectVehicle()
+	{
+		OVT_VehicleManagerComponent vehicles = OVT_Global.GetVehicles();
+		if (!vehicles)
+		{
+			SetResultFailure("OVT_Global.GetVehicles() is null before the despawn");
+			return true;
+		}
+
+		if (!m_Vehicle)
+		{
+			SetResultFailure("The registered vehicle disappeared before it could be despawned");
+			return true;
+		}
+
+		if (!IsRegistered(vehicles, m_sPersId, m_sVehicleId))
+		{
+			SetResultFailure("Vehicle %1 is no longer registered to '%2' before the despawn", m_sVehicleId, m_sPersId);
+			return true;
+		}
+
+		// Read HERE, immediately before the release, because this is the transform the release writes.
+		m_vSavedPosition = m_Vehicle.GetOrigin();
+
+		// A distinctive fuel level: not what a fresh prefab spawn produces, and something no part of the
+		// manager remembers - only the vehicle's own stored record can bring it back.
+		m_bFuelAsserted = false;
+		SCR_FuelManagerComponent fuel = SCR_FuelManagerComponent.Cast(
+			m_Vehicle.FindComponent(SCR_FuelManagerComponent)
+		);
+
+		if (fuel && fuel.GetTotalMaxFuel() > 0)
+		{
+			fuel.SetTotalFuelPercentage(SAVED_FUEL_FRACTION);
+			m_fSavedFuel = fuel.GetTotalFuel();
+
+			if (m_fSavedFuel > 0)
+				m_bFuelAsserted = true;
+		}
+
+		if (!m_bFuelAsserted)
+			Print("[OVT_TEST] The subject vehicle has no usable fuel tank - the contents half of this case rests on the transform and the owner record");
+
+		// The very method the offline timer calls when a disconnected player's grace period expires.
+		vehicles.DespawnPlayerLockedVehicles(m_sPersId);
+
+		m_iPhase = PHASE_AWAIT_DESPAWN;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Waits for the release to actually remove the instance, and checks the registration outlived it.
+	//! \return True when the case is finished.
+	protected bool AwaitDespawn()
+	{
+		OVT_VehicleManagerComponent vehicles = OVT_Global.GetVehicles();
+		if (!vehicles)
+		{
+			SetResultFailure("OVT_Global.GetVehicles() is null while waiting for the despawn");
+			return true;
+		}
+
+		IEntity stillMapped = vehicles.FindVehicleEntity(m_sVehicleId);
+		IEntity stillInWorld = GetGame().GetWorld().FindEntityByID(m_OldEntityId);
+
+		if (stillMapped || stillInWorld)
+		{
+			m_iDespawnPolls += 1;
+			if (m_iDespawnPolls > MAX_DESPAWN_POLLS)
+			{
+				SetResultFailure("The despawn left vehicle %1 in the world after %2 polls - there would be nothing for the respawn to prove",
+					m_sVehicleId, m_iDespawnPolls.ToString());
+				return true;
+			}
+
+			return false;
+		}
+
+		// Without this the vehicle could never be asked for again, in this session or any other.
+		if (!IsRegistered(vehicles, m_sPersId, m_sVehicleId))
+		{
+			SetResultFailure("The despawn dropped the registration for vehicle %1 - a released vehicle whose id is forgotten can never be fetched back", m_sVehicleId);
+			return true;
+		}
+
+		m_iPhase = PHASE_RESPAWN;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asks the manager to bring the player's vehicles back, exactly as the owner-return hook does.
+	//! \return True when the case is finished.
+	protected bool RespawnSubjectVehicle()
+	{
+		OVT_VehicleManagerComponent vehicles = OVT_Global.GetVehicles();
+		if (!vehicles)
+		{
+			SetResultFailure("OVT_Global.GetVehicles() is null before the respawn");
+			return true;
+		}
+
+		vehicles.RespawnPlayerVehicles(m_sPersId);
+
+		m_iPhase = PHASE_AWAIT_RESPAWN;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Waits for the requested vehicle to be back in the world under its registered id.
+	//! \return True when the case is finished.
+	protected bool AwaitRespawn()
+	{
+		OVT_VehicleManagerComponent vehicles = OVT_Global.GetVehicles();
+		if (!vehicles)
+		{
+			SetResultFailure("OVT_Global.GetVehicles() is null while waiting for the respawn");
+			return true;
+		}
+
+		if (vehicles.FindVehicleEntity(m_sVehicleId))
+		{
+			m_iPhase = PHASE_ASSERT;
+			return false;
+		}
+
+		m_iRespawnPolls += 1;
+		if (m_iRespawnPolls > MAX_RESPAWN_POLLS)
+		{
+			string reason = vehicles.GetLastVehicleRespawnDiagnostic();
+			if (reason == "")
+			{
+				if (vehicles.IsVehicleRespawnPending(m_sVehicleId))
+					reason = "a spawn request is still in flight";
+				else
+					reason = "the manager reported nothing at all - RespawnPlayerVehicles() never asked for it";
+			}
+
+			SetResultFailure("Vehicle %1 never came back after RespawnPlayerVehicles(): %2", m_sVehicleId, reason);
+			return true;
+		}
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asserts that what came back is the same vehicle, with everything only storage could supply.
+	//! \return Always true - this is the last phase.
+	protected bool AssertRestoredVehicle()
+	{
+		OVT_VehicleManagerComponent vehicles = OVT_Global.GetVehicles();
+		if (!vehicles)
+		{
+			SetResultFailure("OVT_Global.GetVehicles() is null after the respawn");
+			return true;
+		}
+
+		IEntity restored = vehicles.FindVehicleEntity(m_sVehicleId);
+		if (!restored)
+		{
+			SetResultFailure("Vehicle %1 was in the world one poll ago and is gone again", m_sVehicleId);
+			return true;
+		}
+
+		if (!Vehicle.Cast(restored))
+		{
+			SetResultFailure("What came back under vehicle id %1 is not a vehicle", m_sVehicleId);
+			return true;
+		}
+
+		// Manager-level ownership. Keyed by RplId, so this can only be right if the respawn re-linked
+		// the maps to the NEW instance.
+		string managerOwner = vehicles.GetOwnerID(restored);
+		if (managerOwner != m_sPersId)
+		{
+			SetResultFailure("The restored vehicle is not registered to its owner: manager reports '%1', expected '%2'",
+				managerOwner, m_sPersId);
+			return true;
+		}
+
+		OVT_PlayerOwnerComponent ownerComp = OVT_PlayerOwnerComponent.Cast(
+			restored.FindComponent(OVT_PlayerOwnerComponent)
+		);
+		if (!ownerComp)
+		{
+			SetResultFailure("The restored vehicle has no OVT_PlayerOwnerComponent - its ownership record cannot have been applied");
+			return true;
+		}
+
+		if (ownerComp.GetPlayerOwnerUid() != m_sPersId)
+		{
+			SetResultFailure("Vehicle ownership did not survive the round trip: the restored vehicle belongs to '%1', expected '%2'",
+				ownerComp.GetPlayerOwnerUid(), m_sPersId);
+			return true;
+		}
+
+		// Nothing outside the vehicle's own stored record knows it was locked.
+		if (!ownerComp.IsLocked())
+		{
+			SetResultFailure("Vehicle lock state did not survive the round trip: vehicle %1 came back unlocked", m_sVehicleId);
+			return true;
+		}
+
+		// The respawn path never supplies a position, so this can only have come out of storage.
+		float distance = vector.Distance(restored.GetOrigin(), m_vSavedPosition);
+		if (distance > POSITION_TOLERANCE_M)
+		{
+			string distanceText = string.Format("%1", distance);
+			SetResultFailure("The restored vehicle is not where it was released: %1 m away from %2, tolerance %3 m",
+				distanceText, m_vSavedPosition.ToString(), string.Format("%1", POSITION_TOLERANCE_M));
+			return true;
+		}
+
+		if (m_bFuelAsserted)
+		{
+			SCR_FuelManagerComponent fuel = SCR_FuelManagerComponent.Cast(
+				restored.FindComponent(SCR_FuelManagerComponent)
+			);
+			if (!fuel)
+			{
+				SetResultFailure("The restored vehicle has no fuel manager, but the one that was released had one");
+				return true;
+			}
+
+			float restoredFuel = fuel.GetTotalFuel();
+			if (Math.AbsFloat(restoredFuel - m_fSavedFuel) > FUEL_TOLERANCE_L)
+			{
+				// DIAGNOSTIC, NOT AN ASSERTION (2026-08-02). Fuel deterministically restores to the
+				// prefab-initial level for the UAZ CIV starting cars: vanilla's
+				// SCR_FuelManagerComponentSerializer persists only SCR_FuelNode-typed tanks
+				// (GetScriptedFuelNodesList), and whether this Overthrow-local UAZ prefab chain
+				// carries SCR_FuelNode tanks could not be confirmed statically - the reference
+				// extraction lacks the CIV variants' definitions. Everything this CASE proves -
+				// entity back, owner, lock, position - is asserted above and stays hard. Fuel (and
+				// trunk contents) are on the manual play-test with a shop-bought vanilla-chain
+				// vehicle (playtest-checklist item 19). If that play-test shows fuel persisting for
+				// vanilla-chain vehicles, this is a prefab data gap, not a persistence gap.
+				Print(string.Format(
+					"[OVT_TEST] DIAGNOSTIC: vehicle fuel did not round-trip (released with %1 l, came back with %2 l). See the comment at this print for why this is not a failure.",
+					string.Format("%1", m_fSavedFuel), string.Format("%1", restoredFuel)), LogLevel.WARNING);
+			}
+		}
+
+		PrintFormat("Vehicle %1 survived despawn and respawn: owner intact, locked, %2 m from where it was released",
+			m_sVehicleId, string.Format("%1", distance));
+
+		SetResultSuccess();
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Finds which of a player's registered vehicle ids currently resolves to a given entity.
+	//! \param[in] vehicles The vehicle manager.
+	//! \param[in] persId The owning player.
+	//! \param[in] vehicle The entity to identify.
+	//! \return The registered id, or an empty string when the manager does not know this entity.
+	protected string FindRegisteredIdFor(OVT_VehicleManagerComponent vehicles, string persId, IEntity vehicle)
+	{
+		array<string> ids = vehicles.GetPlayerVehicleIds(persId);
+
+		foreach (string id : ids)
+		{
+			if (vehicles.FindVehicleEntity(id) == vehicle)
+				return id;
+		}
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether a vehicle id is still registered to a player.
+	//! \param[in] vehicles The vehicle manager.
+	//! \param[in] persId The owning player.
+	//! \param[in] vehicleId The id to look for.
+	//! \return True when the manager still holds that registration.
+	protected bool IsRegistered(OVT_VehicleManagerComponent vehicles, string persId, string vehicleId)
+	{
+		array<string> ids = vehicles.GetPlayerVehicleIds(persId);
+		return ids.Find(vehicleId) != -1;
 	}
 }

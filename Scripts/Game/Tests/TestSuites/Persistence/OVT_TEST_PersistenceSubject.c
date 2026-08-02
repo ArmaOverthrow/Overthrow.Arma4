@@ -194,6 +194,84 @@ class OVT_TEST_PersistenceSubject
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Resolves a player-ownable vehicle prefab from the vehicle manager's own configuration.
+	//!
+	//! Read from the manager rather than hardcoded, for the same reason the skill resolver reads the
+	//! skill config: changing which cars Overthrow hands out must change which car is exercised, not
+	//! turn a case red for the wrong reason. The starting-car list is the manager's own definition of
+	//! "a vehicle a player can own", which is exactly the subject a vehicle-ownership case needs.
+	//!
+	//! Returns a bool rather than the prefab so no caller has to compare a ResourceName against an
+	//! empty value to find out whether it worked.
+	//! \param[out] prefab The prefab to spawn; untouched on failure.
+	//! \param[out] diagnostic Reason none could be resolved; untouched on success.
+	//! \return True when a prefab was resolved.
+	static bool ResolveOwnableVehiclePrefab(out ResourceName prefab, out string diagnostic)
+	{
+		OVT_VehicleManagerComponent vehicles = OVT_Global.GetVehicles();
+		if (!vehicles)
+		{
+			diagnostic = "OVT_Global.GetVehicles() is null - no vehicle manager on the game mode";
+			return false;
+		}
+
+		if (!vehicles.m_pStartingCarPrefabs || vehicles.m_pStartingCarPrefabs.IsEmpty())
+		{
+			diagnostic = "The vehicle manager has no starting-car prefabs configured - there is no player-ownable vehicle to spawn";
+			return false;
+		}
+
+		prefab = vehicles.m_pStartingCarPrefabs[0];
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Resolves somewhere to put a test vehicle.
+	//!
+	//! The local player's own position is preferred because it is guaranteed to be on loaded, walkable
+	//! terrain - the autotest client spawns a real character (findings.md 1.4). The offset keeps the
+	//! vehicle clear of that character. The town centre is the fallback for a world where the character
+	//! has not been handed over yet; every test world has exactly one town by construction.
+	//!
+	//! Deliberately NOT the manager's parking search: a test world with no kerb or parking component
+	//! within range would then fail for a reason that has nothing to do with what is being asserted.
+	//! \param[out] position Where to spawn; untouched on failure.
+	//! \param[out] diagnostic Reason no position could be resolved; untouched on success.
+	//! \return True when a position was resolved.
+	static bool ResolveVehicleSpawnPosition(out vector position, out string diagnostic)
+	{
+		vector offset = "8 0 8";
+
+		string playerDiagnostic;
+		int playerId = ResolveLocalPlayerId(playerDiagnostic);
+		if (playerId > 0)
+		{
+			PlayerManager playerManager = GetGame().GetPlayerManager();
+			if (playerManager)
+			{
+				IEntity playerEntity = playerManager.GetPlayerControlledEntity(playerId);
+				if (playerEntity)
+				{
+					position = playerEntity.GetOrigin() + offset;
+					return true;
+				}
+			}
+		}
+
+		int townId;
+		string townDiagnostic;
+		OVT_TownData town = ResolveFirstTown(townId, townDiagnostic);
+		if (!town)
+		{
+			diagnostic = "No player character to place a vehicle beside (" + playerDiagnostic + ") and no town either: " + townDiagnostic;
+			return false;
+		}
+
+		position = town.location + offset;
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Resolves the key of a skill that has at least one configured level.
 	//!
 	//! Read from the skill config rather than hardcoded, so renaming or reordering skills changes

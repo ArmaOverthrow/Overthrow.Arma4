@@ -59,10 +59,45 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 	protected ref map<string, ref array<string>> m_mPlayerVehicleIds; // Player UID -> Vehicle persistent IDs
 	protected ref map<string, float> m_mOfflinePlayerTimers; // Player UID -> Timer
 	protected ref map<string, EntityID> m_mSpawnedVehicles; // Vehicle persistent ID -> Entity ID
-	
+
 	//! Despawn time for locked vehicles when player is offline (10 minutes)
 	static const float OFFLINE_VEHICLE_DESPAWN_TIME = 60.0;
-	
+
+	//! Vehicle ids whose stored instance is being fetched from the persistence system right now.
+	//!
+	//! PersistenceSystem.RequestSpawn() is ASYNCHRONOUS, so between the request and its callback a
+	//! vehicle has neither an instance in the world nor a request that anything can see. Without this
+	//! list the "already in world" guard in RespawnPlayerVehicles() would let a second call start a
+	//! second request for the same vehicle. Same role, and the same ordering rules, as
+	//! OVT_RecruitManagerComponent.m_aPendingBodySpawns.
+	protected ref array<string> m_aPendingVehicleSpawns;
+
+	//! The persistence collection player vehicles are stored in, resolved once and cached.
+	//!
+	//! Held without `ref` on purpose: the collection is owned by the persistence system and is only
+	//! obtainable from it (PersistenceCollection is sealed with a private constructor). This mirrors
+	//! SCR_SpawnLogic.m_CharacterCollection exactly.
+	protected PersistenceCollection m_VehicleCollection;
+
+	//! Why the last respawn attempt did not produce a vehicle. Empty after a clean one, which is what
+	//! makes it usable as a single "did that work?" question - the same contract as
+	//! OVT_PersistenceManagerComponent.GetLastReapplyDiagnostic().
+	protected string m_sLastRespawnDiagnostic;
+
+	//! Name of the collection player vehicles are stored in.
+	//!
+	//! VERIFIED, not assumed. Overthrow overrides vanilla's Prefabs/Vehicles/Core/Wheeled_Base.et and
+	//! Helicopter_Base.et, which are exactly the prefabs vanilla's Car {64C6B4937723DA61} and Helicopter
+	//! {64EE8D74EB8192BA} configurations match (Configuration/Vehicle/Car.conf:2-6, Helicopter.conf).
+	//! Vanilla Common.conf:189-197 puts both configurations - and the Tracked one - in collection
+	//! {64C6B493421C8948}, whose Name is "Vehicle" (Common.conf:11-14). Overthrow's Vehicles group
+	//! overrides the same two GUIDs only to append OVT_PlayerOwnerComponentSerializer; it changes
+	//! neither the collection nor SelfSpawn.
+	static const string VEHICLE_COLLECTION = "Vehicle";
+
+	//! How long to wait for a spawn request to answer before giving up on it (ms).
+	static const int VEHICLE_SPAWN_TIMEOUT_MS = 15000;
+
 	static OVT_VehicleManagerComponent GetInstance()
 	{
 		if (!s_Instance)
@@ -85,6 +120,7 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 		m_mOfflinePlayerTimers = new map<string, float>();
 		m_mSpawnedVehicles = new map<string, EntityID>();
 		m_aFoundPlayerVehicles = new array<EntityID>();
+		m_aPendingVehicleSpawns = new array<string>();
 	}
 	
 	void Init(IEntity owner)
@@ -105,7 +141,7 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 		// Start offline timer processing
 		GetGame().GetCallqueue().CallLater(ProcessOfflineTimers, 1000, true);
 		
-		// Delayed initialization to despawn offline player vehicles after EPF loads everything
+		// Delayed initialization to despawn offline player vehicles, after persistence has restored the world
 		GetGame().GetCallqueue().CallLater(InitialVehicleCleanup, 5000, false);
 	}
 	
@@ -135,7 +171,7 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 		
 		if(veh)
 		{
-			OVT_PlayerOwnerComponent playerowner = EPF_Component<OVT_PlayerOwnerComponent>.Find(veh);
+			OVT_PlayerOwnerComponent playerowner = OVT_ComponentFinder<OVT_PlayerOwnerComponent>.Find(veh);
 			if(playerowner) playerowner.SetLocked(true);
 		}
 	}
@@ -274,7 +310,7 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 		if(ownerId != "") 
 		{
 			SetOwnerPersistentId(ownerId, ent);
-			OVT_PlayerOwnerComponent playerowner = EPF_Component<OVT_PlayerOwnerComponent>.Find(ent);
+			OVT_PlayerOwnerComponent playerowner = OVT_ComponentFinder<OVT_PlayerOwnerComponent>.Find(ent);
 			if(playerowner)
 			{
 				playerowner.SetPlayerOwner(ownerId);
@@ -379,26 +415,17 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 	{
 		if (!vehicle || playerUid.IsEmpty())
 			return;
-		
-		// Get EPF persistence component
-		EPF_PersistenceComponent persistenceComp = EPF_PersistenceComponent.Cast(
-			vehicle.FindComponent(EPF_PersistenceComponent)
-		);
-		
-		if (!persistenceComp)
-		{
-			Print("[Overthrow] Vehicle missing EPF_PersistenceComponent, cannot register for management");
-			return;
-		}
-		
-		// Use existing persistent ID from EPF
-		string persistentId = persistenceComp.GetPersistentId();
+
+		// Identity comes from the vanilla persistence system, which tracks vehicles through the
+		// Car/Helicopter configs Overthrow.conf inherits. An untracked vehicle has no id and cannot be
+		// managed - the same guard the old persistence component's id used to provide.
+		string persistentId = OVT_PersistenceTracking.GetPersistentId(vehicle);
 		if (persistentId.IsEmpty())
 		{
-			Print("[Overthrow] Vehicle has no persistent ID, cannot register for management");
+			Print("[Overthrow] Vehicle is not tracked by persistence, cannot register for management");
 			return;
 		}
-		
+
 		// Register vehicle with player
 		if (!m_mPlayerVehicleIds.Contains(playerUid))
 			m_mPlayerVehicleIds[playerUid] = new array<string>();
@@ -466,8 +493,9 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 			m_mOfflinePlayerTimers[playerPersistentId] = OFFLINE_VEHICLE_DESPAWN_TIME;
 			Print(string.Format("[Overthrow] Player %1 disconnected, starting vehicle despawn timer", playerPersistentId));
 		}
-		
-		// Note: EPF handles auto-saving, no manual save needed
+
+		// The despawn itself writes each vehicle's record before releasing it, so nothing extra is
+		// needed here.
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -532,134 +560,462 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Despawn locked vehicles for an offline player
-	protected void DespawnPlayerLockedVehicles(string playerPersistentId)
+	//! Takes an offline player's locked vehicles out of the world without losing them.
+	//!
+	//! PUBLIC because it is one half of a lifecycle whose other half (RespawnPlayerVehicles) is public
+	//! too, and because the automated round-trip case has to be able to drive the disconnect flow's own
+	//! method rather than a re-implementation of it. Server-side; a client has no persistence system and
+	//! every call below becomes a no-op there.
+	//! \param[in] playerPersistentId The player who has been offline long enough.
+	void DespawnPlayerLockedVehicles(string playerPersistentId)
 	{
 		if (!m_mPlayerVehicleIds.Contains(playerPersistentId))
 			return;
-		
+
 		array<string> vehicleIds = m_mPlayerVehicleIds[playerPersistentId];
 		int despawnedCount = 0;
-		
+
 		foreach (string vehicleId : vehicleIds)
 		{
 			IEntity vehicle = FindVehicleEntity(vehicleId);
 			if (!vehicle)
 				continue;
-			
+
 			// Only despawn locked vehicles
 			if (!IsVehicleLocked(vehicle))
 				continue;
-			
-			// Pause EPF tracking before despawn to keep it for auto-spawning
-			EPF_PersistenceComponent persistence = EPF_PersistenceComponent.Cast(
-				vehicle.FindComponent(EPF_PersistenceComponent)
-			);
-			
-			if (persistence)
-			{
-				persistence.Save();
-				persistence.PauseTracking(); // Keep for EPF auto-spawn on restart
-			}
 
-			// Remove from spawned tracking
-			m_mSpawnedVehicles.Remove(vehicleId);
-			m_aVehicles.RemoveItem(vehicle.GetID());
-
-			SCR_EntityHelper.DeleteEntityAndChildren(vehicle);
+			ReleaseVehicle(vehicleId, vehicle);
 			despawnedCount++;
 		}
-		
+
 		Print(string.Format("[Overthrow] Despawned %1 locked vehicles for offline player: %2", despawnedCount, playerPersistentId));
 	}
-	
+
+	//------------------------------------------------------------------------------------------------
+	//! Writes a vehicle's record, releases tracking WITHOUT dropping that record, and removes it from
+	//! the world.
+	//!
+	//! THE POINT OF THE ORDER. Save() writes the vehicle - transform, fuel, damage and inventory
+	//! included, through the serializers vanilla's Vehicle.conf already binds - into storage; only then
+	//! is tracking released with the data KEPT (StopTracking(entity, removeData: false)). Deleting a
+	//! tracked entity without that last step drops its stored record too, and the vehicle is gone for
+	//! good.
+	//!
+	//! This is vanilla's own "despawn but do not forget" idiom - SCR_SpawnLogic.c:107-108 and :215-216
+	//! do exactly this to a disconnecting player's controller and character, and
+	//! OVT_RecruitManagerComponent.ReleaseRecruitBody() to a recruit's body.
+	//!
+	//! The REGISTRATION IS DELIBERATELY KEPT. m_mPlayerVehicleIds is what RespawnPlayerVehicles() reads
+	//! to know what to ask for; dropping the id here would make the vehicle unrecoverable in this
+	//! session. Only the live-instance mapping goes.
+	//! \param[in] vehicleId The vehicle's persistent id, which stays registered under its owner.
+	//! \param[in] vehicle The instance to write, release and delete.
+	protected void ReleaseVehicle(string vehicleId, notnull IEntity vehicle)
+	{
+		OVT_PersistenceTracking.Save(vehicle);
+		OVT_PersistenceTracking.Untrack(vehicle, true);
+
+		// Remove from spawned tracking
+		m_mSpawnedVehicles.Remove(vehicleId);
+		m_aVehicles.RemoveItem(vehicle.GetID());
+
+		SCR_EntityHelper.DeleteEntityAndChildren(vehicle);
+	}
+
 	
 	//------------------------------------------------------------------------------------------------
-	//! Save all vehicles for a player via EPF
+	//! Writes the stored record for every managed vehicle of a player, without taking a save point.
 	protected void SavePlayerVehicles(string playerPersistentId)
 	{
 		if (!m_mPlayerVehicleIds.Contains(playerPersistentId))
 			return;
-		
+
 		array<string> vehicleIds = m_mPlayerVehicleIds[playerPersistentId];
 		int savedCount = 0;
-		
+
 		foreach (string vehicleId : vehicleIds)
 		{
 			IEntity vehicle = FindVehicleEntity(vehicleId);
 			if (!vehicle)
 				continue;
-			
-			// Force save via EPF
-			EPF_PersistenceComponent persistence = EPF_PersistenceComponent.Cast(
-				vehicle.FindComponent(EPF_PersistenceComponent)
-			);
-			
-			if (persistence)
-			{
-				persistence.Save();
+
+			if (OVT_PersistenceTracking.Save(vehicle))
 				savedCount++;
-			}
 		}
-		
+
 		if (savedCount > 0)
 			Print(string.Format("[Overthrow] Saved %1 vehicles for player: %2", savedCount, playerPersistentId));
 	}
-	
+
 	//------------------------------------------------------------------------------------------------
-	//! Respawn paused vehicles for a connected player
-	protected void RespawnPlayerVehicles(string playerPersistentId)
+	//! Brings a returning player's despawned vehicles back into the world. GitHub #143.
+	//!
+	//! WHEN A LOCKED VEHICLE EXISTS IS AN OWNER-PRESENCE QUESTION. It is saved and released
+	//! OFFLINE_VEHICLE_DESPAWN_TIME after its owner leaves (DespawnPlayerLockedVehicles) and comes back
+	//! when that owner returns - this is called from OnPlayerConnected. A player who reconnects must find
+	//! their car where they parked it, with its fuel, damage and cargo, not an empty driveway.
+	//!
+	//! THE CLAIM THIS METHOD USED TO CARRY, AND WHY IT WAS WRONG. It was deliberately empty, on the
+	//! grounds that vanilla persistence is save-point based and cannot round-trip a single instance
+	//! inside a running session. That is not what the API does: PersistenceSystem.Save() writes ONE
+	//! instance's record immediately ("data is transient until the storage is flushed, but the entity can
+	//! safely be deleted already after this"), and PersistenceSystem.RequestSpawn() fetches records back
+	//! by id - "any already available instances will instantly complete the callback with OK". Save +
+	//! StopTracking(keepData) + RequestSpawn is therefore a complete in-session round trip, and it is the
+	//! same one OVT_RecruitManagerComponent uses for recruit bodies.
+	//!
+	//! IT ALSO COVERS VEHICLES THAT WERE NEVER DESPAWNED IN THIS SESSION. A registered id with no live
+	//! instance is asked for, whatever removed the instance; a vehicle that is still standing there is
+	//! skipped.
+	//!
+	//! IDEMPOTENT: a vehicle already in the world, or one with a request in flight, is never asked for
+	//! twice, so calling this repeatedly cannot mint duplicates.
+	//!
+	//! PUBLIC so the owner-return hook and the automated round-trip case drive the same entry point.
+	//! \param[in] playerPersistentId The returning owner.
+	void RespawnPlayerVehicles(string playerPersistentId)
 	{
+		m_sLastRespawnDiagnostic = "";
+
+		if (!m_mPlayerVehicleIds.Contains(playerPersistentId))
+			return;
+
+		// Iterate a COPY. A request whose record is already in memory completes its callback from INSIDE
+		// RequestSpawn(), and that callback can drop a registration - which would invalidate this
+		// iteration if it walked the live array.
+		array<string> registered = m_mPlayerVehicleIds[playerPersistentId];
+		array<string> vehicleIds = {};
+		foreach (string registeredId : registered)
+		{
+			vehicleIds.Insert(registeredId);
+		}
+
+		foreach (string vehicleId : vehicleIds)
+		{
+			// Already standing in the world - nothing to fetch
+			if (FindVehicleEntity(vehicleId))
+				continue;
+
+			// A request for this vehicle has not answered yet
+			if (m_aPendingVehicleSpawns && m_aPendingVehicleSpawns.Find(vehicleId) != -1)
+			{
+				Print("[Overthrow] Vehicle " + vehicleId + " already has a spawn request in flight");
+				continue;
+			}
+
+			RequestPersistedVehicle(playerPersistentId, vehicleId);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asks the persistence system to spawn back one stored vehicle by id.
+	//!
+	//! Vanilla's own model is SCR_SpawnLogic.c:368-374, which fetches a returning player's character from
+	//! its collection the same way. The request is filtered to a single id, so the callback is invoked
+	//! once.
+	//! \param[in] playerPersistentId The owning player.
+	//! \param[in] vehicleId The registered persistent id to fetch.
+	//! \return True when a request was sent and the callback now owns the outcome.
+	protected bool RequestPersistedVehicle(string playerPersistentId, string vehicleId)
+	{
+		SCR_PersistenceSystem persistence = SCR_PersistenceSystem.GetScriptedInstance();
+		if (!persistence)
+		{
+			m_sLastRespawnDiagnostic = "there is no persistence system in this world, so no stored vehicle can be fetched";
+			return false;
+		}
+
+		// Asking a system that is still loading would answer UNAVAILABLE; vanilla guards the same way
+		// (SCR_SpawnLogic.c:302-307).
+		if (persistence.GetState() != EPersistenceSystemState.ACTIVE)
+		{
+			m_sLastRespawnDiagnostic = "the persistence system is not active yet, so vehicle " + vehicleId + " cannot be fetched";
+			return false;
+		}
+
+		PersistenceCollection collection = GetVehicleCollection(persistence);
+		if (!collection)
+		{
+			m_sLastRespawnDiagnostic = "the loaded configuration has no '" + VEHICLE_COLLECTION + "' persistence collection";
+			return false;
+		}
+
+		// Vanilla's own validation of a stored id before using it (SCR_VoiceoverSystemSerializer.c:90).
+		// A null UUID still stringifies to a zero-filled value, so never compare, always ask.
+		if (!UUID.IsUUID(vehicleId))
+		{
+			m_sLastRespawnDiagnostic = "registered vehicle id '" + vehicleId + "' is not an id the persistence system can resolve - dropping the registration";
+			Print("[Overthrow] " + m_sLastRespawnDiagnostic, LogLevel.WARNING);
+			DropVehicleRegistration(playerPersistentId, vehicleId);
+			return false;
+		}
+
+		UUID storedId = vehicleId;
+
+		if (!m_aPendingVehicleSpawns)
+			m_aPendingVehicleSpawns = new array<string>();
+
+		// MUST be marked pending BEFORE the request is sent: an instance the system already has in memory
+		// completes the callback IMMEDIATELY, i.e. from inside RequestSpawn(), and the callback's first
+		// act is to consume this entry.
+		if (m_aPendingVehicleSpawns.Find(vehicleId) == -1)
+			m_aPendingVehicleSpawns.Insert(vehicleId);
+
+		Print("[Overthrow] Requesting stored vehicle " + vehicleId + " for " + playerPersistentId);
+
+		PersistenceSpawnRequest request();
+		request.Collection = collection;
+		request.Include = {storedId};
+
+		Tuple2<string, string> spawnContext(vehicleId, playerPersistentId);
+		PersistenceResultCallback callback(OnPlayerVehicleSpawned, spawnContext);
+		persistence.RequestSpawn(request, callback);
+
+		// Insurance only, and a no-op once the callback has answered. The engine documents the callback as
+		// always firing, but a vehicle that never heard back would otherwise stay pending for the rest of
+		// the session and never be asked for again.
+		GetGame().GetCallqueue().CallLater(OnPlayerVehicleSpawnTimeout, VEHICLE_SPAWN_TIMEOUT_MS, false, vehicleId, playerPersistentId);
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! PersistenceResultCallback delegate for RequestPersistedVehicle().
+	//!
+	//! Arity must match PersistenceResultDelegate exactly (the model is SCR_SpawnLogic.c:378).
+	//! \param[in] statusCode OK when the stored vehicle was found and instantiated.
+	//! \param[in] result The spawned instance on OK; on failure it is the id that could not be fetched.
+	//! \param[in] isLast True on the final result of the request (always, for a single-id request).
+	//! \param[in] context Tuple2 of vehicle persistent id and owner persistent id.
+	protected void OnPlayerVehicleSpawned(EPersistenceStatusCode statusCode, Managed result, bool isLast, Managed context)
+	{
+		Tuple2<string, string> spawnContext = Tuple2<string, string>.Cast(context);
+		if (!spawnContext)
+			return;
+
+		string vehicleId = spawnContext.param1;
+		string playerPersistentId = spawnContext.param2;
+
+		if (m_aPendingVehicleSpawns)
+		{
+			int pendingIndex = m_aPendingVehicleSpawns.Find(vehicleId);
+			if (pendingIndex != -1)
+				m_aPendingVehicleSpawns.Remove(pendingIndex);
+		}
+
+		IEntity vehicle;
+		if (statusCode == EPersistenceStatusCode.OK)
+			vehicle = IEntity.Cast(result);
+
+		if (!vehicle)
+		{
+			// NOT_FOUND and friends: wiped save data, a prefab that no longer exists, an unreadable
+			// record. Nothing will ever resolve this id again, so stop carrying it around instead of
+			// re-asking on every reconnect forever. There is deliberately NO fallback that builds a
+			// replacement - unlike a recruit, minting a fresh car would hand the player a vehicle that
+			// never existed.
+			m_sLastRespawnDiagnostic = string.Format("persistence answered %1 for vehicle %2 - the registration was dropped",
+				typename.EnumToString(EPersistenceStatusCode, statusCode), vehicleId);
+			Print("[Overthrow] " + m_sLastRespawnDiagnostic, LogLevel.WARNING);
+			DropVehicleRegistration(playerPersistentId, vehicleId);
+			return;
+		}
+
+		// A late or duplicate answer that would be a SECOND instance for the same id. Never build one and
+		// never delete either - one of them is the player's vehicle and this code cannot tell which.
+		IEntity existing = FindVehicleEntity(vehicleId);
+		if (existing && existing != vehicle)
+		{
+			m_sLastRespawnDiagnostic = "vehicle " + vehicleId + " was answered twice - the second instance was left alone";
+			Print("[Overthrow] " + m_sLastRespawnDiagnostic, LogLevel.ERROR);
+			return;
+		}
+
+		// The owner may have left again while the request was in flight. Putting a vehicle in the world
+		// for somebody who is not there is precisely what the offline despawn undoes, so undo it now:
+		// save-and-release keeps it, with its cargo, for the next time they return.
+		if (!IsPlayerOnline(playerPersistentId))
+		{
+			Print("[Overthrow] Owner of vehicle " + vehicleId + " left before it arrived - releasing it again");
+			ReleaseVehicle(vehicleId, vehicle);
+			return;
+		}
+
+		AdoptRespawnedVehicle(playerPersistentId, vehicleId, vehicle);
+
+		m_sLastRespawnDiagnostic = "";
+
+		Print("[Overthrow] Vehicle " + vehicleId + " restored for " + playerPersistentId + ", contents intact");
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Gives up on a spawn request that never answered.
+	//!
+	//! No-op in the normal case: the callback has already cleared the pending entry by the time this runs.
+	//! The REGISTRATION IS KEPT - an unanswered request is not evidence that the record is gone, and the
+	//! next owner return simply asks again.
+	//! \param[in] vehicleId The vehicle whose request was sent.
+	//! \param[in] playerPersistentId The owner the request was made for.
+	protected void OnPlayerVehicleSpawnTimeout(string vehicleId, string playerPersistentId)
+	{
+		if (!m_aPendingVehicleSpawns)
+			return;
+
+		int pendingIndex = m_aPendingVehicleSpawns.Find(vehicleId);
+		if (pendingIndex == -1)
+			return;
+
+		m_aPendingVehicleSpawns.Remove(pendingIndex);
+
+		m_sLastRespawnDiagnostic = string.Format("no answer to the spawn request for vehicle %1 within %2 ms",
+			vehicleId, VEHICLE_SPAWN_TIMEOUT_MS);
+		Print("[Overthrow] " + m_sLastRespawnDiagnostic, LogLevel.WARNING);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Re-links a restored vehicle instance to everything that tracked the one it replaces.
+	//!
+	//! WHAT COMES BACK BY ITSELF and what does not. Ownership and lock state are read out of the
+	//! vehicle's own stored record by OVT_PlayerOwnerComponentSerializer, so this does NOT re-apply them -
+	//! doing so would hide a serializer that had stopped running. What it must repair is the manager
+	//! side: OVT_RplOwnerManagerComponent keys ownership by RplId, this is a NEW instance with a NEW
+	//! RplId, and the old one's entry now points at nothing.
+	//!
+	//! The one exception is a record that carried no owner at all. An unowned vehicle standing in the
+	//! world is free for anybody to take, so the registry - which knows whose vehicle this is - repairs
+	//! it and says so. Lock state is never repaired: the manager has no record of it.
+	//! \param[in] playerPersistentId The owning player.
+	//! \param[in] vehicleId The registered persistent id this instance came back under.
+	//! \param[in] vehicle The restored instance.
+	protected void AdoptRespawnedVehicle(string playerPersistentId, string vehicleId, notnull IEntity vehicle)
+	{
+		// The persistence system spawned this instance, so it normally arrives already tracked - ASK
+		// before registering rather than re-registering blind, as AttachRecruitBody() does.
+		if (!OVT_PersistenceTracking.IsTracked(vehicle))
+			OVT_PersistenceTracking.Track(vehicle);
+
+		OVT_PlayerOwnerComponent ownerComp = OVT_PlayerOwnerComponent.Cast(
+			vehicle.FindComponent(OVT_PlayerOwnerComponent)
+		);
+
+		if (ownerComp)
+		{
+			if (ownerComp.GetPlayerOwnerUid().IsEmpty())
+			{
+				Print("[Overthrow] Restored vehicle " + vehicleId + " carried no owner - repairing it from the registry", LogLevel.WARNING);
+				ownerComp.SetPlayerOwner(playerPersistentId);
+			}
+
+			// Future ownership changes must re-index it, exactly as a freshly spawned vehicle's do
+			ownerComp.GetOnOwnerChange().Insert(OnVehicleOwnershipChanged);
+		}
+
+		// RplIds are per-instance, so the RplId-keyed ownership maps still point at the despawned one.
+		// Guarded because SetOwnerPersistentId() dereferences the RplComponent without checking, and this
+		// runs from an engine callback where a null would take the whole session down.
+		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
+		if (rpl)
+			SetOwnerPersistentId(playerPersistentId, vehicle);
+		else
+			Print("[Overthrow] Restored vehicle " + vehicleId + " has no RplComponent - it cannot be re-linked to its owner in the ownership maps", LogLevel.ERROR);
+
+		// Manager-side tracking, under the id the registry already holds. Done by hand rather than through
+		// RegisterPlayerVehicle() so the registry key stays stable even in the pathological case where the
+		// restored instance answers with a different identity.
+		m_mSpawnedVehicles[vehicleId] = vehicle.GetID();
+
+		// Remove-then-insert rather than a contains check, so re-adopting an instance (a duplicate answer
+		// to the same request) cannot leave two entries behind.
+		m_aVehicles.RemoveItem(vehicle.GetID());
+		m_aVehicles.Insert(vehicle.GetID());
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Forgets a vehicle id that can never be resolved again.
+	//! \param[in] playerPersistentId The owner it is registered under.
+	//! \param[in] vehicleId The id to forget.
+	protected void DropVehicleRegistration(string playerPersistentId, string vehicleId)
+	{
+		m_mSpawnedVehicles.Remove(vehicleId);
+
 		if (!m_mPlayerVehicleIds.Contains(playerPersistentId))
 			return;
 
 		array<string> vehicleIds = m_mPlayerVehicleIds[playerPersistentId];
-
-		foreach (string vehicleId : vehicleIds)
-		{
-			IEntity existingVehicle = FindVehicleEntity(vehicleId);
-			if (existingVehicle)
-				continue;
-
-			Print(string.Format("[Overthrow] Loading vehicle from EPF: %1", vehicleId));
-			ref Tuple2<string, string> context = new Tuple2<string, string>(playerPersistentId, vehicleId);
-			EDF_DataCallbackSingle<IEntity> callback(this, "OnVehicleLoaded", context);
-			EPF_PersistentWorldEntityLoader.LoadAsync(EPF_VehicleSaveData, vehicleId, callback);
-		}
+		int index = vehicleIds.Find(vehicleId);
+		if (index != -1)
+			vehicleIds.Remove(index);
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Callback when a despawned vehicle is loaded from EPF on player connect
-	void OnVehicleLoaded(IEntity vehicleEntity, Managed context)
+	//! The persistence collection player vehicles are stored in, resolved once and kept.
+	//!
+	//! Cached the way vanilla caches it (SCR_SpawnLogic.SetupPersistenceCollections, :51-55) - the lookup
+	//! is by name against the loaded configuration and does not change during a session.
+	//! \param[in] persistence The live persistence system.
+	//! \return The collection, or null when the loaded configuration does not contain it.
+	protected PersistenceCollection GetVehicleCollection(notnull SCR_PersistenceSystem persistence)
 	{
-		if (!vehicleEntity)
+		if (!m_VehicleCollection)
 		{
-			Print("[Overthrow] Failed to load vehicle entity from EPF");
-			return;
+			m_VehicleCollection = persistence.FindCollection(VEHICLE_COLLECTION);
+
+			if (!m_VehicleCollection)
+				Print("[Overthrow] No '" + VEHICLE_COLLECTION + "' persistence collection - player vehicles cannot be spawned back", LogLevel.WARNING);
 		}
 
-		Tuple2<string, string> vehicleContext = Tuple2<string, string>.Cast(context);
-		if (!vehicleContext)
-			return;
+		return m_VehicleCollection;
+	}
 
-		string playerPersistentId = vehicleContext.param1;
-		string vehicleId = vehicleContext.param2;
+	//------------------------------------------------------------------------------------------------
+	//! The persistent ids of every vehicle registered to a player, live or despawned.
+	//!
+	//! A COPY, so a caller iterating it cannot be tripped by a registration being dropped underneath it.
+	//! \param[in] playerPersistentId The owning player.
+	//! \return The registered ids; an empty array when the player has none.
+	array<string> GetPlayerVehicleIds(string playerPersistentId)
+	{
+		array<string> ids = {};
 
-		EPF_PersistenceComponent persistence = EPF_PersistenceComponent.Cast(
-			vehicleEntity.FindComponent(EPF_PersistenceComponent)
-		);
-		if (persistence)
-			persistence.ResumeTracking();
+		if (!m_mPlayerVehicleIds.Contains(playerPersistentId))
+			return ids;
 
-		m_mSpawnedVehicles[vehicleId] = vehicleEntity.GetID();
-		m_aVehicles.Insert(vehicleEntity.GetID());
+		array<string> registered = m_mPlayerVehicleIds[playerPersistentId];
+		foreach (string vehicleId : registered)
+		{
+			ids.Insert(vehicleId);
+		}
 
-		Print(string.Format("[Overthrow] Successfully respawned vehicle: %1 for player: %2", vehicleId, playerPersistentId));
+		return ids;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether a spawn request for a vehicle has been sent and has not answered yet.
+	//! \param[in] vehicleId The registered persistent id.
+	//! \return True while the request is in flight.
+	bool IsVehicleRespawnPending(string vehicleId)
+	{
+		if (!m_aPendingVehicleSpawns)
+			return false;
+
+		return m_aPendingVehicleSpawns.Find(vehicleId) != -1;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Why the last RespawnPlayerVehicles() attempt did not produce a vehicle.
+	//!
+	//! Cleared when a respawn is requested and cleared again when one succeeds, so a non-empty value
+	//! always means the most recent attempt failed and says how.
+	//! \return The diagnostic, or an empty string.
+	string GetLastVehicleRespawnDiagnostic()
+	{
+		return m_sLastRespawnDiagnostic;
 	}
 
 	//------------------------------------------------------------------------------------------------
 	//! Find vehicle entity by persistent ID
-	protected IEntity FindVehicleEntity(string vehicleId)
+	IEntity FindVehicleEntity(string vehicleId)
 	{
 		if (!m_mSpawnedVehicles.Contains(vehicleId))
 			return null;
@@ -675,14 +1031,14 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Check if a player is currently connected using EPF UID lookup
+	//! Check if a player is currently connected, by their persistent identity id
 	protected bool IsPlayerOnline(string playerPersistentId)
 	{
 		array<int> connectedPlayers = {};
 		GetGame().GetPlayerManager().GetPlayers(connectedPlayers);
 		foreach (int playerId : connectedPlayers)
 		{
-			string uid = EPF_Utils.GetPlayerUID(playerId);
+			string uid = OVT_Global.GetPlayerUID(playerId);
 			if (!uid.IsEmpty() && uid == playerPersistentId)
 				return true;
 		}
@@ -717,34 +1073,21 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 			if (ownerUid.IsEmpty())
 				continue;
 
-			// Check if player is currently online by directly checking EPF UIDs
+			// Check if player is currently online by comparing persistent identity ids
 			bool isOnline = IsPlayerOnline(ownerUid);
 			
 			// Only despawn locked vehicles of offline players
 			if (!isOnline && ownerComp.IsLocked())
 			{
-				// Register vehicle first (this sets up EPF persistence correctly)
+				// Register vehicle first (this indexes it under its owner)
 				RegisterPlayerVehicle(ownerUid, vehicle);
-				
-				// Get persistent ID for tracking
-				EPF_PersistenceComponent persistenceComp = EPF_PersistenceComponent.Cast(
-					vehicle.FindComponent(EPF_PersistenceComponent)
-				);
-				
-				if (persistenceComp)
+
+				string persistentId = OVT_PersistenceTracking.GetPersistentId(vehicle);
+				if (!persistentId.IsEmpty())
 				{
-					string persistentId = persistenceComp.GetPersistentId();
-
-					persistenceComp.Save();
-					persistenceComp.PauseTracking(); // Keep for EPF auto-spawn on restart
-
-					// Remove from tracking
-					m_mSpawnedVehicles.Remove(persistentId);
-					m_aVehicles.RemoveItem(vehicle.GetID());
-
-					SCR_EntityHelper.DeleteEntityAndChildren(vehicle);
+					ReleaseVehicle(persistentId, vehicle);
 					despawnedCount++;
-					
+
 					Print(string.Format("[Overthrow] Despawned offline player vehicle: %1 (owner: %2)", persistentId, ownerUid));
 				}
 			}

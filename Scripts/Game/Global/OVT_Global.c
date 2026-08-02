@@ -1,5 +1,38 @@
 class OVT_Global : Managed
-{	
+{
+	//------------------------------------------------------------------------------------------------
+	//! Gets the prefab an entity was spawned from, resolving prefab inheritance the way the engine does.
+	//!
+	//! Walks the container ancestry to the first container that actually came from a .et file, which is
+	//! what makes this correct for nested/inherited prefabs where EntityPrefabData.GetPrefabName() can
+	//! answer with an intermediate name. This is the vanilla replacement for the prefab-name utility the
+	//! old persistence framework provided, and is deliberately identical to it.
+	//! \param[in] entity The entity to look up.
+	//! \return Its prefab resource name, or an empty resource name.
+	static ResourceName GetPrefabName(IEntity entity)
+	{
+		if (!entity)
+			return ResourceName.Empty;
+
+		EntityPrefabData prefabData = entity.GetPrefabData();
+		if (!prefabData)
+			return ResourceName.Empty;
+
+		return SCR_BaseContainerTools.GetPrefabResourceName(prefabData.GetPrefab());
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Gets the platform-stable identity id of a connected player.
+	//!
+	//! This is the string Overthrow keys every player record on. Vanilla replacement for the player-UID
+	//! utility the old persistence framework provided, which was a one-line forward to exactly this call.
+	//! \param[in] playerId Runtime player id.
+	//! \return The identity id, or an empty string when it is not available yet.
+	static string GetPlayerUID(int playerId)
+	{
+		return SCR_PlayerIdentityUtils.GetPlayerIdentityId(playerId);
+	}
+
 	static OVT_PlayerCommsComponent GetServer()
 	{		
 		if(Replication.IsServer())
@@ -266,7 +299,7 @@ class OVT_Global : Managed
 		foreach(IEntity item : items)
 		{
 			if(!item) continue;			
-			ResourceName res = EPF_Utils.GetPrefabName(item);
+			ResourceName res = OVT_Global.GetPrefabName(item);
 			if(fromStorage.TryDeleteItem(item))
 			{			
 				if(!collated.Contains(res)) collated[res] = 0;
@@ -422,14 +455,14 @@ class OVT_Global : Managed
 	
 	protected static bool FilterDeadBodiesAndWeapons(IEntity ent)
 	{		
-		DamageManagerComponent dmg = EPF_Component<DamageManagerComponent>.Find(ent);
+		DamageManagerComponent dmg = OVT_ComponentFinder<DamageManagerComponent>.Find(ent);
 		if(dmg && dmg.IsDestroyed())
 		{
 			m_Bodies.Insert(ent);
 			return true;
 		}
 		
-		WeaponComponent weapon = EPF_Component<WeaponComponent>.Find(ent);		
+		WeaponComponent weapon = OVT_ComponentFinder<WeaponComponent>.Find(ent);
 		if(weapon) m_Bodies.Insert(ent);
 				
 		return true;
@@ -522,8 +555,8 @@ class OVT_Global : Managed
 	//! Apply civilian loadout to any character entity
 	static void ApplyCivilianLoadout(IEntity character)
 	{
-		InventoryStorageManagerComponent storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(character);
-		if (!storageManager) 
+		InventoryStorageManagerComponent storageManager = OVT_ComponentFinder<InventoryStorageManagerComponent>.Find(character);
+		if (!storageManager)
 			return;
 		foreach (OVT_LoadoutSlot loadoutItem : OVT_Global.GetConfig().m_CivilianLoadout.m_aSlots)
 		{
