@@ -685,7 +685,8 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 
 		RefreshSaveCache();
 
-		Print("[Overthrow] Persistence manager initialized with vanilla system", LogLevel.NORMAL);
+		if (m_PersistenceSystem)
+			Print("[Overthrow] Persistence manager initialized with vanilla system", LogLevel.NORMAL);
 	}
 
 	//------------------------------------------------------------------------------------------------

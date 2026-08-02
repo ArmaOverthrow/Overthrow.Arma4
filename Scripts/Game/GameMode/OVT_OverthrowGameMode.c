@@ -755,14 +755,16 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		string persId = m_PlayerManager.GetPersistentIDFromPlayerID(playerId);
 		IEntity controlledEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
 
+		// Mark the record offline whether or not the player still controls a body - a player who
+		// leaves while dead or in the respawn menu has no controlled entity but is just as gone.
+		OVT_PlayerData player = m_PlayerManager.GetPlayer(persId);
+		if(player)
+		{
+			player.id = -1;
+		}
+
 		if(controlledEntity)
 		{
-			OVT_PlayerData player = m_PlayerManager.GetPlayer(persId);
-			if(player)
-			{
-				player.id = -1;
-			}
-
 			// Write the leaving player's character record, then release tracking without deleting it.
 			// Save-before-release is vanilla's own order for this (SCR_SpawnLogic.c:107-108, :215-216);
 			// releasing first would leave the final write with nothing to write to. Both calls are
@@ -787,24 +789,11 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		// Notify listeners that player has disconnected
 		m_PlayerManager.m_OnPlayerDisconnected.Invoke(persId, playerId);
 
-		super.OnPlayerDisconnected(playerId, cause, timeout);
+		// After listeners have run, drop the session-scoped ID mappings so a runtime ID reused by a
+		// later joiner can never resolve to this player (the OVT_PlayerData record itself is kept).
+		m_PlayerManager.ClearPlayerIdMappings(playerId);
 
-	    m_OnPlayerDisconnected.Invoke(playerId, cause, timeout);
-	    foreach (SCR_BaseGameModeComponent comp : m_aAdditionalGamemodeComponents)
-	    {
-	        comp.OnPlayerDisconnected(playerId, cause, timeout);
-	    }
-	    m_OnPostCompPlayerDisconnected.Invoke(playerId, cause, timeout);
-	
-	    if (IsMaster())
-	    {
-	        IEntity character = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
-	        
-	        // RespawnSystemComponent is not a SCR_BaseGameModeComponent, so for now we have to propagate these events manually.
-	        m_pRespawnSystemComponent.OnPlayerDisconnected_S(playerId, cause, timeout);
-	
-	        RplComponent.DeleteRplEntity(character, false);
-	    }
+		super.OnPlayerDisconnected(playerId, cause, timeout);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -1054,7 +1043,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		
 		Print(string.Format("[Overthrow] Found %1 fallback home spawns", m_aFallbackSpawnPositions.Count().ToString()));
 
-		OVT_Global.GetConfig() = OVT_Global.GetConfig();
+		m_Config = OVT_Global.GetConfig();
 		m_PlayerManager = OVT_PlayerManagerComponent.Cast(FindComponent(OVT_PlayerManagerComponent));
 		if(m_PlayerManager)
 		{

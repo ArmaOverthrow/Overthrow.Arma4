@@ -541,6 +541,34 @@ class OVT_PlayerManagerComponent: OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Drops a disconnecting player's runtime<->persistent ID mappings.
+	//!
+	//! Runtime player IDs are session-scoped and CAN BE REUSED by a later joiner. A stale entry left
+	//! behind by a departed player would make persistent-ID lookups resolve to whichever live player
+	//! inherited the number (money streams, controller lookups, notifications), so both directions of
+	//! the mapping are removed here. The OVT_PlayerData record in m_mPlayers is deliberately KEPT -
+	//! that is what lets a reconnecting player come back as themselves; SetupPlayer rebuilds the
+	//! mappings when they do.
+	//!
+	//! Called from OVT_OverthrowGameMode.OnPlayerDisconnected, after m_OnPlayerDisconnected has fired,
+	//! so disconnect listeners can still translate the departing player's IDs.
+	//! \param[in] playerId The runtime integer ID of the disconnecting player.
+	void ClearPlayerIdMappings(int playerId)
+	{
+		if(!m_mPersistentIDs.Contains(playerId)) return;
+
+		string persId = m_mPersistentIDs[playerId];
+		m_mPersistentIDs.Remove(playerId);
+
+		// Only drop the reverse entry while it still points at this runtime ID - it may already
+		// belong to a new session of the same player.
+		if(m_mPlayerIDs.Contains(persId) && m_mPlayerIDs[persId] == playerId)
+		{
+			m_mPlayerIDs.Remove(persId);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Periodically checks for disconnected players and cleans up their controller entities.
 	//! Only runs on the server. Iterates through all tracked player controllers and removes
 	//! entities for players who are no longer connected.
@@ -587,7 +615,8 @@ class OVT_PlayerManagerComponent: OVT_Component
 		// Remove from tracking
 		m_mPlayerControllers.Remove(playerId);
 		
-		// Note: We keep the player data and persistent ID mappings for when they reconnect
+		// Note: We keep the player data (m_mPlayers) for when they reconnect; the session-scoped
+		// ID mappings are dropped separately by ClearPlayerIdMappings on disconnect
 	}
 	
 	//RPC Methods

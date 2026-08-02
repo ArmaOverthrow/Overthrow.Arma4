@@ -53,9 +53,12 @@ class OVT_PlayerData : Managed
 	[NonSerialized()]
 	ref array<string> permissions = {};
 	
+	//------------------------------------------------------------------------------------------------
+	//! True when this record has no live runtime player behind it: id is 0 for a record that has not
+	//! connected this session (e.g. loaded from a save) and -1 after OnPlayerDisconnected.
 	bool IsOffline()
 	{
-		return id == 0;
+		return id <= 0;
 	}
 
 	//------------------------------------------------------------------------------------------------

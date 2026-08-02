@@ -91,6 +91,9 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	[Attribute("", UIWidgets.Object)]
 	ref OVT_DifficultySettings m_Difficulty;
 
+	//! WARNING: world-layer overrides of this array APPEND to the prefab's presets rather than
+	//! replacing them (engine semantics) — e.g. the test world runs 5 presets with 'Test World'
+	//! at index 4. Always select a preset by its name, never by index (see OVT_TEST_SuiteBase).
 	[Attribute("", UIWidgets.Object)]
 	ref array<ref OVT_DifficultySettings> m_aDifficultyPresets;
 
@@ -272,9 +275,16 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	void SetOccupyingFaction(string key)
 	{
 		OVT_Faction of = GetOccupyingFaction();
-		if(key == of.GetFactionKey()) return;
+		if(of && key == of.GetFactionKey()) return;
 		FactionManager factionMgr = GetGame().GetFactionManager();
 		Faction faction = factionMgr.GetFactionByKey(key);
+		if(!faction)
+		{
+			Print("[Overthrow] Unknown occupying faction key '" + key + "' (check Overthrow_Config.json), falling back to default '" + m_sDefaultOccupyingFaction + "'", LogLevel.ERROR);
+			if(key == m_sDefaultOccupyingFaction) return;
+			SetOccupyingFaction(m_sDefaultOccupyingFaction);
+			return;
+		}
 		m_iOccupyingFactionIndex = factionMgr.GetFactionIndex(faction);
 
 		m_sOccupyingFaction = faction.GetFactionKey();
@@ -283,9 +293,16 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	void SetSupportingFaction(string key)
 	{
 		OVT_Faction sf = GetSupportingFaction();
-		if(key == sf.GetFactionKey()) return;
+		if(sf && key == sf.GetFactionKey()) return;
 		FactionManager factionMgr = GetGame().GetFactionManager();
 		Faction faction = factionMgr.GetFactionByKey(key);
+		if(!faction)
+		{
+			Print("[Overthrow] Unknown supporting faction key '" + key + "' (check Overthrow_Config.json), falling back to default '" + m_sDefaultSupportingFaction + "'", LogLevel.ERROR);
+			if(key == m_sDefaultSupportingFaction) return;
+			SetSupportingFaction(m_sDefaultSupportingFaction);
+			return;
+		}
 		m_iSupportingFactionIndex = factionMgr.GetFactionIndex(faction);
 
 		m_sSupportingFaction = faction.GetFactionKey();
@@ -539,11 +556,19 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		writer.WriteFloat(m_Difficulty.realEstateCostMultiplier);
 		writer.WriteInt(m_Difficulty.busTicketPrice);
 		writer.WriteInt(m_Difficulty.baseRecruitCost);
-		writer.WriteFloat(m_Difficulty.gunDealerSellPriceMultiplier);		
-		writer.WriteFloat(m_Difficulty.procurementMultiplier);	
+		writer.WriteFloat(m_Difficulty.gunDealerSellPriceMultiplier);
+		writer.WriteFloat(m_Difficulty.procurementMultiplier);
 		writer.WriteFloat(m_Difficulty.vehiclePriceMultiplier);
-		
-		//Send server config options	
+		writer.WriteString(m_Difficulty.name);
+		writer.WriteFloat(m_Difficulty.minFastTravelDistance);
+		writer.WriteInt(m_Difficulty.QRFFastTravelMode);
+		writer.WriteFloat(m_Difficulty.baseRange);
+		writer.WriteFloat(m_Difficulty.baseCloseRange);
+		writer.WriteInt(m_Difficulty.fastTravelCost);
+		writer.WriteInt(m_Difficulty.QRFPointsToWin);
+		writer.WriteFloat(m_Difficulty.disguiseDetectionDistance);
+
+		//Send server config options
 		writer.WriteBool(m_ConfigFile.mobileFOBOfficersOnly);	
 		writer.WriteInt(m_ConfigFile.houseItemLimit);
 		writer.WriteInt(m_ConfigFile.campItemLimit);
@@ -592,7 +617,32 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		
 		if (!reader.ReadFloat(f)) return false;
 		m_Difficulty.vehiclePriceMultiplier = f;
-		
+
+		string s;
+		if (!reader.ReadString(s)) return false;
+		m_Difficulty.name = s;
+
+		if (!reader.ReadFloat(f)) return false;
+		m_Difficulty.minFastTravelDistance = f;
+
+		if (!reader.ReadInt(i)) return false;
+		m_Difficulty.QRFFastTravelMode = i;
+
+		if (!reader.ReadFloat(f)) return false;
+		m_Difficulty.baseRange = f;
+
+		if (!reader.ReadFloat(f)) return false;
+		m_Difficulty.baseCloseRange = f;
+
+		if (!reader.ReadInt(i)) return false;
+		m_Difficulty.fastTravelCost = i;
+
+		if (!reader.ReadInt(i)) return false;
+		m_Difficulty.QRFPointsToWin = i;
+
+		if (!reader.ReadFloat(f)) return false;
+		m_Difficulty.disguiseDetectionDistance = f;
+
 		//Receive server config options
 		if (!reader.ReadBool(b)) return false;
 		
