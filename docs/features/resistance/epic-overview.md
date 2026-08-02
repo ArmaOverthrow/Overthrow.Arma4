@@ -1,8 +1,8 @@
 # Resistance - Epic Overview
 
 **Epic:** resistance
-**Status:** 📄 Documented (4/4 retrospective)
-**Last Updated:** 2026-08-02
+**Status:** 📄 Documented (5/5 retrospective)
+**Last Updated:** 2026-08-03
 
 > **This file is the epic marker.** Its presence in `docs/features/resistance/` is what tells every Beast Mode command (and future Web App / Discord clients) that this folder is an **epic**, not a plain feature. Keep it present and keep the required sections below filled in. It is the epic's equivalent of the project's `docs/overview.md`, scoped to this epic. The master `docs/overview.md` tracks this epic as a **single row**; the per-feature detail lives **here**.
 
@@ -10,13 +10,13 @@
 
 ## Purpose
 
-The resistance epic owns the player's side of Overthrow's war: the resistance faction manager (player faction choice, camps, FOBs, garrisons, officers), the base building and placement system (placeables, buildables, build/place UI, item limits), the recruit system (recruiting and managing persistent AI squadmates), and the loadout system (saving/applying player and recruit equipment at equipment boxes). Together these are the tools the player uses to grow from a lone dissident into an armed movement — the mirror image of the `occupying` epic's AI antagonist.
+The resistance epic owns the player's side of Overthrow's war: the resistance faction manager (player faction choice, camps, FOBs, garrisons, officers), the base building and placement system (placeables, buildables, build/place UI, item limits), the recruit system (recruiting and managing persistent AI squadmates), the loadout system (saving/applying player and recruit equipment at equipment boxes), and the wanted system (per-character wanted levels, stealth detection and disguises governing occupying-faction hostility). Together these are the tools the player uses to grow from a lone dissident into an armed movement — the mirror image of the `occupying` epic's AI antagonist.
 
 ---
 
 ## Features
 
-The constituent features of this epic. All four already existed in code and were documented retrospectively via `/discover-feature` on 2026-08-02.
+The constituent features of this epic. All already existed in code and were documented retrospectively via `/discover-feature` (core/building/recruits/loadouts on 2026-08-02; wanted-system on 2026-08-03).
 
 | # | Feature | Status | Tasks | Description |
 |---|---------|--------|-------|-------------|
@@ -24,6 +24,7 @@ The constituent features of this epic. All four already existed in code and were
 | 2 | building | 📄 Documented | — (retrospective) | Placement & construction — 8 placeables / 7 buildables, ghost-preview place/build UI contexts, placeable/buildable marker components + handlers, per-location item limits, server spawn pipeline, vanilla persistence. Headline debt: everything is client-validated only (BUG-048), removal mode is dedicated-server-broken twice over (BUG-049), and pagination VM-errors on one click (BUG-050). |
 | 3 | recruits | 📄 Documented | — (retrospective) | `OVT_RecruitManagerComponent` (2219 L) — persistent player-owned AI squadmates: recruit civilians/tents, XP & naming, vanilla-group command, offline body save/release + async respawn with gear, roster UI. Headline debt: unvalidated recruit RPCs (BUG-051), client-local rename (BUG-052), fast-travel leaves recruits behind after charging (BUG-053). |
 | 4 | loadouts | 📄 Documented | — (retrospective) | `OVT_LoadoutManagerComponent` (2103 L) — save/apply equipment loadouts at equipment boxes (players + recruits, officer templates); recursive item tree with slot addressing; persistence rebuilt 2026-08-02 in the vanilla-persistence migration. Headline debt: box-apply spawns the equipped weapon free (BUG-042), zero-validation RPCs (BUG-043), stowed weapons never captured (BUG-044), officer templates inert. |
+| 5 | wanted-system | 📄 Documented | — (retrospective) | `OVT_PlayerWantedComponent` (810 L) — per-character 0–4 star wanted/stealth layer: 1 Hz perception+LOS detection scan, outfit-faction disguises, combat escalation, perceived-faction override as the AI interface, stars/seen-eye/undercover HUD. Headline debt (**BUG-072…078**): FRIENDLY-bucket-only scan drops "seen" mid-firefight (BUG-072), client-authoritative wanted state with server co-writers + likely double-registered tick (BUG-073), listen-host loot event flags every seen recruit (BUG-074), invoker leak (BUG-075), plus O(N·M) world scans and zero tests. |
 
 > Reference any feature with the slash form `resistance/[feature-name]` (e.g. `/continue-feature resistance/core`). Task counts are pulled from each feature's own `tasks.md` and refreshed by `/update-epic`.
 
@@ -79,7 +80,7 @@ Cross-feature tech debt and review findings. **Populated and updated by `/review
 
 How this epic is represented in the project's master `docs/overview.md` (one row, not its children). Kept in sync by `/update-epic` and `/update-master`.
 
-- **Rollup status:** 📄 Documented (4/4 retrospective)
+- **Rollup status:** 📄 Documented (5/5 retrospective)
 - **One-line summary for master:** The player resistance faction — command layer (`core`: camps/FOBs/garrisons/officers), base `building`/placement, persistent AI `recruits` and equipment `loadouts` — backfilled with retrospective docs. Discovery catalogued dozens of concrete issues, headlined by: an infinite weapon-duplication loadout exploit, officer promotion silently broken on dedicated servers, FOB deploy/undeploy vehicle+cargo duplication, unvalidated place/build/garrison/recruit/loadout RPCs with client-side payment, and a one-click VM error in the place/build menus. Top 12 filed as **BUG-042…053**.
 
 ---

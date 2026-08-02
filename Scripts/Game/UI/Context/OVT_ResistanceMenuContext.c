@@ -218,9 +218,7 @@ class OVT_ResistanceMenuContext : OVT_UIContext
 		}
 		if(amount <= 0) return;		
 				
-		m_Economy.TakePlayerMoney(localId, amount);
-		m_Economy.AddResistanceMoney(amount);
-		OVT_Global.GetServer().SendNotification("PlayerDonated",-1,OVT_Global.GetPlayers().GetPlayerName(m_iPlayerID),amount.ToString());
+		OVT_Global.GetServer().DonateToResistance(localId, amount);
 	}
 	
 	protected void SendFunds()
@@ -234,9 +232,7 @@ class OVT_ResistanceMenuContext : OVT_UIContext
 		if(amount <= 0) return;
 		
 		OVT_ResistancePlayerData data = OVT_ResistancePlayerData.Cast(m_PlayerSpin.GetCurrentItemData());
-		m_Economy.AddPlayerMoney(data.playerId, amount);
-		m_Economy.TakeResistanceMoney(amount);
-		OVT_Global.GetServer().SendNotification("PlayerSentFunds",data.playerId,amount.ToString());
+		OVT_Global.GetServer().SendResistanceFunds(SCR_PlayerController.GetLocalPlayerId(), data.playerId, amount);
 	}
 	
 	protected void SendMoney()
@@ -254,9 +250,7 @@ class OVT_ResistanceMenuContext : OVT_UIContext
 		OVT_ResistancePlayerData data = OVT_ResistancePlayerData.Cast(m_PlayerSpin.GetCurrentItemData());
 		
 		if(data.playerId == SCR_PlayerController.GetLocalPlayerId()) return;
-				
-		m_Economy.AddPlayerMoney(data.playerId, amount);
-		m_Economy.TakePlayerMoney(localId, amount);
-		OVT_Global.GetServer().SendNotification("PlayerSentMoney",data.playerId,OVT_Global.GetPlayers().GetPlayerName(m_iPlayerID),amount.ToString());
+
+		OVT_Global.GetServer().SendMoneyToPlayer(localId, data.playerId, amount);
 	}
 }

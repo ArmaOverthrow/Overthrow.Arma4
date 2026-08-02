@@ -787,23 +787,24 @@ class OVT_EconomyManagerComponent: OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Adds money to a player's account. Handles server/client distinction.
-	//! Use this method for external calls.
+	//! Adds money to a player's account. Server-only: money grants must originate on the server, so
+	//! calls from clients are ignored (clients go through a validated ask on OVT_PlayerCommsComponent,
+	//! e.g. SendResistanceFunds / SendMoneyToPlayer).
 	//! \param[in] playerId The runtime Player ID.
 	//! \param[in] amount The amount of money to add.
-	//! \param[in] doEvent If true, invokes the m_OnPlayerMoneyChanged event (currently unused).
+	//! \param[in] doEvent If true, invokes the m_OnPlayerSell event.
 	void AddPlayerMoney(int playerId, int amount, bool doEvent=false)
 	{
-		if(Replication.IsServer())
+		if(!Replication.IsServer())
 		{
-			DoAddPlayerMoney(playerId, amount);
-			if(doEvent)
-			{
-				m_OnPlayerSell.Invoke(playerId, amount);
-			}
+			Print("OVT_EconomyManagerComponent.AddPlayerMoney is server-only and was called on a client - ignored", LogLevel.WARNING);
 			return;
 		}
-		OVT_Global.GetServer().AddPlayerMoney(playerId, amount, doEvent);
+		DoAddPlayerMoney(playerId, amount);
+		if(doEvent)
+		{
+			m_OnPlayerSell.Invoke(playerId, amount);
+		}
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -823,16 +824,17 @@ class OVT_EconomyManagerComponent: OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Adds money to the resistance faction's funds. Handles server/client distinction.
+	//! Adds money to the resistance faction's funds. Server-only: calls from clients are ignored
+	//! (clients go through a validated ask on OVT_PlayerCommsComponent, e.g. DonateToResistance).
 	//! \param[in] amount The amount of money to add.
 	void AddResistanceMoney(int amount)
 	{
-		if(Replication.IsServer())
+		if(!Replication.IsServer())
 		{
-			DoAddResistanceMoney(amount);
+			Print("OVT_EconomyManagerComponent.AddResistanceMoney is server-only and was called on a client - ignored", LogLevel.WARNING);
 			return;
 		}
-		OVT_Global.GetServer().AddResistanceMoney(amount);		
+		DoAddResistanceMoney(amount);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -845,16 +847,17 @@ class OVT_EconomyManagerComponent: OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Takes money from the resistance faction's funds. Handles server/client distinction.
+	//! Takes money from the resistance faction's funds. Server-only: calls from clients are ignored
+	//! (clients go through a validated ask on OVT_PlayerCommsComponent, e.g. SendResistanceFunds).
 	//! \param[in] amount The amount of money to take.
 	void TakeResistanceMoney(int amount)
 	{
-		if(Replication.IsServer())
+		if(!Replication.IsServer())
 		{
-			DoTakeResistanceMoney(amount);
+			Print("OVT_EconomyManagerComponent.TakeResistanceMoney is server-only and was called on a client - ignored", LogLevel.WARNING);
 			return;
 		}
-		OVT_Global.GetServer().TakeResistanceMoney(amount);		
+		DoTakeResistanceMoney(amount);
 	}
 	
 	//------------------------------------------------------------------------------------------------

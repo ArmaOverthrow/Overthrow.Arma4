@@ -5,7 +5,6 @@ class OVT_PlayerCommsComponentClass: OVT_ComponentClass
 class OVT_PlayerCommsComponent: OVT_Component
 {
 	bool takingMoney = false;
-	bool addingMoney = false;
 	
 	//! Client-side: fired with (bool success) when a save this client asked for has finished on the
 	//! server. Subscribe BEFORE calling RequestSave().
@@ -819,26 +818,94 @@ class OVT_PlayerCommsComponent: OVT_Component
 	}
 	
 	//ECONOMY
-	
-	void AddPlayerMoney(int playerId, int amount, bool doEvent=false)
+
+	//------------------------------------------------------------------------------------------------
+	//! Resolves which player this component instance belongs to on the server. Client instances live
+	//! on the player's controlled character, so the sender cannot spoof another player's id; the game
+	//! mode's own copy (used by server-side code) has no player, so the claimed id is kept there.
+	protected int ResolveSenderPlayerId(int claimedPlayerId)
 	{
-		//Stop money glitch
-		if(addingMoney) return;
-		addingMoney = true;
-		Rpc(RpcAsk_AddPlayerMoney, playerId, amount, doEvent);
+		int ownerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(GetOwner());
+		if(ownerId > 0) return ownerId;
+		return claimedPlayerId;
 	}
-	
+
+	//------------------------------------------------------------------------------------------------
+	//! Donates the calling player's own money to the resistance funds.
+	//! The balance check, debit and credit all happen on the server.
+	void DonateToResistance(int playerId, int amount)
+	{
+		Rpc(RpcAsk_DonateToResistance, playerId, amount);
+	}
+
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_AddPlayerMoney(int playerId, int amount, bool doEvent)
+	protected void RpcAsk_DonateToResistance(int playerId, int amount)
 	{
-		OVT_Global.GetEconomy().DoAddPlayerMoney(playerId, amount);
-		Rpc(RpcDo_DoneAddingMoney);	
-		if(doEvent)
-		{
-			OVT_Global.GetEconomy().m_OnPlayerSell.Invoke(playerId, amount);
-		}		
+		playerId = ResolveSenderPlayerId(playerId);
+		if(amount <= 0) return;
+
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		if(!economy.PlayerHasMoney(persId, amount)) return;
+
+		economy.DoTakePlayerMoney(playerId, amount);
+		economy.DoAddResistanceMoney(amount);
+		SendNotification("PlayerDonated", -1, OVT_Global.GetPlayers().GetPlayerName(playerId), amount.ToString());
 	}
-	
+
+	//------------------------------------------------------------------------------------------------
+	//! Sends resistance funds to a player. Officer status, resistance funds and the target player are
+	//! all validated on the server, where the debit and credit both happen.
+	void SendResistanceFunds(int fromPlayerId, int toPlayerId, int amount)
+	{
+		Rpc(RpcAsk_SendResistanceFunds, fromPlayerId, toPlayerId, amount);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_SendResistanceFunds(int fromPlayerId, int toPlayerId, int amount)
+	{
+		fromPlayerId = ResolveSenderPlayerId(fromPlayerId);
+		if(amount <= 0) return;
+		if(!OVT_Global.GetResistanceFaction().IsOfficer(fromPlayerId)) return;
+
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		if(!economy.ResistanceHasMoney(amount)) return;
+
+		string toPersId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(toPlayerId);
+		if(!OVT_Global.GetPlayers().GetPlayer(toPersId)) return;
+
+		economy.DoTakeResistanceMoney(amount);
+		economy.DoAddPlayerMoney(toPlayerId, amount);
+		SendNotification("PlayerSentFunds", toPlayerId, amount.ToString());
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Sends money from one player to another. The sender is resolved server-side and their balance
+	//! checked there, where the debit and credit both happen.
+	void SendMoneyToPlayer(int fromPlayerId, int toPlayerId, int amount)
+	{
+		Rpc(RpcAsk_SendMoneyToPlayer, fromPlayerId, toPlayerId, amount);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_SendMoneyToPlayer(int fromPlayerId, int toPlayerId, int amount)
+	{
+		fromPlayerId = ResolveSenderPlayerId(fromPlayerId);
+		if(amount <= 0) return;
+		if(fromPlayerId == toPlayerId) return;
+
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		string fromPersId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(fromPlayerId);
+		if(!economy.PlayerHasMoney(fromPersId, amount)) return;
+
+		string toPersId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(toPlayerId);
+		if(!OVT_Global.GetPlayers().GetPlayer(toPersId)) return;
+
+		economy.DoTakePlayerMoney(fromPlayerId, amount);
+		economy.DoAddPlayerMoney(toPlayerId, amount);
+		SendNotification("PlayerSentMoney", toPlayerId, OVT_Global.GetPlayers().GetPlayerName(fromPlayerId), amount.ToString());
+	}
+
 	void TakePlayerMoney(int playerId, int amount)
 	{
 		//Stop money glitch
@@ -860,23 +927,6 @@ class OVT_PlayerCommsComponent: OVT_Component
 		takingMoney = false;
 	}
 	
-	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
-	protected void RpcDo_DoneAddingMoney()
-	{
-		addingMoney = false;
-	}
-	
-	void AddResistanceMoney(int amount)
-	{
-		Rpc(RpcAsk_AddResistanceMoney, amount);
-	}
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_AddResistanceMoney(int amount)
-	{
-		OVT_Global.GetEconomy().DoAddResistanceMoney(amount);		
-	}
-	
 	void SetResistanceTax(float amount)
 	{
 		Rpc(RpcAsk_SetResistanceTax, amount);
@@ -886,17 +936,6 @@ class OVT_PlayerCommsComponent: OVT_Component
 	protected void RpcAsk_SetResistanceTax(float amount)
 	{
 		OVT_Global.GetEconomy().DoSetResistanceTax(amount);		
-	}
-	
-	void TakeResistanceMoney(int amount)
-	{
-		Rpc(RpcAsk_TakeResistanceMoney, amount);
-	}
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_TakeResistanceMoney(int amount)
-	{
-		OVT_Global.GetEconomy().DoTakeResistanceMoney(amount);		
 	}
 	
 	//PLACING
