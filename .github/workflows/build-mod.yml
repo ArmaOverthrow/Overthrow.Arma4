@@ -1,0 +1,40 @@
+name: Build Custom Overthrow Mod
+
+on:
+  push:
+    branches: [ "main", "Patch-1" ]
+  pull_request:
+    branches: [ "main", "Patch-1" ]
+  workflow_dispatch: # Allows you to manually trigger the build from the GitHub UI
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout Source Code
+      uses: actions/checkout@v4
+
+    # Note: If your mod depends on core vanilla assets to compile, 
+    # you may need to bring down unpacked engine headers, though pure script mods often skip this.
+    
+    - name: Compile and Package Mod
+      shell: pwsh
+      run: |
+        # Define your target output directory
+        New-Item -ItemType Directory -Force -Path ".\build"
+        
+        # If you have access to a portable/CLI version of the workbench tools 
+        # via a private runner, you would invoke it here. 
+        # Example structure:
+        # & "C:\Path\To\ArmaReforgerWorkbench.exe" -headless -export ".\" -output ".\build\MyCustomOverthrow"
+        
+        # Alternative for script-only quick deployments:
+        # Zip the raw addon directory structure directly if you are manually handling the .gproj
+        Compress-Archive -Path ".\*" -DestinationPath ".\build\Overthrow_Custom_Build.zip" -Exclude ".github*"
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: custom-overthrow-package
+        path: .\build\

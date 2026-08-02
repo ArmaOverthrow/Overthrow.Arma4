@@ -808,18 +808,18 @@ class OVT_RecruitManagerComponent : OVT_Component
 		// No need to broadcast again here to avoid duplicates
 		
 		// Add to player's group using the proper API
-		SCR_PlayerController playerController = SCR_PlayerController.Cast(GetGame().GetPlayerManager().GetPlayerController(playerId));
-		if (playerController)
+		
+		// Force the server's authoritative group manager to do it directly
+		SCR_GroupsManagerComponent groupsManager = SCR_GroupsManagerComponent.GetInstance();
+		if (groupsManager)
 		{
-			SCR_PlayerControllerGroupComponent groupController = SCR_PlayerControllerGroupComponent.Cast(playerController.FindComponent(SCR_PlayerControllerGroupComponent));
-			if (groupController)
-			{
-				// Ensure the recruit is not controlled by any player before adding as AI agent
-				if (SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(civilian) == 0)
-				{
-					groupController.RequestAddAIAgent(civilian, playerId);
-				}
-			}
+    		// Find the player's existing native engine group
+    		SCR_AIGroup playerGroup = groupsManager.GetPlayerGroup(playerId);
+    		if (playerGroup)
+    		{
+        	// Violently force the AI agent directly into the group array on the server
+        	playerGroup.AddAgent(civilian.GetAIAgent());
+    		}
 		}		
 	}
 	
