@@ -1,16 +1,6 @@
 GenericEntity : "{71BD5B9F53DF8CF6}Prefabs/Props/Military/AmmoBoxes/OVT_AmmoBox_Base.et" {
  ID "5992E2EECFF48DDE"
  components {
-  EPF_PersistenceComponent "{5D78D8248549E11B}" {
-   m_pSaveData OVT_PlaceableSaveDataClass "{5D78D8248416F52D}" {
-    m_aComponents {
-     OVT_PlayerOwnerDataClass "{5E68F6591A05B624}" {
-     }
-     OVT_PlaceableDataClass "{5E68F6591A05B625}" {
-     }
-    }
-   }
-  }
   OVT_PlaceableComponent "{5E68F65911AA6ADB}" {
    m_sPlaceableType "Ammobox"
   }

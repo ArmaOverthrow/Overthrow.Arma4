@@ -980,6 +980,24 @@ class OVT_EconomyManagerComponent: OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Applies economy state restored from a save point.
+	//!
+	//! The persistence layer's counterpart to GetResistanceMoney() / m_fResistanceTax: it writes both
+	//! values and fires m_OnResistanceMoneyChanged so anything already listening agrees with the
+	//! restored campaign. It deliberately does NOT broadcast - restoring happens while the world is
+	//! still being built, and clients receive both values through this component's RplSave/RplLoad
+	//! JIP payload when they join.
+	//! \param[in] resistanceMoney Restored resistance treasury.
+	//! \param[in] resistanceTax Restored resistance tax rate.
+	void ApplyPersistedEconomy(int resistanceMoney, float resistanceTax)
+	{
+		m_iResistanceMoney = resistanceMoney;
+		m_fResistanceTax = resistanceTax;
+
+		m_OnResistanceMoneyChanged.Invoke(m_iResistanceMoney);
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Registers a gun dealer entity with the economy manager.
 	//! Adds the entity's RplId to the list of gun dealers.
 	//! \param[in] id The EntityID of the gun dealer entity.
@@ -1434,7 +1452,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 				array<ResourceName> vehicles();
 				GetAllNonOccupyingFactionVehicles(vehicles);
 				
-				OVT_ParkingComponent parking = EPF_Component<OVT_ParkingComponent>.Find(shop.GetOwner());
+				OVT_ParkingComponent parking = OVT_ComponentFinder<OVT_ParkingComponent>.Find(shop.GetOwner());
 				array<OVT_ParkingType> parkingTypes();
 				parking.GetParkingTypes(parkingTypes);
 				

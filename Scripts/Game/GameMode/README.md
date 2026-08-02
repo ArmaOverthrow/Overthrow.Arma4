@@ -18,14 +18,15 @@ Extends the base game mode SCR_TimeAndWeatherHandlerComponent to provide Overthr
 ### Managers/
 Contains manager components that handle specific game systems such as economy, towns, player data, and more. These managers provide high-level oversight of their respective systems and manage controllers as needed.
 
-### Persistence/
-Houses the Enfusion Persistence Framework (EPF) systems responsible for saving and loading game state, allowing the game world to persist between play sessions.
-
 ### Placeables/
 Contains components and systems for objects that can be placed in the world by players, such as resistance facilities, defenses, and other buildable structures.
 
 ### Systems/
 Includes various gameplay systems that implement specific features and mechanics within the Overthrow game mode.
+
+## Persistence
+
+Saving and loading run on Reforger's own persistence system. `Managers/OVT_PersistenceManagerComponent.c` is the façade over it (save points, load, wipe), the serializers live in `Scripts/Game/Persistence/`, and the bindings are declared in `Configs/Systems/Persistence/Overthrow.conf`.
 
 ---
 

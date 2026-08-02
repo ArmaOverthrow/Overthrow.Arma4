@@ -110,7 +110,7 @@ class OVT_ShopContext : OVT_UIContext
 		
 		if(m_Shop.m_bProcurement)
 		{
-			OVT_ParkingComponent parking = EPF_Component<OVT_ParkingComponent>.Find(m_Shop.GetOwner());
+			OVT_ParkingComponent parking = OVT_ComponentFinder<OVT_ParkingComponent>.Find(m_Shop.GetOwner());
 			array<OVT_ParkingType> parkingTypes();
 			parking.GetParkingTypes(parkingTypes);
 			

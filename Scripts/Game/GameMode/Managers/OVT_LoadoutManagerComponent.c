@@ -2,9 +2,10 @@ class OVT_LoadoutManagerComponentClass: OVT_ComponentClass
 {
 };
 
-//! Manages player equipment loadouts with individual file persistence
+//! Manages player equipment loadouts
 //! Provides API for saving, loading, and managing equipment loadouts for players and AI units
-//! Uses EPF PersistentScriptedState pattern for individual loadout files
+//! The manager OWNS the loadouts: m_mActiveLoadouts is the store, and OVT_LoadoutManagerSerializer
+//! writes it (index and contents together) into the game mode's save record.
 class OVT_LoadoutManagerComponent: OVT_Component
 {
 	//! Static instance for easy access
@@ -31,11 +32,12 @@ class OVT_LoadoutManagerComponent: OVT_Component
 	//! Invoker called when loadout is applied to entity (args: IEntity entity, string loadoutName)
 	ref ScriptInvoker m_OnLoadoutApplied = new ScriptInvoker();
 	
-	//! Active loadouts cache for quick access (key = playerId_loadoutName)
+	//! The loadout store, keyed playerId_loadoutName (see GetActiveLoadouts)
 	protected ref map<string, ref OVT_PlayerLoadout> m_mActiveLoadouts;
-	
-	
-	//! Mapping from logical keys to EPF IDs (key = playerId_loadoutName, value = EPF ID)
+
+
+	//! Index of logical keys to storage ids (key = playerId_loadoutName). Shipped to clients by
+	//! RplSave/RplLoad so the loadout UI can list names without the contents.
 	protected ref map<string, string> m_mLoadoutIdMapping;
 	
 	//! Last loadout apply results for notifications
@@ -63,56 +65,35 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		}
 		
 		string key = GetLoadoutKey(playerId, loadoutName);
-		OVT_PlayerLoadout loadout;
-		
-		// Check if loadout already exists - if so, delete the old one first
-		string oldEpfId;
-		if (m_mLoadoutIdMapping.Find(key, oldEpfId))
-		{
-			DeleteLoadoutByEpfId(oldEpfId);
-			
-			// Remove from all caches
-			m_mActiveLoadouts.Remove(key);
-			m_mLoadoutIdMapping.Remove(key);
-		}
-		
+
+		// Overwriting an existing loadout is just replacing the two map entries. The manager's own
+		// cache IS the loadout store now - contents used to live in a separate persistence record that
+		// had to be deleted by id first, which is what OVT_LoadoutManagerSerializer replaced.
+		m_mActiveLoadouts.Remove(key);
+		m_mLoadoutIdMapping.Remove(key);
+
 		// Create new loadout
-		loadout = new OVT_PlayerLoadout();
+		OVT_PlayerLoadout loadout = new OVT_PlayerLoadout();
 		loadout.Initialize(loadoutName, playerId, description);
 		loadout.SetAsOfficerTemplate(isOfficerTemplate);
-		
+
 		// Extract equipment from entity
-		if (ExtractEquipmentFromEntity(sourceEntity, loadout))
+		if (!ExtractEquipmentFromEntity(sourceEntity, loadout))
 		{
-				
-			// Save to persistent storage and get save data with correct EDF ID
-			EPF_ScriptedStateSaveData saveData = loadout.Save();
-			
-			if (saveData)
-			{
-				string edfId = saveData.GetId();
-					
-				// Cache the loadout and ID mapping (use EDF ID for loading)
-				m_mActiveLoadouts.Set(key, loadout);
-				m_mLoadoutIdMapping.Set(key, edfId);
-				
-					
-				// Notify listeners
-				m_OnLoadoutSaved.Invoke(playerId, loadoutName);
-				
-				// Broadcast to all clients for multiplayer synchronization
-				BroadcastLoadoutSaved(playerId, loadoutName, isOfficerTemplate);
-			}
-			else
-			{
-				Print(string.Format("[OVT_LoadoutManagerComponent] Failed to get save data for loadout '%1'", loadoutName), LogLevel.ERROR);
-			}
-		}
-		else
-		{
-			// If extraction failed, clean up
 			Print(string.Format("[OVT_LoadoutManagerComponent] Failed to extract equipment for loadout '%1'", loadoutName), LogLevel.ERROR);
+			return;
 		}
+
+		// Cache the loadout and its index entry. The id is derived from owner and name, so re-saving
+		// the same loadout name always lands on the same index entry.
+		m_mActiveLoadouts.Set(key, loadout);
+		m_mLoadoutIdMapping.Set(key, loadout.GetDeterministicId());
+
+		// Notify listeners
+		m_OnLoadoutSaved.Invoke(playerId, loadoutName);
+
+		// Broadcast to all clients for multiplayer synchronization
+		BroadcastLoadoutSaved(playerId, loadoutName, isOfficerTemplate);
 	}
 	
 	//! Load and apply loadout to entity from equipment box
@@ -128,33 +109,17 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		
 		string key = GetLoadoutKey(playerId, loadoutName);
 			
-		// Check cache first
+		// The cache is authoritative: everything saved this session is in it, and everything saved in
+		// an earlier session was put back by OVT_LoadoutManagerSerializer during load. A miss means the
+		// loadout does not exist (there is no second store to fall back to any more).
 		OVT_PlayerLoadout cachedLoadout;
-		if (m_mActiveLoadouts.Find(key, cachedLoadout))
+		if (!m_mActiveLoadouts.Find(key, cachedLoadout))
 		{
-				ApplyLoadoutToEntityFromBox(cachedLoadout, targetEntity, equipmentBox);
+			Print(string.Format("[OVT_LoadoutManagerComponent] No loadout '%1' for player %2", loadoutName, playerId), LogLevel.WARNING);
 			return;
 		}
-		else
-		{
-				// Print all cached loadout keys for debugging
-			for (int i = 0; i < m_mActiveLoadouts.Count(); i++)
-			{
-				string cacheKey = m_mActiveLoadouts.GetKey(i);
-				}
-			
-			// Try to load from EPF
-				if (LoadLoadoutFromEPF(playerId, loadoutName))
-			{
-				// Successfully loaded, try applying again
-				if (m_mActiveLoadouts.Find(key, cachedLoadout))
-				{
-						ApplyLoadoutToEntityFromBox(cachedLoadout, targetEntity, equipmentBox);
-					return;
-				}
-			}
-			
-			}
+
+		ApplyLoadoutToEntityFromBox(cachedLoadout, targetEntity, equipmentBox);
 	}
 	
 	//! Load and apply loadout to entity (spawns items, used for RPC calls)
@@ -214,8 +179,8 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		}
 		
 		// Get storage components
-		InventoryStorageManagerComponent targetStorageManager = EPF_Component<InventoryStorageManagerComponent>.Find(targetEntity);
-		InventoryStorageManagerComponent boxStorageManager = EPF_Component<InventoryStorageManagerComponent>.Find(equipmentBox);
+		InventoryStorageManagerComponent targetStorageManager = OVT_ComponentFinder<InventoryStorageManagerComponent>.Find(targetEntity);
+		InventoryStorageManagerComponent boxStorageManager = OVT_ComponentFinder<InventoryStorageManagerComponent>.Find(equipmentBox);
 		
 		if (!targetStorageManager || !boxStorageManager)
 		{
@@ -315,13 +280,17 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		if (loadoutName.IsEmpty() || playerId.IsEmpty())
 			return;
 		
-		// Remove from cache
+		// Remove from cache AND from the index. Removing only the cache used to leave the name in
+		// m_mLoadoutIdMapping, which is what GetAvailableLoadouts() lists - so a deleted loadout stayed
+		// on screen, and now that the index is persisted it would also come back after a reload.
 		string key = GetLoadoutKey(playerId, loadoutName);
 		m_mActiveLoadouts.Remove(key);
-		
-		// Delete from repository
-		OVT_LoadoutRepository.DeleteLoadout(playerId, loadoutName);
-		
+		m_mLoadoutIdMapping.Remove(key);
+
+		// Nothing else to delete: the cache and the index ARE the store, and both travel in
+		// OVT_LoadoutManagerSerializer's record. (This used to also call OVT_LoadoutRepository, a set of
+		// Print placeholders that never wrote or deleted anything; deleted with EPF.)
+
 		// Send notification to player about deletion
 		OVT_NotificationManagerComponent notifyMgr = OVT_Global.GetNotify();
 		if (notifyMgr)
@@ -362,7 +331,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 	//! Extract equipment from entity and populate loadout
 	protected bool ExtractEquipmentFromEntity(IEntity entity, OVT_PlayerLoadout loadout)
 	{
-		InventoryStorageManagerComponent storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(entity);
+		InventoryStorageManagerComponent storageManager = OVT_ComponentFinder<InventoryStorageManagerComponent>.Find(entity);
 		if (!storageManager)
 		{
 			Print("[OVT_LoadoutManagerComponent] No inventory storage manager found on entity", LogLevel.ERROR);
@@ -410,7 +379,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 			}
 			
 			// Get item prefab resource name
-			ResourceName itemPrefab = EPF_Utils.GetPrefabName(rootItem);
+			ResourceName itemPrefab = OVT_Global.GetPrefabName(rootItem);
 			if (itemPrefab.IsEmpty())
 				continue;
 			
@@ -447,7 +416,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 	//! Apply equipment from loadout to entity
 	protected bool ApplyEquipmentToEntity(OVT_PlayerLoadout loadout, IEntity entity)
 	{
-		InventoryStorageManagerComponent storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(entity);
+		InventoryStorageManagerComponent storageManager = OVT_ComponentFinder<InventoryStorageManagerComponent>.Find(entity);
 		if (!storageManager)
 		{
 			Print("[OVT_LoadoutManagerComponent] No inventory storage manager found on entity", LogLevel.ERROR);
@@ -664,7 +633,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		foreach (IEntity item : allItems)
 		{
 			// Check if this item matches what we're looking for
-			ResourceName itemResourceName = EPF_Utils.GetPrefabName(item);
+			ResourceName itemResourceName = OVT_Global.GetPrefabName(item);
 			if (itemResourceName == resourceName)
 			{
 				return item;
@@ -739,11 +708,11 @@ class OVT_LoadoutManagerComponent: OVT_Component
 				// If we can't move to box, try to delete the item instead
 				if (boxStorageManager.TryDeleteItem(item))
 				{
-					Print(string.Format("[OVT_LoadoutManagerComponent] Box full, deleted item from container: %1", EPF_Utils.GetPrefabName(item)), LogLevel.WARNING);
+					Print(string.Format("[OVT_LoadoutManagerComponent] Box full, deleted item from container: %1", OVT_Global.GetPrefabName(item)), LogLevel.WARNING);
 				}
 				else
 				{
-					Print(string.Format("[OVT_LoadoutManagerComponent] Failed to move or delete item from container: %1", EPF_Utils.GetPrefabName(item)), LogLevel.ERROR);
+					Print(string.Format("[OVT_LoadoutManagerComponent] Failed to move or delete item from container: %1", OVT_Global.GetPrefabName(item)), LogLevel.ERROR);
 				}
 			}
 		}
@@ -793,11 +762,11 @@ class OVT_LoadoutManagerComponent: OVT_Component
 				// If we can't move to box, try to delete the item instead
 				if (boxStorageManager.TryDeleteItem(item))
 				{
-					Print(string.Format("[OVT_LoadoutManagerComponent] Box full, deleted item from container: %1", EPF_Utils.GetPrefabName(item)), LogLevel.WARNING);
+					Print(string.Format("[OVT_LoadoutManagerComponent] Box full, deleted item from container: %1", OVT_Global.GetPrefabName(item)), LogLevel.WARNING);
 				}
 				else
 				{
-					Print(string.Format("[OVT_LoadoutManagerComponent] Failed to move or delete item from container: %1", EPF_Utils.GetPrefabName(item)), LogLevel.ERROR);
+					Print(string.Format("[OVT_LoadoutManagerComponent] Failed to move or delete item from container: %1", OVT_Global.GetPrefabName(item)), LogLevel.ERROR);
 				}
 			}
 		}
@@ -818,7 +787,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 					continue; // Empty slot
 				
 				// Check if this item matches what we're looking for
-				ResourceName itemResourceName = EPF_Utils.GetPrefabName(item);
+				ResourceName itemResourceName = OVT_Global.GetPrefabName(item);
 				if (itemResourceName == resourceName)
 				{
 					return item;
@@ -853,7 +822,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 					continue; // Empty slot
 				
 				// Check if this item matches what we're looking for
-				ResourceName itemResourceName = EPF_Utils.GetPrefabName(item);
+				ResourceName itemResourceName = OVT_Global.GetPrefabName(item);
 				if (itemResourceName == resourceName)
 				{
 					return item;
@@ -871,88 +840,153 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		return null;
 	}
 	
-	//! Load loadout from EPF storage
-	protected bool LoadLoadoutFromEPF(string playerId, string loadoutName)
-	{
-		
-		string key = GetLoadoutKey(playerId, loadoutName);
-		
-		// Check if we have a cached EPF ID for this loadout
-		string epfId;
-		if (!m_mLoadoutIdMapping.Find(key, epfId))
-		{
-			Print(string.Format("[OVT_LoadoutManagerComponent] No EPF ID mapping found for key: %1", key));
-			// Try to find EPF files by scanning (this is expensive, but needed for cross-session loading)
-			return ScanAndLoadFromEPF(playerId, loadoutName);
-		}
-		
-		
-		// Load loadout using EPF persistent scripted state loader
-		OVT_PlayerLoadout loadout = EPF_PersistentScriptedStateLoader<OVT_PlayerLoadout>.Load(epfId);
-		if (loadout)
-		{
-			
-			// Cache the loaded loadout
-			m_mActiveLoadouts.Set(key, loadout);
-			
-			return true;
-		}
-		else
-		{
-			Print(string.Format("[OVT_LoadoutManagerComponent] EPF_PersistentScriptedStateLoader returned null for ID: %1", epfId));
-		}
-		
-		Print(string.Format("[OVT_LoadoutManagerComponent] Failed to load from EPF with ID: %1", epfId));
-		return false;
-	}
-	
-	//! Scan EPF directory for loadout files (expensive fallback)
-	protected bool ScanAndLoadFromEPF(string playerId, string loadoutName)
-	{
-		Print(string.Format("[OVT_LoadoutManagerComponent] ScanAndLoadFromEPF not implemented yet"));
-		// TODO: Implement EPF directory scanning if needed
-		// For now, this is a placeholder for cross-session loading without cached EPF IDs
-		return false;
-	}
-	
 	//! Generate unique key for loadout caching
 	protected string GetLoadoutKey(string playerId, string loadoutName)
 	{
 		return string.Format("%1_%2", playerId, loadoutName);
 	}
 	
-	
-	//! Get cached loadout count
-	int GetCachedLoadoutCount()
-	{
-		return m_mActiveLoadouts.Count();
-	}
-	
+
 	//! Get loadout ID mapping for save data
 	map<string, string> GetLoadoutIdMapping()
 	{
 		return m_mLoadoutIdMapping;
 	}
-	
-	//! Restore loadout ID mapping from save data
-	void RestoreLoadoutIdMapping(map<string, string> mapping)
+
+	//------------------------------------------------------------------------------------------------
+	//! Gets the cached loadouts, keyed by "<persistentId>_<loadoutName>".
+	//!
+	//! This cache is the loadout STORE, not a lazy view of one: every loadout saved this session is in
+	//! it, and every loadout from an earlier session is put back into it by
+	//! OVT_LoadoutManagerSerializer during load. OVT_LoadoutManagerSerializer.Serialize() reads it.
+	//! \return The live map, never null after OnPostInit.
+	map<string, ref OVT_PlayerLoadout> GetActiveLoadouts()
 	{
-		if (!mapping)
-		{
-			Print(string.Format("[OVT_LoadoutManagerComponent] No loadout ID mapping to restore (mapping is null)"));
+		return m_mActiveLoadouts;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Applies persisted loadouts (contents included) to the cache.
+	//!
+	//! Called from OVT_LoadoutManagerSerializer.Deserialize(), after ApplyPersistedLoadoutIds().
+	//!
+	//! IDEMPOTENT: a loadout already cached under the same key is filled IN PLACE rather than
+	//! replaced, so anything holding a reference to it keeps working and a re-apply on a live session
+	//! cannot produce two objects for one key.
+	//!
+	//! THE INDEX IS REPAIRED FROM THE RECORDS. A record whose key is missing from the index would be
+	//! invisible to GetAvailableLoadouts(), so each restored loadout is guaranteed an index entry.
+	//! \param[in] records Persisted loadouts, may be null.
+	void ApplyPersistedLoadouts(array<ref OVT_PersistedLoadout> records)
+	{
+		if (!records)
 			return;
-		}
-			
-		m_mLoadoutIdMapping.Clear();
-		
-		for (int i = 0; i < mapping.Count(); i++)
+
+		if (!m_mActiveLoadouts)
+			m_mActiveLoadouts = new map<string, ref OVT_PlayerLoadout>();
+
+		if (!m_mLoadoutIdMapping)
+			m_mLoadoutIdMapping = new map<string, string>();
+
+		foreach (OVT_PersistedLoadout record : records)
 		{
-			string key = mapping.GetKey(i);
-			string value = mapping.GetElement(i);
-			m_mLoadoutIdMapping.Set(key, value);
+			if (!record)
+				continue;
+
+			string key = record.key;
+			if (key == "")
+				key = GetLoadoutKey(record.playerId, record.loadoutName);
+
+			if (key == "")
+				continue;
+
+			OVT_PlayerLoadout loadout;
+			if (!m_mActiveLoadouts.Find(key, loadout) || !loadout)
+			{
+				loadout = new OVT_PlayerLoadout();
+				m_mActiveLoadouts.Set(key, loadout);
+			}
+
+			loadout.m_sLoadoutName = record.loadoutName;
+			loadout.m_sPlayerId = record.playerId;
+			loadout.m_sDescription = record.description;
+			loadout.m_iCreatedTimestamp = record.createdTimestamp;
+			loadout.m_iLastUsedTimestamp = record.lastUsedTimestamp;
+			loadout.m_bIsTemplate = record.isTemplate;
+			loadout.m_bIsOfficerTemplate = record.isOfficerTemplate;
+
+			if (!loadout.m_Metadata)
+				loadout.m_Metadata = new OVT_LoadoutMetadata();
+			loadout.m_Metadata.m_iUsageCount = record.usageCount;
+
+			ApplyPersistedLoadoutContents(loadout, record);
+
+			// Keep the index and the store in step - see the method header.
+			if (!m_mLoadoutIdMapping.Contains(key))
+				m_mLoadoutIdMapping.Set(key, loadout.GetDeterministicId());
 		}
 	}
-	
+
+	//------------------------------------------------------------------------------------------------
+	//! Refills one loadout's items and quick slots from a save record.
+	//!
+	//! A clear and a refill, so re-applying the same record cannot append a second copy of every item.
+	//! \param[in] loadout The live loadout being filled.
+	//! \param[in] record The saved record being read.
+	protected void ApplyPersistedLoadoutContents(notnull OVT_PlayerLoadout loadout, notnull OVT_PersistedLoadout record)
+	{
+		loadout.ClearItems();
+
+		if (record.items)
+		{
+			foreach (OVT_PersistedLoadoutItem itemRecord : record.items)
+			{
+				if (!itemRecord)
+					continue;
+
+				OVT_LoadoutItem item = itemRecord.Build();
+				loadout.AddItem(item);
+			}
+		}
+
+		loadout.SetQuickSlotItems(record.quickSlotItems);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Applies the persisted loadout key-to-storage-id index.
+	//!
+	//! Called from OVT_LoadoutManagerSerializer.Deserialize(). It takes the two parallel arrays the save
+	//! format uses, so the serializer stays a pure codec and no intermediate map has to be built.
+	//!
+	//! IDEMPOTENT: a clear and a refill, safe to run again on a live session.
+	//! \param[in] loadoutKeys Cache keys ("<persistentId>_<loadoutName>"), aligned with loadoutIds.
+	//! \param[in] loadoutIds Storage id of the record holding each loadout's contents.
+	void ApplyPersistedLoadoutIds(array<string> loadoutKeys, array<string> loadoutIds)
+	{
+		if (!m_mLoadoutIdMapping)
+			m_mLoadoutIdMapping = new map<string, string>();
+
+		m_mLoadoutIdMapping.Clear();
+
+		if (!loadoutKeys || !loadoutIds)
+			return;
+
+		int count = loadoutKeys.Count();
+		if (loadoutIds.Count() < count)
+			count = loadoutIds.Count();
+
+		for (int i = 0; i < count; i++)
+		{
+			string key = loadoutKeys[i];
+			string id = loadoutIds[i];
+
+			if (key == "" || id == "")
+				continue;
+
+			m_mLoadoutIdMapping.Set(key, id);
+		}
+	}
+
 	//! Get available loadout names for a player (returns array of loadout names)
 	array<string> GetAvailableLoadouts(string playerId)
 	{
@@ -1000,7 +1034,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 				BaseWeaponComponent currentWeapon = BaseWeaponComponent.Cast(weaponEntity.FindComponent(BaseWeaponComponent));
 				if (currentWeapon)
 				{					
-					ResourceName weaponPrefab = EPF_Utils.GetPrefabName(weaponEntity);
+					ResourceName weaponPrefab = OVT_Global.GetPrefabName(weaponEntity);
 					if (!weaponPrefab.IsEmpty())
 					{
 						// Create loadout item for equipped weapon
@@ -1066,7 +1100,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 				continue; // Empty slot
 			
 			// Get nested item prefab resource name
-			ResourceName nestedItemPrefab = EPF_Utils.GetPrefabName(nestedEntity);
+			ResourceName nestedItemPrefab = OVT_Global.GetPrefabName(nestedEntity);
 			if (nestedItemPrefab.IsEmpty())
 				continue;
 			
@@ -1119,7 +1153,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 					continue; // Empty slot
 				
 				// Get nested item prefab resource name
-				ResourceName nestedItemPrefab = EPF_Utils.GetPrefabName(nestedEntity);
+				ResourceName nestedItemPrefab = OVT_Global.GetPrefabName(nestedEntity);
 				if (nestedItemPrefab.IsEmpty())
 					continue;
 				
@@ -1168,7 +1202,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 			
 			foreach (IEntity attachment : attachments)
 			{
-				ResourceName attachmentPrefab = EPF_Utils.GetPrefabName(attachment);
+				ResourceName attachmentPrefab = OVT_Global.GetPrefabName(attachment);
 				if (!attachmentPrefab.IsEmpty())
 				{
 					loadoutItem.AddAttachment(attachmentPrefab);
@@ -1715,7 +1749,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 				IEntity quickSlotItem = entityContainer.GetEntity();
 				if (quickSlotItem)
 				{
-					ResourceName itemPrefab = EPF_Utils.GetPrefabName(quickSlotItem);
+					ResourceName itemPrefab = OVT_Global.GetPrefabName(quickSlotItem);
 					quickSlotItems.Insert(itemPrefab);
 				}
 				else
@@ -1770,7 +1804,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 				if (currentWeapon)
 				{
 					IEntity currentWeaponEntity = currentWeapon.GetOwner();
-					if (currentWeaponEntity && EPF_Utils.GetPrefabName(currentWeaponEntity) == itemPrefab)
+					if (currentWeaponEntity && OVT_Global.GetPrefabName(currentWeaponEntity) == itemPrefab)
 					{
 						foundItem = currentWeaponEntity;
 					}
@@ -1783,7 +1817,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 					weaponManager.GetWeaponsList(weapons);
 					foreach (IEntity weapon : weapons)
 					{
-						if (EPF_Utils.GetPrefabName(weapon) == itemPrefab)
+						if (OVT_Global.GetPrefabName(weapon) == itemPrefab)
 						{
 							foundItem = weapon;
 							break;
@@ -1800,7 +1834,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 				
 				foreach (IEntity item : items)
 				{
-					if (EPF_Utils.GetPrefabName(item) == itemPrefab)
+					if (OVT_Global.GetPrefabName(item) == itemPrefab)
 					{
 						foundItem = item;
 						break; // Only assign the first matching item
@@ -1848,7 +1882,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 			}
 			
 			// Try to attach to weapon
-			InventoryStorageManagerComponent weaponStorageManager = EPF_Component<InventoryStorageManagerComponent>.Find(weapon);
+			InventoryStorageManagerComponent weaponStorageManager = OVT_ComponentFinder<InventoryStorageManagerComponent>.Find(weapon);
 			if (weaponStorageManager)
 			{
 				if (!weaponStorageManager.TryInsertItem(attachmentEntity))
@@ -2010,34 +2044,6 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		return true;
 	}
 	
-	//! Delete loadout by EPF ID
-	protected void DeleteLoadoutByEpfId(string epfId)
-	{
-		if (epfId.IsEmpty())
-			return;
-		
-		// Delete from EPF database
-		EPF_PersistenceManager persistenceManager = EPF_PersistenceManager.GetInstance();
-		if (persistenceManager)
-		{
-			EPF_PersistentScriptedStateSettings settings = EPF_PersistentScriptedStateSettings.Get(OVT_PlayerLoadout);
-			if (settings && settings.m_tSaveDataType)
-			{
-				// Find and delete the save data
-				array<ref EDF_DbEntity> findResults = persistenceManager
-					.GetDbContext()
-					.FindAll(settings.m_tSaveDataType, EDF_DbFind.Id().Equals(epfId), limit: 1)
-					.GetEntities();
-					
-				if (findResults && !findResults.IsEmpty())
-				{
-					EDF_DbEntity saveData = findResults.Get(0);
-					persistenceManager.GetDbContext().RemoveAsync(saveData);
-				}
-			}
-		}
-	}
-
 	//------------------------------------------------------------------------------------------------
 	// Multiplayer Broadcast Methods
 	//------------------------------------------------------------------------------------------------

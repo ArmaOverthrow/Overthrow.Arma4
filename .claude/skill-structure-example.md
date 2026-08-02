@@ -273,6 +273,7 @@ When creating a new skill:
 - [ ] Write bare-bones `SKILL.md` (~100-150 lines)
   - [ ] ⚠️ **MUST be named `SKILL.md` (ALL CAPS)**
   - [ ] YAML frontmatter with name/description/version
+  - [ ] **A clear, specific `description:`** — this is what Claude Code uses to decide when to surface the skill, so make it a precise trigger (what it covers + when to reach for it). There is no separate rules/keyword file.
   - [ ] "When to Use" section
   - [ ] Quick reference sections (2-3 sentences each)
   - [ ] Links to resource files
@@ -281,8 +282,7 @@ When creating a new skill:
   - [ ] Detailed patterns and examples
   - [ ] Gotchas and anti-patterns
   - [ ] Testing guidance
-- [ ] Add skill to `skill-rules.json` for auto-activation
-- [ ] Test skill activation with sample prompts
+- [ ] Sanity-check the `description` reads like a trigger (Claude Code loads the skill from it natively)
 
 ---
 

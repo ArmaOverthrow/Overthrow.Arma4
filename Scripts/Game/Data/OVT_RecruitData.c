@@ -30,7 +30,19 @@ class OVT_RecruitData : Managed
 	
 	//! Last known position of the recruit
 	vector m_vLastKnownPosition = "0 0 0";
-		
+
+	//! Persistence system id (UUID as a string) of this recruit's BODY.
+	//!
+	//! A recruit body is an ordinary tracked character: vanilla's AI-character configuration serializes
+	//! it with its whole inventory, and Overthrow only turns OFF the "spawn it back by itself" bit
+	//! (SelfSpawn 0, Configs/Systems/Persistence/Overthrow.conf). This id is how the manager asks for
+	//! THAT body back - gear and all - instead of building a new one from the prefab.
+	//!
+	//! Empty means "no body has been stored for this recruit"; the respawn path then falls back to a
+	//! fresh prefab with a civilian loadout. NEVER compare it as a UUID - it is kept as a string
+	//! because that is what OVT_PersistenceTracking hands out and what the record persists.
+	string m_sBodyPersistenceId;
+
 	//! Whether the recruit entity is currently spawned in the world
 	bool m_bIsOnline = false;
 	

@@ -254,6 +254,185 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	}
 			
 	//------------------------------------------------------------------------------------------------
+	//! Applies persisted ownership, rentals and warehouse stock to the live manager.
+	//!
+	//! Called from OVT_RealEstateManagerSerializer.Deserialize().
+	//!
+	//! NO RPC. Clients receive all of this through RplSave/RplLoad instead - see the serializer.
+	//!
+	//! IDEMPOTENT: each position is re-pointed at its saved owner and duplicates are never inserted,
+	//! so running this again on a live session produces the same maps.
+	//! \param[in] ownedRecords Persisted owned buildings, may be null.
+	//! \param[in] rented Persisted rented buildings, may be null.
+	//! \param[in] warehouses Persisted warehouses, may be null.
+	void ApplyPersistedRealEstate(array<ref OVT_PersistedOwnership> ownedRecords, array<ref OVT_PersistedOwnership> rented, array<ref OVT_PersistedWarehouse> warehouses)
+	{
+		if (ownedRecords)
+		{
+			foreach (OVT_PersistedOwnership record : ownedRecords)
+			{
+				if (!record || record.persistentId == "" || !record.positions)
+					continue;
+
+				foreach (string position : record.positions)
+				{
+					ApplyPersistedOwner(record.persistentId, position);
+				}
+			}
+		}
+
+		if (rented)
+		{
+			foreach (OVT_PersistedOwnership record : rented)
+			{
+				if (!record || record.persistentId == "" || !record.positions)
+					continue;
+
+				foreach (string position : record.positions)
+				{
+					ApplyPersistedRenter(record.persistentId, position);
+				}
+			}
+		}
+
+		ApplyPersistedWarehouses(warehouses);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Points one stored position key at its saved owner, detaching it from any current owner first.
+	//!
+	//! Works on the key STRINGS directly rather than through DoSetOwnerPersistentId(), which always
+	//! appends and would therefore duplicate the entry when the same save is applied twice.
+	//! \param[in] persistentId The player the building belongs to.
+	//! \param[in] positionKey The owner manager's position key for the building.
+	protected void ApplyPersistedOwner(string persistentId, string positionKey)
+	{
+		if (positionKey == "")
+			return;
+
+		if (m_mOwners.Contains(positionKey))
+		{
+			string current = m_mOwners[positionKey];
+			if (current == persistentId)
+				return;
+
+			if (m_mOwned.Contains(current))
+			{
+				array<string> previous = m_mOwned[current];
+				if (previous)
+				{
+					int index = previous.Find(positionKey);
+					if (index > -1)
+						previous.Remove(index);
+				}
+			}
+		}
+
+		if (!m_mOwned.Contains(persistentId))
+			m_mOwned[persistentId] = new array<string>();
+
+		array<string> positions = m_mOwned[persistentId];
+		if (positions.Find(positionKey) == -1)
+			positions.Insert(positionKey);
+
+		m_mOwners[positionKey] = persistentId;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Renter equivalent of ApplyPersistedOwner().
+	//! \param[in] persistentId The player renting the building.
+	//! \param[in] positionKey The owner manager's position key for the building.
+	protected void ApplyPersistedRenter(string persistentId, string positionKey)
+	{
+		if (positionKey == "")
+			return;
+
+		if (m_mRenters.Contains(positionKey))
+		{
+			string current = m_mRenters[positionKey];
+			if (current == persistentId)
+				return;
+
+			if (m_mRented.Contains(current))
+			{
+				array<string> previous = m_mRented[current];
+				if (previous)
+				{
+					int index = previous.Find(positionKey);
+					if (index > -1)
+						previous.Remove(index);
+				}
+			}
+		}
+
+		if (!m_mRented.Contains(persistentId))
+			m_mRented[persistentId] = new array<string>();
+
+		array<string> positions = m_mRented[persistentId];
+		if (positions.Find(positionKey) == -1)
+			positions.Insert(positionKey);
+
+		m_mRenters[positionKey] = persistentId;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Restores warehouse ownership, flags and stock, matching saved records to live warehouses by
+	//! position and creating the ones that do not exist yet.
+	//!
+	//! Ids are re-derived from the rebuilt array, never read from the save - see
+	//! OVT_PersistedWarehouse's header for why.
+	//! \param[in] records Persisted warehouses, may be null.
+	protected void ApplyPersistedWarehouses(array<ref OVT_PersistedWarehouse> records)
+	{
+		if (!records)
+			return;
+
+		if (!m_aWarehouses)
+			m_aWarehouses = new array<ref OVT_WarehouseData>();
+
+		foreach (OVT_PersistedWarehouse record : records)
+		{
+			if (!record)
+				continue;
+
+			OVT_WarehouseData warehouse = GetNearestWarehouse(record.location, 10);
+			if (!warehouse)
+			{
+				warehouse = new OVT_WarehouseData();
+				warehouse.location = record.location;
+				warehouse.inventory = new map<string, int>();
+				warehouse.id = m_aWarehouses.Count();
+				m_aWarehouses.Insert(warehouse);
+			}
+
+			warehouse.owner = record.owner;
+			warehouse.isPrivate = record.isPrivate;
+			warehouse.isLinked = record.isLinked;
+
+			if (!warehouse.inventory)
+				warehouse.inventory = new map<string, int>();
+
+			warehouse.inventory.Clear();
+
+			if (!record.itemIds || !record.itemCounts)
+				continue;
+
+			int count = record.itemIds.Count();
+			if (record.itemCounts.Count() < count)
+				count = record.itemCounts.Count();
+
+			for (int i = 0; i < count; i++)
+			{
+				string itemId = record.itemIds[i];
+				if (itemId == "")
+					continue;
+
+				warehouse.inventory.Set(itemId, record.itemCounts[i]);
+			}
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Finds the nearest warehouse to a given position within an optional range.
 	//! \param[in] pos The position to search near
 	//! \param[in] range Optional maximum distance to search (default: 9999999)

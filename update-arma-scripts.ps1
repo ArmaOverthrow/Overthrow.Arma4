@@ -7,17 +7,18 @@ param(
 
 # Paths configuration
 $pakEntpackerExe = "N:\Temp\PakEntpacker\PakEntpacker.exe"
-$armaReforgerAddons = "N:\SteamLibrary\steamapps\common\Arma Reforger\addons"
+$armaReforgerAddons = "N:\Program Files (x86)\Steam\steamapps\common\Arma Reforger\addons"
 $targetPath = "N:\Projects\Arma 4\ArmaReforger"
 $tempExtractPath = "N:\Temp\ArmaReforgerExtract"
 
 # Directories to copy (source pak dir -> folders to copy)
 # Format: "addonDir/extractedFolder" = @("folder1", "folder2", ...)
 # The extractedFolder name corresponds to the .pak file name (e.g., "data" -> "data.pak")
-$extractionMap = @{
+# Ordered: later paks layer over earlier ones, so merge order must be preserved
+$extractionMap = [ordered]@{
     "data/data" = @("AI")
     "data/data007" = @("Configs", "Language","scripts","Prefabs","PrefabsEditable")
-    "data/data009" = @("UI")
+    "data/data010" = @("UI")
     "core/data" = @("scripts", "ui", "configs")
 }
 

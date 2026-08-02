@@ -1,35 +1,7 @@
 OVT_OverthrowGameMode {
  ID "59B6F5261FBE5DC1"
  components {
-  EPF_PersistenceComponent "{5D7009A1AB220903}" {
-   m_bSelfSpawn 0
-   m_bSelfDelete 0
-   m_pSaveData OVT_OverthrowSaveDataClass "{5D7009A22C40BEE5}" {
-    m_eTranformSaveFlags 0
-    m_bSaveRemainingLifetime 0
-    m_aComponents {
-     OVT_EconomySaveDataClass "{5D7009A2B14C4055}" {
-     }
-     OVT_PlayerSaveDataClass "{5D7009AA91A43E6F}" {
-     }
-     OVT_OccupyingFactionSaveDataClass "{5D70099DAD21A0F3}" {
-     }
-     OVT_RealEstateSaveDataClass "{5D707B33903B8735}" {
-     }
-     OVT_TownSaveDataClass "{5D70912C42B66D9E}" {
-     }
-     OVT_ResistanceSaveDataClass "{5D70912B726E1A32}" {
-     }
-     OVT_ConfigSaveDataClass "{5D9E53AFE550A24E}" {
-     }
-     OVT_DeploymentManagerComponentSaveDataClass "{65B2DE4DE0F7175D}" {
-     }
-     OVT_RecruitSaveDataClass "{65A26826DE2960DA}" {
-     }
-     OVT_LoadoutManagerSaveDataClass "{65AAD8FBE5BDC6EE}" {
-     }
-    }
-   }
+  Persistence "{6B0E7A12A7B14C58}" {
   }
   OVT_DeploymentManagerComponent "{65B2DE4D19F8D47E}" {
    m_DeploymentRegistry OVT_DeploymentRegistry "{65B2DE433E54414A}" : "{C9A38056910495A2}Configs/Deployment/overthrowDeployments.conf" {
@@ -172,9 +144,6 @@ OVT_OverthrowGameMode {
    m_bDebugMode 0
   }
   OVT_PersistenceManagerComponent "{5D7009B844876186}" {
-   m_pConnectionInfo EDF_JsonFileDbConnectionInfo "{5D7009B8408E1A9D}" {
-    m_sDatabaseName "Overthrow"
-   }
   }
   OVT_PlayerCommsComponent "{5D7ACE1228D77F40}" {
   }

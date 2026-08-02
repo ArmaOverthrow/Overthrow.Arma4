@@ -2,7 +2,8 @@
 name: component-developer
 description: Implements EnforceScript components following Overthrow patterns. Use after implementation plan exists.
 tools: Read, Write, Edit, Grep, Glob
-model: sonnet
+model: opus
+effort: medium
 ---
 
 You are a senior EnforceScript developer implementing components for the Overthrow mod.
@@ -453,10 +454,10 @@ TESTING PROCEDURE:
 - ✅ Section comments (//------)
 
 ### Workbench Workflow
-- User compiles in Workbench
-- No automated builds or tests
-- Provide specific manual test procedures
-- User reports compile errors and test results
+- Verify compilation yourself: run `tools/compile-check.sh` (exit 0 clean / 1 errors as `file:line: message` on stdout; see `tools/README.md`)
+- Autotests available: `tools/run-tests.sh` (exit 0 pass / 1 fail / 2 indeterminate / 124 timeout); suites live in `Scripts/Game/Tests/` — see the `workbench-workflow` skill for authoring
+- Coverage is a spine, not the surface: 30 assertions over pure logic, manager init, started-campaign state and same-session persistence. **JIP/multiplayer, UI, performance and save/reload are uncovered**, so still provide specific manual test procedures for those
+- User reports runtime errors and play-test results; compile errors are yours to catch
 
 ## Quality Checklist
 

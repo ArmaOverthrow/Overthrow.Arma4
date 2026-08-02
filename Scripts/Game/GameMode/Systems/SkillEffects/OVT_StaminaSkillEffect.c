@@ -5,7 +5,7 @@ class OVT_StaminaSkillEffect : OVT_SkillEffect
 	
 	override void OnPlayerSpawn(ChimeraCharacter character)
 	{
-		SCR_CharacterStaminaComponent stamina = EPF_Component<SCR_CharacterStaminaComponent>.Find(character);
+		SCR_CharacterStaminaComponent stamina = OVT_ComponentFinder<SCR_CharacterStaminaComponent>.Find(character);
 		if(!stamina) return;
 		
 		//We actually can't do anything here until BI exposes some stamina params

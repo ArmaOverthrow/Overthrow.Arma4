@@ -5,28 +5,6 @@ class OVT_InventoryManagerComponentClass: OVT_ComponentClass
 };
 
 //------------------------------------------------------------------------------------------------
-//! Centralized inventory management system for Overthrow
-//! Handles all storage transfers, container operations, and inventory transactions
-//! Incorporates insights from loadout manager for robust inventory handling
-[EPF_ComponentSaveDataType(OVT_InventoryManagerComponent)]
-class OVT_InventoryManagerSaveDataClass : EPF_ComponentSaveDataClass {};
-
-class OVT_InventoryManagerSaveData : EPF_ComponentSaveData
-{
-	// Currently no persistent data needed, but structure is here for future use
-	
-	override EPF_EReadResult ReadFrom(IEntity owner, GenericComponent component, EPF_ComponentSaveDataClass attributes)
-	{
-		return EPF_EReadResult.OK;
-	}
-	
-	override EPF_EApplyResult ApplyTo(IEntity owner, GenericComponent component, EPF_ComponentSaveDataClass attributes)
-	{
-		return EPF_EApplyResult.OK;
-	}
-}
-
-//------------------------------------------------------------------------------------------------
 //! Progress callback interface for storage operations
 class OVT_StorageProgressCallback
 {
@@ -103,7 +81,12 @@ class OVT_StorageOperationConfig
 }
 
 //------------------------------------------------------------------------------------------------
-//! Centralized inventory manager component for the game mode
+//! Centralized inventory manager component for the game mode.
+//! Handles all storage transfers, container operations and inventory transactions.
+//!
+//! NOT PERSISTED, by verdict: it owns only transient operation queues, so it has no serializer in
+//! Configs/Systems/Persistence/Overthrow.conf. Its old save-data class carried no fields either and
+//! was deleted with the rest of the persistence framework.
 class OVT_InventoryManagerComponent: OVT_Component
 {
 	protected static OVT_InventoryManagerComponent s_Instance;
@@ -697,8 +680,8 @@ class OVT_InventoryManagerComponent: OVT_Component
 		OVT_StorageProgressCallback callback = m_mActiveOperations.Get(operationId);
 		
 		// Get storage components
-		UniversalInventoryStorageComponent vehicleStorage = EPF_Component<UniversalInventoryStorageComponent>.Find(vehicle);
-		InventoryStorageManagerComponent vehicleStorageMgr = EPF_Component<InventoryStorageManagerComponent>.Find(vehicle);
+		UniversalInventoryStorageComponent vehicleStorage = OVT_ComponentFinder<UniversalInventoryStorageComponent>.Find(vehicle);
+		InventoryStorageManagerComponent vehicleStorageMgr = OVT_ComponentFinder<InventoryStorageManagerComponent>.Find(vehicle);
 		
 		if (!vehicleStorage || !vehicleStorageMgr)
 		{
@@ -747,8 +730,8 @@ class OVT_InventoryManagerComponent: OVT_Component
 		}
 		
 		// Get storage components
-		UniversalInventoryStorageComponent vehicleStorage = EPF_Component<UniversalInventoryStorageComponent>.Find(vehicle);
-		InventoryStorageManagerComponent vehicleStorageMgr = EPF_Component<InventoryStorageManagerComponent>.Find(vehicle);
+		UniversalInventoryStorageComponent vehicleStorage = OVT_ComponentFinder<UniversalInventoryStorageComponent>.Find(vehicle);
+		InventoryStorageManagerComponent vehicleStorageMgr = OVT_ComponentFinder<InventoryStorageManagerComponent>.Find(vehicle);
 		
 		if (!vehicleStorage || !vehicleStorageMgr)
 		{
@@ -770,7 +753,7 @@ class OVT_InventoryManagerComponent: OVT_Component
 		bool canDelete = false;
 		
 		// Check if it's a weapon
-		WeaponComponent weapon = EPF_Component<WeaponComponent>.Find(currentItem);
+		WeaponComponent weapon = OVT_ComponentFinder<WeaponComponent>.Find(currentItem);
 		if (weapon)
 		{
 			if (vehicleStorageMgr.TryInsertItem(currentItem))
@@ -781,7 +764,7 @@ class OVT_InventoryManagerComponent: OVT_Component
 		else
 		{
 			// Check if it's a body with inventory
-			InventoryStorageManagerComponent bodyInventory = EPF_Component<InventoryStorageManagerComponent>.Find(currentItem);
+			InventoryStorageManagerComponent bodyInventory = OVT_ComponentFinder<InventoryStorageManagerComponent>.Find(currentItem);
 			if (bodyInventory)
 			{
 				int bodyItemsLooted = LootBodyItems(bodyInventory, vehicleStorage);
@@ -817,12 +800,12 @@ class OVT_InventoryManagerComponent: OVT_Component
 		if (items.IsEmpty()) return 0;
 		
 		int itemsLooted = 0;
-		InventoryStorageManagerComponent vehicleStorageMgr = EPF_Component<InventoryStorageManagerComponent>.Find(vehicleStorage.GetOwner());
+		InventoryStorageManagerComponent vehicleStorageMgr = OVT_ComponentFinder<InventoryStorageManagerComponent>.Find(vehicleStorage.GetOwner());
 		
 		foreach (IEntity item : items)
 		{
 			// Check if this is a clothing item we want to skip
-			BaseLoadoutClothComponent cloth = EPF_Component<BaseLoadoutClothComponent>.Find(item);
+			BaseLoadoutClothComponent cloth = OVT_ComponentFinder<BaseLoadoutClothComponent>.Find(item);
 			if (cloth && cloth.GetAreaType())
 			{
 				string areaType = cloth.GetAreaType().ClassName();

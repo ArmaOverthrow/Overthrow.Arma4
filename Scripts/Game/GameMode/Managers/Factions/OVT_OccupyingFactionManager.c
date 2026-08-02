@@ -189,7 +189,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		if (!baseData) return true;
 		
 		// Set the faction affiliation
-		SCR_FactionAffiliationComponent affiliation = EPF_Component<SCR_FactionAffiliationComponent>.Find(entity);
+		SCR_FactionAffiliationComponent affiliation = OVT_ComponentFinder<SCR_FactionAffiliationComponent>.Find(entity);
 		if (affiliation)
 		{
 			FactionManager factionManager = GetGame().GetFactionManager();
@@ -258,6 +258,168 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 		if(m_bDistributeInitial)
 			GetGame().GetCallqueue().CallLater(DistributeInitialResources, 5000);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Applies the persisted occupying-faction war state.
+	//!
+	//! Called from OVT_OccupyingFactionManagerSerializer.Deserialize().
+	//!
+	//! SUPPRESSES THE OPENING RESOURCE ALLOCATION. m_bDistributeInitial is cleared because a saved
+	//! campaign has already spent its opening allocation; leaving it set would let PostGameStart()
+	//! schedule DistributeInitialResources() and build the occupying faction's opening position a
+	//! second time on top of the restored one. EPF cleared the same flag for the same reason.
+	//!
+	//! SPAWNS NOTHING. Restored upgrades, filled slots and garrisons are data; InitBaseControllers()
+	//! replays them during PostGameStart, which is the same path a fresh campaign takes.
+	//!
+	//! NO RPC. Clients receive base and tower control through the normal replication paths.
+	//!
+	//! IDEMPOTENT: assignments and clear-and-rebuilds only, safe to run again on a live session.
+	//! \param[in] occupyingFactionKey Faction key the campaign was started against, may be empty.
+	//! \param[in] resources Occupying faction resource pool.
+	//! \param[in] threat Occupying faction threat level.
+	//! \param[in] bases Persisted base records, matched to live bases by location. May be null.
+	//! \param[in] towers Persisted radio tower records, matched by location. May be null.
+	void ApplyPersistedOccupyingFaction(string occupyingFactionKey, int resources, float threat, array<ref OVT_PersistedBase> bases, array<ref OVT_PersistedRadioTower> towers)
+	{
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+
+		// Applied FIRST: every faction index below is relative to this choice.
+		if (config && occupyingFactionKey != "" && config.m_sOccupyingFaction != occupyingFactionKey)
+			config.SetOccupyingFaction(occupyingFactionKey);
+
+		m_iResources = resources;
+		m_iThreat = threat;
+		m_bDistributeInitial = false;
+
+		if (bases)
+		{
+			foreach (OVT_PersistedBase baseRecord : bases)
+			{
+				if (!baseRecord)
+					continue;
+
+				OVT_BaseData base = GetNearestBase(baseRecord.location);
+				if (!base)
+					continue;
+
+				int faction = baseRecord.faction;
+				if (faction < 0)
+				{
+					Print(string.Format("[Overthrow] Saved base at %1 has no faction - handing it to the occupying faction", baseRecord.location.ToString()), LogLevel.WARNING);
+					if (config)
+						faction = config.GetOccupyingFactionIndex();
+				}
+
+				base.faction = faction;
+
+				ApplyPersistedBaseUpgrades(base, baseRecord);
+				ApplyPersistedBaseSlots(base, baseRecord);
+				ApplyPersistedBaseGarrison(base, baseRecord);
+			}
+		}
+
+		if (towers)
+		{
+			foreach (OVT_PersistedRadioTower towerRecord : towers)
+			{
+				if (!towerRecord)
+					continue;
+
+				OVT_RadioTowerData tower = GetNearestRadioTower(towerRecord.location);
+				if (!tower)
+					continue;
+
+				tower.faction = towerRecord.faction;
+			}
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Rebuilds one base's upgrade list from its save record.
+	//! \param[in] base The live base data.
+	//! \param[in] record The saved record.
+	protected void ApplyPersistedBaseUpgrades(notnull OVT_BaseData base, notnull OVT_PersistedBase record)
+	{
+		if (!base.upgrades)
+			base.upgrades = new array<ref OVT_BaseUpgradeData>();
+
+		base.upgrades.Clear();
+
+		if (!record.upgrades)
+			return;
+
+		foreach (OVT_PersistedBaseUpgrade upgradeRecord : record.upgrades)
+		{
+			if (!upgradeRecord)
+				continue;
+
+			OVT_BaseUpgradeData data = new OVT_BaseUpgradeData();
+			data.type = upgradeRecord.type;
+			data.resources = upgradeRecord.resources;
+			data.tag = upgradeRecord.tag;
+			data.pos = upgradeRecord.pos;
+
+			if (upgradeRecord.groups)
+			{
+				foreach (OVT_PersistedBaseUpgradeGroup groupRecord : upgradeRecord.groups)
+				{
+					if (!groupRecord)
+						continue;
+
+					OVT_BaseUpgradeGroupData group = new OVT_BaseUpgradeGroupData();
+					group.prefab = groupRecord.prefab;
+					group.position = groupRecord.position;
+					data.groups.Insert(group);
+				}
+			}
+
+			base.upgrades.Insert(data);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Rebuilds one base's filled-slot list from its save record.
+	//! \param[in] base The live base data.
+	//! \param[in] record The saved record.
+	protected void ApplyPersistedBaseSlots(notnull OVT_BaseData base, notnull OVT_PersistedBase record)
+	{
+		if (!base.slotsFilled)
+			base.slotsFilled = new array<vector>();
+
+		base.slotsFilled.Clear();
+
+		if (!record.slotsFilled)
+			return;
+
+		foreach (vector slot : record.slotsFilled)
+		{
+			base.slotsFilled.Insert(slot);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Rebuilds one base's garrison prefab list from its save record.
+	//! \param[in] base The live base data.
+	//! \param[in] record The saved record.
+	protected void ApplyPersistedBaseGarrison(notnull OVT_BaseData base, notnull OVT_PersistedBase record)
+	{
+		if (!base.garrison)
+			base.garrison = new array<ref ResourceName>();
+
+		base.garrison.Clear();
+
+		if (!record.garrison)
+			return;
+
+		foreach (ResourceName prefab : record.garrison)
+		{
+			if (prefab.IsEmpty())
+				continue;
+
+			base.garrison.Insert(prefab);
+		}
 	}
 
 	void CheckRadioTowers()

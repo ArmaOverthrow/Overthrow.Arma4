@@ -63,37 +63,3 @@ class OVT_PlaceableComponent : ScriptComponent
 		return m_sAssociatedBaseId == baseId && m_eBaseType == baseType;
 	}
 }
-
-[EPF_ComponentSaveDataType(OVT_PlaceableComponent), BaseContainerProps()]
-class OVT_PlaceableDataClass : EPF_ComponentSaveDataClass
-{
-}
-
-[EDF_DbName()]
-class OVT_PlaceableData : EPF_ComponentSaveData
-{
-	string m_sOwnerPersistentId;
-	string m_sAssociatedBaseId;
-	int m_eBaseType;
-	
-	override EPF_EReadResult ReadFrom(IEntity owner, GenericComponent component, EPF_ComponentSaveDataClass attributes)
-	{
-		OVT_PlaceableComponent placeableComp = OVT_PlaceableComponent.Cast(component);
-		
-		m_sOwnerPersistentId = placeableComp.GetOwnerPersistentId();
-		m_sAssociatedBaseId = placeableComp.GetAssociatedBaseId();
-		m_eBaseType = placeableComp.GetBaseType();
-		
-		return EPF_EReadResult.OK;
-	}
-	
-	override EPF_EApplyResult ApplyTo(IEntity owner, GenericComponent component, EPF_ComponentSaveDataClass attributes)
-	{
-		OVT_PlaceableComponent placeableComp = OVT_PlaceableComponent.Cast(component);
-		
-		placeableComp.SetOwnerPersistentId(m_sOwnerPersistentId);
-		placeableComp.SetAssociatedBase(m_sAssociatedBaseId, m_eBaseType);
-		
-		return EPF_EApplyResult.OK;
-	}
-}

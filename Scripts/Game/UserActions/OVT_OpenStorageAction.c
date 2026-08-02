@@ -40,7 +40,7 @@ class OVT_OpenStorageAction : SCR_InventoryAction
 		OVT_OverthrowGameMode ot = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
 		if(!ot) return genericRpl.IsOwner();
 		
-		OVT_PlayerOwnerComponent playerowner = EPF_Component<OVT_PlayerOwnerComponent>.Find(GetOwner());
+		OVT_PlayerOwnerComponent playerowner = OVT_ComponentFinder<OVT_PlayerOwnerComponent>.Find(GetOwner());
 		if(!playerowner || !playerowner.IsLocked()) return genericRpl.IsOwner();
 		
 		string ownerUid = playerowner.GetPlayerOwnerUid();

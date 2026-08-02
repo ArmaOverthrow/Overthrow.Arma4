@@ -168,6 +168,211 @@ class OVT_JobManagerComponent: OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Restores the job board from a save WITHOUT re-executing any stage logic.
+	//!
+	//! Called from OVT_JobManagerSerializer.Deserialize(). Read that file's header for why this
+	//! exists instead of the RunJobToCurrentStage() loop EPF's OVT_ResistanceSaveData ran, and why
+	//! running nothing is correct rather than merely safe: every stage a job can be PARKED at
+	//! overrides OnTick only, and every stage that has side effects in OnStart returns false from it
+	//! and so is never the resting stage.
+	//!
+	//! IDEMPOTENT. A clear and a rebuild of four collections from the payload, so re-applying the
+	//! same save to a live session (OVT_PersistenceManagerComponent.ReapplyLatestSaveData) produces
+	//! the same board rather than a doubled one.
+	//!
+	//! JOBS THAT CANNOT COME BACK ARE DROPPED, NOT HALF-RESTORED. A record is skipped when its
+	//! jobIndex no longer names a configured job (the config list changed since the save), when its
+	//! stage is out of range, or when the stage it is parked at is an OVT_WaitTillDeadJobStage - that
+	//! stage watches OVT_Job.entity, an RplId that does not survive a session, and a restored job
+	//! with no handle would see "target already gone" on its very next tick and pay out its reward
+	//! for nothing. A dropped job also leaves its occupancy slot free, so the job manager simply
+	//! offers that job again on a later CheckUpdate.
+	//!
+	//! NO RPC. Clients get the board through RplSave / RplLoad and the manager's normal update
+	//! traffic; this runs while the world is still loading.
+	//! \param[in] jobRecords Persisted job board entries. Null is treated as an empty board.
+	//! \param[in] countIndices Job indices, index-aligned with countValues.
+	//! \param[in] countValues Lifetime start count per job index.
+	//! \param[in] playerCounts Per-player lifetime start counts.
+	void ApplyPersistedJobs(array<ref OVT_PersistedJob> jobRecords, array<int> countIndices, array<int> countValues, array<ref OVT_PersistedPlayerJobCounts> playerCounts)
+	{
+		if (!m_aJobs || !m_aJobCounts || !m_mPlayerJobCounts || !m_aGlobalJobs || !m_aTownJobs || !m_aBaseJobs)
+			return;
+
+		// Lifetime counters. These outlive the jobs they counted, so nothing on the board implies
+		// them and they have to be restored verbatim.
+		m_aJobCounts.Clear();
+		if (countIndices && countValues)
+		{
+			int pairs = countIndices.Count();
+			if (countValues.Count() < pairs)
+				pairs = countValues.Count();
+
+			for (int i = 0; i < pairs; i++)
+			{
+				m_aJobCounts[countIndices[i]] = countValues[i];
+			}
+		}
+
+		m_mPlayerJobCounts.Clear();
+		if (playerCounts)
+		{
+			foreach (OVT_PersistedPlayerJobCounts playerRecord : playerCounts)
+			{
+				if (!playerRecord || playerRecord.playerId == "")
+					continue;
+
+				map<int, int> counts = new map<int, int>;
+
+				int playerPairs = 0;
+				if (playerRecord.jobIndices && playerRecord.counts)
+				{
+					playerPairs = playerRecord.jobIndices.Count();
+					if (playerRecord.counts.Count() < playerPairs)
+						playerPairs = playerRecord.counts.Count();
+				}
+
+				for (int i = 0; i < playerPairs; i++)
+				{
+					counts[playerRecord.jobIndices[i]] = playerRecord.counts[i];
+				}
+
+				m_mPlayerJobCounts[playerRecord.playerId] = counts;
+			}
+		}
+
+		// The board itself, plus the occupancy sets which are derived from it rather than stored -
+		// that is what keeps them consistent when a record is dropped.
+		m_aJobs.Clear();
+		m_aGlobalJobs.Clear();
+		m_aTownJobs.Clear();
+		m_aBaseJobs.Clear();
+
+		if (!jobRecords)
+			return;
+
+		foreach (OVT_PersistedJob record : jobRecords)
+		{
+			if (!record)
+				continue;
+
+			OVT_JobConfig config = FindRestorableJobConfig(record);
+			if (!config)
+				continue;
+
+			OVT_Job job = new OVT_Job();
+			job.jobIndex = record.jobIndex;
+			job.location = record.location;
+			job.townId = record.townId;
+			job.baseId = record.baseId;
+			job.stage = record.stage;
+			job.owner = record.owner;
+			job.accepted = record.accepted;
+
+			job.declined.Clear();
+			if (record.declined)
+			{
+				foreach (string persistentId : record.declined)
+				{
+					if (persistentId == "")
+						continue;
+
+					job.declined.Insert(persistentId);
+				}
+			}
+
+			m_aJobs.Insert(job);
+			RegisterRestoredJobOccupancy(config, job);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Decides whether a persisted job can be put back on the board, and returns its config if so.
+	//!
+	//! Deliberately strict: a job the manager cannot tick correctly is worse than a job that is
+	//! simply offered again, because CheckUpdate() pays rewards on stage completion.
+	//! \param[in] record The persisted job. Callers null-check before calling.
+	//! \return The job's configuration, or null when the job must be dropped.
+	protected OVT_JobConfig FindRestorableJobConfig(OVT_PersistedJob record)
+	{
+		if (!m_aJobConfigs)
+			return null;
+
+		// The job index is a POSITION in the configured job list. A list that has shrunk or been
+		// reordered since the save cannot be reconciled, so out-of-range records are dropped.
+		if (record.jobIndex < 0 || record.jobIndex >= m_aJobConfigs.Count())
+		{
+			Print(string.Format("[Overthrow] Dropping a saved job with index %1 - the job configuration list has only %2 entries", record.jobIndex, m_aJobConfigs.Count()), LogLevel.WARNING);
+			return null;
+		}
+
+		OVT_JobConfig config = m_aJobConfigs[record.jobIndex];
+		if (!config || !config.m_aStages)
+			return null;
+
+		if (record.stage < 0 || record.stage >= config.m_aStages.Count())
+		{
+			Print(string.Format("[Overthrow] Dropping saved job '%1' - stage %2 is outside its %3 configured stages", config.m_sTitle, record.stage, config.m_aStages.Count()), LogLevel.WARNING);
+			return null;
+		}
+
+		OVT_JobStageConfig stage = config.m_aStages[record.stage];
+		if (!stage || !stage.m_Handler)
+			return null;
+
+		// The one stage whose state is a live entity handle. See ApplyPersistedJobs()'s header.
+		if (OVT_WaitTillDeadJobStage.Cast(stage.m_Handler))
+		{
+			Print(string.Format("[Overthrow] Dropping saved job '%1' - it was waiting for a target entity, which cannot be identified across a session. It will be offered again", config.m_sTitle), LogLevel.NORMAL);
+			return null;
+		}
+
+		return config;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Re-marks the "this job type is already running here" slots for a restored job.
+	//!
+	//! Mirrors exactly where CheckUpdate() inserts when it starts a job: base-only jobs occupy their
+	//! base, PUBLIC town jobs occupy their town, and player-allocated town jobs occupy neither (they
+	//! are limited by m_mPlayerJobCounts instead). Globally unique jobs additionally occupy the
+	//! global slot, but only on the two paths that claim it.
+	//! \param[in] config The job's configuration. Callers null-check before calling.
+	//! \param[in] job The restored job. Callers null-check before calling.
+	protected void RegisterRestoredJobOccupancy(OVT_JobConfig config, OVT_Job job)
+	{
+		bool claimsGlobalSlot = false;
+
+		if (config.m_bBaseOnly)
+		{
+			if (job.baseId > -1)
+			{
+				if (!m_aBaseJobs.Contains(job.baseId))
+					m_aBaseJobs[job.baseId] = new set<int>;
+
+				m_aBaseJobs[job.baseId].Insert(job.jobIndex);
+			}
+
+			claimsGlobalSlot = true;
+		}
+		else if (config.m_bPublic)
+		{
+			if (job.townId > -1)
+			{
+				if (!m_aTownJobs.Contains(job.townId))
+					m_aTownJobs[job.townId] = new set<int>;
+
+				m_aTownJobs[job.townId].Insert(job.jobIndex);
+			}
+
+			claimsGlobalSlot = true;
+		}
+
+		if (claimsGlobalSlot && (config.flags & OVT_JobFlags.GLOBAL_UNIQUE))
+			m_aGlobalJobs.Insert(job.jobIndex);
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Sends an RPC to update the state of a specific job across all clients.
 	//! \param job The job whose state needs to be broadcast.
 	void StreamJobUpdate(OVT_Job job)

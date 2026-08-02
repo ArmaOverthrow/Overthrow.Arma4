@@ -1,11 +1,6 @@
 SCR_DestructibleBuildingEntity : "{BE5D5CFA90224646}Prefabs/Structures/Military/Camps/TentUSSR_01/TentUSSR_01_base.et" {
  ID "F0DBA538AC2A0552"
  components {
-  EPF_PersistenceComponent "{65AAD8EE1984CCCD}" {
-   m_bUpdateNavmesh 1
-   m_pSaveData OVT_BuildingSaveDataClass "{65AAD8EEE42AC7EB}" {
-   }
-  }
   MeshObject "{506EDA9D46FC6C06}" {
    Materials {
     MaterialAssignClass "{65AAD8E2BE19D653}" {

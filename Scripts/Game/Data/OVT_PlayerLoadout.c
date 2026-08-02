@@ -1,5 +1,14 @@
 //! Individual player loadout data class
-class OVT_PlayerLoadout : EPF_PersistentScriptedState
+//!
+//! A PLAIN DATA CLASS. It used to be a persistence-framework scripted state - one persistence record
+//! per loadout, fetched by id - which is why loadout contents never survived a session: the id index
+//! and the records were two halves that could disagree, and the "find a loadout whose id we lost"
+//! fallback was never written. OVT_LoadoutManagerSerializer now writes every loadout as part of the
+//! loadout manager's own record, so nothing here needs a persistence identity of its own.
+//!
+//! Being plain also matters on CLIENTS: OVT_LoadoutManagerComponent.RplLoad constructs these when it
+//! receives the JIP loadout list, and the old base constructor reached for a server-only singleton.
+class OVT_PlayerLoadout
 {
 	string m_sLoadoutName;					//! User-defined name
 	string m_sPlayerId;						//! Owner's player ID  

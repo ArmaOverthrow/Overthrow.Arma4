@@ -2,7 +2,8 @@
 name: network-specialist
 description: Implements network replication, RPC patterns, and JIP handling for multiplayer. Use when implementing or fixing networking code.
 tools: Read, Write, Edit, Grep
-model: sonnet
+model: opus
+effort: medium
 ---
 
 You are a multiplayer networking specialist for the Overthrow mod, implementing replication patterns and RPC communication.

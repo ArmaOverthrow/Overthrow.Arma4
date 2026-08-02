@@ -63,37 +63,3 @@ class OVT_BuildableComponent : ScriptComponent
 		return m_sAssociatedBaseId == baseId && m_eBaseType == baseType;
 	}
 }
-
-[EPF_ComponentSaveDataType(OVT_BuildableComponent), BaseContainerProps()]
-class OVT_BuildableDataClass : EPF_ComponentSaveDataClass
-{
-}
-
-[EDF_DbName()]
-class OVT_BuildableData : EPF_ComponentSaveData
-{
-	string m_sOwnerPersistentId;
-	string m_sAssociatedBaseId;
-	int m_eBaseType;
-	
-	override EPF_EReadResult ReadFrom(IEntity owner, GenericComponent component, EPF_ComponentSaveDataClass attributes)
-	{
-		OVT_BuildableComponent buildableComp = OVT_BuildableComponent.Cast(component);
-		
-		m_sOwnerPersistentId = buildableComp.GetOwnerPersistentId();
-		m_sAssociatedBaseId = buildableComp.GetAssociatedBaseId();
-		m_eBaseType = buildableComp.GetBaseType();
-		
-		return EPF_EReadResult.OK;
-	}
-	
-	override EPF_EApplyResult ApplyTo(IEntity owner, GenericComponent component, EPF_ComponentSaveDataClass attributes)
-	{
-		OVT_BuildableComponent buildableComp = OVT_BuildableComponent.Cast(component);
-		
-		buildableComp.SetOwnerPersistentId(m_sOwnerPersistentId);
-		buildableComp.SetAssociatedBase(m_sAssociatedBaseId, m_eBaseType);
-		
-		return EPF_EApplyResult.OK;
-	}
-}

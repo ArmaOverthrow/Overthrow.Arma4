@@ -1,6 +1,9 @@
 //------------------------------------------------------------------------------------------------
 /*
-	Object responsible for handling respawn logic on the authority side with data loaded from EPF
+	Object responsible for handling respawn logic on the authority side.
+
+	DEAD CODE: no prefab or config references this class - OVT_RespawnSystemComponent uses
+	OVT_SpawnLogic. Kept compiling only so the player-manager cleanup can retire it deliberately.
 */
 [BaseContainerProps(category: "Respawn")]
 class OVT_PersistentRespawnLogic : SCR_SpawnLogic
@@ -146,7 +149,7 @@ class OVT_PersistentRespawnLogic : SCR_SpawnLogic
 	
 	override void OnPlayerSpawned_S(int playerId, IEntity entity)
 	{
-		InventoryStorageManagerComponent storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(entity);
+		InventoryStorageManagerComponent storageManager = OVT_ComponentFinder<InventoryStorageManagerComponent>.Find(entity);
 		foreach (OVT_LoadoutSlot loadoutItem : OVT_Global.GetConfig().m_CivilianLoadout.m_aSlots)
 		{
 			IEntity slotEntity = SpawnDefaultCharacterItem(storageManager, loadoutItem);

@@ -10,12 +10,14 @@ claude.sh
 .saves/
 .mcp.json
 .tmp/
-# Beast Mode - Dev Docs (work in progress)
-dev/active/
-dev/completed/
+
+# Workbench automation (dev-ops epic) - per-machine overrides
+tools/config.local.sh
 
 # Beast Mode - Session tracking
 .claude/session-edits.json
 
 # Beast Mode - Backups
 .claude/.beast-mode-backup-*/
+.beast-mode-channel.json
+claude-agent.sh

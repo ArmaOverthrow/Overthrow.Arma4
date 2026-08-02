@@ -77,7 +77,7 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 				SCR_AIGroup group = GetGroup(id);
 				if(!group) continue;
 				m_iProxedResources += group.GetAgentsCount() * OVT_Global.GetConfig().m_Difficulty.baseResourceCost;
-				m_ProxiedGroups.Insert(EPF_Utils.GetPrefabName(group));
+				m_ProxiedGroups.Insert(OVT_Global.GetPrefabName(group));
 				m_ProxiedPositions.Insert(group.GetOrigin());
 				SCR_EntityHelper.DeleteEntityAndChildren(group);
 			}
@@ -196,7 +196,7 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 			{
 				OVT_BaseUpgradeGroupData g = new OVT_BaseUpgradeGroupData();
 				
-				string res = EPF_Utils.GetPrefabName(aigroup);
+				string res = OVT_Global.GetPrefabName(aigroup);
 				g.prefab = res;				
 				g.position = group.GetOrigin();
 				
