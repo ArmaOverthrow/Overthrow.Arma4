@@ -248,7 +248,15 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 	protected void RetryCreateCharacter(int playerId, string characterPersistenceId, int attempt)
 	{
 		// They may have given up and left while the session was still loading
-		if (!GetGame().GetPlayerManager().GetPlayerController(playerId))
+		PlayerController playerController = GetGame().GetPlayerManager().GetPlayerController(playerId);
+		if (!playerController)
+			return;
+
+		// Something else may have given them a character meanwhile - a second wait-chain started by
+		// another SpawnDeferredPlayer call, or the restore path answering. A corpse does not count:
+		// the death path re-creates a character while the controller still references the dead one.
+		IEntity controlled = playerController.GetControlledEntity();
+		if (controlled && !OVT_PlayerManagerComponent.IsCharacterDead(controlled))
 			return;
 
 		if (WaitForPersistedPlayerData(playerId, characterPersistenceId, attempt))
@@ -300,6 +308,25 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 	//! \param[in] characterPersistenceId The player's Overthrow persistent id, used to pick the position.
 	protected void CreateFreshCharacter(int playerId, string characterPersistenceId)
 	{
+		// Every route here is asynchronous - a deferred call, a failed spawn request, a timeout - so
+		// re-check the player before building anything. Spawning first and asking afterwards would
+		// leave a dressed, networked character with no owner when the player has left (HandoverToPlayer
+		// logs and returns, deleting nothing). A LIVING controlled entity means somebody else already
+		// finished the job; a dead one is the death-respawn path, which must proceed.
+		PlayerController playerController = GetGame().GetPlayerManager().GetPlayerController(playerId);
+		if (!playerController)
+		{
+			Print("[Overthrow] Player " + playerId + " left before their character could be created - not spawning one", LogLevel.WARNING);
+			return;
+		}
+
+		IEntity controlled = playerController.GetControlledEntity();
+		if (controlled && !OVT_PlayerManagerComponent.IsCharacterDead(controlled))
+		{
+			Print("[Overthrow] Player " + playerId + " already controls a character - not spawning another", LogLevel.WARNING);
+			return;
+		}
+
 		ResourceName prefab = GetCreationPrefab(playerId, characterPersistenceId);
 
 		vector position, yawPitchRoll;

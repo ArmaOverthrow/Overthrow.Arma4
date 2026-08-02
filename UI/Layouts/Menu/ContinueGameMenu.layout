@@ -102,7 +102,7 @@ FrameWidgetClass {
          m_BackgroundSelected 1 1 1 0.196
          m_BackgroundSelectedHovered 1 1 1 0.196
          m_BackgroundClicked 1 1 1 0.196
-         m_sText "Start New Game"
+         m_sText "#OVT-StartNewGame"
         }
        }
        {

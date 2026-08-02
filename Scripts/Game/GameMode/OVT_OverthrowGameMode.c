@@ -274,6 +274,25 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 
 		Print("[Overthrow] Overthrow Starting - setting m_bGameInitialized = true");
 		m_bGameInitialized = true;
+
+		// Every start path - new game, continued save, dedicated - funnels through here, so this is
+		// where the campaign starts saving itself. No-op on clients and when already scheduled.
+		if (m_Persistence)
+			m_Persistence.StartAutosaves();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Engine session-end hook (raised by game.c:755 at every session end, including a dedicated
+	//! server stopping). The shutdown save lives here: without it, only vanilla's pause-menu
+	//! save-and-exit ever wrote one, and a dedicated server restart lost everything since the last
+	//! manual save. RequestSavePoint() gates on HasGameStarted(), so quitting from the start menu
+	//! still saves nothing.
+	override void OnGameEnd()
+	{
+		if (IsMaster() && m_Persistence)
+			m_Persistence.OnGameEnd();
+
+		super.OnGameEnd();
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -355,7 +374,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		{
 			Print("[Overthrow] Dedicated server: a save exists for this mission - continuing the campaign");
 			m_Persistence.LoadLatestSave();
-			GetGame().GetCallqueue().CallLater(CheckDedicatedContinue, 2000, false);
+			GetGame().GetCallqueue().CallLater(CheckDedicatedContinue, 2000, false, 0);
 			return;
 		}
 
@@ -364,18 +383,35 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! How many CheckDedicatedContinue polls (2 s apart) to allow before declaring the load dead.
+	//! A successful engine hand-off transitions the world in well under this; a minute of nothing
+	//! means the engine failed after the hand-off (corrupt or incompatible save), which raises no
+	//! callback and leaves IsLoadInProgress() true forever.
+	protected static const int DEDICATED_CONTINUE_MAX_POLLS = 30;
+
+	//------------------------------------------------------------------------------------------------
 	//! Watches a dedicated continue that was handed to the engine. A successful load replaces the
 	//! world (this component included) and IsLoadInProgress() stays true right up to the transition,
 	//! so still being here with the load no longer in flight means it failed - fall back to a new
-	//! game rather than leaving the server sessionless.
-	protected void CheckDedicatedContinue()
+	//! game rather than leaving the server sessionless. BOUNDED: an engine-side failure AFTER the
+	//! hand-off never clears the in-progress flag, so after DEDICATED_CONTINUE_MAX_POLLS the load is
+	//! treated as failed too - otherwise that exact failure would leave the server polling forever.
+	//! \param[in] attempt How many polls have already happened.
+	protected void CheckDedicatedContinue(int attempt)
 	{
 		if (m_bGameStarted)
 			return;
 
 		if (m_Persistence && m_Persistence.IsLoadInProgress())
 		{
-			GetGame().GetCallqueue().CallLater(CheckDedicatedContinue, 2000, false);
+			if (attempt < DEDICATED_CONTINUE_MAX_POLLS)
+			{
+				GetGame().GetCallqueue().CallLater(CheckDedicatedContinue, 2000, false, attempt + 1);
+				return;
+			}
+
+			Print("[Overthrow] Dedicated continue never completed - the engine did not finish loading the save", LogLevel.ERROR);
+			StartNewDedicatedGame();
 			return;
 		}
 

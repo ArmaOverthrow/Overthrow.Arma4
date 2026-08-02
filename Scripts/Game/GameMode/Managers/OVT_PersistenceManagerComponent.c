@@ -21,9 +21,19 @@ class OVT_PersistenceManagerComponentClass : ScriptComponentClass
 //------------------------------------------------------------------------------------------------
 class OVT_PersistenceManagerComponent : ScriptComponent
 {
+	[Attribute(defvalue: "1", desc: "Periodically save the campaign while it is running (authority only).", category: "Auto-Save")]
+	protected bool m_bEnableAutosave;
+
+	[Attribute(defvalue: "600", desc: "Time between autosaves in seconds.", category: "Auto-Save")]
+	protected float m_fAutosaveInterval;
+
 	//! The vanilla persistence world system. Null on clients, and null on the server if the
 	//! SCR_PersistenceSystem entry ever disappears from the systems config.
 	protected SCR_PersistenceSystem m_PersistenceSystem;
+
+	//! True once the repeating autosave timer has been scheduled - it is scheduled at most once per
+	//! world, no matter how many start paths run.
+	protected bool m_bAutosaveScheduled;
 
 	//! Cached answer to "does a save point exist for this mission?".
 	//!
@@ -184,19 +194,102 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Starts the repeating autosave timer. Called by the game mode once the campaign is running -
+	//! every start path (new game, continued save, dedicated) funnels through DoStartGame(), so this
+	//! is wired there. At most one timer per world; authority only.
+	void StartAutosaves()
+	{
+		if (m_bAutosaveScheduled || !m_bEnableAutosave || m_fAutosaveInterval <= 0)
+			return;
+
+		if (!Replication.IsServer())
+			return;
+
+		m_bAutosaveScheduled = true;
+		GetGame().GetCallqueue().CallLater(OnAutosaveTimer, m_fAutosaveInterval * 1000, true);
+		PrintFormat("[Overthrow] Autosave scheduled every %1 seconds", m_fAutosaveInterval);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Repeating timer body for StartAutosaves(). A tick that lands while the save system is already
+	//! occupied is SKIPPED, not queued - the next tick will try again.
+	protected void OnAutosaveTimer()
+	{
+		if (m_bSaveInProgress || m_bLoadInProgress)
+			return;
+
+		SaveGameManager manager = GetGame().GetSaveGameManager();
+		if (!manager || manager.IsBusy())
+			return;
+
+		AutoSave();
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Requests an automatic save point.
-	//! Every call creates a NEW save point. If the save list ever needs bounding, the vanilla tool for
-	//! it is RequestSavePointOverwrite() on the latest AUTO save (SCR_SaveSessionToolbarAction.c:75).
+	//! The save list is BOUNDED the way vanilla bounds it (SCR_SaveSessionToolbarAction.c:75): the
+	//! latest AUTO save is overwritten when one exists, so autosaving forever holds one AUTO slot
+	//! rather than growing a new save point per interval. Asynchronous in two stages, because finding
+	//! that save requires the async GetSaves() list.
 	void AutoSave()
 	{
-		RequestSavePoint(ESaveGameType.AUTO);
+		if (!PassesSaveGates())
+		{
+			NotifySaveFinished(false);
+			return;
+		}
+
+		SaveGameManager manager = GetGame().GetSaveGameManager();
+		m_bSaveInProgress = true;
+		manager.GetSaves(manager.GetCurrentMissionResource(), new SaveGameObtainCallback(OnAutosaveTargetObtained));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! SaveGameObtainCallback delegate for AutoSave() - arity must match SaveGameObtainDelegate.
+	//! Overwrites the latest AUTO save when the list has one, otherwise creates the first.
+	//! \param[in] success Whether the save-list query itself succeeded.
+	//! \param[in] saves Save points found for the current mission, oldest first.
+	protected void OnAutosaveTargetObtained(bool success, array<SaveGame> saves)
+	{
+		SaveGameManager manager = GetGame().GetSaveGameManager();
+		if (!manager)
+		{
+			Print("[Overthrow] Cannot autosave - the SaveGameManager disappeared before the save could start", LogLevel.ERROR);
+			NotifySaveFinished(false);
+			return;
+		}
+
+		// A failed list query is no reason to skip the save - it only costs the overwrite bounding.
+		SaveGame latestAuto;
+		if (success && saves)
+		{
+			for (int i = saves.Count() - 1; i >= 0; i--)
+			{
+				if (saves[i].GetType() == ESaveGameType.AUTO)
+				{
+					latestAuto = saves[i];
+					break;
+				}
+			}
+		}
+
+		ESaveGameRequestFlags flags;
+		if (RplSession.Mode() == RplMode.None)
+			flags = ESaveGameRequestFlags.BLOCKING;
+
+		if (latestAuto)
+			manager.RequestSavePointOverwrite(latestAuto, flags, new SaveGameOperationCallback(OnSavePointCompleted));
+		else
+			manager.RequestSavePoint(ESaveGameType.AUTO, string.Empty, flags, new SaveGameOperationCallback(OnSavePointCompleted));
 	}
 
 	//------------------------------------------------------------------------------------------------
 	//! Requests the shutdown save.
 	//!
-	//! ScriptComponent has no engine game-end event on 1.7.0, so this must be called explicitly
-	//! (e.g. by the game mode) during shutdown - it is not wired to anything by itself.
+	//! ScriptComponent has no engine game-end event on 1.7.0, so this is called explicitly by
+	//! OVT_OverthrowGameMode.OnGameEnd() - the engine raises that on the game mode at session end
+	//! (game.c:755). The save is requested BLOCKING (see RequestSavePoint): an asynchronous request
+	//! made while the session is tearing down would never get to complete.
 	void OnGameEnd()
 	{
 		// If the player quit from the start menu without ever starting, there is nothing to save.
@@ -411,37 +504,54 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! The single save path behind SaveGame() / AutoSave() / OnGameEnd().
-	//! \param[in] saveType Which kind of save point to ask the SaveGameManager for.
-	protected void RequestSavePoint(ESaveGameType saveType)
+	//! The common gate in front of every save request: campaign running, manager present, saving
+	//! allowed. Says why when the answer is no.
+	//! \return True when a save request may be made right now.
+	protected bool PassesSaveGates()
 	{
 		OVT_OverthrowGameMode mode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
 		if (!mode || !mode.HasGameStarted())
 		{
 			Print("[Overthrow] Cannot save - game not started yet", LogLevel.WARNING);
-			NotifySaveFinished(false);
-			return;
+			return false;
 		}
 
 		SaveGameManager manager = GetGame().GetSaveGameManager();
 		if (!manager)
 		{
 			Print("[Overthrow] Cannot save - no SaveGameManager", LogLevel.ERROR);
-			NotifySaveFinished(false);
-			return;
+			return false;
 		}
 
 		if (!manager.IsSavingAllowed())
 		{
 			Print("[Overthrow] Cannot save - saving is currently disabled or disallowed", LogLevel.WARNING);
+			return false;
+		}
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The single save path behind SaveGame() / OnGameEnd() (AutoSave() has its own overwrite path).
+	//! \param[in] saveType Which kind of save point to ask the SaveGameManager for.
+	protected void RequestSavePoint(ESaveGameType saveType)
+	{
+		if (!PassesSaveGates())
+		{
 			NotifySaveFinished(false);
 			return;
 		}
 
+		SaveGameManager manager = GetGame().GetSaveGameManager();
+
 		// Same gate vanilla uses (SCR_CreateNewSaveDialog.c:45-49, SCR_SaveSessionToolbarAction.c:69-71):
 		// only ask for a blocking save outside a replication session, where a hitch costs nobody else.
+		// The one exception is the shutdown save: the session is ending either way, an asynchronous
+		// request would be torn down before it completes, and vanilla's own save-and-exit asks for
+		// exactly this combination (SCR_PauseMenuUI.c:520).
 		ESaveGameRequestFlags flags;
-		if (RplSession.Mode() == RplMode.None)
+		if (RplSession.Mode() == RplMode.None || saveType == ESaveGameType.SHUTDOWN)
 			flags = ESaveGameRequestFlags.BLOCKING;
 
 		m_bSaveInProgress = true;
@@ -584,6 +694,9 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 	//! component.
 	override event void OnDelete(IEntity owner)
 	{
+		if (m_bAutosaveScheduled)
+			GetGame().GetCallqueue().Remove(OnAutosaveTimer);
+
 		SaveGameManager manager = GetGame().GetSaveGameManager();
 		if (manager)
 		{

@@ -7803,5 +7803,17 @@ StringTable {
    Author "Aaron Static"
    LastChanged "CrioUA"
   }
+  CustomStringTableItem "{68C1A47E52B90D11}" {
+   Id "OVT-SaveFailed"
+   Target_en_us "Save failed"
+   Modified 1785674614
+   Author "Claude"
+  }
+  CustomStringTableItem "{68C1A47E52B90D12}" {
+   Id "OVT-StartNewGame"
+   Target_en_us "Start New Game"
+   Modified 1785674614
+   Author "Claude"
+  }
  }
 }

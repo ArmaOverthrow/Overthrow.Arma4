@@ -810,15 +810,28 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 
 		if (!vehicle)
 		{
-			// NOT_FOUND and friends: wiped save data, a prefab that no longer exists, an unreadable
-			// record. Nothing will ever resolve this id again, so stop carrying it around instead of
-			// re-asking on every reconnect forever. There is deliberately NO fallback that builds a
-			// replacement - unlike a recruit, minting a fresh car would hand the player a vehicle that
-			// never existed.
-			m_sLastRespawnDiagnostic = string.Format("persistence answered %1 for vehicle %2 - the registration was dropped",
+			// NOT_FOUND: wiped save data, a prefab that no longer exists. Nothing will ever resolve
+			// this id again, so stop carrying it around instead of re-asking on every reconnect
+			// forever. There is deliberately NO fallback that builds a replacement - unlike a recruit,
+			// minting a fresh car would hand the player a vehicle that never existed.
+			//
+			// ONLY that code drops the registration. Every other failure (BUSY, UNAVAILABLE,
+			// READ_ERROR, ...) says something about THIS attempt, not about the record - and the
+			// registration is what the next save carries, so dropping it on a transient error would
+			// make the loss permanent while the vehicle's stored record still exists. Keep it and let
+			// the next owner return ask again, exactly as the timeout path does.
+			if (statusCode == EPersistenceStatusCode.NOT_FOUND)
+			{
+				m_sLastRespawnDiagnostic = string.Format("persistence answered %1 for vehicle %2 - the registration was dropped",
+					typename.EnumToString(EPersistenceStatusCode, statusCode), vehicleId);
+				Print("[Overthrow] " + m_sLastRespawnDiagnostic, LogLevel.WARNING);
+				DropVehicleRegistration(playerPersistentId, vehicleId);
+				return;
+			}
+
+			m_sLastRespawnDiagnostic = string.Format("persistence answered %1 for vehicle %2 - the registration was kept for a later retry",
 				typename.EnumToString(EPersistenceStatusCode, statusCode), vehicleId);
 			Print("[Overthrow] " + m_sLastRespawnDiagnostic, LogLevel.WARNING);
-			DropVehicleRegistration(playerPersistentId, vehicleId);
 			return;
 		}
 

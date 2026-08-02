@@ -317,8 +317,7 @@ class OVT_MainMenuContext : OVT_UIContext
 		}
 		else
 		{
-			// TODO: needs a localized string (no save-failure key exists in localization_Overthrow.st).
-			hints.ShowCustom("Save failed");
+			hints.ShowCustom("#OVT-SaveFailed");
 		}
 	}
 }
