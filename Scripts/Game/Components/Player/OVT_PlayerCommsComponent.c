@@ -1146,17 +1146,43 @@ class OVT_PlayerCommsComponent: OVT_Component
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_RecruitCivilian(RplId civilian, int playerId)
 	{
+		playerId = ResolveSenderPlayerId(playerId);
+
 		RplComponent rpl = RplComponent.Cast(Replication.FindItem(civilian));
 		if (!rpl) return;
-		
+
 		IEntity civilianEntity = rpl.GetEntity();
 		SCR_ChimeraCharacter character = SCR_ChimeraCharacter.Cast(civilianEntity);
 		if (!character) return;
-		
+
 		OVT_RecruitManagerComponent recruitManager = OVT_RecruitManagerComponent.GetInstance();
 		if (!recruitManager) return;
-		
-		recruitManager.RecruitCivilian(character, playerId);
+
+		// Only actual civilians can be recruited - not soldiers, players or other recruits
+		FactionAffiliationComponent factionComp = FactionAffiliationComponent.Cast(character.FindComponent(FactionAffiliationComponent));
+		if (!factionComp) return;
+		Faction faction = factionComp.GetAffiliatedFaction();
+		if (!faction || faction.GetFactionKey() != "CIV") return;
+		if (recruitManager.GetRecruitFromEntity(character)) return;
+		if (SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(character) > 0) return;
+
+		// The recruit action is a hold action on the civilian - reject far-away targets
+		IEntity playerEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+		if (!playerEntity || vector.Distance(playerEntity.GetOrigin(), character.GetOrigin()) > 20) return;
+
+		// DoTakePlayerMoney clamps at zero, so an explicit funds check is required
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		int cost = OVT_Global.GetConfig().m_Difficulty.baseRecruitCost;
+		if (!economy.PlayerHasMoney(persId, cost))
+		{
+			OVT_Global.GetNotify().SendTextNotification("CannotAfford", playerId);
+			return;
+		}
+
+		// Charge server-side, and only once the recruit actually exists
+		if (!recruitManager.RecruitCivilian(character, playerId)) return;
+		economy.TakePlayerMoney(playerId, cost);
 	}
 	
 	void RecruitFromTent(vector tentPos, int playerId)
@@ -1167,21 +1193,49 @@ class OVT_PlayerCommsComponent: OVT_Component
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_RecruitFromTent(vector tentPos, int playerId)
 	{
+		playerId = ResolveSenderPlayerId(playerId);
+
 		OVT_TownManagerComponent townManager = OVT_Global.GetTowns();
 		OVT_RecruitManagerComponent recruitManager = OVT_RecruitManagerComponent.GetInstance();
-		
+
 		if (!townManager || !recruitManager) return;
-		
-		// Take supporters from nearest town (1 supporter per recruit)
-		townManager.TakeSupportersFromNearestTown(tentPos, 1);
-		
+
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		if (persId.IsEmpty()) return;
+
+		// Validate the whole transaction before spawning anything: at the cap RecruitCivilian()
+		// would bail and orphan the freshly spawned civilian, and TakeSupportersFromNearestTown
+		// silently no-ops when the town has no supporters
+		if (!recruitManager.CanRecruit(persId)) return;
+		if (!townManager.NearestTownHasSupporters(tentPos)) return;
+
+		// The tent action is used standing at the tent - reject far-away positions
+		IEntity playerEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+		if (!playerEntity || vector.Distance(playerEntity.GetOrigin(), tentPos) > 20) return;
+
+		// DoTakePlayerMoney clamps at zero, so an explicit funds check is required
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		int cost = Math.Round(OVT_Global.GetConfig().m_Difficulty.baseRecruitCost * 0.5);
+		if (!economy.PlayerHasMoney(persId, cost))
+		{
+			OVT_Global.GetNotify().SendTextNotification("CannotAfford", playerId);
+			return;
+		}
+
 		// Spawn recruit at tent location
 		SCR_ChimeraCharacter recruit = recruitManager.SpawnRecruit(tentPos + "2 0 2"); // Offset from tent
-		if (recruit)
+		if (!recruit) return;
+
+		if (!recruitManager.RecruitCivilian(recruit, playerId))
 		{
-			// Add to recruit manager
-			recruitManager.RecruitCivilian(recruit, playerId);
+			// Never leave an unowned civilian standing at the tent
+			SCR_EntityHelper.DeleteEntityAndChildren(recruit);
+			return;
 		}
+
+		// Costs are taken only after the recruit actually exists
+		townManager.TakeSupportersFromNearestTown(tentPos, 1);
+		economy.TakePlayerMoney(playerId, cost);
 	}
 	
 	//WAREHOUSES
@@ -1304,16 +1358,20 @@ class OVT_PlayerCommsComponent: OVT_Component
 		IEntity playerEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
 		if (!playerEntity)
 			return;
-		
+
+		// Capture the departure point BEFORE teleporting - TeleportPlayer moves the entity
+		// synchronously, so searching around the player afterwards would search the destination
+		vector originPos = playerEntity.GetOrigin();
+
 		// Teleport player first
 		SCR_Global.TeleportPlayer(playerId, pos);
-		
-		// Get nearby recruits
+
+		// Get recruits near the departure point
 		OVT_RecruitManagerComponent recruitManager = OVT_RecruitManagerComponent.GetInstance();
 		if (!recruitManager)
 			return;
-			
-		array<IEntity> nearbyRecruits = recruitManager.GetPlayerRecruitEntitiesInRadius(playerPersistentId, playerEntity.GetOrigin(), recruitRadius);
+
+		array<IEntity> nearbyRecruits = recruitManager.GetPlayerRecruitEntitiesInRadius(playerPersistentId, originPos, recruitRadius);
 		
 		// Teleport each nearby recruit to the same destination
 		int recruitIndex = 0;
@@ -1625,6 +1683,37 @@ class OVT_PlayerCommsComponent: OVT_Component
 		Print(string.Format("[OVT_PlayerCommsComponent] Restored to entity: %1", restoredEntity), LogLevel.NORMAL);
 	}
 	
+	//! Request recruit rename from client
+	void RenameRecruit(string recruitId, string newName)
+	{
+		Rpc(RpcAsk_RenameRecruit, recruitId, newName);
+	}
+
+	//! Server-side RPC handler for recruit rename requests. Validates ownership and applies the
+	//! rename to the authoritative table, then broadcasts so every client (and persistence) sees it.
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_RenameRecruit(string recruitId, string newName)
+	{
+		OVT_RecruitManagerComponent recruitManager = OVT_RecruitManagerComponent.GetInstance();
+		if (!recruitManager) return;
+
+		OVT_RecruitData recruit = recruitManager.GetRecruit(recruitId);
+		if (!recruit) return;
+
+		// Only the owner may rename their recruit (senderId of -1 means server-initiated)
+		int senderId = ResolveSenderPlayerId(-1);
+		if (senderId > 0)
+		{
+			string senderPersId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(senderId);
+			if (recruit.m_sOwnerPersistentId != senderPersId) return;
+		}
+
+		// RenameRecruit validates name length (1-32)
+		if (!recruitManager.RenameRecruit(recruitId, newName)) return;
+
+		recruitManager.BroadcastRecruitUpdate(recruit);
+	}
+
 	//! Request recruit dismissal from client
 	void DismissRecruit(string recruitId)
 	{

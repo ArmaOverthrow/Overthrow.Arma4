@@ -770,19 +770,20 @@ class OVT_RecruitManagerComponent : OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Server-side method to recruit a civilian
-	void RecruitCivilian(SCR_ChimeraCharacter civilian, int playerId)
+	//! Server-side method to recruit a civilian. Returns false when no recruit record was created,
+	//! so callers can abort their transaction (refunds, orphan cleanup).
+	bool RecruitCivilian(SCR_ChimeraCharacter civilian, int playerId)
 	{
-		if (!civilian) return;
-		
+		if (!civilian) return false;
+
 		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
-		if (!players) return;
-		
+		if (!players) return false;
+
 		string persId = players.GetPersistentIDFromPlayerID(playerId);
-		if (persId.IsEmpty()) return;
-		
+		if (persId.IsEmpty()) return false;
+
 		// Double-check recruit limit on server
-		if (!CanRecruit(persId)) return;
+		if (!CanRecruit(persId)) return false;
 		
 		// Enable wanted system for the recruited civilian
 		OVT_PlayerWantedComponent wantedComp = OVT_PlayerWantedComponent.Cast(civilian.FindComponent(OVT_PlayerWantedComponent));
@@ -800,7 +801,8 @@ class OVT_RecruitManagerComponent : OVT_Component
 		
 		// Add to recruit manager
 		string recruitId = AddRecruit(persId, civilian);
-		
+		if (recruitId.IsEmpty()) return false;
+
 		// Set recruit faction to match player faction
 		SetRecruitFaction(persId, civilian);
 		
@@ -822,9 +824,11 @@ class OVT_RecruitManagerComponent : OVT_Component
     			if (aiControl)
     				playerGroup.AddAgent(aiControl.GetAIAgent());
     		}
-		}		
+		}
+
+		return true;
 	}
-	
+
 	//------------------------------------------------------------------------------------------------
 	//! Generate random recruit name
 	protected string GenerateRecruitName()
