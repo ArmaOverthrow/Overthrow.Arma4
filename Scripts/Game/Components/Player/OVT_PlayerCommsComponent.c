@@ -109,11 +109,28 @@ class OVT_PlayerCommsComponent: OVT_Component
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_StartBaseCapture(vector loc)
-	{	
+	{
 		OVT_OccupyingFactionManager of = OVT_Global.GetOccupyingFaction();
+		if(!of || of.m_bQRFActive) return;
+
+		// Remote callers reach this handler on their own character's component, so the
+		// character is the server-side truth — ignore the client-supplied vector for them.
+		// On the host this component sits on the game mode entity and loc is trusted.
+		ChimeraCharacter character = ChimeraCharacter.Cast(GetOwner());
+		if(character)
+		{
+			CharacterControllerComponent characterController = character.GetCharacterController();
+			if(characterController && characterController.IsDead()) return;
+			loc = character.GetOrigin();
+		}
+
 		OVT_BaseData data = of.GetNearestBase(loc);
 		if(!data) return;
+		if(!data.IsOccupyingFaction()) return;
+		if(character && vector.Distance(character.GetOrigin(), data.location) > OVT_Global.GetConfig().m_Difficulty.baseCloseRange) return;
+
 		OVT_BaseControllerComponent base = of.GetBase(data.entId);
+		if(!base) return;
 		of.StartBaseQRF(base);
 	}
 	
@@ -125,6 +142,9 @@ class OVT_PlayerCommsComponent: OVT_Component
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_InstantCaptureBase(vector loc, int playerId)
 	{
+		// Debug cheat (DiagMenu 254). The DiagMenu gate is client-side only, so compile the
+		// handler out of release builds — otherwise any modified client can flip any base.
+#ifdef WORKBENCH
 		OVT_OccupyingFactionManager of = OVT_Global.GetOccupyingFaction();
 		OVT_BaseData data = of.GetNearestBase(loc);
 		if(!data) return;
@@ -146,6 +166,7 @@ class OVT_PlayerCommsComponent: OVT_Component
 		
 		// Instantly change base control
 		of.ChangeBaseControl(base, winningFactionIndex);
+#endif
 	}
 		
 	void DeliverMedicalSupplies(IEntity vehicle)

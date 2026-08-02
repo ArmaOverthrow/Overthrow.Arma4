@@ -19,7 +19,7 @@ All original implementation tasks have been completed. This feature was document
 
 ## Future Enhancements
 
-See `implementation.md` Future Enhancements: restock catalog items (BUG-054), fix the five X-only checks (BUG-005 family), guard the empty-house fallback (BUG-055), RandInt off-by-one (BUG-056), server-side sell path, map-icon fallback.
+See `implementation.md` Future Enhancements: restock catalog items (BUG-071), fix the five X-only checks (BUG-005 family), guard the empty-house fallback (BUG-055), RandInt off-by-one (BUG-056), map-icon fallback.
 
 ---
 

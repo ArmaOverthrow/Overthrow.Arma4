@@ -74,7 +74,7 @@ SpawnGunDealer():                                                   // TownContr
 
 ### Pricing
 
-Buy price = the normal shop pipeline (`GetShopBuyPrice` has no dealer branch); the Trade skill's `priceMultiplier` applies. The only dealer-specific pricing is `gunDealerSellPriceMultiplier`, applied **exclusively client-side in the UI** (`OVT_ShopContext.c:63-75, 227-230, 304-307`) — sell-button hiding at 0, displayed price, credited price. Server-side there is no dealer sell logic at all (sell is client-authoritative — BUG-020).
+Buy price = the normal shop pipeline (`GetShopBuyPrice` has no dealer branch); the Trade skill's `priceMultiplier` applies. The only dealer-specific pricing is `gunDealerSellPriceMultiplier`: sell-button hiding at 0 and the displayed price are client-side (`OVT_ShopContext.c:63-75, 227-230`), and since the BUG-020 fix (`e82b892`, 2026-08-03) the credited price is computed **server-side** in `RpcAsk_Sell` (`OVT_PlayerCommsComponent.c:602` applies the multiplier), which also fires `m_OnPlayerTransaction` with `isBuying=false` on sells.
 
 ### Networking
 
@@ -122,9 +122,9 @@ Only `gunDealerPosition` (town serializer) and the sell multiplier (config seria
 
 ### Known Issues (filed)
 - **BUG-005** (open, pinned by a deliberate test): X-axis-only dealer check — and discovery found the same defect in **four more sites**, including the spawner's position-reuse branch (a persisted dealer at X=0 gets re-placed on continue, or silently lost)
-- **BUG-020**: dealer sell is client-authoritative; the sell multiplier exists only client-side; `m_OnPlayerTransaction` fires for buys only, so fencing loot produces zero black-market heat
+- **BUG-020** (closed 2026-08-03, `e82b892`): dealer sell was client-authoritative — now a server-side `RpcAsk_Sell` applies the multiplier and invokes `m_OnPlayerTransaction` on sells; note the black-market handlers ignore `isBuying`, so fencing ≥$1000 of loot at a dealer now correctly generates heat (and StrongEconomy now also fires on non-dealer sells ≥$50 — review whether that's intended)
 - **BUG-024**: shop pagination integer division — dealers are the worst case (catalog stocking exceeds 15 types; items become unreachable in the UI)
-- **BUG-054**: dealer weapon/ammo stock never restocks (only weed does); only recovery is the save/load reroll
+- **BUG-071**: dealer weapon/ammo stock never restocks (only weed does); only recovery is the save/load reroll
 - **BUG-055**: `GetRandomUnownedHouseInTown` calls `GetRandomElement()` on a possibly-empty array — a fully player-owned town crashes `SpawnGunDealer` at campaign start
 - **BUG-056**: `RandInt(0, Count()-1)` half-open off-by-one — the last catalog entry per single-random rule is unobtainable at every dealer
 
@@ -144,13 +144,13 @@ Only `gunDealerPosition` (town serializer) and the sell multiplier (config seria
 ## Future Enhancements
 
 ### High Priority
-- [ ] Restock the catalog items (BUG-054) — or intentionally embrace the scarcity and fix the job description
+- [ ] Restock the catalog items (BUG-071) — or intentionally embrace the scarcity and fix the job description
 - [ ] Fix the X-only check in all five sites, or add `bool hasGunDealer` to `OVT_TownData` (retire BUG-005 + update its pinning test in the same commit)
 - [ ] Guard `GetRandomUnownedHouseInTown` (BUG-055) — one-line fix, campaign-start crash class
 
 ### Medium Priority
 - [ ] `RandInt` off-by-one (BUG-056) and the duplicate ammo rule (#12 → sniper ammo)
-- [ ] Server-side sell path with the dealer multiplier (rides the economy epic's BUG-020 fix); fire `m_OnPlayerTransaction` on sells
+- [x] Server-side sell path with the dealer multiplier + `m_OnPlayerTransaction` on sells — done by the BUG-020 fix (`e82b892`)
 - [ ] Map-icon fallback for never-streamed dealers (position could ride the registry JIP)
 
 ### Low Priority / Nice to Have
@@ -199,7 +199,7 @@ Only `gunDealerPosition` (town serializer) and the sell multiplier (config seria
 **Retrospective Assessment:**
 - The catalog-query inventory design is the strongest part — data-driven, DLC-proof, and the single-random mechanic is good game design
 - The weak layer is lifecycle: position-as-boolean (BUG-005 family), no restock, no respawn/cleanup, unguarded fallbacks — all small fixes clustered in `SpawnGunDealer`
-- The sell-side authority gap is an economy-epic problem (BUG-020) that the dealer multiplier makes strictly worse
+- The sell-side authority gap (BUG-020) was fixed mid-discovery (`e82b892`) — the multiplier now lives server-side; remaining dealer risk is lifecycle, not authority
 
 ---
 

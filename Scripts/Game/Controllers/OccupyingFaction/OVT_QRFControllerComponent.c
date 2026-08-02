@@ -1,10 +1,11 @@
 class OVT_QRFControllerComponentClass: OVT_ComponentClass
 {
 };
-vector Goodqrfpos = "0 0 0";
-vector Goodqrfbasepos = "0 0 0";
 class OVT_QRFControllerComponent: OVT_Component
 {
+	//Last valid target zone found — fallback when the random search exhausts its attempts
+	protected vector m_vGoodTargetPos = "0 0 0";
+
 	[RplProp()]
 	int m_iWinningFaction = -1;
 	
@@ -224,8 +225,7 @@ class OVT_QRFControllerComponent: OVT_Component
 		
 		int max = OVT_Global.GetConfig().m_Difficulty.maxQRF;
 		int numPlayersOnline = GetGame().GetPlayerManager().GetPlayerCount();
-		Goodqrfpos = "0 0 0";
-		Goodqrfbasepos = "0 0 0";
+		m_vGoodTargetPos = "0 0 0";
 		//Scale max QRF size by number of players online
 		if(numPlayersOnline > 32)
 		{
@@ -292,7 +292,13 @@ class OVT_QRFControllerComponent: OVT_Component
 		}
 		
 		m_iUsedResources += spent;
-		
+
+		// QRFs are not free — debit the war chest by what this wave actually committed.
+		// The emergency-resources floor can exceed the reserve, so clamp at zero rather
+		// than letting the faction go negative.
+		m_OccupyingFaction.m_iResources -= spent;
+		if(m_OccupyingFaction.m_iResources < 0) m_OccupyingFaction.m_iResources = 0;
+
 		Print("[Overthrow.QRFControllerComponent] Wave complete: " + spent.ToString());
 		
 		return spent;
@@ -393,22 +399,16 @@ class OVT_QRFControllerComponent: OVT_Component
 	
 	protected vector GetRandomDirection()
 	{
-		float angle = Math.RandomFloatInclusive(0, 359); // Random angle for azimuth		
+		float angle = Math.RandomFloatInclusive(0, 359); // Random angle for azimuth
 		if(m_iPreferredDirection > -1)
 		{
-			// Add +/- variance degree variation to preferred direction
-			float min = m_iPreferredDirection - m_iDirectionVariance;
-			if(min < 0) min += 360;			
-			if(min > 360) min -= 360;
-			float max = m_iPreferredDirection + m_iDirectionVariance;
-			if(max < 0) max += 360;			
-			if(max > 360) max -= 360;
-			Print("[Overthrow.QRFControllerComponent] Angle range: " + min.ToString() + " to " + max.ToString());
-			angle = Math.RandomFloatInclusive(min, max);
-		}	
-		
-		Print("[Overthrow.QRFControllerComponent] Picked angle: " + angle.ToString());
-	 
+			// Sample an offset around the preferred direction, then wrap — normalizing
+			// min/max separately inverts the range when it straddles 0°/360°
+			angle = m_iPreferredDirection + Math.RandomFloatInclusive(-m_iDirectionVariance, m_iDirectionVariance);
+			if(angle < 0) angle += 360;
+			if(angle >= 360) angle -= 360;
+		}
+
 		// In Arma: X = East, Z = South
 		// For compass bearings: 0° = North, 90° = East, 180° = South, 270° = West
 		// North = -Z, East = +X, South = +Z, West = -X
@@ -435,12 +435,12 @@ class OVT_QRFControllerComponent: OVT_Component
 	        if (!OVT_Global.IsOceanAtPosition(targetZone))
 	        {
 	            Print("[Debug] Found valid target zone: " + targetZone);
-				Goodqrfbasepos = targetZone;
+				m_vGoodTargetPos = targetZone;
 	            return targetZone; // Return the valid position
 	        }
 	    }
 		//Reuse any good qrf position if found
-		if (!IsZeroVector(Goodqrfbasepos)){return Goodqrfbasepos;}
+		if (!IsZeroVector(m_vGoodTargetPos)){return m_vGoodTargetPos;}
 	    // If no valid position is found, return the original position as fallback
 	    Print("[Debug] No valid target zone found. Returning origin as fallback.");
 		//
@@ -449,8 +449,8 @@ class OVT_QRFControllerComponent: OVT_Component
 	
 	protected vector GetLandingZone()
 	{
-		//Reuse any good QRF position if found
-		if (!IsZeroVector(Goodqrfpos)){return Goodqrfpos;}
+		// No caching here — SendWave calls this once per source base, and each wave
+		// source is meant to get its own landing zone (BUG-031)
 	    vector qrfpos = GetOwner().GetOrigin(); // Position of the QRF target (base being attacked)
 	    Print("[Overthrow.QRFControllerComponent] QRF target position: " + qrfpos.ToString());
 	    vector dir = GetRandomDirection(); // Get direction FROM which QRF should come
@@ -485,10 +485,10 @@ class OVT_QRFControllerComponent: OVT_Component
 	            trace.Maxs = maxs;
 	            trace.Exclude = GetOwner();
 	            float result = GetOwner().GetWorld().TracePosition(trace, null);
-	            // If a clear LZ is found, return it
-	            if (result >= 0)
+	            // TracePosition returns a negative value on overlap and sets TraceEnt to any
+	            // blocking entity — the old '>= 0' accepted every candidate (BUG-031)
+	            if (result > 0 && !trace.TraceEnt)
 	            {
-					Goodqrfpos = checkpos;
 					Print("Found LZ: " + checkpos.ToString());
 	                return checkpos;
 	            }

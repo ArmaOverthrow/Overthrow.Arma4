@@ -1060,24 +1060,32 @@ class OVT_OccupyingFactionManager: OVT_Component
 			}
 			sortedBases.Sort(true);	
 
-			int perBase = Math.Floor((float)toSpend / sortedBases.Count());		
-			
-			foreach(OVT_BaseData data : sortedBases)
-			{				
-				OVT_BaseControllerComponent base = GetBase(data.entId);
+			if(!sortedBases.IsEmpty())
+			{
+				int perBase = Math.Floor((float)toSpend / sortedBases.Count());
 
-				//Dont spawn stuff if a player is watching lol
-				if(OVT_Global.PlayerInRange(data.location, OVT_Global.GetConfig().m_Difficulty.baseCloseRange+100)) continue;
+				foreach(OVT_BaseData data : sortedBases)
+				{
+					if(toSpend <= 0) break;
 
-				m_iResources -= base.SpendResources(m_iResources, m_iThreat);
+					OVT_BaseControllerComponent base = GetBase(data.entId);
 
-				if(m_iResources <= 0) {
-					m_iResources = 0;
-					break;
-				}
+					//Dont spawn stuff if a player is watching lol
+					if(OVT_Global.PlayerInRange(data.location, OVT_Global.GetConfig().m_Difficulty.baseCloseRange+100)) continue;
 
-				if(toSpend <= 0) {
-					break;
+					int budget = perBase;
+					if(budget > toSpend) budget = toSpend;
+					if(budget > m_iResources) budget = m_iResources;
+					if(budget <= 0) break;
+
+					int spent = base.SpendResources(budget, m_iThreat);
+					m_iResources -= spent;
+					toSpend -= spent;
+
+					if(m_iResources <= 0) {
+						m_iResources = 0;
+						break;
+					}
 				}
 			}
 			UpdateSpecops();

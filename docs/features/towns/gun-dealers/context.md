@@ -11,7 +11,7 @@
 **What's Done:**
 - ✅ Feature fully implemented (existing code)
 - ✅ Retrospective documentation created (`/discover-feature`, 2026-08-02)
-- ✅ Top findings filed as BUG-054, BUG-055, BUG-056 (plus BUG-005's four extra sites documented)
+- ✅ Top findings filed as BUG-055, BUG-056, BUG-071 (plus BUG-005's four extra sites documented; BUG-054 was claimed by a concurrent economy fix session)
 
 **What's Next:**
 - 📋 Review for potential improvements (see implementation.md Future Enhancements)
@@ -39,8 +39,7 @@
 ## Gotchas & Learnings
 
 - The marked-house spawn tier (STATIC entity with `SHOP_GUNDEALER` shop) is dead — no such prefab ships; every dealer uses the random-unowned-house fallback.
-- `m_OnPlayerTransaction` fires for **buys only** (`isBuying` hardcoded true at its single invoke site) — black-market modifiers never see sells.
-- The sell-price multiplier exists **only client-side** in `OVT_ShopContext`; the server has no dealer sell logic at all (BUG-020's client-authoritative sell).
+- Since the BUG-020 fix (`e82b892`, 2026-08-03) sell is server-authoritative: `RpcAsk_Sell` applies `gunDealerSellPriceMultiplier` server-side and fires `m_OnPlayerTransaction` with `isBuying=false` — the black-market handlers ignore that flag, so dealer sells ≥$1000 now generate heat too.
 - The BUG-005 pinning test (`OVT_TEST_Logic_Jobs.c:169-198`) goes red by design when the X-axis check is fixed — update it in the same commit.
 - `OVT_TownHasDealerJobCondition` (the class BUG-005/BUG-041 cite) is unused by shipped configs; the live condition is `OVT_IsNearestTownWithDealerJobCondition` with the same defect.
 

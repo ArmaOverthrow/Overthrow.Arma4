@@ -20,6 +20,7 @@ class OVT_BaseUpgradeDefensePosition : OVT_BasePatrolUpgrade
 		if(inrange && !m_bSpawned)
 		{
 			Spend(m_iProxedResources, OVT_Global.GetOccupyingFaction().m_iThreat);
+			m_iProxedResources = 0;
 			m_bSpawned = true;
 		}else if(!inrange && m_bSpawned){
 			foreach(EntityID id : m_Groups)

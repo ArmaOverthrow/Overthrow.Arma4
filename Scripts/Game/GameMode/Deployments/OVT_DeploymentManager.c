@@ -157,18 +157,19 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		if (!factionManager)
 			return;
 		
+		// Clean up destroyed deployments first — the per-faction creation gate below
+		// counts these lists, so stale IDs must not survive into the evaluation
+		CleanupDestroyedDeployments();
+
 		// Evaluate each faction's deployment needs
 		array<Faction> factions = new array<Faction>;
 		factionManager.GetFactionsList(factions);
-		
+
 		foreach (Faction faction : factions)
 		{
 			int factionIndex = factionManager.GetFactionIndex(faction);
 			EvaluateFactionDeployments(factionIndex);
 		}
-		
-		// Clean up destroyed deployments
-		CleanupDestroyedDeployments();
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -830,6 +831,20 @@ class OVT_DeploymentManagerComponent : OVT_Component
 			if (!deployment)
 			{
 				m_aActiveDeployments.Remove(i);
+			}
+		}
+
+		// The per-faction lists gate deployment creation (m_iMaxDeploymentsPerFaction) —
+		// dead IDs left here accumulate until the cap and silently halt all deploying (BUG-028)
+		foreach (int factionIndex, array<ref EntityID> factionDeployments : m_mFactionDeployments)
+		{
+			for (int i = factionDeployments.Count() - 1; i >= 0; i--)
+			{
+				IEntity deployment = GetGame().GetWorld().FindEntityByID(factionDeployments[i]);
+				if (!deployment)
+				{
+					factionDeployments.Remove(i);
+				}
 			}
 		}
 	}
