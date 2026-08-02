@@ -943,33 +943,36 @@ class OVT_PlayerCommsComponent: OVT_Component
 	{
 		Rpc(RpcAsk_PlaceItem, placeableIndex, prefabIndex, pos, angles, playerId);
 	}
-	
+
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_PlaceItem(int placeableIndex, int prefabIndex, vector pos, vector angles, int playerId)
 	{
+		playerId = ResolveSenderPlayerId(playerId);
 		OVT_Global.GetResistanceFaction().PlaceItem(placeableIndex, prefabIndex, pos, angles, playerId);
 	}
-	
-	void RemovePlacedItem(EntityID entityId, int playerId)
+
+	void RemovePlacedItem(RplId entityId, int playerId)
 	{
 		Rpc(RpcAsk_RemovePlacedItem, entityId, playerId);
 	}
-	
+
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_RemovePlacedItem(EntityID entityId, int playerId)
+	protected void RpcAsk_RemovePlacedItem(RplId entityId, int playerId)
 	{
+		playerId = ResolveSenderPlayerId(playerId);
 		OVT_Global.GetResistanceFaction().RemovePlacedItem(entityId, playerId);
 	}
-	
+
 	//BUILDING
 	void BuildItem(int buildableIndex, int prefabIndex, vector pos, vector angles, int playerId)
 	{
 		Rpc(RpcAsk_BuildItem, buildableIndex, prefabIndex, pos, angles, playerId);
 	}
-	
+
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_BuildItem(int buildableIndex, int prefabIndex, vector pos, vector angles, int playerId)
 	{
+		playerId = ResolveSenderPlayerId(playerId);
 		OVT_Global.GetResistanceFaction().BuildItem(buildableIndex, prefabIndex, pos, angles, playerId);
 	}
 	

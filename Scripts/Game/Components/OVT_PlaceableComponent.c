@@ -9,22 +9,25 @@ class OVT_PlaceableComponent : ScriptComponent
 	[Attribute("", UIWidgets.EditBox, "Type of placeable object")]
 	protected string m_sPlaceableType;
 	
+	//! Replicated so client-side removal mode can check ownership (set server-side only)
+	[RplProp()]
 	protected string m_sOwnerPersistentId;
 	protected string m_sAssociatedBaseId; // Base/Camp/FOB ID this belongs to
 	protected EOVTBaseType m_eBaseType; // CAMP, FOB, or BASE
-	
+
 	//------------------------------------------------------------------------------------------------
 	//! Get the placeable type
 	string GetPlaceableType()
 	{
 		return m_sPlaceableType;
 	}
-	
+
 	//------------------------------------------------------------------------------------------------
 	//! Set the owner persistent ID
 	void SetOwnerPersistentId(string ownerPersistentId)
 	{
 		m_sOwnerPersistentId = ownerPersistentId;
+		Replication.BumpMe();
 	}
 	
 	//------------------------------------------------------------------------------------------------

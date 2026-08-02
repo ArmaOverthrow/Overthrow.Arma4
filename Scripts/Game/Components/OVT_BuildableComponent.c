@@ -9,22 +9,25 @@ class OVT_BuildableComponent : ScriptComponent
 	[Attribute("", UIWidgets.EditBox, "Type of buildable structure")]
 	protected string m_sBuildableType;
 	
+	//! Replicated so client-side removal mode can check ownership (set server-side only)
+	[RplProp()]
 	protected string m_sOwnerPersistentId;
 	protected string m_sAssociatedBaseId; // Base/Camp/FOB ID this belongs to
 	protected EOVTBaseType m_eBaseType; // CAMP, FOB, or BASE
-	
+
 	//------------------------------------------------------------------------------------------------
 	//! Get the buildable type
 	string GetBuildableType()
 	{
 		return m_sBuildableType;
 	}
-	
+
 	//------------------------------------------------------------------------------------------------
 	//! Set the owner persistent ID
 	void SetOwnerPersistentId(string ownerPersistentId)
 	{
 		m_sOwnerPersistentId = ownerPersistentId;
+		Replication.BumpMe();
 	}
 	
 	//------------------------------------------------------------------------------------------------

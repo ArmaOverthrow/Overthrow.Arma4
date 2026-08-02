@@ -63,11 +63,6 @@ class OVT_StartGameContext : OVT_UIContext
 			return;
 		}
 
-#ifdef PLATFORM_CONSOLE	
-		Widget xbox = m_wRoot.FindAnyWidget("XBOXWarning");
-		xbox.SetVisible(true);
-#endif
-				
 		Widget startButton = m_wRoot.FindAnyWidget("StartButton");
 		SCR_InputButtonComponent action = SCR_InputButtonComponent.Cast(startButton.FindHandler(SCR_InputButtonComponent));
 

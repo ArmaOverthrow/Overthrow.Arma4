@@ -728,10 +728,11 @@ class OVT_PlaceContext : OVT_UIContext
 			if(hitEntity)
 			{
 				OVT_PlaceableComponent placeableComp = OVT_PlaceableComponent.Cast(hitEntity.FindComponent(OVT_PlaceableComponent));
-				if(placeableComp && CanRemoveItem(placeableComp))
+				RplComponent rpl = RplComponent.Cast(hitEntity.FindComponent(RplComponent));
+				if(placeableComp && rpl && CanRemoveItem(placeableComp))
 				{
-					// Send removal request to server
-					OVT_Global.GetServer().RemovePlacedItem(hitEntity.GetID(), m_iPlayerID);
+					// Send removal request to server (RplId - EntityID is not valid across the network)
+					OVT_Global.GetServer().RemovePlacedItem(rpl.Id(), m_iPlayerID);
 					ShowHint("#OVT-ItemRemoved");
 					SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.CLICK);
 				}

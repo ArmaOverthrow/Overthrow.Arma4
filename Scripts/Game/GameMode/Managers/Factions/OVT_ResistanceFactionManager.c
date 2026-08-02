@@ -616,11 +616,42 @@ class OVT_ResistanceFactionManager: OVT_Component
 	IEntity PlaceItem(int placeableIndex, int prefabIndex, vector pos, vector angles, int playerId, bool runHandler = true)
 	{
 		OVT_ResistanceFactionManager config = OVT_Global.GetResistanceFaction();
+
+		// Guard client-supplied indices - out-of-range values are a remote VM-error vector
+		if(placeableIndex < 0 || placeableIndex >= config.m_PlaceablesConfig.m_aPlaceables.Count()) return null;
 		OVT_Placeable placeable = config.m_PlaceablesConfig.m_aPlaceables[placeableIndex];
+		if(prefabIndex < 0 || prefabIndex >= placeable.m_aPrefabs.Count()) return null;
+
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
-		
+		int cost = m_Config.GetPlaceableCost(placeable);
+
+		// Server-side validation for player-initiated placement (-1 = server-initiated, free)
+		if(playerId > -1)
+		{
+			string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+
+			// DoTakePlayerMoney clamps at zero, so an explicit funds check is required
+			if(!economy.PlayerHasMoney(persId, cost))
+			{
+				OVT_Global.GetNotify().SendTextNotification("CannotAfford", playerId);
+				return null;
+			}
+
+			// The place UI traces at most ~15m from the player - reject far-away positions
+			IEntity playerEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+			if(playerEntity && vector.Distance(playerEntity.GetOrigin(), pos) > 50) return null;
+
+			// Re-check item limits (the client menu check is advisory only)
+			if(!placeable.m_bIgnoreLocation)
+			{
+				OVT_ItemLimitChecker limits = new OVT_ItemLimitChecker();
+				string reason;
+				if(!limits.CanPlaceItem(pos, persId, reason)) return null;
+			}
+		}
+
 		ResourceName res = placeable.m_aPrefabs[prefabIndex];
-				
+
 		vector mat[4];
 		Math3D.AnglesToMatrix(angles, mat);
 		mat[3] = pos;
@@ -660,7 +691,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 			}
 		}
 		
-		economy.TakePlayerMoney(playerId, m_Config.GetPlaceableCost(placeable));
+		economy.TakePlayerMoney(playerId, cost);
 		
 		SCR_AIWorld aiworld = SCR_AIWorld.Cast(GetGame().GetAIWorld());
 		aiworld.RequestNavmeshRebuildEntity(entity);
@@ -687,15 +718,45 @@ class OVT_ResistanceFactionManager: OVT_Component
 	IEntity BuildItem(int buildableIndex, int prefabIndex, vector pos, vector angles, int playerId, bool runHandler = true)
 	{
 		OVT_ResistanceFactionManager config = OVT_Global.GetResistanceFaction();
+
+		// Guard client-supplied indices - out-of-range values are a remote VM-error vector
+		if(buildableIndex < 0 || buildableIndex >= config.m_BuildablesConfig.m_aBuildables.Count()) return null;
 		OVT_Buildable buildable = config.m_BuildablesConfig.m_aBuildables[buildableIndex];
+		if(prefabIndex < 0 || prefabIndex >= buildable.m_aPrefabs.Count()) return null;
+
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		int cost = m_Config.GetBuildableCost(buildable);
+
+		// Server-side validation for player-initiated builds (-1 = server-initiated, free)
+		if(playerId > -1)
+		{
+			string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+
+			// DoTakePlayerMoney clamps at zero, so an explicit funds check is required
+			if(!economy.PlayerHasMoney(persId, cost))
+			{
+				OVT_Global.GetNotify().SendTextNotification("CannotAfford", playerId);
+				return null;
+			}
+
+			// The build camera is clamped to 50m of the player - reject far-away positions
+			IEntity playerEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+			if(playerEntity && vector.Distance(playerEntity.GetOrigin(), pos) > 250) return null;
+
+			// Re-check item limits (the client menu check is advisory only)
+			OVT_ItemLimitChecker limits = new OVT_ItemLimitChecker();
+			string reason;
+			if(!limits.CanBuildItem(pos, reason)) return null;
+		}
+
 		ResourceName res = buildable.m_aPrefabs[prefabIndex];
-		
+
 		vector mat[4];
 		Math3D.AnglesToMatrix(angles, mat);
 		mat[3] = pos;
-		
+
 		IEntity entity = OVT_Global.SpawnEntityPrefabMatrix(res, mat);
-		
+
 		// Check for OVT_BuildableComponent and warn if missing
 		OVT_BuildableComponent buildableComp = OVT_BuildableComponent.Cast(entity.FindComponent(OVT_BuildableComponent));
 		if (!buildableComp)
@@ -716,14 +777,22 @@ class OVT_ResistanceFactionManager: OVT_Component
 				buildableComp.SetAssociatedBase(baseId, baseType);
 			}
 		}
-		
-		SCR_AIWorld aiworld = SCR_AIWorld.Cast(GetGame().GetAIWorld());
-		aiworld.RequestNavmeshRebuildEntity(entity);
-		
+
+		// A failed handler aborts the build before any charge - mirrors PlaceItem()
 		if(buildable.handler && runHandler)
 		{
-			buildable.handler.OnPlace(entity, playerId);
+			if(!buildable.handler.OnPlace(entity, playerId))
+			{
+				SCR_EntityHelper.DeleteEntityAndChildren(entity);
+				return null;
+			}
 		}
+
+		// Charge server-side - the client no longer pays via the generic money RPC
+		economy.TakePlayerMoney(playerId, cost);
+
+		SCR_AIWorld aiworld = SCR_AIWorld.Cast(GetGame().GetAIWorld());
+		aiworld.RequestNavmeshRebuildEntity(entity);
 
 		m_OnBuild.Invoke(entity, buildable, playerId);
 
@@ -733,10 +802,12 @@ class OVT_ResistanceFactionManager: OVT_Component
 		return entity;
 	}
 	
-	//! Remove a placed item from the world
-	void RemovePlacedItem(EntityID entityId, int playerId)
+	//! Remove a placed item from the world. Takes an RplId - EntityIDs are not valid across the network.
+	void RemovePlacedItem(RplId entityId, int playerId)
 	{
-		IEntity entity = GetGame().GetWorld().FindEntityByID(entityId);
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(entityId));
+		if(!rpl) return;
+		IEntity entity = rpl.GetEntity();
 		if(!entity) return;
 		
 		OVT_PlaceableComponent placeableComp = OVT_PlaceableComponent.Cast(entity.FindComponent(OVT_PlaceableComponent));

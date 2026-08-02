@@ -55,6 +55,34 @@ class OVT_ItemLimitChecker
 		return true;
 	}
 	
+	//! Check if building an item would exceed the limit at the given position (build-context location rules)
+	bool CanBuildItem(vector pos, out string reason)
+	{
+		string locationId;
+		EOVTBaseType baseType;
+		int itemCount = CountItemsAtLocationForBuild(pos, locationId, baseType);
+
+		if(itemCount > 0)
+		{
+			int limit = 0;
+			if(baseType == EOVTBaseType.NONE)
+				limit = OVT_Global.GetConfig().GetHouseItemLimit();
+			else if(baseType == EOVTBaseType.CAMP)
+				limit = OVT_Global.GetConfig().GetCampItemLimit();
+			else if(baseType == EOVTBaseType.FOB || baseType == EOVTBaseType.BASE)
+				limit = OVT_Global.GetConfig().GetFOBItemLimit();
+
+			// If limit is 0 or negative, allow unlimited items
+			if(limit > 0 && itemCount >= limit)
+			{
+				reason = "#OVT-ItemLimitReached";
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	//! Count items at a location (for placement context)
 	int CountItemsAtLocation(vector pos, string playerID, out string locationId, out EOVTBaseType baseType)
 	{
