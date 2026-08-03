@@ -99,9 +99,14 @@ class OVT_PersistenceTracking
 	//! Re-evaluates the configuration rules for an already tracked entity.
 	//!
 	//! An instance is matched to a PersistenceConfig ONCE, when it starts being tracked. When the fact a
-	//! rule tests changes afterwards - a character dies, a player stops controlling something - the
-	//! matched configuration is stale until somebody asks for a re-match. This is that ask. Vanilla uses
-	//! it the same way when possession changes (SCR_SpawnLogic.c:167-173).
+	//! rule tests changes afterwards - a player stops controlling something - the matched configuration
+	//! is stale until somebody asks for a re-match. This is that ask. Vanilla uses it the same way when
+	//! possession changes (SCR_SpawnLogic.c:167-173).
+	//!
+	//! TWO WARNINGS. Only NATIVE conf-bound rules are re-evaluated - the engine never consults a
+	//! script-defined rule (measured; see MarkForSelfSpawn), so a re-match can only ever land on what
+	//! the .conf files declare. And a re-match RESETS any scripted config applied via SetConfig, so
+	//! never call this on a corpse MarkForSelfSpawn() has marked.
 	//!
 	//! Untracked instances are ignored rather than passed through: they have no configuration to reload,
 	//! and asking anyway is a needless native call on every entity a caller sweeps over.
@@ -121,6 +126,52 @@ class OVT_PersistenceTracking
 			return false;
 
 		return persistence.ReloadConfig(entity);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Marks a tracked entity's persistence configuration to spawn the entity back on load.
+	//!
+	//! WHY THIS EXISTS (BUG-018). The corpse-persistence design first shipped as a script-defined
+	//! PersistenceConfigRule subclass bound in Overthrow.conf, matching dead characters at high
+	//! priority. MEASURED RESULT: the engine never consults a script-defined rule - its IsMatch was
+	//! called zero times across world load, initial tracking of every character, and 300 forced
+	//! ReloadConfig re-matches (OVT_TEST_Init_Persistence_DeadCharacterConfigSelfSpawns, 2026-08-03).
+	//! Every rule vanilla itself binds in a .conf is a NATIVE generated class; there is no vanilla
+	//! precedent for a scripted one, and the scripted IsMatch event is dead code on the conf path.
+	//!
+	//! So the self-spawn decision is made HERE, through the API pair vanilla exposes for exactly this
+	//! kind of runtime adjustment: GetConfig() hands back the instance's matched configuration,
+	//! m_bSelfSpawn is flipped, SetConfig() applies it. Everything else about the matched config -
+	//! collection, serializers, parent handling, self-delete - is deliberately kept, so the record is
+	//! written exactly as it always was, plus the one bit that makes it come back.
+	//!
+	//! CAVEAT, LOAD-BEARING: PersistenceSystem.ReloadConfig() RESETS a scripted config back to the
+	//! rule-matched one (vanilla API note). Do not call ReloadConfig on an entity after marking it,
+	//! or the mark is silently lost.
+	//! \param[in] entity The tracked entity that must come back on load.
+	//! \return True when the configuration now self-spawns; false on clients, in worlds with no
+	//! persistence system, for untracked entities, or when the entity was null.
+	static bool MarkForSelfSpawn(IEntity entity)
+	{
+		if (!entity)
+			return false;
+
+		SCR_PersistenceSystem persistence = SCR_PersistenceSystem.GetByEntityWorld(entity);
+		if (!persistence)
+			return false;
+
+		if (!persistence.IsTracked(entity))
+			return false;
+
+		EntityPersistenceConfig config = EntityPersistenceConfig.Cast(persistence.GetConfig(entity));
+		if (!config)
+			return false;
+
+		if (config.m_bSelfSpawn)
+			return true;
+
+		config.m_bSelfSpawn = true;
+		return persistence.SetConfig(entity, config);
 	}
 
 	//------------------------------------------------------------------------------------------------

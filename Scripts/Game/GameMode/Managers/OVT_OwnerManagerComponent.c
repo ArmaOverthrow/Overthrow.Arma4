@@ -419,28 +419,49 @@ class OVT_OwnerManagerComponent: OVT_Component
 	
 	//------------------------------------------------------------------------------------------------
 	//! Internal logic to set the owner using the player's persistent ID. Updates internal maps.
+	//! A transfer detaches the position from the previous owner's list first, and re-setting the same
+	//! owner never duplicates the entry (BUG-003).
 	//! \param[in] persId The persistent ID of the player.
 	//! \param[in] pos The position of the entity.
 	void DoSetOwnerPersistentId(string persId, vector pos)
-	{		
+	{
+		string posString = pos.ToString(false);
+
+		string previousOwner = GetOwnerIDFromPos(pos);
+		if(previousOwner != "" && previousOwner != persId && m_mOwned.Contains(previousOwner))
+		{
+			int i = m_mOwned[previousOwner].Find(posString);
+			if(i != -1) m_mOwned[previousOwner].Remove(i);
+		}
+
 		if(!m_mOwned.Contains(persId)) m_mOwned[persId] = new array<string>;
 		array<string> owner = m_mOwned[persId];
-		owner.Insert(pos.ToString(false));
-		
-		m_mOwners[pos.ToString(false)] = persId;
+		if(!owner.Contains(posString)) owner.Insert(posString);
+
+		m_mOwners[posString] = persId;
 	}
-	
+
 	//------------------------------------------------------------------------------------------------
 	//! Internal logic to set the renter using the player's persistent ID. Updates internal maps.
+	//! Same previous-renter detach and duplicate guard as DoSetOwnerPersistentId (BUG-003).
 	//! \param[in] persId The persistent ID of the player.
 	//! \param[in] pos The position of the entity.
 	void DoSetRenterPersistentId(string persId, vector pos)
 	{
+		string posString = pos.ToString(false);
+
+		string previousRenter = GetRenterIDFromPos(pos);
+		if(previousRenter != "" && previousRenter != persId && m_mRented.Contains(previousRenter))
+		{
+			int i = m_mRented[previousRenter].Find(posString);
+			if(i != -1) m_mRented[previousRenter].Remove(i);
+		}
+
 		if(!m_mRented.Contains(persId)) m_mRented[persId] = new array<string>;
 		array<string> renter = m_mRented[persId];
-		renter.Insert(pos.ToString(false));
-		
-		m_mRenters[pos.ToString(false)] = persId;
+		if(!renter.Contains(posString)) renter.Insert(posString);
+
+		m_mRenters[posString] = persId;
 	}
 	
 }

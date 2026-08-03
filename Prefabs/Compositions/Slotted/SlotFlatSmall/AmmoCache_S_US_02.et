@@ -43,7 +43,7 @@ GenericEntity {
    coords -1.171 0 4.403
    angleY 19.001
   }
-  SCR_DestructibleEntity : "{BE7B5BAFE1A16A50}Prefabs/Props/Military/Fortification/BarbedTape_Coil.et" {
+  GenericEntity : "{BE7B5BAFE1A16A50}Prefabs/Props/Military/Fortification/BarbedTape_Coil.et" {
    ID "5D98F865F21B50F2"
    coords -1.135 0 -1.336
   }

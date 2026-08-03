@@ -19,8 +19,8 @@
 //!   3. Respawn after death. The old base re-created the character one frame after OnPlayerKilled_S;
 //!      that is preserved, and death now also CLEARS the stored body id so the rebuild can only ever be
 //!      a fresh civilian one. What is NOT ported is its dead-body dance (fresh id for the corpse, force
-//!      self-spawn): the corpse is matched to its own SelfSpawn 1 configuration instead - see
-//!      OVT_DeadCharacterPersistenceConfigRule.
+//!      self-spawn): the game mode's kill hook marks the corpse's config to self-spawn instead - see
+//!      OVT_PersistenceTracking.MarkForSelfSpawn.
 [BaseContainerProps(category: "Respawn")]
 class OVT_SpawnLogic : SCR_SpawnLogic
 {
@@ -1092,11 +1092,11 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 	//!
 	//! The corpse is left in the world deliberately: it is lootable remains, and it now persists in its
 	//! own right. The old persistence framework forced it to take a fresh id and to self-spawn so it could
-	//! be looted after a restart; the same end is now reached through configuration -
-	//! OVT_DeadCharacterPersistenceConfigRule matches a dead character to a SelfSpawn 1 config, and
-	//! OVT_OverthrowGameMode's kill hook asks for the re-match. (Vanilla reaches it through
-	//! SCR_SpawnLogic.OnPlayerEntityChanged_S, which Overthrow never travels: that is raised by
-	//! SCR_RespawnSystemComponent.EmitPlayerEntityChange_S, and Overthrow hands characters over itself.)
+	//! be looted after a restart; the same end is now reached by OVT_OverthrowGameMode's kill hook, which
+	//! flips the corpse's matched config to self-spawn (OVT_PersistenceTracking.MarkForSelfSpawn).
+	//! (Vanilla reaches it through SCR_SpawnLogic.OnPlayerEntityChanged_S, which Overthrow never travels:
+	//! that is raised by SCR_RespawnSystemComponent.EmitPlayerEntityChange_S, and Overthrow hands
+	//! characters over itself.)
 	override void OnPlayerKilled_S(int playerId, IEntity playerEntity, IEntity killerEntity, notnull Instigator killer)
 	{
 		super.OnPlayerKilled_S(playerId, playerEntity, killerEntity, killer);

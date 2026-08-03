@@ -232,8 +232,8 @@ class OVT_PlayerManagerComponent: OVT_Component
 	//!
 	//! A DEAD PLAYER IS SKIPPED. Death is complete loss - OVT_SpawnLogic clears the id when a player is
 	//! killed, and a save taken in the frame between the death and the respawn must not put the corpse's
-	//! id back. The corpse itself persists on its own (see OVT_DeadCharacterPersistenceConfigRule), so
-	//! nothing is lost by ignoring it here.
+	//! id back. The corpse itself persists on its own (the kill hook marks it to self-spawn - see
+	//! OVT_PersistenceTracking.MarkForSelfSpawn), so nothing is lost by ignoring it here.
 	void SyncPlayerBodyIds()
 	{
 		array<int> connectedPlayers = {};

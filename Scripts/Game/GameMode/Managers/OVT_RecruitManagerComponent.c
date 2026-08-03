@@ -516,7 +516,32 @@ class OVT_RecruitManagerComponent : OVT_Component
 		
 		// Remove from main collection
 		m_mRecruits.Remove(recruitId);
-		
+
+		// Remove entity/replication lookups still pointing at this record, or GetRecruitFromEntity()
+		// keeps resolving the dead ID for as long as the body lives (BUG-004). Scanned by value: the
+		// body may have been remapped since this record last saw it.
+		array<EntityID> staleEntityIds = {};
+		foreach (EntityID entityId, string mappedRecruitId : m_mEntityToRecruit)
+		{
+			if (mappedRecruitId == recruitId)
+				staleEntityIds.Insert(entityId);
+		}
+		foreach (EntityID staleEntityId : staleEntityIds)
+		{
+			m_mEntityToRecruit.Remove(staleEntityId);
+		}
+
+		array<RplId> staleRplIds = {};
+		foreach (RplId rplId, string mappedRplRecruitId : m_mRplIdToRecruit)
+		{
+			if (mappedRplRecruitId == recruitId)
+				staleRplIds.Insert(rplId);
+		}
+		foreach (RplId staleRplId : staleRplIds)
+		{
+			m_mRplIdToRecruit.Remove(staleRplId);
+		}
+
 		// Broadcast recruit removal to all clients
 		BroadcastRecruitRemoved(recruitId, ownerPersistentId);
 		

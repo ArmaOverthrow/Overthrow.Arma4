@@ -301,8 +301,10 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	//------------------------------------------------------------------------------------------------
 	//! Points one stored position key at its saved owner, detaching it from any current owner first.
 	//!
-	//! Works on the key STRINGS directly rather than through DoSetOwnerPersistentId(), which always
-	//! appends and would therefore duplicate the entry when the same save is applied twice.
+	//! Works on the key STRINGS directly rather than through DoSetOwnerPersistentId(), because this
+	//! path already holds the stored key and must not round-trip it through a vector. (The historical
+	//! second reason - that the setter blindly appended and would duplicate on a re-apply - was
+	//! BUG-003 and is fixed; the setter now detaches the previous owner and dedupes itself.)
 	//! \param[in] persistentId The player the building belongs to.
 	//! \param[in] positionKey The owner manager's position key for the building.
 	protected void ApplyPersistedOwner(string persistentId, string positionKey)
