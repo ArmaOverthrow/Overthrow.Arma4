@@ -1456,6 +1456,32 @@ class OVT_EconomyManagerComponent: OVT_Component
 	{
 		return m_aResources[id];
 	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Checks whether an integer ID names a registered resource. Ids that arrive over the network
+	//! must pass this before being used to index the resource database (BUG-033).
+	//! \param[in] id The integer ID.
+	//! \return True if GetResource(id) is safe to call.
+	bool IsValidResourceId(int id)
+	{
+		if(!m_aResources) return false;
+		return id >= 0 && id < m_aResources.Count();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Checks whether an item is part of the standard (non-vehicle) shop catalogue - the list the
+	//! port offers without the IllegalImports permission (BUG-033).
+	//! \param[in] res The ResourceName of the item.
+	//! \return True if any non-vehicle shop type stocks the item.
+	bool IsSoldAtAnyNonVehicleShop(ResourceName res)
+	{
+		foreach(OVT_ShopInventoryConfig config : m_ShopConfig.m_aShopConfigs)
+		{
+			if(config.type == OVT_ShopType.SHOP_VEHICLE) continue;
+			if(IsSoldAtShop(res, config.type)) return true;
+		}
+		return false;
+	}
 	
 	//------------------------------------------------------------------------------------------------
 	//! Initializes the inventory of all registered shops based on their type configuration and town context.

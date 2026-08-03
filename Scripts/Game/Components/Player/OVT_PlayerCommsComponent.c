@@ -767,25 +767,52 @@ class OVT_PlayerCommsComponent: OVT_Component
 		Rpc(RpcAsk_ImportToVehicle, id, qty, rpl.Id(), playerId)
 	}
 	
+	//! How far the importing player and the receiving vehicle may be from a port before the server
+	//! rejects the import (the vehicle menu requires 20m, plus latency/movement slack)
+	protected const float IMPORT_MAX_PORT_DISTANCE = 30;
+
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_ImportToVehicle(int id, int qty, RplId vehicleId, int playerId)
 	{
-		IEntity vehicle = RplComponent.Cast(Replication.FindItem(vehicleId)).GetEntity();		
-		if(!vehicle) return;
-		
-		InventoryStorageManagerComponent storage = InventoryStorageManagerComponent.Cast(vehicle.FindComponent(InventoryStorageManagerComponent));				
-		if(!storage) return;
-		
+		// The port UI's permission, proximity and catalogue gates are client-side only, so
+		// the server re-checks all of them here (BUG-033)
+		playerId = ResolveSenderPlayerId(playerId);
+		if(qty <= 0 || qty > 100) return;
+
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
-		
+		if(!economy.IsValidResourceId(id)) return;
+		if(economy.IsVehicle(id)) return;
+		if(economy.ItemIsFromFaction(id, OVT_Global.GetConfig().GetOccupyingFactionIndex())) return;
+
+		OVT_PlayerData player = OVT_PlayerData.Get(playerId);
+		if(!player || !player.HasPermission("Import")) return;
+
+		ResourceName res = economy.GetResource(id);
+		if(res == "") return;
+
+		// Items no standard shop stocks are the extended catalogue the port only offers at Trade L5
+		if(!economy.IsSoldAtAnyNonVehicleShop(res) && !player.HasPermission("IllegalImports")) return;
+
+		IEntity character = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+		if(!character) return;
+		if(economy.DistanceToNearestPort(character.GetOrigin()) > IMPORT_MAX_PORT_DISTANCE) return;
+
+		RplComponent vehicleRpl = RplComponent.Cast(Replication.FindItem(vehicleId));
+		if(!vehicleRpl) return;
+		IEntity vehicle = vehicleRpl.GetEntity();
+		if(!vehicle) return;
+		if(economy.DistanceToNearestPort(vehicle.GetOrigin()) > IMPORT_MAX_PORT_DISTANCE) return;
+
+		InventoryStorageManagerComponent storage = InventoryStorageManagerComponent.Cast(vehicle.FindComponent(InventoryStorageManagerComponent));
+		if(!storage) return;
+
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
-		
+
 		int cost = qty * economy.GetPrice(id);
 		if(!economy.PlayerHasMoney(persId, cost)) return;
-		
+
 		int actual = 0;
-		ResourceName res = economy.GetResource(id);
-		
+
 		for(int i = 0; i < qty; i++)
 		{
 			if(storage.TrySpawnPrefabToStorage(res))
