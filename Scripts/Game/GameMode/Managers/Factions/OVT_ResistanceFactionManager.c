@@ -877,6 +877,14 @@ class OVT_ResistanceFactionManager: OVT_Component
 		SCR_AIGroup group = SpawnGarrison(base, res);
 		if(!group) return;
 
+		// Refuse before charging when the town cannot supply the units - TakeSupporters
+		// silently no-ops when short, which used to hand out free garrisons (BUG-064)
+		if(takeSupporters && !OVT_Global.GetTowns().NearestTownHasSupporters(base.location, group.m_aUnitPrefabSlots.Count()))
+		{
+			SCR_EntityHelper.DeleteEntityAndChildren(group);
+			return;
+		}
+
 		if(!ChargeForGarrison(playerId, group))
 		{
 			SCR_EntityHelper.DeleteEntityAndChildren(group);
@@ -901,6 +909,13 @@ class OVT_ResistanceFactionManager: OVT_Component
 		SCR_AIGroup group = SpawnGarrisonCamp(fob, res);
 		if(!group) return;
 
+		// Refuse before charging when the town cannot supply the units (BUG-064)
+		if(takeSupporters && !OVT_Global.GetTowns().NearestTownHasSupporters(fob.location, group.m_aUnitPrefabSlots.Count()))
+		{
+			SCR_EntityHelper.DeleteEntityAndChildren(group);
+			return;
+		}
+
 		if(!ChargeForGarrison(playerId, group))
 		{
 			SCR_EntityHelper.DeleteEntityAndChildren(group);
@@ -924,6 +939,13 @@ class OVT_ResistanceFactionManager: OVT_Component
 
 		SCR_AIGroup group = SpawnGarrisonFOB(fob, res);
 		if(!group) return;
+
+		// Refuse before charging when the town cannot supply the units (BUG-064)
+		if(takeSupporters && !OVT_Global.GetTowns().NearestTownHasSupporters(fob.location, group.m_aUnitPrefabSlots.Count()))
+		{
+			SCR_EntityHelper.DeleteEntityAndChildren(group);
+			return;
+		}
 
 		if(!ChargeForGarrison(playerId, group))
 		{

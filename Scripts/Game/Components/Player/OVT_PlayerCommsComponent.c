@@ -99,15 +99,70 @@ class OVT_PlayerCommsComponent: OVT_Component
 			wanted.OnPlayerLoot(character);
 	}
 
-	void AddSupporters(vector location, int num)
+	//! How far away a civilian can be from the converting player's character before the server
+	//! rejects the conversion (interaction range plus latency/movement slack)
+	protected const float CONVERT_MAX_DISTANCE = 10;
+	//! Minimum ms between conversion attempts per player
+	protected const int CONVERT_COOLDOWN_MS = 2000;
+	protected int m_iLastConvertTick = 0;
+
+	//------------------------------------------------------------------------------------------------
+	//! Asks the server to attempt converting a civilian into a supporter. The diplomacy roll,
+	//! distance check, per-civilian gate and rate limit are all server-side (BUG-063); the outcome
+	//! hint comes back via RpcDo_ConvertSupporterResult.
+	void ConvertSupporter(RplId civilianId)
 	{
-		Rpc(RpcAsk_AddSupporters, location, num);
+		Rpc(RpcAsk_ConvertSupporter, civilianId);
 	}
-	
+
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	void RpcAsk_AddSupporters(vector location, int num)
+	protected void RpcAsk_ConvertSupporter(RplId civilianId)
 	{
-		OVT_Global.GetTowns().AddSupport(location, num);		
+		// Remote callers reach this handler on their own character's component (see
+		// ResolveSenderPlayerId) - conversions must come from a controlled character
+		ChimeraCharacter character = ChimeraCharacter.Cast(GetOwner());
+		if(!character) return;
+
+		int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(character);
+		if(playerId <= 0) return;
+
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(civilianId));
+		if(!rpl) return;
+		IEntity civilian = rpl.GetEntity();
+		if(!civilian) return;
+
+		if(vector.Distance(character.GetOrigin(), civilian.GetOrigin()) > CONVERT_MAX_DISTANCE) return;
+
+		int now = System.GetTickCount();
+		if(m_iLastConvertTick != 0 && (now - m_iLastConvertTick) < CONVERT_COOLDOWN_MS) return;
+		m_iLastConvertTick = now;
+
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if(!towns) return;
+		// One attempt per civilian across all players, tracked server-side
+		if(!towns.TryMarkCivilianConvertAttempted(civilianId)) return;
+
+		OVT_PlayerData player = OVT_PlayerData.Get(playerId);
+		if(!player) return;
+
+		bool converted = s_AIRandomGenerator.RandFloat01() < player.diplomacy;
+		if(converted)
+		{
+			towns.AddSupport(civilian.GetOrigin(), 1);
+		}
+
+		Rpc(RpcDo_ConvertSupporterResult, converted);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void RpcDo_ConvertSupporterResult(bool converted)
+	{
+		if(converted)
+		{
+			SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-ConvertedSupporter");
+		}else{
+			SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-NotConvertedSupporter");
+		}
 	}
 	
 	void BuySkill(int playerId, string key)

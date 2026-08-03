@@ -47,8 +47,8 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 						OVT_Global.GetNotify().SendTextNotification("PatrolSpotted",-1,m_Towns.GetTownName(townId));
 					}
 					if(dist < 50)
-					{						
-						if(town.support >= 75)
+					{
+						if(town.SupportPercentage() >= 75)
 						{
 							system.TryAddByName(townId, "RecentPatrolNegative");
 							system.RemoveByName(townId, "RecentPatrolPositive");

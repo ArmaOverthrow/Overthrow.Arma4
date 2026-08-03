@@ -133,7 +133,10 @@ class OVT_TownManagerComponent: OVT_Component
 	protected OVT_TownData m_CheckTown;
 	
 	protected ref array<ref EntityID> m_Houses;
-	
+
+	//! Civilians a conversion has already been attempted on this session (server-side, BUG-063)
+	protected ref set<RplId> m_ConvertedCivilians = new set<RplId>;
+
 	OVT_RealEstateManagerComponent m_RealEstate;
 	
 	//! Invoked when a town's controlling faction changes
@@ -570,9 +573,13 @@ class OVT_TownManagerComponent: OVT_Component
 		Faction occupyingFaction = GetGame().GetFactionManager().GetFactionByKey(OVT_Global.GetConfig().m_sOccupyingFaction);
 		int occupyingFactionIndex = GetGame().GetFactionManager().GetFactionIndex(occupyingFaction);
 				
-		OVT_TownData town = m_Towns[townId];		
+		OVT_TownData town = m_Towns[townId];
 		OVT_TownModifierSystem system = GetModifierSystem(OVT_TownSupportModifierSystem);
-		
+
+		// An empty town has nobody to win or lose; skipping also avoids the support system's
+		// max==0 ERROR print firing every cycle (BUG-064)
+		if(town.population <= 0) return;
+
 		int newsupport = system.Recalculate(town.supportModifiers, town.support, 0, town.population);
 		
 		if(newsupport != town.support)
@@ -1202,16 +1209,25 @@ class OVT_TownManagerComponent: OVT_Component
 	//! Synchronizes changes via RPC.
 	//! \param pos The position vector to find the nearest town from
 	//! \param num The number of supporters/population to remove (default: 1)
-	void TakeSupportersFromNearestTown(vector pos, int num = 1)
+	//! \return true if the supporters were taken, false if the town had too few (BUG-064)
+	bool TakeSupportersFromNearestTown(vector pos, int num = 1)
 	{
 		OVT_TownData town = GetNearestTown(pos);
+		if(!town) return false;
 		int townID = GetTownID(town);
-		if(town.support < num || town.population < num) return;
-		RpcDo_SetSupport(townID, town.support - num);
-		Rpc(RpcDo_SetSupport, townID, town.support - num);
-		
-		RpcDo_SetPopulation(townID, town.population - num);
-		Rpc(RpcDo_SetPopulation, townID, town.population - num);
+		if(town.support < num || town.population < num) return false;
+
+		// Compute once: the local RpcDo call mutates the fields, so re-reading them for the
+		// networked call would send clients a double-decremented value
+		int newSupport = town.support - num;
+		int newPopulation = town.population - num;
+
+		RpcDo_SetSupport(townID, newSupport);
+		Rpc(RpcDo_SetSupport, townID, newSupport);
+
+		RpcDo_SetPopulation(townID, newPopulation);
+		Rpc(RpcDo_SetPopulation, townID, newPopulation);
+		return true;
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -1236,10 +1252,29 @@ class OVT_TownManagerComponent: OVT_Component
 	void AddSupport(vector pos, int num = 1)
 	{
 		OVT_TownData town = GetNearestTown(pos);
+		if(!town) return;
 		int townID = GetTownID(town);
-				
-		RpcDo_SetSupport(townID, town.support + num);
-		Rpc(RpcDo_SetSupport, townID, town.support + num);
+
+		// Support is a headcount - it can never exceed the town's population (BUG-064)
+		int newSupport = town.support + num;
+		if(newSupport > town.population) newSupport = town.population;
+		if(newSupport < 0) newSupport = 0;
+		if(newSupport == town.support) return;
+
+		RpcDo_SetSupport(townID, newSupport);
+		Rpc(RpcDo_SetSupport, townID, newSupport);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Server-side one-attempt-per-civilian gate for supporter conversion (BUG-063): the client-local
+	//! performed flag neither syncs between players nor survives the civilian despawn/respawn cycle.
+	//! \param civilianId The RplId of the civilian being converted
+	//! \return true if this civilian had not been attempted yet (it is now marked), false otherwise
+	bool TryMarkCivilianConvertAttempted(RplId civilianId)
+	{
+		if(m_ConvertedCivilians.Contains(civilianId)) return false;
+		m_ConvertedCivilians.Insert(civilianId);
+		return true;
 	}
 	
 	//------------------------------------------------------------------------------------------------
