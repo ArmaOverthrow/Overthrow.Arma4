@@ -1,8 +1,8 @@
 # Workbench Automation - Context & Decisions
 
-**Last Updated:** 2026-08-01 23:10
-**Current Phase:** Complete (all 6 phases)
-**Status:** ✅ Ready for Review
+**Last Updated:** 2026-08-04
+**Current Phase:** Phase 7 (live-session agent debug bridge) — planned, not started; core (Phases 1-6) complete
+**Status:** 🟡 Extension planned (core ✅ shipped 2026-08-01)
 **Epic:** dev-ops (feature #1 of 5 — foundational; nothing else in the epic starts until this lands)
 
 ---
@@ -10,7 +10,8 @@
 ## Quick Status
 
 **What's Done:**
-- ✅ ALL 6 PHASES (56/56 tasks) — feature complete, 2026-08-01
+- ✅ ALL 6 CORE PHASES (56/56 tasks) — feature complete, 2026-08-01
+- ✅ 2026-08-04: Live-session debug research complete (4 parallel research agents) — verdict: agent-driven code exec in a live play session IS possible. Full evidence in `live-session-debug-research.md` (this folder). Phase 7 added to tasks.md (7 tasks, spike-gated)
 - ✅ Phase 1: empirical CLI verification (`findings.md` — the epic's Workbench CLI reference)
 - ✅ Phase 2: `tools/lib/common.sh` (path translation, process boundary, verified timeout kills, 29/29 self-test)
 - ✅ Phase 3: `tools/compile-check.sh` (four-condition verdict, gcc-style errors, T13 check-on-the-check passes)
@@ -19,9 +20,10 @@
 - ✅ Phase 6: docs corrected (CLAUDE.md, technical-design §2/§10, mission-statement, workbench-workflow skill v1.1.0, epic-overview, agent definitions)
 - ✅ Bonus: tree fixed to compile on 1.7.0.54 (user-approved; vanilla-persistence WIP issues — recorded in that feature's context.md)
 
-**What's Next (for the epic, not this feature):**
-- 📋 Feature #2 `autotest-foundation` — its whole dependency is proven (`launch-game.sh -- -autotest "{GUID}"` → `junit.xml` in `LOG_DIR`, ~8s)
-- 📋 Changes are uncommitted on `vanilla-persistence` — user reviews & commits
+**What's Next:**
+- 📋 **Task 7.1 (GATE):** spike `ScriptModule.CompileScript` in a live session — Workbench play mode + diag client, referencing OVT types. ~30 min; its result decides the Phase 7 design
+- 📋 Task 7.2: `$profile:` command-file round-trip spike
+- 📋 Then 7.3/7.4: `OVT_AgentBridge` component + `tools/debug-exec.sh` wrapper
 
 **Blockers:**
 - None
@@ -63,6 +65,12 @@ Logs resolve deterministically as newest-since-t0 under that profile. My Games d
 ### Decision 12: Game client uses `-gproj <base ArmaReforger.gproj> -addonsDir -addons`, NOT Overthrow's addon.gproj
 Confirmed from a real crash.log. Workbench, by contrast, DOES take Overthrow's `addon.gproj`.
 
+### Decision 13 (2026-08-04): Debug bridge = CompileScript eval over a $profile: file drop-box, NOT the debugger protocol or hot reload
+**Context:** Wanted agent-driven code execution in a live play session (today: agent writes `.tmp/group-debug.c`, human pastes into Script Console).
+**Decision:** Build `OVT_AgentBridge` (Phase 7): dev-only poller → `ScriptModule.CompileScript(GetGame().GetScriptModule(), src, err, line)` → `Call` → results to `$profile:agent/out.json`. NetAPI (TCP 5775, already enabled+listening on this machine, script-side Net Handlers, see enfusion-mcp) is the optional Workbench-only push transport. Rejected: speaking the script-debugger port directly (private, checksum-gated protocol); relying on hot reload for injection (three independent signals say reload = full VM teardown, statics/ScriptInvokers die — see research doc).
+**Rationale:** `CompileScript` is first-party, documented "workbench or diag" availability (our diag client qualifies), returns compile errors as strings, and BI's own doc comment is an eval recipe. Every transport primitive is proven in shipped code (Overthrow already does runtime `$profile:` JSON I/O).
+**Full evidence:** `live-session-debug-research.md` (this folder). Recompile hotkey fact for 7.6: current build renamed the action — `Shift+F7` = "Validate and Reload Scripts"; `README.md:54` label is stale.
+
 ---
 
 ## Gotchas & Learnings
@@ -89,13 +97,14 @@ No bash test framework — fixed manual checklist T1–T24 in `implementation.md
 ## Next Steps
 
 ### Immediate
-1. Phase 1 tasks 1.1–1.15 (advanced agent, one flag at a time, record everything in `findings.md`)
-2. Gate: amend Phases 2–6 against findings
-3. Phase 2: `tools/lib/common.sh`
+1. **Task 7.1 (GATE, ~30 min):** spike `CompileScript` mid-session — Workbench play mode + diag client, compiled code must reach `OVT_Global.GetTowns()`; check repeat-compile leak
+2. Task 7.2: `$profile:agent/` file round-trip from a repeating `CallLater`
+3. Re-read Phase 7 tasks against the spike results before building 7.3
 
 ### Future (After This Phase)
-1. Phases 3–5: compile-check.sh, launch-game.sh, robustness + README
-2. Phase 6: doc updates (Definition of Done — not optional)
+1. Tasks 7.3–7.4: `OVT_AgentBridge` + `tools/debug-exec.sh`
+2. Optional 7.5 (NetAPI handler) / 7.6 (external `Shift+F7` reload trigger + hot-reload-during-play manual test)
+3. 7.7 docs, then `/update-epic dev-ops`
 
 ---
 
@@ -127,6 +136,13 @@ No bash test framework — fixed manual checklist T1–T24 in `implementation.md
 - Phase 6: all doc targets updated; agent definitions (component-developer[-advanced], network-specialist-advanced, solution-architect) + vanilla-persistence requirements.md also corrected. No-tests/no-debugger claims intact.
 - Final cross-phase sweep: compile-check OK exit 0 (6s), self-test 29/29, zero orphans, sweep clean.
 - Needs human verification (see final report): one deliberate Q4 focus check during a compile run; optional no-Steam behaviour test.
+
+### 2026-08-04 — Live-session debug research done; Phase 7 added 📋
+- User asked whether agents can connect to a running Workbench and execute code in an active play session (current loop: agent writes `.tmp/group-debug.c`, human pastes into Script Console); follow-up: can the agent trigger a recompile in an open Workbench
+- 4 parallel research agents (WorkbenchAPI surface, binary IPC probe, script-side bridge feasibility, WSL keystroke/UIA injection). **Verdict: YES.** Written up in `live-session-debug-research.md` (this folder) + memory `live-session-code-execution`
+- Headlines: `ScriptModule.CompileScript`/`LoadScript` = runtime eval (workbench/diag/headless); **NetAPI TCP 5775 already enabled and listening** on this machine ("controlled from external applications", script-side Net Handlers, working community proof enfusion-mcp); no pipes/HTTP-server/instance-forwarding; recompile hotkey = `Shift+F7` (action renamed to "Validate and Reload Scripts"); hot reload ≈ full VM teardown, not live patch; UIA menu-invoke from PowerShell/WSL is the robust external reload trigger
+- User decided: fold into THIS feature (Phase 7, 7 tasks) rather than a new feature — small enough to implement here later. Docs updated; nothing built yet; 7.1 is the gate
+- Interim zero-code win available any time: `clip.exe < snippet.c` so the human step is just paste+Enter
 
 ### 2026-08-01 20:55
 - Feature started via `/autorun-feature dev-ops/workbench-automation` (autonomous run from Discord)
