@@ -149,7 +149,7 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 	{		
 		vector mat[4];
 		
-		int i = s_AIRandomGenerator.RandInt(0, m_pStartingCarPrefabs.Count()-1);
+		int i = s_AIRandomGenerator.RandInt(0, m_pStartingCarPrefabs.Count());
 		ResourceName prefab = m_pStartingCarPrefabs[i];
 		
 		//Find us a parking spot

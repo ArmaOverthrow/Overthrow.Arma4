@@ -10,7 +10,7 @@ class OVT_SlottedBaseUpgrade : OVT_BasePatrolUpgrade
 		while(i < 30)
 		{
 			i++;
-			int index = s_AIRandomGenerator.RandInt(0,slots.Count()-1);
+			int index = s_AIRandomGenerator.RandInt(0,slots.Count());
 			EntityID id = slots[index];
 			if(!m_BaseController.m_aSlotsFilled.Contains(id))
 			{

@@ -603,7 +603,7 @@ class OVT_Global : Managed
 	
 	static IEntity SpawnDefaultCharacterItem(InventoryStorageManagerComponent storageManager, OVT_LoadoutSlot loadoutItem)
 	{
-		int selection = s_AIRandomGenerator.RandInt(0, loadoutItem.m_aChoices.Count() - 1);
+		int selection = s_AIRandomGenerator.RandInt(0, loadoutItem.m_aChoices.Count());
 		ResourceName prefab = loadoutItem.m_aChoices[selection];
 		
 		EntitySpawnParams spawnParams();

@@ -375,13 +375,13 @@ class OVT_EconomyManagerComponent: OVT_Component
 			for(int i=0; i<numToBuy; i++)
 			{
 				//pick a random shop type
-				int typeIndex = s_AIRandomGenerator.RandInt(0,types.Count()-1);
+				int typeIndex = s_AIRandomGenerator.RandInt(0,types.Count());
 				//pick a random shop within that type
-				int shopIndex = s_AIRandomGenerator.RandInt(0,typeShops[types[typeIndex]].Count()-1);
+				int shopIndex = s_AIRandomGenerator.RandInt(0,typeShops[types[typeIndex]].Count());
 				OVT_ShopComponent shop = GetShopByRplId(typeShops[types[typeIndex]][shopIndex]);
 				if(!shop) continue;
 				//pick a random inventory item
-				int itemIndex = s_AIRandomGenerator.RandInt(0,shop.m_aInventory.Count()-1);
+				int itemIndex = s_AIRandomGenerator.RandInt(0,shop.m_aInventory.Count());
 				int id = shop.m_aInventory.GetKey(itemIndex);
 				int qty = s_AIRandomGenerator.RandInt(1,GetDemand(id));
 				int stock = shop.GetStock(id);

@@ -163,7 +163,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 
 		if(m_iStartingTownId == -1) return null;
 				
-		int i = s_AIRandomGenerator.RandInt(0, m_aTownStartingHomes.Count() - 1);
+		int i = s_AIRandomGenerator.RandInt(0, m_aTownStartingHomes.Count());
 				
 		EntityID id = m_aTownStartingHomes[i];
 		m_aTownStartingHomes.Remove(i);

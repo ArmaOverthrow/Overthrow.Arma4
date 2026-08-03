@@ -682,7 +682,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	{
 	    if (m_aFallbackSpawnPositions.Count() > 0)
 	    {
-	        int randomIndex = s_AIRandomGenerator.RandInt(0, m_aFallbackSpawnPositions.Count() - 1);
+	        int randomIndex = s_AIRandomGenerator.RandInt(0, m_aFallbackSpawnPositions.Count());
 	        return m_aFallbackSpawnPositions[randomIndex].GetOrigin();
 	    }
 	
@@ -696,7 +696,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	{
 	    if (m_aStartCameraPositions.Count() > 0)
 	    {
-	        int randomIndex = s_AIRandomGenerator.RandInt(0, m_aStartCameraPositions.Count() - 1);
+	        int randomIndex = s_AIRandomGenerator.RandInt(0, m_aStartCameraPositions.Count());
 	        return m_aStartCameraPositions[randomIndex];
 	    }
 	

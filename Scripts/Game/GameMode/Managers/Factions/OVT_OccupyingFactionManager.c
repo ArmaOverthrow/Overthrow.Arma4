@@ -1099,7 +1099,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		if(time.m_iMinutes == 0 && m_iResources > 2000 && m_bCounterAttackTimeout == 0 && rand > 0.9)
 		{
 			Print("[Overthrow.OccupyingFactionManager] Surplus of resources, attempting counter attack");
-			OVT_BaseData randomBase = m_Bases[s_AIRandomGenerator.RandInt(0,m_Bases.Count()-1)];
+			OVT_BaseData randomBase = m_Bases[s_AIRandomGenerator.RandInt(0,m_Bases.Count())];
 			if(!randomBase.IsOccupyingFaction())
 			{
 				OVT_BaseControllerComponent base = GetBase(randomBase.entId);
