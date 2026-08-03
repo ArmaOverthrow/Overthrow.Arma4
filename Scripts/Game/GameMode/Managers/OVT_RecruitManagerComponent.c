@@ -834,22 +834,13 @@ class OVT_RecruitManagerComponent : OVT_Component
 		// Note: BroadcastRecruitCreated is already called in AddRecruit method
 		// No need to broadcast again here to avoid duplicates
 		
-		// Add to player's group using the proper API
-		
-		// Force the server's authoritative group manager to do it directly
-		SCR_GroupsManagerComponent groupsManager = SCR_GroupsManagerComponent.GetInstance();
-		if (groupsManager)
-		{
-    		// Find the player's existing native engine group
-    		SCR_AIGroup playerGroup = groupsManager.GetPlayerGroup(playerId);
-    		if (playerGroup)
-    		{
-    			// Force the AI agent directly into the group array on the server
-    			AIControlComponent aiControl = AIControlComponent.Cast(civilian.FindComponent(AIControlComponent));
-    			if (aiControl)
-    				playerGroup.AddAgent(aiControl.GetAIAgent());
-    		}
-		}
+		// Add to the player's group through the slave-group path (RequestAddAIAgent) - the same
+		// route the respawn flow uses. Slave-group membership is commanded by player id, so it
+		// survives the owner dying; forcing the agent into the MASTER group's array only worked
+		// while the player's own agent was still in that group, which stops being true after
+		// their first death (Overthrow's handover never travels the vanilla spawn pipeline that
+		// would re-register the new body's agent).
+		AddRecruitToPlayerGroup(persId, civilian);
 
 		return true;
 	}
