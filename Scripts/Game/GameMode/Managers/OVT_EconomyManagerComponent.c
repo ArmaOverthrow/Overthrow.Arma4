@@ -311,7 +311,12 @@ class OVT_EconomyManagerComponent: OVT_Component
 			}
 		}
 
-		//Gun dealer restocking (Item prefabs only ie weed)
+		//Gun dealer restocking
+		array<int> dealerPrefabIds = new array<int>;
+		foreach(OVT_PrefabItemCostConfig prefabItem : m_GunDealerConfig.m_aGunDealerItemPrefabs)
+		{
+			dealerPrefabIds.Insert(GetInventoryId(prefabItem.m_sEntityPrefab));
+		}
 		foreach(RplId id : m_aGunDealers)
 		{
 			OVT_ShopComponent shop = GetShopByRplId(id);
@@ -323,7 +328,22 @@ class OVT_EconomyManagerComponent: OVT_Component
 				{
 					int num = Math.Round(s_AIRandomGenerator.RandInt(item.minStock,item.maxStock));
 					shop.AddToInventory(GetInventoryId(item.m_sEntityPrefab), num);
-				}				
+				}
+			}
+			//Catalog items (weapons/ammo etc): top up what this dealer rolled at spawn.
+			//Sold-out ids stay in the inventory map at 0, so the per-town random
+			//heavy weapons are restocked, never re-rolled
+			for(int i = 0; i<shop.m_aInventory.Count(); i++)
+			{
+				int itemId = shop.m_aInventory.GetKey(i);
+				if(dealerPrefabIds.Find(itemId) != -1) continue;
+				int max = GetTownMaxStock(shop.m_iTownId, itemId);
+				int stock = shop.GetStock(itemId);
+				int half = Math.Round(max * 0.5);
+				if(stock < half)
+				{
+					shop.AddToInventory(itemId, half - stock);
+				}
 			}
 		}
 	}

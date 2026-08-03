@@ -302,7 +302,7 @@ class OVT_TownControllerComponent: OVT_Component
 				while(!entries.IsEmpty() && !found && t < 20)
 				{
 					t++;
-					int index = s_AIRandomGenerator.RandInt(0,entries.Count()-1);
+					int index = s_AIRandomGenerator.RandInt(0,entries.Count());
 					SCR_EntityCatalogEntry check = entries[index];
 					int id = m_Economy.GetInventoryId(check.GetPrefab());
 					if(!item.m_bIncludeOccupyingFactionItems && m_Economy.ItemIsFromFaction(id, occupyingFactionId)) continue;
