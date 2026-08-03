@@ -1,22 +1,18 @@
 class OVT_ConvertSupporterAction : OVT_BaseCivilianUserAction
-{	
+{
 	//---------------------------------------------------------
- 	override protected void PerformCivilianAction(IEntity pOwnerEntity, IEntity pUserEntity) 
+ 	override protected void PerformCivilianAction(IEntity pOwnerEntity, IEntity pUserEntity)
  	{
-		int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
-		OVT_PlayerData player = OVT_PlayerData.Get(playerId);
-		
-		if(s_AIRandomGenerator.RandFloat01() < player.diplomacy)
+		//The diplomacy roll, validation and outcome hint are all server-side (BUG-063)
+		RplComponent rpl = RplComponent.Cast(pOwnerEntity.FindComponent(RplComponent));
+		if(rpl)
 		{
-			SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-ConvertedSupporter");
-			OVT_Global.GetServer().AddSupporters(pOwnerEntity.GetOrigin(),1);
-		}else{
-			SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-NotConvertedSupporter");
+			OVT_Global.GetServer().ConvertSupporter(rpl.Id());
 		}
-		
-		MarkAsPerformed();					
+
+		MarkAsPerformed();
  	}
-		
+
 	override bool GetActionNameScript(out string outName)
 	{
 		return false;

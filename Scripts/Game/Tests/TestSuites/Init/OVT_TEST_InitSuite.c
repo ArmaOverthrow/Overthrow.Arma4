@@ -230,6 +230,82 @@ class OVT_TEST_Init_Controllers_AreRegistered : SCR_AutotestCaseBase
 }
 
 //------------------------------------------------------------------------------------------------
+//! OVT_TownManagerComponent.GetNearestTownInRange() returns the NEAREST in-range town, not the
+//! first in array order (BUG-062 regression).
+//!
+//! Two synthetic villages with overlapping radii are appended to m_Towns, deliberately ordered so
+//! that the FARTHER one comes first in the array - the exact configuration the old first-match loop
+//! returned wrong on, which made every death-driven modifier credit the wrong town wherever radii
+//! overlap. Both sit tens of kilometres from the test world's real town, so no real record can be
+//! in range of either probe, and both are removed from m_Towns again before any assertion returns,
+//! keeping the index-aligned town list intact for every later case.
+//!
+//! PROVEN ABLE TO FAIL: with GetNearestTownInRange() reverted to its pre-fix first-match body
+//! (`if(distance <= range) return town;`), this case goes red on the "returned the farther town"
+//! assertion.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Towns_GetNearestTownInRange_ReturnsNearest : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if (!towns)
+		{
+			SetResultFailure("OVT_Global.GetTowns() is null");
+			return true;
+		}
+
+		float range = towns.m_iVillageRange;
+		vector probe = "40000 0 40000";
+
+		// Inserted FIRST, sits FARTHER from the probe (80% of the village range).
+		OVT_TownData farTown = new OVT_TownData();
+		farTown.location = probe + Vector(range * 0.8, 0, 0);
+		farTown.size = OVT_TownSize.VILLAGE;
+
+		// Inserted SECOND, sits NEARER to the probe (40% of the village range).
+		OVT_TownData nearTown = new OVT_TownData();
+		nearTown.location = probe + Vector(0, 0, range * 0.4);
+		nearTown.size = OVT_TownSize.VILLAGE;
+
+		towns.m_Towns.Insert(farTown);
+		towns.m_Towns.Insert(nearTown);
+
+		OVT_TownData overlapResult = towns.GetNearestTownInRange(probe);
+		OVT_TownData outOfRangeResult = towns.GetNearestTownInRange(probe + Vector(0, 0, range * 10));
+
+		towns.m_Towns.RemoveItem(nearTown);
+		towns.m_Towns.RemoveItem(farTown);
+
+		if (overlapResult == farTown)
+		{
+			SetResultFailure("GetNearestTownInRange() returned the farther town because it precedes the nearer one in m_Towns (BUG-062 first-match regression)");
+			return true;
+		}
+
+		if (overlapResult != nearTown)
+		{
+			SetResultFailure("GetNearestTownInRange() did not return the nearer of two overlapping in-range towns");
+			return true;
+		}
+
+		if (outOfRangeResult)
+		{
+			SetResultFailure("GetNearestTownInRange() returned a town for a probe outside every town's range");
+			return true;
+		}
+
+		PrintFormat("GetNearestTownInRange: nearest of 2 overlapping villages returned, out-of-range probe returned null (village range %1)", range.ToString());
+
+		SetResultSuccess();
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
 //! Reforger's vanilla persistence system is registered for the Overthrow world and did not fail
 //! its own setup.
 //!
@@ -442,6 +518,206 @@ class OVT_TEST_Init_Economy_PriceAndDemandSeams : SCR_AutotestCaseBase
 			readPrice.ToString(), readDemand.ToString(), buyPrice.ToString());
 
 		SetResultSuccess();
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! BUG-018 - a character that dies gets a persistence configuration that will spawn it back on
+//! load. This is the save half of "corpses survive a continue", asserted at the seam where the
+//! playtest showed it failing.
+//!
+//! THE PIPELINE UNDER TEST:
+//!   1. every character is tracked on spawn (native Persistence component on Character_Base.et);
+//!   2. a LIVE character's matched config must NOT self-spawn (Phase 3's no-double-AI invariant -
+//!      Overthrow's managers rebuild live AI themselves);
+//!   3. on death, SCR_CharacterDamageManagerComponent fires the game mode's character-killed
+//!      event, and OnCharacterKilledPersist() flips the corpse's config to self-spawn through
+//!      OVT_PersistenceTracking.MarkForSelfSpawn() - otherwise the corpse is stored under the
+//!      no-self-spawn AI config and never comes back.
+//!
+//! Assertions 2 and 3 are BOTH here because they are two halves of the same invariant: marking a
+//! corpse is only correct if the living stay unmarked. A regression in either direction (corpses
+//! lost, or every AI self-spawning on load) goes red with its own sentence.
+//!
+//! THE POLL IS DIAGNOSTIC, NOT A RETRY: the death event and the controller's life state are two
+//! components reacting to one native death. Nothing is re-attempted here - the case watches the
+//! matched config and expiry FAILS, naming whether the controller ever reported the character
+//! dead so the failure discriminates "life state never settled" from "the kill hook never marked
+//! the corpse".
+//!
+//! PROVEN ABLE TO FAIL: authored red against the live BUG-018 defect, 2026-08-03. First shipped
+//! corpse design bound a script-defined PersistenceConfigRule in Overthrow.conf; this case's
+//! instrumented runs measured that the engine NEVER calls a scripted rule's IsMatch (0 calls
+//! across world load and 300 forced re-matches), which is the root cause the fix removed. Its
+//! exit 1 -> 0 flip is the fix's acceptance evidence.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_Persistence_DeadCharacterConfigSelfSpawns : SCR_AutotestCaseBase
+{
+	//! Frame polls allowed for the native lazy tracking registration of a freshly spawned character.
+	static const int MAX_TRACKING_POLLS = 120;
+
+	//! Frame polls allowed after ForceDeath() for the corpse config to be the matched one. The
+	//! game-mode hook re-matches on the death event and once more a frame later; this budget is far
+	//! above that so expiry means "never", not "not yet".
+	static const int MAX_REMATCH_POLLS = 300;
+
+	protected int m_iPhase;
+	protected int m_iTrackingPolls;
+	protected int m_iRematchPolls;
+
+	//! The character this case spawns, kills and deletes. Never outlives the case.
+	protected IEntity m_Character;
+
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == 0)
+			return SpawnSubjectCharacter();
+
+		if (m_iPhase == 1)
+			return AwaitTrackingThenKill();
+
+		return AwaitCorpseConfig();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Spawns a lone recruit character - the cheapest single-character prefab in the game mode's own
+	//! configuration (the "civilian prefab" is a whole AI group, not a character).
+	//! \return True when the case is finished, which at this phase always means a named failure.
+	protected bool SpawnSubjectCharacter()
+	{
+		SCR_PersistenceSystem persistence = SCR_PersistenceSystem.GetScriptedInstance();
+		if (!persistence)
+		{
+			SetResultFailure("SCR_PersistenceSystem.GetScriptedInstance() is null - see OVT_TEST_Init_Persistence_SystemIsOnline.");
+			return true;
+		}
+
+		OVT_RecruitManagerComponent recruits = OVT_RecruitManagerComponent.GetInstance();
+		if (!recruits || recruits.m_sRecruitPrefab.IsEmpty())
+		{
+			SetResultFailure("The recruit manager has no character prefab to spawn a subject from");
+			return true;
+		}
+
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if (!towns || towns.m_Towns.Count() < 1)
+		{
+			SetResultFailure("No towns are registered - nowhere sensible to spawn the subject character");
+			return true;
+		}
+
+		m_Character = OVT_Global.SpawnEntityPrefab(recruits.m_sRecruitPrefab, towns.m_Towns[0].location);
+		if (!m_Character)
+		{
+			SetResultFailure("SpawnEntityPrefab() produced no character from the civilian prefab");
+			return true;
+		}
+
+		m_iPhase = 1;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Waits for the native lazy tracking, pins the alive-config invariant, then kills the subject.
+	//! \return True when the case is finished.
+	protected bool AwaitTrackingThenKill()
+	{
+		SCR_PersistenceSystem persistence = SCR_PersistenceSystem.GetScriptedInstance();
+		if (!persistence || !m_Character)
+		{
+			SetResultFailure("The persistence system or the subject character disappeared while waiting for tracking");
+			return FinishAndCleanUp();
+		}
+
+		if (!persistence.IsTracked(m_Character))
+		{
+			m_iTrackingPolls += 1;
+			if (m_iTrackingPolls > MAX_TRACKING_POLLS)
+			{
+				SetResultFailure("The spawned character was never tracked (%1 polls) - Character_Base.et no longer carries the native Persistence component, so no character (dead or alive) is ever saved", m_iTrackingPolls.ToString());
+				return FinishAndCleanUp();
+			}
+
+			return false;
+		}
+
+		EntityPersistenceConfig aliveConfig = EntityPersistenceConfig.Cast(persistence.GetConfig(m_Character));
+		if (!aliveConfig)
+		{
+			SetResultFailure("GetConfig() handed back no entity config for a tracked live character");
+			return FinishAndCleanUp();
+		}
+
+		// Phase 3's invariant, the reason the corpse rule must not overmatch: a LIVE character that
+		// self-spawns on load is doubled AI for every garrison Overthrow rebuilds itself.
+		if (aliveConfig.m_bSelfSpawn)
+		{
+			SetResultFailure("A LIVE character's matched persistence config already self-spawns - the corpse rule (or a config edit) is matching the living, which doubles every AI on load");
+			return FinishAndCleanUp();
+		}
+
+		ChimeraCharacter character = ChimeraCharacter.Cast(m_Character);
+		if (!character || !character.GetCharacterController())
+		{
+			SetResultFailure("The spawned recruit is not a character with a controller - it cannot be killed, so the corpse re-match cannot be exercised");
+			return FinishAndCleanUp();
+		}
+
+		character.GetCharacterController().ForceDeath();
+
+		m_iPhase = 2;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Watches the matched config until it is the self-spawning corpse config, bounded.
+	//! \return True when the case is finished.
+	protected bool AwaitCorpseConfig()
+	{
+		SCR_PersistenceSystem persistence = SCR_PersistenceSystem.GetScriptedInstance();
+		if (!persistence || !m_Character)
+		{
+			SetResultFailure("The persistence system or the corpse disappeared while waiting for the re-match");
+			return FinishAndCleanUp();
+		}
+
+		EntityPersistenceConfig corpseConfig = EntityPersistenceConfig.Cast(persistence.GetConfig(m_Character));
+		if (corpseConfig && corpseConfig.m_bSelfSpawn)
+		{
+			PrintFormat("Corpse re-match verified: the dead character's config self-spawns after %1 poll(s)", m_iRematchPolls.ToString());
+			SetResultSuccess();
+			return FinishAndCleanUp();
+		}
+
+		m_iRematchPolls += 1;
+		if (m_iRematchPolls > MAX_REMATCH_POLLS)
+		{
+			string deadState = "the controller never reported it dead, so the rule was asked too early and never again";
+			ChimeraCharacter character = ChimeraCharacter.Cast(m_Character);
+			if (character && character.GetCharacterController() && character.GetCharacterController().IsDead())
+				deadState = "the controller DOES report it dead, so the re-match ran and the corpse config lost or was never consulted";
+
+			SetResultFailure("BUG-018: a killed character was never re-matched to a self-spawning config (%1 polls) - %2. This corpse would be stored under a no-self-spawn config and silently vanish on continue.",
+				m_iRematchPolls.ToString(), deadState);
+			return FinishAndCleanUp();
+		}
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Removes the subject from the world after the verdict is in, whichever verdict it was.
+	//! \return Always true - the case is over.
+	protected bool FinishAndCleanUp()
+	{
+		if (m_Character)
+			SCR_EntityHelper.DeleteEntityAndChildren(m_Character);
+
+		m_Character = null;
 		return true;
 	}
 }

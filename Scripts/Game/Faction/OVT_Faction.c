@@ -330,7 +330,17 @@ class OVT_Faction
 		if (SCR_Global.IsEditMode()) return;
 		
 		SCR_Faction faction = SCR_Faction.Cast(GetGame().GetFactionManager().GetFactionByKey(m_sFactionKey));
-		SCR_EntityCatalog catalog = faction.GetFactionEntityCatalogOfType(EEntityCatalogType.GROUP);		
+		if (!faction)
+		{
+			Print("[Overthrow] OVT_Faction.Init: no faction registered for key '" + m_sFactionKey + "' - check the m_sFactionKey in this faction's OverthrowData config", LogLevel.ERROR);
+			return;
+		}
+		SCR_EntityCatalog catalog = faction.GetFactionEntityCatalogOfType(EEntityCatalogType.GROUP);
+		if (!catalog)
+		{
+			Print("[Overthrow] OVT_Faction.Init: faction '" + m_sFactionKey + "' has no GROUP entity catalog", LogLevel.ERROR);
+			return;
+		}
 		array<SCR_EntityCatalogEntry> entries();
 		catalog.GetEntityList(entries);
 		

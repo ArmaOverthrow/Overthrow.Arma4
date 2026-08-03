@@ -243,7 +243,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 			if(isResistanceOwned)
 			{
 				AddResistanceMoney(cost);
-				return;
+				continue;
 			}else if(isResistanceRented)
 			{
 				if(!ResistanceHasMoney(cost))
@@ -252,7 +252,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 				}else{
 					TakeResistanceMoney(cost);
 				}
-				return;
+				continue;
 			}
 			
 			if(isOwner)
@@ -289,19 +289,20 @@ class OVT_EconomyManagerComponent: OVT_Component
 				types.Insert(typeShops.GetKey(i));
 			}			
 			
-			foreach(RplId shopId : m_aAllShops)
+			foreach(RplId shopId : m_mTownShops[townID])
 			{
 				OVT_ShopComponent shop = GetShopByRplId(shopId);
+				if(!shop) continue;
 				for(int i = 0; i<shop.m_aInventory.Count(); i++)
 				{
 					int id = shop.m_aInventory.GetKey(i);
 					int max = GetTownMaxStock(townID, id);
-					int numShops = 1;					
+					int numShops = 1;
 					if(typeShops.Contains(shop.m_ShopType))
 						numShops = typeShops[shop.m_ShopType].Count();
 					max = Math.Round(max / numShops);
 					int stock = shop.GetStock(id);
-					int half = Math.Round(stock * 0.5);
+					int half = Math.Round(max * 0.5);
 					if(stock < half)
 					{
 						shop.AddToInventory(id, half - stock);
@@ -310,7 +311,12 @@ class OVT_EconomyManagerComponent: OVT_Component
 			}
 		}
 
-		//Gun dealer restocking (Item prefabs only ie weed)
+		//Gun dealer restocking
+		array<int> dealerPrefabIds = new array<int>;
+		foreach(OVT_PrefabItemCostConfig prefabItem : m_GunDealerConfig.m_aGunDealerItemPrefabs)
+		{
+			dealerPrefabIds.Insert(GetInventoryId(prefabItem.m_sEntityPrefab));
+		}
 		foreach(RplId id : m_aGunDealers)
 		{
 			OVT_ShopComponent shop = GetShopByRplId(id);
@@ -322,7 +328,22 @@ class OVT_EconomyManagerComponent: OVT_Component
 				{
 					int num = Math.Round(s_AIRandomGenerator.RandInt(item.minStock,item.maxStock));
 					shop.AddToInventory(GetInventoryId(item.m_sEntityPrefab), num);
-				}				
+				}
+			}
+			//Catalog items (weapons/ammo etc): top up what this dealer rolled at spawn.
+			//Sold-out ids stay in the inventory map at 0, so the per-town random
+			//heavy weapons are restocked, never re-rolled
+			for(int i = 0; i<shop.m_aInventory.Count(); i++)
+			{
+				int itemId = shop.m_aInventory.GetKey(i);
+				if(dealerPrefabIds.Find(itemId) != -1) continue;
+				int max = GetTownMaxStock(shop.m_iTownId, itemId);
+				int stock = shop.GetStock(itemId);
+				int half = Math.Round(max * 0.5);
+				if(stock < half)
+				{
+					shop.AddToInventory(itemId, half - stock);
+				}
 			}
 		}
 	}
@@ -354,13 +375,13 @@ class OVT_EconomyManagerComponent: OVT_Component
 			for(int i=0; i<numToBuy; i++)
 			{
 				//pick a random shop type
-				int typeIndex = s_AIRandomGenerator.RandInt(0,types.Count()-1);
+				int typeIndex = s_AIRandomGenerator.RandInt(0,types.Count());
 				//pick a random shop within that type
-				int shopIndex = s_AIRandomGenerator.RandInt(0,typeShops[types[typeIndex]].Count()-1);
+				int shopIndex = s_AIRandomGenerator.RandInt(0,typeShops[types[typeIndex]].Count());
 				OVT_ShopComponent shop = GetShopByRplId(typeShops[types[typeIndex]][shopIndex]);
 				if(!shop) continue;
 				//pick a random inventory item
-				int itemIndex = s_AIRandomGenerator.RandInt(0,shop.m_aInventory.Count()-1);
+				int itemIndex = s_AIRandomGenerator.RandInt(0,shop.m_aInventory.Count());
 				int id = shop.m_aInventory.GetKey(itemIndex);
 				int qty = s_AIRandomGenerator.RandInt(1,GetDemand(id));
 				int stock = shop.GetStock(id);
@@ -786,19 +807,24 @@ class OVT_EconomyManagerComponent: OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Adds money to a player's account. Handles server/client distinction.
-	//! Use this method for external calls.
+	//! Adds money to a player's account. Server-only: money grants must originate on the server, so
+	//! calls from clients are ignored (clients go through a validated ask on OVT_PlayerCommsComponent,
+	//! e.g. SendResistanceFunds / SendMoneyToPlayer).
 	//! \param[in] playerId The runtime Player ID.
 	//! \param[in] amount The amount of money to add.
-	//! \param[in] doEvent If true, invokes the m_OnPlayerMoneyChanged event (currently unused).
+	//! \param[in] doEvent If true, invokes the m_OnPlayerSell event.
 	void AddPlayerMoney(int playerId, int amount, bool doEvent=false)
 	{
-		if(Replication.IsServer())
+		if(!Replication.IsServer())
 		{
-			DoAddPlayerMoney(playerId, amount);
+			Print("OVT_EconomyManagerComponent.AddPlayerMoney is server-only and was called on a client - ignored", LogLevel.WARNING);
 			return;
 		}
-		OVT_Global.GetServer().AddPlayerMoney(playerId, amount, doEvent);		
+		DoAddPlayerMoney(playerId, amount);
+		if(doEvent)
+		{
+			m_OnPlayerSell.Invoke(playerId, amount);
+		}
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -818,16 +844,17 @@ class OVT_EconomyManagerComponent: OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Adds money to the resistance faction's funds. Handles server/client distinction.
+	//! Adds money to the resistance faction's funds. Server-only: calls from clients are ignored
+	//! (clients go through a validated ask on OVT_PlayerCommsComponent, e.g. DonateToResistance).
 	//! \param[in] amount The amount of money to add.
 	void AddResistanceMoney(int amount)
 	{
-		if(Replication.IsServer())
+		if(!Replication.IsServer())
 		{
-			DoAddResistanceMoney(amount);
+			Print("OVT_EconomyManagerComponent.AddResistanceMoney is server-only and was called on a client - ignored", LogLevel.WARNING);
 			return;
 		}
-		OVT_Global.GetServer().AddResistanceMoney(amount);		
+		DoAddResistanceMoney(amount);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -840,16 +867,17 @@ class OVT_EconomyManagerComponent: OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Takes money from the resistance faction's funds. Handles server/client distinction.
+	//! Takes money from the resistance faction's funds. Server-only: calls from clients are ignored
+	//! (clients go through a validated ask on OVT_PlayerCommsComponent, e.g. SendResistanceFunds).
 	//! \param[in] amount The amount of money to take.
 	void TakeResistanceMoney(int amount)
 	{
-		if(Replication.IsServer())
+		if(!Replication.IsServer())
 		{
-			DoTakeResistanceMoney(amount);
+			Print("OVT_EconomyManagerComponent.TakeResistanceMoney is server-only and was called on a client - ignored", LogLevel.WARNING);
 			return;
 		}
-		OVT_Global.GetServer().TakeResistanceMoney(amount);		
+		DoTakeResistanceMoney(amount);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -1427,6 +1455,32 @@ class OVT_EconomyManagerComponent: OVT_Component
 	ResourceName GetResource(int id)
 	{
 		return m_aResources[id];
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Checks whether an integer ID names a registered resource. Ids that arrive over the network
+	//! must pass this before being used to index the resource database (BUG-033).
+	//! \param[in] id The integer ID.
+	//! \return True if GetResource(id) is safe to call.
+	bool IsValidResourceId(int id)
+	{
+		if(!m_aResources) return false;
+		return id >= 0 && id < m_aResources.Count();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Checks whether an item is part of the standard (non-vehicle) shop catalogue - the list the
+	//! port offers without the IllegalImports permission (BUG-033).
+	//! \param[in] res The ResourceName of the item.
+	//! \return True if any non-vehicle shop type stocks the item.
+	bool IsSoldAtAnyNonVehicleShop(ResourceName res)
+	{
+		foreach(OVT_ShopInventoryConfig config : m_ShopConfig.m_aShopConfigs)
+		{
+			if(config.type == OVT_ShopType.SHOP_VEHICLE) continue;
+			if(IsSoldAtShop(res, config.type)) return true;
+		}
+		return false;
 	}
 	
 	//------------------------------------------------------------------------------------------------

@@ -158,7 +158,8 @@ class OVT_BuildContext : OVT_UIContext
 		
 		// Calculate pages based on remaining items
 		int totalBuildables = m_Resistance.m_BuildablesConfig.m_aBuildables.Count();
-		m_iNumPages = Math.Ceil(totalBuildables / 14); // 14 items per page (leaving room for remove card)
+		m_iNumPages = (totalBuildables + 13) / 14; // 14 items per page (leaving room for remove card)
+		if(m_iNumPages < 1) m_iNumPages = 1;
 		if(m_iPageNum >= m_iNumPages) m_iPageNum = 0;
 		string pageNumText = (m_iPageNum + 1).ToString();
 		
@@ -529,8 +530,8 @@ class OVT_BuildContext : OVT_UIContext
 			int buildableIndex = m_Resistance.m_BuildablesConfig.m_aBuildables.Find(m_Buildable);
 			int prefabIndex = m_Buildable.m_aPrefabs.Find(m_pBuildingPrefab);
 			OVT_Global.GetServer().BuildItem(buildableIndex, prefabIndex, mat[3], angles, m_iPlayerID);
-						
-			m_Economy.TakePlayerMoney(m_iPlayerID, OVT_Global.GetConfig().GetBuildableCost(m_Buildable));
+
+			// The server charges inside BuildItem() after validating - no client-side payment
 			SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.CLICK);
 		}
 		
@@ -743,10 +744,11 @@ class OVT_BuildContext : OVT_UIContext
 			if(hitEntity)
 			{
 				OVT_BuildableComponent buildableComp = OVT_BuildableComponent.Cast(hitEntity.FindComponent(OVT_BuildableComponent));
-				if(buildableComp && CanRemoveItem(buildableComp))
+				RplComponent rpl = RplComponent.Cast(hitEntity.FindComponent(RplComponent));
+				if(buildableComp && rpl && CanRemoveItem(buildableComp))
 				{
-					// Send removal request to server
-					OVT_Global.GetServer().RemovePlacedItem(hitEntity.GetID(), m_iPlayerID);
+					// Send removal request to server (RplId - EntityID is not valid across the network)
+					OVT_Global.GetServer().RemovePlacedItem(rpl.Id(), m_iPlayerID);
 					ShowHint("#OVT-ItemRemoved");
 					SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.CLICK);
 				}

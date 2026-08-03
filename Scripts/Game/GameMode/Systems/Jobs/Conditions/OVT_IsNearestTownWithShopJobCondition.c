@@ -4,6 +4,7 @@ class OVT_IsNearestTownWithShopJobCondition : OVT_JobCondition
 	override bool ShouldStart(OVT_TownData town, OVT_BaseData base, int playerId)
 	{
 		if(playerId == -1) return false; //only valid for player-allocated jobs
+		if(!town) return false; //base-only jobs have no town context
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
 		int townID = OVT_Global.GetTowns().GetTownID(town);
 		if(!economy.m_mTownShops.Contains(townID) || economy.m_mTownShops[townID].Count() == 0) return false;

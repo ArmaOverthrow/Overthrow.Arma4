@@ -301,6 +301,18 @@ class OVT_TEST_Persistence_PlayerSkills_RoundTrip : SCR_AutotestCaseBase
 		int skillBefore = OVT_TEST_PersistenceSubject.GetPlayerSkillLevel(persId, skillKey);
 		int countBefore = beforeSkill.CountSkills();
 
+		// AddSkillLevel validates affordability server-side (BUG-032), so the record must
+		// hold an unspent skill point before the purchase. Earn one if needed and hand the
+		// XP back afterwards - the round-trip suite asserts this record's exact xp value.
+		int earnedXP = 0;
+		int pointsAvailable = (beforeSkill.GetLevel() - 1) - countBefore;
+		if (pointsAvailable < 1)
+		{
+			// +1 covers float truncation in the GetLevelXP threshold maths
+			earnedXP = beforeSkill.GetLevelXP(countBefore + 1) - beforeSkill.xp + 1;
+			skills.GiveXP(playerId, earnedXP);
+		}
+
 		skills.AddSkillLevel(playerId, skillKey);
 
 		int skillAfter = OVT_TEST_PersistenceSubject.GetPlayerSkillLevel(persId, skillKey);
@@ -325,6 +337,9 @@ class OVT_TEST_Persistence_PlayerSkills_RoundTrip : SCR_AutotestCaseBase
 				countBefore.ToString(), countAfter.ToString());
 			return true;
 		}
+
+		if (earnedXP > 0)
+			skills.TakeXP(playerId, earnedXP);
 
 		// The skill manager exposes no level-removal seam, so this one mutation is left in place;
 		// no other case reads skills and the session ends seconds later.
@@ -422,6 +437,102 @@ class OVT_TEST_Persistence_RealEstateOwnership_RoundTrips : SCR_AutotestCaseBase
 
 		PrintFormat("Real estate ownership round-trip at %1 for '%2'",
 			building.GetOrigin().ToString(), persId);
+		SetResultSuccess();
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! BUG-003 - transferring a building to a new owner must CLEAR the previous owner.
+//!
+//! The defect: DoSetOwnerPersistentId() overwrites the position->owner map but only ever APPENDS to
+//! the new owner's owned-position list, so after a transfer the OLD owner's list still contains the
+//! building: GetOwnerID() names the new owner while IsOwner(oldOwner) stays true, and a later
+//! ownership removal leaves IsOwned() scanning a stale claim. The persistence suite's other real
+//! estate case deliberately routes around this by only ever owning an UNOWNED building - this case
+//! is the transfer coverage that note promised.
+//!
+//! SYNTHETIC OWNERS, ON PURPOSE. Both owners are made-up persistent IDs, not the local player, so
+//! the case never disturbs the player's real holdings (the campaign start deeds them a home) and
+//! cleanup is total: the one building touched is returned to unowned at the end through the same
+//! public mutator, and the case FAILS if that cleanup leaves any trace - which is itself the
+//! stale-list half of the bug.
+//!
+//! PROVEN ABLE TO FAIL: authored red against the live BUG-003 defect (IsOwner(previous owner)
+//! returned true after the transfer); flipped green with the fix in
+//! OVT_OwnerManagerComponent.DoSetOwnerPersistentId().
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceSuite, timeoutS: 30)]
+class OVT_TEST_Persistence_RealEstateTransfer_ClearsPreviousOwner : SCR_AutotestCaseBase
+{
+	//! First owner. Synthetic, never a real player's persistent ID.
+	static const string OWNER_A = "AUTOTEST-BUG003-OWNER-A";
+
+	//! The owner the building is transferred to.
+	static const string OWNER_B = "AUTOTEST-BUG003-OWNER-B";
+
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		OVT_RealEstateManagerComponent realEstate = OVT_Global.GetRealEstate();
+		if (!realEstate)
+		{
+			SetResultFailure("OVT_Global.GetRealEstate() is null");
+			return true;
+		}
+
+		string diagnostic;
+		IEntity building = OVT_TEST_PersistenceSubject.ResolveUnownedBuilding(diagnostic);
+		if (!building)
+		{
+			SetResultFailure("Cannot resolve a building to transfer: %1", diagnostic);
+			return true;
+		}
+
+		realEstate.SetOwnerPersistentId(OWNER_A, building);
+		if (!realEstate.IsOwner(OWNER_A, building.GetID()))
+		{
+			SetResultFailure("Precondition failed: the first owner does not own the building it was just given");
+			return true;
+		}
+
+		// The transfer under test: same mutator, different owner, no removal in between - exactly
+		// what any sale/hand-over path does.
+		realEstate.SetOwnerPersistentId(OWNER_B, building);
+
+		string ownerAfterTransfer = realEstate.GetOwnerID(building);
+		if (ownerAfterTransfer != OWNER_B)
+		{
+			SetResultFailure("The transfer did not stick: GetOwnerID() returned '%1', expected '%2'",
+				ownerAfterTransfer, OWNER_B);
+			return true;
+		}
+
+		if (!realEstate.IsOwner(OWNER_B, building.GetID()))
+		{
+			SetResultFailure("IsOwner() denies the new owner the building GetOwnerID() says they own");
+			return true;
+		}
+
+		if (realEstate.IsOwner(OWNER_A, building.GetID()))
+		{
+			SetResultFailure("BUG-003: IsOwner() still reports the PREVIOUS owner after a transfer - the old owner's owned-position list was never cleaned");
+			return true;
+		}
+
+		// Cleanup doubles as the stale-list assertion: removing the CURRENT owner must leave the
+		// building fully unowned; a leaked previous-owner entry keeps IsOwned() true here.
+		realEstate.SetOwner(-1, building);
+
+		if (realEstate.IsOwned(building.GetID()))
+		{
+			SetResultFailure("BUG-003: IsOwned() still finds an owner after the current owner was removed - a stale list entry from before the transfer survives");
+			return true;
+		}
+
+		PrintFormat("Ownership transfer at %1: previous owner cleared, new owner sole claimant, removal total",
+			building.GetOrigin().ToString());
 		SetResultSuccess();
 		return true;
 	}
@@ -966,6 +1077,103 @@ class OVT_TEST_Persistence_TownSupport_RoundTrips : SCR_AutotestCaseBase
 
 		PrintFormat("Town support round-trip on town %1: %2 -> %3 -> 0 -> %2",
 			townId.ToString(), supportBefore.ToString(), afterAdd.ToString());
+		SetResultSuccess();
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! BUG-004 - removing a recruit must also remove its entity and replication lookups.
+//!
+//! The defect: RemoveRecruit() cleans m_mRecruits and m_mRecruitsByOwner but never
+//! m_mEntityToRecruit / m_mRplIdToRecruit, so the removed record's ID keeps being handed out for as
+//! long as the mapped entity lives - GetRecruitFromEntity() resolves the dead ID and GetRecruit()
+//! then answers null for it - and the maps grow one stale entry per removal for the session's
+//! lifetime.
+//!
+//! The public read API cannot see the leak (a dead ID resolves to a null record either way), so the
+//! two assertions scan the lookup maps themselves for any entry still pointing at the removed
+//! record - by VALUE, not by key, so they also catch entries under an id this case never learned.
+//! That is the same direct-member style the town cases use for m_Towns, and it is the only
+//! observation that can distinguish "removed cleanly" from "leaked".
+//!
+//! PROVEN ABLE TO FAIL: authored red against the live BUG-004 defect (the entity map still carried
+//! the removed recruit's ID); flipped green with the cleanup added to RemoveRecruit().
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceSuite, timeoutS: 30)]
+class OVT_TEST_Persistence_RecruitRemoval_ClearsEntityLookups : SCR_AutotestCaseBase
+{
+	//! Explicit name, so the case does not depend on the random name generator.
+	static const string RECRUIT_NAME = "Autotest Lookup Leak Recruit";
+
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		OVT_RecruitManagerComponent recruits = OVT_Global.GetRecruits();
+		if (!recruits)
+		{
+			SetResultFailure("OVT_Global.GetRecruits() is null");
+			return true;
+		}
+
+		string diagnostic;
+		string persId = OVT_TEST_PersistenceSubject.ResolveLocalPersistentId(diagnostic);
+		if (persId == "")
+		{
+			SetResultFailure("Cannot resolve the persistent player ID: %1", diagnostic);
+			return true;
+		}
+
+		IEntity subject = OVT_TEST_PersistenceSubject.ResolveRecruitSubjectEntity(diagnostic);
+		if (!subject)
+		{
+			SetResultFailure("Cannot resolve an entity to attach a recruit to: %1", diagnostic);
+			return true;
+		}
+
+		string recruitId = recruits.AddRecruit(persId, subject, RECRUIT_NAME);
+		if (recruitId == "")
+		{
+			SetResultFailure("AddRecruit() returned no recruit ID");
+			return true;
+		}
+
+		// Sanity: the mapping this case is about actually exists before the removal.
+		OVT_RecruitData mapped = recruits.GetRecruitFromEntity(subject);
+		if (!mapped || mapped.m_sRecruitId != recruitId)
+		{
+			SetResultFailure("GetRecruitFromEntity() does not resolve the recruit that was just attached to the entity");
+			return true;
+		}
+
+		recruits.RemoveRecruit(recruitId);
+
+		if (recruits.GetRecruit(recruitId))
+		{
+			SetResultFailure("GetRecruit() still returns a record for a removed recruit");
+			return true;
+		}
+
+		foreach (EntityID entityId, string mappedRecruitId : recruits.m_mEntityToRecruit)
+		{
+			if (mappedRecruitId == recruitId)
+			{
+				SetResultFailure("BUG-004: m_mEntityToRecruit still maps an entity to removed recruit '%1' - RemoveRecruit() leaked the entity lookup", recruitId);
+				return true;
+			}
+		}
+
+		foreach (RplId rplId, string mappedRplRecruitId : recruits.m_mRplIdToRecruit)
+		{
+			if (mappedRplRecruitId == recruitId)
+			{
+				SetResultFailure("BUG-004: m_mRplIdToRecruit still maps a replication id to removed recruit '%1' - RemoveRecruit() leaked the replication lookup", recruitId);
+				return true;
+			}
+		}
+
+		PrintFormat("Recruit removal left no stale lookups for '%1'", recruitId);
 		SetResultSuccess();
 		return true;
 	}

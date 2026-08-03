@@ -611,21 +611,22 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Asks the persistence system to re-match a character that has just died.
+	//! Marks a character that has just died to spawn back on load, so its corpse survives a continue.
 	//!
-	//! WHY A CHARACTER HAS TO BE RE-MATCHED AT ALL. Rules are evaluated when an instance starts being
-	//! tracked, and every character is tracked from the moment it spawns (Character_Base.et carries the
-	//! native Persistence component). So a character is matched ALIVE and stays matched that way for the
-	//! rest of its existence unless something asks again - which for a corpse means it would be stored
-	//! under the AI/character configuration that Overthrow sets SelfSpawn 0 on, and would therefore never
-	//! come back. PersistenceSystem.ReloadConfig() is the ask; vanilla uses it for exactly this reason
-	//! when a player stops controlling an entity (SCR_SpawnLogic.c:167-173), a path Overthrow does not
-	//! travel because it hands characters over itself.
+	//! WHY A CORPSE NEEDS MARKING AT ALL. Every character is tracked from the moment it spawns
+	//! (Character_Base.et carries the native Persistence component), and the configuration it is matched
+	//! with while ALIVE never self-spawns - deliberately, because Overthrow's managers rebuild live AI
+	//! themselves (decision v2-5) and doubled AI on load is the catastrophe Phase 3 exists to prevent.
+	//! But nothing rebuilds corpses, so a dead character kept under that configuration is saved and then
+	//! never spawned back (BUG-018). Death is the one moment the answer changes, and this event - raised
+	//! from the damage manager's damage-state-changed invoker - is where Overthrow hears about it.
 	//!
-	//! TWICE, ON PURPOSE. This event is raised from the damage manager's damage-state-changed invoker,
-	//! and the rule reads the CHARACTER CONTROLLER's life state - two different components reacting to
-	//! the same native death. Rather than depend on which one updates first, the config is re-matched now
-	//! and again on the next frame. ReloadConfig is idempotent and costs one rule evaluation.
+	//! WHY AN EXPLICIT CONFIG FLIP AND NOT A RULE RE-MATCH. The first shipped design bound a scripted
+	//! PersistenceConfigRule for corpses in Overthrow.conf and called ReloadConfig() here. Measured
+	//! result: the engine never consults script-defined conf rules - see the rationale on
+	//! OVT_PersistenceTracking.MarkForSelfSpawn(), which is the working replacement. NEVER call
+	//! ReloadConfig() on a marked corpse afterwards: a re-match resets the scripted config and the
+	//! corpse silently stops coming back.
 	//! \param[in] victim The character that died.
 	//! \param[in] instigator Whoever killed it, unused here.
 	protected void OnCharacterKilledPersist(IEntity victim, IEntity instigator)
@@ -633,20 +634,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		if (!victim)
 			return;
 
-		OVT_PersistenceTracking.ReloadConfig(victim);
-
-		GetGame().GetCallqueue().CallLater(ReloadDeadCharacterConfig, 1, false, victim);
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Second pass of OnCharacterKilledPersist(), one frame later.
-	//! \param[in] victim The character that died. Null-checked: it may have been removed meanwhile.
-	protected void ReloadDeadCharacterConfig(IEntity victim)
-	{
-		if (!victim)
-			return;
-
-		OVT_PersistenceTracking.ReloadConfig(victim);
+		OVT_PersistenceTracking.MarkForSelfSpawn(victim);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -682,7 +670,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	{
 	    if (m_aFallbackSpawnPositions.Count() > 0)
 	    {
-	        int randomIndex = s_AIRandomGenerator.RandInt(0, m_aFallbackSpawnPositions.Count() - 1);
+	        int randomIndex = s_AIRandomGenerator.RandInt(0, m_aFallbackSpawnPositions.Count());
 	        return m_aFallbackSpawnPositions[randomIndex].GetOrigin();
 	    }
 	
@@ -696,7 +684,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	{
 	    if (m_aStartCameraPositions.Count() > 0)
 	    {
-	        int randomIndex = s_AIRandomGenerator.RandInt(0, m_aStartCameraPositions.Count() - 1);
+	        int randomIndex = s_AIRandomGenerator.RandInt(0, m_aStartCameraPositions.Count());
 	        return m_aStartCameraPositions[randomIndex];
 	    }
 	
@@ -755,14 +743,16 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		string persId = m_PlayerManager.GetPersistentIDFromPlayerID(playerId);
 		IEntity controlledEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
 
+		// Mark the record offline whether or not the player still controls a body - a player who
+		// leaves while dead or in the respawn menu has no controlled entity but is just as gone.
+		OVT_PlayerData player = m_PlayerManager.GetPlayer(persId);
+		if(player)
+		{
+			player.id = -1;
+		}
+
 		if(controlledEntity)
 		{
-			OVT_PlayerData player = m_PlayerManager.GetPlayer(persId);
-			if(player)
-			{
-				player.id = -1;
-			}
-
 			// Write the leaving player's character record, then release tracking without deleting it.
 			// Save-before-release is vanilla's own order for this (SCR_SpawnLogic.c:107-108, :215-216);
 			// releasing first would leave the final write with nothing to write to. Both calls are
@@ -787,24 +777,11 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		// Notify listeners that player has disconnected
 		m_PlayerManager.m_OnPlayerDisconnected.Invoke(persId, playerId);
 
-		super.OnPlayerDisconnected(playerId, cause, timeout);
+		// After listeners have run, drop the session-scoped ID mappings so a runtime ID reused by a
+		// later joiner can never resolve to this player (the OVT_PlayerData record itself is kept).
+		m_PlayerManager.ClearPlayerIdMappings(playerId);
 
-	    m_OnPlayerDisconnected.Invoke(playerId, cause, timeout);
-	    foreach (SCR_BaseGameModeComponent comp : m_aAdditionalGamemodeComponents)
-	    {
-	        comp.OnPlayerDisconnected(playerId, cause, timeout);
-	    }
-	    m_OnPostCompPlayerDisconnected.Invoke(playerId, cause, timeout);
-	
-	    if (IsMaster())
-	    {
-	        IEntity character = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
-	        
-	        // RespawnSystemComponent is not a SCR_BaseGameModeComponent, so for now we have to propagate these events manually.
-	        m_pRespawnSystemComponent.OnPlayerDisconnected_S(playerId, cause, timeout);
-	
-	        RplComponent.DeleteRplEntity(character, false);
-	    }
+		super.OnPlayerDisconnected(playerId, cause, timeout);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -1054,7 +1031,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		
 		Print(string.Format("[Overthrow] Found %1 fallback home spawns", m_aFallbackSpawnPositions.Count().ToString()));
 
-		OVT_Global.GetConfig() = OVT_Global.GetConfig();
+		m_Config = OVT_Global.GetConfig();
 		m_PlayerManager = OVT_PlayerManagerComponent.Cast(FindComponent(OVT_PlayerManagerComponent));
 		if(m_PlayerManager)
 		{
@@ -1134,12 +1111,11 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			return;
 		}
 
-		// A character's persistence configuration is chosen when it starts being tracked and is only
-		// re-chosen on request, so a character that DIES while tracked keeps the configuration it was
-		// matched with while alive. Corpses need their own (they self-spawn on load, live characters must
-		// not - see OVT_DeadCharacterPersistenceConfigRule), so ask for a re-match at the one moment the
-		// answer changes. Server only: the persistence system is registered SystemLocation Server, and
-		// this event is raised on clients too.
+		// A character's persistence configuration is chosen when it starts being tracked and never
+		// self-spawns while ALIVE (Overthrow rebuilds live AI itself). Corpses must self-spawn on load or
+		// they vanish from the save (BUG-018), so the kill hook flips that one bit at the one moment the
+		// answer changes - see OVT_PersistenceTracking.MarkForSelfSpawn(). Server only: the persistence
+		// system is registered SystemLocation Server, and this event is raised on clients too.
 		m_OnCharacterKilled.Insert(OnCharacterKilledPersist);
 
 		OVT_Global.GetConfig().LoadConfig();

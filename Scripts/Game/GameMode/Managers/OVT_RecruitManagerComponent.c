@@ -516,7 +516,32 @@ class OVT_RecruitManagerComponent : OVT_Component
 		
 		// Remove from main collection
 		m_mRecruits.Remove(recruitId);
-		
+
+		// Remove entity/replication lookups still pointing at this record, or GetRecruitFromEntity()
+		// keeps resolving the dead ID for as long as the body lives (BUG-004). Scanned by value: the
+		// body may have been remapped since this record last saw it.
+		array<EntityID> staleEntityIds = {};
+		foreach (EntityID entityId, string mappedRecruitId : m_mEntityToRecruit)
+		{
+			if (mappedRecruitId == recruitId)
+				staleEntityIds.Insert(entityId);
+		}
+		foreach (EntityID staleEntityId : staleEntityIds)
+		{
+			m_mEntityToRecruit.Remove(staleEntityId);
+		}
+
+		array<RplId> staleRplIds = {};
+		foreach (RplId rplId, string mappedRplRecruitId : m_mRplIdToRecruit)
+		{
+			if (mappedRplRecruitId == recruitId)
+				staleRplIds.Insert(rplId);
+		}
+		foreach (RplId staleRplId : staleRplIds)
+		{
+			m_mRplIdToRecruit.Remove(staleRplId);
+		}
+
 		// Broadcast recruit removal to all clients
 		BroadcastRecruitRemoved(recruitId, ownerPersistentId);
 		
@@ -770,19 +795,20 @@ class OVT_RecruitManagerComponent : OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Server-side method to recruit a civilian
-	void RecruitCivilian(SCR_ChimeraCharacter civilian, int playerId)
+	//! Server-side method to recruit a civilian. Returns false when no recruit record was created,
+	//! so callers can abort their transaction (refunds, orphan cleanup).
+	bool RecruitCivilian(SCR_ChimeraCharacter civilian, int playerId)
 	{
-		if (!civilian) return;
-		
+		if (!civilian) return false;
+
 		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
-		if (!players) return;
-		
+		if (!players) return false;
+
 		string persId = players.GetPersistentIDFromPlayerID(playerId);
-		if (persId.IsEmpty()) return;
-		
+		if (persId.IsEmpty()) return false;
+
 		// Double-check recruit limit on server
-		if (!CanRecruit(persId)) return;
+		if (!CanRecruit(persId)) return false;
 		
 		// Enable wanted system for the recruited civilian
 		OVT_PlayerWantedComponent wantedComp = OVT_PlayerWantedComponent.Cast(civilian.FindComponent(OVT_PlayerWantedComponent));
@@ -800,29 +826,25 @@ class OVT_RecruitManagerComponent : OVT_Component
 		
 		// Add to recruit manager
 		string recruitId = AddRecruit(persId, civilian);
-		
+		if (recruitId.IsEmpty()) return false;
+
 		// Set recruit faction to match player faction
 		SetRecruitFaction(persId, civilian);
 		
 		// Note: BroadcastRecruitCreated is already called in AddRecruit method
 		// No need to broadcast again here to avoid duplicates
 		
-		// Add to player's group using the proper API
-		
-		// Force the server's authoritative group manager to do it directly
-		SCR_GroupsManagerComponent groupsManager = SCR_GroupsManagerComponent.GetInstance();
-		if (groupsManager)
-		{
-    		// Find the player's existing native engine group
-    		SCR_AIGroup playerGroup = groupsManager.GetPlayerGroup(playerId);
-    		if (playerGroup)
-    		{
-        	// Violently force the AI agent directly into the group array on the server
-        	playerGroup.AddAgent(civilian.GetAIAgent());
-    		}
-		}		
+		// Add to the player's group through the slave-group path (RequestAddAIAgent) - the same
+		// route the respawn flow uses. Slave-group membership is commanded by player id, so it
+		// survives the owner dying; forcing the agent into the MASTER group's array only worked
+		// while the player's own agent was still in that group, which stops being true after
+		// their first death (Overthrow's handover never travels the vanilla spawn pipeline that
+		// would re-register the new body's agent).
+		AddRecruitToPlayerGroup(persId, civilian);
+
+		return true;
 	}
-	
+
 	//------------------------------------------------------------------------------------------------
 	//! Generate random recruit name
 	protected string GenerateRecruitName()

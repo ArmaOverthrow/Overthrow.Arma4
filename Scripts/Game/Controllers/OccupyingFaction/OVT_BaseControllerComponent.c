@@ -299,7 +299,7 @@ class OVT_BaseControllerComponent: OVT_Component
 						newres = upgrade.Spend(resources, threat);
 					}else{
 						if(resources < allocate) allocate = resources;
-						newres = upgrade.SpendToAllocation(threat);
+						newres = upgrade.SpendToAllocation(threat, allocate);
 					}
 
 					spent += newres;

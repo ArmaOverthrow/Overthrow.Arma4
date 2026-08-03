@@ -14,6 +14,8 @@ class OVT_RandomJobCondition : OVT_JobCondition
 		
 	override bool ShouldStart(OVT_TownData town, OVT_BaseData base, int playerId)
 	{
+		if(!town) return false; //base-only jobs have no town context
+
 		float chance = m_fChance;
 		if(town.population < 50) chance *= m_fLowPopulationFactor;
 		if(town.stability < 50) chance *= m_fLowStabilityFactor;

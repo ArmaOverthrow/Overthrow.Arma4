@@ -20,16 +20,11 @@ class OVT_SellDrugsAction : OVT_BaseCivilianUserAction
 			ResourceName res = ent.GetPrefabData().GetPrefabName();
 			if(res.Contains("DrugsWeed_01"))
 			{
-				int id = economy.GetInventoryId(res);
-				if(inventory.TryDeleteItem(ent))
-				{					
-					int cost = economy.GetBuyPrice(id, pUserEntity.GetOrigin()) * 1.25;
-					economy.AddPlayerMoney(playerId, cost);	
-					if(s_AIRandomGenerator.RandFloat01() > 0.25)	
-						MarkAsPerformed();	
-					hasDrugs = true;		
-					break;
-				}
+				OVT_Global.GetServer().SellDrugs(playerId, pOwnerEntity);
+				if(s_AIRandomGenerator.RandFloat01() > 0.25)
+					MarkAsPerformed();
+				hasDrugs = true;
+				break;
 			}
 		}
 		

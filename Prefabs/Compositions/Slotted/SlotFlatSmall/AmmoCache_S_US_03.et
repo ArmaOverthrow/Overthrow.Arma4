@@ -40,7 +40,7 @@ GenericEntity : "{3BA9D94C4EE9B33B}Prefabs/Compositions/Slotted/CompositionBase.
    coords -1.171 0 4.403
    angleY 19.001
   }
-  SCR_DestructibleEntity : "{BE7B5BAFE1A16A50}Prefabs/Props/Military/Fortification/BarbedTape_Coil.et" {
+  GenericEntity : "{BE7B5BAFE1A16A50}Prefabs/Props/Military/Fortification/BarbedTape_Coil.et" {
    ID "5DB4E4BD1165E4A0"
    coords -1.135 0 -1.336
   }

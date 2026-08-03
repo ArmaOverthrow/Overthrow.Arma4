@@ -22,15 +22,15 @@ class OVT_RecruitCivilianAction : OVT_BaseCivilianUserAction
 		}
 			
 		int cost = config.m_Difficulty.baseRecruitCost;
-		
+
+		// Advisory check only - the server re-validates and takes the money itself
 		if(!economy.LocalPlayerHasMoney(cost)) {
 			SCR_HintManagerComponent.ShowCustomHint("#OVT-CannotAfford");
 			return;
 		}
-		
-		economy.TakeLocalPlayerMoney(cost);
+
 		MarkAsPerformed();
-		
+
 		// Call server to handle the actual recruitment
 		OVT_Global.GetServer().RecruitCivilian(pOwnerEntity, playerId);
  	}

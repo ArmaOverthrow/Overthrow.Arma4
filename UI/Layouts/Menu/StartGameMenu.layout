@@ -122,54 +122,6 @@ FrameWidgetClass {
         SizeMode Fill
        }
       }
-      OverlayWidgetClass "{5DBCDD90DD86DDF1}" {
-       Name "XBOXWarning"
-       Slot LayoutSlot "{5DBCDD90DD86DDCE}" {
-       }
-       "Is Visible" 0
-       {
-        ImageWidgetClass "{5DBCDD90B7544C30}" {
-         Name "Image0"
-         Slot OverlayWidgetSlot "{5DBCDD90B7544C00}" {
-          HorizontalAlign 3
-          VerticalAlign 3
-         }
-         Color 0 0 0 0.431
-        }
-        VerticalLayoutWidgetClass "{5DBCDD903607325F}" {
-         Name "VerticalLayout2"
-         Slot OverlayWidgetSlot "{5EE258B1FB8EC4B2}" {
-         }
-         {
-          TextWidgetClass "{5DBCDD903BBC7AE6}" {
-           Name "Text0"
-           Slot LayoutSlot "{5DBCDD903BBC7AC3}" {
-           }
-           Color 0.749 0.376 0.376 1
-           Text "WARNING!"
-           "Font Size" 45
-           "Min Font Size" 45
-           "Horizontal Alignment" Center
-          }
-          TextWidgetClass "{5DBCDD9011FBF7E1}" {
-           Name "Text1"
-           Slot LayoutSlot "{5DBCDD9011FBF7B6}" {
-            Padding 5 15 5 15
-           }
-           Text "Single player is currently NOT WORKING due to limitations in Arma Reforger on consoles (XBOX and PS5)"\
-           ""\
-           "There is no indication of when this will be fixed by Bohemia Interactive. We are trying to make it work without saving but having trouble getting it to work. You can try to hit the Start Game button but it may not work and get stuck on this screen forever."\
-           ""\
-           "You can still play Overthrow on a Multiplayer cross-play server. Search the server list for \"Overthrow\" and join any of the public servers hosted by the community."
-           "Font Size" 17
-           "Min Font Size" 17
-           "Horizontal Alignment" Center
-           Wrap 1
-          }
-         }
-        }
-       }
-      }
       OverlayWidgetClass "{599D315A153C652E}" {
        Name "Footer"
        Slot LayoutSlot "{599D315A153C65F1}" {

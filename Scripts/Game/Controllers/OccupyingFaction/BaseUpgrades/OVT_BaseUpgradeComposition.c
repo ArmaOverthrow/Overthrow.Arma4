@@ -68,7 +68,7 @@ class OVT_BaseUpgradeComposition : OVT_SlottedBaseUpgrade
 			int numItems = s_AIRandomGenerator.RandInt(15,40);
 			for(int i = 0; i<numItems; i++)
 			{
-				int itemIndex = s_AIRandomGenerator.RandInt(0,prefabs.Count()-1);
+				int itemIndex = s_AIRandomGenerator.RandInt(0,prefabs.Count());
 				ResourceName res = prefabs[itemIndex];
 				toStorage.TrySpawnPrefabToStorage(res);
 			}

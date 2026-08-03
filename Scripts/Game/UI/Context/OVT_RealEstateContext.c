@@ -208,19 +208,17 @@ class OVT_RealEstateContext : OVT_UIContext
 		int cost = m_RealEstate.GetBuyPrice(building);
 		
 		if(account == 0)
-		{				
+		{
 			if(!m_Economy.PlayerHasMoney(m_sPlayerID, cost)) return;
-			
-			m_Economy.TakePlayerMoney(m_iPlayerID, cost);
-			OVT_Global.GetServer().SetBuildingOwner(m_iPlayerID, building);
+
+			OVT_Global.GetServer().BuyBuilding(m_iPlayerID, false);
 		}else if(account == 1)
 		{
 			if(!m_Economy.ResistanceHasMoney(cost)) return;
-			
-			m_Economy.TakeResistanceMoney(cost);
-			OVT_Global.GetServer().SetBuildingOwner("resistance", building);
+
+			OVT_Global.GetServer().BuyBuilding(m_iPlayerID, true);
 		}
-		
+
 		Refresh();
 	}
 	
@@ -247,18 +245,8 @@ class OVT_RealEstateContext : OVT_UIContext
 		
 		if(m_RealEstate.IsHome(m_sPlayerID, id)) return;
 				
-		int cost = m_RealEstate.GetBuyPrice(building);
-		
-		if(account == 0)
-		{
-			m_Economy.AddPlayerMoney(m_iPlayerID, cost);
-		}else if(account == 1)
-		{
-			m_Economy.AddResistanceMoney(cost);
-		}
-		
-		OVT_Global.GetServer().SetBuildingOwner(-1, building);
-		
+		OVT_Global.GetServer().SellBuilding(m_iPlayerID, account == 1);
+
 		Refresh();
 	}
 	
@@ -287,28 +275,19 @@ class OVT_RealEstateContext : OVT_UIContext
 							
 		if(!isOwner)
 		{
-			int cost = m_RealEstate.GetRentPrice(building);	
-			
-			if(account == 0)			
+			int cost = m_RealEstate.GetRentPrice(building);
+
+			if(account == 0)
 			{
-				if(!m_Economy.PlayerHasMoney(m_sPlayerID, cost)) return;		
-				m_Economy.TakePlayerMoney(m_iPlayerID, cost);			
+				if(!m_Economy.PlayerHasMoney(m_sPlayerID, cost)) return;
 			}else if(account == 1)
 			{
-				if(!m_Economy.ResistanceHasMoney(cost)) return;		
-				m_Economy.TakeResistanceMoney(cost);	
+				if(!m_Economy.ResistanceHasMoney(cost)) return;
 			}
 		}
-		
-		
-		if(account == 0)			
-		{
-			OVT_Global.GetServer().SetBuildingRenter(m_iPlayerID, building.GetOrigin());
-		}else if(account == 1)
-		{
-			OVT_Global.GetServer().SetBuildingRenter("resistance", building.GetOrigin());
-		}
-		
+
+		OVT_Global.GetServer().RentBuilding(m_iPlayerID, account == 1);
+
 		Refresh();
 	}
 	
@@ -330,9 +309,9 @@ class OVT_RealEstateContext : OVT_UIContext
 		
 		
 		if(!isRenter) return;
-				
-		OVT_Global.GetServer().SetBuildingRenter(-1, building.GetOrigin());
-		
+
+		OVT_Global.GetServer().StopRentingBuilding(m_iPlayerID, account == 1);
+
 		Refresh();
 	}
 	

@@ -1,7 +1,7 @@
 # Workbench Automation - Task Checklist
 
-**Last Updated:** 2026-08-01 23:05
-**Progress:** 56/56 tasks complete (100%) 🎉
+**Last Updated:** 2026-08-04
+**Progress:** 56/63 tasks complete (89%) — core feature 56/56 done 2026-08-01; Phase 7 (live-session agent debug bridge) added 2026-08-04, not started
 **Advanced phases:** Phase 1 (REQUIRED — max-effort empirical work), Phase 3 (RECOMMENDED — verdict logic is where a false green is born)
 
 ---
@@ -194,6 +194,27 @@
 
 ---
 
+## Phase 7: Live-session agent debug bridge (0/7) 📋 — added 2026-08-04
+
+> **Goal:** replace the "agent writes `.tmp/group-debug.c`, human pastes into the Script Console" loop with zero-human-action code execution in a live play session. Research complete — plan basis is `live-session-debug-research.md` in this folder (verdict: possible via `ScriptModule.CompileScript` runtime eval; NetAPI TCP 5775 is the Workbench-only alternative transport). Spike 7.1 is the gate: its result decides the whole design.
+
+- [ ] **7.1 Spike: `CompileScript` in a live session** — in Workbench play mode AND the diag client: does `ScriptModule.CompileScript(GetGame().GetScriptModule(), src, err, line)` + `Call` work mid-session; can compiled code reference Overthrow types (`OVT_Global.GetTowns()`); does repeated compiling leak. **GATE for 7.3-7.5.**
+  - Estimate: 🟡 Medium
+- [ ] **7.2 Spike: `$profile:` command-file round-trip** — existence-poll → read → write result → `DeleteFile` from a repeating `CallLater`; confirm agent-side profile-dir resolution via `tools/lib/common.sh`. (No mtime API exists — protocol is consume-and-delete or seq-numbered.)
+  - Estimate: 🟢 Small
+- [ ] **7.3 `OVT_AgentBridge` component** — dev-only (must never be active in retail; `CompileScript` self-limits to workbench/diag but gate the poller too): repeating `CallLater` ~250ms polls `$profile:agent/cmd.c`; on hit compile → `Call(null, "Main", ...)` → write `{result, errorText, errorLine}` to `$profile:agent/out.json` → delete input. Guards from `SCR_AutotestRunner.c:90-125` (`IsPreloadFinished`, transition-in-progress).
+  - Estimate: 🔴 Large
+- [ ] **7.4 Agent-side wrapper `tools/debug-exec.sh`** — write snippet to the bridge's command path, wait (bounded) for `out.json`, print result/compile errors; honest 0/1/2/124 taxonomy consistent with the other tools; `tools/README.md` section.
+  - Estimate: 🟡 Medium
+- [ ] **7.5 (Optional) NetAPI handler variant** — evaluate registering a Net Handler on the already-listening Workbench NetAPI port 5775 (study github.com/steffenbk/enfusion-mcp-BK) as a push transport replacing file polling. Workbench-only.
+  - Estimate: 🟡 Medium
+- [ ] **7.6 (Optional) External reload trigger** — manual test first: `Shift+F7` ("Validate and Reload Scripts" — renamed in current build) during play mode: enabled? drops to edit mode? Then, if useful, UIA Expand+Invoke on the Script Editor `Build` menu from PowerShell/WSL to kill the stale-scripts-after-WSL-edits trap. Note: hot reload is almost certainly a full VM teardown, not a live patch — this serves the edit→replay loop, not the bridge.
+  - Estimate: 🟡 Medium
+- [ ] **7.7 Docs** — `tools/README.md` bridge contract; `workbench-workflow` skill (debug-loop section + fix stale "Compile and Reload Scripts" label, also in `README.md:54`); update this feature's context.md + epic rollup.
+  - Estimate: 🟢 Small
+
+---
+
 ## Bugs & Issues
 
 **Active Bugs:**
@@ -213,7 +234,7 @@
 ## Progress Tracking
 
 ### Discovered New Tasks
-- (none yet)
+- 2026-08-04: Phase 7 (7.1–7.7) — live-session agent debug bridge, from the investigation recorded in `live-session-debug-research.md`
 
 ### Blocked Items
 - (none)

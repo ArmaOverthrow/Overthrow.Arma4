@@ -141,7 +141,8 @@ class OVT_PlaceContext : OVT_UIContext
 		
 		// Calculate pages based on remaining items
 		int totalPlaceables = m_Resistance.m_PlaceablesConfig.m_aPlaceables.Count();
-		m_iNumPages = Math.Ceil(totalPlaceables / 14); // 14 items per page (leaving room for remove card)
+		m_iNumPages = (totalPlaceables + 13) / 14; // 14 items per page (leaving room for remove card)
+		if(m_iNumPages < 1) m_iNumPages = 1;
 		if(m_iPageNum >= m_iNumPages) m_iPageNum = 0;
 		string pageNumText = (m_iPageNum + 1).ToString();
 		
@@ -727,10 +728,11 @@ class OVT_PlaceContext : OVT_UIContext
 			if(hitEntity)
 			{
 				OVT_PlaceableComponent placeableComp = OVT_PlaceableComponent.Cast(hitEntity.FindComponent(OVT_PlaceableComponent));
-				if(placeableComp && CanRemoveItem(placeableComp))
+				RplComponent rpl = RplComponent.Cast(hitEntity.FindComponent(RplComponent));
+				if(placeableComp && rpl && CanRemoveItem(placeableComp))
 				{
-					// Send removal request to server
-					OVT_Global.GetServer().RemovePlacedItem(hitEntity.GetID(), m_iPlayerID);
+					// Send removal request to server (RplId - EntityID is not valid across the network)
+					OVT_Global.GetServer().RemovePlacedItem(rpl.Id(), m_iPlayerID);
 					ShowHint("#OVT-ItemRemoved");
 					SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.CLICK);
 				}

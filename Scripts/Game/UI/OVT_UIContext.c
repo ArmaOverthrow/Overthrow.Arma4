@@ -126,11 +126,18 @@ class OVT_UIContext : ScriptAndConfig
 			return;
 		}
 
-		if(m_bOpenActionCloses && m_bIsActive)
+		if(m_bIsActive)
 		{
-			Print("[Overthrow] ShowLayout() closing instead (already active)");
+			if(m_bOpenActionCloses)
+			{
+				Print("[Overthrow] ShowLayout() closing instead (already active)");
+				CloseLayout();
+				return;
+			}
+
+			// Re-opening while active: close the existing layout first, otherwise the
+			// new m_wRoot orphans the previous panel on screen
 			CloseLayout();
-			return;
 		}
 
 		WorkspaceWidget workspace = GetGame().GetWorkspace();

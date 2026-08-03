@@ -24,7 +24,7 @@ The constituent features of this epic, in build order. This is the epic's equiva
 
 | # | Feature | Status | Tasks | Description |
 |---|---------|--------|-------|-------------|
-| 1 | workbench-automation | ✅ Complete | 56/56 | Drive Workbench headlessly from WSL; compile check with a real exit code and parsed errors |
+| 1 | workbench-automation | 🟡 Extension planned | 56/63 | Drive Workbench headlessly from WSL; compile check with real exit codes. Core ✅ 2026-08-01; Phase 7 (live-session agent debug bridge, research done 2026-08-04) planned |
 | 2 | autotest-foundation | ✅ Complete | 22/22 | Wire `SCR_Autotest` into Overthrow; prove `-autotest` → `junit.xml` end-to-end |
 | 3 | test-coverage | ✅ Complete | 61/62 (1 optional) | Behaviour-level suites in four tiers (30 assertions) + two group targets + the quarantined `core/persistence` acceptance gate |
 | 4 | ci-pipeline | 📋 Planned | — | Self-hosted Windows runner, GitHub Actions, JUnit results surfaced on PRs |

@@ -46,8 +46,8 @@
 - `GetPersistence()` returns **null on clients** (`m_Persistence` assigned after the `!IsMaster()` return).
 - `OVT_Global.GetServer()`/`GetUI()` dereference the local controlled entity with **no null check** — the Init test suite deliberately excludes them.
 - JSON difficulty overrides run *after* `PostGameStart()`; managers snapshotting difficulty at start see pre-override values (and `NewGameStart()` reads difficulty even earlier).
-- `OVT_OverthrowGameMode.c:789` is a no-op self-assignment (`OVT_Global.GetConfig() = OVT_Global.GetConfig();`) — `m_Config` is only assigned in `DoStartNewGame()`, so it's null on the save-load path.
-- Disconnect events likely fire twice (`OnPlayerDisconnected` duplicates its `super` body inline).
+- ~~`OVT_OverthrowGameMode.c` no-op self-assignment leaving `m_Config` null on the save-load path~~ — fixed 2026-08-02 (BUG-012 closed).
+- ~~Disconnect events firing twice (`OnPlayerDisconnected` duplicated its `super` body inline)~~ — fixed 2026-08-02 (BUG-017 closed).
 - Full oddity list (15 items): see `implementation.md` § Technical Debt and the discovery analysis.
 
 ---

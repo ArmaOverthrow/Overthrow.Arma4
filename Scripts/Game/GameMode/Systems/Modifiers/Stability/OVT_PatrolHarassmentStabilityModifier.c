@@ -1,20 +1,23 @@
 class OVT_PatrolHarassmentStabilityModifier : OVT_StabilityModifier
 {
-	protected int m_iLastCheckedHour = -1; // Track when we last checked to avoid spam
-	
+	// One shared handler instance ticks every town, so the hour gate must be keyed per town
+	protected ref map<int, int> m_mLastCheckedHour = new map<int, int>;
+
 	override void OnTick(OVT_TownData town)
 	{
 		if (!town)
 			return;
-			
+
 		// Only check once per in-game hour
 		ChimeraWorld world = GetGame().GetWorld();
 		TimeContainer time = world.GetTimeAndWeatherManager().GetTime();
-		
-		if (m_iLastCheckedHour == time.m_iHours)
+
+		int gateTownID = m_Towns.GetTownID(town);
+		int lastCheckedHour;
+		if (m_mLastCheckedHour.Find(gateTownID, lastCheckedHour) && lastCheckedHour == time.m_iHours)
 			return;
-			
-		m_iLastCheckedHour = time.m_iHours;
+
+		m_mLastCheckedHour.Set(gateTownID, time.m_iHours);
 		
 		// Check if there's an active "Town Patrol" deployment in this town
 		OVT_DeploymentManagerComponent deploymentManager = OVT_DeploymentManagerComponent.GetInstance();

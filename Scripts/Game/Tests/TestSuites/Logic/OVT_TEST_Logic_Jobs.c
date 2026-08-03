@@ -152,22 +152,18 @@ class OVT_TEST_Logic_Jobs_DealerCondition_SetAndUnset : SCR_AutotestCaseBase
 }
 
 //------------------------------------------------------------------------------------------------
-//! PINS A SUSPECTED BUG - OVT_TownHasDealerJobCondition only inspects the X axis.
+//! REGRESSION for BUG-005 (formerly a pinned bug) - a dealer on the X = 0 plane is still a dealer.
 //!
-//! The condition is `if (town.gunDealerPosition && town.gunDealerPosition[0] != 0)`, so a dealer
-//! standing anywhere on the X = 0 plane reads as "this town has no dealer", no matter how far along
-//! Z or Y they are. The intended test is plainly "is the position set", which the zero-vector check
-//! alone does not express.
+//! The condition used to be `if (town.gunDealerPosition && town.gunDealerPosition[0] != 0)`, so a
+//! dealer standing anywhere on the X = 0 plane read as "this town has no dealer", no matter how far
+//! along Z or Y they were. Fixed 2026-08-03 to the zero-vector check the intent always was
+//! (`gunDealerPosition != vector.Zero`); this case asserts the input the old check got wrong.
 //!
-//! Nothing breaks on Everon, where no town sits on X = 0, and the test world's town is at X = 208 -
-//! which is exactly why this would never be noticed until a map put a town near the west edge of
-//! the world.
-//!
-//! Asserts the CURRENT behaviour on purpose; fixing the condition must turn this case red. Logged
-//! in findings.md under "Bugs found (log only)".
+//! Nothing broke on Everon, where no town sits on X = 0 - the bug would only ever bite a map with
+//! a town near the west edge of the world.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_LogicSuite, timeoutS: 30)]
-class OVT_TEST_Logic_Jobs_DealerCondition_PinsAxisOnlyCheckBug : SCR_AutotestCaseBase
+class OVT_TEST_Logic_Jobs_DealerCondition_XZeroPlaneIsStillADealer : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
 	[Step(EStage.Main)]
@@ -177,23 +173,24 @@ class OVT_TEST_Logic_Jobs_DealerCondition_PinsAxisOnlyCheckBug : SCR_AutotestCas
 
 		OVT_TownData town = OVT_TEST_LogicFixture.MakeTown(50, 0);
 
-		// A perfectly valid dealer position 500 m along Z, with X at exactly zero.
+		// A perfectly valid dealer position 500 m along Z, with X at exactly zero - the input the
+		// old axis-only check misread as "no dealer".
 		town.gunDealerPosition = "0 0 500";
-		if (condition.ShouldStart(town, null, -1))
+		if (!condition.ShouldStart(town, null, -1))
 		{
-			SetResultFailure("PINNED BUG CHANGED: OVT_TownHasDealerJobCondition now reports a dealer at %1. The pin recorded that a position with X exactly 0 reads as 'no dealer'. If the condition was fixed, update this case and findings.md", town.gunDealerPosition.ToString());
+			SetResultFailure("BUG-005 REGRESSED: OVT_TownHasDealerJobCondition reported no dealer at %1 - a set position with X exactly 0 must read as a dealer", town.gunDealerPosition.ToString());
 			return true;
 		}
 
-		// A dealer with a non-zero X is found, confirming the axis is the only difference.
+		// And the same dealer off the X = 0 plane is unchanged.
 		town.gunDealerPosition = "1 0 500";
 		if (!condition.ShouldStart(town, null, -1))
 		{
-			SetResultFailure("OVT_TownHasDealerJobCondition reported no dealer at %1 - the pinned difference is supposed to be the X axis alone", town.gunDealerPosition.ToString());
+			SetResultFailure("OVT_TownHasDealerJobCondition reported no dealer at %1", town.gunDealerPosition.ToString());
 			return true;
 		}
 
-		Print("PINNED: dealer at X=0 reads as absent, the same dealer at X=1 reads as present");
+		Print("Dealer condition: a set position is a dealer regardless of which axes are zero");
 
 		SetResultSuccess();
 		return true;

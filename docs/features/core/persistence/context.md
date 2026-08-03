@@ -13,7 +13,7 @@
 - ✅ `vanilla-api-reference.md` created — verified API truth with file:line for everything (system, conf layer, serializers, SaveGameManager, UUID/WhenAvailable, lifecycle traps).
 - ✅ Acceptance gate in place since dev-ops/test-coverage (see below).
 
-**What's next:** (1) **SP playtest DONE 2026-08-03 — items 1–15 ✅**, only BUG-018 (corpses across continue, low, deferred) filed out of it; (2) **section D (items 16–20: JIP, two-player isolation, vehicle reconnect #143, dedicated restart cycle) needs a dev build on a server** — that is the remaining gate; (3) optionally `/fix-bug BUG-018`; (4) then the branch is merge-ready for `main` (user's call; changes are uncommitted in the working tree).
+**What's next:** (1) **SP playtest DONE 2026-08-03 — items 1–15 ✅**, only BUG-018 (corpses across continue, low, deferred) filed out of it; (2) **section D (items 16–20: JIP, two-player isolation, vehicle reconnect #143, dedicated restart cycle) needs a dev build on a server** — that is the remaining gate; (3) **BUG-018 FIXED 2026-08-03** (root cause: engine never consults scripted conf rules — see the session note below; corpse re-check is play-test item 12c on the next continue); (4) then the branch is merge-ready for `main` (user's call; changes are uncommitted in the working tree).
 
 **Blockers:** MP/dedicated half of the playtest waits on a server dev build. Nothing else.
 
@@ -72,6 +72,14 @@ The dividing line for "should this entity persist?" is not "is it important" but
 ---
 
 ## Session Notes
+
+### 2026-08-03 — BUG-018 FIXED: the engine never consults scripted conf rules; corpse self-spawn now set via SetConfig
+
+**The corpse-rule design was dead on arrival, and now that is a measurement, not a suspicion.** A new Init-tier case (`OVT_TEST_Init_Persistence_DeadCharacterConfigSelfSpawns`) spawns a recruit character, kills it and watches its matched config. Authored red against the live defect, its instrumented runs split the suspects cleanly: the controller DID report the character dead (timing suspect eliminated), `ReloadConfig()` returned true 301/301 times (tracking/hook suspects eliminated), and `OVT_DeadCharacterPersistenceConfigRule.IsMatch` was called **ZERO times** — across world load, the initial matching of every tracked character, and 300 forced re-matches. Every rule vanilla binds in any .conf is a native generated class; the scripted `IsMatch` event is dead code on the conf path. The 2026-08-02 note below ("The ethos, stated and then finished") stands corrected on this point.
+
+**The replacement uses the API pair vanilla exposes for exactly this:** `OVT_PersistenceTracking.MarkForSelfSpawn(entity)` — `GetConfig()` → flip `m_bSelfSpawn` → `SetConfig()` — called from the game mode's existing character-killed hook. The matched config's collection/serializers/self-delete are kept; only the one bit changes; it lands on the death frame (0 polls). Deleted: the rule class, its `Overthrow.conf` block (Priority 36000), and the one-frame re-ask. **New invariant, load-bearing:** `ReloadConfig()` RESETS a scripted config, so nothing may re-match a marked corpse — both doc comments say so.
+
+**The same case also pins the opposite catastrophe:** it fails if a LIVE character's config self-spawns (Phase 3's no-double-AI invariant). All group now 44/44. The true quit-and-continue half of 12c stays a manual play-test item, as ever.
 
 ### 2026-08-03 — SP PLAYTEST GREEN: items 1–15 ✅ (12c ❌ → BUG-018); MP section awaits a server build
 

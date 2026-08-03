@@ -438,22 +438,26 @@ class OVT_RecruitsContext : OVT_UIContext
 		}
 		
 		string newName = editBox.GetValue();
-		
-		// Use the recruit manager to handle all rename logic
-		bool success = m_RecruitManager.RenameRecruit(m_CurrentRenamingRecruit.m_sRecruitId, newName);
-		
-		if (success)
-		{
-			// Refresh UI to show new name
-			UpdateRecruitDetails();
-			Refresh();
-			ShowHint("#OVT-Recruit_Renamed");
-		}
-		else
+
+		// Validate locally for immediate feedback; the server re-validates
+		if (newName.IsEmpty() || newName.Length() > 32)
 		{
 			ShowHint("Invalid name length (1-32 characters)");
+			m_CurrentRenamingRecruit = null;
+			m_RenameDialog = null;
+			return;
 		}
-		
+
+		// Ask the server - it validates ownership, renames the authoritative record and broadcasts
+		OVT_Global.GetServer().RenameRecruit(m_CurrentRenamingRecruit.m_sRecruitId, newName);
+
+		// Apply to the local replica too so the UI updates immediately (the broadcast confirms it)
+		m_RecruitManager.RenameRecruit(m_CurrentRenamingRecruit.m_sRecruitId, newName);
+
+		UpdateRecruitDetails();
+		Refresh();
+		ShowHint("#OVT-Recruit_Renamed");
+
 		m_CurrentRenamingRecruit = null;
 		m_RenameDialog = null;
 	}

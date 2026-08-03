@@ -751,7 +751,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 		
 		// Find the town controller to get QRF parameters
 		OVT_TownManagerComponent townManager = OVT_Global.GetTowns();
-		EntityID townControllerID = townManager.m_TownControllers.Get(townID);
+		EntityID townControllerID;
+		if(townID >= 0 && townID < townManager.m_TownControllers.Count())
+			townControllerID = townManager.m_TownControllers.Get(townID);
 		if(townControllerID)
 		{
 			IEntity townEntity = GetGame().GetWorld().FindEntityByID(townControllerID);
@@ -1060,24 +1062,32 @@ class OVT_OccupyingFactionManager: OVT_Component
 			}
 			sortedBases.Sort(true);	
 
-			int perBase = Math.Floor((float)toSpend / sortedBases.Count());		
-			
-			foreach(OVT_BaseData data : sortedBases)
-			{				
-				OVT_BaseControllerComponent base = GetBase(data.entId);
+			if(!sortedBases.IsEmpty())
+			{
+				int perBase = Math.Floor((float)toSpend / sortedBases.Count());
 
-				//Dont spawn stuff if a player is watching lol
-				if(OVT_Global.PlayerInRange(data.location, OVT_Global.GetConfig().m_Difficulty.baseCloseRange+100)) continue;
+				foreach(OVT_BaseData data : sortedBases)
+				{
+					if(toSpend <= 0) break;
 
-				m_iResources -= base.SpendResources(m_iResources, m_iThreat);
+					OVT_BaseControllerComponent base = GetBase(data.entId);
 
-				if(m_iResources <= 0) {
-					m_iResources = 0;
-					break;
-				}
+					//Dont spawn stuff if a player is watching lol
+					if(OVT_Global.PlayerInRange(data.location, OVT_Global.GetConfig().m_Difficulty.baseCloseRange+100)) continue;
 
-				if(toSpend <= 0) {
-					break;
+					int budget = perBase;
+					if(budget > toSpend) budget = toSpend;
+					if(budget > m_iResources) budget = m_iResources;
+					if(budget <= 0) break;
+
+					int spent = base.SpendResources(budget, m_iThreat);
+					m_iResources -= spent;
+					toSpend -= spent;
+
+					if(m_iResources <= 0) {
+						m_iResources = 0;
+						break;
+					}
 				}
 			}
 			UpdateSpecops();
@@ -1089,7 +1099,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		if(time.m_iMinutes == 0 && m_iResources > 2000 && m_bCounterAttackTimeout == 0 && rand > 0.9)
 		{
 			Print("[Overthrow.OccupyingFactionManager] Surplus of resources, attempting counter attack");
-			OVT_BaseData randomBase = m_Bases[s_AIRandomGenerator.RandInt(0,m_Bases.Count()-1)];
+			OVT_BaseData randomBase = m_Bases[s_AIRandomGenerator.RandInt(0,m_Bases.Count())];
 			if(!randomBase.IsOccupyingFaction())
 			{
 				OVT_BaseControllerComponent base = GetBase(randomBase.entId);

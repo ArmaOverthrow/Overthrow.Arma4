@@ -8,6 +8,8 @@ class OVT_TownSupportJobCondition : OVT_JobCondition
 			
 	override bool ShouldStart(OVT_TownData town, OVT_BaseData base, int playerId)
 	{
+		if(!town) return false; //base-only jobs have no town context
+
 		int support = town.SupportPercentage();
 		if(m_iMinSupport > -1 && support < m_iMinSupport) return false;
 		if(m_iMaxSupport > -1 && support > m_iMaxSupport) return false;

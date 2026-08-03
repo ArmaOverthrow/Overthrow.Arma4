@@ -56,7 +56,13 @@ class OVT_VehicleUpgrade : ScriptAndConfig
 }
 
 class OVT_ResistanceFactionManager: OVT_Component
-{	
+{
+	//! Buffer (m) added to baseCloseRange when validating FOB deployment near any base.
+	//! Shared by the deploy action, the server-side check and the map's restricted-area overlay
+	static const int FOB_DEPLOY_BASE_BUFFER = 50;
+	//! Enforced FOB deployment exclusion radius (m) around any radio tower
+	static const int FOB_DEPLOY_TOWER_RANGE = 70;
+
 	[Attribute()]
 	ResourceName m_rPlaceablesConfigFile;
 	
@@ -91,6 +97,13 @@ class OVT_ResistanceFactionManager: OVT_Component
 	protected IEntity m_pCurrentMobileFOB;
 	protected IEntity m_pCurrentDeploymentSource;
 	protected IEntity m_pCurrentDeploymentTarget;
+	// The transfer component the in-flight operation subscribed to; the completion handlers must
+	// unsubscribe from this exact component (its owner is the player's controller, not this manager)
+	protected OVT_ContainerTransferComponent m_CurrentDeploymentTransfer;
+	protected OVT_ContainerTransferComponent m_CurrentCollectionTransfer;
+	// The player whose transfer component drives the in-flight FOB operation; if they disconnect
+	// mid-transfer the complete/error callbacks never fire, so the state must be recovered manually
+	protected int m_iFOBOperationPlayerId = -1;
 	protected SCR_AIGroup m_TempGroup;
 	
 	ref ScriptInvoker m_OnPlace = new ScriptInvoker();
@@ -136,7 +149,30 @@ class OVT_ResistanceFactionManager: OVT_Component
 	
 	void Init(IEntity owner)
 	{
-		GetGame().GetCallqueue().CallLater(RegisterUpgrades, 0);		
+		GetGame().GetCallqueue().CallLater(RegisterUpgrades, 0);
+
+		// If the player driving an in-flight FOB operation disconnects, the transfer callbacks on
+		// their controller never fire and the operation state would wedge FOB deploy/undeploy for
+		// the rest of the session - recover it here (the invoker only fires on the server)
+		if (m_Players)
+			m_Players.m_OnPlayerDisconnected.Insert(OnPlayerDisconnectedFOBRecovery);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Recovers the shared FOB operation state if the initiating player disconnects mid-transfer
+	protected void OnPlayerDisconnectedFOBRecovery(string playerPersistentId, int playerId)
+	{
+		if (m_iFOBOperationPlayerId == -1 || playerId != m_iFOBOperationPlayerId) return;
+
+		if (m_pCurrentDeploymentSource || m_pCurrentDeploymentTarget)
+		{
+			OnFOBDeploymentError("Player disconnected");
+		}
+		else if (m_pCurrentUndeployedFOB || m_pCurrentMobileFOB)
+		{
+			OnFOBCollectionError("Player disconnected");
+		}
+		m_iFOBOperationPlayerId = -1;
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -380,14 +416,26 @@ class OVT_ResistanceFactionManager: OVT_Component
 		{
 			foreach(ResourceName res : fob.garrison)
 			{
-				fob.garrisonEntities.Insert(OVT_Global.GetResistanceFaction().SpawnGarrisonCamp(fob, res).GetID());
+				SCR_AIGroup group = SpawnGarrisonCamp(fob, res);
+				if(!group)
+				{
+					Print(string.Format("[Overthrow] Failed to spawn camp garrison prefab '%1' - skipping", res), LogLevel.WARNING);
+					continue;
+				}
+				fob.garrisonEntities.Insert(group.GetID());
 			}
 		}
 		foreach(OVT_FOBData fob : m_FOBs)
 		{
 			foreach(ResourceName res : fob.garrison)
 			{
-				fob.garrisonEntities.Insert(OVT_Global.GetResistanceFaction().SpawnGarrisonFOB(fob, res).GetID());
+				SCR_AIGroup group = SpawnGarrisonFOB(fob, res);
+				if(!group)
+				{
+					Print(string.Format("[Overthrow] Failed to spawn FOB garrison prefab '%1' - skipping", res), LogLevel.WARNING);
+					continue;
+				}
+				fob.garrisonEntities.Insert(group.GetID());
 			}
 		}
 	}
@@ -407,6 +455,10 @@ class OVT_ResistanceFactionManager: OVT_Component
 	
 	void AddOfficer(int playerId)
 	{
+		// Server-only: the broadcast below is dropped when sent from a client, which would leave
+		// the promotion applied on the caller's screen alone. Clients go through
+		// OVT_PlayerCommsComponent.AddOfficer.
+		if (!Replication.IsServer()) return;
 		RpcDo_AddOfficer(playerId);
 		Rpc(RpcDo_AddOfficer, playerId);
 	}
@@ -432,67 +484,74 @@ class OVT_ResistanceFactionManager: OVT_Component
 		foreach(OVT_BaseData base : occupyingFaction.m_Bases)
 		{
 			float distance = vector.Distance(base.location, fobPos);
-			// Use base close range + extra buffer (50m)
-			float restrictedDistance = config.m_Difficulty.baseCloseRange + 50;
-			
+			float restrictedDistance = config.m_Difficulty.baseCloseRange + FOB_DEPLOY_BASE_BUFFER;
+
 			if(distance < restrictedDistance)
 			{
-				return; // Silently fail - client should have already validated
+				// Client pre-validates, but state can diverge - tell the player why nothing
+				// happened. Server-initiated calls (playerId -1) would broadcast to everyone.
+				if (playerId > -1)
+					OVT_Global.GetNotify().SendTextNotification("TooCloseBase", playerId);
+				return;
 			}
 		}
-		
+
 		// Check distance to ALL radio towers (occupying faction and resistance)
 		foreach(OVT_RadioTowerData tower : occupyingFaction.m_RadioTowers)
 		{
 			float distance = vector.Distance(tower.location, fobPos);
-			// Radio towers have 20m range + extra buffer (50m)
-			float restrictedDistance = 20 + 50;
-			
-			if(distance < restrictedDistance)
+
+			if(distance < FOB_DEPLOY_TOWER_RANGE)
 			{
-				return; // Silently fail - client should have already validated
+				if (playerId > -1)
+					OVT_Global.GetNotify().SendTextNotification("TooCloseToRadioTower", playerId);
+				return;
 			}
 		}
 		
+		// Validate the initiating player and their transfer component BEFORE spawning anything -
+		// falling through after the spawn leaves both vehicles (and duplicated cargo) in the world
+		if (playerId == -1) return;
+		OVT_OverthrowController controller = OVT_Global.GetPlayers().GetController(playerId);
+		if (!controller) return;
+		OVT_ContainerTransferComponent transfer = OVT_ContainerTransferComponent.Cast(controller.FindComponent(OVT_ContainerTransferComponent));
+		if (!transfer || !transfer.IsAvailable()) return;
+
+		// Only one FOB operation may be in flight - the operation state below is shared
+		if (m_pCurrentDeploymentSource || m_pCurrentDeploymentTarget || m_pCurrentUndeployedFOB || m_pCurrentMobileFOB)
+		{
+			OVT_Global.GetNotify().SendTextNotification("FOBOperationInProgress", playerId);
+			return;
+		}
+
 		OVT_VehicleManagerComponent vm = OVT_Global.GetVehicles();
-		
+
 		string ownerId = vm.GetOwnerID(entity);
-		
+
 		vector mat[4];
 		entity.GetTransform(mat);
-		
+
 		IEntity newveh = vm.SpawnVehicleMatrix(m_pMobileFOBDeployedPrefab, mat, ownerId);
-		RplComponent newrpl = RplComponent.Cast(newveh.FindComponent(RplComponent));
-		
-		// Use the new container transfer component for FOB deployment with progress tracking
-		if (playerId != -1)
-		{
-			OVT_OverthrowController controller = OVT_Global.GetPlayers().GetController(playerId);
-			if (controller)
-			{
-				OVT_ContainerTransferComponent transfer = OVT_ContainerTransferComponent.Cast(controller.FindComponent(OVT_ContainerTransferComponent));
-				if (transfer && transfer.IsAvailable())
-				{					
-					// Clear any existing callbacks first
-					transfer.m_OnOperationComplete.Remove(OnFOBCollectionComplete);
-					transfer.m_OnOperationComplete.Remove(OnFOBDeploymentComplete);
-					transfer.m_OnOperationError.Remove(OnFOBCollectionError);
-					transfer.m_OnOperationError.Remove(OnFOBDeploymentError);
-					
-					// Store entities for cleanup after transfer
-					m_pCurrentDeploymentSource = entity; // mobile FOB to be deleted
-					m_pCurrentDeploymentTarget = newveh; // deployed FOB that was created
-					
-					// Subscribe to completion event to handle cleanup
-					transfer.m_OnOperationComplete.Insert(OnFOBDeploymentComplete);
-					transfer.m_OnOperationError.Insert(OnFOBDeploymentError);
-					
-					// Transfer items from mobile FOB to deployed FOB
-					transfer.TransferStorage(entity, newveh, false);
-					return;
-				}
-			}
-		}
+		if (!newveh) return;
+
+		// Clear any existing callbacks first
+		transfer.m_OnOperationComplete.Remove(OnFOBCollectionComplete);
+		transfer.m_OnOperationComplete.Remove(OnFOBDeploymentComplete);
+		transfer.m_OnOperationError.Remove(OnFOBCollectionError);
+		transfer.m_OnOperationError.Remove(OnFOBDeploymentError);
+
+		// Store entities for cleanup after transfer
+		m_pCurrentDeploymentSource = entity; // mobile FOB to be deleted
+		m_pCurrentDeploymentTarget = newveh; // deployed FOB that was created
+		m_CurrentDeploymentTransfer = transfer;
+		m_iFOBOperationPlayerId = playerId;
+
+		// Subscribe to completion event to handle cleanup
+		transfer.m_OnOperationComplete.Insert(OnFOBDeploymentComplete);
+		transfer.m_OnOperationError.Insert(OnFOBDeploymentError);
+
+		// Transfer items from mobile FOB to deployed FOB
+		transfer.TransferStorage(entity, newveh, false);
 	}
 	
 	void UndeployFOB(RplId vehicle, int playerId = -1)
@@ -507,55 +566,58 @@ class OVT_ResistanceFactionManager: OVT_Component
 		if(!rpl) return;
 		IEntity entity = rpl.GetEntity();
 		
+		// Validate the initiating player and their transfer component BEFORE spawning anything -
+		// falling through after the spawn leaves a duplicate truck and a still-registered FOB
+		if (playerId == -1) return;
+		OVT_OverthrowController controller = OVT_Global.GetPlayers().GetController(playerId);
+		if (!controller) return;
+		OVT_ContainerTransferComponent transfer = OVT_ContainerTransferComponent.Cast(controller.FindComponent(OVT_ContainerTransferComponent));
+		if (!transfer || !transfer.IsAvailable()) return;
+
+		// Only one FOB operation may be in flight - the operation state below is shared
+		if (m_pCurrentDeploymentSource || m_pCurrentDeploymentTarget || m_pCurrentUndeployedFOB || m_pCurrentMobileFOB)
+		{
+			OVT_Global.GetNotify().SendTextNotification("FOBOperationInProgress", playerId);
+			return;
+		}
+
 		OVT_VehicleManagerComponent vm = OVT_Global.GetVehicles();
-		
+
 		string ownerId = vm.GetOwnerID(entity);
-		
+
 		vector mat[4];
 		entity.GetTransform(mat);
-		
+
 		IEntity newveh = vm.SpawnVehicleMatrix(m_pMobileFOBPrefab, mat, ownerId);
-		RplComponent newrpl = RplComponent.Cast(newveh.FindComponent(RplComponent));
-		
+		if (!newveh) return;
+
 		// Deactivate physics immediately on the mobile FOB to prevent physics conflicts
 		Physics physics = newveh.GetPhysics();
 		if (physics)
 		{
 			physics.SetActive(ActiveState.INACTIVE);
 		}
-		
+
 		OVT_Global.GetVehicles().m_aVehicles.RemoveItem(entity.GetID());
-		
-		// Use the new container transfer component for container collection with progress tracking
-		if (playerId != -1)
-		{
-			OVT_OverthrowController controller = OVT_Global.GetPlayers().GetController(playerId);
-			if (controller)
-			{
-				OVT_ContainerTransferComponent transfer = OVT_ContainerTransferComponent.Cast(controller.FindComponent(OVT_ContainerTransferComponent));
-				if (transfer && transfer.IsAvailable())
-				{					
-					
-					// Clear any existing callbacks first
-					transfer.m_OnOperationComplete.Remove(OnFOBCollectionComplete);
-					transfer.m_OnOperationComplete.Remove(OnFOBDeploymentComplete);
-					transfer.m_OnOperationError.Remove(OnFOBCollectionError);
-					transfer.m_OnOperationError.Remove(OnFOBDeploymentError);
-					
-					// Subscribe to completion event to handle FOB cleanup
-					transfer.m_OnOperationComplete.Insert(OnFOBCollectionComplete);
-					transfer.m_OnOperationError.Insert(OnFOBCollectionError);
-					
-					// Store FOB entities for cleanup (using member variables)
-					m_pCurrentUndeployedFOB = entity;
-					m_pCurrentMobileFOB = newveh;
-					
-					// Start container collection with the new progress system
-					transfer.UndeployFOBWithCollection(entity, newveh);
-					return;
-				}
-			}
-		}
+
+		// Clear any existing callbacks first
+		transfer.m_OnOperationComplete.Remove(OnFOBCollectionComplete);
+		transfer.m_OnOperationComplete.Remove(OnFOBDeploymentComplete);
+		transfer.m_OnOperationError.Remove(OnFOBCollectionError);
+		transfer.m_OnOperationError.Remove(OnFOBDeploymentError);
+
+		// Subscribe to completion event to handle FOB cleanup
+		transfer.m_OnOperationComplete.Insert(OnFOBCollectionComplete);
+		transfer.m_OnOperationError.Insert(OnFOBCollectionError);
+
+		// Store FOB entities for cleanup (using member variables)
+		m_pCurrentUndeployedFOB = entity;
+		m_pCurrentMobileFOB = newveh;
+		m_CurrentCollectionTransfer = transfer;
+		m_iFOBOperationPlayerId = playerId;
+
+		// Start container collection with the new progress system
+		transfer.UndeployFOBWithCollection(entity, newveh);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -599,11 +661,42 @@ class OVT_ResistanceFactionManager: OVT_Component
 	IEntity PlaceItem(int placeableIndex, int prefabIndex, vector pos, vector angles, int playerId, bool runHandler = true)
 	{
 		OVT_ResistanceFactionManager config = OVT_Global.GetResistanceFaction();
+
+		// Guard client-supplied indices - out-of-range values are a remote VM-error vector
+		if(placeableIndex < 0 || placeableIndex >= config.m_PlaceablesConfig.m_aPlaceables.Count()) return null;
 		OVT_Placeable placeable = config.m_PlaceablesConfig.m_aPlaceables[placeableIndex];
+		if(prefabIndex < 0 || prefabIndex >= placeable.m_aPrefabs.Count()) return null;
+
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
-		
+		int cost = m_Config.GetPlaceableCost(placeable);
+
+		// Server-side validation for player-initiated placement (-1 = server-initiated, free)
+		if(playerId > -1)
+		{
+			string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+
+			// DoTakePlayerMoney clamps at zero, so an explicit funds check is required
+			if(!economy.PlayerHasMoney(persId, cost))
+			{
+				OVT_Global.GetNotify().SendTextNotification("CannotAfford", playerId);
+				return null;
+			}
+
+			// The place UI traces at most ~15m from the player - reject far-away positions
+			IEntity playerEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+			if(playerEntity && vector.Distance(playerEntity.GetOrigin(), pos) > 50) return null;
+
+			// Re-check item limits (the client menu check is advisory only)
+			if(!placeable.m_bIgnoreLocation)
+			{
+				OVT_ItemLimitChecker limits = new OVT_ItemLimitChecker();
+				string reason;
+				if(!limits.CanPlaceItem(pos, persId, reason)) return null;
+			}
+		}
+
 		ResourceName res = placeable.m_aPrefabs[prefabIndex];
-				
+
 		vector mat[4];
 		Math3D.AnglesToMatrix(angles, mat);
 		mat[3] = pos;
@@ -643,7 +736,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 			}
 		}
 		
-		economy.TakePlayerMoney(playerId, m_Config.GetPlaceableCost(placeable));
+		economy.TakePlayerMoney(playerId, cost);
 		
 		SCR_AIWorld aiworld = SCR_AIWorld.Cast(GetGame().GetAIWorld());
 		aiworld.RequestNavmeshRebuildEntity(entity);
@@ -670,15 +763,45 @@ class OVT_ResistanceFactionManager: OVT_Component
 	IEntity BuildItem(int buildableIndex, int prefabIndex, vector pos, vector angles, int playerId, bool runHandler = true)
 	{
 		OVT_ResistanceFactionManager config = OVT_Global.GetResistanceFaction();
+
+		// Guard client-supplied indices - out-of-range values are a remote VM-error vector
+		if(buildableIndex < 0 || buildableIndex >= config.m_BuildablesConfig.m_aBuildables.Count()) return null;
 		OVT_Buildable buildable = config.m_BuildablesConfig.m_aBuildables[buildableIndex];
+		if(prefabIndex < 0 || prefabIndex >= buildable.m_aPrefabs.Count()) return null;
+
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		int cost = m_Config.GetBuildableCost(buildable);
+
+		// Server-side validation for player-initiated builds (-1 = server-initiated, free)
+		if(playerId > -1)
+		{
+			string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+
+			// DoTakePlayerMoney clamps at zero, so an explicit funds check is required
+			if(!economy.PlayerHasMoney(persId, cost))
+			{
+				OVT_Global.GetNotify().SendTextNotification("CannotAfford", playerId);
+				return null;
+			}
+
+			// The build camera is clamped to 50m of the player - reject far-away positions
+			IEntity playerEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+			if(playerEntity && vector.Distance(playerEntity.GetOrigin(), pos) > 250) return null;
+
+			// Re-check item limits (the client menu check is advisory only)
+			OVT_ItemLimitChecker limits = new OVT_ItemLimitChecker();
+			string reason;
+			if(!limits.CanBuildItem(pos, reason)) return null;
+		}
+
 		ResourceName res = buildable.m_aPrefabs[prefabIndex];
-		
+
 		vector mat[4];
 		Math3D.AnglesToMatrix(angles, mat);
 		mat[3] = pos;
-		
+
 		IEntity entity = OVT_Global.SpawnEntityPrefabMatrix(res, mat);
-		
+
 		// Check for OVT_BuildableComponent and warn if missing
 		OVT_BuildableComponent buildableComp = OVT_BuildableComponent.Cast(entity.FindComponent(OVT_BuildableComponent));
 		if (!buildableComp)
@@ -699,14 +822,22 @@ class OVT_ResistanceFactionManager: OVT_Component
 				buildableComp.SetAssociatedBase(baseId, baseType);
 			}
 		}
-		
-		SCR_AIWorld aiworld = SCR_AIWorld.Cast(GetGame().GetAIWorld());
-		aiworld.RequestNavmeshRebuildEntity(entity);
-		
+
+		// A failed handler aborts the build before any charge - mirrors PlaceItem()
 		if(buildable.handler && runHandler)
 		{
-			buildable.handler.OnPlace(entity, playerId);
+			if(!buildable.handler.OnPlace(entity, playerId))
+			{
+				SCR_EntityHelper.DeleteEntityAndChildren(entity);
+				return null;
+			}
 		}
+
+		// Charge server-side - the client no longer pays via the generic money RPC
+		economy.TakePlayerMoney(playerId, cost);
+
+		SCR_AIWorld aiworld = SCR_AIWorld.Cast(GetGame().GetAIWorld());
+		aiworld.RequestNavmeshRebuildEntity(entity);
 
 		m_OnBuild.Invoke(entity, buildable, playerId);
 
@@ -716,10 +847,12 @@ class OVT_ResistanceFactionManager: OVT_Component
 		return entity;
 	}
 	
-	//! Remove a placed item from the world
-	void RemovePlacedItem(EntityID entityId, int playerId)
+	//! Remove a placed item from the world. Takes an RplId - EntityIDs are not valid across the network.
+	void RemovePlacedItem(RplId entityId, int playerId)
 	{
-		IEntity entity = GetGame().GetWorld().FindEntityByID(entityId);
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(entityId));
+		if(!rpl) return;
+		IEntity entity = rpl.GetEntity();
 		if(!entity) return;
 		
 		OVT_PlaceableComponent placeableComp = OVT_PlaceableComponent.Cast(entity.FindComponent(OVT_PlaceableComponent));
@@ -745,46 +878,128 @@ class OVT_ResistanceFactionManager: OVT_Component
 		SCR_EntityHelper.DeleteEntityAndChildren(entity);
 	}
 	
-	void AddGarrison(int baseId, int prefabIndex, bool takeSupporters = true)
+	//------------------------------------------------------------------------------------------------
+	//! Resolves a garrison group prefab from the player faction, guarding the client-supplied index.
+	protected ResourceName GetGarrisonPrefab(int prefabIndex)
 	{
-		OVT_BaseData base = OVT_Global.GetOccupyingFaction().m_Bases[baseId];
 		OVT_Faction faction = OVT_Global.GetConfig().GetPlayerFaction();
-		ResourceName res = faction.m_aGroupPrefabSlots[prefabIndex];
-				
+		if(!faction) return ResourceName.Empty;
+		if(prefabIndex < 0 || prefabIndex >= faction.m_aGroupPrefabSlots.Count()) return ResourceName.Empty;
+		return faction.m_aGroupPrefabSlots[prefabIndex];
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Charges a player for an already-spawned garrison group. Server-side twin of the cost shown in
+	//! the base/FOB menus: (recruit cost + 300 equipment placeholder) per soldier. A playerId of -1
+	//! means a server-initiated (free) garrison.
+	//! \return false when the player cannot afford it (the caller must delete the group).
+	protected bool ChargeForGarrison(int playerId, SCR_AIGroup group)
+	{
+		if(playerId == -1) return true;
+
+		int cost = (OVT_Global.GetConfig().m_Difficulty.baseRecruitCost + 300) * group.m_aUnitPrefabSlots.Count();
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		if(!economy.PlayerHasMoney(persId, cost))
+		{
+			OVT_Global.GetNotify().SendTextNotification("CannotAfford", playerId);
+			return false;
+		}
+		economy.DoTakePlayerMoney(playerId, cost);
+		return true;
+	}
+
+	void AddGarrison(int baseId, int prefabIndex, bool takeSupporters = true, int playerId = -1)
+	{
+		array<ref OVT_BaseData> bases = OVT_Global.GetOccupyingFaction().m_Bases;
+		if(baseId < 0 || baseId >= bases.Count()) return;
+		OVT_BaseData base = bases[baseId];
+		if(!base) return;
+
+		ResourceName res = GetGarrisonPrefab(prefabIndex);
+		if(res.IsEmpty()) return;
+
 		SCR_AIGroup group = SpawnGarrison(base, res);
-			
-		base.garrisonEntities.Insert(group.GetID());	
-		
+		if(!group) return;
+
+		// Refuse before charging when the town cannot supply the units - TakeSupporters
+		// silently no-ops when short, which used to hand out free garrisons (BUG-064)
+		if(takeSupporters && !OVT_Global.GetTowns().NearestTownHasSupporters(base.location, group.m_aUnitPrefabSlots.Count()))
+		{
+			SCR_EntityHelper.DeleteEntityAndChildren(group);
+			return;
+		}
+
+		if(!ChargeForGarrison(playerId, group))
+		{
+			SCR_EntityHelper.DeleteEntityAndChildren(group);
+			return;
+		}
+
+		base.garrisonEntities.Insert(group.GetID());
+
 		if(takeSupporters)
 		{
 			OVT_Global.GetTowns().TakeSupportersFromNearestTown(base.location, group.m_aUnitPrefabSlots.Count());
 		}
 	}
-	
-	void AddGarrisonCamp(OVT_CampData fob, int prefabIndex, bool takeSupporters = true)
-	{		
-		OVT_Faction faction = OVT_Global.GetConfig().GetPlayerFaction();
-		ResourceName res = faction.m_aGroupPrefabSlots[prefabIndex];
-				
+
+	void AddGarrisonCamp(OVT_CampData fob, int prefabIndex, bool takeSupporters = true, int playerId = -1)
+	{
+		if(!fob) return;
+
+		ResourceName res = GetGarrisonPrefab(prefabIndex);
+		if(res.IsEmpty()) return;
+
 		SCR_AIGroup group = SpawnGarrisonCamp(fob, res);
-		
+		if(!group) return;
+
+		// Refuse before charging when the town cannot supply the units (BUG-064)
+		if(takeSupporters && !OVT_Global.GetTowns().NearestTownHasSupporters(fob.location, group.m_aUnitPrefabSlots.Count()))
+		{
+			SCR_EntityHelper.DeleteEntityAndChildren(group);
+			return;
+		}
+
+		if(!ChargeForGarrison(playerId, group))
+		{
+			SCR_EntityHelper.DeleteEntityAndChildren(group);
+			return;
+		}
+
 		fob.garrisonEntities.Insert(group.GetID());
-				
+
 		if(takeSupporters)
 		{
 			OVT_Global.GetTowns().TakeSupportersFromNearestTown(fob.location, group.m_aUnitPrefabSlots.Count());
 		}
 	}
-	
-	void AddGarrisonFOB(OVT_FOBData fob, int prefabIndex, bool takeSupporters = true)
-	{		
-		OVT_Faction faction = OVT_Global.GetConfig().GetPlayerFaction();
-		ResourceName res = faction.m_aGroupPrefabSlots[prefabIndex];
-				
+
+	void AddGarrisonFOB(OVT_FOBData fob, int prefabIndex, bool takeSupporters = true, int playerId = -1)
+	{
+		if(!fob) return;
+
+		ResourceName res = GetGarrisonPrefab(prefabIndex);
+		if(res.IsEmpty()) return;
+
 		SCR_AIGroup group = SpawnGarrisonFOB(fob, res);
-		
+		if(!group) return;
+
+		// Refuse before charging when the town cannot supply the units (BUG-064)
+		if(takeSupporters && !OVT_Global.GetTowns().NearestTownHasSupporters(fob.location, group.m_aUnitPrefabSlots.Count()))
+		{
+			SCR_EntityHelper.DeleteEntityAndChildren(group);
+			return;
+		}
+
+		if(!ChargeForGarrison(playerId, group))
+		{
+			SCR_EntityHelper.DeleteEntityAndChildren(group);
+			return;
+		}
+
 		fob.garrisonEntities.Insert(group.GetID());
-				
+
 		if(takeSupporters)
 		{
 			OVT_Global.GetTowns().TakeSupportersFromNearestTown(fob.location, group.m_aUnitPrefabSlots.Count());
@@ -792,32 +1007,35 @@ class OVT_ResistanceFactionManager: OVT_Component
 	}
 	
 	SCR_AIGroup SpawnGarrison(OVT_BaseData base, ResourceName res)
-	{		
+	{
 		IEntity entity = OVT_Global.SpawnEntityPrefab(res, base.location);
 		SCR_AIGroup group = SCR_AIGroup.Cast(entity);
+		if(!group) return null;
 		AddPatrolWaypoints(group, base);
 		return group;
 	}
-	
+
 	SCR_AIGroup SpawnGarrisonCamp(OVT_CampData fob, ResourceName res)
-	{	
+	{
 		IEntity entity = OVT_Global.SpawnEntityPrefab(res, fob.location + "1 0 0");
 		SCR_AIGroup group = SCR_AIGroup.Cast(entity);
-		
+		if(!group) return null;
+
 		AIWaypoint wp = OVT_Global.GetConfig().SpawnDefendWaypoint(fob.location);
-		group.AddWaypoint(wp);	
-		
+		group.AddWaypoint(wp);
+
 		return group;
 	}
-	
+
 	SCR_AIGroup SpawnGarrisonFOB(OVT_FOBData fob, ResourceName res)
-	{	
+	{
 		IEntity entity = OVT_Global.SpawnEntityPrefab(res, fob.location + "1 0 0");
 		SCR_AIGroup group = SCR_AIGroup.Cast(entity);
-		
+		if(!group) return null;
+
 		AIWaypoint wp = OVT_Global.GetConfig().SpawnDefendWaypoint(fob.location);
-		group.AddWaypoint(wp);	
-		
+		group.AddWaypoint(wp);
+
 		return group;
 	}
 	
@@ -1090,13 +1308,19 @@ class OVT_ResistanceFactionManager: OVT_Component
 
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_RemoveFOB(vector pos)
-	{		
+	{
 		int index = -1;
+		float nearestDistance = -1;
 		foreach(int t, OVT_FOBData fob : m_FOBs)
 		{
-			if(fob.location == pos)
+			// Tolerance match (like RpcDo_SetPriorityFOB): the record holds the deployed entity's
+			// origin at registration time, while pos is the replacement truck's origin - physics
+			// settling in between made exact equality leave permanent ghost records
+			float distance = vector.Distance(fob.location, pos);
+			if(distance < 10 && (nearestDistance == -1 || distance < nearestDistance))
 			{
 				index = t;
+				nearestDistance = distance;
 			}
 		}
 		if(index > -1)
@@ -1506,29 +1730,27 @@ class OVT_ResistanceFactionManager: OVT_Component
 			int playerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(ownerPersistentId);
 			if (playerId > 0)
 			{
-				OVT_Global.GetNotify().SendTextNotification("#OVT-FOBUndeployed", playerId, 
+				OVT_Global.GetNotify().SendTextNotification("FOBUndeployed", playerId, 
 					itemsTransferred.ToString(), "3");
 			}
 		}
 		
 		// Unregister the FOB
 		UnregisterFOB(m_pCurrentMobileFOB.GetOrigin());
-		
-		// Unsubscribe from events
-		OVT_OverthrowController controller = OVT_OverthrowController.Cast(GetOwner());
-		if (controller)
+
+		// Unsubscribe from the transfer component the operation actually subscribed to (it lives on
+		// the player's controller, not on this manager's owner)
+		if (m_CurrentCollectionTransfer)
 		{
-			OVT_ContainerTransferComponent transfer = OVT_ContainerTransferComponent.Cast(controller.FindComponent(OVT_ContainerTransferComponent));
-			if (transfer)
-			{
-				transfer.m_OnOperationComplete.Remove(OnFOBCollectionComplete);
-				transfer.m_OnOperationError.Remove(OnFOBCollectionError);
-			}
+			m_CurrentCollectionTransfer.m_OnOperationComplete.Remove(OnFOBCollectionComplete);
+			m_CurrentCollectionTransfer.m_OnOperationError.Remove(OnFOBCollectionError);
+			m_CurrentCollectionTransfer = null;
 		}
-		
+
 		// Clean up references
 		m_pCurrentUndeployedFOB = null;
 		m_pCurrentMobileFOB = null;
+		m_iFOBOperationPlayerId = -1;
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -1555,27 +1777,24 @@ class OVT_ResistanceFactionManager: OVT_Component
 				int playerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(ownerPersistentId);
 				if (playerId > 0)
 				{
-					OVT_Global.GetNotify().SendTextNotification("#OVT-FOBUndeployFailed", playerId, 
+					OVT_Global.GetNotify().SendTextNotification("FOBUndeployFailed", playerId,
 						errorMessage);
 				}
 			}
 		}
 		
-		// Unsubscribe from events
-		OVT_OverthrowController controller = OVT_OverthrowController.Cast(GetOwner());
-		if (controller)
+		// Unsubscribe from the transfer component the operation actually subscribed to
+		if (m_CurrentCollectionTransfer)
 		{
-			OVT_ContainerTransferComponent transfer = OVT_ContainerTransferComponent.Cast(controller.FindComponent(OVT_ContainerTransferComponent));
-			if (transfer)
-			{
-				transfer.m_OnOperationComplete.Remove(OnFOBCollectionComplete);
-				transfer.m_OnOperationError.Remove(OnFOBCollectionError);
-			}
+			m_CurrentCollectionTransfer.m_OnOperationComplete.Remove(OnFOBCollectionComplete);
+			m_CurrentCollectionTransfer.m_OnOperationError.Remove(OnFOBCollectionError);
+			m_CurrentCollectionTransfer = null;
 		}
-		
+
 		// Clean up references
 		m_pCurrentUndeployedFOB = null;
 		m_pCurrentMobileFOB = null;
+		m_iFOBOperationPlayerId = -1;
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -1602,23 +1821,20 @@ class OVT_ResistanceFactionManager: OVT_Component
 			RegisterFOB(m_pCurrentDeploymentTarget, playerId);
 		}
 		
-		// Unsubscribe from events
-		OVT_OverthrowController controller = OVT_OverthrowController.Cast(GetOwner());
-		if (controller)
+		// Unsubscribe from the transfer component the operation actually subscribed to
+		if (m_CurrentDeploymentTransfer)
 		{
-			OVT_ContainerTransferComponent transfer = OVT_ContainerTransferComponent.Cast(controller.FindComponent(OVT_ContainerTransferComponent));
-			if (transfer)
-			{
-				transfer.m_OnOperationComplete.Remove(OnFOBDeploymentComplete);
-				transfer.m_OnOperationError.Remove(OnFOBDeploymentError);
-			}
+			m_CurrentDeploymentTransfer.m_OnOperationComplete.Remove(OnFOBDeploymentComplete);
+			m_CurrentDeploymentTransfer.m_OnOperationError.Remove(OnFOBDeploymentError);
+			m_CurrentDeploymentTransfer = null;
 		}
-		
+
 		// Clean up references
 		m_pCurrentDeploymentSource = null;
 		m_pCurrentDeploymentTarget = null;
+		m_iFOBOperationPlayerId = -1;
 	}
-	
+
 	//------------------------------------------------------------------------------------------------
 	//! Called when FOB deployment transfer fails
 	void OnFOBDeploymentError(string errorMessage)
@@ -1644,21 +1860,18 @@ class OVT_ResistanceFactionManager: OVT_Component
 			SCR_EntityHelper.DeleteEntityAndChildren(m_pCurrentDeploymentSource);
 		}
 		
-		// Unsubscribe from events
-		OVT_OverthrowController controller = OVT_OverthrowController.Cast(GetOwner());
-		if (controller)
+		// Unsubscribe from the transfer component the operation actually subscribed to
+		if (m_CurrentDeploymentTransfer)
 		{
-			OVT_ContainerTransferComponent transfer = OVT_ContainerTransferComponent.Cast(controller.FindComponent(OVT_ContainerTransferComponent));
-			if (transfer)
-			{
-				transfer.m_OnOperationComplete.Remove(OnFOBDeploymentComplete);
-				transfer.m_OnOperationError.Remove(OnFOBDeploymentError);
-			}
+			m_CurrentDeploymentTransfer.m_OnOperationComplete.Remove(OnFOBDeploymentComplete);
+			m_CurrentDeploymentTransfer.m_OnOperationError.Remove(OnFOBDeploymentError);
+			m_CurrentDeploymentTransfer = null;
 		}
-		
+
 		// Clean up references
 		m_pCurrentDeploymentSource = null;
 		m_pCurrentDeploymentTarget = null;
+		m_iFOBOperationPlayerId = -1;
 	}
 	
 }

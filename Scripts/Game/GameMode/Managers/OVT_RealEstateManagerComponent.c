@@ -163,7 +163,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 
 		if(m_iStartingTownId == -1) return null;
 				
-		int i = s_AIRandomGenerator.RandInt(0, m_aTownStartingHomes.Count() - 1);
+		int i = s_AIRandomGenerator.RandInt(0, m_aTownStartingHomes.Count());
 				
 		EntityID id = m_aTownStartingHomes[i];
 		m_aTownStartingHomes.Remove(i);
@@ -301,8 +301,10 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	//------------------------------------------------------------------------------------------------
 	//! Points one stored position key at its saved owner, detaching it from any current owner first.
 	//!
-	//! Works on the key STRINGS directly rather than through DoSetOwnerPersistentId(), which always
-	//! appends and would therefore duplicate the entry when the same save is applied twice.
+	//! Works on the key STRINGS directly rather than through DoSetOwnerPersistentId(), because this
+	//! path already holds the stored key and must not round-trip it through a vector. (The historical
+	//! second reason - that the setter blindly appended and would duplicate on a re-apply - was
+	//! BUG-003 and is fixed; the setter now detaches the previous owner and dedupes itself.)
 	//! \param[in] persistentId The player the building belongs to.
 	//! \param[in] positionKey The owner manager's position key for the building.
 	protected void ApplyPersistedOwner(string persistentId, string positionKey)
@@ -499,6 +501,8 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	//! \param[in] count The quantity to add
 	void DoAddToWarehouse(int warehouseId, string id, int count)
 	{
+		if(count <= 0) return;
+		if(warehouseId < 0 || warehouseId >= m_aWarehouses.Count()) return;
 		OVT_WarehouseData warehouse = m_aWarehouses[warehouseId];
 		if(!warehouse.inventory.Contains(id)) warehouse.inventory[id] = 0;
 		warehouse.inventory[id] = warehouse.inventory[id] + count;
@@ -527,6 +531,8 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	//! \param[in] count The quantity to take
 	void DoTakeFromWarehouse(int warehouseId, string id, int count)
 	{
+		if(count <= 0) return;
+		if(warehouseId < 0 || warehouseId >= m_aWarehouses.Count()) return;
 		OVT_WarehouseData warehouse = m_aWarehouses[warehouseId];
 		if(!warehouse.inventory.Contains(id)) warehouse.inventory[id] = 0;
 		warehouse.inventory[id] = warehouse.inventory[id] - count;
@@ -760,7 +766,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 			writer.WriteBool(data.isLinked);
 			writer.WriteBool(data.isPrivate);
 			writer.WriteInt(data.inventory.Count());
-			for(int ii; ii<m_aWarehouses.Count(); ii++)
+			for(int ii; ii<data.inventory.Count(); ii++)
 			{
 				writer.WriteString(data.inventory.GetKey(ii));
 				writer.WriteInt(data.inventory.GetElement(ii));
@@ -797,7 +803,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 			data.inventory = new map<string,int>;
 			
 			if (!reader.ReadInt(ownedlength)) return false;
-			for(int ii; ii<length; ii++)
+			for(int ii; ii<ownedlength; ii++)
 			{
 				if (!reader.ReadString(res)) return false;
 				if (!reader.ReadInt(qty)) return false;
