@@ -230,6 +230,82 @@ class OVT_TEST_Init_Controllers_AreRegistered : SCR_AutotestCaseBase
 }
 
 //------------------------------------------------------------------------------------------------
+//! OVT_TownManagerComponent.GetNearestTownInRange() returns the NEAREST in-range town, not the
+//! first in array order (BUG-062 regression).
+//!
+//! Two synthetic villages with overlapping radii are appended to m_Towns, deliberately ordered so
+//! that the FARTHER one comes first in the array - the exact configuration the old first-match loop
+//! returned wrong on, which made every death-driven modifier credit the wrong town wherever radii
+//! overlap. Both sit tens of kilometres from the test world's real town, so no real record can be
+//! in range of either probe, and both are removed from m_Towns again before any assertion returns,
+//! keeping the index-aligned town list intact for every later case.
+//!
+//! PROVEN ABLE TO FAIL: with GetNearestTownInRange() reverted to its pre-fix first-match body
+//! (`if(distance <= range) return town;`), this case goes red on the "returned the farther town"
+//! assertion.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Towns_GetNearestTownInRange_ReturnsNearest : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if (!towns)
+		{
+			SetResultFailure("OVT_Global.GetTowns() is null");
+			return true;
+		}
+
+		float range = towns.m_iVillageRange;
+		vector probe = "40000 0 40000";
+
+		// Inserted FIRST, sits FARTHER from the probe (80% of the village range).
+		OVT_TownData farTown = new OVT_TownData();
+		farTown.location = probe + Vector(range * 0.8, 0, 0);
+		farTown.size = OVT_TownSize.VILLAGE;
+
+		// Inserted SECOND, sits NEARER to the probe (40% of the village range).
+		OVT_TownData nearTown = new OVT_TownData();
+		nearTown.location = probe + Vector(0, 0, range * 0.4);
+		nearTown.size = OVT_TownSize.VILLAGE;
+
+		towns.m_Towns.Insert(farTown);
+		towns.m_Towns.Insert(nearTown);
+
+		OVT_TownData overlapResult = towns.GetNearestTownInRange(probe);
+		OVT_TownData outOfRangeResult = towns.GetNearestTownInRange(probe + Vector(0, 0, range * 10));
+
+		towns.m_Towns.RemoveItem(nearTown);
+		towns.m_Towns.RemoveItem(farTown);
+
+		if (overlapResult == farTown)
+		{
+			SetResultFailure("GetNearestTownInRange() returned the farther town because it precedes the nearer one in m_Towns (BUG-062 first-match regression)");
+			return true;
+		}
+
+		if (overlapResult != nearTown)
+		{
+			SetResultFailure("GetNearestTownInRange() did not return the nearer of two overlapping in-range towns");
+			return true;
+		}
+
+		if (outOfRangeResult)
+		{
+			SetResultFailure("GetNearestTownInRange() returned a town for a probe outside every town's range");
+			return true;
+		}
+
+		PrintFormat("GetNearestTownInRange: nearest of 2 overlapping villages returned, out-of-range probe returned null (village range %1)", range.ToString());
+
+		SetResultSuccess();
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
 //! Reforger's vanilla persistence system is registered for the Overthrow world and did not fail
 //! its own setup.
 //!

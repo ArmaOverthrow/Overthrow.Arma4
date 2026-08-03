@@ -751,7 +751,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 		
 		// Find the town controller to get QRF parameters
 		OVT_TownManagerComponent townManager = OVT_Global.GetTowns();
-		EntityID townControllerID = townManager.m_TownControllers.Get(townID);
+		EntityID townControllerID;
+		if(townID >= 0 && townID < townManager.m_TownControllers.Count())
+			townControllerID = townManager.m_TownControllers.Get(townID);
 		if(townControllerID)
 		{
 			IEntity townEntity = GetGame().GetWorld().FindEntityByID(townControllerID);

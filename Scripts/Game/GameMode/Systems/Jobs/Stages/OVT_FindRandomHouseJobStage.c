@@ -5,9 +5,14 @@ class OVT_FindRandomHouseJobStage : OVT_JobStage
 		OVT_TownManagerComponent townMgr = OVT_Global.GetTowns();
 		
 		IEntity house = townMgr.GetRandomUnownedHouseInTown(townMgr.m_Towns[job.townId]);
-		
+		if(!house)
+		{
+			Print("[Overthrow] OVT_FindRandomHouseJobStage: no unowned house found in town " + job.townId.ToString(), LogLevel.WARNING);
+			return false;
+		}
+
 		job.location = house.GetOrigin();
-		
+
 		return false;
 	}
 }
