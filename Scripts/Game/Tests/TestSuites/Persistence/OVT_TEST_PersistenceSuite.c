@@ -301,6 +301,18 @@ class OVT_TEST_Persistence_PlayerSkills_RoundTrip : SCR_AutotestCaseBase
 		int skillBefore = OVT_TEST_PersistenceSubject.GetPlayerSkillLevel(persId, skillKey);
 		int countBefore = beforeSkill.CountSkills();
 
+		// AddSkillLevel validates affordability server-side (BUG-032), so the record must
+		// hold an unspent skill point before the purchase. Earn one if needed and hand the
+		// XP back afterwards - the round-trip suite asserts this record's exact xp value.
+		int earnedXP = 0;
+		int pointsAvailable = (beforeSkill.GetLevel() - 1) - countBefore;
+		if (pointsAvailable < 1)
+		{
+			// +1 covers float truncation in the GetLevelXP threshold maths
+			earnedXP = beforeSkill.GetLevelXP(countBefore + 1) - beforeSkill.xp + 1;
+			skills.GiveXP(playerId, earnedXP);
+		}
+
 		skills.AddSkillLevel(playerId, skillKey);
 
 		int skillAfter = OVT_TEST_PersistenceSubject.GetPlayerSkillLevel(persId, skillKey);
@@ -325,6 +337,9 @@ class OVT_TEST_Persistence_PlayerSkills_RoundTrip : SCR_AutotestCaseBase
 				countBefore.ToString(), countAfter.ToString());
 			return true;
 		}
+
+		if (earnedXP > 0)
+			skills.TakeXP(playerId, earnedXP);
 
 		// The skill manager exposes no level-removal seam, so this one mutation is left in place;
 		// no other case reads skills and the session ends seconds later.

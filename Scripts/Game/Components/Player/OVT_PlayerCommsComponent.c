@@ -173,6 +173,9 @@ class OVT_PlayerCommsComponent: OVT_Component
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	void RpcAsk_BuySkill(int playerId, string key)
 	{
+		// Remote callers reach this handler on their own character's component, so the
+		// claimed id cannot level another player's skills (BUG-032)
+		playerId = ResolveSenderPlayerId(playerId);
 		OVT_Global.GetSkills().AddSkillLevel(playerId, key);
 	}
 	
