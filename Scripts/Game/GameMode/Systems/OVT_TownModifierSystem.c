@@ -58,7 +58,12 @@ class OVT_TownModifierSystem : ScriptAndConfig
 		{
 			if(!modifier) continue;
 			OVT_ModifierConfig mod = m_Config.m_aModifiers[modifier.id];
-			if(mod.timeout <= 0) continue;
+			if(mod.timeout <= 0)
+			{
+				//Permanent modifiers never expire, but must survive the rebuild below
+				rebuild.Insert(modifier);
+				continue;
+			}
 			
 			bool remove = false;
 			modifier.timer = modifier.timer - m_TownManager.MODIFIER_FREQUENCY / 1000;

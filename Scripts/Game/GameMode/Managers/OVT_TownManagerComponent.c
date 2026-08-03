@@ -177,17 +177,19 @@ class OVT_TownManagerComponent: OVT_Component
 	//! \param owner The owning entity of this component
 	void Init(IEntity owner)
 	{		
-		m_RealEstate = OVT_Global.GetRealEstate();		
+		m_RealEstate = OVT_Global.GetRealEstate();
+
+		// Towns must exist (with populations) before the modifier systems initialize,
+		// or their handlers' OnStart fan-out runs over an empty town list
+		InitializeTowns();
+
+		if(Replication.IsServer() && !m_bUseDefinedTowns)
+			SetupTowns();
+
 		foreach(OVT_TownModifierSystem system : m_aTownModifiers)
 		{
 			system.Init();
-		}		
-		
-		InitializeTowns();
-		
-		if(!Replication.IsServer()) return;
-		if(!m_bUseDefinedTowns)
-			SetupTowns();
+		}
 	}
 	
 	//------------------------------------------------------------------------------------------------
