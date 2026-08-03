@@ -426,19 +426,29 @@ class OVT_Global : Managed
 	{
 		int i = 0;
 		vector checkpos;
+		BaseWorld world = GetGame().GetWorld();
+		vector worldMin, worldMax;
+		world.GetBoundBox(worldMin, worldMax);
+
 		while(i < 30)
 		{
-			i++;			
-			
+			i++;
+
 			checkpos = s_AIRandomGenerator.GenerateRandomPointInRadius(0,range,pos,false);
-			
+
+			// Keep the point on the map, or AI given a waypoint here can never reach it
+			if(checkpos[0] < worldMin[0]) checkpos[0] = worldMin[0];
+			if(checkpos[0] > worldMax[0]) checkpos[0] = worldMax[0];
+			if(checkpos[2] < worldMin[2]) checkpos[2] = worldMin[2];
+			if(checkpos[2] > worldMax[2]) checkpos[2] = worldMax[2];
+
 			if(!OVT_Global.IsOceanAtPosition(checkpos))
-			{	
-				checkpos[1] = GetGame().GetWorld().GetSurfaceY(checkpos[0],checkpos[2]) + 1;
+			{
+				checkpos[1] = world.GetSurfaceY(checkpos[0],checkpos[2]) + 1;
 				return checkpos;
 			}
 		}
-		
+
 		return pos;
 	}
 	

@@ -3,9 +3,10 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 	[Attribute("1", desc: "Deactivate patrols when noone around")]
 	bool m_bDeactivate;
 	
-	ref array<ref EntityID> m_Groups;
-	ref array<ref ResourceName> m_ProxiedGroups;
-	ref array<ref vector> m_ProxiedPositions;	
+	// Initialized at declaration: a save can serialize this upgrade before PostInit() has run
+	ref array<ref EntityID> m_Groups = new array<ref EntityID>;
+	ref array<ref ResourceName> m_ProxiedGroups = new array<ref ResourceName>;
+	ref array<ref vector> m_ProxiedPositions = new array<ref vector>;
 	int m_iProxedResources = 0;
 	
 	protected const int DEACTIVATE_FREQUENCY = 10000;
