@@ -4,6 +4,7 @@ class OVT_IsNearestTownWithDealerJobCondition : OVT_JobCondition
 	override bool ShouldStart(OVT_TownData town, OVT_BaseData base, int playerId)
 	{
 		if(playerId == -1) return false; //only valid for player-allocated jobs
+		if(!town) return false; //base-only jobs have no town context
 		if(!town.gunDealerPosition || town.gunDealerPosition[0] == 0) return false;
 				
 		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);		
