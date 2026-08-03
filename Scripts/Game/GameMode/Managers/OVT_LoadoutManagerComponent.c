@@ -469,8 +469,9 @@ class OVT_LoadoutManagerComponent: OVT_Component
 			bool success = false;
 			if (item.m_bIsEquipped)
 			{
-				// Equipped items need to be spawned and placed in weapon slots
-				success = ApplyEquippedItem(item, targetEntity);
+				// Equipped weapons obey the same conservation rule as everything else: they
+				// come out of the box or not at all (BUG-042 - this used to spawn free rifles)
+				success = ApplyEquippedItemFromBox(item, targetEntity, boxStorageManager);
 			}
 			else
 			{
@@ -1016,47 +1017,46 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		return loadoutNames;
 	}
 	
-	//! Extract equipped items (weapons in hands, worn clothing) to avoid duplication
+	//! Extract equipped items (weapons in every weapon slot) to avoid duplication
 	protected void ExtractEquippedItems(IEntity entity, OVT_PlayerLoadout loadout, out set<IEntity> equippedItems)
 	{
-		// Get character controller to access equipped weapons
-		CharacterControllerComponent characterController = CharacterControllerComponent.Cast(entity.FindComponent(CharacterControllerComponent));
-		if (characterController)
+		// Walk every weapon slot, not just the weapon in hands - a slung rifle or holstered
+		// pistol lives in EquipedWeaponStorageComponent and never appears in the clothing
+		// storage walk, so skipping it here loses it from the loadout entirely (BUG-044)
+		BaseWeaponManagerComponent weaponManager = BaseWeaponManagerComponent.Cast(entity.FindComponent(BaseWeaponManagerComponent));
+		if (!weaponManager)
+			return;
+
+		array<WeaponSlotComponent> weaponSlots = new array<WeaponSlotComponent>();
+		weaponManager.GetWeaponsSlots(weaponSlots);
+
+		foreach (WeaponSlotComponent slot : weaponSlots)
 		{
-			// Get equipped weapon (in hands)
-			BaseWeaponManagerComponent weaponManager = BaseWeaponManagerComponent.Cast(entity.FindComponent(BaseWeaponManagerComponent));
-			if (weaponManager)
-			{
-				CharacterWeaponSlotComponent currentWeaponSlot = CharacterWeaponSlotComponent.Cast(weaponManager.GetCurrent());
-				if(!currentWeaponSlot) return;				
-				IEntity weaponEntity = currentWeaponSlot.GetWeaponEntity();
-				if(!weaponEntity) return;
-				BaseWeaponComponent currentWeapon = BaseWeaponComponent.Cast(weaponEntity.FindComponent(BaseWeaponComponent));
-				if (currentWeapon)
-				{					
-					ResourceName weaponPrefab = OVT_Global.GetPrefabName(weaponEntity);
-					if (!weaponPrefab.IsEmpty())
-					{
-						// Create loadout item for equipped weapon
-						OVT_LoadoutItem weaponItem = new OVT_LoadoutItem();
-						weaponItem.m_sResourceName = weaponPrefab;
-						weaponItem.m_bIsEquipped = true;
-						weaponItem.m_iSlotIndex = -1; // Special value for equipped items
-						weaponItem.m_iStoragePriority = -1;
-						weaponItem.m_eStoragePurpose = EStoragePurpose.PURPOSE_ANY;
-						
-						// Extract weapon attachments
-						ExtractWeaponAttachments(weaponEntity, weaponItem);
-						
-						loadout.AddItem(weaponItem);
-						equippedItems.Insert(weaponEntity);
-						
-						Print(string.Format("[OVT_LoadoutManagerComponent] Extracted equipped weapon: %1", weaponPrefab));
-					}					
-				}
-			}
+			IEntity weaponEntity = slot.GetWeaponEntity();
+			if (!weaponEntity)
+				continue;
+
+			ResourceName weaponPrefab = OVT_Global.GetPrefabName(weaponEntity);
+			if (weaponPrefab.IsEmpty())
+				continue;
+
+			// Create loadout item for equipped weapon
+			OVT_LoadoutItem weaponItem = new OVT_LoadoutItem();
+			weaponItem.m_sResourceName = weaponPrefab;
+			weaponItem.m_bIsEquipped = true;
+			weaponItem.m_iSlotIndex = slot.GetWeaponSlotIndex();
+			weaponItem.m_iStoragePriority = -1;
+			weaponItem.m_eStoragePurpose = EStoragePurpose.PURPOSE_ANY;
+
+			// Extract weapon attachments
+			ExtractWeaponAttachments(weaponEntity, weaponItem);
+
+			loadout.AddItem(weaponItem);
+			equippedItems.Insert(weaponEntity);
+
+			Print(string.Format("[OVT_LoadoutManagerComponent] Extracted equipped weapon: %1", weaponPrefab));
 		}
-		
+
 		// Note: For worn clothing items (uniform, vest, helmet), they appear in regular storage slots
 		// but with specific purposes. We don't need special handling for them since they're not
 		// duplicated in quick slots - only weapons and tools typically are.
@@ -1355,7 +1355,107 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		SCR_EntityHelper.DeleteEntityAndChildren(weaponEntity);
 		return false;
 	}
-	
+
+	//! Apply equipped item (weapon in a weapon slot) to entity by consuming it from the equipment box
+	protected bool ApplyEquippedItemFromBox(OVT_LoadoutItem loadoutItem, IEntity entity, InventoryStorageManagerComponent boxStorageManager)
+	{
+		if (!loadoutItem || loadoutItem.m_sResourceName.IsEmpty())
+			return false;
+
+		// The weapon must exist in the box - consume-or-fail, never spawn
+		IEntity weaponEntity = FindItemInBox(loadoutItem.m_sResourceName, boxStorageManager);
+		if (!weaponEntity)
+			return false;
+
+		// Get required components
+		BaseWeaponManagerComponent weaponManager = BaseWeaponManagerComponent.Cast(entity.FindComponent(BaseWeaponManagerComponent));
+		InventoryStorageManagerComponent storageManager = InventoryStorageManagerComponent.Cast(entity.FindComponent(InventoryStorageManagerComponent));
+		EquipedWeaponStorageComponent weaponStorage = EquipedWeaponStorageComponent.Cast(entity.FindComponent(EquipedWeaponStorageComponent));
+
+		if (!weaponManager || !storageManager || !weaponStorage)
+		{
+			Print("[OVT_LoadoutManagerComponent] Missing required components for weapon equipping", LogLevel.WARNING);
+			return false;
+		}
+
+		WeaponComponent weaponComponent = WeaponComponent.Cast(weaponEntity.FindComponent(WeaponComponent));
+		if (!weaponComponent)
+		{
+			Print(string.Format("[OVT_LoadoutManagerComponent] No weapon component found on box weapon: %1", loadoutItem.m_sResourceName), LogLevel.WARNING);
+			return false;
+		}
+
+		// Remove the weapon from the box before placing it
+		BaseInventoryStorageComponent itemStorage = null;
+		array<BaseInventoryStorageComponent> boxStorages = new array<BaseInventoryStorageComponent>();
+		boxStorageManager.GetStorages(boxStorages);
+
+		foreach (BaseInventoryStorageComponent storage : boxStorages)
+		{
+			if (storage.Contains(weaponEntity))
+			{
+				itemStorage = storage;
+				break;
+			}
+		}
+
+		if (!itemStorage || !boxStorageManager.TryRemoveItemFromStorage(weaponEntity, itemStorage))
+			return false;
+
+		array<WeaponSlotComponent> weaponSlots = new array<WeaponSlotComponent>();
+		weaponManager.GetWeaponsSlots(weaponSlots);
+
+		// Prefer an empty slot of the matching type
+		foreach (WeaponSlotComponent slot : weaponSlots)
+		{
+			if (slot.GetWeaponSlotType().Compare(weaponComponent.GetWeaponSlotType()) != 0)
+				continue;
+
+			if (slot.GetWeaponEntity())
+				continue;
+
+			if (storageManager.TryInsertItemInStorage(weaponEntity, weaponStorage, slot.GetWeaponSlotIndex()))
+			{
+				ApplyWeaponAttachmentsFromBox(weaponEntity, loadoutItem, boxStorageManager);
+				ApplyItemProperties(weaponEntity, loadoutItem);
+				return true;
+			}
+		}
+
+		// No empty slot - swap the occupant of a matching slot into the box
+		foreach (WeaponSlotComponent slot : weaponSlots)
+		{
+			if (slot.GetWeaponSlotType().Compare(weaponComponent.GetWeaponSlotType()) != 0)
+				continue;
+
+			IEntity currentWeapon = slot.GetWeaponEntity();
+			if (!currentWeapon)
+				continue;
+
+			if (!storageManager.TryRemoveItemFromStorage(currentWeapon, weaponStorage))
+				continue;
+
+			if (storageManager.TryInsertItemInStorage(weaponEntity, weaponStorage, slot.GetWeaponSlotIndex()))
+			{
+				if (!boxStorageManager.TryInsertItem(currentWeapon))
+				{
+					Print(string.Format("[OVT_LoadoutManagerComponent] Could not fit replaced weapon in box, deleting"));
+					SCR_EntityHelper.DeleteEntityAndChildren(currentWeapon);
+				}
+				ApplyWeaponAttachmentsFromBox(weaponEntity, loadoutItem, boxStorageManager);
+				ApplyItemProperties(weaponEntity, loadoutItem);
+				return true;
+			}
+
+			// Could not place the new weapon - put the old one back
+			storageManager.TryInsertItemInStorage(currentWeapon, weaponStorage, slot.GetWeaponSlotIndex());
+		}
+
+		// Could not place the weapon at all - return it to the box
+		boxStorageManager.TryInsertItem(weaponEntity);
+		return false;
+	}
+
 	//! Apply individual loadout item to entity
 	protected bool ApplyLoadoutItem(OVT_LoadoutItem loadoutItem, IEntity entity, InventoryStorageManagerComponent storageManager)
 	{
@@ -1628,11 +1728,11 @@ class OVT_LoadoutManagerComponent: OVT_Component
 			}
 			
 			Print(string.Format("[OVT_LoadoutManagerComponent] Found existing nested item in box: %1", childItem.m_sResourceName));
-			
-			// Apply weapon attachments if this nested item is a weapon (only if it wasn't already applied)
+
+			// Apply weapon attachments if this nested item is a weapon - from box stock only (BUG-042)
 			if (childItem.HasAttachments())
 			{
-				ApplyWeaponAttachments(foundItem, childItem);
+				ApplyWeaponAttachmentsFromBox(foundItem, childItem, boxStorageManager);
 			}
 			
 			// Apply custom properties
@@ -1681,17 +1781,17 @@ class OVT_LoadoutManagerComponent: OVT_Component
 				continue; // Silently fail if item not in box
 			}
 			
-			// Apply weapon attachments if this nested item is a weapon
+			// Apply weapon attachments if this nested item is a weapon - from box stock only (BUG-042)
 			if (childItem.HasAttachments())
 			{
-				ApplyWeaponAttachments(foundItem, childItem);
+				ApplyWeaponAttachmentsFromBox(foundItem, childItem, boxStorageManager);
 			}
-			
+
 			// Apply custom properties
 			ApplyItemProperties(foundItem, childItem);
-			
+
 			// Find the exact storage component within the container
-			BaseInventoryStorageComponent targetStorage = FindMatchingStorage(inventoryStorageManager, 
+			BaseInventoryStorageComponent targetStorage = FindMatchingStorage(inventoryStorageManager,
 				childItem.m_iStoragePriority, childItem.m_eStoragePurpose);
 			
 			if (!targetStorage)
@@ -1850,6 +1950,60 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		}
 	}
 	
+	//! Check whether a weapon already carries an attachment with the given prefab
+	protected bool WeaponHasAttachment(IEntity weapon, string attachmentPrefab)
+	{
+		WeaponAttachmentsStorageComponent attachmentStorage = WeaponAttachmentsStorageComponent.Cast(weapon.FindComponent(WeaponAttachmentsStorageComponent));
+		if (!attachmentStorage)
+			return false;
+
+		array<BaseInventoryStorageComponent> attachmentSlots = new array<BaseInventoryStorageComponent>();
+		attachmentStorage.GetOwnedStorages(attachmentSlots, 1, true);
+
+		foreach (BaseInventoryStorageComponent slot : attachmentSlots)
+		{
+			array<IEntity> attachments = new array<IEntity>();
+			slot.GetAll(attachments);
+
+			foreach (IEntity attachment : attachments)
+			{
+				if (OVT_Global.GetPrefabName(attachment) == attachmentPrefab)
+					return true;
+			}
+		}
+
+		return false;
+	}
+
+	//! Apply weapon attachments by consuming them from the equipment box - never spawns.
+	//! Attachments already mounted on the (box-sourced) weapon are kept; missing ones are moved
+	//! from box stock when available and silently skipped otherwise (BUG-042).
+	protected void ApplyWeaponAttachmentsFromBox(IEntity weapon, OVT_LoadoutItem loadoutItem, InventoryStorageManagerComponent boxStorageManager)
+	{
+		WeaponAttachmentsStorageComponent attachmentStorage = WeaponAttachmentsStorageComponent.Cast(weapon.FindComponent(WeaponAttachmentsStorageComponent));
+		if (!attachmentStorage)
+			return;
+
+		array<string> attachments = loadoutItem.GetAttachments();
+		if (!attachments || attachments.IsEmpty())
+			return;
+
+		foreach (string attachmentPrefab : attachments)
+		{
+			if (WeaponHasAttachment(weapon, attachmentPrefab))
+				continue;
+
+			IEntity attachmentEntity = FindItemInBox(attachmentPrefab, boxStorageManager);
+			if (!attachmentEntity)
+				continue;
+
+			if (!boxStorageManager.TryMoveItemToStorage(attachmentEntity, attachmentStorage))
+			{
+				Print(string.Format("[OVT_LoadoutManagerComponent] Could not attach %1 from box, leaving in box", attachmentPrefab));
+			}
+		}
+	}
+
 	//! Apply weapon attachments to weapon entity
 	protected void ApplyWeaponAttachments(IEntity weapon, OVT_LoadoutItem loadoutItem)
 	{

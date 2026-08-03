@@ -906,6 +906,17 @@ class OVT_PlayerCommsComponent: OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Persistent-id variant of ResolveSenderPlayerId: remote callers reach these handlers on their
+	//! own character's component, so the claimed id cannot name another player; the game mode's own
+	//! copy (used by server-side code) has no player, so the claimed id is kept there.
+	protected string ResolveSenderPersistentId(string claimedPersistentId)
+	{
+		int ownerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(GetOwner());
+		if(ownerId > 0) return OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(ownerId);
+		return claimedPersistentId;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Donates the calling player's own money to the resistance funds.
 	//! The balance check, debit and credit all happen on the server.
 	void DonateToResistance(int playerId, int amount)
@@ -1451,7 +1462,11 @@ class OVT_PlayerCommsComponent: OVT_Component
 	}
 	
 	//LOADOUTS
-	
+
+	//! How far the sender (and the apply target) can be from the equipment box before the server
+	//! rejects a loadout apply (interaction range plus latency/movement slack)
+	protected const float LOADOUT_BOX_MAX_DISTANCE = 20;
+
 	//! Save a loadout for a player
 	void SaveLoadout(string playerId, string loadoutName, string description = "", bool isOfficerTemplate = false)
 	{
@@ -1461,6 +1476,9 @@ class OVT_PlayerCommsComponent: OVT_Component
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_SaveLoadout(string playerId, string loadoutName, string description, bool isOfficerTemplate)
 	{
+		// A client can only save as themselves (BUG-043)
+		playerId = ResolveSenderPersistentId(playerId);
+
 		// Get the player entity
 		OVT_PlayerManagerComponent playerMgr = OVT_Global.GetPlayers();
 		int playerIdInt = playerMgr.GetPlayerIDFromPersistentID(playerId);
@@ -1491,12 +1509,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 		}
 	}
 	
-	//! Load a loadout for a player
-	void LoadLoadout(string playerId, string loadoutName)
-	{
-		Rpc(RpcAsk_LoadLoadout, playerId, loadoutName);
-	}
-	
+	// The old no-box "LoadLoadout" endpoint is gone deliberately: it spawned a full saved kit from
+	// prefabs for any claimed player, had no legitimate caller in the repo, and was a free-item
+	// endpoint for any modified client (BUG-043). Box-apply below is the only network path.
+
 	//! Load a loadout for a player from equipment box
 	void LoadLoadoutFromBox(string playerId, string loadoutName, IEntity equipmentBox, IEntity targetEntity)
 	{		
@@ -1514,35 +1530,11 @@ class OVT_PlayerCommsComponent: OVT_Component
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_LoadLoadout(string playerId, string loadoutName)
-	{
-		// Get the player entity
-		OVT_PlayerManagerComponent playerMgr = OVT_Global.GetPlayers();
-		int playerIdInt = playerMgr.GetPlayerIDFromPersistentID(playerId);
-		IEntity playerEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerIdInt);
-		
-		if (!playerEntity)
-		{
-			Print(string.Format("[OVT_PlayerCommsComponent] Could not find player entity for ID: %1", playerId), LogLevel.ERROR);
-			return;
-		}
-		
-		// Get loadout manager
-		OVT_LoadoutManagerComponent loadoutManager = OVT_Global.GetLoadouts();
-		if (!loadoutManager)
-		{
-			Print("[OVT_PlayerCommsComponent] Loadout manager not available", LogLevel.ERROR);
-			return;
-		}
-		
-		// Load the loadout
-		loadoutManager.LoadLoadout(playerId, loadoutName, playerEntity);
-	}
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_LoadLoadoutFromBox(string playerId, string loadoutName, RplId equipmentBoxId, RplId targetEntityId)
 	{
-		
+		// A client can only apply their own loadouts (BUG-043)
+		playerId = ResolveSenderPersistentId(playerId);
+
 		// Get equipment box entity
 		RplComponent equipmentBoxRpl = RplComponent.Cast(Replication.FindItem(equipmentBoxId));
 		if (!equipmentBoxRpl)
@@ -1560,7 +1552,26 @@ class OVT_PlayerCommsComponent: OVT_Component
 			return;
 		}
 		IEntity targetEntity = targetEntityRpl.GetEntity();
-		
+		if (!targetEntity || !equipmentBox)
+			return;
+
+		// Distance and ownership checks bind remote senders only; the game mode's own copy
+		// carries server-side calls (see ResolveSenderPersistentId)
+		ChimeraCharacter senderCharacter = ChimeraCharacter.Cast(GetOwner());
+		if (senderCharacter)
+		{
+			// The loadout UI is used standing at the box - reject far-away boxes and targets
+			if (vector.Distance(senderCharacter.GetOrigin(), equipmentBox.GetOrigin()) > LOADOUT_BOX_MAX_DISTANCE) return;
+			if (vector.Distance(targetEntity.GetOrigin(), equipmentBox.GetOrigin()) > LOADOUT_BOX_MAX_DISTANCE) return;
+
+			// The target must be the sender themselves or one of their own recruits
+			if (targetEntity != senderCharacter)
+			{
+				OVT_RecruitData recruitData = OVT_RecruitData.GetRecruitDataFromEntity(targetEntity);
+				if (!recruitData || recruitData.m_sOwnerPersistentId != playerId) return;
+			}
+		}
+
 		// Get loadout manager
 		OVT_LoadoutManagerComponent loadoutManager = OVT_Global.GetLoadouts();
 		if (!loadoutManager)
@@ -1568,7 +1579,7 @@ class OVT_PlayerCommsComponent: OVT_Component
 			Print("[OVT_PlayerCommsComponent] Loadout manager not available", LogLevel.ERROR);
 			return;
 		}
-		
+
 		// Load the loadout from equipment box
 		loadoutManager.LoadLoadout(playerId, loadoutName, targetEntity, equipmentBox);
 	}
@@ -1583,6 +1594,9 @@ class OVT_PlayerCommsComponent: OVT_Component
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_DeleteLoadout(string playerId, string loadoutName, bool isOfficerTemplate)
 	{
+		// A client can only delete their own loadouts (BUG-043)
+		playerId = ResolveSenderPersistentId(playerId);
+
 		OVT_LoadoutManagerComponent loadoutManager = OVT_Global.GetLoadouts();
 		if (!loadoutManager)
 		{
