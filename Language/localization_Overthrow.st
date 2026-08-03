@@ -6186,6 +6186,74 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A7C4E1E00000001}" {
+   Id "OVT-SellBlocked_Equipped"
+   Target_en_us "Equipped items cannot be sold"
+   Comment "Shop sell mode - reason a row is greyed out"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7C4E1E00000002}" {
+   Id "OVT-SellBlocked_NotBoughtHere"
+   Target_en_us "This shop does not buy this"
+   Comment "Shop sell mode - reason a row is greyed out"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7C4E1E00000003}" {
+   Id "OVT-SellBlocked_NoValue"
+   Target_en_us "Worth nothing here"
+   Comment "Shop sell mode - reason a row is greyed out"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7C4E1E00000004}" {
+   Id "OVT-SellCargoHere"
+   Target_en_us "Sell Cargo Here"
+   Comment "Vehicle trunk user action"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{5D346D4FE8D27151}" {
    Id "OVT-SellDrugs"
    Target_en_us "Sell Drugs"
@@ -6424,6 +6492,57 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A7C4E1E00000005}" {
+   Id "OVT-Shop_ModeBuy"
+   Target_en_us "Buy Mode"
+   Comment "Shop menu header - switch the browser to the shop's stock"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7C4E1E00000006}" {
+   Id "OVT-Shop_ModeSell"
+   Target_en_us "Sell Mode"
+   Comment "Shop menu header - switch the browser to the player's own items"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7C4E1E00000007}" {
+   Id "OVT-Shop_NextCategory"
+   Target_en_us "Next Category"
+   Comment "Shop menu header - step to the next category tab"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{598EF98DD5C74403}" {
    Id "OVT-Shop_Open"
    Target_en_us "Open Shop"
@@ -6443,6 +6562,40 @@ StringTable {
    Modified 1706587874
    Author "Aaron Static"
    LastChanged "parkj_c3c9hji"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7C4E1E00000008}" {
+   Id "OVT-Shop_Owned"
+   Target_en_us "Owned"
+   Comment "Shop sell mode - how many copies the player is carrying"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7C4E1E00000009}" {
+   Id "OVT-Shop_PrevCategory"
+   Target_en_us "Prev Category"
+   Comment "Shop menu header - step to the previous category tab"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
@@ -6490,6 +6643,23 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A7C4E1E0000000A}" {
+   Id "OVT-Shop_SellAll"
+   Target_en_us "Sell All"
+   Comment "Shop sell mode - sell every carried copy of the selected item"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{5D2847DF5BAEC7BF}" {
    Id "OVT-Shop_Selling"
    Target_en_us "Sell for"
@@ -6509,6 +6679,210 @@ StringTable {
    Modified 1706587859
    Author "Aaron Static"
    LastChanged "parkj_c3c9hji"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7C4E1E0000000B}" {
+   Id "OVT-Shop_SkippedItems"
+   Target_en_us "%1 not bought here"
+   Comment "Shop sell result - items the shop refused"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7C4E1E0000000C}" {
+   Id "OVT-Shop_SoldItems"
+   Target_en_us "Sold %1 for %2"
+   Comment "Shop sell result - count and money earned"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7C4E1E0000000D}" {
+   Id "OVT-Shop_SoldNothing"
+   Target_en_us "Nothing was sold"
+   Comment "Shop sell result - the server sold no items"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7C4E1E0000000E}" {
+   Id "OVT-ShopCategory_All"
+   Target_en_us "All"
+   Comment "Shop browser category tab"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7C4E1E0000000F}" {
+   Id "OVT-ShopCategory_Ammunition"
+   Target_en_us "Ammunition"
+   Comment "Shop browser category tab"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7C4E1E00000010}" {
+   Id "OVT-ShopCategory_Attachments"
+   Target_en_us "Attachments"
+   Comment "Shop browser category tab"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7C4E1E00000011}" {
+   Id "OVT-ShopCategory_Clothing"
+   Target_en_us "Clothing"
+   Comment "Shop browser category tab"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7C4E1E00000012}" {
+   Id "OVT-ShopCategory_Explosives"
+   Target_en_us "Explosives"
+   Comment "Shop browser category tab"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7C4E1E00000013}" {
+   Id "OVT-ShopCategory_Gear"
+   Target_en_us "Gear"
+   Comment "Shop browser category tab"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7C4E1E00000014}" {
+   Id "OVT-ShopCategory_Medical"
+   Target_en_us "Medical"
+   Comment "Shop browser category tab"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7C4E1E00000015}" {
+   Id "OVT-ShopCategory_Other"
+   Target_en_us "Other"
+   Comment "Shop browser category tab"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7C4E1E00000016}" {
+   Id "OVT-ShopCategory_Weapons"
+   Target_en_us "Weapons"
+   Comment "Shop browser category tab"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
@@ -7741,6 +8115,159 @@ StringTable {
    Modified 1706588949
    Author "Aaron Static"
    LastChanged "parkj_c3c9hji"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1A2D00000002}" {
+   Id "OVT-RealEstate_NotForSale"
+   Target_en_us "This property is not for sale"
+   Comment "Real estate menu - buy refused because the building is already owned or rented"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1A2D00000003}" {
+   Id "OVT-RealEstate_CantAfford"
+   Target_en_us "You cannot afford this"
+   Comment "Real estate menu - buy or rent refused for insufficient funds"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1A2D00000004}" {
+   Id "OVT-RealEstate_NotOwner"
+   Target_en_us "You do not own this property"
+   Comment "Real estate menu - sell or set-as-home refused because the player is not the owner"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1A2D00000005}" {
+   Id "OVT-RealEstate_OnlyHouse"
+   Target_en_us "You cannot sell your only property"
+   Comment "Real estate menu - sell refused because it is the player's last building"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1A2D00000006}" {
+   Id "OVT-RealEstate_IsHome"
+   Target_en_us "You cannot sell your home"
+   Comment "Real estate menu - sell refused because the building is the player's home"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1A2D00000007}" {
+   Id "OVT-RealEstate_CantRent"
+   Target_en_us "This property cannot be rented"
+   Comment "Real estate menu - rent refused because it is already rented, owned by someone else, or is home"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1A2D00000008}" {
+   Id "OVT-RealEstate_NotRenter"
+   Target_en_us "You are not renting this property"
+   Comment "Real estate menu - stop renting refused because the player is not the renter"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1A2D00000009}" {
+   Id "OVT-RealEstate_AlreadyHome"
+   Target_en_us "This is already your home"
+   Comment "Real estate menu - set as home refused because it already is"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1A2D00000001}" {
+   Id "OVT-Warehouse_Take_All"
+   Target_en_us "Take All"
+   Comment "Warehouse menu - takes the whole selected stock line into the vehicle"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }

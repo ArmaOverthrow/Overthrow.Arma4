@@ -73,6 +73,17 @@ class OVT_Global : Managed
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Convenience method to get the server-authoritative shop transaction component
+	//! \return Shop transaction component or null
+	static OVT_ShopTransactionComponent GetShopTransactions()
+	{
+		OVT_OverthrowController controller = GetController();
+		if (!controller) return null;
+
+		return OVT_ShopTransactionComponent.Cast(controller.FindComponent(OVT_ShopTransactionComponent));
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Convenience method for battlefield looting
 	//! \param[in] vehicle Target vehicle to loot into
 	//! \param[in] searchRadius Search radius for lootable items

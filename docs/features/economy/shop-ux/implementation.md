@@ -1,10 +1,10 @@
 # Shop UX — Implementation Plan
 
 **Epic:** economy (feature #4 of 4)
-**Status:** Planning
+**Status:** Ready for Review (pending human play-test)
 **Started:** 2026-08-04
-**Target Completion:** TBD
-**Last Updated:** 2026-08-04
+**Target Completion:** 2026-08-04 (built; play-test outstanding)
+**Last Updated:** 2026-08-04 08:00
 
 ---
 

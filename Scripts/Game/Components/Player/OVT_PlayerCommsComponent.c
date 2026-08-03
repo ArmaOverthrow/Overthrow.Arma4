@@ -663,95 +663,21 @@ class OVT_PlayerCommsComponent: OVT_Component
 				SendBuyPartialNotification(playerId, successfulPurchases, num);
 			}
 		}
-		// Complete failure - fail silently
+		else
+		{
+			// Funds were sufficient and nothing was delivered: the only way to get here is that the
+			// item could neither be inserted nor equipped. Silence used to make this read as a dead
+			// Buy button (F15); the localized message has existed since the notification config was
+			// written, it was simply never sent.
+			SendBuyFailureNotification(playerId, "PurchaseFailedInventoryFull");
+		}
 	}
 	
-	//! How far the buying/selling player may be from the shop before the server rejects the
-	//! transaction (the shop UI requires interaction range, plus latency/movement slack)
+	//! How far the buying player may be from the shop before the server rejects the transaction
+	//! (the shop UI requires interaction range, plus latency/movement slack).
+	//! Selling lives on OVT_ShopTransactionComponent (OVT_OverthrowController) and applies the same
+	//! 30 m, so a sell is never rejected where a buy would be accepted.
 	protected const float SHOP_MAX_DISTANCE = 30;
-
-	void Sell(OVT_ShopComponent shop, int id, int num, int playerId)
-	{
-		RplComponent rpl = RplComponent.Cast(shop.GetOwner().FindComponent(RplComponent));
-		if(!rpl) return;
-		Rpc(RpcAsk_Sell, rpl.Id(), id, num, playerId);
-	}
-
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_Sell(RplId shopId, int id, int num, int playerId)
-	{
-		playerId = ResolveSenderPlayerId(playerId);
-		if(num <= 0) return;
-
-		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
-		if(!player) return;
-
-		SCR_InventoryStorageManagerComponent inventory = SCR_InventoryStorageManagerComponent.Cast(player.FindComponent( SCR_InventoryStorageManagerComponent ));
-		if(!inventory) return;
-
-		RplComponent shopRpl = RplComponent.Cast(Replication.FindItem(shopId));
-		if(!shopRpl) return;
-		OVT_ShopComponent shop = OVT_ShopComponent.Cast(shopRpl.GetEntity().FindComponent(OVT_ShopComponent));
-		if(!shop) return;
-
-		// The shop UI's proximity gate is client-side only - re-check it here (same pattern as
-		// RpcAsk_ImportToVehicle)
-		if(vector.Distance(player.GetOrigin(), shop.GetOwner().GetOrigin()) > SHOP_MAX_DISTANCE) return;
-
-		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
-
-		int unitPrice = economy.GetSellPrice(id, shop.GetOwner().GetOrigin());
-		if(shop.m_ShopType == OVT_ShopType.SHOP_GUNDEALER)
-		{
-			unitPrice = unitPrice * OVT_Global.GetConfig().m_Difficulty.gunDealerSellPriceMultiplier;
-		}
-		if(unitPrice <= 0) return;
-
-		ResourceName res = economy.GetResource(id);
-
-		autoptr array<IEntity> items = new array<IEntity>;
-		inventory.GetItems(items);
-
-		int sold = 0;
-		foreach(IEntity ent : items)
-		{
-			if(sold >= num) break;
-			string prefab = ent.GetPrefabData().GetPrefabName();
-			//Chris - Make this work better for variants
-			if (prefab == "{63E8322E2ADD4AA7}Prefabs/Weapons/Rifles/AK74/Rifle_AK74_GP25.et")
-			{
-				prefab = "{FA5C25BF66A53DCF}Prefabs/Weapons/Rifles/AK74/Rifle_AK74.et";
-			}
-			if (prefab == "{EB404DC9E1BCB750}Prefabs/Weapons/Rifles/AK74/Rifle_AK74N_1P29.et" || prefab == "{BC6C9476FB3219A7}Prefabs/Weapons/Rifles/AK74/Rifle_AK74N_GP25.et")
-			{
-				prefab = "{96DFD2E7E63B3386}Prefabs/Weapons/Rifles/AK74/Rifle_AK74N.et";
-			}
-			if (res == "{7A82FE978603F137}Prefabs/Weapons/Launchers/RPG7/Launcher_RPG7.et" && prefab == "{E8A55396050E1762}Prefabs/Weapons/Launchers/RPG7/Launcher_RPG7_PGO7.et")
-			{
-				prefab = res;
-			}
-			if (res == "{E8A55396050E1762}Prefabs/Weapons/Launchers/RPG7/Launcher_RPG7_PGO7.et" && prefab == "{7A82FE978603F137}Prefabs/Weapons/Launchers/RPG7/Launcher_RPG7.et")
-			{
-				prefab = res;
-			}
-			if(prefab == res)
-			{
-				if(inventory.TryDeleteItem(ent))
-				{
-					sold++;
-				}
-			}
-		}
-
-		if(sold > 0)
-		{
-			int total = unitPrice * sold;
-			OVT_Global.GetEconomy().DoAddPlayerMoney(playerId, total);
-			economy.m_OnPlayerSell.Invoke(playerId, total);
-			RpcAsk_AddToInventory(shopId, id, sold);
-			economy.m_OnPlayerTransaction.Invoke(playerId, shop, false, total);
-		}
-	}
 
 	//! How far the selling player may be from the dealer before the server rejects the sale
 	//! (the user action requires interaction range, plus latency/movement slack)

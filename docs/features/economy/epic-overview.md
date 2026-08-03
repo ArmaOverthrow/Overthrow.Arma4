@@ -1,8 +1,8 @@
 # Economy - Epic Overview
 
 **Epic:** economy
-**Status:** 📄 Documented (Retrospective)
-**Last Updated:** 2026-08-02 21:27
+**Status:** 🟡 In Progress (shop-ux built, pending play-test)
+**Last Updated:** 2026-08-04 08:10
 
 > **This file is the epic marker.** Its presence in `docs/features/economy/` is what tells every Beast Mode command (and future Web App / Discord clients) that this folder is an **epic**, not a plain feature. Keep it present and keep the required sections below filled in. It is the epic's equivalent of the project's `docs/overview.md`, scoped to this epic. The master `docs/overview.md` tracks this epic as a **single row**; the per-feature detail lives **here**.
 
@@ -23,7 +23,7 @@ The constituent features of this epic, in build order. This is the epic's equiva
 | 1 | market | 📄 Documented (Retrospective) | — | Central economy: player money, prices, stock, resupply and resistance funds via `OVT_EconomyManagerComponent` |
 | 2 | shops | 📄 Documented (Retrospective) | — | Physical shop entities, buy/sell UI flow and shop inventory (`OVT_ShopComponent`, ShopMenu) |
 | 3 | real-estate | 📄 Documented (Retrospective) | — | Building ownership, homes and rentals via `OVT_RealEstateManagerComponent` |
-| 4 | shop-ux | 📝 Planned | — | Shop menu rework (issue #145): category tabs, split Buy/Sell modes with player-inventory sell browser, vehicle trunk “Sell All” |
+| 4 | shop-ux | 🔍 Ready for Review | 37/37 (100%) | Shop menu rework (issue #145): category tabs, split Buy/Sell modes with player-inventory sell browser, vehicle trunk “Sell All” — built 2026-08-04 (server-authoritative sell on `OVT_ShopTransactionComponent`, legacy `RpcAsk_Sell` deleted, +6 automated cases); human play-test outstanding |
 
 > Reference any feature with the slash form `economy/<feature>` (e.g. `/continue-feature economy/market`). Task counts are pulled from each feature's own `tasks.md` and refreshed by `/update-epic`.
 
@@ -74,8 +74,8 @@ Seeded from `/discover-feature` findings (2026-08-02); `/review-epic` will refre
 
 How this epic is represented in the project's master `docs/overview.md` (one row, not its children). Kept in sync by `/update-epic` and `/update-master`.
 
-- **Rollup status:** 📄 Documented (3/3 features documented retrospectively)
-- **One-line summary for master:** Money, prices, shops and real estate — existing shipped systems backfilled with retrospective docs (`market`, `shops`, `real-estate`).
+- **Rollup status:** 🟡 In Progress (3 features documented retrospectively; `shop-ux` built 37/37, pending play-test)
+- **One-line summary for master:** Money, prices, shops and real estate. New: `shop-ux` (issue #145) built — category tabs, Buy/Sell mode split browsing the player's own inventory, vehicle trunk "Sell All", server-authoritative selling (BUG-020's shop half closed, BUG-024 fixed by construction), money formatting/HUD delta ticker + warehouse/real-estate QOL; awaiting human play-test.
 
 ---
 
