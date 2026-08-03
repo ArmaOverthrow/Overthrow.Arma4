@@ -1231,7 +1231,10 @@ dependency, and a future rebalance of the tiers could move it down at zero cost.
     position set", which the zero-vector check alone does not express. Harmless on Everon and in the test world (whose
     town sits at X = 208), and invisible until a map places a town near the western edge of the world. **Pinned** by
     `OVT_TEST_Logic_Jobs_DealerCondition_PinsAxisOnlyCheckBug`, which asserts the current behaviour and will go red
-    when it is fixed.
+    when it is fixed. **FIXED 2026-08-03 (BUG-005):** the condition is now the zero-vector check
+    (`gunDealerPosition != vector.Zero`); the pin case was rewritten as regression case
+    `OVT_TEST_Logic_Jobs_DealerCondition_XZeroPlaneIsStillADealer` (can-fail re-proven: old check temporarily
+    restored → exit 1 with the case's BUG-005 diagnostic; restored → Fast group green).
 
 ### Suspected bugs from the plan that turned out NOT to be bugs
 
