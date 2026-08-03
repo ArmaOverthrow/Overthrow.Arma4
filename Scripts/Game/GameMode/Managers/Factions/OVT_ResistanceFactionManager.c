@@ -56,7 +56,13 @@ class OVT_VehicleUpgrade : ScriptAndConfig
 }
 
 class OVT_ResistanceFactionManager: OVT_Component
-{	
+{
+	//! Buffer (m) added to baseCloseRange when validating FOB deployment near any base.
+	//! Shared by the deploy action, the server-side check and the map's restricted-area overlay
+	static const int FOB_DEPLOY_BASE_BUFFER = 50;
+	//! Enforced FOB deployment exclusion radius (m) around any radio tower
+	static const int FOB_DEPLOY_TOWER_RANGE = 70;
+
 	[Attribute()]
 	ResourceName m_rPlaceablesConfigFile;
 	
@@ -452,25 +458,25 @@ class OVT_ResistanceFactionManager: OVT_Component
 		foreach(OVT_BaseData base : occupyingFaction.m_Bases)
 		{
 			float distance = vector.Distance(base.location, fobPos);
-			// Use base close range + extra buffer (50m)
-			float restrictedDistance = config.m_Difficulty.baseCloseRange + 50;
-			
+			float restrictedDistance = config.m_Difficulty.baseCloseRange + FOB_DEPLOY_BASE_BUFFER;
+
 			if(distance < restrictedDistance)
 			{
-				return; // Silently fail - client should have already validated
+				// Client pre-validates, but state can diverge - tell the player why nothing happened
+				OVT_Global.GetNotify().SendTextNotification("TooCloseBase", playerId);
+				return;
 			}
 		}
-		
+
 		// Check distance to ALL radio towers (occupying faction and resistance)
 		foreach(OVT_RadioTowerData tower : occupyingFaction.m_RadioTowers)
 		{
 			float distance = vector.Distance(tower.location, fobPos);
-			// Radio towers have 20m range + extra buffer (50m)
-			float restrictedDistance = 20 + 50;
-			
-			if(distance < restrictedDistance)
+
+			if(distance < FOB_DEPLOY_TOWER_RANGE)
 			{
-				return; // Silently fail - client should have already validated
+				OVT_Global.GetNotify().SendTextNotification("TooCloseToRadioTower", playerId);
+				return;
 			}
 		}
 		
