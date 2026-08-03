@@ -101,6 +101,9 @@ class OVT_ResistanceFactionManager: OVT_Component
 	// unsubscribe from this exact component (its owner is the player's controller, not this manager)
 	protected OVT_ContainerTransferComponent m_CurrentDeploymentTransfer;
 	protected OVT_ContainerTransferComponent m_CurrentCollectionTransfer;
+	// The player whose transfer component drives the in-flight FOB operation; if they disconnect
+	// mid-transfer the complete/error callbacks never fire, so the state must be recovered manually
+	protected int m_iFOBOperationPlayerId = -1;
 	protected SCR_AIGroup m_TempGroup;
 	
 	ref ScriptInvoker m_OnPlace = new ScriptInvoker();
@@ -146,7 +149,30 @@ class OVT_ResistanceFactionManager: OVT_Component
 	
 	void Init(IEntity owner)
 	{
-		GetGame().GetCallqueue().CallLater(RegisterUpgrades, 0);		
+		GetGame().GetCallqueue().CallLater(RegisterUpgrades, 0);
+
+		// If the player driving an in-flight FOB operation disconnects, the transfer callbacks on
+		// their controller never fire and the operation state would wedge FOB deploy/undeploy for
+		// the rest of the session - recover it here (the invoker only fires on the server)
+		if (m_Players)
+			m_Players.m_OnPlayerDisconnected.Insert(OnPlayerDisconnectedFOBRecovery);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Recovers the shared FOB operation state if the initiating player disconnects mid-transfer
+	protected void OnPlayerDisconnectedFOBRecovery(string playerPersistentId, int playerId)
+	{
+		if (m_iFOBOperationPlayerId == -1 || playerId != m_iFOBOperationPlayerId) return;
+
+		if (m_pCurrentDeploymentSource || m_pCurrentDeploymentTarget)
+		{
+			OnFOBDeploymentError("Player disconnected");
+		}
+		else if (m_pCurrentUndeployedFOB || m_pCurrentMobileFOB)
+		{
+			OnFOBCollectionError("Player disconnected");
+		}
+		m_iFOBOperationPlayerId = -1;
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -462,8 +488,10 @@ class OVT_ResistanceFactionManager: OVT_Component
 
 			if(distance < restrictedDistance)
 			{
-				// Client pre-validates, but state can diverge - tell the player why nothing happened
-				OVT_Global.GetNotify().SendTextNotification("TooCloseBase", playerId);
+				// Client pre-validates, but state can diverge - tell the player why nothing
+				// happened. Server-initiated calls (playerId -1) would broadcast to everyone.
+				if (playerId > -1)
+					OVT_Global.GetNotify().SendTextNotification("TooCloseBase", playerId);
 				return;
 			}
 		}
@@ -475,7 +503,8 @@ class OVT_ResistanceFactionManager: OVT_Component
 
 			if(distance < FOB_DEPLOY_TOWER_RANGE)
 			{
-				OVT_Global.GetNotify().SendTextNotification("TooCloseToRadioTower", playerId);
+				if (playerId > -1)
+					OVT_Global.GetNotify().SendTextNotification("TooCloseToRadioTower", playerId);
 				return;
 			}
 		}
@@ -489,7 +518,11 @@ class OVT_ResistanceFactionManager: OVT_Component
 		if (!transfer || !transfer.IsAvailable()) return;
 
 		// Only one FOB operation may be in flight - the operation state below is shared
-		if (m_pCurrentDeploymentSource || m_pCurrentDeploymentTarget || m_pCurrentUndeployedFOB || m_pCurrentMobileFOB) return;
+		if (m_pCurrentDeploymentSource || m_pCurrentDeploymentTarget || m_pCurrentUndeployedFOB || m_pCurrentMobileFOB)
+		{
+			OVT_Global.GetNotify().SendTextNotification("FOBOperationInProgress", playerId);
+			return;
+		}
 
 		OVT_VehicleManagerComponent vm = OVT_Global.GetVehicles();
 
@@ -511,6 +544,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		m_pCurrentDeploymentSource = entity; // mobile FOB to be deleted
 		m_pCurrentDeploymentTarget = newveh; // deployed FOB that was created
 		m_CurrentDeploymentTransfer = transfer;
+		m_iFOBOperationPlayerId = playerId;
 
 		// Subscribe to completion event to handle cleanup
 		transfer.m_OnOperationComplete.Insert(OnFOBDeploymentComplete);
@@ -541,7 +575,11 @@ class OVT_ResistanceFactionManager: OVT_Component
 		if (!transfer || !transfer.IsAvailable()) return;
 
 		// Only one FOB operation may be in flight - the operation state below is shared
-		if (m_pCurrentDeploymentSource || m_pCurrentDeploymentTarget || m_pCurrentUndeployedFOB || m_pCurrentMobileFOB) return;
+		if (m_pCurrentDeploymentSource || m_pCurrentDeploymentTarget || m_pCurrentUndeployedFOB || m_pCurrentMobileFOB)
+		{
+			OVT_Global.GetNotify().SendTextNotification("FOBOperationInProgress", playerId);
+			return;
+		}
 
 		OVT_VehicleManagerComponent vm = OVT_Global.GetVehicles();
 
@@ -576,6 +614,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		m_pCurrentUndeployedFOB = entity;
 		m_pCurrentMobileFOB = newveh;
 		m_CurrentCollectionTransfer = transfer;
+		m_iFOBOperationPlayerId = playerId;
 
 		// Start container collection with the new progress system
 		transfer.UndeployFOBWithCollection(entity, newveh);
@@ -1691,7 +1730,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 			int playerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(ownerPersistentId);
 			if (playerId > 0)
 			{
-				OVT_Global.GetNotify().SendTextNotification("#OVT-FOBUndeployed", playerId, 
+				OVT_Global.GetNotify().SendTextNotification("FOBUndeployed", playerId, 
 					itemsTransferred.ToString(), "3");
 			}
 		}
@@ -1711,6 +1750,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		// Clean up references
 		m_pCurrentUndeployedFOB = null;
 		m_pCurrentMobileFOB = null;
+		m_iFOBOperationPlayerId = -1;
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -1737,7 +1777,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 				int playerId = OVT_Global.GetPlayers().GetPlayerIDFromPersistentID(ownerPersistentId);
 				if (playerId > 0)
 				{
-					OVT_Global.GetNotify().SendTextNotification("#OVT-FOBUndeployFailed", playerId, 
+					OVT_Global.GetNotify().SendTextNotification("FOBUndeployFailed", playerId,
 						errorMessage);
 				}
 			}
@@ -1754,6 +1794,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		// Clean up references
 		m_pCurrentUndeployedFOB = null;
 		m_pCurrentMobileFOB = null;
+		m_iFOBOperationPlayerId = -1;
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -1791,6 +1832,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		// Clean up references
 		m_pCurrentDeploymentSource = null;
 		m_pCurrentDeploymentTarget = null;
+		m_iFOBOperationPlayerId = -1;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1829,6 +1871,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		// Clean up references
 		m_pCurrentDeploymentSource = null;
 		m_pCurrentDeploymentTarget = null;
+		m_iFOBOperationPlayerId = -1;
 	}
 	
 }

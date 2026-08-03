@@ -984,7 +984,9 @@ class OVT_JobManagerComponent: OVT_Component
 		if(!config.m_bPublic)
 		{
 			if(ownerId == -1) return;
-			int localId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
+			// GetLocalPlayerId works even while dead/respawning, unlike resolving via the
+			// controlled entity (which is null then and would drop the hint)
+			int localId = SCR_PlayerController.GetLocalPlayerId();
 			if(ownerId != localId) return;
 		}
 

@@ -1269,6 +1269,23 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{5D86A310C893FA01}" {
+   Id "OVT-FOBOperationInProgress"
+   Target_en_us "Another FOB operation is already in progress"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754179200
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{5D86A310C893DBDF}" {
    Id "OVT-FOBUndeployFailed"
    Target_en_us "FOB Undeployment Failed"
@@ -3326,6 +3343,23 @@ StringTable {
    NonTranslatable 0
    MaxLength 0
    Modified 1684559858
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{5D86A310C893FA02}" {
+   Id "OVT-Modifier_PatrolPresence"
+   Target_en_us "Patrol Presence"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754179200
    Author "Claude Code"
    LastChanged "Claude Code"
    ImageLink ""

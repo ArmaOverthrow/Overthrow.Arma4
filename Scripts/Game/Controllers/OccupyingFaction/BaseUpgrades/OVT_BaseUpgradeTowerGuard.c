@@ -48,8 +48,11 @@ class OVT_BaseUpgradeTowerGuard : OVT_BasePatrolUpgrade
 		bool inrange = PlayerInRange() && !m_occupyingFactionManager.m_CurrentQRF;
 		if(inrange && !m_bSpawned)
 		{
-			Spend(m_iProxedResources, OVT_Global.GetOccupyingFaction().m_iThreat);
-			m_iProxedResources = 0;
+			// Only deduct what was actually spent - guards can fail to place (no accessible cover
+			// post), and the remainder is still paid-for resources
+			int spent = Spend(m_iProxedResources, OVT_Global.GetOccupyingFaction().m_iThreat);
+			m_iProxedResources -= spent;
+			if(m_iProxedResources < 0) m_iProxedResources = 0;
 			m_bSpawned = true;
 		}else if(!inrange && m_bSpawned){
 			foreach(EntityID id : m_Groups)

@@ -20,7 +20,7 @@ class OVT_SellDrugsAction : OVT_BaseCivilianUserAction
 			ResourceName res = ent.GetPrefabData().GetPrefabName();
 			if(res.Contains("DrugsWeed_01"))
 			{
-				OVT_Global.GetServer().SellDrugs(playerId);
+				OVT_Global.GetServer().SellDrugs(playerId, pOwnerEntity);
 				if(s_AIRandomGenerator.RandFloat01() > 0.25)
 					MarkAsPerformed();
 				hasDrugs = true;

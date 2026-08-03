@@ -5,7 +5,7 @@ class OVT_IsNearestTownWithDealerJobCondition : OVT_JobCondition
 	{
 		if(playerId == -1) return false; //only valid for player-allocated jobs
 		if(!town) return false; //base-only jobs have no town context
-		if(!town.gunDealerPosition || town.gunDealerPosition[0] == 0) return false;
+		if(town.gunDealerPosition == vector.Zero) return false;
 				
 		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);		
 		if(!player) return false;
@@ -16,7 +16,7 @@ class OVT_IsNearestTownWithDealerJobCondition : OVT_JobCondition
 		float nearest = -1;
 		foreach(OVT_TownData t : OVT_Global.GetTowns().m_Towns)
 		{
-			if(!t.gunDealerPosition || t.gunDealerPosition[0] == 0) continue;
+			if(t.gunDealerPosition == vector.Zero) continue;
 			float distance = vector.Distance(t.location, pos);
 			if(nearest == -1 || distance < nearest){
 				nearest = distance;

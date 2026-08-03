@@ -122,7 +122,8 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 		}
 		
 		IEntity group = OVT_Global.SpawnEntityPrefab(res, pos);
-		
+		if(!group) return 0;
+
 		m_Groups.Insert(group.GetID());
 		
 		SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
