@@ -23,7 +23,7 @@ The constituent features of this epic, in build order. This is the epic's equiva
 | 1 | market | 📄 Documented (Retrospective) | — | Central economy: player money, prices, stock, resupply and resistance funds via `OVT_EconomyManagerComponent` |
 | 2 | shops | 📄 Documented (Retrospective) | — | Physical shop entities, buy/sell UI flow and shop inventory (`OVT_ShopComponent`, ShopMenu) |
 | 3 | real-estate | 📄 Documented (Retrospective) | — | Building ownership, homes and rentals via `OVT_RealEstateManagerComponent` |
-| 4 | shop-ux | 📝 Planned | — | Shop menu rework (issue #145): category tabs + split Buy/Sell modes with player-inventory sell browser |
+| 4 | shop-ux | 📝 Planned | — | Shop menu rework (issue #145): category tabs, split Buy/Sell modes with player-inventory sell browser, vehicle trunk “Sell All” |
 
 > Reference any feature with the slash form `economy/<feature>` (e.g. `/continue-feature economy/market`). Task counts are pulled from each feature's own `tasks.md` and refreshed by `/update-epic`.
 

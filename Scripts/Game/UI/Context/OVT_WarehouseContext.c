@@ -16,11 +16,11 @@ class OVT_WarehouseContext : OVT_UIContext
 		action.m_OnActivated.Insert(TakeOne);
 		
 		Widget take10 = m_wRoot.FindAnyWidget("Take10Button");
-		action = SCR_InputButtonComponent.Cast(take1.FindHandler(SCR_InputButtonComponent));
+		action = SCR_InputButtonComponent.Cast(take10.FindHandler(SCR_InputButtonComponent));
 		action.m_OnActivated.Insert(TakeTen);
-		
+
 		Widget take100 = m_wRoot.FindAnyWidget("Take100Button");
-		action = SCR_InputButtonComponent.Cast(take1.FindHandler(SCR_InputButtonComponent));
+		action = SCR_InputButtonComponent.Cast(take100.FindHandler(SCR_InputButtonComponent));
 		action.m_OnActivated.Insert(TakeHundred);
 		
 		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");

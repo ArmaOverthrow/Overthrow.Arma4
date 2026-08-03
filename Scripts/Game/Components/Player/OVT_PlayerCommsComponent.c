@@ -2,6 +2,11 @@ class OVT_PlayerCommsComponentClass: OVT_ComponentClass
 {
 };
 
+//! ⚠️ LEGACY — DO NOT ADD NEW RPCs TO THIS COMPONENT.
+//! New client→server operations belong in a specialized component on OVT_OverthrowController
+//! (accessed via OVT_Global.GetController()); see the overthrow-architecture skill's
+//! overthrow-controller.md for the pattern (OVT_ContainerTransferComponent is the reference
+//! example). Existing RPCs here are being migrated out over time — shrink this file, don't grow it.
 class OVT_PlayerCommsComponent: OVT_Component
 {
 	bool takingMoney = false;
