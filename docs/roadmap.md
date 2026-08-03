@@ -18,47 +18,33 @@
 
 ## Release plan
 
-| Version | Theme | Contents | Status |
-|---------|-------|----------|--------|
-| **1.4.0** | Vanilla persistence | EPF → vanilla persistence migration + discovery-phase bugfixes. **No new features.** Breaking save change. | In testing |
-| **1.4.x** | Stabilization patches | Player-reported and discovery-ledger bug burndown as 1.4.0 reaches the player-base (see below). | Planned |
-| **1.5.0** *(draft)* | New map system | Revive and land the `new-map` branch — GitHub #70. | Proposed — pending the ordering decision |
-| **1.6.0** *(draft)* | Virtualization | The `virtualization` epic (docs/features/virtualization/) — GitHub #100 rebuilt on vanilla persistence. | Epic planned 2026-08-03 |
-| **1.7.0** *(draft)* | Economy 2.0 | The flagship differentiator — GitHub #99 — built on virtualization's foundations. | Idea — needs `/plan-epic` |
-| Unscheduled | Victory/defeat conditions, High Command #24, Intel #11, Undercover #8 | See Backlog. | — |
+| Version             | Theme                                             | Contents                                                                                                                                                                   | Status     |
+| ------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| **1.4.0**           | Vanilla persistence + bugfixes + Economy QOL      | EPF → vanilla persistence migration + discovery-phase bugfixes. New shop and economy QOL (economy/shop-ux feature) Breaking save change.                                   | In testing |
+| **1.4.x**           | Stabilization patches + Virtualization            | Player-reported bugs as 1.4.0 reaches the player-base (see below). The `virtualization` epic (docs/features/virtualization/) — GitHub #100 rebuilt on vanilla persistence. | Planned    |
+| **1.5.0** _(draft)_ | New map + High Command #24                        | Revive and land the `new-map` branch — GitHub #70 and High Command (unlocked by Virtualization and integrated into the new map).                                           | Proposed   |
+| Unscheduled         | Economy 2.0, Victory/defeat conditions, Intel #11 | See Backlog.                                                                                                                                                               | —          |
 
 ---
 
-## 1.4.x — stabilization (immediately after 1.4.0 ships)
+## 1.4.x — stabilization (immediately after 1.4.0 ships) + virtualization
 
-Priority order:
+Handle any bugs reported by the player-base from 1.4.0 persistence migration.
 
-1. **Dedicated-server recruit/group bugs** — GitHub **#147** and **#138** (likely `DelayedRpcAddRecruitToGroup` in `OVT_RecruitManagerComponent`). The worst player-facing problem given the multiplayer-first mission.
-2. **Exploit-class internal bugs** — the unvalidated-RPC family (**BUG-025** `RpcAsk_InstantCaptureBase` first) and duplication paths (BUG-042/046/048). Hot-fixed on `OVT_PlayerCommsComponent`; the fixes carry forward into `core/controller-migration` later.
-3. **High-priority discovery bugs** from the resistance/towns ledgers (19 high open at time of writing) via `/fix-bug` / `/fix-feature`.
-4. **Verify-and-close candidates:** GitHub **#143** (disappearing vehicles/weapons) and **#142** (duplicating turrets) are persistence-shaped and may already be fixed by 1.4.0 — verify during testing, close with the release.
-5. **Deployments lifecycle bugs** — BUG-028 (faction-list leak, the long-campaign kill switch) + world-time unit bugs. Wanted fixed *before* `virtualization/integration` starts (recorded in that feature's requirements).
-6. Housekeeping: back-link BUG-001/003/004/005/008/010 to features; `/update-master` (resistance 4/4 → 5/5 drift).
+The planned epic at `docs/features/virtualization/` (4 features: core → movement → integration → base-defense-migration; the last is deferrable). Keeps issue **#100**'s aim, discards the old branch, builds on vanilla persistence.
 
-**In parallel (not release-gated): finish the dev-ops epic** — `ci-pipeline` then `release-automation`. Cheap, already planned in `docs/features/dev-ops/epic-requirements.md`, and it makes the 1.4.x patch cadence and everything after it faster.
+- Hard prerequisite: 1.4.0 persistence proven stable in the wild.
+- `base-defense-migration` (retiring base-upgrades) may slip to a later release without blocking the epic's value — its cost is scoped for exactly this decision.
 
 ---
 
-## 1.5.0 (draft) — new map system
+## 1.5.0 (draft) — new map system + high command
 
 Revive `new-map` (GitHub **#70**): location types (bases, shops, houses, camps, FOBs, warehouses, ports, gun dealers), new fast travel, respawn selection, town info; retires the "home" concept.
 
 - Rationale for this slot: lowest risk (branch is nearly current), most player-visible, and it retires `towns/map-info` debt (4 open bugs incl. BUG-067 every-frame icon validation) rather than competing with it — the towns docs already call it the designed successor.
 - UI-heavy → leans on manual play-testing; fits a release where the automated spine can't help much.
 - First step when scheduled: merge main into the branch, re-review against the towns discovery docs, then `/discover-feature` or `/plan-feature` it into the towns epic structure.
-
-## 1.6.0 (draft) — virtualization
-
-The planned epic at `docs/features/virtualization/` (4 features: core → movement → integration → base-defense-migration; the last is deferrable). Keeps issue **#100**'s aim, discards the old branch, builds on vanilla persistence.
-
-- Hard prerequisite: 1.4.0 persistence proven stable in the wild.
-- Wanted first: BUG-028 + deployments time-unit fixes in 1.4.x.
-- `base-defense-migration` (retiring base-upgrades) may slip to a later release without blocking the epic's value — its cost is scoped for exactly this decision.
 
 ## 1.7.0 (draft) — Economy 2.0
 
@@ -74,26 +60,17 @@ GitHub **#99** — player/resistance shop ownership, store money accounts, bulk 
 `docs/features/core/controller-migration/` (planned 2026-08-03): retire the 60-RPC `OVT_PlayerCommsComponent` monolith onto domain components on `OVT_OverthrowController`, server-side validation riding every migrated RPC, monolith deleted at the end.
 
 - **Not version-pinned.** Starts any time after the 1.4.x patch cycle settles (shared file churn); architecturally independent of new-map, virtualization and Economy 2.0.
-- Logistically wide (62 call sites across managers/UI) — best run *between* big epics or by a second contributor, not concurrently with another wide-touching epic.
+- Logistically wide (62 call sites across managers/UI) — best run _between_ big epics or by a second contributor, not concurrently with another wide-touching epic.
 
 ---
 
 ## Backlog (unscheduled)
 
 - **Victory/defeat conditions** — flagged by both occupying and towns discovery as absent entirely; a real product gap for the "grind the occupiers out" fantasy. Could headline any release 1.5–1.7+.
-- **High Command** (#24), **Intel system** (#11), **Undercover system** (#8 — ties into the freshly documented wanted-system; fix its 5 open bugs first), **AI Driving** (#71 — engine-risk, keep watching Reforger releases).
-- Smaller enhancements as patch-release filler: Custom difficulty settings (#126), Vehicle storage (#83), Renaming bases (#51), Mobile FOBs (#28), looting/sell loop (#145), WCS attachment compat (#136).
-- **AI Recruits** (#22) / **Building in towns** (#10) — re-triage after 1.4.x recruit fixes and Economy 2.0 planning respectively (may be absorbed by them).
+- **Intel system** (#11), **Undercover system** (#8 — ties into the freshly documented wanted-system; fix its 5 open bugs first)
+- Smaller enhancements as patch-release filler: Custom difficulty settings (#126), Vehicle storage (#83), Renaming bases (#51)
+- **Building in towns** (#10) — re-triage after 1.4.x recruit fixes and Economy 2.0 planning respectively (may be absorbed by them).
 
 ---
 
-## Decision points
-
-1. **New-map vs virtualization ordering** (decides whether 1.5.0/1.6.0 swap) — decide once 1.4.0 is stable with the player-base. Case for new-map first: nearly free, player-visible goodwill while virtualization gets properly planned. Case for virtualization first: starts the hard foundational work sooner; new-map merges are cheap to keep fresh.
-2. **base-defense-migration timing** — in 1.6.0, or deferred to a later release (epic ships value without it).
-3. **controller-migration slot** — between which releases, and who drives it.
-4. **Economy 2.0 shape** — new epic vs extension of the existing economy epic; plan when 1.6.0 is underway.
-
----
-
-*Review this file at each release boundary; it complements (not replaces) `docs/overview.md` (feature status) and the GitHub issue tracker (public feature ideas).*
+_Review this file at each release boundary; it complements (not replaces) `docs/overview.md` (feature status) and the GitHub issue tracker (public feature ideas)._

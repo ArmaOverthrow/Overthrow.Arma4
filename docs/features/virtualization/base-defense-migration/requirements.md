@@ -5,7 +5,7 @@
 
 ## Overview
 
-Complete the migration the deployments design doc planned but never executed (phases 3–4 of `docs/archive/ModularDeploymentSystem.md`): re-express static base defense — today's nine base-upgrade classes — as deployment configs/modules running on the virtualization layer, then retire the base-upgrades system. This ends the "two force-placement systems sharing one budget" tension the occupying epic's discovery flagged as its core architectural problem, and replaces the third ad-hoc virtualization (banked-value "proxying") by construction. **Deliberately last and deferrable:** it is scoped here so its true cost is visible for scheduling, but features 1–3 ship standalone value without it.
+Complete the migration the deployments design doc planned but never executed (phases 3–4 of `docs/archive/ModularDeploymentSystem.md`): re-express static base defense — today's nine base-upgrade classes — as deployment configs/modules running on the virtualization layer, then retire the base-upgrades system. This ends the "two force-placement systems sharing one budget" tension the occupying epic's discovery flagged as its core architectural problem, and replaces the third ad-hoc virtualization (banked-value "proxying") by construction. **Deliberately last and deferrable:** it is scoped here so its true cost is visible for scheduling, but the features before it ship standalone value without it.
 
 ## Requirements
 
