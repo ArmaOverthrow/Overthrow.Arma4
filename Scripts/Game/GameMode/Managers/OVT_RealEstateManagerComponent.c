@@ -28,7 +28,19 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	int m_iStartingTownId = -1;
 	
 	ref array<ref OVT_WarehouseData> m_aWarehouses;
-	
+
+	//! Invoked with (warehouseId, resource name string, new quantity) whenever one warehouse stock line
+	//! changes.
+	//!
+	//! Fired on BOTH sides of the wire and exactly once per change, the same shape OVT_ShopComponent's
+	//! m_OnInventoryChanged uses:
+	//! - DoAddToWarehouse/DoTakeFromWarehouse fire it where the mutation happened (server, and therefore
+	//!   a listen-server host), because a broadcast Rpc does not execute on the caller;
+	//! - RpcDo_SetWarehouseInventory fires it on every remote client as the new amount lands.
+	//! The warehouse menu subscribes so a take redraws when the server's number actually arrives instead
+	//! of immediately after the async ask, which used to redraw the pre-take quantity.
+	ref ScriptInvoker m_OnWarehouseInventoryChanged = new ScriptInvoker();
+
 	//------------------------------------------------------------------------------------------------
 	//! Returns the singleton instance of the OVT_RealEstateManagerComponent
 	//! \return The singleton instance
@@ -507,6 +519,10 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		if(!warehouse.inventory.Contains(id)) warehouse.inventory[id] = 0;
 		warehouse.inventory[id] = warehouse.inventory[id] + count;
 		Rpc(RpcDo_SetWarehouseInventory, warehouseId, id, warehouse.inventory[id]);
+
+		// The broadcast does not run on the caller, so the host raises its own event here or a
+		// listen-server player would never see the menu update the change they just made.
+		if(m_OnWarehouseInventoryChanged) m_OnWarehouseInventoryChanged.Invoke(warehouseId, id, warehouse.inventory[id]);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -538,6 +554,9 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		warehouse.inventory[id] = warehouse.inventory[id] - count;
 		if(warehouse.inventory[id] < 0) warehouse.inventory[id] = 0;
 		Rpc(RpcDo_SetWarehouseInventory, warehouseId, id, warehouse.inventory[id]);
+
+		// Host side of the same event - see DoAddToWarehouse.
+		if(m_OnWarehouseInventoryChanged) m_OnWarehouseInventoryChanged.Invoke(warehouseId, id, warehouse.inventory[id]);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -832,7 +851,11 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_SetWarehouseInventory(int warehouseId, string id, int qty)
 	{
+		if(warehouseId < 0 || warehouseId >= m_aWarehouses.Count()) return;
+
 		m_aWarehouses[warehouseId].inventory[id] = qty;
+
+		if(m_OnWarehouseInventoryChanged) m_OnWarehouseInventoryChanged.Invoke(warehouseId, id, qty);
 	}
 	
 	//------------------------------------------------------------------------------------------------

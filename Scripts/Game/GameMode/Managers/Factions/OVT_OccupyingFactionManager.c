@@ -59,12 +59,55 @@ class OVT_RadioTowerData : Managed
 	int faction;
 	vector location;
 
+	//! Seconds of sabotage downtime left. Counted down by the server in CheckRadioTowers;
+	//! clients only ever receive snapshots (on sabotage, on expiry, and via JIP)
+	float disabledRemaining;
+
+	//! Client side only. World time (ms) at which the snapshot above arrived, so a client can count
+	//! the timer down locally instead of displaying a frozen number between snapshots. Never sent,
+	//! never persisted - it is meaningless on any machine other than the one that stamped it.
+	[NonSerialized()]
+	float disabledStamp;
+
 	[NonSerialized()]
 	ref array<ref EntityID> garrison = {};
 
 	bool IsOccupyingFaction()
 	{
 		return faction == OVT_Global.GetConfig().GetOccupyingFactionIndex();
+	}
+
+	//! A sabotaged tower broadcasts nothing for either side until the timer runs out
+	bool IsDisabled()
+	{
+		return disabledRemaining > 0;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Takes a fresh downtime snapshot and stamps when it landed. Use this rather than assigning
+	//! disabledRemaining directly, or a client's countdown will run from the wrong instant.
+	//! \param[in] seconds Seconds of downtime left as of now
+	void SetDisabledRemaining(float seconds)
+	{
+		disabledRemaining = seconds;
+		disabledStamp = GetGame().GetWorld().GetWorldTime();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Seconds of downtime left, live on both sides. The server owns the countdown and ticks
+	//! disabledRemaining itself in CheckRadioTowers; a client only gets snapshots, so it extrapolates
+	//! from the last one it received.
+	//! \return Seconds remaining, never negative.
+	float GetDisabledRemaining()
+	{
+		if(disabledRemaining <= 0) return 0;
+		if(Replication.IsServer()) return disabledRemaining;
+
+		float elapsed = (GetGame().GetWorld().GetWorldTime() - disabledStamp) / 1000;
+		float remaining = disabledRemaining - elapsed;
+		if(remaining < 0) return 0;
+
+		return remaining;
 	}
 }
 
@@ -125,6 +168,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 	int m_bCounterAttackTimeout = 0;
 
 	const int OF_UPDATE_FREQUENCY = 60000;
+	const int RADIO_TOWER_CHECK_FREQUENCY = 9000;
 
 	ref ScriptInvoker<IEntity> m_OnAIKilled = new ScriptInvoker<IEntity>;
 	ref ScriptInvoker<OVT_BaseControllerComponent> m_OnBaseControlChanged = new ScriptInvoker<OVT_BaseControllerComponent>;
@@ -254,7 +298,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 		GetGame().GetCallqueue().CallLater(CheckUpdate, OF_UPDATE_FREQUENCY / timeMul, true, GetOwner());
 
-		GetGame().GetCallqueue().CallLater(CheckRadioTowers, 9000, true, GetOwner());
+		GetGame().GetCallqueue().CallLater(CheckRadioTowers, RADIO_TOWER_CHECK_FREQUENCY, true, GetOwner());
 
 		if(m_bDistributeInitial)
 			GetGame().GetCallqueue().CallLater(DistributeInitialResources, 5000);
@@ -332,6 +376,11 @@ class OVT_OccupyingFactionManager: OVT_Component
 					continue;
 
 				tower.faction = towerRecord.faction;
+
+				// A tower that was sabotaged when the game was saved comes back still off the air,
+				// with the time it had left. Version 1 payloads carry 0 here, which restores the
+				// pre-sabotage behaviour of every tower being up on load.
+				tower.SetDisabledRemaining(towerRecord.disabledRemaining);
 			}
 		}
 	}
@@ -427,6 +476,17 @@ class OVT_OccupyingFactionManager: OVT_Component
 		OVT_Faction faction = OVT_Global.GetConfig().GetOccupyingFaction();
 		foreach(OVT_RadioTowerData tower : m_RadioTowers)
 		{
+			if(tower.disabledRemaining > 0)
+			{
+				tower.disabledRemaining -= RADIO_TOWER_CHECK_FREQUENCY / 1000;
+				if(tower.disabledRemaining <= 0)
+				{
+					tower.disabledRemaining = 0;
+					Rpc(RpcDo_SetRadioTowerDisabled, tower.location, 0);
+					string townName = OVT_Global.GetTowns().GetTownName(tower.location);
+					OVT_Global.GetNotify().SendTextNotification("RadioTowerRepaired", -1, townName);
+				}
+			}
 			if(!tower.IsOccupyingFaction()) continue;
 			bool inrange = OVT_Global.PlayerInRange(tower.location, OVT_Global.GetConfig().m_iMilitarySpawnDistance) && !m_CurrentQRF;
 			if(inrange)
@@ -512,6 +572,27 @@ class OVT_OccupyingFactionManager: OVT_Component
 			OVT_Global.GetNotify().SendTextNotification("RadioTowerControlledResistance",-1,townName);
 			OVT_Global.GetNotify().SendExternalNotifications("RadioTowerControlledResistance",townName);
 		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Server: take a radio tower off the air for a duration (sabotage) and tell everyone.
+	//! \param tower The radio tower to disable
+	//! \param seconds How long the tower stays disabled
+	void SetRadioTowerDisabled(OVT_RadioTowerData tower, float seconds)
+	{
+		tower.SetDisabledRemaining(seconds);
+		Rpc(RpcDo_SetRadioTowerDisabled, tower.location, seconds);
+
+		string townName = OVT_Global.GetTowns().GetTownName(tower.location);
+		OVT_Global.GetNotify().SendTextNotification("RadioTowerSabotaged", -1, townName);
+		OVT_Global.GetNotify().SendExternalNotifications("RadioTowerSabotaged", townName);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_SetRadioTowerDisabled(vector pos, float seconds)
+	{
+		OVT_RadioTowerData tower = GetNearestRadioTower(pos);
+		if(tower) tower.SetDisabledRemaining(seconds);
 	}
 
 	void OnTownControlChanged(OVT_TownData town)
@@ -1402,6 +1483,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 			OVT_RadioTowerData data = m_RadioTowers[i];
 			writer.WriteVector(data.location);
 			writer.WriteInt(data.faction);
+			writer.WriteFloat(data.disabledRemaining);
 		}
 
 		writer.WriteVector(m_vQRFLocation);
@@ -1445,6 +1527,10 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 			if (!reader.ReadVector(base.location)) return false;
 			if (!reader.ReadInt(base.faction)) return false;
+
+			float disabledRemaining;
+			if (!reader.ReadFloat(disabledRemaining)) return false;
+			base.SetDisabledRemaining(disabledRemaining);
 
 			base.id = i;
 			m_RadioTowers.Insert(base);

@@ -2466,3 +2466,225 @@ class OVT_TEST_PersistenceRoundTrip_VehicleDespawnRespawn_KeepsOwnerAndContents 
 		return ids.Find(vehicleId) != -1;
 	}
 }
+
+//------------------------------------------------------------------------------------------------
+//! A sabotaged radio tower survives a save and a re-apply still off the air, with time on its clock.
+//!
+//! SUBJECT. The test world carries exactly one transmitter tower ("Set 1 radio towers to occupying
+//! faction" at every campaign start), so the case takes the first tower the manager holds and
+//! resolves it back afterwards by LOCATION - the same match key OVT_PersistedRadioTower uses,
+//! because towers are world-derived and a save can never create one.
+//!
+//! SEAM. OVT_OccupyingFactionManager.SetRadioTowerDisabled() is the seam the sabotage RPC itself
+//! calls (OVT_TowerSabotageComponent.RpcAsk_SabotageTower), so the case drives the production path
+//! rather than writing the field behind it.
+//!
+//! TOLERANCE, AND WHY THIS IS A RANGE AND NOT AN EQUALITY. The server ticks the timer down by
+//! RADIO_TOWER_CHECK_FREQUENCY (9 s) every time CheckRadioTowers runs, both before the save and
+//! after the re-apply, so the restored number is necessarily SMALLER than the one written. The case
+//! sabotages for SABOTAGE_SECONDS and requires the restored value to be above MIN_RESTORED_SECONDS
+//! and no greater than what it asked for: a window the countdown cannot walk out of within the
+//! case's own timeout, and one that no value other than the saved timer can land in.
+//!
+//! ANTI-VACUOUS: the timer is cleared to zero in the dirty step, so the tower is demonstrably back
+//! on the air before the re-apply. A non-zero timer afterwards can only have come out of storage.
+//! Every expiry and every unresolvable subject is an explicit SetResultFailure with its own
+//! sentence; there is no path to SetResultSuccess that has not asserted.
+//!
+//! CAN-FAIL: drop the disabledRemaining line from OVT_PersistedRadioTower (or stop applying it in
+//! ApplyPersistedOccupyingFaction) and this case goes red with "came back on the air".
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
+class OVT_TEST_PersistenceRoundTrip_TowerSabotage_SurvivesSaveAndReload : SCR_AutotestCaseBase
+{
+	//! Long enough that the server's 9 s countdown cannot walk the timer near zero while this runs.
+	static const float SABOTAGE_SECONDS = 900;
+
+	//! Floor for the restored timer. Half the sabotage is far below anything the countdown can eat
+	//! inside the case timeout, and far above the zero the dirty step left behind.
+	static const float MIN_RESTORED_SECONDS = 450;
+
+	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
+	protected int m_iReloadPolls;
+	protected vector m_vTowerLocation;
+
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
+		{
+			OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+			if (!occupying)
+			{
+				SetResultFailure("OVT_Global.GetOccupyingFaction() is null");
+				return true;
+			}
+
+			OVT_RadioTowerData tower = FirstTower(occupying);
+			if (!tower)
+			{
+				SetResultFailure("The test world handed out no radio tower to sabotage");
+				return true;
+			}
+
+			m_vTowerLocation = tower.location;
+
+			// Take it off the air - not a state the campaign start produces.
+			occupying.SetRadioTowerDisabled(tower, SABOTAGE_SECONDS);
+
+			m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+			string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+			if (trigger != "")
+			{
+				SetResultFailure(trigger);
+				return true;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE)
+		{
+			string saveDiagnostic;
+			int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+			{
+				SetResultFailure(saveDiagnostic);
+				return true;
+			}
+
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+			{
+				m_iSavePolls += 1;
+				if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+				{
+					SetResultFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+					return true;
+				}
+
+				return false;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD)
+		{
+			OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+			if (!occupying)
+			{
+				SetResultFailure("OVT_Global.GetOccupyingFaction() is null before the reload");
+				return true;
+			}
+
+			OVT_RadioTowerData tower = occupying.GetNearestRadioTower(m_vTowerLocation);
+			if (!tower)
+			{
+				SetResultFailure("The occupying faction stopped handing out the tower at %1 before the reload", m_vTowerLocation.ToString());
+				return true;
+			}
+
+			// Dirty it. Written at the data level rather than through SetRadioTowerDisabled(), which
+			// would broadcast a fresh sabotage notification for what is really a test putting the
+			// tower back on the air.
+			tower.SetDisabledRemaining(0);
+
+			string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
+			if (reload != "")
+			{
+				SetResultFailure(reload);
+				return true;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD)
+		{
+			if (OVT_TEST_PersistenceRoundTripGate.ReloadInProgress())
+			{
+				m_iReloadPolls += 1;
+				if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
+				{
+					SetResultFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+					return true;
+				}
+
+				return false;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_ASSERT;
+			return false;
+		}
+
+		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
+		if (restored != "")
+		{
+			SetResultFailure(restored);
+			return true;
+		}
+
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		if (!occupying)
+		{
+			SetResultFailure("OVT_Global.GetOccupyingFaction() is null after the reload");
+			return true;
+		}
+
+		OVT_RadioTowerData tower = occupying.GetNearestRadioTower(m_vTowerLocation);
+		if (!tower)
+		{
+			SetResultFailure("The reloaded session has no radio tower at %1", m_vTowerLocation.ToString());
+			return true;
+		}
+
+		if (tower.disabledRemaining <= 0)
+		{
+			SetResultFailure("The sabotage did not survive the round trip: the tower came back on the air (%1 seconds left)",
+				tower.disabledRemaining.ToString());
+			return true;
+		}
+
+		if (tower.disabledRemaining < MIN_RESTORED_SECONDS)
+		{
+			SetResultFailure("The restored sabotage timer is too low to be the saved one: expected more than %1 seconds, read back %2",
+				MIN_RESTORED_SECONDS.ToString(), tower.disabledRemaining.ToString());
+			return true;
+		}
+
+		if (tower.disabledRemaining > SABOTAGE_SECONDS)
+		{
+			SetResultFailure("The restored sabotage timer is higher than the one saved: sabotaged for %1 seconds, read back %2",
+				SABOTAGE_SECONDS.ToString(), tower.disabledRemaining.ToString());
+			return true;
+		}
+
+		SetResultSuccess();
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The first radio tower the occupying faction holds.
+	//! \param[in] occupying The occupying faction manager.
+	//! \return The tower, or null when the world produced none.
+	protected OVT_RadioTowerData FirstTower(notnull OVT_OccupyingFactionManager occupying)
+	{
+		if (!occupying.m_RadioTowers)
+			return null;
+
+		foreach (OVT_RadioTowerData tower : occupying.m_RadioTowers)
+		{
+			if (tower)
+				return tower;
+		}
+
+		return null;
+	}
+}

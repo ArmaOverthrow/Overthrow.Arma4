@@ -553,3 +553,121 @@ class OVT_TEST_Logic_Town_CopyFrom_CopiesRecordButNotLocation : SCR_AutotestCase
 		return true;
 	}
 }
+
+//------------------------------------------------------------------------------------------------
+//! OVT_TownModifierSystem.GetModifierLimit() - how many of one modifier a town may carry.
+//!
+//! THE RULE THIS PINS, and the bug it was written against: a NON-stackable modifier is allowed
+//! exactly ONE, and its authored stackLimit is not consulted at all. Both the placement UI and the
+//! placeable handler used to read the config themselves and treat "not stackable" as "no limit
+//! applies", so a town could collect any number of pirate radios - each new one silently refreshing
+//! the timer on the one already there instead of being refused.
+//!
+//! Covers, on a hand-built m_Config with Init() never called (Init() would reach for the town
+//! manager, which does not exist in this tier):
+//!   - not stackable, stackLimit 5  ->  1  (the limit that matters is the one the flag implies);
+//!   - stackable, stackLimit 3      ->  3;
+//!   - stackable, stackLimit 1      ->  1  (the two rules agree at the boundary);
+//!   - an index outside the config  ->  0, rather than a crash or a silent "unlimited";
+//!   - GetModifierSpaceByName for a name this system does not have -> -1, "no opinion", which is
+//!     what keeps the check inert for placeables that carry no modifier at all;
+//!   - GetModifierSpaceByName with no town list (this tier has none) -> the full limit, i.e. the
+//!     count guard degrades to "nothing placed yet" instead of dereferencing null.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_LogicSuite, timeoutS: 30)]
+class OVT_TEST_Logic_Town_ModifierLimit_NonStackableIsOne : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		OVT_TownModifierSystem system = new OVT_TownModifierSystem();
+		system.m_Config = new OVT_ModifiersConfig();
+		system.m_Config.m_aModifiers = new array<ref OVT_ModifierConfig>();
+
+		// id 0: not stackable, but authored with a stackLimit that must be ignored.
+		system.m_Config.m_aModifiers.Insert(MakeLimitConfig("NotStackable", OVT_ModifierFlags.ACTIVE, 5));
+
+		// id 1: stackable, limit 3.
+		system.m_Config.m_aModifiers.Insert(MakeLimitConfig("StackableThree", OVT_ModifierFlags.ACTIVE | OVT_ModifierFlags.STACKABLE, 3));
+
+		// id 2: stackable, limit 1 - the boundary where both rules must agree.
+		system.m_Config.m_aModifiers.Insert(MakeLimitConfig("StackableOne", OVT_ModifierFlags.ACTIVE | OVT_ModifierFlags.STACKABLE, 1));
+
+		int notStackable = system.GetModifierLimit(0);
+		if (notStackable != 1)
+		{
+			SetResultFailure("A non-stackable modifier authored with stackLimit 5 reported a limit of %1, expected 1", notStackable.ToString());
+			return true;
+		}
+
+		int stackableThree = system.GetModifierLimit(1);
+		if (stackableThree != 3)
+		{
+			SetResultFailure("A stackable modifier with stackLimit 3 reported a limit of %1, expected 3", stackableThree.ToString());
+			return true;
+		}
+
+		int stackableOne = system.GetModifierLimit(2);
+		if (stackableOne != 1)
+		{
+			SetResultFailure("A stackable modifier with stackLimit 1 reported a limit of %1, expected 1", stackableOne.ToString());
+			return true;
+		}
+
+		int outOfRange = system.GetModifierLimit(99);
+		if (outOfRange != 0)
+		{
+			SetResultFailure("An index outside the config reported a limit of %1, expected 0", outOfRange.ToString());
+			return true;
+		}
+
+		int negativeIndex = system.GetModifierLimit(-1);
+		if (negativeIndex != 0)
+		{
+			SetResultFailure("A negative index reported a limit of %1, expected 0", negativeIndex.ToString());
+			return true;
+		}
+
+		// A name this system does not carry gets no opinion, not a refusal.
+		int unknownName = system.GetModifierSpaceByName(0, "NoSuchModifier");
+		if (unknownName != -1)
+		{
+			SetResultFailure("GetModifierSpaceByName() for an unknown name returned %1, expected -1", unknownName.ToString());
+			return true;
+		}
+
+		// With no town list at all the count degrades to zero, so the space is the whole limit.
+		int spaceWithoutTowns = system.GetModifierSpaceByName(0, "NotStackable");
+		if (spaceWithoutTowns != 1)
+		{
+			SetResultFailure("GetModifierSpaceByName() with no town list returned %1, expected the full limit 1", spaceWithoutTowns.ToString());
+			return true;
+		}
+
+		PrintFormat("Modifier limits: not stackable %1, stackable(3) %2, stackable(1) %3",
+			notStackable.ToString(), stackableThree.ToString(), stackableOne.ToString());
+
+		SetResultSuccess();
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Builds a modifier config entry with the flags and stack limit this case turns on.
+	//! \param[in] name Modifier name, looked up by GetModifierSpaceByName.
+	//! \param[in] flags Modifier flags.
+	//! \param[in] stackLimit Authored stack limit.
+	//! \return The config entry.
+	protected OVT_ModifierConfig MakeLimitConfig(string name, OVT_ModifierFlags flags, int stackLimit)
+	{
+		OVT_ModifierConfig entry = new OVT_ModifierConfig();
+		entry.name = name;
+		entry.title = name;
+		entry.baseEffect = 0;
+		entry.timeout = 1200;
+		entry.flags = flags;
+		entry.stackLimit = stackLimit;
+
+		return entry;
+	}
+}

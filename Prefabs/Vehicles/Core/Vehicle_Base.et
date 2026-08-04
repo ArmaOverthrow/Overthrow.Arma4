@@ -27,6 +27,18 @@ Vehicle {
      CanAggregate 1
      "Sort Priority" 100
     }
+    OVT_SellVehicleCargoAction "{6A7D5C1E4B93F210}" {
+     ParentContextList {
+      "door_r01" "door_l01" "door_rear"
+     }
+     UIInfo UIInfo "{6A7D5C1E4B93F211}" {
+      Name "#OVT-SellCargoHere"
+     }
+     VisibilityRange -1
+     Duration 0
+     CanAggregate 1
+     "Sort Priority" 101
+    }
    }
   }
  }

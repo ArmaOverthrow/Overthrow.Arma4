@@ -224,6 +224,13 @@ class OVT_PlaceContext : OVT_UIContext
 	bool CanPlace(OVT_Placeable placeable, vector pos, out string reason)
 	{
 		reason = "#OVT-CannotPlaceHere";
+
+		if(GetSupportModifierSpace(placeable, pos) == 0)
+		{
+			reason = "#OVT-TownModifierLimit";
+			return false;
+		}
+
 		if(placeable.m_bIgnoreLocation) return true;
 		
 		if(!m_ItemLimitChecker.CanPlaceItem(pos, m_sPlayerID, reason))
@@ -370,6 +377,25 @@ class OVT_PlaceContext : OVT_UIContext
 		return false;
 	}
 
+	//! Remaining space on the nearest town for a support-modifier placeable (posters, pirate radio).
+	//! Returns -1 when no limit applies. Asks the modifier system rather than reading the config
+	//! itself, so this answers exactly what OVT_PlaceableSupportModHandler will answer server-side -
+	//! including the case this used to get wrong, a NON-stackable modifier, whose limit is one and
+	//! not "none". Reads the replicated town modifier lists, so it is valid on a client.
+	protected int GetSupportModifierSpace(OVT_Placeable placeable, vector pos)
+	{
+		OVT_PlaceableSupportModHandler handler = OVT_PlaceableSupportModHandler.Cast(placeable.handler);
+		if(!handler) return -1;
+
+		OVT_TownModifierSystem system = m_Towns.GetModifierSystem(OVT_TownSupportModifierSystem);
+		if(!system) return -1;
+
+		OVT_TownData town = m_Towns.GetNearestTown(pos);
+		if(!town) return -1;
+
+		return system.GetModifierSpaceByName(m_Towns.GetTownID(town), handler.m_sSupportModifierName);
+	}
+
 	void StartPlace(OVT_Placeable placeable)
 	{
 		if(m_bIsActive) CloseLayout();
@@ -495,9 +521,19 @@ class OVT_PlaceContext : OVT_UIContext
 			vector angles = Math3D.MatrixToAngles(mat);
 			int placeableIndex = m_Resistance.m_PlaceablesConfig.m_aPlaceables.Find(m_Placeable);
 			int prefabIndex = m_Placeable.m_aPrefabs.Find(m_pPlacingPrefab);
+			// Sampled before the RPC lands - the replicated modifier list still excludes this placement
+			int modifierSpace = GetSupportModifierSpace(m_Placeable, mat[3]);
 			OVT_Global.GetServer().PlaceItem(placeableIndex, prefabIndex, mat[3], angles, m_iPlayerID);
-						
+
 			SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.CLICK);
+
+			if(modifierSpace == 1)
+			{
+				//This placement filled the town's stack - exit place mode and say why
+				Cancel();
+				ShowHint("#OVT-TownModifierLimit");
+				return;
+			}
 		}
 
 		if(m_Economy.PlayerHasMoney(m_sPlayerID, cost))

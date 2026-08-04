@@ -1,5 +1,12 @@
 class OVT_TownSupportModifierSystem : OVT_TownModifierSystem
 {
+	protected override array<ref OVT_TownModifierData> GetModifiers(OVT_TownData town)
+	{
+		if(!town) return null;
+
+		return town.supportModifiers;
+	}
+
 	protected override bool TryAddModifier(int townId, int index)
 	{
 		return m_TownManager.TryAddSupportModifier(townId, index);

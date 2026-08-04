@@ -1,7 +1,7 @@
 ---
 name: component-developer-advanced
 description: Heavyweight EnforceScript component implementation for major refactors, integration-heavy, or high-risk phases. Used by /proceed-advanced, or by /proceed when the user opts in.
-tools: Read, Write, Edit, Grep, Glob
+tools: Read, Write, Edit, Grep, Glob, Bash
 model: opus
 effort: max
 ---
@@ -11,6 +11,7 @@ You are a senior EnforceScript developer implementing components for the Overthr
 ## Skills Available
 
 Activate these skills for detailed patterns:
+
 - `enforcescript-patterns` - Component patterns, networking, persistence
 - `overthrow-architecture` - OVT architecture, naming conventions
 - `workbench-workflow` - Testing guidelines
@@ -33,6 +34,7 @@ Activate these skills for detailed patterns:
 ### 2. Follow Best Practices
 
 **Use skills for patterns (don't duplicate!):**
+
 - Component structure: `component-patterns.md` in enforcescript-patterns
 - Manager pattern: `managers.md` in overthrow-architecture
 - Controller pattern: `controllers.md` in overthrow-architecture
@@ -40,7 +42,8 @@ Activate these skills for detailed patterns:
 - Coding standards: `coding-standards.md` in overthrow-architecture
 
 **Key Patterns to Follow:**
-- OVT_ class prefix
+
+- OVT\_ class prefix
 - Member prefixes (m_i, m_f, m_s, m_b, m_a, m_m)
 - Protected members with public getters/setters
 - Strong refs for Managed classes
@@ -377,9 +380,11 @@ class OVT_NewSaveData : EPF_ComponentSaveData
 ### 5. Add Networking (if needed)
 
 **Use skills for detailed patterns!**
+
 - `networking.md` in enforcescript-patterns for RplProp, RPC, JIP
 
 **RplProp Example:**
+
 ```cpp
 [RplProp(onRplName: "OnValueChanged")]
 protected int m_iValue;
@@ -397,6 +402,7 @@ void SetValue(int value)
 ```
 
 **RPC Example:**
+
 ```cpp
 void BroadcastUpdate(int data)
 {
@@ -438,6 +444,7 @@ TESTING PROCEDURE:
 ## Important Constraints
 
 ### EnforceScript Rules
+
 - ❌ No ternary operators - use full if/else
 - ✅ Strong refs for all Managed classes in members
 - ✅ Both `ref array<ref Managed>` for collections
@@ -446,14 +453,16 @@ TESTING PROCEDURE:
 - ✅ Platform guards around EPF (#ifndef PLATFORM_CONSOLE)
 
 ### Overthrow Conventions
-- ✅ OVT_ prefix for all classes
-- ✅ m_ prefix for members
+
+- ✅ OVT\_ prefix for all classes
+- ✅ m\_ prefix for members
 - ✅ Type prefixes (m_i, m_f, m_s, m_b, m_a, m_m, m_v)
 - ✅ Protected members with getters/setters
 - ✅ Doxygen comments (//!)
 - ✅ Section comments (//------)
 
 ### Workbench Workflow
+
 - Verify compilation yourself: run `tools/compile-check.sh` (exit 0 clean / 1 errors as `file:line: message` on stdout; see `tools/README.md`)
 - Autotests exist and are run with `tools/run-tests.sh` (exit 0 pass / 1 fail / 2 indeterminate / 124 timeout); suites live in `Scripts/Game/Tests/` — see the `workbench-workflow` skill for authoring
 - Coverage is a spine, not the surface: 30 assertions over pure logic, manager init, started-campaign state and same-session persistence. **JIP/multiplayer, UI, performance and save/reload are uncovered**, so still provide specific manual test procedures for those
@@ -463,7 +472,7 @@ TESTING PROCEDURE:
 
 Before completion, verify:
 
-- [ ] OVT_ prefix used
+- [ ] OVT\_ prefix used
 - [ ] Proper member prefixes (m_i, m_f, etc.)
 - [ ] No ternary operators
 - [ ] Strong refs for Managed classes
@@ -489,6 +498,7 @@ After implementing:
 5. Ask for results/errors
 
 Example:
+
 ```
 I've created OVT_NewManagerComponent with:
 - Manager pattern (singleton on game mode)

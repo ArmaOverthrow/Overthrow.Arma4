@@ -70,26 +70,15 @@ OVT_OverthrowFactionManager "6490CD9767C0A45B" : "{51EBC0CFD56DA130}Prefabs/Game
 ScriptedChatEntity : "{F69BC912AC8236F9}Prefabs/MP/ScriptedChatEntity.et" {
  coords 54.102 1 133.598
 }
-$grp GenericEntity {
- Town {
-  components {
-   SCR_MapDescriptorComponent "{5D8680D15B3CF38E}" {
-    DisplayName "Town"
-    MainType "Name Village"
-   }
+GenericEntity Town {
+ components {
+  SCR_MapDescriptorComponent "{5D8680D15B3CF38E}" {
+   DisplayName "Town"
+   MainType "Name Village"
   }
-  Flags 0x403 0
-  coords 221.182 1.001 107.325
  }
- RadioTower {
-  components {
-   SCR_MapDescriptorComponent "{5D8680D5676588BA}" {
-    MainType Transmitter
-   }
-  }
-  Flags 0x403 0
-  coords 29.444 1.001 116.796
- }
+ Flags 0x403 0
+ coords 221.182 1.001 107.325
 }
 OVT_VehiclePatrolSpawn {
  coords 82.991 1 107.357
@@ -142,6 +131,9 @@ SCR_SiteSlotEntity : "{4B1C4BDDF6683101}PrefabsEditable/Slots/Flat/E_SlotFlatMed
    coords 0 -0.001 0
   }
  }
+}
+StaticModelEntity : "{4DE187A3508D5A46}Prefabs/Structures/Infrastructure/Towers/TransmitterTower_01/TransmitterTower_01_small_base.et" {
+ coords 12.911 1 172.712
 }
 SCR_DestructibleBuildingEntity : "{54F1C704EB440885}Prefabs/Structures/Houses/Town/House_Town_E_2I02/House_Town_E_2I02.et" {
  coords 238.965 0.001 98.034

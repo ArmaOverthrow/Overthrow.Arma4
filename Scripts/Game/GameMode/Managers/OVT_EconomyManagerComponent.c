@@ -73,6 +73,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 	protected ref map<ref ResourceName,int> m_aResourceIndex; //!< Mapping from ResourceName to its integer ID in m_aResources.
 	protected ref array<ref SCR_EntityCatalogEntry> m_aEntityCatalogEntries; //!< Cached entity catalog entries for faster lookup.
 	protected ref map<int,ref array<int>> m_mFactionResources; //!< Mapping from Faction ID to an array of resource IDs belonging to that faction.
+
+	protected ref map<int, OVT_ShopCategory> m_mResourceCategory; //!< Lazily built resource ID -> browse category cache. Null until the first GetItemCategory call.
+	protected ref map<int, ref set<int>> m_mShopTypeResources; //!< Lazily built shop type -> set of resource IDs sold there. Filled one shop type at a time by IsSoldAtShopCached.
 	
 	ref map<int, ref array<RplId>> m_mTownShops; //!< Mapping from Town ID to an array of shop RplIds within that town.
 	
@@ -657,7 +660,118 @@ class OVT_EconomyManagerComponent: OVT_Component
 		}
 		return false;
 	}
-	
+
+	//------------------------------------------------------------------------------------------------
+	//! O(1) equivalent of IsSoldAtShop(ResourceName, OVT_ShopType), keyed by resource ID.
+	//!
+	//! IsSoldAtShop runs a full catalog scan per configured inventory rule on EVERY call, which is far
+	//! too expensive for the sell browser (one call per held item per refresh). This builds the id set
+	//! for a shop type once, on first use, from exactly the same rules and in exactly the same order,
+	//! and answers from the set afterwards.
+	//!
+	//! Semantics deliberately mirrored from IsSoldAtShop: only m_eItemType / m_eItemMode / m_sFind are
+	//! consulted (the faction include flags and m_bSingleRandomItem are stocking concerns, not
+	//! eligibility ones), and a shop type with no configured rules sells nothing. Difference by
+	//! construction: a catalog prefab that was never registered in the resource database has no ID, so
+	//! it cannot be represented here - such an item is unsellable anyway (see IsRegisteredResource).
+	//! \param[in] id The resource ID of the item.
+	//! \param[in] shopType The type of shop to check against.
+	//! \return True if the shop type's inventory configuration matches the item.
+	bool IsSoldAtShopCached(int id, OVT_ShopType shopType)
+	{
+		set<int> soldIds = GetShopTypeResourceIds(shopType);
+		if(!soldIds) return false;
+		return soldIds.Contains(id);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Returns (building it if needed) the set of resource IDs a shop type's config sells.
+	//! \param[in] shopType The type of shop to resolve.
+	//! \return The cached id set, or null when the catalog is not built yet and no answer can be cached.
+	protected set<int> GetShopTypeResourceIds(OVT_ShopType shopType)
+	{
+		int typeKey = shopType;
+
+		if(!m_mShopTypeResources) m_mShopTypeResources = new map<int, ref set<int>>;
+		if(m_mShopTypeResources.Contains(typeKey)) return m_mShopTypeResources[typeKey];
+
+		OVT_ShopInventoryConfig config = GetShopConfig(shopType);
+		if(!config || !config.m_aInventoryItems)
+		{
+			// A shop type with no rules sells nothing, and that answer is stable - cache it.
+			set<int> empty = new set<int>;
+			m_mShopTypeResources[typeKey] = empty;
+			return empty;
+		}
+
+		// Never cache an answer derived from a catalog that has not been built yet.
+		if(!m_aEntityCatalogEntries || m_aEntityCatalogEntries.IsEmpty()) return null;
+
+		set<int> soldIds = new set<int>;
+		foreach(OVT_ShopInventoryItem item : config.m_aInventoryItems)
+		{
+			if(!item) continue;
+
+			array<SCR_EntityCatalogEntry> entries();
+			FindInventoryItems(item.m_eItemType, item.m_eItemMode, item.m_sFind, entries);
+
+			foreach(SCR_EntityCatalogEntry entry : entries)
+			{
+				if(!entry) continue;
+
+				ResourceName res = entry.GetPrefab();
+				if(!IsRegisteredResource(res)) continue;
+
+				soldIds.Insert(GetInventoryId(res));
+			}
+		}
+
+		m_mShopTypeResources[typeKey] = soldIds;
+		return soldIds;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Browse category for a resource ID, from a cache built once over the entity catalog.
+	//!
+	//! The mapping RULE lives in OVT_ShopCategoryHelper (pure, Logic-tier tested); this owns only the
+	//! id -> category cache, because it owns the catalog. Without the cache every menu refresh would
+	//! re-walk the catalog once per card.
+	//! \param[in] id The resource ID of the item.
+	//! \return The item's category, or OVT_ShopCategory.OTHER when the id is unknown or the catalog
+	//! entry carries no arsenal data.
+	OVT_ShopCategory GetItemCategory(int id)
+	{
+		if(!m_mResourceCategory) BuildResourceCategoryCache();
+
+		if(m_mResourceCategory && m_mResourceCategory.Contains(id)) return m_mResourceCategory[id];
+
+		return OVT_ShopCategoryHelper.GetCategoryForUncatalogued();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Builds the resource ID -> category cache from the cached entity catalog entries.
+	//! Does nothing while the catalog is empty, so an early call cannot poison the cache with a
+	//! catalog that has not been built yet.
+	protected void BuildResourceCategoryCache()
+	{
+		if(!m_aEntityCatalogEntries || m_aEntityCatalogEntries.IsEmpty()) return;
+
+		m_mResourceCategory = new map<int, OVT_ShopCategory>;
+
+		foreach(SCR_EntityCatalogEntry entry : m_aEntityCatalogEntries)
+		{
+			if(!entry) continue;
+
+			SCR_ArsenalItem item = SCR_ArsenalItem.Cast(entry.GetEntityDataOfType(SCR_ArsenalItem));
+			if(!item) continue;
+
+			ResourceName res = entry.GetPrefab();
+			if(!IsRegisteredResource(res)) continue;
+
+			m_mResourceCategory[GetInventoryId(res)] = OVT_ShopCategoryHelper.GetCategory(item.GetItemType(), item.GetItemMode());
+		}
+	}
+
 	//------------------------------------------------------------------------------------------------
 	//! Finds the RplId of the nearest port entity to a given position.
 	//! \param[in] pos The world position to check from.
@@ -696,6 +810,70 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return nearest;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Finds the nearest registered shop to a position.
+	//!
+	//! Scans BOTH m_aAllShops and m_aGunDealers: FilterShopEntities deliberately excludes gun dealers
+	//! from m_aAllShops, so a scan of that array alone would make every gun dealer invisible to
+	//! callers such as the vehicle trunk sell action.
+	//! \param[in] pos The world position to measure from.
+	//! \param[in] maxDistance Maximum distance in metres. Negative means unlimited.
+	//! \return The nearest shop component in range, or null when nothing qualifies.
+	OVT_ShopComponent GetNearestShop(vector pos, float maxDistance = -1)
+	{
+		float nearestOfAll = -1;
+		OVT_ShopComponent nearestShop = FindNearestShopIn(m_aAllShops, pos, maxDistance, nearestOfAll);
+
+		float nearestDealer = -1;
+		OVT_ShopComponent nearestGunDealer = FindNearestShopIn(m_aGunDealers, pos, maxDistance, nearestDealer);
+
+		if(!nearestGunDealer) return nearestShop;
+		if(!nearestShop) return nearestGunDealer;
+
+		if(nearestDealer < nearestOfAll) return nearestGunDealer;
+		return nearestShop;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Finds the nearest resolvable shop within one list of shop RplIds.
+	//! Every replication lookup, entity and component resolution is null-guarded: a shop whose entity
+	//! is not streamed in on this machine is simply skipped.
+	//! \param[in] shopIds The RplIds to scan. May be null.
+	//! \param[in] pos The world position to measure from.
+	//! \param[in] maxDistance Maximum distance in metres. Negative means unlimited.
+	//! \param[out] nearestDistance Distance to the returned shop, or -1 when none was found.
+	//! \return The nearest shop component in range, or null.
+	protected OVT_ShopComponent FindNearestShopIn(array<RplId> shopIds, vector pos, float maxDistance, out float nearestDistance)
+	{
+		nearestDistance = -1;
+		OVT_ShopComponent nearestShop = null;
+
+		if(!shopIds) return null;
+
+		foreach(RplId id : shopIds)
+		{
+			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+			if(!rpl) continue;
+
+			IEntity entity = rpl.GetEntity();
+			if(!entity) continue;
+
+			OVT_ShopComponent shop = OVT_ShopComponent.Cast(entity.FindComponent(OVT_ShopComponent));
+			if(!shop) continue;
+
+			float distance = vector.Distance(pos, entity.GetOrigin());
+			if(maxDistance >= 0 && distance > maxDistance) continue;
+
+			if(nearestDistance == -1 || distance < nearestDistance)
+			{
+				nearestDistance = distance;
+				nearestShop = shop;
+			}
+		}
+
+		return nearestShop;
+	}
+
 	//------------------------------------------------------------------------------------------------
 	//! Gets a list of RplIds for all registered shops.
 	//! \return An array containing the RplIds of all shops.
@@ -1444,10 +1622,24 @@ class OVT_EconomyManagerComponent: OVT_Component
 	//! \param[in] res The ResourceName.
 	//! \return The integer ID, or potentially an error/invalid ID if not found.
 	int GetInventoryId(ResourceName res)
-	{		
+	{
 		return m_aResourceIndex[res];
 	}
-	
+
+	//------------------------------------------------------------------------------------------------
+	//! Checks whether a ResourceName is present in the resource index.
+	//!
+	//! GetInventoryId is a bare map index: an unregistered prefab (looted gear that never entered the
+	//! resource database) silently resolves to id 0 - i.e. some other item's price. Everything scanned
+	//! out of a player's or a vehicle's inventory must pass through here first (R7).
+	//! \param[in] res The ResourceName to test.
+	//! \return True if GetInventoryId(res) will return that resource's own id.
+	bool IsRegisteredResource(ResourceName res)
+	{
+		if(!m_aResourceIndex) return false;
+		return m_aResourceIndex.Contains(res);
+	}
+
 	//------------------------------------------------------------------------------------------------
 	//! Gets the ResourceName corresponding to an internal integer ID.
 	//! \param[in] id The integer ID.

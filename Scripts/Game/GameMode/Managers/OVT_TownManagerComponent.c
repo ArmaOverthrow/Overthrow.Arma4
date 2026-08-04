@@ -269,10 +269,12 @@ class OVT_TownManagerComponent: OVT_Component
 			bool hasEnemyTower = false;
 			bool hasFriendlyTower = false;
 			foreach(OVT_RadioTowerData tower : of.m_RadioTowers)
-			{				
+			{
 				float dist = vector.Distance(town.location, tower.location);
 				if(dist < OVT_Global.GetConfig().m_Difficulty.radioTowerRange)
 				{
+					//Sabotaged towers broadcast nothing for either side
+					if(tower.IsDisabled()) continue;
 					if(tower.IsOccupyingFaction())
 					{
 						hasEnemyTower = true;
@@ -280,8 +282,8 @@ class OVT_TownManagerComponent: OVT_Component
 						hasFriendlyTower = true;
 					}
 				}
-			}			
-			
+			}
+
 			if(hasEnemyTower)
 			{
 				RemoveSupportModifierByName(townID, "NearbyRadioTowerPositive");
@@ -290,7 +292,11 @@ class OVT_TownManagerComponent: OVT_Component
 			{
 				RemoveSupportModifierByName(townID, "NearbyRadioTowerNegative");
 				TryAddSupportModifierByName(townID, "NearbyRadioTowerPositive");
-			}	
+			}else{
+				//No tower on the air in range (sabotage) - the permanent proximity modifiers must go
+				RemoveSupportModifierByName(townID, "NearbyRadioTowerNegative");
+				RemoveSupportModifierByName(townID, "NearbyRadioTowerPositive");
+			}
 			
 			bool hasEnemyBase = false;
 			bool hasFriendlyBase = false;	

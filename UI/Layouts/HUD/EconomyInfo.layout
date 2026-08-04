@@ -166,6 +166,29 @@ OverlayWidgetClass {
           ShadowOpacity 0.7
          }
         }
+        RichTextWidgetClass "{6A7E1A2F5B08D100}" {
+         Name "MoneyDeltaText"
+         Slot LayoutSlot "{56E0F189AA8E9CDB}" {
+          HorizontalAlign 2
+          VerticalAlign 1
+          Padding 8 0 0 0
+         }
+         "Is Visible" 0
+         Clipping False
+         Color 1 1 1 1
+         "Inherit Color" 0
+         Text ""
+         "Font Size" 20
+         "Min Font Size" 16
+         "Horizontal Alignment" Right
+         "Vertical Alignment" Center
+         FontProperties FontProperties "{55F8C56F794D79A5}" {
+          Font "{EABA4FE9D014CCEF}UI/Fonts/RobotoCondensed/RobotoCondensed_Bold.fnt"
+          ShadowSize 10
+          ShadowOffset 0 0
+          ShadowOpacity 0.7
+         }
+        }
        }
       }
       HorizontalLayoutWidgetClass "{5D9091EEC96D4D5B}" {

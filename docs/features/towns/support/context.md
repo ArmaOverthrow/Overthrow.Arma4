@@ -16,6 +16,12 @@
 **What's Next:**
 - 📋 Review for potential improvements (see implementation.md Future Enhancements)
 
+**2026-08-04 additions (non-violent support levers, from play-through design discussion):**
+- **Pirate radio placeable** — `PirateRadio` support modifier (+30, 3600 s, non-stackable, appended LAST in `supportModifiers.conf` — index identity preserved) via a new illegal placeable (placeholder prefab `RadioStation_ANPRC77_01`, swap pending user pick). Re-placing refreshes the timer.
+- **Radio tower sabotage** — hold action (20 s) on the three `TransmitterTower_01_*_base.et` prefabs → `OVT_TowerSabotageComponent` (on OVT_OverthrowController) → `OVT_RadioTowerData.disabledRemaining` (difficulty `radioTowerSabotageTime`, 900–3600 s). Disabled towers count as no tower: the town tick now clears BOTH permanent tower modifiers when no tower is on the air in range. Disabled state replicates via RPC + JIP stream but is NOT persisted (a loaded save re-enables towers).
+- **Illegal actions while seen** (posters/sandbags/hedgehogs/pirate radio placement, sabotage) = wanted 2 via `OVT_PlayerWantedComponent.OnIllegalActionSeen`.
+- Patrol removal of deployments is NOT built — filed as BUG-084.
+
 **Blockers:**
 - None
 

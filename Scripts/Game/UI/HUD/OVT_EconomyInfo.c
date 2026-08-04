@@ -6,6 +6,13 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 	string m_playerId;
 	SCR_ChimeraCharacter m_player;
 	
+	//! Green for money gained, red for money lost, on the HUD delta ticker.
+	protected const int COLOR_DELTA_POSITIVE = 0xFF4CD964;
+	protected const int COLOR_DELTA_NEGATIVE = 0xFFFF4444;
+
+	//! Accumulating "+$500" state for the money readout. Client-side only; no new replication.
+	protected ref OVT_MoneyDeltaTracker m_MoneyDelta = new OVT_MoneyDeltaTracker();
+
 	float m_fCounter = 8;
 	float m_fOverrideCounter = 0;
 	int m_iCurrentTownId = -1;
@@ -52,7 +59,7 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 		if(!m_player){
 			InitCharacter();
 		}
-		UpdateMoney();
+		UpdateMoney(timeSlice);
 		if(m_OccupyingFaction.m_bQRFActive)
 		{
 			ShowQRF();
@@ -285,15 +292,52 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 	//------------------------------------------------------------------------------------------------
 	// Update Money
 	//------------------------------------------------------------------------------------------------
-	void UpdateMoney()
+	void UpdateMoney(float timeSlice)
 	{
 		if (!m_Economy)
 			return;
 		if(!m_wRoot)
 			return;
-						
+
+		int money = m_Economy.GetPlayerMoney(m_playerId);
+
 		TextWidget w = TextWidget.Cast(m_wRoot.FindAnyWidget("MoneyText"));
-		w.SetText("$" + m_Economy.GetPlayerMoney(m_playerId));
+		if(w) w.SetText(OVT_MoneyFormat.FormatMoney(money));
+
+		UpdateMoneyDelta(money, timeSlice);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Drives the "+$500" ticker next to the money readout.
+	//!
+	//! Polled, not subscribed (implementation plan D11): this display already reads the balance every
+	//! frame and already has a timeSlice, and its lifetime does not obviously match the economy
+	//! manager's - so there is no invoker to register and, more to the point, none to unregister.
+	//! \param[in] money The player's balance this frame.
+	//! \param[in] timeSlice Seconds since the previous frame.
+	protected void UpdateMoneyDelta(int money, float timeSlice)
+	{
+		m_MoneyDelta.Update(money, timeSlice);
+
+		TextWidget w = TextWidget.Cast(m_wRoot.FindAnyWidget("MoneyDeltaText"));
+		if(!w) return;
+
+		if(!m_MoneyDelta.IsVisible())
+		{
+			w.SetVisible(false);
+			return;
+		}
+
+		w.SetText(m_MoneyDelta.GetText());
+
+		if(m_MoneyDelta.GetDelta() > 0)
+		{
+			w.SetColor(Color.FromInt(COLOR_DELTA_POSITIVE));
+		}else{
+			w.SetColor(Color.FromInt(COLOR_DELTA_NEGATIVE));
+		}
+
+		w.SetVisible(true);
 	}
 	
 	void UpdateNotification(float timeSlice)

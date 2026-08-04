@@ -132,7 +132,7 @@ CivilianDeath −20×5 (no instigator check — OF crossfire hurts the resistanc
 - [ ] Recalc-on-timeout (consume the `OnTick` return) so expiries take effect within the cycle
 
 ### Low Priority / Nice to Have
-- [ ] Poster-refusal feedback hint; guard the placeable handler's derefs
+- [x] Poster-refusal feedback hint (2026-08-04: client-side stack check in `OVT_PlaceContext` — greys the card, blocks with `#OVT-TownModifierLimit`, exits place mode after the stack-filling poster); handler deref guards still open
 - [ ] Float-safe decay roll; run momentum once at campaign start; typed invokers
 - [ ] An RNG seam so the equilibrium-damping branch (the feature's most important line) becomes testable
 

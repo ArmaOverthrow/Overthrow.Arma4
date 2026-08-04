@@ -279,6 +279,18 @@ FrameWidgetClass {
                     }
                    }
                   }
+                  ButtonWidgetClass "{6A7E1A2B3C4D5E60}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+                   Name "TakeAllButton"
+                   Slot LayoutSlot "{56EEDE01982D053A}" {
+                    Padding 0 0 0 0
+                   }
+                   components {
+                    SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                     m_sActionName "OverthrowWarehouseTakeAll"
+                     m_sLabel "#OVT-Warehouse_Take_All"
+                    }
+                   }
+                  }
                  }
                 }
                }

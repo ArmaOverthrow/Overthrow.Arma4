@@ -72,6 +72,13 @@ class OVT_NotificationManagerComponent: OVT_Component
 	
 	//! Singleton instance of the notification manager component.
 	private static OVT_NotificationManagerComponent s_Instance = null;
+
+	//! Fired locally whenever a notification meant for this client arrives: (tag, param1, param2, param3).
+	//!
+	//! The HUD notification strip is hidden while an OVT_UIContext menu is open (m_bHideHUDOnShow), so a
+	//! menu that wants to show a server result - the shop's inventory-full purchase failure, for one -
+	//! has to hear about it itself. Display only: nothing here mutates state.
+	ref ScriptInvoker m_OnNotification = new ScriptInvoker();
 	
 	//------------------------------------------------------------------------------------------------
 	//! Gets the singleton instance of the OVT_NotificationManagerComponent.
@@ -200,5 +207,19 @@ class OVT_NotificationManagerComponent: OVT_Component
 		{
 			m_aNotifications.Remove(m_aNotifications.Count() - 1);
 		}
+
+		if(m_OnNotification) m_OnNotification.Invoke(tag, param1, param2, param3);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Looks up the message preset behind a notification tag, so a listener of m_OnNotification can
+	//! render the same localized text the HUD strip would have shown.
+	//! \param[in] tag The identifier tag for the message preset.
+	//! \return The preset, or null when the tag is not configured.
+	SCR_SimpleMessagePreset GetMessagePreset(string tag)
+	{
+		if(!m_Messages) return null;
+
+		return m_Messages.GetPreset(tag);
 	}
 }
