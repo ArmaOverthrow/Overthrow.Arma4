@@ -50,16 +50,25 @@ class OVT_PersistedBase
 }
 
 //------------------------------------------------------------------------------------------------
-//! One radio tower's persisted state. Only its controlling faction can change.
+//! One radio tower's persisted state: who controls it, and whether it is currently off the air.
+//!
+//! FIELD ORDER IS THE FORMAT. Reflection writes and reads these members in declaration order and the
+//! save context is binary, so a new field may only ever be APPENDED - never inserted, never
+//! reordered, never removed. disabledRemaining is the version 2 addition and therefore sits last.
 //------------------------------------------------------------------------------------------------
 class OVT_PersistedRadioTower
 {
 	vector location;
 	int faction;
+
+	//! Version 2. Seconds of sabotage downtime left, so a tower sabotaged before the save comes back
+	//! still down with the right time on the clock instead of silently back on the air. 0 when up.
+	float disabledRemaining;
 }
 
 //------------------------------------------------------------------------------------------------
-//! Persists the occupying faction's war state: resources, threat, base and radio tower control.
+//! Persists the occupying faction's war state: resources, threat, base and radio tower control, and
+//! how long any sabotaged tower still has left off the air.
 //!
 //! BINDING. Listed in the ComponentSerializers block of the game-mode configuration in
 //! Configs/Systems/Persistence/Overthrow.conf.
@@ -114,7 +123,7 @@ class OVT_OccupyingFactionManagerSerializer : ScriptedComponentSerializer
 		if (!occupying)
 			return ESerializeResult.ERROR;
 
-		context.WriteValue("version", 1);
+		context.WriteValue("version", 2);
 
 		string occupyingFactionKey;
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
@@ -152,6 +161,7 @@ class OVT_OccupyingFactionManagerSerializer : ScriptedComponentSerializer
 				OVT_PersistedRadioTower record = new OVT_PersistedRadioTower();
 				record.location = tower.location;
 				record.faction = tower.faction;
+				record.disabledRemaining = tower.disabledRemaining;
 				towers.Insert(record);
 			}
 		}
@@ -195,9 +205,31 @@ class OVT_OccupyingFactionManagerSerializer : ScriptedComponentSerializer
 		array<ref OVT_PersistedRadioTower> towers = new array<ref OVT_PersistedRadioTower>();
 		context.Read(towers);
 
+		// A version 1 payload was written before towers could be sabotaged. The field is the LAST one
+		// declared, so an older payload simply has no data for it - but whatever the reader left there
+		// is not ours, so it is cleared rather than trusted. Every tower from such a save is on the
+		// air, which is exactly what version 1 promised.
+		if (version < 2)
+			ClearDisabledRemaining(towers);
+
 		occupying.ApplyPersistedOccupyingFaction(occupyingFactionKey, resources, threat, bases, towers);
 
 		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Blanks the version 2 sabotage timer on every record of an older payload.
+	//! \param[in] towers Records just read, may be null.
+	protected void ClearDisabledRemaining(array<ref OVT_PersistedRadioTower> towers)
+	{
+		if (!towers)
+			return;
+
+		foreach (OVT_PersistedRadioTower tower : towers)
+		{
+			if (tower)
+				tower.disabledRemaining = 0;
+		}
 	}
 
 	//------------------------------------------------------------------------------------------------

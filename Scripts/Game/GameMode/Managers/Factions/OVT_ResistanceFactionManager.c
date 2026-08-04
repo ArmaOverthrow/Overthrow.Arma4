@@ -735,7 +735,19 @@ class OVT_ResistanceFactionManager: OVT_Component
 				return null;
 			}
 		}
-		
+
+		// Being seen placing an illegal item (propaganda) makes you wanted - same rule as looting
+		if(placeable.m_bIllegal && runHandler)
+		{
+			IEntity placerEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+			if(placerEntity)
+			{
+				OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(placerEntity.FindComponent(OVT_PlayerWantedComponent));
+				if(wanted)
+					wanted.OnIllegalActionSeen("WantedIllegalPlacement");
+			}
+		}
+
 		economy.TakePlayerMoney(playerId, cost);
 		
 		SCR_AIWorld aiworld = SCR_AIWorld.Cast(GetGame().GetAIWorld());

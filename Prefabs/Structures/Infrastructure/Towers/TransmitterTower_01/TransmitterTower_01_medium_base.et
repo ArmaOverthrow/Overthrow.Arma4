@@ -3,5 +3,27 @@ StaticModelEntity : "{BCF54BF42D61C77E}Prefabs/Structures/Core/Tower_Base.et" {
  components {
   OVT_TowerControllerComponent "{5E0E7197564CBE64}" {
   }
+  ActionsManagerComponent "{6A7D9B2E00000016}" {
+   ActionContexts {
+    UserActionContext "{6A7D9B2E00000017}" {
+     ContextName "sabotage"
+     Position PointInfo "{6A7D9B2E00000018}" {
+      Offset 0 1.5 0
+     }
+     Radius 2
+    }
+   }
+   additionalActions {
+    OVT_SabotageTowerAction "{6A7D9B2E00000019}" {
+     ParentContextList {
+      "sabotage"
+     }
+     UIInfo UIInfo "{6A7D9B2E0000001A}" {
+      Name "#OVT-SabotageTower"
+     }
+     Duration 20
+    }
+   }
+  }
  }
 }

@@ -8376,5 +8376,192 @@ StringTable {
    Modified 1785674614
    Author "Claude"
   }
+  CustomStringTableItem "{6A7D9B2E00000001}" {
+   Id "OVT-TownModifierLimit"
+   Target_en_us "This town already has the maximum number of these"
+   Comment "Place mode - poster/support-modifier stack limit reached in the nearest town"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E00000004}" {
+   Id "OVT-Msg-WantedIllegalPlacement"
+   Target_en_us "You were seen placing illegal materials!"
+   Comment "Wanted notification - seen placing an illegal placeable (posters)"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E00000026}" {
+   Id "OVT-Place_PirateRadio"
+   Target_en_us "Pirate Radio"
+   Comment "Place menu - pirate radio transmitter placeable title"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E00000027}" {
+   Id "OVT-Place_PirateRadio_Description"
+   Target_en_us "An illegal transmitter"
+   Comment "Place menu - pirate radio description"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E00000028}" {
+   Id "OVT-SupportMod_PirateRadio"
+   Target_en_us "Pirate Radio"
+   Comment "Town support modifier title - pirate radio placeable"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E00000029}" {
+   Id "OVT-SabotageTower"
+   Target_en_us "Sabotage Radio Tower"
+   Comment "Hold action on occupying radio towers"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E0000002D}" {
+   Id "OVT-TowerSabotaged"
+   Target_en_us "Sabotaged"
+   Comment "Radio tower action name while the tower is down - the time left is appended in brackets"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E0000002E}" {
+   Id "OVT-TowerAlreadySabotaged"
+   Target_en_us "This radio tower is already off the air"
+   Comment "Why the sabotage action cannot be performed while the tower is down"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E0000002A}" {
+   Id "OVT-Msg-WantedSabotage"
+   Target_en_us "You were seen committing sabotage!"
+   Comment "Wanted notification - seen sabotaging a radio tower"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E0000002B}" {
+   Id "OVT-Msg-RadioTowerSabotaged"
+   Target_en_us "A radio tower near %1 has been sabotaged"
+   Comment "Broadcast - radio tower taken off the air"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E0000002C}" {
+   Id "OVT-Msg-RadioTowerRepaired"
+   Target_en_us "The radio tower near %1 is back on the air"
+   Comment "Broadcast - sabotaged radio tower re-enabled"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
  }
 }

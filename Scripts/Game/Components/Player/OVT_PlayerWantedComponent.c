@@ -254,6 +254,17 @@ class OVT_PlayerWantedComponent: OVT_Component
 		}
 	}
 	
+	//! Server-side: escalate to wanted level 2 when this character is seen performing an
+	//! illegal action (e.g. placing propaganda). Same seen-gated rule as looting
+	void OnIllegalActionSeen(string reason = "")
+	{
+		if(!m_bIsSeen) return;
+
+		SetBaseWantedLevel(2, reason);
+		CheckWanted();
+		RecordSuspiciousActivity("illegal_action", GetOwner().GetOrigin());
+	}
+
 	//! Records suspicious activity for area heat tracking
 	protected void RecordSuspiciousActivity(string activityType, vector location)
 	{

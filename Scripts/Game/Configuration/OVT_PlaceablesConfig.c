@@ -52,6 +52,9 @@ class OVT_Placeable
 	
 	[Attribute(defvalue: "1", desc: "Associate with nearest base/camp/fob")]
 	bool m_bAssociateWithNearest;
+
+	[Attribute(defvalue: "0", desc: "Illegal - being seen placing this raises the wanted level")]
+	bool m_bIllegal;
 	
 	[Attribute("", UIWidgets.Object)]
 	ref OVT_PlaceableHandler handler;

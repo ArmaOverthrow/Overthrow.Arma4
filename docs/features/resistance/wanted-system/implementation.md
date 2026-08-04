@@ -51,6 +51,8 @@ The wanted system is Overthrow's stealth/aggro layer: a GTA-style 0–4 star wan
 | `Scripts/Game/AI/Components/Modded/SCR_AIConfigComponent.c` | `Danger_WeaponFire` → shooter gets level 2 |
 | `Scripts/Game/Components/Damage/Modded/SCR_CharacterDamageManagerComponent.c` | Damage → level 2; kill → level 3; killing OF near a vehicle → all occupants level 3; all blow disguise (server-side writers) |
 | `Scripts/Game/UserActions/Modded/SCR_LootAction.c` | Fires `m_OnPlayerLoot` → looting while seen = level 2 |
+| `Scripts/Game/GameMode/Managers/Factions/OVT_ResistanceFactionManager.c` (`PlaceItem`) | Placing an `m_bIllegal` placeable (posters, sandbags, hedgehogs, pirate radio) while seen = level 2 via `OnIllegalActionSeen` (added 2026-08-04) |
+| `Scripts/Game/Components/Controller/OVT_TowerSabotageComponent.c` | Radio tower sabotage while seen = level 2 via `OnIllegalActionSeen` (added 2026-08-04) |
 | `UI/Layouts/HUD/WantedInfo.layout` | Stars / SeenEye / Undercover widgets |
 | `Configs/overthrowBroadcastMessages.conf` | 5 wanted reason presets + `CannotFastTravelWanted` |
 | `Configs/Difficulty/*.conf` + `Scripts/Game/Configuration/OVT_DifficultySettings.c` | `wantedTimeout`, `wantedOneTimeout`, `baseCloseRange`, `disguiseDetectionDistance` (+3 dead undercover fields) |
