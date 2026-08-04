@@ -446,6 +446,38 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 
 		UUID bodyId = player.m_sBodyPersistenceId;
 
+		// FAST PATH: THE BODY IS USUALLY ALREADY STANDING IN THE WORLD AFTER A RESTART, and asking for a
+		// SPAWN is then the wrong question.
+		//
+		// The player-character configuration self-spawns ({64ECE6462993EA13}, SelfSpawn 1 in
+		// Overthrow.conf), so the engine instantiates the stored body while the world loads - long before
+		// its owner reconnects. At that point it is a LIVE TRACKED INSTANCE, not a pending stored record,
+		// and RequestSpawn() has nothing left to spawn: it answers NOT_FOUND. Measured on a dedicated
+		// server across three restarts (2026-08-04, 2026-08-05) - the record was verified present in the
+		// save blob with a valid configuration, and the request still answered NOT_FOUND while the body
+		// stood unclaimed in the world and the player got a fresh civilian beside it.
+		//
+		// FindById() is the matching question - "find a TRACKED instance by id" - and it is exactly how
+		// vanilla locates self-spawned player characters after a load
+		// (SCR_PlayerReconnectData.RemoveUnusedCharacters, SCR_ReconnectSerializer.c:66).
+		//
+		// The answer is handed to OnPlayerBodySpawned() rather than adopted here, so the live-instance
+		// path and the spawn-request path go through ONE set of guards: owner left, corpse, player
+		// already has a character, and the attach itself.
+		Managed liveInstance = persistence.FindById(bodyId);
+		IEntity liveBody = IEntity.Cast(liveInstance);
+		if (liveBody)
+		{
+			Print("[Overthrow] Player " + playerId + "'s stored body is already in the world - adopting it instead of requesting a spawn");
+
+			// Marked pending first for the same reason as the request below: the callback consumes it.
+			m_aPendingBodySpawns.Insert(playerId);
+
+			Tuple2<int, string> liveContext(playerId, characterPersistenceId);
+			OnPlayerBodySpawned(EPersistenceStatusCode.OK, liveBody, true, liveContext);
+			return true;
+		}
+
 		// MUST be marked pending BEFORE the request is sent: an instance the system already has in memory
 		// completes the callback IMMEDIATELY, i.e. from inside RequestSpawn(), and the callback's first
 		// act is to consume this entry.

@@ -785,6 +785,25 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 
 		UUID storedId = vehicleId;
 
+		// SAME FAST PATH AS THE PLAYER BODY, and for the same reason: the vehicle configuration
+		// self-spawns, so after a restart the instance is usually already in the world and RequestSpawn
+		// has nothing left to spawn - it answers NOT_FOUND. Vehicles normally dodge this because
+		// InitialVehicleCleanup() releases an offline owner's vehicle back to storage 5 s after init, but
+		// an owner who reconnects inside that window would otherwise be told NOT_FOUND and handed a
+		// REBUILT duplicate standing next to their real car.
+		//
+		// FindVehicleEntity() cannot answer this: it reads m_mSpawnedVehicles, which is rebuilt from the
+		// save without entity ids and therefore knows nothing about a self-spawned instance.
+		Managed liveInstance = persistence.FindById(storedId);
+		IEntity liveVehicle = IEntity.Cast(liveInstance);
+		if (liveVehicle)
+		{
+			Print("[Overthrow] Vehicle " + vehicleId + " is already in the world - adopting it instead of requesting a spawn");
+			AdoptRespawnedVehicle(playerPersistentId, vehicleId, liveVehicle);
+			m_sLastRespawnDiagnostic = "";
+			return true;
+		}
+
 		if (!m_aPendingVehicleSpawns)
 			m_aPendingVehicleSpawns = new array<string>();
 

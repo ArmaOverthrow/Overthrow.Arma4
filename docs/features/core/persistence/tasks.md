@@ -164,7 +164,7 @@ Found 2026-08-04 on the deployed Dev addon; fixed 2026-08-05. Full reasoning in 
 
 ## Bugs & Issues
 
-**Active:** BUG-018 (corpses don't survive save/continue, playtest 12c — low, deferred, public issue #153). **ROOT CAUSE FOUND 2026-08-05 and the broken fix removed** (see Phase 9): scripted configs applied via SetConfig serialize with an empty store name and the loader drops them. PLAYER corpses are now covered by the player config's SelfSpawn 1; the bug is now specifically AI corpses, and needs a conf-declared config that can pick out a dead character at LOAD time - which no native rule offers.
+**Active:** BUG-085 (loadout apply loses everything inside clothing/backpacks - pre-existing, affects ordinary loadouts as well as the logout gear snapshot; the snapshot is the fallback path, not the primary one). BUG-018 (corpses don't survive save/continue, playtest 12c — low, deferred, public issue #153). **ROOT CAUSE FOUND 2026-08-05 and the broken fix removed** (see Phase 9): scripted configs applied via SetConfig serialize with an empty store name and the loader drops them. PLAYER corpses are now covered by the player config's SelfSpawn 1; the bug is now specifically AI corpses, and needs a conf-declared config that can pick out a dead character at LOAD time - which no native rule offers.
 **Resolved:** BUG-002, BUG-006 (no working save path in either system) — resolved by Phase 1-2 by design, confirmed by the 2026-08-03 SP playtest.
 
 ## Technical Debt
