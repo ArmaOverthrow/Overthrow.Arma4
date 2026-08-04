@@ -345,7 +345,47 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 		}
 
 		OnCharacterCreated(playerId, characterPersistenceId, character);
+
+		// LAST RESORT FOR EQUIPMENT, and only on this path. When the stored body comes back there is
+		// nothing to do - it arrives wearing what it was wearing. This is the branch where it did not,
+		// and without it a player whose character record the engine refuses to return loses everything
+		// they were carrying despite having done nothing wrong (measured on a dedicated server
+		// 2026-08-05: record written correctly, RequestSpawn answered NOT_FOUND).
+		//
+		// AFTER OnCharacterCreated, deliberately: that dresses the character in the civilian loadout and
+		// hands out first-spawn starting items, so applying the snapshot first would be overwritten.
+		// Death never reaches here with a snapshot, because OnPlayerKilled_S drops it.
+		ApplyLogoutGearSnapshot(playerId, characterPersistenceId, character);
+
 		HandoverToPlayer(playerId, character);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Dresses a freshly built character in the gear its player was carrying when they last left.
+	//!
+	//! Consumed on use: the snapshot describes one specific moment, and leaving it in place would let a
+	//! later fresh spawn - after a death, say - hand the same kit out a second time.
+	//! \param[in] playerId The player receiving the character.
+	//! \param[in] characterPersistenceId Their Overthrow persistent id.
+	//! \param[in] character The freshly spawned body.
+	protected void ApplyLogoutGearSnapshot(int playerId, string characterPersistenceId, notnull IEntity character)
+	{
+		OVT_LoadoutManagerComponent loadouts = OVT_Global.GetLoadouts();
+		if (!loadouts)
+			return;
+
+		OVT_PlayerLoadout snapshot = loadouts.GetLoadout(characterPersistenceId, OVT_LoadoutManagerComponent.LOGOUT_SNAPSHOT_NAME);
+		if (!snapshot)
+			return;
+
+		if (loadouts.ApplyLoadoutToEntity(snapshot, character))
+			Print("[Overthrow] Player " + playerId + " could not be given their stored body - their logout gear was restored onto a fresh character instead", LogLevel.NORMAL);
+		else
+			Print("[Overthrow] Player " + playerId + " has a logout gear snapshot but it could not be applied", LogLevel.WARNING);
+
+		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
+		if (players)
+			players.ClearPlayerGearSnapshot(characterPersistenceId);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -365,7 +405,14 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 			return false;
 
 		if (player.m_sBodyPersistenceId == "")
+		{
+			// Says so out loud, because a silent return here and a silent return from an OLD build look
+			// identical in a server log - and "the id was never stored" and "the id was stored but the
+			// record is gone" need completely different fixes.
+			PrintFormat("[Overthrow] Player %1 has no stored body id - spawning a fresh character (last known position %2)",
+				playerId.ToString(), player.m_vLastKnownPosition.ToString());
 			return false;
+		}
 
 		// A body is already on its way for this player - the spawn request has not answered yet. Claiming
 		// the spawn keeps the caller from building a second character alongside the one being fetched.
@@ -605,6 +652,57 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 		}
 
 		return m_PlayerBodyCollection;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Vanilla's possession-change hook, MINUS the re-match of the body a player just stopped
+	//! controlling.
+	//!
+	//! WHAT VANILLA DOES AND WHY IT BREAKS OVERTHROW. SCR_SpawnLogic.OnPlayerEntityChanged_S calls
+	//! m_Persistence.ReloadConfig(previousEntity) under the comment "Check that the old entity does not
+	//! count as player anymore". That is correct for vanilla, which brings a returning player's body
+	//! back by SelfSpawn and does not care what an abandoned one is matched to. In Overthrow it is
+	//! destructive: the player-character config is the ONLY character config with SelfSpawn 1
+	//! ({64ECE6462993EA13}, overridden in Overthrow.conf), and a body that stops being player-controlled
+	//! re-matches onto the AI character config, which is deliberately SelfSpawn 0 so managers do not
+	//! double their garrisons. A record under a no-self-spawn config is DROPPED at load - so the body
+	//! OVT_PlayerData.m_sBodyPersistenceId points at stops existing, and the player comes back as a
+	//! fresh civilian with their gear gone. Measured on a dedicated server 2026-08-04 and 2026-08-05:
+	//! the id was stored and asked for, and persistence answered NOT_FOUND.
+	//!
+	//! KEEPING THE PLAYER CONFIG IS THE POINT. The body must stay matched to the configuration that
+	//! self-spawns, because that is the only mechanism that survives a restart (SetConfig cannot be
+	//! used - see OVT_PersistenceTracking.MarkForSelfSpawn). A body a player has left therefore comes
+	//! back into the world at load and is handed straight back to them by id.
+	//!
+	//! Everything else vanilla does here is preserved: the entity-lost notification and the pending
+	//! possession hand-off, plus the re-match of the NEW entity, which is the half that is actually
+	//! wanted (it is what recognises a freshly possessed body as a player's).
+	//! \param[in] playerId The player whose controlled entity changed.
+	//! \param[in] previousEntity The body they stopped controlling, may be null.
+	//! \param[in] newEntity The body they now control, may be null.
+	override void OnPlayerEntityChanged_S(int playerId, IEntity previousEntity, IEntity newEntity)
+	{
+		if (!newEntity)
+			OnPlayerEntityLost_S(playerId);
+
+		SCR_PersistenceSystem persistence = SCR_PersistenceSystem.GetScriptedInstance();
+		if (persistence)
+		{
+			// Deliberately NOT ReloadConfig(previousEntity) - see above.
+			if (previousEntity)
+			{
+				EntityPersistenceConfig previousConfig = EntityPersistenceConfig.Cast(persistence.GetConfig(previousEntity));
+				if (previousConfig)
+					PrintFormat("[Overthrow] Player %1 released a body; its config is left alone (selfSpawn %2)",
+						playerId.ToString(), previousConfig.m_bSelfSpawn.ToString());
+			}
+
+			if (newEntity)
+				persistence.ReloadConfig(newEntity);
+		}
+
+		ApplyPendingPosession(playerId);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1136,6 +1234,13 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 			player.m_vLastKnownPosition = vector.Zero;
 			player.m_vLastKnownAngles = vector.Zero;
 		}
+
+		// Death is complete loss, and that has to hold for the gear snapshot too - it is applied on the
+		// same fresh-spawn path a death respawn takes, so leaving it would hand a killed player their
+		// kit straight back and quietly undo the whole ethos.
+		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
+		if (players)
+			players.ClearPlayerGearSnapshot(playerUid);
 
 		GetGame().GetCallqueue().Call(CreateCharacter, playerId, playerUid);
 	}

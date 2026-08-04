@@ -143,6 +143,27 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Looks up one cached loadout by owner and name.
+	//!
+	//! LoadLoadout() finds and applies in one step, which is right for the equipment-box flow but not
+	//! for a caller that has to know whether the loadout EXISTS before deciding what to do - the logout
+	//! gear snapshot, which only applies when a player's stored body could not be restored.
+	//! \param[in] playerId Owning player's persistent id.
+	//! \param[in] loadoutName Name it was saved under.
+	//! \return The cached loadout, or null when there is none.
+	OVT_PlayerLoadout GetLoadout(string playerId, string loadoutName)
+	{
+		if (playerId.IsEmpty() || loadoutName.IsEmpty())
+			return null;
+
+		OVT_PlayerLoadout cachedLoadout;
+		if (m_mActiveLoadouts.Find(GetLoadoutKey(playerId, loadoutName), cachedLoadout))
+			return cachedLoadout;
+
+		return null;
+	}
+
 	//! Apply loadout directly to entity
 	bool ApplyLoadoutToEntity(OVT_PlayerLoadout loadout, IEntity targetEntity)
 	{
@@ -988,6 +1009,22 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		}
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! Reserved loadout name holding the gear a player was carrying when they last left.
+	//!
+	//! WHY A LOADOUT AND NOT A NEW STRUCTURE. Overthrow's preferred way to bring a player back with
+	//! their equipment is to restore the CHARACTER the persistence system stored, which carries its own
+	//! inventory. Measured on a dedicated server 2026-08-05: that record is written to the save
+	//! correctly and the engine still answers NOT_FOUND for it after a restart, so the player returns as
+	//! a fresh civilian. This snapshot is the answer that does not depend on the engine handing an
+	//! entity back - it rides the loadout system, whose records demonstrably survive restarts, and is
+	//! applied only when the stored body could not be restored.
+	//!
+	//! HIDDEN FROM THE PLAYER. It is written and read by the game mode, never by the loadout UI, so
+	//! GetAvailableLoadouts() filters it out - otherwise it would appear in the equipment box menu as a
+	//! loadout the player never saved, and could be applied or deleted by hand.
+	static const string LOGOUT_SNAPSHOT_NAME = "__ovt_logout_snapshot";
+
 	//! Get available loadout names for a player (returns array of loadout names)
 	array<string> GetAvailableLoadouts(string playerId)
 	{
@@ -1009,6 +1046,11 @@ class OVT_LoadoutManagerComponent: OVT_Component
 				{
 					// Extract loadout name (everything after first underscore)
 					string loadoutName = key.Substring(playerId.Length() + 1, key.Length() - playerId.Length() - 1);
+
+					// The logout gear snapshot is the game mode's, not the player's - see the constant.
+					if (loadoutName == LOGOUT_SNAPSHOT_NAME)
+						continue;
+
 					loadoutNames.Insert(loadoutName);
 				}
 			}

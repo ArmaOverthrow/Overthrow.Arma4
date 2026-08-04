@@ -790,6 +790,25 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 				// Stored separately from the id and unconditionally: if the character record does not
 				// survive to the next session, this is what still puts the player back where they left.
 				m_PlayerManager.CapturePlayerBodyTransform(player, controlledEntity);
+
+				// ...and this is what puts their equipment back in the same case.
+				m_PlayerManager.CapturePlayerGearSnapshot(persId, controlledEntity);
+			}
+
+			// The whole restore depends on this body still being matched to a config that self-spawns:
+			// a record under a no-self-spawn config is dropped at load and the id above resolves to
+			// nothing. Reported at the exact moment it is released, so a server log answers "was the
+			// body saved as a player or as an AI corpse?" without another round trip.
+			SCR_PersistenceSystem persistence = SCR_PersistenceSystem.GetScriptedInstance();
+			if (persistence)
+			{
+				EntityPersistenceConfig bodyConfig = EntityPersistenceConfig.Cast(persistence.GetConfig(controlledEntity));
+				if (!bodyConfig)
+					Print("[Overthrow] Leaving player's body has NO persistence config - its record cannot survive the restart", LogLevel.WARNING);
+				else if (!bodyConfig.m_bSelfSpawn)
+					Print("[Overthrow] Leaving player's body is matched to a config that does NOT self-spawn - its record will be dropped at load and they will spawn fresh", LogLevel.WARNING);
+				else
+					Print("[Overthrow] Leaving player's body is matched to a self-spawning config - it should survive a restart", LogLevel.NORMAL);
 			}
 
 			OVT_PersistenceTracking.Untrack(controlledEntity, true);

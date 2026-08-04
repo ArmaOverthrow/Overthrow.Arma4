@@ -730,3 +730,79 @@ class OVT_TEST_Init_Persistence_CharacterConfigNeverSelfSpawns : SCR_AutotestCas
 		return true;
 	}
 }
+
+//------------------------------------------------------------------------------------------------
+//! The LOCAL PLAYER's character must be matched to a configuration that self-spawns on load.
+//!
+//! WHY THIS IS THE INVARIANT. A load only instantiates records whose configuration says
+//! SelfSpawn 1; everything else is dropped from storage and is gone from every later save point
+//! (measured 2026-08-05 across a real restart: 215 records in one savepoint, 12 in the next).
+//! Vanilla ships the player-character config as SelfSpawn 0 (Configuration/Character/Player.conf:5)
+//! and re-enables it for missions in Mission.conf:18-24; Overthrow inherits Common.conf, not
+//! Mission.conf, so it must do that itself - the {64ECE6462993EA13} override in the Player group of
+//! Configs/Systems/Persistence/Overthrow.conf.
+//!
+//! Without it a player who logs out has a stored body id pointing at a record that will not exist
+//! next session, and comes back as a fresh civilian with their gear gone - which is exactly what a
+//! dedicated server reported on 2026-08-04.
+//!
+//! THE CONFIG IS READ OFF A LIVE PLAYER-CONTROLLED CHARACTER, not looked up by GUID, because what
+//! matters is which configuration the engine actually MATCHED - a rule that stopped matching, or an
+//! override in the wrong group, would both leave the GUID intact and the behaviour broken.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_Persistence_PlayerCharacterConfigSelfSpawns : SCR_AutotestCaseBase
+{
+	//! Frame polls allowed for the local player to have a character with a matched config.
+	static const int MAX_POLLS = 300;
+
+	protected int m_iPolls;
+
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		SCR_PersistenceSystem persistence = SCR_PersistenceSystem.GetScriptedInstance();
+		if (!persistence)
+		{
+			SetResultFailure("SCR_PersistenceSystem.GetScriptedInstance() is null - see OVT_TEST_Init_Persistence_SystemIsOnline.");
+			return true;
+		}
+
+		array<int> players = {};
+		GetGame().GetPlayerManager().GetPlayers(players);
+
+		IEntity body;
+		if (!players.IsEmpty())
+			body = GetGame().GetPlayerManager().GetPlayerControlledEntity(players[0]);
+
+		if (!body || !persistence.IsTracked(body))
+		{
+			m_iPolls += 1;
+			if (m_iPolls > MAX_POLLS)
+			{
+				SetResultFailure("No tracked player-controlled character appeared in %1 polls, so the configuration the engine matches to a player body could not be read", m_iPolls.ToString());
+				return true;
+			}
+
+			return false;
+		}
+
+		EntityPersistenceConfig config = EntityPersistenceConfig.Cast(persistence.GetConfig(body));
+		if (!config)
+		{
+			SetResultFailure("GetConfig() handed back no entity config for a tracked player character");
+			return true;
+		}
+
+		if (!config.m_bSelfSpawn)
+		{
+			SetResultFailure("The player character's matched persistence config does NOT self-spawn. The {64ECE6462993EA13} override in the Player group of Overthrow.conf is not reaching the config the engine matched. A player who logs out will come back as a fresh civilian with their gear gone, because their stored body record is dropped at load.");
+			return true;
+		}
+
+		PrintFormat("Player character config self-spawns (matched after %1 poll(s)) - a stored body survives a restart", m_iPolls.ToString());
+		SetResultSuccess();
+		return true;
+	}
+}

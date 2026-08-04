@@ -263,11 +263,20 @@ class OVT_PlayerManagerComponent: OVT_Component
 
 			// materialise: a live body may be registered but never yet written, and an id it has not been
 			// given cannot be stored. The save point is about to write this character anyway.
-			CapturePlayerBodyId(player, character, true);
+			if (!CapturePlayerBodyId(player, character, true))
+			{
+				// The one place this can fail without the player having died: the persistence system
+				// refused to give the body an identity. Silence here would surface much later, as a
+				// player who inexplicably spawns as a fresh civilian after a restart.
+				PrintFormat("[Overthrow] Could not capture a body id for player %1 before the save - they will spawn fresh on the next load", persistentId);
+			}
 
 			// Independent of the id, and on purpose: the position has to be stored even when the id
 			// could not be, because "the character record is missing" is precisely when it is needed.
 			CapturePlayerBodyTransform(player, character);
+
+			// Same reasoning for the gear: this is what dresses them if the body cannot be restored.
+			CapturePlayerGearSnapshot(persistentId, character);
 		}
 	}
 
@@ -281,6 +290,44 @@ class OVT_PlayerManagerComponent: OVT_Component
 	//! \param[in] player The record to write to.
 	//! \param[in] character The body to read the transform from.
 	//! \return True when a transform was captured.
+	//! Snapshots the gear a player is carrying into their hidden logout loadout.
+	//!
+	//! The BODY is still the preferred way to bring equipment back, because it returns the exact items
+	//! with their exact state. This is the fallback for when the persistence system will not hand that
+	//! body back (measured on a dedicated server 2026-08-05), and it is stored through the loadout
+	//! system precisely because loadout records are known to survive a restart.
+	//!
+	//! A corpse is skipped: death is complete loss, and snapshotting a dead player's kit would hand it
+	//! straight back to them on respawn.
+	//! \param[in] persistentId The player to snapshot for.
+	//! \param[in] character The body to read the gear off.
+	void CapturePlayerGearSnapshot(string persistentId, notnull IEntity character)
+	{
+		if (persistentId.IsEmpty() || IsCharacterDead(character))
+			return;
+
+		OVT_LoadoutManagerComponent loadouts = OVT_Global.GetLoadouts();
+		if (!loadouts)
+			return;
+
+		loadouts.SaveLoadout(persistentId, OVT_LoadoutManagerComponent.LOGOUT_SNAPSHOT_NAME, character, "Gear carried at logout");
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Drops a player's logout gear snapshot, so it can never be applied again.
+	//! Called on death (complete loss) and once the snapshot has been used.
+	//! \param[in] persistentId The player whose snapshot to drop.
+	void ClearPlayerGearSnapshot(string persistentId)
+	{
+		if (persistentId.IsEmpty())
+			return;
+
+		OVT_LoadoutManagerComponent loadouts = OVT_Global.GetLoadouts();
+		if (loadouts)
+			loadouts.DeleteLoadout(persistentId, OVT_LoadoutManagerComponent.LOGOUT_SNAPSHOT_NAME);
+	}
+
+	//------------------------------------------------------------------------------------------------
 	bool CapturePlayerBodyTransform(notnull OVT_PlayerData player, notnull IEntity character)
 	{
 		if (IsCharacterDead(character))
