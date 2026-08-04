@@ -35,6 +35,16 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 	//! world, no matter how many start paths run.
 	protected bool m_bAutosaveScheduled;
 
+	//! True once the shutdown save has been asked for, so a second session-end pass cannot ask again.
+	//!
+	//! MEASURED, not defensive: a dedicated server's shutdown log shows OnGameEnd() running TWICE
+	//! (2026-08-04, play-test). The first pass saved; by the second, vanilla's
+	//! SCR_BaseGameMode.HandleOnGameModeEndSaveData() had already called SetSavingAllowed(false), so the
+	//! request was refused with a WARNING and the whole PreShutdownPersist() sweep before it was wasted.
+	//! Neither SCR_Game.OnGameEnd() (game.c:745-755) nor SCR_BaseGameMode.OnGameEnd() (:823-830) carries
+	//! a once-only guard, so being asked more than once is the contract, not an anomaly.
+	protected bool m_bShutdownSaveRequested;
+
 	//! Cached answer to "does a save point exist for this mission?".
 	//!
 	//! SaveGameManager.GetSaves() is ASYNC-ONLY, so a synchronous accessor can only serve a cache.
@@ -260,16 +270,30 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 		}
 
 		// A failed list query is no reason to skip the save - it only costs the overwrite bounding.
+		//
+		// TWO THINGS THIS LOOP HAS TO GET RIGHT, both learned from vanilla's own version
+		// (SCR_SaveSessionToolbarAction.c:56-67):
+		//
+		//  1. ESaveGameType IS A BITMASK, not an ordinal (SCR_MissionHeader.c:33 defaults m_eSaveTypes to
+		//     15 with UIWidgets.Flags; SCR_PauseMenuUI.c:849 tests it with &). An equality test happens to
+		//     work for a save carrying exactly one flag and silently matches nothing for a combined one.
+		//  2. GetSaves() returns every save point for the MISSION, across all playthroughs. Overwriting
+		//     the latest AUTO without checking whose playthrough it belongs to would let a fresh campaign
+		//     scribble over the previous campaign's autosave.
 		SaveGame latestAuto;
 		if (success && saves)
 		{
+			int playthrough = manager.GetCurrentPlaythroughNumber();
 			for (int i = saves.Count() - 1; i >= 0; i--)
 			{
-				if (saves[i].GetType() == ESaveGameType.AUTO)
-				{
-					latestAuto = saves[i];
-					break;
-				}
+				if ((saves[i].GetType() & ESaveGameType.AUTO) == 0)
+					continue;
+
+				if (saves[i].GetPlaythroughNumber() != playthrough)
+					continue;
+
+				latestAuto = saves[i];
+				break;
 			}
 		}
 
@@ -290,8 +314,14 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 	//! OVT_OverthrowGameMode.OnGameEnd() - the engine raises that on the game mode at session end
 	//! (game.c:755). The save is requested BLOCKING (see RequestSavePoint): an asynchronous request
 	//! made while the session is tearing down would never get to complete.
+	//!
+	//! CALLED MORE THAN ONCE PER SESSION - see m_bShutdownSaveRequested. Everything here runs at most
+	//! once, because the second pass arrives after saving has been disabled and can only fail.
 	void OnGameEnd()
 	{
+		if (m_bShutdownSaveRequested)
+			return;
+
 		// If the player quit from the start menu without ever starting, there is nothing to save.
 		OVT_OverthrowGameMode mode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
 		if (!mode || !mode.HasGameStarted())
@@ -299,6 +329,8 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 			Print("[Overthrow] Game never started, skipping save on exit");
 			return;
 		}
+
+		m_bShutdownSaveRequested = true;
 
 		mode.PreShutdownPersist();
 		RequestSavePoint(ESaveGameType.SHUTDOWN);

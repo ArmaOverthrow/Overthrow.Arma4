@@ -2,7 +2,7 @@ class OVT_LoadoutsContext : OVT_UIContext
 {
 	[Attribute("{5D5C558A6E391692}UI/Layouts/Menu/LoadoutsMenu/LoadoutListItem.layout", uiwidget: UIWidgets.ResourceNamePicker, desc: "Layout for loadout list items", params: "layout")]
 	ResourceName m_LoadoutItemLayout;
-	[Attribute("{5D5C558A6E391693}UI/Layouts/Menu/RecruitsMenu/RecruitListItem.layout", uiwidget: UIWidgets.ResourceNamePicker, desc: "Layout for recruit list items", params: "layout")]
+	[Attribute("{AA94A214B16CB2C8}UI/Layouts/Menu/RecruitsMenu/RecruitListItem.layout", uiwidget: UIWidgets.ResourceNamePicker, desc: "Layout for recruit list items", params: "layout")]
 	ResourceName m_RecruitItemLayout;
 	
 	protected OVT_LoadoutManagerComponent m_LoadoutManager;

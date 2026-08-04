@@ -2688,3 +2688,424 @@ class OVT_TEST_PersistenceRoundTrip_TowerSabotage_SurvivesSaveAndReload : SCR_Au
 		return null;
 	}
 }
+//------------------------------------------------------------------------------------------------
+//! A player's last known position survives a save and a reload.
+//!
+//! WHY IT IS STORED AT ALL. A returning player is normally rebuilt from their STORED BODY, which
+//! carries its own transform - so this pair only matters when that body cannot be found. Measured on
+//! a dedicated server 2026-08-04: after a restart the body answered NOT_FOUND and the player woke up
+//! at their home on the far side of the map. The position therefore lives as plain data on the
+//! player's own record, which travels inside the game-mode record and does not depend on the
+//! character record surviving. This case guards that independence.
+//!
+//! THE EXPECTED VALUE IS READ OFF THE LIVE CHARACTER, not written by the case. An earlier draft
+//! poked a synthetic position into the record and asserted that came back; it failed, correctly,
+//! because OVT_PlayerManagerComponent.SyncPlayerBodyIds() runs from PreShutdownPersist() before EVERY
+//! save and overwrites the stored transform with where the body actually is. That is the behaviour
+//! under test, so the case now asserts the whole pipeline - live body -> pre-save capture -> codec ->
+//! adopt - rather than just the codec.
+//!
+//! THE DIRTY VALUE IS ZERO, DELIBERATELY, and it is the only correct choice here.
+//! ApplyPersistedPlayers() adopts the stored transform ONLY when the live record has none - the rule
+//! that stops re-applying a save from teleporting a player who is standing in the world. Zero is
+//! exactly the state a freshly loaded record is in, so it is both the honest dirty value and the one
+//! that exercises the adopt path. A non-zero dirty value would assert the opposite invariant.
+//!
+//! PROVEN ABLE TO FAIL 2026-08-05: with lastKnownPosition/lastKnownAngles removed from the write half
+//! of OVT_PlayerManagerSerializer, the reload restores nothing and the case reports the zero vector.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
+class OVT_TEST_PersistenceRoundTrip_PlayerLastKnownPosition_SurvivesSaveAndReload : SCR_AutotestCaseBase
+{
+	//! How far the restored position may sit from where the body was when the case read it. Generous
+	//! enough for a body settling on its collider between the read and the save, far tighter than the
+	//! failure modes this guards (the zero vector, or the player's home).
+	static const float POSITION_TOLERANCE = 2.0;
+
+	//! Where the local body actually was when the save was taken - the value the pipeline must return.
+	protected vector m_vExpected;
+
+	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
+	protected int m_iReloadPolls;
+	protected string m_sPersId;
+
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
+		{
+			string diagnostic;
+			m_sPersId = OVT_TEST_PersistenceSubject.ResolveLocalPersistentId(diagnostic);
+			if (m_sPersId == "")
+			{
+				SetResultFailure("Cannot resolve the persistent player ID: %1", diagnostic);
+				return true;
+			}
+
+			OVT_PlayerData player = OVT_PlayerData.Get(m_sPersId);
+			if (!player)
+			{
+				SetResultFailure("OVT_PlayerData.Get() returned no record for the local player");
+				return true;
+			}
+
+			int playerId = OVT_TEST_PersistenceSubject.ResolveLocalPlayerId(diagnostic);
+			if (playerId < 1)
+			{
+				SetResultFailure("Cannot resolve the runtime player ID: %1", diagnostic);
+				return true;
+			}
+
+			IEntity body = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+			if (!body)
+			{
+				SetResultFailure("The local player has no controlled entity, so there is no body position for the pre-save capture to record");
+				return true;
+			}
+
+			m_vExpected = body.GetOrigin();
+
+			// Start from "no stored position", so a pass REQUIRES the pre-save capture to have run.
+			player.m_vLastKnownPosition = vector.Zero;
+			player.m_vLastKnownAngles = vector.Zero;
+
+			m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+			string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+			if (trigger != "")
+			{
+				SetResultFailure(trigger);
+				return true;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE)
+		{
+			string saveDiagnostic;
+			int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+			{
+				SetResultFailure(saveDiagnostic);
+				return true;
+			}
+
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+			{
+				m_iSavePolls += 1;
+				if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+				{
+					SetResultFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+					return true;
+				}
+
+				return false;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD)
+		{
+			OVT_PlayerData player = OVT_PlayerData.Get(m_sPersId);
+			if (!player)
+			{
+				SetResultFailure("The local player record disappeared before the reload");
+				return true;
+			}
+
+			// See the header: zero is the dirty value BECAUSE the adopt rule keys on "unset".
+			player.m_vLastKnownPosition = vector.Zero;
+			player.m_vLastKnownAngles = vector.Zero;
+
+			string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
+			if (reload != "")
+			{
+				SetResultFailure(reload);
+				return true;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD)
+		{
+			if (OVT_TEST_PersistenceRoundTripGate.ReloadInProgress())
+			{
+				m_iReloadPolls += 1;
+				if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
+				{
+					SetResultFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+					return true;
+				}
+
+				return false;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_ASSERT;
+			return false;
+		}
+
+		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
+		if (restored != "")
+		{
+			SetResultFailure(restored);
+			return true;
+		}
+
+		OVT_PlayerData player = OVT_PlayerData.Get(m_sPersId);
+		if (!player)
+		{
+			SetResultFailure("OVT_PlayerData.Get() returned no record for the local player after the reload");
+			return true;
+		}
+
+		if (player.m_vLastKnownPosition == vector.Zero)
+		{
+			SetResultFailure("The last known position came back as the zero vector - either the pre-save capture (OVT_PlayerManagerComponent.SyncPlayerBodyIds) did not run, or OVT_PlayerManagerSerializer is not carrying it. A player whose stored body cannot be found would be rebuilt at their home instead of where they logged out.");
+			return true;
+		}
+
+		float drift = vector.Distance(player.m_vLastKnownPosition, m_vExpected);
+		if (drift > POSITION_TOLERANCE)
+		{
+			SetResultFailure("The last known position came back as somewhere else: the body was at %1 when the save was taken, the record says %2 (%3 m away)",
+				m_vExpected.ToString(), player.m_vLastKnownPosition.ToString(), drift.ToString());
+			return true;
+		}
+
+		PrintFormat("Last known position round-tripped: body at %1, restored %2, facing %3",
+			m_vExpected.ToString(), player.m_vLastKnownPosition.ToString(), player.m_vLastKnownAngles.ToString());
+
+		SetResultSuccess();
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! The player-vehicle ownership registry survives a save and a reload.
+//!
+//! WHY THIS EXISTS. Until 2026-08-04 the registry was memory-only. A locked vehicle is saved,
+//! released and deleted 60 s after its owner logs out, so it is not a world entity when the save is
+//! written; after a restart nothing remembered its id, nothing asked for it back, and the player's
+//! car was gone permanently. This case is the guard on the registry surviving, which is the half
+//! that makes asking possible at all.
+//!
+//! NO REAL VEHICLE IS SPAWNED, on purpose. Registration from a live vehicle is already covered by
+//! OVT_TEST_PersistenceRoundTrip_VehicleDespawnRespawn_KeepsOwnerAndContents. What is untested is
+//! whether a registration reaches the save and comes back, so the record is injected through the
+//! manager's own public apply path and read back through its own public accessor - no world entity
+//! is involved in either direction, which is what makes the assertion about the CODEC and nothing
+//! else.
+//!
+//! PROVEN ABLE TO FAIL 2026-08-05: with OVT_VehicleManagerSerializer unbound from the game-mode
+//! configuration in Overthrow.conf, the reload restores no records and the case reports the id
+//! missing.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
+class OVT_TEST_PersistenceRoundTrip_VehicleRegistry_SurvivesSaveAndReload : SCR_AutotestCaseBase
+{
+	//! A UUID-shaped id nothing else in the session will mint.
+	static const string SAVED_VEHICLE_ID = "019fcccc-4242-8000-8400-0000424242ff";
+
+	static const string SAVED_PREFAB = "{16C1F16C9B053801}Prefabs/Vehicles/Wheeled/Ural4320/Ural4320_transport.et";
+	static const vector SAVED_POSITION = "3131.25 12.5 4646.75";
+
+	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
+	protected int m_iReloadPolls;
+	protected string m_sPersId;
+
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
+		{
+			string diagnostic;
+			m_sPersId = OVT_TEST_PersistenceSubject.ResolveLocalPersistentId(diagnostic);
+			if (m_sPersId == "")
+			{
+				SetResultFailure("Cannot resolve the persistent player ID: %1", diagnostic);
+				return true;
+			}
+
+			OVT_VehicleManagerComponent vehicles = OVT_VehicleManagerComponent.GetInstance();
+			if (!vehicles)
+			{
+				SetResultFailure("OVT_VehicleManagerComponent.GetInstance() is null");
+				return true;
+			}
+
+			OVT_PersistedPlayerVehicle record = new OVT_PersistedPlayerVehicle();
+			record.persistentId = SAVED_VEHICLE_ID;
+			record.ownerUid = m_sPersId;
+			record.prefab = SAVED_PREFAB;
+			record.position = SAVED_POSITION;
+			record.angles = vector.Zero;
+			record.locked = true;
+
+			array<ref OVT_PersistedPlayerVehicle> seed = {};
+			seed.Insert(record);
+			vehicles.ApplyPersistedVehicles(seed);
+
+			m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+			string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+			if (trigger != "")
+			{
+				SetResultFailure(trigger);
+				return true;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE)
+		{
+			string saveDiagnostic;
+			int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+			{
+				SetResultFailure(saveDiagnostic);
+				return true;
+			}
+
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+			{
+				m_iSavePolls += 1;
+				if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+				{
+					SetResultFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+					return true;
+				}
+
+				return false;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD)
+		{
+			OVT_VehicleManagerComponent vehicles = OVT_VehicleManagerComponent.GetInstance();
+			if (!vehicles || !vehicles.GetVehicleRecords())
+			{
+				SetResultFailure("The vehicle manager or its registry disappeared before the reload");
+				return true;
+			}
+
+			// Dirty it: wipe the registry entirely, so a reload that restores nothing cannot pass.
+			vehicles.GetVehicleRecords().Clear();
+
+			string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
+			if (reload != "")
+			{
+				SetResultFailure(reload);
+				return true;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD)
+		{
+			if (OVT_TEST_PersistenceRoundTripGate.ReloadInProgress())
+			{
+				m_iReloadPolls += 1;
+				if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
+				{
+					SetResultFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+					return true;
+				}
+
+				return false;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_ASSERT;
+			return false;
+		}
+
+		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
+		if (restored != "")
+		{
+			SetResultFailure(restored);
+			return true;
+		}
+
+		OVT_VehicleManagerComponent vehicles = OVT_VehicleManagerComponent.GetInstance();
+		if (!vehicles)
+		{
+			SetResultFailure("OVT_VehicleManagerComponent.GetInstance() is null after the reload");
+			return true;
+		}
+
+		map<string, ref OVT_PersistedPlayerVehicle> live = vehicles.GetVehicleRecords();
+		if (!live || !live.Contains(SAVED_VEHICLE_ID))
+		{
+			SetResultFailure("The vehicle registration did not survive the round trip - id %1 is not registered after the reload. A vehicle despawned while its owner was offline would be unrecoverable after a server restart.",
+				SAVED_VEHICLE_ID);
+			return true;
+		}
+
+		OVT_PersistedPlayerVehicle record = live[SAVED_VEHICLE_ID];
+		if (!record)
+		{
+			SetResultFailure("The registry holds id %1 but the record behind it is null", SAVED_VEHICLE_ID);
+			return true;
+		}
+
+		if (record.ownerUid != m_sPersId)
+		{
+			SetResultFailure("The vehicle came back registered to the wrong owner: saved %1, read back %2",
+				m_sPersId, record.ownerUid);
+			return true;
+		}
+
+		// The rebuild path needs all three of these, so all three are asserted: without the prefab there
+		// is nothing to spawn, without the position nowhere to put it, without the lock state the
+		// player's locked car comes back open.
+		if (record.prefab != SAVED_PREFAB)
+		{
+			SetResultFailure("The rebuild prefab did not survive: saved %1, read back %2", SAVED_PREFAB, record.prefab);
+			return true;
+		}
+
+		if (record.position != SAVED_POSITION)
+		{
+			SetResultFailure("The parked position did not survive: saved %1, read back %2",
+				SAVED_POSITION.ToString(), record.position.ToString());
+			return true;
+		}
+
+		if (!record.locked)
+		{
+			SetResultFailure("The lock state did not survive: the vehicle was saved locked and came back unlocked");
+			return true;
+		}
+
+		// The owner index is derived from the same records, so a registration that came back must also be
+		// findable the way RespawnPlayerVehicles() looks for it.
+		array<string> ids = vehicles.GetPlayerVehicleIds(m_sPersId);
+		if (!ids || ids.Find(SAVED_VEHICLE_ID) == -1)
+		{
+			SetResultFailure("The record came back but the owner index did not: RespawnPlayerVehicles() iterates GetPlayerVehicleIds(), which does not list %1",
+				SAVED_VEHICLE_ID);
+			return true;
+		}
+
+		SetResultSuccess();
+		return true;
+	}
+}

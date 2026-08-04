@@ -129,6 +129,21 @@ class OVT_PersistenceTracking
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! DO NOT USE - this mechanism does not work, and using it corrupts the save. Left in place only so
+	//! the finding is not rediscovered a fourth time; it has no callers.
+	//!
+	//! MEASURED 2026-08-04 by decoding save blobs directly: SetConfig() marks the instance's
+	//! configuration as SCRIPTED, and a scripted configuration is serialized with an EMPTY store name,
+	//! with the config inlined instead. The loader resolves configurations BY store name, so every such
+	//! record fails on load with "Unable to locate configuruation ''" followed by "Attempted to
+	//! deserialize meta data without configuration for id:<uuid>", and the instance is dropped. Across
+	//! eleven save files: 17 scripted records, 17 empty store names, zero readable. Vanilla contains no
+	//! GetConfig/SetConfig call site anywhere in its scripts, so this engine path is untested by BI.
+	//!
+	//! THE WORKING MECHANISM IS `SelfSpawn` DECLARED IN A .conf (see Configs/Systems/Persistence/
+	//! Overthrow.conf), which is what vanilla itself uses - Mission.conf re-enables SelfSpawn on the
+	//! player-character config exactly this way.
+	//!
 	//! Marks a tracked entity's persistence configuration to spawn the entity back on load.
 	//!
 	//! WHY THIS EXISTS (BUG-018). The corpse-persistence design first shipped as a script-defined

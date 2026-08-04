@@ -1,6 +1,6 @@
 class OVT_RecruitsContext : OVT_UIContext
 {
-	[Attribute("{5D5C558A6E391690}UI/Layouts/Menu/RecruitsMenu/RecruitListItem.layout", uiwidget: UIWidgets.ResourceNamePicker, desc: "Layout for recruit list items", params: "layout")]
+	[Attribute("{AA94A214B16CB2C8}UI/Layouts/Menu/RecruitsMenu/RecruitListItem.layout", uiwidget: UIWidgets.ResourceNamePicker, desc: "Layout for recruit list items", params: "layout")]
 	ResourceName m_RecruitItemLayout;
 	
 	protected OVT_RecruitManagerComponent m_RecruitManager;

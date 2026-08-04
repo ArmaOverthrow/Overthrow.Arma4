@@ -523,37 +523,38 @@ class OVT_TEST_Init_Economy_PriceAndDemandSeams : SCR_AutotestCaseBase
 }
 
 //------------------------------------------------------------------------------------------------
-//! BUG-018 - a character that dies gets a persistence configuration that will spawn it back on
-//! load. This is the save half of "corpses survive a continue", asserted at the seam where the
-//! playtest showed it failing.
+//! No character's persistence configuration may self-spawn - alive OR dead. Both halves are
+//! load-bearing and they fail in opposite directions.
 //!
-//! THE PIPELINE UNDER TEST:
-//!   1. every character is tracked on spawn (native Persistence component on Character_Base.et);
-//!   2. a LIVE character's matched config must NOT self-spawn (Phase 3's no-double-AI invariant -
-//!      Overthrow's managers rebuild live AI themselves);
-//!   3. on death, SCR_CharacterDamageManagerComponent fires the game mode's character-killed
-//!      event, and OnCharacterKilledPersist() flips the corpse's config to self-spawn through
-//!      OVT_PersistenceTracking.MarkForSelfSpawn() - otherwise the corpse is stored under the
-//!      no-self-spawn AI config and never comes back.
+//! ALIVE: Overthrow's managers rebuild every garrison, patrol and deployment from manager state on
+//! load (decision v2-5). A live character that ALSO self-spawns is doubled AI at every base, which
+//! is the catastrophe the AI SelfSpawn 0 overrides in Overthrow.conf exist to prevent.
 //!
-//! Assertions 2 and 3 are BOTH here because they are two halves of the same invariant: marking a
-//! corpse is only correct if the living stay unmarked. A regression in either direction (corpses
-//! lost, or every AI self-spawning on load) goes red with its own sentence.
+//! DEAD: this is the guard against reinstating a mechanism that has now failed BUG-018 twice. The
+//! kill hook used to flip the corpse's config to self-spawn via PersistenceSystem.SetConfig()
+//! (OVT_PersistenceTracking.MarkForSelfSpawn). Measured 2026-08-04 by decoding save blobs: SetConfig
+//! marks the configuration SCRIPTED, a scripted configuration is written with an EMPTY store name,
+//! and the loader resolves configurations BY store name - so every marked corpse became a record the
+//! engine rejects on load with "Unable to locate configuruation ''". It never brought a corpse back
+//! and it poisoned the save. The flag was set in memory, which is exactly why the previous version of
+//! this case went GREEN while the feature stayed broken - it asserted the flag, not the outcome.
 //!
-//! THE POLL IS DIAGNOSTIC, NOT A RETRY: the death event and the controller's life state are two
-//! components reacting to one native death. Nothing is re-attempted here - the case watches the
-//! matched config and expiry FAILS, naming whether the controller ever reported the character
-//! dead so the failure discriminates "life state never settled" from "the kill hook never marked
-//! the corpse".
+//! So the dead half now asserts the ABSENCE of the flag. If someone reinstates the flip, this case
+//! goes red and names the reason. BUG-018 remains open for AI corpses; the only mechanism that
+//! survives a load is SelfSpawn declared in a .conf, and no native rule can pick out a dead character.
+//! Player corpses are covered, because the player-character config carries SelfSpawn 1 in
+//! Overthrow.conf - declared, not scripted.
 //!
-//! PROVEN ABLE TO FAIL: authored red against the live BUG-018 defect, 2026-08-03. First shipped
-//! corpse design bound a script-defined PersistenceConfigRule in Overthrow.conf; this case's
-//! instrumented runs measured that the engine NEVER calls a scripted rule's IsMatch (0 calls
-//! across world load and 300 forced re-matches), which is the root cause the fix removed. Its
-//! exit 1 -> 0 flip is the fix's acceptance evidence.
+//! THE POLL IS DIAGNOSTIC, NOT A RETRY. The case waits for the controller to actually report death
+//! before reading the config, so a failure cannot be "asked too early"; expiry of that wait is itself
+//! a named failure.
+//!
+//! PROVEN ABLE TO FAIL 2026-08-04: restoring the MarkForSelfSpawn() call in
+//! OVT_OverthrowGameMode.OnCharacterKilledPersist() turns the dead half red with its own sentence;
+//! setting SelfSpawn 1 on the AI character config {64EACAC5BFDB31EC} turns the live half red.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
-class OVT_TEST_Init_Persistence_DeadCharacterConfigSelfSpawns : SCR_AutotestCaseBase
+class OVT_TEST_Init_Persistence_CharacterConfigNeverSelfSpawns : SCR_AutotestCaseBase
 {
 	//! Frame polls allowed for the native lazy tracking registration of a freshly spawned character.
 	static const int MAX_TRACKING_POLLS = 120;
@@ -674,39 +675,47 @@ class OVT_TEST_Init_Persistence_DeadCharacterConfigSelfSpawns : SCR_AutotestCase
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Watches the matched config until it is the self-spawning corpse config, bounded.
+	//! Waits for the controller to actually report death, then asserts the corpse's config STILL does
+	//! not self-spawn. Reading before death has settled would pass for the wrong reason, so the wait is
+	//! part of the assertion rather than a convenience.
 	//! \return True when the case is finished.
 	protected bool AwaitCorpseConfig()
 	{
 		SCR_PersistenceSystem persistence = SCR_PersistenceSystem.GetScriptedInstance();
 		if (!persistence || !m_Character)
 		{
-			SetResultFailure("The persistence system or the corpse disappeared while waiting for the re-match");
+			SetResultFailure("The persistence system or the corpse disappeared before the corpse config could be read");
 			return FinishAndCleanUp();
 		}
 
+		ChimeraCharacter character = ChimeraCharacter.Cast(m_Character);
+		bool isDead = character && character.GetCharacterController() && character.GetCharacterController().IsDead();
+
+		if (!isDead)
+		{
+			m_iRematchPolls += 1;
+			if (m_iRematchPolls > MAX_REMATCH_POLLS)
+			{
+				SetResultFailure("ForceDeath() was called but the character controller never reported the character dead (%1 polls) - the corpse half of this case could not be exercised at all",
+					m_iRematchPolls.ToString());
+				return FinishAndCleanUp();
+			}
+
+			return false;
+		}
+
+		// The kill hook has had the death event plus every frame since. If anything flipped this bit,
+		// the resulting record is written with an empty configuration store name and the loader drops it.
 		EntityPersistenceConfig corpseConfig = EntityPersistenceConfig.Cast(persistence.GetConfig(m_Character));
 		if (corpseConfig && corpseConfig.m_bSelfSpawn)
 		{
-			PrintFormat("Corpse re-match verified: the dead character's config self-spawns after %1 poll(s)", m_iRematchPolls.ToString());
-			SetResultSuccess();
+			SetResultFailure("A dead character's persistence config self-spawns. Something re-introduced PersistenceSystem.SetConfig() on the kill path (OVT_PersistenceTracking.MarkForSelfSpawn): a scripted config is serialized with an EMPTY store name, so the loader rejects the record with \"Unable to locate configuruation ''\" and the corpse never comes back - it only poisons the save. See BUG-018.");
 			return FinishAndCleanUp();
 		}
 
-		m_iRematchPolls += 1;
-		if (m_iRematchPolls > MAX_REMATCH_POLLS)
-		{
-			string deadState = "the controller never reported it dead, so the rule was asked too early and never again";
-			ChimeraCharacter character = ChimeraCharacter.Cast(m_Character);
-			if (character && character.GetCharacterController() && character.GetCharacterController().IsDead())
-				deadState = "the controller DOES report it dead, so the re-match ran and the corpse config lost or was never consulted";
-
-			SetResultFailure("BUG-018: a killed character was never re-matched to a self-spawning config (%1 polls) - %2. This corpse would be stored under a no-self-spawn config and silently vanish on continue.",
-				m_iRematchPolls.ToString(), deadState);
-			return FinishAndCleanUp();
-		}
-
-		return false;
+		PrintFormat("Character config never self-spawns: verified alive, and verified dead after %1 poll(s)", m_iRematchPolls.ToString());
+		SetResultSuccess();
+		return FinishAndCleanUp();
 	}
 
 	//------------------------------------------------------------------------------------------------

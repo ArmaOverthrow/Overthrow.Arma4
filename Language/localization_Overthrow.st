@@ -1251,6 +1251,23 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{5D86A310C893FA01}" {
+   Id "OVT-FOBOperationInProgress"
+   Target_en_us "Another FOB operation is already in progress"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754179200
+   Author "Claude Code"
+   LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{5D86A310C893DBDE}" {
    Id "OVT-FOBUndeployed"
    Target_en_us "FOB Undeployed"
@@ -1266,23 +1283,6 @@ StringTable {
    Modified 1716475600
    Author "Claude"
    LastChanged "CrioUA"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{5D86A310C893FA01}" {
-   Id "OVT-FOBOperationInProgress"
-   Target_en_us "Another FOB operation is already in progress"
-   Comment ""
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1754179200
-   Author "Claude Code"
-   LastChanged "Claude Code"
    ImageLink ""
    Hidden 0
   }
@@ -3096,6 +3096,13 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A08DC3474BC6703}" {
+   Id "OVT-ManageCamp"
+   Target_en_us "Manage Camp"
+   Modified 1778965597
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5D582605F2DE0E0B}" {
    Id "OVT-ManageFOB"
    Target_en_us "Manage FOB"
@@ -3843,6 +3850,40 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A7D9B2E0000002C}" {
+   Id "OVT-Msg-RadioTowerRepaired"
+   Target_en_us "The radio tower near %1 is back on the air"
+   Comment "Broadcast - sabotaged radio tower re-enabled"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E0000002B}" {
+   Id "OVT-Msg-RadioTowerSabotaged"
+   Target_en_us "A radio tower near %1 has been sabotaged"
+   Comment "Broadcast - radio tower taken off the air"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{65AA3C7A9ED20711}" {
    Id "OVT-Msg-RecruitDied"
    Target_en_us "%1 has died"
@@ -4095,6 +4136,40 @@ StringTable {
    Modified 1716471910
    Author "Claude AI"
    LastChanged "CrioUA"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E00000004}" {
+   Id "OVT-Msg-WantedIllegalPlacement"
+   Target_en_us "You were seen placing illegal materials!"
+   Comment "Wanted notification - seen placing an illegal placeable (posters)"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E0000002A}" {
+   Id "OVT-Msg-WantedSabotage"
+   Target_en_us "You were seen committing sabotage!"
+   Comment "Wanted notification - seen sabotaging a radio tower"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
@@ -4890,6 +4965,40 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A7D9B2E00000026}" {
+   Id "OVT-Place_PirateRadio"
+   Target_en_us "Pirate Radio"
+   Comment "Place menu - pirate radio transmitter placeable title"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E00000027}" {
+   Id "OVT-Place_PirateRadio_Description"
+   Target_en_us "An illegal transmitter"
+   Comment "Place menu - pirate radio description"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{59A2BD9099621079}" {
    Id "OVT-Place_Poster"
    Target_en_us "Recruitment Posters"
@@ -5547,6 +5656,142 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A7E1A2D00000009}" {
+   Id "OVT-RealEstate_AlreadyHome"
+   Target_en_us "This is already your home"
+   Comment "Real estate menu - set as home refused because it already is"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1A2D00000003}" {
+   Id "OVT-RealEstate_CantAfford"
+   Target_en_us "You cannot afford this"
+   Comment "Real estate menu - buy or rent refused for insufficient funds"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1A2D00000007}" {
+   Id "OVT-RealEstate_CantRent"
+   Target_en_us "This property cannot be rented"
+   Comment "Real estate menu - rent refused because it is already rented, owned by someone else, or is home"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1A2D00000006}" {
+   Id "OVT-RealEstate_IsHome"
+   Target_en_us "You cannot sell your home"
+   Comment "Real estate menu - sell refused because the building is the player's home"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1A2D00000002}" {
+   Id "OVT-RealEstate_NotForSale"
+   Target_en_us "This property is not for sale"
+   Comment "Real estate menu - buy refused because the building is already owned or rented"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1A2D00000004}" {
+   Id "OVT-RealEstate_NotOwner"
+   Target_en_us "You do not own this property"
+   Comment "Real estate menu - sell or set-as-home refused because the player is not the owner"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1A2D00000008}" {
+   Id "OVT-RealEstate_NotRenter"
+   Target_en_us "You are not renting this property"
+   Comment "Real estate menu - stop renting refused because the player is not the renter"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1A2D00000005}" {
+   Id "OVT-RealEstate_OnlyHouse"
+   Target_en_us "You cannot sell your only property"
+   Comment "Real estate menu - sell refused because it is the player's last building"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{5D5C558A6E391A10}" {
    Id "OVT-Recruit_Active"
    Target_en_us "Active"
@@ -6070,6 +6315,23 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A7D9B2E00000029}" {
+   Id "OVT-SabotageTower"
+   Target_en_us "Sabotage Radio Tower"
+   Comment "Hold action on occupying radio towers"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{5D5C558A4B6DA3CC}" {
    Id "OVT-Save"
    Target_en_us "Save"
@@ -6113,6 +6375,12 @@ StringTable {
    LastChanged "parkj_c3c9hji"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{68C1A47E52B90D11}" {
+   Id "OVT-SaveFailed"
+   Target_en_us "Save failed"
+   Modified 1785674614
+   Author "Claude"
   }
   CustomStringTableItem "{A1B2C3D4E5F60001}" {
    Id "OVT-SaveLoadout"
@@ -7643,6 +7911,23 @@ StringTable {
    Author "theonegfrost"
    LastChanged "parkj_c3c9hji"
   }
+  CustomStringTableItem "{6A7D9B2E00000028}" {
+   Id "OVT-SupportMod_PirateRadio"
+   Target_en_us "Pirate Radio"
+   Comment "Town support modifier title - pirate radio placeable"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{59A2BDA8428BCAC2}" {
    Id "OVT-SupportMod_RecruitmentPosters"
    Target_en_us "Recruitment Posters"
@@ -7803,6 +8088,57 @@ StringTable {
    Modified 1706588728
    Author "Aaron Static"
    LastChanged "parkj_c3c9hji"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E0000002E}" {
+   Id "OVT-TowerAlreadySabotaged"
+   Target_en_us "This radio tower is already off the air"
+   Comment "Why the sabotage action cannot be performed while the tower is down"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E0000002D}" {
+   Id "OVT-TowerSabotaged"
+   Target_en_us "Sabotaged"
+   Comment "Radio tower action name while the tower is down - the time left is appended in brackets"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E00000001}" {
+   Id "OVT-TownModifierLimit"
+   Target_en_us "This town already has the maximum number of these"
+   Comment "Place mode - poster/support-modifier stack limit reached in the nearest town"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
@@ -8118,142 +8454,6 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
-  CustomStringTableItem "{6A7E1A2D00000002}" {
-   Id "OVT-RealEstate_NotForSale"
-   Target_en_us "This property is not for sale"
-   Comment "Real estate menu - buy refused because the building is already owned or rented"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1754265600
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A7E1A2D00000003}" {
-   Id "OVT-RealEstate_CantAfford"
-   Target_en_us "You cannot afford this"
-   Comment "Real estate menu - buy or rent refused for insufficient funds"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1754265600
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A7E1A2D00000004}" {
-   Id "OVT-RealEstate_NotOwner"
-   Target_en_us "You do not own this property"
-   Comment "Real estate menu - sell or set-as-home refused because the player is not the owner"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1754265600
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A7E1A2D00000005}" {
-   Id "OVT-RealEstate_OnlyHouse"
-   Target_en_us "You cannot sell your only property"
-   Comment "Real estate menu - sell refused because it is the player's last building"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1754265600
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A7E1A2D00000006}" {
-   Id "OVT-RealEstate_IsHome"
-   Target_en_us "You cannot sell your home"
-   Comment "Real estate menu - sell refused because the building is the player's home"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1754265600
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A7E1A2D00000007}" {
-   Id "OVT-RealEstate_CantRent"
-   Target_en_us "This property cannot be rented"
-   Comment "Real estate menu - rent refused because it is already rented, owned by someone else, or is home"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1754265600
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A7E1A2D00000008}" {
-   Id "OVT-RealEstate_NotRenter"
-   Target_en_us "You are not renting this property"
-   Comment "Real estate menu - stop renting refused because the player is not the renter"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1754265600
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A7E1A2D00000009}" {
-   Id "OVT-RealEstate_AlreadyHome"
-   Target_en_us "This is already your home"
-   Comment "Real estate menu - set as home refused because it already is"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1754265600
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
   CustomStringTableItem "{6A7E1A2D00000001}" {
    Id "OVT-Warehouse_Take_All"
    Target_en_us "Take All"
@@ -8363,205 +8563,6 @@ StringTable {
    Modified 1716472290
    Author "Aaron Static"
    LastChanged "CrioUA"
-  }
-  CustomStringTableItem "{68C1A47E52B90D11}" {
-   Id "OVT-SaveFailed"
-   Target_en_us "Save failed"
-   Modified 1785674614
-   Author "Claude"
-  }
-  CustomStringTableItem "{68C1A47E52B90D12}" {
-   Id "OVT-StartNewGame"
-   Target_en_us "Start New Game"
-   Modified 1785674614
-   Author "Claude"
-  }
-  CustomStringTableItem "{6A7D9B2E00000001}" {
-   Id "OVT-TownModifierLimit"
-   Target_en_us "This town already has the maximum number of these"
-   Comment "Place mode - poster/support-modifier stack limit reached in the nearest town"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1754265600
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A7D9B2E00000004}" {
-   Id "OVT-Msg-WantedIllegalPlacement"
-   Target_en_us "You were seen placing illegal materials!"
-   Comment "Wanted notification - seen placing an illegal placeable (posters)"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1754265600
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A7D9B2E00000026}" {
-   Id "OVT-Place_PirateRadio"
-   Target_en_us "Pirate Radio"
-   Comment "Place menu - pirate radio transmitter placeable title"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1754265600
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A7D9B2E00000027}" {
-   Id "OVT-Place_PirateRadio_Description"
-   Target_en_us "An illegal transmitter"
-   Comment "Place menu - pirate radio description"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1754265600
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A7D9B2E00000028}" {
-   Id "OVT-SupportMod_PirateRadio"
-   Target_en_us "Pirate Radio"
-   Comment "Town support modifier title - pirate radio placeable"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1754265600
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A7D9B2E00000029}" {
-   Id "OVT-SabotageTower"
-   Target_en_us "Sabotage Radio Tower"
-   Comment "Hold action on occupying radio towers"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1754265600
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A7D9B2E0000002D}" {
-   Id "OVT-TowerSabotaged"
-   Target_en_us "Sabotaged"
-   Comment "Radio tower action name while the tower is down - the time left is appended in brackets"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1754265600
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A7D9B2E0000002E}" {
-   Id "OVT-TowerAlreadySabotaged"
-   Target_en_us "This radio tower is already off the air"
-   Comment "Why the sabotage action cannot be performed while the tower is down"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1754265600
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A7D9B2E0000002A}" {
-   Id "OVT-Msg-WantedSabotage"
-   Target_en_us "You were seen committing sabotage!"
-   Comment "Wanted notification - seen sabotaging a radio tower"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1754265600
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A7D9B2E0000002B}" {
-   Id "OVT-Msg-RadioTowerSabotaged"
-   Target_en_us "A radio tower near %1 has been sabotaged"
-   Comment "Broadcast - radio tower taken off the air"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1754265600
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A7D9B2E0000002C}" {
-   Id "OVT-Msg-RadioTowerRepaired"
-   Target_en_us "The radio tower near %1 is back on the air"
-   Comment "Broadcast - sabotaged radio tower re-enabled"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1754265600
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
   }
  }
 }

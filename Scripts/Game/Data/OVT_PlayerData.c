@@ -40,6 +40,31 @@ class OVT_PlayerData : Managed
 	//! it there. It IS persisted, by OVT_PlayerManagerSerializer (version 2), which writes it by hand.
 	string m_sBodyPersistenceId = "";
 
+	//------------------------------------------------------------------------------------------------
+	//! Where the player's body was standing when it was last written down, and which way it faced.
+	//! The zero vector means "no stored position" - fall back to the player's home.
+	//!
+	//! WHY THIS EXISTS SEPARATELY FROM m_sBodyPersistenceId. The stored body carries its own transform,
+	//! so when it can be spawned back this pair is redundant. It is the answer for when it CANNOT:
+	//! measured on a dedicated server (2026-08-04), a body released with StopTracking(keepData) was
+	//! answered NOT_FOUND after a server restart, and the player was rebuilt at their home on the far
+	//! side of the map. Gear can be lost that way; POSITION must not be, so it is stored as plain data
+	//! on the player's own record, which travels in the game-mode record and does not depend on the
+	//! character record surviving at all.
+	//!
+	//! WRITTEN wherever m_sBodyPersistenceId is written, and - deliberately - even when capturing the id
+	//! FAILS, which is exactly the case this exists for.
+	//!
+	//! CLEARED ON DEATH, with the id. Death is complete loss and sends the player home; leaving the
+	//! position set would respawn them on their own corpse instead.
+	//!
+	//! NEVER REPLICATED, same reasoning as the id above. Persisted by OVT_PlayerManagerSerializer
+	//! (version 3).
+	vector m_vLastKnownPosition = "0 0 0";
+
+	//! Yaw/pitch/roll to match m_vLastKnownPosition. Meaningless on its own - always test the position.
+	vector m_vLastKnownAngles = "0 0 0";
+
 	//Not persisted	(controlled by skill effects)
 	[NonSerialized()]
 	float priceMultiplier=1;

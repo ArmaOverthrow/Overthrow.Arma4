@@ -622,6 +622,20 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 		OVT_PlayerData player = OVT_PlayerData.Get(characterPersistenceId);
 		if(player)
 		{
+			// WHERE THEY LOGGED OUT BEATS HOME. A player who quit (or whose server restarted) comes back
+			// standing where they left, which is what the stored body would have given them had its
+			// record survived - so a lost character record costs the gear it was carrying and nothing
+			// else. Cleared on death, so this branch never resurrects anyone at their own corpse.
+			//
+			// Not safety-checked against IsSpawnLocationSafe: the player chose to log out there, and
+			// second-guessing it would teleport them across the map for standing near a patrol.
+			if(player.m_vLastKnownPosition != vector.Zero)
+			{
+				position = player.m_vLastKnownPosition;
+				yawPitchRoll = player.m_vLastKnownAngles;
+				return;
+			}
+
 			vector homePos = player.home;
 
 			// An unassigned home is the zero vector - never treat it as a real position (a body at
@@ -1114,7 +1128,14 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 
 		OVT_PlayerData player = OVT_PlayerData.Get(playerUid);
 		if (player)
+		{
 			player.m_sBodyPersistenceId = "";
+
+			// Death sends the player home, so the place they died must stop being a spawn candidate -
+			// otherwise the fresh civilian would appear standing on their own corpse.
+			player.m_vLastKnownPosition = vector.Zero;
+			player.m_vLastKnownAngles = vector.Zero;
+		}
 
 		GetGame().GetCallqueue().Call(CreateCharacter, playerId, playerUid);
 	}

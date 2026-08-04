@@ -164,6 +164,14 @@ class OVT_PlayerManagerComponent: OVT_Component
 			if (player.m_sBodyPersistenceId == "")
 				player.m_sBodyPersistenceId = record.bodyPersistenceId;
 
+			// Same rule for the stored transform, and for the same reason: a player standing in a live
+			// session has a more current position than the save does, so re-applying must not move them.
+			if (player.m_vLastKnownPosition == vector.Zero)
+			{
+				player.m_vLastKnownPosition = record.lastKnownPosition;
+				player.m_vLastKnownAngles = record.lastKnownAngles;
+			}
+
 			ApplyPersistedSkills(player, record, skills);
 
 			player.ResetSkillEffects();
@@ -256,7 +264,38 @@ class OVT_PlayerManagerComponent: OVT_Component
 			// materialise: a live body may be registered but never yet written, and an id it has not been
 			// given cannot be stored. The save point is about to write this character anyway.
 			CapturePlayerBodyId(player, character, true);
+
+			// Independent of the id, and on purpose: the position has to be stored even when the id
+			// could not be, because "the character record is missing" is precisely when it is needed.
+			CapturePlayerBodyTransform(player, character);
 		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Notes where a player's body is standing on their record, so they can be put back there even if
+	//! the body itself cannot be recovered.
+	//!
+	//! Deliberately NOT folded into CapturePlayerBodyId: that returns early when no id can be read, and
+	//! a missing id is the very case this exists to survive. A corpse is skipped, because death sends
+	//! the player home rather than back to where they fell.
+	//! \param[in] player The record to write to.
+	//! \param[in] character The body to read the transform from.
+	//! \return True when a transform was captured.
+	bool CapturePlayerBodyTransform(notnull OVT_PlayerData player, notnull IEntity character)
+	{
+		if (IsCharacterDead(character))
+			return false;
+
+		vector origin = character.GetOrigin();
+
+		// A body at the world origin is not a place anyone stood - it is the "no position" value, and
+		// storing it would send the player underground at the map corner on their next spawn.
+		if (origin == vector.Zero)
+			return false;
+
+		player.m_vLastKnownPosition = origin;
+		player.m_vLastKnownAngles = character.GetYawPitchRoll();
+		return true;
 	}
 
 	//------------------------------------------------------------------------------------------------

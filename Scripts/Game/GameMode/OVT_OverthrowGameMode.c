@@ -608,6 +608,12 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		// hand them a fresh civilian body instead of the one they were carrying gear in.
 		if (m_PlayerManager)
 			m_PlayerManager.SyncPlayerBodyIds();
+
+		// And the same for owned vehicles: the registration a save carries has to describe where the
+		// vehicle is NOW, or a rebuild from it puts the player's car back where they bought it.
+		OVT_VehicleManagerComponent vehicles = OVT_VehicleManagerComponent.GetInstance();
+		if (vehicles)
+			vehicles.SyncVehicleRecords();
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -621,12 +627,25 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	//! never spawned back (BUG-018). Death is the one moment the answer changes, and this event - raised
 	//! from the damage manager's damage-state-changed invoker - is where Overthrow hears about it.
 	//!
-	//! WHY AN EXPLICIT CONFIG FLIP AND NOT A RULE RE-MATCH. The first shipped design bound a scripted
-	//! PersistenceConfigRule for corpses in Overthrow.conf and called ReloadConfig() here. Measured
-	//! result: the engine never consults script-defined conf rules - see the rationale on
-	//! OVT_PersistenceTracking.MarkForSelfSpawn(), which is the working replacement. NEVER call
-	//! ReloadConfig() on a marked corpse afterwards: a re-match resets the scripted config and the
-	//! corpse silently stops coming back.
+	//! DISABLED 2026-08-04, AND THIS IS THE THIRD FAILED ATTEMPT AT BUG-018 - read before trying a fourth.
+	//! Attempt one bound a scripted PersistenceConfigRule in Overthrow.conf: measured, the engine never
+	//! consults script-defined conf rules (IsMatch called zero times in 301 forced re-matches). Attempt
+	//! two replaced it with a runtime config flip - GetConfig() -> m_bSelfSpawn -> SetConfig() - through
+	//! OVT_PersistenceTracking.MarkForSelfSpawn(). Measured 2026-08-04 by decoding the save blobs
+	//! directly: a SCRIPTED config (which is what SetConfig produces) is written with an EMPTY
+	//! configuration store name, and the loader cannot resolve one - every such record fails with
+	//! "Unable to locate configuruation ''" / "Attempted to deserialize meta data without configuration".
+	//! Across eleven save files the correlation was exact: 17 records written scripted, 17 records with an
+	//! empty store name, zero scripted records that were readable. So the flip never brought a corpse
+	//! back, and each one it marked also poisoned the save with a record the engine logs an error for on
+	//! every load. Vanilla has no GetConfig/SetConfig call site anywhere, which is why this path is broken.
+	//!
+	//! WHAT REPLACES IT. Nothing, for AI corpses - the only mechanism that actually survives a load is
+	//! SelfSpawn declared in a .conf, and the AI character config deliberately has SelfSpawn 0 to stop
+	//! Overthrow's managers doubling every garrison (decision v2-5). PLAYER corpses do now come back, as
+	//! a side effect of the player-character config gaining SelfSpawn 1 in Overthrow.conf. BUG-018 stays
+	//! open for AI corpses and needs a config that can distinguish a dead character at LOAD time, which
+	//! no native rule currently offers.
 	//! \param[in] victim The character that died.
 	//! \param[in] instigator Whoever killed it, unused here.
 	protected void OnCharacterKilledPersist(IEntity victim, IEntity instigator)
@@ -634,7 +653,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		if (!victim)
 			return;
 
-		OVT_PersistenceTracking.MarkForSelfSpawn(victim);
+		// Deliberately empty - see above. Do not reinstate MarkForSelfSpawn() here; it writes records the
+		// loader refuses to read.
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -764,7 +784,13 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			// release the system no longer has an identity to hand out. Remembering it here is what lets
 			// OVT_SpawnLogic ask for THIS character again when the player reconnects, gear intact.
 			if(player)
+			{
 				m_PlayerManager.CapturePlayerBodyId(player, controlledEntity, false);
+
+				// Stored separately from the id and unconditionally: if the character record does not
+				// survive to the next session, this is what still puts the player back where they left.
+				m_PlayerManager.CapturePlayerBodyTransform(player, controlledEntity);
+			}
 
 			OVT_PersistenceTracking.Untrack(controlledEntity, true);
 		}

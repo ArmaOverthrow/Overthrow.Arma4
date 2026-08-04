@@ -47,6 +47,12 @@ class OVT_PersistedPlayer
 	//! when no body has been stored, and empty for a player who was DEAD when the save was taken
 	//! (death clears it - see OVT_PlayerData.m_sBodyPersistenceId).
 	string bodyPersistenceId;
+
+	//! Version 3. Where the body above was standing, and which way it faced. Zero means "no stored
+	//! position". This is the half that does NOT depend on the character record surviving: when the
+	//! body cannot be spawned back, the player is still rebuilt here rather than at their home.
+	vector lastKnownPosition;
+	vector lastKnownAngles;
 }
 
 //------------------------------------------------------------------------------------------------
@@ -91,6 +97,9 @@ class OVT_PersistedPlayer
 //! VERSION HISTORY.
 //!   1 - player records (identity, home/camp, money, officer/init flags, progression, skills)
 //!   2 - adds OVT_PersistedPlayer.bodyPersistenceId, appended after the skill arrays
+//!   3 - adds lastKnownPosition/lastKnownAngles, appended after the body id, so a player comes back
+//!       where they logged out even when their stored body cannot be found (2026-08-04 dedicated
+//!       play-test: the body answered NOT_FOUND after a server restart and the player woke up at home)
 //------------------------------------------------------------------------------------------------
 class OVT_PlayerManagerSerializer : ScriptedComponentSerializer
 {
@@ -113,7 +122,7 @@ class OVT_PlayerManagerSerializer : ScriptedComponentSerializer
 		if (!players)
 			return ESerializeResult.ERROR;
 
-		context.WriteValue("version", 2);
+		context.WriteValue("version", 3);
 
 		array<ref OVT_PersistedPlayer> records = new array<ref OVT_PersistedPlayer>();
 
@@ -152,6 +161,11 @@ class OVT_PlayerManagerSerializer : ScriptedComponentSerializer
 				// OVT_OverthrowGameMode.PreShutdownPersist runs immediately before this serializer) and
 				// clears it on death. A codec must not go looking for the body itself.
 				record.bodyPersistenceId = player.m_sBodyPersistenceId;
+
+				// Version 3. Kept current by the same three writers as the id above, and deliberately
+				// written even when the id could not be captured.
+				record.lastKnownPosition = player.m_vLastKnownPosition;
+				record.lastKnownAngles = player.m_vLastKnownAngles;
 
 				if (player.skills)
 				{
@@ -203,6 +217,12 @@ class OVT_PlayerManagerSerializer : ScriptedComponentSerializer
 		if (version < 2)
 			ClearBodyPersistenceIds(records);
 
+		// Same reasoning one version on: a version 2 payload has no data for the appended transform, so
+		// whatever the reader left in those members is not ours. Zeroing it makes such a player fall
+		// through to their home, which is what version 2 promised.
+		if (version < 3)
+			ClearLastKnownTransforms(records);
+
 		players.ApplyPersistedPlayers(records);
 
 		return true;
@@ -220,6 +240,24 @@ class OVT_PlayerManagerSerializer : ScriptedComponentSerializer
 		{
 			if (record)
 				record.bodyPersistenceId = "";
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Blanks the version 3 transform on every record of an older payload.
+	//! \param[in] records Records just read, may be null.
+	protected void ClearLastKnownTransforms(array<ref OVT_PersistedPlayer> records)
+	{
+		if (!records)
+			return;
+
+		foreach (OVT_PersistedPlayer record : records)
+		{
+			if (record)
+			{
+				record.lastKnownPosition = vector.Zero;
+				record.lastKnownAngles = vector.Zero;
+			}
 		}
 	}
 }

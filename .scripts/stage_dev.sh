@@ -59,6 +59,8 @@ find . -mindepth 1 \
     -not -path './.*' \
     -not -path './docs' \
     -not -path './docs/*' \
+    -not -path './generated-docs' \
+    -not -path './generated-docs/*' \
     -not -path './tools' \
     -not -path './tools/*' \
     -not -name 'addon.gproj' \

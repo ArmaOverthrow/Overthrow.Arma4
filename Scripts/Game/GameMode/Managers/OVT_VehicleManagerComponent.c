@@ -60,6 +60,25 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 	protected ref map<string, float> m_mOfflinePlayerTimers; // Player UID -> Timer
 	protected ref map<string, EntityID> m_mSpawnedVehicles; // Vehicle persistent ID -> Entity ID
 
+	//------------------------------------------------------------------------------------------------
+	//! Vehicle persistent id -> everything needed to put that vehicle back WITHOUT its stored record.
+	//!
+	//! WHY THIS EXISTS. Until 2026-08-04 the ownership registry above lived only in memory, so a server
+	//! restart forgot which vehicles belonged to whom. A vehicle despawned because its owner was offline
+	//! (ReleaseVehicle, 60 s after they leave) is not in the world when the save is taken, so it cannot
+	//! come back by itself either - nothing knew its id to ask for it, and a player's car was simply
+	//! gone after every restart. This map is what the save carries.
+	//!
+	//! IT IS ALSO THE FALLBACK. Asking for the stored record is still the preferred path and brings back
+	//! fuel, damage and cargo. When the record cannot be resolved, prefab + transform + owner + lock is
+	//! enough to rebuild the vehicle where it was parked, losing its contents but not the vehicle. That
+	//! is legitimate precisely BECAUSE this record exists: Overthrow wrote down that this player owned
+	//! this prefab at this spot, so rebuilding is restoring a fact, not minting a car from nothing.
+	//!
+	//! Shares OVT_PersistedPlayerVehicle with the serializer rather than duplicating the shape - there is
+	//! no other live representation of a vehicle registration for it to disagree with.
+	protected ref map<string, ref OVT_PersistedPlayerVehicle> m_mVehicleRecords;
+
 	//! Despawn time for locked vehicles when player is offline (10 minutes)
 	static const float OFFLINE_VEHICLE_DESPAWN_TIME = 60.0;
 
@@ -121,6 +140,7 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 		m_mSpawnedVehicles = new map<string, EntityID>();
 		m_aFoundPlayerVehicles = new array<EntityID>();
 		m_aPendingVehicleSpawns = new array<string>();
+		m_mVehicleRecords = new map<string, ref OVT_PersistedPlayerVehicle>();
 	}
 	
 	void Init(IEntity owner)
@@ -436,6 +456,9 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 		
 		// Track spawned vehicle
 		m_mSpawnedVehicles[persistentId] = vehicle.GetID();
+
+		// ...and write down everything needed to rebuild it if its stored record is ever unavailable.
+		CaptureVehicleRecord(playerUid, persistentId, vehicle);
 		
 		// Subscribe to ownership changes for future registration updates
 		OVT_PlayerOwnerComponent ownerComp = OVT_PlayerOwnerComponent.Cast(
@@ -613,6 +636,15 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 	//! \param[in] vehicle The instance to write, release and delete.
 	protected void ReleaseVehicle(string vehicleId, notnull IEntity vehicle)
 	{
+		// LAST CHANCE to read the transform and lock state off the live instance. After the delete below
+		// the only remaining description of this vehicle is its registration, and that is what a rebuild
+		// uses if the stored record cannot be read back next session.
+		string ownerUid;
+		if (m_mVehicleRecords.Contains(vehicleId) && m_mVehicleRecords[vehicleId])
+			ownerUid = m_mVehicleRecords[vehicleId].ownerUid;
+
+		CaptureVehicleRecord(ownerUid, vehicleId, vehicle);
+
 		OVT_PersistenceTracking.Save(vehicle);
 		OVT_PersistenceTracking.Untrack(vehicle, true);
 
@@ -810,19 +842,29 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 
 		if (!vehicle)
 		{
-			// NOT_FOUND: wiped save data, a prefab that no longer exists. Nothing will ever resolve
-			// this id again, so stop carrying it around instead of re-asking on every reconnect
-			// forever. There is deliberately NO fallback that builds a replacement - unlike a recruit,
-			// minting a fresh car would hand the player a vehicle that never existed.
+			// NOT_FOUND: the record is gone and re-asking will never change that. Measured on a
+			// dedicated server 2026-08-04, this is the NORMAL answer after a restart for a vehicle that
+			// was despawned while its owner was offline, so it is the case that has to be handled well
+			// rather than merely logged.
 			//
-			// ONLY that code drops the registration. Every other failure (BUSY, UNAVAILABLE,
+			// The registration carries prefab, position and lock state, so the vehicle is REBUILT there
+			// - see RebuildVehicleFromRecord for why that is restoring a recorded fact and not minting a
+			// car. Only if there is no usable registration either is the id finally dropped.
+			//
+			// ONLY this code drops the registration. Every other failure (BUSY, UNAVAILABLE,
 			// READ_ERROR, ...) says something about THIS attempt, not about the record - and the
 			// registration is what the next save carries, so dropping it on a transient error would
 			// make the loss permanent while the vehicle's stored record still exists. Keep it and let
 			// the next owner return ask again, exactly as the timeout path does.
 			if (statusCode == EPersistenceStatusCode.NOT_FOUND)
 			{
-				m_sLastRespawnDiagnostic = string.Format("persistence answered %1 for vehicle %2 - the registration was dropped",
+				if (RebuildVehicleFromRecord(playerPersistentId, vehicleId))
+				{
+					m_sLastRespawnDiagnostic = "";
+					return;
+				}
+
+				m_sLastRespawnDiagnostic = string.Format("persistence answered %1 for vehicle %2 and no registration was left to rebuild it from - the registration was dropped",
 					typename.EnumToString(EPersistenceStatusCode, statusCode), vehicleId);
 				Print("[Overthrow] " + m_sLastRespawnDiagnostic, LogLevel.WARNING);
 				DropVehicleRegistration(playerPersistentId, vehicleId);
@@ -945,12 +987,172 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Writes down where a player's vehicle is and what it is, so it can be rebuilt without its record.
+	//!
+	//! Called at every registration and refreshed before every save and immediately before a despawn -
+	//! the transform has to be the one it was last standing at, not the one it was bought at.
+	//! \param[in] playerUid The owner.
+	//! \param[in] persistentId The vehicle's persistence id, which is the key.
+	//! \param[in] vehicle The live instance to read.
+	protected void CaptureVehicleRecord(string playerUid, string persistentId, notnull IEntity vehicle)
+	{
+		if (persistentId.IsEmpty())
+			return;
+
+		OVT_PersistedPlayerVehicle record;
+		if (m_mVehicleRecords.Contains(persistentId))
+			record = m_mVehicleRecords[persistentId];
+
+		if (!record)
+		{
+			record = new OVT_PersistedPlayerVehicle();
+			m_mVehicleRecords[persistentId] = record;
+		}
+
+		record.persistentId = persistentId;
+
+		// An ownership change re-registers under the new owner; an empty uid here would be a caller bug,
+		// but silently blanking a known owner is worse than keeping the last good one.
+		if (!playerUid.IsEmpty())
+			record.ownerUid = playerUid;
+
+		record.prefab = OVT_Global.GetPrefabName(vehicle);
+		record.position = vehicle.GetOrigin();
+		record.angles = vehicle.GetYawPitchRoll();
+
+		OVT_PlayerOwnerComponent ownerComp = OVT_ComponentFinder<OVT_PlayerOwnerComponent>.Find(vehicle);
+		if (ownerComp)
+			record.locked = ownerComp.IsLocked();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Refreshes the stored transform and lock state of every registered vehicle still in the world.
+	//!
+	//! Runs from OVT_OverthrowGameMode.PreShutdownPersist(), i.e. before every save, for the same reason
+	//! recruit positions are synced there: the record is only as good as its last refresh, and a vehicle
+	//! driven across the map since it was registered would otherwise be rebuilt where it was bought.
+	void SyncVehicleRecords()
+	{
+		if (!Replication.IsServer() || !m_mVehicleRecords)
+			return;
+
+		for (int i = 0; i < m_mVehicleRecords.Count(); i++)
+		{
+			OVT_PersistedPlayerVehicle record = m_mVehicleRecords.GetElement(i);
+			if (!record)
+				continue;
+
+			IEntity vehicle = FindVehicleEntity(record.persistentId);
+			if (!vehicle)
+				continue;
+
+			CaptureVehicleRecord(record.ownerUid, record.persistentId, vehicle);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Rebuilds the in-memory registries from a save.
+	//!
+	//! Both maps are derived from the same records, so they cannot disagree after a load the way two
+	//! independently persisted structures could. Idempotent: applying the same save twice replaces the
+	//! records rather than accumulating them, which is what re-applying to a live session needs.
+	//! \param[in] records Vehicle records read from the save, may be null.
+	void ApplyPersistedVehicles(array<ref OVT_PersistedPlayerVehicle> records)
+	{
+		if (!records)
+			return;
+
+		foreach (OVT_PersistedPlayerVehicle record : records)
+		{
+			if (!record)
+				continue;
+
+			if (record.persistentId.IsEmpty() || record.ownerUid.IsEmpty())
+				continue;
+
+			m_mVehicleRecords[record.persistentId] = record;
+
+			if (!m_mPlayerVehicleIds.Contains(record.ownerUid))
+				m_mPlayerVehicleIds[record.ownerUid] = new array<string>();
+
+			array<string> ownedIds = m_mPlayerVehicleIds[record.ownerUid];
+			if (ownedIds.Find(record.persistentId) == -1)
+				ownedIds.Insert(record.persistentId);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Every vehicle registration currently held, for the serializer to write.
+	//! \return The live map, keyed by vehicle persistent id. Never null.
+	map<string, ref OVT_PersistedPlayerVehicle> GetVehicleRecords()
+	{
+		return m_mVehicleRecords;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Builds a replacement vehicle from its registration when the stored record cannot be resolved.
+	//!
+	//! THIS IS NOT "MINTING A CAR FROM NOTHING", which an earlier version of this file rightly refused
+	//! to do. The difference is provenance: Overthrow itself wrote down that this player owned this
+	//! prefab at this position with this lock state, and that registration is carried by the save. What
+	//! is lost is what only the vehicle's own record held - fuel, damage and cargo. What is kept is the
+	//! vehicle, its place and its ownership, which is the difference between a player finding their car
+	//! where they parked it and finding an empty street.
+	//! \param[in] playerPersistentId The owner asking for it back.
+	//! \param[in] vehicleId The registration id, which no longer resolves in storage.
+	//! \return True when a replacement was built and registered.
+	protected bool RebuildVehicleFromRecord(string playerPersistentId, string vehicleId)
+	{
+		if (!m_mVehicleRecords.Contains(vehicleId))
+			return false;
+
+		OVT_PersistedPlayerVehicle record = m_mVehicleRecords[vehicleId];
+		if (!record || record.prefab.IsEmpty() || record.position == vector.Zero)
+			return false;
+
+		// Copied out before the registration is dropped below - the record lives in the map being
+		// modified, and reading through it afterwards would depend on how long it outlives its owner.
+		ResourceName prefab = record.prefab;
+		bool wasLocked = record.locked;
+
+		vector mat[4];
+		Math3D.AnglesToMatrix(record.angles, mat);
+		mat[3] = record.position;
+
+		IEntity vehicle = OVT_Global.SpawnEntityPrefabMatrix(prefab, mat);
+		if (!vehicle)
+			return false;
+
+		// The replacement is a NEW instance with a new persistence id, so the old registration is retired
+		// and the vehicle re-registered under whatever id it is given now.
+		DropVehicleRegistration(playerPersistentId, vehicleId);
+
+		SetOwnerPersistentId(playerPersistentId, vehicle);
+
+		OVT_PlayerOwnerComponent ownerComp = OVT_ComponentFinder<OVT_PlayerOwnerComponent>.Find(vehicle);
+		if (ownerComp)
+		{
+			ownerComp.SetPlayerOwner(playerPersistentId);
+			ownerComp.SetLocked(wasLocked);
+		}
+
+		m_aVehicles.Insert(vehicle.GetID());
+		RegisterPlayerVehicle(playerPersistentId, vehicle);
+
+		Print(string.Format("[Overthrow] Vehicle %1 could not be read back from storage - rebuilt %2 at its last parked position for %3 (contents lost)",
+			vehicleId, prefab, playerPersistentId), LogLevel.WARNING);
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Forgets a vehicle id that can never be resolved again.
 	//! \param[in] playerPersistentId The owner it is registered under.
 	//! \param[in] vehicleId The id to forget.
 	protected void DropVehicleRegistration(string playerPersistentId, string vehicleId)
 	{
 		m_mSpawnedVehicles.Remove(vehicleId);
+		m_mVehicleRecords.Remove(vehicleId);
 
 		if (!m_mPlayerVehicleIds.Contains(playerPersistentId))
 			return;
