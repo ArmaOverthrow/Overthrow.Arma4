@@ -183,6 +183,7 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode1 : "{4DC10DCB8BE06D32}Prefabs/GameMo
    m_fDayTimeAcceleration 6
    m_fNightTimeAcceleration 12
    m_bRandomStartingWeather 1
+   m_bRandomWeatherChanges 1
   }
   OVT_TownManagerComponent "{59724C983BF56C3B}" {
    m_iVillageRange 100
