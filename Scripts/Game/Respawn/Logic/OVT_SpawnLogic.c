@@ -534,17 +534,16 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 
 		// The player may have left again while the request was in flight. Putting their body in the world
 		// for somebody who is not there would leave an unowned character standing around, and the
-		// disconnect handler has already run without a character to write, so do its job here instead:
-		// save-and-release keeps the character and its gear for the next time they connect.
+		// disconnect handler has already run without a character to reserve, so do its job here instead:
+		// hide it in place, still tracked, exactly as if they had been holding it when they left.
 		PlayerController playerController = GetGame().GetPlayerManager().GetPlayerController(playerId);
 		if (!playerController)
 		{
 			if (bodyEntity)
 			{
-				Print("[Overthrow] Player " + playerId + " left before their stored body arrived - releasing it again");
+				Print("[Overthrow] Player " + playerId + " left before their stored body arrived - reserving it for their next visit");
 				OVT_PersistenceTracking.Save(bodyEntity);
-				OVT_PersistenceTracking.Untrack(bodyEntity, true);
-				SCR_EntityHelper.DeleteEntityAndChildren(bodyEntity);
+				OVT_PersistenceReservation.Reserve(bodyEntity);
 			}
 			return;
 		}
@@ -615,6 +614,14 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 		// rather than re-registering blind.
 		if (!OVT_PersistenceTracking.IsTracked(character))
 			OVT_PersistenceTracking.Track(character);
+
+		// THE BODY IS NORMALLY HIDDEN WHEN IT GETS HERE and must be visible and simulating again before
+		// its player is put inside it. Two routes arrive reserved - the one this whole design is built
+		// on (the body was reserved at disconnect and found again by FindById) and the post-restart one
+		// (self-spawned, then re-reserved by ReserveOfflinePlayerBodies) - and a third does not (a
+		// genuine RequestSpawn of a stored record, which arrives with the prefab's flags). Release() is
+		// idempotent, so this single call covers all three.
+		OVT_PersistenceReservation.Release(character);
 
 		OVT_PlayerData player = OVT_PlayerData.Get(characterPersistenceId);
 		if (player)

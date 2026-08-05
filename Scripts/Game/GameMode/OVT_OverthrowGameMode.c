@@ -773,16 +773,22 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 
 		if(controlledEntity)
 		{
-			// Write the leaving player's character record, then release tracking without deleting it.
-			// Save-before-release is vanilla's own order for this (SCR_SpawnLogic.c:107-108, :215-216);
-			// releasing first would leave the final write with nothing to write to. Both calls are
-			// no-ops when the character is not tracked.
+			// Write the leaving player's character record. The body is NOT released and NOT deleted:
+			// OVT_ReconnectComponent claims it moments from now (inside super.OnPlayerDisconnected
+			// below) and OVT_PersistenceReservation hides it in place, still tracked. This write is
+			// therefore an insurance policy, not a hand-off - it makes sure the record on disk matches
+			// the body as the player left it even if the server dies before the next save point.
+			//
+			// WHAT USED TO BE HERE, AND WHY IT IS GONE. Until 2026-08-05 this was Save() +
+			// StopTracking(keepData) and vanilla then deleted the body, on the assumption that the kept
+			// record could be asked for again later. It cannot: released records were measured being
+			// pruned within ten minutes, in session, with no restart (BUG-086).
 			OVT_PersistenceTracking.Save(controlledEntity);
 
-			// BETWEEN THE WRITE AND THE RELEASE is the only moment this id can be read cheaply: the
-			// explicit Save() above is the materialisation, so this is a pure lookup, and after the
-			// release the system no longer has an identity to hand out. Remembering it here is what lets
-			// OVT_SpawnLogic ask for THIS character again when the player reconnects, gear intact.
+			// The explicit Save() above is the materialisation, so reading the id here is a pure lookup.
+			// Remembering it is what lets OVT_SpawnLogic find THIS character again when the player
+			// reconnects - by FindById while the reservation is still standing, or by RequestSpawn after
+			// a restart has turned it back into a stored record.
 			if(player)
 			{
 				m_PlayerManager.CapturePlayerBodyId(player, controlledEntity, false);
@@ -795,10 +801,11 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 				m_PlayerManager.CapturePlayerGearSnapshot(persId, controlledEntity);
 			}
 
-			// The whole restore depends on this body still being matched to a config that self-spawns:
-			// a record under a no-self-spawn config is dropped at load and the id above resolves to
-			// nothing. Reported at the exact moment it is released, so a server log answers "was the
-			// body saved as a player or as an AI corpse?" without another round trip.
+			// SURVIVING THE RESTART is the half the reservation cannot do by itself: a live tracked body
+			// is written into the save point like anything else, but only a record whose config says
+			// SelfSpawn is instantiated again at load - everything else is dropped outright. Reported at
+			// the exact moment the body is reserved, so a server log answers "was it saved as a player or
+			// as an AI corpse?" without another round trip.
 			SCR_PersistenceSystem persistence = SCR_PersistenceSystem.GetScriptedInstance();
 			if (persistence)
 			{
@@ -811,7 +818,9 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 					Print("[Overthrow] Leaving player's body is matched to a self-spawning config - it should survive a restart", LogLevel.NORMAL);
 			}
 
-			OVT_PersistenceTracking.Untrack(controlledEntity, true);
+			// NOTHING RELEASES TRACKING HERE ANY MORE. The body must stay tracked: that is what makes it
+			// serialize with the next save point and self-spawn on the next load. super's own delete is
+			// vetoed by OVT_ReconnectComponent.HandlePlayerDisconnect(), which also hides it.
 		}
 
 		int i = m_aInitializedPlayers.Find(persId);

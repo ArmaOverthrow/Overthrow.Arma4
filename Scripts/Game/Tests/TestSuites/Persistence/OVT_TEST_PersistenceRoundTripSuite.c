@@ -161,19 +161,24 @@
 //!    It is simply not what a test can call.
 //!
 //! ---------------------------------------------------------------------------------------------
-//! THE SECOND ROUND TRIP THIS SUITE COVERS: PER-INSTANCE, WITH NO SAVE POINT AT ALL.
+//! THE SECOND LIFECYCLE THIS SUITE COVERS: PER-INSTANCE RESERVATION, WITH NO SAVE POINT AT ALL.
 //!
 //! Everything above describes the save-point round trip that eight of the cases here use. One case -
-//! `..._VehicleDespawnRespawn_...`, added for GitHub #143 - exercises the OTHER storage round trip
-//! Overthrow depends on, the one the disconnect/reconnect flow is built out of: a single instance is
-//! written to storage, deleted from the world, and asked back by id. It uses NEITHER gate seam, takes
-//! no save point and re-applies nothing, so:
+//! `..._VehicleReserveRelease_...` - exercises the OTHER half the disconnect/reconnect flow is built
+//! out of: a single owned instance is taken out of PLAY and put back, without ever leaving the world.
+//! It uses NEITHER gate seam, takes no save point and re-applies nothing, so:
 //!
 //!   - it does not depend on, and cannot disturb, the capability case's fresh-session precondition
 //!     (closure 5 above) - and its class name sorts last in this suite regardless;
-//!   - its non-vacuousness comes from the deletion in the middle rather than from a dirty step: the
-//!     instance is gone, the manager's registry holds one opaque id and nothing else, so a restored
-//!     position, lock state and fuel level can only have come back out of storage.
+//!   - its non-vacuousness comes from the state change in the middle: the vehicle reports hidden and
+//!     untraceable after the despawn and in play after the respawn, and it is the SAME entity at both
+//!     ends, which a rebuild could not be.
+//!
+//! IT USED TO BE A STORAGE ROUND TRIP (GitHub #143: write the record, delete the instance, ask for it
+//! back by id) and is not any more, because BUG-086 removed the mechanism it tested - a released
+//! record was measured being pruned within ten minutes on a live server. Nothing automated now
+//! exercises PersistenceSystem.RequestSpawn() for a vehicle; that path survives as the post-restart
+//! fallback and is play-test territory, like every other real-restart claim in this feature.
 //!
 //! CASE LIST (execution order is alphabetical by class name):
 //!   1. Capability_SaveGameProducesASave        - the gate, and the only case with no reload
@@ -185,7 +190,8 @@
 //!   7. TownPopulation_SurvivesSaveAndReload
 //!   8. TownStability_SurvivesSaveAndReload
 //!   9. TownSupport_SurvivesSaveAndReload
-//!  10. VehicleDespawnRespawn_KeepsOwnerAndContents - per-instance round trip, no save point
+//!  10. VehicleRegistry_SurvivesSaveAndReload
+//!  11. VehicleReserveRelease_KeepsOwnerAndContents - per-instance reservation, no save point
 //------------------------------------------------------------------------------------------------
 [BaseContainerProps()]
 class OVT_TEST_PersistenceRoundTripSuite : OVT_TEST_SuiteBase
@@ -1952,51 +1958,58 @@ class OVT_TEST_PersistenceRoundTrip_TownSupport_SurvivesSaveAndReload : SCR_Auto
 }
 
 //------------------------------------------------------------------------------------------------
-//! GitHub #143 - a player's vehicle comes back, still theirs and still carrying what it carried,
-//! after the owner-offline despawn has taken it out of the world MID-SESSION.
+//! BUG-086 - an offline player's locked vehicle is taken out of PLAY without being taken out of the
+//! WORLD, and comes back still theirs, still locked, still where it was and still carrying what it
+//! carried.
 //!
-//! WHAT IT ROUND-TRIPS, AND WHY IT BELONGS HERE. Every other case in this suite writes a save point
-//! and re-applies it. This one exercises the OTHER storage round trip Overthrow depends on - the
-//! per-instance one that the disconnect/reconnect flow is built out of:
+//! WHAT IT ASSERTS, AND WHY THE CONTRACT CHANGED (2026-08-05). Until BUG-086 this case proved a
+//! per-instance STORAGE round trip: the despawn wrote the vehicle's record, released tracking and
+//! deleted the instance, and the respawn asked storage for it back. That whole mechanism is gone,
+//! because the record it depended on was measured being pruned within ten minutes on a live server -
+//! which is exactly why a returning player's car was "rebuilt ... (contents lost)". The replacement
+//! never destroys the vehicle:
 //!
 //!     spawn a vehicle, owned by the test player and locked
-//!       -> the manager's despawn path writes its record, releases it and DELETES it
-//!       -> the manager's respawn path asks storage for that record back
-//!       -> assert what came back is still owned, still locked, still where it was, still fuelled
+//!       -> the manager's despawn path writes its record and HIDES it, still alive and still tracked
+//!       -> the manager's respawn path un-hides it
+//!       -> assert it is the SAME instance, still owned, still locked, still placed, still fuelled
 //!
-//! Nothing in memory survives the middle step. The instance is gone, and the manager's registry holds
-//! one opaque id per vehicle and nothing else - so position, lock state and fuel can only come back
-//! OUT OF STORAGE. That is what makes this a round trip rather than a re-registration test, and it is
-//! why the assertions are the ones below:
+//! THE ASSERTIONS ARE STRICTER THAN THEY WERE, not weaker. "Same instance" is a stronger claim than
+//! "an instance with matching fields", and it is the claim the fix rests on - contents survive by
+//! construction only if the entity was never rebuilt:
 //!
-//!   - OWNER, read twice. Through the manager (GetOwnerID is keyed by RplId, so it can only be right
-//!     if the respawn re-linked the NEW instance) and through the vehicle's own component (which the
-//!     respawn path deliberately does not re-apply when the record carried one, so a correct value
-//!     there was deserialized).
-//!   - LOCKED. The manager keeps no record of lock state and never repairs it, so `true` can only
-//!     have come out of the vehicle's stored record.
-//!   - POSITION. The respawn path never supplies one. A vehicle standing where it was released is a
-//!     vehicle whose transform came out of storage.
-//!   - FUEL, when the vehicle has a usable tank. A value nothing in Overthrow remembers, restored by
-//!     vanilla's own fuel serializer - the same binding that carries the vehicle's inventory. A
-//!     vehicle with no usable tank says so in the console and the case rests on the four above.
+//!   - SAME ENTITY. The EntityID captured before the despawn is the EntityID after the respawn. A
+//!     rebuild - the fallback path that costs cargo - cannot satisfy this.
+//!   - STILL TRACKED. Reserving must not release tracking: an untracked vehicle is absent from the
+//!     next save point and gone for good after a restart. This is the durability half of the fix and
+//!     nothing else in the tree asserts it.
+//!   - HIDDEN, THEN NOT. The vehicle reports reserved after the despawn and not reserved after the
+//!     respawn, which is what makes the middle step a real state change rather than a no-op.
+//!   - OWNER, read twice - through the manager (keyed by RplId) and through the vehicle's own
+//!     component - plus LOCKED, POSITION and FUEL, unchanged from the previous contract.
 //!
-//! IT USES NEITHER GATE SEAM. No save trigger, no re-apply: the despawn path takes its own
-//! per-instance save. So it neither depends on nor disturbs the fresh-session precondition of the
-//! capability case (suite header, closure 5) - and its class name sorts last in this suite anyway.
+//! WHAT IS NO LONGER COVERED, SAID PLAINLY: nothing in the automated tree now exercises
+//! PersistenceSystem.RequestSpawn() for a vehicle. That path still exists as the post-restart
+//! fallback in RequestPersistedVehicle(), and it is play-test territory (a real restart), as the true
+//! quit-and-continue path has always been.
+//!
+//! IT USES NEITHER GATE SEAM. No save trigger, no re-apply. So it neither depends on nor disturbs the
+//! fresh-session precondition of the capability case (suite header, closure 5) - and its class name
+//! sorts last in this suite anyway.
 //!
 //! ANTI-VACUOUS: every phase transition is gated on an observation, and every expiry and every
 //! unresolvable subject is an explicit SetResultFailure with its own sentence. There is no path to
 //! SetResultSuccess that has not asserted.
 //!
-//! CAN-FAIL: empty the body of OVT_VehicleManagerComponent.RespawnPlayerVehicles() and this case goes
-//! red with "never came back ... the manager reported nothing at all".
+//! CAN-FAIL, two ways, both exercised 2026-08-05: make OVT_PersistenceReservation.Reserve() a no-op
+//! returning true and the case goes red with "the despawn left vehicle ... in play"; make Release() a
+//! no-op and it goes red with "came back still hidden".
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 90)]
-class OVT_TEST_PersistenceRoundTrip_VehicleDespawnRespawn_KeepsOwnerAndContents : SCR_AutotestCaseBase
+class OVT_TEST_PersistenceRoundTrip_VehicleReserveRelease_KeepsOwnerAndContents : SCR_AutotestCaseBase
 {
-	//! Phases of the despawn/respawn machine. Named locally because this case's shape is spawn ->
-	//! release -> fetch, not the suite's mutate -> save -> dirty -> reload.
+	//! Phases of the reserve/release machine. Named locally because this case's shape is spawn ->
+	//! hide -> un-hide, not the suite's mutate -> save -> dirty -> reload.
 	static const int PHASE_SPAWN = 0;
 	static const int PHASE_AWAIT_REGISTRATION = 1;
 	static const int PHASE_DESPAWN = 2;
@@ -2010,7 +2023,9 @@ class OVT_TEST_PersistenceRoundTrip_VehicleDespawnRespawn_KeepsOwnerAndContents 
 	//! materialises fails with a sentence instead of a null dereference.
 	static const int MAX_REGISTRATION_POLLS = 120;
 
-	//! Frame polls allowed for the release to remove the instance from the world.
+	//! Frame polls allowed for the despawn to put the vehicle out of play.
+	//! Reserving is synchronous today; the budget exists so a flag change that never lands fails with a
+	//! sentence instead of hanging the harness.
 	static const int MAX_DESPAWN_POLLS = 120;
 
 	//! Frame polls allowed for the requested vehicle to come back. Same contract as the suite's save
@@ -2046,12 +2061,11 @@ class OVT_TEST_PersistenceRoundTrip_VehicleDespawnRespawn_KeepsOwnerAndContents 
 	protected float m_fSavedFuel;
 	protected bool m_bFuelAsserted;
 
-	//! The vehicle this case spawned. Only dereferenced before the release; afterwards the instance is
-	//! deleted and the case works from its EntityID and its registered persistent id.
+	//! The vehicle this case spawned.
 	protected IEntity m_Vehicle;
 
-	//! Engine id of the instance that was released, so its removal from the world can be observed
-	//! without dereferencing a handle to a deleted entity.
+	//! Engine id of the instance as it was BEFORE the despawn. The whole point of the fix is that the
+	//! instance survives, so this is what "the same vehicle came back" is checked against.
 	protected EntityID m_OldEntityId;
 
 	//------------------------------------------------------------------------------------------------
@@ -2237,7 +2251,7 @@ class OVT_TEST_PersistenceRoundTrip_VehicleDespawnRespawn_KeepsOwnerAndContents 
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Waits for the release to actually remove the instance, and checks the registration outlived it.
+	//! Waits for the despawn to put the vehicle out of play, and checks what it must NOT have done.
 	//! \return True when the case is finished.
 	protected bool AwaitDespawn()
 	{
@@ -2248,15 +2262,20 @@ class OVT_TEST_PersistenceRoundTrip_VehicleDespawnRespawn_KeepsOwnerAndContents 
 			return true;
 		}
 
-		IEntity stillMapped = vehicles.FindVehicleEntity(m_sVehicleId);
-		IEntity stillInWorld = GetGame().GetWorld().FindEntityByID(m_OldEntityId);
+		IEntity reserved = GetGame().GetWorld().FindEntityByID(m_OldEntityId);
+		if (!reserved)
+		{
+			SetResultFailure("The despawn DELETED vehicle %1 - it must be hidden in place, because a destroyed vehicle can only ever come back rebuilt, without its contents",
+				m_sVehicleId);
+			return true;
+		}
 
-		if (stillMapped || stillInWorld)
+		if (!OVT_PersistenceReservation.IsReserved(reserved))
 		{
 			m_iDespawnPolls += 1;
 			if (m_iDespawnPolls > MAX_DESPAWN_POLLS)
 			{
-				SetResultFailure("The despawn left vehicle %1 in the world after %2 polls - there would be nothing for the respawn to prove",
+				SetResultFailure("The despawn left vehicle %1 in play after %2 polls - there would be nothing for the respawn to prove",
 					m_sVehicleId, m_iDespawnPolls.ToString());
 				return true;
 			}
@@ -2264,10 +2283,27 @@ class OVT_TEST_PersistenceRoundTrip_VehicleDespawnRespawn_KeepsOwnerAndContents 
 			return false;
 		}
 
+		// THE DURABILITY HALF OF BUG-086. A reserved vehicle that is no longer tracked is absent from
+		// the next save point, so it survives the session and nothing else - which is the exact failure
+		// the reservation model exists to remove.
+		if (!OVT_PersistenceTracking.IsTracked(reserved))
+		{
+			SetResultFailure("The despawn released tracking on vehicle %1 - a reserved vehicle must stay tracked or it will not be in the next save point",
+				m_sVehicleId);
+			return true;
+		}
+
+		// The manager must still know where the instance is, or the respawn cannot find it to un-hide.
+		if (!vehicles.FindVehicleEntity(m_sVehicleId))
+		{
+			SetResultFailure("The despawn dropped the live-instance mapping for vehicle %1 - the respawn would ask storage for a vehicle that is standing right there", m_sVehicleId);
+			return true;
+		}
+
 		// Without this the vehicle could never be asked for again, in this session or any other.
 		if (!IsRegistered(vehicles, m_sPersId, m_sVehicleId))
 		{
-			SetResultFailure("The despawn dropped the registration for vehicle %1 - a released vehicle whose id is forgotten can never be fetched back", m_sVehicleId);
+			SetResultFailure("The despawn dropped the registration for vehicle %1 - a reserved vehicle whose id is forgotten can never be released again", m_sVehicleId);
 			return true;
 		}
 
@@ -2305,7 +2341,8 @@ class OVT_TEST_PersistenceRoundTrip_VehicleDespawnRespawn_KeepsOwnerAndContents 
 			return true;
 		}
 
-		if (vehicles.FindVehicleEntity(m_sVehicleId))
+		IEntity live = vehicles.FindVehicleEntity(m_sVehicleId);
+		if (live && !OVT_PersistenceReservation.IsReserved(live))
 		{
 			m_iPhase = PHASE_ASSERT;
 			return false;
@@ -2317,7 +2354,9 @@ class OVT_TEST_PersistenceRoundTrip_VehicleDespawnRespawn_KeepsOwnerAndContents 
 			string reason = vehicles.GetLastVehicleRespawnDiagnostic();
 			if (reason == "")
 			{
-				if (vehicles.IsVehicleRespawnPending(m_sVehicleId))
+				if (live)
+					reason = "it came back still hidden - RespawnPlayerVehicles() never released the reservation";
+				else if (vehicles.IsVehicleRespawnPending(m_sVehicleId))
 					reason = "a spawn request is still in flight";
 				else
 					reason = "the manager reported nothing at all - RespawnPlayerVehicles() never asked for it";
@@ -2352,6 +2391,15 @@ class OVT_TEST_PersistenceRoundTrip_VehicleDespawnRespawn_KeepsOwnerAndContents 
 		if (!Vehicle.Cast(restored))
 		{
 			SetResultFailure("What came back under vehicle id %1 is not a vehicle", m_sVehicleId);
+			return true;
+		}
+
+		// THE CLAIM THE WHOLE FIX RESTS ON. Contents, fuel and damage survive by construction only if
+		// this is the very entity that was parked - a rebuild from the registry would satisfy every
+		// other assertion in this method and still have lost the cargo.
+		if (restored.GetID() != m_OldEntityId)
+		{
+			SetResultFailure("Vehicle %1 came back as a DIFFERENT instance - it was rebuilt, not released, and whatever was inside it is gone", m_sVehicleId);
 			return true;
 		}
 
@@ -2899,7 +2947,7 @@ class OVT_TEST_PersistenceRoundTrip_PlayerLastKnownPosition_SurvivesSaveAndReloa
 //! that makes asking possible at all.
 //!
 //! NO REAL VEHICLE IS SPAWNED, on purpose. Registration from a live vehicle is already covered by
-//! OVT_TEST_PersistenceRoundTrip_VehicleDespawnRespawn_KeepsOwnerAndContents. What is untested is
+//! OVT_TEST_PersistenceRoundTrip_VehicleReserveRelease_KeepsOwnerAndContents. What is untested is
 //! whether a registration reaches the save and comes back, so the record is injected through the
 //! manager's own public apply path and read back through its own public accessor - no world entity
 //! is involved in either direction, which is what makes the assertion about the CODEC and nothing

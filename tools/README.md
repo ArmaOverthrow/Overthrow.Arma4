@@ -421,9 +421,10 @@ campaign path restarts the autotest harness and is manual-play-test territory.
 
 **10 cases** since 2026-08-02: the capability gate, eight save→dirty→re-apply
 state kinds, and one **per-instance** round trip
-(`..._VehicleDespawnRespawn_KeepsOwnerAndContents`, GitHub #143) that takes no
-save point at all — it writes one vehicle's record, deletes the instance, asks
-storage for it back and asserts owner, lock state, position and fuel. That case
+(`..._VehicleReserveRelease_KeepsOwnerAndContents`, BUG-086) that takes no
+save point at all — it hides one owned vehicle in place, releases it again, and
+asserts it is the same entity, still tracked, still owned, locked, placed and
+fuelled. That case
 uses neither of the suite's two persistence-layer seams, so it cannot disturb
 the fresh-session precondition above.
 

@@ -806,3 +806,221 @@ class OVT_TEST_Init_Persistence_PlayerCharacterConfigSelfSpawns : SCR_AutotestCa
 		return true;
 	}
 }
+
+//------------------------------------------------------------------------------------------------
+//! Overthrow's reconnect component must be ON THE GAME MODE, or a disconnecting player's body is
+//! deleted and BUG-086 is back.
+//!
+//! WHY THIS CASE IS THE TRIPWIRE FOR A PREFAB EDIT. SCR_BaseGameMode.OnPlayerDisconnected deletes the
+//! leaving player's character unless SCR_ReconnectComponent.GetInstance().HandlePlayerDisconnect()
+//! claims it (SCR_BaseGameMode.c:963-975). That instance exists only because
+//! Prefabs/GameMode/OVT_OverthrowGameMode.et carries an OVT_ReconnectComponent entry - and a prefab
+//! entry that is dropped, renamed or re-saved without it fails SILENTLY: the scripts still compile,
+//! the component simply never initialises, and the next disconnect quietly destroys a player's body
+//! and everything they were carrying.
+//!
+//! IT ASSERTS THE SUBCLASS, not merely "some reconnect component". Vanilla's own base class would
+//! resolve here and would answer HandlePlayerDisconnect() with vanilla's rules - REPLICATION kicks
+//! only, 120 s expiry, and no hiding - which is a different feature wearing the same name.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Persistence_ReconnectComponentClaimsLeavingBodies : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		SCR_ReconnectComponent reconnect = SCR_ReconnectComponent.GetInstance();
+		if (!reconnect)
+		{
+			SetResultFailure("There is no reconnect component on the game mode. Prefabs/GameMode/OVT_OverthrowGameMode.et has lost its OVT_ReconnectComponent entry, so SCR_BaseGameMode.OnPlayerDisconnected will DELETE every disconnecting player's body - see BUG-086.");
+			return true;
+		}
+
+		if (!OVT_ReconnectComponent.Cast(reconnect))
+		{
+			SetResultFailure("The game mode's reconnect component is vanilla's %1, not OVT_ReconnectComponent. Vanilla only reserves a body for connection drops and only for its timeout, so a clean quit still destroys it.",
+				reconnect.Type().ToString());
+			return true;
+		}
+
+		Print("Overthrow's reconnect component is live - a disconnecting player's body is claimed, not deleted");
+		SetResultSuccess();
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! Reserving a CHARACTER must hide it, stop it simulating, leave it tracked - and be reversible.
+//!
+//! WHY IT IS EXERCISED ON A REAL CHARACTER RATHER THAN ON A BARE ENTITY. The reservation model rests
+//! on an assumption that had never been measured when it was designed (BUG-086 handoff, 2026-08-05):
+//! that ClearFlags/SetFlags behave on a ChimeraCharacter - which carries a controller, an animation
+//! system and an inventory - the way the engine's own documentation says they do on a plain entity,
+//! and that the change is cleanly reversible. This case is that measurement, as far as script can
+//! observe it: the flags are read back, not assumed.
+//!
+//! TRACKING IS ASSERTED THROUGHOUT, and it is the property that distinguishes this design from the
+//! one it replaces. A reserved body that stopped being tracked would be absent from the next save
+//! point and gone after a restart, which is precisely the failure BUG-086 is about.
+//!
+//! WHAT IT CANNOT SEE: whether a CLIENT still renders its own copy of a hidden body. Flags are local
+//! engine state, there is no client in the autotest world, and that residual is play-test territory -
+//! it is documented on OVT_PersistenceReservation itself.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_Persistence_ReservationHidesACharacterReversibly : SCR_AutotestCaseBase
+{
+	//! Frame polls allowed for the native lazy tracking to pick up the spawned character.
+	static const int MAX_TRACKING_POLLS = 300;
+
+	protected int m_iPhase;
+	protected int m_iTrackingPolls;
+	protected IEntity m_Character;
+
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == 0)
+			return SpawnSubject();
+
+		return AwaitTrackingThenReserve();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Spawns a character to reserve. The civilian recruit prefab is used for the same reason the
+	//! corpse case uses it: it is a real ChimeraCharacter that the campaign already spawns.
+	//! \return True when the case is finished, which at this phase always means a named failure.
+	protected bool SpawnSubject()
+	{
+		OVT_RecruitManagerComponent recruits = OVT_RecruitManagerComponent.GetInstance();
+		if (!recruits || recruits.m_sRecruitPrefab.IsEmpty())
+		{
+			SetResultFailure("The recruit manager has no character prefab to spawn a subject from");
+			return true;
+		}
+
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if (!towns || towns.m_Towns.Count() < 1)
+		{
+			SetResultFailure("No towns are registered - nowhere sensible to spawn the subject character");
+			return true;
+		}
+
+		m_Character = OVT_Global.SpawnEntityPrefab(recruits.m_sRecruitPrefab, towns.m_Towns[0].location);
+		if (!m_Character)
+		{
+			SetResultFailure("SpawnEntityPrefab() produced no character from the civilian prefab");
+			return true;
+		}
+
+		m_iPhase = 1;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Waits for tracking, then drives reserve -> assert -> release -> assert in one pass.
+	//! \return True when the case is finished.
+	protected bool AwaitTrackingThenReserve()
+	{
+		if (!m_Character)
+		{
+			SetResultFailure("The subject character disappeared before it could be reserved");
+			return FinishAndCleanUp();
+		}
+
+		if (!OVT_PersistenceTracking.IsTracked(m_Character))
+		{
+			m_iTrackingPolls += 1;
+			if (m_iTrackingPolls > MAX_TRACKING_POLLS)
+			{
+				SetResultFailure("The spawned character was never tracked (%1 polls) - a body that is not tracked cannot be reserved in the first place", m_iTrackingPolls.ToString());
+				return FinishAndCleanUp();
+			}
+
+			return false;
+		}
+
+		if (OVT_PersistenceReservation.IsReserved(m_Character))
+		{
+			SetResultFailure("A freshly spawned character already reports reserved - IsReserved() is not reading the flag it claims to, so every assertion below would pass vacuously");
+			return FinishAndCleanUp();
+		}
+
+		if (!OVT_PersistenceReservation.Reserve(m_Character))
+		{
+			SetResultFailure("Reserve() refused a tracked, live character");
+			return FinishAndCleanUp();
+		}
+
+		EntityFlags reservedFlags = m_Character.GetFlags();
+
+		if (reservedFlags & EntityFlags.VISIBLE)
+		{
+			SetResultFailure("Reserve() left the character VISIBLE. ClearFlags does not take on a ChimeraCharacter, so an offline player's body stays in play - see OVT_PersistenceReservation.");
+			return FinishAndCleanUp();
+		}
+
+		if (reservedFlags & EntityFlags.TRACEABLE)
+		{
+			SetResultFailure("Reserve() left the character TRACEABLE - an offline player's body can still be shot and seen by AI, which is the whole thing hiding it is meant to prevent");
+			return FinishAndCleanUp();
+		}
+
+		if (reservedFlags & EntityFlags.ACTIVE)
+		{
+			SetResultFailure("Reserve() left the character ACTIVE - a reserved body keeps simulating, and every offline player costs a full character tick forever");
+			return FinishAndCleanUp();
+		}
+
+		if (!OVT_PersistenceTracking.IsTracked(m_Character))
+		{
+			SetResultFailure("Reserving the character released its persistence tracking. A reserved body MUST stay tracked - an untracked one is absent from the next save point and gone after a restart, which is BUG-086 all over again.");
+			return FinishAndCleanUp();
+		}
+
+		if (!GetGame().GetWorld().FindEntityByID(m_Character.GetID()))
+		{
+			SetResultFailure("Reserving the character removed it from the world - it must be hidden in place, not despawned");
+			return FinishAndCleanUp();
+		}
+
+		if (!OVT_PersistenceReservation.Release(m_Character))
+		{
+			SetResultFailure("Release() refused a reserved character");
+			return FinishAndCleanUp();
+		}
+
+		EntityFlags releasedFlags = m_Character.GetFlags();
+
+		if (!(releasedFlags & EntityFlags.VISIBLE) || !(releasedFlags & EntityFlags.TRACEABLE) || !(releasedFlags & EntityFlags.ACTIVE))
+		{
+			SetResultFailure("Release() did not put the character back in play: flags %1 (expected VISIBLE, TRACEABLE and ACTIVE all set). A returning player would be handed an invisible, untraceable, frozen body.",
+				releasedFlags.ToString());
+			return FinishAndCleanUp();
+		}
+
+		if (OVT_PersistenceReservation.IsReserved(m_Character))
+		{
+			SetResultFailure("The character still reports reserved after Release()");
+			return FinishAndCleanUp();
+		}
+
+		PrintFormat("Reservation round trip on a live character: hidden, untraceable, inactive, still tracked, and fully restored (tracked after %1 poll(s))", m_iTrackingPolls.ToString());
+		SetResultSuccess();
+		return FinishAndCleanUp();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Removes the subject from the world after the verdict is in, whichever verdict it was.
+	//! \return Always true - the case is over.
+	protected bool FinishAndCleanUp()
+	{
+		if (m_Character)
+			SCR_EntityHelper.DeleteEntityAndChildren(m_Character);
+
+		m_Character = null;
+		return true;
+	}
+}

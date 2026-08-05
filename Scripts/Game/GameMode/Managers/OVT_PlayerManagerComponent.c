@@ -81,35 +81,42 @@ class OVT_PlayerManagerComponent: OVT_Component
 		{
 			GetGame().GetCallqueue().CallLater(CheckDisconnectedPlayers, 5000, true); // Check every 5 seconds
 
-			// Park offline players' restored bodies back in storage before vanilla's reconnect sweep can
-			// destroy them. Must beat SCR_PlayerReconnectData's 60 s timer - see the method.
-			GetGame().GetCallqueue().CallLater(InitialPlayerBodyCleanup, 8000, false);
+			// Re-hide offline players' bodies after a world load, then keep watching - see the method.
+			GetGame().GetCallqueue().CallLater(ReserveOfflinePlayerBodies, BODY_RESERVATION_SWEEP_MS, true);
 		}
 	}
 
+	//! How often offline players' bodies are swept and re-hidden (ms).
+	//!
+	//! REPEATING, NOT A ONE-SHOT. The pass has to run after a world load, but "after a world load" is
+	//! not a single instant: the persistence system instantiates self-spawned records asynchronously
+	//! (vanilla itself uses PersistenceWhenAvailable for exactly these characters,
+	//! SCR_ReconnectSerializer.c:24), so a body can appear several seconds after the first pass would
+	//! have run. A cheap repeating sweep over the player table needs no timing assumption at all, and
+	//! is self-healing if anything ever un-hides a body nobody is holding.
+	static const int BODY_RESERVATION_SWEEP_MS = 8000;
+
 	//------------------------------------------------------------------------------------------------
-	//! Turns freshly self-spawned player bodies back into stored records shortly after a world load.
+	//! Hides every offline player's body, leaving it alive and tracked (BUG-086).
 	//!
-	//! THE PROBLEM THIS SOLVES, measured over four dedicated-server restarts (2026-08-04/05).
-	//! The player-character configuration self-spawns ({64ECE6462993EA13}, SelfSpawn 1 in
-	//! Overthrow.conf), which is the ONLY reason a stored body survives a load at all - a record whose
-	//! config does not self-spawn is dropped outright. But that leaves the body standing in the world as
-	//! a LIVE instance, and vanilla's SCR_PlayerReconnectData state deletes exactly those: 60 s after
-	//! persistence goes ACTIVE, RemoveUnusedCharacters() sweeps every stored player character nobody has
-	//! claimed (SCR_ReconnectSerializer.c:60-79). A player who reconnects inside that minute gets their
-	//! body and their gear; one who takes longer finds it destroyed, record and all, and comes back a
-	//! fresh civilian. That is exactly the fast-rejoin-works / slow-rejoin-fails split the play-tests
-	//! showed, and it is why this cannot be left to chance.
+	//! WHAT THIS REPLACES, AND WHY. Until 2026-08-05 the pass at this point did the opposite: it took
+	//! each self-spawned offline body and put it BACK into storage (Save + StopTracking(keepData) +
+	//! delete), to hide it from vanilla's 60 s unclaimed-character sweep. That worked for exactly as
+	//! long as a released record survives - which was measured at under ten minutes, in session, with no
+	//! restart. Keeping the entity is the fix; the sweep it was dodging is disabled outright in
+	//! Scripts/Game/Modded/SCR_PlayerReconnectData.c.
 	//!
-	//! THE FIX IS THE ONE VEHICLES ALREADY PROVE. OVT_VehicleManagerComponent.InitialVehicleCleanup()
-	//! does the same thing 5 s after init for an offline owner's vehicles, and those come back reliably
-	//! however long the owner takes - save-and-release turns a live instance into a stored record, which
-	//! is both durable and exactly what RequestSpawn() (and the FindById fast path) expects to find.
-	//! Releasing also makes the body invisible to the sweep, whose first act is FindById().
+	//! WHY A LOADED WORLD NEEDS THIS AT ALL. A reserved body is hidden by flags, and flags are not
+	//! persisted - the player-character configuration self-spawns ({64ECE6462993EA13}, SelfSpawn 1 in
+	//! Overthrow.conf), so after a restart the body is instantiated fresh from its prefab's flags, i.e.
+	//! visible, traceable and simulating, standing exactly where its owner logged out. This pass puts it
+	//! back to sleep. The window before it runs is the safest one available: the body is standing where
+	//! a player chose to leave it, not somewhere contrived.
 	//!
-	//! ONLINE PLAYERS ARE SKIPPED: their body is theirs, already handed over, and releasing it would
-	//! delete the character out from under them.
-	protected void InitialPlayerBodyCleanup()
+	//! ONLINE PLAYERS ARE SKIPPED, twice over: by the record's own id and by asking the player manager
+	//! whether anybody controls the body. Hiding a body somebody is standing in would be the one
+	//! unrecoverable outcome here.
+	void ReserveOfflinePlayerBodies()
 	{
 		if (!Replication.IsServer() || !m_mPlayers)
 			return;
@@ -118,7 +125,7 @@ class OVT_PlayerManagerComponent: OVT_Component
 		if (!persistence)
 			return;
 
-		int released = 0;
+		int reserved = 0;
 
 		for (int i = 0; i < m_mPlayers.Count(); i++)
 		{
@@ -134,6 +141,11 @@ class OVT_PlayerManagerComponent: OVT_Component
 				continue;
 
 			UUID bodyId = player.m_sBodyPersistenceId;
+
+			// FindById is "find a TRACKED instance by id" - which a reserved body still is, and which is
+			// the whole reason the reservation model can be swept at all. A body that is genuinely still
+			// only a stored record (never restored in this session) answers null and is left alone; the
+			// spawn logic will ask for it properly when its owner returns.
 			IEntity body = IEntity.Cast(persistence.FindById(bodyId));
 			if (!body)
 				continue;
@@ -142,14 +154,16 @@ class OVT_PlayerManagerComponent: OVT_Component
 			if (GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(body) > 0)
 				continue;
 
-			OVT_PersistenceTracking.Save(body);
-			OVT_PersistenceTracking.Untrack(body, true);
-			SCR_EntityHelper.DeleteEntityAndChildren(body);
-			released++;
+			// Idempotent, so the repeating sweep only ever counts bodies it actually changed.
+			if (OVT_PersistenceReservation.IsReserved(body))
+				continue;
+
+			OVT_PersistenceReservation.Reserve(body);
+			reserved++;
 		}
 
-		if (released > 0)
-			PrintFormat("[Overthrow] Parked %1 offline player body/bodies back in storage - they are now safe from vanilla's reconnect sweep", released.ToString());
+		if (reserved > 0)
+			PrintFormat("[Overthrow] Reserved %1 offline player body/bodies - alive, tracked and hidden until their owners return", reserved.ToString());
 	}
 	
 	//------------------------------------------------------------------------------------------------

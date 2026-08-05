@@ -583,12 +583,17 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Takes an offline player's locked vehicles out of the world without losing them.
+	//! Takes an offline player's locked vehicles out of play without taking them out of the world.
+	//!
+	//! LOCK STATE IS THE GATE, AND IT IS AN OWNERSHIP RULE, NOT A PERFORMANCE ONE. An UNLOCKED vehicle
+	//! belongs to the whole resistance and must stay usable while its owner is offline, so it is never
+	//! touched here. Only a LOCKED vehicle - one its owner has explicitly reserved to themselves - is
+	//! hidden. Lock state cannot change while the owner is offline (only the owner may lock or unlock),
+	//! so this decision stays correct for the whole absence and needs no re-evaluation.
 	//!
 	//! PUBLIC because it is one half of a lifecycle whose other half (RespawnPlayerVehicles) is public
 	//! too, and because the automated round-trip case has to be able to drive the disconnect flow's own
-	//! method rather than a re-implementation of it. Server-side; a client has no persistence system and
-	//! every call below becomes a no-op there.
+	//! method rather than a re-implementation of it.
 	//! \param[in] playerPersistentId The player who has been offline long enough.
 	void DespawnPlayerLockedVehicles(string playerPersistentId)
 	{
@@ -604,55 +609,55 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 			if (!vehicle)
 				continue;
 
-			// Only despawn locked vehicles
+			// Only hide locked vehicles - an unlocked one is public property
 			if (!IsVehicleLocked(vehicle))
 				continue;
 
-			ReleaseVehicle(vehicleId, vehicle);
-			despawnedCount++;
+			if (ReserveVehicle(vehicleId, vehicle))
+				despawnedCount++;
 		}
 
-		Print(string.Format("[Overthrow] Despawned %1 locked vehicles for offline player: %2", despawnedCount, playerPersistentId));
+		Print(string.Format("[Overthrow] Reserved %1 locked vehicles for offline player: %2", despawnedCount, playerPersistentId));
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Writes a vehicle's record, releases tracking WITHOUT dropping that record, and removes it from
-	//! the world.
+	//! Writes a vehicle's record and hides it in place, leaving it alive and tracked.
 	//!
-	//! THE POINT OF THE ORDER. Save() writes the vehicle - transform, fuel, damage and inventory
-	//! included, through the serializers vanilla's Vehicle.conf already binds - into storage; only then
-	//! is tracking released with the data KEPT (StopTracking(entity, removeData: false)). Deleting a
-	//! tracked entity without that last step drops its stored record too, and the vehicle is gone for
-	//! good.
+	//! WHAT THIS USED TO DO, AND WHY IT COULD NOT WORK (BUG-086). It was Save() +
+	//! StopTracking(removeData: false) + delete - vanilla's "despawn but do not forget" idiom - and the
+	//! vehicle was asked back by id when its owner returned. The kept record is not durable: measured on
+	//! a dedicated server 2026-08-05, a vehicle released at a disconnect was already unresolvable ten
+	//! minutes later, in the same session, with no restart. The owner got the registry REBUILD instead,
+	//! which is where "contents lost" came from. Cargo, fuel and damage now survive by construction,
+	//! because the vehicle is never destroyed.
 	//!
-	//! This is vanilla's own "despawn but do not forget" idiom - SCR_SpawnLogic.c:107-108 and :215-216
-	//! do exactly this to a disconnecting player's controller and character, and
-	//! OVT_RecruitManagerComponent.ReleaseRecruitBody() to a recruit's body.
+	//! THE RECORD IS STILL REFRESHED FIRST. OVT_PersistedPlayerVehicle (prefab, transform, owner, lock)
+	//! is Overthrow's own last-resort description of the vehicle and is what rebuilds it if its stored
+	//! record is ever genuinely unreadable. Reserving does not move the vehicle, so the transform
+	//! captured here stays true for as long as the reservation stands.
 	//!
-	//! The REGISTRATION IS DELIBERATELY KEPT. m_mPlayerVehicleIds is what RespawnPlayerVehicles() reads
-	//! to know what to ask for; dropping the id here would make the vehicle unrecoverable in this
-	//! session. Only the live-instance mapping goes.
-	//! \param[in] vehicleId The vehicle's persistent id, which stays registered under its owner.
-	//! \param[in] vehicle The instance to write, release and delete.
-	protected void ReleaseVehicle(string vehicleId, notnull IEntity vehicle)
+	//! EVERY REGISTRY ENTRY IS KEPT, including m_mSpawnedVehicles: the instance is still there, so the
+	//! map that points at it is still correct. That is what lets RespawnPlayerVehicles() recognise a
+	//! reserved vehicle and simply un-hide it instead of asking storage for one.
+	//! \param[in] vehicleId The vehicle's persistent id.
+	//! \param[in] vehicle The instance to write and hide.
+	//! \return True when the vehicle was hidden by this call; false when it already was.
+	protected bool ReserveVehicle(string vehicleId, notnull IEntity vehicle)
 	{
-		// LAST CHANCE to read the transform and lock state off the live instance. After the delete below
-		// the only remaining description of this vehicle is its registration, and that is what a rebuild
-		// uses if the stored record cannot be read back next session.
+		if (OVT_PersistenceReservation.IsReserved(vehicle))
+			return false;
+
 		string ownerUid;
 		if (m_mVehicleRecords.Contains(vehicleId) && m_mVehicleRecords[vehicleId])
 			ownerUid = m_mVehicleRecords[vehicleId].ownerUid;
 
 		CaptureVehicleRecord(ownerUid, vehicleId, vehicle);
 
+		// Not a hand-off to storage any more, just insurance: it makes the record on disk match the
+		// vehicle as it was parked even if the server dies before the next save point.
 		OVT_PersistenceTracking.Save(vehicle);
-		OVT_PersistenceTracking.Untrack(vehicle, true);
 
-		// Remove from spawned tracking
-		m_mSpawnedVehicles.Remove(vehicleId);
-		m_aVehicles.RemoveItem(vehicle.GetID());
-
-		SCR_EntityHelper.DeleteEntityAndChildren(vehicle);
+		return OVT_PersistenceReservation.Reserve(vehicle);
 	}
 
 	
@@ -725,9 +730,20 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 
 		foreach (string vehicleId : vehicleIds)
 		{
-			// Already standing in the world - nothing to fetch
-			if (FindVehicleEntity(vehicleId))
+			IEntity live = FindVehicleEntity(vehicleId);
+			if (live)
+			{
+				// THE NORMAL PATH SINCE BUG-086: the vehicle was never destroyed, only hidden, so
+				// "bringing it back" is un-hiding it. Nothing is read, nothing is rebuilt, and its
+				// cargo, fuel and damage are whatever they were when its owner parked it.
+				if (OVT_PersistenceReservation.IsReserved(live))
+				{
+					OVT_PersistenceReservation.Release(live);
+					Print("[Overthrow] Vehicle " + vehicleId + " was reserved - released it back to " + playerPersistentId + ", contents intact");
+				}
+
 				continue;
+			}
 
 			// A request for this vehicle has not answered yet
 			if (m_aPendingVehicleSpawns && m_aPendingVehicleSpawns.Find(vehicleId) != -1)
@@ -906,13 +922,14 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 			return;
 		}
 
-		// The owner may have left again while the request was in flight. Putting a vehicle in the world
-		// for somebody who is not there is precisely what the offline despawn undoes, so undo it now:
-		// save-and-release keeps it, with its cargo, for the next time they return.
+		// The owner may have left again while the request was in flight. Putting a vehicle in play for
+		// somebody who is not there is precisely what the offline despawn undoes, so undo it now - but
+		// adopt it first, or the registries would still point at the instance that no longer exists.
 		if (!IsPlayerOnline(playerPersistentId))
 		{
-			Print("[Overthrow] Owner of vehicle " + vehicleId + " left before it arrived - releasing it again");
-			ReleaseVehicle(vehicleId, vehicle);
+			Print("[Overthrow] Owner of vehicle " + vehicleId + " left before it arrived - reserving it again");
+			AdoptRespawnedVehicle(playerPersistentId, vehicleId, vehicle);
+			ReserveVehicle(vehicleId, vehicle);
 			return;
 		}
 
@@ -968,6 +985,11 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 		// before registering rather than re-registering blind, as AttachRecruitBody() does.
 		if (!OVT_PersistenceTracking.IsTracked(vehicle))
 			OVT_PersistenceTracking.Track(vehicle);
+
+		// A vehicle reached through the FindById fast path is a RESERVED live instance and is still
+		// hidden; one that came out of a genuine RequestSpawn is not. Release() is idempotent, so this
+		// one call puts both in play. The caller re-reserves afterwards if the owner has left again.
+		OVT_PersistenceReservation.Release(vehicle);
 
 		OVT_PlayerOwnerComponent ownerComp = OVT_PlayerOwnerComponent.Cast(
 			vehicle.FindComponent(OVT_PlayerOwnerComponent)
@@ -1280,10 +1302,27 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Initial cleanup of offline player vehicles after server restart
+	//! Re-indexes every player-owned vehicle after a world load, and re-hides the ones whose owner is
+	//! offline and who are locked.
+	//!
+	//! WHY A LOADED WORLD NEEDS THIS. Neither the reservation (entity flags) nor m_mSpawnedVehicles
+	//! survives a restart: vehicles self-spawn from their own stored records with their prefab's flags,
+	//! i.e. visible and simulating, and the manager's live-instance map starts empty. This pass is what
+	//! reconnects the two - it finds every player-owned vehicle in the world, registers it under its
+	//! owner, and puts the locked ones belonging to absent players back to sleep.
+	//!
+	//! IT NO LONGER DESPAWNS ANYTHING. It used to save-and-release an offline owner's locked vehicles
+	//! back into storage, which is the lossy path BUG-086 removed; the vehicle is now hidden in place
+	//! with everything inside it.
+	//!
+	//! AN OFFLINE OWNER'S UNLOCKED VEHICLE IS REGISTERED AND LEFT ALONE. Registering it is a fix in its
+	//! own right - the previous two-branch form (offline-and-locked, else online) matched neither, so an
+	//! absent player's unlocked car fell out of manager tracking entirely and was never re-indexed after
+	//! a restart. Leaving it visible is the rule the whole feature is gated on: unlocked means public,
+	//! and the resistance keeps using it while its owner is away.
 	protected void InitialVehicleCleanup()
 	{
-		Print("[Overthrow] Starting initial vehicle cleanup for offline players...");
+		Print("[Overthrow] Re-indexing player-owned vehicles after world load...");
 
 		// Find all player-owned vehicles in the world
 		m_aFoundPlayerVehicles.Clear();
@@ -1307,32 +1346,32 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 			if (ownerUid.IsEmpty())
 				continue;
 
+			// EVERY player-owned vehicle is indexed, whatever its owner is doing - see the method header
+			// for the offline-and-unlocked case this used to drop on the floor.
+			RegisterPlayerVehicle(ownerUid, vehicle);
+
 			// Check if player is currently online by comparing persistent identity ids
 			bool isOnline = IsPlayerOnline(ownerUid);
-			
-			// Only despawn locked vehicles of offline players
+
+			// Only LOCKED vehicles of OFFLINE players are hidden; unlocked ones stay public property
 			if (!isOnline && ownerComp.IsLocked())
 			{
-				// Register vehicle first (this indexes it under its owner)
-				RegisterPlayerVehicle(ownerUid, vehicle);
-
 				string persistentId = OVT_PersistenceTracking.GetPersistentId(vehicle);
-				if (!persistentId.IsEmpty())
+				if (!persistentId.IsEmpty() && ReserveVehicle(persistentId, vehicle))
 				{
-					ReleaseVehicle(persistentId, vehicle);
 					despawnedCount++;
 
-					Print(string.Format("[Overthrow] Despawned offline player vehicle: %1 (owner: %2)", persistentId, ownerUid));
+					Print(string.Format("[Overthrow] Reserved offline player vehicle: %1 (owner: %2)", persistentId, ownerUid));
 				}
 			}
 			else if (isOnline)
 			{
-				// Player is online, register vehicle for management
-				RegisterPlayerVehicle(ownerUid, vehicle);
+				// Their owner is here: anything a previous session hid is theirs to use again
+				OVT_PersistenceReservation.Release(vehicle);
 			}
 		}
-		
-		Print(string.Format("[Overthrow] Initial vehicle cleanup complete. Despawned %1 offline player vehicles.", despawnedCount));
+
+		Print(string.Format("[Overthrow] Vehicle re-indexing complete. Reserved %1 offline players' locked vehicles.", despawnedCount));
 	}
 	
 	//------------------------------------------------------------------------------------------------
