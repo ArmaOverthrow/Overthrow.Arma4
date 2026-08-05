@@ -79,6 +79,16 @@ The dividing line for "should this entity persist?" is not "is it important" but
 
 ## Session Notes
 
+### 2026-08-05 (BUG-085 FIXED) — the gear snapshot can actually carry a kit now
+
+**The fallback that the whole "released records are not durable" finding pushed to the front is no longer crippled.** `OVT_LoadoutManagerComponent.ApplyNestedItemsSpawnToUniversalStorage()` looked for an `InventoryStorageManagerComponent` **on the container** to insert nested items through, and clothing/vests/backpacks never have one — that component is the CHARACTER's. So the lookup failed for exactly the containers that matter and every nested item was spawned and then `DeleteEntityAndChildren`-ed. Now the owning character's manager is threaded down (`ApplyNestedItemsSpawn`/`...ToUniversalStorage` take an `ownerStorageManager`) and targets the container's own storage. Vanilla does the same thing at `SCR_IdentityManagerComponent.c:552` (spawned item → worn jacket, through the character's manager), and Overthrow's own `OnCharacterCreated` stocks starting items into clothing that way. The **box** apply path was never affected — it already moved items through the box's manager.
+
+**Scope was never persistence-only:** ordinary saved loadouts at an equipment box lost container contents too. This was pre-existing and independent of the migration.
+
+**New case, Init tier:** `OVT_TEST_Init_Loadout_NestedItemsSurviveApply` — dress a source character, nest a starting item in a worn container, save, apply to a SECOND fresh character, assert the item is inside the target's container. The extraction half is asserted first and separately so the case cannot pass vacuously. No prefab is hard-coded (container from what the character wears / the first civilian-loadout choice with a universal storage; item from `m_Difficulty.startingItems`), and no `EStoragePurpose` mask is used to classify anything — the ordinals and flag bits diverge, and the character loadout storage answers `PURPOSE_DEPOSIT` while holding worn clothing. **Proven able to fail:** reverting the fix produces `… is not inside the applied container … came back EMPTY` plus the bug's own log line on the same prefab the dedicated server reported (`Pants_Suit_01_black_V1.et`). Fast 32/32, All **60/60**. Compile clean (5908 files).
+
+**Follow-up now unblocked** (from the "released records are not durable" note): extend the vehicle registry to carry cargo through this same item codec, so "contents lost" stops being the normal outcome for a vehicle respawned after a real gap.
+
 ### 2026-08-05 (BUG-086 FIXED) — the reservation model: bodies and locked vehicles are never destroyed any more
 
 **The disconnect path no longer touches storage at all.** A leaving player's body and an offline owner's locked vehicle are now kept ALIVE, kept TRACKED and hidden in place (`OVT_PersistenceReservation.Reserve/Release/IsReserved`, new). Nothing is serialized, nothing is rebuilt, so gear, cargo, fuel and damage survive by construction and "you come back standing where you logged out" is free — the entity keeps its own transform. Across a restart the body/vehicle self-spawns from its own record (unchanged, `SelfSpawn 1`) and is re-hidden by a sweep, and the existing `FindById` fast paths adopt it.

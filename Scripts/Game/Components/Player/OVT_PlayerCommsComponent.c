@@ -319,54 +319,87 @@ class OVT_PlayerCommsComponent: OVT_Component
 		}	
 	}
 	
-	void SetVehicleLock(IEntity vehicle, bool locked)	
-	{	
-		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));	
+	//! How far a vehicle can be from the requesting player's character before the server rejects a
+	//! lock/unlock or an ownership claim (vehicle length plus latency/movement slack)
+	protected const float VEHICLE_MAX_DISTANCE = 15;
+
+	void SetVehicleLock(IEntity vehicle, bool locked)
+	{
+		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
+		if(!rpl) return;
 		Rpc(RpcAsk_SetVehicleLock, rpl.Id(), locked);
 	}
-	
+
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	void RpcAsk_SetVehicleLock(RplId vehicle, bool locked)	
+	void RpcAsk_SetVehicleLock(RplId vehicle, bool locked)
 	{
 		RplComponent rpl = RplComponent.Cast(Replication.FindItem(vehicle));
+		if(!rpl) return;
+
 		IEntity entity = rpl.GetEntity();
+		if(!entity) return;
+
 		OVT_PlayerOwnerComponent playerOwner = OVT_ComponentFinder<OVT_PlayerOwnerComponent>.Find(entity);
-		if(playerOwner) playerOwner.SetLocked(locked);
+		if(!playerOwner) return;
+
+		// Remote callers reach this handler on their own character's component, so the character is
+		// the server-side truth: only a vehicle's owner may change its lock state, and only from
+		// nearby (BUG-087). On the host this component sits on the game mode entity and the caller
+		// is server-side code, which is trusted.
+		ChimeraCharacter character = ChimeraCharacter.Cast(GetOwner());
+		if(character)
+		{
+			string callerUid = ResolveSenderPersistentId("");
+			if(callerUid == "") return;
+			// An unowned vehicle has no owner to authorize the change, so it can never be locked
+			if(playerOwner.GetPlayerOwnerUid() != callerUid) return;
+			if(vector.Distance(character.GetOrigin(), entity.GetOrigin()) > VEHICLE_MAX_DISTANCE) return;
+		}
+
+		playerOwner.SetLocked(locked);
 	}
-	
+
 	void ClaimUnownedVehicle(IEntity vehicle, int playerId)
 	{
 		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
+		if(!rpl) return;
 		Rpc(RpcAsk_ClaimUnownedVehicle, rpl.Id(), playerId);
 	}
-	
+
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	void RpcAsk_ClaimUnownedVehicle(RplId vehicleId, int playerId)
 	{
 		playerId = ResolveSenderPlayerId(playerId);
 		RplComponent rpl = RplComponent.Cast(Replication.FindItem(vehicleId));
 		if (!rpl) return;
-		
+
 		IEntity vehicle = rpl.GetEntity();
 		if (!vehicle) return;
-		
+
 		OVT_PlayerOwnerComponent playerOwner = OVT_ComponentFinder<OVT_PlayerOwnerComponent>.Find(vehicle);
 		if (!playerOwner) return;
-		
-		// Only set owner if vehicle is currently unowned
+
+		// Ownership never changes once set, so a claim is only ever valid on an unowned vehicle
 		string currentOwner = playerOwner.GetPlayerOwnerUid();
-		if (currentOwner == "")
+		if (currentOwner != "") return;
+
+		// A claim comes from sitting in the driver's seat, so the claimant must be at the vehicle -
+		// otherwise a client could claim, and then legitimately lock, every unowned vehicle on the
+		// map (BUG-087)
+		ChimeraCharacter character = ChimeraCharacter.Cast(GetOwner());
+		if (character && vector.Distance(character.GetOrigin(), vehicle.GetOrigin()) > VEHICLE_MAX_DISTANCE) return;
+
+		string playerUid = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		if (playerUid == "") return;
+
+		playerOwner.SetPlayerOwner(playerUid);
+		playerOwner.SetLocked(false);
+
+		// Register vehicle for despawn/respawn management
+		OVT_VehicleManagerComponent vehicleManager = OVT_Global.GetVehicles();
+		if (vehicleManager && Vehicle.Cast(vehicle))
 		{
-			string playerUid = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
-			playerOwner.SetPlayerOwner(playerUid);
-			playerOwner.SetLocked(false);
-			
-			// Register vehicle for despawn/respawn management
-			OVT_VehicleManagerComponent vehicleManager = OVT_Global.GetVehicles();
-			if (vehicleManager && Vehicle.Cast(vehicle))
-			{
-				vehicleManager.RegisterPlayerVehicle(playerUid, vehicle);
-			}
+			vehicleManager.RegisterPlayerVehicle(playerUid, vehicle);
 		}
 	}
 	

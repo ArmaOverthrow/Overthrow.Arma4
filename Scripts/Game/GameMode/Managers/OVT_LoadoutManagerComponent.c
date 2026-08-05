@@ -1560,12 +1560,14 @@ class OVT_LoadoutManagerComponent: OVT_Component
 			return false;
 		}
 		
-		// Apply nested items if this item is a container (spawn new items since this is spawning mode)
+		// Apply nested items if this item is a container (spawn new items since this is spawning mode).
+		// The item is already inside the owner's inventory at this point, so the owner's storage
+		// manager is the one that can reach into the container's own storage (BUG-085).
 		if (loadoutItem.HasChildItems())
 		{
-			ApplyNestedItemsSpawn(itemEntity, loadoutItem);
+			ApplyNestedItemsSpawn(itemEntity, loadoutItem, storageManager);
 		}
-		
+
 		return true;
 	}
 	
@@ -1590,17 +1592,22 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		
 	}
 	
-	//! Apply nested items to a container item by spawning new items (used when spawning loadouts)
-	protected void ApplyNestedItemsSpawn(IEntity containerEntity, OVT_LoadoutItem containerLoadoutItem)
+	//! Apply nested items to a container item by spawning new items (used when spawning loadouts).
+	//! \param ownerStorageManager The storage manager of the entity that OWNS the container (the
+	//!        character wearing the uniform/backpack). Clothing and backpacks carry a storage
+	//!        component but never a storage manager, so this is the only manager able to insert
+	//!        into them - looking one up on the container itself always failed and destroyed every
+	//!        nested item (BUG-085).
+	protected void ApplyNestedItemsSpawn(IEntity containerEntity, OVT_LoadoutItem containerLoadoutItem, InventoryStorageManagerComponent ownerStorageManager)
 	{
 		// For containers, we need to use the storage component directly, not a storage manager
 		UniversalInventoryStorageComponent universalStorage = UniversalInventoryStorageComponent.Cast(containerEntity.FindComponent(UniversalInventoryStorageComponent));
 		if (universalStorage)
 		{
-			ApplyNestedItemsSpawnToUniversalStorage(containerEntity, containerLoadoutItem, universalStorage);
+			ApplyNestedItemsSpawnToUniversalStorage(containerEntity, containerLoadoutItem, universalStorage, ownerStorageManager);
 			return;
 		}
-		
+
 		// Fallback to InventoryStorageManagerComponent (for complex entities like characters)
 		InventoryStorageManagerComponent inventoryStorageManager = InventoryStorageManagerComponent.Cast(containerEntity.FindComponent(InventoryStorageManagerComponent));
 		if (inventoryStorageManager)
@@ -1609,14 +1616,20 @@ class OVT_LoadoutManagerComponent: OVT_Component
 			return;
 		}
 	}
-	
+
 	//! Apply nested items by spawning to UniversalInventoryStorageComponent
-	protected void ApplyNestedItemsSpawnToUniversalStorage(IEntity containerEntity, OVT_LoadoutItem containerLoadoutItem, UniversalInventoryStorageComponent universalStorage)
+	protected void ApplyNestedItemsSpawnToUniversalStorage(IEntity containerEntity, OVT_LoadoutItem containerLoadoutItem, UniversalInventoryStorageComponent universalStorage, InventoryStorageManagerComponent ownerStorageManager)
 	{
 		array<ref OVT_LoadoutItem> childItems = containerLoadoutItem.GetChildItems();
 		if (!childItems)
 			return;
-		
+
+		if (!ownerStorageManager)
+		{
+			Print(string.Format("[OVT_LoadoutManagerComponent] No owning storage manager to insert the contents of %1 through - contents skipped", containerLoadoutItem.m_sResourceName), LogLevel.WARNING);
+			return;
+		}
+
 		foreach (OVT_LoadoutItem childItem : childItems)
 		{
 			// Spawn the nested item
@@ -1646,24 +1659,19 @@ class OVT_LoadoutManagerComponent: OVT_Component
 			// Apply custom properties
 			ApplyItemProperties(nestedItemEntity, childItem);
 			
-			// Get the container's storage manager to insert the item
-			InventoryStorageManagerComponent containerStorageManager = InventoryStorageManagerComponent.Cast(containerEntity.FindComponent(InventoryStorageManagerComponent));
-			if (!containerStorageManager)
-			{
-				Print(string.Format("[OVT_LoadoutManagerComponent] Container %1 has no InventoryStorageManagerComponent for spawned item insertion", containerLoadoutItem.m_sResourceName), LogLevel.WARNING);
-				SCR_EntityHelper.DeleteEntityAndChildren(nestedItemEntity);
-				continue;
-			}
-			
-			// Try to insert the nested item into the exact slot within the container
-			bool insertSuccess = containerStorageManager.TryInsertItemInStorage(nestedItemEntity, universalStorage, childItem.m_iSlotIndex);
-			
+			// Insert through the OWNER's storage manager, targeting the container's own storage.
+			// Uniforms, vests and backpacks have no storage manager of their own - the manager is the
+			// character's, and it reaches every storage in its inventory tree, including this one.
+			// This is vanilla's own idiom (SCR_IdentityManagerComponent.c:552 inserts into a worn
+			// jacket exactly this way).
+			bool insertSuccess = ownerStorageManager.TryInsertItemInStorage(nestedItemEntity, universalStorage, childItem.m_iSlotIndex);
+
 			if (!insertSuccess)
 			{
 				// If exact slot failed, try any slot in the same storage
-				insertSuccess = containerStorageManager.TryInsertItemInStorage(nestedItemEntity, universalStorage);
+				insertSuccess = ownerStorageManager.TryInsertItemInStorage(nestedItemEntity, universalStorage);
 			}
-			
+
 			if (!insertSuccess)
 			{
 				// Failed to insert nested item, delete it
@@ -1672,14 +1680,15 @@ class OVT_LoadoutManagerComponent: OVT_Component
 				continue;
 			}
 			
-			// Recursively apply nested items if this child item is also a container
+			// Recursively apply nested items if this child item is also a container.
+			// Still the same owner - a pouch inside a backpack is inside the character's tree too.
 			if (childItem.HasChildItems())
 			{
-				ApplyNestedItemsSpawn(nestedItemEntity, childItem);
+				ApplyNestedItemsSpawn(nestedItemEntity, childItem, ownerStorageManager);
 			}
 		}
 	}
-	
+
 	//! Apply nested items by spawning to InventoryStorageManagerComponent (fallback)
 	protected void ApplyNestedItemsSpawnToStorageManager(IEntity containerEntity, OVT_LoadoutItem containerLoadoutItem, InventoryStorageManagerComponent inventoryStorageManager)
 	{
@@ -1744,14 +1753,15 @@ class OVT_LoadoutManagerComponent: OVT_Component
 				continue;
 			}
 			
-			// Recursively apply nested items if this child item is also a container
+			// Recursively apply nested items if this child item is also a container.
+			// Here the container owns the tree, so its own manager is the owning one.
 			if (childItem.HasChildItems())
 			{
-				ApplyNestedItemsSpawn(nestedItemEntity, childItem);
+				ApplyNestedItemsSpawn(nestedItemEntity, childItem, inventoryStorageManager);
 			}
 		}
 	}
-	
+
 	//! Apply nested items to UniversalInventoryStorageComponent
 	protected void ApplyNestedItemsToUniversalStorage(IEntity containerEntity, OVT_LoadoutItem containerLoadoutItem, UniversalInventoryStorageComponent universalStorage, InventoryStorageManagerComponent boxStorageManager)
 	{

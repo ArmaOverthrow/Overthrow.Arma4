@@ -1024,3 +1024,440 @@ class OVT_TEST_Init_Persistence_ReservationHidesACharacterReversibly : SCR_Autot
 		return true;
 	}
 }
+
+//------------------------------------------------------------------------------------------------
+//! BUG-085: a loadout must carry the CONTENTS of clothing and backpacks, not just the containers.
+//!
+//! WHAT IT MEASURES: the whole save -> apply round trip through the manager's PUBLIC API. A source
+//! character is dressed, a distinctive item is put INSIDE a worn container, the loadout is saved,
+//! and it is applied to a SECOND, freshly spawned character. The assertion is made against the
+//! target container's own storage - the item must be in THERE, not merely somewhere on the target -
+//! because "somewhere on the character" is exactly what a flattened apply would also satisfy.
+//!
+//! WHY IT FAILED BEFORE: ApplyNestedItemsSpawnToUniversalStorage() looked for an
+//! InventoryStorageManagerComponent ON THE CONTAINER to insert through. Uniforms, vests and
+//! backpacks never carry one - that component belongs to the CHARACTER - so the lookup failed for
+//! exactly the containers that matter, and every nested item was spawned and then immediately
+//! deleted. A player restoring a loadout got empty clothing and an empty backpack. This is the
+//! mechanism the logout gear snapshot depends on (see the persistence feature's context.md), so it
+//! is also the difference between "kit restored" and "kit lost" for a returning player.
+//!
+//! PROVEN ABLE TO FAIL: reverting the fix (inserting through
+//! containerEntity.FindComponent(InventoryStorageManagerComponent) again) makes this case report
+//! "... is not inside the applied container ... - the container came back EMPTY", which is the
+//! defect verbatim.
+//!
+//! NOTHING IS HARD-CODED TO A PREFAB. The container is whatever the character is already wearing,
+//! falling back to the first civilian-loadout choice that has a universal storage; the nested item
+//! comes from the difficulty config's starting items. Both are read from the LIVE config, so a
+//! content change cannot quietly turn this case vacuous - it fails with a named diagnostic instead.
+//!
+//! The storage PURPOSE mask is deliberately never used to classify anything here: EStoragePurpose
+//! ordinals and flag bits diverge, and the character loadout storage answers PURPOSE_DEPOSIT while
+//! holding worn clothing. Containers are identified by component class, which is the same test the
+//! code under test makes.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_Loadout_NestedItemsSurviveApply : SCR_AutotestCaseBase
+{
+	//! Owner id for the throwaway loadout. Not a real player - SaveLoadout keys on the string alone,
+	//! which keeps this case independent of whether a player is registered at this tier.
+	static const string TEST_PLAYER_ID = "OVT_TEST_BUG085";
+	static const string TEST_LOADOUT_NAME = "bug085_nested";
+
+	//! Frame polls allowed for a spawned character's inventory storages to come up.
+	static const int MAX_INVENTORY_POLLS = 300;
+
+	protected int m_iPhase;
+	protected int m_iPolls;
+	protected IEntity m_SourceCharacter;
+	protected IEntity m_TargetCharacter;
+	protected string m_sContainerPrefab;
+	protected string m_sNestedPrefab;
+
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == 0)
+			return SpawnCharacters();
+
+		if (m_iPhase == 1)
+			return AwaitInventoriesThenStock();
+
+		return SaveApplyAndAssert();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Spawns the source and the target. Two separate characters is the point: applying a loadout to
+	//! the character it was taken from would pass even if apply did nothing at all.
+	//! \return True when the case is finished, which at this phase always means a named failure.
+	protected bool SpawnCharacters()
+	{
+		OVT_RecruitManagerComponent recruits = OVT_RecruitManagerComponent.GetInstance();
+		if (!recruits || recruits.m_sRecruitPrefab.IsEmpty())
+		{
+			SetResultFailure("The recruit manager has no character prefab to spawn loadout subjects from");
+			return true;
+		}
+
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if (!towns || towns.m_Towns.Count() < 1)
+		{
+			SetResultFailure("No towns are registered - nowhere sensible to spawn the subject characters");
+			return true;
+		}
+
+		vector origin = towns.m_Towns[0].location;
+
+		m_SourceCharacter = OVT_Global.SpawnEntityPrefab(recruits.m_sRecruitPrefab, origin);
+		m_TargetCharacter = OVT_Global.SpawnEntityPrefab(recruits.m_sRecruitPrefab, origin + "6 0 6");
+
+		if (!m_SourceCharacter || !m_TargetCharacter)
+		{
+			SetResultFailure("SpawnEntityPrefab() produced no character from the civilian prefab");
+			return FinishAndCleanUp();
+		}
+
+		m_iPhase = 1;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Waits for both characters' storages, then stocks the source: a worn container with one
+	//! distinctive item inside it.
+	//! \return True when the case is finished.
+	protected bool AwaitInventoriesThenStock()
+	{
+		InventoryStorageManagerComponent sourceManager = OVT_ComponentFinder<InventoryStorageManagerComponent>.Find(m_SourceCharacter);
+		InventoryStorageManagerComponent targetManager = OVT_ComponentFinder<InventoryStorageManagerComponent>.Find(m_TargetCharacter);
+
+		if (!sourceManager || !targetManager || !HasStorages(sourceManager) || !HasStorages(targetManager))
+		{
+			m_iPolls += 1;
+			if (m_iPolls > MAX_INVENTORY_POLLS)
+			{
+				SetResultFailure("The spawned characters never came up with inventory storages (%1 polls) - nothing about a loadout can be measured without them", m_iPolls.ToString());
+				return FinishAndCleanUp();
+			}
+
+			return false;
+		}
+
+		string diagnostic;
+
+		IEntity container = ResolveContainer(sourceManager, diagnostic);
+		if (!container)
+		{
+			SetResultFailure("%1", diagnostic);
+			return FinishAndCleanUp();
+		}
+
+		UniversalInventoryStorageComponent containerStorage = UniversalInventoryStorageComponent.Cast(container.FindComponent(UniversalInventoryStorageComponent));
+
+		IEntity nested = StockContainer(sourceManager, containerStorage, diagnostic);
+		if (!nested)
+		{
+			SetResultFailure("%1", diagnostic);
+			return FinishAndCleanUp();
+		}
+
+		m_sContainerPrefab = OVT_Global.GetPrefabName(container);
+		m_sNestedPrefab = OVT_Global.GetPrefabName(nested);
+
+		if (m_sContainerPrefab.IsEmpty() || m_sNestedPrefab.IsEmpty())
+		{
+			SetResultFailure("Could not read back a prefab name for the container or its contents - the assertion below would have nothing to match on");
+			return FinishAndCleanUp();
+		}
+
+		m_iPhase = 2;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Saves the source's loadout, applies it to the target, and asserts the nested item arrived
+	//! INSIDE the applied container.
+	//! \return True when the case is finished.
+	protected bool SaveApplyAndAssert()
+	{
+		OVT_LoadoutManagerComponent loadouts = OVT_Global.GetLoadouts();
+		if (!loadouts)
+		{
+			SetResultFailure("OVT_Global.GetLoadouts() is null - no loadout manager on the game mode");
+			return FinishAndCleanUp();
+		}
+
+		loadouts.SaveLoadout(TEST_PLAYER_ID, TEST_LOADOUT_NAME, m_SourceCharacter);
+
+		OVT_PlayerLoadout saved = loadouts.GetLoadout(TEST_PLAYER_ID, TEST_LOADOUT_NAME);
+		if (!saved)
+		{
+			SetResultFailure("SaveLoadout() stored nothing for the source character - the apply half cannot be measured");
+			return FinishAndCleanUp();
+		}
+
+		// The EXTRACTION half is asserted separately and first, so that a regression there reports as
+		// itself instead of being blamed on apply. It is also what stops this case passing vacuously:
+		// if the container's contents were never recorded, there is nothing for apply to restore.
+		if (!ExtractedNesting(saved))
+		{
+			SetResultFailure("The saved loadout does not record %1 inside %2 - extraction dropped the nesting, so the apply assertion below would be vacuous",
+				m_sNestedPrefab, m_sContainerPrefab);
+			return FinishAndCleanUp();
+		}
+
+		if (!loadouts.ApplyLoadoutToEntity(saved, m_TargetCharacter))
+		{
+			SetResultFailure("ApplyLoadoutToEntity() reported failure applying the saved loadout to a fresh character");
+			return FinishAndCleanUp();
+		}
+
+		bool containerArrived = false;
+		if (FindNestedOnTarget(containerArrived))
+		{
+			PrintFormat("Loadout round trip kept container contents: %1 arrived inside %2 on a fresh character", m_sNestedPrefab, m_sContainerPrefab);
+			SetResultSuccess();
+			return FinishAndCleanUp();
+		}
+
+		if (!containerArrived)
+		{
+			SetResultFailure("The container %1 itself never arrived on the target character - the loadout apply failed further up than the nested-item path this case is about",
+				m_sContainerPrefab);
+			return FinishAndCleanUp();
+		}
+
+		SetResultFailure("%1 is not inside the applied container %2 - the container came back EMPTY. Nested items are inserted through the OWNER's storage manager against the container's own storage; a manager looked up on the container itself is always null for clothing and backpacks, and every item is then deleted (BUG-085).",
+			m_sNestedPrefab, m_sContainerPrefab);
+		return FinishAndCleanUp();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] storageManager Manager to query.
+	//! \return True when the manager reports at least one storage.
+	protected bool HasStorages(InventoryStorageManagerComponent storageManager)
+	{
+		array<BaseInventoryStorageComponent> storages = {};
+		storageManager.GetStorages(storages);
+		return !storages.IsEmpty();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Finds a container on the character - a worn item carrying a UniversalInventoryStorageComponent,
+	//! which is precisely the class the code under test branches on. Falls back to dressing the
+	//! character from the civilian loadout config, taking the FIRST qualifying choice rather than a
+	//! random one, so this never depends on a skip roll.
+	//! \param[in] storageManager The character's storage manager.
+	//! \param[out] diagnostic Reason no container could be resolved; untouched on success.
+	//! \return The container entity, or null.
+	protected IEntity ResolveContainer(InventoryStorageManagerComponent storageManager, out string diagnostic)
+	{
+		IEntity worn = FindWornContainer(storageManager);
+		if (worn)
+			return worn;
+
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!config || !config.m_CivilianLoadout || !config.m_CivilianLoadout.m_aSlots)
+		{
+			diagnostic = "The source character wears no container and the civilian loadout config is empty - nothing to dress it with";
+			return null;
+		}
+
+		foreach (OVT_LoadoutSlot slot : config.m_CivilianLoadout.m_aSlots)
+		{
+			if (!slot.m_aChoices)
+				continue;
+
+			foreach (ResourceName choice : slot.m_aChoices)
+			{
+				if (choice.IsEmpty())
+					continue;
+
+				EntitySpawnParams spawnParams();
+				spawnParams.Transform[3] = m_SourceCharacter.GetOrigin();
+
+				IEntity candidate = GetGame().SpawnEntityPrefab(Resource.Load(choice), GetGame().GetWorld(), spawnParams);
+				if (!candidate)
+					continue;
+
+				if (!candidate.FindComponent(UniversalInventoryStorageComponent) || !storageManager.TryInsertItem(candidate))
+				{
+					SCR_EntityHelper.DeleteEntityAndChildren(candidate);
+					continue;
+				}
+
+				return candidate;
+			}
+		}
+
+		diagnostic = "No civilian-loadout choice with a universal storage could be put on the source character - there is no container to nest anything inside";
+		return null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] storageManager The character's storage manager.
+	//! \return The first item the character holds that is itself a universal-storage container.
+	protected IEntity FindWornContainer(InventoryStorageManagerComponent storageManager)
+	{
+		array<IEntity> items = {};
+		storageManager.GetItems(items);
+
+		foreach (IEntity item : items)
+		{
+			if (!item)
+				continue;
+
+			if (item.FindComponent(UniversalInventoryStorageComponent))
+				return item;
+		}
+
+		return null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Puts one distinctive item inside the container, through the character's manager - which is both
+	//! the correct API and the one Overthrow's own spawn logic uses for starting items.
+	//! \param[in] storageManager The character's storage manager.
+	//! \param[in] containerStorage The container's own storage.
+	//! \param[out] diagnostic Reason nothing could be stocked; untouched on success.
+	//! \return The item now inside the container, or null.
+	protected IEntity StockContainer(InventoryStorageManagerComponent storageManager, BaseInventoryStorageComponent containerStorage, out string diagnostic)
+	{
+		if (!containerStorage)
+		{
+			diagnostic = "The resolved container has no UniversalInventoryStorageComponent after all - nothing can be nested in it";
+			return null;
+		}
+
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!config || !config.m_Difficulty || !config.m_Difficulty.startingItems || config.m_Difficulty.startingItems.IsEmpty())
+		{
+			diagnostic = "The difficulty config lists no starting items - this case has no distinctive item to nest";
+			return null;
+		}
+
+		foreach (ResourceName candidatePrefab : config.m_Difficulty.startingItems)
+		{
+			if (candidatePrefab.IsEmpty())
+				continue;
+
+			EntitySpawnParams spawnParams();
+			spawnParams.Transform[3] = m_SourceCharacter.GetOrigin();
+
+			IEntity candidate = GetGame().SpawnEntityPrefab(Resource.Load(candidatePrefab), GetGame().GetWorld(), spawnParams);
+			if (!candidate)
+				continue;
+
+			if (!storageManager.TryInsertItemInStorage(candidate, containerStorage))
+			{
+				SCR_EntityHelper.DeleteEntityAndChildren(candidate);
+				continue;
+			}
+
+			// Insertion with no slot id may legitimately land in a child storage of the container, so
+			// the recursive read is the one that decides whether it is genuinely nested.
+			array<IEntity> contents = {};
+			containerStorage.GetAll(contents, true);
+			if (contents.Contains(candidate))
+				return candidate;
+
+			SCR_EntityHelper.DeleteEntityAndChildren(candidate);
+		}
+
+		diagnostic = "No starting item would fit inside the resolved container - the source loadout would have no nested contents to lose";
+		return null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] loadout The saved loadout.
+	//! \return True when the loadout records the nested item as a CHILD of the container.
+	protected bool ExtractedNesting(OVT_PlayerLoadout loadout)
+	{
+		array<ref OVT_LoadoutItem> items = loadout.GetItems();
+		if (!items)
+			return false;
+
+		foreach (OVT_LoadoutItem item : items)
+		{
+			if (item.m_sResourceName != m_sContainerPrefab)
+				continue;
+
+			if (!item.HasChildItems())
+				continue;
+
+			foreach (OVT_LoadoutItem child : item.GetChildItems())
+			{
+				if (child.m_sResourceName == m_sNestedPrefab)
+					return true;
+			}
+		}
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Reads the target character back: does it wear the container, and is the nested item inside it?
+	//! \param[out] containerArrived True when a container of the saved prefab is on the target at all,
+	//!             which separates "apply failed entirely" from "contents were lost".
+	//! \return True when the nested item is inside one of those containers.
+	protected bool FindNestedOnTarget(out bool containerArrived)
+	{
+		containerArrived = false;
+
+		InventoryStorageManagerComponent targetManager = OVT_ComponentFinder<InventoryStorageManagerComponent>.Find(m_TargetCharacter);
+		if (!targetManager)
+			return false;
+
+		array<IEntity> items = {};
+		targetManager.GetItems(items);
+
+		foreach (IEntity item : items)
+		{
+			if (!item)
+				continue;
+
+			if (OVT_Global.GetPrefabName(item) != m_sContainerPrefab)
+				continue;
+
+			containerArrived = true;
+
+			UniversalInventoryStorageComponent containerStorage = UniversalInventoryStorageComponent.Cast(item.FindComponent(UniversalInventoryStorageComponent));
+			if (!containerStorage)
+				continue;
+
+			array<IEntity> contents = {};
+			containerStorage.GetAll(contents, true);
+
+			foreach (IEntity content : contents)
+			{
+				if (content && OVT_Global.GetPrefabName(content) == m_sNestedPrefab)
+					return true;
+			}
+		}
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Removes both subjects and the throwaway loadout after the verdict is in, whichever verdict it
+	//! was. The loadout store is manager state that outlives the case, so leaving an entry behind
+	//! would leak into every later case in the run.
+	//! \return Always true - the case is over.
+	protected bool FinishAndCleanUp()
+	{
+		OVT_LoadoutManagerComponent loadouts = OVT_Global.GetLoadouts();
+		if (loadouts)
+			loadouts.DeleteLoadout(TEST_PLAYER_ID, TEST_LOADOUT_NAME);
+
+		if (m_SourceCharacter)
+			SCR_EntityHelper.DeleteEntityAndChildren(m_SourceCharacter);
+
+		if (m_TargetCharacter)
+			SCR_EntityHelper.DeleteEntityAndChildren(m_TargetCharacter);
+
+		m_SourceCharacter = null;
+		m_TargetCharacter = null;
+		return true;
+	}
+}
