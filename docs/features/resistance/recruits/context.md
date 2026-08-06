@@ -1,7 +1,7 @@
 # Recruits - Context & Decisions
 
-**Last Updated:** 2026-08-02
-**Current Phase:** Retrospective Documentation
+**Last Updated:** 2026-08-06
+**Current Phase:** Maintenance / bug fixing
 **Status:** ✅ Documented (Existing Feature)
 
 ---
@@ -11,9 +11,13 @@
 **What's Done:**
 - ✅ Feature fully implemented (existing code; body persistence reworked in the `vanilla-persistence` epic)
 - ✅ Retrospective documentation created (thorough code investigation, 2026-08-02)
+- ✅ **BUG-051/052/053 fixed** (2026-08-02): recruit RPCs validate sender-derived identity, `RpcAsk_RenameRecruit` exists, fast travel captures the departure point before teleporting
+- ✅ **BUG-080 fixed** (2026-08-04): recruits follow orders after the owner dies — group insertion goes through the slave-group path, which is commanded by player id
+- ✅ **BUG-088 fixed** (2026-08-06, awaiting MP play-test): recruits (and commanding, and the group menu) were dead in every replicated session
 
 **What's Next:**
-- 📋 Review for potential improvements (see implementation.md Future Enhancements — server-validating the recruit RPCs, the multiplayer rename, and the fast-travel search-origin bug are the highest-value fixes)
+- 🔬 Dedicated-server play-test of BUG-088 (see below) — MP is uncovered by the test suite
+- 📋 Remaining enhancements: the `FindRecruitEntity` mid-iteration removal, the hardcoded `US`/`USSR` XP faction keys, and Logic-tier coverage for the recruit record maths
 
 **Blockers:**
 - None
@@ -44,9 +48,11 @@
 
 ## Gotchas & Learnings
 
-- **Rename never reaches the server:** the UI calls `RenameRecruit()` on the client's replica (`OVT_RecruitsContext.c:443`); there is no rename RPC, so on dedicated servers the name is not persisted and reverts on the next update/rejoin.
-- **Fast travel searches the destination:** `RpcAsk_RequestFastTravelWithRecruits` teleports the player, *then* looks for recruits within 50 m of the player's (now-moved) origin (`OVT_PlayerCommsComponent.c:985-992`) — recruits stay behind, fees already charged client-side.
-- **The recruit RPCs trust the client:** `playerId` is a parameter, money is only ever deducted client-side, `RpcAsk_RecruitCivilian` will recruit any character an RplId resolves to, and the tent path can orphan a spawned civilian at the cap and spawns even when the supporter deduction no-ops (`OVT_TownManagerComponent.c:1194`).
+- **A recruit can only join a player who is a group leader, and in MP nobody was** (BUG-088, fixed 2026-08-06). `AddRecruitToPlayerGroup` guards on `GetGroupID() != -1` and `GetLeaderID() == playerId`; both failed on every dedicated/hosted server because the *player* never got a faction or a group. The cause was two server-side calls to vanilla **client-request** APIs — `SCR_PlayerFactionAffiliationComponent.RequestFaction()` and `SCR_PlayerControllerGroupComponent.RequestJoinGroup()` — each of which only marshals an `RplRcver.Server` RPC that goes nowhere when the caller *is* the server. Solo hid it because with no replication session those calls execute locally. **The rule: from server code call vanilla's server-side entry point (`SetFaction_S`, `RPC_AskJoinGroup`, `AddAIToSlaveGroup`), never the `Request*` wrapper.** Same family as BUG-045 (officer promotion) and BUG-052 (rename).
+- **Group insertion is a direct server call now**, not a broadcast round trip through the owning client. The old path (`RpcDo_AddRecruitToGroup` + 6 s pre-delay + 10 × 2 s entity-resolution ladder) is gone; `AddAIToSlaveGroup` broadcasts membership itself. The remaining timing ladder in the *respawn* flow is unrelated.
+- ~~Rename never reaches the server~~ — fixed (BUG-052): `RpcAsk_RenameRecruit` in `OVT_PlayerCommsComponent` validates ownership server-side and broadcasts. Note it lives in the deprecated comms component; new client→server work belongs on `OVT_OverthrowController`.
+- ~~Fast travel searches the destination~~ — fixed (BUG-053): the departure point is captured into a local before `TeleportPlayer` (`OVT_PlayerCommsComponent.c:1482`). The fee is still charged client-side.
+- ~~The recruit RPCs trust the client~~ — fixed (BUG-051): `ResolveSenderPlayerId()` derives the actor from the RPC sender. Money is still deducted client-side.
 - **`FindRecruitEntity` removes from `m_mEntityToRecruit` mid-`foreach`** (`OVT_RecruitManagerComponent.c:1587`) — the same hazard `SyncRecruitPositions` explicitly avoids at `:1496`.
 - **Kill XP is hardcoded to `US`/`USSR`** (`:679`) — custom occupying factions earn recruits nothing.
 - **Skills/training are format-only:** persisted, JIP'd and broadcast, but no system writes recruit skills or training; `m_OnRecruitXPGained` has no listeners; the recruit copy of `GetLevelProgress()` is uncalled. (Measured on 1.7.0.54: EnforceScript does *not* truncate the int/int division here — see `OVT_TEST_Logic_Skills.c` preamble — so the duplicated curve is dead-but-correct, not broken.)

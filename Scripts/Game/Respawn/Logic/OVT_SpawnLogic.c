@@ -846,9 +846,15 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 			if (!factionManager)
 				return;
 
+			// No faction means SetCivilianFaction() above did not take. Say so instead of returning
+			// silently - this is the head of the chain that leaves a player with no group, no
+			// commanding and recruits that never join them (BUG-088).
 			Faction faction = factionManager.GetPlayerFaction(playerId);
 			if (!faction)
+			{
+				Print("[Overthrow] Player " + playerId + " has no faction - cannot create their group", LogLevel.ERROR);
 				return;
+			}
 
 			SCR_AIGroup newGroup = groupsManager.CreateNewPlayableGroup(faction);
 			if (!newGroup)
@@ -869,7 +875,20 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 				return;
 			}
 
-			groupController.RequestJoinGroup(groupID);
+			// RequestJoinGroup() is the CLIENT's request API: all it does is marshal
+			// RPC_AskJoinGroup as an RplRcver.Server RPC, which only travels when the caller is a
+			// proxy. This method runs on the server, so in any replicated session (dedicated OR
+			// hosted) the request went nowhere and the player never actually joined the group we
+			// just made for them - leaving an empty, leaderless group. Everything downstream keys
+			// off group membership: SCR_GroupsManagerComponent.GetPlayerGroup() finds nothing, so
+			// AI commanding refuses with "Commanding is only available to group leaders", no group
+			// indicator is drawn, and AddRecruitToPlayerGroup bails before it can place a recruit.
+			// Vanilla itself calls the handler directly from its own server-side code
+			// (SCR_PlayerControllerGroupComponent.RpcAsk_CreateGroupWithData) - do the same.
+			if (Replication.IsServer())
+				groupController.RPC_AskJoinGroup(groupID);
+			else
+				groupController.RequestJoinGroup(groupID);
 
 			Print("[Overthrow] Created group " + groupID + " for player " + playerName + " (ID: " + playerId + ")", LogLevel.NORMAL);
 			Print("[Overthrow] Group faction: " + faction.GetFactionKey() + ", Player entity: " + playerController.GetControlledEntity(), LogLevel.NORMAL);
@@ -920,8 +939,22 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 		Faction playerFaction = mgr.GetFactionByKey(OVT_Global.GetConfig().GetPlayerFaction().GetFactionKey());
 		if (!playerFaction) return;
 
-		// This properly triggers faction manager updates and replication
-		factionComponent.RequestFaction(playerFaction);
+		// Already ours - don't re-fire OnPlayerFactionSet_S on every respawn
+		if (factionComponent.GetAffiliatedFaction() == playerFaction)
+			return;
+
+		// RequestFaction() is the CLIENT's request API: it marshals Rpc_RequestFaction_S, an
+		// RplRcver.Server RPC that only travels when the caller is a proxy. This runs on the
+		// server, so in a replicated session the request was silently dropped and the player was
+		// left on whatever faction (if any) vanilla had given them - which is why the group menu
+		// listed a stranger's faction and the player's own group was nowhere to be found
+		// (SCR_GroupsManagerComponent.GetPlayerGroup resolves the group through the faction).
+		// SetFaction_S is vanilla's server-side assignment - SCR_ReconnectComponent and the
+		// faction-affiliation persistence serializer both use it the same way.
+		if (Replication.IsServer())
+			factionComponent.SetFaction_S(playerFaction);
+		else
+			factionComponent.RequestFaction(playerFaction);
 	}
 
 	//------------------------------------------------------------------------------------------------

@@ -1718,47 +1718,50 @@ class OVT_RecruitManagerComponent : OVT_Component
 		// Verify player has a group and is the leader
 		int groupId = groupController.GetGroupID();
 		if (groupId == -1)
+		{
+			Print("[Overthrow] Cannot add recruit to group: player " + playerId + " is in no group", LogLevel.WARNING);
 			return;
-		
+		}
+
 		SCR_GroupsManagerComponent groupsManager = SCR_GroupsManagerComponent.GetInstance();
 		if (!groupsManager)
 			return;
-		
+
 		SCR_AIGroup group = groupsManager.FindGroup(groupId);
 		if (!group)
+		{
+			Print("[Overthrow] Cannot add recruit to group: group " + groupId + " not found", LogLevel.WARNING);
 			return;
-		
+		}
+
 		if (group.GetLeaderID() != playerId)
-			return;
-		
-		// Add as AI agent to player's group via RPC to client
-		SCR_ChimeraCharacter recruitCharacter = SCR_ChimeraCharacter.Cast(recruitEntity);
-		if (!recruitCharacter)
 		{
-			Print("[Overthrow] Failed to cast recruit entity to SCR_ChimeraCharacter");
+			Print("[Overthrow] Cannot add recruit to group: player " + playerId + " is not the leader of group " + groupId + " (leader is " + group.GetLeaderID() + ")", LogLevel.WARNING);
 			return;
 		}
-		
-		// Use RPC to client to trigger proper group join notifications
-		RplComponent rplComponent = RplComponent.Cast(recruitEntity.FindComponent(RplComponent));
-		if (rplComponent)
+
+		if (!group.GetSlave())
 		{
-			int localPlayerId = SCR_PlayerController.GetLocalPlayerId();
-			if (localPlayerId == playerId)
-			{
-				// Host/server - execute immediately
-				RpcDo_AddRecruitToGroup(rplComponent.Id(), playerId);
-			}
-			else
-			{
-				// Client - delay RPC to allow entity replication
-				GetGame().GetCallqueue().CallLater(DelayedRpcAddRecruitToGroup, 6000, false, rplComponent.Id(), playerId);
-			}
+			Print("[Overthrow] Cannot add recruit to group: group " + groupId + " has no slave group (commanding manager missing at group creation?)", LogLevel.WARNING);
+			return;
 		}
-		else
-		{
-			Print("[Overthrow] No RplComponent found on recruit entity for group addition");
-		}
+
+		// The AI has to be running before it can take orders
+		AIControlComponent aiControl = AIControlComponent.Cast(recruitEntity.FindComponent(AIControlComponent));
+		if (aiControl)
+			aiControl.ActivateAI();
+
+		// Put the recruit in the player's slave group HERE, on the server.
+		//
+		// This used to broadcast RpcDo_AddRecruitToGroup to EVERY client (6 s pre-delay plus a
+		// 10 x 2 s entity-resolution ladder) purely so the owning client could call
+		// RequestAddAIAgent - whose server handler, RPC_AskAddAIAgent, does nothing but call
+		// AddAIToSlaveGroup after re-checking leadership we have already checked. We are the
+		// server and we are holding the entity, so call it directly: no round trip, no timing
+		// ladder, no dependency on the owner's client being responsive. AddAIToSlaveGroup
+		// broadcasts membership itself (AskAddAiMemberToGroup -> RPC_DoAddAIMemberToGroup), so
+		// every machine still learns the recruit is a group member.
+		groupController.AddAIToSlaveGroup(recruitEntity, group);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -2154,89 +2157,6 @@ class OVT_RecruitManagerComponent : OVT_Component
 		
 		// Determine online status from replication ID
 		recruit.m_bIsOnline = (recruitRplId != RplId.Invalid());
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	//! Delayed RPC call to allow entity replication to clients
-	protected void DelayedRpcAddRecruitToGroup(RplId recruitRplId, int playerId)
-	{
-		Rpc(RpcDo_AddRecruitToGroup, recruitRplId, playerId);
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	//! RPC method to request client add AI to group
-	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_AddRecruitToGroup(RplId recruitRplId, int targetPlayerId)
-	{			
-		// Only process if this is the target player
-		int localPlayerId = SCR_PlayerController.GetLocalPlayerId();
-		if (localPlayerId != targetPlayerId)
-			return;
-		
-		RpcDo_AddRecruitToGroupWithRetry(recruitRplId, targetPlayerId, 0);
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	//! Retry logic for adding recruit to group on client
-	protected void RpcDo_AddRecruitToGroupWithRetry(RplId recruitRplId, int targetPlayerId, int attemptCount)
-	{
-		// Find the recruit entity on client
-		RplComponent rplComponent = RplComponent.Cast(Replication.FindItem(recruitRplId));
-		if (!rplComponent)
-		{
-			// Retry up to 10 times (20 seconds total)
-			if (attemptCount < 10)
-			{
-				GetGame().GetCallqueue().CallLater(RpcDo_AddRecruitToGroupWithRetry, 2000, false, recruitRplId, targetPlayerId, attemptCount + 1);
-				return;
-			}
-			else
-			{
-				Print("[Overthrow] Failed to find recruit entity after 10 retry attempts");
-				return;
-			}
-		}
-			
-		IEntity recruitEntity = rplComponent.GetEntity();
-		if (!recruitEntity)
-		{
-			// Retry if entity not available yet
-			if (attemptCount < 10)
-			{
-				GetGame().GetCallqueue().CallLater(RpcDo_AddRecruitToGroupWithRetry, 2000, false, recruitRplId, targetPlayerId, attemptCount + 1);
-				return;
-			}
-			else
-			{
-				Print("[Overthrow] Failed to get recruit entity after 10 retry attempts");
-				return;
-			}
-		}
-		
-		//Make sure AI is activated
-		AIControlComponent aiControl = AIControlComponent.Cast(recruitEntity.FindComponent(AIControlComponent));
-		if (aiControl)
-		{
-			aiControl.ActivateAI();
-		}
-		
-		// Get local player controller and add AI to group
-		int localPlayerId = SCR_PlayerController.GetLocalPlayerId();
-		SCR_PlayerController playerController = SCR_PlayerController.Cast(
-			GetGame().GetPlayerManager().GetPlayerController(localPlayerId)
-		);
-		
-		if (!playerController)
-			return;
-			
-		SCR_PlayerControllerGroupComponent groupController = SCR_PlayerControllerGroupComponent.Cast(
-			playerController.FindComponent(SCR_PlayerControllerGroupComponent)
-		);
-		
-		if (groupController)
-		{
-			groupController.RequestAddAIAgent(SCR_ChimeraCharacter.Cast(recruitEntity), localPlayerId);
-		}
 	}
 	
 }
