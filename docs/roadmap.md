@@ -27,11 +27,13 @@
 
 ---
 
-## 1.4.x — stabilization (immediately after 1.4.0 ships) + virtualization
+## 1.4.x — stabilization (immediately after 1.4.0 ships), NPE + virtualization
 
 Handle any bugs reported by the player-base from 1.4.0 persistence migration.
 
-The planned epic at `docs/features/virtualization/` (4 features: core → movement → integration → base-defense-migration; the last is deferrable). Keeps issue **#100**'s aim, discards the old branch, builds on vanilla persistence.
+The planned epic at `docs/features/new-player-experience/`. Improve new player retention, create a tutorial system and backfill the field manual.
+
+The planned epic at `docs/features/virtualization/` (5 features: core → civilians → movement → integration → base-defense-migration; the last is deferrable). Keeps issue **#100**'s aim, discards the old branch, builds on vanilla persistence.
 
 - Hard prerequisite: 1.4.0 persistence proven stable in the wild.
 - `base-defense-migration` (retiring base-upgrades) may slip to a later release without blocking the epic's value — its cost is scoped for exactly this decision.
@@ -46,7 +48,7 @@ Revive `new-map` (GitHub **#70**): location types (bases, shops, houses, camps, 
 - UI-heavy → leans on manual play-testing; fits a release where the automated spine can't help much.
 - First step when scheduled: merge main into the branch, re-review against the towns discovery docs, then `/discover-feature` or `/plan-feature` it into the towns epic structure.
 
-## 1.7.0 (draft) — Economy 2.0
+## 1.6.0 (draft) — Economy 2.0
 
 GitHub **#99** — player/resistance shop ownership, store money accounts, bulk trading, export, industry chains, economic data. THE differentiator per the issue.
 
@@ -67,7 +69,7 @@ GitHub **#99** — player/resistance shop ownership, store money accounts, bulk 
 ## Backlog (unscheduled)
 
 - **Victory/defeat conditions** — flagged by both occupying and towns discovery as absent entirely; a real product gap for the "grind the occupiers out" fantasy. Could headline any release 1.5–1.7+.
-- **Intel system** (#11), **Undercover system** (#8 — ties into the freshly documented wanted-system; fix its 5 open bugs first)
+- **Intel system** (#11)
 - Smaller enhancements as patch-release filler: Custom difficulty settings (#126), Vehicle storage (#83), Renaming bases (#51)
 - **Building in towns** (#10) — re-triage after 1.4.x recruit fixes and Economy 2.0 planning respectively (may be absorbed by them).
 
