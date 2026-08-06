@@ -12,7 +12,17 @@ The governing rule: **recruits are owned by a player, not by a group.** They fol
 
 Vanilla already ships the mechanics — private groups (`SCR_AIGroup.SetPrivate`), request-to-join with leader approval (`PlayerRequestToJoinPrivateGroup` → `AddRequester` → `SCR_RequestToJoinSubMenu`/`SCR_JoinRequestEntry`), and per-group slave groups for AI. This feature is mostly **wiring, a UX layer over the vanilla Group Menu, and the recruit-follows-owner rule**.
 
-**Precondition:** the BUG-088 fix (players actually get a faction, a group and leadership in a replicated session). Nothing here is testable before that lands.
+## Starting state (verified on a dedicated server, 2026-08-06)
+
+The **BUG-088** precondition is done and play-test-verified, so this feature is unblocked. What is now known to work in a replicated session — do not re-investigate these:
+
+- ✅ The player's faction replicates to the client. (`OVT_OverthrowFactionManager.et` was missing an `RplComponent`, so `SCR_FactionManager.m_aPlayerFactionInfo` — the *only* source for `GetPlayerFaction()` — never left the server. Fixed.)
+- ✅ Each player gets their own group, is its leader, and the client agrees: AI commanding opens, which requires `IsPlayerLeaderOwnGroup()` true client-side, which in turn proves group membership and leader id both replicate.
+- ✅ Recruits join the owner's group and follow orders.
+
+**Still broken, and the first thing this feature must diagnose: the vanilla Group Menu.** Now that the faction map replicates, `SCR_GroupSubMenuBase.UpdateGroups()` no longer early-returns on a null faction, so the remaining fault is further in — candidates are tile creation, the join-button path, and `CanCreateNewGroup()` → `TryFindEmptyGroup()`, which *by vanilla design* disables **Create new group** while an empty group of your faction exists (your own one-man group qualifies). Already ruled out: `m_bIsPlayable 0` on FIA/US/USSR in the world layer — that flag gates deploy/faction-selection and the kill-if-not-playable path, and the group UI never reads it.
+
+Since the menu is the surface this feature is built on, diagnose it **before** designing the override layer below — the fix may change which seam the confirmation dialog hooks into.
 
 ## Requirements
 

@@ -8717,5 +8717,192 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A7D9B2E00000090}" {
+   Id "OVT-PlayerGroups_JoinConfirmTitle"
+   Target_en_us "Join Group"
+   Comment "Group menu - title of the dialog shown before a join request or invite acceptance is sent"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754438400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E00000091}" {
+   Id "OVT-PlayerGroups_JoinConfirmMessage"
+   Target_en_us "%1 will be able to command your recruits while you are in their group."
+   Comment "Group menu join confirmation - %1 is the other group's leader name. Shown when the local player owns no recruits"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754438400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E00000092}" {
+   Id "OVT-PlayerGroups_JoinConfirmRecruitsMessage"
+   Target_en_us "Your %1 recruits will move to %2's group and take orders from %2. You still own them - they return to you when you leave the group, change groups, or reconnect."
+   Comment "Group menu join confirmation - %1 is the local player's recruit count, %2 is the other group's leader name (used twice). Shown when the local player owns at least one recruit"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754438400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E00000093}" {
+   Id "OVT-PlayerGroups_JoinBlockedTitle"
+   Target_en_us "Cannot Join Group"
+   Comment "Group menu - title of the dialog shown when a join is refused before anything is sent to the server"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754438400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E00000094}" {
+   Id "OVT-PlayerGroups_JoinBlockedFull"
+   Target_en_us "That group is full. Nobody else can join it until somebody leaves."
+   Comment "Group menu - shown when the player tries to join a group that already holds the maximum number of players"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754438400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E00000095}" {
+   Id "OVT-PlayerGroups_JoinBlockedUnavailable"
+   Target_en_us "You cannot join that group right now."
+   Comment "Group menu - shown when a join is refused for a reason other than the group being full (wrong faction, group role, rank)"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754438400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E00000096}" {
+   Id "OVT-PlayerGroups_JoinBlockedGone"
+   Target_en_us "That group no longer exists."
+   Comment "Group menu - shown when the selected group was deleted between selecting it and confirming the join"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754438400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E00000097}" {
+   Id "OVT-PlayerGroups_ModelExplainer"
+   Target_en_us "Your group is private and named after you. Your recruits follow you into any group you join - that group's leader commands them while you are there, but you keep ownership and they come back when you leave. To leave a group, use Create new group."
+   Comment "Group menu - paragraph under the group list explaining Overthrow's group model, including that Create new group is the only way to leave a group"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754438400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E00000098}" {
+   Id "OVT-Msg-PlayerJoinedWithRecruits"
+   Target_en_us "%1 joined your group with %2 recruits - you can command them while they are here"
+   Comment "Notification to a group leader - %1 is the joining player's name, %2 is how many of their recruits followed them in"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754438400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E000000E0}" {
+   Id "OVT-Msg-GroupJoinRefusedFull"
+   Target_en_us "That group is full - your join request could not be completed"
+   Comment "Notification to a player whose approved join request was refused because the group filled up first"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754438400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E000000E1}" {
+   Id "OVT-Msg-GroupAiBudgetExceeded"
+   Target_en_us "This group now commands %1 AI, over the recommended limit of %2 - performance may suffer"
+   Comment "Notification to the joining player and the group leader when a join takes the group's AI over the configured budget - %1 is the projected AI count, %2 is the budget"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754438400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
  }
 }

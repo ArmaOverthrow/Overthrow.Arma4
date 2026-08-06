@@ -1461,3 +1461,82 @@ class OVT_TEST_Init_Loadout_NestedItemsSurviveApply : SCR_AutotestCaseBase
 		return true;
 	}
 }
+
+//------------------------------------------------------------------------------------------------
+//! The player-group manager is ON THE GAME MODE and answers GetInstance().
+//!
+//! WHY THIS CASE IS THE TRIPWIRE FOR A PREFAB EDIT. OVT_PlayerGroupManagerComponent is what guarantees
+//! every connected player has a group of their own: OVT_SpawnLogic.CreateAndJoinGroup delegates the
+//! whole "create this player's private group and put them in it" body to its EnsureOwnGroup(), and its
+//! SCR_AIGroup.GetOnPlayerAdded()/GetOnPlayerRemoved() subscriptions are what put a player back in a
+//! group after they leave one. That instance exists only because
+//! Prefabs/GameMode/OVT_OverthrowGameMode.et carries an OVT_PlayerGroupManagerComponent entry - and a
+//! prefab entry that is dropped, renamed or re-saved without it fails SILENTLY: the scripts still
+//! compile, the component never initialises, and every player spawns with NO GROUP - no AI commanding,
+//! no group indicator, no recruits. That is BUG-088's symptom set, and it is invisible in solo play
+//! until someone tries to command an AI.
+//!
+//! It asserts the LIVE COMPONENT, not just a non-null static: s_Instance is assigned in OnPostInit and
+//! never cleared, so a stale pointer from an earlier world would satisfy a bare null check. Comparing
+//! it against the component the game mode actually carries is what makes the assertion mean "this
+//! world's game mode has the manager".
+//!
+//! The third assertion pins the manager's own precondition rather than its behaviour: EnsureOwnGroup()
+//! must refuse a player id that has no player controller and return -1. If it ever answered anything
+//! else it would be creating stray leaderless groups for ids that are not players, which is how a
+//! faction's group list fills with empty groups and radio frequencies run out.
+//!
+//! There is nothing here about JOINING, LEAVING or RECONNECTING - all three need two client processes
+//! and are on the manual play-test checklist (implementation.md section 6, steps 1, 9, 10, 14).
+//!
+//! PROVEN ABLE TO FAIL 2026-08-06: the OVT_PlayerGroupManagerComponent entry was temporarily deleted
+//! from Prefabs/GameMode/OVT_OverthrowGameMode.et and `tools/run-tests.sh
+//! OVT_TEST_Init_PlayerGroups_ManagerResolves` exited 1 on the first assertion
+//! ("OVT_PlayerGroupManagerComponent.GetInstance() is null ..."); restoring the entry returned it to
+//! exit 0. No retries, no maxAttempts - the manager either initialised during world load or it did not.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_PlayerGroups_ManagerResolves : SCR_AutotestCaseBase
+{
+	//! A player id no session ever issues, used to prove EnsureOwnGroup refuses an unknown player.
+	static const int NOT_A_PLAYER_ID = -1;
+
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		OVT_PlayerGroupManagerComponent manager = OVT_PlayerGroupManagerComponent.GetInstance();
+		if (!manager)
+		{
+			SetResultFailure("OVT_PlayerGroupManagerComponent.GetInstance() is null - Prefabs/GameMode/OVT_OverthrowGameMode.et has lost its OVT_PlayerGroupManagerComponent entry. Nothing gives a spawning player a group, and nothing puts a player back in one when they leave a group: no AI commanding, no group indicator, no recruits (BUG-088's symptom set).");
+			return true;
+		}
+
+		BaseGameMode gameMode = GetGame().GetGameMode();
+		if (!gameMode)
+		{
+			SetResultFailure("GetGame().GetGameMode() is null - there is no game mode to carry the manager");
+			return true;
+		}
+
+		OVT_PlayerGroupManagerComponent onGameMode = OVT_PlayerGroupManagerComponent.Cast(gameMode.FindComponent(OVT_PlayerGroupManagerComponent));
+		if (onGameMode != manager)
+		{
+			SetResultFailure("OVT_PlayerGroupManagerComponent.GetInstance() is not the component on this world's game mode - s_Instance is stale, so every caller is talking to a manager that is not wired to anything");
+			return true;
+		}
+
+		// A player id that is not a player must never produce a group.
+		int refused = manager.EnsureOwnGroup(NOT_A_PLAYER_ID);
+		if (refused != -1)
+		{
+			SetResultFailure("EnsureOwnGroup(%1) returned %2 instead of -1 - the manager creates groups for ids that have no player controller, which fills the faction's group list with stray leaderless groups and exhausts its radio frequencies",
+				NOT_A_PLAYER_ID.ToString(), refused.ToString());
+			return true;
+		}
+
+		Print("Player-group manager is live on the game mode and refuses a player id with no controller");
+		SetResultSuccess();
+		return true;
+	}
+}

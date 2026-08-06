@@ -1734,9 +1734,15 @@ class OVT_RecruitManagerComponent : OVT_Component
 			return;
 		}
 
-		if (group.GetLeaderID() != playerId)
+		// MEMBERSHIP, NOT LEADERSHIP (decision D8). This used to demand group.GetLeaderID() == playerId.
+		// Under the shared-group model an owner standing inside a friend's group is a MEMBER and not the
+		// leader, so the leader test made "recruit a civilian while in someone else's group" bail here
+		// and do nothing at all - silently, because there was no failure the player could see. The
+		// recruit belongs in whatever group its OWNER is in, whoever happens to lead that group; the
+		// leader commands it once it is there, which is plain vanilla slave-group behaviour.
+		if (!group.IsPlayerInGroup(playerId))
 		{
-			Print("[Overthrow] Cannot add recruit to group: player " + playerId + " is not the leader of group " + groupId + " (leader is " + group.GetLeaderID() + ")", LogLevel.WARNING);
+			Print("[Overthrow] Cannot add recruit to group: player " + playerId + " is not a member of group " + groupId + " (leader is " + group.GetLeaderID() + ")", LogLevel.WARNING);
 			return;
 		}
 
@@ -1763,7 +1769,234 @@ class OVT_RecruitManagerComponent : OVT_Component
 		// every machine still learns the recruit is a group member.
 		groupController.AddAIToSlaveGroup(recruitEntity, group);
 	}
-	
+
+	//------------------------------------------------------------------------------------------------
+	//! Moves every one of an owner's LIVE recruits into another group's slave group. SERVER ONLY.
+	//!
+	//! This is the "recruits follow their owner IN" half of the reactor
+	//! (OVT_PlayerGroupManagerComponent.OnGroupPlayerAdded). Ownership is NOT touched: no line below
+	//! writes m_sOwnerPersistentId or OVT_PlayerOwnerComponent, and none ever may. A recruit inside a
+	//! shared group is commanded by that group's leader and still owned, renamed, dismissed, equipped
+	//! and XP-credited by the player who recruited it.
+	//!
+	//! THE TARGET GROUP IS AN ARGUMENT AND MUST STAY ONE. It cannot be read back from the owner's
+	//! group controller here: during a group SWITCH vanilla fires both membership invokers while
+	//! SCR_PlayerControllerGroupComponent.m_iGroupID still holds the OLD group id (it is only written
+	//! afterwards, in RPC_AskJoinGroup at Groups/SCR_PlayerControllerGroupComponent.c:892), so a
+	//! GetGroupID() lookup at this moment would place the recruits back where they came from.
+	//!
+	//! \param[in] ownerPersistentId The recruits' owner.
+	//! \param[in] targetGroup The MASTER group the owner is now in - the recruits go into its slave.
+	//! \param[in] ownerOnline Resolved by the caller from PlayerManager.GetPlayerController(), never
+	//!            from the player record's own liveness accessor (decision D9). False transfers
+	//!            nothing.
+	//! \return How many recruits were actually placed in the target group's slave group. Phase 5 uses
+	//!         this for the leader's "X joined with N recruits" notification, so it must stay the count
+	//!         that ARRIVED - not the count the owner holds on paper.
+	int MoveRecruitsToGroup(string ownerPersistentId, notnull SCR_AIGroup targetGroup, bool ownerOnline)
+	{
+		if (!Replication.IsServer())
+			return 0;
+
+		if (ownerPersistentId.IsEmpty())
+			return 0;
+
+		// SelectTransferable returns a FRESH array of ids, which is also the snapshot the loop below
+		// needs: FindRecruitEntity() prunes stale entries from m_mEntityToRecruit as it walks, so
+		// iterating a live manager collection while calling it is a known hazard (task T6.7). Nothing
+		// here iterates a collection this manager owns.
+		int skippedOffline = 0;
+		array<string> recruitIds = OVT_GroupRecruitTransfer.SelectTransferable(GetPlayerRecruits(ownerPersistentId), ownerOnline, skippedOffline);
+
+		if (recruitIds.IsEmpty())
+		{
+			if (skippedOffline > 0)
+				Print("[Overthrow] MoveRecruitsToGroup: none of " + ownerPersistentId + "'s recruits followed them into group " + targetGroup.GetGroupID() + " (" + skippedOffline + " have no body in the world)", LogLevel.NORMAL);
+
+			return 0;
+		}
+
+		if (!targetGroup.GetSlave())
+		{
+			Print("[Overthrow] MoveRecruitsToGroup: group " + targetGroup.GetGroupID() + " has no slave group - " + recruitIds.Count() + " recruits of " + ownerPersistentId + " cannot follow (commanding manager missing at group creation?)", LogLevel.WARNING);
+			return 0;
+		}
+
+		SCR_PlayerControllerGroupComponent groupController = FindOwnerGroupController(ownerPersistentId);
+		if (!groupController)
+		{
+			Print("[Overthrow] MoveRecruitsToGroup: no group controller for owner " + ownerPersistentId + " - " + recruitIds.Count() + " recruits cannot follow them into group " + targetGroup.GetGroupID(), LogLevel.WARNING);
+			return 0;
+		}
+
+		int moved = 0;
+		foreach (string recruitId : recruitIds)
+		{
+			IEntity recruitEntity = FindRecruitEntity(recruitId);
+			if (!recruitEntity)
+			{
+				// The record says this recruit has a body and the world disagrees. Say so instead of
+				// dereferencing: a recruit mid-despawn or mid-respawn is the one shape this can take.
+				Print("[Overthrow] MoveRecruitsToGroup: recruit " + recruitId + " is marked as having a body but no entity was found - skipped", LogLevel.WARNING);
+				continue;
+			}
+
+			// The AI has to be running before it can take orders. ActivateAI() on an already active
+			// agent is a no-op, so this is safe for a recruit that was already following its owner.
+			AIControlComponent aiControl = AIControlComponent.Cast(recruitEntity.FindComponent(AIControlComponent));
+			if (aiControl)
+				aiControl.ActivateAI();
+
+			// Same call the recruit path already uses (AddRecruitToPlayerGroup above): it does
+			// slaveGroup.AddAgentFromControlledEntity() plus AskAddAiMemberToGroup(), and the latter
+			// broadcasts membership to every machine itself
+			// (Groups/SCR_PlayerControllerGroupComponent.c:1470-1495).
+			groupController.AddAIToSlaveGroup(recruitEntity, targetGroup);
+			moved++;
+		}
+
+		Print("[Overthrow] Moved " + moved + " of " + ownerPersistentId + "'s recruits into group " + targetGroup.GetGroupID() + " (" + skippedOffline + " skipped, no body in the world)", LogLevel.NORMAL);
+
+		return moved;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Pulls every one of an owner's recruits back out of a group's slave group. SERVER ONLY.
+	//!
+	//! This is the "recruits follow their owner OUT" half of the reactor
+	//! (OVT_PlayerGroupManagerComponent.OnGroupPlayerRemoved) and it must run SYNCHRONOUSLY inside the
+	//! removal frame. Two independent reasons:
+	//!   1. the ex-leader must stop commanding somebody else's AI the moment that somebody leaves;
+	//!   2. an emptied group is queued for destruction by vanilla's own removal handler and destroyed
+	//!      NEXT FRAME (DeleteGroupDelayed -> DeleteGroups, Groups/SCR_GroupsManagerComponent.c:721-730,
+	//!      :1647-1654). UnregisterGroup only deletes the slave group when it has no agents left
+	//!      (:1035-1040, with vanilla's own "mourTodo: handle what the AIs should do in case their
+	//!      master group is deleted" beside it) - so recruits left behind here are AI stranded in a
+	//!      leaked slave group whose master no longer exists.
+	//!
+	//! Ownership is NOT touched. Nothing below writes m_sOwnerPersistentId or OVT_PlayerOwnerComponent.
+	//!
+	//! IT DELIBERATELY NEEDS NO PLAYER CONTROLLER. The move-IN half calls
+	//! SCR_PlayerControllerGroupComponent.AddAIToSlaveGroup on the owner's controller, but the move-OUT
+	//! half must keep working for an owner who no longer HAS one - a disconnect is a removal, and it is
+	//! the removal where leaving recruits behind is worst. Vanilla's mirror
+	//! (SCR_PlayerControllerGroupComponent.RemoveAiFromSlaveGroup,
+	//! Groups/SCR_PlayerControllerGroupComponent.c:1526-1552) reads nothing off the component it is
+	//! called on, so the four steps below are that method inlined, minus the dependency:
+	//! Deactivate-the-slave-when-the-last-AI-leaves, RemoveAgentFromControlledEntity, then
+	//! AskRemoveAiMemberFromGroup (:1557), which broadcasts RPC_DoRemoveAIMemberFromGroup to every
+	//! machine. Keep this in step with that method when Reforger updates (checklist R10).
+	//!
+	//! \param[in] ownerPersistentId The recruits' owner.
+	//! \param[in] exGroup The MASTER group being left - recruits are pulled out of its slave.
+	void RemoveRecruitsFromGroup(string ownerPersistentId, notnull SCR_AIGroup exGroup)
+	{
+		if (!Replication.IsServer())
+			return;
+
+		if (ownerPersistentId.IsEmpty())
+			return;
+
+		if (!m_mRecruitsByOwner.Contains(ownerPersistentId))
+			return;
+
+		SCR_AIGroup slaveGroup = exGroup.GetSlave();
+		if (!slaveGroup)
+			return;
+
+		SCR_GroupsManagerComponent groupsManager = SCR_GroupsManagerComponent.GetInstance();
+		if (!groupsManager)
+			return;
+
+		RplComponent slaveRplComponent = RplComponent.Cast(slaveGroup.FindComponent(RplComponent));
+		if (!slaveRplComponent)
+		{
+			Print("[Overthrow] RemoveRecruitsFromGroup: the slave group of group " + exGroup.GetGroupID() + " has no RplComponent - " + ownerPersistentId + "'s recruits cannot be removed from it", LogLevel.WARNING);
+			return;
+		}
+
+		RplId slaveRplId = slaveRplComponent.Id();
+
+		// SNAPSHOT before iterating: FindRecruitEntity() prunes stale entries from m_mEntityToRecruit as
+		// it walks, and the removal reaches back into vanilla group state. Neither may run while this
+		// loop is holding a live manager collection open (task T6.7).
+		array<string> recruitIds = new array<string>();
+		foreach (string ownedId : m_mRecruitsByOwner[ownerPersistentId])
+		{
+			recruitIds.Insert(ownedId);
+		}
+
+		int removed = 0;
+		foreach (string recruitId : recruitIds)
+		{
+			IEntity recruitEntity = FindRecruitEntity(recruitId);
+			if (!recruitEntity)
+				continue;
+
+			AIControlComponent aiControl = AIControlComponent.Cast(recruitEntity.FindComponent(AIControlComponent));
+			if (!aiControl)
+				continue;
+
+			AIAgent agent = aiControl.GetAIAgent();
+			if (!agent)
+				continue;
+
+			// Only pull the ones that are ACTUALLY in this group's slave. A recruit whose body exists
+			// but who was never placed (its owner was mid-respawn, say) has no business being handed to
+			// RemoveAgent, and the engine's agent hierarchy is the authority on that - not the
+			// replicated m_aAIMembers list, which is bookkeeping for the UI.
+			if (SCR_AIGroup.Cast(agent.GetParentGroup()) != slaveGroup)
+				continue;
+
+			RplComponent characterRplComponent = RplComponent.Cast(recruitEntity.FindComponent(RplComponent));
+			if (!characterRplComponent)
+			{
+				Print("[Overthrow] RemoveRecruitsFromGroup: recruit " + recruitId + " has no RplComponent - left in group " + exGroup.GetGroupID() + "'s slave group", LogLevel.WARNING);
+				continue;
+			}
+
+			// Vanilla deactivates the slave group as its LAST AI leaves (:1536-1537), which is what stops
+			// an empty slave group being ticked. AddAIToSlaveGroup re-activates it (:1480-1481), so this
+			// round-trips for a group that later gains recruits again.
+			if (slaveGroup.GetAgentsCount() == 1)
+				slaveGroup.Deactivate();
+
+			slaveGroup.RemoveAgentFromControlledEntity(recruitEntity);
+			groupsManager.AskRemoveAiMemberFromGroup(slaveRplId, characterRplComponent.Id());
+			removed++;
+		}
+
+		Print("[Overthrow] Pulled " + removed + " of " + ownerPersistentId + "'s recruits out of group " + exGroup.GetGroupID() + "'s slave group", LogLevel.NORMAL);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The group component on an owner's player controller, or null when they are not in the session.
+	//!
+	//! AddAIToSlaveGroup is effectively a static helper on that component - it reads the group and the
+	//! groups manager, never `this` - but it is called on the OWNER's controller deliberately, so that
+	//! the "whose AI is this" relationship stays readable in the code and keeps working if vanilla ever
+	//! starts consulting the component it is called on. The move-OUT path deliberately does NOT use
+	//! this: see RemoveRecruitsFromGroup.
+	//!
+	//! \param[in] ownerPersistentId Persistent id of the owning player.
+	//! \return The owner's group component, or null.
+	protected SCR_PlayerControllerGroupComponent FindOwnerGroupController(string ownerPersistentId)
+	{
+		OVT_PlayerManagerComponent playerManager = OVT_Global.GetPlayers();
+		if (!playerManager)
+			return null;
+
+		int playerId = playerManager.GetPlayerIDFromPersistentID(ownerPersistentId);
+		if (playerId < 1)
+			return null;
+
+		PlayerController playerController = GetGame().GetPlayerManager().GetPlayerController(playerId);
+		if (!playerController)
+			return null;
+
+		return SCR_PlayerControllerGroupComponent.Cast(playerController.FindComponent(SCR_PlayerControllerGroupComponent));
+	}
+
 	//------------------------------------------------------------------------------------------------
 	//! Saves recruit data for network replication (Join-In-Progress)
 	//!
@@ -1915,58 +2148,88 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//! Called when a player group is created - triggers recruit respawning
 	protected void OnPlayerGroupCreated(int playerId, int groupId, string playerName)
 	{
-		// Wait 2000ms to ensure player is in a group and the leader
-		GetGame().GetCallqueue().CallLater(RespawnRecruitsDelayed, 3000, false, playerId);
+		// Wait 3000ms to ensure the player is in a group before their recruits are asked back
+		GetGame().GetCallqueue().CallLater(RespawnRecruitsDelayed, 3000, false, playerId, 0);
 	}
-	
+
+	//! How many times RespawnRecruitsDelayed may re-arm itself before giving up, matching the cap on
+	//! its sibling ladder OVT_SpawnLogic.CreateAndJoinGroupDelayed. At 500 ms a retry that is 5 s of
+	//! grace after the initial 3 s wait.
+	static const int RESPAWN_RECRUITS_MAX_RETRIES = 10;
+
 	//------------------------------------------------------------------------------------------------
-	//! Delayed recruit respawning to ensure player is group leader
-	protected void RespawnRecruitsDelayed(int playerId)
+	//! Delayed recruit respawning, once the returning player actually has a group.
+	//!
+	//! THE RETRY LADDER IS CAPPED (task T4.5). Both re-arm branches below used to schedule another
+	//! CallLater with no counter at all, so a player who never satisfied the condition produced a
+	//! 500 ms timer that ran for the rest of the session. The cap is the same 10 its sibling
+	//! CreateAndJoinGroupDelayed has used all along, and exhaustion is a WARNING naming the
+	//! consequence rather than a silent stop.
+	//!
+	//! THE LEADER TEST BECAME A MEMBERSHIP TEST (decision D8) - see the guard below.
+	//!
+	//! \param[in] playerId The returning player.
+	//! \param[in] retryCount How many times this ladder has already re-armed. Callers start at 0.
+	protected void RespawnRecruitsDelayed(int playerId, int retryCount)
 	{
+		if (retryCount > RESPAWN_RECRUITS_MAX_RETRIES)
+		{
+			Print("[Overthrow] Gave up respawning recruits for player " + playerId + " after " + RESPAWN_RECRUITS_MAX_RETRIES + " retries - they never ended up in a group, so their recruits stay stored until they are given one again", LogLevel.WARNING);
+			return;
+		}
+
 		// Get player's persistent ID
 		string playerPersistentId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		if (playerPersistentId.IsEmpty())
 			return;
-			
-		// Verify player is actually a group leader before respawning recruits
+
+		// Verify the player is actually in a group before respawning recruits
 		SCR_PlayerController playerController = SCR_PlayerController.Cast(
 			GetGame().GetPlayerManager().GetPlayerController(playerId)
 		);
-		
+
 		if (!playerController)
 			return;
-		
+
 		SCR_PlayerControllerGroupComponent groupController = SCR_PlayerControllerGroupComponent.Cast(
 			playerController.FindComponent(SCR_PlayerControllerGroupComponent)
 		);
-		
+
 		if (!groupController)
 			return;
-		
+
 		int groupId = groupController.GetGroupID();
 		if (groupId == -1)
 		{
-			// Retry after another delay
-			GetGame().GetCallqueue().CallLater(RespawnRecruitsDelayed, 500, false, playerId);
+			// Retry after another delay. Counted against the SAME cap as the membership branch below:
+			// the point of the cap is that no branch of this ladder may re-arm forever, and a player
+			// who is still groupless 5 s after their group was created is a case for the own-group
+			// reactor (OVT_PlayerGroupManagerComponent), not for an unbounded timer here.
+			GetGame().GetCallqueue().CallLater(RespawnRecruitsDelayed, 500, false, playerId, retryCount + 1);
 			return;
 		}
-		
-		// Check if player is group leader
+
+		// Check the player is in the group their controller points at
 		SCR_GroupsManagerComponent groupsManager = SCR_GroupsManagerComponent.GetInstance();
 		if (!groupsManager)
 			return;
-		
+
 		SCR_AIGroup group = groupsManager.FindGroup(groupId);
 		if (!group)
 			return;
-		
-		if (group.GetLeaderID() != playerId)
+
+		// MEMBERSHIP, NOT LEADERSHIP (decision D8). This used to demand group.GetLeaderID() == playerId,
+		// which under the shared-group model is false for every player who reconnects into - or spawns
+		// and then joins - somebody else's group: their whole recruit roster would then never be asked
+		// back from storage, and the ladder below would re-arm every 500 ms forever waiting for a
+		// leadership that is never coming.
+		if (!group.IsPlayerInGroup(playerId))
 		{
 			// Retry after another delay
-			GetGame().GetCallqueue().CallLater(RespawnRecruitsDelayed, 500, false, playerId);
+			GetGame().GetCallqueue().CallLater(RespawnRecruitsDelayed, 500, false, playerId, retryCount + 1);
 			return;
 		}
-		
+
 		// Now it's safe to respawn recruits
 		RespawnPlayerRecruits(playerPersistentId);
 	}

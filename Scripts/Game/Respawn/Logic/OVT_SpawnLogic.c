@@ -839,78 +839,56 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 			return;
 		}
 
+		// STAYS HERE, NOT IN THE MANAGER. Assigning the faction fires vanilla's
+		// SCR_GroupsManagerComponent.OnPlayerFactionChanged (Groups/SCR_GroupsManagerComponent.c:1101),
+		// which REMOVES the player from any group they are in (:1130) and resets their group ids (:1139).
+		// That is correct exactly once, at spawn, and would be destructive from the reactor's restore
+		// path - which is why EnsureOwnGroup() does not do it. It is a no-op after the first call
+		// (SetCivilianFaction returns early when the player already has the right faction).
 		SetCivilianFaction(playerId);
 
 		int groupId = group.GetGroupID();
-		//Is the player not already in a group?
-		if(groupId == -1)
-		{
-			SCR_GroupsManagerComponent groupsManager = SCR_GroupsManagerComponent.GetInstance();
-			if (!groupsManager)
-			{
-				// Groups manager not ready, retry later
-				GetGame().GetCallqueue().CallLater(CreateAndJoinGroupDelayed, 500, false, playerId, 0);
-				return;
-			}
-
-			SCR_FactionManager factionManager = SCR_FactionManager.Cast(GetGame().GetFactionManager());
-			if (!factionManager)
-				return;
-
-			// No faction means SetCivilianFaction() above did not take. Say so instead of returning
-			// silently - this is the head of the chain that leaves a player with no group, no
-			// commanding and recruits that never join them (BUG-088).
-			Faction faction = factionManager.GetPlayerFaction(playerId);
-			if (!faction)
-			{
-				Print("[Overthrow] Player " + playerId + " has no faction - cannot create their group", LogLevel.ERROR);
-				return;
-			}
-
-			SCR_AIGroup newGroup = groupsManager.CreateNewPlayableGroup(faction);
-			if (!newGroup)
-			{
-				Print("[Overthrow] Failed to create group for player " + playerId, LogLevel.WARNING);
-				return;
-			}
-
-			string playerName = GetGame().GetPlayerManager().GetPlayerName(playerId);
-			newGroup.SetName(playerName);
-
-			int groupID = newGroup.GetGroupID();
-
-			SCR_PlayerControllerGroupComponent groupController = SCR_PlayerControllerGroupComponent.GetPlayerControllerComponent(playerId);
-			if (!groupController)
-			{
-				Print("[Overthrow] Failed to get group controller for player " + playerId, LogLevel.WARNING);
-				return;
-			}
-
-			// RequestJoinGroup() is the CLIENT's request API: all it does is marshal
-			// RPC_AskJoinGroup as an RplRcver.Server RPC, which only travels when the caller is a
-			// proxy. This method runs on the server, so in any replicated session (dedicated OR
-			// hosted) the request went nowhere and the player never actually joined the group we
-			// just made for them - leaving an empty, leaderless group. Everything downstream keys
-			// off group membership: SCR_GroupsManagerComponent.GetPlayerGroup() finds nothing, so
-			// AI commanding refuses with "Commanding is only available to group leaders", no group
-			// indicator is drawn, and AddRecruitToPlayerGroup bails before it can place a recruit.
-			// Vanilla itself calls the handler directly from its own server-side code
-			// (SCR_PlayerControllerGroupComponent.RpcAsk_CreateGroupWithData) - do the same.
-			if (Replication.IsServer())
-				groupController.RPC_AskJoinGroup(groupID);
-			else
-				groupController.RequestJoinGroup(groupID);
-
-			Print("[Overthrow] Created group " + groupID + " for player " + playerName + " (ID: " + playerId + ")", LogLevel.NORMAL);
-			Print("[Overthrow] Group faction: " + faction.GetFactionKey() + ", Player entity: " + playerController.GetControlledEntity(), LogLevel.NORMAL);
-
-			// Fire the group created event
-			m_OnPlayerGroupCreated.Invoke(playerId, groupID, playerName);
-		}
-		else
+		//Is the player already in a group?
+		if(groupId != -1)
 		{
 			Print("[Overthrow] Player " + playerId + " already in group " + groupId, LogLevel.NORMAL);
+			return;
 		}
+
+		// Readiness probe only - the manager is what actually uses it. Kept here because "the groups
+		// manager is not up yet" is the one failure this path has always RETRIED rather than given up on.
+		if (!SCR_GroupsManagerComponent.GetInstance())
+		{
+			// Groups manager not ready, retry later
+			GetGame().GetCallqueue().CallLater(CreateAndJoinGroupDelayed, 500, false, playerId, 0);
+			return;
+		}
+
+		OVT_PlayerGroupManagerComponent playerGroups = OVT_PlayerGroupManagerComponent.GetInstance();
+		if (!playerGroups)
+		{
+			// Manager not initialised yet, retry later
+			GetGame().GetCallqueue().CallLater(CreateAndJoinGroupDelayed, 500, false, playerId, 0);
+			return;
+		}
+
+		// The whole "create this player's own private group and put them in it" body now lives on
+		// OVT_PlayerGroupManagerComponent, because the reactor's return-to-own-group path needs exactly
+		// the same thing. EnsureOwnGroup is idempotent and logs every failure with its reason, so a -1
+		// here has already been explained in the log.
+		int groupID = playerGroups.EnsureOwnGroup(playerId);
+		if (groupID == -1)
+			return;
+
+		string playerName = GetGame().GetPlayerManager().GetPlayerName(playerId);
+
+		// Fire the group created event.
+		//
+		// THIS IS THE ONLY PLACE IT FIRES (decision D6). OVT_RecruitManagerComponent subscribes to it via
+		// OVT_RespawnSystemComponent.GetOnPlayerGroupCreated() and answers by respawning the player's
+		// whole recruit roster - which is right for a player arriving in the world and wrong for a player
+		// merely moving between groups, so the reactor never fires it.
+		m_OnPlayerGroupCreated.Invoke(playerId, groupID, playerName);
 	}
 
 	//------------------------------------------------------------------------------------------------
