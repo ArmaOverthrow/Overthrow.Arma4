@@ -18,12 +18,12 @@
 
 ## Release plan
 
-| Version             | Theme                                             | Contents                                                                                                                                                                   | Status     |
-| ------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| **1.4.0**           | Vanilla persistence + bugfixes + Economy QOL      | EPF → vanilla persistence migration + discovery-phase bugfixes. New shop and economy QOL (economy/shop-ux feature) Breaking save change.                                   | In testing |
-| **1.4.x**           | Stabilization patches + Virtualization            | Player-reported bugs as 1.4.0 reaches the player-base (see below). The `virtualization` epic (docs/features/virtualization/) — GitHub #100 rebuilt on vanilla persistence. | Planned    |
-| **1.5.0** _(draft)_ | New map + High Command #24                        | Revive and land the `new-map` branch — GitHub #70 and High Command (unlocked by Virtualization and integrated into the new map).                                           | Proposed   |
-| Unscheduled         | Economy 2.0, Victory/defeat conditions, Intel #11 | See Backlog.                                                                                                                                                               | —          |
+| Version             | Theme                                             | Contents                                                                                                                                                                                                                                       | Status     |
+| ------------------- | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| **1.4.0**           | Vanilla persistence + bugfixes + Economy QOL      | EPF → vanilla persistence migration + discovery-phase bugfixes. New shop and economy QOL (economy/shop-ux feature) Breaking save change.                                                                                                       | In testing |
+| **1.4.x**           | Stabilization patches + NPE + Virtualization      | Player-reported bugs as 1.4.0 reaches the player-base (see below). `new-player-experience` epic (docs/features/new-player-experience/) and `virtualization` epic (docs/features/virtualization/) — GitHub #100 rebuilt on vanilla persistence. | Planned    |
+| **1.5.0** _(draft)_ | New map + High Command #24                        | Revive and land the `new-map` branch — GitHub #70 and High Command (unlocked by Virtualization and integrated into the new map).                                                                                                               | Proposed   |
+| Unscheduled         | Economy 2.0, Victory/defeat conditions, Intel #11 | See Backlog.                                                                                                                                                                                                                                   | —          |
 
 ---
 
