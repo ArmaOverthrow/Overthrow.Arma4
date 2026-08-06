@@ -159,6 +159,8 @@ OVT_OverthrowGameMode {
   }
   OVT_PlayerCommsComponent "{5D7ACE1228D77F40}" {
   }
+  OVT_PlayerGroupManagerComponent "{6A7D9B2E00000080}" {
+  }
   OVT_PlayerManagerComponent "{599AA74940529C1C}" {
   }
   OVT_RealEstateManagerComponent "{59724C983E7EF811}" {
@@ -252,6 +254,7 @@ OVT_OverthrowGameMode {
    m_sDefaultGroupPrefab "{8B4D49A9F324E7D5}Prefabs/Groups/PlayableGroup.et"
    m_aGroupFlags {
    }
+   m_bAllowRejoinPlayerAfterReconnecting 0
   }
   SCR_HintManagerComponent "{59724C8C935D8E2C}" {
   }

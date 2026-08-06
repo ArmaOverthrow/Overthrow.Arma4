@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{6A7D9B2E000000B0}UI/Layouts/Menu/GroupModelExplainer.layout"
+ Configurations {
+  LayoutResourceClass PC {
+  }
+  LayoutResourceClass XBOX_ONE : PC {
+  }
+  LayoutResourceClass XBOX_SERIES : PC {
+  }
+  LayoutResourceClass PS4 : PC {
+  }
+  LayoutResourceClass HEADLESS : PC {
+  }
+ }
+}

@@ -29,6 +29,7 @@ The constituent features of this epic, in build order. This is the epic's equiva
 | 3 | test-coverage | ✅ Complete | 61/62 (1 optional) | Behaviour-level suites in four tiers (30 assertions) + two group targets + the quarantined `core/persistence` acceptance gate |
 | 4 | ci-pipeline | 📋 Planned | — | Self-hosted Windows runner, GitHub Actions, JUnit results surfaced on PRs |
 | 5 | release-automation | 📋 Planned | — | Workshop pack & publish via `-packAddon` / `-publishAddon*` |
+| 6 | mp-testing | 🟡 Phase 1 shipped | — | Local dedicated server running the working tree (`tools/launch-server.sh`, 2026-08-06). Join path unverified; automated MP testing gated behind that |
 
 > Reference any feature with the slash form `dev-ops/<feature-name>` (e.g. `/continue-feature dev-ops/workbench-automation`). Task counts are pulled from each feature's own `tasks.md` and refreshed by `/update-epic`.
 >
@@ -47,6 +48,8 @@ The constituent features of this epic, in build order. This is the epic's equiva
 4. **ci-pipeline** — Depends on #1 and #2 (needs a working compile check and a working test loop to orchestrate). **Can be built in parallel with #3** — the pipeline does not care how many suites exist, only that the commands and artifacts are stable.
 
 5. **release-automation** — Independent of #2–#4; needs only #1's Workbench-launching foundation. Sequenced last because it is the least urgent and carries outward-facing risk (it publishes to the Workshop). Small.
+
+6. **mp-testing** — Added 2026-08-06, out of build order, in response to the actual iteration cost of testing `core/player-groups`. Depends only on #1. Phase 1 (a local server running the working tree) turned out to be a launcher and a config, not a project — so it shipped immediately rather than waiting its turn. Phases 2–3 (prove the join path, then decide whether automated MP testing is worth building) are unstarted and the second is deliberately conditional. **This partially reverses the epic's original "MP is out of scope" position** — see the note under Out of Scope in its `requirements.md`: coordinating two processes is still hard, but launching one server never was.
 
 **Dependencies between features:**
 - `workbench-automation` → `autotest-foundation` (launch + artifact retrieval)
@@ -82,13 +85,15 @@ The constituent features of this epic, in build order. This is the epic's equiva
 
 Cross-feature tech debt and review findings. **Populated and updated by `/review-epic`** (which also writes feature-specific findings into the relevant child `context.md` files). Start empty.
 
-- (none yet — `/review-epic dev-ops` will surface cross-feature integration issues and per-feature tech debt here)
+- **Assertion counts in this file and in `CLAUDE.md` drifted stale** (noticed 2026-08-06). This file said "30 assertions", `CLAUDE.md` said "Fast 20 / All 42"; the test tree actually holds **68 `[Test(...)]` declarations** (Logic 25, Init 13, Campaign 5, Persistence 23 incl. the 9 quarantined, Smoke 1, Meta 1) because features in *other* epics kept adding cases after #3 closed. Counts stated in prose go stale silently and nobody notices — `/update-epic dev-ops` should re-derive them rather than carry them forward.
+- **`ADDONS_OVT` is misleadingly named** (`OVT_AutotestFramework.c:20`): `"58D0FB3206B6F859,59B657D731E2A11D"` reads as "EPF + Overthrow" but `58D0FB3206B6F859` is the **base game** `ArmaReforger.gproj`. Cost real time during #6's spike. Not urgent, but a comment there would pay for itself.
+- (`/review-epic dev-ops` will surface further cross-feature integration issues and per-feature tech debt here)
 
 ---
 
 ## Master Overview Rollup
 
-- **Rollup status:** In Progress (3/5 features complete)
+- **Rollup status:** In Progress (3/6 features complete; #6 mp-testing Phase 1 shipped)
 - **One-line summary for master:** Automated compile, test and release pipeline for Overthrow, built on Reforger 1.7.0's shipped autotest framework and Workbench CLI — replaces the manual play-testing quality gate.
 
 ---

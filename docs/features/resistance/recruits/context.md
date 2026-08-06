@@ -13,10 +13,9 @@
 - ✅ Retrospective documentation created (thorough code investigation, 2026-08-02)
 - ✅ **BUG-051/052/053 fixed** (2026-08-02): recruit RPCs validate sender-derived identity, `RpcAsk_RenameRecruit` exists, fast travel captures the departure point before teleporting
 - ✅ **BUG-080 fixed** (2026-08-04): recruits follow orders after the owner dies — group insertion goes through the slave-group path, which is commanded by player id
-- ✅ **BUG-088 fixed** (2026-08-06, awaiting MP play-test): recruits (and commanding, and the group menu) were dead in every replicated session
+- ✅ **BUG-088 fixed and dedicated-server verified** (2026-08-06): recruits, commanding and faction assignment were dead in every replicated session. Headline cause was **not** in this feature — `OVT_OverthrowFactionManager.et` had no `RplComponent`, so no client ever learned any player's faction, and recruit group insertion resolves through the faction. Recruits now join the owner's group and follow orders on a dedicated server.
 
 **What's Next:**
-- 🔬 Dedicated-server play-test of BUG-088 (see below) — MP is uncovered by the test suite
 - 📋 Remaining enhancements: the `FindRecruitEntity` mid-iteration removal, the hardcoded `US`/`USSR` XP faction keys, and Logic-tier coverage for the recruit record maths
 
 **Blockers:**
@@ -48,6 +47,7 @@
 
 ## Gotchas & Learnings
 
+- **The client's view of a player's faction comes from ONE place, and it used to never arrive.** `SCR_FactionManager.m_MappedPlayerFactionInfo` is rebuilt only from the `m_aPlayerFactionInfo` RplProp; `GetPlayerGroup()` (and therefore all recruit commanding) resolves the group *through* that faction. Overthrow's faction manager prefab had no `RplComponent`, so `Replication.BumpMe()` was a silent no-op and every client's map stayed empty (BUG-088). **When server state is provably right and the client disagrees, verify the entity owning the RplProp is replicated before debugging any logic.**
 - **A recruit can only join a player who is a group leader, and in MP nobody was** (BUG-088, fixed 2026-08-06). `AddRecruitToPlayerGroup` guards on `GetGroupID() != -1` and `GetLeaderID() == playerId`; both failed on every dedicated/hosted server because the *player* never got a faction or a group. The cause was two server-side calls to vanilla **client-request** APIs — `SCR_PlayerFactionAffiliationComponent.RequestFaction()` and `SCR_PlayerControllerGroupComponent.RequestJoinGroup()` — each of which only marshals an `RplRcver.Server` RPC that goes nowhere when the caller *is* the server. Solo hid it because with no replication session those calls execute locally. **The rule: from server code call vanilla's server-side entry point (`SetFaction_S`, `RPC_AskJoinGroup`, `AddAIToSlaveGroup`), never the `Request*` wrapper.** Same family as BUG-045 (officer promotion) and BUG-052 (rename).
 - **Group insertion is a direct server call now**, not a broadcast round trip through the owning client. The old path (`RpcDo_AddRecruitToGroup` + 6 s pre-delay + 10 × 2 s entity-resolution ladder) is gone; `AddAIToSlaveGroup` broadcasts membership itself. The remaining timing ladder in the *respawn* flow is unrelated.
 - ~~Rename never reaches the server~~ — fixed (BUG-052): `RpcAsk_RenameRecruit` in `OVT_PlayerCommsComponent` validates ownership server-side and broadcasts. Note it lives in the deprecated comms component; new client→server work belongs on `OVT_OverthrowController`.
