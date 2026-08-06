@@ -11,6 +11,7 @@ GenericEntity : "{CFFEB23FBEA00322}Prefabs/Props/Military/Sandbags/Sandbag_01_sh
    }
   }
   OVT_PlaceableComponent "{5D7C4898C9637E4F}" {
+   m_sPlaceableType "Sandbags"
   }
  }
 }

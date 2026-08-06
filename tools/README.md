@@ -649,9 +649,78 @@ surface this loudly and exit 2).
 
 ---
 
+## `tools/check-placeables.py`
+
+Static asset check, no Workbench and no game: verifies that every prefab listed
+in **`placeables.conf` and `buildables.conf`** really ends up carrying its
+Overthrow component (`OVT_PlaceableComponent` / `OVT_BuildableComponent`), by
+walking each prefab's **inheritance chain** across both the mod and the base-game
+reference tree.
+
+```
+tools/check-placeables.py [--reforger DIR] [--conf FILE] [--quiet] [--verbose]
+```
+
+| Flag | Meaning |
+|---|---|
+| `--reforger <dir>` | Base-game reference tree. Default `../ArmaReforger`, or `$OVERTHROW_REFORGER_DIR`. |
+| `--conf <file>` | Check only one config — `Configs/Resistance/placeables.conf` or `Configs/Resistance/buildables.conf`. Default: both. |
+| `--quiet` | Only problems and the summary. |
+| `--verbose` | Print each prefab's resolved type and full chain (`*` marks a mod file that shadows a game path). |
+
+| Exit | Meaning |
+|---|---|
+| `0` | Every prefab resolves to a component — verified clean (warnings may still print). |
+| `1` | At least one problem; details on stdout. |
+| `2` | Indeterminate — a config or the reference tree could not be read. |
+
+**Why it is not a grep.** A placed or built object is saved only because the
+persistence rule matches `ComponentClass "OVT_PlaceableComponent"` (and the same
+rule again for `OVT_BuildableComponent`), is ownable only because
+`PlaceItem()`/`BuildItem()` find that component, and is visible to
+`OVT_PlaceableItemJobStage` / `OVT_TownPlaceableCountJobCondition` only through
+its `m_sPlaceableType` — which is *only* ever a prefab attribute. None of that is
+visible to `compile-check.sh` (it compiles scripts, not prefabs) or to the
+autotests, and the failure is silent: the object places, looks correct, and
+evaporates on continue. `OVT_RecruitmentTent.et` shipped in exactly that state
+until 2026-08-06, when this check found it.
+
+The component is usually **not** on the prefab named in the config. Overthrow
+overrides shared base prefabs (`FurnitureMilitary_base.et`, `Signs_Base.et`,
+`LampKerosene_01_base.et`) by shipping a file at the **same path with the same
+GUID** as the game's, adding nothing but the component — so dozens of untouched
+base-game leaves inherit it. Answering "is this placeable wired up?" therefore
+means resolving the whole chain, which is what this does.
+
+**Problems** (exit 1): no component anywhere in a chain; a head prefab in neither
+tree; a config GUID that disagrees with the file's own `.meta` (an override that
+is silently *not* an override); the component declared at two levels under
+different GUIDs (a duplicate rather than an override); and, when
+`m_bRandomizePrefab` is set, variants resolving to different types.
+
+**Warnings** (exit 0): a component with no type attribute (saved and ownable, but
+invisible to type-aware features); a type string that differs from the config's
+`m_sName`; and variants with mixed types where the *player* picks the variant.
+The six standing warnings are all buildables whose `m_sName` is a display name
+with spaces (`"Guard Tower"`) against a CamelCase type (`"GuardTower"`) — that is
+the convention, not a defect, and the warning exists so a job author uses the
+type string rather than the display name.
+
+Run it after touching either config or any placeable/buildable prefab, and before
+shipping a job or feature that matches on type.
+
+Requires `python3` (WSL default). A truncated chain is not a fault: base-game
+paths recorded in a `.et` can be stale (the engine resolves by GUID) and the
+reference tree is a partial extract — and since resolution checks the mod first,
+anything unresolvable is by definition not a mod file and cannot declare an
+Overthrow component.
+
+---
+
 ## Utilities
 
 ```bash
+tools/check-placeables.py --quiet                 # placeable/buildable prefabs: component reachable?
 bash tools/lib/common.sh --self-test              # 29 assertions: path round-trips,
                                                   # resolvers, sweep, trap save/restore
 bash tools/lib/common.sh --sweep-stale            # LIST registered orphans (STALE\t<pid>\t<image>)

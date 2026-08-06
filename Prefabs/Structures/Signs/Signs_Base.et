@@ -2,7 +2,7 @@ GenericEntity {
  ID "50D67C36F4200F97"
  components {
   OVT_PlaceableComponent "{65C4DD9D62B7AF93}" {
-   m_sPlaceableType "Sign"
+   m_sPlaceableType "Signs"
   }
  }
 }

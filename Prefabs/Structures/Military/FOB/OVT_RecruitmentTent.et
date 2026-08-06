@@ -1,6 +1,9 @@
 SCR_DestructibleBuildingEntity : "{BE5D5CFA90224646}Prefabs/Structures/Military/Camps/TentUSSR_01/TentUSSR_01_base.et" {
  ID "F0DBA538AC2A0552"
  components {
+  OVT_BuildableComponent "{6A7D9B2E00000052}" {
+   m_sBuildableType "RecruitmentTent"
+  }
   MeshObject "{506EDA9D46FC6C06}" {
    Materials {
     MaterialAssignClass "{65AAD8E2BE19D653}" {

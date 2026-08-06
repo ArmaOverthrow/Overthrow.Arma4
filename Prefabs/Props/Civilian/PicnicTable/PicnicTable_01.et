@@ -2,7 +2,7 @@ SCR_DestructibleEntity : "{4CC2C69DE1AEF103}Prefabs/Props/Core/Destructible_Prop
  ID "6222A6AEFE8ACA5F"
  components {
   OVT_PlaceableComponent "{65CE9A29D5C58EDB}" {
-   m_sPlaceableType "Table"
+   m_sPlaceableType "Furniture"
   }
   RplComponent "{5624A88DC2D9928D}" {
    Enabled 1

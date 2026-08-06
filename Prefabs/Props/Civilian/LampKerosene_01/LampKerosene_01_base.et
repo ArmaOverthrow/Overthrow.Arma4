@@ -2,7 +2,7 @@ GameEntity : "{4CC2C69DE1AEF103}Prefabs/Props/Core/Destructible_Props_Base.et" {
  ID "F0DBA538AC2A0552"
  components {
   OVT_PlaceableComponent "{65CE9A2880D53521}" {
-   m_sPlaceableType "Lantern"
+   m_sPlaceableType "Furniture"
   }
  }
 }
