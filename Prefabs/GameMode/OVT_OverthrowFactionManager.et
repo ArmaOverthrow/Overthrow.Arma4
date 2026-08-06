@@ -1,5 +1,10 @@
 OVT_OverthrowFactionManager {
  ID "5D8CB07C66269E75"
+ components {
+  RplComponent "{6B1C4E7A0D3F5182}" {
+   Streamable Disabled
+  }
+ }
  coords 157.818 1.001 143.531
  Factions {
   SCR_Faction "{5D8CB0700C13A528}" : "{09727032415AC39B}Configs/Factions/USSR.conf" {
