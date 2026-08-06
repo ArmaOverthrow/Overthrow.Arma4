@@ -2,6 +2,7 @@ GenericEntity : "{4106EBCD72532DA4}Prefabs/Props/Commercial/Posters/PosterSingle
  ID "F0DBA538AC2A0552"
  components {
   OVT_PlaceableComponent "{5D78D824B2A1AA02}" {
+   m_sPlaceableType "Poster"
   }
   MeshObject "{5872F0EB7FA40561}" {
    Materials {

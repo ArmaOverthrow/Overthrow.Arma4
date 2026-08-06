@@ -39,6 +39,10 @@ OVT_OverthrowGameMode {
     }
     OVT_JobConfig "{65CD1C846520EBD8}" : "{56139D1CED432410}Configs/Jobs/placeACamp.conf" {
     }
+    OVT_JobConfig "{6A7D9B2E00000040}" : "{6A7D9B2E00000030}Configs/Jobs/propagandaRun.conf" {
+    }
+    OVT_JobConfig "{6A7D9B2E00000041}" : "{6A7D9B2E00000031}Configs/Jobs/pirateRadio.conf" {
+    }
    }
   }
   OVT_LoadoutManagerComponent "{65AAD8FB1BAFD652}" {

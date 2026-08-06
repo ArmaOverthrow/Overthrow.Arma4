@@ -8564,5 +8564,73 @@ StringTable {
    Author "Aaron Static"
    LastChanged "CrioUA"
   }
+  CustomStringTableItem "{6A7D9B2E00000042}" {
+   Id "OVT-Job_PropagandaRun"
+   Target_en_us "Propaganda Run"
+   Comment "Jobs menu - title of the repeatable public poster job"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E00000043}" {
+   Id "OVT-Job_PropagandaRun_Description"
+   Target_en_us "The town needs reminding who the occupiers are. Put up a resistance poster somewhere in town - a wall in plain sight, where people will see it. Don't let the occupying forces catch you doing it."
+   Comment "Jobs menu - description of the repeatable public poster job"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E00000044}" {
+   Id "OVT-Job_PirateRadio"
+   Target_en_us "Pirate Radio"
+   Comment "Jobs menu - title of the repeatable public pirate radio job"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E00000045}" {
+   Id "OVT-Job_PirateRadio_Description"
+   Target_en_us "Word travels further than paper. Set up a pirate radio transmitter in this town to broadcast for the resistance. You'll have to buy the transmitter yourself using the 'Place' option in the main menu, and being seen by soldiers placing it will make you wanted."
+   Comment "Jobs menu - description of the repeatable public pirate radio job"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
  }
 }
