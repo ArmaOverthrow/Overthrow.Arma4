@@ -45,6 +45,8 @@ OVT_OverthrowGameMode {
     }
     OVT_JobConfig "{6A7D9B2E0000005C}" : "{6A7D9B2E00000053}Configs/Jobs/sabotageRadioTower.conf" {
     }
+    OVT_JobConfig "{6A7D9B2E0000006C}" : "{6A7D9B2E00000060}Configs/Jobs/assassinateOfficer.conf" {
+    }
    }
   }
   OVT_LoadoutManagerComponent "{65AAD8FB1BAFD652}" {

@@ -34,6 +34,25 @@ class OVT_FactionGroupEntry
 	string m_sDescription;
 }
 
+//! Single-character registry entry.
+//!
+//! The group and vehicle registries below answer "give me a squad / a truck for this faction". This
+//! one answers "give me ONE named character" - an officer, a courier, a defector - which is what a
+//! job that spawns a target needs. Without it a job config has to name a prefab literally, and a
+//! literal USSR officer is simply wrong on a campaign whose occupier is the US.
+[BaseContainerProps(), SCR_BaseContainerCustomTitleField("m_sCharacterName")]
+class OVT_FactionCharacterEntry
+{
+	[Attribute(desc: "Unique name for this character type, e.g. Officer. Referenced by name from job configs")]
+	string m_sCharacterName;
+
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Character prefab", params: "et")]
+	ResourceName m_sCharacterPrefab;
+
+	[Attribute(desc: "Optional description")]
+	string m_sDescription;
+}
+
 //! Vehicle registry entry
 [BaseContainerProps(), SCR_BaseContainerCustomTitleField("m_sVehicleName")]
 class OVT_FactionVehicleEntry
@@ -216,6 +235,54 @@ class OVT_FactionGroupRegistry
 	}
 }
 
+//! Character registry for spawning one named character of a faction
+[BaseContainerProps()]
+class OVT_FactionCharacterRegistry
+{
+	[Attribute(desc: "Named single characters for this faction")]
+	ref array<ref OVT_FactionCharacterEntry> m_aCharacterEntries;
+
+	//------------------------------------------------------------------------------------------------
+	void OVT_FactionCharacterRegistry()
+	{
+		if (!m_aCharacterEntries)
+			m_aCharacterEntries = new array<ref OVT_FactionCharacterEntry>;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	OVT_FactionCharacterEntry FindCharacterByName(string characterName)
+	{
+		foreach (OVT_FactionCharacterEntry entry : m_aCharacterEntries)
+		{
+			if (entry.m_sCharacterName == characterName)
+				return entry;
+		}
+		return null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return The prefab registered under that name, or an empty ResourceName when this faction has
+	//! no such character. Callers must handle empty - a faction is allowed not to define one.
+	ResourceName GetCharacterPrefab(string characterName)
+	{
+		OVT_FactionCharacterEntry entry = FindCharacterByName(characterName);
+		if (entry)
+			return entry.m_sCharacterPrefab;
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	array<string> GetAllCharacterNames()
+	{
+		array<string> names = new array<string>;
+		foreach (OVT_FactionCharacterEntry entry : m_aCharacterEntries)
+		{
+			names.Insert(entry.m_sCharacterName);
+		}
+		return names;
+	}
+}
+
 [BaseContainerProps(), SCR_BaseContainerCustomTitleField("m_sTag")]
 class OVT_FactionComposition
 {
@@ -248,6 +315,10 @@ class OVT_Faction
 	//! Vehicle registry system for deployments
 	[Attribute(desc: "Vehicle registry for deployment system", category: "Vehicle Registry")]
 	ref OVT_FactionVehicleRegistry m_VehicleRegistry;
+
+	//! Named single characters, referenced by name from job configs
+	[Attribute(desc: "Named single characters for this faction", category: "Character Registry")]
+	ref OVT_FactionCharacterRegistry m_CharacterRegistry;
 		
 	//! Legacy group prefabs - deprecated, use m_GroupRegistry instead
 	//! Kept for compatibility with BaseUpgrade systems
@@ -358,6 +429,17 @@ class OVT_Faction
 	bool IsPlayable()
 	{
 		return m_bIsPlayable;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Prefab for one of this faction's named characters.
+	//! \param[in] characterName Name as authored in the faction's character registry, e.g. "Officer".
+	//! \return The prefab, or an empty ResourceName when this faction defines no such character.
+	ResourceName GetCharacterPrefab(string characterName)
+	{
+		if (!m_CharacterRegistry) return "";
+
+		return m_CharacterRegistry.GetCharacterPrefab(characterName);
 	}
 	
 	bool GetAllInventoryItems(out array<SCR_EntityCatalogEntry> inventoryItems)

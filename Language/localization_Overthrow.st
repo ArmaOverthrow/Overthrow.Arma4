@@ -8666,5 +8666,56 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A7D9B2E00000073}" {
+   Id "OVT-Job_AssassinateOfficer"
+   Target_en_us "Assassinate Officer"
+   Comment "Jobs menu - title of the repeatable base officer assassination job"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E00000074}" {
+   Id "OVT-Job_AssassinateOfficer_Description"
+   Target_en_us "The officer running this base is the reason the surrounding towns keep their heads down. Get inside, kill him, and get out. The garrison will be exactly as unhappy about it as you would expect - but the towns nearby will remember it."
+   Comment "Jobs menu - description of the repeatable base officer assassination job"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E00000075}" {
+   Id "OVT-Modifier_OfficerAssassinated"
+   Target_en_us "Officer Killed"
+   Comment "Town support modifier - granted to towns near a base whose officer was killed"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
  }
 }
