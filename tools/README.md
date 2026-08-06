@@ -18,6 +18,7 @@ tools/
 ├── lib/common.sh      # sourced library — owns the WSL->Windows process boundary
 ├── compile-check.sh   # compile all EnforceScript, honest verdict + parsed errors
 ├── launch-game.sh     # game-client launcher with log-dir resolution
+├── launch-server.sh   # local dedicated server running THIS working tree (MP play-testing)
 └── run-tests.sh       # run autotests, honest verdict from junit.xml
 ```
 
@@ -217,6 +218,265 @@ class inheriting `SCR_AutotestSuiteBase`, or one inheriting
 file name is a decoy; the class inside is `SCR_TEST_Example1SubjectSuite` and
 the whole example is `#ifdef WORKBENCH`-guarded, so it does not exist in the
 retail client (the run crashes out with `Invalid -autotest parameter value`).
+
+---
+
+## `tools/launch-server.sh`
+
+Runs a local dedicated server with Overthrow loaded **from this working tree**,
+so multiplayer and JIP behaviour can be play-tested without publishing
+anything. This is the only tool here that addresses the project's most common
+regression class; `run-tests.sh` is single-client and structurally cannot.
+
+```
+tools/launch-server.sh [--scenario testworld|eden|<resource>]
+                       [--mode local|dedicated] [--config <file>]
+                       [--port <n>] [--max-players <n>] [--profile <name>]
+                       [--admin-password <pw>] [--timeout <s>]
+                       [--quiet] [--allow-concurrent] [-h|--help]
+                       [-- <server args...>]
+```
+
+**Requires a separate Steam app**: *Arma Reforger Server* (1874900). It is not
+part of the game client install, and `ovt_server_exe` fails with exit 2 and
+that instruction if it is missing.
+
+### The two modes are not interchangeable
+
+| | `--mode local` (default) | `--mode dedicated` |
+|---|---|---|
+| Engine path | `-server <scenario>` | `-config <server.json>` |
+| Addons mounted | `core`, `ArmaReforger`, **this tree** — nothing else | the same three **plus EPF + EDF** |
+| Workshop | not contacted; works offline | mod resolved through the workshop API |
+| Time to listening | ~5 s | ~38 s (download/verify pass) |
+| Backend registration | no | yes — prints a **Direct Join Code** |
+| RCON | no | yes, on `--port + 17998` |
+| `--port` | **rejected** (see below) | honoured |
+| Server config knobs | `--max-players`, `--admin-password` only | full JSON: persistence, AI limits, view distance… |
+
+### Local mode has no player identities — and Overthrow needs them
+
+Local mode never contacts the backend, so it authenticates nobody
+(`ServerImpl event: authenticating (identity=0x00000000)`) and every player's
+identity id is empty (`### Updating player: … IdentityId=`). Overthrow keys
+every player record on that string, so with no identity
+`OVT_SpawnLogic.DoSpawn_S` can never register the player: it logs
+`WARNING: Persistent UID not available yet for playerId: N, retrying...` once
+a second **forever**, and the player sits at the spawn camera, connected, in a
+started campaign, never entering the world.
+
+The launcher therefore passes **`-ovtDevUid`** in local mode, which opts the
+session in to synthesised `DEV_<playerId>` UIDs
+(`OVT_Global.GetPlayerUID`). Distinct per connected client, computed
+identically on server and clients, so no extra replication:
+
+```
+[Overthrow] Setting up player data for: DEV_1
+[Overthrow] Player assigned home at <226.19, 1.655, 193.901>
+[Overthrow] Setting up player data for: DEV_2
+[Overthrow] Player assigned home at <232.689, 1, 27.62>
+```
+
+Two clients from the *same Steam account* still get distinct UIDs and distinct
+homes, which is why the id is derived from the runtime player id rather than
+from anything account- or name-shaped.
+
+`--no-dev-uid` suppresses the flag if you are deliberately testing the
+no-identity path. **Dedicated mode does not pass it**, on purpose: there the
+backend issues real identities, and an empty one means "still authenticating",
+which must be waited for rather than papered over. The fallback is gated on
+the CLI parameter and not merely on "the identity is blank" for that same
+reason — a production server never passes it, so it cannot fire there.
+
+### Difficulty (`Overthrow_Config.json`)
+
+The test world ships its own **`Test World`** difficulty preset — generous
+starting cash, sized for play-testing. The launcher selects it automatically
+for the testworld scenario by writing the difficulty into
+`$profile:Overthrow_Config.json`, which the game matches **by name** against
+the game mode's preset list at `DoStartGame`:
+
+```
+[Overthrow] Overthrow_Config.json - setting difficulty to Test World
+```
+
+Two details worth knowing:
+
+- **The file is patched in place, not regenerated.** Overthrow *writes this
+  file itself* with defaults (`difficulty: ""`) when it is missing, so
+  "create it if absent" would be a no-op after the very first launch. Only the
+  `difficulty` value is rewritten; `officers`, item limits, the webhook URL and
+  everything else survive. The launcher prints what it changed:
+  `Overthrow_Config.json difficulty '<empty>' -> 'Test World'`.
+- **It is only applied to the test world.** The `Test World` preset is in the
+  preset list for that scenario only, so `--scenario eden` leaves the file's
+  existing value alone rather than naming a preset that would not resolve.
+
+`--difficulty <name>` overrides the choice for any scenario (base game mode
+presets: `Easy`, `Normal`, `Hard`, `Extreme`, `Insane`); `--no-config` leaves
+the file untouched entirely.
+
+Both modes mount **the working tree, not the published build** — verified by
+the `Loaded addons:` block naming `<repo>/addon.gproj`. The difference that
+matters is the extra pair: resolving Overthrow through the workshop also pulls
+the *published* build's dependency manifest, which still lists EPF and EDF, and
+those get mounted. This tree no longer uses EPF, so **dedicated mode runs with
+two addons that local mode does not have**. Prefer `local` unless you
+specifically need a Direct Join Code, RCON, or a config-only setting.
+
+`--port` is rejected in local mode rather than silently ignored: the `-server`
+route has no bind-port flag, `-bindPort` is accepted and discarded, and the
+engine logs `RPL listen address not specified. Using default fallback.` before
+binding 2001 regardless. Reporting a `BIND_PORT` the server is not listening on
+would be worse than refusing.
+
+### Joining (verified end-to-end 2026-08-06)
+
+**One command, no menu navigation** — `-client <ip:port>` auto-joins:
+
+```bash
+# terminal 1
+tools/launch-server.sh --scenario eden
+
+# terminal 2 — joins automatically once the server reports SERVER READY
+tools/launch-game.sh --profile OverthrowClient1 -- -client 127.0.0.1:2001
+```
+
+For a **second** player on the same machine, give it its own profile so the
+two clients do not share settings or save data — verified working, two clients
+into one campaign:
+
+```bash
+tools/launch-game.sh --profile OverthrowClient1 --allow-concurrent -- -client 127.0.0.1:2001
+tools/launch-game.sh --profile OverthrowClient2 --allow-concurrent -- -client 127.0.0.1:2001
+```
+
+`--allow-concurrent` only silences the "another client is already running"
+warning; the launcher never refuses and only ever kills processes it started.
+A client on another PC uses this machine's LAN IP.
+
+**Give the clients a long `--timeout`.** It defaults to 600 s, and the
+launcher kills the client when it expires — mid-play-test, with no warning
+beyond the log line. `--timeout 3600` for a real session.
+
+Verified on both sides of the wire:
+
+```
+CLIENT  Starting multiplayer client using command line args.
+        Starting RPL client, number of addresses to try connecting to: 1
+        Endpoint 127.0.0.1:2001 state 0: send ConnectionRequest, size 512.
+        ClientImpl event: connected (identity=0x00000000)
+SERVER  Player connected: connectionID=0
+        ### Creating player: PlayerId=1, Name=<steam name>
+        Players connected: 1 / 1
+```
+
+**No `rpl-validation-*` switches were needed.** A client launched from this
+tree and a server launched from this tree produce matching script, addon and
+rdb checksums, so validation passes natively — the two ends run identical
+code. That is the whole point of joining this way rather than disabling
+validation.
+
+A Steam-launched retail client running the *published* Overthrow will **not**
+connect: the engine refuses with `RplConnection::ValidationError remote script
+source code checksum does not match!`.
+
+Manual join also works — Reforger → Multiplayer → **Direct Join** →
+`127.0.0.1:<port>`; dedicated mode additionally prints a
+`Direct Join Code: <10 digits>`.
+
+### The Workbench cannot be the client
+
+Tested and ruled out on 2026-08-06, because it is the obvious thing to reach
+for and it does not work:
+
+- **Workbench Play mode is local-only.** Its play modes are `Play inside
+  Viewport`, `Play in Fullscreen`, `Play from Camera Position` — there is no
+  join-a-server play mode, and clicking Play on a world starts a local session
+  with the start-game menu.
+- **The Workbench binary ignores `-client`.** Launched with
+  `-client 127.0.0.1:2001` it never emits `Starting multiplayer client using
+  command line args.`, and the server records no incoming connection. It
+  starts a local session instead.
+- The `rpl-validation-*-disable` switches below *are* accepted by the
+  Workbench (all four warnings printed) — they just do not create a client.
+
+Use `tools/launch-game.sh` for the client and keep the Workbench for editing
+and `Shift+F7` script reloads.
+
+### Dev-only validation switches (documented, not needed)
+
+Both the Workbench and the server binaries — but **not** the retail client —
+accept a family of developer switches, verified accepted in plain `-flag`
+form (each logs `RplSession::CheckWarning: <x> validation disabled. This
+option is DEVELOPER ONLY!`):
+
+```
+-rpl-validation-devbin-disable    -rpl-validation-scr-disable
+-rpl-validation-addons-disable    -rpl-validation-rdb-disable
+-rpl-validation-version-disable   -rpl-timeout-disable / -rpl-timeout-ms / -rpl-reconnect
+```
+
+Validation is **server-side** (`Rpc_Validation_S received` → `ValidationError`
+→ `Rpc_ValidationPassed_O sent`), so a switch has to be on the server to
+matter. **You should not need any of them**, and reaching for
+`-rpl-validation-scr-disable` in particular is a smell: it does not reconcile
+mismatched code, it only silences the check, leaving client and server running
+different builds.
+
+### stdout contract
+
+```
+MODE=local
+SCENARIO={6B0E7A50D1E2F3A4}Missions/25_OVT_TestWorld.conf
+PROFILE=OverthrowDS
+BIND_PORT=2001
+LOG_DIR=/mnt/c/.../My Games/OverthrowDS/logs/logs_2026-08-06_22-32-01
+EXIT_CODE=124
+```
+
+### Exit codes
+
+| Code | Meaning |
+|---|---|
+| 0 | The server **exited on its own** — for a server this almost always means it failed to start. The launcher warns and points at the log. |
+| 2 | Tool/environment failure: server binary missing, bad arguments, or the log dir could not be resolved. |
+| 124 | Ran for the whole `--timeout` window. **This is the success shape** when a timeout was set deliberately. |
+| 130/143 | Ctrl-C / SIGTERM. The Windows process is killed and the kill verified. |
+
+The default timeout is 86400 s — i.e. "runs until you press Ctrl-C". Short
+timeouts are for automation.
+
+A readiness watcher greps the live log and prints `SERVER READY` with the join
+address the moment the RPL listener is up (~5 s local, ~38 s dedicated), so
+there is no need to guess from the entity-spawn spam.
+
+### Profile separation
+
+Defaults to profile **`OverthrowDS`**, deliberately *not* the `OverthrowCI`
+profile the test harness uses — a server session writes saves and settings,
+and must not perturb the state `run-tests.sh` asserts against.
+
+### Still not verified
+
+Verified as of 2026-08-06: single client joins, **two concurrent clients**,
+each registering a distinct player with its own home, and the second client
+joining a campaign that was already running (**JIP at the connection level**).
+These are not:
+
+- **A second machine.** LAN join, firewall, inbound 2001/17777 — everything so
+  far is loopback on one box.
+- **JIP into a campaign with real accumulated state.** The second client
+  joined seconds after the first, into a fresh campaign. Joining hours in,
+  with towns taken and vehicles owned, is a different test.
+- **That any given Overthrow system replicates correctly.** Connection,
+  registration and home assignment work. Groups, recruits, economy and
+  persistence over the wire are exactly what you are launching this to find
+  out.
+- **Dedicated mode with a real client.** The verified two-client run was local
+  mode. Dedicated mode's identity path (real backend UIDs instead of `DEV_n`)
+  has never had a client attached.
+- **RCON.** Initialisation observed; no command has ever been sent.
 
 ---
 
@@ -590,6 +850,10 @@ committed absolute paths. Precedence: environment variable >
 | `OVERTHROW_COMPILE_TIMEOUT` | compile-check | `120` (seconds) |
 | `OVERTHROW_GAME_TIMEOUT` | launch-game | `600` (seconds) |
 | `OVERTHROW_TEST_TIMEOUT` | run-tests | `300` (seconds) |
+| `OVERTHROW_SERVER_EXE` | launch-server | `<steam>/common/Arma Reforger Server/ArmaReforgerServerDiag.exe` (separate Steam app 1874900) |
+| `OVERTHROW_SERVER_PROFILE` | launch-server | `OverthrowDS` (deliberately not the CI profile) |
+| `OVERTHROW_SERVER_TIMEOUT` | launch-server | `86400` (seconds — i.e. until Ctrl-C) |
+| `OVERTHROW_SERVER_ADDONS_DIRS` | launch-server | `<repo parent>` in Windows form — what makes the working tree visible |
 | `OVT_PID_REGISTRY` | lib (pidfile registry) | `<repo root>/.tmp/ovt-pids` |
 
 **`tools/config.local.sh`** (gitignored): if present at that exact path it is
@@ -800,6 +1064,11 @@ spaces, trailing slashes and not-yet-existing paths under mounted drives.
 - **`tools/` is excluded from dev staging**: `.scripts/stage_dev.sh` skips it
   (like `docs/`), so it is never staged into `Overthrow.Dev`. Feature #5's
   packing step must likewise keep `tools/` out of the published addon.
+- **MP testing is manual.** `launch-server.sh` + `launch-game.sh -- -client
+  <ip:port>` gives a verified one-command server and a verified one-command
+  join, but nothing drives them: **two concurrent clients, JIP and automated
+  MP testing do not exist.** The single-client handshake is proven; everything
+  built on top of it is not.
 
 ## Maintenance
 

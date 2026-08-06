@@ -23,12 +23,15 @@ Sequenced after #5 in priority, not in dependency — it needs only #1.
 - **The composition difference between the two engine routes is documented, not smoothed over** — dedicated mode mounts EPF+EDF that the working tree does not use. ✅
 - **The server profile is separate from the CI profile**, so a play session cannot perturb the state `run-tests.sh` asserts against. ✅
 
-### Phase 2 — prove the join path (not started; needs a human)
+### Phase 2 — prove the join path (partially done 2026-08-06)
 
-- **A source-built client connects to the source-built server**, and the checksum validation passes. This is the single assumption the whole feature rests on and it is currently **unverified**.
-- **The client-side launch is one command**, ideally auto-joining (`-client <address>`), so testing two-player behaviour does not require menu navigation.
-- **A second machine on the LAN can join**, with the firewall/port requirements written down.
-- **JIP is exercised deliberately**: a client joins a server that has already been running, and the documented result says what worked and what did not.
+- ✅ **A source-built client connects to the source-built server**, and checksum validation passes — natively, with no `rpl-validation-*` switches. This was the single assumption the whole feature rested on. Evidence in `findings.md` §5.
+- ✅ **The client-side launch is one command**: `tools/launch-game.sh --profile OverthrowClient1 -- -client 127.0.0.1:2001` auto-joins, no menu navigation.
+- ✅ **The Workbench was evaluated as the client and ruled out** — no GUI path, `-client` ignored, and its `workbench` script defines would put the two ends on different builds anyway (`findings.md` §6).
+- ✅ **Two clients at once**, each registering as a distinct player with its own home (`findings.md` §8). Required a gameplay fix: local mode authenticates nobody, so Overthrow's spawn path stalled forever on an empty identity — now covered by the `-ovtDevUid` synthesised-UID fallback (`findings.md` §7).
+- ✅ **JIP at the connection level**: the second client joined a campaign that was already running. Joining a campaign with *accumulated* state is still untested.
+- ⬜ **A second machine on the LAN can join**, with the firewall/port requirements written down.
+- ⬜ **Dedicated mode with a client attached** — the verified runs are all local mode.
 
 ### Phase 3 — automated MP testing (not started; explicitly gated on Phase 2)
 

@@ -203,6 +203,19 @@ ovt_game_exe() {
     printf '%s\n' "$exe"
 }
 
+# The DEDICATED SERVER binary. A separate Steam app (1874900, "Arma Reforger
+# Server") from the game client — it is NOT part of the client install. The
+# Diag variant is used for the same reason the client's is: it logs more and
+# is not BattlEye-wrapped.
+ovt_server_exe() {
+    local exe="${OVERTHROW_SERVER_EXE:-/mnt/n/Program Files (x86)/Steam/steamapps/common/Arma Reforger Server/ArmaReforgerServerDiag.exe}"
+    if [[ ! -f "$exe" ]]; then
+        ovt_err "Dedicated server executable not found: '$exe'. Install 'Arma Reforger Server' (Steam app 1874900 — it is a separate download from the game), or set OVERTHROW_SERVER_EXE to the WSL path of ArmaReforgerServerDiag.exe."
+        return 2
+    fi
+    printf '%s\n' "$exe"
+}
+
 # The Overthrow addon project (what the WORKBENCH takes as -gproj).
 ovt_project_gproj() {
     local gproj="${OVERTHROW_GPROJ:-$OVT_REPO_ROOT/addon.gproj}"
@@ -734,6 +747,30 @@ ovt_run_game() {
     prev_dir="$PWD"
     if ! cd "$(dirname "$exe")"; then
         ovt_err "ovt_run_game: cannot cd to game install dir '$(dirname "$exe")'"
+        return 2
+    fi
+    ovt_run_win "$timeout_s" "$exe" "$@" && rc=0 || rc=$?
+    cd "$prev_dir" 2>/dev/null || true
+    return "$rc"
+}
+
+# ovt_run_server <timeout_s> [server args...]
+# Like ovt_run_game but for the dedicated server binary, which lives in its
+# own Steam app directory and has its own ./addons/{core,data} — so cwd must
+# be the SERVER install dir, not the game's. Do NOT pass -gproj: the server
+# resolves the base game from its own ./addons/data.
+# A dedicated server does not exit on its own, so callers are expected to
+# either pass a long timeout and stop it with Ctrl-C (the INT/TERM traps
+# inside ovt_run_win kill the Windows process) or pass a short one and treat
+# 124 as "it stayed up", which is success for a server.
+ovt_run_server() {
+    local timeout_s="${1:-}"
+    shift || true
+    local exe rc prev_dir
+    exe="$(ovt_server_exe)" || return 2
+    prev_dir="$PWD"
+    if ! cd "$(dirname "$exe")"; then
+        ovt_err "ovt_run_server: cannot cd to server install dir '$(dirname "$exe")'"
         return 2
     fi
     ovt_run_win "$timeout_s" "$exe" "$@" && rc=0 || rc=$?

@@ -1,8 +1,8 @@
 # Player Groups - Context & Decisions
 
-**Last Updated:** 2026-08-06 23:05 (all six phases built — feature Ready for Review)
-**Current Phase:** — none. All six phases are code-complete and gate-verified; every remaining item is a play-test or a measurement only the user can run.
-**Status:** 🟢 **BUILT — Ready for Review.** Automated gates green (compile-check exit 0 · Fast 38 · All 66). **MP play-test outstanding** — the two-client dedicated-server procedure in `implementation.md` §6 is the runtime gate and is uncovered by the automated spine.
+**Last Updated:** 2026-08-06 (MP play-test GREEN — feature COMPLETE)
+**Current Phase:** — none. Built, gate-verified and play-test-verified.
+**Status:** ✅ **COMPLETE.** Automated gates green (compile-check exit 0 · Fast 38 · All 66) **and the dedicated-server MP play-test passed with zero defects found** (user, 2026-08-06). The runtime gate the automated spine cannot reach is discharged.
 
 **Epic:** `core` (feature #6) · **Addresses:** GitHub issue **#147** (second half) + the MP play-test of 2026-08-06
 
@@ -21,19 +21,24 @@
 - ✅ Phase 5 — T5.1-T5.6 implemented; compile-check exit 0, All **66** (unchanged — UI is outside the automated spine), `git diff --stat Language/` shows only the `.st`
 - ✅ Phase 6 — T6.1-T6.7 closed (three built, four verified-already-done); compile-check exit 0, Fast **38**, All **66**. **The AI-density number itself is still unmeasured and the budget is shipped at 0 (disabled)** — the procedure is written up under "Needs human verification"
 
-**What's Next — all of it is the user's, none of it is code:**
-- ⏸️ **The two-client dedicated-server play-test** — `implementation.md` §6's 16 numbered steps, expanded per phase under "Needs human verification". This is the real gate: **JIP/MP is entirely uncovered by the automated spine**, and it is where BUG-088 lived. The highest-value steps, because each proves a fix that is invisible in solo:
-  - **step 5** — leader approves a join → proves T2.2 (predicted dead on a dedicated server before the fix)
-  - **step 6** — recruit a civilian *while inside another player's group* → proves T4.5 (silently did nothing before)
-  - **step 9 / 10** — leave, and disconnect-then-reconnect → proves the own-group guarantee and T6.3's disconnect pull-out
-  - **step 14** — 7th player into a 6-player group → proves T2.3 (vanilla strands them with no group at all)
-  - **step 16** — the gamepad-only walkthrough (nothing UI was verifiable without a controller in hand)
-- ⏸️ **Solo regression** — §6 steps 1-2 and 13 in single-player. Note that **F1 was false in solo before this feature** (`SetName` was the wrong call), so group names displaying at all is itself a new observable.
-- ⏸️ **One more Workbench localization export pass** — 2 Phase 6 keys are `.st`-only and, being notification presets, have **no code fallback**; they render as raw `#OVT-Msg-…` keys until exported. (The 9 Phase 5 keys were already caught by the user's 21:52 export.)
-- ⏸️ **The AI-density measurement** — 2 players × 16 recruits; record server frame time and slave-group agent count, then set `MAX_SLAVE_AI_PER_GROUP` if the number justifies it. Shipped at **0 = disabled**; procedure below.
+### ✅ MP play-test GREEN — 2026-08-06 (user, dedicated server)
+
+**Every dedicated-server test passed. No defects found.** This discharges the runtime gate that the automated spine structurally cannot reach (JIP/MP is uncovered — it is where BUG-088 lived, and where every one of this feature's four unpredicted defects would have surfaced).
+
+Explicitly confirmed by the user, including the hardest case in the whole plan:
+
+- **F11 / T6.1 — a group leader with joined players AND recruits disconnects** → a new leader was promoted and **had command of the group's recruits**. This is the one edge case with *no* automated coverage and the most moving parts (leader promotion × recruit ownership × the T6.3 disconnect pull-out all firing in the same teardown). It behaved exactly as designed: the departing leader's own recruits left with them, everyone else's stayed and answered to the promoted leader, and ownership never moved.
+
+The verification items previously listed below were superseded by this pass and are retained as the record of what was checked.
+
+---
+
+**Remaining housekeeping (not blocking — the feature is done):**
+- ⏸️ **One more Workbench localization export pass** — 2 Phase 6 keys (`OVT-Msg-GroupJoinRefusedFull`, `OVT-Msg-GroupAiBudgetExceeded`) are `.st`-only and, being notification presets, have **no code fallback**; they render as raw `#OVT-Msg-…` keys in the notification strip until exported. Both sit on rare paths (a join refused because the group filled up first; the AI-budget warning, which is dormant while the budget is 0), which is why the play-test would not have surfaced them. The 9 Phase 5 UI keys were already caught by the user's 21:52 export.
+- ⏸️ **The AI-density number is still unmeasured** — `MAX_SLAVE_AI_PER_GROUP` ships at **0 = disabled**, so nothing warns and nothing is capped. The knob, the warning notifications and the Logic-pinned arithmetic are all in place; only the number is missing. Procedure below. Worth doing if large shared groups ever become common.
 
 **Blockers:**
-- None. Everything left needs two client processes, a controller, or Workbench — none of which an agent can drive.
+- None. The feature is complete.
 
 ---
 
@@ -460,6 +465,8 @@ Plus one *deliberate non-override* to re-check: `RPC_ConfirmJoinPrivateGroup` (`
 
 ## Needs human verification
 
+> ✅ **ALL DISCHARGED 2026-08-06** — the user ran the dedicated-server MP play-test and reported every test passing with no problem found, explicitly including the leader-disconnect promotion case (F11). The list below is retained as the record of what was to be checked, not as outstanding work. The only items never exercised are the two unexported notification keys and the AI-density measurement (see Quick Status).
+
 *(running list — items an agent cannot verify; the user runs these)*
 
 - ⏸️ **Phase 1 confirm/refute the code-reading verdict** — two clients (A and B) on a **dedicated server**, both spawned, each open the player list → **Groups** tab. No instrumentation was shipped, so these are all naked-eye observations:
@@ -637,3 +644,9 @@ Plus one *deliberate non-override* to re-check: `RPC_ConfirmJoinPrivateGroup` (`
 ---
 
 *Update this file at the end of each work session.*
+
+### 2026-08-06 — MP play-test GREEN, feature closed
+- User ran the dedicated-server multiplayer tests: **all passing, not a single problem found.**
+- Explicitly included the highest-risk uncovered case: **a group leader with joined players and recruits disconnecting** → new leader promoted, and that new leader had command of the group's recruits. That exercises leader promotion, recruit ownership and the T6.3 disconnect pull-out simultaneously — the scenario R9 called a grief vector and the one the automated spine cannot touch at all.
+- Feature marked **COMPLETE**. Remaining items are housekeeping only: one Workbench export for 2 notification keys with no code fallback, and the optional AI-density measurement (budget still shipped at 0 = disabled).
+- Nothing was changed in code by this session — the play-test found nothing to fix.

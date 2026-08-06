@@ -29,7 +29,7 @@ The constituent features of this epic, in build order. This is the epic's equiva
 | 3 | test-coverage | ✅ Complete | 61/62 (1 optional) | Behaviour-level suites in four tiers (30 assertions) + two group targets + the quarantined `core/persistence` acceptance gate |
 | 4 | ci-pipeline | 📋 Planned | — | Self-hosted Windows runner, GitHub Actions, JUnit results surfaced on PRs |
 | 5 | release-automation | 📋 Planned | — | Workshop pack & publish via `-packAddon` / `-publishAddon*` |
-| 6 | mp-testing | 🟡 Phase 1 shipped | — | Local dedicated server running the working tree (`tools/launch-server.sh`, 2026-08-06). Join path unverified; automated MP testing gated behind that |
+| 6 | mp-testing | 🟡 Phases 1–2 mostly done | — | Local dedicated server on the working tree (`tools/launch-server.sh`) + **verified one-command client join** (`launch-game.sh -- -client <ip:port>`), 2026-08-06. Two-client/JIP still untested; automated MP testing gated behind those |
 
 > Reference any feature with the slash form `dev-ops/<feature-name>` (e.g. `/continue-feature dev-ops/workbench-automation`). Task counts are pulled from each feature's own `tasks.md` and refreshed by `/update-epic`.
 >

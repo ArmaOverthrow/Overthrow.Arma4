@@ -1,7 +1,7 @@
 # Player Groups - Task Checklist
 
-**Last Updated:** 2026-08-06 23:05
-**Progress:** 30/31 tasks complete (97%) — all six phases built ✅ · the one open task is T1.3, a user play-test
+**Last Updated:** 2026-08-06 (MP play-test green — feature complete)
+**Progress:** 31/31 tasks complete (100%) ✅ — all six phases built AND the dedicated-server MP play-test passed with zero defects (user, 2026-08-06)
 
 **Epic:** `core` (feature #6) · **Plan:** `implementation.md` · **Scope truth:** `requirements.md`
 
@@ -10,13 +10,13 @@
 
 ---
 
-## Phase 1: Diagnose the vanilla Group Menu (2/4 complete, 2 superseded) ✅ — `ui-developer`
+## Phase 1: Diagnose the vanilla Group Menu (3/4 complete, 2 superseded) ✅ — `ui-developer`
 
 *Measurement, not code. Delivered as a **static code-reading verdict** instead of instrumentation + play-test — the live half needs two client processes on a dedicated server and a human. Verdict is in `context.md`.*
 
 - [x] ❌ **T1.1 — Instrument the client-side group menu path** — **CANCELLED / superseded.** The verdict was reached by reading the real vanilla sources; shipping throwaway `[OVT-GRPDIAG]` prints that only a human play-test could read would have left instrumentation in the tree against the phase's own acceptance criteria. Zero code written.
 - [x] ❌ **T1.2 — Server-side playable-group table dump** — **CANCELLED / superseded**, same reason. The existing server-log evidence in `docs/bugs/BUG-088.md` supplied the group/faction table the dump would have produced (`Group faction: FIA`).
-- [ ] ⏸️ **T1.3 — Two-client confirmation (dedicated server)** — **DEFERRED TO THE USER.** Not instrumentation any more: just open the Group tab on two clients and confirm tiles + Join appear. Listed under "Needs human verification" in `context.md`.
+- [x] ✅ **T1.3 — Two-client confirmation (dedicated server)** — **DONE 2026-08-06 by the user.** The verdict held: the Group tab works post-BUG-088. Rolled into the full MP play-test, which passed with no defects found.
 - [x] ✅ **T1.4 — Verdict written into `context.md`**
   - **No residual fault in the listing/selection path** — every reported symptom is downstream of the single null BUG-088 removed (`GetLocalPlayerFaction()` → `m_MappedPlayerFactionInfo`). No tile ⇒ no selection ⇒ Join never becomes visible. D11 recorded as out of scope.
   - **Phase 5's seam did NOT move** — `JoinSelectedGroup():259` / `AcceptInvite():285` re-verified exact and confirmed to be the only routes; no task-list amendment needed.

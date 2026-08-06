@@ -1,9 +1,9 @@
 # Player Groups — Implementation Plan
 
-**Status:** 🟢 Ready for Review — all 6 phases built 2026-08-06; automated gates green (compile-check 0 · Fast 38 · All 66). **MP play-test outstanding** (§6, the runtime gate).
+**Status:** ✅ **COMPLETE** — all 6 phases built 2026-08-06; automated gates green (compile-check 0 · Fast 38 · All 66) **and the §6 dedicated-server MP play-test passed with zero defects** (user, 2026-08-06), including the F11 leader-disconnect promotion case.
 **Started:** 2026-08-06
 **Target Completion:** built 2026-08-06
-**Last Updated:** 2026-08-06 23:05
+**Last Updated:** 2026-08-06 (MP play-test green)
 
 **Epic:** `core` (feature #6, the last one — see `docs/features/core/epic-overview.md`)
 **Requirements:** `docs/features/core/player-groups/requirements.md` (authoritative for scope)

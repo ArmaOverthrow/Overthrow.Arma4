@@ -21,16 +21,47 @@ class OVT_Global : Managed
 		return SCR_BaseContainerTools.GetPrefabResourceName(prefabData.GetPrefab());
 	}
 
+	//! CLI parameter that opts a session in to synthesised development UIDs. See GetPlayerUID().
+	static const string DEV_UID_CLI_PARAM = "ovtDevUid";
+
+	//! Prefix of a synthesised development UID. Deliberately distinctive so one showing up in a save,
+	//! a log or a player record is immediately recognisable as not a real platform identity.
+	static const string DEV_UID_PREFIX = "DEV_";
+
 	//------------------------------------------------------------------------------------------------
 	//! Gets the platform-stable identity id of a connected player.
 	//!
 	//! This is the string Overthrow keys every player record on. Vanilla replacement for the player-UID
 	//! utility the old persistence framework provided, which was a one-line forward to exactly this call.
+	//!
+	//! DEVELOPMENT FALLBACK: a server started without a backend connection (tools/launch-server.sh
+	//! --mode local, i.e. the engine's -server route) authenticates nobody, so every player's identity
+	//! id is empty forever. Overthrow keys everything on that string, so with no identity OVT_SpawnLogic
+	//! .DoSpawn_S can never register the player and retries once a second indefinitely - the player sits
+	//! at the spawn camera and never enters the world. When the session opted in, synthesise a UID from
+	//! the runtime player id instead: distinct per connected client (DEV_1, DEV_2, ...) and computed
+	//! identically on server and clients, so no extra replication is needed.
+	//!
+	//! Gated on a CLI parameter and NOT merely on "the identity is empty", deliberately. An empty
+	//! identity is also the normal transient state while a real player is still authenticating, so
+	//! synthesising on sight would hand a legitimate player a fresh blank record instead of waiting for
+	//! their real one. A production server never passes the parameter, so the fallback cannot fire there.
 	//! \param[in] playerId Runtime player id.
-	//! \return The identity id, or an empty string when it is not available yet.
+	//! \return The identity id; a synthesised DEV_ id when the session opted in and no identity exists;
+	//!         otherwise an empty string, exactly as before.
 	static string GetPlayerUID(int playerId)
 	{
-		return SCR_PlayerIdentityUtils.GetPlayerIdentityId(playerId);
+		string identity = SCR_PlayerIdentityUtils.GetPlayerIdentityId(playerId);
+		if (identity != string.Empty)
+			return identity;
+
+		if (!System.IsCLIParam(DEV_UID_CLI_PARAM))
+			return string.Empty;
+
+		if (playerId < 1)
+			return string.Empty;
+
+		return DEV_UID_PREFIX + playerId.ToString();
 	}
 
 	static OVT_PlayerCommsComponent GetServer()
