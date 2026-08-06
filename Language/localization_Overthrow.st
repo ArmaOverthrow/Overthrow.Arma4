@@ -8632,5 +8632,39 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A7D9B2E0000005D}" {
+   Id "OVT-Job_SabotageRadioTower"
+   Target_en_us "Sabotage Radio Tower"
+   Comment "Jobs menu - title of the repeatable public radio tower sabotage job"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E0000005E}" {
+   Id "OVT-Job_SabotageRadioTower_Description"
+   Target_en_us "An occupier transmitter near this town is drowning out everything we put out. Get to the tower and sabotage it - it will be off the air long enough to matter. It will be guarded, and if you are seen at it you will be a wanted person."
+   Comment "Jobs menu - description of the repeatable public radio tower sabotage job"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
  }
 }
