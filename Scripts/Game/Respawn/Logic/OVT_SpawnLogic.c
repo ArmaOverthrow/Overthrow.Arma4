@@ -742,6 +742,17 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 		}
 
 		ApplyPendingPosession(playerId);
+
+		// EVERY route that gives a player a body arrives here - fresh creation (HandoverToPlayer calls
+		// this explicitly), the restored-body route, the death respawn, and vanilla's reconnect
+		// component (SCR_ReconnectComponent.ApplyData -> EmitPlayerEntityChange_S). Scheduling the
+		// faction/group setup ONLY from HandoverToPlayer meant any player who arrived by one of the
+		// other routes silently ended up with no faction and no group, which is the whole BUG-088
+		// symptom set: commanding denied, no group indicator, recruits stuck in their own group.
+		// CreateAndJoinGroup is idempotent (it no-ops when the player already has a faction and a
+		// group), so the duplicate call from HandoverToPlayer is harmless.
+		if (newEntity)
+			GetGame().GetCallqueue().CallLater(CreateAndJoinGroup, 3000, false, playerId);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -927,21 +938,42 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 	//------------------------------------------------------------------------------------------------
 	void SetCivilianFaction(int playerId)
 	{
+		string wantedKey = OVT_Global.GetConfig().GetPlayerFaction().GetFactionKey();
+
 		PlayerController playerController = GetGame().GetPlayerManager().GetPlayerController(playerId);
-		if (!playerController) return;
+		if (!playerController)
+		{
+			Print("[Overthrow] SetCivilianFaction: no player controller for player " + playerId, LogLevel.WARNING);
+			return;
+		}
 
 		SCR_PlayerFactionAffiliationComponent factionComponent = SCR_PlayerFactionAffiliationComponent.Cast(playerController.FindComponent(SCR_PlayerFactionAffiliationComponent));
-		if (!factionComponent) return;
+		if (!factionComponent)
+		{
+			Print("[Overthrow] SetCivilianFaction: player " + playerId + " has no SCR_PlayerFactionAffiliationComponent", LogLevel.ERROR);
+			return;
+		}
 
 		FactionManager mgr = GetGame().GetFactionManager();
-		if (!mgr) return;
+		if (!mgr)
+		{
+			Print("[Overthrow] SetCivilianFaction: no FactionManager", LogLevel.ERROR);
+			return;
+		}
 
-		Faction playerFaction = mgr.GetFactionByKey(OVT_Global.GetConfig().GetPlayerFaction().GetFactionKey());
-		if (!playerFaction) return;
+		Faction playerFaction = mgr.GetFactionByKey(wantedKey);
+		if (!playerFaction)
+		{
+			Print("[Overthrow] SetCivilianFaction: faction key '" + wantedKey + "' does not exist in this world", LogLevel.ERROR);
+			return;
+		}
 
 		// Already ours - don't re-fire OnPlayerFactionSet_S on every respawn
 		if (factionComponent.GetAffiliatedFaction() == playerFaction)
+		{
+			Print("[Overthrow] SetCivilianFaction: player " + playerId + " is already " + wantedKey);
 			return;
+		}
 
 		// RequestFaction() is the CLIENT's request API: it marshals Rpc_RequestFaction_S, an
 		// RplRcver.Server RPC that only travels when the caller is a proxy. This runs on the
@@ -951,10 +983,22 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 		// (SCR_GroupsManagerComponent.GetPlayerGroup resolves the group through the faction).
 		// SetFaction_S is vanilla's server-side assignment - SCR_ReconnectComponent and the
 		// faction-affiliation persistence serializer both use it the same way.
+		bool assigned;
 		if (Replication.IsServer())
-			factionComponent.SetFaction_S(playerFaction);
+			assigned = factionComponent.SetFaction_S(playerFaction);
 		else
-			factionComponent.RequestFaction(playerFaction);
+			assigned = factionComponent.RequestFaction(playerFaction);
+
+		// One line that answers "did the player get a faction, and if not, how far did we get?" -
+		// the whole BUG-088 chain hangs off this call, and every earlier failure of it was silent.
+		string resultingKey = "<none>";
+		Faction resulting = factionComponent.GetAffiliatedFaction();
+		if (resulting)
+			resultingKey = resulting.GetFactionKey();
+
+		Print("[Overthrow] SetCivilianFaction: player " + playerId + " -> " + wantedKey
+			+ " (isServer=" + Replication.IsServer().ToString() + ", accepted=" + assigned.ToString()
+			+ ", now=" + resultingKey + ")", LogLevel.NORMAL);
 	}
 
 	//------------------------------------------------------------------------------------------------
