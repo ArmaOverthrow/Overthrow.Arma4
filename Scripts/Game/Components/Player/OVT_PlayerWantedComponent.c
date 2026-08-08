@@ -38,7 +38,24 @@ class OVT_PlayerWantedComponent: OVT_Component
 	
 	protected ref OVT_PlayerData m_PlayerData;
 	protected ref OVT_RecruitData m_RecruitData;
-	
+
+	//! Invoked when a player's base wanted level escalates. Args: int playerId, int newLevel, int oldLevel.
+	//! Static (the SCR_MapEntity.GetOnMapOpen() pattern) because this component is per-character and
+	//! dies and respawns with the player - a per-instance invoker would need subscribe/unsubscribe
+	//! bookkeeping on every spawn.
+	protected static ref ScriptInvoker<int, int, int> s_OnWantedLevelChanged;
+
+	//------------------------------------------------------------------------------------------------
+	//! Gets the session-wide wanted level change invoker, allocating it on first use.
+	//! \return The invoker. Args: int playerId, int newLevel, int oldLevel.
+	static ScriptInvoker<int, int, int> GetOnWantedLevelChanged()
+	{
+		if (!s_OnWantedLevelChanged)
+			s_OnWantedLevelChanged = new ScriptInvoker<int, int, int>();
+
+		return s_OnWantedLevelChanged;
+	}
+
 	void SetWantedLevel(int level)
 	{
 		m_iWantedLevel = level;	
@@ -60,6 +77,9 @@ class OVT_PlayerWantedComponent: OVT_Component
 			}
 
 			Replication.BumpMe();
+
+			// Escalation only - the raw SetWantedLevel setter the decay path uses must not fire this
+			NotifyWantedLevelChanged(m_iWantedLevel, oldLevel);
 
 			// Notify when becoming properly wanted: from 0, or re-escalating out of the
 			// silent level-1 decay tail (BUG-076) — not on further escalation while wanted
@@ -133,6 +153,23 @@ class OVT_PlayerWantedComponent: OVT_Component
 		return weapon != null;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Fires the static wanted level change invoker for this character.
+	//! \param newLevel The wanted level just applied.
+	//! \param oldLevel The wanted level before the escalation.
+	protected void NotifyWantedLevelChanged(int newLevel, int oldLevel)
+	{
+		// Only players raise this event, not recruits
+		if (!m_PlayerData)
+			return;
+
+		int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(GetOwner());
+		if (playerId > 0)
+		{
+			GetOnWantedLevelChanged().Invoke(playerId, newLevel, oldLevel);
+		}
+	}
+
 	//! Send notification about becoming wanted
 	protected void SendWantedNotification(string reason)
 	{

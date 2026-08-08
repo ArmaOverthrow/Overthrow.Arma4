@@ -76,6 +76,7 @@ class OVT_TEST_Init_Globals_ManagersResolve : SCR_AutotestCaseBase
 		if (!OVT_Global.GetDeploymentManager()) return "GetDeploymentManager()";
 		if (!OVT_Global.GetRecruits()) return "GetRecruits()";
 		if (!OVT_Global.GetLoadouts()) return "GetLoadouts()";
+		if (!OVT_Global.GetTutorialManager()) return "GetTutorialManager()";
 
 		return "";
 	}
@@ -1538,5 +1539,658 @@ class OVT_TEST_Init_PlayerGroups_ManagerResolves : SCR_AutotestCaseBase
 		Print("Player-group manager is live on the game mode and refuses a player id with no controller");
 		SetResultSuccess();
 		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! The tutorial manager is live on the game mode and its authored entries are structurally sound.
+//!
+//! Two failures hide here and neither announces itself at runtime. The first is the manager being
+//! dropped from Prefabs/GameMode/OVT_OverthrowGameMode.et, which turns the whole tutorial system off
+//! silently - no error, no popup, just a mod that teaches nothing. The second is a malformed entry:
+//! an empty or duplicated id, a body with no pages, or a binding with no triggers. An id is the
+//! entry's permanent key in every player's per-machine seen store, so a duplicate does not merely
+//! misfire - it can suppress the wrong tip forever on every machine that saw it.
+//!
+//! This asserts the SHAPE of the authored data, never a count of entries. The proof entry is one
+//! today and tutorial-content will add a dozen; ">= 1" is the only honest expectation.
+//!
+//! PROVEN ABLE TO FAIL 2026-08-07: see the record in
+//! docs/features/new-player-experience/tutorial-system/context.md.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Tutorial_ManagerResolvesAndLoadsEntries : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		OVT_TutorialManagerComponent manager = OVT_Global.GetTutorialManager();
+		if (!manager)
+		{
+			SetResultFailure("OVT_Global.GetTutorialManager() is null - Prefabs/GameMode/OVT_OverthrowGameMode.et has lost its OVT_TutorialManagerComponent entry. Nothing subscribes to any trigger invoker and no tutorial can ever fire, silently.");
+			return true;
+		}
+
+		array<ref OVT_TutorialEntryConfig> entries = manager.GetEntries();
+		if (!entries)
+		{
+			SetResultFailure("OVT_TutorialManagerComponent.GetEntries() returned a null array - m_aEntries was never authored on the game mode prefab");
+			return true;
+		}
+
+		// >= 1, never a magic count: the proof entry is one today and tutorial-content adds more.
+		if (entries.Count() < 1)
+		{
+			SetResultFailure("No tutorial entries registered: m_aEntries on the game mode prefab is empty, so the tutorial framework has nothing to deliver");
+			return true;
+		}
+
+		string shapeError = FindFirstShapeError(entries);
+		if (shapeError != "")
+		{
+			SetResultFailure("%1", shapeError);
+			return true;
+		}
+
+		Print("Tutorial manager is live with " + entries.Count().ToString() + " structurally valid entries");
+		SetResultSuccess();
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Walks the authored entries and describes the FIRST structural problem found.
+	//! \param[in] entries The authored entry list. Assumed non-null and non-empty.
+	//! \return A ready-to-report failure message, or an empty string when every entry is sound.
+	protected string FindFirstShapeError(array<ref OVT_TutorialEntryConfig> entries)
+	{
+		ref set<string> seenIds = new set<string>();
+
+		for (int i = 0; i < entries.Count(); i++)
+		{
+			OVT_TutorialEntryConfig entry = entries.Get(i);
+			string position = "Tutorial entry at index " + i.ToString();
+
+			if (!entry)
+				return position + " is null - an empty row was left in m_aTutorialEntries on the game mode prefab";
+
+			if (entry.m_sId == "")
+				return position + " has an empty m_sId. The id is the entry's identity on the wire and its permanent key in every player's seen store; it cannot be blank.";
+
+			if (seenIds.Contains(entry.m_sId))
+				return position + " repeats the id '" + entry.m_sId + "'. Ids must be unique and are never reused - a duplicate makes one entry's seen state suppress the other's, permanently.";
+
+			seenIds.Insert(entry.m_sId);
+
+			if (!entry.m_aPages || entry.m_aPages.Count() < 1)
+				return "Tutorial entry '" + entry.m_sId + "' has no pages - there is nothing for the popup to show";
+
+			if (!entry.m_aTriggers || entry.m_aTriggers.Count() < 1)
+				return "Tutorial entry '" + entry.m_sId + "' has no triggers - nothing can ever make it fire";
+		}
+
+		return "";
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! Every manager ScriptInvoker the trigger catalog names still exists and is allocated.
+//!
+//! The tutorial system instruments NOTHING at the call sites - every server-side trigger hangs off an
+//! invoker that already belonged to some other manager. That is what keeps the feature cheap, and it
+//! is also exactly why it can rot without a sound: rename, delete or stop allocating one of these
+//! invokers and OVT_TutorialManagerComponent.SubscribeToInvokers() quietly subscribes to one fewer
+//! event. Nothing errors. A whole class of tutorial simply never fires again.
+//!
+//! This is the case that goes red on that day. It asserts existence only - never that anything fires,
+//! which needs a running campaign and belongs in a higher tier.
+//!
+//! The wanted invoker is the odd one out: it is STATIC and lazily allocated (plan decision D13 plus
+//! the Phase 0 refinement), so its getter can never return null. Asserted anyway - the assertion that
+//! matters there is that the getter still exists at all.
+//!
+//! PROVEN ABLE TO FAIL 2026-08-07: see the record in
+//! docs/features/new-player-experience/tutorial-system/context.md.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Tutorial_InvokerSeamsExist : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		string missing = FindFirstMissingInvoker();
+
+		if (missing != "")
+		{
+			SetResultFailure("Tutorial trigger seam missing: %1. OVT_TutorialManagerComponent subscribes to it in SubscribeToInvokers(); with it gone that trigger silently never fires again.", missing);
+			return true;
+		}
+
+		Print("Every catalogued tutorial trigger invoker is present and allocated");
+		SetResultSuccess();
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Checks every catalogued invoker in turn and names the FIRST one that is missing.
+	//! Each owning manager is checked before its invokers are dereferenced.
+	//! \return Description of the first missing seam, or an empty string when all of them are present.
+	protected string FindFirstMissingInvoker()
+	{
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		if (!economy) return "OVT_Global.GetEconomy() is null, so PLAYER_BUY, PLAYER_SELL and PLAYER_TRANSACTION have no source";
+		if (!economy.m_OnPlayerBuy) return "OVT_EconomyManagerComponent.m_OnPlayerBuy (PLAYER_BUY)";
+		if (!economy.m_OnPlayerSell) return "OVT_EconomyManagerComponent.m_OnPlayerSell (PLAYER_SELL)";
+		if (!economy.m_OnPlayerTransaction) return "OVT_EconomyManagerComponent.m_OnPlayerTransaction (PLAYER_TRANSACTION)";
+
+		OVT_ResistanceFactionManager resistance = OVT_Global.GetResistanceFaction();
+		if (!resistance) return "OVT_Global.GetResistanceFaction() is null, so PLAYER_PLACE and PLAYER_BUILD have no source";
+		if (!resistance.m_OnPlace) return "OVT_ResistanceFactionManager.m_OnPlace (PLAYER_PLACE)";
+		if (!resistance.m_OnBuild) return "OVT_ResistanceFactionManager.m_OnBuild (PLAYER_BUILD)";
+
+		OVT_RecruitManagerComponent recruits = OVT_Global.GetRecruits();
+		if (!recruits) return "OVT_Global.GetRecruits() is null, so PLAYER_RECRUIT_ADDED has no source";
+		if (!recruits.m_OnRecruitAdded) return "OVT_RecruitManagerComponent.m_OnRecruitAdded (PLAYER_RECRUIT_ADDED)";
+
+		OVT_SkillManagerComponent skills = OVT_Global.GetSkills();
+		if (!skills) return "OVT_Global.GetSkills() is null, so PLAYER_SKILL has no source";
+		if (!skills.m_OnPlayerSkill) return "OVT_SkillManagerComponent.m_OnPlayerSkill (PLAYER_SKILL)";
+
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if (!towns) return "OVT_Global.GetTowns() is null, so TOWN_CONTROL_CHANGE has no source";
+		if (!towns.m_OnTownControlChange) return "OVT_TownManagerComponent.m_OnTownControlChange (TOWN_CONTROL_CHANGE)";
+
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		if (!occupying) return "OVT_Global.GetOccupyingFaction() is null, so BASE_CONTROL_CHANGE has no source";
+		if (!occupying.m_OnBaseControlChanged) return "OVT_OccupyingFactionManager.m_OnBaseControlChanged (BASE_CONTROL_CHANGE)";
+
+		// Static and lazily allocated: this can only be null if the getter itself stopped allocating.
+		if (!OVT_PlayerWantedComponent.GetOnWantedLevelChanged()) return "OVT_PlayerWantedComponent.GetOnWantedLevelChanged() (PLAYER_WANTED)";
+
+		return "";
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! THE SERIALIZATION GATE (plan risk R1). The per-machine seen store really round-trips through the
+//! engine's user-settings container.
+//!
+//! Everything about the seen store's RULES is Logic-tier and world-free. This case exists for the
+//! one thing that tier structurally cannot answer: whether a
+//! `ref array<ref OVT_SeenTutorialEntry>` inside a ModuleGameSettings actually survives
+//! BaseContainerTools.ReadFromInstance -> WriteToInstance at all. That shape was chosen because it
+//! has direct base-game precedent (SCR_FilterSetStorage, round-tripped on every server-browser
+//! filter save) rather than because it was tested - and "chosen because precedent" is exactly the
+//! kind of belief that should have an assertion behind it. If this goes red, the ranked fallbacks
+//! are array<ResourceName>, then a delimited string, then an enum array.
+//!
+//! WHAT IT DOES NOT PROVE: an application restart. The harness cannot relaunch the process, so the
+//! disk half of the round trip is verified by inspecting
+//! $profile:.save/settings/ReforgerGameSettings.conf after a run (recorded in context.md) and by
+//! the manual smoke test in the plan's verification method.
+//!
+//! PROFILE HYGIENE: the ids are a deliberately test-only namespace that no authored entry can
+//! collide with, and the case RESTORES the profile block to empty before it returns - including on
+//! every failure path. A test that leaves state behind would silently change what the next run of
+//! any other suite sees.
+//!
+//! Which is why this case is not instantaneous. GetGame().SaveUserSettings() is THROTTLED, and a
+//! call inside the throttle window is DROPPED rather than deferred - measured on 2026-08-07: two
+//! saves microseconds apart leave only the first on disk, two saves six seconds apart both land.
+//! The cleanup write therefore has to wait out the window it just opened, or the test ids would sit
+//! in the CI profile forever with m_bTipsDisabled set. That wait is the whole reason for the phase
+//! machine below.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_Tutorial_SettingsStoreRoundTrips : SCR_AutotestCaseBase
+{
+	//! Test-only ids. Leading underscores are illegal in the authored entry-id scheme (lowercase
+	//! ASCII letters, digits and dashes), so these cannot collide with real content, ever.
+	static const string TEST_ID_A = "__ovt-selftest-alpha";
+	static const string TEST_ID_B = "__ovt-selftest-beta";
+
+	//! How long to wait after the round trip's write before the cleanup write, in milliseconds.
+	//! Comfortably past the measured throttle window (6000 ms was already enough).
+	static const int FLUSH_SETTLE_MS = 10000;
+
+	//! 0 = not started, 1 = written and waiting out the flush throttle, 2 = cleaned up.
+	protected int m_iPhase;
+
+	//! Tick at which the round trip's write happened.
+	protected int m_iWriteTick;
+
+	//! The round trip's verdict, held across frames while the throttle window drains.
+	protected string m_sFailure;
+
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		// Phase 1: write and read the record back. Returning false asks the harness for another frame.
+		if (m_iPhase == 0)
+		{
+			m_sFailure = RunRoundTrip();
+			m_iWriteTick = System.GetTickCount();
+			m_iPhase = 1;
+			return false;
+		}
+
+		// Phase 2: wait out the disk-write throttle the round trip just opened.
+		if (m_iPhase == 1)
+		{
+			if (System.GetTickCount() - m_iWriteTick < FLUSH_SETTLE_MS)
+				return false;
+
+			m_iPhase = 2;
+		}
+
+		// Restore the profile unconditionally: a failed assertion must not ALSO leave the next run's
+		// settings block polluted.
+		string cleanupFailure = RestoreProfile();
+
+		if (m_sFailure == "")
+			m_sFailure = cleanupFailure;
+
+		if (m_sFailure != "")
+		{
+			SetResultFailure("%1", m_sFailure);
+			return true;
+		}
+
+		Print("Tutorial settings store round-tripped two ids and the tips flag through the engine user-settings container, and the profile was restored");
+		SetResultSuccess();
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Puts the profile block back the way this case found it, and PROVES it went back.
+	//!
+	//! Asserted rather than assumed for two reasons. It is this case's own hygiene contract - the ids
+	//! it writes must not be visible to any later run. And "can a value be written BACK to its
+	//! default?" is a real property of this store that the shipping code depends on: re-enabling tips
+	//! after disabling them is exactly that operation, and a settings serializer that skipped
+	//! default-valued members would make the toggle one-way.
+	//! \return A ready-to-report failure message, or an empty string when the profile came back clean.
+	protected string RestoreProfile()
+	{
+		if (!OVT_TutorialSettingsAccessor.Reset())
+			return "OVT_TutorialSettingsAccessor.Reset() reported the settings store unavailable, so this case's test ids are still in the profile";
+
+		OVT_TutorialSeenStore afterReset = new OVT_TutorialSeenStore();
+		bool tipsDisabled;
+		OVT_TutorialSettingsAccessor.Load(afterReset, tipsDisabled);
+
+		if (afterReset.Count() != 0)
+			return "Reset() left " + afterReset.Count().ToString() + " ids in the profile. Either this case is polluting every later run, or a stored value cannot be written back to its default - which would also make 'Don't show tips again' impossible to turn off.";
+
+		if (tipsDisabled)
+			return "Reset() left m_bTipsDisabled set. A value cannot be written back to its default, so re-enabling tips would never persist.";
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Writes a known record through the accessor and reads it back through a fresh instance.
+	//! \return A ready-to-report failure message, or an empty string when the round trip held.
+	protected string RunRoundTrip()
+	{
+		OVT_TutorialSeenStore written = new OVT_TutorialSeenStore();
+		written.MarkSeen(TEST_ID_A);
+		written.MarkSeen(TEST_ID_B);
+
+		if (!OVT_TutorialSettingsAccessor.Save(written, true))
+			return "OVT_TutorialSettingsAccessor.Save() reported the settings store unavailable. Either the engine has no OVT_TutorialSettings module (declaring the class is supposed to be the whole registration contract) or this run is a console app, in which case the case is being run in the wrong place.";
+
+		// A FRESH store and a fresh OVT_TutorialSettings instance inside Load(): nothing that was
+		// just written can be read back out of memory.
+		OVT_TutorialSeenStore reloaded = new OVT_TutorialSeenStore();
+		bool tipsDisabled;
+
+		if (!OVT_TutorialSettingsAccessor.Load(reloaded, tipsDisabled))
+			return "OVT_TutorialSettingsAccessor.Load() reported the settings store unavailable immediately after a successful Save()";
+
+		if (reloaded.Count() != 2)
+			return "The seen store came back with " + reloaded.Count().ToString() + " ids, expected 2. The nested ref array<ref OVT_SeenTutorialEntry> did NOT survive the settings container - risk R1 has fired and the feature needs one of its ranked fallbacks.";
+
+		if (!reloaded.HasSeen(TEST_ID_A))
+			return "The seen store lost the id '" + TEST_ID_A + "' across a settings round trip";
+
+		if (!reloaded.HasSeen(TEST_ID_B))
+			return "The seen store lost the id '" + TEST_ID_B + "' across a settings round trip";
+
+		if (!tipsDisabled)
+			return "The 'Don't show tips again' flag was written as true and came back false, so the player's suppression choice would be silently forgotten every launch";
+
+		if (reloaded.GetVersion() != OVT_TutorialSeenStore.CURRENT_VERSION)
+			return "The reloaded store is at schema version " + reloaded.GetVersion().ToString() + ", expected " + OVT_TutorialSeenStore.CURRENT_VERSION.ToString();
+
+		return "";
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! THE FIELD-MANUAL MERGE SPIKE (plan risk R2, Phase 7.1). Overthrow's same-GUID override of the
+//! base game's field-manual root is a DELTA that appends, not a replacement that erases.
+//!
+//! Configs/FieldManual/FieldManualConfigRoot.conf declares GUID {17295EF80DC38D53} in its .meta -
+//! the exact GUID the base game's UI/layouts/Menus/FieldManual/FieldManual.layout:16 hands to
+//! SCR_ConfigUIComponent.m_ConfigPath, and therefore the exact resource SCR_FieldManualUI.OnMenuOpen
+//! loads. It is not an orphan file: it IS the Field Manual's root. Overthrow's copy declares one
+//! category and nothing else, so everything the vanilla manual shows depends on that file merging
+//! onto the base rather than shadowing it.
+//!
+//! WHY THIS IS WORTH A TEST RATHER THAN A GLANCE. The failure is not subtle but it is invisible from
+//! the repo: five vanilla categories and every tile background disappear, and
+//! SCR_FieldManualUI.c:253 calls m_ConfigRoot.m_aTileBackgrounds.GetRandomElement() UNGUARDED for
+//! every tile it draws - so a replacement does not degrade the manual, it errors the moment it opens.
+//! Worse, the same merge behaviour is what at least four other Overthrow configs rely on
+//! (chimeraInputCommon.conf over 9,583 vanilla lines, ChimeraSystemsConfig.conf, CommandingMenu.conf,
+//! the game-mode prefab's append form). If this case ever goes red, the finding is much larger than
+//! the Field Manual.
+//!
+//! It loads through SCR_FieldManualConfigLoader.LoadConfigRoot - the menu's own entry point - so it
+//! exercises the real resolution path and not a private reimplementation of it. That call is
+//! side-effect free here: SCR_ConfigHelperT.GetConfigObject builds a FRESH instance from the
+//! container every time, which matters because SCR_FieldManualUI.SetAllEntriesAndParents prunes the
+//! object it is given.
+//!
+//! THE COUNTS ARE FLOORS, NOT MAGIC NUMBERS. Five base-game categories (Introduction, Editor, MP
+//! Modes, Gameplay, Equipment) plus Overthrow's is six today. A vanilla update that adds a seventh
+//! must not turn this suite red, so the assertion is ">= 5 categories that are not Overthrow's".
+//!
+//! WHAT IT DOES NOT PROVE: that anything renders. Widgets, tile art and the two open routes (main
+//! menu and pause menu) are outside the automated spine and stay on the human checklist.
+//!
+//! PROVEN ABLE TO FAIL 2026-08-07: see the record in
+//! docs/features/new-player-experience/tutorial-system/context.md.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_FieldManual_DeltaMergesAndLinksResolve : SCR_AutotestCaseBase
+{
+	//! The ResourceName FieldManual.layout:16 hands to SCR_ConfigUIComponent.m_ConfigPath.
+	static const ResourceName FIELD_MANUAL_ROOT = "{17295EF80DC38D53}Configs/FieldManual/FieldManualConfigRoot.conf";
+
+	//! Title key of the category Overthrow appends. Everything else in the merged root is the base
+	//! game's, which is how the vanilla categories are counted without naming any of them.
+	static const string OVERTHROW_CATEGORY_TITLE = "#OVT-FieldManual_Category_Overthrow_Title";
+
+	//! The base game's Introduction title key. Overthrow's sub-category reused it until Phase 7.3,
+	//! which put a second button named "Introduction" in the category list.
+	static const string VANILLA_INTRODUCTION_TITLE = "#AR-FieldManual_Category_Introduction_Title";
+
+	//! Introduction, Editor, MP Modes, Gameplay, Equipment. A floor, never an equality.
+	static const int VANILLA_CATEGORY_FLOOR = 5;
+
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		SCR_FieldManualConfigRoot root = SCR_FieldManualConfigLoader.LoadConfigRoot(FIELD_MANUAL_ROOT);
+		if (!root)
+		{
+			SetResultFailure("SCR_FieldManualConfigLoader.LoadConfigRoot() returned null for the field-manual root. SCR_FieldManualUI.OnMenuOpen closes itself when this happens, so the Field Manual would not open at all.");
+			return true;
+		}
+
+		// Printed BEFORE any assertion so one run yields the measurement even on a red verdict.
+		Print("[Overthrow.FieldManual] merged root inventory: " + DescribeRoot(root));
+
+		string failure = FindFirstMergeFault(root);
+		if (failure != "")
+		{
+			SetResultFailure("%1", failure);
+			return true;
+		}
+
+		failure = FindFirstBrokenTutorialLink(root);
+		if (failure != "")
+		{
+			SetResultFailure("%1", failure);
+			return true;
+		}
+
+		Print("Field-manual same-GUID override merged as a delta, and every tutorial deep link resolves");
+		SetResultSuccess();
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Checks the merged root for the faults a broken override produces, and describes the first one.
+	//! \param[in] root The merged field-manual root. Assumed non-null.
+	//! \return A ready-to-report failure message, or an empty string when the merge held.
+	protected string FindFirstMergeFault(notnull SCR_FieldManualConfigRoot root)
+	{
+		if (!root.m_aCategories)
+			return "The merged field-manual root has a null m_aCategories array, so the menu has nothing to list";
+
+		int total = root.m_aCategories.Count();
+		int overthrowCount = CountCategoriesTitled(root, OVERTHROW_CATEGORY_TITLE);
+
+		if (overthrowCount < 1)
+			return "The merged field-manual root has " + total.ToString() + " categories and NONE of them is Overthrow's ('" + OVERTHROW_CATEGORY_TITLE + "'). Overthrow's Configs/FieldManual/FieldManualConfigRoot.conf is not reaching the menu - check its .meta still declares GUID {17295EF80DC38D53} and that element {59908331EDFD9788} still exists in m_aCategories. Categories found: " + JoinCategoryTitles(root);
+
+		int vanillaCount = total - overthrowCount;
+		if (vanillaCount < VANILLA_CATEGORY_FLOOR)
+			return "STOP - SAME-GUID MERGE SEMANTICS FALSIFIED. The merged field-manual root has " + total.ToString() + " categories, only " + vanillaCount.ToString() + " of which are the base game's; all five (Introduction, Editor, MP Modes, Gameplay, Equipment) should be there beside Overthrow's. Overthrow's same-GUID .conf has REPLACED the base root instead of appending to it. That takes the vanilla Field Manual with it, AND it falsifies the delta-merge behaviour that chimeraInputCommon.conf, ChimeraSystemsConfig.conf, CommandingMenu.conf and the game-mode prefab's append form all depend on - a far bigger finding than the Field Manual. Categories found: " + JoinCategoryTitles(root);
+
+		if (!root.m_aTileBackgrounds || root.m_aTileBackgrounds.IsEmpty())
+			return "The merged field-manual root has no tile backgrounds. Overthrow's override never declares m_aTileBackgrounds, so this array can only be populated by the base root's value surviving the merge - and SCR_FieldManualUI.c:253 calls m_aTileBackgrounds.GetRandomElement() UNGUARDED once per tile. Opening the Field Manual would error on its first tile.";
+
+		return FindOverthrowCategoryFault(root);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Overthrow's own category is shaped the way the UI can actually draw it.
+	//!
+	//! Two faults, both silent. A category with no sub-categories is pruned outright by
+	//! SetAllEntriesAndParents (:655) and simply never appears. And a sub-category that reuses the base
+	//! game's Introduction title key renders as a SECOND left-hand button literally named
+	//! "Introduction" - which is what shipped until Phase 7.3 and what this guards against returning.
+	//! \param[in] root The merged field-manual root. Assumed non-null, with m_aCategories non-null.
+	//! \return A ready-to-report failure message, or an empty string when the category is sound.
+	protected string FindOverthrowCategoryFault(notnull SCR_FieldManualConfigRoot root)
+	{
+		foreach (SCR_FieldManualConfigCategory category : root.m_aCategories)
+		{
+			if (!category || category.m_sTitle != OVERTHROW_CATEGORY_TITLE)
+				continue;
+
+			if (!category.m_aCategories || category.m_aCategories.IsEmpty())
+				return "Overthrow's field-manual category has no sub-categories. Configs/FieldManual/Categories/FM_Overthrow.conf is not being inherited by element {59908331EDFD9788} of the root delta, and SCR_FieldManualUI.SetAllEntriesAndParents prunes an empty category outright - the Overthrow section would vanish from the manual with no error.";
+
+			foreach (SCR_FieldManualConfigCategory subCategory : category.m_aCategories)
+			{
+				if (subCategory && subCategory.m_sTitle == VANILLA_INTRODUCTION_TITLE)
+					return "Overthrow's field-manual sub-category is titled '" + VANILLA_INTRODUCTION_TITLE + "' - the BASE GAME's Introduction key. It renders as a second left-hand button literally named 'Introduction' beside the real one. Use an #OVT- key (Phase 7.3 introduced #OVT-FieldManual_Category_GettingStarted_Title for exactly this).";
+			}
+		}
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Every authored tutorial entry that declares a field-manual deep link points at a page that
+	//! actually exists in the merged root.
+	//!
+	//! This is plan decision D12's whole accepted cost, made cheap: links are matched on the target
+	//! entry's m_sTitle localization key, exactly and case-sensitively, so renaming a manual page
+	//! silently breaks every popup pointing at it. Nothing else in the build would notice - the helper
+	//! degrades to the manual's front page by design (I2), which looks like a content bug, not a
+	//! broken link. No hard-coded key here: whatever tutorial-content authors is what gets checked.
+	//! \param[in] root The merged field-manual root. Assumed non-null.
+	//! \return A ready-to-report failure message, or an empty string when every link resolves.
+	protected string FindFirstBrokenTutorialLink(notnull SCR_FieldManualConfigRoot root)
+	{
+		OVT_TutorialManagerComponent manager = OVT_Global.GetTutorialManager();
+		if (!manager)
+			return ""; // Its own case owns that failure; this one must not double-report it.
+
+		array<ref OVT_TutorialEntryConfig> entries = manager.GetEntries();
+		if (!entries)
+			return "";
+
+		array<string> manualTitles = {};
+		CollectEntryTitles(root, manualTitles);
+
+		foreach (OVT_TutorialEntryConfig entry : entries)
+		{
+			if (!entry)
+				continue;
+
+			if (entry.m_sFieldManualTitleKey == "")
+				continue;
+
+			if (manualTitles.Find(entry.m_sFieldManualTitleKey) != -1)
+				continue;
+
+			return "Tutorial entry '" + entry.m_sId + "' links to field-manual page '" + entry.m_sFieldManualTitleKey + "', and no entry in the merged manual has that m_sTitle. Its 'Learn more' button will silently open the manual's front page instead. Title keys ARE the link ids (plan D12): they are matched exactly and case-sensitively, and renaming one breaks every popup pointing at it. Manual pages available: " + JoinStrings(manualTitles);
+		}
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] root The merged root. Assumed non-null.
+	//! \param[in] title The category title key to count.
+	//! \return How many top-level categories carry that title.
+	protected int CountCategoriesTitled(notnull SCR_FieldManualConfigRoot root, string title)
+	{
+		int found;
+
+		foreach (SCR_FieldManualConfigCategory category : root.m_aCategories)
+		{
+			if (category && category.m_sTitle == title)
+				found++;
+		}
+
+		return found;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Walks root category -> sub-category -> entries, which is every level the UI supports
+	//! (SCR_FieldManualUI.SetAllEntriesAndParents:600-663 goes no deeper and silently drops a third).
+	//! \param[in] root The merged root. Assumed non-null.
+	//! \param[out] titles Receives every entry title key found, in declaration order.
+	protected void CollectEntryTitles(notnull SCR_FieldManualConfigRoot root, notnull array<string> titles)
+	{
+		if (!root.m_aCategories)
+			return;
+
+		foreach (SCR_FieldManualConfigCategory category : root.m_aCategories)
+		{
+			if (!category)
+				continue;
+
+			CollectCategoryEntryTitles(category, titles);
+
+			if (!category.m_aCategories)
+				continue;
+
+			foreach (SCR_FieldManualConfigCategory subCategory : category.m_aCategories)
+			{
+				if (subCategory)
+					CollectCategoryEntryTitles(subCategory, titles);
+			}
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] category The category whose direct entries are wanted.
+	//! \param[out] titles Receives each entry's title key.
+	protected void CollectCategoryEntryTitles(notnull SCR_FieldManualConfigCategory category, notnull array<string> titles)
+	{
+		if (!category.m_aEntries)
+			return;
+
+		foreach (SCR_FieldManualConfigEntry entry : category.m_aEntries)
+		{
+			if (entry)
+				titles.Insert(entry.m_sTitle);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] root The merged root. Assumed non-null.
+	//! \return A one-line human-readable inventory for the run log.
+	protected string DescribeRoot(notnull SCR_FieldManualConfigRoot root)
+	{
+		int categoryCount;
+		if (root.m_aCategories)
+			categoryCount = root.m_aCategories.Count();
+
+		int backgroundCount;
+		if (root.m_aTileBackgrounds)
+			backgroundCount = root.m_aTileBackgrounds.Count();
+
+		array<string> titles = {};
+		CollectEntryTitles(root, titles);
+
+		array<string> overthrowSubCategories = {};
+		CollectSubCategoryTitles(root, OVERTHROW_CATEGORY_TITLE, overthrowSubCategories);
+
+		return categoryCount.ToString() + " categories [" + JoinCategoryTitles(root) + "], "
+			+ backgroundCount.ToString() + " tile backgrounds, "
+			+ titles.Count().ToString() + " entries, Overthrow sub-categories ["
+			+ JoinStrings(overthrowSubCategories) + "]";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] root The merged root. Assumed non-null.
+	//! \param[in] categoryTitle Title key of the top-level category to look under.
+	//! \param[out] titles Receives that category's sub-category title keys.
+	protected void CollectSubCategoryTitles(notnull SCR_FieldManualConfigRoot root, string categoryTitle, notnull array<string> titles)
+	{
+		if (!root.m_aCategories)
+			return;
+
+		foreach (SCR_FieldManualConfigCategory category : root.m_aCategories)
+		{
+			if (!category || category.m_sTitle != categoryTitle || !category.m_aCategories)
+				continue;
+
+			foreach (SCR_FieldManualConfigCategory subCategory : category.m_aCategories)
+			{
+				if (subCategory)
+					titles.Insert(subCategory.m_sTitle);
+			}
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] root The merged root. Assumed non-null.
+	//! \return The top-level category titles, comma separated.
+	protected string JoinCategoryTitles(notnull SCR_FieldManualConfigRoot root)
+	{
+		array<string> titles = {};
+
+		if (root.m_aCategories)
+		{
+			foreach (SCR_FieldManualConfigCategory category : root.m_aCategories)
+			{
+				if (category)
+					titles.Insert(category.m_sTitle);
+			}
+		}
+
+		return JoinStrings(titles);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] values Strings to join. May be empty.
+	//! \return The values comma separated, or "(none)" when there are none.
+	protected string JoinStrings(notnull array<string> values)
+	{
+		if (values.IsEmpty())
+			return "(none)";
+
+		string joined = values.Get(0);
+
+		for (int i = 1; i < values.Count(); i++)
+		{
+			joined = joined + ", " + values.Get(i);
+		}
+
+		return joined;
 	}
 }

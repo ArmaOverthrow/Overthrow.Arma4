@@ -49,6 +49,20 @@ class OVT_PlaceContext : OVT_UIContext
 		m_ItemLimitChecker = new OVT_ItemLimitChecker();
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! This context keeps owning the screen after its menu closes.
+	//!
+	//! StartPlace() calls CloseLayout() - clearing m_bIsActive - and THEN sets m_bPlacing, after which
+	//! OnFrame drives the ghost and activates OverthrowPlaceContext every frame. So IsActive() is
+	//! false for the whole of the most interruption-sensitive part of placement, and a tutorial popup
+	//! (a PLAYER_PLACE tip above all) would appear right on top of it with shortcuts that fight the
+	//! rotate keys. Removal mode has exactly the same shape.
+	//! \return True while a ghost is being positioned or removal highlighting is running.
+	override bool IsBlockingPopups()
+	{
+		return m_bIsActive || m_bPlacing || m_bRemovalMode;
+	}
+
 	override void OnFrame(float timeSlice)
 	{
 		if (m_bPlacing)

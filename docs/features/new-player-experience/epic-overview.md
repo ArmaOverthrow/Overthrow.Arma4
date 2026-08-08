@@ -1,8 +1,8 @@
 # New Player Experience - Epic Overview
 
 **Epic:** new-player-experience
-**Status:** 🔵 Planned
-**Last Updated:** 2026-08-04
+**Status:** 🟡 In Progress (1 of 5 features built)
+**Last Updated:** 2026-08-07
 
 > **This file is the epic marker.** Its presence in `docs/features/new-player-experience/` is what tells every Beast Mode command (and future Web App / Discord clients) that this folder is an **epic**, not a plain feature. Keep it present and keep the required sections below filled in. It is the epic's equivalent of the project's `docs/overview.md`, scoped to this epic. The master `docs/overview.md` tracks this epic as a **single row**; the per-feature detail lives **here**.
 
@@ -22,7 +22,7 @@ The constituent features of this epic, in build order. Each feature is a subfold
 
 | # | Feature | Status | Tasks | Description |
 |---|---------|--------|-------|-------------|
-| 1 | tutorial-system | Planned | — | Framework: config-driven tutorial entries, action-trigger wiring to existing manager invokers, server→client delivery, custom dismissable popup UI, per-machine seen tracking |
+| 1 | tutorial-system | 🟢 Built · ⏳ play-test owed | 63/63 (100%) | Framework: config-driven tutorial entries, action-trigger wiring to existing manager invokers, server→client delivery, custom dismissable popup UI, per-machine seen tracking |
 | 2 | field-manual | Planned | — | Expand the 1-entry Overthrow field manual into a per-system reference that tutorial popups deep-link to via "Learn more" |
 | 3 | tutorial-content | Planned | — | The authored early+mid-game tutorial entries (home/money/shops/map/wanted/skills → recruiting/camps/base capture/FOB basics) with localization |
 | 4 | first-spawn | Planned | — | First-spawn welcome sequence (your home, your car, your cash, what Overthrow is) and start-menu faction/difficulty descriptions |
@@ -54,6 +54,14 @@ The constituent features of this epic, in build order. Each feature is a subfold
 
 - **Within the epic:** tutorial-system owns the moving parts — a tutorial manager, a `Configs/` tutorial-entry config (configuration-over-code pillar), a custom popup UI context/layout, and a client-local seen-store. tutorial-content and first-spawn are then almost entirely config + stringtable authoring against that framework. field-manual is pure config (`Configs/FieldManual/`) joined to the rest by entry IDs referenced from tutorial entries.
 - **With other epics / features:** Triggers subscribe to existing server-side manager invokers (`m_OnPlayerBuy`, `m_OnPlace`, `m_OnBuild`, `m_OnBaseControlChanged`, `m_OnRecruitAdded`, `m_OnTownControlChange`, `m_OnPlayerSkill`, `m_OnRecruitXPGained`, loadout invokers) rather than instrumenting call sites. Where an invoker is missing or dead (wanted-level changes have none; `m_OnPlayerTransaction` is never invoked), tutorial-system adds/fixes it in the owning manager. starter-jobs-retirement touches the jobs epic's config list (positional `jobIndex` is append-only — retirement must respect that constraint).
+- **What tutorial-system actually shipped (2026-08-07), for the three features that build on it:**
+  - **The contract siblings consume is `tutorial-system/implementation.md` §5**, corrected against shipped code (its DoD item I6). It carries the entry-id scheme, the stringtable key scheme, the field-manual link rule, the full trigger catalog and the add-an-entry procedure. Read that, not this section.
+  - **Adding an entry needs no EnforceScript** — demonstrated, not asserted: `welcome-intro` was added with 1 `.conf` + 5 string ids + 1 prefab line and zero script lines. Two proof entries ship (`economy-first-buy` NONMODAL/1-page/linked; `welcome-intro` MODAL/2-page/unlinked) and are the templates to copy.
+  - **The trigger catalog is ten invokers, not the nine the plan said.** Three corrections matter to `tutorial-content`: `PLAYER_SELL` also fires from `AddPlayerMoney` and so does **not** mean "sold at a shop" (prefer `PLAYER_TRANSACTION`, which carries the shop); `PLAYER_SKILL` now carries the skill key in `m_sFilter`; and `m_OnTownControlChange` is declared `ScriptInvoker<IEntity>` but invoked with `OVT_TownData`.
+  - **`field-manual` has a dedicated contract section** in `tutorial-system/context.md` — title keys *are* the link ids (exact, case-sensitive, renaming one breaks every popup pointing at it); new categories go in `Configs/FieldManual/Categories/FM_Overthrow.conf`, never the same-GUID root delta; and `SCR_FieldManualUI.SetAllEntriesAndParents` supports **only two category levels** and silently prunes empty nodes.
+  - **`first-spawn` gets its sequence primitive** (multi-page modal with Next/Back/page indicator) plus a bounded `PLAYER_SPAWNED` retry that survives the async controller-assignment race. `#OVT-IntroHint` and `m_aHintedPlayers` are deliberately **untouched** — removing them is still `first-spawn`'s task.
+  - ⚠️ **One acceptance criterion was retired, not met:** F5, the keybinding that escalated a non-modal popup to the modal. Risk R3 fired twice — there is no free gamepad input during gameplay (all 16 are bound in some context live under a popup; `shoulder_left` and `KC_T` are VON at Priority 110). The documented fallback was taken: the escalation route is **HUD prompt → Overthrow main menu → Tips**. No `chimeraInputCommon.conf` gameplay binding was added.
+
 - **Key architectural decisions for the epic as a whole (decided at epic planning, 2026-08-04):**
   - **Sandbox-preserving tone:** entries inform ("Shops buy and sell — prices differ by town"), never direct ("Go buy a rifle"). No objectives, no markers, no completion tracking beyond "seen". No linear chains — every entry is independently triggerable.
   - **Custom Overthrow popup UI**, not the base game's `SCR_HintUIComponent` corner toast: title, body, optional image, Dismiss, "Don't show tips again", optional "Learn more" → field manual. The base game's `EHint` dedup enum is mod-hostile (can't be extended) and its presentation is too small for this UX.
@@ -73,8 +81,8 @@ Cross-feature tech debt and review findings. **Populated and updated by `/review
 
 ## Master Overview Rollup
 
-- **Rollup status:** Planned (0/5 features)
-- **One-line summary for master:** Action-triggered, sandbox-preserving tutorial popups plus first-spawn welcome, expanded field manual, and retirement of the MP-broken starter jobs.
+- **Rollup status:** In Progress — 1/5 features built (63/63 tasks on tutorial-system; the other four are planned, requirements only)
+- **One-line summary for master:** Tutorial framework built and green (75 automated tests, R1/R2 discharged); play-test and string-table export owed before content, field manual, first-spawn and starter-jobs retirement follow.
 
 ---
 

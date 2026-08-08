@@ -209,6 +209,14 @@ OVT_OverthrowGameMode {
    m_bRandomStartingWeather 1
    m_bRandomWeatherChanges 1
   }
+  OVT_TutorialManagerComponent "{6B3A000000000010}" {
+   m_aEntries {
+    OVT_TutorialEntryConfig "{6B3A000000000011}" : "{6B3A000000000001}Configs/Tutorials/proofFirstBuy.conf" {
+    }
+    OVT_TutorialEntryConfig "{6B3A0000000000A4}" : "{6B3A0000000000A0}Configs/Tutorials/proofWelcome.conf" {
+    }
+   }
+  }
   OVT_TownManagerComponent "{59724C983BF56C3B}" {
    m_aTownModifiers {
     OVT_TownStabilityModifierSystem "{59A2BDDB065D9242}" {

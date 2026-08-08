@@ -42,6 +42,30 @@ class OVT_UIManagerComponent: OVT_Component
 		}
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Whether any Overthrow context currently owns the screen.
+	//!
+	//! One of the three facts OVT_TutorialComponent folds into the tutorial gate's blockingUiOpen
+	//! argument (the other two are the base-game menu stack and the map). Deliberately a question
+	//! about ALL contexts rather than a named few: a popup drawn over any of the seventeen is wrong.
+	//!
+	//! Asks IsBlockingPopups() rather than IsActive() because the two are NOT the same question.
+	//! OVT_PlaceContext and OVT_BuildContext close their menus before they start driving a ghost, so
+	//! they are inactive for the whole of placement while still owning the screen and the rotate keys.
+	//! \return True when at least one context reports that it must not be drawn over.
+	bool IsAnyContextBlocking()
+	{
+		if(!m_aContexts) return false;
+
+		foreach(OVT_UIContext context : m_aContexts)
+		{
+			if(!context) continue;
+			if(context.IsBlockingPopups()) return true;
+		}
+
+		return false;
+	}
+
 	OVT_UIContext GetContext(typename typeName)
 	{
 		foreach(OVT_UIContext context : m_aContexts)

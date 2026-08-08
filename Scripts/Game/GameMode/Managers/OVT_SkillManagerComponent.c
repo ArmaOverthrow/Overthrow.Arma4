@@ -28,7 +28,10 @@ class OVT_SkillManagerComponent: OVT_Component
 		return s_Instance;
 	}
 	
-	ref ScriptInvoker m_OnPlayerSkill = new ScriptInvoker();
+	//! Invoked when a player's skill levels change. Args: int playerId, string skillKey
+	//! The key is carried so a listener can tell WHICH skill moved - the tutorial framework's
+	//! PLAYER_SKILL trigger filters on it (implementation plan section 5).
+	ref ScriptInvoker<int, string> m_OnPlayerSkill = new ScriptInvoker<int, string>();
 	
 	//------------------------------------------------------------------------------------------------
 	//! Initializes the component on the server.
@@ -116,7 +119,7 @@ class OVT_SkillManagerComponent: OVT_Component
 		if(newlevel > skill.m_aLevels.Count()) return;
 
 		player.skills.Set(key, newlevel);
-		m_OnPlayerSkill.Invoke();
+		m_OnPlayerSkill.Invoke(playerId, key);
 
 		DoInvokeSkillData(playerId,key,newlevel);
 
@@ -337,7 +340,7 @@ class OVT_SkillManagerComponent: OVT_Component
 		player.skills[key] = level;
 		if(SCR_PlayerController.GetLocalPlayerId() == playerId)
 		{
-			m_OnPlayerSkill.Invoke();
+			m_OnPlayerSkill.Invoke(playerId, key);
 			DoInvokeSkillData(playerId, key, level);
 			DoInvokeSkillSpawn(playerId, key, level);
 		}

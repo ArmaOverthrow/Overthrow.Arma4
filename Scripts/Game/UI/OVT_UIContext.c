@@ -49,7 +49,24 @@ class OVT_UIContext : ScriptAndConfig
 	{
 		return m_bIsActive;
 	}
-	
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether this context is doing something a tutorial popup must not be drawn over.
+	//!
+	//! Deliberately a SEPARATE question from IsActive(). A context can own the screen without having
+	//! a layout up: OVT_PlaceContext.StartPlace() closes its menu (clearing m_bIsActive) and only then
+	//! starts driving a ghost entity and activating OverthrowPlaceContext every frame, and
+	//! OVT_BuildContext does the same. A popup that appeared during that would sit on top of the very
+	//! placement it is describing, and its shortcuts would fight the rotate keys.
+	//!
+	//! Override in any context that keeps working after CloseLayout(); the default is correct for the
+	//! fifteen that do not.
+	//! \return True while this context must suppress tutorial popups.
+	bool IsBlockingPopups()
+	{
+		return m_bIsActive;
+	}
+
 	void OnControlledByPlayer()
 	{
 		int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(m_Owner);
@@ -111,18 +128,13 @@ class OVT_UIContext : ScriptAndConfig
 	
 	void ShowLayout()
 	{
-		Print("[Overthrow] ShowLayout() called on " + Type());
-		Print("[Overthrow] m_Layout: " + m_Layout);
 		if(!m_Layout)
 		{
-			Print("[Overthrow] ShowLayout() failed: m_Layout is null");
 			return;
 		}
 
-		Print("[Overthrow] CanShowLayout(): " + CanShowLayout());
 		if(!CanShowLayout())
 		{
-			Print("[Overthrow] ShowLayout() failed: CanShowLayout() returned false");
 			return;
 		}
 
@@ -130,7 +142,6 @@ class OVT_UIContext : ScriptAndConfig
 		{
 			if(m_bOpenActionCloses)
 			{
-				Print("[Overthrow] ShowLayout() closing instead (already active)");
 				CloseLayout();
 				return;
 			}
@@ -141,9 +152,7 @@ class OVT_UIContext : ScriptAndConfig
 		}
 
 		WorkspaceWidget workspace = GetGame().GetWorkspace();
-		Print("[Overthrow] workspace: " + workspace);
 		m_wRoot = workspace.CreateWidgets(m_Layout);
-		Print("[Overthrow] m_wRoot created: " + m_wRoot);
 
 		if(m_bHideHUDOnShow){
 			SCR_HUDManagerComponent hud = GetGame().GetHUDManager();
@@ -152,9 +161,12 @@ class OVT_UIContext : ScriptAndConfig
 		}
 
 		Enable();
-		Print("[Overthrow] Calling OnShow()");
 		OnShow();
-		Print("[Overthrow] ShowLayout() complete");
+
+		// Client-local MENU_OPENED tutorial trigger. Fired AFTER Enable(), so the context is already
+		// active and the gate correctly holds the popup back until this menu closes. Static and
+		// self-guarding: no controller yet means the trigger is dropped, never an error.
+		OVT_TutorialComponent.NotifyMenuOpened(ClassName());
 	}
 	
 	bool CanShowLayout()

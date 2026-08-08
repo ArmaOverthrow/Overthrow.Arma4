@@ -1098,6 +1098,23 @@ StringTable {
    Author "Claude Code"
    LastChanged "CrioUA"
   }
+  CustomStringTableItem "{6B3A000000000091}" {
+   Id "OVT-FieldManual_Category_GettingStarted_Title"
+   Target_en_us "Getting Started"
+   Comment "Field Manual - name of the sub-category button under the Overthrow heading, listing Overthrow's own manual pages. Previously reused the base game's Introduction key, which rendered a second button literally named Introduction. Two or three words; it sits in a narrow left-hand list beside Introduction, Editor, Multiplayer, Gameplay and Equipment."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{5990833697321087}" {
    Id "OVT-FieldManual_Category_Overthrow_Title"
    Target_en_us "Overthrow"
@@ -8137,6 +8154,278 @@ StringTable {
    NonTranslatable 0
    MaxLength 0
    Modified 1754265600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3A000000000060}" {
+   Id "OVT-Tutorial_MoreInMenu"
+   Target_en_us "Overthrow Menu"
+   Comment "Label on the only input prompt of the non-modal tutorial popup (HUD overlay). Points the player at the Overthrow main menu, where the fuller version of the tip lives. Keep it short - it sits inside a small navigation button next to a key/gamepad glyph."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3A000000000061}" {
+   Id "OVT-Tutorial_Title"
+   Target_en_us "Tip"
+   Comment "Default heading of the modal tutorial popup, shown only when the tutorial entry itself declares no title key. Normally replaced at runtime by the entry's own title."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3A000000000062}" {
+   Id "OVT-Tutorial_Dismiss"
+   Target_en_us "Close"
+   Comment "Modal tutorial popup - label on the button that closes the tip and records it as read. Sits inside a navigation button beside an Escape / gamepad-B glyph, so keep it to one short word."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3A000000000063}" {
+   Id "OVT-Tutorial_Next"
+   Target_en_us "Next"
+   Comment "Modal tutorial popup - label on the button that moves to the next page of a multi-page tip. Sits inside a navigation button beside a key/gamepad glyph, so keep it to one short word."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3A000000000064}" {
+   Id "OVT-Tutorial_Finish"
+   Target_en_us "Finish"
+   Comment "Modal tutorial popup - the Next button is relabelled to this on the LAST page, where it closes the tip instead of paging forward. One short word."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3A000000000065}" {
+   Id "OVT-Tutorial_Back"
+   Target_en_us "Back"
+   Comment "Modal tutorial popup - label on the button that moves to the previous page of a multi-page tip. This is page navigation, NOT closing the popup. One short word."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3A000000000066}" {
+   Id "OVT-Tutorial_LearnMore"
+   Target_en_us "Learn More"
+   Comment "Modal tutorial popup - label on the button that opens the Field Manual on the page this tip links to. Only shown when the tip declares a field-manual link. Two words at most."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3A000000000067}" {
+   Id "OVT-Tutorial_DisableTips"
+   Target_en_us "Don't Show Tips Again"
+   Comment "Modal tutorial popup - label on the button that permanently switches every tutorial tip off for this player profile. Must read as a lasting preference, not as dismissing this one tip."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3A000000000068}" {
+   Id "OVT-Tutorial_PageIndicator"
+   Target_en_us "%1 / %2"
+   Comment "Modal tutorial popup - page counter in the header of a multi-page tip. %1 is the current page number, %2 is the total. Hidden entirely on single-page tips."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3A000000000069}" {
+   Id "OVT-MainMenu_Tips"
+   Target_en_us "Tips"
+   Comment "Overthrow main menu - button that re-opens the most recent tutorial tip in its full, readable form. Sits in the same vertical list as Jobs, Build and Save."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3A00000000006A}" {
+   Id "OVT-Tutorial_NoneAvailable"
+   Target_en_us "No tip to show right now"
+   Comment "Hint shown when the player picks Tips in the Overthrow main menu but there is nothing to re-open - either no tip has appeared yet this session, or the player is mid-placement so the popup would sit on top of the ghost."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3A0000000000B0}" {
+   Id "OVT-Tutorial_EconomyFirstBuy_Title"
+   Target_en_us "Buying and Selling"
+   Comment "Title of the 'economy-first-buy' tutorial tip, shown the first time a player buys anything at a shop. Appears as the heading of a small HUD popup, so keep it to two or three words."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3A0000000000B1}" {
+   Id "OVT-Tutorial_EconomyFirstBuy_Body"
+   Target_en_us "Shops buy and sell almost anything, and their prices move with the town they are in. Money you carry can be stolen; money you deposit at your house cannot."
+   Comment "Body of the 'economy-first-buy' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). Explains how the economy works; it must NOT tell the player what to do, because Overthrow is a sandbox and the tip system never assigns goals."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3A0000000000B2}" {
+   Id "OVT-Tutorial_WelcomeIntro_Title"
+   Target_en_us "Welcome to Overthrow"
+   Comment "Title of the 'welcome-intro' tutorial entry, the two-page modal popup shown once on a player's first spawn. Heading of a full-width modal, so a few words are fine."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3A0000000000B3}" {
+   Id "OVT-Tutorial_WelcomeIntro_Body1"
+   Target_en_us "Overthrow is an open sandbox. There is no mission list and no required order - the island simply reacts to what you do.<br/><br/>You start with a house, a car and a little money. Everything else is bought, taken or built."
+   Comment "Page 1 of 2 of the 'welcome-intro' modal tutorial. Sandbox-preserving by design: it explains the world and never assigns the player a goal or an objective. <br/> is rich-text markup and must be preserved in translation."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3A0000000000B4}" {
+   Id "OVT-Tutorial_WelcomeIntro_Body2"
+   Target_en_us "Occasional tips like this one appear the first time something new happens. Each is shown once and never again.<br/><br/>The Overthrow menu holds your map, your money, your recruits and the Field Manual whenever you want to read more."
+   Comment "Page 2 of 2 of the 'welcome-intro' modal tutorial. Explains the tip system itself and where to find more; still assigns no goal. <br/> is rich-text markup and must be preserved in translation."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
    Author "Claude"
    LastChanged "Claude"
    ImageLink ""

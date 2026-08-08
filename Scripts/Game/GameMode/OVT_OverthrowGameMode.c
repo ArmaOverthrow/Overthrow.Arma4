@@ -43,6 +43,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	protected OVT_PersistenceManagerComponent m_Persistence;
 	//! Reference to the deployment manager component.
 	protected OVT_DeploymentManagerComponent m_Deployment;
+	//! Reference to the tutorial manager component.
+	protected OVT_TutorialManagerComponent m_TutorialManager;
 	//! Reference to the perceived faction manager component.
 	protected SCR_PerceivedFactionManagerComponent m_PerceivedFactionManager;
 
@@ -56,6 +58,16 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 
 	//! Map of persistent player IDs to their group entity IDs.
 	ref map<string, EntityID> m_mPlayerGroups;
+
+	//! How many times the client-local PLAYER_SPAWNED tutorial push is attempted before giving up
+	//! quietly. Bounded on purpose - see PushSpawnedTutorialTrigger().
+	static const int TUTORIAL_SPAWN_PUSH_ATTEMPTS = 10;
+
+	//! Gap between those attempts, in milliseconds.
+	static const int TUTORIAL_SPAWN_PUSH_RETRY_MS = 500;
+
+	//! Attempts made for the current spawn. Reset by OnPlayerSpawnedLocal.
+	protected int m_iTutorialSpawnPushAttempts;
 
 	//! Flag indicating if the core game components and logic have been initialized.
 	protected bool m_bGameInitialized = false;
@@ -242,6 +254,13 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			Print("[Overthrow] Starting Deployment");
 
 			m_Deployment.PostGameStart();
+		}
+
+		if(m_TutorialManager)
+		{
+			Print("[Overthrow] Starting Tutorials");
+
+			m_TutorialManager.PostGameStart();
 		}
 		
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
@@ -1161,6 +1180,14 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			m_Deployment.Init(this);
 		}
 
+		m_TutorialManager = OVT_TutorialManagerComponent.Cast(FindComponent(OVT_TutorialManagerComponent));
+		if(m_TutorialManager)
+		{
+			Print("[Overthrow] Initializing Tutorials");
+
+			m_TutorialManager.Init(this);
+		}
+
 		if(!IsMaster()) {
 			return;
 		}
@@ -1275,6 +1302,38 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-IntroHint","#OVT-Overthrow",20);
 			m_aHintedPlayers.Insert(playerId);
 		}
+
+		// Client-local PLAYER_SPAWNED tutorial trigger. Additive on purpose: the hint above and
+		// m_aHintedPlayers stay exactly as they were - retiring them belongs to the first-spawn
+		// feature, not here.
+		m_iTutorialSpawnPushAttempts = 0;
+		PushSpawnedTutorialTrigger();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Pushes the client-local PLAYER_SPAWNED tutorial trigger, retrying a bounded number of times.
+	//!
+	//! WHY A RETRY AT ALL: this runs off a 0 ms CallLater in OVT_UIManagerComponent, and the local
+	//! player's OVT_OverthrowController is registered by an ASYNC RpcDo_NotifyOwnerAssignment. On a
+	//! first spawn - and especially on a join - the spawn can beat the assignment, leaving
+	//! OVT_Global.GetTutorials() null and the trigger silently dropped. That is safe but it is a
+	//! RACE, and the welcome tip is the one entry a player is guaranteed to notice missing.
+	//!
+	//! WHY IT IS BOUNDED AND SILENT: a dropped tip is acceptable; a script error or a timer that
+	//! never stops is not. TUTORIAL_SPAWN_PUSH_ATTEMPTS x TUTORIAL_SPAWN_PUSH_RETRY_MS is a hard
+	//! ceiling of a few seconds, after which this gives up without a log line - a dedicated server
+	//! and a player who left during the countdown would both hit that path every single spawn.
+	protected void PushSpawnedTutorialTrigger()
+	{
+		m_iTutorialSpawnPushAttempts++;
+
+		if (OVT_TutorialComponent.NotifyPlayerSpawnedLocal())
+			return;
+
+		if (m_iTutorialSpawnPushAttempts >= TUTORIAL_SPAWN_PUSH_ATTEMPTS)
+			return;
+
+		GetGame().GetCallqueue().CallLater(PushSpawnedTutorialTrigger, TUTORIAL_SPAWN_PUSH_RETRY_MS, false);
 	}
 
 	//------------------------------------------------------------------------------------------------

@@ -51,9 +51,22 @@ class OVT_BuildContext : OVT_UIContext
 		m_ItemLimitChecker = new OVT_ItemLimitChecker();
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! This context keeps owning the screen after its menu closes.
+	//!
+	//! Same shape as OVT_PlaceContext: StartBuild() closes the menu (clearing m_bIsActive) and then
+	//! sets m_bBuilding, after which OnFrame forces the build camera and activates
+	//! OverthrowBuildContext every frame. A tutorial popup during that would be drawn over the ghost
+	//! and its shortcuts would fight the rotate keys.
+	//! \return True while a ghost is being positioned or removal highlighting is running.
+	override bool IsBlockingPopups()
+	{
+		return m_bIsActive || m_bBuilding || m_bRemovalMode;
+	}
+
 	override void OnFrame(float timeSlice)
-	{		
-		if (m_bBuilding && m_Camera)	
+	{
+		if (m_bBuilding && m_Camera)
 		{
 			TryForceCamera();
 			

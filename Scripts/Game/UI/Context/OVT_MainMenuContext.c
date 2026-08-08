@@ -170,6 +170,23 @@ class OVT_MainMenuContext : OVT_UIContext
 			comp.m_OnClicked.Insert(CharacterSheet);
 		}
 		
+		// Tips - the documented route to the modal tutorial popup. There is no gameplay keybinding
+		// for escalating a HUD tip (risk R3 fired in Phase 5 and again in Phase 6), so this entry IS
+		// the escalation path: the popup's prompt opens this menu and pushes its entry into
+		// OVT_TutorialContext, and this button opens it. Disabled rather than dead when there is
+		// nothing to re-read.
+		comp = SCR_ButtonTextComponent.GetButtonText("Tips", m_wRoot);
+		if (comp)
+		{
+			OVT_TutorialContext tutorial = OVT_TutorialContext.Cast(m_UIManager.GetContext(OVT_TutorialContext));
+			if(tutorial && tutorial.HasEntry())
+			{
+				comp.m_OnClicked.Insert(Tips);
+			}else{
+				comp.SetEnabled(false);
+			}
+		}
+
 		// Save
 		comp = SCR_ButtonTextComponent.GetButtonText("Save", m_wRoot);
 		if (comp)
@@ -261,7 +278,26 @@ class OVT_MainMenuContext : OVT_UIContext
 	private void CharacterSheet()
 	{
 		CloseLayout();
-		m_UIManager.ShowContext(OVT_CharacterSheetContext);		
+		m_UIManager.ShowContext(OVT_CharacterSheetContext);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Re-opens the most recent tutorial tip in its full, focusable form.
+	//!
+	//! ShowLayout() can legitimately refuse - OVT_TutorialContext.CanShowLayout() will not open on
+	//! top of a placement ghost, and the main menu IS reachable mid-placement. Say so rather than
+	//! looking broken.
+	private void Tips()
+	{
+		CloseLayout();
+
+		OVT_TutorialContext tutorial = OVT_TutorialContext.Cast(m_UIManager.GetContext(OVT_TutorialContext));
+		if(!tutorial) return;
+
+		tutorial.ShowLayout();
+
+		if(!tutorial.IsActive())
+			ShowHint("#OVT-Tutorial_NoneAvailable");
 	}
 	
 	private void Save()
