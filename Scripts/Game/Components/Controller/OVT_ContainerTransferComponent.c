@@ -168,7 +168,7 @@ class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 		IEntity vehicle = GetEntityFromRplId(vehicleId);
 		if (!vehicle) 
 		{
-			Rpc(RpcDo_OperationError, "Vehicle not found");
+			SendOperationError("Vehicle not found");
 			return;
 		}
 		
@@ -221,7 +221,7 @@ class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 		OVT_Global.TransferToWarehouse(fromId);
 		
 		// Send completion immediately as warehouse transfers are instant
-		Rpc(RpcDo_OperationComplete, 1, 0);
+		SendOperationComplete(1, 0);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -257,7 +257,7 @@ class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 		
 		if (!fob || !vehicle)
 		{
-			Rpc(RpcDo_OperationError, "Invalid FOB or vehicle");
+			SendOperationError("Invalid FOB or vehicle");
 			return;
 		}
 		
@@ -306,7 +306,7 @@ class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 		IEntity vehicle = GetEntityFromRplId(vehicleId);
 		if (!vehicle) 
 		{
-			Rpc(RpcDo_OperationError, "Vehicle not found");
+			SendOperationError("Vehicle not found");
 			return;
 		}
 		
@@ -325,26 +325,9 @@ class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 		return !m_bIsRunning;
 	}
 
-	//------------------------------------------------------------------------------------------------
-	//! Internal method to send progress update RPC (called from callback)
-	void SendProgressUpdate(float progress, int currentItem, int totalItems, string operation)
-	{
-		Rpc(RpcDo_UpdateProgress, progress, currentItem, totalItems, operation);
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Internal method to send operation complete RPC (called from callback)
-	void SendOperationComplete(int itemsTransferred, int itemsSkipped)
-	{
-		RpcDo_OperationComplete(itemsTransferred, itemsSkipped);
-		Rpc(RpcDo_OperationComplete, itemsTransferred, itemsSkipped);
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Internal method to send operation error RPC (called from callback)
-	void SendOperationError(string errorMessage)
-	{
-		RpcDo_OperationError(errorMessage);
-		Rpc(RpcDo_OperationError, errorMessage);
-	}
+	// SendProgressUpdate / SendOperationComplete / SendOperationError live on
+	// OVT_BaseServerProgressComponent - the callback above calls the inherited versions, which route
+	// around the engine's "never loop an Rpc back to the sender" rule for a listen-server host
+	// (BUG-090). The copies that used to live here sent RpcDo_UpdateProgress a fourth argument the
+	// RPC does not declare, so progress updates never arrived for anyone.
 }

@@ -96,14 +96,106 @@ class OVT_BaseServerProgressComponent : OVT_Component
 		m_iItemsProcessed = 0;
 		m_iTotalItems = 0;
 		m_sCurrentOperation = operationNameKey;
-		
+
 		// Send operation start RPC with the operation name
-		Rpc(RpcDo_OperationStart, operationNameKey);
-		
+		SendOperationStart(operationNameKey);
+
 		// Send initial progress update (without redundant operation text)
-		Rpc(RpcDo_UpdateProgress, 0.0, 0, 0);
+		SendProgressUpdate(0.0, 0, 0, operationNameKey);
 	}
-	
+
+	//------------------------------------------------------------------------------------------------
+	//! Tells the owning client an operation has begun. ALWAYS use this instead of a bare
+	//! Rpc(RpcDo_OperationStart, ...) - see IsLocalPlayerOwner for why (BUG-090).
+	//! \param[in] operationName Localized string key for the operation.
+	protected void SendOperationStart(string operationName)
+	{
+		if (IsLocalPlayerOwner())
+		{
+			RpcDo_OperationStart(operationName);
+			return;
+		}
+
+		Rpc(RpcDo_OperationStart, operationName);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Tells the owning client how far along the operation is. ALWAYS use this instead of a bare
+	//! Rpc(RpcDo_UpdateProgress, ...) - see IsLocalPlayerOwner for why (BUG-090).
+	//!
+	//! \a operation is deliberately NOT put on the wire: the client already learned the operation
+	//! name from RpcDo_OperationStart and caches it in m_sCurrentOperation, which is what gets
+	//! handed to m_OnProgressUpdate here. It stays in the signature because that is the shape the
+	//! storage callbacks (OVT_StorageProgressCallback.OnProgressUpdate) report in.
+	//! \param[in] progress Progress value from 0.0 to 1.0.
+	//! \param[in] current Current item being processed.
+	//! \param[in] total Total items to process.
+	//! \param[in] operation Operation name reported by the caller; not replicated.
+	void SendProgressUpdate(float progress, int current, int total, string operation)
+	{
+		if (IsLocalPlayerOwner())
+		{
+			RpcDo_UpdateProgress(progress, current, total);
+			return;
+		}
+
+		Rpc(RpcDo_UpdateProgress, progress, current, total);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Reports a finished operation.
+	//!
+	//! The local call is not only about the host: server-side listeners (the resistance manager's
+	//! FOB deploy/collect continuations subscribe to m_OnOperationComplete on the SERVER's copy of
+	//! the component) need the handler to run on the server every time, dedicated or not. On a
+	//! listen server that same call is also the host's only delivery, so the Rpc is skipped there.
+	//! \param[in] itemsTransferred Number of items successfully processed.
+	//! \param[in] itemsSkipped Number of items skipped.
+	void SendOperationComplete(int itemsTransferred, int itemsSkipped)
+	{
+		RpcDo_OperationComplete(itemsTransferred, itemsSkipped);
+
+		if (IsLocalPlayerOwner()) return;
+
+		Rpc(RpcDo_OperationComplete, itemsTransferred, itemsSkipped);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Reports a failed operation. Same server-local-then-replicate rule as SendOperationComplete -
+	//! the resistance manager clears its pending FOB state from m_OnOperationError.
+	//! \param[in] errorMessage Description of the error.
+	void SendOperationError(string errorMessage)
+	{
+		RpcDo_OperationError(errorMessage);
+
+		if (IsLocalPlayerOwner()) return;
+
+		Rpc(RpcDo_OperationError, errorMessage);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether the controller this component sits on belongs to THIS process's local player.
+	//!
+	//! The engine never loops an Rpc back to the sender, so on a listen server an
+	//! RplRcver.Owner RPC sent from the server to the host's own controller is silently dropped and
+	//! the host sees no progress at all (BUG-090). Callers use this to run the handler directly
+	//! instead. On a dedicated server GetLocalPlayerId() is 0, no controller is registered for it,
+	//! and every send goes over the wire exactly as before.
+	//! \return True when this component's owner is the local player's controller.
+	protected bool IsLocalPlayerOwner()
+	{
+		int localPlayerId = SCR_PlayerController.GetLocalPlayerId();
+		if (localPlayerId <= 0) return false;
+
+		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
+		if (!players) return false;
+
+		IEntity localController = players.GetController(localPlayerId);
+		if (!localController) return false;
+
+		return localController == GetOwner();
+	}
+
 	//------------------------------------------------------------------------------------------------
 	//! Get current progress (0.0 to 1.0)
 	float GetProgress() 
