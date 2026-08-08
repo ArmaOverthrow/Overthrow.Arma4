@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify every placeable AND buildable prefab really ends up with its Overthrow component.
+"""Verify every placeable AND buildable prefab is wired up: Overthrow component AND replication.
 
 WHY THIS EXISTS
 ---------------
@@ -20,8 +20,22 @@ placeables, OVT_BuildableComponent for buildables:
                   GetPlaceableType(), which is ONLY ever set as a prefab attribute - nothing
                   assigns it at runtime.
 
+And it is only VISIBLE to anyone but the server if the entity carries an RplComponent:
+
+  * replication   PlaceItem()/BuildItem() spawn the real object on the SERVER
+                  (OVT_Global.SpawnEntityPrefabMatrix). A runtime-spawned entity with no
+                  RplComponent is server-local: it is never sent to clients, so on a dedicated
+                  server nobody sees the thing they just paid for. The placement GHOST is spawned
+                  client-side by OVT_PlaceContext and looks perfectly normal, which is what makes
+                  this so easy to miss - and a listen-server host, where server and client are one
+                  process, cannot reproduce it at all.
+                  The trap is inheritance: several placeables are built on static base-game props
+                  (Destructible_Props_Base and friends) that never needed replication because
+                  vanilla only ever places them at design time.
+
 None of that is visible to compile-check.sh (it compiles scripts, not prefabs) or to the autotests.
-The failure is silent: the object places, looks right, and quietly evaporates on continue.
+The failure is silent: the object places, looks right, and quietly evaporates on continue - or, for
+the replication case, never appears for anyone but the server in the first place.
 
 THE PART THAT IS EASY TO GET WRONG - and the reason this is a script and not a grep. The component
 is frequently NOT on the prefab named in the config. Overthrow overrides shared BASE prefabs
@@ -32,10 +46,10 @@ base-game leaf prefabs inherit it. Deciding whether an entry is wired up therefo
 whole inheritance chain across both the mod and the game, which is what this does.
 
 USAGE
-    tools/check-placeables.py [--reforger DIR] [--conf FILE] [--quiet] [--verbose]
+    tools/check-placeables.py [--reforger DIR] [--conf FILE] [--quiet] [--verbose] [--strict]
 
 EXIT CODES  (same contract as the other tools/ scripts)
-    0   every prefab of every entry resolves to a component - verified clean
+    0   every prefab of every entry resolves to a component and to replication - verified clean
     1   at least one problem found (details on stdout)
     2   indeterminate: a config or the reference tree could not be read
 
@@ -71,6 +85,11 @@ KINDS = [
 
 RE_PARENT = re.compile(r'^\s*[\w_]+\s*:\s*"\{([0-9A-Fa-f]+)\}([^"]*)"')
 RE_META_GUID = re.compile(r'Name\s+"\{([0-9A-Fa-f]+)\}')
+
+# Replication is kind-independent, so these live outside Kind. A component may inherit a component
+# template (`RplComponent "{guid}" : "{guid}path.ct" {`), which is still a declaration.
+RE_RPL_OPEN = re.compile(r'^(\s*)RplComponent\s+"\{([0-9A-Fa-f]+)\}"\s*(?::\s*"[^"]*"\s*)?\{')
+RE_RPL_ENABLED = re.compile(r'^\s*Enabled\s+(\d+)\s*$')
 RE_NAME = re.compile(r'^\s*m_sName\s+"([^"]*)"')
 RE_PREFABS_OPEN = re.compile(r'^(\s*)m_aPrefabs\s*\{')
 RE_PREFAB_REF = re.compile(r'^\s*"\{([0-9A-Fa-f]+)\}([^"]*)"')
@@ -101,6 +120,9 @@ class ChainResult:
         self.object_type = None     # effective type: most derived non-empty type attribute
         self.type_level = None      # which file that type came from
         self.unresolved = None      # path we could not open, if the walk stopped early
+        self.rpl_levels = []        # [(path, rpl_guid)] every level declaring an RplComponent
+        self.rpl_enabled = None     # effective Enabled: most derived level that states one
+        self.rpl_enabled_level = None  # which file stated it
 
 
 def parse_conf(path, kind):
@@ -182,28 +204,48 @@ def resolve(rel_path, mod_root, game_root):
 
 
 def scan_prefab(prefab_file, kind):
-    """Read one prefab file: its parent reference, and every matching component it declares.
+    """Read one prefab file: its parent reference, its matching components, and its RplComponent.
 
-    Returns (parent_guid, parent_path, [(component_guid, type)]).
+    Returns (parent_guid, parent_path, [(component_guid, type)], [(rpl_guid, enabled)]).
     The type is only collected while inside that component's own braces, so a type attribute
-    belonging to some other component can never be misattributed.
+    belonging to some other component can never be misattributed - and the same applies to the
+    RplComponent's Enabled flag, which is a name plenty of other components use too.
+    `enabled` is None when the declaration does not state one (i.e. it inherits).
     """
     parent_guid = None
     parent_path = None
     components = []
+    rpl = []
 
     inside = False
     depth = 0
     guid = None
     otype = None
 
+    in_rpl = False
+    rpl_depth = 0
+    rpl_guid = None
+    rpl_enabled = None
+
     with open(prefab_file, "r", encoding="utf-8", errors="replace") as handle:
         for line in handle:
-            if parent_guid is None and not inside:
+            if parent_guid is None and not inside and not in_rpl:
                 parent = RE_PARENT.match(line)
                 if parent:
                     parent_guid = parent.group(1).upper()
                     parent_path = parent.group(2)
+
+            if in_rpl:
+                rpl_depth += line.count("{") - line.count("}")
+                flag = RE_RPL_ENABLED.match(line)
+                if flag:
+                    rpl_enabled = flag.group(1) != "0"
+                if rpl_depth <= 0:
+                    rpl.append((rpl_guid, rpl_enabled))
+                    in_rpl = False
+                    rpl_guid = None
+                    rpl_enabled = None
+                continue
 
             if inside:
                 depth += line.count("{") - line.count("}")
@@ -217,6 +259,18 @@ def scan_prefab(prefab_file, kind):
                     otype = None
                 continue
 
+            opened_rpl = RE_RPL_OPEN.match(line)
+            if opened_rpl:
+                in_rpl = True
+                rpl_guid = opened_rpl.group(2).upper()
+                rpl_enabled = None
+                rpl_depth = line.count("{") - line.count("}")
+                if rpl_depth <= 0:  # single-line declaration
+                    rpl.append((rpl_guid, rpl_enabled))
+                    in_rpl = False
+                    rpl_guid = None
+                continue
+
             opened = kind.re_component.match(line)
             if opened:
                 inside = True
@@ -228,11 +282,18 @@ def scan_prefab(prefab_file, kind):
                     inside = False
                     guid = None
 
-    return parent_guid, parent_path, components
+    return parent_guid, parent_path, components, rpl
 
 
 def walk_chain(rel_path, mod_root, game_root, kind, max_depth=32):
-    """Follow a prefab's inheritance chain, collecting every component declaration on the way up."""
+    """Follow a prefab's inheritance chain, collecting every component declaration on the way up.
+
+    A level where the mod shadows a game path is read TWICE, mod first. A same-path override is a
+    DELTA, not a replacement: Prefabs/Structures/Signs/Signs_Base.et in the mod contains nothing but
+    OVT_PlaceableComponent, while the game's file at that path supplies the mesh, the rigid body and
+    the RplComponent - and both are live at runtime. Reading only the mod side would report every
+    sign as unreplicated, which is exactly backwards.
+    """
     result = ChainResult()
     seen = set()
 
@@ -247,18 +308,71 @@ def walk_chain(rel_path, mod_root, game_root, kind, max_depth=32):
 
         result.chain.append((rel_path, shadows_game))
 
-        _, parent_path, components = scan_prefab(prefab_file, kind)
+        files = [prefab_file]
+        if shadows_game:
+            files.append(os.path.join(game_root, rel_path.lstrip("/")))
 
-        for guid, otype in components:
-            result.component_levels.append((rel_path, guid))
-            # most derived wins, and the chain is walked most-derived first
-            if otype and result.object_type is None:
-                result.object_type = otype
-                result.type_level = rel_path
+        parent_path = None
+
+        for level_file in files:
+            _, level_parent, components, rpl = scan_prefab(level_file, kind)
+
+            # The delta may or may not restate the base; whichever side names one, they agree
+            if level_parent and parent_path is None:
+                parent_path = level_parent
+
+            for guid, otype in components:
+                result.component_levels.append((rel_path, guid))
+                # most derived wins, and the chain is walked most-derived first
+                if otype and result.object_type is None:
+                    result.object_type = otype
+                    result.type_level = rel_path
+
+            for guid, enabled in rpl:
+                result.rpl_levels.append((rel_path, guid))
+                # Same most-derived-wins rule: a level that states nothing inherits the flag
+                if enabled is not None and result.rpl_enabled is None:
+                    result.rpl_enabled = enabled
+                    result.rpl_enabled_level = rel_path
 
         rel_path = parent_path
 
     return result
+
+
+def replication_verdict(result, leaf, strict=False):
+    """Decide what one prefab's chain says about replication. Returns (problem, caution), either None.
+
+    An UNRESOLVED chain is the interesting case and the reason this is not a hard fail everywhere.
+    For the Overthrow component a truncated chain is harmless - resolve() looks in the mod first, so
+    anything unresolvable is by definition a base-game file and only a mod file can declare
+    OVT_PlaceableComponent. That reasoning does NOT transfer: base-game prefabs declare RplComponent
+    all the time, and the reference tree is a partial extract with some stale paths (nothing in it
+    publishes a .meta, so a GUID cannot be re-resolved to the file's real path either). So a chain
+    that stopped early and showed no RplComponent is reported as UNPROVEN, not as broken - and
+    --strict promotes that to a failure for callers that would rather over-report than ship a
+    server-local placeable.
+    """
+    if result.rpl_levels:
+        if result.rpl_enabled is False:
+            return ("%s: RplComponent is declared but disabled (Enabled 0 in %s) - the entity the "
+                    "SERVER spawns will not be sent to clients, so nobody but the server sees it"
+                    % (leaf, os.path.basename(result.rpl_enabled_level))), None
+        return None, None
+
+    if result.unresolved:
+        message = ("%s: no RplComponent found, but its chain stops at %s (in neither tree), so "
+                   "replication could not be proven either way - open the prefab in Workbench and "
+                   "confirm the base carries one"
+                   % (leaf, result.unresolved))
+        if strict:
+            return message, None
+        return None, message
+
+    return ("%s: no RplComponent anywhere in its chain (%s) - PlaceItem()/BuildItem() spawn it on the "
+            "server, and a server-spawned entity without replication never reaches clients (the "
+            "placement ghost still looks right, and a listen host cannot reproduce it)"
+            % (leaf, " <- ".join(os.path.basename(p) for p, _ in result.chain))), None
 
 
 def check_kind(kind, repo_root, game_root, args):
@@ -319,30 +433,47 @@ def check_kind(kind, repo_root, game_root, args):
                                 "be owned, and cannot be removed by hand"
                                 % (leaf, kind.component,
                                    " <- ".join(os.path.basename(p) for p, _ in result.chain)))
-                continue
-
-            # Two levels declaring the component under different GUIDs means the child ADDED a second
-            # one instead of overriding the inherited declaration
-            guids = {g for _, g in result.component_levels}
-            if len(guids) > 1:
-                problems.append("%s: %s declared %d times under different GUIDs (%s) - the child adds "
-                                "a duplicate component instead of overriding the inherited one"
-                                % (leaf, kind.component, len(result.component_levels),
-                                   ", ".join("%s in %s" % (g, os.path.basename(p))
-                                             for p, g in result.component_levels)))
-
-            if not result.object_type:
-                cautions.append("%s: has %s but no %s - it is saved and owned, but no type-aware "
-                                "feature (job stages, quota conditions) can see it"
-                                % (leaf, kind.component, kind.type_attr))
             else:
-                types_seen.add(result.object_type)
+                # Two levels declaring the component under different GUIDs means the child ADDED a
+                # second one instead of overriding the inherited declaration
+                guids = {g for _, g in result.component_levels}
+                if len(guids) > 1:
+                    problems.append("%s: %s declared %d times under different GUIDs (%s) - the child "
+                                    "adds a duplicate component instead of overriding the inherited one"
+                                    % (leaf, kind.component, len(result.component_levels),
+                                       ", ".join("%s in %s" % (g, os.path.basename(p))
+                                                 for p, g in result.component_levels)))
+
+                if not result.object_type:
+                    cautions.append("%s: has %s but no %s - it is saved and owned, but no type-aware "
+                                    "feature (job stages, quota conditions) can see it"
+                                    % (leaf, kind.component, kind.type_attr))
+                else:
+                    types_seen.add(result.object_type)
+
+            # Replication is checked whether or not the Overthrow component resolved: they are
+            # independent faults and a prefab can easily have both
+            problem, caution = replication_verdict(result, leaf, args.strict)
+            if problem:
+                problems.append(problem)
+            if caution:
+                cautions.append(caution)
 
             if args.verbose:
+                type_source = result.type_level
+                if not type_source and result.component_levels:
+                    type_source = result.component_levels[0][0]
                 notes.append("%s: type %s from %s"
                              % (leaf,
                                 "'%s'" % result.object_type if result.object_type else "<unset>",
-                                os.path.basename(result.type_level or result.component_levels[0][0])))
+                                os.path.basename(type_source) if type_source else "<nowhere>"))
+                if result.rpl_levels:
+                    notes.append("    RplComponent from %s%s"
+                                 % (os.path.basename(result.rpl_levels[0][0]),
+                                    "" if result.rpl_enabled is None
+                                    else " (Enabled %d in %s)"
+                                         % (1 if result.rpl_enabled else 0,
+                                            os.path.basename(result.rpl_enabled_level))))
                 notes.append("    chain: %s" % " <- ".join(
                     "%s%s" % (os.path.basename(p), "*" if o else "") for p, o in result.chain))
 
@@ -402,6 +533,9 @@ def main():
                         help="check only this config, repo-relative (default: both placeables.conf and buildables.conf)")
     parser.add_argument("--quiet", action="store_true", help="only print problems and the summary")
     parser.add_argument("--verbose", action="store_true", help="print each prefab's resolved type and full chain")
+    parser.add_argument("--strict", action="store_true",
+                        help="fail on prefabs whose replication could not be PROVEN (chain truncated "
+                             "outside both trees), not only on prefabs proven to lack it")
     args = parser.parse_args()
 
     repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
