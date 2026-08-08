@@ -122,7 +122,7 @@ class OVT_PortContext : OVT_UIContext
 			foreach(OVT_ShopInventoryItem item : shop.m_aInventoryItems)
 			{
 				array<SCR_EntityCatalogEntry> entries();
-				m_Economy.FindInventoryItems(item.m_eItemType, item.m_eItemMode, item.m_sFind, entries);
+				m_Economy.FindInventoryItems(item.m_eItemType, item.m_eItemMode, item.m_sFind, entries, item.m_bIncludeSupportStationItems);
 
 				foreach(SCR_EntityCatalogEntry entry : entries)
 				{

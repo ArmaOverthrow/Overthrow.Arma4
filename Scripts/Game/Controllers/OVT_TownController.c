@@ -293,7 +293,7 @@ class OVT_TownControllerComponent: OVT_Component
 		foreach(OVT_ShopInventoryItem item : m_Economy.m_GunDealerConfig.m_aGunDealerItems)
 		{
 			array<SCR_EntityCatalogEntry> entries();
-			m_Economy.FindInventoryItems(item.m_eItemType, item.m_eItemMode, item.m_sFind, entries);
+			m_Economy.FindInventoryItems(item.m_eItemType, item.m_eItemMode, item.m_sFind, entries, item.m_bIncludeSupportStationItems);
 
 			if(item.m_bSingleRandomItem)
 			{

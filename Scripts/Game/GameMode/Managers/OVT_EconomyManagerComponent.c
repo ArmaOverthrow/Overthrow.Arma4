@@ -40,7 +40,17 @@ class OVT_ShopInventoryItem : ScriptAndConfig
 	
 	[Attribute("true", desc: "Include buy/sell other faction's gear for this item")]
 	bool m_bIncludeOtherFactionItems;
-		
+
+	//! Vanilla files crew-served weapon parts (M2/NSV gun and tripod parts, mortar barrels/base plates/
+	//! bipods, sandbags) plus repair, rearming and fuel kits as EQUIPMENT in SUPPORT_STATION mode. An
+	//! EQUIPMENT rule with no m_sFind therefore matches all of them (BUG-098), which is how tripods
+	//! reached the shelves of a civilian electronics store. Turn this off for any rule that means
+	//! "ordinary carryable gear"; a rule that genuinely wants deployable parts can still ask for them
+	//! by setting m_eItemMode to SUPPORT_STATION.
+	[Attribute("true", desc: "Include deployable/support-station parts (tripods, mortar parts, sandbags, repair and fuel kits)")]
+	bool m_bIncludeSupportStationItems;
+
+
 	[Attribute(desc: "Choose a single and random item from this category")]
 	bool m_bSingleRandomItem;
 }
@@ -651,7 +661,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		foreach(OVT_ShopInventoryItem item : config.m_aInventoryItems)
 		{
 			array<SCR_EntityCatalogEntry> entries();
-			FindInventoryItems(item.m_eItemType, item.m_eItemMode, item.m_sFind, entries);
+			FindInventoryItems(item.m_eItemType, item.m_eItemMode, item.m_sFind, entries, item.m_bIncludeSupportStationItems);
 			
 			foreach(SCR_EntityCatalogEntry entry : entries)
 			{
@@ -669,9 +679,11 @@ class OVT_EconomyManagerComponent: OVT_Component
 	//! for a shop type once, on first use, from exactly the same rules and in exactly the same order,
 	//! and answers from the set afterwards.
 	//!
-	//! Semantics deliberately mirrored from IsSoldAtShop: only m_eItemType / m_eItemMode / m_sFind are
-	//! consulted (the faction include flags and m_bSingleRandomItem are stocking concerns, not
-	//! eligibility ones), and a shop type with no configured rules sells nothing. Difference by
+	//! Semantics deliberately mirrored from IsSoldAtShop: only m_eItemType / m_eItemMode / m_sFind /
+	//! m_bIncludeSupportStationItems are consulted (the faction include flags and m_bSingleRandomItem are
+	//! stocking concerns, not eligibility ones - whether a shop deals in deployable parts at all IS an
+	//! eligibility one, which is why it belongs here and the faction flags do not), and a shop type with
+	//! no configured rules sells nothing. Difference by
 	//! construction: a catalog prefab that was never registered in the resource database has no ID, so
 	//! it cannot be represented here - such an item is unsellable anyway (see IsRegisteredResource).
 	//! \param[in] id The resource ID of the item.
@@ -713,7 +725,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 			if(!item) continue;
 
 			array<SCR_EntityCatalogEntry> entries();
-			FindInventoryItems(item.m_eItemType, item.m_eItemMode, item.m_sFind, entries);
+			FindInventoryItems(item.m_eItemType, item.m_eItemMode, item.m_sFind, entries, item.m_bIncludeSupportStationItems);
 
 			foreach(SCR_EntityCatalogEntry entry : entries)
 			{
@@ -1451,9 +1463,11 @@ class OVT_EconomyManagerComponent: OVT_Component
 	//! \param[in] mode The SCR_EArsenalItemMode to filter by (DEFAULT matches any).
 	//! \param[in] search A string to search within the prefab name (case-sensitive). Blank matches all.
 	//! \param[out] inventoryItems An array to populate with matching SCR_EntityCatalogEntry objects.
+	//! \param[in] includeSupportStation False drops SUPPORT_STATION entries (deployable parts). Only
+	//! meaningful when mode is DEFAULT, i.e. when the wildcard would otherwise sweep them in (BUG-098).
 	//! \return True if the search was performed (doesn't guarantee items were found).
-	bool FindInventoryItems(SCR_EArsenalItemType type, SCR_EArsenalItemMode mode, string search, out array<SCR_EntityCatalogEntry> inventoryItems)
-	{	
+	bool FindInventoryItems(SCR_EArsenalItemType type, SCR_EArsenalItemMode mode, string search, out array<SCR_EntityCatalogEntry> inventoryItems, bool includeSupportStation = true)
+	{
 		foreach(SCR_EntityCatalogEntry entry : m_aEntityCatalogEntries)
 		{
 			SCR_ArsenalItem item = SCR_ArsenalItem.Cast(entry.GetEntityDataOfType(SCR_ArsenalItem));
@@ -1468,7 +1482,8 @@ class OVT_EconomyManagerComponent: OVT_Component
 				{
 					if(item.GetItemMode() != mode) continue;
 				}
-				inventoryItems.Insert(entry);				
+				if(!includeSupportStation && item.GetItemMode() == SCR_EArsenalItemMode.SUPPORT_STATION) continue;
+				inventoryItems.Insert(entry);
 			}
 		}
 		return true;
@@ -1717,7 +1732,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 				foreach(OVT_ShopInventoryItem item : config.m_aInventoryItems)
 				{
 					array<SCR_EntityCatalogEntry> entries();
-					FindInventoryItems(item.m_eItemType, item.m_eItemMode, item.m_sFind, entries);
+					FindInventoryItems(item.m_eItemType, item.m_eItemMode, item.m_sFind, entries, item.m_bIncludeSupportStationItems);
 					
 					foreach(SCR_EntityCatalogEntry entry : entries)
 					{
