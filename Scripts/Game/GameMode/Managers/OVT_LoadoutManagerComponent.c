@@ -312,9 +312,11 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		// OVT_LoadoutManagerSerializer's record. (This used to also call OVT_LoadoutRepository, a set of
 		// Print placeholders that never wrote or deleted anything; deleted with EPF.)
 
-		// Send notification to player about deletion
+		// Send notification to player about deletion. Internal loadouts (the "__ovt_" prefix,
+		// e.g. the logout snapshot deleted on death) are bookkeeping the player never saved,
+		// so deleting them must not surface a notification.
 		OVT_NotificationManagerComponent notifyMgr = OVT_Global.GetNotify();
-		if (notifyMgr)
+		if (notifyMgr && !loadoutName.StartsWith("__ovt_"))
 		{
 			OVT_PlayerManagerComponent playerMgr = OVT_Global.GetPlayers();
 			if (playerMgr)
