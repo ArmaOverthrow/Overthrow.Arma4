@@ -15,7 +15,15 @@ class OVT_ProgressInfo : SCR_InfoDisplay
 	
 	// Controller reference
 	protected OVT_OverthrowController m_Controller;
-	
+
+	// Controller subscription retry state
+	// The controller is assigned asynchronously (OVT_OverthrowController.RpcDo_NotifyOwnerAssignment),
+	// so it is often not available yet when the info display starts drawing. Retry until it is.
+	protected const int SUBSCRIBE_RETRY_INTERVAL_MS = 1000;
+	protected const int SUBSCRIBE_MAX_ATTEMPTS = 60;
+	protected int m_iSubscribeAttempts = 0;
+	protected bool m_bSubscribed = false;
+
 	//------------------------------------------------------------------------------------------------
 	override void OnStartDraw(IEntity owner)
 	{
@@ -35,7 +43,8 @@ class OVT_ProgressInfo : SCR_InfoDisplay
 		if (progressBarWidget)
 			m_ProgressBar = SCR_InventoryProgressBar.Cast(progressBarWidget.FindHandler(SCR_InventoryProgressBar));
 		
-		// Subscribe to controller events
+		// Subscribe to controller events (retries until the controller is assigned)
+		m_iSubscribeAttempts = 0;
 		SubscribeToController();
 		
 		// Initially hide the progress display
@@ -46,40 +55,65 @@ class OVT_ProgressInfo : SCR_InfoDisplay
 	override void OnStopDraw(IEntity owner)
 	{
 		UnsubscribeFromController();
+		GetGame().GetCallqueue().Remove(HideProgress);
 		super.OnStopDraw(owner);
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Subscribe to the local controller's progress events.
+	//! The controller is assigned asynchronously by the server, so a single attempt races the
+	//! assignment RPC and would leave the display dead for the whole session. Retry on a bounded
+	//! schedule and give up silently once the attempt budget is exhausted.
 	protected void SubscribeToController()
 	{
+		if (m_bSubscribed)
+			return;
+
 		m_Controller = OVT_Global.GetController();
-		if (!m_Controller)
-			return;
-		
-		OVT_ProgressEventHandler progressEvents = m_Controller.GetProgressEvents();
+
+		OVT_ProgressEventHandler progressEvents;
+		if (m_Controller)
+			progressEvents = m_Controller.GetProgressEvents();
+
 		if (!progressEvents)
+		{
+			m_Controller = null;
+			m_iSubscribeAttempts++;
+			if (m_iSubscribeAttempts < SUBSCRIBE_MAX_ATTEMPTS)
+				GetGame().GetCallqueue().CallLater(SubscribeToController, SUBSCRIBE_RETRY_INTERVAL_MS);
 			return;
-		
+		}
+
 		progressEvents.GetOnProgressStart().Insert(OnProgressStart);
 		progressEvents.GetOnProgressUpdate().Insert(OnProgressUpdate);
 		progressEvents.GetOnProgressComplete().Insert(OnProgressComplete);
 		progressEvents.GetOnProgressError().Insert(OnProgressError);
+
+		m_bSubscribed = true;
 	}
-	
+
 	//------------------------------------------------------------------------------------------------
 	protected void UnsubscribeFromController()
 	{
-		if (!m_Controller)
+		// Cancel any pending retry so it cannot subscribe after the display has stopped drawing
+		GetGame().GetCallqueue().Remove(SubscribeToController);
+
+		if (!m_bSubscribed || !m_Controller)
+		{
+			m_bSubscribed = false;
 			return;
-		
+		}
+
 		OVT_ProgressEventHandler progressEvents = m_Controller.GetProgressEvents();
-		if (!progressEvents)
-			return;
-		
-		progressEvents.GetOnProgressStart().Remove(OnProgressStart);
-		progressEvents.GetOnProgressUpdate().Remove(OnProgressUpdate);
-		progressEvents.GetOnProgressComplete().Remove(OnProgressComplete);
-		progressEvents.GetOnProgressError().Remove(OnProgressError);
+		if (progressEvents)
+		{
+			progressEvents.GetOnProgressStart().Remove(OnProgressStart);
+			progressEvents.GetOnProgressUpdate().Remove(OnProgressUpdate);
+			progressEvents.GetOnProgressComplete().Remove(OnProgressComplete);
+			progressEvents.GetOnProgressError().Remove(OnProgressError);
+		}
+
+		m_bSubscribed = false;
 	}
 	
 	//------------------------------------------------------------------------------------------------
