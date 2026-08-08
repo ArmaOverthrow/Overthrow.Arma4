@@ -1,8 +1,9 @@
 # Vanilla Persistence Migration - Context & Decisions
 
-**Last Updated:** 2026-08-02 (GitHub #143 — in-session vehicle respawn; see the latest session note)
-**Current Phase:** Phase 7 — Manual Play-Test (user)
-**Status:** 🟢 BUILT — Phases 1-6 complete and verified, Phase 8 (#143) implemented and awaiting its first run. Compile clean (5890 files, Overthrow addon only). Fast 20/20. All 41/41 before #143; the new vehicle case takes it to 42. Zero `EPF_`/`EDF_` references repo-wide. Awaiting the user's play-test (`playtest-checklist.md`, 20 items — **item 19 is now a feature to verify, not a limitation to accept**)
+**Last Updated:** 2026-08-08 (BUG-104 — a Continue left every connected player unmapped; see the latest session note)
+**Current Phase:** ✅ **SHIPPED** — maintenance only
+**Status:** ✅ **COMPLETE.** All build phases done and gate-verified; **SP play-test green 2026-08-03 (items 1–15)** and the **MP/dedicated half (section D) green**, with every linked bug closed — BUG-002, BUG-006, BUG-018, BUG-085, BUG-086 (and BUG-087 next door on `controller-migration`). Compile clean (5924 files, Overthrow addon only). Fast 38 · All **68**. Zero `EPF_`/`EDF_` references repo-wide.
+**Post-ship:** BUG-104 fixed 2026-08-08 (SP/listen-host Continue: the session ID maps were never rebuilt after the world transition, so the HUD read $0). One play-test re-check owed — see the session note.
 
 ---
 
@@ -13,15 +14,11 @@
 - ✅ `vanilla-api-reference.md` created — verified API truth with file:line for everything (system, conf layer, serializers, SaveGameManager, UUID/WhenAvailable, lifecycle traps).
 - ✅ Acceptance gate in place since dev-ops/test-coverage (see below).
 
-**What's next:** (1) **SP playtest DONE 2026-08-03 — items 1–15 ✅**, only BUG-018 (corpses across continue, low, deferred) filed out of it; (2) **section D (items 16–20: JIP, two-player isolation, vehicle reconnect #143, dedicated restart cycle) needs a dev build on a server** — that is the remaining gate; (3) **BUG-018 FIXED 2026-08-03** (root cause: engine never consults scripted conf rules — see the session note below; corpse re-check is play-test item 12c on the next continue); (4) then the branch is merge-ready for `main` (user's call; changes are uncommitted in the working tree).
+**What's next:** nothing outstanding on the feature itself — it is shipped. The one item owed is a play-test re-check of **BUG-104** (below), which no automated case can reach because a real Continue is a world transition.
 
-**Blockers:** none. MP play-test round 1 ran 2026-08-04 on the deployed Dev addon and produced four defects, all fixed 2026-08-05 (see the session note). Round 2 needs a new Dev build pushed.
+**Blockers:** none.
 
-**What MP round 2 must re-test (all four came out of round 1):**
-1. **Log out somewhere distinctive, restart the server, rejoin.** You must appear where you logged out, not at home. With gear if the body record survived (it should now — the player config self-spawns), without gear but STILL in the right place if it did not.
-2. **Park and lock a car, log out, wait >60 s so it despawns, restart the server, rejoin.** The car must be back where you parked it and still locked. If its own record survived it keeps fuel/damage/cargo; if not it is rebuilt from the registry and the console says so (`rebuilt … at its last parked position … contents lost`).
-3. **Stop the server and read the log.** Expect ONE `Save point created`, no `Cannot save - saving is currently disabled` line, and no `Unable to locate configuruation ''` errors on the next startup.
-4. **Open the camp menu and the recruits list on a client.** No `Wrong GUID/name for resource` at player spawn. This one could not be verified locally at all - see the session note.
+**How it closed:** SP play-test green 2026-08-03 (items 1–15). MP round 1 (2026-08-04) produced four defects, all fixed 2026-08-05; round 2 fixed three of four and exposed the durability finding that became **BUG-086** (records do not outlive their entity) and **BUG-085** (loadout apply destroying container contents). Both fixed 2026-08-05, and the **subsequent MP/dedicated play-test came back green**, discharging section D of `playtest-checklist.md`. Every bug linked to this feature is now closed.
 
 **Acceptance criterion: DISCHARGED 2026-08-02.** `tools/run-tests.sh OVT_TEST_PersistenceRoundTripSuite` = exit 0 (two consecutive runs; now part of the All group, which auto-resets CI save state per run). The anti-vacuous closures live on unchanged in the suite header.
 
@@ -78,6 +75,22 @@ The dividing line for "should this entity persist?" is not "is it important" but
 ---
 
 ## Session Notes
+
+### 2026-08-08 (BUG-104 FIXED) — a Continue rebuilds the world, and NOTHING re-ran SetupPlayer
+
+**Post-ship regression report: "start game, save, restart, Continue → my money is $0."** The save was innocent and so was the restore. Decoding `playthrough004/savepoint000`'s WorldState blob put the record there in full — `money 0x000186A0` = **100,000**, `initialized 1` — and the session log shows it being applied (`Preparing returning player`, `Player 1 restored from their stored body, gear intact`). The balance was correct in memory the whole time. **Nothing could look it up.**
+
+**`SetupPlayer()` is called from exactly one place — `OVT_SpawnLogic.DoSpawn_S` — and that runs when a player CONNECTS.** Loading a save point does not make anyone connect: it replaces the world. The player manager and its session ID maps come back empty while the `DoSpawn_S` that mapped the player ran in the world instance just discarded, and the player stays connected across the transition, so nothing re-runs it. `PrepareConnectedPlayers()` went straight to `FinalizePlayerPreparation()` on the strength of a comment that was only ever true for the fresh-start path (*"SetupPlayer was already called in DoSpawn_S"*).
+
+**Money is just the first symptom anyone sees.** The HUD composes `GetPersistentIDFromPlayerID(runtimeId)` → `GetPlayerMoney(persistentId)` (`OVT_EconomyInfo.c:66,318`); the first answers `""`, so the second reads a null record as 0. The same empty map breaks **every** playerId-keyed lookup for the rest of the session, and — because `SetupPlayer` is also what spawns it — the player gets **no `OVT_OverthrowController`**, so anything riding that seam is dead too. Two lines in the same log said so and had never been connected to the money report: `Player 1 joined group 1000 before they had a persistent id`, and no `Created controller entity for player 1` after the reload at all.
+
+**Why every MP test missed it, and this is the reusable lesson.** A dedicated server continues *at boot, before anyone connects*, so joining players take the ordinary `DoSpawn_S` → `SetupPlayer` path. Only a session where a player is **already connected when the load happens** — SP or listen host pressing Continue — hits it. Dedicated-green does not imply continue-green, and vice versa.
+
+**Fix:** `PrepareConnectedPlayers()` re-maps a connected player whose runtime ID resolves to nothing, before finalizing. Idempotent (the new-game path skips it), keyed on the mapping rather than on `m_aInitializedPlayers`, and placed above that check because the mapping is more fundamental than finalization.
+
+**New case:** `OVT_TEST_Campaign_ContinuePlayerIdMapping` (Campaign tier, All 67 → **68**). Probe balance → assert it reads through the mapping → `ClearPlayerIdMappings()` → **assert the $0 symptom reproduces** → `PrepareConnectedPlayers()` → assert mapping, reverse mapping and balance are all back, and that the balance was not re-granted as if the player were new. Campaign tier deliberately: `PrepareConnectedPlayers()` finalizes any player not already finalized (home, starting car, starting cash), so in the Init tier the case would hand the shared world a house and a car — the case asserts that precondition instead of trusting it. `ClearPlayerIdMappings()` stands in for the world rebuild because a real Continue is a world transition and would restart the autotest harness. **Proven able to fail:** with the fix removed, `PrepareConnectedPlayers() did NOT restore the session ID mapping for playerId 1 (got '', expected 'd13d3018-…')`. Compile clean (5924 files), All **68/68**.
+
+**Owed:** the real thing — save → restart → Continue, then check the balance, a shop purchase, and the camp/recruit menus (which ride the controller).
 
 ### 2026-08-05 (BUG-085 FIXED) — the gear snapshot can actually carry a kit now
 
