@@ -535,7 +535,23 @@ class OVT_EconomyManagerComponent: OVT_Component
 	//! \param[in] pos The world position where the item is being sold (optional, uses base price if "0 0 0").
 	//! \return The calculated sell price.
 	int GetSellPrice(int id, vector pos = "0 0 0")
-	{		
+	{
+		return GetSellPriceAtOffset(id, pos, 0);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The sell price as it would be AFTER stockOffset additional units enter the nearest town's
+	//! stock, without mutating anything.
+	//!
+	//! This is the seam that lets a bulk sale price each unit marginally (BUG-117): unit i of a
+	//! resource is priced with offset i, so dumping a truckload rides the scarcity curve down
+	//! instead of collecting the pre-sale price for every unit. Offset 0 is the plain sell price.
+	//! \param[in] id The resource ID of the item.
+	//! \param[in] pos The world position where the item is being sold (uses base price if "0 0 0").
+	//! \param[in] stockOffset Hypothetical units already added to the town's stock.
+	//! \return The calculated sell price.
+	int GetSellPriceAtOffset(int id, vector pos, int stockOffset)
+	{
 		int price = GetPrice(id);
 		if(m_aAllVehicles.Contains(id)) return price;
 		if(pos[0] != 0)
@@ -544,14 +560,15 @@ class OVT_EconomyManagerComponent: OVT_Component
 			if(town)
 			{
 				int townID = OVT_Global.GetTowns().GetTownID(town);
-				int stock_level = GetTownStock(townID, id);
+				int stock_level = GetTownStock(townID, id) + stockOffset;
 				int max_stock = GetTownMaxStock(townID, id);
+				if(max_stock < 1) max_stock = 1;
 				float distance_to_port = DistanceToNearestPort(pos);
-				price = Math.Round(price + ((1 - (stock_level / max_stock)) * (price * 0.1)) + (price * distance_to_port * 0.0001));
+				price = Math.Round(price + ((1 - ((float)stock_level / max_stock)) * (price * 0.1)) + (price * distance_to_port * 0.0001));
 				if(price < 0) price = 1;
 			}
 		}
-		
+
 		return price;
 	}
 	
@@ -606,6 +623,24 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return Math.Round(1 + (town.population * OVT_Global.GetConfig().m_fNPCBuyRate * GetDemand(id) * ((float)town.stability / 100)));
 	}	
 	
+	//------------------------------------------------------------------------------------------------
+	//! Hard ceiling on how far player sales may overstock a town, as a multiple of GetTownMaxStock
+	//! (BUG-117): beyond it shops refuse to buy rather than paying ever less for an unbounded glut.
+	static const int TOWN_STOCK_BUY_CAP_MULTIPLIER = 2;
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether a town can absorb one more unit of an item from a player sale without exceeding the
+	//! buy cap. extraUnits covers units already accepted earlier in the same bulk sale, so a single
+	//! Sell All cannot blow through the cap between stock broadcasts.
+	//! \param[in] townId The ID of the town.
+	//! \param[in] id The resource ID of the item.
+	//! \param[in] extraUnits Units already accepted but not yet added to the town's stock.
+	//! \return True when one more unit keeps town stock at or below the cap.
+	bool CanTownAbsorbStock(int townId, int id, int extraUnits)
+	{
+		return GetTownStock(townId, id) + extraUnits < TOWN_STOCK_BUY_CAP_MULTIPLIER * GetTownMaxStock(townId, id);
+	}
+
 	//------------------------------------------------------------------------------------------------
 	//! Gets the shop-specific buy price including all applicable multipliers.
 	//! \param[in] id The resource ID of the item.

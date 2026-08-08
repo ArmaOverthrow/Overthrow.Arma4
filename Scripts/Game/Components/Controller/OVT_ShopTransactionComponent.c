@@ -299,8 +299,19 @@ class OVT_ShopTransactionComponent : OVT_Component
 		float multiplier = OVT_ShopSellRules.GetSellMultiplier(shop.m_ShopType, GetGunDealerMultiplier());
 		bool typeHasRules = ShopTypeHasInventoryRules(economy, shop.m_ShopType);
 
+		// Resolved the same way GetSellPriceAtOffset resolves it internally, so the buy-cap check
+		// and the price read agree on which town's stock they are talking about. -1 (no town in
+		// range of this shop) disables the cap, matching the price model, which has no scarcity
+		// term there either.
+		int townId = -1;
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if(towns)
+		{
+			OVT_TownData town = towns.GetNearestTown(shopPos);
+			if(town) townId = towns.GetTownID(town);
+		}
+
 		map<int, int> collated = new map<int, int>;
-		map<int, int> unitPrices = new map<int, int>;
 
 		int total = 0;
 
@@ -338,7 +349,25 @@ class OVT_ShopTransactionComponent : OVT_Component
 				continue;
 			}
 
-			int unitPrice = ResolveUnitPrice(economy, unitPrices, id, shopPos, multiplier);
+			// Marginal pricing (BUG-117): unit i of a resource is priced as if the i units sold
+			// before it had already entered the town's stock, so a bulk dump rides the scarcity
+			// curve down instead of collecting the pre-sale price for every unit. collated holds
+			// exactly the units of this id already deleted this call. Once the curve reaches zero
+			// the offset stops growing (skips do not collate), so every further unit of that id
+			// prices zero too and the dump terminates instead of overstocking the town.
+			int alreadySold = 0;
+			if(collated.Contains(id)) alreadySold = collated[id];
+
+			// Hard buy cap (BUG-117 knob 4): a town saturated to the cap refuses further units
+			// outright instead of accepting an unbounded glut at ever-lower prices. alreadySold
+			// keeps one bulk sale from blowing through the cap before the stock is restocked.
+			if(townId >= 0 && !economy.CanTownAbsorbStock(townId, id, alreadySold))
+			{
+				skippedCount++;
+				continue;
+			}
+
+			int unitPrice = ResolveUnitPrice(economy, id, shopPos, multiplier, alreadySold);
 			if(unitPrice <= 0)
 			{
 				skippedCount++;
@@ -447,26 +476,25 @@ class OVT_ShopTransactionComponent : OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! The unit sell price this shop pays for a resource, memoised for the duration of one bulk sell.
+	//! The unit sell price this shop pays for a resource, at an optional hypothetical stock offset.
 	//!
-	//! GetSellPrice does a nearest-town and nearest-port lookup on every call, which a trunk full of
-	//! identical magazines would otherwise repeat once per magazine.
+	//! This used to memoise per resource for the duration of a bulk sell, which is exactly what made
+	//! every unit of a dump collect the pre-sale price (BUG-117). Pricing is now per unit: the
+	//! nearest-town and nearest-port lookups repeat once per item, but both are short registry scans
+	//! and TryDeleteItem dwarfs them.
 	//! \param[in] economy The economy manager.
-	//! \param[in,out] cache Per-sale price memo, keyed by resource id.
 	//! \param[in] id The resource id.
 	//! \param[in] shopPos The shop's world position (prices are location dependent).
 	//! \param[in] multiplier The shop's sell multiplier.
+	//! \param[in] stockOffset Units of this resource already sold earlier in the same bulk sale.
 	//! \return The unit price.
-	protected int ResolveUnitPrice(OVT_EconomyManagerComponent economy, map<int, int> cache, int id, vector shopPos, float multiplier)
+	protected int ResolveUnitPrice(OVT_EconomyManagerComponent economy, int id, vector shopPos, float multiplier, int stockOffset = 0)
 	{
-		if(cache && cache.Contains(id)) return cache[id];
-
-		int unitPrice = economy.GetSellPrice(id, shopPos);
+		int unitPrice = economy.GetSellPriceAtOffset(id, shopPos, stockOffset);
 		// Written as the legacy sell and the shop menu write it, so client and server agree to the
 		// currency unit; GetSellMultiplier returns exactly 1.0 everywhere but a gun dealer.
 		unitPrice = unitPrice * multiplier;
 
-		if(cache) cache[id] = unitPrice;
 		return unitPrice;
 	}
 
@@ -487,7 +515,25 @@ class OVT_ShopTransactionComponent : OVT_Component
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
 		if(!economy) return false;
 
-		return ResourceIsAccepted(economy, shop.m_ShopType, ShopTypeHasInventoryRules(economy, shop.m_ShopType), id);
+		if(!ResourceIsAccepted(economy, shop.m_ShopType, ShopTypeHasInventoryRules(economy, shop.m_ShopType), id))
+			return false;
+
+		// Buy cap (BUG-117 knob 4): a town saturated on this item greys the row out in the sell
+		// browser with the same not-bought-here treatment, so the offer matches what ExecuteSell
+		// will refuse. Town resolution mirrors ExecuteSell's.
+		IEntity shopEntity = shop.GetOwner();
+		if(shopEntity)
+		{
+			OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+			if(towns)
+			{
+				OVT_TownData town = towns.GetNearestTown(shopEntity.GetOrigin());
+				if(town && !economy.CanTownAbsorbStock(towns.GetTownID(town), id, 0))
+					return false;
+			}
+		}
+
+		return true;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -547,7 +593,7 @@ class OVT_ShopTransactionComponent : OVT_Component
 		if(!economy) return 0;
 
 		float multiplier = OVT_ShopSellRules.GetSellMultiplier(shop.m_ShopType, GetGunDealerMultiplier());
-		return ResolveUnitPrice(economy, null, id, shop.GetOwner().GetOrigin(), multiplier);
+		return ResolveUnitPrice(economy, id, shop.GetOwner().GetOrigin(), multiplier);
 	}
 
 	//------------------------------------------------------------------------------------------------
