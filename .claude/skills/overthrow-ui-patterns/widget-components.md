@@ -255,9 +255,10 @@ for(; wi < CARDS_PER_PAGE; wi++)
 ## Gamepad Considerations
 
 - Give every interactive row a focus visual (`m_bShowBackgroundOnFocus`).
-- Long lists need a **stepper** — a pair of `WLib_NavigationButton`s on
-  `shoulder_left`/`shoulder_right` that cycle with wraparound, so a pad never has
-  to point at an individual tab:
+- Long lists need a **stepper** — a pair of `WLib_NavigationButton`s that cycle
+  with wraparound, so a pad never has to point at an individual tab. Put the
+  pair on `thumb_left`/`thumb_right` (or `shoulder_right` plus one free button);
+  **not** `shoulder_left`, which VON owns at priority 110:
 
 ```cpp
 void CycleTab(int delta)
