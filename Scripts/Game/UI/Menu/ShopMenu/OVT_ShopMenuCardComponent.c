@@ -48,11 +48,13 @@ class OVT_ShopMenuCardComponent : SCR_ScriptedWidgetComponent
 		TextWidget costWidget = TextWidget.Cast(m_wRoot.FindAnyWidget("Cost"));
 		if(costWidget)
 		{
+			// Hide the PLATE, not the text: the price sits on a dark readability panel (BUG-099), and
+			// hiding only the label would leave an empty black box in the corner of the card.
 			if(cost == -1)
 			{
-				costWidget.SetVisible(false);
+				SetOverlayVisible("CostPlate", costWidget, false);
 			}else{
-				costWidget.SetVisible(true);
+				SetOverlayVisible("CostPlate", costWidget, true);
 				costWidget.SetText(OVT_MoneyFormat.FormatMoney(cost));
 			}
 		}
@@ -65,9 +67,9 @@ class OVT_ShopMenuCardComponent : SCR_ScriptedWidgetComponent
 		{
 			if(qty == -1)
 			{
-				qtyWidget.SetVisible(false);
+				SetOverlayVisible("StockPlate", qtyWidget, false);
 			}else{
-				qtyWidget.SetVisible(true);
+				SetOverlayVisible("StockPlate", qtyWidget, true);
 				qtyWidget.SetText(qty.ToString());
 			}
 		}
@@ -129,6 +131,26 @@ class OVT_ShopMenuCardComponent : SCR_ScriptedWidgetComponent
 			img.SetVisible(true);
 			tex.SetVisible(false);
 		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Shows or hides a readability plate, falling back to its label when the plate is missing.
+	//! OVT_ManageVehicleContext and any other consumer may still be pointing this component at an
+	//! older card layout, so the label must keep working on its own.
+	//! \param[in] plateName Name of the wrapping overlay widget.
+	//! \param[in] label The text widget inside it.
+	//! \param[in] visible Whether the readout should be drawn.
+	protected void SetOverlayVisible(string plateName, TextWidget label, bool visible)
+	{
+		Widget plate = m_wRoot.FindAnyWidget(plateName);
+		if(plate)
+		{
+			plate.SetVisible(visible);
+			label.SetVisible(true);
+			return;
+		}
+
+		label.SetVisible(visible);
 	}
 
 	//------------------------------------------------------------------------------------------------

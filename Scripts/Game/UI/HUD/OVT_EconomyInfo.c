@@ -11,7 +11,23 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 	protected const int COLOR_DELTA_NEGATIVE = 0xFFFF4444;
 
 	//! Accumulating "+$500" state for the money readout. Client-side only; no new replication.
-	protected ref OVT_MoneyDeltaTracker m_MoneyDelta = new OVT_MoneyDeltaTracker();
+	//!
+	//! STATIC ON PURPOSE (BUG-097). This info display is declared once per OCCUPIABLE PREFAB - the
+	//! player character, every vehicle, every helicopter, every turret - so an instance field gave each
+	//! seat its own baseline and its own countdown. Getting into a car stopped one tracker mid-count and
+	//! re-seeded another from scratch, so money earned while driving showed nothing; getting out handed
+	//! the display back to a tracker still holding the pre-drive balance, which then rendered the same
+	//! gain again. The quantity is per-player, so the state has to outlive any one seat.
+	protected static ref OVT_MoneyDeltaTracker s_MoneyDelta;
+
+	//! Persistent ID whose balance seeded the shared tracker. Statics outlive a world, so a new session
+	//! in the same process must not inherit the previous player's baseline.
+	protected static string s_sDeltaOwnerId;
+
+	//! World time (ms) of the last observation fed to the shared tracker. During a seat change both the
+	//! character's and the vehicle's display can tick in the same frame, and one shared tracker fed
+	//! twice would count its timeout down at double speed.
+	protected static float s_fDeltaLastUpdate = -1;
 
 	float m_fCounter = 8;
 	float m_fOverrideCounter = 0;
@@ -312,25 +328,49 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 	//!
 	//! Polled, not subscribed (implementation plan D11): this display already reads the balance every
 	//! frame and already has a timeSlice, and its lifetime does not obviously match the economy
-	//! manager's - so there is no invoker to register and, more to the point, none to unregister.
+	//! manager's - so there is no invoker to register and, more to the point, none to unregister. The
+	//! TRACKER, however, is shared by every instance (see s_MoneyDelta); the displays are pure
+	//! renderers of one per-player ticker.
 	//! \param[in] money The player's balance this frame.
 	//! \param[in] timeSlice Seconds since the previous frame.
 	protected void UpdateMoneyDelta(int money, float timeSlice)
 	{
-		m_MoneyDelta.Update(money, timeSlice);
-
 		TextWidget w = TextWidget.Cast(m_wRoot.FindAnyWidget("MoneyDeltaText"));
+
+		// Before the local character resolves there is no balance to observe - only a 0 that would seed
+		// the baseline and then read as a windfall the moment the real number arrived.
+		if(m_playerId.IsEmpty())
+		{
+			if(w) w.SetVisible(false);
+			return;
+		}
+
+		if(!s_MoneyDelta) s_MoneyDelta = new OVT_MoneyDeltaTracker();
+
+		if(m_playerId != s_sDeltaOwnerId)
+		{
+			s_sDeltaOwnerId = m_playerId;
+			s_MoneyDelta.Reset();
+		}
+
+		float now = GetGame().GetWorld().GetWorldTime();
+		if(now != s_fDeltaLastUpdate)
+		{
+			s_fDeltaLastUpdate = now;
+			s_MoneyDelta.Update(money, timeSlice);
+		}
+
 		if(!w) return;
 
-		if(!m_MoneyDelta.IsVisible())
+		if(!s_MoneyDelta.IsVisible())
 		{
 			w.SetVisible(false);
 			return;
 		}
 
-		w.SetText(m_MoneyDelta.GetText());
+		w.SetText(s_MoneyDelta.GetText());
 
-		if(m_MoneyDelta.GetDelta() > 0)
+		if(s_MoneyDelta.GetDelta() > 0)
 		{
 			w.SetColor(Color.FromInt(COLOR_DELTA_POSITIVE));
 		}else{
