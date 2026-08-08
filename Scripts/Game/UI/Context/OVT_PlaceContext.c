@@ -18,7 +18,10 @@ class OVT_PlaceContext : OVT_UIContext
 	protected ResourceName m_pPlacingPrefab;
 	protected OVT_Placeable m_Placeable;
 
-	protected vector[] m_vCurrentTransform[4];
+	//! Yaw the player last rotated a ground ghost to, carried to the next ghost.
+	//! Only the yaw - carrying the whole transform stamped an unrelated placeable's
+	//! pitch and roll onto the next ghost, with no input able to level it again.
+	protected float m_fCurrentYaw;
 
 	protected const float TRACE_DIS = 15;
 	protected const float MAX_PREVIEW_DIS = 15;
@@ -73,13 +76,19 @@ class OVT_PlaceContext : OVT_UIContext
 			{
 				vector normal = vector.Zero;
 				m_ePlacingEntity.SetOrigin(GetPlacePosition(normal));
-				m_ePlacingEntity.GetTransform(m_vCurrentTransform);
 				if(m_Placeable.m_bPlaceOnWall)
 				{
 					vector ypr = m_ePlacingEntity.GetYawPitchRoll();
 					ypr[0] = normal.ToYaw();
 					ypr[1] = 0;
 					m_ePlacingEntity.SetYawPitchRoll(ypr);
+				}
+				else
+				{
+					//Wall yaw comes from the surface normal, not the player, so it must not
+					//poison the ground carry-over
+					vector ypr = m_ePlacingEntity.GetYawPitchRoll();
+					m_fCurrentYaw = ypr[0];
 				}
 				m_ePlacingEntity.Update();
 			}
@@ -467,10 +476,6 @@ class OVT_PlaceContext : OVT_UIContext
 		m_pPlacingPrefab = m_Placeable.m_aPrefabs[m_iPrefabIndex];
 		m_ePlacingEntity = OVT_Global.SpawnEntityPrefab(m_pPlacingPrefab, pos, "0 0 0", false);
 
-		if(m_vCurrentTransform)
-		{
-			m_ePlacingEntity.SetTransform(m_vCurrentTransform);
-		}
 		//SCR_Global.SetMaterial(m_ePlacingEntity, "{E0FECF0FE7457A54}Assets/Editor/PlacingPreview/Preview_03.emat", true);
 
 		Physics phys = m_ePlacingEntity.GetPhysics();
@@ -484,6 +489,12 @@ class OVT_PlaceContext : OVT_UIContext
 		if(m_Placeable.m_bPlaceOnWall)
 		{
 			vector ypr = Vector(normal.ToYaw(), 0, 0);
+			m_ePlacingEntity.SetYawPitchRoll(ypr);
+		}
+		else
+		{
+			//Upright, at the yaw the player left the last ground ghost on
+			vector ypr = Vector(m_fCurrentYaw, 0, 0);
 			m_ePlacingEntity.SetYawPitchRoll(ypr);
 		}
 	}

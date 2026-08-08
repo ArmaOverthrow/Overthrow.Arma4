@@ -780,29 +780,59 @@ class OVT_PlayerCommsComponent: OVT_Component
 		playerId = ResolveSenderPlayerId(playerId);
 		if(qty <= 0 || qty > 100) return;
 
+		// Every rejection below tells the player why. A bare return is indistinguishable from a dropped
+		// packet, which is what made the occupying-faction gate read as a broken button (BUG-102).
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
-		if(!economy.IsValidResourceId(id)) return;
-		if(economy.IsVehicle(id)) return;
-		if(economy.ItemIsFromFaction(id, OVT_Global.GetConfig().GetOccupyingFactionIndex())) return;
+		if(!economy.IsValidResourceId(id) || economy.IsVehicle(id))
+		{
+			SendBuyFailureNotification(playerId, "ImportNotAvailable");
+			return;
+		}
+
+		if(economy.ItemIsFromFaction(id, OVT_Global.GetConfig().GetOccupyingFactionIndex()))
+		{
+			SendBuyFailureNotification(playerId, "ImportNotAvailable");
+			return;
+		}
 
 		OVT_PlayerData player = OVT_PlayerData.Get(playerId);
-		if(!player || !player.HasPermission("Import")) return;
+		if(!player || !player.HasPermission("Import"))
+		{
+			SendBuyFailureNotification(playerId, "ImportNoPermission");
+			return;
+		}
 
 		ResourceName res = economy.GetResource(id);
-		if(res == "") return;
+		if(res == "")
+		{
+			SendBuyFailureNotification(playerId, "ImportNotAvailable");
+			return;
+		}
 
 		// Items no standard shop stocks are the extended catalogue the port only offers at Trade L5
-		if(!economy.IsSoldAtAnyNonVehicleShop(res) && !player.HasPermission("IllegalImports")) return;
+		if(!economy.IsSoldAtAnyNonVehicleShop(res) && !player.HasPermission("IllegalImports"))
+		{
+			SendBuyFailureNotification(playerId, "ImportNotAvailable");
+			return;
+		}
 
 		IEntity character = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
 		if(!character) return;
-		if(economy.DistanceToNearestPort(character.GetOrigin()) > IMPORT_MAX_PORT_DISTANCE) return;
+		if(economy.DistanceToNearestPort(character.GetOrigin()) > IMPORT_MAX_PORT_DISTANCE)
+		{
+			SendBuyFailureNotification(playerId, "ImportTooFarFromPort");
+			return;
+		}
 
 		RplComponent vehicleRpl = RplComponent.Cast(Replication.FindItem(vehicleId));
 		if(!vehicleRpl) return;
 		IEntity vehicle = vehicleRpl.GetEntity();
 		if(!vehicle) return;
-		if(economy.DistanceToNearestPort(vehicle.GetOrigin()) > IMPORT_MAX_PORT_DISTANCE) return;
+		if(economy.DistanceToNearestPort(vehicle.GetOrigin()) > IMPORT_MAX_PORT_DISTANCE)
+		{
+			SendBuyFailureNotification(playerId, "ImportTooFarFromPort");
+			return;
+		}
 
 		InventoryStorageManagerComponent storage = InventoryStorageManagerComponent.Cast(vehicle.FindComponent(InventoryStorageManagerComponent));
 		if(!storage) return;
@@ -810,7 +840,11 @@ class OVT_PlayerCommsComponent: OVT_Component
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 
 		int cost = qty * economy.GetPrice(id);
-		if(!economy.PlayerHasMoney(persId, cost)) return;
+		if(!economy.PlayerHasMoney(persId, cost))
+		{
+			SendBuyFailureNotification(playerId, "PurchaseFailedInsufficientFunds");
+			return;
+		}
 
 		int actual = 0;
 

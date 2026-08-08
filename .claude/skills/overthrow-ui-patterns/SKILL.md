@@ -37,17 +37,24 @@ can use without first hunting for it with a stick. See `navigation-buttons.md`.
 python3 .claude/skills/overthrow-ui-patterns/scripts/check-input-conflicts.py
 ```
 
-Exit 0 = you introduced no new same-context collision. It parses both the mod
-and base-game confs, so it knows which vanilla `Menu*` actions your context
-pulled in. 13 collisions already ship and are baselined — they print as `BASE`
-and are bugs, not a pass. `--warnings` adds overlaps with the always-active
-global context. See `keybindings.md`.
+Exit 0 = you introduced no new same-context collision, no input owned by an
+always-live base context, and no layout button bound to an action no conf
+defines. It parses both confs — including the base game's 197 actions declared
+**inline** inside `ActionContext` blocks, which appear in no `ActionRefs` list —
+so it knows both which vanilla `Menu*` actions your context pulled in and that
+`shoulder_left` belongs to VON. The `BASE` baseline is empty as of 2026-08-08;
+every shipped collision was rebound. `--warnings` adds overlaps with the
+always-active global context. See `keybindings.md`.
 
-**3. `KC_W` `KC_A` `KC_S` `KC_D` are reserved.** The base game binds them to
-`MenuUp` / `MenuLeft` / `MenuDown` / `MenuRight` alongside the arrow keys. Any
-context that lists those nav actions - i.e. every menu that wants a gamepad to
-work - has already spent them. `OverthrowShopSell` on `KC_S` is a live example
-of getting this wrong. Full reserved table in `keybindings.md`.
+**3. `KC_W` `KC_A` `KC_S` `KC_D` are reserved — and so are `a`, `b`, the d-pad
+and `shoulder_left`.** The base game binds WASD to `MenuUp` / `MenuLeft` /
+`MenuDown` / `MenuRight` alongside the arrow keys, and the d-pad + `a` + `b` to
+the same nav actions on a pad. Any context that lists those nav actions - i.e.
+every menu that wants a gamepad to work - has already spent them.
+`shoulder_left` is worse: `VONContext` holds it at **priority 110**, live every
+frame the player is alive, so a menu at priority 50 never sees the press. Put
+menu verbs on `x` / `y` / `shoulder_right` / the stick clicks. Full reserved
+table in `keybindings.md`.
 
 **4. Hiding a `WLib_NavigationButton` also disables its shortcut.**
 `SCR_InputButtonComponent.OnInput()` bails when the widget is not

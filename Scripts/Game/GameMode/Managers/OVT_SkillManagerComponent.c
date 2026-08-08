@@ -9,8 +9,14 @@ class OVT_SkillManagerComponent: OVT_Component
 {	
 	[Attribute()]
 	ref OVT_SkillsConfig m_Skills;
-	
+
+	[Attribute(defvalue: "60", desc: "Seconds after a shop buy/sell awards XP before trade actions can award XP again (per player)")]
+	float m_fTradeXPCooldown;
+
 	static OVT_SkillManagerComponent s_Instance;
+
+	//! Server-only: playerId -> world time (ms) of their last trade XP award
+	protected ref map<int, float> m_mTradeXPLastAward = new map<int, float>;
 	
 	//------------------------------------------------------------------------------------------------
 	//! Gets the singleton instance of the OVT_SkillManagerComponent.
@@ -201,20 +207,40 @@ class OVT_SkillManagerComponent: OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Checks whether a player may earn trade XP and, if so, stamps their cooldown.
+	//! Buy and sell share one cooldown so a buy->sell round trip at the same counter
+	//! cannot be churned for XP (BUG-101).
+	//! \param playerId The ID of the player attempting to earn trade XP.
+	//! \return true if trade XP may be awarded now.
+	protected bool TryStartTradeXPCooldown(int playerId)
+	{
+		float now = GetGame().GetWorld().GetWorldTime();
+		float last;
+		if(m_mTradeXPLastAward.Find(playerId, last))
+		{
+			if(now - last < m_fTradeXPCooldown * 1000) return false;
+		}
+		m_mTradeXPLastAward.Set(playerId, now);
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Callback executed when a player buys items. Awards a small amount of XP.
 	//! \param playerId The ID of the player who bought items.
 	//! \param amount The total amount spent.
 	void OnPlayerBuy(int playerId, int amount)
 	{
+		if(!TryStartTradeXPCooldown(playerId)) return;
 		GiveXP(playerId, 1);
 	}
-	
+
 	//------------------------------------------------------------------------------------------------
 	//! Callback executed when a player sells items. Awards XP based on the sell amount.
 	//! \param playerId The ID of the player who sold items.
 	//! \param amount The total amount received.
 	void OnPlayerSell(int playerId, int amount)
 	{
+		if(!TryStartTradeXPCooldown(playerId)) return;
 		int xp = 1 + Math.Floor(amount * 0.01);
 		GiveXP(playerId, xp);
 	}

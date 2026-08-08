@@ -9176,6 +9176,57 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A7E2C1D4A9F0030}" {
+   Id "OVT-Msg-ImportNotAvailable"
+   Target_en_us "That item cannot be imported"
+   Comment "Shown when the server refuses an import - the item belongs to the occupying faction, is not in the port's catalogue, or is not a valid import"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E2C1D4A9F0031}" {
+   Id "OVT-Msg-ImportNoPermission"
+   Target_en_us "You do not have permission to import"
+   Comment "Shown when a player without the Import permission attempts an import"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E2C1D4A9F0032}" {
+   Id "OVT-Msg-ImportTooFarFromPort"
+   Target_en_us "You and the vehicle must be at the port to import"
+   Comment "Shown when the importing player or the receiving vehicle is further than 30m from a port"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6A7D9B2E000000E1}" {
    Id "OVT-Msg-GroupAiBudgetExceeded"
    Target_en_us "This group now commands %1 AI, over the recommended limit of %2 - performance may suffer"

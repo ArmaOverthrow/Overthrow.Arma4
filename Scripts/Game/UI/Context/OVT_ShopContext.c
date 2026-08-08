@@ -50,6 +50,12 @@ class OVT_ShopContext : OVT_UIContext
 	//! the burst and still lands in the same frame the player would notice.
 	protected const int STOCK_REFRESH_MS = 50;
 
+	//! How long a sell request may stay outstanding before the buttons are re-armed anyway. The reply
+	//! is a reliable RPC, but the DISPLAY path is not guaranteed to arrive (BUG-090 loses it entirely
+	//! on a listen host), and a guard that can wedge the only sell button is worse than the bug it
+	//! fixes. Generous enough to cover a bad connection, short enough not to feel broken.
+	protected const int SELL_TIMEOUT_MS = 5000;
+
 	protected OVT_ShopComponent m_Shop;
 	protected int m_iPageNum = 0;
 	protected int m_SelectedResource = -1;
@@ -77,6 +83,14 @@ class OVT_ShopContext : OVT_UIContext
 	//! State of the currently selected row, so the action buttons do not have to re-derive it.
 	protected int m_iSelectedQuantity;
 	protected bool m_bSelectedEnabled;
+
+	//! True between sending a sell request and receiving its result. A sell RPC is fire-and-forget and
+	//! the quantity it carries is what THIS menu last observed - on a remote client that count is stale
+	//! until the sold items replicate away, so a second click re-sends the same quantity, the server
+	//! finds nothing left, and the "sold nothing" reply overwrites the toast for the sale that did
+	//! happen (BUG-100). One request at a time is the whole fix; while this is set the Sell and
+	//! Sell All buttons refuse.
+	protected bool m_bSellInFlight;
 
 	//! Widgets and handlers cached at show time. Cached rather than re-found because OnClose must
 	//! remove exactly the handlers OnShow inserted.
@@ -148,6 +162,7 @@ class OVT_ShopContext : OVT_UIContext
 		m_iPageNum = 0;
 		m_eMode = OVT_ShopMenuMode.BUY;
 		m_eTab = OVT_ShopCategory.ALL;
+		m_bSellInFlight = false;
 		ClearSelection();
 
 		ResolveSellEligibility();
@@ -172,6 +187,11 @@ class OVT_ShopContext : OVT_UIContext
 		// cancelling the pair cancels everything that could redraw a closed menu.
 		GetGame().GetCallqueue().Remove(RefreshPostSell);
 		GetGame().GetCallqueue().Remove(RefreshFromStockEvent);
+
+		// The in-flight guard is menu state, and the menu is going away. Leaving the timeout queued
+		// would re-arm buttons that no longer exist.
+		GetGame().GetCallqueue().Remove(OnSellTimeout);
+		m_bSellInFlight = false;
 
 		// The layout is about to be destroyed; a running fade would keep animating a dead widget.
 		ResetMessage();
@@ -1101,6 +1121,11 @@ class OVT_ShopContext : OVT_UIContext
 		if(sellMode && m_SelectedResource >= 0 && m_bSelectedEnabled && m_iSelectedQuantity > 0)
 			canSell = true;
 
+		// A request already went out and the quantities on screen are provisional until it comes back
+		// (BUG-100). Disabling the SCR_InputButtonComponent also refuses its keybind, so the guard
+		// covers the "S" key and the gamepad face button, not just the mouse.
+		if(m_bSellInFlight) canSell = false;
+
 		if(m_SellAction) m_SellAction.SetEnabled(canSell);
 		if(m_SellAllAction) m_SellAllAction.SetEnabled(canSell);
 	}
@@ -1364,10 +1389,34 @@ class OVT_ShopContext : OVT_UIContext
 		if(!m_bSelectedEnabled) return;
 		if(quantity < 1) return;
 
+		// One sale at a time. Dropping the extra click outright is deliberate: queueing it would send a
+		// quantity derived from an inventory the player has already sold out of.
+		if(m_bSellInFlight) return;
+
 		OVT_ShopTransactionComponent transactions = OVT_Global.GetShopTransactions();
 		if(!transactions) return;
 
+		m_bSellInFlight = true;
+		RefreshActionButtons();
+		GetGame().GetCallqueue().Remove(OnSellTimeout);
+		GetGame().GetCallqueue().CallLater(OnSellTimeout, SELL_TIMEOUT_MS, false);
+
 		transactions.SellItems(m_Shop, m_SelectedResource, quantity);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Re-arms the sell buttons when no result came back. Never invents a toast - the sale may well
+	//! have happened and simply lost its reply (BUG-090); all this does is stop the guard becoming a
+	//! permanent lock. A refresh is still worth doing, because the inventory has probably changed.
+	protected void OnSellTimeout()
+	{
+		if(!m_bSellInFlight) return;
+
+		m_bSellInFlight = false;
+		if(!m_bIsActive) return;
+
+		RefreshActionButtons();
+		Refresh();
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1379,7 +1428,14 @@ class OVT_ShopContext : OVT_UIContext
 	//! \param[in] result OVT_ShopSellResult value.
 	protected void OnSellResult(int soldCount, int totalEarned, int skippedCount, int result)
 	{
+		// Cleared before the active check so a result that lands as the menu closes cannot leave the
+		// guard set for the next visit.
+		GetGame().GetCallqueue().Remove(OnSellTimeout);
+		m_bSellInFlight = false;
+
 		if(!m_bIsActive) return;
+
+		RefreshActionButtons();
 
 		if(soldCount > 0)
 		{

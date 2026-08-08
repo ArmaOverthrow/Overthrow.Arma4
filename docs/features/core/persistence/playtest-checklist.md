@@ -7,7 +7,13 @@
 
 Everything below is what the harness **cannot** reach: real quit→continue (a world transition restarts the autotest harness), JIP/MP (needs two clients), UI, and live AI behavior. Ordered by risk — **do section A first**.
 
-> **RESULTS 2026-08-03 (SP run, first clean pass):** items **1–15 all ✅** with two notes: item 10 "hard to tell but probably ok if everything else is"; **item 12c ❌ — corpses do not survive a continue → BUG-018** (user-rated minor: EPF never persisted corpses either; new capability, not a regression). Five fixes landed during the run (see context.md 2026-08-03 session notes): pre-start spawn stealing the home, continue path unwired, Restart hijacked → chooser screen (×2 UX iterations), ammo-box VME (vanilla 1.7 landmine, modded guard), chooser not closing on Continue. **Section D (items 16–20, MP/dedicated) pending a dev build on a server.**
+> ## ✅ COMPLETE — every section green, feature shipped
+>
+> **SP run, 2026-08-03:** items **1–15 all ✅** with two notes: item 10 "hard to tell but probably ok if everything else is"; **item 12c ❌ at the time — corpses → BUG-018** (since closed). Five fixes landed during the run (context.md 2026-08-03 notes): pre-start spawn stealing the home, continue path unwired, Restart hijacked → chooser screen (×2 UX iterations), ammo-box VME (vanilla 1.7 landmine, modded guard), chooser not closing on Continue.
+>
+> **Section D (16–20, MP/dedicated): GREEN**, across three dedicated rounds. Round 1 (2026-08-04) found four defects → fixed 2026-08-05. Round 2 fixed three of four and exposed the two that mattered most — **BUG-086** (a released record does not outlive its entity, so the whole "despawn but do not forget" design was replaced by the reservation model) and **BUG-085** (loadout apply destroying container contents) — both fixed 2026-08-05, and the following round came back clean.
+>
+> **⚠️ Post-ship, and NOT covered by any round above: BUG-104** (fixed 2026-08-08). A **SP/listen-host Continue** left every already-connected player unmapped — the HUD read $0, playerId-keyed lookups missed, no controller was spawned. Dedicated servers are immune (they continue at boot, before anyone connects), which is exactly why three green MP rounds said nothing about it. **Re-check on the next SP run:** save → restart → Continue, then verify the balance, a shop purchase, and the camp/recruit menus.
 
 ## A. Spawn & lifecycle (highest priority — spawn logic was re-parented off EPF in Phase 5)
 

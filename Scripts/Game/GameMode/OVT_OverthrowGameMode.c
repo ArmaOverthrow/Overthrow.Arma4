@@ -508,6 +508,23 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 				continue;
 			}
 
+			// A CONTINUE REBUILDS THE WORLD, AND DoSpawn_S DOES NOT RUN AGAIN. On the new-game path
+			// SetupPlayer() has already run (OVT_SpawnLogic.DoSpawn_S) and this is a no-op. On the load
+			// path it has NOT: loading a save point replaces the world, so the player manager - and its
+			// session ID maps - are brand new, while the DoSpawn_S that mapped this player ran in the
+			// world instance that was just thrown away. The player is already connected, so nothing
+			// re-runs it. Without this, GetPersistentIDFromPlayerID() answers "" for the whole continued
+			// session: the HUD reads $0 for a player whose record holds their real balance, every
+			// playerId-keyed lookup misses, and the player never gets an OVT_OverthrowController.
+			// Keyed on the mapping rather than on m_aInitializedPlayers, and placed above that check,
+			// because the mapping is more fundamental than finalization - a player who is somehow
+			// finalized but unmapped still needs it.
+			if (m_PlayerManager && m_PlayerManager.GetPersistentIDFromPlayerID(playerId) == "")
+			{
+				Print("[Overthrow] Player " + playerId + " has no session ID mapping (continued campaign) - running SetupPlayer");
+				m_PlayerManager.SetupPlayer(playerId, playerUid);
+			}
+
 			// Check if player has already been finalized
 			if (m_aInitializedPlayers.Contains(playerUid))
 			{
@@ -516,7 +533,6 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			}
 
 			Print("[Overthrow] Finalizing player preparation: " + playerUid + " (ID: " + playerId + ")");
-			// SetupPlayer was already called in DoSpawn_S, so just finalize (home, officer, etc.)
 			FinalizePlayerPreparation(playerId, playerUid);
 		}
 

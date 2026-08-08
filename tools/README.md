@@ -917,12 +917,12 @@ surface this loudly and exit 2).
 
 Static asset check, no Workbench and no game: verifies that every prefab listed
 in **`placeables.conf` and `buildables.conf`** really ends up carrying its
-Overthrow component (`OVT_PlaceableComponent` / `OVT_BuildableComponent`), by
-walking each prefab's **inheritance chain** across both the mod and the base-game
-reference tree.
+Overthrow component (`OVT_PlaceableComponent` / `OVT_BuildableComponent`) **and
+an `RplComponent`**, by walking each prefab's **inheritance chain** across both
+the mod and the base-game reference tree.
 
 ```
-tools/check-placeables.py [--reforger DIR] [--conf FILE] [--quiet] [--verbose]
+tools/check-placeables.py [--reforger DIR] [--conf FILE] [--quiet] [--verbose] [--strict]
 ```
 
 | Flag | Meaning |
@@ -930,13 +930,44 @@ tools/check-placeables.py [--reforger DIR] [--conf FILE] [--quiet] [--verbose]
 | `--reforger <dir>` | Base-game reference tree. Default `../ArmaReforger`, or `$OVERTHROW_REFORGER_DIR`. |
 | `--conf <file>` | Check only one config — `Configs/Resistance/placeables.conf` or `Configs/Resistance/buildables.conf`. Default: both. |
 | `--quiet` | Only problems and the summary. |
-| `--verbose` | Print each prefab's resolved type and full chain (`*` marks a mod file that shadows a game path). |
+| `--verbose` | Print each prefab's resolved type, where its `RplComponent` came from, and the full chain (`*` marks a mod file that shadows a game path). |
+| `--strict` | Also fail when replication could not be **proven** (chain truncated outside both trees), not only when it is proven missing. |
 
 | Exit | Meaning |
 |---|---|
-| `0` | Every prefab resolves to a component — verified clean (warnings may still print). |
+| `0` | Every prefab resolves to a component and to replication — verified clean (warnings may still print). |
 | `1` | At least one problem; details on stdout. |
 | `2` | Indeterminate — a config or the reference tree could not be read. |
+
+**The replication half.** `PlaceItem()`/`BuildItem()` spawn the real object on
+the **server** (`OVT_Global.SpawnEntityPrefabMatrix`). A runtime-spawned entity
+with no `RplComponent` is server-local — on a dedicated server nobody sees the
+thing they just paid for. The placement *ghost* is spawned client-side by
+`OVT_PlaceContext` and looks perfectly normal, and a listen-server host (server
+and client in one process) cannot reproduce the fault at all, which is what makes
+it so easy to ship. The trap is inheritance: several placeables are built on
+static base-game props that never needed replication because vanilla only ever
+places them at design time.
+
+Three verdicts, deliberately distinct:
+
+- **proven present** — an `RplComponent` was found in the chain and nothing
+  disables it (an explicit `Enabled 0` at the most derived level that states one
+  is a failure, same as absent).
+- **proven missing** — the whole chain resolved and no level declares one. Fails.
+- **unproven** — the chain stops at a file in neither tree, so the tool cannot
+  see whether the base carries one. Warns by default (`--strict` fails). This is
+  not paranoia: base-game prefabs declare `RplComponent` all the time, some
+  recorded paths are stale (`Prefabs/Props/Core/Destructible_Props_Base.et` no
+  longer exists under that name), and the reference tree publishes no `.meta`
+  files, so a GUID cannot be re-resolved to the file's real path.
+
+**Same-path overrides are deltas.** Where the mod shadows a game path, the script
+reads **both** files and unions their components — mod first, so the mod wins on
+"most derived". `Prefabs/Structures/Signs/Signs_Base.et` in the mod contains
+nothing but `OVT_PlaceableComponent`, while the game's file at that path supplies
+the mesh, the rigid body and the `RplComponent`; both are live at runtime.
+Reading only the mod side reports all 16 signs as unreplicated — backwards.
 
 **Why it is not a grep.** A placed or built object is saved only because the
 persistence rule matches `ComponentClass "OVT_PlaceableComponent"` (and the same
@@ -984,7 +1015,7 @@ Overthrow component.
 ## Utilities
 
 ```bash
-tools/check-placeables.py --quiet                 # placeable/buildable prefabs: component reachable?
+tools/check-placeables.py --quiet                 # placeable/buildable prefabs: component + RplComponent reachable?
 bash tools/lib/common.sh --self-test              # 29 assertions: path round-trips,
                                                   # resolvers, sweep, trap save/restore
 bash tools/lib/common.sh --sweep-stale            # LIST registered orphans (STALE\t<pid>\t<image>)

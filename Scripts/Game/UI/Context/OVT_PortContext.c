@@ -108,6 +108,13 @@ class OVT_PortContext : OVT_UIContext
 			return;
 		}
 
+		// The IllegalImports branch above already excludes occupying-faction items, and this branch has
+		// to as well: RpcAsk_ImportToVehicle rejects them outright (BUG-033's faction gate), so listing
+		// them offered a row whose only possible outcome was a click that did nothing (BUG-102). The
+		// shop rules that build this list carry m_bIncludeOccupyingFactionItems per entry, but the port
+		// is not a shop - the server applies ONE flat rule here, and this is it.
+		int occupyingFactionIndex = OVT_Global.GetConfig().GetOccupyingFactionIndex();
+
 		foreach(OVT_ShopInventoryConfig shop : m_Economy.m_ShopConfig.m_aShopConfigs)
 		{
 			if(shop.type == OVT_ShopType.SHOP_VEHICLE) continue;
@@ -115,12 +122,23 @@ class OVT_PortContext : OVT_UIContext
 			foreach(OVT_ShopInventoryItem item : shop.m_aInventoryItems)
 			{
 				array<SCR_EntityCatalogEntry> entries();
-				m_Economy.FindInventoryItems(item.m_eItemType, item.m_eItemMode, item.m_sFind, entries);
+				m_Economy.FindInventoryItems(item.m_eItemType, item.m_eItemMode, item.m_sFind, entries, item.m_bIncludeSupportStationItems);
 
 				foreach(SCR_EntityCatalogEntry entry : entries)
 				{
 					ResourceName prefab = entry.GetPrefab();
 					if(prefabs.Contains(prefab)) continue;
+
+					// GetInventoryId is a bare map index - an unregistered prefab resolves to id 0, i.e.
+					// some other item's faction (R7). Unregistered entries keep their old behaviour of
+					// being listed rather than being hidden by a lookup that answered about a different
+					// item entirely.
+					if(m_Economy.IsRegisteredResource(prefab))
+					{
+						int id = m_Economy.GetInventoryId(prefab);
+						if(m_Economy.ItemIsFromFaction(id, occupyingFactionIndex)) continue;
+					}
+
 					prefabs.Insert(prefab);
 				}
 			}

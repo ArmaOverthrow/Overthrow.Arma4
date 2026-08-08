@@ -4,5 +4,8 @@ GenericEntity : "{4417ED07902CE47E}Prefabs/Props/Military/Radios/RadioStation_AN
   OVT_PlaceableComponent "{6A7D9B2E00000047}" {
    m_sPlaceableType "PirateRadio"
   }
+  RplComponent "{5624A88DC2D9928D}" {
+   Enabled 1
+  }
  }
 }
