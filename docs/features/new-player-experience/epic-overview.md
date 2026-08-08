@@ -1,8 +1,8 @@
 # New Player Experience - Epic Overview
 
 **Epic:** new-player-experience
-**Status:** 🟡 In Progress (1 of 5 features built)
-**Last Updated:** 2026-08-07
+**Status:** 🟡 In Progress (2 of 5 features built)
+**Last Updated:** 2026-08-08
 
 > **This file is the epic marker.** Its presence in `docs/features/new-player-experience/` is what tells every Beast Mode command (and future Web App / Discord clients) that this folder is an **epic**, not a plain feature. Keep it present and keep the required sections below filled in. It is the epic's equivalent of the project's `docs/overview.md`, scoped to this epic. The master `docs/overview.md` tracks this epic as a **single row**; the per-feature detail lives **here**.
 
@@ -23,7 +23,7 @@ The constituent features of this epic, in build order. Each feature is a subfold
 | # | Feature | Status | Tasks | Description |
 |---|---------|--------|-------|-------------|
 | 1 | tutorial-system | 🟢 Built · ⏳ play-test owed | 63/63 (100%) | Framework: config-driven tutorial entries, action-trigger wiring to existing manager invokers, server→client delivery, custom dismissable popup UI, per-machine seen tracking |
-| 2 | field-manual | Planned | — | Expand the 1-entry Overthrow field manual into a per-system reference that tutorial popups deep-link to via "Learn more" |
+| 2 | field-manual | ✅ **Complete** (play-test passed) | 56/56 (100%) | Expand the 1-entry Overthrow field manual into a per-system reference that tutorial popups deep-link to via "Learn more". Shipped: 12 entries under 4 sub-categories, 102 new string ids (exported), the twelve frozen link ids frozen and documented, and a full staleness sweep of the public wiki |
 | 3 | tutorial-content | Planned | — | The authored early+mid-game tutorial entries (home/money/shops/map/wanted/skills → recruiting/camps/base capture/FOB basics) with localization |
 | 4 | first-spawn | Planned | — | First-spawn welcome sequence (your home, your car, your cash, what Overthrow is) and start-menu faction/difficulty descriptions |
 | 5 | starter-jobs-retirement | Planned | — | Retire the five MP-broken tutorial starter jobs once popups teach the same things (closes BUG-037 by removal) |
@@ -81,8 +81,10 @@ Cross-feature tech debt and review findings. **Populated and updated by `/review
 
 ## Master Overview Rollup
 
-- **Rollup status:** In Progress — 1/5 features built (63/63 tasks on tutorial-system; the other four are planned, requirements only)
-- **One-line summary for master:** Tutorial framework built and green (75 automated tests, R1/R2 discharged); play-test and string-table export owed before content, field manual, first-spawn and starter-jobs retirement follow.
+- **Rollup status:** In Progress, 2/5 features built, **1 fully closed** (field-manual 56/56 ✅ play-tested and signed off; tutorial-system 63/63 built with its play-test still owed; the other three planned, requirements only)
+- **One-line summary for master:** Tutorial framework and field manual both built and green (compile 0, Fast 47, All 78); the manual ships 12 entries under 4 sub-categories with 102 string ids **already exported**, and the twelve frozen deep-link ids are published for `tutorial-content` to consume; play-tests owed on both, then content, first-spawn and starter-jobs retirement follow.
+- **What field-manual unblocks:** `tutorial-content` has its twelve "Learn more" targets (the frozen key table, `field-manual/implementation.md` §3.3) and `first-spawn` has `#OVT-FieldManual_Welcome_Title`. `starter-jobs-retirement` has a written documentation handoff in its own `requirements.md`.
+- **Open items carried out of field-manual:** 16 numbered open questions for a gameplay owner in `field-manual/context.md` (surfaced by the wiki staleness sweep, not created by it), notably the officer-loadout sharing gap and whether a `difficulty/insane` page should be created.
 
 ---
 

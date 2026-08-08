@@ -419,6 +419,19 @@ Body text is drawn in a `RichTextWidget` on both surfaces, so `<br/>` and the ba
 
 ### Adding an entry (the whole procedure)
 
+> ### ⛔ Rule 0 — fact-check every claim against the code before you write it
+>
+> **This is the one failure mode the entire gate stack cannot catch, and it has already happened twice.** Both proof entries shipped with invented mechanics, found by a player and not by any tool:
+>
+> | Shipped text | Reality |
+> |---|---|
+> | *"Money you carry can be stolen; money you deposit at your house cannot."* | `OVT_PlayerData.money` is a **persisted `int` on the player record** — not an entity, not carried, not lootable. There is no theft/drop/pickpocket mechanic anywhere, and **no deposit, bank or vault exists**. Both clauses were fabricated. |
+> | *"The Overthrow menu holds your map, your money, your recruits and the Field Manual."* | The menu has 12 entries and **neither a money screen nor the Field Manual** is one of them (the manual is a base-game menu reached from the pause/main menu or a tip's Learn More). |
+>
+> A tutorial tip is a **factual claim about the game**, and a wrong one is worse than no tip: it teaches a mechanic that does not exist and the player wastes real time looking for it. Nothing in the pipeline can detect this — compile-check, all 77 assertions, the id/link guards and the localization gate all pass happily on a beautifully-formed lie. The Init cases verify a link *resolves*; **no** case verifies a sentence is *true*.
+>
+> So, before writing any entry body: **find the code that implements the thing you are describing and read it.** If you cannot point at a `file:line` that makes the sentence true, cut the sentence. Prefer the narrow claim you have verified over the richer one you are assuming — "prices differ by town" (checked) beats "prices differ by town and rise as the resistance grows" (plausible, unverified). Record what you checked in the string's `Comment` field, as the two corrected entries now do, so the next author inherits the evidence instead of re-deriving it.
+
 1. Add `#OVT-Tutorial_<PascalId>_Title` / `_Body*` to `Language/localization_Overthrow.st`, then ask the user to export the string table in Workbench (never hand-edit the `.<lang>.conf` exports).
 2. Create `Configs/Tutorials/<camelCaseId>.conf` (+ a `.meta` with a fresh resource GUID) by copying a proof entry:
    - **`Configs/Tutorials/proofFirstBuy.conf`** — `economy-first-buy`: `NONMODAL`, one page, a `PLAYER_BUY` trigger, and a field-manual deep link. Copy this for an ordinary tip.

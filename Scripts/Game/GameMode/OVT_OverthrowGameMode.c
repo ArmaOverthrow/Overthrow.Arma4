@@ -66,15 +66,47 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	//! Gap between those attempts, in milliseconds.
 	static const int TUTORIAL_SPAWN_PUSH_RETRY_MS = 500;
 
-	//! Attempts made for the current spawn. Reset by OnPlayerSpawnedLocal.
+	//! Attempts made for the current spawn. Reset by TryPushSpawnedTutorialTrigger().
 	protected int m_iTutorialSpawnPushAttempts;
+
+	//! True once a local player character has been possessed on THIS machine and the PLAYER_SPAWNED
+	//! trigger is owed. Set by OnPlayerSpawnedLocal, which only ever runs on a machine that has a
+	//! local player - which is what keeps every deferred push below a no-op on a dedicated server.
+	protected bool m_bTutorialSpawnPending;
+
+	//! True once the local tutorial pipeline has ACCEPTED the PLAYER_SPAWNED trigger for the current
+	//! spawn. The idempotence guard: the trigger can now be pushed from three places (the spawn
+	//! itself, the campaign start, and the campaign-start replication landing on a client) and
+	//! exactly one of them may win.
+	protected bool m_bTutorialSpawnDelivered;
+
+	//! True while a bounded retry chain is registered on the call queue, so that a second push
+	//! request cannot start a second chain running alongside the first.
+	protected bool m_bTutorialSpawnRetrying;
 
 	//! Flag indicating if the core game components and logic have been initialized.
 	protected bool m_bGameInitialized = false;
 	//! Flag indicating if the initial start camera has been positioned.
 	protected bool m_bCameraSet = false;
 	//! Flag indicating if the game has officially started (after potential setup phases).
+	//! AUTHORITY ONLY - it is written in DoStartGame(), which no client ever runs. Anything that has
+	//! to know this on a client reads IsCampaignRunningLocally() instead.
 	protected bool m_bGameStarted = false;
+
+	//! The replicated mirror of m_bGameStarted: "the campaign is running", as known on EVERY machine.
+	//!
+	//! WHY A MIRROR AND NOT AN RplProp ON m_bGameStarted ITSELF. HasGameStarted() gates concerns that
+	//! are server-side by construction and must not silently become true on a client: the save gates
+	//! (OVT_PersistenceManagerComponent.PassesSaveGates / OnGameEnd), the spawn preparation branch in
+	//! OVT_SpawnLogic.DoSpawn_S, and the legacy #OVT-IntroHint in OnPlayerSpawnedLocal, which the
+	//! first-spawn feature owns and this one must leave exactly as it found it. A separate flag keeps
+	//! the new client-visible fact to the one caller that needs it.
+	//!
+	//! An RplProp rather than an RPC because it is one bool that only ever goes false -> true, and an
+	//! RplProp also carries itself to a join-in-progress client for free - which is the ONLY way a
+	//! player joining a running dedicated server can ever know the campaign is up.
+	[RplProp(onRplName: "OnCampaignRunningReplicated")]
+	protected bool m_bCampaignRunningRpl = false;
 	//! Flag to trigger game start during the OnWorldPostProcess phase, typically used after loading a save.
 	protected bool m_bRequestStartOnPostProcess = false;
 	//! Flag indicating that OnWorldPostProcess has already run for this world.
@@ -105,6 +137,30 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	bool HasGameStarted()
 	{
 		return m_bGameStarted;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Checks whether the campaign is running, from the point of view of THIS machine.
+	//!
+	//! The client-safe form of HasGameStarted(). On the authority the two agree in the same frame;
+	//! on a client only this one is ever true, because m_bGameStarted is written in DoStartGame()
+	//! and a client never runs it.
+	//! \return True when the campaign has started here or the authority has told us it started.
+	bool IsCampaignRunningLocally()
+	{
+		if (m_bGameStarted)
+			return true;
+
+		return m_bCampaignRunningRpl;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Reports whether the local tutorial pipeline has taken the PLAYER_SPAWNED trigger for the
+	//! current spawn. Read by OVT_TEST_Campaign_Tutorial_SpawnTriggerSurvivesCampaignStart.
+	//! \return True when the trigger was accepted, false when it is still owed or was dropped.
+	bool HasDeliveredSpawnTutorialTrigger()
+	{
+		return m_bTutorialSpawnDelivered;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -197,6 +253,12 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		OVT_Global.GetConfig().m_iOccupyingFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(OVT_Global.GetConfig().m_sOccupyingFaction));
 
 		m_bGameStarted = true;
+
+		// Tell every other machine the campaign is up. Nothing else replicates this fact, and a
+		// client that does not know it cannot run anything gated on the campaign running - see
+		// m_bCampaignRunningRpl.
+		m_bCampaignRunningRpl = true;
+		Replication.BumpMe();
 
 		// Prepare all connected players now that the game has started
 		PrepareConnectedPlayers();
@@ -298,6 +360,15 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		// where the campaign starts saving itself. No-op on clients and when already scheduled.
 		if (m_Persistence)
 			m_Persistence.StartAutosaves();
+
+		// THE HOST / NEW-CAMPAIGN HALF OF THE PLAYER_SPAWNED TRIGGER.
+		// On a new campaign the local player's character is possessed several seconds BEFORE this
+		// runs - OVT_SpawnLogic.DoSpawn_S always creates it, because possession is the only signal
+		// that dismisses the engine loading screen behind the start menu. OnPlayerSpawnedLocal has
+		// therefore already come and gone with the campaign not started, and nothing possesses the
+		// player a second time. This is the re-push it left owed. A no-op unless a local player was
+		// actually possessed here, so a dedicated server never enters it.
+		TryPushSpawnedTutorialTrigger();
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1308,21 +1379,66 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	//! \\param[in] playerId The persistent ID of the local player.
 	void OnPlayerSpawnedLocal(string playerId)
 	{
-		// Only show the hint if the game has actually started (user clicked "Start Game")
-		// Don't show it while they're still in the start menu
-		if (!m_bGameStarted)
-			return;
-
-		if(!m_aHintedPlayers.Contains(playerId))
+		// LEGACY INTRO HINT - unchanged, including the fact that m_bGameStarted (not the campaign-
+		// running form) is what gates it. It is authority-only and it fires after the possession
+		// that precedes the start menu, so on the new-game path it has been dead since the 1.6 spawn
+		// rework. Reviving or retiring it belongs to the first-spawn feature; this one must leave
+		// #OVT-IntroHint and m_aHintedPlayers exactly as it found them.
+		if (m_bGameStarted && !m_aHintedPlayers.Contains(playerId))
 		{
 			SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-IntroHint","#OVT-Overthrow",20);
 			m_aHintedPlayers.Insert(playerId);
 		}
 
-		// Client-local PLAYER_SPAWNED tutorial trigger. Additive on purpose: the hint above and
-		// m_aHintedPlayers stay exactly as they were - retiring them belongs to the first-spawn
-		// feature, not here.
+		// Client-local PLAYER_SPAWNED tutorial trigger. A local player is now possessed on this
+		// machine, so the trigger is owed from here until something delivers it - which may be this
+		// call, DoStartGame(), or the campaign-running replication landing on a client, whichever
+		// finds the campaign running first.
+		m_bTutorialSpawnPending = true;
+		m_bTutorialSpawnDelivered = false;
+		TryPushSpawnedTutorialTrigger();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! CLIENT: the authority just told us the campaign is running (m_bCampaignRunningRpl callback).
+	//!
+	//! The remote-player half of the PLAYER_SPAWNED trigger. A player on a listen host who was in the
+	//! world before Start Game was pressed is possessed with no campaign running, exactly like the
+	//! host; this is where their owed trigger is delivered. A player joining an ALREADY running
+	//! dedicated server does not need this - the RplProp is true before they spawn, so the spawn path
+	//! itself delivers - but it costs nothing and covers the ordering either way.
+	protected void OnCampaignRunningReplicated()
+	{
+		TryPushSpawnedTutorialTrigger();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Delivers the owed client-local PLAYER_SPAWNED trigger, if it is owed and can be delivered now.
+	//!
+	//! THE ONE PLACE THAT DECIDES. Every caller (the spawn, the campaign start, the campaign-start
+	//! replication) asks the same question here, so the trigger is pushed exactly once per spawn no
+	//! matter how many of them fire or in what order:
+	//!  - nothing owed (no local player was ever possessed here, e.g. a dedicated server) -> no-op;
+	//!  - already delivered for this spawn -> no-op, so no caller can duplicate another's push;
+	//!  - campaign not running on this machine yet -> no-op, and deliberately NOT a retry: the start
+	//!    menu may still be up, and one of the two callers above will come back when it is running;
+	//!  - a retry chain already in flight -> no-op, one chain at a time.
+	protected void TryPushSpawnedTutorialTrigger()
+	{
+		if (!m_bTutorialSpawnPending)
+			return;
+
+		if (m_bTutorialSpawnDelivered)
+			return;
+
+		if (!IsCampaignRunningLocally())
+			return;
+
+		if (m_bTutorialSpawnRetrying)
+			return;
+
 		m_iTutorialSpawnPushAttempts = 0;
+		m_bTutorialSpawnRetrying = true;
 		PushSpawnedTutorialTrigger();
 	}
 
@@ -1339,15 +1455,25 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	//! never stops is not. TUTORIAL_SPAWN_PUSH_ATTEMPTS x TUTORIAL_SPAWN_PUSH_RETRY_MS is a hard
 	//! ceiling of a few seconds, after which this gives up without a log line - a dedicated server
 	//! and a player who left during the countdown would both hit that path every single spawn.
+	//!
+	//! ONLY EVER ENTERED THROUGH TryPushSpawnedTutorialTrigger(), which owns the decision of whether
+	//! a push is owed at all; this method owns only the race with the controller assignment.
 	protected void PushSpawnedTutorialTrigger()
 	{
 		m_iTutorialSpawnPushAttempts++;
 
 		if (OVT_TutorialComponent.NotifyPlayerSpawnedLocal())
+		{
+			m_bTutorialSpawnDelivered = true;
+			m_bTutorialSpawnRetrying = false;
 			return;
+		}
 
 		if (m_iTutorialSpawnPushAttempts >= TUTORIAL_SPAWN_PUSH_ATTEMPTS)
+		{
+			m_bTutorialSpawnRetrying = false;
 			return;
+		}
 
 		GetGame().GetCallqueue().CallLater(PushSpawnedTutorialTrigger, TUTORIAL_SPAWN_PUSH_RETRY_MS, false);
 	}

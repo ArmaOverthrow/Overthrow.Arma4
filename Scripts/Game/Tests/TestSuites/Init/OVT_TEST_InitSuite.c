@@ -1899,11 +1899,35 @@ class OVT_TEST_Init_Tutorial_SettingsStoreRoundTrips : SCR_AutotestCaseBase
 //! Modes, Gameplay, Equipment) plus Overthrow's is six today. A vanilla update that adds a seventh
 //! must not turn this suite red, so the assertion is ">= 5 categories that are not Overthrow's".
 //!
+//! THE ENTRY COUNT IS A LOG LINE, NOT AN ASSERTION. DescribeRoot() prints how many entries the merged
+//! root holds (141 when this was written) BEFORE any assertion runs, so one run yields the measurement
+//! even on a red verdict. Nothing compares that number to anything, which is deliberate: content
+//! features add pages, and adding a page must never turn this case red.
+//!
+//! THREE BRANCHES GUARD OVERTHROW'S OWN PAGES (field-manual Phase 1b, plan decision D8). They exist
+//! because between the twelve frozen title keys landing and tutorial-content linking them, nothing
+//! points at eleven of them - so the tutorial-link branch below is blind to them, and a page that was
+//! silently pruned or misspelled would go unnoticed for months:
+//!  A - every Overthrow entry has at least one content piece. SetAllEntriesAndParents removes an entry
+//!      with empty m_aContent, then a sub-category left with nothing, then a category left with
+//!      nothing, all without a word. The page does not exist and its deep link opens the front page.
+//!  B - the four sub-categories (Getting Started, Money and Trade, Staying Hidden, The Resistance) are
+//!      all present. MEMBERSHIP, NOT EQUALITY - a fifth sub-category added later must not turn it red.
+//!  C - every Overthrow entry title is unique across the MERGED manual. OVT_OpenEntryByTitle takes the
+//!      first m_sTitle that matches, so a collision - with a vanilla page or with another Overthrow
+//!      page - silently sends a deep link to the wrong page.
+//!
+//! Deliberately NOT here: a hard-coded list of the twelve entry title keys. That duplicates the .conf
+//! into this file and makes every content edit a two-file change; branch A plus the tutorial-link
+//! branch already make a pruned or broken link a red build.
+//!
 //! WHAT IT DOES NOT PROVE: that anything renders. Widgets, tile art and the two open routes (main
 //! menu and pause menu) are outside the automated spine and stay on the human checklist.
 //!
 //! PROVEN ABLE TO FAIL 2026-08-07: see the record in
 //! docs/features/new-player-experience/tutorial-system/context.md.
+//! BRANCHES A/B/C PROVEN ABLE TO FAIL 2026-08-08: see the proven-red table in
+//! docs/features/new-player-experience/field-manual/context.md.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_FieldManual_DeltaMergesAndLinksResolve : SCR_AutotestCaseBase
@@ -1922,6 +1946,20 @@ class OVT_TEST_Init_FieldManual_DeltaMergesAndLinksResolve : SCR_AutotestCaseBas
 	//! Introduction, Editor, MP Modes, Gameplay, Equipment. A floor, never an equality.
 	static const int VANILLA_CATEGORY_FLOOR = 5;
 
+	//! The four sub-category buttons Overthrow's category draws (field-manual plan section 3.1).
+	//! Checked for MEMBERSHIP, never for equality: a later feature adding a fifth sub-category is a
+	//! content decision, not a regression, and must not turn this case red.
+	static const ref array<string> OVERTHROW_SUB_CATEGORY_TITLES = {
+		"#OVT-FieldManual_Category_GettingStarted_Title",
+		"#OVT-FieldManual_Category_MoneyAndTrade_Title",
+		"#OVT-FieldManual_Category_StayingHidden_Title",
+		"#OVT-FieldManual_Category_TheResistance_Title"
+	};
+
+	//! Prefix every Overthrow-authored manual key carries. Branch C only judges these; vanilla's own
+	//! 140 pages are the base game's business.
+	static const string OVERTHROW_ENTRY_TITLE_PREFIX = "#OVT-FieldManual_";
+
 	//------------------------------------------------------------------------------------------------
 	[Step(EStage.Main)]
 	bool Execute()
@@ -1937,6 +1975,27 @@ class OVT_TEST_Init_FieldManual_DeltaMergesAndLinksResolve : SCR_AutotestCaseBas
 		Print("[Overthrow.FieldManual] merged root inventory: " + DescribeRoot(root));
 
 		string failure = FindFirstMergeFault(root);
+		if (failure != "")
+		{
+			SetResultFailure("%1", failure);
+			return true;
+		}
+
+		failure = FindFirstContentlessOverthrowEntry(root);
+		if (failure != "")
+		{
+			SetResultFailure("%1", failure);
+			return true;
+		}
+
+		failure = FindFirstMissingOverthrowSubCategory(root);
+		if (failure != "")
+		{
+			SetResultFailure("%1", failure);
+			return true;
+		}
+
+		failure = FindFirstDuplicateOverthrowEntryTitle(root);
 		if (failure != "")
 		{
 			SetResultFailure("%1", failure);
@@ -2004,6 +2063,111 @@ class OVT_TEST_Init_FieldManual_DeltaMergesAndLinksResolve : SCR_AutotestCaseBas
 				if (subCategory && subCategory.m_sTitle == VANILLA_INTRODUCTION_TITLE)
 					return "Overthrow's field-manual sub-category is titled '" + VANILLA_INTRODUCTION_TITLE + "' - the BASE GAME's Introduction key. It renders as a second left-hand button literally named 'Introduction' beside the real one. Use an #OVT- key (Phase 7.3 introduced #OVT-FieldManual_Category_GettingStarted_Title for exactly this).";
 			}
+		}
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! BRANCH A. Every entry under Overthrow's category carries at least one content piece.
+	//!
+	//! SCR_FieldManualUI.SetAllEntriesAndParents (:600-663) drops any entry whose m_aContent is empty,
+	//! then any sub-category left with no entries, then any category left with neither - silently, with
+	//! no error and no log line. A content-free entry is therefore not a stub, it is an ABSENCE: its
+	//! tile never draws, it is missing from m_aAllEntries, and OVT_OpenEntryByTitle falls back to the
+	//! manual's front page for it. This is the exact shape of "I'll fill that page in later", which is
+	//! why it is guarded from the moment the keys are frozen (plan decision D6).
+	//! \param[in] root The merged field-manual root. Assumed non-null.
+	//! \return A ready-to-report failure message, or an empty string when every entry has content.
+	protected string FindFirstContentlessOverthrowEntry(notnull SCR_FieldManualConfigRoot root)
+	{
+		if (!root.m_aCategories)
+			return "";
+
+		foreach (SCR_FieldManualConfigCategory category : root.m_aCategories)
+		{
+			if (!category || category.m_sTitle != OVERTHROW_CATEGORY_TITLE || !category.m_aCategories)
+				continue;
+
+			foreach (SCR_FieldManualConfigCategory subCategory : category.m_aCategories)
+			{
+				if (!subCategory || !subCategory.m_aEntries)
+					continue;
+
+				foreach (SCR_FieldManualConfigEntry entry : subCategory.m_aEntries)
+				{
+					if (!entry)
+						continue;
+
+					if (entry.m_aContent && !entry.m_aContent.IsEmpty())
+						continue;
+
+					return "Overthrow's field-manual entry '" + entry.m_sTitle + "' (under sub-category '" + subCategory.m_sTitle + "') has NO content pieces. SCR_FieldManualUI.SetAllEntriesAndParents prunes an entry with empty m_aContent SILENTLY, then prunes a sub-category left with no entries, then a category left with neither - so this page is not in the manual at all: no tile draws for it, and any tutorial popup deep-linking its title key resolves to the manual's FRONT PAGE instead. Give it at least one SCR_FieldManualPiece_Text in Configs/FieldManual/Categories/FM_Overthrow.conf, or retire it properly with m_bEnabled 0.";
+				}
+			}
+		}
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! BRANCH B. Each of the four named sub-categories is present under Overthrow's category.
+	//!
+	//! MEMBERSHIP, NOT EQUALITY. A fifth sub-category added by a later feature is a content decision
+	//! and must not turn this red; only the disappearance or renaming of one of the four is a fault.
+	//! A sub-category is a left-hand button and the shelf its entries live on, so losing one takes its
+	//! whole tile grid with it without an error.
+	//! \param[in] root The merged field-manual root. Assumed non-null.
+	//! \return A ready-to-report failure message, or an empty string when all four are present.
+	protected string FindFirstMissingOverthrowSubCategory(notnull SCR_FieldManualConfigRoot root)
+	{
+		array<string> present = {};
+		CollectSubCategoryTitles(root, OVERTHROW_CATEGORY_TITLE, present);
+
+		foreach (string expected : OVERTHROW_SUB_CATEGORY_TITLES)
+		{
+			if (present.Find(expected) != -1)
+				continue;
+
+			return "Overthrow's field-manual category is missing the sub-category '" + expected + "'. It is one of the four buttons the manual's left-hand list draws under the Overthrow heading, and every entry it holds goes with it - SCR_FieldManualUI never reports a missing sub-category, the button and its tiles simply are not there. Check Configs/FieldManual/Categories/FM_Overthrow.conf for a renamed or deleted m_sTitle. Sub-categories found: " + JoinStrings(present);
+		}
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! BRANCH C. No Overthrow entry title key appears twice anywhere in the MERGED manual.
+	//!
+	//! OVT_OpenEntryByTitle walks m_aAllEntries and takes the FIRST entry whose m_sTitle matches, so a
+	//! duplicated key means every deep link to it lands on whichever page was collected first. That is
+	//! silent and it is wrong, and it is equally wrong whether the collision is with one of the base
+	//! game's 140 pages or with another Overthrow page (a copy-pasted entry that never had its title
+	//! changed is the likely way it happens). The merged root is searched, not just Overthrow's
+	//! category, because a vanilla page adopting an #OVT- key would break the links just as thoroughly.
+	//! \param[in] root The merged field-manual root. Assumed non-null.
+	//! \return A ready-to-report failure message, or an empty string when every key is unique.
+	protected string FindFirstDuplicateOverthrowEntryTitle(notnull SCR_FieldManualConfigRoot root)
+	{
+		array<string> titles = {};
+		CollectEntryTitles(root, titles);
+
+		foreach (string title : titles)
+		{
+			if (!title.StartsWith(OVERTHROW_ENTRY_TITLE_PREFIX))
+				continue;
+
+			int occurrences;
+
+			foreach (string other : titles)
+			{
+				if (other == title)
+					occurrences++;
+			}
+
+			if (occurrences < 2)
+				continue;
+
+			return "The field-manual title key '" + title + "' appears " + occurrences.ToString() + " times in the merged manual. Title keys ARE the deep-link ids: OVT_OpenEntryByTitle matches m_sTitle exactly and case-sensitively and opens the FIRST match, so every popup pointing at this key lands on whichever page happens to come first - silently, and possibly on the wrong page forever. Give each entry in Configs/FieldManual/Categories/FM_Overthrow.conf its own title key (a copy-pasted entry that kept its source's m_sTitle is the usual cause). Manual pages available: " + JoinStrings(titles);
 		}
 
 		return "";

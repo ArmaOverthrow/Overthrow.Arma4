@@ -592,6 +592,50 @@ Re-measured identically after 7.2 and 7.3 (6 / 8 / 141).
 
 ---
 
+## Play-test round 1 — 2026-08-08 · two defects found by the user, both fixed
+
+The first human play-test found **two real defects, neither of which any automated gate could have caught.** Both are worth reading as a pair, because they are the same lesson twice.
+
+### 1. 🐛 The first-buy tip described a game mechanic that does not exist — **FIXED**
+
+Shipped text: *"Shops buy and sell almost anything, and their prices move with the town they are in. **Money you carry can be stolen; money you deposit at your house cannot.**"*
+
+The second sentence was **entirely invented by the Phase 8 agent.** Verified against the code: `OVT_PlayerData.money` (`Scripts/Game/Data/OVT_PlayerData.c:13`) is a persisted `int` on the player record — **not an entity, not carried, not lootable**. There is no theft, drop, pickpocket or loot-money mechanic anywhere (searched `steal|stolen|rob|pickpocket|dropMoney|loseMoney`), and **no deposit, bank or vault exists**. `PURPOSE_DEPOSIT` is an unrelated engine *item*-storage bitmask (`OVT_SellableItemScanner.c:66`). The only real money loss is `OVT_EconomyManagerComponent.ChargeRespawn` (`:1834`) — a flat fee on respawn, only above a 500 balance, and **0 on Easy and Normal**.
+
+**A second instance of the same fault, found by fact-checking the rest rather than waiting for a report:** the `welcome-intro` page 2 claimed *"The Overthrow menu holds your map, your money, your recruits and the Field Manual."* The menu has 12 entries and **neither a money screen nor the Field Manual** is among them (the manual is a base-game menu). Also corrected.
+
+Both replacement strings now carry their evidence in the string-table `Comment` field. **Rule 0 was added to `implementation.md` §5** — the sibling feature `tutorial-content` is about to author ~12 more entries and would have repeated this.
+
+> **Why no gate caught it, and why none could:** compile-check, all 78 assertions, the duplicate-id guard, the field-manual link guard and the localization diff all pass happily on a well-formed lie. The Init cases verify a link *resolves*; nothing verifies a sentence is *true*. A tutorial tip is a factual claim about the game, and a wrong one is worse than no tip — it teaches a mechanic the player then wastes time hunting for.
+
+### 2. 🐛 `welcome-intro` never appeared at all — **FIXED**, and it was worse than reported
+
+`OnPlayerSpawnedLocal` opened with `if (!m_bGameStarted) return;`, but `OVT_SpawnLogic.DoSpawn_S:160` possesses the player **unconditionally, before the start menu is answered** (possession is the only thing that dismisses the engine loading screen — see its comment at `:142-149`). From the user's log:
+
+```
+17:00:44.673  Game not started yet, deferring full player preparation   <- possession
+17:00:49.727  StartGame button clicked                                  <- m_bGameStarted = true, +5.05 s
+```
+
+Nothing possesses again — `TeleportPlayerToHome` only moves the body, and the second `SpawnDeferredPlayer` returns early at `:178-179`. **So `OnPlayerSpawnedLocal` ran exactly once per session, always ~5 s too early, and the trigger was silently dropped.** Task 4.6's retry did not help: it retried the *controller lookup*, not the started-state, and the guard returned before ever reaching it. Not test-world-specific — it reproduced on every new campaign.
+
+**The follow-on half was worse.** `m_bGameStarted` is written in exactly one place (`OVT_OverthrowGameMode.c:254`, inside `DoStartGame`) and every route there is authority-only, so **it is never true on a dedicated-server client** — `welcome-intro` could never have fired for any remote player. DoD step 16 would have failed the MP protocol.
+
+**The fix, both halves:**
+- The push became **owed state rather than an event**: `m_bTutorialSpawnPending` / `m_bTutorialSpawnDelivered`, funnelled through one decision point `TryPushSpawnedTutorialTrigger()`, which `DoStartGame()` calls at its end. Idempotent — whichever caller arrives first wins, so the queue and logs see exactly one push per spawn.
+- For remote clients, a new **`RplProp` mirror** `m_bCampaignRunningRpl` on the game mode (`onRplName: "OnCampaignRunningReplicated"`), set beside `m_bGameStarted` + `Replication.BumpMe()`. Chosen over an RPC because it **JIP-syncs itself** — which is the only way a player joining an already-running dedicated server can learn the campaign is up, since no RPC fires for them. Same pattern as vanilla `SCR_GameModeCampaign.c:149/600`, and the prefab already carries the `RplComponent`.
+- Deliberately a **mirror, not a promotion of `m_bGameStarted` to `RplProp`** — making `HasGameStarted()` true on clients would silently widen the persistence save gates, the `DoSpawn_S` preparation branch, and the legacy `#OVT-IntroHint` (which **I7 forbids touching**). Only the tutorial path reads the new form.
+
+**I7 re-verified:** `#OVT-IntroHint` and `m_aHintedPlayers` are behaviourally identical — the old early return was folded into the hint's own condition so the code below it can run, and the hint still gates on the authority-only `m_bGameStarted`.
+
+**Regression test:** `OVT_TEST_Campaign_Tutorial_SpawnTriggerSurvivesCampaignStart` (Campaign tier). Campaign and not Init because **the autotest world reproduces the failing order for free** — the harness possesses its local player during world load and `Setup_StartCampaign` runs afterwards, the same sequence as the user's log. **Proven red** by removing the single `TryPushSpawnedTutorialTrigger()` call from `DoStartGame()`: exit 1, failing on the poll backstop with *"the PLAYER_SPAWNED tutorial trigger was still never delivered"* — the pre-fix behaviour exactly.
+
+**Incidental finding, not fixed (belongs to `first-spawn`):** the legacy `#OVT-IntroHint` is dead on the new-game path for this identical reason, and has been since the 1.6 spawn rework (`bb04c331`). The tutorial simply inherited the same dead hook.
+
+**Gates after both fixes:** compile-check **0** (5940 files) · Fast **47** · All **77 → 78** · Q9 `OVT_PlayerCommsComponent` **132**, unmodified.
+
+---
+
 ## Merge note — `main` merged in 2026-08-08
 
 `main` was merged back into this branch (merge commit `7efb1c44`, 11 commits). **All five bugs this feature filed were fixed upstream and are closed: BUG-090…094.** Two of those fixes land directly on this feature's own gates:
