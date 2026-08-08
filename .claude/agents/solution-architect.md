@@ -81,6 +81,7 @@ Write to `docs/features/[feature-name]/implementation.md` with:
 - Phase 3: Persistence and save/load
 - Phase 4: UI integration
 - Phase 5: Testing and refinement
+- Final phase (only if the feature changes player-facing behaviour): Help & documentation sync — delegated to the `help-docs-sync` agent, which updates tutorial popups (`Configs/Tutorials/`), the Field Manual (`Configs/FieldManual/`), and the public wiki to match the shipped behaviour. Include this phase whenever players will see or do something new/different; omit it for purely internal refactors, tooling, or dev-ops work.
 
 **Key Technical Decisions:**
 
@@ -213,5 +214,6 @@ When analyzing requirements, consider:
 - How does this integrate with existing systems?
 - What can go wrong?
 - How do we test this manually?
+- Does this change what players see or do? (→ include the final help-docs-sync phase)
 
-Remember: You're creating the blueprint. The component-developer agent will handle implementation.
+Remember: You're creating the blueprint. The component-developer agent will handle implementation, and the help-docs-sync agent handles the closing documentation phase when one is planned.

@@ -1,6 +1,6 @@
 # Tutorial System - Context & Decisions
 
-**Last Updated:** 2026-08-07 (Phase 8 complete — build finished, play-test owed)
+**Last Updated:** 2026-08-08 (merged `main` back in; all 5 filed bugs fixed upstream)
 **Current Phase:** — (all 9 phases complete)
 **Status:** 🟢 Build complete · ⏳ awaiting the string-table export and the play-test gates
 
@@ -84,10 +84,11 @@ This section records decisions made **during** implementation that the plan did 
 **Date:** 2026-08-07
 **Decision:** `6B3A0000…` reserved for this feature. **Verified unused 2026-08-07** — `grep -rEoh "\{6B3A[0-9A-F]{12}\}"` returns nothing; the repo's highest existing prefix is `6B2256EB`.
 
-### Input-conflict baseline (for Phases 5 and 6)
-**Date:** 2026-08-07
-**Baseline:** `check-input-conflicts.py --warnings` → **exit 0, 0 errors, 22 warnings, 12 pre-existing, 3 acknowledged.**
-**Impact:** Phases 5.4 and 6.4 must reproduce exactly this or better. Any *new* warning is a phase failure; the 13 baselined `BASE` rows are the known pre-existing bugs and are excepted.
+### Input-conflict baseline (for Phases 5 and 6) — **SUPERSEDED 2026-08-08**
+**Original (2026-08-07):** `check-input-conflicts.py --warnings` → exit 0, 0 errors, **22 warnings, 12 pre-existing**, 3 acknowledged. Phase 6 ended at 23 warnings, +1 being structurally unavoidable.
+**Now (after merging `main`, 2026-08-08):** → exit 0, **0 errors, 0 warnings, 0 pre-existing, 3 combo notes, 1 acknowledged.**
+**Why it moved:** main fixed both of the input bugs this feature filed — it rewrote the checker to parse inline-declared `ActionContext { Actions { … } }` actions (BUG-092, the blind spot that made both of this feature's surveys wrong) and rebound `OverthrowMainMenu` off bare `pad_down` onto an `LT + pad_down` chord (BUG-093, the root of 17 of the 23 warnings).
+**Impact:** the "+1 structural warning" Phase 6 had to argue for **no longer exists**. Q5 is clean on its own terms, measured by an instrument that can now see what it is checking. Any future phase should hold **0/0/0** — there is no longer a pre-existing pile to hide behind.
 
 ### The wanted invoker is lazily allocated, not eagerly
 **Date:** 2026-08-07 (Phase 0)
@@ -333,6 +334,9 @@ Phase 7 narrowed that last one considerably. The merged config object is now ass
 
 - [x] **Q:** Does the nested `ref array<ref OVT_SeenTutorialEntry>` round-trip through `ModuleGameSettings`?
       **A:** **YES — R1 discharged 2026-08-07.** Both ids and the flag survive the container round trip AND appear in `$profile:.save/settings/ReforgerGameSettings.conf` as a readable `OVT_TutorialSettings` block (quoted in `tasks.md` Phase 4). None of the three fallbacks is needed.
+- [ ] 🔄 **Q (REOPENED 2026-08-08):** Is there a genuinely free gameplay-context binding for the escalation key (F5)?
+      **A:** **Unknown again — the two surveys that closed this are now out of date.** Merging `main` moved several bindings (`OverthrowMainMenu` → `LT+pad_down` chord; loadout actions onto `shoulder_right`/`right_trigger`; others off `shoulder_left`/`thumb_*`) *and* replaced the checker with one that can see inline-declared actions — the exact blind spot that made both previous surveys unreliable. Re-surveying is cheap and the answer may now be yes. **Not attempted during the merge** (scope), so F5 remains deferred until someone looks.
+      *The closed 2026-08-07 answer, retained for history:*
 - [x] **Q:** Is there a genuinely free gameplay-context binding for the escalation key?
       **A:** **NO — R3 fired in Phase 5.4 and was CONFIRMED on re-survey in Phase 6.8. The question is closed.** Phase 6.7 removed the place/build collision that was supposed to free `shoulder_left`, and it made no difference: `VONContext` holds `shoulder_left` (and `KC_T`) at Priority 110 every frame the player is alive. `KC_K` and `KC_O` are `GadgetCompass`/`GadgetWatch`. All six are declared inline inside their `ActionContext` blocks, which is why an `ActionRefs`-only survey missed them (gotchas 25 and 26). The escalation route is the Overthrow main menu's Tips entry.
       *Phase 5's answer, retained:* **R3 has fired, and its fallback was taken in Phase 5.4.** On the keyboard, `KC_K`/`KC_O`/`KC_T` are unbound in both confs. On the gamepad, **all sixteen inputs are bound in at least one context that can be live while a non-modal HUD popup is up**; the only two free as single presses in *base* gameplay, `shoulder_left` and `shoulder_right`, are Overthrow's own `OverthrowRotateLeft/Right` in `OverthrowPlaceContext` / `OverthrowBuildContext` — which run with `IsActive()` false and so are *not* covered by the pipeline gate. Combos do not help (see gotcha 21). No action and no `ActionContext` were added; the popup's prompt reuses the existing `OverthrowMainMenu`. Full survey in `tasks.md` → Phase 5 → "R3 has fired".
@@ -340,6 +344,18 @@ Phase 7 narrowed that last one considerably. The merged config object is now ass
 ---
 
 ## Session Notes
+
+### 2026-08-08 — merged `main` back in (merge commit `7efb1c44`, 11 commits)
+
+- **All five bugs this feature filed are fixed upstream and closed: BUG-090…094.** The three tech-debt entries in `tasks.md` are ticked.
+- **One conflict, `Configs/System/chimeraInputCommon.conf`** — both sides had *added* actions at the same offset (ours: the four `OverthrowTutorial*`; main's: `OverthrowLoadoutsApplyToRecruit`/`ApplyToAll`). Nothing in competition, so all six were kept and both `ActionRefs` lists verified intact. Everything else auto-merged.
+- **The auto-merge of `OVT_SkillManagerComponent.c` was checked, not assumed** — main's "Shop buy/sell XP cheese" fix touches the same file this feature changed the `m_OnPlayerSkill` signature in. Both `Invoke` sites still pass `(playerId, key)`, matching `ScriptInvoker<int, string>`. A wrong arity here would have compiled fine and failed only at runtime, since `ScriptInvoker.Invoke` is untyped.
+- **Q5 went from "clean with an argued exception" to clean.** 23 warnings / 12 pre-existing → **0 / 0**. See the superseded baseline above.
+- **Our four tutorial bindings survived main's rebinding sweep unchanged**, and that was verified *positively*: injecting a deliberate collision made the new checker emit `ERROR gamepad0:x  OverthrowTutorialBack, OverthrowTutorialNext` and exit 1, proving it parses `OverthrowTutorialMenuContext` rather than silently skipping it. Reverted immediately. "Zero findings" from an instrument that cannot see you is not a pass.
+- **F5 is reopened as a question** (see Open Questions) — not re-attempted.
+- Gates on the merged tree: compile-check **0** (5939 files) · Fast **47** · All **77** (main added 2 Campaign cases) · conflicts **0/0/0**.
+
+---
 
 > Newest phase first. Each block ends with the gotchas that phase discovered — see the index under **Gotchas & Learnings** for where each number lives.
 

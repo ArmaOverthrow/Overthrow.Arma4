@@ -592,6 +592,36 @@ Re-measured identically after 7.2 and 7.3 (6 / 8 / 141).
 
 ---
 
+## Merge note — `main` merged in 2026-08-08
+
+`main` was merged back into this branch (merge commit `7efb1c44`, 11 commits). **All five bugs this feature filed were fixed upstream and are closed: BUG-090…094.** Two of those fixes land directly on this feature's own gates:
+
+**1. Q5 is now genuinely clean, and the caveat on it is gone.** Main rewrote `check-input-conflicts.py` (+231 lines) to parse the inline-declared `ActionContext { Actions { … } }` form this feature discovered it was blind to (BUG-092), and rebound `OverthrowMainMenu` off bare `gamepad0:pad_down` onto an `LT + pad_down` chord (BUG-093). Re-measured on the merged tree:
+
+| | Before merge | After merge |
+|---|---|---|
+| errors | 0 | **0** |
+| warnings | 23 | **0** |
+| pre-existing (`BASE`) | 12 | **0** |
+| combo notes | — | 3 (all base-game-shaped, incl. the new `LT+pad_down`) |
+| acknowledged | 3 | 1 |
+
+The structural "+1 warning" Phase 6 had to accept — *"a 17th menu context that lists `MenuDown` cannot land at 22"* — **no longer exists**, because the binding that caused it is gone. Q5 reads clean on its own terms now, and against a checker that can actually see what it is checking.
+
+**Our four tutorial bindings survived the rebinding sweep unchanged** (`KC_Q`/`X`, `KC_E`/`Y`, `KC_F`/`RB`, `KC_N`/`R3`) and produce **zero** findings under the new checker. That was verified positively, not by absence: injecting a deliberate collision (`OverthrowTutorialNext` moved onto `gamepad0:x`, colliding with `OverthrowTutorialBack` in the same context) made the checker emit `ERROR gamepad0:x  OverthrowTutorialBack, OverthrowTutorialNext` and exit 1. It sees our context. Reverted immediately.
+
+**2. BUG-094's fix is in, and it was in a file this feature edited.** `OVT_CharacterSheetContext`'s `m_OnPlayerSkill.Insert` moved from `PostInit` into `OnShow`, now symmetric with `OnClose`'s `Remove`. The Phase 0/3 wrapper (`OnSkillChanged(int playerId, string skillKey)`) is untouched and still correct.
+
+**Merge conflict, and how it was resolved.** One file conflicted: `Configs/System/chimeraInputCommon.conf`. Both sides had *added* new actions at the same offset — ours (`OverthrowTutorialBack/Next/LearnMore/Disable`) and main's (`OverthrowLoadoutsApplyToRecruit/ApplyToAll`). Nothing was in competition, so **all six were kept**; both `ActionRefs` lists survived intact. Everything else auto-merged, including `OVT_SkillManagerComponent.c` — both `m_OnPlayerSkill.Invoke` sites still pass `(playerId, key)`, so main's XP-cheese fix did not reintroduce an arity mismatch.
+
+**Gates re-run on the merged tree:** compile-check **0** (5939 files) · Fast **47** · All **75 → 77** (main added 2 Campaign cases) · conflicts **0/0/0** · `m_OnPlayerSkill` arity consistent at both invoke sites.
+
+### ⚠️ One thing this reopens: F5
+
+F5 was deferred because risk R3 fired twice — there was no free gamepad input during gameplay. **That survey is now out of date.** Main moved several bindings (`OverthrowMainMenu` to a chord, loadout actions onto `shoulder_right`/`right_trigger`, others off `shoulder_left`/`thumb_*`), and the checker that can now see inline actions is a far better instrument than the one both surveys used. Whether a genuinely free gameplay input exists today is **an open question again, and a cheap one to answer**. It was not re-attempted as part of this merge — that is a scope decision, not an oversight.
+
+---
+
 ## Definition of Done — Verdict
 
 Walked criterion by criterion on 2026-08-07 at the end of Phase 8. Three verdicts only:
@@ -673,17 +703,19 @@ Every number matches the Phase 7 baseline except the two test counts, which are 
 
 ## Technical Debt
 
-- [ ] 💳 **`check-input-conflicts.py` cannot see inline-declared actions** — Priority: High *(found in Phase 6)*
+> **All five bugs this feature filed (BUG-090…094) were fixed on `main` and merged into this branch on 2026-08-08.** Every entry below is closed. The two that mattered most to *this* feature's own gates are called out in the merge note at the top of the Definition-of-Done verdict.
+
+- [x] ✅ 💳 **`check-input-conflicts.py` cannot see inline-declared actions** — **RESOLVED upstream, merged 2026-08-08** *(found in Phase 6, filed as BUG-092, closed)*
   - Description: The script reads the top-level `Actions` block plus `ActionRefs` lists, but the base conf declares **197 actions inline inside `ActionContext` blocks**, which appear in no `ActionRefs` list. Its output therefore **understates real collisions**, and any "no new conflicts" gate built on it — including Q5 — is weaker than it reads. This is how `KC_T` and `shoulder_left` were both believed free when both are VON bindings at priority 110.
   - Reason: pre-existing limitation of the tooling, exposed by this feature's two input surveys.
   - Effort: medium. **The highest-leverage fix of the three input findings** — it makes every future input gate trustworthy. Captured inside BUG-092.
 
-- [ ] 💳 **`OVT_ProgressInfo` can be dead for a whole session** — Priority: Medium · **filed as BUG-091** *(found in Phase 5, outside this feature's scope)*
+- [x] ✅ 💳 **`OVT_ProgressInfo` can be dead for a whole session** — **RESOLVED upstream, merged 2026-08-08** · BUG-091 closed *(found in Phase 5, outside this feature's scope)*
   - Description: `SubscribeToController` attempts its lookup **once** and gives up if the controller is not yet assigned; assignment is async, so transfer-progress UI can be absent for an entire session. This feature hit the same race **three times** (`PLAYER_SPAWNED` push, the HUD subscription, and this) — it is a systemic pattern, and a shared bounded-retry helper is probably the right fix.
   - Reason: pre-existing; not introduced here.
   - Effort: small; wants a play-test to confirm the symptom first.
 
-- [ ] 💳 **Two other controller components may be broken on a listen-server host** — Priority: Medium · **filed as BUG-090** *(found in Phase 3, outside this feature's scope)*
+- [x] ✅ 💳 **Two other controller components may be broken on a listen-server host** — **RESOLVED upstream, merged 2026-08-08** · BUG-090 closed *(found in Phase 3, outside this feature's scope)*
   - Description: `OVT_BaseServerProgressComponent` and `OVT_ShopTransactionComponent.RpcDo_SellResult` send owner-targeted RPCs **without** the host direct-call branch this feature had to add. Since the engine never loops an RPC back to the sender, the listen-server host plausibly never receives its own sell toasts or transfer progress.
   - Reason: pre-existing; not introduced here. Not fixed because it is outside the tutorial-system scope and needs its own play-test to confirm.
   - Effort: small fix, but wants a host-vs-client play-test to confirm the symptom first. **Filed as BUG-090** (medium, linked to this feature) — the fix shape is already proven in `OVT_TutorialComponent.Notify()`. Symptom is a code-reading prediction, not yet observed; BUG-090 carries the verification steps.
