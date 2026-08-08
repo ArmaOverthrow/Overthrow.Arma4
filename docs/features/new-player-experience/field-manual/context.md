@@ -133,6 +133,33 @@ All three live in `OVT_TEST_Init_FieldManual_DeltaMergesAndLinksResolve` (Init t
 
 *Raised during authoring; each needs a decision this feature is not entitled to make on its own.*
 
+### Filed as bugs (2026-08-08)
+
+Eleven of the sixteen were filed in `docs/bugs/`, all `status: open`, none fixed in that pass. Every `file:line` was re-verified against the source at filing time. The sixteen entries below are unchanged.
+
+| Q | Bug | Title (short) |
+|---|---|---|
+| 3 | BUG-105 | Shop scarcity pricing is integer division, a +10%/+0% step not a curve |
+| 5 | BUG-110 | Damage/kill escalates wanted with no witness and no faction check |
+| 6 | BUG-111 | Vehicle collateral wanted at 5 m catches uninvolved occupants |
+| 7 | BUG-112 | Wanted level 5 unreachable, level 1 decay-only, HUD draws five stars |
+| 8 | BUG-114 | `realEstateCostMultiplier` is dead config |
+| 9 | BUG-106 | Camp "away from bases" rule unreachable |
+| 10 | BUG-107 | Recruit XP gated on hardcoded `"US"`/`"USSR"` faction keys |
+| 11 | BUG-109 | Specops teams sent at a camp/FOB do nothing on arrival |
+| 12 | BUG-113 | Recruit training persisted and replicated but never set |
+| 13 + 16 | BUG-108 | Officer templates visible only to the officer who saved one (Q16, the `getting-started` contradiction, is folded in as the documentation consequence) |
+| 15 | BUG-115 | Shipped `discordWebHookURL` default points at a retired wiki page |
+
+**Deliberately not filed**, with reasons:
+
+- **Q1** (wiki property-limit claim): a docs accuracy question and an unprovable negative, not a code defect.
+- **Q2** (tutorial job count): already resolved in the entry below; no decision outstanding.
+- **Q4** (do gun dealers stock OF ammunition): unresolvable statically, needs one in-game observation. Not a defect until observed.
+- **Q14** (should a `difficulty/insane` wiki page exist): an authorisation call, not a defect.
+
+**One correction to the entries below, left in place rather than rewritten:** item 12 carries a text-merge artifact, where the `realEstateCostMultiplier` sentence belonging to item 8 was appended to the recruit-training item. They are two separate findings, filed as BUG-113 and BUG-114 respectively. Noted in BUG-113 as well.
+
 1. **The wiki's `real-estate` "Property Limits" section may describe a cap that does not exist.** It claims "soft limits on how many properties you can own" and that hitting one "prevents placing more properties". No ownership cap was found: `OVT_RealEstateManagerComponent`, `OVT_OwnerManagerComponent` and `RpcAsk_BuyBuilding` are all uncapped, and a repo-wide grep for `MaxOwned` / `maxHouses` / `propertyLimit` returns nothing. "Placing" also reads like placeables, not real estate. **Left in place** rather than deleted, because a negative cannot be proven across every server config path. Needs the user's call.
 2. **The wiki's `getting-started` says there are THREE tutorial jobs; the epic says FIVE.** Left alone in Phase 2 by instruction (the section is handed off, not edited). **Phase 7C's handoff to `starter-jobs-retirement` must reconcile the count** rather than propagate either number.
    **Resolved 2026-08-08 (run 7C): the shipped number is FIVE.** All five configs exist (`Configs/Jobs/{findGunDealer,findShop,placeEquipmentBox,recruitACivilian,placeACamp}.conf`) and all five are registered in `OVT_JobManagerComponent.m_aJobConfigs` at `Prefabs/GameMode/OVT_OverthrowGameMode.et:30,34,36,38,40`. "Three" was wrong as a statement about the current game and is corrected on `getting-started`; it was however correct as history, because the three jobs added *in v1.3* were `placeEquipmentBox`, `recruitACivilian` and `placeACamp` (GUID series `65CD…`) while `findGunDealer` and `findShop` predate it (`5D9C…`). The `v1_3` release note's "3 new tutorial jobs" is therefore accurate and was left untouched. The finding is written into `starter-jobs-retirement/requirements.md` so that feature does not rediscover it. **No gameplay decision outstanding.**
