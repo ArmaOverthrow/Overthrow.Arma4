@@ -215,6 +215,24 @@ OVT_OverthrowGameMode {
     }
     OVT_TutorialEntryConfig "{6B3A0000000000A4}" : "{6B3A0000000000A0}Configs/Tutorials/proofWelcome.conf" {
     }
+    OVT_TutorialEntryConfig "{6B3C000000000013}" : "{6B3C000000000010}Configs/Tutorials/homeFirstOpen.conf" {
+    }
+    OVT_TutorialEntryConfig "{6B3C000000000023}" : "{6B3C000000000020}Configs/Tutorials/shopsFirstGunDealer.conf" {
+    }
+    OVT_TutorialEntryConfig "{6B3C000000000033}" : "{6B3C000000000030}Configs/Tutorials/mapFirstOpen.conf" {
+    }
+    OVT_TutorialEntryConfig "{6B3C000000000043}" : "{6B3C000000000040}Configs/Tutorials/wantedFirstLevel.conf" {
+    }
+    OVT_TutorialEntryConfig "{6B3C000000000053}" : "{6B3C000000000050}Configs/Tutorials/skillsFirstOpen.conf" {
+    }
+    OVT_TutorialEntryConfig "{6B3C000000000063}" : "{6B3C000000000060}Configs/Tutorials/recruitsFirstRecruit.conf" {
+    }
+    OVT_TutorialEntryConfig "{6B3C000000000073}" : "{6B3C000000000070}Configs/Tutorials/placeFirstPlaceable.conf" {
+    }
+    OVT_TutorialEntryConfig "{6B3C000000000083}" : "{6B3C000000000080}Configs/Tutorials/buildFirstStructure.conf" {
+    }
+    OVT_TutorialEntryConfig "{6B3C000000000093}" : "{6B3C000000000090}Configs/Tutorials/basesFirstCapture.conf" {
+    }
    }
   }
   OVT_TownManagerComponent "{59724C983BF56C3B}" {

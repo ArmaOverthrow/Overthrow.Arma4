@@ -1555,8 +1555,13 @@ class OVT_TEST_Init_PlayerGroups_ManagerResolves : SCR_AutotestCaseBase
 //! This asserts the SHAPE of the authored data, never a count of entries. The proof entry is one
 //! today and tutorial-content will add a dozen; ">= 1" is the only honest expectation.
 //!
+//! A third failure was added by tutorial-content Phase 2b and hides even better than the other two: a
+//! PLAYER_TRANSACTION filter that is not an OVT_ShopType member name. See CheckTransactionFilters.
+//!
 //! PROVEN ABLE TO FAIL 2026-08-07: see the record in
 //! docs/features/new-player-experience/tutorial-system/context.md.
+//! The PLAYER_TRANSACTION filter branch PROVEN ABLE TO FAIL 2026-08-09: see the Proven-Red Record in
+//! docs/features/new-player-experience/tutorial-content/context.md.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Tutorial_ManagerResolvesAndLoadsEntries : SCR_AutotestCaseBase
@@ -1606,6 +1611,11 @@ class OVT_TEST_Init_Tutorial_ManagerResolvesAndLoadsEntries : SCR_AutotestCaseBa
 	{
 		ref set<string> seenIds = new set<string>();
 
+		// Every OVT_ShopType member name, read off the enum itself rather than hand-listed, so a new
+		// shop type is accepted automatically and a renamed one is caught. See CheckTransactionFilters.
+		ref array<string> shopTypeNames = new array<string>();
+		SCR_Enum.GetEnumNames(OVT_ShopType, shopTypeNames);
+
 		for (int i = 0; i < entries.Count(); i++)
 		{
 			OVT_TutorialEntryConfig entry = entries.Get(i);
@@ -1627,6 +1637,56 @@ class OVT_TEST_Init_Tutorial_ManagerResolvesAndLoadsEntries : SCR_AutotestCaseBa
 
 			if (!entry.m_aTriggers || entry.m_aTriggers.Count() < 1)
 				return "Tutorial entry '" + entry.m_sId + "' has no triggers - nothing can ever make it fire";
+
+			string filterError = CheckTransactionFilters(entry, shopTypeNames);
+			if (filterError != "")
+				return filterError;
+		}
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Validates every PLAYER_TRANSACTION filter on one entry against the OVT_ShopType enum.
+	//!
+	//! PLAYER_TRANSACTION is the only event in the authored set whose filter value is MANUFACTURED BY
+	//! THE ENGINE rather than written by a human on both sides: the manager builds it with
+	//! SCR_Enum.GetEnumName(OVT_ShopType, shop.m_ShopType) (OVT_TutorialManagerComponent.c:255), which
+	//! is typename.EnumToString. Every other filter in the set is compared against a string some other
+	//! config already spells out, so a typo there is findable by grep. Here it is not: a filter that is
+	//! not literally an OVT_ShopType member name simply never equals the dispatched value, the entry
+	//! never fires, and NOTHING reports it - no compile error, no runtime warning, no log line.
+	//! \param[in] entry The entry to check. Assumed non-null with a non-empty m_aTriggers.
+	//! \param[in] shopTypeNames Every OVT_ShopType member name, from SCR_Enum.GetEnumNames.
+	//! \return A ready-to-report failure message, or an empty string when every filter is valid.
+	protected string CheckTransactionFilters(OVT_TutorialEntryConfig entry, array<string> shopTypeNames)
+	{
+		for (int i = 0; i < entry.m_aTriggers.Count(); i++)
+		{
+			OVT_TutorialTrigger trigger = entry.m_aTriggers.Get(i);
+			if (!trigger)
+				continue;
+
+			if (trigger.m_eEvent != OVT_TutorialEvent.PLAYER_TRANSACTION)
+				continue;
+
+			// An empty filter means "any shop", which is always valid.
+			if (trigger.m_sFilter == "")
+				continue;
+
+			if (shopTypeNames.Contains(trigger.m_sFilter))
+				continue;
+
+			string known = "";
+			for (int n = 0; n < shopTypeNames.Count(); n++)
+			{
+				if (n > 0)
+					known += ", ";
+
+				known += shopTypeNames.Get(n);
+			}
+
+			return "Tutorial entry '" + entry.m_sId + "' filters PLAYER_TRANSACTION on '" + trigger.m_sFilter + "', which is not the name of any OVT_ShopType value. The manager builds the value it compares against with SCR_Enum.GetEnumName(OVT_ShopType, shop.m_ShopType) (OVT_TutorialManagerComponent.c:255), so this filter can never match ANY transaction: the tip will SILENTLY NEVER FIRE - no compile error, no runtime warning, no log line, just a tutorial nobody ever sees. Fix the m_sFilter in the entry's .conf under Configs/Tutorials/ to one of: " + known;
 		}
 
 		return "";

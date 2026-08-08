@@ -56,3 +56,35 @@ The shipped number of starter tutorial jobs is **five**. All five configs exist 
 The wiki's `getting-started` said "Three new tutorial jobs in v1.3", so **"three" was the wrong figure for the current game** and has been corrected to five on that page. "Three" was not wrong when it was written: the three jobs added *in v1.3* were `placeEquipmentBox`, `recruitACivilian` and `placeACamp` (GUID series `65CD…`), while `findGunDealer` and `findShop` predate it (`5D9C…`). The `v1_3` release note's "3 new tutorial jobs" is therefore accurate as history and was left untouched.
 
 All five carry `m_iMaxTimes 1` and `m_iMaxTimesPlayer 1`, which is the BUG-037 shape described above.
+
+## Coverage handoff (from `tutorial-content`, 2026-08-09): THIS FEATURE IS NOW UNBLOCKED
+
+The requirement above ("Before removal lands, verify coverage") is **discharged**. `tutorial-content` shipped ten tutorial entries on 2026-08-09 and recorded the **as-built** starter-job coverage mapping.
+
+- **Authoritative mapping (read this, not the plan's proposal):** `docs/features/new-player-experience/tutorial-content/context.md`, section **"Starter-job coverage mapping: AS BUILT"**. It cites the job stage classes, the covering entry ids and the map-icon code, and it corrects one row of `tutorial-content/implementation.md` §3.5 that was proven wrong.
+- **Entries are live** under `Configs/Tutorials/`, registered on `Prefabs/GameMode/OVT_OverthrowGameMode.et` in `OVT_TutorialManagerComponent.m_aEntries`. Their text lives in `Language/localization_Overthrow.st`.
+
+### The five jobs and what now covers each
+
+| Starter job | Covering tutorial entry id | Entry's "Learn more" page |
+|---|---|---|
+| `findShop.conf` | `economy-first-buy` (+ `map-first-open`) | `#OVT-FieldManual_Shops_Title` |
+| `findGunDealer.conf` | `shops-first-gun-dealer` (+ `map-first-open`) | `#OVT-FieldManual_GunDealers_Title` |
+| `placeEquipmentBox.conf` | `place-first-placeable` | `#OVT-FieldManual_Camps_Title` |
+| `placeACamp.conf` | `place-first-placeable` (same entry; its body names the camp) | `#OVT-FieldManual_Camps_Title` |
+| `recruitACivilian.conf` | `recruits-first-recruit` | `#OVT-FieldManual_Recruits_Title` |
+
+### The two residual gaps this feature inherits
+
+1. **Directed discovery.** `findShop` and `findGunDealer` wrote a *specific instance's* position into `job.location`, producing a marker pointing at one shop or one dealer. No tutorial entry points at an instance and none ever will. This is largely moot: `OVT_MapIcons` draws **every** registered shop (`TryCreateShopIcon:137-183`, per-type sprite) and **every** gun dealer (`TryCreateGunDealerIcon:111-134`, dedicated `"gundealer"` sprite, enumerated from `economy.GetGunDealers()` at `:626-638`) with **no** discovery or knowledge gate, for any player carrying a map. ⚠️ Do **not** repeat the struck claim in `tutorial-content/implementation.md` §3.5 that gun dealers lack their own icon; they have one.
+2. **Recruit availability.** `recruits-first-recruit` fires on the **first recruit gained**, not on recruiting becoming possible, so a player who never uses "Recruit Civilian" is never told it exists. The job had the same completion condition but *appeared in the Jobs list* first; the tip system has no equivalent surface. If that matters, it is a content or UI decision for this feature to raise, not a defect in the tutorial entry.
+
+Secondary note: `shops-first-gun-dealer` is triggered by a **transaction** at a dealer, so finding a dealer and buying nothing shows nothing.
+
+### What disappears with the jobs
+
+$100 cash total, 10 XP, and two field dressings, once per campaign per player, across all five. Nothing else references these five job configs.
+
+### Wiki still owed by this feature
+
+The `**Tutorial Jobs**` paragraph under `### 1. Jobs System` and item 6 under `## Systems Worth Knowing About` on `getting-started` are still standing and still accurate. `tutorial-content` was explicitly forbidden from touching them (its D10/task 3.3) and did not. They remain this feature's to remove when the configs leave the build. Note that `tutorial-content` also left one small wiki edit unapplied (a two-sentence description of the tip system on the same page) because the wiki MCP page-read path was failing on 2026-08-09; see that feature's Phase 3 report, and whoever fixes it may find both edits land in the same pass.

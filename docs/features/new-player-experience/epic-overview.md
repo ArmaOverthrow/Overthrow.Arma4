@@ -1,8 +1,8 @@
 # New Player Experience - Epic Overview
 
 **Epic:** new-player-experience
-**Status:** 🟡 In Progress (2 of 5 features built)
-**Last Updated:** 2026-08-08
+**Status:** 🟡 In Progress (3 of 5 features built)
+**Last Updated:** 2026-08-09
 
 > **This file is the epic marker.** Its presence in `docs/features/new-player-experience/` is what tells every Beast Mode command (and future Web App / Discord clients) that this folder is an **epic**, not a plain feature. Keep it present and keep the required sections below filled in. It is the epic's equivalent of the project's `docs/overview.md`, scoped to this epic. The master `docs/overview.md` tracks this epic as a **single row**; the per-feature detail lives **here**.
 
@@ -22,9 +22,9 @@ The constituent features of this epic, in build order. Each feature is a subfold
 
 | # | Feature | Status | Tasks | Description |
 |---|---------|--------|-------|-------------|
-| 1 | tutorial-system | 🟢 Built · ⏳ play-test owed | 63/63 (100%) | Framework: config-driven tutorial entries, action-trigger wiring to existing manager invokers, server→client delivery, custom dismissable popup UI, per-machine seen tracking |
+| 1 | tutorial-system | 🟢 Built · ⏳ play-test owed | 61/61 (100%) · 2 cancelled by R3 | Framework: config-driven tutorial entries, action-trigger wiring to existing manager invokers, server→client delivery, custom dismissable popup UI, per-machine seen tracking |
 | 2 | field-manual | ✅ **Complete** (play-test passed) | 56/56 (100%) | Expand the 1-entry Overthrow field manual into a per-system reference that tutorial popups deep-link to via "Learn more". Shipped: 12 entries under 4 sub-categories, 102 new string ids (exported), the twelve frozen link ids frozen and documented, and a full staleness sweep of the public wiki |
-| 3 | tutorial-content | Planned | — | The authored early+mid-game tutorial entries (home/money/shops/map/wanted/skills → recruiting/camps/base capture/FOB basics) with localization |
+| 3 | tutorial-content | 🟢 Built · ⏳ play-test + 1 wiki edit owed | 24/24 (100%) | The authored early+mid-game tutorial entries (home/money/shops/map/wanted/skills → recruiting/camps/base capture/FOB basics) with localization. **Ten entries live**, 18 new string ids + 1 rewritten body, zero gameplay EnforceScript |
 | 4 | first-spawn | Planned | — | First-spawn welcome sequence (your home, your car, your cash, what Overthrow is) and start-menu faction/difficulty descriptions |
 | 5 | starter-jobs-retirement | Planned | — | Retire the five MP-broken tutorial starter jobs once popups teach the same things (closes BUG-037 by removal) |
 
@@ -62,6 +62,14 @@ The constituent features of this epic, in build order. Each feature is a subfold
   - **`first-spawn` gets its sequence primitive** (multi-page modal with Next/Back/page indicator) plus a bounded `PLAYER_SPAWNED` retry that survives the async controller-assignment race. `#OVT-IntroHint` and `m_aHintedPlayers` are deliberately **untouched** — removing them is still `first-spawn`'s task.
   - ⚠️ **One acceptance criterion was retired, not met:** F5, the keybinding that escalated a non-modal popup to the modal. Risk R3 fired twice — there is no free gamepad input during gameplay (all 16 are bound in some context live under a popup; `shoulder_left` and `KC_T` are VON at Priority 110). The documented fallback was taken: the escalation route is **HUD prompt → Overthrow main menu → Tips**. No `chimeraInputCommon.conf` gameplay binding was added.
 
+- **What `tutorial-content` shipped (2026-08-09), and what it hands to features #4 and #5:**
+  - **The framework's central claim held under load.** Ten entries were added with **zero gameplay EnforceScript** — nine new `.conf` files, 18 string items, nine prefab lines, and one adopted proof entry. The only `.c` touched was a test file. `tutorial-system`'s "adding an entry needs no script" is now demonstrated at scale, not just by its own two proof entries.
+  - **`starter-jobs-retirement` (#5) is UNBLOCKED.** The as-built starter-job coverage mapping is recorded in `tutorial-content/context.md` and appended to `starter-jobs-retirement/requirements.md` — five jobs, their covering entry ids, and two residual gaps (discovery is *directed* rather than absent, and the recruit tip fires on the first recruit rather than on the option becoming available). A finding worth carrying: the map already marks every shop and gun dealer **ungated by any discovery flag**, so the jobs' only unique contribution was a marker on one *named instance* plus $100 and 10 XP.
+  - **`first-spawn` (#4) coordination point:** `home-first-open` covers what ownership *means* mechanically and deliberately goes deeper than the welcome's "here is your house". #4 must not add a second home entry. Both may link `#OVT-FieldManual_YourHome_Title` — link keys are not exclusive. `proofWelcome.conf`, `welcome-intro`, `#OVT-IntroHint` and `m_aHintedPlayers` were verified byte-untouched.
+  - **One trigger gap recorded rather than worked around:** FOB *deployment* has no invoker anywhere (`DeployFOB` touches neither `m_OnPlace` nor `m_OnBuild`, and per-player signals exist only on rejection). Filed as a **non-blocking** `tutorial-system` note naming the `RegisterFOB` seam. The topic still ships — `build-first-structure` covers it from the build side.
+  - **⚠️ A trap list is not evidence.** The plan's own pre-loaded trap table contained a **false row** (it claimed gun dealers have no dedicated map icon; they do, via a separate enumeration path and a `"gundealer"` sprite). Caught by a phase fact-check, verified independently, struck in three places before the wiki pass could inherit it. The lesson generalises to #4 and #5: re-verify a documented trap against source before relying on it.
+  - **Two inherited Field Manual claims are now known-wrong and unfixed** (`Configs/FieldManual/` was out of scope every phase): `WantedSystem_Text`'s "the occupying faction comes looking for you" (no search or dispatch behaviour keyed to wanted level exists — only a perception override) and `BaseCapture_Text`'s "in that area" (`m_iThreat` is a single **global** counter). The tips shipped narrowed and correct; **the public wiki is already right on both**, which inverts the usual staleness direction.
+
 - **Key architectural decisions for the epic as a whole (decided at epic planning, 2026-08-04):**
   - **Sandbox-preserving tone:** entries inform ("Shops buy and sell — prices differ by town"), never direct ("Go buy a rifle"). No objectives, no markers, no completion tracking beyond "seen". No linear chains — every entry is independently triggerable.
   - **Custom Overthrow popup UI**, not the base game's `SCR_HintUIComponent` corner toast: title, body, optional image, Dismiss, "Don't show tips again", optional "Learn more" → field manual. The base game's `EHint` dedup enum is mod-hostile (can't be extended) and its presentation is too small for this UX.
@@ -81,10 +89,12 @@ Cross-feature tech debt and review findings. **Populated and updated by `/review
 
 ## Master Overview Rollup
 
-- **Rollup status:** In Progress, 2/5 features built, **1 fully closed** (field-manual 56/56 ✅ play-tested and signed off; tutorial-system 63/63 built with its play-test still owed; the other three planned, requirements only)
-- **One-line summary for master:** Tutorial framework and field manual both built and green (compile 0, Fast 47, All 78); the manual ships 12 entries under 4 sub-categories with 102 string ids **already exported**, and the twelve frozen deep-link ids are published for `tutorial-content` to consume; play-tests owed on both, then content, first-spawn and starter-jobs retirement follow.
+- **Rollup status:** In Progress, **3/5 features built** (141/141 tasks across the three), **1 fully closed** (field-manual 56/56 ✅ play-tested and signed off; tutorial-system 61/61 and tutorial-content 24/24 built with play-tests still owed; the remaining two planned, requirements only)
+- **One-line summary for master:** The framework, the reference manual and the content are all built and green (compile 0, Fast 47, All 78) — **ten action-triggered tutorial entries now ship**, added with zero gameplay EnforceScript, which is the framework's central claim demonstrated at scale rather than asserted; play-tests owed on #1 and #3, then first-spawn and starter-jobs retirement close the epic.
 - **What field-manual unblocks:** `tutorial-content` has its twelve "Learn more" targets (the frozen key table, `field-manual/implementation.md` §3.3) and `first-spawn` has `#OVT-FieldManual_Welcome_Title`. `starter-jobs-retirement` has a written documentation handoff in its own `requirements.md`.
+- **What tutorial-content unblocks:** `starter-jobs-retirement` (#5) — its precondition, the as-built coverage mapping, is written into both `tutorial-content/context.md` and `starter-jobs-retirement/requirements.md`. #5 can now start.
 - **Open items carried out of field-manual:** 16 numbered open questions for a gameplay owner in `field-manual/context.md` (surfaced by the wiki staleness sweep, not created by it), notably the officer-loadout sharing gap and whether a `difficulty/insane` page should be created.
+- **Open items carried out of tutorial-content:** (a) a **Workbench string-table export owed by the user** for 18 new ids + 1 rewritten body — until then every new tip draws its raw `#OVT-` key, which looks exactly like a bug; (b) **one wiki edit not applied** — the tip-system mention on `getting-started` is blocked because `wikijs_get_page` fails on every page (`RetryError`) and `wikijs_update_page` replaces the whole body, so writing blind would have destroyed the `**Tutorial Jobs**` paragraph #5 owns; the exact paragraph to paste is saved in `tutorial-content/context.md`; (c) **two known-wrong Field Manual strings** left standing, listed in the Integration section above.
 
 ---
 
