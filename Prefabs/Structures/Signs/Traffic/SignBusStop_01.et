@@ -4,6 +4,9 @@ GenericEntity : "{CD0BE5C399B0752F}Prefabs/Structures/Signs/Signs_Base.et" {
   SCR_DestructionMultiPhaseComponent "{5496C1EF00137501}" {
    EnableDamage 0
   }
+  OVT_MapMarkerComponent "{6A7E1C4D00000011}" {
+   m_eCategory BUS_STOP
+  }
   ActionsManagerComponent "{59A6ED8D3751EC5C}" {
    ActionContexts {
     UserActionContext "{59A6ED8D36C284EB}" {

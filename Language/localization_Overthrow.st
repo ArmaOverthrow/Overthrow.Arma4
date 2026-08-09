@@ -9053,5 +9053,566 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A7D9B2E000000F0}" {
+   Id "OVT-Map_JobWaypoint"
+   Target_en_us "Job Waypoint"
+   Comment "Map marker label for the waypoint placed by Show On Map in the Jobs menu"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754784000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E000000F1}" {
+   Id "OVT-Map_RecruitWaypoint"
+   Target_en_us "Recruit Waypoint"
+   Comment "Map marker label for the waypoint placed by Show On Map in the Recruits menu"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754784000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000030}" {
+   Id "OVT-Map_Row_Status"
+   Target_en_us "Status"
+   Comment "Map info panel row label - ownership state of a house or warehouse (Home / Owned / Rented)"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000031}" {
+   Id "OVT-Map_Row_Priority"
+   Target_en_us "Priority"
+   Comment "Map info panel row label - whether this FOB is the resistance's designated priority FOB"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000032}" {
+   Id "OVT-Map_Row_Yes"
+   Target_en_us "Yes"
+   Comment "Map info panel row value - affirmative answer to a yes/no row such as Priority"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000033}" {
+   Id "OVT-Map_Row_No"
+   Target_en_us "No"
+   Comment "Map info panel row value - negative answer to a yes/no row such as Priority"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000034}" {
+   Id "OVT-Map_Row_Access"
+   Target_en_us "Access"
+   Comment "Map info panel row label - whether a camp may be used by everyone or only by its owner"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000035}" {
+   Id "OVT-Map_Row_Private"
+   Target_en_us "Private"
+   Comment "Map info panel row value - this camp can only be used by the player who placed it"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000036}" {
+   Id "OVT-Map_Row_Public"
+   Target_en_us "Public"
+   Comment "Map info panel row value - this camp can be used by any player"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000037}" {
+   Id "OVT-Map_Row_Contents"
+   Target_en_us "Contents"
+   Comment "Map info panel row label - heading above the list of items stored in a warehouse"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000038}" {
+   Id "OVT-Map_Row_Empty"
+   Target_en_us "Empty"
+   Comment "Map info panel row value - this warehouse is storing nothing"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000039}" {
+   Id "OVT-Map_Row_Renter"
+   Target_en_us "Renter"
+   Comment "Map info panel row label - the player currently renting this warehouse"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D0000003A}" {
+   Id "OVT-Map_House_Home"
+   Target_en_us "Home"
+   Comment "Map info panel row value - this house is the player's registered home and respawn point"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D0000003B}" {
+   Id "OVT-Map_Vehicle"
+   Target_en_us "Vehicle"
+   Comment "Map info panel row label - the model name of the player's vehicle shown by this marker"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D0000003C}" {
+   Id "OVT-Map_Port_Desc"
+   Target_en_us "Imported goods can be bought here in bulk."
+   Comment "Map info panel line for a port - one of two sentences explaining what a port is for"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D0000003D}" {
+   Id "OVT-Map_Port_Prices"
+   Target_en_us "Shops closer to a port sell goods more cheaply."
+   Comment "Map info panel line for a port - explains that shop prices rise with distance from the nearest port"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D0000003E}" {
+   Id "OVT-Map_BusStop_Desc"
+   Target_en_us "Catch a bus here to travel to another bus stop. The fare rises with distance."
+   Comment "Map info panel line for a bus stop - explains bus travel and that the ticket price scales with distance"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D0000003F}" {
+   Id "OVT-Map_Waypoint_JobDesc"
+   Target_en_us "Marked from the Jobs menu."
+   Comment "Map info panel line for a waypoint - says this marker was placed by Show On Map in the Jobs menu"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000040}" {
+   Id "OVT-Map_Waypoint_RecruitDesc"
+   Target_en_us "Marked from the Recruits menu."
+   Comment "Map info panel line for a waypoint - says this marker was placed by Show On Map in the Recruits menu"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000041}" {
+   Id "OVT-Map_Shop_LocalSupply"
+   Target_en_us "Local supply"
+   Comment "Map shop info panel - heading above the list of items that are unusually cheap or unusually dear in this town"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000042}" {
+   Id "OVT-Map_Shop_TownWide"
+   Target_en_us "Stock is pooled across every shop in this town."
+   Comment "Map shop info panel - explains that the cheap/dear signal is a town-wide one, so two shops in the same town read identically. Must not imply this shop sets its own prices."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000043}" {
+   Id "OVT-Map_Shop_Dearer"
+   Target_en_us "Dearer"
+   Comment "Map shop info panel - caption on an item row whose price is above normal. Sits beside an upward caret glyph; keep it to one short word."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000044}" {
+   Id "OVT-Map_Shop_Cheaper"
+   Target_en_us "Cheaper"
+   Comment "Map shop info panel - caption on an item row whose price is below normal. Sits beside a downward caret glyph; keep it to one short word."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000045}" {
+   Id "OVT-Map_Shop_Remote"
+   Target_en_us "Far from a port - everything here costs more to bring in."
+   Comment "Map shop info panel - badge shown when a shop is a long way from the nearest port, which raises every price at that shop. No figure is quoted on purpose."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000046}" {
+   Id "OVT-Map_Shop_VehicleFlat"
+   Target_en_us "Vehicles cost the same wherever you buy them."
+   Comment "Map shop info panel - the only line a vehicle shop shows. Vehicle prices carry neither the local-supply nor the distance-to-port adjustment, so there is nothing to compare."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000047}" {
+   Id "OVT-Map_Shop_NoStock"
+   Target_en_us "Nothing in stock right now."
+   Comment "Map shop info panel - shown when a shop has no items at all in stock"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000048}" {
+   Id "OVT-Map_Shop_NothingUnusual"
+   Target_en_us "Nothing unusually cheap or dear right now."
+   Comment "Map shop info panel - shown when a shop has stock but no item is far enough from normal to earn a caret"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000049}" {
+   Id "OVT-Map_GunDealer_Available"
+   Target_en_us "Available here"
+   Comment "Map gun dealer info panel - heading above the heavy weapons this dealer is carrying. Present tense on purpose: the selection is re-rolled every time the campaign loads, so it must not read as permanent."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D0000004A}" {
+   Id "OVT-Map_GunDealer_None"
+   Target_en_us "No heavy weapons in stock right now."
+   Comment "Map gun dealer info panel - shown when the dealer is carrying no rifle, sniper rifle, machine gun or launcher"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D0000004B}" {
+   Id "OVT-Map_GunDealer_Rifle"
+   Target_en_us "Rifle"
+   Comment "Map gun dealer info panel - weapon kind caption beside a weapon name. Keep short, it shares a narrow row with the weapon's own name."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D0000004C}" {
+   Id "OVT-Map_GunDealer_Sniper"
+   Target_en_us "Sniper"
+   Comment "Map gun dealer info panel - weapon kind caption beside a weapon name. Keep short, it shares a narrow row with the weapon's own name."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D0000004D}" {
+   Id "OVT-Map_GunDealer_MachineGun"
+   Target_en_us "Machine gun"
+   Comment "Map gun dealer info panel - weapon kind caption beside a weapon name. Keep short, it shares a narrow row with the weapon's own name."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D0000004E}" {
+   Id "OVT-Map_GunDealer_Launcher"
+   Target_en_us "Launcher"
+   Comment "Map gun dealer info panel - weapon kind caption beside a weapon name. Keep short, it shares a narrow row with the weapon's own name."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
  }
 }

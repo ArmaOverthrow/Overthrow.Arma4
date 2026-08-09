@@ -193,6 +193,15 @@ class OVT_Global : Managed
 		return OVT_JobManagerComponent.GetInstance();
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Registry of every OVT_MapMarkerComponent in the world (bus stops, POIs).
+	//! Populated by a client-safe world scan on every machine - no replication, no persistence.
+	//! \return Map marker manager or null before the game mode exists
+	static OVT_MapMarkerManagerComponent GetMapMarkers()
+	{
+		return OVT_MapMarkerManagerComponent.GetInstance();
+	}
+
 	static OVT_NotificationManagerComponent GetNotify()
 	{
 		return OVT_NotificationManagerComponent.GetInstance();

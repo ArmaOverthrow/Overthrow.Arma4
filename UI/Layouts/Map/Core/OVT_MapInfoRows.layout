@@ -1,0 +1,26 @@
+SizeLayoutWidgetClass {
+ Name "MapInfoRows"
+ Slot FrameWidgetSlot "{65D0CCF71218D728}" {
+  OffsetLeft 0
+  OffsetTop 0
+  SizeX 240
+  OffsetRight -240
+  SizeY 240
+  OffsetBottom -240
+  SizeToContent 1
+ }
+ AllowWidthOverride 1
+ WidthOverride 260
+ AllowMinDesiredWidth 1
+ MinDesiredWidth 260
+ {
+  VerticalLayoutWidgetClass "{6A7E1C4D0000002B}" {
+   Name "Rows"
+   Slot AlignableSlot "{65D0CCEAFD4CFF1E}" {
+    HorizontalAlign 3
+    VerticalAlign 3
+    Padding 10 6 10 10
+   }
+  }
+ }
+}

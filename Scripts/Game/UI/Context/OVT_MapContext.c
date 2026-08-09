@@ -450,7 +450,14 @@ class OVT_MapContext : OVT_UIContext
 		
 		if(m_bBusTravelActive)
 		{			
-			SCR_MapDescriptorComponent stop = m_TownManager.GetNearestBusStop(pos);
+			// Bus stops are Overthrow marker components now, not vanilla map descriptors.
+			// The 15m radius is deliberately unchanged - it is what bus-travel pricing and the
+			// "NeedBusStop" refusal have always used.
+			OVT_MapMarkerManagerComponent markers = OVT_Global.GetMapMarkers();
+			OVT_MapMarkerComponent stop = null;
+			if(markers)
+				stop = markers.GetNearestMarker(pos, OVT_MapMarkerCategory.BUS_STOP, 15);
+
 			if(!stop)
 			{
 				ShowNotification("NeedBusStop");

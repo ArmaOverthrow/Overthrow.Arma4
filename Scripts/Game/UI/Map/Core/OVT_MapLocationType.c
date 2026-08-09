@@ -17,7 +17,21 @@ class OVT_MapLocationType
 	
 	[Attribute(defvalue: "", UIWidgets.ResourceNamePicker, desc: "Info panel layout", params: "layout", category: "Info")]
 	protected ResourceName m_InfoLayout;
-	
+
+	[Attribute(defvalue: "{6A7E1C4D0000002A}UI/Layouts/Map/Core/OVT_MapInfoRows.layout", UIWidgets.ResourceNamePicker, desc: "Shared data-driven info panel. Used ONLY when m_InfoLayout is empty; a type with its own bespoke layout never reaches it.", params: "layout", category: "Info")]
+	protected ResourceName m_SharedInfoLayout;
+
+	//! Name of the vertical layout inside m_SharedInfoLayout that rows are added to.
+	//! LAYOUT <-> CODE CONTRACT: UI/Layouts/Map/Core/OVT_MapInfoRows.layout must contain a widget with
+	//! exactly this name, or BuildInfoRows is never called and every shared panel silently renders empty.
+	protected static const string ROWS_CONTAINER = "Rows";
+
+	//! Layout for one row inside the shared info panel.
+	//! Deliberately a constant rather than an attribute: it is a matched pair with
+	//! OVT_MapInfoRowHandler's RowLabel/RowValue/RowIcon name contract, so making it swappable from the
+	//! conf would invite exactly the silent blank-row failure Q-8 exists to prevent.
+	protected static const ResourceName INFO_ROW_LAYOUT = "{6A7E1C4D00000020}UI/Layouts/Map/Core/OVT_MapInfoRow.layout";
+
 	[Attribute(defvalue: "", UIWidgets.ResourceNamePicker, desc: "Icon imageset", params: "imageset", category: "Icon")]
 	protected ResourceName m_IconImageset;
 	
@@ -121,11 +135,25 @@ class OVT_MapLocationType
 	}
 	
 	//! Update location-specific UI info panel
+	//!
+	//! TWO PATHS, AND THE FIRST ONE IS UNCHANGED.
+	//!  1. m_InfoLayout set  -> instantiate it and call OnSetupLocationInfo. This is byte-for-byte the
+	//!     behaviour that shipped, and it is the ONLY path Town, Base and RadioTower can take, because
+	//!     all three set m_InfoLayout in Configs/Map/OverthrowMap.conf. They cannot reach the shared
+	//!     path and therefore cannot regress from it.
+	//!  2. m_InfoLayout empty, m_SharedInfoLayout set -> instantiate the shared row container and let
+	//!     BuildInfoRows fill it. This is new, and only types that never had a panel at all take it.
+	//! Both empty -> return, exactly as before.
+	//! \param[in] location The record being described
+	//! \param[in] infoPanel The panel shell's ContentSlot
 	void UpdateInfoPanel(OVT_MapLocationData location, Widget infoPanel)
 	{
-		if (!infoPanel || !location || m_InfoLayout.IsEmpty())
+		if (!infoPanel || !location)
 			return;
-		
+
+		if (m_InfoLayout.IsEmpty() && m_SharedInfoLayout.IsEmpty())
+			return;
+
 		// Clear existing content in the content slot
 		Widget child = infoPanel.GetChildren();
 		while (child)
@@ -133,23 +161,120 @@ class OVT_MapLocationType
 			infoPanel.RemoveChild(child);
 			child = infoPanel.GetChildren();
 		}
-		
-		// Create location-specific info layout in the content slot
+
 		WorkspaceWidget workspace = GetGame().GetWorkspace();
-		Widget locationInfoWidget = workspace.CreateWidgets(m_InfoLayout, infoPanel);
-		if (!locationInfoWidget)
+		if (!workspace)
 			return;
-		
-		// Call derived class to populate location-specific data
-		OnSetupLocationInfo(locationInfoWidget, location);
+
+		if (!m_InfoLayout.IsEmpty())
+		{
+			// Create location-specific info layout in the content slot
+			Widget locationInfoWidget = workspace.CreateWidgets(m_InfoLayout, infoPanel);
+			if (!locationInfoWidget)
+				return;
+
+			// Call derived class to populate location-specific data
+			OnSetupLocationInfo(locationInfoWidget, location);
+			return;
+		}
+
+		Widget sharedInfoWidget = workspace.CreateWidgets(m_SharedInfoLayout, infoPanel);
+		if (!sharedInfoWidget)
+			return;
+
+		Widget rowsContainer = sharedInfoWidget.FindAnyWidget(ROWS_CONTAINER);
+		if (!rowsContainer)
+			return;
+
+		BuildInfoRows(location, rowsContainer);
+
+		// A type that contributed no rows gets its container taken back out, so the panel reads exactly
+		// as it did before this mechanism existed instead of growing an empty padded box.
+		if (!rowsContainer.GetChildren())
+			infoPanel.RemoveChild(sharedInfoWidget);
 	}
-	
+
 	//! Override this in derived classes to populate location-specific info
 	protected void OnSetupLocationInfo(Widget locationInfoWidget, OVT_MapLocationData location)
 	{
 		// Override in derived classes to populate location-specific info
 	}
-	
+
+	//! Populate the shared info panel with rows for this location.
+	//! Called once per panel open, never from CanFastTravel or ShouldShowLocation (both are per-element
+	//! hot paths). Everything read here must tolerate partial replication - a missing row always beats
+	//! a script error.
+	//! \param[in] location The record being described
+	//! \param[in] rowsContainer The vertical layout named ROWS_CONTAINER inside m_SharedInfoLayout
+	protected void BuildInfoRows(OVT_MapLocationData location, Widget rowsContainer)
+	{
+		// Override in derived classes
+	}
+
+	//! Appends one label/value row to the shared info panel.
+	//! Pass an empty label for a full-width explanatory line.
+	//! \param[in] rows The rows container handed to BuildInfoRows
+	//! \param[in] label Row caption, or "" for a full-width line
+	//! \param[in] value Row value, or the whole sentence when label is empty
+	protected void AddInfoRow(Widget rows, string label, string value)
+	{
+		AddInfoIconRow(rows, label, value, "", "");
+	}
+
+	//! Appends one row carrying a leading glyph.
+	//! The glyph is only drawn when BOTH imageset and icon are non-empty; otherwise the row renders
+	//! exactly as AddInfoRow would.
+	//! \param[in] rows The rows container handed to BuildInfoRows
+	//! \param[in] label Row caption, or "" for a full-width line
+	//! \param[in] value Row value, or the whole sentence when label is empty
+	//! \param[in] imageset Imageset holding the glyph
+	//! \param[in] icon Quad name within imageset
+	protected void AddInfoIconRow(Widget rows, string label, string value, ResourceName imageset, string icon)
+	{
+		if (!rows)
+			return;
+
+		// A row with neither caption nor value would render as an empty gap
+		if (label.IsEmpty() && value.IsEmpty())
+			return;
+
+		WorkspaceWidget workspace = GetGame().GetWorkspace();
+		if (!workspace)
+			return;
+
+		Widget rowWidget = workspace.CreateWidgets(INFO_ROW_LAYOUT, rows);
+		if (!rowWidget)
+			return;
+
+		OVT_MapInfoRowHandler handler = OVT_MapInfoRowHandler.Cast(rowWidget.FindHandler(OVT_MapInfoRowHandler));
+		if (!handler)
+		{
+			// The row layout has lost its handler. Drop the widget rather than leaving its authored
+			// placeholder text ("Label" / "Value") on screen.
+			rows.RemoveChild(rowWidget);
+			return;
+		}
+
+		handler.Init(label, value, imageset, icon);
+	}
+
+	//! Removes every row currently in the container.
+	//! Not needed by UpdateInfoPanel (which builds into a freshly created container) but required by any
+	//! type that rebuilds its rows in place.
+	//! \param[in] rows The rows container handed to BuildInfoRows
+	protected void ClearInfoRows(Widget rows)
+	{
+		if (!rows)
+			return;
+
+		Widget child = rows.GetChildren();
+		while (child)
+		{
+			rows.RemoveChild(child);
+			child = rows.GetChildren();
+		}
+	}
+
 	//! Get location name for display
 	string GetLocationName(OVT_MapLocationData location)
 	{

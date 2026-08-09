@@ -22,6 +22,25 @@ Three gaps stand between the current state and parity: there is no Vehicle locat
 - All ten-plus types must be selectable and their panels readable **on gamepad/console**.
 - Achieving parity is the completion bar: at the end of this feature every location the legacy `OVT_MapIcons` drew must exist in the new system. Enumerate the legacy icon set explicitly and check it off.
 
+### Shop info panel — relative price indicator
+
+The `Shop` info panel must tell a player, at a glance, **what is worth buying here** — without printing prices.
+
+- Show which of a shop's stocked items are priced **high** and which are priced **low**, using a caret icon set: **1, 2 or 3 carets up** for progressively more expensive, **1, 2 or 3 carets down** for progressively cheaper, and a neutral state for "about normal".
+- **Never display actual prices or currency amounts** on the map panel. The indicator is a teaser; the shop menu remains the only place with real numbers. This is deliberate — it keeps the map readable and preserves a reason to visit the shop UI.
+- The signal must be a **relative deviation**, not an absolute price ranking. Ranking a shop's items by raw price would only restate that a rifle costs more than a bandage, which tells the player nothing. What is useful is *"this shop is charging unusually much or little for this item."*
+- **Grounding — how price actually varies by location.** `OVT_EconomyManagerComponent.GetSellPriceAtOffset` (`:553-576`) computes:
+  `price = base + (1 − stock/maxStock) × base × 0.1 + base × distanceToPort × 0.0001`
+  Two independent terms, and the distinction drives the whole design:
+  - **Scarcity** — per item, varies within a shop, capped at **+10%**.
+  - **Remoteness** — `distanceToPort`, **identical for every item at a given shop**, and unbounded in practice (5 km from a port ≈ +50%).
+  Because remoteness is a shop-wide constant, per-item carets measured against base price would be dominated by one uniform offset — every item at a remote shop would show the same "up" reading. **Recommended split (settle during `/plan-feature`):** a single **shop-level** indicator for overall dearness (the remoteness term), plus **per-item carets measured against that shop's own norm** so the carets genuinely spread and mean "bargain here / rip-off here".
+- **Vehicles are exempt from location pricing** — `GetSellPriceAtOffset` returns the flat base price for anything in `m_aAllVehicles` (`:561`). A vehicle shop would therefore show a uniformly neutral indicator. Either suppress the section for vehicle shops or state why it is flat; do not ship something that looks broken.
+- Carets may be computed from **sell price**: the buy-side additions — `m_fShopProfitMargin` and the player's `priceMultiplier` (`GetBuyPrice`, `:582-597`) — are uniform multipliers that do not change relative ranking.
+- **No new replication is required.** Stock is already client-readable: `OVT_ShopComponent` replicates its inventory through `RplSave`/`RplLoad` and a broadcast `RpcDo_SetInventory` (`:73-122`), and `GetTownStock` aggregates across a town's shops by `RplId` (`:601-611`). The indicator must be computed **client-side from replicated state** like every other part of the map.
+- The caret icon set must be **created as an art asset** (Workbench) and must remain legible at panel size and distinguishable at a glance — up vs down must not rely on colour alone.
+- The indicator must be correct on a **JIP client** and must not imply precision the data does not support (the scarcity term is a ±10% band; do not present three carets as though it were a large number).
+
 ## Dependencies
 
 - **`map/core`** — the `OVT_MapLocationType` virtual contract, `OVT_MapLocationData` payload model and element lifecycle must be documented and verified first.

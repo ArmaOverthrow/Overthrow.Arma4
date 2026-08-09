@@ -875,19 +875,6 @@ class OVT_TownManagerComponent: OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Finds the nearest bus stop map marker entity within a radius (15m) of a position.
-	//! \param pos The position vector to search around
-	//! \return The SCR_MapDescriptorComponent of the nearest bus stop marker, or null if none found
-	SCR_MapDescriptorComponent GetNearestBusStop(vector pos)
-	{	
-		m_EntitySearched = null;	
-		GetGame().GetWorld().QueryEntitiesBySphere(pos, 15, null, FindBusStop, EQueryEntitiesFlags.STATIC);
-		if(!m_EntitySearched) return null;
-		
-		return SCR_MapDescriptorComponent.Cast(m_EntitySearched.FindComponent(SCR_MapDescriptorComponent));
-	}
-	
-	//------------------------------------------------------------------------------------------------
 	//! Fills an array with references to all towns located within a specified distance from a position.
 	//! \param pos The center position vector for the search
 	//! \param maxDistance The maximum distance (radius) to search within
@@ -1189,29 +1176,6 @@ class OVT_TownManagerComponent: OVT_Component
 		return false;		
 	}
 	
-	//------------------------------------------------------------------------------------------------
-	//! Query filter function used by GetNearestBusStop.
-	//! Checks if an entity is a bus stop map marker and stores it if found.
-	//! \param entity The entity to check
-	//! \return false once a marker is found to stop the query, true otherwise
-	protected bool FindBusStop(IEntity entity) 
-	{		
-		bool got = false;
-		MapDescriptorComponent mapdesc = MapDescriptorComponent.Cast(entity.FindComponent(MapDescriptorComponent));
-		if (mapdesc){	
-			int type = mapdesc.GetBaseType();
-			if(type == EMapDescriptorType.MDT_BUSSTOP) got = true;
-		}
-		
-		if(got)
-		{
-			m_EntitySearched = entity;
-		}
-				
-		return false;		
-	}
-	
-
 	//------------------------------------------------------------------------------------------------
 	//! Removes a specified number of supporters and population from the town nearest to a position.
 	//! Synchronizes changes via RPC.

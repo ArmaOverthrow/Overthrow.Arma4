@@ -1,0 +1,17 @@
+MetaFileClass {
+ Name "{A5EA4C81F9A25690}UI/Imagesets/overthrow_priceicons.imageset"
+ Configurations {
+  ImageSetResourceClass PC {
+  }
+  ImageSetResourceClass XBOX_ONE : PC {
+  }
+  ImageSetResourceClass XBOX_SERIES : PC {
+  }
+  ImageSetResourceClass PS4 : PC {
+  }
+  ImageSetResourceClass PS5 : PC {
+  }
+  ImageSetResourceClass HEADLESS : PC {
+  }
+ }
+}

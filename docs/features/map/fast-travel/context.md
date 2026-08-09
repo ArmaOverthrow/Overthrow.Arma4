@@ -65,6 +65,7 @@ Convenient, but it makes the network boundary implicit — which is how a client
 - **The legacy context called the *recruits* variant, the new service does not.** `RequestFastTravelWithRecruits(..., RECRUIT_TRAVEL_RADIUS)` at `OVT_MapContext.c:441,503` vs `RequestFastTravel` at `OVT_FastTravelService.c:140`. Silent behaviour loss — the kind that no compile check or test would surface.
 - **`CanFastTravelToLocationType` is dead** (`:160-170`) and its body admits it defers to the type's own method.
 - **The `gamepad0:x` binding needs manual conflict checking.** The project's input-conflict script cannot see inline `ActionContext` actions, so a collision with a vanilla map action would not be reported.
+- **`CanGlobalFastTravel` refuses everything when the player has no controlled entity** (`:14-16`), and its minimum-distance and cost rules are both measured *from the player's current position*. That is fine for fast travel and fatal for anything involving a dead player — **`map/respawn` (feature 5) must not call it**, and instead reuses only the per-type ownership/control gates. Recorded here because the trap is in this file, not in respawn's.
 - **Identity types are mixed:** `CanGlobalFastTravel` takes a persistent-ID string, `CalculateFastTravelCost` takes an int player ID, and the service converts between them mid-function (`:58`).
 
 ---

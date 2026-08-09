@@ -76,6 +76,7 @@ class OVT_TEST_Init_Globals_ManagersResolve : SCR_AutotestCaseBase
 		if (!OVT_Global.GetDeploymentManager()) return "GetDeploymentManager()";
 		if (!OVT_Global.GetRecruits()) return "GetRecruits()";
 		if (!OVT_Global.GetLoadouts()) return "GetLoadouts()";
+		if (!OVT_Global.GetMapMarkers()) return "GetMapMarkers()";
 
 		return "";
 	}
@@ -1989,6 +1990,212 @@ class OVT_TEST_Init_Persistence_RecruitedTransientCharacterIsRetracked : SCR_Aut
 		m_Group = null;
 		m_Member = null;
 		m_Control = null;
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A world bus-stop sign carries an OVT_MapMarkerComponent, and that marker reaches the registry by
+//! itself and leaves it again when the entity is destroyed.
+//!
+//! WHY THIS IS THE TRIPWIRE FOR A PREFAB EDIT. Bus stops stopped being vanilla map descriptors: the
+//! only thing that makes one findable now is the OVT_MapMarkerComponent block in the same-GUID delta
+//! Prefabs/Structures/Signs/Traffic/SignBusStop_01.et. That block failing SILENTLY is the whole risk -
+//! scripts still compile, the map simply draws no bus stops and bus travel answers "NeedBusStop"
+//! everywhere. tools/compile-check.sh cannot see a prefab, so this case is the only automated guard.
+//!
+//! WHAT ELSE IT COVERS, in one pass, because it is all the same seam:
+//!  - self-registration from OnPostInit reaches OVT_MapMarkerManagerComponent (the mechanism that
+//!    catches runtime-spawned markers the world scan already missed);
+//!  - the marker is filed under BUS_STOP, not some other category;
+//!  - GetNearestMarker() finds it within a radius and refuses outside one - the exact call
+//!    OVT_MapContext makes for bus travel, at the same 15 m the old descriptor query used;
+//!  - OnDelete unregisters, so a destroyed marker stops drawing.
+//!
+//! NO MAGIC COUNTS AND NO DEPENDENCE ON THE TEST WORLD'S CONTENT. The subject is spawned by this case
+//! rather than looked for in the world, so it neither asserts how many bus stops
+//! Worlds/MP/OVT_Campaign_Test.ent happens to contain nor cares whether it contains any.
+//!
+//! THE POLL IS DIAGNOSTIC, NOT A RETRY. Registration is deliberately deferred one frame
+//! (CallLater(Register, 0)), so the case waits for that frame to arrive; expiry of the wait is itself
+//! a named failure, and the budget is far above one frame so expiry means "never", not "not yet".
+//!
+//! PROVEN ABLE TO FAIL: deleting the OVT_MapMarkerComponent block from SignBusStop_01.et makes this
+//! case report "has no OVT_MapMarkerComponent".
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_MapMarkers_BusStopRegisters : SCR_AutotestCaseBase
+{
+	//! The one vanilla bus-stop prefab, overridden by Overthrow's same-GUID delta.
+	static const ResourceName BUS_STOP_PREFAB = "{7FCD4E7C25D886A8}Prefabs/Structures/Signs/Traffic/SignBusStop_01.et";
+
+	//! The radius OVT_MapContext uses for bus travel. Named here so a change to it shows up as a test
+	//! change rather than as silently different behaviour.
+	static const float BUS_TRAVEL_RADIUS = 15;
+
+	//! Frame polls allowed for the deferred self-registration. One frame is expected.
+	static const int MAX_REGISTER_POLLS = 120;
+
+	protected int m_iPhase;
+	protected int m_iPolls;
+
+	//! The sign this case spawns and destroys. Never outlives the case.
+	protected IEntity m_Sign;
+
+	//! Where the sign was put, kept so the proximity assertions survive the entity being deleted.
+	protected vector m_vSignPos;
+
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == 0)
+			return SpawnSubjectSign();
+
+		return AwaitRegistrationThenAssert();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Spawns one bus-stop sign well away from anything else and checks the prefab delta still carries
+	//! the marker component at all.
+	//! \return True when the case is finished, which at this phase always means a named failure.
+	protected bool SpawnSubjectSign()
+	{
+		if (!OVT_Global.GetMapMarkers())
+		{
+			SetResultFailure("OVT_Global.GetMapMarkers() is null - Prefabs/GameMode/OVT_OverthrowGameMode.et has lost its OVT_MapMarkerManagerComponent entry, so no map marker of any kind can be registered");
+			return true;
+		}
+
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if (!towns || towns.m_Towns.Count() < 1)
+		{
+			SetResultFailure("No towns are registered - nowhere sensible to spawn the subject sign");
+			return true;
+		}
+
+		// Offset far enough that no world-placed bus stop can be inside the proximity assertions below.
+		m_vSignPos = towns.m_Towns[0].location + Vector(500, 0, 500);
+
+		m_Sign = OVT_Global.SpawnEntityPrefab(BUS_STOP_PREFAB, m_vSignPos);
+		if (!m_Sign)
+		{
+			SetResultFailure("SpawnEntityPrefab() produced no entity from %1", BUS_STOP_PREFAB);
+			return true;
+		}
+
+		// Read the sign's real origin: the spawn may be adjusted, and every distance below is measured
+		// from where the entity actually is.
+		m_vSignPos = m_Sign.GetOrigin();
+
+		OVT_MapMarkerComponent marker = OVT_MapMarkerComponent.Cast(m_Sign.FindComponent(OVT_MapMarkerComponent));
+		if (!marker)
+		{
+			SetResultFailure("A spawned bus stop has no OVT_MapMarkerComponent. Prefabs/Structures/Signs/Traffic/SignBusStop_01.et has lost its marker block, so NO bus stop in any world is discoverable: the map draws none and bus travel refuses everywhere with 'NeedBusStop'.");
+			return FinishAndCleanUp();
+		}
+
+		if (marker.GetCategory() != OVT_MapMarkerCategory.BUS_STOP)
+		{
+			SetResultFailure("The bus stop's marker is filed under category %1, not BUS_STOP - the bus-stop location type queries BUS_STOP and would find nothing",
+				typename.EnumToString(OVT_MapMarkerCategory, marker.GetCategory()));
+			return FinishAndCleanUp();
+		}
+
+		m_iPhase = 1;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Waits for the deferred registration, then drives registry -> proximity -> delete -> registry.
+	//! \return True when the case is finished.
+	protected bool AwaitRegistrationThenAssert()
+	{
+		OVT_MapMarkerManagerComponent markers = OVT_Global.GetMapMarkers();
+		if (!markers || !m_Sign)
+		{
+			SetResultFailure("The marker registry or the subject sign disappeared while waiting for registration");
+			return FinishAndCleanUp();
+		}
+
+		OVT_MapMarkerComponent marker = OVT_MapMarkerComponent.Cast(m_Sign.FindComponent(OVT_MapMarkerComponent));
+		if (!marker)
+		{
+			SetResultFailure("The subject sign lost its marker component between phases");
+			return FinishAndCleanUp();
+		}
+
+		array<OVT_MapMarkerComponent> busStops = markers.GetMarkers(OVT_MapMarkerCategory.BUS_STOP);
+		if (busStops.Find(marker) == -1)
+		{
+			m_iPolls += 1;
+			if (m_iPolls > MAX_REGISTER_POLLS)
+			{
+				SetResultFailure("A spawned bus stop never registered itself (%1 polls). OVT_MapMarkerComponent.OnPostInit no longer reaches OVT_MapMarkerManagerComponent.RegisterMarker, so every marker that appears after the world scan - every player-built one - is invisible on the map.",
+					m_iPolls.ToString());
+				return FinishAndCleanUp();
+			}
+
+			return false;
+		}
+
+		// Registering twice must not duplicate: the world scan and self-registration both run, and the
+		// whole design depends on that being harmless.
+		int beforeCount = markers.GetMarkerCount();
+		markers.RegisterMarker(marker);
+		if (markers.GetMarkerCount() != beforeCount)
+		{
+			SetResultFailure("RegisterMarker() is not idempotent: count went %1 -> %2 on a re-register. The world scan and component self-registration both run over the same markers, so every world-placed marker would be listed twice.",
+				beforeCount.ToString(), markers.GetMarkerCount().ToString());
+			return FinishAndCleanUp();
+		}
+
+		// The bus-travel lookup itself, at the radius OVT_MapContext uses.
+		if (markers.GetNearestMarker(m_vSignPos, OVT_MapMarkerCategory.BUS_STOP, BUS_TRAVEL_RADIUS) != marker)
+		{
+			SetResultFailure("GetNearestMarker() did not return the registered bus stop standing at the probe position - the lookup OVT_MapContext makes for bus travel is broken");
+			return FinishAndCleanUp();
+		}
+
+		// Out of range must refuse, otherwise the radius means nothing and "NeedBusStop" never fires.
+		if (markers.GetNearestMarker(m_vSignPos + Vector(0, 0, BUS_TRAVEL_RADIUS * 20), OVT_MapMarkerCategory.BUS_STOP, BUS_TRAVEL_RADIUS))
+		{
+			SetResultFailure("GetNearestMarker() returned a bus stop for a probe far outside the radius - bus travel would accept a click anywhere on the map");
+			return FinishAndCleanUp();
+		}
+
+		// Wrong category must not match, or POI and bus-stop markers would draw as each other.
+		if (markers.GetNearestMarker(m_vSignPos, OVT_MapMarkerCategory.POI, BUS_TRAVEL_RADIUS))
+		{
+			SetResultFailure("GetNearestMarker() returned a BUS_STOP marker when asked for a POI - the category filter is not applied");
+			return FinishAndCleanUp();
+		}
+
+		SCR_EntityHelper.DeleteEntityAndChildren(m_Sign);
+		m_Sign = null;
+
+		if (markers.GetNearestMarker(m_vSignPos, OVT_MapMarkerCategory.BUS_STOP, BUS_TRAVEL_RADIUS))
+		{
+			SetResultFailure("A destroyed bus stop is still in the registry - OVT_MapMarkerComponent.OnDelete no longer unregisters, so the map keeps drawing markers for entities that are gone");
+			return FinishAndCleanUp();
+		}
+
+		PrintFormat("Bus-stop marker round trip: registered after %1 poll(s), idempotent, found at %2 m and refused beyond it, and unregistered on delete",
+			m_iPolls.ToString(), BUS_TRAVEL_RADIUS.ToString());
+
+		SetResultSuccess();
+		return FinishAndCleanUp();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Removes the subject from the world after the verdict is in, whichever verdict it was.
+	//! \return Always true - the case is over.
+	protected bool FinishAndCleanUp()
+	{
+		if (m_Sign)
+			SCR_EntityHelper.DeleteEntityAndChildren(m_Sign);
+
+		m_Sign = null;
 		return true;
 	}
 }

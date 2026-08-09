@@ -2,7 +2,7 @@
 
 **Epic:** map
 **Status:** 🟡 In Progress
-**Last Updated:** 2026-08-10 00:00
+**Last Updated:** 2026-08-10 03:30
 
 > **This file is the epic marker.** Its presence in `docs/features/map/` is what tells every Beast Mode command (and future Web App / Discord clients) that this folder is an **epic**, not a plain feature. Keep it present and keep the required sections below filled in. It is the epic's equivalent of the project's `docs/overview.md`, scoped to this epic. The master `docs/overview.md` tracks this epic as a **single row**; the per-feature detail lives **here**.
 
@@ -23,14 +23,17 @@ The constituent features of this epic, in build order. This is the epic's equiva
 | # | Feature | Status | Tasks | Description |
 |---|---------|--------|-------|-------------|
 | 1 | core | 📄 Discovered — built, unverified | — | Discovery + hardening of the shipped map infrastructure: `OVT_OverthrowMapUI`, `OVT_MapLocationType`/`Element`/`Data`, `OVT_OverthrowMapConfig`, the shared layouts, imageset and canvas-layer modules. **BUG-069's four lifecycle defects are avoided structurally.** **5 bugs filed: BUG-133 … BUG-137** (from findings D1–D7), all awaiting runtime confirmation |
-| 2 | location-types | 📄 Discovered — partial | — | Ten types shipped; **4 parity gaps** vs the legacy layer: Vehicle (G1), job waypoints (G2), the POI registry (G3), bus stops as a marker component (G4). 7 of 10 types have no info panel |
+| 2 | location-types | 🟡 **Built — awaiting runtime verification** | 35/41 (85%) | **All 4 parity gaps closed 2026-08-10** (Phases 1–6 in one autorun): Vehicle (G1), waypoints (G2), POI registry (G3), bus stops as a marker component (G4). New `OVT_MapMarkerComponent` + `OVT_MapMarkerManagerComponent` registry (client-safe world scan, **no replication**) serves both POIs and bus stops. **`OVT_MapIcons.RegisterPOI` compile-level dependency eliminated** — `legacy-retirement`'s hard gate. 🔴 **N1 house privacy leak fixed** (every player saw every other player's property). Nine types gained real info panels via one additive `map/core` contract extension (K5). Shop scarcity carets + remoteness badge; gun-dealer panel pivoted mid-run by user directive to **signature weapons** (§4.6b). Gates: compile 0 (5956 files), Fast **43**, All **78**. **Phase 7 (MP/JIP, gamepad, zoom, save) is user-driven and outstanding.** 6 new findings to file: N5, N6+addendum, N14, N17, N18, **N19** |
 | 3 | fast-travel | 📄 Discovered — partial | — | Rule set and cost model consolidated and healthy; **execution path is not**: on-foot travel teleports and debits money client-side (F1/F2), routes through the deprecated comms component (F3), recruits regressed (F4), bus travel not migrated (F5) |
 | 4 | legacy-retirement | Planned | — | Delete `OVT_MapIcons`, strip the map-info/fast-travel/bus-travel modes from `OVT_MapContext`, remove the duplicated main-menu entries, and archive `towns/map-info` |
-| 5 | territory-overlay | Planned (stretch) | — | Voronoi territory shading over towns + bases, clipped to an influence radius and border-smoothed; also settles the disabled `OVT_MapThreatGrid` |
-| 6 | map-layers | Planned (stretch) | — | Legend plus per-overlay and per-location-type visibility toggles, config-driven and gamepad-operable |
-| 7 | shared-markers | Planned (stretch) | — | Networked player/squad map markers by wiring up vanilla's existing marker stack |
+| 5 | respawn | Planned | — | Conflict-style respawn picker on a dedicated screen: choose any location you are entitled to spawn at, with **"Respawn at home" always available** even inside a QRF. Free; own eligibility rule set (fast travel's cannot be reused) |
+| 6 | territory-overlay | Planned (stretch) | — | Voronoi territory shading over towns + bases, clipped to an influence radius and border-smoothed; also settles the disabled `OVT_MapThreatGrid` |
+| 7 | map-layers | Planned (stretch) | — | Legend plus per-overlay and per-location-type visibility toggles, config-driven and gamepad-operable |
+| 8 | shared-markers | Planned (stretch) | — | Networked player/squad map markers by wiring up vanilla's existing marker stack |
 
-> **Features 5–7 are stretch goals**, sequenced after `legacy-retirement`. Features 1–4 are the epic's committed scope: they land the rewrite and delete the legacy map. The stretch features add new capability on top of a finished, legacy-free map — none of them is a prerequisite for shipping.
+> **Features 1–4 are the epic's committed scope**: they land the rewrite and delete the legacy map.
+> **Feature 5 (respawn) is new capability, prioritised** — sequenced after retirement so it is built once against a legacy-free map, but ahead of the stretch goals.
+> **Features 6–8 are stretch goals.** None of 5–8 is a prerequisite for shipping the rewrite.
 
 > Reference any feature with the slash form `map/[feature-name]` (e.g. `/continue-feature map/core`). Task counts are pulled from each feature's own `tasks.md` and refreshed by `/update-epic`.
 
@@ -44,18 +47,20 @@ Which features come first, and why. This feeds planning and the next-step sugges
 2. **location-types** — Depends on core's contract. Closes the *content* half of parity: adds the one missing type (Vehicle), migrates bus stops from vanilla `MDT_BUSSTOP` descriptors onto an Overthrow marker component so they can be attached to any entity and selected like any other location, and gives the seven types currently rendering through the generic `OVT_MapInfoPanel.layout` their own panels. Must land before retirement because `OVT_MapIcons` drew vehicles and the legacy bus flow needs a destination marker. The bus-stop migration is the riskiest item here — it changes how stops are authored and discovered, so it should be sequenced first within the feature.
 3. **fast-travel** — Depends on core (selection/click delegation) and on location-types (a target must exist to travel to, including bus stops). Closes the *verb* half of parity: consolidates the fast-travel rule set and cost model into `OVT_FastTravelService` and moves bus travel out of `OVT_MapContext` so the map is the single travel surface.
 4. **legacy-retirement** — Last of the committed scope. Deleting `OVT_MapIcons` and stripping `OVT_MapContext`'s three modes is only safe once features 2 and 3 have proven parity; doing it earlier removes shipped player capability. Also archives the superseded `towns/map-info` feature doc.
-5. **territory-overlay** *(stretch)* — First stretch goal because it is the highest-value new capability and reuses machinery feature 1 already documents (`OVT_MapCanvasLayer` + `PolygonDrawCommand`). Deliberately after retirement so the overlay is built once, against the final map, rather than maintained across the deletion.
-6. **map-layers** *(stretch)* — Follows territory because that is the point at which the map becomes genuinely crowded: eleven-plus marker types plus territory, restriction rings and possibly the threat grid, all drawn at once. It absorbs whatever temporary on/off the territory overlay shipped with.
-7. **shared-markers** *(stretch)* — Last because it is the most self-contained and the most dependent on what vanilla gives for free. Buildable in parallel with 5 and 6; only its legend/toggle registration depends on 6.
+5. **respawn** — First feature after retirement. Replaces the hardcoded spawn-at-home in `OVT_PersistentRespawnLogic` (`:132-138`) with a player choice on a dedicated screen. Sequenced here because it adds a *mode* to the map, and doing that before retirement would mean adding a mode to a map that still has legacy modes in it. It also benefits from `fast-travel`'s server-authority fixes landing first, since it needs the same client-requests / server-validates pattern.
+6. **territory-overlay** *(stretch)* — First stretch goal because it is the highest-value new capability and reuses machinery feature 1 already documents (`OVT_MapCanvasLayer` + `PolygonDrawCommand`). Deliberately after retirement so the overlay is built once, against the final map, rather than maintained across the deletion.
+7. **map-layers** *(stretch)* — Follows territory because that is the point at which the map becomes genuinely crowded: eleven-plus marker types plus territory, restriction rings and possibly the threat grid, all drawn at once. It absorbs whatever temporary on/off the territory overlay shipped with.
+8. **shared-markers** *(stretch)* — Last because it is the most self-contained and the most dependent on what vanilla gives for free. Buildable in parallel with 5 and 6; only its legend/toggle registration depends on 6.
 
-**Stretch-goal note:** features 5–7 are additive. If the epic must stop after feature 4, it stops in a complete, coherent state — the rewrite landed and the legacy map is gone.
+**Stretch-goal note:** features 6–8 are additive. If the epic must stop after feature 4, it stops in a complete, coherent state — the rewrite landed and the legacy map is gone.
 
 **Dependencies between features:**
 - core → location-types (the `OVT_MapLocationType` virtual contract and `OVT_MapLocationData` payload shape)
 - core → fast-travel (element selection/click delegation and the info-panel hook the travel button lives on)
 - location-types → fast-travel (fast travel and bus travel both need selectable destination markers, incl. bus stops)
 - location-types + fast-travel → legacy-retirement (**hard gate** — nothing legacy is deleted until parity is demonstrated)
-- legacy-retirement → territory-overlay, map-layers, shared-markers (stretch goals build on the finished, legacy-free map)
+- legacy-retirement → respawn, territory-overlay, map-layers, shared-markers (all build on the finished, legacy-free map)
+- core + location-types + fast-travel → respawn (map UI, the markers picked from, and the per-type ownership gates its eligibility rule reuses)
 - territory-overlay → map-layers (the overlay is the main thing the panel toggles); map-layers → shared-markers (markers register as a toggleable category)
 - **External:** `resistance/fob` (FOB markers), `economy/shops` + `economy/real-estate` (shop/house markers and ownership), `towns/core` (town records, and the bus-stop discovery this epic replaces), `occupying/core` (bases, radio towers, QRF state). This epic *reads* those systems; it must not change their state models — the **one deliberate exception** is bus stops, which migrate from vanilla map descriptors to an Overthrow marker component (see below).
 - location-types and fast-travel are **not** parallel-safe as written (fast travel depends on bus-stop markers); everything else is strictly sequential.
@@ -99,7 +104,7 @@ Seeded by discovery on 2026-08-10 (`/discover-feature` over `core`, `location-ty
 
 How this epic is represented in the project's master `docs/overview.md` (one row, not its children). Kept in sync by `/update-epic` and `/update-master`.
 
-- **Rollup status:** In Progress (0/7 complete — 3 discovered, 1 planned, 3 stretch). Features 1–3 are built but **unverified since 2025-08-02**; 4 parity gaps and 2 server-authority defects block retirement.
+- **Rollup status:** In Progress (0/8 complete — **1 built awaiting verification**, 2 discovered, 2 planned, 3 stretch; 35/41 tasks on the only feature with a task list). `location-types` closed **all four parity gaps** on 2026-08-10 and removed the `RegisterPOI` compile dependency, so `legacy-retirement`'s hard gate is half-satisfied — `fast-travel`'s two server-authority defects (F1/F2) are the remaining blocker. Nothing in this epic has been play-tested in multiplayer since 2025-08-02.
 - **One-line summary for master:** Config-driven interactive map built on vanilla's map widgets — location markers, info panels and the fast/bus travel verbs — replacing the legacy `OVT_MapIcons` layer and `OVT_MapContext` modes.
 
 ---
