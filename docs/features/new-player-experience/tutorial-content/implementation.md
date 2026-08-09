@@ -1,7 +1,7 @@
 # Tutorial Content — Implementation Plan
 
 **Epic:** new-player-experience (feature #3 of 5)
-**Status:** ✅ Ready for Review (24/24 tasks; all automated gates green; play-test + one wiki edit owed)
+**Status:** 🟢 **COMPLETE** (24/24 tasks; all automated gates green; play-test passed and signed off 2026-08-09; string export done; wiki edit applied)
 **Started:** 2026-08-09
 **Target Completion:** 2026-08-09 (build complete)
 **Last Updated:** 2026-08-09
@@ -215,7 +215,7 @@ Stringtable items take `{6B3C0000000001xx}`, allocated sequentially in authoring
 
 | Tempting sentence | Why it is a trap | Source |
 |---|---|---|
-| "Prices move with the town — the scarcer an item is nearby, the more it costs." | The town-stock term is an **integer division**: `(1 - (stock_level / max_stock))` with both ints, so it is `+10%` below the ceiling and `+0%` at or above it — a binary step, not a curve. The shipped `economy-first-buy` body already implies the curve. Say prices *differ* by town and quantify nothing | `field-manual/context.md:166`; `OVT_EconomyManagerComponent.c:537-556` |
+| ~~"Prices move with the town — the scarcer an item is nearby, the more it costs."~~ **STRUCK 2026-08-09 — this row was wrong; the claim is TRUE.** | The integer-division diagnosis was **disproved at runtime** by BUG-105 on `main`: a Campaign case measured `1116 -> 1067 -> 1018` across stock 1/50/100, which is the float-division curve, not a `+10%/+0%` step. EnforceScript's `int / int` does **not** universally truncate like C — nested in an expression containing float operands it evaluates fractionally. (Contrast BUG-024, where `57 / 15` in a pure-int context genuinely truncated: the behaviour depends on the enclosing expression's type context.) The division is now written `(float)stock_level / max_stock` and pinned by a regression case. **The scarcity gradient is real.** The shipped tip's "prices differ from town to town" is still true and was left unchanged; the withdrawn instruction was the *do-not-say-curve* one | BUG-105 resolution; `OVT_EconomyManagerComponent.c:551` |
 | "A camp cannot be placed near an occupying base." | Never enforced for camps: `OVT_PlaceContext.CanPlace:267-280` returns true as soon as the away-from-camps check passes, so the away-from-bases branch is unreachable, and the server re-checks only item limits | `field-manual/context.md:172` |
 | "Your wanted level runs from one to five." | Levels **1 and 5 are unreachable by escalation** — every escalation site sets 2, 3 or 4; level 1 exists only as the last decay step, and nothing sets 5 even though five stars are drawn | `field-manual/context.md:170` |
 | "Gun dealers also stock ammunition for the occupying faction's weapons." | Unresolved: `GunDealerConfig.conf` sets `m_bIncludeOccupyingFactionItems 0` on the ammunition rules, but calibre-to-faction membership is runtime data. The manual says only "Most equipment belonging to the occupying faction is not traded" | `field-manual/context.md:167` |

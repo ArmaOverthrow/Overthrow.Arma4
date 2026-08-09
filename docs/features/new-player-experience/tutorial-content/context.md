@@ -1,8 +1,8 @@
 # Tutorial Content - Context & Decisions
 
-**Last Updated:** 2026-08-09 (Phase 3 complete)
+**Last Updated:** 2026-08-09 (feature closed — play-test passed, wiki edit applied)
 **Current Phase:** none, feature complete
-**Status:** ✅ Complete (24/24 tasks) with a play-test owed by the user
+**Status:** 🟢 **COMPLETE** (24/24 tasks, play-test passed and signed off 2026-08-09, all owed items discharged)
 
 **Epic:** `new-player-experience` (feature #3 of 5 — depends on #1 `tutorial-system` and #2 `field-manual`, both shipped; parallel-buildable with #4 `first-spawn`)
 
@@ -21,13 +21,18 @@
 - ✅ **Phase 2b complete (2026-08-09)** - the `SHOP_GUNDEALER` enum-name filter contract is pinned by one additive branch, proven red once and reverted. Fast still 47.
 - ✅ **Phase 3 complete (2026-08-09)** - as-built starter-job coverage mapping recorded below and handed to `starter-jobs-retirement`; verification sweep green; play-test checklist written into `tasks.md`. **No wiki page was edited** (see the session log).
 
+- ✅ **String table exported by the user (2026-08-09)** — all 19 ids live; tips render their text.
+- ✅ **Play-test passed and signed off (2026-08-09)** — *"all the tips seem fine"*. The first attempt was a false negative caused by stale compiled scripts in Workbench; see the closing session log.
+- ✅ **The wiki edit is applied** — `getting-started` (page id 2) carries the tip-system paragraph, verified live in the rendered page, with `starter-jobs-retirement`'s two `**Tutorial Jobs**` paragraphs intact.
+
 **What's Next:**
-- ⏳ **Workbench string-table export owed by the user** before any tip renders its text (18 new ids + 1 rewritten body; full list in `tasks.md` under "Needs Human Verification")
-- ⏳ **The play-test** in `tasks.md`, which doubles as `tutorial-system`'s owed play-test
-- ⏳ **One wiki edit unapplied** on `getting-started` (tip-system mention), blocked by a broken wikijs page-read path
+- ✅ **Nothing on this feature.** It is closed.
+- ▶️ **`first-spawn`** and **`starter-jobs-retirement`** are the epic's remaining two, and #5's precondition (the as-built coverage mapping below) is satisfied.
+- 📋 **Never individually exercised, and honestly unverified rather than passed:** F5 (two tips queueing from one gun-dealer purchase), F7 (per-player isolation across two clients — the MP pass was not run), P10 (`bases-first-capture`), and the four Learn More link spot-checks. `bases-first-capture` carries the most residual risk, being the only entry delivered by the 300 m proximity fan-out rather than a per-player RPC.
+- 📋 **Two Field Manual strings are still known wrong** and were out of scope every phase: `WantedSystem_Text`'s "comes looking for you" and `BaseCapture_Text`'s "in that area". The public wiki is already right on both.
 
 **Blockers:**
-- None. Both upstream features are shipped and their contracts are frozen.
+- None. Feature closed.
 
 ---
 
@@ -58,7 +63,8 @@
 ## Gotchas / Traps
 
 - **The only failure mode no gate can catch is a well-formed lie.** compile-check, all 77 assertions, the id/link guards and the localization checks all pass happily on a false sentence. Rule 0 is a **phase-front task** (1.1, 2.1), not a review step.
-- **§3.7 pre-loads eight traps** that already cost a source audit to find. The four that matter most here: prices step by integer division (not a curve), wanted levels 1 and 5 are unreachable by escalation, camps are *not* actually blocked near bases, and there are **exactly three** skills (`Trade`, `Stealth`, `Diplomacy`).
+- **§3.7 pre-loads eight traps** that already cost a source audit to find. The three that still stand here: wanted levels 1 and 5 are unreachable by escalation, camps are *not* actually blocked near bases, and there are **exactly three** skills (`Trade`, `Stealth`, `Diplomacy`).
+- **⚠️ A SECOND §3.7 row is struck (2026-08-09, after merging `main`).** The "prices are an integer-division step, not a curve" trap is false: **BUG-105 disproved it at runtime** (measured `1116 -> 1067 -> 1018` across stock 1/50/100 — the float curve). EnforceScript's `int / int` does not universally truncate like C; nested in an expression with float operands it evaluates fractionally, which is why the sibling BUG-024 case *did* truncate and this one did not. **The shipped tip text needs no change** ("prices differ from town to town" is true either way) — what was wrong was the `Comment`'s *do-not-reintroduce-the-curve-wording* instruction, now withdrawn in the `.st`. **Two of eight trap rows have now proved false.** The rule stands and is stronger for it: verify a trap against source before relying on it, including one written by a previous phase of your own feature.
 - **⚠️ One §3.7 row was itself wrong and is struck (2026-08-09).** The "gun dealers have no dedicated map icon" trap is false: gun dealers are enumerated from `economy.GetGunDealers()` and drawn with a dedicated `"gundealer"` sprite by `TryCreateGunDealerIcon` (`OVT_MapIcons.c:627-632`, `:111-134`), never reaching `TryCreateShopIcon`'s switch. Found by the Phase 1 fact-check, verified independently, struck in `implementation.md` §3.5, §3.7 and DoD Q2. **A trap list is not evidence** — this one row would have propagated into the Phase 3 wiki pass as a "correction" that broke a correct page.
 - **Plus the two lies that already shipped once:** money can be stolen or deposited (neither mechanic exists), and the Overthrow menu contains a money screen or the Field Manual (it contains neither).
 - **"Learn more" is not on the HUD popup.** The route is HUD tip → "Overthrow Menu" prompt → main menu → Tips → modal → Learn More. A play-test that does not know this will report a missing button (§3.4).
@@ -196,3 +202,24 @@ This is what `field-manual`'s 2026-08-08 sweep was for. Task 3.2 part (a) theref
 - Re-verified the plan's snapshot assumptions on this tree (R5): `6B3C…` block free, tree clean, `Configs/Tutorials/` holding only the two proof entries.
 - Scaffolded `tasks.md` (24 tasks across 4 phase blocks) and this file; flipped `implementation.md` to In Progress.
 - **Decided: Phase 2b is taken, not dropped.** The plan makes it droppable only if the play-test is scheduled promptly; this build defers play-testing to the user, which is the plan's own stated condition for taking it.
+
+### 2026-08-09 — Feature closed: play-test passed, wiki edit applied
+
+**Signed off by the user** after exporting the string table and play-testing: *"all the tips seem fine"*. See `tasks.md`'s "Needs Human Verification" header for the honest split between what was attested and what was never individually exercised (F5, F7, P10, the Learn More spot-checks).
+
+**The first play-test was a false negative, and the diagnosis is worth keeping.** The report was "no tutorial tips at all — including `wanted-first-level`, which is new". Three pieces of evidence, gathered before proposing any cause, ruled out everything in this feature:
+
+- `[Overthrow.Tutorial] Loaded 11 tutorial entries` in the Workbench log — the configs, `.meta` GUIDs and the nine appended prefab rows were all live. Not a data problem.
+- The seen store (`profile/.save/app1874910_user76561198000167250/settings/ReforgerGameSettings.conf`) read `m_bTipsDisabled 0` with exactly two ids, `economy-first-buy` and `welcome-intro` — the two `tutorial-system` proof entries. All nine new entries were eligible. Not a seen-store or opt-out problem.
+- The string export could not explain it either: an unexported tip still *renders*, showing its raw `#OVT-` key. "Nothing at all" is a different failure from "raw keys".
+
+**Cause: Workbench was play-testing stale compiled scripts.** The user recompiled and the retest was clean. This is a known project trap and it produced a textbook false "the fix didn't work" report — the same class of error the feature spent three phases guarding against in *content*, arriving instead through the *build*. **Check what the runtime actually loaded before suspecting the work.**
+
+**The wiki edit owed out of Phase 3 is now applied** (`getting-started`, page id 2): the tip-system paragraph after "Essential Controls", +468 characters, nothing else touched. The blocker was diagnosed rather than waited out — the MCP server's process had lost its auth, so it was issuing **unauthenticated** GraphQL calls; `pages.list`/search are public and worked, while `pages.single` returned *"You are not authorized to view this page"* at HTTP 200, which the tenacity wrapper turned into an opaque `RetryError`. Reconnecting the server fixed it.
+
+**Three hazards found while making that one edit, all worth knowing before the next wiki write:**
+1. **`wikijs_search_pages` returns wrong `pageId` values.** It reported `pageId 1` for "Wanted System"; page 1 is actually `home`, and `getting-started` is 2. **Resolve by slug and confirm the returned `path` before any update** — trusting a search id would overwrite the wrong page.
+2. **`pages.update` fails unless `tags` is passed** (`Cannot read properties of undefined (reading 'map')`), and it fails *after* saving the content — so a mutation reporting `succeeded: false` may still have written. **Always re-read to establish what actually happened.** A pre-write guard asserting the inserted text was not already present is what caught this.
+3. **A failed update leaves the rendered HTML stale.** The source had the new paragraph while the public page did not, until `pages.render(id:2)` was called explicitly. Checking the live page, not just the stored source, is the real verification.
+
+The two protected `**Tutorial Jobs**` paragraphs that `starter-jobs-retirement` owns were asserted intact before the write and verified present in the rendered page afterwards.

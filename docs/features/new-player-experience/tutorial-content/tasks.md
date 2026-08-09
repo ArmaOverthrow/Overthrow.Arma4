@@ -1,7 +1,7 @@
 # Tutorial Content - Task Checklist
 
-**Last Updated:** 2026-08-09 (Phase 3 complete: coverage mapping handed to `starter-jobs-retirement`, verification sweep green, play-test checklist written below. One wiki edit left unapplied - the wiki MCP page-read path was down, see Phase 3 report.)
-**Progress:** 24/24 tasks complete (100%)
+**Last Updated:** 2026-08-09 (**FEATURE CLOSED** - play-test passed and signed off by the user; the one outstanding wiki edit has since been applied and verified live)
+**Progress:** 24/24 tasks complete (100%) ✅ **FEATURE COMPLETE**
 
 **Epic:** `new-player-experience` (feature #3 of 5) · **Plan:** `implementation.md` · **Scope truth:** `requirements.md`
 
@@ -164,9 +164,15 @@
 
 ---
 
-## Needs Human Verification
+## Needs Human Verification — ✅ PASSED 2026-08-09
 
-*Written by task 3.5, 2026-08-09. Everything below is play-test-only by project rule (UI rendering, trigger firing in a live world, whether a sentence reads well) - no automated gate can reach any of it. Work through it top to bottom; nothing here needs the plan open.*
+> **SIGNED OFF BY THE USER, 2026-08-09.** The string table was exported, the campaign was play-tested, and the verdict was *"all the tips seem fine"* — the feature is closed on that attestation.
+>
+> **Recorded honestly, because an owner's "seems fine" is not the same as ten ticked rows.** What is attested: tips fire from the player's own actions, render their text rather than raw `#OVT-` keys, and behave sanely in a live campaign. What was **not** individually exercised, and is therefore *unverified rather than passed*: **F5** (two tips queueing from one gun-dealer purchase without overlapping), **F7** (per-player isolation in a two-client session — the MP pass below was not run), **P10** (`bases-first-capture`, which needs a base to genuinely change hands), and the four-entry **Learn More** link spot-checks. None of these is known-broken; none has been observed either. `bases-first-capture` carries the most residual risk, being the only entry whose delivery path is the 300 m proximity fan-out rather than a per-player RPC.
+>
+> ⚠️ **The first play-test reported "no tips at all" and was a false negative** — Workbench was running stale compiled scripts. The retest after recompiling was clean. Diagnosis cost a cycle and is worth remembering: **11 entries loaded** in the log and `m_bTipsDisabled 0` with only two ids in the seen store, which together proved the data and settings were fine and pointed at the build. See `context.md`'s session log.
+
+*Written by task 3.5, 2026-08-09. Everything below is play-test-only by project rule (UI rendering, trigger firing in a live world, whether a sentence reads well) - no automated gate can reach any of it. Retained as the regression checklist for the next content change.*
 
 ### ⚠️ STEP 0 - PREREQUISITE: re-export the string table in Workbench
 
