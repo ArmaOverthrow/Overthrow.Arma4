@@ -108,11 +108,6 @@ class OVT_TutorialComponent : OVT_Component
 	//! fire PLAYER_SPAWNED with a guess (plan decision D7).
 	protected bool m_bSpawnContextReceived;
 
-	//! One-shot guard for the process-wide client-local hooks. Static because the hooks themselves
-	//! are static: a listen-server host holds one OVT_TutorialComponent per CONNECTED PLAYER, and
-	//! binding an instance handler from each of them would fire a local trigger once per player.
-	protected static bool s_bLocalHooksBound;
-
 	//-----------------------------------------------------------------------------------------------
 	// LIFECYCLE
 	//-----------------------------------------------------------------------------------------------
@@ -363,24 +358,34 @@ class OVT_TutorialComponent : OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Binds the process-wide client-local hooks exactly once.
+	//! Binds the process-wide client-local hooks, exactly once per map-entity lifetime.
 	//!
 	//! Only the map hook is bound here; the other two client-local events have no invoker to bind to
 	//! and are pushed from their one call site (OVT_UIContext.ShowLayout and
 	//! OVT_OverthrowGameMode.OnPlayerSpawnedLocal) through the static Notify* methods above.
 	//!
+	//! REMOVE-THEN-INSERT, NOT A ONE-SHOT STATIC BOOL. The obvious guard - a `static bool` set on the
+	//! first bind - is wrong here, and silently so. SCR_MapEntity's invoker is a process-lifetime
+	//! static that its DESTRUCTOR empties (~SCR_MapEntity calls s_OnMapOpen.Clear()), so a world
+	//! teardown drops this subscription while leaving any such flag set. The map tip would then work
+	//! in the first campaign of a process and never again in that process - and this project reloads
+	//! the world several times per process (see OVT_PersistenceManagerComponent.OnDelete's header).
+	//! Remove() on a handler that is not subscribed is a no-op, so this binds exactly once per
+	//! invoker however many components call it - which is what the flag was there to guarantee: a
+	//! listen-server host holds one OVT_TutorialComponent per CONNECTED PLAYER, and a second
+	//! subscription would fire the local trigger once per player. Same shape as
+	//! OVT_TutorialContext.TrySubscribe().
+	//!
 	//! Harmless on a dedicated server: no map is ever opened there, and the handler resolves the
 	//! local player's component, of which a dedicated server has none.
 	protected static void BindLocalHooksOnce()
 	{
-		if (s_bLocalHooksBound)
+		ScriptInvokerBase<MapConfigurationInvoker> onMapOpen = SCR_MapEntity.GetOnMapOpen();
+		if (!onMapOpen)
 			return;
 
-		s_bLocalHooksBound = true;
-
-		ScriptInvokerBase<MapConfigurationInvoker> onMapOpen = SCR_MapEntity.GetOnMapOpen();
-		if (onMapOpen)
-			onMapOpen.Insert(OnMapOpened);
+		onMapOpen.Remove(OnMapOpened);
+		onMapOpen.Insert(OnMapOpened);
 	}
 
 	//------------------------------------------------------------------------------------------------

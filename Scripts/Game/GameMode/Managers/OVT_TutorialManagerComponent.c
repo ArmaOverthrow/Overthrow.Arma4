@@ -87,6 +87,39 @@ class OVT_TutorialManagerComponent: OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Drops the two things that would OUTLIVE this component, and only those two.
+	//!
+	//! This project reloads the world several times per process - the autotest harness does it per
+	//! run, and a Continue replaces the world in place - so anything static that still points at this
+	//! component after its world is gone points at a dead object. Same hazard, and the same fix, as
+	//! OVT_PersistenceManagerComponent.OnDelete().
+	//!
+	//!  1. s_Instance. GetInstance() only re-resolves when it is null, so a stale one is never
+	//!     replaced: OVT_Global.GetTutorialManager() would keep handing the NEXT campaign the dead
+	//!     manager, and with it GetEntries() - which is what the whole client pipeline reads.
+	//!  2. The wanted-level subscription. It is the one invoker in SubscribeToInvokers() that is not
+	//!     owned by a sibling manager on this same entity: OVT_PlayerWantedComponent's is a static
+	//!     allocated on first use and never cleared, so without this removal every campaign in a
+	//!     process leaves another dead handler on it.
+	//!
+	//! The other subscriptions are deliberately NOT removed. They live on sibling managers on this
+	//! same game-mode entity, which are torn down in the same pass - reaching into a component that
+	//! may already be deleted to unsubscribe from an invoker that is about to be freed anyway buys
+	//! nothing and can only add a way to fail.
+	//! \param owner The entity this component is attached to.
+	override event void OnDelete(IEntity owner)
+	{
+		if (s_Instance == this)
+			s_Instance = null;
+
+		ScriptInvoker<int, int, int> wanted = OVT_PlayerWantedComponent.GetOnWantedLevelChanged();
+		if (wanted)
+			wanted.Remove(OnWantedLevelChanged);
+
+		super.OnDelete(owner);
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Validates the entry registry and subscribes to every catalogued server-side invoker.
 	//!
 	//! SERVER ONLY. A client has the same authored entries (the game mode entity exists there too) but
