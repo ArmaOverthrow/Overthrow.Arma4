@@ -173,18 +173,18 @@ class OVT_MainMenuContext : OVT_UIContext
 		// Tips - the documented route to the modal tutorial popup. There is no gameplay keybinding
 		// for escalating a HUD tip (risk R3 fired in Phase 5 and again in Phase 6), so this entry IS
 		// the escalation path: the popup's prompt opens this menu and pushes its entry into
-		// OVT_TutorialContext, and this button opens it. Disabled rather than dead when there is
-		// nothing to re-read.
+		// OVT_TutorialContext, and this button opens it.
+		//
+		// ALWAYS ENABLED (BUG-133). It used to be gated on HasEntry(), which looked like a courtesy and
+		// was in fact a trap: "Don't show tips again" makes OVT_TutorialComponent drop every delivery
+		// BEFORE an entry ever reaches the context, so HasEntry() was false forever afterwards, this
+		// button was dead forever afterwards, and the only control that could turn tips back on lived
+		// inside the popup it disabled. The screen behind it now resolves something to read for itself
+		// (OVT_TutorialContext.ShowForReview), so there is nothing left for a gate to protect against.
 		comp = SCR_ButtonTextComponent.GetButtonText("Tips", m_wRoot);
 		if (comp)
 		{
-			OVT_TutorialContext tutorial = OVT_TutorialContext.Cast(m_UIManager.GetContext(OVT_TutorialContext));
-			if(tutorial && tutorial.HasEntry())
-			{
-				comp.m_OnClicked.Insert(Tips);
-			}else{
-				comp.SetEnabled(false);
-			}
+			comp.m_OnClicked.Insert(Tips);
 		}
 
 		// Save
@@ -282,11 +282,16 @@ class OVT_MainMenuContext : OVT_UIContext
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Re-opens the most recent tutorial tip in its full, focusable form.
+	//! Opens the tutorial tip screen in its full, focusable form.
 	//!
-	//! ShowLayout() can legitimately refuse - OVT_TutorialContext.CanShowLayout() will not open on
-	//! top of a placement ghost, and the main menu IS reachable mid-placement. Say so rather than
-	//! looking broken.
+	//! ShowForReview() rather than ShowLayout(): the context resolves WHAT to show for itself - the tip
+	//! from this session, else one the player has already read, else the welcome - so this menu never
+	//! has to know the fallback chain, and the entry above never has to guess whether pressing it will
+	//! do anything.
+	//!
+	//! It can still legitimately refuse - OVT_TutorialContext.CanShowLayout() will not open on top of a
+	//! placement ghost, and the main menu IS reachable mid-placement; nor will it open when this
+	//! install resolves no tutorial entries at all. Say so rather than looking broken.
 	private void Tips()
 	{
 		CloseLayout();
@@ -294,7 +299,7 @@ class OVT_MainMenuContext : OVT_UIContext
 		OVT_TutorialContext tutorial = OVT_TutorialContext.Cast(m_UIManager.GetContext(OVT_TutorialContext));
 		if(!tutorial) return;
 
-		tutorial.ShowLayout();
+		tutorial.ShowForReview();
 
 		if(!tutorial.IsActive())
 			ShowHint("#OVT-Tutorial_NoneAvailable");

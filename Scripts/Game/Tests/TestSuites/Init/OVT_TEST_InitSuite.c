@@ -2966,3 +2966,160 @@ class OVT_TEST_Init_Persistence_RecruitedTransientCharacterIsRetracked : SCR_Aut
 		return true;
 	}
 }
+
+//------------------------------------------------------------------------------------------------
+//! THE WAY BACK FROM "DON'T SHOW TIPS AGAIN" (BUG-133). A reset really does leave the profile with
+//! zero seen ids AND tips re-enabled, read back through a fresh store.
+//!
+//! WHAT IT PINS, AND WHY IT IS WORTH A CASE. OVT_TutorialComponent.ResetSeen() is three statements,
+//! and every one of them is a statement about STORAGE rather than about logic:
+//!   - the store is LOADED before it is cleared (GetSeenStore() is what performs the load, so a
+//!     clear-then-load ordering would silently repopulate the set from disk and undo the reset);
+//!   - the clear is written back, not just held in memory;
+//!   - m_bTipsDisabled goes back to its DEFAULT, and a settings serializer that skipped
+//!     default-valued members would make the toggle one-way - which is BUG-133 all over again.
+//! Only the round trip can answer any of those, so this drives the same accessor pair ResetSeen's
+//! PersistSettings() drives, in the same order, against the same engine container.
+//!
+//! WHAT IT DOES NOT PIN: ResetSeen() itself. OVT_TutorialComponent lives on a per-player
+//! OVT_OverthrowController that this world has none of - the component cannot be constructed without
+//! an IEntityComponentSource - so the case mirrors its sequence rather than calling it. A change to
+//! ResetSeen's ORDERING would not turn this red. That is stated here rather than papered over.
+//!
+//! PROFILE HYGIENE, and the phase machine that pays for it: identical to
+//! OVT_TEST_Init_Tutorial_SettingsStoreRoundTrips above. The ids are in the same illegal-by-scheme
+//! namespace, the profile is restored on EVERY path including failures, and the restore waits out
+//! the SaveUserSettings() throttle first - a second flush inside that window is DROPPED, not
+//! deferred (measured 2026-08-07), so an immediate cleanup write would never reach disk and this
+//! case's ids would sit in the CI profile forever.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_Tutorial_ResetRestoresTips : SCR_AutotestCaseBase
+{
+	//! Test-only id. Leading underscores are illegal in the authored entry-id scheme, so this cannot
+	//! collide with real content, ever.
+	static const string TEST_ID = "__ovt-selftest-reset";
+
+	//! How long to wait after this case's writes before the cleanup write, in milliseconds.
+	static const int FLUSH_SETTLE_MS = 10000;
+
+	//! 0 = not started, 1 = written and waiting out the flush throttle, 2 = cleaned up.
+	protected int m_iPhase;
+
+	//! Tick at which the last write happened.
+	protected int m_iWriteTick;
+
+	//! The verdict, held across frames while the throttle window drains.
+	protected string m_sFailure;
+
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == 0)
+		{
+			m_sFailure = RunReset();
+			m_iWriteTick = System.GetTickCount();
+			m_iPhase = 1;
+			return false;
+		}
+
+		if (m_iPhase == 1)
+		{
+			if (System.GetTickCount() - m_iWriteTick < FLUSH_SETTLE_MS)
+				return false;
+
+			m_iPhase = 2;
+		}
+
+		string cleanupFailure = RestoreProfile();
+
+		if (m_sFailure == "")
+			m_sFailure = cleanupFailure;
+
+		if (m_sFailure != "")
+		{
+			SetResultFailure("%1", m_sFailure);
+			return true;
+		}
+
+		Print("Tutorial reset cleared a seeded seen id and re-enabled tips through the engine user-settings container, and the profile was restored");
+		SetResultSuccess();
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Seeds the exact state BUG-133 leaves behind, then performs the reset the way ResetSeen() does.
+	//! \return A ready-to-report failure message, or an empty string when the reset held.
+	protected string RunReset()
+	{
+		// 1. The state a player is stuck in: one tip read, and tips switched off for good.
+		OVT_TutorialSeenStore seeded = new OVT_TutorialSeenStore();
+		seeded.MarkSeen(TEST_ID);
+
+		if (!OVT_TutorialSettingsAccessor.Save(seeded, true))
+			return "OVT_TutorialSettingsAccessor.Save() reported the settings store unavailable while seeding. Either the engine has no OVT_TutorialSettings module or this run is a console app, in which case the case is being run in the wrong place.";
+
+		// 2. THE RESET, in ResetSeen()'s order. The load comes FIRST and through a fresh store,
+		//    exactly as GetSeenStore() does on a component that has not touched the profile yet; only
+		//    then is the set cleared and the flag put back to its default.
+		OVT_TutorialSeenStore store = new OVT_TutorialSeenStore();
+		bool tipsDisabled;
+
+		if (!OVT_TutorialSettingsAccessor.Load(store, tipsDisabled))
+			return "OVT_TutorialSettingsAccessor.Load() reported the settings store unavailable immediately after a successful Save()";
+
+		// The seed has to be visible at this point, or the case would pass without ever having had
+		// anything to clear.
+		if (!store.HasSeen(TEST_ID))
+			return "The seeded id '" + TEST_ID + "' was not readable back before the reset, so this case never had any progress to clear and proves nothing";
+
+		if (!tipsDisabled)
+			return "The seeded 'Don't show tips again' flag was not readable back before the reset, so this case never reproduced the state BUG-133 is about";
+
+		store.Clear();
+
+		if (!OVT_TutorialSettingsAccessor.Save(store, false))
+			return "OVT_TutorialSettingsAccessor.Save() reported the settings store unavailable while writing the reset";
+
+		// 3. Read the whole record back through a FRESH store: nothing just cleared can be answered
+		//    out of the instance above.
+		OVT_TutorialSeenStore reloaded = new OVT_TutorialSeenStore();
+		bool tipsDisabledAfter;
+
+		if (!OVT_TutorialSettingsAccessor.Load(reloaded, tipsDisabledAfter))
+			return "OVT_TutorialSettingsAccessor.Load() reported the settings store unavailable immediately after the reset was written";
+
+		if (reloaded.Count() != 0)
+			return "The reset left " + reloaded.Count().ToString() + " seen ids in the profile, expected 0. Clearing the store does not survive the settings round trip, so 'Turn Tips Back On' would clear the record in memory and then have every id written straight back - the tips would still never reappear (BUG-133).";
+
+		if (reloaded.HasSeen(TEST_ID))
+			return "The reset left the id '" + TEST_ID + "' in the profile";
+
+		if (tipsDisabledAfter)
+			return "The reset wrote m_bTipsDisabled false and it came back true. The flag cannot be written back to its default, so 'Don't show tips again' is a one-way door and BUG-133 is not fixed.";
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Puts the profile block back the way this case found it, and PROVES it went back.
+	//! \return A ready-to-report failure message, or an empty string when the profile came back clean.
+	protected string RestoreProfile()
+	{
+		if (!OVT_TutorialSettingsAccessor.Reset())
+			return "OVT_TutorialSettingsAccessor.Reset() reported the settings store unavailable, so this case's test id may still be in the profile";
+
+		OVT_TutorialSeenStore afterReset = new OVT_TutorialSeenStore();
+		bool tipsDisabled;
+		OVT_TutorialSettingsAccessor.Load(afterReset, tipsDisabled);
+
+		if (afterReset.Count() != 0)
+			return "Reset() left " + afterReset.Count().ToString() + " ids in the profile, so this case is polluting every later run";
+
+		if (tipsDisabled)
+			return "Reset() left m_bTipsDisabled set, so this case is polluting every later run";
+
+		return "";
+	}
+}

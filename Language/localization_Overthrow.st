@@ -10556,6 +10556,40 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B3E000000000010}" {
+   Id "OVT-Tutorial_ResetTips"
+   Target_en_us "Turn Tips Back On"
+   Comment "Modal tutorial popup - label on the button that appears in place of 'Don't Show Tips Again' once tips have been switched off. Pressing it clears the record of which tips this profile has read and lets every tip appear again from the start, so the wording should promise tips coming back rather than something being deleted."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3E000000000011}" {
+   Id "OVT-Tutorial_ResetDone"
+   Target_en_us "Tips are back on and will appear again as you play"
+   Comment "Hint shown just after the player presses 'Turn Tips Back On' in the modal tutorial popup. The popup closes on that press, so this is the only confirmation the player gets that it worked."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6B3A000000000067}" {
    Id "OVT-Tutorial_DisableTips"
    Target_en_us "Don't Show Tips Again"

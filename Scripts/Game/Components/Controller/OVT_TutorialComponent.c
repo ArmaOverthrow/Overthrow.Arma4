@@ -34,6 +34,16 @@ class OVT_TutorialComponent : OVT_Component
 	//! Lowest runtime player id the engine ever issues.
 	static const int FIRST_VALID_PLAYER_ID = 1;
 
+	//! The entry the Tips re-read screen falls back to when the player has seen nothing yet. Preferred
+	//! over its houseless twin because it is the entry the overwhelming majority of players get.
+	static const string REVIEW_FALLBACK_ID = "welcome-intro";
+
+	//! The second fallback, used only when REVIEW_FALLBACK_ID does not resolve on this machine. Both
+	//! welcomes are four-page MODAL entries, so either renders correctly in the popup. NOT chosen by
+	//! spawn context: the Tips screen is a re-read surface, not a spawn event, and matching a filter
+	//! there would make the button's behaviour depend on a fact that has nothing to do with reading.
+	static const string REVIEW_FALLBACK_ID_NOHOME = "welcome-nohome";
+
 	//! The two values a spawn context can take. These are the exact strings the two welcome entries'
 	//! PLAYER_SPAWNED triggers are authored against in Configs/Tutorials/, so changing either of them
 	//! is a config change as much as a code change.
@@ -737,6 +747,89 @@ class OVT_TutorialComponent : OVT_Component
 
 		m_Queue.Clear();
 		StopPump();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Clears the player's tutorial progress: every seen id, plus the "don't show tips again" flag.
+	//!
+	//! THE ONLY SUPPORTED WAY TO RESET FROM THE UI. OVT_TutorialSettingsAccessor.Reset() writes an
+	//! empty record straight to the profile and leaves this component's in-memory store and flag
+	//! untouched - so the running session still believes every id is seen, and the next MarkSeen or
+	//! SetTipsDisabled writes them all straight back. This component is documented as the ONLY writer
+	//! (see GetSeenStore), and that invariant is what a direct accessor call would break.
+	//!
+	//! Ordering is the same caution SetTipsDisabled carries: GetSeenStore() is what LOADS the profile
+	//! on first access, so it has to run BEFORE the flag is set. Clearing through its return value
+	//! rather than after a bare call makes that ordering impossible to get wrong by re-editing.
+	//!
+	//! Deliberately does NOT touch the pending queue. Re-enabling tips is exactly the SetTipsDisabled
+	//! (false) case, which also leaves the queue alone: anything still queued was matched under the
+	//! old setting and is legitimately still due.
+	void ResetSeen()
+	{
+		OVT_TutorialSeenStore store = GetSeenStore();
+
+		store.Clear();
+
+		m_bTipsDisabled = false;
+
+		PersistSettings();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Picks an entry for the Tips re-read screen when nothing has been shown this session.
+	//!
+	//! The fallback chain the Tips menu entry relies on, in order:
+	//!   1. an entry the player has already seen (resolved here);
+	//!   2. the welcome, when they have seen nothing at all;
+	//!   3. null, when this install has no resolvable entries - the caller must then refuse to open,
+	//!      which OVT_TutorialContext.CanShowLayout() already does.
+	//!
+	//! A SEEN ID CAN OUTLIVE ITS .CONF. Entries get renamed, removed, or differ between a server and
+	//! a client, so every candidate is resolved through FindEntry AND checked for pages: an id that
+	//! no longer resolves must be skipped, not handed to the popup as a blank modal.
+	//!
+	//! "MOST RECENT" IS AN APPROXIMATION AND IS DOCUMENTED AS ONE. The walk runs newest-first over
+	//! the store's own order, but OVT_TutorialSeenStore is backed by a sorted set<string> and
+	//! WriteTo() says so explicitly - the order is canonical, not chronological, and a profile round
+	//! trip normalises it. Nothing here depends on getting the genuinely-latest tip: every candidate
+	//! is something the player has read, and any of them is a valid thing to re-read.
+	//! \return An entry with at least one page, or null when nothing at all resolves.
+	OVT_TutorialEntryConfig FindReviewEntry()
+	{
+		array<string> seenIds = new array<string>();
+		GetSeenStore().WriteTo(seenIds);
+
+		for (int i = seenIds.Count() - 1; i >= 0; i--)
+		{
+			OVT_TutorialEntryConfig seen = FindEntry(seenIds[i]);
+			if (IsReadable(seen))
+				return seen;
+		}
+
+		OVT_TutorialEntryConfig welcome = FindEntry(REVIEW_FALLBACK_ID);
+		if (IsReadable(welcome))
+			return welcome;
+
+		welcome = FindEntry(REVIEW_FALLBACK_ID_NOHOME);
+		if (IsReadable(welcome))
+			return welcome;
+
+		return null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] entry The candidate. Null is not readable.
+	//! \return True when this entry has something the popup can actually draw.
+	protected bool IsReadable(OVT_TutorialEntryConfig entry)
+	{
+		if (!entry)
+			return false;
+
+		if (!entry.m_aPages)
+			return false;
+
+		return !entry.m_aPages.IsEmpty();
 	}
 
 	//------------------------------------------------------------------------------------------------

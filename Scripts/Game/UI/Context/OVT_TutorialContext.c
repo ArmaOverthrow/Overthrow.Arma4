@@ -55,12 +55,24 @@ class OVT_TutorialContext : OVT_UIContext
 	protected Widget m_wBackButton;
 	protected Widget m_wLearnMoreButton;
 	protected Widget m_wDisableTipsButton;
+	protected Widget m_wResetTipsButton;
 
 	protected SCR_InputButtonComponent m_DismissAction;
 	protected SCR_InputButtonComponent m_NextAction;
 	protected SCR_InputButtonComponent m_BackAction;
 	protected SCR_InputButtonComponent m_LearnMoreAction;
 	protected SCR_InputButtonComponent m_DisableTipsAction;
+	protected SCR_InputButtonComponent m_ResetTipsAction;
+
+	//! True when the entry on screen was picked BY THIS CONTEXT for re-reading rather than handed to
+	//! it by the pipeline.
+	//!
+	//! Load-bearing, not bookkeeping. The re-read fallback can legitimately land on the welcome, which
+	//! a player who turned tips off may never have seen - and OnClose marks whatever is on screen as
+	//! seen. Without this flag, opening the Tips screen would silently CONSUME an entry the player had
+	//! not been shown. Set only by ShowForReview and cleared by SetEntry, so a pipeline delivery always
+	//! records normally.
+	protected bool m_bReviewOnly;
 
 	//-----------------------------------------------------------------------------------------------
 	// THE D10 RULE - ONE COPY, BOTH SURFACES
@@ -233,6 +245,59 @@ class OVT_TutorialContext : OVT_UIContext
 	{
 		m_Entry = entry;
 		m_iPageIndex = 0;
+		m_bReviewOnly = false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Opens the popup as the Overthrow main menu's Tips screen, resolving something to read first.
+	//!
+	//! THE TIPS ENTRY IS NO LONGER GATED ON HAVING SEEN A TIP (BUG-133), so this is the call that has
+	//! to make "always available" mean "always shows something". The fallback chain lives on
+	//! OVT_TutorialComponent, which owns both the seen store and the id lookup; this context only asks
+	//! for an entry and puts it on screen. The menu asks for neither - it calls this one method - so
+	//! the menu stays dumb and the resolution rule has exactly one home.
+	//!
+	//! An entry already on screen (or left over from a tip shown this session) wins over the fallback:
+	//! the most recently presented tip is what "Tips" has always meant, and that behaviour is
+	//! unchanged.
+	//!
+	//! NOTHING HERE MUTATES ANY STATE. No mark-seen (m_bReviewOnly suppresses it), no queue change and
+	//! no profile write. ShowLayout() may still legitimately refuse - nothing resolved, or another
+	//! Overthrow context owns the screen - and the caller reports that; see OVT_MainMenuContext.Tips.
+	void ShowForReview()
+	{
+		if (!m_Entry)
+		{
+			SetEntry(ResolveReviewEntry());
+			m_bReviewOnly = true;
+		}
+
+		ShowLayout();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return An entry the player can re-read, or null when this install resolves none.
+	protected OVT_TutorialEntryConfig ResolveReviewEntry()
+	{
+		OVT_TutorialComponent tutorials = ResolveTutorials();
+		if (!tutorials)
+			return null;
+
+		return tutorials.FindReviewEntry();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The local player's tutorial component, preferring the one this context is subscribed to.
+	//!
+	//! The subscribed instance is preferred so that every read and write in this class targets the
+	//! SAME component the pipeline is talking to, even if the local controller has changed since.
+	//! \return The component, or null when the controller is not assigned yet.
+	protected OVT_TutorialComponent ResolveTutorials()
+	{
+		if (m_Tutorials)
+			return m_Tutorials;
+
+		return OVT_Global.GetTutorials();
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -243,8 +308,14 @@ class OVT_TutorialContext : OVT_UIContext
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! \return True when there is an entry to (re-)open. Drives the enabled state of the Overthrow
-	//! main menu's Tips entry, so it is never a dead button.
+	//! \return True when an entry is already loaded, i.e. ShowForReview() would show THIS one rather
+	//! than resolving a fallback.
+	//!
+	//! NO LONGER GATES ANYTHING. It used to drive the enabled state of the Overthrow main menu's Tips
+	//! entry, and that gate WAS BUG-133: once tips were switched off, OVT_TutorialComponent dropped
+	//! every delivery before an entry could reach this context, so this answered false forever and the
+	//! button that owned the only way to switch them back on was permanently disabled. Kept as a
+	//! read-only fact about this context; do not reintroduce it as a precondition for opening.
 	bool HasEntry()
 	{
 		return m_Entry != null;
@@ -323,6 +394,14 @@ class OVT_TutorialContext : OVT_UIContext
 				m_DisableTipsAction.m_OnActivated.Insert(DisableTips);
 		}
 
+		m_wResetTipsButton = m_wRoot.FindAnyWidget("ResetTipsButton");
+		if (m_wResetTipsButton)
+		{
+			m_ResetTipsAction = SCR_InputButtonComponent.Cast(m_wResetTipsButton.FindHandler(SCR_InputButtonComponent));
+			if (m_ResetTipsAction)
+				m_ResetTipsAction.m_OnActivated.Insert(ResetTips);
+		}
+
 		Refresh();
 
 		FocusFirstButton();
@@ -341,24 +420,31 @@ class OVT_TutorialContext : OVT_UIContext
 		if (m_BackAction) m_BackAction.m_OnActivated.Remove(PreviousPage);
 		if (m_LearnMoreAction) m_LearnMoreAction.m_OnActivated.Remove(LearnMore);
 		if (m_DisableTipsAction) m_DisableTipsAction.m_OnActivated.Remove(DisableTips);
+		if (m_ResetTipsAction) m_ResetTipsAction.m_OnActivated.Remove(ResetTips);
 
 		m_DismissAction = null;
 		m_NextAction = null;
 		m_BackAction = null;
 		m_LearnMoreAction = null;
 		m_DisableTipsAction = null;
+		m_ResetTipsAction = null;
 
 		m_wDismissButton = null;
 		m_wNextButton = null;
 		m_wBackButton = null;
 		m_wLearnMoreButton = null;
 		m_wDisableTipsButton = null;
+		m_wResetTipsButton = null;
 
 		string entryId = "";
 
 		// A close the player did not ask for is not a reading. The UI manager force-closes every
 		// context on death, and the welcome sequence dying with its owner should get another chance.
-		if (m_Entry && IsLocalPlayerAlive())
+		//
+		// Neither is a RE-READ a first reading: an entry this context picked for itself (m_bReviewOnly)
+		// may never have been delivered to the player at all - the Tips screen falls back to the
+		// welcome for someone who has seen nothing - and recording it here would consume it silently.
+		if (m_Entry && !m_bReviewOnly && IsLocalPlayerAlive())
 			entryId = m_Entry.m_sId;
 
 		ReleaseToPipeline(entryId);
@@ -370,6 +456,11 @@ class OVT_TutorialContext : OVT_UIContext
 	{
 		if (!m_wRoot) return;
 		if (!m_bIsActive) return;
+
+		// Before the entry guards: the tips toggle reflects a PREFERENCE, not the entry on screen, and
+		// must be drawn on every path this method can take.
+		RefreshTipsToggle();
+
 		if (!m_Entry) return;
 
 		int pageCount = 0;
@@ -501,6 +592,35 @@ class OVT_TutorialContext : OVT_UIContext
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Shows EXACTLY ONE of "Don't show tips again" and "Reset tips", according to the current setting.
+	//!
+	//! ⚠️ THE TWO BUTTONS DELIBERATELY SHARE ONE INPUT (OverthrowTutorialDisable, KC_N /
+	//! gamepad0:thumb_right), which is only safe because they are never on screen together - the
+	//! documented mechanism, since SCR_InputButtonComponent.OnInput() refuses to fire for a widget that
+	//! is not visible in its hierarchy. This method is the ONLY place that visibility is decided, and
+	//! it sets the two from one bool, so they cannot both be shown. Anything that makes them
+	//! independently visible re-introduces a double-fire on one key press.
+	//!
+	//! The pairing is also what the screen MEANS: one control owns the tips setting, reading "turn
+	//! them off" while they are on and "turn them back on, from the start" while they are off. That is
+	//! the whole of BUG-133's fix on this surface - before it, "Don't show tips again" was a one-way
+	//! door with its own return handle missing.
+	protected void RefreshTipsToggle()
+	{
+		bool disabled = false;
+
+		OVT_TutorialComponent tutorials = ResolveTutorials();
+		if (tutorials)
+			disabled = tutorials.GetTipsDisabled();
+
+		if (m_wDisableTipsButton)
+			m_wDisableTipsButton.SetVisible(!disabled);
+
+		if (m_wResetTipsButton)
+			m_wResetTipsButton.SetVisible(disabled);
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Puts keyboard/gamepad focus somewhere useful so a pad player is not stranded with no selection.
 	protected void FocusFirstButton()
 	{
@@ -606,6 +726,48 @@ class OVT_TutorialContext : OVT_UIContext
 		// Losing the seen id costs nothing: tips are off, and the accessor rewrites the whole record
 		// on the next mutation. Losing the flag would silently un-disable tips on the next launch.
 		CloseLayout();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Clears the player's tutorial progress and turns tips back on, then closes.
+	//!
+	//! THE WAY BACK FROM "DON'T SHOW TIPS AGAIN" (BUG-133). Only ever reachable while tips are already
+	//! off - RefreshTipsToggle shows this button exactly then - so the player pressing it is in a
+	//! recovery flow and is asking for precisely this.
+	//!
+	//! NO CONFIRMATION STEP, decided rather than skipped. What is destroyed is the record of which tips
+	//! have been read; the worst outcome is re-reading a tip, and it is undone by pressing "Don't show
+	//! tips again" once more. This modal has no confirm pattern to reuse, and building one would need
+	//! either a second layout or a second bound input - and the input budget in this context is the
+	//! very thing the shared-input toggle above is working around.
+	//!
+	//! Goes through OVT_TutorialComponent and NOT OVT_TutorialSettingsAccessor.Reset(): the accessor
+	//! writes the profile without touching the component's in-memory store, so the session would carry
+	//! on believing every id is seen and write them all back on the next mutation.
+	//! \param[in] src The component that fired. Unused.
+	//! \param[in] value Unused.
+	//! \param[in] reason Unused.
+	void ResetTips(Widget src = null, float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
+	{
+		OVT_TutorialComponent tutorials = ResolveTutorials();
+		if (!tutorials)
+			return;
+
+		tutorials.ResetSeen();
+
+		// CLOSING IS THE HONEST OUTCOME: a re-read screen for a history that was just emptied is a
+		// contradiction, and the entry on screen is now unseen again.
+		//
+		// Clearing the entry first is what stops OnClose putting it straight back. With m_Entry null,
+		// OnClose takes its documented "release WITHOUT marking seen" path, so the reset survives -
+		// and ResetSeen's flush stays the only profile write this press causes, which matters because
+		// GetGame().SaveUserSettings() is throttled and DROPS a second call rather than deferring it.
+		SetEntry(null);
+
+		CloseLayout();
+
+		// The popup is gone, so say what happened somewhere that outlives it.
+		ShowHint("#OVT-Tutorial_ResetDone");
 	}
 
 	//------------------------------------------------------------------------------------------------
