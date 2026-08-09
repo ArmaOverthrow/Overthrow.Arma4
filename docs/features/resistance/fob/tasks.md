@@ -22,7 +22,7 @@ All original implementation tasks have been completed. This feature was document
 
 Tracked in `docs/bugs/`, all `linkedFeature: resistance/fob` — fix via `/fix-bug <id>` or `/fix-feature resistance/fob`:
 
-- \[ \] BUG-129 (high) — deploy leaks the truck's vehicle registration: ghost truck rebuilt at the shop on next login, duplicate FOB markers, wrecked FOB after restart (player-reported, log-proven)
+- \[x\] ✅ BUG-129 (high, closed 2026-08-09) — deploy leaks the truck's vehicle registration: ghost truck rebuilt at the shop on next login, duplicate FOB markers, wrecked FOB after restart (fixed: registrations retired at all six deletion sites, FOBs excluded from vehicle lifecycle, duplicate-record guard, rebuild clearance check, ownership-map restore; play-test confirmed)
 - \[ \] BUG-122 (high) — officer gate client-side only; upgrade path bypass with client-side payment
 - \[ \] BUG-124 (high) — undeploy area cleanup has no ownership/association filter
 - \[ \] BUG-121 (medium) — failed undeploy leaks a ghost FOB record

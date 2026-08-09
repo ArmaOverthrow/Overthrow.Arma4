@@ -69,7 +69,10 @@ modded class SCR_GetInUserAction : SCR_CompartmentUserAction
 		{
 			Faction characterFaction = character.GetFaction();
 			Faction vehicleFaction = vehicle.GetFaction();
-			if (characterFaction && vehicleFaction && characterFaction.IsFactionEnemy(vehicleFaction))
+			// Same-faction never blocks: a faction can read as enemy to ITSELF on a client whose
+			// relation table is empty or in FFA-style setups - vanilla carries this guard on the
+			// door/handbrake actions but forgot it here (BUG-132)
+			if (characterFaction && vehicleFaction && vehicleFaction != characterFaction && characterFaction.IsFactionEnemy(vehicleFaction))
 			{
 				SetCannotPerformReason("#AR-UserAction_SeatHostile");
 				return false;
