@@ -270,6 +270,11 @@ class OVT_TownControllerComponent: OVT_Component
 
 		IEntity dealer = OVT_Global.SpawnEntityPrefab(OVT_Global.GetConfig().m_pGunDealerPrefab, spawnPosition);
 
+		// The dealer is a plain character prefab (inherited Persistence component) respawned by this
+		// controller every session - its record would be a permanent orphan (BUG-118). Unlike the
+		// civilians, it is not a group, so the SCR_AIGroup chokepoint never sees it.
+		OVT_PersistenceManagerComponent.UntrackTransient(dealer);
+
 		m_GunDealerID = dealer.GetID();
 
 		m_Town.gunDealerPosition = spawnPosition;

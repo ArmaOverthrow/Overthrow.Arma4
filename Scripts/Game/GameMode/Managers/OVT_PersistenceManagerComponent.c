@@ -4,6 +4,16 @@ class OVT_PersistenceManagerComponentClass : ScriptComponentClass
 }
 
 //------------------------------------------------------------------------------------------------
+//! One entity waiting for the native lazy persistence registration to land so it can be released
+//! again (see OVT_PersistenceManagerComponent.UntrackTransient). Held by EntityID: the entity may
+//! legitimately die before registration ever completes.
+class OVT_TransientUntrackEntry : Managed
+{
+	EntityID m_EntityId;
+	int m_iAttempts;
+}
+
+//------------------------------------------------------------------------------------------------
 //! Overthrow's facade over Reforger's vanilla persistence layer.
 //!
 //! TWO engine layers sit behind this one component - do not conflate them:
@@ -93,6 +103,39 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 	//! Fired with (bool success) when a save requested through this component completes.
 	//! This is the honest save signal - subscribe to it instead of assuming a save worked.
 	protected ref ScriptInvoker m_OnSaveFinished = new ScriptInvoker();
+
+	// ---- Transient-AI untracking (BUG-118) ------------------------------------------------------
+
+	//! The one instance in the current world, for the static UntrackTransient() entry point. Set in
+	//! OnPostInit only when a persistence system exists, cleared in OnDelete (the autotest harness
+	//! reloads worlds several times per process, so a stale pointer would outlive its world).
+	protected static OVT_PersistenceManagerComponent s_Instance;
+
+	//! Entities waiting to be released from tracking once the native lazy registration lands.
+	protected ref array<ref OVT_TransientUntrackEntry> m_aTransientUntrack;
+
+	//! True while the retry timer for m_aTransientUntrack is scheduled.
+	protected bool m_bTransientUntrackScheduled;
+
+	//! How often the transient-untrack queue retries, in ms.
+	protected static const int TRANSIENT_UNTRACK_INTERVAL_MS = 1000;
+
+	//! Retries before giving up on an entity that never registers (a world still loading can hold
+	//! registration back for a long time, so this is deliberately generous - the per-tick cost of a
+	//! waiting entry is one map lookup).
+	protected static const int TRANSIENT_UNTRACK_MAX_ATTEMPTS = 60;
+
+	// NOTE (BUG-118): a load-time "orphan sweep" that RequestSpawn-ed stored AI records batch-wise
+	// in order to StopTracking(removeData)-delete them was built, measured on the TestWorld
+	// playthrough, and REMOVED. Two measured reasons, so it is not rebuilt:
+	//  1. A collection-wide RequestSpawn that touches a record whose instance is LIVE (self-spawned
+	//     player bodies/corpses in the Character collection) retries "already existing id" a few
+	//     times per second forever and never completes.
+	//  2. Even on collections that can have no live stored instance (AIGroup/AIWaypoint), the
+	//     request intermittently never invoked its callback and WEDGED every subsequent save for
+	//     the whole session (2 of 4 measured boots lost autosave AND shutdown save).
+	// Legacy orphans in old saves therefore stay - bounded dead weight, no longer growing - and
+	// the spawn-side untracking above is the whole fix.
 
 	//------------------------------------------------------------------------------------------------
 	//! \return Invoker fired with (bool success) when a save requested through this component ends.
@@ -685,6 +728,131 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------
+	//! Keeps an entity Overthrow rebuilds every session OUT of the save (BUG-118).
+	//!
+	//! Garrison/patrol/QRF/deployment AI, their groups, their waypoints and town civilians are all
+	//! respawned from manager state on every boot (decision v2-5), so a persistence record for them
+	//! is a record nothing will ever claim or delete: their configs are scoped `SelfSpawn 0`, no
+	//! instance is ever created for the record on load, and `SelfDelete` (which needs a tracked
+	//! instance to be destroyed) can never fire. Every restart wrote a fresh generation of these
+	//! records next to the orphaned previous one - measured at ~490 records per idle restart.
+	//!
+	//! TIMING, LOAD-BEARING: the native Persistence component registers LAZILY, frames after spawn
+	//! (measured in OVT_TEST_Init_Persistence_ReservationHidesACharacterReversibly, which polls up
+	//! to 300 frames for it). A StopTracking() issued before that registration lands has nothing to
+	//! act on, so entities that are not yet tracked are queued and released by a retry timer once
+	//! the registration arrives. IsTracked() is the oracle throughout - return values of
+	//! Start/StopTracking are not trusted (StartTracking answers true even when it tracks nothing).
+	//!
+	//! Do NOT call this for recruit bodies or player bodies: those are the two character categories
+	//! that are legitimately recalled by id (OVT_RecruitData/OVT_PlayerData.m_sBodyPersistenceId).
+	//! \param[in] entity The freshly spawned, rebuild-on-boot entity. Null is tolerated.
+	static void UntrackTransient(IEntity entity)
+	{
+		if (!entity)
+			return;
+
+		if (!Replication.IsServer())
+			return;
+
+		// Fast path: registration already landed - release it now, discarding any record.
+		if (OVT_PersistenceTracking.IsTracked(entity))
+		{
+			OVT_PersistenceTracking.Untrack(entity, false);
+			s_iTransientReleased += 1;
+			return;
+		}
+
+		if (s_Instance)
+			s_Instance.QueueTransientUntrack(entity);
+	}
+
+	//! Diagnostic: how many transient entities have been released from tracking since world start.
+	protected static int s_iTransientReleased;
+
+	//------------------------------------------------------------------------------------------------
+	//! Queues an entity whose lazy registration has not landed yet for a deferred release.
+	//! \param[in] entity The entity to release once the persistence system knows it.
+	protected void QueueTransientUntrack(IEntity entity)
+	{
+		// No system in this world (Workbench editor) - nothing will ever register the entity.
+		if (!m_PersistenceSystem)
+			return;
+
+		if (!m_aTransientUntrack)
+			m_aTransientUntrack = new array<ref OVT_TransientUntrackEntry>;
+
+		OVT_TransientUntrackEntry entry();
+		entry.m_EntityId = entity.GetID();
+		m_aTransientUntrack.Insert(entry);
+
+		if (!m_bTransientUntrackScheduled)
+		{
+			GetGame().GetCallqueue().CallLater(ProcessTransientUntrackQueue, TRANSIENT_UNTRACK_INTERVAL_MS, true);
+			m_bTransientUntrackScheduled = true;
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Retry tick for the transient-untrack queue. Releases every queued entity whose registration
+	//! has landed; drops entries whose entity died first (a tracked entity's death removes its
+	//! record itself - SelfDelete defaults on) or that never register at all.
+	protected void ProcessTransientUntrackQueue()
+	{
+		if (!m_aTransientUntrack || m_aTransientUntrack.IsEmpty())
+		{
+			StopTransientUntrackTimer();
+			return;
+		}
+
+		BaseWorld world = GetOwner().GetWorld();
+
+		for (int i = m_aTransientUntrack.Count() - 1; i >= 0; i--)
+		{
+			OVT_TransientUntrackEntry entry = m_aTransientUntrack[i];
+
+			IEntity entity = world.FindEntityByID(entry.m_EntityId);
+			if (!entity)
+			{
+				m_aTransientUntrack.Remove(i);
+				continue;
+			}
+
+			if (OVT_PersistenceTracking.IsTracked(entity))
+			{
+				OVT_PersistenceTracking.Untrack(entity, false);
+				s_iTransientReleased += 1;
+				m_aTransientUntrack.Remove(i);
+				continue;
+			}
+
+			entry.m_iAttempts += 1;
+			if (entry.m_iAttempts >= TRANSIENT_UNTRACK_MAX_ATTEMPTS)
+			{
+				// Never registered inside the window. Either it matches no rule (harmless) or the
+				// lazy registration is still pending and will produce a record the next save - the
+				// class name is the lead for the latter (BUG-118).
+				Print("[Overthrow] Transient entity never registered within the untrack window: " + entity.ClassName(), LogLevel.WARNING);
+				m_aTransientUntrack.Remove(i);
+			}
+		}
+
+		if (m_aTransientUntrack.IsEmpty())
+			StopTransientUntrackTimer();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Unschedules the transient-untrack retry timer.
+	protected void StopTransientUntrackTimer()
+	{
+		if (!m_bTransientUntrackScheduled)
+			return;
+
+		GetGame().GetCallqueue().Remove(ProcessTransientUntrackQueue);
+		m_bTransientUntrackScheduled = false;
+	}
+
 	override event void OnPostInit(IEntity owner)
 	{
 		super.OnPostInit(owner);
@@ -706,6 +874,10 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 			m_PersistenceSystem.GetOnStateChanged().Insert(OnPersistenceStateChanged);
 			m_PersistenceSystem.GetOnBeforeSave().Insert(OnBeforeSave);
 			m_PersistenceSystem.GetOnAfterSave().Insert(OnAfterSave);
+
+			// The static UntrackTransient() entry only queues into a world that can actually
+			// resolve the registration later, i.e. one with a persistence system.
+			s_Instance = this;
 		}
 
 		SaveGameManager manager = GetGame().GetSaveGameManager();
@@ -727,8 +899,13 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 	//! component.
 	override event void OnDelete(IEntity owner)
 	{
+		if (s_Instance == this)
+			s_Instance = null;
+
 		if (m_bAutosaveScheduled)
 			GetGame().GetCallqueue().Remove(OnAutosaveTimer);
+
+		StopTransientUntrackTimer();
 
 		SaveGameManager manager = GetGame().GetSaveGameManager();
 		if (manager)
@@ -774,7 +951,10 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 	//! \param[in] saveType Kind of save being taken.
 	protected void OnBeforeSave(ESaveGameType saveType)
 	{
-		PrintFormat("[Overthrow] Preparing to save (type: %1)...", saveType);
+		int queued = 0;
+		if (m_aTransientUntrack)
+			queued = m_aTransientUntrack.Count();
+		PrintFormat("[Overthrow] Preparing to save (type: %1)... (%2 transient entities released from tracking, %3 still awaiting registration)", saveType, s_iTransientReleased, queued);
 
 		OVT_OverthrowGameMode mode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
 		if (mode)

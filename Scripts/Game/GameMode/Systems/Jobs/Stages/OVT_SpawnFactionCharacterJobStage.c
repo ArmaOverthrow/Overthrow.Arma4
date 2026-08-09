@@ -54,6 +54,13 @@ class OVT_SpawnFactionCharacterJobStage : OVT_JobStage
 			return false;
 		}
 
+		//! BUG-118: the job system replays this stage on every restore, so the target is rebuilt
+		//! each boot and nothing ever recalls it by persistence id - a record for it (plus its whole
+		//! nested kit, ~32 records) would be a permanent orphan. This was the last leak: one job
+		//! target per restart. A lone character bypasses the SCR_AIGroup chokepoint, so it is
+		//! released here.
+		OVT_PersistenceManagerComponent.UntrackTransient(entity);
+
 		//! Without an RplComponent there is no id for OVT_WaitTillDeadJobStage to wait on, and the
 		//! character would not exist on any client
 		RplComponent rpl = RplComponent.Cast(entity.FindComponent(RplComponent));
