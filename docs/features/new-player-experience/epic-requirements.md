@@ -7,7 +7,7 @@
 
 ## Overview
 
-The new-player experience in Overthrow is currently terrible: one repeating 20-second hint, five multiplayer-broken starter jobs, and no explanation of the home/car/cash a player is handed. This epic delivers an action-triggered tutorial system built on dismissable popups plus supporting onboarding improvements — a first-spawn welcome, an expanded field manual, and removal of the dead starter jobs. Everything in it serves one outcome: a fresh player understands each Overthrow system as they touch it, without the sandbox ever being replaced by goals or linearity.
+The new-player experience in Overthrow is currently terrible: one repeating 20-second hint, five starter jobs (described here as "multiplayer-broken" — true of the jobs epic's discovery on 2026-08-02, but **BUG-037 was fixed in place on 2026-08-03, one day before this file was created, so the phrase was already stale when it was written**; see the corrected Requirements bullet below), and no explanation of the home/car/cash a player is handed. This epic delivers an action-triggered tutorial system built on dismissable popups plus supporting onboarding improvements — a first-spawn welcome, an expanded field manual, and removal of the dead starter jobs. Everything in it serves one outcome: a fresh player understands each Overthrow system as they touch it, without the sandbox ever being replaced by goals or linearity.
 
 ## Requirements
 
@@ -21,7 +21,7 @@ The new-player experience in Overthrow is currently terrible: one repeating 20-s
 - **Content covers early + mid game:** the first hour (home, money, shops, map/fast travel, wanted system, skills) and the first escalation (recruiting, camps, base capture, FOB basics). Late-game systems are deferred.
 - **First-spawn onboarding:** a popup-driven welcome sequence explains what the player has been given (home, car, starting cash) and what Overthrow is; the start menu explains faction and difficulty choices.
 - **Field manual as reference depth:** the existing 1-entry Overthrow field manual grows to one entry per covered system, deep-linked from popups.
-- **The five starter tutorial jobs are retired** once popup content covers what they taught — discharging BUG-037 (global once-only cap makes them first-player-only) and BUG-040 (server-side broadcast hint on completion) by removal.
+- **The five starter tutorial jobs are retired** once popup content covers what they taught. ⚠️ **Corrected 2026-08-09:** this bullet originally said the retirement would discharge **BUG-037** (global once-only cap makes them first-player-only) and **BUG-040** (server-side broadcast hint on completion) "by removal". It does not, and cannot: **both were fixed in place on 2026-08-03 and were already `closed`** before the retirement was planned (`docs/bugs/BUG-037.md`, `docs/bugs/BUG-040.md`, each of which now carries a dated note saying so, with the surviving fixes cited in `OVT_JobManagerComponent.c`). The real justification is **redundancy** against the shipped tutorial entries under `Configs/Tutorials/`, plus this epic's own binding constraint at the top of the Overview — a job assigns a directed goal and drops a marker on one named instance, which is exactly the shape the popups replace.
 
 ## Planned Features
 
@@ -29,7 +29,7 @@ The new-player experience in Overthrow is currently terrible: one repeating 20-s
 2. **field-manual** — Per-system field manual reference entries with imagery — No code dependency; buildable in parallel with #1; precedes content because "Learn more" links need real targets.
 3. **tutorial-content** — Authored early+mid-game tutorial entries + localization — Depends on #1 (framework) and #2 (link targets); the epic's main player-facing value.
 4. **first-spawn** — Welcome sequence + start-menu faction/difficulty descriptions — Depends on #1 (popup primitives); parallel with #3.
-5. **starter-jobs-retirement** — Remove/rework the five MP-broken starter jobs — Last; requires #3's coverage to exist before removal.
+5. **starter-jobs-retirement** — Remove the five starter jobs as redundant against #3's entries (not as a bug fix — see the corrected Requirements bullet) — Last; requires #3's coverage to exist before removal.
 
 ## Dependencies
 

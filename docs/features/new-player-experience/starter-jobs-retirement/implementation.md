@@ -1,6 +1,6 @@
 # Starter Jobs Retirement — Implementation Plan
 
-**Status:** Planning
+**Status:** ✅ **COMPLETE** (52/52 tasks · all 7 phases · compile-check 0, Fast **54**, All **92**, delta +2/+3 · **play-test passed and signed off 2026-08-09, all eleven checks U1-U6 and M1-M5**). **U1 — Continue a pre-migration campaign save — passed on a real campaign**, which is the observation the whole phase order existed to make possible. **M1-M5 passed too**, giving the epic its first two-client observation on the jobs surface (see `context.md` for what that does and does not establish for `tutorial-system`'s F7).
 **Started:** 2026-08-09
 **Target Completion:** TBD
 **Last Updated:** 2026-08-09
@@ -9,7 +9,7 @@
 **Requirements:** `docs/features/new-player-experience/starter-jobs-retirement/requirements.md`
 **Contracts consumed:** `tutorial-content/context.md` §"Starter-job coverage mapping: AS BUILT" (the precondition; read that, **not** `tutorial-content/implementation.md` §3.5) · `field-manual/implementation.md` D12 (the wiki handoff) · `first-spawn/implementation.md` D11 (the string-retention precedent) · `OVT_JobManagerSerializer.c` file header (the no-replay restore invariant, which this feature must not weaken)
 
-**Measured baseline for this tree, 2026-08-09:** `tools/compile-check.sh` clean · Fast `{6A6E29FF47ECB840}` **exit 0, 51 tests** · All `{6A6E2A002F53A581}` **exit 0, 88 tests**. Older docs saying 38/66 or 47/78 are stale. Re-derive before adding cases anyway — parallel sessions commit into this tree.
+**Measured baseline for this tree, 2026-08-09:** `tools/compile-check.sh` clean · Fast `{6A6E29FF47ECB840}` ~~**exit 0, 51 tests**~~ **exit 0, 52 tests** · All `{6A6E2A002F53A581}` ~~**exit 0, 88 tests**~~ **exit 0, 89 tests** (**re-measured in Phase 0.2 on 2026-08-09 against commit `f6681d00`** — one Init case was added by a parallel session between planning and Phase 0, and both groups share `OVT_TEST_InitSuite`). Older docs saying 38/66 or 47/78 are stale. Re-derive before adding cases anyway — parallel sessions commit into this tree.
 
 ---
 
@@ -154,7 +154,11 @@ version == 1  -> read into the FROZEN legacy record classes, convert by §3.5, a
 version >= 2  -> read the id-keyed records, apply
 ```
 
-**Read the v1 payload into separate frozen classes, not into the new ones.** `OVT_PersistedJobV1` and `OVT_PersistedPlayerJobCountsV1` are byte-for-byte copies of today's member layout and are never edited again. The alternative — appending a trailing field and clearing it on v1, which `OVT_RecruitManagerSerializer.c:180-215` did successfully for `bodyPersistenceId` — works for one appended scalar but is being asked here to *replace* a field's meaning inside an array of records. A frozen shadow class is provably correct under every container semantic for the cost of one small class.
+> **⚠️ CORRECTED BY MEASUREMENT 2026-08-09 (Phase 2): the names below are WRONG and would have wiped live job boards.** The binary container writes the concrete class name into the payload as a `$type` discriminator and **instantiates from it on load** (`SCR_PersistenceSerializationContext.c:34-43` enables it; it is visible at offset `0x28c` of the captured v1 fixture). Reading a version 1 payload into a renamed-but-identical class was measured: the read returns **false**, the array comes back **empty but non-null**, and every following property in the stream fails too — so `ApplyPersistedJobs()` would have applied an empty board and empty counter maps to a live campaign, silently. **The freeze must land on the classes the payload NAMES.** As built: `OVT_PersistedJob` and `OVT_PersistedPlayerJobCounts` are the frozen version 1 records; `OVT_PersistedJobV2` and `OVT_PersistedPlayerJobCountsV2` are the current ones. D4's reasoning is unchanged and correct — only the name assignment was wrong. Evidence and probe output: `context.md` §"The `$type` discovery".
+>
+> **A second correction in the same paragraph below:** the note that the matching-local-name rule is "belt-and-braces" is **false on this build**. It was measured too — writing `jobRecords` and reading the identical payload into a local named `readJobs` returns false and reads nothing. It is load-bearing.
+
+**Read the v1 payload into separate frozen classes, not into the new ones.** ~~`OVT_PersistedJobV1` and `OVT_PersistedPlayerJobCountsV1`~~ **`OVT_PersistedJob` and `OVT_PersistedPlayerJobCounts` (see the correction above)** are byte-for-byte copies of today's member layout and are never edited again. The alternative — appending a trailing field and clearing it on v1, which `OVT_RecruitManagerSerializer.c:180-215` did successfully for `bodyPersistenceId` — works for one appended scalar but is being asked here to *replace* a field's meaning inside an array of records. A frozen shadow class is provably correct under every container semantic for the cost of one small class.
 
 ⚠️ **Two format facts the implementer must respect.**
 - `LoadContext.Read(out void value)` derives the property name **from the local variable's name**. The v1 branch must therefore declare its locals with the **same names the v1 writer used** — `jobRecords`, `countIndices`, `countValues`, `playerCounts` — or a named (non-binary) context would look for the wrong key. Overthrow's contexts are binary and positional, so this is belt-and-braces; do it anyway and comment why.
@@ -196,6 +200,9 @@ Lives in `OVT_JobManagerSerializer` as a `static const ref array<string>`, with 
 The table also becomes a *rename guard*: the Init case in §7 asserts that all seven surviving legacy ids still resolve to a config. Rename `raise-support` and the build goes red.
 
 ### 3.6 The Eden world layer (F3)
+
+> **✅ ANSWERED BY MEASUREMENT 2026-08-09 (Phase 0.3): the override MERGES.** A headless `tools/launch-server.sh --scenario eden` with a temporary count/title `Print` in `OVT_JobManagerComponent.Init()` reported **`m_aJobConfigs.Count() = 12`**, in the prefab's exact order, with **no duplicates** — with `Entity layer load @"$Overthrow:Worlds/MP/OVT_Campaign_Eden_Layers/managers.layer"` confirmed in the same log 121 lines earlier. **Eden has always run the full twelve jobs. There is no shipped bug, and Phase 0.4 files nothing.** D7 is unchanged: deleting the block in 4.2 is pure cleanup. Verbatim log lines and the exact method are in `context.md` §"F3 — the Eden override measurement".
+
 
 `Worlds/MP/OVT_Campaign_Eden_Layers/managers.layer:28-40` overrides `OVT_JobManagerComponent.m_aJobConfigs` on the game-mode **instance** with a stale pre-v1.3 list of five entries — same GUIDs as the prefab's first five, **empty bodies**. Eden is the shipped mission (`Missions/24_OVT_Eden.conf`). No other world or layer in the repo carries a job list (verified: exactly two files mention `m_aJobConfigs`).
 
@@ -255,20 +262,23 @@ Language/localization_Overthrow.st            10 items RETAINED, Comments become
 
 Re-verify anything here before relying on it. Two of these rows exist *because* a previous feature's trap table was wrong.
 
+> **RE-VERIFIED 2026-08-09 (Phase 0.1) against this tree.** Twelve of thirteen rows stand. **One row fell** (the rewards row — struck below). Three rows stand with corrected `file:line` citations, marked inline. The re-verification method was a direct read of each cited file, not a re-read of this table.
+
 | Claim | Evidence |
 |---|---|
-| BUG-037 and BUG-040 are **closed**, fixed in place 2026-08-03 | `docs/bugs/BUG-037.md`, `BUG-040.md` front-matter; fix visible at `OVT_JobManagerComponent.c:540-544` and `:467-474`, `:979-998` |
-| BUG-037's claim that `placeACamp` omits `m_iMaxTimesPlayer` is **wrong** | all five configs carry `m_bPublic 0`, `m_iMaxTimes 1`, `m_iMaxTimesPlayer 1` |
-| Rewards lost: **$100, 10 XP, two field dressings** | `findGunDealer` $50 · `findShop` $50 + 2 × `FieldDressing_USSR_01.et` · `placeEquipmentBox` $0 · `recruitACivilian` 10 XP · `placeACamp` $0 |
-| Nothing else references the five configs | only `Prefabs/GameMode/OVT_OverthrowGameMode.et` and `Worlds/MP/OVT_Campaign_Eden_Layers/managers.layer` |
-| Six framework classes become orphans | `OVT_GetShopLocationJobStage`, `OVT_GetDealerLocationJobStage`, `OVT_HasRecruitJobStage`, `OVT_IsNearestTownWithShopJobCondition`, `OVT_IsNearestTownWithDealerJobCondition`, `OVT_IsNearestJobCondition` — each referenced by removed confs only |
-| These are **not** orphaned | `OVT_PlaceableItemJobStage` (pirateRadio, propagandaRun), `OVT_WaitTillPlayerInRangeJobStage` (baseRecon), `OVT_WaitTillJobAcceptedJobStage`, `OVT_TownSupportJobCondition`, `OVT_RandomJobCondition`, `OVT_TownPlaceableCountJobCondition` |
-| `OVT_GetRadioTowerLocationJobStage.c:5` cites a job that is about to vanish | *"the same shape as OVT_GetDealerLocationJobStage in findGunDealer"* — the class survives, the job does not; reword |
-| **After removal no shipped config is player-allocated** | all seven survivors are `m_bPublic` (default 1) or `m_bBaseOnly 1`. `m_mPlayerJobCounts` will be empty in practice and `RpcDo_UpdateJob`'s owner-identity branch (`:879`) goes unexercised. The per-player path stays for modders; T3 must build its per-player records synthetically |
-| Gun dealers **do** have a dedicated map icon | `OVT_MapIcons.TryCreateGunDealerIcon:111-134`, `"gundealer"` sprite, enumerated at `:626-638`. `tutorial-content/implementation.md` §3.5's struck claim is FALSE — do not carry it into the wiki pass |
-| Ten `.st` items for the five jobs | `.st:3823, 3845, 3879, 3900, 3987, 3995, 4023, 4031, 4157, 4165` |
-| Two `.st` Comments point forward at this feature | `OVT-IntroHint` (`.st:3542`, claim 3) and the welcome page-3 body (`.st:11021`, *"The menu's Jobs entry is deliberately NOT named: the starter-jobs-retirement feature changes it"* — **now false**, see D12) |
-| Version-migration precedents exist | `OVT_PlayerManagerSerializer` (v3), `OVT_LoadoutManagerSerializer` (v2), `OVT_OccupyingFactionManagerSerializer` (v2), `OVT_RecruitManagerSerializer` (v2, the cleanest read at `:174-215`) |
+| BUG-037 and BUG-040 are **closed**, fixed in place 2026-08-03 | **STANDS.** `docs/bugs/BUG-037.md:4`, `BUG-040.md:4` both `status: closed`, `updatedAt: 2026-08-03`. ~~`OVT_JobManagerComponent.c:540-544` and `:467-474`, `:979-998`~~ — line drift, corrected 2026-08-09: the player-allocated gate is at **`:543-544`**, the owner-filtered completion RPC send at **`:470-474`**, its receiver at **`:979-1000`** |
+| BUG-037's claim that `placeACamp` omits `m_iMaxTimesPlayer` is **wrong** | **STANDS.** BUG-037 asserts it at `docs/bugs/BUG-037.md:15`; today all five configs carry `m_bPublic 0`, `m_iMaxTimes 1` and `m_iMaxTimesPlayer 1` (`placeACamp.conf:4,6,7`) |
+| ~~Rewards lost: **$100, 10 XP, two field dressings**~~ | ~~`findGunDealer` $50 · `findShop` $50 + 2 × `FieldDressing_USSR_01.et` · `placeEquipmentBox` $0 · `recruitACivilian` 10 XP · `placeACamp` $0~~ **STRUCK 2026-08-09 (Phase 0.1) — the XP figure is FALSE.** The money half holds ($50 + $50 + $0 + $0 + $0 = **$100**) and the two `FieldDressing_USSR_01.et` entries hold (`findShop.conf:6-9`). But `m_iRewardXP` **defaults to 5** (`OVT_JobConfig.c:26-27`, `[Attribute("5")]`) and is paid unconditionally at `OVT_JobManagerComponent.c:440-442`. Only `recruitACivilian.conf:6` declares it (10); `findGunDealer`, `findShop`, `placeEquipmentBox` and `placeACamp` declare none and therefore each pay **5**. **The true figure is $100, 30 XP and two field dressings.** Nothing in the plan depends on the number, but it must not be carried into the wiki or a bug note |
+| Nothing else references the five configs | **STANDS**, with the scope made explicit: a repo-wide grep over `*.c`, `*.conf`, `*.et`, `*.layer` and `*.meta` returns only `Prefabs/GameMode/OVT_OverthrowGameMode.et:30,34,36,38,40`, `Worlds/MP/OVT_Campaign_Eden_Layers/managers.layer:34,38`, the five `Configs/Jobs/*.conf.meta` self-declarations, and the `OVT_GetRadioTowerLocationJobStage.c:5` **comment** already listed as its own row below |
+| Six framework classes become orphans | **STANDS.** `OVT_GetShopLocationJobStage` (findShop only), `OVT_GetDealerLocationJobStage` (findGunDealer only), `OVT_HasRecruitJobStage` (recruitACivilian only), `OVT_IsNearestTownWithShopJobCondition` (findShop only), `OVT_IsNearestTownWithDealerJobCondition` (findGunDealer only), `OVT_IsNearestJobCondition` (placeACamp, placeEquipmentBox, recruitACivilian only) — verified by grepping all twelve `Configs/Jobs/*.conf` |
+| These are **not** orphaned | **STANDS.** `OVT_PlaceableItemJobStage` (pirateRadio, propagandaRun + the two removed), `OVT_WaitTillPlayerInRangeJobStage` (baseRecon + the two removed), `OVT_WaitTillJobAcceptedJobStage` (5 survivors), `OVT_TownSupportJobCondition` (raiseSupport, pirateRadio, propagandaRun), `OVT_RandomJobCondition` (4 survivors), `OVT_TownPlaceableCountJobCondition` (pirateRadio, propagandaRun) |
+| `OVT_GetRadioTowerLocationJobStage.c:5` cites a job that is about to vanish | **STANDS**, verbatim at that exact line: *"shape as OVT_GetDealerLocationJobStage in findGunDealer."* — the class survives, the job does not; reword |
+| **After removal no shipped config is player-allocated** | **STANDS.** `m_bPublic` defaults to **1** (`OVT_JobConfig.c:20-21`, `[Attribute("1")]`) and no survivor overrides it; `baseRecon.conf` and `assassinateOfficer.conf` additionally set `m_bBaseOnly 1`. So `playerAllocated` (`OVT_JobManagerComponent.c:543`) is false for all seven. `RpcDo_UpdateJob`'s owner-identity branch is at **`:879`** exactly. T3 must build its per-player records synthetically |
+| Gun dealers **do** have a dedicated map icon | **STANDS.** `OVT_MapIcons.TryCreateGunDealerIcon` at **`:111`**, `"gundealer"` sprite loaded inside it; `TryCreateShopIcon` at **`:137`**; gun dealers enumerated with no discovery gate at **`:627`** (and again at `:360`). `tutorial-content/implementation.md` §3.5's struck claim is FALSE — do not carry it into the wiki pass |
+| Ten `.st` items for the five jobs | **STANDS**, every line number exact: `.st:3823, 3845, 3879, 3900, 3987, 3995, 4023, 4031, 4157, 4165` |
+| Two `.st` Comments point forward at this feature | **STANDS**, one citation corrected. `OVT-IntroHint`'s claim 3 is in the `Comment` at **`.st:3542`** (item `Id` at `:3509`). The welcome page-3 body's `Comment` is at ~~`.st:11021`~~ → **`.st:11055`** (item `OVT-Tutorial_WelcomeIntro_Body3`), and it does read *"The menu's Jobs entry is deliberately NOT named: the starter-jobs-retirement feature changes it"* — **now false**, see D12 |
+| Version-migration precedents exist | **STANDS.** `OVT_PlayerManagerSerializer` (v3, branches at `:207/:217/:223`), `OVT_LoadoutManagerSerializer` (v2, `:409/:422`), `OVT_OccupyingFactionManagerSerializer` (v2, `:190/:212`), `OVT_RecruitManagerSerializer` (v2, ~~`:174-215`~~ → branches at **`:175/:185`**) |
+| **(added 0.1)** The current job payload really is **version 1** | `OVT_JobManagerSerializer.c:97` — `context.WriteValue("version", 1);`. Any save taken on this tree before Phase 2 is a genuine v1 fixture |
 
 ---
 
@@ -334,9 +344,9 @@ The gate on Phase 4. If this phase cannot demonstrate the migration, the deletio
 - **3.1** Add **T1** (Logic tier, world-free): the legacy mapping table and drop policy.
 - **3.2** Add **T3** (PersistenceRoundTrip tier): seed board + both counter maps through the public manager API, save, re-apply, assert every job returns on the right config and both counter maps are intact; then apply twice and assert no doubling (idempotency). ⚠️ Obey that suite's **non-negotiable assertion rule** — no persistence/save-data type names anywhere except the two annotated triggers already in its gate class.
 - **3.3** Prove T1 and T3 red once each; record exact failure text, breaking method and date in `context.md`. **No `maxAttempts`, ever.**
-- **3.4** Run the **v1 fixture check**: `.scripts/activate_save.sh jobs-v1-premigration --profile OverthrowCI`, then `tools/launch-server.sh`, and read the log for (a) the WARNING per retired job, naming it, and (b) the survivors restored on their correct configs. This is a documented one-command manual check, **not** a group member — the groups reset save state, so it cannot live in one.
+- **3.4** ✅ **DONE 2026-08-09, with a CORRECTED recipe.** Run the **v1 fixture check** and read the log for (a) the WARNING per retired job, naming it, and (b) the survivors restored on their correct configs. This is a documented manual check, **not** a group member — the groups reset save state, so it cannot live in one. ⚠️ The recipe written here originally (`activate_save.sh --profile OverthrowCI` + `launch-server.sh`) **could never have worked**: three independent mismatches, one of which no flag can fix. See §7's corrected block and `context.md` §"The v1 fixture check". Result: three named retired drops (`find-gun-dealer`, `find-shop`, `place-equipment-box`), `2 of 4` board entries and `2 of 4` global counters carried forward, survivors `assassinate-traitor` and `raise-support` restored on their own configs — matching Phase 2's byte-level prediction field for field.
 - **3.5** Re-run 3.4 a second time against the same fixture to confirm the re-apply path is still idempotent.
-- **3.6** Both groups green at baseline **+3** (expected Fast 53 / All 91 — re-derive, do not assume).
+- **3.6** ✅ **DONE.** Both groups green. **Measured: Fast 54 / All 92**, against the Phase 3 front's 53 / 90 — delta **+1 / +2** for this phase and **+2 / +3** for the feature against task 0.2's re-measured 52 / 89 baseline. (The plan's "+3 to both" was arithmetic against a 51 / 88 baseline that was already stale, and it also assumed all three cases sit in shared tiers; T3 is in the All group only.)
 - **3.7** Write the phase report: what is proven automatically, what only the fixture check proves, what only the user can prove (§7).
 - **3.8** **Decision gate.** Only if 3.4 and 3.6 pass does Phase 4 begin.
 
@@ -395,7 +405,7 @@ Player-facing behaviour changes, so this phase is required.
 
 **D3 — The live counter maps stay `int`-keyed; translation happens only at the save boundary.** Converting `m_aJobCounts` / `m_mPlayerJobCounts` to string keys would reach into `CheckUpdate()`'s offer loop and `StartJob()` for no runtime benefit — the keys are only meaningful within a session anyway. Two translation points, both on a load-only path, both testable.
 
-**D4 — v1 is read through frozen shadow classes, not through the new ones.** `OVT_RecruitManagerSerializer` successfully appended a trailing scalar and cleared it on v1, which is evidence the container tolerates a trailing field. But this migration *replaces* a field's meaning inside an array of records, and if per-record reads are flat-positional an extra field consumes the next record's first field and desyncs everything silently. A frozen shadow class is provably correct under every candidate semantic for the cost of ~15 lines. Cheap insurance on the one code path where a mistake is invisible.
+**D4 — v1 is read through frozen shadow classes, not through the new ones.** `OVT_RecruitManagerSerializer` successfully appended a trailing scalar and cleared it on v1, which is evidence the container tolerates a trailing field. But this migration *replaces* a field's meaning inside an array of records, and if per-record reads are flat-positional an extra field consumes the next record's first field and desyncs everything silently. A frozen shadow class is provably correct under every candidate semantic for the cost of ~15 lines. Cheap insurance on the one code path where a mistake is invisible. **⚠️ AMENDED 2026-08-09 (Phase 2): the decision stands, the NAMES in §3.4 did not.** A persisted record class cannot be renamed at all — the payload carries the class name and the loader instantiates from it, so the frozen class must keep the name version 1 wrote. Built as `OVT_PersistedJob` / `OVT_PersistedPlayerJobCounts` (frozen, v1) and `OVT_PersistedJobV2` / `OVT_PersistedPlayerJobCountsV2` (current). Measured, not inferred — see §3.4's correction box and `context.md` §"The `$type` discovery".
 
 **D5 — v1 support is kept until the next save-format-breaking change, with a written trigger.** Not "forever by inertia" and not "one release". The code is ~40 lines of pure mapping with no runtime cost on the v2 path (one integer comparison), while dropping it early wipes the job board and every lifetime counter on a live campaign — silently, because the `version < 1` guard would treat it as a normal load. **Removal trigger, recorded in the serializer header: the next time `OVT_PersistedJob` changes shape, v1 goes and v2 becomes the floor.** Until then it stays.
 
@@ -433,9 +443,9 @@ An independent evaluator with no implementation context should be able to check 
 
 ### Quality
 
-- [ ] **Q1 — Green.** `tools/compile-check.sh` exit 0 · Fast `{6A6E29FF47ECB840}` exit 0 · All `{6A6E2A002F53A581}` exit 0. Counts are **baseline + 3** — expected **Fast 53 / All 91** against the measured 51 / 88; if the implementer's re-derived baseline differs, the *delta* is what must hold.
+- [x] **Q1 — Green.** `tools/compile-check.sh` exit 0 · Fast `{6A6E29FF47ECB840}` exit 0 · All `{6A6E2A002F53A581}` exit 0. ~~Counts are **baseline + 3** — expected **Fast 53 / All 91** against the measured 51 / 88~~ **MEASURED 2026-08-09 (Phase 3): Fast 54 / All 92.** The true baseline was 52 / 89 (task 0.2), and the true delta is **+2 Fast / +3 All** — T1 and T2 sit in tiers both groups share, T3 in the All group only. The *delta* is what must hold, and this is it.
 - [ ] **Q2 — Every new assertion is proven able to fail.** Three new cases; for each, `context.md` records the exact failure text, the breaking method and the date. **`maxAttempts` appears nowhere.**
-- [ ] **Q3 — No localization damage.** `git diff --stat Language/` lists `localization_Overthrow.st` **and nothing else**. All ten job items still exist with their `Text` byte-identical; only `Comment` fields changed. No `.lang.conf` was opened.
+- [x] **Q3 — No localization damage.** `git diff --stat Language/` lists `localization_Overthrow.st` **and nothing else**. All ten job items still exist with their `Text` byte-identical; only `Comment` fields changed. No `.lang.conf` was opened. ✅ **VERIFIED 2026-08-09 (Phase 5) by measurement:** `git diff -U0 Language/` contains **zero** changed lines that are not `Comment` lines, and the `Target_*` line count is 2077 before and 2077 after.
 - [ ] **Q4 — No wire surface changed.** `git diff` shows zero change to any `[RplRpc]` signature, to `RplSave`/`RplLoad`, and to `OVT_PlayerCommsComponent.c`.
 - [ ] **Q5 — The restore invariant is intact.** `ApplyPersistedJobs()` still clears and rebuilds; the `version < 1` early return is byte-unchanged; the `OVT_WaitTillDeadJobStage` drop still fires; occupancy sets are still derived rather than stored.
 - [ ] **Q6 — The legacy table is frozen and says so.** `LEGACY_V1_JOB_IDS` carries all twelve entries in §3.5's order, with a header comment forbidding edits, and a matching copy in `context.md`.
@@ -448,8 +458,8 @@ An independent evaluator with no implementation context should be able to check 
 - [ ] **I2 — Caps and occupancy still gate.** A `GLOBAL_UNIQUE` job does not double-offer; `baseRecon` still respects `m_iMaxTimes 2`; a town does not host two of the same public job.
 - [ ] **I3 — The tutorial entries covering the five topics still fire.** `economy-first-buy`, `shops-first-gun-dealer`, `place-first-placeable`, `recruits-first-recruit`, `map-first-open` are byte-unchanged and still deliver. `Configs/Tutorials/` and `Configs/FieldManual/` have **zero** diff.
 - [ ] **I4 — The wiki matches the build.** `getting-started` no longer describes tutorial jobs, in the **rendered** page; the `v1_3` release note is untouched; the `wanted-system` and `base` pages are unchanged.
-- [ ] **I5 — The record is straight.** BUG-037 and BUG-040 note removal without claiming closure by it; `epic-overview.md` and `epic-requirements.md` no longer assert the stale framing; the jobs epic records the discharged tech debt and the six kept orphans.
-- [ ] **I6 — `first-spawn`'s handover is visibly discharged.** `welcome-intro-3-ui.edds` is unchanged and the reason is written down; the welcome page-3 `Comment` no longer says the Jobs entry is about to change.
+- [x] **I5 — The record is straight.** BUG-037 and BUG-040 note removal without claiming closure by it; `epic-overview.md` and `epic-requirements.md` no longer assert the stale framing; the jobs epic records the discharged tech debt and the six kept orphans. ✅ **DONE 2026-08-09 (Phase 5)** — the six orphans were re-verified by grep rather than transcribed, and two already-resolved jobs-epic debt items were ticked in the same pass.
+- [x] **I6 — `first-spawn`'s handover is visibly discharged.** `welcome-intro-3-ui.edds` is unchanged and the reason is written down; the welcome page-3 `Comment` no longer says the Jobs entry is about to change. ✅ **DONE 2026-08-09 (Phase 5)** — `git diff --stat UI/` is empty and `UI/Layouts/Menu/MainMenu.layout:284, :292` (the Jobs button and its `#OVT-MainMenu_Jobs` label) is byte-unchanged, so the screenshot stays true and was not re-shot.
 
 ### Verification method
 
@@ -491,16 +501,23 @@ Every case **proven able to fail once**, with the exact failure text, method and
 
 Not a group member: both groups reset save state before every run, and this check *requires* pinned state.
 
+> **⚠️ THE RECIPE BELOW IS THE CORRECTED ONE (Phase 3, 2026-08-09). The plan's original two commands could never have worked** — `.scripts/activate_save.sh` targets profile `OverthrowCI` while `tools/launch-server.sh` defaults to `OverthrowDS` (`tools/launch-server.sh:85-87,140`); the two name the campaign directory differently, because the harness loads a **world** and the server loads a **mission**; and — found in Phase 3 — a `--mode local` server authenticates nobody and writes to `profile/.save/game/…` with **no `app*_user*` component at all**, which is the only shape `activate_save.sh` can resolve (`.scripts/activate_save.sh:38-67`). No flag combination fixes that, so the fixture is staged directly instead. Neither script was modified; both are dev-ops-owned. Full diagnosis, the exact staging script, the evidence and the cleanup step are in `context.md` §"The v1 fixture check".
+
 ```bash
-.scripts/activate_save.sh jobs-v1-premigration --profile OverthrowCI
-tools/launch-server.sh                     # headless; no client window
+# Stage the fixture as the NEWEST save point in the server's own save tree, with
+# meta-info.json's m_sMissionResource / m_iSavePointNr rewritten for the mission the
+# server loads. The WorldState blob - the payload under test - is copied byte for byte.
+#   <DS>/profile/.save/game/6B0E7A50D1E2F3A4-25-OVT-TestWorld/playthrough000/savepointNNN
+tools/launch-server.sh --timeout 180 --quiet    # headless; no client window; EXIT_CODE=124 = success
+grep -a "Loading savepoint\|Dropping saved job\|Migrated a version 1" "$LOG_DIR/console.log"
+rm -rf "<DS>/…/playthrough000/savepointNNN"     # ALWAYS clean up
 ```
 
-Read the server log for one WARNING per retired job (naming the job) and for the survivors restored on their correct configs. Run it twice to re-confirm idempotency. `tools/decode-savepoint.py` is available if the log leaves a question open.
+**This is a stronger check than the plan expected, not a weaker one.** A dedicated server auto-continues (`OVT_OverthrowGameMode.DecideDedicatedStart:465-487` → `LoadLatestSave()`), so the fixture is migrated through **`SaveGameManager` and a real world transition** — the very path this section's "What automation structurally cannot cover" calls out. Read the log for one WARNING per retired job (naming the job) and for the survivors restored on their correct configs; the survivors need a temporary `Print` in `ApplyPersistedJobs()`, since the migration's own line reports counts rather than names (same technique and same revert discipline as task 0.3's F3 probe). Run it twice to re-confirm idempotency — a 180 s window is well inside the 600 s autosave interval, so no new save point is written between runs and the second run really is against the same fixture. `tools/decode-savepoint.py` is available if the log leaves a question open.
 
 ### What automation structurally cannot cover
 
-- **The real quit-and-continue path.** `SaveGameManager.Load` restarts the autotest harness, which is why the round-trip tier proves save→dirty→re-apply instead. The fixture check gets closer; only the user gets all the way.
+- **The real quit-and-continue path.** `SaveGameManager.Load` restarts the autotest harness, which is why the round-trip tier proves save→dirty→re-apply instead. ✅ **AMENDED 2026-08-09 (Phase 3): the fixture check DOES reach this path** — the corrected recipe runs a headless server that auto-continues, so `SaveGameManager` really does load a save point and the world really does transition. What it still cannot cover is *the user's own campaign*: the fixture holds four job records and two counter entries, seeded by this feature. The mechanism is now observed; the scale is not.
 - **Multiplayer.** JIP and two-client behaviour are outside the spine entirely.
 - **UI.** Whether the Jobs menu still looks and behaves right.
 - **A real campaign's save.** The fixture is seeded and small; the user's campaign is neither.

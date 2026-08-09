@@ -3123,3 +3123,243 @@ class OVT_TEST_Init_Tutorial_ResetRestoresTips : SCR_AutotestCaseBase
 		return "";
 	}
 }
+
+//------------------------------------------------------------------------------------------------
+//! Every shipped job config carries a unique, well-formed STABLE ID, and the id <-> index mapping the
+//! save format is about to be built on actually round-trips.
+//!
+//! WHY THIS IS THE ONE GUARD THE MIGRATION CANNOT DO WITHOUT. OVT_Job.jobIndex is a POSITION in
+//! OVT_JobManagerComponent.m_aJobConfigs and it is persisted. Reordering or trimming that list
+//! silently reattaches saved records to DIFFERENT jobs - the record stays in range, the stage index
+//! stays valid, FindRestorableJobConfig() accepts it, and the wrong reward is paid. No error, no log
+//! line, no crash. OVT_JobConfig.m_sId (decision D1) is what removes that trap, and an id is only
+//! worth anything if it is present, unique and stable. This case is where "present and unique" is
+//! enforced; "stable" is enforced by the legacy branch below.
+//!
+//! THE LEGACY BRANCH IS A RENAME GUARD, not a duplicate of the branch above it. The seven surviving
+//! ids are written here as literals because they are HISTORY: they are the names a version-1 save
+//! already wrote to disk. Rename raise-support in Configs/Jobs/raiseSupport.conf and this case goes
+//! red naming it - which is the entire point, because the alternative is a shipped campaign losing
+//! that job on its next load with nothing said.
+//!
+//! THE RETIRED HALF IS LIVE since 2026-08-09: the five starter jobs are deleted, so their ids must now
+//! resolve to nothing, permanently. See RETIRED_IDS_ARE_DELETED for how that transition was forced.
+//!
+//! Ids are checked for SHAPE (lowercase kebab) as well as presence: the convention is shared with
+//! OVT_TutorialEntryConfig.m_sId, ids appear verbatim in the drop WARNINGs a bug reporter will paste,
+//! and an id with a capital or a space is the kind of thing that only bites once it is unchangeable.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Jobs_StableIdsAreUniqueAndResolve : SCR_AutotestCaseBase
+{
+	//! THE TRANSITION HAS BEEN MADE - flipped to true on 2026-08-09 by starter-jobs-retirement task 4.5,
+	//! in the same change that deleted the five configs. Nothing further is pending here.
+	//!
+	//! It reads as a switch because that is how the deletion was made impossible to do quietly. Phases
+	//! 1-3 deliberately kept all twelve configs alive - the version-1 payload conversion had to be
+	//! exercisable against live configs before those configs went - and while this was false the case
+	//! asserted the OPPOSITE of what it asserts now: every retired id had to STILL resolve. So deleting
+	//! the configs without flipping it went red naming this constant (and did, in a run that overlapped
+	//! the deletion), and flipping it before the deletion went red on the first retired id that still
+	//! resolved. Neither state could ever pass silently, which a commented-out block would have allowed.
+	//!
+	//! Now that it is true this is a PERMANENT REGRESSION GUARD, not a spent one: it asserts that none of
+	//! the five retired ids ever comes back. Re-adding a config carrying one of them would make a
+	//! version-1 save's dropped records start resolving again, onto a job that is not the job they were
+	//! saved on. Leave it true.
+	static const bool RETIRED_IDS_ARE_DELETED = true;
+
+	//! The seven job ids that survive starter-jobs-retirement. Literals on purpose - see the header.
+	static const ref array<string> SURVIVING_LEGACY_IDS = {
+		"assassinate-traitor",
+		"base-recon",
+		"raise-support",
+		"propaganda-run",
+		"pirate-radio",
+		"sabotage-radio-tower",
+		"assassinate-officer"
+	};
+
+	//! The five job ids starter-jobs-retirement removed on 2026-08-09. These must resolve to NOTHING.
+	//!
+	//! PHASE 2 DECIDED: THESE LISTS STAY LITERAL AND STAY HERE. They are NOT pointed at
+	//! OVT_JobManagerSerializer.LEGACY_V1_JOB_IDS, which now exists. Three reasons, in order of weight:
+	//!
+	//!  1. THEY ARE DIFFERENT INVARIANTS THAT HAPPEN TO SHARE STRINGS TODAY. LEGACY_V1_JOB_IDS is
+	//!     POSITIONAL HISTORY - index -> id for the version 1 save format, frozen for good. These two
+	//!     lists are expectations about the config list that is SHIPPING NOW, partitioned by fate. Add
+	//!     a thirteenth job one day and the frozen table must NOT grow (it records what version 1 was)
+	//!     while SURVIVING_LEGACY_IDS should, so the new job gets the same rename guard. Wiring one to
+	//!     the other would make that impossible without unpicking it again.
+	//!  2. AN INDEPENDENT WITNESS IS THE WHOLE VALUE OF A GUARD. The realistic mistake is renaming an
+	//!     id in a .conf and then "keeping the table in sync" - the frozen table looks like
+	//!     configuration until its header is read. With two copies that goes red here, naming the id.
+	//!     With one copy it passes, and the rename reaches players as a silently emptied job board.
+	//!  3. THE FROZEN TABLE IS NOT LEFT UNGUARDED. Phase 3's Logic-tier case pins LEGACY_V1_JOB_IDS
+	//!     against its own literals, world-free. So: that case guards the table, this case guards the
+	//!     configs, and neither is asserted against the thing it is checking.
+	static const ref array<string> RETIRED_LEGACY_IDS = {
+		"find-gun-dealer",
+		"find-shop",
+		"place-equipment-box",
+		"recruit-a-civilian",
+		"place-a-camp"
+	};
+
+	//! Every character a stable job id may contain.
+	static const string LEGAL_ID_CHARACTERS = "abcdefghijklmnopqrstuvwxyz-";
+
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		OVT_JobManagerComponent jobs = OVT_Global.GetJobs();
+		if (!jobs)
+		{
+			SetResultFailure("OVT_Global.GetJobs() is null - see OVT_TEST_Init_Globals_ManagersResolve for the wiring this depends on.");
+			return true;
+		}
+
+		int configCount = jobs.GetJobConfigCount();
+		if (configCount < 1)
+		{
+			SetResultFailure("The job manager has no job configs at all (GetJobConfigCount() = %1) - m_aJobConfigs on Prefabs/GameMode/OVT_OverthrowGameMode.et is empty, so every assertion below would pass vacuously", configCount.ToString());
+			return true;
+		}
+
+		string failure = FindFirstIdError(jobs, configCount);
+		if (failure == "")
+			failure = FindFirstLegacyResolveError(jobs);
+
+		if (failure != "")
+		{
+			SetResultFailure("%1", failure);
+			return true;
+		}
+
+		PrintFormat("Job stable ids: %1 configs, all non-empty, lowercase-kebab, unique and index<->id round-tripping; %2 surviving legacy ids resolve; retired-ids-deleted switch is %3",
+			configCount.ToString(), SURVIVING_LEGACY_IDS.Count().ToString(), RETIRED_IDS_ARE_DELETED.ToString());
+
+		SetResultSuccess();
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Walks every configured job and describes the FIRST id problem found.
+	//! \param[in] jobs The live job manager. Assumed non-null.
+	//! \param[in] configCount The manager's config count. Assumed >= 1.
+	//! \return A ready-to-report failure message, or an empty string when every id is sound.
+	protected string FindFirstIdError(OVT_JobManagerComponent jobs, int configCount)
+	{
+		ref set<string> seenIds = new set<string>();
+
+		for (int i = 0; i < configCount; i++)
+		{
+			string position = "Job config at index " + i.ToString();
+
+			OVT_JobConfig config = jobs.GetConfig(i);
+			if (!config)
+				return position + " is null - an empty row was left in m_aJobConfigs on Prefabs/GameMode/OVT_OverthrowGameMode.et";
+
+			if (config.m_sId == "")
+				return position + " (title '" + config.m_sTitle + "') has an empty m_sId. The id is this job's identity in the save format - without it the job's board entries and both of its lifetime counter maps cannot be written, so the job silently disappears from every continued campaign. Author it in the job's .conf under Configs/Jobs/.";
+
+			string shapeError = FindIdShapeError(config.m_sId);
+			if (shapeError != "")
+				return position + " has the id '" + config.m_sId + "', which " + shapeError + ". Job ids are short lowercase-kebab (e.g. 'raise-support'), the same convention as OVT_TutorialEntryConfig.m_sId, and they appear verbatim in the WARNING lines a bug reporter pastes.";
+
+			if (seenIds.Contains(config.m_sId))
+				return position + " repeats the id '" + config.m_sId + "'. Job ids must be unique: a duplicate makes one job's saved board entries and lifetime counters resolve to the OTHER job on load, which is exactly the silent mis-attachment the stable id exists to prevent.";
+
+			seenIds.Insert(config.m_sId);
+
+			// index -> id -> index. The two helpers are the save format's only translation points, so a
+			// mapping that does not round-trip is a corrupted save waiting for the next load.
+			string idAtIndex = jobs.GetJobIdByIndex(i);
+			if (idAtIndex != config.m_sId)
+				return position + ": GetJobIdByIndex(" + i.ToString() + ") returned '" + idAtIndex + "' but the config's m_sId is '" + config.m_sId + "'";
+
+			int indexForId = jobs.FindJobIndexById(idAtIndex);
+			if (indexForId != i)
+				return position + ": the id '" + idAtIndex + "' resolved back to index " + indexForId.ToString() + " instead of " + i.ToString() + " - the index<->id mapping does not round-trip";
+		}
+
+		// Out-of-range contract, asserted rather than assumed: the deserializer relies on these exact
+		// misses to decide that a saved record names nothing.
+		if (jobs.GetJobIdByIndex(-1) != "")
+			return "GetJobIdByIndex(-1) returned an id instead of an empty string";
+
+		if (jobs.GetJobIdByIndex(configCount) != "")
+			return "GetJobIdByIndex(" + configCount.ToString() + ") returned an id for an out-of-range index instead of an empty string";
+
+		if (jobs.FindJobIndexById("") != -1)
+			return "FindJobIndexById(\"\") matched a config. An empty id must never resolve, or a config that lost its id would start absorbing unrelated saved records.";
+
+		if (jobs.FindJobIndexById("__ovt-no-such-job") != -1)
+			return "FindJobIndexById() matched an id no config carries, so a saved record naming a deleted job would be restored onto some other job instead of being dropped";
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Describes what is wrong with an id's SHAPE, as a sentence fragment following "which ...".
+	//! \param[in] id The id to inspect. Assumed non-empty.
+	//! \return A fragment describing the first shape problem, or an empty string when the id is legal.
+	protected string FindIdShapeError(string id)
+	{
+		if (id.Get(0) == "-")
+			return "starts with a hyphen";
+
+		if (id.Get(id.Length() - 1) == "-")
+			return "ends with a hyphen";
+
+		if (id.Contains("--"))
+			return "contains a double hyphen";
+
+		for (int i = 0; i < id.Length(); i++)
+		{
+			string character = id.Get(i);
+			if (!LEGAL_ID_CHARACTERS.Contains(character))
+				return "contains the illegal character '" + character + "' at position " + i.ToString();
+		}
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The rename guard, plus the Phase 4 switch.
+	//!
+	//! Surviving ids: every one must resolve to a live config, because a version-1 save on a player's
+	//! disk already names them. Retired ids: gated by RETIRED_IDS_ARE_DELETED, and asserted in BOTH
+	//! directions so that neither state can pass silently.
+	//! \param[in] jobs The live job manager. Assumed non-null.
+	//! \return A ready-to-report failure message, or an empty string when the legacy ids are as expected.
+	protected string FindFirstLegacyResolveError(OVT_JobManagerComponent jobs)
+	{
+		for (int i = 0; i < SURVIVING_LEGACY_IDS.Count(); i++)
+		{
+			string survivingId = SURVIVING_LEGACY_IDS.Get(i);
+			if (jobs.FindJobIndexById(survivingId) < 0)
+				return "The surviving job id '" + survivingId + "' resolves to no config. Either its .conf under Configs/Jobs/ was renamed, its m_sId was edited, or the job was removed. That id is already written into saved campaigns, so every board entry and lifetime counter naming it would be DROPPED on the next load. Job ids are immutable once shipped - put it back.";
+		}
+
+		for (int i = 0; i < RETIRED_LEGACY_IDS.Count(); i++)
+		{
+			string retiredId = RETIRED_LEGACY_IDS.Get(i);
+			int retiredIndex = jobs.FindJobIndexById(retiredId);
+
+			if (RETIRED_IDS_ARE_DELETED)
+			{
+				if (retiredIndex >= 0)
+					return "The retired job id '" + retiredId + "' still resolves, to index " + retiredIndex.ToString() + ". RETIRED_IDS_ARE_DELETED is set, so its .conf should be gone from Configs/Jobs/ and its entry gone from m_aJobConfigs on the game-mode prefab.";
+
+				continue;
+			}
+
+			if (retiredIndex < 0)
+				return "The retired job id '" + retiredId + "' no longer resolves, but RETIRED_IDS_ARE_DELETED in this case is still false. If the five starter jobs have just been deleted (starter-jobs-retirement Phase 4), flip that constant to true - that is task 4.5 and this message is the reminder. If they have NOT been deleted, a job config has lost its id and the version-1 save conversion can no longer be exercised against it.";
+		}
+
+		return "";
+	}
+}
