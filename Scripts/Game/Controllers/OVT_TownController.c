@@ -270,6 +270,11 @@ class OVT_TownControllerComponent: OVT_Component
 
 		IEntity dealer = OVT_Global.SpawnEntityPrefab(OVT_Global.GetConfig().m_pGunDealerPrefab, spawnPosition);
 
+		// The dealer is a plain character prefab (inherited Persistence component) respawned by this
+		// controller every session - its record would be a permanent orphan (BUG-118). Unlike the
+		// civilians, it is not a group, so the SCR_AIGroup chokepoint never sees it.
+		OVT_PersistenceManagerComponent.UntrackTransient(dealer);
+
 		m_GunDealerID = dealer.GetID();
 
 		m_Town.gunDealerPosition = spawnPosition;
@@ -293,7 +298,7 @@ class OVT_TownControllerComponent: OVT_Component
 		foreach(OVT_ShopInventoryItem item : m_Economy.m_GunDealerConfig.m_aGunDealerItems)
 		{
 			array<SCR_EntityCatalogEntry> entries();
-			m_Economy.FindInventoryItems(item.m_eItemType, item.m_eItemMode, item.m_sFind, entries);
+			m_Economy.FindInventoryItems(item.m_eItemType, item.m_eItemMode, item.m_sFind, entries, item.m_bIncludeSupportStationItems);
 
 			if(item.m_bSingleRandomItem)
 			{
@@ -302,7 +307,7 @@ class OVT_TownControllerComponent: OVT_Component
 				while(!entries.IsEmpty() && !found && t < 20)
 				{
 					t++;
-					int index = s_AIRandomGenerator.RandInt(0,entries.Count()-1);
+					int index = s_AIRandomGenerator.RandInt(0,entries.Count());
 					SCR_EntityCatalogEntry check = entries[index];
 					int id = m_Economy.GetInventoryId(check.GetPrefab());
 					if(!item.m_bIncludeOccupyingFactionItems && m_Economy.ItemIsFromFaction(id, occupyingFactionId)) continue;

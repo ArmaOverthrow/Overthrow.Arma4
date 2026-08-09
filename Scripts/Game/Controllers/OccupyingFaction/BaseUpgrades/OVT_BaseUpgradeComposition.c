@@ -48,7 +48,7 @@ class OVT_BaseUpgradeComposition : OVT_SlottedBaseUpgrade
 	
 	protected void FillAmmoboxes(IEntity entity)
 	{
-		SlotManagerComponent slots = EPF_Component<SlotManagerComponent>.Find(entity);
+		SlotManagerComponent slots = OVT_ComponentFinder<SlotManagerComponent>.Find(entity);
 		if(!slots) return;
 		array<EntitySlotInfo> slotInfos();
 		slots.GetSlotInfos(slotInfos);
@@ -68,7 +68,7 @@ class OVT_BaseUpgradeComposition : OVT_SlottedBaseUpgrade
 			int numItems = s_AIRandomGenerator.RandInt(15,40);
 			for(int i = 0; i<numItems; i++)
 			{
-				int itemIndex = s_AIRandomGenerator.RandInt(0,prefabs.Count()-1);
+				int itemIndex = s_AIRandomGenerator.RandInt(0,prefabs.Count());
 				ResourceName res = prefabs[itemIndex];
 				toStorage.TrySpawnPrefabToStorage(res);
 			}
@@ -87,7 +87,7 @@ class OVT_BaseUpgradeComposition : OVT_SlottedBaseUpgrade
 	
 	protected bool FillCompartments(IEntity entity)
 	{
-		SCR_BaseCompartmentManagerComponent compartment = EPF_Component<SCR_BaseCompartmentManagerComponent>.Find(entity);
+		SCR_BaseCompartmentManagerComponent compartment = OVT_ComponentFinder<SCR_BaseCompartmentManagerComponent>.Find(entity);
 		if(!compartment) return true;		
 		
 		compartment.SpawnDefaultOccupants({ECompartmentType.TURRET});

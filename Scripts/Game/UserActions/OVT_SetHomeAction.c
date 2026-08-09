@@ -28,7 +28,7 @@ class OVT_SetHomeAction : ScriptedUserAction
 	
 	override bool CanBeShownScript(IEntity user)
 	{
-		OVT_BaseControllerComponent baseController = EPF_Component<OVT_BaseControllerComponent>.Find(GetOwner());
+		OVT_BaseControllerComponent baseController = OVT_ComponentFinder<OVT_BaseControllerComponent>.Find(GetOwner());
 		if (!baseController)
 		{
 			//is an FOB or camp

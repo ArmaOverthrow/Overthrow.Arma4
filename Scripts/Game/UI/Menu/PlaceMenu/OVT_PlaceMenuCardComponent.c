@@ -19,7 +19,8 @@ class OVT_PlaceMenuCardComponent : SCR_ScriptedWidgetComponent
 		
 		TextWidget cost = TextWidget.Cast(m_wRoot.FindAnyWidget("Cost"));
 		cost.SetText("$" + config.GetPlaceableCost(placeable));
-		
+		SetCostPlateVisible(true);
+
 		ImageWidget img = ImageWidget.Cast(m_wRoot.FindAnyWidget("Image"));
 		img.LoadImageTexture(0, placeable.m_tPreview);
 		
@@ -58,7 +59,8 @@ class OVT_PlaceMenuCardComponent : SCR_ScriptedWidgetComponent
 		
 		TextWidget cost = TextWidget.Cast(m_wRoot.FindAnyWidget("Cost"));
 		cost.SetText(""); // No cost for removal
-		
+		SetCostPlateVisible(false);
+
 		ImageWidget img = ImageWidget.Cast(m_wRoot.FindAnyWidget("Image"));
 		if (removeIcon != "")
 		{
@@ -77,6 +79,16 @@ class OVT_PlaceMenuCardComponent : SCR_ScriptedWidgetComponent
 		m_wRoot.SetColor(Color.White);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Shows or hides the dark readability panel the price sits on (BUG-099). The remove card has no
+	//! price, and an empty label on a plate is just a black square in the corner.
+	//! \param[in] visible Whether the price is being drawn.
+	protected void SetCostPlateVisible(bool visible)
+	{
+		Widget plate = m_wRoot.FindAnyWidget("CostPlate");
+		if(plate) plate.SetVisible(visible);
+	}
+
 	override bool OnClick(Widget w, int x, int y, int button)
 	{
 		super.OnClick(w, x, y, button);

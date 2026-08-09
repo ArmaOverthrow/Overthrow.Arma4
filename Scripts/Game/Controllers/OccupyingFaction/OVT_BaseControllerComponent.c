@@ -45,7 +45,7 @@ class OVT_BaseControllerComponent: OVT_Component
 	void InitBaseClient()
 	{
 		if(Replication.IsServer()) return;
-		SCR_FactionAffiliationComponent affiliation = EPF_Component<SCR_FactionAffiliationComponent>.Find(GetOwner());
+		SCR_FactionAffiliationComponent affiliation = OVT_ComponentFinder<SCR_FactionAffiliationComponent>.Find(GetOwner());
 		if(affiliation)
 		{
 			affiliation.GetOnFactionChanged().Insert(OnFactionChanged);
@@ -59,7 +59,7 @@ class OVT_BaseControllerComponent: OVT_Component
 
 		m_occupyingFactionManager = OVT_Global.GetOccupyingFaction();
 		
-		SCR_FactionAffiliationComponent affiliation = EPF_Component<SCR_FactionAffiliationComponent>.Find(GetOwner());
+		SCR_FactionAffiliationComponent affiliation = OVT_ComponentFinder<SCR_FactionAffiliationComponent>.Find(GetOwner());
 		if(affiliation)
 		{
 			affiliation.GetOnFactionChanged().Insert(OnFactionChanged);
@@ -107,7 +107,7 @@ class OVT_BaseControllerComponent: OVT_Component
 		if (!scrFaction)
 			return;
 		
-		SCR_FlagComponent flag = EPF_Component<SCR_FlagComponent>.Find(GetOwner());
+		SCR_FlagComponent flag = OVT_ComponentFinder<SCR_FlagComponent>.Find(GetOwner());
 		if (!flag)
 			return;
 		
@@ -116,7 +116,7 @@ class OVT_BaseControllerComponent: OVT_Component
 
 	bool IsOccupyingFaction()
 	{
-		SCR_FactionAffiliationComponent affiliation = EPF_Component<SCR_FactionAffiliationComponent>.Find(GetOwner());
+		SCR_FactionAffiliationComponent affiliation = OVT_ComponentFinder<SCR_FactionAffiliationComponent>.Find(GetOwner());
 		Faction occupyingFactionData = OVT_Global.GetConfig().GetOccupyingFactionData();
 		FactionKey occupyingFaction = occupyingFactionData.GetFactionKey();
 		
@@ -127,7 +127,7 @@ class OVT_BaseControllerComponent: OVT_Component
 
 	int GetControllingFaction()
 	{
-		SCR_FactionAffiliationComponent affiliation = EPF_Component<SCR_FactionAffiliationComponent>.Find(GetOwner());
+		SCR_FactionAffiliationComponent affiliation = OVT_ComponentFinder<SCR_FactionAffiliationComponent>.Find(GetOwner());
 
 		return GetGame().GetFactionManager().GetFactionIndex(affiliation.GetAffiliatedFaction());
 	}
@@ -146,7 +146,7 @@ class OVT_BaseControllerComponent: OVT_Component
 			m_occupyingFactionManager.OnBaseControlChange(this);
 
 		Faction fac = GetGame().GetFactionManager().GetFactionByIndex(index);
-		SCR_FactionAffiliationComponent affiliation = EPF_Component<SCR_FactionAffiliationComponent>.Find(GetOwner());
+		SCR_FactionAffiliationComponent affiliation = OVT_ComponentFinder<SCR_FactionAffiliationComponent>.Find(GetOwner());
 		affiliation.SetAffiliatedFaction(fac);
 	}
 
@@ -209,15 +209,15 @@ class OVT_BaseControllerComponent: OVT_Component
 			return true;
 		}
 		
-		SCR_EditableEntityComponent editable = EPF_Component<SCR_EditableEntityComponent>.Find(entity);
+		SCR_EditableEntityComponent editable = OVT_ComponentFinder<SCR_EditableEntityComponent>.Find(entity);
 		if(editable && editable.GetEntityType() == EEditableEntityType.SLOT)
 		{
 			return true;
 		}
 
-		SCR_AISmartActionSentinelComponent action = EPF_Component<SCR_AISmartActionSentinelComponent>.Find(entity);
+		SCR_AISmartActionSentinelComponent action = OVT_ComponentFinder<SCR_AISmartActionSentinelComponent>.Find(entity);
 		if(action) {
-			SCR_MapDescriptorComponent mapdes = EPF_Component<SCR_MapDescriptorComponent>.Find(entity);
+			SCR_MapDescriptorComponent mapdes = OVT_ComponentFinder<SCR_MapDescriptorComponent>.Find(entity);
 			if(mapdes)
 			{
 				EMapDescriptorType type = mapdes.GetBaseType();
@@ -230,7 +230,7 @@ class OVT_BaseControllerComponent: OVT_Component
 
 	bool CheckSlotAddToArray(IEntity entity)
 	{
-		SCR_AISmartActionSentinelComponent action = EPF_Component<SCR_AISmartActionSentinelComponent>.Find(entity);
+		SCR_AISmartActionSentinelComponent action = OVT_ComponentFinder<SCR_AISmartActionSentinelComponent>.Find(entity);
 		if(action)
 		{
 			vector pos = entity.GetOrigin();
@@ -239,7 +239,7 @@ class OVT_BaseControllerComponent: OVT_Component
 			return true;
 		}
 
-		SCR_EditableEntityComponent editable = EPF_Component<SCR_EditableEntityComponent>.Find(entity);
+		SCR_EditableEntityComponent editable = OVT_ComponentFinder<SCR_EditableEntityComponent>.Find(entity);
 		if(editable && editable.GetEntityType() == EEditableEntityType.SLOT)
 		{
 			SCR_EditableEntityUIInfo uiinfo = SCR_EditableEntityUIInfo.Cast(editable.GetInfo());
@@ -299,7 +299,7 @@ class OVT_BaseControllerComponent: OVT_Component
 						newres = upgrade.Spend(resources, threat);
 					}else{
 						if(resources < allocate) allocate = resources;
-						newres = upgrade.SpendToAllocation(threat);
+						newres = upgrade.SpendToAllocation(threat, allocate);
 					}
 
 					spent += newres;

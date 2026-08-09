@@ -1,9 +1,6 @@
 Vehicle {
  ID "BBCBA43A9778AE21"
  components {
-  EPF_PersistenceComponent "{5A0D2D215F2F2559}" {
-   m_bSelfDelete 0
-  }
   ActionsManagerComponent "{C97BE5489221AE18}" {
    additionalActions {
     OVT_LockVehicleAction "{5E68DB1CA2EDA71E}" {
@@ -29,6 +26,18 @@ Vehicle {
      Duration 2
      CanAggregate 1
      "Sort Priority" 100
+    }
+    OVT_SellVehicleCargoAction "{6A7D5C1E4B93F210}" {
+     ParentContextList {
+      "door_r01" "door_l01" "door_rear"
+     }
+     UIInfo UIInfo "{6A7D5C1E4B93F211}" {
+      Name "#OVT-SellCargoHere"
+     }
+     VisibilityRange -1
+     Duration 0
+     CanAggregate 1
+     "Sort Priority" 101
     }
    }
   }

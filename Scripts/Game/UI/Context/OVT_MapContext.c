@@ -30,9 +30,6 @@ class OVT_MapContext : OVT_UIContext
 		m_RealEstate = OVT_Global.GetRealEstate();
 		m_Resistance = OVT_Global.GetResistanceFaction();
 		m_OccupyingFaction = OVT_Global.GetOccupyingFaction();
-		
-		SCR_MapEntity.GetOnMapClose().Insert(OnMapExit);		
-		
 	}
 	
 	SCR_MapGadgetComponent GetMap()
@@ -72,7 +69,7 @@ class OVT_MapContext : OVT_UIContext
 			return false;
 		
 		OVT_PlayerWantedComponent m_Wanted = OVT_PlayerWantedComponent.Cast(character.FindComponent(OVT_PlayerWantedComponent));
-		if(m_Wanted.GetWantedLevel() > 0)
+		if(m_Wanted && m_Wanted.GetWantedLevel() > 0)
 		{
 			reason = "CannotFastTravelWanted";
 			return false;
@@ -299,8 +296,12 @@ class OVT_MapContext : OVT_UIContext
 	
 	void OnMapExit(MapConfiguration config)
 	{
+		// Single teardown path - the engine's map-close invoker lands here for every
+		// close (holstering the gadget, death, other menus), not just the input handler
+		CloseLayout();
 		DisableMapInfo();
 		DisableFastTravel();
+		DisableBusTravel();
 	}
 	
 	void DisableMapInfo()
@@ -322,29 +323,33 @@ class OVT_MapContext : OVT_UIContext
 	{
 		super.RegisterInputs();
 		if(!m_InputManager) return;
-		
+
 		m_InputManager.AddActionListener("MapSelect", EActionTrigger.DOWN, MapClick);
 		m_InputManager.AddActionListener("MenuBack", EActionTrigger.DOWN, MapExit);
 		m_InputManager.AddActionListener("GadgetMap", EActionTrigger.DOWN, MapExit);
+
+		// Subscribed here rather than PostInit - the invoker is static, so a PostInit
+		// subscription accumulates one dead listener per respawned character
+		SCR_MapEntity.GetOnMapClose().Remove(OnMapExit);
+		SCR_MapEntity.GetOnMapClose().Insert(OnMapExit);
 	}
-	
+
 	override void UnregisterInputs()
 	{
 		super.UnregisterInputs();
 		if(!m_InputManager) return;
-		
+
 		m_InputManager.RemoveActionListener("MapSelect", EActionTrigger.DOWN, MapClick);
 		m_InputManager.RemoveActionListener("MenuBack", EActionTrigger.DOWN, MapExit);
 		m_InputManager.RemoveActionListener("GadgetMap", EActionTrigger.DOWN, MapExit);
+
+		SCR_MapEntity.GetOnMapClose().Remove(OnMapExit);
 	}
-	
+
 	protected void MapExit(float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
 	{
 		if(!m_bFastTravelActive && !m_bMapInfoActive && !m_bBusTravelActive) return;
-		CloseLayout();
-		DisableMapInfo();
-		DisableFastTravel();
-		DisableBusTravel();
+		OnMapExit(null);
 		HideMap();
 	}
 	

@@ -3,11 +3,11 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 	[Attribute("1", desc: "Deactivate patrols when noone around")]
 	bool m_bDeactivate;
 	
-	ref array<ref EntityID> m_Groups;
-	ref array<ref ResourceName> m_ProxiedGroups;
-	ref array<ref vector> m_ProxiedPositions;	
+	// Initialized at declaration: a save can serialize this upgrade before PostInit() has run
+	ref array<ref EntityID> m_Groups = new array<ref EntityID>;
+	ref array<ref ResourceName> m_ProxiedGroups = new array<ref ResourceName>;
+	ref array<ref vector> m_ProxiedPositions = new array<ref vector>;
 	int m_iProxedResources = 0;
-	int m_iNumGroups = 0;
 	
 	protected const int DEACTIVATE_FREQUENCY = 10000;
 	
@@ -45,11 +45,16 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 				remove.Insert(id);
 			}
 		}
-		foreach(EntityID id : remove)			
+		foreach(EntityID id : remove)
 		{
 			m_Groups.RemoveItem(id);
-			m_iNumGroups--;
 		}
+	}
+
+	//! Live + banked group count — derived so despawn/respawn cycles can't drift a hand-kept counter
+	int GetNumGroups()
+	{
+		return m_Groups.Count() + m_ProxiedGroups.Count();
 	}
 	
 	protected void CheckUpdate()
@@ -77,7 +82,7 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 				SCR_AIGroup group = GetGroup(id);
 				if(!group) continue;
 				m_iProxedResources += group.GetAgentsCount() * OVT_Global.GetConfig().m_Difficulty.baseResourceCost;
-				m_ProxiedGroups.Insert(EPF_Utils.GetPrefabName(group));
+				m_ProxiedGroups.Insert(OVT_Global.GetPrefabName(group));
 				m_ProxiedPositions.Insert(group.GetOrigin());
 				SCR_EntityHelper.DeleteEntityAndChildren(group);
 			}
@@ -95,8 +100,6 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 	
 	protected int BuyPatrol(float threat, ResourceName res = "", vector pos = "0 0 0")
 	{
-		m_iNumGroups++;
-		
 		OVT_Faction faction = OVT_Global.GetConfig().GetOccupyingFaction();
 		if(!faction) return 0;
 				
@@ -119,7 +122,8 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 		}
 		
 		IEntity group = OVT_Global.SpawnEntityPrefab(res, pos);
-		
+		if(!group) return 0;
+
 		m_Groups.Insert(group.GetID());
 		
 		SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
@@ -155,21 +159,21 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 		while(resources > 0)
 		{
 			int newres = OVT_Global.GetConfig().m_Difficulty.baseResourceCost * 4;
-			
+
 			OVT_Faction faction = OVT_Global.GetConfig().GetOccupyingFaction();
 			ResourceName res = faction.GetRandomGroupByType(OVT_GroupType.LIGHT_INFANTRY);
-			m_iProxedResources += newres;
-			m_ProxiedGroups.Insert(res);
-			m_ProxiedPositions.Insert(m_BaseController.GetOwner().GetOrigin());			
-			
+
 			if(newres > resources){
 				newres = resources;
 				//todo: delete some soldiers when overspending
 			}
-			
+
+			m_iProxedResources += newres;
+			m_ProxiedGroups.Insert(res);
+			m_ProxiedPositions.Insert(m_BaseController.GetOwner().GetOrigin());
+
 			spent += newres;
 			resources -= newres;
-			m_iNumGroups++;
 		}
 		
 		return spent;
@@ -196,7 +200,7 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 			{
 				OVT_BaseUpgradeGroupData g = new OVT_BaseUpgradeGroupData();
 				
-				string res = EPF_Utils.GetPrefabName(aigroup);
+				string res = OVT_Global.GetPrefabName(aigroup);
 				g.prefab = res;				
 				g.position = group.GetOrigin();
 				

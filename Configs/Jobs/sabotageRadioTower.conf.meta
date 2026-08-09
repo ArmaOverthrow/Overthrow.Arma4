@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{6A7D9B2E00000053}Configs/Jobs/sabotageRadioTower.conf"
+ Configurations {
+  CONFResourceClass PC {
+  }
+  CONFResourceClass XBOX_ONE : PC {
+  }
+  CONFResourceClass XBOX_SERIES : PC {
+  }
+  CONFResourceClass PS4 : PC {
+  }
+  CONFResourceClass HEADLESS : PC {
+  }
+ }
+}

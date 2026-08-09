@@ -13,7 +13,7 @@ class OVT_IsNearestJobCondition : OVT_JobCondition
 		if(base)
 		{
 			OVT_BaseData nearest = OVT_Global.GetOccupyingFaction().GetNearestBase(pos);
-			if(nearest.id == base.id) return true;
+			if(nearest && nearest.id == base.id) return true;
 		}
 		if(town)
 		{

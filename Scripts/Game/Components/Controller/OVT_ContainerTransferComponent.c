@@ -5,32 +5,28 @@ class OVT_ContainerTransferComponentClass : OVT_BaseServerProgressComponentClass
 class OVT_ContainerTransferCallback : OVT_StorageProgressCallback
 {
 	protected OVT_ContainerTransferComponent m_Component;
-	
+
 	void OVT_ContainerTransferCallback(OVT_ContainerTransferComponent component)
 	{
 		m_Component = component;
 	}
-	
+
 	override void OnProgressUpdate(float progress, int currentItem, int totalItems, string operation)
 	{
 		if (m_Component && Replication.IsServer())
-			m_Component.Rpc(m_Component.RpcDo_UpdateProgress, progress, currentItem, totalItems, operation);
+			m_Component.SendProgressUpdate(progress, currentItem, totalItems, operation);
 	}
-	
+
 	override void OnComplete(int itemsTransferred, int itemsSkipped)
 	{
-		if (m_Component && Replication.IsServer()){
-			m_Component.RpcDo_OperationComplete(itemsTransferred, itemsSkipped);
-			m_Component.Rpc(m_Component.RpcDo_OperationComplete, itemsTransferred, itemsSkipped);
-		}
+		if (m_Component && Replication.IsServer())
+			m_Component.SendOperationComplete(itemsTransferred, itemsSkipped);
 	}
-	
+
 	override void OnError(string errorMessage)
 	{
-		if (m_Component && Replication.IsServer()){
-			m_Component.RpcDo_OperationError(errorMessage);
-			m_Component.Rpc(m_Component.RpcDo_OperationError, errorMessage);
-		}
+		if (m_Component && Replication.IsServer())
+			m_Component.SendOperationError(errorMessage);
 	}
 }
 
@@ -172,7 +168,7 @@ class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 		IEntity vehicle = GetEntityFromRplId(vehicleId);
 		if (!vehicle) 
 		{
-			Rpc(RpcDo_OperationError, "Vehicle not found");
+			SendOperationError("Vehicle not found");
 			return;
 		}
 		
@@ -225,7 +221,7 @@ class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 		OVT_Global.TransferToWarehouse(fromId);
 		
 		// Send completion immediately as warehouse transfers are instant
-		Rpc(RpcDo_OperationComplete, 1, 0);
+		SendOperationComplete(1, 0);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -261,7 +257,7 @@ class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 		
 		if (!fob || !vehicle)
 		{
-			Rpc(RpcDo_OperationError, "Invalid FOB or vehicle");
+			SendOperationError("Invalid FOB or vehicle");
 			return;
 		}
 		
@@ -310,7 +306,7 @@ class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 		IEntity vehicle = GetEntityFromRplId(vehicleId);
 		if (!vehicle) 
 		{
-			Rpc(RpcDo_OperationError, "Vehicle not found");
+			SendOperationError("Vehicle not found");
 			return;
 		}
 		
@@ -328,4 +324,10 @@ class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 	{
 		return !m_bIsRunning;
 	}
+
+	// SendProgressUpdate / SendOperationComplete / SendOperationError live on
+	// OVT_BaseServerProgressComponent - the callback above calls the inherited versions, which route
+	// around the engine's "never loop an Rpc back to the sender" rule for a listen-server host
+	// (BUG-090). The copies that used to live here sent RpcDo_UpdateProgress a fourth argument the
+	// RPC does not declare, so progress updates never arrived for anyone.
 }

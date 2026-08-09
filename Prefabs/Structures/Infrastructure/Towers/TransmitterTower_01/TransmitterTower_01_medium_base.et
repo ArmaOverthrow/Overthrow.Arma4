@@ -3,5 +3,51 @@ StaticModelEntity : "{BCF54BF42D61C77E}Prefabs/Structures/Core/Tower_Base.et" {
  components {
   OVT_TowerControllerComponent "{5E0E7197564CBE64}" {
   }
+  ActionsManagerComponent "{591AD559E46E5F5F}" : "{F0F464A7853E5603}Prefabs/Structures/Core/Ladder_ActionsManager.ct" {
+   ActionContexts {
+    UserActionContext "{5916A63C9D2ABA4A}" {
+     Position PointInfo "{5916A63C9B51DDAE}" {
+      Offset 0.2672 37.7183 0.0583
+     }
+    }
+    UserActionContext "{5916A63C9CED0D8A}" {
+     Position PointInfo "{5916A63CE468E545}" {
+      Offset 0.1041 1.4028 0.0505
+     }
+    }
+    UserActionContext "{59F4D7DB7F2C40F0}" {
+     ContextName "middle"
+     Position PointInfo "{59F4D7DB7F2C40F3}" {
+      Offset 0.0566 4.9314 0.1001
+     }
+     Radius 1
+     Omnidirectional 0
+     VisibilityAngle 85
+    }
+    UserActionContext "{6A7D9B2E00000017}" {
+     ContextName "sabotage"
+     Position PointInfo "{6A7D9B2E00000018}" {
+      Offset 0 1.5 0
+     }
+     Radius 2
+    }
+   }
+   additionalActions {
+    SCR_LadderUserAction "{5916A63CE01A4A0F}" {
+     ParentContextList + {
+      "middle"
+     }
+    }
+    OVT_SabotageTowerAction "{6A7D9B2E00000019}" {
+     ParentContextList {
+      "sabotage"
+     }
+     UIInfo UIInfo "{6A7D9B2E0000001A}" {
+      Name "#OVT-SabotageTower"
+     }
+     Duration 20
+    }
+   }
+  }
  }
 }

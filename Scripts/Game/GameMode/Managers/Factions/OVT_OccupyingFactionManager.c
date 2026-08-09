@@ -59,12 +59,55 @@ class OVT_RadioTowerData : Managed
 	int faction;
 	vector location;
 
+	//! Seconds of sabotage downtime left. Counted down by the server in CheckRadioTowers;
+	//! clients only ever receive snapshots (on sabotage, on expiry, and via JIP)
+	float disabledRemaining;
+
+	//! Client side only. World time (ms) at which the snapshot above arrived, so a client can count
+	//! the timer down locally instead of displaying a frozen number between snapshots. Never sent,
+	//! never persisted - it is meaningless on any machine other than the one that stamped it.
+	[NonSerialized()]
+	float disabledStamp;
+
 	[NonSerialized()]
 	ref array<ref EntityID> garrison = {};
 
 	bool IsOccupyingFaction()
 	{
 		return faction == OVT_Global.GetConfig().GetOccupyingFactionIndex();
+	}
+
+	//! A sabotaged tower broadcasts nothing for either side until the timer runs out
+	bool IsDisabled()
+	{
+		return disabledRemaining > 0;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Takes a fresh downtime snapshot and stamps when it landed. Use this rather than assigning
+	//! disabledRemaining directly, or a client's countdown will run from the wrong instant.
+	//! \param[in] seconds Seconds of downtime left as of now
+	void SetDisabledRemaining(float seconds)
+	{
+		disabledRemaining = seconds;
+		disabledStamp = GetGame().GetWorld().GetWorldTime();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Seconds of downtime left, live on both sides. The server owns the countdown and ticks
+	//! disabledRemaining itself in CheckRadioTowers; a client only gets snapshots, so it extrapolates
+	//! from the last one it received.
+	//! \return Seconds remaining, never negative.
+	float GetDisabledRemaining()
+	{
+		if(disabledRemaining <= 0) return 0;
+		if(Replication.IsServer()) return disabledRemaining;
+
+		float elapsed = (GetGame().GetWorld().GetWorldTime() - disabledStamp) / 1000;
+		float remaining = disabledRemaining - elapsed;
+		if(remaining < 0) return 0;
+
+		return remaining;
 	}
 }
 
@@ -125,6 +168,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 	int m_bCounterAttackTimeout = 0;
 
 	const int OF_UPDATE_FREQUENCY = 60000;
+	const int RADIO_TOWER_CHECK_FREQUENCY = 9000;
 
 	ref ScriptInvoker<IEntity> m_OnAIKilled = new ScriptInvoker<IEntity>;
 	ref ScriptInvoker<OVT_BaseControllerComponent> m_OnBaseControlChanged = new ScriptInvoker<OVT_BaseControllerComponent>;
@@ -189,7 +233,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		if (!baseData) return true;
 		
 		// Set the faction affiliation
-		SCR_FactionAffiliationComponent affiliation = EPF_Component<SCR_FactionAffiliationComponent>.Find(entity);
+		SCR_FactionAffiliationComponent affiliation = OVT_ComponentFinder<SCR_FactionAffiliationComponent>.Find(entity);
 		if (affiliation)
 		{
 			FactionManager factionManager = GetGame().GetFactionManager();
@@ -208,12 +252,35 @@ class OVT_OccupyingFactionManager: OVT_Component
 		OVT_Global.GetConfig().m_iOccupyingFactionIndex = -1;
 		m_iThreat = m_Config.m_Difficulty.baseThreat;
 		m_iResources = m_Config.m_Difficulty.maxQRF;
-		
+
+		int factionIndex = OVT_Global.GetConfig().GetOccupyingFactionIndex();
+
+		Print(string.Format("[Overthrow] NewGameStart: Setting %1 bases to occupying faction index %2", m_Bases.Count(), factionIndex));
+
+		// Set all bases to occupying faction
 		foreach(OVT_BaseData data : m_Bases)
 		{
-			data.faction = OVT_Global.GetConfig().GetOccupyingFactionIndex();
+			data.faction = factionIndex;
 		}
-		
+
+		// Set all radio towers to occupying faction
+		foreach(OVT_RadioTowerData tower : m_RadioTowers)
+		{
+			tower.faction = factionIndex;
+		}
+		Print(string.Format("[Overthrow] NewGameStart: Set %1 radio towers to occupying faction", m_RadioTowers.Count()));
+
+		// Set all towns to occupying faction
+		OVT_TownManagerComponent townManager = OVT_Global.GetTowns();
+		if(townManager)
+		{
+			foreach(OVT_TownData town : townManager.m_Towns)
+			{
+				town.faction = factionIndex;
+			}
+			Print(string.Format("[Overthrow] NewGameStart: Set %1 towns to occupying faction", townManager.m_Towns.Count()));
+		}
+
 		// Allocate initial resources to deployment manager
 		AllocateDeploymentResources(m_Config.m_Difficulty.baseResourcesPerTick);
 	}
@@ -231,10 +298,177 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 		GetGame().GetCallqueue().CallLater(CheckUpdate, OF_UPDATE_FREQUENCY / timeMul, true, GetOwner());
 
-		GetGame().GetCallqueue().CallLater(CheckRadioTowers, 9000, true, GetOwner());
+		GetGame().GetCallqueue().CallLater(CheckRadioTowers, RADIO_TOWER_CHECK_FREQUENCY, true, GetOwner());
 
 		if(m_bDistributeInitial)
 			GetGame().GetCallqueue().CallLater(DistributeInitialResources, 5000);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Applies the persisted occupying-faction war state.
+	//!
+	//! Called from OVT_OccupyingFactionManagerSerializer.Deserialize().
+	//!
+	//! SUPPRESSES THE OPENING RESOURCE ALLOCATION. m_bDistributeInitial is cleared because a saved
+	//! campaign has already spent its opening allocation; leaving it set would let PostGameStart()
+	//! schedule DistributeInitialResources() and build the occupying faction's opening position a
+	//! second time on top of the restored one. EPF cleared the same flag for the same reason.
+	//!
+	//! SPAWNS NOTHING. Restored upgrades, filled slots and garrisons are data; InitBaseControllers()
+	//! replays them during PostGameStart, which is the same path a fresh campaign takes.
+	//!
+	//! NO RPC. Clients receive base and tower control through the normal replication paths.
+	//!
+	//! IDEMPOTENT: assignments and clear-and-rebuilds only, safe to run again on a live session.
+	//! \param[in] occupyingFactionKey Faction key the campaign was started against, may be empty.
+	//! \param[in] resources Occupying faction resource pool.
+	//! \param[in] threat Occupying faction threat level.
+	//! \param[in] bases Persisted base records, matched to live bases by location. May be null.
+	//! \param[in] towers Persisted radio tower records, matched by location. May be null.
+	void ApplyPersistedOccupyingFaction(string occupyingFactionKey, int resources, float threat, array<ref OVT_PersistedBase> bases, array<ref OVT_PersistedRadioTower> towers)
+	{
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+
+		// Applied FIRST: every faction index below is relative to this choice.
+		if (config && occupyingFactionKey != "" && config.m_sOccupyingFaction != occupyingFactionKey)
+			config.SetOccupyingFaction(occupyingFactionKey);
+
+		m_iResources = resources;
+		m_iThreat = threat;
+		m_bDistributeInitial = false;
+
+		if (bases)
+		{
+			foreach (OVT_PersistedBase baseRecord : bases)
+			{
+				if (!baseRecord)
+					continue;
+
+				OVT_BaseData base = GetNearestBase(baseRecord.location);
+				if (!base)
+					continue;
+
+				int faction = baseRecord.faction;
+				if (faction < 0)
+				{
+					Print(string.Format("[Overthrow] Saved base at %1 has no faction - handing it to the occupying faction", baseRecord.location.ToString()), LogLevel.WARNING);
+					if (config)
+						faction = config.GetOccupyingFactionIndex();
+				}
+
+				base.faction = faction;
+
+				ApplyPersistedBaseUpgrades(base, baseRecord);
+				ApplyPersistedBaseSlots(base, baseRecord);
+				ApplyPersistedBaseGarrison(base, baseRecord);
+			}
+		}
+
+		if (towers)
+		{
+			foreach (OVT_PersistedRadioTower towerRecord : towers)
+			{
+				if (!towerRecord)
+					continue;
+
+				OVT_RadioTowerData tower = GetNearestRadioTower(towerRecord.location);
+				if (!tower)
+					continue;
+
+				tower.faction = towerRecord.faction;
+
+				// A tower that was sabotaged when the game was saved comes back still off the air,
+				// with the time it had left. Version 1 payloads carry 0 here, which restores the
+				// pre-sabotage behaviour of every tower being up on load.
+				tower.SetDisabledRemaining(towerRecord.disabledRemaining);
+			}
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Rebuilds one base's upgrade list from its save record.
+	//! \param[in] base The live base data.
+	//! \param[in] record The saved record.
+	protected void ApplyPersistedBaseUpgrades(notnull OVT_BaseData base, notnull OVT_PersistedBase record)
+	{
+		if (!base.upgrades)
+			base.upgrades = new array<ref OVT_BaseUpgradeData>();
+
+		base.upgrades.Clear();
+
+		if (!record.upgrades)
+			return;
+
+		foreach (OVT_PersistedBaseUpgrade upgradeRecord : record.upgrades)
+		{
+			if (!upgradeRecord)
+				continue;
+
+			OVT_BaseUpgradeData data = new OVT_BaseUpgradeData();
+			data.type = upgradeRecord.type;
+			data.resources = upgradeRecord.resources;
+			data.tag = upgradeRecord.tag;
+			data.pos = upgradeRecord.pos;
+
+			if (upgradeRecord.groups)
+			{
+				foreach (OVT_PersistedBaseUpgradeGroup groupRecord : upgradeRecord.groups)
+				{
+					if (!groupRecord)
+						continue;
+
+					OVT_BaseUpgradeGroupData group = new OVT_BaseUpgradeGroupData();
+					group.prefab = groupRecord.prefab;
+					group.position = groupRecord.position;
+					data.groups.Insert(group);
+				}
+			}
+
+			base.upgrades.Insert(data);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Rebuilds one base's filled-slot list from its save record.
+	//! \param[in] base The live base data.
+	//! \param[in] record The saved record.
+	protected void ApplyPersistedBaseSlots(notnull OVT_BaseData base, notnull OVT_PersistedBase record)
+	{
+		if (!base.slotsFilled)
+			base.slotsFilled = new array<vector>();
+
+		base.slotsFilled.Clear();
+
+		if (!record.slotsFilled)
+			return;
+
+		foreach (vector slot : record.slotsFilled)
+		{
+			base.slotsFilled.Insert(slot);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Rebuilds one base's garrison prefab list from its save record.
+	//! \param[in] base The live base data.
+	//! \param[in] record The saved record.
+	protected void ApplyPersistedBaseGarrison(notnull OVT_BaseData base, notnull OVT_PersistedBase record)
+	{
+		if (!base.garrison)
+			base.garrison = new array<ref ResourceName>();
+
+		base.garrison.Clear();
+
+		if (!record.garrison)
+			return;
+
+		foreach (ResourceName prefab : record.garrison)
+		{
+			if (prefab.IsEmpty())
+				continue;
+
+			base.garrison.Insert(prefab);
+		}
 	}
 
 	void CheckRadioTowers()
@@ -242,6 +476,17 @@ class OVT_OccupyingFactionManager: OVT_Component
 		OVT_Faction faction = OVT_Global.GetConfig().GetOccupyingFaction();
 		foreach(OVT_RadioTowerData tower : m_RadioTowers)
 		{
+			if(tower.disabledRemaining > 0)
+			{
+				tower.disabledRemaining -= RADIO_TOWER_CHECK_FREQUENCY / 1000;
+				if(tower.disabledRemaining <= 0)
+				{
+					tower.disabledRemaining = 0;
+					Rpc(RpcDo_SetRadioTowerDisabled, tower.location, 0);
+					string townName = OVT_Global.GetTowns().GetTownName(tower.location);
+					OVT_Global.GetNotify().SendTextNotification("RadioTowerRepaired", -1, townName);
+				}
+			}
 			if(!tower.IsOccupyingFaction()) continue;
 			bool inrange = OVT_Global.PlayerInRange(tower.location, OVT_Global.GetConfig().m_iMilitarySpawnDistance) && !m_CurrentQRF;
 			if(inrange)
@@ -327,6 +572,27 @@ class OVT_OccupyingFactionManager: OVT_Component
 			OVT_Global.GetNotify().SendTextNotification("RadioTowerControlledResistance",-1,townName);
 			OVT_Global.GetNotify().SendExternalNotifications("RadioTowerControlledResistance",townName);
 		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Server: take a radio tower off the air for a duration (sabotage) and tell everyone.
+	//! \param tower The radio tower to disable
+	//! \param seconds How long the tower stays disabled
+	void SetRadioTowerDisabled(OVT_RadioTowerData tower, float seconds)
+	{
+		tower.SetDisabledRemaining(seconds);
+		Rpc(RpcDo_SetRadioTowerDisabled, tower.location, seconds);
+
+		string townName = OVT_Global.GetTowns().GetTownName(tower.location);
+		OVT_Global.GetNotify().SendTextNotification("RadioTowerSabotaged", -1, townName);
+		OVT_Global.GetNotify().SendExternalNotifications("RadioTowerSabotaged", townName);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_SetRadioTowerDisabled(vector pos, float seconds)
+	{
+		OVT_RadioTowerData tower = GetNearestRadioTower(pos);
+		if(tower) tower.SetDisabledRemaining(seconds);
 	}
 
 	void OnTownControlChanged(OVT_TownData town)
@@ -417,11 +683,22 @@ class OVT_OccupyingFactionManager: OVT_Component
 		OVT_ResistanceFactionManager rf = OVT_Global.GetResistanceFaction();
 		OVT_Faction resistance = m_Config.GetPlayerFaction();
 
+		Print(string.Format("[Overthrow] InitBaseControllers: Initializing %1 bases", m_Bases.Count()));
+
 		foreach(int index, OVT_BaseData data : m_Bases)
 		{
 			OVT_BaseControllerComponent base = GetBase(data.entId);
+			if(!base)
+			{
+				Print(string.Format("[Overthrow] WARNING: Could not find base controller for entity at %1", data.location.ToString()), LogLevel.WARNING);
+				continue;
+			}
+
 			base.InitBase();
 			base.SetControllingFaction(data.faction, true);
+			base.UpdateFlagMaterial(data.faction);
+
+			Print(string.Format("[Overthrow] Initialized base %1 at %2 with faction %3", index, data.location.ToString(), data.faction));
 
 			if(base.IsOccupyingFaction())
 			{
@@ -430,7 +707,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 					foreach(OVT_BaseUpgradeData upgrade : data.upgrades)
 					{
 						OVT_BaseUpgrade up = base.FindUpgrade(upgrade.type, upgrade.tag);
-						up.Deserialize(upgrade);
+						if(up)
+							up.Deserialize(upgrade);
 					}
 				}
 				if(data.slotsFilled)
@@ -444,10 +722,14 @@ class OVT_OccupyingFactionManager: OVT_Component
 			}else{
 				foreach(ResourceName res : data.garrison)
 				{
-					data.garrisonEntities.Insert(OVT_Global.GetResistanceFaction().SpawnGarrison(data, res).GetID());
+					IEntity garrison = OVT_Global.GetResistanceFaction().SpawnGarrison(data, res);
+					if(garrison)
+						data.garrisonEntities.Insert(garrison.GetID());
 				}
 			}
 		}
+
+		Print(string.Format("[Overthrow] InitBaseControllers complete"));
 	}
 
 	protected void DistributeInitialResources()
@@ -550,7 +832,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 		
 		// Find the town controller to get QRF parameters
 		OVT_TownManagerComponent townManager = OVT_Global.GetTowns();
-		EntityID townControllerID = townManager.m_TownControllers.Get(townID);
+		EntityID townControllerID;
+		if(townID >= 0 && townID < townManager.m_TownControllers.Count())
+			townControllerID = townManager.m_TownControllers.Get(townID);
 		if(townControllerID)
 		{
 			IEntity townEntity = GetGame().GetWorld().FindEntityByID(townControllerID);
@@ -859,24 +1143,32 @@ class OVT_OccupyingFactionManager: OVT_Component
 			}
 			sortedBases.Sort(true);	
 
-			int perBase = Math.Floor((float)toSpend / sortedBases.Count());		
-			
-			foreach(OVT_BaseData data : sortedBases)
-			{				
-				OVT_BaseControllerComponent base = GetBase(data.entId);
+			if(!sortedBases.IsEmpty())
+			{
+				int perBase = Math.Floor((float)toSpend / sortedBases.Count());
 
-				//Dont spawn stuff if a player is watching lol
-				if(OVT_Global.PlayerInRange(data.location, OVT_Global.GetConfig().m_Difficulty.baseCloseRange+100)) continue;
+				foreach(OVT_BaseData data : sortedBases)
+				{
+					if(toSpend <= 0) break;
 
-				m_iResources -= base.SpendResources(m_iResources, m_iThreat);
+					OVT_BaseControllerComponent base = GetBase(data.entId);
 
-				if(m_iResources <= 0) {
-					m_iResources = 0;
-					break;
-				}
+					//Dont spawn stuff if a player is watching lol
+					if(OVT_Global.PlayerInRange(data.location, OVT_Global.GetConfig().m_Difficulty.baseCloseRange+100)) continue;
 
-				if(toSpend <= 0) {
-					break;
+					int budget = perBase;
+					if(budget > toSpend) budget = toSpend;
+					if(budget > m_iResources) budget = m_iResources;
+					if(budget <= 0) break;
+
+					int spent = base.SpendResources(budget, m_iThreat);
+					m_iResources -= spent;
+					toSpend -= spent;
+
+					if(m_iResources <= 0) {
+						m_iResources = 0;
+						break;
+					}
 				}
 			}
 			UpdateSpecops();
@@ -888,7 +1180,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		if(time.m_iMinutes == 0 && m_iResources > 2000 && m_bCounterAttackTimeout == 0 && rand > 0.9)
 		{
 			Print("[Overthrow.OccupyingFactionManager] Surplus of resources, attempting counter attack");
-			OVT_BaseData randomBase = m_Bases[s_AIRandomGenerator.RandInt(0,m_Bases.Count()-1)];
+			OVT_BaseData randomBase = m_Bases[s_AIRandomGenerator.RandInt(0,m_Bases.Count())];
 			if(!randomBase.IsOccupyingFaction())
 			{
 				OVT_BaseControllerComponent base = GetBase(randomBase.entId);
@@ -1191,6 +1483,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 			OVT_RadioTowerData data = m_RadioTowers[i];
 			writer.WriteVector(data.location);
 			writer.WriteInt(data.faction);
+			writer.WriteFloat(data.disabledRemaining);
 		}
 
 		writer.WriteVector(m_vQRFLocation);
@@ -1234,6 +1527,10 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 			if (!reader.ReadVector(base.location)) return false;
 			if (!reader.ReadInt(base.faction)) return false;
+
+			float disabledRemaining;
+			if (!reader.ReadFloat(disabledRemaining)) return false;
+			base.SetDisabledRemaining(disabledRemaining);
 
 			base.id = i;
 			m_RadioTowers.Insert(base);

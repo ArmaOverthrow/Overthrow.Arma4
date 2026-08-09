@@ -38,7 +38,7 @@ class OVT_CivilianDeathStabilityModifier : OVT_StabilityModifier
 			return;
 			
 		// Check if it's a player
-		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(victim);
+		int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(victim);
 		if (playerId > 0)
 			return;
 			

@@ -11,7 +11,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 	[RplProp()]
 	float m_fVisualRecognitionFactor = 1;
 	[RplProp()]
-	float m_bWantedSystemEnabled = true;
+	bool m_bWantedSystemEnabled = true;
 	
 	[Attribute("250")]
 	float m_fBaseDistanceSeenAt;
@@ -50,14 +50,24 @@ class OVT_PlayerWantedComponent: OVT_Component
 		if(m_iWantedLevel < level){
 			int oldLevel = m_iWantedLevel;
 			m_iWantedLevel = level;
+
+			// Escalating restarts the decay countdown at the new level's timeout (BUG-076)
+			if(m_iWantedLevel > 1)
+			{
+				m_iWantedTimer = OVT_Global.GetConfig().m_Difficulty.wantedTimeout;
+			}else{
+				m_iWantedTimer = OVT_Global.GetConfig().m_Difficulty.wantedOneTimeout;
+			}
+
 			Replication.BumpMe();
-			
-			// Send notification only when going from 0 to wanted (not when already wanted)
-			if(oldLevel == 0 && level > 0 && reason != "")
+
+			// Notify when becoming properly wanted: from 0, or re-escalating out of the
+			// silent level-1 decay tail (BUG-076) — not on further escalation while wanted
+			if(oldLevel <= 1 && reason != "")
 			{
 				SendWantedNotification(reason);
 			}
-		}		
+		}
 	}
 	
 	int GetWantedLevel()
@@ -73,7 +83,9 @@ class OVT_PlayerWantedComponent: OVT_Component
 	}
 	
 	//! Check if player is disguised as occupying faction
-	// Track disguise state
+	// Track disguise state — written on the authority, read by the HUD (client) and the
+	// server-side damage manager, so it must replicate (BUG-073)
+	[RplProp()]
 	protected bool m_bIsDisguised = false;
 	
 	bool IsDisguisedAsOccupying()
@@ -132,7 +144,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		if (!notificationManager)
 			return;
 			
-		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(GetOwner());
+		int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(GetOwner());
 		if (playerId > 0)
 		{
 			notificationManager.SendTextNotification(reason, playerId);
@@ -147,7 +159,8 @@ class OVT_PlayerWantedComponent: OVT_Component
 			
 		// Set disguise as blown
 		m_bIsDisguised = false;
-				
+		Replication.BumpMe();
+
 		// Override perceived faction to ensure AI sees us as enemy
 		if (m_Percieve)
 		{
@@ -167,6 +180,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 	void EnableWantedSystem()
 	{
 		m_bWantedSystemEnabled = true;
+		Replication.BumpMe();
 	}
 	
 	//! Disable the wanted system for this entity
@@ -199,27 +213,58 @@ class OVT_PlayerWantedComponent: OVT_Component
 		m_Compartment = SCR_CompartmentAccessComponent.Cast(owner.FindComponent(SCR_CompartmentAccessComponent));
 		m_Percieve = CharacterPerceivableComponent.Cast(owner.FindComponent(CharacterPerceivableComponent));
 						
-		if(!GetRpl().IsOwner()) return;
-		
-		GetGame().GetCallqueue().CallLater(CheckUpdate, WANTED_SYSTEM_FREQUENCY, true, owner);		
-		
-		OVT_Global.GetOccupyingFaction().m_OnPlayerLoot.Insert(OnPlayerLoot);
+		// Loot events fire on the looting player's machine, so subscribe on every machine
+		// and filter/relay inside OnPlayerLoot (BUG-073/BUG-074)
+		OVT_OccupyingFactionManager occupyingFaction = OVT_Global.GetOccupyingFaction();
+		if(occupyingFaction)
+			occupyingFaction.m_OnPlayerLoot.Insert(OnPlayerLoot);
 
+		// Wanted state is server-authoritative: only the authority runs the detection tick.
+		// The old owner gate registered the tick on both server and client because ownership
+		// transfers after OnPostInit (BUG-073)
+		RplComponent rpl = GetRpl();
+		if(!rpl || !rpl.IsMaster()) return;
+
+		GetGame().GetCallqueue().CallLater(CheckUpdate, WANTED_SYSTEM_FREQUENCY, true, owner);
 	}
-	
+
 	void OnPlayerLoot(IEntity player)
 	{
+		// Every wanted component hears every loot event — only react to our own (BUG-074)
+		if(player != GetOwner()) return;
+
+		RplComponent rpl = GetRpl();
+		if(rpl && !rpl.IsMaster())
+		{
+			// Wanted state is server-authoritative — relay our local loot action (BUG-073)
+			OVT_PlayerCommsComponent comms = OVT_Global.GetServer();
+			if(comms)
+				comms.RequestLootWantedCheck();
+			return;
+		}
+
 		// Only increase wanted level if player is seen while looting
 		if(m_bIsSeen)
 		{
 			SetBaseWantedLevel(2);
 			CheckWanted();
-			
+
 			// Store suspicious behavior for area heat tracking (Phase 4 enhancement)
 			RecordSuspiciousActivity("looting", GetOwner().GetOrigin());
 		}
 	}
 	
+	//! Server-side: escalate to wanted level 2 when this character is seen performing an
+	//! illegal action (e.g. placing propaganda). Same seen-gated rule as looting
+	void OnIllegalActionSeen(string reason = "")
+	{
+		if(!m_bIsSeen) return;
+
+		SetBaseWantedLevel(2, reason);
+		CheckWanted();
+		RecordSuspiciousActivity("illegal_action", GetOwner().GetOrigin());
+	}
+
 	//! Records suspicious activity for area heat tracking
 	protected void RecordSuspiciousActivity(string activityType, vector location)
 	{
@@ -296,7 +341,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		// Check if this is a player or recruit
 		if(!m_PlayerData && !m_RecruitData)
 		{
-			int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(GetOwner());
+			int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(GetOwner());
 			if(playerId > 0)
 			{
 				m_PlayerData = OVT_PlayerData.Get(playerId);
@@ -322,8 +367,12 @@ class OVT_PlayerWantedComponent: OVT_Component
 		
 		m_bTempSeen = false;
 		m_iLastSeen = LAST_SEEN_MAX;
-		
-		m_fVisualRecognitionFactor = m_Percieve.GetVisualRecognitionFactor();
+
+		bool wasDisguised = m_bIsDisguised;
+		float oldRecognitionFactor = m_fVisualRecognitionFactor;
+
+		if(m_Percieve)
+			m_fVisualRecognitionFactor = m_Percieve.GetVisualRecognitionFactor();
 		
 		// Check perceived faction for disguise
 		bool skipNormalDetection = false;
@@ -334,10 +383,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 			
 			Faction perceivedFaction = m_CharacterFaction.GetPerceivedFaction();
 			Faction defaultFaction = m_CharacterFaction.GetDefaultAffiliatedFaction();
-			
-			// Additional debug: Check if we have faction affiliation properly set
-			Faction affiliatedFaction = m_Faction.GetAffiliatedFaction();
-							
+
 			// Debug: Log outfit values
 			map<Faction, int> outfitValues = new map<Faction, int>();
 			int outfitCount = m_CharacterFaction.GetCharacterOutfitValues(outfitValues);
@@ -475,12 +521,17 @@ class OVT_PlayerWantedComponent: OVT_Component
 				}
 			}
 		}else if(m_iWantedLevel == 1 && m_bTempSeen && !m_bIsDisguised) {
-			SetWantedLevel(2);			
+			// Re-seen during the level-1 decay tail: escalate through the notification path
+			// and restart the decay timer instead of silently inheriting it (BUG-076)
+			string reason = "WantedHostileFaction";
+			if(IsVisiblyArmed())
+				reason = "WantedWeapon";
+			SetBaseWantedLevel(2, reason);
 		}
-		
+
 		CheckWanted();
-		
-		if(m_bTempSeen != m_bIsSeen)
+
+		if(m_bTempSeen != m_bIsSeen || wasDisguised != m_bIsDisguised || Math.AbsFloat(m_fVisualRecognitionFactor - oldRecognitionFactor) > 0.01)
 		{
 			m_bIsSeen = m_bTempSeen;
 			Replication.BumpMe();
@@ -488,12 +539,10 @@ class OVT_PlayerWantedComponent: OVT_Component
 	}
 	
 	protected void CheckWanted()
-	{		
+	{
 		// Players and recruits should always stay in civilian faction for vehicle access
 		// Only change perceived faction for AI recognition
-		Faction currentFaction = m_Faction.GetAffiliatedFaction();
-		string factionKey = currentFaction.GetFactionKey();
-		
+
 		// Handle perceived faction changes based on wanted level and disguise
 		bool isDisguised = IsDisguisedAsOccupying();
 		
@@ -551,11 +600,20 @@ class OVT_PlayerWantedComponent: OVT_Component
 		PerceptionComponent perceptComp = PerceptionComponent.Cast(entity.FindComponent(PerceptionComponent));
 		if(!perceptComp) return true;
 		
-		if(perceptComp.GetTargetCount(ETargetCategory.FRIENDLY) == 0) return true;
-		
+		// Wanted characters move to the ENEMY bucket via the perceived-faction override, so
+		// scan both buckets or "seen" drops the moment you become properly wanted (BUG-072)
+		if(perceptComp.GetTargetCount(ETargetCategory.FRIENDLY) == 0 && perceptComp.GetTargetCount(ETargetCategory.ENEMY) == 0) return true;
+
 		autoptr array<BaseTarget> targets = new array<BaseTarget>;
-		
+
 		perceptComp.GetTargetsList(targets, ETargetCategory.FRIENDLY);
+
+		autoptr array<BaseTarget> enemyTargets = new array<BaseTarget>;
+		perceptComp.GetTargetsList(enemyTargets, ETargetCategory.ENEMY);
+		foreach(BaseTarget enemyTarget : enemyTargets)
+		{
+			targets.Insert(enemyTarget);
+		}
 		
 		float dist = vector.Distance(GetOwner().GetOrigin(), entity.GetOrigin());
 		
@@ -803,8 +861,14 @@ class OVT_PlayerWantedComponent: OVT_Component
 	}	
 	
 	override void OnDelete(IEntity owner)
-	{		
+	{
 		GetGame().GetCallqueue().Remove(CheckUpdate);
+
+		// Mirror the OnPostInit subscription or the manager-held invoker retains every
+		// wanted component ever created (BUG-075)
+		OVT_OccupyingFactionManager occupyingFaction = OVT_Global.GetOccupyingFaction();
+		if(occupyingFaction)
+			occupyingFaction.m_OnPlayerLoot.Remove(OnPlayerLoot);
 	}
 	
 }

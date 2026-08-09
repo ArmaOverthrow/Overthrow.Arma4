@@ -1,35 +1,9 @@
 OVT_OverthrowGameMode {
  ID "59B6F5261FBE5DC1"
  components {
-  EPF_PersistenceComponent "{5D7009A1AB220903}" {
-   m_bSelfSpawn 0
-   m_bSelfDelete 0
-   m_pSaveData OVT_OverthrowSaveDataClass "{5D7009A22C40BEE5}" {
-    m_eTranformSaveFlags 0
-    m_bSaveRemainingLifetime 0
-    m_aComponents {
-     OVT_EconomySaveDataClass "{5D7009A2B14C4055}" {
-     }
-     OVT_PlayerSaveDataClass "{5D7009AA91A43E6F}" {
-     }
-     OVT_OccupyingFactionSaveDataClass "{5D70099DAD21A0F3}" {
-     }
-     OVT_RealEstateSaveDataClass "{5D707B33903B8735}" {
-     }
-     OVT_TownSaveDataClass "{5D70912C42B66D9E}" {
-     }
-     OVT_ResistanceSaveDataClass "{5D70912B726E1A32}" {
-     }
-     OVT_ConfigSaveDataClass "{5D9E53AFE550A24E}" {
-     }
-     OVT_DeploymentManagerComponentSaveDataClass "{65B2DE4DE0F7175D}" {
-     }
-     OVT_RecruitSaveDataClass "{65A26826DE2960DA}" {
-     }
-     OVT_LoadoutManagerSaveDataClass "{65AAD8FBE5BDC6EE}" {
-     }
-    }
-   }
+  Persistence "{6B0E7A12A7B14C58}" {
+  }
+  OVT_ReconnectComponent "{6B0E7A12A7B14C60}" {
   }
   OVT_DeploymentManagerComponent "{65B2DE4D19F8D47E}" {
    m_DeploymentRegistry OVT_DeploymentRegistry "{65B2DE433E54414A}" : "{C9A38056910495A2}Configs/Deployment/overthrowDeployments.conf" {
@@ -65,6 +39,14 @@ OVT_OverthrowGameMode {
     }
     OVT_JobConfig "{65CD1C846520EBD8}" : "{56139D1CED432410}Configs/Jobs/placeACamp.conf" {
     }
+    OVT_JobConfig "{6A7D9B2E00000040}" : "{6A7D9B2E00000030}Configs/Jobs/propagandaRun.conf" {
+    }
+    OVT_JobConfig "{6A7D9B2E00000041}" : "{6A7D9B2E00000031}Configs/Jobs/pirateRadio.conf" {
+    }
+    OVT_JobConfig "{6A7D9B2E0000005C}" : "{6A7D9B2E00000053}Configs/Jobs/sabotageRadioTower.conf" {
+    }
+    OVT_JobConfig "{6A7D9B2E0000006C}" : "{6A7D9B2E00000060}Configs/Jobs/assassinateOfficer.conf" {
+    }
    }
   }
   OVT_LoadoutManagerComponent "{65AAD8FB1BAFD652}" {
@@ -88,6 +70,8 @@ OVT_OverthrowGameMode {
     OVT_DifficultySettings "{6466E3EA33D240F9}" : "{0FA2C3AE29A3A93B}Configs/Difficulty/Difficulty_Hard.conf" {
     }
     OVT_DifficultySettings "{6466E3EA33A737F7}" : "{70CC1650D9BE0DDC}Configs/Difficulty/Difficulty_Extreme.conf" {
+    }
+    OVT_DifficultySettings "{6B0F11B0AA02D002}" : "{6B0F11B0AA02D001}Configs/Difficulty/Difficulty_Insane.conf" {
     }
    }
    m_pGunDealerPrefab "{59929550D81A3045}Prefabs/Characters/Factions/INDFOR/FIA/Character_FIA_GunDealer.et"
@@ -172,11 +156,10 @@ OVT_OverthrowGameMode {
    m_bDebugMode 0
   }
   OVT_PersistenceManagerComponent "{5D7009B844876186}" {
-   m_pConnectionInfo EDF_JsonFileDbConnectionInfo "{5D7009B8408E1A9D}" {
-    m_sDatabaseName "Overthrow"
-   }
   }
   OVT_PlayerCommsComponent "{5D7ACE1228D77F40}" {
+  }
+  OVT_PlayerGroupManagerComponent "{6A7D9B2E00000080}" {
   }
   OVT_PlayerManagerComponent "{599AA74940529C1C}" {
   }
@@ -213,7 +196,8 @@ OVT_OverthrowGameMode {
    m_pMobileFOBDeployedPrefab "{ABF741C3184846E9}Prefabs/Vehicles/Wheeled/M923A1/OverthrowMobileFOBDeployed.et"
   }
   OVT_RespawnSystemComponent "{5DEA8B45ED838B55}" {
-   m_rDefaultPrefab "{3A99A99836F6B3DC}Prefabs/Characters/Factions/INDFOR/FIA/Character_Player.et"
+   m_SpawnLogic OVT_SpawnLogic "{66C49992B43FF6C1}" {
+   }
   }
   OVT_SkillManagerComponent "{5D90EE077169A8A2}" {
    m_Skills OVT_SkillsConfig "{5D91035951D22CD1}" : "{F7740B6A7C4F6FB7}Configs/Player/overthrowSkills.conf" {
@@ -223,6 +207,7 @@ OVT_OverthrowGameMode {
    m_fDayTimeAcceleration 6
    m_fNightTimeAcceleration 12
    m_bRandomStartingWeather 1
+   m_bRandomWeatherChanges 1
   }
   OVT_TownManagerComponent "{59724C983BF56C3B}" {
    m_aTownModifiers {
@@ -257,6 +242,11 @@ OVT_OverthrowGameMode {
   SCR_DestructionManagerComponent "{5DFEE7C5F4445327}" {
   }
   SCR_EntityCatalogManagerComponent "{5EE2640207CD57B9}" {
+   m_aEntityCatalogs {
+    SCR_EntityCatalog "{670303AAD2A95E6B}" {
+     m_eEntityCatalogType SUPPLY_CONTAINER_ITEM
+    }
+   }
   }
   SCR_GameModeHealthSettings "{5D7A443950718AF0}" {
   }
@@ -264,6 +254,7 @@ OVT_OverthrowGameMode {
    m_sDefaultGroupPrefab "{8B4D49A9F324E7D5}Prefabs/Groups/PlayableGroup.et"
    m_aGroupFlags {
    }
+   m_bAllowRejoinPlayerAfterReconnecting 0
   }
   SCR_HintManagerComponent "{59724C8C935D8E2C}" {
   }
@@ -350,14 +341,13 @@ OVT_OverthrowGameMode {
    Streamable Disabled
   }
  }
- Flags 0
+ Flags 0 0x3
  coords 208.286 1.001 116.919
+ PlayerControllerPrefab "{FA2D004EF1C217BB}Prefabs/Characters/Core/OVT_PlayerController.et"
  m_bAutoPlayerRespawn 0
- m_StartGameUIContext OVT_StartGameContext "{599D315949D3D5D0}" {
+ m_StartGameUIContext OVT_StartGameContext "{66C60C8B41B3566C}" {
   m_Layout "{4A7A8EED9F6F2A92}UI/Layouts/Menu/StartGameMenu.layout"
   m_sContextName "OverthrowStartContext"
-  m_bOpenActionCloses 0
-  m_bHideHUDOnShow 0
  }
  m_StartCameraPrefab "{E8A19A7167535505}Prefabs/GameMode/OVT_StartCamera.et"
 }

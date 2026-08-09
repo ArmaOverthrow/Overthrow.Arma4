@@ -11,6 +11,7 @@ StaticModelEntity : "{AE28D47CF26E91EA}Prefabs/Props/Military/Fortification/Czec
    }
   }
   OVT_PlaceableComponent "{5D7C4898BB5209CD}" {
+   m_sPlaceableType "Hedgehog"
   }
  }
 }

@@ -23,11 +23,15 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 	protected ref array<float> m_Ranges;
 	protected ref array<ref Widget> m_Widgets;
 	protected ref array<ref Widget> m_POIWidgets;
+	// Paired with m_POIWidgets by index - the static m_aPOIs registry cannot be
+	// indexed by widget position because POIs may be skipped during widget creation
+	protected ref array<ref OVT_MapPOIData> m_aPOIWidgetData;
 	
 	// Enhanced tracking for icon refresh and retry logic
+	// Intervals are in milliseconds - GetWorldTime() returns ms
 	protected float m_fLastRefreshTime = 0;
-	protected float m_fRefreshInterval = 3.0; // More frequent refresh
-	protected float m_fRetryInterval = 1.0; // Quick retry for failed icons
+	protected float m_fRefreshInterval = 3000;
+	protected float m_fRetryInterval = 1000;
 	protected float m_fLastRetryTime = 0;
 	
 	// Retry tracking for failed replication lookups
@@ -115,17 +119,16 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 		// Cache the position for future fallback
 		vector pos = ent.GetOrigin();
 		m_mCachedPositions[id] = pos;
-		
-		m_Centers.Insert(pos);
-		m_Ranges.Insert(m_fCeiling);
-		
+
 		Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
 		if(!w) return false;
-		
+
 		ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
 		if(image)
 			image.LoadImageFromSet(0, m_Imageset, "gundealer");
-		
+
+		m_Centers.Insert(pos);
+		m_Ranges.Insert(m_fCeiling);
 		m_Widgets.Insert(w);
 		return true;
 	}
@@ -141,13 +144,10 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 		
 		vector pos = ent.GetOrigin();
 		m_mCachedPositions[id] = pos;
-		
-		m_Centers.Insert(pos);
-		m_Ranges.Insert(m_fCeiling);
-		
+
 		Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
 		if(!w) return false;
-		
+
 		ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
 		OVT_ShopComponent shop = OVT_ShopComponent.Cast(ent.FindComponent(OVT_ShopComponent));
 		
@@ -176,11 +176,13 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 		
 		if(image)
 			image.LoadImageFromSet(0, m_Imageset, icon);
-		
+
+		m_Centers.Insert(pos);
+		m_Ranges.Insert(m_fCeiling);
 		m_Widgets.Insert(w);
 		return true;
 	}
-	
+
 	// Helper method to try creating port icon
 	bool TryCreatePortIcon(RplId id)
 	{
@@ -192,17 +194,16 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 		
 		vector pos = ent.GetOrigin();
 		m_mCachedPositions[id] = pos;
-		
-		m_Centers.Insert(pos);
-		m_Ranges.Insert(0);
-		
+
 		Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
 		if(!w) return false;
-		
+
 		ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
 		if(image)
 			image.LoadImageFromSet(0, m_Imageset, "port");
-		
+
+		m_Centers.Insert(pos);
+		m_Ranges.Insert(0);
 		m_Widgets.Insert(w);
 		return true;
 	}
@@ -221,16 +222,9 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 			
 			if(isFailedGunDealer || isFailedShop || isFailedPort)
 			{
-				m_Centers.Insert(pos);
-				
-				if(isFailedPort)
-					m_Ranges.Insert(0);
-				else
-					m_Ranges.Insert(m_fCeiling);
-				
 				Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
 				if(!w) continue;
-				
+
 				ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
 				if(image)
 				{
@@ -246,7 +240,14 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 					// Make fallback icons slightly transparent to indicate they're cached
 					image.SetOpacity(0.7);
 				}
-				
+
+				m_Centers.Insert(pos);
+
+				if(isFailedPort)
+					m_Ranges.Insert(0);
+				else
+					m_Ranges.Insert(m_fCeiling);
+
 				m_Widgets.Insert(w);
 			}
 		}
@@ -255,7 +256,7 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 	override void Update(float timeSlice)
 	{
 		// Add validation checks
-		if(!m_Widgets || !m_POIWidgets || !m_Centers || !m_Ranges)
+		if(!m_Widgets || !m_POIWidgets || !m_Centers || !m_Ranges || !m_aPOIWidgetData)
 			return;
 			
 		float currentTime = GetGame().GetWorld().GetWorldTime();
@@ -308,12 +309,12 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 		
 		foreach(int i, Widget w : m_POIWidgets)
 		{
-			if(!w || !w.GetParent() || i >= m_aPOIs.Count()) // Add bounds check
+			if(!w || !w.GetParent() || i >= m_aPOIWidgetData.Count()) // Add bounds check
 			{
 				continue;
 			}
-			
-			OVT_MapPOIData poi = m_aPOIs[i];
+
+			OVT_MapPOIData poi = m_aPOIWidgetData[i];
 			if(!poi) continue; // Check if POI data is valid
 			
 			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
@@ -429,12 +430,14 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 		if(!m_Widgets) m_Widgets = new array<ref Widget>;
 		if(!m_Ranges) m_Ranges = new array<float>;
 		if(!m_POIWidgets) m_POIWidgets = new array<ref Widget>;
-		
+		if(!m_aPOIWidgetData) m_aPOIWidgetData = new array<ref OVT_MapPOIData>;
+
 		// Clear existing data
 		m_Centers.Clear();
 		m_Widgets.Clear();
 		m_Ranges.Clear();
 		m_POIWidgets.Clear();
+		m_aPOIWidgetData.Clear();
 		
 		// Clear failed arrays for fresh start
 		m_aFailedGunDealers.Clear();
@@ -461,7 +464,7 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 			return;
 		}
 		
-		int playerID = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(playerEntity);
+		int playerID = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(playerEntity);
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerID);
 			
 		BaseWorld world = GetGame().GetWorld();
@@ -499,9 +502,10 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 			
 			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
 			if(image && data.m_UiInfo)
-				data.m_UiInfo.SetIconTo(image);	
-			
+				data.m_UiInfo.SetIconTo(image);
+
 			m_POIWidgets.Insert(w);
+			m_aPOIWidgetData.Insert(data);
 		}
 		
 		if(houses)
@@ -517,22 +521,21 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 					continue;
 				}
 				
-				int range = m_fCeiling;
+				float range = m_fCeiling;
 				if(realEstate.IsHome(persId, ent.GetID()))
 				{
 					range = 0;
 				}
-				
-				m_Centers.Insert(ent.GetOrigin());
-				m_Ranges.Insert(range);			
-				
+
 				Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
 				if(!w) continue;
-				
+
 				ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
 				if(image)
-					image.LoadImageFromSet(0, m_Imageset, "house");					
-				
+					image.LoadImageFromSet(0, m_Imageset, "house");
+
+				m_Centers.Insert(ent.GetOrigin());
+				m_Ranges.Insert(range);
 				m_Widgets.Insert(w);
 			}
 		}
@@ -551,19 +554,18 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 				{
 					continue;
 				}
-				m_Centers.Insert(ent.GetOrigin());
-				m_Ranges.Insert(m_fCeiling);
-				
 				Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
 				if(!w) continue;
-				
+
 				ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
 				if(image)
 				{
 					image.LoadImageFromSet(0, m_Imageset, "house");
 					image.SetColor(Color.Gray25);
 				}
-				
+
+				m_Centers.Insert(ent.GetOrigin());
+				m_Ranges.Insert(m_fCeiling);
 				m_Widgets.Insert(w);
 			}
 		}
@@ -581,16 +583,15 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 			{
 				continue;
 			}
-			m_Centers.Insert(ent.GetOrigin());
-			m_Ranges.Insert(0);
-			
 			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
 			if(!w) continue;
-			
+
 			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
 			if(image)
 				image.LoadImageFromSet(0, m_Imageset, "warehouse");
-			
+
+			m_Centers.Insert(ent.GetOrigin());
+			m_Ranges.Insert(0);
 			m_Widgets.Insert(w);
 		}
 		
@@ -607,19 +608,18 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 			{
 				continue;
 			}
-			m_Centers.Insert(ent.GetOrigin());
-			m_Ranges.Insert(0);
-			
 			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
 			if(!w) continue;
-			
+
 			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
 			if(image)
 			{
 				image.LoadImageFromSet(0, m_Imageset, "warehouse");
 				image.SetColor(Color.Gray25);
 			}
-			
+
+			m_Centers.Insert(ent.GetOrigin());
+			m_Ranges.Insert(0);
 			m_Widgets.Insert(w);
 		}
 		
@@ -643,45 +643,51 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 			// Only show public camps or camps owned by the current player
 			if(camp.isPrivate && camp.owner != persId)
 				continue;
-				
+
+			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
+			if(!w) continue;
+
+			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
+			if(image)
+			{
+				image.LoadImageFromSet(0, m_Imageset, "camp");
+
+				Faction faction = GetGame().GetFactionManager().GetFactionByKey("FIA");
+				image.SetColor(faction.GetFactionColor());
+			}
+
 			m_Centers.Insert(camp.location);
 			m_Ranges.Insert(m_fCeiling);
-			
-			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
-			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
-						
-			image.LoadImageFromSet(0, m_Imageset, "camp");
-			
-			Faction faction = GetGame().GetFactionManager().GetFactionByKey("FIA");
-			image.SetColor(faction.GetFactionColor());
-			
 			m_Widgets.Insert(w);
 		}
 		
 		foreach(OVT_FOBData fob : resistance.m_FOBs)
-		{			
-			m_Centers.Insert(fob.location);
-			
+		{
 			// Priority FOBs are always visible (range 0), regular FOBs hidden when zoomed out
 			float range = m_fCeiling;
 			if (fob.isPriority)
 				range = 0;
-			m_Ranges.Insert(range);
-			
+
 			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
+			if(!w) continue;
+
 			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
-			
-			// Use different icon for priority FOB
-			string iconName = "fob";
-			if (fob.isPriority)
-				iconName = "fob_priority";
-			image.LoadImageFromSet(0, m_Imageset, iconName);
-			
-			Faction faction = GetGame().GetFactionManager().GetFactionByKey("FIA");
-			Color fobColor = faction.GetFactionColor();
-						
-			image.SetColor(fobColor);
-			
+			if(image)
+			{
+				// Use different icon for priority FOB
+				string iconName = "fob";
+				if (fob.isPriority)
+					iconName = "fob_priority";
+				image.LoadImageFromSet(0, m_Imageset, iconName);
+
+				Faction faction = GetGame().GetFactionManager().GetFactionByKey("FIA");
+				Color fobColor = faction.GetFactionColor();
+
+				image.SetColor(fobColor);
+			}
+
+			m_Centers.Insert(fob.location);
+			m_Ranges.Insert(range);
 			m_Widgets.Insert(w);
 		}
 		
@@ -708,21 +714,21 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 			{
 				IEntity ent = world.FindEntityByID(id);
 				if(!ent) continue;
-				m_Centers.Insert(ent.GetOrigin());
-				m_Ranges.Insert(m_fCeiling);
-				
+
 				Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
 				if(!w) continue;
-				
+
 				ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
 				if(image)
 				{
 					image.LoadImageFromSet(0, m_Imageset, "vehicle");
-					
+
 					vector angles = ent.GetYawPitchRoll();
 					image.SetRotation(angles[0]);
 				}
-				
+
+				m_Centers.Insert(ent.GetOrigin());
+				m_Ranges.Insert(m_fCeiling);
 				m_Widgets.Insert(w);
 			}
 		}
@@ -732,25 +738,24 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 		if(occupying.m_RadioTowers)
 		{
 			foreach(OVT_RadioTowerData tower : occupying.m_RadioTowers)
-			{	
+			{
 				if(!tower) continue; // Add null check
-				
-				m_Centers.Insert(tower.location);
-				m_Ranges.Insert(0);
-				
+
 				Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
 				if(!w) continue;
-				
+
 				ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
 				if(image)
 				{
-					image.LoadImageFromSet(0, m_Imageset, "tower");	
-					
+					image.LoadImageFromSet(0, m_Imageset, "tower");
+
 					Faction faction = GetGame().GetFactionManager().GetFactionByIndex(tower.faction);
 					if(faction)
 						image.SetColor(faction.GetFactionColor());
 				}
-									
+
+				m_Centers.Insert(tower.location);
+				m_Ranges.Insert(0);
 				m_Widgets.Insert(w);
 			}
 		}
@@ -774,16 +779,17 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 		OVT_JobManagerComponent jobs = OVT_Global.GetJobs();
 		if(jobs && jobs.m_vCurrentWaypoint)
 		{
-			m_Centers.Insert(jobs.m_vCurrentWaypoint);
-			m_Ranges.Insert(0);
-			
 			Widget w = GetGame().GetWorkspace().CreateWidgets(m_Layout, m_RootWidget);
-			if(!w) return;
-			
-			ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
-			if(image)
-				image.LoadImageFromSet(0, m_Imageset, "waypoint");			
-			m_Widgets.Insert(w);
+			if(w)
+			{
+				ImageWidget image = ImageWidget.Cast(w.FindAnyWidget("Image"));
+				if(image)
+					image.LoadImageFromSet(0, m_Imageset, "waypoint");
+
+				m_Centers.Insert(jobs.m_vCurrentWaypoint);
+				m_Ranges.Insert(0);
+				m_Widgets.Insert(w);
+			}
 		}
 		
 		// Create fallback icons for any that failed initially
@@ -829,7 +835,12 @@ class OVT_MapIcons : SCR_MapUIBaseComponent
 			m_Ranges = null;
 		}
 		if(m_POIWidgets) m_POIWidgets = null;
-		
+		if(m_aPOIWidgetData)
+		{
+			m_aPOIWidgetData.Clear();
+			m_aPOIWidgetData = null;
+		}
+
 		// Note: We keep retry arrays and cached positions for next map open
 		// This helps with persistence across map sessions
 	}

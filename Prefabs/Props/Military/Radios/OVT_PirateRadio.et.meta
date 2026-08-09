@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{6A7D9B2E00000046}Prefabs/Props/Military/Radios/OVT_PirateRadio.et"
+ Configurations {
+  EntityTemplateResourceClass PC {
+  }
+  EntityTemplateResourceClass XBOX_ONE : PC {
+  }
+  EntityTemplateResourceClass XBOX_SERIES : PC {
+  }
+  EntityTemplateResourceClass PS4 : PC {
+  }
+  EntityTemplateResourceClass HEADLESS : PC {
+  }
+ }
+}

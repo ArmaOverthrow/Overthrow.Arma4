@@ -46,9 +46,11 @@ class OVT_BaseUpgrade : ScriptAndConfig
 		return 0;
 	}
 	
-	int SpendToAllocation(float threat)
+	int SpendToAllocation(float threat, int max = -1)
 	{
-		return Spend((m_iResourceAllocation * OVT_Global.GetConfig().m_Difficulty.baseResourceCost) - GetResources(), threat);
+		int toSpend = (m_iResourceAllocation * OVT_Global.GetConfig().m_Difficulty.baseResourceCost) - GetResources();
+		if(max >= 0 && toSpend > max) toSpend = max;
+		return Spend(toSpend, threat);
 	}
 	
 	protected OVT_FactionComposition GetCompositionConfig(string tag)

@@ -1,0 +1,68 @@
+ButtonWidgetClass {
+ Name "ShopMenu_Tab"
+ Slot LayoutSlot "{6A7C4E1C77B31E4F}" {
+  Padding 0 0 8 0
+ }
+ components {
+  SCR_ButtonComponent "{56FAC701265C74AA}" {
+   m_bMouseOverToFocus 1
+   m_bShowBackgroundOnFocus 1
+   m_bShowBorderOnHover 1
+  }
+  OVT_ShopMenuTabComponent "{6A7C4E1C77B31E45}" {
+  }
+ }
+ style blank
+ {
+  SizeLayoutWidgetClass "{6A7C4E1C77B31E41}" {
+   Name "TabSize"
+   Slot ButtonWidgetSlot "{5D48A6A577ADBD8A}" {
+    HorizontalAlign 3
+    VerticalAlign 3
+   }
+   AllowHeightOverride 1
+   HeightOverride 40
+   MinDesiredHeight 0
+   {
+    OverlayWidgetClass "{6A7C4E1C77B31E42}" {
+     Name "TabOverlay"
+     Slot AlignableSlot "{5D48CA00E4215D49}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+     }
+     {
+      ImageWidgetClass "{6A7C4E1C77B31E43}" {
+       Name "Background"
+       Slot OverlayWidgetSlot "{5D48CA00C9F6945E}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       Color 0.005 0.005 0.005 1
+       Image ""
+       Size 64 64
+      }
+      TextWidgetClass "{6A7C4E1C77B31E44}" : "{3132F64DB8B4CB44}UI/layouts/WidgetLibrary/TextWidgets/Text_Body.layout" {
+       Name "TabLabel"
+       Slot OverlayWidgetSlot "{5D48CA00AF2180C8}" {
+        Padding 16 4 16 4
+       }
+       Text "#OVT-ShopCategory_All"
+       "Horizontal Alignment" Center
+       "Vertical Alignment" Center
+      }
+      PanelWidgetClass "{6A7C4E1C77B31E46}" {
+       Name "Border"
+       Slot OverlayWidgetSlot "{56EF0B195DBB5E79}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+        Padding -2 -2 -2 -2
+       }
+       Color 0.761 0.392 0.08 1
+       style outline_2px
+      }
+     }
+    }
+   }
+  }
+ }
+}

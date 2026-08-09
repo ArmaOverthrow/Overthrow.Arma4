@@ -386,13 +386,24 @@ class OVT_RplOwnerManagerComponent: OVT_Component
 	//! \param[in] persId The persistent ID of the player.
 	//! \param[in] id The RplId of the entity.
 	protected void DoSetOwnerPersistentId(string persId, RplId id)
-	{		
+	{
+		// A transfer detaches the id from the previous owner's set first (BUG-003).
+		if(m_mOwners.Contains(id))
+		{
+			string previousOwner = m_mOwners[id];
+			if(previousOwner != persId && m_mOwned.Contains(previousOwner))
+			{
+				int i = m_mOwned[previousOwner].Find(id);
+				if(i != -1) m_mOwned[previousOwner].Remove(i);
+			}
+		}
+
 		if(!m_mOwned.Contains(persId)) m_mOwned[persId] = new set<RplId>;
 		set<RplId> owner = m_mOwned[persId];
 		owner.Insert(id);
-		
+
 		m_mOwners[id] = persId;
-		
+
 		RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
 		if(!rpl) return;
 		m_mLocations[id] = rpl.GetEntity().GetOrigin();
@@ -404,10 +415,21 @@ class OVT_RplOwnerManagerComponent: OVT_Component
 	//! \param[in] id The RplId of the entity.
 	protected void DoSetRenterPersistentId(string persId, RplId id)
 	{
+		// Same previous-renter detach as DoSetOwnerPersistentId (BUG-003).
+		if(m_mRenters.Contains(id))
+		{
+			string previousRenter = m_mRenters[id];
+			if(previousRenter != persId && m_mRented.Contains(previousRenter))
+			{
+				int i = m_mRented[previousRenter].Find(id);
+				if(i != -1) m_mRented[previousRenter].Remove(i);
+			}
+		}
+
 		if(!m_mRented.Contains(persId)) m_mRented[persId] = new set<RplId>;
 		set<RplId> renter = m_mRented[persId];
 		renter.Insert(id);
-		
+
 		m_mRenters[id] = persId;
 	}
 	

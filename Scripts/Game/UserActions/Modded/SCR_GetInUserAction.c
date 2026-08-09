@@ -23,14 +23,14 @@ modded class SCR_GetInUserAction : SCR_CompartmentUserAction
 		OVT_OverthrowGameMode ot = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
 
 		if(ot && PilotCompartmentSlot.Cast(targetCompartment)) {
-			OVT_PlayerOwnerComponent playerowner = EPF_Component<OVT_PlayerOwnerComponent>.Find(pOwnerEntity);
+			OVT_PlayerOwnerComponent playerowner = OVT_ComponentFinder<OVT_PlayerOwnerComponent>.Find(pOwnerEntity);
 			if(playerowner)
 			{
 				string ownerUid = playerowner.GetPlayerOwnerUid();
 				if(ownerUid == "")
 				{
 					// Get the player ID and request ownership on server
-					int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(pUserEntity);
+					int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(pUserEntity);
 					if (playerId > 0)
 					{
 						OVT_PlayerCommsComponent comms = OVT_Global.GetServer();
@@ -69,7 +69,10 @@ modded class SCR_GetInUserAction : SCR_CompartmentUserAction
 		{
 			Faction characterFaction = character.GetFaction();
 			Faction vehicleFaction = vehicle.GetFaction();
-			if (characterFaction && vehicleFaction && characterFaction.IsFactionEnemy(vehicleFaction))
+			// Same-faction never blocks: a faction can read as enemy to ITSELF on a client whose
+			// relation table is empty or in FFA-style setups - vanilla carries this guard on the
+			// door/handbrake actions but forgot it here (BUG-132)
+			if (characterFaction && vehicleFaction && vehicleFaction != characterFaction && characterFaction.IsFactionEnemy(vehicleFaction))
 			{
 				SetCannotPerformReason("#AR-UserAction_SeatHostile");
 				return false;
@@ -99,7 +102,7 @@ modded class SCR_GetInUserAction : SCR_CompartmentUserAction
 		OVT_OverthrowGameMode ot = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
 		if(!ot) return true;
 		
-		OVT_PlayerOwnerComponent playerowner = EPF_Component<OVT_PlayerOwnerComponent>.Find(vehicle);
+		OVT_PlayerOwnerComponent playerowner = OVT_ComponentFinder<OVT_PlayerOwnerComponent>.Find(vehicle);
 		if(!playerowner || !playerowner.IsLocked()) return true;
 		
 		string ownerUid = playerowner.GetPlayerOwnerUid();

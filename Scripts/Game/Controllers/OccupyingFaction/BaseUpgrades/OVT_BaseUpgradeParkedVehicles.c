@@ -6,8 +6,9 @@ class OVT_BaseUpgradeParkedVehicles : OVT_BaseUpgrade
 	[Attribute()]
 	int m_iNumberOfTrucks;
 	
-	ref array<ref EntityID> m_Cars;
-	ref array<ref EntityID> m_Trucks;
+	// Initialized at declaration: a save can serialize this upgrade before PostInit() has run
+	ref array<ref EntityID> m_Cars = new array<ref EntityID>;
+	ref array<ref EntityID> m_Trucks = new array<ref EntityID>;
 	
 	OVT_VehicleManagerComponent m_Vehicles;
 			

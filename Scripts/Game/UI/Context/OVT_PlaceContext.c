@@ -18,7 +18,10 @@ class OVT_PlaceContext : OVT_UIContext
 	protected ResourceName m_pPlacingPrefab;
 	protected OVT_Placeable m_Placeable;
 
-	protected vector[] m_vCurrentTransform[4];
+	//! Yaw the player last rotated a ground ghost to, carried to the next ghost.
+	//! Only the yaw - carrying the whole transform stamped an unrelated placeable's
+	//! pitch and roll onto the next ghost, with no input able to level it again.
+	protected float m_fCurrentYaw;
 
 	protected const float TRACE_DIS = 15;
 	protected const float MAX_PREVIEW_DIS = 15;
@@ -59,13 +62,19 @@ class OVT_PlaceContext : OVT_UIContext
 			{
 				vector normal = vector.Zero;
 				m_ePlacingEntity.SetOrigin(GetPlacePosition(normal));
-				m_ePlacingEntity.GetTransform(m_vCurrentTransform);
 				if(m_Placeable.m_bPlaceOnWall)
 				{
 					vector ypr = m_ePlacingEntity.GetYawPitchRoll();
 					ypr[0] = normal.ToYaw();
 					ypr[1] = 0;
 					m_ePlacingEntity.SetYawPitchRoll(ypr);
+				}
+				else
+				{
+					//Wall yaw comes from the surface normal, not the player, so it must not
+					//poison the ground carry-over
+					vector ypr = m_ePlacingEntity.GetYawPitchRoll();
+					m_fCurrentYaw = ypr[0];
 				}
 				m_ePlacingEntity.Update();
 			}
@@ -141,7 +150,8 @@ class OVT_PlaceContext : OVT_UIContext
 		
 		// Calculate pages based on remaining items
 		int totalPlaceables = m_Resistance.m_PlaceablesConfig.m_aPlaceables.Count();
-		m_iNumPages = Math.Ceil(totalPlaceables / 14); // 14 items per page (leaving room for remove card)
+		m_iNumPages = (totalPlaceables + 13) / 14; // 14 items per page (leaving room for remove card)
+		if(m_iNumPages < 1) m_iNumPages = 1;
 		if(m_iPageNum >= m_iNumPages) m_iPageNum = 0;
 		string pageNumText = (m_iPageNum + 1).ToString();
 		
@@ -223,6 +233,13 @@ class OVT_PlaceContext : OVT_UIContext
 	bool CanPlace(OVT_Placeable placeable, vector pos, out string reason)
 	{
 		reason = "#OVT-CannotPlaceHere";
+
+		if(GetSupportModifierSpace(placeable, pos) == 0)
+		{
+			reason = "#OVT-TownModifierLimit";
+			return false;
+		}
+
 		if(placeable.m_bIgnoreLocation) return true;
 		
 		if(!m_ItemLimitChecker.CanPlaceItem(pos, m_sPlayerID, reason))
@@ -369,6 +386,25 @@ class OVT_PlaceContext : OVT_UIContext
 		return false;
 	}
 
+	//! Remaining space on the nearest town for a support-modifier placeable (posters, pirate radio).
+	//! Returns -1 when no limit applies. Asks the modifier system rather than reading the config
+	//! itself, so this answers exactly what OVT_PlaceableSupportModHandler will answer server-side -
+	//! including the case this used to get wrong, a NON-stackable modifier, whose limit is one and
+	//! not "none". Reads the replicated town modifier lists, so it is valid on a client.
+	protected int GetSupportModifierSpace(OVT_Placeable placeable, vector pos)
+	{
+		OVT_PlaceableSupportModHandler handler = OVT_PlaceableSupportModHandler.Cast(placeable.handler);
+		if(!handler) return -1;
+
+		OVT_TownModifierSystem system = m_Towns.GetModifierSystem(OVT_TownSupportModifierSystem);
+		if(!system) return -1;
+
+		OVT_TownData town = m_Towns.GetNearestTown(pos);
+		if(!town) return -1;
+
+		return system.GetModifierSpaceByName(m_Towns.GetTownID(town), handler.m_sSupportModifierName);
+	}
+
 	void StartPlace(OVT_Placeable placeable)
 	{
 		if(m_bIsActive) CloseLayout();
@@ -426,10 +462,6 @@ class OVT_PlaceContext : OVT_UIContext
 		m_pPlacingPrefab = m_Placeable.m_aPrefabs[m_iPrefabIndex];
 		m_ePlacingEntity = OVT_Global.SpawnEntityPrefab(m_pPlacingPrefab, pos, "0 0 0", false);
 
-		if(m_vCurrentTransform)
-		{
-			m_ePlacingEntity.SetTransform(m_vCurrentTransform);
-		}
 		//SCR_Global.SetMaterial(m_ePlacingEntity, "{E0FECF0FE7457A54}Assets/Editor/PlacingPreview/Preview_03.emat", true);
 
 		Physics phys = m_ePlacingEntity.GetPhysics();
@@ -443,6 +475,12 @@ class OVT_PlaceContext : OVT_UIContext
 		if(m_Placeable.m_bPlaceOnWall)
 		{
 			vector ypr = Vector(normal.ToYaw(), 0, 0);
+			m_ePlacingEntity.SetYawPitchRoll(ypr);
+		}
+		else
+		{
+			//Upright, at the yaw the player left the last ground ghost on
+			vector ypr = Vector(m_fCurrentYaw, 0, 0);
 			m_ePlacingEntity.SetYawPitchRoll(ypr);
 		}
 	}
@@ -494,9 +532,19 @@ class OVT_PlaceContext : OVT_UIContext
 			vector angles = Math3D.MatrixToAngles(mat);
 			int placeableIndex = m_Resistance.m_PlaceablesConfig.m_aPlaceables.Find(m_Placeable);
 			int prefabIndex = m_Placeable.m_aPrefabs.Find(m_pPlacingPrefab);
+			// Sampled before the RPC lands - the replicated modifier list still excludes this placement
+			int modifierSpace = GetSupportModifierSpace(m_Placeable, mat[3]);
 			OVT_Global.GetServer().PlaceItem(placeableIndex, prefabIndex, mat[3], angles, m_iPlayerID);
-						
+
 			SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.CLICK);
+
+			if(modifierSpace == 1)
+			{
+				//This placement filled the town's stack - exit place mode and say why
+				Cancel();
+				ShowHint("#OVT-TownModifierLimit");
+				return;
+			}
 		}
 
 		if(m_Economy.PlayerHasMoney(m_sPlayerID, cost))
@@ -727,10 +775,11 @@ class OVT_PlaceContext : OVT_UIContext
 			if(hitEntity)
 			{
 				OVT_PlaceableComponent placeableComp = OVT_PlaceableComponent.Cast(hitEntity.FindComponent(OVT_PlaceableComponent));
-				if(placeableComp && CanRemoveItem(placeableComp))
+				RplComponent rpl = RplComponent.Cast(hitEntity.FindComponent(RplComponent));
+				if(placeableComp && rpl && CanRemoveItem(placeableComp))
 				{
-					// Send removal request to server
-					OVT_Global.GetServer().RemovePlacedItem(hitEntity.GetID(), m_iPlayerID);
+					// Send removal request to server (RplId - EntityID is not valid across the network)
+					OVT_Global.GetServer().RemovePlacedItem(rpl.Id(), m_iPlayerID);
 					ShowHint("#OVT-ItemRemoved");
 					SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.CLICK);
 				}

@@ -19,7 +19,11 @@ class OVT_BaseUpgradeDefensePosition : OVT_BasePatrolUpgrade
 		bool inrange = PlayerInRange() && !m_occupyingFactionManager.m_CurrentQRF;
 		if(inrange && !m_bSpawned)
 		{
-			Spend(m_iProxedResources, OVT_Global.GetOccupyingFaction().m_iThreat);
+			// Only deduct what was actually spent - the guard roll can place fewer guards than the
+			// bank affords, and the remainder is still paid-for resources
+			int spent = Spend(m_iProxedResources, OVT_Global.GetOccupyingFaction().m_iThreat);
+			m_iProxedResources -= spent;
+			if(m_iProxedResources < 0) m_iProxedResources = 0;
 			m_bSpawned = true;
 		}else if(!inrange && m_bSpawned){
 			foreach(EntityID id : m_Groups)

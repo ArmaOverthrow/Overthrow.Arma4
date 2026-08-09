@@ -12,6 +12,7 @@ class OVT_ManageBaseAction : ScriptedUserAction
 		vector location = pOwnerEntity.GetOrigin();
 		
 		OVT_BaseData nearestBase = of.GetNearestBase(location);
+		if(!nearestBase) return;
 		float dist = vector.Distance(nearestBase.location, location);
 		
 		if(dist < 10)
@@ -25,6 +26,7 @@ class OVT_ManageBaseAction : ScriptedUserAction
 		}
 		
 		OVT_FOBData nearestFOB = rf.GetNearestFOBData(location);
+		if(!nearestFOB) return;
 		dist = vector.Distance(nearestFOB.location, location);
 		
 		if(dist < 10)
@@ -47,7 +49,7 @@ class OVT_ManageBaseAction : ScriptedUserAction
 
 	override bool CanBeShownScript(IEntity user)
 	{
-		OVT_BaseControllerComponent baseController = EPF_Component<OVT_BaseControllerComponent>.Find(GetOwner());
+		OVT_BaseControllerComponent baseController = OVT_ComponentFinder<OVT_BaseControllerComponent>.Find(GetOwner());
 		if (!baseController)
 		{
 			//is an FOB

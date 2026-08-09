@@ -3,6 +3,10 @@ OVT_OverthrowController {
  components {
   OVT_ContainerTransferComponent "{65C4B2D67885EBBF}" {
   }
+  OVT_ShopTransactionComponent "{6A7A1F3C4B29D0E5}" {
+  }
+  OVT_TowerSabotageComponent "{6A7D9B2E00000010}" {
+  }
   RplComponent "{65C4B2D3DE955867}" {
   }
  }

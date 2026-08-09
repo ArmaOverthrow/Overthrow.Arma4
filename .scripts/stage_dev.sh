@@ -50,6 +50,7 @@ fi
 # Copy files from source to destination, excluding:
 # - Files/folders starting with "." (hidden files, .git, .scripts, etc.)
 # - The "docs" folder
+# - The "tools" folder (dev automation scripts — must never ship in the addon)
 # - addon.gproj (we already have it in destination)
 echo "Copying files from source to destination..."
 
@@ -58,10 +59,14 @@ find . -mindepth 1 \
     -not -path './.*' \
     -not -path './docs' \
     -not -path './docs/*' \
+    -not -path './generated-docs' \
+    -not -path './generated-docs/*' \
+    -not -path './tools' \
+    -not -path './tools/*' \
     -not -name 'addon.gproj' \
     -print0 | rsync -a --files-from=- --from0 . "$DEST_DIR/"
 
 echo "Development build staging complete!"
 echo "Copied from: $SOURCE_DIR"
 echo "Copied to: $DEST_DIR"
-echo "Excluded: hidden files/folders (.*), docs folder, addon.gproj"
+echo "Excluded: hidden files/folders (.*), docs folder, tools folder, addon.gproj"

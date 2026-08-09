@@ -18,7 +18,10 @@ class OVT_NameTagRulesetFaction : SCR_NameTagRulesetBase
 		FactionAffiliationComponent aff = FactionAffiliationComponent.Cast(entity.FindComponent(FactionAffiliationComponent));
 		if(!aff) return false;
 		
-		if(aff.GetAffiliatedFaction().GetFactionKey() != m_sFactionKey) return false;
+		Faction affiliatedFaction = aff.GetAffiliatedFaction();
+		if(!affiliatedFaction) return false;
+		
+		if(affiliatedFaction.GetFactionKey() != m_sFactionKey) return false;
 		
 		float distLerp = Math.InverseLerp(m_ZoneCfg.m_fFarthestZoneRangePow2, 0, data.m_fDistance); // reduce the angle required to show with distance -> the further is the entity, angle required to focus it gets smaller
 		distLerp *= m_iMaxAngle/2;  // adjust for more standard ish FOV of 90 (45 radius) TODO: this should be taken from real FOV

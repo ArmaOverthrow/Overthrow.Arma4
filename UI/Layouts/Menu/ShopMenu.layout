@@ -94,6 +94,69 @@ FrameWidgetClass {
               }
              }
             }
+            HorizontalLayoutWidgetClass "{6A7C4E1B39D0A5C1}" {
+             Name "HeaderRow"
+             Slot LayoutSlot "{599083DDE2349E32}" {
+              Padding 0 0 0 8
+             }
+             {
+              ButtonWidgetClass "{6A7C4E1B39D0A5C2}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+               Name "ModeBuyButton"
+               Slot LayoutSlot "{56EEDE01982D053A}" {
+                Padding 0 0 10 0
+               }
+               components {
+                SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                 m_sActionName "OverthrowShopModeBuy"
+                 m_sLabel "#OVT-Shop_ModeBuy"
+                }
+               }
+              }
+              ButtonWidgetClass "{6A7C4E1B39D0A5C3}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+               Name "ModeSellButton"
+               Slot LayoutSlot "{56EEDE01982D053A}" {
+                Padding 0 0 24 0
+               }
+               components {
+                SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                 m_sActionName "OverthrowShopModeSell"
+                 m_sLabel "#OVT-Shop_ModeSell"
+                }
+               }
+              }
+              ButtonWidgetClass "{6A7C4E1B39D0A5C4}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+               Name "PrevCategoryButton"
+               Slot LayoutSlot "{56EEDE01982D053A}" {
+                Padding 0 0 10 0
+               }
+               components {
+                SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                 m_sActionName "OverthrowShopPrevCategory"
+                 m_sLabel "#OVT-Shop_PrevCategory"
+                }
+               }
+              }
+              HorizontalLayoutWidgetClass "{6A7C4E1B39D0A5C5}" {
+               Name "Tabs"
+               Slot LayoutSlot "{56EEDE046853BD3D}" {
+                Padding 0 0 10 0
+                SizeMode Fill
+               }
+              }
+              ButtonWidgetClass "{6A7C4E1B39D0A5C6}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+               Name "NextCategoryButton"
+               Slot LayoutSlot "{56EEDE01982D053A}" {
+                Padding 0 0 0 0
+               }
+               components {
+                SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                 m_sActionName "OverthrowShopNextCategory"
+                 m_sLabel "#OVT-Shop_NextCategory"
+                }
+               }
+              }
+             }
+            }
             ImageWidgetClass "{598EF9FB202E402D}" {
              Name "UpperStripe"
              Slot LayoutSlot "{56EEDE07C9F827C2}" {
@@ -215,6 +278,19 @@ FrameWidgetClass {
                  }
                 }
                }
+              }
+              TextWidgetClass "{6A7C4E1B39D0A5CF}" : "{3132F64DB8B4CB44}UI/layouts/WidgetLibrary/TextWidgets/Text_Body.layout" {
+               Name "Message"
+               Slot OverlayWidgetSlot "{56EF0B1E7E5700F5}" {
+                HorizontalAlign 1
+                VerticalAlign 2
+                Padding 0 0 0 8
+               }
+               "Is Visible" 0
+               Text ""
+               "Horizontal Alignment" Center
+               "Vertical Alignment" Center
+               Color 0.761 0.392 0.08 1
               }
              }
             }
@@ -402,6 +478,19 @@ FrameWidgetClass {
                 SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
                  m_sActionName "OverthrowShopSell"
                  m_sLabel "#OVT-Shop_Sell"
+                }
+               }
+              }
+              ButtonWidgetClass "{6A7C4E1B39D0A5D0}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+               Name "SellAllButton"
+               Slot LayoutSlot "{56EEDE01982D053A}" {
+                Padding 0 0 0 0
+               }
+               "Is Visible" 0
+               components {
+                SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                 m_sActionName "OverthrowShopSellAll"
+                 m_sLabel "#OVT-Shop_SellAll"
                 }
                }
               }

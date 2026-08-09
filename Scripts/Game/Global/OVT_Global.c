@@ -1,5 +1,69 @@
 class OVT_Global : Managed
-{	
+{
+	//------------------------------------------------------------------------------------------------
+	//! Gets the prefab an entity was spawned from, resolving prefab inheritance the way the engine does.
+	//!
+	//! Walks the container ancestry to the first container that actually came from a .et file, which is
+	//! what makes this correct for nested/inherited prefabs where EntityPrefabData.GetPrefabName() can
+	//! answer with an intermediate name. This is the vanilla replacement for the prefab-name utility the
+	//! old persistence framework provided, and is deliberately identical to it.
+	//! \param[in] entity The entity to look up.
+	//! \return Its prefab resource name, or an empty resource name.
+	static ResourceName GetPrefabName(IEntity entity)
+	{
+		if (!entity)
+			return ResourceName.Empty;
+
+		EntityPrefabData prefabData = entity.GetPrefabData();
+		if (!prefabData)
+			return ResourceName.Empty;
+
+		return SCR_BaseContainerTools.GetPrefabResourceName(prefabData.GetPrefab());
+	}
+
+	//! CLI parameter that opts a session in to synthesised development UIDs. See GetPlayerUID().
+	static const string DEV_UID_CLI_PARAM = "ovtDevUid";
+
+	//! Prefix of a synthesised development UID. Deliberately distinctive so one showing up in a save,
+	//! a log or a player record is immediately recognisable as not a real platform identity.
+	static const string DEV_UID_PREFIX = "DEV_";
+
+	//------------------------------------------------------------------------------------------------
+	//! Gets the platform-stable identity id of a connected player.
+	//!
+	//! This is the string Overthrow keys every player record on. Vanilla replacement for the player-UID
+	//! utility the old persistence framework provided, which was a one-line forward to exactly this call.
+	//!
+	//! DEVELOPMENT FALLBACK: a server started without a backend connection (tools/launch-server.sh
+	//! --mode local, i.e. the engine's -server route) authenticates nobody, so every player's identity
+	//! id is empty forever. Overthrow keys everything on that string, so with no identity OVT_SpawnLogic
+	//! .DoSpawn_S can never register the player and retries once a second indefinitely - the player sits
+	//! at the spawn camera and never enters the world. When the session opted in, synthesise a UID from
+	//! the runtime player id instead: distinct per connected client (DEV_1, DEV_2, ...) and computed
+	//! identically on server and clients, so no extra replication is needed.
+	//!
+	//! Gated on a CLI parameter and NOT merely on "the identity is empty", deliberately. An empty
+	//! identity is also the normal transient state while a real player is still authenticating, so
+	//! synthesising on sight would hand a legitimate player a fresh blank record instead of waiting for
+	//! their real one. A production server never passes the parameter, so the fallback cannot fire there.
+	//! \param[in] playerId Runtime player id.
+	//! \return The identity id; a synthesised DEV_ id when the session opted in and no identity exists;
+	//!         otherwise an empty string, exactly as before.
+	static string GetPlayerUID(int playerId)
+	{
+		string identity = SCR_PlayerIdentityUtils.GetPlayerIdentityId(playerId);
+		if (identity != string.Empty)
+			return identity;
+
+		if (!System.IsCLIParam(DEV_UID_CLI_PARAM))
+			return string.Empty;
+
+		if (playerId < 1)
+			return string.Empty;
+
+		return DEV_UID_PREFIX + playerId.ToString();
+	}
+
 	static OVT_PlayerCommsComponent GetServer()
 	{		
 		if(Replication.IsServer())
@@ -24,7 +88,7 @@ class OVT_Global : Managed
 		IEntity player = SCR_PlayerController.GetLocalControlledEntity();
 		if (!player) return null;
 		
-		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(player);
+		int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(player);
 		return GetPlayers().GetController(playerId);
 	}
 	
@@ -39,6 +103,28 @@ class OVT_Global : Managed
 		return OVT_ContainerTransferComponent.Cast(controller.FindComponent(OVT_ContainerTransferComponent));
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Convenience method to get the server-authoritative shop transaction component
+	//! \return Shop transaction component or null
+	static OVT_ShopTransactionComponent GetShopTransactions()
+	{
+		OVT_OverthrowController controller = GetController();
+		if (!controller) return null;
+
+		return OVT_ShopTransactionComponent.Cast(controller.FindComponent(OVT_ShopTransactionComponent));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Convenience method to get the radio tower sabotage relay component
+	//! \return Tower sabotage component or null
+	static OVT_TowerSabotageComponent GetTowerSabotage()
+	{
+		OVT_OverthrowController controller = GetController();
+		if (!controller) return null;
+
+		return OVT_TowerSabotageComponent.Cast(controller.FindComponent(OVT_TowerSabotageComponent));
+	}
+
 	//------------------------------------------------------------------------------------------------
 	//! Convenience method for battlefield looting
 	//! \param[in] vehicle Target vehicle to loot into
@@ -412,7 +498,7 @@ class OVT_Global : Managed
 		foreach(IEntity item : items)
 		{
 			if(!item) continue;			
-			ResourceName res = EPF_Utils.GetPrefabName(item);
+			ResourceName res = OVT_Global.GetPrefabName(item);
 			if(fromStorage.TryDeleteItem(item))
 			{			
 				if(!collated.Contains(res)) collated[res] = 0;
@@ -473,11 +559,20 @@ class OVT_Global : Managed
 		Math3D.AnglesToMatrix(orientation, spawnParams.Transform);
 		spawnParams.Transform[3] = origin;
 
-		if (!global) return GetGame().SpawnEntityPrefabLocal(Resource.Load(prefab), GetGame().GetWorld(), spawnParams);
+		IEntity entity;
+		if (global)
+			entity = GetGame().SpawnEntityPrefab(Resource.Load(prefab), GetGame().GetWorld(), spawnParams);
+		else
+			entity = GetGame().SpawnEntityPrefabLocal(Resource.Load(prefab), GetGame().GetWorld(), spawnParams);
 
-		return GetGame().SpawnEntityPrefab(Resource.Load(prefab), GetGame().GetWorld(), spawnParams);
+		// Waypoints are session-scoped by construction - every one Overthrow spawns is rebuilt with
+		// its group on the next boot, so a persistence record for one is a permanent orphan (BUG-118).
+		if (AIWaypoint.Cast(entity))
+			OVT_PersistenceManagerComponent.UntrackTransient(entity);
+
+		return entity;
 	}
-	
+
 	static IEntity SpawnEntityPrefabMatrix(ResourceName prefab, vector mat[4], bool global = true)
 	{
 		EntitySpawnParams spawnParams();
@@ -485,9 +580,17 @@ class OVT_Global : Managed
 		spawnParams.TransformMode = ETransformMode.WORLD;
 		spawnParams.Transform = mat;
 
-		if (!global) return GetGame().SpawnEntityPrefabLocal(Resource.Load(prefab), GetGame().GetWorld(), spawnParams);
+		IEntity entity;
+		if (global)
+			entity = GetGame().SpawnEntityPrefab(Resource.Load(prefab), GetGame().GetWorld(), spawnParams);
+		else
+			entity = GetGame().SpawnEntityPrefabLocal(Resource.Load(prefab), GetGame().GetWorld(), spawnParams);
 
-		return GetGame().SpawnEntityPrefab(Resource.Load(prefab), GetGame().GetWorld(), spawnParams);
+		// Same waypoint rule as SpawnEntityPrefab() above (BUG-118).
+		if (AIWaypoint.Cast(entity))
+			OVT_PersistenceManagerComponent.UntrackTransient(entity);
+
+		return entity;
 	}
 	
 	//! Spawn a character entity directly without creating a group
@@ -539,19 +642,29 @@ class OVT_Global : Managed
 	{
 		int i = 0;
 		vector checkpos;
+		BaseWorld world = GetGame().GetWorld();
+		vector worldMin, worldMax;
+		world.GetBoundBox(worldMin, worldMax);
+
 		while(i < 30)
 		{
-			i++;			
-			
+			i++;
+
 			checkpos = s_AIRandomGenerator.GenerateRandomPointInRadius(0,range,pos,false);
-			
+
+			// Keep the point on the map, or AI given a waypoint here can never reach it
+			if(checkpos[0] < worldMin[0]) checkpos[0] = worldMin[0];
+			if(checkpos[0] > worldMax[0]) checkpos[0] = worldMax[0];
+			if(checkpos[2] < worldMin[2]) checkpos[2] = worldMin[2];
+			if(checkpos[2] > worldMax[2]) checkpos[2] = worldMax[2];
+
 			if(!OVT_Global.IsOceanAtPosition(checkpos))
-			{	
-				checkpos[1] = GetGame().GetWorld().GetSurfaceY(checkpos[0],checkpos[2]) + 1;
+			{
+				checkpos[1] = world.GetSurfaceY(checkpos[0],checkpos[2]) + 1;
 				return checkpos;
 			}
 		}
-		
+
 		return pos;
 	}
 	
@@ -568,14 +681,14 @@ class OVT_Global : Managed
 	
 	protected static bool FilterDeadBodiesAndWeapons(IEntity ent)
 	{		
-		DamageManagerComponent dmg = EPF_Component<DamageManagerComponent>.Find(ent);
+		DamageManagerComponent dmg = OVT_ComponentFinder<DamageManagerComponent>.Find(ent);
 		if(dmg && dmg.IsDestroyed())
 		{
 			m_Bodies.Insert(ent);
 			return true;
 		}
 		
-		WeaponComponent weapon = EPF_Component<WeaponComponent>.Find(ent);		
+		WeaponComponent weapon = OVT_ComponentFinder<WeaponComponent>.Find(ent);
 		if(weapon) m_Bodies.Insert(ent);
 				
 		return true;
@@ -668,8 +781,8 @@ class OVT_Global : Managed
 	//! Apply civilian loadout to any character entity
 	static void ApplyCivilianLoadout(IEntity character)
 	{
-		InventoryStorageManagerComponent storageManager = EPF_Component<InventoryStorageManagerComponent>.Find(character);
-		if (!storageManager) 
+		InventoryStorageManagerComponent storageManager = OVT_ComponentFinder<InventoryStorageManagerComponent>.Find(character);
+		if (!storageManager)
 			return;
 		foreach (OVT_LoadoutSlot loadoutItem : OVT_Global.GetConfig().m_CivilianLoadout.m_aSlots)
 		{
@@ -706,7 +819,7 @@ class OVT_Global : Managed
 	
 	static IEntity SpawnDefaultCharacterItem(InventoryStorageManagerComponent storageManager, OVT_LoadoutSlot loadoutItem)
 	{
-		int selection = s_AIRandomGenerator.RandInt(0, loadoutItem.m_aChoices.Count() - 1);
+		int selection = s_AIRandomGenerator.RandInt(0, loadoutItem.m_aChoices.Count());
 		ResourceName prefab = loadoutItem.m_aChoices[selection];
 		
 		EntitySpawnParams spawnParams();

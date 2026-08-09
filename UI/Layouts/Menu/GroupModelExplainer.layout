@@ -1,0 +1,16 @@
+VerticalLayoutWidgetClass {
+ Name "OVT_GroupModelExplainer"
+ Slot LayoutSlot "{5866878B6921F5E5}" {
+  Padding 30 6 12 6
+ }
+ {
+  RichTextWidgetClass "{6A7D9B2E000000B1}" : "{B537936D5B7E2BA1}UI/layouts/WidgetLibrary/TextWidgets/Text_BodySmall.layout" {
+   Name "OVT_GroupModelExplainerText"
+   Slot LayoutSlot "{585C76E26AA017A9}" {
+    Padding 0 0 0 0
+   }
+   Text ""
+   Color 1 1 1 0.7
+  }
+ }
+}

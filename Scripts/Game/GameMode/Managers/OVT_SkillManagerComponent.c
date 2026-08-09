@@ -9,8 +9,14 @@ class OVT_SkillManagerComponent: OVT_Component
 {	
 	[Attribute()]
 	ref OVT_SkillsConfig m_Skills;
-	
+
+	[Attribute(defvalue: "60", desc: "Seconds after a shop buy/sell awards XP before trade actions can award XP again (per player)")]
+	float m_fTradeXPCooldown;
+
 	static OVT_SkillManagerComponent s_Instance;
+
+	//! Server-only: playerId -> world time (ms) of their last trade XP award
+	protected ref map<int, float> m_mTradeXPLastAward = new map<int, float>;
 	
 	//------------------------------------------------------------------------------------------------
 	//! Gets the singleton instance of the OVT_SkillManagerComponent.
@@ -67,11 +73,21 @@ class OVT_SkillManagerComponent: OVT_Component
 	//! \param persId The persistent ID of the player.
 	void OnPlayerDataLoaded(OVT_PlayerData player, string persId)
 	{
+		// The persistence path resets before invoking this, the JIP path does not — reset
+		// here so no entry point can stack effect replays (BUG-036)
+		player.ResetSkillEffects();
 		for(int t=0; t<player.skills.Count(); t++)
 		{
 			string key = player.skills.GetKey(t);
 			if(key == "") continue;
 			OVT_SkillConfig skill = GetSkill(key);
+			if(!skill)
+			{
+				// A JIP payload can carry keys this client's skill config doesn't define
+				// (version skew, server-side rebalance) — skip them like ApplyPersistedSkills does (BUG-036)
+				Print(string.Format("[Overthrow] Skipping unknown skill '%1' during effect replay - the skill config does not define it", key), LogLevel.WARNING);
+				continue;
+			}
 			int level = player.skills.GetElement(t);
 			for(int i = 0; i < level && i < skill.m_aLevels.Count(); i++)
 			{
@@ -92,18 +108,30 @@ class OVT_SkillManagerComponent: OVT_Component
 	void AddSkillLevel(int playerId, string key)
 	{
 		OVT_PlayerData player = OVT_PlayerData.Get(playerId);
-		if(!player.skills.Contains(key)) player.skills.Set(key, 0);
-		int newlevel = player.skills[key]+1;
+		if(!player) return;
+
+		// The character sheet's affordability check is client-side only; the server
+		// re-derives spendable points and the level cap here (BUG-032)
+		OVT_SkillConfig skill = GetSkill(key);
+		if(!skill) return;
+
+		if((player.GetLevel() - 1) - player.CountSkills() <= 0) return;
+
+		int newlevel = 1;
+		if(player.skills.Contains(key)) newlevel = player.skills[key] + 1;
+		if(newlevel > skill.m_aLevels.Count()) return;
+
 		player.skills.Set(key, newlevel);
 		m_OnPlayerSkill.Invoke();
-		
+
 		DoInvokeSkillData(playerId,key,newlevel);
-		
+
+		// The broadcast never executes on the sending machine, so it always fires and a
+		// listen-server host buying for themselves applies spawn effects locally (BUG-035)
+		Rpc(RpcDo_SetPlayerSkill, playerId, key, newlevel);
 		if(SCR_PlayerController.GetLocalPlayerId() == playerId)
 		{
 			DoInvokeSkillSpawn(playerId,key,newlevel);
-		}else{				
-			Rpc(RpcDo_SetPlayerSkill, playerId, key, newlevel);
 		}
 	}
 	
@@ -115,7 +143,10 @@ class OVT_SkillManagerComponent: OVT_Component
 	protected void DoInvokeSkillData(int playerId, string key, int newlevel)
 	{
 		OVT_PlayerData player = OVT_PlayerData.Get(playerId);
-		OVT_SkillConfig skill = GetSkill(key);		
+		if(!player) return;
+		OVT_SkillConfig skill = GetSkill(key);
+		if(!skill) return;
+		if(newlevel < 1 || newlevel > skill.m_aLevels.Count()) return;
 		OVT_SkillLevelConfig levelCfg = skill.m_aLevels[newlevel-1];
 		if(!levelCfg) return;
 		foreach(OVT_SkillEffect effect : levelCfg.m_aEffects)
@@ -133,7 +164,9 @@ class OVT_SkillManagerComponent: OVT_Component
 	{
 		ChimeraCharacter character = ChimeraCharacter.Cast(GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId));
 		if(!character) return;
-		OVT_SkillConfig skill = GetSkill(key);		
+		OVT_SkillConfig skill = GetSkill(key);
+		if(!skill) return;
+		if(newlevel < 1 || newlevel > skill.m_aLevels.Count()) return;
 		OVT_SkillLevelConfig levelCfg = skill.m_aLevels[newlevel-1];
 		if(!levelCfg) return;
 		foreach(OVT_SkillEffect effect : levelCfg.m_aEffects)
@@ -171,20 +204,40 @@ class OVT_SkillManagerComponent: OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Checks whether a player may earn trade XP and, if so, stamps their cooldown.
+	//! Buy and sell share one cooldown so a buy->sell round trip at the same counter
+	//! cannot be churned for XP (BUG-101).
+	//! \param playerId The ID of the player attempting to earn trade XP.
+	//! \return true if trade XP may be awarded now.
+	protected bool TryStartTradeXPCooldown(int playerId)
+	{
+		float now = GetGame().GetWorld().GetWorldTime();
+		float last;
+		if(m_mTradeXPLastAward.Find(playerId, last))
+		{
+			if(now - last < m_fTradeXPCooldown * 1000) return false;
+		}
+		m_mTradeXPLastAward.Set(playerId, now);
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Callback executed when a player buys items. Awards a small amount of XP.
 	//! \param playerId The ID of the player who bought items.
 	//! \param amount The total amount spent.
 	void OnPlayerBuy(int playerId, int amount)
 	{
+		if(!TryStartTradeXPCooldown(playerId)) return;
 		GiveXP(playerId, 1);
 	}
-	
+
 	//------------------------------------------------------------------------------------------------
 	//! Callback executed when a player sells items. Awards XP based on the sell amount.
 	//! \param playerId The ID of the player who sold items.
 	//! \param amount The total amount received.
 	void OnPlayerSell(int playerId, int amount)
 	{
+		if(!TryStartTradeXPCooldown(playerId)) return;
 		int xp = 1 + Math.Floor(amount * 0.01);
 		GiveXP(playerId, xp);
 	}
@@ -196,12 +249,12 @@ class OVT_SkillManagerComponent: OVT_Component
 	void OnAIKilled(IEntity killed, IEntity instigator)
 	{
 		if(!instigator) return;
-		FactionAffiliationComponent fac = EPF_Component<FactionAffiliationComponent>.Find(killed);
+		FactionAffiliationComponent fac = OVT_ComponentFinder<FactionAffiliationComponent>.Find(killed);
 		if(!fac) return;
 		
 		if(fac.GetAffiliatedFaction().GetFactionKey() == OVT_Global.GetConfig().m_sOccupyingFaction)
 		{
-			int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(instigator);
+			int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(instigator);
 			if(playerId > 0)
 			{
 				string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);

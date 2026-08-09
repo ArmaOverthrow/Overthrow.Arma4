@@ -1,12 +1,12 @@
 <div align="center">
 <picture>  
-  <img alt="Everon Life" width="400" src="https://github.com/ArmaOverthrow/Overthrow.Arma4/blob/main/UI/Textures/logo_overthrow.png?raw=true">
+  <img alt="Overthrow" width="400" src="https://github.com/ArmaOverthrow/Overthrow.Arma4/blob/main/UI/Textures/logo_overthrow.png?raw=true">
 </picture>
 <br/><br/>
 
 [![Arma Reforger Workshop](https://img.shields.io/badge/Workshop-59B657D731E2A11D-blue?style=flat-square)](https://reforger.armaplatform.com/workshop/59B657D731E2A11D)
 [![Contributors](https://img.shields.io/github/contributors/ArmaOverthrow/Overthrow.Arma4)](https://github.com/ArmaOverthrow/Overthrow.Arma4/graphs/contributors)
-[![Discord](https://img.shields.io/discord/241062829963214848?label=discord)](https://discord.gg/j6CvmFfZ95)
+[![Discord](https://img.shields.io/discord/241062829963214848?label=discord)](https://discord.gg/overthrow)
 [![License MIT](https://img.shields.io/badge/License-MIT-green)](https://opensource.org/licenses/MIT)
 </div>
 
@@ -54,6 +54,6 @@ Updates will be pushed to github often (sometimes multiple times a day).
 1. In the Reforger Script Editor, click on Build > Compile and Reload Scripts
 
 ## Contributing
-Just [join our Discord](https://discord.gg/j6CvmFfZ95) and participate in the `#overthrow-reforger` channel. Report any bugs you find or join the discussion about features or suggest your own. If you are comfortable with github and Enfusion development then please do make pull requests or ask to help out.
+Just [join our Discord](https://discord.gg/overthrow) and participate in the `#overthrow-reforger` channel. Report any bugs you find or join the discussion about features or suggest your own. If you are comfortable with github and Enfusion development then please do make pull requests or ask to help out.
 
 ![Alt](https://repobeats.axiom.co/api/embed/49520d34e4c6206b4d0f149dd4b6c2fec786d606.svg "Repobeats analytics image")

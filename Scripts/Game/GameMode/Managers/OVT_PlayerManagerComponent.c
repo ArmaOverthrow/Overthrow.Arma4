@@ -80,7 +80,90 @@ class OVT_PlayerManagerComponent: OVT_Component
 		if(Replication.IsServer())
 		{
 			GetGame().GetCallqueue().CallLater(CheckDisconnectedPlayers, 5000, true); // Check every 5 seconds
+
+			// Re-hide offline players' bodies after a world load, then keep watching - see the method.
+			GetGame().GetCallqueue().CallLater(ReserveOfflinePlayerBodies, BODY_RESERVATION_SWEEP_MS, true);
 		}
+	}
+
+	//! How often offline players' bodies are swept and re-hidden (ms).
+	//!
+	//! REPEATING, NOT A ONE-SHOT. The pass has to run after a world load, but "after a world load" is
+	//! not a single instant: the persistence system instantiates self-spawned records asynchronously
+	//! (vanilla itself uses PersistenceWhenAvailable for exactly these characters,
+	//! SCR_ReconnectSerializer.c:24), so a body can appear several seconds after the first pass would
+	//! have run. A cheap repeating sweep over the player table needs no timing assumption at all, and
+	//! is self-healing if anything ever un-hides a body nobody is holding.
+	static const int BODY_RESERVATION_SWEEP_MS = 8000;
+
+	//------------------------------------------------------------------------------------------------
+	//! Hides every offline player's body, leaving it alive and tracked (BUG-086).
+	//!
+	//! WHAT THIS REPLACES, AND WHY. Until 2026-08-05 the pass at this point did the opposite: it took
+	//! each self-spawned offline body and put it BACK into storage (Save + StopTracking(keepData) +
+	//! delete), to hide it from vanilla's 60 s unclaimed-character sweep. That worked for exactly as
+	//! long as a released record survives - which was measured at under ten minutes, in session, with no
+	//! restart. Keeping the entity is the fix; the sweep it was dodging is disabled outright in
+	//! Scripts/Game/Modded/SCR_PlayerReconnectData.c.
+	//!
+	//! WHY A LOADED WORLD NEEDS THIS AT ALL. A reserved body is hidden by flags, and flags are not
+	//! persisted - the player-character configuration self-spawns ({64ECE6462993EA13}, SelfSpawn 1 in
+	//! Overthrow.conf), so after a restart the body is instantiated fresh from its prefab's flags, i.e.
+	//! visible, traceable and simulating, standing exactly where its owner logged out. This pass puts it
+	//! back to sleep. The window before it runs is the safest one available: the body is standing where
+	//! a player chose to leave it, not somewhere contrived.
+	//!
+	//! ONLINE PLAYERS ARE SKIPPED, twice over: by the record's own id and by asking the player manager
+	//! whether anybody controls the body. Hiding a body somebody is standing in would be the one
+	//! unrecoverable outcome here.
+	void ReserveOfflinePlayerBodies()
+	{
+		if (!Replication.IsServer() || !m_mPlayers)
+			return;
+
+		SCR_PersistenceSystem persistence = SCR_PersistenceSystem.GetScriptedInstance();
+		if (!persistence)
+			return;
+
+		int reserved = 0;
+
+		for (int i = 0; i < m_mPlayers.Count(); i++)
+		{
+			OVT_PlayerData player = m_mPlayers.GetElement(i);
+			if (!player || player.m_sBodyPersistenceId == "")
+				continue;
+
+			// A player already in the game is controlling this body - never touch it.
+			if (!player.IsOffline())
+				continue;
+
+			if (!UUID.IsUUID(player.m_sBodyPersistenceId))
+				continue;
+
+			UUID bodyId = player.m_sBodyPersistenceId;
+
+			// FindById is "find a TRACKED instance by id" - which a reserved body still is, and which is
+			// the whole reason the reservation model can be swept at all. A body that is genuinely still
+			// only a stored record (never restored in this session) answers null and is left alone; the
+			// spawn logic will ask for it properly when its owner returns.
+			IEntity body = IEntity.Cast(persistence.FindById(bodyId));
+			if (!body)
+				continue;
+
+			// Somebody is controlling it after all (a join that raced this pass) - leave it alone.
+			if (GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(body) > 0)
+				continue;
+
+			// Idempotent, so the repeating sweep only ever counts bodies it actually changed.
+			if (OVT_PersistenceReservation.IsReserved(body))
+				continue;
+
+			OVT_PersistenceReservation.Reserve(body);
+			reserved++;
+		}
+
+		if (reserved > 0)
+			PrintFormat("[Overthrow] Reserved %1 offline player body/bodies - alive, tracked and hidden until their owners return", reserved.ToString());
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -94,11 +177,316 @@ class OVT_PlayerManagerComponent: OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Applies persisted player records to the live player table.
+	//!
+	//! Called from OVT_PlayerManagerSerializer.Deserialize().
+	//!
+	//! UPDATES IN PLACE, NEVER REPLACES. EPF's OVT_PlayerSaveData.ApplyTo() swapped the whole
+	//! OVT_PlayerData object into the map, which was harmless when it only ever ran before anyone had
+	//! connected. Persisted data can now also be re-applied to a LIVE session, where swapping the
+	//! object would throw away the runtime player ID inside it (making a connected player look
+	//! offline) and invalidate every reference already handed out. So each record is written onto the
+	//! existing entry and only a MISSING one is created.
+	//!
+	//! DERIVED STATE IS REBUILT, NOT RESTORED. The skill-effect outputs on OVT_PlayerData are
+	//! [NonSerialized()] and are not in the save; they are produced by replaying the effects of every
+	//! earned skill level. That replay is what m_OnPlayerDataLoaded drives
+	//! (OVT_SkillManagerComponent.OnPlayerDataLoaded), so the derived fields are reset immediately
+	//! before it fires - which is also what makes a second pass over the same records safe.
+	//!
+	//! NO RPC. Clients receive the whole table through RplSave/RplLoad instead - see the serializer.
+	//! \param[in] records Persisted player records, may be null.
+	void ApplyPersistedPlayers(array<ref OVT_PersistedPlayer> records)
+	{
+		if (!records)
+			return;
+
+		if (!m_mPlayers)
+			m_mPlayers = new map<string, ref OVT_PlayerData>();
+
+		OVT_SkillManagerComponent skills = OVT_Global.GetSkills();
+
+		foreach (OVT_PersistedPlayer record : records)
+		{
+			if (!record)
+				continue;
+
+			if (record.persistentId == "")
+			{
+				Print("[Overthrow] Skipping a saved player record with no persistent ID", LogLevel.WARNING);
+				continue;
+			}
+
+			OVT_PlayerData player = GetPlayer(record.persistentId);
+			if (!player)
+			{
+				player = new OVT_PlayerData();
+				m_mPlayers[record.persistentId] = player;
+
+				// A player who is already connected when their record comes back out of storage keeps
+				// the runtime ID SetupPlayer() gave them.
+				int liveId = GetPlayerIDFromPersistentID(record.persistentId);
+				if (liveId > 0)
+					player.id = liveId;
+			}
+
+			player.name = record.name;
+			player.home = record.home;
+			player.camp = record.camp;
+			player.money = record.money;
+			player.initialized = record.initialized;
+			player.isOfficer = record.isOfficer;
+			player.kills = record.kills;
+			player.xp = record.xp;
+			player.levelNotified = record.levelNotified;
+
+			// THE BODY ID IS ADOPTED ONLY WHEN THE LIVE RECORD HAS NONE, for the same reason the record
+			// object is updated rather than replaced: on a real load the record is brand new and takes the
+			// stored id; when saved data is re-applied to a RUNNING campaign the live record already
+			// points at the character the player is standing in, and that is the more current fact.
+			if (player.m_sBodyPersistenceId == "")
+				player.m_sBodyPersistenceId = record.bodyPersistenceId;
+
+			// Same rule for the stored transform, and for the same reason: a player standing in a live
+			// session has a more current position than the save does, so re-applying must not move them.
+			if (player.m_vLastKnownPosition == vector.Zero)
+			{
+				player.m_vLastKnownPosition = record.lastKnownPosition;
+				player.m_vLastKnownAngles = record.lastKnownAngles;
+			}
+
+			ApplyPersistedSkills(player, record, skills);
+
+			player.ResetSkillEffects();
+			m_OnPlayerDataLoaded.Invoke(player, record.persistentId);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Rebuilds one player's skill levels from the parallel key/level arrays a save record carries.
+	//!
+	//! A key the skill config no longer defines is DROPPED. Keeping it would hand
+	//! OVT_SkillManagerComponent.OnPlayerDataLoaded() a key whose GetSkill() returns null, and it
+	//! dereferences that immediately - a removed or renamed skill would turn every load into a crash.
+	//! \param[in] player The live record being filled.
+	//! \param[in] record The saved record being read.
+	//! \param[in] skills The skill manager used to validate keys, may be null.
+	protected void ApplyPersistedSkills(notnull OVT_PlayerData player, notnull OVT_PersistedPlayer record, OVT_SkillManagerComponent skills)
+	{
+		if (!player.skills)
+			player.skills = new map<string, int>();
+
+		player.skills.Clear();
+
+		if (!record.skillKeys || !record.skillLevels)
+			return;
+
+		// Only worth validating against a skill manager that actually has a config loaded.
+		bool canValidate = skills && skills.m_Skills && skills.m_Skills.m_aSkills;
+
+		int count = record.skillKeys.Count();
+		if (record.skillLevels.Count() < count)
+			count = record.skillLevels.Count();
+
+		for (int i = 0; i < count; i++)
+		{
+			string key = record.skillKeys[i];
+			if (key == "")
+				continue;
+
+			if (canValidate && !skills.GetSkill(key))
+			{
+				Print(string.Format("[Overthrow] Dropping saved skill '%1' - the skill config no longer defines it", key), LogLevel.WARNING);
+				continue;
+			}
+
+			player.skills.Set(key, record.skillLevels[i]);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Writes every connected player's CHARACTER persistence id back onto their record.
+	//!
+	//! The stored id is which character gets asked for when that player next spawns
+	//! (OVT_SpawnLogic.RequestPersistedPlayerBody), and it is what the save point carries
+	//! (OVT_PlayerManagerSerializer), so this is what makes a player come back as themselves - carrying
+	//! what they were carrying, standing where they saved - rather than as a fresh civilian.
+	//!
+	//! THIS HOOK IS THE ONLY PLACE A STILL-PLAYING PLAYER'S ID IS WRITTEN DOWN. A player who never
+	//! disconnects never passes through the disconnect capture, so without this, quitting to the menu
+	//! mid-session and continuing would be the one case that still lost gear. That is exactly the
+	//! lesson OVT_RecruitManagerComponent.SyncRecruitPositions() already encodes for recruits.
+	//!
+	//! Called before every save (OVT_OverthrowGameMode.PreShutdownPersist) on the authority. It is
+	//! deliberately NOT a per-frame update: the id only has to be true at the moments a body can stop
+	//! existing.
+	//!
+	//! A DEAD PLAYER IS SKIPPED. Death is complete loss - OVT_SpawnLogic clears the id when a player is
+	//! killed, and a save taken in the frame between the death and the respawn must not put the corpse's
+	//! id back. The corpse itself persists on its own (the kill hook marks it to self-spawn - see
+	//! OVT_PersistenceTracking.MarkForSelfSpawn), so nothing is lost by ignoring it here.
+	void SyncPlayerBodyIds()
+	{
+		array<int> connectedPlayers = {};
+		GetGame().GetPlayerManager().GetPlayers(connectedPlayers);
+
+		foreach (int playerId : connectedPlayers)
+		{
+			string persistentId = GetPersistentIDFromPlayerID(playerId);
+			if (persistentId.IsEmpty())
+				continue;
+
+			OVT_PlayerData player = GetPlayer(persistentId);
+			if (!player)
+				continue;
+
+			IEntity character = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+			if (!character)
+				continue;
+
+			// materialise: a live body may be registered but never yet written, and an id it has not been
+			// given cannot be stored. The save point is about to write this character anyway.
+			if (!CapturePlayerBodyId(player, character, true))
+			{
+				// The one place this can fail without the player having died: the persistence system
+				// refused to give the body an identity. Silence here would surface much later, as a
+				// player who inexplicably spawns as a fresh civilian after a restart.
+				PrintFormat("[Overthrow] Could not capture a body id for player %1 before the save - they will spawn fresh on the next load", persistentId);
+			}
+
+			// Independent of the id, and on purpose: the position has to be stored even when the id
+			// could not be, because "the character record is missing" is precisely when it is needed.
+			CapturePlayerBodyTransform(player, character);
+
+			// Same reasoning for the gear: this is what dresses them if the body cannot be restored.
+			CapturePlayerGearSnapshot(persistentId, character);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Notes where a player's body is standing on their record, so they can be put back there even if
+	//! the body itself cannot be recovered.
+	//!
+	//! Deliberately NOT folded into CapturePlayerBodyId: that returns early when no id can be read, and
+	//! a missing id is the very case this exists to survive. A corpse is skipped, because death sends
+	//! the player home rather than back to where they fell.
+	//! \param[in] player The record to write to.
+	//! \param[in] character The body to read the transform from.
+	//! \return True when a transform was captured.
+	//! Snapshots the gear a player is carrying into their hidden logout loadout.
+	//!
+	//! The BODY is still the preferred way to bring equipment back, because it returns the exact items
+	//! with their exact state. This is the fallback for when the persistence system will not hand that
+	//! body back (measured on a dedicated server 2026-08-05), and it is stored through the loadout
+	//! system precisely because loadout records are known to survive a restart.
+	//!
+	//! A corpse is skipped: death is complete loss, and snapshotting a dead player's kit would hand it
+	//! straight back to them on respawn.
+	//! \param[in] persistentId The player to snapshot for.
+	//! \param[in] character The body to read the gear off.
+	void CapturePlayerGearSnapshot(string persistentId, notnull IEntity character)
+	{
+		if (persistentId.IsEmpty() || IsCharacterDead(character))
+			return;
+
+		OVT_LoadoutManagerComponent loadouts = OVT_Global.GetLoadouts();
+		if (!loadouts)
+			return;
+
+		loadouts.SaveLoadout(persistentId, OVT_LoadoutManagerComponent.LOGOUT_SNAPSHOT_NAME, character, "Gear carried at logout");
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Drops a player's logout gear snapshot, so it can never be applied again.
+	//! Called on death (complete loss) and once the snapshot has been used.
+	//! \param[in] persistentId The player whose snapshot to drop.
+	void ClearPlayerGearSnapshot(string persistentId)
+	{
+		if (persistentId.IsEmpty())
+			return;
+
+		OVT_LoadoutManagerComponent loadouts = OVT_Global.GetLoadouts();
+		if (loadouts)
+			loadouts.DeleteLoadout(persistentId, OVT_LoadoutManagerComponent.LOGOUT_SNAPSHOT_NAME);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	bool CapturePlayerBodyTransform(notnull OVT_PlayerData player, notnull IEntity character)
+	{
+		if (IsCharacterDead(character))
+			return false;
+
+		vector origin = character.GetOrigin();
+
+		// A body at the world origin is not a place anyone stood - it is the "no position" value, and
+		// storing it would send the player underground at the map corner on their next spawn.
+		if (origin == vector.Zero)
+			return false;
+
+		player.m_vLastKnownPosition = origin;
+		player.m_vLastKnownAngles = character.GetYawPitchRoll();
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Notes the persistence id of a player's body on their record.
+	//!
+	//! The id is what OVT_SpawnLogic asks for later, so this is the single point where "which character
+	//! IS this player" is written down. An id that cannot be read is never allowed to overwrite one that
+	//! could: an empty answer leaves the record untouched.
+	//! \param[in] player The record to write to.
+	//! \param[in] character The body.
+	//! \param[in] materialise True to write the body's record first when it has no id yet. Only pass true
+	//! where writing a record is wanted anyway - it is a real storage write, not a lookup.
+	//! \return True when an id was captured.
+	bool CapturePlayerBodyId(notnull OVT_PlayerData player, notnull IEntity character, bool materialise)
+	{
+		if (IsCharacterDead(character))
+			return false;
+
+		string bodyId = OVT_PersistenceTracking.GetPersistentId(character);
+
+		if (bodyId.IsEmpty() && materialise)
+		{
+			// Registration is lazy, so an instance the system has never written may not have an identity
+			// to hand out yet. Writing its record is what gives it one.
+			OVT_PersistenceTracking.Save(character);
+			bodyId = OVT_PersistenceTracking.GetPersistentId(character);
+		}
+
+		if (bodyId.IsEmpty())
+			return false;
+
+		player.m_sBodyPersistenceId = bodyId;
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether a character entity is a corpse.
+	//!
+	//! Vanilla's own test for the same question, on the same class - SCR_SpawnLogic.c:423 refuses to hand
+	//! a persistence-restored character back to a player when GetCharacterController().IsDead().
+	//! \param[in] entity The entity to test. Anything that is not a character answers false.
+	//! \return True when the entity is a character whose controller reports it dead.
+	static bool IsCharacterDead(IEntity entity)
+	{
+		ChimeraCharacter character = ChimeraCharacter.Cast(entity);
+		if (!character)
+			return false;
+
+		CharacterControllerComponent controller = character.GetCharacterController();
+		if (!controller)
+			return false;
+
+		return controller.IsDead();
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Checks if the local player holds the officer role.
 	//! \return True if the local player is an officer, false otherwise.
 	bool LocalPlayerIsOfficer()
 	{
-		int localId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
+		int localId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
 		string persId = GetPersistentIDFromPlayerID(localId);
 		OVT_PlayerData player = GetPlayer(persId);
 		return player.isOfficer;
@@ -135,7 +523,7 @@ class OVT_PlayerManagerComponent: OVT_Component
 	
 	//------------------------------------------------------------------------------------------------
 	//! Retrieves the persistent string ID associated with a runtime player ID.
-	//! If the mapping doesn't exist, it attempts to create it using EPF_Utils.GetPlayerUID and calls SetupPlayer.
+	//! If the mapping doesn't exist, it attempts to create it using OVT_Global.GetPlayerUID and calls SetupPlayer.
 	//! Includes a Workbench-specific hack to limit player IDs for testing.
 	//! \param[in] playerId The runtime integer ID of the player.
 	//! \return The persistent string ID for the player.
@@ -154,7 +542,7 @@ class OVT_PlayerManagerComponent: OVT_Component
 	//! \return The persistent string ID for the player controlling the entity.
 	string GetPersistentIDFromControlledEntity(IEntity controlled)
 	{
-		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(controlled);
+		int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(controlled);
 		return GetPersistentIDFromPlayerID(playerId);
 	}
 	
@@ -312,12 +700,40 @@ class OVT_PlayerManagerComponent: OVT_Component
 			OVT_OverthrowController overthrowController = OVT_OverthrowController.Cast(controller);
 			if (overthrowController)
 			{
-				overthrowController.Rpc(overthrowController.RpcDo_NotifyOwnerAssignment, playerId);
+				overthrowController.NotifyOwnerAssignment(playerId);
 			}
 		}
 		else
 		{
 			Print("[Overthrow] ERROR: No controller found for player " + playerId);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Drops a disconnecting player's runtime<->persistent ID mappings.
+	//!
+	//! Runtime player IDs are session-scoped and CAN BE REUSED by a later joiner. A stale entry left
+	//! behind by a departed player would make persistent-ID lookups resolve to whichever live player
+	//! inherited the number (money streams, controller lookups, notifications), so both directions of
+	//! the mapping are removed here. The OVT_PlayerData record in m_mPlayers is deliberately KEPT -
+	//! that is what lets a reconnecting player come back as themselves; SetupPlayer rebuilds the
+	//! mappings when they do.
+	//!
+	//! Called from OVT_OverthrowGameMode.OnPlayerDisconnected, after m_OnPlayerDisconnected has fired,
+	//! so disconnect listeners can still translate the departing player's IDs.
+	//! \param[in] playerId The runtime integer ID of the disconnecting player.
+	void ClearPlayerIdMappings(int playerId)
+	{
+		if(!m_mPersistentIDs.Contains(playerId)) return;
+
+		string persId = m_mPersistentIDs[playerId];
+		m_mPersistentIDs.Remove(playerId);
+
+		// Only drop the reverse entry while it still points at this runtime ID - it may already
+		// belong to a new session of the same player.
+		if(m_mPlayerIDs.Contains(persId) && m_mPlayerIDs[persId] == playerId)
+		{
+			m_mPlayerIDs.Remove(persId);
 		}
 	}
 
@@ -368,7 +784,8 @@ class OVT_PlayerManagerComponent: OVT_Component
 		// Remove from tracking
 		m_mPlayerControllers.Remove(playerId);
 		
-		// Note: We keep the player data and persistent ID mappings for when they reconnect
+		// Note: We keep the player data (m_mPlayers) for when they reconnect; the session-scoped
+		// ID mappings are dropped separately by ClearPlayerIdMappings on disconnect
 	}
 	
 	//RPC Methods

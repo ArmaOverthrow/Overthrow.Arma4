@@ -52,7 +52,7 @@ class OVT_UIContext : ScriptAndConfig
 	
 	void OnControlledByPlayer()
 	{
-		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(m_Owner);
+		int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(m_Owner);
 		m_sPlayerID = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		m_iPlayerID = playerId;
 		m_PlayerData = OVT_PlayerData.Get(m_iPlayerID);
@@ -111,26 +111,50 @@ class OVT_UIContext : ScriptAndConfig
 	
 	void ShowLayout()
 	{
-		if(!m_Layout) return;
-		if(!CanShowLayout()) return;
-		
-		if(m_bOpenActionCloses && m_bIsActive)
+		Print("[Overthrow] ShowLayout() called on " + Type());
+		Print("[Overthrow] m_Layout: " + m_Layout);
+		if(!m_Layout)
 		{
-			CloseLayout();
+			Print("[Overthrow] ShowLayout() failed: m_Layout is null");
 			return;
 		}
-		
-		WorkspaceWidget workspace = GetGame().GetWorkspace(); 
+
+		Print("[Overthrow] CanShowLayout(): " + CanShowLayout());
+		if(!CanShowLayout())
+		{
+			Print("[Overthrow] ShowLayout() failed: CanShowLayout() returned false");
+			return;
+		}
+
+		if(m_bIsActive)
+		{
+			if(m_bOpenActionCloses)
+			{
+				Print("[Overthrow] ShowLayout() closing instead (already active)");
+				CloseLayout();
+				return;
+			}
+
+			// Re-opening while active: close the existing layout first, otherwise the
+			// new m_wRoot orphans the previous panel on screen
+			CloseLayout();
+		}
+
+		WorkspaceWidget workspace = GetGame().GetWorkspace();
+		Print("[Overthrow] workspace: " + workspace);
 		m_wRoot = workspace.CreateWidgets(m_Layout);
-		
-		if(m_bHideHUDOnShow){		
+		Print("[Overthrow] m_wRoot created: " + m_wRoot);
+
+		if(m_bHideHUDOnShow){
 			SCR_HUDManagerComponent hud = GetGame().GetHUDManager();
 			if (hud)
 				hud.SetVisible(false);
 		}
-		
+
 		Enable();
+		Print("[Overthrow] Calling OnShow()");
 		OnShow();
+		Print("[Overthrow] ShowLayout() complete");
 	}
 	
 	bool CanShowLayout()

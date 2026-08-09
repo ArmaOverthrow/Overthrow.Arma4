@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Session Edits Tracking",
+  "description": "Tracks files edited during a Claude Code session for use by hooks",
+  "type": "object",
+  "properties": {
+    "files": {
+      "type": "array",
+      "description": "Array of file paths that have been edited in this session",
+      "items": {
+        "type": "string",
+        "description": "Absolute path to an edited file"
+      },
+      "uniqueItems": true
+    }
+  },
+  "required": ["files"],
+  "additionalProperties": false,
+  "examples": [
+    {
+      "files": [
+        "/path/to/project/src/components/Button.tsx",
+        "/path/to/project/src/types/user.ts",
+        "/path/to/project/tests/button.test.tsx"
+      ]
+    }
+  ],
+  "notes": [
+    "This file is created and managed by the edit-tracker hook",
+    "It should be added to .gitignore as it's session-specific",
+    "Hooks can read this file to determine which files were edited",
+    "The file is reset at the start of each new session"
+  ]
+}

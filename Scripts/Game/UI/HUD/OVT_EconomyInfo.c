@@ -6,6 +6,29 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 	string m_playerId;
 	SCR_ChimeraCharacter m_player;
 	
+	//! Green for money gained, red for money lost, on the HUD delta ticker.
+	protected const int COLOR_DELTA_POSITIVE = 0xFF4CD964;
+	protected const int COLOR_DELTA_NEGATIVE = 0xFFFF4444;
+
+	//! Accumulating "+$500" state for the money readout. Client-side only; no new replication.
+	//!
+	//! STATIC ON PURPOSE (BUG-097). This info display is declared once per OCCUPIABLE PREFAB - the
+	//! player character, every vehicle, every helicopter, every turret - so an instance field gave each
+	//! seat its own baseline and its own countdown. Getting into a car stopped one tracker mid-count and
+	//! re-seeded another from scratch, so money earned while driving showed nothing; getting out handed
+	//! the display back to a tracker still holding the pre-drive balance, which then rendered the same
+	//! gain again. The quantity is per-player, so the state has to outlive any one seat.
+	protected static ref OVT_MoneyDeltaTracker s_MoneyDelta;
+
+	//! Persistent ID whose balance seeded the shared tracker. Statics outlive a world, so a new session
+	//! in the same process must not inherit the previous player's baseline.
+	protected static string s_sDeltaOwnerId;
+
+	//! World time (ms) of the last observation fed to the shared tracker. During a seat change both the
+	//! character's and the vehicle's display can tick in the same frame, and one shared tracker fed
+	//! twice would count its timeout down at double speed.
+	protected static float s_fDeltaLastUpdate = -1;
+
 	float m_fCounter = 8;
 	float m_fOverrideCounter = 0;
 	int m_iCurrentTownId = -1;
@@ -18,11 +41,20 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 	override event void OnInit(IEntity owner)
 	{
 		super.OnInit(owner);
-				
+
 		m_Economy = OVT_Global.GetEconomy();
 		m_OccupyingFaction = OVT_Global.GetOccupyingFaction();
 		m_Notify = OVT_Global.GetNotify();
 		m_RealEstate = OVT_Global.GetRealEstate();
+
+		// Hide town panel initially until UpdateTown() populates it with correct data
+		// Check if m_wRoot exists first (may not be initialized yet)
+		if (m_wRoot)
+		{
+			Widget panel = m_wRoot.FindAnyWidget("Town");
+			if(panel)
+				panel.SetVisible(false);
+		}
 	}
 	
 	protected void InitCharacter()
@@ -30,7 +62,7 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 		SCR_ChimeraCharacter character = SCR_ChimeraCharacter.Cast(SCR_PlayerController.GetLocalControlledEntity());
 		if (!character)
 			return;
-		int playerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(character);
+		int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(character);
 		m_playerId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);	
 		
 		m_player = character;
@@ -43,7 +75,7 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 		if(!m_player){
 			InitCharacter();
 		}
-		UpdateMoney();
+		UpdateMoney(timeSlice);
 		if(m_OccupyingFaction.m_bQRFActive)
 		{
 			ShowQRF();
@@ -194,7 +226,7 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 		
 		TextWidget text = TextWidget.Cast(m_wRoot.FindAnyWidget("DebugText"));
 		
-		CharacterPerceivableComponent percieve = EPF_Component<CharacterPerceivableComponent>.Find(m_player);
+		CharacterPerceivableComponent percieve = OVT_ComponentFinder<CharacterPerceivableComponent>.Find(m_player);
 		if(percieve)
 		{
 			text.SetText(percieve.GetVisualRecognitionFactor().ToString());
@@ -276,15 +308,76 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 	//------------------------------------------------------------------------------------------------
 	// Update Money
 	//------------------------------------------------------------------------------------------------
-	void UpdateMoney()
+	void UpdateMoney(float timeSlice)
 	{
 		if (!m_Economy)
 			return;
 		if(!m_wRoot)
 			return;
-						
+
+		int money = m_Economy.GetPlayerMoney(m_playerId);
+
 		TextWidget w = TextWidget.Cast(m_wRoot.FindAnyWidget("MoneyText"));
-		w.SetText("$" + m_Economy.GetPlayerMoney(m_playerId));
+		if(w) w.SetText(OVT_MoneyFormat.FormatMoney(money));
+
+		UpdateMoneyDelta(money, timeSlice);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Drives the "+$500" ticker next to the money readout.
+	//!
+	//! Polled, not subscribed (implementation plan D11): this display already reads the balance every
+	//! frame and already has a timeSlice, and its lifetime does not obviously match the economy
+	//! manager's - so there is no invoker to register and, more to the point, none to unregister. The
+	//! TRACKER, however, is shared by every instance (see s_MoneyDelta); the displays are pure
+	//! renderers of one per-player ticker.
+	//! \param[in] money The player's balance this frame.
+	//! \param[in] timeSlice Seconds since the previous frame.
+	protected void UpdateMoneyDelta(int money, float timeSlice)
+	{
+		TextWidget w = TextWidget.Cast(m_wRoot.FindAnyWidget("MoneyDeltaText"));
+
+		// Before the local character resolves there is no balance to observe - only a 0 that would seed
+		// the baseline and then read as a windfall the moment the real number arrived.
+		if(m_playerId.IsEmpty())
+		{
+			if(w) w.SetVisible(false);
+			return;
+		}
+
+		if(!s_MoneyDelta) s_MoneyDelta = new OVT_MoneyDeltaTracker();
+
+		if(m_playerId != s_sDeltaOwnerId)
+		{
+			s_sDeltaOwnerId = m_playerId;
+			s_MoneyDelta.Reset();
+		}
+
+		float now = GetGame().GetWorld().GetWorldTime();
+		if(now != s_fDeltaLastUpdate)
+		{
+			s_fDeltaLastUpdate = now;
+			s_MoneyDelta.Update(money, timeSlice);
+		}
+
+		if(!w) return;
+
+		if(!s_MoneyDelta.IsVisible())
+		{
+			w.SetVisible(false);
+			return;
+		}
+
+		w.SetText(s_MoneyDelta.GetText());
+
+		if(s_MoneyDelta.GetDelta() > 0)
+		{
+			w.SetColor(Color.FromInt(COLOR_DELTA_POSITIVE));
+		}else{
+			w.SetColor(Color.FromInt(COLOR_DELTA_NEGATIVE));
+		}
+
+		w.SetVisible(true);
 	}
 	
 	void UpdateNotification(float timeSlice)

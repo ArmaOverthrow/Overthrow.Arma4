@@ -44,14 +44,13 @@ class OVT_RecruitFromTentAction : ScriptedUserAction
 			
 		// Reduced cost for tent recruitment (typically 50% of base cost)
 		int cost = Math.Round(config.m_Difficulty.baseRecruitCost * 0.5);
-		
+
+		// Advisory check only - the server re-validates and takes the money itself
 		if(!economy.LocalPlayerHasMoney(cost)) {
 			SCR_HintManagerComponent.ShowHint(m_CannotAffordHint);
 			return;
 		}
-		
-		economy.TakeLocalPlayerMoney(cost);
-		
+
 		// Call server to handle the actual recruitment
 		OVT_Global.GetServer().RecruitFromTent(tentPos, playerId);
 		

@@ -32,7 +32,7 @@ class OVT_BaseUpgradeDefensePatrol : OVT_BasePatrolUpgrade
 		{
 			OVT_GroupType type = OVT_GroupType.LIGHT_INFANTRY;
 			
-			if(m_iNumGroups == 0 || threat > 50)
+			if(GetNumGroups() == 0 || threat > 50)
 			{
 				type = OVT_GroupType.ANTI_TANK;
 			}else if(threat > 25){
@@ -40,22 +40,22 @@ class OVT_BaseUpgradeDefensePatrol : OVT_BasePatrolUpgrade
 			}
 			
 			int newres = OVT_Global.GetConfig().m_Difficulty.baseResourceCost * 4;
-			
+
 			OVT_Faction faction = OVT_Global.GetConfig().GetOccupyingFaction();
 			ResourceName res = faction.GetRandomGroupByType(type);
-			m_iProxedResources += newres;
-			m_ProxiedGroups.Insert(res);
-			vector spawnpos = OVT_Global.GetRandomNonOceanPositionNear(m_BaseController.GetOwner().GetOrigin(), 50);			
-			m_ProxiedPositions.Insert(spawnpos);			
-			
+
 			if(newres > resources){
 				newres = resources;
 				//todo: delete some soldiers when overspending
 			}
-			
+
+			m_iProxedResources += newres;
+			m_ProxiedGroups.Insert(res);
+			vector spawnpos = OVT_Global.GetRandomNonOceanPositionNear(m_BaseController.GetOwner().GetOrigin(), 50);
+			m_ProxiedPositions.Insert(spawnpos);
+
 			spent += newres;
 			resources -= newres;
-			m_iNumGroups++;
 		}
 		
 		return spent;

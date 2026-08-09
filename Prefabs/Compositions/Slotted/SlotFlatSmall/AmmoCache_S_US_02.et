@@ -1,15 +1,6 @@
 GenericEntity {
  ID "5D98F865F21B50D0"
  components {
-  EPF_PersistenceComponent "{5D98F865F21B50E1}" {
-   m_bUpdateNavmesh 1
-   m_pSaveData OVT_BaseUpgradeSaveDataClass "{5D98F865F21B50E8}" {
-    m_aComponents {
-     EPF_SlotManagerComponentSaveDataClass "{5D98F865F21B5095}" {
-     }
-    }
-   }
-  }
   Hierarchy "{5D98F865F21B5097}" {
   }
   SlotManagerComponent "{5D98F865F21B5092}" {
@@ -52,7 +43,7 @@ GenericEntity {
    coords -1.171 0 4.403
    angleY 19.001
   }
-  SCR_DestructibleEntity : "{BE7B5BAFE1A16A50}Prefabs/Props/Military/Fortification/BarbedTape_Coil.et" {
+  GenericEntity : "{BE7B5BAFE1A16A50}Prefabs/Props/Military/Fortification/BarbedTape_Coil.et" {
    ID "5D98F865F21B50F2"
    coords -1.135 0 -1.336
   }

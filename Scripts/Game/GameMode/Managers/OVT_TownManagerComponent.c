@@ -133,7 +133,10 @@ class OVT_TownManagerComponent: OVT_Component
 	protected OVT_TownData m_CheckTown;
 	
 	protected ref array<ref EntityID> m_Houses;
-	
+
+	//! Civilians a conversion has already been attempted on this session (server-side, BUG-063)
+	protected ref set<RplId> m_ConvertedCivilians = new set<RplId>;
+
 	OVT_RealEstateManagerComponent m_RealEstate;
 	
 	//! Invoked when a town's controlling faction changes
@@ -174,17 +177,19 @@ class OVT_TownManagerComponent: OVT_Component
 	//! \param owner The owning entity of this component
 	void Init(IEntity owner)
 	{		
-		m_RealEstate = OVT_Global.GetRealEstate();		
+		m_RealEstate = OVT_Global.GetRealEstate();
+
+		// Towns must exist (with populations) before the modifier systems initialize,
+		// or their handlers' OnStart fan-out runs over an empty town list
+		InitializeTowns();
+
+		if(Replication.IsServer() && !m_bUseDefinedTowns)
+			SetupTowns();
+
 		foreach(OVT_TownModifierSystem system : m_aTownModifiers)
 		{
 			system.Init();
-		}		
-		
-		InitializeTowns();
-		
-		if(!Replication.IsServer()) return;
-		if(!m_bUseDefinedTowns)
-			SetupTowns();
+		}
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -199,7 +204,9 @@ class OVT_TownManagerComponent: OVT_Component
 		foreach(int townID, EntityID townEntityID : m_TownControllers)
 		{
 			IEntity townEntity = GetGame().GetWorld().FindEntityByID(townEntityID);
+			if(!townEntity) continue;
 			OVT_TownControllerComponent town = OVT_TownControllerComponent.Cast(townEntity.FindComponent(OVT_TownControllerComponent));
+			if(!town) continue;
 			town.ActivateTown();
 		}
 	}
@@ -262,10 +269,12 @@ class OVT_TownManagerComponent: OVT_Component
 			bool hasEnemyTower = false;
 			bool hasFriendlyTower = false;
 			foreach(OVT_RadioTowerData tower : of.m_RadioTowers)
-			{				
+			{
 				float dist = vector.Distance(town.location, tower.location);
 				if(dist < OVT_Global.GetConfig().m_Difficulty.radioTowerRange)
 				{
+					//Sabotaged towers broadcast nothing for either side
+					if(tower.IsDisabled()) continue;
 					if(tower.IsOccupyingFaction())
 					{
 						hasEnemyTower = true;
@@ -273,8 +282,8 @@ class OVT_TownManagerComponent: OVT_Component
 						hasFriendlyTower = true;
 					}
 				}
-			}			
-			
+			}
+
 			if(hasEnemyTower)
 			{
 				RemoveSupportModifierByName(townID, "NearbyRadioTowerPositive");
@@ -283,7 +292,11 @@ class OVT_TownManagerComponent: OVT_Component
 			{
 				RemoveSupportModifierByName(townID, "NearbyRadioTowerNegative");
 				TryAddSupportModifierByName(townID, "NearbyRadioTowerPositive");
-			}	
+			}else{
+				//No tower on the air in range (sabotage) - the permanent proximity modifiers must go
+				RemoveSupportModifierByName(townID, "NearbyRadioTowerNegative");
+				RemoveSupportModifierByName(townID, "NearbyRadioTowerPositive");
+			}
 			
 			bool hasEnemyBase = false;
 			bool hasFriendlyBase = false;	
@@ -568,9 +581,13 @@ class OVT_TownManagerComponent: OVT_Component
 		Faction occupyingFaction = GetGame().GetFactionManager().GetFactionByKey(OVT_Global.GetConfig().m_sOccupyingFaction);
 		int occupyingFactionIndex = GetGame().GetFactionManager().GetFactionIndex(occupyingFaction);
 				
-		OVT_TownData town = m_Towns[townId];		
+		OVT_TownData town = m_Towns[townId];
 		OVT_TownModifierSystem system = GetModifierSystem(OVT_TownSupportModifierSystem);
-		
+
+		// An empty town has nobody to win or lose; skipping also avoids the support system's
+		// max==0 ERROR print firing every cycle (BUG-064)
+		if(town.population <= 0) return;
+
 		int newsupport = system.Recalculate(town.supportModifiers, town.support, 0, town.population);
 		
 		if(newsupport != town.support)
@@ -728,7 +745,9 @@ class OVT_TownManagerComponent: OVT_Component
 		m_Houses = new array<ref EntityID>;		
 		
 		GetGame().GetWorld().QueryEntitiesBySphere(town.location, m_iTownRange, CheckHouseAddToArray, FilterUnownedHouseEntities, EQueryEntitiesFlags.STATIC);
-		
+
+		if(m_Houses.Count() == 0) return null;
+
 		return GetGame().GetWorld().FindEntityByID(m_Houses.GetRandomElement());
 	}
 	
@@ -791,17 +810,20 @@ class OVT_TownManagerComponent: OVT_Component
 	//! \return The OVT_TownData of the containing town, or null if the position is not within any town's range
 	OVT_TownData GetNearestTownInRange(vector pos)
 	{
+		OVT_TownData nearestTown;
+		float nearest = -1;
 		foreach(OVT_TownData town : m_Towns)
 		{
 			float distance = vector.Distance(town.location, pos);
 			int range = m_iCityRange;
 			if(town.size == 2) range = m_iTownRange;
 			if(town.size == 1) range = m_iVillageRange;
-			if(distance <= range){
-				return town;
+			if(distance <= range && (nearest == -1 || distance < nearest)){
+				nearest = distance;
+				nearestTown = town;
 			}
 		}
-		return null;
+		return nearestTown;
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -890,6 +912,107 @@ class OVT_TownManagerComponent: OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Applies persisted town state to the live towns, matching each record to a town BY LOCATION.
+	//!
+	//! Called from OVT_TownManagerSerializer.Deserialize(). Towns themselves are world-derived and
+	//! already exist by the time this runs (Init happens in the game mode's EOnInit, deserialization
+	//! after entity finalize), so this only restores what happened to them.
+	//!
+	//! STABILITY IS RECOMPUTED FROM THE RESTORED MODIFIER LIST rather than assigned from the saved
+	//! number, because that recomputation is the invariant every other stability path maintains
+	//! (modifier change -> Recalculate -> stored value). The saved number is used only when the
+	//! modifier system or its config is unavailable. SUPPORT is assigned raw on purpose: its
+	//! recalculation folds the current support back in and would double-apply the modifiers.
+	//!
+	//! NO RPC. Clients receive all of this through RplSave/RplLoad instead - see the serializer.
+	//!
+	//! IDEMPOTENT: assignments plus a clear-and-rebuild, safe to run again on a live session.
+	//! \param[in] records Persisted town records, may be null.
+	void ApplyPersistedTowns(array<ref OVT_PersistedTown> records)
+	{
+		if (!records)
+			return;
+
+		OVT_TownModifierSystem stabilitySystem = GetModifierSystem(OVT_TownStabilityModifierSystem);
+		OVT_TownModifierSystem supportSystem = GetModifierSystem(OVT_TownSupportModifierSystem);
+
+		foreach (OVT_PersistedTown record : records)
+		{
+			if (!record)
+				continue;
+
+			OVT_TownData town = GetNearestTown(record.location);
+			if (!town)
+				continue;
+
+			town.population = record.population;
+			town.targetPopulation = record.targetPopulation;
+			town.support = record.support;
+			town.faction = record.faction;
+			town.areaHeat = record.areaHeat;
+			town.gunDealerPosition = record.gunDealerPosition;
+
+			ApplyPersistedModifiers(town.stabilityModifiers, record.stabilityModifierIds, record.stabilityModifierTimers, stabilitySystem);
+			ApplyPersistedModifiers(town.supportModifiers, record.supportModifierIds, record.supportModifierTimers, supportSystem);
+
+			int stability = record.stability;
+			if (stabilitySystem && stabilitySystem.m_Config && stabilitySystem.m_Config.m_aModifiers && town.stabilityModifiers)
+			{
+				stability = stabilitySystem.Recalculate(town.stabilityModifiers);
+			}
+
+			town.stability = stability;
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Rebuilds one modifier list from the parallel id/timer arrays a save record carries.
+	//!
+	//! Modifier ids are INDICES into the modifier config, so an id the current config no longer
+	//! defines is dropped rather than restored - Recalculate() and every modifier RPC would index
+	//! straight out of bounds on it.
+	//! \param[in] modifiers The live list to rebuild, may be null.
+	//! \param[in] ids Saved modifier ids.
+	//! \param[in] timers Saved timers, index-aligned with ids.
+	//! \param[in] system The modifier system that owns these ids, may be null.
+	protected void ApplyPersistedModifiers(array<ref OVT_TownModifierData> modifiers, array<int> ids, array<int> timers, OVT_TownModifierSystem system)
+	{
+		if (!modifiers)
+			return;
+
+		modifiers.Clear();
+
+		if (!ids || !timers)
+			return;
+
+		int limit = -1;
+		if (system && system.m_Config && system.m_Config.m_aModifiers)
+			limit = system.m_Config.m_aModifiers.Count();
+
+		int count = ids.Count();
+		if (timers.Count() < count)
+			count = timers.Count();
+
+		for (int i = 0; i < count; i++)
+		{
+			int id = ids[i];
+			if (id < 0)
+				continue;
+
+			if (limit > -1 && id >= limit)
+			{
+				Print(string.Format("[Overthrow] Dropping saved town modifier %1 - the modifier config no longer defines it", id), LogLevel.WARNING);
+				continue;
+			}
+
+			OVT_TownModifierData data = new OVT_TownModifierData();
+			data.id = id;
+			data.timer = timers[i];
+			modifiers.Insert(data);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Initializes town data by querying map markers across the entire world.
 	//! Called once during Init.
 	protected void InitializeTowns()
@@ -913,19 +1036,27 @@ class OVT_TownManagerComponent: OVT_Component
 	//! Spawns a town controller prefab at the location of each managed town (deprecated, maps should now include town controller prefabs)
 	//! Called once after game start.
 	protected void SpawnTownControllers()
-	{		
+	{
 		int i = 0;
 		foreach(OVT_TownData town : m_Towns)
 		{
+			// m_TownControllers must stay index-aligned with m_Towns, so an invalid ID is inserted even on a failed spawn
+			EntityID controllerID;
 			IEntity controller = OVT_Global.SpawnEntityPrefab(OVT_Global.GetConfig().m_pTownControllerPrefab, town.location);
-			OVT_TownControllerComponent townController = OVT_TownControllerComponent.Cast(controller.FindComponent(OVT_TownControllerComponent));
-			if(townController)
+			if(controller)
 			{
-				townController.m_iTownRange = GetTownRange(town);
-				townController.m_sName = GetTownName(i);
-				townController.m_iPopulation = town.population;
-				townController.m_Size = town.size;
+				controllerID = controller.GetID();
+				OVT_TownControllerComponent townController = OVT_TownControllerComponent.Cast(controller.FindComponent(OVT_TownControllerComponent));
+				if(townController)
+				{
+					townController.m_iTownRange = GetTownRange(town);
+					townController.m_sName = GetTownName(i);
+					townController.m_iPopulation = town.population;
+					townController.m_Size = town.size;
+					townController.ActivateTown();
+				}
 			}
+			m_TownControllers.Insert(controllerID);
 			i++;
 		}
 	}
@@ -1086,16 +1217,25 @@ class OVT_TownManagerComponent: OVT_Component
 	//! Synchronizes changes via RPC.
 	//! \param pos The position vector to find the nearest town from
 	//! \param num The number of supporters/population to remove (default: 1)
-	void TakeSupportersFromNearestTown(vector pos, int num = 1)
+	//! \return true if the supporters were taken, false if the town had too few (BUG-064)
+	bool TakeSupportersFromNearestTown(vector pos, int num = 1)
 	{
 		OVT_TownData town = GetNearestTown(pos);
+		if(!town) return false;
 		int townID = GetTownID(town);
-		if(town.support < num || town.population < num) return;
-		RpcDo_SetSupport(townID, town.support - num);
-		Rpc(RpcDo_SetSupport, townID, town.support - num);
-		
-		RpcDo_SetPopulation(townID, town.population - num);
-		Rpc(RpcDo_SetPopulation, townID, town.population - num);
+		if(town.support < num || town.population < num) return false;
+
+		// Compute once: the local RpcDo call mutates the fields, so re-reading them for the
+		// networked call would send clients a double-decremented value
+		int newSupport = town.support - num;
+		int newPopulation = town.population - num;
+
+		RpcDo_SetSupport(townID, newSupport);
+		Rpc(RpcDo_SetSupport, townID, newSupport);
+
+		RpcDo_SetPopulation(townID, newPopulation);
+		Rpc(RpcDo_SetPopulation, townID, newPopulation);
+		return true;
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -1120,10 +1260,29 @@ class OVT_TownManagerComponent: OVT_Component
 	void AddSupport(vector pos, int num = 1)
 	{
 		OVT_TownData town = GetNearestTown(pos);
+		if(!town) return;
 		int townID = GetTownID(town);
-				
-		RpcDo_SetSupport(townID, town.support + num);
-		Rpc(RpcDo_SetSupport, townID, town.support + num);
+
+		// Support is a headcount - it can never exceed the town's population (BUG-064)
+		int newSupport = town.support + num;
+		if(newSupport > town.population) newSupport = town.population;
+		if(newSupport < 0) newSupport = 0;
+		if(newSupport == town.support) return;
+
+		RpcDo_SetSupport(townID, newSupport);
+		Rpc(RpcDo_SetSupport, townID, newSupport);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Server-side one-attempt-per-civilian gate for supporter conversion (BUG-063): the client-local
+	//! performed flag neither syncs between players nor survives the civilian despawn/respawn cycle.
+	//! \param civilianId The RplId of the civilian being converted
+	//! \return true if this civilian had not been attempted yet (it is now marked), false otherwise
+	bool TryMarkCivilianConvertAttempted(RplId civilianId)
+	{
+		if(m_ConvertedCivilians.Contains(civilianId)) return false;
+		m_ConvertedCivilians.Insert(civilianId);
+		return true;
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -1251,10 +1410,19 @@ class OVT_TownManagerComponent: OVT_Component
 		
 		if (!reader.ReadInt(length)) return false;
 		//Print("Replicating " + length + " towns");
+		if (length != m_Towns.Count())
+		{
+			Print(string.Format("[Overthrow] JIP town count mismatch: server sent %1 towns, client discovered %2 - check for mod/world mismatch", length, m_Towns.Count()), LogLevel.WARNING);
+		}
 		for(int i=0; i<length; i++)
-		{			
-			OVT_TownData town = GetTown(i);
-			
+		{
+			// A record past the client's own town list is read into a discard so the bit stream stays aligned
+			OVT_TownData town;
+			if (i < m_Towns.Count())
+				town = GetTown(i);
+			else
+				town = new OVT_TownData();
+
 			//Print("Replicating town ID " + i);
 				
 			if (!reader.ReadInt(town.population)) return false;		
@@ -1298,17 +1466,41 @@ class OVT_TownManagerComponent: OVT_Component
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_AddStabilityModifier(int townId, int index)
 	{
+		// Client-supplied arguments: validate bounds and re-check stacking server-side
+		if(townId < 0 || townId >= m_Towns.Count()) return;
+		OVT_TownModifierSystem system = GetModifierSystem(OVT_TownStabilityModifierSystem);
+		if(!system || !system.m_Config) return;
+		if(index < 0 || index >= system.m_Config.m_aModifiers.Count()) return;
+
 		OVT_TownData town = m_Towns[townId];
-		OVT_TownModifierSystem system = GetModifierSystem(OVT_TownStabilityModifierSystem);		
 		OVT_ModifierConfig mod = system.m_Config.m_aModifiers[index];
-		
+
+		int existing = GetModifierIndex(town.stabilityModifiers, index);
+		if(existing > -1)
+		{
+			if(mod.flags & OVT_ModifierFlags.STACKABLE)
+			{
+				int num = 0;
+				foreach(OVT_TownModifierData check : town.stabilityModifiers)
+				{
+					if(check && check.id == index) num++;
+				}
+				if(num >= mod.stackLimit) return;
+			}else{
+				//Is not stackable, reset timer instead of inserting a duplicate
+				town.stabilityModifiers[existing].timer = mod.timeout;
+				Rpc(RpcDo_ResetStabilityModifier, townId, index);
+				return;
+			}
+		}
+
 		OVT_TownModifierData data = new OVT_TownModifierData;
 		data.id = index;
 		data.timer = mod.timeout;
-		
+
 		town.stabilityModifiers.Insert(data);
-		
-		RecalculateStability(townId);		
+
+		RecalculateStability(townId);
 		Rpc(RpcDo_AddStabilityModifier, townId, index, mod.timeout);
 	}
 	
@@ -1320,16 +1512,43 @@ class OVT_TownManagerComponent: OVT_Component
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_AddSupportModifier(int townId, int index)
 	{
+		// Client-supplied arguments: validate bounds and re-check stacking server-side
+		if(townId < 0 || townId >= m_Towns.Count()) return;
+		OVT_TownModifierSystem system = GetModifierSystem(OVT_TownSupportModifierSystem);
+		if(!system || !system.m_Config) return;
+		if(index < 0 || index >= system.m_Config.m_aModifiers.Count()) return;
+
 		OVT_TownData town = m_Towns[townId];
-		OVT_TownModifierSystem system = GetModifierSystem(OVT_TownSupportModifierSystem);		
 		OVT_ModifierConfig mod = system.m_Config.m_aModifiers[index];
-		
+
+		int existing = GetModifierIndex(town.supportModifiers, index);
+		if(existing > -1)
+		{
+			if(mod.flags & OVT_ModifierFlags.STACKABLE)
+			{
+				int num = 0;
+				foreach(OVT_TownModifierData check : town.supportModifiers)
+				{
+					if(check && check.id == index) num++;
+				}
+				if(num >= mod.stackLimit) return;
+			}else{
+				//Is not stackable, reset timer instead of inserting a duplicate (permanent modifiers stay untouched)
+				if(mod.timeout > 0)
+				{
+					town.supportModifiers[existing].timer = mod.timeout;
+					Rpc(RpcDo_ResetSupportModifier, townId, index);
+				}
+				return;
+			}
+		}
+
 		OVT_TownModifierData data = new OVT_TownModifierData;
 		data.id = index;
 		data.timer = mod.timeout;
-		
+
 		town.supportModifiers.Insert(data);
-				
+
 		Rpc(RpcDo_AddSupportModifier, townId, index, mod.timeout);
 	}
 	
@@ -1340,6 +1559,7 @@ class OVT_TownManagerComponent: OVT_Component
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_SetStability(int townId, int value)
 	{
+		if(townId < 0 || townId >= m_Towns.Count()) return;
 		OVT_TownData town = m_Towns[townId];
 		town.stability = value;
 	}
@@ -1351,6 +1571,7 @@ class OVT_TownManagerComponent: OVT_Component
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_SetSupport(int townId, int value)
 	{
+		if(townId < 0 || townId >= m_Towns.Count()) return;
 		OVT_TownData town = m_Towns[townId];
 		town.support = value;
 	}
@@ -1362,6 +1583,7 @@ class OVT_TownManagerComponent: OVT_Component
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_SetPopulation(int townId, int value)
 	{
+		if(townId < 0 || townId >= m_Towns.Count()) return;
 		OVT_TownData town = m_Towns[townId];
 		town.population = value;
 	}
@@ -1374,6 +1596,7 @@ class OVT_TownManagerComponent: OVT_Component
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_AddStabilityModifier(int townId, int index, int timer)
 	{
+		if(townId < 0 || townId >= m_Towns.Count()) return;
 		OVT_TownData town = m_Towns[townId];
 		OVT_TownModifierData data = new OVT_TownModifierData;
 		data.id = index;
@@ -1390,8 +1613,9 @@ class OVT_TownManagerComponent: OVT_Component
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_AddSupportModifier(int townId, int index, int timer)
 	{
+		if(townId < 0 || townId >= m_Towns.Count()) return;
 		OVT_TownData town = m_Towns[townId];
-		
+
 		OVT_TownModifierData data = new OVT_TownModifierData;
 		data.id = index;
 		data.timer = timer;
@@ -1406,7 +1630,8 @@ class OVT_TownManagerComponent: OVT_Component
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_RemoveStabilityModifier(int townId, int index)
 	{
-		OVT_TownData town = m_Towns[townId];		
+		if(townId < 0 || townId >= m_Towns.Count()) return;
+		OVT_TownData town = m_Towns[townId];
 		int i = GetModifierIndex(town.stabilityModifiers, index);
 		if(i > -1)
 		{
@@ -1421,7 +1646,8 @@ class OVT_TownManagerComponent: OVT_Component
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_RemoveSupportModifier(int townId, int index)
 	{
-		OVT_TownData town = m_Towns[townId];		
+		if(townId < 0 || townId >= m_Towns.Count()) return;
+		OVT_TownData town = m_Towns[townId];
 		int i = GetModifierIndex(town.supportModifiers, index);
 		if(i > -1)
 		{
@@ -1436,8 +1662,11 @@ class OVT_TownManagerComponent: OVT_Component
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_ResetStabilityModifier(int townId, int index)
 	{
+		if(townId < 0 || townId >= m_Towns.Count()) return;
 		OVT_TownData town = m_Towns[townId];
-		OVT_TownModifierSystem system = GetModifierSystem(OVT_TownStabilityModifierSystem);		
+		OVT_TownModifierSystem system = GetModifierSystem(OVT_TownStabilityModifierSystem);
+		if(!system || !system.m_Config) return;
+		if(index < 0 || index >= system.m_Config.m_aModifiers.Count()) return;
 		OVT_ModifierConfig mod = system.m_Config.m_aModifiers[index];
 		int i = GetModifierIndex(town.stabilityModifiers, index);
 		if(i > -1)
@@ -1453,8 +1682,11 @@ class OVT_TownManagerComponent: OVT_Component
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_ResetSupportModifier(int townId, int index)
 	{
+		if(townId < 0 || townId >= m_Towns.Count()) return;
 		OVT_TownData town = m_Towns[townId];
-		OVT_TownModifierSystem system = GetModifierSystem(OVT_TownSupportModifierSystem);		
+		OVT_TownModifierSystem system = GetModifierSystem(OVT_TownSupportModifierSystem);
+		if(!system || !system.m_Config) return;
+		if(index < 0 || index >= system.m_Config.m_aModifiers.Count()) return;
 		OVT_ModifierConfig mod = system.m_Config.m_aModifiers[index];
 		int i = GetModifierIndex(town.supportModifiers, index);
 		if(i > -1)
@@ -1471,6 +1703,7 @@ class OVT_TownManagerComponent: OVT_Component
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_SetTownFaction(int townId, int index)
 	{
+		if(townId < 0 || townId >= m_Towns.Count()) return;
 		OVT_TownData town = m_Towns[townId];
 		town.faction = index;
 	}

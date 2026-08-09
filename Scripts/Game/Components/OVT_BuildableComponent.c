@@ -9,22 +9,25 @@ class OVT_BuildableComponent : ScriptComponent
 	[Attribute("", UIWidgets.EditBox, "Type of buildable structure")]
 	protected string m_sBuildableType;
 	
+	//! Replicated so client-side removal mode can check ownership (set server-side only)
+	[RplProp()]
 	protected string m_sOwnerPersistentId;
 	protected string m_sAssociatedBaseId; // Base/Camp/FOB ID this belongs to
 	protected EOVTBaseType m_eBaseType; // CAMP, FOB, or BASE
-	
+
 	//------------------------------------------------------------------------------------------------
 	//! Get the buildable type
 	string GetBuildableType()
 	{
 		return m_sBuildableType;
 	}
-	
+
 	//------------------------------------------------------------------------------------------------
 	//! Set the owner persistent ID
 	void SetOwnerPersistentId(string ownerPersistentId)
 	{
 		m_sOwnerPersistentId = ownerPersistentId;
+		Replication.BumpMe();
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -61,39 +64,5 @@ class OVT_BuildableComponent : ScriptComponent
 	bool BelongsTo(string baseId, EOVTBaseType baseType)
 	{
 		return m_sAssociatedBaseId == baseId && m_eBaseType == baseType;
-	}
-}
-
-[EPF_ComponentSaveDataType(OVT_BuildableComponent), BaseContainerProps()]
-class OVT_BuildableDataClass : EPF_ComponentSaveDataClass
-{
-}
-
-[EDF_DbName.Automatic()]
-class OVT_BuildableData : EPF_ComponentSaveData
-{
-	string m_sOwnerPersistentId;
-	string m_sAssociatedBaseId;
-	int m_eBaseType;
-	
-	override EPF_EReadResult ReadFrom(IEntity owner, GenericComponent component, EPF_ComponentSaveDataClass attributes)
-	{
-		OVT_BuildableComponent buildableComp = OVT_BuildableComponent.Cast(component);
-		
-		m_sOwnerPersistentId = buildableComp.GetOwnerPersistentId();
-		m_sAssociatedBaseId = buildableComp.GetAssociatedBaseId();
-		m_eBaseType = buildableComp.GetBaseType();
-		
-		return EPF_EReadResult.OK;
-	}
-	
-	override EPF_EApplyResult ApplyTo(IEntity owner, GenericComponent component, EPF_ComponentSaveDataClass attributes)
-	{
-		OVT_BuildableComponent buildableComp = OVT_BuildableComponent.Cast(component);
-		
-		buildableComp.SetOwnerPersistentId(m_sOwnerPersistentId);
-		buildableComp.SetAssociatedBase(m_sAssociatedBaseId, m_eBaseType);
-		
-		return EPF_EApplyResult.OK;
 	}
 }

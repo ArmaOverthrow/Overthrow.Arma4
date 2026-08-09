@@ -58,7 +58,7 @@ class OVT_MapPlayerLocation : SCR_MapUIBaseComponent
 			return;
 		}
 		
-		m_iLocalPlayerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(player);
+		m_iLocalPlayerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(player);
 		
 		if(!m_Widgets) m_Widgets = new map<int,ref Widget>;
 		m_Widgets.Clear();

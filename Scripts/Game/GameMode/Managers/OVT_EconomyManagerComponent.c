@@ -40,7 +40,17 @@ class OVT_ShopInventoryItem : ScriptAndConfig
 	
 	[Attribute("true", desc: "Include buy/sell other faction's gear for this item")]
 	bool m_bIncludeOtherFactionItems;
-		
+
+	//! Vanilla files crew-served weapon parts (M2/NSV gun and tripod parts, mortar barrels/base plates/
+	//! bipods, sandbags) plus repair, rearming and fuel kits as EQUIPMENT in SUPPORT_STATION mode. An
+	//! EQUIPMENT rule with no m_sFind therefore matches all of them (BUG-098), which is how tripods
+	//! reached the shelves of a civilian electronics store. Turn this off for any rule that means
+	//! "ordinary carryable gear"; a rule that genuinely wants deployable parts can still ask for them
+	//! by setting m_eItemMode to SUPPORT_STATION.
+	[Attribute("true", desc: "Include deployable/support-station parts (tripods, mortar parts, sandbags, repair and fuel kits)")]
+	bool m_bIncludeSupportStationItems;
+
+
 	[Attribute(desc: "Choose a single and random item from this category")]
 	bool m_bSingleRandomItem;
 }
@@ -73,6 +83,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 	protected ref map<ref ResourceName,int> m_aResourceIndex; //!< Mapping from ResourceName to its integer ID in m_aResources.
 	protected ref array<ref SCR_EntityCatalogEntry> m_aEntityCatalogEntries; //!< Cached entity catalog entries for faster lookup.
 	protected ref map<int,ref array<int>> m_mFactionResources; //!< Mapping from Faction ID to an array of resource IDs belonging to that faction.
+
+	protected ref map<int, OVT_ShopCategory> m_mResourceCategory; //!< Lazily built resource ID -> browse category cache. Null until the first GetItemCategory call.
+	protected ref map<int, ref set<int>> m_mShopTypeResources; //!< Lazily built shop type -> set of resource IDs sold there. Filled one shop type at a time by IsSoldAtShopCached.
 	
 	ref map<int, ref array<RplId>> m_mTownShops; //!< Mapping from Town ID to an array of shop RplIds within that town.
 	
@@ -243,7 +256,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 			if(isResistanceOwned)
 			{
 				AddResistanceMoney(cost);
-				return;
+				continue;
 			}else if(isResistanceRented)
 			{
 				if(!ResistanceHasMoney(cost))
@@ -252,7 +265,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 				}else{
 					TakeResistanceMoney(cost);
 				}
-				return;
+				continue;
 			}
 			
 			if(isOwner)
@@ -289,19 +302,20 @@ class OVT_EconomyManagerComponent: OVT_Component
 				types.Insert(typeShops.GetKey(i));
 			}			
 			
-			foreach(RplId shopId : m_aAllShops)
+			foreach(RplId shopId : m_mTownShops[townID])
 			{
 				OVT_ShopComponent shop = GetShopByRplId(shopId);
+				if(!shop) continue;
 				for(int i = 0; i<shop.m_aInventory.Count(); i++)
 				{
 					int id = shop.m_aInventory.GetKey(i);
 					int max = GetTownMaxStock(townID, id);
-					int numShops = 1;					
+					int numShops = 1;
 					if(typeShops.Contains(shop.m_ShopType))
 						numShops = typeShops[shop.m_ShopType].Count();
 					max = Math.Round(max / numShops);
 					int stock = shop.GetStock(id);
-					int half = Math.Round(stock * 0.5);
+					int half = Math.Round(max * 0.5);
 					if(stock < half)
 					{
 						shop.AddToInventory(id, half - stock);
@@ -310,7 +324,12 @@ class OVT_EconomyManagerComponent: OVT_Component
 			}
 		}
 
-		//Gun dealer restocking (Item prefabs only ie weed)
+		//Gun dealer restocking
+		array<int> dealerPrefabIds = new array<int>;
+		foreach(OVT_PrefabItemCostConfig prefabItem : m_GunDealerConfig.m_aGunDealerItemPrefabs)
+		{
+			dealerPrefabIds.Insert(GetInventoryId(prefabItem.m_sEntityPrefab));
+		}
 		foreach(RplId id : m_aGunDealers)
 		{
 			OVT_ShopComponent shop = GetShopByRplId(id);
@@ -322,7 +341,22 @@ class OVT_EconomyManagerComponent: OVT_Component
 				{
 					int num = Math.Round(s_AIRandomGenerator.RandInt(item.minStock,item.maxStock));
 					shop.AddToInventory(GetInventoryId(item.m_sEntityPrefab), num);
-				}				
+				}
+			}
+			//Catalog items (weapons/ammo etc): top up what this dealer rolled at spawn.
+			//Sold-out ids stay in the inventory map at 0, so the per-town random
+			//heavy weapons are restocked, never re-rolled
+			for(int i = 0; i<shop.m_aInventory.Count(); i++)
+			{
+				int itemId = shop.m_aInventory.GetKey(i);
+				if(dealerPrefabIds.Find(itemId) != -1) continue;
+				int max = GetTownMaxStock(shop.m_iTownId, itemId);
+				int stock = shop.GetStock(itemId);
+				int half = Math.Round(max * 0.5);
+				if(stock < half)
+				{
+					shop.AddToInventory(itemId, half - stock);
+				}
 			}
 		}
 	}
@@ -354,13 +388,13 @@ class OVT_EconomyManagerComponent: OVT_Component
 			for(int i=0; i<numToBuy; i++)
 			{
 				//pick a random shop type
-				int typeIndex = s_AIRandomGenerator.RandInt(0,types.Count()-1);
+				int typeIndex = s_AIRandomGenerator.RandInt(0,types.Count());
 				//pick a random shop within that type
-				int shopIndex = s_AIRandomGenerator.RandInt(0,typeShops[types[typeIndex]].Count()-1);
+				int shopIndex = s_AIRandomGenerator.RandInt(0,typeShops[types[typeIndex]].Count());
 				OVT_ShopComponent shop = GetShopByRplId(typeShops[types[typeIndex]][shopIndex]);
 				if(!shop) continue;
 				//pick a random inventory item
-				int itemIndex = s_AIRandomGenerator.RandInt(0,shop.m_aInventory.Count()-1);
+				int itemIndex = s_AIRandomGenerator.RandInt(0,shop.m_aInventory.Count());
 				int id = shop.m_aInventory.GetKey(itemIndex);
 				int qty = s_AIRandomGenerator.RandInt(1,GetDemand(id));
 				int stock = shop.GetStock(id);
@@ -501,7 +535,23 @@ class OVT_EconomyManagerComponent: OVT_Component
 	//! \param[in] pos The world position where the item is being sold (optional, uses base price if "0 0 0").
 	//! \return The calculated sell price.
 	int GetSellPrice(int id, vector pos = "0 0 0")
-	{		
+	{
+		return GetSellPriceAtOffset(id, pos, 0);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The sell price as it would be AFTER stockOffset additional units enter the nearest town's
+	//! stock, without mutating anything.
+	//!
+	//! This is the seam that lets a bulk sale price each unit marginally (BUG-117): unit i of a
+	//! resource is priced with offset i, so dumping a truckload rides the scarcity curve down
+	//! instead of collecting the pre-sale price for every unit. Offset 0 is the plain sell price.
+	//! \param[in] id The resource ID of the item.
+	//! \param[in] pos The world position where the item is being sold (uses base price if "0 0 0").
+	//! \param[in] stockOffset Hypothetical units already added to the town's stock.
+	//! \return The calculated sell price.
+	int GetSellPriceAtOffset(int id, vector pos, int stockOffset)
+	{
 		int price = GetPrice(id);
 		if(m_aAllVehicles.Contains(id)) return price;
 		if(pos[0] != 0)
@@ -510,14 +560,15 @@ class OVT_EconomyManagerComponent: OVT_Component
 			if(town)
 			{
 				int townID = OVT_Global.GetTowns().GetTownID(town);
-				int stock_level = GetTownStock(townID, id);
+				int stock_level = GetTownStock(townID, id) + stockOffset;
 				int max_stock = GetTownMaxStock(townID, id);
+				if(max_stock < 1) max_stock = 1;
 				float distance_to_port = DistanceToNearestPort(pos);
-				price = Math.Round(price + ((1 - (stock_level / max_stock)) * (price * 0.1)) + (price * distance_to_port * 0.0001));
+				price = Math.Round(price + ((1 - ((float)stock_level / max_stock)) * (price * 0.1)) + (price * distance_to_port * 0.0001));
 				if(price < 0) price = 1;
 			}
 		}
-		
+
 		return price;
 	}
 	
@@ -573,6 +624,24 @@ class OVT_EconomyManagerComponent: OVT_Component
 	}	
 	
 	//------------------------------------------------------------------------------------------------
+	//! Hard ceiling on how far player sales may overstock a town, as a multiple of GetTownMaxStock
+	//! (BUG-117): beyond it shops refuse to buy rather than paying ever less for an unbounded glut.
+	static const int TOWN_STOCK_BUY_CAP_MULTIPLIER = 2;
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether a town can absorb one more unit of an item from a player sale without exceeding the
+	//! buy cap. extraUnits covers units already accepted earlier in the same bulk sale, so a single
+	//! Sell All cannot blow through the cap between stock broadcasts.
+	//! \param[in] townId The ID of the town.
+	//! \param[in] id The resource ID of the item.
+	//! \param[in] extraUnits Units already accepted but not yet added to the town's stock.
+	//! \return True when one more unit keeps town stock at or below the cap.
+	bool CanTownAbsorbStock(int townId, int id, int extraUnits)
+	{
+		return GetTownStock(townId, id) + extraUnits < TOWN_STOCK_BUY_CAP_MULTIPLIER * GetTownMaxStock(townId, id);
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Gets the shop-specific buy price including all applicable multipliers.
 	//! \param[in] id The resource ID of the item.
 	//! \param[in] shop The shop component for shop-specific pricing.
@@ -627,7 +696,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 		foreach(OVT_ShopInventoryItem item : config.m_aInventoryItems)
 		{
 			array<SCR_EntityCatalogEntry> entries();
-			FindInventoryItems(item.m_eItemType, item.m_eItemMode, item.m_sFind, entries);
+			FindInventoryItems(item.m_eItemType, item.m_eItemMode, item.m_sFind, entries, item.m_bIncludeSupportStationItems);
 			
 			foreach(SCR_EntityCatalogEntry entry : entries)
 			{
@@ -636,7 +705,120 @@ class OVT_EconomyManagerComponent: OVT_Component
 		}
 		return false;
 	}
-	
+
+	//------------------------------------------------------------------------------------------------
+	//! O(1) equivalent of IsSoldAtShop(ResourceName, OVT_ShopType), keyed by resource ID.
+	//!
+	//! IsSoldAtShop runs a full catalog scan per configured inventory rule on EVERY call, which is far
+	//! too expensive for the sell browser (one call per held item per refresh). This builds the id set
+	//! for a shop type once, on first use, from exactly the same rules and in exactly the same order,
+	//! and answers from the set afterwards.
+	//!
+	//! Semantics deliberately mirrored from IsSoldAtShop: only m_eItemType / m_eItemMode / m_sFind /
+	//! m_bIncludeSupportStationItems are consulted (the faction include flags and m_bSingleRandomItem are
+	//! stocking concerns, not eligibility ones - whether a shop deals in deployable parts at all IS an
+	//! eligibility one, which is why it belongs here and the faction flags do not), and a shop type with
+	//! no configured rules sells nothing. Difference by
+	//! construction: a catalog prefab that was never registered in the resource database has no ID, so
+	//! it cannot be represented here - such an item is unsellable anyway (see IsRegisteredResource).
+	//! \param[in] id The resource ID of the item.
+	//! \param[in] shopType The type of shop to check against.
+	//! \return True if the shop type's inventory configuration matches the item.
+	bool IsSoldAtShopCached(int id, OVT_ShopType shopType)
+	{
+		set<int> soldIds = GetShopTypeResourceIds(shopType);
+		if(!soldIds) return false;
+		return soldIds.Contains(id);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Returns (building it if needed) the set of resource IDs a shop type's config sells.
+	//! \param[in] shopType The type of shop to resolve.
+	//! \return The cached id set, or null when the catalog is not built yet and no answer can be cached.
+	protected set<int> GetShopTypeResourceIds(OVT_ShopType shopType)
+	{
+		int typeKey = shopType;
+
+		if(!m_mShopTypeResources) m_mShopTypeResources = new map<int, ref set<int>>;
+		if(m_mShopTypeResources.Contains(typeKey)) return m_mShopTypeResources[typeKey];
+
+		OVT_ShopInventoryConfig config = GetShopConfig(shopType);
+		if(!config || !config.m_aInventoryItems)
+		{
+			// A shop type with no rules sells nothing, and that answer is stable - cache it.
+			set<int> empty = new set<int>;
+			m_mShopTypeResources[typeKey] = empty;
+			return empty;
+		}
+
+		// Never cache an answer derived from a catalog that has not been built yet.
+		if(!m_aEntityCatalogEntries || m_aEntityCatalogEntries.IsEmpty()) return null;
+
+		set<int> soldIds = new set<int>;
+		foreach(OVT_ShopInventoryItem item : config.m_aInventoryItems)
+		{
+			if(!item) continue;
+
+			array<SCR_EntityCatalogEntry> entries();
+			FindInventoryItems(item.m_eItemType, item.m_eItemMode, item.m_sFind, entries, item.m_bIncludeSupportStationItems);
+
+			foreach(SCR_EntityCatalogEntry entry : entries)
+			{
+				if(!entry) continue;
+
+				ResourceName res = entry.GetPrefab();
+				if(!IsRegisteredResource(res)) continue;
+
+				soldIds.Insert(GetInventoryId(res));
+			}
+		}
+
+		m_mShopTypeResources[typeKey] = soldIds;
+		return soldIds;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Browse category for a resource ID, from a cache built once over the entity catalog.
+	//!
+	//! The mapping RULE lives in OVT_ShopCategoryHelper (pure, Logic-tier tested); this owns only the
+	//! id -> category cache, because it owns the catalog. Without the cache every menu refresh would
+	//! re-walk the catalog once per card.
+	//! \param[in] id The resource ID of the item.
+	//! \return The item's category, or OVT_ShopCategory.OTHER when the id is unknown or the catalog
+	//! entry carries no arsenal data.
+	OVT_ShopCategory GetItemCategory(int id)
+	{
+		if(!m_mResourceCategory) BuildResourceCategoryCache();
+
+		if(m_mResourceCategory && m_mResourceCategory.Contains(id)) return m_mResourceCategory[id];
+
+		return OVT_ShopCategoryHelper.GetCategoryForUncatalogued();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Builds the resource ID -> category cache from the cached entity catalog entries.
+	//! Does nothing while the catalog is empty, so an early call cannot poison the cache with a
+	//! catalog that has not been built yet.
+	protected void BuildResourceCategoryCache()
+	{
+		if(!m_aEntityCatalogEntries || m_aEntityCatalogEntries.IsEmpty()) return;
+
+		m_mResourceCategory = new map<int, OVT_ShopCategory>;
+
+		foreach(SCR_EntityCatalogEntry entry : m_aEntityCatalogEntries)
+		{
+			if(!entry) continue;
+
+			SCR_ArsenalItem item = SCR_ArsenalItem.Cast(entry.GetEntityDataOfType(SCR_ArsenalItem));
+			if(!item) continue;
+
+			ResourceName res = entry.GetPrefab();
+			if(!IsRegisteredResource(res)) continue;
+
+			m_mResourceCategory[GetInventoryId(res)] = OVT_ShopCategoryHelper.GetCategory(item.GetItemType(), item.GetItemMode());
+		}
+	}
+
 	//------------------------------------------------------------------------------------------------
 	//! Finds the RplId of the nearest port entity to a given position.
 	//! \param[in] pos The world position to check from.
@@ -675,6 +857,70 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return nearest;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Finds the nearest registered shop to a position.
+	//!
+	//! Scans BOTH m_aAllShops and m_aGunDealers: FilterShopEntities deliberately excludes gun dealers
+	//! from m_aAllShops, so a scan of that array alone would make every gun dealer invisible to
+	//! callers such as the vehicle trunk sell action.
+	//! \param[in] pos The world position to measure from.
+	//! \param[in] maxDistance Maximum distance in metres. Negative means unlimited.
+	//! \return The nearest shop component in range, or null when nothing qualifies.
+	OVT_ShopComponent GetNearestShop(vector pos, float maxDistance = -1)
+	{
+		float nearestOfAll = -1;
+		OVT_ShopComponent nearestShop = FindNearestShopIn(m_aAllShops, pos, maxDistance, nearestOfAll);
+
+		float nearestDealer = -1;
+		OVT_ShopComponent nearestGunDealer = FindNearestShopIn(m_aGunDealers, pos, maxDistance, nearestDealer);
+
+		if(!nearestGunDealer) return nearestShop;
+		if(!nearestShop) return nearestGunDealer;
+
+		if(nearestDealer < nearestOfAll) return nearestGunDealer;
+		return nearestShop;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Finds the nearest resolvable shop within one list of shop RplIds.
+	//! Every replication lookup, entity and component resolution is null-guarded: a shop whose entity
+	//! is not streamed in on this machine is simply skipped.
+	//! \param[in] shopIds The RplIds to scan. May be null.
+	//! \param[in] pos The world position to measure from.
+	//! \param[in] maxDistance Maximum distance in metres. Negative means unlimited.
+	//! \param[out] nearestDistance Distance to the returned shop, or -1 when none was found.
+	//! \return The nearest shop component in range, or null.
+	protected OVT_ShopComponent FindNearestShopIn(array<RplId> shopIds, vector pos, float maxDistance, out float nearestDistance)
+	{
+		nearestDistance = -1;
+		OVT_ShopComponent nearestShop = null;
+
+		if(!shopIds) return null;
+
+		foreach(RplId id : shopIds)
+		{
+			RplComponent rpl = RplComponent.Cast(Replication.FindItem(id));
+			if(!rpl) continue;
+
+			IEntity entity = rpl.GetEntity();
+			if(!entity) continue;
+
+			OVT_ShopComponent shop = OVT_ShopComponent.Cast(entity.FindComponent(OVT_ShopComponent));
+			if(!shop) continue;
+
+			float distance = vector.Distance(pos, entity.GetOrigin());
+			if(maxDistance >= 0 && distance > maxDistance) continue;
+
+			if(nearestDistance == -1 || distance < nearestDistance)
+			{
+				nearestDistance = distance;
+				nearestShop = shop;
+			}
+		}
+
+		return nearestShop;
+	}
+
 	//------------------------------------------------------------------------------------------------
 	//! Gets a list of RplIds for all registered shops.
 	//! \return An array containing the RplIds of all shops.
@@ -786,19 +1032,24 @@ class OVT_EconomyManagerComponent: OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Adds money to a player's account. Handles server/client distinction.
-	//! Use this method for external calls.
+	//! Adds money to a player's account. Server-only: money grants must originate on the server, so
+	//! calls from clients are ignored (clients go through a validated ask on OVT_PlayerCommsComponent,
+	//! e.g. SendResistanceFunds / SendMoneyToPlayer).
 	//! \param[in] playerId The runtime Player ID.
 	//! \param[in] amount The amount of money to add.
-	//! \param[in] doEvent If true, invokes the m_OnPlayerMoneyChanged event (currently unused).
+	//! \param[in] doEvent If true, invokes the m_OnPlayerSell event.
 	void AddPlayerMoney(int playerId, int amount, bool doEvent=false)
 	{
-		if(Replication.IsServer())
+		if(!Replication.IsServer())
 		{
-			DoAddPlayerMoney(playerId, amount);
+			Print("OVT_EconomyManagerComponent.AddPlayerMoney is server-only and was called on a client - ignored", LogLevel.WARNING);
 			return;
 		}
-		OVT_Global.GetServer().AddPlayerMoney(playerId, amount, doEvent);		
+		DoAddPlayerMoney(playerId, amount);
+		if(doEvent)
+		{
+			m_OnPlayerSell.Invoke(playerId, amount);
+		}
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -818,16 +1069,17 @@ class OVT_EconomyManagerComponent: OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Adds money to the resistance faction's funds. Handles server/client distinction.
+	//! Adds money to the resistance faction's funds. Server-only: calls from clients are ignored
+	//! (clients go through a validated ask on OVT_PlayerCommsComponent, e.g. DonateToResistance).
 	//! \param[in] amount The amount of money to add.
 	void AddResistanceMoney(int amount)
 	{
-		if(Replication.IsServer())
+		if(!Replication.IsServer())
 		{
-			DoAddResistanceMoney(amount);
+			Print("OVT_EconomyManagerComponent.AddResistanceMoney is server-only and was called on a client - ignored", LogLevel.WARNING);
 			return;
 		}
-		OVT_Global.GetServer().AddResistanceMoney(amount);		
+		DoAddResistanceMoney(amount);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -840,16 +1092,17 @@ class OVT_EconomyManagerComponent: OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Takes money from the resistance faction's funds. Handles server/client distinction.
+	//! Takes money from the resistance faction's funds. Server-only: calls from clients are ignored
+	//! (clients go through a validated ask on OVT_PlayerCommsComponent, e.g. SendResistanceFunds).
 	//! \param[in] amount The amount of money to take.
 	void TakeResistanceMoney(int amount)
 	{
-		if(Replication.IsServer())
+		if(!Replication.IsServer())
 		{
-			DoTakeResistanceMoney(amount);
+			Print("OVT_EconomyManagerComponent.TakeResistanceMoney is server-only and was called on a client - ignored", LogLevel.WARNING);
 			return;
 		}
-		OVT_Global.GetServer().TakeResistanceMoney(amount);		
+		DoTakeResistanceMoney(amount);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -979,6 +1232,24 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return m_iResistanceMoney;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Applies economy state restored from a save point.
+	//!
+	//! The persistence layer's counterpart to GetResistanceMoney() / m_fResistanceTax: it writes both
+	//! values and fires m_OnResistanceMoneyChanged so anything already listening agrees with the
+	//! restored campaign. It deliberately does NOT broadcast - restoring happens while the world is
+	//! still being built, and clients receive both values through this component's RplSave/RplLoad
+	//! JIP payload when they join.
+	//! \param[in] resistanceMoney Restored resistance treasury.
+	//! \param[in] resistanceTax Restored resistance tax rate.
+	void ApplyPersistedEconomy(int resistanceMoney, float resistanceTax)
+	{
+		m_iResistanceMoney = resistanceMoney;
+		m_fResistanceTax = resistanceTax;
+
+		m_OnResistanceMoneyChanged.Invoke(m_iResistanceMoney);
+	}
+
 	//------------------------------------------------------------------------------------------------
 	//! Registers a gun dealer entity with the economy manager.
 	//! Adds the entity's RplId to the list of gun dealers.
@@ -1227,9 +1498,11 @@ class OVT_EconomyManagerComponent: OVT_Component
 	//! \param[in] mode The SCR_EArsenalItemMode to filter by (DEFAULT matches any).
 	//! \param[in] search A string to search within the prefab name (case-sensitive). Blank matches all.
 	//! \param[out] inventoryItems An array to populate with matching SCR_EntityCatalogEntry objects.
+	//! \param[in] includeSupportStation False drops SUPPORT_STATION entries (deployable parts). Only
+	//! meaningful when mode is DEFAULT, i.e. when the wildcard would otherwise sweep them in (BUG-098).
 	//! \return True if the search was performed (doesn't guarantee items were found).
-	bool FindInventoryItems(SCR_EArsenalItemType type, SCR_EArsenalItemMode mode, string search, out array<SCR_EntityCatalogEntry> inventoryItems)
-	{	
+	bool FindInventoryItems(SCR_EArsenalItemType type, SCR_EArsenalItemMode mode, string search, out array<SCR_EntityCatalogEntry> inventoryItems, bool includeSupportStation = true)
+	{
 		foreach(SCR_EntityCatalogEntry entry : m_aEntityCatalogEntries)
 		{
 			SCR_ArsenalItem item = SCR_ArsenalItem.Cast(entry.GetEntityDataOfType(SCR_ArsenalItem));
@@ -1244,7 +1517,8 @@ class OVT_EconomyManagerComponent: OVT_Component
 				{
 					if(item.GetItemMode() != mode) continue;
 				}
-				inventoryItems.Insert(entry);				
+				if(!includeSupportStation && item.GetItemMode() == SCR_EArsenalItemMode.SUPPORT_STATION) continue;
+				inventoryItems.Insert(entry);
 			}
 		}
 		return true;
@@ -1398,10 +1672,24 @@ class OVT_EconomyManagerComponent: OVT_Component
 	//! \param[in] res The ResourceName.
 	//! \return The integer ID, or potentially an error/invalid ID if not found.
 	int GetInventoryId(ResourceName res)
-	{		
+	{
 		return m_aResourceIndex[res];
 	}
-	
+
+	//------------------------------------------------------------------------------------------------
+	//! Checks whether a ResourceName is present in the resource index.
+	//!
+	//! GetInventoryId is a bare map index: an unregistered prefab (looted gear that never entered the
+	//! resource database) silently resolves to id 0 - i.e. some other item's price. Everything scanned
+	//! out of a player's or a vehicle's inventory must pass through here first (R7).
+	//! \param[in] res The ResourceName to test.
+	//! \return True if GetInventoryId(res) will return that resource's own id.
+	bool IsRegisteredResource(ResourceName res)
+	{
+		if(!m_aResourceIndex) return false;
+		return m_aResourceIndex.Contains(res);
+	}
+
 	//------------------------------------------------------------------------------------------------
 	//! Gets the ResourceName corresponding to an internal integer ID.
 	//! \param[in] id The integer ID.
@@ -1409,6 +1697,32 @@ class OVT_EconomyManagerComponent: OVT_Component
 	ResourceName GetResource(int id)
 	{
 		return m_aResources[id];
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Checks whether an integer ID names a registered resource. Ids that arrive over the network
+	//! must pass this before being used to index the resource database (BUG-033).
+	//! \param[in] id The integer ID.
+	//! \return True if GetResource(id) is safe to call.
+	bool IsValidResourceId(int id)
+	{
+		if(!m_aResources) return false;
+		return id >= 0 && id < m_aResources.Count();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Checks whether an item is part of the standard (non-vehicle) shop catalogue - the list the
+	//! port offers without the IllegalImports permission (BUG-033).
+	//! \param[in] res The ResourceName of the item.
+	//! \return True if any non-vehicle shop type stocks the item.
+	bool IsSoldAtAnyNonVehicleShop(ResourceName res)
+	{
+		foreach(OVT_ShopInventoryConfig config : m_ShopConfig.m_aShopConfigs)
+		{
+			if(config.type == OVT_ShopType.SHOP_VEHICLE) continue;
+			if(IsSoldAtShop(res, config.type)) return true;
+		}
+		return false;
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -1434,7 +1748,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 				array<ResourceName> vehicles();
 				GetAllNonOccupyingFactionVehicles(vehicles);
 				
-				OVT_ParkingComponent parking = EPF_Component<OVT_ParkingComponent>.Find(shop.GetOwner());
+				OVT_ParkingComponent parking = OVT_ComponentFinder<OVT_ParkingComponent>.Find(shop.GetOwner());
 				array<OVT_ParkingType> parkingTypes();
 				parking.GetParkingTypes(parkingTypes);
 				
@@ -1453,7 +1767,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 				foreach(OVT_ShopInventoryItem item : config.m_aInventoryItems)
 				{
 					array<SCR_EntityCatalogEntry> entries();
-					FindInventoryItems(item.m_eItemType, item.m_eItemMode, item.m_sFind, entries);
+					FindInventoryItems(item.m_eItemType, item.m_eItemMode, item.m_sFind, entries, item.m_bIncludeSupportStationItems);
 					
 					foreach(SCR_EntityCatalogEntry entry : entries)
 					{

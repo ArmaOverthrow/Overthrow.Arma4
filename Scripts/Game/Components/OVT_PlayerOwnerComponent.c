@@ -63,35 +63,3 @@ class OVT_PlayerOwnerComponent : ScriptComponent
 		m_sOwnerUID = "";
 	}
 };
-
-[EPF_ComponentSaveDataType(OVT_PlayerOwnerComponent), BaseContainerProps()]
-class OVT_PlayerOwnerDataClass : EPF_ComponentSaveDataClass
-{
-};
-
-[EDF_DbName.Automatic()]
-class OVT_PlayerOwnerData : EPF_ComponentSaveData
-{
-	string m_sOwnerUID;
-	bool m_bIsLocked;
-	
-	override EPF_EReadResult ReadFrom(IEntity owner, GenericComponent component, EPF_ComponentSaveDataClass attributes)
-	{		
-		OVT_PlayerOwnerComponent playerowner = OVT_PlayerOwnerComponent.Cast(component);
-		
-		m_sOwnerUID = playerowner.GetPlayerOwnerUid();
-		m_bIsLocked = playerowner.IsLocked();
-		
-		return EPF_EReadResult.OK;
-	}
-	
-	override EPF_EApplyResult ApplyTo(IEntity owner, GenericComponent component, EPF_ComponentSaveDataClass attributes)
-	{
-		OVT_PlayerOwnerComponent playerowner = OVT_PlayerOwnerComponent.Cast(component);
-		
-		playerowner.SetPlayerOwner(m_sOwnerUID);
-		playerowner.SetLocked(m_bIsLocked);
-		
-		return EPF_EApplyResult.OK;
-	}
-}

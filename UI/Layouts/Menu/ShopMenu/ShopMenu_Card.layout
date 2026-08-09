@@ -91,29 +91,69 @@ ButtonWidgetClass {
              Image ""
              Size 400 300
             }
-            TextWidgetClass "{598EF9F4DEC53A33}" {
-             Name "Cost"
+            OverlayWidgetClass "{6A7E2C1D4A9F0001}" {
+             Name "CostPlate"
              Slot OverlayWidgetSlot "{598AD558E38C3D42}" {
               HorizontalAlign 2
               VerticalAlign 0
               Padding 10 10 10 10
              }
-             Text "$10000000"
-             FontProperties FontProperties "{598AD558CB805630}" {
-              Font "{CD2634D279AB011A}UI/Fonts/Roboto/Roboto_Bold.fnt"
+             {
+              ImageWidgetClass "{6A7E2C1D4A9F0002}" {
+               Name "CostBackground"
+               Slot OverlayWidgetSlot "{56EF0B19288B21F6}" {
+                HorizontalAlign 3
+                VerticalAlign 3
+               }
+               Color 0.005 0.005 0.005 0.85
+               Image ""
+               Size 8 8
+              }
+              TextWidgetClass "{598EF9F4DEC53A33}" {
+               Name "Cost"
+               Slot OverlayWidgetSlot "{598AD558E38C3D42}" {
+                HorizontalAlign 3
+                VerticalAlign 3
+                Padding 8 2 8 2
+               }
+               Text "$10000000"
+               FontProperties FontProperties "{598AD558CB805630}" {
+                Font "{CD2634D279AB011A}UI/Fonts/Roboto/Roboto_Bold.fnt"
+               }
+              }
              }
             }
-            TextWidgetClass "{598EF9F4B711B387}" {
-             Name "Stock"
+            OverlayWidgetClass "{6A7E2C1D4A9F0003}" {
+             Name "StockPlate"
              Slot OverlayWidgetSlot "{598AD558E38C3D42}" {
               HorizontalAlign 0
               VerticalAlign 0
               Padding 10 10 10 10
              }
              "Is Visible" 0
-             Text "100"
-             FontProperties FontProperties "{598AD558CB805630}" {
-              Font "{CD2634D279AB011A}UI/Fonts/Roboto/Roboto_Bold.fnt"
+             {
+              ImageWidgetClass "{6A7E2C1D4A9F0004}" {
+               Name "StockBackground"
+               Slot OverlayWidgetSlot "{56EF0B19288B21F6}" {
+                HorizontalAlign 3
+                VerticalAlign 3
+               }
+               Color 0.005 0.005 0.005 0.85
+               Image ""
+               Size 8 8
+              }
+              TextWidgetClass "{598EF9F4B711B387}" {
+               Name "Stock"
+               Slot OverlayWidgetSlot "{598AD558E38C3D42}" {
+                HorizontalAlign 3
+                VerticalAlign 3
+                Padding 8 2 8 2
+               }
+               Text "100"
+               FontProperties FontProperties "{598AD558CB805630}" {
+                Font "{CD2634D279AB011A}UI/Fonts/Roboto/Roboto_Bold.fnt"
+               }
+              }
              }
             }
            }

@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{8BDAB2E90966AD51}UI/Layouts/Dialogs/RenameRecruitDialogContent.layout"
+ Configurations {
+  LayoutResourceClass PC {
+  }
+  LayoutResourceClass XBOX_ONE : PC {
+  }
+  LayoutResourceClass XBOX_SERIES : PC {
+  }
+  LayoutResourceClass PS4 : PC {
+  }
+  LayoutResourceClass HEADLESS : PC {
+  }
+ }
+}

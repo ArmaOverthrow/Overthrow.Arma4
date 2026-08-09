@@ -28,7 +28,19 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	int m_iStartingTownId = -1;
 	
 	ref array<ref OVT_WarehouseData> m_aWarehouses;
-	
+
+	//! Invoked with (warehouseId, resource name string, new quantity) whenever one warehouse stock line
+	//! changes.
+	//!
+	//! Fired on BOTH sides of the wire and exactly once per change, the same shape OVT_ShopComponent's
+	//! m_OnInventoryChanged uses:
+	//! - DoAddToWarehouse/DoTakeFromWarehouse fire it where the mutation happened (server, and therefore
+	//!   a listen-server host), because a broadcast Rpc does not execute on the caller;
+	//! - RpcDo_SetWarehouseInventory fires it on every remote client as the new amount lands.
+	//! The warehouse menu subscribes so a take redraws when the server's number actually arrives instead
+	//! of immediately after the async ask, which used to redraw the pre-take quantity.
+	ref ScriptInvoker m_OnWarehouseInventoryChanged = new ScriptInvoker();
+
 	//------------------------------------------------------------------------------------------------
 	//! Returns the singleton instance of the OVT_RealEstateManagerComponent
 	//! \return The singleton instance
@@ -163,7 +175,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 
 		if(m_iStartingTownId == -1) return null;
 				
-		int i = s_AIRandomGenerator.RandInt(0, m_aTownStartingHomes.Count() - 1);
+		int i = s_AIRandomGenerator.RandInt(0, m_aTownStartingHomes.Count());
 				
 		EntityID id = m_aTownStartingHomes[i];
 		m_aTownStartingHomes.Remove(i);
@@ -254,6 +266,187 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	}
 			
 	//------------------------------------------------------------------------------------------------
+	//! Applies persisted ownership, rentals and warehouse stock to the live manager.
+	//!
+	//! Called from OVT_RealEstateManagerSerializer.Deserialize().
+	//!
+	//! NO RPC. Clients receive all of this through RplSave/RplLoad instead - see the serializer.
+	//!
+	//! IDEMPOTENT: each position is re-pointed at its saved owner and duplicates are never inserted,
+	//! so running this again on a live session produces the same maps.
+	//! \param[in] ownedRecords Persisted owned buildings, may be null.
+	//! \param[in] rented Persisted rented buildings, may be null.
+	//! \param[in] warehouses Persisted warehouses, may be null.
+	void ApplyPersistedRealEstate(array<ref OVT_PersistedOwnership> ownedRecords, array<ref OVT_PersistedOwnership> rented, array<ref OVT_PersistedWarehouse> warehouses)
+	{
+		if (ownedRecords)
+		{
+			foreach (OVT_PersistedOwnership record : ownedRecords)
+			{
+				if (!record || record.persistentId == "" || !record.positions)
+					continue;
+
+				foreach (string position : record.positions)
+				{
+					ApplyPersistedOwner(record.persistentId, position);
+				}
+			}
+		}
+
+		if (rented)
+		{
+			foreach (OVT_PersistedOwnership record : rented)
+			{
+				if (!record || record.persistentId == "" || !record.positions)
+					continue;
+
+				foreach (string position : record.positions)
+				{
+					ApplyPersistedRenter(record.persistentId, position);
+				}
+			}
+		}
+
+		ApplyPersistedWarehouses(warehouses);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Points one stored position key at its saved owner, detaching it from any current owner first.
+	//!
+	//! Works on the key STRINGS directly rather than through DoSetOwnerPersistentId(), because this
+	//! path already holds the stored key and must not round-trip it through a vector. (The historical
+	//! second reason - that the setter blindly appended and would duplicate on a re-apply - was
+	//! BUG-003 and is fixed; the setter now detaches the previous owner and dedupes itself.)
+	//! \param[in] persistentId The player the building belongs to.
+	//! \param[in] positionKey The owner manager's position key for the building.
+	protected void ApplyPersistedOwner(string persistentId, string positionKey)
+	{
+		if (positionKey == "")
+			return;
+
+		if (m_mOwners.Contains(positionKey))
+		{
+			string current = m_mOwners[positionKey];
+			if (current == persistentId)
+				return;
+
+			if (m_mOwned.Contains(current))
+			{
+				array<string> previous = m_mOwned[current];
+				if (previous)
+				{
+					int index = previous.Find(positionKey);
+					if (index > -1)
+						previous.Remove(index);
+				}
+			}
+		}
+
+		if (!m_mOwned.Contains(persistentId))
+			m_mOwned[persistentId] = new array<string>();
+
+		array<string> positions = m_mOwned[persistentId];
+		if (positions.Find(positionKey) == -1)
+			positions.Insert(positionKey);
+
+		m_mOwners[positionKey] = persistentId;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Renter equivalent of ApplyPersistedOwner().
+	//! \param[in] persistentId The player renting the building.
+	//! \param[in] positionKey The owner manager's position key for the building.
+	protected void ApplyPersistedRenter(string persistentId, string positionKey)
+	{
+		if (positionKey == "")
+			return;
+
+		if (m_mRenters.Contains(positionKey))
+		{
+			string current = m_mRenters[positionKey];
+			if (current == persistentId)
+				return;
+
+			if (m_mRented.Contains(current))
+			{
+				array<string> previous = m_mRented[current];
+				if (previous)
+				{
+					int index = previous.Find(positionKey);
+					if (index > -1)
+						previous.Remove(index);
+				}
+			}
+		}
+
+		if (!m_mRented.Contains(persistentId))
+			m_mRented[persistentId] = new array<string>();
+
+		array<string> positions = m_mRented[persistentId];
+		if (positions.Find(positionKey) == -1)
+			positions.Insert(positionKey);
+
+		m_mRenters[positionKey] = persistentId;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Restores warehouse ownership, flags and stock, matching saved records to live warehouses by
+	//! position and creating the ones that do not exist yet.
+	//!
+	//! Ids are re-derived from the rebuilt array, never read from the save - see
+	//! OVT_PersistedWarehouse's header for why.
+	//! \param[in] records Persisted warehouses, may be null.
+	protected void ApplyPersistedWarehouses(array<ref OVT_PersistedWarehouse> records)
+	{
+		if (!records)
+			return;
+
+		if (!m_aWarehouses)
+			m_aWarehouses = new array<ref OVT_WarehouseData>();
+
+		foreach (OVT_PersistedWarehouse record : records)
+		{
+			if (!record)
+				continue;
+
+			OVT_WarehouseData warehouse = GetNearestWarehouse(record.location, 10);
+			if (!warehouse)
+			{
+				warehouse = new OVT_WarehouseData();
+				warehouse.location = record.location;
+				warehouse.inventory = new map<string, int>();
+				warehouse.id = m_aWarehouses.Count();
+				m_aWarehouses.Insert(warehouse);
+			}
+
+			warehouse.owner = record.owner;
+			warehouse.isPrivate = record.isPrivate;
+			warehouse.isLinked = record.isLinked;
+
+			if (!warehouse.inventory)
+				warehouse.inventory = new map<string, int>();
+
+			warehouse.inventory.Clear();
+
+			if (!record.itemIds || !record.itemCounts)
+				continue;
+
+			int count = record.itemIds.Count();
+			if (record.itemCounts.Count() < count)
+				count = record.itemCounts.Count();
+
+			for (int i = 0; i < count; i++)
+			{
+				string itemId = record.itemIds[i];
+				if (itemId == "")
+					continue;
+
+				warehouse.inventory.Set(itemId, record.itemCounts[i]);
+			}
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Finds the nearest warehouse to a given position within an optional range.
 	//! \param[in] pos The position to search near
 	//! \param[in] range Optional maximum distance to search (default: 9999999)
@@ -320,10 +513,16 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	//! \param[in] count The quantity to add
 	void DoAddToWarehouse(int warehouseId, string id, int count)
 	{
+		if(count <= 0) return;
+		if(warehouseId < 0 || warehouseId >= m_aWarehouses.Count()) return;
 		OVT_WarehouseData warehouse = m_aWarehouses[warehouseId];
 		if(!warehouse.inventory.Contains(id)) warehouse.inventory[id] = 0;
 		warehouse.inventory[id] = warehouse.inventory[id] + count;
 		Rpc(RpcDo_SetWarehouseInventory, warehouseId, id, warehouse.inventory[id]);
+
+		// The broadcast does not run on the caller, so the host raises its own event here or a
+		// listen-server player would never see the menu update the change they just made.
+		if(m_OnWarehouseInventoryChanged) m_OnWarehouseInventoryChanged.Invoke(warehouseId, id, warehouse.inventory[id]);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -348,11 +547,16 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	//! \param[in] count The quantity to take
 	void DoTakeFromWarehouse(int warehouseId, string id, int count)
 	{
+		if(count <= 0) return;
+		if(warehouseId < 0 || warehouseId >= m_aWarehouses.Count()) return;
 		OVT_WarehouseData warehouse = m_aWarehouses[warehouseId];
 		if(!warehouse.inventory.Contains(id)) warehouse.inventory[id] = 0;
 		warehouse.inventory[id] = warehouse.inventory[id] - count;
 		if(warehouse.inventory[id] < 0) warehouse.inventory[id] = 0;
 		Rpc(RpcDo_SetWarehouseInventory, warehouseId, id, warehouse.inventory[id]);
+
+		// Host side of the same event - see DoAddToWarehouse.
+		if(m_OnWarehouseInventoryChanged) m_OnWarehouseInventoryChanged.Invoke(warehouseId, id, warehouse.inventory[id]);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -581,7 +785,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 			writer.WriteBool(data.isLinked);
 			writer.WriteBool(data.isPrivate);
 			writer.WriteInt(data.inventory.Count());
-			for(int ii; ii<m_aWarehouses.Count(); ii++)
+			for(int ii; ii<data.inventory.Count(); ii++)
 			{
 				writer.WriteString(data.inventory.GetKey(ii));
 				writer.WriteInt(data.inventory.GetElement(ii));
@@ -618,7 +822,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 			data.inventory = new map<string,int>;
 			
 			if (!reader.ReadInt(ownedlength)) return false;
-			for(int ii; ii<length; ii++)
+			for(int ii; ii<ownedlength; ii++)
 			{
 				if (!reader.ReadString(res)) return false;
 				if (!reader.ReadInt(qty)) return false;
@@ -647,7 +851,11 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_SetWarehouseInventory(int warehouseId, string id, int qty)
 	{
+		if(warehouseId < 0 || warehouseId >= m_aWarehouses.Count()) return;
+
 		m_aWarehouses[warehouseId].inventory[id] = qty;
+
+		if(m_OnWarehouseInventoryChanged) m_OnWarehouseInventoryChanged.Invoke(warehouseId, id, qty);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -716,7 +924,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_TeleportHome(int playerId)
 	{
-		int localId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
+		int localId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
 		if(playerId != localId) return;
 		
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);

@@ -1,0 +1,99 @@
+{
+  "$schema": "https://claude.ai/schemas/skill-rules.json",
+  "description": "Configuration for skill-reminder hook - suggests skills based on keywords in user prompts",
+  "important": "This is used by the skill-reminder.ts hook which runs BEFORE edits. It only matches keywords in the user's prompt text, NOT file patterns.",
+  "rules": [
+    {
+      "skillName": "example-skill-name",
+      "description": "Brief description of when this skill should activate",
+      "triggers": {
+        "keywords": [
+          "keyword1",
+          "keyword2",
+          "phrase to match"
+        ]
+      },
+      "examples": [
+        "Example user message that would trigger this skill",
+        "Another example message"
+      ]
+    },
+    {
+      "skillName": "frontend-dev-guidelines",
+      "description": "React, TypeScript, RSuite patterns and best practices",
+      "triggers": {
+        "keywords": [
+          "react",
+          "component",
+          "typescript",
+          "rsuite",
+          "zustand",
+          "hooks",
+          "state management",
+          "styled-components",
+          "tsx",
+          "jsx"
+        ]
+      },
+      "examples": [
+        "Create a new React component for user profile",
+        "How should I structure this TypeScript interface?",
+        "What's the best way to manage state with Zustand?"
+      ]
+    },
+    {
+      "skillName": "backend-api-patterns",
+      "description": "Backend API design and implementation patterns",
+      "triggers": {
+        "keywords": [
+          "api",
+          "endpoint",
+          "rest",
+          "graphql",
+          "database",
+          "model",
+          "controller",
+          "route",
+          "server",
+          "backend"
+        ]
+      },
+      "examples": [
+        "Create a new API endpoint for user authentication",
+        "How should I structure this database model?",
+        "What's the best way to handle API errors?"
+      ]
+    },
+    {
+      "skillName": "testing-patterns",
+      "description": "Testing strategies and patterns",
+      "triggers": {
+        "keywords": [
+          "test",
+          "testing",
+          "spec",
+          "vitest",
+          "jest",
+          "mock",
+          "assertion",
+          "unit test",
+          "integration test",
+          "e2e"
+        ]
+      },
+      "examples": [
+        "Write tests for this component",
+        "How should I mock this API call?",
+        "What's the best way to test this hook?"
+      ]
+    }
+  ],
+  "notes": [
+    "IMPORTANT: This file is used by skill-reminder.ts hook (UserPromptSubmit)",
+    "Hook runs BEFORE any edits are made - it only sees the user's prompt text",
+    "Keywords are case-insensitive and match partial words in the prompt",
+    "Multiple keywords increase confidence of match",
+    "Skill suggestion appears automatically when keywords match",
+    "User can then invoke skill with /skill [skill-name]"
+  ]
+}

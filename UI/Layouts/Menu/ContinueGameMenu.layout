@@ -1,0 +1,172 @@
+FrameWidgetClass {
+ Name "rootFrame"
+ {
+  PanelWidgetClass "{6B0F11B0AA01C010}" {
+   Name "Panel0"
+   Slot FrameWidgetSlot "{6B0F11B0AA01C011}" {
+    Anchor 0 0 0 1
+    PositionX 200
+    OffsetLeft 200
+    PositionY -1
+    OffsetTop 200
+    SizeX 900
+    OffsetRight -1100
+    SizeY 0
+    OffsetBottom 200
+   }
+   {
+    BlurWidgetClass "{6B0F11B0AA01C012}" : "{352322057FD78AE1}UI/layouts/WidgetLibrary/BaseElements/WLib_Blur.layout" {
+     Name "BackgroundBlur"
+     Slot FrameWidgetSlot "{6B0F11B0AA01C013}" {
+      Anchor 0 0 1 1
+      PositionX 0
+      OffsetLeft 0
+      PositionY 0
+      OffsetTop 0
+      SizeX -200
+      OffsetRight 0
+      SizeY -1050
+      OffsetBottom 0
+     }
+     Color 0.127 0.127 0.127 1
+     Intensity 0.8
+    }
+    VerticalLayoutWidgetClass "{6B0F11B0AA01C014}" {
+     Name "VerticalLayout0"
+     Slot FrameWidgetSlot "{6B0F11B0AA01C015}" {
+      Anchor 0 0 1 1
+      PositionX 1
+      OffsetLeft 1
+      PositionY 0
+      OffsetTop 0
+      SizeX 0
+      OffsetRight -1
+      SizeY 0
+      OffsetBottom 0
+     }
+     {
+      FrameWidgetClass "{6A06D53773CF933A}" {
+       Name "LogoFrame"
+       Slot LayoutSlot "{5972827FE545843A}" {
+        Padding 0 15 0 15
+       }
+       {
+        ImageWidgetClass "{6A06D53773CF9339}" {
+         Name "OverthrowLogo"
+         Slot FrameWidgetSlot "{5972827FE023E3B6}" {
+          Anchor 0.5 0.5 0.5 0.5
+          PositionX -140
+          OffsetLeft -140
+          PositionY -140
+          OffsetTop -140
+          SizeX 280
+          OffsetRight -140
+          SizeY 280
+          OffsetBottom -140
+         }
+         Texture "{4A7D823D7914A85A}UI/Textures/logo_overthrow.edds"
+         Image ""
+         Size 150 300
+        }
+       }
+      }
+      FrameWidgetClass "{6B0F11B0AA01C016}" {
+       Name "FillTop"
+       Slot LayoutSlot "{6B0F11B0AA01C017}" {
+        SizeMode Fill
+       }
+      }
+      ButtonWidgetClass "{6B0F11B0AA01C024}" : "{9ECCD201BCF07E95}UI/layouts/Menus/PauseMenu/PauseMenuButton.layout" {
+       Name "ContinueButton"
+       Slot LayoutSlot "{6B0F11B0AA01C025}" {
+        Padding 40 10 40 10
+       }
+       components {
+        SCR_ButtonTextComponent "{6B0F11B0AA01C026}" {
+         m_BackgroundSelected 1 1 1 0.196
+         m_BackgroundSelectedHovered 1 1 1 0.196
+         m_BackgroundClicked 1 1 1 0.196
+         m_sText "#OVT-ContinueSave"
+        }
+       }
+       {
+        SizeLayoutWidgetClass "{557098260F312277}" {
+         Prefab "{557098260F312277}"
+         {
+          OverlayWidgetClass "{557098260F312272}" {
+           Prefab "{557098260F312272}"
+           {
+            HorizontalLayoutWidgetClass "{557098267862A738}" {
+             Prefab "{557098267862A738}"
+             {
+              ScaleWidgetClass "{557478C2A0AF4E50}" {
+               Prefab "{557478C2A0AF4E50}"
+               {
+                ImageWidgetClass "{557098267D2A9494}" {
+                 Prefab "{557098267D2A9494}"
+                 Image "save"
+                 Size 64 64
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+      ButtonWidgetClass "{6B0F11B0AA01C027}" : "{9ECCD201BCF07E95}UI/layouts/Menus/PauseMenu/PauseMenuButton.layout" {
+       Name "NewGameButton"
+       Slot LayoutSlot "{6B0F11B0AA01C028}" {
+        Padding 40 10 40 10
+       }
+       components {
+        SCR_ButtonTextComponent "{6B0F11B0AA01C029}" {
+         m_BackgroundSelected 1 1 1 0.196
+         m_BackgroundSelectedHovered 1 1 1 0.196
+         m_BackgroundClicked 1 1 1 0.196
+         m_sText "#OVT-StartNewGame"
+        }
+       }
+       {
+        SizeLayoutWidgetClass "{557098260F312277}" {
+         Prefab "{557098260F312277}"
+         {
+          OverlayWidgetClass "{557098260F312272}" {
+           Prefab "{557098260F312272}"
+           {
+            HorizontalLayoutWidgetClass "{557098267862A738}" {
+             Prefab "{557098267862A738}"
+             {
+              ScaleWidgetClass "{557478C2A0AF4E50}" {
+               Prefab "{557478C2A0AF4E50}"
+               {
+                ImageWidgetClass "{557098267D2A9494}" {
+                 Prefab "{557098267D2A9494}"
+                 Image "scenarios"
+                 Size 64 64
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+      FrameWidgetClass "{6B0F11B0AA01C01C}" {
+       Name "FillBottom"
+       Slot LayoutSlot "{6B0F11B0AA01C01D}" {
+        SizeMode Fill
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

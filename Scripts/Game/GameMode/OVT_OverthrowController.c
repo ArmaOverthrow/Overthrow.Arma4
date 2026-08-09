@@ -31,4 +31,11 @@ class OVT_OverthrowController : GenericEntity
 			playerManager.RegisterControllerForPlayer(playerId, this);
 		}
 	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Notify owner about their assignment (wrapper for RPC call)
+	void NotifyOwnerAssignment(int playerId)
+	{
+		Rpc(RpcDo_NotifyOwnerAssignment, playerId);
+	}
 }

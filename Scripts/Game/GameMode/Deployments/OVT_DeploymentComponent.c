@@ -72,6 +72,87 @@ class OVT_DeploymentComponent : OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Brings a deployment respawned from a save point back to life.
+	//!
+	//! Called from OVT_DeploymentComponentSerializer.Deserialize(), which is a pure codec - every
+	//! side effect of restoring a deployment lives here.
+	//!
+	//! ORDER MATTERS. The scalars, and m_bSpawnedUnitsEliminated in particular, are written BEFORE
+	//! InitializeDeployment() because that method reads the flag to decide whether the modules it has
+	//! just cloned start out eliminated. EPF's OVT_DeploymentComponentSaveData.ApplyTo() set it
+	//! afterwards, so a deployment whose force had already been wiped out came back with a fresh one
+	//! waiting to spawn.
+	//!
+	//! IDEMPOTENT. m_DeploymentConfig is only ever set by InitializeDeployment(), so it doubles as
+	//! the "already built" flag: a second application - which is what
+	//! OVT_PersistenceManagerComponent.ReapplyLatestSaveData() does to a live session - refreshes the
+	//! scalars and returns without cloning a second set of modules, registering with the manager
+	//! twice or starting a second update loop.
+	//!
+	//! SPAWNS NOTHING DIRECTLY. The deployment's units are virtualized: the spawning modules create
+	//! them when a player comes into range and delete them again when nobody is near, which is
+	//! exactly why the units themselves are not persisted.
+	//! \param[in] configName Name of the OVT_DeploymentConfig this deployment was running.
+	//! \param[in] factionIndex Faction that owns the deployment.
+	//! \param[in] threatLevel Threat level it was created at.
+	//! \param[in] resourcesInvested Resources spent on it so far.
+	//! \param[in] spawnedUnitsEliminated Whether its force had already been wiped out.
+	void ApplyPersistedDeployment(string configName, int factionIndex, float threatLevel, int resourcesInvested, bool spawnedUnitsEliminated)
+	{
+		if (!Replication.IsServer())
+			return;
+
+		if (!m_aActiveModules)
+			m_aActiveModules = new array<ref OVT_BaseDeploymentModule>;
+
+		m_iControllingFaction = factionIndex;
+		m_fThreatLevel = threatLevel;
+		m_iResourcesInvested = resourcesInvested;
+		m_bSpawnedUnitsEliminated = spawnedUnitsEliminated;
+
+		if (m_DeploymentConfig)
+		{
+			// Already running. Only the wipe-out flag can have moved on the modules, so put that back
+			// in step and leave everything else alone.
+			if (m_bSpawnedUnitsEliminated)
+			{
+				array<OVT_BaseSpawningDeploymentModule> spawningModules = GetSpawningModules();
+				foreach (OVT_BaseSpawningDeploymentModule spawningModule : spawningModules)
+				{
+					spawningModule.SetSpawnedUnitsEliminated(true);
+				}
+			}
+
+			return;
+		}
+
+		if (configName.IsEmpty())
+		{
+			Print("[Overthrow] A saved deployment has no configuration name and cannot be restored", LogLevel.WARNING);
+			return;
+		}
+
+		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
+		if (!manager || !manager.m_DeploymentRegistry)
+		{
+			Print(string.Format("[Overthrow] Cannot restore deployment '%1' - there is no deployment registry", configName), LogLevel.ERROR);
+			return;
+		}
+
+		OVT_DeploymentConfig config = manager.m_DeploymentRegistry.FindConfigByName(configName);
+		if (!config)
+		{
+			// An authored config that has been renamed or removed since the save. Dropping the
+			// deployment is the honest outcome; EvaluateDeployments() will spend the faction's
+			// resources on something that still exists.
+			Print(string.Format("[Overthrow] Saved deployment '%1' no longer exists in the registry - it will not be restored", configName), LogLevel.WARNING);
+			return;
+		}
+
+		InitializeDeployment(config, factionIndex);
+	}
+
+	//------------------------------------------------------------------------------------------------
 	void ActivateDeployment()
 	{
 		if (m_bActive)
@@ -429,77 +510,4 @@ class OVT_DeploymentComponent : OVT_Component
 	//------------------------------------------------------------------------------------------------
 	bool GetSpawnedUnitsEliminated() { return m_bSpawnedUnitsEliminated; }
 	void SetSpawnedUnitsEliminated(bool eliminated) { m_bSpawnedUnitsEliminated = eliminated; }
-}
-
-// EPF Save Data
-
-[BaseContainerProps()]
-class OVT_DeploymentSaveDataClass : EPF_ItemSaveDataClass
-{
-};
-
-[EDF_DbName.Automatic()]
-class OVT_DeploymentSaveData : EPF_ItemSaveData
-{
-};
-
-
-[EPF_ComponentSaveDataType(OVT_DeploymentComponent), BaseContainerProps()]
-class OVT_DeploymentComponentSaveDataClass : EPF_ComponentSaveDataClass
-{
-}
-
-[EDF_DbName.Automatic()]
-class OVT_DeploymentComponentSaveData : EPF_ComponentSaveData
-{
-	int m_iControllingFaction;
-	float m_fThreatLevel;
-	int m_iResourcesInvested;
-	string m_sDeploymentConfigName;
-	bool m_bSpawnedUnitsEliminated;
-	
-	override EPF_EReadResult ReadFrom(IEntity owner, GenericComponent component, EPF_ComponentSaveDataClass attributes)
-	{
-		OVT_DeploymentComponent deployment = OVT_DeploymentComponent.Cast(component);
-		if (!deployment)
-			return EPF_EReadResult.ERROR;
-			
-		m_iControllingFaction = deployment.GetControllingFaction();
-		m_fThreatLevel = deployment.GetThreatLevel();
-		m_iResourcesInvested = deployment.GetResourcesInvested();
-		m_bSpawnedUnitsEliminated = deployment.GetSpawnedUnitsEliminated();
-		
-		// Save config name for restoration
-		if (deployment.GetConfig())
-			m_sDeploymentConfigName = deployment.GetConfig().m_sDeploymentName;
-			
-		return EPF_EReadResult.OK;
-	}
-	
-	override EPF_EApplyResult ApplyTo(IEntity owner, GenericComponent component, EPF_ComponentSaveDataClass attributes)
-	{
-		OVT_DeploymentComponent deployment = OVT_DeploymentComponent.Cast(component);
-		if (!deployment)
-			return EPF_EApplyResult.ERROR;
-			
-		// Restore config by looking it up in the deployment registry
-		if (!m_sDeploymentConfigName.IsEmpty())
-		{
-			OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
-			if (manager && manager.m_DeploymentRegistry)
-			{
-				OVT_DeploymentConfig config = manager.m_DeploymentRegistry.FindConfigByName(m_sDeploymentConfigName);
-				if (config)
-				{
-					deployment.InitializeDeployment(config, m_iControllingFaction);
-				}
-			}
-		}
-		
-		deployment.SetThreatLevel(m_fThreatLevel);
-		deployment.SetControllingFaction(m_iControllingFaction);
-		deployment.SetSpawnedUnitsEliminated(m_bSpawnedUnitsEliminated);
-					
-		return EPF_EApplyResult.OK;
-	}
 }

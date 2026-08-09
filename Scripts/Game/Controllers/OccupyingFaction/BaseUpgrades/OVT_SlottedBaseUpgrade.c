@@ -10,7 +10,7 @@ class OVT_SlottedBaseUpgrade : OVT_BasePatrolUpgrade
 		while(i < 30)
 		{
 			i++;
-			int index = s_AIRandomGenerator.RandInt(0,slots.Count()-1);
+			int index = s_AIRandomGenerator.RandInt(0,slots.Count());
 			EntityID id = slots[index];
 			if(!m_BaseController.m_aSlotsFilled.Contains(id))
 			{
@@ -118,8 +118,22 @@ class OVT_SlottedBaseUpgrade : OVT_BasePatrolUpgrade
 	protected IEntity SpawnInSlot(IEntity slot, ResourceName res)
 	{
 		vector mat[4];
-		slot.GetTransform(mat);		
+		slot.GetTransform(mat);
 		IEntity ent = OVT_Global.SpawnEntityPrefabMatrix(res, mat);
+
+		// Include the composition in save points. The manager-level save
+		// (OVT_OccupyingFactionManagerSerializer) restores which upgrades a base bought and which
+		// slots they filled, but OVT_BaseUpgradeComposition.Deserialize() only sets m_vPos and calls
+		// Setup() - it does NOT rebuild the physical composition. EPF brought that back as a world
+		// entity (OVT_BaseUpgradeSaveData) and this replaces it.
+		//
+		// No Overthrow persistence configuration is needed for the entity itself: every composition
+		// the faction configs use descends from {3BA9D94C4EE9B33B}Prefabs/Compositions/Slotted/
+		// CompositionBase.et, which vanilla's own Composition.conf already configures (prefab rule,
+		// Priority 20000, SavePrefabChildren 1). Tracking is the only missing half, because that
+		// prefab carries no native Persistence component.
+		OVT_PersistenceTracking.Track(ent);
+
 		return ent;
 	}
 	

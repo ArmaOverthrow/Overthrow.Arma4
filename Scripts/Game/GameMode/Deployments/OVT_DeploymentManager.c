@@ -130,7 +130,7 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	//------------------------------------------------------------------------------------------------
 	protected bool FilterSlotEntities(IEntity entity)
 	{
-		SCR_EditableEntityComponent editable = EPF_Component<SCR_EditableEntityComponent>.Find(entity);
+		SCR_EditableEntityComponent editable = OVT_ComponentFinder<SCR_EditableEntityComponent>.Find(entity);
 		if (editable && editable.GetEntityType() == EEditableEntityType.SLOT)
 		{
 			m_aFoundSlots.Insert(entity);
@@ -157,18 +157,19 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		if (!factionManager)
 			return;
 		
+		// Clean up destroyed deployments first — the per-faction creation gate below
+		// counts these lists, so stale IDs must not survive into the evaluation
+		CleanupDestroyedDeployments();
+
 		// Evaluate each faction's deployment needs
 		array<Faction> factions = new array<Faction>;
 		factionManager.GetFactionsList(factions);
-		
+
 		foreach (Faction faction : factions)
 		{
 			int factionIndex = factionManager.GetFactionIndex(faction);
 			EvaluateFactionDeployments(factionIndex);
 		}
-		
-		// Clean up destroyed deployments
-		CleanupDestroyedDeployments();
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -763,8 +764,13 @@ class OVT_DeploymentManagerComponent : OVT_Component
 			return null;
 		}
 		
+		// Include the deployment marker in save points. Its units are deliberately NOT persisted -
+		// the spawning modules create and delete them by player proximity - so this entity is the
+		// only durable record that the faction has a force committed here.
+		OVT_PersistenceTracking.Track(deploymentEntity);
+
 		deployment.InitializeDeployment(config, factionIndex);
-		
+
 		string townName = OVT_Global.GetTowns().GetNearestTownName(position);
 				
 		Print(string.Format("[Overthrow] Created deployment '%1' for faction %2 near %3", config.m_sDeploymentName, factionIndex, townName), LogLevel.NORMAL);
@@ -827,6 +833,20 @@ class OVT_DeploymentManagerComponent : OVT_Component
 				m_aActiveDeployments.Remove(i);
 			}
 		}
+
+		// The per-faction lists gate deployment creation (m_iMaxDeploymentsPerFaction) —
+		// dead IDs left here accumulate until the cap and silently halt all deploying (BUG-028)
+		foreach (int factionIndex, array<ref EntityID> factionDeployments : m_mFactionDeployments)
+		{
+			for (int i = factionDeployments.Count() - 1; i >= 0; i--)
+			{
+				IEntity deployment = GetGame().GetWorld().FindEntityByID(factionDeployments[i]);
+				if (!deployment)
+				{
+					factionDeployments.Remove(i);
+				}
+			}
+		}
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -861,6 +881,38 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	void SetAllFactionResources(map<int, int> resources)
 	{
 		m_mFactionResources = resources;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Applies persisted per-faction resource pools.
+	//!
+	//! Called from OVT_DeploymentManagerSerializer.Deserialize().
+	//!
+	//! Refills the EXISTING map rather than replacing it (unlike SetAllFactionResources), so nothing
+	//! already holding a reference to it is left pointing at the old one.
+	//!
+	//! IDEMPOTENT: a clear and a refill, safe to run again on a live session.
+	//! \param[in] factionIndices Faction indices, index-aligned with resources.
+	//! \param[in] resources Resource pool per faction.
+	void ApplyPersistedFactionResources(array<int> factionIndices, array<int> resources)
+	{
+		// Server-only component: the collections are not allocated on clients.
+		if (!m_mFactionResources)
+			return;
+
+		m_mFactionResources.Clear();
+
+		if (!factionIndices || !resources)
+			return;
+
+		int count = factionIndices.Count();
+		if (resources.Count() < count)
+			count = resources.Count();
+
+		for (int i = 0; i < count; i++)
+		{
+			m_mFactionResources.Set(factionIndices[i], resources[i]);
+		}
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -1086,49 +1138,5 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		}
 		
 		return null;
-	}
-}
-
-// EPF Save Data
-[EPF_ComponentSaveDataType(OVT_DeploymentManagerComponent), BaseContainerProps()]
-class OVT_DeploymentManagerComponentSaveDataClass : EPF_ComponentSaveDataClass
-{
-}
-
-[EDF_DbName.Automatic()]
-class OVT_DeploymentManagerComponentSaveData : EPF_ComponentSaveData
-{
-	ref map<int, int> m_mFactionResources;
-	
-	override EPF_EReadResult ReadFrom(IEntity owner, GenericComponent component, EPF_ComponentSaveDataClass attributes)
-	{
-		OVT_DeploymentManagerComponent manager = OVT_DeploymentManagerComponent.Cast(component);
-		if (!manager)
-			return EPF_EReadResult.ERROR;
-		
-		// Save faction resources
-		m_mFactionResources = new map<int, int>;
-		map<int, int> factionResources = manager.GetAllFactionResources();
-		foreach (int factionIndex, int resources : factionResources)
-		{
-			m_mFactionResources.Set(factionIndex, resources);
-		}
-		
-		return EPF_EReadResult.OK;
-	}
-	
-	override EPF_EApplyResult ApplyTo(IEntity owner, GenericComponent component, EPF_ComponentSaveDataClass attributes)
-	{
-		OVT_DeploymentManagerComponent manager = OVT_DeploymentManagerComponent.Cast(component);
-		if (!manager)
-			return EPF_EApplyResult.ERROR;
-		
-		// Restore faction resources
-		if (m_mFactionResources)
-		{
-			manager.SetAllFactionResources(m_mFactionResources);
-		}
-		
-		return EPF_EApplyResult.OK;
 	}
 }

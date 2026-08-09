@@ -1,0 +1,183 @@
+class OVT_PlayerStartMenuHandlerComponentClass : ScriptComponentClass {}
+
+//! Component responsible for showing the start game menu to players before spawning
+class OVT_PlayerStartMenuHandlerComponent : ScriptComponent
+{
+	protected OVT_StartGameContext m_StartGameContext;
+	protected bool m_bMenuShown = false;
+	protected bool m_bCheckedForMenu = false;
+
+	//! Frames spent waiting for the save cache to seed before deciding on the menu.
+	protected int m_iSeedWaitFrames = 0;
+
+	//! How many frames to wait for the async save scan before showing the menu anyway (~10s).
+	//! The scan callback always fires in practice; this only stops a pathological hang from
+	//! leaving the player on the start camera with no menu at all.
+	static const int SEED_WAIT_MAX_FRAMES = 600;
+
+	//------------------------------------------------------------------------------------------------
+	protected override void OnPostInit(IEntity owner)
+	{
+		super.OnPostInit(owner);
+
+		if (!GetGame().InPlayMode())
+			return;
+
+		Print("[Overthrow] OVT_PlayerStartMenuHandlerComponent initialized for player controller");
+
+		// Enable frame updates to check when to show menu
+		SetEventMask(owner, EntityEvent.FRAME);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	protected override void EOnFrame(IEntity owner, float timeSlice)
+	{
+		// If menu is active, activate its input context
+		if (m_bMenuShown && m_StartGameContext)
+		{
+			m_StartGameContext.EOnFrame(owner, timeSlice);
+
+			// Check if user closed the menu (clicked "Start Game")
+			if (!m_StartGameContext.IsActive())
+			{
+				m_bMenuShown = false;
+				ClearEventMask(owner, EntityEvent.FRAME);
+				return;
+			}
+		}
+
+		// Only check once for showing menu
+		if (m_bCheckedForMenu)
+			return;
+
+		// Wait for game mode to exist
+		OVT_OverthrowGameMode mode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
+		if (!mode)
+			return;
+
+		// Wait for persistence manager to be initialized so we can check for saves
+		OVT_PersistenceManagerComponent persistence = OVT_PersistenceManagerComponent.Cast(mode.FindComponent(OVT_PersistenceManagerComponent));
+		if (!persistence)
+			return;
+
+		// Get the start game context from the game mode (it's configured there in the prefab)
+		m_StartGameContext = mode.GetStartGameContext();
+		if (!m_StartGameContext)
+		{
+			Print("[Overthrow] ERROR: Game mode has no start game context configured!", LogLevel.ERROR);
+			ClearEventMask(owner, EntityEvent.FRAME);
+			return;
+		}
+
+		// Initialize the context with the player controller as owner (so it has a viewport)
+		m_StartGameContext.Init(owner, null);
+
+		bool isDedicatedServer = (RplSession.Mode() == RplMode.Dedicated);
+		bool isClientOnServer = (RplSession.Mode() == RplMode.Client);
+		bool isSinglePlayer = (RplSession.Mode() == RplMode.None);
+		bool isListenServerHost = (RplSession.Mode() == RplMode.Listen && Replication.IsServer());
+
+		// Which screen shows - the Continue/Start chooser or the campaign-setup menu - is decided
+		// from HasSaveGame(), which is served from an ASYNC cache (GetSaves has no synchronous
+		// form). Deciding on a stale false would skip the chooser for a campaign that exists, so
+		// the authority waits for the scan to answer first (bounded). Only SP and the listen host
+		// wait - clients and dedicated never show the menu, and a client's manager never seeds.
+		if ((isSinglePlayer || isListenServerHost) && !mode.HasGameStarted()
+			&& !persistence.IsPlayingLoadedSave() && !persistence.IsSaveCacheSeeded())
+		{
+			m_iSeedWaitFrames++;
+			if (m_iSeedWaitFrames < SEED_WAIT_MAX_FRAMES)
+				return;
+
+			Print("[Overthrow] Save scan never answered - showing the start menu without a continue option", LogLevel.WARNING);
+		}
+
+		Print("[Overthrow] Game mode and persistence ready, checking if we should show start menu");
+		m_bCheckedForMenu = true;
+
+		bool hasSave = persistence.HasSaveGame();
+
+		Print("[Overthrow] Game started: " + mode.HasGameStarted() + ", Has save: " + hasSave + ", Mode: " + RplSession.Mode() + ", IsServer: " + Replication.IsServer());
+
+		// Show start menu for:
+		// - Single player (RplMode.None)
+		// - Listen server HOST (host needs to configure and start - or continue - the game)
+		// The menu offers "Continue Save" when a save exists (OVT_StartGameContext hides it
+		// otherwise), which is how an existing campaign is resumed from a fresh boot; the player
+		// choosing is what keeps Reforger's "Restart" meaning "start over".
+		// Never show for:
+		// - Dedicated servers (OVT_OverthrowGameMode.EOnInit decides: continue or new game)
+		// - Clients connecting to servers (wait for server to start game)
+		// - Listen server clients (wait for host to start game)
+		// - A session launched from a save point (RestoreStartedCampaign drives the start)
+		if (!mode.HasGameStarted() && (isSinglePlayer || isListenServerHost) && !persistence.IsPlayingLoadedSave())
+		{
+			string menuType = "single player";
+			if (isListenServerHost)
+				menuType = "listen server host";
+			Print("[Overthrow] Showing start menu for " + menuType);
+			ShowStartMenu();
+			// Keep frame updates running to activate input context
+		}
+		else
+		{
+			Print("[Overthrow] Not showing start menu (multiplayer client, dedicated server, or game already started/loaded)");
+			ClearEventMask(owner, EntityEvent.FRAME);
+		}
+
+		// Overthrow's UX owns the screen from here (start menu, or a spawn handled by
+		// OVT_SpawnLogic). Vanilla's SCR_RespawnSystemComponent parked a full-screen loading
+		// placeholder ("LoadingScreen" widget, z 100000, spinner + black background, SFX muted)
+		// over the workspace at join, and only ITS OWN spawn/deploy flows ever destroy it -
+		// Overthrow's custom spawn flow never runs those, so without this call the placeholder
+		// covers the game forever (the 2026-08-02 Workbench "endless spinner"; also the likely
+		// mechanism behind GitHub #143's "controls stuck, screen black, can hear the world").
+		SCR_RespawnSystemComponent respawnSystem = SCR_RespawnSystemComponent.GetInstance();
+		if (respawnSystem)
+			respawnSystem.DestroyLoadingPlaceholder();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	void ShowStartMenu()
+	{
+		if (m_bMenuShown)
+			return;
+
+		if (!m_StartGameContext)
+		{
+			Print("[Overthrow] ERROR: Start game context is null", LogLevel.ERROR);
+			return;
+		}
+
+		Print("[Overthrow] Calling ShowLayout on start game context");
+		m_StartGameContext.ShowLayout();
+		m_bMenuShown = true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	void CloseStartMenu()
+	{
+		if (!m_StartGameContext)
+			return;
+
+		m_StartGameContext.CloseLayout();
+		m_bMenuShown = false;
+
+		// Stop frame updates when menu is closed
+		IEntity owner = GetOwner();
+		if (owner)
+			ClearEventMask(owner, EntityEvent.FRAME);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	bool IsMenuShown()
+	{
+		return m_bMenuShown;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	OVT_StartGameContext GetStartGameContext()
+	{
+		return m_StartGameContext;
+	}
+}

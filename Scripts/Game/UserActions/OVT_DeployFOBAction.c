@@ -32,24 +32,21 @@ class OVT_DeployFOBAction : ScriptedUserAction
 		foreach(OVT_BaseData base : occupyingFaction.m_Bases)
 		{
 			float distance = vector.Distance(base.location, fobPos);
-			// Use base close range + extra buffer (50m)
-			float restrictedDistance = config.m_Difficulty.baseCloseRange + 50;
-			
+			float restrictedDistance = config.m_Difficulty.baseCloseRange + OVT_ResistanceFactionManager.FOB_DEPLOY_BASE_BUFFER;
+
 			if(distance < restrictedDistance)
 			{
 				SetCannotPerformReason("#OVT-TooCloseBase");
 				return false;
 			}
 		}
-		
+
 		// Check distance to ALL radio towers (occupying faction and resistance)
 		foreach(OVT_RadioTowerData tower : occupyingFaction.m_RadioTowers)
 		{
 			float distance = vector.Distance(tower.location, fobPos);
-			// Radio towers have 20m range + extra buffer (50m)
-			float restrictedDistance = 20 + 50;
-			
-			if(distance < restrictedDistance)
+
+			if(distance < OVT_ResistanceFactionManager.FOB_DEPLOY_TOWER_RANGE)
 			{
 				SetCannotPerformReason("#OVT-TooCloseToRadioTower");
 				return false;

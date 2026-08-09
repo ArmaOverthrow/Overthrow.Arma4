@@ -10,7 +10,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//! Maximum number of recruits per player
 	static const int MAX_RECRUITS_PER_PLAYER = 16;
 	
-	//! Prefab to use for spawning recruits (should have EPF persistence enabled)
+	//! Prefab to use for spawning recruit bodies (both new recruits and restored ones)
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Recruit Character Prefab", params: "et")]
 	ResourceName m_sRecruitPrefab;
 	
@@ -36,10 +36,39 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//! Offline player timers for recruit despawning
 	[NonSerialized()]
 	ref map<string, float> m_mOfflinePlayerTimers;
-	
+
 	//! Despawn time for recruits when player is offline (10 minutes)
 	static const float OFFLINE_DESPAWN_TIME = 600.0;
-	
+
+	//! Recruit ids whose stored body is being fetched from the persistence system right now.
+	//!
+	//! PersistenceSystem.RequestSpawn() is ASYNCHRONOUS, so between the request and its callback a
+	//! recruit has neither a body in the world nor a request that anything can see. Without this list
+	//! the "already in world" guard in RespawnPlayerRecruits() would let a second call start a second
+	//! request for the same recruit and end up with two bodies.
+	[NonSerialized()]
+	ref array<string> m_aPendingBodySpawns;
+
+	//! The persistence collection recruit bodies belong to, resolved once and cached.
+	//!
+	//! Held without `ref` on purpose: the collection is owned by the persistence system and is only
+	//! obtainable from it (PersistenceCollection is sealed with a private constructor). This mirrors
+	//! SCR_SpawnLogic.m_CharacterCollection exactly.
+	protected PersistenceCollection m_RecruitBodyCollection;
+
+	//! Name of the collection recruit bodies are stored in.
+	//!
+	//! VERIFIED, not assumed. A recruit prefab inherits Prefabs/Characters/Core/Character_Base.et,
+	//! which carries the native Persistence component, and is matched by vanilla's AI-unit config
+	//! {64EACAC5BFDB31EC} (Configuration/AI/AIUnit.conf, which inherits Character.conf's prefab rule).
+	//! Vanilla Common.conf:95-97 puts that config in collection {64EACAC5B77ED31B}, whose Name is
+	//! "Character" (Common.conf:7-10). Overthrow's override of the same GUID only sets SelfSpawn 0 -
+	//! it changes neither the collection nor the inventory serializers.
+	static const string RECRUIT_BODY_COLLECTION = "Character";
+
+	//! How long to wait for a spawn request to answer before giving the recruit a fresh body (ms).
+	static const int BODY_SPAWN_TIMEOUT_MS = 15000;
+
 	//! Event fired when a recruit is added
 	ref ScriptInvoker m_OnRecruitAdded = new ScriptInvoker();
 	
@@ -68,7 +97,8 @@ class OVT_RecruitManagerComponent : OVT_Component
 		m_mEntityToRecruit = new map<EntityID, string>;
 		m_mRplIdToRecruit = new map<RplId, string>;
 		m_mOfflinePlayerTimers = new map<string, float>;
-		
+		m_aPendingBodySpawns = new array<string>;
+
 		SetEventMask(owner, EntityEvent.INIT);
 		
 		if (SCR_Global.IsEditMode())
@@ -86,7 +116,9 @@ class OVT_RecruitManagerComponent : OVT_Component
 		OVT_RespawnSystemComponent respawnSystem = OVT_RespawnSystemComponent.Cast(owner.FindComponent(OVT_RespawnSystemComponent));
 		if (respawnSystem)
 		{
-			respawnSystem.m_OnPlayerGroupCreated.Insert(OnPlayerGroupCreated);
+			ScriptInvoker onGroupCreated = respawnSystem.GetOnPlayerGroupCreated();
+			if (onGroupCreated)
+				onGroupCreated.Insert(OnPlayerGroupCreated);
 		}
 	}
 	
@@ -274,13 +306,115 @@ class OVT_RecruitManagerComponent : OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Applies persisted recruit records to the live manager.
+	//!
+	//! Called from OVT_RecruitManagerSerializer.Deserialize().
+	//!
+	//! The owner index is REBUILT from the records rather than restored from the save, so the two can
+	//! never disagree. m_bIsOnline is left alone: a record that already exists keeps whatever the live
+	//! session knows about its body, and a record being recreated from storage starts offline because
+	//! the body is spawned back when its owner returns (RespawnPlayerRecruits).
+	//!
+	//! THE BODY ID IS ADOPTED ONLY WHEN THE LIVE RECORD HAS NONE, for the same reason m_bIsOnline is
+	//! left alone: on a real load the record is brand new and takes the stored id; when saved data is
+	//! re-applied to a RUNNING campaign the live record already points at the body standing in the
+	//! world, and that is the more current fact.
+	//!
+	//! NO RPC. Clients receive the whole table through RplSave/RplLoad instead - see the serializer.
+	//!
+	//! IDEMPOTENT: existing records are filled in place and owner lists never gain duplicates.
+	//! \param[in] records Persisted recruit records, may be null.
+	void ApplyPersistedRecruits(array<ref OVT_PersistedRecruit> records)
+	{
+		if (!records)
+			return;
+
+		if (!m_mRecruits)
+			m_mRecruits = new map<string, ref OVT_RecruitData>;
+
+		if (!m_mRecruitsByOwner)
+			m_mRecruitsByOwner = new map<string, ref array<string>>;
+
+		foreach (OVT_PersistedRecruit record : records)
+		{
+			if (!record)
+				continue;
+
+			if (record.recruitId == "" || record.ownerPersistentId == "")
+			{
+				Print("[Overthrow] Skipping a saved recruit with no id or no owner", LogLevel.WARNING);
+				continue;
+			}
+
+			OVT_RecruitData recruit = GetRecruit(record.recruitId);
+			if (!recruit)
+			{
+				recruit = new OVT_RecruitData();
+				recruit.m_sRecruitId = record.recruitId;
+				recruit.m_bIsOnline = false;
+				m_mRecruits[record.recruitId] = recruit;
+			}
+
+			recruit.m_sOwnerPersistentId = record.ownerPersistentId;
+			recruit.m_sName = record.name;
+			recruit.m_iKills = record.kills;
+			recruit.m_iXP = record.xp;
+			recruit.m_iLevel = record.level;
+			recruit.m_bIsTraining = record.isTraining;
+			recruit.m_fTrainingCompleteTime = record.trainingCompleteTime;
+			recruit.m_vLastKnownPosition = record.lastKnownPosition;
+			recruit.m_iTownId = record.townId;
+
+			if (recruit.m_sBodyPersistenceId == "")
+				recruit.m_sBodyPersistenceId = record.bodyPersistenceId;
+
+			ApplyPersistedRecruitSkills(recruit, record);
+
+			if (!m_mRecruitsByOwner.Contains(record.ownerPersistentId))
+				m_mRecruitsByOwner[record.ownerPersistentId] = new array<string>;
+
+			array<string> ownerRecruits = m_mRecruitsByOwner[record.ownerPersistentId];
+			if (ownerRecruits.Find(record.recruitId) == -1)
+				ownerRecruits.Insert(record.recruitId);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Rebuilds one recruit's skills from the parallel key/level arrays a save record carries.
+	//! \param[in] recruit The live record being filled.
+	//! \param[in] record The saved record being read.
+	protected void ApplyPersistedRecruitSkills(notnull OVT_RecruitData recruit, notnull OVT_PersistedRecruit record)
+	{
+		if (!recruit.m_mSkills)
+			recruit.m_mSkills = new map<string, int>();
+
+		recruit.m_mSkills.Clear();
+
+		if (!record.skillKeys || !record.skillLevels)
+			return;
+
+		int count = record.skillKeys.Count();
+		if (record.skillLevels.Count() < count)
+			count = record.skillLevels.Count();
+
+		for (int i = 0; i < count; i++)
+		{
+			string key = record.skillKeys[i];
+			if (key == "")
+				continue;
+
+			recruit.m_mSkills.Set(key, record.skillLevels[i]);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Add a new recruit
 	string AddRecruit(string ownerPersistentId, IEntity characterEntity, string name = "")
 	{
 		if (!CanRecruit(ownerPersistentId))
 			return "";
 			
-		// Generate unique EPF-compatible ID
+		// Generate unique record ID
 		string recruitId = GenerateRecruitId(ownerPersistentId);
 		
 		// Create recruit data
@@ -343,23 +477,24 @@ class OVT_RecruitManagerComponent : OVT_Component
 		
 		// Map entity to recruit
 		m_mEntityToRecruit[characterEntity.GetID()] = recruitId;
-		
-		// Enable EPF persistence for recruit (disabled for regular civilians)
-		EPF_PersistenceComponent persistenceComp = EPF_PersistenceComponent.Cast(
-			characterEntity.FindComponent(EPF_PersistenceComponent)
-		);
-		
-		if (!persistenceComp)
-		{
-			Print("[Overthrow] WARNING: Character entity missing EPF_PersistenceComponent! Recruit persistence may not work correctly.");
-		}
-		else
-		{
-			// Set unique persistent ID for EPF
-			persistenceComp.SetPersistentId(recruitId);
-			Print("[Overthrow] Enabled EPF persistence for recruit: " + recruitId);
-		}
-		
+
+		// A town civilian is rebuild-on-boot AI, so BUG-118's spawn-side untracking has already
+		// released this body - or still holds a queued release for it (registration is lazy).
+		// Recruitment promotes the body into the recalled-by-id category, so withdraw any pending
+		// release and register it again; without this the body never reaches a save and the
+		// recruit's gear cannot survive one (BUG-131).
+		OVT_PersistenceManagerComponent.CancelUntrackTransient(characterEntity);
+		if (!OVT_PersistenceTracking.IsTracked(characterEntity))
+			OVT_PersistenceTracking.Track(characterEntity);
+
+		// The recruit id identifies the RECORD. The BODY has its own identity, handed out by the
+		// persistence system, and remembering it here is what lets this exact character - with whatever
+		// it is carrying - be spawned back later instead of a fresh one. Registration is lazy, so the
+		// id may not resolve yet; the record then keeps an empty id until the pre-save sync
+		// (SyncRecruitPositions) or the despawn path (ReserveRecruitBody) materialises it with a
+		// Save().
+		CaptureRecruitBodyId(recruit, characterEntity, false);
+
 		m_OnRecruitAdded.Invoke(recruit);
 		
 		// Broadcast recruit creation to all clients
@@ -390,7 +525,32 @@ class OVT_RecruitManagerComponent : OVT_Component
 		
 		// Remove from main collection
 		m_mRecruits.Remove(recruitId);
-		
+
+		// Remove entity/replication lookups still pointing at this record, or GetRecruitFromEntity()
+		// keeps resolving the dead ID for as long as the body lives (BUG-004). Scanned by value: the
+		// body may have been remapped since this record last saw it.
+		array<EntityID> staleEntityIds = {};
+		foreach (EntityID entityId, string mappedRecruitId : m_mEntityToRecruit)
+		{
+			if (mappedRecruitId == recruitId)
+				staleEntityIds.Insert(entityId);
+		}
+		foreach (EntityID staleEntityId : staleEntityIds)
+		{
+			m_mEntityToRecruit.Remove(staleEntityId);
+		}
+
+		array<RplId> staleRplIds = {};
+		foreach (RplId rplId, string mappedRplRecruitId : m_mRplIdToRecruit)
+		{
+			if (mappedRplRecruitId == recruitId)
+				staleRplIds.Insert(rplId);
+		}
+		foreach (RplId staleRplId : staleRplIds)
+		{
+			m_mRplIdToRecruit.Remove(staleRplId);
+		}
+
 		// Broadcast recruit removal to all clients
 		BroadcastRecruitRemoved(recruitId, ownerPersistentId);
 		
@@ -502,13 +662,22 @@ class OVT_RecruitManagerComponent : OVT_Component
 		}
 
 		Print("[Overthrow] Recruit died: " + victimRecruit.m_sRecruitId);
-		
-		// Delete from EPF persistence before removing from system
-		DeleteRecruitFromEPF(victimRecruit.m_sRecruitId);
-		
+
+		// A DEAD RECRUIT MUST NOT COME BACK. Dropping the record is what does it - the next save point
+		// simply does not contain the recruit (OVT_RecruitManagerSerializer writes the map) - but the
+		// body id is cleared first so that nothing holding a reference to this record object can ask the
+		// persistence system to spawn the corpse back. The body itself stays in the world as lootable
+		// remains, exactly as before.
+		victimRecruit.m_sBodyPersistenceId = "";
+
+		// A pending spawn request is deliberately NOT cancelled here. A recruit with a request in flight
+		// has no body in the world and so cannot be the victim, but if that ever changes, the callback's
+		// "the record is gone" branch deletes the body it was handed and drops its stored data - whereas
+		// forgetting the request would leak an unowned character into the world.
+
 		// Remove entity mapping
 		m_mEntityToRecruit.Remove(victim.GetID());
-		
+
 		// Remove the recruit entirely from the system
 		RemoveRecruit(victimRecruit.m_sRecruitId);
 	}
@@ -550,7 +719,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Generate unique recruit ID compatible with EPF persistence
+	//! Generate unique recruit record ID
 	protected string GenerateRecruitId(string ownerPersistentId)
 	{
 		string randomId;
@@ -623,13 +792,11 @@ class OVT_RecruitManagerComponent : OVT_Component
 			Print("[Overthrow] WARNING: No AIControlComponent found on spawned recruit");
 		}
 		
-		// Ensure EPF persistence is enabled for the recruit
-		EPF_PersistenceComponent persistenceComp = EPF_PersistenceComponent.Cast(recruitEntity.FindComponent(EPF_PersistenceComponent));
-		if (!persistenceComp)
-		{
-			Print("[Overthrow] WARNING: Character entity missing EPF_PersistenceComponent! Recruit persistence may not work correctly.");
-		}
-		
+		// The body IS tracked by the persistence system - the recruit prefab inherits Character_Base.et,
+		// which carries the native Persistence component - so it is saved with its inventory like any
+		// other character. AttachRecruitBody() writes its id onto the recruit record, which is how the
+		// same body (and the same gear) is asked for again later.
+
 		// Note: OVT_PlayerOwnerComponent should be set by the caller (typically RecruitCivilian)
 		// This method just spawns the entity, ownership setup happens elsewhere
 		
@@ -637,19 +804,20 @@ class OVT_RecruitManagerComponent : OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Server-side method to recruit a civilian
-	void RecruitCivilian(SCR_ChimeraCharacter civilian, int playerId)
+	//! Server-side method to recruit a civilian. Returns false when no recruit record was created,
+	//! so callers can abort their transaction (refunds, orphan cleanup).
+	bool RecruitCivilian(SCR_ChimeraCharacter civilian, int playerId)
 	{
-		if (!civilian) return;
-		
+		if (!civilian) return false;
+
 		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
-		if (!players) return;
-		
+		if (!players) return false;
+
 		string persId = players.GetPersistentIDFromPlayerID(playerId);
-		if (persId.IsEmpty()) return;
-		
+		if (persId.IsEmpty()) return false;
+
 		// Double-check recruit limit on server
-		if (!CanRecruit(persId)) return;
+		if (!CanRecruit(persId)) return false;
 		
 		// Enable wanted system for the recruited civilian
 		OVT_PlayerWantedComponent wantedComp = OVT_PlayerWantedComponent.Cast(civilian.FindComponent(OVT_PlayerWantedComponent));
@@ -667,29 +835,25 @@ class OVT_RecruitManagerComponent : OVT_Component
 		
 		// Add to recruit manager
 		string recruitId = AddRecruit(persId, civilian);
-		
+		if (recruitId.IsEmpty()) return false;
+
 		// Set recruit faction to match player faction
 		SetRecruitFaction(persId, civilian);
 		
 		// Note: BroadcastRecruitCreated is already called in AddRecruit method
 		// No need to broadcast again here to avoid duplicates
 		
-		// Add to player's group using the proper API
-		SCR_PlayerController playerController = SCR_PlayerController.Cast(GetGame().GetPlayerManager().GetPlayerController(playerId));
-		if (playerController)
-		{
-			SCR_PlayerControllerGroupComponent groupController = SCR_PlayerControllerGroupComponent.Cast(playerController.FindComponent(SCR_PlayerControllerGroupComponent));
-			if (groupController)
-			{
-				// Ensure the recruit is not controlled by any player before adding as AI agent
-				if (GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(civilian) == 0)
-				{
-					groupController.RequestAddAIAgent(civilian, playerId);
-				}
-			}
-		}		
+		// Add to the player's group through the slave-group path (RequestAddAIAgent) - the same
+		// route the respawn flow uses. Slave-group membership is commanded by player id, so it
+		// survives the owner dying; forcing the agent into the MASTER group's array only worked
+		// while the player's own agent was still in that group, which stops being true after
+		// their first death (Overthrow's handover never travels the vanilla spawn pipeline that
+		// would re-register the new body's agent).
+		AddRecruitToPlayerGroup(persId, civilian);
+
+		return true;
 	}
-	
+
 	//------------------------------------------------------------------------------------------------
 	//! Generate random recruit name
 	protected string GenerateRecruitName()
@@ -713,7 +877,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Restore character identity name after loading from EPF
+	//! Restore character identity name onto a body that was just spawned from a record
 	protected void RestoreCharacterIdentity(IEntity characterEntity, string fullName)
 	{
 		SCR_CharacterIdentityComponent identity = SCR_CharacterIdentityComponent.Cast(characterEntity.FindComponent(SCR_CharacterIdentityComponent));
@@ -816,189 +980,587 @@ class OVT_RecruitManagerComponent : OVT_Component
 	{		
 		// Start offline timer
 		m_mOfflinePlayerTimers[playerPersistentId] = OFFLINE_DESPAWN_TIME;
-		
-		// Save all recruit states
-		SavePlayerRecruits(playerPersistentId);
+
+		// Remember where the bodies are, so they come back there
+		SyncRecruitPositions();
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Respawn recruits for a player using EPF
+	//! Brings a returning player's recruits back into the world.
+	//!
+	//! WHEN A RECRUIT BODY IS IN PLAY IS AN OWNER-PRESENCE QUESTION, NOT A CAMPAIGN-START ONE. A
+	//! recruit's body is reserved - alive, tracked, hidden in place -
+	//! OFFLINE_DESPAWN_TIME after its owner leaves (DespawnPlayerRecruits)
+	//! and comes back when that owner returns and has a group - this is called from
+	//! RespawnRecruitsDelayed, off the group-created event. That is exactly the lifecycle the previous
+	//! EPF implementation had, and it is what a returning player expects: their squad is where they left
+	//! it, carrying what they were carrying, and nobody else's recruits are standing around in an empty
+	//! world.
+	//!
+	//! It is therefore also the whole of the "recruits survive a save" story. Records are restored by
+	//! OVT_RecruitManagerSerializer while the world loads; the BODIES are asked back from the
+	//! persistence system here, by the id the record carries, the moment their owner is in the game.
+	//! Nothing self-spawns a recruit (AI characters are SelfSpawn 0 - see Overthrow.conf), which is
+	//! exactly why the manager has to ask.
+	//!
+	//! THIS ALSO COVERS RECRUITS WHOSE BODY WAS ALIVE WHEN THE SAVE WAS TAKEN. Such a body was written
+	//! into the save point like any tracked character, but SelfSpawn 0 means nobody brings it back on
+	//! load - so after a quit/continue the record has an id and no body in the world, which is the same
+	//! state as a despawned one and takes the same path.
+	//!
+	//! IDEMPOTENT: a recruit that already has a body in the world, or a request in flight for one, is
+	//! never given a second one.
+	//! \param[in] playerPersistentId The returning owner.
 	protected void RespawnPlayerRecruits(string playerPersistentId)
 	{
 		if (!m_mRecruitsByOwner.Contains(playerPersistentId))
 			return;
-			
+
 		array<string> recruitIds = m_mRecruitsByOwner[playerPersistentId];
-		
+
 		foreach (string recruitId : recruitIds)
 		{
 			OVT_RecruitData recruit = m_mRecruits[recruitId];
 			if (!recruit)
 				continue;
-				
-			// Check if recruit is already spawned in world
+
+			// A body already in the world is either still in play (quick reconnect, the offline
+			// timer never fired) or reserved - hidden in place since the owner left. Either way it
+			// is the same character carrying the same inventory, so wake it and put it back under
+			// command; no storage round trip is involved.
 			IEntity existingEntity = FindRecruitEntity(recruitId);
 			if (existingEntity)
 			{
 				Print("[Overthrow] Recruit " + recruitId + " already in world, adding to group");
+				UnreserveRecruitBody(recruit, existingEntity);
 				AddRecruitToPlayerGroup(playerPersistentId, existingEntity);
+				BroadcastRecruitUpdate(recruit);
 				continue;
 			}
-			
-			// Load recruit character via EPF
-			EPF_PersistenceManager persistenceManager = EPF_PersistenceManager.GetInstance();
-			if (persistenceManager)
+
+			// A body is already on its way for this recruit - the spawn request has not answered yet
+			if (m_aPendingBodySpawns && m_aPendingBodySpawns.Find(recruitId) != -1)
 			{
-				Print("[Overthrow] Loading recruit from EPF: " + recruitId);
-				// Create callback context with player and recruit info
-				ref Tuple2<string, string> context = new Tuple2<string, string>(playerPersistentId, recruitId);
-				EDF_DataCallbackSingle<IEntity> callback(this, "OnRecruitLoaded", context);
-				
-				// Use EPF_PersistentWorldEntityLoader to load the recruit
-				EPF_PersistentWorldEntityLoader.LoadAsync(EPF_CharacterSaveData, recruitId, callback);
+				Print("[Overthrow] Recruit " + recruitId + " already has a body spawn in flight");
+				continue;
 			}
+
+			SpawnRecruitBody(playerPersistentId, recruit);
 		}
 	}
-	
+
 	//------------------------------------------------------------------------------------------------
-	//! Callback when recruit is loaded from EPF
-	void OnRecruitLoaded(IEntity recruitEntity, Managed context)
+	//! Gives one recruit a body, preferring the one it actually had.
+	//!
+	//! TWO ROUTES, IN ORDER OF FIDELITY:
+	//!   1. the record names a stored body -> ask the persistence system for THAT character
+	//!      (RequestPersistedRecruitBody). It comes back with the gear, wounds and stance it was
+	//!      released with, because vanilla serializes all of that for any tracked character;
+	//!   2. otherwise, or if the request fails -> spawn the recruit prefab and dress it as a civilian
+	//!      (SpawnFreshRecruitBody). A recruit is never lost to a missing or unreadable stored body.
+	//!
+	//! Route 1 is ASYNCHRONOUS: this returns having only started the request, and
+	//! OnRecruitBodySpawned() finishes the job - including falling through to route 2.
+	//! \param[in] playerPersistentId The owning player.
+	//! \param[in] recruit The record to give a body to.
+	protected void SpawnRecruitBody(string playerPersistentId, notnull OVT_RecruitData recruit)
 	{
+		if (RequestPersistedRecruitBody(playerPersistentId, recruit))
+			return;
+
+		SpawnFreshRecruitBody(playerPersistentId, recruit);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asks the persistence system to spawn back the exact character this recruit was last using.
+	//!
+	//! Vanilla's own model is SCR_SpawnLogic.c:368-374, which fetches a returning player's character
+	//! from the same collection the same way. The request is filtered to a single id, so the callback
+	//! is invoked once.
+	//! \param[in] playerPersistentId The owning player.
+	//! \param[in] recruit The record naming the stored body.
+	//! \return True when a request was sent and the callback now owns the outcome; false when there is
+	//! nothing to ask for, so the caller must spawn a fresh body.
+	protected bool RequestPersistedRecruitBody(string playerPersistentId, notnull OVT_RecruitData recruit)
+	{
+		if (recruit.m_sBodyPersistenceId == "")
+			return false;
+
+		SCR_PersistenceSystem persistence = SCR_PersistenceSystem.GetScriptedInstance();
+		if (!persistence)
+			return false;
+
+		// Asking a system that is still loading would answer UNAVAILABLE; vanilla guards the same way
+		// (SCR_SpawnLogic.c:302-307).
+		if (persistence.GetState() != EPersistenceSystemState.ACTIVE)
+			return false;
+
+		PersistenceCollection collection = GetRecruitBodyCollection(persistence);
+		if (!collection)
+			return false;
+
+		// Vanilla's own validation of a stored id before using it (SCR_VoiceoverSystemSerializer.c:90).
+		// A null UUID still stringifies to a zero-filled value, so never compare, always ask.
+		if (!UUID.IsUUID(recruit.m_sBodyPersistenceId))
+		{
+			// Whatever is stored is not a UUID - it can never resolve, so stop carrying it around
+			recruit.m_sBodyPersistenceId = "";
+			return false;
+		}
+
+		UUID bodyId = recruit.m_sBodyPersistenceId;
+		string recruitId = recruit.m_sRecruitId;
+
+		if (!m_aPendingBodySpawns)
+			m_aPendingBodySpawns = new array<string>;
+
+		// MUST be marked pending BEFORE the request is sent: an instance the system already has in memory
+		// completes the callback IMMEDIATELY, i.e. from inside RequestSpawn(), and the callback's first
+		// act is to consume this entry.
+		if (m_aPendingBodySpawns.Find(recruitId) == -1)
+			m_aPendingBodySpawns.Insert(recruitId);
+
+		Print("[Overthrow] Requesting stored body " + recruit.m_sBodyPersistenceId + " for recruit " + recruitId);
+
+		PersistenceSpawnRequest request();
+		request.Collection = collection;
+		request.Include = {bodyId};
+
+		Tuple2<string, string> spawnContext(recruitId, playerPersistentId);
+		PersistenceResultCallback callback(OnRecruitBodySpawned, spawnContext);
+		persistence.RequestSpawn(request, callback);
+
+		// Insurance only, and a no-op once the callback has answered. The engine documents the callback
+		// as always firing, but a recruit that never heard back would otherwise be left without a body
+		// for the rest of the session.
+		GetGame().GetCallqueue().CallLater(OnRecruitBodySpawnTimeout, BODY_SPAWN_TIMEOUT_MS, false, recruitId, playerPersistentId);
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! PersistenceResultCallback delegate for RequestPersistedRecruitBody().
+	//!
+	//! Arity must match PersistenceResultDelegate exactly (the model is SCR_SpawnLogic.c:378).
+	//! \param[in] statusCode OK when the stored body was found and instantiated.
+	//! \param[in] result The spawned instance on OK; on failure it is the id that could not be fetched.
+	//! \param[in] isLast True on the final result of the request (always, for a single-id request).
+	//! \param[in] context Tuple2 of recruit id and owner persistent id.
+	protected void OnRecruitBodySpawned(EPersistenceStatusCode statusCode, Managed result, bool isLast, Managed context)
+	{
+		Tuple2<string, string> spawnContext = Tuple2<string, string>.Cast(context);
+		if (!spawnContext)
+			return;
+
+		string recruitId = spawnContext.param1;
+		string playerPersistentId = spawnContext.param2;
+
+		// Only the first answer for a recruit is acted on. Anything after it - a duplicate result, or a
+		// late answer to a request the timeout already gave up on - must not build a second body.
+		if (!m_aPendingBodySpawns)
+			return;
+
+		int pendingIndex = m_aPendingBodySpawns.Find(recruitId);
+		if (pendingIndex == -1)
+			return;
+
+		m_aPendingBodySpawns.Remove(pendingIndex);
+
+		IEntity bodyEntity;
+		if (statusCode == EPersistenceStatusCode.OK)
+			bodyEntity = IEntity.Cast(result);
+
+		OVT_RecruitData recruit = GetRecruit(recruitId);
+		if (!recruit)
+		{
+			// The recruit was dismissed or died while its body was being fetched. Nobody owns this
+			// character now, so delete it AND drop its stored data - otherwise it would be spawnable
+			// again forever.
+			if (bodyEntity)
+			{
+				Print("[Overthrow] Stored body arrived for a recruit that no longer exists (" + recruitId + ") - discarding it");
+				OVT_PersistenceTracking.Untrack(bodyEntity, false);
+				SCR_EntityHelper.DeleteEntityAndChildren(bodyEntity);
+			}
+			return;
+		}
+
+		if (!bodyEntity)
+		{
+			// Stored body could not be brought back: wiped save data, a prefab that no longer exists, an
+			// unreadable record. A recruit is never lost to this - clear the dead id and build a fresh
+			// body, which is the pre-existing behaviour (civilian loadout).
+			Print(string.Format("[Overthrow] Persistence answered %1 for recruit %2's stored body - spawning a fresh one",
+				typename.EnumToString(EPersistenceStatusCode, statusCode), recruitId), LogLevel.WARNING);
+
+			recruit.m_sBodyPersistenceId = "";
+			SpawnFreshRecruitBody(playerPersistentId, recruit);
+			return;
+		}
+
+		// The owner may have left again while the request was in flight. Putting a body in play for
+		// somebody who is not there is precisely what the offline despawn undoes, so undo it now:
+		// the body is reserved in place - alive, tracked, hidden - for the next time they return.
+		if (!IsPlayerOnline(playerPersistentId))
+		{
+			Print("[Overthrow] Owner of recruit " + recruitId + " left before their body arrived - reserving it in place");
+			ReserveRecruitBody(recruit, bodyEntity);
+			BroadcastRecruitUpdate(recruit);
+			return;
+		}
+
+		AttachRecruitBody(playerPersistentId, recruit, bodyEntity);
+
+		Print("[Overthrow] Recruit " + recruitId + " restored from its stored body, gear intact");
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Gives up on a spawn request that never answered and falls back to a fresh body.
+	//!
+	//! No-op in the normal case: the callback has already cleared the pending entry by the time this
+	//! runs.
+	//! \param[in] recruitId The recruit whose request was sent.
+	//! \param[in] playerPersistentId The owner the request was made for.
+	protected void OnRecruitBodySpawnTimeout(string recruitId, string playerPersistentId)
+	{
+		if (!m_aPendingBodySpawns)
+			return;
+
+		int pendingIndex = m_aPendingBodySpawns.Find(recruitId);
+		if (pendingIndex == -1)
+			return;
+
+		m_aPendingBodySpawns.Remove(pendingIndex);
+
+		OVT_RecruitData recruit = GetRecruit(recruitId);
+		if (!recruit)
+			return;
+
+		// Something may have given the recruit a body by other means in the meantime
+		if (FindRecruitEntity(recruitId))
+			return;
+
+		if (!IsPlayerOnline(playerPersistentId))
+			return;
+
+		Print("[Overthrow] No answer to recruit " + recruitId + "'s body spawn request - spawning a fresh one", LogLevel.WARNING);
+
+		recruit.m_sBodyPersistenceId = "";
+		SpawnFreshRecruitBody(playerPersistentId, recruit);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Builds a brand new body for a recruit from the recruit prefab, at its last known position.
+	//!
+	//! THE FALLBACK, NOT THE NORMAL PATH. This is what a recruit gets when no stored body can be found
+	//! for it, and it is where the old "gear resets to civilian" behaviour lives: the record (name, XP,
+	//! level, kills, skills, training) survives, the inventory does not, because there is nothing to
+	//! read it from.
+	//! \param[in] playerPersistentId The owning player.
+	//! \param[in] recruit The record to build a body for.
+	//! \return The spawned character, or null when it could not be placed.
+	protected IEntity SpawnFreshRecruitBody(string playerPersistentId, notnull OVT_RecruitData recruit)
+	{
+		vector position = recruit.m_vLastKnownPosition;
+		if (position == vector.Zero)
+			position = FindRecruitFallbackPosition(playerPersistentId);
+
+		if (position == vector.Zero)
+		{
+			Print("[Overthrow] Cannot respawn recruit " + recruit.m_sRecruitId + ": no known position and owner not in world", LogLevel.WARNING);
+			return null;
+		}
+
+		SCR_ChimeraCharacter recruitEntity = SpawnRecruit(position);
 		if (!recruitEntity)
 		{
-			Print("[Overthrow] Failed to load recruit entity from EPF");
-			return;
+			Print("[Overthrow] Failed to respawn recruit body: " + recruit.m_sRecruitId, LogLevel.WARNING);
+			return null;
 		}
-		
-		Tuple2<string, string> recruitContext = Tuple2<string, string>.Cast(context);
-		if (!recruitContext)
+
+		// This is a DIFFERENT character to whatever the record used to point at, so the old id must not
+		// survive the swap - AttachRecruitBody() puts the new body's id in its place.
+		recruit.m_sBodyPersistenceId = "";
+
+		AttachRecruitBody(playerPersistentId, recruit, recruitEntity);
+
+		Print("[Overthrow] Recruit " + recruit.m_sRecruitId + " respawned and added to group");
+
+		return recruitEntity;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The persistence collection recruit bodies are stored in, resolved once and kept.
+	//!
+	//! Cached the way vanilla caches it (SCR_SpawnLogic.SetupPersistenceCollections, :51-55) - the
+	//! lookup is by name against the loaded configuration and does not change during a session.
+	//! \param[in] persistence The live persistence system.
+	//! \return The collection, or null when the loaded configuration does not contain it.
+	protected PersistenceCollection GetRecruitBodyCollection(notnull SCR_PersistenceSystem persistence)
+	{
+		if (!m_RecruitBodyCollection)
 		{
-			Print("[Overthrow] Invalid context in OnRecruitLoaded");
-			return;
+			m_RecruitBodyCollection = persistence.FindCollection(RECRUIT_BODY_COLLECTION);
+
+			if (!m_RecruitBodyCollection)
+				Print("[Overthrow] No '" + RECRUIT_BODY_COLLECTION + "' persistence collection - recruit bodies cannot be spawned back with their gear", LogLevel.WARNING);
 		}
-		
-		string playerPersistentId = recruitContext.param1;
-		string recruitId = recruitContext.param2;
-		
-		Print("[Overthrow] Successfully loaded recruit: " + recruitId);
-		
-		// Activate AI for the loaded recruit
-		AIControlComponent aiControl = AIControlComponent.Cast(recruitEntity.FindComponent(AIControlComponent));
-		if (aiControl)
+
+		return m_RecruitBodyCollection;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether a player is currently connected, by their persistent identity id.
+	//!
+	//! Asks the engine's player list rather than OVT_PlayerManagerComponent's id map, because that map
+	//! keeps a disconnected player's last runtime id and would report them as present.
+	//! \param[in] playerPersistentId The player to look for.
+	//! \return True when that player is connected right now.
+	protected bool IsPlayerOnline(string playerPersistentId)
+	{
+		if (playerPersistentId.IsEmpty())
+			return false;
+
+		array<int> connectedPlayers = {};
+		GetGame().GetPlayerManager().GetPlayers(connectedPlayers);
+
+		foreach (int playerId : connectedPlayers)
 		{
-			aiControl.ActivateAI();
-			Print("[Overthrow] Activated AI for recruit: " + recruitId);
-			
-			// Ensure the AI agent has a proper group
-			AIAgent agent = aiControl.GetAIAgent();
-			if (agent)
+			string uid = OVT_Global.GetPlayerUID(playerId);
+			if (!uid.IsEmpty() && uid == playerPersistentId)
+				return true;
+		}
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Notes the persistence id of a recruit's body on its record.
+	//!
+	//! The id is what RequestPersistedRecruitBody() asks for later, so this is the single point where
+	//! "which character IS this recruit" is written down. An id that cannot be read is never allowed to
+	//! overwrite one that could: an empty answer leaves the record untouched.
+	//! \param[in] recruit The record to write to.
+	//! \param[in] recruitEntity The body.
+	//! \param[in] materialise True to write the body's record first when it has no id yet. Only pass
+	//! true where writing a record is wanted anyway - it is a real storage write, not a lookup.
+	protected void CaptureRecruitBodyId(notnull OVT_RecruitData recruit, notnull IEntity recruitEntity, bool materialise)
+	{
+		string bodyId = OVT_PersistenceTracking.GetPersistentId(recruitEntity);
+
+		if (bodyId.IsEmpty() && materialise)
+		{
+			// Registration is lazy, so an instance the system has never written may not have an identity
+			// to hand out yet. Writing its record is what gives it one.
+			SCR_ChimeraCharacter character = SCR_ChimeraCharacter.Cast(recruitEntity);
+			if (character)
 			{
-				SCR_AIGroup aiGroup = SCR_AIGroup.Cast(agent.GetParentGroup());
-				if (!aiGroup)
-				{
-					Print("[Overthrow] Recruit has no AI group, will be handled by player group assignment");
-				}
+				OVT_PersistenceTracking.Save(recruitEntity);
+				bodyId = OVT_PersistenceTracking.GetPersistentId(recruitEntity);
 			}
 		}
-		else
-		{
-			Print("[Overthrow] WARNING: No AIControlComponent found on recruit: " + recruitId);
-		}
-		
-		//Enable EPF Saving
-		// Enable EPF persistence for recruit (disabled for regular civilians)
-		EPF_PersistenceComponent persistenceComp = EPF_PersistenceComponent.Cast(
-			recruitEntity.FindComponent(EPF_PersistenceComponent)
-		);
-		
-		if (!persistenceComp)
-		{
-			Print("[Overthrow] WARNING: Character entity missing EPF_PersistenceComponent! Recruit persistence may not work correctly.");
-		}
-		
-		// Update entity mapping
+
+		if (bodyId.IsEmpty())
+			return;
+
+		recruit.m_sBodyPersistenceId = bodyId;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Takes a recruit body out of play WITHOUT destroying it - alive, TRACKED, hidden in place.
+	//!
+	//! THE REPLACEMENT FOR SAVE-AND-RELEASE (BUG-130). The old path here wrote the character to
+	//! storage, released tracking keeping the record, and deleted the entity - vanilla's own idiom,
+	//! and the one BUG-086 measured as NOT durable: the kept record dies within minutes of its
+	//! entity, no restart required, so a returning owner's recruits answered NOT_FOUND and came back
+	//! as fresh prefabs in civilian clothes. Nothing may depend on a record outliving its entity, so
+	//! the entity now outlives the absence instead (OVT_PersistenceReservation - the same remedy
+	//! player bodies and locked vehicles got). In-session fidelity is by construction (nothing is
+	//! serialized, nothing is rebuilt), and at the next save point the body serializes as the
+	//! ordinary live tracked character it is - which is the across-a-restart path that was always
+	//! green.
+	//!
+	//! The AI agent is deactivated BEFORE the flags are cleared, so a walking recruit does not keep
+	//! feeding movement into an entity that no longer simulates. The entity mapping is KEPT - and
+	//! written here, because the owner-left-mid-flight path hands in a storage-spawned body that
+	//! AttachRecruitBody() has never seen - since the mapping is what lets RespawnPlayerRecruits()
+	//! find and wake the body later, what keeps SyncRecruitPositions() refreshing its id before
+	//! every save, and what keeps the BUG-118 OnAgentAdded exclusion protecting it.
+	//! \param[in] recruit The record whose body is being parked.
+	//! \param[in] recruitEntity The body to reserve.
+	protected void ReserveRecruitBody(notnull OVT_RecruitData recruit, notnull IEntity recruitEntity)
+	{
+		m_mEntityToRecruit[recruitEntity.GetID()] = recruit.m_sRecruitId;
+
+		recruit.m_vLastKnownPosition = recruitEntity.GetOrigin();
+
+		// materialise: the id is what the post-restart respawn asks for, and a body that has never
+		// been written may not have been given one yet. The write is wanted here.
+		CaptureRecruitBodyId(recruit, recruitEntity, true);
+
+		AIControlComponent aiControl = AIControlComponent.Cast(recruitEntity.FindComponent(AIControlComponent));
+		if (aiControl)
+			aiControl.DeactivateAI();
+
+		OVT_PersistenceReservation.Reserve(recruitEntity);
+
+		recruit.m_bIsOnline = false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Puts a reserved recruit body back in play, exactly where it was left.
+	//!
+	//! Safe on a body that was never reserved (the quick-reconnect case, where the offline timer has
+	//! not fired yet): Release() is idempotent and ActivateAI() on an active agent is a no-op.
+	//! \param[in] recruit The record whose body is coming back.
+	//! \param[in] recruitEntity The body to wake.
+	protected void UnreserveRecruitBody(notnull OVT_RecruitData recruit, notnull IEntity recruitEntity)
+	{
+		OVT_PersistenceReservation.Release(recruitEntity);
+
+		AIControlComponent aiControl = AIControlComponent.Cast(recruitEntity.FindComponent(AIControlComponent));
+		if (aiControl)
+			aiControl.ActivateAI();
+
+		recruit.m_bIsOnline = true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Where to put a recruit whose record has no position (only possible for a record written before
+	//! the body was ever placed): next to its owner.
+	//! \param[in] playerPersistentId The owning player.
+	//! \return The owner's position, or vector.Zero when the owner has no character in the world.
+	protected vector FindRecruitFallbackPosition(string playerPersistentId)
+	{
+		OVT_PlayerManagerComponent playerManager = OVT_Global.GetPlayers();
+		if (!playerManager)
+			return vector.Zero;
+
+		int playerId = playerManager.GetPlayerIDFromPersistentID(playerPersistentId);
+		if (playerId < 1)
+			return vector.Zero;
+
+		IEntity playerEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+		if (!playerEntity)
+			return vector.Zero;
+
+		return playerEntity.GetOrigin();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Links a body to its recruit record and puts it back under the owner's command.
+	//!
+	//! Used by BOTH routes - a body restored from storage and a fresh one off the prefab - so everything
+	//! here has to be safe to re-apply to a character that already has the right values.
+	//! \param[in] playerPersistentId The owning player.
+	//! \param[in] recruit The record this body belongs to.
+	//! \param[in] recruitEntity The body.
+	protected void AttachRecruitBody(string playerPersistentId, notnull OVT_RecruitData recruit, notnull IEntity recruitEntity)
+	{
+		string recruitId = recruit.m_sRecruitId;
+
+		// Entity mapping (server) and replication mapping (clients)
 		m_mEntityToRecruit[recruitEntity.GetID()] = recruitId;
-		
-		// Update replication ID mapping for client access
+
 		RplComponent rplComponent = RplComponent.Cast(recruitEntity.FindComponent(RplComponent));
 		if (rplComponent)
 		{
 			m_mRplIdToRecruit[rplComponent.Id()] = recruitId;
 		}
-		
-		// Get recruit data
-		OVT_RecruitData recruit = m_mRecruits[recruitId];
-		if (!recruit)
-		{
-			Print("[Overthrow] WARNING: No recruit data found for: " + recruitId);
-			return;
-		}
-		
-		// Restore the character's name to the identity component (EPF doesn't save this)
+
+		// A body normally arrives already tracked - the persistence system spawned it, or the native
+		// Persistence component on Character_Base.et registered the fresh prefab - so ASK before
+		// registering rather than re-registering blind.
+		if (!OVT_PersistenceTracking.IsTracked(recruitEntity))
+			OVT_PersistenceTracking.Track(recruitEntity);
+
+		// Whichever route produced this body, the record must point at THIS character from now on
+		CaptureRecruitBodyId(recruit, recruitEntity, false);
+
+		// SpawnRecruit() does this for a fresh prefab; a body handed back by the persistence system has
+		// never been through it, and a recruit whose AI is not running cannot be commanded. ActivateAI()
+		// on an already active agent is a no-op, so both routes can run it.
+		AIControlComponent aiControl = AIControlComponent.Cast(recruitEntity.FindComponent(AIControlComponent));
+		if (aiControl)
+			aiControl.ActivateAI();
+
+		// The spawned prefab comes with a random identity - put the recruit's name back on it
 		RestoreCharacterIdentity(recruitEntity, recruit.m_sName);
-		
-		// Mark recruit as online
+
 		recruit.m_bIsOnline = true;
-		
-		// Ensure player owner component is set correctly (safety check for EPF loading)
+		recruit.m_vLastKnownPosition = recruitEntity.GetOrigin();
+
 		OVT_PlayerOwnerComponent ownerComp = OVT_PlayerOwnerComponent.Cast(recruitEntity.FindComponent(OVT_PlayerOwnerComponent));
 		if (ownerComp)
 		{
-			string currentOwner = ownerComp.GetPlayerOwnerUid();
-			if (currentOwner.IsEmpty() || currentOwner != playerPersistentId)
-			{
-				Print("[Overthrow] Fixing player owner component on loaded recruit: " + recruitId);
+			if (ownerComp.GetPlayerOwnerUid() != playerPersistentId)
 				ownerComp.SetPlayerOwner(playerPersistentId);
-			}
 		}
 		else
 		{
-			Print("[Overthrow] WARNING: No OVT_PlayerOwnerComponent found on loaded recruit: " + recruitId);
+			Print("[Overthrow] WARNING: No OVT_PlayerOwnerComponent found on respawned recruit: " + recruitId, LogLevel.WARNING);
 		}
-		
+
 		// Set recruit faction to match player faction before adding to group
 		SetRecruitFaction(playerPersistentId, recruitEntity);
-		
+
 		// Add to player's group
 		AddRecruitToPlayerGroup(playerPersistentId, recruitEntity);
-		
+
 		// Broadcast updated recruit status to all clients
 		BroadcastRecruitUpdate(recruit);
-		
-		Print("[Overthrow] Recruit " + recruitId + " respawned and added to group");
 	}
-	
+
 	//------------------------------------------------------------------------------------------------
-	//! Save all recruits for a player via EPF
-	protected void SavePlayerRecruits(string playerPersistentId)
+	//! Writes every live body's position AND persistence id back onto its record.
+	//!
+	//! The record's last known position is where a rebuilt body is placed, and the body id is which
+	//! character gets asked for - both are what the save point carries
+	//! (OVT_RecruitManagerSerializer), so this is what makes a recruit come back where you left them,
+	//! as who you left them.
+	//!
+	//! REFRESHING THE ID MATTERS FOR RECRUITS WHO ARE STILL STANDING THERE. A body that never despawns
+	//! never goes through ReserveRecruitBody(), so this hook is the only place its id is written down
+	//! before the save. Without it, quitting with your squad beside you would bring them back in
+	//! civilian clothes.
+	//!
+	//! Called before every save (OVT_OverthrowGameMode.PreShutdownPersist) and when an owner
+	//! disconnects. It is deliberately NOT a per-frame update: the position only has to be true at the
+	//! moments a body can stop existing.
+	//!
+	//! Also drops entity mappings whose entity is gone, which is the only sweep those mappings get
+	//! outside FindRecruitEntity().
+	void SyncRecruitPositions()
 	{
-		if (!m_mRecruitsByOwner.Contains(playerPersistentId))
+		if (!m_mEntityToRecruit)
 			return;
-			
-		array<string> recruitIds = m_mRecruitsByOwner[playerPersistentId];
-		Print("[Overthrow] Saving " + recruitIds.Count() + " recruits for player: " + playerPersistentId);
-		
-		foreach (string recruitId : recruitIds)
+
+		array<EntityID> staleEntities = {};
+
+		foreach (EntityID entityId, string recruitId : m_mEntityToRecruit)
 		{
-			OVT_RecruitData recruit = m_mRecruits[recruitId];
+			IEntity recruitEntity = GetGame().GetWorld().FindEntityByID(entityId);
+			if (!recruitEntity)
+			{
+				staleEntities.Insert(entityId);
+				continue;
+			}
+
+			OVT_RecruitData recruit = GetRecruit(recruitId);
 			if (!recruit)
 				continue;
-				
-			// Find character entity
-			IEntity recruitEntity = FindRecruitEntity(recruitId);
-			if (!recruitEntity)
-				continue;
-				
-			// Force save via EPF
-			EPF_PersistenceComponent persistence = EPF_PersistenceComponent.Cast(
-				recruitEntity.FindComponent(EPF_PersistenceComponent)
-			);
-			
-			if (persistence)
-			{
-				persistence.Save();
-				Print("[Overthrow] Saved recruit via EPF: " + recruitId);
-			}
+
+			recruit.m_vLastKnownPosition = recruitEntity.GetOrigin();
+
+			// materialise: a live body may be registered but never yet written, and an id it has not
+			// been given cannot be stored. The save point is about to write this character anyway.
+			CaptureRecruitBodyId(recruit, recruitEntity, true);
+		}
+
+		// Removing inside the loop above would invalidate the iteration.
+		foreach (EntityID staleId : staleEntities)
+		{
+			m_mEntityToRecruit.Remove(staleId);
 		}
 	}
 	
@@ -1035,79 +1597,41 @@ class OVT_RecruitManagerComponent : OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Despawn recruits for an offline player but keep database records
-	protected void DespawnPlayerRecruits(string playerPersistentId)
+	//! Takes an offline player's recruit bodies out of play without losing them.
+	//!
+	//! DESPAWN IS RESERVE, NOT DELETE (BUG-130). Each body stays alive, tracked and hidden where it
+	//! stands (ReserveRecruitBody), and the recruit remembers which character it is. When the owner
+	//! comes back, RespawnPlayerRecruits() wakes that same body - or, after a restart, asks the
+	//! persistence system for it by the id the record carries - and the recruit returns carrying
+	//! exactly what it was carrying.
+	//! Public so the persistence tier can drive the despawn half of the lifecycle directly
+	//! (OVT_TEST_Persistence_RecruitDespawnReservesBody); production callers are the offline timers.
+	//! \param[in] playerPersistentId The player who has been offline long enough.
+	void DespawnPlayerRecruits(string playerPersistentId)
 	{
 		if (!m_mRecruitsByOwner.Contains(playerPersistentId))
 			return;
-			
+
 		array<string> recruitIds = m_mRecruitsByOwner[playerPersistentId];
 		Print("[Overthrow] Despawning " + recruitIds.Count() + " recruits for offline player: " + playerPersistentId);
-		
+
 		foreach (string recruitId : recruitIds)
 		{
 			OVT_RecruitData recruit = m_mRecruits[recruitId];
 			if (!recruit)
 				continue;
-				
+
 			IEntity recruitEntity = FindRecruitEntity(recruitId);
 			if (!recruitEntity)
 				continue;
-				
-			// Save current state before despawn
-			EPF_PersistenceComponent persistence = EPF_PersistenceComponent.Cast(
-				recruitEntity.FindComponent(EPF_PersistenceComponent)
-			);
-			
-			if (persistence)
-			{
-				persistence.Save();
-				Print("[Overthrow] Saved recruit before despawn: " + recruitId);
-			}
-			
-			// Mark recruit as offline
-			recruit.m_bIsOnline = false;
-			
-			// Remove entity mapping
-			m_mEntityToRecruit.Remove(recruitEntity.GetID());
-			
-			// Remove from world
-			SCR_EntityHelper.DeleteEntityAndChildren(recruitEntity);
-			
+
+			// Keeps the body alive, tracked and hidden in place; remembers its id and position
+			ReserveRecruitBody(recruit, recruitEntity);
+
 			// Broadcast updated recruit status to all clients
 			BroadcastRecruitUpdate(recruit);
-			
-			Print("[Overthrow] Despawned recruit: " + recruitId);
-		}
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	//! Delete recruit from EPF persistence when they die using EPF's built-in helper
-	protected void DeleteRecruitFromEPF(string recruitId)
-	{
-		if (recruitId.IsEmpty())
-			return;
-			
-		// Find the recruit entity first
-		IEntity recruitEntity = FindRecruitEntity(recruitId);
-		if (!recruitEntity)
-		{
-			Print("[Overthrow] WARNING: Could not find recruit entity to delete from persistence: " + recruitId);
-			return;
-		}
-		
-		// Get the EPF persistence component and use its Delete() method
-		EPF_PersistenceComponent persistenceComp = EPF_PersistenceComponent.Cast(
-			recruitEntity.FindComponent(EPF_PersistenceComponent));
-			
-		if (persistenceComp)
-		{
-			persistenceComp.Delete();
-			Print("[Overthrow] Deleted recruit from EPF persistence using component: " + recruitId);
-		}
-		else
-		{
-			Print("[Overthrow] WARNING: No EPF_PersistenceComponent found on recruit entity: " + recruitId);
+
+			Print("[Overthrow] Despawned recruit: " + recruitId + " (reserved body " + recruit.m_sBodyPersistenceId + ")");
 		}
 	}
 	
@@ -1238,51 +1762,292 @@ class OVT_RecruitManagerComponent : OVT_Component
 		// Verify player has a group and is the leader
 		int groupId = groupController.GetGroupID();
 		if (groupId == -1)
+		{
+			Print("[Overthrow] Cannot add recruit to group: player " + playerId + " is in no group", LogLevel.WARNING);
 			return;
-		
+		}
+
 		SCR_GroupsManagerComponent groupsManager = SCR_GroupsManagerComponent.GetInstance();
 		if (!groupsManager)
 			return;
-		
+
 		SCR_AIGroup group = groupsManager.FindGroup(groupId);
 		if (!group)
-			return;
-		
-		if (group.GetLeaderID() != playerId)
-			return;
-		
-		// Add as AI agent to player's group via RPC to client
-		SCR_ChimeraCharacter recruitCharacter = SCR_ChimeraCharacter.Cast(recruitEntity);
-		if (!recruitCharacter)
 		{
-			Print("[Overthrow] Failed to cast recruit entity to SCR_ChimeraCharacter");
+			Print("[Overthrow] Cannot add recruit to group: group " + groupId + " not found", LogLevel.WARNING);
 			return;
 		}
-		
-		// Use RPC to client to trigger proper group join notifications
-		RplComponent rplComponent = RplComponent.Cast(recruitEntity.FindComponent(RplComponent));
-		if (rplComponent)
+
+		// MEMBERSHIP, NOT LEADERSHIP (decision D8). This used to demand group.GetLeaderID() == playerId.
+		// Under the shared-group model an owner standing inside a friend's group is a MEMBER and not the
+		// leader, so the leader test made "recruit a civilian while in someone else's group" bail here
+		// and do nothing at all - silently, because there was no failure the player could see. The
+		// recruit belongs in whatever group its OWNER is in, whoever happens to lead that group; the
+		// leader commands it once it is there, which is plain vanilla slave-group behaviour.
+		if (!group.IsPlayerInGroup(playerId))
 		{
-			int localPlayerId = SCR_PlayerController.GetLocalPlayerId();
-			if (localPlayerId == playerId)
-			{
-				// Host/server - execute immediately
-				RpcDo_AddRecruitToGroup(rplComponent.Id(), playerId);
-			}
-			else
-			{
-				// Client - delay RPC to allow entity replication
-				GetGame().GetCallqueue().CallLater(DelayedRpcAddRecruitToGroup, 6000, false, rplComponent.Id(), playerId);
-			}
+			Print("[Overthrow] Cannot add recruit to group: player " + playerId + " is not a member of group " + groupId + " (leader is " + group.GetLeaderID() + ")", LogLevel.WARNING);
+			return;
 		}
-		else
+
+		if (!group.GetSlave())
 		{
-			Print("[Overthrow] No RplComponent found on recruit entity for group addition");
+			Print("[Overthrow] Cannot add recruit to group: group " + groupId + " has no slave group (commanding manager missing at group creation?)", LogLevel.WARNING);
+			return;
 		}
+
+		// The AI has to be running before it can take orders
+		AIControlComponent aiControl = AIControlComponent.Cast(recruitEntity.FindComponent(AIControlComponent));
+		if (aiControl)
+			aiControl.ActivateAI();
+
+		// Put the recruit in the player's slave group HERE, on the server.
+		//
+		// This used to broadcast RpcDo_AddRecruitToGroup to EVERY client (6 s pre-delay plus a
+		// 10 x 2 s entity-resolution ladder) purely so the owning client could call
+		// RequestAddAIAgent - whose server handler, RPC_AskAddAIAgent, does nothing but call
+		// AddAIToSlaveGroup after re-checking leadership we have already checked. We are the
+		// server and we are holding the entity, so call it directly: no round trip, no timing
+		// ladder, no dependency on the owner's client being responsive. AddAIToSlaveGroup
+		// broadcasts membership itself (AskAddAiMemberToGroup -> RPC_DoAddAIMemberToGroup), so
+		// every machine still learns the recruit is a group member.
+		groupController.AddAIToSlaveGroup(recruitEntity, group);
 	}
-	
+
+	//------------------------------------------------------------------------------------------------
+	//! Moves every one of an owner's LIVE recruits into another group's slave group. SERVER ONLY.
+	//!
+	//! This is the "recruits follow their owner IN" half of the reactor
+	//! (OVT_PlayerGroupManagerComponent.OnGroupPlayerAdded). Ownership is NOT touched: no line below
+	//! writes m_sOwnerPersistentId or OVT_PlayerOwnerComponent, and none ever may. A recruit inside a
+	//! shared group is commanded by that group's leader and still owned, renamed, dismissed, equipped
+	//! and XP-credited by the player who recruited it.
+	//!
+	//! THE TARGET GROUP IS AN ARGUMENT AND MUST STAY ONE. It cannot be read back from the owner's
+	//! group controller here: during a group SWITCH vanilla fires both membership invokers while
+	//! SCR_PlayerControllerGroupComponent.m_iGroupID still holds the OLD group id (it is only written
+	//! afterwards, in RPC_AskJoinGroup at Groups/SCR_PlayerControllerGroupComponent.c:892), so a
+	//! GetGroupID() lookup at this moment would place the recruits back where they came from.
+	//!
+	//! \param[in] ownerPersistentId The recruits' owner.
+	//! \param[in] targetGroup The MASTER group the owner is now in - the recruits go into its slave.
+	//! \param[in] ownerOnline Resolved by the caller from PlayerManager.GetPlayerController(), never
+	//!            from the player record's own liveness accessor (decision D9). False transfers
+	//!            nothing.
+	//! \return How many recruits were actually placed in the target group's slave group. Phase 5 uses
+	//!         this for the leader's "X joined with N recruits" notification, so it must stay the count
+	//!         that ARRIVED - not the count the owner holds on paper.
+	int MoveRecruitsToGroup(string ownerPersistentId, notnull SCR_AIGroup targetGroup, bool ownerOnline)
+	{
+		if (!Replication.IsServer())
+			return 0;
+
+		if (ownerPersistentId.IsEmpty())
+			return 0;
+
+		// SelectTransferable returns a FRESH array of ids, which is also the snapshot the loop below
+		// needs: FindRecruitEntity() prunes stale entries from m_mEntityToRecruit as it walks, so
+		// iterating a live manager collection while calling it is a known hazard (task T6.7). Nothing
+		// here iterates a collection this manager owns.
+		int skippedOffline = 0;
+		array<string> recruitIds = OVT_GroupRecruitTransfer.SelectTransferable(GetPlayerRecruits(ownerPersistentId), ownerOnline, skippedOffline);
+
+		if (recruitIds.IsEmpty())
+		{
+			if (skippedOffline > 0)
+				Print("[Overthrow] MoveRecruitsToGroup: none of " + ownerPersistentId + "'s recruits followed them into group " + targetGroup.GetGroupID() + " (" + skippedOffline + " have no body in the world)", LogLevel.NORMAL);
+
+			return 0;
+		}
+
+		if (!targetGroup.GetSlave())
+		{
+			Print("[Overthrow] MoveRecruitsToGroup: group " + targetGroup.GetGroupID() + " has no slave group - " + recruitIds.Count() + " recruits of " + ownerPersistentId + " cannot follow (commanding manager missing at group creation?)", LogLevel.WARNING);
+			return 0;
+		}
+
+		SCR_PlayerControllerGroupComponent groupController = FindOwnerGroupController(ownerPersistentId);
+		if (!groupController)
+		{
+			Print("[Overthrow] MoveRecruitsToGroup: no group controller for owner " + ownerPersistentId + " - " + recruitIds.Count() + " recruits cannot follow them into group " + targetGroup.GetGroupID(), LogLevel.WARNING);
+			return 0;
+		}
+
+		int moved = 0;
+		foreach (string recruitId : recruitIds)
+		{
+			IEntity recruitEntity = FindRecruitEntity(recruitId);
+			if (!recruitEntity)
+			{
+				// The record says this recruit has a body and the world disagrees. Say so instead of
+				// dereferencing: a recruit mid-despawn or mid-respawn is the one shape this can take.
+				Print("[Overthrow] MoveRecruitsToGroup: recruit " + recruitId + " is marked as having a body but no entity was found - skipped", LogLevel.WARNING);
+				continue;
+			}
+
+			// The AI has to be running before it can take orders. ActivateAI() on an already active
+			// agent is a no-op, so this is safe for a recruit that was already following its owner.
+			AIControlComponent aiControl = AIControlComponent.Cast(recruitEntity.FindComponent(AIControlComponent));
+			if (aiControl)
+				aiControl.ActivateAI();
+
+			// Same call the recruit path already uses (AddRecruitToPlayerGroup above): it does
+			// slaveGroup.AddAgentFromControlledEntity() plus AskAddAiMemberToGroup(), and the latter
+			// broadcasts membership to every machine itself
+			// (Groups/SCR_PlayerControllerGroupComponent.c:1470-1495).
+			groupController.AddAIToSlaveGroup(recruitEntity, targetGroup);
+			moved++;
+		}
+
+		Print("[Overthrow] Moved " + moved + " of " + ownerPersistentId + "'s recruits into group " + targetGroup.GetGroupID() + " (" + skippedOffline + " skipped, no body in the world)", LogLevel.NORMAL);
+
+		return moved;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Pulls every one of an owner's recruits back out of a group's slave group. SERVER ONLY.
+	//!
+	//! This is the "recruits follow their owner OUT" half of the reactor
+	//! (OVT_PlayerGroupManagerComponent.OnGroupPlayerRemoved) and it must run SYNCHRONOUSLY inside the
+	//! removal frame. Two independent reasons:
+	//!   1. the ex-leader must stop commanding somebody else's AI the moment that somebody leaves;
+	//!   2. an emptied group is queued for destruction by vanilla's own removal handler and destroyed
+	//!      NEXT FRAME (DeleteGroupDelayed -> DeleteGroups, Groups/SCR_GroupsManagerComponent.c:721-730,
+	//!      :1647-1654). UnregisterGroup only deletes the slave group when it has no agents left
+	//!      (:1035-1040, with vanilla's own "mourTodo: handle what the AIs should do in case their
+	//!      master group is deleted" beside it) - so recruits left behind here are AI stranded in a
+	//!      leaked slave group whose master no longer exists.
+	//!
+	//! Ownership is NOT touched. Nothing below writes m_sOwnerPersistentId or OVT_PlayerOwnerComponent.
+	//!
+	//! IT DELIBERATELY NEEDS NO PLAYER CONTROLLER. The move-IN half calls
+	//! SCR_PlayerControllerGroupComponent.AddAIToSlaveGroup on the owner's controller, but the move-OUT
+	//! half must keep working for an owner who no longer HAS one - a disconnect is a removal, and it is
+	//! the removal where leaving recruits behind is worst. Vanilla's mirror
+	//! (SCR_PlayerControllerGroupComponent.RemoveAiFromSlaveGroup,
+	//! Groups/SCR_PlayerControllerGroupComponent.c:1526-1552) reads nothing off the component it is
+	//! called on, so the four steps below are that method inlined, minus the dependency:
+	//! Deactivate-the-slave-when-the-last-AI-leaves, RemoveAgentFromControlledEntity, then
+	//! AskRemoveAiMemberFromGroup (:1557), which broadcasts RPC_DoRemoveAIMemberFromGroup to every
+	//! machine. Keep this in step with that method when Reforger updates (checklist R10).
+	//!
+	//! \param[in] ownerPersistentId The recruits' owner.
+	//! \param[in] exGroup The MASTER group being left - recruits are pulled out of its slave.
+	void RemoveRecruitsFromGroup(string ownerPersistentId, notnull SCR_AIGroup exGroup)
+	{
+		if (!Replication.IsServer())
+			return;
+
+		if (ownerPersistentId.IsEmpty())
+			return;
+
+		if (!m_mRecruitsByOwner.Contains(ownerPersistentId))
+			return;
+
+		SCR_AIGroup slaveGroup = exGroup.GetSlave();
+		if (!slaveGroup)
+			return;
+
+		SCR_GroupsManagerComponent groupsManager = SCR_GroupsManagerComponent.GetInstance();
+		if (!groupsManager)
+			return;
+
+		RplComponent slaveRplComponent = RplComponent.Cast(slaveGroup.FindComponent(RplComponent));
+		if (!slaveRplComponent)
+		{
+			Print("[Overthrow] RemoveRecruitsFromGroup: the slave group of group " + exGroup.GetGroupID() + " has no RplComponent - " + ownerPersistentId + "'s recruits cannot be removed from it", LogLevel.WARNING);
+			return;
+		}
+
+		RplId slaveRplId = slaveRplComponent.Id();
+
+		// SNAPSHOT before iterating: FindRecruitEntity() prunes stale entries from m_mEntityToRecruit as
+		// it walks, and the removal reaches back into vanilla group state. Neither may run while this
+		// loop is holding a live manager collection open (task T6.7).
+		array<string> recruitIds = new array<string>();
+		foreach (string ownedId : m_mRecruitsByOwner[ownerPersistentId])
+		{
+			recruitIds.Insert(ownedId);
+		}
+
+		int removed = 0;
+		foreach (string recruitId : recruitIds)
+		{
+			IEntity recruitEntity = FindRecruitEntity(recruitId);
+			if (!recruitEntity)
+				continue;
+
+			AIControlComponent aiControl = AIControlComponent.Cast(recruitEntity.FindComponent(AIControlComponent));
+			if (!aiControl)
+				continue;
+
+			AIAgent agent = aiControl.GetAIAgent();
+			if (!agent)
+				continue;
+
+			// Only pull the ones that are ACTUALLY in this group's slave. A recruit whose body exists
+			// but who was never placed (its owner was mid-respawn, say) has no business being handed to
+			// RemoveAgent, and the engine's agent hierarchy is the authority on that - not the
+			// replicated m_aAIMembers list, which is bookkeeping for the UI.
+			if (SCR_AIGroup.Cast(agent.GetParentGroup()) != slaveGroup)
+				continue;
+
+			RplComponent characterRplComponent = RplComponent.Cast(recruitEntity.FindComponent(RplComponent));
+			if (!characterRplComponent)
+			{
+				Print("[Overthrow] RemoveRecruitsFromGroup: recruit " + recruitId + " has no RplComponent - left in group " + exGroup.GetGroupID() + "'s slave group", LogLevel.WARNING);
+				continue;
+			}
+
+			// Vanilla deactivates the slave group as its LAST AI leaves (:1536-1537), which is what stops
+			// an empty slave group being ticked. AddAIToSlaveGroup re-activates it (:1480-1481), so this
+			// round-trips for a group that later gains recruits again.
+			if (slaveGroup.GetAgentsCount() == 1)
+				slaveGroup.Deactivate();
+
+			slaveGroup.RemoveAgentFromControlledEntity(recruitEntity);
+			groupsManager.AskRemoveAiMemberFromGroup(slaveRplId, characterRplComponent.Id());
+			removed++;
+		}
+
+		Print("[Overthrow] Pulled " + removed + " of " + ownerPersistentId + "'s recruits out of group " + exGroup.GetGroupID() + "'s slave group", LogLevel.NORMAL);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The group component on an owner's player controller, or null when they are not in the session.
+	//!
+	//! AddAIToSlaveGroup is effectively a static helper on that component - it reads the group and the
+	//! groups manager, never `this` - but it is called on the OWNER's controller deliberately, so that
+	//! the "whose AI is this" relationship stays readable in the code and keeps working if vanilla ever
+	//! starts consulting the component it is called on. The move-OUT path deliberately does NOT use
+	//! this: see RemoveRecruitsFromGroup.
+	//!
+	//! \param[in] ownerPersistentId Persistent id of the owning player.
+	//! \return The owner's group component, or null.
+	protected SCR_PlayerControllerGroupComponent FindOwnerGroupController(string ownerPersistentId)
+	{
+		OVT_PlayerManagerComponent playerManager = OVT_Global.GetPlayers();
+		if (!playerManager)
+			return null;
+
+		int playerId = playerManager.GetPlayerIDFromPersistentID(ownerPersistentId);
+		if (playerId < 1)
+			return null;
+
+		PlayerController playerController = GetGame().GetPlayerManager().GetPlayerController(playerId);
+		if (!playerController)
+			return null;
+
+		return SCR_PlayerControllerGroupComponent.Cast(playerController.FindComponent(SCR_PlayerControllerGroupComponent));
+	}
+
 	//------------------------------------------------------------------------------------------------
 	//! Saves recruit data for network replication (Join-In-Progress)
+	//!
+	//! m_sBodyPersistenceId is DELIBERATELY NOT SENT. It is a server-side handle into the persistence
+	//! system, which only exists on the authority (SystemLocation Server); a client can neither resolve
+	//! it nor spawn anything with it, and adding it would change the JIP wire format for nothing.
+	//! Clients learn about a recruit's body the way they always have - through the RplId below.
 	//! \param[in] writer The ScriptBitWriter to write data to
 	//! \return true if serialization is successful
 	override bool RplSave(ScriptBitWriter writer)
@@ -1427,58 +2192,88 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//! Called when a player group is created - triggers recruit respawning
 	protected void OnPlayerGroupCreated(int playerId, int groupId, string playerName)
 	{
-		// Wait 2000ms to ensure player is in a group and the leader
-		GetGame().GetCallqueue().CallLater(RespawnRecruitsDelayed, 3000, false, playerId);
+		// Wait 3000ms to ensure the player is in a group before their recruits are asked back
+		GetGame().GetCallqueue().CallLater(RespawnRecruitsDelayed, 3000, false, playerId, 0);
 	}
-	
+
+	//! How many times RespawnRecruitsDelayed may re-arm itself before giving up, matching the cap on
+	//! its sibling ladder OVT_SpawnLogic.CreateAndJoinGroupDelayed. At 500 ms a retry that is 5 s of
+	//! grace after the initial 3 s wait.
+	static const int RESPAWN_RECRUITS_MAX_RETRIES = 10;
+
 	//------------------------------------------------------------------------------------------------
-	//! Delayed recruit respawning to ensure player is group leader
-	protected void RespawnRecruitsDelayed(int playerId)
+	//! Delayed recruit respawning, once the returning player actually has a group.
+	//!
+	//! THE RETRY LADDER IS CAPPED (task T4.5). Both re-arm branches below used to schedule another
+	//! CallLater with no counter at all, so a player who never satisfied the condition produced a
+	//! 500 ms timer that ran for the rest of the session. The cap is the same 10 its sibling
+	//! CreateAndJoinGroupDelayed has used all along, and exhaustion is a WARNING naming the
+	//! consequence rather than a silent stop.
+	//!
+	//! THE LEADER TEST BECAME A MEMBERSHIP TEST (decision D8) - see the guard below.
+	//!
+	//! \param[in] playerId The returning player.
+	//! \param[in] retryCount How many times this ladder has already re-armed. Callers start at 0.
+	protected void RespawnRecruitsDelayed(int playerId, int retryCount)
 	{
+		if (retryCount > RESPAWN_RECRUITS_MAX_RETRIES)
+		{
+			Print("[Overthrow] Gave up respawning recruits for player " + playerId + " after " + RESPAWN_RECRUITS_MAX_RETRIES + " retries - they never ended up in a group, so their recruits stay stored until they are given one again", LogLevel.WARNING);
+			return;
+		}
+
 		// Get player's persistent ID
 		string playerPersistentId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		if (playerPersistentId.IsEmpty())
 			return;
-			
-		// Verify player is actually a group leader before respawning recruits
+
+		// Verify the player is actually in a group before respawning recruits
 		SCR_PlayerController playerController = SCR_PlayerController.Cast(
 			GetGame().GetPlayerManager().GetPlayerController(playerId)
 		);
-		
+
 		if (!playerController)
 			return;
-		
+
 		SCR_PlayerControllerGroupComponent groupController = SCR_PlayerControllerGroupComponent.Cast(
 			playerController.FindComponent(SCR_PlayerControllerGroupComponent)
 		);
-		
+
 		if (!groupController)
 			return;
-		
+
 		int groupId = groupController.GetGroupID();
 		if (groupId == -1)
 		{
-			// Retry after another delay
-			GetGame().GetCallqueue().CallLater(RespawnRecruitsDelayed, 500, false, playerId);
+			// Retry after another delay. Counted against the SAME cap as the membership branch below:
+			// the point of the cap is that no branch of this ladder may re-arm forever, and a player
+			// who is still groupless 5 s after their group was created is a case for the own-group
+			// reactor (OVT_PlayerGroupManagerComponent), not for an unbounded timer here.
+			GetGame().GetCallqueue().CallLater(RespawnRecruitsDelayed, 500, false, playerId, retryCount + 1);
 			return;
 		}
-		
-		// Check if player is group leader
+
+		// Check the player is in the group their controller points at
 		SCR_GroupsManagerComponent groupsManager = SCR_GroupsManagerComponent.GetInstance();
 		if (!groupsManager)
 			return;
-		
+
 		SCR_AIGroup group = groupsManager.FindGroup(groupId);
 		if (!group)
 			return;
-		
-		if (group.GetLeaderID() != playerId)
+
+		// MEMBERSHIP, NOT LEADERSHIP (decision D8). This used to demand group.GetLeaderID() == playerId,
+		// which under the shared-group model is false for every player who reconnects into - or spawns
+		// and then joins - somebody else's group: their whole recruit roster would then never be asked
+		// back from storage, and the ladder below would re-arm every 500 ms forever waiting for a
+		// leadership that is never coming.
+		if (!group.IsPlayerInGroup(playerId))
 		{
 			// Retry after another delay
-			GetGame().GetCallqueue().CallLater(RespawnRecruitsDelayed, 500, false, playerId);
+			GetGame().GetCallqueue().CallLater(RespawnRecruitsDelayed, 500, false, playerId, retryCount + 1);
 			return;
 		}
-		
+
 		// Now it's safe to respawn recruits
 		RespawnPlayerRecruits(playerPersistentId);
 	}
@@ -1669,89 +2464,6 @@ class OVT_RecruitManagerComponent : OVT_Component
 		
 		// Determine online status from replication ID
 		recruit.m_bIsOnline = (recruitRplId != RplId.Invalid());
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	//! Delayed RPC call to allow entity replication to clients
-	protected void DelayedRpcAddRecruitToGroup(RplId recruitRplId, int playerId)
-	{
-		Rpc(RpcDo_AddRecruitToGroup, recruitRplId, playerId);
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	//! RPC method to request client add AI to group
-	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_AddRecruitToGroup(RplId recruitRplId, int targetPlayerId)
-	{			
-		// Only process if this is the target player
-		int localPlayerId = SCR_PlayerController.GetLocalPlayerId();
-		if (localPlayerId != targetPlayerId)
-			return;
-		
-		RpcDo_AddRecruitToGroupWithRetry(recruitRplId, targetPlayerId, 0);
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	//! Retry logic for adding recruit to group on client
-	protected void RpcDo_AddRecruitToGroupWithRetry(RplId recruitRplId, int targetPlayerId, int attemptCount)
-	{
-		// Find the recruit entity on client
-		RplComponent rplComponent = RplComponent.Cast(Replication.FindItem(recruitRplId));
-		if (!rplComponent)
-		{
-			// Retry up to 10 times (20 seconds total)
-			if (attemptCount < 10)
-			{
-				GetGame().GetCallqueue().CallLater(RpcDo_AddRecruitToGroupWithRetry, 2000, false, recruitRplId, targetPlayerId, attemptCount + 1);
-				return;
-			}
-			else
-			{
-				Print("[Overthrow] Failed to find recruit entity after 10 retry attempts");
-				return;
-			}
-		}
-			
-		IEntity recruitEntity = rplComponent.GetEntity();
-		if (!recruitEntity)
-		{
-			// Retry if entity not available yet
-			if (attemptCount < 10)
-			{
-				GetGame().GetCallqueue().CallLater(RpcDo_AddRecruitToGroupWithRetry, 2000, false, recruitRplId, targetPlayerId, attemptCount + 1);
-				return;
-			}
-			else
-			{
-				Print("[Overthrow] Failed to get recruit entity after 10 retry attempts");
-				return;
-			}
-		}
-		
-		//Make sure AI is activated
-		AIControlComponent aiControl = AIControlComponent.Cast(recruitEntity.FindComponent(AIControlComponent));
-		if (aiControl)
-		{
-			aiControl.ActivateAI();
-		}
-		
-		// Get local player controller and add AI to group
-		int localPlayerId = SCR_PlayerController.GetLocalPlayerId();
-		SCR_PlayerController playerController = SCR_PlayerController.Cast(
-			GetGame().GetPlayerManager().GetPlayerController(localPlayerId)
-		);
-		
-		if (!playerController)
-			return;
-			
-		SCR_PlayerControllerGroupComponent groupController = SCR_PlayerControllerGroupComponent.Cast(
-			playerController.FindComponent(SCR_PlayerControllerGroupComponent)
-		);
-		
-		if (groupController)
-		{
-			groupController.RequestAddAIAgent(SCR_ChimeraCharacter.Cast(recruitEntity), localPlayerId);
-		}
 	}
 	
 }

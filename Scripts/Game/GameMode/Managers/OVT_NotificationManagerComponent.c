@@ -72,6 +72,13 @@ class OVT_NotificationManagerComponent: OVT_Component
 	
 	//! Singleton instance of the notification manager component.
 	private static OVT_NotificationManagerComponent s_Instance = null;
+
+	//! Fired locally whenever a notification meant for this client arrives: (tag, param1, param2, param3).
+	//!
+	//! The HUD notification strip is hidden while an OVT_UIContext menu is open (m_bHideHUDOnShow), so a
+	//! menu that wants to show a server result - the shop's inventory-full purchase failure, for one -
+	//! has to hear about it itself. Display only: nothing here mutates state.
+	ref ScriptInvoker m_OnNotification = new ScriptInvoker();
 	
 	//------------------------------------------------------------------------------------------------
 	//! Gets the singleton instance of the OVT_NotificationManagerComponent.
@@ -102,7 +109,7 @@ class OVT_NotificationManagerComponent: OVT_Component
 		if(playerId > -1)
 		{
 			IEntity playerEntity = SCR_PlayerController.GetLocalControlledEntity();
-			int localPlayerId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(playerEntity);
+			int localPlayerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(playerEntity);
 			
 			if(playerId == localPlayerId)
 			{
@@ -151,12 +158,10 @@ class OVT_NotificationManagerComponent: OVT_Component
 	//! \return A JSON string representation of the data.
 	static string Serialize(Managed data)
 	{
-		ContainerSerializationSaveContext writer();
-		JsonSaveContainer jsonContainer = new JsonSaveContainer();
-		jsonContainer.SetMaxDecimalPlaces(5);
-		writer.SetContainer(jsonContainer);
+		JsonSaveContext writer();
+		writer.SetMaxDecimalPlaces(5);
 		writer.WriteValue("", data);
-		return jsonContainer.ExportToString();
+		return writer.SaveToString();
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -172,7 +177,7 @@ class OVT_NotificationManagerComponent: OVT_Component
 	{
 		if(playerId > -1)
 		{
-			int localId = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
+			int localId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
 			if(playerId != localId) return;
 		}
 		
@@ -188,11 +193,13 @@ class OVT_NotificationManagerComponent: OVT_Component
 		
 		if(!m_Time) 
 		{
-			ChimeraWorld world = GetOwner().GetWorld();
+			ChimeraWorld world = GetGame().GetWorld();
+			if(!world) return;
 			m_Time = world.GetTimeAndWeatherManager();
 		}
 		
-		data.time = m_Time.GetTime();
+		if(m_Time)
+			data.time = m_Time.GetTime();
 		
 		m_aNotifications.InsertAt(data, 0);
 		
@@ -200,5 +207,19 @@ class OVT_NotificationManagerComponent: OVT_Component
 		{
 			m_aNotifications.Remove(m_aNotifications.Count() - 1);
 		}
+
+		if(m_OnNotification) m_OnNotification.Invoke(tag, param1, param2, param3);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Looks up the message preset behind a notification tag, so a listener of m_OnNotification can
+	//! render the same localized text the HUD strip would have shown.
+	//! \param[in] tag The identifier tag for the message preset.
+	//! \return The preset, or null when the tag is not configured.
+	SCR_SimpleMessagePreset GetMessagePreset(string tag)
+	{
+		if(!m_Messages) return null;
+
+		return m_Messages.GetPreset(tag);
 	}
 }

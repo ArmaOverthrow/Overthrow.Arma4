@@ -19,30 +19,6 @@ PerceptionManager PerceptionManager1 : "{028DAEAD63E056BE}Prefabs/World/Game/Per
 }
 OVT_OverthrowGameMode OVT_OverthrowGameMode1 : "{4DC10DCB8BE06D32}Prefabs/GameMode/OVT_OverthrowGameMode.et" {
  components {
-  EPF_PersistenceComponent "{5D7009A1AB220903}" {
-   m_bSelfSpawn 0
-   m_bSelfDelete 0
-   m_pSaveData OVT_OverthrowSaveDataClass "{5D7009A22C40BEE5}" {
-    m_eTranformSaveFlags 0
-    m_bSaveRemainingLifetime 0
-    m_aComponents {
-     OVT_EconomySaveDataClass "{5D7009A2B14C4055}" {
-     }
-     OVT_PlayerSaveDataClass "{5D7009AA91A43E6F}" {
-     }
-     OVT_OccupyingFactionSaveDataClass "{5D70099DAD21A0F3}" {
-     }
-     OVT_RealEstateSaveDataClass "{5D707B33903B8735}" {
-     }
-     OVT_TownSaveDataClass "{5D70912C42B66D9E}" {
-     }
-     OVT_ResistanceSaveDataClass "{5D70912B726E1A32}" {
-     }
-     OVT_ConfigSaveDataClass "{5D9E53AFE550A24E}" {
-     }
-    }
-   }
-  }
   OVT_EconomyManagerComponent "{5988DB0008700592}" {
    m_ShopConfig OVT_ShopConfig "{647B79B127362664}" : "{CA8AAD31D0E7E0B5}Configs/System/ShopConfig.conf" {
    }
@@ -100,6 +76,8 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode1 : "{4DC10DCB8BE06D32}Prefabs/GameMo
     OVT_DifficultySettings "{6466E3EA33D240F9}" : "{0FA2C3AE29A3A93B}Configs/Difficulty/Difficulty_Hard.conf" {
     }
     OVT_DifficultySettings "{6466E3EA33A737F7}" : "{70CC1650D9BE0DDC}Configs/Difficulty/Difficulty_Extreme.conf" {
+    }
+    OVT_DifficultySettings "{6B0F11B0AA02D002}" : "{6B0F11B0AA02D001}Configs/Difficulty/Difficulty_Insane.conf" {
     }
    }
    m_pGunDealerPrefab "{59929550D81A3045}Prefabs/Characters/Factions/INDFOR/FIA/Character_FIA_GunDealer.et"
@@ -177,9 +155,6 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode1 : "{4DC10DCB8BE06D32}Prefabs/GameMo
    m_bDebugMode 0
   }
   OVT_PersistenceManagerComponent "{5D7009B844876186}" {
-   m_pConnectionInfo EDF_JsonFileDbConnectionInfo "{5D7009B8408E1A9D}" {
-    m_sDatabaseName "Overthrow"
-   }
   }
   OVT_ResistanceFactionManager "{59A49A9CD87CBC92}" {
    m_rPlaceablesConfigFile "{A4E760D069AE00F8}Configs/Resistance/placeables.conf"
@@ -208,6 +183,7 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode1 : "{4DC10DCB8BE06D32}Prefabs/GameMo
    m_fDayTimeAcceleration 6
    m_fNightTimeAcceleration 12
    m_bRandomStartingWeather 1
+   m_bRandomWeatherChanges 1
   }
   OVT_TownManagerComponent "{59724C983BF56C3B}" {
    m_iVillageRange 100

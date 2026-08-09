@@ -17,7 +17,7 @@ class OVT_PortItemComponent : SCR_ScriptedWidgetComponent
 		
 		TextWidget qtyWidget = TextWidget.Cast(m_wRoot.FindAnyWidget("Cost"));
 		
-		qtyWidget.SetText("$" + cost.ToString());
+		qtyWidget.SetText(OVT_MoneyFormat.FormatMoney(cost));
 		
 		ItemPreviewWidget img = ItemPreviewWidget.Cast(m_wRoot.FindAnyWidget("Image"));
 						

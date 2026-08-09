@@ -26,7 +26,9 @@ class OVT_Job
 	//! \return OVT_TownData object for the town, or null if townId is invalid.
 	OVT_TownData GetTown()
 	{
-		return OVT_Global.GetTowns().m_Towns[townId];
+		array<ref OVT_TownData> towns = OVT_Global.GetTowns().m_Towns;
+		if(townId < 0 || townId >= towns.Count()) return null;
+		return towns[townId];
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -139,16 +141,22 @@ class OVT_JobManagerComponent: OVT_Component
 		{
 			// Non-public jobs are removed immediately when declined by the assigned player
 			m_aJobs.Remove(m_aJobs.Find(job));
+			if(Replication.IsServer())
+			{
+				Rpc(RpcDo_RemoveJob, job.jobIndex, job.townId, job.baseId, playerId);
+			}
 		}else{
 			// Public jobs track who declined them
 			job.declined.Insert(persId);
+			if(Replication.IsServer())
+			{
+				Rpc(RpcDo_DeclineJob, job.jobIndex, job.townId, job.baseId, playerId);
+			}
 		}
 		if(!Replication.IsServer())
 		{
 			OVT_Global.GetServer().DeclineJob(job, playerId);
 		}
-		// Note: No server-side stream update needed here as decline either removes the job (handled later)
-		// or just adds to declined list (implicitly handled by clients not seeing it offered again).
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -165,6 +173,211 @@ class OVT_JobManagerComponent: OVT_Component
 			stage.m_Handler.OnTick(job);
 			stage.m_Handler.OnEnd(job);
 		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Restores the job board from a save WITHOUT re-executing any stage logic.
+	//!
+	//! Called from OVT_JobManagerSerializer.Deserialize(). Read that file's header for why this
+	//! exists instead of the RunJobToCurrentStage() loop EPF's OVT_ResistanceSaveData ran, and why
+	//! running nothing is correct rather than merely safe: every stage a job can be PARKED at
+	//! overrides OnTick only, and every stage that has side effects in OnStart returns false from it
+	//! and so is never the resting stage.
+	//!
+	//! IDEMPOTENT. A clear and a rebuild of four collections from the payload, so re-applying the
+	//! same save to a live session (OVT_PersistenceManagerComponent.ReapplyLatestSaveData) produces
+	//! the same board rather than a doubled one.
+	//!
+	//! JOBS THAT CANNOT COME BACK ARE DROPPED, NOT HALF-RESTORED. A record is skipped when its
+	//! jobIndex no longer names a configured job (the config list changed since the save), when its
+	//! stage is out of range, or when the stage it is parked at is an OVT_WaitTillDeadJobStage - that
+	//! stage watches OVT_Job.entity, an RplId that does not survive a session, and a restored job
+	//! with no handle would see "target already gone" on its very next tick and pay out its reward
+	//! for nothing. A dropped job also leaves its occupancy slot free, so the job manager simply
+	//! offers that job again on a later CheckUpdate.
+	//!
+	//! NO RPC. Clients get the board through RplSave / RplLoad and the manager's normal update
+	//! traffic; this runs while the world is still loading.
+	//! \param[in] jobRecords Persisted job board entries. Null is treated as an empty board.
+	//! \param[in] countIndices Job indices, index-aligned with countValues.
+	//! \param[in] countValues Lifetime start count per job index.
+	//! \param[in] playerCounts Per-player lifetime start counts.
+	void ApplyPersistedJobs(array<ref OVT_PersistedJob> jobRecords, array<int> countIndices, array<int> countValues, array<ref OVT_PersistedPlayerJobCounts> playerCounts)
+	{
+		if (!m_aJobs || !m_aJobCounts || !m_mPlayerJobCounts || !m_aGlobalJobs || !m_aTownJobs || !m_aBaseJobs)
+			return;
+
+		// Lifetime counters. These outlive the jobs they counted, so nothing on the board implies
+		// them and they have to be restored verbatim.
+		m_aJobCounts.Clear();
+		if (countIndices && countValues)
+		{
+			int pairs = countIndices.Count();
+			if (countValues.Count() < pairs)
+				pairs = countValues.Count();
+
+			for (int i = 0; i < pairs; i++)
+			{
+				m_aJobCounts[countIndices[i]] = countValues[i];
+			}
+		}
+
+		m_mPlayerJobCounts.Clear();
+		if (playerCounts)
+		{
+			foreach (OVT_PersistedPlayerJobCounts playerRecord : playerCounts)
+			{
+				if (!playerRecord || playerRecord.playerId == "")
+					continue;
+
+				map<int, int> counts = new map<int, int>;
+
+				int playerPairs = 0;
+				if (playerRecord.jobIndices && playerRecord.counts)
+				{
+					playerPairs = playerRecord.jobIndices.Count();
+					if (playerRecord.counts.Count() < playerPairs)
+						playerPairs = playerRecord.counts.Count();
+				}
+
+				for (int i = 0; i < playerPairs; i++)
+				{
+					counts[playerRecord.jobIndices[i]] = playerRecord.counts[i];
+				}
+
+				m_mPlayerJobCounts[playerRecord.playerId] = counts;
+			}
+		}
+
+		// The board itself, plus the occupancy sets which are derived from it rather than stored -
+		// that is what keeps them consistent when a record is dropped.
+		m_aJobs.Clear();
+		m_aGlobalJobs.Clear();
+		m_aTownJobs.Clear();
+		m_aBaseJobs.Clear();
+
+		if (!jobRecords)
+			return;
+
+		foreach (OVT_PersistedJob record : jobRecords)
+		{
+			if (!record)
+				continue;
+
+			OVT_JobConfig config = FindRestorableJobConfig(record);
+			if (!config)
+				continue;
+
+			OVT_Job job = new OVT_Job();
+			job.jobIndex = record.jobIndex;
+			job.location = record.location;
+			job.townId = record.townId;
+			job.baseId = record.baseId;
+			job.stage = record.stage;
+			job.owner = record.owner;
+			job.accepted = record.accepted;
+
+			job.declined.Clear();
+			if (record.declined)
+			{
+				foreach (string persistentId : record.declined)
+				{
+					if (persistentId == "")
+						continue;
+
+					job.declined.Insert(persistentId);
+				}
+			}
+
+			m_aJobs.Insert(job);
+			RegisterRestoredJobOccupancy(config, job);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Decides whether a persisted job can be put back on the board, and returns its config if so.
+	//!
+	//! Deliberately strict: a job the manager cannot tick correctly is worse than a job that is
+	//! simply offered again, because CheckUpdate() pays rewards on stage completion.
+	//! \param[in] record The persisted job. Callers null-check before calling.
+	//! \return The job's configuration, or null when the job must be dropped.
+	protected OVT_JobConfig FindRestorableJobConfig(OVT_PersistedJob record)
+	{
+		if (!m_aJobConfigs)
+			return null;
+
+		// The job index is a POSITION in the configured job list. A list that has shrunk or been
+		// reordered since the save cannot be reconciled, so out-of-range records are dropped.
+		if (record.jobIndex < 0 || record.jobIndex >= m_aJobConfigs.Count())
+		{
+			Print(string.Format("[Overthrow] Dropping a saved job with index %1 - the job configuration list has only %2 entries", record.jobIndex, m_aJobConfigs.Count()), LogLevel.WARNING);
+			return null;
+		}
+
+		OVT_JobConfig config = m_aJobConfigs[record.jobIndex];
+		if (!config || !config.m_aStages)
+			return null;
+
+		if (record.stage < 0 || record.stage >= config.m_aStages.Count())
+		{
+			Print(string.Format("[Overthrow] Dropping saved job '%1' - stage %2 is outside its %3 configured stages", config.m_sTitle, record.stage, config.m_aStages.Count()), LogLevel.WARNING);
+			return null;
+		}
+
+		OVT_JobStageConfig stage = config.m_aStages[record.stage];
+		if (!stage || !stage.m_Handler)
+			return null;
+
+		// The one stage whose state is a live entity handle. See ApplyPersistedJobs()'s header.
+		if (OVT_WaitTillDeadJobStage.Cast(stage.m_Handler))
+		{
+			Print(string.Format("[Overthrow] Dropping saved job '%1' - it was waiting for a target entity, which cannot be identified across a session. It will be offered again", config.m_sTitle), LogLevel.NORMAL);
+			return null;
+		}
+
+		return config;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Re-marks the "this job type is already running here" slots for a restored job.
+	//!
+	//! Mirrors exactly where CheckUpdate() inserts when it starts a job: base-only jobs occupy their
+	//! base, PUBLIC town jobs occupy their town, and player-allocated town jobs occupy neither (they
+	//! are limited by m_mPlayerJobCounts instead). Globally unique jobs additionally occupy the
+	//! global slot, but only on the two paths that claim it.
+	//! \param[in] config The job's configuration. Callers null-check before calling.
+	//! \param[in] job The restored job. Callers null-check before calling.
+	protected void RegisterRestoredJobOccupancy(OVT_JobConfig config, OVT_Job job)
+	{
+		bool claimsGlobalSlot = false;
+
+		if (config.m_bBaseOnly)
+		{
+			if (job.baseId > -1)
+			{
+				if (!m_aBaseJobs.Contains(job.baseId))
+					m_aBaseJobs[job.baseId] = new set<int>;
+
+				m_aBaseJobs[job.baseId].Insert(job.jobIndex);
+			}
+
+			claimsGlobalSlot = true;
+		}
+		else if (config.m_bPublic)
+		{
+			if (job.townId > -1)
+			{
+				if (!m_aTownJobs.Contains(job.townId))
+					m_aTownJobs[job.townId] = new set<int>;
+
+				m_aTownJobs[job.townId].Insert(job.jobIndex);
+			}
+
+			claimsGlobalSlot = true;
+		}
+
+		if (claimsGlobalSlot && (config.flags & OVT_JobFlags.GLOBAL_UNIQUE))
+			m_aGlobalJobs.Insert(job.jobIndex);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -228,7 +441,6 @@ class OVT_JobManagerComponent: OVT_Component
 						{
 							OVT_Global.GetSkills().GiveXP(playerId, config.m_iRewardXP);
 						}
-						SCR_HintManagerComponent.GetInstance().ShowCustom(config.m_sTitle, "#OVT-Jobs_Completed"); // Show hint to player
 
 						// Grant reward items
 						if(config.m_aRewardItems.Count() > 0)
@@ -252,8 +464,14 @@ class OVT_JobManagerComponent: OVT_Component
 						}
 					}
 
-					// Notify clients of completion (mainly for hint)
-					Rpc(RpcDo_NotifyJobCompleted, job.jobIndex);
+					// Notify clients of completion (mainly for hint); the receiver filters by owner.
+					// Broadcast RPCs do not run on the authority, so a listen host calls the
+					// receiver directly (same pattern as OVT_NotificationManagerComponent)
+					Rpc(RpcDo_NotifyJobCompleted, job.jobIndex, ownerId);
+					if(RplSession.Mode() != RplMode.Dedicated)
+					{
+						RpcDo_NotifyJobCompleted(job.jobIndex, ownerId);
+					}
 
 					// Mark for removal and clean up tracking sets
 					remove.Insert(job);
@@ -319,8 +537,11 @@ class OVT_JobManagerComponent: OVT_Component
 			{
 				m_aJobCounts[index] = 0;
 			}
-			// Check max global start limit
-			if(config.m_iMaxTimes != 0 && m_aJobCounts[index] >= config.m_iMaxTimes) continue;
+			// Check max global start limit. Player-allocated jobs are capped per-player by
+			// m_iMaxTimesPlayer instead - the global counter would let the first player on a
+			// server consume everyone else's job (e.g. the five onboarding jobs)
+			bool playerAllocated = !config.m_bBaseOnly && !config.m_bPublic;
+			if(!playerAllocated && config.m_iMaxTimes != 0 && m_aJobCounts[index] >= config.m_iMaxTimes) continue;
 
 			// Check global uniqueness flag
 			if((config.flags & OVT_JobFlags.GLOBAL_UNIQUE) && m_aGlobalJobs.Contains(index)) continue;
@@ -643,6 +864,8 @@ class OVT_JobManagerComponent: OVT_Component
 		if(ownerId > -1)
 			persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(ownerId);
 
+		OVT_JobConfig config = GetConfig(index);
+
 		bool updated = false;
 		// Try to find and update an existing job matching index and location context
 		foreach(OVT_Job job : m_aJobs)
@@ -650,6 +873,11 @@ class OVT_JobManagerComponent: OVT_Component
 			// Match based on job index AND either townId or baseId matching the context it was started in
 			if(job.jobIndex == index && ((job.townId != -1 && job.townId == townId) || (job.baseId != -1 && job.baseId == baseId) || (townId == -1 && baseId == -1))) // Handle jobs not tied to town/base
 			{
+				// Player-allocated jobs can exist once PER PLAYER in the same town, so owner is part
+				// of their identity (public jobs keep matching without it - their owner legitimately
+				// changes from "" to the accepter)
+				if(config && !config.m_bPublic && job.owner != persId) continue;
+
 				job.stage = stage;
 				job.location = location;
 				job.owner = persId;
@@ -717,21 +945,55 @@ class OVT_JobManagerComponent: OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! RPC called on the owning client when their job is successfully completed, primarily for showing hints.
-	//! \param index The index of the completed job config (used to get title).
-	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)] // Broadcast, but likely only relevant to owner? Could be RplRcver.Owner if tied to player controller
-	protected void RpcDo_NotifyJobCompleted(int index)
+	//! RPC called on clients when a player declines a public job, so every board tracks the declined list.
+	//! \param index Job configuration index.
+	//! \param townId Associated town ID (-1 if none). Used for matching context.
+	//! \param baseId Associated base ID (-1 if none). Used for matching context.
+	//! \param playerId PlayerID of the declining player.
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_DeclineJob(int index, int townId, int baseId, int playerId)
 	{
-		// Check if this client is the owner? Might not be necessary if hint manager handles it.
-		// int localPlayerId = GetGame().GetPlayerController().GetPlayerId();
-		// string localPersId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(localPlayerId);
-		// Find the job to see if localPersId matches job.owner? Job might already be removed by RpcDo_RemoveJob.
-		// Safest to just show the hint regardless, assuming the server only sends this when appropriate.
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		if(persId == "") return;
 
-		OVT_JobConfig config = GetConfig(index);
-		if(config)
+		foreach(OVT_Job job : m_aJobs)
 		{
-			SCR_HintManagerComponent.GetInstance().ShowCustom(config.m_sTitle, "#OVT-Jobs_Completed");
+			if(job.jobIndex == index && ((job.townId != -1 && job.townId == townId) || (job.baseId != -1 && job.baseId == baseId) || (townId == -1 && baseId == -1)))
+			{
+				// The declining player's own client already inserted this locally
+				if(job.declined.Find(persId) == -1)
+				{
+					job.declined.Insert(persId);
+				}
+				break;
+			}
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! RPC called on clients when a job is successfully completed, primarily for showing hints.
+	//! Player-allocated jobs only show the hint to their owner; public jobs notify everyone.
+	//! \param index The index of the completed job config (used to get title).
+	//! \param ownerId PlayerID of the job's owner (-1 if none/offline).
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_NotifyJobCompleted(int index, int ownerId)
+	{
+		OVT_JobConfig config = GetConfig(index);
+		if(!config) return;
+
+		if(!config.m_bPublic)
+		{
+			if(ownerId == -1) return;
+			// GetLocalPlayerId works even while dead/respawning, unlike resolving via the
+			// controlled entity (which is null then and would drop the hint)
+			int localId = SCR_PlayerController.GetLocalPlayerId();
+			if(ownerId != localId) return;
+		}
+
+		SCR_HintManagerComponent hintManager = SCR_HintManagerComponent.GetInstance();
+		if(hintManager)
+		{
+			hintManager.ShowCustom(config.m_sTitle, "#OVT-Jobs_Completed");
 		}
 	}
 
