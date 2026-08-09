@@ -1105,17 +1105,33 @@ class OVT_ResistanceFactionManager: OVT_Component
 	
 	void RegisterFOB(IEntity ent, int playerId)
 	{
-		vector pos = ent.GetOrigin();	
-		
-		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);	
+		vector pos = ent.GetOrigin();
+
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(persId);
+
+		// Re-deploying where a record already lies (e.g. one orphaned by a lost FOB entity) must
+		// reuse that record. Two records inside the 10 m wire-matching tolerance are
+		// indistinguishable to every position-keyed RPC, draw two overlapping map icons, and the
+		// loser of an undeploy's nearest-match removal becomes a permanent orphan marker (BUG-129).
+		// Clients already hold the surviving record, so nothing is broadcast.
+		foreach (OVT_FOBData existing : m_FOBs)
+		{
+			if (vector.Distance(existing.location, pos) < 10)
+			{
+				existing.owner = persId;
+				OVT_Global.GetNotify().SendTextNotification("DeployedFOB",-1,OVT_Global.GetPlayers().GetPlayerName(playerId),OVT_Global.GetTowns().GetTownName(pos));
+				return;
+			}
+		}
+
 		OVT_FOBData fob = new OVT_FOBData;
 		fob.persistentId = GenerateUniquePersistentId("FOB");
-		fob.owner = persId;		
-		
+		fob.owner = persId;
+
 		fob.location = pos;
 		m_FOBs.Insert(fob);
-				
+
 		Rpc(RpcDo_RegisterFOB, pos, fob.name, playerId, fob.persistentId);
 		OVT_Global.GetNotify().SendTextNotification("DeployedFOB",-1,OVT_Global.GetPlayers().GetPlayerName(playerId),OVT_Global.GetTowns().GetTownName(pos));
 	}
@@ -1720,8 +1736,10 @@ class OVT_ResistanceFactionManager: OVT_Component
 		// Clean up all placed/built items in FOB area
 		vector fobPosition = m_pCurrentUndeployedFOB.GetOrigin();
 		CleanupFOBArea(fobPosition, 75.0);
-		
-		// Delete the deployed FOB entity
+
+		// The deployed FOB is consumed by the undeploy - retire its registration before deleting
+		// it, or its ghost gets rebuilt on the owner's next connect (BUG-129)
+		OVT_Global.GetVehicles().UnregisterVehicle(m_pCurrentUndeployedFOB);
 		SCR_EntityHelper.DeleteEntityAndChildren(m_pCurrentUndeployedFOB);
 		
 		// Reactivate physics on the mobile FOB
@@ -1770,9 +1788,10 @@ class OVT_ResistanceFactionManager: OVT_Component
 	void OnFOBCollectionError(string errorMessage)
 	{
 		
-		// Still delete deployed FOB to prevent it being stuck
+		// Still delete deployed FOB to prevent it being stuck - retiring its registration too (BUG-129)
 		if (m_pCurrentUndeployedFOB)
 		{
+			OVT_Global.GetVehicles().UnregisterVehicle(m_pCurrentUndeployedFOB);
 			SCR_EntityHelper.DeleteEntityAndChildren(m_pCurrentUndeployedFOB);
 		}
 		
@@ -1820,8 +1839,10 @@ class OVT_ResistanceFactionManager: OVT_Component
 			return;
 		}
 		
-		// Remove from vehicle manager and delete the mobile FOB entity after transfer
-		OVT_Global.GetVehicles().m_aVehicles.RemoveItem(m_pCurrentDeploymentSource.GetID());
+		// The truck is consumed by the deploy - retire its registration BEFORE deleting it, or the
+		// owner's next connect rebuilds it from the ghost registration at its last recorded
+		// position, typically the shop it was bought at (BUG-129)
+		OVT_Global.GetVehicles().UnregisterVehicle(m_pCurrentDeploymentSource);
 		SCR_EntityHelper.DeleteEntityAndChildren(m_pCurrentDeploymentSource);
 		
 		// Register the deployed FOB
@@ -1865,10 +1886,10 @@ class OVT_ResistanceFactionManager: OVT_Component
 			}
 		}
 		
-		// Still delete the mobile FOB
+		// Still delete the mobile FOB - and retire its registration with it (BUG-129)
 		if (m_pCurrentDeploymentSource)
 		{
-			OVT_Global.GetVehicles().m_aVehicles.RemoveItem(m_pCurrentDeploymentSource.GetID());
+			OVT_Global.GetVehicles().UnregisterVehicle(m_pCurrentDeploymentSource);
 			SCR_EntityHelper.DeleteEntityAndChildren(m_pCurrentDeploymentSource);
 		}
 		

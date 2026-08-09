@@ -50,6 +50,7 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 	
 	protected ref array<EntityID> m_aParkingSearch;
 	protected ref array<EntityID> m_aFoundPlayerVehicles;
+	protected bool m_bSpotBlockedByVehicle;
 	
 	// Vehicle upgrade tracking
 	protected IEntity m_pUpgradeOldVehicle;
@@ -407,26 +408,97 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 	//------------------------------------------------------------------------------------------------
 	//! Called when vehicle upgrade transfer completes successfully
 	void OnUpgradeTransferComplete(int itemsTransferred, int itemsSkipped)
-	{		
+	{
 		if (m_pUpgradeOldVehicle)
 		{
+			UnregisterVehicle(m_pUpgradeOldVehicle);
 			SCR_EntityHelper.DeleteEntityAndChildren(m_pUpgradeOldVehicle);
 			m_pUpgradeOldVehicle = null;
 		}
 	}
-	
+
 	//------------------------------------------------------------------------------------------------
 	//! Called when vehicle upgrade transfer fails
 	void OnUpgradeTransferError(string errorMessage)
 	{
 		Print(string.Format("Vehicle upgrade transfer failed: %1", errorMessage), LogLevel.ERROR);
-		
+
 		// Still delete old vehicle to prevent it being stuck
 		if (m_pUpgradeOldVehicle)
 		{
+			UnregisterVehicle(m_pUpgradeOldVehicle);
 			SCR_EntityHelper.DeleteEntityAndChildren(m_pUpgradeOldVehicle);
 			m_pUpgradeOldVehicle = null;
 		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Retires a vehicle that game logic is about to deliberately delete (FOB deploy/undeploy prefab
+	//! swaps, vehicle upgrades). Call BEFORE SCR_EntityHelper.DeleteEntityAndChildren.
+	//!
+	//! WHY THIS MUST HAPPEN (BUG-129). A registration that outlives its deliberately-deleted vehicle
+	//! is a ghost: the owner's next connect asks storage for the id, is answered NOT_FOUND (the
+	//! stored record died with the entity), and RebuildVehicleFromRecord builds the vehicle AGAIN at
+	//! the registration's last captured transform - which for a truck consumed by an FOB deploy is
+	//! the shop parking spot it was bought at. The rebuilt dynamic body can then stand
+	//! interpenetrating the static deployed FOB after a restart and wreck it.
+	//!
+	//! Removes the id from EVERY player's list, not just the record's owner: an ownership change
+	//! registers a vehicle under its new owner without removing the old entry, so one id can appear
+	//! in two lists.
+	//! \param[in] vehicle The registered vehicle about to be deleted.
+	void UnregisterVehicle(IEntity vehicle)
+	{
+		if (!vehicle)
+			return;
+
+		m_aVehicles.RemoveItem(vehicle.GetID());
+
+		string persistentId = OVT_PersistenceTracking.GetPersistentId(vehicle);
+		if (persistentId.IsEmpty())
+			return;
+
+		m_mSpawnedVehicles.Remove(persistentId);
+		m_mVehicleRecords.Remove(persistentId);
+
+		for (int i = 0; i < m_mPlayerVehicleIds.Count(); i++)
+		{
+			array<string> vehicleIds = m_mPlayerVehicleIds.GetElement(i);
+			if (!vehicleIds)
+				continue;
+			int index = vehicleIds.Find(persistentId);
+			if (index != -1)
+				vehicleIds.Remove(index);
+		}
+
+		Print(string.Format("[Overthrow] Unregistered consumed vehicle %1", persistentId));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether a vehicle is the mobile FOB truck or the deployed FOB.
+	//!
+	//! An FOB is shared resistance infrastructure, not personal property: it must remain in the
+	//! world always, so every vehicle-lifecycle decision (offline reservation, registry rebuild)
+	//! excludes it (BUG-129).
+	//! \param[in] vehicle The vehicle to test.
+	bool IsMobileFOB(IEntity vehicle)
+	{
+		if (!vehicle)
+			return false;
+		return IsMobileFOBPrefab(OVT_Global.GetPrefabName(vehicle));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Prefab-name form of IsMobileFOB, for registry records whose instance no longer exists.
+	//! \param[in] prefab The prefab resource to test.
+	bool IsMobileFOBPrefab(ResourceName prefab)
+	{
+		if (prefab.IsEmpty())
+			return false;
+		OVT_ResistanceFactionManager resistance = OVT_Global.GetResistanceFaction();
+		if (!resistance)
+			return false;
+		return prefab == resistance.m_pMobileFOBPrefab || prefab == resistance.m_pMobileFOBDeployedPrefab;
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -532,10 +604,12 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 		foreach (string vehicleId : vehicleIds)
 		{
 			IEntity vehicle = FindVehicleEntity(vehicleId);
-			if (vehicle && IsVehicleLocked(vehicle))
+			// FOBs are never reserved (BUG-129), so a player whose only locked vehicle is an FOB
+			// needs no timer
+			if (vehicle && IsVehicleLocked(vehicle) && !IsMobileFOB(vehicle))
 				return true;
 		}
-		
+
 		return false;
 	}
 	
@@ -611,6 +685,11 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 
 			// Only hide locked vehicles - an unlocked one is public property
 			if (!IsVehicleLocked(vehicle))
+				continue;
+
+			// An FOB stays in the world whatever its lock state - it is the resistance's shared
+			// infrastructure, and hiding it reads as "my base vanished" to every other player (BUG-129)
+			if (IsMobileFOB(vehicle))
 				continue;
 
 			if (ReserveVehicle(vehicleId, vehicle))
@@ -1141,7 +1220,9 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 	//! where they parked it and finding an empty street.
 	//! \param[in] playerPersistentId The owner asking for it back.
 	//! \param[in] vehicleId The registration id, which no longer resolves in storage.
-	//! \return True when a replacement was built and registered.
+	//! \return True when a replacement was built and registered, or when the registration was
+	//!         deliberately kept for a later attempt (blocked spot); false when the registration is
+	//!         unusable and the caller should drop it.
 	protected bool RebuildVehicleFromRecord(string playerPersistentId, string vehicleId)
 	{
 		if (!m_mVehicleRecords.Contains(vehicleId))
@@ -1151,6 +1232,18 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 		if (!record || record.prefab.IsEmpty() || record.position == vector.Zero)
 			return false;
 
+		// Never rebuild an FOB from a registration (BUG-129). The deployed FOB self-spawns from its
+		// own stored record, and a mobile-FOB-truck registration that storage cannot resolve is a
+		// ghost left behind by a deploy that consumed the truck (saves written before the deploy
+		// path retired registrations). Rebuilding one put a free truck at the shop it was bought at
+		// - and, after a restart, a dynamic body inside the static deployed FOB, wrecking it.
+		// Returning false drops the registration, which is the heal for those older saves.
+		if (IsMobileFOBPrefab(record.prefab))
+		{
+			Print(string.Format("[Overthrow] Registration %1 is a mobile FOB (%2) - dropping it instead of rebuilding", vehicleId, record.prefab), LogLevel.WARNING);
+			return false;
+		}
+
 		// Copied out before the registration is dropped below - the record lives in the map being
 		// modified, and reading through it afterwards would depend on how long it outlives its owner.
 		ResourceName prefab = record.prefab;
@@ -1159,6 +1252,33 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 		vector mat[4];
 		Math3D.AnglesToMatrix(record.angles, mat);
 		mat[3] = record.position;
+
+		// A dynamic body spawned interpenetrating another vehicle takes the whole depenetration
+		// impulse and wrecks one or both (BUG-129). If something is parked on the recorded spot,
+		// rebuild at the nearest parking/kerb instead; failing that, keep the registration and let
+		// the owner's next connect try again.
+		if (IsSpotBlockedByVehicle(record.position))
+		{
+			OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+			OVT_ParkingType parkingType = OVT_ParkingType.PARKING_CAR;
+			int invId = economy.GetInventoryId(prefab);
+			if (invId > -1)
+				parkingType = economy.GetParkingType(invId);
+
+			vector clearMat[4];
+			if (GetNearestParkingSpot(record.position, clearMat, parkingType) || FindNearestKerbParking(record.position, 30, clearMat))
+			{
+				for (int i = 0; i < 4; i++)
+				{
+					mat[i] = clearMat[i];
+				}
+			}
+			else
+			{
+				Print(string.Format("[Overthrow] Recorded spot for vehicle %1 is blocked and no clear spot is nearby - keeping the registration for a later attempt", vehicleId), LogLevel.WARNING);
+				return true;
+			}
+		}
 
 		IEntity vehicle = OVT_Global.SpawnEntityPrefabMatrix(prefab, mat);
 		if (!vehicle)
@@ -1270,6 +1390,26 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Whether another vehicle is standing on a prospective spawn spot (BUG-129).
+	//! \param[in] pos The spot to test.
+	//! \return True when any Vehicle overlaps the spot.
+	protected bool IsSpotBlockedByVehicle(vector pos)
+	{
+		m_bSpotBlockedByVehicle = false;
+		GetGame().GetWorld().QueryEntitiesBySphere(pos, 3, null, FilterSpotBlockingVehicle, EQueryEntitiesFlags.ALL);
+		return m_bSpotBlockedByVehicle;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Filter function for IsSpotBlockedByVehicle
+	protected bool FilterSpotBlockingVehicle(IEntity entity)
+	{
+		if (Vehicle.Cast(entity))
+			m_bSpotBlockedByVehicle = true;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Find vehicle entity by persistent ID
 	IEntity FindVehicleEntity(string vehicleId)
 	{
@@ -1350,11 +1490,20 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 			// for the offline-and-unlocked case this used to drop on the floor.
 			RegisterPlayerVehicle(ownerUid, vehicle);
 
+			// The RplId-keyed ownership maps are memory-only and start empty after a load. Without
+			// this repair GetOwnerID() answers "" for every pre-restart vehicle, so deploying a
+			// pre-restart truck minted an UNOWNED FOB - unprotected from garbage collection and
+			// invisible to this very re-index (BUG-129). Guarded: SetOwnerPersistentId dereferences
+			// the RplComponent without checking.
+			if (RplComponent.Cast(vehicle.FindComponent(RplComponent)))
+				SetOwnerPersistentId(ownerUid, vehicle);
+
 			// Check if player is currently online by comparing persistent identity ids
 			bool isOnline = IsPlayerOnline(ownerUid);
 
-			// Only LOCKED vehicles of OFFLINE players are hidden; unlocked ones stay public property
-			if (!isOnline && ownerComp.IsLocked())
+			// Only LOCKED vehicles of OFFLINE players are hidden; unlocked ones stay public
+			// property, and an FOB is never hidden at all (BUG-129)
+			if (!isOnline && ownerComp.IsLocked() && !IsMobileFOB(vehicle))
 			{
 				string persistentId = OVT_PersistenceTracking.GetPersistentId(vehicle);
 				if (!persistentId.IsEmpty() && ReserveVehicle(persistentId, vehicle))
