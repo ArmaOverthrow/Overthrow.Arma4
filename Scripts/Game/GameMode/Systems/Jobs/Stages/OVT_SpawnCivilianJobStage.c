@@ -36,6 +36,12 @@ class OVT_SpawnCivilianJobStage : OVT_JobStage
 			return false;
 		}
 
+		//! BUG-118: same as OVT_SpawnFactionCharacterJobStage - the job replays this stage on
+		//! every restore and nothing recalls the old target by persistence id, so a lone spawned
+		//! character (which bypasses the SCR_AIGroup chokepoint) must be released from tracking or
+		//! its record tree is a permanent orphan per restart.
+		OVT_PersistenceManagerComponent.UntrackTransient(entity);
+
 		//! Without an RplComponent there is no id to hand to OVT_WaitTillDeadJobStage, and the target
 		//! would not exist on any client
 		RplComponent rpl = RplComponent.Cast(entity.FindComponent(RplComponent));

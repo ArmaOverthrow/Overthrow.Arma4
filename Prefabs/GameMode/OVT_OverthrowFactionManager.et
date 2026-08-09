@@ -1,6 +1,9 @@
 OVT_OverthrowFactionManager {
  ID "5D8CB07C66269E75"
  components {
+  SCR_DelegateFactionManagerComponent "{6B1C4E7A0D3F5199}" {
+   m_FactionDelegatePrefab "{94D481BAEC3B8573}PrefabsEditable/System/E_FactionDelegate.et"
+  }
   RplComponent "{6B1C4E7A0D3F5182}" {
    Streamable Disabled
   }

@@ -435,11 +435,20 @@ class OVT_Global : Managed
 		Math3D.AnglesToMatrix(orientation, spawnParams.Transform);
 		spawnParams.Transform[3] = origin;
 
-		if (!global) return GetGame().SpawnEntityPrefabLocal(Resource.Load(prefab), GetGame().GetWorld(), spawnParams);
+		IEntity entity;
+		if (global)
+			entity = GetGame().SpawnEntityPrefab(Resource.Load(prefab), GetGame().GetWorld(), spawnParams);
+		else
+			entity = GetGame().SpawnEntityPrefabLocal(Resource.Load(prefab), GetGame().GetWorld(), spawnParams);
 
-		return GetGame().SpawnEntityPrefab(Resource.Load(prefab), GetGame().GetWorld(), spawnParams);
+		// Waypoints are session-scoped by construction - every one Overthrow spawns is rebuilt with
+		// its group on the next boot, so a persistence record for one is a permanent orphan (BUG-118).
+		if (AIWaypoint.Cast(entity))
+			OVT_PersistenceManagerComponent.UntrackTransient(entity);
+
+		return entity;
 	}
-	
+
 	static IEntity SpawnEntityPrefabMatrix(ResourceName prefab, vector mat[4], bool global = true)
 	{
 		EntitySpawnParams spawnParams();
@@ -447,9 +456,17 @@ class OVT_Global : Managed
 		spawnParams.TransformMode = ETransformMode.WORLD;
 		spawnParams.Transform = mat;
 
-		if (!global) return GetGame().SpawnEntityPrefabLocal(Resource.Load(prefab), GetGame().GetWorld(), spawnParams);
+		IEntity entity;
+		if (global)
+			entity = GetGame().SpawnEntityPrefab(Resource.Load(prefab), GetGame().GetWorld(), spawnParams);
+		else
+			entity = GetGame().SpawnEntityPrefabLocal(Resource.Load(prefab), GetGame().GetWorld(), spawnParams);
 
-		return GetGame().SpawnEntityPrefab(Resource.Load(prefab), GetGame().GetWorld(), spawnParams);
+		// Same waypoint rule as SpawnEntityPrefab() above (BUG-118).
+		if (AIWaypoint.Cast(entity))
+			OVT_PersistenceManagerComponent.UntrackTransient(entity);
+
+		return entity;
 	}
 	
 	//! Spawn a character entity directly without creating a group

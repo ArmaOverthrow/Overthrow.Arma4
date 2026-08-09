@@ -1178,3 +1178,172 @@ class OVT_TEST_Persistence_RecruitRemoval_ClearsEntityLookups : SCR_AutotestCase
 		return true;
 	}
 }
+
+//------------------------------------------------------------------------------------------------
+//! BUG-130: despawning an offline owner's recruit must RESERVE the body - alive, tracked, hidden
+//! in place - never save-and-release it.
+//!
+//! The old despawn wrote the character to storage, released tracking keeping the record, and
+//! DELETED the entity. BUG-086 measured that a record released this way dies within minutes of
+//! its entity, no restart required, so a returning owner's recruits answered NOT_FOUND and came
+//! back as fresh prefabs in civilian clothes - the live-server report this bug is. Under the
+//! reservation model the body must survive the despawn as the same live, tracked entity, because
+//! it IS the durable store.
+//!
+//! WHAT IT MEASURES: a real character is spawned from the recruit prefab, recruited through the
+//! public AddRecruit() API, and - once lazy registration has landed, so the id capture inside the
+//! despawn is meaningful - despawned through the public DespawnPlayerRecruits(). The case then
+//! asserts the body entity still exists, is still persistence-tracked, is reserved (hidden), the
+//! record holds a non-empty body id, and the recruit is marked offline.
+//!
+//! PROVEN ABLE TO FAIL (2026-08-09): with ReserveRecruitBody() temporarily reverted to the old
+//! Save()/Untrack(keepData)/delete sequence, the case reports "the body entity was destroyed".
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceSuite, timeoutS: 60)]
+class OVT_TEST_Persistence_RecruitDespawnReservesBody : SCR_AutotestCaseBase
+{
+	//! Same registration budget the Init-tier reservation and untrack cases use.
+	static const int MAX_POLLS = 900;
+
+	//! An owner uid that collides with no real player, so DespawnPlayerRecruits() touches only
+	//! this case's recruit. The record is removed again on cleanup.
+	static const string TEST_OWNER_UID = "OVT_TEST_BUG130_OWNER";
+
+	protected int m_iPhase;
+	protected int m_iPolls;
+	protected IEntity m_Body;
+	protected string m_sRecruitId;
+
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == 0)
+			return SpawnAndRecruit();
+
+		return AwaitTrackedThenDespawn();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Spawns a character from the recruit prefab and recruits it for the test owner.
+	//! \return True when the case is finished, which at this phase always means a named failure.
+	protected bool SpawnAndRecruit()
+	{
+		OVT_RecruitManagerComponent recruits = OVT_RecruitManagerComponent.GetInstance();
+		if (!recruits || recruits.m_sRecruitPrefab.IsEmpty())
+		{
+			SetResultFailure("The recruit manager has no character prefab to spawn a body from");
+			return true;
+		}
+
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if (!towns || towns.m_Towns.Count() < 1)
+		{
+			SetResultFailure("No towns are registered - nowhere sensible to spawn the body");
+			return true;
+		}
+
+		m_Body = OVT_Global.SpawnEntityPrefab(recruits.m_sRecruitPrefab, towns.m_Towns[0].location);
+		if (!m_Body)
+		{
+			SetResultFailure("SpawnEntityPrefab() produced no character from the recruit prefab");
+			return true;
+		}
+
+		m_sRecruitId = recruits.AddRecruit(TEST_OWNER_UID, m_Body);
+		if (m_sRecruitId.IsEmpty())
+		{
+			SetResultFailure("AddRecruit() returned no recruit ID for the spawned body");
+			return FinishAndCleanUp();
+		}
+
+		m_iPhase = 1;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Waits for lazy registration, despawns, and asserts the body survives reserved.
+	//! \return True when the case is finished.
+	protected bool AwaitTrackedThenDespawn()
+	{
+		m_iPolls += 1;
+
+		// The despawn's id capture is a real storage write and needs the registration to have
+		// landed - which in the game it always has, because recruits exist for minutes before the
+		// offline timer fires. Skipping this wait would fail the id assertion for a timing reason
+		// the shipped code does not have.
+		if (!OVT_PersistenceTracking.IsTracked(m_Body))
+		{
+			if (m_iPolls > MAX_POLLS)
+			{
+				SetResultFailure("The recruit body was never persistence-tracked (%1 polls) - registration is not running, so the despawn cannot be asserted", m_iPolls.ToString());
+				return FinishAndCleanUp();
+			}
+			return false;
+		}
+
+		OVT_RecruitManagerComponent recruits = OVT_RecruitManagerComponent.GetInstance();
+		recruits.DespawnPlayerRecruits(TEST_OWNER_UID);
+
+		OVT_RecruitData recruit = recruits.GetRecruit(m_sRecruitId);
+		if (!recruit)
+		{
+			SetResultFailure("The recruit record vanished across DespawnPlayerRecruits() - despawn must park the body, never drop the record");
+			return FinishAndCleanUp();
+		}
+
+		IEntity bodyAfter = recruits.FindRecruitEntity(m_sRecruitId);
+		if (!bodyAfter)
+		{
+			SetResultFailure("The body entity was destroyed (or its mapping dropped) by DespawnPlayerRecruits() - that is the save-and-release path BUG-086 proved loses the gear within minutes");
+			return FinishAndCleanUp();
+		}
+
+		if (!OVT_PersistenceTracking.IsTracked(bodyAfter))
+		{
+			SetResultFailure("The despawned body is no longer persistence-tracked - an untracked body writes no record at the next save and the recruit's gear cannot survive a restart");
+			return FinishAndCleanUp();
+		}
+
+		if (!OVT_PersistenceReservation.IsReserved(bodyAfter))
+		{
+			SetResultFailure("The despawned body is not reserved - an offline owner's recruit left visible and traceable is a free supply crate");
+			return FinishAndCleanUp();
+		}
+
+		if (recruit.m_sBodyPersistenceId.IsEmpty())
+		{
+			SetResultFailure("The record holds no body persistence id after the despawn - the post-restart respawn would have nothing to ask for and would fall back to a fresh civilian body");
+			return FinishAndCleanUp();
+		}
+
+		if (recruit.m_bIsOnline)
+		{
+			SetResultFailure("The recruit is still marked online after DespawnPlayerRecruits()");
+			return FinishAndCleanUp();
+		}
+
+		PrintFormat("Recruit despawn reserved the body - alive, tracked, hidden, id %1 (settled after %2 poll(s))", recruit.m_sBodyPersistenceId, m_iPolls.ToString());
+		SetResultSuccess();
+		return FinishAndCleanUp();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Removes the test recruit record and the spawned body, whichever verdict it was.
+	//! \return Always true - the case is over.
+	protected bool FinishAndCleanUp()
+	{
+		if (!m_sRecruitId.IsEmpty())
+		{
+			OVT_RecruitManagerComponent recruits = OVT_RecruitManagerComponent.GetInstance();
+			if (recruits)
+				recruits.RemoveRecruit(m_sRecruitId);
+		}
+
+		if (m_Body)
+			SCR_EntityHelper.DeleteEntityAndChildren(m_Body);
+
+		m_Body = null;
+		return true;
+	}
+}

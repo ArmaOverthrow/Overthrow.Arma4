@@ -2418,3 +2418,455 @@ class OVT_TEST_Init_FieldManual_DeltaMergesAndLinksResolve : SCR_AutotestCaseBas
 		return joined;
 	}
 }
+
+//------------------------------------------------------------------------------------------------
+//! BUG-118: AI that Overthrow rebuilds every session must never be persistence-tracked, so it can
+//! never write the orphaned records that made the save grow without bound (~490 permanent records
+//! per idle restart, +4x blob size in four days on the reporting server).
+//!
+//! WHAT IT MEASURES: an occupying-faction group is spawned exactly the way base upgrades spawn
+//! garrisons (OVT_Global.SpawnEntityPrefab + SpawnAllImmediately), and a patrol waypoint the way
+//! every patrol gets one (config.SpawnPatrolWaypoint). The case then asserts the group entity,
+//! every spawned member character, and the waypoint all end up UNTRACKED.
+//!
+//! THE CONTROL THAT KEEPS IT HONEST: native persistence registration is LAZY and lands frames
+//! after spawn, so "not tracked" right after spawn is what a freshly spawned entity ALWAYS looks
+//! like. A control character (the civilian recruit prefab, spawned directly - a path the fix
+//! deliberately leaves alone) is spawned in the same frame, and the case only passes once that
+//! control IS tracked while the AI entities are NOT. Without the control, this case would pass
+//! vacuously in a world where registration never runs at all.
+//!
+//! PROVEN ABLE TO FAIL (2026-08-09): with the UntrackTransient() call in the modded
+//! SCR_AIGroup.AddAIEntityToGroup commented out, the case reports "member 0 ... is still
+//! persistence-tracked"; with the whole modded class inert it also names the group entity.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_Persistence_TransientAINotTracked : SCR_AutotestCaseBase
+{
+	//! Frame polls allowed for the control's lazy registration AND the untrack retry queue (which
+	//! ticks at 1 s) to both settle. The reservation case budgets 300 frames for registration
+	//! alone; the queue adds up to two of its ticks on top.
+	static const int MAX_POLLS = 900;
+
+	protected int m_iPhase;
+	protected int m_iPolls;
+	protected IEntity m_Group;
+	protected IEntity m_Waypoint;
+	protected IEntity m_Control;
+
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == 0)
+			return SpawnSubjects();
+
+		return AwaitVerdict();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Spawns the AI group (with members), a patrol waypoint, and the tracked control character.
+	//! \return True when the case is finished, which at this phase always means a named failure.
+	protected bool SpawnSubjects()
+	{
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if (!towns || towns.m_Towns.Count() < 1)
+		{
+			SetResultFailure("No towns are registered - nowhere sensible to spawn the subjects");
+			return true;
+		}
+		vector location = towns.m_Towns[0].location;
+
+		OVT_Faction faction = OVT_Global.GetConfig().GetOccupyingFaction();
+		if (!faction)
+		{
+			SetResultFailure("No occupying faction is configured - no group prefab to spawn");
+			return true;
+		}
+
+		ResourceName groupPrefab;
+		if (faction.m_aGroupPrefabSlots && !faction.m_aGroupPrefabSlots.IsEmpty())
+			groupPrefab = faction.m_aGroupPrefabSlots[0];
+		else if (faction.m_aGroupInfantryPrefabSlots && !faction.m_aGroupInfantryPrefabSlots.IsEmpty())
+			groupPrefab = faction.m_aGroupInfantryPrefabSlots[0];
+		else if (faction.m_aHeavyInfantryPrefabSlots && !faction.m_aHeavyInfantryPrefabSlots.IsEmpty())
+			groupPrefab = faction.m_aHeavyInfantryPrefabSlots[0];
+
+		if (groupPrefab.IsEmpty())
+		{
+			SetResultFailure("The occupying faction has no group prefabs in any slot list - nothing to spawn a garrison from");
+			return true;
+		}
+
+		SCR_AIGroup group = SCR_AIGroup.Cast(OVT_Global.SpawnEntityPrefab(groupPrefab, location));
+		if (!group)
+		{
+			SetResultFailure("The occupying faction's group prefab did not produce an SCR_AIGroup");
+			return true;
+		}
+		m_Group = group;
+
+		// Members arrive over the following frames (SCR_AIGroup spawns one per EOnFrame tick, and
+		// retries while the navmesh tile is still streaming in - SpawnAllImmediately() would DROP
+		// members whose tile is not loaded yet). AwaitVerdict() gates on their arrival.
+
+		m_Waypoint = OVT_Global.GetConfig().SpawnPatrolWaypoint(location);
+		if (!m_Waypoint)
+		{
+			SetResultFailure("SpawnPatrolWaypoint() produced no waypoint");
+			return FinishAndCleanUp();
+		}
+
+		OVT_RecruitManagerComponent recruits = OVT_RecruitManagerComponent.GetInstance();
+		if (!recruits || recruits.m_sRecruitPrefab.IsEmpty())
+		{
+			SetResultFailure("The recruit manager has no character prefab to spawn the tracked control from");
+			return FinishAndCleanUp();
+		}
+
+		m_Control = OVT_Global.SpawnEntityPrefab(recruits.m_sRecruitPrefab, location);
+		if (!m_Control)
+		{
+			SetResultFailure("SpawnEntityPrefab() produced no control character from the civilian prefab");
+			return FinishAndCleanUp();
+		}
+
+		m_iPhase = 1;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Polls until the control is tracked and every AI entity is not, or the budget runs out.
+	//! \return True when the case is finished.
+	protected bool AwaitVerdict()
+	{
+		m_iPolls += 1;
+
+		// Members spawn one per frame and retry while their navmesh tile streams in; without at
+		// least one, every member assertion below would pass vacuously.
+		SCR_AIGroup spawnedGroup = SCR_AIGroup.Cast(m_Group);
+		if (spawnedGroup && spawnedGroup.GetAgentsCount() < 1)
+		{
+			if (m_iPolls > MAX_POLLS)
+			{
+				SetResultFailure("The spawned group never produced a member (%1 polls) - the member half of this case cannot be asserted", m_iPolls.ToString());
+				return FinishAndCleanUp();
+			}
+			return false;
+		}
+
+		// The control proves lazy registration has landed for this spawn batch. Until it has,
+		// "not tracked" means nothing.
+		if (!OVT_PersistenceTracking.IsTracked(m_Control))
+		{
+			if (m_iPolls > MAX_POLLS)
+			{
+				SetResultFailure("The control character was never tracked (%1 polls) - registration is not running, so the untracked AI below proves nothing", m_iPolls.ToString());
+				return FinishAndCleanUp();
+			}
+			return false;
+		}
+
+		string stillTracked = NameAnyTrackedSubject();
+		if (stillTracked.IsEmpty())
+		{
+			PrintFormat("Rebuild-on-boot AI is untracked while a directly spawned character is tracked (settled after %1 poll(s))", m_iPolls.ToString());
+			SetResultSuccess();
+			return FinishAndCleanUp();
+		}
+
+		if (m_iPolls > MAX_POLLS)
+		{
+			SetResultFailure("%1 is still persistence-tracked after %2 polls - it will write a record on the next save that no later session can ever claim or delete, which is BUG-118's unbounded save growth", stillTracked, m_iPolls.ToString());
+			return FinishAndCleanUp();
+		}
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Names the first AI subject that is still tracked, for the failure diagnostic.
+	//! \return A description of the offending entity, or an empty string when all are untracked.
+	protected string NameAnyTrackedSubject()
+	{
+		if (OVT_PersistenceTracking.IsTracked(m_Group))
+			return "the group entity";
+
+		SCR_AIGroup group = SCR_AIGroup.Cast(m_Group);
+		if (group)
+		{
+			array<AIAgent> agents = new array<AIAgent>;
+			group.GetAgents(agents);
+			foreach (int i, AIAgent agent : agents)
+			{
+				if (!agent)
+					continue;
+
+				IEntity member = agent.GetControlledEntity();
+				if (member && OVT_PersistenceTracking.IsTracked(member))
+					return string.Format("member %1 of the spawned group", i);
+			}
+		}
+
+		if (OVT_PersistenceTracking.IsTracked(m_Waypoint))
+			return "the patrol waypoint";
+
+		return string.Empty;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Removes every spawned subject after the verdict is in, whichever verdict it was. The control
+	//! is tracked, so deleting it also removes its record (SelfDelete defaults on).
+	//! \return Always true - the case is over.
+	protected bool FinishAndCleanUp()
+	{
+		SCR_AIGroup group = SCR_AIGroup.Cast(m_Group);
+		if (group)
+		{
+			array<AIAgent> agents = new array<AIAgent>;
+			group.GetAgents(agents);
+			foreach (AIAgent agent : agents)
+			{
+				if (!agent)
+					continue;
+
+				IEntity member = agent.GetControlledEntity();
+				if (member)
+					SCR_EntityHelper.DeleteEntityAndChildren(member);
+			}
+		}
+
+		if (m_Group)
+			SCR_EntityHelper.DeleteEntityAndChildren(m_Group);
+		if (m_Waypoint)
+			SCR_EntityHelper.DeleteEntityAndChildren(m_Waypoint);
+		if (m_Control)
+			SCR_EntityHelper.DeleteEntityAndChildren(m_Control);
+
+		m_Group = null;
+		m_Waypoint = null;
+		m_Control = null;
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! BUG-131: recruiting a group-spawned character must put its body BACK under persistence
+//! tracking.
+//!
+//! BUG-118's spawn-side untracking releases every group-spawned character (rebuild-on-boot AI),
+//! and town civilians are group-spawned - so by the time a player recruits one, its body is
+//! untracked and nothing on the recruitment path re-registered it. An untracked body has no
+//! persistent id, the record's m_sBodyPersistenceId stays empty, and the recruit's gear cannot
+//! survive any save: every despawn or restart rebuilds it from the fresh prefab in civilian
+//! clothes.
+//!
+//! WHAT IT MEASURES: a group is spawned through the same chokepoints garrisons and town civilian
+//! groups use, the case waits until a member is meaningfully untracked (the control character
+//! proves registration has landed for the spawn batch - same honesty device as the previous
+//! case), recruits that member through the public AddRecruit() API, and asserts the body ends up
+//! tracked again.
+//!
+//! The final assertion is positive (IsTracked flips true), so the case cannot pass vacuously in
+//! a world where registration never runs - it dies on the poll budget instead.
+//!
+//! PROVEN ABLE TO FAIL (2026-08-09): with the CancelUntrackTransient()/Track() pair in
+//! AddRecruit() disabled, the case reports "the recruited body is still untracked".
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_Persistence_RecruitedTransientCharacterIsRetracked : SCR_AutotestCaseBase
+{
+	//! Same budget as the previous case: lazy registration plus up to two 1 s untrack-queue ticks.
+	static const int MAX_POLLS = 900;
+
+	//! Collides with no real player; the record is removed again on cleanup.
+	static const string TEST_OWNER_UID = "OVT_TEST_BUG131_OWNER";
+
+	protected int m_iPhase;
+	protected int m_iPolls;
+	protected IEntity m_Group;
+	protected IEntity m_Member;
+	protected IEntity m_Control;
+	protected string m_sRecruitId;
+
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == 0)
+			return SpawnSubjects();
+
+		if (m_iPhase == 1)
+			return AwaitUntrackedMemberThenRecruit();
+
+		return AwaitRetracked();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Spawns the AI group whose member will be recruited, and the tracked control character.
+	//! \return True when the case is finished, which at this phase always means a named failure.
+	protected bool SpawnSubjects()
+	{
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if (!towns || towns.m_Towns.Count() < 1)
+		{
+			SetResultFailure("No towns are registered - nowhere sensible to spawn the subjects");
+			return true;
+		}
+		vector location = towns.m_Towns[0].location;
+
+		OVT_Faction faction = OVT_Global.GetConfig().GetOccupyingFaction();
+		if (!faction)
+		{
+			SetResultFailure("No occupying faction is configured - no group prefab to spawn");
+			return true;
+		}
+
+		ResourceName groupPrefab;
+		if (faction.m_aGroupPrefabSlots && !faction.m_aGroupPrefabSlots.IsEmpty())
+			groupPrefab = faction.m_aGroupPrefabSlots[0];
+		else if (faction.m_aGroupInfantryPrefabSlots && !faction.m_aGroupInfantryPrefabSlots.IsEmpty())
+			groupPrefab = faction.m_aGroupInfantryPrefabSlots[0];
+		else if (faction.m_aHeavyInfantryPrefabSlots && !faction.m_aHeavyInfantryPrefabSlots.IsEmpty())
+			groupPrefab = faction.m_aHeavyInfantryPrefabSlots[0];
+
+		if (groupPrefab.IsEmpty())
+		{
+			SetResultFailure("The occupying faction has no group prefabs in any slot list - nothing to spawn a group from");
+			return true;
+		}
+
+		SCR_AIGroup group = SCR_AIGroup.Cast(OVT_Global.SpawnEntityPrefab(groupPrefab, location));
+		if (!group)
+		{
+			SetResultFailure("The occupying faction's group prefab did not produce an SCR_AIGroup");
+			return true;
+		}
+		m_Group = group;
+
+		OVT_RecruitManagerComponent recruits = OVT_RecruitManagerComponent.GetInstance();
+		if (!recruits || recruits.m_sRecruitPrefab.IsEmpty())
+		{
+			SetResultFailure("The recruit manager has no character prefab to spawn the tracked control from");
+			return FinishAndCleanUp();
+		}
+
+		m_Control = OVT_Global.SpawnEntityPrefab(recruits.m_sRecruitPrefab, location);
+		if (!m_Control)
+		{
+			SetResultFailure("SpawnEntityPrefab() produced no control character from the civilian prefab");
+			return FinishAndCleanUp();
+		}
+
+		m_iPhase = 1;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Waits for a group member whose untracked state is meaningful, then recruits it.
+	//! \return True when the case is finished.
+	protected bool AwaitUntrackedMemberThenRecruit()
+	{
+		m_iPolls += 1;
+
+		// Members spawn one per frame and retry while their navmesh tile streams in.
+		SCR_AIGroup spawnedGroup = SCR_AIGroup.Cast(m_Group);
+		if (!m_Member && spawnedGroup && spawnedGroup.GetAgentsCount() >= 1)
+		{
+			array<AIAgent> agents = new array<AIAgent>;
+			spawnedGroup.GetAgents(agents);
+			if (agents.Count() >= 1 && agents[0])
+				m_Member = agents[0].GetControlledEntity();
+		}
+
+		// The control proves lazy registration has landed for this spawn batch; the member being
+		// untracked at that point is BUG-118's untracking having settled, not registration lag.
+		bool ready = m_Member
+			&& OVT_PersistenceTracking.IsTracked(m_Control)
+			&& !OVT_PersistenceTracking.IsTracked(m_Member);
+
+		if (!ready)
+		{
+			if (m_iPolls > MAX_POLLS)
+			{
+				SetResultFailure("No untracked group member alongside a tracked control after %1 polls - the precondition (BUG-118 untracking settled, registration running) never held", m_iPolls.ToString());
+				return FinishAndCleanUp();
+			}
+			return false;
+		}
+
+		OVT_RecruitManagerComponent recruits = OVT_RecruitManagerComponent.GetInstance();
+		m_sRecruitId = recruits.AddRecruit(TEST_OWNER_UID, m_Member);
+		if (m_sRecruitId.IsEmpty())
+		{
+			SetResultFailure("AddRecruit() returned no recruit ID for the untracked group member");
+			return FinishAndCleanUp();
+		}
+
+		m_iPhase = 2;
+		m_iPolls = 0;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Polls until the recruited body is tracked again, or the budget runs out.
+	//! \return True when the case is finished.
+	protected bool AwaitRetracked()
+	{
+		m_iPolls += 1;
+
+		if (OVT_PersistenceTracking.IsTracked(m_Member))
+		{
+			PrintFormat("Recruiting an untracked group-spawned character put its body back under persistence tracking (settled after %1 poll(s))", m_iPolls.ToString());
+			SetResultSuccess();
+			return FinishAndCleanUp();
+		}
+
+		if (m_iPolls > MAX_POLLS)
+		{
+			SetResultFailure("The recruited body is still untracked after %1 polls - it will never reach a save, its record keeps an empty body id, and the recruit's gear cannot survive a despawn or restart (BUG-131)", m_iPolls.ToString());
+			return FinishAndCleanUp();
+		}
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Removes the test recruit record and every spawned subject, whichever verdict it was.
+	//! \return Always true - the case is over.
+	protected bool FinishAndCleanUp()
+	{
+		if (!m_sRecruitId.IsEmpty())
+		{
+			OVT_RecruitManagerComponent recruits = OVT_RecruitManagerComponent.GetInstance();
+			if (recruits)
+				recruits.RemoveRecruit(m_sRecruitId);
+		}
+
+		SCR_AIGroup group = SCR_AIGroup.Cast(m_Group);
+		if (group)
+		{
+			array<AIAgent> agents = new array<AIAgent>;
+			group.GetAgents(agents);
+			foreach (AIAgent agent : agents)
+			{
+				if (!agent)
+					continue;
+
+				IEntity member = agent.GetControlledEntity();
+				if (member)
+					SCR_EntityHelper.DeleteEntityAndChildren(member);
+			}
+		}
+
+		if (m_Group)
+			SCR_EntityHelper.DeleteEntityAndChildren(m_Group);
+		if (m_Control)
+			SCR_EntityHelper.DeleteEntityAndChildren(m_Control);
+
+		m_Group = null;
+		m_Member = null;
+		m_Control = null;
+		return true;
+	}
+}

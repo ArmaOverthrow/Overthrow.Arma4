@@ -453,3 +453,423 @@ class OVT_TEST_Campaign_Economy_IncomeMatchesTownState : SCR_AutotestCaseBase
 		return expected;
 	}
 }
+
+//------------------------------------------------------------------------------------------------
+//! The town-stock scarcity term in GetSellPrice() is a gradient, not a step (pins BUG-105).
+//!
+//! The price model is documented as continuous: the emptier the town, the more a shop pays, up to
+//! +10% of base. Before the fix, stock_level / max_stock was INTEGER division, so every stock
+//! level strictly between empty and full priced identically (+10%) and the term only ever moved
+//! at the ceiling.
+//!
+//! The case seeds a synthetic resource into one registered shop at three town-stock levels -
+//! nearly empty, half full, nearly full - and asserts the sell price at the shop's own position
+//! is STRICTLY DECREASING across them. Under integer division all three reads are equal, which is
+//! exactly how this case was proven red. The port-distance term is identical across the three
+//! reads (same position), so it cancels out of the comparisons.
+//!
+//! The synthetic id follows OVT_TEST_Init_Economy_PriceAndDemandSeams' convention (far outside
+//! m_aResources, so no real item's price is disturbed). The shop's inventory entry is removed on
+//! every path, so no later case can see phantom stock.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_CampaignSuite, timeoutS: 30)]
+class OVT_TEST_Campaign_Economy_ScarcityPriceGradient : SCR_AutotestCaseBase
+{
+	//! Synthetic resource id, far outside m_aResources (same convention as the Init price case).
+	static const int PROBE_ITEM_ID = 900101;
+
+	//! Base price seeded through SetPrice(). Large enough that the gap between any two of the
+	//! three probe points is a double-digit number of dollars, far clear of Math.Round noise.
+	static const int PROBE_PRICE = 1000;
+
+	//! Demand seeded through SetDemand() so GetTownMaxStock is comfortably above the probe
+	//! points for any populated test-world town.
+	static const int PROBE_DEMAND = 20;
+
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if (!economy || !towns)
+		{
+			SetResultFailure("A manager needed by this case is null (economy or towns)");
+			return true;
+		}
+
+		economy.SetPrice(PROBE_ITEM_ID, PROBE_PRICE);
+		economy.SetDemand(PROBE_ITEM_ID, PROBE_DEMAND);
+
+		// GetSellPrice resolves the town by POSITION while GetTownStock reads it by REGISTRATION,
+		// so the case needs a shop for which the two agree. The write-1-read-1 probe below proves
+		// agreement through the same seams the price read will use.
+		OVT_ShopComponent shop;
+		int townId = -1;
+		vector shopPos;
+
+		array<RplId> shops = economy.GetAllShops();
+		if (shops)
+		{
+			foreach (RplId shopId : shops)
+			{
+				OVT_ShopComponent candidate = economy.GetShopByRplId(shopId);
+				if (!candidate || !candidate.m_aInventory || !candidate.GetOwner())
+					continue;
+
+				vector pos = candidate.GetOwner().GetOrigin();
+				OVT_TownData nearest = towns.GetNearestTown(pos);
+				if (!nearest)
+					continue;
+
+				int nearestId = towns.GetTownID(nearest);
+
+				candidate.m_aInventory[PROBE_ITEM_ID] = 1;
+				bool agrees = economy.GetTownStock(nearestId, PROBE_ITEM_ID) == 1;
+				candidate.m_aInventory.Remove(PROBE_ITEM_ID);
+
+				if (!agrees)
+					continue;
+
+				shop = candidate;
+				townId = nearestId;
+				shopPos = pos;
+				break;
+			}
+		}
+
+		if (!shop)
+		{
+			SetResultFailure("No registered shop is visible to its own nearest town's stock count, so the scarcity term cannot be probed");
+			return true;
+		}
+
+		int maxStock = economy.GetTownMaxStock(townId, PROBE_ITEM_ID);
+		if (maxStock < 4)
+		{
+			SetResultFailure(string.Format("GetTownMaxStock() is %1 for the probe item at demand %2, too small to hold three distinct interior stock levels", maxStock, PROBE_DEMAND));
+			return true;
+		}
+
+		string problem = CheckGradient(economy, shop, townId, shopPos, maxStock);
+
+		// Always remove the synthetic stock, on both paths.
+		shop.m_aInventory.Remove(PROBE_ITEM_ID);
+
+		if (problem != "")
+		{
+			SetResultFailure(problem);
+			return true;
+		}
+
+		SetResultSuccess();
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Reads the sell price at three interior stock levels and checks it strictly decreases.
+	//! Returns rather than asserting so the caller can clean up the seeded stock on every path.
+	//! \param[in] economy The economy manager under test.
+	//! \param[in] shop The shop holding the synthetic stock.
+	//! \param[in] townId The town both the stock count and the price read resolve to.
+	//! \param[in] shopPos The shop's position, passed to GetSellPrice.
+	//! \param[in] maxStock The town's max stock for the probe item.
+	//! \return An empty string when the gradient holds, or a description of the first failure.
+	protected string CheckGradient(OVT_EconomyManagerComponent economy, OVT_ShopComponent shop, int townId, vector shopPos, int maxStock)
+	{
+		int nearlyEmpty = 1;
+		int halfFull = maxStock / 2;
+		int nearlyFull = maxStock - 1;
+
+		shop.m_aInventory[PROBE_ITEM_ID] = nearlyEmpty;
+		int priceNearlyEmpty = economy.GetSellPrice(PROBE_ITEM_ID, shopPos);
+
+		shop.m_aInventory[PROBE_ITEM_ID] = halfFull;
+		int priceHalfFull = economy.GetSellPrice(PROBE_ITEM_ID, shopPos);
+
+		shop.m_aInventory[PROBE_ITEM_ID] = nearlyFull;
+		int priceNearlyFull = economy.GetSellPrice(PROBE_ITEM_ID, shopPos);
+
+		if (priceNearlyEmpty <= priceHalfFull)
+		{
+			return string.Format("Sell price did not fall as the town filled from %1 to %2 of %3 stock: %4 then %5 - the scarcity term is a step, not a gradient",
+				nearlyEmpty, halfFull, maxStock, priceNearlyEmpty, priceHalfFull);
+		}
+
+		if (priceHalfFull <= priceNearlyFull)
+		{
+			return string.Format("Sell price did not fall as the town filled from %1 to %2 of %3 stock: %4 then %5 - the scarcity term is a step, not a gradient",
+				halfFull, nearlyFull, maxStock, priceHalfFull, priceNearlyFull);
+		}
+
+		Print(string.Format("Scarcity gradient at max stock %1: price %2 -> %3 -> %4 across stock %5/%6/%7",
+			maxStock, priceNearlyEmpty, priceHalfFull, priceNearlyFull, nearlyEmpty, halfFull, nearlyFull));
+
+		return "";
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! GetSellPriceAtOffset prices hypothetical stock identically to physical stock (pins BUG-117).
+//!
+//! The offset seam is what lets ExecuteSell price a bulk sale marginally: unit i of a resource is
+//! priced with offset i, so a dump rides the scarcity curve down instead of collecting the
+//! pre-sale price for every unit. The seam's whole contract is that "current stock s, offset k"
+//! and "current stock s+k, offset 0" are THE SAME PRICE - this case asserts exactly that, plus
+//! that offset 0 is the plain GetSellPrice.
+//!
+//! Shop selection, the synthetic id convention and the cleanup discipline are the same as
+//! OVT_TEST_Campaign_Economy_ScarcityPriceGradient's.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_CampaignSuite, timeoutS: 30)]
+class OVT_TEST_Campaign_Economy_SellPriceStockOffset : SCR_AutotestCaseBase
+{
+	//! Synthetic resource id, far outside m_aResources.
+	static const int PROBE_ITEM_ID = 900102;
+
+	//! Base price seeded through SetPrice().
+	static const int PROBE_PRICE = 1000;
+
+	//! Demand seeded through SetDemand() so GetTownMaxStock leaves room for a wide offset.
+	static const int PROBE_DEMAND = 20;
+
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if (!economy || !towns)
+		{
+			SetResultFailure("A manager needed by this case is null (economy or towns)");
+			return true;
+		}
+
+		economy.SetPrice(PROBE_ITEM_ID, PROBE_PRICE);
+		economy.SetDemand(PROBE_ITEM_ID, PROBE_DEMAND);
+
+		OVT_ShopComponent shop;
+		int townId = -1;
+		vector shopPos;
+
+		array<RplId> shops = economy.GetAllShops();
+		if (shops)
+		{
+			foreach (RplId shopId : shops)
+			{
+				OVT_ShopComponent candidate = economy.GetShopByRplId(shopId);
+				if (!candidate || !candidate.m_aInventory || !candidate.GetOwner())
+					continue;
+
+				vector pos = candidate.GetOwner().GetOrigin();
+				OVT_TownData nearest = towns.GetNearestTown(pos);
+				if (!nearest)
+					continue;
+
+				int nearestId = towns.GetTownID(nearest);
+
+				candidate.m_aInventory[PROBE_ITEM_ID] = 1;
+				bool agrees = economy.GetTownStock(nearestId, PROBE_ITEM_ID) == 1;
+				candidate.m_aInventory.Remove(PROBE_ITEM_ID);
+
+				if (!agrees)
+					continue;
+
+				shop = candidate;
+				townId = nearestId;
+				shopPos = pos;
+				break;
+			}
+		}
+
+		if (!shop)
+		{
+			SetResultFailure("No registered shop is visible to its own nearest town's stock count, so the offset seam cannot be probed");
+			return true;
+		}
+
+		int maxStock = economy.GetTownMaxStock(townId, PROBE_ITEM_ID);
+		if (maxStock < 4)
+		{
+			SetResultFailure(string.Format("GetTownMaxStock() is %1 for the probe item at demand %2, too small to leave room for an offset", maxStock, PROBE_DEMAND));
+			return true;
+		}
+
+		int low = 1;
+		int high = maxStock - 1;
+
+		// Read at low physical stock: the plain price, the offset-0 price and the price offset up
+		// to the high level.
+		shop.m_aInventory[PROBE_ITEM_ID] = low;
+		int plainAtLow = economy.GetSellPrice(PROBE_ITEM_ID, shopPos);
+		int offsetZeroAtLow = economy.GetSellPriceAtOffset(PROBE_ITEM_ID, shopPos, 0);
+		int offsetToHigh = economy.GetSellPriceAtOffset(PROBE_ITEM_ID, shopPos, high - low);
+
+		// Read at high physical stock: the plain price the offset read must have predicted.
+		shop.m_aInventory[PROBE_ITEM_ID] = high;
+		int plainAtHigh = economy.GetSellPrice(PROBE_ITEM_ID, shopPos);
+
+		// Always remove the synthetic stock before asserting.
+		shop.m_aInventory.Remove(PROBE_ITEM_ID);
+
+		if (offsetZeroAtLow != plainAtLow)
+		{
+			SetResultFailure(string.Format("Offset 0 priced %1 but the plain sell price is %2 - the two paths have drifted", offsetZeroAtLow, plainAtLow));
+			return true;
+		}
+
+		if (offsetToHigh != plainAtHigh)
+		{
+			SetResultFailure(string.Format("Offset %1 over stock %2 priced %3, but physically stocking %4 prices %5 - hypothetical and physical stock disagree",
+				high - low, low, offsetToHigh, high, plainAtHigh));
+			return true;
+		}
+
+		if (offsetToHigh >= plainAtLow)
+		{
+			SetResultFailure(string.Format("Offsetting stock from %1 to %2 did not lower the price (%3 -> %4), so a bulk sale would not ride the scarcity curve",
+				low, high, plainAtLow, offsetToHigh));
+			return true;
+		}
+
+		Print(string.Format("Offset seam at max stock %1: plain %2 at stock %3, offset(%4) %5 == plain %6 at stock %7",
+			maxStock, plainAtLow, low, high - low, offsetToHigh, plainAtHigh, high));
+
+		SetResultSuccess();
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! The town buy cap flips exactly at the configured multiple of max stock, and units accepted
+//! earlier in the same bulk sale count against it (pins BUG-117's knob 4).
+//!
+//! CanTownAbsorbStock is the gate both ExecuteSell (per unit, with the collated count as
+//! extraUnits) and the sell browser's grey-out (extra 0) stand on. Three claims:
+//!   - one unit below the cap the town still absorbs;
+//!   - at the cap it refuses;
+//!   - extraUnits count: with physical stock at max, an extra of max-1 is still absorbed and an
+//!     extra of max is refused - so a single Sell All cannot blow through the cap before the
+//!     stock broadcast lands.
+//! The expected boundary is DERIVED from TOWN_STOCK_BUY_CAP_MULTIPLIER, so retuning the cap moves
+//! both sides rather than silently invalidating the case.
+//!
+//! Shop selection, the synthetic id convention and the cleanup discipline are the same as the two
+//! cases above.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_CampaignSuite, timeoutS: 30)]
+class OVT_TEST_Campaign_Economy_TownBuyCap : SCR_AutotestCaseBase
+{
+	//! Synthetic resource id, far outside m_aResources.
+	static const int PROBE_ITEM_ID = 900103;
+
+	//! Demand seeded through SetDemand() so GetTownMaxStock is comfortably large.
+	static const int PROBE_DEMAND = 20;
+
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if (!economy || !towns)
+		{
+			SetResultFailure("A manager needed by this case is null (economy or towns)");
+			return true;
+		}
+
+		economy.SetDemand(PROBE_ITEM_ID, PROBE_DEMAND);
+
+		OVT_ShopComponent shop;
+		int townId = -1;
+
+		array<RplId> shops = economy.GetAllShops();
+		if (shops)
+		{
+			foreach (RplId shopId : shops)
+			{
+				OVT_ShopComponent candidate = economy.GetShopByRplId(shopId);
+				if (!candidate || !candidate.m_aInventory || !candidate.GetOwner())
+					continue;
+
+				OVT_TownData nearest = towns.GetNearestTown(candidate.GetOwner().GetOrigin());
+				if (!nearest)
+					continue;
+
+				int nearestId = towns.GetTownID(nearest);
+
+				candidate.m_aInventory[PROBE_ITEM_ID] = 1;
+				bool agrees = economy.GetTownStock(nearestId, PROBE_ITEM_ID) == 1;
+				candidate.m_aInventory.Remove(PROBE_ITEM_ID);
+
+				if (!agrees)
+					continue;
+
+				shop = candidate;
+				townId = nearestId;
+				break;
+			}
+		}
+
+		if (!shop)
+		{
+			SetResultFailure("No registered shop is visible to its own nearest town's stock count, so the buy cap cannot be probed");
+			return true;
+		}
+
+		int maxStock = economy.GetTownMaxStock(townId, PROBE_ITEM_ID);
+		if (maxStock < 2)
+		{
+			SetResultFailure(string.Format("GetTownMaxStock() is %1 for the probe item at demand %2, too small to place stock below the cap", maxStock, PROBE_DEMAND));
+			return true;
+		}
+
+		int cap = OVT_EconomyManagerComponent.TOWN_STOCK_BUY_CAP_MULTIPLIER * maxStock;
+
+		// One below the cap: still absorbed.
+		shop.m_aInventory[PROBE_ITEM_ID] = cap - 1;
+		bool absorbsBelowCap = economy.CanTownAbsorbStock(townId, PROBE_ITEM_ID, 0);
+
+		// At the cap: refused.
+		shop.m_aInventory[PROBE_ITEM_ID] = cap;
+		bool absorbsAtCap = economy.CanTownAbsorbStock(townId, PROBE_ITEM_ID, 0);
+
+		// extraUnits count against the cap exactly like physical stock.
+		shop.m_aInventory[PROBE_ITEM_ID] = maxStock;
+		bool absorbsWithExtraBelow = economy.CanTownAbsorbStock(townId, PROBE_ITEM_ID, cap - maxStock - 1);
+		bool absorbsWithExtraAt = economy.CanTownAbsorbStock(townId, PROBE_ITEM_ID, cap - maxStock);
+
+		// Always remove the synthetic stock before asserting.
+		shop.m_aInventory.Remove(PROBE_ITEM_ID);
+
+		if (!absorbsBelowCap)
+		{
+			SetResultFailure(string.Format("Town refused a unit at stock %1 with the cap at %2 - the cap fires a unit early", cap - 1, cap));
+			return true;
+		}
+
+		if (absorbsAtCap)
+		{
+			SetResultFailure(string.Format("Town absorbed a unit at stock %1 with the cap at %2 - the cap never fires", cap, cap));
+			return true;
+		}
+
+		if (!absorbsWithExtraBelow)
+		{
+			SetResultFailure(string.Format("Town refused with stock %1 and %2 extra units against a cap of %3 - extras are over-counted", maxStock, cap - maxStock - 1, cap));
+			return true;
+		}
+
+		if (absorbsWithExtraAt)
+		{
+			SetResultFailure(string.Format("Town absorbed with stock %1 and %2 extra units against a cap of %3 - extras are not counted, so one Sell All can blow through the cap", maxStock, cap - maxStock, cap));
+			return true;
+		}
+
+		Print(string.Format("Buy cap at %1 (max stock %2 x %3): boundary and extra-unit accounting both flip where expected",
+			cap, maxStock, OVT_EconomyManagerComponent.TOWN_STOCK_BUY_CAP_MULTIPLIER));
+
+		SetResultSuccess();
+		return true;
+	}
+}

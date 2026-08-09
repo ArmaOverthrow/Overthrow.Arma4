@@ -1012,6 +1012,60 @@ Overthrow component.
 
 ---
 
+## `tools/decode-savepoint.py`
+
+Reads a Reforger persistence save point — what is in it, what changed between
+two of them, and where a given persistence id lives. **Offline; it never
+launches the game.**
+
+This exists because four persistence bugs in a row (BUG-086, BUG-104, BUG-116,
+BUG-118) could only be settled by reading the blob. Logs report what the engine
+*said*; the blob is what is actually stored, and when they disagree the blob
+wins. BUG-118's headline figure (+492 records per restart, 0 removed) is one
+`diff` invocation.
+
+```bash
+tools/decode-savepoint.py summary <path>...          # size, records, per-collection counts
+tools/decode-savepoint.py diff <old> <new>           # deltas, added/removed, mint-time buckets
+tools/decode-savepoint.py ids <path> [--since T]     # every record id with its creation time
+tools/decode-savepoint.py find <path> <uuid>         # locate an id, all bit alignments
+tools/decode-savepoint.py prefab <path> <GUID>...    # count records per prefab GUID
+tools/decode-savepoint.py strings <path> [--min N]   # readable text incl. bit-packed payloads
+```
+
+`<path>` is a `.blob`, a `savepoint<NNN>` directory, or a `playthrough<NNN>`
+directory (every save point inside it, oldest first). Save points live at
+`<profile>/.save/[app<id>_user<id>/]game/<mission>/playthrough<NNN>/savepoint<NNN>/`.
+
+### Exit codes
+
+| code | meaning |
+|---|---|
+| 0 | ok |
+| 1 | bad usage, unreadable path, or `find` did not locate the id |
+
+### What you need to know to read the output
+
+- **A save point is a FULL snapshot, not a delta** — verified across three
+  campaigns; two *consecutive* save points held 946 and 944 records. If a
+  record is not in the loaded save point, it was not loaded.
+- **An absent `Item` section is normal**, not missing data: vanilla's
+  `Item.conf` leaves `StorageRoot` false, so an item in a container is written
+  as a nested child of its parent's record, never as a root record.
+- **An id appearing twice is usually legitimate** — cross-collection pairs are
+  references (AIGroup→Character, System→Vehicle). Only two occurrences in the
+  *same* collection indicate a genuine duplicate record.
+- Ids carry their creation time (UUID v8, 48-bit ms prefix), which is what
+  distinguishes "written by the session that broke" from "inherited from last
+  week".
+
+The blob format, its bit-packed scripted sub-streams and the false-positive
+rules for id detection are documented in the script's own header. For the wider
+investigation workflow — which logs to pull, which traps to avoid, how to
+reproduce locally — see the `persistence-forensics` skill.
+
+---
+
 ## Utilities
 
 ```bash

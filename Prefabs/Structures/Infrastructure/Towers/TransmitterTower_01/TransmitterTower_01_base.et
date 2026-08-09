@@ -3,8 +3,27 @@ StaticModelEntity : "{BCF54BF42D61C77E}Prefabs/Structures/Core/Tower_Base.et" {
  components {
   OVT_TowerControllerComponent "{5E0E7196DEB274FC}" {
   }
-  ActionsManagerComponent "{6A7D9B2E00000011}" {
+  ActionsManagerComponent "{591AD546A8462054}" : "{F0F464A7853E5603}Prefabs/Structures/Core/Ladder_ActionsManager.ct" {
    ActionContexts {
+    UserActionContext "{5916A63C9D2ABA4A}" {
+     Position PointInfo "{5916A63C9B51DDAE}" {
+      Offset 0.1412 37.8545 0.1001
+     }
+    }
+    UserActionContext "{5916A63C9CED0D8A}" {
+     Position PointInfo "{5916A63CE468E545}" {
+      Offset 0.1282 1.3982 0.0503
+     }
+    }
+    UserActionContext "{59F4D7DB7CCA3C87}" {
+     ContextName "middle"
+     Position PointInfo "{59F4D7DB7CCA3C81}" {
+      Offset 0.1296 20.2158 0.0505
+     }
+     Radius 1
+     Omnidirectional 0
+     VisibilityAngle 85
+    }
     UserActionContext "{6A7D9B2E00000012}" {
      ContextName "sabotage"
      Position PointInfo "{6A7D9B2E00000013}" {
@@ -14,6 +33,11 @@ StaticModelEntity : "{BCF54BF42D61C77E}Prefabs/Structures/Core/Tower_Base.et" {
     }
    }
    additionalActions {
+    SCR_LadderUserAction "{5916A63CE01A4A0F}" {
+     ParentContextList + {
+      "middle"
+     }
+    }
     OVT_SabotageTowerAction "{6A7D9B2E00000014}" {
      ParentContextList {
       "sabotage"
