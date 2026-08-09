@@ -772,6 +772,32 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 	protected static int s_iTransientReleased;
 
 	//------------------------------------------------------------------------------------------------
+	//! Withdraws an entity from the transient-untrack queue.
+	//!
+	//! For an entity that was spawned as rebuild-on-boot AI but has since been promoted into a
+	//! category that must STAY tracked - a town civilian becoming a recruit (BUG-131). Only the
+	//! pending queue entry is undone here; a release that already executed is the caller's to
+	//! reverse with OVT_PersistenceTracking.Track().
+	//! \param[in] entity The entity to keep tracked. Null is tolerated.
+	static void CancelUntrackTransient(IEntity entity)
+	{
+		if (!entity)
+			return;
+
+		if (!s_Instance || !s_Instance.m_aTransientUntrack)
+			return;
+
+		EntityID entityId = entity.GetID();
+		array<ref OVT_TransientUntrackEntry> queue = s_Instance.m_aTransientUntrack;
+
+		for (int i = queue.Count() - 1; i >= 0; i--)
+		{
+			if (queue[i].m_EntityId == entityId)
+				queue.Remove(i);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Queues an entity whose lazy registration has not landed yet for a deferred release.
 	//! \param[in] entity The entity to release once the persistence system knows it.
 	protected void QueueTransientUntrack(IEntity entity)

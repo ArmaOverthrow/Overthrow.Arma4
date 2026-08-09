@@ -1,6 +1,6 @@
 # Recruits - Context & Decisions
 
-**Last Updated:** 2026-08-06
+**Last Updated:** 2026-08-09
 **Current Phase:** Maintenance / bug fixing
 **Status:** ✅ Documented (Existing Feature)
 
@@ -14,9 +14,10 @@
 - ✅ **BUG-051/052/053 fixed** (2026-08-02): recruit RPCs validate sender-derived identity, `RpcAsk_RenameRecruit` exists, fast travel captures the departure point before teleporting
 - ✅ **BUG-080 fixed** (2026-08-04): recruits follow orders after the owner dies — group insertion goes through the slave-group path, which is commanded by player id
 - ✅ **BUG-088 fixed and dedicated-server verified** (2026-08-06): recruits, commanding and faction assignment were dead in every replicated session. Headline cause was **not** in this feature — `OVT_OverthrowFactionManager.et` had no `RplComponent`, so no client ever learned any player's faction, and recruit group insertion resolves through the faction. Recruits now join the owner's group and follow orders on a dedicated server.
+- ✅ **BUG-130 + BUG-131 fixed and play-test verified** (2026-08-09, live-server player report): recruit gear now survives owner absence and server restarts. Despawn is **reserve, not save-and-release** — `ReserveRecruitBody`/`UnreserveRecruitBody` keep the body alive, tracked and hidden (`OVT_PersistenceReservation`, the BUG-086 remedy recruits had been deferred from), and `AddRecruit` re-tracks a civilian body that BUG-118's spawn-side untracking released (`CancelUntrackTransient` + `Track`). Verified end-to-end on a working-tree dedicated server: despawn logged non-empty reserved-body UUIDs, restart, rejoin, `restored from its stored body, gear intact` ×2, user confirmed in-game. Tests: `OVT_TEST_Persistence_RecruitDespawnReservesBody` + `OVT_TEST_Init_Persistence_RecruitedTransientCharacterIsRetracked`, both proven able to fail. Fast 40 / All 75.
 
 **What's Next:**
-- 📋 Remaining enhancements: the `FindRecruitEntity` mid-iteration removal, the hardcoded `US`/`USSR` XP faction keys, and Logic-tier coverage for the recruit record maths
+- 📋 Remaining enhancements: the `FindRecruitEntity` mid-iteration removal, the hardcoded `US`/`USSR` XP faction keys (BUG-107), and Logic-tier coverage for the recruit record maths
 
 **Blockers:**
 - None

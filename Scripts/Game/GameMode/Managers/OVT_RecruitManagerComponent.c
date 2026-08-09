@@ -478,12 +478,21 @@ class OVT_RecruitManagerComponent : OVT_Component
 		// Map entity to recruit
 		m_mEntityToRecruit[characterEntity.GetID()] = recruitId;
 
+		// A town civilian is rebuild-on-boot AI, so BUG-118's spawn-side untracking has already
+		// released this body - or still holds a queued release for it (registration is lazy).
+		// Recruitment promotes the body into the recalled-by-id category, so withdraw any pending
+		// release and register it again; without this the body never reaches a save and the
+		// recruit's gear cannot survive one (BUG-131).
+		OVT_PersistenceManagerComponent.CancelUntrackTransient(characterEntity);
+		if (!OVT_PersistenceTracking.IsTracked(characterEntity))
+			OVT_PersistenceTracking.Track(characterEntity);
+
 		// The recruit id identifies the RECORD. The BODY has its own identity, handed out by the
 		// persistence system, and remembering it here is what lets this exact character - with whatever
-		// it is carrying - be spawned back later instead of a fresh one. A civilian standing in a town is
-		// already tracked (Character_Base.et carries the native Persistence component), so this normally
-		// resolves immediately; when it does not, the record simply keeps an empty id and falls back to a
-		// fresh body.
+		// it is carrying - be spawned back later instead of a fresh one. Registration is lazy, so the
+		// id may not resolve yet; the record then keeps an empty id until the pre-save sync
+		// (SyncRecruitPositions) or the despawn path (ReserveRecruitBody) materialises it with a
+		// Save().
 		CaptureRecruitBodyId(recruit, characterEntity, false);
 
 		m_OnRecruitAdded.Invoke(recruit);
@@ -979,8 +988,9 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//------------------------------------------------------------------------------------------------
 	//! Brings a returning player's recruits back into the world.
 	//!
-	//! WHEN A RECRUIT BODY EXISTS IS AN OWNER-PRESENCE QUESTION, NOT A CAMPAIGN-START ONE. A recruit's
-	//! body is saved and released OFFLINE_DESPAWN_TIME after its owner leaves (DespawnPlayerRecruits)
+	//! WHEN A RECRUIT BODY IS IN PLAY IS AN OWNER-PRESENCE QUESTION, NOT A CAMPAIGN-START ONE. A
+	//! recruit's body is reserved - alive, tracked, hidden in place -
+	//! OFFLINE_DESPAWN_TIME after its owner leaves (DespawnPlayerRecruits)
 	//! and comes back when that owner returns and has a group - this is called from
 	//! RespawnRecruitsDelayed, off the group-created event. That is exactly the lifecycle the previous
 	//! EPF implementation had, and it is what a returning player expects: their squad is where they left
@@ -1014,12 +1024,17 @@ class OVT_RecruitManagerComponent : OVT_Component
 			if (!recruit)
 				continue;
 
-			// Check if recruit is already spawned in world
+			// A body already in the world is either still in play (quick reconnect, the offline
+			// timer never fired) or reserved - hidden in place since the owner left. Either way it
+			// is the same character carrying the same inventory, so wake it and put it back under
+			// command; no storage round trip is involved.
 			IEntity existingEntity = FindRecruitEntity(recruitId);
 			if (existingEntity)
 			{
 				Print("[Overthrow] Recruit " + recruitId + " already in world, adding to group");
+				UnreserveRecruitBody(recruit, existingEntity);
 				AddRecruitToPlayerGroup(playerPersistentId, existingEntity);
+				BroadcastRecruitUpdate(recruit);
 				continue;
 			}
 
@@ -1183,13 +1198,13 @@ class OVT_RecruitManagerComponent : OVT_Component
 			return;
 		}
 
-		// The owner may have left again while the request was in flight. Putting a body in the world for
+		// The owner may have left again while the request was in flight. Putting a body in play for
 		// somebody who is not there is precisely what the offline despawn undoes, so undo it now:
-		// save-and-release keeps the character and its gear for the next time they return.
+		// the body is reserved in place - alive, tracked, hidden - for the next time they return.
 		if (!IsPlayerOnline(playerPersistentId))
 		{
-			Print("[Overthrow] Owner of recruit " + recruitId + " left before their body arrived - releasing it again");
-			ReleaseRecruitBody(recruit, bodyEntity);
+			Print("[Overthrow] Owner of recruit " + recruitId + " left before their body arrived - reserving it in place");
+			ReserveRecruitBody(recruit, bodyEntity);
 			BroadcastRecruitUpdate(recruit);
 			return;
 		}
@@ -1352,35 +1367,62 @@ class OVT_RecruitManagerComponent : OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Writes a recruit body's record, releases tracking WITHOUT dropping that record, and removes the
-	//! body from the world.
+	//! Takes a recruit body out of play WITHOUT destroying it - alive, TRACKED, hidden in place.
 	//!
-	//! THE POINT OF THE ORDER. Save() writes the character - inventory included - into storage; only
-	//! then is its id read back and remembered; only then is tracking released with the data kept
-	//! (StopTracking(entity, removeData: false)). Deleting a tracked entity without that last step
-	//! drops its stored record too, and the recruit would come back in a fresh civilian shirt.
+	//! THE REPLACEMENT FOR SAVE-AND-RELEASE (BUG-130). The old path here wrote the character to
+	//! storage, released tracking keeping the record, and deleted the entity - vanilla's own idiom,
+	//! and the one BUG-086 measured as NOT durable: the kept record dies within minutes of its
+	//! entity, no restart required, so a returning owner's recruits answered NOT_FOUND and came back
+	//! as fresh prefabs in civilian clothes. Nothing may depend on a record outliving its entity, so
+	//! the entity now outlives the absence instead (OVT_PersistenceReservation - the same remedy
+	//! player bodies and locked vehicles got). In-session fidelity is by construction (nothing is
+	//! serialized, nothing is rebuilt), and at the next save point the body serializes as the
+	//! ordinary live tracked character it is - which is the across-a-restart path that was always
+	//! green.
 	//!
-	//! This is vanilla's own idiom for a character that is about to be deleted but must survive -
-	//! SCR_SpawnLogic.OnPlayerEntityCleanup_S (:214-216) does exactly this to a disconnecting player's
-	//! character, and SCR_SpawnLogic.c:107-108 to their controller. OVT_VehicleManagerComponent uses it
-	//! for locked vehicles.
-	//! \param[in] recruit The record that must outlive the body.
-	//! \param[in] recruitEntity The body to release and delete.
-	protected void ReleaseRecruitBody(notnull OVT_RecruitData recruit, notnull IEntity recruitEntity)
+	//! The AI agent is deactivated BEFORE the flags are cleared, so a walking recruit does not keep
+	//! feeding movement into an entity that no longer simulates. The entity mapping is KEPT - and
+	//! written here, because the owner-left-mid-flight path hands in a storage-spawned body that
+	//! AttachRecruitBody() has never seen - since the mapping is what lets RespawnPlayerRecruits()
+	//! find and wake the body later, what keeps SyncRecruitPositions() refreshing its id before
+	//! every save, and what keeps the BUG-118 OnAgentAdded exclusion protecting it.
+	//! \param[in] recruit The record whose body is being parked.
+	//! \param[in] recruitEntity The body to reserve.
+	protected void ReserveRecruitBody(notnull OVT_RecruitData recruit, notnull IEntity recruitEntity)
 	{
-		// Remember where the body was - it is spawned back here when the owner returns
+		m_mEntityToRecruit[recruitEntity.GetID()] = recruit.m_sRecruitId;
+
 		recruit.m_vLastKnownPosition = recruitEntity.GetOrigin();
 
-		// The explicit Save() is the materialisation, so the capture below is a pure lookup
-		OVT_PersistenceTracking.Save(recruitEntity);
-		CaptureRecruitBodyId(recruit, recruitEntity, false);
-		OVT_PersistenceTracking.Untrack(recruitEntity, true);
+		// materialise: the id is what the post-restart respawn asks for, and a body that has never
+		// been written may not have been given one yet. The write is wanted here.
+		CaptureRecruitBodyId(recruit, recruitEntity, true);
+
+		AIControlComponent aiControl = AIControlComponent.Cast(recruitEntity.FindComponent(AIControlComponent));
+		if (aiControl)
+			aiControl.DeactivateAI();
+
+		OVT_PersistenceReservation.Reserve(recruitEntity);
 
 		recruit.m_bIsOnline = false;
+	}
 
-		m_mEntityToRecruit.Remove(recruitEntity.GetID());
+	//------------------------------------------------------------------------------------------------
+	//! Puts a reserved recruit body back in play, exactly where it was left.
+	//!
+	//! Safe on a body that was never reserved (the quick-reconnect case, where the offline timer has
+	//! not fired yet): Release() is idempotent and ActivateAI() on an active agent is a no-op.
+	//! \param[in] recruit The record whose body is coming back.
+	//! \param[in] recruitEntity The body to wake.
+	protected void UnreserveRecruitBody(notnull OVT_RecruitData recruit, notnull IEntity recruitEntity)
+	{
+		OVT_PersistenceReservation.Release(recruitEntity);
 
-		SCR_EntityHelper.DeleteEntityAndChildren(recruitEntity);
+		AIControlComponent aiControl = AIControlComponent.Cast(recruitEntity.FindComponent(AIControlComponent));
+		if (aiControl)
+			aiControl.ActivateAI();
+
+		recruit.m_bIsOnline = true;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1478,7 +1520,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//! as who you left them.
 	//!
 	//! REFRESHING THE ID MATTERS FOR RECRUITS WHO ARE STILL STANDING THERE. A body that never despawns
-	//! never goes through ReleaseRecruitBody(), so this hook is the only place its id is written down
+	//! never goes through ReserveRecruitBody(), so this hook is the only place its id is written down
 	//! before the save. Without it, quitting with your squad beside you would bring them back in
 	//! civilian clothes.
 	//!
@@ -1555,15 +1597,17 @@ class OVT_RecruitManagerComponent : OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Takes an offline player's recruit bodies out of the world without losing them.
+	//! Takes an offline player's recruit bodies out of play without losing them.
 	//!
-	//! DESPAWN IS SAVE-AND-RELEASE, NOT DELETE. Each body is written to storage and released from
-	//! tracking with its record KEPT (ReleaseRecruitBody), and the recruit remembers which character it
-	//! was. When the owner comes back, RespawnPlayerRecruits() asks for that character again and the
-	//! recruit returns carrying exactly what it was carrying - across a reconnect and across a
-	//! quit/continue alike.
+	//! DESPAWN IS RESERVE, NOT DELETE (BUG-130). Each body stays alive, tracked and hidden where it
+	//! stands (ReserveRecruitBody), and the recruit remembers which character it is. When the owner
+	//! comes back, RespawnPlayerRecruits() wakes that same body - or, after a restart, asks the
+	//! persistence system for it by the id the record carries - and the recruit returns carrying
+	//! exactly what it was carrying.
+	//! Public so the persistence tier can drive the despawn half of the lifecycle directly
+	//! (OVT_TEST_Persistence_RecruitDespawnReservesBody); production callers are the offline timers.
 	//! \param[in] playerPersistentId The player who has been offline long enough.
-	protected void DespawnPlayerRecruits(string playerPersistentId)
+	void DespawnPlayerRecruits(string playerPersistentId)
 	{
 		if (!m_mRecruitsByOwner.Contains(playerPersistentId))
 			return;
@@ -1581,13 +1625,13 @@ class OVT_RecruitManagerComponent : OVT_Component
 			if (!recruitEntity)
 				continue;
 
-			// Writes the body, remembers its id and position, releases tracking keeping the data, deletes
-			ReleaseRecruitBody(recruit, recruitEntity);
+			// Keeps the body alive, tracked and hidden in place; remembers its id and position
+			ReserveRecruitBody(recruit, recruitEntity);
 
 			// Broadcast updated recruit status to all clients
 			BroadcastRecruitUpdate(recruit);
 
-			Print("[Overthrow] Despawned recruit: " + recruitId + " (stored body " + recruit.m_sBodyPersistenceId + ")");
+			Print("[Overthrow] Despawned recruit: " + recruitId + " (reserved body " + recruit.m_sBodyPersistenceId + ")");
 		}
 	}
 	
