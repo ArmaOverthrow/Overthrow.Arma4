@@ -233,6 +233,8 @@ OVT_OverthrowGameMode {
     }
     OVT_TutorialEntryConfig "{6B3C000000000093}" : "{6B3C000000000090}Configs/Tutorials/basesFirstCapture.conf" {
     }
+    OVT_TutorialEntryConfig "{6B3D000000000016}" : "{6B3D000000000010}Configs/Tutorials/welcomeNohome.conf" {
+    }
    }
   }
   OVT_TownManagerComponent "{59724C983BF56C3B}" {

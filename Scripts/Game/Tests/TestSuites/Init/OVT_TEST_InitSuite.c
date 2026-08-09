@@ -1558,10 +1558,17 @@ class OVT_TEST_Init_PlayerGroups_ManagerResolves : SCR_AutotestCaseBase
 //! A third failure was added by tutorial-content Phase 2b and hides even better than the other two: a
 //! PLAYER_TRANSACTION filter that is not an OVT_ShopType member name. See CheckTransactionFilters.
 //!
+//! A fourth and a fifth were added by first-spawn Phase 5 and are the same shape one step further on.
+//! A PLAYER_SPAWNED filter that is not a spawn context can never match (CheckSpawnFilters), and a
+//! spawn context with no enabled entry left to match leaves half the player base with no welcome at
+//! all (CheckWelcomeCoverage). Both are silent at runtime and invisible to grep.
+//!
 //! PROVEN ABLE TO FAIL 2026-08-07: see the record in
 //! docs/features/new-player-experience/tutorial-system/context.md.
 //! The PLAYER_TRANSACTION filter branch PROVEN ABLE TO FAIL 2026-08-09: see the Proven-Red Record in
 //! docs/features/new-player-experience/tutorial-content/context.md.
+//! The PLAYER_SPAWNED filter and welcome-coverage branches PROVEN ABLE TO FAIL 2026-08-09: see the
+//! Proven-Red Table in docs/features/new-player-experience/first-spawn/context.md.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Tutorial_ManagerResolvesAndLoadsEntries : SCR_AutotestCaseBase
@@ -1641,9 +1648,98 @@ class OVT_TEST_Init_Tutorial_ManagerResolvesAndLoadsEntries : SCR_AutotestCaseBa
 			string filterError = CheckTransactionFilters(entry, shopTypeNames);
 			if (filterError != "")
 				return filterError;
+
+			string spawnError = CheckSpawnFilters(entry);
+			if (spawnError != "")
+				return spawnError;
+		}
+
+		return CheckWelcomeCoverage(entries);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Validates every PLAYER_SPAWNED filter on one entry against the spawn-context vocabulary.
+	//!
+	//! PLAYER_SPAWNED's filter is the SPAWN CONTEXT: what the server's player preparation actually gave
+	//! this player. There are exactly three legal values - "house" (a home, a car and starting cash),
+	//! "nohouse" (a fallback spawn with neither) and "" (fire for either). The value compared against is
+	//! carried to the client and pushed into the event by the tutorial component, so like the
+	//! PLAYER_TRANSACTION case above, a fourth value is NOT findable by grep against another config: it
+	//! simply never equals the dispatched context, the welcome never fires, and nothing reports it.
+	//!
+	//! This is the failure a one-character typo in Configs/Tutorials/welcomeNohome.conf produces, and
+	//! the entry it names is the one to open.
+	//! \param[in] entry The entry to check. Assumed non-null with a non-empty m_aTriggers.
+	//! \return A ready-to-report failure message, or an empty string when every filter is valid.
+	protected string CheckSpawnFilters(OVT_TutorialEntryConfig entry)
+	{
+		for (int i = 0; i < entry.m_aTriggers.Count(); i++)
+		{
+			OVT_TutorialTrigger trigger = entry.m_aTriggers.Get(i);
+			if (!trigger)
+				continue;
+
+			if (trigger.m_eEvent != OVT_TutorialEvent.PLAYER_SPAWNED)
+				continue;
+
+			// "" means "either spawn", which is always valid.
+			if (trigger.m_sFilter == "")
+				continue;
+
+			if (trigger.m_sFilter == OVT_TutorialComponent.SPAWN_CONTEXT_HOUSE)
+				continue;
+
+			if (trigger.m_sFilter == OVT_TutorialComponent.SPAWN_CONTEXT_NOHOUSE)
+				continue;
+
+			return "Tutorial entry '" + entry.m_sId + "' filters PLAYER_SPAWNED on '" + trigger.m_sFilter + "', which is not a spawn context. The value it is compared against is authored by the server in OVT_OverthrowGameMode.FinalizePlayerPreparation and carried to the client by OVT_TutorialComponent, and it is only ever '" + OVT_TutorialComponent.SPAWN_CONTEXT_HOUSE + "' or '" + OVT_TutorialComponent.SPAWN_CONTEXT_NOHOUSE + "'. This filter can therefore never match ANY spawn: the entry will SILENTLY NEVER FIRE - no compile error, no runtime warning, no log line. Fix the m_sFilter in the entry's .conf under Configs/Tutorials/ to '" + OVT_TutorialComponent.SPAWN_CONTEXT_HOUSE + "', '" + OVT_TutorialComponent.SPAWN_CONTEXT_NOHOUSE + "', or \"\" for either.";
 		}
 
 		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Both spawn contexts still have a welcome to show.
+	//!
+	//! A player who spawns with a house and a player who spawns at a bus stop are told different things,
+	//! by two different entries filtered on the same event. Delete one, or set its m_bEnabled to 0, and
+	//! half the player base gets NO welcome at all - and nothing else in the tree notices, because every
+	//! remaining entry is still structurally perfect.
+	//!
+	//! Deliberately "AT LEAST ONE", not "exactly one": a third-party mod adding its own PLAYER_SPAWNED
+	//! entry is not a defect and must not fail the build. The selection runs through the real matcher,
+	//! so a disabled entry does not count towards coverage - which is what makes the disable case fail.
+	//! \param[in] entries The authored entry list. Assumed non-null and non-empty.
+	//! \return A ready-to-report failure message, or an empty string when both contexts are covered.
+	protected string CheckWelcomeCoverage(array<ref OVT_TutorialEntryConfig> entries)
+	{
+		array<string> houseIds = new array<string>();
+		OVT_TutorialMatcher.FindMatches(entries, MakeSpawnContext(OVT_TutorialComponent.SPAWN_CONTEXT_HOUSE), houseIds);
+
+		if (houseIds.Count() < 1)
+			return "No enabled tutorial entry matches the '" + OVT_TutorialComponent.SPAWN_CONTEXT_HOUSE + "' spawn context. A player who is given a house, a car and starting cash would see no welcome at all on their first spawn. Check that Configs/Tutorials/proofWelcome.conf still carries a PLAYER_SPAWNED trigger filtered '" + OVT_TutorialComponent.SPAWN_CONTEXT_HOUSE + "', is still m_bEnabled 1, and is still listed in m_aTutorialEntries on the game mode prefab.";
+
+		array<string> nohouseIds = new array<string>();
+		OVT_TutorialMatcher.FindMatches(entries, MakeSpawnContext(OVT_TutorialComponent.SPAWN_CONTEXT_NOHOUSE), nohouseIds);
+
+		if (nohouseIds.Count() < 1)
+			return "No enabled tutorial entry matches the '" + OVT_TutorialComponent.SPAWN_CONTEXT_NOHOUSE + "' spawn context. A player for whom no starting house was free spawns at a bus stop with no house and no car, and would see no welcome at all - the exact player this feature exists for, and the one nobody play-tests. Check that Configs/Tutorials/welcomeNohome.conf still carries a PLAYER_SPAWNED trigger filtered '" + OVT_TutorialComponent.SPAWN_CONTEXT_NOHOUSE + "', is still m_bEnabled 1, and is still listed in m_aTutorialEntries on the game mode prefab.";
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Builds one PLAYER_SPAWNED occurrence carrying a spawn context, for the coverage check.
+	//! \param[in] filter The spawn context to dispatch.
+	//! \return The occurrence.
+	protected OVT_TutorialEventContext MakeSpawnContext(string filter)
+	{
+		OVT_TutorialEventContext ctx = new OVT_TutorialEventContext();
+		ctx.m_eEvent = OVT_TutorialEvent.PLAYER_SPAWNED;
+		ctx.m_iPlayerId = 1;
+		ctx.m_iValue = 0;
+		ctx.m_sFilter = filter;
+		return ctx;
 	}
 
 	//------------------------------------------------------------------------------------------------

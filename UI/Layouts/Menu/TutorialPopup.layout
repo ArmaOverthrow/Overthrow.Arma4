@@ -100,6 +100,16 @@ FrameWidgetClass {
        Image ""
        Size 128 2
       }
+      ImageWidgetClass "{6B3A00000000004A}" {
+       Name "TutorialImage"
+       Slot LayoutSlot "{59A6DA4C4FC5D425}" {
+        HorizontalAlign 1
+        Padding 0 0 0 12
+       }
+       "Is Visible" 0
+       Image ""
+       Size 952 238
+      }
       HorizontalLayoutWidgetClass "{6B3A000000000049}" {
        Name "BodyRow"
        Slot LayoutSlot "{59CF1960920B4887}" {
@@ -107,16 +117,6 @@ FrameWidgetClass {
         FillWeight 1
        }
        {
-        ImageWidgetClass "{6B3A00000000004A}" {
-         Name "TutorialImage"
-         Slot LayoutSlot "{59A6DA4C4FC5D425}" {
-          VerticalAlign 1
-          Padding 0 0 20 0
-         }
-         "Is Visible" 0
-         Image ""
-         Size 256 256
-        }
         RichTextWidgetClass "{6B3A00000000004B}" : "{E256BCCAE8821432}UI/layouts/WidgetLibrary/RichTextWidgets/RichText_Body.layout" {
          Name "TutorialBody"
          Slot LayoutSlot "{59A6DA4C57D30E9F}" {

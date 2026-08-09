@@ -53,8 +53,21 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 
 	//! Set of persistent IDs for players who have fully initialized.
 	ref set<string> m_aInitializedPlayers;
-	//! Set of persistent IDs for players who have received the intro hint.
-	ref set<string> m_aHintedPlayers;
+
+	//! Persistent ID -> the spawn context that player's finalization actually gave them: one of
+	//! OVT_TutorialComponent.SPAWN_CONTEXT_HOUSE or SPAWN_CONTEXT_NOHOUSE.
+	//!
+	//! SERVER-SIDE AND SESSION-SCOPED. Nothing persists it and nothing replicates the map itself; the
+	//! value reaches a client only through OVT_TutorialComponent.SetSpawnContext()'s owner RPC.
+	//!
+	//! Kept rather than made fire-and-forget for three reasons (plan decision D12), all of which it
+	//! buys for about six lines: a RECONNECTING player is re-sent their context from here on the
+	//! "already finalized" early return in FinalizePlayerPreparation, which is the only way that
+	//! player's brand-new client can learn it; nothing else on the server can answer the question once
+	//! finalization has run (a fallback spawn sets a home position too, so the real-estate records
+	//! cannot be interrogated for it afterwards); and it gives the Campaign test tier something
+	//! assertable about a path that is otherwise entirely UI and network.
+	protected ref map<string, string> m_mSpawnContext;
 
 	//! Map of persistent player IDs to their group entity IDs.
 	ref map<string, EntityID> m_mPlayerGroups;
@@ -97,10 +110,11 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	//!
 	//! WHY A MIRROR AND NOT AN RplProp ON m_bGameStarted ITSELF. HasGameStarted() gates concerns that
 	//! are server-side by construction and must not silently become true on a client: the save gates
-	//! (OVT_PersistenceManagerComponent.PassesSaveGates / OnGameEnd), the spawn preparation branch in
-	//! OVT_SpawnLogic.DoSpawn_S, and the legacy #OVT-IntroHint in OnPlayerSpawnedLocal, which the
-	//! first-spawn feature owns and this one must leave exactly as it found it. A separate flag keeps
-	//! the new client-visible fact to the one caller that needs it.
+	//! (OVT_PersistenceManagerComponent.PassesSaveGates / OnGameEnd) and the spawn preparation branch
+	//! in OVT_SpawnLogic.DoSpawn_S. A separate flag keeps the new client-visible fact to the one
+	//! caller that needs it. (A third reason was listed here until 2026-08-09: the legacy intro hint
+	//! in OnPlayerSpawnedLocal, retired by new-player-experience/first-spawn. The two above are
+	//! unaffected, and the flag itself stays - several systems key off it.)
 	//!
 	//! An RplProp rather than an RPC because it is one bool that only ever goes false -> true, and an
 	//! RplProp also carries itself to a join-in-progress client for free - which is the ONLY way a
@@ -987,6 +1001,14 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	    if(m_aInitializedPlayers.Contains(persistentId))
 	    {
 	        Print("[Overthrow] Player " + persistentId + " already finalized in this session, skipping duplicate FinalizePlayerPreparation call");
+
+	        // RE-SEND THE CACHED SPAWN CONTEXT, do not just return. This early return is the RECONNECT
+	        // path: the player's client is a brand-new machine sitting on the "house" default, while
+	        // the branch that actually ran for them was decided on their FIRST finalization and now
+	        // exists nowhere but the cache. Without this a reconnecting houseless player silently reads
+	        // the house page. An unknown context resolves to "" and SetPlayerSpawnContext refuses it,
+	        // so this is a no-op for anyone the cache never saw.
+	        SetPlayerSpawnContext(playerId, persistentId, GetPlayerSpawnContext(persistentId));
 	        return;
 	    }
 
@@ -1006,6 +1028,10 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	    // Check if the player has a valid home
 	    vector home = m_RealEstate.GetHome(persistentId);
 		Print(home.ToString() + " Home status");
+	    // THE TWO BRANCHES BELOW ARE THE ONLY PLACE THE SPAWN CONTEXT IS KNOWN, which is why they are
+	    // the only place it is recorded. A RETURNING player has a home already, so this whole block is
+	    // skipped and neither branch runs: their client keeps its "house" default, which is the right
+	    // answer for anybody who has a home - and every returning player has one by construction.
 	    if (home[0] == 0) // No home assigned
 	    {
 	        IEntity house = OVT_Global.GetRealEstate().GetRandomStartingHouse();
@@ -1014,6 +1040,10 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	            // No starting houses available, spawn at a bus stop
 	            Print("[Overthrow] No Starting homes left. Spawning at bus stop.");
 	            SpawnPlayerAtFallbackPosition(playerId);
+
+	            // No owned building and no car were given here, so the welcome that describes a house
+	            // and a car is a lie for this player.
+	            SetPlayerSpawnContext(playerId, persistentId, OVT_TutorialComponent.SPAWN_CONTEXT_NOHOUSE);
 	        }
 	        else
 	        {
@@ -1022,6 +1052,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	            m_RealEstate.SetHome(playerId, house);
 	            m_VehicleManager.SpawnStartingCar(house, persistentId);
 				Print("[Overthrow] Player assigned home at " + house.GetOrigin());
+
+	            SetPlayerSpawnContext(playerId, persistentId, OVT_TutorialComponent.SPAWN_CONTEXT_HOUSE);
 	        }
 	    }
 	    if (player.initialized)
@@ -1072,6 +1104,80 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	    OVT_SpawnLogic spawnLogic = OVT_SpawnLogic.GetInstance();
 	    if (spawnLogic)
 	        spawnLogic.SpawnDeferredPlayer(playerId);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! SERVER: records what a player's spawn actually gave them and pushes that fact to their client.
+	//!
+	//! THE ONE FACT THE CLIENT CANNOT DERIVE FOR ITSELF (plan decision D4). All three candidate
+	//! client-side discriminators fail: SpawnPlayerAtFallbackPosition calls SetHomePos() too, so a
+	//! home position exists on BOTH branches of FinalizePlayerPreparation; the player-manager
+	//! RplSave/RplLoad snapshot a joining client receives is sent before finalization has run; and the
+	//! ownership records live in the real-estate manager, which is server-side. FinalizePlayerPreparation
+	//! is the only place in the codebase that knows, so this is where the fact is captured.
+	//!
+	//! NULL AT ANY STEP IS A SILENT DROP, NEVER AN ERROR, AND NEVER A THROW. This runs inside the
+	//! function that hands out homes, cars and cash to every player on the server, and a player can
+	//! legitimately be mid-disconnect with their controller already gone. When the push does not land,
+	//! the client's default of "house" stands, which is exactly the behaviour that shipped before the
+	//! spawn context existed.
+	//! \param[in] playerId The numeric ID of the player.
+	//! \param[in] persistentId The persistent string ID of the player - the cache key.
+	//! \param[in] filter OVT_TutorialComponent.SPAWN_CONTEXT_HOUSE or SPAWN_CONTEXT_NOHOUSE. Empty is
+	//! refused, so re-sending an unknown cached context is a harmless no-op.
+	protected void SetPlayerSpawnContext(int playerId, string persistentId, string filter)
+	{
+		if (!Replication.IsServer())
+			return;
+
+		if (persistentId == "" || filter == "")
+			return;
+
+		// Lazily allocated as well as allocated in EOnInit: a null map here would throw inside player
+		// finalization, and no tutorial filter is worth that risk.
+		if (!m_mSpawnContext)
+			m_mSpawnContext = new map<string, string>();
+
+		m_mSpawnContext.Set(persistentId, filter);
+
+		// The same three-step resolve OVT_TutorialManagerComponent.Deliver uses, and for the same
+		// reason: the tutorial component lives on the player's own OVT_OverthrowController, which is
+		// what makes an RplRcver.Owner RPC reach exactly one machine instead of being broadcast and
+		// filtered client-side (the BUG-037 failure mode).
+		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
+		if (!players)
+			return;
+
+		OVT_OverthrowController controller = players.GetController(playerId);
+		if (!controller)
+			return;
+
+		OVT_TutorialComponent tutorials = OVT_TutorialComponent.Cast(controller.FindComponent(OVT_TutorialComponent));
+		if (!tutorials)
+			return;
+
+		tutorials.SetSpawnContext(playerId, filter);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The spawn context this session recorded for a player, if any.
+	//!
+	//! Public because the Campaign test tier asserts on it: it is the only server-side evidence that
+	//! the new-player branch of FinalizePlayerPreparation ran the spawn-context code on a real start
+	//! path, and everything downstream of it is UI and network.
+	//! \param[in] persistentId The persistent string ID of the player.
+	//! \return "house", "nohouse", or "" when this session never authored a context for that player -
+	//! which is the normal answer for a RETURNING player, whose finalization runs neither branch.
+	string GetPlayerSpawnContext(string persistentId)
+	{
+		if (!m_mSpawnContext)
+			return "";
+
+		string filter;
+		if (!m_mSpawnContext.Find(persistentId, filter))
+			return "";
+
+		return filter;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1164,7 +1270,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		super.EOnInit(owner);
 
 		m_aInitializedPlayers = new set<string>;
-		m_aHintedPlayers = new set<string>;
+		m_mSpawnContext = new map<string, string>();
 
 		DiagMenu.RegisterBool(250, "lctrl+lalt+g", "Give $1000", "Overthrow");
 		DiagMenu.SetValue(250, 0);
@@ -1375,21 +1481,15 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	};
 
 	//------------------------------------------------------------------------------------------------
-	//! Called locally when the local player spawns. Shows an introductory hint if not already shown.
+	//! Called locally when the local player spawns. Pushes the client-local PLAYER_SPAWNED trigger.
+	//!
+	//! The legacy #OVT-IntroHint that used to open this method was RETIRED on 2026-08-09 by the
+	//! new-player-experience/first-spawn feature, together with its session-only dedup set. It is
+	//! replaced by the four-page welcome-intro / welcome-nohome modal sequence delivered through the
+	//! PLAYER_SPAWNED trigger below, which is shown once per machine instead of once per session.
 	//! \\param[in] playerId The persistent ID of the local player.
 	void OnPlayerSpawnedLocal(string playerId)
 	{
-		// LEGACY INTRO HINT - unchanged, including the fact that m_bGameStarted (not the campaign-
-		// running form) is what gates it. It is authority-only and it fires after the possession
-		// that precedes the start menu, so on the new-game path it has been dead since the 1.6 spawn
-		// rework. Reviving or retiring it belongs to the first-spawn feature; this one must leave
-		// #OVT-IntroHint and m_aHintedPlayers exactly as it found them.
-		if (m_bGameStarted && !m_aHintedPlayers.Contains(playerId))
-		{
-			SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-IntroHint","#OVT-Overthrow",20);
-			m_aHintedPlayers.Insert(playerId);
-		}
-
 		// Client-local PLAYER_SPAWNED tutorial trigger. A local player is now possessed on this
 		// machine, so the trigger is owed from here until something delivers it - which may be this
 		// call, DoStartGame(), or the campaign-running replication landing on a client, whichever
@@ -1456,20 +1556,35 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	//! ceiling of a few seconds, after which this gives up without a log line - a dedicated server
 	//! and a player who left during the countdown would both hit that path every single spawn.
 	//!
+	//! SECOND RACE, SAME RETRY. NotifyPlayerSpawnedLocal() now also answers false while the server's
+	//! spawn context has not reached this machine, because the two welcome entries are FILTERED on it
+	//! (plan decision D7). There is exactly one ordering where that can happen: a remote client learns
+	//! the campaign is running from the m_bCampaignRunningRpl RplProp bumped in DoStartGame BEFORE
+	//! PrepareConnectedPlayers sends the context RPC, and RplProp-vs-RPC ordering is not guaranteed.
+	//! No new timer was added for it - this retry already treats false as "ask again".
+	//!
+	//! DEGRADE, NEVER DISAPPEAR. The FINAL attempt passes acceptDefaultContext, so a context that
+	//! never arrives costs a possibly-wrong page 2 and never the whole welcome. That is today's
+	//! behaviour exactly: before the spawn context existed, every player read the house page.
+	//! Passing the flag INTO the single call rather than making a second call on the last attempt is
+	//! deliberate - one call site is one arity to keep right, and it cannot double-fire.
+	//!
 	//! ONLY EVER ENTERED THROUGH TryPushSpawnedTutorialTrigger(), which owns the decision of whether
-	//! a push is owed at all; this method owns only the race with the controller assignment.
+	//! a push is owed at all; this method owns only the two races above.
 	protected void PushSpawnedTutorialTrigger()
 	{
 		m_iTutorialSpawnPushAttempts++;
 
-		if (OVT_TutorialComponent.NotifyPlayerSpawnedLocal())
+		bool isFinalAttempt = m_iTutorialSpawnPushAttempts >= TUTORIAL_SPAWN_PUSH_ATTEMPTS;
+
+		if (OVT_TutorialComponent.NotifyPlayerSpawnedLocal(isFinalAttempt))
 		{
 			m_bTutorialSpawnDelivered = true;
 			m_bTutorialSpawnRetrying = false;
 			return;
 		}
 
-		if (m_iTutorialSpawnPushAttempts >= TUTORIAL_SPAWN_PUSH_ATTEMPTS)
+		if (isFinalAttempt)
 		{
 			m_bTutorialSpawnRetrying = false;
 			return;

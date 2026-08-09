@@ -84,7 +84,7 @@ OverlayWidgetClass {
          }
          "Is Visible" 0
          Image ""
-         Size 128 128
+         Size 428 107
         }
         RichTextWidgetClass "{6B3A00000000003A}" : "{E256BCCAE8821432}UI/layouts/WidgetLibrary/RichTextWidgets/RichText_Body.layout" {
          Name "TutorialBody"

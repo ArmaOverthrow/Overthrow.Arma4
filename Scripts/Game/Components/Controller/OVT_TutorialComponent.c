@@ -6,11 +6,13 @@ class OVT_TutorialComponentClass : OVT_ComponentClass {};
 //!
 //! Two jobs, and the split between them is the whole point of the design:
 //!
-//!  1. DELIVERY. One RplRcver.Owner RPC carrying an entry id. The server resolves the acting
-//!     player's controller and calls Notify(); nobody else's client hears it. This is deliberately
-//!     NOT the OVT_NotificationManagerComponent pattern of broadcasting to everyone and filtering
-//!     client-side, and it is the exact failure mode (per-player delivery on a dedicated server)
-//!     that killed the starter jobs in BUG-037.
+//!  1. DELIVERY. RplRcver.Owner RPCs, one per player. The server resolves the acting player's
+//!     controller and calls Notify() with an entry id; nobody else's client hears it. This is
+//!     deliberately NOT the OVT_NotificationManagerComponent pattern of broadcasting to everyone and
+//!     filtering client-side, and it is the exact failure mode (per-player delivery on a dedicated
+//!     server) that killed the starter jobs in BUG-037. SetSpawnContext() is the second such RPC and
+//!     carries a FACT rather than a decision: what that one player's spawn actually gave them, which
+//!     the client provably cannot work out for itself and which the PLAYER_SPAWNED trigger filters on.
 //!
 //!  2. THE PIPELINE. Seen check, tips-disabled check, queue, a 1000 ms pump, the can-show-now gate,
 //!     and finally one invoker the UI surfaces subscribe to. Every DECISION in that chain is a pure
@@ -31,6 +33,12 @@ class OVT_TutorialComponent : OVT_Component
 
 	//! Lowest runtime player id the engine ever issues.
 	static const int FIRST_VALID_PLAYER_ID = 1;
+
+	//! The two values a spawn context can take. These are the exact strings the two welcome entries'
+	//! PLAYER_SPAWNED triggers are authored against in Configs/Tutorials/, so changing either of them
+	//! is a config change as much as a code change.
+	static const string SPAWN_CONTEXT_HOUSE = "house";
+	static const string SPAWN_CONTEXT_NOHOUSE = "nohouse";
 
 	//! Fired on the owning client when an entry is cleared to be shown. Args: OVT_TutorialEntryConfig.
 	//! The two UI surfaces (the HUD overlay in Phase 5 and the modal context in Phase 6) subscribe to
@@ -67,6 +75,28 @@ class OVT_TutorialComponent : OVT_Component
 
 	//! True while the pump timer is registered on the call queue.
 	protected bool m_bPumpRunning;
+
+	//! THE CLIENT'S STORED ANSWER TO "WHAT DID MY SPAWN ACTUALLY GIVE ME?", pushed here by the server
+	//! through SetSpawnContext() and read into every PLAYER_SPAWNED context this machine fires.
+	//!
+	//! The client provably cannot derive this for itself (plan decision D4): the fallback spawn calls
+	//! SetHomePos() too, so a home position exists on BOTH branches of FinalizePlayerPreparation, and
+	//! the player-manager snapshot a joining client receives is sent before finalization has run.
+	//!
+	//! DEFAULTS TO "house" AND NEVER TO "" - THAT ASYMMETRY IS LOAD-BEARING, NOT UNTIDINESS.
+	//! OVT_TutorialTrigger.Matches:116 treats "" on the TRIGGER as "no filter", but its test is
+	//! `m_sFilter != "" && ctx.m_sFilter != m_sFilter`, so a "" on the CONTEXT matches no FILTERED
+	//! trigger at all. An empty default would therefore suppress BOTH welcomes rather than degrading
+	//! to one of them. "house" degrades to exactly the behaviour that shipped before the spawn context
+	//! existed: everybody reads the house page, which is right for everybody who has a house.
+	//! Do not "tidy" this to "".
+	protected string m_sSpawnContextFilter = OVT_TutorialComponent.SPAWN_CONTEXT_HOUSE;
+
+	//! True once the server's answer has actually ARRIVED on this machine, as opposed to the default
+	//! above standing in for it. NotifyPlayerSpawnedLocal() reports "not delivered" while this is
+	//! false, which is what makes the game mode's existing bounded retry wait for the fact rather than
+	//! fire PLAYER_SPAWNED with a guess (plan decision D7).
+	protected bool m_bSpawnContextReceived;
 
 	//! One-shot guard for the process-wide client-local hooks. Static because the hooks themselves
 	//! are static: a listen-server host holds one OVT_TutorialComponent per CONNECTED PLAYER, and
@@ -151,6 +181,61 @@ class OVT_TutorialComponent : OVT_Component
 		Receive(entryId);
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! SERVER: tells one player's client what their spawn actually gave them.
+	//!
+	//! Mirrors Notify()'s local-direct-call branch, and for the same reason: the engine never loops an
+	//! RPC back to the machine that sent it, so without the direct call a listen host and a single
+	//! player would never receive their own context and would silently sit on the default forever.
+	//!
+	//! THE OWNERSHIP TEST IS A PLAYER-ID COMPARISON, NOT Notify()'s IsOwnedByLocalPlayer(). That
+	//! helper dereferences SCR_PlayerController.GetLocalControlledEntity(), and this method's one
+	//! caller (OVT_OverthrowGameMode.FinalizePlayerPreparation) runs BEFORE the character exists on
+	//! the load-a-save path - OVT_SpawnLogic.DoSpawn_S:150-160 finalizes first and only then calls
+	//! SpawnDeferredPlayer. An entity-dereferencing test would answer "not mine" there and push the
+	//! host's own context out over the wire, where it would be dropped.
+	//! \param[in] playerId Runtime id of the player this controller belongs to.
+	//! \param[in] filter SPAWN_CONTEXT_HOUSE or SPAWN_CONTEXT_NOHOUSE. An empty filter is refused.
+	void SetSpawnContext(int playerId, string filter)
+	{
+		if (filter == "")
+			return;
+
+		if (!Replication.IsServer())
+			return;
+
+		int localPlayerId = SCR_PlayerController.GetLocalPlayerId();
+		if (localPlayerId >= FIRST_VALID_PLAYER_ID && localPlayerId == playerId)
+		{
+			RpcDo_SetSpawnContext(filter);
+			return;
+		}
+
+		// ARITY, PROVEN BY INSPECTION (BUG-090). RpcDo_SetSpawnContext declares exactly ONE parameter
+		// (string filter), so this call carries TWO arguments in total: the method plus that one
+		// parameter. Rpc() is an untyped variadic proto - a wrong argument count compiles clean,
+		// passes every automated test, and then dies silently at the wire with no log line anywhere.
+		// The only observation that can catch it is a two-client multiplayer play-test.
+		Rpc(RpcDo_SetSpawnContext, filter);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! CLIENT: the server's answer to what this player's spawn gave them.
+	//!
+	//! An empty filter is refused here as well as at the sender: the invariant this class relies on is
+	//! that m_sSpawnContextFilter is never "", because a "" context matches no filtered trigger and
+	//! would suppress every welcome rather than degrade to one (see the field's own comment).
+	//! \param[in] filter SPAWN_CONTEXT_HOUSE or SPAWN_CONTEXT_NOHOUSE.
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	void RpcDo_SetSpawnContext(string filter)
+	{
+		if (filter == "")
+			return;
+
+		m_sSpawnContextFilter = filter;
+		m_bSpawnContextReceived = true;
+	}
+
 	//-----------------------------------------------------------------------------------------------
 	// CLIENT-LOCAL TRIGGERS
 	//-----------------------------------------------------------------------------------------------
@@ -199,13 +284,24 @@ class OVT_TutorialComponent : OVT_Component
 	//------------------------------------------------------------------------------------------------
 	//! The local player's character spawned and is under their control.
 	//!
-	//! The RETURN VALUE is what makes the caller's bounded retry possible: this is the one local
-	//! trigger that races the async controller assignment (OVT_OverthrowGameMode's
-	//! PushSpawnedTutorialTrigger), and "was there anyone to tell?" is a fact only this method has.
-	//! \return True when the local player's tutorial component received the event.
-	static bool NotifyPlayerSpawnedLocal()
+	//! THE RETURN VALUE IS A DELIVERY CONTRACT, AND IT NOW ANSWERS TWO QUESTIONS RATHER THAN ONE.
+	//! It used to mean only "was there anyone to tell?" - this is the one local trigger that races the
+	//! async controller assignment, so the component legitimately may not exist yet. It now ALSO means
+	//! "has the server's spawn context arrived?", because the welcome entries are FILTERED on that
+	//! context and firing PLAYER_SPAWNED before it lands shows a houseless player the house page.
+	//!
+	//! Both answers are false-means-try-again, which is exactly what the caller's existing bounded
+	//! retry already does with a false (OVT_OverthrowGameMode.PushSpawnedTutorialTrigger). On its
+	//! FINAL attempt that caller passes acceptDefaultContext, which drops the second question and
+	//! fires with whatever the context field holds - so a context that never arrives costs one page of
+	//! accuracy and NEVER the whole welcome (plan decision D7, "degrade, never disappear").
+	//! \param[in] acceptDefaultContext True to fire even when the server's context never arrived, so
+	//! that the default "house" is used rather than the trigger being dropped altogether.
+	//! \return True when a local tutorial component existed AND (the context has arrived OR
+	//! acceptDefaultContext is true). False is a "not delivered, ask again" and never an error.
+	static bool NotifyPlayerSpawnedLocal(bool acceptDefaultContext = false)
 	{
-		return FireLocalEventOnLocalPlayer(OVT_TutorialEvent.PLAYER_SPAWNED, 0, "");
+		return FireLocalEventOnLocalPlayer(OVT_TutorialEvent.PLAYER_SPAWNED, 0, "", acceptDefaultContext);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -215,22 +311,41 @@ class OVT_TutorialComponent : OVT_Component
 	//! controller is registered by an async RpcDo_NotifyOwnerAssignment, so a trigger fired in the
 	//! seconds after a spawn or a join legitimately finds no component yet. A missed tip is a
 	//! non-event; a script error on the client's first ten seconds is not (plan quality item Q7).
+	//!
+	//! PLAYER_SPAWNED IS THE ONE EVENT WHOSE FILTER IS NOT THE CALLER'S TO SUPPLY. Its filter is the
+	//! server-authored spawn context held on this component, so it is substituted here rather than
+	//! passed in - there is no caller that could know it, and a second source for it would be a second
+	//! thing to keep in step. Every other event still carries whatever its own call site passed.
 	//! \param[in] evt The event that occurred.
 	//! \param[in] value The event's numeric payload.
-	//! \param[in] filter The event's string payload.
+	//! \param[in] filter The event's string payload. IGNORED for PLAYER_SPAWNED, which substitutes the
+	//! stored spawn context.
+	//! \param[in] acceptDefaultContext PLAYER_SPAWNED only: fire even when the server's spawn context
+	//! has not arrived, using the default. Ignored by every other event.
 	//! \return True when a local tutorial component existed and was given the event; false when the
-	//! controller is not assigned yet, which is a drop and not an error.
-	protected static bool FireLocalEventOnLocalPlayer(OVT_TutorialEvent evt, int value, string filter)
+	//! controller is not assigned yet, or when PLAYER_SPAWNED is still waiting on its context. Both
+	//! are a "not yet" for the caller to retry, and neither is an error.
+	protected static bool FireLocalEventOnLocalPlayer(OVT_TutorialEvent evt, int value, string filter, bool acceptDefaultContext = false)
 	{
 		OVT_TutorialComponent tutorials = OVT_Global.GetTutorials();
 		if (!tutorials)
 			return false;
 
+		string eventFilter = filter;
+
+		if (evt == OVT_TutorialEvent.PLAYER_SPAWNED)
+		{
+			if (!tutorials.m_bSpawnContextReceived && !acceptDefaultContext)
+				return false;
+
+			eventFilter = tutorials.m_sSpawnContextFilter;
+		}
+
 		OVT_TutorialEventContext ctx = new OVT_TutorialEventContext();
 		ctx.m_eEvent = evt;
 		ctx.m_iPlayerId = SCR_PlayerController.GetLocalPlayerId();
 		ctx.m_iValue = value;
-		ctx.m_sFilter = filter;
+		ctx.m_sFilter = eventFilter;
 
 		tutorials.FireLocalEvent(ctx);
 

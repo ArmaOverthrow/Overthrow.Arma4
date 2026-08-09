@@ -452,6 +452,28 @@ and the root's own inheritance lines). Do not go looking for a base-game `.meta`
 
 ---
 
+### 2026-08-09 — `TutorialImage` re-shaped to a wide header (post-close change, user-requested)
+
+Both popup layouts drew the optional page image **square** — 256×256 in the modal, 128×128 on the HUD tip. That was never a design decision: **no shipped entry has ever set `m_sImage`** (all eleven carry `m_sImage ""`), so the geometry had never been exercised or reviewed. The user asked for a wide header band instead, ahead of authoring the first real screenshots.
+
+**What changed — two `.layout` files, no script:**
+
+- **`UI/Layouts/Menu/TutorialPopup.layout`** — `TutorialImage` **moved out of `BodyRow`** (a HorizontalLayout, which is why it rendered *beside* the text) and up into `TutorialLayout` as a sibling **immediately after `UpperStripe`**. `Size 256 256` → **`Size 952 238`**; slot padding `0 0 20 0` (a right-hand gutter to the text) → `0 0 0 12` (a bottom gutter to the body); `VerticalAlign 1` → `HorizontalAlign 1`. `BodyRow` survives holding only `TutorialBody`.
+- **`UI/Layouts/HUD/TutorialPopup.layout`** — no move needed; this one **already** stacked the image between title and body. `Size 128 128` → **`Size 428 107`**.
+
+**No `.c` change was needed** — `OVT_TutorialContext.c:416` resolves the widget with `FindAnyWidget("TutorialImage")`, so relocating it in the tree is invisible to script. Worth knowing before anyone assumes a layout move implies a context change.
+
+**No new GUIDs were allocated, deliberately.** The widget keeps `{6B3A00000000004A}` because it is the same widget, relocated. Its slot GUID `{59A6DA4C4FC5D425}` is also kept: slot GUIDs in this codebase are **shared class ids, not unique instance ids** — that one appears in 6 layouts and 9 times repo-wide, and `{56EEDE07C9F827C2}` (UpperStripe's) appears in 7. Verified before editing rather than assumed, because "every widget and slot gets a fresh GUID" is the usual rule and it does **not** apply to slots.
+
+**Sizing rationale, for whoever authors the art:**
+- Usable widths are **952** in the modal (1000 panel, 24 inset each side) and **428** on the HUD (`WidthOverride 460`, 16 px padding each side).
+- **One asset feeds both widgets** — same `m_sImage`, presentation mode picks the layout — so both *must* share an aspect ratio or it distorts in one. 4:1 satisfies both (952×238 and 428×107). Recommended source: **2048×512** — power-of-two for clean mips, and BCn compression needs multiples of 4 regardless.
+- ⚠️ **Vertical budget, not taste, is what caps the ratio.** The modal is a **fixed** 620 tall and the body is `Min Font Size 22` with no shrink-to-fit, so a tall header does not compress the text — it **clips** it. Budget: 620 − insets − 48 header − 24 stripe − ~60 footer ≈ **448 px for image + body**. At 4:1 the image takes 238, leaving ~210 ≈ 6-7 lines. 3:1 (`952×317`) drops that to ~4 lines — fine for a one-line HUD tip, too tight for a multi-page sequence.
+
+**Still unverified, and it is the same gap as before:** the `Is Visible` toggle branch (`OVT_TutorialContext.c:433-439`, `LoadImageTexture(0, page.m_sImage)`) has **never run live**, because nothing has ever set an image. Brace balance and structure were checked on both files; `.layout` files are not EnforceScript so `compile-check.sh` cannot see them. **The first entry that sets `m_sImage` needs a real play-test in both presentation modes**, not a compile gate. Note `m_sImage` is per **page**, not per entry (`OVT_TutorialEntryConfig.c` → `OVT_TutorialPage`), so a sequence can carry a different header per page.
+
+---
+
 ### 2026-08-07 — Phase 6 complete (⚠️ R3 confirmed a second time)
 
 

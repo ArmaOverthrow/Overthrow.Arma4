@@ -10,8 +10,9 @@
 //!
 //! The permanent record is per MACHINE and per PROFILE, not per campaign and not per player record.
 //! An entry shown once is never shown again on that profile, on any server or campaign - which is
-//! the whole point of the feature, and the exact property the old m_aHintedPlayers set failed to
-//! deliver by being reallocated every EOnInit.
+//! the whole point of the feature, and the exact property the legacy intro hint's session-only
+//! dedup set failed to deliver by being reallocated every EOnInit. (That set was deleted with the
+//! hint on 2026-08-09 by new-player-experience/first-spawn; this store is what replaced it.)
 //------------------------------------------------------------------------------------------------
 class OVT_TutorialSeenStore
 {

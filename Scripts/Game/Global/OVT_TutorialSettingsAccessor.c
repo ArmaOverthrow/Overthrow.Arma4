@@ -17,8 +17,10 @@
 //!  3. Flush on EVERY mutation (plan decision D8). The engine documentation reserves
 //!     SaveUserSettings() for "very important cases" and SCR_HintSettings settles for
 //!     UserSettingsChanged() alone; Overthrow players alt-F4 and crash far more often than they exit
-//!     cleanly, and losing seen state to an unclean exit would reproduce the exact m_aHintedPlayers
-//!     bug this feature exists to fix. SCR_FilterSet.c:344 is the precedent for flushing explicitly.
+//!     cleanly, and losing seen state to an unclean exit would reproduce the exact once-per-session
+//!     bug this feature exists to fix (the legacy intro hint's in-memory dedup set, reallocated on
+//!     every init and deleted with the hint on 2026-08-09). SCR_FilterSet.c:344 is the precedent
+//!     for flushing explicitly.
 //!
 //! Every entry point is a no-op returning false on a headless/dedicated server (System.IsConsoleApp),
 //! mirroring SCR_HintManagerComponent's own guard. A server has no player profile to remember

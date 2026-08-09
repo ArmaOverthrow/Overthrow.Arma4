@@ -996,3 +996,195 @@ class OVT_TEST_Logic_Tutorial_SeenStore : SCR_AutotestCaseBase
 		return text + "]";
 	}
 }
+
+//------------------------------------------------------------------------------------------------
+//! The spawn-context filter selects EXACTLY ONE welcome, and an empty context selects NONE.
+//!
+//! Two welcome entries are bound to the same event, at the same priority, and differ only in their
+//! filter: one for a player who was given a house, one for a player who was not. The property that
+//! matters to a player is that they read one of them and never both, and that the one they read
+//! describes the spawn they actually got.
+//!
+//! THE ASYMMETRY IS THE POINT, and it is the single most likely thing a future refactor breaks.
+//! An empty filter on a TRIGGER means "no filter, fire for anything". An empty filter on the
+//! EVENT CONTEXT is the opposite: it satisfies no filtered trigger at all, so it selects NEITHER
+//! welcome rather than defaulting to one. That is why the value the client carries into this event
+//! defaults to the house context and never to "": tidying that default to "" compiles, passes every
+//! other case in this file, and silently suppresses BOTH welcomes for every player on every machine.
+//! This case is what goes red on that day.
+//!
+//! Nothing here touches a component, a manager, a widget or the world - two entries and three event
+//! occurrences, all built with `new` and hand-written values.
+//!
+//! PROVEN ABLE TO FAIL 2026-08-09: see the Proven-Red Table in
+//! docs/features/new-player-experience/first-spawn/context.md.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_LogicSuite, timeoutS: 30)]
+class OVT_TEST_Logic_Tutorial_SpawnContextSelectsOneWelcome : SCR_AutotestCaseBase
+{
+	//! The two shipped welcome ids, and the two context values they are selected by. Written out as
+	//! literals rather than read off a component, because this tier owns no component.
+	protected static const string HOUSE_ID = "welcome-intro";
+	protected static const string NOHOUSE_ID = "welcome-nohome";
+	protected static const string HOUSE_CONTEXT = "house";
+	protected static const string NOHOUSE_CONTEXT = "nohouse";
+
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		array<ref OVT_TutorialEntryConfig> entries = new array<ref OVT_TutorialEntryConfig>();
+
+		// Same event, same priority, different filter - the shipped shape exactly.
+		entries.Insert(MakeEntry(HOUSE_ID, 100, true, OVT_TutorialEvent.PLAYER_SPAWNED, 0, HOUSE_CONTEXT));
+		entries.Insert(MakeEntry(NOHOUSE_ID, 100, true, OVT_TutorialEvent.PLAYER_SPAWNED, 0, NOHOUSE_CONTEXT));
+
+		// --- THE HOUSE CONTEXT SELECTS THE HOUSE WELCOME, AND ONLY IT.
+		array<string> house = new array<string>();
+		OVT_TutorialMatcher.FindMatches(entries, MakeContext(OVT_TutorialEvent.PLAYER_SPAWNED, 0, HOUSE_CONTEXT), house);
+
+		if (house.Count() != 1)
+		{
+			SetResultFailure("A '%1' spawn context selected %2 welcome(s) %3, expected exactly one. A player must read one welcome, never two and never none.",
+				HOUSE_CONTEXT, house.Count().ToString(), JoinIds(house));
+			return true;
+		}
+
+		if (house.Get(0) != HOUSE_ID)
+		{
+			SetResultFailure("A '%1' spawn context selected '%2', expected '%3' - the player who was given a house would read the houseless page",
+				HOUSE_CONTEXT, house.Get(0), HOUSE_ID);
+			return true;
+		}
+
+		// --- THE HOUSELESS CONTEXT SELECTS THE OTHER ONE, AND ONLY IT.
+		array<string> nohouse = new array<string>();
+		OVT_TutorialMatcher.FindMatches(entries, MakeContext(OVT_TutorialEvent.PLAYER_SPAWNED, 0, NOHOUSE_CONTEXT), nohouse);
+
+		if (nohouse.Count() != 1)
+		{
+			SetResultFailure("A '%1' spawn context selected %2 welcome(s) %3, expected exactly one",
+				NOHOUSE_CONTEXT, nohouse.Count().ToString(), JoinIds(nohouse));
+			return true;
+		}
+
+		if (nohouse.Get(0) != NOHOUSE_ID)
+		{
+			SetResultFailure("A '%1' spawn context selected '%2', expected '%3' - the player who spawned at a bus stop with no house and no car would read a page telling them they own a house and a car, which is the exact failure this feature exists to prevent",
+				NOHOUSE_CONTEXT, nohouse.Get(0), NOHOUSE_ID);
+			return true;
+		}
+
+		// --- AN EMPTY CONTEXT SELECTS NOTHING. The load-bearing asymmetry: "" on a TRIGGER means
+		// "no filter", but "" on the CONTEXT satisfies no filtered trigger, so it suppresses BOTH.
+		array<string> empty = new array<string>();
+		OVT_TutorialMatcher.FindMatches(entries, MakeContext(OVT_TutorialEvent.PLAYER_SPAWNED, 0, ""), empty);
+
+		if (empty.Count() != 0)
+		{
+			SetResultFailure("An EMPTY spawn context selected %1 welcome(s) %2, expected none. An empty context matches no filtered trigger, which is why the client-side default must be '%3' and never \"\": with \"\" the player sees NO welcome at all rather than the wrong page.",
+				empty.Count().ToString(), JoinIds(empty), HOUSE_CONTEXT);
+			return true;
+		}
+
+		// --- A NEAR MISS SELECTS NOTHING EITHER. A typo'd context is not silently rounded to a filter.
+		array<string> typo = new array<string>();
+		OVT_TutorialMatcher.FindMatches(entries, MakeContext(OVT_TutorialEvent.PLAYER_SPAWNED, 0, "House"), typo);
+
+		if (typo.Count() != 0)
+		{
+			SetResultFailure("A spawn context of 'House' selected %1 welcome(s) %2; the filter comparison must be exact and case-sensitive",
+				typo.Count().ToString(), JoinIds(typo));
+			return true;
+		}
+
+		// --- A DIFFERENT EVENT CARRYING THE SAME FILTER SELECTS NOTHING, which is what proves the
+		// selections above were the spawn event and not the filter string on its own.
+		array<string> otherEvent = new array<string>();
+		OVT_TutorialMatcher.FindMatches(entries, MakeContext(OVT_TutorialEvent.MAP_OPENED, 0, HOUSE_CONTEXT), otherEvent);
+
+		if (otherEvent.Count() != 0)
+		{
+			SetResultFailure("A non-spawn event carrying the '%1' filter selected %2 welcome(s) %3, expected none",
+				HOUSE_CONTEXT, otherEvent.Count().ToString(), JoinIds(otherEvent));
+			return true;
+		}
+
+		Print("Tutorial spawn context: 'house' selects welcome-intro alone, 'nohouse' selects welcome-nohome alone, and an EMPTY context selects neither - which is why the client-side default is 'house' and never \"\"");
+
+		SetResultSuccess();
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Builds one entry carrying exactly one trigger. Every field is set explicitly.
+	//! \param[in] id Entry id.
+	//! \param[in] priority Queue priority.
+	//! \param[in] enabled Whether the entry may fire.
+	//! \param[in] evt Event the single trigger listens for.
+	//! \param[in] minValue Trigger threshold, or 0 for none.
+	//! \param[in] filter Exact filter, or "" for none.
+	//! \return The entry.
+	protected OVT_TutorialEntryConfig MakeEntry(string id, int priority, bool enabled, OVT_TutorialEvent evt, int minValue, string filter)
+	{
+		OVT_TutorialEntryConfig entry = new OVT_TutorialEntryConfig();
+		entry.m_sId = id;
+		entry.m_sTitle = "#OVT-Tutorial_Test_Title";
+		entry.m_ePresentation = OVT_TutorialPresentation.MODAL;
+		entry.m_iPriority = priority;
+		entry.m_sFieldManualTitleKey = "";
+		entry.m_bEnabled = enabled;
+
+		entry.m_aPages = new array<ref OVT_TutorialPage>();
+		OVT_TutorialPage page = new OVT_TutorialPage();
+		page.m_sBody = "#OVT-Tutorial_Test_Body";
+		page.m_sImage = ResourceName.Empty;
+		entry.m_aPages.Insert(page);
+
+		entry.m_aTriggers = new array<ref OVT_TutorialTrigger>();
+		OVT_TutorialTrigger trigger = new OVT_TutorialTrigger();
+		trigger.m_eEvent = evt;
+		trigger.m_iMinValue = minValue;
+		trigger.m_sFilter = filter;
+		entry.m_aTriggers.Insert(trigger);
+
+		return entry;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] evt The event that occurred.
+	//! \param[in] value Numeric payload.
+	//! \param[in] filter String payload - the spawn context, for PLAYER_SPAWNED.
+	//! \return The occurrence.
+	protected OVT_TutorialEventContext MakeContext(OVT_TutorialEvent evt, int value, string filter)
+	{
+		OVT_TutorialEventContext ctx = new OVT_TutorialEventContext();
+		ctx.m_eEvent = evt;
+		ctx.m_iPlayerId = 1;
+		ctx.m_iValue = value;
+		ctx.m_sFilter = filter;
+		return ctx;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Renders an id list for a failure message.
+	//! \param[in] ids The ids.
+	//! \return A bracketed, comma-separated rendering.
+	protected string JoinIds(array<string> ids)
+	{
+		if (!ids)
+			return "<null>";
+
+		string text = "[";
+
+		for (int i = 0; i < ids.Count(); i++)
+		{
+			if (i > 0)
+				text += ", ";
+
+			text += ids.Get(i);
+		}
+
+		return text + "]";
+	}
+}

@@ -82,6 +82,17 @@ FrameWidgetClass {
         }
        }
       }
+      TextWidgetClass "{6B3D000000000201}" {
+       Name "OccupyingFactionDescription"
+       Slot LayoutSlot "{6466E3EAD3800B8B}" {
+        Padding 10 4 10 4
+       }
+       Text "#OVT-Faction_USSR_Occupying"
+       "Font Size" 11
+       "Min Font Size" 11
+       "Horizontal Alignment" Right
+       Wrap 1
+      }
       ButtonWidgetClass "{6478C5E471B46CC1}" : "{C9DF0E6590F6C388}UI/layouts/WidgetLibrary/SpinBox/WLib_SpinBox.layout" {
        Name "SupportingFactionSpinner"
        Slot LayoutSlot "{59BA5A735A7D34E2}" {
@@ -93,6 +104,17 @@ FrameWidgetClass {
          m_sLabel "#OVT-SupportingFaction"
         }
        }
+      }
+      TextWidgetClass "{6B3D000000000202}" {
+       Name "SupportingFactionDescription"
+       Slot LayoutSlot "{6466E3EAD3800B8B}" {
+        Padding 10 4 10 4
+       }
+       Text "#OVT-Faction_US_Supporting"
+       "Font Size" 11
+       "Min Font Size" 11
+       "Horizontal Alignment" Right
+       Wrap 1
       }
       ButtonWidgetClass "{6466E3EDEAB4B02F}" : "{C9DF0E6590F6C388}UI/layouts/WidgetLibrary/SpinBox/WLib_SpinBox.layout" {
        Name "DifficultySpinner"
@@ -109,12 +131,24 @@ FrameWidgetClass {
       TextWidgetClass "{6466E3EAD3800BA0}" {
        Name "DifficultyDescription"
        Slot LayoutSlot "{6466E3EAD3800B8B}" {
-        Padding 10 10 10 10
+        Padding 10 4 10 4
        }
-       Text "Difficulty Description"
-       "Font Size" 18
-       "Min Font Size" 18
+       Text "#OVT-Difficulty_Normal_Desc"
+       "Font Size" 11
+       "Min Font Size" 11
        "Horizontal Alignment" Right
+       Wrap 1
+      }
+      TextWidgetClass "{6B3D000000000203}" {
+       Name "DifficultyNumbers"
+       Slot LayoutSlot "{6466E3EAD3800B8B}" {
+        Padding 10 4 10 4
+       }
+       Text "#OVT-Difficulty_Numbers"
+       "Font Size" 13
+       "Min Font Size" 13
+       "Horizontal Alignment" Right
+       Wrap 1
       }
       FrameWidgetClass "{599D315A49A619C7}" {
        Name "Fill"
