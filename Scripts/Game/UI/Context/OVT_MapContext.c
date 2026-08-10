@@ -41,9 +41,17 @@ class OVT_MapContext : OVT_UIContext
 	//! Focus is cleared first because SetGadgetMode's hand->storage branch early-returns for EGadgetType.MAP
 	//! and so never closes the view itself. ToggleFocused(false) calls SetMapMode(false) internally.
 	//!
-	//! NO CALLERS TODAY, deliberately: all eight (one mode-exit, seven map-click) went with the legacy
-	//! modes in map/legacy-retirement. Kept as public API for map/respawn - the ordering above came from
-	//! play-test, not any gate, and would be re-derived wrong if cut. Not OVT_OverthrowMapUI's own pair.
+	//! NO CALLERS TODAY: all eight (one mode-exit, seven map-click) went with the legacy modes in
+	//! map/legacy-retirement, which retained this method "for map/respawn". That turned out to be wrong
+	//! and the claim is corrected here rather than repeated: map/respawn shipped without touching the map
+	//! GADGET at all. Its screen is a SPAWNSCREEN map opened with SCR_MapEntity.OpenMap and closed with
+	//! CloseMap, and a gadget map the player had raised when they died is already closed by the
+	//! FULLSCREEN life-state hook. So this method currently has no consumer, named or otherwise.
+	//!
+	//! KEPT ANYWAY, deliberately: the ordering above came from play-test, not from any gate, and would be
+	//! re-derived wrong if cut. Deleting it is a separate cleanup that should carry its own grep proof;
+	//! note the same ordering also lives in OVT_OverthrowMapUI's HideMap/StowMapGadget pair, so the
+	//! knowledge is not single-sourced here. Not OVT_OverthrowMapUI's own pair.
 	void HideMap()
 	{
 		SCR_MapGadgetComponent comp = GetMap();

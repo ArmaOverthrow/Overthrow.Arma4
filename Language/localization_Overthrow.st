@@ -6219,6 +6219,171 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A83D5A0000000C0}" {
+   Id "OVT-Respawn_Title"
+   Target_en_us "Respawn"
+   Comment "Respawn screen - title bar over the map a killed player chooses their spawn point on"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A83D5A0000000C1}" {
+   Id "OVT-Respawn_Hint"
+   Target_en_us "Choose where to respawn"
+   Comment "Respawn screen - status line under the title, shown until the server answers a request"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A83D5A0000000C2}" {
+   Id "OVT-Respawn_Here"
+   Target_en_us "Respawn Here"
+   Comment "Respawn screen - button on a selected map location's info panel, spawns the player there"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A83D5A0000000C3}" {
+   Id "OVT-Respawn_AtHome"
+   Target_en_us "Respawn at Home"
+   Comment "Respawn screen - button that always works, needs no map selection and ignores every eligibility rule"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A83D5A0000000C4}" {
+   Id "OVT-Respawn_FellBackHome"
+   Target_en_us "That location was no longer available. You respawned at home."
+   Comment "Respawn screen - the chosen location stopped being eligible before the server got the request; the player spawned at home instead"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A83D5A0000000C5}" {
+   Id "OVT-Respawn_EnemyBase"
+   Target_en_us "This base is held by the occupying faction"
+   Comment "Respawn screen - why an enemy-held base cannot be respawned at"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A83D5A0000000C6}" {
+   Id "OVT-Respawn_PrivateCamp"
+   Target_en_us "This camp is private"
+   Comment "Respawn screen - why another player's private camp cannot be respawned at"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A83D5A0000000C7}" {
+   Id "OVT-Respawn_NotYourHouse"
+   Target_en_us "You do not own or rent this house"
+   Comment "Respawn screen - why a house the player has no tenure in cannot be respawned at"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A83D5A0000000C8}" {
+   Id "OVT-Respawn_QRF"
+   Target_en_us "There is fighting at this location"
+   Comment "Respawn screen - why a location inside an active QRF cannot be respawned at"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A83D5A0000000C9}" {
+   Id "OVT-Respawn_NotEligible"
+   Target_en_us "You cannot respawn there"
+   Comment "Respawn screen - generic refusal when the server does not agree the player may spawn at the requested place"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A83D5A0000000CA}" {
+   Id "OVT-Respawn_Failed"
+   Target_en_us "The respawn could not be completed. Try again."
+   Comment "Respawn screen - the server could not complete the spawn; the screen stays up so the player can pick again"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{59A6DA4EA0AEA2B4}" {
    Id "OVT-Resistance_Funds"
    Target_en_us "Total Funds"

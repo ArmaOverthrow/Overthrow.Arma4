@@ -68,6 +68,8 @@ change here is recorded in this table with the feature that made it.
 | **`AddInfoRow(rows, label, value)`** | helper | **Added by `map/location-types` Phase 5.** Append a label/value row (empty label ⇒ full-width line). |
 | **`AddInfoIconRow(rows, label, value, imageset, icon)`** | helper | **Added by `map/location-types` Phase 5.** As above, with a leading glyph. |
 | **`ClearInfoRows(rows)`** | helper | **Added by `map/location-types` Phase 5.** Empty the rows container. |
+| **`CanRespawn(location, playerID, out reason)`** | virtual | **Added by `map/respawn` (2026-08-10).** Per-record respawn eligibility, defaulting to refuse (`reason = "#OVT-Respawn_NotEligible"`, returns false). Overridden on Base/FOB/Camp/House. **Hot path** — reached from `ShouldShowLocation` on every zoom change whenever `m_bRespawnOnly` is set. **Advisory only, like `CanFastTravel`:** it decides what this client *draws*; the server re-derives the eligible set from its own managers in `OVT_RespawnService.CollectEligiblePositions` and that is what decides where anybody actually spawns. |
+| **`m_bRespawnOnly`** | attribute | **Added by `map/respawn` (2026-08-10).** `1` = this instance draws only records that pass `CanRespawn`. Set only in `Configs/Map/OverthrowMapRespawn.conf` (all four of its entries); `0` (default) leaves the living map byte-for-byte unchanged — `ShouldShowLocation` returns immediately after one boolean compare. |
 
 **The Phase 5 change is purely additive and cannot alter the bespoke path.** `UpdateInfoPanel` now reads:
 `m_InfoLayout` set → today's path verbatim, then `return`; else `m_SharedInfoLayout` set → create it,
@@ -80,6 +82,28 @@ in `Configs/Map/OverthrowMap.conf` (`:7`, `:20`, `:33`), so the new branch is un
 |---|---|---|
 | `Rows` | `UI/Layouts/Map/Core/OVT_MapInfoRows.layout` | `OVT_MapLocationType.UpdateInfoPanel` |
 | `RowLabel` / `RowValue` / `RowIcon` | `UI/Layouts/Map/Core/OVT_MapInfoRow.layout` | `OVT_MapInfoRowHandler.HandlerAttached` |
+
+**Layout ↔ code names introduced by `map/respawn` (2026-08-10).** Same failure mode, same discipline — each
+name below was grepped in both the layout that defines it and the code that reads it.
+
+| Name | Layout | Read by |
+|---|---|---|
+| `RespawnButton` | `UI/Layouts/Map/Core/OVT_MapInfoPanelRespawn.layout` | `OVT_RespawnMapUI.SetupTravelButton` (`FindAnyWidget` on `m_wInfoPanel`, then `FindHandler(SCR_InputButtonComponent)`) |
+| `RespawnHomeButton` | `UI/Layouts/Respawn/OVT_RespawnScreen.layout` | `OVT_RespawnContext.WireRespawnHomeButton` (`FindAnyWidget` on `m_wRoot`, then `FindHandler(SCR_InputButtonComponent)`) |
+| `StatusText` | `UI/Layouts/Respawn/OVT_RespawnScreen.layout` | `OVT_RespawnContext.SetStatusText` — the persistent refusal line; the hint `OVT_RespawnRequestComponent` raises is transient |
+| `MapWidget` | vanilla `UI/layouts/Map/Map.layout`, inherited into `OVT_RespawnScreen.layout` | `SCR_MapEntity.OpenMap`, via `SCR_MapConstants.MAP_WIDGET_NAME`, as `config.RootWidgetRef.FindAnyWidget(...)`. **This is why the respawn screen must embed vanilla's `Map.layout` rather than author its own frame** — the name is not optional and the map entity resolves it out of whatever root widget it is handed. |
+| `MapFrame` | `UI/Layouts/Respawn/OVT_RespawnScreen.layout` (the name given to the *inherited* `Map.layout` instance; vanilla's own root frame carries the same name) | **Nothing in Overthrow reads it.** `SCR_MapConstants.MAP_FRAME_NAME` has three vanilla consumers — `SCR_MapDrawingUI`, `SCR_MapMarkerBase` and `SCR_MapMarkerEntity` — and **none of those modules is carried by `Configs/Map/MapRespawn.conf`**, so on the respawn screen the name is defined and never looked up. Keep it correct anyway: adding drawing or markers to that config would make it load-bearing overnight. |
+
+Pre-existing names the respawn info panel must keep, because they are read by the **inherited**
+`OVT_OverthrowMapUI` code and not by anything respawn-specific: `LocationName`, `LocationType`,
+`ContentSlot`, `CloseButton`. Names deliberately **absent** from that layout are a feature, not an
+omission. `FastTravelButton` / `FastTravelReason` / `BringRecruitsButton` are never even *looked up* on this
+screen — `OVT_RespawnMapUI.SetupTravelButton` overrides the only place the base class builds travel
+affordances and deliberately does not call `super`. `Distance` **is** looked up (`SetupLocationInfoBase`
+does it unconditionally, ignoring `m_bShowDistance`, and writes the literal `"Unknown"` on `-1`), and its
+absence from the layout is what suppresses the row — a null `FindAnyWidget` skipping the whole block. Both
+halves of "no travel affordances and no distance row on the respawn screen" are therefore enforced by the
+layout, not by a runtime branch.
 
 ---
 

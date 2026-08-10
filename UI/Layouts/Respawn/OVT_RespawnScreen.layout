@@ -1,0 +1,125 @@
+FrameWidgetClass {
+ Name "rootFrame"
+ {
+  FrameWidgetClass "{6A83D5A000000010}" : "{0651202E9F2646DE}UI/layouts/Map/Map.layout" {
+   Name "MapFrame"
+   Slot FrameWidgetSlot "{5CFECB9DD2989020}" {
+    Anchor 0 0 1 1
+    PositionX 0
+    OffsetLeft 0
+    PositionY 0
+    OffsetTop 0
+    SizeX 0
+    OffsetRight 0
+    SizeY 0
+    OffsetBottom 0
+   }
+  }
+  OverlayWidgetClass "{6A83D5A000000011}" {
+   Name "TitleBar"
+   Slot FrameWidgetSlot "{5D18C6C78037F8E9}" {
+    Anchor 0.5 0 0.5 0
+    PositionX 0
+    OffsetLeft 0
+    PositionY 24
+    OffsetTop 0
+    SizeX 900
+    OffsetRight -900
+    SizeY 104
+    OffsetBottom -104
+    Alignment 0.5 0
+   }
+   "Z Order" 100
+   {
+    ImageWidgetClass "{6A83D5A000000012}" {
+     Name "TitleBarBackground"
+     Slot OverlayWidgetSlot "{5CE27BB9C5A0CB08}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+     }
+     Opacity 0.8
+     Color 0.0314 0.0314 0.0314 1
+    }
+    ImageWidgetClass "{6A83D5A00000001A}" {
+     Name "TitleBarStripe"
+     Slot OverlayWidgetSlot "{5CE27BB9C5A0CB08}" {
+      HorizontalAlign 3
+      VerticalAlign 2
+     }
+     "Z Order" 1
+     Color 0.761 0.392 0.08 1
+     Size 0 2
+    }
+    VerticalLayoutWidgetClass "{6A83D5A000000013}" {
+     Name "TitleColumn"
+     Slot OverlayWidgetSlot "{5CE27BB9C5A0CB62}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+      Padding 24 14 24 14
+     }
+     "Z Order" 2
+     {
+      TextWidgetClass "{6A83D5A000000014}" {
+       Name "Title"
+       Slot LayoutSlot "{5CD479DE9E77AA47}" {
+        Padding 0 0 0 6
+       }
+       Color 1 1 1 1
+       Text "#OVT-Respawn_Title"
+       "Font Size" 28
+       "Min Font Size" 20
+       "Horizontal Alignment" Center
+       "Vertical Alignment" Center
+       FontProperties FontProperties "{6A83D5A000000019}" {
+        Bold 1
+       }
+      }
+      TextWidgetClass "{6A83D5A000000015}" {
+       Name "StatusText"
+       Slot LayoutSlot "{5CD479DE9E77AA47}" {
+       }
+       Color 0.9 0.9 0.9 1
+       Text "#OVT-Respawn_Hint"
+       "Font Size" 16
+       "Min Font Size" 12
+       "Horizontal Alignment" Center
+       "Vertical Alignment" Center
+      }
+     }
+    }
+   }
+  }
+  HorizontalLayoutWidgetClass "{6A83D5A000000016}" {
+   Name "ActionBar"
+   Slot FrameWidgetSlot "{5D18C6C78037F8E9}" {
+    Anchor 0.5 1 0.5 1
+    PositionX 0
+    OffsetLeft 0
+    PositionY -32
+    OffsetTop 0
+    SizeX 400
+    OffsetRight -400
+    SizeY 64
+    OffsetBottom -64
+    Alignment 0.5 1
+    SizeToContent 1
+   }
+   "Z Order" 100
+   {
+    ButtonWidgetClass "{6A83D5A000000017}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+     Name "RespawnHomeButton"
+     Slot LayoutSlot "{56EEDE01982D053A}" {
+      VerticalAlign 1
+      Padding 0 0 0 0
+     }
+     components {
+      SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+       m_sActionName "OverthrowRespawnAtHome"
+       m_sLabel "#OVT-Respawn_AtHome"
+      }
+     }
+    }
+   }
+  }
+ }
+}

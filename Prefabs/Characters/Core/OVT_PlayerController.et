@@ -3,5 +3,7 @@ SCR_PlayerController : "{225E51284CC95CFA}Prefabs/Characters/Core/DefaultPlayerC
  components {
   OVT_PlayerStartMenuHandlerComponent "{66C6016D1E335793}" {
   }
+  OVT_RespawnScreenHandlerComponent "{6A83D5A0000000D0}" {
+  }
  }
 }

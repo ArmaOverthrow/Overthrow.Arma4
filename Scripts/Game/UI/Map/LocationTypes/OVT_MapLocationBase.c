@@ -169,4 +169,37 @@ class OVT_MapLocationBase : OVT_MapLocationType
 		// Check global fast travel restrictions
 		return OVT_FastTravelService.CanGlobalFastTravel(location.m_vPosition, playerID, reason);
 	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A base the occupying faction still holds is theirs; anything else may be respawned at.
+	//!
+	//! Reads the same "isOccupying" key CanFastTravel does, minus the global fast-travel tail, whose
+	//! distance, wanted and fare rules are all measured from a living player and are meaningless for
+	//! a respawn.
+	//! \param[in] location The record being tested
+	//! \param[in] playerID Persistent id of the local player
+	//! \param[out] reason Localization key explaining a refusal
+	//! \return True when this player may respawn at this base
+	override bool CanRespawn(OVT_MapLocationData location, string playerID, out string reason)
+	{
+		if (!location)
+		{
+			reason = "#OVT-Respawn_NotEligible";
+			return false;
+		}
+
+		if (!OVT_RespawnService.IsBaseEligible(location.GetDataBool("isOccupying", true)))
+		{
+			reason = "#OVT-Respawn_EnemyBase";
+			return false;
+		}
+
+		if (OVT_RespawnService.IsPositionInActiveQRF(location.m_vPosition))
+		{
+			reason = "#OVT-Respawn_QRF";
+			return false;
+		}
+
+		return true;
+	}
 }

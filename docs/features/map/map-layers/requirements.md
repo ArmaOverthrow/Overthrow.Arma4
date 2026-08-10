@@ -40,3 +40,47 @@ There is a natural label source already in place. Every location type declares a
 - **Rearranging or restyling the map itself** beyond adding the panel and legend.
 - **Server-side or admin control of what players may see.** Toggles are player presentation preferences only; any notion of the campaign hiding information from a player belongs to the future intel epic, not here.
 - **Changing any location type's default visibility zoom values** — `m_fVisibilityZoom` / `m_fShowNameZoom` tuning stays with `map/location-types`.
+
+---
+
+## Recorded planning decisions (2026-08-11)
+
+`/plan-feature map/map-layers` was started on 2026-08-11 and **deliberately deferred** in favour of
+planning `map/territory-overlay` first, per the epic's recorded build order (feature 7 follows feature 6
+so the panel is built against the crowded map it exists to tune). Four decisions were settled before the
+deferral and are recorded here so the next planning pass does not re-ask them:
+
+- **Entry point: a vanilla tool-menu entry, not a new keybinding.** `Configs/Map/MapFullscreen.conf` is a
+  same-GUID *delta* over vanilla's, so vanilla's `SCR_MapToolMenuUI` is already live on Overthrow's
+  fullscreen map. `SCR_MapToolMenuUI.RegisterToolMenuEntry(imageset, icon, sortPriority, isExclusive)` is
+  the pattern nine vanilla components use, and `SCR_MapJournalUI` (`:46-57`) is the exact precedent for
+  "tool-menu entry → panel docked into `ToolFramesOverlay`" (a frame that already exists in vanilla's
+  `UI/layouts/Map/MapMenu.layout:51-57`). **This closes the gamepad requirement for free**: tool-menu
+  focus is `MapToolMenuFocus` = `gamepad0:pad_left` (single click), already bound, so no free key or pad
+  button has to be found on `MapContext` — which is the single riskiest part of any new Overthrow map
+  input (41 live actions, `KC_H` taken three times over, and the repo's conflict checker cannot see
+  inline `ActionContext` actions).
+- **Default preset: everything on.** The panel is purely additive — a player who never opens it sees
+  exactly today's map. The existing per-type `m_fVisibilityZoom` thresholds already keep houses, shops
+  and bus stops off the zoomed-out view, so there is no first-open clutter problem to pre-solve.
+- **Legend shape: one list, each row is both the legend entry and the toggle** (icon + localized name +
+  on/off). No separate read-only colour key. Rows are generated from the configured type list, so the
+  panel stays correct as types are added to `Configs/Map/OverthrowMap.conf` with no code change.
+- **Persistence mechanism: vanilla `ModuleGameSettings`.** A `ModuleGameSettings` subclass read/written
+  via `GetGame().GetGameUserSettings().GetModule("<ClassName>")` +
+  `BaseContainerTools.WriteToInstance` / `ReadFromInstance` + `GetGame().UserSettingsChanged()`
+  (precedents: `SCR_ManualCameraSettings`, `SCR_EditorPersistentData`, `SCR_HintSettings`). Per-profile,
+  console-safe, needs no `.conf` registration and no new file I/O. Overthrow does not use this mechanism
+  anywhere yet — this would be its first. Note the consequence: preferences are **per profile, not per
+  campaign**, so they follow the player across saves and servers.
+
+**One finding that belongs to whoever builds the overlay toggles:** every `OVT_MapCanvasLayer` resolves
+the *same* `CanvasWidget` (`SCR_MapConstants.DRAWING_WIDGET_NAME`, `OVT_MapCanvasLayer.c:89`) and each
+one calls `m_Canvas.SetDrawCommands(m_Commands)` from its own `Update` (`:12-19`) — so with two enabled
+layers the last to run overwrites the first. It is invisible today only because `OVT_MapThreatGrid` ships
+disabled, leaving `OVT_MapRestrictedAreas` as the sole live layer. A second live overlay makes it a real
+defect, so "toggle an overlay" cannot mean "SetActive a module" until the layers share one command list.
+
+**The scope question left open:** whether overlay toggles are built against a generic registration API
+(any canvas layer registers itself) or hardcoded to the layers that exist. That was not settled, because
+the answer depends on what `map/territory-overlay` actually ships.

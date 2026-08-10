@@ -81,15 +81,52 @@ class OVT_Global : Managed
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! CLIENT-ONLY. Resolves the persistent id of the player sitting at THIS machine.
+	//!
+	//! Never call this from anything the server can reach, for exactly the same reason
+	//! SCR_PlayerController.GetLocalPlayerId() is itself client-only: on a dedicated server there is no
+	//! local player, and on a listen server it silently answers with the host's identity. Server code must
+	//! take the persistent id as a parameter instead.
+	//!
+	//! Unlike the older map-UI idiom, this does NOT go through the controlled entity. A dead player may
+	//! have no controlled entity at all, and every consumer of the persistent id fails closed on an empty
+	//! string (private camps filter out, houses do not populate, the controller cannot be found) - a screen
+	//! that draws nothing and logs nothing. The runtime player id survives death, so this does too.
+	//!
+	//! Failure mode is unchanged from the entity-based route: GetLocalPlayerId() answers 0 with no player
+	//! controller, and GetPersistentIDFromPlayerID() answers "" for any id below 1 or not yet registered.
+	//! \return The local player's persistent id, or an empty string when it cannot be resolved.
+	static string GetLocalPersistentId()
+	{
+		OVT_PlayerManagerComponent players = GetPlayers();
+		if (!players) return "";
+
+		return players.GetPersistentIDFromPlayerID(SCR_PlayerController.GetLocalPlayerId());
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Get the local player's overthrow controller entity
+	//!
+	//! The controlled-entity route is kept first and unchanged so the living path cannot regress. The
+	//! fallback exists because a dead player awaiting respawn may control nothing, and without it every
+	//! controller component - and therefore every client->server request - is unreachable while dead.
 	//! \return Controller entity or null if not found/on server
 	static OVT_OverthrowController GetController()
-	{		
+	{
 		IEntity player = SCR_PlayerController.GetLocalControlledEntity();
-		if (!player) return null;
-		
-		int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(player);
-		return GetPlayers().GetController(playerId);
+		if (player)
+		{
+			int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(player);
+			return GetPlayers().GetController(playerId);
+		}
+
+		int localPlayerId = SCR_PlayerController.GetLocalPlayerId();
+		if (localPlayerId < 1) return null;
+
+		OVT_PlayerManagerComponent players = GetPlayers();
+		if (!players) return null;
+
+		return players.GetController(localPlayerId);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -134,6 +171,21 @@ class OVT_Global : Managed
 		if (!controller) return null;
 
 		return OVT_TravelRequestComponent.Cast(controller.FindComponent(OVT_TravelRequestComponent));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Convenience method to get the server-authoritative respawn request component
+	//!
+	//! CLIENT-ONLY, like every other accessor built on GetController(). This is the one that depends
+	//! on GetController()'s no-controlled-entity fallback: its caller is a player with no character,
+	//! and without that branch this would answer null for exactly the state it exists to serve.
+	//! \return Respawn request component or null
+	static OVT_RespawnRequestComponent GetRespawnRequests()
+	{
+		OVT_OverthrowController controller = GetController();
+		if (!controller) return null;
+
+		return OVT_RespawnRequestComponent.Cast(controller.FindComponent(OVT_RespawnRequestComponent));
 	}
 
 	//------------------------------------------------------------------------------------------------

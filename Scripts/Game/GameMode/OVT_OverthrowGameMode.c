@@ -11,6 +11,15 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	[Attribute()]
 	ref OVT_StartGameContext m_StartGameUIContext;
 
+	//! UI Context for the respawn screen (configured in Workbench with layout)
+	//!
+	//! Hosted here rather than on the player character deliberately: OVT_UIManagerComponent lives on
+	//! the character and closes every context it owns from its own player-death handler, so a screen
+	//! registered there is torn down by the event that must open it. One instance per machine, driven
+	//! by OVT_RespawnScreenHandlerComponent on the player controller.
+	[Attribute()]
+	ref OVT_RespawnContext m_RespawnUIContext;
+
 	//! Prefab resource for the camera used for the single player menu at the start of the game.
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Start Camera Prefab", params: "et")]
 	ResourceName m_StartCameraPrefab;
@@ -101,6 +110,14 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	OVT_StartGameContext GetStartGameContext()
 	{
 		return m_StartGameUIContext;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Gets the respawn screen UI context (configured in the game mode prefab)
+	//! \\return The respawn context with layout configured, or null when the prefab is missing it
+	OVT_RespawnContext GetRespawnContext()
+	{
+		return m_RespawnUIContext;
 	}
 
 
@@ -780,7 +797,16 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		IEntity controlledEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
 
 		// Mark the record offline whether or not the player still controls a body - a player who
-		// leaves while dead or in the respawn menu has no controlled entity but is just as gone.
+		// leaves without one is just as gone.
+		//
+		// CORRECTED BY map/respawn: this used to say a player who leaves while dead or on the respawn
+		// screen HAS no controlled entity. Since the death path defers character creation until the
+		// player picks a spawn, they keep possessing their CORPSE for as long as the choice takes, so
+		// the branch below now runs on a corpse rather than being skipped. That is safe - every capture
+		// it makes (body id, transform, gear) is independently dead-guarded, so death still means total
+		// loss - and the corpse is not claimed on reconnect, because OVT_ReconnectComponent refuses a
+		// dead body. Net effect on reconnect: no body id, no last-known position, no gear snapshot, so
+		// they spawn at home, which is what the deferred death path intends.
 		OVT_PlayerData player = m_PlayerManager.GetPlayer(persId);
 		if(player)
 		{

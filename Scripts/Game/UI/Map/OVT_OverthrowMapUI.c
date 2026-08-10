@@ -1302,18 +1302,11 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 	}
 	
 	//! Get current player ID as string
+	//! CLIENT-ONLY. Resolved from the local runtime player id rather than from a controlled entity, so it
+	//! still answers for a dead player with no character.
 	protected string GetCurrentPlayerID()
 	{
-		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
-		if (!players)
-			return "";
-		
-		ChimeraCharacter playerEntity = ChimeraCharacter.Cast(SCR_PlayerController.GetLocalControlledEntity());
-		if (!playerEntity)
-			return "";
-		
-		int playerID = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(playerEntity);
-		return players.GetPersistentIDFromPlayerID(playerID);
+		return OVT_Global.GetLocalPersistentId();
 	}
 	
 	SCR_MapGadgetComponent GetMap()

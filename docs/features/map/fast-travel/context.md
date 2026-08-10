@@ -1,8 +1,10 @@
 # Map Fast Travel - Context & Decisions
 
-**Last Updated:** 2026-08-10
-**Current Phase:** ✅ Complete — play-test gate discharged
-**Status:** ✅ **Complete** — Phases 1–5 landed, reviewed, fixed, play-tested green 2026-08-10, plus one post-ship fix (map item not stowed on close)
+**Last Updated:** 2026-08-11
+**Current Phase:** ✅ **CLOSED** — every gate discharged, including multiplayer
+**Status:** ✅ **CLOSED 2026-08-11** — Phases 1–5 landed, reviewed, fixed, play-tested green 2026-08-10; one
+post-ship fix (map item not stowed on close) re-tested green; and the Phase 0 two-client MP matrix
+discharged 2026-08-11. **The user reports all play-test items green, including MP.**
 
 ---
 
@@ -25,21 +27,35 @@
   instead of concatenating free text onto a `#OVT-` key. `OVT_FastTravelService.VerbUsesKmFloor` now owns
   the verb→fare-floor mapping and the Logic tier asserts it directly.
 
-**What's Next:**
-- 🔴 **REGENERATE THE LOCALIZATION EXPORTS BEFORE PLAY-TESTING.** See "The four ids this feature adds are
-  not in the runtime exports yet" under Gotchas. Five ids are in the `.st` master and absent from
-  `Language/localization_Overthrow.*.conf`, so today they render as raw key text on screen.
-- 🟡 **Phase 6** — the user-driven verification gate (§7 V-3 … V-6). **Nothing in this feature has been play-tested.**
+- ✅ **Localization exports regenerated** by the user 2026-08-10 — all five new ids resolve; the raw-key
+  hazard described under Gotchas is discharged (the Gotcha is kept as a *learning*, not a live warning).
+- ✅ **Phase 6** — the single-session verification gate, user-run and green 2026-08-10.
+- ✅ **Post-ship fix** — map closed but the item stayed raised in hand; fixed and re-tested green 2026-08-11.
+- ✅ **Phase 0** — the two-client dedicated-server MP matrix, user-run and green 2026-08-11. It was written
+  as a *verify-before* and was discharged as a *verify-after*; that distinction is recorded in `tasks.md`.
 
-**Blockers:** none. Phase 4's hard dependency (`map/location-types` G4) **has landed** — `OVT_Global.GetMapMarkers()` (`:199`), `OVT_MapMarkerManagerComponent.GetNearestMarker()` (`:176`) and `OVT_MapLocationBusStop` all exist in this tree.
+**What's Next:** nothing. **The feature is closed.** Two things are carried forward as record rather than work:
+
+- The **listen-server-host result short-circuit** is the one branch nobody has stood in front of — the MP
+  testing ran against a dedicated server. Not a known defect; an untested branch.
+- **F4's pre-fix observation** is now permanently unobservable (the fix shipped first). The post-fix
+  behaviour — recruits ride along, the fare prices them — is what was verified.
+
+**Blockers:** none, and none remain. Phase 4's hard dependency (`map/location-types` G4) landed — `OVT_Global.GetMapMarkers()` (`:199`), `OVT_MapMarkerManagerComponent.GetNearestMarker()` (`:176`) and `OVT_MapLocationBusStop` all exist in this tree.
 
 ---
 
-## Phase 0 substitutions — READ THIS BEFORE TRUSTING THE BUILD
+## Phase 0 substitutions — how the build was justified before anyone tested it
 
-**Phase 0 was never run.** It is a two-client multiplayer play-test (`tools/launch-server.sh` + two
-`tools/launch-game.sh` clients) and an autonomous session cannot drive two Reforger windows and observe
-them. Phases 1–5 therefore proceeded on the plan's code-reading inferences.
+> ✅ **Superseded by observation 2026-08-11.** The user has now run the two-client MP play-test and
+> reported it green, so S1 and S3 below are no longer standing on static evidence alone — the branches
+> they chose were confirmed in a live dedicated-server session. This section is kept because it records
+> **why the build was allowed to proceed untested**, and because a later reader must still be able to
+> tell which conclusions were originally measured and which were inferred.
+
+**Phase 0 was not run before the fix.** It is a two-client multiplayer play-test (`tools/launch-server.sh`
++ two `tools/launch-game.sh` clients) and an autonomous session cannot drive two Reforger windows and
+observe them. Phases 1–5 therefore proceeded on the plan's code-reading inferences.
 
 Phase 0 existed to settle three open branch decisions. Two of the three were settled from **static
 evidence instead**, and the substitution is recorded here because a later reader must not mistake these
@@ -130,10 +146,12 @@ open. What remains genuinely unobserved is whether the widget consumes the click
 selection handler sees it. Phase 3 applies R6's guard regardless — it is cheap and inert if the hazard
 does not manifest.
 
-**Still owed, and only a human can pay it:** F1/F2/F4 were never *observed* pre-fix. The fixes are
+**Paid 2026-08-11, with one permanent gap.** F1/F2/F4 were never *observed* pre-fix, and never will be —
+the fixes shipped first, so the old behaviour no longer exists in any build to watch fail. The fixes were
 justified independently (a client-side teleport and a client-side money debit are wrong on a dedicated
-server by construction, and `CLAUDE.md` forbids the pattern), but nobody has watched the old behaviour
-fail. Phase 6's verification matrix is the real gate.
+server by construction, and `CLAUDE.md` forbids the pattern) and the **post-fix** behaviour is now
+observed green in a two-client dedicated-server session. That is the strongest form of this evidence
+still available; it is not the same thing as having reproduced the bugs.
 
 ---
 
@@ -227,7 +245,8 @@ the sibling feature is in flight.
 - **Same-GUID `.conf`/prefab overrides are DELTAS, not replacements.** This is why `SCR_MapRadialUI` is
   still live on Overthrow's map despite our own `MapFullscreen.conf` never mentioning it — and therefore
   why the `gamepad0:x` collision is real.
-- **🔴 The five ids this feature adds are in the `.st` master and NOT in the generated runtime exports.**
+- **✅ (RESOLVED 2026-08-10 — kept as a learning, not a live warning) The five ids this feature adds were
+  in the `.st` master and NOT in the generated runtime exports.**
   Measured, not guessed: a throwaway autotest case calling `WidgetManager.Translate` in a live client
   returned the raw key for `#OVT-Map_BringRecruits`, `#OVT-Map_LeaveRecruits`, `#OVT-Travelled`,
   `#OVT-NotAtBusStop` and `#OVT-TravelWithFare`, while every pre-existing key resolved
@@ -261,7 +280,33 @@ the sibling feature is in flight.
 
 ---
 
-*Phase 0 and Phase 6 are user-driven play-tests and are the outstanding gate on this feature.*
+*Phase 0 and Phase 6 were the user-driven play-tests this feature rested on. **Both are discharged** —
+Phase 6 on 2026-08-10, Phase 0 (multiplayer) on 2026-08-11. Nothing is outstanding.*
+
+---
+
+## Session note — 2026-08-11 (closing)
+
+**No code changed this session.** The user reported the outcome of the play-tests that were the feature's
+last open gate: **all items green, including multiplayer**, and asked for the feature to be closed.
+
+What that discharged, in order of how much it was worth:
+
+1. **Phase 0's two-client dedicated-server matrix** — the gate that had been open since the plan was
+   written, and the only one that could confirm the server-authoritative path against a *real* second
+   client rather than against a code reading. F1 (the player moves and the server agrees) and F2 (the
+   charge is real and survives the next authoritative sync) are the two that mattered; N9 confirms S1's
+   conservative branch was the right one, and N10/N12 close the two input hazards.
+2. **The post-ship map-stow fix** — re-tested with the map genuinely in hand.
+
+Two items are carried in the docs as **record, not work**: the listen-server-host result short-circuit is
+an untested branch (MP testing used a dedicated server), and F4's pre-fix observation is permanently
+unobservable because the fix shipped before anyone watched the bug. Both are written into `tasks.md` and
+the Quick Status rather than quietly dropped, because "closed" should not read as "everything was seen".
+
+**Next session:** nothing on this feature. The map epic's next unbuilt work is `map/respawn` — note the
+standing trap recorded above under Gotchas: **respawn must not call `CanGlobalFastTravel`**, whose
+minimum-distance and cost terms both measure from a living player's current position.
 
 ---
 

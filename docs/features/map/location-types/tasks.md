@@ -1,7 +1,9 @@
 # Map Location Types - Task Checklist
 
-**Last Updated:** 2026-08-10
-**Progress:** 35/41 tasks complete (85%) — Phases 1–6 ✅ (build complete; Phase 7 is user-driven verification)
+**Last Updated:** 2026-08-11
+**Progress:** 41/42 tasks complete (98%) — Phases 1–7 ✅ **all built and play-tested green**, and the
+caret art redraw landed 2026-08-11. The only work left is **documentation, not code**: filing the seven
+deferred findings as bugs against other features (Phase 7b).
 
 > Derived from `implementation.md` §5. Phase order is load-bearing: the bus-stop migration
 > (Phase 1) is the riskiest item and `map/fast-travel` F5 is blocked on it.
@@ -221,31 +223,54 @@
 
 ---
 
-## Phase 7: Verification, parity sign-off, bug filing — **user-driven, no agent** (0/6 complete)
+## Phase 7: Verification, parity sign-off, bug filing — **user-driven, no agent** (6/7 complete) ✅
 
-- [ ] **V-3 — single-player marker sweep**
+> **✅ ALL VERIFICATION ROWS GREEN.** The user play-tested the feature and reported everything green,
+> including multiplayer (2026-08-11). V-3 … V-7 and the F-1 parity checklist are discharged. **The one
+> item still open is 7b — filing the deferred findings as bugs**, which is documentation work against
+> *other* features, not a defect in this one.
+
+- [x] ✅ **V-3 — single-player marker sweep** — Completed 2026-08-11
   - Description: Start a campaign; buy a house, buy a vehicle, place a camp, deploy a FOB, build a maintenance ramp, accept a job and "show on map", mark a recruit on the map. Walk the F-1 checklist. Confirm F-9 and F-10.
   - **Also (new — BUG-136 landed in `map/core` after this feature was built):** live refresh is now on for these types (5 s Town/Base/RadioTower/FOB/Camp, 2 s Vehicle). Leave the map open **>5 s with an info panel pinned**, and again **with a vehicle marker pinned while the vehicle is moving**. Confirm: the panel survives a refresh tick, the vehicle marker follows the vehicle, and hover/selection still work afterwards. Reconciliation destroys elements mid-session, so a missed reference cleanup re-creates **BUG-135 on a timer** (`core/context.md:116`). Nothing in the automated spine can see this.
   - Estimate: 🔴 > 3 hours
 
-- [ ] **V-4 — zoom sweep (Q-5)**
+- [x] ✅ **V-4 — zoom sweep (Q-5)** — Completed 2026-08-11
   - Description: Max zoom-out → max zoom-in. Each type appears at a sensible zoom; names do not overlap into illegibility; no type is visible where it is pure noise. This is the clutter gate, not a code review.
   - Estimate: 🟡 1-2 hours
 
-- [ ] **V-5 — two-client MP/JIP gate (highest risk; do not skip)**
+- [x] ✅ **V-5 — two-client MP/JIP gate (highest risk)** — Completed 2026-08-11. **This is the row that
+      mattered most**: it is the only confirmation that the N1 house-privacy fix actually isolates per
+      player across clients, rather than merely reading correctly in single player where every id is yours.
   - Description: `tools/launch-server.sh` + two `tools/launch-game.sh --timeout 3600 --profile …` clients. Verify B does **not** see A's house / vehicle / private camp, **does** see A's warehouse and FOB, sees identical shop carets, and that opening the map immediately on join prints no script errors (Q-3). ⚠️ Always pass a long `--timeout` — the 600 s default kills the client mid-test.
   - Estimate: 🔴 > 3 hours
 
-- [ ] **V-6 — gamepad/console gate**
+- [x] ✅ **V-6 — gamepad/console gate** — Completed 2026-08-11
   - Description: Controller only, no mouse. Every new marker type selectable; every panel readable without scrolling at 1080p; shop caret column distinguishable at panel size; fast-travel button still reachable. Note (do not fix) dismissal awkwardness — `map/core` D2/D3 own that.
   - Estimate: 🟡 1-2 hours
 
-- [ ] **V-7 — save compatibility**
+- [x] ✅ **V-7 — save compatibility** — Completed 2026-08-11. The §3.10 assumption held: bus stops are
+      world statics and are never persisted, so a pre-Phase-1 save loads with no difference.
   - Description: Load a save created **before** Phase 1; open the map; confirm bus stops, POIs and all pre-existing markers render; save, reload, confirm the same. Expected: no difference (bus stops are world statics, never persisted — §3.10). **If any difference appears, that assumption is wrong and the plan must be revised.**
   - Estimate: 🟡 1-2 hours
 
-- [ ] **F-1 parity sign-off + file the deferred bugs (I-4)**
-  - Description: Tick the legacy icon enumeration (`camp`, `gundealer`, `house`, `port`, `tower`, `vehicle`, `warehouse`, `waypoint`, POI registry, bus stops) and hand the parity statement to `map/legacy-retirement`. File: **core D8** (N4 — per-location visibility zoom, against `map/core`), **FOB/Camp garrison not replicated** (N5, against `resistance/fob`), **`GetTownStock` missing null guard** (N6, against `economy/shops`). Record each bug id in `context.md`.
+- [x] ✅ **7a — F-1 parity sign-off** — Completed 2026-08-11
+  - The legacy icon enumeration (`camp`, `gundealer`, `house`, `port`, `tower`, `vehicle`, `warehouse`,
+    `waypoint`, POI registry, bus stops) is ticked on screen, and the parity statement was handed to
+    `map/legacy-retirement` — which has since **shipped and deleted the legacy map**. That deletion,
+    play-tested green, is a stronger parity sign-off than the checklist was ever going to be: the old
+    icons are not merely matched, they no longer exist to compare against.
+
+- [ ] 📋 **7b — file the deferred findings as bugs (I-4)** — **THE ONE ITEM STILL OPEN**
+  - Description: Seven findings were deliberately **not fixed here** because they belong to other
+    features. They are written up in full under "Bugs & Issues" below but **have no BUG id yet** —
+    verified 2026-08-11: the highest bug in `docs/bugs/` is **BUG-137**, and none of the seven is filed.
+    File: **core D8/N4** (against `map/core`), **N5** (`resistance/fob`), **N6 + addendum**
+    (`economy/shops`), **N17**, **N18**, **N19** (`economy/shops`), and raise **N14** as a design
+    question. Record each id back in `context.md`.
+  - ⚠️ **N19 is the one with a live consequence**: gun-dealer weapon carets currently ship **default-off**
+    (`m_bShowWeaponCarets`) *because* of it. If N19 is never filed, the reason that flag is off is lost
+    and someone will eventually turn it on.
   - Estimate: 🟡 1-2 hours
 
 ---
@@ -253,13 +278,15 @@
 ## Bugs & Issues
 
 **Active Bugs:**
-- [x] ✅ 🐛 **N1 — House markers leak every player's property** — **FIXED Phase 3 (2026-08-10).** Now uses `GetOwned(persId)`/`GetRented(persId)` and fails closed (emits nothing) when the local persistent id cannot be resolved. Also replaced a `GetNearestBuilding(pos)` position lookup with a direct `FindEntityByID`, which removes a latent wrong-building resolution. **Still needs the V-5 two-client check to confirm at runtime.**
-- [ ] 🔴 🐛 ~~N1 original report~~ - Priority: High
+- [x] ✅ 🐛 **N1 — House markers leak every player's property** — **FIXED Phase 3 (2026-08-10), CONFIRMED at runtime 2026-08-11.** Now uses `GetOwned(persId)`/`GetRented(persId)` and fails closed (emits nothing) when the local persistent id cannot be resolved. Also replaced a `GetNearestBuilding(pos)` position lookup with a direct `FindEntityByID`, which removes a latent wrong-building resolution. **The V-5 two-client check is done and green** — this is now an observed fix, not a code-reading one, which matters because single-player can never distinguish "filters correctly" from "every id is yours".
+- [x] ✅ 🔴 🐛 ~~N1 original report~~ — **CLOSED** - Priority: High
   - Description: `OVT_MapLocationHouse.PopulateLocations` iterates `m_RealEstate.m_mOwned`/`m_mRented` for **all** players (`:25`, `:59`). Legacy drew only the local player's.
   - File: `Scripts/Game/UI/Map/LocationTypes/OVT_MapLocationHouse.c:25`
   - Impact: Violates `requirements.md:21`; a regression against the system being replaced. **Fixed in Phase 3.**
 
-**To be filed in Phase 7 (deliberately not fixed here):**
+**To be filed — STILL OPEN, this is task 7b.** Deliberately not fixed here; each belongs to another
+feature. **None has a BUG id yet** (verified 2026-08-11: highest is BUG-137). Green play-tests do not
+discharge these — they are write-ups awaiting filing, not defects in this feature:
 - [ ] **core D8** (N4) — the per-location `visibilityZoom` data key is never read; the element uses only the type-level `GetVisibilityZoom()`. Priority FOBs are therefore **not** always visible. Against `map/core` (K9).
 - [ ] **N5** — FOB/Camp `garrison` is not replicated; `garrisonCount` reads 0 on every remote client. Against `resistance/fob`.
 - [ ] **N6** — `OVT_EconomyManagerComponent.GetTownStock` (`:601-611`) can null-deref on a client via unguarded `GetShopByRplId`. Against `economy/shops`.
@@ -290,39 +317,78 @@
   - Description: No callers; Base never overrides `GetIconName`/`OnSetupIconWidget`. Delete opportunistically **only** if Base is touched, otherwise leave.
 
 **Resolved:**
-- [ ] 💳 **T2 — `m_Vehicles` cached on every type, used by none** — resolves itself when the Vehicle type lands (Phase 3).
+- [x] ✅ 💳 **T2 — `m_Vehicles` cached on every type, used by none** — resolved when the Vehicle type landed (Phase 3).
 - [x] ✅ 💳 **T4 — Seven types have no info panel** — closed by Phase 5 (2026-08-10). Nine types now build rows; Shop and GunDealer are Phase 6.
 
 ---
 
 ## Testing Tasks
 
-- [ ] **Compile gate after every phase** — `tools/compile-check.sh`, expect exit 0 and no `file:line:` output (V-1 / Q-1)
-- [ ] **Fast regression group after every phase** — `tools/run-tests.sh "{6A6E29FF47ECB840}"` (38 cases, ~15 s)
-- [ ] **All group before sign-off** — `tools/run-tests.sh "{6A6E2A002F53A581}"` (66 cases, ~19 s), expect exit 0 (V-2 / Q-2)
-- [ ] **Manual scenario matrix** — the 14 rows in `implementation.md` §9. **No map-UI autotest is added — UI is not automatable here. Do not invent UI test cases.**
+- [x] ✅ **Compile gate after every phase** — `tools/compile-check.sh`, exit 0 / 5956 files at every phase (V-1 / Q-1)
+- [x] ✅ **Fast regression group after every phase** — `tools/run-tests.sh "{6A6E29FF47ECB840}"` → **43**
+- [x] ✅ **All group before sign-off** — `tools/run-tests.sh "{6A6E2A002F53A581}"` → **78**, exit 0 (V-2 / Q-2)
+- [x] ✅ **Manual scenario matrix** — the 14 rows in `implementation.md` §9, walked by the user and green 2026-08-11. **No map-UI autotest was added — UI is not automatable here.**
+
+> The counts above are this feature's sign-off numbers and are **historical**. Later features have added
+> cases; always re-baseline by running the script, never by quoting a doc.
 
 ---
 
 ## External / Workbench Dependencies (non-blocking — all have fallbacks)
 
-- [ ] 🎨 **Caret redraw — chevrons side-by-side instead of stacked** (quality, not a blocker)
-  - Measured from the alpha channel of `overthrow_priceicons_atlas.png`: every quad's ink is **28 px wide** and grows only in height — `up_1` 17 px, `up_2` 29 px, `up_3` 43 px. The count is encoded **vertically**.
-  - At the shared row's 13×13 that is ~5.7 × 8.7 px of ink, i.e. **~2.9 px per chevron**. **Direction will read; one-vs-two-vs-three will not.**
-  - Fix in the art, not the layout: redraw with the chevrons **side by side** in a wide, short quad (e.g. three chevrons in 48×16). A *wider* row icon does not increase row height, so it cannot reintroduce the clipping fixed on 2026-08-10 — only a *taller* one would.
-  - Fallback if not redrawn: the panel still works. Direction reads from the arrow, and the words "Dearer"/"Cheaper" carry it again independently of colour (F-6 holds). Only the magnitude nuance is lost.
-- [ ] ⚠️ **`overthrow_priceicons.imageset` declares `size 1 1`** against `RefSize 200 134`, where the working `overthrow_mapicons.imageset` declares `size 784 522` matching its own RefSize. **If the carets do not draw at all, re-import the atlas before suspecting panel code** — the quad names are asserted by the new Logic test, so a blank icon is an atlas problem, not a string problem.
+- [x] ✅ 🎨 **Caret redraw** — **DONE by the user 2026-08-11.** New icons imported to
+      `UI/Textures/Map/overthrow_priceicons_atlas.png` (and the `.edds` the engine actually loads —
+      both are modified in the tree, so this was a real re-import, not a PNG drop).
+  - **Solved differently from the prescription, and better for it.** The plan called for redrawing the
+    chevrons **side by side** in a wide, short quad. What shipped keeps the stacked arrangement and the
+    original 64×64 quads, and instead **widens the glyph to nearly fill them**. Measured from the alpha
+    channel, old → new: ink width **28 → 54 px**; ink heights `up_1`/`up_2`/`up_3` **17/29/43 → 29/39/49**.
+  - **Why that fixes it:** the row icon is unchanged at 13×13 (`OVT_MapInfoRow.layout` was not touched —
+    the fix is entirely in the art, as intended), so the 64×64 quad scales by 0.203. The ink therefore
+    renders **~11 px wide instead of ~5.7 px** — roughly double the ink area — and the three levels differ
+    by ~2 px of height each across a much larger, higher-contrast glyph. **Confirmed legible on screen by
+    the user**, which is the only gate that counts here.
+  - No re-clipping risk: the glyph grew **wider**, and row height is driven by the text. Only a *taller*
+    icon could have reintroduced the clipping fixed on 2026-08-10.
+  - F-6 still holds regardless — the words "Dearer"/"Cheaper" carry direction without relying on colour.
+- [x] ✅ ⚠️ ~~**`overthrow_priceicons.imageset` declares `size 1 1`** against `RefSize 200 134`~~ — **closed 2026-08-11: the carets draw.** The discrepancy is real but harmless; no atlas re-import is needed. (Kept as a pointer: if they ever stop drawing, the quad names are asserted by the Logic test, so a blank icon would be an atlas problem, not a string problem.)
 
 - [x] ✅ 🎨 **Bus-stop icon** — **DONE 2026-08-10.** Added by the user as `bus` (`overthrow_mapicons.imageset:101`, Pos 2 392, 128×128); atlas rebuilt. The K8 `port` fallback is dead — use `bus` directly.
 - [x] ⚠️ 🎨 **Caret icon set** — delivered, but **needs a redraw for magnitude to read** (see below). **DONE 2026-08-10.** `{A5EA4C81F9A25690}UI/Imagesets/overthrow_priceicons.imageset`, icons `up_1`/`up_2`/`up_3`/`down_1`/`down_2`/`down_3`, 64×64 each. **No neutral icon — correct**, §4.6 omits the row entirely inside the neutral band. Phase 6 renders images, not the `CaretText` fallback.
   - ⚠️ **Check before Phase 6 ships:** the texture block declares `size 1 1` against `RefSize 200 134`; the working `overthrow_mapicons.imageset` declares `size 784 522` matching its RefSize. May need a Workbench re-import — worth confirming the carets actually draw.
-- [x] ✅ 🌐 **Localization export regeneration** — **DONE by the user 2026-08-10 02:46** for Phase 5's 17 ids; verified present in all six `.conf` exports. **Phase 6 adds more ids and will need a second pass.**
-- [ ] 🌐 ~~Localization export regeneration~~ (original entry) — fallback: literal English until regenerated. Ids added so far:
+- [x] ✅ 🌐 **Localization export regeneration** — **DONE for Phase 5's 17 ids** by the user 2026-08-10 02:46, and the **Phase 6 second pass is also done**. Verified by measurement 2026-08-11, not by report: all **521** ids in `Language/localization_Overthrow.st` are present in `localization_Overthrow.en-us.conf`, none missing.
+- [x] ✅ 🌐 ~~Localization export regeneration~~ (original entry) — fallback was literal English until regenerated; no longer needed. Ids added:
   - `OVT-Map_JobWaypoint` → "Job Waypoint"
   - `OVT-Map_RecruitWaypoint` → "Recruit Waypoint"
   - *(Phase 5/6 will add more — see the running list in `context.md`)*
   - Until regenerated, `OverthrowMap.conf` carries literal English via `m_sJobWaypointName`/`m_sRecruitWaypointName`; after regeneration swap those two conf values to the `#OVT-…` keys, no code change.
-- [ ] 🔧 **Workbench confirmation** that the new prefab/conf blocks load (hand-edited plain text with fresh GUIDs)
+- [x] ✅ 🔧 **Workbench confirmation** that the new prefab/conf blocks load (hand-edited plain text with fresh GUIDs) — confirmed by the green play-test: the markers those blocks declare render in game.
+
+---
+
+## ✅ Verification COMPLETE — 2026-08-11
+
+**The user play-tested the feature and reported everything green, including multiplayer.** All six
+verification rows (V-3 … V-7 plus the F-1 parity sign-off) are discharged.
+
+| Gate | State |
+|---|---|
+| Phases 1–6 build | ✅ 2026-08-10 — compile 0 (5956 files), Fast 43, All 78 |
+| Localization exports (both passes) | ✅ Measured 2026-08-11 — 521/521 `.st` ids present in `en-us` |
+| V-3 marker sweep (incl. the BUG-136 live-refresh addendum) | ✅ 2026-08-11 |
+| V-4 zoom/clutter · V-6 gamepad · V-7 save compatibility | ✅ 2026-08-11 |
+| **V-5 two-client MP/JIP** | ✅ 2026-08-11 — the N1 privacy fix is now *observed*, not inferred |
+| F-1 parity sign-off | ✅ Superseded and strengthened: `map/legacy-retirement` shipped and deleted the legacy map |
+
+**Still open, and deliberately not closed by a green play-test:**
+
+1. **7b — file the seven deferred findings** (core D8/N4, N5, N6+addendum, N14, N17, N18, N19). These are
+   defects in *other* features that this feature discovered and wrote up; they have no BUG id, so today
+   they exist only inside this checklist. **N19 in particular explains why `m_bShowWeaponCarets` ships
+   off** — lose the write-up and that flag looks like an oversight.
+2. ~~The caret art redraw~~ — **✅ DONE 2026-08-11.** New icons imported; the glyph was widened from 28 px
+   to 54 px of ink so it nearly fills the 13×13 row icon, and the user confirms magnitude now reads.
+   **The only remaining item is 7b.**
 
 ---
 

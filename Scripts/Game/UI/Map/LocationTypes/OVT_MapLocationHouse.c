@@ -247,4 +247,41 @@ class OVT_MapLocationHouse : OVT_MapLocationType
 		// Use global fast travel checks
 		return OVT_FastTravelService.CanGlobalFastTravel(location.m_vPosition, playerID, reason);
 	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A house is respawnable by the player who owns or rents it.
+	//!
+	//! Reads the same OWNER/RENTER keys CanFastTravel does, minus the global fast-travel tail. It
+	//! does NOT consult m_bCanFastTravel: whether a house is a fast-travel destination is a separate
+	//! question from whether it is somewhere you live. The empty-id trap - "" matching an unowned
+	//! record's "" - is handled inside IsHouseEligible and pinned by a Logic case.
+	//! \param[in] location The record being tested
+	//! \param[in] playerID Persistent id of the local player
+	//! \param[out] reason Localization key explaining a refusal
+	//! \return True when this player may respawn at this house
+	override bool CanRespawn(OVT_MapLocationData location, string playerID, out string reason)
+	{
+		if (!location)
+		{
+			reason = "#OVT-Respawn_NotEligible";
+			return false;
+		}
+
+		string ownerID = location.GetDataString(OVT_MapDataKeys.OWNER, "");
+		string renterID = location.GetDataString(OVT_MapDataKeys.RENTER, "");
+
+		if (!OVT_RespawnService.IsHouseEligible(ownerID, renterID, playerID))
+		{
+			reason = "#OVT-Respawn_NotYourHouse";
+			return false;
+		}
+
+		if (OVT_RespawnService.IsPositionInActiveQRF(location.m_vPosition))
+		{
+			reason = "#OVT-Respawn_QRF";
+			return false;
+		}
+
+		return true;
+	}
 }

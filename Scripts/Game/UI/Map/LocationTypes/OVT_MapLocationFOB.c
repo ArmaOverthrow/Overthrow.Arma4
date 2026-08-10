@@ -94,5 +94,35 @@ class OVT_MapLocationFOB : OVT_MapLocationType
 		// Check global fast travel restrictions
 		return OVT_FastTravelService.CanGlobalFastTravel(location.m_vPosition, playerID, reason);
 	}
-	
+
+	//------------------------------------------------------------------------------------------------
+	//! Every FOB is respawnable. A FOB only exists because the resistance built it and Overthrow has
+	//! no per-FOB access rule to consult, so the only thing that can refuse one is a live QRF on top
+	//! of it. No global fast-travel tail: its rules are measured from a living player's position.
+	//! \param[in] location The record being tested
+	//! \param[in] playerID Persistent id of the local player
+	//! \param[out] reason Localization key explaining a refusal
+	//! \return True when this player may respawn at this FOB
+	override bool CanRespawn(OVT_MapLocationData location, string playerID, out string reason)
+	{
+		if (!location)
+		{
+			reason = "#OVT-Respawn_NotEligible";
+			return false;
+		}
+
+		if (!OVT_RespawnService.IsFobEligible())
+		{
+			reason = "#OVT-Respawn_NotEligible";
+			return false;
+		}
+
+		if (OVT_RespawnService.IsPositionInActiveQRF(location.m_vPosition))
+		{
+			reason = "#OVT-Respawn_QRF";
+			return false;
+		}
+
+		return true;
+	}
 }

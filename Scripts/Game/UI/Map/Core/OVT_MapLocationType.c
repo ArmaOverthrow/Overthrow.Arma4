@@ -60,6 +60,9 @@ class OVT_MapLocationType
 	[Attribute(defvalue: "false", desc: "Can fast travel to this location type by default")]
 	bool m_bCanFastTravel;
 	
+	[Attribute(defvalue: "false", desc: "Draw ONLY records this player may respawn at (respawn screen). Leave false on the living map - the default is what keeps every existing config entry behaving exactly as it does now.")]
+	protected bool m_bRespawnOnly;
+
 	[Attribute(defvalue: "12", desc: "Icon size when zoomed out", category: "Icon")]
 	protected int m_iIconSizeSmall;
 	
@@ -130,6 +133,30 @@ class OVT_MapLocationType
 		return true;
 	}
 	
+	//! Check if this specific location may be respawned at by this player.
+	//!
+	//! DEFAULTS TO REFUSE. Only the four types that override this are respawnable, and a type that
+	//! forgets to override it draws nothing on the respawn map rather than offering a spawn point
+	//! nobody validated. Overriding it is the whole opt-in.
+	//!
+	//! HOT PATH. Once m_bRespawnOnly is set, ShouldShowLocation calls this per element on every zoom
+	//! change, exactly as CanFastTravel is called per panel interaction. Map lookups on the record's
+	//! own data and comparisons only: no allocation, no manager walk, no entity resolution. Anything
+	//! expensive belongs in PopulateLocations, which runs once per map open.
+	//!
+	//! ADVISORY ONLY, like CanFastTravel. It decides what the client draws; the server re-derives the
+	//! eligible set from its own managers in OVT_RespawnService.CollectEligiblePositions and that is
+	//! what decides where anybody actually spawns.
+	//! \param[in] location The record being tested
+	//! \param[in] playerID Persistent id of the local player. Empty means unresolved - refuse.
+	//! \param[out] reason Localization key explaining a refusal
+	//! \return True when this player may respawn at this location
+	bool CanRespawn(OVT_MapLocationData location, string playerID, out string reason)
+	{
+		reason = "#OVT-Respawn_NotEligible";
+		return false;
+	}
+
 	//! Handle location selection (when clicked but not activated)
 	void OnLocationSelected(OVT_MapLocationData location, OVT_MapLocationElement element)
 	{
@@ -309,9 +336,23 @@ class OVT_MapLocationType
 	}
 	
 	//! Check if location should be visible to the specified player
+	//!
+	//! HOT PATH - OVT_MapLocationElement.SetVisible calls this per element on every zoom change.
+	//! The respawn gate is one boolean test on a config attribute, taken only when the config asks
+	//! for it, so the living map pays a compare and nothing else.
+	//! \param[in] location The record being tested
+	//! \param[in] playerID Persistent id of the local player
+	//! \return True when the element should be drawn
 	bool ShouldShowLocation(OVT_MapLocationData location, string playerID)
 	{
-		return location.m_bVisible;
+		if (!location.m_bVisible)
+			return false;
+
+		if (!m_bRespawnOnly)
+			return true;
+
+		string reason;
+		return CanRespawn(location, playerID, reason);
 	}
 	
 	//! Get the icon layout resource for this location type
@@ -541,17 +582,11 @@ class OVT_MapLocationType
 	}
 	
 	//! Get the current player's persistent ID
+	//! CLIENT-ONLY, like every other map-UI path. Resolved from the local runtime player id rather than
+	//! from a controlled entity, so it still answers for a dead player with no character.
 	protected string GetCurrentPlayerID()
 	{
-		if (!m_Players)
-			return "";
-		
-		ChimeraCharacter playerEntity = ChimeraCharacter.Cast(SCR_PlayerController.GetLocalControlledEntity());
-		if (!playerEntity)
-			return "";
-		
-		int playerID = GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(playerEntity);
-		return m_Players.GetPersistentIDFromPlayerID(playerID);
+		return OVT_Global.GetLocalPersistentId();
 	}
 }
 

@@ -1,7 +1,8 @@
 # Map Fast Travel - Task Checklist
 
-**Last Updated:** 2026-08-10
-**Progress:** ✅ COMPLETE — 5/5 build phases, review + fix pass, and the Phase 6 play-test gate discharged 2026-08-10
+**Last Updated:** 2026-08-11
+**Progress:** ✅ **CLOSED** — 5/5 build phases, review + fix pass, the Phase 6 play-test gate (2026-08-10) and the
+Phase 0 multiplayer gate + post-ship stow re-test (2026-08-11). **Every play-test item is green, including MP.**
 
 > Rebuilt 2026-08-10 from `implementation.md` §5, replacing the retrospective checklist.
 > The old F1–F7 finding list is preserved in `implementation.md` §3.5–3.6; each finding is now
@@ -23,20 +24,23 @@ Built on the `new-map` branch, 2025-05 → 2025-08-02.
 
 ---
 
-## Phase 0 — Verify before fixing: two-client MP session — **user-driven, no agent**
+## Phase 0 — Verify before fixing: two-client MP session — **✅ DISCHARGED 2026-08-11 (verify-after)**
 
-⚠️ **NOT RUN — cannot be automated.** An autonomous run cannot drive two Reforger clients and
-observe them. The build phases proceeded on the plan's code-reading inferences; the two branch
-decisions Phase 0 was meant to settle were resolved conservatively instead (see `context.md`
-"Phase 0 substitutions").
+Phase 0 was never run **before** the fix — an autonomous run cannot drive two Reforger clients, so the
+build phases proceeded on the plan's code-reading inferences and the two branch decisions Phase 0 was
+meant to settle were resolved conservatively instead (see `context.md` "Phase 0 substitutions").
+**The user has now play-tested the multiplayer scenarios and reported them all green (2026-08-11)**, so
+the matrix is discharged as a *verify-after* rather than the verify-before it was written as.
 
-- [ ] Two clients via `tools/launch-server.sh` + `tools/launch-game.sh --timeout 3600 --profile ...`
-- [ ] **F1** On-foot fast travel on a dedicated server: does the player move, and does the server agree?
-- [ ] **F2** Is the player actually charged, and does the balance survive the next authoritative sync?
-- [ ] **F4** Confirm recruits were being left behind pre-fix
-- [ ] **N9** Does the button show a non-zero cost on a dedicated-server client?
-- [ ] **N10** Does `gamepad0:x` open vanilla's radial menu on the map?
-- [ ] **N12** Does clicking the travel button while the panel is pinned dismiss the panel?
+- [x] ✅ Two clients via `tools/launch-server.sh` + `tools/launch-game.sh --timeout 3600 --profile ...` — Completed 2026-08-11
+- [x] ✅ **F1** On-foot fast travel on a dedicated server: player moves and the server agrees — Completed 2026-08-11
+- [x] ✅ **F2** Player is charged, and the balance survives the next authoritative sync — Completed 2026-08-11
+- [x] ✅ **N9** Button shows a non-zero cost on a dedicated-server client (S1's safe branch was the right one) — Completed 2026-08-11
+- [x] ✅ **N10** `gamepad0:pad_right` does not open vanilla's radial menu (the `gamepad0:x` collision was moved off in Phase 5) — Completed 2026-08-11
+- [x] ✅ **N12** Clicking the travel button while the panel is pinned does not wrongly dismiss the panel — R6's guard holds — Completed 2026-08-11
+- [x] ⊘ **F4** *Confirm recruits were being left behind pre-fix* — **closed as unobservable, not verified.**
+      The fix landed in Phase 2, so the pre-fix behaviour no longer exists in any build to watch fail.
+      What *was* verified is the post-fix behaviour: recruits ride along and the fare prices them.
 
 ---
 
@@ -134,10 +138,12 @@ combinations were walked, and "pay solo, arrive with a squad" is structurally im
 - [x] **F11** Dead-code hand-off line references corrected and re-derived; **the `.st` guidance no
       longer gives a line range at all** (the quoted range would have corrupted the master mid-block —
       the exact failure CLAUDE.md records happening once before)
-- [ ] **F1** *(deferred — `map/legacy-retirement` owns it)* Legacy fast travel is still reachable from
-      `OVT_MainMenuContext.c:218` and still runs the client-side teleport, the flat fare and the
-      unvalidated comms RPCs. **Both paths are live in this build**
-- [ ] **F4** *(user action)* The five new `.st` ids are not in the generated exports — see the gate below
+- [x] ✅ **F1** *(was deferred to `map/legacy-retirement`; **closed there**)* Legacy fast travel was still
+      reachable from `OVT_MainMenuContext.c:218` and still ran the client-side teleport, the flat fare and
+      the unvalidated comms RPCs. `legacy-retirement` P1 cut that entry point and the legacy map is now
+      deleted, so there is exactly one travel path in the build — Completed 2026-08-10 (by retirement)
+- [x] ✅ **F4** *(user action)* The five new `.st` ids were regenerated into all six exports by the user —
+      Completed 2026-08-10; see the gate below
 
 ---
 
@@ -175,9 +181,13 @@ What this discharges, that nothing automated could:
   `SCR_GadgetManagerComponent`'s use-mask rather than on a shipped example.
 - `gamepad0:pad_right` does not shadow a vanilla map action.
 
-**Still not exercised by a green single-session play-test** (record honestly rather than assume):
-Phase 0's two-client dedicated-server scenarios — concurrent travel by two players, JIP travel shortly
-after joining, and the listen-server-host result short-circuit. See `implementation.md` §9 rows 12–13.
+**✅ The single-session caveat is now discharged too.** What Phase 6 could not exercise — Phase 0's
+two-client dedicated-server scenarios, concurrent travel by two players and JIP travel shortly after
+joining (`implementation.md` §9 rows 12–13) — was play-tested green on **2026-08-11**. See Phase 0 above.
+
+Recorded honestly: the **listen-server-host result short-circuit** is the one branch nobody has stood in
+front of, because the MP testing was done against a dedicated server. It is not a known defect and it is
+not blocking closure — it is simply an untested branch.
 
 ---
 
@@ -208,12 +218,37 @@ view synchronously — which is presumably what pushed someone to call `SetMapMo
       `SCR_PlayerController.SetGadgetFocus(false)`, so the controller stayed flagged gadget-focused after
       **every** map close. `ToggleFocused(false)` clears it
 - [x] Gates: compile 0 (5958 files), All **79/79**
-- [ ] **Re-test needed:** travel with the map genuinely in hand (opened via the gadget key) → map closes
-      *and* the character stows it; and confirm nothing is stowed when the map was opened from a context
-      without the item in hand
+- [x] ✅ **Re-tested 2026-08-11:** travelling with the map genuinely in hand (opened via the gadget key)
+      closes the map *and* stows the item, and nothing is stowed when the map was opened from a context
+      without the item in hand — Completed 2026-08-11
 
 > `ShowMap()` still uses `SetMapMode(true)` deliberately — Overthrow opens the map from contexts with no
 > equip animation, and changing that would change how the map opens.
+
+---
+
+## ✅ Feature CLOSED — 2026-08-11
+
+**The user reports every play-test item green, including multiplayer. The feature is closed.**
+
+Everything this feature owned is now either done or explicitly handed off:
+
+| Gate | State |
+|---|---|
+| Phases 1–5 build | ✅ Landed 2026-08-10, compile 0 (5958 files), Fast 44, All 79 |
+| Adversarial review + fix pass | ✅ 11 findings — 9 fixed here, F1 closed by `legacy-retirement`, F4 closed by the export regeneration |
+| Localization export regeneration | ✅ User, 2026-08-10 — all five ids resolve |
+| Phase 6 single-session play-test | ✅ User, 2026-08-10 |
+| Post-ship map-stow fix + re-test | ✅ Fixed and re-tested, 2026-08-11 |
+| Phase 0 two-client MP matrix | ✅ User, 2026-08-11 — discharged as verify-after |
+
+**Carried forward, not silently dropped** (both are recorded above and neither blocks closure):
+- The **listen-server-host result short-circuit** is an untested branch — MP testing used a dedicated server.
+- **F4's pre-fix observation** ("recruits were being left behind") can no longer be made; the post-fix
+  behaviour is what was verified.
+
+The dead-code hand-off to `map/legacy-retirement` at the end of `context.md` was consumed when that
+feature shipped — it is history now, not an outstanding action.
 
 ---
 

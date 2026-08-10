@@ -1,10 +1,15 @@
 # Map Fast Travel — Implementation Plan
 
-**Status:** Planning
+**Status:** ✅ **CLOSED** — built, reviewed, and play-tested green including multiplayer
 **Epic:** map (feature 3 of 7)
 **Started:** 2026-08-10
-**Target Completion:** TBD
-**Last Updated:** 2026-08-10
+**Completed:** 2026-08-11 (build 2026-08-10; MP play-test gate 2026-08-11)
+**Last Updated:** 2026-08-11
+
+> The plan below is unchanged from the day it was written and is kept as the record of intent. Where it
+> disagrees with the shipped tree, `context.md` and `tasks.md` are correct — see in particular §9 rows
+> 12–13 (discharged 2026-08-11) and the dead-code line numbers in I-1 (superseded by the hand-off table
+> at the end of `context.md`, which `map/legacy-retirement` has since consumed).
 
 > This file replaces the retrospective discovery document produced by `/discover-feature`. The
 > discovered architecture and findings F1–F7 are preserved under **§3 Current State / Current

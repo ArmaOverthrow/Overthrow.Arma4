@@ -44,6 +44,65 @@ class OVT_AdminCommandsComponent : OVT_Component
 		invoker = chat.GetCommandInvoker("givemoney");
 		if (invoker)
 			invoker.Insert(OnGiveMoneyCommand);
+
+		// Debug affordance for map/respawn, kept deliberately - see OnRespawnScreenCommand.
+		invoker = chat.GetCommandInvoker("respawn-screen");
+		if (invoker)
+			invoker.Insert(OnRespawnScreenCommand);
+
+		invoker = chat.GetCommandInvoker("respawnscreen");
+		if (invoker)
+			invoker.Insert(OnRespawnScreenCommand);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! "/respawn-screen" toggles the respawn screen on the typing player's own machine.
+	//!
+	//! KEPT ON PURPOSE, not spike residue. The respawn screen is the one screen in the mod a player
+	//! cannot open, cannot dismiss and can only reach by dying, and it is the screen with the most to
+	//! verify by hand: the SPAWNSCREEN map's pan/zoom/cursor, eligible-only markers, the info panel,
+	//! the gamepad glyphs. Reaching it by dying costs a full death-and-respawn cycle per look and
+	//! changes world state on the way (the respawn charge, a lootable corpse). This costs nothing.
+	//!
+	//! It drives the SHIPPED path - OVT_RespawnScreenHandlerComponent on the local player controller -
+	//! rather than a copy of it, so what it puts on screen is exactly what a death puts on screen,
+	//! input contexts and map included. It sends no RPC and mutates no game state.
+	//!
+	//! Why no admin gate: it shows a screen to the caller and nothing else. The gated commands in this
+	//! class mutate server state; this one cannot.
+	//!
+	//! ! THREE THINGS A TESTER MUST KNOW. The screen has no dismiss action by design, so typing the
+	//! command again is the only way out - chat is reachable from it, because MapContext carries
+	//! ChatToggle. Pressing a respawn button while ALIVE sends a real request that the server answers
+	//! NOT_ELIGIBLE, because the player holds no awaiting-respawn claim: the reason appears on the
+	//! status line, no character is created, and that is correct behaviour rather than a fault.
+	//!
+	//! ! And every command in this class is unreachable in SINGLE PLAYER, which is not this feature's
+	//! doing but is the first thing a tester will trip over. RegisterChatCommands has exactly one
+	//! caller - OVT_OverthrowController.RpcDo_NotifyOwnerAssignment, an RplRcver.Owner RPC - and in
+	//! RplMode.None nothing is replicated, so the registration never runs and no command in this class
+	//! exists. The same is likely true on a listen-server host, which is the known "a host never
+	//! receives its own owner-targeted RPC" class this project short-circuits elsewhere. On a
+	//! dedicated-server client the RPC arrives and the command works. Dying is the way in until that
+	//! registration path grows the same short-circuit.
+	//! \param[in] panel The chat panel the command was typed into (unused).
+	//! \param[in] data Everything after the command word (unused).
+	protected void OnRespawnScreenCommand(SCR_ChatPanel panel, string data)
+	{
+		OVT_RespawnScreenHandlerComponent handler = OVT_RespawnScreenHandlerComponent.GetLocalInstance();
+		if (!handler)
+		{
+			Print("[Overthrow] /respawn-screen: no OVT_RespawnScreenHandlerComponent on the local player controller - check Prefabs/Characters/Core/OVT_PlayerController.et", LogLevel.ERROR);
+			return;
+		}
+
+		if (handler.IsScreenShown())
+		{
+			handler.CloseRespawnScreen();
+			return;
+		}
+
+		handler.ShowRespawnScreen();
 	}
 
 	//------------------------------------------------------------------------------------------------

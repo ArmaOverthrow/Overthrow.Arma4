@@ -1,8 +1,8 @@
 # Map Location Types - Context & Decisions
 
-**Last Updated:** 2026-08-10
-**Current Phase:** Phase 7 — verification, parity sign-off and bug filing (**user-driven, no agent**). Phases 1–6 complete.
-**Status:** 🟡 Build complete — awaiting runtime verification
+**Last Updated:** 2026-08-11
+**Current Phase:** ✅ Phase 7 verification **DISCHARGED 2026-08-11** — everything green, MP included. Only task **7b (file the deferred findings)** remains, and it is documentation against *other* features.
+**Status:** ✅ **Built and verified** — one documentation task outstanding
 
 ---
 
@@ -17,16 +17,29 @@
 - ✅ **P6** — Shop scarcity carets + remoteness badge; gun-dealer **signature-weapons** panel; Logic-tier banding test (proven able to fail twice).
 - ✅ Gates at every phase: `compile-check.sh` exit 0 (5956 files), Fast **43**, All **78**.
 
-**What's Next — Phase 7 is entirely the user's:**
-- 📋 V-3 single-player marker sweep + F-1 parity checklist
-- 📋 V-4 zoom sweep (the clutter gate — eleven-plus marker types now draw)
-- 📋 🔴 **V-5 two-client MP/JIP gate** — highest risk; the only thing that confirms the N1 privacy fix and per-player isolation for house/vehicle/camp
-- 📋 V-6 gamepad gate · V-7 save compatibility
-- 📋 File **core D8 (N4)**, **N5**, **N6 (+addendum)**, **N17**, **N18**, **N19**; raise **N14** as a design question
-- 📋 One more localization export pass for Phase 6's 14 ids
+**✅ Phase 7 verification — DISCHARGED 2026-08-11 (user play-test, all green including MP):**
+- ✅ V-3 single-player marker sweep, including the BUG-136 live-refresh addendum (pinned panel across a
+  refresh tick; a pinned vehicle marker following a moving vehicle)
+- ✅ V-4 zoom/clutter sweep — the visibility-zoom values shipped for bus stops, vehicles and POIs stand
+- ✅ 🔴 **V-5 two-client MP/JIP gate** — the highest-risk row, and the only thing that could confirm the
+  N1 privacy fix isolates per player. **Single player can never distinguish "filters correctly" from
+  "every id is yours."** Now observed rather than inferred.
+- ✅ V-6 gamepad gate · ✅ V-7 save compatibility (the §3.10 never-persisted assumption held)
+- ✅ F-1 parity sign-off — superseded and strengthened: `map/legacy-retirement` shipped and **deleted**
+  the legacy map, so the old icons no longer exist to compare against
+- ✅ Localization exports, both passes — **measured** 2026-08-11: all 521 `.st` ids resolve in `en-us`
 
-**Blockers:**
-- None for implementation. Two art items are **quality gaps, not blockers** — see "Open Questions".
+**What's Next — one item, and it is documentation, not code:**
+- 📋 **7b — file the seven deferred findings.** Verified 2026-08-11: the highest bug in `docs/bugs/` is
+  **BUG-137** and **none of the seven is filed**. File **core D8 (N4)** against `map/core`, **N5** against
+  `resistance/fob`, **N6 (+addendum)**, **N17**, **N18** and **N19** against `economy/shops`; raise **N14**
+  as a design question. Record the ids back here.
+  ⚠️ **N19 is the one that costs something if forgotten** — it is the *reason* gun-dealer weapon carets
+  ship behind `m_bShowWeaponCarets` default-off (Decision 8). Unfiled, that flag reads as an oversight and
+  someone will turn it on, restoring four permanently-misleading ▲▲▲ rows.
+
+**Blockers:** none. The one remaining art item (caret magnitude redraw) is a **quality gap, not a
+blocker** — see "Open Questions".
 
 ---
 
@@ -193,13 +206,28 @@
 **Resolved during the build:**
 - ✅ **Does vanilla's inherited bus-stop descriptor draw a duplicate icon?** **Yes, it did.** `MDT_BUSSTOP` is a *visible* `SCR_DescriptorDefIcon` (`{552A8D0B1ADA90DF}`, vanilla `MapDescriptorDefaults.conf:89`) with `m_bIsDefaultInvisible` unset, at view layer 2. Suppressed with three lines in Overthrow's `MapFullscreen.conf` delta. **Still needs an on-screen confirmation of exactly one icon per stop (F-4).**
 
+**Resolved by the 2026-08-11 play-test:**
+- ✅ **Do the carets draw at all?** Yes — the `size 1 1` vs `RefSize 200 134` discrepancy in
+  `overthrow_priceicons.imageset` did **not** stop them rendering, so no atlas re-import is needed. That
+  worry is closed; the *magnitude legibility* question below is a separate, still-live art item.
+- ✅ **Does the House `Status` row read as noise** against the grey subtitle? Reviewed on screen and
+  **kept** — cutting it would leave an owned house with zero rows (rent renders only when rented), i.e.
+  the bare header Phase 5 exists to eliminate.
+- ✅ **Are the visibility-zoom values right** (1.5 bus stops, 1 vehicles/POIs)? V-4 passed; they stand.
+- ✅ **Does the world scan find the expected marker count** (R1)? The init log was read during V-3.
+
+- ✅ **Caret magnitude is now legible — new icons imported by the user 2026-08-11.** The original problem:
+  every quad's ink was **28 px wide** and grew only in height (`up_1` 17, `up_2` 29, `up_3` 43), so at the
+  row's 13×13 each chevron got ~2.9 px and only *direction* read. The prescribed fix was to redraw the
+  chevrons **side by side** in a wide short quad. **The user solved it a different way**: same 64×64 quads,
+  same stacked arrangement, but the glyph widened to nearly fill the quad — ink now **54 px wide**, heights
+  **29/39/49**. Because the 13×13 row icon is unchanged, the quad scales by 0.203, so the glyph renders
+  ~11 px wide instead of ~5.7 px — about **double the ink** — with ~2 px of height between levels. Legibility
+  confirmed **on screen**, which is the only gate that applies to an art question. No layout edit was needed
+  and no re-clipping risk: the glyph grew *wider*, and row height is driven by the text.
+
 **Live — need a human eye:**
-- [ ] ⚠️ **Caret magnitude is not legible at row size.** Measured from the atlas alpha: every quad's ink is **28 px wide** and grows only in height (`up_1` 17, `up_2` 29, `up_3` 43) — the count is encoded **vertically**. At the shared row's 13×13 that is ~2.9 px per chevron. **Direction will read; one-vs-two-vs-three will not.** Fix is in the art: redraw the chevrons **side by side** in a wide short quad (e.g. 48×16). A *wider* icon cannot reintroduce the row clipping — only a *taller* one could. Fallback: the panel still works, since direction reads from the arrow and the words "Dearer"/"Cheaper" repeat it without relying on colour (F-6 holds); only the magnitude nuance is lost.
-- [ ] ⚠️ **`overthrow_priceicons.imageset` declares `size 1 1`** against `RefSize 200 134`; the working `overthrow_mapicons.imageset` declares `size 784 522` matching its RefSize. **If carets do not draw at all, re-import the atlas first** — the quad names are asserted by the Logic test, so a blank icon is an atlas problem, not a string problem.
-- [ ] **Does the House `Status` row duplicate the grey subtitle** under the house name, which already reads Owned/Rented? A one-line cut if so.
-- [ ] **Do the caret bands produce all three levels in a real campaign** (R5), or does everything read neutral? V-3 records the observed spread. If all-neutral, tighten the inner band — do **not** reintroduce shop-mean normalisation (K6).
-- [ ] **How many markers does the world scan find** versus the known world count (R1)? The manager logs its count at init.
-- [ ] **Is `m_fVisibilityZoom 1.5` right for bus stops** (and `1` for vehicles/POIs), or does it clutter? V-4 is the gate.
+- [ ] **Do the caret bands produce all three levels in a real campaign** (R5), or does everything read neutral? Nothing was reported as wrong, but a *spread* is not something a pass/fail play-test surfaces — it needs someone to look at several shops across a campaign and say "these all read the same". Left open honestly. If all-neutral, tighten the inner band — do **not** reintroduce shop-mean normalisation (K6).
 
 ---
 
@@ -253,3 +281,34 @@
 **Scope changed once mid-run**, by user directive: the gun-dealer panel became a signature-weapons list (§4.6b). It was grounded in the code before being implemented, which is what surfaced N13 (the premise was right for four categories, wrong for pistols) and N19.
 
 **Next session:** Phase 7 only, and it is entirely user-driven — no agent work remains.
+
+---
+
+### 2026-08-11 — Phase 7 verification discharged (closing)
+
+**No code changed this session.** The user reported the outcome of the Phase 7 play-tests: **everything
+green, including multiplayer.** All six verification rows are ticked; the feature is verified.
+
+**The row worth naming is V-5.** Every other gate re-confirmed something that was already likely. V-5 is
+the only one that could tell the N1 house-privacy fix from a fix that merely *looks* right: in single
+player every persistent id belongs to you, so `GetOwned(persId)` and "iterate every player" return the
+same set. Two clients is the only configuration where those diverge. N1 is now an observed fix.
+
+**F-1 parity was overtaken rather than ticked.** The checklist was meant to prove the new types matched
+the legacy icons one for one. In the meantime `map/legacy-retirement` shipped and *deleted* the legacy
+map — so parity is no longer a comparison anyone can run, and the stronger statement (the new system is
+the only system, and it is green) has replaced it.
+
+**Two things were verified by measurement rather than by report**, because both were cheap to check and
+both had bitten before:
+- The Phase 6 localization pass: all **521** `.st` ids resolve in `en-us`, none missing. (A missed pass
+  would have shown raw `#OVT-` keys on the shop and gun-dealer panels.)
+- The bug-filing state: `docs/bugs/` tops out at **BUG-137**, so none of the seven deferred findings has
+  been filed. That is why 7b is still open below.
+
+**Also closed the same day:** the user imported redrawn caret icons, closing the last quality gap (see
+Open Questions). That was the feature's only remaining art dependency.
+
+**Next session:** file the seven findings (7b) — **the only thing left on this feature**, and `/fix-bug`
+cannot help until they exist as bugs. The most load-bearing is **N19**: it is the recorded reason
+`m_bShowWeaponCarets` defaults off, and Decision 8 above is currently the only place that reasoning lives.

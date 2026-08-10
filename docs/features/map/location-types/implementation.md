@@ -1,10 +1,10 @@
 # Map Location Types — Implementation Plan
 
-**Status:** Ready for Review — Phases 1–6 built and gated; **Phase 7 (runtime verification) is user-driven and outstanding**
+**Status:** ✅ **Built and verified** — Phases 1–6 built and gated 2026-08-10; **Phase 7 runtime verification discharged 2026-08-11, all green including MP.** One documentation task (7b, filing the deferred findings) remains.
 **Epic:** map (feature 2 of 7)
 **Started:** 2026-08-10
-**Target Completion:** TBD
-**Last Updated:** 2026-08-10 (build complete: compile exit 0 / 5956 files, Fast 43, All 78)
+**Completed:** 2026-08-11 (build 2026-08-10; verification gate 2026-08-11)
+**Last Updated:** 2026-08-11 (build gates: compile exit 0 / 5956 files, Fast 43, All 78 — historical counts, re-baseline by running the scripts)
 
 > This file replaces the retrospective discovery document produced by `/discover-feature`. The
 > discovered architecture is preserved verbatim-in-substance under **Current State / Current

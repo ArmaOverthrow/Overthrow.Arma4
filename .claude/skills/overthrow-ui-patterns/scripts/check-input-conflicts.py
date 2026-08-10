@@ -92,6 +92,19 @@ ACKNOWLEDGED = {
         "BuyButton and SellAllButton are never visible at the same time "
         "(OVT_ShopContext.RefreshActionButtons) and a hidden "
         "SCR_InputButtonComponent refuses its keybind.",
+    # DOCUMENTARY ONLY - this entry can never be matched, and that is the point.
+    # A waiver is consulted only when two actions in the SAME mod context share an
+    # input; here the collision is CROSS-context, against an action declared inline
+    # inside vanilla's MapContext, which this parser cannot see (the ~197-inline-
+    # action blind spot). Kept so the reasoning is written down where the next
+    # person to touch gamepad0:x will look, not because the checker enforces it.
+    # Verified by hand 2026-08-11 (map/respawn Phase 7).
+    ("OverthrowRespawnContext", "gamepad0:x"):
+        "The respawn screen also activates vanilla MapContext, whose "
+        "MapContextualMenu is on gamepad0:x. Only SCR_MapRadialUI and "
+        "SCR_MapDrawingUI listen for MapContextualMenu, and neither module is "
+        "carried by Configs/Map/MapRespawn.conf, so it has no handler on this "
+        "screen. Re-check if either module is ever added to that config.",
 }
 
 

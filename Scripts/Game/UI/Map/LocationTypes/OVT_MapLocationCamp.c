@@ -85,4 +85,39 @@ class OVT_MapLocationCamp : OVT_MapLocationType
 		// Check global fast travel restrictions
 		return OVT_FastTravelService.CanGlobalFastTravel(location.m_vPosition, playerID, reason);
 	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Public camps are shared; a private camp is respawnable only by its owner.
+	//!
+	//! Reads the same "owner" and "isPrivate" keys CanFastTravel does, minus the global fast-travel
+	//! tail. An unresolved player id refuses, which is the predicate's job rather than this method's.
+	//! \param[in] location The record being tested
+	//! \param[in] playerID Persistent id of the local player
+	//! \param[out] reason Localization key explaining a refusal
+	//! \return True when this player may respawn at this camp
+	override bool CanRespawn(OVT_MapLocationData location, string playerID, out string reason)
+	{
+		if (!location)
+		{
+			reason = "#OVT-Respawn_NotEligible";
+			return false;
+		}
+
+		string owner = location.GetDataString("owner", "");
+		bool isPrivate = location.GetDataBool("isPrivate", false);
+
+		if (!OVT_RespawnService.IsCampEligible(isPrivate, owner, playerID))
+		{
+			reason = "#OVT-Respawn_PrivateCamp";
+			return false;
+		}
+
+		if (OVT_RespawnService.IsPositionInActiveQRF(location.m_vPosition))
+		{
+			reason = "#OVT-Respawn_QRF";
+			return false;
+		}
+
+		return true;
+	}
 }
