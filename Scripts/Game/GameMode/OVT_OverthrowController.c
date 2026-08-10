@@ -30,6 +30,13 @@ class OVT_OverthrowController : GenericEntity
 		{
 			playerManager.RegisterControllerForPlayer(playerId, this);
 		}
+
+		// This runs exactly once, on the owning client - the right moment to hook that client's
+		// chat up to its own controller's admin commands (server-gated; registration is not a
+		// permission).
+		OVT_AdminCommandsComponent adminCommands = OVT_AdminCommandsComponent.Cast(FindComponent(OVT_AdminCommandsComponent));
+		if (adminCommands)
+			adminCommands.RegisterChatCommands();
 	}
 
 	//------------------------------------------------------------------------------------------------

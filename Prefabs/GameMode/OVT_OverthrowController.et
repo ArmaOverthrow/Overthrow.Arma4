@@ -9,6 +9,8 @@ OVT_OverthrowController {
   }
   OVT_TutorialComponent "{6B3A000000000020}" {
   }
+  OVT_AdminCommandsComponent "{6A7D9B2E000000F0}" {
+  }
   RplComponent "{65C4B2D3DE955867}" {
   }
  }

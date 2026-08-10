@@ -8,33 +8,41 @@
 [![Contributors](https://img.shields.io/github/contributors/ArmaOverthrow/Overthrow.Arma4)](https://github.com/ArmaOverthrow/Overthrow.Arma4/graphs/contributors)
 [![Discord](https://img.shields.io/discord/241062829963214848?label=discord)](https://discord.gg/overthrow)
 [![License MIT](https://img.shields.io/badge/License-MIT-green)](https://opensource.org/licenses/MIT)
+
 </div>
 
 # Overthrow
+
 A dynamic and persistent revolution platform for Arma Reforger (and eventually Arma 4)
 
 ## Installing
+
 Overthrow is available in early access from the ARMA Reforger Workshop. Just search for "Overthrow".
 
 ## Playing
+
 See the wiki:
+
 - **[Overthrow Reforger Wiki](https://wiki.armaoverthrow.com/)**
 - **[Getting Started](https://wiki.armaoverthrow.com/en/getting-started)**
 
 ## Development
 
 ### For New Developers
+
 Complete development setup instructions are available in our comprehensive documentation:
 
 📚 **[Development Documentation](https://wiki.armaoverthrow.com/en/development-documentation)**
 
 Key resources:
+
 - **[Environment Setup Guide](https://wiki.armaoverthrow.com/en/development-documentation/development-environment-setup)** - Complete setup walkthrough
 - **[Architecture Guide](https://wiki.armaoverthrow.com/en/development-documentation/architecture)** - Understanding Overthrow's component system
 - **[Coding Standards](https://wiki.armaoverthrow.com/en/development-documentation/coding-standards)** - EnforceScript conventions
 - **[Development Workflow](https://wiki.armaoverthrow.com/en/development-documentation/development-workflow)** - Testing and compilation procedures
 
 ### Quick Start
+
 1. Clone this repository using [GitHub Desktop](https://desktop.github.com/) (recommended)
 2. Install "Arma Reforger Tools" from Steam (under Tools section)
 3. Copy dependencies from `ArmaReforger/addons` to `ArmaReforgerWorkbench/addons`
@@ -44,7 +52,8 @@ Key resources:
 **Tip**: Use the "test" world for development as it loads much faster than the full Eden map.
 
 ## Updating
-Updates will be pushed to github often (sometimes multiple times a day). 
+
+Updates will be pushed to github often (sometimes multiple times a day).
 
 1. Sign up and/or sign in to Github. [See Github docs](https://docs.github.com/en/get-started/onboarding/getting-started-with-your-github-account)
 1. "Watch" this repository in the top right to get email notifications when updates are made
@@ -54,6 +63,7 @@ Updates will be pushed to github often (sometimes multiple times a day).
 1. In the Reforger Script Editor, click on Build > Compile and Reload Scripts
 
 ## Contributing
-Just [join our Discord](https://discord.gg/overthrow) and participate in the `#overthrow-reforger` channel. Report any bugs you find or join the discussion about features or suggest your own. If you are comfortable with github and Enfusion development then please do make pull requests or ask to help out.
+
+Just [join our Discord](https://discord.gg/r3XN7uDdV2) and participate in the `#overthrow-reforger` channel. Report any bugs you find or join the discussion about features or suggest your own. If you are comfortable with github and Enfusion development then please do make pull requests or ask to help out.
 
 ![Alt](https://repobeats.axiom.co/api/embed/49520d34e4c6206b4d0f149dd4b6c2fec786d606.svg "Repobeats analytics image")

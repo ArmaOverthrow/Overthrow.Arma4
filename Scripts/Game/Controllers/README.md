@@ -5,9 +5,11 @@ This directory contains controller components that manage specific gameplay syst
 ## Main Controllers
 
 ### OVT_TownController
+
 Handles town-specific functionality at the operational level, implementing town control and management processes.
 
 ### OVT_PortController
+
 Manages port facilities and related operations within the game world.
 
 ## Occupying Faction Controllers
@@ -15,12 +17,15 @@ Manages port facilities and related operations within the game world.
 Located in the `OccupyingFaction` subdirectory:
 
 ### OVT_QRFControllerComponent
+
 Controls Quick Reaction Force spawning, movement, and tactical responses of the occupying faction to player activities.
 
 ### OVT_BaseControllerComponent
+
 Manages military bases for the occupying faction, including functionality, upgrades, and responses.
 
 ### OVT_TowerControllerComponent
+
 Controls radio/comms towers used by the occupying faction for surveillance and communications.
 
 ### Base Upgrades
@@ -44,8 +49,9 @@ Located in the `OccupyingFaction/BaseUpgrades` subdirectory:
 Located in the `ResistanceFaction` subdirectory:
 
 ### OVT_ResistanceFOBControllerComponent
+
 Manages Forward Operating Bases for the resistance faction, including construction, upgrades, and operational capabilities.
 
 ---
 
-For more information about Overthrow's development, visit our [GitHub repository](https://github.com/ArmaOverthrow/Overthrow.Arma4) or join our [Discord](https://discord.gg/j6CvmFfZ95). 
+For more information about Overthrow's development, visit our [GitHub repository](https://github.com/ArmaOverthrow/Overthrow.Arma4) or join our [Discord](https://discord.gg/r3XN7uDdV2).
