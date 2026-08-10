@@ -141,12 +141,34 @@ class OVT_MapContext : OVT_UIContext
 		return true;
 	}
 	
+	//! Hide the map AND stow the map item.
+	//!
+	//! Root cause: Overthrow closed the map by calling SetMapMode(false) directly, which only toggles the map
+	//! *view*. Vanilla stows the gadget (SetGadgetMode(..., IN_STORAGE)) and lets the view close as a
+	//! consequence, so closing the view alone left the map raised in the character's hand.
+	//!
+	//! Focus is cleared first because SetGadgetMode's hand->storage branch early-returns for EGadgetType.MAP
+	//! and so never closes the view itself. ToggleFocused(false) calls SetMapMode(false) internally.
 	void HideMap()
 	{
 		SCR_MapGadgetComponent comp = GetMap();
 		if(!comp) return;
-		
-		comp.SetMapMode(false);
+
+		comp.ToggleFocused(false);
+
+		IEntity gadget = comp.GetOwner();
+		if(!gadget || !m_Owner) return;
+
+		SCR_CharacterControllerComponent controller = SCR_CharacterControllerComponent.Cast(m_Owner.FindComponent(SCR_CharacterControllerComponent));
+		if(controller && controller.IsDead()) return;
+
+		SCR_GadgetManagerComponent gadgetManager = SCR_GadgetManagerComponent.GetGadgetManager(m_Owner);
+		if(!gadgetManager) return;
+
+		// Only stow if the map is what is actually in hand - never stow whatever else the player is holding
+		if(gadgetManager.GetHeldGadget() != gadget) return;
+
+		gadgetManager.SetGadgetMode(gadget, EGadgetMode.IN_STORAGE);
 	}
 	
 	void EnableMapInfo()
@@ -284,6 +306,20 @@ class OVT_MapContext : OVT_UIContext
 		m_bFastTravelActive = true;
 	}
 	
+	//! Open the map and arm nothing at all.
+	//!
+	//! The entry point for OVT_CatchBusAction since map/fast-travel Phase 4. Bus eligibility is now
+	//! derived from the player's live position every time the info panel is built, so catching a bus
+	//! needs the map open and nothing else. EnableBusTravel below is the legacy path and is
+	//! map/legacy-retirement's to delete - do not call it from anything new.
+	void OpenMap()
+	{
+		if(!ShowMap())
+		{
+			ShowNotification("MustHaveMap");
+		}
+	}
+
 	void EnableBusTravel()
 	{
 		if(!ShowMap())
@@ -353,6 +389,22 @@ class OVT_MapContext : OVT_UIContext
 		HideMap();
 	}
 	
+	//! Whether the new map UI is currently showing its location info panel.
+	//!
+	//! The map entity keeps the registry of its own active UI components, so the lookup goes through it
+	//! rather than through a global or a cached pointer - nothing here can outlive a map close.
+	//! \param[in] mapEntity The live map instance.
+	//! \return True when OVT_OverthrowMapUI is present and its info panel is on screen.
+	protected bool IsOverthrowInfoPanelVisible(SCR_MapEntity mapEntity)
+	{
+		if(!mapEntity) return false;
+
+		OVT_OverthrowMapUI mapUI = OVT_OverthrowMapUI.Cast(mapEntity.GetMapUIComponent(OVT_OverthrowMapUI));
+		if(!mapUI) return false;
+
+		return mapUI.IsInfoPanelVisible();
+	}
+
 	void MapClick(float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
 	{
 		if(!m_bFastTravelActive && !m_bMapInfoActive && !m_bBusTravelActive) return;
@@ -361,9 +413,21 @@ class OVT_MapContext : OVT_UIContext
 		
 		SCR_MapEntity mapEntity = SCR_MapEntity.GetMapInstance();
 		if(!mapEntity) return;
-		
+
+		// A click that landed on the new map UI's info panel is NOT a click on empty map, and this legacy
+		// handler cannot tell the difference: it reads the map cursor's world position regardless of what
+		// widget is under it. With the legacy fast-travel mode armed (OVT_MainMenuContext.FastTravel still
+		// arms it), pressing the panel's own travel button would fire both handlers - the panel's
+		// server-authoritative request AND this branch's client-side debit at the flat legacy fare plus a
+		// teleport to whatever is under the panel. Two debits, two conflicting destinations.
+		//
+		// Refusing the whole of MapClick, not just the travel branches, is deliberate: the map-info branch
+		// re-selecting a town under an open panel is meaningless too, and one guard cannot go stale.
+		// map/legacy-retirement deletes everything below this line, and this guard with it.
+		if(IsOverthrowInfoPanelVisible(mapEntity)) return;
+
 		float x,y;
-		
+
 		
 		mapEntity.GetMapCursorWorldPosition(x,y);
 		float groundHeight = GetGame().GetWorld().GetSurfaceY(x,y);

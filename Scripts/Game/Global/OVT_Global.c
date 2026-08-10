@@ -126,6 +126,17 @@ class OVT_Global : Managed
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Convenience method to get the server-authoritative travel request component
+	//! \return Travel request component or null
+	static OVT_TravelRequestComponent GetTravelRequests()
+	{
+		OVT_OverthrowController controller = GetController();
+		if (!controller) return null;
+
+		return OVT_TravelRequestComponent.Cast(controller.FindComponent(OVT_TravelRequestComponent));
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Convenience method for battlefield looting
 	//! \param[in] vehicle Target vehicle to loot into
 	//! \param[in] searchRadius Search radius for lootable items

@@ -4524,6 +4524,21 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A7E1C40A9B33001}" {
+   Id "OVT-NotAtBusStop"
+   Target_en_us "You must be at a bus stop to catch a bus"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{5DA486E2EACACAD6}" {
    Id "OVT-NotConvertedSupporter"
    Target_en_us "This civilian was not interested in supporting the resistance"
@@ -8223,6 +8238,66 @@ StringTable {
    Modified 1754265600
    Author "Claude"
    LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C40A9B33003}" {
+   Id "OVT-Map_BringRecruits"
+   Target_en_us "Bring recruits %1 (+$%2)"
+   Comment "Map info panel - recruit opt-out toggle, ON state. %1 is the number of recruits within travel radius, %2 is the extra fare they add"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C40A9B33004}" {
+   Id "OVT-Map_LeaveRecruits"
+   Target_en_us "Leave recruits behind %1"
+   Comment "Map info panel - recruit opt-out toggle, OFF state. %1 is the number of recruits within travel radius"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C40A9B33002}" {
+   Id "OVT-Travelled"
+   Target_en_us "Travelled"
+   Comment "Fast travel/bus - shown after a successful trip that cost nothing. The paid variant is OVT-TravelWithFare"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C40A9B33005}" {
+   Id "OVT-TravelWithFare"
+   Target_en_us "%1 ($%2)"
+   Comment "Fast travel/bus - a label with its fare. %1 is the label (\"Fast Travel\", \"Catch a bus\", \"Travelled\"), %2 is the amount of money"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
    ImageLink ""
    Hidden 0
   }

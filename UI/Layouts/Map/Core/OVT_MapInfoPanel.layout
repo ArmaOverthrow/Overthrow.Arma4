@@ -199,6 +199,19 @@ FrameWidgetClass {
           }
          }
         }
+        ButtonWidgetClass "{6A7E1C40A9B33010}" : "{CB8563509DEF3E0E}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButtonSmall.layout" {
+         Name "BringRecruitsButton"
+         Slot LayoutSlot "{56EEDE01982D053A}" {
+          Padding 0 0 0 0
+         }
+         "Is Visible" 0
+         components {
+          SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+           m_sActionName "OverthrowToggleRecruits"
+           m_sLabel "#OVT-Map_BringRecruits"
+          }
+         }
+        }
         TextWidgetClass "{OVT_FastTravelReason}" {
          Name "FastTravelReason"
          Slot LayoutSlot "{OVT_FastTravelReasonSlot}" {
