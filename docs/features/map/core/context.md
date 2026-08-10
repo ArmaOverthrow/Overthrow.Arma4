@@ -1,8 +1,8 @@
 # Map Core - Context & Decisions
 
 **Last Updated:** 2026-08-10
-**Current Phase:** Retrospective Documentation
-**Status:** ✅ Documented (Existing Feature) — ⚠️ unverified at runtime
+**Current Phase:** Bugfix pass complete
+**Status:** ✅ Documented (Existing Feature) — ✅ BUG-133…137 fixed and play-tested 2026-08-10
 
 ---
 
@@ -14,10 +14,12 @@
 - ✅ Retrospective documentation created
 - ✅ BUG-069 regression check completed by code reading — **all four legacy lifecycle defects avoided structurally**
 
+- ✅ **BUG-133 … BUG-137 fixed and play-tested 2026-08-10** (findings D1–D7; D5 kept as debt). BUG-135 turned out to have been fixed already by `map/fast-travel` (`008293c2`). Zoom sizing, panel dismissal, live marker refresh and the click contract all verified in game
+
 **What's Next:**
-- 🔴 Runtime verification — nothing here has been play-tested since 2025-08-02
-- 🔴 Confirm then fix **BUG-133 … BUG-137** (filed 2026-08-10 from findings D1–D7; D5 kept as debt). BUG-133/134 are high-confidence and cheap
-- 🔴 MP/JIP verification; gamepad/console verification
+- 🔴 The `FindAnyWidget` name sweep across `Scripts/Game/UI/Map/**` — D1/D2 were fixed one at a time, the exhaustive audit is still owed
+- 🔴 Swap the close button's literal `"Close"` label for `#OVT-Map_ClosePanel` once the localization exports are regenerated in Workbench (the `.st` master entry exists)
+- 🔴 MP/JIP verification; broader gamepad/console verification
 
 **Blockers:**
 - None. (The localization export blocker was cleared on 2026-08-10 — all 14 map string ids were regenerated into the six `localization_Overthrow.<lang>.conf` files in Workbench, +28 lines each. Visual verification is unblocked.)
@@ -53,10 +55,12 @@ change here is recorded in this table with the feature that made it.
 | `CanFastTravel(location, playerID, out reason)` | virtual | Per-type fast-travel policy. **Hot path** — runs per element on every zoom change. |
 | `ShouldShowLocation(location, playerID)` | virtual | Per-record visibility. **Hot path**, same as above. |
 | `OnLocationSelected(location, element)` | virtual | Selection hook. |
-| `OnLocationClicked(location, element)` | virtual | ⚠️ **Unreachable** — `HandleSelection()` has no callers (D7). Do not override. |
+| `OnLocationClicked(location, element)` | virtual | Fires when a click **pins** a location. Invoked by `OVT_OverthrowMapUI.NotifyLocationClicked` from `OnMapSelection` (BUG-137, 2026-08-10). Default body is empty — the container has already built the panel by then. Was unreachable until then. |
 | `GetLocationName` / `GetLocationDescription` / `GetDisplayNameForLocation` | virtual | Header text for the info panel. |
 | `GetIconName(location)` / `GetIconColor(location)` | virtual | Per-record icon and tint. |
 | `OnSetupIconWidget(iconWidget, location, isSmall)` | virtual | Per-record icon customisation. Re-runs on zoom change — keep it cheap. |
+| **`m_fRefreshInterval`** | attribute | **Added by BUG-136 (2026-08-10).** Seconds between live re-populations of this type while the map is open. `0` (default) = populate once per map open, exactly as before. |
+| **`GetRefreshInterval()`** | getter | **Added by BUG-136.** Read by `OVT_OverthrowMapUI.TickRefresh`. |
 | `m_InfoLayout` | attribute | Bespoke info-panel layout. When set, `UpdateInfoPanel` instantiates it and calls `OnSetupLocationInfo`. |
 | `OnSetupLocationInfo(widget, location)` | virtual | Populate a bespoke `m_InfoLayout` panel. |
 | **`m_SharedInfoLayout`** | attribute | **Added by `map/location-types` Phase 5 (2026-08-10).** Data-driven fallback panel, default `UI/Layouts/Map/Core/OVT_MapInfoRows.layout`. Consulted **only when `m_InfoLayout` is empty**. |
@@ -93,21 +97,23 @@ Markers are widgets under `m_aUIComponents`; overlays are canvas draw commands u
 **4. Untyped string-keyed payloads on `OVT_MapLocationData`.**
 Four maps (string/int/float/bool) let each type carry whatever it needs without subclassing the record. The cost is that keys are unregistered strings — a typo silently returns the default.
 
-**5. Interaction model: hover shows, click pins, click-empty dismisses.**
-Not the conventional click-to-open. It matters because the "close" affordance was evidently designed for a different model and does not currently work (D2/D3).
+**5. Interaction model: hover shows, click pins, click-empty dismisses — plus an explicit close.**
+Not the conventional click-to-open. The "close" affordance was evidently designed for a different model and did not work at all (D2/D3); BUG-134 resolved it in favour of the shipped model rather than changing the model. The panel now carries a `CloseButton` (a `WLib_NavigationButtonSmall` bound to the `OverthrowCloseInfoPanel` action, `KC_C` / gamepad `b`) that is **visible only while the selection is pinned**, and it calls `ForceHideLocationInfo` — not `HideLocationInfo`, whose pinned guard would make it a no-op in exactly the state the button exists for. Hiding it on hover panels also retires its keybind, which is the intent.
 
 ---
 
 ## Gotchas & Learnings
 
-- **`FindAnyWidget` returning null is a silent no-op, and the compiler cannot see it.** Two configured features are dead purely from widget-name mismatches: `IconLayout` (D1 — zoom icon sizing) and `CloseButton` (D2 — panel dismissal). Any layout↔code name contract needs a runtime pass or an explicit audit; `tools/compile-check.sh` will never catch this class.
+- **`FindAnyWidget` returning null is a silent no-op, and the compiler cannot see it.** Two configured features were dead purely from widget-name mismatches: `IconLayout` (D1 — zoom icon sizing) and `CloseButton` (D2 — panel dismissal). **Both fixed 2026-08-10** (BUG-133 / BUG-134): the icon lookup now uses the name the layout actually defines, `IconContainer`, hoisted to `OVT_MapLocationType.ICON_CONTAINER`; the info panel now really has a `CloseButton`. Any layout↔code name contract needs a runtime pass or an explicit audit; `tools/compile-check.sh` will never catch this class.
+- **`FrameSlot.SetSize` cannot size a widget that is not in a `FrameSlot`.** The icon resize target `IconContainer` sits in a `LayoutSlot` (its parent is a `VerticalLayoutWidget`), so even under the right name `FrameSlot.SetSize` would have done nothing. `SizeLayoutWidget.SetWidthOverride`/`SetHeightOverride` is the supported route — BUG-133 was two bugs stacked, and fixing only the name would have looked like a fix and changed nothing.
 - **`OVT_MapLocationType.Init()` runs on every map open, not once.** It re-caches all seven manager singletons each time. Don't write `PostInit` code that assumes single execution.
 - ~~**`UpdateInfoPanel` no-ops entirely when `m_InfoLayout` is empty**~~ — **superseded 2026-08-10 by `map/location-types` Phase 5.** It used to return early when `m_InfoLayout` was empty, which is why seven of ten types showed only the panel header: they were not falling back to a generic renderer, they were contributing nothing to `ContentSlot`. There is now a second branch (`m_SharedInfoLayout` → `BuildInfoRows`) — see the contract table above. The bespoke path is byte-for-byte unchanged. A type that supplies neither layout, or whose `BuildInfoRows` adds no rows, still contributes nothing (the empty container is removed again).
 - **`CanFastTravel` is on a hot path.** It runs per element inside `UpdateFastTravelIndicator`, which runs for every element on every zoom change. Keep implementations cheap.
 - **`m_bShowSpawnPoints` / `m_bShowTasks` are vanilla attributes**, not Overthrow ones (`SCR_MapUIElementContainer.c:23,26`). Setting them `0` suppresses vanilla's own icons — correct config, not dead keys.
 - **The type's `m_sName` is a Workbench editor label only** (`OVT_MapLocationTypeTitle._WB_GetCustomTitle`). Never shown to players; not localized.
 - **`OnMapSelection` used to unpin the info panel on any click that missed a map element — including clicks landing on the panel itself.** Its `else` branch runs `m_bSelectionPinned = false; m_PinnedElement = null; ForceHideLocationInfo();` whenever `m_HoveredElement` is null, which is what a press on one of the panel's own buttons looks like from the map's point of view. It was masked while every panel button closed the map. `map/fast-travel` Phase 3 added a recruit toggle that must leave the panel open, and on a controller the toggle's only input path is the map cursor plus `MapSelect` — so the hazard became load-bearing. **Change made (map/fast-travel Phase 3, 2026-08-10):** `OVT_OverthrowMapUI.IsSelectionOnInfoPanel(selectionPos)` converts the selected world position back to screen space via `m_MapEntity.WorldToScreen` and compares it against the panel's `GetScreenPos`/`GetScreenSize` rect; `OnMapSelection` returns early when it is inside. **Unverified at runtime:** whether the button widget consumes the click before the map's selection handler sees it at all. If it does, the guard is inert — it was applied regardless because it is cheap.
-- **`OnLocationClicked` is currently unreachable** because its only caller, `HandleSelection()`, has no callers itself. Subclasses overriding it are writing code that does not run.
+- ~~**`OnLocationClicked` is currently unreachable**~~ — **fixed 2026-08-10 (BUG-137).** `HandleSelection()` and `GetClickRadius()` were dead code and are deleted; the container now calls the virtual from `OnMapSelection` when a click pins a location, and plays the element's click sound (`PlayClickSound`) at the same point. There is deliberately **no click-to-deselect**: hover already shows the panel, so unpinning under a stationary cursor would leave it on screen anyway. Explicit dismissal is the panel's close button.
+- **Markers refresh on a per-type opt-in timer, not on events** (BUG-136, 2026-08-10). `OVT_MapLocationType.m_fRefreshInterval` (seconds, `0` = never) makes `OVT_OverthrowMapUI.TickRefresh` re-run that type's `PopulateLocations` and reconcile its elements — matched records are re-pointed via `OVT_MapLocationElement.SetLocationData` (which is what finally gives `OnLocationDataChanged()` a caller), gone ones are destroyed, new ones get a marker. Enabled in `Configs/Map/OverthrowMap.conf` for Town/Base/RadioTower/FOB/Camp at 5s and Vehicle at 2s; every other type stays at 0 and costs nothing. **Reconciliation destroys elements while the map is open** — `DestroyLocationElement` must clear `m_HoveredElement`, `m_PinnedElement`, `m_SelectedElement` and the base class's static `s_SelectedElement`, or it re-creates BUG-135 on a timer.
 
 ---
 

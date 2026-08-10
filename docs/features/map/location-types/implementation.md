@@ -69,8 +69,8 @@ verification feature.
   (`OVT_MapIcons.c:709-731`) and its `Update()` only re-projected the stored world position. **Sampling at
   map open IS parity.** `map/core`'s D6 does not block this feature (correction to the previous doc).
 - Fixing `map/core` D1 (`IconLayout` name mismatch), D2/D3 (panel close) or D7 (`OnLocationClicked`
-  unreachable). Those are `map/core`'s. **Do not override `OnLocationClicked` in any new type — it does
-  not run.**
+  unreachable). Those are `map/core`'s — and all three were fixed there on 2026-08-10 as BUG-133,
+  BUG-134 and BUG-137. `OnLocationClicked` now runs, so the "do not override" rule is lifted.
 - Changing what towns, bases, FOBs, shops, houses or vehicles store or replicate. Defects found there are
   filed as bugs against those features (N5, N6).
 - The travel verbs themselves (`map/fast-travel`), and deleting anything legacy (`map/legacy-retirement`).
@@ -103,8 +103,9 @@ Only **Base, RadioTower, Town** override `OnSetupLocationInfo`, exactly matching
 when `m_InfoLayout` is empty (`OVT_MapLocationType.c:126-127`), so the other seven contribute *nothing* to
 `ContentSlot` and show only the shell header (name, type, distance, owner, fast-travel button).
 
-**No type overrides `OnLocationClicked`** — fortunate, since `map/core` D7 established that virtual is
-unreachable (`HandleSelection()` has no callers). Nothing is broken today; it is a trap for the next author.
+**No type overrides `OnLocationClicked`.** That was fortunate while `map/core` D7 stood — the virtual was
+unreachable. BUG-137 wired it (the container calls it from `OnMapSelection` when a click pins a location),
+so overriding it is now supported; the default body is empty.
 
 ### 3.2 Data-key matrix
 
@@ -1146,8 +1147,8 @@ element is zoom-gated invisible. Log each separately; do not guess.
 ### Internal (code)
 
 - **`map/core`** — the `OVT_MapLocationType` contract, `OVT_MapLocationData`, `OVT_MapLocationElement`, the
-  shared panel shell. Extended additively (K5). Its D1/D2/D3/D7 remain its own; **D7 is a trap** — do not
-  override `OnLocationClicked`.
+  shared panel shell. Extended additively (K5). Its D1/D2/D3/D7 were fixed there on 2026-08-10 (BUG-133,
+  BUG-134, BUG-137); `OnLocationClicked` is reachable and safe to override.
 - **`towns/core`** — loses `GetNearestBusStop`/`FindBusStop`; gains nothing.
 - **`resistance/fob`** — FOB/camp records; N5 filed against it.
 - **`economy/shops` / `economy/real-estate`** — shop, gun-dealer, house and warehouse records and the

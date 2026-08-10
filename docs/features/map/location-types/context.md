@@ -120,10 +120,10 @@
 **Solution:** Q-8 — an explicit name-by-name audit of every `FindAnyWidget` added, plus a layout↔code contract comment at the top of each new handler.
 **Lesson:** In Enfusion, a widget-name lookup needs a documented contract or a runtime pass. This is the single highest-frequency silent failure in this codebase's UI.
 
-### 2. `OnLocationClicked` is a trap
-**Problem:** The virtual is unreachable — its only caller `HandleSelection()` has no callers itself (`map/core` D7). Panels appear via **hover**, not click.
-**Solution:** **Do not override `OnLocationClicked` in any new type.**
-**Lesson:** Nothing is broken today only because no shipped type overrides it.
+### 2. `OnLocationClicked` — was a trap, now reachable (BUG-137 fixed 2026-08-10)
+**Problem (historic):** The virtual was unreachable — its only caller `HandleSelection()` had no callers itself (`map/core` D7). Panels appear via **hover**, not click.
+**Solution:** `HandleSelection()` and `GetClickRadius()` were deleted and `OVT_OverthrowMapUI.NotifyLocationClicked` now invokes the virtual from `OnMapSelection` at the moment a click **pins** a location. **It is safe to override again.** Its default body is now empty (the container has already built the panel by then), and the element's click sound plays from the same call.
+**Lesson:** A documented virtual with no call site is worse than no virtual — it silently discards overrides written against it.
 
 ### 3. `CanFastTravel` and `ShouldShowLocation` are hot paths
 **Problem:** Both run per element on **every zoom change**. `GetCurrentPlayerID()` (a player-manager lookup plus persistent-ID resolution) is already called per element inside them.

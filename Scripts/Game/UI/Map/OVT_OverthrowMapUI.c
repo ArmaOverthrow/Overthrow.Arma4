@@ -39,6 +39,13 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 	//! Currently pinned element (for persistent info)
 	protected ref OVT_MapLocationElement m_PinnedElement;
 
+	//! Seconds remaining until each opted-in location type is re-populated, keyed by type class name.
+	//!
+	//! Only types with m_fRefreshInterval > 0 ever appear here, and it is rebuilt empty on every map
+	//! open so no timer survives a close. Keyed by name rather than held in an array parallel to
+	//! m_Config.m_aLocationTypes - see TickRefresh.
+	protected ref map<string, float> m_mRefreshTimers;
+
 	//! Whether nearby recruits travel with the player. Opt-OUT: default ON, because legacy fast travel
 	//! always brought them (OVT_MapContext.c:441) and defaulting OFF would silently re-ship finding F4.
 	//! Reset to true on every map open so no travel state survives a map close.
@@ -105,10 +112,14 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 			{
 				m_PinnedElement = m_HoveredElement;
 				m_bSelectionPinned = true;
-				
+
 				// Force show info for the new pinned element
 				SelectLocation(m_PinnedElement);
 				ShowLocationInfo(m_PinnedElement.GetLocationData());
+
+				// This is where a click becomes a click as far as the type contract is concerned.
+				// Last, so OnLocationClicked overrides run against a panel that already exists.
+				NotifyLocationClicked(m_PinnedElement);
 			}
 		}
 		else
@@ -119,7 +130,31 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 			ForceHideLocationInfo();
 		}
 	}
-	
+
+	//! Tell a location's type that it was just clicked, and play the element's click sound.
+	//!
+	//! The single caller is OnMapSelection, because in the shipped interaction model the CONTAINER is
+	//! what sees a click - it subscribes to the map entity's selection invoker. The element had its own
+	//! click path (HandleSelection) that nothing ever called, which meant the OnLocationClicked virtual
+	//! on the OVT_MapLocationType contract never fired and the click sound never played (BUG-137). The
+	//! dead path is gone; this is its replacement, on the side of the fence that actually gets the event.
+	//! \param[in] element The element that was just pinned.
+	protected void NotifyLocationClicked(OVT_MapLocationElement element)
+	{
+		if (!element)
+			return;
+
+		OVT_MapLocationData location = element.GetLocationData();
+		if (!location)
+			return;
+
+		element.PlayClickSound();
+
+		OVT_MapLocationType locationType = GetLocationTypeByName(location.m_sTypeName);
+		if (locationType)
+			locationType.OnLocationClicked(location, element);
+	}
+
 	override void OnMapOpen(MapConfiguration config)
 	{
 		super.OnMapOpen(config);
@@ -131,7 +166,11 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 
 		// Initialize arrays
 		m_aLocations = new array<ref OVT_MapLocationData>;
-		
+
+		// Fresh timers every open, so a type is never refreshed on the strength of a countdown that
+		// started in a previous map session
+		m_mRefreshTimers = new map<string, float>();
+
 		// Initialize location types
 		InitializeLocationTypes();
 		
@@ -162,6 +201,7 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 		m_SelectedElement = null;
 		m_PanelLocation = null;
 		m_wWiredInfoPanel = null;
+		m_mRefreshTimers = null;
 
 		// OnMouseLeave is not guaranteed to run when the map closes by keypress, by death or because
 		// another menu took the screen, so the hover survives the close unless it is cleared here. On the
@@ -236,41 +276,321 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 	{
 		if (!m_aLocations || m_LocationElementLayout.IsEmpty())
 			return;
-		
-		WorkspaceWidget workspace = GetGame().GetWorkspace();
-		
+
 		foreach (OVT_MapLocationData location : m_aLocations)
 		{
 			// Find the location type for this location
 			OVT_MapLocationType locationType = GetLocationTypeByName(location.m_sTypeName);
 			if (!locationType)
 				continue;
-			
-			// Create the widget from layout (handler attached via layout)
-			Widget widget = workspace.CreateWidgets(m_LocationElementLayout, m_wIconsContainer);
-			if (!widget)
-				continue;
-			
-			// Find the handler attached to the widget
-			OVT_MapLocationElement element = OVT_MapLocationElement.Cast(widget.FindHandler(OVT_MapLocationElement));
-			if (!element)
-				continue;
-			
-			// Initialize the handler with game data
-			element.SetParent(this);
-			element.Init(location, locationType, this);
-			
-			// Store in base class icon map
-			m_mIcons.Set(widget, element);
-			
-			// Configure widget positioning
-			FrameSlot.SetSizeToContent(widget, true);
-			FrameSlot.SetAlignment(widget, 0.5, 0.5);
+
+			CreateLocationElement(location, locationType);
 		}
 		UpdateIcons();
 	}
-	
-	
+
+	//! Create one marker widget and register it in the base class icon map.
+	//!
+	//! Split out of CreateLocationElements so the refresh path can add a marker for a location that did
+	//! not exist when the map was opened - a FOB built, a vehicle bought, a base captured mid-session
+	//! (BUG-136). Everything it does was previously inline in the open-time loop, unchanged.
+	//! \param[in] location The record the marker represents.
+	//! \param[in] locationType The record's type.
+	//! \return The attached handler, or null if the widget or its handler could not be created.
+	protected OVT_MapLocationElement CreateLocationElement(OVT_MapLocationData location, OVT_MapLocationType locationType)
+	{
+		if (!location || !locationType || m_LocationElementLayout.IsEmpty())
+			return null;
+
+		WorkspaceWidget workspace = GetGame().GetWorkspace();
+		if (!workspace)
+			return null;
+
+		// Create the widget from layout (handler attached via layout)
+		Widget widget = workspace.CreateWidgets(m_LocationElementLayout, m_wIconsContainer);
+		if (!widget)
+			return null;
+
+		// Find the handler attached to the widget
+		OVT_MapLocationElement element = OVT_MapLocationElement.Cast(widget.FindHandler(OVT_MapLocationElement));
+		if (!element)
+		{
+			widget.RemoveFromHierarchy();
+			return null;
+		}
+
+		// Initialize the handler with game data
+		element.SetParent(this);
+		element.Init(location, locationType, this);
+
+		// Store in base class icon map
+		m_mIcons.Set(widget, element);
+
+		// Configure widget positioning
+		FrameSlot.SetSizeToContent(widget, true);
+		FrameSlot.SetAlignment(widget, 0.5, 0.5);
+
+		return element;
+	}
+
+	//! Destroy one marker widget, taking every reference to it down with it.
+	//!
+	//! The reason this is not just "remove from m_mIcons and RemoveFromHierarchy": four things can be
+	//! pointing at an element - m_HoveredElement, m_PinnedElement, m_SelectedElement, and the STATIC
+	//! SCR_MapUIElement.s_SelectedElement in the base class. BUG-135 is precisely what one surviving
+	//! reference to a dead element costs, and a refresh that reconciles the element set is the one code
+	//! path that can destroy an element while the map is still open, so it has to clear all four.
+	//! \param[in] widget The marker's root widget, as keyed in m_mIcons.
+	protected void DestroyLocationElement(Widget widget)
+	{
+		if (!widget)
+			return;
+
+		OVT_MapLocationElement element = OVT_MapLocationElement.Cast(m_mIcons.Get(widget));
+
+		if (element)
+		{
+			// Clears the base class's static s_SelectedElement when it is this one
+			element.Select(false);
+
+			if (m_HoveredElement == element)
+				m_HoveredElement = null;
+
+			if (m_PinnedElement == element)
+			{
+				m_PinnedElement = null;
+				m_bSelectionPinned = false;
+			}
+
+			if (m_SelectedElement == element)
+				m_SelectedElement = null;
+		}
+
+		m_mIcons.Remove(widget);
+		widget.RemoveFromHierarchy();
+	}
+
+
+	//! Per-frame tick, dispatched by SCR_MapEntity.UpdateMap for every active map UI component.
+	//!
+	//! Only live while the map is open, which is the whole window in which a refresh means anything.
+	//! \param[in] timeSlice Seconds since the last frame.
+	override void Update(float timeSlice)
+	{
+		super.Update(timeSlice);
+
+		TickRefresh(timeSlice);
+	}
+
+	//! Count down each opted-in type's refresh timer and refresh the ones that come due.
+	//!
+	//! The map used to be a frozen snapshot for the whole time it was open: PopulateAllLocations ran
+	//! once in OnMapOpen and nothing ever re-read the managers, so a town changing hands, a base being
+	//! captured or a FOB being built was invisible until the map was closed and reopened (BUG-136).
+	//!
+	//! POLLING, NOT EVENTS, AND OPT-IN PER TYPE. Event subscriptions would be cheaper at rest but need
+	//! per-type wiring against seven different managers' invokers, and every one of those subscriptions
+	//! is a teardown obligation on a component whose open/close is the engine's. A timer that re-runs
+	//! the type's own PopulateLocations reuses the exact code path the map already trusts, and a type
+	//! that leaves m_fRefreshInterval at 0 - the default, and what every type ships with today - pays
+	//! nothing at all beyond this one loop.
+	//!
+	//! Timers are keyed by class name rather than kept in an array parallel to m_aLocationTypes on
+	//! purpose; parallel arrays over map data are what BUG-068 was.
+	//! \param[in] timeSlice Seconds since the last frame.
+	protected void TickRefresh(float timeSlice)
+	{
+		if (!m_aLocations || !m_mRefreshTimers || !m_Config || !m_Config.m_aLocationTypes)
+			return;
+
+		array<OVT_MapLocationType> dueTypes = {};
+
+		foreach (OVT_MapLocationType locationType : m_Config.m_aLocationTypes)
+		{
+			if (!locationType)
+				continue;
+
+			float interval = locationType.GetRefreshInterval();
+			if (interval <= 0)
+				continue;
+
+			string typeName = locationType.ClassName();
+
+			// A type seen for the first time starts a full interval away, so nothing refreshes on the
+			// same frame the map opened - it was just populated.
+			float remaining = interval;
+			m_mRefreshTimers.Find(typeName, remaining);
+
+			remaining -= timeSlice;
+
+			if (remaining > 0)
+			{
+				m_mRefreshTimers.Set(typeName, remaining);
+				continue;
+			}
+
+			m_mRefreshTimers.Set(typeName, interval);
+			dueTypes.Insert(locationType);
+		}
+
+		if (dueTypes.IsEmpty())
+			return;
+
+		foreach (OVT_MapLocationType dueType : dueTypes)
+		{
+			RefreshLocationType(dueType);
+		}
+
+		UpdateIcons();
+	}
+
+	//! Re-populate one location type and reconcile its markers against the result.
+	//!
+	//! RECONCILES rather than rebuilds. Tearing the type's elements down and recreating them would be a
+	//! third of the code, but it would destroy the marker under the player's cursor on a timer - killing
+	//! the hover, the pin and the open info panel every interval. Matching old records to new ones by
+	//! identity keeps a hovered or pinned element alive across the refresh; only genuinely gone
+	//! locations lose their marker, and only genuinely new ones gain one.
+	//!
+	//! m_aLocations is the ownership list for the records, so this type's slice of it is swapped out
+	//! wholesale. Elements that survive are re-pointed at their replacement record first, so they hold
+	//! the new object by the time the old one is dropped.
+	//! \param[in] locationType The type to re-read from its managers.
+	protected void RefreshLocationType(OVT_MapLocationType locationType)
+	{
+		if (!locationType || !m_aLocations)
+			return;
+
+		string typeName = locationType.ClassName();
+
+		array<ref OVT_MapLocationData> fresh = {};
+		locationType.PopulateLocations(fresh);
+
+		map<string, OVT_MapLocationData> freshByKey = new map<string, OVT_MapLocationData>();
+
+		// The records that will own a marker after this refresh, in one list, so m_aLocations and the
+		// element set cannot disagree about what exists.
+		array<ref OVT_MapLocationData> kept = {};
+
+		foreach (OVT_MapLocationData record : fresh)
+		{
+			// A type that emits records tagged as another type would corrupt that type's slice, so the
+			// tag is trusted over the type that produced it.
+			if (!record || record.m_sTypeName != typeName)
+				continue;
+
+			string recordKey = GetLocationKey(record);
+
+			// One marker per identity. Two records that key the same (realistically: two positionless
+			// locations rounding to the same metre) would otherwise leave the loser in m_aLocations with
+			// no element - a record the map owns and never draws.
+			if (freshByKey.Contains(recordKey))
+				continue;
+
+			freshByKey.Set(recordKey, record);
+			kept.Insert(record);
+		}
+
+		// Pass 1: match every existing marker of this type, re-pointing survivors and listing the rest.
+		array<Widget> stale = {};
+		bool panelNeedsRebuild = false;
+
+		foreach (Widget widget, SCR_MapUIElement icon : m_mIcons)
+		{
+			OVT_MapLocationElement element = OVT_MapLocationElement.Cast(icon);
+			if (!element)
+				continue;
+
+			OVT_MapLocationData existing = element.GetLocationData();
+			if (!existing || existing.m_sTypeName != typeName)
+				continue;
+
+			string key = GetLocationKey(existing);
+
+			OVT_MapLocationData replacement;
+			if (!freshByKey.Find(key, replacement))
+			{
+				stale.Insert(widget);
+				continue;
+			}
+
+			if (m_PanelLocation == existing)
+				panelNeedsRebuild = true;
+
+			element.SetLocationData(replacement);
+
+			// Whatever is left in the map after this pass is new and needs a marker creating
+			freshByKey.Remove(key);
+		}
+
+		// Pass 2: retire the markers whose locations are gone. Done outside the m_mIcons loop above
+		// because DestroyLocationElement removes from that same map.
+		foreach (Widget staleWidget : stale)
+		{
+			OVT_MapLocationElement staleElement = OVT_MapLocationElement.Cast(m_mIcons.Get(staleWidget));
+			if (staleElement && m_PanelLocation == staleElement.GetLocationData())
+			{
+				// The panel is describing a location that no longer exists - close it rather than leave
+				// a travel button pointing at somewhere gone.
+				ForceHideLocationInfo();
+				panelNeedsRebuild = false;
+			}
+
+			DestroyLocationElement(staleWidget);
+		}
+
+		// m_aLocations owns the records; swap this type's slice for the fresh one.
+		for (int i = m_aLocations.Count() - 1; i >= 0; i--)
+		{
+			OVT_MapLocationData held = m_aLocations.Get(i);
+			if (!held || held.m_sTypeName == typeName)
+				m_aLocations.Remove(i);
+		}
+
+		foreach (OVT_MapLocationData keep : kept)
+		{
+			m_aLocations.Insert(keep);
+		}
+
+		// Pass 3: anything the existing markers did not claim is a location that appeared mid-session.
+		foreach (string addedKey, OVT_MapLocationData added : freshByKey)
+		{
+			CreateLocationElement(added, locationType);
+		}
+
+		// The panel renders from the record, so a replaced record leaves it showing stale numbers.
+		// Rebuilding it is the same call hovering a marker makes, and it re-reads the new record.
+		if (panelNeedsRebuild && m_SelectedElement)
+			ShowLocationInfo(m_SelectedElement.GetLocationData());
+	}
+
+	//! Stable identity for one location record, used to match markers across a refresh.
+	//!
+	//! Prefers whichever id the type actually set - the ten shipped types are split between an integer
+	//! index (towns, bases, radio towers), an EntityID (houses, ports, POIs, bus stops, vehicles) and an
+	//! RplId (shops, gun dealers) - and falls back to a rounded world position for the types that set
+	//! none (camps, FOBs, warehouses, waypoints). Position is the LAST resort precisely because it is
+	//! the one key that a moving location would break; every type whose records move sets an EntityID.
+	//! \param[in] location The record to key.
+	//! \return A key unique within one location type.
+	protected string GetLocationKey(OVT_MapLocationData location)
+	{
+		if (!location)
+			return "";
+
+		if (location.m_iID >= 0)
+			return "i:" + location.m_iID.ToString();
+
+		if (location.m_EntityID)
+			return "e:" + location.m_EntityID.ToString();
+
+		if (location.m_RplID.IsValid())
+			return "r:" + location.m_RplID.AsString();
+
+		vector pos = location.m_vPosition;
+		return "p:" + Math.Round(pos[0]).ToString() + "," + Math.Round(pos[2]).ToString();
+	}
+
 	//! Get location type by class name
 	protected OVT_MapLocationType GetLocationTypeByName(string typeName)
 	{
@@ -338,14 +658,8 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 		UpdateInfoPanelPosition();
 		
 		// Setup close button
-		ButtonWidget closeButton = ButtonWidget.Cast(m_wInfoPanel.FindAnyWidget("CloseButton"));
-		if (closeButton)
-		{
-			SCR_ButtonBaseComponent closeComp = SCR_ButtonBaseComponent.Cast(closeButton.FindHandler(SCR_ButtonBaseComponent));
-			if (closeComp)
-				closeComp.m_OnClicked.Insert(HideLocationInfo);
-		}
-		
+		SetupCloseButton();
+
 		// Setup travel button and the recruit opt-out toggle
 		SetupTravelButton(location);
 		
@@ -401,6 +715,53 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 			m_SelectedElement.SetInfoPopupVisible(false);
 	}
 	
+	//! Show and wire the info panel's close button.
+	//!
+	//! TWO defects made the panel undismissable, and both are fixed here (BUG-134):
+	//!
+	//!  1. The button did not exist. This wiring looked up "CloseButton" and
+	//!     UI/Layouts/Map/Core/OVT_MapInfoPanel.layout defined no such widget, so FindAnyWidget returned
+	//!     null and the guard swallowed it. The layout now carries a WLib_NavigationButtonSmall by that
+	//!     name, bound to the OverthrowCloseInfoPanel action so a controller has a path to it too - the
+	//!     old wiring was a bare mouse click handler, which on console is no affordance at all.
+	//!  2. It was pointed at the wrong method. HideLocationInfo early-returns while m_bSelectionPinned,
+	//!     and any panel a player reaches for a close button on is by definition pinned - OnMapSelection
+	//!     sets the pin before showing it. So the handler would have been a no-op in exactly the state
+	//!     it existed for. ForceHideLocationInfo clears the pin first, which is what an explicit close
+	//!     means. HideLocationInfo's guard is deliberately left alone: it is what stops a hover-away
+	//!     from tearing down a panel the player pinned on purpose.
+	//!
+	//! Shown on PINNED panels only. A hover panel evaporates the moment the cursor leaves the marker, so
+	//! a close affordance on it would be noise - and hiding the button also retires its keybind, because
+	//! SCR_InputButtonComponent.OnInput early-returns on a root that is not visible in hierarchy.
+	protected void SetupCloseButton()
+	{
+		if (!m_wInfoPanel)
+			return;
+
+		ButtonWidget closeButton = ButtonWidget.Cast(m_wInfoPanel.FindAnyWidget("CloseButton"));
+		if (!closeButton)
+			return;
+
+		if (!m_bSelectionPinned)
+		{
+			closeButton.SetVisible(false);
+			return;
+		}
+
+		closeButton.SetVisible(true);
+
+		SCR_InputButtonComponent closeComp = SCR_InputButtonComponent.Cast(closeButton.FindHandler(SCR_InputButtonComponent));
+		if (!closeComp)
+			return;
+
+		// ShowLocationInfo destroys and recreates the whole panel on every hover and pin, so this
+		// component is a fresh instance each time and Clear() is belt-and-braces rather than load
+		// bearing - unlike WireTravelHandlers, which guards a control that re-enters its own setup.
+		closeComp.m_OnActivated.Clear();
+		closeComp.m_OnActivated.Insert(ForceHideLocationInfo);
+	}
+
 	//! Unpin any pinned location when hovering a new one
 	void UnpinOnHover()
 	{

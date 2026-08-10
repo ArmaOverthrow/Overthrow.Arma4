@@ -8271,6 +8271,21 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A7E1C40A9B33006}" {
+   Id "OVT-Map_ClosePanel"
+   Target_en_us "Close"
+   Comment "Map info panel - button that dismisses the panel for the clicked location"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6A7E1C40A9B33002}" {
    Id "OVT-Travelled"
    Target_en_us "Travelled"

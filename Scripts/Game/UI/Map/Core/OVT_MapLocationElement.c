@@ -34,6 +34,8 @@ class OVT_MapLocationElement : SCR_MapUIElement
 	
 	
 	//! Sound attributes
+	//! Played by the container when a click pins this element - see PlayClickSound. It used to be
+	//! consumed only by HandleSelection(), which had no callers, so it never actually played (BUG-137).
 	[Attribute(SCR_SoundEvent.SOUND_MAP_HOVER_BASE, desc: "Sound played on click")]
 	protected string m_sSoundClick;
 	
@@ -101,40 +103,21 @@ class OVT_MapLocationElement : SCR_MapUIElement
 	
 	
 	
-	//! Common selection logic for both mouse and controller
-	protected void HandleSelection()
+	//! Play this element's click sound.
+	//!
+	//! Exists because PlayHoverSound is protected on SCR_MapUIElement and the caller is the container:
+	//! clicks are handled one level up, by OVT_OverthrowMapUI.OnMapSelection subscribing to the map
+	//! entity's selection invoker, not by this element. The element's own click path (HandleSelection,
+	//! and GetClickRadius as its hit test) was written, never wired to anything, and removed in BUG-137.
+	//!
+	//! There is deliberately no click-to-deselect. HandleSelection implemented one, but in the shipped
+	//! model hover ALREADY shows the panel, so unpinning under a stationary cursor would leave the panel
+	//! showing anyway. The explicit dismissal is the panel's own close button (BUG-134).
+	void PlayClickSound()
 	{
-		if (!m_bVisible || !m_LocationData || !m_LocationType)
-			return;
-		
-		// Play click sound
 		PlayHoverSound(m_sSoundClick);
-		
-		// If already selected, deselect and hide info panel
-		if (m_bSelected)
-		{
-			Select(false);
-			if (m_ParentMapUI)
-				m_ParentMapUI.HideLocationInfo();
-		}
-		else
-		{
-			// Select this element
-			Select(true);
-			
-			// Notify parent container of selection
-			if (m_Parent)
-				m_Parent.OnElementSelected(this);
-			
-			// Notify parent map UI
-			if (m_ParentMapUI)
-				m_ParentMapUI.SelectLocation(this);
-			
-			// Notify location type of click
-			m_LocationType.OnLocationClicked(m_LocationData, this);
-		}
 	}
-	
+
 	//! Handle mouse hover enter (works for both mouse and controller)
 	override bool OnMouseEnter(Widget w, int x, int y)
 	{
@@ -439,9 +422,34 @@ class OVT_MapLocationElement : SCR_MapUIElement
 		UpdateDisplay();
 	}
 	
+	//! Point this element at a replacement record and redraw it.
+	//!
+	//! The refresh path (OVT_OverthrowMapUI.RefreshLocationType) re-runs PopulateLocations and gets back
+	//! FRESH OVT_MapLocationData objects, so a live element has to be re-pointed rather than mutated in
+	//! place. Doing it this way keeps the element - and therefore any hover, pin or selection resting on
+	//! it - alive across a refresh, instead of destroying and recreating the marker under the cursor.
+	//! \param[in] locationData The replacement record. Ignored when null, so a refresh can never blank
+	//!            out a live element.
+	void SetLocationData(OVT_MapLocationData locationData)
+	{
+		if (!locationData)
+			return;
+
+		m_LocationData = locationData;
+		OnLocationDataChanged();
+	}
+
 	//! Called when the location data is updated
+	//!
+	//! This hook existed with no callers at all - the map populated once per open and never looked at
+	//! the managers again (BUG-136). It is now called by SetLocationData on every refresh tick for the
+	//! types that opt in via m_fRefreshInterval.
 	void OnLocationDataChanged()
 	{
+		// Visibility is re-evaluated too, not just the drawing: ShouldShowLocation reads live manager
+		// state (ownership, discovery, faction) and that is exactly the kind of thing a refresh is for.
+		SetVisible(m_bVisible);
+
 		UpdateDisplay();
 	}
 	
@@ -462,23 +470,6 @@ class OVT_MapLocationElement : SCR_MapUIElement
 		// Update name and distance visibility when popup state changes
 		UpdateLocationName();
 		UpdateDistance();
-	}
-	
-	//! Get click radius based on current zoom level
-	protected float GetClickRadius()
-	{
-		if (!m_MapEntity)
-			return 10; // Default radius in world units
-		
-		// Base radius in world units (meters) - small for tightly packed icons
-		float baseRadius = 8; // 8 meters for icons 15m apart
-		
-		// Scale the radius inversely with zoom level
-		// Higher zoom = smaller world area visible = smaller click radius needed
-		float currentZoom = m_MapEntity.GetCurrentZoom();
-		float zoomFactor = Math.Max(0.3, 1.5 - currentZoom); // Smaller range: 0.3 to 1.2
-		
-		return baseRadius * zoomFactor;
 	}
 	
 	//! Check if this element should be visible at current zoom level

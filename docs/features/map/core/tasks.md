@@ -38,15 +38,15 @@ Nothing below has been observed at runtime. The branch has not been play-tested 
 
 ---
 
-## Filed bugs — confirm at runtime, then fix
+## Filed bugs — ALL CLOSED 2026-08-10
 
-All five were filed from code reading on 2026-08-10 and are **unverified**. Confirm each before fixing so the fix targets observed behaviour.
+All five were filed from code reading on 2026-08-10, fixed and play-tested the same day.
 
-- [ ] **BUG-133** (medium) — D1: icon zoom-sizing inert. `SetupIconWidget` looks up `"IconLayout"`; the layout's `SizeLayoutWidget` is `"IconContainer"`. *One-line fix, high confidence.*
-- [ ] **BUG-134** (medium) — D2+D3: info panel cannot be dismissed. `"CloseButton"` absent from `OVT_MapInfoPanel.layout`, and `HideLocationInfo` early-returns while pinned. Fix points at `ForceHideLocationInfo`.
-- [ ] **BUG-135** (medium) — D4: `m_HoveredElement` strong ref never cleared on close; stale element can re-pin on the next map open.
-- [ ] **BUG-136** (low) — D6: markers never refresh mid-open; `OnLocationDataChanged()` has no callers. **Blocks `map/location-types` G1 (Vehicle).**
-- [ ] **BUG-137** (low) — D7: element click path dead; `OnLocationClicked` never fires, click sound never plays, no click-to-deselect.
+- [x] **BUG-133** (medium) — D1: icon zoom-sizing inert. **Two stacked faults**, not the one-liner the bug predicted: the lookup name was wrong (`"IconLayout"` → `"IconContainer"`, now the `ICON_CONTAINER` constant) *and* `FrameSlot.SetSize` could never have sized it, because `IconContainer` is in a `LayoutSlot`. Now uses `SizeLayoutWidget.SetWidthOverride`/`SetHeightOverride`.
+- [x] **BUG-134** (medium) — D2+D3: info panel cannot be dismissed. `OVT_MapInfoPanel.layout` gained a real `CloseButton` (a `WLib_NavigationButtonSmall` bound to the new `OverthrowCloseInfoPanel` action, `KC_C` / gamepad `b`), pointed at `ForceHideLocationInfo`. Visible only while pinned, which also keeps its keybind off hover panels.
+- [x] **BUG-135** (medium) — D4: `m_HoveredElement` never cleared on close. **Already fixed before the fix pass** — `map/fast-travel` (commit `008293c2`) added the clear to `OnMapClose`. Verified by `git log -S`; no further change made.
+- [x] **BUG-136** (low) — D6: markers never refresh mid-open. Per-type opt-in polling (`m_fRefreshInterval`, default `0`) drives `OVT_OverthrowMapUI.TickRefresh` → `RefreshLocationType`, which reconciles markers by identity key; survivors are re-pointed through the new `OVT_MapLocationElement.SetLocationData`, giving `OnLocationDataChanged()` its first caller. Enabled at 5 s for Town/Base/RadioTower/FOB/Camp, 2 s for Vehicle. **Unblocks `map/location-types` G1.**
+- [x] **BUG-137** (low) — D7: element click path dead. `HandleSelection()` and `GetClickRadius()` deleted; `OVT_OverthrowMapUI.NotifyLocationClicked` now fires `OnLocationClicked` (and the click sound, via the new `PlayClickSound`) when a click pins a location. Default body of the virtual is now empty. **No click-to-deselect** — hover already shows the panel, so BUG-134's close button is the explicit dismissal.
 
 **Not filed — recorded as debt instead:**
 - D5 — `UpdateIcons` computes a `targetElement` (pinned-else-selected) that `UpdateInfoPanelPosition()` ignores in favour of `m_SelectedElement` (`:113-126`, `:551`). Harmless today because pinning also selects; intent and behaviour disagree. See Cleanup below.
@@ -55,10 +55,10 @@ All five were filed from code reading on 2026-08-10 and are **unverified**. Conf
 
 ## Cleanup / debt (after verification)
 
-- \[ \] Remove or wire up dead code: `HandleSelection()`, `GetClickRadius()`, `OnLocationDataChanged()`
+- \[x\] ~~Remove or wire up dead code: `HandleSelection()`, `GetClickRadius()`, `OnLocationDataChanged()`~~ — done 2026-08-10. First two deleted (BUG-137), third given a caller (BUG-136).
 - \[ \] Replace `GetLocationTypeByName`'s linear `ClassName()` scan with a map built in `InitializeLocationTypes` (called 3× per panel show)
 - \[ \] Hoist per-element `GetCurrentPlayerID()` out of `SetVisible` / `UpdateFastTravelIndicator` (runs per element per zoom change)
-- \[ \] Audit every `FindAnyWidget` name in the map code against its layout — D1 and D2 are the same failure mode and the compiler cannot see it
+- \[ \] Audit every `FindAnyWidget` name in the map code against its layout — **still owed.** D1 and D2 were fixed individually (BUG-133/134), but they were found by spot-checking, not by the sweep. Same failure mode, still invisible to the compiler.
 - \[ \] Review hardcoded info-panel offsets (`x += 13; y -= 31`) and the partial screen-edge clamping
 
 ---

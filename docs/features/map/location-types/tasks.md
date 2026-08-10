@@ -343,7 +343,7 @@
 - 🔴 Large (> 3 hours)
 
 ### Traps recorded in the plan
-- **Do not override `OnLocationClicked`** in any new type — `map/core` D7 established the virtual is unreachable (`HandleSelection()` has no callers).
+- ~~**Do not override `OnLocationClicked`**~~ — **lifted 2026-08-10 (BUG-137).** The container now invokes it from `OnMapSelection` when a click pins a location; overriding it works. Its default body is empty.
 - **Do not call `GetTownStock`** — N6, it can null-deref on a client. Q-4 greps for it.
 - **Do not do work in `CanFastTravel` or `ShouldShowLocation`** — both run per element on every zoom change (Q-7).
 - **`FindAnyWidget` returning null is a silent no-op** — Q-8 name audit is mandatory.

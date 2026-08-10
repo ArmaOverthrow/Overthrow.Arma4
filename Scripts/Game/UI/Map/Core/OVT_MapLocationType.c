@@ -26,6 +26,13 @@ class OVT_MapLocationType
 	//! exactly this name, or BuildInfoRows is never called and every shared panel silently renders empty.
 	protected static const string ROWS_CONTAINER = "Rows";
 
+	//! Name of the SizeLayoutWidget wrapping the icon in the element layout.
+	//! LAYOUT <-> CODE CONTRACT: UI/Layouts/Map/Core/OVT_MapLocationElement.layout must contain a
+	//! SizeLayoutWidget with exactly this name, or zoom-based icon sizing silently does nothing.
+	//! This was "IconLayout" - a name no layout has ever defined - which is what made
+	//! m_iIconSizeSmall/m_iIconSizeLarge inert on all ten configured types (BUG-133).
+	protected static const string ICON_CONTAINER = "IconContainer";
+
 	//! Layout for one row inside the shared info panel.
 	//! Deliberately a constant rather than an attribute: it is a matched pair with
 	//! OVT_MapInfoRowHandler's RowLabel/RowValue/RowIcon name contract, so making it swappable from the
@@ -64,7 +71,10 @@ class OVT_MapLocationType
 	
 	[Attribute(defvalue: "true", desc: "Show location name")]
 	protected bool m_bShowName;
-	
+
+	[Attribute(defvalue: "0", desc: "Seconds between live refreshes of this type while the map is open. 0 = populate once per map open (no refresh). Re-runs PopulateLocations, so keep it well above the cost of that call.")]
+	protected float m_fRefreshInterval;
+
 	//! Reference to the map UI that owns this location type
 	protected OVT_OverthrowMapUI m_MapUI;
 	
@@ -127,11 +137,22 @@ class OVT_MapLocationType
 	}
 	
 	//! Handle location click/activation
+	//!
+	//! REACHABLE AS OF BUG-137. It is invoked by OVT_OverthrowMapUI.OnMapSelection at the moment a
+	//! click PINS a location. It used to be called only from OVT_MapLocationElement.HandleSelection(),
+	//! which itself had no callers, so the virtual never fired at all - a documented extension point
+	//! that quietly discarded any override written against it. That dead method is gone; the container
+	//! now makes the call, because in the shipped interaction model (hover shows, click pins,
+	//! click-empty dismisses) the container is what sees the click.
+	//!
+	//! The default body is deliberately EMPTY. It used to call ShowLocationInfo, which is now redundant:
+	//! by the time this runs the container has already selected the element and built the panel, so a
+	//! panel-showing default would build it a second time. Override for per-type click behaviour only.
+	//! \param[in] location The record that was just pinned
+	//! \param[in] element The element that was just pinned
 	void OnLocationClicked(OVT_MapLocationData location, OVT_MapLocationElement element)
 	{
-		// Default behavior: show info panel
-		if (m_MapUI)
-			m_MapUI.ShowLocationInfo(location);
+		// Override in derived classes
 	}
 	
 	//! Update location-specific UI info panel
@@ -358,6 +379,18 @@ class OVT_MapLocationType
 	{
 		return m_fShowNameZoom;
 	}
+
+	//! Seconds between live refreshes of this type while the map is open, 0 when it never refreshes.
+	//!
+	//! Opt-in per type, and off by default, because a refresh re-runs PopulateLocations - the exact
+	//! per-open cost the map pays once - on a timer. Only turn it on for types whose staleness is
+	//! visible to the player and whose population is cheap; a type whose records cannot change during
+	//! one map session should stay at 0. See OVT_OverthrowMapUI.TickRefresh (BUG-136).
+	//! \return Refresh period in seconds, or 0 for "populate once per map open".
+	float GetRefreshInterval()
+	{
+		return m_fRefreshInterval;
+	}
 	
 	//! Get the icon color for this location (override in derived classes)
 	Color GetIconColor(OVT_MapLocationData location)
@@ -443,7 +476,7 @@ class OVT_MapLocationType
 		}
 		
 		// Set icon size based on zoom level
-		SizeLayoutWidget sizeLayout = SizeLayoutWidget.Cast(iconWidget.FindAnyWidget("IconLayout"));
+		SizeLayoutWidget sizeLayout = SizeLayoutWidget.Cast(iconWidget.FindAnyWidget(ICON_CONTAINER));
 		if (sizeLayout)
 		{
 			int size;
@@ -451,7 +484,16 @@ class OVT_MapLocationType
 				size = m_iIconSizeSmall;
 			else
 				size = m_iIconSizeLarge;
-			FrameSlot.SetSize(sizeLayout, size, size);
+
+			// IconContainer sits in a LayoutSlot - its parent is the element's ContentLayout, a
+			// VerticalLayoutWidget - so FrameSlot.SetSize could never have sized it even under the
+			// right name. SizeLayoutWidget's own overrides are the supported route. The Enable calls
+			// are explicit so the resize does not silently depend on the layout keeping
+			// AllowWidthOverride/AllowHeightOverride set.
+			sizeLayout.EnableWidthOverride(true);
+			sizeLayout.EnableHeightOverride(true);
+			sizeLayout.SetWidthOverride(size);
+			sizeLayout.SetHeightOverride(size);
 		}
 		
 		// Handle distance display
