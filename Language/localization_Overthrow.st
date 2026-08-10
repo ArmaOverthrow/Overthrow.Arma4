@@ -9512,40 +9512,6 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
-  CustomStringTableItem "{6A7E1C4D00000043}" {
-   Id "OVT-Map_Shop_Dearer"
-   Target_en_us "Dearer"
-   Comment "Map shop info panel - caption on an item row whose price is above normal. Sits beside an upward caret glyph; keep it to one short word."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1754870400
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A7E1C4D00000044}" {
-   Id "OVT-Map_Shop_Cheaper"
-   Target_en_us "Cheaper"
-   Comment "Map shop info panel - caption on an item row whose price is below normal. Sits beside a downward caret glyph; keep it to one short word."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1754870400
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
   CustomStringTableItem "{6A7E1C4D00000045}" {
    Id "OVT-Map_Shop_Remote"
    Target_en_us "Far from a port - everything here costs more to bring in."

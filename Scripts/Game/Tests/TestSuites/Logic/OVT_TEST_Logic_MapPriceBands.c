@@ -203,17 +203,15 @@ class OVT_TEST_Logic_MapPriceBands : SCR_AutotestCaseBase
 		if (!ExpectGlyph(OVT_MapPriceLevel.DOWN_1, "down_1") || !ExpectGlyph(OVT_MapPriceLevel.DOWN_2, "down_2") || !ExpectGlyph(OVT_MapPriceLevel.DOWN_3, "down_3"))
 			return true;
 
-		// --- DIRECTION IS CARRIED BY THE GLYPH ALONE (2026-08-10: the "Dearer"/"Cheaper" captions were
-		// removed by user directive, so GetDirectionKey no longer exists). F-6 requires up-versus-down
-		// to survive with COLOUR removed, and the glyph is a directional shape drawn in flat white, so
-		// the property that must now hold is that up and down never share a quad. Asserted above by the
-		// seenGlyphs uniqueness check and pinned by name in the ExpectGlyph block, which is what would
-		// catch an atlas edit that made up_2 and down_2 identical.
-		if (OVT_MapShopPriceBands.GetCaretIcon(OVT_MapPriceLevel.UP_2) == OVT_MapShopPriceBands.GetCaretIcon(OVT_MapPriceLevel.DOWN_2))
-		{
-			SetResultFailure("Up and down asked for the same glyph, so direction cannot be read from shape");
-			return true;
-		}
+		// --- DIRECTION IS NOW CARRIED BY THE GLYPH ALONE. The "Dearer"/"Cheaper" captions were removed
+		// on 2026-08-10 by user directive and GetDirectionKey with them, so the assertions that checked
+		// the two keys were non-empty, distinct and constant per direction are gone.
+		//
+		// NOTHING REPLACES THEM, DELIBERATELY. F-6's surviving requirement is that up and down never
+		// share a glyph - and that is already asserted twice above, by the seenGlyphs uniqueness loop
+		// and by the ExpectGlyph name pinning. A third check was written here and then removed after a
+		// mutation test: forcing DOWN_2 to return "up_2" failed at the uniqueness loop, never reaching
+		// it, so it could not fail independently. An assertion that cannot fail is not coverage.
 
 		// --- THE REMOTENESS BADGE.
 		// A negative distance means "no ports are registered", not "next to a port". It must hide.

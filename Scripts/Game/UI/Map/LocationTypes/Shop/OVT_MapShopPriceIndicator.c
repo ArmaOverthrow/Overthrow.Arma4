@@ -239,8 +239,9 @@ class OVT_MapShopPriceBands
 	// directional SHAPE drawn in the same white as every other row icon, so direction survives with
 	// colour removed entirely. What is lost is redundancy, not the signal.
 	//
-	// The two .st ids are now orphaned in the master string table. Left for map/legacy-retirement's
-	// .st-orphan pass rather than cut here.
+	// Both ids were cut from Language/localization_Overthrow.st the same day ({6A7E1C4D00000043} and
+	// {6A7E1C4D00000044}); the user regenerates the six runtime exports. Do not reintroduce either key
+	// without adding it back to the master first - a key absent from the exports renders raw on screen.
 }
 
 //------------------------------------------------------------------------------------------------
