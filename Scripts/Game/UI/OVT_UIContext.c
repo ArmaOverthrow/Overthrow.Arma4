@@ -1,5 +1,20 @@
 class OVT_UIContext : ScriptAndConfig
 {
+	//! Which HUD layers survive m_bHideHUDOnShow.
+	//!
+	//! WHY THIS IS NOT SetVisible(false) ANY MORE. That call hides both of SCR_HUDManagerComponent's
+	//! roots, and the second one - m_wRootTop, which carries EHudLayers.ALWAYS_TOP - is the only widget
+	//! in the game that draws above a MenuManager layout (it is created with SetZOrder(100) and the base
+	//! game says so in a comment). The tutorial overlay lives on that layer so that a tip about the
+	//! screen you are looking at can be drawn ON the screen you are looking at; blanking the root would
+	//! take that away again the moment the screen in question was an Overthrow menu.
+	//!
+	//! Everything the flag was ever meant to hide - the money and wanted readouts, transfer progress,
+	//! vanilla's own elements - sits on BACKGROUND..OVERLAY and is still hidden. ALWAYS_TOP is not a
+	//! layer Overthrow puts anything else on.
+	static const EHudLayers HUD_LAYERS_OVER_MENUS = EHudLayers.ALWAYS_TOP;
+
+
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Layout to show", params: "layout")]
 	ResourceName m_Layout;
 	
@@ -49,7 +64,24 @@ class OVT_UIContext : ScriptAndConfig
 	{
 		return m_bIsActive;
 	}
-	
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether this context is doing something a tutorial popup must not be drawn over.
+	//!
+	//! Deliberately a SEPARATE question from IsActive(). A context can own the screen without having
+	//! a layout up: OVT_PlaceContext.StartPlace() closes its menu (clearing m_bIsActive) and only then
+	//! starts driving a ghost entity and activating OverthrowPlaceContext every frame, and
+	//! OVT_BuildContext does the same. A popup that appeared during that would sit on top of the very
+	//! placement it is describing, and its shortcuts would fight the rotate keys.
+	//!
+	//! Override in any context that keeps working after CloseLayout(); the default is correct for the
+	//! fifteen that do not.
+	//! \return True while this context must suppress tutorial popups.
+	bool IsBlockingPopups()
+	{
+		return m_bIsActive;
+	}
+
 	void OnControlledByPlayer()
 	{
 		int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(m_Owner);
@@ -111,18 +143,13 @@ class OVT_UIContext : ScriptAndConfig
 	
 	void ShowLayout()
 	{
-		Print("[Overthrow] ShowLayout() called on " + Type());
-		Print("[Overthrow] m_Layout: " + m_Layout);
 		if(!m_Layout)
 		{
-			Print("[Overthrow] ShowLayout() failed: m_Layout is null");
 			return;
 		}
 
-		Print("[Overthrow] CanShowLayout(): " + CanShowLayout());
 		if(!CanShowLayout())
 		{
-			Print("[Overthrow] ShowLayout() failed: CanShowLayout() returned false");
 			return;
 		}
 
@@ -130,7 +157,6 @@ class OVT_UIContext : ScriptAndConfig
 		{
 			if(m_bOpenActionCloses)
 			{
-				Print("[Overthrow] ShowLayout() closing instead (already active)");
 				CloseLayout();
 				return;
 			}
@@ -141,20 +167,21 @@ class OVT_UIContext : ScriptAndConfig
 		}
 
 		WorkspaceWidget workspace = GetGame().GetWorkspace();
-		Print("[Overthrow] workspace: " + workspace);
 		m_wRoot = workspace.CreateWidgets(m_Layout);
-		Print("[Overthrow] m_wRoot created: " + m_wRoot);
 
 		if(m_bHideHUDOnShow){
 			SCR_HUDManagerComponent hud = GetGame().GetHUDManager();
 			if (hud)
-				hud.SetVisible(false);
+				hud.SetVisibleLayers(HUD_LAYERS_OVER_MENUS);
 		}
 
 		Enable();
-		Print("[Overthrow] Calling OnShow()");
 		OnShow();
-		Print("[Overthrow] ShowLayout() complete");
+
+		// Client-local MENU_OPENED tutorial trigger. Fired AFTER Enable(), so the context is already
+		// active and the gate correctly holds the popup back until this menu closes. Static and
+		// self-guarding: no controller yet means the trigger is dropped, never an error.
+		OVT_TutorialComponent.NotifyMenuOpened(ClassName());
 	}
 	
 	bool CanShowLayout()
@@ -174,10 +201,10 @@ class OVT_UIContext : ScriptAndConfig
 		
 		m_wRoot.RemoveFromHierarchy();
 		
-		if(m_bHideHUDOnShow){	
+		if(m_bHideHUDOnShow){
 			SCR_HUDManagerComponent hud = GetGame().GetHUDManager();
 			if (hud)
-				hud.SetVisible(true);
+				hud.SetVisibleLayers();
 		}
 		
 		Disable();

@@ -99,7 +99,6 @@ ButtonWidgetClass {
          Name "AssetInfo"
          Slot LayoutSlot "{5720FBE423A1A211}" {
           Padding 0 0 0 0
-          SizeMode Fill
           FillWeight 0.275
          }
          {
@@ -125,7 +124,7 @@ ButtonWidgetClass {
              Slot LayoutSlot "{5D98E60C7B1FF34F}" {
              }
              {
-              TextWidgetClass "{59C4C0E87E20D4FA}" : "{B537936D5B7E2BA1}UI/layouts/WidgetLibrary/TextWidgets/Text_BodySmall.layout" {
+              RichTextWidgetClass "{59C4C0E87E20D4FA}" : "{B537936D5B7E2BA1}UI/layouts/WidgetLibrary/TextWidgets/Text_BodySmall.layout" {
                Name "EntityName"
                Slot LayoutSlot "{56EF0B1828174F0C}" {
                 Padding 2 2 2 2
@@ -144,18 +143,18 @@ ButtonWidgetClass {
             }
             HorizontalLayoutWidgetClass "{5D98E60B87D4506E}" {
              Name "InfoLayout0"
-             Slot LayoutSlot {
+             Slot LayoutSlot "{6A14FD47C364D7EA}" {
              }
              {
-              TextWidgetClass "{5D98E60B87D4506D}" : "{B537936D5B7E2BA1}UI/layouts/WidgetLibrary/TextWidgets/Text_BodySmall.layout" {
+              RichTextWidgetClass "{5D98E60B87D4506D}" : "{B537936D5B7E2BA1}UI/layouts/WidgetLibrary/TextWidgets/Text_BodySmall.layout" {
                Name "EntityDescription"
                Slot LayoutSlot "{56EF0B1828174F0C}" {
                 Padding 2 4 2 4
                 SizeMode Fill
                }
-               Text "Very long entity description that is long"
+               Text "Very long entity description that is long and wraps around to a new line"
                "Font Size" 11
-               "Min Font Size" 8
+               "Min Font Size" 11
                "Horizontal Alignment" Center
               }
              }

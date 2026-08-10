@@ -38,7 +38,88 @@ class OVT_PlayerWantedComponent: OVT_Component
 	
 	protected ref OVT_PlayerData m_PlayerData;
 	protected ref OVT_RecruitData m_RecruitData;
-	
+
+	//! Invoked when a player's base wanted level escalates. Args: int playerId, int newLevel, int oldLevel.
+	//! Static (the SCR_MapEntity.GetOnMapOpen() pattern) because this component is per-character and
+	//! dies and respawns with the player - a per-instance invoker would need subscribe/unsubscribe
+	//! bookkeeping on every spawn.
+	protected static ref ScriptInvoker<int, int, int> s_OnWantedLevelChanged;
+
+	//------------------------------------------------------------------------------------------------
+	//! Gets the session-wide wanted level change invoker, allocating it on first use.
+	//! \return The invoker. Args: int playerId, int newLevel, int oldLevel.
+	static ScriptInvoker<int, int, int> GetOnWantedLevelChanged()
+	{
+		if (!s_OnWantedLevelChanged)
+			s_OnWantedLevelChanged = new ScriptInvoker<int, int, int>();
+
+		return s_OnWantedLevelChanged;
+	}
+
+	//! Invoked the first time a player crosses INTO the close range of an occupying-faction base.
+	//! Args: int playerId. Static for the same reason as the wanted invoker above.
+	protected static ref ScriptInvoker<int> s_OnEnteredBaseRange;
+
+	//! Whether this character was inside a base's close range on the previous tick. Drives the
+	//! edge detection, so the invoker fires on the crossing rather than once per second while inside.
+	protected bool m_bInBaseRange;
+
+	//------------------------------------------------------------------------------------------------
+	//! Gets the session-wide "entered a base's close range" invoker, allocating it on first use.
+	//! \return The invoker. Args: int playerId.
+	static ScriptInvoker<int> GetOnEnteredBaseRange()
+	{
+		if (!s_OnEnteredBaseRange)
+			s_OnEnteredBaseRange = new ScriptInvoker<int>();
+
+		return s_OnEnteredBaseRange;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Edge-detects this character entering the close range of an occupying-faction base.
+	//!
+	//! WHY IT LIVES HERE, in a component about being wanted. This is the only per-player server-side
+	//! tick in the mod that already resolves the nearest base every second, and baseCloseRange is
+	//! already this component's notion of "too close" (SetBaseWantedLevel(2, "WantedBaseProximity")
+	//! uses the same radius). Adding a second scanner somewhere tidier would double the cost to say
+	//! the same thing.
+	//!
+	//! DELIBERATELY OUTSIDE the m_bWantedSystemEnabled guard and outside the disguise branch. Neither
+	//! has anything to do with whether the player has arrived somewhere worth explaining: a disguised
+	//! player standing in a base still needs to know how a base is taken, and a server that has turned
+	//! the wanted system off has not turned the tutorial off.
+	//!
+	//! Recruits are excluded by the playerId test alone - GetPlayerIdFromControlledEntity returns 0 for
+	//! an AI-controlled body - so this needs no m_PlayerData, which CheckUpdate resolves later anyway.
+	protected void CheckBaseRangeForTutorial()
+	{
+		int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(GetOwner());
+		if (playerId <= 0)
+			return;
+
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		if (!occupying)
+			return;
+
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!config || !config.m_Difficulty)
+			return;
+
+		bool inRange = false;
+
+		OVT_BaseData base = occupying.GetNearestBase(GetOwner().GetOrigin());
+		if (base && base.IsOccupyingFaction())
+			inRange = vector.Distance(base.location, GetOwner().GetOrigin()) < config.m_Difficulty.baseCloseRange;
+
+		// The edge, not the state. Leaving re-arms it, which costs nothing: the tutorial pipeline
+		// drops a repeat on the server's per-player sent-set and again on the client's seen store, so
+		// a player pacing the perimeter cannot make the tip fire twice.
+		if (inRange && !m_bInBaseRange)
+			GetOnEnteredBaseRange().Invoke(playerId);
+
+		m_bInBaseRange = inRange;
+	}
+
 	void SetWantedLevel(int level)
 	{
 		m_iWantedLevel = level;	
@@ -60,6 +141,9 @@ class OVT_PlayerWantedComponent: OVT_Component
 			}
 
 			Replication.BumpMe();
+
+			// Escalation only - the raw SetWantedLevel setter the decay path uses must not fire this
+			NotifyWantedLevelChanged(m_iWantedLevel, oldLevel);
 
 			// Notify when becoming properly wanted: from 0, or re-escalating out of the
 			// silent level-1 decay tail (BUG-076) — not on further escalation while wanted
@@ -133,6 +217,23 @@ class OVT_PlayerWantedComponent: OVT_Component
 		return weapon != null;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Fires the static wanted level change invoker for this character.
+	//! \param newLevel The wanted level just applied.
+	//! \param oldLevel The wanted level before the escalation.
+	protected void NotifyWantedLevelChanged(int newLevel, int oldLevel)
+	{
+		// Only players raise this event, not recruits
+		if (!m_PlayerData)
+			return;
+
+		int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(GetOwner());
+		if (playerId > 0)
+		{
+			GetOnWantedLevelChanged().Invoke(playerId, newLevel, oldLevel);
+		}
+	}
+
 	//! Send notification about becoming wanted
 	protected void SendWantedNotification(string reason)
 	{
@@ -336,6 +437,9 @@ class OVT_PlayerWantedComponent: OVT_Component
 	
 	void CheckUpdate()
 	{
+		// Before the wanted-system guard on purpose - see the method's own note.
+		CheckBaseRangeForTutorial();
+
 		if(!m_bWantedSystemEnabled) return;
 		
 		// Check if this is a player or recruit

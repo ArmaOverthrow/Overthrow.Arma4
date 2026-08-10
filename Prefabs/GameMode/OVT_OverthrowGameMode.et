@@ -27,17 +27,7 @@ OVT_OverthrowGameMode {
     }
     OVT_JobConfig "{5D9C33D67575FF25}" : "{8263088AF3FD648B}Configs/Jobs/baseRecon.conf" {
     }
-    OVT_JobConfig "{5D9C33D6746B603D}" : "{A66B34BC59667AE6}Configs/Jobs/findGunDealer.conf" {
-    }
     OVT_JobConfig "{5D9C33D67348B567}" : "{A885604D1141044D}Configs/Jobs/raiseSupport.conf" {
-    }
-    OVT_JobConfig "{5D9C33D122545AFD}" : "{11EE393C09B6A661}Configs/Jobs/findShop.conf" {
-    }
-    OVT_JobConfig "{65CD0E98C7F3EDD1}" : "{C791AAAF88555841}Configs/Jobs/placeEquipmentBox.conf" {
-    }
-    OVT_JobConfig "{65CD1C80C1CC8883}" : "{696B3B013BFD45FF}Configs/Jobs/recruitACivilian.conf" {
-    }
-    OVT_JobConfig "{65CD1C846520EBD8}" : "{56139D1CED432410}Configs/Jobs/placeACamp.conf" {
     }
     OVT_JobConfig "{6A7D9B2E00000040}" : "{6A7D9B2E00000030}Configs/Jobs/propagandaRun.conf" {
     }
@@ -208,6 +198,34 @@ OVT_OverthrowGameMode {
    m_fNightTimeAcceleration 12
    m_bRandomStartingWeather 1
    m_bRandomWeatherChanges 1
+  }
+  OVT_TutorialManagerComponent "{6B3A000000000010}" {
+   m_aEntries {
+    OVT_TutorialEntryConfig "{6B3A000000000011}" : "{6B3A000000000001}Configs/Tutorials/proofFirstBuy.conf" {
+    }
+    OVT_TutorialEntryConfig "{6B3A0000000000A4}" : "{6B3A0000000000A0}Configs/Tutorials/proofWelcome.conf" {
+    }
+    OVT_TutorialEntryConfig "{6B3C000000000013}" : "{6B3C000000000010}Configs/Tutorials/homeFirstOpen.conf" {
+    }
+    OVT_TutorialEntryConfig "{6B3C000000000023}" : "{6B3C000000000020}Configs/Tutorials/shopsFirstGunDealer.conf" {
+    }
+    OVT_TutorialEntryConfig "{6B3C000000000033}" : "{6B3C000000000030}Configs/Tutorials/mapFirstOpen.conf" {
+    }
+    OVT_TutorialEntryConfig "{6B3C000000000043}" : "{6B3C000000000040}Configs/Tutorials/wantedFirstLevel.conf" {
+    }
+    OVT_TutorialEntryConfig "{6B3C000000000053}" : "{6B3C000000000050}Configs/Tutorials/skillsFirstOpen.conf" {
+    }
+    OVT_TutorialEntryConfig "{6B3C000000000063}" : "{6B3C000000000060}Configs/Tutorials/recruitsFirstRecruit.conf" {
+    }
+    OVT_TutorialEntryConfig "{6B3C000000000073}" : "{6B3C000000000070}Configs/Tutorials/placeFirstPlaceable.conf" {
+    }
+    OVT_TutorialEntryConfig "{6B3C000000000083}" : "{6B3C000000000080}Configs/Tutorials/buildFirstStructure.conf" {
+    }
+    OVT_TutorialEntryConfig "{6B3C000000000093}" : "{6B3C000000000090}Configs/Tutorials/basesFirstCapture.conf" {
+    }
+    OVT_TutorialEntryConfig "{6B3D000000000016}" : "{6B3D000000000010}Configs/Tutorials/welcomeNohome.conf" {
+    }
+   }
   }
   OVT_TownManagerComponent "{59724C983BF56C3B}" {
    m_aTownModifiers {

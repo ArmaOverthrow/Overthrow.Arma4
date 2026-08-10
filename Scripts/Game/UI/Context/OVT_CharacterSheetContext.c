@@ -30,7 +30,7 @@ class OVT_CharacterSheetContext : OVT_UIContext
 		m_SkillContainer = m_wRoot.FindAnyWidget("SkillContainer");
 		m_SkillManager = OVT_Global.GetSkills();
 		
-		m_SkillManager.m_OnPlayerSkill.Insert(Refresh);
+		m_SkillManager.m_OnPlayerSkill.Insert(OnSkillChanged);
 		
 		Widget closeButton = m_wRoot.FindAnyWidget("CloseButton");
 		SCR_InputButtonComponent btn = SCR_InputButtonComponent.Cast(closeButton.FindHandler(SCR_InputButtonComponent));		
@@ -39,6 +39,15 @@ class OVT_CharacterSheetContext : OVT_UIContext
 		RefreshPlayerWidget();
 		
 		Refresh();		
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Listener for OVT_SkillManagerComponent.m_OnPlayerSkill. Redraws the sheet.
+	//! \param playerId The runtime Player ID whose skills changed.
+	//! \param skillKey The key of the skill that moved. Unused here - the sheet redraws every skill.
+	protected void OnSkillChanged(int playerId, string skillKey)
+	{
+		Refresh();
 	}
 	
 	protected void Refresh()
@@ -173,7 +182,7 @@ class OVT_CharacterSheetContext : OVT_UIContext
 	
 	protected override void OnClose()
 	{
-		m_SkillManager.m_OnPlayerSkill.Remove(Refresh);
+		m_SkillManager.m_OnPlayerSkill.Remove(OnSkillChanged);
 	}
 	
 	

@@ -118,27 +118,135 @@ class OVT_StartGameContext : OVT_UIContext
 			spin.AddItem(preset.name, false, preset);			
 		}
 		
-		Widget description = m_wRoot.FindAnyWidget("DifficultyDescription");
-		TextWidget text = TextWidget.Cast(description);
-		
 		if (RplSession.Mode() == RplMode.None)
 		{
 			//Default to "Easy" in single player
 			spin.SetCurrentItem(0);
 			OVT_DifficultySettings preset = config.m_aDifficultyPresets.Get(0);
-			text.SetText(preset.description);
 			config.m_Difficulty = preset;
 		}else{
 			spin.SetCurrentItem(1);
 			OVT_DifficultySettings preset = config.m_aDifficultyPresets.Get(1);
-			text.SetText(preset.description);
 			config.m_Difficulty = preset;
 		}
-		
-		
-		
+
+		// One redraw for all four lines, at the end of both branches. The two branches above used to
+		// carry a SetText each, which is exactly the shape that drifts when only one is edited.
+		RefreshDescriptions();
 	}
-	
+
+	//------------------------------------------------------------------------------------------------
+	//! Redraws all four description lines from the CURRENT config selections. Every hook that can
+	//! change a selection ends here, and nothing else writes these widgets.
+	//!
+	//! The config, not the spinner, is the source of truth: m_sOccupyingFaction / m_sSupportingFaction
+	//! are what the campaign actually starts with, and both spin handlers have finished writing them
+	//! by the time this runs. SCR_SpinBoxComponent.SetCurrentItem invokes m_OnChanged synchronously
+	//! (SCR_SpinBoxComponent.c:142-165), so the conflict swap resolves depth-first and the outermost
+	//! call is always the last one to redraw.
+	protected void RefreshDescriptions()
+	{
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if(!config)
+			return;
+
+		SetDescriptionText("OccupyingFactionDescription", ResolveOccupyingFactionDescription(config.m_sOccupyingFaction));
+		SetDescriptionText("SupportingFactionDescription", ResolveSupportingFactionDescription(config.m_sSupportingFaction));
+
+		OVT_DifficultySettings preset = config.m_Difficulty;
+		if(!preset)
+		{
+			SetDescriptionText("DifficultyDescription", "");
+			SetDescriptionText("DifficultyNumbers", "");
+			return;
+		}
+
+		// The preset's 'description' field holds a #OVT- stringtable key rather than English:
+		// TextWidget.SetText translates #-prefixed entries, so the five shipped difficulty configs
+		// carry keys and this read site needs no change. Difficulty_TestWorld.conf has no
+		// description at all and correctly renders as an empty line.
+		SetDescriptionText("DifficultyDescription", preset.description);
+
+		TextWidget numbers = FindDescriptionWidget("DifficultyNumbers");
+		if(numbers)
+		{
+			// SetTextFormat, never concatenation - no English is ever built in script.
+			// #OVT-Difficulty_Numbers takes exactly 2 substitutions, so this call takes 3 arguments.
+			// %1 = startingCash (read at OVT_OverthrowGameMode.c:1080), %2 = fastTravelCost (read at
+			// OVT_MapContext.c:384). Both are ints on the selected OVT_DifficultySettings.
+			numbers.SetTextFormat("#OVT-Difficulty_Numbers", preset.startingCash, preset.fastTravelCost);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] factionKey The faction key currently in the OCCUPYING slot.
+	//! \return Its description key, or "" when no description ships for that faction.
+	//!
+	//! Keyed by FACTION KEY, never by spinner index: the spinner is built by filtering the live
+	//! faction list (see OnShow), so its contents and order are data a mod can change, and an
+	//! index-keyed string would silently label one faction with another's description.
+	//!
+	//! The whitelist is written out rather than composed ("#OVT-Faction_" + factionKey + "_Occupying")
+	//! on purpose. A composed key for a faction with no string item does not fall back to nothing -
+	//! Enfusion draws an unresolved key as its own raw text, so a modded faction would put a literal
+	//! "#OVT-Faction_XYZ_Occupying" on the first screen a player ever sees. An empty description is
+	//! the correct degradation; a wrong or raw one is not.
+	protected string ResolveOccupyingFactionDescription(string factionKey)
+	{
+		if(factionKey == "US")
+			return "#OVT-Faction_US_Occupying";
+
+		if(factionKey == "USSR")
+			return "#OVT-Faction_USSR_Occupying";
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] factionKey The faction key currently in the SUPPORTING slot.
+	//! \return Its description key, or "" when no description ships for that faction.
+	//!
+	//! Separate from the occupying keys because the same faction means a different thing in the two
+	//! slots: as occupier it is who holds the island and whose uniform is the disguise that works,
+	//! as supporter it is a sympathetic foreign power whose uniform gets you shot at instead.
+	protected string ResolveSupportingFactionDescription(string factionKey)
+	{
+		if(factionKey == "US")
+			return "#OVT-Faction_US_Supporting";
+
+		if(factionKey == "USSR")
+			return "#OVT-Faction_USSR_Supporting";
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] name The widget name in StartGameMenu.layout.
+	//! \return The named TextWidget, or null when the layout on screen does not carry it - the
+	//!         chooser screen carries none of them, and a stale layout must degrade to a missing
+	//!         line rather than to a script error.
+	protected TextWidget FindDescriptionWidget(string name)
+	{
+		if(!m_wRoot)
+			return null;
+
+		return TextWidget.Cast(m_wRoot.FindAnyWidget(name));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Sets one description line. An empty string clears it, which is what an unknown faction key
+	//! resolves to: an empty description rather than a wrong one.
+	//! \param[in] name The widget name in StartGameMenu.layout.
+	//! \param[in] text A #OVT- stringtable key, or "" to clear the line.
+	protected void SetDescriptionText(string name, string text)
+	{
+		TextWidget widget = FindDescriptionWidget(name);
+		if(!widget)
+			return;
+
+		widget.SetText(text);
+	}
+
 	protected void OnSpinOccupyingFaction(SCR_SpinBoxComponent spinner, int index)
 	{
 		Faction data = Faction.Cast(spinner.GetItemData(index));
@@ -165,8 +273,15 @@ class OVT_StartGameContext : OVT_UIContext
 		}
 		
 		OVT_Global.GetConfig().SetOccupyingFaction(data.GetFactionKey());
+
+		// BOTH faction lines are refreshed, not just the one whose spinner moved. The conflict swap
+		// above walks the OTHER spinner and reassigns it, so refreshing only this one would leave a
+		// stale sentence describing a faction that is no longer selected. (The swap's re-entrant
+		// OnSpinSupportingFaction has already refreshed once by the time we get here; this second
+		// pass is the one with both keys settled, and a redundant SetText costs nothing.)
+		RefreshDescriptions();
 	}
-	
+
 	protected void OnSpinSupportingFaction(SCR_SpinBoxComponent spinner, int index)
 	{
 		Faction data = Faction.Cast(spinner.GetItemData(index));
@@ -193,18 +308,19 @@ class OVT_StartGameContext : OVT_UIContext
 		}
 		
 		OVT_Global.GetConfig().SetSupportingFaction(data.GetFactionKey());
+
+		// Mirror image of OnSpinOccupyingFaction: both faction lines, for the same reason.
+		RefreshDescriptions();
 	}
-	
+
 	protected void OnSpinDifficulty(SCR_SpinBoxComponent spinner, int index)
 	{
 		OVT_DifficultySettings preset = OVT_DifficultySettings.Cast(spinner.GetItemData(index));
 		OVT_Global.GetConfig().m_Difficulty = preset;
-		
-		Print(OVT_Global.GetConfig().m_Difficulty.name);
-		
-		Widget description = m_wRoot.FindAnyWidget("DifficultyDescription");
-		TextWidget text = TextWidget.Cast(description);
-		text.SetText(preset.description);
+
+		// Description AND numbers. The bare Print that used to sit here fired on every spinner move
+		// and dereferenced the preset without a guard; the preset's name is on the spinner anyway.
+		RefreshDescriptions();
 	}
 	
 	//------------------------------------------------------------------------------------------------
