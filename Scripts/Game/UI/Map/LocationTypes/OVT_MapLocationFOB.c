@@ -34,11 +34,11 @@ class OVT_MapLocationFOB : OVT_MapLocationType
 			locationData.SetDataString(OVT_MapDataKeys.PERSISTENT_ID, fob.persistentId);
 			locationData.SetDataInt(OVT_MapDataKeys.GARRISON_COUNT, fob.garrison.Count());
 
-			// NOTE: no per-location "visibilityZoom" is written. OVT_MapLocationElement reads only the
-			// TYPE-level GetVisibilityZoom() (:315, :498), so a per-record key is inert - priority FOBs
-			// are NOT always visible today. The element-side fix belongs to map/core and is filed
-			// separately (implementation.md N4 / K9); the dead writes are removed here so nobody reads
-			// them as working behaviour.
+			// A priority FOB is ALWAYS visible: 0 overrides the type's m_fVisibilityZoom for this record
+			// only (BUG-138 made OVT_MapLocationElement read the key). An ordinary FOB writes nothing and
+			// keeps the type threshold - writing the type value back would be a no-op by construction.
+			if (fob.isPriority)
+				locationData.SetDataFloat(OVT_MapDataKeys.VISIBILITY_ZOOM, 0);
 
 			locations.Insert(locationData);
 		}

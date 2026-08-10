@@ -288,15 +288,36 @@ class OVT_MapLocationElement : SCR_MapUIElement
 		m_LocationData.m_bCanFastTravel = canFastTravel;
 	}
 	
+	//! Zoom threshold for THIS record: the per-record OVT_MapDataKeys.VISIBILITY_ZOOM override when the
+	//! record writes one, otherwise the type's m_fVisibilityZoom (BUG-138).
+	//!
+	//! HOT PATH - runs per element on every zoom change, from both ShouldUseSmallIcon and SetVisible.
+	//! Keep it a map lookup and a compare: no manager access, no allocation.
+	//!
+	//! The sentinel is NEGATIVE because 0 is a legitimate threshold meaning "always visible" (Town, Base
+	//! and RadioTower all ship 0), so 0 cannot be used to mean "no override".
+	//! \return The visibility zoom this element should compare the current zoom against
+	protected float GetEffectiveVisibilityZoom()
+	{
+		if (m_LocationData)
+		{
+			float recordZoom = m_LocationData.GetDataFloat(OVT_MapDataKeys.VISIBILITY_ZOOM, -1);
+			if (recordZoom >= 0)
+				return recordZoom;
+		}
+
+		return m_LocationType.GetVisibilityZoom();
+	}
+
 	//! Determine if we should use small icon based on zoom level
 	protected bool ShouldUseSmallIcon()
 	{
 		if (!m_LocationType || !m_MapEntity)
 			return true;
-		
+
 		float currentZoom = m_MapEntity.GetCurrentZoom();
-		float visibilityZoom = m_LocationType.GetVisibilityZoom();
-		
+		float visibilityZoom = GetEffectiveVisibilityZoom();
+
 		return currentZoom < visibilityZoom;
 	}
 	
@@ -479,7 +500,7 @@ class OVT_MapLocationElement : SCR_MapUIElement
 		if (m_MapEntity)
 		{
 			float currentZoom = m_MapEntity.GetCurrentZoom();
-			float visibilityZoom = m_LocationType.GetVisibilityZoom();
+			float visibilityZoom = GetEffectiveVisibilityZoom();
 			zoomVisible = currentZoom >= visibilityZoom;
 		}
 		

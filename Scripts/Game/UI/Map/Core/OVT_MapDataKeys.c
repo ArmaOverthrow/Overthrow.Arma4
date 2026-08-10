@@ -38,4 +38,11 @@ class OVT_MapDataKeys
 	//! WARNING: garrison is NOT replicated (see implementation.md N5), so this reads 0 on every
 	//! remote client. Never lead a panel with it and never show it when it is 0.
 	static const string GARRISON_COUNT = "garrisonCount";
+
+	//! Per-record OVERRIDE of the type's m_fVisibilityZoom (BUG-138). Optional float: when present and
+	//! >= 0 it replaces OVT_MapLocationType.GetVisibilityZoom() for this record alone, in BOTH
+	//! OVT_MapLocationElement.ShouldUseSmallIcon and SetVisible. Absent (or negative) = use the type
+	//! value, which is what every record that does not write this key does.
+	//! `0` means "always visible", so the reader must use a NEGATIVE sentinel, not 0, to detect absence.
+	static const string VISIBILITY_ZOOM = "visibilityZoom";
 }
