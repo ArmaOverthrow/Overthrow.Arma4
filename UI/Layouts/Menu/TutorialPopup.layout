@@ -56,9 +56,9 @@ FrameWidgetClass {
          Slot LayoutSlot "{59A6DA4C4FC5D425}" {
           VerticalAlign 1
          }
+         Color 0.761 0.392 0.08 1
          Texture "{2EFEA2AF1F38E7F0}UI/Textures/Icons/icons_wrapperUI-64.imageset"
          Image "field-manual"
-         Color 0.761 0.392 0.08 1
          Size 48 48
         }
         TextWidgetClass "{6B3A000000000046}" {
@@ -70,8 +70,8 @@ FrameWidgetClass {
           SizeMode Fill
          }
          Clipping False
-         Text "#OVT-Tutorial_Title"
          Color 0.761 0.392 0.08 1
+         Text "#OVT-Tutorial_Title"
          "Font Size" 32
          "Min Font Size" 26
         }
@@ -84,8 +84,8 @@ FrameWidgetClass {
          }
          "Is Visible" 0
          Clipping False
-         Text "1 / 1"
          Color 1 1 1 0.7
+         Text "1 / 1"
          "Font Size" 22
          "Min Font Size" 22
         }
@@ -124,8 +124,8 @@ FrameWidgetClass {
           FillWeight 1
          }
          Text ""
-         "Font Size" 22
-         "Min Font Size" 22
+         "Font Size" 15
+         "Min Font Size" 15
          Wrap 1
          "Line Spacing" 14
         }

@@ -7,8 +7,10 @@
 //! keeps this decision testable without a world, and what makes "which three things count as
 //! blocking" a question with exactly one answer in one place.
 //!
-//! Conjunction of four clear conditions rather than an early-out chain, because the requirement is
-//! stated as four independent vetoes and the Logic case asserts each one in isolation.
+//! Four independent vetoes, each asserted in isolation by the Logic case. Three of them are absolute.
+//! The fourth, blockingUiOpen, is the only one an ENTRY can waive: an entry whose whole subject is the
+//! screen the player is looking at (the map, the place menu, the real estate or skills screens)
+//! declares m_bShowOverUI and is shown on top of it rather than after it closes.
 //------------------------------------------------------------------------------------------------
 class OVT_TutorialGate
 {
@@ -22,9 +24,13 @@ class OVT_TutorialGate
 	//! \param[in] alreadyShowing True while a tutorial popup of either presentation is on screen.
 	//! \param[in] blockingUiOpen True while any Overthrow context, base-game menu or the map is open.
 	//! \param[in] playerAlive True while the local player's character is alive.
-	//! \return True only when tips are enabled, nothing is showing, no blocking UI is open and the
-	//! player is alive.
-	static bool CanShowNow(bool tipsDisabled, bool alreadyShowing, bool blockingUiOpen, bool playerAlive)
+	//! \param[in] entryShowsOverUi The pending entry's m_bShowOverUI, already reduced to false for
+	//! anything MODAL by the caller. It WAIVES the blockingUiOpen veto and NOTHING else - a tip that
+	//! may sit over the map still may not appear while the player is dead, while tips are off, or on
+	//! top of another tip.
+	//! \return True only when tips are enabled, nothing is showing, the player is alive, and either no
+	//! blocking UI is open or this entry is one that belongs on top of it.
+	static bool CanShowNow(bool tipsDisabled, bool alreadyShowing, bool blockingUiOpen, bool playerAlive, bool entryShowsOverUi = false)
 	{
 		if (tipsDisabled)
 			return false;
@@ -32,7 +38,7 @@ class OVT_TutorialGate
 		if (alreadyShowing)
 			return false;
 
-		if (blockingUiOpen)
+		if (blockingUiOpen && !entryShowsOverUi)
 			return false;
 
 		if (!playerAlive)

@@ -1,6 +1,6 @@
 # Tutorial System - Context & Decisions
 
-**Last Updated:** 2026-08-08 (merged `main` back in; all 5 filed bugs fixed upstream)
+**Last Updated:** 2026-08-11 (post-close change set: show-over-UI tips, HUD field-manual link, PLAYER_ENTER_BASE)
 **Current Phase:** — (all 9 phases complete)
 **Status:** 🟢 Build complete · ⏳ awaiting the string-table export and the play-test gates
 
@@ -194,7 +194,7 @@ delta is the entire mechanism, which is why §1's rules are not style preference
 
 ## Gotchas & Learnings
 
-> **All 32 numbered gotchas, in one place.** Numbers 1–11 and 16–18 sit in this section; the rest live at the end of the session note for the phase that found them (search `### <n>.`).
+> **All 35 numbered gotchas, in one place.** Numbers 1–11 and 16–18 sit in this section; the rest live at the end of the session note for the phase that found them (search `### <n>.`).
 
 1. Where content goes
 2. Title keys ARE the link ids
@@ -228,6 +228,9 @@ delta is the entire mechanism, which is why §1's rules are not style preference
 30. `SCR_ConfigHelperT.GetConfigObject` builds a FRESH instance every call
 31. The reference script tree has no `.meta` files
 32. A `.conf` that omits a member is silently taking its `[Attribute]` default — fine for data, wrong for a template
+33. `EHudLayers.ALWAYS_TOP` is the only way to draw over a MenuManager layout
+34. `SCR_HUDManagerComponent.SetVisible` and `SetVisibleLayers` are different mechanisms, and only one of them is selective
+35. Not one letter key is free in this game
 
 ---
 
@@ -358,6 +361,41 @@ Phase 7 narrowed that last one considerably. The merged config object is now ass
 ---
 
 > Newest phase first. Each block ends with the gotchas that phase discovered — see the index under **Gotchas & Learnings** for where each number lives.
+
+### 2026-08-11 — tips on the screens they are about, a field-manual link on the HUD tip, and a new base trigger (post-close, user-requested)
+
+Three user-reported gaps, all in the same sitting. Gates after all three: compile-check **0** (5946 files) · Fast **54** · All **92** · `check-input-conflicts.py --warnings` **0 errors / 0 warnings / 3 combo notes** · `git diff --stat Language/` **empty**.
+
+**1. A tip about a screen is now drawn ON that screen.** Reported as "the first time I open the map I don't see the tutorial until I close the map again". New per-entry `OVT_TutorialEntryConfig.m_bShowOverUI`, default 0, set on the four entries whose trigger *is* a screen — `map-first-open`, `home-first-open`, `skills-first-open`, `place-first-placeable`. It waives the gate's `blockingUiOpen` veto **and only that veto**, in both directions: `OVT_TutorialGate.CanShowNow` gained a fifth argument, and `OVT_TutorialInfo.Tick` stops retiring the popup when a blocking UI opens. Three things had to be true for that to be visible at all:
+- **`OVT_TutorialQueue.TryPeek`** is new. The gate is no longer a question about the world alone, so the pump must know *which* entry it is about to show before deciding. Dequeue-then-requeue was rejected: a refused entry would fall to the back of its priority band every tick.
+- **`OVT_TutorialInfo` moved to `EHudLayers.ALWAYS_TOP`** (`m_eLayer` on `Character_Player.et`). That is the only HUD layer that can draw over the map, because `SCR_HUDManagerComponent.CreateHUDLayers` parents it to a second root created with `SetZOrder(100)` and says why in its own comment. The map is a MenuManager menu (`SCR_MapMenuUI`), and nothing in the base game hides the HUD when it opens.
+- **`OVT_UIContext` stopped calling `hud.SetVisible(false)`** and now calls `SetVisibleLayers(ALWAYS_TOP)` / `SetVisibleLayers()`. `SetVisible` blanks *both* roots, so an Overthrow menu would have hidden the tip it was supposed to be under. Everything `m_bHideHUDOnShow` ever meant to hide is on BACKGROUND..OVERLAY and is still hidden, and `OVT_UIContext` is the **only** file in Overthrow that touches the HUD manager at all (grepped), so the mechanism change is fully contained.
+
+**1b. A show-over-UI tip drops the "Overthrow Menu" prompt.** Follow-up from the same session, and it falls straight out of what the flag means: an `m_bShowOverUI` tip is on screen *because* the player opened something, so offering "open the Overthrow menu to read more" is wrong twice — they are already in a menu, and the route it advertises would replace the very screen the tip explains. Learn more stays, and is the better answer anyway since it lands on the page. Hiding disarms the handover for free (`m_bCanBeDisabled` defaults to 1) but takes nothing from the player: `OverthrowMainMenu` is a real action in `OverthrowGeneralContext` and still opens the menu. **Consequence a future author must know, now in the attribute's own doc comment:** a show-over-UI entry with no `m_sFieldManualTitleKey` shows *no* prompts at all. All four flagged entries have one.
+
+**2. The non-modal HUD tip has a "Learn more" prompt.** It reuses the existing `#OVT-Tutorial_LearnMore` string and the existing `OVT_FieldManualHelper.Open()`, mirrors the modal's handler (open first, tear down only on success), and **dismisses rather than releasing** — following the link means the tip was read, unlike the escalation prompt beside it. Hidden for an entry with no `m_sFieldManualTitleKey`, which also makes the shortcut inert, because `SCR_InputButtonComponent.OnInput` early-outs on `m_bCanBeDisabled && !IsVisibleInHierarchy()` and that attribute defaults to 1.
+
+**F5's premise finally moved, and the answer was still "nothing is free" — so this took the other road.** The survey was re-run against the post-BUG-092 checker: **there is not one free letter key** (all 26 bound across the two confs) and no free gamepad input, and the modal's own `KC_F`/`RB` are `CharacterAction`/`PerformAction` and `Freelook`/`FocusToggle` during gameplay. Rather than steal one, the new action `OverthrowTutorialHudLearnMore` binds **`keyboard:KC_F5`** (verified unbound in both confs) plus an **`left_trigger + y` `InputSourceCombo`**, in a new `OverthrowTutorialHudContext` that `OVT_UIManagerComponent.EOnFrame` activates **only while a non-modal tip is on screen**. Nothing is taken on keyboard, ever; the pad chord still fires its own parts, which is how `InputSourceCombo` works everywhere (gotcha 21) and the trade already accepted for `LT+pad_down`. **Chosen by the mod owner from three costed options** — the alternatives were reusing `F`/`RB` (single press, but no interact and no freelook for 20 s) and keyboard-only.
+- The context is activated from `OVT_UIManagerComponent`, **not** from the HUD display, because an `ActionContext` must be activated every frame and `SCR_InfoDisplay.UpdateValues` does not run while the HUD is hidden — which is the exact situation this change set creates. That is also why the display has driven itself off a 100 ms `CallLater` since Phase 5.
+- **The checker was proven to see the new context before its clean report was believed:** injecting a `KC_N` collision between `OverthrowTutorialHudLearnMore` and `OverthrowTutorialDisable` produced `ERROR keyboard:KC_N` and exit 1; reverted, back to 0/0.
+
+**3. `bases-first-capture` fires on arrival, not on the outcome.** It was bound to `BASE_CONTROL_CHANGE` — a battle *already won* — which is the last moment a player needs to be told how bases work. New event **`PLAYER_ENTER_BASE`** (the eleventh server-side invoker; nine of them per-player now), raised by `OVT_PlayerWantedComponent.CheckBaseRangeForTutorial` as an **edge**, not a state, when a player crosses inside `baseCloseRange` of a base that `IsOccupyingFaction()`.
+- It lives in the wanted component because that is the only per-player server tick that already resolves the nearest base every second, at the same radius. It sits **above** the `m_bWantedSystemEnabled` guard and outside the disguise branch on purpose: neither has anything to do with whether the player has arrived somewhere worth explaining. Recruits are excluded by the `playerId <= 0` test alone.
+- The manager unsubscribes in `OnDelete` beside the wanted invoker — the same static-outliving-its-world class of bug that commit `982e8ba9` fixed.
+- **The mechanic was verified before any text was written**, because the shipped string's own Comment carries a fact-checked "DO NOT describe capture as taking or planting a flag". Both are true and the distinction is the point: `OVT_CaptureBaseAction` (15 s, `#OVT-CaptureBase`) is mounted on `BaseFlag_US.et:18-26`/`BaseFlag_USSR.et` and **starts** the battle, while the flag *material* merely follows the faction change afterwards. `OVT_PlayerCommsComponent.RpcAsk_StartBaseCapture:192-217` re-checks `baseCloseRange` server-side — **the same radius as the new trigger**, so the tip fires exactly when the action becomes available.
+
+**Owed, and deliberately not done: two `.st` edits.** `Language/localization_Overthrow.st` is an unresolved merge (`UU`) owned by another session, so nothing in `Language/` was touched. The exact blocks are written up in the scratchpad (`owed-string-edits.md`): the base-capture body (which still describes the old both-directions event) and two now-false authoring Comments. **No new string ids and no export are owed** — the HUD's Learn more prompt reuses the modal's existing key.
+
+**New gotchas from this change set:**
+
+### 33. `EHudLayers.ALWAYS_TOP` is the only way to draw over a MenuManager layout
+`SCR_HUDManagerComponent.CreateHUDLayers` builds two roots and gives the second `SetZOrder(100)` with the comment *"set high to be always on top, even above MenuManager layouts"*; `ALWAYS_TOP` is the one layer parented to it. Everything else in the HUD is under a root that menus cover. The in-game map is a menu (`SCR_MapMenuUI` opens it through `SCR_MapEntity.OpenMap` with the menu's own root widget), so "draw over the map" and "draw over a base-game menu" are the same problem with the same one-line answer.
+
+### 34. `SCR_HUDManagerComponent.SetVisible` and `SetVisibleLayers` are different mechanisms, and only one of them is selective
+`SetVisible(bool)` hides the two ROOT widgets; `SetVisibleLayers(mask)` hides the per-layer frames beneath them. They do not restore each other: hiding with `SetVisible(false)` and showing with `SetVisibleLayers()` leaves the HUD dark. Any code that wants "hide the HUD except X" must use the layer mask on both sides of the pair.
+
+### 35. Not one letter key is free in this game
+Every `KC_A`..`KC_Z` is bound in `chimeraInputCommon.conf` (base plus mod), so "find an unused letter" is not an available answer to an input question — `KC_F3`..`KC_F8`, `KC_F11`, `KC_F12`, `KC_MINUS`, `KC_EQUALS`, `KC_BACKSLASH`, `KC_APOSTROPHE`, `KC_INSERT`, `KC_END`, `KC_PGUP`, `KC_PGDN` and three numpad keys are what is actually left. On the gamepad nothing at all is free, which is R3's original finding and it still holds; a combo plus a context that is live only while the UI is up is the way around it, and it is what the base game does for its own hint system (`HintContext` sits on `gamepad0:view` alongside `GadgetMap`).
 
 ### 2026-08-07 — Phase 8 complete (feature build finished)
 

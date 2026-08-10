@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------------------------
 //! The tutorial trigger catalog: every event a tutorial entry can be bound to.
 //!
-//! TEN of these are raised on the SERVER from an existing manager ScriptInvoker - eight per-player,
+//! ELEVEN of these are raised on the SERVER from an existing manager ScriptInvoker - nine per-player,
 //! plus TOWN_CONTROL_CHANGE and BASE_CONTROL_CHANGE, which have no acting player by construction and
 //! are fanned out by proximity instead. The remaining three (MAP_OPENED, MENU_OPENED,
 //! PLAYER_SPAWNED) are raised CLIENT-LOCALLY with no round trip. The full table - source invoker,
@@ -36,7 +36,12 @@ enum OVT_TutorialEvent
 	//! The player opened an Overthrow menu. Client-local. m_sFilter = the context class name.
 	MENU_OPENED = 11,
 	//! The local player spawned. Client-local.
-	PLAYER_SPAWNED = 12
+	PLAYER_SPAWNED = 12,
+	//! A player crossed INTO the close range of a base the occupying faction still holds - the same
+	//! radius the map draws as a restricted area. Fires on the crossing, not once per second inside,
+	//! and never for a recruit. Carries no payload: an entry bound to it is about bases in general,
+	//! because a first-time player has no way to tell one base from another yet.
+	PLAYER_ENTER_BASE = 13
 };
 
 //------------------------------------------------------------------------------------------------

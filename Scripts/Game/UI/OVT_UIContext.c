@@ -1,5 +1,20 @@
 class OVT_UIContext : ScriptAndConfig
 {
+	//! Which HUD layers survive m_bHideHUDOnShow.
+	//!
+	//! WHY THIS IS NOT SetVisible(false) ANY MORE. That call hides both of SCR_HUDManagerComponent's
+	//! roots, and the second one - m_wRootTop, which carries EHudLayers.ALWAYS_TOP - is the only widget
+	//! in the game that draws above a MenuManager layout (it is created with SetZOrder(100) and the base
+	//! game says so in a comment). The tutorial overlay lives on that layer so that a tip about the
+	//! screen you are looking at can be drawn ON the screen you are looking at; blanking the root would
+	//! take that away again the moment the screen in question was an Overthrow menu.
+	//!
+	//! Everything the flag was ever meant to hide - the money and wanted readouts, transfer progress,
+	//! vanilla's own elements - sits on BACKGROUND..OVERLAY and is still hidden. ALWAYS_TOP is not a
+	//! layer Overthrow puts anything else on.
+	static const EHudLayers HUD_LAYERS_OVER_MENUS = EHudLayers.ALWAYS_TOP;
+
+
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Layout to show", params: "layout")]
 	ResourceName m_Layout;
 	
@@ -157,7 +172,7 @@ class OVT_UIContext : ScriptAndConfig
 		if(m_bHideHUDOnShow){
 			SCR_HUDManagerComponent hud = GetGame().GetHUDManager();
 			if (hud)
-				hud.SetVisible(false);
+				hud.SetVisibleLayers(HUD_LAYERS_OVER_MENUS);
 		}
 
 		Enable();
@@ -186,10 +201,10 @@ class OVT_UIContext : ScriptAndConfig
 		
 		m_wRoot.RemoveFromHierarchy();
 		
-		if(m_bHideHUDOnShow){	
+		if(m_bHideHUDOnShow){
 			SCR_HUDManagerComponent hud = GetGame().GetHUDManager();
 			if (hud)
-				hud.SetVisible(true);
+				hud.SetVisibleLayers();
 		}
 		
 		Disable();

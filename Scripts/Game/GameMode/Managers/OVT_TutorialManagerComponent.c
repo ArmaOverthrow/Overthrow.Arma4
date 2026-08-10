@@ -116,6 +116,10 @@ class OVT_TutorialManagerComponent: OVT_Component
 		if (wanted)
 			wanted.Remove(OnWantedLevelChanged);
 
+		ScriptInvoker<int> baseRange = OVT_PlayerWantedComponent.GetOnEnteredBaseRange();
+		if (baseRange)
+			baseRange.Remove(OnEnteredBaseRange);
+
 		super.OnDelete(owner);
 	}
 
@@ -246,6 +250,7 @@ class OVT_TutorialManagerComponent: OVT_Component
 		// the invoker on first use, so it can never return null and needs no guard, and one
 		// subscription covers every character the player will ever respawn into.
 		OVT_PlayerWantedComponent.GetOnWantedLevelChanged().Insert(OnWantedLevelChanged);
+		OVT_PlayerWantedComponent.GetOnEnteredBaseRange().Insert(OnEnteredBaseRange);
 	}
 
 	//-----------------------------------------------------------------------------------------------
@@ -354,6 +359,18 @@ class OVT_TutorialManagerComponent: OVT_Component
 	protected void OnWantedLevelChanged(int playerId, int newLevel, int oldLevel)
 	{
 		DispatchToPlayer(OVT_TutorialEvent.PLAYER_WANTED, playerId, newLevel, "");
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A player walked into the restricted area around a base the occupying faction still holds.
+	//!
+	//! A per-player event despite sounding like a place: OVT_PlayerWantedComponent edge-detects it on
+	//! the acting player's own body, so it needs none of the proximity fan-out the two genuinely global
+	//! base events use.
+	//! \param playerId Runtime id of the player who crossed in.
+	protected void OnEnteredBaseRange(int playerId)
+	{
+		DispatchToPlayer(OVT_TutorialEvent.PLAYER_ENTER_BASE, playerId, 0, "");
 	}
 
 	//-----------------------------------------------------------------------------------------------

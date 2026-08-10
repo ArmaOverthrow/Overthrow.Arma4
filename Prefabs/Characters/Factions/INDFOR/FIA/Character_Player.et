@@ -170,6 +170,7 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
     }
     OVT_TutorialInfo "{6B3A000000000021}" {
      m_LayoutPath "{6B3A000000000030}UI/Layouts/HUD/TutorialPopup.layout"
+     m_eLayer ALWAYS_TOP
      m_bAdaptiveOpacity 0
     }
    }

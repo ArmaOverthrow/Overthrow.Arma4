@@ -83,6 +83,14 @@ class OVT_TutorialComponent : OVT_Component
 	//! True from the moment an entry is handed to the UI until the UI reports it dismissed.
 	protected bool m_bShowing;
 
+	//! The entry handed to the UI, held for exactly as long as m_bShowing is true.
+	//!
+	//! Read by OVT_UIManagerComponent every frame to decide whether the HUD tip's input context should
+	//! be active: the Learn more prompt on the non-modal overlay must be live while a tip is on screen
+	//! and dead the rest of the time, and "is a non-modal tip up?" is a question only this side of the
+	//! pipeline can answer without reaching into a HUD display.
+	protected OVT_TutorialEntryConfig m_ShowingEntry;
+
 	//! True while the pump timer is registered on the call queue.
 	protected bool m_bPumpRunning;
 
@@ -479,7 +487,17 @@ class OVT_TutorialComponent : OVT_Component
 			return;
 		}
 
-		if (!OVT_TutorialGate.CanShowNow(m_bTipsDisabled, m_bShowing, IsBlockingUiOpen(), IsLocalPlayerAlive()))
+		// PEEK, not dequeue: the gate's blocking-UI veto is now the pending ENTRY's to waive, so the
+		// pump has to know which entry it is about to show before it may decide. A dequeue here would
+		// have to put a refused entry back, which reorders the queue on every tick.
+		string pendingId;
+		if (!m_Queue.TryPeek(pendingId))
+		{
+			StopPump();
+			return;
+		}
+
+		if (!OVT_TutorialGate.CanShowNow(m_bTipsDisabled, m_bShowing, IsBlockingUiOpen(), IsLocalPlayerAlive(), ShowsOverUi(FindEntry(pendingId))))
 			return;
 
 		string entryId;
@@ -496,8 +514,30 @@ class OVT_TutorialComponent : OVT_Component
 		// Set BEFORE the invoke: a subscriber that shows and immediately dismisses (or that throws)
 		// must not leave the pipeline believing nothing is on screen.
 		m_bShowing = true;
+		m_ShowingEntry = entry;
 
 		m_OnShowTutorial.Invoke(entry);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether this entry is one that belongs ON TOP of the screen that triggered it.
+	//!
+	//! THE ONE COPY OF THE "MODAL CANNOT" RULE. m_bShowOverUI is honoured only for entries the HUD
+	//! overlay will actually present: the modal surface is an OVT_UIContext, so a modal drawn over
+	//! another Overthrow menu would leave two contexts alive with both binding MenuBack. Everything
+	//! that asks this question - the gate here and the overlay's auto-dismiss - asks it through this
+	//! method, so the two can never disagree about a given entry.
+	//! \param[in] entry The entry in question. Null shows over nothing.
+	//! \return True when the entry declares m_bShowOverUI and is not modal.
+	bool ShowsOverUi(OVT_TutorialEntryConfig entry)
+	{
+		if (!entry)
+			return false;
+
+		if (!entry.m_bShowOverUI)
+			return false;
+
+		return !OVT_TutorialContext.IsModal(entry);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -510,6 +550,7 @@ class OVT_TutorialComponent : OVT_Component
 	void NotifyDismissed(string entryId)
 	{
 		m_bShowing = false;
+		m_ShowingEntry = null;
 
 		// The HasSeen test is not redundant with MarkSeen's idempotence: dismissing an already-seen
 		// entry (the auto-dismiss timer and an explicit Dismiss can both fire) must not cost a second
@@ -721,6 +762,25 @@ class OVT_TutorialComponent : OVT_Component
 	bool IsShowing()
 	{
 		return m_bShowing;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether the NON-MODAL overlay specifically is presenting something right now.
+	//!
+	//! The activation condition for OverthrowTutorialHudContext, which carries the overlay's Learn
+	//! more binding. Deliberately excludes the modal: that surface is an OVT_UIContext and activates
+	//! its own OverthrowTutorialMenuContext, and both contexts being live at once would put two
+	//! actions on the same intent.
+	//! \return True while an entry the HUD overlay owns is on screen.
+	bool IsShowingNonModal()
+	{
+		if (!m_bShowing)
+			return false;
+
+		if (!m_ShowingEntry)
+			return false;
+
+		return !OVT_TutorialContext.IsModal(m_ShowingEntry);
 	}
 
 	//------------------------------------------------------------------------------------------------

@@ -103,6 +103,21 @@ OverlayWidgetClass {
           Padding 10 0 16 12
          }
          {
+          ButtonWidgetClass "{6B3A0000000000C6}" : "{CB8563509DEF3E0E}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButtonSmall.layout" {
+           Name "TutorialLearnMoreButton"
+           Slot LayoutSlot "{65C4B2DA098E77D7}" {
+            Padding 0 0 10 0
+           }
+           "Is Visible" 0
+           components {
+            SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+             m_BackgroundDefault 0 0 0 0.392
+             m_sActionName "OverthrowTutorialHudLearnMore"
+             m_sLabel "#OVT-Tutorial_LearnMore"
+             m_iHeightInPixel 40
+            }
+           }
+          }
           ButtonWidgetClass "{6B3A00000000003C}" : "{CB8563509DEF3E0E}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButtonSmall.layout" {
            Name "TutorialMoreButton"
            Slot LayoutSlot "{65C4B2DA098E77D7}" {

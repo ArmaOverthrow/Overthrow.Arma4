@@ -73,6 +73,29 @@ class OVT_TutorialEntryConfig
 	//! Trigger bindings. The entry fires when ANY of them matches an event occurrence.
 	ref array<ref OVT_TutorialTrigger> m_aTriggers;
 
+	[Attribute("0", desc: "Show this tip ON TOP of the screen that triggered it (map, place menu, real estate, skills) instead of waiting for it to close. NONMODAL entries only.")]
+	//! Whether this entry may be drawn over an open map, Overthrow menu or base-game menu.
+	//!
+	//! Default 0 is the original behaviour: the pipeline gate holds the tip back until every screen
+	//! is closed, and the HUD overlay retires an on-screen tip the moment one opens. That is right for
+	//! a tip about something the player did in the world, and WRONG for a tip about the screen they
+	//! are looking at - "the first time I open the map I do not see the tip until I close the map".
+	//!
+	//! Set it on entries whose trigger IS a screen (MAP_OPENED, MENU_OPENED), where the thing being
+	//! explained is on screen while the tip is up. It relaxes BOTH vetoes for this entry: the gate lets
+	//! it start over a blocking UI, and the overlay stops retiring it when one opens.
+	//!
+	//! IT ALSO CHANGES THE POPUP'S PROMPTS: the "Overthrow Menu" escalation prompt is hidden, because
+	//! a player already looking at a menu should not be sent to another one. Learn more stays. An entry
+	//! that sets this and declares no m_sFieldManualTitleKey therefore shows NO prompts at all - which
+	//! is legal, and is a countdown-only tip - so give a show-over-UI entry a field-manual page.
+	//!
+	//! IGNORED FOR MODAL ENTRIES, and deliberately so. The modal surface is itself an OVT_UIContext
+	//! that takes the screen, so honouring this would stack one Overthrow menu on another and leave
+	//! two contexts fighting over MenuBack. OVT_TutorialComponent.Pump() drops the flag for anything
+	//! OVT_TutorialContext.IsModal() claims, which includes every multi-page entry whatever it declares.
+	bool m_bShowOverUI;
+
 	[Attribute("1", desc: "Uncheck to retire an entry. A retired entry never fires and its id is never reused.")]
 	//! Whether this entry can fire at all. The intended retirement path.
 	bool m_bEnabled;

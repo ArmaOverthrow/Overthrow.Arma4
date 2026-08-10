@@ -14,11 +14,18 @@
 //! ("nothing is on screen any more") WITHOUT recording the entry as seen. Every path that ends a
 //! popup for a reason that is not the player having read it uses that form.
 //!
-//! GENUINELY NON-MODAL (plan item F3). This class registers no input listener, activates no
-//! ActionContext and adds no keybinding. The one SCR_InputButtonComponent in the layout is bound
-//! to the EXISTING OverthrowMainMenu action, which is live in OverthrowGeneralContext every frame
-//! whether this popup is on screen or not - so the popup cannot steal movement, aim or fire, and
-//! cannot change what any input already did. See the R3 note on OnMoreActivated().
+//! GENUINELY NON-MODAL (plan item F3). This class registers no input listener and activates no
+//! ActionContext itself. Its two prompts sit on inputs that cost the player nothing: the escalation
+//! prompt reuses the EXISTING OverthrowMainMenu action, live in OverthrowGeneralContext every frame
+//! whether this popup exists or not, and the Learn more prompt is on OverthrowTutorialHudLearnMore,
+//! whose sources (keyboard KC_F5, and left_trigger+y as a combo) are bound to nothing else in either
+//! conf and whose context OVT_UIManagerComponent activates only while a tip is up. So the popup
+//! cannot steal movement, aim or fire, and cannot change what any existing input already did.
+//! See the R3 note on OnMoreActivated().
+//!
+//! WHICH PROMPTS ARE SHOWN IS PER ENTRY, and both hide themselves when they would be wrong: Learn
+//! more is absent on an entry with no field-manual page, and the escalation prompt is absent on an
+//! m_bShowOverUI entry, which is by definition already sitting on top of a screen the player opened.
 //------------------------------------------------------------------------------------------------
 class OVT_TutorialInfo : SCR_InfoDisplay
 {
@@ -54,11 +61,17 @@ class OVT_TutorialInfo : SCR_InfoDisplay
 	//! Optional per-page illustration. Hidden when the page declares no image.
 	protected ImageWidget m_wImage;
 
-	//! The one input prompt on the popup.
+	//! The escalation prompt. Hidden for an entry drawn over a screen the player already opened.
 	protected Widget m_wMoreButton;
 
 	//! Handler on m_wMoreButton. Subscribed in OnStartDraw, removed in OnStopDraw.
 	protected SCR_InputButtonComponent m_MoreAction;
+
+	//! The field-manual deep-link prompt. Hidden for an entry that declares no link.
+	protected Widget m_wLearnMoreButton;
+
+	//! Handler on m_wLearnMoreButton. Subscribed in OnStartDraw, removed in OnStopDraw.
+	protected SCR_InputButtonComponent m_LearnMoreAction;
 
 	//! Visual countdown to the auto-dismiss.
 	protected SCR_WLibProgressBarComponent m_Timer;
@@ -132,6 +145,11 @@ class OVT_TutorialInfo : SCR_InfoDisplay
 		if (m_MoreAction)
 			m_MoreAction.m_OnActivated.Remove(OnMoreActivated);
 
+		if (m_LearnMoreAction)
+			m_LearnMoreAction.m_OnActivated.Remove(OnLearnMoreActivated);
+
+		m_LearnMoreAction = null;
+		m_wLearnMoreButton = null;
 		m_MoreAction = null;
 		m_wMoreButton = null;
 		m_wFrame = null;
@@ -165,6 +183,14 @@ class OVT_TutorialInfo : SCR_InfoDisplay
 			m_MoreAction = SCR_InputButtonComponent.Cast(m_wMoreButton.FindHandler(SCR_InputButtonComponent));
 			if (m_MoreAction)
 				m_MoreAction.m_OnActivated.Insert(OnMoreActivated);
+		}
+
+		m_wLearnMoreButton = m_wRoot.FindAnyWidget("TutorialLearnMoreButton");
+		if (m_wLearnMoreButton)
+		{
+			m_LearnMoreAction = SCR_InputButtonComponent.Cast(m_wLearnMoreButton.FindHandler(SCR_InputButtonComponent));
+			if (m_LearnMoreAction)
+				m_LearnMoreAction.m_OnActivated.Insert(OnLearnMoreActivated);
 		}
 	}
 
@@ -316,6 +342,8 @@ class OVT_TutorialInfo : SCR_InfoDisplay
 		ApplyTitle(entry.m_sTitle);
 		ApplyBody(page.m_sBody);
 		ApplyImage(page.m_sImage);
+		ApplyLearnMore(entry.m_sFieldManualTitleKey);
+		ApplyEscalationPrompt();
 
 		m_iRemainingMs = AUTO_DISMISS_MS;
 		if (m_Timer)
@@ -377,6 +405,45 @@ class OVT_TutorialInfo : SCR_InfoDisplay
 		m_wImage.SetVisible(true);
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! Shows the field-manual prompt only for an entry that actually has somewhere to send the player.
+	//!
+	//! Hiding it is not cosmetic. SCR_InputButtonComponent.OnInput() opens with a
+	//! `m_bCanBeDisabled && !IsVisibleInHierarchy()` early-out, and m_bCanBeDisabled defaults to 1, so
+	//! a hidden prompt also does not FIRE - which is what stops OverthrowTutorialHudLearnMore doing
+	//! anything on an unlinked entry, and what makes it inert while no tip is on screen at all (the
+	//! whole popup frame is hidden then). Do NOT set m_bCanBeDisabled 0 on this button: vanilla's
+	//! Hint.layout does, and that is exactly why its shortcuts fire with no hint on screen.
+	//! \param[in] titleKey The entry's m_sFieldManualTitleKey, or "" for an entry with no deep link.
+	protected void ApplyLearnMore(string titleKey)
+	{
+		if (!m_wLearnMoreButton)
+			return;
+
+		m_wLearnMoreButton.SetVisible(titleKey != "");
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Hides the "Overthrow Menu" escalation prompt on a tip that is being drawn over a screen.
+	//!
+	//! An m_bShowOverUI tip is on screen precisely BECAUSE something else is open - the map, the place
+	//! menu, real estate, skills. Offering "open the Overthrow menu to read more" there is wrong twice
+	//! over: the player is already in a menu, and the route it advertises would replace the very screen
+	//! the tip is explaining. The Learn more prompt beside it still works and is the better answer
+	//! anyway, since it goes straight to the page.
+	//!
+	//! Hiding it also disarms it, for the same reason ApplyLearnMore's does: a hidden
+	//! SCR_InputButtonComponent does not fire (m_bCanBeDisabled defaults to 1). Only the HANDOVER is
+	//! disarmed, not the key - OverthrowMainMenu is a real action in OverthrowGeneralContext and still
+	//! opens the menu exactly as it always did. Nothing is taken from the player here either.
+	protected void ApplyEscalationPrompt()
+	{
+		if (!m_wMoreButton)
+			return;
+
+		m_wMoreButton.SetVisible(!ShowsOverUi());
+	}
+
 	//-----------------------------------------------------------------------------------------------
 	// COUNTDOWN AND DISMISSAL
 	//-----------------------------------------------------------------------------------------------
@@ -395,7 +462,12 @@ class OVT_TutorialInfo : SCR_InfoDisplay
 		// is marked seen when it does. It has been read or deliberately walked away from; either
 		// way, bringing it back over the menu the player just opened is the annoyance this whole
 		// feature exists to remove.
-		if (IsBlockingUiOpen())
+		//
+		// UNLESS the entry is about that very screen. An m_bShowOverUI entry was cleared by the gate
+		// to appear on top of a blocking UI in the first place, so retiring it the moment one is open
+		// would hide it on the same tick it was shown - the map tip would flash and vanish. It still
+		// times out on AUTO_DISMISS_MS like every other tip.
+		if (IsBlockingUiOpen() && !ShowsOverUi())
 		{
 			Dismiss();
 			return;
@@ -538,6 +610,38 @@ class OVT_TutorialInfo : SCR_InfoDisplay
 		Release("");
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! The player asked for the field-manual page behind this tip.
+	//!
+	//! The same handler the MODAL surface has had since Phase 7 (OVT_TutorialContext.LearnMore), and
+	//! deliberately with the same two properties. It opens the manual FIRST and only tears the popup
+	//! down if that succeeded, so a link that no longer resolves leaves the player with the tip and
+	//! its prompts rather than with nothing. And it DISMISSES rather than Release("")-ing: unlike the
+	//! escalation prompt above - where the player is asking to read more OF THIS TIP and so has not
+	//! finished with it - following the link means the tip has been read and should not come back.
+	//!
+	//! An entry with no link cannot reach here: ApplyLearnMore hides the button, and a hidden
+	//! SCR_InputButtonComponent neither draws nor fires.
+	//! \param[in] button The component that fired. Unused.
+	//! \param[in] action Name of the action that fired. Unused.
+	protected void OnLearnMoreActivated(SCR_InputButtonComponent button, string action)
+	{
+		if (m_sEntryId == "")
+			return;
+
+		if (!m_Entry)
+			return;
+
+		string titleKey = m_Entry.m_sFieldManualTitleKey;
+		if (titleKey == "")
+			return;
+
+		if (!OVT_FieldManualHelper.Open(titleKey))
+			return;
+
+		Dismiss();
+	}
+
 	//-----------------------------------------------------------------------------------------------
 	// GATE INPUTS
 	//-----------------------------------------------------------------------------------------------
@@ -552,6 +656,25 @@ class OVT_TutorialInfo : SCR_InfoDisplay
 	//!
 	//! Placement and building count as blocking (OVT_UIContext.IsBlockingPopups), which is what
 	//! retires an on-screen popup the moment the player starts positioning a ghost.
+	//------------------------------------------------------------------------------------------------
+	//! Whether the entry on screen is one that belongs on top of the screen that triggered it.
+	//!
+	//! Routed through the pipeline component rather than reading m_Entry.m_bShowOverUI directly, so
+	//! that the "modal entries never do this" half of the rule has exactly one implementation and the
+	//! gate that STARTED this popup and the timer that would STOP it cannot disagree about it.
+	//! \return True when the current entry waives the blocking-UI dismissal.
+	protected bool ShowsOverUi()
+	{
+		if (!m_Entry)
+			return false;
+
+		if (!m_Tutorials)
+			return false;
+
+		return m_Tutorials.ShowsOverUi(m_Entry);
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! \return True while a popup would be intrusive. An unresolvable fact reads as not blocking.
 	protected bool IsBlockingUiOpen()
 	{

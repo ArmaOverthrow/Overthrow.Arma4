@@ -106,6 +106,27 @@ class OVT_TutorialQueue
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Reads the highest-priority queued id WITHOUT removing it.
+	//!
+	//! Exists because the gate is no longer a question about the world alone: an entry may declare
+	//! m_bShowOverUI, so the pump has to know WHICH entry it is about to show before it can decide
+	//! whether it may show it. Dequeue-then-requeue was the alternative and is worse - a refused entry
+	//! would go to the back of its priority band on every tick, so a second queued tip would overtake
+	//! it, and TryDequeue would silently become an ordering mutation.
+	//! \param[out] id Receives the id. On an EMPTY queue this is left completely untouched, exactly as
+	//! TryDequeue leaves it.
+	//! \return True when there was an id to read.
+	bool TryPeek(out string id)
+	{
+		if (m_aIds.IsEmpty())
+			return false;
+
+		id = m_aIds.Get(0);
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! \return How many entries are waiting.
 	int Count()
 	{

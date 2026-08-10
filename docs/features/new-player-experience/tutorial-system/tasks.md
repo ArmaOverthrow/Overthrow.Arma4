@@ -1,6 +1,6 @@
 # Tutorial System - Task Checklist
 
-**Last Updated:** 2026-08-07 (Phase 8 complete — feature build finished)
+**Last Updated:** 2026-08-11 (post-close change set — show-over-UI tips, HUD field-manual link, PLAYER_ENTER_BASE)
 **Progress:** 61/61 tasks complete (100%) · **2 tasks cancelled by risk R3** (5.4, 6.8) · **F5 deferred**
 
 **Epic:** `new-player-experience` (feature #1 of 5) · **Plan:** `implementation.md` · **Scope truth:** `requirements.md`
@@ -882,6 +882,33 @@ Runtime/visual items the harness structurally cannot reach. Populated as phases 
 - [ ] **Priority (F9).** Spawn (welcome queues at priority 100) and buy something almost immediately (buy tip at 0). The welcome must show first, and the buy tip only after the welcome is dismissed — never both at once.
 - [ ] **Content read (the whole point).** Read both entries as a new player would. Neither may read as an instruction: no "you must", no "your objective is", no implied mission list. If either does, it is a string edit in the `.st` and a re-export — no code change.
 - [ ] **F11 duplicate-id check.** Temporarily add a second `m_aTutorialEntries` element pointing at `proofFirstBuy.conf`, start a campaign: the log must carry `[Overthrow.Tutorial] Duplicate tutorial entry id 'economy-first-buy' at index 2` at ERROR, and **no** tip should fire that session (validation is terminal by design). Revert the prefab afterwards.
+
+### From the 2026-08-11 change set — tips over screens, the HUD Learn more, and PLAYER_ENTER_BASE
+
+*Everything here is rendering, input or a server tick — none of it is reachable by the harness. Do these on a profile with the tutorial reset (Overthrow menu → Tips → Reset), since all five entries are once-ever.*
+
+**Tips drawn over the screen they are about (the whole point of the change):**
+- [ ] Open the map for the first time → the tip appears **over the map**, within about a second, and does **not** vanish when it does. It should still time out on its own after 20 s.
+- [ ] Same for the **place menu**, the **real estate menu** and the **skills/character sheet**. Each tip must be legible against that screen's own art — the popup is a fixed 460 px panel on the left edge, vertically centred, and none of these four screens has been seen behind it before.
+- [ ] ⚠️ **The regression risk of this change is every other Overthrow menu.** `OVT_UIContext` no longer calls `hud.SetVisible(false)` — it hides all HUD layers except ALWAYS_TOP. Open **all 17** menus and confirm the HUD still disappears behind each one exactly as it used to: no money readout, no wanted stars, no transfer progress bleeding through.
+- [ ] A tip that does **not** set the flag (buy something, then immediately open a menu) must still behave the old way: it disappears and does not come back.
+- [ ] The place tip now fires on **opening the place menu**, not after placing. Confirm it no longer appears after a placement, and that it does appear the first time the menu opens.
+
+**The Learn more prompt on the non-modal tip:**
+- [ ] With a tip up, press **F5** (keyboard) → the Field Manual opens **on that entry's page**, and the tip is gone. Then press F5 with no tip on screen → nothing at all happens.
+- [ ] On a gamepad, the prompt reads **LT + Y**, and the chord opens the manual. Expect LT and Y to *also* do their normal jobs on the way through — that is the accepted trade, not a bug.
+- [ ] An entry with no `m_sFieldManualTitleKey` shows **no** Learn more prompt, and F5 / LT+Y do nothing while it is up. (`welcome-intro` is modal, so pick or temporarily blank a non-modal entry's key to check this.)
+- [ ] The old **Overthrow Menu** prompt still sits beside it on a normal tip (buy something) and still escalates to the Tips screen.
+- [ ] On the four **show-over-UI** tips that prompt must be **absent**, leaving Learn more alone in the footer — and pressing the main-menu key with one up must still open the Overthrow menu as usual, just without handing the tip over.
+- [ ] Learn more must be reachable over all four screens above, where a menu is already eating input.
+
+**PLAYER_ENTER_BASE:**
+- [ ] Walk toward a base the occupying faction holds → the base tip fires **on the way in**, once, and not once per second while inside. Leave and re-enter: it must not fire again (seen store).
+- [ ] Do the same **disguised**, and again on a server with the wanted system **off** — both must still fire, which is the reason the check sits above those guards.
+- [ ] Bring a **recruit** into a base's range: no tip for them, and none duplicated for you.
+- [ ] Capture a base the old way (win a QRF): the tip must **not** fire on the outcome any more.
+- [ ] ⚠️ **Read the tip's art against the new moment.** `bases-first-capture-ui.edds` was shot for a tip about a base *changing hands*; the tip now fires on *arrival*. If the screenshot shows an outcome, it is now a picture that contradicts its own page — the same fault first-spawn caught with the car-in-a-garage header.
+- [ ] The body text is **owed a rewrite** (see the scratchpad note) and still describes the old event until the `.st` merge is resolved.
 
 ### From Phase 4 — the settings store's cross-restart half (Q3)
 - [ ] Trigger the proof entry, dismiss it, **quit cleanly**, relaunch, trigger the same action — nothing appears.

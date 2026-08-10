@@ -1863,6 +1863,7 @@ class OVT_TEST_Init_Tutorial_InvokerSeamsExist : SCR_AutotestCaseBase
 
 		// Static and lazily allocated: this can only be null if the getter itself stopped allocating.
 		if (!OVT_PlayerWantedComponent.GetOnWantedLevelChanged()) return "OVT_PlayerWantedComponent.GetOnWantedLevelChanged() (PLAYER_WANTED)";
+		if (!OVT_PlayerWantedComponent.GetOnEnteredBaseRange()) return "OVT_PlayerWantedComponent.GetOnEnteredBaseRange() (PLAYER_ENTER_BASE)";
 
 		return "";
 	}

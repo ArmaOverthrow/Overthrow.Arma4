@@ -458,6 +458,21 @@ class OVT_TEST_Logic_Tutorial_QueueOrdering : SCR_AutotestCaseBase
 			return true;
 		}
 
+		// --- TryPeek OBEYS THE SAME EMPTY-QUEUE CONTRACT as TryDequeue.
+		string peeked = "SENTINEL";
+
+		if (queue.TryPeek(peeked))
+		{
+			SetResultFailure("TryPeek on an empty queue reported success");
+			return true;
+		}
+
+		if (peeked != "SENTINEL")
+		{
+			SetResultFailure("TryPeek on an empty queue overwrote the out param with '%1'", peeked);
+			return true;
+		}
+
 		// --- ORDER: two priority bands, arrival order preserved inside each.
 		queue.Enqueue("low-first", 0);
 		queue.Enqueue("high-first", 10);
@@ -468,6 +483,26 @@ class OVT_TEST_Logic_Tutorial_QueueOrdering : SCR_AutotestCaseBase
 		if (queue.Count() != 5)
 		{
 			SetResultFailure("After five distinct enqueues the queue held %1 entries, expected 5", queue.Count().ToString());
+			return true;
+		}
+
+		// --- TryPeek READS THE HEAD AND CHANGES NOTHING. The pump calls it on every tick a tip is
+		// held back, so a peek that consumed or reordered would silently drop tips.
+		if (!queue.TryPeek(peeked) || peeked != "high-first")
+		{
+			SetResultFailure("TryPeek gave '%1', expected 'high-first'", peeked);
+			return true;
+		}
+
+		if (queue.Count() != 5)
+		{
+			SetResultFailure("TryPeek left %1 entries, expected all 5 - a peek must not consume", queue.Count().ToString());
+			return true;
+		}
+
+		if (!queue.TryPeek(peeked) || peeked != "high-first")
+		{
+			SetResultFailure("A second TryPeek gave '%1', expected 'high-first' again", peeked);
 			return true;
 		}
 
@@ -688,6 +723,34 @@ class OVT_TEST_Logic_Tutorial_GatePredicate : SCR_AutotestCaseBase
 		if (OVT_TutorialGate.CanShowNow(false, false, false, false))
 		{
 			SetResultFailure("The gate allowed a popup while the player is dead");
+			return true;
+		}
+
+		// --- THE ENTRY'S WAIVER (m_bShowOverUI). Fifth argument; defaults to false above.
+		// A tip about the screen the player is looking at is shown ON it rather than after it closes.
+		if (!OVT_TutorialGate.CanShowNow(false, false, true, true, true))
+		{
+			SetResultFailure("The gate held back a show-over-UI entry while a blocking UI was open - that entry exists to be drawn on top of it");
+			return true;
+		}
+
+		// It waives the blocking-UI veto and NOTHING else. Each of the other three still vetoes with
+		// the waiver set, or a tip about the map could appear over the death screen with tips off.
+		if (OVT_TutorialGate.CanShowNow(true, false, true, true, true))
+		{
+			SetResultFailure("A show-over-UI entry was allowed while tips are disabled");
+			return true;
+		}
+
+		if (OVT_TutorialGate.CanShowNow(false, true, true, true, true))
+		{
+			SetResultFailure("A show-over-UI entry was allowed on top of a popup that is already showing");
+			return true;
+		}
+
+		if (OVT_TutorialGate.CanShowNow(false, false, true, false, true))
+		{
+			SetResultFailure("A show-over-UI entry was allowed while the player is dead");
 			return true;
 		}
 
