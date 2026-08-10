@@ -7,6 +7,8 @@ OVT_OverthrowController {
   }
   OVT_TowerSabotageComponent "{6A7D9B2E00000010}" {
   }
+  OVT_AdminCommandsComponent "{6A7D9B2E000000F0}" {
+  }
   OVT_TravelRequestComponent "{6A7F3E5C18B24D60}" {
   }
   RplComponent "{65C4B2D3DE955867}" {

@@ -9111,6 +9111,40 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A7D9B2E000000F5}" {
+   Id "OVT-Msg-AdminFundsAdded"
+   Target_en_us "Admin: $%1 added to your account"
+   Comment "Confirmation to a server admin who used the /givemoney chat command - %1 is the amount added"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754784000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E000000F6}" {
+   Id "OVT-Msg-AdminCommandRefused"
+   Target_en_us "This command requires server admin rights"
+   Comment "Shown when a non-admin player tries an admin chat command such as /givemoney"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754784000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6A7D9B2E000000E1}" {
    Id "OVT-Msg-GroupAiBudgetExceeded"
    Target_en_us "This group now commands %1 AI, over the recommended limit of %2 - performance may suffer"
