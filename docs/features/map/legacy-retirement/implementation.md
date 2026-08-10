@@ -1,10 +1,10 @@
 # Map Legacy Retirement — Implementation Plan
 
 **Epic:** map (feature 4 of 8 — last of the committed scope)
-**Status:** Planning
+**Status:** ✅ **COMPLETE — built, gated and play-tested green 2026-08-10**
 **Started:** 2026-08-10
-**Target Completion:** TBD
-**Last Updated:** 2026-08-10
+**Completed:** 2026-08-10
+**Last Updated:** 2026-08-10 21:30
 
 ---
 

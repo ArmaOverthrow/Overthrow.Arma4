@@ -64,15 +64,16 @@ class OVT_JobManagerComponent: OVT_Component
 	//! CLIENT-LOCAL MAP WAYPOINT SLOTS - two independent slots, one per "show on map" source.
 	//!
 	//! Both fields are plain members: NEITHER is replicated (they are absent from this component's
-	//! RplSave/RplLoad at :780/:810 and carry no RplProp) and NEITHER is persisted (they are absent from
+	//! RplSave/RplLoad overrides and carry no RplProp) and NEITHER is persisted (they are absent from
 	//! OVT_JobManagerSerializer). That is deliberate - each is written on the machine whose player asked
 	//! for it, from a client UI context, and read only by that machine's map. Do not "fix" this by
 	//! replicating them: doing so would broadcast one player's chosen waypoint to every other player.
 	//!
 	//! They are separate fields because they had to be: OVT_RecruitsContext.ShowOnMap used to write
 	//! m_vCurrentWaypoint too, so "show job on map" and "show recruit on map" silently clobbered each
-	//! other (implementation.md G2/K1). "0 0 0" means "no waypoint set" - the emptiness test legacy used
-	//! at OVT_MapIcons.c:780 and the one OVT_MapLocationWaypoint still uses.
+	//! other (implementation.md G2/K1). "0 0 0" means "no waypoint set" - the emptiness test the legacy
+	//! OVT_MapIcons layer (deleted in map/legacy-retirement) used, and the one OVT_MapLocationWaypoint
+	//! still uses.
 	vector m_vCurrentWaypoint; //!< Job waypoint, written by OVT_JobsContext.ShowOnMap.
 	vector m_vRecruitWaypoint; //!< Recruit waypoint, written by OVT_RecruitsContext.ShowOnMap.
 

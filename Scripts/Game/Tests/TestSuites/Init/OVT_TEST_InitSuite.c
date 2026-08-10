@@ -2001,15 +2001,16 @@ class OVT_TEST_Init_Persistence_RecruitedTransientCharacterIsRetracked : SCR_Aut
 //! WHY THIS IS THE TRIPWIRE FOR A PREFAB EDIT. Bus stops stopped being vanilla map descriptors: the
 //! only thing that makes one findable now is the OVT_MapMarkerComponent block in the same-GUID delta
 //! Prefabs/Structures/Signs/Traffic/SignBusStop_01.et. That block failing SILENTLY is the whole risk -
-//! scripts still compile, the map simply draws no bus stops and bus travel answers "NeedBusStop"
-//! everywhere. tools/compile-check.sh cannot see a prefab, so this case is the only automated guard.
+//! scripts still compile, the map simply draws no bus stops and OVT_FastTravelService.IsAtBusStop
+//! refuses every bus trip. tools/compile-check.sh cannot see a prefab, so this is the only automated guard.
 //!
 //! WHAT ELSE IT COVERS, in one pass, because it is all the same seam:
 //!  - self-registration from OnPostInit reaches OVT_MapMarkerManagerComponent (the mechanism that
 //!    catches runtime-spawned markers the world scan already missed);
 //!  - the marker is filed under BUS_STOP, not some other category;
 //!  - GetNearestMarker() finds it within a radius and refuses outside one - the exact call
-//!    OVT_MapContext makes for bus travel, at the same 15 m the old descriptor query used;
+//!    OVT_FastTravelService.IsAtBusStop makes for bus travel, at the same 15 m the old descriptor
+//!    query used;
 //!  - OnDelete unregisters, so a destroyed marker stops drawing.
 //!
 //! NO MAGIC COUNTS AND NO DEPENDENCE ON THE TEST WORLD'S CONTENT. The subject is spawned by this case
@@ -2029,8 +2030,8 @@ class OVT_TEST_Init_MapMarkers_BusStopRegisters : SCR_AutotestCaseBase
 	//! The one vanilla bus-stop prefab, overridden by Overthrow's same-GUID delta.
 	static const ResourceName BUS_STOP_PREFAB = "{7FCD4E7C25D886A8}Prefabs/Structures/Signs/Traffic/SignBusStop_01.et";
 
-	//! The radius OVT_MapContext uses for bus travel. Named here so a change to it shows up as a test
-	//! change rather than as silently different behaviour.
+	//! The radius bus travel uses (OVT_FastTravelService.BUS_STOP_RADIUS). Named here so a change to it
+	//! shows up as a test change rather than as silently different behaviour.
 	static const float BUS_TRAVEL_RADIUS = 15;
 
 	//! Frame polls allowed for the deferred self-registration. One frame is expected.
@@ -2091,7 +2092,7 @@ class OVT_TEST_Init_MapMarkers_BusStopRegisters : SCR_AutotestCaseBase
 		OVT_MapMarkerComponent marker = OVT_MapMarkerComponent.Cast(m_Sign.FindComponent(OVT_MapMarkerComponent));
 		if (!marker)
 		{
-			SetResultFailure("A spawned bus stop has no OVT_MapMarkerComponent. Prefabs/Structures/Signs/Traffic/SignBusStop_01.et has lost its marker block, so NO bus stop in any world is discoverable: the map draws none and bus travel refuses everywhere with 'NeedBusStop'.");
+			SetResultFailure("A spawned bus stop has no OVT_MapMarkerComponent. Prefabs/Structures/Signs/Traffic/SignBusStop_01.et has lost its marker block, so NO bus stop in any world is discoverable: the map draws none and bus travel refuses everywhere with '#OVT-NotAtBusStop'.");
 			return FinishAndCleanUp();
 		}
 
@@ -2150,14 +2151,15 @@ class OVT_TEST_Init_MapMarkers_BusStopRegisters : SCR_AutotestCaseBase
 			return FinishAndCleanUp();
 		}
 
-		// The bus-travel lookup itself, at the radius OVT_MapContext uses.
+		// The bus-travel lookup itself, at the radius OVT_FastTravelService.IsAtBusStop uses.
 		if (markers.GetNearestMarker(m_vSignPos, OVT_MapMarkerCategory.BUS_STOP, BUS_TRAVEL_RADIUS) != marker)
 		{
-			SetResultFailure("GetNearestMarker() did not return the registered bus stop standing at the probe position - the lookup OVT_MapContext makes for bus travel is broken");
+			SetResultFailure("GetNearestMarker() did not return the registered bus stop standing at the probe position - the lookup OVT_FastTravelService.IsAtBusStop makes for bus travel is broken");
 			return FinishAndCleanUp();
 		}
 
-		// Out of range must refuse, otherwise the radius means nothing and "NeedBusStop" never fires.
+		// Out of range must refuse, otherwise the radius means nothing and OVT_TravelResult.NOT_AT_BUS_STOP
+		// ("#OVT-NotAtBusStop") never fires.
 		if (markers.GetNearestMarker(m_vSignPos + Vector(0, 0, BUS_TRAVEL_RADIUS * 20), OVT_MapMarkerCategory.BUS_STOP, BUS_TRAVEL_RADIUS))
 		{
 			SetResultFailure("GetNearestMarker() returned a bus stop for a probe far outside the radius - bus travel would accept a click anywhere on the map");

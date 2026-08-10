@@ -39,11 +39,12 @@ class OVT_MapLocationBusStop : OVT_MapLocationType
 	//------------------------------------------------------------------------------------------------
 	//! Shared info panel: one line explaining what a bus stop is for.
 	//!
-	//! Grounded in OVT_CatchBusAction (the interact action on the sign, which arms bus travel on the
-	//! map) and OVT_MapContext's bus-travel branch, where the fare is
+	//! Grounded in OVT_CatchBusAction (the interact action on the sign, which opens the map and arms
+	//! nothing) and in OVT_FastTravelService.ComputeFare, where the bus fare is
 	//! round(distance_km * m_Difficulty.busTicketPrice) and every recruit travelling with you costs the
-	//! same again. The exact fare is deliberately not quoted: it depends on where the player is
-	//! standing, which the panel does not know at the moment it is drawn.
+	//! same again. That service replaced the legacy OVT_MapContext bus-travel branch, removed in
+	//! map/legacy-retirement. The exact fare is deliberately not quoted: it depends on where the player
+	//! is standing, which the panel does not know at the moment it is drawn.
 	//! \param[in] location The record being described
 	//! \param[in] rowsContainer The shared panel's rows container
 	override protected void BuildInfoRows(OVT_MapLocationData location, Widget rowsContainer)

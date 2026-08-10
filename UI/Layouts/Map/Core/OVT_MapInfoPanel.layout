@@ -221,7 +221,7 @@ FrameWidgetClass {
          components {
           SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
            m_sActionName "OverthrowCloseInfoPanel"
-           m_sLabel "Close"
+           m_sLabel "#OVT-Map_ClosePanel"
           }
          }
         }

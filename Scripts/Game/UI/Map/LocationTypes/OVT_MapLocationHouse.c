@@ -1,9 +1,10 @@
 //! House location type for the Overthrow map system
 //!
 //! LOCAL PLAYER ONLY. Records are emitted exclusively for houses the machine's own player owns or
-//! rents, filtered at POPULATE time. This restores legacy behaviour (OVT_MapIcons.c:472 called
-//! realEstate.GetOwned(persId), :543 GetRented(persId)) and fixes a live privacy regression on this
-//! branch, where every player's property was drawn on every player's map (implementation.md N1).
+//! rents, filtered at POPULATE time. This restores legacy behaviour (the legacy OVT_MapIcons layer,
+//! deleted in map/legacy-retirement, called realEstate.GetOwned(persId) then GetRented(persId)) and
+//! fixes a live privacy regression on this branch, where every player's property was drawn on every
+//! player's map (implementation.md N1).
 //! Anything that widens this filter is a privacy regression, not a feature.
 //!
 //! Warehouses are deliberately the opposite: OVT_MapLocationWarehouse iterates every owner because
@@ -114,8 +115,8 @@ class OVT_MapLocationHouse : OVT_MapLocationType
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Home is checked before ownership so it reads distinctly from a second owned house, matching
-	//! legacy's special-casing of the home marker (OVT_MapIcons.c:525-528).
+	//! Home is checked before ownership so it reads distinctly from a second owned house, matching the
+	//! legacy OVT_MapIcons layer's special-casing of the home marker (deleted in map/legacy-retirement).
 	//! \param[in] location The record being drawn
 	//! \return Icon tint for this record
 	override Color GetIconColor(OVT_MapLocationData location)

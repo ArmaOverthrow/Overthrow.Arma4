@@ -101,25 +101,15 @@ class OVT_MainMenuContext : OVT_UIContext
 				
 		SCR_ButtonTextComponent comp;
 
-		// Map Info
-		comp = SCR_ButtonTextComponent.GetButtonText("Map Info", m_wRoot);
-		if (comp)
-		{
-			GetGame().GetWorkspace().SetFocusedWidget(comp.GetRootWidget());
-			comp.m_OnClicked.Insert(MapInfo);
-		}
-		
-		// Fast Travel
-		comp = SCR_ButtonTextComponent.GetButtonText("Fast Travel", m_wRoot);
-		if (comp)
-		{
-			comp.m_OnClicked.Insert(FastTravel);
-		}
-		
 		// Place
 		comp = SCR_ButtonTextComponent.GetButtonText("Place", m_wRoot);
 		if (comp)
 		{
+			//! This is the main menu's initial gamepad focus - without it a controller/console player
+			//! opens the menu with nothing focused and has nothing to navigate from. It lives on the
+			//! first entry wired up here, so it must MOVE with the first entry if the entry order ever
+			//! changes (it was relocated off the deleted "Map Info" row by map/legacy-retirement).
+			GetGame().GetWorkspace().SetFocusedWidget(comp.GetRootWidget());
 			comp.m_OnClicked.Insert(Place);
 		}
 		
@@ -204,18 +194,6 @@ class OVT_MainMenuContext : OVT_UIContext
 				data.msg.m_UIInfo.SetIconTo(icon);
 			}			
 		}
-	}
-	
-	private void MapInfo()
-	{
-		CloseLayout();
-		OVT_MapContext.Cast(m_UIManager.GetContext(OVT_MapContext)).EnableMapInfo();		
-	}
-	
-	private void FastTravel()
-	{
-		CloseLayout();
-		OVT_MapContext.Cast(m_UIManager.GetContext(OVT_MapContext)).EnableFastTravel();		
 	}
 	
 	private void Place()

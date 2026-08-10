@@ -1,10 +1,10 @@
 //! Owned-vehicle location type for the Overthrow map system
 //!
 //! LOCAL PLAYER ONLY. This type emits records exclusively for vehicles owned by the machine's own
-//! player, filtered at POPULATE time and never at display time. That is both legacy parity
-//! (OVT_MapIcons.c:710 called vehicles.GetOwned(persId)) and a hard multiplayer-privacy requirement:
-//! another player must never learn where your vehicles are parked. Anything that widens this filter
-//! is a privacy regression, not a feature.
+//! player, filtered at POPULATE time and never at display time. That is both legacy parity (the legacy
+//! OVT_MapIcons layer, deleted in map/legacy-retirement, called vehicles.GetOwned(persId)) and a hard
+//! multiplayer-privacy requirement: another player must never learn where your vehicles are parked.
+//! Anything that widens this filter is a privacy regression, not a feature.
 //!
 //! POSITION AND HEADING ARE SAMPLED ONCE, AT MAP OPEN. Both are read here in PopulateLocations and
 //! stored on the record; nothing refreshes while the map is up. This is parity, not a shortcut -
@@ -127,9 +127,10 @@ class OVT_MapLocationVehicle : OVT_MapLocationType
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Rotates the icon to the vehicle's heading, matching legacy (OVT_MapIcons.c:726-727, which read
-	//! ent.GetYawPitchRoll()[0] and passed it straight to ImageWidget.SetRotation - degrees, same
-	//! sign). The yaw was sampled in PopulateLocations, so nothing is resolved from the world here.
+	//! Rotates the icon to the vehicle's heading, matching the legacy OVT_MapIcons layer (deleted in
+	//! map/legacy-retirement), which read ent.GetYawPitchRoll()[0] and passed it straight to
+	//! ImageWidget.SetRotation - degrees, same sign. The yaw was sampled in PopulateLocations, so
+	//! nothing is resolved from the world here.
 	//! \param[in] iconWidget The icon widget being set up
 	//! \param[in] location The record being drawn
 	//! \param[in] isSmall True when the map is zoomed out

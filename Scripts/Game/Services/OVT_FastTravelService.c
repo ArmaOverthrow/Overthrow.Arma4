@@ -47,12 +47,14 @@ enum OVT_TravelResult
 //------------------------------------------------------------------------------------------------
 class OVT_FastTravelService
 {
-	//! Radius around the player within which recruits travel with them (OVT_MapContext.c:25).
+	//! Radius around the player within which recruits travel with them. Carried over unchanged from the
+	//! legacy OVT_MapContext fast-travel branch (removed in map/legacy-retirement).
 	static const float RECRUIT_TRAVEL_RADIUS = 50.0;
 
-	//! How near a bus stop counts as "at" it. The number already used for that question in this
-	//! codebase (OVT_TownManagerComponent.c:881, OVT_MapContext.c:459). Server-side radius must never
-	//! be smaller than the client's, or the server refuses a trip the panel offered.
+	//! How near a bus stop counts as "at" it. The number Overthrow has always used for that question,
+	//! carried over from the legacy OVT_MapContext bus-travel branch (removed in map/legacy-retirement).
+	//! Server-side radius must never be smaller than the client's, or the server refuses a trip the
+	//! panel offered.
 	static const float BUS_STOP_RADIUS = 15.0;
 
 	//------------------------------------------------------------------------------------------------

@@ -95,6 +95,10 @@
 **Decision:** It is not. Legacy inserted vehicle positions into `m_Centers` once at build time (`OVT_MapIcons.c:709-731`); its `Update()` only re-projected the stored world position.
 **Impact:** Live refresh is an explicit **non-goal** of this feature. BUG-136 does not block Phase 3.
 
+**Update 2026-08-10 — `map/core` delivered live refresh anyway (BUG-136 closed).** The decision above still stands as *this feature's* scope statement: Phase 3 shipped the Vehicle type correctly without needing refresh. But `map/core`'s fix added `OVT_MapLocationType.m_fRefreshInterval` (seconds, `0` = never), driving `OVT_OverthrowMapUI.TickRefresh` (`:401`) → element reconciliation → `OVT_MapLocationElement.SetLocationData` (`:433`) — `OnLocationDataChanged()`'s first caller. `Configs/Map/OverthrowMap.conf` turns it on at 5 s for Town/Base/RadioTower/FOB/Camp and **2 s for Vehicle** (`:154`), so vehicle markers now track live rather than sitting at a map-open snapshot. **Nothing in this feature changed** — the interval is a config value on types this feature already ships.
+
+**What this means for Phase 7:** an unverified path now runs under *every* verification pass. Reconciliation **destroys elements while the map is open**, and `map/core`'s own note (`core/context.md:116`) warns that `DestroyLocationElement` must clear `m_HoveredElement`, `m_PinnedElement`, `m_SelectedElement` **and** the base class's static `s_SelectedElement`, or BUG-135 returns on a 2–5 s timer. Add to **V-3**: leave the map open for >5 s with an info panel pinned, and again with a vehicle marker pinned while the vehicle moves — confirm the panel survives, the marker follows, and hover/selection do not break after a tick. Nothing in the automated spine can see this.
+
 ### Decision 7: The gun-dealer panel lists what the dealer *stocks*, not what is dear (§4.6b)
 **Date:** 2026-08-10 — **user directive mid-run**, then grounded in code before implementing.
 **Context:** The user asked for the gun-dealer panel to show the unique items that dealer sells, on the reasoning that "each gun dealer chooses 1 of each gun type" and that is more useful than a cheap/expensive readout.

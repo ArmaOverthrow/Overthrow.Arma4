@@ -288,8 +288,9 @@ class OVT_TravelRequestComponent : OVT_Component
 	//------------------------------------------------------------------------------------------------
 	//! Places the travelling recruits in a ring around the arrival point.
 	//!
-	//! Lifted verbatim from OVT_PlayerCommsComponent.RpcAsk_RequestFastTravelWithRecruits (:1529-1547),
-	//! which is the only implementation of this that has ever run: angle i x 360/count, radius 3 m
+	//! Lifted verbatim from the legacy OVT_PlayerCommsComponent.RpcAsk_RequestFastTravelWithRecruits
+	//! (deleted in map/legacy-retirement), which was the only implementation of this that had ever run
+	//! before this one, and whose behaviour this reproduces exactly: angle i x 360/count, radius 3 m
 	//! growing 0.5 m per recruit, and FindSafeSpawnPosition with skipSpawnPointSearch = true (the
 	//! spawn-point query is a sphere query per recruit, and the ring is already spread out on purpose).
 	//! SetOrigin rather than TeleportPlayer because recruits are AI, not players.

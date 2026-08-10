@@ -24,7 +24,7 @@ The features that make up this epic, in intended **build order** (retrospective 
 2. **stability** — the shared `OVT_TownModifierSystem` framework plus the stability modifier system and its six shipped modifiers.
 3. **support** — the support modifier system and its five modifiers, supporter conversion, placeable support handlers and the Diplomacy skill effect.
 4. **gun-dealers** — per-town gun dealer spawning, config, shop wiring and user action.
-5. **map-info** — the map UI: town info panel, icons, threat grid, restricted areas, player location canvas layers.
+5. ~~**map-info** — the map UI: town info panel, icons, threat grid, restricted areas, player location canvas layers.~~ **➡️ SUPERSEDED 2026-08-10 — the map left this epic.** It is now the **`map` epic** (`docs/features/map/`); the legacy system this described was deleted by `map/legacy-retirement`, and the retrospective docs are archived at `docs/archive/towns-map-info-*.md`. Requirement "The map presents town state…" above is now the `map` epic's to satisfy.
 
 ## Dependencies
 

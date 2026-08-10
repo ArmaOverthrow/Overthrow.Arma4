@@ -494,6 +494,15 @@ class OVT_MapLocationType
 			sizeLayout.EnableHeightOverride(true);
 			sizeLayout.SetWidthOverride(size);
 			sizeLayout.SetHeightOverride(size);
+
+			// A SizeLayoutWidget override only sets the DESIRED size; a parent that stretches the child
+			// wins. In a VerticalLayoutWidget the vertical axis is the main axis (SizeMode Auto, so the
+			// height override is honoured) but the HORIZONTAL axis is the cross axis, and it stretches
+			// by default. So the height shrank and the width did not, and every icon came out flattened
+			// - 32x24 zoomed in, 32x12 zoomed out. The layout now authors HorizontalAlign Center on this
+			// slot; this call is the belt to that braces, because a Workbench re-save can re-emit slot
+			// defaults and a layout regression here is invisible to tools/compile-check.sh.
+			AlignableSlot.SetHorizontalAlign(sizeLayout, LayoutHorizontalAlign.Center);
 		}
 		
 		// Handle distance display

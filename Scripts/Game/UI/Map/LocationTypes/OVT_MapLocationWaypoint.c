@@ -10,12 +10,14 @@
 //! whose player asked for them. Nothing here writes anything - it is pure presentation, and adds no
 //! RPC (K10).
 //!
-//! EMPTINESS TEST. A slot holding "0 0 0" means "no waypoint set" and is skipped, matching legacy
-//! (OVT_MapIcons.c:780 tested the vector's truthiness before drawing its "waypoint" icon). The test is
-//! spelled out component-wise here rather than relying on vector-to-bool coercion.
+//! EMPTINESS TEST. A slot holding "0 0 0" means "no waypoint set" and is skipped, matching the legacy
+//! OVT_MapIcons layer (deleted in map/legacy-retirement), which tested the vector's truthiness before
+//! drawing its "waypoint" icon. The test is spelled out component-wise here rather than relying on
+//! vector-to-bool coercion.
 //!
-//! ALWAYS VISIBLE. The conf entry sets m_fVisibilityZoom 0 because legacy inserted a range of 0 for
-//! this icon (OVT_MapIcons.c:790) - a waypoint you asked for should not vanish when you zoom out.
+//! ALWAYS VISIBLE. The conf entry sets m_fVisibilityZoom 0 because the legacy OVT_MapIcons layer
+//! (deleted in map/legacy-retirement) inserted a range of 0 for this icon - a waypoint you asked for
+//! should not vanish when you zoom out.
 [BaseContainerProps(), OVT_MapLocationTypeTitle()]
 class OVT_MapLocationWaypoint : OVT_MapLocationType
 {

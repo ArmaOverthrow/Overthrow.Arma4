@@ -232,23 +232,15 @@ class OVT_MapShopPriceBands
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! The TEXT half of the dual affordance (Definition of Done F-6).
-	//!
-	//! Up versus down must be readable with colour removed. The glyph is already a directional shape
-	//! and carries the MAGNITUDE (one, two or three chevrons); this word carries the DIRECTION in
-	//! plain language, so neither signal depends on colour and neither is the only signal.
-	//! \param[in] level The band.
-	//! \return An #OVT- key, or "" for NEUTRAL.
-	static string GetDirectionKey(OVT_MapPriceLevel level)
-	{
-		if (IsUp(level))
-			return "#OVT-Map_Shop_Dearer";
-
-		if (IsDown(level))
-			return "#OVT-Map_Shop_Cheaper";
-
-		return "";
-	}
+	// GetDirectionKey() lived here and returned "#OVT-Map_Shop_Dearer"/"#OVT-Map_Shop_Cheaper" as the
+	// text half of a dual affordance. Removed 2026-08-10 by user directive - the glyph is enough.
+	//
+	// F-6 still holds: its requirement is that up-versus-down not depend on COLOUR, and the glyph is a
+	// directional SHAPE drawn in the same white as every other row icon, so direction survives with
+	// colour removed entirely. What is lost is redundancy, not the signal.
+	//
+	// The two .st ids are now orphaned in the master string table. Left for map/legacy-retirement's
+	// .st-orphan pass rather than cut here.
 }
 
 //------------------------------------------------------------------------------------------------

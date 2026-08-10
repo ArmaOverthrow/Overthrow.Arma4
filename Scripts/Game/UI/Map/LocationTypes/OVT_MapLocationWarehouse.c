@@ -1,8 +1,9 @@
 //! Warehouse location type for the Overthrow map system
 //!
 //! PUBLIC BY DESIGN. Unlike houses, every player's warehouse is drawn on every player's map. That is
-//! not an oversight: the legacy layer did the same under a literal "//Public Owned Warehouses" comment
-//! (OVT_MapIcons.c:573+). Do not "fix" the asymmetry with OVT_MapLocationHouse for consistency.
+//! not an oversight: the legacy OVT_MapIcons layer (deleted in map/legacy-retirement) did the same
+//! under a literal "//Public Owned Warehouses" comment. Do not "fix" the asymmetry with
+//! OVT_MapLocationHouse for consistency.
 //! It is also why the renter's NAME earns a row here and does not on a house: a rented warehouse can
 //! belong to somebody else, and the panel shell only ever renders an "owner" key.
 [BaseContainerProps(), OVT_MapLocationTypeTitle()]

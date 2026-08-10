@@ -225,6 +225,7 @@
 
 - [ ] **V-3 — single-player marker sweep**
   - Description: Start a campaign; buy a house, buy a vehicle, place a camp, deploy a FOB, build a maintenance ramp, accept a job and "show on map", mark a recruit on the map. Walk the F-1 checklist. Confirm F-9 and F-10.
+  - **Also (new — BUG-136 landed in `map/core` after this feature was built):** live refresh is now on for these types (5 s Town/Base/RadioTower/FOB/Camp, 2 s Vehicle). Leave the map open **>5 s with an info panel pinned**, and again **with a vehicle marker pinned while the vehicle is moving**. Confirm: the panel survives a refresh tick, the vehicle marker follows the vehicle, and hover/selection still work afterwards. Reconciliation destroys elements mid-session, so a missed reference cleanup re-creates **BUG-135 on a timer** (`core/context.md:116`). Nothing in the automated spine can see this.
   - Estimate: 🔴 > 3 hours
 
 - [ ] **V-4 — zoom sweep (Q-5)**

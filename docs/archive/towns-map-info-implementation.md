@@ -1,5 +1,26 @@
 # Towns Map Info - Implementation Plan (Retrospective)
 
+> ## 📦 ARCHIVED 2026-08-10 — superseded by the `map` epic
+>
+> **Was:** `docs/features/towns/map-info/implementation.md` (feature 5 of the `towns` epic).
+> **Successor:** `docs/features/map/` — see `epic-overview.md` and the features `core`,
+> `location-types`, `fast-travel`, `legacy-retirement`.
+>
+> This document describes Overthrow's **legacy** map: the hand-rolled `OVT_MapIcons` icon layer, the
+> three flag-based modes inside `OVT_MapContext` (map info / fast travel / bus travel), the
+> "Map Info" and "Fast Travel" main-menu rows, and the client-side travel paths. **That code no longer
+> exists.** It was deleted by `map/legacy-retirement` on **2026-08-10** (`OVT_MapIcons.c`, three
+> layouts and their `.meta` files, the `OVT_MapIcons` config block, `OVT_MapContext` stripped
+> 591 → 79 lines, and four unvalidated `RequestFastTravel*` RPCs removed from
+> `OVT_PlayerCommsComponent`).
+>
+> **Read this only as history.** Its `file:line` pointers, line counts and code descriptions are no
+> longer resolvable. Of the bugs it records: **BUG-067, BUG-068 and BUG-069 are structurally
+> impossible** against the current code — the classes that could exhibit them are deleted. **BUG-070
+> is still live** and belongs to the `map` epic: it concerns `OVT_MapRestrictedAreas`, which
+> `legacy-retirement` deliberately **retained** and did not touch. The "unmerged `new-map` branch"
+> this document repeatedly points at as the designed successor is exactly what the `map` epic landed.
+
 **Status:** Implemented (Documented Retrospectively)
 **Originally Implemented:** Unknown (pre-dates Beast Mode; a redesigned successor exists on the unmerged `new-map` branch)
 **Documented:** 2026-08-02

@@ -141,13 +141,6 @@ class OVT_TEST_Logic_MapPriceBands : SCR_AutotestCaseBase
 			return true;
 		}
 
-		if (OVT_MapShopPriceBands.GetDirectionKey(OVT_MapPriceLevel.NEUTRAL) != "")
-		{
-			SetResultFailure("The neutral band produced the caption '%1'; it must produce none",
-				OVT_MapShopPriceBands.GetDirectionKey(OVT_MapPriceLevel.NEUTRAL));
-			return true;
-		}
-
 		if (OVT_MapShopPriceBands.GetMagnitude(OVT_MapPriceLevel.NEUTRAL) != 0)
 		{
 			SetResultFailure("The neutral band claimed %1 carets, expected 0",
@@ -210,33 +203,15 @@ class OVT_TEST_Logic_MapPriceBands : SCR_AutotestCaseBase
 		if (!ExpectGlyph(OVT_MapPriceLevel.DOWN_1, "down_1") || !ExpectGlyph(OVT_MapPriceLevel.DOWN_2, "down_2") || !ExpectGlyph(OVT_MapPriceLevel.DOWN_3, "down_3"))
 			return true;
 
-		// --- THE TEXT HALF OF THE DUAL AFFORDANCE. Up and down must be readable with colour removed,
-		// so each direction carries its own non-empty caption and the two are never the same.
-		string upKey = OVT_MapShopPriceBands.GetDirectionKey(OVT_MapPriceLevel.UP_2);
-		string downKey = OVT_MapShopPriceBands.GetDirectionKey(OVT_MapPriceLevel.DOWN_2);
-
-		if (!upKey.StartsWith("#OVT-") || !downKey.StartsWith("#OVT-"))
+		// --- DIRECTION IS CARRIED BY THE GLYPH ALONE (2026-08-10: the "Dearer"/"Cheaper" captions were
+		// removed by user directive, so GetDirectionKey no longer exists). F-6 requires up-versus-down
+		// to survive with COLOUR removed, and the glyph is a directional shape drawn in flat white, so
+		// the property that must now hold is that up and down never share a quad. Asserted above by the
+		// seenGlyphs uniqueness check and pinned by name in the ExpectGlyph block, which is what would
+		// catch an atlas edit that made up_2 and down_2 identical.
+		if (OVT_MapShopPriceBands.GetCaretIcon(OVT_MapPriceLevel.UP_2) == OVT_MapShopPriceBands.GetCaretIcon(OVT_MapPriceLevel.DOWN_2))
 		{
-			SetResultFailure("Direction captions are not localization keys: up '%1', down '%2'", upKey, downKey);
-			return true;
-		}
-
-		if (upKey == downKey)
-		{
-			SetResultFailure("Up and down share the caption '%1', so the panel would read identically in both directions", upKey);
-			return true;
-		}
-
-		// Every band of one direction agrees on its caption - the magnitude lives in the glyph.
-		if (OVT_MapShopPriceBands.GetDirectionKey(OVT_MapPriceLevel.UP_1) != upKey || OVT_MapShopPriceBands.GetDirectionKey(OVT_MapPriceLevel.UP_3) != upKey)
-		{
-			SetResultFailure("The three up bands do not share one caption");
-			return true;
-		}
-
-		if (OVT_MapShopPriceBands.GetDirectionKey(OVT_MapPriceLevel.DOWN_1) != downKey || OVT_MapShopPriceBands.GetDirectionKey(OVT_MapPriceLevel.DOWN_3) != downKey)
-		{
-			SetResultFailure("The three down bands do not share one caption");
+			SetResultFailure("Up and down asked for the same glyph, so direction cannot be read from shape");
 			return true;
 		}
 

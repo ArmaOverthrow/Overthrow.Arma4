@@ -97,9 +97,13 @@ class OVT_MapLocationShop : OVT_MapLocationShopBase
 		// and the heading, and this sentence only makes sense directly under "Local supply".
 		AddInfoRow(scarcityRows, "", "#OVT-Map_Shop_TownWide");
 
+		// No caption: the glyph is a directional SHAPE, so it already carries up-versus-down without
+		// colour and without a word. "Dearer"/"Cheaper" restated it on every row and only crowded the
+		// item name, which is the part the player is actually reading. The label slot hides itself when
+		// passed "", leaving the row as glyph + name.
 		foreach (OVT_MapShopPriceRow namedRow : named)
 		{
-			AddCaretRow(scarcityRows, namedRow.m_eLevel, OVT_MapShopPriceBands.GetDirectionKey(namedRow.m_eLevel), namedRow.m_sDisplayName);
+			AddCaretRow(scarcityRows, namedRow.m_eLevel, "", namedRow.m_sDisplayName);
 		}
 	}
 

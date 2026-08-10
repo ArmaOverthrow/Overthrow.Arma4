@@ -160,8 +160,8 @@ FrameWidgetClass {
         }
        }
       }
-      ButtonWidgetClass "{598AB670C1F2839C}" : "{9ECCD201BCF07E95}UI/layouts/Menus/PauseMenu/PauseMenuButton.layout" {
-       Name "Map Info"
+      ButtonWidgetClass "{598AB67349EB2885}" : "{9ECCD201BCF07E95}UI/layouts/Menus/PauseMenu/PauseMenuButton.layout" {
+       Name "Place"
        Slot LayoutSlot "{557478C3F0230865}" {
        }
        components {
@@ -169,7 +169,7 @@ FrameWidgetClass {
          m_BackgroundSelected 1 1 1 0.196
          m_BackgroundSelectedHovered 1 1 1 0.196
          m_BackgroundClicked 1 1 1 0.196
-         m_sText "#OVT-MainMenu_MapInfo"
+         m_sText "#OVT-MainMenu_Place"
         }
        }
        {
@@ -187,7 +187,7 @@ FrameWidgetClass {
                {
                 ImageWidgetClass "{557098267D2A9494}" {
                  Prefab "{557098267D2A9494}"
-                 Image "scenarios"
+                 Image "down"
                  Size 64 64
                 }
                }
@@ -200,8 +200,8 @@ FrameWidgetClass {
         }
        }
       }
-      ButtonWidgetClass "{598AB6734AADE219}" : "{9ECCD201BCF07E95}UI/layouts/Menus/PauseMenu/PauseMenuButton.layout" {
-       Name "Fast Travel"
+      ButtonWidgetClass "{598AB67349A970B3}" : "{9ECCD201BCF07E95}UI/layouts/Menus/PauseMenu/PauseMenuButton.layout" {
+       Name "Build"
        Slot LayoutSlot "{557478C3F0230865}" {
        }
        components {
@@ -209,7 +209,7 @@ FrameWidgetClass {
          m_BackgroundSelected 1 1 1 0.196
          m_BackgroundSelectedHovered 1 1 1 0.196
          m_BackgroundClicked 1 1 1 0.196
-         m_sText "#OVT-MainMenu_FastTravel"
+         m_sText "#OVT-MainMenu_Build"
         }
        }
        {
@@ -227,7 +227,7 @@ FrameWidgetClass {
                {
                 ImageWidgetClass "{557098267D2A9494}" {
                  Prefab "{557098267D2A9494}"
-                 Image "vehicles"
+                 Image "structures"
                  Size 64 64
                 }
                }
@@ -308,86 +308,6 @@ FrameWidgetClass {
                 ImageWidgetClass "{557098267D2A9494}" {
                  Prefab "{557098267D2A9494}"
                  Image "kill"
-                 Size 64 64
-                }
-               }
-              }
-             }
-            }
-           }
-          }
-         }
-        }
-       }
-      }
-      ButtonWidgetClass "{598AB67349EB2885}" : "{9ECCD201BCF07E95}UI/layouts/Menus/PauseMenu/PauseMenuButton.layout" {
-       Name "Place"
-       Slot LayoutSlot "{557478C3F0230865}" {
-       }
-       components {
-        SCR_ButtonTextComponent "{5548F0143AE99095}" {
-         m_BackgroundSelected 1 1 1 0.196
-         m_BackgroundSelectedHovered 1 1 1 0.196
-         m_BackgroundClicked 1 1 1 0.196
-         m_sText "#OVT-MainMenu_Place"
-        }
-       }
-       {
-        SizeLayoutWidgetClass "{557098260F312277}" {
-         Prefab "{557098260F312277}"
-         {
-          OverlayWidgetClass "{557098260F312272}" {
-           Prefab "{557098260F312272}"
-           {
-            HorizontalLayoutWidgetClass "{557098267862A738}" {
-             Prefab "{557098267862A738}"
-             {
-              ScaleWidgetClass "{557478C2A0AF4E50}" {
-               Prefab "{557478C2A0AF4E50}"
-               {
-                ImageWidgetClass "{557098267D2A9494}" {
-                 Prefab "{557098267D2A9494}"
-                 Image "down"
-                 Size 64 64
-                }
-               }
-              }
-             }
-            }
-           }
-          }
-         }
-        }
-       }
-      }
-      ButtonWidgetClass "{598AB67349A970B3}" : "{9ECCD201BCF07E95}UI/layouts/Menus/PauseMenu/PauseMenuButton.layout" {
-       Name "Build"
-       Slot LayoutSlot "{557478C3F0230865}" {
-       }
-       components {
-        SCR_ButtonTextComponent "{5548F0143AE99095}" {
-         m_BackgroundSelected 1 1 1 0.196
-         m_BackgroundSelectedHovered 1 1 1 0.196
-         m_BackgroundClicked 1 1 1 0.196
-         m_sText "#OVT-MainMenu_Build"
-        }
-       }
-       {
-        SizeLayoutWidgetClass "{557098260F312277}" {
-         Prefab "{557098260F312277}"
-         {
-          OverlayWidgetClass "{557098260F312272}" {
-           Prefab "{557098260F312272}"
-           {
-            HorizontalLayoutWidgetClass "{557098267862A738}" {
-             Prefab "{557098267862A738}"
-             {
-              ScaleWidgetClass "{557478C2A0AF4E50}" {
-               Prefab "{557478C2A0AF4E50}"
-               {
-                ImageWidgetClass "{557098267D2A9494}" {
-                 Prefab "{557098267D2A9494}"
-                 Image "structures"
                  Size 64 64
                 }
                }

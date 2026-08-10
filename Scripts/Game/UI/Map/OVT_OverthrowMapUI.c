@@ -47,7 +47,8 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 	protected ref map<string, float> m_mRefreshTimers;
 
 	//! Whether nearby recruits travel with the player. Opt-OUT: default ON, because legacy fast travel
-	//! always brought them (OVT_MapContext.c:441) and defaulting OFF would silently re-ship finding F4.
+	//! always brought them (the OVT_MapContext fast-travel branch, removed in map/legacy-retirement) and
+	//! defaulting OFF would silently re-ship finding F4.
 	//! Reset to true on every map open so no travel state survives a map close.
 	protected bool m_bBringRecruits = true;
 
@@ -784,23 +785,6 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 		return m_HoveredElement;
 	}
 
-	//! Whether the location info panel is on screen right now.
-	//!
-	//! Exists for ONE caller: the legacy OVT_MapContext.MapClick, which registers a SECOND, independent
-	//! listener on the same "MapSelect" input this UI listens to. With the legacy fast-travel mode armed
-	//! (still reachable from OVT_MainMenuContext.FastTravel), a click on this panel's travel button would
-	//! otherwise fire BOTH handlers - the panel's server-authoritative request AND the legacy branch's
-	//! client-side debit and teleport to whatever world position happens to lie under the panel.
-	//!
-	//! Reached through SCR_MapEntity.GetMapUIComponent(OVT_OverthrowMapUI) rather than a global, because
-	//! this class is already a registered map UI component and the map entity is the map's own registry.
-	//! Defensive only: map/legacy-retirement deletes the branch this guards, and this getter with it.
-	//! \return True while the info panel widget exists and is showing.
-	bool IsInfoPanelVisible()
-	{
-		return m_bInfoPanelVisible;
-	}
-	
 	//! Setup base location info (name, distance, etc.)
 	protected void SetupLocationInfoBase(OVT_MapLocationData location)
 	{
@@ -1262,29 +1246,58 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 		if (!m_wInfoPanel || !m_SelectedElement)
 			return;
 		
+		WorkspaceWidget workspace = GetGame().GetWorkspace();
+		if (!workspace)
+			return;
+
+		// Gap kept between the panel and any screen edge it is pushed off
+		const float SCREEN_MARGIN = 10;
+
 		// Position panel near selected element but not overlapping
 		vector pos = m_SelectedElement.GetPos();
 		float x, y;
 		m_MapEntity.WorldToScreen(pos[0], pos[2], x, y, true);
-		x = GetGame().GetWorkspace().DPIUnscale(x);
-		y = GetGame().GetWorkspace().DPIUnscale(y);
-		
+		x = workspace.DPIUnscale(x);
+		y = workspace.DPIUnscale(y);
+
 		// Offset to avoid overlapping with icon
 		x += 13;
 		y -= 31;
-		
+
 		// Keep within screen bounds
 		float panelWidth, panelHeight;
 		m_wInfoPanel.GetScreenSize(panelWidth, panelHeight);
-		
+
 		float screenWidth, screenHeight;
-		GetGame().GetWorkspace().GetScreenSize(screenWidth, screenHeight);
-		
+		workspace.GetScreenSize(screenWidth, screenHeight);
+
+		// Widget.GetScreenSize answers in PHYSICAL pixels, but x and y were DPI-unscaled into reference
+		// units above and FrameSlot.SetPos wants reference units. Both sizes therefore have to come back
+		// to reference units before anything can be compared against x/y. The clamp below used them raw,
+		// which only happens to be right at DPI scale 1.0.
+		panelWidth = workspace.DPIUnscale(panelWidth);
+		panelHeight = workspace.DPIUnscale(panelHeight);
+		screenWidth = workspace.DPIUnscale(screenWidth);
+		screenHeight = workspace.DPIUnscale(screenHeight);
+
 		if (x + panelWidth > screenWidth)
-			x = screenWidth - panelWidth - 10;
+			x = screenWidth - panelWidth - SCREEN_MARGIN;
+
+		// The BOTTOM edge was never clamped - only the right edge and the top. A marker low on the
+		// screen therefore got a panel that ran off the bottom of the display, taking its last rows with
+		// it, and the taller the panel the more it lost. Shops and gun dealers show it first because
+		// their panels are the tallest.
+		if (y + panelHeight > screenHeight)
+			y = screenHeight - panelHeight - SCREEN_MARGIN;
+
+		// Last, so that a panel too tall to fit at all is pinned to the top and loses its bottom rather
+		// than its header - the header is what identifies which location you are looking at.
 		if (y < 0)
-			y = 10;
-		
+			y = SCREEN_MARGIN;
+
+		if (x < 0)
+			x = SCREEN_MARGIN;
+
 		FrameSlot.SetPos(m_wInfoPanel, x, y);
 	}
 	

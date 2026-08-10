@@ -53,6 +53,7 @@ FrameWidgetClass {
       SizeLayoutWidgetClass "{5E8683A55F5C7487}" {
        Name "IconContainer"
        Slot LayoutSlot "{5E8683A55F5C74D2}" {
+        HorizontalAlign 1
         VerticalAlign 3
        }
        AllowWidthOverride 1

@@ -1136,7 +1136,7 @@ StringTable {
   }
   CustomStringTableItem "{5992D5041850CA26}" {
    Id "OVT-FieldManual_FastTravel_Text"
-   Target_en_us "You must have a map in your inventory to use \"Fast Travel\". The map will open and you can click on any owned house, camp, FOB or base that the resistance currently controls to instantly travel there. You will be charged a small fee for this service according to the difficulty level."
+   Target_en_us "Open the map and select a location you can travel to: a house you own or rent, your own camp or any public camp, a FOB, or a base the resistance controls. Its info panel has a travel button showing the fare. Fast travel costs the distance in kilometres multiplied by the fast travel price from the difficulty settings, charged for a minimum of one kilometre. Recruits within 50 metres travel with you by default and each one pays a full fare; the panel has a toggle to leave them behind. You cannot fast travel while you are wanted, to somewhere closer than the minimum travel distance, or as a passenger in a vehicle - only the driver takes the vehicle along - and a QRF in progress can block it, depending on the difficulty settings. For bus travel, use \"Catch a bus\" at a bus stop and pick another bus stop on the map: the bus fare has no minimum distance, and you must be on foot."
    Target_fr_fr "Vous devez avoir une carte dans votre inventaire pour utiliser le \"Déplacement Rapide\". La carte s'ouvrira et vous pourrez cliquer sur n'importe quelle Maison, Camp, Avant poste ou base que vous ou la résistance possédez/controllez pour vous y déplacer. Selon la difficulé, cela peut vous coûter de l'argent."
    Target_ru_ru "Вы должны иметь карту в инвентаре для использования \"Быстрого перемещения\". Откроется карта и вы можете нажать на любой купленый дом, построеный лагерь, FOB или захваченную базу. Вы заплатите небольое колличество денег за эту услугу в зависимости от уровня сложности."
    Target_ko_kr "빠른 이동을 사용하려면 인벤토리에 지도가 있어야 합니다. 지도가 열리면 소유한 집, 캠프, 전진 기지(FOB), 또는 저항군이 현재 점령한 기지를 클릭하여 즉시 이동할 수 있습니다. 이 기능을 이용 시 난이도에 따라 소량의 비용이 발생합니다."
@@ -1203,7 +1203,7 @@ StringTable {
   }
   CustomStringTableItem "{5992D5044118B4C5}" {
    Id "OVT-FieldManual_MapInfo_Text"
-   Target_en_us "You must have a map in your inventory to use \"Map Info\". Clicking on this in the main menu will open the map, then you can click anywhere on the map to show info about that location, including any intel known about the area."
+   Target_en_us "You must have a map in your inventory to open it with <color rgba='226,168,79,255'><action name=\"GadgetMap\"/></color>. Overthrow marks towns, bases, FOBs, camps, houses, shops, gun dealers, warehouses, ports, radio towers, bus stops, your vehicles and your waypoints on it. Move the map cursor over a marker to show an info panel about that location, and click the marker to keep the panel pinned open. Clicking an empty part of the map unpins it again."
    Target_fr_fr "Vous devez avoir une carte dans votre inventaire pour utiliser \"Infos Carte\". La carte s'ouvrira lorsque vous cliquerez, puis vous pourrez sélectionner un endroit sur la carte pour voir toutes les informations connues à son sujet."
    Target_ru_ru "Вы должны иметь карту в инвентаре для использования \"Информации о карте\". Нажав на эту  кнопку из главного меню, в открывшейся карте, вы  нажать на любую точку на карте, чтобы посмотреть информацию об этой локации, включая разведданые известные об этой точке."
    Target_ko_kr "\"지도 정보\"를 사용하려면 인벤토리에 지도가 있어야 합니다. 메인 메뉴에서 이 항목을 클릭하면 지도가 열리고, 지도 어느 곳이나 클릭하면 해당 위치에 대한 정보와 알려진 정보(information)를 확인할 수 있습니다."
@@ -4345,28 +4345,6 @@ StringTable {
    NonTranslatable 0
    MaxLength 0
    Modified 1706586285
-   Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{59A6ED92E301B152}" {
-   Id "OVT-NeedBusStop"
-   Target_en_us "You must click near another bus stop"
-   Target_fr_fr "Cliquez près d'un autre arrêt de bus"
-   Target_ru_ru "Вы должны нажать на карту  возле автобусной остановки"
-   Target_ko_kr "다른 버스 정류장 근처를 클릭해야 합니다"
-   Target_zh_cn "你必须在另一个公交车站附近点击"
-   Target_uk_ua "Ви повинні натиснути біля іншої автобусної зупинки"
-   Comment ""
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1706586296
    Author "Aaron Static"
    LastChanged "parkj_c3c9hji"
    ImageLink ""

@@ -59,7 +59,8 @@ All five were filed from code reading on 2026-08-10, fixed and play-tested the s
 - \[ \] Replace `GetLocationTypeByName`'s linear `ClassName()` scan with a map built in `InitializeLocationTypes` (called 3× per panel show)
 - \[ \] Hoist per-element `GetCurrentPlayerID()` out of `SetVisible` / `UpdateFastTravelIndicator` (runs per element per zoom change)
 - \[ \] Audit every `FindAnyWidget` name in the map code against its layout — **still owed.** D1 and D2 were fixed individually (BUG-133/134), but they were found by spot-checking, not by the sweep. Same failure mode, still invisible to the compiler.
-- \[ \] Review hardcoded info-panel offsets (`x += 13; y -= 31`) and the partial screen-edge clamping
+- \[x\] ~~Review the partial screen-edge clamping~~ — done 2026-08-10. `UpdateInfoPanelPosition` clamped the right edge and the top but **never the bottom**, so a marker low on the screen got a panel that ran off the display and lost its last rows (reported against shops/gun dealers, whose panels are tallest). Bottom clamp added, and the comparison units fixed: `Widget.GetScreenSize` answers in **physical** pixels while `x`/`y` are DPI-unscaled reference units, so the existing right-edge clamp was only correct at DPI scale 1.0.
+- \[ \] Review the hardcoded info-panel offsets (`x += 13; y -= 31`) — still owed, and now joined by `SizeLayout0`'s `Alignment 0.5 0.255` pivot, which was tuned for a fixed 32px icon and no longer tracks the zoom-varying icon size (BUG-133)
 
 ---
 

@@ -137,10 +137,11 @@ class OVT_MapLocationShopBase : OVT_MapLocationType
 	//------------------------------------------------------------------------------------------------
 	//! Appends one item row carrying a caret glyph.
 	//!
-	//! DUAL AFFORDANCE (Definition of Done F-6): the glyph carries the magnitude as one, two or three
-	//! chevrons and the direction as its shape; the label carries the direction again in words. Colour
-	//! is not load-bearing in either - the row layout draws the glyph in the same white as every other
-	//! row icon.
+	//! F-6 (up versus down must not depend on colour): the glyph carries the direction as its SHAPE and
+	//! the magnitude as one, two or three chevrons, and the row layout draws it in the same white as
+	//! every other row icon - so colour is not load-bearing. The shop rows previously repeated the
+	//! direction in words ("Dearer"/"Cheaper"); that was dropped 2026-08-10 by user directive, leaving
+	//! shape as the sole direction cue. Gun-dealer rows still pass a label, but a weapon-kind one.
 	//!
 	//! The caret uses the shared OVT_MapInfoRow layout's own RowIcon rather than a bespoke
 	//! CaretIcon/CaretText pair: the plan named those two widgets before Phase 5 built RowIcon /
@@ -148,7 +149,7 @@ class OVT_MapLocationShopBase : OVT_MapLocationType
 	//! gain. Icon sizing belongs to that shared row and is deliberately not overridden here.
 	//! \param[in] rows The ScarcityRows container.
 	//! \param[in] level Band for this item. NEUTRAL draws no glyph, only the text.
-	//! \param[in] labelKey Left-hand caption - a direction word, or a weapon-kind label.
+	//! \param[in] labelKey Left-hand caption, or "" to hide the label slot entirely (the shop rows).
 	//! \param[in] displayName Already-localized item name.
 	protected void AddCaretRow(Widget rows, OVT_MapPriceLevel level, string labelKey, string displayName)
 	{
