@@ -5,17 +5,21 @@ This directory contains components that handle placeable objects in the Overthro
 ## Core Components
 
 ### OVT_PlaceableHandler
+
 Base class for all placeable handlers, providing common functionality and interfaces for different types of placeables. This abstract class defines the core behavior that specific placeable types inherit.
 
 ## Specific Placeable Handlers
 
 ### OVT_PlaceableFOBHandler
+
 Handles Forward Operating Base (FOB) placeables, which serve as advanced resistance outposts with expanded functionality. FOBs allow players to establish strategic positions across the map.
 
 ### OVT_PlaceableCampHandler
+
 Manages resistance camp placeables, which serve as fast travel destinations and basic operational positions for resistance forces.
 
 ### OVT_PlaceableSupportModHandler
+
 Handles placeables that add a support modifier to towns (such as posters)
 
 ## Integration with Other Systems
@@ -30,4 +34,4 @@ When players place these structures, the appropriate handler is invoked to manag
 
 ---
 
-For more information about Overthrow's development, visit our [GitHub repository](https://github.com/ArmaOverthrow/Overthrow.Arma4) or join our [Discord](https://discord.gg/j6CvmFfZ95). 
+For more information about Overthrow's development, visit our [GitHub repository](https://github.com/ArmaOverthrow/Overthrow.Arma4) or join our [Discord](https://discord.gg/r3XN7uDdV2).

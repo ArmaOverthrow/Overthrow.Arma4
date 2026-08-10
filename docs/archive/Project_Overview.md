@@ -11,35 +11,41 @@ Players take on the role of resistance fighters in an occupied territory, starti
 ## Key Gameplay Features
 
 ### Persistent World
+
 - **Save System**: Game state persists between sessions using the Enfusion Persistence Framework (EPF)
 - **Dynamic Events**: The world continues to evolve based on player actions and AI behaviors
 - **Consequences**: Player decisions have lasting impacts on the game world
 
 ### Resistance Operations
+
 - **Guerrilla Warfare**: Players engage in hit-and-run tactics against occupying forces
 - **Base Building**: Establish Forward Operating Bases (FOBs) and resistance camps
 - **Resource Management**: Manage money, equipment, and supplies for the resistance
 - **Territory Control**: Liberate towns and regions from occupying forces
 
 ### Economic System
+
 - **Player Economy**: Earn money through various activities and missions
 - **Cost-based Actions**: Most significant actions require financial investment
 - **Resource Trading**: Buy and sell equipment, weapons, and supplies
 - **Difficulty Scaling**: Economic costs scale with selected difficulty level
 
 ### Social Systems
+
 - **Civilian Interaction**: Recruit civilians to join the resistance movement
 - **AI Commanding**: Build and command squads of AI resistance fighters
 - **Faction Relationships**: Navigate complex relationships between resistance, occupying forces, and civilians
 - **Real Estate**: Own and manage properties for safe houses and operations
 
 ### Building and Placement
+
 - **Placeable System**: Deploy various structures, defenses, and equipment
 - **Location Restrictions**: Strategic placement rules based on proximity to towns, bases, and other structures
 - **Cost Management**: All placements require resources and strategic planning
 - **Randomization Options**: Some placeables can randomize their appearance for variety
 
 ### World Interaction
+
 - **Town System**: Each settlement has unique characteristics, population, and strategic value
 - **Base Assault**: Plan and execute attacks on enemy installations
 - **Vehicle Operations**: Acquire, maintain, and deploy various vehicles
@@ -48,11 +54,13 @@ Players take on the role of resistance fighters in an occupied territory, starti
 ## Getting Started
 
 ### Basic Controls
+
 - **Overthrow Menu**: Press "U" (not "Y") to open the main Overthrow interface
 - **Context Actions**: Use mouse interactions for most in-world actions
 - **Placement Mode**: Enter placement mode to deploy structures and equipment
 
 ### Early Game Progression
+
 1. **Learn the Interface**: Familiarize yourself with the Overthrow menu system
 2. **Explore the World**: Understand town locations, enemy bases, and strategic positions
 3. **Gather Resources**: Start earning money through available activities
@@ -61,6 +69,7 @@ Players take on the role of resistance fighters in an occupied territory, starti
 6. **Plan Operations**: Identify high-value targets and plan your first major operation
 
 ### Strategic Considerations
+
 - **Start Small**: Begin with low-risk, high-reward activities
 - **Location Matters**: Choose base locations carefully considering proximity to towns and enemy forces
 - **Resource Conservation**: Manage your limited starting resources wisely
@@ -69,11 +78,13 @@ Players take on the role of resistance fighters in an occupied territory, starti
 ## Game Modes
 
 ### Campaign Mode
+
 - **Full Experience**: Complete liberation campaign on full-sized maps
 - **Long-term Progression**: Extended gameplay sessions with persistent progress
 - **Strategic Depth**: Complex faction relationships and territorial control
 
 ### Test Environment
+
 - **Quick Testing**: Smaller test world for rapid iteration and experimentation
 - **Developer Mode**: Streamlined experience for testing specific features
 - **Faster Loading**: Optimized for quick access and testing
@@ -81,11 +92,13 @@ Players take on the role of resistance fighters in an occupied territory, starti
 ## Technical Foundation
 
 ### Engine and Framework
+
 - **Enfusion Engine**: Built on Arma Reforger's modern game engine
 - **Entity-Component System**: Modular architecture using EnforceScript
 - **Networking Support**: Full multiplayer compatibility with client-server architecture
 
 ### Modular Design
+
 - **Manager Components**: Singleton systems managing specific game aspects
 - **Persistence Integration**: Seamless save/load functionality
 - **Extensible Architecture**: Designed for easy modification and expansion
@@ -95,7 +108,8 @@ Players take on the role of resistance fighters in an occupied territory, starti
 Overthrow is currently in active development, available in early access through the Arma Reforger Workshop. The project welcomes community contributions and maintains an open development model with regular updates and community engagement.
 
 For more information, visit:
+
 - **Steam Workshop**: Search for "Overthrow" in Arma Reforger Workshop
 - **GitHub Repository**: [Overthrow.Arma4](https://github.com/ArmaOverthrow/Overthrow.Arma4)
-- **Community Discord**: [Join the Overthrow Community](https://discord.gg/j6CvmFfZ95)
+- **Community Discord**: [Join the Overthrow Community](https://discord.gg/r3XN7uDdV2)
 - **Wiki**: [Getting Started Guide](https://wiki.armaoverthrow.com/en/getting-started)
