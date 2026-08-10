@@ -34,6 +34,9 @@ Tracked in `docs/bugs/`, all `linkedFeature: resistance/fob` — fix via `/fix-b
 - \[ \] BUG-127 (low) — undeploy confirmation sent to owner, not actor
 - \[ \] BUG-128 (low) — deploy progress shows generic label; `TransferStorageForDeployment` dead
 
+**Filed later, from outside this feature:**
+- \[ \] **BUG-139** (medium, filed 2026-08-11 by `map/location-types`) — FOB/camp **garrison never reaches clients**: neither `RplSave`/`RplLoad` (`OVT_ResistanceFactionManager.c:1231-1300`) nor `RpcDo_RegisterFOB`/`RpcDo_RegisterCamp` carries it, and there is no garrison RPC of any kind. **Also a server-side defect**: the three `AddGarrison*` paths insert only into `garrisonEntities`, so the `garrison` prefab list is populated *only* by a save load and `garrison.Count()` reads 0 on the host too until a reload. Persistence is unaffected (the serializer snapshots the live entities). The map panels hide the row at 0 as a mitigation.
+
 Related open bugs owned elsewhere: BUG-109 (occupying — specops inert at FOBs), BUG-116 (persistence — deployed-FOB cargo in scope).
 
 ---

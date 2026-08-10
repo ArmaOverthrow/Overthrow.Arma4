@@ -48,6 +48,9 @@ All five were filed from code reading on 2026-08-10, fixed and play-tested the s
 - [x] **BUG-136** (low) — D6: markers never refresh mid-open. Per-type opt-in polling (`m_fRefreshInterval`, default `0`) drives `OVT_OverthrowMapUI.TickRefresh` → `RefreshLocationType`, which reconciles markers by identity key; survivors are re-pointed through the new `OVT_MapLocationElement.SetLocationData`, giving `OnLocationDataChanged()` its first caller. Enabled at 5 s for Town/Base/RadioTower/FOB/Camp, 2 s for Vehicle. **Unblocks `map/location-types` G1.**
 - [x] **BUG-137** (low) — D7: element click path dead. `HandleSelection()` and `GetClickRadius()` deleted; `OVT_OverthrowMapUI.NotifyLocationClicked` now fires `OnLocationClicked` (and the click sound, via the new `PlayClickSound`) when a click pins a location. Default body of the virtual is now empty. **No click-to-deselect** — hover already shows the panel, so BUG-134's close button is the explicit dismissal.
 
+**Filed later — one open bug:**
+- [ ] **BUG-138** (low, filed 2026-08-11 by `map/location-types` as finding "core D8") — the per-location visibility-zoom concept does not exist: `OVT_MapLocationElement` reads only the **type-level** `GetVisibilityZoom()` in both `ShouldUseSmallIcon` (`:298`) and `SetVisible` (`:482`), and no per-record key has a reader. So **a priority FOB is not always visible**, and no individual location can differ from its type — a type author writing `SetDataFloat("visibilityZoom", …)` gets a silent no-op. The fix is a per-record override with a sentinel (`0` is a legitimate "always visible"), in both call sites, plus a `map/core` contract-table entry.
+
 **Not filed — recorded as debt instead:**
 - D5 — `UpdateIcons` computes a `targetElement` (pinned-else-selected) that `UpdateInfoPanelPosition()` ignores in favour of `m_SelectedElement` (`:113-126`, `:551`). Harmless today because pinning also selects; intent and behaviour disagree. See Cleanup below.
 

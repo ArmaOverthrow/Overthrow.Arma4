@@ -1,9 +1,9 @@
 # Map Location Types - Task Checklist
 
 **Last Updated:** 2026-08-11
-**Progress:** 41/42 tasks complete (98%) — Phases 1–7 ✅ **all built and play-tested green**, and the
-caret art redraw landed 2026-08-11. The only work left is **documentation, not code**: filing the seven
-deferred findings as bugs against other features (Phase 7b).
+**Progress:** ✅ **42/42 tasks complete (100%) — FEATURE COMPLETE 2026-08-11.** Phases 1–7 built and
+play-tested green, the caret art redraw landed, and the seven deferred findings are filed as
+**BUG-138 … BUG-144** against `map/core`, `resistance/fob` and `economy/shops` (Phase 7b).
 
 > Derived from `implementation.md` §5. Phase order is load-bearing: the bus-stop migration
 > (Phase 1) is the riskiest item and `map/fast-travel` F5 is blocked on it.
@@ -223,12 +223,11 @@ deferred findings as bugs against other features (Phase 7b).
 
 ---
 
-## Phase 7: Verification, parity sign-off, bug filing — **user-driven, no agent** (6/7 complete) ✅
+## Phase 7: Verification, parity sign-off, bug filing — **user-driven, no agent** (7/7 complete) ✅
 
-> **✅ ALL VERIFICATION ROWS GREEN.** The user play-tested the feature and reported everything green,
-> including multiplayer (2026-08-11). V-3 … V-7 and the F-1 parity checklist are discharged. **The one
-> item still open is 7b — filing the deferred findings as bugs**, which is documentation work against
-> *other* features, not a defect in this one.
+> **✅ PHASE COMPLETE.** The user play-tested the feature and reported everything green, including
+> multiplayer (2026-08-11); V-3 … V-7 and the F-1 parity checklist are discharged. **7b closed the same
+> day** — the seven deferred findings are filed as BUG-138 … BUG-144 against other features.
 
 - [x] ✅ **V-3 — single-player marker sweep** — Completed 2026-08-11
   - Description: Start a campaign; buy a house, buy a vehicle, place a camp, deploy a FOB, build a maintenance ramp, accept a job and "show on map", mark a recruit on the map. Walk the F-1 checklist. Confirm F-9 and F-10.
@@ -261,17 +260,26 @@ deferred findings as bugs against other features (Phase 7b).
     play-tested green, is a stronger parity sign-off than the checklist was ever going to be: the old
     icons are not merely matched, they no longer exist to compare against.
 
-- [ ] 📋 **7b — file the deferred findings as bugs (I-4)** — **THE ONE ITEM STILL OPEN**
-  - Description: Seven findings were deliberately **not fixed here** because they belong to other
-    features. They are written up in full under "Bugs & Issues" below but **have no BUG id yet** —
-    verified 2026-08-11: the highest bug in `docs/bugs/` is **BUG-137**, and none of the seven is filed.
-    File: **core D8/N4** (against `map/core`), **N5** (`resistance/fob`), **N6 + addendum**
-    (`economy/shops`), **N17**, **N18**, **N19** (`economy/shops`), and raise **N14** as a design
-    question. Record each id back in `context.md`.
-  - ⚠️ **N19 is the one with a live consequence**: gun-dealer weapon carets currently ship **default-off**
-    (`m_bShowWeaponCarets`) *because* of it. If N19 is never filed, the reason that flag is off is lost
-    and someone will eventually turn it on.
-  - Estimate: 🟡 1-2 hours
+- [x] ✅ **7b — file the deferred findings as bugs (I-4)** — **DONE 2026-08-11. BUG-138 … BUG-144.**
+  - Seven findings that belong to other features are now filed, **each re-verified against the working
+    tree before filing** rather than copied from the write-up. Two claims changed on re-verification and
+    both are recorded in the bug files: N5 turned out to have an in-session server-side half as well
+    (the `garrison` prefab list is only ever populated by a save load, so the count is 0 on the host too
+    until a reload), and N18's exposure was narrowed to a specific, real trigger (a listen-server host
+    pressing Start after players have joined — dealers register at *campaign* start, unlike shops and
+    ports which register at *world* init and are therefore complete before anyone can connect).
+  - | Finding | Bug | Against | Priority |
+    |---|---|---|---|
+    | core D8 / N4 — per-location `visibilityZoom` never read | **BUG-138** | `map/core` | low |
+    | N5 — FOB/Camp garrison never replicated | **BUG-139** | `resistance/fob` | medium |
+    | N6 + addendum — three unguarded null derefs | **BUG-140** | `economy/shops` | medium |
+    | N17 — sniper ammunition never stocked | **BUG-141** | `economy/shops` | medium |
+    | N18 — `RegisterGunDealer` has no broadcast RPC | **BUG-142** | `economy/shops` | medium |
+    | N19 — dealer prices pinned at max scarcity | **BUG-143** | `economy/shops` | medium |
+    | N14 — signature weapons re-roll every load (design question) | **BUG-144** | `economy/shops` | low |
+  - ⚠️ **BUG-143 carries the live consequence**: gun-dealer weapon carets ship **default-off**
+    (`m_bShowWeaponCarets`) *because* of it, and the bug file now says so under its own heading, so the
+    reasoning no longer lives only in this feature's `context.md` Decision 8.
 
 ---
 
@@ -284,17 +292,16 @@ deferred findings as bugs against other features (Phase 7b).
   - File: `Scripts/Game/UI/Map/LocationTypes/OVT_MapLocationHouse.c:25`
   - Impact: Violates `requirements.md:21`; a regression against the system being replaced. **Fixed in Phase 3.**
 
-**To be filed — STILL OPEN, this is task 7b.** Deliberately not fixed here; each belongs to another
-feature. **None has a BUG id yet** (verified 2026-08-11: highest is BUG-137). Green play-tests do not
-discharge these — they are write-ups awaiting filing, not defects in this feature:
-- [ ] **core D8** (N4) — the per-location `visibilityZoom` data key is never read; the element uses only the type-level `GetVisibilityZoom()`. Priority FOBs are therefore **not** always visible. Against `map/core` (K9).
-- [ ] **N5** — FOB/Camp `garrison` is not replicated; `garrisonCount` reads 0 on every remote client. Against `resistance/fob`.
-- [ ] **N6** — `OVT_EconomyManagerComponent.GetTownStock` (`:601-611`) can null-deref on a client via unguarded `GetShopByRplId`. Against `economy/shops`.
-- [ ] **N17** 🐛 — `Configs/System/GunDealerConfig.conf:51-54` duplicates the RIFLE+AMMUNITION rule from `:26-29`; by position and by the pattern of every other weapon pair it was meant to be **SNIPER_RIFLE + AMMUNITION**. Effect: rifle magazines added twice, and **sniper ammunition may never be stocked** — a dealer can roll a sniper the player cannot feed. Against `economy/shops`. **Not fixed here** (config/economy defect, not a map defect).
-- [ ] **N19** 🔴🐛 — **A gun dealer's price caret is pinned at ▲▲▲ at every dealer, permanently.** `Configs/System/ShopConfig.conf` stocks only EQUIPMENT/HEAL/BACKPACK/HEADWEAR/TORSO/VEST_AND_WAIST/LEGS/FOOTWEAR — **no weapon type at any town shop** — and `RegisterGunDealer` (`OVT_EconomyManagerComponent.c:1257-1263`) inserts only into `m_aGunDealers`, never `m_mTownShops`. So town stock for every weapon id is 0, and the scarcity term `(1 − 0/max) × 0.1` is *exactly* +10% → three carets up, always, everywhere. **Verified independently by the orchestrator.** Consequence: gun-dealer weapon carets ship **default-off** (`m_bShowWeaponCarets`, one conf line to enable). Against `economy/shops`.
-- [ ] **N6 addendum** — same defect class, same file: `GetShopByRplId` (`:435-441`) dereferences `rpl.GetEntity()` unguarded, and `DistanceToNearestPort` (`:846-858`) dereferences `Replication.FindItem(id)` unguarded. Fold into the N6 filing.
-- [ ] **N18** 🐛 — `RegisterGunDealer` (`OVT_EconomyManagerComponent.c:1257-1263`) has no broadcast RPC; `m_aGunDealers` reaches clients only via the economy manager's JIP `RplSave` (`:1906-1913`). **A gun dealer registered after a client joined never appears on that client's map.** Against `economy/shops`.
-- [ ] **N14** ⚠️ — a gun dealer's four signature weapons are rolled from the **unseeded** global generator and are **not persisted**, so they re-roll on every campaign load. Arguably they should be seeded per-town or saved. Raise against `economy/shops` as a design question, not a defect — the map panel is honest about it either way.
+**Filed 2026-08-11 — 7b is DONE.** All seven belong to other features and were deliberately not fixed
+here. Each was re-verified against the working tree at filing time; the write-ups below are kept as the
+provenance record, and the bug files are now the authority:
+- [x] ✅ **core D8** (N4) → **BUG-138** (`map/core`, low) — the per-location `visibilityZoom` data key is never read; the element uses only the type-level `GetVisibilityZoom()` (`OVT_MapLocationElement.c:298`, `:482`). Priority FOBs are therefore **not** always visible (K9).
+- [x] ✅ **N5** → **BUG-139** (`resistance/fob`, medium) — FOB/Camp `garrison` is not replicated; `garrisonCount` reads 0 on every remote client. **Re-verification added a second half**: the three `AddGarrison*` paths insert only into `garrisonEntities`, so `garrison` is empty on the server too until a save is loaded.
+- [x] ✅ **N6 + addendum** → **BUG-140** (`economy/shops`, medium) — three unguarded null derefs in one file: `GetTownStock` (`:601-611`), `GetShopByRplId` (`:435-440`, unguarded `rpl.GetEntity()`), `DistanceToNearestPort` (`:846-858`, unguarded on both).
+- [x] ✅ **N17** 🐛 → **BUG-141** (`economy/shops`, medium) — `GunDealerConfig.conf:51-54` omits `m_eItemType`, which defaults to RIFLE (`2`) and duplicates `:26-29` instead of being the SNIPER_RIFLE rule the pattern requires. **Confirmed player-visible**: vanilla types SVD magazines `SNIPER_RIFLE`+`AMMUNITION` on distinct prefabs, so no rifle rule can reach them.
+- [x] ✅ **N18** 🐛 → **BUG-142** (`economy/shops`, medium) — `RegisterGunDealer` has no broadcast RPC; `m_aGunDealers` reaches clients only via JIP `RplSave`. **Trigger narrowed on re-verification**: dealers register at *campaign* start (`ActivateTown` → `SpawnGunDealer`), so on a listen server every client already connected when the host presses Start gets no dealers at all — whereas shops/ports register at *world* init and are safe by timing.
+- [x] ✅ **N19** 🔴🐛 → **BUG-143** (`economy/shops`, medium) — **everything a gun dealer sells is permanently priced at the maximum scarcity markup.** No town shop stocks a weapon **and** `RegisterGunDealer` never inserts into `m_mTownShops`, so `GetTownStock` is 0 for every dealer item and the term `(1 − 0/max) × 0.1` is exactly +10% forever. Not just weapons — pistols, ammunition, attachments, throwables and explosives are dealer-only too. This is why `m_bShowWeaponCarets` ships off.
+- [x] ✅ **N14** ⚠️ → **BUG-144** (`economy/shops`, low, filed as a **design question**) — the four signature weapons are rolled from the unseeded global generator and nothing persists them, so they re-roll on every campaign load; only `gunDealerPosition` survives. Three options written up (leave / seed per town / persist), each with its cost.
 
 ---
 
@@ -380,15 +387,15 @@ verification rows (V-3 … V-7 plus the F-1 parity sign-off) are discharged.
 | **V-5 two-client MP/JIP** | ✅ 2026-08-11 — the N1 privacy fix is now *observed*, not inferred |
 | F-1 parity sign-off | ✅ Superseded and strengthened: `map/legacy-retirement` shipped and deleted the legacy map |
 
-**Still open, and deliberately not closed by a green play-test:**
+**Both remaining items closed the same day:**
 
-1. **7b — file the seven deferred findings** (core D8/N4, N5, N6+addendum, N14, N17, N18, N19). These are
-   defects in *other* features that this feature discovered and wrote up; they have no BUG id, so today
-   they exist only inside this checklist. **N19 in particular explains why `m_bShowWeaponCarets` ships
-   off** — lose the write-up and that flag looks like an oversight.
+1. ~~**7b — file the seven deferred findings**~~ — **✅ DONE 2026-08-11: BUG-138 … BUG-144.** The defects
+   this feature discovered in *other* features now have ids and live outside this checklist. **BUG-143
+   carries the reason `m_bShowWeaponCarets` ships off**, in the bug file rather than only in a feature doc.
 2. ~~The caret art redraw~~ — **✅ DONE 2026-08-11.** New icons imported; the glyph was widened from 28 px
    to 54 px of ink so it nearly fills the 13×13 row icon, and the user confirms magnitude now reads.
-   **The only remaining item is 7b.**
+
+**Nothing is open. The feature is closed.**
 
 ---
 

@@ -1,8 +1,8 @@
 # Map Location Types - Context & Decisions
 
 **Last Updated:** 2026-08-11
-**Current Phase:** ✅ Phase 7 verification **DISCHARGED 2026-08-11** — everything green, MP included. Only task **7b (file the deferred findings)** remains, and it is documentation against *other* features.
-**Status:** ✅ **Built and verified** — one documentation task outstanding
+**Current Phase:** ✅ **COMPLETE 2026-08-11.** Phase 7 verification discharged (everything green, MP included) and 7b closed the same day — the seven deferred findings are filed as **BUG-138 … BUG-144**.
+**Status:** ✅ **CLOSED** — built, verified, and every deferred finding handed off with an id
 
 ---
 
@@ -29,17 +29,27 @@
   the legacy map, so the old icons no longer exist to compare against
 - ✅ Localization exports, both passes — **measured** 2026-08-11: all 521 `.st` ids resolve in `en-us`
 
-**What's Next — one item, and it is documentation, not code:**
-- 📋 **7b — file the seven deferred findings.** Verified 2026-08-11: the highest bug in `docs/bugs/` is
-  **BUG-137** and **none of the seven is filed**. File **core D8 (N4)** against `map/core`, **N5** against
-  `resistance/fob`, **N6 (+addendum)**, **N17**, **N18** and **N19** against `economy/shops`; raise **N14**
-  as a design question. Record the ids back here.
-  ⚠️ **N19 is the one that costs something if forgotten** — it is the *reason* gun-dealer weapon carets
-  ship behind `m_bShowWeaponCarets` default-off (Decision 8). Unfiled, that flag reads as an oversight and
-  someone will turn it on, restoring four permanently-misleading ▲▲▲ rows.
+**✅ 7b — the seven deferred findings are FILED (2026-08-11):**
 
-**Blockers:** none. The one remaining art item (caret magnitude redraw) is a **quality gap, not a
-blocker** — see "Open Questions".
+| Finding | Bug | Against | Priority |
+|---|---|---|---|
+| core D8 / N4 — per-location `visibilityZoom` never read; priority FOBs are not always visible | **BUG-138** | `map/core` | low |
+| N5 — FOB/Camp garrison never replicated (and the list is empty on the server too, until a save load) | **BUG-139** | `resistance/fob` | medium |
+| N6 + addendum — three unguarded null derefs (`GetTownStock`, `GetShopByRplId`, `DistanceToNearestPort`) | **BUG-140** | `economy/shops` | medium |
+| N17 — omitted `m_eItemType` defaults to RIFLE, so sniper ammunition is never stocked | **BUG-141** | `economy/shops` | medium |
+| N18 — `RegisterGunDealer` has no broadcast RPC | **BUG-142** | `economy/shops` | medium |
+| N19 — every gun-dealer item is permanently priced at maximum scarcity | **BUG-143** | `economy/shops` | medium |
+| N14 — signature weapons re-roll every campaign load (**design question**, not a defect) | **BUG-144** | `economy/shops` | low |
+
+Each was **re-verified against the working tree before filing** rather than transcribed, and two claims
+moved: N5 gained an in-session server-side half (`AddGarrison*` writes only `garrisonEntities`, so
+`garrison.Count()` is 0 on the host as well until a reload), and N18's exposure was narrowed to a real
+trigger (dealers register at *campaign* start, so a listen-server host pressing Start after players have
+joined leaves those players with no dealers — shops and ports register at *world* init and are safe by
+timing). **Decision 8's reasoning now lives in BUG-143**, so `m_bShowWeaponCarets` being off is no longer
+explained only by a feature doc.
+
+**Blockers:** none. **Nothing is open — the feature is closed.**
 
 ---
 
@@ -312,3 +322,42 @@ Open Questions). That was the feature's only remaining art dependency.
 **Next session:** file the seven findings (7b) — **the only thing left on this feature**, and `/fix-bug`
 cannot help until they exist as bugs. The most load-bearing is **N19**: it is the recorded reason
 `m_bShowWeaponCarets` defaults off, and Decision 8 above is currently the only place that reasoning lives.
+
+---
+
+### 2026-08-11 — 7b filed; feature CLOSED
+
+**No code changed this session either.** The seven deferred findings are filed as **BUG-138 … BUG-144**
+(table under "Quick Status"), which closes 7b and with it the feature at 42/42.
+
+**They were re-verified, not transcribed.** Every `file:line` in the write-ups was checked against the
+working tree first — worth it, because the branch had moved under them and because two of the seven were
+incomplete as recorded:
+
+- **N5 was half a bug.** The write-up said garrison is 0 "on every remote client". True, but the three
+  `AddGarrison*` paths (`OVT_ResistanceFactionManager.c:951`, `:982`, `:1013`) insert only into
+  `garrisonEntities`; the `garrison` prefab list is written **only** by `ApplyPersistedGarrison` during a
+  save load. So the count is 0 on the authoritative server too, for the whole session in which the
+  garrison was bought. Persistence is unaffected — the serializer snapshots the live entities — but a
+  filing that said "clients only" would have sent someone hunting a replication bug that is also a
+  local-state bug.
+- **N18 needed a trigger to be worth filing.** "A dealer registered after a client joined never appears"
+  is true but empty without knowing when that happens. It happens on a **listen server**: dealers are
+  created at *campaign* start (`ActivateTown` → `SpawnGunDealer` → `RegisterGunDealer`), which the host
+  triggers from the start menu, while shops and ports are scanned at *world* init (`AfterInit`) and are
+  therefore complete before anyone can connect. So the affected players are exactly the ones who joined
+  before the host pressed Start — the normal flow for playing with friends.
+
+**One finding grew.** N19 was written up as a caret defect. It is an **economy** defect: because no town
+shop stocks a weapon *and* dealers are never in `m_mTownShops`, the +10% scarcity ceiling applies to the
+dealer's whole inventory — pistols, ammunition, attachments, throwables, explosives — and no amount of
+buying or selling moves it. The misleading carets are the symptom that made it visible. BUG-143 is filed
+on the economics, with the caret flag as its "live consequence" section.
+
+**N17 was upgraded from "may never be stocked" to confirmed.** Vanilla types SVD magazines as
+`SNIPER_RIFLE` + `AMMUNITION` on their own prefabs
+(`ArmaReforger/Configs/EntityCatalog/USSR/InventoryItems_EntityCatalog_USSR.conf:536-546`), so no rifle
+rule can reach them and nothing backfills the gap. A dealer really can sell a rifle the player cannot feed.
+
+**Nothing else remains.** `/fix-bug BUG-138` … `/fix-bug BUG-144` are now the route for all seven, and
+none of them is this feature's to fix.
