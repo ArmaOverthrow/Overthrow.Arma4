@@ -279,6 +279,97 @@ class OVT_FastTravelService
 	}
 
 	//------------------------------------------------------------------------------------------------
+	// SERVER DESTINATION AUTHORITY
+	//
+	// WHY THIS IS NOT IN ValidateTravel. The rule set above runs on BOTH machines, and the client runs
+	// it per map element on every zoom change (OVT_MapLocationType.CanFastTravel is documented as a hot
+	// path). A manager walk in there would be O(locations x locations) per zoom. This half runs ONCE
+	// per accepted request, on the server only, and is reached from OVT_TravelRequestComponent - the
+	// same shape as respawn, where OVT_RespawnRequestComponent resolves the destination rather than
+	// OVT_RespawnService deciding it inside a shared predicate.
+	//
+	// WHAT IT CLOSES. Before this existed the server checked distance, wanted level, QRF, vehicle seat
+	// and affordability, but nothing about WHAT WAS AT targetPos: the "owned house / your camp / your
+	// FOB / a controlled base" rule lived only in the per-type CanFastTravel overrides, which are
+	// client-side and which the service itself labels advisory. A crafted RequestTravel could therefore
+	// teleport a player to any coordinate at all, for the fare.
+	//------------------------------------------------------------------------------------------------
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether any candidate names the same place as target. PURE - no world, no manager, so the
+	//! matching rule itself is assertable in the world-free Logic tier while the enumeration below is
+	//! not.
+	//!
+	//! Uses OVT_RespawnService.PositionsMatch, and must keep using it: the two verbs resolving a
+	//! client-named place by different tolerances is exactly the drift this shares one enumeration to
+	//! avoid.
+	//! \param[in] candidates The server's own recorded positions.
+	//! \param[in] target The vector the client sent.
+	//! \param[out] matched The CANDIDATE that matched - the server's vector, never the client's.
+	//! \return True when one of the candidates names the same place.
+	static bool MatchesAnyPosition(notnull array<vector> candidates, vector target, out vector matched)
+	{
+		matched = vector.Zero;
+
+		foreach (vector candidate : candidates)
+		{
+			if (!OVT_RespawnService.PositionsMatch(candidate, target))
+				continue;
+
+			matched = candidate;
+			return true;
+		}
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Turns a client's named fast-travel destination into a position the server is willing to move
+	//! somebody to. SERVER-SIDE, once per request.
+	//!
+	//! ! THE RETURNED VECTOR ALWAYS COMES FROM THE SERVER'S ENUMERATION, NEVER FROM targetPos, exactly
+	//! as OVT_RespawnService.ResolveRespawnPosition does. targetPos is a LOOKUP KEY: the client names a
+	//! place, it does not supply a coordinate, so a crafted vector matches nothing and is refused
+	//! rather than being nudged into range by the safe-spawn search downstream.
+	//!
+	//! DEBUG MODE IS FREE MOVEMENT, deliberately. ValidateTravel already returns OK unconditionally
+	//! under m_bDebugMode, so refusing a destination here would leave debug mode able to pay nothing
+	//! and go nowhere - a worse tool than the one it replaced. The bypass is stated in both places
+	//! rather than inferred from the other.
+	//!
+	//! BUS IS NOT HANDLED HERE. Its destination rule is already server-authoritative and already in
+	//! ValidateTravel: IsAtBusStop(targetPos) refuses anything that is not within BUS_STOP_RADIUS of a
+	//! real BUS_STOP marker, so a bus request cannot name an arbitrary coordinate either.
+	//! \param[in] persId Persistent id of the acting player. Always a parameter, never resolved from the machine.
+	//! \param[in] targetPos The vector the client sent. A key, not a position.
+	//! \param[out] resolvedPos The SERVER's own vector for the matched location, or targetPos in debug mode.
+	//! \return OVT_TravelResult.OK on a match, NOT_ALLOWED on an unresolvable id, BAD_DESTINATION otherwise.
+	static int ResolveFastTravelDestination(string persId, vector targetPos, out vector resolvedPos)
+	{
+		resolvedPos = targetPos;
+
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (config && config.m_bDebugMode)
+			return OVT_TravelResult.OK;
+
+		if (persId.IsEmpty())
+			return OVT_TravelResult.NOT_ALLOWED;
+
+		// excludeActiveQrf false: fast travel has its own QRF rules and ValidateTravel has already
+		// applied them. Letting the collector's respawn-shaped QRF filter run here would report a
+		// destination inside a permitted QRF as one the server does not recognise at all.
+		array<vector> eligible = new array<vector>();
+		OVT_RespawnService.CollectEligiblePositions(persId, eligible, false);
+
+		vector matched;
+		if (!MatchesAnyPosition(eligible, targetPos, matched))
+			return OVT_TravelResult.BAD_DESTINATION;
+
+		resolvedPos = matched;
+		return OVT_TravelResult.OK;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	// SHARED LOOKUPS - safe on both machines
 	//------------------------------------------------------------------------------------------------
 

@@ -219,9 +219,21 @@ class OVT_RespawnService
 	//!
 	//! Home is deliberately absent: it is not a location record, it needs no eligibility test, and it
 	//! is reached by a destination code rather than by a vector.
+	//!
+	//! ! ALSO THE FAST-TRAVEL DESTINATION SET, and that is not a coincidence to be tidied away later.
+	//! Exactly four location types carry m_bCanFastTravel 1 in Configs/Map/OverthrowMap.conf - Bases,
+	//! FOBs, Camps and Houses - and their per-type CanFastTravel overrides apply the same four rules
+	//! this function applies, from the same four managers, reading the same vectors (base.location,
+	//! fob.location, camp.location, house.GetOrigin(), warehouses skipped). One enumeration serving
+	//! both verbs is what stops "respawnable here" and "travellable here" drifting apart silently.
+	//! See OVT_FastTravelService.ResolveFastTravelDestination.
 	//! \param[in] persId Persistent id of the acting player. Always a parameter, never resolved from the machine.
 	//! \param[out] positions Appended to, never cleared - the caller owns the array.
-	static void CollectEligiblePositions(string persId, notnull array<vector> positions)
+	//! \param[in] excludeActiveQrf True to drop positions inside a running QRF, which is the respawn
+	//! rule. Fast travel passes false because it has its OWN QRF rules - m_Difficulty.QRFFastTravelMode
+	//! can be FREE, which permits a trip into a QRF that this filter would have refused as an
+	//! unrecognised destination.
+	static void CollectEligiblePositions(string persId, notnull array<vector> positions, bool excludeActiveQrf = true)
 	{
 		if (persId.IsEmpty())
 			return;
@@ -238,7 +250,7 @@ class OVT_RespawnService
 				if (!IsBaseEligible(base.IsOccupyingFaction()))
 					continue;
 
-				if (IsPositionInActiveQRF(base.location))
+				if (excludeActiveQrf && IsPositionInActiveQRF(base.location))
 					continue;
 
 				positions.Insert(base.location);
@@ -258,7 +270,7 @@ class OVT_RespawnService
 					if (!IsFobEligible())
 						continue;
 
-					if (IsPositionInActiveQRF(fob.location))
+					if (excludeActiveQrf && IsPositionInActiveQRF(fob.location))
 						continue;
 
 					positions.Insert(fob.location);
@@ -275,7 +287,7 @@ class OVT_RespawnService
 					if (!IsCampEligible(camp.isPrivate, camp.owner, persId))
 						continue;
 
-					if (IsPositionInActiveQRF(camp.location))
+					if (excludeActiveQrf && IsPositionInActiveQRF(camp.location))
 						continue;
 
 					positions.Insert(camp.location);
@@ -293,8 +305,8 @@ class OVT_RespawnService
 			BaseWorld world = GetGame().GetWorld();
 			if (world)
 			{
-				CollectHousePositions(world, realEstate.GetOwned(persId), persId, true, positions);
-				CollectHousePositions(world, realEstate.GetRented(persId), persId, false, positions);
+				CollectHousePositions(world, realEstate.GetOwned(persId), persId, true, positions, excludeActiveQrf);
+				CollectHousePositions(world, realEstate.GetRented(persId), persId, false, positions, excludeActiveQrf);
 			}
 		}
 	}
@@ -308,7 +320,8 @@ class OVT_RespawnService
 	//! \param[in] persId Persistent id of the acting player.
 	//! \param[in] asOwner True when houses is the owned set, false when it is the rented set.
 	//! \param[out] positions Appended to.
-	protected static void CollectHousePositions(BaseWorld world, set<EntityID> houses, string persId, bool asOwner, notnull array<vector> positions)
+	//! \param[in] excludeActiveQrf True to drop houses inside a running QRF. See CollectEligiblePositions.
+	protected static void CollectHousePositions(BaseWorld world, set<EntityID> houses, string persId, bool asOwner, notnull array<vector> positions, bool excludeActiveQrf = true)
 	{
 		if (!houses)
 			return;
@@ -338,7 +351,7 @@ class OVT_RespawnService
 				continue;
 
 			vector pos = house.GetOrigin();
-			if (IsPositionInActiveQRF(pos))
+			if (excludeActiveQrf && IsPositionInActiveQRF(pos))
 				continue;
 
 			positions.Insert(pos);

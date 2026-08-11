@@ -35,6 +35,30 @@ discharged 2026-08-11. **The user reports all play-test items green, including M
 - ✅ **Phase 0** — the two-client dedicated-server MP matrix, user-run and green 2026-08-11. It was written
   as a _verify-before_ and was discharged as a _verify-after_; that distinction is recorded in `tasks.md`.
 
+- ✅ **Post-close fix: server-side destination authority (2026-08-12, from the pre-submit PR review).**
+  Phase 2 made *who may travel* server-authoritative but left *where* client-chosen: `ValidateTravel`
+  checked distance, wanted level, QRF, vehicle seat and affordability, and then the component teleported
+  to whatever vector arrived. The "owned house / your camp / a FOB / a base we hold" rule lived only in
+  the per-type `CanFastTravel` overrides, which are client code and which this service labels advisory —
+  so a crafted `RequestTravel` could name **any** coordinate and be teleported to it for the fare.
+  **Closed by reusing the respawn enumeration rather than writing a second one**: exactly the four types
+  carrying `m_bCanFastTravel 1` (Bases, FOBs, Camps, Houses) apply the same four rules, from the same four
+  managers, reading the same vectors (`base.location`, `fob.location`, `camp.location`,
+  `house.GetOrigin()`, warehouses skipped) that `OVT_RespawnService.CollectEligiblePositions` already
+  enumerates — verified field by field before the change, because a mismatch would have refused every
+  legitimate trip.
+  - `CollectEligiblePositions` gained `excludeActiveQrf` (default `true`, so respawn is byte-for-byte
+    unchanged). Fast travel passes `false`: it has its own QRF rules and `QRFFastTravelMode.FREE` permits
+    a trip the respawn-shaped filter would have reported as an unrecognised destination.
+  - New `OVT_FastTravelService.ResolveFastTravelDestination` + pure `MatchesAnyPosition`, and
+    `OVT_TravelRequestComponent` step **6b**, which **reassigns `targetPos`** to the server's own vector so
+    the fare, the arrival point and the recruit ring structurally cannot read the client's number.
+  - Refuses with the existing `BAD_DESTINATION` → `#OVT-CannotFastTravelThere`. **No new string id.**
+  - Debug mode still travels free and anywhere, stated in both places rather than inferred.
+  - BUS is untouched: `IsAtBusStop` already made its destination server-authoritative.
+  - New Logic case `OVT_TEST_Logic_TravelDestination`, **proven able to fail twice** — echoing the caller's
+    vector back fails the identity assertions, and an always-true tail fails the empty-set case.
+
 **What's Next:** nothing. **The feature is closed.** Two things are carried forward as record rather than work:
 
 - The **listen-server-host result short-circuit** is the one branch nobody has stood in front of — the MP

@@ -716,6 +716,20 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Aaron Static"
   }
+  CustomStringTableItem "{6A88000000000001}" {
+   Id "OVT-CannotFastTravelNotYourHouse"
+   Target_en_us "You cannot fast travel to a house you do not own or rent"
+   Modified 1786492800
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{6A88000000000002}" {
+   Id "OVT-CannotFastTravelPrivateCamp"
+   Target_en_us "You cannot fast travel to someone else's private camp"
+   Modified 1786492800
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59A49A9B02ABC32B}" {
    Id "OVT-CannotFastTravelThere"
    Target_en_us "You cannot fast travel there. Must be near an owned house, camp, FOB or controlled base"

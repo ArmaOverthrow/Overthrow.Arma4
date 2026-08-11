@@ -67,6 +67,9 @@ class OVT_TravelRequestComponent : OVT_Component
 	//!  5. the recruit entity list is taken ONCE and used for BOTH the fare and the teleport, so it is
 	//!     structurally impossible to pay solo and arrive with a squad (S-5)
 	//!  6. the shared rule set decides; a refusal reports and stops, having charged nothing
+	//!  6b. the DESTINATION is matched against the server's own enumeration of places this player may
+	//!      travel to, and targetPos is replaced by the server's vector for it. Step 6 decides whether
+	//!      the player may travel; this decides whether the place they named exists
 	//!  7. the real arrival point is derived server-side (vehicle spawn for a driver, safe spawn on foot)
 	//!  8. the fare is computed while the actor is still at the origin
 	//!  9. the teleport runs and its RETURN VALUE is checked - it fails on an out-of-bounds destination
@@ -129,12 +132,42 @@ class OVT_TravelRequestComponent : OVT_Component
 			return;
 		}
 
+		// 6b - THE DESTINATION ITSELF. Step 6 asks whether this player may make a trip; it does not ask
+		// whether the place they named is one Overthrow offers. That rule - owned house, your camp, a
+		// FOB, a base we hold - lived only in the per-type CanFastTravel overrides, which are CLIENT
+		// code and which OVT_FastTravelService labels advisory, so before this step a crafted request
+		// could name any coordinate on the map and be teleported to it for the fare.
+		//
+		// ! targetPos IS REASSIGNED, and that is the point rather than a shortcut. Everything below -
+		// the fare, the arrival point, the recruit ring - reads targetPos, so overwriting it with the
+		// SERVER's own recorded vector makes it structurally impossible for a later edit to price or
+		// place anything from the client's number. Same property respawn gets by never letting the
+		// client's vector past CompleteRespawn.
+		//
+		// FAST_TRAVEL only: the BUS verb's destination rule is already inside ValidateTravel
+		// (IsAtBusStop refuses anything not within BUS_STOP_RADIUS of a real marker), so a bus request
+		// cannot name an arbitrary coordinate either and re-resolving it here would buy nothing.
+		if(verb == OVT_TravelVerb.FAST_TRAVEL)
+		{
+			vector authorisedPos;
+			int destResult = OVT_FastTravelService.ResolveFastTravelDestination(ResolvePersistentId(playerId), targetPos, authorisedPos);
+			if(destResult != OVT_TravelResult.OK)
+			{
+				Print("[Overthrow] Travel request refused: player " + playerId.ToString() + " named a destination the server does not offer", LogLevel.WARNING);
+				SendTravelResult(playerId, destResult, 0);
+				return;
+			}
+
+			targetPos = authorisedPos;
+		}
+
 		// 7
 		vector dest = ResolveDestination(actor, targetPos);
 
 		// 8 - while the actor is still standing at originPos. Measured to targetPos, not to dest, so
 		// the charged fare is the one the panel displayed rather than one nudged by the safe-spawn
-		// search.
+		// search. After 6b targetPos is the server's own vector for the named location, which is within
+		// OVT_RespawnService.MATCH_TOLERANCE of the one the panel priced - far below one fare unit.
 		int cost = OVT_FastTravelService.CalculateTravelCost(verb, targetPos, actor, recruitCount);
 
 		// 9
@@ -337,10 +370,7 @@ class OVT_TravelRequestComponent : OVT_Component
 	//! \return True when the money was taken.
 	protected bool ChargeFare(int playerId, int cost)
 	{
-		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
-		if(!players) return false;
-
-		string persId = players.GetPersistentIDFromPlayerID(playerId);
+		string persId = ResolvePersistentId(playerId);
 		if(persId == "") return false;
 
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
@@ -348,6 +378,22 @@ class OVT_TravelRequestComponent : OVT_Component
 
 		economy.TakePlayerMoneyPersistentId(persId, cost);
 		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! One player's persistent id, on the SERVER, from a runtime id this component already resolved
+	//! from its own controller entity.
+	//!
+	//! Never from the machine: OVT_Global.GetLocalPersistentId() answers the HOST's id on a listen
+	//! server, which would price and authorise one player's trip against another player's property.
+	//! \param[in] playerId Runtime id of the acting player.
+	//! \return The persistent id, or "" when it cannot be resolved.
+	protected string ResolvePersistentId(int playerId)
+	{
+		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
+		if(!players) return "";
+
+		return players.GetPersistentIDFromPlayerID(playerId);
 	}
 
 	//------------------------------------------------------------------------------------------------

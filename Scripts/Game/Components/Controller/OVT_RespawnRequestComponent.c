@@ -12,10 +12,13 @@ class OVT_RespawnRequestComponentClass : OVT_ComponentClass {};
 //! RPCs from it, one of them a two-line unpaid teleport to an arbitrary vector callable by any
 //! client. That defect is the reason this class exists here instead of there.
 //!
-//! THE ONE WAY THIS DIFFERS FROM TRAVEL, AND IT IS THE POINT. Fast travel validates a client-sent
-//! vector against rules and then teleports TO THAT VECTOR. Respawn validates a client-sent vector
-//! against the server's OWN enumeration and then spawns at the SERVER's recorded vector. The client
-//! names a place; it does not supply a coordinate. A crafted vector matches nothing and gets home.
+//! THE RULE BOTH VERBS NOW FOLLOW: a client-sent vector is validated against the server's OWN
+//! enumeration and the move then uses the SERVER's recorded vector. The client names a place; it does
+//! not supply a coordinate, and a crafted vector matches nothing. Respawn was built this way from the
+//! start; fast travel gained it later (OVT_FastTravelService.ResolveFastTravelDestination, reached
+//! from OVT_TravelRequestComponent step 6b) and both now share one enumeration in
+//! OVT_RespawnService.CollectEligiblePositions. The two differ only in what a miss costs: a respawn
+//! falls back home, because a dead player must end up alive; a trip is simply refused.
 //!
 //! THIS COMPONENT NEVER SPAWNS ANYTHING AND HOLDS NO STATE. It checks the request shape, resolves
 //! who is asking, hands off to the spawn system and reports back. The awaiting-respawn state, the
