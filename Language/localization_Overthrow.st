@@ -10901,6 +10901,57 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B3B000000000167}" {
+   Id "OVT-FieldManual_MapTerritory_Head"
+   Target_en_us "Territory"
+   Comment "Field Manual - section header inside The Map and Fast Travel page, above the two paragraphs on the territory shading. One word, title case. No rich-text markup. Matches the map layer name #OVT-Map_Layer_Territory."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786320000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000168}" {
+   Id "OVT-FieldManual_MapTerritory_Text"
+   Target_en_us "The map shades the ground the occupying faction still holds, in that faction's own colour. Ground the resistance has taken is left blank, so the shading recedes as a campaign goes on and a fully liberated island draws none of it. The regions are worked out from towns, military bases, radio towers and resistance FOBs, and the bigger a site is the further its ground reaches: a base spreads further than a town, and a capital further than a village. Territory stops at the coast, though rivers and inland lakes do not divide it."
+   Comment "Field Manual - first paragraph of the Territory section on The Map and Fast Travel page. Reference voice: describes, does not instruct. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-11 for map/territory-overlay. Sentence 1: OVT_MapTerritoryLayer.c:127-128 (m_bOnlyShowOccupying defaults 1) and ResolveFactionArgb:1641-1656, which reads OVT_MapLocationType.GetFactionColorByIndex:469-483 - the same Faction.GetFactionColor() the markers use through GetIconColor:437-452. Sentence 2: OVT_TerritorySolver.IsEmittedCell:1645-1657 plus OVT_MapTerritoryLayer.c:801-807. Sentence 3: CollectTowns/CollectBases/CollectRadioTowers/CollectFOBs:446-449, weights in Configs/Map/MapFullscreen.conf:8-23 (base 1.6, town 1, radiotower 0.7, fob 0.55), town size factors OVT_MapTerritoryLayer.c:169-172 applied at :574, and the weighted ownership test OVT_TerritorySolver.OwnsPoint:234. Sentence 4: OVT_MapTerritoryLayer.c:80-81 and OVT_TerritorySolver.IsLandAt:187-215, which compares terrain surface against OCEAN height so a river or lake cannot cut a region. NOTE the overlay only DISPLAYS control that already exists - it must never be described as affecting income, stability, spawns or AI."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786320000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000169}" {
+   Id "OVT-FieldManual_MapTerritory_Text2"
+   Target_en_us "Where occupied ground meets ground the resistance holds, the edge carries a band; a coastline carries none. A region drawn with diagonal hatching is contested: the occupier still holds it, but half or more of the town's population backs the resistance, counted as the same support figure the town's info panel shows. Only towns can read that way, since bases, radio towers and FOBs have no population to measure. The shading re-reads who holds what every few seconds, so ground changing hands appears without closing the map."
+   Comment "Field Manual - second paragraph of the Territory section on The Map and Fast Travel page. Reference voice: describes, does not instruct. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-11 for map/territory-overlay. Sentence 1: OVT_MapTerritoryLayer.EmitBands:1296-1301 and BuildContours:891-892 (water has no owner, so a coastline is never a frontier) over OVT_TerritorySolver.IsFrontierSide:1611-1624. Sentence 2: contested hatch OVT_MapTerritoryLayer.c:111-112 applied at :1225-1228, threshold m_fContestedSupportThreshold 0.5 at :99-100 evaluated by OVT_TerritorySolver.IsContestedCell (supportFraction >= threshold, occupier-held only), and ResolveTownSupportFraction:620-631 computing (support * 100.0) / population, the same expression the town info panel prints in OVT_MapLocationTown.c:82-83. Sentence 3: CollectBases:505, CollectRadioTowers:525 and CollectFOBs:553 all pass OVT_TerritorySite.SUPPORT_NONE, which IsContestedCell rejects. Sentence 4: m_fRefreshInterval defaults 5 at :133-134, Update:410-423 and RefreshTick:965-980 re-read faction and support with the map still open. NOTE the overlay only DISPLAYS control that already exists - it must never be described as affecting income, stability, spawns or AI."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786320000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6B3B000000000147}" {
    Id "OVT-FieldManual_Recruits_Head"
    Target_en_us "Hiring Recruits"
@@ -12064,8 +12115,8 @@ StringTable {
   }
   CustomStringTableItem "{6B3C000000000106}" {
    Id "OVT-Tutorial_MapFirstOpen_Body"
-   Target_en_us "The map marks the buildings and vehicles you own, the camps and FOBs the resistance has placed, and the shops, gun dealers and ports available for import. You must be carrying a map item in your inventory for it to open, so don't lose it!"
-   Comment "Body of the 'map-first-open' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. Sandbox tone rule: describes the system, never instructs, and assumes nothing about what the player did before. FACT-CHECKED 2026-08-09 for tutorial-content Phase 1. Sentence 1: OVT_MapIcons.c OnMapOpen (owned houses :472, warehouses :573, gun dealers via TryCreateGunDealerIcon:111, camps :641, FOBs :664, shops via TryCreateShopIcon:137, ports via TryCreatePortIcon:184, owned vehicles :710). Sentence 2: OVT_MapContext.c ShowMap:135-146 requires an SCR_MapGadgetComponent, and both EnableMapInfo:152-158 and EnableFastTravel:277-285 show the 'MustHaveMap' notification and return when it is absent. Compresses #OVT-FieldManual_MapAndTravel_Text."
+   Target_en_us "The map marks the buildings and vehicles you own, the camps and FOBs the resistance has placed, and the shops, gun dealers and ports available for import. Shading over the terrain shows the ground the occupying faction still holds, and it clears from anywhere the resistance takes. You must be carrying a map item in your inventory for it to open, so don't lose it!"
+   Comment "Body of the 'map-first-open' tutorial tip (single page, HUD popup, wraps inside a 460px panel - keep it to three short sentences). No rich-text markup. Sandbox tone rule: describes the system, never instructs, and assumes nothing about what the player did before. FACT-CHECKED 2026-08-09 for tutorial-content Phase 1. Sentence 1: OVT_MapIcons.c OnMapOpen (owned houses :472, warehouses :573, gun dealers via TryCreateGunDealerIcon:111, camps :641, FOBs :664, shops via TryCreateShopIcon:137, ports via TryCreatePortIcon:184, owned vehicles :710). Sentence 3: OVT_MapContext.c ShowMap:135-146 requires an SCR_MapGadgetComponent, and both EnableMapInfo:152-158 and EnableFastTravel:277-285 show the 'MustHaveMap' notification and return when it is absent. Sentence 2 ADDED 2026-08-11 for map/territory-overlay and fact-checked then: OVT_MapTerritoryLayer.c:127-128 (m_bOnlyShowOccupying defaults 1) and OVT_TerritorySolver.c IsEmittedCell:1645-1657 draw only ground whose owning site's faction is the occupying faction, and OVT_MapTerritoryLayer.c:801-807 gives every other site's ground no appearance at all, so liberated ground renders blank. Compresses #OVT-FieldManual_MapAndTravel_Text and #OVT-FieldManual_MapTerritory_Text."
    DevNote ""
    Repro ""
    ActorGender NONE

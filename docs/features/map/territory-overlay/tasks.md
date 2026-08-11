@@ -11,7 +11,12 @@
 > 2. **Q-4 — the broken-texture degrade path has never been executed.** The guards are correct by
 >    inspection only.
 > 3. **The six `localization_Overthrow.<lang>.conf` exports** are the user's to regenerate in Workbench.
->    Not blocking: nothing renders the two new ids until `map/map-layers`.
+>    ⚠️ **This became player-visible on 2026-08-11.** It was harmless while only the two layer-name ids
+>    were pending (nothing renders those until `map/map-layers`), but `help-docs-sync` added three
+>    Field Manual ids that render **today** and changed the map tutorial tip's body. Until the export
+>    runs, the Field Manual's Territory section shows raw keys and the map tip shows its old text.
+>    The `main` merge also left all six stale for the tutorial strings it brought in — **one
+>    regeneration fixes both.**
 >
 > **I-1b** (three canvas layers compositing at once, with the threat grid temporarily enabled) was also
 > never run — the grid stayed disabled throughout, per D3/D14. Two layers compositing **is** proven, in
@@ -215,4 +220,4 @@
 
 - [x] 🎨 **Art — SUPERSEDED by D11.** The user chose to leave restricted zones **solid** (*"they look fine atm and are readable"*) and to solve the clash by faction-colouring the rings instead. No restricted hatch was needed
 - [x] 🎨 **Art — delivered as `overthrow_map_diagonal.edds`** (`{B7E8255E75EE66ED}`), authored and imported by the user 2026-08-11, tiling confirmed. One texture serves both the neutral bands and the contested hatch, so the planned second asset was never needed
-- [ ] Regenerate the six `localization_Overthrow.<lang>.conf` exports (not blocking — nothing renders the two new ids until feature 7)
+- [ ] Regenerate the six `localization_Overthrow.<lang>.conf` exports. ⚠️ **Now player-visible.** The two layer-name ids still render nothing until feature 7, but `help-docs-sync` (2026-08-11) added three ids the Field Manual renders today — `#OVT-FieldManual_MapTerritory_Head`, `#OVT-FieldManual_MapTerritory_Text`, `#OVT-FieldManual_MapTerritory_Text2` — and changed `#OVT-Tutorial_MapFirstOpen_Body`. Until the exports are rebuilt the Territory section of *The Map and Fast Travel* shows raw keys
