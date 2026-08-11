@@ -8,6 +8,17 @@ enum OVT_JobFlags
 [BaseContainerProps(configRoot : true)]
 class OVT_JobConfig
 {
+	[Attribute(desc: "Stable identity used by the save format. NEVER change a shipped id.")]
+	//! Stable unique identity, short lowercase-kebab, e.g. "raise-support". IMMUTABLE ONCE SHIPPED:
+	//! it is the key the save format writes for the job board and for both lifetime counter maps, so
+	//! changing it on a shipped config orphans every saved record naming it, and reusing a retired id
+	//! silently reattaches old records to a different job.
+	//!
+	//! This is deliberately NOT m_sTitle (decision D1). m_sTitle is a localization key rendered in the
+	//! Jobs menu and in the completion hint; renaming it is a legitimate content edit and must never
+	//! break a save. Identity and presentation are two concerns and this field is the identity one.
+	string m_sId;
+
 	[Attribute()]
 	string m_sTitle;
 	

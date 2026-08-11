@@ -145,6 +145,12 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      m_sCloseAction "MenuBack"
      m_bOpenActionCloses 0
     }
+    OVT_TutorialContext "{6B3A000000000022}" {
+     m_Layout "{6B3A000000000040}UI/Layouts/Menu/TutorialPopup.layout"
+     m_sContextName "OverthrowTutorialMenuContext"
+     m_sCloseAction "MenuBack"
+     m_bOpenActionCloses 0
+    }
    }
   }
   SCR_BaseHUDComponent "{520EA1D2DB118134}" {
@@ -157,6 +163,11 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
     }
     OVT_ProgressInfo "{65C4B2DA956034BF}" {
      m_LayoutPath "{2AB6AD04B7B6262A}UI/Layouts/HUD/ProgressInfo.layout"
+    }
+    OVT_TutorialInfo "{6B3A000000000021}" {
+     m_LayoutPath "{6B3A000000000030}UI/Layouts/HUD/TutorialPopup.layout"
+     m_eLayer ALWAYS_TOP
+     m_bAdaptiveOpacity 0
     }
    }
   }

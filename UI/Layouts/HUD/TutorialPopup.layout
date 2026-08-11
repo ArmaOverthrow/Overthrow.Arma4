@@ -1,0 +1,143 @@
+OverlayWidgetClass {
+ Name "rootFrame"
+ {
+  OverlayWidgetClass "{6B3A000000000031}" {
+   Name "TutorialFrame"
+   Slot OverlayWidgetSlot "{65C4B2DC5F18116F}" {
+    HorizontalAlign 0
+    VerticalAlign 1
+    Padding 48 0 0 0
+   }
+   "Is Visible" 0
+   {
+    SizeLayoutWidgetClass "{6B3A000000000032}" {
+     Name "TutorialBackdrop"
+     Slot OverlayWidgetSlot "{65C4B2DBB47C1B57}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+     }
+     {
+      OverlayWidgetClass "{6B3A000000000033}" {
+       Name "TutorialBackdropOverlay"
+       Slot AlignableSlot "{65C4B2DBF3E879A4}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       {
+        ImageWidgetClass "{6B3A000000000034}" {
+         Name "TutorialBackground"
+         Slot OverlayWidgetSlot "{65C4B2D8CCF009E8}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+         }
+         Color 0.007 0.012 0.014 0.9
+        }
+       }
+      }
+     }
+    }
+    SizeLayoutWidgetClass "{6B3A000000000035}" {
+     Name "TutorialSize"
+     Slot OverlayWidgetSlot "{65C4B2DBBD9CBBF3}" {
+     }
+     AllowWidthOverride 1
+     WidthOverride 460
+     {
+      VerticalLayoutWidgetClass "{6B3A000000000036}" {
+       Name "TutorialContent"
+       Slot AlignableSlot "{65C4B2DBF3E879A4}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       {
+        SizeLayoutWidgetClass "{6B3A000000000037}" : "{8C63C2E7AE0092B7}UI/layouts/WidgetLibrary/WLib_ProgressBar.layout" {
+         Name "TutorialTimer"
+         Slot LayoutSlot "{65C4B2D8CCF0099D}" {
+          HorizontalAlign 3
+         }
+         components {
+          SCR_WLibProgressBarComponent "{5570DACE374D2D4B}" {
+           m_fValue 1
+           m_SliderColor 0.761 0.392 0.08 1
+           m_BackgroundColor 0 0 0 0
+          }
+         }
+         AllowHeightOverride 1
+         HeightOverride 4
+        }
+        TextWidgetClass "{6B3A000000000038}" : "{0D7FF083FDE39877}UI/layouts/WidgetLibrary/TextWidgets/Text_Heading4.layout" {
+         Name "TutorialTitle"
+         Slot LayoutSlot "{65C4B2D8CCF0099D}" {
+          Padding 16 14 16 2
+         }
+         Text "Tutorial"
+         Color 0.761 0.392 0.08 1
+         "Font Size" 24
+         "Min Font Size" 22
+         Wrap 1
+        }
+        ImageWidgetClass "{6B3A000000000039}" {
+         Name "TutorialImage"
+         Slot LayoutSlot "{65C4B2D8CCF00A62}" {
+          HorizontalAlign 1
+          Padding 16 8 16 0
+         }
+         "Is Visible" 0
+         Image ""
+         Size 428 107
+        }
+        RichTextWidgetClass "{6B3A00000000003A}" : "{E256BCCAE8821432}UI/layouts/WidgetLibrary/RichTextWidgets/RichText_Body.layout" {
+         Name "TutorialBody"
+         Slot LayoutSlot "{65C4B2D8CCF00A62}" {
+          Padding 16 8 16 12
+         }
+         Text ""
+         "Font Size" 18
+         "Min Font Size" 18
+         Wrap 1
+         "Line Spacing" 12
+        }
+        HorizontalLayoutWidgetClass "{6B3A00000000003B}" {
+         Name "TutorialFooter"
+         Slot LayoutSlot "{65C4B2DA098E77D7}" {
+          Padding 10 0 16 12
+         }
+         {
+          ButtonWidgetClass "{6B3A0000000000C6}" : "{CB8563509DEF3E0E}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButtonSmall.layout" {
+           Name "TutorialLearnMoreButton"
+           Slot LayoutSlot "{65C4B2DA098E77D7}" {
+            Padding 0 0 10 0
+           }
+           "Is Visible" 0
+           components {
+            SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+             m_BackgroundDefault 0 0 0 0.392
+             m_sActionName "OverthrowTutorialHudLearnMore"
+             m_sLabel "#OVT-Tutorial_LearnMore"
+             m_iHeightInPixel 40
+            }
+           }
+          }
+          ButtonWidgetClass "{6B3A00000000003C}" : "{CB8563509DEF3E0E}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButtonSmall.layout" {
+           Name "TutorialMoreButton"
+           Slot LayoutSlot "{65C4B2DA098E77D7}" {
+           }
+           components {
+            SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+             m_BackgroundDefault 0 0 0 0.392
+             m_sActionName "OverthrowMainMenu"
+             m_sLabel "#OVT-Tutorial_MoreInMenu"
+             m_iHeightInPixel 40
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

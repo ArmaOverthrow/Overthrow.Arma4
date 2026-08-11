@@ -1,0 +1,235 @@
+FrameWidgetClass {
+ Name "rootFrame"
+ {
+  PanelWidgetClass "{6B3A000000000041}" {
+   Name "TutorialPanel"
+   Slot FrameWidgetSlot "{597282644EB209C6}" {
+    Anchor 0.5 0.5 0.5 0.5
+    PositionX 0
+    OffsetLeft 0
+    PositionY 0
+    OffsetTop 0
+    SizeX 1000
+    OffsetRight -1000
+    SizeY 620
+    OffsetBottom -620
+    Alignment 0.5 0.5
+   }
+   {
+    BlurWidgetClass "{6B3A000000000042}" : "{352322057FD78AE1}UI/layouts/WidgetLibrary/BaseElements/WLib_Blur.layout" {
+     Name "BackgroundBlur"
+     Slot FrameWidgetSlot "{5982E26F6316DE4F}" {
+      Anchor 0 0 1 1
+      PositionX 0
+      OffsetLeft 0
+      PositionY 0
+      OffsetTop 0
+      SizeX 0
+      OffsetRight 0
+      SizeY 0
+      OffsetBottom 0
+     }
+     Color 0.007 0.012 0.014 0.94
+     Intensity 0.8
+    }
+    VerticalLayoutWidgetClass "{6B3A000000000043}" {
+     Name "TutorialLayout"
+     Slot FrameWidgetSlot "{59728267ECC2178F}" {
+      Anchor 0 0 1 1
+      PositionX 1
+      OffsetLeft 24
+      PositionY 0
+      OffsetTop 20
+      SizeX 0
+      OffsetRight 24
+      SizeY 0
+      OffsetBottom 20
+     }
+     {
+      HorizontalLayoutWidgetClass "{6B3A000000000044}" {
+       Name "Header"
+       Slot LayoutSlot "{59A6DA4C43CC721E}" {
+       }
+       {
+        ImageWidgetClass "{6B3A000000000045}" {
+         Name "HeaderIcon"
+         Slot LayoutSlot "{59A6DA4C4FC5D425}" {
+          VerticalAlign 1
+         }
+         Color 0.761 0.392 0.08 1
+         Texture "{2EFEA2AF1F38E7F0}UI/Textures/Icons/icons_wrapperUI-64.imageset"
+         Image "field-manual"
+         Size 48 48
+        }
+        TextWidgetClass "{6B3A000000000046}" {
+         Name "TutorialTitle"
+         Slot LayoutSlot "{59A6DA4C57D30E9F}" {
+          HorizontalAlign 1
+          VerticalAlign 1
+          Padding 12 0 0 0
+          SizeMode Fill
+         }
+         Clipping False
+         Color 0.761 0.392 0.08 1
+         Text "#OVT-Tutorial_Title"
+         "Font Size" 32
+         "Min Font Size" 26
+        }
+        TextWidgetClass "{6B3A000000000047}" {
+         Name "TutorialPageIndicator"
+         Slot LayoutSlot "{59A6DA4C57D30E9F}" {
+          HorizontalAlign 2
+          VerticalAlign 1
+          Padding 12 0 0 0
+         }
+         "Is Visible" 0
+         Clipping False
+         Color 1 1 1 0.7
+         Text "1 / 1"
+         "Font Size" 22
+         "Min Font Size" 22
+        }
+       }
+      }
+      ImageWidgetClass "{6B3A000000000048}" {
+       Name "UpperStripe"
+       Slot LayoutSlot "{56EEDE07C9F827C2}" {
+        Padding 0 10 0 12
+       }
+       Color 0.761 0.392 0.08 1
+       Image ""
+       Size 128 2
+      }
+      ImageWidgetClass "{6B3A00000000004A}" {
+       Name "TutorialImage"
+       Slot LayoutSlot "{59A6DA4C4FC5D425}" {
+        HorizontalAlign 1
+        Padding 0 0 0 12
+       }
+       "Is Visible" 0
+       Image ""
+       Size 952 238
+      }
+      HorizontalLayoutWidgetClass "{6B3A000000000049}" {
+       Name "BodyRow"
+       Slot LayoutSlot "{59CF1960920B4887}" {
+        SizeMode Fill
+        FillWeight 1
+       }
+       {
+        RichTextWidgetClass "{6B3A00000000004B}" : "{E256BCCAE8821432}UI/layouts/WidgetLibrary/RichTextWidgets/RichText_Body.layout" {
+         Name "TutorialBody"
+         Slot LayoutSlot "{59A6DA4C57D30E9F}" {
+          SizeMode Fill
+          FillWeight 1
+         }
+         Text ""
+         "Font Size" 15
+         "Min Font Size" 15
+         Wrap 1
+         "Line Spacing" 14
+        }
+       }
+      }
+      OverlayWidgetClass "{6B3A00000000004C}" {
+       Name "Footer"
+       Slot LayoutSlot "{56EEDE03DE14A911}" {
+        Padding 0 14 0 0
+       }
+       {
+        HorizontalLayoutWidgetClass "{6B3A00000000004D}" {
+         Name "Buttons"
+         Slot OverlayWidgetSlot "{56EEDE03DED9A743}" {
+          HorizontalAlign 3
+         }
+         {
+          ButtonWidgetClass "{6B3A00000000004E}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+           Name "DismissButton"
+           Slot LayoutSlot "{56EEDE01982D053A}" {
+            Padding 0 0 10 0
+           }
+           components {
+            SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+             m_sActionName "MenuBack"
+             m_sLabel "#OVT-Tutorial_Dismiss"
+            }
+           }
+          }
+          FrameWidgetClass "{6B3A00000000004F}" {
+           Name "Fill"
+           Slot LayoutSlot "{59D0228AADA40A65}" {
+            SizeMode Fill
+           }
+          }
+          ButtonWidgetClass "{6B3A000000000050}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+           Name "DisableTipsButton"
+           Slot LayoutSlot "{56EEDE01982D053A}" {
+            Padding 0 0 10 0
+           }
+           components {
+            SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+             m_sActionName "OverthrowTutorialDisable"
+             m_sLabel "#OVT-Tutorial_DisableTips"
+            }
+           }
+          }
+          ButtonWidgetClass "{6B3E000000000001}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+           Name "ResetTipsButton"
+           Slot LayoutSlot "{56EEDE01982D053A}" {
+            Padding 0 0 10 0
+           }
+           "Is Visible" 0
+           components {
+            SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+             m_sActionName "OverthrowTutorialDisable"
+             m_sLabel "#OVT-Tutorial_ResetTips"
+            }
+           }
+          }
+          ButtonWidgetClass "{6B3A000000000051}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+           Name "LearnMoreButton"
+           Slot LayoutSlot "{56EEDE01982D053A}" {
+            Padding 0 0 10 0
+           }
+           "Is Visible" 0
+           components {
+            SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+             m_sActionName "OverthrowTutorialLearnMore"
+             m_sLabel "#OVT-Tutorial_LearnMore"
+            }
+           }
+          }
+          ButtonWidgetClass "{6B3A000000000052}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+           Name "BackButton"
+           Slot LayoutSlot "{56EEDE01982D053A}" {
+            Padding 0 0 10 0
+           }
+           "Is Visible" 0
+           components {
+            SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+             m_sActionName "OverthrowTutorialBack"
+             m_sLabel "#OVT-Tutorial_Back"
+            }
+           }
+          }
+          ButtonWidgetClass "{6B3A000000000053}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+           Name "NextButton"
+           Slot LayoutSlot "{56EEDE01982D053A}" {
+           }
+           components {
+            SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+             m_sActionName "OverthrowTutorialNext"
+             m_sLabel "#OVT-Tutorial_Next"
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

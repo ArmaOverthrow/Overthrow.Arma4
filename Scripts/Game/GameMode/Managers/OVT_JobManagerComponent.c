@@ -203,43 +203,57 @@ class OVT_JobManagerComponent: OVT_Component
 	//! the same board rather than a doubled one.
 	//!
 	//! JOBS THAT CANNOT COME BACK ARE DROPPED, NOT HALF-RESTORED. A record is skipped when its
-	//! jobIndex no longer names a configured job (the config list changed since the save), when its
+	//! jobId names no configured job (the job was removed from the game since the save), when its
 	//! stage is out of range, or when the stage it is parked at is an OVT_WaitTillDeadJobStage - that
 	//! stage watches OVT_Job.entity, an RplId that does not survive a session, and a restored job
 	//! with no handle would see "target already gone" on its very next tick and pay out its reward
 	//! for nothing. A dropped job also leaves its occupancy slot free, so the job manager simply
 	//! offers that job again on a later CheckUpdate.
 	//!
+	//! IDENTITY CROSSES THE SAVE BOUNDARY AS A STRING, AND ONLY THERE. Everything handed in here names
+	//! its job by OVT_JobConfig.m_sId; everything this method WRITES - OVT_Job.jobIndex, the counter
+	//! maps, the occupancy sets - stays a position in m_aJobConfigs, because within one session server
+	//! and client share one config list and a position is sound. This method and
+	//! OVT_JobManagerSerializer.Serialize() are the only two places the two identities meet, which is
+	//! why no RPC signature and no RplSave/RplLoad field changed when the save format did.
+	//!
 	//! NO RPC. Clients get the board through RplSave / RplLoad and the manager's normal update
 	//! traffic; this runs while the world is still loading.
 	//! \param[in] jobRecords Persisted job board entries. Null is treated as an empty board.
-	//! \param[in] countIndices Job indices, index-aligned with countValues.
-	//! \param[in] countValues Lifetime start count per job index.
+	//! \param[in] countIds Stable job ids, index-aligned with countValues.
+	//! \param[in] countValues Lifetime start count per job.
 	//! \param[in] playerCounts Per-player lifetime start counts.
-	void ApplyPersistedJobs(array<ref OVT_PersistedJob> jobRecords, array<int> countIndices, array<int> countValues, array<ref OVT_PersistedPlayerJobCounts> playerCounts)
+	void ApplyPersistedJobs(array<ref OVT_PersistedJobV2> jobRecords, array<string> countIds, array<int> countValues, array<ref OVT_PersistedPlayerJobCountsV2> playerCounts)
 	{
 		if (!m_aJobs || !m_aJobCounts || !m_mPlayerJobCounts || !m_aGlobalJobs || !m_aTownJobs || !m_aBaseJobs)
 			return;
 
 		// Lifetime counters. These outlive the jobs they counted, so nothing on the board implies
-		// them and they have to be restored verbatim.
+		// them and they have to be restored verbatim - translated back from id to position on the way.
 		m_aJobCounts.Clear();
-		if (countIndices && countValues)
+		if (countIds && countValues)
 		{
-			int pairs = countIndices.Count();
+			int pairs = countIds.Count();
 			if (countValues.Count() < pairs)
 				pairs = countValues.Count();
 
 			for (int i = 0; i < pairs; i++)
 			{
-				m_aJobCounts[countIndices[i]] = countValues[i];
+				int jobIndex = FindJobIndexById(countIds[i]);
+				if (jobIndex < 0)
+				{
+					Print(string.Format("[Overthrow] Dropping saved job '%1' - no configured job carries that id", countIds[i]), LogLevel.WARNING);
+					continue;
+				}
+
+				m_aJobCounts[jobIndex] = countValues[i];
 			}
 		}
 
 		m_mPlayerJobCounts.Clear();
 		if (playerCounts)
 		{
-			foreach (OVT_PersistedPlayerJobCounts playerRecord : playerCounts)
+			foreach (OVT_PersistedPlayerJobCountsV2 playerRecord : playerCounts)
 			{
 				if (!playerRecord || playerRecord.playerId == "")
 					continue;
@@ -247,16 +261,23 @@ class OVT_JobManagerComponent: OVT_Component
 				map<int, int> counts = new map<int, int>;
 
 				int playerPairs = 0;
-				if (playerRecord.jobIndices && playerRecord.counts)
+				if (playerRecord.jobIds && playerRecord.counts)
 				{
-					playerPairs = playerRecord.jobIndices.Count();
+					playerPairs = playerRecord.jobIds.Count();
 					if (playerRecord.counts.Count() < playerPairs)
 						playerPairs = playerRecord.counts.Count();
 				}
 
 				for (int i = 0; i < playerPairs; i++)
 				{
-					counts[playerRecord.jobIndices[i]] = playerRecord.counts[i];
+					int jobIndex = FindJobIndexById(playerRecord.jobIds[i]);
+					if (jobIndex < 0)
+					{
+						Print(string.Format("[Overthrow] Dropping saved job '%1' - no configured job carries that id", playerRecord.jobIds[i]), LogLevel.WARNING);
+						continue;
+					}
+
+					counts[jobIndex] = playerRecord.counts[i];
 				}
 
 				m_mPlayerJobCounts[playerRecord.playerId] = counts;
@@ -273,17 +294,18 @@ class OVT_JobManagerComponent: OVT_Component
 		if (!jobRecords)
 			return;
 
-		foreach (OVT_PersistedJob record : jobRecords)
+		foreach (OVT_PersistedJobV2 record : jobRecords)
 		{
 			if (!record)
 				continue;
 
-			OVT_JobConfig config = FindRestorableJobConfig(record);
+			int jobIndex;
+			OVT_JobConfig config = FindRestorableJobConfig(record, jobIndex);
 			if (!config)
 				continue;
 
 			OVT_Job job = new OVT_Job();
-			job.jobIndex = record.jobIndex;
+			job.jobIndex = jobIndex;
 			job.location = record.location;
 			job.townId = record.townId;
 			job.baseId = record.baseId;
@@ -313,39 +335,57 @@ class OVT_JobManagerComponent: OVT_Component
 	//!
 	//! Deliberately strict: a job the manager cannot tick correctly is worse than a job that is
 	//! simply offered again, because CheckUpdate() pays rewards on stage completion.
+	//!
+	//! THE ID RESOLVE LIVES HERE, WITH THE REST OF THE DROP POLICY. One method decides whether a saved
+	//! record comes back, so there is one method a reviewer has to read to know what a load can throw
+	//! away. It is also the id -> position translation: everything downstream of here is positional.
 	//! \param[in] record The persisted job. Callers null-check before calling.
+	//! \param[out] jobIndex The resolved position in m_aJobConfigs, or -1 when the job must be dropped.
 	//! \return The job's configuration, or null when the job must be dropped.
-	protected OVT_JobConfig FindRestorableJobConfig(OVT_PersistedJob record)
+	protected OVT_JobConfig FindRestorableJobConfig(OVT_PersistedJobV2 record, out int jobIndex)
 	{
+		jobIndex = -1;
+
 		if (!m_aJobConfigs)
 			return null;
 
-		// The job index is a POSITION in the configured job list. A list that has shrunk or been
-		// reordered since the save cannot be reconciled, so out-of-range records are dropped.
-		if (record.jobIndex < 0 || record.jobIndex >= m_aJobConfigs.Count())
+		// The saved job names itself by STABLE ID, so a config list that has been reordered or trimmed
+		// since the save is reconciled rather than mis-read. An id that names nothing is a job that has
+		// left the game, and it is dropped - never silently attached to whatever now sits at some
+		// position, which is what a positional record did.
+		jobIndex = FindJobIndexById(record.jobId);
+		if (jobIndex < 0)
 		{
-			Print(string.Format("[Overthrow] Dropping a saved job with index %1 - the job configuration list has only %2 entries", record.jobIndex, m_aJobConfigs.Count()), LogLevel.WARNING);
+			Print(string.Format("[Overthrow] Dropping saved job '%1' - no configured job carries that id", record.jobId), LogLevel.WARNING);
 			return null;
 		}
 
-		OVT_JobConfig config = m_aJobConfigs[record.jobIndex];
+		OVT_JobConfig config = m_aJobConfigs[jobIndex];
 		if (!config || !config.m_aStages)
+		{
+			jobIndex = -1;
 			return null;
+		}
 
 		if (record.stage < 0 || record.stage >= config.m_aStages.Count())
 		{
 			Print(string.Format("[Overthrow] Dropping saved job '%1' - stage %2 is outside its %3 configured stages", config.m_sTitle, record.stage, config.m_aStages.Count()), LogLevel.WARNING);
+			jobIndex = -1;
 			return null;
 		}
 
 		OVT_JobStageConfig stage = config.m_aStages[record.stage];
 		if (!stage || !stage.m_Handler)
+		{
+			jobIndex = -1;
 			return null;
+		}
 
 		// The one stage whose state is a live entity handle. See ApplyPersistedJobs()'s header.
 		if (OVT_WaitTillDeadJobStage.Cast(stage.m_Handler))
 		{
 			Print(string.Format("[Overthrow] Dropping saved job '%1' - it was waiting for a target entity, which cannot be identified across a session. It will be offered again", config.m_sTitle), LogLevel.NORMAL);
+			jobIndex = -1;
 			return null;
 		}
 
@@ -410,6 +450,61 @@ class OVT_JobManagerComponent: OVT_Component
 	OVT_JobConfig GetConfig(int index)
 	{
 		return m_aJobConfigs[index];
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Number of configured job types.
+	//! \return The entry count of m_aJobConfigs, or 0 when the list was never authored.
+	int GetJobConfigCount()
+	{
+		if (!m_aJobConfigs) return 0;
+		return m_aJobConfigs.Count();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Resolves a stable job id (OVT_JobConfig.m_sId) to its position in m_aJobConfigs.
+	//!
+	//! This is the id -> int half of the save-format boundary: identity outlives the config list, a
+	//! position does not, so anything that must survive a reorder or a trim of m_aJobConfigs names a
+	//! job by id and translates here.
+	//!
+	//! The linear scan is DELIBERATE. There are twelve configs and this runs on a load-only path; a
+	//! cached map would buy nothing measurable and would need invalidating whenever m_aJobConfigs
+	//! changed, which is a correctness liability in exchange for no benefit. YAGNI.
+	//! \param jobId The stable id to look up. An empty id never matches.
+	//! \return The index of the config carrying that id, or -1 when no configured job does.
+	int FindJobIndexById(string jobId)
+	{
+		if (jobId == "") return -1;
+		if (!m_aJobConfigs) return -1;
+
+		for (int i = 0; i < m_aJobConfigs.Count(); i++)
+		{
+			OVT_JobConfig config = m_aJobConfigs[i];
+			if (!config) continue;
+			if (config.m_sId == jobId) return i;
+		}
+
+		return -1;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Reads the stable job id (OVT_JobConfig.m_sId) at a position in m_aJobConfigs.
+	//!
+	//! The int -> id half of the same boundary. Same deliberate linear-access rationale as
+	//! FindJobIndexById: a load-only path over twelve entries needs no index structure.
+	//! \param index The position in m_aJobConfigs.
+	//! \return The config's stable id, or an empty string when the index is out of range, the entry is
+	//! null, or the config carries no id.
+	string GetJobIdByIndex(int index)
+	{
+		if (!m_aJobConfigs) return "";
+		if (index < 0 || index >= m_aJobConfigs.Count()) return "";
+
+		OVT_JobConfig config = m_aJobConfigs[index];
+		if (!config) return "";
+
+		return config.m_sId;
 	}
 
 	//------------------------------------------------------------------------------------------------

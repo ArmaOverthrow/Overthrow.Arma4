@@ -2,7 +2,8 @@
 //! Points the job at the enemy radio tower nearest its town, so the player can find it on the map.
 //!
 //! Runs at ACCEPT time, not offer time (put it after OVT_WaitTillJobAcceptedJobStage), the same
-//! shape as OVT_GetDealerLocationJobStage in findGunDealer.
+//! shape as OVT_GetDealerLocationJobStage. (That class survives and is still config-composable,
+//! but no shipped job uses it since findGunDealer was retired on 2026-08-09.)
 //!
 //! Side-effecting stage: does its work in OnStart and returns false to advance immediately, which
 //! is what keeps the no-replay persistence restore correct - see core/persistence. It writes only

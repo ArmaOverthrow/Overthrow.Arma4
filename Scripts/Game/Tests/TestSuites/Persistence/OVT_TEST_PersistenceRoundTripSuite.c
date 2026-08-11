@@ -182,6 +182,8 @@
 //!
 //! CASE LIST (execution order is alphabetical by class name):
 //!   1. Capability_SaveGameProducesASave        - the gate, and the only case with no reload
+//!   1a. JobBoard_SurvivesSaveAndReload         - the only case that re-applies TWICE, because
+//!                                                idempotency is part of what it asserts
 //!   2. PlayerMoney_SurvivesSaveAndReload
 //!   3. PlayerSkills_SurvivesSaveAndReload
 //!   4. RealEstateOwnership_SurvivesSaveAndReload
@@ -3155,5 +3157,638 @@ class OVT_TEST_PersistenceRoundTrip_VehicleRegistry_SurvivesSaveAndReload : SCR_
 
 		SetResultSuccess();
 		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! T3 - THE JOB BOARD AND BOTH LIFETIME COUNTER MAPS SURVIVE A SAVE AND A RELOAD, ON THE RIGHT JOBS.
+//!
+//! WHY THIS CASE EXISTS. A saved job used to name itself by its POSITION in the job manager's config
+//! list. Trim or reorder that list and every saved record silently comes back attached to a
+//! DIFFERENT job - at a stage index that is still valid, paying that other job's reward, with its
+//! lifetime counters capping the wrong thing, and with no error anywhere. The save format now names
+//! each job by a stable id instead, and this case is what says so out loud: it does not merely check
+//! that "some jobs came back", it checks that each one came back on the job it was saved on.
+//!
+//! THE ASSERTION RULE (suite header). Nothing here names a storage type, a persistence-framework
+//! type or a persisted record class. The board and the two counter maps are seeded through the job
+//! manager's own public collections and read back through the same ones, plus its public
+//! FindJobIndexById() / GetJobIdByIndex() accessors - so this case stays true whatever the storage
+//! underneath is, which is the whole point of the rule. The only persistence-layer calls are the
+//! gate class's two annotated seams, shared with every other case here.
+//!
+//! HOW THE SEEDED RECORDS ARE FOUND AGAIN, AND WHY IT IS NOT A COUNT. Each seeded record carries a
+//! unique LOCATION far outside the world (see MarkerLocation()). Assertions match on that, never on
+//! "the board has N jobs": the manager's own CheckUpdate() offers new public jobs on a timer and the
+//! board legitimately grows during a run, so a count-based assertion would be a coin flip. Phase 0 of
+//! this feature learned that the expensive way - a fixture seeded with 4 jobs held 12 by the time the
+//! save landed.
+//!
+//! WHY NOTHING THE MANAGER DOES ON ITS TIMER CAN DISTURB THESE RECORDS. Stated as a proof, because
+//! "probably won't happen" is how a flaky test gets written:
+//!  - CheckUpdate()'s tick loop skips any job with accepted == false (OVT_JobManagerComponent.c:506),
+//!    which covers records B and C.
+//!  - Record A is accepted, and is deliberately parked on base-recon's only stage, an
+//!    OVT_WaitTillPlayerInRangeJobStage. Its OnTick() resolves job.owner through the player manager
+//!    and returns TRUE - keep waiting - the moment that lookup fails
+//!    (OVT_WaitTillPlayerInRangeJobStage.c:10-11; GetPlayer() returns null for an unknown id,
+//!    OVT_PlayerManagerComponent.c:173-177). The owner here is a synthetic marker no player carries,
+//!    so the stage can never advance and the job can never complete or leave the board.
+//!  - The two global counters asserted below belong to base-recon (m_iMaxTimes 2) and raise-support
+//!    (m_iMaxTimes 4), and both are seeded far ABOVE their cap. Neither is player-allocated, so
+//!    CheckUpdate() skips the whole config at OVT_JobManagerComponent.c:639 and can never increment
+//!    them. Seeding the counter is what makes the counter safe to assert on.
+//!  - The per-player counters are seeded under a synthetic persistent id. CheckUpdate() only ever
+//!    writes per-player counts for ids the player manager actually holds (:696-706), so nothing but
+//!    this case touches that key.
+//!
+//! THE PER-PLAYER RECORD IS SYNTHETIC ON PURPOSE. After the five starter jobs are retired, every
+//! shipped config is public or base-only, so no config is player-allocated and the per-player counter
+//! map is empty in a real campaign. It is still persisted and still must round-trip, so it is seeded
+//! by hand rather than by playing.
+//!
+//! ANTI-VACUOUS-PASS (suite header closures 2 and 3). The dirty step does not just delete: it removes
+//! one record, RE-POINTS another at a different job config - the exact mis-attachment this feature
+//! exists to make impossible - moves a third to a different stage, and rewrites both counter maps to
+//! wrong values. A reload that restores nothing leaves all of that in place and the case fails by
+//! name; a reload that restores campaign-start defaults produces no marker records at all and fails
+//! the same way. None of the seeded values is one a campaign start would produce.
+//!
+//! IT ALSO ASSERTS IDEMPOTENCY, WHICH IS WHY IT RELOADS TWICE. The persistence manager re-applies
+//! saved data to a LIVE session, so ApplyPersistedJobs() has to be a clear-and-rebuild rather than an
+//! append: applying the same payload twice must produce the same board, not a doubled one. The second
+//! re-application asserts exactly that - each marker location still holds exactly one record, and
+//! neither counter map has moved.
+//!
+//! EXECUTION ORDER. The class name sorts after ..._Capability_... and before every other case here,
+//! so it neither breaks the capability case's fresh-session precondition (closure 5) nor depends on
+//! any case having run before it - it triggers its own save and waits for that save.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 90)]
+class OVT_TEST_PersistenceRoundTrip_JobBoard_SurvivesSaveAndReload : SCR_AutotestCaseBase
+{
+	//! Extra phases for the second re-application. The shared five stop at PHASE_ASSERT.
+	static const int PHASE_AWAIT_SECOND_RELOAD = 5;
+	static const int PHASE_ASSERT_IDEMPOTENT = 6;
+
+	//! The three seeded jobs, named by the stable ids the save format writes.
+	//! A is base-only and accepted; B is a public town job; C is a public town job parked on a
+	//! non-zero stage, so "the stage came back" is a real assertion and not 0 == 0.
+	static const string JOB_ID_A = "base-recon";
+	static const string JOB_ID_B = "raise-support";
+	static const string JOB_ID_C = "assassinate-traitor";
+
+	//! Stage indices. base-recon and raise-support have one stage each; assassinate-traitor's stage 3
+	//! is its spawn-group stage - restorable, unlike its stage 4, which waits on a dead entity and is
+	//! dropped by design.
+	static const int STAGE_A = 0;
+	static const int STAGE_B = 0;
+	static const int STAGE_C = 3;
+
+	//! A base id no base carries, so the base-only record's occupancy slot is its own.
+	static const int SYNTHETIC_BASE_ID = 4242;
+
+	//! Owners and decliners. None of these is a persistent id any player holds - see the header for
+	//! why that is load-bearing rather than cosmetic.
+	static const string OWNER_A = "OVTJOBRTOWNERA";
+	static const string OWNER_C = "OVTJOBRTOWNERC";
+	static const string DECLINER_1 = "OVTJOBRTDECLINER1";
+	static const string DECLINER_2 = "OVTJOBRTDECLINER2";
+
+	//! The synthetic player whose per-player lifetime counters are seeded.
+	static const string COUNTER_PLAYER = "OVTJOBRTCOUNTERPLAYER";
+
+	//! Saved lifetime counts. Both global values are above their config's m_iMaxTimes, which is what
+	//! stops the manager's own offer loop from ever touching them.
+	static const int SAVED_GLOBAL_COUNT_A = 4242;
+	static const int SAVED_GLOBAL_COUNT_B = 4243;
+	static const int SAVED_PLAYER_COUNT_A = 11;
+	static const int SAVED_PLAYER_COUNT_B = 13;
+
+	//! Dirty values, written after the save. None is a campaign-start value either.
+	static const int DIRTY_GLOBAL_COUNT_A = 1;
+	static const int DIRTY_GLOBAL_COUNT_B = 2;
+	static const int DIRTY_PLAYER_COUNT = 9;
+
+	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
+	protected int m_iReloadPolls;
+	protected int m_iSecondReloadPolls;
+	protected int m_iTownId;
+
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
+			return SeedAndSave();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE)
+			return AwaitSave();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD)
+			return DirtyAndReload();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD)
+			return AwaitFirstReload();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_ASSERT)
+			return AssertRestoredThenReloadAgain();
+
+		if (m_iPhase == PHASE_AWAIT_SECOND_RELOAD)
+			return AwaitSecondReload();
+
+		return AssertIdempotent();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Seeds the board and both counter maps, then triggers exactly one save.
+	//! \return True when the case is finished (it failed), false to run again next frame.
+	protected bool SeedAndSave()
+	{
+		OVT_JobManagerComponent jobs = OVT_Global.GetJobs();
+		if (!jobs)
+		{
+			SetResultFailure("OVT_Global.GetJobs() is null");
+			return true;
+		}
+
+		string diagnostic;
+		OVT_TownData town = OVT_TEST_PersistenceSubject.ResolveFirstTown(m_iTownId, diagnostic);
+		if (!town)
+		{
+			SetResultFailure("Cannot resolve a town for the town-scoped jobs: %1", diagnostic);
+			return true;
+		}
+
+		int indexA = jobs.FindJobIndexById(JOB_ID_A);
+		int indexB = jobs.FindJobIndexById(JOB_ID_B);
+		int indexC = jobs.FindJobIndexById(JOB_ID_C);
+		if (indexA < 0 || indexB < 0 || indexC < 0)
+		{
+			SetResultFailure(string.Format("A job this case seeds is not configured: '%1' -> %2, '%3' -> %4, '%5' -> %6. Every one of these is a surviving job and must resolve.",
+				JOB_ID_A, indexA.ToString(), JOB_ID_B, indexB.ToString(), JOB_ID_C, indexC.ToString()));
+			return true;
+		}
+
+		if (!jobs.m_aJobs || !jobs.m_aJobCounts || !jobs.m_mPlayerJobCounts)
+		{
+			SetResultFailure("The job manager's board or counter maps are null - it was never initialised");
+			return true;
+		}
+
+		// The board. Only the three marker records are placed; whatever the manager has already
+		// offered stays exactly where it is, because this case asserts on its own records and not on
+		// the size of the board.
+		OVT_Job jobA = new OVT_Job();
+		jobA.jobIndex = indexA;
+		jobA.location = MarkerLocation(1);
+		jobA.townId = -1;
+		jobA.baseId = SYNTHETIC_BASE_ID;
+		jobA.stage = STAGE_A;
+		jobA.owner = OWNER_A;
+		jobA.accepted = true;
+		jobA.declined.Insert(DECLINER_1);
+		jobs.m_aJobs.Insert(jobA);
+
+		OVT_Job jobB = new OVT_Job();
+		jobB.jobIndex = indexB;
+		jobB.location = MarkerLocation(2);
+		jobB.townId = m_iTownId;
+		jobB.baseId = -1;
+		jobB.stage = STAGE_B;
+		jobB.owner = "";
+		jobB.accepted = false;
+		jobs.m_aJobs.Insert(jobB);
+
+		OVT_Job jobC = new OVT_Job();
+		jobC.jobIndex = indexC;
+		jobC.location = MarkerLocation(3);
+		jobC.townId = m_iTownId;
+		jobC.baseId = -1;
+		jobC.stage = STAGE_C;
+		jobC.owner = OWNER_C;
+		jobC.accepted = false;
+		jobC.declined.Insert(DECLINER_1);
+		jobC.declined.Insert(DECLINER_2);
+		jobs.m_aJobs.Insert(jobC);
+
+		// Both counter maps. These outlive the jobs they counted, so nothing on the board implies
+		// them and they have to survive on their own.
+		jobs.m_aJobCounts[indexA] = SAVED_GLOBAL_COUNT_A;
+		jobs.m_aJobCounts[indexB] = SAVED_GLOBAL_COUNT_B;
+
+		map<int, int> playerCounts = new map<int, int>;
+		playerCounts[indexA] = SAVED_PLAYER_COUNT_A;
+		playerCounts[indexB] = SAVED_PLAYER_COUNT_B;
+		jobs.m_mPlayerJobCounts[COUNTER_PLAYER] = playerCounts;
+
+		m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+		string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+		if (trigger != "")
+		{
+			SetResultFailure(trigger);
+			return true;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Waits for this case's own save to complete.
+	//! \return True when the case is finished (it failed), false to run again next frame.
+	protected bool AwaitSave()
+	{
+		string saveDiagnostic;
+		int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+		{
+			SetResultFailure(saveDiagnostic);
+			return true;
+		}
+
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+		{
+			m_iSavePolls += 1;
+			if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+			{
+				SetResultFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Destroys the saved state in memory, then asks for the persisted state back.
+	//!
+	//! Three different kinds of damage on purpose: a record removed, a record re-pointed at another
+	//! job config (the silent mis-attachment this whole feature exists to prevent), and a record moved
+	//! to a different stage - plus both counter maps rewritten.
+	//! \return True when the case is finished (it failed), false to run again next frame.
+	protected bool DirtyAndReload()
+	{
+		OVT_JobManagerComponent jobs = OVT_Global.GetJobs();
+		if (!jobs || !jobs.m_aJobs || !jobs.m_aJobCounts || !jobs.m_mPlayerJobCounts)
+		{
+			SetResultFailure("The job manager or one of its collections is null before the reload");
+			return true;
+		}
+
+		int indexA = jobs.FindJobIndexById(JOB_ID_A);
+		int indexB = jobs.FindJobIndexById(JOB_ID_B);
+		int indexC = jobs.FindJobIndexById(JOB_ID_C);
+
+		OVT_Job jobA = FindMarkedJob(jobs, 1);
+		OVT_Job jobB = FindMarkedJob(jobs, 2);
+		OVT_Job jobC = FindMarkedJob(jobs, 3);
+		if (!jobA || !jobB || !jobC)
+		{
+			SetResultFailure("A seeded job disappeared from the board between the seed and the save - nothing in the manager should be able to remove these (see this case's header)");
+			return true;
+		}
+
+		jobs.m_aJobs.RemoveItem(jobA);
+		jobB.jobIndex = indexC;
+		jobC.jobIndex = indexB;
+		jobC.stage = 0;
+
+		jobs.m_aJobCounts[indexA] = DIRTY_GLOBAL_COUNT_A;
+		jobs.m_aJobCounts[indexB] = DIRTY_GLOBAL_COUNT_B;
+
+		map<int, int> dirtyCounts = new map<int, int>;
+		dirtyCounts[indexA] = DIRTY_PLAYER_COUNT;
+		jobs.m_mPlayerJobCounts[COUNTER_PLAYER] = dirtyCounts;
+
+		string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
+		if (reload != "")
+		{
+			SetResultFailure(reload);
+			return true;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Waits for the first re-application to finish.
+	//! \return True when the case is finished (it failed), false to run again next frame.
+	protected bool AwaitFirstReload()
+	{
+		if (OVT_TEST_PersistenceRoundTripGate.ReloadInProgress())
+		{
+			m_iReloadPolls += 1;
+			if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
+			{
+				SetResultFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_ASSERT;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asserts the saved board and counters came back, then asks for the SAME payload a second time.
+	//! \return True when the case is finished (it failed), false to run again next frame.
+	protected bool AssertRestoredThenReloadAgain()
+	{
+		string failure = CheckEverythingCameBack("after the reload");
+		if (failure != "")
+		{
+			SetResultFailure(failure);
+			return true;
+		}
+
+		string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
+		if (reload != "")
+		{
+			SetResultFailure(reload);
+			return true;
+		}
+
+		m_iPhase = PHASE_AWAIT_SECOND_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Waits for the second re-application to finish.
+	//! \return True when the case is finished (it failed), false to run again next frame.
+	protected bool AwaitSecondReload()
+	{
+		if (OVT_TEST_PersistenceRoundTripGate.ReloadInProgress())
+		{
+			m_iSecondReloadPolls += 1;
+			if (m_iSecondReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
+			{
+				SetResultFailure("The second re-application never completed after %1 polls", m_iSecondReloadPolls.ToString());
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = PHASE_ASSERT_IDEMPOTENT;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asserts that applying the same payload twice produced the same board, not a doubled one.
+	//! \return Always true - the case ends here either way.
+	protected bool AssertIdempotent()
+	{
+		string failure = CheckEverythingCameBack("after the SAME payload was applied a second time");
+		if (failure != "")
+		{
+			SetResultFailure(failure);
+			return true;
+		}
+
+		Print("Job board round trip: 3 records back on their own configs with stage, owner, location and declines intact; both counter maps intact; a second application of the same payload changed nothing");
+
+		SetResultSuccess();
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The whole assertion, run identically after each of the two re-applications.
+	//! \param[in] when Where in the round trip this check is happening, for the failure text.
+	//! \return An empty string when everything came back, otherwise the diagnostic to fail with.
+	protected string CheckEverythingCameBack(string when)
+	{
+		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
+		if (restored != "")
+			return restored;
+
+		OVT_JobManagerComponent jobs = OVT_Global.GetJobs();
+		if (!jobs || !jobs.m_aJobs || !jobs.m_aJobCounts || !jobs.m_mPlayerJobCounts)
+			return "The job manager or one of its collections is null " + when;
+
+		string board = CheckBoard(jobs, when);
+		if (board != "")
+			return board;
+
+		return CheckCounters(jobs, when);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asserts each seeded record came back exactly once, on its own config, with its state intact.
+	//! \param[in] jobs The job manager. Callers null-check before calling.
+	//! \param[in] when Where in the round trip this check is happening, for the failure text.
+	//! \return An empty string when the board is right, otherwise the diagnostic.
+	protected string CheckBoard(notnull OVT_JobManagerComponent jobs, string when)
+	{
+		string a = CheckOneRecord(jobs, when, 1, JOB_ID_A, STAGE_A, -1, SYNTHETIC_BASE_ID, OWNER_A, true, 1);
+		if (a != "")
+			return a;
+
+		string b = CheckOneRecord(jobs, when, 2, JOB_ID_B, STAGE_B, m_iTownId, -1, "", false, 0);
+		if (b != "")
+			return b;
+
+		return CheckOneRecord(jobs, when, 3, JOB_ID_C, STAGE_C, m_iTownId, -1, OWNER_C, false, 2);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asserts one seeded record. Every field is checked, because every field is written by the same
+	//! record copy and a mistake in any of them is the same class of silent save damage.
+	//! \param[in] jobs The job manager. Callers null-check before calling.
+	//! \param[in] when Where in the round trip this check is happening, for the failure text.
+	//! \param[in] marker The record's marker number, which is also its location's Z.
+	//! \param[in] expectedJobId The stable id of the job it was saved on.
+	//! \param[in] expectedStage The stage it was parked at.
+	//! \param[in] expectedTownId The town it belonged to, or -1.
+	//! \param[in] expectedBaseId The base it belonged to, or -1.
+	//! \param[in] expectedOwner The owning persistent id, or an empty string.
+	//! \param[in] expectedAccepted Whether it had been accepted.
+	//! \param[in] expectedDeclines How many persistent ids had declined it.
+	//! \return An empty string when the record is right, otherwise the diagnostic.
+	protected string CheckOneRecord(notnull OVT_JobManagerComponent jobs, string when, int marker, string expectedJobId, int expectedStage, int expectedTownId, int expectedBaseId, string expectedOwner, bool expectedAccepted, int expectedDeclines)
+	{
+		vector expectedLocation = MarkerLocation(marker);
+
+		int found = 0;
+		OVT_Job job = null;
+		foreach (OVT_Job candidate : jobs.m_aJobs)
+		{
+			if (!candidate)
+				continue;
+
+			if (candidate.location != expectedLocation)
+				continue;
+
+			found += 1;
+			job = candidate;
+		}
+
+		if (found == 0)
+			return string.Format("The job saved on '%1' at %2 did not come back %3. It was saved and then deliberately destroyed in memory, so a board without it means the saved job board was not restored from storage.",
+				expectedJobId, expectedLocation.ToString(), when);
+
+		if (found > 1)
+			return string.Format("The job saved on '%1' at %2 came back %3 times %4. Restoring a save must CLEAR and rebuild the board - re-applying the same saved data to a live session is a supported operation and must not duplicate what is already there.",
+				expectedJobId, expectedLocation.ToString(), found.ToString(), when);
+
+		string actualJobId = jobs.GetJobIdByIndex(job.jobIndex);
+		if (actualJobId != expectedJobId)
+			return string.Format("A saved job came back on the WRONG JOB %1: it was saved on '%2' and came back on '%3' (config index %4). This is the exact silent corruption the stable job id exists to prevent - the job would tick that other job's stages and pay that other job's reward.",
+				when, expectedJobId, actualJobId, job.jobIndex.ToString());
+
+		if (job.stage != expectedStage)
+			return string.Format("The job saved on '%1' came back at stage %2 instead of %3 %4. A job restored at the wrong stage skips or repeats work and pays out early.",
+				expectedJobId, job.stage.ToString(), expectedStage.ToString(), when);
+
+		if (job.townId != expectedTownId)
+			return string.Format("The job saved on '%1' came back in town %2 instead of %3 %4.",
+				expectedJobId, job.townId.ToString(), expectedTownId.ToString(), when);
+
+		if (job.baseId != expectedBaseId)
+			return string.Format("The job saved on '%1' came back at base %2 instead of %3 %4.",
+				expectedJobId, job.baseId.ToString(), expectedBaseId.ToString(), when);
+
+		if (job.owner != expectedOwner)
+			return string.Format("The job saved on '%1' came back owned by '%2' instead of '%3' %4. A job that loses its owner is offered to everyone; a job that gains one is nobody else's to take.",
+				expectedJobId, job.owner, expectedOwner, when);
+
+		if (job.accepted != expectedAccepted)
+			return string.Format("The job saved on '%1' came back with accepted = %2 instead of %3 %4.",
+				expectedJobId, job.accepted.ToString(), expectedAccepted.ToString(), when);
+
+		int declines = 0;
+		if (job.declined)
+			declines = job.declined.Count();
+
+		if (declines != expectedDeclines)
+			return string.Format("The job saved on '%1' came back with %2 declines instead of %3 %4. A lost decline list re-offers a job to the player who already turned it down.",
+				expectedJobId, declines.ToString(), expectedDeclines.ToString(), when);
+
+		if (expectedDeclines > 0 && job.declined.Find(DECLINER_1) == -1)
+			return string.Format("The job saved on '%1' came back with a decline list that does not hold '%2' %3.",
+				expectedJobId, DECLINER_1, when);
+
+		if (expectedDeclines > 1 && job.declined.Find(DECLINER_2) == -1)
+			return string.Format("The job saved on '%1' came back with a decline list that does not hold '%2' %3.",
+				expectedJobId, DECLINER_2, when);
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asserts both lifetime counter maps came back on the right jobs with the right values.
+	//! \param[in] jobs The job manager. Callers null-check before calling.
+	//! \param[in] when Where in the round trip this check is happening, for the failure text.
+	//! \return An empty string when the counters are right, otherwise the diagnostic.
+	protected string CheckCounters(notnull OVT_JobManagerComponent jobs, string when)
+	{
+		int indexA = jobs.FindJobIndexById(JOB_ID_A);
+		int indexB = jobs.FindJobIndexById(JOB_ID_B);
+		if (indexA < 0 || indexB < 0)
+			return string.Format("'%1' or '%2' stopped resolving to a configured job %3", JOB_ID_A, JOB_ID_B, when);
+
+		string globalA = CheckGlobalCount(jobs, when, indexA, JOB_ID_A, SAVED_GLOBAL_COUNT_A);
+		if (globalA != "")
+			return globalA;
+
+		string globalB = CheckGlobalCount(jobs, when, indexB, JOB_ID_B, SAVED_GLOBAL_COUNT_B);
+		if (globalB != "")
+			return globalB;
+
+		map<int, int> playerCounts = jobs.m_mPlayerJobCounts[COUNTER_PLAYER];
+		if (!playerCounts)
+			return string.Format("The per-player lifetime counters for '%1' did not come back %2. They are what stops a player being offered the same job forever, and nothing on the board implies them - once lost they cannot be rebuilt.",
+				COUNTER_PLAYER, when);
+
+		string playerA = CheckPlayerCount(playerCounts, when, indexA, JOB_ID_A, SAVED_PLAYER_COUNT_A);
+		if (playerA != "")
+			return playerA;
+
+		return CheckPlayerCount(playerCounts, when, indexB, JOB_ID_B, SAVED_PLAYER_COUNT_B);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asserts one global lifetime counter.
+	//! \param[in] jobs The job manager. Callers null-check before calling.
+	//! \param[in] when Where in the round trip this check is happening, for the failure text.
+	//! \param[in] jobIndex The job's position in the config list, as resolved from its stable id.
+	//! \param[in] jobId The job's stable id, for the failure text.
+	//! \param[in] expected The count that was saved.
+	//! \return An empty string when the count is right, otherwise the diagnostic.
+	protected string CheckGlobalCount(notnull OVT_JobManagerComponent jobs, string when, int jobIndex, string jobId, int expected)
+	{
+		if (!jobs.m_aJobCounts.Contains(jobIndex))
+			return string.Format("The global lifetime counter for '%1' did not come back at all %2 - the job's m_iMaxTimes cap would start again from zero.",
+				jobId, when);
+
+		int actual = jobs.m_aJobCounts[jobIndex];
+		if (actual != expected)
+			return string.Format("The global lifetime counter for '%1' came back as %2 instead of %3 %4. A counter keyed to the wrong job caps the wrong job.",
+				jobId, actual.ToString(), expected.ToString(), when);
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asserts one per-player lifetime counter.
+	//! \param[in] playerCounts The synthetic player's restored counter map. Callers null-check first.
+	//! \param[in] when Where in the round trip this check is happening, for the failure text.
+	//! \param[in] jobIndex The job's position in the config list, as resolved from its stable id.
+	//! \param[in] jobId The job's stable id, for the failure text.
+	//! \param[in] expected The count that was saved.
+	//! \return An empty string when the count is right, otherwise the diagnostic.
+	protected string CheckPlayerCount(notnull map<int, int> playerCounts, string when, int jobIndex, string jobId, int expected)
+	{
+		if (!playerCounts.Contains(jobIndex))
+			return string.Format("The per-player lifetime counter for '%1' did not come back %2.", jobId, when);
+
+		int actual = playerCounts[jobIndex];
+		if (actual != expected)
+			return string.Format("The per-player lifetime counter for '%1' came back as %2 instead of %3 %4.",
+				jobId, actual.ToString(), expected.ToString(), when);
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Finds the seeded record carrying a marker location.
+	//! \param[in] jobs The job manager. Callers null-check before calling.
+	//! \param[in] marker The marker number.
+	//! \return The record, or null when the board does not hold it.
+	protected OVT_Job FindMarkedJob(notnull OVT_JobManagerComponent jobs, int marker)
+	{
+		vector wanted = MarkerLocation(marker);
+		foreach (OVT_Job candidate : jobs.m_aJobs)
+		{
+			if (!candidate)
+				continue;
+
+			if (candidate.location == wanted)
+				return candidate;
+		}
+
+		return null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The location that identifies one seeded record.
+	//!
+	//! Far outside any world, so it cannot collide with a job the manager offers on its own, and the
+	//! coordinates are small whole numbers, which a 32-bit float carries exactly - so the assertion
+	//! can compare positions for equality rather than for nearness.
+	//! \param[in] marker The record's marker number.
+	//! \return Its location.
+	protected vector MarkerLocation(int marker)
+	{
+		return Vector(424200, 0, marker);
 	}
 }

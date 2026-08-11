@@ -9881,5 +9881,2611 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B3D00000000010A}" {
+   Id "OVT-Difficulty_Easy_Desc"
+   Target_en_us "Recommended for solo players. Occupying garrisons and patrols are at their smallest."
+   Comment "Campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, the DifficultyDescription widget), shown under the Difficulty spinner when Easy is selected. Held in the 'description' field of Configs/Difficulty/Difficulty_Easy.conf as a stringtable key: TextWidget.SetText translates #-prefixed keys, so the config carries the key and the read site in OVT_StartGameContext needs no change. LENGTH BUDGET: ONE line, about 105 characters. All five difficulty descriptions are held to one line on purpose - the block above the Start button has roughly 180 units of vertical room for four description widgets, and the two faction descriptions already take two lines each. TONE: informs, never instructs. FACT-CHECKED 2026-08-09. The recommendation is the shipped authored text of Difficulty_Easy.conf:3 and carries itself. Smallest garrisons and patrols: Difficulty_Easy.conf:9-11 (patrolGroupsMin 1, patrolGroupsMax 2, defenseGroupsBaseMax 2 - the lowest of the five presets), read at OVT_OccupyingFactionManager.c:508, halved at OVT_InfantrySpawningDeploymentModule.c:224, and OVT_BaseUpgradeDefensePosition.c:48. The claim is deliberately RELATIVE ('smallest') and names no location: the two patrol read sites use different arithmetic, so any single quoted number would be false at one of them, but both scale monotonically with the same fields so the ordering is true at both. FORBIDDEN in every difficulty description: real-estate prices scaling with difficulty (realEstateCostMultiplier is declared and replicated but read by nobody - GetBuyPrice and GetRentPrice at OVT_RealEstateManagerComponent.c:712,730 ignore it) and a flat respawn cost (ChargeRespawn only charges above a hardcoded money > 500 gate, OVT_EconomyManagerComponent.c:1874)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754697600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3D00000000010D}" {
+   Id "OVT-Difficulty_Extreme_Desc"
+   Target_en_us "Recommended for very busy servers. A radio is the only equipment you start with."
+   Comment "Campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, the DifficultyDescription widget), shown under the Difficulty spinner when Extreme is selected. Held in the 'description' field of Configs/Difficulty/Difficulty_Extreme.conf as a stringtable key. LENGTH BUDGET: ONE line, about 105 characters. TONE: informs, never instructs. FACT-CHECKED 2026-08-09. Recommendation: the shipped authored text of Difficulty_Extreme.conf:3. The radio clause: Difficulty_Extreme.conf's startingItems array holds exactly one entry, Prefabs/Items/Equipment/Radios/Radio_R148.et, where Easy, Normal and Hard each hold an M9 handgun, a 9x19 magazine and the radio; read at OVT_SpawnLogic.c:1177. This is the single most surprising difference between the presets and is why it earned the one clause this line has room for. It is stated as EQUIPMENT ('the only equipment you start with'), not as a total inventory, because clothing comes from the character prefab rather than from startingItems. Starting cash is not mentioned here because the numbers line directly underneath states it. Also true of Extreme but cut for length: fast travel is refused entirely while a QRF is active (QRFFastTravelMode DISABLED, read at OVT_MapContext.c:78-84), which Insane shares."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754697600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3D00000000010C}" {
+   Id "OVT-Difficulty_Hard_Desc"
+   Target_en_us "Recommended for busy servers. Garrisons and patrols are larger, and building costs more."
+   Comment "Campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, the DifficultyDescription widget), shown under the Difficulty spinner when Hard is selected. Held in the 'description' field of Configs/Difficulty/Difficulty_Hard.conf as a stringtable key. LENGTH BUDGET: ONE line, about 105 characters. TONE: informs, never instructs. FACT-CHECKED 2026-08-09. Recommendation: the shipped authored text of Difficulty_Hard.conf:3. Larger garrisons and patrols: Difficulty_Hard.conf:12-14 (patrolGroupsMin 4, patrolGroupsMax 6, defenseGroupsBaseMax 10, against Easy's 1/2/2 and Normal's default 2/4/5), read at OVT_OccupyingFactionManager.c:508, OVT_InfantrySpawningDeploymentModule.c:224 and OVT_BaseUpgradeDefensePosition.c:48; stated relatively and with no location named, for the reason recorded on OVT-Difficulty_Easy_Desc. Building costs more: Difficulty_Hard.conf placeableCostMultiplier 1.5 and buildableCostMultiplier 1.5 against Easy's 0.8 and Normal's default 1, read at OVT_OverthrowConfigComponent.c:252 and :257. Real-estate prices are NOT mentioned and must not be: realEstateCostMultiplier is a dead field."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754697600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3D00000000010E}" {
+   Id "OVT-Difficulty_Insane_Desc"
+   Target_en_us "Recommended for highly experienced servers. Occupying garrisons and patrols are at their largest."
+   Comment "Campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, the DifficultyDescription widget), shown under the Difficulty spinner when Insane is selected. Held in the 'description' field of Configs/Difficulty/Difficulty_Insane.conf as a stringtable key. LENGTH BUDGET: ONE line, about 105 characters. TONE: informs, never instructs. FACT-CHECKED 2026-08-09. Recommendation: the shipped authored text of Difficulty_Insane.conf:3. Largest garrisons and patrols: Difficulty_Insane.conf:11-13 (patrolGroupsMin 8, patrolGroupsMax 12, defenseGroupsBaseMax 30 - the highest of the five presets), read at OVT_OccupyingFactionManager.c:508, OVT_InfantrySpawningDeploymentModule.c:224 and OVT_BaseUpgradeDefensePosition.c:48; stated relatively and with no location named, for the reason recorded on OVT-Difficulty_Easy_Desc. Also true of Insane but cut for length: its startingItems is the R148 radio alone, exactly as Extreme's (OVT_SpawnLogic.c:1177), and fast travel is refused while a QRF is active (QRFFastTravelMode DISABLED, OVT_MapContext.c:78-84). The garrison clause was chosen over the radio clause because it is what distinguishes Insane from Extreme."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754697600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3D00000000010B}" {
+   Id "OVT-Difficulty_Normal_Desc"
+   Target_en_us "Recommended for small servers, hosted games and experienced solo players."
+   Comment "Campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, the DifficultyDescription widget), shown under the Difficulty spinner when Normal is selected. Held in the 'description' field of Configs/Difficulty/Difficulty_Normal.conf as a stringtable key. LENGTH BUDGET: ONE line, about 105 characters - see OVT-Difficulty_Easy_Desc for why. TONE: informs, never instructs. FACT-CHECKED 2026-08-09: this is the shipped authored recommendation of Difficulty_Normal.conf:3, unchanged apart from a closing full stop, and an authored recommendation carries itself. No mechanical clause was added because Normal is the baseline the other four are described relative to, and the numbers line underneath already states its starting cash and fast travel cost. Note for anyone extending it: Normal is also the preset a hosted or dedicated game opens on (OVT_StartGameContext.c:132-135 selects index 1 outside RplMode.None, and :127-131 selects index 0 in single player), and Difficulty_Normal.conf contains NEITHER startingCash NOR fastTravelCost - both fall back to the class defaults at OVT_DifficultySettings.c:54 (100) and :58 (5)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754697600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3D00000000010F}" {
+   Id "OVT-Difficulty_Numbers"
+   Target_en_us "Starting cash: $%1     Fast travel: $%2"
+   Comment "Campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, the DifficultyNumbers widget), the line directly under the difficulty description. Composed at runtime by OVT_StartGameContext.RefreshDescriptions through TextWidget.SetTextFormat with exactly TWO substitution arguments, never by string concatenation, so no English is ever built in script (precedent: OVT_TutorialContext.c:459 with #OVT-Tutorial_PageIndicator). %1 is OVT_DifficultySettings.startingCash, an int, read at OVT_OverthrowGameMode.c:1080 and granted through AddPlayerMoney at :1081 on the new-player branch only. %2 is OVT_DifficultySettings.fastTravelCost, an int, read at OVT_MapContext.c:384. Translators: keep both placeholders and keep the currency symbol inside this string (established convention, see OVT-Msg-DonationReceived and OVT-Msg-MoneySent); the run of spaces is the column gap between the two figures and may be replaced with whatever separator reads correctly in the target language. Resolved values across the five presets are 500/100/100/0/0 for %1 and 0/5/10/25/25 for %2, but note the TRAP: Difficulty_Normal.conf contains neither field and Difficulty_Hard.conf contains no startingCash, so three of those ten values come from the class defaults at OVT_DifficultySettings.c:54 (100) and :58 (5) rather than from the conf files. LABEL WORDING: 'Fast travel' is deliberately unqualified and singular because fastTravelCost is charged AGAIN per nearby recruit (OVT_MapContext.c:395) and zeroed in debug mode - the figure is the base cost, not a total. KNOWN LIMITATION: a server running an Overthrow_Config.json with overrideDifficulty set replaces startingCash after the campaign starts (OVT_OverthrowGameMode.c:364), so on such a server this line shows the preset's authored figure rather than the override. Two numbers ship and no third: every other candidate (patrolGroups, baseRecruitCost, busTicketPrice, the cost multipliers) has either multiple read sites with different arithmetic or no meaning as a bare figure."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754697600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3D000000000106}" {
+   Id "OVT-Faction_US_Occupying"
+   Target_en_us "US forces hold the island. They garrison its bases and radio towers and patrol its towns, and their uniform is the one that works as a disguise."
+   Comment "Campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, the OccupyingFactionDescription widget), shown under the Occupying Faction spinner when US is selected. Resolved by faction KEY, not by spinner index, in OVT_StartGameContext.ResolveOccupyingFactionDescription. LENGTH BUDGET: this widget is right-aligned, wrapped, font 18 in an 880px column and must not exceed TWO lines (about 210 characters) or the description block starts eating the gap above the Start button. TONE: informs, never instructs; no imperative and no implied order of play. FACT-CHECKED 2026-08-09. 'US forces hold the island': the occupying faction is what OVT_StartGameContext.OnSpinOccupyingFaction sets through OVT_OverthrowConfigComponent.SetOccupyingFaction:275, and US is one of the two spinner options (OVT_OverthrowFactionManager.et:24-31 registers USSR, US, FIA and CIV; OVT_StartGameContext.c:98 drops FIA because FIA_OverthrowData.conf:3 is m_bIsPlayable 1, and :99 drops CIV). Garrisons and patrols: OVT_OccupyingFactionManager.c:508 (defence groups sized by patrolGroupsMin/Max), OVT_BaseUpgradeDefensePosition.c:48 (defenseGroupsBaseMax) and Configs/Deployment/Deployment_TownPatrol.conf:26 (m_iAllowedFactionTypes OCCUPYING_FACTION - only the occupier patrols towns). Disguise: OVT_PlayerWantedComponent.c:111 IsDisguisedAsOccupying, with 7 live consumers including SCR_CharacterDamageManagerComponent.c:27,69,121. This string and OVT-Faction_USSR_Occupying differ ONLY in the faction name, and that is correct rather than lazy: US_OverthrowData.conf and USSR_OverthrowData.conf differ only in which prefabs the generic slot names resolve to, so no mechanical per-faction claim survives a fact-check (cut C6)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754697600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3D000000000108}" {
+   Id "OVT-Faction_US_Supporting"
+   Target_en_us "The United States is a foreign power sympathetic to the resistance, and not your own faction. Being seen in its uniform means an immediate wanted level, and it cannot also be the occupier."
+   Comment "Campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, the SupportingFactionDescription widget), shown under the Supporting Faction spinner when US is selected. Resolved by faction KEY, not by spinner index. LENGTH BUDGET: two lines maximum, about 210 characters. TONE: informs, never instructs. FACT-CHECKED 2026-08-09, and this description exists BECAUSE the supporting faction is the most misunderstood choice on the screen. 'Not your own faction': the player character is affiliated CIV (Prefabs/Characters/Factions/INDFOR/FIA/Character_Player.et:177-178) and recruits are set to the player faction FIA (OVT_RecruitManagerComponent.c:1720); neither is the supporting faction. Wanted level: OVT_PlayerWantedComponent.c:447-453 groups the supporting faction key with the player faction key as NOT disguised, and :709-715 sets newLevel = 2 on sight for either, so wearing its uniform is treated exactly as wearing the resistance's. Cannot also be the occupier: OVT_StartGameContext.c:142-168 and :170-196, where each spin handler walks the other spinner and reassigns it on a key collision. WHAT THIS STRING MAY NOT SAY, all five re-verified false 2026-08-09: that the supporting faction sends troops (no shipped deployment config permits SUPPORTING_FACTION - Deployment_TownPatrol.conf:26 is OCCUPYING_FACTION and the other two take the same default), supplies equipment (m_bIncludeSupportingFactionItems defaults true at OVT_EconomyManagerComponent.c:38-39 and no config disables it, so the filter never removes anything), affects prices, can be worn as a disguise (IsDisguisedAsSupporting at OVT_PlayerWantedComponent.c:130 has zero callers), or fights alongside you. It also may not claim the choice persists or replicates - it does neither."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754697600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3D000000000107}" {
+   Id "OVT-Faction_USSR_Occupying"
+   Target_en_us "Soviet forces hold the island. They garrison its bases and radio towers and patrol its towns, and their uniform is the one that works as a disguise."
+   Comment "Campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, the OccupyingFactionDescription widget), shown under the Occupying Faction spinner when USSR is selected. Resolved by faction KEY, not by spinner index. LENGTH BUDGET: two lines maximum, about 210 characters - see OVT-Faction_US_Occupying. TONE: informs, never instructs. FACT-CHECKED 2026-08-09, same citations as OVT-Faction_US_Occupying: OVT_OverthrowFactionManager.et:24-31 (USSR is one of the two spinner factions), OVT_OccupyingFactionManager.c:508 and OVT_BaseUpgradeDefensePosition.c:48 (garrison sizes), Configs/Deployment/Deployment_TownPatrol.conf:26 (town patrols are OCCUPYING_FACTION only), OVT_PlayerWantedComponent.c:111 (the occupier's uniform is the disguise that works). DELIBERATELY IDENTICAL to the US string except for the faction name (cut C6): the two faction data files differ only in which prefabs their generic slot names resolve to, so any mechanical difference between them would be invented. Translators: 'Soviet' here is the USSR faction, matching the spinner label."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754697600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3D000000000109}" {
+   Id "OVT-Faction_USSR_Supporting"
+   Target_en_us "The Soviet Union is a foreign power sympathetic to the resistance, and not your own faction. Being seen in its uniform means an immediate wanted level, and it cannot also be the occupier."
+   Comment "Campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, the SupportingFactionDescription widget), shown under the Supporting Faction spinner when USSR is selected. Resolved by faction KEY, not by spinner index. LENGTH BUDGET: two lines maximum, about 210 characters. TONE: informs, never instructs. FACT-CHECKED 2026-08-09, same citations as OVT-Faction_US_Supporting: Character_Player.et:177-178 and OVT_RecruitManagerComponent.c:1720 (the supporting faction is not the player's), OVT_PlayerWantedComponent.c:447-453 and :709-715 (its uniform is treated exactly as the resistance's, instant wanted level 2 on sight), OVT_StartGameContext.c:142-168 and :170-196 (the occupier and the supporter cannot be the same faction, so moving one spinner moves the other). The same five claims are forbidden here as on the US string: no troops, no equipment, no price effect, not a disguise, not an ally in the field. Translators: 'The Soviet Union' is the USSR faction, matching the spinner label."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754697600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000015F}" {
+   Id "OVT-FieldManual_BaseCapture_Head"
+   Target_en_us "Starting a Battle"
+   Comment "Field Manual - section header inside the Capturing Bases page, drawn above the paragraph about how an attack on a base begins. Two to four words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000160}" {
+   Id "OVT-FieldManual_BaseCapture_Head2"
+   Target_en_us "Holding the Ground"
+   Comment "Field Manual - section header inside the Capturing Bases page, drawn above the paragraph about how a battle is scored and won. Two to four words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000161}" {
+   Id "OVT-FieldManual_BaseCapture_Head3"
+   Target_en_us "A Base You Hold"
+   Comment "Field Manual - section header inside the Capturing Bases page, drawn above the paragraph about what changes once the resistance controls a base. Three or four words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000162}" {
+   Id "OVT-FieldManual_BaseCapture_Head4"
+   Target_en_us "The Answer Back"
+   Comment "Field Manual - section header inside the Capturing Bases page, drawn above the paragraph about counter attacks by the occupying faction. Two to four words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000101}" {
+   Id "OVT-FieldManual_BaseCapture_Text"
+   Target_en_us "Military bases are held by the occupying faction and change hands only after a battle is fought at them. A base under resistance control weakens the occupiers in that area, and they may spend their reserves on a counter attack to take it back later."
+   Comment "Field Manual - opening paragraph of the Capturing Bases page, shown as body prose under the page heading. Reference voice: it describes the system, it does not instruct the player. One to three sentences, no rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000163}" {
+   Id "OVT-FieldManual_BaseCapture_Text2"
+   Target_en_us "An attack is begun from inside an occupied base, and everybody on the server is told when one starts. The occupying faction answers by ordering troops in from its other bases nearby, who arrive around the site over the following minutes. Only one battle runs anywhere on the map at a time, so while one is going the option to start another is not offered."
+   Comment "Field Manual - Capturing Bases page, body paragraph under the 'Starting a Battle' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_CaptureBaseAction.c:1-24 (the action is hidden while m_bQRFActive and only shown on an occupying-held base), OVT_PlayerCommsComponent.RpcAsk_StartBaseCapture:192-217 (server re-checks the faction and that the player is within baseCloseRange), OVT_OccupyingFactionManager.StartBaseQRF:792-824 (a single m_CurrentQRF, the BaseBattle notification to everyone), and OVT_QRFControllerComponent.SendTroops:194-215 with CheckUpdateTimer:64-79 (troops are drawn from occupying-held bases and spawned in over the timer). The timer length is a field default and is not quoted."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000164}" {
+   Id "OVT-FieldManual_BaseCapture_Text3"
+   Target_en_us "Once the reinforcements have arrived the ground itself is counted, over and over: what matters is how many players are standing in the middle of the base against how many occupying soldiers are there with them. Players present with no enemy left swings it quickly; more soldiers than players swings it the other way; even numbers drift back towards nothing. The count runs to a total the difficulty settings set, in one direction or the other, and whoever reaches it takes the base. Players inside the fight pick up experience while it goes on."
+   Comment "Field Manual - Capturing Bases page, body paragraph under the 'Holding the Ground' header. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_QRFControllerComponent.CheckUpdatePoints:102-192 (scoring only begins once m_iTimer reaches zero; counts occupying-faction AI and player-controlled entities within QRF_POINT_RANGE; +5 for players with no enemies in the wider QRF_RANGE, +1 or -1 by which side has more, drift towards zero when equal; clamped at the difficulty setting QRFPointsToWin, which also ends it; GiveXP 2 per tick to each player inside). Point totals and ranges are not quoted: the win total is a difficulty setting and the ranges are internal constants."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000165}" {
+   Id "OVT-FieldManual_BaseCapture_Text4"
+   Target_en_us "A base that changes hands flies the new owner's flag and is announced across the server. A base the resistance holds is somewhere you can fast travel to, set as the spot you respawn at, place and build in, and station a garrison hired from the nearest town; some facilities only serve the side that holds the ground they stand on. Taking one also raises the pressure the occupying faction is under, and losing one takes that pressure off again."
+   Comment "Field Manual - Capturing Bases page, body paragraph under the 'A Base You Hold' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_OccupyingFactionManager.ChangeBaseControl:895-915 (notification both ways, faction index written to the base data and the controller) and OVT_BaseControllerComponent.SetControllingFaction:143-152 with UpdateFlagMaterial:99-116, OVT_MapContext.CanFastTravel:124-131, OVT_PlaceContext.CanPlace:393-398, OVT_BuildContext.CanBuild:294-303, OVT_BaseMenuContext.AddToGarrison:80-110, OVT_SetHomeAction.CanBeShownScript (on Prefabs/Controllers/OVT_BaseController.et, shown only while the base is not occupying-faction held), and OVT_MainMenuContext.FindOverride:63-87 (m_bMustOwnBase gates a location's own menu). The threat figure moved on a control change is a literal in ChangeBaseControl but is deliberately described in words, because 'threat' is explained on its own wiki page rather than here."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000166}" {
+   Id "OVT-FieldManual_BaseCapture_Text5"
+   Target_en_us "Nothing taken is held for good. The occupying faction keeps reserves, spends them on the bases it still has, and when it has more than it needs it will pick a base the resistance took and come back for it, then wait a while before trying again. Towns and radio towers are fought over in much the same way, and a place can change hands more than once in a campaign."
+   Comment "Field Manual - Capturing Bases page, body paragraph under the 'The Answer Back' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_OccupyingFactionManager (reserve resources spent per base via OVT_BaseControllerComponent.SpendResources:281-315; the counter-attack branch at :1178-1194 fires on a surplus, picks a base the resistance holds, calls StartBaseQRF and then sets m_bCounterAttackTimeout from the difficulty setting counterAttackTimeout), StartTownQRF:826-878 and OnQRFFinishedTown:917-960 (towns), and OVT_BaseUpgradeSpecops.OnUpdate:37-70 (radio towers are retaken by a specops team). The surplus threshold, the random roll and the timeout are deliberately not quoted."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000102}" {
+   Id "OVT-FieldManual_BaseCapture_Title"
+   Target_en_us "Capturing Bases"
+   Comment "Field Manual - title of the Capturing Bases page, shown on its tile in the category grid and as the heading at the top of the page. Two to four words. This key is also the deep-link id tutorial popups use to open this page, so it must never be renamed."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000014F}" {
+   Id "OVT-FieldManual_Camps_Head"
+   Target_en_us "Where Placing Works"
+   Comment "Field Manual - section header inside the Camps and Placing page, drawn above the paragraph about where a placeable is allowed to go. Two to four words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000150}" {
+   Id "OVT-FieldManual_Camps_Head2"
+   Target_en_us "Camps"
+   Comment "Field Manual - section header inside the Camps and Placing page, drawn above the paragraph about what a camp is and what it gives you. One or two words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000151}" {
+   Id "OVT-FieldManual_Camps_Head3"
+   Target_en_us "Public and Private"
+   Comment "Field Manual - section header inside the Camps and Placing page, drawn above the paragraph about the camp menu and camp privacy. Two to four words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000152}" {
+   Id "OVT-FieldManual_Camps_Head4"
+   Target_en_us "Illegal Placeables"
+   Comment "Field Manual - section header inside the Camps and Placing page, drawn above the paragraph about illegal placeables and propaganda. Two to four words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000103}" {
+   Id "OVT-FieldManual_Camps_Text"
+   Target_en_us "Placing puts resistance objects into the world for a cost in money, from small items up to a full camp. Many placeables are only allowed in certain locations, and some are illegal, so placing one in sight of the occupying faction is noticed."
+   Comment "Field Manual - opening paragraph of the Camps and Placing page, shown as body prose under the page heading. Reference voice: it describes the system, it does not instruct the player. One to three sentences, no rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000153}" {
+   Id "OVT-FieldManual_Camps_Text2"
+   Target_en_us "Place, on the Overthrow main menu, gives you a preview to set down in front of you, and it turns you down when the spot is not allowed. Most items may go close to a house you own, close to your own camp, anywhere around a FOB, or inside a base the resistance holds. Posters and the pirate radio work the other way round: they have to go inside a town, and a town has room for only so many of them at a time. One location can also hold only so many placed and built objects in total, which is a server setting."
+   Comment "Field Manual - Camps and Placing page, body paragraph under the 'Where Placing Works' header. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_MainMenuContext.c:120-123 (the Place button), OVT_PlaceContext.CanPlace:247-400 (owned house within 30 m, own camp within 75 m, any FOB within 100 m, a non-occupying base within baseRange), Configs/Resistance/placeables.conf:22 and :155 (m_bNearTown on Poster and PirateRadio) with CanPlace:360-368, GetSupportModifierSpace:408-420 with OVT_TownModifierSystem.GetModifierLimit:163-172 (per-town modifier limit), and OVT_ItemLimitChecker.CanPlaceItem:28-56 (limits read from GetHouseItemLimit / GetCampItemLimit / GetFOBItemLimit, unlimited when zero). Distances are not quoted because the page reads better without them and several are config-derived."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000154}" {
+   Id "OVT-FieldManual_Camps_Text3"
+   Target_en_us "A camp is placed like anything else, but it registers as a resistance position when it goes down, and it has to be at least a hundred metres from another camp. A camp is somewhere you can fast travel to, somewhere you can set as the spot you respawn at, somewhere your other placeables are allowed, and one of the places the build menu will work. You hold one camp at a time: placing a new one takes down the old one."
+   Comment "Field Manual - Camps and Placing page, body paragraph under the 'Camps' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against Configs/Resistance/placeables.conf:29-43 (the Camp placeable and its OVT_PlaceableCampHandler), OVT_PlaceableCampHandler.c (RegisterCamp), OVT_PlaceContext.CanPlace:267-280 (m_bAwayFromCamps enforces 100 m from the nearest camp), OVT_MapContext.CanFastTravel:109-118, OVT_SetHomeAction.c (present on Prefabs/Structures/Military/Camps/OVT_Camp.et; it sets the respawn position to where the player is standing), OVT_ItemLimitChecker.MAX_CAMP_PLACE_DIS:14, OVT_BuildContext.CanBuild:334-339 with Configs/Resistance/buildables.conf:40-52 (m_bBuildAtCamp), and OVT_ResistanceFactionManager.RegisterCamp:1079-1104 (an existing camp is removed when a new one is placed). The hundred metres is a literal in the source, so it is safe to quote."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000155}" {
+   Id "OVT-FieldManual_Camps_Text4"
+   Target_en_us "A camp carries its own menu, used at the camp itself, which switches it between public and private and can take it down again. A public camp shows on everyone's map and any player may fast travel to it. A private camp is on the map only for the player who owns it, and only that player may travel to it."
+   Comment "Field Manual - Camps and Placing page, body paragraph under the 'Public and Private' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_CampMenuContext.c:39-90 (privacy toggle and delete), OVT_MapIcons.c:644 (a private camp is hidden from players who do not own it), and OVT_MapContext.CanFastTravel:109-118 (travel allowed when the camp is the player's own or is not private)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000156}" {
+   Id "OVT-FieldManual_Camps_Text5"
+   Target_en_us "Posters, the pirate radio, sandbags and vehicle obstacles are illegal to put down. Setting one out while the occupying faction can see you makes you wanted, in the same way looting a soldier in view does; unseen, it passes without notice. Posters and pirate radios also work on the town they stand in, adding to the support the resistance has there until the effect runs out, and a town holds only a few posters and a single radio."
+   Comment "Field Manual - Camps and Placing page, body paragraph under the 'Illegal Placeables' header. Three sentences, no rich-text markup. 'Vehicle obstacles' is the Hedgehog placeable, named in plain language. FACT-CHECKED 2026-08-08 against Configs/Resistance/placeables.conf (m_bIllegal 1 on Poster :24, Sandbags :70, Hedgehog :81, PirateRadio :157), OVT_ResistanceFactionManager.PlaceItem:737-748 (illegal placement calls OnIllegalActionSeen) and OVT_PlayerWantedComponent.OnIllegalActionSeen:296-303 (returns immediately unless m_bIsSeen), OVT_PlaceableSupportModHandler.c:15-24, and Configs/Modifiers/supportModifiers.conf:14-19 (RecruitmentPosters, stackable, default stackLimit 5, timeout 3600) and :110-116 (PirateRadio, stackLimit 1, timeout 3600). The wanted LEVEL is not quoted here because the Wanted System page owns that detail."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000104}" {
+   Id "OVT-FieldManual_Camps_Title"
+   Target_en_us "Camps and Placing"
+   Comment "Field Manual - title of the Camps and Placing page, shown on its tile in the category grid and as the heading at the top of the page. Two to four words. This key is also the deep-link id tutorial popups use to open this page, so it must never be renamed."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3A000000000091}" {
+   Id "OVT-FieldManual_Category_GettingStarted_Title"
+   Target_en_us "Getting Started"
+   Comment "Field Manual - name of the sub-category button under the Overthrow heading, listing Overthrow's own manual pages. Previously reused the base game's Introduction key, which rendered a second button literally named Introduction. Two or three words; it sits in a narrow left-hand list beside Introduction, Editor, Multiplayer, Gameplay and Equipment."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000105}" {
+   Id "OVT-FieldManual_Category_MoneyAndTrade_Title"
+   Target_en_us "Money and Trade"
+   Comment "Field Manual - name of a sub-category button under the Overthrow heading, grouping the manual pages about money, shops and gun dealers. Two or three words; it sits in a narrow left-hand list beside Introduction, Editor, Multiplayer, Gameplay and Equipment. Please avoid an ampersand character here, the rest of this table does not use one."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000106}" {
+   Id "OVT-FieldManual_Category_StayingHidden_Title"
+   Target_en_us "Staying Hidden"
+   Comment "Field Manual - name of a sub-category button under the Overthrow heading, grouping the manual pages about the wanted system and skills. Two or three words; it sits in a narrow left-hand list beside Introduction, Editor, Multiplayer, Gameplay and Equipment."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000107}" {
+   Id "OVT-FieldManual_Category_TheResistance_Title"
+   Target_en_us "The Resistance"
+   Comment "Field Manual - name of a sub-category button under the Overthrow heading, grouping the manual pages about recruits, camps, FOBs and capturing bases. Two or three words; it sits in a narrow left-hand list beside Introduction, Editor, Multiplayer, Gameplay and Equipment."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000157}" {
+   Id "OVT-FieldManual_FOBs_Head"
+   Target_en_us "Deploying a FOB"
+   Comment "Field Manual - section header inside the FOBs and Building page, drawn above the paragraph about the Mobile FOB truck and where it can be set up. Two to four words, no markup. FOB is an established in-game abbreviation and is left untranslated elsewhere in this table."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000158}" {
+   Id "OVT-FieldManual_FOBs_Head2"
+   Target_en_us "What a FOB Gives You"
+   Comment "Field Manual - section header inside the FOBs and Building page, drawn above the paragraph listing what a deployed FOB is good for. Three to five words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000159}" {
+   Id "OVT-FieldManual_FOBs_Head3"
+   Target_en_us "Building"
+   Comment "Field Manual - section header inside the FOBs and Building page, drawn above the paragraph about the build menu, what it costs and where it works. One word, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000015A}" {
+   Id "OVT-FieldManual_FOBs_Head4"
+   Target_en_us "Moving On"
+   Comment "Field Manual - section header inside the FOBs and Building page, drawn above the paragraph about packing a FOB up again and about the occupying faction taking an interest. Two or three words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000108}" {
+   Id "OVT-FieldManual_FOBs_Text"
+   Target_en_us "A FOB is a forward operating base the resistance can deploy in the field, and it has to be sited clear of bases and radio towers. Building adds structures at a base the resistance holds, at a FOB or at a camp, and what is on offer depends on which of those you are standing in."
+   Comment "Field Manual - opening paragraph of the FOBs and Building page, shown as body prose under the page heading. FOB is an established in-game abbreviation and is left untranslated elsewhere in this table. Reference voice: it describes the system, it does not instruct the player. One to three sentences, no rich-text markup. CORRECTED 2026-08-08: the earlier wording said structures could be built 'at a town', which no shipped buildable allows - Configs/Resistance/buildables.conf has no m_bBuildInTown or m_bBuildInVillage entry, and the exclusion of occupying-held bases is checked in OVT_BuildContext.CanBuild:294-303."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000015B}" {
+   Id "OVT-FieldManual_FOBs_Text2"
+   Target_en_us "A FOB starts as a Mobile FOB truck, bought like any other vehicle, and an action on the truck sets the FOB up where it stands. It cannot go up near any base, whether the occupying faction or the resistance holds it, nor within seventy metres of a radio tower, and the map shades those areas so they can be seen in advance. Deploying is limited to officers unless the server has been set otherwise."
+   Comment "Field Manual - FOBs and Building page, body paragraph under the 'Deploying a FOB' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against Configs/Pricing/vehiclePrices.conf:87-92 (OverthrowMobileFOB is an ordinary priced vehicle), OVT_DeployFOBAction.c:1-58 and OVT_ResistanceFactionManager.DeployFOB:466-553 (client and server both reject a site within baseCloseRange + FOB_DEPLOY_BASE_BUFFER of ANY base in m_Bases and within FOB_DEPLOY_TOWER_RANGE = 70 of any radio tower), OVT_ResistanceFactionManager.c:60-64 (the two constants), OVT_MapRestrictedAreas.c:70-95 (the map overlay), and OVT_OverthrowConfigComponent.c:32 and :54 (mobileFOBOfficersOnly defaults to true). The base distance is not quoted because it is built from a difficulty setting; the seventy metres is a fixed constant."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000015C}" {
+   Id "OVT-FieldManual_FOBs_Text3"
+   Target_en_us "Any player can fast travel to a FOB, a FOB can be set as the spot you respawn at, and it is ground where placing and building both work. A garrison of soldiers can be stationed at one, paid for and drawn from the nearest town's supporters; camps take a garrison the same way. An officer can mark a single FOB as the priority FOB, which gives it its own map icon and keeps it visible however far the map is zoomed out."
+   Comment "Field Manual - FOBs and Building page, body paragraph under the 'What a FOB Gives You' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_MapContext.CanFastTravel:119-122 (no ownership or privacy test on a FOB, unlike a camp), OVT_SetHomeAction.c on Prefabs/Structures/Military/Flags/FOB_V1_FIA.et, OVT_PlaceContext.CanPlace:385-391 and OVT_BuildContext.CanBuild:343-347, OVT_FOBMenuContext.AddToGarrison:65-95 with OVT_ResistanceFactionManager.AddGarrisonFOB and AddGarrisonCamp (both charge and both call TakeSupportersFromNearestTown; the same menu serves camps), OVT_ResistanceFactionManager.SetPriorityFOB:634-659 (only one at a time) with OVT_SetPriorityFOBAction.c:15-18 (officers only) and OVT_MapIcons.c:664-690 (range 0 and the fob_priority icon)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000015D}" {
+   Id "OVT-FieldManual_FOBs_Text4"
+   Target_en_us "Build, on the Overthrow main menu, opens a list of structures and a camera to site them with, a short way from where you are standing. A structure costs money and nothing else: there is no separate stock of materials to gather first. Each structure carries its own rules about where it may go, and most of the list wants a base the resistance holds or a FOB, so the same menu offers less at a camp than it does at a captured base."
+   Comment "Field Manual - FOBs and Building page, body paragraph under the 'Building' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_MainMenuContext.c:141-144 (the Build button), OVT_BuildContext.StartBuild:352-385 (money is the only resource checked, via GetBuildableCost) and CanBuild:290-349, OVT_ResistanceFactionManager.BuildItem:769-860 (the server charges money and re-checks the location; no material or supply stock exists anywhere in the build path), and Configs/Resistance/buildables.conf (seven buildables: all seven allow a resistance-held base, five also allow a FOB, one also allows a camp, none is flagged for a town or village). Prices are not quoted: each is multiplied by the difficulty setting buildableCostMultiplier."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000015E}" {
+   Id "OVT-FieldManual_FOBs_Text5"
+   Target_en_us "A FOB is not fixed in place. Packing it up turns it back into the truck and gathers the containers standing around it, with what is inside them, into the vehicle, so a FOB can be moved rather than abandoned. The occupying faction, for its part, comes to know where resistance camps and FOBs are, and sends troops out to look at them when it has soldiers to spare."
+   Comment "Field Manual - FOBs and Building page, body paragraph under the 'Moving On' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_ResistanceFactionManager.UndeployFOB:557-620 with OVT_ContainerTransferComponent.UndeployFOBWithCollection:231-240 and OVT_InventoryManagerComponent.UndeployFOBWithCollection:212-216 (containers and their contents are collected into the respawned truck), and OVT_OccupyingFactionManager.UpdateKnownTargets:1258-1360 (FOB and CAMP targets are added with an ATTACK order) with UpdateSpecops:1233-1257 and OVT_BaseUpgradeSpecops.OnUpdate:23-80. The wording deliberately stops at 'sends troops out to look at them': the arrival branch for a FOB or camp target destroys nothing (its source carries a 'To-Do: Destroy stuff if needed' comment) and only clears the target when no player is within 200 m."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000109}" {
+   Id "OVT-FieldManual_FOBs_Title"
+   Target_en_us "FOBs and Building"
+   Comment "Field Manual - title of the FOBs and Building page, shown on its tile in the category grid and as the heading at the top of the page. FOB is an established in-game abbreviation. Two to four words. This key is also the deep-link id tutorial popups use to open this page, so it must never be renamed."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000129}" {
+   Id "OVT-FieldManual_GunDealers_Head"
+   Target_en_us "Finding a Dealer"
+   Comment "Field Manual - section header inside the Gun Dealers page, drawn above the paragraph that describes where dealers are. Two to four words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000012A}" {
+   Id "OVT-FieldManual_GunDealers_Head2"
+   Target_en_us "What They Carry"
+   Comment "Field Manual - section header inside the Gun Dealers page, drawn above the paragraph about dealer stock. Two to four words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000012B}" {
+   Id "OVT-FieldManual_GunDealers_Head3"
+   Target_en_us "Selling to a Dealer"
+   Comment "Field Manual - section header inside the Gun Dealers page, drawn above the paragraph about selling. Two to four words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000010A}" {
+   Id "OVT-FieldManual_GunDealers_Text"
+   Target_en_us "A gun dealer is a shop that trades weapons and military equipment rather than everyday goods. Gun dealers draw on their own stock list, restock separately from ordinary shops, and their prices are shaped by the campaign's difficulty settings."
+   Comment "Field Manual - opening paragraph of the Gun Dealers page, shown as body prose under the page heading. Reference voice: it describes the system, it does not instruct the player. One to three sentences, no rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000012C}" {
+   Id "OVT-FieldManual_GunDealers_Text2"
+   Target_en_us "Every town larger than a village has one gun dealer, and villages have none. The dealer is a person standing at a spot in the town rather than a counter inside a shop, and once a town has settled on that spot it keeps it for the rest of the campaign. Dealers and ordinary shops both carry their own icon on the map."
+   Comment "Field Manual - Gun Dealers page, body paragraph under the 'Finding a Dealer' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_TownController.ActivateTown:102-103 (SpawnGunDealer runs only when town.size != OVT_TownSize.VILLAGE, once per town), SpawnGunDealer:233-276 (a random building carrying a SHOP_GUNDEALER OVT_ShopComponent is chosen, the dealer prefab is spawned there and the position is stored on m_Town.gunDealerPosition and reused afterwards) and OVT_MapIcons.TryCreateGunDealerIcon:111-134 plus TryCreateShopIcon:137. Reference voice: describes the system, never instructs."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000012D}" {
+   Id "OVT-FieldManual_GunDealers_Text3"
+   Target_en_us "A dealer's stock comes from its own list rather than the general shop catalogue: pistols, ammunition, attachments, explosives and throwables are the staples, and each town's dealer also rolls a single rifle, a single sniper rifle, a single machine gun and a single launcher when its town first comes to life. Those rolls belong to that dealer for good, topped back up when they run low rather than rolled again, so two towns rarely offer the same heavy weapons. Most equipment belonging to the occupying faction is not traded."
+   Comment "Field Manual - Gun Dealers page, body paragraph under the 'What They Carry' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against Configs/System/GunDealerConfig.conf (PISTOL, AMMUNITION, ATTACHMENT, EXPLOSIVES, LETHAL_THROWABLE and NON_LETHAL_THROWABLE rules, plus m_bSingleRandomItem rules for WEAPON, SNIPER_RIFLE, MACHINE_GUN and ROCKET_LAUNCHER; nearly every rule sets m_bIncludeOccupyingFactionItems 0), OVT_TownController.SpawnGunDealer:282-330 (the single-random rolls happen at spawn) and OVT_EconomyManagerComponent.ReplenishStock:346-360 (the comment there states sold-out ids stay in the map at 0 so the rolled items are restocked, never re-rolled)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000012E}" {
+   Id "OVT-FieldManual_GunDealers_Text4"
+   Target_en_us "Unlike a shop that only buys back the sort of goods it sells, a dealer takes almost anything that has a price. What it pays is a fraction of the item's value, set by the campaign's difficulty settings, and where those settings put that fraction at zero the dealer does not buy at all. Large sums changing hands at a dealer get noticed: they lower the stability of the town it happened in and raise support for the resistance there."
+   Comment "Field Manual - Gun Dealers page, body paragraph under the 'Selling to a Dealer' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_ShopTransactionComponent.ResourceIsAccepted:512-517 with ShopTypeHasInventoryRules:524-533 (SHOP_GUNDEALER has no rules in Configs/System/ShopConfig.conf so any registered priced resource is accepted), OVT_ShopSellRules.GetSellMultiplier:53-59 and ShopBuysFromPlayers:30-42 (gunDealerSellPriceMultiplier, zero disables the sell path), OVT_BlackMarketStabilityModifier:22-42 and OVT_BlackMarketSupportModifier:22-42 (gun dealer transactions over 1000 only), with the effect sizes in Configs/Modifiers/stabilityModifiers.conf:87-94 (-5) and supportModifiers.conf:75-82 (+5). No fixed multiplier is quoted because it is difficulty-scaled."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000010B}" {
+   Id "OVT-FieldManual_GunDealers_Title"
+   Target_en_us "Gun Dealers"
+   Comment "Field Manual - title of the Gun Dealers page, shown on its tile in the category grid and as the heading at the top of the page. Two to four words. This key is also the deep-link id tutorial popups use to open this page, so it must never be renamed."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000011E}" {
+   Id "OVT-FieldManual_MainMenu_Text2"
+   Target_en_us "The menu opens on the town you are standing in, with its population, stability and supporter count, and the log of recent notifications.<br/>From here you can reach map info and fast travel, placing and building, the resistance menu, jobs, the real estate menu for the building you are in, recruit management, your character sheet, the last tip you were shown, and a request to save the campaign.<br/>Some entries only work in the right circumstances: real estate stays greyed out unless the building you are standing in can be owned, tips stays greyed out until a tip has been shown, and saving is limited to officers. Standing next to certain places, such as a shop counter, opens that place's own menu instead."
+   Comment "Field Manual - second body paragraph on the Main Menu page, listing what the menu holds. CONTAINS RICH TEXT: two <br/> line breaks, which must be preserved verbatim in every translation. FACT-CHECKED against OVT_MainMenuContext.c:94-97 (town name and stats), :198-223 (notification log), :104-195 (the button list), :148-157 (real estate disabled when the building is not ownable), :178-188 (Tips disabled until an entry exists), :306-309 (save is officer-only), :29-56 (a nearby override component opens that location's context instead). The disabled Options button in MainMenu.layout is deliberately not listed. Reference voice: describes, does not instruct. Three paragraphs."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000124}" {
+   Id "OVT-FieldManual_MapAndTravel_Head"
+   Target_en_us "Bus Travel"
+   Comment "Field Manual - section header inside The Map and Fast Travel page, above the paragraph on catching a bus. Two words, title case. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000010C}" {
+   Id "OVT-FieldManual_MapAndTravel_Text"
+   Target_en_us "The map is the campaign's overview. Alongside the terrain it marks the buildings and vehicles you own, the camps and FOBs the resistance has placed, and the shops, gun dealers and ports it knows about. Carrying a map in your inventory is what makes the map info and fast travel options usable."
+   Comment "Field Manual - opening paragraph of The Map and Fast Travel page, shown as body prose above the existing Map Info and Fast Travel sections. FACT-CHECKED against OVT_MapIcons.c OnMapOpen (owned houses :472, warehouses :573, camps :641, FOBs :664, owned vehicles :710, shop/gun dealer/port icons via the Try* helpers :111-211) and OVT_MapContext.c:135-158 and :277-285 (both options need the map gadget, otherwise 'MustHaveMap'). Reference voice: describes, does not instruct. Three sentences, no rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000125}" {
+   Id "OVT-FieldManual_MapAndTravel_Text2"
+   Target_en_us "The panel names the nearest town to the point you clicked and shows its population, its distance from you, its stability and its supporter count, along with the modifiers currently pushing that town's stability and support up or down."
+   Comment "Field Manual - body paragraph on The Map and Fast Travel page, immediately after the existing Map Info paragraph. FACT-CHECKED against OVT_MapContext.c:167-275 (ShowTownInfo fills town name, population, distance, stability, support and the two modifier lists) and :512-518 (a click selects the nearest town to the clicked point). Reference voice: describes, does not instruct. One sentence, no rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000126}" {
+   Id "OVT-FieldManual_MapAndTravel_Text3"
+   Target_en_us "Fast travel is conditional. The destination has to be next to something the resistance holds: a house you own or rent, one of your own camps or a public one, a FOB, or a base under resistance control. It also has to be far enough from where you are standing, it is refused while you have a wanted level, and an active quick reaction force can block it, depending on the campaign's difficulty settings."
+   Comment "Field Manual - body paragraph on The Map and Fast Travel page, after the existing Fast Travel paragraph. FACT-CHECKED against OVT_MapContext.c:53-133 (CanFastTravel: minimum distance from OVT_DifficultySettings.minFastTravelDistance, refused at wanted level above zero, QRF handling per OVT_QRFFastTravelMode, and the owned/rented house, own-or-public camp, FOB and resistance-held base destinations). Distances and the minimum range are difficulty settings and are deliberately not quoted. Reference voice: describes, does not instruct. Three sentences, no rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000127}" {
+   Id "OVT-FieldManual_MapAndTravel_Text4"
+   Target_en_us "The fee is a difficulty setting rather than a fixed price. Recruits standing near you travel with you when you are on foot, and each one adds the same fee again. Fast travelling from inside a vehicle only works if you are the driver."
+   Comment "Field Manual - body paragraph on The Map and Fast Travel page, following the fast travel conditions paragraph. FACT-CHECKED against OVT_MapContext.c:384-396 (cost = OVT_DifficultySettings.fastTravelCost, plus the same again for each nearby recruit) and :417-446 (in a vehicle the player must be in the pilot seat; recruits are brought along on the on-foot path). The cost is difficulty-scaled and is deliberately not quoted as a number. Reference voice: describes, does not instruct. Three sentences, no rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000128}" {
+   Id "OVT-FieldManual_MapAndTravel_Text5"
+   Target_en_us "Bus stops offer a separate way to cross the map. Catching a bus opens the map so a destination near another bus stop can be picked, and the fare is charged per kilometre travelled at a rate the difficulty settings decide. Bus travel does not check your wanted level or whether the resistance holds the ground, but it does need you to be out of a vehicle, and recruits near you each add their own fare."
+   Comment "Field Manual - body paragraph on The Map and Fast Travel page, under the 'Bus Travel' header. FACT-CHECKED against OVT_CatchBusAction.c (the user action opens bus travel on the map) and OVT_MapContext.c:451-509 (destination must be near a bus stop, fare = distance in km times OVT_DifficultySettings.busTicketPrice, the same again per nearby recruit, refused inside a vehicle, and no wanted or ownership check on this path). Reference voice: describes, does not instruct. Three sentences, no rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000010D}" {
+   Id "OVT-FieldManual_MapAndTravel_Title"
+   Target_en_us "The Map and Fast Travel"
+   Comment "Field Manual - title of The Map and Fast Travel page, shown on its tile in the category grid and as the heading at the top of the page. Two to five words. This key is also the deep-link id tutorial popups use to open this page, so it must never be renamed."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000147}" {
+   Id "OVT-FieldManual_Recruits_Head"
+   Target_en_us "Hiring Recruits"
+   Comment "Field Manual - section header inside the Recruits page, drawn above the paragraph about how a civilian becomes a recruit. Two to four words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000148}" {
+   Id "OVT-FieldManual_Recruits_Head2"
+   Target_en_us "Orders and Groups"
+   Comment "Field Manual - section header inside the Recruits page, drawn above the paragraph about commanding recruits and about joining another player's group. Two to four words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000149}" {
+   Id "OVT-FieldManual_Recruits_Head3"
+   Target_en_us "Experience and Gear"
+   Comment "Field Manual - section header inside the Recruits page, drawn above the paragraph about recruit experience, levels and loadouts. Two to four words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000014A}" {
+   Id "OVT-FieldManual_Recruits_Head4"
+   Target_en_us "Managing Recruits"
+   Comment "Field Manual - section header inside the Recruits page, drawn above the paragraph about the Manage Recruits screen and about how recruits persist. Two to four words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000010E}" {
+   Id "OVT-FieldManual_Recruits_Text"
+   Target_en_us "Civilians can be hired as recruits and fight alongside you. Recruits belong to the player who hired them, stay with that player between sessions, and one player can hold up to sixteen at a time."
+   Comment "Field Manual - opening paragraph of the Recruits page, shown as body prose under the page heading. The number sixteen is the per-player recruit cap (OVT_RecruitManagerComponent.c:11 MAX_RECRUITS_PER_PLAYER, a fixed constant, not a difficulty setting). Reference voice: it describes the system, it does not instruct the player. One to three sentences, no rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000014B}" {
+   Id "OVT-FieldManual_Recruits_Text2"
+   Target_en_us "A civilian is hired by holding the recruit action on them from close by, which costs the recruit price the difficulty settings carry. A recruitment tent, built at a base or a FOB, hires from the nearest town instead at half that price, and takes one of that town's supporters with it, so it only works while that town has support to give. Either way the recruit is yours, and nobody can hold more than sixteen at once."
+   Comment "Field Manual - Recruits page, body paragraph under the 'Hiring Recruits' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_RecruitCivilianAction.c:1-40 and OVT_PlayerCommsComponent.RpcAsk_RecruitCivilian:1293-1333 (CIV faction only, 20 m range, charged at m_Difficulty.baseRecruitCost), OVT_RecruitFromTentAction.c:1-80 and RpcAsk_RecruitFromTent:1341-1386 (half cost, NearestTownHasSupporters gate, TakeSupportersFromNearestTown), Configs/Resistance/buildables.conf:16-27 (Recruitment Tent is a buildable, m_bBuildAtBase and m_bBuildAtFOB), and OVT_RecruitManagerComponent.c:11 MAX_RECRUITS_PER_PLAYER = 16. The money price is deliberately not quoted because it is a difficulty setting; sixteen is a hard constant."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000014C}" {
+   Id "OVT-FieldManual_Recruits_Text3"
+   Target_en_us "Recruits join your group and take orders through the ordinary group command menu, the same as any other AI subordinate. If you join another player's group your recruits go with you and that player commands them while you are there; they are still yours, and they come back under your command when you leave the group or reconnect. Recruits standing within fifty metres of you when you fast travel come along, and each one adds another fare of the same size to the trip."
+   Comment "Field Manual - Recruits page, body paragraph under the 'Orders and Groups' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_RecruitManagerComponent.RecruitCivilian:800-846 (AddRecruitToPlayerGroup puts the recruit in the owner's group), Scripts/Game/UI/Modded/SCR_GroupSubMenuBase.c:1-60 (the shipped explanation of the group model: recruits follow their owner into a joined group, the leader commands them, ownership is unchanged), and OVT_MapContext.c:25 RECRUIT_TRAVEL_RADIUS = 50 with :386-395 (cost += one fastTravelCost per nearby recruit). The fare itself is a difficulty setting and is not quoted."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000014D}" {
+   Id "OVT-FieldManual_Recruits_Text4"
+   Target_en_us "Recruits earn experience for killing occupying faction soldiers and gain levels of their own, and their kills, level and progress are listed beside their name. They arrive in civilian clothes, and a saved loadout can be applied to one nearby recruit or to all of them at once from the loadout screen. What a recruit is carrying stays with it, and is still there when it comes back after a save is loaded."
+   Comment "Field Manual - Recruits page, body paragraph under the 'Experience and Gear' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_RecruitManagerComponent.OnAIKilled:678-710 (XP only for US/USSR kills) and AddRecruitXP:553-574, OVT_RecruitData.GetLevel:54-57, OVT_RecruitsContext.UpdateRecruitDetails:228-280 (level, XP, kills, hometown, status), SpawnRecruit:760-795 (ApplyCivilianLoadout), OVT_LoadoutsContext.c:60-79 (apply to selected recruit / apply to all nearby recruits), and OVT_RecruitData.m_sBodyPersistenceId:34-44 with RequestPersistedRecruitBody:1069-1124 (the stored body returns with its inventory). The per-kill XP amount is not quoted."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000014E}" {
+   Id "OVT-FieldManual_Recruits_Text5"
+   Target_en_us "Manage Recruits, on the Overthrow main menu, lists everyone you have hired along with their home town and whether they are in the world at the moment. A recruit can be renamed, marked on the map, or dismissed from there. Recruits are kept between sessions: they leave the world about ten minutes after their owner disconnects and are put back where they were when that player returns. A recruit that is killed is gone for good, and its place on the roster is free again."
+   Comment "Field Manual - Recruits page, body paragraph under the 'Managing Recruits' header. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_MainMenuContext.c:159-163 and :272-276 (the Manage Recruits button opens OVT_RecruitsContext), OVT_RecruitsContext.c:228-280 (hometown and online/offline status), :365-394 (dismiss), :397-459 (rename), :471-494 (show on map), OVT_RecruitManagerComponent.OFFLINE_DESPAWN_TIME:41 = 600 seconds with OnPlayerDisconnected:970-977 and RespawnPlayerRecruits:1004-1035, and OnCharacterKilled:638-674 (a dead recruit's record is removed)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000010F}" {
+   Id "OVT-FieldManual_Recruits_Title"
+   Target_en_us "Recruits"
+   Comment "Field Manual - title of the Recruits page, shown on its tile in the category grid and as the heading at the top of the page. One or two words. This key is also the deep-link id tutorial popups use to open this page, so it must never be renamed."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000012F}" {
+   Id "OVT-FieldManual_Shops_Head"
+   Target_en_us "Where Money Comes From"
+   Comment "Field Manual - section header inside the Money and Shops page, drawn above the paragraph about income. Three or four words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000130}" {
+   Id "OVT-FieldManual_Shops_Head2"
+   Target_en_us "Prices"
+   Comment "Field Manual - section header inside the Money and Shops page, drawn above the paragraph about pricing. One or two words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000131}" {
+   Id "OVT-FieldManual_Shops_Head3"
+   Target_en_us "Stock"
+   Comment "Field Manual - section header inside the Money and Shops page, drawn above the paragraph about shop stock. One or two words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000132}" {
+   Id "OVT-FieldManual_Shops_Head4"
+   Target_en_us "Selling to Shops"
+   Comment "Field Manual - section header inside the Money and Shops page, drawn above the paragraph about selling. Two to four words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000110}" {
+   Id "OVT-FieldManual_Shops_Text"
+   Target_en_us "Towns hold shops that both buy from you and sell to you. What a shop carries depends on the kind of shop it is, stock is limited and replenishes each morning, and prices move with the town: how much of an item is stocked nearby and how far that town is from a port both feed into what it costs."
+   Comment "Field Manual - opening paragraph of the Money and Shops page, shown as body prose under the page heading. FACT-CHECKED against OVT_EconomyManagerComponent.GetSellPrice (town stock level and distance to the nearest port both adjust the base price) and the 7am restock in ReplenishStock. Agrees with the 'economy-first-buy' tutorial tip on price variation. Reference voice: it describes the system, it does not instruct the player. One to three sentences, no rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000133}" {
+   Id "OVT-FieldManual_Shops_Text2"
+   Target_en_us "A new character starts with a sum of cash set by the campaign's difficulty settings. After that, income arrives from the towns four times a day in game time: towns pay tax according to their population and their stability, towns that support the resistance donate on top of that, and towns still held by the occupying faction pay no tax at all. The resistance tax is taken off that total first, and what is left is shared between the players online at the time; with nobody online it all goes to resistance funds. Selling at shops, finishing jobs and rent from property you own add to the same balance, which is recorded against your player rather than carried in your pockets."
+   Comment "Field Manual - Money and Shops page, body paragraph under the 'Where Money Comes From' header. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_OverthrowGameMode.c:1048 (m_Difficulty.startingCash for a new player), OVT_EconomyManagerComponent.CheckUpdate:169-180 (income at hours 0, 6, 12 and 18), GetTaxIncome:499-510 (population and stability, occupying-faction towns skipped), GetDonationIncome:481-494 (scales with town support), CalculateIncome:446-475 (resistance tax off the top, remainder split between online players, all to resistance funds when none are online), OVT_JobManagerComponent.c:438, UpdateRents:238-283 and OVT_ShopTransactionComponent.c:371. No cash figures are quoted because startingCash is difficulty-scaled. Agrees with the 'economy-first-buy' tutorial tip that money is a balance, not a carried item."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000134}" {
+   Id "OVT-FieldManual_Shops_Text3"
+   Target_en_us "Every item has a base price, and what a shop asks is that price adjusted for where you are standing. Two things move it: how well stocked the surrounding town is for that item, and how far that town lies from the nearest port, so goods cost more the deeper inland they have travelled. A shop then adds its margin on top, which is why it never pays as much for an item as it charges for one. Trade skill lowers what you are charged, and vehicle prices are scaled separately by the difficulty settings."
+   Comment "Field Manual - Money and Shops page, body paragraph under the 'Prices' header. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_EconomyManagerComponent.GetSellPrice:537-556 (town stock level and distance to the nearest port both adjust the base price; vehicles keep the base price), GetBuyPrice:565-577 (m_fShopProfitMargin, then the player's priceMultiplier), GetShopBuyPrice:616-640 (vehiclePriceMultiplier and the procurement path) and OVT_TradeDiscountSkillEffect.c:8. Deliberately says 'how well stocked' rather than naming a curve: the stock term is an integer division in GetSellPrice, so its real behaviour is closer to a step than a slope. Agrees with the 'economy-first-buy' tutorial tip that prices move with the town."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000135}" {
+   Id "OVT-FieldManual_Shops_Text4"
+   Target_en_us "Shops hold a limited number of each item, and a town can only hold so much of anything: its population, its stability and how sought after the item is together set the ceiling. Townspeople buy from the shelves as the days pass, so stock falls whether or not anyone else is trading. Each morning shops top themselves back up towards that ceiling, and anything sold to a shop goes back onto its shelves."
+   Comment "Field Manual - Money and Shops page, body paragraph under the 'Stock' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_EconomyManagerComponent.GetTownMaxStock:602-607 (population, m_fNPCBuyRate, item demand and stability), UpdateShops:367-408 (townspeople draw stock down), CheckUpdate:182-191 with ReplenishStock:288-361 (restock at 07:00 game time, topping up to half the ceiling) and OVT_ShopTransactionComponent's sell path returning items to stock. 'Each morning' rather than '7am' keeps it readable; the hour is 7."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000136}" {
+   Id "OVT-FieldManual_Shops_Text5"
+   Target_en_us "A shop that deals in one kind of goods only buys that kind back, so a clothes shop has no use for a rifle, while gun dealers and drug dealers take almost anything with a price on it. An item that is worn, held or slung cannot be sold while it is equipped, and an item worth nothing cannot be sold at all; the menu names whichever rule applies. Vehicle shops and procurement points sell only, and never buy. Ordinary trade also does the town some good: business above a trivial sum lifts that town's stability for a while."
+   Comment "Field Manual - Money and Shops page, body paragraph under the 'Selling to Shops' header. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_ShopTransactionComponent.ResourceIsAccepted:512-517 and ShopTypeHasInventoryRules:524-533 (only SHOP_GENERAL, SHOP_ELECTRONIC, SHOP_CLOTHES and SHOP_VEHICLE have rules in Configs/System/ShopConfig.conf, so SHOP_GUNDEALER and SHOP_DRUG accept any registered priced resource), OVT_ShopSellRules.CanSellItem:71-83 and GetBlockReasonKey:94-106 (equipped, shop does not buy, no value), ShopBuysFromPlayers:30-42 (vehicle and procurement shops never buy) and OVT_StrongEconomyStabilityModifier:22-42 with Configs/Modifiers/stabilityModifiers.conf:71-78 (non-dealer transactions over 50 add a temporary +5 stability). The threshold is not quoted as a figure because it reads as trivia at that size."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000111}" {
+   Id "OVT-FieldManual_Shops_Title"
+   Target_en_us "Money and Shops"
+   Comment "Field Manual - title of the Money and Shops page, shown on its tile in the category grid and as the heading at the top of the page. Two to four words. This key is also the deep-link id tutorial popups use to open this page, so it must never be renamed."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000137}" {
+   Id "OVT-FieldManual_Skills_Head"
+   Target_en_us "Earning Experience"
+   Comment "Field Manual - section header inside the Skills and Levelling page, drawn above the paragraph about how experience is awarded. Two to four words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000138}" {
+   Id "OVT-FieldManual_Skills_Head2"
+   Target_en_us "Levels and Points"
+   Comment "Field Manual - section header inside the Skills and Levelling page, drawn above the paragraph about levels and skill points. Two to four words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000139}" {
+   Id "OVT-FieldManual_Skills_Head3"
+   Target_en_us "The Three Skills"
+   Comment "Field Manual - section header inside the Skills and Levelling page, drawn above the paragraph describing Trade, Stealth and Diplomacy. Two to four words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000013A}" {
+   Id "OVT-FieldManual_Skills_Head4"
+   Target_en_us "The Character Sheet"
+   Comment "Field Manual - section header inside the Skills and Levelling page, drawn above the paragraph about the character sheet screen. Two to four words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000112}" {
+   Id "OVT-FieldManual_Skills_Text"
+   Target_en_us "Experience is earned for most of the things you do for the resistance, and enough of it raises your level. Every level past the first is worth one point, and points are spent on skills from your character sheet."
+   Comment "Field Manual - opening paragraph of the Skills and Levelling page, shown as body prose under the page heading. Reference voice: it describes the system, it does not instruct the player. One to three sentences, no rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000013B}" {
+   Id "OVT-FieldManual_Skills_Text2"
+   Target_en_us "Experience comes in for killing occupying faction soldiers, for building, for placing things, for finishing a job that carries an experience reward, and in small amounts for trading at a shop or with a dealer. Each buildable and placeable is worth its own amount, so the larger pieces of work pay more. Trading only pays out once in a while rather than on every transaction, so a run of small sales at the same counter does not stack up. Being killed costs experience, though your total never falls below zero."
+   Comment "Field Manual - Skills and Levelling page, body paragraph under the 'Earning Experience' header. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_SkillManagerComponent.OnAIKilled:252-270 (occupying faction kills by a player), OnBuild:196-199 and OnPlace:186-189 (each buildable/placeable carries its own m_iRewardXP), OVT_JobManagerComponent:440-442 (job reward XP), OnPlayerBuy:231-235 and OnPlayerSell:241-246 with TryStartTradeXPCooldown:215-225 (buy and sell share one per-player cooldown), and OnPlayerKilled:204-207 with TakeXP:276-283 (clamped at zero). Amounts are deliberately not quoted because they are config data. Reference voice: describes the system, never instructs."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000013C}" {
+   Id "OVT-FieldManual_Skills_Text3"
+   Target_en_us "Your level is worked out from your total experience, and each level takes more experience than the one before it. Every level after the first is worth one skill point. Points already spent are counted against that, so what is left over is your level minus one, minus every skill level you have bought so far."
+   Comment "Field Manual - Skills and Levelling page, body paragraph under the 'Levels and Points' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_PlayerData.GetRawLevel:111-114 and GetLevelXP:141-144 (level derives from xp, the curve is quadratic so each level costs more), CountSkills:152-160, and the spendable-points expression '(player.GetLevel() - 1) - player.CountSkills()' used in both OVT_SkillManagerComponent.AddSkillLevel:121 and OVT_CharacterSheetContext.Refresh:62."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000013D}" {
+   Id "OVT-FieldManual_Skills_Text4"
+   Target_en_us "Trade, Stealth and Diplomacy each run to five levels, bought one level at a time. Trade lowers what you pay when buying, opens up importing at its first level, and at its fifth extends importing to goods no ordinary shop stocks. Stealth shortens the distance at which the occupying faction picks you out, and recruits are seen using their commander's Stealth rather than any of their own. Diplomacy raises the chance that a civilian you speak to comes over to the resistance."
+   Comment "Field Manual - Skills and Levelling page, body paragraph under the 'The Three Skills' header. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against Configs/Player/overthrowSkills.conf (three OVT_SkillConfig entries, five OVT_SkillLevelConfig levels each), OVT_TradeDiscountSkillEffect (sets priceMultiplier, applied in OVT_EconomyManagerComponent.GetBuyPrice:565-577) with the 'Import' permission granted at level 1 and 'IllegalImports' at level 5 (gates in OVT_PlayerCommsComponent:799 and :813, OVT_VehicleMenuContext:172, OVT_PortContext:99), OVT_StealthSkillEffect (sets stealthMultiplier, used in OVT_PlayerWantedComponent.CheckUpdate:496 and inherited by recruits at :488-493), and OVT_SupportSkillEffect (sets diplomacy, rolled in OVT_PlayerCommsComponent:153). Percentages are not quoted because they are config data shown in the character sheet itself."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000013E}" {
+   Id "OVT-FieldManual_Skills_Text5"
+   Target_en_us "The character sheet, reached from the Overthrow main menu, is where points are spent. It lists your level, how far along you are towards the next one, how many points are waiting, and every skill with its five levels and what each level gives. Levels you already hold are marked, and the button that buys the next one only appears while you have a point spare and the skill has a level left to take."
+   Comment "Field Manual - Skills and Levelling page, body paragraph under the 'The Character Sheet' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_MainMenuContext:170 and :278-281 (the Character Sheet button opens OVT_CharacterSheetContext) and OVT_CharacterSheetContext.Refresh:53-100 plus RenderSkill:102-169 (level, progress bar, points-to-spend text, per-skill level rows with effect descriptions, and the add button hidden unless toSpend > 0 and playerLevel < levels)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000113}" {
+   Id "OVT-FieldManual_Skills_Title"
+   Target_en_us "Skills and Levelling"
+   Comment "Field Manual - title of the Skills and Levelling page, shown on its tile in the category grid and as the heading at the top of the page. Two to four words. This key is also the deep-link id tutorial popups use to open this page, so it must never be renamed."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000013F}" {
+   Id "OVT-FieldManual_WantedSystem_Head"
+   Target_en_us "What Draws Attention"
+   Comment "Field Manual - section header inside The Wanted System page, drawn above the paragraph listing what makes a player wanted. Two to four words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000140}" {
+   Id "OVT-FieldManual_WantedSystem_Head2"
+   Target_en_us "Being Seen"
+   Comment "Field Manual - section header inside The Wanted System page, drawn above the paragraph about the seen indicator and detection range. Two to four words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000141}" {
+   Id "OVT-FieldManual_WantedSystem_Head3"
+   Target_en_us "Wearing Their Uniform"
+   Comment "Field Manual - section header inside The Wanted System page, drawn above the paragraph about disguises. Two to four words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000142}" {
+   Id "OVT-FieldManual_WantedSystem_Head4"
+   Target_en_us "Cooling Off"
+   Comment "Field Manual - section header inside The Wanted System page, drawn above the paragraph about how a wanted level decays. Two to four words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000114}" {
+   Id "OVT-FieldManual_WantedSystem_Text"
+   Target_en_us "Doing something the occupying faction objects to raises your wanted level, and they come looking for you while it is above zero. Some of it has to be seen to count and some of it does not. The level falls one step at a time once nobody is watching you, and how long each step takes is set by the difficulty settings."
+   Comment "Field Manual - opening paragraph of The Wanted System page, shown as body prose under the page heading. Reference voice: it describes the system, it does not instruct the player. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08: the seen gate applies to the OVT_PlayerWantedComponent paths (CheckEntity:698, OnPlayerLoot:284, OnIllegalActionSeen:298, base/tower at CheckUpdate:519-541) but NOT to the damage paths in SCR_CharacterDamageManagerComponent.WhenDamaged:15-40 and WhenDamageStateChanged:44-82, which escalate with no witness at all - hence the deliberate 'some of it does not'. Decay at CheckUpdate:545-559 runs only while !m_bTempSeen, with wantedTimeout/wantedOneTimeout from OVT_DifficultySettings:20-23."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000143}" {
+   Id "OVT-FieldManual_WantedSystem_Text2"
+   Target_en_us "Most of it has to be witnessed. Being watched while openly carrying a weapon, while looting, while putting up something they have outlawed, or while close to one of their bases or radio towers all count, and being taken for the resistance or one of its backers by what you are wearing counts the moment you are seen at all. Violence needs no witness: wounding anybody makes you wanted, killing anybody raises it further, and either one blows a disguise you were wearing. When one of their soldiers is killed, whoever is sitting in a vehicle right beside the body is held responsible as well. Being seen at the wheel of an armed vehicle or a mobile FOB raises it further again, and that vehicle is marked as resistance from then on. Above the first level the occupying faction stops reading you as a civilian and treats you as an enemy on sight."
+   Comment "Field Manual - The Wanted System page, body paragraph under the 'What Draws Attention' header. Six sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_PlayerWantedComponent: the seen gate on those paths (m_bTempSeen in CheckEntity:698, m_bIsSeen in OnPlayerLoot:284 and OnIllegalActionSeen:298), IsVisiblyArmed:720-724, OVT_ResistanceFactionManager:739-747 (illegal placement), base and radio tower proximity at CheckUpdate:519-541, perceived player/supporting faction at CheckEntity:700-717, the armed-vehicle and mobile FOB branch at :727-760 with SetVehicleAsEnemy:792-799, and CheckWanted:599-611 (perceived as hostile player faction once the level is above 1). The violence sentences come from SCR_CharacterDamageManagerComponent.WhenDamaged:15-40 (any damage to any character escalates the instigator, blowing an occupying-faction disguise) and WhenDamageStateChanged:44-82 plus CheckVehicleSetWanted:106-131 (a kill escalates further, and when the victim is occupying faction every occupant of a vehicle within 5 m is escalated too). NEITHER damage path checks whether the instigator was seen. No distances or level numbers are quoted: the base range is a difficulty setting."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000144}" {
+   Id "OVT-FieldManual_WantedSystem_Text3"
+   Target_en_us "An eye shows on your screen while someone working for the occupying faction has you in sight, and it fades in and out with how clearly they can make you out. Their people only start to pick you up inside a certain range, and the Stealth skill draws that range in. Recruits are watched by the same rules and are seen using their commander's Stealth."
+   Comment "Field Manual - The Wanted System page, body paragraph under the 'Being Seen' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_WantedInfo.UpdateSeen:79-98 (the SeenEye widget is shown while IsSeen and its opacity is set from m_fVisualRecognitionFactor) and OVT_PlayerWantedComponent.CheckUpdate:480-517 (distanceSeen = 5 + m_fBaseDistanceSeenAt * stealthMultiplier, with recruits reading their owner's stealthMultiplier at :488-493)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000145}" {
+   Id "OVT-FieldManual_WantedSystem_Text4"
+   Target_en_us "Dressed convincingly enough in the occupying faction's own kit, their troops read you as one of their own and stop watching you at a distance. What is left is close range: near enough and in plain sight, someone sees through it, the disguise is blown and a wanted level comes with it. Opening fire on anybody blows it as well, at any range and whether or not it was noticed. While it holds, standing near a base or a radio tower does not make you wanted on its own. An icon on your screen carries the state of it, and how far their soldiers can see through a disguise is a difficulty setting."
+   Comment "Field Manual - The Wanted System page, body paragraph under the 'Wearing Their Uniform' header. Five sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_PlayerWantedComponent.CheckUpdate:434-446 (perceived occupying faction sets m_bIsDisguised and skips normal detection in favour of the close check), CheckDisguisedAsOccupying:325-372 (difficulty setting disguiseDetectionDistance plus TraceLOS, then SetBaseWantedLevel(2, 'WantedDisguiseBlown') and BlowDisguise), SCR_CharacterDamageManagerComponent.WhenDamaged:24-37 and WhenDamageStateChanged:66-79 (both call BlowDisguise on the instigator with no range or witness check), the '!m_bIsDisguised' guard on the base and tower checks at :519-541, and OVT_WantedInfo.UpdateUndercoverStatus:103-235 (the undercover icon is coloured from the disguise and wanted state). The 15 m default is deliberately not quoted."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000146}" {
+   Id "OVT-FieldManual_WantedSystem_Text5"
+   Target_en_us "A wanted level only comes down while nobody has eyes on you, one level at a time, with a countdown between each step. Anything that makes you wanted again sets the level straight to whatever that thing is worth and starts the countdown over, so the level jumps up and only ever walks back down. The last step down to nothing runs on its own separate countdown, and being spotted during it puts you back up rather than letting it finish. Both countdowns are difficulty settings. Fast travel is unavailable while your wanted level is anything above zero."
+   Comment "Field Manual - The Wanted System page, body paragraph under the 'Cooling Off' header. Five sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_PlayerWantedComponent.CheckUpdate:545-567 (decay only runs when !m_bTempSeen, decrements m_iWantedTimer once per tick and steps the level down by one via the raw SetWantedLevel, reloading wantedTimeout for levels above 1 and wantedOneTimeout for the last step; being seen at level 1 re-escalates to 2 instead), SetBaseWantedLevel:65-91 (escalation only, jumps straight to the new level and restarts the timer), OVT_DifficultySettings:20-23 (wantedTimeout and wantedOneTimeout are both difficulty settings) and OVT_MapContext:71-76 (fast travel refused while GetWantedLevel() > 0). No millisecond values are quoted."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000115}" {
+   Id "OVT-FieldManual_WantedSystem_Title"
+   Target_en_us "The Wanted System"
+   Comment "Field Manual - title of The Wanted System page, shown on its tile in the category grid and as the heading at the top of the page. Two to four words. This key is also the deep-link id tutorial popups use to open this page, so it must never be renamed."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000011A}" {
+   Id "OVT-FieldManual_Welcome_Head"
+   Target_en_us "What You Start With"
+   Comment "Field Manual - section header inside the Welcome to Overthrow page, above the paragraph about the starting house, car and cash. Two to four words, title case. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000011B}" {
+   Id "OVT-FieldManual_Welcome_Head2"
+   Target_en_us "No Set Order"
+   Comment "Field Manual - section header inside the Welcome to Overthrow page, above the paragraph explaining that the campaign has no required sequence. Two to four words, title case. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000116}" {
+   Id "OVT-FieldManual_Welcome_Text"
+   Target_en_us "Overthrow is a persistent sandbox campaign fought on an occupied island. There is no objective list and no ending: the resistance grows out of whatever you choose to do, and the occupying faction reacts to it. Towns, money, property, vehicles, recruits and captured ground are all durable state, so a campaign carries on between sessions and across server restarts."
+   Comment "Field Manual - opening paragraph of the Welcome to Overthrow page, shown as body prose beneath the mod banner image. FACT-CHECKED against docs/mission-statement.md (persistent, no scripted mission, server-authoritative). Reference voice: it describes the mod, it does not instruct the player, and it must not imply an order of play. Two to four sentences, no rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000011C}" {
+   Id "OVT-FieldManual_Welcome_Text2"
+   Target_en_us "A new character is given a house in one of the island's towns, with a car parked outside it, and a small amount of starting cash. That house is registered as your home, which is where you respawn. When no starting house is free, a new character begins in one of the towns instead, with the starting cash but no house and no car, and respawns where they started until a building they own is set as their home. Everything past that is earned, bought, built or taken."
+   Comment "Field Manual - body paragraph on the Welcome to Overthrow page, under the 'What You Start With' header. FACT-CHECKED against OVT_OverthrowGameMode.c:1011-1023 (random starting house, home, starting car) and :1048 (starting cash), OVT_SpawnLogic.c:787-802 (home is the respawn position). The cash amount is a difficulty setting and is deliberately not quoted. Reference voice: describes, does not instruct. Three to four sentences, no rich-text markup. HOUSELESS CLAUSE ADDED 2026-08-09 by new-player-experience/first-spawn Phase 6.1: this page is the Learn-more target of BOTH welcome entries, so without it a player who took the fallback spawn followed 'Learn more' from OVT-Tutorial_WelcomeNohome_Body2 into a paragraph telling them they were given a house. FACT-CHECKED against OVT_OverthrowGameMode.c:1036-1046 (the !house branch calls only SpawnPlayerAtFallbackPosition - no SetOwner, no SetHome, no SpawnStartingCar), :838-853 (a bus stop, or the starting town centre when none exists, with SetHomePos), :1043-1053 (the starting-cash block sits outside the house if/else and runs on both branches), OVT_SpawnLogic.c:787-802 (home is the respawn position) and OVT_RealEstateContext.c:267-268 -> OVT_RealEstateManagerComponent.c:567-576 (the 'Set as Home' action, enabled only for an owned building). It must not say more than OVT-Tutorial_WelcomeNohome_Body2 does."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000011D}" {
+   Id "OVT-FieldManual_Welcome_Text3"
+   Target_en_us "Nothing here has to happen before anything else. Trading, recruiting, placing camps, building and capturing bases are tools that stay available in whatever order suits you, and on a server every player is acting on the same island and the same campaign state."
+   Comment "Field Manual - body paragraph on the Welcome to Overthrow page, under the 'No Set Order' header. FACT-CHECKED against docs/mission-statement.md (sandbox, no mission order, multiplayer-first and server-authoritative). Reference voice: it must not imply a required sequence or assign a goal. Two sentences, no rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000117}" {
+   Id "OVT-FieldManual_Welcome_Title"
+   Target_en_us "Welcome to Overthrow"
+   Comment "Field Manual - title of the Welcome to Overthrow page, shown on its tile in the category grid and as the heading at the top of the page. Overthrow is the mod name and stays untranslated. Two to four words. This key is also the deep-link id tutorial popups use to open this page, so it must never be renamed."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B00000000011F}" {
+   Id "OVT-FieldManual_YourHome_Head"
+   Target_en_us "What a Home Gives You"
+   Comment "Field Manual - section header inside the Your Home page, above the paragraph on respawning and fast travel. Three to five words, title case. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000120}" {
+   Id "OVT-FieldManual_YourHome_Head2"
+   Target_en_us "Buying and Renting"
+   Comment "Field Manual - section header inside the Your Home page, above the paragraphs on prices, rent and selling. Two to four words, title case. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000118}" {
+   Id "OVT-FieldManual_YourHome_Text"
+   Target_en_us "Every campaign begins with a house of your own and a car parked outside it. Ownership is recorded against your player rather than against the session, so a building you own stays yours between sessions and across server restarts."
+   Comment "Field Manual - opening paragraph of the Your Home page, shown as body prose under the page heading. FACT-CHECKED against OVT_OverthrowGameMode.c:1011-1023 (starting house plus starting car) and OVT_RealEstateManagerComponent.c:189-268 with its persistence serializer (ownership is keyed to the persistent player id and is saved). Reference voice: describes, does not instruct. Two sentences, no rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000121}" {
+   Id "OVT-FieldManual_YourHome_Text2"
+   Target_en_us "The building set as your home is where your character respawns after dying. Buildings you own or rent also count as fast travel destinations, unless the building is rented out to somebody else. Rejoining after you have left the game puts you back where you logged out rather than at home."
+   Comment "Field Manual - body paragraph on the Your Home page, under the 'What a Home Gives You' header. FACT-CHECKED against OVT_SpawnLogic.c:767-807 (home is the respawn position, last-known logout position takes priority and is cleared on death) and OVT_MapContext.c:93-108 (an owned or rented building is a fast travel destination; one that is rented out, and a warehouse, are not). Reference voice: describes, does not instruct. Three sentences, no rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000122}" {
+   Id "OVT-FieldManual_YourHome_Text3"
+   Target_en_us "The real estate menu appears in the main menu whenever you are standing in a building that can be owned, and shows that building's sale price and its rent. Neither is a flat figure: both rise with the population and the stability of the nearest town, so the same kind of house is worth more in a large, settled town than in a small unsettled one. Officers can buy and rent using resistance funds instead of their own money."
+   Comment "Field Manual - body paragraph on the Your Home page, under the 'Buying and Renting' header. FACT-CHECKED against OVT_MainMenuContext.c:148-157 (menu entry enabled only in an ownable building), OVT_RealEstateManagerComponent.c:712-745 (price and rent = base value scaled by the nearest town's population and stability) and OVT_RealEstateContext.c:59-69 plus OVT_PlayerCommsComponent.c:459-464 (officer-only resistance funds account). Reference voice: describes, does not instruct. Three sentences, no rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000123}" {
+   Id "OVT-FieldManual_YourHome_Text4"
+   Target_en_us "Rent is settled once a day at midnight: whoever rents a building pays, and whoever owns it is paid. You can own more than one building and set any of them as your home instead. A building cannot be sold while it is your home, and your last remaining building cannot be sold at all."
+   Comment "Field Manual - body paragraph on the Your Home page, under the 'Buying and Renting' header, following the price paragraph. FACT-CHECKED against OVT_EconomyManagerComponent.c:194-198 and :238-281 (rents settle at hour 0, owner credited and renter debited) and OVT_RealEstateContext.c:355-365 and :459-479 (a home cannot be sold, the only remaining house cannot be sold, any owned building can be set as home). Reference voice: describes, does not instruct. Three sentences, no rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000119}" {
+   Id "OVT-FieldManual_YourHome_Title"
+   Target_en_us "Your Home"
+   Comment "Field Manual - title of the Your Home page, shown on its tile in the category grid and as the heading at the top of the page. Two or three words. This key is also the deep-link id tutorial popups use to open this page, so it must never be renamed."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754611200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3A000000000069}" {
+   Id "OVT-MainMenu_Tips"
+   Target_en_us "Tips"
+   Comment "Overthrow main menu - button that re-opens the most recent tutorial tip in its full, readable form. Sits in the same vertical list as Jobs, Build and Save."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{59A6ED92E301B152}" {
+   Id "OVT-NeedBusStop"
+   Target_en_us "You must click near another bus stop"
+   Target_fr_fr "Cliquez près d'un autre arrêt de bus"
+   Target_ru_ru "Вы должны нажать на карту  возле автобусной остановки"
+   Target_ko_kr "다른 버스 정류장 근처를 클릭해야 합니다"
+   Target_zh_cn "你必须在另一个公交车站附近点击"
+   Target_uk_ua "Ви повинні натиснути біля іншої автобусної зупинки"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1706586296
+   Author "Aaron Static"
+   LastChanged "parkj_c3c9hji"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3A000000000065}" {
+   Id "OVT-Tutorial_Back"
+   Target_en_us "Back"
+   Comment "Modal tutorial popup - label on the button that moves to the previous page of a multi-page tip. This is page navigation, NOT closing the popup. One short word."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3C000000000112}" {
+   Id "OVT-Tutorial_BasesFirstCapture_Body"
+   Target_en_us "You have just entered the restricted zone of a base. You will become wanted if you are seen here. In order to capture bases you must reach the flag at the center and trigger a battle. The battle will be decided by how many players (and recruits) hold the middle of the base against how many occupying soldiers are still there. Control runs both ways: the occupying faction keeps reserves and spends a surplus of them on retaking a base the resistance holds."
+   Comment "Body of the 'bases-first-capture' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. DELIVERY CONSTRAINT, read before rewording: this entry is triggered by BASE_CONTROL_CHANGE, which is a 300 m proximity fan-out with NO acting player and which fires in BOTH directions (OVT_TutorialManagerComponent.c:34, 345-355). The text must therefore never say 'you captured', never assume the reader did anything, and must read correctly for a bystander and for a player who has just lost a base. Sandbox tone rule: describes the system, never instructs. FACT-CHECKED 2026-08-09 for tutorial-content Phase 2. Sentence 1: OVT_QRFControllerComponent.CheckUpdatePoints:100-192 - once the reinforcement timer expires the component counts occupying-faction AI and player-controlled entities within QRF_POINT_RANGE = 220 every ten seconds, moves m_iPoints towards whichever side has more, and control changes when the score reaches the difficulty setting QRFPointsToWin in either direction, at which point m_OnFinished fires and OVT_OccupyingFactionManager.ChangeBaseControl:895-915 flips the faction. DO NOT describe capture as taking or planting a flag: the flag material follows the faction change (OVT_BaseControllerComponent.SetControllingFaction:143-152, UpdateFlagMaterial:99-116) and never causes it. Sentence 2: ChangeBaseControl:895-915 notifies the whole server in both directions and moves threat by 250 each way, and OVT_OccupyingFactionManager:1178-1194 spends a reserve surplus on a QRF against a base the resistance holds. Compresses #OVT-FieldManual_BaseCapture_Text, _Text3 and _Text5. Point totals and ranges are not quoted: the win total is a difficulty setting and the ranges are internal constants."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1779758225
+   Author "Claude"
+   LastChanged "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3C000000000111}" {
+   Id "OVT-Tutorial_BasesFirstCapture_Title"
+   Target_en_us "Base Control"
+   Comment "Title of the 'bases-first-capture' tutorial tip, shown to every player within 300 m of a base that has just changed hands, in either direction. Deliberately neutral: the reader may have fought for the base, may have been passing by, and may have just lost it. Heading of a small HUD popup, so keep it to two or three words. No markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754697600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3C000000000110}" {
+   Id "OVT-Tutorial_BuildFirstStructure_Body"
+   Target_en_us "Building adds structures where the resistance already holds ground: a base it controls, a FOB or a camp. What the build menu offers depends on which of those you are in, and a structure costs money and nothing else."
+   Comment "Body of the 'build-first-structure' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. Sandbox tone rule: describes the system, never instructs, and assumes nothing about what the player did before. This tip fires on the first BUILD, never on a FOB deployment (there is no deploy event in the trigger catalogue), so it must NOT read as though the player just deployed a FOB. FACT-CHECKED 2026-08-09 for tutorial-content Phase 2. Sentence 1: OVT_BuildContext.CanBuild:293-349 - the base branch accepts only a base within m_Difficulty.baseRange that is NOT occupying-faction held (:294-303), plus m_bBuildAtCamp (:333-339) and m_bBuildAtFOB (:341-347); the town and village branches exist in code but no shipped buildable sets m_bBuildInTown or m_bBuildInVillage. Sentence 2, what is offered: Configs/Resistance/buildables.conf - all seven buildables set m_bBuildAtBase, five also set m_bBuildAtFOB, and only the Vehicle Maintenance Ramp (:51) sets m_bBuildAtCamp. Cost: OVT_ResistanceFactionManager.BuildItem:775-858 checks funds at :792 and charges economy.TakePlayerMoney at :849; the price is OVT_OverthrowConfigComponent.GetBuildableCost:255-258 (m_iCost x buildableCostMultiplier). DO NOT write that building costs supplies or materials: money is the only resource in the build path. Compresses #OVT-FieldManual_FOBs_Text and _Text4. Prices are not quoted because the multiplier is a difficulty setting."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1779758244
+   Author "Claude"
+   LastChanged "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3C00000000010F}" {
+   Id "OVT-Tutorial_BuildFirstStructure_Title"
+   Target_en_us "Building Structures"
+   Comment "Title of the 'build-first-structure' tutorial tip, shown the first time a player builds a structure from the Build menu. Heading of a small HUD popup, so keep it to two or three words. No markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754697600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3A000000000067}" {
+   Id "OVT-Tutorial_DisableTips"
+   Target_en_us "Don't Show Tips Again"
+   Comment "Modal tutorial popup - label on the button that permanently switches every tutorial tip off for this player profile. Must read as a lasting preference, not as dismissing this one tip."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3A000000000062}" {
+   Id "OVT-Tutorial_Dismiss"
+   Target_en_us "Close"
+   Comment "Modal tutorial popup - label on the button that closes the tip and records it as read. Sits inside a navigation button beside an Escape / gamepad-B glyph, so keep it to one short word."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3A0000000000B1}" {
+   Id "OVT-Tutorial_EconomyFirstBuy_Body"
+   Target_en_us "Shops sell legal items to you and will buy back the ones they sell. Their stock is limited and tops itself back up each morning. Prices differ from town to town, opening up the possibility of trade. Items can be imported from ports for a low price, and shops further inland from those ports will pay a higher price than the shops which are closer."
+   Comment "Body of the 'economy-first-buy' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). Explains how the economy works; it must NOT tell the player what to do, because Overthrow is a sandbox and the tip system never assigns goals. FACT-CHECKED 2026-08-08 against OVT_PlayerData.money (a persisted int on the player record, not an entity) and OVT_SellableItemScanner: there is no theft, drop or loot-money mechanic anywhere, and no deposit/bank/vault. The previous text claimed money could be stolen and deposited at your house - both invented. Do not reintroduce either claim. The only real money loss is OVT_EconomyManagerComponent.ChargeRespawn, a flat fee charged on respawn only above a 500 balance, and only on Hard/Extreme/Insane (Normal and Easy are 0). REWRITTEN 2026-08-09 for tutorial-content Phase 1 (entry adopted, link repointed from Main Menu to Money and Shops). Sentence 1: OVT_ShopSellRules.ShopBuysFromPlayers:30-42 (every shop type buys back except vehicle shops, procurement points, and gun dealers when the difficulty multiplier is zero, hence 'most of them'), OVT_EconomyManagerComponent.CheckUpdate:183-187 with ReplenishStock:288-361 (shops top back up towards half the town ceiling at 07:00 game time) and GetTownMaxStock:602-607 (stock has a ceiling). Sentence 2: GetSellPrice:537-556 (base price adjusted by town stock level and distance to the nearest port). NOTE, CORRECTED 2026-08-09: this sentence was originally narrowed to 'differ' rather than 'scale' on the belief that the town-stock term was an integer division behaving as a step - BUG-105 investigated that on main and DISPROVED it at runtime (measured 1116 -> 1067 -> 1018 across stock 1/50/100; EnforceScript int/int evaluates fractionally inside an expression containing float operands, and the division is now written (float)stock_level / max_stock). The scarcity gradient IS a real smooth curve. The current wording is still true and needs no change, but the old 'do not reintroduce the curve wording' instruction was wrong and is withdrawn: a future author MAY say prices move with local scarcity. Money as a balance: OVT_PlayerData.c:13 (int money on the persisted player record). Compresses #OVT-FieldManual_Shops_Text, _Text3 and _Text4."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1779758395
+   Author "Claude"
+   LastChanged "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3A0000000000B0}" {
+   Id "OVT-Tutorial_EconomyFirstBuy_Title"
+   Target_en_us "Buying and Selling"
+   Comment "Title of the 'economy-first-buy' tutorial tip, shown the first time a player buys anything at a shop. Appears as the heading of a small HUD popup, so keep it to two or three words."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3A000000000064}" {
+   Id "OVT-Tutorial_Finish"
+   Target_en_us "Finish"
+   Comment "Modal tutorial popup - the Next button is relabelled to this on the LAST page, where it closes the tip instead of paging forward. One short word."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3C000000000102}" {
+   Id "OVT-Tutorial_HomeFirstOpen_Body"
+   Target_en_us "Real estate can be bought, rented and sold. Not all buildings can be bought, but most houses can be. The building set as your home is where your character respawns, and buildings you own or rent count as fast travel destinations. Bases and FOBs can also be set as \"Home\". Various warehouses can also be bought via this screen and allow mass storage and retireval of items."
+   Comment "Body of the 'home-first-open' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. Sandbox tone rule: it describes the system and must NOT tell the player what to do, assign a goal, or assume anything about what they did before. FACT-CHECKED 2026-08-09 for tutorial-content Phase 1. Sentence 1: OVT_RealEstateManagerComponent.c:333-350 (m_mOwned is keyed by the persistent player id) and its ApplyPersisted path at :255+ called from OVT_RealEstateManagerSerializer.Deserialize, so ownership survives a save and a restart. Sentence 2: OVT_SpawnLogic.c:786-806 (player.home is the respawn position, with the logout position taking priority) and OVT_MapContext.c:93-107 (GetNearestOwned / GetNearestRented make an owned or rented building a fast travel destination). Compresses #OVT-FieldManual_YourHome_Text and _Text2."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1779760812
+   Author "Claude"
+   LastChanged "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3C000000000101}" {
+   Id "OVT-Tutorial_HomeFirstOpen_Title"
+   Target_en_us "Owning Property"
+   Comment "Title of the 'home-first-open' tutorial tip, shown the first time a player opens the Real Estate screen. Heading of a small HUD popup, so keep it to two or three words. No markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754697600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3A000000000066}" {
+   Id "OVT-Tutorial_LearnMore"
+   Target_en_us "Learn More"
+   Comment "Modal tutorial popup - label on the button that opens the Field Manual on the page this tip links to. Only shown when the tip declares a field-manual link. Two words at most."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3C000000000106}" {
+   Id "OVT-Tutorial_MapFirstOpen_Body"
+   Target_en_us "The map marks the buildings and vehicles you own, the camps and FOBs the resistance has placed, and the shops, gun dealers and ports available for import. You must be carrying a map item in your inventory for it to open, so don't lose it!"
+   Comment "Body of the 'map-first-open' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. Sandbox tone rule: describes the system, never instructs, and assumes nothing about what the player did before. FACT-CHECKED 2026-08-09 for tutorial-content Phase 1. Sentence 1: OVT_MapIcons.c OnMapOpen (owned houses :472, warehouses :573, gun dealers via TryCreateGunDealerIcon:111, camps :641, FOBs :664, shops via TryCreateShopIcon:137, ports via TryCreatePortIcon:184, owned vehicles :710). Sentence 2: OVT_MapContext.c ShowMap:135-146 requires an SCR_MapGadgetComponent, and both EnableMapInfo:152-158 and EnableFastTravel:277-285 show the 'MustHaveMap' notification and return when it is absent. Compresses #OVT-FieldManual_MapAndTravel_Text."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1779758629
+   Author "Claude"
+   LastChanged "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3C000000000105}" {
+   Id "OVT-Tutorial_MapFirstOpen_Title"
+   Target_en_us "The Map"
+   Comment "Title of the 'map-first-open' tutorial tip, shown the first time a player opens the map. Heading of a small HUD popup, so keep it to two or three words. No markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754697600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3A000000000060}" {
+   Id "OVT-Tutorial_MoreInMenu"
+   Target_en_us "Overthrow Menu"
+   Comment "Label on the only input prompt of the non-modal tutorial popup (HUD overlay). Points the player at the Overthrow main menu, where the fuller version of the tip lives. Keep it short - it sits inside a small navigation button next to a key/gamepad glyph."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3A000000000063}" {
+   Id "OVT-Tutorial_Next"
+   Target_en_us "Next"
+   Comment "Modal tutorial popup - label on the button that moves to the next page of a multi-page tip. Sits inside a navigation button beside a key/gamepad glyph, so keep it to one short word."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3A00000000006A}" {
+   Id "OVT-Tutorial_NoneAvailable"
+   Target_en_us "No tip to show right now"
+   Comment "Hint shown when the player picks Tips in the Overthrow main menu but there is nothing to re-open - either no tip has appeared yet this session, or the player is mid-placement so the popup would sit on top of the ghost."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3A000000000068}" {
+   Id "OVT-Tutorial_PageIndicator"
+   Target_en_us "%1 / %2"
+   Comment "Modal tutorial popup - page counter in the header of a multi-page tip. %1 is the current page number, %2 is the total. Hidden entirely on single-page tips."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3C00000000010E}" {
+   Id "OVT-Tutorial_PlaceFirstPlaceable_Body"
+   Target_en_us "Placing puts resistance objects into the world for a cost in money, from small items up to a full camp. Some placeables are illegal, and putting one down while the occupying faction can see you makes you wanted. Items can be placed at any real-estate or camp you own, as well as resistance-controlled bases and FOBs."
+   Comment "Body of the 'place-first-placeable' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. Sandbox tone rule: describes the system, never instructs, and assumes nothing about what the player did before. This entry is triggered by an UNFILTERED PLAYER_PLACE (decision D5), so the body must fit a Poster, an Ammobox or a Camp equally. FACT-CHECKED 2026-08-09 for tutorial-content Phase 2. Sentence 1, cost in money: OVT_ResistanceFactionManager.PlaceItem:661-755 checks funds at :678 and charges economy.TakePlayerMoney(playerId, cost) at :751; the range of items is Configs/Resistance/placeables.conf (Poster m_iCost 5 at :21, Camp m_iCost 250 at :39). Sentence 2, illegal and seen-gated: m_bIllegal 1 on Poster :24, Sandbags, Hedgehog and PirateRadio :157, with PlaceItem:739-748 calling OVT_PlayerWantedComponent.OnIllegalActionSeen:296-303, which returns immediately unless m_bIsSeen and otherwise sets base wanted level 2. Compresses #OVT-FieldManual_Camps_Text and _Text5. DO NOT write that a camp cannot be placed near an occupying base: that exclusion is never reached, because OVT_PlaceContext.CanPlace:267-280 returns true as soon as the away-from-camps check passes and the m_bAwayFromBases branch below it is unreachable for the Camp placeable (verified again 2026-08-09)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1779758687
+   Author "Claude"
+   LastChanged "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3C00000000010D}" {
+   Id "OVT-Tutorial_PlaceFirstPlaceable_Title"
+   Target_en_us "Placing Objects"
+   Comment "Title of the 'place-first-placeable' tutorial tip, shown the first time a player places anything from the Place menu. Heading of a small HUD popup, so keep it to two or three words. No markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754697600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3C00000000010C}" {
+   Id "OVT-Tutorial_RecruitsFirstRecruit_Body"
+   Target_en_us "A recruit belongs to the player who hired them, joins that player's group, and takes orders through the ordinary group command menu. Recruits stay with their owner always, even if you change groups.<br/><br/>Use the commanding menu <color rgba='226,168,79,255'><action name=\"OpenCommandMenu\"/></color> to give them orders or open their inventory while looking at them. Orders given while not looking at a recruit will apply to all your recruits."
+   Comment "Body of the 'recruits-first-recruit' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. Sandbox tone rule: describes the system, never instructs, and assumes nothing about what the player did before. FACT-CHECKED 2026-08-09 for tutorial-content Phase 2. Sentence 1, ownership: OVT_RecruitManagerComponent.AddRecruit:423 (m_sOwnerPersistentId is the hiring player's persistent id) with RecruitCivilian:800-846 (SetPlayerOwner then AddRecruit); group: RecruitCivilian:843 calls AddRecruitToPlayerGroup:1682-1730, which adds the recruit to the hiring player's own group through SCR_PlayerControllerGroupComponent, so the vanilla group command menu commands it. Sentence 2, between sessions: OFFLINE_DESPAWN_TIME:41 = 600 s with OnPlayerDisconnected:970-977 and RespawnPlayerRecruits:1004-1035 (the recruit leaves the world ten minutes after its owner does and is put back when that player returns) plus ApplyPersistedRecruits:327-384 (records are restored from the save). Cap: MAX_RECRUITS_PER_PLAYER:11 = 16, enforced in CanRecruit:173. Compresses #OVT-FieldManual_Recruits_Text, _Text3 and _Text5. The hire price is deliberately not quoted: it is a difficulty setting (m_Difficulty.baseRecruitCost)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1779759373
+   Author "Claude"
+   LastChanged "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3C00000000010B}" {
+   Id "OVT-Tutorial_RecruitsFirstRecruit_Title"
+   Target_en_us "Your Recruits"
+   Comment "Title of the 'recruits-first-recruit' tutorial tip, shown the first time a civilian is hired as a recruit. Heading of a small HUD popup, so keep it to two or three words. No markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754697600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3E000000000011}" {
+   Id "OVT-Tutorial_ResetDone"
+   Target_en_us "Tips are back on and will appear again as you play"
+   Comment "Hint shown just after the player presses 'Turn Tips Back On' in the modal tutorial popup. The popup closes on that press, so this is the only confirmation the player gets that it worked."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3E000000000010}" {
+   Id "OVT-Tutorial_ResetTips"
+   Target_en_us "Turn Tips Back On"
+   Comment "Modal tutorial popup - label on the button that appears in place of 'Don't Show Tips Again' once tips have been switched off. Pressing it clears the record of which tips this profile has read and lets every tip appear again from the start, so the wording should promise tips coming back rather than something being deleted."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3C000000000104}" {
+   Id "OVT-Tutorial_ShopsFirstGunDealer_Body"
+   Target_en_us "A gun dealer trades weapons and military equipment rather than everyday goods, working from its own stock list and restocking separately from ordinary shops. Each gun dealer will stock a set of unique weapons and their ammo, you may need to hunt around multiple towns to find the specific weapon you need."
+   Comment "Body of the 'shops-first-gun-dealer' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. Sandbox tone rule: describes the system, never instructs, and assumes nothing about what the player did before. FACT-CHECKED 2026-08-09 for tutorial-content Phase 1. Sentence 1: Configs/System/GunDealerConfig.conf (the dealer's own catalogue and prefab list) and OVT_EconomyManagerComponent.ReplenishStock:326-361 (gun dealers are restocked in a separate loop over m_aGunDealers, after the town shop loop at :290-324). Sentence 2: OVT_ShopTransactionComponent.ResourceIsAccepted:512-517 with ShopTypeHasInventoryRules:524-533 (SHOP_GUNDEALER has no inventory rules in Configs/System/ShopConfig.conf, so any registered priced resource is accepted). Compresses #OVT-FieldManual_GunDealers_Text and _Text4. DO NOT add that gun dealers stock occupying-faction ammunition (unresolved, see field-manual/context.md:167) and do not describe their map icon in this tip."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1779759492
+   Author "Claude"
+   LastChanged "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3C000000000103}" {
+   Id "OVT-Tutorial_ShopsFirstGunDealer_Title"
+   Target_en_us "Gun Dealers"
+   Comment "Title of the 'shops-first-gun-dealer' tutorial tip, shown the first time a player trades with a gun dealer. Heading of a small HUD popup, so keep it to two or three words. No markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754697600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3C00000000010A}" {
+   Id "OVT-Tutorial_SkillsFirstOpen_Body"
+   Target_en_us "Experience comes in from most of the work you do for the resistance, and every level past the first is worth one skill point. Points buy levels in the three skills, Trade, Stealth and Diplomacy, from the character sheet."
+   Comment "Body of the 'skills-first-open' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. Sandbox tone rule: describes the system, never instructs, and assumes nothing about what the player did before. FACT-CHECKED 2026-08-09 for tutorial-content Phase 1. Sentence 1: OVT_SkillManagerComponent OnPlace:186-189, OnBuild:196-199, OnPlayerKilled:204-207, OnPlayerBuy:231-235, OnPlayerSell:241-246 and OnAIKilled:252-270 (experience from placing, building, trading and killing occupying troops), OVT_JobManagerComponent:440-442 (job reward XP), and the spendable-points expression '(player.GetLevel() - 1) - player.CountSkills()' at OVT_SkillManagerComponent.AddSkillLevel:121 and OVT_CharacterSheetContext.Refresh:62. Sentence 2: Configs/Player/overthrowSkills.conf:4, 58, 103 - there are EXACTLY three skills, Trade, Stealth and Diplomacy, and no override adds any. Never name a fourth. Screen: OVT_MainMenuContext:278-281 opens OVT_CharacterSheetContext. Compresses #OVT-FieldManual_Skills_Text, _Text3, _Text4 and _Text5."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1779759506
+   Author "Claude"
+   LastChanged "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3C000000000109}" {
+   Id "OVT-Tutorial_SkillsFirstOpen_Title"
+   Target_en_us "Skills and Levels"
+   Comment "Title of the 'skills-first-open' tutorial tip, shown the first time a player opens the character sheet. Heading of a small HUD popup, so keep it to two or three words. No markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754697600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3A000000000061}" {
+   Id "OVT-Tutorial_Title"
+   Target_en_us "Tip"
+   Comment "Default heading of the modal tutorial popup, shown only when the tutorial entry itself declares no title key. Normally replaced at runtime by the entry's own title."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3C000000000108}" {
+   Id "OVT-Tutorial_WantedFirstLevel_Body"
+   Target_en_us "The occupying faction has now marked you as \"wanted\" and will hunt you down. To clear your wanted level you must get out of their sight and hide for a while. Once your stars have disappeared again you will no longer be seen as an enemy.<br/><br/>You can disguise yourself by wearing the enemy's clothes. When the \"clothes\" icon shows as red you are disguised and will be able to enter restricted areas, but don't get too close to them or they will recognize you. Night time, foliage and skills can reduce the distance at which you are seen."
+   Comment "Body of the 'wanted-first-level' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. Sandbox tone rule: describes the system, never instructs, and assumes nothing about what the player did before. FACT-CHECKED 2026-08-09 for tutorial-content Phase 1. Sentence 1: OVT_PlayerWantedComponent.CheckWanted:599-611 (above level 1 the perceived faction override becomes the hostile player faction). Sentence 2, seen gate: CheckEntity:698, OnPlayerLoot:284 and OnIllegalActionSeen:298 require the player to be seen, while SCR_CharacterDamageManagerComponent.WhenDamaged:15-40 and WhenDamageStateChanged:44-82 escalate with no witness at all. Decay: CheckUpdate:545-559 steps the level down by one only while !m_bTempSeen. DO NOT write that levels run 1 to 5: escalation sites set 2, 3 or 4 only, level 1 is reachable only on the way down and nothing sets 5 (field-manual/context.md:170). Also NOT claimed here: that the occupying faction dispatches a search for you - no such dispatch exists in OVT_OccupyingFactionManager; the mechanic is the perception override above. Compresses #OVT-FieldManual_WantedSystem_Text, _Text2 and _Text5."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1779759771
+   Author "Claude"
+   LastChanged "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3C000000000107}" {
+   Id "OVT-Tutorial_WantedFirstLevel_Title"
+   Target_en_us "Being Wanted"
+   Comment "Title of the 'wanted-first-level' tutorial tip, shown the first time a player's wanted level is raised. Heading of a small HUD popup, so keep it to two or three words. No markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754697600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3D000000000101}" {
+   Id "OVT-Tutorial_WelcomeIntro_Body1"
+   Target_en_us "Overthrow is a persistent sandbox campaign fought on an occupied island. There is no objective list and no required order, and the island reacts to what you do.<br/><br/>Towns, money, property, vehicles and captured ground are durable state, so a campaign carries on between sessions and across server restarts.<br/><br/>Money is most easily obtained by receiving donations from supporters in towns. In order to gain support for the resistance you must raise awareness of it or reduce the influence that the occupied forces have over the public."
+   Comment "Page 1 of 4 of the first-spawn welcome modal. SHARED KEY: consumed by BOTH the 'welcome-intro' entry (Configs/Tutorials/proofWelcome.conf, the player who was given a house) AND the 'welcome-nohome' entry (Configs/Tutorials/welcomeNohome.conf, the player for whom no starting house was free). Editing this text edits both entries, which is the intent. TONE: it informs and never instructs - no imperative, no goal, no objective, no order of play; it must read correctly for a player who ignores all of it for three hours. <br/> is rich-text markup and must be preserved in translation. FACT-CHECKED 2026-08-09: sentences 1 and 3 compress #OVT-FieldManual_Welcome_Text and sentence 2 compresses #OVT-FieldManual_Welcome_Text3, both sourced to docs/mission-statement.md; the durable-state clause is corroborated by the shipped persistence feature and by OVT_RealEstateManagerComponent.c:333-350. The previous text's closing clause 'You start with a house, a car and a little money' was REMOVED: it is false for 'welcome-nohome', which shares this key (OVT_OverthrowGameMode.c:1012-1017 takes the fallback branch with no house, no car and no owner record), and it belongs on page 2, where it now lives."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1779760570
+   Author "Claude"
+   LastChanged "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3D000000000102}" {
+   Id "OVT-Tutorial_WelcomeIntro_Body2"
+   Target_en_us "You have been given a house in one of the island's towns, with a car parked in the attached garage, and some starting cash.<br/><br/>This house is your \"home\", which is where you respawn. You can also fast-travel back to this house or any other houses that you own from anywhere.<br/><br/>Other travel options include going to a bus stop, which allows travelling to any other bus stop on the map for a small price."
+   Comment "Page 2 of 4 of the first-spawn welcome modal, HOUSE variant. Consumed by the 'welcome-intro' entry ONLY (Configs/Tutorials/proofWelcome.conf, trigger filter 'house'); the houseless entry uses OVT-Tutorial_WelcomeNohome_Body2 instead. TONE: informs, never instructs; no goal and no order of play. <br/> is rich-text markup and must be preserved in translation. FACT-CHECKED 2026-08-09 against OVT_OverthrowGameMode.c:1011-1023 (a random free starting house, SetOwner :1021, SetHome :1022, SpawnStartingCar :1023), OVT_VehicleManagerComponent.c:179-191 (the car goes to the house's parking spot or failing that a kerb within 20 m - it is 'parked outside it', NEVER 'in your garage'), OVT_OverthrowGameMode.c:1048-1049 (starting cash) and OVT_SpawnLogic.c:786-802 (player.home is the respawn position). Compresses #OVT-FieldManual_Welcome_Text2. The cash AMOUNT is deliberately not quoted: it is a difficulty setting (0 to 500 across the five presets) and the manual paragraph refuses to quote it for the same reason. The text deliberately STOPS at 'this is yours and you respawn here' - what ownership means mechanically belongs to the 'home-first-open' tip, which goes deeper on purpose. Do not mention the starting handgun here: startingItems is a radio alone on Extreme and Insane (OVT_SpawnLogic.c:1177)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1779760040
+   Author "Claude"
+   LastChanged "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3D000000000104}" {
+   Id "OVT-Tutorial_WelcomeIntro_Body3"
+   Target_en_us "Most of what Overthrow adds sits in the Overthrow menu, opened with <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color>.<br/><br/>From there you can do all the things Overthrow has to offer.<br/><br/>When you are in a vehicle you can also use <color rgba='226,168,79,255'><action name=\"OverthrowVehicleMenu\"/></color> to open the \"Vehicle menu\" with more options specific to vehicles."
+   Comment "Page 3 of 4 of the first-spawn welcome modal. SHARED KEY: consumed by BOTH 'welcome-intro' (Configs/Tutorials/proofWelcome.conf) AND 'welcome-nohome' (Configs/Tutorials/welcomeNohome.conf). Editing this text edits both entries. TONE: informs, never instructs - it says where things are, it does not tell the player to open anything. MARKUP: <br/> and the <color>/<action> pair are rich text and must be preserved; the <action> tag renders the player's own bound key glyph and its name attribute is an input-action id that must NOT be translated (precedent: OVT-FieldManual_MainMenu_Text, shipped in six languages). FACT-CHECKED 2026-08-09 against Configs/System/chimeraInputCommon.conf:71 (the OverthrowMainMenu action exists), OVT_TutorialContext.c:415 (the body is a RichTextWidget, so the markup resolves) and UI/Layouts/Menu/MainMenu.layout:172, 212, 252, 412, 452, 492 wired at OVT_MainMenuContext.c:109, 116, 130, 155, 163, 170 (MapInfo, FastTravel, Resistance, RealEstate, ManageRecruits, CharacterSheet). The menu's Jobs entry SURVIVES: new-player-experience/starter-jobs-retirement completed on 2026-08-09 and removed five job configs, not the menu entry - seven jobs still ship, MainMenu.layout's Jobs button is untouched, and the page-3 screenshot welcome-intro-3-ui.edds showing it therefore remains true and needs no re-shooting (that feature's decision D12). The omission from this text is now purely one of length, on the same footing as Place, Build, Options and Save. Place, Build, Options and Save are omitted for length, and Tips is omitted because page 4 is about it."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1779760150
+   Author "Claude"
+   LastChanged "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3D000000000105}" {
+   Id "OVT-Tutorial_WelcomeIntro_Body4"
+   Target_en_us "Occasional tips like this one appear the first time something new happens, and each is shown once.<br/><br/>The Tips entry in the Overthrow menu reopens the most recent one and allows you to turn off tips or reset your tutorial.<br/><br/>For more information you can access the \"Field Manual\" in the Reforger menu and scroll down to the Overthrow entries, or visit our wiki at <a href='https://wiki.armaoverthrow.com'>https://wiki.armaoverthrow.com</a>"
+   Comment "Page 4 of 4 of the first-spawn welcome modal. SHARED KEY: consumed by BOTH 'welcome-intro' (Configs/Tutorials/proofWelcome.conf) AND 'welcome-nohome' (Configs/Tutorials/welcomeNohome.conf). Editing this text edits both entries. TONE: informs, never instructs; it describes the tip system rather than asking the player to use it. <br/> is rich-text markup and must be preserved in translation. FACT-CHECKED 2026-08-09 against OVT_TutorialComponent.NotifyDismissed:380-396 (MarkSeen plus PersistSettings at :390-391 - the seen store is per machine, so a tip is shown once and not once per campaign), UI/Layouts/Menu/MainMenu.layout:532 (#OVT-MainMenu_Tips) and OVT_MainMenuContext.c:184 with :290-301 (Tips() calls OVT_TutorialContext.ShowLayout on the most recent tip). INHERITED FACT-CHECK, moved here from OVT-Tutorial_WelcomeIntro_Body2 with the text it belongs to, checked 2026-08-08 and re-counted 2026-08-09: the Overthrow menu has exactly 12 entries (MapInfo, FastTravel, Resistance, Jobs, Place, Build, RealEstate, ManageRecruits, CharacterSheet, Tips, Save, Options). It does NOT contain the Field Manual (a base-game menu, reached from the pause/main menu or a tip's Learn More button) and does NOT contain a money screen (money is on the HUD). An earlier version of this welcome claimed both. Name only entries that exist."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1779760268
+   Author "Claude"
+   LastChanged "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3A0000000000B2}" {
+   Id "OVT-Tutorial_WelcomeIntro_Title"
+   Target_en_us "Welcome to Overthrow"
+   Comment "Title of the first-spawn welcome, the four-page modal popup shown once on a player's first spawn. SHARED: it is the m_sTitle of BOTH the 'welcome-intro' entry (Configs/Tutorials/proofWelcome.conf) and the 'welcome-nohome' entry (Configs/Tutorials/welcomeNohome.conf), which differ only on page 2. Heading of a full-width modal, so a few words are fine. Overthrow is the mod name and stays untranslated."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3D000000000103}" {
+   Id "OVT-Tutorial_WelcomeNohome_Body2"
+   Target_en_us "No starting house was free, so you began in one of the island's towns rather than at a home of your own. This can happen on very busy servers.<br/><br/>You still have your starting cash, and for now you respawn where you started. Property on the island can be bought, and a building you own can be set as your home."
+   Comment "Page 2 of 4 of the first-spawn welcome modal, HOUSELESS variant. Consumed by the 'welcome-nohome' entry ONLY (Configs/Tutorials/welcomeNohome.conf, trigger filter 'nohouse'); the house entry uses OVT-Tutorial_WelcomeIntro_Body2 instead. It must read correctly for a player who has cash and a home POSITION but owns nothing. TONE: informs, never instructs - 'can be bought' is a statement of what is possible, not an instruction to go and buy. <br/> is rich-text markup and must be preserved in translation. FACT-CHECKED 2026-08-09 against OVT_OverthrowGameMode.c:1012-1017 (the !house branch calls only SpawnPlayerAtFallbackPosition: no SetOwner, no SetHome, no SpawnStartingCar), :824-839 (a bus stop, or the starting town centre when none exists, with SetHomePos at :830/:835), :1043-1053 (the starting-cash block sits outside the house if/else, so it runs on BOTH branches), OVT_SpawnLogic.c:786-802 (home is the respawn position), OVT_RealEstateManagerComponent.c:712 (GetBuyPrice - buildings are purchasable) and OVT_RealEstateContext.c:267-268 (the 'Set as Home' button, enabled only when isOwner) via :459-480 to OVT_RealEstateManagerComponent.c:567-576. Do not say the cash amount and do not mention a starting weapon."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1779760297
+   Author "Claude"
+   LastChanged "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
  }
 }

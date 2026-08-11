@@ -189,6 +189,21 @@ class OVT_Global : Managed
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Convenience method to get the local player's tutorial delivery component
+	//!
+	//! Null until OVT_OverthrowController.RpcDo_NotifyOwnerAssignment has registered the controller,
+	//! and null forever on a dedicated server. Every caller must guard - a dropped client-local
+	//! trigger is acceptable, a script error is not.
+	//! \return Tutorial component or null
+	static OVT_TutorialComponent GetTutorials()
+	{
+		OVT_OverthrowController controller = GetController();
+		if (!controller) return null;
+
+		return OVT_TutorialComponent.Cast(controller.FindComponent(OVT_TutorialComponent));
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Convenience method for battlefield looting
 	//! \param[in] vehicle Target vehicle to loot into
 	//! \param[in] searchRadius Search radius for lootable items
@@ -298,6 +313,13 @@ class OVT_Global : Managed
 	static OVT_LoadoutManagerComponent GetLoadouts()
 	{
 		return OVT_LoadoutManagerComponent.GetInstance();
+	}
+
+	//! The server-side tutorial registry and dispatcher. Present on clients too (the game mode entity
+	//! exists there), but only ever subscribed and dispatching on the server.
+	static OVT_TutorialManagerComponent GetTutorialManager()
+	{
+		return OVT_TutorialManagerComponent.GetInstance();
 	}
 	
 	static bool PlayerInRange(vector pos, int range)
