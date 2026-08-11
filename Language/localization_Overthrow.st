@@ -9881,6 +9881,312 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A85D1E000000040}" {
+   Id "OVT-Map_Layers_Title"
+   Target_en_us "Map Layers"
+   Comment "Title at the top of the map layer-filter panel - the panel docked beside the tool icon strip on the left of the fullscreen map, which lets a player choose which categories of marker and which map overlays are drawn. Two words, title case. Keep it short: the panel is a narrow fixed-width column."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E000000041}" {
+   Id "OVT-Map_Layers_Overlays"
+   Target_en_us "Overlays"
+   Comment "Section header inside the map layer-filter panel. It heads the rows for things drawn across the map rather than as individual markers - the faction territory shading and the restricted-area rings - plus the player-position row. One word, title case. Contrasts with the Markers header (#OVT-Map_Layers_Markers) in the same panel, so the two should read as a clear pair."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E000000042}" {
+   Id "OVT-Map_Layers_Markers"
+   Target_en_us "Markers"
+   Comment "Section header inside the map layer-filter panel. It heads the rows for the individual categories of map icon - towns, bases, houses and so on. One word, title case. Contrasts with the Overlays header (#OVT-Map_Layers_Overlays) in the same panel, so the two should read as a clear pair."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E000000043}" {
+   Id "OVT-Map_Layer_Players"
+   Target_en_us "Players"
+   Comment "Row label in the map layer-filter panel for the markers showing where each player is standing. Plural, title case, one word. It sits under the Overlays header rather than with the marker categories because it is not one of the configured location types. The row is left out entirely on difficulty presets that do not show players on the map, so this string never labels a disabled control."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E000000044}" {
+   Id "OVT-Map_Category_Towns"
+   Target_en_us "Towns"
+   Comment "Category name in the map layer-filter panel - the row that switches town markers on and off. PLURAL and title case: every row in this list names a CATEGORY of marker, never one place. This one covers villages, towns and cities alike, which is why it is the general word rather than a size. The singular form shown on the info panel is a separate string."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E000000045}" {
+   Id "OVT-Map_Category_Bases"
+   Target_en_us "Bases"
+   Comment "Category name in the map layer-filter panel - the row that switches military base markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. Covers bases held by either side. The singular form shown on the info panel is the separate key #OVT-MilitaryBase and should stay consistent with this one."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E000000046}" {
+   Id "OVT-Map_Category_RadioTowers"
+   Target_en_us "Radio Towers"
+   Comment "Category name in the map layer-filter panel - the row that switches radio tower markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. The singular form shown on the info panel is the separate key #OVT-RadioTower and should stay consistent with this one."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E000000047}" {
+   Id "OVT-Map_Category_FOBs"
+   Target_en_us "FOBs"
+   Comment "Category name in the map layer-filter panel - the row that switches Forward Operating Base markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. FOB is an established military abbreviation and is used as such throughout the game; the expanded singular form is the separate key #OVT-Place_FOB. If the abbreviation is not used in your language, prefer the local abbreviation over a long expansion - this is a narrow row label."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E000000048}" {
+   Id "OVT-Map_Category_Ports"
+   Target_en_us "Ports"
+   Comment "Category name in the map layer-filter panel - the row that switches port markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. The singular form shown on the info panel is the separate key #OVT-Port and should stay consistent with this one."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E000000049}" {
+   Id "OVT-Map_Category_Camps"
+   Target_en_us "Camps"
+   Comment "Category name in the map layer-filter panel - the row that switches camp markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. The singular form shown on the info panel is the separate key #OVT-Place_Camp and should stay consistent with this one."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E00000004A}" {
+   Id "OVT-Map_Category_Houses"
+   Target_en_us "Houses"
+   Comment "Category name in the map layer-filter panel - the row that switches house markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. The singular form shown on the info panel is the separate key #OVT-House and should stay consistent with this one."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E00000004B}" {
+   Id "OVT-Map_Category_Shops"
+   Target_en_us "Shops"
+   Comment "Category name in the map layer-filter panel - the row that switches shop markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. One row covers every kind of shop at once (general, pharmacy, clothing, electronics and vehicle), so it needs the broad word rather than any one shop kind. The singular form shown on the info panel is the separate key #OVT-Shop."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E00000004C}" {
+   Id "OVT-Map_Category_GunDealers"
+   Target_en_us "Gun Dealers"
+   Comment "Category name in the map layer-filter panel - the row that switches gun dealer markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. Gun dealers are a category of their own, separate from the general Shops row. The singular form shown on the info panel is the separate key #OVT-GunDealer and should stay consistent with this one."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E00000004D}" {
+   Id "OVT-Map_Category_Warehouses"
+   Target_en_us "Warehouses"
+   Comment "Category name in the map layer-filter panel - the row that switches warehouse markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. The singular form shown on the info panel is the separate key #OVT-Warehouse and should stay consistent with this one."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E00000004E}" {
+   Id "OVT-Map_Category_BusStops"
+   Target_en_us "Bus Stops"
+   Comment "Category name in the map layer-filter panel - the row that switches bus stop markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. These are the stops the island bus service runs between."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E00000004F}" {
+   Id "OVT-Map_Category_Vehicles"
+   Target_en_us "Vehicles"
+   Comment "Category name in the map layer-filter panel - the row that switches vehicle markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. The markers it controls are the ones for vehicles the player themselves owns, so the word should not suggest all traffic on the island."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E000000050}" {
+   Id "OVT-Map_Category_POIs"
+   Target_en_us "Points of Interest"
+   Comment "Category name in the map layer-filter panel - the row that switches point-of-interest markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. It is the catch-all category for notable places that are not one of the named categories in the same list, so keep it broad. This is the longest label in the panel; if your language has an established abbreviation, prefer it."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E000000051}" {
+   Id "OVT-Map_Category_Waypoints"
+   Target_en_us "Waypoints"
+   Comment "Category name in the map layer-filter panel - the row that switches waypoint markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. A waypoint here is a destination the player has set for themselves - the current job and the recruit rally point each have one - not a route or a navigation aid."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6B3D00000000010A}" {
    Id "OVT-Difficulty_Easy_Desc"
    Target_en_us "Recommended for solo players. Occupying garrisons and patrols are at their smallest."
@@ -10939,6 +11245,57 @@ StringTable {
    Id "OVT-FieldManual_MapTerritory_Text2"
    Target_en_us "Where occupied ground meets ground the resistance holds, the edge carries a band; a coastline carries none. A region drawn with diagonal hatching is contested: the occupier still holds it, but half or more of the town's population backs the resistance, counted as the same support figure the town's info panel shows. Only towns can read that way, since bases, radio towers and FOBs have no population to measure. The shading re-reads who holds what every few seconds, so ground changing hands appears without closing the map."
    Comment "Field Manual - second paragraph of the Territory section on The Map and Fast Travel page. Reference voice: describes, does not instruct. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-11 for map/territory-overlay. Sentence 1: OVT_MapTerritoryLayer.EmitBands:1296-1301 and BuildContours:891-892 (water has no owner, so a coastline is never a frontier) over OVT_TerritorySolver.IsFrontierSide:1611-1624. Sentence 2: contested hatch OVT_MapTerritoryLayer.c:111-112 applied at :1225-1228, threshold m_fContestedSupportThreshold 0.5 at :99-100 evaluated by OVT_TerritorySolver.IsContestedCell (supportFraction >= threshold, occupier-held only), and ResolveTownSupportFraction:620-631 computing (support * 100.0) / population, the same expression the town info panel prints in OVT_MapLocationTown.c:82-83. Sentence 3: CollectBases:505, CollectRadioTowers:525 and CollectFOBs:553 all pass OVT_TerritorySite.SUPPORT_NONE, which IsContestedCell rejects. Sentence 4: m_fRefreshInterval defaults 5 at :133-134, Update:410-423 and RefreshTick:965-980 re-read faction and support with the map still open. NOTE the overlay only DISPLAYS control that already exists - it must never be described as affecting income, stability, spawns or AI."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786320000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E000000080}" {
+   Id "OVT-FieldManual_MapLayers_Head"
+   Target_en_us "Filtering the Map"
+   Comment "Field Manual - section header inside The Map and Fast Travel page, above the two paragraphs on the map layer filter panel. Three words, title case. No rich-text markup. Matches the in-game panel title #OVT-Map_Layers_Title."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786320000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E000000081}" {
+   Id "OVT-FieldManual_MapLayers_Text"
+   Target_en_us "A filter entry on the strip of icons down the left of the map opens a panel of on and off rows. Every category of marker has one, from towns and bases down to houses, bus stops and your own vehicles, and so does each overlay drawn beneath them, the territory shading and the restricted area rings. Player markers have a row of their own on difficulty settings that draw them. Clearing a row hides that category straight away, with the map still open, and ticking it again brings it back. Everything starts switched on, and a category left on still keeps its own zoom threshold, so the smaller markers still appear only as you zoom in. The panel can be reached and worked with a controller as well as with a mouse."
+   Comment "Field Manual - first paragraph of the Filtering the Map section on The Map and Fast Travel page. Reference voice: describes, does not instruct. Six sentences, no rich-text markup. FACT-CHECKED 2026-08-11 for map/map-layers, symbols only per epic rule K-9. Sentence 1: OVT_MapLayersUI.Init registers the entry through SCR_MapToolMenuUI.RegisterToolMenuEntry with the m_sToolMenuIcon quad 'filters', and vanilla MapMenu.layout anchors ToolMenuContainer top-left. Sentence 2: OVT_MapLayersUI.BuildLocationTypeRows over OVT_OverthrowMapUI.GetLocationTypes (the 14 types in Configs/Map/OverthrowMap.conf) and BuildCanvasLayerRows over OVT_MapCanvasCompositor.GetLayers (OVT_MapTerritoryLayer m_sLayerId 'territory' and OVT_MapRestrictedAreas m_sLayerId 'restricted' in Configs/Map/MapFullscreen.conf; OVT_MapThreatGrid ships m_bDisableModule 1 and never registers, so it has no row). Sentence 3: OVT_MapLayersUI.BuildPlayerRow, gated on OVT_MapPlayerLocation.IsAvailableThisSession, which is false when the difficulty preset has showPlayerOnMap off. Sentence 4: OVT_MapLayersUI.OnRowToggled calls ApplyOne before anything else, which routes to OVT_MapLocationType.SetPlayerVisible plus OVT_OverthrowMapUI.RefreshAllVisibility, or to OVT_MapCanvasLayer.SetLayerVisible. Sentence 5: OVT_MapLocationType.m_bPlayerVisible defaults true and OVT_MapLayerPrefsStore.IsVisible treats an absent key as visible; the zoom gate is the GetEffectiveVisibilityZoom test that OVT_MapLocationElement.SetVisible still applies after the player-visibility gate. Sentence 6: OverthrowMapLayersContext in Configs/System/chimeraInputCommon.conf, renewed per frame by OVT_MapLayersUI.ActivateRowNavigationContext while the panel is open. NOTE this panel only decides what is DRAWN for this player - it must never be described as revealing, hiding or changing anything in the campaign itself."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786320000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E000000082}" {
+   Id "OVT-FieldManual_MapLayers_Text2"
+   Target_en_us "What you hide is remembered against your game profile rather than against a campaign, so the same choices are waiting the next time you open the map, in a later session, and in any campaign or server you play in. Nothing in the campaign itself changes: the filter only decides what is drawn for you, and everyone else sees whatever they have chosen for themselves."
+   Comment "Field Manual - second paragraph of the Filtering the Map section on The Map and Fast Travel page. Reference voice: describes, does not instruct. Two sentences, no rich-text markup. FACT-CHECKED 2026-08-11 for map/map-layers, symbols only per epic rule K-9. Sentence 1: OVT_MapLayerSettingsAccessor reads and writes OVT_MapLayerSettings, a ModuleGameSettings block on the engine's user settings, which is per profile and carries no campaign or world identity; OVT_MapLayersUI.EnsurePrefsLoaded loads it on the first map open and FlushPrefs writes it at panel close and map close. This is settled decision D6 of docs/features/map/map-layers. Sentence 2: the feature's boundary audit found no RplProp, no RplRpc, no Rpc call and no EPF in any new or changed file, and the only mutating calls added are SetVisible, SetMarkersVisible and SetPlayerVisible on client-side UI objects. NOTE do not describe this as saving with the campaign - per profile rather than per campaign is the user-visible consequence this paragraph exists to state."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -12115,8 +12472,8 @@ StringTable {
   }
   CustomStringTableItem "{6B3C000000000106}" {
    Id "OVT-Tutorial_MapFirstOpen_Body"
-   Target_en_us "The map marks the buildings and vehicles you own, the camps and FOBs the resistance has placed, and the shops, gun dealers and ports available for import. Shading over the terrain shows the ground the occupying faction still holds, and it clears from anywhere the resistance takes. You must be carrying a map item in your inventory for it to open, so don't lose it!"
-   Comment "Body of the 'map-first-open' tutorial tip (single page, HUD popup, wraps inside a 460px panel - keep it to three short sentences). No rich-text markup. Sandbox tone rule: describes the system, never instructs, and assumes nothing about what the player did before. FACT-CHECKED 2026-08-09 for tutorial-content Phase 1. Sentence 1: OVT_MapIcons.c OnMapOpen (owned houses :472, warehouses :573, gun dealers via TryCreateGunDealerIcon:111, camps :641, FOBs :664, shops via TryCreateShopIcon:137, ports via TryCreatePortIcon:184, owned vehicles :710). Sentence 3: OVT_MapContext.c ShowMap:135-146 requires an SCR_MapGadgetComponent, and both EnableMapInfo:152-158 and EnableFastTravel:277-285 show the 'MustHaveMap' notification and return when it is absent. Sentence 2 ADDED 2026-08-11 for map/territory-overlay and fact-checked then: OVT_MapTerritoryLayer.c:127-128 (m_bOnlyShowOccupying defaults 1) and OVT_TerritorySolver.c IsEmittedCell:1645-1657 draw only ground whose owning site's faction is the occupying faction, and OVT_MapTerritoryLayer.c:801-807 gives every other site's ground no appearance at all, so liberated ground renders blank. Compresses #OVT-FieldManual_MapAndTravel_Text and #OVT-FieldManual_MapTerritory_Text."
+   Target_en_us "The map marks the buildings and vehicles you own, the camps and FOBs the resistance has placed, and the shops, gun dealers and ports available for import. Shading over the terrain shows the ground the occupying faction still holds, and it clears from anywhere the resistance takes. The filter on the strip of icons down the left opens a panel with an on and off row for each kind of marker and each overlay. You must be carrying a map item in your inventory for it to open, so don't lose it!"
+   Comment "Body of the 'map-first-open' tutorial tip (single page, HUD popup, wraps inside a 460px panel - keep it to four short sentences). No rich-text markup. Sandbox tone rule: describes the system, never instructs, and assumes nothing about what the player did before. FACT-CHECKED 2026-08-09 for tutorial-content Phase 1. Sentence 1: OVT_MapIcons.c OnMapOpen (owned houses :472, warehouses :573, gun dealers via TryCreateGunDealerIcon:111, camps :641, FOBs :664, shops via TryCreateShopIcon:137, ports via TryCreatePortIcon:184, owned vehicles :710). Sentence 3: OVT_MapContext.c ShowMap:135-146 requires an SCR_MapGadgetComponent, and both EnableMapInfo:152-158 and EnableFastTravel:277-285 show the 'MustHaveMap' notification and return when it is absent. Sentence 2 ADDED 2026-08-11 for map/territory-overlay and fact-checked then: OVT_MapTerritoryLayer.c:127-128 (m_bOnlyShowOccupying defaults 1) and OVT_TerritorySolver.c IsEmittedCell:1645-1657 draw only ground whose owning site's faction is the occupying faction, and OVT_MapTerritoryLayer.c:801-807 gives every other site's ground no appearance at all, so liberated ground renders blank. Compresses #OVT-FieldManual_MapAndTravel_Text and #OVT-FieldManual_MapTerritory_Text. Sentence 3 ADDED 2026-08-11 for map/map-layers and fact-checked then, symbols only per epic rule K-9: OVT_MapLayersUI.Init registers the tool menu entry through SCR_MapToolMenuUI.RegisterToolMenuEntry using the m_sToolMenuIcon quad 'filters', vanilla MapMenu.layout anchors ToolMenuContainer top-left, and TogglePanel shows the panel whose rows come from BuildCanvasLayerRows, BuildPlayerRow and BuildLocationTypeRows. Longer form in #OVT-FieldManual_MapLayers_Text."
    DevNote ""
    Repro ""
    ActorGender NONE

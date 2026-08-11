@@ -9,6 +9,9 @@ class OVT_MapLocationType
 	[Attribute(defvalue: "Generic Location", desc: "Display name for location type")]
 	protected string m_sDisplayName;
 	
+	[Attribute(defvalue: "", desc: "PLURAL, localized, player-facing category name for this type's row in the map layer-filter panel, e.g. #OVT-Map_Category_Towns. A THIRD name field on purpose: m_sName is the Workbench editor-tree label and m_sDisplayName is the SINGULAR type line on the info panel. Empty falls back to the display name, then the class name, with a one-time warning.")]
+	protected string m_sCategoryName;
+
 	[Attribute(defvalue: "1", desc: "Visibility zoom level (0=always visible, higher=visible at closer zoom)")]
 	protected float m_fVisibilityZoom;
 	
@@ -77,6 +80,32 @@ class OVT_MapLocationType
 
 	[Attribute(defvalue: "0", desc: "Seconds between live refreshes of this type while the map is open. 0 = populate once per map open (no refresh). Re-runs PopulateLocations, so keep it well above the cost of that call.")]
 	protected float m_fRefreshInterval;
+
+	//! Whether the player has this whole category switched on in the map layer-filter panel.
+	//!
+	//! DELIBERATELY NOT AN [Attribute]. This is a CLIENT-SIDE PRESENTATION PREFERENCE - it is never
+	//! authored in config. It is pushed in from the per-profile preference store when the map opens,
+	//! and again by the filter panel whenever the player flips a row.
+	//!
+	//! THIS IS NOT CAMPAIGN VISIBILITY, and nothing may ever make it so. What the campaign chooses to
+	//! REVEAL to a player (intel, discovery, fog of war) is a separate concept that belongs to a future
+	//! epic and must have its own field: sharing this one would let a cosmetic filter decide what a
+	//! player is allowed to know, and would let an intel rule silently override a player's own choice.
+	//! Per-record campaign visibility already has a home - OVT_MapLocationData.m_bVisible, read by
+	//! ShouldShowLocation.
+	//!
+	//! Read as the FIRST gate in OVT_MapLocationElement.SetVisible, which early-returns on it, so a
+	//! hidden type skips the per-record zoom lookup and ShouldShowLocation's manager reads entirely and
+	//! therefore costs LESS per zoom change than a shown one.
+	//!
+	//! NEVER RESET THIS IN Init(). Init() runs on EVERY map open rather than once, so resetting it
+	//! there would silently discard the player's preference every single time they opened the map -
+	//! and the symptom (filters that "don't stick") would look like a persistence bug rather than a
+	//! lifecycle one. Default true, so a player who never opens the panel sees exactly today's map.
+	protected bool m_bPlayerVisible = true;
+
+	//! One-shot latch for the GetCategoryName fallback warning.
+	protected bool m_bCategoryFallbackWarned;
 
 	//! Reference to the map UI that owns this location type
 	protected OVT_OverthrowMapUI m_MapUI;
@@ -397,6 +426,69 @@ class OVT_MapLocationType
 		return GetDisplayName();
 	}
 	
+	//! The PLURAL, player-facing category name for this type's row in the map layer-filter panel.
+	//!
+	//! Three name fields, three audiences: m_sName labels the Workbench editor tree, m_sDisplayName is
+	//! the singular type line on the info panel, and this is the plural category a player switches on
+	//! and off. Merging any two of them would drag a second surface into every change to either.
+	//!
+	//! THE FALLBACK CHAIN EXISTS SO A ROW ALWAYS APPEARS. Adding a type to OverthrowMap.conf must add a
+	//! toggle with no code change, so a missing category name is a content gap rather than a structural
+	//! one; dropping the row instead would leave a whole category of marker on screen with no way to
+	//! turn it off, which is the exact inconsistency the panel exists to remove. The warning is what
+	//! makes the gap loud.
+	//!
+	//! Not a hot path - read once per row when the panel is built.
+	//! \return m_sCategoryName when set, else GetDisplayName(), else ClassName()
+	string GetCategoryName()
+	{
+		if (!m_sCategoryName.IsEmpty())
+			return m_sCategoryName;
+
+		string fallback = GetDisplayName();
+		if (fallback.IsEmpty())
+			fallback = ClassName();
+
+		WarnCategoryFallbackOnce(fallback);
+
+		return fallback;
+	}
+
+	//! Logs the missing-category-name warning exactly once per type instance.
+	//! Once, because the panel rebuilds its rows on every open: a per-read warning would be log spam
+	//! rather than a diagnosis, and the condition it reports cannot change without a config edit.
+	//! \param[in] fallback The label that will be shown instead
+	protected void WarnCategoryFallbackOnce(string fallback)
+	{
+		if (m_bCategoryFallbackWarned)
+			return;
+
+		m_bCategoryFallbackWarned = true;
+
+		Print("[Overthrow] " + ClassName() + " has no m_sCategoryName - the map layer-filter row falls back to '" + fallback + "'. Set m_sCategoryName in Configs/Map/OverthrowMap.conf to a localized plural key.", LogLevel.WARNING);
+	}
+
+	//! Switch this whole category on or off for the local player.
+	//!
+	//! Called by the map layer-filter panel and by the per-profile preference store it loads at map
+	//! open. The caller is responsible for asking the map UI to re-run its visibility sweep
+	//! (OVT_OverthrowMapUI.RefreshAllVisibility) - this setter deliberately does not reach back into
+	//! the UI, because the store applies preferences to every type in a batch and one sweep afterwards
+	//! is both cheaper and free of half-applied intermediate states.
+	//! \param[in] visible True to draw this type's markers, false to hide them all
+	void SetPlayerVisible(bool visible)
+	{
+		m_bPlayerVisible = visible;
+	}
+
+	//! Whether the local player has this category switched on. See m_bPlayerVisible - this is a
+	//! presentation preference and is NOT campaign visibility.
+	//! \return True when this type's markers may be drawn
+	bool IsPlayerVisible()
+	{
+		return m_bPlayerVisible;
+	}
+
 	//! Get the visibility zoom level
 	float GetVisibilityZoom()
 	{

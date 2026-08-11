@@ -1,0 +1,143 @@
+SizeLayoutWidgetClass {
+ Name "LayersPanel"
+ Slot OverlayWidgetSlot "{6A85D1E000000011}" {
+  HorizontalAlign 0
+  VerticalAlign 0
+  Padding 8 8 8 8
+ }
+ "Z Order" 1
+ "Is Visible" 0
+ AllowWidthOverride 1
+ WidthOverride 268
+ AllowMinDesiredWidth 1
+ MinDesiredWidth 268
+ AllowMinDesiredHeight 1
+ MinDesiredHeight 320
+ AllowMaxDesiredHeight 1
+ MaxDesiredHeight 720
+ {
+  OverlayWidgetClass "{6A85D1E000000012}" {
+   Name "PanelOverlay"
+   Slot AlignableSlot "{6A85D1E000000013}" {
+    HorizontalAlign 3
+    VerticalAlign 3
+   }
+   {
+    ButtonWidgetClass "{6A85D1E000000022}" {
+     Name "FocusProxy"
+     Slot OverlayWidgetSlot "{6A85D1E000000023}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+     }
+     "Z Order" 0
+     Opacity 0
+     components {
+      SCR_EventHandlerComponent "{6A85D1E000000024}" {
+      }
+     }
+     style blank
+    }
+    PanelWidgetClass "{6A85D1E000000014}" {
+     Name "PanelBackground"
+     Slot OverlayWidgetSlot "{6A85D1E000000015}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+     }
+     "Z Order" 1
+     Color 0.0314 0.0314 0.0314 1
+     style full
+    }
+    VerticalLayoutWidgetClass "{6A85D1E000000016}" {
+     Name "PanelContent"
+     Slot OverlayWidgetSlot "{6A85D1E000000017}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+      Padding 10 10 10 10
+     }
+     "Z Order" 2
+     {
+      TextWidgetClass "{6A85D1E000000018}" {
+       Name "PanelTitle"
+       Slot LayoutSlot "{6A85D1E000000019}" {
+        HorizontalAlign 3
+        Padding 0 0 0 4
+       }
+       Color 1 1 1 1
+       Text "#OVT-Map_Layers_Title"
+       "Font Size" 14
+       "Min Font Size" 14
+       "Horizontal Alignment" Left
+       "Vertical Alignment" Center
+      }
+      ImageWidgetClass "{6A85D1E000000060}" {
+       Name "TitleStripe"
+       Slot LayoutSlot "{6A85D1E000000061}" {
+        HorizontalAlign 3
+        Padding 0 0 0 6
+       }
+       Color 0.761 0.392 0.08 1
+       Image ""
+       Size 128 2
+      }
+      ScrollLayoutWidgetClass "{6A85D1E000000062}" {
+       Name "RowsScroll"
+       Slot LayoutSlot "{6A85D1E000000063}" {
+        HorizontalAlign 3
+        SizeMode Fill
+       }
+       {
+        VerticalLayoutWidgetClass "{6A85D1E000000064}" {
+         Name "RowsContent"
+         Slot LayoutSlot "{6A85D1E000000065}" {
+          HorizontalAlign 3
+         }
+         {
+          TextWidgetClass "{6A85D1E00000001A}" {
+           Name "OverlaysHeader"
+           Slot LayoutSlot "{6A85D1E00000001B}" {
+            HorizontalAlign 3
+            Padding 0 0 0 2
+           }
+           Color 0.8 0.8 0.8 1
+           Text "#OVT-Map_Layers_Overlays"
+           "Font Size" 11
+           "Min Font Size" 11
+           "Horizontal Alignment" Left
+           "Vertical Alignment" Center
+          }
+          VerticalLayoutWidgetClass "{6A85D1E00000001C}" {
+           Name "OverlayRows"
+           Slot LayoutSlot "{6A85D1E00000001D}" {
+            HorizontalAlign 3
+            Padding 0 0 0 6
+           }
+          }
+          TextWidgetClass "{6A85D1E00000001E}" {
+           Name "MarkersHeader"
+           Slot LayoutSlot "{6A85D1E00000001F}" {
+            HorizontalAlign 3
+            Padding 0 0 0 2
+           }
+           Color 0.8 0.8 0.8 1
+           Text "#OVT-Map_Layers_Markers"
+           "Font Size" 11
+           "Min Font Size" 11
+           "Horizontal Alignment" Left
+           "Vertical Alignment" Center
+          }
+          VerticalLayoutWidgetClass "{6A85D1E000000020}" {
+           Name "TypeRows"
+           Slot LayoutSlot "{6A85D1E000000021}" {
+            HorizontalAlign 3
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

@@ -426,11 +426,27 @@ class OVT_MapLocationElement : SCR_MapUIElement
 		m_wDistance.SetVisible(true);
 	}
 	
+	//! Re-run every visibility gate against the caller's last intent, without changing that intent.
+	//!
+	//! THE ONE IMPLEMENTATION of "re-evaluate whether this marker belongs on screen". Three callers
+	//! want it for three unrelated reasons - the zoom changed, the record was replaced by a refresh
+	//! tick, or the player toggled this whole type in the map layer-filter panel - and all three want
+	//! exactly the same thing, so they share this rather than each repeating the SetVisible(m_bVisible)
+	//! line. m_bVisible is the base class's record of what the container last asked for; feeding it
+	//! back in is what makes this a re-evaluation rather than a show.
+	//!
+	//! No widget is created or destroyed here, which is what keeps a live hover, a pinned info panel
+	//! and the base class's static selection intact across a filter toggle.
+	void RefreshVisibility()
+	{
+		SetVisible(m_bVisible);
+	}
+
 	//! Called when the map zoom level changes
 	void OnZoomChanged()
 	{
 		// Update visibility based on new zoom level
-		SetVisible(m_bVisible);
+		RefreshVisibility();
 		
 		// Update display elements
 		UpdateDisplay();
@@ -462,7 +478,7 @@ class OVT_MapLocationElement : SCR_MapUIElement
 	{
 		// Visibility is re-evaluated too, not just the drawing: ShouldShowLocation reads live manager
 		// state (ownership, discovery, faction) and that is exactly the kind of thing a refresh is for.
-		SetVisible(m_bVisible);
+		RefreshVisibility();
 
 		UpdateDisplay();
 	}
@@ -487,6 +503,12 @@ class OVT_MapLocationElement : SCR_MapUIElement
 	}
 	
 	//! Check if this element should be visible at current zoom level
+	//!
+	//! FOUR GATES, AND THE ORDER IS A DESIGN PROPERTY. The caller's own intent, the player's layer
+	//! filter, the zoom threshold and the per-record ShouldShowLocation all have to agree before a
+	//! marker is drawn.
+	//!
+	//! HOT PATH - this runs for every element on every zoom change, alongside ShouldUseSmallIcon.
 	override void SetVisible(bool visible)
 	{
 		if (!m_LocationType)
@@ -495,6 +517,22 @@ class OVT_MapLocationElement : SCR_MapUIElement
 			return;
 		}
 		
+		// THE PLAYER'S LAYER FILTER, TESTED FIRST ON PURPOSE. It is a per-type constant, so checking it
+		// before anything else lets a hidden type skip both GetEffectiveVisibilityZoom's per-record map
+		// lookup and ShouldShowLocation's live manager reads. A hidden type therefore costs LESS per
+		// zoom change than a shown one - hiding things can never make the sweep slower, which is what
+		// lets the filter panel be built on a sweep at all.
+		//
+		// This gate does NOT belong inside ShouldShowLocation: that is a per-RECORD virtual with
+		// manager lookups in its overrides, and this is one boolean that is identical for every record
+		// of the type. Putting it there would pay the whole per-record cost to answer a per-type
+		// question, and would put a presentation preference inside the campaign-visibility contract.
+		if (!m_LocationType.IsPlayerVisible())
+		{
+			super.SetVisible(false);
+			return;
+		}
+
 		// Check zoom level visibility
 		bool zoomVisible = true;
 		if (m_MapEntity)

@@ -1,7 +1,7 @@
 # Map Core - Context & Decisions
 
 **Last Updated:** 2026-08-11
-**Current Phase:** Bugfix pass complete (canvas-layer contract extended by `map/territory-overlay` 2026-08-11)
+**Current Phase:** Bugfix pass complete (canvas-layer contract extended by `map/territory-overlay` 2026-08-11; location-type contract extended by `map/map-layers` 2026-08-11)
 **Status:** ✅ Documented (Existing Feature) — ✅ BUG-133…137 fixed and play-tested 2026-08-10
 
 ---
@@ -72,6 +72,9 @@ change here is recorded in this table with the feature that made it.
 | **`ClearInfoRows(rows)`** | helper | **Added by `map/location-types` Phase 5.** Empty the rows container. |
 | **`CanRespawn(location, playerID, out reason)`** | virtual | **Added by `map/respawn` (2026-08-10).** Per-record respawn eligibility, defaulting to refuse (`reason = "#OVT-Respawn_NotEligible"`, returns false). Overridden on Base/FOB/Camp/House. **Hot path** — reached from `ShouldShowLocation` on every zoom change whenever `m_bRespawnOnly` is set. **Advisory only, like `CanFastTravel`:** it decides what this client *draws*; the server re-derives the eligible set from its own managers in `OVT_RespawnService.CollectEligiblePositions` and that is what decides where anybody actually spawns. |
 | **`m_bRespawnOnly`** | attribute | **Added by `map/respawn` (2026-08-10).** `1` = this instance draws only records that pass `CanRespawn`. Set only in `Configs/Map/OverthrowMapRespawn.conf` (all four of its entries); `0` (default) leaves the living map byte-for-byte unchanged — `ShouldShowLocation` returns immediately after one boolean compare. |
+| **`m_sCategoryName`** | attribute | **Added by `map/map-layers` (2026-08-11).** The **plural, localized, player-facing** category name shown on the map layer-filter row. Deliberately a **third** name field: `m_sName` stays the Workbench editor-tree label (`OVT_MapLocationTypeTitle._WB_GetCustomTitle`) and `m_sDisplayName` stays the **singular** type line on the info panel. Both are left doing exactly their existing jobs, untouched. Empty ⇒ falls back to `GetDisplayName()`, then `ClassName()`, with a one-time WARNING. Set on all 14 entries in `Configs/Map/OverthrowMap.conf`, so the fallback is unreachable for every shipped type. `Configs/Map/OverthrowMapRespawn.conf`'s four entries deliberately do **not** set it — that config carries no `OVT_MapLayersUI`, so `GetCategoryName()` is never called there. |
+| **`GetCategoryName()`** | getter | **Added by `map/map-layers`.** Read only by `OVT_MapLayersUI` when building rows. **Not a hot path** — once per row per panel open. |
+| **`m_bPlayerVisible` / `SetPlayerVisible(bool)` / `IsPlayerVisible()`** | runtime member + setter/getter | **Added by `map/map-layers`.** A **client-side presentation preference**, deliberately *not* an attribute — it is never authored in config, and is always applied from the persisted profile store at map open. Read as the **first** gate in `OVT_MapLocationElement.SetVisible`, immediately after the `!m_LocationType` guard, which **early-returns** — so a hidden type skips the `GetEffectiveVisibilityZoom()` lookup and the `ShouldShowLocation` manager reads entirely, and a hidden type costs *less* than a shown one. Default `true`, and it is **not** reset in `Init()` (which runs on every map open). 🔴 **This is not campaign visibility.** What the campaign chooses to *reveal* to a player belongs to the future intel epic and **must never share this field**: this one says "the player asked not to see it", not "the player does not know about it". |
 
 **The Phase 5 change is purely additive and cannot alter the bespoke path.** `UpdateInfoPanel` now reads:
 `m_InfoLayout` set → today's path verbatim, then `return`; else `m_SharedInfoLayout` set → create it,
@@ -107,6 +110,35 @@ absence from the layout is what suppresses the row — a null `FindAnyWidget` sk
 halves of "no travel affordances and no distance row on the respawn screen" are therefore enforced by the
 layout, not by a runtime branch.
 
+**Layout ↔ code names introduced by `map/map-layers` (2026-08-11).** Same failure mode, same discipline —
+every row below was verified against both the `.layout` that defines the name and the `.c` that reads it,
+not transcribed from the plan. Every lookup in the reading code is null-guarded and ERROR-logs the name it
+could not find. ⚠️ **None of these has ever been resolved at runtime** — the feature is code-complete and
+entirely unobserved, and `FindAnyWidget` returning null is invisible to `tools/compile-check.sh`.
+
+| Name | Layout | Read by |
+|---|---|---|
+| `ToolFramesOverlay` | vanilla `UI/layouts/Map/MapMenu.layout` (**read-only — Overthrow does not override it**, K9) | `OVT_MapLayersUI.ResolveDockParent` — `m_RootWidget.FindAnyWidget(...)`; the panel is **created into** it via `WorkspaceWidget.CreateWidgets(layout, parent)` |
+| `ToolMenuContainer` | vanilla `UI/layouts/Map/MapMenu.layout` | `OVT_MapLayersUI.ResolveDockParent` — first fallback when `ToolFramesOverlay` is absent (`FastTravelMapMenu.layout` has no such overlay and parents its frames here). Second fallback is `m_RootWidget` itself, and an ERROR names whichever was settled on |
+| `LayersPanel` | `UI/Layouts/Map/Core/OVT_MapLayersPanel.layout` (the root widget's own `Name`) | **Nothing.** Held as `m_wPanel` from `CreateWidgets`; never looked up by name |
+| `PanelTitle` | `OVT_MapLayersPanel.layout` | `OVT_MapLayersUI.BuildPanel` — `SetPanelText(..., "#OVT-Map_Layers_Title")` |
+| `OverlaysHeader` | `OVT_MapLayersPanel.layout` | `OVT_MapLayersUI.BuildPanel` — `SetPanelText(..., "#OVT-Map_Layers_Overlays")` |
+| `MarkersHeader` | `OVT_MapLayersPanel.layout` | `OVT_MapLayersUI.BuildPanel` — `SetPanelText(..., "#OVT-Map_Layers_Markers")` |
+| `OverlayRows` | `OVT_MapLayersPanel.layout` | `OVT_MapLayersUI.BuildPanel` / `BuildRows` — parent container for the canvas-layer rows **and** the hand-built player row |
+| `TypeRows` | `OVT_MapLayersPanel.layout` | `OVT_MapLayersUI.BuildPanel` / `BuildRows` — parent container for the 14 location-type rows |
+| `FocusProxy` | `OVT_MapLayersPanel.layout` | `OVT_MapLayersUI.OnPanelBuilt` — `FindHandler(SCR_EventHandlerComponent)`, then `GetOnFocus()` bounces engine focus onto the first row (K10). Authored as vanilla's journal does it: a **full-stretch** `ButtonWidget`, `Opacity 0`, `style blank`, placed as the **first** overlay child so content renders on top and mouse clicks still reach the rows |
+| `RowHighlight` | `UI/Layouts/Map/Core/OVT_MapLayerRow.layout` | `OVT_MapLayerRowComponent.Init` — the row-wide focus/mouse wash. **Not in the plan's §3.6 table; added during Phase 4** as the second of two independently-sufficient focus visuals (the first is vanilla's own `SCR_ButtonEffectColor` line highlight on `WLib_Checkbox`, which costs nothing to get) |
+| `RowIcon` | `OVT_MapLayerRow.layout` | `OVT_MapLayerRowComponent.Init` — `LoadImageFromSet`; **hidden when the row has no imageset** (overlay and player rows have no icon source) |
+| `RowLabel` | `OVT_MapLayerRow.layout` | `OVT_MapLayerRowComponent.Init` — `SetText` |
+| `RowCheckbox` | `OVT_MapLayerRow.layout` (inherits `{5D5055E10FD00549}UI/layouts/WidgetLibrary/ToolBoxes/WLib_Checkbox.layout`) | `OVT_MapLayerRowComponent.Init` — `SCR_CheckboxComponent.GetCheckboxComponent("RowCheckbox", m_wRoot)`, then `m_OnChanged.Insert(...)`. 🔴 **The inherited `SCR_CheckboxComponent` override reuses the base layout's component GUID `{546A9B7B0A8AD927}`** — a fresh GUID adds a second, unconfigured component and the checkbox goes dead |
+
+**Seven structural names in these two layouts are never resolved by script** and are listed so a future
+reader does not go looking for the code that reads them: `PanelOverlay`, `PanelBackground`, `PanelContent`,
+`TitleStripe`, `RowsScroll` and `RowsContent` in `OVT_MapLayersPanel.layout`, and `RowContent` in
+`OVT_MapLayerRow.layout` (alongside the row root `LayerRow`, which is likewise only ever held as a widget
+reference). They carry layout structure — the scroll container the 17 rows live in, the background, the
+title rule — and renaming any of them is safe from script's point of view.
+
 ---
 
 ## The `OVT_MapCanvasLayer` Contract
@@ -140,6 +172,29 @@ because `OVT_MapThreatGrid` ships disabled. `OVT_MapCanvasCompositor` (a static 
 bucket with the frame it was filled at, and on **every** submit concatenates the current-stamped buckets in
 `m_iDrawOrder` order. `GetLayers()` returns the registered layers — the list `map/map-layers` builds its
 toggle rows from.
+
+**`map/map-layers` (2026-08-11) added NO rows to this table, and that is worth saying out loud.**
+`territory-overlay` Phase 1 designed the layer half of feature 7's contract before feature 7 existed, and
+when its first consumer actually arrived it needed **nothing added and nothing changed**: `m_sLayerId`,
+`m_sDisplayName`, `SetLayerVisible` / `IsLayerVisible` and `GetLayers()` are consumed exactly as specified.
+The overlay rows in the layers panel are built generically, one per `GetLayers()` entry, keyed
+`"layer:" + GetLayerId()`. `GetLayers()` is **read, never mutated** by the panel. A contract that survives
+its first real consumer untouched is a rare thing in this epic; the two `OVT_MapLocationType` extensions
+above are what the normal case looks like.
+
+**One documented exception — `OVT_MapPlayerLocation` (K5, `map/map-layers`).** It is a
+`SCR_MapUIBaseComponent`, not an `OVT_MapCanvasLayer`, so it **never appears in `GetLayers()`** and its row
+in the layers panel is **hand-built** — the only non-generic row of the seventeen. It gained
+`m_bMarkersVisible` / `SetMarkersVisible(bool)` / `AreMarkersVisible()` (the setter loops `m_Widgets` and
+uses `SetVisible`, **never** `SetOpacity`, so it cannot fight `Update()`'s own opacity handling) and
+`IsAvailableThisSession()`, which is set true only past **all** of `OnMapOpen`'s early returns — no
+controlled entity, `m_Difficulty.showPlayerOnMap` false, and a third the plan did not enumerate, an
+unresolved player faction. An unavailable session presents **no row at all** rather than a dead toggle.
+Three options existed — reparent it onto `OVT_MapCanvasLayer`, drop the row, or special-case it — and the
+user chose the special case: reparenting a working, retained component (which `legacy-retirement`
+deliberately kept) to satisfy a list builder buys nothing and risks a live feature, while dropping the row
+leaves a visible marker with no control, which is exactly the inconsistency a filter panel exists to remove.
+**One special case with a comment on it beat reparenting a working component.**
 
 ---
 

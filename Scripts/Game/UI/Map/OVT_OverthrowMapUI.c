@@ -61,28 +61,32 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 	protected Widget m_wWiredInfoPanel;
 
 
-	//! Whether a map selection landed on top of the open info panel.
+	//! Whether a map selection landed on top of a given widget.
 	//!
 	//! R6/N12: OnMapSelection's else branch treats "no hovered element" as "clicked empty space" and
-	//! unpins, which is what a click on the panel's own buttons looks like from the map's point of view.
-	//! That was invisible while every panel button closed the map; the recruit toggle must leave the
-	//! panel open, and on a controller pressing MapSelect over the toggle is its ONLY input path.
+	//! unpins, which is what a click on ANY panel floating over the map looks like from the map's point
+	//! of view. That was invisible while every panel button closed the map; the recruit toggle must
+	//! leave the panel open, and on a controller pressing MapSelect over the toggle is its ONLY input
+	//! path. The map layer-filter panel inherits exactly the same hazard, which is why this was
+	//! generalised out of IsSelectionOnInfoPanel rather than copied.
 	//!
 	//! NOT OBSERVED AT RUNTIME: whether the button widget consumes the click before the map's selection
-	//! handler runs at all. If it does, this guard is inert - which is fine, it is cheap.
+	//! handler runs at all. If it does, every caller of this is inert - which is fine, it is cheap, and
+	//! the alternative is a bug that only appears when a player happens to have a panel pinned open.
+	//! \param[in] widget The widget to test against. Null, or a zero-sized rect, is never "inside".
 	//! \param[in] selectionPos The selected world position.
-	//! \return True when the selection's screen position is inside the info panel's rect.
-	protected bool IsSelectionOnInfoPanel(vector selectionPos)
+	//! \return True when the selection's screen position is inside the widget's rect.
+	protected bool IsSelectionInsideWidget(Widget widget, vector selectionPos)
 	{
-		if (!m_bInfoPanelVisible || !m_wInfoPanel || !m_MapEntity)
+		if (!widget || !m_MapEntity)
 			return false;
 
 		float screenX, screenY;
 		m_MapEntity.WorldToScreen(selectionPos[0], selectionPos[2], screenX, screenY, true);
 
 		float panelX, panelY, panelW, panelH;
-		m_wInfoPanel.GetScreenPos(panelX, panelY);
-		m_wInfoPanel.GetScreenSize(panelW, panelH);
+		widget.GetScreenPos(panelX, panelY);
+		widget.GetScreenSize(panelW, panelH);
 
 		if (panelW <= 0 || panelH <= 0)
 			return false;
@@ -96,12 +100,48 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 		return true;
 	}
 
+	//! Whether a map selection landed on top of the open info panel.
+	//! \param[in] selectionPos The selected world position.
+	//! \return True when the selection's screen position is inside the info panel's rect.
+	protected bool IsSelectionOnInfoPanel(vector selectionPos)
+	{
+		if (!m_bInfoPanelVisible)
+			return false;
+
+		return IsSelectionInsideWidget(m_wInfoPanel, selectionPos);
+	}
+
+	//! The map layer-filter panel's widget while it is open.
+	//!
+	//! Resolved on demand rather than cached: this is only ever reached from a click handler, the walk
+	//! is over the map entity's handful of active UI components, and resolving fresh means there is no
+	//! reference to invalidate when a map closes or when a different map config (the respawn map, which
+	//! carries no layers UI) is opened. OVT_MapLayersUI.GetPanelWidget already answers null while the
+	//! panel is closed, so a closed panel and an absent component read the same here.
+	//! \return The panel widget while it is open, null otherwise.
+	protected Widget GetLayersPanelWidget()
+	{
+		if (!m_MapEntity)
+			return null;
+
+		OVT_MapLayersUI layersUI = OVT_MapLayersUI.Cast(m_MapEntity.GetMapUIComponent(OVT_MapLayersUI));
+		if (!layersUI)
+			return null;
+
+		return layersUI.GetPanelWidget();
+	}
+
 	//! Handle map selection events for pinning
 	protected void OnMapSelection(vector selectionPos)
 	{
-		// R6: a click that landed on the info panel is not a click on empty map - do not unpin it out
-		// from under the player's own button press.
+		// R6: a click that landed on one of Overthrow's own map panels is not a click on empty map - do
+		// not unpin it out from under the player's own button press. Two panels can float over the map:
+		// the location info panel, and the layer-filter panel whose rows a player clicks WHILE a panel
+		// is pinned (K14).
 		if (IsSelectionOnInfoPanel(selectionPos))
+			return;
+
+		if (IsSelectionInsideWidget(GetLayersPanelWidget(), selectionPos))
 			return;
 
 		if (m_HoveredElement)
@@ -246,6 +286,45 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 		}
 	}
 	
+	//! The configured location types, for callers that ENUMERATE them rather than look one up by name.
+	//!
+	//! Added for the map layer-filter panel, which builds one row per type and reads each type's live
+	//! IsPlayerVisible rather than trusting a stored preference, so the panel can never disagree with
+	//! the map.
+	//!
+	//! Returns the live array rather than a copy, because every caller only reads it. The list is
+	//! config-owned: nothing outside this class may insert into or remove from it, since the marker map
+	//! and the refresh timers are both keyed against the types it holds.
+	//! \return The configured location types, or null when no config was supplied.
+	array<ref OVT_MapLocationType> GetLocationTypes()
+	{
+		if (!m_Config)
+			return null;
+
+		return m_Config.m_aLocationTypes;
+	}
+
+	//! Re-run every live marker's visibility gates.
+	//!
+	//! Shaped deliberately identically to OnMapZoom, because it is the same sweep for a different
+	//! reason: the layer-filter panel writes one boolean on a location type and then calls this, and
+	//! the change lands within a frame.
+	//!
+	//! NOTHING IS DESTROYED, RECREATED OR REPOPULATED HERE, and that is the point. A toggle that tore
+	//! elements down would drop a live hover and a pinned info panel, and would run straight into the
+	//! reconciliation hazards the refresh tick already has to be careful about. This only re-asks each
+	//! element whether it belongs on screen.
+	void RefreshAllVisibility()
+	{
+		foreach (Widget widget, SCR_MapUIElement element : m_mIcons)
+		{
+			OVT_MapLocationElement locationElement = OVT_MapLocationElement.Cast(element);
+			if (locationElement)
+				locationElement.RefreshVisibility();
+		}
+	}
+
+
 	//! Initialize all location types
 	protected void InitializeLocationTypes()
 	{
