@@ -138,22 +138,16 @@ class OVT_MapLocationTown : OVT_MapLocationType
 	{
 		if (!location)
 			return Color.Black;
-		
-		// Color based on faction control
-		int townFaction = location.GetDataInt("faction", -1);
-		if (townFaction >= 0)
-		{
-			FactionManager factionManager = GetGame().GetFactionManager();
-			if (factionManager)
-			{
-				Faction faction = factionManager.GetFactionByIndex(townFaction);
-				if (faction)
-				{
-					return faction.GetFactionColor();
-				}
-			}
-		}
-		
+
+		// Color based on faction control. The lookup itself lives in ONE place, shared with the base and
+		// radio-tower markers and with the territory overlay, so all four agree by construction.
+		// The FALLBACK stays here: this marker's unknown-faction colour is black, and the base and
+		// radio-tower markers' is white, so the shared helper deliberately returns null instead of
+		// picking one for everybody.
+		Color factionColor = OVT_MapLocationType.GetFactionColorByIndex(location.GetDataInt("faction", -1));
+		if (factionColor)
+			return factionColor;
+
 		// Default to black if no faction control
 		return Color.Black;
 	}

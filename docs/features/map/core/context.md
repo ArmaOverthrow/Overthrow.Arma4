@@ -1,7 +1,7 @@
 # Map Core - Context & Decisions
 
-**Last Updated:** 2026-08-10
-**Current Phase:** Bugfix pass complete
+**Last Updated:** 2026-08-11
+**Current Phase:** Bugfix pass complete (canvas-layer contract extended by `map/territory-overlay` 2026-08-11)
 **Status:** ✅ Documented (Existing Feature) — ✅ BUG-133…137 fixed and play-tested 2026-08-10
 
 ---
@@ -106,6 +106,40 @@ does it unconditionally, ignoring `m_bShowDistance`, and writes the literal `"Un
 absence from the layout is what suppresses the row — a null `FindAnyWidget` skipping the whole block. Both
 halves of "no travel affordances and no distance row on the respawn screen" are therefore enforced by the
 layout, not by a runtime branch.
+
+---
+
+## The `OVT_MapCanvasLayer` Contract
+
+The overlay half of the map — canvas draw commands rather than marker widgets (Important Decision 3). Like
+the `OVT_MapLocationType` table above, **it is never changed silently**; every row names the feature that
+added it. Everything below was added by **`map/territory-overlay` Phase 1 (2026-08-11)** and is **additive** —
+`OVT_MapRestrictedAreas` and `OVT_MapThreatGrid` compile and behave as before without setting any of it.
+
+⚠️ **None of this has been executed under an automated gate.** Canvas rendering is invisible to every test
+tier; the evidence for the rows below is `tools/compile-check.sh` plus the user's Phase 2 probe session.
+
+| Member | Kind | Purpose |
+|---|---|---|
+| `Draw()` | virtual | **Fill `m_Commands` for this frame. Override this, never `Update`.** `Update` calls it only when the layer is visible, then always submits. |
+| **`m_iDrawOrder`** | attribute | **Added by `map/territory-overlay`.** Composite order. **Lower is drawn FIRST and therefore sits UNDERNEATH.** Shipped values: territory `100`, restricted areas `200`. Default `100`. |
+| **`m_sLayerId`** | attribute | **Added by `map/territory-overlay`.** Stable, lowercase, no-spaces id the layer-toggle UI (`map/map-layers`) addresses this layer by. Shipped: `"territory"`, `"restricted"`. Default empty. |
+| **`m_sDisplayName`** | attribute | **Added by `map/territory-overlay`.** Localization key for the layer's player-facing name. **Nothing renders it yet** — feature 7 does. Shipped: `#OVT-Map_Layer_Territory`, `#OVT-Map_Layer_Restricted`. Both ids exist in `Language/localization_Overthrow.st` **only**; they render as raw keys until the user regenerates the exports in Workbench. |
+| **`m_bVisible` / `SetLayerVisible(bool)` / `IsLayerVisible()`** | member + getter/setter | **Added by `map/territory-overlay`. This is the toggle primitive — not `SetActive`.** Hidden means "clear the bucket and submit it empty", so the layer's commands leave the composite on the **next** frame and come back instantly. `SCR_MapModuleBase.SetActive(false)` calls `DeactivateModule` and there is **no script-reachable way back** (`ActivateModules` and `m_aActiveModules` are both `protected` in `SCR_MapEntity`), so it is one-way and unusable as a toggle. |
+| **`CacheProjection()`** | method | **Added by `map/territory-overlay`.** Derives an affine world→screen basis with **three** `WorldToScreen` calls (origin + two axis probes). Call **once per frame** before any per-vertex work. |
+| **`ProjectWorld(wx, wz, out sx, out sy)`** | method | **Added by `map/territory-overlay`.** Projects one world point through the cached basis with no engine call. Measured by the Phase 2 probe at **0 – 1.41 px** error against a direct `WorldToScreen` across four zooms and two pan positions — i.e. exactly 0, 1 or √2 px, which is `WorldToScreen`'s own integer truncation and **zero basis error**. Requires a prior `CacheProjection()`; it is inert without one. |
+| `DrawCircle(center, range, color, n = 36, **tex = null, uvScale = 0**)` | method | **The last two params were added by `map/territory-overlay`.** `PolygonDrawCommand.m_pTexture` / `m_fUVScale` are only touched when `tex` is non-null, so every existing untextured call site produces a byte-identical command. `m_fUVScale`'s **units are still unknown** — the probe drew textures but never established how different scales tiled. |
+| **Compositor registration lifecycle** | lifecycle | **Added by `map/territory-overlay`.** `OnMapOpen` registers with `OVT_MapCanvasCompositor`; `OnMapClose` **and** `SetActive(false)` unregister. `SetActive` unregisters **before** `super`, because super's `DeactivateModule` is what stops the layer ever updating again. **A subclass overriding any of the three MUST call `super`** — though `SubmitAndFlush` also adopts an unregistered layer defensively, so the symptom of forgetting is not a silent blank overlay. |
+| **The `Count() > 0` guard is GONE** | removal | **Removed by `map/territory-overlay`.** `Update` used to skip `SetDrawCommands` when its list was empty, so a layer that cleared its bucket left its **last non-empty frame on the canvas indefinitely**. It was invisible while only one layer was live and became load-bearing the moment anything could be toggled off. The flush is now unconditional and lives outside every branch. ⚠️ Note `SetDrawCommands` takes a **pointer, not a copy** — the caller must keep the array alive — so the compositor's shared list is cleared and refilled in place and is **never reassigned or nulled**. |
+
+**Why a compositor exists at all.** Every `OVT_MapCanvasLayer` resolves the *same* `CanvasWidget`
+(`SCR_MapConstants.DRAWING_WIDGET_NAME`), and each used to call `m_Canvas.SetDrawCommands(m_Commands)` with
+**its own** list — so with two live layers the last to run overwrote the first. That was invisible only
+because `OVT_MapThreatGrid` ships disabled. `OVT_MapCanvasCompositor` (a static singleton,
+`Scripts/Game/UI/Map/Core/OVT_MapCanvasCompositor.c`) holds one shared command list, stamps each layer's
+bucket with the frame it was filled at, and on **every** submit concatenates the current-stamped buckets in
+`m_iDrawOrder` order. `GetLayers()` returns the registered layers — the list `map/map-layers` builds its
+toggle rows from.
 
 ---
 

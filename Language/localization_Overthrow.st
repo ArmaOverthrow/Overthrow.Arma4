@@ -9847,5 +9847,39 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A84D5E100000001}" {
+   Id "OVT-Map_Layer_Territory"
+   Target_en_us "Territory"
+   Comment "Map overlay layer name in the map layer-toggle list. Names the faction-coloured territory overlay drawn beneath the map markers. One or two words - it is a row label in a short list."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A84D5E100000002}" {
+   Id "OVT-Map_Layer_Restricted"
+   Target_en_us "Restricted Areas"
+   Comment "Map overlay layer name in the map layer-toggle list. Names the circles showing where a FOB cannot be deployed because of a nearby base or radio tower. One or two words - it is a row label in a short list."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
  }
 }

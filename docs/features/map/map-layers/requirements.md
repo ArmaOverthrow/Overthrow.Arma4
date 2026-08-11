@@ -81,6 +81,45 @@ layers the last to run overwrites the first. It is invisible today only because 
 disabled, leaving `OVT_MapRestrictedAreas` as the sole live layer. A second live overlay makes it a real
 defect, so "toggle an overlay" cannot mean "SetActive a module" until the layers share one command list.
 
-**The scope question left open:** whether overlay toggles are built against a generic registration API
-(any canvas layer registers itself) or hardcoded to the layers that exist. That was not settled, because
-the answer depends on what `map/territory-overlay` actually ships.
+**That finding is now fixed.** `map/territory-overlay` Phase 1 (2026-08-11) added
+`OVT_MapCanvasCompositor`, a static singleton holding one shared command list: each layer submits its own
+bucket, the compositor concatenates the current-frame buckets in `m_iDrawOrder` order and flushes them to
+the canvas on every submit. Two live layers no longer overwrite each other. The full contract is recorded
+in `docs/features/map/core/context.md` under "The `OVT_MapCanvasLayer` Contract".
+
+---
+
+## The overlay-toggle scope question — **ANSWERED: generic registration** (2026-08-11)
+
+_Settled by `map/territory-overlay` §6 K1 and shipped in that feature's Phase 1. The question above
+("generic registration API or hardcoded to the layers that exist") is closed._
+
+**Build one row per entry in `OVT_MapCanvasCompositor.GetLayers()`:**
+
+| Concern | Use |
+|---|---|
+| Enumerate the layers | `OVT_MapCanvasCompositor.GetInstance().GetLayers()` — returns the registered `OVT_MapCanvasLayer`s |
+| Identify a row | `GetLayerId()` (`m_sLayerId`) — stable, lowercase, no spaces. Shipped: `"territory"`, `"restricted"` |
+| Label a row | `GetDisplayName()` (`m_sDisplayName`) — a localization key. Shipped: `#OVT-Map_Layer_Territory`, `#OVT-Map_Layer_Restricted` |
+| Toggle a row | `SetLayerVisible(bool)` / `IsLayerVisible()` |
+
+Adding a canvas layer therefore adds a toggle with **no code change in this feature** — the same
+config-driven principle the location-type list already follows. Hardcoding would buy nothing and would
+have to be undone the first time a fourth layer appeared.
+
+**🔴 Caveat 1 — the toggle primitive MUST be `SetLayerVisible`, never `SetActive`.**
+`SCR_MapModuleBase.SetActive(false)` calls `m_MapEntity.DeactivateModule(this)`, which removes the module
+from `m_aActiveModules`. There is **no script-reachable way to put it back**: both `ActivateModules` and
+`m_aActiveModules` are `protected` on `SCR_MapEntity`. **`SetActive(false)` is one-way from script**, so a
+toggle built on it turns a layer off permanently for the session. `SetLayerVisible` keeps the module
+registered and updating, submits an empty bucket while hidden, and is instantly reversible — which is also
+exactly what this feature's "toggling must be cheap and immediate" requirement asks for.
+
+**Caveat 2 — `OVT_MapPlayerLocation` is not a canvas layer.** It is a `SCR_MapUIBaseComponent`, not an
+`OVT_MapCanvasLayer`, so it will **not** appear in `GetLayers()` and its toggle is a different mechanism.
+The "per-overlay toggles" requirement above lists it alongside territory and restricted areas; that row has
+to be built by hand or the class has to be reparented first.
+
+**Localization note.** The two `m_sDisplayName` ids above exist in `Language/localization_Overthrow.st`
+(the editable master) **only**. Until the user regenerates the runtime exports in Workbench they render as
+raw keys on screen — expected, not a defect, and not something to work around by hardcoding literals.

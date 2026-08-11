@@ -451,6 +451,37 @@ class OVT_MapLocationType
 		return Color.Black; // Final fallback
 	}
 	
+	//! THE ONE IMPLEMENTATION of "what colour is faction N". Every live-faction map colour in Overthrow
+	//! resolves through here: the town, base and radio-tower marker overrides, and the territory
+	//! overlay's cell fill. One function is the only way to guarantee the overlay and the markers keep
+	//! agreeing as either side changes - a matching constant in two places is agreement by coincidence.
+	//!
+	//! It takes an INDEX rather than a record because that is what all four site types can supply,
+	//! including FOBs, which carry no faction field of their own and hand in the resistance faction
+	//! index instead.
+	//!
+	//! IT RETURNS NULL RATHER THAN A FALLBACK COLOUR, DELIBERATELY. The three marker overrides do not
+	//! agree on what "unknown faction" looks like - the town marker falls back to black, the base and
+	//! radio-tower markers to white - so baking any single fallback in here would silently restyle
+	//! markers. The unresolved case stays the caller's decision.
+	//! \param[in] factionIndex Faction index, or -1 / any negative value for "no controlling faction".
+	//! \return The faction's colour, or null when the index is negative or cannot be resolved.
+	static Color GetFactionColorByIndex(int factionIndex)
+	{
+		if (factionIndex < 0)
+			return null;
+
+		FactionManager factionManager = GetGame().GetFactionManager();
+		if (!factionManager)
+			return null;
+
+		Faction faction = factionManager.GetFactionByIndex(factionIndex);
+		if (!faction)
+			return null;
+
+		return faction.GetFactionColor();
+	}
+
 	//! Get faction color based on faction type
 	protected Color GetFactionColor(OVT_FactionType factionType)
 	{

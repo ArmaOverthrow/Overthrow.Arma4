@@ -1,10 +1,23 @@
 # Map Territory Overlay — Implementation Plan
 
-**Status:** In Progress
+**Status:** ✅ **COMPLETE — built, gate-green, and play-tested green by the user on 2026-08-11** (SP + MP, no issues)
 **Epic:** map (feature 6 of 8 — the **first stretch goal**)
 **Started:** 2026-08-11
 **Target Completion:** TBD
-**Last Updated:** 2026-08-11 (started by `/start-feature map/territory-overlay`)
+**Last Updated:** 2026-08-11 (Phases 0–8 built by `/autorun-feature map/territory-overlay`)
+
+> ⚠️ **This plan is no longer the whole truth.** Six decisions were made *during* implementation and
+> **five of them override it**: **D6** (no maximum influence radius — kills §4 D1's reach derivation and
+> §6 K4's entire cost model), **D7** (neutral bands only on inter-faction frontiers — §6 K7 asserted a
+> property the data could not express), **D8** (the closed-form takeover radius that replaced the
+> per-step rival test), **D9** (flat alpha per faction, and same-faction cells tessellate — waives DoD F-6
+> and narrows §6 K5), and **D10** (**the overlay draws occupier-held ground only**; contested is a
+> support threshold, which **overrides §6 K8 by name**; coastlines are not smoothed, which narrows §6 K5
+> again), and **D11** (the first decision taken with the **art actually in the tree**: contested regions
+> are **hatched** rather than merely fainter, and restricted rings take the **owning faction's** colour —
+> which **overrides §5 Phase 5 task 5's "colours … unchanged"** and redirects §4 D4's first texture).
+> All are recorded in `context.md`, which is the authority for what was **built**.
+> §5's phase list is the authority for what was **planned**. Where they disagree, `context.md` wins.
 
 > **`requirements.md` contradicts itself and this plan overrides it.** That file's Requirements bullets were
 > edited later than its Out of Scope block, so the two disagree about weighting, about FOBs and radio towers
@@ -267,14 +280,30 @@ machinery, or delete it and its config block."* That requirement is **waived by 
 precisely the outcome the requirement was written to avoid. It should be carried in the epic's Tech Debt
 section, not silently forgotten.
 
-**What the deferral costs, and what it buys.** After Phase 1 the grid becomes *cheap to revive*: it is a
+> 🔴 **SUPERSEDED 2026-08-11 — the two speculated reasons below are BOTH WRONG.** The user, who wrote the
+> layer, states plainly: *"the threat layer was actually just written as a debug layer during the development
+> of the deployment systems. it wasn't really intended to be shipped and that's why it was disabled."*
+>
+> That also **reclassifies the item**. It is not "written-but-disabled code left in the tree indefinitely" —
+> the outcome `requirements.md` was written to prevent — it is a **debug tool behind a disable flag**, which
+> is an ordinary and unobjectionable thing for a codebase to contain. The epic's Tech Debt entry is corrected
+> accordingly.
+>
+> The user's forward view, recorded but **not scheduled**: *"if we updated it and made it performant it could
+> be added as a switchable layer turned off by default. but that's something to consider later anyway, just
+> leave it as is for the moment until this is finished."* That is a **feature**, not debt repayment.
+>
+> The original speculation is struck through rather than deleted, because a recorded guess that outlives the
+> truth is exactly what misleads the next reader — and this one did, for the length of this feature.
+
+~~**What the deferral costs, and what it buys.** After Phase 1 the grid becomes *cheap to revive*: it is a
 one-line `.conf` edit (`m_bDisableModule 0`) plus an `m_iDrawOrder`, because the compositor removes the very
 reason it was probably disabled. This plan records the most likely reason so a future decision is not made
 blind: at `m_iGridSize 250` over a large world the grid emits **on the order of 2,300 `DrawRectangle`
 quads per frame** (`OVT_MapThreatGrid.c:21-24`, one command per non-zero cell, rebuilt every frame), and —
 independently — it would have been **mutually exclusive with the restriction rings** under the shared-canvas
 defect. Either alone is sufficient to explain "written, then switched off". Neither is proven; both are
-testable in ten minutes once the compositor exists.
+testable in ten minutes once the compositor exists.~~
 
 **Also named, and still not this feature's job to fix:** the pre-existing **orphaned `.meta`** for the retained
 `OVT_MapThreatGrid`, GUID `{B8F4C6A8C9D3E4F1}`, introduced in commit `96e6da4d` and recorded in
@@ -573,8 +602,15 @@ tree mid-feature and have done so throughout this epic.
    `IsValid()`, copy `SCR_MapSelectionModule.RenderSelectionCircle`'s pattern exactly. Fall back to flat fill
    when the load fails — a missing texture must degrade, never crash.
 5. **Restricted-ring restyle.** Pass the restricted-zone texture into `DrawCircle` from
-   `OVT_MapRestrictedAreas.Draw`. Colours and radii unchanged (`ARGB(50,255,0,0)` / `ARGB(40,0,120,255)`,
-   `:21`/`:26`).
+   `OVT_MapRestrictedAreas.Draw`. ~~Colours and radii unchanged (`ARGB(50,255,0,0)` /
+   `ARGB(40,0,120,255)`, `:21`/`:26`).~~ — **⚠️ THE COLOUR HALF IS OVERRIDDEN BY D11** (user decision,
+   2026-08-11). The two hardcoded ARGBs are gone: each ring now takes its **owning faction's hue**
+   through `OVT_MapLocationType.GetFactionColorByIndex`, keeping only the two alpha tiers (50 / 40, now
+   attributes). A ring is meant to read as *"the same territory, denser"*, and that only works when the
+   ring and the ground beneath it share a hue — over faction-coloured territory the hardcoded red and
+   blue produced a muddy third colour instead. **The RADII half of this sentence still stands and is
+   absolute** (DoD I-3 / BUG-070): centres and radii are byte-identical to what they were, verified by
+   diff. See `context.md` **D11**.
 6. Add two `.st` ids for the layer display names (`territory`, `restricted`) to
    `Language/localization_Overthrow.st` — the master only. Nothing renders them until feature 7;
    **never touch `localization_Overthrow.<lang>.conf`.**
@@ -770,6 +806,13 @@ probe result changes ~60 lines and nothing else.
 
 ### K4 — Ray-march parameters, and why the cost is bounded
 
+> 🔴 **SUPERSEDED — do not price anything off this section.** **D6** removed the maximum influence radius,
+> which falsified both bounds below: rays now run to the coastline rather than stopping early, and the
+> candidate filter is *exhaustive* at an unlimited reach, so it excludes nobody. **D8** (Phase 6) replaced
+> the model entirely — the rival boundary is now **solved in closed form** rather than sampled per step, so
+> the `× steps × rivals` product this section is built on no longer exists. The bisection-refine argument
+> in the last paragraph survives and is now a *shoreline* argument. See `context.md` § D8.
+
 Naively, 40 sites × 48 rays × (2 km / 50 m) steps × 40 rival tests is ~3.4 M comparisons — too slow. Two
 bounds fix it, and both are structural rather than tuned:
 
@@ -798,6 +841,13 @@ march exists to prevent. Shrink-only makes that impossible by construction, and 
 The cost is slight erosion — cells shrink a little with each pass. At window 3 and 1–2 passes it is a few
 percent and invisible; it is also why `m_iSmoothPasses` is a config attribute rather than a constant, per the
 requirement that smoothing resolution be tunable because it directly costs frame time.
+
+⚠️ **Narrowed twice since, by D9 and D10** (see `context.md`). "Slight erosion… invisible" is the sentence
+that turned out to be wrong: at a boundary two same-faction cells *share*, both retreating from it leaves an
+unfilled sliver (**D9**), and at a coastline the marched radius is already the correct organic edge, so
+filtering it can only pull the fill back from the sea (**D10**). Both kinds of ray now keep their raw radius.
+**The clamp itself is untouched and still governs every ray that is still smoothed** — which after D10 means
+hostile-`RIVAL` and `MAX_RADIUS` rays only.
 
 ### K6 — Colour agreement is a refactor, not a new palette
 
@@ -831,6 +881,12 @@ contiguous spans that stopped on `RIVAL` — a real frontier with another factio
 and neither is the outer edge of a site's reach, so those spans get no band. Without the stop reason this would
 need a second pass re-testing every boundary vertex against every rival.
 
+⚠️ **Superseded in part by D7** (see `context.md`). The paragraph above asserts a property the stop reason
+cannot express: `RIVAL` means another **site** won the point, never that another **faction** did, so two
+same-faction neighbours were banded down the middle of uncontested ground. The solver additionally records
+**which site** stopped each ray, and the band draws only where that site's faction differs from the cell's.
+Everything else here stands.
+
 Each band segment is a **quad** between `r × (1 - m_fBandFraction)` and `r` at adjacent angles — convex, so the
 band renders correctly on every rung of the ladder, including rung 3.
 
@@ -848,6 +904,14 @@ certain regions are the least intrusive.
 `SupportPercentage()` (`:39`) was considered and rejected as the driver: it measures popular support, not
 control, and a resistance-supporting town still held by the occupier would read as resistance territory. That
 would make the overlay a *second opinion* about who holds what, which is exactly the boundary §3.4 forbids.
+
+⚠️ **Superseded by D10, and this paragraph is the reason it needed arguing** (see `context.md`). Fill alpha is
+no longer driven by `stability` at all — that lerp is **deleted**, because a continuous per-site shade
+fragmented a one-faction island into a patchwork (D9). What replaced it *is* support-driven, and the
+rejection above does **not** apply to it: the region is still drawn in the **occupier's** colour because the
+occupier controls it, so support does not recolour anything — it **marks** the region as contested. That is a
+second axis over an accurate first one rather than a competing answer, which is the distinction this
+paragraph never had cause to draw. The full reasoning is D10 in `context.md` and must not be lost.
 
 ### K9 — Solve once, recolour often, re-solve only when the site set changes
 
