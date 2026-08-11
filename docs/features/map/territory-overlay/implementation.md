@@ -6,7 +6,7 @@
 **Target Completion:** TBD
 **Last Updated:** 2026-08-11 (Phases 0–8 built by `/autorun-feature map/territory-overlay`)
 
-> ⚠️ **This plan is no longer the whole truth.** Six decisions were made *during* implementation and
+> ⚠️ **This plan is no longer the whole truth.** Six decisions were made _during_ implementation and
 > **five of them override it**: **D6** (no maximum influence radius — kills §4 D1's reach derivation and
 > §6 K4's entire cost model), **D7** (neutral bands only on inter-faction frontiers — §6 K7 asserted a
 > property the data could not express), **D8** (the closed-form takeover radius that replaced the
@@ -51,7 +51,7 @@ over the radius array rather than 2-D polygon subdivision.
 The solve runs **once per map open** and caches world-space vertices; per frame the layer projects with a
 **three-call affine basis** (not one `WorldToScreen` per vertex) and emits a handful of draw commands.
 
-**Before any of that can ship, one defect must be fixed.** Every `OVT_MapCanvasLayer` resolves the *same*
+**Before any of that can ship, one defect must be fixed.** Every `OVT_MapCanvasLayer` resolves the _same_
 `CanvasWidget` (`OVT_MapCanvasLayer.c:89`) and each calls `m_Canvas.SetDrawCommands(m_Commands)` from its own
 `Update` with its own private list (`:12-19`). **The last module to run wins and every earlier layer's commands
 are discarded.** It is invisible today only because `OVT_MapThreatGrid` ships disabled, leaving
@@ -80,7 +80,7 @@ Three code facts found during planning change the shape of the work and are wort
 3. **`PolygonDrawCommand` really does carry `m_fUVScale` and `ref SharedItemRef m_pTexture`**
    (`ArmaReforger/scripts/Core/proto/EnWidgets.c:101-107`), verified against the engine header. Overthrow's own
    `DrawCircle`/`DrawRectangle` helpers simply never set them. The textured-fill decision is therefore a
-   question of *engine support*, not of API existence — which is what the Phase 2 probe measures.
+   question of _engine support_, not of API existence — which is what the Phase 2 probe measures.
 
 ---
 
@@ -128,7 +128,7 @@ Three code facts found during planning change the shape of the work and are wort
 ```
 SCR_MapEntity  (vanilla, drives module Update every frame while the map is open)
 │
-└── Configs/Map/MapFullscreen.conf  ─ m_aModules  (same-GUID DELTA over vanilla's)
+└── Configs/Map/MapOverthrow.conf  ─ m_aModules  (same-GUID DELTA over vanilla's)
     ├── OVT_MapTerritoryLayer   : OVT_MapCanvasLayer   NEW   m_iDrawOrder 100
     ├── OVT_MapRestrictedAreas  : OVT_MapCanvasLayer    ~    m_iDrawOrder 200 (above territory)
     └── OVT_MapThreatGrid       : OVT_MapCanvasLayer    ~    stays m_bDisableModule 1
@@ -184,7 +184,7 @@ OnMapClose
 **bucket**, cleared and refilled by its own `Draw()` exactly as today. The base `Update` then calls
 `SubmitAndFlush`, which stamps the bucket with the current frame token, rebuilds the shared list by
 concatenating every bucket whose stamp is current **in `m_iDrawOrder` order**, and calls `SetDrawCommands` once.
-Flushing on *every* submit rather than trying to detect the last submitter is deliberate: it is correct without
+Flushing on _every_ submit rather than trying to detect the last submitter is deliberate: it is correct without
 knowing which layer runs last, it costs one concatenation per layer per frame (three layers × a few hundred
 commands is nothing next to the draw itself), and a layer that stops submitting — because it was hidden or
 deactivated — simply drops out on the next frame instead of freezing the canvas. See §6 K2 for the rejected
@@ -218,13 +218,13 @@ test — a point belongs to the site minimising `dist(q, S) / w(S)`.
 
 **Overrides — dated 2026-08-11:**
 
-- `requirements.md` Out of Scope: *"**Weighted / multiplicatively-weighted Voronoi.** Cell extent is
+- `requirements.md` Out of Scope: _"**Weighted / multiplicatively-weighted Voronoi.** Cell extent is
   distance-based with a uniform influence radius; making strongly-held cities project further than contested
-  villages was considered and deferred as materially harder to compute and smooth."*
-- `requirements.md` Out of Scope: *"**FOBs and radio towers as territory sites** — sites are towns and bases
-  only."*
-- `epic-requirements.md:68` Out of Scope: *"…and weighted influence — `map/territory-overlay` clips cells to a
-  uniform influence radius; …or scaling reach by town strength is deferred."*
+  villages was considered and deferred as materially harder to compute and smooth."_
+- `requirements.md` Out of Scope: _"**FOBs and radio towers as territory sites** — sites are towns and bases
+  only."_
+- `epic-requirements.md:68` Out of Scope: _"…and weighted influence — `map/territory-overlay` clips cells to a
+  uniform influence radius; …or scaling reach by town strength is deferred."_
 
 **Rationale.** The deferral's stated reason — "materially harder to compute and smooth" — was true of the
 half-plane-clipped Voronoi approach it was written against, where multiplicative weighting turns straight
@@ -250,8 +250,8 @@ new config surface.
 shoreline, not a polygon coastline**: its accuracy equals the march step, sharpened by the bisection refine
 (§6 K4).
 
-**Overrides — dated 2026-08-11:** `epic-requirements.md:68` Out of Scope: *"**Coastline-accurate territory
-borders** … following the shoreline … is deferred."*
+**Overrides — dated 2026-08-11:** `epic-requirements.md:68` Out of Scope: _"**Coastline-accurate territory
+borders** … following the shoreline … is deferred."_
 
 **Rationale.** It costs two proto calls per march step inside a loop that already exists, and the early-out
 means most rays stop long before their maximum radius. `requirements.md` asked to "investigate if the base-game
@@ -271,32 +271,32 @@ surface-vs-ocean comparison ignores both **by construction** rather than by filt
 
 **Decision.** The user was asked to settle the threat grid's fate on **2026-08-11** and **explicitly chose to
 defer**. `OVT_MapThreatGrid` is **not deleted and not revived**. It stays registered-but-disabled in
-`Configs/Map/MapFullscreen.conf` (`m_bDisableModule 1`, `m_iGridSize 250`).
+`Configs/Map/MapOverthrow.conf` (`m_bDisableModule 1`, `m_iGridSize 250`).
 
-**This is a deliberate waiver, recorded rather than dropped.** `requirements.md` states: *"**Decide**
+**This is a deliberate waiver, recorded rather than dropped.** `requirements.md` states: _"**Decide**
 `OVT_MapThreatGrid`**'s fate** in this feature: revive it as a toggleable sibling overlay sharing this
-machinery, or delete it and its config block."* That requirement is **waived by the user on 2026-08-11**, and
+machinery, or delete it and its config block."_ That requirement is **waived by the user on 2026-08-11**, and
 **leaving written-but-disabled code in the tree is now a known, accepted piece of tech debt** — which is
 precisely the outcome the requirement was written to avoid. It should be carried in the epic's Tech Debt
 section, not silently forgotten.
 
 > 🔴 **SUPERSEDED 2026-08-11 — the two speculated reasons below are BOTH WRONG.** The user, who wrote the
-> layer, states plainly: *"the threat layer was actually just written as a debug layer during the development
-> of the deployment systems. it wasn't really intended to be shipped and that's why it was disabled."*
+> layer, states plainly: _"the threat layer was actually just written as a debug layer during the development
+> of the deployment systems. it wasn't really intended to be shipped and that's why it was disabled."_
 >
 > That also **reclassifies the item**. It is not "written-but-disabled code left in the tree indefinitely" —
 > the outcome `requirements.md` was written to prevent — it is a **debug tool behind a disable flag**, which
 > is an ordinary and unobjectionable thing for a codebase to contain. The epic's Tech Debt entry is corrected
 > accordingly.
 >
-> The user's forward view, recorded but **not scheduled**: *"if we updated it and made it performant it could
+> The user's forward view, recorded but **not scheduled**: _"if we updated it and made it performant it could
 > be added as a switchable layer turned off by default. but that's something to consider later anyway, just
-> leave it as is for the moment until this is finished."* That is a **feature**, not debt repayment.
+> leave it as is for the moment until this is finished."_ That is a **feature**, not debt repayment.
 >
 > The original speculation is struck through rather than deleted, because a recorded guess that outlives the
 > truth is exactly what misleads the next reader — and this one did, for the length of this feature.
 
-~~**What the deferral costs, and what it buys.** After Phase 1 the grid becomes *cheap to revive*: it is a
+~~**What the deferral costs, and what it buys.** After Phase 1 the grid becomes _cheap to revive_: it is a
 one-line `.conf` edit (`m_bDisableModule 0`) plus an `m_iDrawOrder`, because the compositor removes the very
 reason it was probably disabled. This plan records the most likely reason so a future decision is not made
 blind: at `m_iGridSize 250` over a large world the grid emits **on the order of 2,300 `DrawRectangle`
@@ -319,12 +319,12 @@ touch it; it is named here so the next person to open the file knows it is known
 hatching or similar to denote neutral territory". Both are solved the same way and the user chose the
 mechanism directly:
 
-> *"Ive seen it used in other mods so it should work, using a texture is likely the best option and that allows
-> us to use different textures for restricted zones vs neutral areas."*
+> _"Ive seen it used in other mods so it should work, using a texture is likely the best option and that allows
+> us to use different textures for restricted zones vs neutral areas."_
 
 So: `PolygonDrawCommand.m_pTexture` + `m_fUVScale` (`EnWidgets.c:105-106`), with the texture loaded via
 `CanvasWidget.LoadTexture(ResourceName)` → `ref SharedItemRef`
-(`ArmaReforger/scripts/Core/generated/UI/CanvasWidget.c:26`). The working precedent for the *loading* half is
+(`ArmaReforger/scripts/Core/generated/UI/CanvasWidget.c:26`). The working precedent for the _loading_ half is
 `SCR_MapSelectionModule.RenderSelectionCircle`, which loads once, guards with `IsValid()` and only then assigns
 to a draw command — **copy that guard pattern verbatim**; it is the difference between a missing texture being
 a flat polygon and being a crash.
@@ -338,7 +338,7 @@ testable without a single new texture, and the feature is shippable-but-plainer 
 
 **Retained constraint:** `OVT_MapRestrictedAreas`' ring **geometry is untouched** — same centres, same radii,
 same `baseCloseRange + FOB_DEPLOY_BASE_BUFFER` / `FOB_DEPLOY_TOWER_RANGE` sources (`:57`, `:76`, `:80`). Only
-*how* the circle is filled and *when* it is composited changes. BUG-070 must not regress and has its own DoD
+_how_ the circle is filled and _when_ it is composited changes. BUG-070 must not regress and has its own DoD
 criterion (I-3).
 
 ---
@@ -348,8 +348,8 @@ criterion (I-3).
 **Decision.** The overlay is always on when the fullscreen map is open. This feature ships **no** player-facing
 toggle.
 
-**Waives — dated 2026-08-11:** `requirements.md`: *"The overlay must be **toggleable** rather than always-on
-(see `map/map-layers`), and must degrade gracefully if toggled off before it has finished computing."* Both
+**Waives — dated 2026-08-11:** `requirements.md`: _"The overlay must be **toggleable** rather than always-on
+(see `map/map-layers`), and must degrade gracefully if toggled off before it has finished computing."_ Both
 halves are waived: there is no toggle, so there is no mid-compute toggle-off to degrade from. (The solve is
 synchronous inside `OnMapOpen`, so there is no window in which a half-computed overlay is observable at all —
 unless the Phase 6 incremental fallback is taken, in which case partial cells simply are not emitted.)
@@ -358,7 +358,7 @@ unless the Phase 6 incremental fallback is taken, in which case partial cells si
 
 1. **`m_bDisableModule`** — `SCR_MapModuleBase` already declares it
    (`ArmaReforger/scripts/Game/Map/Modules/SCR_MapModuleBase.c:6`) and `SCR_MapEntity.ActivateModules` honours
-   it at load (`SCR_MapEntity.c:1235-1236`). One line in `Configs/Map/MapFullscreen.conf` switches the whole
+   it at load (`SCR_MapEntity.c:1235-1236`). One line in `Configs/Map/MapOverthrow.conf` switches the whole
    layer off with **zero code**. This is exactly how `OVT_MapThreatGrid` is off today.
 2. **`SetLayerVisible(false)`** — the runtime primitive Phase 1 adds (§6 K1). No player UI drives it yet.
 3. **`map/map-layers` (feature 7)** adds the real player-facing toggle, built on (2). That is the recorded
@@ -379,15 +379,15 @@ take restructures the solve.
 
 Measured on `new-map` at `11a73ba3` + working tree, **2026-08-11**. These numbers were **run, not quoted.**
 
-| Gate | Baseline |
-|---|---|
-| `tools/compile-check.sh` | **exit 0, 5964 files, Game module, 5 s** |
-| `tools/run-tests.sh "{6A6E29FF47ECB840}"` (Fast) | **OK, 54 tests, 15 s** |
-| `tools/run-tests.sh "{6A6E2A002F53A581}"` (All) | **OK, 89 tests, 19 s** |
-| Highest allocated bug id | **BUG-144** (BUG-138…144 exist as untracked files) |
-| Free GUID series | **`{6A84…}`** — `{6A83…}` has 12 uses, `{6A84}`/`{6A85}`/`{6A86}` have zero |
+| Gate                                             | Baseline                                                                    |
+| ------------------------------------------------ | --------------------------------------------------------------------------- |
+| `tools/compile-check.sh`                         | **exit 0, 5964 files, Game module, 5 s**                                    |
+| `tools/run-tests.sh "{6A6E29FF47ECB840}"` (Fast) | **OK, 54 tests, 15 s**                                                      |
+| `tools/run-tests.sh "{6A6E2A002F53A581}"` (All)  | **OK, 89 tests, 19 s**                                                      |
+| Highest allocated bug id                         | **BUG-144** (BUG-138…144 exist as untracked files)                          |
+| Free GUID series                                 | **`{6A84…}`** — `{6A83…}` has 12 uses, `{6A84}`/`{6A85}`/`{6A86}` have zero |
 
-⚠️ **`CLAUDE.md` says Fast 38 / All 66 and is stale — do not quote it.** A *changed* test count at any phase
+⚠️ **`CLAUDE.md` says Fast 38 / All 66 and is stale — do not quote it.** A _changed_ test count at any phase
 boundary is a finding to investigate, never a number to update. Expected end state: **Fast 54 + N**, **All
 89 + N**, where N is the number of new Logic cases (Phase 3).
 
@@ -423,13 +423,13 @@ tree mid-feature and have done so throughout this epic.
      unconditional and happens even on the early-return paths**, or a layer that bails silently freezes the
      composite.
    - `OnMapOpen` registers; `OnMapClose` unregisters; `override SetActive(bool, bool)` unregisters on
-     deactivation (see §6 K1 for why `SetActive` is one-way and therefore *not* the toggle primitive).
+     deactivation (see §6 K1 for why `SetActive` is one-way and therefore _not_ the toggle primitive).
 3. **Delete the `if(m_Commands.Count() > 0)` guard** (`:15`) and flush unconditionally. That guard is a second,
    latent defect: a layer that clears its list to empty **never repaints**, so its last non-empty frame stays
    on the canvas forever. If an empty array misbehaves at the engine boundary, emit one degenerate zero-alpha
    command instead — decide by observation in Phase 2, not by guessing.
 4. Add `[Attribute] int m_iDrawOrder 200` to the `OVT_MapRestrictedAreas` entry in
-   `Configs/Map/MapFullscreen.conf` so rings composite **above** territory (100). Give both layers an
+   `Configs/Map/MapOverthrow.conf` so rings composite **above** territory (100). Give both layers an
    `m_sLayerId` (`"restricted"`, and `"territory"` in Phase 4).
 5. Add the projection helpers to `OVT_MapCanvasLayer` (used by Phase 4, probed in Phase 2):
    `CacheProjection()` derives an affine basis from **three** `WorldToScreen` calls (world origin and two
@@ -437,7 +437,7 @@ tree mid-feature and have done so throughout this epic.
    **Leave `DrawCircle`/`DrawRectangle`/`DrawImage` alone** — `OVT_MapRestrictedAreas` geometry must not move.
 6. Add the optional texture parameters to `DrawCircle` with **null defaults** so today's call sites are
    byte-identical in behaviour: `DrawCircle(center, range, color, n = 36, SharedItemRef tex = null,
-   float uvScale = 0)`.
+float uvScale = 0)`.
 
 **Acceptance**
 
@@ -462,19 +462,19 @@ tree mid-feature and have done so throughout this epic.
 
 **Tasks**
 
-1. Create a temporary `OVT_MapProbeLayer : OVT_MapCanvasLayer` (registered in `MapFullscreen.conf` with
+1. Create a temporary `OVT_MapProbeLayer : OVT_MapCanvasLayer` (registered in `MapOverthrow.conf` with
    `m_bDisableModule 0` for the probe, **deleted in Phase 8**) that draws fixed shapes at fixed world
    coordinates near the campaign start position.
 2. Run the four probes below and record each result verbatim in `context.md`.
 
 **The probes, with unambiguous pass/fail signatures**
 
-| # | Probe | PASS | FAIL signatures |
-|---|---|---|---|
-| **P1** | **Textured polygon.** One convex hexagon and one star, both with `m_pTexture` + `m_fUVScale` set from a loaded `SharedItemRef`. | The repeating pattern is visible inside the fill and tiles at the UV scale. | **F1a — texture ignored:** renders as a flat `m_iColor` fill. ⇒ drop to flat-fill differentiation (D4's fallback); hatching is off the table. **F1b — command dropped:** nothing renders at all. ⇒ same fallback, and `m_pTexture` must never be set. |
-| **P2** | **Non-convex fill.** A 12-vertex star, radii alternating 200 m / 500 m, as a single `PolygonDrawCommand`. | A clean star with sharp notches. | **The signature to recognise, not debug blind: a naive fan from vertex 0.** The notches are filled in and the shape reads as a lopsided pinwheel — wedges spanning across the concave gaps, with the artefact hinging on **one** vertex. If you see a shape that looks "filled from one corner", that is this, not a bug in the vertex order. ⇒ rung 2 unavailable. |
-| **P3** | **`TriMeshDrawCommand`.** The same star as an explicit centre fan: `m_Vertices` = centre + ring, `m_Indices` = `[0,1,2, 0,2,3, … 0,N,1]`. | A clean star, identical to P2's PASS. | Nothing renders ⇒ the type is declared but unimplemented; rung 1 unavailable. Partial/garbled ⇒ index convention differs (try reversed winding once, then abandon). |
-| **P4** | **Affine projection.** Derive the basis from 3 `WorldToScreen` calls, then compare `ProjectWorld(p)` against direct `WorldToScreen(p)` for 8 scattered world points × 3 zoom levels × 2 pan positions. `Print` the max pixel error. | Max error ≤ **2 px** at every sample. | Any larger error ⇒ `WorldToScreen` is not affine (or carries rotation the 3-point basis misses); fall back to per-vertex `WorldToScreen` and re-measure Phase 6's frame cost with ~1,900 calls instead of 3. |
+| #      | Probe                                                                                                                                                                                                                               | PASS                                                                        | FAIL signatures                                                                                                                                                                                                                                                                                                                                                     |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **P1** | **Textured polygon.** One convex hexagon and one star, both with `m_pTexture` + `m_fUVScale` set from a loaded `SharedItemRef`.                                                                                                     | The repeating pattern is visible inside the fill and tiles at the UV scale. | **F1a — texture ignored:** renders as a flat `m_iColor` fill. ⇒ drop to flat-fill differentiation (D4's fallback); hatching is off the table. **F1b — command dropped:** nothing renders at all. ⇒ same fallback, and `m_pTexture` must never be set.                                                                                                               |
+| **P2** | **Non-convex fill.** A 12-vertex star, radii alternating 200 m / 500 m, as a single `PolygonDrawCommand`.                                                                                                                           | A clean star with sharp notches.                                            | **The signature to recognise, not debug blind: a naive fan from vertex 0.** The notches are filled in and the shape reads as a lopsided pinwheel — wedges spanning across the concave gaps, with the artefact hinging on **one** vertex. If you see a shape that looks "filled from one corner", that is this, not a bug in the vertex order. ⇒ rung 2 unavailable. |
+| **P3** | **`TriMeshDrawCommand`.** The same star as an explicit centre fan: `m_Vertices` = centre + ring, `m_Indices` = `[0,1,2, 0,2,3, … 0,N,1]`.                                                                                           | A clean star, identical to P2's PASS.                                       | Nothing renders ⇒ the type is declared but unimplemented; rung 1 unavailable. Partial/garbled ⇒ index convention differs (try reversed winding once, then abandon).                                                                                                                                                                                                 |
+| **P4** | **Affine projection.** Derive the basis from 3 `WorldToScreen` calls, then compare `ProjectWorld(p)` against direct `WorldToScreen(p)` for 8 scattered world points × 3 zoom levels × 2 pan positions. `Print` the max pixel error. | Max error ≤ **2 px** at every sample.                                       | Any larger error ⇒ `WorldToScreen` is not affine (or carries rotation the 3-point basis misses); fall back to per-vertex `WorldToScreen` and re-measure Phase 6's frame cost with ~1,900 calls instead of 3.                                                                                                                                                        |
 
 > **P4 also settles a question the existing code cannot answer.** `DrawCircle` (`:30-40`) offsets by
 > `+r·sin(θ)` and `DrawRectangle` (`:67-68`) projects both corners — a circle is symmetric and a rectangle uses
@@ -540,7 +540,7 @@ tree mid-feature and have done so throughout this epic.
 
 1. Create `Scripts/Game/UI/Map/Territory/OVT_MapTerritoryLayer.c : OVT_MapCanvasLayer` with
    `[BaseContainerProps()]`, `m_iDrawOrder 100`, `m_sLayerId "territory"`.
-2. Config surface — all `[Attribute]`s on the layer, set in `Configs/Map/MapFullscreen.conf`
+2. Config surface — all `[Attribute]`s on the layer, set in `Configs/Map/MapOverthrow.conf`
    (the epic's "config-driven, not code-driven" rule):
    - `ref array<ref OVT_TerritorySiteConfig> m_aSiteTypes` — a small `[BaseContainerProps()]` record with
      `m_sId` (`"town"` / `"base"` / `"radiotower"` / `"fob"`), `m_fWeight`, `m_fMaxRadius` (0 ⇒ derive from
@@ -606,7 +606,7 @@ tree mid-feature and have done so throughout this epic.
    `ARGB(40,0,120,255)`, `:21`/`:26`).~~ — **⚠️ THE COLOUR HALF IS OVERRIDDEN BY D11** (user decision,
    2026-08-11). The two hardcoded ARGBs are gone: each ring now takes its **owning faction's hue**
    through `OVT_MapLocationType.GetFactionColorByIndex`, keeping only the two alpha tiers (50 / 40, now
-   attributes). A ring is meant to read as *"the same territory, denser"*, and that only works when the
+   attributes). A ring is meant to read as _"the same territory, denser"_, and that only works when the
    ring and the ground beneath it share a hue — over faction-coloured territory the hardcoded red and
    blue produced a muddy third colour instead. **The RADII half of this sentence still stands and is
    absolute** (DoD I-3 / BUG-070): centres and radii are byte-identical to what they were, verified by
@@ -766,7 +766,7 @@ assumption silently.
 
 **Rejected — "all layers submitted, then flush".** Exact, but it wedges: a layer that stops submitting (hidden,
 deactivated, or bailing on a null canvas) means the condition is never met again and the canvas freezes on its
-last complete frame. That failure mode — a *frozen* overlay — is far harder to diagnose than a slightly
+last complete frame. That failure mode — a _frozen_ overlay — is far harder to diagnose than a slightly
 redundant one.
 
 **Chosen — stamp and flush every submit.** Each bucket carries the frame token it was filled at; the flush
@@ -782,15 +782,15 @@ the moment anything is toggled off. The compositor flushes unconditionally.
 ### K3 — The render-primitive ladder, and why the geometry is rung-independent
 
 The cell is **star-shaped about its own site by construction** — every vertex is `centre + r(θ)·(cos θ, sin θ)`
-with `r ≥ 0`. A triangle fan from the centre is therefore *always* a valid triangulation, with no degenerate or
+with `r ≥ 0`. A triangle fan from the centre is therefore _always_ a valid triangulation, with no degenerate or
 self-intersecting triangles. That is the structural point of the ray-march: it converts an unverified engine
 question ("does `PolygonDrawCommand` fill non-convex polygons?") into a geometry guarantee.
 
-| Rung | Primitive | Commands/cell | Correctness | Needs |
-|---|---|---|---|---|
-| **1** | `TriMeshDrawCommand` with an explicit centre fan | **1** | **Guaranteed by construction** — we supply the indices | P3 PASS |
-| **2** | One star-shaped `PolygonDrawCommand` | **1** | Only if the engine triangulates properly | P2 PASS |
-| **3** | N triangle `PolygonDrawCommand`s | **N (=48)** | **Provably correct** — each triangle is convex | Nothing |
+| Rung  | Primitive                                        | Commands/cell | Correctness                                            | Needs   |
+| ----- | ------------------------------------------------ | ------------- | ------------------------------------------------------ | ------- |
+| **1** | `TriMeshDrawCommand` with an explicit centre fan | **1**         | **Guaranteed by construction** — we supply the indices | P3 PASS |
+| **2** | One star-shaped `PolygonDrawCommand`             | **1**         | Only if the engine triangulates properly               | P2 PASS |
+| **3** | N triangle `PolygonDrawCommand`s                 | **N (=48)**   | **Provably correct** — each triangle is convex         | Nothing |
 
 **The arithmetic that makes rung 3 a real constraint.** At ~40 sites, rung 3 costs ~1,900 fill commands plus
 ~1,900 band quads ≈ **3,800 commands/frame** — worse than `OVT_MapThreatGrid`'s ~2,300, which is the most likely
@@ -808,17 +808,17 @@ probe result changes ~60 lines and nothing else.
 
 > 🔴 **SUPERSEDED — do not price anything off this section.** **D6** removed the maximum influence radius,
 > which falsified both bounds below: rays now run to the coastline rather than stopping early, and the
-> candidate filter is *exhaustive* at an unlimited reach, so it excludes nobody. **D8** (Phase 6) replaced
+> candidate filter is _exhaustive_ at an unlimited reach, so it excludes nobody. **D8** (Phase 6) replaced
 > the model entirely — the rival boundary is now **solved in closed form** rather than sampled per step, so
 > the `× steps × rivals` product this section is built on no longer exists. The bisection-refine argument
-> in the last paragraph survives and is now a *shoreline* argument. See `context.md` § D8.
+> in the last paragraph survives and is now a _shoreline_ argument. See `context.md` § D8.
 
 Naively, 40 sites × 48 rays × (2 km / 50 m) steps × 40 rival tests is ~3.4 M comparisons — too slow. Two
 bounds fix it, and both are structural rather than tuned:
 
 1. **Candidate rival lists.** Precompute, per site, the sites within `2 × maxRadius`. In a populated campaign
    that is ~5–8 rivals, not 40 — an 5× cut.
-2. **Early stop is the common case.** A ray stops at the *first* of three conditions, and in a dense town
+2. **Early stop is the common case.** A ray stops at the _first_ of three conditions, and in a dense town
    cluster that is usually a few hundred metres. Average marched distance is far below `maxRadius`, so the
    realistic figure is ~40 × 48 × ~10 steps × ~8 rivals ≈ **150 k comparisons** and ~19 k land samples.
 
@@ -843,7 +843,7 @@ percent and invisible; it is also why `m_iSmoothPasses` is a config attribute ra
 requirement that smoothing resolution be tunable because it directly costs frame time.
 
 ⚠️ **Narrowed twice since, by D9 and D10** (see `context.md`). "Slight erosion… invisible" is the sentence
-that turned out to be wrong: at a boundary two same-faction cells *share*, both retreating from it leaves an
+that turned out to be wrong: at a boundary two same-faction cells _share_, both retreating from it leaves an
 unfilled sliver (**D9**), and at a coastline the marched radius is already the correct organic edge, so
 filtering it can only pull the fill back from the sea (**D10**). Both kinds of ray now keep their raw radius.
 **The clamp itself is untouched and still governs every ray that is still smoothed** — which after D10 means
@@ -875,7 +875,7 @@ FOBs via `GetPlayerFactionIndex()`.
 
 ### K7 — Neutral bands come free from the stop reason
 
-Recording *why* each ray stopped (`RIVAL` / `COAST` / `MAX_RADIUS`) costs one int per ray and gives the
+Recording _why_ each ray stopped (`RIVAL` / `COAST` / `MAX_RADIUS`) costs one int per ray and gives the
 "neutral territory" band the requirements ask for without any extra geometry: the band is drawn only along
 contiguous spans that stopped on `RIVAL` — a real frontier with another faction. A coastline is not a frontier
 and neither is the outer edge of a site's reach, so those spans get no band. Without the stop reason this would
@@ -903,11 +903,11 @@ certain regions are the least intrusive.
 
 `SupportPercentage()` (`:39`) was considered and rejected as the driver: it measures popular support, not
 control, and a resistance-supporting town still held by the occupier would read as resistance territory. That
-would make the overlay a *second opinion* about who holds what, which is exactly the boundary §3.4 forbids.
+would make the overlay a _second opinion_ about who holds what, which is exactly the boundary §3.4 forbids.
 
 ⚠️ **Superseded by D10, and this paragraph is the reason it needed arguing** (see `context.md`). Fill alpha is
 no longer driven by `stability` at all — that lerp is **deleted**, because a continuous per-site shade
-fragmented a one-faction island into a patchwork (D9). What replaced it *is* support-driven, and the
+fragmented a one-faction island into a patchwork (D9). What replaced it _is_ support-driven, and the
 rejection above does **not** apply to it: the region is still drawn in the **occupier's** colour because the
 occupier controls it, so support does not recolour anything — it **marks** the region as contested. That is a
 second axis over an accurate first one rather than a competing answer, which is the distinction this
@@ -1058,10 +1058,11 @@ fill at three zoom levels.
 
 **Q-1 — Measured frame cost, recorded.** On a **fully-populated** campaign save (all towns, all bases, all
 radio towers, ≥ 3 FOBs — record the site count), with `m_bDebugTiming 1`:
+
 - solve time at map open ≤ **250 ms**, recorded in `context.md`;
 - rolling 60-frame `Draw()` average ≤ **1.5 ms**, recorded;
 - total composited draw commands ≤ **250/frame**, recorded.
-An unrecorded number is a failure of this criterion even if the overlay feels fine.
+  An unrecorded number is a failure of this criterion even if the overlay feels fine.
 
 **Q-2 — Opening the map does not visibly hitch.** Open and close the map ten times in a row on the populated
 save. No stutter that a player would notice on any open.
@@ -1084,8 +1085,8 @@ mention of the manager accessor or the game-mode getter — **including in comme
 **I-1 — 🔴 Territory and restriction rings render SIMULTANEOUSLY.** This is the Phase 1 defect and the single
 most important integration criterion. With the map open near an occupied base: the base's red restriction circle
 **and** the territory fill are **both** visible, with the ring drawn **on top of** the fill. Verified at three
-zoom levels. *(If either is missing, the compositor is not working — and the symptom is easy to misread as a
-broken territory layer.)*
+zoom levels. _(If either is missing, the compositor is not working — and the symptom is easy to misread as a
+broken territory layer.)_
 
 **I-1b — Three layers compose.** Temporarily set `m_bDisableModule 0` on `OVT_MapThreatGrid` and confirm all
 three layers render at once, in `m_iDrawOrder`. **Set it back to `1`** — D3 keeps it disabled.
@@ -1100,6 +1101,7 @@ permitted just outside, for **both** a base ring and a radio-tower ring. `git di
 radius sources in `OVT_MapRestrictedAreas.OnMapOpen`.
 
 **I-4 — The overlay is a projection, not a mechanic.** All of the following hold:
+
 - `git diff` shows no `[RplProp]`, no `[RplRpc]`, no `RpcAsk_`/`RpcDo_`, and no `EPF_` class added anywhere.
 - `git diff` shows no write to any field of `OVT_TownData`, `OVT_BaseData`, `OVT_RadioTowerData` or
   `OVT_FOBData`.
@@ -1133,6 +1135,7 @@ Run in order. Stop and fix at the first failure.
 `.c` files. Any other delta is a finding to investigate.
 
 **V-2 — Automated tests against the measured baselines.**
+
 - `tools/run-tests.sh "{6A6E29FF47ECB840}"` → exit **0**, **54 + N** tests (baseline **54**).
 - `tools/run-tests.sh "{6A6E2A002F53A581}"` → exit **0**, **89 + N** tests (baseline **89**).
 - `N` = new Logic cases. **A count that changed for any other reason is a finding, never a number to update.**
@@ -1142,7 +1145,8 @@ Workbench and confirm zero load errors. **This is the only gate that can see the
 entry's GUID, the two `.edds` textures and their `.meta` files.** `tools/compile-check.sh` and both test groups
 are blind to every one of them — a dangling GUID or an unimported texture passes every automated gate and fails
 in the world. Specifically confirm:
-- `Configs/Map/MapFullscreen.conf` loads with the new `OVT_MapTerritoryLayer` entry and its fresh
+
+- `Configs/Map/MapOverthrow.conf` loads with the new `OVT_MapTerritoryLayer` entry and its fresh
   `{6A84…}` GUID resolving.
 - Both texture `ResourceName`s resolve (or `m_bUseTextures` is `0` and this step is deferred to V-6).
 - `grep -rn "{6A84" .` shows each new GUID used exactly where intended and nowhere else.
@@ -1174,34 +1178,34 @@ boundary.
 
 **What each tier can and cannot see here:**
 
-| Tier | Can it cover this feature? |
-|---|---|
-| **Logic** (world-free, ~25 cases today) | ✅ **Yes, and this is where the real value is.** The entire geometry — weighted ownership, radius clipping, the land test given stub heights, the march's stop reasons, the shrink-only smoothing — is pure maths on hand-built objects. This is exactly why `OVT_TerritorySolver` is split out of the layer: the split is not aesthetic, it is what makes any of this testable. |
-| **Init** (managers resolve, controllers registered) | ⚠️ **Marginal.** It could assert that the four site collections exist and are non-null, but that asserts the *managers*, not this feature, and those managers already have coverage. **No new Init cases** — YAGNI. |
-| **Campaign** (started-campaign state) | ❌ **No.** There is no map, no canvas and no rendering in the autotest world. A "territory" assertion here could only re-assert town/base faction fields that already have coverage. |
-| **Persistence** | ❌ **No, and deliberately so.** This feature persists nothing (I-4). If a Persistence case ever becomes relevant, something has gone badly wrong with the §3.4 boundary. |
+| Tier                                                | Can it cover this feature?                                                                                                                                                                                                                                                                                                                                                       |
+| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Logic** (world-free, ~25 cases today)             | ✅ **Yes, and this is where the real value is.** The entire geometry — weighted ownership, radius clipping, the land test given stub heights, the march's stop reasons, the shrink-only smoothing — is pure maths on hand-built objects. This is exactly why `OVT_TerritorySolver` is split out of the layer: the split is not aesthetic, it is what makes any of this testable. |
+| **Init** (managers resolve, controllers registered) | ⚠️ **Marginal.** It could assert that the four site collections exist and are non-null, but that asserts the _managers_, not this feature, and those managers already have coverage. **No new Init cases** — YAGNI.                                                                                                                                                              |
+| **Campaign** (started-campaign state)               | ❌ **No.** There is no map, no canvas and no rendering in the autotest world. A "territory" assertion here could only re-assert town/base faction fields that already have coverage.                                                                                                                                                                                             |
+| **Persistence**                                     | ❌ **No, and deliberately so.** This feature persists nothing (I-4). If a Persistence case ever becomes relevant, something has gone badly wrong with the §3.4 boundary.                                                                                                                                                                                                         |
 
 ### Logic cases (Phase 3)
 
 Each is deterministic, world-free, and built with `new`. Target ~10 cases:
 
-| # | Case | Asserts |
-|---|---|---|
-| 1 | `IsLand(surfaceY, oceanY, margin)` above/below/exactly-at the margin | The land predicate, including the boundary |
-| 2 | Two equal-weight sites | The boundary along the connecting line sits at the **midpoint** |
-| 3 | Two sites weighted 2 : 1 | The boundary sits **2/3** of the way toward the weaker site (the Apollonius property — this is the case that pins D1) |
-| 4 | One isolated site, no rivals, no coast | Every ray returns exactly `maxRadius`, and every stop reason is `MAX_RADIUS` |
-| 5 | One site, stubbed coast at a known Z | Rays crossing the coast stop at it (within the refine tolerance) with reason `COAST`; rays away from it are unaffected |
-| 6 | Two sites close together | Rays toward the rival stop with reason `RIVAL`; rays away stop with `MAX_RADIUS` |
-| 7 | `SmoothRadii` shrink-only invariant | `∀i: smoothed[i] ≤ raw[i]` on a deliberately spiky radius array (K5) |
-| 8 | `SmoothRadii` circular wrap | Index 0's window includes index `N-1`; a spike at index 0 is smoothed the same as a spike in the middle |
-| 9 | `SmoothRadii(passes = 0)` | The array is returned unchanged — the "smoothing is tunable to off" contract |
-| 10 | Candidate rival list | A site far beyond `2 × maxRadius` is excluded and its exclusion does not change the result (the optimisation is provably neutral) |
+| #   | Case                                                                 | Asserts                                                                                                                           |
+| --- | -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `IsLand(surfaceY, oceanY, margin)` above/below/exactly-at the margin | The land predicate, including the boundary                                                                                        |
+| 2   | Two equal-weight sites                                               | The boundary along the connecting line sits at the **midpoint**                                                                   |
+| 3   | Two sites weighted 2 : 1                                             | The boundary sits **2/3** of the way toward the weaker site (the Apollonius property — this is the case that pins D1)             |
+| 4   | One isolated site, no rivals, no coast                               | Every ray returns exactly `maxRadius`, and every stop reason is `MAX_RADIUS`                                                      |
+| 5   | One site, stubbed coast at a known Z                                 | Rays crossing the coast stop at it (within the refine tolerance) with reason `COAST`; rays away from it are unaffected            |
+| 6   | Two sites close together                                             | Rays toward the rival stop with reason `RIVAL`; rays away stop with `MAX_RADIUS`                                                  |
+| 7   | `SmoothRadii` shrink-only invariant                                  | `∀i: smoothed[i] ≤ raw[i]` on a deliberately spiky radius array (K5)                                                              |
+| 8   | `SmoothRadii` circular wrap                                          | Index 0's window includes index `N-1`; a spike at index 0 is smoothed the same as a spike in the middle                           |
+| 9   | `SmoothRadii(passes = 0)`                                            | The array is returned unchanged — the "smoothing is tunable to off" contract                                                      |
+| 10  | Candidate rival list                                                 | A site far beyond `2 × maxRadius` is excluded and its exclusion does not change the result (the optimisation is provably neutral) |
 
 **Proving each can fail** — the inversions to run, batched, with the result recorded per case:
 
 - Flip `<` to `>` in `OwnsPoint` → cases 2, 3, 6 red.
-- Drop the `/ weight` division → case 3 red, case 2 green (which is *why* case 2 alone is insufficient and case
+- Drop the `/ weight` division → case 3 red, case 2 green (which is _why_ case 2 alone is insufficient and case
   3 exists).
 - Flip `>` to `<` in `IsLand` → cases 1, 5 red.
 - Remove the `Min(smoothed, raw)` clamp → case 7 red.
@@ -1227,11 +1231,11 @@ test groups.
 
 ### Debugging: three signatures that cover nearly every silent failure
 
-| Symptom | Most likely cause | First check |
-|---|---|---|
-| **Territory renders, rings vanish** (or the reverse) | The compositor is not composing — a layer is calling `SetDrawCommands` with its own list, or a bucket's frame stamp is never current | `Print` the composited command count per frame; if it equals one layer's count, the flush path is wrong |
-| **Overlay is empty, no error** | `CollectSites` found nothing — a manager was null at map open (JIP window), or a site-type config entry is `m_bEnabled 0` | `Print` the site count per source in `CollectSites`. If it is zero on a client but non-zero on the host, it is a replication finding against the owning feature, not this one |
-| **Cells look mirrored / inside-out / hinged on one corner** | Either the world-Z → screen-Y sign (P4) or the fan-from-vertex-0 artefact (P2) | Re-run probe P4 and P2. **These two look similar and have completely different fixes** — P4's failure mirrors the whole cell, P2's fills the concave notches while leaving the convex hull correct |
+| Symptom                                                     | Most likely cause                                                                                                                    | First check                                                                                                                                                                                        |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Territory renders, rings vanish** (or the reverse)        | The compositor is not composing — a layer is calling `SetDrawCommands` with its own list, or a bucket's frame stamp is never current | `Print` the composited command count per frame; if it equals one layer's count, the flush path is wrong                                                                                            |
+| **Overlay is empty, no error**                              | `CollectSites` found nothing — a manager was null at map open (JIP window), or a site-type config entry is `m_bEnabled 0`            | `Print` the site count per source in `CollectSites`. If it is zero on a client but non-zero on the host, it is a replication finding against the owning feature, not this one                      |
+| **Cells look mirrored / inside-out / hinged on one corner** | Either the world-Z → screen-Y sign (P4) or the fan-from-vertex-0 artefact (P2)                                                       | Re-run probe P4 and P2. **These two look similar and have completely different fixes** — P4's failure mirrors the whole cell, P2's fills the concave notches while leaving the convex hull correct |
 
 ---
 
@@ -1239,7 +1243,7 @@ test groups.
 
 ### Internal (code — all read-only)
 
-- **`map/core`** — `OVT_MapCanvasLayer` (the base being extended), `MapFullscreen.conf`, and the
+- **`map/core`** — `OVT_MapCanvasLayer` (the base being extended), `MapOverthrow.conf`, and the
   `OVT_MapLocationType` colour path. This feature adds rows to the canvas-layer contract and **must record them**
   in `core/context.md` (Phase 8 task 3). It also inherits `core`'s outstanding `FindAnyWidget` name-sweep debt —
   not this feature's to close, but relevant since the compositor resolves `DRAWING_WIDGET_NAME`.
@@ -1266,13 +1270,13 @@ test groups.
 
 ### External — user / Workbench work
 
-| Item | Blocking? | Notes |
-|---|---|---|
-| **Two hatch textures + `.meta`, imported in Workbench** | **For V-6 only** — not for the feature | Art brief below. `m_bUseTextures 0` ships a flat-fill fallback so every other gate runs without them |
-| Workbench clean-load check (V-3) | **YES** | The **only** gate that can see the `.conf` entry, the new GUID, the textures and their `.meta` files |
-| Fully-populated campaign save | **YES** for Q-1/V-5 | The measurement is meaningless on an early-game world |
-| Two-client MP session (V-8) | **YES** for I-5…I-7 | `tools/launch-server.sh` + two `tools/launch-game.sh --profile` clients, **long `--timeout`**. Warn before launching |
-| Regenerate the six `localization_Overthrow.<lang>.conf` exports | No | Only two layer-name ids are added and nothing renders them until feature 7. **Never hand-edit the exports** |
+| Item                                                            | Blocking?                              | Notes                                                                                                                |
+| --------------------------------------------------------------- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| **Two hatch textures + `.meta`, imported in Workbench**         | **For V-6 only** — not for the feature | Art brief below. `m_bUseTextures 0` ships a flat-fill fallback so every other gate runs without them                 |
+| Workbench clean-load check (V-3)                                | **YES**                                | The **only** gate that can see the `.conf` entry, the new GUID, the textures and their `.meta` files                 |
+| Fully-populated campaign save                                   | **YES** for Q-1/V-5                    | The measurement is meaningless on an early-game world                                                                |
+| Two-client MP session (V-8)                                     | **YES** for I-5…I-7                    | `tools/launch-server.sh` + two `tools/launch-game.sh --profile` clients, **long `--timeout`**. Warn before launching |
+| Regenerate the six `localization_Overthrow.<lang>.conf` exports | No                                     | Only two layer-name ids are added and nothing renders them until feature 7. **Never hand-edit the exports**          |
 
 ### 🎨 Art brief — the two hatch textures
 
@@ -1282,11 +1286,11 @@ Both must satisfy all of:
   **no existing Overthrow texture is a tiling pattern**; `UI/Imagesets/` holds three icon atlases
   (`overthrow_dark`, `overthrow_mapicons`, `overthrow_priceicons`) and `UI/Textures/Map/` holds their two
   `.edds` atlases, all sprite sheets. There is nothing to adapt, so both are new authored assets.
-- **Alpha-bearing.** The pattern's *alpha* carries the shape; the polygon's `m_iColor` supplies the faction
+- **Alpha-bearing.** The pattern's _alpha_ carries the shape; the polygon's `m_iColor` supplies the faction
   tint. A pattern baked with opaque colour would fight the faction palette and break K6's colour agreement.
 - **Legible at map zoom.** The map is viewed zoomed out most of the time. A pattern whose period is a few pixels
   at that zoom aliases into noise; err coarse.
-- **Visually distinct from each other**, and distinguishable at a glance — different *structure*, not just
+- **Visually distinct from each other**, and distinguishable at a glance — different _structure_, not just
   different spacing. Suggested: diagonal bars for restricted zones (the conventional "keep out" idiom) and a
   finer dotted/cross-hatch for neutral border bands.
 - **Quiet.** The overlay must stay under the terrain. Low contrast within the pattern; the texture modulates
@@ -1321,7 +1325,7 @@ Scripts/Game/Tests/TestSuites/Logic/
 └── OVT_TEST_LogicSuite.c                     ~   register the new case class
 
 Configs/Map/
-└── MapFullscreen.conf                        ~   + OVT_MapTerritoryLayer entry (fresh {6A84…} GUID)
+└── MapOverthrow.conf                        ~   + OVT_MapTerritoryLayer entry (fresh {6A84…} GUID)
                                                   + m_iDrawOrder 200 on OVT_MapRestrictedAreas
                                                   OVT_MapThreatGrid entry UNCHANGED (stays disabled — D3)
 
@@ -1342,34 +1346,34 @@ docs/features/map/
 > `{6A84}`/`{6A85}`/`{6A86}` have none. `grep -rn` each new GUID before committing; a duplicate GUID is a
 > Workbench-only failure that every automated gate passes.
 >
-> **Bug ids:** the highest allocated id is **BUG-144** (BUG-138…144 exist as *untracked* files —
+> **Bug ids:** the highest allocated id is **BUG-144** (BUG-138…144 exist as _untracked_ files —
 > `ls docs/bugs/` before allocating, do not trust `git log`).
 
 ---
 
 ## 11. Risks & Mitigation
 
-| # | Risk | Likelihood | Impact | Mitigation |
-|---|---|---|---|---|
-| **R1** | 🔴 **The shared-canvas defect ships unfixed and territory "breaks" the restriction rings.** Every layer resolves the same `CanvasWidget` (`OVT_MapCanvasLayer.c:89`) and overwrites the others (`:12-19`). The symptom — rings vanish when territory appears — reads exactly like a broken territory layer and will be debugged in the wrong file. | **Certain if unfixed** | High | **Phase 1, first, `component-developer-advanced`.** DoD **I-1** is a dedicated criterion, not a line inside another one. The three-layer case (I-1b) is exercised with the threat grid temporarily enabled, which is also the cheapest possible test of the compositor. |
-| **R2** | **The render primitives do not work as hoped.** `PolygonDrawCommand.m_pTexture`/`m_fUVScale`, `TriMeshDrawCommand`, and non-convex polygon fill have **zero usages anywhere in vanilla** (`EnWidgets.c:101-116`). The user's confidence comes from other mods, not from this engine build. | Medium | High | **Phase 2 is a throwaway probe before anything depends on it**, with four unambiguous pass/fail signatures. The ladder (K3) has a **provably correct bottom rung** that needs no engine feature at all, and the cell geometry is identical on all three rungs so the probe result changes ~60 lines. Textures are behind `m_bUseTextures 0` by default. |
-| **R3** | **Frame/solve cost at full campaign scale.** ~40 sites × 48 rays × march steps, plus per-frame emission. Rung 3 would put ~3,800 commands/frame on the canvas — worse than the threat grid that was probably disabled for this. | Medium | High | Candidate rival lists and early-stop bound the solve (K4); one 3-call affine basis replaces ~1,900 `WorldToScreen` calls per frame (K13/P4). **Q-1's three budget numbers are measured on a populated save and recorded**, with an ordered fallback list ending in a budgeted incremental solve (Phase 6). Rung 3 carries a mandatory ray-count cut with the visual cost stated. |
-| **R4** | **A mirrored or notch-filled overlay is misdiagnosed.** The world-Z → screen-Y sign is untested — `DrawCircle`'s symmetry (`:33-40`) and `DrawRectangle`'s two projections (`:67-68`) both hide it — and the fan-from-vertex-0 artefact looks superficially similar. | Medium | Medium | P4 derives the basis empirically instead of assuming the sign, and asserts ≤ 2 px against direct `WorldToScreen`. §9's debugging table names both signatures side by side **and states that they have completely different fixes**. |
-| **R5** | **Territory colour disagrees with marker colour**, introducing the second palette `requirements.md` forbids. | Low (after K6) | Medium | K6 found the three types that matter **already** resolve live faction colour identically; Phase 5 task 1 extracts one shared helper so there is literally one implementation. DoD **F-2** checks three sites of different factions by eye. |
-| **R6** | **The sampled coastline is too coarse (blocky shore) or too slow (proto calls dominate).** | Medium | Medium | Bisection refine sharpens 50 m → ~3 m for 4 extra evaluations per ray (K4); `m_fMarchStep`, `m_iRefineSteps` and `m_bClipToCoast` are all config attributes; `BaseWorld.IsOcean()` short-circuits on ocean-free worlds. Documented fallbacks: sample every other step, or precompute a coarse shared land grid. |
-| **R7** | **Rivers and lakes cut territory.** A river bisecting a town's region would look like a bug and would be one. | Low | Medium | D2 chose `GetSurfaceY` vs `GetOceanHeight` **specifically** because it ignores ponds and rivers by construction, unlike `TryGetWaterSurfaceSimple` which returns true for `WST_POND` and `WST_RIVER`. DoD **F-5** states explicitly that a region spanning a river is **correct**, so it is not "fixed" later by someone who assumes otherwise. |
-| **R8** | **Territory is mistaken for a new campaign mechanic** — by players ("does territory affect income?"), or worse, by a future contributor who starts writing to it. | Medium | High | §3.4 states the boundary; DoD **I-4** enforces it with four greps/diffs (no `[RplProp]`, no RPC, no EPF, no writes to any campaign record, all new files under `Scripts/Game/UI/Map/`); Phase 8's `help-docs-sync` describes it as a display, with **every sentence backed by a `file:line` or cut**. |
-| **R9** | **JIP client sees an empty or wrong overlay for the whole map session**, because the solve runs once at map open and the records had not replicated yet. | Medium | Medium | K9's `HashSites` re-solve on the refresh tick makes it self-heal within one interval without closing the map; K10's per-call manager lookups avoid caching a null through the JIP window. DoD **I-6** requires the correction to happen with the map still open. |
-| **R10** | **The art never lands**, or lands late, and the feature is blocked on it. | Medium | Low | `m_bUseTextures` defaults **0** and every phase before Phase 5's texture step is testable without any new asset. The feature is shippable-but-plainer with flat fills; V-6 is a separate, later step. |
-| **R11** | **A `.conf` / `.edds` / `.meta` fault passes every automated gate.** This feature adds a module entry with a new GUID and two imported textures — file classes invisible to `compile-check.sh` **and** to both test groups. | High | Medium | **V-3 is mandatory and is the only evidence those files are sound**, with a per-item checklist and a `grep -rn "{6A84"` uniqueness check. Fresh GUIDs come from a series measured to be unused. |
-| **R12** | **The deferred threat grid (D3) is silently forgotten**, leaving written-but-disabled code in the tree indefinitely — the exact outcome `requirements.md` was written to prevent. | Medium | Low | D3 records it as an **accepted waiver with the user's date**, Phase 8 task 5 adds it to the epic's Tech Debt section, and D3 writes down the two candidate reasons it was disabled plus the fact that reviving it after Phase 1 is a one-line conf edit — so the next decision is made with evidence rather than blind. |
-| **R13** | **A future overlay toggle is built on `SetActive` and cannot be undone.** `SetActive(false)` calls `DeactivateModule` and there is no script-reachable way back (`ActivateModules` and `m_aActiveModules` are both `protected`). | Medium | Medium | K1 makes `SetLayerVisible` the documented toggle primitive and Phase 8 task 4 writes the caveat directly into `map-layers/requirements.md`, where feature 7's planner will read it. |
-| **R14** | **Parallel sessions commit to this tree mid-feature** — this epic has a documented history of it, and seven untracked bug files are sitting in the tree right now. | Medium | Low | Re-check `git status` and the highest `docs/bugs/` id at every phase boundary; commit per phase so there is a revert path. |
+| #       | Risk                                                                                                                                                                                                                                                                                                                                               | Likelihood             | Impact | Mitigation                                                                                                                                                                                                                                                                                                                                                                       |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **R1**  | 🔴 **The shared-canvas defect ships unfixed and territory "breaks" the restriction rings.** Every layer resolves the same `CanvasWidget` (`OVT_MapCanvasLayer.c:89`) and overwrites the others (`:12-19`). The symptom — rings vanish when territory appears — reads exactly like a broken territory layer and will be debugged in the wrong file. | **Certain if unfixed** | High   | **Phase 1, first, `component-developer-advanced`.** DoD **I-1** is a dedicated criterion, not a line inside another one. The three-layer case (I-1b) is exercised with the threat grid temporarily enabled, which is also the cheapest possible test of the compositor.                                                                                                          |
+| **R2**  | **The render primitives do not work as hoped.** `PolygonDrawCommand.m_pTexture`/`m_fUVScale`, `TriMeshDrawCommand`, and non-convex polygon fill have **zero usages anywhere in vanilla** (`EnWidgets.c:101-116`). The user's confidence comes from other mods, not from this engine build.                                                         | Medium                 | High   | **Phase 2 is a throwaway probe before anything depends on it**, with four unambiguous pass/fail signatures. The ladder (K3) has a **provably correct bottom rung** that needs no engine feature at all, and the cell geometry is identical on all three rungs so the probe result changes ~60 lines. Textures are behind `m_bUseTextures 0` by default.                          |
+| **R3**  | **Frame/solve cost at full campaign scale.** ~40 sites × 48 rays × march steps, plus per-frame emission. Rung 3 would put ~3,800 commands/frame on the canvas — worse than the threat grid that was probably disabled for this.                                                                                                                    | Medium                 | High   | Candidate rival lists and early-stop bound the solve (K4); one 3-call affine basis replaces ~1,900 `WorldToScreen` calls per frame (K13/P4). **Q-1's three budget numbers are measured on a populated save and recorded**, with an ordered fallback list ending in a budgeted incremental solve (Phase 6). Rung 3 carries a mandatory ray-count cut with the visual cost stated. |
+| **R4**  | **A mirrored or notch-filled overlay is misdiagnosed.** The world-Z → screen-Y sign is untested — `DrawCircle`'s symmetry (`:33-40`) and `DrawRectangle`'s two projections (`:67-68`) both hide it — and the fan-from-vertex-0 artefact looks superficially similar.                                                                               | Medium                 | Medium | P4 derives the basis empirically instead of assuming the sign, and asserts ≤ 2 px against direct `WorldToScreen`. §9's debugging table names both signatures side by side **and states that they have completely different fixes**.                                                                                                                                              |
+| **R5**  | **Territory colour disagrees with marker colour**, introducing the second palette `requirements.md` forbids.                                                                                                                                                                                                                                       | Low (after K6)         | Medium | K6 found the three types that matter **already** resolve live faction colour identically; Phase 5 task 1 extracts one shared helper so there is literally one implementation. DoD **F-2** checks three sites of different factions by eye.                                                                                                                                       |
+| **R6**  | **The sampled coastline is too coarse (blocky shore) or too slow (proto calls dominate).**                                                                                                                                                                                                                                                         | Medium                 | Medium | Bisection refine sharpens 50 m → ~3 m for 4 extra evaluations per ray (K4); `m_fMarchStep`, `m_iRefineSteps` and `m_bClipToCoast` are all config attributes; `BaseWorld.IsOcean()` short-circuits on ocean-free worlds. Documented fallbacks: sample every other step, or precompute a coarse shared land grid.                                                                  |
+| **R7**  | **Rivers and lakes cut territory.** A river bisecting a town's region would look like a bug and would be one.                                                                                                                                                                                                                                      | Low                    | Medium | D2 chose `GetSurfaceY` vs `GetOceanHeight` **specifically** because it ignores ponds and rivers by construction, unlike `TryGetWaterSurfaceSimple` which returns true for `WST_POND` and `WST_RIVER`. DoD **F-5** states explicitly that a region spanning a river is **correct**, so it is not "fixed" later by someone who assumes otherwise.                                  |
+| **R8**  | **Territory is mistaken for a new campaign mechanic** — by players ("does territory affect income?"), or worse, by a future contributor who starts writing to it.                                                                                                                                                                                  | Medium                 | High   | §3.4 states the boundary; DoD **I-4** enforces it with four greps/diffs (no `[RplProp]`, no RPC, no EPF, no writes to any campaign record, all new files under `Scripts/Game/UI/Map/`); Phase 8's `help-docs-sync` describes it as a display, with **every sentence backed by a `file:line` or cut**.                                                                            |
+| **R9**  | **JIP client sees an empty or wrong overlay for the whole map session**, because the solve runs once at map open and the records had not replicated yet.                                                                                                                                                                                           | Medium                 | Medium | K9's `HashSites` re-solve on the refresh tick makes it self-heal within one interval without closing the map; K10's per-call manager lookups avoid caching a null through the JIP window. DoD **I-6** requires the correction to happen with the map still open.                                                                                                                 |
+| **R10** | **The art never lands**, or lands late, and the feature is blocked on it.                                                                                                                                                                                                                                                                          | Medium                 | Low    | `m_bUseTextures` defaults **0** and every phase before Phase 5's texture step is testable without any new asset. The feature is shippable-but-plainer with flat fills; V-6 is a separate, later step.                                                                                                                                                                            |
+| **R11** | **A `.conf` / `.edds` / `.meta` fault passes every automated gate.** This feature adds a module entry with a new GUID and two imported textures — file classes invisible to `compile-check.sh` **and** to both test groups.                                                                                                                        | High                   | Medium | **V-3 is mandatory and is the only evidence those files are sound**, with a per-item checklist and a `grep -rn "{6A84"` uniqueness check. Fresh GUIDs come from a series measured to be unused.                                                                                                                                                                                  |
+| **R12** | **The deferred threat grid (D3) is silently forgotten**, leaving written-but-disabled code in the tree indefinitely — the exact outcome `requirements.md` was written to prevent.                                                                                                                                                                  | Medium                 | Low    | D3 records it as an **accepted waiver with the user's date**, Phase 8 task 5 adds it to the epic's Tech Debt section, and D3 writes down the two candidate reasons it was disabled plus the fact that reviving it after Phase 1 is a one-line conf edit — so the next decision is made with evidence rather than blind.                                                          |
+| **R13** | **A future overlay toggle is built on `SetActive` and cannot be undone.** `SetActive(false)` calls `DeactivateModule` and there is no script-reachable way back (`ActivateModules` and `m_aActiveModules` are both `protected`).                                                                                                                   | Medium                 | Medium | K1 makes `SetLayerVisible` the documented toggle primitive and Phase 8 task 4 writes the caveat directly into `map-layers/requirements.md`, where feature 7's planner will read it.                                                                                                                                                                                              |
+| **R14** | **Parallel sessions commit to this tree mid-feature** — this epic has a documented history of it, and seven untracked bug files are sitting in the tree right now.                                                                                                                                                                                 | Medium                 | Low    | Re-check `git status` and the highest `docs/bugs/` id at every phase boundary; commit per phase so there is a revert path.                                                                                                                                                                                                                                                       |
 
 ---
 
-*Plan created 2026-08-11 by `/plan-feature map/territory-overlay`. Baselines in §5 Phase 0 were **measured, not
+_Plan created 2026-08-11 by `/plan-feature map/territory-overlay`. Baselines in §5 Phase 0 were **measured, not
 quoted**: compile exit 0 / 5964 files, Fast 54, All 89, free GUID series `{6A84…}`, highest bug id BUG-144.
 §4 records five decisions settled with the user on 2026-08-11 — two of which **override** `requirements.md` and
 `epic-requirements.md`, one of which is a **waiver**, and one of which is a **deferral the user chose
-explicitly**. Those files remain the record of earlier intent and are deliberately not edited.*
+explicitly**. Those files remain the record of earlier intent and are deliberately not edited._

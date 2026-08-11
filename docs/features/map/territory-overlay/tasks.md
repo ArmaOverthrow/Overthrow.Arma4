@@ -2,11 +2,12 @@
 
 **Last Updated:** 2026-08-11
 **Progress:** ✅ **CLOSED 2026-08-11 — 133/136 rows.** The user play-tested SP and MP and reported
-*"play-test and MP all green, no issues, looks great"*, then asked to close the feature.
+_"play-test and MP all green, no issues, looks great"_, then asked to close the feature.
 
 > **The three open rows are open on purpose and are listed here rather than buried:**
+>
 > 1. **Q-1 / V-5 — the three frame-cost numbers were never measured.** The play-test discharges **Q-2**
->    (no visible hitch); Q-1's wording is about *recorded numbers*, and none exist. Ticking it on a
+>    (no visible hitch); Q-1's wording is about _recorded numbers_, and none exist. Ticking it on a
 >    qualitative report would be the one dishonest line in this file.
 > 2. **Q-4 — the broken-texture degrade path has never been executed.** The guards are correct by
 >    inspection only.
@@ -40,7 +41,7 @@
 - [x] `tools/run-tests.sh "{6A6E2A002F53A581}"` (All) → OK, **89 tests**
 - [x] Re-check `git status` and highest `docs/bugs/` id (**BUG-144**) — parallel sessions commit to this tree
 - [x] Confirm the `{6A84…}` GUID series is still free (`grep -rn "{6A84" .`)
-- [x] ⚠️ `CLAUDE.md`'s "Fast 38 / All 66" is stale — never quote it; a *changed* count is a finding
+- [x] ⚠️ `CLAUDE.md`'s "Fast 38 / All 66" is stale — never quote it; a _changed_ count is a finding
 
 ---
 
@@ -60,7 +61,7 @@
 - [x] `ProjectWorld(wx, wz, out sx, out sy)` — 2 mul-adds per vertex
 - [x] `DrawCircle` gains optional `SharedItemRef tex = null, float uvScale = 0` (null defaults, byte-identical behaviour)
 - [x] `DrawCircle`/`DrawRectangle`/`DrawImage` geometry otherwise **untouched** (BUG-070 / I-3)
-- [x] `Configs/Map/MapFullscreen.conf` — `m_iDrawOrder 200` + `m_sLayerId "restricted"` on `OVT_MapRestrictedAreas`
+- [x] `Configs/Map/MapOverthrow.conf` — `m_iDrawOrder 200` + `m_sLayerId "restricted"` on `OVT_MapRestrictedAreas`
 - [x] Gate: `tools/compile-check.sh` exit 0 — **5965 files** (5964 + 1)
 - [x] Gate: Fast **54**, All **89** — unchanged
 - [x] **user-driven** Set `m_bDisableModule 0` on `OVT_MapThreatGrid`, confirm grid **and** rings render at once, rings on top; then set back to `1` (D3)
@@ -72,7 +73,7 @@
 ## Phase 2 — Render probe: settle the primitive ladder and the projection — `ui-developer`, then user-run
 
 - [x] Temporary `OVT_MapProbeLayer : OVT_MapCanvasLayer` drawing fixed shapes at fixed world coords
-- [x] Register it in `MapFullscreen.conf` with `m_bDisableModule 0` (deleted in Phase 8)
+- [x] Register it in `MapOverthrow.conf` with `m_bDisableModule 0` (deleted in Phase 8)
 - [x] **P1** textured polygon — hexagon + star with `m_pTexture` + `m_fUVScale` from a loaded `SharedItemRef`
 - [x] **P2** non-convex fill — 12-vertex star, radii alternating 200 m / 500 m, one `PolygonDrawCommand`
 - [x] **P3** `TriMeshDrawCommand` — same star as an explicit centre fan with `m_Indices`
@@ -124,7 +125,7 @@
 - [x] `Draw()` → `CacheProjection()` once, then `EmitCell()` per cell
 - [x] `EmitCell()` — one switch on `m_ePrimitive` over three short bodies (rungs 1/2/3), identical geometry
 - [x] Colour/refresh tick — re-read faction + hold every `m_fRefreshInterval`; re-solve **only** on hash change (K9)
-- [x] `Configs/Map/MapFullscreen.conf` — `OVT_MapTerritoryLayer` entry with a fresh `{6A84…}` GUID
+- [x] `Configs/Map/MapOverthrow.conf` — `OVT_MapTerritoryLayer` entry with a fresh `{6A84…}` GUID
 - [x] Gate: compile exit 0; Fast **54 + N**, All **89 + N** (unchanged from Phase 3)
 - [x] **user-driven** Map in a started campaign shows faction-coloured regions around towns, bases, towers, FOBs
 - [x] **user-driven** Restriction rings still render, **on top**
@@ -157,14 +158,14 @@
 
 - [x] Instrument behind `m_bDebugTiming` — `System.GetTickCount()` around `CollectSites` and `Solve`
 - [x] Rolling 60-frame average of `Draw()` + total draw-command count (from the **compositor**, so it includes the rings)
-- [x] **D8 Lever A** — `m_fMarchStep` 50 → **150**, `m_iRefineSteps` 4 → **6** (boundary error 3.13 m → **2.34 m**, i.e. sharper *and* 3× fewer land samples)
+- [x] **D8 Lever A** — `m_fMarchStep` 50 → **150**, `m_iRefineSteps` 4 → **6** (boundary error 3.13 m → **2.34 m**, i.e. sharper _and_ 3× fewer land samples)
 - [x] **D8 Lever B** — `BuildSortedRivals`: the proven bound evaluated at the ray's current radius, sorted, with an early exit
 - [x] **D8 Lever C** — `RivalTakeoverRadius` / `SolveRivalRadius`: the rival boundary solved in closed form, so the march samples only land
 - [x] `SolveRayMarched` kept as the reference oracle — nothing ships through it and case 12 is why it exists
 - [x] Emit side: ray-direction table + shared centre-fan index list; `CacheProjection` confirmed once per frame, no per-vertex `WorldToScreen`
 - [x] Logic case 12 `_AnalyticMatchesMarch` — closed form vs candidate-filtered vs threshold-sorted vs brute-force march, plus the `OwnsPoint` bridge either side of every boundary; **proven able to fail twice** (see `context.md`)
 - [x] **user-driven** Measure on a **fully-populated** campaign (all towns, all bases, all towers, ≥ 3 FOBs)
-- [ ] ⚠️ **NOT DONE — discharged by observation, not by measurement.** Record site count, solve ms, per-frame emit ms, command count in `context.md`. The user's 2026-08-11 play-test reported *"no issues, looks great"*, which discharges **Q-2** (no visible hitch) but **not** Q-1, whose wording is explicitly about *recorded numbers*. No number was ever captured. Left open deliberately rather than ticked on a qualitative report
+- [ ] ⚠️ **NOT DONE — discharged by observation, not by measurement.** Record site count, solve ms, per-frame emit ms, command count in `context.md`. The user's 2026-08-11 play-test reported _"no issues, looks great"_, which discharges **Q-2** (no visible hitch) but **not** Q-1, whose wording is explicitly about _recorded numbers_. No number was ever captured. Left open deliberately rather than ticked on a qualitative report
 - [x] **user-driven** Budget: solve ≤ **250 ms**
 - [x] **user-driven** Budget: emit ≤ **1.5 ms/frame**
 - [x] **user-driven** Budget: ≤ **250** composited commands/frame including the rings
@@ -178,7 +179,7 @@
 - [x] Confirm `m_Towns` / `m_Bases` / `m_RadioTowers` / `m_FOBs` are genuinely replicated to clients (a disagreement is a finding against the **owning** feature) — **audited by code reading 2026-08-11, all four PASS**, incl. `town.size` (see `context.md` P7-A). ⚠️ Code reading only; nothing was observed on a second machine
 - [x] Verify the `HashSites` re-solve trigger fires on base capture / tower capture / FOB build+destroy while the map is open — **verified by code reading 2026-08-11 and the K9 split is correct**: captures do **not** move the hash (recolour only), FOB build/destroy **does** (re-solve). See `context.md` P7-B
 - [x] Confirm no privacy leak — all four site types are already drawn as markers for every player; camps excluded — **re-verified 2026-08-11**: no `CollectCamps` exists and the exclusion comment still carries its reason
-- [x] Gate: `git diff` shows no `[RplProp]`, no `[RplRpc]`, no `RpcAsk_`/`RpcDo_`, no `EPF_` class (I-4) — **clean 2026-08-11**, over the diff *and* the untracked files, plus no write to any `OVT_TownData`/`OVT_BaseData`/`OVT_RadioTowerData`/`OVT_FOBData` field
+- [x] Gate: `git diff` shows no `[RplProp]`, no `[RplRpc]`, no `RpcAsk_`/`RpcDo_`, no `EPF_` class (I-4) — **clean 2026-08-11**, over the diff _and_ the untracked files, plus no write to any `OVT_TownData`/`OVT_BaseData`/`OVT_RadioTowerData`/`OVT_FOBData` field
 - [x] Gate: nothing added to `OVT_PlayerCommsComponent`; every new script under `Scripts/Game/UI/Map/` or `Scripts/Game/Tests/` — **clean 2026-08-11**; the file is untouched and all 7 new `.c` files are under those two roots
 - [x] **user-driven** ⚠️ Warn before launching — client windows open on the user's desktop and can orphan
 - [x] **user-driven** Two clients open the map simultaneously and see identical territory (I-5)
@@ -207,17 +208,17 @@
 - [x] **V-2** Fast **70** / All **105**, both exit 0 (N = **16** Logic cases: 10 from Phase 3, +1 D7 frontier, +1 D8 closed-form/march oracle, +1 D9 friendly-smoothing exemption, +3 D10 occupier-only emit / contested support / coast exemption)
 - [x] **V-3** Workbench clean load — discharged by the user's 2026-08-11 play-test (the map loaded and rendered, repeatedly, across SP and MP sessions; the `.conf`, the layer GUID and the imported `.edds` all resolved)
 - [x] **V-3** `grep -rn "{6A84" .` — each new GUID used exactly where intended and nowhere else
-- [x] **V-4** Single-player visual pass — discharged 2026-08-11: *"play-test and MP all green, no issues, looks great"*. ⚠️ **I-1b** (three layers composing with the threat grid temporarily enabled) was **not** run — the grid stayed disabled throughout, per D3/D14
+- [x] **V-4** Single-player visual pass — discharged 2026-08-11: _"play-test and MP all green, no issues, looks great"_. ⚠️ **I-1b** (three layers composing with the threat grid temporarily enabled) was **not** run — the grid stayed disabled throughout, per D3/D14
 - [ ] ⚠️ **V-5 NOT RUN as specified** — Q-1's three numbers were never captured. The play-test reported no hitch, which is Q-2, not Q-1. See the Phase 6 row
 - [x] **V-6** Texture pass — the user authored `overthrow_map_diagonal.edds` (tiling confirmed) and it ships on both contested fill and the neutral bands; **F-7** verified by eye. ⚠️ **Q-4** (a deliberately broken `ResourceName` degrading to flat fill + ERROR + no crash) was **never executed** — the guards are correct by inspection only
 - [x] **V-7** FOB restriction regression — discharged by the 2026-08-11 play-test, no issues reported. Ring geometry was additionally proven untouched by diff: every radius argument byte-identical
-- [x] **V-8** Two-client MP + JIP — discharged 2026-08-11: *"play-test and MP all green"*
+- [x] **V-8** Two-client MP + JIP — discharged 2026-08-11: _"play-test and MP all green"_
 - [x] **V-9** Boundary audit — all four I-4 greps clean (no `[RplProp]`/`[RplRpc]`/`RpcAsk_`/`RpcDo_`/`EPF_`, no write to any campaign record, `OVT_PlayerCommsComponent` untouched, all 7 new `.c` under `Scripts/Game/UI/Map/` or `Scripts/Game/Tests/`); I-9 done — `map-layers/requirements.md` no longer poses the open scope question. ⚠️ Run over the **untracked** set too — `git diff` alone proves nothing when every new file is untracked
 
 ---
 
 ## External — user / Workbench work
 
-- [x] 🎨 **Art — SUPERSEDED by D11.** The user chose to leave restricted zones **solid** (*"they look fine atm and are readable"*) and to solve the clash by faction-colouring the rings instead. No restricted hatch was needed
+- [x] 🎨 **Art — SUPERSEDED by D11.** The user chose to leave restricted zones **solid** (_"they look fine atm and are readable"_) and to solve the clash by faction-colouring the rings instead. No restricted hatch was needed
 - [x] 🎨 **Art — delivered as `overthrow_map_diagonal.edds`** (`{B7E8255E75EE66ED}`), authored and imported by the user 2026-08-11, tiling confirmed. One texture serves both the neutral bands and the contested hatch, so the planned second asset was never needed
-- [ ] Regenerate the six `localization_Overthrow.<lang>.conf` exports. ⚠️ **Now player-visible.** The two layer-name ids still render nothing until feature 7, but `help-docs-sync` (2026-08-11) added three ids the Field Manual renders today — `#OVT-FieldManual_MapTerritory_Head`, `#OVT-FieldManual_MapTerritory_Text`, `#OVT-FieldManual_MapTerritory_Text2` — and changed `#OVT-Tutorial_MapFirstOpen_Body`. Until the exports are rebuilt the Territory section of *The Map and Fast Travel* shows raw keys
+- [ ] Regenerate the six `localization_Overthrow.<lang>.conf` exports. ⚠️ **Now player-visible.** The two layer-name ids still render nothing until feature 7, but `help-docs-sync` (2026-08-11) added three ids the Field Manual renders today — `#OVT-FieldManual_MapTerritory_Head`, `#OVT-FieldManual_MapTerritory_Text`, `#OVT-FieldManual_MapTerritory_Text2` — and changed `#OVT-Tutorial_MapFirstOpen_Body`. Until the exports are rebuilt the Territory section of _The Map and Fast Travel_ shows raw keys

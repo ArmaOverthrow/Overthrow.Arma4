@@ -9,7 +9,7 @@
 > written (2026-08-10) and this plan (2026-08-11), and one of its requirements has been overruled by a user
 > decision. All four corrections are recorded as **K1 – K6** in §6. Where the two documents disagree,
 > **this plan is the design.** The corrections are: `ModuleGameSettings` now has an in-tree precedent
-> (K1); a display-name field already exists and a *third* field is what is needed (K2); Overthrow has no
+> (K1); a display-name field already exists and a _third_ field is what is needed (K2); Overthrow has no
 > live tool-menu registration and this feature is the first (K3); and the legend's "colour meaning" clause
 > is deliberately **not** shipped (K4).
 
@@ -54,9 +54,9 @@ concept and must never share a field with this one.
 ### Primary
 
 - **G1 — One row per thing that draws.** Icon, localized plural name, on/off. Adding a location type to
-  `OverthrowMap.conf`, or a canvas layer to `MapFullscreen.conf`, adds a row with **zero code change**.
+  `OverthrowMap.conf`, or a canvas layer to `MapOverthrow.conf`, adds a row with **zero code change**.
 - **G2 — Toggling is cheap and immediate.** No element is destroyed, no layout is rebuilt, no map UI is torn
-  down. Hiding a type must make the visibility sweep *cheaper*, not more expensive.
+  down. Hiding a type must make the visibility sweep _cheaper_, not more expensive.
 - **G3 — Fully operable on gamepad.** D-pad Left to focus the tool menu, D-pad Up/Down to reach the entry,
   A to open, D-pad Up/Down to walk rows, A to toggle, D-pad Left to leave. No new binding anywhere.
 - **G4 — Preferences survive.** Across map open/close, across a session, and across a restart — per profile.
@@ -89,7 +89,7 @@ concept and must never share a field with this one.
 ### 3.1 Component hierarchy
 
 ```
-SCR_MapConfig  (Configs/Map/MapFullscreen.conf — same-GUID DELTA over vanilla's)
+SCR_MapConfig  (Configs/Map/MapOverthrow.conf — same-GUID DELTA over vanilla's)
 │
 ├── m_aModules                              [vanilla + Overthrow, MERGED]
 │   ├── SCR_MapCursorModule                 (vanilla — proves the merge, see §3.5)
@@ -163,7 +163,7 @@ if (!m_LocationType.IsPlayerVisible())
 
 Placing it first is not cosmetic. `SetVisible` is a hot path (it runs for every element on every zoom
 change, alongside `ShouldUseSmallIcon`), and an early return **skips** the zoom lookup and the
-`ShouldShowLocation` manager reads entirely — so a hidden type costs *less* than a shown one. One virtual
+`ShouldShowLocation` manager reads entirely — so a hidden type costs _less_ than a shown one. One virtual
 call and one boolean compare is the whole cost when nothing is hidden.
 
 🔴 **The gate does NOT go in `ShouldShowLocation`.** That is a per-record virtual with live manager lookups
@@ -174,13 +174,13 @@ The re-apply sweep copies `OnMapZoom` verbatim in shape: iterate `m_mIcons`, cas
 `OVT_MapLocationElement`, call a new one-line `RefreshVisibility()` (which is `SetVisible(m_bVisible)`).
 `OnZoomChanged()` is refactored to call the same method so there is one implementation, not two.
 
-### 3.4 Row sources, and what does *not* produce a row
+### 3.4 Row sources, and what does _not_ produce a row
 
-| Source | Enumerated by | Key | Label | Toggle |
-|---|---|---|---|---|
-| Location types | `OVT_OverthrowMapUI.GetLocationTypes()` (new accessor over `m_Config.m_aLocationTypes`) | `"type:" + ClassName()` | `GetCategoryName()` | `SetPlayerVisible` / `IsPlayerVisible` |
-| Canvas layers | `OVT_MapCanvasCompositor.GetInstance().GetLayers()` — **read it, never mutate it** | `"layer:" + GetLayerId()` | `GetDisplayName()` | `SetLayerVisible` / `IsLayerVisible` |
-| Player markers | the one hand-built row (K5) | `"layer:players"` | `#OVT-Map_Layer_Players` | `SetMarkersVisible` / `AreMarkersVisible` |
+| Source         | Enumerated by                                                                           | Key                       | Label                    | Toggle                                    |
+| -------------- | --------------------------------------------------------------------------------------- | ------------------------- | ------------------------ | ----------------------------------------- |
+| Location types | `OVT_OverthrowMapUI.GetLocationTypes()` (new accessor over `m_Config.m_aLocationTypes`) | `"type:" + ClassName()`   | `GetCategoryName()`      | `SetPlayerVisible` / `IsPlayerVisible`    |
+| Canvas layers  | `OVT_MapCanvasCompositor.GetInstance().GetLayers()` — **read it, never mutate it**      | `"layer:" + GetLayerId()` | `GetDisplayName()`       | `SetLayerVisible` / `IsLayerVisible`      |
+| Player markers | the one hand-built row (K5)                                                             | `"layer:players"`         | `#OVT-Map_Layer_Players` | `SetMarkersVisible` / `AreMarkersVisible` |
 
 **Keys are namespace-prefixed** so a layer id can never collide with a class name. This costs nothing and
 removes a whole category of question.
@@ -188,7 +188,7 @@ removes a whole category of question.
 **Nothing produces a blank row.** Four filters, each with a one-time WARNING naming what was skipped:
 
 1. **A disabled module never appears at all, structurally.** `SCR_MapEntity.ActivateModules` skips any
-   module whose `IsConfigDisabled()` is true *before* inserting it into `m_aActiveModules` or calling
+   module whose `IsConfigDisabled()` is true _before_ inserting it into `m_aActiveModules` or calling
    `SetActive(true)` — and `SetActive(true)` is what subscribes `OnMapOpen`, which is what registers with
    the compositor. So `OVT_MapThreatGrid` (`m_bDisableModule 1`) can never be in `GetLayers()` and needs
    no special case. This is worth knowing rather than discovering.
@@ -219,12 +219,12 @@ Phase 6 re-runs `territory-overlay`'s I-4 boundary greps as an explicit verifica
 what the server sends.** That is a structural property here — nothing crosses a wire — but it is the MP
 gate's job to confirm it, because "structurally impossible" has been wrong in this epic before.
 
-**Corroborating evidence that the `MapFullscreen.conf` delta really merges:** `SCR_MapCursorModule` is
+**Corroborating evidence that the `MapOverthrow.conf` delta really merges:** `SCR_MapCursorModule` is
 listed **only** in vanilla's `m_aModules`, and it is the sole caller of `SCR_MapEntity.InvokeOnSelect`,
 which raises the `GetOnSelection()` invoker that `OVT_OverthrowMapUI.OnMapSelection` subscribes to. Clicking
 a marker to pin its info panel was play-tested green on 2026-08-10 (BUG-137). Therefore vanilla's module
 list demonstrably merges into Overthrow's delta at runtime. That is a proxy for `m_aUIComponents`, not a
-proof of it — which is why Phase 1's first task is to *look at the map* (§5).
+proof of it — which is why Phase 1's first task is to _look at the map_ (§5).
 
 ### 3.6 Layout ↔ code name contract
 
@@ -234,20 +234,20 @@ deliverable, not documentation of one** — `FindAnyWidget` returning null is a 
 `IconLayout`, BUG-134 `CloseButton`). Every lookup below must be null-guarded and must log an ERROR naming
 the widget it could not find.
 
-| Name | Layout | Read by |
-|---|---|---|
-| `ToolFramesOverlay` | vanilla `UI/layouts/Map/MapMenu.layout` (**read-only — Overthrow does not edit it**, see K9) | `OVT_MapLayersUI.ResolveDockParent` — `m_RootWidget.FindAnyWidget(...)`; the panel is created **into** it |
-| `ToolMenuContainer` | vanilla `UI/layouts/Map/MapMenu.layout` | `OVT_MapLayersUI.ResolveDockParent` — first fallback when `ToolFramesOverlay` is absent (`FastTravelMapMenu.layout` has no such overlay) |
-| `LayersPanel` | `UI/Layouts/Map/Core/OVT_MapLayersPanel.layout` (the root widget's own `Name`) | held as `m_wPanel`; not looked up |
-| `PanelTitle` | `OVT_MapLayersPanel.layout` | `OVT_MapLayersUI.BuildPanel` — `SetText("#OVT-Map_Layers_Title")` |
-| `OverlaysHeader` | `OVT_MapLayersPanel.layout` | `OVT_MapLayersUI.BuildPanel` — `SetText` |
-| `MarkersHeader` | `OVT_MapLayersPanel.layout` | `OVT_MapLayersUI.BuildPanel` — `SetText` |
-| `OverlayRows` | `OVT_MapLayersPanel.layout` | `OVT_MapLayersUI.BuildRows` — parent for overlay + player rows |
-| `TypeRows` | `OVT_MapLayersPanel.layout` | `OVT_MapLayersUI.BuildRows` — parent for location-type rows |
-| `FocusProxy` | `OVT_MapLayersPanel.layout` | `OVT_MapLayersUI.OnPanelBuilt` — `FindHandler(SCR_EventHandlerComponent)` then `GetOnFocus().Insert(FocusFirstRow)` (K10) |
-| `RowIcon` | `UI/Layouts/Map/Core/OVT_MapLayerRow.layout` | `OVT_MapLayerRowComponent.Init` — `LoadImageFromSet`; **hidden when the row has no imageset** |
-| `RowLabel` | `OVT_MapLayerRow.layout` | `OVT_MapLayerRowComponent.Init` — `SetText` |
-| `RowCheckbox` | `OVT_MapLayerRow.layout` (inherits `{?}UI/layouts/WidgetLibrary/ToolBoxes/WLib_Checkbox.layout`) | `OVT_MapLayerRowComponent.Init` — `SCR_CheckboxComponent.GetCheckboxComponent("RowCheckbox", m_wRoot)`, then `m_OnChanged.Insert(...)` |
+| Name                | Layout                                                                                           | Read by                                                                                                                                  |
+| ------------------- | ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `ToolFramesOverlay` | vanilla `UI/layouts/Map/MapMenu.layout` (**read-only — Overthrow does not edit it**, see K9)     | `OVT_MapLayersUI.ResolveDockParent` — `m_RootWidget.FindAnyWidget(...)`; the panel is created **into** it                                |
+| `ToolMenuContainer` | vanilla `UI/layouts/Map/MapMenu.layout`                                                          | `OVT_MapLayersUI.ResolveDockParent` — first fallback when `ToolFramesOverlay` is absent (`FastTravelMapMenu.layout` has no such overlay) |
+| `LayersPanel`       | `UI/Layouts/Map/Core/OVT_MapLayersPanel.layout` (the root widget's own `Name`)                   | held as `m_wPanel`; not looked up                                                                                                        |
+| `PanelTitle`        | `OVT_MapLayersPanel.layout`                                                                      | `OVT_MapLayersUI.BuildPanel` — `SetText("#OVT-Map_Layers_Title")`                                                                        |
+| `OverlaysHeader`    | `OVT_MapLayersPanel.layout`                                                                      | `OVT_MapLayersUI.BuildPanel` — `SetText`                                                                                                 |
+| `MarkersHeader`     | `OVT_MapLayersPanel.layout`                                                                      | `OVT_MapLayersUI.BuildPanel` — `SetText`                                                                                                 |
+| `OverlayRows`       | `OVT_MapLayersPanel.layout`                                                                      | `OVT_MapLayersUI.BuildRows` — parent for overlay + player rows                                                                           |
+| `TypeRows`          | `OVT_MapLayersPanel.layout`                                                                      | `OVT_MapLayersUI.BuildRows` — parent for location-type rows                                                                              |
+| `FocusProxy`        | `OVT_MapLayersPanel.layout`                                                                      | `OVT_MapLayersUI.OnPanelBuilt` — `FindHandler(SCR_EventHandlerComponent)` then `GetOnFocus().Insert(FocusFirstRow)` (K10)                |
+| `RowIcon`           | `UI/Layouts/Map/Core/OVT_MapLayerRow.layout`                                                     | `OVT_MapLayerRowComponent.Init` — `LoadImageFromSet`; **hidden when the row has no imageset**                                            |
+| `RowLabel`          | `OVT_MapLayerRow.layout`                                                                         | `OVT_MapLayerRowComponent.Init` — `SetText`                                                                                              |
+| `RowCheckbox`       | `OVT_MapLayerRow.layout` (inherits `{?}UI/layouts/WidgetLibrary/ToolBoxes/WLib_Checkbox.layout`) | `OVT_MapLayerRowComponent.Init` — `SCR_CheckboxComponent.GetCheckboxComponent("RowCheckbox", m_wRoot)`, then `m_OnChanged.Insert(...)`   |
 
 ⚠️ **`RowCheckbox` inherits a vanilla layout, so its `SCR_CheckboxComponent` override MUST reuse the base
 layout's component GUID `{546A9B7B0A8AD927}`.** A fresh GUID adds a second, unconfigured component and the
@@ -259,11 +259,11 @@ Per the epic's standing rule, the two contract tables are never changed silently
 
 **To `The OVT_MapLocationType Contract`:**
 
-| Member | Kind | Purpose |
-|---|---|---|
-| **`m_sCategoryName`** | attribute | **Added by `map/map-layers`.** The **plural, localized, player-facing** category name shown on the map layer-filter row. Deliberately a **third** field: `m_sName` stays the Workbench editor-tree label (`OVT_MapLocationTypeTitle._WB_GetCustomTitle`) and `m_sDisplayName` stays the **singular** type line on the info panel. Both are left doing exactly their existing jobs. Empty ⇒ falls back to `GetDisplayName()`, then `ClassName()`, with a one-time WARNING. |
-| **`GetCategoryName()`** | getter | **Added by `map/map-layers`.** Read only by `OVT_MapLayersUI` when building rows. Not a hot path. |
-| **`m_bPlayerVisible` / `SetPlayerVisible(bool)` / `IsPlayerVisible()`** | runtime member + setter/getter | **Added by `map/map-layers`.** A **client-side presentation preference**, deliberately *not* an attribute — it is never authored in config and is always applied from the persisted profile store at map open. Read as the **first** gate in `OVT_MapLocationElement.SetVisible`, which early-returns, so a hidden type skips the zoom lookup and `ShouldShowLocation` entirely. 🔴 **This is not campaign visibility.** What the campaign chooses to *reveal* belongs to the future intel epic and must never share this field. Default `true`. |
+| Member                                                                  | Kind                           | Purpose                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ----------------------------------------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **`m_sCategoryName`**                                                   | attribute                      | **Added by `map/map-layers`.** The **plural, localized, player-facing** category name shown on the map layer-filter row. Deliberately a **third** field: `m_sName` stays the Workbench editor-tree label (`OVT_MapLocationTypeTitle._WB_GetCustomTitle`) and `m_sDisplayName` stays the **singular** type line on the info panel. Both are left doing exactly their existing jobs. Empty ⇒ falls back to `GetDisplayName()`, then `ClassName()`, with a one-time WARNING.                                                                        |
+| **`GetCategoryName()`**                                                 | getter                         | **Added by `map/map-layers`.** Read only by `OVT_MapLayersUI` when building rows. Not a hot path.                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| **`m_bPlayerVisible` / `SetPlayerVisible(bool)` / `IsPlayerVisible()`** | runtime member + setter/getter | **Added by `map/map-layers`.** A **client-side presentation preference**, deliberately _not_ an attribute — it is never authored in config and is always applied from the persisted profile store at map open. Read as the **first** gate in `OVT_MapLocationElement.SetVisible`, which early-returns, so a hidden type skips the zoom lookup and `ShouldShowLocation` entirely. 🔴 **This is not campaign visibility.** What the campaign chooses to _reveal_ belongs to the future intel epic and must never share this field. Default `true`. |
 
 **To `The OVT_MapCanvasLayer Contract`:** **no rows.** `territory-overlay` Phase 1 designed the layer half
 of this feature's contract correctly and completely — `m_sLayerId`, `m_sDisplayName`, `SetLayerVisible` /
@@ -285,7 +285,7 @@ than one special case with a comment on it.
 These were settled before this plan and are **not open**. They are restated so the plan is self-contained.
 
 - **D1 — Entry point is a vanilla tool-menu entry, not a new keybinding.** `SCR_MapToolMenuUI` is listed in
-  vanilla's `Configs/Map/MapFullscreen.conf:53`, and Overthrow's file is a same-GUID delta over it.
+  vanilla's `Configs/Map/MapOverthrow.conf:53`, and Overthrow's file is a same-GUID delta over it.
   `SCR_MapJournalUI.Init()` (`:47-54`) is the exact registration idiom to copy.
 - **D2 — One list; each row is both the legend entry and the toggle.** No separate read-only key.
 - **D3 — Default preset: everything on.** Purely additive. Existing per-type `m_fVisibilityZoom` thresholds
@@ -315,13 +315,13 @@ gamepad-critical, and carries the entire `FindAnyWidget` failure class.
 Measured on `new-map` at `ecf1a696`, working tree clean, **2026-08-11**. These numbers were **run, not
 quoted.**
 
-| Gate | Baseline |
-|---|---|
-| `tools/compile-check.sh` | **exit 0, 5988 files, Game module, 5 s** |
-| `tools/run-tests.sh "{6A6E29FF47ECB840}"` (Fast) | **OK, 87 tests, 34 s** |
-| `tools/run-tests.sh "{6A6E2A002F53A581}"` (All) | **OK, 125 tests, 40 s** |
-| Highest allocated bug id | **BUG-145** |
-| Free GUID series | **`{6A85…}`** — zero uses anywhere in the tree (`{6A86}`/`{6A87}` also free) |
+| Gate                                             | Baseline                                                                     |
+| ------------------------------------------------ | ---------------------------------------------------------------------------- |
+| `tools/compile-check.sh`                         | **exit 0, 5988 files, Game module, 5 s**                                     |
+| `tools/run-tests.sh "{6A6E29FF47ECB840}"` (Fast) | **OK, 87 tests, 34 s**                                                       |
+| `tools/run-tests.sh "{6A6E2A002F53A581}"` (All)  | **OK, 125 tests, 40 s**                                                      |
+| Highest allocated bug id                         | **BUG-145**                                                                  |
+| Free GUID series                                 | **`{6A85…}`** — zero uses anywhere in the tree (`{6A86}`/`{6A87}` also free) |
 
 ⚠️ **`CLAUDE.md` says Fast 38 / All 66. `territory-overlay` says Fast 66 / All 101. Both are stale — do not
 quote either.** Parallel sessions commit to this tree. Re-check `git status`, the highest `docs/bugs/` id
@@ -345,19 +345,19 @@ Expected end state: compile **5988 + 6 = 5994 files**, Fast **89**, All **127** 
 1. **P1 (zero code).** Open the fullscreen map in a started campaign and look for vanilla's tool-menu icon
    strip on the left (ruler, watch, compass, journal, tasks…). Record what is there.
    - **If absent:** add `SCR_MapToolMenuUI "{599C7D68E8F6B9A8}" { }` to `m_aUIComponents` in Overthrow's
-     `Configs/Map/MapFullscreen.conf`. Because the GUID matches vanilla's entry this is a **delta on that
+     `Configs/Map/MapOverthrow.conf`. Because the GUID matches vanilla's entry this is a **delta on that
      entry, not a duplicate** — safe whether the array merges or replaces. Re-run P1.
 2. Create `Scripts/Game/UI/Map/OVT_MapLayersUI.c` as a stub `SCR_MapUIBaseComponent` that:
    - in `Init()` resolves `SCR_MapToolMenuUI` via `m_MapEntity.GetMapUIComponent(SCR_MapToolMenuUI)` and
      registers **once** (K7) with `RegisterToolMenuEntry(SCR_MapToolMenuUI.s_sToolMenuIcons,
-     m_sToolMenuIcon, m_iSortPriority, m_bIsExclusive)`, then `m_OnClick.Insert(TogglePanel)`,
+m_sToolMenuIcon, m_iSortPriority, m_bIsExclusive)`, then `m_OnClick.Insert(TogglePanel)`,
      `GetOnDisableMapUIInvoker().Insert(ClosePanel)`, `SetEnabled(true)`;
    - `[Attribute] string m_sToolMenuIcon` defaulting to **`"filters"`** (K6),
      `[Attribute] int m_iSortPriority` defaulting to **`3`** (K11);
    - in `OnMapOpen` resolves the dock parent (`ToolFramesOverlay`, then `ToolMenuContainer`, then
      `m_RootWidget`, ERROR-logging which one it settled on) and creates a **stub panel layout** with a
      title and **two hardcoded checkbox rows** that print on toggle.
-3. Register the component in `Configs/Map/MapFullscreen.conf` `m_aUIComponents` with
+3. Register the component in `Configs/Map/MapOverthrow.conf` `m_aUIComponents` with
    `m_bIsExclusive 1` (K12).
 4. Author `UI/Layouts/Map/Core/OVT_MapLayersPanel.layout` + `.meta` and
    `UI/Layouts/Map/Core/OVT_MapLayerRow.layout` + `.meta` in their **final widget-name shape** (§3.6) but
@@ -407,7 +407,7 @@ only evidence this phase produces**, and it is the phase's entire point.
    - Empty keys refused. `LoadFrom(null, …)` treated as empty.
 2. `Scripts/Game/Global/OVT_MapLayerSettings.c`:
    - `[BaseContainerProps()] class OVT_MapHiddenLayerEntry { [Attribute()] string m_sKey; }` — **the type
-     name carries the meaning**; presence *is* "hidden" (K13).
+     name carries the meaning**; presence _is_ "hidden" (K13).
    - `class OVT_MapLayerSettings : ModuleGameSettings` with `[Attribute("1")] int m_iVersion` and
      `[Attribute()] ref array<ref OVT_MapHiddenLayerEntry> m_aHidden`.
    - 🔴 **Nested `[BaseContainerProps()]` struct in an object array, never a top-level `ref array<string>`**
@@ -511,7 +511,7 @@ only evidence this phase produces**, and it is the phase's entire point.
    component GUID **copied, not generated**.
 3. `Scripts/Game/UI/Map/Core/OVT_MapLayerRowComponent.c : SCR_ScriptedWidgetComponent`:
    - `void Init(string key, string label, ResourceName imageset, string icon, bool visible,
-     OVT_MapLayersUI owner)` — **`Init()` does the wiring, not `HandlerAttached()`** (the ordering of
+OVT_MapLayersUI owner)` — **`Init()` does the wiring, not `HandlerAttached()`** (the ordering of
      `HandlerAttached` against sibling handlers is not guaranteed).
    - Wire `SCR_CheckboxComponent.m_OnChanged` once, guarded by a `m_bWired` flag; call back into the owner
      with the key and the new state. **Rows never mutate state themselves.**
@@ -605,8 +605,8 @@ in this project, and no gate can catch a well-formed lie.
 
 ### K1 — `ModuleGameSettings` has an **in-tree precedent**, and it is reused rather than re-derived
 
-**Corrects `requirements.md`**, which says *"Overthrow does not use this mechanism anywhere yet — this would
-be its first."* **That has been false since the `new-player-experience` feature.** The precedent is
+**Corrects `requirements.md`**, which says _"Overthrow does not use this mechanism anywhere yet — this would
+be its first."_ **That has been false since the `new-player-experience` feature.** The precedent is
 `Scripts/Game/Global/OVT_TutorialSettings.c` + `OVT_TutorialSettingsAccessor.c` +
 `Scripts/Game/Data/OVT_TutorialSeenStore.c`, and it carries four hard-won facts this feature inherits
 wholesale rather than rediscovering:
@@ -615,10 +615,10 @@ wholesale rather than rediscovering:
   `[BaseContainerProps()]` struct inside a module's object array **is** proven (`SCR_FilterSetStorage`
   round-trips one on every server-browser filter save). Adopt the proven shape.
 - **(b)** **Never parallel arrays.** `SCR_HintSettings` keeps ids and counts in two arrays and has to erase
-  *both* when their lengths disagree. One array of self-describing structs cannot get out of step with
+  _both_ when their lengths disagree. One array of self-describing structs cannot get out of step with
   itself.
 - **(c)** **`SaveUserSettings()` is throttled by the engine.** Measured 2026-08-07: two calls microseconds
-  apart leave only the **first** on disk — the second is *dropped*, not deferred — while two calls six
+  apart leave only the **first** on disk — the second is _dropped_, not deferred — while two calls six
   seconds apart both land. See K15 for what this feature does about it, because a filter panel is far more
   exposed to it than the tutorial store was.
 - **(d)** **Guard `System.IsConsoleApp()`** and degrade to an in-memory store; a headless server has no
@@ -630,8 +630,8 @@ preserved rather than blanked, and the schema-version-clears-rather-than-half-tr
 
 ### K2 — A display-name field already exists; this feature adds a **third**, `m_sCategoryName` — **USER DECISION**
 
-**Corrects `requirements.md`**, which offers *"either promote `m_sName` properly or introduce a separate
-display field"* as if no separate field existed. One does: `OVT_MapLocationType.m_sDisplayName`, with
+**Corrects `requirements.md`**, which offers _"either promote `m_sName` properly or introduce a separate
+display field"_ as if no separate field existed. One does: `OVT_MapLocationType.m_sDisplayName`, with
 `GetDisplayName()` at `:389`, already driving the info panel's type line. It is unsuitable for a filter row
 for two independent reasons:
 
@@ -647,7 +647,7 @@ is one more than feels tidy, and it is still right: they have three different au
 info panel, a filter list) and three different grammatical forms, and merging any two of them would drag a
 second surface into this feature's blast radius.
 
-Convenient consequence: the English text for all 14 new ids is already authored — `m_sName` is *already*
+Convenient consequence: the English text for all 14 new ids is already authored — `m_sName` is _already_
 the correct plural for every one of the 14 types ("Towns", "Radio Towers", "Points of Interest"). The new
 ids transcribe it rather than inventing it.
 
@@ -665,15 +665,15 @@ becomes an ambiguous one.
 
 ### K4 — **No colour key.** The legend's "colour meaning" clause is deliberately not shipped — **USER DECISION**
 
-`requirements.md` asks the legend to identify *"each active overlay by its colour meaning (faction
-territory colours, restriction rings, threat shading)"*. The settled one-row-per-layer shape gives an on/off
+`requirements.md` asks the legend to identify _"each active overlay by its colour meaning (faction
+territory colours, restriction rings, threat shading)"_. The settled one-row-per-layer shape gives an on/off
 row, not a swatch. **The user chose: ship on/off rows only.**
 
 Rationale, recorded so this reads as a decision rather than an omission: the territory overlay draws the
 **same faction colours Overthrow already uses everywhere else** — on markers, on restricted rings, in the
 info panels — through one shared colour helper that `territory-overlay` K6 deliberately unified. A key
 would restate what the map is already showing, in a panel whose whole job is to reduce what the map shows.
-If it turns out players cannot tell the factions apart, that is a *colour* problem in `territory-overlay`,
+If it turns out players cannot tell the factions apart, that is a _colour_ problem in `territory-overlay`,
 not a missing legend here. **No swatch column is designed, and none should be added speculatively.**
 
 ### K5 — `OVT_MapPlayerLocation` gets a **hand-built** row — **USER DECISION**
@@ -722,7 +722,7 @@ be applied to a layer that has already registered — and "my saved toggles didn
 likely bug in this feature.
 
 Reading `SCR_MapEntity.OnMapOpen` settles the normal case: `ActivateModules(config.Modules)` runs at `:355`
-and `ActivateComponents(config.Components)` at `:356`, and each one's `SetActive(true)` is what *subscribes*
+and `ActivateComponents(config.Components)` at `:356`, and each one's `SetActive(true)` is what _subscribes_
 `OnMapOpen`; the invoke itself is at `:361`, after both. ScriptInvoker fires in insertion order, so **every
 module's `OnMapOpen` runs before every component's** — the layers are registered by the time
 `OVT_MapLayersUI.OnMapOpen` runs.
@@ -759,7 +759,7 @@ the way `JournalFrame` is authored and size the content from the layout.
 
 `SCR_MapToolEntry`'s constructor inserts its own `OnClick` into `m_OnClick` **first**, and that handler
 clears focus on a gamepad (`if (!IsUsingMouseAndKeyboard()) m_OwnerMenu.SetToolMenuFocused(false);`, which
-calls `SetFocusedWidget(null)`). A toggle handler inserted afterwards therefore runs *after* focus has been
+calls `SetFocusedWidget(null)`). A toggle handler inserted afterwards therefore runs _after_ focus has been
 nulled and must re-establish it — which is exactly what `SCR_MapJournalUI.ToggleVisible` does with
 `FocusOnFirstEntry()`.
 
@@ -792,13 +792,13 @@ change.
 
 ### K12 — The entry is **exclusive**, and that is a rendering requirement, not a preference
 
-`isExclusive` makes clicking this entry fire `GetOnDisableMapUIInvoker()` on every *other* exclusive entry —
+`isExclusive` makes clicking this entry fire `GetOnDisableMapUIInvoker()` on every _other_ exclusive entry —
 a mutual-exclusion group among opt-in members. In vanilla's fullscreen map exactly two components opt in:
-`SCR_MapJournalUI` and `SCR_MapTaskListUI`, both via `m_bIsExclusive 1` in `MapFullscreen.conf`.
+`SCR_MapJournalUI` and `SCR_MapTaskListUI`, both via `m_bIsExclusive 1` in `MapOverthrow.conf`.
 
 Both of those dock into the same `ToolFramesOverlay`, whose children are **full-stretch overlays that
 overlap by construction**. Vanilla gets away with it only because at most one exclusive panel is visible.
-An Overthrow panel in the same overlay that was *not* exclusive would render on top of an open journal.
+An Overthrow panel in the same overlay that was _not_ exclusive would render on top of an open journal.
 So `m_bIsExclusive 1` in the conf entry, and the `GetOnDisableMapUIInvoker()` subscription that makes it
 mean something.
 
@@ -853,7 +853,7 @@ pinned panel open.
 
 The engine throttles `SaveUserSettings()` (K1c): two calls microseconds apart leave only the first on disk.
 The tutorial store's answer was "flush on every mutation, survivable because we write the whole record" —
-and that reasoning does **not** transfer unchanged, because a filter panel is a *burst* surface. A player
+and that reasoning does **not** transfer unchanged, because a filter panel is a _burst_ surface. A player
 flipping five rows in three seconds generates five flushes, most of which the engine will drop.
 
 So: **mutate in memory on every toggle and apply to the map immediately; flush at panel close and at map
@@ -925,7 +925,7 @@ real-world complaint.
   `OVT_PlayerCommsComponent`.
 - The `OVT_MapLocationType` extension is **additive with safe defaults**: with no panel and no store, every
   type behaves byte-for-byte as it does today.
-- Player *presentation preference* and campaign *visibility* are separately named from day one.
+- Player _presentation preference_ and campaign _visibility_ are separately named from day one.
 - No `file:line` pointers in new code comments. Every new Logic case is **proven able to fail**, with the
   method recorded. ❌ No `maxAttempts`.
 
@@ -1009,7 +1009,7 @@ and Territory; client B hides nothing. **B's map is unchanged.** B then hides Ba
 unchanged, and A's houses and territory stay hidden.** Neither client's markers, territory or info panels
 differ in any way other than by their own filters.
 
-**I-3 — JIP.** Client B joins *after* A has accumulated state and toggled filters. B's map is complete and
+**I-3 — JIP.** Client B joins _after_ A has accumulated state and toggled filters. B's map is complete and
 unfiltered; A's filters persist across B's join.
 
 **I-4 — Nothing else regressed.** With every row on, the map is indistinguishable from the pre-feature map:
@@ -1038,8 +1038,8 @@ Run in order. Steps 1–4 are automated; 5–8 need a human; 9 needs two clients
 7. **Gamepad pass** — with a controller and the mouse untouched, walk **Q-1** and **Q-2**.
 8. **Persistence pass** — F-9, including a full quit to the main menu and rejoin. Then quit the game
    entirely and relaunch: the preferences must still be there.
-9. **Two-client MP pass** — ⚠️ *warn the user first: each client opens a window on their desktop and can
-   orphan.*
+9. **Two-client MP pass** — ⚠️ _warn the user first: each client opens a window on their desktop and can
+   orphan._
    ```
    tools/launch-server.sh
    tools/launch-game.sh --timeout 3600 --profile OverthrowClient1 --allow-concurrent -- -client 127.0.0.1:2001
@@ -1059,7 +1059,7 @@ project's automated test spine. There is no widget tier, no input tier and no re
 `.conf`, `.meta` and `.st` edits are invisible to `tools/compile-check.sh` **and** to both test groups. Most
 of this feature can only be verified by a human looking at a screen with a controller in their hands.
 
-**Do not invent UI test cases.** The automated gates here are regression guards for everything *else*, plus
+**Do not invent UI test cases.** The automated gates here are regression guards for everything _else_, plus
 two genuine assertions about the one part that is pure.
 
 ### What genuinely can be pinned: the preference store (Logic tier)
@@ -1068,10 +1068,10 @@ two genuine assertions about the one part that is pure.
 the settings module is injected as a plain array of strings and read back as one. That split exists for
 exactly this reason, and it is the same split `OVT_TutorialSeenStore` uses.
 
-| Case | What it pins | Candidate inversion |
-|---|---|---|
-| `OVT_TEST_Logic_MapLayerPrefs_HiddenSet` | Absent ⇒ **visible** (the default that makes D3 work); hide then show is idempotent both ways; an empty key is refused; `LoadFrom` at a **mismatched version discards** rather than half-loading; `LoadFrom(null)` is an empty list, not a crash; `WriteTo` round-trips exactly the hidden set into a reused, pre-populated buffer with nothing stale left behind | Invert the default (`return m_aHidden.Contains(key)` instead of `!…`) — every type ships hidden; **or** drop the version guard in `LoadFrom` and confirm a v0 list is imported |
-| `OVT_TEST_Logic_MapLayerPrefs_KeyNamespaces` | `TypeKey`/`LayerKey` produce distinct prefixed keys; **a location type and a canvas layer with the same bare name do not collide**; hiding one does not hide the other | Drop the prefix from `LayerKey` — a layer called `territory` and a type class called `territory` share one preference |
+| Case                                         | What it pins                                                                                                                                                                                                                                                                                                                                                      | Candidate inversion                                                                                                                                                            |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `OVT_TEST_Logic_MapLayerPrefs_HiddenSet`     | Absent ⇒ **visible** (the default that makes D3 work); hide then show is idempotent both ways; an empty key is refused; `LoadFrom` at a **mismatched version discards** rather than half-loading; `LoadFrom(null)` is an empty list, not a crash; `WriteTo` round-trips exactly the hidden set into a reused, pre-populated buffer with nothing stale left behind | Invert the default (`return m_aHidden.Contains(key)` instead of `!…`) — every type ships hidden; **or** drop the version guard in `LoadFrom` and confirm a v0 list is imported |
+| `OVT_TEST_Logic_MapLayerPrefs_KeyNamespaces` | `TypeKey`/`LayerKey` produce distinct prefixed keys; **a location type and a canvas layer with the same bare name do not collide**; hiding one does not hide the other                                                                                                                                                                                            | Drop the prefix from `LayerKey` — a layer called `territory` and a type class called `territory` share one preference                                                          |
 
 Both must be **proven able to fail** before shipping: apply the inversion alone to a pristine copy, compile,
 run that one case, revert, re-run the clean gate, and record the exact failure message in `context.md`.
@@ -1096,12 +1096,12 @@ The autotest world has no players, no map and no UI. Phases 1, 4, 5 and 7 produc
 
 Written before the play-test, on the pattern `map/respawn` established.
 
-| Symptom | Most likely cause | First check |
-|---|---|---|
-| **No entry on the tool strip** | `SCR_MapToolMenuUI` not merged into Overthrow's `m_aUIComponents`, or `Init()` never ran | Is vanilla's icon strip there at all? If the strip is missing entirely it is the conf merge (P1's fallback). If the strip is there and only our entry is missing, `GetMapUIComponent` returned null or `Init()` bailed. |
-| **Panel opens but a row does nothing** | `FindAnyWidget` name mismatch, or a fresh `SCR_CheckboxComponent` GUID instead of the inherited one | The ERROR log from the null-guarded lookup names the widget. If there is no ERROR, the lookup succeeded and the component GUID is wrong — the checkbox is a second, unconfigured instance. |
-| **Preferences do not stick** | The store never flushed, or the apply ran before the layers registered | Toggle, close the panel, close the map, and check the profile settings block. If the record is on disk but the map comes back unfiltered, it is K8's ordering; if the record is absent, it is K15's flush point or a null settings module. |
-| **Panel is dead on gamepad** | Focus never landed inside it (K10) | Does the first row show a focus highlight the instant the panel opens? If not, `SetFocusedWidget` did not run, ran before the entry's own `OnClick` nulled focus, or the row is not a real focusable button. |
+| Symptom                                | Most likely cause                                                                                   | First check                                                                                                                                                                                                                                |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **No entry on the tool strip**         | `SCR_MapToolMenuUI` not merged into Overthrow's `m_aUIComponents`, or `Init()` never ran            | Is vanilla's icon strip there at all? If the strip is missing entirely it is the conf merge (P1's fallback). If the strip is there and only our entry is missing, `GetMapUIComponent` returned null or `Init()` bailed.                    |
+| **Panel opens but a row does nothing** | `FindAnyWidget` name mismatch, or a fresh `SCR_CheckboxComponent` GUID instead of the inherited one | The ERROR log from the null-guarded lookup names the widget. If there is no ERROR, the lookup succeeded and the component GUID is wrong — the checkbox is a second, unconfigured instance.                                                 |
+| **Preferences do not stick**           | The store never flushed, or the apply ran before the layers registered                              | Toggle, close the panel, close the map, and check the profile settings block. If the record is on disk but the map comes back unfiltered, it is K8's ordering; if the record is absent, it is K15's flush point or a null settings module. |
+| **Panel is dead on gamepad**           | Focus never landed inside it (K10)                                                                  | Does the first row show a focus highlight the instant the panel opens? If not, `SetFocusedWidget` did not run, ran before the entry's own `OnClick` nulled focus, or the row is not a real focusable button.                               |
 
 ---
 
@@ -1109,17 +1109,17 @@ Written before the play-test, on the pattern `map/respawn` established.
 
 ### Internal (code — all read-only unless noted)
 
-| Depends on | Why | Changed? |
-|---|---|---|
-| `OVT_MapCanvasCompositor.GetLayers()` | enumerate overlay rows | **No** — read only, never mutated |
-| `OVT_MapCanvasLayer` (`m_sLayerId` / `m_sDisplayName` / `SetLayerVisible` / `IsLayerVisible`) | overlay row identity, label, toggle | **No** — the contract already fits exactly |
-| `OVT_MapLocationType` | type list, category name, player-visible flag | **Yes** — 3 additive members (§3.7) |
-| `OVT_MapLocationElement.SetVisible` | the fourth gate | **Yes** — one early return + one new method |
-| `OVT_OverthrowMapUI` | type accessor, refresh sweep, unpin guard | **Yes** — 3 additive methods |
-| `OVT_MapPlayerLocation` | the hand-built row | **Yes** — 2 additive members + availability flag (K5) |
-| `Configs/Map/OverthrowMap.conf` | 14 `m_sCategoryName` values | **Yes** |
-| `Configs/Map/MapFullscreen.conf` | register `OVT_MapLayersUI` (+ the P1 fallback if needed) | **Yes** |
-| `OVT_TutorialSettings` / `…Accessor` / `OVT_TutorialSeenStore` | the persistence pattern | **No** — copied, not shared |
+| Depends on                                                                                    | Why                                                      | Changed?                                              |
+| --------------------------------------------------------------------------------------------- | -------------------------------------------------------- | ----------------------------------------------------- |
+| `OVT_MapCanvasCompositor.GetLayers()`                                                         | enumerate overlay rows                                   | **No** — read only, never mutated                     |
+| `OVT_MapCanvasLayer` (`m_sLayerId` / `m_sDisplayName` / `SetLayerVisible` / `IsLayerVisible`) | overlay row identity, label, toggle                      | **No** — the contract already fits exactly            |
+| `OVT_MapLocationType`                                                                         | type list, category name, player-visible flag            | **Yes** — 3 additive members (§3.7)                   |
+| `OVT_MapLocationElement.SetVisible`                                                           | the fourth gate                                          | **Yes** — one early return + one new method           |
+| `OVT_OverthrowMapUI`                                                                          | type accessor, refresh sweep, unpin guard                | **Yes** — 3 additive methods                          |
+| `OVT_MapPlayerLocation`                                                                       | the hand-built row                                       | **Yes** — 2 additive members + availability flag (K5) |
+| `Configs/Map/OverthrowMap.conf`                                                               | 14 `m_sCategoryName` values                              | **Yes**                                               |
+| `Configs/Map/MapOverthrow.conf`                                                               | register `OVT_MapLayersUI` (+ the P1 fallback if needed) | **Yes**                                               |
+| `OVT_TutorialSettings` / `…Accessor` / `OVT_TutorialSeenStore`                                | the persistence pattern                                  | **No** — copied, not shared                           |
 
 ### Vanilla (read-only, never modified)
 
@@ -1143,7 +1143,7 @@ overridden**, K9); `UI/layouts/WidgetLibrary/ToolBoxes/WLib_Checkbox.layout` + `
   a loop with a shared row builder; adding a fourth is one more source, not a rewrite. **Do not build for
   it** — no registration API, no plugin interface, nothing speculative.
 - **The future intel epic** will build on this toggle machinery. That is exactly why `m_bPlayerVisible` is
-  named and documented as a *presentation preference* rather than as "visibility": the two concepts must
+  named and documented as a _presentation preference_ rather than as "visibility": the two concepts must
   stay separately named from day one, and nothing here may assume the map always shows everything.
 
 ### New and changed files
@@ -1167,7 +1167,7 @@ CHANGED
   Scripts/Game/UI/Map/OVT_OverthrowMapUI.c              +3 methods, 1 generalisation
   Scripts/Game/UI/Map/Visualization/OVT_MapPlayerLocation.c  +3 members (K5)
   Configs/Map/OverthrowMap.conf                         14 × m_sCategoryName
-  Configs/Map/MapFullscreen.conf                        1 component entry (+ P1 fallback if needed)
+  Configs/Map/MapOverthrow.conf                        1 component entry (+ P1 fallback if needed)
   Language/localization_Overthrow.st                    18 new items (MASTER ONLY)
   docs/features/map/core/context.md                     contract rows + layout table
   docs/features/map/epic-overview.md                    feature 7 row + rollup
@@ -1184,30 +1184,30 @@ NEVER TOUCHED
 
 ## 11. Risks & Mitigation
 
-| # | Risk | Likelihood | Impact | Mitigation |
-|---|---|---|---|---|
-| **R1** | 🔴 **`SCR_MapToolMenuUI` is not actually live on Overthrow's fullscreen map**, and the whole entry-point design collapses | Low | High | Phase 1 P1 is a **zero-code look at the map**, before anything is built on it. Strong prior: vanilla's `SCR_MapCursorModule` is module-list-only and is the sole raiser of the selection invoker Overthrow's play-tested click-to-pin depends on, so the delta demonstrably merges. Fallback is a **one-line same-GUID conf entry**, safe whether the array merges or replaces. |
-| **R2** | 🔴 **The panel is dead on a controller** — focus never lands inside it, or the tool menu's own focus-clearing runs after ours | Medium | High | K10 documents the exact insertion-order dependency and the focus-proxy pattern. Phase 1 P4 tests the full round trip **before** the real panel is built. If it fails, the fallback is to hold the cursor module's sub-menu state while the panel is open. |
-| **R3** | **A widget name does not match and a row silently does nothing** (BUG-133 / BUG-134's failure class) | Medium | Medium | Every name tabulated in §3.6 before a line is written; every lookup null-guarded and ERROR-logged naming the widget; the inherited `SCR_CheckboxComponent` GUID called out explicitly as copy-not-generate. |
-| **R4** | **Preferences do not stick** — applied before the layers registered, or the flush was throttled away | Medium | Medium | K8 applies twice (open + first tick), idempotently, so no subscription-order assumption is load-bearing. K15 flushes at two user-separated points and always writes the whole record. The debug table names the two signatures apart. |
-| **R5** | **`OVT_MapLayersUI` registers its tool-menu entry on every map open** and the strip grows an entry per open | Medium | Medium | K7 — registration is in `Init()`, and the trap is called out at the call site because the *other* `Init()` in this subsystem (`OVT_MapLocationType.Init()`) has the opposite lifetime. Phase 1's play-test catches it immediately: open and close the map three times and count the entries. |
-| **R6** | **The panel occludes the map or overlaps the journal** | Low | Medium | `m_bIsExclusive 1` (K12) makes the journal/task-list/layers group mutually exclusive, which is what vanilla relies on for the same overlap. Panel authored fixed-width, top-left, hugging the icon strip. F-10 and P3 both check it. |
-| **R7** | **17 rows overflow a short screen** | Medium | Low | Scroll container from the start (Phase 4 task 1); Q-2 verifies by pad and wheel. |
-| **R8** | **Toggling fights the refresh tick** — six types re-populate every 2–5 s and could resurrect hidden markers | Low | Medium | The gate is on the **type**, not on the element, so a recreated element reads the same flag. F-7 verifies it directly with a 30 s soak on the 2 s and 5 s types. |
-| **R9** | **A future class rename loses a preference** | Low | Low | Benign and stated (K13): the key stops matching, the type reverts to the default (visible), one preference is forgotten once. The duplicate-key skip filter makes the one non-benign case loud. |
-| **R10** | **The gates cannot see 80 % of this feature**, so it ships green and broken | High | High | Accepted and designed around: Phase 1 is a play-tested spike *before* the build; §9 states plainly what no gate can see; §8's Verification Method is written for an evaluator with no context; the debug-signature table is written before the play-test rather than after it. |
-| **R11** | Scope creep into a colour key, presets, search, or a `shared-markers` registration API | Medium | Medium | K4 records the colour key as a **user decision to defer**, not an oversight. G8 says the row source stays generic but explicitly forbids building for feature 8. Everything else is a hard non-goal in §2. |
+| #       | Risk                                                                                                                          | Likelihood | Impact | Mitigation                                                                                                                                                                                                                                                                                                                                                                      |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------- | ---------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **R1**  | 🔴 **`SCR_MapToolMenuUI` is not actually live on Overthrow's fullscreen map**, and the whole entry-point design collapses     | Low        | High   | Phase 1 P1 is a **zero-code look at the map**, before anything is built on it. Strong prior: vanilla's `SCR_MapCursorModule` is module-list-only and is the sole raiser of the selection invoker Overthrow's play-tested click-to-pin depends on, so the delta demonstrably merges. Fallback is a **one-line same-GUID conf entry**, safe whether the array merges or replaces. |
+| **R2**  | 🔴 **The panel is dead on a controller** — focus never lands inside it, or the tool menu's own focus-clearing runs after ours | Medium     | High   | K10 documents the exact insertion-order dependency and the focus-proxy pattern. Phase 1 P4 tests the full round trip **before** the real panel is built. If it fails, the fallback is to hold the cursor module's sub-menu state while the panel is open.                                                                                                                       |
+| **R3**  | **A widget name does not match and a row silently does nothing** (BUG-133 / BUG-134's failure class)                          | Medium     | Medium | Every name tabulated in §3.6 before a line is written; every lookup null-guarded and ERROR-logged naming the widget; the inherited `SCR_CheckboxComponent` GUID called out explicitly as copy-not-generate.                                                                                                                                                                     |
+| **R4**  | **Preferences do not stick** — applied before the layers registered, or the flush was throttled away                          | Medium     | Medium | K8 applies twice (open + first tick), idempotently, so no subscription-order assumption is load-bearing. K15 flushes at two user-separated points and always writes the whole record. The debug table names the two signatures apart.                                                                                                                                           |
+| **R5**  | **`OVT_MapLayersUI` registers its tool-menu entry on every map open** and the strip grows an entry per open                   | Medium     | Medium | K7 — registration is in `Init()`, and the trap is called out at the call site because the _other_ `Init()` in this subsystem (`OVT_MapLocationType.Init()`) has the opposite lifetime. Phase 1's play-test catches it immediately: open and close the map three times and count the entries.                                                                                    |
+| **R6**  | **The panel occludes the map or overlaps the journal**                                                                        | Low        | Medium | `m_bIsExclusive 1` (K12) makes the journal/task-list/layers group mutually exclusive, which is what vanilla relies on for the same overlap. Panel authored fixed-width, top-left, hugging the icon strip. F-10 and P3 both check it.                                                                                                                                            |
+| **R7**  | **17 rows overflow a short screen**                                                                                           | Medium     | Low    | Scroll container from the start (Phase 4 task 1); Q-2 verifies by pad and wheel.                                                                                                                                                                                                                                                                                                |
+| **R8**  | **Toggling fights the refresh tick** — six types re-populate every 2–5 s and could resurrect hidden markers                   | Low        | Medium | The gate is on the **type**, not on the element, so a recreated element reads the same flag. F-7 verifies it directly with a 30 s soak on the 2 s and 5 s types.                                                                                                                                                                                                                |
+| **R9**  | **A future class rename loses a preference**                                                                                  | Low        | Low    | Benign and stated (K13): the key stops matching, the type reverts to the default (visible), one preference is forgotten once. The duplicate-key skip filter makes the one non-benign case loud.                                                                                                                                                                                 |
+| **R10** | **The gates cannot see 80 % of this feature**, so it ships green and broken                                                   | High       | High   | Accepted and designed around: Phase 1 is a play-tested spike _before_ the build; §9 states plainly what no gate can see; §8's Verification Method is written for an evaluator with no context; the debug-signature table is written before the play-test rather than after it.                                                                                                  |
+| **R11** | Scope creep into a colour key, presets, search, or a `shared-markers` registration API                                        | Medium     | Medium | K4 records the colour key as a **user decision to defer**, not an oversight. G8 says the row source stays generic but explicitly forbids building for feature 8. Everything else is a hard non-goal in §2.                                                                                                                                                                      |
 
 ### Incidental findings — file as bugs, do not fix here
 
-| # | Finding | Why not here |
-|---|---|---|
-| **F1** | `OVT_MapPlayerLocation` carries a **vestigial `SCR_MapToolEntry m_ToolMenuEntry`** that is never assigned, an empty `Init()`, and a `ZoomInOnPlayer()` with **zero callers** (grep-verified). | K3 — it is dead code in a file this feature already edits, and deleting it here would make a small, reviewable change ambiguous. The user should decide: delete, or wire `ZoomInOnPlayer` to a second tool-menu entry (it looks like it was meant to be one). |
-| **F2** | **5 of 14 `m_sDisplayName` values are raw English literals** (`OverthrowMap.conf:6,143,155,166,176`) and render untranslated in the info panel **today**, independently of this feature. | It is a different surface with its own play-test. Fixing it is 5 conf edits + up to 5 `.st` ids, and it is **not** free — it changes the info-panel type line for five types. K2 keeps `m_sDisplayName` untouched deliberately. |
-| **F3** | `OVT_MapPlayerLocation.Update()` sets `SetOpacity(0)` for a player with no controlled entity and **never restores it**, and `m_Widgets` is not cleared on map close (only at the start of the next successful open, past two early returns), so it can hold refs to destroyed widgets. | Pre-existing, unrelated to filtering, and in a component `legacy-retirement` deliberately retained. Phase 3's edits must not make it worse — `SetMarkersVisible` uses `SetVisible`, not opacity, precisely so the two do not interact. |
+| #      | Finding                                                                                                                                                                                                                                                                                | Why not here                                                                                                                                                                                                                                                  |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **F1** | `OVT_MapPlayerLocation` carries a **vestigial `SCR_MapToolEntry m_ToolMenuEntry`** that is never assigned, an empty `Init()`, and a `ZoomInOnPlayer()` with **zero callers** (grep-verified).                                                                                          | K3 — it is dead code in a file this feature already edits, and deleting it here would make a small, reviewable change ambiguous. The user should decide: delete, or wire `ZoomInOnPlayer` to a second tool-menu entry (it looks like it was meant to be one). |
+| **F2** | **5 of 14 `m_sDisplayName` values are raw English literals** (`OverthrowMap.conf:6,143,155,166,176`) and render untranslated in the info panel **today**, independently of this feature.                                                                                               | It is a different surface with its own play-test. Fixing it is 5 conf edits + up to 5 `.st` ids, and it is **not** free — it changes the info-panel type line for five types. K2 keeps `m_sDisplayName` untouched deliberately.                               |
+| **F3** | `OVT_MapPlayerLocation.Update()` sets `SetOpacity(0)` for a player with no controlled entity and **never restores it**, and `m_Widgets` is not cleared on map close (only at the start of the next successful open, past two early returns), so it can hold refs to destroyed widgets. | Pre-existing, unrelated to filtering, and in a component `legacy-retirement` deliberately retained. Phase 3's edits must not make it worse — `SetMarkersVisible` uses `SetVisible`, not opacity, precisely so the two do not interact.                        |
 
 ---
 
-*Plan written 2026-08-11. Phase 0 baselines were **measured**, not quoted. Every vanilla API, line number
+_Plan written 2026-08-11. Phase 0 baselines were **measured**, not quoted. Every vanilla API, line number
 and behavioural claim in this document was verified against the actual files in
-`/mnt/n/Projects/Arma 4/ArmaReforger` or `/mnt/n/Projects/Arma 4/Overthrow.Arma4`.*
+`/mnt/n/Projects/Arma 4/ArmaReforger` or `/mnt/n/Projects/Arma 4/Overthrow.Arma4`._

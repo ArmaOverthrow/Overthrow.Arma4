@@ -15,7 +15,7 @@ Quick reference for EnforceScript development in Arma Reforger. For detailed pat
 Use this skill when:
 - Creating entity components (Managers, Controllers, Components)
 - Implementing network replication (RplProp, RPC, JIP)
-- Setting up persistence with EPF (save/load patterns)
+- Setting up persistence (vanilla serializers — save/load patterns)
 - Managing memory (strong refs, garbage collection)
 - Building UI contexts and layouts
 - Troubleshooting common EnforceScript pitfalls
@@ -35,9 +35,9 @@ Use RplProp for simple value synchronization, RPC for server/client communicatio
 **See:** `networking.md` for comprehensive replication patterns
 
 ### Persistence
-EPF requires SaveData classes that extend EPF_ComponentSaveDataClass. ReadFrom extracts data, ApplyTo restores it. Console platforms require PLATFORM_CONSOLE guards.
+⚠️ **EPF was retired 2026-08-02** — no `EPF_*` type exists in this project. Component state persists through a `ScriptedComponentSerializer` subclass overriding `Serialize()` / `Deserialize()`, bound by a rule in `Configs/Systems/Persistence/Overthrow.conf` (a serializer missing from that config is never called). Write `version` first; binary contexts are positional. No console guards — the vanilla system handles consoles internally.
 
-**See:** `persistence.md` for EPF save/load patterns
+**See:** `persistence.md` for vanilla save/load patterns
 
 ### Memory Management
 All Managed class references must use `ref` keyword to prevent garbage collection. Store EntityID instead of IEntity for long-term references. Check entity existence before use.
@@ -74,7 +74,7 @@ Detailed documentation organized by concern:
 
 1. **component-patterns.md** - Manager, Controller, and Component class patterns
 2. **networking.md** - RplProp, RPC, JIP replication, and optimization
-3. **persistence.md** - EPF save/load patterns and console platform handling
+3. **persistence.md** - vanilla save/load patterns (`ScriptedComponentSerializer`, config binding, entity tracking)
 4. **memory-management.md** - Strong refs, garbage collection, entity lifecycle
 5. **ui-patterns.md** - OVT_UIContext, layout activation, UI manager integration
 6. **common-pitfalls.md** - Ternary operators, weak refs, replication gotchas

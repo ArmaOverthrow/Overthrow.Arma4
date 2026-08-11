@@ -13,12 +13,14 @@ The map system has been partially implemented with core infrastructure complete 
 ### Core Components
 
 #### 1. OVT_OverthrowMapUI
+
 **Base Class:** `SCR_MapUIElementContainer`  
 **Location:** `Scripts/Game/UI/Map/OVT_OverthrowMapUI.c`
 
 The main map UI component that manages all interactive map elements for Overthrow.
 
 **Key Features:**
+
 - Integrates with base game map system
 - Manages location type registration and initialization
 - Handles map open/close events and element updates
@@ -26,6 +28,7 @@ The main map UI component that manages all interactive map elements for Overthro
 - Processes user interactions and delegates to appropriate handlers
 
 **Configuration:**
+
 ```cpp
 OVT_OverthrowMapUI {
     m_aLocationTypes {
@@ -35,12 +38,14 @@ OVT_OverthrowMapUI {
 ```
 
 #### 2. OVT_MapLocationType
+
 **Base Class:** `ScriptAndConfig`  
 **Location:** `Scripts/Game/UI/Map/OVT_MapLocationType.c`
 
 Abstract base class for defining location types with hybrid configuration and logic approach.
 
 **Key Attributes:**
+
 - `m_sDisplayName` - Display name for location type
 - `m_fVisibilityZoom` - Visibility priority (0=always visible, higher=visible at closer zoom)
 - `m_IconLayout` - Icon widget layout resource
@@ -51,6 +56,7 @@ Abstract base class for defining location types with hybrid configuration and lo
 - `m_bCanFastTravel` - Can fast travel to this location type by default
 
 **Virtual Methods:**
+
 ```cpp
 void PopulateLocations(OVT_OverthrowMapUI mapUI, array<ref OVT_MapLocationData> locations);
 bool CanFastTravel(OVT_MapLocationData location, string playerID, out string reason);
@@ -63,18 +69,21 @@ bool ShouldShowLocation(OVT_MapLocationData location, string playerID);
 ```
 
 #### 3. OVT_MapLocationElement
+
 **Base Class:** `SCR_MapUIElement`  
 **Location:** `Scripts/Game/UI/Map/OVT_MapLocationElement.c`
 
 Individual interactive map elements that represent specific locations.
 
 **Responsibilities:**
+
 - Handle click detection and user interaction
 - Manage visual state (selected, hovered, etc.)
 - Display location-specific information
 - Provide Fast Travel functionality when available
 
 #### 4. OVT_MapLocationData
+
 **Base Class:** `Managed`  
 **Location:** `Scripts/Game/UI/Map/OVT_MapLocationData.c`
 
@@ -83,14 +92,17 @@ Runtime data container for location instances containing position, type referenc
 ### Fast Travel Integration
 
 #### OVT_FastTravelService
+
 **Location:** `Scripts/Game/UI/Map/OVT_FastTravelService.c`
 
 Centralized fast travel service that handles:
+
 - Global fast travel checks (wanted level, QRF proximity, distance restrictions)
 - Cost calculation for fast travel
 - Fast travel execution with proper player positioning
 
 **Key Methods:**
+
 ```cpp
 static bool CanGlobalFastTravel(vector targetPos, string playerID, out string reason);
 static void ExecuteFastTravel(vector targetPos, int playerID);
@@ -100,17 +112,20 @@ static int CalculateFastTravelCost(vector targetPos, string playerID);
 ## Implemented Location Types
 
 ### OVT_MapLocationTown
+
 **Location:** `Scripts/Game/UI/Map/LocationTypes/OVT_MapLocationTown.c`
 
 Handles towns and cities with support/stability display and faction information.
 
 **Features:**
+
 - Displays town name, population, and faction control
 - Shows support/stability levels with visual indicators
 - Provides fast travel capability based on town control
 - Integrates with `OVT_TownManagerComponent` for data population
 
 **Configuration:**
+
 ```cpp
 OVT_MapLocationTown {
     m_sDisplayName "Town"
@@ -127,18 +142,22 @@ OVT_MapLocationTown {
 ## UI Layout System
 
 ### Base Element Layout
+
 **File:** `UI/layouts/Map/OVT_MapLocationElement.layout`
 
 Contains common elements:
+
 - Icon container with imageset support
 - Selection highlight overlay
 - Distance text display
 - Fast travel availability indicator
 
 ### Info Panel Layout
+
 **File:** `UI/layouts/Map/OVT_MapInfoTown.layout`
 
 Town-specific info panel containing:
+
 - Town name and type header
 - Population and faction information
 - Support/stability meters
@@ -148,9 +167,11 @@ Town-specific info panel containing:
 ## Integration Points
 
 ### Map Configuration
-**File:** `Configs/UI/Map/MapFullscreen.conf`
+
+**File:** `Configs/UI/Map/MapOverthrow.conf`
 
 The new map system is integrated into the base game's map configuration:
+
 ```cpp
 SCR_MapEntity {
     m_MapUIRoot {
@@ -166,7 +187,9 @@ SCR_MapEntity {
 ```
 
 ### Legacy System Status
+
 The old `OVT_MapIcons` component is disabled but still present in the codebase. The old system handled:
+
 - Military bases and FOBs
 - Houses and real estate
 - Shops and services
@@ -186,6 +209,7 @@ These location types need to be migrated to the new system by implementing corre
 ## Testing and Validation
 
 ### Functional Testing
+
 - ✅ Map integration with base game map system
 - ✅ Town location display and interaction
 - ✅ Fast travel functionality from map
@@ -193,6 +217,7 @@ These location types need to be migrated to the new system by implementing corre
 - ✅ Distance calculation and display
 
 ### Performance Testing
+
 - ✅ Map loading with multiple town locations
 - ✅ Real-time location updates
 - ✅ Memory usage optimization
@@ -200,18 +225,21 @@ These location types need to be migrated to the new system by implementing corre
 ## Benefits Achieved
 
 ### For Players
+
 - Unified map interface with integrated fast travel
 - Rich location information accessible directly from map
 - Better visual feedback and interaction
 - Improved console controller navigation
 
 ### For Developers
+
 - Modular, maintainable code architecture
 - Clear separation of concerns
 - Leverages proven base game patterns
 - Extensible location type system
 
 ### For Modders
+
 - Configuration-driven approach for new location types
 - Well-defined extension points
 - Example implementation available (towns)

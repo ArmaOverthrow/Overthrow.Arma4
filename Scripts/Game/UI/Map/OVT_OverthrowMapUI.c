@@ -721,7 +721,15 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 			return;
 		
 		m_wInfoPanel.SetZOrder(20);
-				
+
+		// THE PANEL'S LOCATION, ASSIGNED THE MOMENT THE PANEL EXISTS. It is also assigned in
+		// SetupTravelButton and that assignment stays where it is - but that method's early return is
+		// travel-shaped, and OVT_RespawnMapUI overrides it without calling super, so on a map config that
+		// suppresses travel affordances m_PanelLocation would never be set at all. Assigning it here is
+		// what makes GetPanelLocation mean what its name says on every map config. On the living map the
+		// value is identical.
+		m_PanelLocation = location;
+
 		// Setup base info
 		SetupLocationInfoBase(location);
 		
@@ -795,6 +803,24 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 			m_SelectedElement.SetInfoPopupVisible(false);
 	}
 	
+	//! The location the info panel is currently describing, or null when no panel is shown.
+	//!
+	//! THE SELECTION SURFACE FOR CANVAS LAYERS, and deliberately this field rather than any of the
+	//! element references beside it. m_SelectedElement is STICKY - neither HideLocationInfo nor
+	//! ForceHideLocationInfo clears it - so anything driven from it outlives the panel; m_HoveredElement
+	//! is null while a pin is held with the cursor elsewhere, and m_PinnedElement is null during a plain
+	//! hover. m_PanelLocation is set when a panel is built, nulled by both hide paths and by map close,
+	//! and re-pointed at the fresh record by the refresh reconciliation, so a reader agrees with the
+	//! panel by construction instead of by parallel reasoning.
+	//!
+	//! It returns a RECORD, not a widget or an element, so a caller may hold nothing across frames - the
+	//! refresh timer destroys and recreates elements mid-session.
+	//! \return The panel's location record, or null.
+	OVT_MapLocationData GetPanelLocation()
+	{
+		return m_PanelLocation;
+	}
+
 	//! Show and wire the info panel's close button.
 	//!
 	//! TWO defects made the panel undismissable, and both are fixed here (BUG-134):

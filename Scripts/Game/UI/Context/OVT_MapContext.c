@@ -1,5 +1,5 @@
 //! Map-gadget helper for the player character: find the map gadget, raise it, stow it. NOT a map UI
-//! class - Overthrow's map UI is OVT_OverthrowMapUI (registered from Configs/Map/MapFullscreen.conf),
+//! class - Overthrow's map UI is OVT_OverthrowMapUI (registered from Configs/Map/MapOverthrow.conf),
 //! which owns markers, info panels and travel. This context draws nothing and holds no map state.
 //! map/legacy-retirement removed its three flag modes (map info, fast travel, bus travel), their
 //! MapSelect/MenuBack/GadgetMap listeners and the static map-close invoker subscription behind them.

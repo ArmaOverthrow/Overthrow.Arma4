@@ -206,19 +206,7 @@ class OVT_MapRestrictedAreas : OVT_MapCanvasLayer
 	//! \return Packed ARGB.
 	protected int ResolveRingColour(int factionIndex, int alpha)
 	{
-		int red = 255;
-		int green = 255;
-		int blue = 255;
-
-		Color colour = OVT_MapLocationType.GetFactionColorByIndex(factionIndex);
-		if(colour)
-		{
-			red = Math.ClampInt(Math.Round(colour.R() * 255), 0, 255);
-			green = Math.ClampInt(Math.Round(colour.G() * 255), 0, 255);
-			blue = Math.ClampInt(Math.Round(colour.B() * 255), 0, 255);
-		}
-
-		return ARGB(Math.ClampInt(alpha, 0, 255), red, green, blue);
+		return OVT_MapLocationType.GetFactionArgbByIndex(factionIndex, alpha);
 	}
 
 	//! Loads the restricted-zone texture once per map open, guarded by IsValid before it can ever reach

@@ -50,8 +50,8 @@ planning `map/territory-overlay` first, per the epic's recorded build order (fea
 so the panel is built against the crowded map it exists to tune). Four decisions were settled before the
 deferral and are recorded here so the next planning pass does not re-ask them:
 
-- **Entry point: a vanilla tool-menu entry, not a new keybinding.** `Configs/Map/MapFullscreen.conf` is a
-  same-GUID *delta* over vanilla's, so vanilla's `SCR_MapToolMenuUI` is already live on Overthrow's
+- **Entry point: a vanilla tool-menu entry, not a new keybinding.** `Configs/Map/MapOverthrow.conf` is a
+  same-GUID _delta_ over vanilla's, so vanilla's `SCR_MapToolMenuUI` is already live on Overthrow's
   fullscreen map. `SCR_MapToolMenuUI.RegisterToolMenuEntry(imageset, icon, sortPriority, isExclusive)` is
   the pattern nine vanilla components use, and `SCR_MapJournalUI` (`:46-57`) is the exact precedent for
   "tool-menu entry → panel docked into `ToolFramesOverlay`" (a frame that already exists in vanilla's
@@ -75,7 +75,7 @@ deferral and are recorded here so the next planning pass does not re-ask them:
   campaign**, so they follow the player across saves and servers.
 
 **One finding that belongs to whoever builds the overlay toggles:** every `OVT_MapCanvasLayer` resolves
-the *same* `CanvasWidget` (`SCR_MapConstants.DRAWING_WIDGET_NAME`, `OVT_MapCanvasLayer.c:89`) and each
+the _same_ `CanvasWidget` (`SCR_MapConstants.DRAWING_WIDGET_NAME`, `OVT_MapCanvasLayer.c:89`) and each
 one calls `m_Canvas.SetDrawCommands(m_Commands)` from its own `Update` (`:12-19`) — so with two enabled
 layers the last to run overwrites the first. It is invisible today only because `OVT_MapThreatGrid` ships
 disabled, leaving `OVT_MapRestrictedAreas` as the sole live layer. A second live overlay makes it a real
@@ -96,12 +96,12 @@ _Settled by `map/territory-overlay` §6 K1 and shipped in that feature's Phase 1
 
 **Build one row per entry in `OVT_MapCanvasCompositor.GetLayers()`:**
 
-| Concern | Use |
-|---|---|
-| Enumerate the layers | `OVT_MapCanvasCompositor.GetInstance().GetLayers()` — returns the registered `OVT_MapCanvasLayer`s |
-| Identify a row | `GetLayerId()` (`m_sLayerId`) — stable, lowercase, no spaces. Shipped: `"territory"`, `"restricted"` |
-| Label a row | `GetDisplayName()` (`m_sDisplayName`) — a localization key. Shipped: `#OVT-Map_Layer_Territory`, `#OVT-Map_Layer_Restricted` |
-| Toggle a row | `SetLayerVisible(bool)` / `IsLayerVisible()` |
+| Concern              | Use                                                                                                                          |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Enumerate the layers | `OVT_MapCanvasCompositor.GetInstance().GetLayers()` — returns the registered `OVT_MapCanvasLayer`s                           |
+| Identify a row       | `GetLayerId()` (`m_sLayerId`) — stable, lowercase, no spaces. Shipped: `"territory"`, `"restricted"`                         |
+| Label a row          | `GetDisplayName()` (`m_sDisplayName`) — a localization key. Shipped: `#OVT-Map_Layer_Territory`, `#OVT-Map_Layer_Restricted` |
+| Toggle a row         | `SetLayerVisible(bool)` / `IsLayerVisible()`                                                                                 |
 
 Adding a canvas layer therefore adds a toggle with **no code change in this feature** — the same
 config-driven principle the location-type list already follows. Hardcoding would buy nothing and would

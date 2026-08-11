@@ -574,6 +574,41 @@ class OVT_MapLocationType
 		return faction.GetFactionColor();
 	}
 
+	//! THE ONE IMPLEMENTATION of "what PACKED colour is faction N at alpha A", sitting directly on top of
+	//! GetFactionColorByIndex. Every canvas layer that draws a faction - the territory fill, the
+	//! restricted-area rings and the influence overlay - resolves through here, so a line, a ring and the
+	//! region beneath them cannot drift apart in hue.
+	//!
+	//! THE ALPHA IS A PARAMETER RATHER THAN THE FACTION'S OWN. Color.PackToInt would bake whatever alpha
+	//! the faction definition carries, which would destroy every alpha-carried distinction its callers
+	//! depend on - contested versus held territory, and in-effect versus suppressed influence - so the
+	//! components are unpacked and recomposed against the requested alpha instead.
+	//!
+	//! THE UNRESOLVED FALLBACK IS WHITE, and it is deliberately decided here rather than delegated:
+	//! GetFactionColorByIndex returns null on purpose because the three MARKER overrides disagree about
+	//! what unknown looks like, but all three CANVAS consumers had already independently chosen white. A
+	//! pale wash, ring or line still reads as itself, whereas any hue would read as a faction that may not
+	//! be there.
+	//! \param[in] factionIndex The controlling faction index, or any negative value for "no faction".
+	//! \param[in] alpha Alpha to pack, 0-255, clamped.
+	//! \return Packed ARGB, falling back to white when the faction cannot be resolved.
+	static int GetFactionArgbByIndex(int factionIndex, int alpha)
+	{
+		int red = 255;
+		int green = 255;
+		int blue = 255;
+
+		Color colour = GetFactionColorByIndex(factionIndex);
+		if (colour)
+		{
+			red = Math.ClampInt(Math.Round(colour.R() * 255), 0, 255);
+			green = Math.ClampInt(Math.Round(colour.G() * 255), 0, 255);
+			blue = Math.ClampInt(Math.Round(colour.B() * 255), 0, 255);
+		}
+
+		return ARGB(Math.ClampInt(alpha, 0, 255), red, green, blue);
+	}
+
 	//! Get faction color based on faction type
 	protected Color GetFactionColor(OVT_FactionType factionType)
 	{

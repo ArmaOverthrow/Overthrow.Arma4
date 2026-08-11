@@ -9,7 +9,7 @@
 > **Gate after every phase:** `tools/compile-check.sh` (exit 0) **and**
 > `tools/run-tests.sh "{6A6E29FF47ECB840}"` (Fast). **All** group before sign-off.
 >
-> ⚠️ **Test counts must not move** (baseline Fast 44 / All 79). A changed count is a *finding*, not a
+> ⚠️ **Test counts must not move** (baseline Fast 44 / All 79). A changed count is a _finding_, not a
 > number to update.
 >
 > ⚠️ **Never delete by line range.** Every `file:line` in the plan is a pointer to look at, not a `sed`
@@ -31,7 +31,7 @@
 
 ## Phase 1 — Main-menu entries (S · standard agent) ✅ COMPLETE
 
-*Nothing arms a legacy mode after this phase.*
+_Nothing arms a legacy mode after this phase._
 
 - [x] **P1.2** 🔴 **FINDING A first** — relocate `GetGame().GetWorkspace().SetFocusedWidget(comp.GetRootWidget());` into the surviving `// Place` block (before `comp.m_OnClicked.Insert(Place);`), with a `//!` note that this is the menu's initial gamepad focus
 - [x] **P1.1a** `OVT_MainMenuContext.c` — delete the whole `// Map Info` block in `OnShow()` (locate by `GetButtonText("Map Info", m_wRoot)`)
@@ -47,14 +47,14 @@
 
 ## Phase 2 — `OVT_MapContext` strip (M · **ADVANCED agent**) ✅ COMPLETE
 
-*592 → <80 lines. Failure mode is silent: a surviving reference in a `.et` attribute the compiler never reads.*
+_592 → <80 lines. Failure mode is silent: a surviving reference in a `.et` attribute the compiler never reads._
 
 - [x] **P2.1** Delete by symbol: the 3 mode flags, 3 distance constants, 4 cached manager members, `m_SelectedTown`, and the `m_ModLayout` / `m_NegativeModifierColor` / `m_PositiveModifierColor` attributes
 - [x] **P2.2** Delete by symbol: `PostInit()`, `CanFastTravel()`, `EnableMapInfo()`, `ShowTownInfo()`, `EnableFastTravel()`, `EnableBusTravel()`, `OnMapExit()`, `DisableMapInfo()`, `DisableFastTravel()`, `DisableBusTravel()`, `RegisterInputs()`, `UnregisterInputs()`, `MapExit()`, `IsOverthrowInfoPanelVisible()`, `MapClick()`
 - [x] **P2.3** Retain **verbatim**: `GetMap()`, `ShowMap()`, `HideMap()` (incl. its full `//!` block) and `OpenMap()`
 - [x] **P2.4** Rewrite `OpenMap()`'s doc comment — it forward-references `EnableBusTravel` "below", which will not exist
 - [x] **P2.5** 🟡 Add a `//!` block above `HideMap()`: zero callers today, retained as public API for `map/respawn` (§5 K-3) — without this the next reader deletes it
-- [x] **P2.6** Add a class-level `//!`: this is a map-*gadget* helper, not a map UI class
+- [x] **P2.6** Add a class-level `//!`: this is a map-_gadget_ helper, not a map UI class
 - [x] **P2.7** `OVT_OverthrowMapUI.c` — delete `IsInfoPanelVisible()` + its doc comment, the legacy-second-listener comment, and correct the recruit-default rationale comment citing `OVT_MapContext.c:441`
 - [x] **P2.8** De-line-number the stale `OVT_MapContext.c:<line>` prose pointers in `OVT_FastTravelService.c` (×2) and `OVT_MapLocationBusStop.c` (×1) — keep the rationale
 - [x] **P2.9** Correct 4 stale comments in `OVT_TEST_InitSuite.c` — **comments only, change no assertion**
@@ -64,35 +64,35 @@
 
 ## Phase 3 — Leaf assets (M · **ADVANCED agent**) ✅ COMPLETE
 
-*Touches all four compiler-invisible file classes. Every deletion must be grep-proven dead first.*
+_Touches all four compiler-invisible file classes. Every deletion must be grep-proven dead first._
 
 - [x] **P3.1** Delete `Scripts/Game/UI/Map/OVT_MapIcons.c` (846 lines)
-- [x] **P3.2** `Configs/Map/MapFullscreen.conf` — delete the whole `OVT_MapIcons "{5994FB72BE0F9051}" { … }` block from `m_aUIComponents`. ⚠️ **same-GUID delta over vanilla** — retain `OVT_MapPlayerLocation`, `OVT_OverthrowMapUI`, both `m_aModules` entries and the whole `m_DescriptorDefaultsConfig` block
+- [x] **P3.2** `Configs/Map/MapOverthrow.conf` — delete the whole `OVT_MapIcons "{5994FB72BE0F9051}" { … }` block from `m_aUIComponents`. ⚠️ **same-GUID delta over vanilla** — retain `OVT_MapPlayerLocation`, `OVT_OverthrowMapUI`, both `m_aModules` entries and the whole `m_DescriptorDefaultsConfig` block
 - [x] **P3.3** Delete `UI/Layouts/Map/MapIcon.layout` + `.meta` (`{F5E0CFFFC9F27B19}`)
 - [x] **P3.4** Delete `UI/Layouts/Map/MapInfo.layout` + `.meta` (`{0EC60966C99CE954}`)
 - [x] **P3.5** Delete `UI/Layouts/Map/MapInfo/Modifier.layout` + `.meta` (`{7BAC7637E5744768}`) and the now-empty `UI/Layouts/Map/MapInfo/` directory
 - [x] **P3.6** `Character_Player.et` — inside the `OVT_MapContext "{598E83B6A7175CBE}"` block delete only `m_Layout`, `m_ModLayout`, `m_NegativeModifierColor`, `m_PositiveModifierColor`. **Keep the block** — `OVT_CatchBusAction` resolves the context by type
 - [x] **P3.7** De-reference the nine surviving `OVT_MapIcons.c:<line>` provenance pointers across six files — **keep the rationale**, replace the pointer with "the legacy `OVT_MapIcons` layer (deleted in `map/legacy-retirement`)"
-- [x] **P3 gate** — Q-4 grep returns **8 prose mentions in 5 files** (plan said 9/6 — corrected, see FINDING G); Q-5 GUID grep **empty**; `MapFullscreen.conf` retains all four keepers + `m_DescriptorDefaultsConfig`, braces 24/24; `.et` braces 140/140; compile **0 / 5958** (the predicted −1); Fast **44** ✅
+- [x] **P3 gate** — Q-4 grep returns **8 prose mentions in 5 files** (plan said 9/6 — corrected, see FINDING G); Q-5 GUID grep **empty**; `MapOverthrow.conf` retains all four keepers + `m_DescriptorDefaultsConfig`, braces 24/24; `.et` braces 140/140; compile **0 / 5958** (the predicted −1); Fast **44** ✅
 - [x] **P3 note** — ⚠️ the real gate for this phase is **P7a** (Workbench load) — items added to the 7a checklist below
 
 ---
 
 ## Phase 4 — Delete the fast-travel RPCs (S · standard agent) — **security fix** ✅ COMPLETE
 
-*Unreachable after P1 but still registered RPCs on a live component doing `ResolveSenderPlayerId` + `TeleportPlayer` with no validation and no payment.*
+_Unreachable after P1 but still registered RPCs on a live component doing `ResolveSenderPlayerId` + `TeleportPlayer` with no validation and no payment._
 
 - [x] **P4.1** `OVT_PlayerCommsComponent.c` — delete by symbol: `RequestFastTravel`, `RpcAsk_RequestFastTravel`, `RequestFastTravelWithRecruits`, `RpcAsk_RequestFastTravelWithRecruits`
 - [x] **P4.2** Confirm nothing is lost — the recruit ring-placement loop is already copied verbatim into `OVT_TravelRequestComponent.TeleportRecruits`
 - [x] **P4.3** Leave the two prose mentions in `OVT_TravelRequestComponent.c` (the migration record); confirm they read correctly once the originals are gone
 - [x] **P4.4** ❌ Add nothing — **never** add a new client→server RPC to `OVT_PlayerCommsComponent`
-- [x] **P4 gate** — `RequestFastTravel` grep returns only the two migration-record mentions; RPC symbol list **61 → 59**, diff shows *exactly* the two expected names and nothing else; braces 233/233; 67 deletions / 0 insertions; compile **0 / 5958**; Fast **44** ✅
+- [x] **P4 gate** — `RequestFastTravel` grep returns only the two migration-record mentions; RPC symbol list **61 → 59**, diff shows _exactly_ the two expected names and nothing else; braces 233/233; 67 deletions / 0 insertions; compile **0 / 5958**; Fast **44** ✅
 
 ---
 
 ## Phase 5 — `OVT-NeedBusStop` and the orphan sweep (S · standard agent, high care) ✅ COMPLETE
 
-- [x] **P5.1** 🔴 `Language/localization_Overthrow.st` — locate `Id "OVT-NeedBusStop"` and delete the **whole enclosing `CustomStringTableItem "{…}" { … }` block** (~18 lines, six `Target_*` translations). **Confirm boundaries by eye** — an earlier hand-off named a 4-line range *inside* this block
+- [x] **P5.1** 🔴 `Language/localization_Overthrow.st` — locate `Id "OVT-NeedBusStop"` and delete the **whole enclosing `CustomStringTableItem "{…}" { … }` block** (~18 lines, six `Target_*` translations). **Confirm boundaries by eye** — an earlier hand-off named a 4-line range _inside_ this block
 - [x] **P5.2** `Configs/overthrowBroadcastMessages.conf` — delete the whole enclosing `SCR_SimpleMessagePreset "{…}" { … }` block for `m_sTag "NeedBusStop"`, including its nested `m_UIInfo`
 - [x] **P5.3** ❌ **Never** edit `Language/localization_Overthrow.<lang>.conf` — Workbench-generated exports; list the change for the user to regenerate instead
 - [x] **P5.4** ❌ Do **not** delete `#OVT-NotAtBusStop` — live, consumed by `OVT_FastTravelService.c`
@@ -119,14 +119,16 @@
 > **Discharges two features at once** — `map/location-types` Phase 7 (V-3 … V-7) folds in here.
 > ⚠️ Client launches open a real window and can orphan. **Always pass a long `--timeout`.**
 
-**7a — Workbench load** *(this feature's own gate; catches P3's invisible risk)*
+**7a — Workbench load** _(this feature's own gate; catches P3's invisible risk)_
+
 - [x] Project opens with **zero missing-resource / missing-GUID errors**
-- [x] ⚠️ **If `{B8F4C6A8C9D3E4F1}` trips, it is NOT this feature.** `Scripts/Game/UI/Map/OVT_MapThreatGrid.c.meta` is a **pre-existing orphan** — it names a path the file no longer occupies (it moved to `Visualization/`, which has no `.meta`). Committed in `96e6da4d Vehicle patrols`, untouched here. Easy to misattribute, since `OVT_MapThreatGrid` is one of the *retained* modules
+- [x] ⚠️ **If `{B8F4C6A8C9D3E4F1}` trips, it is NOT this feature.** `Scripts/Game/UI/Map/OVT_MapThreatGrid.c.meta` is a **pre-existing orphan** — it names a path the file no longer occupies (it moved to `Visualization/`, which has no `.meta`). Committed in `96e6da4d Vehicle patrols`, untouched here. Easy to misattribute, since `OVT_MapThreatGrid` is one of the _retained_ modules
 - [x] Confirm the Workbench does not re-add a `.meta` for the deleted layouts on first open, and that the asset browser shows no red entries under `UI/Layouts/Map/`
 - [x] `Character_Player.et` — the `OVT_MapContext` block is live with **exactly two** attribute rows (`m_bOpenActionCloses`, `m_bHideHUDOnShow`) and no red/broken rows. This is the specific thing P3.6 closed
-- [x] `MapFullscreen.conf` — **two** UI components (`OVT_MapPlayerLocation`, `OVT_OverthrowMapUI`) and **two** modules remain. ⚠️ The plan said "four UI components"; that was written before P3.2 removed one, and the rest merge in from vanilla
+- [x] `MapOverthrow.conf` — **two** UI components (`OVT_MapPlayerLocation`, `OVT_OverthrowMapUI`) and **two** modules remain. ⚠️ The plan said "four UI components"; that was written before P3.2 removed one, and the rest merge in from vanilla
 
-**7b — Single-player sweep** *(this feature + location-types V-3/V-4)*
+**7b — Single-player sweep** _(this feature + location-types V-3/V-4)_
+
 - [x] Main menu: no "Map Info" row, no "Fast Travel" row, highlight starts on **"Place"** (FINDING A)
 - [x] Field Manual → Overthrow → Introduction matches reality (FINDING B)
 - [x] **V-3** full marker checklist: house, vehicle, camp, FOB, maintenance ramp, job waypoint, recruit
@@ -137,7 +139,8 @@
 - [x] Player-location marker still draws
 - [x] Map **item is stowed** on close, not left in hand
 
-**7c — Two-client MP/JIP gate** *(location-types V-5 + this feature's MP gate — highest risk, do not skip)*
+**7c — Two-client MP/JIP gate** _(location-types V-5 + this feature's MP gate — highest risk, do not skip)_
+
 - [x] `tools/launch-server.sh`; Client A joins
 - [x] As A: buy a house, buy a vehicle, place a **private** camp, deploy a FOB, note a shop's caret rows
 - [x] Client B **JIP** (join after A's state exists)
@@ -147,12 +150,14 @@
 - [x] As B (JIP), fast travel — the server path executes for a mid-campaign joiner
 - [x] Neither log shows a script error on map open, travel or bus trip
 
-**7d — Gamepad/console gate** *(location-types V-6 + FINDING A)*
+**7d — Gamepad/console gate** _(location-types V-6 + FINDING A)_
+
 - [x] **Controller only, no mouse** — main menu focuses something immediately, D-pad works from the first press
 - [x] Map cursor onto each marker type — every info panel appears and is readable at 1080p
 - [x] Fast-travel button reachable on every type that offers it; recruit toggle reachable via the map cursor
 
-**7e — Save compatibility** *(location-types V-7)*
+**7e — Save compatibility** _(location-types V-7)_
+
 - [x] Load a **pre-change** save — map opens, all markers render, no errors
 - [x] Save, reload, confirm identical (expected: no difference — nothing deleted was persisted)
 
@@ -160,17 +165,17 @@
 
 ## Summary
 
-| Phase | Tasks | Agent |
-|---|---|---|
-| 0 — Baseline | 4 | none |
-| 1 — Main-menu entries | 8 | standard |
-| 2 — `OVT_MapContext` strip | 10 | **advanced** |
-| 3 — Leaf assets | 9 | **advanced** |
-| 4 — Fast-travel RPCs | 5 | standard |
-| 5 — String + preset orphans | 6 | standard |
-| 6 — Documentation | 7 | standard ×2 (`help-docs-sync` agent not installed) |
-| **Build total (0–6)** | **51** | |
-| 7 — Verification gate | 27 boxes ✅ | **user-driven — discharged** |
+| Phase                       | Tasks       | Agent                                              |
+| --------------------------- | ----------- | -------------------------------------------------- |
+| 0 — Baseline                | 4           | none                                               |
+| 1 — Main-menu entries       | 8           | standard                                           |
+| 2 — `OVT_MapContext` strip  | 10          | **advanced**                                       |
+| 3 — Leaf assets             | 9           | **advanced**                                       |
+| 4 — Fast-travel RPCs        | 5           | standard                                           |
+| 5 — String + preset orphans | 6           | standard                                           |
+| 6 — Documentation           | 7           | standard ×2 (`help-docs-sync` agent not installed) |
+| **Build total (0–6)**       | **51**      |                                                    |
+| 7 — Verification gate       | 27 boxes ✅ | **user-driven — discharged**                       |
 
 **Progress: 51/51 build tasks + 27/27 Phase 7 boxes — FEATURE COMPLETE.**
 The user ran the full combined gate on 2026-08-10 and reported all green, **including the two-client

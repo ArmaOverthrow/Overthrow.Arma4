@@ -270,8 +270,7 @@ class OVT_TownManagerComponent: OVT_Component
 			bool hasFriendlyTower = false;
 			foreach(OVT_RadioTowerData tower : of.m_RadioTowers)
 			{
-				float dist = vector.Distance(town.location, tower.location);
-				if(dist < OVT_Global.GetConfig().m_Difficulty.radioTowerRange)
+				if(OVT_InfluenceRules.IsProximitySource(town.location, tower.location, OVT_Global.GetConfig().m_Difficulty.radioTowerRange))
 				{
 					//Sabotaged towers broadcast nothing for either side
 					if(tower.IsDisabled()) continue;
@@ -284,18 +283,21 @@ class OVT_TownManagerComponent: OVT_Component
 				}
 			}
 
-			if(hasEnemyTower)
+			//The rule set resolves which polarity wins; the add/remove policy stays here
+			OVT_InfluencePolarity towerPolarity = OVT_InfluenceRules.ResolveProximity(hasEnemyTower, hasFriendlyTower);
+
+			if(towerPolarity == OVT_InfluencePolarity.NEGATIVE)
 			{
-				RemoveSupportModifierByName(townID, "NearbyRadioTowerPositive");
-				TryAddSupportModifierByName(townID, "NearbyRadioTowerNegative");
-			}else if(hasFriendlyTower)
+				RemoveSupportModifierByName(townID, OVT_InfluenceRules.ModifierNameFor(OVT_InfluenceSourceKind.RADIO_TOWER, OVT_InfluencePolarity.POSITIVE));
+				TryAddSupportModifierByName(townID, OVT_InfluenceRules.ModifierNameFor(OVT_InfluenceSourceKind.RADIO_TOWER, OVT_InfluencePolarity.NEGATIVE));
+			}else if(towerPolarity == OVT_InfluencePolarity.POSITIVE)
 			{
-				RemoveSupportModifierByName(townID, "NearbyRadioTowerNegative");
-				TryAddSupportModifierByName(townID, "NearbyRadioTowerPositive");
+				RemoveSupportModifierByName(townID, OVT_InfluenceRules.ModifierNameFor(OVT_InfluenceSourceKind.RADIO_TOWER, OVT_InfluencePolarity.NEGATIVE));
+				TryAddSupportModifierByName(townID, OVT_InfluenceRules.ModifierNameFor(OVT_InfluenceSourceKind.RADIO_TOWER, OVT_InfluencePolarity.POSITIVE));
 			}else{
 				//No tower on the air in range (sabotage) - the permanent proximity modifiers must go
-				RemoveSupportModifierByName(townID, "NearbyRadioTowerNegative");
-				RemoveSupportModifierByName(townID, "NearbyRadioTowerPositive");
+				RemoveSupportModifierByName(townID, OVT_InfluenceRules.ModifierNameFor(OVT_InfluenceSourceKind.RADIO_TOWER, OVT_InfluencePolarity.NEGATIVE));
+				RemoveSupportModifierByName(townID, OVT_InfluenceRules.ModifierNameFor(OVT_InfluenceSourceKind.RADIO_TOWER, OVT_InfluencePolarity.POSITIVE));
 			}
 			
 			bool hasEnemyBase = false;
@@ -303,8 +305,7 @@ class OVT_TownManagerComponent: OVT_Component
 			
 			foreach(OVT_BaseData base : of.m_Bases)
 			{				
-				float dist = vector.Distance(town.location, base.location);
-				if(dist < OVT_Global.GetConfig().m_Difficulty.baseSupportRange)
+				if(OVT_InfluenceRules.IsProximitySource(town.location, base.location, OVT_Global.GetConfig().m_Difficulty.baseSupportRange))
 				{
 					if(base.IsOccupyingFaction())
 					{
@@ -315,14 +316,16 @@ class OVT_TownManagerComponent: OVT_Component
 				}
 			}
 			
-			if(hasEnemyBase)
+			OVT_InfluencePolarity basePolarity = OVT_InfluenceRules.ResolveProximity(hasEnemyBase, hasFriendlyBase);
+
+			if(basePolarity == OVT_InfluencePolarity.NEGATIVE)
 			{
-				RemoveSupportModifierByName(townID, "NearbyBasePositive");
-				TryAddSupportModifierByName(townID, "NearbyBaseNegative");
-			}else if(hasFriendlyBase)
+				RemoveSupportModifierByName(townID, OVT_InfluenceRules.ModifierNameFor(OVT_InfluenceSourceKind.MILITARY_BASE, OVT_InfluencePolarity.POSITIVE));
+				TryAddSupportModifierByName(townID, OVT_InfluenceRules.ModifierNameFor(OVT_InfluenceSourceKind.MILITARY_BASE, OVT_InfluencePolarity.NEGATIVE));
+			}else if(basePolarity == OVT_InfluencePolarity.POSITIVE)
 			{
-				RemoveSupportModifierByName(townID, "NearbyBaseNegative");
-				TryAddSupportModifierByName(townID, "NearbyBasePositive");
+				RemoveSupportModifierByName(townID, OVT_InfluenceRules.ModifierNameFor(OVT_InfluenceSourceKind.MILITARY_BASE, OVT_InfluencePolarity.NEGATIVE));
+				TryAddSupportModifierByName(townID, OVT_InfluenceRules.ModifierNameFor(OVT_InfluenceSourceKind.MILITARY_BASE, OVT_InfluencePolarity.POSITIVE));
 			}	
 			
 			if(recalc) RecalculateStability(townID);

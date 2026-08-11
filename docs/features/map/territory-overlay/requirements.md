@@ -8,7 +8,7 @@
 
 This feature draws **who controls what** on the map: a coloured territory overlay computed as a Voronoi partition over towns and military bases, with each cell clipped to a maximum influence radius and its borders smoothed, so control reads as organic regions rather than a hard geometric partition. It turns the campaign's control state — which today the player can only infer by reading individual town and base markers one at a time — into a single glance.
 
-It also settles the fate of `OVT_MapThreatGrid`, the threat-heatmap canvas layer that is fully written but shipped disabled (`Configs/Map/MapFullscreen.conf`: `m_bDisableModule 1`, `m_iGridSize 250`). It samples `GetThreatByLocation` over a grid and draws opacity-scaled cells — the same per-frame canvas budget and the same "sample the world, shade it" problem this feature solves. Either it is revived as a sibling overlay on this feature's machinery, or it is deleted; leaving written-but-disabled code in the tree indefinitely is the outcome to avoid.
+It also settles the fate of `OVT_MapThreatGrid`, the threat-heatmap canvas layer that is fully written but shipped disabled (`Configs/Map/MapOverthrow.conf`: `m_bDisableModule 1`, `m_iGridSize 250`). It samples `GetThreatByLocation` over a grid and draws opacity-scaled cells — the same per-frame canvas budget and the same "sample the world, shade it" problem this feature solves. Either it is revived as a sibling overlay on this feature's machinery, or it is deleted; leaving written-but-disabled code in the tree indefinitely is the outcome to avoid.
 
 ## Requirements
 
@@ -36,7 +36,6 @@ It also settles the fate of `OVT_MapThreatGrid`, the threat-heatmap canvas layer
 ## Out of Scope
 
 - **Changing how control is computed.** The overlay visualises `faction` / `IsOccupyingFaction()` as they already exist; it does not introduce a new territory or influence model into the campaign simulation, and it must not become a second source of truth for who holds what.
-
 
 - **Weighted / multiplicatively-weighted Voronoi.** Cell extent is distance-based with a uniform influence radius; making strongly-held cities project further than contested villages was considered and deferred as materially harder to compute and smooth.
 - **Territory history or animation** — no time-lapse, no transition animation as regions change hands.

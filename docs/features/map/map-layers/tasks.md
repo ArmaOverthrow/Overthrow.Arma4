@@ -36,12 +36,12 @@
 > gate** (rows are carried there verbatim) and the layouts are authored in their final widget-name shape
 > from the start, exactly as the plan already asks. Recorded as **D1** in `context.md`.
 
-- [x] **P1 (code reading substitute)** — establish whether `SCR_MapToolMenuUI` reaches Overthrow's fullscreen map: confirm it is in **vanilla's** `Configs/Map/MapFullscreen.conf` and that Overthrow's file is a same-GUID delta. If Overthrow's `m_aUIComponents` does not carry it, add `SCR_MapToolMenuUI "{599C7D68E8F6B9A8}" { }` — a **delta on that entry, not a duplicate**, safe whether the array merges or replaces
+- [x] **P1 (code reading substitute)** — establish whether `SCR_MapToolMenuUI` reaches Overthrow's fullscreen map: confirm it is in **vanilla's** `Configs/Map/MapOverthrow.conf` and that Overthrow's file is a same-GUID delta. If Overthrow's `m_aUIComponents` does not carry it, add `SCR_MapToolMenuUI "{599C7D68E8F6B9A8}" { }` — a **delta on that entry, not a duplicate**, safe whether the array merges or replaces
 - [x] `Scripts/Game/UI/Map/OVT_MapLayersUI.c` — `SCR_MapUIBaseComponent` subclass; `[Attribute] string m_sToolMenuIcon` default **`"filters"`** (K6), `[Attribute] int m_iSortPriority` default **`3`** (K11)
 - [x] 🔴 **`Init()` registers the tool-menu entry — never `OnMapOpen`** (K7): resolve via `m_MapEntity.GetMapUIComponent(SCR_MapToolMenuUI)`, `RegisterToolMenuEntry(SCR_MapToolMenuUI.s_sToolMenuIcons, m_sToolMenuIcon, m_iSortPriority, m_bIsExclusive)`, register **once**. Comment the trap at the call site — `OVT_MapLocationType.Init()` has the **opposite** lifetime
 - [x] Wire `m_OnClick.Insert(TogglePanel)`, `GetOnDisableMapUIInvoker().Insert(ClosePanel)`, `SetEnabled(true)` (cosmetic border only — **not** a gate)
 - [x] `ResolveDockParent()` — `ToolFramesOverlay` → `ToolMenuContainer` → `m_RootWidget`, ERROR-logging which one it settled on; panel **created into** the overlay, vanilla layout never overridden (K9)
-- [x] `Configs/Map/MapFullscreen.conf` — register `OVT_MapLayersUI` in `m_aUIComponents` with **`m_bIsExclusive 1`** (K12 — a rendering requirement, not a preference)
+- [x] `Configs/Map/MapOverthrow.conf` — register `OVT_MapLayersUI` in `m_aUIComponents` with **`m_bIsExclusive 1`** (K12 — a rendering requirement, not a preference)
 - [x] `UI/Layouts/Map/Core/OVT_MapLayersPanel.layout` + `.meta` — final widget-name shape per §3.6 (`LayersPanel`, `PanelTitle`, `OverlaysHeader`, `OverlayRows`, `MarkersHeader`, `TypeRows`, `FocusProxy`), placeholder content. GUIDs from `{6A85…}`, **all six platform configurations** in the `.meta`
 - [x] Gate: compile **exit 0 / 5989 files**; Fast **87**, All **125** — unchanged (nothing here is assertable)
 
@@ -66,7 +66,7 @@
 
 ## Phase 3 — Toggle primitives and labels — `component-developer-advanced` (**ADVANCED**) (12/12 complete) ✅
 
-> **Advanced** because it edits the base class all 14 types inherit *and* a published contract, a hot path,
+> **Advanced** because it edits the base class all 14 types inherit _and_ a published contract, a hot path,
 > the map UI component, and a retained legacy component `legacy-retirement` marked do-not-touch.
 
 - [x] `OVT_MapLocationType` — `[Attribute(defvalue: "")] protected string m_sCategoryName` + `GetCategoryName()` with the fallback chain `m_sCategoryName` → `GetDisplayName()` → `ClassName()` and a **warn-once**
@@ -107,7 +107,7 @@
 
 - [x] `OVT_MapLayersUI` owns one `ref OVT_MapLayerPrefsStore`, loaded **once** on the first `OnMapOpen` and cached for the process (the profile cannot change under a running client)
 - [x] `ApplyPreferences()` — walk all three sources and push `store.IsVisible(key)` into each object. **Idempotent by construction**
-- [x] 🔴 **Call it twice per map open** (K8): from `OnMapOpen` (no visible flash) **and** from the first `Update` tick after an open, one-shot (provably after every module and component has run its `OnMapOpen`, whatever the subscription order). Layers only exist in `GetLayers()` while a map is open — *"my saved toggles didn't stick"* is the single most likely bug in this feature
+- [x] 🔴 **Call it twice per map open** (K8): from `OnMapOpen` (no visible flash) **and** from the first `Update` tick after an open, one-shot (provably after every module and component has run its `OnMapOpen`, whatever the subscription order). Layers only exist in `GetLayers()` while a map is open — _"my saved toggles didn't stick"_ is the single most likely bug in this feature
 - [x] **Flush points: panel close and map close only** (K15) — never per toggle. The engine **throttles** `SaveUserSettings()`: two calls microseconds apart leave only the **first** on disk. Both points write the **whole record**, so a dropped flush loses nothing
 - [x] Degrade cleanly — on console-app/headless, or with no settings module, the store stays in memory and **every toggle still works for the session**. Applying to the map is decoupled from flushing
 - [x] Gate: compile **exit 0 / 5994 files** (unchanged); Fast **89**, All **127**
@@ -127,7 +127,7 @@
 > the answer, not a guess.
 >
 > ⚠️ **This deliberately overrides acceptance criterion Q-3** ("`git diff` on `chimeraInputCommon.conf` is
-> empty"). Q-3's *purpose* was "no new binding" — do not consume one of the scarce free keys on a context
+> empty"). Q-3's _purpose_ was "no new binding" — do not consume one of the scarce free keys on a context
 > that already has 41 live actions and `KC_H` taken three times over. **No new key is consumed here**: the
 > new context only **re-references `Menu*` actions that already exist**. The letter of Q-3 is broken; its
 > reason is intact. Recorded so the next reader does not think it was missed.
@@ -143,7 +143,7 @@
 
 - [x] Re-run `territory-overlay`'s **I-4 boundary greps** over every new and changed file and record the output — no `[RplProp]`, no `[RplRpc]`, no `Rpc(`, no `EPF_`, nothing in `OVT_PlayerCommsComponent`, no write to any campaign record
 - [x] Confirm every new file sits under `Scripts/Game/UI/Map/`, `Scripts/Game/Data/`, `Scripts/Game/Global/` or `Scripts/Game/Tests/`
-- [x] Write the **three new `OVT_MapLocationType` contract rows** (§3.7) into `docs/features/map/core/context.md` — `m_sCategoryName`, `GetCategoryName()`, and `m_bPlayerVisible`/`SetPlayerVisible`/`IsPlayerVisible` with its 🔴 *this is not campaign visibility* note
+- [x] Write the **three new `OVT_MapLocationType` contract rows** (§3.7) into `docs/features/map/core/context.md` — `m_sCategoryName`, `GetCategoryName()`, and `m_bPlayerVisible`/`SetPlayerVisible`/`IsPlayerVisible` with its 🔴 _this is not campaign visibility_ note
 - [x] Record the **"no rows added to the canvas-layer contract"** note (a contract that needed nothing added when its first consumer arrived is worth saying out loud) and the **`OVT_MapPlayerLocation` exception** (K5) beneath that table
 - [x] Add the **layout ↔ code name table** (§3.6) to the same file, following the two tables already there
 - [x] Findings **F1 – F6** written up in full (symptom, symbol, why not fixed here, suggested severity) for the user to file from **BUG-146** onward — **none fixed here**. Originally scoped as F1–F3: (vestigial `m_ToolMenuEntry`/`ZoomInOnPlayer`; 5 of 14 `m_sDisplayName` values are raw English literals; `OVT_MapPlayerLocation.Update`'s never-restored `SetOpacity(0)` and uncleared `m_Widgets`)
@@ -173,7 +173,7 @@
 - [ ] **F-1** The tool-menu icon strip is on the left of the fullscreen map and carries an Overthrow entry with a filter glyph, above the ruler/compass/watch tools
 - [ ] **F-2** Clicking it opens a docked panel titled "Map Layers"; clicking again closes it. Opening the journal or task list closes the layers panel, and vice versa (K12 exclusivity)
 - [ ] **F-3** **Seventeen rows, no more and no fewer** — 14 location types (Towns, Bases, Radio Towers, FOBs, Ports, Camps, Houses, Shops, Gun Dealers, Warehouses, Bus Stops, Vehicles, Points of Interest, Waypoints) + Territory + Restricted Areas + Players. **No blank row, no duplicate, and no row for the disabled threat grid**
-- [ ] **F-4** Every location-type row shows that type's map icon and a plural name; overlay/player rows show a name and no icon. Nothing reads as a raw *editor* string
+- [ ] **F-4** Every location-type row shows that type's map icon and a plural name; overlay/player rows show a name and no icon. Nothing reads as a raw _editor_ string
 - [ ] **F-5** Every toggle works **within one frame** — territory shading, restriction rings and player markers all respond; turning a row back on returns it
 - [ ] **F-6** With an info panel **pinned**, toggle three unrelated rows: the pin survives, the panel stays open, no marker flickers or moves, the map does not re-centre (K14)
 - [ ] **F-7** 🔴 Hide **Towns** (5 s refresh) and **Vehicles** (2 s refresh), leave the map open **30 s** — neither reappears. This is the R8/BUG-136 interaction
@@ -191,7 +191,7 @@
 **Two-client MP pass (human — ⚠️ warn first; each client opens a window and can orphan)**
 
 - [ ] **I-2** 🔴 Client A hides Houses and Territory; **B's map is unchanged.** B then hides Bases; **A's map is unchanged and A's houses/territory stay hidden.** Two profiles is also what proves preferences are **per profile**
-- [ ] **I-3** **JIP** — B joins *after* A has accumulated state and toggled filters. B's map is complete and unfiltered; A's filters persist across B's join
+- [ ] **I-3** **JIP** — B joins _after_ A has accumulated state and toggled filters. B's map is complete and unfiltered; A's filters persist across B's join
 - [ ] **I-4** With every row on, the map is **indistinguishable from the pre-feature map** — markers, info panels, fast travel, bus travel, territory shading and restriction rings all behave as before
 
 **Phase 1's spike questions, folded in**
@@ -204,14 +204,14 @@
 **Phase 4b's own consequences — hand-derived from reading the base config, entirely untested (⚠️ the conflict checker is cross-context-blind, so none of this is machine-verified):**
 
 - [ ] 🔴 **`pad_left` is shadowed — this is the sharp edge.** `MapToolMenuFocus` (D-pad Left) is the **only** pad route to the tool strip, and while the panel is open the new context takes it. **D-pad Left will untick the focused row instead of returning to the strip.** `MenuLeft` was included deliberately: `SCR_ToolboxComponent` registers listeners for `MenuLeft`/`MenuRight` only, and with `m_bCycleMode` false, stepping YES→NO is **`MenuLeft` alone** — so **without it a pad could turn layers on but never off**, i.e. a filter panel that cannot filter. Vanilla accepts the identical shadow in `MapMarkerEditContext`
-- [ ] **Press A on a focused row.** Expected: **nothing** (the toolbox does not listen to `MenuSelect` without multiselect). ⚠️ **If A *does* toggle, say so — that is the good outcome**: it would mean `MenuLeft` is droppable and `pad_left` reclaimable for returning to the strip
+- [ ] **Press A on a focused row.** Expected: **nothing** (the toolbox does not listen to `MenuSelect` without multiselect). ⚠️ **If A _does_ toggle, say so — that is the good outcome**: it would mean `MenuLeft` is droppable and `pad_left` reclaimable for returning to the strip
 - [ ] 🔴 **Press A on the tool entry and watch the first row** — if it toggles instantly, the one-frame grace delay (copied from `SCR_MapMarkersUI`, which needs it for the same reason: the click that opens the panel is **A**, and this context puts `MenuSelect` on **A**) is insufficient and needs a second frame
 - [ ] **B still closes the map** from inside the panel. `MenuBack` was **deliberately excluded** so `MapEscape` (`gamepad0:b`, priority 55) survives as the pad escape hatch
-- [ ] **Close the panel, then D-pad Left** — the tool strip must be reachable again **within one frame**. `ActivateContext`'s default duration is a **single-frame lease**, so not renewing it *is* the entire teardown; this row is the proof it releases
+- [ ] **Close the panel, then D-pad Left** — the tool strip must be reachable again **within one frame**. `ActivateContext`'s default duration is a **single-frame lease**, so not renewing it _is_ the entire teardown; this row is the proof it releases
 - [ ] **Panel closed: D-pad Up/Down/Left** — the map's compass/watch/pencil/protractor shortcuts and `MapToolMenuFocus` must all behave **exactly as before**. This is the proof the context does not leak
 - [ ] **Keyboard with the panel open** — W/A/S/D and the arrows walk/toggle rows, and **the character stops moving**. Consistent with all 20 other Overthrow menus, but **new for the map**. Confirm that reads as acceptable rather than as a bug
 - [ ] **If D-pad focus is dead entirely, the context is not going live — check `Flags`.** Shipped value is `Flags 0x26 0`, copied verbatim from vanilla's `TaskListMapContext`. First alternative: `Flags 4` (this mod's own norm for all 20 contexts; `OverthrowRespawnContext` proves it works over an open map). Second: `Flags 0xc 0` (`MapMarkerEditContext`, the structural twin)
-- [ ] **Failure mode to watch: panel open, focus lost, pad stranded.** The context activates on *panel visibility*, not on focus — so the actions stay live while nothing listens, and `pad_left` still will not reach the strip. One-line fix if seen: additionally require the focused widget to be inside the panel before activating
+- [ ] **Failure mode to watch: panel open, focus lost, pad stranded.** The context activates on _panel visibility_, not on focus — so the actions stay live while nothing listens, and `pad_left` still will not reach the strip. One-line fix if seen: additionally require the focused widget to be inside the panel before activating
 - [ ] **R5 check** — open and close the map **three times** and count the tool-menu entries. More than one means the registration drifted out of `Init()` (K7)
 - [ ] 10. Record **every** observation in `context.md`, including the ones that passed
 
@@ -235,14 +235,16 @@
 **Active Bugs:** none filed against this feature yet.
 
 **Incidental findings — written up by Phase 6 (2026-08-11) and NOT fixed. Still to be filed as bugs in `docs/bugs/` by the user, from BUG-146 onward:**
+
 - [ ] 🐛 **F1** — `OVT_MapPlayerLocation` carries a vestigial `SCR_MapToolEntry m_ToolMenuEntry` that is **never assigned**, an empty `Init()`, and a `ZoomInOnPlayer()` with **zero callers** (grep-verified). The user should decide: delete, or wire it to a second tool-menu entry — it looks like it was meant to be one
 - [ ] 🐛 **F2** — **5 of 14 `m_sDisplayName` values are raw English literals** (Town, Bus Stop, Vehicle, Point of Interest, Waypoint in `Configs/Map/OverthrowMap.conf`; ⚠️ the line numbers this row used to cite were already stale by Phase 6 — Phase 3's own 14 `m_sCategoryName` additions shifted them, which is epic rule K-9 demonstrating itself inside one feature in under a day) and render untranslated in the info panel **today**, independently of this feature
 - [ ] 🐛 **F3** — `OVT_MapPlayerLocation.Update()` sets `SetOpacity(0)` for a player with no controlled entity and **never restores it**, and `m_Widgets` is not cleared on map close, so it can hold refs to destroyed widgets
 
 **Found during the build (not in the plan) — also file in Phase 6:**
+
 - [ ] 🐛 **F4** — `OVT_MapPlayerLocation.OnMapOpen` dereferences `OVT_Global.GetConfig().m_Difficulty.showPlayerOnMap` with **no null check on the config**. Found in Phase 3 and deliberately not fixed, under the same "leave the class otherwise exactly as-is" rule that preserves F1
 - [ ] 🐛 **F5** — `Language/localization_Overthrow.st` carries **4 duplicate `CustomStringTableItem` GUIDs**: `{5D5C558A6E391A20}`, `{5D86A310C893DBDE}`, `{5D86A310C893DBDF}`, `{A1B2C3D4E5F60003}`. **Verified pre-existing at HEAD**, not introduced by this feature. Zero duplicate `Id`s, which is why nothing has broken yet
-- [ ] 🐛 **F6** — 🔴 **Pre-existing cross-context input collision, found in Phase 4b.** `map/core`'s `OverthrowCloseInfoPanel` binds `gamepad0:b` and is added to `MapContext`, which vanilla declares at **Priority 50**; vanilla's `GadgetMapContext` sits at **Priority 55** and its `MapEscape` also binds `gamepad0:b`. Higher priority wins, so on a pad **B** very likely closes the *map* and never reaches the info panel's close button — leaving that affordance keyboard-only. Invisible to `check-input-conflicts.py` because the collision is **cross-context** (and `MapEscape` is one of the base game's ~197 inline actions the checker cannot see). Confirm on a pad before designing a fix
+- [ ] 🐛 **F6** — 🔴 **Pre-existing cross-context input collision, found in Phase 4b.** `map/core`'s `OverthrowCloseInfoPanel` binds `gamepad0:b` and is added to `MapContext`, which vanilla declares at **Priority 50**; vanilla's `GadgetMapContext` sits at **Priority 55** and its `MapEscape` also binds `gamepad0:b`. Higher priority wins, so on a pad **B** very likely closes the _map_ and never reaches the info panel's close button — leaving that affordance keyboard-only. Invisible to `check-input-conflicts.py` because the collision is **cross-context** (and `MapEscape` is one of the base game's ~197 inline actions the checker cannot see). Confirm on a pad before designing a fix
 
 ---
 
@@ -259,5 +261,5 @@
 
 ---
 
-*Update this file as tasks are completed. `context.md` is the authority for what was actually built where
-this file and `implementation.md` disagree.*
+_Update this file as tasks are completed. `context.md` is the authority for what was actually built where
+this file and `implementation.md` disagree._

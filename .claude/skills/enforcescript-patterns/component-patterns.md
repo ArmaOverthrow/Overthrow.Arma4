@@ -214,7 +214,7 @@ class OVT_DataClass: Managed {};
 
 Use data structs for:
 - Simple data storage without behavior
-- Persistence via EPF
+- Persistence (a serializer builds these records and rebuilds live state from them)
 - Data transfer between systems
 
 ### Pattern Structure
@@ -235,7 +235,7 @@ class OVT_TownData : Managed
 
 ### Key Points
 
-- **Extend Managed:** For garbage collection and EPF persistence
+- **Extend Managed:** For garbage collection and so a `ScriptedComponentSerializer` can write/read them
 - **No Attributes:** Don't use [Attribute()] in data classes
 - **NonSerialized:** Use for values that shouldn't persist
 - **Strong refs:** Store as `ref OVT_TownData` in collections
@@ -292,6 +292,6 @@ class OVT_TownData : Managed
 ## Related Resources
 
 - See `networking.md` for replication patterns
-- See `persistence.md` for EPF save/load patterns
+- See `persistence.md` for vanilla save/load patterns (⚠️ EPF was retired 2026-08-02 — ignore any EPF example you find elsewhere)
 - See `memory-management.md` for strong ref usage
 - See main `SKILL.md` for overview

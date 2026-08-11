@@ -9,6 +9,7 @@
 ## Quick Status
 
 **What's Done:**
+
 - ✅ **Phase 0** — baselines re-measured on `new-map` at `4287b2f1` + working tree, identical to the plan's
   recorded values: compile **exit 0 / 5958 files**, Fast **44**, All **79**.
 - ✅ **Phase 1 (spike)** — `OVT_RespawnScreen.layout` (embedding vanilla's `Map.layout` for `MapFrame`/
@@ -49,9 +50,10 @@
   consumer claim corrected (K13 — the method is **kept**), and the two sections below written.
 
 **What's Next:**
+
 - **Phase 9 — the verification gate, and it is user-driven.** It is not bookkeeping: it is the **only**
-  evidence that exists for this feature. See *Still unverified* below for the single list to work from
-  and *Where to look when it doesn't work* for triage.
+  evidence that exists for this feature. See _Still unverified_ below for the single list to work from
+  and _Where to look when it doesn't work_ for triage.
 
 **Blockers:** none. **Owed to the user:** ⚠️ **nothing in this feature has ever been executed.** Every
 code gate is green — compile **0 / 5964 files**, Fast **54**, All **89** — and not one of them can see
@@ -62,27 +64,27 @@ input bindings. Compiled and reasoned, never run.
 
 ## Baselines (Phase 0)
 
-| Gate | Value | Measured |
-|---|---|---|
-| `tools/compile-check.sh` | exit 0, **5958 files**, Game module | 2026-08-10 |
-| `tools/run-tests.sh "{6A6E29FF47ECB840}"` (Fast) | OK, **44 tests** | 2026-08-10 |
-| `tools/run-tests.sh "{6A6E2A002F53A581}"` (All) | OK, **79 tests** | 2026-08-10 |
+| Gate                                             | Value                               | Measured   |
+| ------------------------------------------------ | ----------------------------------- | ---------- |
+| `tools/compile-check.sh`                         | exit 0, **5958 files**, Game module | 2026-08-10 |
+| `tools/run-tests.sh "{6A6E29FF47ECB840}"` (Fast) | OK, **44 tests**                    | 2026-08-10 |
+| `tools/run-tests.sh "{6A6E2A002F53A581}"` (All)  | OK, **79 tests**                    | 2026-08-10 |
 
 ⚠️ `CLAUDE.md` says Fast 38 / All 66 and is **stale**. A changed count is a finding to investigate, never
 a number to update.
 
 ### Running gate values (each re-measured, never quoted)
 
-| After | compile | Fast | All |
-|---|---|---|---|
-| Phase 0 (baseline) | 0 / **5958** | 44 | 79 |
-| Phase 1 | 0 / **5959** (+1 `.c`) | — | — |
-| Phase 2 | 0 / **5959** | 44 | 79 |
-| Phase 3 | 0 / **5961** (+2 `.c`) | **54** (+N) | **89** (+N) |
-| Phase 4 / 5 | 0 / **5963** (+2 `.c`) | 54 | 89 |
-| Phase 6 | 0 / **5963** (no new `.c`) | 54 | 89 |
-| Phase 7 | 0 / **5964** (+1 `.c`) | 54 | 89 |
-| Phase 8 | 0 / **5964** (two comment edits, no executable change) | 54 | 89 |
+| After              | compile                                                | Fast        | All         |
+| ------------------ | ------------------------------------------------------ | ----------- | ----------- |
+| Phase 0 (baseline) | 0 / **5958**                                           | 44          | 79          |
+| Phase 1            | 0 / **5959** (+1 `.c`)                                 | —           | —           |
+| Phase 2            | 0 / **5959**                                           | 44          | 79          |
+| Phase 3            | 0 / **5961** (+2 `.c`)                                 | **54** (+N) | **89** (+N) |
+| Phase 4 / 5        | 0 / **5963** (+2 `.c`)                                 | 54          | 89          |
+| Phase 6            | 0 / **5963** (no new `.c`)                             | 54          | 89          |
+| Phase 7            | 0 / **5964** (+1 `.c`)                                 | 54          | 89          |
+| Phase 8            | 0 / **5964** (two comment edits, no executable change) | 54          | 89          |
 
 Phase 6 per-tier, measured before **and** after, identical: Campaign 11, Init 17, Logic 37,
 PersistenceRoundTrip 13, Persistence 11. Nothing moved — which is the expected result, since the
@@ -101,7 +103,7 @@ dangling GUID or a mistyped widget name therefore passes every automated gate an
 Phase 9 (and the user-driven rows inside Phases 1–7) is the only evidence those files are sound.
 
 The autotest world also has no players, so `OnPlayerKilled_S` never fires and there is no UI tier —
-nothing in the death path or the screen can be asserted. What *can* be asserted is the pure predicate
+nothing in the death path or the screen can be asserted. What _can_ be asserted is the pure predicate
 half of `OVT_RespawnService`, which is exactly why the plan splits it out (§7).
 
 ---
@@ -114,15 +116,15 @@ has been observed at runtime; each item names the symptom to watch for so a play
 
 ### A. Can this screen be operated at all (the spike's own verdict is still owed)
 
-| # | What | Symptom if wrong | Cheapest fix |
-|---|---|---|---|
-| A1 | **Does the workspace-hosted SPAWNSCREEN map take input?** Pan, zoom, decluster, marker hover, marker select — on **mouse** and, separately, on **gamepad only**. This is the question Phase 1 existed to answer and it was never measured. | Map renders perfectly and ignores everything. | The recorded fallback: host the screen in a `ChimeraMenuBase` modelled on `SCR_DeployMenuBase`, keeping `OVT_RespawnContext` as the state machine. |
-| A2 | **P1-G5 — `ActionContext` flags.** `OverthrowRespawnContext` is `Priority 50 / Flags 4`; `MapContext` is `Priority 50 / Flags 0x6c`. Whether they coexist or one suppresses the other could not be determined — the flag enum is not in the extracted tree. | A visible map that does not respond (indistinguishable from A1 by eye). | One line: `Flags 0x6c`, or drop `Flags` entirely as vanilla's `DeployMenuContext` does. |
-| A3 | **Does every affordance show a glyph and reach on a pad with the mouse unplugged?** `SCR_InputButtonComponent` refuses **both** its input paths on an invisible or disabled widget, so hidden ≠ merely invisible. | A button that exists and cannot be pressed on console. | — |
-| A4 | **P4-G1 / P1-G2 — `gamepad0:x` (Respawn here)** is also `MapContextualMenu`. It is inert **only because** `MapRespawn.conf` omits `SCR_MapRadialUI` and `SCR_MapDrawingUI`. | Double-fire the day either module is added back. | Re-check whenever `MapRespawn.conf` gains a module. |
-| A5 | **P4-G1 — `gamepad0:y` (Respawn at home)** is vanilla `HintDismiss`, which **is** in `MapContext`'s `ActionRefs` and therefore live here. | Pressing Y visibly dismisses a hint at the same moment it respawns you. Harmless, but watch for it. | — |
-| A6 | **P4-G2 — `keyboard:KC_RETURN` versus an open chat line.** `ChatToggle` is in `MapContext`'s `ActionRefs`, so chat can be opened on this screen; whether `ChatSendMessage` consumes Enter first is unknown. | Typing a chat message and pressing Enter also respawns you. | Deliberate try: open chat on the screen, type, press Enter. |
-| A7 | **The screen genuinely cannot be dismissed.** `Esc`, the map-gadget key, `MenuBack`/`gamepad0:b`, the main-menu key, clicking empty map. | A dead player in a live world with no HUD and no screen. | — |
+| #   | What                                                                                                                                                                                                                                                        | Symptom if wrong                                                                                    | Cheapest fix                                                                                                                                       |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A1  | **Does the workspace-hosted SPAWNSCREEN map take input?** Pan, zoom, decluster, marker hover, marker select — on **mouse** and, separately, on **gamepad only**. This is the question Phase 1 existed to answer and it was never measured.                  | Map renders perfectly and ignores everything.                                                       | The recorded fallback: host the screen in a `ChimeraMenuBase` modelled on `SCR_DeployMenuBase`, keeping `OVT_RespawnContext` as the state machine. |
+| A2  | **P1-G5 — `ActionContext` flags.** `OverthrowRespawnContext` is `Priority 50 / Flags 4`; `MapContext` is `Priority 50 / Flags 0x6c`. Whether they coexist or one suppresses the other could not be determined — the flag enum is not in the extracted tree. | A visible map that does not respond (indistinguishable from A1 by eye).                             | One line: `Flags 0x6c`, or drop `Flags` entirely as vanilla's `DeployMenuContext` does.                                                            |
+| A3  | **Does every affordance show a glyph and reach on a pad with the mouse unplugged?** `SCR_InputButtonComponent` refuses **both** its input paths on an invisible or disabled widget, so hidden ≠ merely invisible.                                           | A button that exists and cannot be pressed on console.                                              | —                                                                                                                                                  |
+| A4  | **P4-G1 / P1-G2 — `gamepad0:x` (Respawn here)** is also `MapContextualMenu`. It is inert **only because** `MapRespawn.conf` omits `SCR_MapRadialUI` and `SCR_MapDrawingUI`.                                                                                 | Double-fire the day either module is added back.                                                    | Re-check whenever `MapRespawn.conf` gains a module.                                                                                                |
+| A5  | **P4-G1 — `gamepad0:y` (Respawn at home)** is vanilla `HintDismiss`, which **is** in `MapContext`'s `ActionRefs` and therefore live here.                                                                                                                   | Pressing Y visibly dismisses a hint at the same moment it respawns you. Harmless, but watch for it. | —                                                                                                                                                  |
+| A6  | **P4-G2 — `keyboard:KC_RETURN` versus an open chat line.** `ChatToggle` is in `MapContext`'s `ActionRefs`, so chat can be opened on this screen; whether `ChatSendMessage` consumes Enter first is unknown.                                                 | Typing a chat message and pressing Enter also respawns you.                                         | Deliberate try: open chat on the screen, type, press Enter.                                                                                        |
+| A7  | **The screen genuinely cannot be dismissed.** `Esc`, the map-gadget key, `MenuBack`/`gamepad0:b`, the main-menu key, clicking empty map.                                                                                                                    | A dead player in a live world with no HUD and no screen.                                            | —                                                                                                                                                  |
 
 ### B. The six file classes no automated gate can see
 
@@ -145,7 +147,7 @@ Every one of these passes `compile-check.sh` **and** both test groups while bein
 - ✅ **Localization is measured, not assumed:** the 11 `#OVT-Respawn_*` ids exist in
   `Language/localization_Overthrow.st` **and** in all six generated `.<lang>.conf` exports in the
   working tree (the user regenerated them), and the layouts reference the keys rather than literal text.
-  What is still unverified is only that they *render* — a raw key on screen would mean a stale export,
+  What is still unverified is only that they _render_ — a raw key on screen would mean a stale export,
   not a bad key.
 
 ### C. The deferred death path (Phase 6) — the highest-consequence unexecuted code
@@ -170,12 +172,12 @@ Every one of these passes `compile-check.sh` **and** both test groups while bein
 
 ### D. Networking (nothing here has crossed a wire)
 
-- **P5-G1** — the whole feature rests on *a dead player keeping ownership of its controller*
+- **P5-G1** — the whole feature rests on _a dead player keeping ownership of its controller_
   (`AssignControllerOwnership` binds ownership to the **connection**, and the entity is only deleted for
   disconnected players). Source reading. If it is wrong, the `RplRcver.Server` ask is refused and the
   `RplRcver.Owner` sends never arrive.
 - **Listen-server short-circuits, both directions** (`SendRespawnResult`, `AskShowRespawnScreen`) — never
-  executed. `map/fast-travel` recorded the identical branch as *its* one untested path, because MP
+  executed. `map/fast-travel` recorded the identical branch as _its_ one untested path, because MP
   testing used a dedicated server.
 - **Two clients**: A's request must never resolve to B (assert on the printed player ids); simultaneous
   respawns; a JIP death.
@@ -194,14 +196,14 @@ Every one of these passes `compile-check.sh` **and** both test groups while bein
 - **P3-D2** — `IsPositionInActiveQRF` fails **open** on a missing manager, deliberately. Unobserved.
 - **P3-D3** — `OVT_MapLocationHouse.CanRespawn` ignores `m_bCanFastTravel`, unlike its `CanFastTravel`
   sibling. The one place the new override is not a strict subset of the old check.
-- **P4-D1** — the info panel's distance row is suppressed *structurally* (no `Distance` widget), because
+- **P4-D1** — the info panel's distance row is suppressed _structurally_ (no `Distance` widget), because
   `SetupLocationInfoBase` ignores `m_bShowDistance` and would have printed "Distance: Unknown".
 - **F-8 — the living fullscreen map must be unchanged.** Ten types, three zoom levels, fast travel, bus
   travel, the recruit toggle, and no "Respawn here" control anywhere.
 
 ### F. Screen lifecycle
 
-- **The living-character belt** (`UpdateLivingCharacterBelt`) is a *transition*, not a state test, because
+- **The living-character belt** (`UpdateLivingCharacterBelt`) is a _transition_, not a state test, because
   the player still controls their corpse when the screen opens. If the transition arming is wrong the
   screen closes on the frame it opened and the player waits ~5 s for the re-ask to recover it.
 - **The map re-open poll** (`EnsureMapOpen`) has never fired. One failure is logged and then the screen
@@ -227,6 +229,7 @@ Three signatures, and they point at three different halves of the feature. Take 
 The pair to look for is `Respawn request received: destination=… pos=…` (arrival) followed by
 `Respawn result … for player …`. If the arrival line is absent, nothing on the server ran, so no rule
 refused anything. Suspects, in order:
+
 - **The prefab entry.** `OVT_RespawnRequestComponent` exists in script but is missing from
   `Prefabs/GameMode/OVT_OverthrowController.et` ⇒ `OVT_Global.GetRespawnRequests()` returns null. Both
   call sites log an ERROR for exactly this and the "Respawn at Home" path also writes
@@ -234,8 +237,8 @@ refused anything. Suspects, in order:
 - **`Rpc()` arity — BUG-090.** `Rpc()`'s prototype is untyped variadic, so a wrong argument count
   **compiles clean and dies silently at the wire**. The three sites were hand-checked (2/2, 0/0, 1/1);
   re-check them before suspecting anything subtler.
-- **Ownership** — P5-G1. If a dead player does *not* keep their controller, the `RplRcver.Server` ask is
-  simply dropped. Same silence, different cause; distinguish it by whether an *alive* player can drive
+- **Ownership** — P5-G1. If a dead player does _not_ keep their controller, the `RplRcver.Server` ask is
+  simply dropped. Same silence, different cause; distinguish it by whether an _alive_ player can drive
   the same path from the `/respawn-screen` harness.
 - **The button was never wired.** A null `FindAnyWidget("RespawnButton")` / `("RespawnHomeButton")`, or a
   missing `SCR_InputButtonComponent` on it — each logs an ERROR naming the widget at screen-open time,
@@ -245,7 +248,8 @@ refused anything. Suspects, in order:
 The result line names the `OVT_RespawnResult` code and the client puts
 `OVT_RespawnService.ReasonKeyFor(result)` on the status line under the title (the transient hint can be
 missed; that line cannot). Read the code:
-- `NOT_ELIGIBLE` most often means *the claim was already spent* — a second press after a first that
+
+- `NOT_ELIGIBLE` most often means _the claim was already spent_ — a second press after a first that
   worked (P6-D2). It does **not** mean the location was rejected.
 - `OK_FELL_BACK_HOME` means the server did not recognise the position you sent: `ResolveRespawnPosition`
   found no match within `MATCH_TOLERANCE` in its own `CollectEligiblePositions` set. Expected when a QRF
@@ -260,7 +264,7 @@ This is the feature's designed-loudest failure: `OnShow` prints
 `Respawn screen opening. Local persistent id: '…'`. **An empty string there is the answer.** Everything
 ownership-keyed fails closed and silently on it — `OVT_MapLocationHouse.PopulateLocations` returns
 immediately, `OVT_MapLocationCamp` filters every private camp out, and `OVT_Global.GetController()`
-returns null so the buttons do nothing either. The distinguishing detail is *which* markers survive:
+returns null so the buttons do nothing either. The distinguishing detail is _which_ markers survive:
 bases and FOBs are not ownership-keyed, so **"bases and FOBs but no houses or camps" is the signature of
 an empty id**, whereas nothing at all points at the map config or the container instead. If the id is
 empty, look at `P2-G2` (the client's mapping is written by an RPC, so there is a window after connect)
@@ -274,17 +278,17 @@ Deferral stretches "the controller still references the corpse" from **one frame
 player takes to choose**. Every site in `OVT_SpawnLogic` that reads a controlled entity, re-read against
 that. The plan listed five; there are seven.
 
-| # | Site | Test | What it guards | Still correct? |
-|---|---|---|---|---|
-| 1 | `SpawnDeferredPlayer` | **bare** | "they already have a body, don't build another" | ✅ Yes, and conservatively. With a corpse it declines to act — which is what we want: an awaiting player's spawn belongs to `CompleteRespawn`, and creating one here would bypass the pick. Not stranding, because the awaiting entry still owns the outcome. Unreachable mid-death anyway: its callers are connect (`DoSpawn_S`) and `FinalizePlayerPreparation`, which is once-per-session guarded. |
-| 2 | `RetryCreateCharacter` | dead-tolerant | "something else finished the job while we waited for saved data" | ✅ Unchanged. Only ever runs during a continued session's load poll, before any death can have happened. The dead tolerance was written for the death path and is simply not exercised by it any more. |
-| 3 | `CreateFreshCharacterAt` | dead-tolerant | "don't build a second character for a player who has one" | ✅ **This is the one the window actually widens**, and it is correct because the test was never "did they die recently" — it asks whether the player has a character that can still play, and a corpse never has been one. `CompleteRespawn` relies on it passing with a corpse held. Comment updated in place to say the window is now long. |
-| 4 | `OnPlayerBodySpawned` | **bare** | "a character arrived while the stored body was in flight — discard the arrival" | ✅ Yes, and the bare form is *better* than a dead check here. Unreachable from death (death clears `m_sBodyPersistenceId`, so the stored-body route cannot start, and the pending-set claim gates re-entry). If it were somehow reached with a corpse held, a dead check would hand the restored body over and spawn the player **without a pick** — silently violating the feature's core invariant. The bare test discards instead. Destructive-but-unreachable beats reachable-and-wrong. |
-| 5 | `OnPlayerBodySpawnTimeout` | **bare** | "gave up on the request — but only spawn if they still have nothing" | ✅ Yes, conservatively. Same unreachability as #4. With a corpse held it returns without spawning, leaving the awaiting entry to own the outcome. |
-| 6 | `CreateAndJoinGroup` | **bare, inverted** | "retry until the player has an entity to belong to a group with" | ✅ Yes. **Not on the plan's list** (P6-G1). A corpse satisfies it, so a player who dies within 3 s of a handover now gets their faction/group set while dead instead of on their new character. Harmless: the entity is only a presence signal — everything after it operates on *player-controller* components, `SetCivilianFaction` and `EnsureOwnGroup` are both idempotent, and the recruit roster the group event triggers respawns recruits at **their own** stored bodies, never at the player's position. The 3 s trigger window is fixed at handover and is **not** lengthened by this phase. |
-| 7 | `ReAskRespawnScreen` | dead-tolerant | "something else gave them a living character — stop asking" | ✅ New in this phase. Must be dead-tolerant: treating the corpse as a character would drop the entry and strand the player in exactly the state the region exists to end. |
+| #   | Site                       | Test               | What it guards                                                                  | Still correct?                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| --- | -------------------------- | ------------------ | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | `SpawnDeferredPlayer`      | **bare**           | "they already have a body, don't build another"                                 | ✅ Yes, and conservatively. With a corpse it declines to act — which is what we want: an awaiting player's spawn belongs to `CompleteRespawn`, and creating one here would bypass the pick. Not stranding, because the awaiting entry still owns the outcome. Unreachable mid-death anyway: its callers are connect (`DoSpawn_S`) and `FinalizePlayerPreparation`, which is once-per-session guarded.                                                                                                                                                                                                  |
+| 2   | `RetryCreateCharacter`     | dead-tolerant      | "something else finished the job while we waited for saved data"                | ✅ Unchanged. Only ever runs during a continued session's load poll, before any death can have happened. The dead tolerance was written for the death path and is simply not exercised by it any more.                                                                                                                                                                                                                                                                                                                                                                                                 |
+| 3   | `CreateFreshCharacterAt`   | dead-tolerant      | "don't build a second character for a player who has one"                       | ✅ **This is the one the window actually widens**, and it is correct because the test was never "did they die recently" — it asks whether the player has a character that can still play, and a corpse never has been one. `CompleteRespawn` relies on it passing with a corpse held. Comment updated in place to say the window is now long.                                                                                                                                                                                                                                                          |
+| 4   | `OnPlayerBodySpawned`      | **bare**           | "a character arrived while the stored body was in flight — discard the arrival" | ✅ Yes, and the bare form is _better_ than a dead check here. Unreachable from death (death clears `m_sBodyPersistenceId`, so the stored-body route cannot start, and the pending-set claim gates re-entry). If it were somehow reached with a corpse held, a dead check would hand the restored body over and spawn the player **without a pick** — silently violating the feature's core invariant. The bare test discards instead. Destructive-but-unreachable beats reachable-and-wrong.                                                                                                           |
+| 5   | `OnPlayerBodySpawnTimeout` | **bare**           | "gave up on the request — but only spawn if they still have nothing"            | ✅ Yes, conservatively. Same unreachability as #4. With a corpse held it returns without spawning, leaving the awaiting entry to own the outcome.                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| 6   | `CreateAndJoinGroup`       | **bare, inverted** | "retry until the player has an entity to belong to a group with"                | ✅ Yes. **Not on the plan's list** (P6-G1). A corpse satisfies it, so a player who dies within 3 s of a handover now gets their faction/group set while dead instead of on their new character. Harmless: the entity is only a presence signal — everything after it operates on _player-controller_ components, `SetCivilianFaction` and `EnsureOwnGroup` are both idempotent, and the recruit roster the group event triggers respawns recruits at **their own** stored bodies, never at the player's position. The 3 s trigger window is fixed at handover and is **not** lengthened by this phase. |
+| 7   | `ReAskRespawnScreen`       | dead-tolerant      | "something else gave them a living character — stop asking"                     | ✅ New in this phase. Must be dead-tolerant: treating the corpse as a character would drop the entry and strand the player in exactly the state the region exists to end.                                                                                                                                                                                                                                                                                                                                                                                                                              |
 
-**The through-line:** every one of these asks *"does this player have a character that can still play?"*,
+**The through-line:** every one of these asks _"does this player have a character that can still play?"_,
 and a corpse has never been one. That is why widening the window does not break any of them — and why
 the three bare tests, which are the ones that would be wrong if a corpse counted as a character, all
 happen to sit on paths a death cannot take, and all fail **safe** (decline to spawn / discard) rather
@@ -314,10 +318,10 @@ vanilla's text/icon descriptors), and **`SCR_MapCursorModule`** — which owns e
 `MapSelect` listener and is the one module that cannot be omitted.
 
 Deliberately omitted, each freeing an input as a side effect: `SCR_MapUIElementContainer` (⚠️ **the
-important one** — `OVT_OverthrowMapUI` *is* one, and two of them both resolve `UIIconsContainer` while
+important one** — `OVT_OverthrowMapUI` _is_ one, and two of them both resolve `UIIconsContainer` while
 `OnMapOpen` deletes every child of it, so whichever inits second wipes the other's markers),
 `SCR_MapToolMenuUI`, `SCR_MapJournalUI`, `SCR_MapRulerUI`, `SCR_MapTaskListUI`, `SCR_MapDrawingUI`,
-`SCR_MapToolInteractionUI`, `SCR_MapMarkersUI`. Also not carried from Overthrow's `MapFullscreen.conf`:
+`SCR_MapToolInteractionUI`, `SCR_MapMarkersUI`. Also not carried from Overthrow's `MapOverthrow.conf`:
 `OVT_MapRestrictedAreas`, `OVT_MapThreatGrid` (already disabled) and `OVT_MapPlayerLocation` (a dead
 player has no position to draw).
 
@@ -325,7 +329,7 @@ player has no position to draw).
 
 The input work was pulled forward from Phase 7 because a `WLib_NavigationButton` with no action draws no
 glyph, and "can this be driven on a pad" is the question Phase 1 exists to answer. The full live
-`MapContext` surface was enumerated by hand — 41 actions across both confs, inline declarations *and*
+`MapContext` surface was enumerated by hand — 41 actions across both confs, inline declarations _and_
 `ActionRefs` — which is precisely the repo checker's known blind spot.
 
 ### P1-D4 — `OverthrowRespawnContext` deliberately omits `MenuUp/Down/Left/Right` and `MenuSelect`
@@ -390,7 +394,7 @@ returns `SPAWN_FAILED` with an ERROR line naming the phase: loud, not silent.
 
 ### P5-D2 — steps 3 and 4 of `RpcAsk_Respawn` return **without** sending a result
 
-A deliberate, documented exception to "every outcome reports". Both run *before* an identity exists — an
+A deliberate, documented exception to "every outcome reports". Both run _before_ an identity exists — an
 out-of-range destination and an unresolvable owner have no client to report to. Neither is reachable from
 Overthrow's own UI (both call sites pass a literal enum), and both leave the player on the screen free to
 press again. Matches the `OVT_TravelRequestComponent` template exactly.
@@ -409,21 +413,21 @@ documented in place.
 The plan says a missing request component means "call `CreateCharacter(playerId, persId)` immediately".
 Taken literally that would be a **synchronous** call from inside `OnPlayerKilled_S`, and the line being
 replaced was `GetGame().GetCallqueue().Call(CreateCharacter, ...)` — deferred by one frame, with the
-file's own comment saying why: *a new character cannot be handed over on the same frame the old one
-died*. "Immediately" means *at t=0 rather than after a timeout*, not *in this stack frame*. The degrade
+file's own comment saying why: _a new character cannot be handed over on the same frame the old one
+died_. "Immediately" means _at t=0 rather than after a timeout_, not _in this stack frame_. The degrade
 path therefore reproduces the removed line **exactly**, delay included, so the fallback really is
 today's behaviour rather than something subtly worse than it.
 
 ### P6-D2 — "not awaiting" answers `NOT_ELIGIBLE`, not `SPAWN_FAILED`
 
-`OVT_RespawnResult.SPAWN_FAILED` is documented as *"the player is still awaiting and must be re-asked"*.
+`OVT_RespawnResult.SPAWN_FAILED` is documented as _"the player is still awaiting and must be re-asked"_.
 For a duplicate or late ask that is a lie — the claim is gone precisely because it was already honoured.
 `NOT_ELIGIBLE` is not a perfect fit either, but it does not make a false promise about the state, and
 the commonest way to reach it is a second click from somebody whose first click already worked.
 
 ### P6-D3 — an unresolvable UID does **not** consume the claim
 
-`CompleteRespawn` refuses `NO_PLAYER` *before* the one-shot claim, so a player whose persistent id is
+`CompleteRespawn` refuses `NO_PLAYER` _before_ the one-shot claim, so a player whose persistent id is
 momentarily unresolvable keeps their awaiting entry and their re-ask chain. Consuming the claim on that
 branch would spend their only remaining exit on a transient failure.
 
@@ -442,7 +446,7 @@ re-ask tick share it — so a check that passes at death is a promise the tick c
 
 The plan names **five** `GetControlledEntity()` sites and says **two** omit the dead check. The file has
 **seven** (six pre-existing plus this phase's own tick), and **three** of the pre-existing ones omit the
-dead check. The missing site is `CreateAndJoinGroup`, which uses the *inverse* test — it retries while
+dead check. The missing site is `CreateAndJoinGroup`, which uses the _inverse_ test — it retries while
 there is **no** controlled entity, so a corpse now satisfies it. Benign (see P6-A1) but it was not on
 the list, and an audit that trusted the list would have missed it.
 
@@ -470,7 +474,7 @@ knowing before anyone relaxes one of those guards.
 ### 🟡 P6-G4 — disconnecting while awaiting now enters a game-mode branch it never used to
 
 `OVT_OverthrowGameMode.OnPlayerDisconnected` opens with `if(controlledEntity)` and its comment states
-that *"a player who leaves while dead or in the respawn menu has no controlled entity"*. That is no
+that _"a player who leaves while dead or in the respawn menu has no controlled entity"_. That is no
 longer true — they hold a corpse — so the block now runs on a corpse. It is safe for the same reason as
 P6-G3 (all three captures are dead-guarded) and the extra `OVT_PersistenceTracking.Save(corpse)` is
 harmless, since the kill hook already marks the corpse to self-spawn as lootable remains. The corpse is
@@ -495,10 +499,11 @@ works because RPC handlers run to completion on the server's main thread. If any
 `CompleteRespawn` ever logs in between, that adjacency weakens and the arrival line would need the
 resolved player id added to it.
 
-### 🟡 P4-G1 — R8 is wrong on **both** counts: `gamepad0:x` *and* `y` are claimed
+### 🟡 P4-G1 — R8 is wrong on **both** counts: `gamepad0:x` _and_ `y` are claimed
 
 The plan's R8 says neither is claimed by any `MapContext` action. Hand-verification of the live surface
 says otherwise:
+
 - **`gamepad0:x`** is `MapContextualMenu`. It is inert here **only because** `MapRespawn.conf` carries
   neither `SCR_MapRadialUI` nor `SCR_MapDrawingUI` — the only two consumers in the vanilla tree. Bound to
   `OverthrowRespawnHere` anyway (vanilla ships the same overlap for `MenuQuickDeploy`), recorded in the
@@ -580,7 +585,7 @@ cleanup. Not caused by this feature.
 
 Six hits remain under `Scripts/Game/UI/Map/`, not the three the plan predicted. All six are
 position/gadget-scoped and none is an identity path, so the acceptance criterion holds — but two were
-unlisted: **`OVT_MapLocationElement.UpdateDistance`** is a *second* distance calculation independent of
+unlisted: **`OVT_MapLocationElement.UpdateDistance`** is a _second_ distance calculation independent of
 `OVT_MapLocationData.GetDistanceFromPlayer`, which means Phase 4's `m_bShowDistance 0` is now covering two
 code paths rather than one; and `OVT_MapPlayerLocation` draws the living player's own marker and
 correctly returns early without an entity.
@@ -649,7 +654,7 @@ compile exit **0 / 5964 files**, Fast **54**, All **89**.
 Six new `.c` files (+6 from the 5958 baseline), 10 new Logic cases (44 → 54 Fast, 79 → 89 All), and no
 movement in any other tier at any phase boundary — which matters most at Phase 6, where the Campaign and
 Persistence tiers exercise the very spawn state being edited, and where the per-tier breakdown was
-measured before *and* after and came back identical.
+measured before _and_ after and came back identical.
 
 **Four things the plan had wrong**, each caught during the build and recorded above rather than worked
 around: `MapContext` is activated by the **menu preset**, not by `SCR_MapEntity` (P1-D1 — without the fix
@@ -684,7 +689,7 @@ that was true by design from Phase 0.
 **No code change was required to pass it.** The tree at the moment of the play-test was byte-identical to
 the tree at the end of Phase 8 — no new files, no commits, and the six localization exports still at
 +22/−0 with all 11 ids present. Every "Still unverified" item in the section above is therefore
-discharged as *observed correct as built*, not as *fixed after observation*. The three that mattered
+discharged as _observed correct as built_, not as _fixed after observation_. The three that mattered
 most, because each would have invalidated a design decision rather than needing a patch:
 
 - **A1/A2 — the workspace-hosted SPAWNSCREEN map takes input.** This was the feature's one genuine

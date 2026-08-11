@@ -9,6 +9,7 @@
 ## Quick Status
 
 **What's Done (all six build phases, 2026-08-10):**
+
 - ✅ **P1** — `OVT_MapMarkerComponent` + `OVT_MapMarkerManagerComponent` registry; bus stops migrated off vanilla `MDT_BUSSTOP`; `GetNearestBusStop`/`FindBusStop` deleted; vanilla's duplicate descriptor suppressed. Unblocks `map/fast-travel` F5.
 - ✅ **P2** — POI type over the same registry; **`OVT_MapIcons.RegisterPOI` compile-level dependency eliminated** (the hard gate on `map/legacy-retirement`).
 - ✅ **P3** — Vehicle type (T2 closed); 🔴 **N1 house privacy leak fixed**, fail-closed; home marker; inert `visibilityZoom` writes removed; `OVT_MapDataKeys` (T3).
@@ -18,6 +19,7 @@
 - ✅ Gates at every phase: `compile-check.sh` exit 0 (5956 files), Fast **43**, All **78**.
 
 **✅ Phase 7 verification — DISCHARGED 2026-08-11 (user play-test, all green including MP):**
+
 - ✅ V-3 single-player marker sweep, including the BUG-136 live-refresh addendum (pinned panel across a
   refresh tick; a pinned vehicle marker following a moving vehicle)
 - ✅ V-4 zoom/clutter sweep — the visibility-zoom values shipped for bus stops, vehicles and POIs stand
@@ -31,21 +33,21 @@
 
 **✅ 7b — the seven deferred findings are FILED (2026-08-11):**
 
-| Finding | Bug | Against | Priority |
-|---|---|---|---|
-| core D8 / N4 — per-location `visibilityZoom` never read; priority FOBs are not always visible | **BUG-138** | `map/core` | low |
-| N5 — FOB/Camp garrison never replicated (and the list is empty on the server too, until a save load) | **BUG-139** | `resistance/fob` | medium |
-| N6 + addendum — three unguarded null derefs (`GetTownStock`, `GetShopByRplId`, `DistanceToNearestPort`) | **BUG-140** | `economy/shops` | medium |
-| N17 — omitted `m_eItemType` defaults to RIFLE, so sniper ammunition is never stocked | **BUG-141** | `economy/shops` | medium |
-| N18 — `RegisterGunDealer` has no broadcast RPC | **BUG-142** | `economy/shops` | medium |
-| N19 — every gun-dealer item is permanently priced at maximum scarcity | **BUG-143** | `economy/shops` | medium |
-| N14 — signature weapons re-roll every campaign load (**design question**, not a defect) | **BUG-144** | `economy/shops` | low |
+| Finding                                                                                                 | Bug         | Against          | Priority |
+| ------------------------------------------------------------------------------------------------------- | ----------- | ---------------- | -------- |
+| core D8 / N4 — per-location `visibilityZoom` never read; priority FOBs are not always visible           | **BUG-138** | `map/core`       | low      |
+| N5 — FOB/Camp garrison never replicated (and the list is empty on the server too, until a save load)    | **BUG-139** | `resistance/fob` | medium   |
+| N6 + addendum — three unguarded null derefs (`GetTownStock`, `GetShopByRplId`, `DistanceToNearestPort`) | **BUG-140** | `economy/shops`  | medium   |
+| N17 — omitted `m_eItemType` defaults to RIFLE, so sniper ammunition is never stocked                    | **BUG-141** | `economy/shops`  | medium   |
+| N18 — `RegisterGunDealer` has no broadcast RPC                                                          | **BUG-142** | `economy/shops`  | medium   |
+| N19 — every gun-dealer item is permanently priced at maximum scarcity                                   | **BUG-143** | `economy/shops`  | medium   |
+| N14 — signature weapons re-roll every campaign load (**design question**, not a defect)                 | **BUG-144** | `economy/shops`  | low      |
 
 Each was **re-verified against the working tree before filing** rather than transcribed, and two claims
 moved: N5 gained an in-session server-side half (`AddGarrison*` writes only `garrisonEntities`, so
 `garrison.Count()` is 0 on the host as well until a reload), and N18's exposure was narrowed to a real
-trigger (dealers register at *campaign* start, so a listen-server host pressing Start after players have
-joined leaves those players with no dealers — shops and ports register at *world* init and are safe by
+trigger (dealers register at _campaign_ start, so a listen-server host pressing Start after players have
+joined leaves those players with no dealers — shops and ports register at _world_ init and are safe by
 timing). **Decision 8's reasoning now lives in BUG-143**, so `m_bShowWeaponCarets` being off is no longer
 explained only by a feature doc.
 
@@ -56,6 +58,7 @@ explained only by a feature doc.
 ## Key Files
 
 ### Core Implementation (new)
+
 - `Scripts/Game/Components/Map/OVT_MapMarkerComponent.c` — generic entity-attached marker (category + `SCR_UIInfo` + one visibility rule)
 - `Scripts/Game/GameMode/Managers/OVT_MapMarkerManagerComponent.c` — the registry; world scan + self-registration, **no replication**
 - `Scripts/Game/UI/Map/LocationTypes/OVT_MapLocationBusStop.c` / `…POI.c` / `…Vehicle.c` / `…Waypoint.c` — the four new types
@@ -64,11 +67,13 @@ explained only by a feature doc.
 - `Scripts/Game/UI/Map/Core/OVT_MapDataKeys.c` — data-key constants (T3)
 
 ### Extended
+
 - `Scripts/Game/UI/Map/Core/OVT_MapLocationType.c` — **the one contract change** (K5): `m_SharedInfoLayout` + `BuildInfoRows` + row helpers
 - `Scripts/Game/Global/OVT_Global.c` — `GetMapMarkers()`
 - `Configs/Map/OverthrowMap.conf` — four new type entries + Shop `m_InfoLayout`
 
 ### Related
+
 - `docs/features/map/epic-overview.md` — the epic marker and build order
 - `docs/features/map/core/context.md` — the `OVT_MapLocationType` contract this feature extends
 - `Scripts/Game/UI/Map/OVT_MapIcons.c` — the legacy layer; its icon names are the parity checklist
@@ -78,6 +83,7 @@ explained only by a feature doc.
 ## Important Decisions
 
 ### Decision 1: One marker component and one registry serve both POIs and bus stops (K2)
+
 **Date:** 2026-08-10
 **Context:** G3 (POI registry) and G4 (bus stops) are both "an entity that should appear on the map and be findable by proximity", but they arrived from opposite directions — a legacy static registry vs a vanilla `MDT_BUSSTOP` descriptor query.
 **Decision:** One generic `OVT_MapMarkerComponent` (category enum + `SCR_UIInfo` + `m_bMustOwnBase`) plus one `OVT_MapMarkerManagerComponent`, with two thin `OVT_MapLocationType` subclasses filtering by category.
@@ -85,6 +91,7 @@ explained only by a feature doc.
 **Impact:** This is the epic's **one sanctioned write into a non-map system**. Keep the component presentation-only — anything else belongs to the owning system (R12).
 
 ### Decision 2: Discovery is a client-safe world scan, not `EOnFrame` self-registration (K2/K3)
+
 **Date:** 2026-08-10
 **Context:** Legacy registered POIs from `OVT_MainMenuContextOverrideComponent.EOnFrame`. A frame event may never fire for a streamed-out static.
 **Decision:** One `QueryEntitiesBySphere("0 0 0", 99999999, …, STATIC)` at manager init, **outside any `Replication.IsServer()` guard** — plus self-registration retained **only** for runtime-spawned placeables (the buildable `OVT_VehicleMaintenanceRamp`), which the scan cannot see. `RegisterMarker` is idempotent so both are safe together.
@@ -92,6 +99,7 @@ explained only by a feature doc.
 **Impact:** **No replication is added.** Static world entities are identical everywhere; replicating them would add bandwidth, a JIP ordering hazard and a second source of truth.
 
 ### Decision 3: The core contract gains exactly one additive extension (K5)
+
 **Date:** 2026-08-10
 **Context:** Seven of ten types show only the panel's header, because `UpdateInfoPanel` returns early when `m_InfoLayout` is empty (`OVT_MapLocationType.c:126-127`). It is not a generic fallback renderer — those types contribute nothing to `ContentSlot`.
 **Decision:** Add `m_SharedInfoLayout`, a `BuildInfoRows` virtual and row helpers, and an `else if` branch in `UpdateInfoPanel`.
@@ -99,13 +107,15 @@ explained only by a feature doc.
 **Impact:** Existing behaviour is unchanged when `m_InfoLayout` is set **and** when both are empty, so Town/Base/RadioTower cannot regress (Q-6/R11). `map/core`'s documented contract table must gain the new virtual (I-1).
 
 ### Decision 4: The shop indicator splits by TERM, on fixed absolute scales (K6/K7)
+
 **Date:** 2026-08-10
 **Context:** `GetSellPriceAtOffset` has two independent terms — per-item scarcity (bounded ±10%) and shop-wide remoteness (unbounded). `requirements.md:37` proposed normalising per-item carets against the shop's own mean.
 **Decision:** Per-item carets read the **scarcity term only**; a separate shop-level badge reads the **remoteness term only**. Fixed absolute bands, no statistical normalisation.
-**Rationale:** Because remoteness is *exactly* uniform across a shop, excluding it already solves the "everything reads up at a remote shop" problem that motivated normalisation — and avoiding normalisation preserves real information: a genuinely scarce town honestly reads all-up instead of being flattened to neutral. Fixed bands are also stable across shops, so a player learns one scale.
+**Rationale:** Because remoteness is _exactly_ uniform across a shop, excluding it already solves the "everything reads up at a remote shop" problem that motivated normalisation — and avoiding normalisation preserves real information: a genuinely scarce town honestly reads all-up instead of being flattened to neutral. Fixed bands are also stable across shops, so a player learns one scale.
 **Impact:** The scarcity signal is **town-wide** (`GetTownStock` sums across every shop in the town), so two shops in one town read identically. The panel must say so — "Local supply", not "this shop overcharges".
 
 ### Decision 5: G2 (waypoints) is in, and the shared-slot defect is fixed additively (K1)
+
 **Date:** 2026-08-10
 **Context:** `OVT_RecruitsContext.ShowOnMap` (`:489`) writes into the **same single field** `OVT_JobsContext` (`:109`) uses, and only legacy `OVT_MapIcons` renders it. Dropping G2 would silently kill "show recruit on map" too.
 **Decision:** One new `vector m_vRecruitWaypoint` beside `m_vCurrentWaypoint`, and a one-line change in the recruits context.
@@ -113,16 +123,18 @@ explained only by a feature doc.
 **Impact:** Minimal, additive work in another feature's territory — deliberately so.
 
 ### Decision 6: Sampling marker positions at map open **is** parity (non-goal correction)
+
 **Date:** 2026-08-10
 **Context:** The previous discovery doc claimed the Vehicle type was blocked on `map/core` D6 (markers never refresh while the map is open).
 **Decision:** It is not. Legacy inserted vehicle positions into `m_Centers` once at build time (`OVT_MapIcons.c:709-731`); its `Update()` only re-projected the stored world position.
 **Impact:** Live refresh is an explicit **non-goal** of this feature. BUG-136 does not block Phase 3.
 
-**Update 2026-08-10 — `map/core` delivered live refresh anyway (BUG-136 closed).** The decision above still stands as *this feature's* scope statement: Phase 3 shipped the Vehicle type correctly without needing refresh. But `map/core`'s fix added `OVT_MapLocationType.m_fRefreshInterval` (seconds, `0` = never), driving `OVT_OverthrowMapUI.TickRefresh` (`:401`) → element reconciliation → `OVT_MapLocationElement.SetLocationData` (`:433`) — `OnLocationDataChanged()`'s first caller. `Configs/Map/OverthrowMap.conf` turns it on at 5 s for Town/Base/RadioTower/FOB/Camp and **2 s for Vehicle** (`:154`), so vehicle markers now track live rather than sitting at a map-open snapshot. **Nothing in this feature changed** — the interval is a config value on types this feature already ships.
+**Update 2026-08-10 — `map/core` delivered live refresh anyway (BUG-136 closed).** The decision above still stands as _this feature's_ scope statement: Phase 3 shipped the Vehicle type correctly without needing refresh. But `map/core`'s fix added `OVT_MapLocationType.m_fRefreshInterval` (seconds, `0` = never), driving `OVT_OverthrowMapUI.TickRefresh` (`:401`) → element reconciliation → `OVT_MapLocationElement.SetLocationData` (`:433`) — `OnLocationDataChanged()`'s first caller. `Configs/Map/OverthrowMap.conf` turns it on at 5 s for Town/Base/RadioTower/FOB/Camp and **2 s for Vehicle** (`:154`), so vehicle markers now track live rather than sitting at a map-open snapshot. **Nothing in this feature changed** — the interval is a config value on types this feature already ships.
 
-**What this means for Phase 7:** an unverified path now runs under *every* verification pass. Reconciliation **destroys elements while the map is open**, and `map/core`'s own note (`core/context.md:116`) warns that `DestroyLocationElement` must clear `m_HoveredElement`, `m_PinnedElement`, `m_SelectedElement` **and** the base class's static `s_SelectedElement`, or BUG-135 returns on a 2–5 s timer. Add to **V-3**: leave the map open for >5 s with an info panel pinned, and again with a vehicle marker pinned while the vehicle moves — confirm the panel survives, the marker follows, and hover/selection do not break after a tick. Nothing in the automated spine can see this.
+**What this means for Phase 7:** an unverified path now runs under _every_ verification pass. Reconciliation **destroys elements while the map is open**, and `map/core`'s own note (`core/context.md:116`) warns that `DestroyLocationElement` must clear `m_HoveredElement`, `m_PinnedElement`, `m_SelectedElement` **and** the base class's static `s_SelectedElement`, or BUG-135 returns on a 2–5 s timer. Add to **V-3**: leave the map open for >5 s with an info panel pinned, and again with a vehicle marker pinned while the vehicle moves — confirm the panel survives, the marker follows, and hover/selection do not break after a tick. Nothing in the automated spine can see this.
 
-### Decision 7: The gun-dealer panel lists what the dealer *stocks*, not what is dear (§4.6b)
+### Decision 7: The gun-dealer panel lists what the dealer _stocks_, not what is dear (§4.6b)
+
 **Date:** 2026-08-10 — **user directive mid-run**, then grounded in code before implementing.
 **Context:** The user asked for the gun-dealer panel to show the unique items that dealer sells, on the reasoning that "each gun dealer chooses 1 of each gun type" and that is more useful than a cheap/expensive readout.
 **Verified before acting:** true for **four** categories — one RIFLE, one ROCKET_LAUNCHER, one SNIPER_RIFLE, one MACHINE_GUN, each `m_bSingleRandomItem` (`OVT_TownController.c:303-325`). **False for pistols** — every dealer stocks every pistol, plus identical ammunition, attachments, throwables and explosives (N13).
@@ -131,9 +143,10 @@ explained only by a feature doc.
 **Impact:** `OVT_ShopCategory` cannot select these — it collapses all weapons into `WEAPONS` and checks mode before type (N16) — so the panel resolves `SCR_EArsenalItemType` itself over a small residue and caches it.
 
 ### Decision 8: Gun-dealer weapon carets ship **default-off** (N19)
+
 **Date:** 2026-08-10
 **Context:** The same directive asked for price indicators alongside the weapons. Implementing them exposed that they cannot carry information.
-**The defect (N19, verified independently):** `Configs/System/ShopConfig.conf` stocks **no weapon type at any town shop**, and `RegisterGunDealer` (`OVT_EconomyManagerComponent.c:1257-1263`) inserts only into `m_aGunDealers`, never `m_mTownShops`. Town stock for every weapon id is therefore 0, the scarcity term `(1 − 0/max) × 0.1` is *exactly* +10%, and every weapon at every dealer bands to ▲▲▲ **permanently**.
+**The defect (N19, verified independently):** `Configs/System/ShopConfig.conf` stocks **no weapon type at any town shop**, and `RegisterGunDealer` (`OVT_EconomyManagerComponent.c:1257-1263`) inserts only into `m_aGunDealers`, never `m_mTownShops`. Town stock for every weapon id is therefore 0, the scarcity term `(1 − 0/max) × 0.1` is _exactly_ +10%, and every weapon at every dealer bands to ▲▲▲ **permanently**.
 **Decision:** Ship the code path live but gated behind `m_bShowWeaponCarets`, defaulting **off**. One conf line enables it.
 **Rationale:** Four identical ▲▲▲ rows carry zero information and actively mislead — they read as "this dealer is a rip-off", which is not a per-dealer fact. Better to show four honest weapon names than four dishonest carets.
 **Impact:** This **partially declines an explicit user request**, so it is surfaced rather than silently applied, and is trivially reversible. The remoteness **badge is unaffected and does vary between dealers**, so it still renders. Root cause filed against `economy/shops`.
@@ -143,46 +156,56 @@ explained only by a feature doc.
 ## Gotchas & Learnings
 
 ### 1. `FindAnyWidget` returning null is a silent no-op
+
 **Problem:** `map/core` shipped two configured features dead purely from widget-name mismatches — `IconLayout` (D1, zoom icon sizing) and `CloseButton` (D2, panel dismissal). The compiler cannot see it and `tools/compile-check.sh` will never catch it.
 **Solution:** Q-8 — an explicit name-by-name audit of every `FindAnyWidget` added, plus a layout↔code contract comment at the top of each new handler.
 **Lesson:** In Enfusion, a widget-name lookup needs a documented contract or a runtime pass. This is the single highest-frequency silent failure in this codebase's UI.
 
 ### 2. `OnLocationClicked` — was a trap, now reachable (BUG-137 fixed 2026-08-10)
+
 **Problem (historic):** The virtual was unreachable — its only caller `HandleSelection()` had no callers itself (`map/core` D7). Panels appear via **hover**, not click.
 **Solution:** `HandleSelection()` and `GetClickRadius()` were deleted and `OVT_OverthrowMapUI.NotifyLocationClicked` now invokes the virtual from `OnMapSelection` at the moment a click **pins** a location. **It is safe to override again.** Its default body is now empty (the container has already built the panel by then), and the element's click sound plays from the same call.
 **Lesson:** A documented virtual with no call site is worse than no virtual — it silently discards overrides written against it.
 
 ### 3. `CanFastTravel` and `ShouldShowLocation` are hot paths
+
 **Problem:** Both run per element on **every zoom change**. `GetCurrentPlayerID()` (a player-manager lookup plus persistent-ID resolution) is already called per element inside them.
 **Solution:** Q-7 — all new work (POI base gating, the shop indicator) happens at **populate** time or in `OnSetupLocationInfo`, never in either of those.
 
 ### 4. Same-GUID prefab/conf overrides are DELTAS, not replacements
+
 **Problem:** Overthrow's `SignBusStop_01.et` overrides vanilla's but **inherits** its `SCR_MapDescriptorComponent { MainType "Bus Stop" }`. Adding an Overthrow marker without checking could draw two icons per stop (R2).
 **Solution:** Phase 1 task 8 explicitly checks and, if vanilla draws it on the fullscreen map, suppresses it in the delta.
 
 ### 5. `GetTownStock` can null-deref on a client
+
 **Problem:** `OVT_EconomyManagerComponent.c:601-611` calls `GetShopByRplId(shopId)` — which returns null when `Replication.FindItem` misses — then `shop.GetStock(id)` with no guard.
 **Solution:** The shop indicator computes town stock with its own null-safe local loop and **never calls `GetTownStock`** (Q-4 greps for it). The missing guard is filed against `economy/shops`, not fixed here.
 
 ### 6. `OVT_MapLocationType.Init()` runs on **every** map open
+
 **Problem:** It re-caches all seven manager singletons each time.
 **Lesson:** Don't write `PostInit` code that assumes single execution. Caches that must survive (e.g. the shop display-name cache, N8) need to tolerate being rebuilt.
 
 ### 7. The map icon atlases are white glyphs meant to be TINTED
+
 **Problem:** `UI/Textures/Map/overthrow_mapicons_atlas.png` is white silhouettes on transparent. Every Overthrow map type therefore tints **dark** — House uses black at graded alpha (`OverthrowMap.conf:77-79`: unowned `0 0 0 0.687`, rented `0 0 0 0.906`, owned defaulting to `0 0 0 1`), Vehicle sets `m_DefaultIconColor 0 0 0 1`. A **light** tint paints a white icon onto a light topographic map — effectively invisible.
 **How it bit us:** Phase 2 shipped `OVT_MapLocationPOI.GetIconColor` hardcoded to `Color.White`, reasoning that POI art is "authored" and legacy drew it untinted. Both halves were wrong: the garages draw the `vehicles` quad from this same white-glyph atlas, and the accompanying claim that "`.conf` cannot express a `Color` literal" is contradicted by House setting three of them.
-**Solution:** Made it `[Attribute] m_PoiIconColor`, defaulting `0 0 0 1` and set explicitly in the conf — so the tint is a one-line conf change, not a code edit. That matters because the maintenance ramp's `icons_wrapperUI-32`/`repair` art comes from a *different* imageset and may genuinely warrant a different value once seen on screen.
+**Solution:** Made it `[Attribute] m_PoiIconColor`, defaulting `0 0 0 1` and set explicitly in the conf — so the tint is a one-line conf change, not a code edit. That matters because the maintenance ramp's `icons_wrapperUI-32`/`repair` art comes from a _different_ imageset and may genuinely warrant a different value once seen on screen.
 **Lesson:** Before choosing an icon tint, look at the atlas. A colour decision made from reasoning about intent, without opening the art, is a guess — and this one would have shipped invisible markers that no compile or test could catch.
 
 ### 8. Info rows clipped their own content — found by play-test, invisible to every gate
+
 **Problem:** The first play-test of the Phase 5 panels (2026-08-10) showed the bottom of row text and the row icon being cut off on the single-row panels (bus stop, vehicle). Two independent causes:
+
 1. **No inner bottom padding.** The child slots had `Padding 0 0 6 0` / no bottom value, so the row's content box ended at the glyph baseline and descenders (g, y, p, comma) drew outside it and were clipped.
 2. **Icon taller than the line.** `RowIcon` was `Size 16 16` while the user had reduced the font to 11. Top-aligned (`VerticalAlign 0`) in a row whose height is driven by the text, the icon's lower portion overflowed.
-**Solution:** 3px bottom padding on all three child slots; `VerticalAlign 0` → `2` (centre) so icon and text share a baseline; `RowIcon` 16×16 → **13×13**; the `Rows` container's bottom padding 8 → 10. Font stays at the user's 11.
-**Lesson:** **`.layout` files are invisible to `tools/compile-check.sh` AND to both test groups.** Nothing in the automated spine can see a clipped glyph — this class of defect is only ever found by looking at the screen. Budget a play-test pass for any phase that authors a layout, and treat "compile 0, tests green" as saying nothing whatsoever about visual correctness.
-**Downstream:** `AddInfoIconRow` instantiates this row, so Phase 6's caret icons inherit the 13×13 size. The row owns its icon sizing — callers must not override it per-panel or the clipping returns.
+   **Solution:** 3px bottom padding on all three child slots; `VerticalAlign 0` → `2` (centre) so icon and text share a baseline; `RowIcon` 16×16 → **13×13**; the `Rows` container's bottom padding 8 → 10. Font stays at the user's 11.
+   **Lesson:** **`.layout` files are invisible to `tools/compile-check.sh` AND to both test groups.** Nothing in the automated spine can see a clipped glyph — this class of defect is only ever found by looking at the screen. Budget a play-test pass for any phase that authors a layout, and treat "compile 0, tests green" as saying nothing whatsoever about visual correctness.
+   **Downstream:** `AddInfoIconRow` instantiates this row, so Phase 6's caret icons inherit the 13×13 size. The row owns its icon sizing — callers must not override it per-panel or the clipping returns.
 
 ### 9. Localization is master-only
+
 **Problem:** Hand-editing `Language/localization_Overthrow.<lang>.conf` corrupted all six files once; their `Ids{}`/`Texts{}` blocks are neither parallel nor same-length.
 **Solution:** New ids go in `Language/localization_Overthrow.st` **only**. The user regenerates the exports in Workbench. A layout referencing a not-yet-exported key must use literal text until then, and the affected ids must be listed for the user.
 
@@ -201,6 +224,7 @@ explained only by a feature doc.
 ## Testing Approach
 
 **Automated — regression guard only.** No autotest suite covers map UI and UI is not automatable here. **Do not invent UI test cases.**
+
 - `tools/compile-check.sh` → exit 0 after every phase
 - `tools/run-tests.sh "{6A6E29FF47ECB840}"` (Fast, 38 cases ~15 s) after every phase
 - `tools/run-tests.sh "{6A6E2A002F53A581}"` (All, 66 cases ~19 s) before sign-off
@@ -214,12 +238,14 @@ explained only by a feature doc.
 ## Open Questions
 
 **Resolved during the build:**
-- ✅ **Does vanilla's inherited bus-stop descriptor draw a duplicate icon?** **Yes, it did.** `MDT_BUSSTOP` is a *visible* `SCR_DescriptorDefIcon` (`{552A8D0B1ADA90DF}`, vanilla `MapDescriptorDefaults.conf:89`) with `m_bIsDefaultInvisible` unset, at view layer 2. Suppressed with three lines in Overthrow's `MapFullscreen.conf` delta. **Still needs an on-screen confirmation of exactly one icon per stop (F-4).**
+
+- ✅ **Does vanilla's inherited bus-stop descriptor draw a duplicate icon?** **Yes, it did.** `MDT_BUSSTOP` is a _visible_ `SCR_DescriptorDefIcon` (`{552A8D0B1ADA90DF}`, vanilla `MapDescriptorDefaults.conf:89`) with `m_bIsDefaultInvisible` unset, at view layer 2. Suppressed with three lines in Overthrow's `MapOverthrow.conf` delta. **Still needs an on-screen confirmation of exactly one icon per stop (F-4).**
 
 **Resolved by the 2026-08-11 play-test:**
+
 - ✅ **Do the carets draw at all?** Yes — the `size 1 1` vs `RefSize 200 134` discrepancy in
   `overthrow_priceicons.imageset` did **not** stop them rendering, so no atlas re-import is needed. That
-  worry is closed; the *magnitude legibility* question below is a separate, still-live art item.
+  worry is closed; the _magnitude legibility_ question below is a separate, still-live art item.
 - ✅ **Does the House `Status` row read as noise** against the grey subtitle? Reviewed on screen and
   **kept** — cutting it would leave an owned house with zero rows (rent renders only when rented), i.e.
   the bare header Phase 5 exists to eliminate.
@@ -228,22 +254,24 @@ explained only by a feature doc.
 
 - ✅ **Caret magnitude is now legible — new icons imported by the user 2026-08-11.** The original problem:
   every quad's ink was **28 px wide** and grew only in height (`up_1` 17, `up_2` 29, `up_3` 43), so at the
-  row's 13×13 each chevron got ~2.9 px and only *direction* read. The prescribed fix was to redraw the
+  row's 13×13 each chevron got ~2.9 px and only _direction_ read. The prescribed fix was to redraw the
   chevrons **side by side** in a wide short quad. **The user solved it a different way**: same 64×64 quads,
   same stacked arrangement, but the glyph widened to nearly fill the quad — ink now **54 px wide**, heights
   **29/39/49**. Because the 13×13 row icon is unchanged, the quad scales by 0.203, so the glyph renders
   ~11 px wide instead of ~5.7 px — about **double the ink** — with ~2 px of height between levels. Legibility
   confirmed **on screen**, which is the only gate that applies to an art question. No layout edit was needed
-  and no re-clipping risk: the glyph grew *wider*, and row height is driven by the text.
+  and no re-clipping risk: the glyph grew _wider_, and row height is driven by the text.
 
 **Live — need a human eye:**
-- [ ] **Do the caret bands produce all three levels in a real campaign** (R5), or does everything read neutral? Nothing was reported as wrong, but a *spread* is not something a pass/fail play-test surfaces — it needs someone to look at several shops across a campaign and say "these all read the same". Left open honestly. If all-neutral, tighten the inner band — do **not** reintroduce shop-mean normalisation (K6).
+
+- [ ] **Do the caret bands produce all three levels in a real campaign** (R5), or does everything read neutral? Nothing was reported as wrong, but a _spread_ is not something a pass/fail play-test surfaces — it needs someone to look at several shops across a campaign and say "these all read the same". Left open honestly. If all-neutral, tighten the inner band — do **not** reintroduce shop-mean normalisation (K6).
 
 ---
 
 ## Session Notes
 
 ### 2026-08-10 — Scaffolding
+
 - Resolved `map/location-types` into the `map` epic (feature 2 of 7) and loaded epic context: `epic-overview.md`, `epic-requirements.md`, and the `core` + `fast-travel` sibling docs.
 - `implementation.md` was already complete (7 phases, replacing the earlier `/discover-feature` output); `context.md` and `tasks.md` had been deleted from the working tree and were rebuilt from the plan.
 - Task breakdown: **40 tasks across 7 phases**. Phase 1 and Phase 5 are flagged **ADVANCED**; Phase 7 is user-driven manual verification with no agent.
@@ -262,16 +290,16 @@ explained only by a feature doc.
 
 ## Open Questions
 
-*(Phase 5 additions — the earlier list is above under "Open Questions" in the plan document.)*
+_(Phase 5 additions — the earlier list is above under "Open Questions" in the plan document.)_
 
 - [ ] **Q:** Does the "Status" row duplicate the panel header for House and Warehouse?
-      **A:** *Partly, and knowingly.* The shell's `LocationType` subtitle is `GetLocationDescription`, which already returns "Owned"/"Rented"/"Your Home (Respawn Point)". The Status row restates it in the content area at 14pt. Dropping it would leave an **owned** house with zero rows (rent only renders when rented), i.e. a bare header — the exact defect Phase 5 exists to fix. `#OVT-Map_House_Home` is deliberately the short "Home" so the two lines are not word-for-word identical. **Confirm on screen during V-3 and cut the row if it reads as noise.**
+      **A:** _Partly, and knowingly._ The shell's `LocationType` subtitle is `GetLocationDescription`, which already returns "Owned"/"Rented"/"Your Home (Respawn Point)". The Status row restates it in the content area at 14pt. Dropping it would leave an **owned** house with zero rows (rent only renders when rented), i.e. a bare header — the exact defect Phase 5 exists to fix. `#OVT-Map_House_Home` is deliberately the short "Home" so the two lines are not word-for-word identical. **Confirm on screen during V-3 and cut the row if it reads as noise.**
 - [ ] **Q:** Why do POI panels show nothing?
       **A:** Because no POI prefab authors a description. `OVT_MapLocationPOI.BuildInfoRows` prints `SCR_UIInfo.GetDescription()` and nothing else — inventing a generic POI sentence would be exactly the "shipped a mechanic that does not exist" failure this project has had twice. All three shipped POI markers (`Garage_E_02`, `GarageMilitary_E_01_base`, `OVT_VehicleMaintenanceRamp`) set `Name`/`Icon`/`IconSetName` on their `OVT_MapMarkerComponent.m_UiInfo` but no `Description`. **Adding one line per prefab is authoring work and lights the row up with no code change.**
 
 ---
 
-*Update this file at the end of each work session. Run `/update-feature map/location-types` before compacting conversations.*
+_Update this file at the end of each work session. Run `/update-feature map/location-types` before compacting conversations._
 
 ---
 
@@ -279,9 +307,10 @@ explained only by a feature doc.
 
 **Delivered.** Phases 1–6 built by agents, one at a time, each gated on `compile-check.sh` + the test groups, each verified independently by the orchestrator rather than accepted on report. Final state: **compile exit 0 (5956 files), Fast 43, All 78.** Two tests added (Init: bus-stop prefab block; Logic: caret banding), both **proven able to fail** before shipping.
 
-**Parity reached.** Every icon the legacy layer drew now exists in the new system, and `OVT_MapIcons.RegisterPOI` — the *compile-level* dependency, not just a visual one — is gone. `map/legacy-retirement`'s hard gate is satisfied pending the F-1 on-screen checklist.
+**Parity reached.** Every icon the legacy layer drew now exists in the new system, and `OVT_MapIcons.RegisterPOI` — the _compile-level_ dependency, not just a visual one — is gone. `map/legacy-retirement`'s hard gate is satisfied pending the F-1 on-screen checklist.
 
 **Three defects caught by review rather than by a gate**, all of which compile clean and pass every test:
+
 1. **POI icons hardcoded white** — the atlas is white glyphs meant to be tinted, so white-on-light-map = invisible markers. The supporting claim ("`.conf` cannot express a `Color`") was also false; House sets three. Fixed as a configurable attribute.
 2. **Info rows clipped their own descenders and icon** — found by the user's play-test. Nothing in the automated spine can see a clipped glyph.
 3. **N19** — gun-dealer carets would have been pinned at ▲▲▲ forever. Caught while implementing the feature the user asked for.
@@ -300,17 +329,18 @@ explained only by a feature doc.
 green, including multiplayer.** All six verification rows are ticked; the feature is verified.
 
 **The row worth naming is V-5.** Every other gate re-confirmed something that was already likely. V-5 is
-the only one that could tell the N1 house-privacy fix from a fix that merely *looks* right: in single
+the only one that could tell the N1 house-privacy fix from a fix that merely _looks_ right: in single
 player every persistent id belongs to you, so `GetOwned(persId)` and "iterate every player" return the
 same set. Two clients is the only configuration where those diverge. N1 is now an observed fix.
 
 **F-1 parity was overtaken rather than ticked.** The checklist was meant to prove the new types matched
-the legacy icons one for one. In the meantime `map/legacy-retirement` shipped and *deleted* the legacy
+the legacy icons one for one. In the meantime `map/legacy-retirement` shipped and _deleted_ the legacy
 map — so parity is no longer a comparison anyone can run, and the stronger statement (the new system is
 the only system, and it is green) has replaced it.
 
 **Two things were verified by measurement rather than by report**, because both were cheap to check and
 both had bitten before:
+
 - The Phase 6 localization pass: all **521** `.st` ids resolve in `en-us`, none missing. (A missed pass
   would have shown raw `#OVT-` keys on the shop and gun-dealer panels.)
 - The bug-filing state: `docs/bugs/` tops out at **BUG-137**, so none of the seven deferred findings has
@@ -343,13 +373,13 @@ incomplete as recorded:
   local-state bug.
 - **N18 needed a trigger to be worth filing.** "A dealer registered after a client joined never appears"
   is true but empty without knowing when that happens. It happens on a **listen server**: dealers are
-  created at *campaign* start (`ActivateTown` → `SpawnGunDealer` → `RegisterGunDealer`), which the host
-  triggers from the start menu, while shops and ports are scanned at *world* init (`AfterInit`) and are
+  created at _campaign_ start (`ActivateTown` → `SpawnGunDealer` → `RegisterGunDealer`), which the host
+  triggers from the start menu, while shops and ports are scanned at _world_ init (`AfterInit`) and are
   therefore complete before anyone can connect. So the affected players are exactly the ones who joined
   before the host pressed Start — the normal flow for playing with friends.
 
 **One finding grew.** N19 was written up as a caret defect. It is an **economy** defect: because no town
-shop stocks a weapon *and* dealers are never in `m_mTownShops`, the +10% scarcity ceiling applies to the
+shop stocks a weapon _and_ dealers are never in `m_mTownShops`, the +10% scarcity ceiling applies to the
 dealer's whole inventory — pistols, ammunition, attachments, throwables, explosives — and no amount of
 buying or selling moves it. The misleading carets are the symptom that made it visible. BUG-143 is filed
 on the economics, with the caret flag as its "live consequence" section.

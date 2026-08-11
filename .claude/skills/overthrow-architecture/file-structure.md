@@ -193,17 +193,15 @@ class OVT_TownManagerComponent: OVT_Component
     // Manager implementation
 }
 
-#ifndef PLATFORM_CONSOLE
-
-[EPF_ComponentSaveDataType(OVT_TownManagerComponent)]
-class OVT_TownManagerSaveDataClass : EPF_ComponentSaveDataClass {};
-
-class OVT_TownManagerSaveData : EPF_ComponentSaveData
+// Persistence lives in its OWN file under
+// Scripts/Game/Persistence/Serializers/Components/OVT_TownManagerSerializer.c
+// - not alongside the component - and is bound by a rule in
+// Configs/Systems/Persistence/Overthrow.conf.
+class OVT_TownManagerSerializer : ScriptedComponentSerializer
 {
-    // Save data implementation
+    override static typename GetTargetType() { return OVT_TownManagerComponent; }
+    // Serialize() / Deserialize() - see enforcescript-patterns/persistence.md
 }
-
-#endif
 ```
 
 ---

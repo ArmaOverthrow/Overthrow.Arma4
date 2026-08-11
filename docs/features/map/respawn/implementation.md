@@ -33,8 +33,8 @@ the work materially:
    `SCR_FreeSpawnData` and no `RequestSpawn` anywhere on the death path. The change is therefore **not**
    "swap the position source" — it is "**defer** an automatic character creation until the player has chosen".
 2. **Respawning is not free today and stays that way.** `OnPlayerKilled_S:1312` calls
-   `OVT_Global.GetEconomy().ChargeRespawn(playerId)`. That call is **untouched**. "Free" means *the location
-   choice adds no cost*.
+   `OVT_Global.GetEconomy().ChargeRespawn(playerId)`. That call is **untouched**. "Free" means _the location
+   choice adds no cost_.
 3. **The identity hazard is the most likely way this ships looking correct and showing an empty map.** All
    three copies of `GetCurrentPlayerID()` in the map UI resolve the persistent id **through the controlled
    entity** (`OVT_MapLocationType.c:544-555`, `OVT_MapLocationElement.c:316-328`,
@@ -61,7 +61,7 @@ a **server-authoritative request component** on `OVT_OverthrowController`; a **d
 3. **A player is never left without a character.** Every path out of the awaiting-respawn state is enumerated
    and terminates either in a spawn or in a disconnect.
 4. **A client cannot spawn itself at an arbitrary position.** The server re-derives the eligible set from its
-   own managers and spawns at *its* recorded position, never at the vector the client sent.
+   own managers and spawns at _its_ recorded position, never at the vector the client sent.
 5. **Fully operable on gamepad/console.** This is a screen the player cannot skip; a mouse-only picker is not
    shippable.
 
@@ -185,7 +185,7 @@ static string GetLocalPersistentId()
 `GetLocalPlayerId()` returns `0` with no player controller and `GetPersistentIDFromPlayerID` returns `""` for
 `playerId < 1` (`OVT_PlayerManagerComponent.c:530-537`), so the failure mode is unchanged. `m_mPersistentIDs`
 is populated on clients by `RpcDo_RegisterPlayer` (broadcast from `SetupPlayer`), so this works on a
-dedicated-server client. When a controlled entity *does* exist, both routes resolve the same player id — the
+dedicated-server client. When a controlled entity _does_ exist, both routes resolve the same player id — the
 change is strictly widening and cannot alter the living map.
 
 `OVT_Global.GetController()` gets the same treatment: fall back to `SCR_PlayerController.GetLocalPlayerId()`
@@ -207,13 +207,13 @@ character.
 
 Recorded 2026-08-10 on `new-map` at `28c2f957` + working tree:
 
-| Gate | Baseline |
-|---|---|
-| `tools/compile-check.sh` | **exit 0, 5958 files, Game module** |
-| `tools/run-tests.sh "{6A6E29FF47ECB840}"` (Fast) | **OK, 44 tests, 15s** |
-| `tools/run-tests.sh "{6A6E2A002F53A581}"` (All) | **OK, 79 tests, 19s** |
+| Gate                                             | Baseline                            |
+| ------------------------------------------------ | ----------------------------------- |
+| `tools/compile-check.sh`                         | **exit 0, 5958 files, Game module** |
+| `tools/run-tests.sh "{6A6E29FF47ECB840}"` (Fast) | **OK, 44 tests, 15s**               |
+| `tools/run-tests.sh "{6A6E2A002F53A581}"` (All)  | **OK, 79 tests, 19s**               |
 
-⚠️ `CLAUDE.md` says Fast 38 / All 66 and is **stale** — do not quote it. A *changed* count is a finding to
+⚠️ `CLAUDE.md` says Fast 38 / All 66 and is **stale** — do not quote it. A _changed_ count is a finding to
 investigate, never a number to update. Expected end-state: Fast 44 + N new Logic cases, All 79 + N.
 
 ---
@@ -239,7 +239,7 @@ investigate, never a number to update. Expected end-state: Fast 44 + N new Logic
    on `ArmaReforger/Configs/Map/MapSpawnMenu.conf`. Register `OVT_OverthrowMapUI` for now (the subclass
    arrives in Phase 4) with `m_bShowSpawnPoints 0` and `m_bShowTasks 0` — those are vanilla attributes and
    leaving them on would draw vanilla's own spawn icons over Overthrow's.
-   - ⚠️ Unlike `Configs/Map/MapFullscreen.conf`, this is **not** a same-GUID delta over a vanilla file. It is
+   - ⚠️ Unlike `Configs/Map/MapOverthrow.conf`, this is **not** a same-GUID delta over a vanilla file. It is
      a standalone config, so it inherits **nothing** — every module, layer and props config vanilla's
      `MapSpawnMenu.conf` carries must be listed explicitly or the map will render without them.
 3. Create `Scripts/Game/UI/Context/OVT_RespawnContext.c` (`OVT_UIContext`): `OnShow()` calls
@@ -252,7 +252,7 @@ investigate, never a number to update. Expected end-state: Fast 44 + N new Logic
    `MapContext` active (test `MapSelect` on mouse **and** `gamepad0:a`)? Does the cursor appear? Does
    `SCR_MapUIElementContainer.m_bIsDeployMap` (set from `SPAWNSCREEN` at `SCR_MapUIElementContainer.c:153`)
    change anything visible?
-6. Confirm the **`SetupMapConfig` cache**: it early-returns the *currently active* config when
+6. Confirm the **`SetupMapConfig` cache**: it early-returns the _currently active_ config when
    `mapMode == m_eLastMapMode` (`SCR_MapEntity.c:471-475`), only swapping the root widget. Two deaths in a row
    without opening the gadget map in between therefore reuse the cached SPAWNSCREEN config. That is correct
    **only while Overthrow has exactly one SPAWNSCREEN config** — record that as a constraint.
@@ -340,6 +340,7 @@ investigate, never a number to update. Expected end-state: Fast 44 + N new Logic
    Verified safe: **no location type overrides `ShouldShowLocation`** today — the only implementation is the
    base one, and the only caller is `OVT_MapLocationElement.SetVisible:498`. With the attribute defaulting to
    `false`, every entry in `Configs/Map/OverthrowMap.conf` behaves exactly as it does now.
+
 4. Override `CanRespawn` on the four types, reusing the same data keys their `CanFastTravel` overrides already
    read, **minus the `CanGlobalFastTravel` tail**, plus the QRF exclusion:
    - `OVT_MapLocationBase.c` — refuse when `GetDataBool("isOccupying", true)`; reason `#OVT-Respawn_EnemyBase`.
@@ -349,14 +350,14 @@ investigate, never a number to update. Expected end-state: Fast 44 + N new Logic
    - `OVT_MapLocationHouse.c` — refuse when `OWNER != playerID && RENTER != playerID`; reason
      `#OVT-Respawn_NotYourHouse`.
    - All four then `if (OVT_RespawnService.IsPositionInActiveQRF(location.m_vPosition)) { reason =
-     "#OVT-Respawn_QRF"; return false; }`.
+"#OVT-Respawn_QRF"; return false; }`.
    - **T1:** new code uses **idiom A** (the inherited manager cache from `Init()`). `OVT_MapLocationBase`'s
      own shadowing `m_OccupyingFactionManager` is left alone — it serves `PopulateLocations`, which this
      feature does not touch, and rewriting a working populate path for cosmetics adds risk to the one feature
      whose blast radius is the spawn system. Recorded as still-open T1, not widened.
 5. Create `Scripts/Game/Tests/TestSuites/Logic/OVT_TEST_Logic_RespawnRules.c` and register it in
    `OVT_TEST_LogicSuite`. **Tier rule is absolute**: no manager, no game mode, no world, and the manager
-   accessor's identifier must not appear *anywhere* in the file, comments included. Cases:
+   accessor's identifier must not appear _anywhere_ in the file, comments included. Cases:
    1. `IsBaseEligible(true) == false`, `IsBaseEligible(false) == true`.
    2. `IsCampEligible(false, "someone-else", "me") == true` (public camp).
    3. `IsCampEligible(true, "someone-else", "me") == false` (private, not yours).
@@ -369,13 +370,13 @@ investigate, never a number to update. Expected end-state: Fast 44 + N new Logic
    8. `IsInsideQrf(true, origin, pos)` true just inside 750 m, false just outside.
    9. `PositionsMatch` true at 0 m and just inside `MATCH_TOLERANCE`, false just outside.
    10. `ReasonKeyFor(OVT_RespawnResult.OK) == ""` and every non-OK code returns a non-empty key.
-   **Prove each case can fail before shipping it** and record the method (invert the assertion, observe
-   exit 1, revert). ❌ **No `maxAttempts`.**
+       **Prove each case can fail before shipping it** and record the method (invert the assertion, observe
+       exit 1, revert). ❌ **No `maxAttempts`.**
 
 **Acceptance**
 
 - compile exit 0.
-- Fast = 44 + (number of new cases); All = 79 + the same number. Any *other* delta is a finding.
+- Fast = 44 + (number of new cases); All = 79 + the same number. Any _other_ delta is a finding.
 - Every new case demonstrated able to fail, with the method written into `tasks.md`.
 - Living fullscreen map visually unchanged (spot-check all ten types at three zoom levels).
 
@@ -390,7 +391,7 @@ investigate, never a number to update. Expected end-state: Fast 44 + N new Logic
    `m_bShowDistance 0`, `m_bShowName 1`, `m_fShowNameZoom 0`.
    - `m_fVisibilityZoom 0` is how "all eligible locations are visible at every zoom level" is satisfied —
      **in config, with no change to `OVT_MapLocationElement.SetVisible`** (§5 K6).
-   - `m_fRefreshInterval 0` is deliberate: BUG-136's reconciliation destroys elements *while the map is open*,
+   - `m_fRefreshInterval 0` is deliberate: BUG-136's reconciliation destroys elements _while the map is open_,
      and the respawn screen is the one screen the player cannot leave. The server re-validates on arrival
      anyway, so staleness costs a fallback-to-home, not a wrong spawn.
    - `m_bShowDistance 0` because `OVT_MapLocationData.GetDistanceFromPlayer()` returns `-1` without a
@@ -479,7 +480,7 @@ investigate, never a number to update. Expected end-state: Fast 44 + N new Logic
 
 > ⚠️ **Advanced, and the highest-consequence phase in the feature.** A mistake here means players with no
 > character. Read the file's header comments before touching it: `CreateFreshCharacter` and
-> `RetryCreateCharacter` both *deliberately tolerate a dead controlled entity*
+> `RetryCreateCharacter` both _deliberately tolerate a dead controlled entity_
 > (`OVT_SpawnLogic.c:257-260`, `:323-328`) because the death path re-creates a character while the controller
 > still references the corpse. **Deferring lengthens that window from one frame to as long as the player
 > takes to choose** — every guard that reads `GetControlledEntity()` must be re-read with that in mind.
@@ -508,9 +509,9 @@ investigate, never a number to update. Expected end-state: Fast 44 + N new Logic
    - a **living** controlled entity exists (`!OVT_PlayerManagerComponent.IsCharacterDead`) ⇒ something else
      gave them a character; drop the entry and stop.
    - otherwise re-send `RpcDo_ShowRespawnScreen` and reschedule.
-   This is the reconciliation of D-3's "no timeout" with the never-stranded invariant: the screen is retried
-   forever so a lost RPC or a not-yet-ready JIP client always eventually gets it, and **nothing ever spawns
-   the player without a pick**.
+     This is the reconciliation of D-3's "no timeout" with the never-stranded invariant: the screen is retried
+     forever so a lost RPC or a not-yet-ready JIP client always eventually gets it, and **nothing ever spawns
+     the player without a pick**.
 5. `CompleteRespawn(int playerId, int destination, vector requestedPos)` — the only entry point the request
    component calls, and it returns an `OVT_RespawnResult`:
    - resolve `persId` from `OVT_Global.GetPlayerUID(playerId)`; refuse `NO_PLAYER` on empty.
@@ -525,6 +526,7 @@ investigate, never a number to update. Expected end-state: Fast 44 + N new Logic
      `CreateFreshCharacterAt(playerId, persId, true, resolvedPos)` with the **server's** vector. On no match,
      `CreateFreshCharacter(playerId, persId)` and return `OK_FELL_BACK_HOME`.
 6. **The position override carries no stored state.** Split `CreateFreshCharacter` as:
+
    ```
    protected void CreateFreshCharacter(int playerId, string persId)
    {
@@ -534,6 +536,7 @@ investigate, never a number to update. Expected end-state: Fast 44 + N new Logic
    protected void CreateFreshCharacterAt(int playerId, string persId, bool useChosenPosition, vector chosenPosition)
    { ... }
    ```
+
    `CreateFreshCharacterAt` is the old body with one branch: use `chosenPosition` when
    `useChosenPosition`, else call `GetCreationPosition` exactly as before. **A parameter, not a member and not
    a map** — a stale override is the obvious defect in this feature and this shape makes it impossible rather
@@ -542,6 +545,7 @@ investigate, never a number to update. Expected end-state: Fast 44 + N new Logic
    Note `CompleteRespawn` deliberately calls `CreateFreshCharacter*` and **not** `CreateCharacter`: death has
    already cleared `m_sBodyPersistenceId`, so the persisted-body route is unreachable anyway, and bypassing
    it removes a whole class of interaction between respawn choice and body restoration.
+
 7. Override `OnPlayerDisconnected_S(int playerId, KickCauseCode cause, int timeout)` (the virtual exists on
    `SCR_SpawnLogic` at `SCR_SpawnLogic.c:86` and `OVT_SpawnLogic` does not currently override it): call
    `super`, then drop any `m_aAwaitingRespawn` entry. No character is created — reconnect goes through the
@@ -552,7 +556,7 @@ investigate, never a number to update. Expected end-state: Fast 44 + N new Logic
    confirm each still reads correctly when the corpse persists for minutes rather than one frame:
    `SpawnDeferredPlayer:178`, `RetryCreateCharacter:258-260`, `CreateFreshCharacter:323-328`,
    `OnPlayerBodySpawned:586`, `OnPlayerBodySpawnTimeout:664`. Note that `OnPlayerBodySpawned:586` and
-   `OnPlayerBodySpawnTimeout:664` test a *bare* `GetControlledEntity()` without the dead check — reachable
+   `OnPlayerBodySpawnTimeout:664` test a _bare_ `GetControlledEntity()` without the dead check — reachable
    only via the stored-body route, which death cannot take, but write down the reasoning rather than assuming
    it.
 
@@ -588,7 +592,7 @@ investigate, never a number to update. Expected end-state: Fast 44 + N new Logic
    - **Re-open guard:** while the context is active, poll `SCR_MapEntity.GetMapInstance().IsOpen()` and re-open
      if it closed. A poll, deliberately — ❌ **no Overthrow context may subscribe to a static
      `SCR_MapEntity.GetOn*` invoker** (BUG-069 part 4 is structurally closed and `grep -rn
-     "SCR_MapEntity.GetOn"` must stay empty).
+"SCR_MapEntity.GetOn"` must stay empty).
 2. `OVT_RespawnContext`: wire `RespawnHomeButton` to
    `OVT_Global.GetRespawnRequests().RequestRespawn(OVT_RespawnDestination.HOME, vector.Zero)`. Close the
    screen on **either** an OK/OK_FELL_BACK_HOME result **or** the local player acquiring a living controlled
@@ -654,7 +658,7 @@ consumer that does not exist.
 
 ### Phase 9 — Verification gate — **M — user-driven, no agent**
 
-Run §6 *Verification Method* in order and record every result. This gate is the **only** evidence that exists
+Run §6 _Verification Method_ in order and record every result. This gate is the **only** evidence that exists
 for the two new `.conf` files and the two new `.layout` files — those four file classes are invisible to
 `tools/compile-check.sh` **and** to both test groups, so a dangling GUID or a mistyped widget name passes every
 automated gate and fails in the world.
@@ -671,7 +675,7 @@ header says so at `:5-6`, corroborated by `docs/features/core/player-manager/imp
 `docs/bugs/BUG-088.md:94`. The method it cites is actually named `Spawn()` and has no callers. The live chain
 is `OVT_SpawnLogic.OnPlayerKilled_S:1306` → `CreateCharacter:288` → `CreateFreshCharacter:309` →
 `GetCreationPosition:768`, and it contains **no** `SCR_FreeSpawnData` and **no** `RequestSpawn`. The
-consequence for planning is real: the requirements' "only the *source of the position* changes" is wrong, and
+consequence for planning is real: the requirements' "only the _source of the position_ changes" is wrong, and
 the actual work — defer an automatic creation, hold per-player state on the server, guarantee every exit from
 that state — is where the risk lives.
 
@@ -679,7 +683,7 @@ that state — is where the risk lives.
 `OnPlayerKilled_S:1312` calls `OVT_Global.GetEconomy().ChargeRespawn(playerId)`
 (`OVT_EconomyManagerComponent.c:1869`), which takes `m_Difficulty.respawnCost` when the player holds more than
 $500. `requirements.md:45` reads "Respawning is free. No cost, no payment path, no affordability check" — that
-is true of *this feature*, not of respawning. Settled: the charge stays where it is, charged at death, before
+is true of _this feature_, not of respawning. Settled: the charge stays where it is, charged at death, before
 any choice is made, so the fee cannot vary by destination and there is nothing for the player to game. No
 per-destination fare, no affordability check, no cheaper or pricier spawn point, and **nothing in this feature
 touches the economy**.
@@ -689,7 +693,7 @@ detail, and it gets its own fix and its own acceptance criterion.** `requirement
 `CanGlobalFastTravel` for the reason "a player awaiting respawn has no controlled entity". That reasoning is
 probably wrong — a dead player still controls their corpse, which is exactly why
 `OVT_SpawnLogic.CreateFreshCharacter:323-328` and `RetryCreateCharacter:257-260` both go out of their way to
-tolerate a *dead* controlled entity — but the **conclusion is right for better reasons**: the minimum-distance
+tolerate a _dead_ controlled entity — but the **conclusion is right for better reasons**: the minimum-distance
 rule (`OVT_FastTravelService.c:94-96`), the wanted rule (`:99-104`) and the entire fare model are measured from
 a living player's current position and are meaningless for a respawn. So: **do not call
 `CanGlobalFastTravel`** — and equally, **do not rely on the corpse**. Whether the engine keeps a dead player
@@ -710,7 +714,7 @@ player-deleted hooks **only** for `EMapEntityMode.FULLSCREEN` (`SCR_MapEntity.c:
 is not torn down by the engine when the player dies or their entity is deleted — which is precisely the state
 this screen exists to sit in. `SCR_MapUIElementContainer` already reads `m_bIsDeployMap` from the same enum
 (`:153`). Two consequences to hold on to: `Configs/Map/MapRespawn.conf` is a **new file with a new GUID and is
-not a same-GUID delta** (unlike `MapFullscreen.conf`), so it inherits nothing and must list every module and
+not a same-GUID delta** (unlike `MapOverthrow.conf`), so it inherits nothing and must list every module and
 layer config it wants; and `SetupMapConfig` early-returns the cached active config when the mode already
 matches (`:471-475`), which is fine while Overthrow has exactly one SPAWNSCREEN config and must be recorded as
 a constraint on adding a second.
@@ -718,10 +722,10 @@ a constraint on adding a second.
 **K5 — The four eligible types are reused as configured; no respawn-specific subclasses.**
 `OVT_MapLocationType` is a `ScriptAndConfig` instantiated **per config entry**, so the same class appears in
 both `OverthrowMap.conf` and `OverthrowMapRespawn.conf` with different attribute values — which is how
-`m_fVisibilityZoom 0` and `m_bRespawnOnly 1` apply to the respawn map alone. What the types need in *code* is
+`m_fVisibilityZoom 0` and `m_bRespawnOnly 1` apply to the respawn map alone. What the types need in _code_ is
 one new virtual (`CanRespawn`) and one gate inside the base `ShouldShowLocation`; neither can be expressed as
 an attribute, and both are additive. Four subclasses carrying a one-line override each would be four more
-files, four more config GUIDs and four more places for the two maps to drift. The only class that *is*
+files, four more config GUIDs and four more places for the two maps to drift. The only class that _is_
 subclassed is the container — `OVT_RespawnMapUI` — because "Respawn here" versus "Fast Travel" is genuinely
 different behaviour, and a subclass keeps that difference out of the living map's hot path entirely.
 
@@ -732,7 +736,7 @@ respawn config sets it to `0` on all four types, which makes `zoomVisible` uncon
 unmodified code. That is strictly better than a branch — `SetVisible` runs per element on every zoom change,
 it is one of the two documented hot paths on this contract, and a respawn-mode branch there would mean the
 living map paying for a screen it never shows. It also means there is no mode flag to leave armed (see K7).
-The eligibility filter that *does* need code lives in `ShouldShowLocation`, which the same call already
+The eligibility filter that _does_ need code lives in `ShouldShowLocation`, which the same call already
 consults — so the whole feature adds exactly one boolean test to that path, taken only when the config asks
 for it.
 
@@ -750,7 +754,7 @@ only case that can still occur.
 equivalent: `m_bRespawnOnly` is a **config attribute on a different config file's instances**, not runtime
 state — a second map opened from the same session instantiates the fullscreen config's own type objects, with
 their own attribute values. There is exactly one piece of per-session state anywhere in the feature, the
-server's `m_aAwaitingRespawn`, and it is *server-side*, keyed by player, consumed on use, and cleared on
+server's `m_aAwaitingRespawn`, and it is _server-side_, keyed by player, consumed on use, and cleared on
 disconnect; a client cannot leave it set and cannot read it. The client's screen state is the map's own
 open/closed flag, whose teardown is the engine's. And no Overthrow context subscribes to a static
 `SCR_MapEntity.GetOn*` invoker — `map/legacy-retirement` closed that structurally and this feature keeps it
@@ -782,7 +786,7 @@ bricking the session. That check is a capability test at t=0, not a timeout, and
 built session.
 
 **K11 — The chosen position is passed as a parameter, never stored.** The obvious defect in a deferred spawn
-is a stale override leaking into a *non*-death path — initial spawn, `RetryCreateCharacter`, the body-spawn
+is a stale override leaking into a _non_-death path — initial spawn, `RetryCreateCharacter`, the body-spawn
 timeout, the two `OnPlayerBodySpawned` failure fallbacks. A member field or a `map<int, vector>` makes that a
 lifetime question. Splitting `CreateFreshCharacter` into a two-argument wrapper and a four-argument
 `CreateFreshCharacterAt(playerId, persId, useChosenPosition, chosenPosition)` makes it a **type** question:
@@ -791,7 +795,7 @@ for anything to leak from. `CompleteRespawn` also calls the fresh-character path
 `CreateCharacter`, because death has already cleared `m_sBodyPersistenceId` and bypassing the persisted-body
 route removes any interaction between the respawn choice and body restoration.
 
-**K12 — "Respawn at home" is implemented by *not* changing anything.** `requirements.md:65` requires the
+**K12 — "Respawn at home" is implemented by _not_ changing anything.** `requirements.md:65` requires the
 existing home chain — `GetHome` → assign a starting house → `SpawnPlayerAtFallbackPosition` at a bus stop —
 not to be regressed. The cheapest guarantee is to route the HOME destination through the untouched
 `CreateFreshCharacter(playerId, persId)`, whose `GetCreationPosition:768-813` already implements that chain
@@ -807,12 +811,12 @@ than any gate. The SPAWNSCREEN screen never involves the map **gadget**: it is o
 the FULLSCREEN life-state hook already closed it. So the retained method has turned out to have no consumer.
 Recommendation, in scope: **keep the method, correct its comment** — one zero-risk edit that stops the doc
 claiming a consumer that does not exist, while preserving the play-test-derived rationale. Deleting it is
-*not* in scope: the identical ordering also lives in the live `OVT_OverthrowMapUI.HideMap`/`StowMapGadget`
+_not_ in scope: the identical ordering also lives in the live `OVT_OverthrowMapUI.HideMap`/`StowMapGadget`
 pair, so the knowledge is not at risk, and a deletion belongs in a cleanup pass with its own grep proof. File
 it as a candidate, do not action it here.
 
 **K14 — Manager access (T1): new code uses idiom A, and `OVT_MapLocationBase` is left alone.** The epic's
-standing rule is that T1 is fixed *opportunistically* — "any type touched switches to the inherited manager
+standing rule is that T1 is fixed _opportunistically_ — "any type touched switches to the inherited manager
 cache", with `Base`/`RadioTower` off-limits unless touched. This feature touches `OVT_MapLocationBase.c` (it
 adds `CanRespawn`), but the file's shadowing `m_OccupyingFactionManager` serves only `PopulateLocations`, which
 is not edited. New code uses the inherited cache from `Init()`; the existing shadow stays. Rewriting a working
@@ -861,7 +865,7 @@ does not spawn you:
 
 - [ ] `Esc`
 - [ ] the map-gadget key
-- [ ] `MenuBack` / `gamepad0:b` (this dismisses the *info panel*, never the screen)
+- [ ] `MenuBack` / `gamepad0:b` (this dismisses the _info panel_, never the screen)
 - [ ] the main-menu key
 - [ ] clicking empty map (unpins the panel only)
 
@@ -902,7 +906,7 @@ K-9 discipline). `docs/` citations are exempt and expected.
 ### Integration
 
 **I-1 — A client cannot spawn itself at an arbitrary position.** The server ignores the client's vector except
-as a *lookup key*: it re-derives the eligible set from its own managers and spawns at **its** recorded
+as a _lookup key_: it re-derives the eligible set from its own managers and spawns at **its** recorded
 position. Verified by inspection of `ResolveRespawnPosition` (it must return a vector taken from
 `CollectEligiblePositions`, never `requestedPos`) and, at runtime, by confirming a request with a nonsense
 vector spawns at home rather than at the nonsense vector.
@@ -940,6 +944,7 @@ Run in order. Stop and fix at the first failure.
 of new `.c` files. Any other delta is a finding.
 
 **V-2 — Automated tests, against the captured baselines.**
+
 - `tools/run-tests.sh "{6A6E29FF47ECB840}"` → exit **0**, **44 + N** tests (baseline 44).
 - `tools/run-tests.sh "{6A6E2A002F53A581}"` → exit **0**, **79 + N** tests (baseline 79).
 - `N` is the number of Logic cases added in Phase 3, and it must be the **same** `N` in both. A change
@@ -952,6 +957,7 @@ unknown-class or dangling-GUID errors**. This is the only gate that can see
 `UI/Layouts/Respawn/OVT_RespawnScreen.layout`, `UI/Layouts/Map/Core/OVT_MapInfoPanelRespawn.layout` and the
 three edited `.et` prefabs — all six file classes are invisible to V-1 and V-2. Then open each new `.conf` and
 `.layout` and confirm every referenced GUID resolves.
+
 > Note the known pre-existing orphaned `.meta` for the retained `OVT_MapThreatGrid` (`{B8F4C6A8C9D3E4F1}`) —
 > if a GUID error names that, it is not this feature.
 
@@ -960,6 +966,7 @@ least one resistance base, one FOB, one public camp, one private camp not yours,
 house in the world.
 
 **V-5 — Two-client multiplayer.**
+
 > ⚠️ Warn the user before launching: each client opens a window on their desktop. **Always pass a long
 > `--timeout`** — it defaults to 600 s and will kill the client mid-play-test.
 
@@ -988,6 +995,7 @@ The server log shows `OnPlayerDisconnected_S` dropping the awaiting entry and th
 Reconnect: you spawn at home through the normal join path, alive, with no respawn screen.
 
 **V-7 — Gamepad-only pass, no mouse.** Unplug or ignore the mouse entirely. Die, then:
+
 - [ ] pan and zoom the respawn map
 - [ ] move the cursor to a marker and select it
 - [ ] press "Respawn here" and spawn there
@@ -1023,32 +1031,32 @@ needs retries is a bug in the test.
 
 **Manual — the real gate**, and for this feature it is most of the gate.
 
-| # | Scenario | Expected |
-|---|---|---|
-| 1 | Die in SP | Screen within ~1 s; no character created |
-| 2 | Wait 60 s on the screen | Still on the screen, still dead, no timeout spawn |
-| 3 | Fully zoomed out | All four eligible types visible |
-| 4 | Enemy base / foreign private camp / foreign house | Not drawn at all |
-| 5 | QRF active over an eligible camp | That camp not drawn |
-| 6 | QRF active over **home** | "Respawn at home" still works |
-| 7 | Pick a marker | Spawn there, civilian loadout, screen closes |
-| 8 | Pick home with nothing selected | Spawn at home |
-| 9 | Esc / M / MenuBack / main-menu key | Screen stays up |
-| 10 | Info panel | No travel button, cost, reason or distance |
-| 11 | Two clients, simultaneous picks | Each spawns at their own choice, one character each |
-| 12 | JIP client dies ~10 s after joining | Screen appears; log shows re-ask count |
-| 13 | Location goes ineligible mid-screen | Spawn at home + `#OVT-Respawn_FellBackHome` |
-| 14 | Disconnect while awaiting, reconnect | Spawn at home via the normal path; entry dropped |
-| 15 | Listen-server **host** dies | Screen appears and the pick works (short-circuit branch) |
-| 16 | Gamepad only, no mouse | Full pass, every button glyphed |
-| 17 | Die with > $500 | `respawnCost` debited once, at death, same for every destination |
-| 18 | Living fullscreen map after all of the above | Unchanged: ten types, travel, bus, recruit toggle |
+| #   | Scenario                                          | Expected                                                         |
+| --- | ------------------------------------------------- | ---------------------------------------------------------------- |
+| 1   | Die in SP                                         | Screen within ~1 s; no character created                         |
+| 2   | Wait 60 s on the screen                           | Still on the screen, still dead, no timeout spawn                |
+| 3   | Fully zoomed out                                  | All four eligible types visible                                  |
+| 4   | Enemy base / foreign private camp / foreign house | Not drawn at all                                                 |
+| 5   | QRF active over an eligible camp                  | That camp not drawn                                              |
+| 6   | QRF active over **home**                          | "Respawn at home" still works                                    |
+| 7   | Pick a marker                                     | Spawn there, civilian loadout, screen closes                     |
+| 8   | Pick home with nothing selected                   | Spawn at home                                                    |
+| 9   | Esc / M / MenuBack / main-menu key                | Screen stays up                                                  |
+| 10  | Info panel                                        | No travel button, cost, reason or distance                       |
+| 11  | Two clients, simultaneous picks                   | Each spawns at their own choice, one character each              |
+| 12  | JIP client dies ~10 s after joining               | Screen appears; log shows re-ask count                           |
+| 13  | Location goes ineligible mid-screen               | Spawn at home + `#OVT-Respawn_FellBackHome`                      |
+| 14  | Disconnect while awaiting, reconnect              | Spawn at home via the normal path; entry dropped                 |
+| 15  | Listen-server **host** dies                       | Screen appears and the pick works (short-circuit branch)         |
+| 16  | Gamepad only, no mouse                            | Full pass, every button glyphed                                  |
+| 17  | Die with > $500                                   | `respawnCost` debited once, at death, same for every destination |
+| 18  | Living fullscreen map after all of the above      | Unchanged: ten types, travel, bus, recruit toggle                |
 
 **Debugging.** Three causes account for nearly every silent failure here, and each has a distinguishing
 signature: the request never left the client (**neither** `Print` fires — suspect a missing component on
 `OVT_OverthrowController.et`, or `Rpc()` arity per BUG-090); a rule refused (**both** `Print`s fire with a
 non-OK result); or the map is empty because the persistent id is `""` (markers absent for locations you
-*know* you own — add a temporary `Print` of `OVT_Global.GetLocalPersistentId()` in `OVT_RespawnContext.OnShow`).
+_know_ you own — add a temporary `Print` of `OVT_Global.GetLocalPersistentId()` in `OVT_RespawnContext.OnShow`).
 
 ---
 
@@ -1075,13 +1083,13 @@ non-OK result); or the map is empty because the persistent id is `""` (markers a
 
 ### External — user / Workbench work
 
-| Item | Blocking? | Notes |
-|---|---|---|
-| Regenerate the six `localization_Overthrow.<lang>.conf` exports | **YES** for V-8 | Only the user does this; `.st` is the editable master |
-| Workbench clean-load check (V-3) | **YES** | The only gate that can see the new `.conf`/`.layout`/`.et` files |
-| Two-client MP session (V-5) | **YES** | `tools/launch-server.sh` + two `tools/launch-game.sh --profile` clients; warn before launching |
-| Gamepad hardware (V-7) | **YES** | Hard requirement, not polish |
-| Authoring the two new `.conf` files and two `.layout` files | No | Can be hand-written; must be Workbench-verified |
+| Item                                                            | Blocking?       | Notes                                                                                          |
+| --------------------------------------------------------------- | --------------- | ---------------------------------------------------------------------------------------------- |
+| Regenerate the six `localization_Overthrow.<lang>.conf` exports | **YES** for V-8 | Only the user does this; `.st` is the editable master                                          |
+| Workbench clean-load check (V-3)                                | **YES**         | The only gate that can see the new `.conf`/`.layout`/`.et` files                               |
+| Two-client MP session (V-5)                                     | **YES**         | `tools/launch-server.sh` + two `tools/launch-game.sh --profile` clients; warn before launching |
+| Gamepad hardware (V-7)                                          | **YES**         | Hard requirement, not polish                                                                   |
+| Authoring the two new `.conf` files and two `.layout` files     | No              | Can be hand-written; must be Workbench-verified                                                |
 
 ### New and changed files
 
@@ -1148,25 +1156,25 @@ docs/features/map/
 
 ## 9. Risks & Mitigation
 
-| # | Risk | Likelihood | Impact | Mitigation |
-|---|---|---|---|---|
-| **R1** | **A workspace-hosted SPAWNSCREEN map gets no input.** Vanilla only ever opens a SPAWNSCREEN map from inside a `ChimeraMenuBase`; Overthrow has no `ChimeraMenuBase` menus at all. If `MapContext` is not activated for a workspace layout, the map renders and cannot be driven. | Medium | High | **Phase 1 is a spike and comes first**, before any server change. Success criterion is explicit (pan, zoom, marker hover, `MapSelect` on mouse *and* gamepad). Recorded fallback: host the screen in a `ChimeraMenuBase` modelled on `SCR_DeployMenuBase` and keep `OVT_RespawnContext` as the state machine only. Deciding this on day one is worth more than any other sequencing choice in the plan. |
-| **R2** | **The map draws nothing because the persistent id is `""`.** `OVT_MapLocationHouse` returns early on an empty id *by design* (the N1 fail-closed contract) and `OVT_MapLocationCamp` filters every private camp out. The screen looks correct and is empty, with no error. | High if unfixed | High | K3's identity fix, its own DoD criterion **I-5**, a dedicated V-5 step on a real client, and Logic case 6 pinning `IsHouseEligible("", "", "")` false. Add a temporary `Print` of the resolved id in `OVT_RespawnContext.OnShow` during bring-up. |
-| **R3** | **A player is left dead with no screen** — the show RPC is lost, or a JIP client's controller has not registered yet. | Medium | High | Unbounded 5 s re-ask while awaiting (K10), self-cancelling on entry removal, player-gone or living-character. Plus the t=0 capability check that degrades to today's immediate spawn when the component is missing. V-5's JIP step and V-6 exercise both. |
-| **R4** | **A stale chosen-position override leaks into a non-death spawn** — initial spawn, `RetryCreateCharacter`, the body-spawn timeout, or either `OnPlayerBodySpawned` fallback lands the player at somebody's old respawn pick. | Medium | High | K11: the position is a **parameter**, never a member and never a map. The four existing callers keep the two-argument form and are not edited, so there is no state for anything to leak from. Reviewed as a diff, not as behaviour. |
-| **R5** | **The widened corpse window breaks a guard.** Deferral stretches "the controller still references the corpse" from one frame to minutes; several guards in `OVT_SpawnLogic` test `GetControlledEntity()` and two do so *without* the dead check. | Medium | High | Phase 6 task 8 is an explicit audit of all five sites, with the reasoning written down rather than assumed. Phase 6 is routed to `component-developer-advanced`. |
-| **R6** | **Two characters for one death.** A duplicate or late `RpcAsk_Respawn`, or a re-ask racing a pick. | Medium | High | `CompleteRespawn` consumes the `m_aAwaitingRespawn` entry first and returns without spawning when it is absent — the same one-shot-claim idiom `m_aPendingBodySpawns` already uses in the same file. Verified explicitly in Phase 6 acceptance and V-5's simultaneous-respawn step. |
-| **R7** | **A client spawns itself at an arbitrary position** by sending a crafted vector. | Low | High | The server never uses `requestedPos` as a position — only as a lookup key against its own `CollectEligiblePositions`, with a 2 m tolerance, spawning at *its* recorded vector. No match ⇒ home. DoD **I-1** verifies both the code shape and the runtime behaviour. |
-| **R8** | **Gamepad has no free binding.** `MapContext` is active on this screen and Overthrow has already spent `KC_SPACE`/`pad_right`, `KC_R`, `KC_C`/`gamepad0:b` in it; `mouse:button0`/`gamepad0:a` belong to `MapSelect`. | Medium | High | Phase 7 proposes `gamepad0:x` and `gamepad0:y`, which no `MapContext` action claims. The buttons are also reachable via cursor + `MapSelect`, which is the path that always works. Cross-check by hand — the repo's input-conflict checker cannot see inline `ActionContext` actions. V-7 is a hard gate. |
-| **R9** | **A `.conf`/`.layout`/`.et` fault passes every automated gate.** This feature adds two configs, two layouts and three prefab edits — six file classes invisible to `compile-check.sh` and to both test groups. A dangling GUID or a mistyped widget name ships dead. | High | Medium | V-3's Workbench load is mandatory and is the *only* evidence those files are sound. Q-5's name-by-name audit covers the widget half. Allocate and grep-verify fresh GUIDs. |
-| **R10** | **`MapRespawn.conf` is not a delta and silently loses vanilla map machinery.** `MapFullscreen.conf` is a same-GUID delta over vanilla's and inherits everything; a brand-new config inherits nothing. | Medium | Medium | Phase 1 task 2 requires listing every module, layer and props config `MapSpawnMenu.conf` carries. The spike's pan/zoom/cursor criteria are what catch an omission. |
-| **R11** | **`SetupMapConfig`'s cache returns the wrong config** if a second SPAWNSCREEN config is ever added — it early-returns the currently active config when the mode already matches. | Low | Medium | Recorded as a constraint in Phase 1 task 6 and in `respawn/context.md`: Overthrow has exactly one SPAWNSCREEN config, and adding a second requires revisiting this. |
-| **R12** | **The refresh timer destroys markers under a screen the player cannot leave** (BUG-136's reconciliation path). | Low | Medium | `m_fRefreshInterval 0` on all four respawn types, with the reason recorded in the config comment. The server's arrival re-validation makes staleness cost a fallback-to-home, not a wrong spawn. |
-| **R13** | **`OVT_MapContext.HideMap()` gets deleted as an orphan** once this feature proves it does not want it, taking play-test-derived ordering with it. | Low | Low | K13: keep the method, correct its comment in Phase 8. Note the identical ordering also lives in the live `OVT_OverthrowMapUI.HideMap`/`StowMapGadget` pair, so the knowledge is not single-sourced. Deletion is a separate cleanup with its own grep proof. |
-| **R14** | **Parallel development** — other sessions commit to this tree mid-feature (the epic has a history of it). | Medium | Low | Re-check `git status` and the highest BUG id at each phase boundary; commit per phase so there is a revert path. |
+| #       | Risk                                                                                                                                                                                                                                                                             | Likelihood      | Impact | Mitigation                                                                                                                                                                                                                                                                                                                                                                                              |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **R1**  | **A workspace-hosted SPAWNSCREEN map gets no input.** Vanilla only ever opens a SPAWNSCREEN map from inside a `ChimeraMenuBase`; Overthrow has no `ChimeraMenuBase` menus at all. If `MapContext` is not activated for a workspace layout, the map renders and cannot be driven. | Medium          | High   | **Phase 1 is a spike and comes first**, before any server change. Success criterion is explicit (pan, zoom, marker hover, `MapSelect` on mouse _and_ gamepad). Recorded fallback: host the screen in a `ChimeraMenuBase` modelled on `SCR_DeployMenuBase` and keep `OVT_RespawnContext` as the state machine only. Deciding this on day one is worth more than any other sequencing choice in the plan. |
+| **R2**  | **The map draws nothing because the persistent id is `""`.** `OVT_MapLocationHouse` returns early on an empty id _by design_ (the N1 fail-closed contract) and `OVT_MapLocationCamp` filters every private camp out. The screen looks correct and is empty, with no error.       | High if unfixed | High   | K3's identity fix, its own DoD criterion **I-5**, a dedicated V-5 step on a real client, and Logic case 6 pinning `IsHouseEligible("", "", "")` false. Add a temporary `Print` of the resolved id in `OVT_RespawnContext.OnShow` during bring-up.                                                                                                                                                       |
+| **R3**  | **A player is left dead with no screen** — the show RPC is lost, or a JIP client's controller has not registered yet.                                                                                                                                                            | Medium          | High   | Unbounded 5 s re-ask while awaiting (K10), self-cancelling on entry removal, player-gone or living-character. Plus the t=0 capability check that degrades to today's immediate spawn when the component is missing. V-5's JIP step and V-6 exercise both.                                                                                                                                               |
+| **R4**  | **A stale chosen-position override leaks into a non-death spawn** — initial spawn, `RetryCreateCharacter`, the body-spawn timeout, or either `OnPlayerBodySpawned` fallback lands the player at somebody's old respawn pick.                                                     | Medium          | High   | K11: the position is a **parameter**, never a member and never a map. The four existing callers keep the two-argument form and are not edited, so there is no state for anything to leak from. Reviewed as a diff, not as behaviour.                                                                                                                                                                    |
+| **R5**  | **The widened corpse window breaks a guard.** Deferral stretches "the controller still references the corpse" from one frame to minutes; several guards in `OVT_SpawnLogic` test `GetControlledEntity()` and two do so _without_ the dead check.                                 | Medium          | High   | Phase 6 task 8 is an explicit audit of all five sites, with the reasoning written down rather than assumed. Phase 6 is routed to `component-developer-advanced`.                                                                                                                                                                                                                                        |
+| **R6**  | **Two characters for one death.** A duplicate or late `RpcAsk_Respawn`, or a re-ask racing a pick.                                                                                                                                                                               | Medium          | High   | `CompleteRespawn` consumes the `m_aAwaitingRespawn` entry first and returns without spawning when it is absent — the same one-shot-claim idiom `m_aPendingBodySpawns` already uses in the same file. Verified explicitly in Phase 6 acceptance and V-5's simultaneous-respawn step.                                                                                                                     |
+| **R7**  | **A client spawns itself at an arbitrary position** by sending a crafted vector.                                                                                                                                                                                                 | Low             | High   | The server never uses `requestedPos` as a position — only as a lookup key against its own `CollectEligiblePositions`, with a 2 m tolerance, spawning at _its_ recorded vector. No match ⇒ home. DoD **I-1** verifies both the code shape and the runtime behaviour.                                                                                                                                     |
+| **R8**  | **Gamepad has no free binding.** `MapContext` is active on this screen and Overthrow has already spent `KC_SPACE`/`pad_right`, `KC_R`, `KC_C`/`gamepad0:b` in it; `mouse:button0`/`gamepad0:a` belong to `MapSelect`.                                                            | Medium          | High   | Phase 7 proposes `gamepad0:x` and `gamepad0:y`, which no `MapContext` action claims. The buttons are also reachable via cursor + `MapSelect`, which is the path that always works. Cross-check by hand — the repo's input-conflict checker cannot see inline `ActionContext` actions. V-7 is a hard gate.                                                                                               |
+| **R9**  | **A `.conf`/`.layout`/`.et` fault passes every automated gate.** This feature adds two configs, two layouts and three prefab edits — six file classes invisible to `compile-check.sh` and to both test groups. A dangling GUID or a mistyped widget name ships dead.             | High            | Medium | V-3's Workbench load is mandatory and is the _only_ evidence those files are sound. Q-5's name-by-name audit covers the widget half. Allocate and grep-verify fresh GUIDs.                                                                                                                                                                                                                              |
+| **R10** | **`MapRespawn.conf` is not a delta and silently loses vanilla map machinery.** `MapOverthrow.conf` is a same-GUID delta over vanilla's and inherits everything; a brand-new config inherits nothing.                                                                             | Medium          | Medium | Phase 1 task 2 requires listing every module, layer and props config `MapSpawnMenu.conf` carries. The spike's pan/zoom/cursor criteria are what catch an omission.                                                                                                                                                                                                                                      |
+| **R11** | **`SetupMapConfig`'s cache returns the wrong config** if a second SPAWNSCREEN config is ever added — it early-returns the currently active config when the mode already matches.                                                                                                 | Low             | Medium | Recorded as a constraint in Phase 1 task 6 and in `respawn/context.md`: Overthrow has exactly one SPAWNSCREEN config, and adding a second requires revisiting this.                                                                                                                                                                                                                                     |
+| **R12** | **The refresh timer destroys markers under a screen the player cannot leave** (BUG-136's reconciliation path).                                                                                                                                                                   | Low             | Medium | `m_fRefreshInterval 0` on all four respawn types, with the reason recorded in the config comment. The server's arrival re-validation makes staleness cost a fallback-to-home, not a wrong spawn.                                                                                                                                                                                                        |
+| **R13** | **`OVT_MapContext.HideMap()` gets deleted as an orphan** once this feature proves it does not want it, taking play-test-derived ordering with it.                                                                                                                                | Low             | Low    | K13: keep the method, correct its comment in Phase 8. Note the identical ordering also lives in the live `OVT_OverthrowMapUI.HideMap`/`StowMapGadget` pair, so the knowledge is not single-sourced. Deletion is a separate cleanup with its own grep proof.                                                                                                                                             |
+| **R14** | **Parallel development** — other sessions commit to this tree mid-feature (the epic has a history of it).                                                                                                                                                                        | Medium          | Low    | Re-check `git status` and the highest BUG id at each phase boundary; commit per phase so there is a revert path.                                                                                                                                                                                                                                                                                        |
 
 ---
 
-*Plan created 2026-08-10 by `/plan-feature map/respawn`. Baselines in §4 Phase 0 were measured, not quoted:
+_Plan created 2026-08-10 by `/plan-feature map/respawn`. Baselines in §4 Phase 0 were measured, not quoted:
 compile exit 0 / 5958 files, Fast 44, All 79. Three premises in `requirements.md` are corrected in §5 K1–K3;
-that file remains the record of user intent and is deliberately not edited.*
+that file remains the record of user intent and is deliberately not edited._

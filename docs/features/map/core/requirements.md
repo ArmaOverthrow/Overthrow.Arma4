@@ -5,13 +5,13 @@
 
 ## Overview
 
-This feature owns the map's **infrastructure**: the `OVT_OverthrowMapUI` container that vanilla instantiates from `Configs/Map/MapFullscreen.conf`, the `OVT_MapLocationType` / `OVT_MapLocationElement` / `OVT_MapLocationData` triple that every location type builds on, the `OVT_OverthrowMapConfig` binding, the shared element and info-panel layouts, the map icon imageset, and the `SCR_MapConfig` canvas-layer modules. It is the extension point the rest of the epic plugs into.
+This feature owns the map's **infrastructure**: the `OVT_OverthrowMapUI` container that vanilla instantiates from `Configs/Map/MapOverthrow.conf`, the `OVT_MapLocationType` / `OVT_MapLocationElement` / `OVT_MapLocationData` triple that every location type builds on, the `OVT_OverthrowMapConfig` binding, the shared element and info-panel layouts, the map icon imageset, and the `SCR_MapConfig` canvas-layer modules. It is the extension point the rest of the epic plugs into.
 
 This is primarily a **discovery** feature, not greenfield work. The code already exists and is already live on the `new-map` branch — it was written between 2025-05 and 2025-08-02 and has never been documented, reviewed, or verified in multiplayer. The job is to establish what was actually built, write it down accurately, and prove it works before three more features are stacked on top of it.
 
 ## Requirements
 
-- Produce an accurate retrospective implementation record of the shipped core: `OVT_OverthrowMapUI`, `Core/OVT_MapLocationType.c`, `Core/OVT_MapLocationElement.c`, `Core/OVT_MapLocationData.c`, `Core/OVT_MapCanvasLayer.c`, `Configs/Map/OverthrowMap.conf`, `Configs/Map/MapFullscreen.conf`, `UI/Layouts/Map/Core/*`, and `UI/Imagesets/overthrow_mapicons.imageset`.
+- Produce an accurate retrospective implementation record of the shipped core: `OVT_OverthrowMapUI`, `Core/OVT_MapLocationType.c`, `Core/OVT_MapLocationElement.c`, `Core/OVT_MapLocationData.c`, `Core/OVT_MapCanvasLayer.c`, `Configs/Map/OverthrowMap.conf`, `Configs/Map/MapOverthrow.conf`, `UI/Layouts/Map/Core/*`, and `UI/Imagesets/overthrow_mapicons.imageset`.
 - Document the **`OVT_MapLocationType` extension contract** precisely enough that a new type can be added without reading the core source: every virtual method, when the container calls it, what it may assume about client vs server, and what it must not do.
 - Document the **`OVT_MapLocationData` payload model** — the typed `GetDataInt`/`SetDataBool`-style accessors, who populates them, and their lifetime relative to map open/close.
 - Document the **element lifecycle**: creation, positioning, visibility/zoom gating (`m_fVisibilityZoom`, `m_fShowNameZoom`), selection and hover state, info-panel show/update/hide, and teardown on map close.

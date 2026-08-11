@@ -9881,6 +9881,23 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A86D5E100000001}" {
+   Id "OVT-Map_Layer_Influence"
+   Target_en_us "Influence"
+   Comment "Map overlay layer name in the map layer-toggle list. Names the overlay that draws lines between a selected location and the other locations exerting influence on it - a radio tower or military base depressing a town's support, or a player-held town lending momentum to its neighbours. One or two words - it is a row label in a short list."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6A85D1E000000040}" {
    Id "OVT-Map_Layers_Title"
    Target_en_us "Map Layers"
@@ -11227,7 +11244,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000168}" {
    Id "OVT-FieldManual_MapTerritory_Text"
    Target_en_us "The map shades the ground the occupying faction still holds, in that faction's own colour. Ground the resistance has taken is left blank, so the shading recedes as a campaign goes on and a fully liberated island draws none of it. The regions are worked out from towns, military bases, radio towers and resistance FOBs, and the bigger a site is the further its ground reaches: a base spreads further than a town, and a capital further than a village. Territory stops at the coast, though rivers and inland lakes do not divide it."
-   Comment "Field Manual - first paragraph of the Territory section on The Map and Fast Travel page. Reference voice: describes, does not instruct. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-11 for map/territory-overlay. Sentence 1: OVT_MapTerritoryLayer.c:127-128 (m_bOnlyShowOccupying defaults 1) and ResolveFactionArgb:1641-1656, which reads OVT_MapLocationType.GetFactionColorByIndex:469-483 - the same Faction.GetFactionColor() the markers use through GetIconColor:437-452. Sentence 2: OVT_TerritorySolver.IsEmittedCell:1645-1657 plus OVT_MapTerritoryLayer.c:801-807. Sentence 3: CollectTowns/CollectBases/CollectRadioTowers/CollectFOBs:446-449, weights in Configs/Map/MapFullscreen.conf:8-23 (base 1.6, town 1, radiotower 0.7, fob 0.55), town size factors OVT_MapTerritoryLayer.c:169-172 applied at :574, and the weighted ownership test OVT_TerritorySolver.OwnsPoint:234. Sentence 4: OVT_MapTerritoryLayer.c:80-81 and OVT_TerritorySolver.IsLandAt:187-215, which compares terrain surface against OCEAN height so a river or lake cannot cut a region. NOTE the overlay only DISPLAYS control that already exists - it must never be described as affecting income, stability, spawns or AI."
+   Comment "Field Manual - first paragraph of the Territory section on The Map and Fast Travel page. Reference voice: describes, does not instruct. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-11 for map/territory-overlay. Sentence 1: OVT_MapTerritoryLayer.c:127-128 (m_bOnlyShowOccupying defaults 1) and ResolveFactionArgb:1641-1656, which reads OVT_MapLocationType.GetFactionColorByIndex:469-483 - the same Faction.GetFactionColor() the markers use through GetIconColor:437-452. Sentence 2: OVT_TerritorySolver.IsEmittedCell:1645-1657 plus OVT_MapTerritoryLayer.c:801-807. Sentence 3: CollectTowns/CollectBases/CollectRadioTowers/CollectFOBs:446-449, weights in Configs/Map/MapOverthrow.conf:8-23 (base 1.6, town 1, radiotower 0.7, fob 0.55), town size factors OVT_MapTerritoryLayer.c:169-172 applied at :574, and the weighted ownership test OVT_TerritorySolver.OwnsPoint:234. Sentence 4: OVT_MapTerritoryLayer.c:80-81 and OVT_TerritorySolver.IsLandAt:187-215, which compares terrain surface against OCEAN height so a river or lake cannot cut a region. NOTE the overlay only DISPLAYS control that already exists - it must never be described as affecting income, stability, spawns or AI."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -11245,6 +11262,57 @@ StringTable {
    Id "OVT-FieldManual_MapTerritory_Text2"
    Target_en_us "Where occupied ground meets ground the resistance holds, the edge carries a band; a coastline carries none. A region drawn with diagonal hatching is contested: the occupier still holds it, but half or more of the town's population backs the resistance, counted as the same support figure the town's info panel shows. Only towns can read that way, since bases, radio towers and FOBs have no population to measure. The shading re-reads who holds what every few seconds, so ground changing hands appears without closing the map."
    Comment "Field Manual - second paragraph of the Territory section on The Map and Fast Travel page. Reference voice: describes, does not instruct. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-11 for map/territory-overlay. Sentence 1: OVT_MapTerritoryLayer.EmitBands:1296-1301 and BuildContours:891-892 (water has no owner, so a coastline is never a frontier) over OVT_TerritorySolver.IsFrontierSide:1611-1624. Sentence 2: contested hatch OVT_MapTerritoryLayer.c:111-112 applied at :1225-1228, threshold m_fContestedSupportThreshold 0.5 at :99-100 evaluated by OVT_TerritorySolver.IsContestedCell (supportFraction >= threshold, occupier-held only), and ResolveTownSupportFraction:620-631 computing (support * 100.0) / population, the same expression the town info panel prints in OVT_MapLocationTown.c:82-83. Sentence 3: CollectBases:505, CollectRadioTowers:525 and CollectFOBs:553 all pass OVT_TerritorySite.SUPPORT_NONE, which IsContestedCell rejects. Sentence 4: m_fRefreshInterval defaults 5 at :133-134, Update:410-423 and RefreshTick:965-980 re-read faction and support with the map still open. NOTE the overlay only DISPLAYS control that already exists - it must never be described as affecting income, stability, spawns or AI."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786320000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A86D5E100000002}" {
+   Id "OVT-FieldManual_MapInfluence_Head"
+   Target_en_us "Influence"
+   Comment "Field Manual - section header inside The Map and Fast Travel page, above the two paragraphs on the influence overlay. One word, title case. No rich-text markup. Matches the map layer name #OVT-Map_Layer_Influence."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786320000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A86D5E100000003}" {
+   Id "OVT-FieldManual_MapInfluence_Text"
+   Target_en_us "Selecting a location on the map, either by hovering over its marker or by clicking to pin its info panel open, draws dashed lines to the other locations it stands in an influence relationship with. Select a town and lines run in from the radio towers and the military bases whose reach covers it, along with the revolutionary momentum passing between it and any town close enough, which runs from a town the resistance holds to an occupied one nearby. Select a radio tower or a military base and a line runs out to each town inside its reach, together with a dashed ring marking how far that reach goes; the ring is an outline rather than a filled disc, so the map inside it stays readable. Selecting anything else, a house, a shop, a forward base, a vehicle, a bus stop, draws nothing, since those neither project influence nor receive it. Every line carries the colour of the faction exerting the influence, the owner of the tower or the base, or the town lending the momentum, which is the same colour that location's own marker is drawn in."
+   Comment "Field Manual - first paragraph of the Influence section on The Map and Fast Travel page. Reference voice: describes, does not instruct. Five sentences, no rich-text markup. FACT-CHECKED 2026-08-12 for map/influence-overlay, symbols only. Sentence 1: OVT_MapInfluenceLayer.EmitFrame reads OVT_OverthrowMapUI.GetPanelLocation, which is the panel's own location and is set by ShowLocationInfo on both the hover and the m_bSelectionPinned click paths (settled decision D2). Sentence 2: OVT_MapInfluenceLayer.BuildTownSelectionEdges - the tower and base loops over OVT_OccupyingFactionManager.m_RadioTowers and m_Bases gated on OVT_InfluenceRules.IsProximitySource, then the momentum loop gated on IsMomentumSource plus TownQualifiesForMomentum in both directions, so a momentum edge always runs player-held town to non-player-held town. Sentence 3: BuildTowerSelectionEdges and BuildBaseSelectionEdges set m_vRingCentre/m_fRingRadius/m_iRingFaction and call AddEdgesToTownsInRange; EmitRing draws alternating open arcs with LineDrawCommand, explicitly not OVT_MapCanvasLayer.DrawCircle's filled PolygonDrawCommand (settled decision D4). Sentence 4: BuildEdges dispatches only on OVT_MapLocationTown, OVT_MapLocationRadioTower and OVT_MapLocationBase; every other type falls through and derives nothing. Sentence 5: EmitEdge and EmitRing both colour through OVT_MapLocationType.GetFactionArgbByIndex on the SOURCE faction (edge.m_iSourceFaction, m_iRingFaction), which unpacks the same GetFactionColorByIndex the markers use through GetIconColor. NOTE the overlay carries NO magnitude or strength channel and covers only the three SUPPORT modifiers that have a second location - it must never be described as showing influence strength, as touching stability, as revealing anything the location panels do not already show, or as affecting the campaign."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786320000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A86D5E100000004}" {
+   Id "OVT-FieldManual_MapInfluence_Text2"
+   Target_en_us "A line drawn bright, in long dashes, is one the campaign is currently applying, and the town it reaches lists it on its info panel as Nearby Radio Tower, Nearby Base or Revolutionary Momentum. A line drawn dim, in shorter and sparser dashes, means the relationship is there but the campaign is not applying it. Two things cause that today, and neither of them is the whole of it. One is an enemy source outweighing a friendly one of the same kind: a single occupying tower or base within reach beats any number of friendly ones, so a town can sit inside a friendly tower's reach and still carry the negative entry. The other is a sabotaged radio tower, which broadcasts for nobody while it is off the air. The overlay puts relationships the location panels already list into one picture rather than uncovering anything new, and it changes nothing in the campaign; it has its own row, Influence, in the map filter panel, remembered against your profile in the same way as the other overlays."
+   Comment "Field Manual - second paragraph of the Influence section on The Map and Fast Travel page. This paragraph is the load-bearing one: the dim class is defined by the GENERAL rule (implementation.md K3), and the two causes are named as EXAMPLES only - never rewrite them into the definition. Reference voice: describes, does not instruct. Six sentences, no rich-text markup. FACT-CHECKED 2026-08-12 for map/influence-overlay, symbols only. Sentences 1-2: OVT_MapInfluenceLayer.AddEdge sets ACTIVE only when TownHasSupportModifier finds the modifier index in the target town's replicated supportModifiers list, otherwise SUPPRESSED (the cross-check, implementation.md K2); ResolveStyle pairs ACTIVE with m_iActiveAlpha 220 and dash 14 / gap 10, SUPPRESSED with m_iSuppressedAlpha 70 and dash 6 / gap 14 - both classes are DASHED, which is why the wording is 'bright, in long dashes' and not 'solid'. The three panel names are the titles of NearbyRadioTowerPositive/Negative (#OVT-StabilityMod_NearbyTower 'Nearby Radio Tower'), NearbyBasePositive/Negative (#OVT-Modifier_NearbyBase 'Nearby Base') and RevolutionaryMomentum (#OVT-Modifier_RevolutionaryMomentum) in Configs/Modifiers/supportModifiers.conf, rendered by OVT_MapLocationTown.SetupModifierContainer on SupportModifiersContainer. Sentence 4: OVT_InfluenceRules.ResolveProximity returns NEGATIVE whenever hasEnemy, whatever hasFriendly says. Sentence 5: OVT_TownManagerComponent.CheckUpdateModifiers removes NearbyRadioTower* for a tower that is off the air, so the geometry still qualifies while the modifier is gone; the layer never asks a tower whether it is sabotaged. Sentence 6: the layer is a read-only projection with no RplProp, no Rpc and no persistence, and its toggle row comes from OVT_MapInfluenceLayer's m_sLayerId 'influence' and m_sDisplayName #OVT-Map_Layer_Influence in Configs/Map/MapOverthrow.conf via OVT_MapCanvasLayer.SetLayerVisible and the per-profile OVT_MapLayerPrefsStore."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -11278,7 +11346,7 @@ StringTable {
   CustomStringTableItem "{6A85D1E000000081}" {
    Id "OVT-FieldManual_MapLayers_Text"
    Target_en_us "A filter entry on the strip of icons down the left of the map opens a panel of on and off rows. Every category of marker has one, from towns and bases down to houses, bus stops and your own vehicles, and so does each overlay drawn beneath them, the territory shading and the restricted area rings. Player markers have a row of their own on difficulty settings that draw them. Clearing a row hides that category straight away, with the map still open, and ticking it again brings it back. Everything starts switched on, and a category left on still keeps its own zoom threshold, so the smaller markers still appear only as you zoom in. The panel can be reached and worked with a controller as well as with a mouse."
-   Comment "Field Manual - first paragraph of the Filtering the Map section on The Map and Fast Travel page. Reference voice: describes, does not instruct. Six sentences, no rich-text markup. FACT-CHECKED 2026-08-11 for map/map-layers, symbols only per epic rule K-9. Sentence 1: OVT_MapLayersUI.Init registers the entry through SCR_MapToolMenuUI.RegisterToolMenuEntry with the m_sToolMenuIcon quad 'filters', and vanilla MapMenu.layout anchors ToolMenuContainer top-left. Sentence 2: OVT_MapLayersUI.BuildLocationTypeRows over OVT_OverthrowMapUI.GetLocationTypes (the 14 types in Configs/Map/OverthrowMap.conf) and BuildCanvasLayerRows over OVT_MapCanvasCompositor.GetLayers (OVT_MapTerritoryLayer m_sLayerId 'territory' and OVT_MapRestrictedAreas m_sLayerId 'restricted' in Configs/Map/MapFullscreen.conf; OVT_MapThreatGrid ships m_bDisableModule 1 and never registers, so it has no row). Sentence 3: OVT_MapLayersUI.BuildPlayerRow, gated on OVT_MapPlayerLocation.IsAvailableThisSession, which is false when the difficulty preset has showPlayerOnMap off. Sentence 4: OVT_MapLayersUI.OnRowToggled calls ApplyOne before anything else, which routes to OVT_MapLocationType.SetPlayerVisible plus OVT_OverthrowMapUI.RefreshAllVisibility, or to OVT_MapCanvasLayer.SetLayerVisible. Sentence 5: OVT_MapLocationType.m_bPlayerVisible defaults true and OVT_MapLayerPrefsStore.IsVisible treats an absent key as visible; the zoom gate is the GetEffectiveVisibilityZoom test that OVT_MapLocationElement.SetVisible still applies after the player-visibility gate. Sentence 6: OverthrowMapLayersContext in Configs/System/chimeraInputCommon.conf, renewed per frame by OVT_MapLayersUI.ActivateRowNavigationContext while the panel is open. NOTE this panel only decides what is DRAWN for this player - it must never be described as revealing, hiding or changing anything in the campaign itself."
+   Comment "Field Manual - first paragraph of the Filtering the Map section on The Map and Fast Travel page. Reference voice: describes, does not instruct. Six sentences, no rich-text markup. FACT-CHECKED 2026-08-11 for map/map-layers, symbols only per epic rule K-9. Sentence 1: OVT_MapLayersUI.Init registers the entry through SCR_MapToolMenuUI.RegisterToolMenuEntry with the m_sToolMenuIcon quad 'filters', and vanilla MapMenu.layout anchors ToolMenuContainer top-left. Sentence 2: OVT_MapLayersUI.BuildLocationTypeRows over OVT_OverthrowMapUI.GetLocationTypes (the 14 types in Configs/Map/OverthrowMap.conf) and BuildCanvasLayerRows over OVT_MapCanvasCompositor.GetLayers (OVT_MapTerritoryLayer m_sLayerId 'territory' and OVT_MapRestrictedAreas m_sLayerId 'restricted' in Configs/Map/MapOverthrow.conf; OVT_MapThreatGrid ships m_bDisableModule 1 and never registers, so it has no row). Sentence 3: OVT_MapLayersUI.BuildPlayerRow, gated on OVT_MapPlayerLocation.IsAvailableThisSession, which is false when the difficulty preset has showPlayerOnMap off. Sentence 4: OVT_MapLayersUI.OnRowToggled calls ApplyOne before anything else, which routes to OVT_MapLocationType.SetPlayerVisible plus OVT_OverthrowMapUI.RefreshAllVisibility, or to OVT_MapCanvasLayer.SetLayerVisible. Sentence 5: OVT_MapLocationType.m_bPlayerVisible defaults true and OVT_MapLayerPrefsStore.IsVisible treats an absent key as visible; the zoom gate is the GetEffectiveVisibilityZoom test that OVT_MapLocationElement.SetVisible still applies after the player-visibility gate. Sentence 6: OverthrowMapLayersContext in Configs/System/chimeraInputCommon.conf, renewed per frame by OVT_MapLayersUI.ActivateRowNavigationContext while the panel is open. NOTE this panel only decides what is DRAWN for this player - it must never be described as revealing, hiding or changing anything in the campaign itself."
    DevNote ""
    Repro ""
    ActorGender NONE

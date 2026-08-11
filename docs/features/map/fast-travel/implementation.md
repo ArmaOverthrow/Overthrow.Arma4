@@ -34,7 +34,7 @@ Two facts discovered while planning change the shape of the work beyond what the
 
 1. **The rule set cannot be reused server-side as written.** `CanGlobalFastTravel` resolves the acting
    player with `SCR_PlayerController.GetLocalControlledEntity()` (`:14`). On a dedicated server that is
-   null (fails closed, travel never works); on a **listen server** it is the *host's* character, so the
+   null (fails closed, travel never works); on a **listen server** it is the _host's_ character, so the
    server would validate the host's wanted level and the host's position against another player's request.
    Parameterizing the actor is therefore the **first** refactor, not a tidy-up.
 2. **The existing server RPCs validate nothing.** `RpcAsk_RequestFastTravel`
@@ -61,7 +61,7 @@ verification feature. This feature **hard-gates `map/legacy-retirement`**.
 1. **Server authority for both verbs.** Validation, payment and teleport happen on the server, in one
    routine, driven from a specialized component on `OVT_OverthrowController` (F1/F2/F3, requirement 16).
 2. **One rule set, one cost model, callable from both sides** — because requirement 15 ("displayed
-   availability must match enforced availability") is only achievable if client and server run the *same*
+   availability must match enforced availability") is only achievable if client and server run the _same_
    code, not two copies.
 3. **Recruits travel with the player again** (F4), as an explicit **opt-out** choice rather than an
    automatic one, with the fare and the accompaniment driven by the same flag.
@@ -90,22 +90,22 @@ verification feature. This feature **hard-gates `map/legacy-retirement`**.
 
 ## 3. Current State / Current Architecture
 
-*(Discovered by reading the merged `new-map` branch. Nothing below has been observed at runtime — the
+_(Discovered by reading the merged `new-map` branch. Nothing below has been observed at runtime — the
 branch has not been play-tested since 2025-08-02. Corrections and additions made during planning are
-marked **CORRECTED** / **NEW**.)*
+marked **CORRECTED** / **NEW**.)_
 
 ### 3.1 The rule set — `CanGlobalFastTravel(targetPos, playerID, out reason)` (`:6-74`)
 
 Evaluated in order, each returning a localized reason key:
 
-| # | Check | Refusal reason |
-|---|---|---|
-| 0 | `m_bDebugMode` → returns `true` immediately (`:8-9`) | — |
-| 1 | Local controlled entity exists (`:14`) | `#OVT-CannotFastTravelThere` |
-| 2 | `dist >= m_Difficulty.minFastTravelDistance` (`:19-24`) | `#OVT-CannotFastTravelDistance` |
-| 3 | `OVT_PlayerWantedComponent.GetWantedLevel() == 0` (`:27-32`) | `#OVT-CannotFastTravelWanted` |
-| 4 | QRF active **and** `QRFFastTravelMode != FREE`: `DISABLED` refuses outright; otherwise target must be ≥ `QRF_RANGE` from `m_vQRFLocation` (`:35-51`) | `#OVT-CannotFastTravelDuringQRF` / `#OVT-CannotFastTravelToQRF` |
-| 5 | Player can afford `CalculateFastTravelCost` (`:53-71`) | `#OVT-CannotAfford` |
+| #   | Check                                                                                                                                                | Refusal reason                                                  |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| 0   | `m_bDebugMode` → returns `true` immediately (`:8-9`)                                                                                                 | —                                                               |
+| 1   | Local controlled entity exists (`:14`)                                                                                                               | `#OVT-CannotFastTravelThere`                                    |
+| 2   | `dist >= m_Difficulty.minFastTravelDistance` (`:19-24`)                                                                                              | `#OVT-CannotFastTravelDistance`                                 |
+| 3   | `OVT_PlayerWantedComponent.GetWantedLevel() == 0` (`:27-32`)                                                                                         | `#OVT-CannotFastTravelWanted`                                   |
+| 4   | QRF active **and** `QRFFastTravelMode != FREE`: `DISABLED` refuses outright; otherwise target must be ≥ `QRF_RANGE` from `m_vQRFLocation` (`:35-51`) | `#OVT-CannotFastTravelDuringQRF` / `#OVT-CannotFastTravelToQRF` |
+| 5   | Player can afford `CalculateFastTravelCost` (`:53-71`)                                                                                               | `#OVT-CannotAfford`                                             |
 
 All five refusal keys exist in `Language/localization_Overthrow.st` (`:669`, `:691`, `:720`, `:742`,
 `:764`, plus `OVT-CannotAfford` `:559`).
@@ -165,10 +165,10 @@ Interaction model (from `map/core`): **hover shows, click pins, click-empty dism
 - **In a vehicle, as passenger** (`:142-146`): refused with `#OVT-MustBeDriver`.
 - **On foot** (`:149-156`): `SCR_Global.TeleportPlayer(playerID, targetPos)` directly — moves the entity
   **on the machine that called it** (`ArmaReforger/scripts/Game/Global/Functions.c:1638`). On foot is the
-  *default* path.
+  _default_ path.
 
 **NEW — the in-vehicle path is correct; do not "fix" it.** Vanilla's `TeleportPlayer` explicitly teleports
-the *vehicle* when the player is in one (`Functions.c:1657-1663`, "When in a vehicle, teleport the vehicle
+the _vehicle_ when the player is in one (`Functions.c:1657-1663`, "When in a vehicle, teleport the vehicle
 instead"). The driver branch genuinely brings the vehicle along. Keep
 `OVT_Global.FindSafeVehicleSpawnPosition` (`OVT_Global.c:373`) for the driver case and keep the
 `#OVT-MustBeDriver` refusal for passengers.
@@ -215,14 +215,14 @@ already validated the destination.
 These are not in the retrospective and several change the shape of the work.
 
 - **N1 — 🔴 `CanGlobalFastTravel` cannot run on a server.** See §3.2. On a dedicated server it returns
-  `false` (silent, fails closed); on a **listen server** it validates the *host's* wanted level and
+  `false` (silent, fails closed); on a **listen server** it validates the _host's_ wanted level and
   position against another player's request — this project's known listen-server bug class (cf. commit
   `46b0b470`, "Listen-server host never receives its own owner-targeted RPCs"). **This refactor must land
   before or with F1.**
 - **N2 — 🔴 The existing server RPCs validate nothing.** `RpcAsk_RequestFastTravel`
   (`OVT_PlayerCommsComponent.c:1489-1493`) is `ResolveSenderPlayerId` + `TeleportPlayer`.
   `RpcAsk_RequestFastTravelWithRecruits` (`:1500-1548`) is the same plus recruit gathering.
-  `ResolveSenderPlayerId` does prevent a client teleporting *another* player, but **any client can
+  `ResolveSenderPlayerId` does prevent a client teleporting _another_ player, but **any client can
   teleport itself anywhere, for free, today**. This is the security core of the feature.
 - **N3 — Payment is never atomic with the teleport.** Neither RPC takes money; all payment is the
   client-side `TakePlayerMoneyPersistentId` at `:139`/`:154`.
@@ -230,10 +230,10 @@ These are not in the retrospective and several change the shape of the work.
   outside terrain bounds (`Functions.c:1640-1641`) or the player entity cannot be resolved (`:1643-1645`).
   Today the client has already debited before calling. Requirement 15 says a player "must never be charged
   for travel that does not happen".
-- **N5 — CORRECTION: legacy fast travel *did* charge per recruit.** `OVT_MapContext.c:387-397` adds
+- **N5 — CORRECTION: legacy fast travel _did_ charge per recruit.** `OVT_MapContext.c:387-397` adds
   `recruitCount × fastTravelCost` ("Same cost per recruit", `:395`) before charging, exactly as the bus
   branch does at `:464-472`. The retrospective and the feature brief both recorded fast-travel recruits as
-  free; **the code says otherwise**. What legacy did *not* do is scale by distance: its base fare is a flat
+  free; **the code says otherwise**. What legacy did _not_ do is scale by distance: its base fare is a flat
   `m_Difficulty.fastTravelCost` (`:384`), whereas the shipped service uses
   `max(1 km, dist/1000) × fastTravelCost` (`:91-94`). See K3 — this makes the fare decision
   parity-restoring in structure and inflationary only through the distance term the branch already shipped.
@@ -242,7 +242,7 @@ These are not in the retrospective and several change the shape of the work.
   vehicle (`#OVT-MustExitVehicle`). No wanted level, no QRF, no minimum distance. **Preserve that** —
   requirement `requirements.md:38` forbids new travel mechanics, and adding a wanted check to buses would
   be one.
-- **N7 — Legacy never tested the player's *origin* against a bus stop.** The origin was guaranteed
+- **N7 — Legacy never tested the player's _origin_ against a bus stop.** The origin was guaranteed
   implicitly by `OVT_CatchBusAction` living on the bus-stop sign prefab; `GetNearestBusStop(pos)` (`:453`)
   tests the **clicked destination**. With no armed mode, the origin test becomes explicit — and the
   existing `#OVT-NeedBusStop` text ("You must click near another bus stop",
@@ -259,8 +259,8 @@ These are not in the retrospective and several change the shape of the work.
   `MapContextualMenu` to `mouse:button1` + **`gamepad0:x`** inside `ActionContext MapContext`
   (`ArmaReforger/Configs/System/chimeraInputCommon.conf:8178`), and `SCR_MapRadialUI` — the module that
   consumes it (`scripts/Game/Commanding/SCR_PlayerControllerCommandingComponent.c:246`) — is in vanilla's
-  `MapFullscreen.conf` module list (`:17`) and is **not** disabled by Overthrow's same-GUID delta
-  (`Configs/Map/MapFullscreen.conf:2-33`). Requirement 20 asked for this check; here it is, found by
+  `MapOverthrow.conf` module list (`:17`) and is **not** disabled by Overthrow's same-GUID delta
+  (`Configs/Map/MapOverthrow.conf:2-33`). Requirement 20 asked for this check; here it is, found by
   reading rather than by the script (which cannot see inline `ActionContext` actions).
   `keyboard:KC_SPACE` is **free** in vanilla's `MapContext` (its keyboard bindings are NUMPAD2/4/6/8,
   DELETE, K, O, B, N, ADD, SUBTRACT).
@@ -268,7 +268,7 @@ These are not in the retrospective and several change the shape of the work.
   MapMultiSelectGamepad), `x` (contextual menu), `pad_left` (tool menu focus), `pad_up` (watch, pencil),
   `pad_down` (compass, protractor), `left_trigger`/`right_trigger` (zoom), `shoulder_right` (modifier),
   `thumb_right` (drag), both thumbsticks (pan/cursor). **`pad_right` is the one clearly-free pad input.**
-  `b`/`y` are unbound *in this context* but are conventionally back/cancel in overlapping ones, and
+  `b`/`y` are unbound _in this context_ but are conventionally back/cancel in overlapping ones, and
   `shoulder_left` is VON at priority 110 (project memory). See K7.
 - **N12 — Clicking a panel button may unpin the panel.** `OnMapSelection` (`OVT_OverthrowMapUI.c:44-69`)
   treats any map selection with no hovered element as "clicked empty space" → unpin →
@@ -363,22 +363,22 @@ class OVT_FastTravelService
 
 **Why `CanGlobalFastTravel` keeps its signature:** `map/location-types` is being implemented **right now**
 and its five per-type `CanFastTravel` overrides call it. Changing the signature would collide with that
-work for no benefit — the wrapper is a two-line delegate, and the trap is closed because the *core*
+work for no benefit — the wrapper is a two-line delegate, and the trap is closed because the _core_
 (`ValidateTravel`) no longer touches the local entity.
 
 `ValidateTravel` folds the verb-specific rules in one place:
 
-| Check | FAST_TRAVEL | BUS |
-|---|---|---|
-| debug bypass | yes (`:8-9`) | yes |
-| actor exists | yes | yes |
-| min distance | yes | **no** (N6) |
-| wanted level | yes | **no** (N6) |
-| QRF mode | yes | **no** (N6) |
-| in a vehicle | driver ok, passenger `MUST_BE_DRIVER` | any vehicle → `MUST_EXIT_VEHICLE` |
-| origin is a bus stop | — | `NOT_AT_BUS_STOP` |
-| destination is a bus stop | — | `BAD_DESTINATION` |
-| affordability at the **full** fare (incl. recruits) | yes | yes |
+| Check                                               | FAST_TRAVEL                           | BUS                               |
+| --------------------------------------------------- | ------------------------------------- | --------------------------------- |
+| debug bypass                                        | yes (`:8-9`)                          | yes                               |
+| actor exists                                        | yes                                   | yes                               |
+| min distance                                        | yes                                   | **no** (N6)                       |
+| wanted level                                        | yes                                   | **no** (N6)                       |
+| QRF mode                                            | yes                                   | **no** (N6)                       |
+| in a vehicle                                        | driver ok, passenger `MUST_BE_DRIVER` | any vehicle → `MUST_EXIT_VEHICLE` |
+| origin is a bus stop                                | —                                     | `NOT_AT_BUS_STOP`                 |
+| destination is a bus stop                           | —                                     | `BAD_DESTINATION`                 |
+| affordability at the **full** fare (incl. recruits) | yes                                   | yes                               |
 
 ### 4.3 Client → server → client message shape
 
@@ -412,7 +412,7 @@ CLIENT (RpcDo_TravelResult, Owner-targeted; listen-server short-circuit as in Se
 
 **Step order is load-bearing.** Cost is computed **before** the teleport (the actor moves synchronously and
 the fare is origin-dependent), and money is taken **after** a successful teleport, so a refused or
-out-of-bounds teleport cannot charge (N4). A crash between 9 and 10 loses the fare in the *player's*
+out-of-bounds teleport cannot charge (N4). A crash between 9 and 10 loses the fare in the _player's_
 favour — the fail-safe direction. No refund path is needed and none is written.
 
 **One RPC pair for both verbs.** Two signatures in the whole feature, which is the practical mitigation for
@@ -426,7 +426,7 @@ at a bus stop**, determined by
 `OVT_Global.GetMapMarkers().GetNearestMarker(actorPos, OVT_MapMarkerCategory.BUS_STOP, 15)`.
 
 **Why this is the acceptance criterion for requirement 18.** BUG-069 part 2 was: an engine-side map close
-left `m_bBusTravelActive` set, and the next click on a *later* open silently charged a fare. `map/core`
+left `m_bBusTravelActive` set, and the next click on a _later_ open silently charged a fare. `map/core`
 already argues that the rewrite is immune to BUG-069's other defects **structurally**, because it is a map
 module driven by the engine's own open/close rather than an input-handler-driven mode
 (`docs/features/map/core/implementation.md:132-139`). Position-derived bus eligibility extends the same
@@ -471,7 +471,7 @@ paths are kept in sync, but because there is only one path.
 recounts at execution time and may get a different number (a recruit wandered out of radius, the player
 moved). **Resolution: the server charges its own count and reports the actual total back**, and the client
 shows it (`#OVT-Travelled ($N)`). Refusing on drift is worse: the player has already committed and the map
-has already closed. Drift is bounded — one fare per recruit — and it is now *visible* rather than silent,
+has already closed. Drift is bounded — one fare per recruit — and it is now _visible_ rather than silent,
 which is what requirement 15 is actually protecting.
 
 **`m_bBringRecruits` is reset to `true` in `OnMapOpen`.** It is not an armed mode (it cannot cause a charge
@@ -504,7 +504,7 @@ m_OnActivated.Clear(); m_OnActivated.Insert(OnTravelClicked)      // keep the ex
 going to `OVT_Global.GetTravelRequests()`.
 
 **The refusal-after-close case is new and must be surfaced.** Server authority means a click can be refused
-*after* the map has closed. `RpcDo_TravelResult` maps the result to a localized key and calls
+_after_ the map has closed. `RpcDo_TravelResult` maps the result to a localized key and calls
 `OVT_Global.ShowHint` (`OVT_Global.c:835`), so the player always gets an explanation. The client-side check
 that drives the button state is now **advisory**; the server check is **authoritative** — that is the
 resolution of F7's double check.
@@ -530,20 +530,20 @@ Effort is **S / M / L** relative to a single focused session. "Agent" is the rou
 1. `tools/launch-server.sh`; then
    `tools/launch-game.sh --timeout 3600 --profile OverthrowClient1 --allow-concurrent -- -client 127.0.0.1:2001`
    and a second client with `--profile OverthrowClient2`.
-2. **F1** — on-foot fast travel from the new map on client A. Does A move? Does the *server* agree (does B
+2. **F1** — on-foot fast travel from the new map on client A. Does A move? Does the _server_ agree (does B
    see A at the destination)? Does A snap back?
 3. **F2** — note A's money before and after, then force an authoritative money update (buy something, or
    wait for the next `StreamPlayerMoney`) and note it again. A client-side debit looks correct locally and
    is then overwritten — that is the whole point of F2.
 4. **F4** — with two recruits standing next to A, fast travel and confirm they are left behind.
 5. In-vehicle-as-driver: does the vehicle come along? Passenger: is the refusal shown?
-6. **N9 / cost display** — does the button show a non-zero cost on a *dedicated-server client*? If it shows
+6. **N9 / cost display** — does the button show a non-zero cost on a _dedicated-server client_? If it shows
    `$0`, `GetPlayerControlledEntity(localId)` is returning null client-side (`OVT_FastTravelService.c:85-87`)
    and the displayed cost is already wrong in MP. Record the answer; it decides whether the client wrapper
    must resolve the actor via `SCR_PlayerController.GetLocalControlledEntity()` instead.
 7. **N10** — press `gamepad0:x` on the fullscreen map with a controller. Does vanilla's radial menu open?
    Does fast travel fire? Both? Record exactly what happens; this decides K7's branch.
-8. **N12** — click the fast-travel button with the mouse while the panel is *pinned*. Does the panel
+8. **N12** — click the fast-travel button with the mouse while the panel is _pinned_. Does the panel
    survive the click (i.e. does `OnMapSelection` unpin underneath it)? Hard to see today because the
    handler closes the map; watch for a one-frame flicker, or temporarily comment out the `HideMap()` call
    locally to observe.
@@ -573,6 +573,7 @@ are confirmed, which are not, and what actually happens for N9/N10/N12.
 8. Leave `ExecuteFastTravel` in place for now (Phase 2 deletes it) so the tree stays runnable.
 
 **Acceptance**
+
 - `tools/compile-check.sh` exit 0; `tools/run-tests.sh "{6A6E29FF47ECB840}"` exit 0.
 - `grep -n "GetLocalControlledEntity" Scripts/Game/Services/OVT_FastTravelService.c` matches **only** the
   documented client wrapper.
@@ -617,6 +618,7 @@ are confirmed, which are not, and what actually happens for N9/N10/N12.
    is retirement's to delete; the assertion is that **no new-map code** calls them).
 
 **Acceptance**
+
 - `tools/compile-check.sh` exit 0; `tools/run-tests.sh "{6A6E2A002F53A581}"` exit 0.
 - On a dedicated server: a client fast-travels, **moves**, and is **charged**, and the balance survives the
   next authoritative sync (F1/F2).
@@ -648,6 +650,7 @@ are confirmed, which are not, and what actually happens for N9/N10/N12.
 6. New `.st` ids (§10). Until the user regenerates the exports, the layout/labels use **literal text**.
 
 **Acceptance**
+
 - With 0 recruits nearby: no toggle, and the fare is the solo fare.
 - With N recruits nearby: toggle visible, **ON by default**, labelled with N and the extra cost; flipping
   it changes the travel button's total **immediately**, both ways.
@@ -680,6 +683,7 @@ are confirmed, which are not, and what actually happens for N9/N10/N12.
    fast-travel destinations (legacy never offered fast travel to one).
 
 **Acceptance**
+
 - Standing at a bus stop → open map → bus-stop marker panel offers "Catch a bus ($fare)" **enabled**;
   selecting it charges the fare and travels.
 - Standing away from any stop → the same panel shows the fare but the button is **disabled** with the
@@ -715,7 +719,7 @@ Run the full Definition of Done §7 Verification Method. Nothing ships without V
 
 **K1 — The service stays the single rule/cost implementation, but becomes entity-parameterized.**
 Requirement 15 ("displayed availability must match enforced availability") is only satisfiable if client
-and server run the *same* rules. Two copies drift; one copy with a machine-scoped actor lookup is worse
+and server run the _same_ rules. Two copies drift; one copy with a machine-scoped actor lookup is worse
 than two, because it fails **silently and differently** on dedicated vs listen servers (N1). The fix is one
 parameter. `CanGlobalFastTravel` keeps its exact signature as a documented client-only wrapper so the five
 per-type overrides — being edited **right now** by `map/location-types` — are untouched.
@@ -740,7 +744,7 @@ fare" exploit.
 **Correction that makes it more defensible than it looked (N5):** legacy fast travel **already** charged
 per recruit — `OVT_MapContext.c:387-397`, comment "Same cost per recruit" (`:395`), the same structure the
 bus branch uses at `:464-472`. The brief and the retrospective both recorded fast-travel recruits as free;
-the code disagrees. So the per-recruit multiplier is **parity-restoring**, not novel. What *is* different
+the code disagrees. So the per-recruit multiplier is **parity-restoring**, not novel. What _is_ different
 is the base fare: legacy fast travel charged a flat `fastTravelCost` (`:384`) while the shipped service
 charges `max(1 km, dist/1000) × fastTravelCost` (`:91-94`) — a change the `new-map` branch already made,
 independently of this feature. The compound effect is that a long trip with a squad costs materially more
@@ -778,25 +782,26 @@ to a virtual then — YAGNI until it does.
 **K7 — Input allocation on the map is nearly exhausted, and the existing binding already collides.**
 Grounded from vanilla `Configs/System/chimeraInputCommon.conf:8128-8479`:
 
-| Input | Vanilla owner in `MapContext` |
-|---|---|
-| `gamepad0:a` | `MapSelect`, `MapMultiSelectGamepad` |
-| **`gamepad0:x`** | **`MapContextualMenu` → `SCR_MapRadialUI`** (collides with `OverthrowFastTravel`) |
-| `gamepad0:pad_left` / `pad_up` / `pad_down` | tool menu focus / watch + pencil / compass + protractor |
-| `gamepad0:left_trigger` / `right_trigger` | zoom out / in |
-| `gamepad0:shoulder_right` | `MapModifierKey`, `MapModifClick` |
-| `gamepad0:thumb_right` | `MapDragGamepad` |
-| both thumbsticks | pan and cursor |
-| **`gamepad0:pad_right`** | **free** |
-| `gamepad0:b` / `y` | unbound *here*, but conventionally back/cancel in overlapping contexts |
-| `gamepad0:shoulder_left` | avoid — VON at priority 110 (project memory) |
-| `keyboard:KC_SPACE`, `KC_R` | free (vanilla uses NUMPAD2/4/6/8, DELETE, K, O, B, N, ADD, SUBTRACT) |
+| Input                                       | Vanilla owner in `MapContext`                                                     |
+| ------------------------------------------- | --------------------------------------------------------------------------------- |
+| `gamepad0:a`                                | `MapSelect`, `MapMultiSelectGamepad`                                              |
+| **`gamepad0:x`**                            | **`MapContextualMenu` → `SCR_MapRadialUI`** (collides with `OverthrowFastTravel`) |
+| `gamepad0:pad_left` / `pad_up` / `pad_down` | tool menu focus / watch + pencil / compass + protractor                           |
+| `gamepad0:left_trigger` / `right_trigger`   | zoom out / in                                                                     |
+| `gamepad0:shoulder_right`                   | `MapModifierKey`, `MapModifClick`                                                 |
+| `gamepad0:thumb_right`                      | `MapDragGamepad`                                                                  |
+| both thumbsticks                            | pan and cursor                                                                    |
+| **`gamepad0:pad_right`**                    | **free**                                                                          |
+| `gamepad0:b` / `y`                          | unbound _here_, but conventionally back/cancel in overlapping contexts            |
+| `gamepad0:shoulder_left`                    | avoid — VON at priority 110 (project memory)                                      |
+| `keyboard:KC_SPACE`, `KC_R`                 | free (vanilla uses NUMPAD2/4/6/8, DELETE, K, O, B, N, ADD, SUBTRACT)              |
 
 **Decision, with the branch resolved by Phase 0's observation:**
-- *If the radial menu visibly opens on `gamepad0:x`* — move `OverthrowFastTravel`'s gamepad source to
+
+- _If the radial menu visibly opens on `gamepad0:x`_ — move `OverthrowFastTravel`'s gamepad source to
   `gamepad0:pad_right`, and give `OverthrowToggleRecruits` **no** gamepad binding (keyboard `KC_R` plus the
   cursor path: move the map cursor onto the button and press `gamepad0:a`, which is `MapSelect`).
-- *If the radial menu is inert on Overthrow's map* — leave fast travel on `x` and give
+- _If the radial menu is inert on Overthrow's map_ — leave fast travel on `x` and give
   `OverthrowToggleRecruits` `gamepad0:pad_right`, which is the better affordance (`WLib_NavigationButton`
   renders the pad glyph next to the label).
 
@@ -808,13 +813,13 @@ path.
 **K8 — Teleport first, charge second; no refund path.**
 `SCR_Global.TeleportPlayer` returns `false` on an out-of-bounds destination or an unresolvable player
 (`Functions.c:1640-1645`), and today the client has already debited before calling (N4). Ordering the
-server routine as *validate → compute cost → teleport → charge* makes "never charged for travel that does
+server routine as _validate → compute cost → teleport → charge_ makes "never charged for travel that does
 not happen" true by construction and needs no compensating transaction. The residual failure — a crash
 between teleport and charge — loses the fare in the player's favour, which is the correct direction.
 
 **K9 — The client check is advisory; the server check is authoritative.** F7's double affordability check
-resolves itself once payment is server-side: `CanGlobalFastTravel` on the client drives *button state*, and
-`ValidateTravel` on the server drives *whether anything happens*. Both call the same code, so they normally
+resolves itself once payment is server-side: `CanGlobalFastTravel` on the client drives _button state_, and
+`ValidateTravel` on the server drives _whether anything happens_. Both call the same code, so they normally
 agree; when they disagree (latency, a QRF that started, money spent in another window), the server wins and
 the player is told why via `RpcDo_TravelResult` → `OVT_Global.ShowHint`.
 
@@ -830,7 +835,7 @@ Written so an evaluator with no implementation context can verify each item.
 
 ### Functional
 
-**F-1 — Refusal rules, one at a time (fast travel).** Each shows the button *visible but disabled* with the
+**F-1 — Refusal rules, one at a time (fast travel).** Each shows the button _visible but disabled_ with the
 stated reason, and pressing the keybind does nothing:
 
 - [ ] Wanted level > 0 → `#OVT-CannotFastTravelWanted`
@@ -845,7 +850,7 @@ stated reason, and pressing the keybind does nothing:
 **F-2 — On foot.** Fast travel from the panel moves the player to the destination and charges the displayed
 amount.
 
-**F-3 — In a vehicle.** As **driver**, the player *and the vehicle* arrive. As **passenger**, refused with
+**F-3 — In a vehicle.** As **driver**, the player _and the vehicle_ arrive. As **passenger**, refused with
 `#OVT-MustBeDriver` and nothing is charged.
 
 **F-4 — Bus travel.** Standing at a bus stop, open the map, select another bus stop: fare shown, travel
@@ -898,7 +903,7 @@ leaves the player's money unchanged and produces a hint, not silence.
 **Q-2 — Refusal after the map has closed is surfaced.** Every non-OK result produces an on-screen hint with
 the specific reason. Nothing fails silently.
 
-**Q-3 — Bus eligibility cannot survive a map close — structurally.** Verified by *reading*, not only by
+**Q-3 — Bus eligibility cannot survive a map close — structurally.** Verified by _reading_, not only by
 testing: there is no `m_bBusTravelActive`-equivalent field anywhere in the new map path. Eligibility is
 computed from the player's position each time the panel is built. Test to corroborate: at a bus stop, open
 the map, close it with the gadget key / by dying / by opening another menu, walk 500 m away, reopen the map
@@ -909,7 +914,7 @@ reproduction.)
 recruit trip. Where they differ (recruit drift), the actual amount is shown to the player.
 
 **Q-5 — No new client→server RPC on `OVT_PlayerCommsComponent`.** Verified by diff: that file's only change
-in this feature is *none*.
+in this feature is _none_.
 
 **Q-6 — Every `FindAnyWidget` name added exists in the layout.** Name-by-name audit for
 `BringRecruitsButton` and anything else added — `FindAnyWidget` returning null is a silent no-op the
@@ -923,10 +928,10 @@ match recorded in `context.md`. Wrong arity compiles clean and dies at the wire 
 **I-1 — A precise dead list is handed to `map/legacy-retirement`.** After this feature, the following have
 no callers and exist only to be deleted:
 
-| File | Symbols left dead |
-|---|---|
-| `Scripts/Game/UI/Context/OVT_MapContext.c` | `m_bFastTravelActive` (`:20`), `m_bBusTravelActive` (`:21`), `RECRUIT_TRAVEL_RADIUS` (`:25`), `CanFastTravel` (`:53-95` — the duplicate rule set), `EnableFastTravel` (`:277-285`), `EnableBusTravel` (`:287-295`), `DisableFastTravel` (`:312-315`), `DisableBusTravel` (`:317-320`), the fast-travel branch of `MapClick` (`:373-449`), the bus branch (`:451-510`), and the `DisableFastTravel`/`DisableBusTravel` calls in `OnMapExit` (`:303-304`) |
-| `Scripts/Game/Components/Player/OVT_PlayerCommsComponent.c` | `RequestFastTravel` (`:1483-1486`), `RpcAsk_RequestFastTravel` (`:1488-1493`), `RequestFastTravelWithRecruits` (`:1495-1498`), `RpcAsk_RequestFastTravelWithRecruits` (`:1500-1548`) |
+| File                                                        | Symbols left dead                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Scripts/Game/UI/Context/OVT_MapContext.c`                  | `m_bFastTravelActive` (`:20`), `m_bBusTravelActive` (`:21`), `RECRUIT_TRAVEL_RADIUS` (`:25`), `CanFastTravel` (`:53-95` — the duplicate rule set), `EnableFastTravel` (`:277-285`), `EnableBusTravel` (`:287-295`), `DisableFastTravel` (`:312-315`), `DisableBusTravel` (`:317-320`), the fast-travel branch of `MapClick` (`:373-449`), the bus branch (`:451-510`), and the `DisableFastTravel`/`DisableBusTravel` calls in `OnMapExit` (`:303-304`) |
+| `Scripts/Game/Components/Player/OVT_PlayerCommsComponent.c` | `RequestFastTravel` (`:1483-1486`), `RpcAsk_RequestFastTravel` (`:1488-1493`), `RequestFastTravelWithRecruits` (`:1495-1498`), `RpcAsk_RequestFastTravelWithRecruits` (`:1500-1548`)                                                                                                                                                                                                                                                                    |
 
 **Not** left dead by this feature and **not** retirement's to attribute here: `m_bMapInfoActive`,
 `EnableMapInfo`/`DisableMapInfo`, `ShowTownInfo` — those belong to the map-info mode, which
@@ -953,7 +958,7 @@ Run in order. Stop and fix at the first failure.
 
 **V-2 — Regression tests.** `tools/run-tests.sh "{6A6E29FF47ECB840}"` (Fast) then
 `"{6A6E2A002F53A581}"` (All). Expect exit 0. **No suite covers travel or map UI** — these are guards that
-nothing *else* broke, not evidence this feature works. If the `ComputeFare` Logic-tier case from §9 is
+nothing _else_ broke, not evidence this feature works. If the `ComputeFare` Logic-tier case from §9 is
 added, it runs here.
 
 **V-3 — Single-player sweep.** Start a campaign in a build with `m_bDebugMode 0`. Walk F-1 through F-8
@@ -970,7 +975,7 @@ in order, noting money before and after every trip.
    distant FOB with the toggle **ON**.
    - [ ] A arrives; both recruits arrive in a ring around A
    - [ ] A is charged `3 ×` the solo fare, and the hint reports that amount
-   - [ ] **Money is verified on both sides**: A's HUD balance *and* the server's view of it (open a shop, or
+   - [ ] **Money is verified on both sides**: A's HUD balance _and_ the server's view of it (open a shop, or
          trigger any authoritative money update) agree. F2's whole point is that a client-side debit looks
          correct locally and is then overwritten
 4. Client **B** joins now (**JIP** — after A has travelled and spent):
@@ -993,6 +998,7 @@ in order, noting money before and after every trip.
    - [ ] A never moves and is never charged (S-1)
 
 **V-5 — Gamepad/console gate.** Controller only, no mouse or keyboard:
+
 - [ ] Move the map cursor onto a travel-capable marker; the info panel appears
 - [ ] The travel button is reachable and activates (either by its pad glyph or by cursor + `A`)
 - [ ] The recruit toggle is reachable and flips, and the travel button's cost visibly updates
@@ -1015,18 +1021,20 @@ This is a **server-authority and multiplayer-correctness** feature first, and a 
 is set accordingly.
 
 **Authority — the non-negotiables**
+
 - **No client can teleport itself.** Today one can, anywhere, for free (N2). The measure of success is not
   that the UI stopped calling `TeleportPlayer` — it is that the server refuses a request the UI never
   would have sent.
 - **No client can move money.** Every mutation goes through the server routine. A client-side debit is
-  indistinguishable from a working one *locally*, which is exactly why F2 survived a release.
+  indistinguishable from a working one _locally_, which is exactly why F2 survived a release.
 - **Displayed availability matches enforced availability**, because both sides run one implementation. If a
   refusal reason ever exists on one side only, the rule has been duplicated and the design has failed.
-- **Money and position never disagree between client and server.** Verify money on *both* sides after every
+- **Money and position never disagree between client and server.** Verify money on _both_ sides after every
   test trip, not just on the travelling client's HUD.
 - **Identity from the entity, never the payload.** The RPC has no player-id parameter to spoof.
 
 **Multiplayer**
+
 - **Listen server and dedicated server are different machines with different bugs.** N1 is a listen-server
   bug that a dedicated-server test would miss entirely (it fails closed there). Where a decision differs
   between the two, say which, and short-circuit Owner-targeted RPCs to the local player exactly as
@@ -1037,6 +1045,7 @@ is set accordingly.
   marker registry, an unresolvable actor. Refusing cleanly always beats a script error.
 
 **UI**
+
 - The travel flow must be completable **on gamepad**, including the recruit toggle. That is an acceptance
   criterion, not a nicety; the whole rewrite sits on vanilla's `SCR_MapUIElement` for this reason.
 - Nothing fails silently. A refusal after the map has closed still tells the player why.
@@ -1044,6 +1053,7 @@ is set accordingly.
 - Do not design around a working panel close; `map/core` D2/D3 mean there isn't one.
 
 **Discipline**
+
 - Do not invent behaviour. Every rule in this plan is cited to a line in the tree; if a fact is not in the
   code, it does not go in the implementation.
 - Do not "fix" the in-vehicle path — vanilla already teleports the vehicle (`Functions.c:1657-1663`).
@@ -1068,22 +1078,22 @@ the implementation, confirm the case goes red, revert, and record the method in 
 
 **Manual — the real gate.**
 
-| # | Scenario | Expected |
-|---|---|---|
-| 1 | Fast travel on foot, solo | Moves, charged `round(max(1,d/1000) × fastTravelCost)` |
-| 2 | Fast travel as driver | Player **and vehicle** arrive |
-| 3 | Fast travel as passenger | `#OVT-MustBeDriver`, no charge, no movement |
-| 4 | Each refusal rule (F-1) | Button disabled with the specific reason; keybind inert |
-| 5 | Recruit toggle ON / OFF | Accompaniment and fare move together, both ways |
-| 6 | Toggle with 0 recruits nearby | Toggle hidden; solo fare |
-| 7 | Bus from a stop to a stop | Fare = `round(d/1000 × busTicketPrice)`, no 1 km floor |
-| 8 | Bus while not at a stop | Disabled with the not-at-a-stop reason; fare still visible |
-| 9 | Bus while in a vehicle | `#OVT-MustExitVehicle` |
-| 10 | BUG-069 part 2 reproduction (Q-3) | Nothing charged, nothing happens |
-| 11 | Destination outside terrain bounds | No charge, hint shown |
-| 12 | Two clients travelling concurrently | Correct, independent outcomes and charges |
-| 13 | JIP client travelling < 60 s after joining | Moves, correct cost displayed and charged |
-| 14 | Controller only, full bus trip | Completable, toggle included |
+| #   | Scenario                                   | Expected                                                   |
+| --- | ------------------------------------------ | ---------------------------------------------------------- |
+| 1   | Fast travel on foot, solo                  | Moves, charged `round(max(1,d/1000) × fastTravelCost)`     |
+| 2   | Fast travel as driver                      | Player **and vehicle** arrive                              |
+| 3   | Fast travel as passenger                   | `#OVT-MustBeDriver`, no charge, no movement                |
+| 4   | Each refusal rule (F-1)                    | Button disabled with the specific reason; keybind inert    |
+| 5   | Recruit toggle ON / OFF                    | Accompaniment and fare move together, both ways            |
+| 6   | Toggle with 0 recruits nearby              | Toggle hidden; solo fare                                   |
+| 7   | Bus from a stop to a stop                  | Fare = `round(d/1000 × busTicketPrice)`, no 1 km floor     |
+| 8   | Bus while not at a stop                    | Disabled with the not-at-a-stop reason; fare still visible |
+| 9   | Bus while in a vehicle                     | `#OVT-MustExitVehicle`                                     |
+| 10  | BUG-069 part 2 reproduction (Q-3)          | Nothing charged, nothing happens                           |
+| 11  | Destination outside terrain bounds         | No charge, hint shown                                      |
+| 12  | Two clients travelling concurrently        | Correct, independent outcomes and charges                  |
+| 13  | JIP client travelling < 60 s after joining | Moves, correct cost displayed and charged                  |
+| 14  | Controller only, full bus trip             | Completable, toggle included                               |
 
 **Debugging.** No debugger — `Print()` only. When travel does nothing, the three usual causes are: the
 component is not on the controller prefab (the RPC never leaves the client), the RPC arity is wrong (it
@@ -1117,11 +1127,11 @@ separately; do not guess.
 
 ### External — user / Workbench work
 
-| Item | Blocking? | Notes |
-|---|---|---|
-| **`OVT_TravelRequestComponent` block + fresh GUID on `Prefabs/GameMode/OVT_OverthrowController.et`** | **YES** | The prefab currently lists `OVT_ContainerTransferComponent`, `OVT_ShopTransactionComponent`, `OVT_TowerSabotageComponent`, `RplComponent`, each with a GUID. A component in script but not on the prefab is a **silent no-op** — the client's RPC never leaves the machine |
-| **Localization export regeneration** for the four new `.st` ids | No | Layout and labels use literal English until regenerated; the user rebuilds the six `localization_Overthrow.<lang>.conf` exports in Workbench |
-| Workbench verification of the new layout widget and input action | No | Both are plain text and hand-editable; the user confirms they load |
+| Item                                                                                                 | Blocking? | Notes                                                                                                                                                                                                                                                                      |
+| ---------------------------------------------------------------------------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`OVT_TravelRequestComponent` block + fresh GUID on `Prefabs/GameMode/OVT_OverthrowController.et`** | **YES**   | The prefab currently lists `OVT_ContainerTransferComponent`, `OVT_ShopTransactionComponent`, `OVT_TowerSabotageComponent`, `RplComponent`, each with a GUID. A component in script but not on the prefab is a **silent no-op** — the client's RPC never leaves the machine |
+| **Localization export regeneration** for the four new `.st` ids                                      | No        | Layout and labels use literal English until regenerated; the user rebuilds the six `localization_Overthrow.<lang>.conf` exports in Workbench                                                                                                                               |
+| Workbench verification of the new layout widget and input action                                     | No        | Both are plain text and hand-editable; the user confirms they load                                                                                                                                                                                                         |
 
 **Localization is master-only.** New ids go in `Language/localization_Overthrow.st` **only** — never edit
 `Language/localization_Overthrow.<lang>.conf` (Workbench-generated; hand-editing has corrupted all six files
@@ -1174,24 +1184,24 @@ Scripts/Game/Tests/TestSuites/Logic/            + ComputeFare case (optional, §
 
 ## 11. Risks & Mitigation
 
-| # | Risk | Likelihood | Impact | Mitigation |
-|---|---|---|---|---|
-| **R1** | **Parallel development:** Phase 4 cannot compile until `map/location-types` Phase 1 publishes `GetMapMarkers()` / `GetNearestMarker` / `OVT_MapLocationBusStop` | High | Medium | Bus is deliberately the **last** build phase. Phase 1 defines `IsAtBusStop` against the published signature with a null-guard that returns `false` when the registry is absent, so Phases 1–3 compile and ship against a tree without markers. Re-run `tools/compile-check.sh` the moment Phase 1 lands. Do **not** stub a local bus-stop lookup — that would fork the registry |
-| **R2** | **`OVT_TravelRequestComponent` is not on the controller prefab**, so every client request silently vanishes | Medium | High | Called out as a **blocking** user dependency (§10). First debug print of Phase 2 goes in `RpcAsk_Travel`; if it never fires from a client but fires on a listen-server host, the prefab is the cause |
-| **R3** | **The listen-server case is validated against the wrong player** — N1's failure mode reappearing somewhere else | Medium | High | The rule that closes it: **no function reachable from the server may call `SCR_PlayerController.GetLocalControlledEntity()`**. Enforced by the Phase 1 grep acceptance and by the client-only doc comment. Test on a listen server as well as a dedicated one |
-| **R4** | **Client recruit count ≠ server recruit count** on a dedicated server (N9), so the displayed fare is wrong | Medium | Medium | The server charges its own count and **reports the actual amount back**, which the client displays — drift becomes visible, not silent (§4.5). V-4 step 3 checks the two agree in the normal case. If they systematically disagree, the toggle's label is wrong and the cause is `FindRecruitEntity`'s client branch (`:1659-1670`) — file against `resistance/recruits`, do not paper over it |
-| **R5** | **Displayed cost is already `$0` on MP clients** because `GetPlayerControlledEntity(localId)` returns null client-side (`OVT_FastTravelService.c:85-87`) | Medium | Medium | Phase 0 step 6 measures it **before** any code is written. If confirmed, the client wrapper resolves the actor with `SCR_PlayerController.GetLocalControlledEntity()` and passes it in — which the parameterized design makes a one-line change |
-| **R6** | **Clicking the recruit toggle dismisses the panel** — `OnMapSelection` treats a click with no hovered element as "empty space" → unpin → `ForceHideLocationInfo` (N12) | Medium | High for gamepad | Phase 0 step 8 observes it. Fix if present: guard `OnMapSelection` to ignore selections whose cursor position lies inside the info panel's rect. This is a `map/core`-adjacent change — keep it minimal, and record it in `map/core`'s `context.md`. Fallback: bind the toggle to `gamepad0:pad_right` per K7 so the pad path never routes through `MapSelect` |
-| **R7** | **`Rpc()` arity blind spot** — wrong argument count compiles clean and dies silently at the wire (BUG-090) | Medium | High | Only **two** new RPC signatures exist (K10). Both are read by hand against every call site, and the check is recorded in `context.md` (Q-7). A `Print()` at the top of `RpcAsk_Travel` distinguishes "never arrived" from "refused" |
-| **R8** | **`gamepad0:x` collision with vanilla's radial menu** (N10) makes fast travel unusable or double-triggering on a controller | Medium | Medium | Observed in Phase 0, resolved in Phase 5 per K7's two branches. `gamepad0:pad_right` is the one demonstrably free pad input |
-| **R9** | **The per-recruit fare on fast travel is perceived as a stealth nerf** | Medium | Low | K3 records it prominently as user-approved, notes the N5 correction (legacy already charged per recruit), and states the player-visible consequence. The opt-out toggle means nobody pays for recruits they did not choose to bring |
-| **R10** | **Money is taken but the player did not move**, or vice versa | Low | High | Ordering is the mitigation (K8): validate → cost → teleport → charge. `TeleportPlayer`'s return value is checked (`Functions.c:1640-1645`). Q-1 tests it explicitly with an out-of-bounds destination |
-| **R11** | **A refusal after the map closes looks like the game ignored the click** | Medium | Medium | Every non-OK result maps to a localized key via `ReasonKeyFor` and reaches the player through `OVT_Global.ShowHint` (Q-2). Test the QRF case specifically: start a QRF between opening the map and pressing travel |
-| **R12** | **Concurrent parallel edits** to `OVT_OverthrowMapUI.c` / `OverthrowMap.conf` collide with `map/location-types` work in the same tree | Medium | Low | Touch only `SetupFastTravelButton`/`OnFastTravelClicked`/`OnMapOpen` in the map UI; add no location type and no conf entry (the bus-stop entry is location-types'). Re-check `git status` before each phase — parallel sessions commit mid-work in this tree |
+| #       | Risk                                                                                                                                                                   | Likelihood | Impact           | Mitigation                                                                                                                                                                                                                                                                                                                                                                                     |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **R1**  | **Parallel development:** Phase 4 cannot compile until `map/location-types` Phase 1 publishes `GetMapMarkers()` / `GetNearestMarker` / `OVT_MapLocationBusStop`        | High       | Medium           | Bus is deliberately the **last** build phase. Phase 1 defines `IsAtBusStop` against the published signature with a null-guard that returns `false` when the registry is absent, so Phases 1–3 compile and ship against a tree without markers. Re-run `tools/compile-check.sh` the moment Phase 1 lands. Do **not** stub a local bus-stop lookup — that would fork the registry                |
+| **R2**  | **`OVT_TravelRequestComponent` is not on the controller prefab**, so every client request silently vanishes                                                            | Medium     | High             | Called out as a **blocking** user dependency (§10). First debug print of Phase 2 goes in `RpcAsk_Travel`; if it never fires from a client but fires on a listen-server host, the prefab is the cause                                                                                                                                                                                           |
+| **R3**  | **The listen-server case is validated against the wrong player** — N1's failure mode reappearing somewhere else                                                        | Medium     | High             | The rule that closes it: **no function reachable from the server may call `SCR_PlayerController.GetLocalControlledEntity()`**. Enforced by the Phase 1 grep acceptance and by the client-only doc comment. Test on a listen server as well as a dedicated one                                                                                                                                  |
+| **R4**  | **Client recruit count ≠ server recruit count** on a dedicated server (N9), so the displayed fare is wrong                                                             | Medium     | Medium           | The server charges its own count and **reports the actual amount back**, which the client displays — drift becomes visible, not silent (§4.5). V-4 step 3 checks the two agree in the normal case. If they systematically disagree, the toggle's label is wrong and the cause is `FindRecruitEntity`'s client branch (`:1659-1670`) — file against `resistance/recruits`, do not paper over it |
+| **R5**  | **Displayed cost is already `$0` on MP clients** because `GetPlayerControlledEntity(localId)` returns null client-side (`OVT_FastTravelService.c:85-87`)               | Medium     | Medium           | Phase 0 step 6 measures it **before** any code is written. If confirmed, the client wrapper resolves the actor with `SCR_PlayerController.GetLocalControlledEntity()` and passes it in — which the parameterized design makes a one-line change                                                                                                                                                |
+| **R6**  | **Clicking the recruit toggle dismisses the panel** — `OnMapSelection` treats a click with no hovered element as "empty space" → unpin → `ForceHideLocationInfo` (N12) | Medium     | High for gamepad | Phase 0 step 8 observes it. Fix if present: guard `OnMapSelection` to ignore selections whose cursor position lies inside the info panel's rect. This is a `map/core`-adjacent change — keep it minimal, and record it in `map/core`'s `context.md`. Fallback: bind the toggle to `gamepad0:pad_right` per K7 so the pad path never routes through `MapSelect`                                 |
+| **R7**  | **`Rpc()` arity blind spot** — wrong argument count compiles clean and dies silently at the wire (BUG-090)                                                             | Medium     | High             | Only **two** new RPC signatures exist (K10). Both are read by hand against every call site, and the check is recorded in `context.md` (Q-7). A `Print()` at the top of `RpcAsk_Travel` distinguishes "never arrived" from "refused"                                                                                                                                                            |
+| **R8**  | **`gamepad0:x` collision with vanilla's radial menu** (N10) makes fast travel unusable or double-triggering on a controller                                            | Medium     | Medium           | Observed in Phase 0, resolved in Phase 5 per K7's two branches. `gamepad0:pad_right` is the one demonstrably free pad input                                                                                                                                                                                                                                                                    |
+| **R9**  | **The per-recruit fare on fast travel is perceived as a stealth nerf**                                                                                                 | Medium     | Low              | K3 records it prominently as user-approved, notes the N5 correction (legacy already charged per recruit), and states the player-visible consequence. The opt-out toggle means nobody pays for recruits they did not choose to bring                                                                                                                                                            |
+| **R10** | **Money is taken but the player did not move**, or vice versa                                                                                                          | Low        | High             | Ordering is the mitigation (K8): validate → cost → teleport → charge. `TeleportPlayer`'s return value is checked (`Functions.c:1640-1645`). Q-1 tests it explicitly with an out-of-bounds destination                                                                                                                                                                                          |
+| **R11** | **A refusal after the map closes looks like the game ignored the click**                                                                                               | Medium     | Medium           | Every non-OK result maps to a localized key via `ReasonKeyFor` and reaches the player through `OVT_Global.ShowHint` (Q-2). Test the QRF case specifically: start a QRF between opening the map and pressing travel                                                                                                                                                                             |
+| **R12** | **Concurrent parallel edits** to `OVT_OverthrowMapUI.c` / `OverthrowMap.conf` collide with `map/location-types` work in the same tree                                  | Medium     | Low              | Touch only `SetupFastTravelButton`/`OnFastTravelClicked`/`OnMapOpen` in the map UI; add no location type and no conf entry (the bus-stop entry is location-types'). Re-check `git status` before each phase — parallel sessions commit mid-work in this tree                                                                                                                                   |
 
 ---
 
-*Plan created 2026-08-10 by `/plan-feature map/fast-travel`, replacing the retrospective discovery document.
+_Plan created 2026-08-10 by `/plan-feature map/fast-travel`, replacing the retrospective discovery document.
 Discovered architecture and findings F1–F7 preserved and corrected in §3. Use `/proceed` to execute the
 phases in order — Phase 0 and Phase 6 are user-driven play-tests, and Phase 2 is flagged for
-`network-specialist-advanced`.*
+`network-specialist-advanced`._

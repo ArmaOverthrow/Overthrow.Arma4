@@ -1624,35 +1624,17 @@ class OVT_MapTerritoryLayer : OVT_MapCanvasLayer
 	// COLOUR
 	//-----------------------------------------------------------------------
 
-	//! THE ONLY PLACE THIS FILE RESOLVES A COLOUR, and it does not implement the lookup - it calls the
-	//! SAME shared helper the town, base and radio-tower markers call, so territory colour and marker
-	//! colour cannot drift apart. There is exactly one implementation of "what colour is faction N".
-	//!
-	//! What this method still owns is the ALPHA. Color.PackToInt would bake the faction's own alpha,
-	//! which would defeat the contested-versus-held distinction entirely, so the components are unpacked
-	//! and recomposed against our alpha instead.
-	//!
-	//! The unresolved-faction fallback here is WHITE, matching the base and radio-tower markers rather
-	//! than the town marker's black: a black wash over the map is far less legible than a pale one, and
-	//! this is a region rather than a small icon.
+	//! THE PACKING LIVES ON OVT_MapLocationType, not here. This file used to carry its own copy of the
+	//! unpack-recompose-at-our-alpha body; the restricted-area layer carried a byte-identical one, and a
+	//! third consumer arriving is what promoted it to the shared helper the markers already live beside.
+	//! Territory fill, restriction rings and influence lines therefore cannot drift apart in hue, and the
+	//! white unresolved-faction fallback the region rendering needs is the shared one.
 	//! \param[in] factionIndex The controlling faction index.
 	//! \param[in] alpha Fill alpha, 0-255.
 	//! \return Packed ARGB fill colour, falling back to white when the faction cannot be resolved.
 	protected int ResolveFactionArgb(int factionIndex, int alpha)
 	{
-		int red = 255;
-		int green = 255;
-		int blue = 255;
-
-		Color colour = OVT_MapLocationType.GetFactionColorByIndex(factionIndex);
-		if (colour)
-		{
-			red = Math.ClampInt(Math.Round(colour.R() * 255), 0, 255);
-			green = Math.ClampInt(Math.Round(colour.G() * 255), 0, 255);
-			blue = Math.ClampInt(Math.Round(colour.B() * 255), 0, 255);
-		}
-
-		return ARGB(Math.ClampInt(alpha, 0, 255), red, green, blue);
+		return OVT_MapLocationType.GetFactionArgbByIndex(factionIndex, alpha);
 	}
 
 	//-----------------------------------------------------------------------

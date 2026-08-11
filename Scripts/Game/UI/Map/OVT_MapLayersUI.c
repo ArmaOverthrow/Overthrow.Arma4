@@ -1140,7 +1140,7 @@ class OVT_MapLayersUI : SCR_MapUIBaseComponent
 
 		m_bWarnedEmptyLayerId = true;
 
-		Print("[Overthrow] OVT_MapLayersUI: canvas layer " + className + " has an empty m_sLayerId and was skipped - it has no addressable key, so it can be neither toggled nor remembered. Set m_sLayerId in Configs/Map/MapFullscreen.conf. Further occurrences are suppressed.", LogLevel.WARNING);
+		Print("[Overthrow] OVT_MapLayersUI: canvas layer " + className + " has an empty m_sLayerId and was skipped - it has no addressable key, so it can be neither toggled nor remembered. Set m_sLayerId in Configs/Map/MapOverthrow.conf. Further occurrences are suppressed.", LogLevel.WARNING);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1153,7 +1153,7 @@ class OVT_MapLayersUI : SCR_MapUIBaseComponent
 
 		m_bWarnedEmptyDisplayName = true;
 
-		Print("[Overthrow] OVT_MapLayersUI: canvas layer '" + layerId + "' has an empty m_sDisplayName and was skipped - a blank row is worse than no row. Set m_sDisplayName in Configs/Map/MapFullscreen.conf. Further occurrences are suppressed.", LogLevel.WARNING);
+		Print("[Overthrow] OVT_MapLayersUI: canvas layer '" + layerId + "' has an empty m_sDisplayName and was skipped - a blank row is worse than no row. Set m_sDisplayName in Configs/Map/MapOverthrow.conf. Further occurrences are suppressed.", LogLevel.WARNING);
 	}
 
 	//------------------------------------------------------------------------------------------------

@@ -116,7 +116,7 @@ void PostGameStart()
     // Distribute starting resources
     DistributeStartingResources();
 
-    // Don't do this on save load - data restored via EPF
+    // Don't do this on save load - data is restored by the serializer
 }
 ```
 
@@ -374,39 +374,69 @@ void SomeMethod()
 
 ### Manager Persistence Pattern
 
+A manager's state is persisted by a **`ScriptedComponentSerializer`** living in
+`Scripts/Game/Persistence/Serializers/Components/`, bound by an entry in the game-mode entity's
+`ComponentSerializers` block in `Configs/Systems/Persistence/Overthrow.conf`.
+
 ```cpp
-#ifndef PLATFORM_CONSOLE
-
-[EPF_ComponentSaveDataType(OVT_TownManagerComponent)]
-class OVT_TownManagerSaveDataClass : EPF_ComponentSaveDataClass {};
-
-class OVT_TownManagerSaveData : EPF_ComponentSaveData
+class OVT_TownManagerSerializer : ScriptedComponentSerializer
 {
-    ref array<ref OVT_TownData> m_aTownData;
-    int m_iNextTownId;
-
-    override void ReadFrom(OVT_TownManagerComponent component)
+    //! \return The component class this serializer is responsible for.
+    override static typename GetTargetType()
     {
-        // Extract manager state
-        m_aTownData = new array<ref OVT_TownData>();
-        component.GetTownData(m_aTownData);
-
-        m_iNextTownId = component.GetNextTownId();
+        return OVT_TownManagerComponent;
     }
 
-    override void ApplyTo(OVT_TownManagerComponent component)
+    override protected ESerializeResult Serialize(notnull IEntity owner, notnull GenericComponent component, notnull SaveContext context)
     {
-        // Restore manager state
-        component.SetTownData(m_aTownData);
-        component.SetNextTownId(m_iNextTownId);
+        OVT_TownManagerComponent manager = OVT_TownManagerComponent.Cast(component);
+        if (!manager)
+            return ESerializeResult.ERROR;
 
-        // Rebuild runtime structures
-        component.RebuildTownIndex();
+        context.WriteValue("version", 1);          // ALWAYS first
+
+        array<ref OVT_TownRecord> records = new array<ref OVT_TownRecord>();
+        manager.BuildTownRecords(records);
+        context.Write(records);
+
+        int nextTownId = manager.GetNextTownId();
+        context.Write(nextTownId);
+
+        return ESerializeResult.OK;
+    }
+
+    override protected bool Deserialize(notnull IEntity owner, notnull GenericComponent component, notnull LoadContext context)
+    {
+        OVT_TownManagerComponent manager = OVT_TownManagerComponent.Cast(component);
+        if (!manager)
+            return false;
+
+        // No version means no payload for this component - tolerate it.
+        int version;
+        context.ReadValue("version", version);
+        if (version < 1)
+            return true;
+
+        array<ref OVT_TownRecord> records = new array<ref OVT_TownRecord>();
+        context.Read(records);                     // SAME ORDER as Serialize
+
+        int nextTownId;
+        context.Read(nextTownId);
+
+        manager.RestoreTownRecords(records);
+        manager.SetNextTownId(nextTownId);
+
+        return true;
     }
 }
-
-#endif
 ```
+
+- **No `#ifndef PLATFORM_CONSOLE`** — the vanilla system handles consoles internally.
+- **Binary contexts are positional:** write order must equal read order.
+- **`Deserialize` must be idempotent** — it also runs when save data is re-applied to a live session.
+- ⚠️ **Not listed in `Overthrow.conf` = silently never called.**
+
+See `enforcescript-patterns/persistence.md`, or the real `OVT_TownManagerSerializer` in the repo.
 
 ---
 
@@ -427,7 +457,7 @@ class OVT_TownManagerSaveData : EPF_ComponentSaveData
 - **Create multiple instances:** Managers are singletons
 - **Assume always exists:** Check GetInstance() result
 - **Initialize in constructor:** Use Init() instead
-- **Forget platform guards:** Wrap EPF in #ifndef PLATFORM_CONSOLE
+- **Add console guards:** `#ifdef PLATFORM_CONSOLE` around persistence was an EPF-era requirement and is now wrong
 - **Access directly:** Use OVT_Global accessors instead of GetInstance()
 - **Replicate everything:** Most managers server-side only
 
@@ -463,8 +493,8 @@ class OVT_TownManagerSaveData : EPF_ComponentSaveData
 **Fix:** Add Init() call to OVT_OverthrowGameMode initialization
 
 ### Issue: State lost after load
-**Cause:** Missing persistence SaveData class
-**Fix:** Implement EPF save/load pattern
+**Cause:** No serializer for the component - or one that exists but is missing from `Configs/Systems/Persistence/Overthrow.conf`, in which case it is silently never called
+**Fix:** Implement a `ScriptedComponentSerializer` and register it in that config
 
 ---
 
@@ -473,5 +503,5 @@ class OVT_TownManagerSaveData : EPF_ComponentSaveData
 - See `controllers.md` for controller pattern
 - See `global-access.md` for OVT_Global usage
 - See `enforcescript-patterns/component-patterns.md` for base patterns
-- See `enforcescript-patterns/persistence.md` for EPF patterns
+- See `enforcescript-patterns/persistence.md` for vanilla persistence patterns (⚠️ EPF retired 2026-08-02)
 - See main `SKILL.md` for overview

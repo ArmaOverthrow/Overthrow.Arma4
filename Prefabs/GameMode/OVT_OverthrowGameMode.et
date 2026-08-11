@@ -3,8 +3,6 @@ OVT_OverthrowGameMode {
  components {
   Persistence "{6B0E7A12A7B14C58}" {
   }
-  OVT_ReconnectComponent "{6B0E7A12A7B14C60}" {
-  }
   OVT_DeploymentManagerComponent "{65B2DE4D19F8D47E}" {
    m_DeploymentRegistry OVT_DeploymentRegistry "{65B2DE433E54414A}" : "{C9A38056910495A2}Configs/Deployment/overthrowDeployments.conf" {
    }
@@ -157,6 +155,8 @@ OVT_OverthrowGameMode {
   }
   OVT_RealEstateManagerComponent "{59724C983E7EF811}" {
   }
+  OVT_ReconnectComponent "{6B0E7A12A7B14C60}" {
+  }
   OVT_RecruitManagerComponent "{65A26826DE2960D9}" {
    m_sRecruitPrefab "{F38D366DDC666132}Prefabs/Characters/Factions/CIV/Character_CIV_Recruit.et"
   }
@@ -201,6 +201,19 @@ OVT_OverthrowGameMode {
    m_bRandomStartingWeather 1
    m_bRandomWeatherChanges 1
   }
+  OVT_TownManagerComponent "{59724C983BF56C3B}" {
+   m_aTownModifiers {
+    OVT_TownStabilityModifierSystem "{59A2BDDB065D9242}" {
+     m_rConfigFile "{FD430627EAC5BDBC}Configs/Modifiers/stabilityModifiers.conf"
+    }
+    OVT_TownSupportModifierSystem "{59A2BDDB000FF00C}" {
+     m_rConfigFile "{AB1726E5220F21F1}Configs/Modifiers/supportModifiers.conf"
+    }
+   }
+   m_aIgnoreTowns {
+    "#AR-MapLocation_Erquy"
+   }
+  }
   OVT_TutorialManagerComponent "{6B3A000000000010}" {
    m_aEntries {
     OVT_TutorialEntryConfig "{6B3A000000000011}" : "{6B3A000000000001}Configs/Tutorials/proofFirstBuy.conf" {
@@ -227,19 +240,6 @@ OVT_OverthrowGameMode {
     }
     OVT_TutorialEntryConfig "{6B3D000000000016}" : "{6B3D000000000010}Configs/Tutorials/welcomeNohome.conf" {
     }
-   }
-  }
-  OVT_TownManagerComponent "{59724C983BF56C3B}" {
-   m_aTownModifiers {
-    OVT_TownStabilityModifierSystem "{59A2BDDB065D9242}" {
-     m_rConfigFile "{FD430627EAC5BDBC}Configs/Modifiers/stabilityModifiers.conf"
-    }
-    OVT_TownSupportModifierSystem "{59A2BDDB000FF00C}" {
-     m_rConfigFile "{AB1726E5220F21F1}Configs/Modifiers/supportModifiers.conf"
-    }
-   }
-   m_aIgnoreTowns {
-    "#AR-MapLocation_Erquy"
    }
   }
   OVT_VehicleManagerComponent "{5D707B3386AF876D}" {
@@ -279,6 +279,8 @@ OVT_OverthrowGameMode {
   SCR_HintManagerComponent "{59724C8C935D8E2C}" {
   }
   SCR_MapConfigComponent "{5D56F4474D716C00}" {
+   m_sGadgetMapConfigPath "{F54BE666A2B1AAC5}Configs/Map/MapOverthrow.conf"
+   m_sEditorMapConfigPath "{19C76194B21EC3E2}Configs/Map/MapOverthrow_GM.conf"
   }
   SCR_MapMarkerManagerComponent "{5E4852B941E83CA7}" {
   }

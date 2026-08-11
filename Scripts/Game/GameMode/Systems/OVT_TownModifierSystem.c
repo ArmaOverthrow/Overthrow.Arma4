@@ -149,6 +149,34 @@ class OVT_TownModifierSystem : ScriptAndConfig
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Index of a modifier in this system's config, by the name it was authored under.
+	//!
+	//! READ-ONLY AND CLIENT-SAFE. The config is loaded by LoadConfig on EVERY machine - only the
+	//! handler wiring in PostInit is server-gated - so a client can resolve a name to the same index
+	//! the server uses. That matters because the index is what the replicated per-town modifier lists
+	//! carry: a reader holding a NAME cannot ask a town whether it has that modifier without coming
+	//! through here first.
+	//!
+	//! IT EXISTS SO NOBODY SCANS m_aModifiers INLINE AGAIN. Three methods in this file already walk
+	//! the array looking for a name, and a fourth walk written in a UI file is how the config's
+	//! internals leak out of it.
+	//! \param[in] name Modifier name as authored in the config
+	//! \return Index into m_aModifiers, or -1 when this system has no modifier by that name (an empty
+	//! name is one such case, and is refused rather than matched against an unnamed entry)
+	int GetModifierIndexByName(string name)
+	{
+		if(!m_Config || !m_Config.m_aModifiers) return -1;
+		if(name == string.Empty) return -1;
+
+		foreach(int index, OVT_ModifierConfig config : m_Config.m_aModifiers)
+		{
+			if(config && config.name == name) return index;
+		}
+
+		return -1;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! How many of one modifier a town may carry at once.
 	//!
 	//! A STACKABLE modifier is allowed its configured stackLimit. A non-stackable one is allowed

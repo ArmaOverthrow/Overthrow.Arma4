@@ -24,7 +24,7 @@ for free, with no validation).
 
 **The approach is caller-first and compile-gated per phase.** Callers are cut before callees, so the tree
 is shippable at every phase boundary and no intermediate state is broken. Phase 1 removes the main-menu
-entries first — `OVT_MainMenuContext.c:218` is the *only* thing left that arms `m_bFastTravelActive`, so
+entries first — `OVT_MainMenuContext.c:218` is the _only_ thing left that arms `m_bFastTravelActive`, so
 after Phase 1 every legacy mode is provably unreachable before a single line of the map code is deleted.
 
 **Net effect:** `OVT_MapContext` goes from 592 lines to under 80; `OVT_MapIcons.c` (846 lines), three
@@ -32,7 +32,7 @@ layouts and their `.meta` files, one config block, four RPCs, one string id and 
 away entirely. **No player-visible capability is removed** — everything the deleted code did is done by
 `OVT_OverthrowMapUI` + `OVT_TravelRequestComponent` today.
 
-This is a *removal* feature. If a gap surfaces during retirement, it goes back to `map/location-types` or
+This is a _removal_ feature. If a gap surfaces during retirement, it goes back to `map/location-types` or
 `map/fast-travel` — it is **not** fixed here.
 
 ---
@@ -73,7 +73,7 @@ strip; touching the canvas-layer modules; reworking the main menu beyond the two
                        └──────────────────────────────────────────┘
                                           │ opens
                                           ▼
-   Configs/Map/MapFullscreen.conf  (same-GUID DELTA over vanilla)
+   Configs/Map/MapOverthrow.conf  (same-GUID DELTA over vanilla)
      m_aModules                          m_aUIComponents
        OVT_MapRestrictedAreas  KEEP        OVT_MapPlayerLocation   KEEP
        OVT_MapThreatGrid       KEEP        OVT_MapIcons            ✂ DELETE
@@ -93,14 +93,14 @@ through `OVT_OverthrowController`), and **one** place a location's data is rende
 
 ### 3.2 What `OVT_MapContext` becomes
 
-It stops being a *map* class and becomes a thin **map-gadget helper** for the player character: find the
+It stops being a _map_ class and becomes a thin **map-gadget helper** for the player character: find the
 map gadget, raise it, stow it. Nothing about markers, modes, clicks, towns, travel or input remains.
 
-| Retained | Why |
-|---|---|
-| `GetMap()` | Resolves the map gadget; used by the other three |
-| `ShowMap()` | Used by `OpenMap()` |
-| `OpenMap()` | `OVT_CatchBusAction`'s entry point — the one live external caller |
+| Retained    | Why                                                                  |
+| ----------- | -------------------------------------------------------------------- |
+| `GetMap()`  | Resolves the map gadget; used by the other three                     |
+| `ShowMap()` | Used by `OpenMap()`                                                  |
+| `OpenMap()` | `OVT_CatchBusAction`'s entry point — the one live external caller    |
 | `HideMap()` | **Zero callers after the strip — retained deliberately, see §5 K-3** |
 
 Everything else in the file is deleted: the three mode flags, the three `Enable*`/`Disable*` pairs,
@@ -119,10 +119,10 @@ nothing. Removing `PostInit` reverts to the base's. Removing `m_Layout` from the
 - **All three canvas-layer modules.** `OVT_MapRestrictedAreas` (live — draws the FOB-deploy restriction
   rings `resistance/fob` enforces; **BUG-070's fix must not regress**), `OVT_MapThreatGrid` (shipped
   disabled, `map/territory-overlay` decides its fate), `OVT_MapPlayerLocation` (live). These are
-  `SCR_MapConfig.m_aModules` / `m_aUIComponents` entries on a *different rendering path* from the marker
+  `SCR_MapConfig.m_aModules` / `m_aUIComponents` entries on a _different rendering path_ from the marker
   widgets. This feature must not touch them beyond confirming they still draw.
-- **`UI/Layouts/Map/MapPlayerLocation.layout`** — still bound at `MapFullscreen.conf:12`.
-- **`m_DescriptorDefaultsConfig`** at `MapFullscreen.conf:34-43` — this is `map/location-types`' bus-stop
+- **`UI/Layouts/Map/MapPlayerLocation.layout`** — still bound at `MapOverthrow.conf:12`.
+- **`m_DescriptorDefaultsConfig`** at `MapOverthrow.conf:34-43` — this is `map/location-types`' bus-stop
   duplicate-icon suppression. Nothing to do with `OVT_MapIcons`; it stays.
 - **The `OVT_MapContext` block** in `Character_Player.et:37-44`, minus four attributes.
 
@@ -132,19 +132,19 @@ These were found while verifying the working tree and both are real, player-visi
 
 > **🔴 FINDING A — deleting the "Map Info" block removes the main menu's only initial-focus call.**
 > `OVT_MainMenuContext.c:108` (`GetGame().GetWorkspace().SetFocusedWidget(comp.GetRootWidget())`) sits
-> *inside* the `if (comp)` block for "Map Info", and it is the **only** `SetFocusedWidget` call in the
+> _inside_ the `if (comp)` block for "Map Info", and it is the **only** `SetFocusedWidget` call in the
 > whole context (grep-verified: the only others are in `OVT_VehicleMenuContext`). Delete the block naively
 > and the Overthrow main menu opens with **no focused widget** — a controller/console user has nothing to
-> navigate from. The call must be relocated to the new first entry, **"Place"**. This is *preserving*
+> navigate from. The call must be relocated to the new first entry, **"Place"**. This is _preserving_
 > existing behaviour, so it is in scope for a deletion feature, and it is exactly the class of defect only
 > the P7 gamepad gate would catch.
 
 > **🟡 FINDING B — the in-game Field Manual documents both deleted entries.**
 > `Configs/FieldManual/FieldManualConfigRoot.conf:19-30` holds two header/text pairs whose headers reuse
 > the two menu ids. Their bodies describe the deleted workflow verbatim — `#OVT-FieldManual_MapInfo_Text`
-> says *"Clicking on this in the main menu will open the map, then you can click anywhere on the map to
-> show info about that location"*, and `#OVT-FieldManual_FastTravel_Text` says *"…you can click on any
-> owned house, camp, FOB or base … to instantly travel there."* Both become **false** the moment Phase 1
+> says _"Clicking on this in the main menu will open the map, then you can click anywhere on the map to
+> show info about that location"_, and `#OVT-FieldManual_FastTravel_Text` says _"…you can click on any
+> owned house, camp, FOB or base … to instantly travel there."_ Both become **false** the moment Phase 1
 > lands. Handled in P6 via `help-docs-sync` (§4 P6.4).
 
 **Consequence for the `.st` master:** `#OVT-MainMenu_MapInfo` and `#OVT-MainMenu_FastTravel` are **both
@@ -198,7 +198,7 @@ Nothing arms a legacy mode after this phase. Do it first.
 - **P1.4** `UI/Layouts/Menu/MainMenu.layout` — delete the two whole `ButtonWidgetClass` units, located by
   their `Name "Map Info"` (GUID `{598AB670C1F2839C}`) and `Name "Fast Travel"` (GUID
   `{598AB6734AADE219}`) lines. Each is a ~40-line block ending after its nested `SizeLayoutWidgetClass`;
-  the `m_sText` lines the requirements named are *inside* these blocks, not the units to remove.
+  the `m_sText` lines the requirements named are _inside_ these blocks, not the units to remove.
 - **P1.5** Do **not** touch `Language/localization_Overthrow.st` — both ids are still consumed (§3.4).
 - **P1.6** Do **not** add a "Map" entry (settled decision D-2).
 
@@ -237,7 +237,7 @@ Nothing arms a legacy mode after this phase. Do it first.
   per panel build).
 - **P2.5** 🟡 Add a `//!` block above `HideMap()` recording that it has **no callers today** and is
   retained as public API for `map/respawn` — see §5 K-3. Without this, the next reader deletes it.
-- **P2.6** Add a class-level `//!` comment: this is a map-*gadget* helper, not a map UI class; the map UI
+- **P2.6** Add a class-level `//!` comment: this is a map-_gadget_ helper, not a map UI class; the map UI
   is `OVT_OverthrowMapUI`.
 - **P2.7** `Scripts/Game/UI/Map/OVT_OverthrowMapUI.c` — delete `IsInfoPanelVisible()` (at `:784`, doc
   comment from `:772`). Its sole caller was `IsOverthrowInfoPanelVisible`, deleted in P2.2. The doc
@@ -246,7 +246,7 @@ Nothing arms a legacy mode after this phase. Do it first.
   `OVT_MapContext.c:441`.
 - **P2.8** Correct the stale `OVT_MapContext.c:<line>` prose pointers in
   `Scripts/Game/Services/OVT_FastTravelService.c:50,54` and
-  `Scripts/Game/UI/Map/LocationTypes/OVT_MapLocationBusStop.c:43` — keep the *rationale*, drop the
+  `Scripts/Game/UI/Map/LocationTypes/OVT_MapLocationBusStop.c:43` — keep the _rationale_, drop the
   now-unresolvable line numbers.
 - **P2.9** Correct `Scripts/Game/Tests/TestSuites/Init/OVT_TEST_InitSuite.c:2004,2032,2153,2156` — these
   say "the lookup `OVT_MapContext` makes for bus travel" and that bus travel answers `"NeedBusStop"`, both
@@ -267,22 +267,22 @@ Nothing arms a legacy mode after this phase. Do it first.
 ### Phase 3 — Leaf assets (M · 2–3 h · **advanced agent**)
 
 > **Advanced (max-effort) dev agent.** This phase touches **all four compiler-invisible file classes** in
-> one pass — `.c`, `.conf`, `.layout` (+`.meta`) and `.et`. Compile 0 and green tests say *nothing* about
+> one pass — `.c`, `.conf`, `.layout` (+`.meta`) and `.et`. Compile 0 and green tests say _nothing_ about
 > whether a deleted GUID broke a prefab. Every deletion here must be grep-proven dead first.
 
 - **P3.1** Delete `Scripts/Game/UI/Map/OVT_MapIcons.c` (846 lines). Grep-proven: its `static RegisterPOI`
   (`:46`) has **zero live callers** — only the definition plus prose in `OVT_MapMarkerComponent.c:20`.
-- **P3.2** `Configs/Map/MapFullscreen.conf` — delete the whole `OVT_MapIcons "{5994FB72BE0F9051}" { … }`
+- **P3.2** `Configs/Map/MapOverthrow.conf` — delete the whole `OVT_MapIcons "{5994FB72BE0F9051}" { … }`
   block from `m_aUIComponents` (currently `:14-24`). ⚠️ This file is a **same-GUID delta over vanilla's**,
   so removing the block changes what merges with vanilla rather than replacing a file. **Retain**
   `OVT_MapPlayerLocation`, `OVT_OverthrowMapUI`, both `m_aModules` entries and the whole
   `m_DescriptorDefaultsConfig` block.
 - **P3.3** Delete `UI/Layouts/Map/MapIcon.layout` + `.meta` — GUID `{F5E0CFFFC9F27B19}`, referenced
-  **only** by `MapFullscreen.conf:17`, removed in P3.2.
+  **only** by `MapOverthrow.conf:17`, removed in P3.2.
 - **P3.4** Delete `UI/Layouts/Map/MapInfo.layout` + `.meta` — GUID `{0EC60966C99CE954}`, referenced
   **only** by `Character_Player.et:38`, removed in P3.6.
 - **P3.5** Delete `UI/Layouts/Map/MapInfo/Modifier.layout` + `.meta` — GUID `{7BAC7637E5744768}`,
-  referenced **only** by `Character_Player.et:41` and 8 sites *inside* `MapInfo.layout` (deleted in P3.4).
+  referenced **only** by `Character_Player.et:41` and 8 sites _inside_ `MapInfo.layout` (deleted in P3.4).
   Remove the now-empty `UI/Layouts/Map/MapInfo/` directory.
 - **P3.6** `Prefabs/Characters/Factions/INDFOR/FIA/Character_Player.et` — inside the
   `OVT_MapContext "{598E83B6A7175CBE}" { … }` block, delete the `m_Layout`, `m_ModLayout`,
@@ -291,7 +291,7 @@ Nothing arms a legacy mode after this phase. Do it first.
 - **P3.7** De-reference the nine surviving `OVT_MapIcons.c:<line>` provenance pointers so they no longer
   cite a deleted file: `OVT_MapMarkerComponent.c:20`, `OVT_JobManagerComponent.c:75`,
   `OVT_MapLocationHouse.c:4,118`, `OVT_MapLocationVehicle.c:5,130`, `OVT_MapLocationWaypoint.c:14,18`,
-  `OVT_MapLocationWarehouse.c:5`. **Keep the rationale** (these explain *why* the new types behave as they
+  `OVT_MapLocationWarehouse.c:5`. **Keep the rationale** (these explain _why_ the new types behave as they
   do — that is genuine value); replace "`OVT_MapIcons.c:472`" with "the legacy `OVT_MapIcons` layer
   (deleted in `map/legacy-retirement`)".
 
@@ -302,7 +302,7 @@ Nothing arms a legacy mode after this phase. Do it first.
   no `file:line` pointer.
 - `grep -rn "F5E0CFFFC9F27B19\|0EC60966C99CE954\|7BAC7637E5744768" . --include=*.c --include=*.conf --include=*.et --include=*.layout --include=*.meta` returns **nothing** outside `docs/`.
 - `grep -rn "RegisterPOI" --include=*.c Scripts/` returns at most prose.
-- `MapFullscreen.conf` still contains `OVT_MapRestrictedAreas`, `OVT_MapThreatGrid`,
+- `MapOverthrow.conf` still contains `OVT_MapRestrictedAreas`, `OVT_MapThreatGrid`,
   `OVT_MapPlayerLocation`, `OVT_OverthrowMapUI` and `m_DescriptorDefaultsConfig`.
 - Compile 0; Fast green at the baseline count.
 - ⚠️ **The real gate for this phase is P7** — open the world in the Workbench and confirm zero
@@ -359,20 +359,20 @@ no payment.
   audited. **Result: all of them stay.** Recorded here so the sweep is not re-run and nothing is cut by
   mistake:
 
-  | Id | Verdict | Live consumer after this feature |
-  |---|---|---|
-  | `MustHaveMap` | **KEEP** | The **retained** `OVT_MapContext.OpenMap()` still raises it |
-  | `CannotFastTravelThere` | **KEEP** | `OVT_FastTravelService.c:187,360` + 4 location types |
-  | `CannotFastTravelDistance` | **KEEP** | `OVT_FastTravelService.ReasonKeyFor` (`:175`) |
-  | `CannotFastTravelWanted` | **KEEP** | `ReasonKeyFor` (`:176`) |
-  | `CannotFastTravelDuringQRF` | **KEEP** | `ReasonKeyFor` (`:177`) |
-  | `CannotFastTravelToQRF` | **KEEP** | `ReasonKeyFor` (`:178`) |
-  | `MustBeDriver` | **KEEP** | `ReasonKeyFor` (`:180`) |
-  | `MustExitVehicle` | **KEEP** | `ReasonKeyFor` (`:181`) |
-  | `CannotAfford` | **KEEP** | 14 live call sites across build, place, shop, resistance and travel |
-  | `MainMenu_MapInfo` | **KEEP** | `FieldManualConfigRoot.conf:20` (§3.4) |
-  | `MainMenu_FastTravel` | **KEEP** | Field Manual + `OVT_OverthrowMapUI.c:929` + `OVT_MapInfoPanel.layout:198` |
-  | `NeedBusStop` | **DELETE** | Only consumer was the deleted bus branch |
+  | Id                          | Verdict    | Live consumer after this feature                                          |
+  | --------------------------- | ---------- | ------------------------------------------------------------------------- |
+  | `MustHaveMap`               | **KEEP**   | The **retained** `OVT_MapContext.OpenMap()` still raises it               |
+  | `CannotFastTravelThere`     | **KEEP**   | `OVT_FastTravelService.c:187,360` + 4 location types                      |
+  | `CannotFastTravelDistance`  | **KEEP**   | `OVT_FastTravelService.ReasonKeyFor` (`:175`)                             |
+  | `CannotFastTravelWanted`    | **KEEP**   | `ReasonKeyFor` (`:176`)                                                   |
+  | `CannotFastTravelDuringQRF` | **KEEP**   | `ReasonKeyFor` (`:177`)                                                   |
+  | `CannotFastTravelToQRF`     | **KEEP**   | `ReasonKeyFor` (`:178`)                                                   |
+  | `MustBeDriver`              | **KEEP**   | `ReasonKeyFor` (`:180`)                                                   |
+  | `MustExitVehicle`           | **KEEP**   | `ReasonKeyFor` (`:181`)                                                   |
+  | `CannotAfford`              | **KEEP**   | 14 live call sites across build, place, shop, resistance and travel       |
+  | `MainMenu_MapInfo`          | **KEEP**   | `FieldManualConfigRoot.conf:20` (§3.4)                                    |
+  | `MainMenu_FastTravel`       | **KEEP**   | Field Manual + `OVT_OverthrowMapUI.c:929` + `OVT_MapInfoPanel.layout:198` |
+  | `NeedBusStop`               | **DELETE** | Only consumer was the deleted bus branch                                  |
 
 **Acceptance criteria**
 
@@ -422,7 +422,7 @@ no payment.
 
 > **This phase discharges two features at once.** `map/location-types` Phase 7 (V-3 … V-7) is still
 > outstanding and is the epic's stated hard gate. The user has chosen to implement the deletions against
-> the already-proven *code-level* parity and run **one** combined session. This phase's checklist folds in
+> the already-proven _code-level_ parity and run **one** combined session. This phase's checklist folds in
 > location-types' outstanding items.
 >
 > ⚠️ **Client launches open a real window on the user's desktop and can orphan.** Warn before launching.
@@ -437,7 +437,7 @@ no payment.
 1. Open the project in the Workbench. Confirm **zero missing-resource / missing-GUID errors** in the log.
 2. Open `Prefabs/Characters/Factions/INDFOR/FIA/Character_Player.et` and confirm the `OVT_MapContext`
    block shows no broken/red attribute rows.
-3. Open `Configs/Map/MapFullscreen.conf` and confirm four UI components and two modules remain.
+3. Open `Configs/Map/MapOverthrow.conf` and confirm four UI components and two modules remain.
 
 **7b — Single-player sweep (this feature + location-types V-3, V-4)**
 
@@ -493,39 +493,39 @@ discharged by "compile clean and tests green" — those cover none of 7a–7e.
 
 **K-1 — Caller-first ordering, gated per phase.**
 Cut the callers before the callees. `OVT_MainMenuContext.c:218` is the **only** remaining thing that arms
-`m_bFastTravelActive`; removing it in P1 makes every legacy mode *provably* unreachable before one line of
+`m_bFastTravelActive`; removing it in P1 makes every legacy mode _provably_ unreachable before one line of
 map code is deleted. This means no intermediate state where a reachable code path calls a deleted symbol,
 each phase is independently revertable, and the tree is shippable at every boundary. The alternative — one
 big-bang deletion — would be faster to write and impossible to bisect.
 
-**K-2 — `OVT_MapContext` is slimmed, not deleted** *(settled decision D-1)*.
+**K-2 — `OVT_MapContext` is slimmed, not deleted** _(settled decision D-1)_.
 `OVT_CatchBusAction` resolves it by type and calls `OpenMap()`; deleting the class would mean rewriting a
 working world action and its prefab binding for no gain. The four survivors are genuinely useful map-gadget
 helpers with no legacy coupling. Requirements §"Out of Scope" explicitly permits either outcome.
 
-**K-3 — `HideMap()` is retained despite having zero callers.** *(verified, not assumed)*
+**K-3 — `HideMap()` is retained despite having zero callers.** _(verified, not assumed)_
 All eight in-file callers (`MapExit` ×1, `MapClick` ×7) are deleted by P2, and grep confirms no external
 caller: `OVT_OverthrowMapUI` has its **own private** `HideMap()` at `:1327` (called from `:1226`) and its
 own `GetMap()` at `:1291` — neither touches this one. So after P2 it is public API with no consumers.
 Retained anyway, per D-1, because: (a) it carries the hard-won fast-travel-era fix — `ToggleFocused(false)`
-*then* stow, with the dead check and held-gadget guard — which was found by play-test, not by any gate, and
+_then_ stow, with the dead check and held-gadget guard — which was found by play-test, not by any gate, and
 which would be re-derived incorrectly if lost; and (b) `map/respawn` (feature 5) needs exactly this
 close-and-stow behaviour. This is a deliberate, documented exception to "delete what is dead", and P2.5
 requires a `//!` comment saying so — otherwise the next reader cuts it as an orphan.
 
-**K-4 — Both main-menu entries go with no replacement** *(settled decision D-2)*.
+**K-4 — Both main-menu entries go with no replacement** _(settled decision D-2)_.
 The map is opened by the vanilla map gadget (`GadgetMap`, `KC_M`/`gamepad0:view`) and by
 `OVT_CatchBusAction`. A "Map" menu row would be a third way to do the same thing — precisely the
 duplication this feature exists to remove. The two `.st` ids survive anyway because the Field Manual and
 the map's own travel button consume them (§3.4).
 
-**K-5 — The comms-component RPCs are deleted as a security fix, not a cleanup** *(settled decision D-3)*.
+**K-5 — The comms-component RPCs are deleted as a security fix, not a cleanup** _(settled decision D-3)_.
 `RpcAsk_RequestFastTravel*` do `ResolveSenderPlayerId` + `TeleportPlayer` with no validation and no
 payment. They are unreachable after P1 but remain **registered RPCs on a live component**, so the wire
 surface exists regardless of whether any shipped UI calls it. Nothing is lost: the recruit ring-placement
 loop is already duplicated verbatim in `OVT_TravelRequestComponent.TeleportRecruits`.
 
-**K-6 — Build now against code-level parity; one combined play-test gate** *(settled decision D-4)*.
+**K-6 — Build now against code-level parity; one combined play-test gate** _(settled decision D-4)_.
 `map/location-types` Phase 7 is outstanding and is the epic's hard gate. Rather than block, the deletions
 are implemented against the already-proven code-level parity and verified in **one** session that
 discharges both features. Justified because each phase is a separate commit and `git revert` is the whole
@@ -537,14 +537,14 @@ it looks like a fast-travel-mode string, but its surviving call site is inside t
 `OpenMap()`. Deleting a string the live path still shows is a silent, player-visible defect that no gate
 catches. The default is KEEP unless grep proves otherwise.
 
-**K-8 — `MapFullscreen.conf` is a delta, not a replacement.**
+**K-8 — `MapOverthrow.conf` is a delta, not a replacement.**
 Removing the `OVT_MapIcons` block changes what merges with vanilla's config. This is why
 `SCR_MapRadialUI` is still live on Overthrow's map despite our conf never mentioning it, and why the
 `m_DescriptorDefaultsConfig` block must be left alone — it is `map/location-types`' bus-stop duplicate
 suppression, not `OVT_MapIcons` support.
 
 **K-9 — Provenance comments keep their rationale but lose their line numbers.**
-Nine surviving `//!` comments cite `OVT_MapIcons.c:<line>` to explain *why* a new location type behaves as
+Nine surviving `//!` comments cite `OVT_MapIcons.c:<line>` to explain _why_ a new location type behaves as
 it does. That reasoning is worth keeping; a `file:line` pointer into a deleted file is actively
 misleading. P3.7 rewrites the pointer, not the reasoning — and the DoD grep then has a known, enumerated
 expected result instead of an open-ended one.
@@ -560,7 +560,7 @@ An independent evaluator with no implementation context can verify every item be
 - **F-1** The Overthrow main menu shows **no "Map Info" row and no "Fast Travel" row**. The remaining rows
   (Place, Resistance, Jobs, Build, Real Estate, Manage Recruits, Character Sheet, Save) all still work.
 - **F-2** Opening the Overthrow main menu with a **controller** immediately focuses the first row
-  ("Place") and D-pad navigation works from the first press. *(FINDING A)*
+  ("Place") and D-pad navigation works from the first press. _(FINDING A)_
 - **F-3** `OVT_CatchBusAction` at a bus stop still opens the map, a bus-stop info panel still offers a
   **priced** trip, and taking it moves the player and charges **once**.
 - **F-4** Fast travel from a location info panel still works, still charges **once**, and still brings
@@ -568,9 +568,9 @@ An independent evaluator with no implementation context can verify every item be
 - **F-5** The FOB restriction rings still draw, at the radii the FOB deploy check enforces (BUG-070's fix
   has not regressed). The player-location marker still draws.
 - **F-6** No player-visible capability that existed before this feature is missing. Clicking empty map to
-  read town info is *not* such a capability — it was already superseded by the Town location panel.
+  read town info is _not_ such a capability — it was already superseded by the Town location panel.
 - **F-7** The in-game Field Manual does not instruct the player to use a menu entry that no longer exists.
-  *(FINDING B)*
+  _(FINDING B)_
 
 ### 6.2 Quality criteria
 
@@ -604,7 +604,7 @@ An independent evaluator with no implementation context can verify every item be
 
 - **I-1** All three canvas-layer modules still register and draw: `OVT_MapRestrictedAreas` (rings),
   `OVT_MapPlayerLocation` (marker), `OVT_MapThreatGrid` (still present, still disabled).
-- **I-2** `MapFullscreen.conf` retains `OVT_MapPlayerLocation`, `OVT_OverthrowMapUI`, both `m_aModules`
+- **I-2** `MapOverthrow.conf` retains `OVT_MapPlayerLocation`, `OVT_OverthrowMapUI`, both `m_aModules`
   entries and the whole `m_DescriptorDefaultsConfig` block.
 - **I-3** `OVT_OverthrowMapUI` is otherwise unaffected — only `IsInfoPanelVisible()` and its doc comment
   are removed.
@@ -677,25 +677,25 @@ spots (`Rpc()` arity, and argument-count overflow on base-class methods with def
 compiler rejection that the static check passed.
 
 **No new tests.** This feature deletes no covered behaviour and adds no assertable logic. Adding a test
-here would be padding. The invariant *is* the test: **the counts must not change** (44 / 79). Extending a
+here would be padding. The invariant _is_ the test: **the counts must not change** (44 / 79). Extending a
 tier is the right move only if a deletion turns out to be assertable in the test world — and it is not.
 
 **Manual verification is the gate**, and it is Phase 7. Test scenarios and edge cases:
 
-| # | Scenario | Expected |
-|---|---|---|
-| 1 | Open the Overthrow main menu | No Map Info / Fast Travel rows; other rows intact |
-| 2 | Open it with a controller | First row focused; D-pad works immediately *(FINDING A)* |
-| 3 | Catch Bus at a stop | Map opens; bus panel priced; trip charges once |
-| 4 | Fast travel from a panel | Works; charges once; recruits follow when toggled on |
-| 5 | Fast travel with no money | Button disabled with a readable reason, no debit |
-| 6 | Open/close the map repeatedly | Map item stows every time; no listener accumulation |
-| 7 | Deploy near a restriction ring | Ring drawn where the deploy check refuses (BUG-070) |
-| 8 | Two clients, concurrent travel | Each arrives correctly, each charged once |
-| 9 | JIP client fast-travels | Server path executes for a mid-campaign joiner |
-| 10 | Load a pre-change save | All markers render; save/reload identical |
-| 11 | Field Manual → Introduction | No instructions for deleted menu entries *(FINDING B)* |
-| 12 | Workbench project load | Zero missing-resource errors |
+| #   | Scenario                       | Expected                                                 |
+| --- | ------------------------------ | -------------------------------------------------------- |
+| 1   | Open the Overthrow main menu   | No Map Info / Fast Travel rows; other rows intact        |
+| 2   | Open it with a controller      | First row focused; D-pad works immediately _(FINDING A)_ |
+| 3   | Catch Bus at a stop            | Map opens; bus panel priced; trip charges once           |
+| 4   | Fast travel from a panel       | Works; charges once; recruits follow when toggled on     |
+| 5   | Fast travel with no money      | Button disabled with a readable reason, no debit         |
+| 6   | Open/close the map repeatedly  | Map item stows every time; no listener accumulation      |
+| 7   | Deploy near a restriction ring | Ring drawn where the deploy check refuses (BUG-070)      |
+| 8   | Two clients, concurrent travel | Each arrives correctly, each charged once                |
+| 9   | JIP client fast-travels        | Server path executes for a mid-campaign joiner           |
+| 10  | Load a pre-change save         | All markers render; save/reload identical                |
+| 11  | Field Manual → Introduction    | No instructions for deleted menu entries _(FINDING B)_   |
+| 12  | Workbench project load         | Zero missing-resource errors                             |
 
 ---
 
@@ -734,17 +734,17 @@ unreachable because `HandleSelection()` has no callers. Each is a trap to note, 
 
 ## 9. Risks & Mitigation
 
-| # | Risk | Likelihood | Impact | Mitigation |
-|---|---|---|---|---|
-| R-1 | **Building against unverified parity.** `map/location-types` Phase 7 has never run; if the new map has a gap, the legacy fallback is gone. | Medium | High | Settled decision D-4 accepts this. Every phase is a separate commit → `git revert` is the whole remediation. P7 explicitly folds in V-3…V-7 *before* sign-off. The gap goes back to `location-types`/`fast-travel`, not fixed here. |
-| R-2 | **A deleted GUID is still referenced from a prefab or layout.** Compile 0 and green tests prove nothing here. | Low | High — silent missing widget | All three layout GUIDs were grep-verified fully self-contained *before* planning (each has exactly one live external reference, deleted in the same phase). Q-5 re-greps; P7a is the Workbench gate. |
-| R-3 | **Partial `.st` block deletion corrupts the master.** Has nearly happened once. | Low | High — six exports break | P5.1 forbids line ranges, requires locating by `Id` string and deleting a whole `CustomStringTableItem` unit with boundaries confirmed by eye. Q-8 checks brace balance and that the six generated exports are untouched. |
-| R-4 | **Gamepad focus regression in the main menu** (FINDING A). | **High if unmitigated** — the only `SetFocusedWidget` sits inside a deleted block | Medium — menu unusable on controller | P1.2 relocates the call to "Place"; F-2 and P7d step 22 test it specifically. |
-| R-5 | **Stale in-game help** (FINDING B) — the Field Manual keeps telling players to use deleted menu entries. | **Certain if unmitigated** | Medium — player confusion | P6.4 runs `help-docs-sync` over the two entries, with every replacement sentence fact-checked against a `file:line`. |
-| R-6 | **A string still shown by the live path gets deleted as an orphan.** | Low | Medium — raw `#OVT-` key on screen | K-7: default KEEP. The P5.5 table records the audit — nine candidates, one deletion. `MustHaveMap` is the worked example of why the default matters. |
-| R-7 | **BUG-070 regresses** — restriction rings stop matching the enforced radii while `OVT_MapRestrictedAreas` is nearby in the config being edited. | Low | Medium | The module is explicitly retained and untouched; P3.2's acceptance criteria name it; F-5 and P7b step 10 test the rings against the deploy check. |
-| R-8 | **Test counts move**, masking a deleted behaviour that *was* covered. | Low | Medium | P0 records the baseline; Q-2/Q-3 require the counts unchanged. A moved count is a finding to investigate, never a number to update. |
-| R-9 | **`HideMap()` is deleted later as an orphan**, losing the play-test-derived stow ordering. | Medium (future) | Medium | K-3 + P2.5: a `//!` block on the method stating it has no callers today, why it survives, and who consumes it next. |
+| #   | Risk                                                                                                                                            | Likelihood                                                                        | Impact                               | Mitigation                                                                                                                                                                                                                          |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| R-1 | **Building against unverified parity.** `map/location-types` Phase 7 has never run; if the new map has a gap, the legacy fallback is gone.      | Medium                                                                            | High                                 | Settled decision D-4 accepts this. Every phase is a separate commit → `git revert` is the whole remediation. P7 explicitly folds in V-3…V-7 _before_ sign-off. The gap goes back to `location-types`/`fast-travel`, not fixed here. |
+| R-2 | **A deleted GUID is still referenced from a prefab or layout.** Compile 0 and green tests prove nothing here.                                   | Low                                                                               | High — silent missing widget         | All three layout GUIDs were grep-verified fully self-contained _before_ planning (each has exactly one live external reference, deleted in the same phase). Q-5 re-greps; P7a is the Workbench gate.                                |
+| R-3 | **Partial `.st` block deletion corrupts the master.** Has nearly happened once.                                                                 | Low                                                                               | High — six exports break             | P5.1 forbids line ranges, requires locating by `Id` string and deleting a whole `CustomStringTableItem` unit with boundaries confirmed by eye. Q-8 checks brace balance and that the six generated exports are untouched.           |
+| R-4 | **Gamepad focus regression in the main menu** (FINDING A).                                                                                      | **High if unmitigated** — the only `SetFocusedWidget` sits inside a deleted block | Medium — menu unusable on controller | P1.2 relocates the call to "Place"; F-2 and P7d step 22 test it specifically.                                                                                                                                                       |
+| R-5 | **Stale in-game help** (FINDING B) — the Field Manual keeps telling players to use deleted menu entries.                                        | **Certain if unmitigated**                                                        | Medium — player confusion            | P6.4 runs `help-docs-sync` over the two entries, with every replacement sentence fact-checked against a `file:line`.                                                                                                                |
+| R-6 | **A string still shown by the live path gets deleted as an orphan.**                                                                            | Low                                                                               | Medium — raw `#OVT-` key on screen   | K-7: default KEEP. The P5.5 table records the audit — nine candidates, one deletion. `MustHaveMap` is the worked example of why the default matters.                                                                                |
+| R-7 | **BUG-070 regresses** — restriction rings stop matching the enforced radii while `OVT_MapRestrictedAreas` is nearby in the config being edited. | Low                                                                               | Medium                               | The module is explicitly retained and untouched; P3.2's acceptance criteria name it; F-5 and P7b step 10 test the rings against the deploy check.                                                                                   |
+| R-8 | **Test counts move**, masking a deleted behaviour that _was_ covered.                                                                           | Low                                                                               | Medium                               | P0 records the baseline; Q-2/Q-3 require the counts unchanged. A moved count is a finding to investigate, never a number to update.                                                                                                 |
+| R-9 | **`HideMap()` is deleted later as an orphan**, losing the play-test-derived stow ordering.                                                      | Medium (future)                                                                   | Medium                               | K-3 + P2.5: a `//!` block on the method stating it has no callers today, why it survives, and who consumes it next.                                                                                                                 |
 
 ---
 
@@ -757,12 +757,12 @@ creep. The bar is three things:
 Every deletion must be preceded by proof that a live path already does the same job. That proof is a grep
 result or a named replacement, recorded in the plan — not an assumption that "the new map probably covers
 it". The two findings in §3.4 are exactly what this discipline catches: a `SetFocusedWidget` call hiding
-inside a block that *looks* purely legacy, and in-game help that documents deleted UI. Neither is visible
+inside a block that _looks_ purely legacy, and in-game help that documents deleted UI. Neither is visible
 from the symbol being deleted. **Read the whole enclosing block before removing it, and ask what else lives
 there.**
 
 **2. Nothing dangling is left behind — across four compiler-invisible file classes.**
-`.layout`, `.conf`, `.et` and `.st` are invisible to `compile-check.sh` *and* to both test groups, and this
+`.layout`, `.conf`, `.et` and `.st` are invisible to `compile-check.sh` _and_ to both test groups, and this
 feature's diff is mostly in them. A dangling GUID, a half-deleted string block or an orphaned config entry
 all pass every automated gate and fail at runtime. The specific disciplines:
 
@@ -789,6 +789,6 @@ close.
 
 ---
 
-*Plan authored 2026-08-10. All line numbers verified against the working tree on `new-map`; they supersede
+_Plan authored 2026-08-10. All line numbers verified against the working tree on `new-map`; they supersede
 those in `docs/features/map/fast-travel/context.md`'s dead-code hand-off, which have drifted. Treat every
-number here as a pointer to look at, never as a `sed` argument.*
+number here as a pointer to look at, never as a `sed` argument._

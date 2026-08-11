@@ -1,481 +1,227 @@
-# Persistence Patterns with EPF
+# Persistence Patterns (Vanilla / First-Party)
 
-Complete guide for save/load operations using Enfusion Persistence Framework (EPF).
+Complete guide for save/load in Overthrow using **Reforger's first-party persistence system**.
+
+> ## ⚠️ EPF is retired — read this first
+>
+> Overthrow used the Enfusion Persistence Framework (EPF) until **2026-08-02**, when the `core/persistence` migration shipped. **EPF and EDF are gone**: zero `EPF_` references in `Scripts/`, and neither is a mod dependency in `addon.gproj`.
+>
+> If you have seen an EPF-shaped example anywhere — an old doc, a code comment, a memory, another skill — **it is stale**. None of these exist any more:
+>
+> | ❌ Retired (EPF) | ✅ Current (vanilla) |
+> |---|---|
+> | `EPF_ComponentSaveDataClass` / `EPF_ComponentSaveData` | `ScriptedComponentSerializer` |
+> | `EPF_EntitySaveDataClass` / `EPF_EntitySaveData` | `ScriptedEntitySerializer` |
+> | `EPF_PersistentScriptedState` | `ScriptedStateSerializer` + a `PersistentState` proxy |
+> | `[EPF_ComponentSaveDataType(...)]` attribute binding | a rule in `Configs/Systems/Persistence/Overthrow.conf` |
+> | `ReadFrom()` / `ApplyTo()` | `Serialize()` / `Deserialize()` |
+> | `EPF_Component<T>.Find()` | ordinary `FindComponent` / `OVT_ComponentFinder<T>.Find()` |
+> | `#ifndef PLATFORM_CONSOLE` guards | **nothing** — consoles are handled internally |
+>
+> ⚠️ EPF-era saves are dead. There is no converter.
+>
+> **API truth:** `docs/features/core/persistence/vanilla-api-reference.md` — verified against retail 1.7.0.54 with file:line citations. When in doubt, read that, then read a shipped serializer in `Scripts/Game/Persistence/Serializers/`.
 
 ---
 
 ## Overview
 
-EPF (Enfusion Persistence Framework) handles save/load operations for Overthrow mod. Components define SaveData classes that extract and restore state.
+Two layers, and conflating them is the classic mistake:
 
-**Critical:** Console platforms (Xbox/PlayStation) don't support disk access - all EPF operations must be wrapped in `#ifndef PLATFORM_CONSOLE` guards.
+1. **`PersistenceSystem` / `SCR_PersistenceSystem`** — a server-only `WorldSystem` that *tracks instances and serializes them*. Config-driven.
+2. **`SaveGameManager`** — a global engine singleton owning save *points*, playthroughs and load/restart transitions. This is what "press Save" talks to.
+
+Overthrow wraps the second in `OVT_PersistenceManagerComponent` (`SaveGame()` → `RequestSavePoint(ESaveGameType.MANUAL)`), and implements the first as serializer classes under `Scripts/Game/Persistence/Serializers/`.
+
+**Saving is server-only.** Clients cannot write saves; on a client `HasSaveGame()` stays false.
 
 ---
 
-## Basic SaveData Pattern
+## Basic Component Serializer Pattern
 
 ### When to Use
 
-Use EPF persistence when:
-- Component state needs to survive game restarts
+- Component state must survive a save/load
 - Manager or Controller data must persist
-- Complex state needs structured save/load
+- Structured state needs an explicit save format
 
 ### Pattern Structure
 
 ```cpp
-// SaveData class associated with component
-[EPF_ComponentSaveDataType(OVT_SomeManagerComponent)]
-class OVT_SomeSaveDataClass : EPF_ComponentSaveDataClass {};
-
-class OVT_SomeSaveData : EPF_ComponentSaveData
+class OVT_SomeManagerSerializer : ScriptedComponentSerializer
 {
-    // Persisted values (automatically serialized)
-    int m_iSomeValue;
-    string m_sSomeName;
-    vector m_vSomePosition;
-    ref array<int> m_aIds; // Use ref for collections
-
-    // Extract data from component
-    override void ReadFrom(OVT_SomeManagerComponent component)
+    //! \return The component class this serializer is responsible for.
+    override static typename GetTargetType()
     {
-        m_iSomeValue = component.GetSomeValue();
-        m_sSomeName = component.GetSomeName();
-        m_vSomePosition = component.GetSomePosition();
-
-        // Copy collection data
-        m_aIds = new array<int>();
-        component.GetIds(m_aIds);
+        return OVT_SomeManagerComponent;
     }
 
-    // Restore data to component
-    override void ApplyTo(OVT_SomeManagerComponent component)
+    override protected ESerializeResult Serialize(notnull IEntity owner, notnull GenericComponent component, notnull SaveContext context)
     {
-        component.SetSomeValue(m_iSomeValue);
-        component.SetSomeName(m_sSomeName);
-        component.SetSomePosition(m_vSomePosition);
-        component.SetIds(m_aIds);
+        OVT_SomeManagerComponent manager = OVT_SomeManagerComponent.Cast(component);
+        if (!manager)
+            return ESerializeResult.ERROR;
+
+        context.WriteValue("version", 1);   // ALWAYS first
+
+        int someValue = manager.GetSomeValue();
+        context.Write(someValue);
+
+        string someName = manager.GetSomeName();
+        context.Write(someName);
+
+        return ESerializeResult.OK;
+    }
+
+    override protected bool Deserialize(notnull IEntity owner, notnull GenericComponent component, notnull LoadContext context)
+    {
+        OVT_SomeManagerComponent manager = OVT_SomeManagerComponent.Cast(component);
+        if (!manager)
+            return false;
+
+        // No version means no payload for this component - tolerate it, don't fail.
+        int version;
+        context.ReadValue("version", version);
+        if (version < 1)
+            return true;
+
+        int someValue;
+        context.Read(someValue);            // SAME ORDER as Serialize
+
+        string someName;
+        context.Read(someName);
+
+        manager.SetSomeValue(someValue);
+        manager.SetSomeName(someName);
+
+        return true;
     }
 }
 ```
+
+Live examples: `OVT_TownManagerSerializer`, `OVT_EconomyManagerSerializer`, `OVT_BuildableComponentSerializer` (a short one — read this first).
 
 ### Key Points
 
-- **Attribute:** [EPF_ComponentSaveDataType(ComponentType)] links SaveData to Component
-- **Inheritance:** SaveDataClass extends EPF_ComponentSaveDataClass
-- **Inheritance:** SaveData extends EPF_ComponentSaveData
-- **ReadFrom:** Extract data from component for saving
-- **ApplyTo:** Restore data to component when loading
-- **Auto-serialization:** EPF handles serialization of member variables
-- **Strong refs:** Use `ref` for arrays, maps, Managed classes
+- **`GetTargetType()` is `static`** and names the component class.
+- **Return values differ:** `Serialize` returns `ESerializeResult` (`OK` / `ERROR` / `DEFAULT`); `Deserialize` returns `bool` (true = payload consumed).
+- **Binary contexts are POSITIONAL.** Write order must equal read order. `WriteValue()`'s name string is only meaningful in JSON — it does **not** make the format order-independent.
+- **Version first, hand-rolled**, as in every vanilla serializer. `version < 1` means "no payload for me", which must be tolerated rather than treated as corruption.
+- **Deserialize must be idempotent.** It runs both when starting from a savepoint *and* when re-applying save data to a live session (`OVT_PersistenceManagerComponent.ReapplyLatestSaveData`). Plain assignments are safe; re-entering a non-re-entrant start sequence is not.
 
 ---
 
-## Persisting Complex Data
+## Binding a Serializer (config, not script)
 
-### Nested Data Structures
+**A serializer that compiles but is not listed in config is never called.** There is no per-serializer registration API in script.
 
-```cpp
-// Data class for persisting
-class OVT_TownData : Managed
-{
-    [NonSerialized()]
-    int m_iTempValue; // Don't persist this
+Add it to the matching block in `Configs/Systems/Persistence/Overthrow.conf`:
 
-    // Persisted values
-    vector m_vLocation;
-    int m_iPopulation;
-    string m_sName;
-}
-
-// SaveData with nested structures
-class OVT_TownSaveData : EPF_ComponentSaveData
-{
-    ref array<ref OVT_TownData> m_aTowns; // Strong refs required
-
-    override void ReadFrom(OVT_TownManagerComponent component)
-    {
-        m_aTowns = new array<ref OVT_TownData>();
-
-        // Copy town data
-        array<ref OVT_TownData> towns = component.GetTowns();
-        foreach (OVT_TownData town : towns)
-        {
-            m_aTowns.Insert(town); // EPF handles deep copy
-        }
-    }
-
-    override void ApplyTo(OVT_TownManagerComponent component)
-    {
-        component.SetTowns(m_aTowns);
+```
+ComponentSerializers {
+    OVT_SomeManagerSerializer "{<fresh-GUID>}" {
     }
 }
 ```
 
-### Maps and Collections
+- Manager components hang off the game-mode entity configuration (`{65ACD95F40F6C669}`).
+- Per-instance components (buildables, placeables) match via a `ComponentClassPersistenceConfigRule { ComponentClass "OVT_BuildableComponent" }`.
+- An **entity** serializer is swapped by overriding the `EntitySerializer` entry, reusing vanilla's serializer GUID — see `OVT_OverthrowGameModeSerializer`, which nests vanilla's payload under a `"base"` sub-object and delegates to `super` so the base payload is not silently dropped.
 
-```cpp
-class OVT_ManagerSaveData : EPF_ComponentSaveData
-{
-    ref map<int, ref OVT_SomeData> m_mDataById;
-    ref array<string> m_aPlayerIds;
+⚠️ **Scripted persistence config *rules* are dead code.** The engine never calls a scripted `IsMatch()`. Use `GetConfig()` / `SetConfig()` instead (BUG-018).
 
-    override void ReadFrom(OVT_ManagerComponent component)
-    {
-        // Save map
-        m_mDataById = new map<int, ref OVT_SomeData>();
-        map<int, ref OVT_SomeData> sourceMap = component.GetDataMap();
-        foreach (int key, OVT_SomeData value : sourceMap)
-        {
-            m_mDataById.Insert(key, value);
-        }
-
-        // Save array
-        m_aPlayerIds = new array<string>();
-        component.GetPlayerIds(m_aPlayerIds);
-    }
-
-    override void ApplyTo(OVT_ManagerComponent component)
-    {
-        component.SetDataMap(m_mDataById);
-        component.SetPlayerIds(m_aPlayerIds);
-    }
-}
-```
+⚠️ **Same-GUID `.conf` overrides are DELTAS, not replacements** — they merge over the inherited file rather than replacing it.
 
 ---
 
-## NonSerialized Attribute
+## Spawned Entities Must Be Tracked
 
-### When to Use
+Component state alone restores **nothing** for an entity that has no authored instance in the world file. Overthrow spawns buildables and placeables from config at a player-chosen transform, so a save must be able to **create** the entity again:
 
-Use [NonSerialized()] for:
-- Temporary/cached values
-- References to entities (use EntityID or RplId instead)
-- Derivable data that can be recalculated
-- Runtime-only state
+1. Its persistence configuration carries **`SelfSpawn`**.
+2. The spawn site calls **`OVT_PersistenceTracking.Track(entity)`** (wraps `SCR_PersistenceSystem.StartTracking`, server-side, lazy, safe to call twice).
 
-### Example
+Three tracking mechanisms exist overall:
+1. The native **`Persistence` component on the prefab** (the class name in `.et` is literally `Persistence`; no script binding exists) — the primary route for authored prefabs.
+2. **`StartTracking()` from script** — for spawned/untagged entities.
+3. **`PersistentState` subclasses** — for non-entity state.
 
-```cpp
-class OVT_SomeData : Managed
-{
-    // NOT persisted
-    [NonSerialized()]
-    protected int m_iCachedValue;
+⚠️ Ask `IsTracked()` before `Track()` when an entity may already be registered by another route (a prefab carrying the native component, or an instance the system itself spawned via `RequestSpawn`).
 
-    [NonSerialized()]
-    protected IEntity m_CachedEntity; // Never persist IEntity
-
-    // Persisted (default)
-    protected int m_iPersistentValue;
-    protected EntityID m_SavedEntityId; // Save ID, not entity reference
-}
-```
-
-### Key Points
-
-- **Default behavior:** All member variables are serialized
-- **Explicit opt-out:** Use [NonSerialized()] to skip
-- **Entities:** Never persist IEntity directly - use EntityID
-- **Cached data:** Don't persist values that can be recalculated
+⚠️ **`RequestSpawn` hazards:** a collection-wide `RequestSpawn` wedges saves, and untracking needs the `IsTracked` retry queue (BUG-118).
 
 ---
 
-## Console Platform Handling
+## Collections
 
-### The Problem
+Write the whole collection through the context rather than element-by-element where the type supports it — `OVT_TownManagerSerializer` builds an array of plain records and does a single `context.Write(records)` / `context.Read(records)`. Keep the record type a simple `Managed` class with `ref` members; build it in `Serialize` from live state, and rebuild live state from it in `Deserialize`.
 
-Xbox and PlayStation don't support FileIO or disk access. EPF operations will fail on consoles.
-
-### The Solution
-
-Wrap all EPF operations in platform guards:
-
-```cpp
-#ifndef PLATFORM_CONSOLE
-
-[EPF_ComponentSaveDataType(OVT_SomeComponent)]
-class OVT_SomeSaveDataClass : EPF_ComponentSaveDataClass {};
-
-class OVT_SomeSaveData : EPF_ComponentSaveData
-{
-    int m_iValue;
-
-    override void ReadFrom(OVT_SomeComponent component)
-    {
-        m_iValue = component.GetValue();
-    }
-
-    override void ApplyTo(OVT_SomeComponent component)
-    {
-        component.SetValue(m_iValue);
-    }
-}
-
-#endif
-```
-
-### Usage in Component
-
-```cpp
-class OVT_SomeComponent : OVT_Component
-{
-    void SaveGame()
-    {
-        #ifndef PLATFORM_CONSOLE
-        // EPF save operations
-        EPF_PersistenceManager.GetInstance().Save();
-        #endif
-    }
-
-    void LoadGame()
-    {
-        #ifndef PLATFORM_CONSOLE
-        // EPF load operations
-        EPF_PersistenceManager.GetInstance().Load();
-        #endif
-    }
-}
-```
-
-### Key Points
-
-- **Both guards:** Arma Reforger provides PLATFORM_CONSOLE for both Xbox and PlayStation
-- **Full wrapping:** Wrap SaveData class AND any EPF calls
-- **Graceful degradation:** Game works on console, just without persistence
-- **Testing:** Test on PC with EPF, verify graceful failure on console
+Prefer **sparse** payloads keyed by a **stable id** (never an array index) so that adding a new config entry later does not shift or corrupt existing saved data.
 
 ---
 
-## Save/Load Triggers
+## Console Platforms
 
-### Manual Save
-
-```cpp
-void SaveGame()
-{
-    #ifndef PLATFORM_CONSOLE
-    EPF_PersistenceManager pm = EPF_PersistenceManager.GetInstance();
-    if (pm)
-    {
-        pm.Save();
-    }
-    #endif
-}
-```
-
-### Manual Load
-
-```cpp
-void LoadGame()
-{
-    #ifndef PLATFORM_CONSOLE
-    EPF_PersistenceManager pm = EPF_PersistenceManager.GetInstance();
-    if (pm)
-    {
-        pm.Load();
-    }
-    #endif
-}
-```
-
-### Auto-save
-
-```cpp
-// Set up periodic auto-save
-protected void SetupAutoSave()
-{
-    #ifndef PLATFORM_CONSOLE
-    GetGame().GetCallqueue().CallLater(
-        AutoSave,
-        300000, // 5 minutes in milliseconds
-        true    // Repeat
-    );
-    #endif
-}
-
-protected void AutoSave()
-{
-    #ifndef PLATFORM_CONSOLE
-    EPF_PersistenceManager pm = EPF_PersistenceManager.GetInstance();
-    if (pm)
-    {
-        pm.Save();
-    }
-    #endif
-}
-```
+**Nothing to do.** The vanilla system handles console storage internally. The `#ifdef PLATFORM_CONSOLE` carve-outs that used to wrap persistence code were an EPF requirement (EPF wrote to disk, which consoles do not permit) and were removed by the migration. Do not reintroduce them.
 
 ---
 
-## Persistence Lifecycle
+## Save / Load Triggers
 
-### Save Flow
-1. Game triggers save (manual or auto)
-2. EPF calls ReadFrom() on all SaveData classes
-3. SaveData extracts state from components
-4. EPF serializes SaveData to disk
-5. Save complete
+Go through `OVT_PersistenceManagerComponent`, not the engine singleton directly:
 
-### Load Flow
-1. Game triggers load
-2. EPF deserializes SaveData from disk
-3. EPF calls ApplyTo() on all SaveData classes
-4. SaveData restores state to components
-5. Components rebuild runtime state
-6. Load complete
+```cpp
+OVT_Global.GetPersistence().SaveGame();       // → RequestSavePoint(ESaveGameType.MANUAL)
+```
+
+- `HasSaveGame()` is a **cache** — `SaveGameManager.GetSaves()` is async-only, so a synchronous accessor cannot be anything else. Wait for the "answer is real" flag before reading it.
+- `IsSaveInProgress()` **cannot** distinguish "finished" from "never started". For "did the save I asked for finish?", use the save-finished invoker.
+- `GetOnStateChanged()` watching for `EPersistenceSystemState.ACTIVE` is the after-load hook — **there is no `GetOnAfterLoad()` invoker**.
+- ⚠️ **A "Continue" replaces the world without anyone connecting**, so `SetupPlayer` never re-runs for already-connected players (BUG-104). Anything keyed on player connect needs a second path for this.
 
 ---
 
 ## Gotchas and Best Practices
 
-### ✅ DO:
+### ✅ DO
+- Read a shipped serializer before writing a new one — they carry long header comments explaining *why*, not just what
+- Write `version` first, and tolerate `version < 1`
+- Keep `Deserialize` idempotent and safe on a live session
+- Key saved data on stable ids
+- Cast and null-check the component before touching it
+- Track spawned entities explicitly
 
-- **Use strong refs:** Always `ref` for arrays/maps of Managed classes
-- **Guard console:** Wrap all EPF code in #ifndef PLATFORM_CONSOLE
-- **Save IDs, not entities:** Use EntityID or RplId, not IEntity
-- **Minimal state:** Only save what can't be derived
-- **Validate on load:** Check loaded data for corruption/invalid values
-- **Version your data:** Consider version numbers for format changes
-
-### ❌ DON'T:
-
-- **Persist IEntity:** Will crash or corrupt save
-- **Save temporary data:** Use [NonSerialized()]
-- **Forget platform guards:** Console will crash without them
-- **Save derivable data:** Waste of space, can recalculate
-- **Trust loaded data:** Always validate before use
-
----
-
-## Migration Between Versions
-
-### Adding Fields
-
-```cpp
-class OVT_SomeSaveData : EPF_ComponentSaveData
-{
-    int m_iOldField;
-    int m_iNewField; // Added in v2
-
-    override void ApplyTo(OVT_SomeComponent component)
-    {
-        component.SetOldField(m_iOldField);
-
-        // Provide default if loading old save
-        if (m_iNewField == 0)
-        {
-            m_iNewField = 100; // Default value
-        }
-        component.SetNewField(m_iNewField);
-    }
-}
-```
-
-### Removing Fields
-
-```cpp
-class OVT_SomeSaveData : EPF_ComponentSaveData
-{
-    // m_iOldField removed
-
-    int m_iNewField;
-
-    override void ReadFrom(OVT_SomeComponent component)
-    {
-        // Don't write old field anymore
-        m_iNewField = component.GetNewField();
-    }
-
-    override void ApplyTo(OVT_SomeComponent component)
-    {
-        // Old saves may have old field, ignore it
-        component.SetNewField(m_iNewField);
-    }
-}
-```
+### ❌ DON'T
+- Use any `EPF_*` type, or write `ReadFrom`/`ApplyTo` methods
+- Assume a `WriteValue("name", …)` makes binary order-independent — it does not
+- Add `#ifdef PLATFORM_CONSOLE` guards around persistence
+- Rely on a scripted config rule's `IsMatch()` — it is never called
+- Write a serializer and forget the `.conf` entry (it will silently never run)
+- Save from a client
 
 ---
 
 ## Testing Persistence
 
-### Save Testing
-1. Create game state (spawn entities, change values)
-2. Trigger save manually
-3. Verify save file created on disk
-4. Check save file size is reasonable
-5. Verify no errors in console
+The persistence tiers are real and run headlessly:
 
-### Load Testing
-1. Start new game
-2. Trigger load from saved game
-3. Verify all state restored correctly
-4. Test entity references work
-5. Confirm collections populated
-6. Check for any errors or warnings
-
-### Console Testing
-1. Build with PLATFORM_CONSOLE defined
-2. Verify game runs without crashes
-3. Confirm EPF code not executed
-4. Test graceful degradation
-
----
-
-## Example: Complete Manager Persistence
-
-```cpp
-#ifndef PLATFORM_CONSOLE
-
-[EPF_ComponentSaveDataType(OVT_TownManagerComponent)]
-class OVT_TownManagerSaveDataClass : EPF_ComponentSaveDataClass {};
-
-class OVT_TownManagerSaveData : EPF_ComponentSaveData
-{
-    ref array<ref OVT_TownData> m_aTowns;
-    ref map<int, string> m_mTownOwners;
-
-    override void ReadFrom(OVT_TownManagerComponent component)
-    {
-        // Save towns array
-        m_aTowns = new array<ref OVT_TownData>();
-        array<ref OVT_TownData> towns = component.GetTowns();
-        foreach (OVT_TownData town : towns)
-        {
-            m_aTowns.Insert(town);
-        }
-
-        // Save ownership map
-        m_mTownOwners = new map<int, string>();
-        map<int, string> owners = component.GetTownOwners();
-        foreach (int townId, string ownerId : owners)
-        {
-            m_mTownOwners.Insert(townId, ownerId);
-        }
-    }
-
-    override void ApplyTo(OVT_TownManagerComponent component)
-    {
-        // Restore towns
-        component.SetTowns(m_aTowns);
-
-        // Restore ownership
-        component.SetTownOwners(m_mTownOwners);
-
-        // Rebuild runtime state
-        component.RebuildTownIndex();
-    }
-}
-
-#endif
+```bash
+tools/run-tests.sh "{6A6E2A002F53A581}"          # All group (includes persistence tiers)
+tools/run-tests.sh OVT_TEST_PersistenceRoundTripSuite   # the save→dirty→re-apply gate
 ```
+
+- The **Persistence** tier round-trips state through the public manager API; the **PersistenceRoundTrip** suite goes through real vanilla persistence storage, plus one per-instance vehicle despawn→storage→respawn.
+- Assertions deliberately reference **no** persistence API type, so the suite survives a backend change without reporting it as a regression.
+- ⚠️ The true quit-and-continue restart path is **not** covered — `SaveGameManager.Load`'s world transition restarts the autotest harness, so the suite covers in-session re-apply instead. That path is still manual play-testing.
+- Prove any new case can fail before shipping it.
 
 ---
 
 ## Related Resources
 
-- See `component-patterns.md` for component architecture
-- See `memory-management.md` for strong ref usage
-- See `networking.md` for replication with persistence
-- See main `SKILL.md` for overview
+- `docs/features/core/persistence/vanilla-api-reference.md` — verified API, file:line citations
+- `docs/features/core/persistence/implementation.md` — how the migration was built
+- `Scripts/Game/Persistence/Serializers/` — 16 shipped serializers
+- `Scripts/Game/Persistence/OVT_PersistenceTracking.c`, `OVT_PersistenceReservation.c`
+- `Configs/Systems/Persistence/Overthrow.conf` — the binding
+- `persistence-forensics` skill — decoding a save point and diagnosing save-file problems

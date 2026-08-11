@@ -1,5 +1,5 @@
 MetaFileClass {
- Name "{1B8AC767E06A0ACD}Configs/Map/MapFullscreen.conf"
+ Name "{F54BE666A2B1AAC5}Configs/Map/MapOverthrow.conf"
  Configurations {
   CONFResourceClass PC {
   }
@@ -8,6 +8,8 @@ MetaFileClass {
   CONFResourceClass XBOX_SERIES : PC {
   }
   CONFResourceClass PS4 : PC {
+  }
+  CONFResourceClass PS5 : PC {
   }
   CONFResourceClass HEADLESS : PC {
   }
