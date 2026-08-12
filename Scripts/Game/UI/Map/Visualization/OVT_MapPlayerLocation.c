@@ -1,6 +1,17 @@
 class OVT_MapPlayerLocation : SCR_MapUIBaseComponent
 {	
 	protected SCR_MapToolEntry m_ToolMenuEntry;
+
+	//! This component's faction palette: its own if the conf configured one, otherwise the shared
+	//! default. Never null. Mirrors OVT_MapCanvasLayer.GetFactionPalette - the duplication is because
+	//! this is a SCR_MapUIBaseComponent and shares no base class with the canvas layers.
+	OVT_MapFactionPalette GetFactionPalette()
+	{
+		if (m_FactionColors)
+			return m_FactionColors;
+
+		return OVT_MapFactionPalette.GetDefault();
+	}
 	
 	protected ref map<int,ref Widget> m_Widgets;
 	
@@ -8,6 +19,9 @@ class OVT_MapPlayerLocation : SCR_MapUIBaseComponent
 		
 	[Attribute()]
 	protected ResourceName m_Layout;
+
+	[Attribute(defvalue: "", uiwidget: UIWidgets.Object, desc: "Optional faction colours for the player markers. Leave UNSET to use the shared default (players are the resistance, so green). Player markers are NOT a canvas layer, which is why this component carries its own copy of the palette attribute.")]
+	protected ref OVT_MapFactionPalette m_FactionColors;
 
 	//! Whether the player-position markers are switched on in the map layer-filter panel.
 	//!
@@ -102,6 +116,11 @@ class OVT_MapPlayerLocation : SCR_MapUIBaseComponent
 		Faction fac = faction.GetFactionByKey(otconfig.m_sPlayerFaction);
 		if(!fac) return;
 
+		// Players are the resistance BY DEFINITION here - fac is resolved from m_sPlayerFaction two lines
+		// up - so the role is asked for directly rather than round-tripped through a faction index. The
+		// palette is what keeps these markers the same green as the resistance's territory and rings.
+		Color markerColour = GetFactionPalette().GetColorForRole(OVT_FactionType.RESISTANCE_FACTION);
+
 		// Past every early return: markers are about to be created, so the Players row is worth
 		// offering. Set here rather than immediately after the showPlayerOnMap check because the
 		// unresolved-faction return above also produces a session with no markers, and a row for it
@@ -116,7 +135,7 @@ class OVT_MapPlayerLocation : SCR_MapUIBaseComponent
 			ImageWidget img = ImageWidget.Cast(widget.FindAnyWidget("Image"));
 			if(img)
 			{
-				img.SetColor(fac.GetFactionColor());
+				img.SetColor(markerColour);
 			}
 			m_Widgets[playerId] = widget;
 		}

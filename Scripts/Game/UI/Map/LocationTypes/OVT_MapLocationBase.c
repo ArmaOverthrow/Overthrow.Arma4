@@ -116,10 +116,11 @@ class OVT_MapLocationBase : OVT_MapLocationType
 		if (!location)
 			return Color.White;
 
-		// Color based on faction control, through the one shared lookup the town and radio-tower markers
+		// Colour by faction control, resolved BY CAMPAIGN ROLE (the occupier is red whether the campaign
+		// cast USSR or US), through the one shared lookup the town and radio-tower markers
 		// and the territory overlay also use. The WHITE fallback is this marker's own and stays here -
 		// the town marker falls back to black, so no single shared fallback could serve both.
-		Color factionColor = OVT_MapLocationType.GetFactionColorByIndex(location.GetDataInt("faction", -1));
+		Color factionColor = ResolveFactionColor(location.GetDataInt("faction", -1));
 		if (factionColor)
 			return factionColor;
 

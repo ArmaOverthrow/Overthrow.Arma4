@@ -1623,19 +1623,12 @@ class OVT_MapTerritoryLayer : OVT_MapCanvasLayer
 	//-----------------------------------------------------------------------
 	// COLOUR
 	//-----------------------------------------------------------------------
-
-	//! THE PACKING LIVES ON OVT_MapLocationType, not here. This file used to carry its own copy of the
-	//! unpack-recompose-at-our-alpha body; the restricted-area layer carried a byte-identical one, and a
-	//! third consumer arriving is what promoted it to the shared helper the markers already live beside.
-	//! Territory fill, restriction rings and influence lines therefore cannot drift apart in hue, and the
-	//! white unresolved-faction fallback the region rendering needs is the shared one.
-	//! \param[in] factionIndex The controlling faction index.
-	//! \param[in] alpha Fill alpha, 0-255.
-	//! \return Packed ARGB fill colour, falling back to white when the faction cannot be resolved.
-	protected int ResolveFactionArgb(int factionIndex, int alpha)
-	{
-		return OVT_MapLocationType.GetFactionArgbByIndex(factionIndex, alpha);
-	}
+	//
+	// THE PACKING LIVES ON OVT_MapCanvasLayer.ResolveFactionArgb, not here. This file used to carry its
+	// own copy of the unpack-recompose-at-our-alpha body; the restricted-area layer carried a
+	// byte-identical one, and a third consumer arriving promoted it to a shared helper - which the
+	// role-palette change then moved onto the layer base class, so a layer can carry its own shade
+	// (m_FactionColors) without any of them drifting apart in what "the occupier" means.
 
 	//-----------------------------------------------------------------------
 	// TEXTURES

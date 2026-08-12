@@ -191,22 +191,24 @@ class OVT_MapRestrictedAreas : OVT_MapCanvasLayer
 		}
 	}
 
-	//! One ring's packed colour: the owning faction's hue at the requested alpha.
+	//! One ring's packed colour: the owning faction's ROLE colour at the requested alpha.
 	//!
-	//! THE HUE IS NOT IMPLEMENTED HERE. It comes from the same shared helper the location markers and
-	//! the territory fill call, so a ring cannot drift away from the colour of the marker at its centre
-	//! or the territory under it - that single source is the only reason the "same territory, denser"
-	//! reading holds at all.
+	//! THE HUE IS NOT IMPLEMENTED HERE. It comes from the layer base's palette, which the location
+	//! markers and the territory fill also resolve through, so a ring cannot drift away from the colour
+	//! of the marker at its centre or the territory under it - that single source is the only reason the
+	//! "same territory, denser" reading holds at all.
 	//!
 	//! An unresolvable faction falls back to WHITE, matching the territory layer's fallback rather than
 	//! reintroducing a hardcoded red: a pale ring over a coloured region still reads as a ring, whereas
-	//! a red one would read as a faction that may not be there.
+	//! a red one would read as a faction that may not be there. Note this layer ALSO draws hardcoded-red
+	//! QRF rings (m_iQRFRed/Green/Blue) - those are a state, not a faction, and are deliberately left
+	//! outside the palette.
 	//! \param[in] factionIndex The faction owning the base or tower at the ring's centre.
 	//! \param[in] alpha Ring alpha, 0-255.
 	//! \return Packed ARGB.
 	protected int ResolveRingColour(int factionIndex, int alpha)
 	{
-		return OVT_MapLocationType.GetFactionArgbByIndex(factionIndex, alpha);
+		return ResolveFactionArgb(factionIndex, alpha);
 	}
 
 	//! Loads the restricted-zone texture once per map open, guarded by IsValid before it can ever reach

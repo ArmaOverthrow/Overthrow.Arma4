@@ -24,6 +24,9 @@ class OVT_MapCanvasLayer : SCR_MapModuleBase
 	[Attribute("", UIWidgets.Auto, "Localization key for this layer's name in the layer-toggle UI. Nothing renders it yet.")]
 	protected string m_sDisplayName;
 
+	[Attribute(defvalue: "", uiwidget: UIWidgets.Object, desc: "Optional per-layer faction colours. Leave UNSET to use the shared default (occupier red, resistance green) - only add one when this layer needs its own shade, e.g. a fill that has to sit under lines drawn in the same hue.")]
+	protected ref OVT_MapFactionPalette m_FactionColors;
+
 	//-----------------------------------------------------------------------
 	// MEMBER VARIABLES
 	//-----------------------------------------------------------------------
@@ -152,6 +155,37 @@ class OVT_MapCanvasLayer : SCR_MapModuleBase
 		cmd.m_Vertices.Insert(y2);
 
 		m_Commands.Insert(cmd);
+	}
+
+	//-----------------------------------------------------------------------
+	// COLOUR
+	//-----------------------------------------------------------------------
+
+	//! This layer's faction palette: its own if the conf configured one, otherwise the shared default.
+	//! Never null.
+	OVT_MapFactionPalette GetFactionPalette()
+	{
+		if (m_FactionColors)
+			return m_FactionColors;
+
+		return OVT_MapFactionPalette.GetDefault();
+	}
+
+	//! THE ONE ENTRY POINT for "what colour is faction N on this layer, at this alpha".
+	//!
+	//! The territory fill, the restriction rings and the influence lines all resolve through here, so a
+	//! line, a ring and the region beneath them cannot drift apart in hue while every one of them keeps
+	//! its own alpha - which is what carries contested-versus-held and in-effect-versus-suppressed.
+	//!
+	//! IT RESOLVES BY CAMPAIGN ROLE, NOT BY FACTION. See OVT_MapFactionPalette: the occupier is red
+	//! whether the campaign cast USSR or US, because a map that changes its enemy colour with its enemy
+	//! faction is a map the player has to re-learn.
+	//! \param[in] factionIndex The controlling faction index, or any negative value for "no faction".
+	//! \param[in] alpha Alpha to pack, 0-255, clamped.
+	//! \return Packed ARGB, falling back to the palette's unknown colour (white by default).
+	int ResolveFactionArgb(int factionIndex, int alpha)
+	{
+		return GetFactionPalette().GetArgb(factionIndex, alpha);
 	}
 
 	//-----------------------------------------------------------------------

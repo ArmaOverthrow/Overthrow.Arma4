@@ -808,7 +808,7 @@ class OVT_MapInfluenceLayer : OVT_MapCanvasLayer
 		float unitX = deltaX / length;
 		float unitY = deltaY / length;
 
-		int colour = OVT_MapLocationType.GetFactionArgbByIndex(edge.m_iSourceFaction, alpha);
+		int colour = ResolveFactionArgb(edge.m_iSourceFaction, alpha);
 
 		for (int i = 0; i < dashes; i++)
 		{
@@ -859,7 +859,7 @@ class OVT_MapInfluenceLayer : OVT_MapCanvasLayer
 		if (radius < MIN_SCREEN_LENGTH)
 			return;
 
-		int colour = OVT_MapLocationType.GetFactionArgbByIndex(m_iRingFaction, m_iActiveAlpha);
+		int colour = ResolveFactionArgb(m_iRingFaction, m_iActiveAlpha);
 
 		switch (m_eRingMode)
 		{

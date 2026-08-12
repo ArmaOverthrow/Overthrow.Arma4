@@ -53,6 +53,9 @@ class OVT_MapLocationType
 	
 	[Attribute(defvalue: "false", desc: "Use faction color instead of default color", category: "Icon")]
 	protected bool m_bUseFactionColor;
+
+	[Attribute(defvalue: "", uiwidget: UIWidgets.Object, desc: "Optional per-type faction colours. Leave UNSET to use the shared default (occupier red, resistance green) - only add one when this type's icon needs its own shade against the territory fill beneath it.", category: "Icon")]
+	protected ref OVT_MapFactionPalette m_FactionColors;
 	
 	[Attribute(defvalue: OVT_FactionType.OCCUPYING_FACTION.ToString(), UIWidgets.ComboBox, desc: "Faction type for color", "", ParamEnumArray.FromEnum(OVT_FactionType), category: "Icon")]
 	protected OVT_FactionType m_FactionType;
@@ -543,10 +546,13 @@ class OVT_MapLocationType
 		return Color.Black; // Final fallback
 	}
 	
-	//! THE ONE IMPLEMENTATION of "what colour is faction N". Every live-faction map colour in Overthrow
-	//! resolves through here: the town, base and radio-tower marker overrides, and the territory
-	//! overlay's cell fill. One function is the only way to guarantee the overlay and the markers keep
-	//! agreeing as either side changes - a matching constant in two places is agreement by coincidence.
+	//! THE FACTION'S OWN ENGINE COLOUR - NOT the colour the map draws it in.
+	//!
+	//! ⚠️ This is no longer the map's colour source. It is the raw FactionColor from the faction config,
+	//! and the map now resolves by CAMPAIGN ROLE through OVT_MapFactionPalette instead, because a map
+	//! whose enemy colour changes with its enemy faction is a map the player has to re-learn (US casts
+	//! BLUFOR's cyan-blue as the occupier, which reads as friendly). Only OVT_MapFactionPalette's
+	//! m_bUseEngineFactionColors A/B switch still reaches it. New map code wants ResolveFactionColor.
 	//!
 	//! It takes an INDEX rather than a record because that is what all four site types can supply,
 	//! including FOBs, which carry no faction field of their own and hand in the resistance faction
@@ -557,7 +563,7 @@ class OVT_MapLocationType
 	//! radio-tower markers to white - so baking any single fallback in here would silently restyle
 	//! markers. The unresolved case stays the caller's decision.
 	//! \param[in] factionIndex Faction index, or -1 / any negative value for "no controlling faction".
-	//! \return The faction's colour, or null when the index is negative or cannot be resolved.
+	//! \return The faction's engine colour, or null when the index is negative or cannot be resolved.
 	static Color GetFactionColorByIndex(int factionIndex)
 	{
 		if (factionIndex < 0)
@@ -574,68 +580,49 @@ class OVT_MapLocationType
 		return faction.GetFactionColor();
 	}
 
-	//! THE ONE IMPLEMENTATION of "what PACKED colour is faction N at alpha A", sitting directly on top of
-	//! GetFactionColorByIndex. Every canvas layer that draws a faction - the territory fill, the
-	//! restricted-area rings and the influence overlay - resolves through here, so a line, a ring and the
-	//! region beneath them cannot drift apart in hue.
+	//! Packed ARGB for a faction index at a caller-supplied alpha, through the SHARED DEFAULT palette.
 	//!
-	//! THE ALPHA IS A PARAMETER RATHER THAN THE FACTION'S OWN. Color.PackToInt would bake whatever alpha
-	//! the faction definition carries, which would destroy every alpha-carried distinction its callers
-	//! depend on - contested versus held territory, and in-effect versus suppressed influence - so the
-	//! components are unpacked and recomposed against the requested alpha instead.
-	//!
-	//! THE UNRESOLVED FALLBACK IS WHITE, and it is deliberately decided here rather than delegated:
-	//! GetFactionColorByIndex returns null on purpose because the three MARKER overrides disagree about
-	//! what unknown looks like, but all three CANVAS consumers had already independently chosen white. A
-	//! pale wash, ring or line still reads as itself, whereas any hue would read as a faction that may not
-	//! be there.
+	//! THIS IS THE PALETTE-LESS ENTRY POINT and it is kept only for callers that have no layer or type of
+	//! their own to ask. Anything that does - every canvas layer, every location type - must go through
+	//! its own OVT_MapCanvasLayer.ResolveFactionArgb / ResolveFactionColor instead, or a per-layer shade
+	//! set in the conf will be silently ignored.
 	//! \param[in] factionIndex The controlling faction index, or any negative value for "no faction".
 	//! \param[in] alpha Alpha to pack, 0-255, clamped.
-	//! \return Packed ARGB, falling back to white when the faction cannot be resolved.
+	//! \return Packed ARGB, falling back to the default palette's unknown colour (white).
 	static int GetFactionArgbByIndex(int factionIndex, int alpha)
 	{
-		int red = 255;
-		int green = 255;
-		int blue = 255;
-
-		Color colour = GetFactionColorByIndex(factionIndex);
-		if (colour)
-		{
-			red = Math.ClampInt(Math.Round(colour.R() * 255), 0, 255);
-			green = Math.ClampInt(Math.Round(colour.G() * 255), 0, 255);
-			blue = Math.ClampInt(Math.Round(colour.B() * 255), 0, 255);
-		}
-
-		return ARGB(Math.ClampInt(alpha, 0, 255), red, green, blue);
+		return OVT_MapFactionPalette.GetDefault().GetArgb(factionIndex, alpha);
 	}
 
-	//! Get faction color based on faction type
+	//! This type's faction palette: its own if the conf configured one, otherwise the shared default.
+	//! Never null.
+	OVT_MapFactionPalette GetFactionPalette()
+	{
+		if (m_FactionColors)
+			return m_FactionColors;
+
+		return OVT_MapFactionPalette.GetDefault();
+	}
+
+	//! THE MARKER ENTRY POINT for "what colour is faction N", resolved by CAMPAIGN ROLE rather than by
+	//! the faction's own engine colour - so a marker is red because its owner occupies, not because its
+	//! owner is USSR. The town, base and radio-tower markers all resolve through here, and through the
+	//! same palette the canvas layers use, so an icon cannot disagree with the territory beneath it.
+	//!
+	//! IT RETURNS NULL FOR AN UNROLED FACTION, preserving the contract the three overrides were written
+	//! against: they do not agree on what unknown looks like (town black, base and tower white), so the
+	//! fallback stays theirs rather than being picked here for everybody.
+	//! \param[in] factionIndex The controlling faction index, or any negative value for "no faction".
+	//! \return The role colour, or null when the index belongs to no campaign role.
+	Color ResolveFactionColor(int factionIndex)
+	{
+		return GetFactionPalette().GetColorForFactionIndex(factionIndex);
+	}
+
+	//! Get faction color based on faction type, through this type's palette.
 	protected Color GetFactionColor(OVT_FactionType factionType)
 	{
-		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-		if (!config)
-			return Color.Black;
-		
-		Faction faction;
-		switch (factionType)
-		{
-			case OVT_FactionType.OCCUPYING_FACTION:
-				faction = config.GetOccupyingFactionData();
-				break;
-				
-			case OVT_FactionType.RESISTANCE_FACTION:
-				faction = config.GetPlayerFactionData();
-				break;
-				
-			case OVT_FactionType.SUPPORTING_FACTION:
-				faction = config.GetSupportingFactionData();
-				break;
-		}
-		
-		if (faction)
-			return faction.GetFactionColor();
-			
-		return Color.Black;
+		return GetFactionPalette().GetColorForRole(factionType);
 	}
 	
 	//! Get small icon size
