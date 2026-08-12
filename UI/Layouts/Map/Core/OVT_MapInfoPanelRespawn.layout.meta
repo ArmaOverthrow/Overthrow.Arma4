@@ -1,0 +1,17 @@
+MetaFileClass {
+ Name "{6A83D5A000000075}UI/Layouts/Map/Core/OVT_MapInfoPanelRespawn.layout"
+ Configurations {
+  LayoutResourceClass PC {
+  }
+  LayoutResourceClass XBOX_ONE : PC {
+  }
+  LayoutResourceClass XBOX_SERIES : PC {
+  }
+  LayoutResourceClass PS4 : PC {
+  }
+  LayoutResourceClass PS5 : PC {
+  }
+  LayoutResourceClass HEADLESS : PC {
+  }
+ }
+}

@@ -52,6 +52,7 @@
 - **`RpcAsk_InstantCaptureBase` ships unauthenticated** — the DiagMenu gate is client-side.
 - **`m_iThreat` is a float** with an int prefix; `GetThreatLevel()` truncates it, and deployments consume the truncated value.
 - The player-count resource ladder (×2/×3/×4/×5/×6 at 4/8/16/24/32) is duplicated verbatim in the QRF controller — change both or neither.
+- **Discovery stamps tower/base factions with the config-DEFAULT occupying index** (`GetOccupyingFactionIndex()` computes and caches from `m_sOccupyingFaction = "USSR"` at `Init` time); the save's real faction key is only applied later in `ApplyPersistedOccupyingFaction`. Fixed for both towers AND bases 2026-08-13: any tower/base the save has no record for (map updated after the save) is stamped to the occupying faction in the apply sweep; restored records are never trampled.
 
 ---
 

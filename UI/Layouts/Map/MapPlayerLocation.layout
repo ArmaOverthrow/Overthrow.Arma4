@@ -30,6 +30,7 @@ FrameWidgetClass {
      Size 44 44
      "Blend Mode" Blend
      Range 0.414
+     "Shadow Color" 0.1119 0.1119 0.1119 1
     }
    }
   }

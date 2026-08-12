@@ -94,9 +94,9 @@ Developers extending Overthrow with new factions, jobs, town behaviours or syste
 
 Overthrow is written in EnforceScript against the Enfusion engine and follows its component model rather than fighting it: singleton **Manager** components on the game mode for whole systems, **Controller** components on individual entities for local behaviour, and `OVT_Global` as the single static accessor tying them together. This keeps the mod legible to anyone who already knows Reforger modding.
 
-### Native persistence, moving off third-party frameworks
+### Native persistence, off third-party frameworks
 
-Persistence has been built on the Enfusion Persistence Framework (EPF). With Reforger shipping a first-party persistence system, the project is migrating to it — for native performance, less custom serialization, and console support without the `#ifdef PLATFORM_CONSOLE` carve-outs EPF requires. See `docs/features/core/persistence/`.
+Persistence runs on Reforger's first-party system. The migration off the Enfusion Persistence Framework **completed 2026-08-02**, delivering what it set out to: native performance, far less custom serialization, and console support without the `#ifdef PLATFORM_CONSOLE` carve-outs EPF required. EPF and EDF are no longer dependencies. It was a breaking change — EPF-era saves were not migrated. See `docs/features/core/persistence/`.
 
 ### Replication discipline
 

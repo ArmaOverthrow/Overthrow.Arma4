@@ -13,7 +13,7 @@ Controller components manage individual entity instances (bases, towns, camps, e
 - Manage specific entity state
 - Register with manager in constructor
 - Replicate state to clients as needed
-- Persist entity-specific data via EPF
+- Persist entity-specific data via a `ScriptedComponentSerializer`
 
 ---
 
@@ -238,49 +238,68 @@ class OVT_BaseControllerComponent: OVT_Component
 
 ### Controller Persistence Pattern
 
+A controller is a **per-instance** component, so its serializer is bound by a
+`ComponentClassPersistenceConfigRule { ComponentClass "OVT_TownControllerComponent" }` in
+`Configs/Systems/Persistence/Overthrow.conf` rather than on the game-mode entity.
+
 ```cpp
-#ifndef PLATFORM_CONSOLE
-
-[EPF_ComponentSaveDataType(OVT_TownControllerComponent)]
-class OVT_TownControllerSaveDataClass : EPF_ComponentSaveDataClass {};
-
-class OVT_TownControllerSaveData : EPF_ComponentSaveData
+class OVT_TownControllerSerializer : ScriptedComponentSerializer
 {
-    int m_iTownId;
-    string m_sTownName;
-    int m_iFactionId;
-    int m_iPopulation;
-    vector m_vPosition;
-
-    override void ReadFrom(OVT_TownControllerComponent component)
+    //! \return The component class this serializer is responsible for.
+    override static typename GetTargetType()
     {
-        // Extract controller state
-        m_iTownId = component.GetTownId();
-        m_sTownName = component.GetTownName();
-        m_iFactionId = component.GetFactionId();
-        m_iPopulation = component.GetPopulation();
-
-        IEntity owner = component.GetOwner();
-        if (owner)
-        {
-            m_vPosition = owner.GetOrigin();
-        }
+        return OVT_TownControllerComponent;
     }
 
-    override void ApplyTo(OVT_TownControllerComponent component)
+    override protected ESerializeResult Serialize(notnull IEntity owner, notnull GenericComponent component, notnull SaveContext context)
     {
-        // Restore controller state
-        component.SetTownId(m_iTownId);
-        component.SetTownName(m_sTownName);
-        component.SetFactionId(m_iFactionId);
-        component.SetPopulation(m_iPopulation);
+        OVT_TownControllerComponent controller = OVT_TownControllerComponent.Cast(component);
+        if (!controller)
+            return ESerializeResult.ERROR;
 
-        // Position handled by entity transform
+        context.WriteValue("version", 1);
+
+        int townId = controller.GetTownId();
+        context.Write(townId);
+
+        int factionId = controller.GetFactionId();
+        context.Write(factionId);
+
+        int population = controller.GetPopulation();
+        context.Write(population);
+
+        // Position is NOT saved here - the entity's own transform handles it.
+        return ESerializeResult.OK;
+    }
+
+    override protected bool Deserialize(notnull IEntity owner, notnull GenericComponent component, notnull LoadContext context)
+    {
+        OVT_TownControllerComponent controller = OVT_TownControllerComponent.Cast(component);
+        if (!controller)
+            return false;
+
+        int version;
+        context.ReadValue("version", version);
+        if (version < 1)
+            return true;
+
+        int townId, factionId, population;
+        context.Read(townId);
+        context.Read(factionId);
+        context.Read(population);
+
+        controller.SetTownId(townId);
+        controller.SetFactionId(factionId);
+        controller.SetPopulation(population);
+
+        return true;
     }
 }
-
-#endif
 ```
+
+⚠️ **If the entity is SPAWNED rather than authored in the world**, component state alone restores
+nothing: its persistence configuration needs `SelfSpawn` and the spawn site must call
+`OVT_PersistenceTracking.Track(entity)`. `OVT_BuildableComponentSerializer` is the shipped example.
 
 ---
 
@@ -297,7 +316,7 @@ class OVT_TownControllerSaveData : EPF_ComponentSaveData
 2. **Runtime:**
    - Controller manages entity state
    - Replicates changes to clients
-   - Persists state via EPF
+   - Persists state via its serializer
 
 3. **Destruction:**
    - Destructor called
@@ -465,7 +484,7 @@ class OVT_BaseEconomyComponent: OVT_Component
 - **Validate setters:** Check parameters before setting
 - **Check manager exists:** Manager may not be loaded yet
 - **Document lifecycle:** When constructor/Init/destructor are called
-- **Persist controller state:** Use EPF for save/load
+- **Persist controller state:** Write a `ScriptedComponentSerializer` and register it in `Overthrow.conf`
 
 ### ❌ DON'T:
 
@@ -523,5 +542,5 @@ class OVT_BaseEconomyComponent: OVT_Component
 - See `global-access.md` for accessing managers
 - See `enforcescript-patterns/component-patterns.md` for base patterns
 - See `enforcescript-patterns/networking.md` for replication
-- See `enforcescript-patterns/persistence.md` for EPF
+- See `enforcescript-patterns/persistence.md` for vanilla persistence (⚠️ EPF retired 2026-08-02)
 - See main `SKILL.md` for overview

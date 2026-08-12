@@ -1,0 +1,83 @@
+OverlayWidgetClass {
+ Name "LayerRow"
+ Slot LayoutSlot "{6A85D1E000000031}" {
+  HorizontalAlign 3
+  Padding 0 0 0 2
+ }
+ components {
+  OVT_MapLayerRowComponent "{6A85D1E000000066}" {
+  }
+ }
+ {
+  PanelWidgetClass "{6A85D1E000000067}" {
+   Name "RowHighlight"
+   Slot OverlayWidgetSlot "{6A85D1E000000068}" {
+    HorizontalAlign 3
+    VerticalAlign 3
+   }
+   "Z Order" 0
+   Opacity 0
+   Color 0.761 0.392 0.08 1
+   style full
+  }
+  HorizontalLayoutWidgetClass "{6A85D1E000000069}" {
+   Name "RowContent"
+   Slot OverlayWidgetSlot "{6A85D1E00000006A}" {
+    HorizontalAlign 3
+    VerticalAlign 3
+    Padding 4 0 4 0
+   }
+   "Z Order" 1
+   {
+    ImageWidgetClass "{6A85D1E000000032}" {
+     Name "RowIcon"
+     Slot LayoutSlot "{6A85D1E000000033}" {
+      VerticalAlign 1
+      Padding 0 0 6 0
+     }
+     "Is Visible" 0
+     Color 1 1 1 1
+     Size 13 13
+     "Blend Mode" Blend
+    }
+    TextWidgetClass "{6A85D1E000000034}" {
+     Name "RowLabel"
+     Slot LayoutSlot "{6A85D1E000000035}" {
+      VerticalAlign 1
+      SizeMode Fill
+      Padding 0 0 6 0
+     }
+     Color 1 1 1 1
+     Text "Layer"
+     "Font Size" 11
+     "Min Font Size" 11
+     "Horizontal Alignment" Left
+     "Vertical Alignment" Center
+    }
+    ButtonWidgetClass "{6A85D1E000000036}" : "{5D5055E10FD00549}UI/layouts/WidgetLibrary/ToolBoxes/WLib_Checkbox.layout" {
+     Name "RowCheckbox"
+     Slot LayoutSlot "{6A85D1E000000037}" {
+      VerticalAlign 1
+     }
+     components {
+      SCR_CheckboxComponent "{546A9B7B0A8AD927}" {
+       m_bMouseOverToFocus 1
+       m_bUseLabel 0
+       m_sLabel ""
+       m_fSizeWithoutLabel 30
+      }
+     }
+     {
+      SizeLayoutWidgetClass "{553ACE4226346A6D}" {
+       Prefab "{553ACE4226346A6D}"
+       AllowWidthOverride 1
+       WidthOverride 84
+       {
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

@@ -428,76 +428,77 @@ void ClientRequestAction()
 
 ❌ **Don't do this:**
 ```cpp
-class OVT_SomeSaveData : EPF_ComponentSaveData
+override protected ESerializeResult Serialize(notnull IEntity owner, notnull GenericComponent component, notnull SaveContext context)
 {
-    IEntity m_SavedEntity; // Will crash or corrupt save!
-
-    override void ReadFrom(OVT_SomeComponent component)
-    {
-        m_SavedEntity = component.GetEntity();
-    }
+    IEntity referenced = someComponent.GetEntity();
+    context.Write(referenced);   // Will crash or corrupt the save!
 }
 ```
 
-✅ **Do this instead:**
+✅ **Do this instead — persist a stable id and re-resolve on load:**
 ```cpp
-class OVT_SomeSaveData : EPF_ComponentSaveData
+override protected ESerializeResult Serialize(notnull IEntity owner, notnull GenericComponent component, notnull SaveContext context)
 {
-    EntityID m_SavedEntityId; // Save ID, not entity!
+    context.WriteValue("version", 1);
 
-    override void ReadFrom(OVT_SomeComponent component)
-    {
-        IEntity entity = component.GetEntity();
-        if (entity)
-        {
-            m_SavedEntityId = entity.GetID();
-        }
-        else
-        {
-            m_SavedEntityId = EntityID.INVALID;
-        }
-    }
+    // A persistent id the system itself can resolve, or your own stable key -
+    // never a raw IEntity and never an EntityID across a save boundary.
+    string referencedId = someComponent.GetReferencedPersistentId();
+    context.Write(referencedId);
 
-    override void ApplyTo(OVT_SomeComponent component)
-    {
-        if (m_SavedEntityId != EntityID.INVALID)
-        {
-            IEntity entity = GetGame().GetWorld().FindEntityByID(m_SavedEntityId);
-            component.SetEntity(entity); // May be null if entity doesn't exist
-        }
-    }
+    return ESerializeResult.OK;
+}
+
+override protected bool Deserialize(notnull IEntity owner, notnull GenericComponent component, notnull LoadContext context)
+{
+    int version;
+    context.ReadValue("version", version);
+    if (version < 1)
+        return true;
+
+    string referencedId;
+    context.Read(referencedId);
+
+    someComponent.SetReferencedPersistentId(referencedId);  // resolve later, may not exist yet
+    return true;
 }
 ```
 
-**Why:** IEntity cannot be serialized. Save EntityID instead and fetch entity on load.
+**Why:** `IEntity` cannot be serialized. **`EntityID` is also wrong across a save** — it is a session-local handle, so an id saved in one session means nothing in the next. Persist a stable key (or the persistence system's own `UUID` via `GetId()`) and resolve the entity after load, tolerating "not there".
 
-### Forgetting Platform Guards
+### ⚠️ Writing EPF-shaped Persistence Code
 
-**The Problem:** EPF code runs on console platforms that don't support it.
+**The Problem:** EPF was retired on 2026-08-02, but stale examples still circulate.
 
-❌ **Don't do this:**
-```cpp
-[EPF_ComponentSaveDataType(OVT_SomeComponent)]
-class OVT_SomeSaveData : EPF_ComponentSaveData
-{
-    // Will crash on Xbox/PlayStation!
-}
-```
-
-✅ **Do this instead:**
+❌ **Don't do this — none of these types exist any more:**
 ```cpp
 #ifndef PLATFORM_CONSOLE
 
 [EPF_ComponentSaveDataType(OVT_SomeComponent)]
+class OVT_SomeSaveDataClass : EPF_ComponentSaveDataClass {};
+
 class OVT_SomeSaveData : EPF_ComponentSaveData
 {
-    // Only compiled for PC
+    override void ReadFrom(OVT_SomeComponent component) { }
+    override void ApplyTo(OVT_SomeComponent component)  { }
 }
 
 #endif
 ```
 
-**Why:** Console platforms (Xbox/PlayStation) don't support FileIO. EPF must be disabled with platform guards.
+✅ **Do this instead:**
+```cpp
+class OVT_SomeComponentSerializer : ScriptedComponentSerializer
+{
+    override static typename GetTargetType() { return OVT_SomeComponent; }
+
+    override protected ESerializeResult Serialize(notnull IEntity owner, notnull GenericComponent component, notnull SaveContext context) { }
+    override protected bool Deserialize(notnull IEntity owner, notnull GenericComponent component, notnull LoadContext context) { }
+}
+```
+...plus an entry in `Configs/Systems/Persistence/Overthrow.conf` — **a serializer that is not listed there is silently never called.**
+
+**Why:** `Scripts/` has zero `EPF_` references and neither EPF nor EDF is a mod dependency. **No console guards:** the vanilla system handles console storage internally; `#ifdef PLATFORM_CONSOLE` was an EPF-only requirement. See `persistence.md`.
 
 ---
 
@@ -700,7 +701,7 @@ Before committing code, verify:
 - [ ] Replication.BumpMe() called after RplProp changes
 - [ ] RPC has correct receiver type (Server vs Broadcast/Owner)
 - [ ] Host check before client→server RPC
-- [ ] EPF code wrapped in #ifndef PLATFORM_CONSOLE
+- [ ] Persistence uses `ScriptedComponentSerializer` (no `EPF_*` types, no console guards) and every serializer is listed in `Overthrow.conf`
 - [ ] IEntity not persisted in SaveData
 - [ ] GetInstance() results checked for null
 - [ ] GetUI() checked before UI operations

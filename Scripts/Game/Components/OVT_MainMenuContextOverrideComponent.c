@@ -18,44 +18,19 @@ class OVT_MainMenuContextOverrideComponent : OVT_Component
 	[Attribute("0")]
 	bool m_bMustBeDriving;
 	
-	[Attribute("1")]
-	bool m_bShowOnMap;
-	
-	protected bool m_bRegistered = false;
-	
+	//! Map registration used to live here, driven from EOnFrame. It now belongs to
+	//! OVT_MapMarkerComponent + OVT_MapMarkerManagerComponent: the three prefabs that used to register
+	//! a POI this way carry a marker component instead. What remains here is purely the in-world
+	//! interaction-menu role.
 	override void OnPostInit(IEntity owner)
-	{		
+	{
 		super.OnPostInit(owner);
 		if(SCR_Global.IsEditMode())
 			return;
-		
-		SetEventMask(owner, EntityEvent.INIT | EntityEvent.FRAME);
+
+		SetEventMask(owner, EntityEvent.INIT);
 	}
-	
-	override void EOnFrame(IEntity owner, float timeSlice) //!EntityEvent.FRAME
-	{		
-		if(!m_bRegistered)
-		{
-			if(!m_bShowOnMap || !m_UiInfo) 
-			{
-				m_bRegistered = true;
-				return;
-			}
-			if(!owner) return;			
-			if(m_bMustOwnBase)
-			{
-				OVT_OccupyingFactionManager of = OVT_Global.GetOccupyingFaction();
-				if(!of) return;
-				OVT_BaseData base = of.GetNearestBase(owner.GetOrigin());
-				if(!base) return;
-				float dist = vector.Distance(base.location, owner.GetOrigin());
-				if(dist > 220) return;
-			}
-			OVT_MapIcons.RegisterPOI(m_UiInfo, owner.GetOrigin(), m_bMustOwnBase);
-			m_bRegistered = true;
-		}
-	}
-	
+
 	bool CanShow(IEntity player)
 	{
 		if(!player) return false;

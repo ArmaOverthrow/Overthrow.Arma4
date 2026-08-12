@@ -16,11 +16,19 @@
 //!      (RequestPersistedPlayerBody -> OnPlayerBodySpawned -> AttachRestoredPlayerBody), and everything
 //!      else falls through to CreateFreshCharacter. Nothing self-spawns a player character, which is
 //!      exactly why the spawn logic has to ask.
-//!   3. Respawn after death. The old base re-created the character one frame after OnPlayerKilled_S;
-//!      that is preserved, and death now also CLEARS the stored body id so the rebuild can only ever be
-//!      a fresh civilian one. What is NOT ported is its dead-body dance (fresh id for the corpse, force
-//!      self-spawn): the game mode's kill hook marks the corpse's config to self-spawn instead - see
+//!   3. Respawn after death. The old base re-created the character one frame after OnPlayerKilled_S.
+//!      Overthrow no longer does: death now DEFERS creation until the player has chosen where to be
+//!      put (OnPlayerKilled_S -> BeginAwaitingRespawn -> CompleteRespawn), and it CLEARS the stored
+//!      body id so the eventual rebuild can only ever be a fresh civilian one. What is NOT ported is
+//!      the old base's dead-body dance (fresh id for the corpse, force self-spawn): the game mode's
+//!      kill hook marks the corpse's config to self-spawn instead - see
 //!      OVT_PersistenceTracking.MarkForSelfSpawn.
+//!
+//! A CONSEQUENCE OF THAT DEFERRAL WORTH KNOWING BEFORE EDITING ANYTHING HERE: a dead player keeps
+//! control of their CORPSE for as long as the respawn screen is up, which is minutes rather than the
+//! single frame it used to be. Several guards in this file ask whether a player already has a
+//! controlled entity; each is written knowing that the honest question is "do they have a character
+//! that can still play", and a corpse is not one.
 [BaseContainerProps(category: "Respawn")]
 class OVT_SpawnLogic : SCR_SpawnLogic
 {
@@ -55,6 +63,20 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 	//! second request and end up handing over two characters.
 	protected ref array<int> m_aPendingBodySpawns = {};
 
+	//! Players who are dead and have not yet chosen where their next character is created.
+	//!
+	//! THE SAME ONE-SHOT CLAIM AS m_aPendingBodySpawns ABOVE, for the same reason: the entry is the
+	//! right to be spawned once, and CompleteRespawn() consumes it BEFORE it builds anything. A
+	//! duplicate request, a late packet, or a request from a player who is not dead finds no entry and
+	//! returns without spawning, so one death can only ever produce one character.
+	//!
+	//! Keyed on the RUNTIME player id, which a later joiner can inherit - so the entry has to be
+	//! dropped on disconnect (OnPlayerDisconnected_S) rather than left to expire.
+	//!
+	//! Server-side, per player, consumed on use and gone when the world ends. There is nothing here a
+	//! client can leave armed and nothing here to read stale.
+	protected ref array<int> m_aAwaitingRespawn = {};
+
 	//! The persistence collection player bodies belong to, resolved once and cached.
 	//!
 	//! DELIBERATELY NOT SCR_SpawnLogic.m_CharacterCollection. That field is vanilla's switch for routing
@@ -85,6 +107,14 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 	//! How many times to poll before spawning anyway. 20 x 250 ms = 5 s, after which a player is given a
 	//! fresh character rather than left staring at a loading screen.
 	static const int PERSISTED_DATA_MAX_WAITS = 20;
+
+	//! How often to re-ask a still-choosing player's machine to put the respawn screen up (ms).
+	//!
+	//! DELIBERATELY NOT A TIMEOUT, and the distinction is the whole design. Nothing counts these down
+	//! and nothing spawns anybody when they run out - the tick exists so that a lost show RPC, or a
+	//! client whose controller had not registered yet when it died, still ends up with a screen. The
+	//! player waits as long as they like and is never spawned somewhere they did not pick.
+	static const int RESPAWN_REASK_MS = 5000;
 
 	//! Event fired when a player group is created
 	//! Parameters: playerId, groupId, playerName
@@ -304,15 +334,49 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 	//! THE FALLBACK, NOT THE NORMAL PATH once a campaign has been saved once - but the only path on a new
 	//! one. This is also where "death is complete loss" is implemented: OnPlayerKilled_S clears the stored
 	//! body id, so a killed player always arrives here and always gets the civilian loadout.
+	//!
+	//! Every caller that is not a respawn choice uses THIS two-argument form, which asks
+	//! GetCreationPosition() where to put the character exactly as it always has.
 	//! \param[in] playerId The player who will control the character.
 	//! \param[in] characterPersistenceId The player's Overthrow persistent id, used to pick the position.
 	protected void CreateFreshCharacter(int playerId, string characterPersistenceId)
 	{
-		// Every route here is asynchronous - a deferred call, a failed spawn request, a timeout - so
-		// re-check the player before building anything. Spawning first and asking afterwards would
-		// leave a dressed, networked character with no owner when the player has left (HandoverToPlayer
-		// logs and returns, deleting nothing). A LIVING controlled entity means somebody else already
-		// finished the job; a dead one is the death-respawn path, which must proceed.
+		CreateFreshCharacterAt(playerId, characterPersistenceId, false, vector.Zero);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! CreateFreshCharacter() with the option of a caller-chosen spawn position.
+	//!
+	//! THE CHOSEN POSITION IS A PARAMETER, NEVER STORED, AND THAT IS THE POINT. The obvious defect in a
+	//! deferred respawn is a stale position override leaking into a spawn that is not a respawn - an
+	//! initial spawn, the persisted-data retry, the body-spawn timeout, either body-spawn fallback -
+	//! and putting the override in a member or a per-player map would make that a lifetime question to
+	//! be reasoned about. As a parameter it is a TYPE question instead: every caller that is not a
+	//! respawn choice calls the two-argument wrapper above, which passes false, and there is no state
+	//! anywhere for anything to leak from.
+	//!
+	//! The chosen position is used as given. It is only ever a vector the SERVER produced from its own
+	//! eligible-location enumeration, so it is already a place the server was willing to offer;
+	//! re-deriving or re-safety-checking it here would move the player away from the location they
+	//! deliberately picked.
+	//! \param[in] playerId The player who will control the character.
+	//! \param[in] characterPersistenceId The player's Overthrow persistent id.
+	//! \param[in] useChosenPosition True to spawn at chosenPosition, false to ask GetCreationPosition().
+	//! \param[in] chosenPosition Where to spawn. Ignored unless useChosenPosition is true.
+	protected void CreateFreshCharacterAt(int playerId, string characterPersistenceId, bool useChosenPosition, vector chosenPosition)
+	{
+		// Every route here is asynchronous - a deferred call, a failed spawn request, a timeout, and
+		// now a player reading a respawn screen - so re-check the player before building anything.
+		// Spawning first and asking afterwards would leave a dressed, networked character with no owner
+		// when the player has left (HandoverToPlayer logs and returns, deleting nothing). A LIVING
+		// controlled entity means somebody else already finished the job; a dead one is the
+		// death-respawn path, which must proceed.
+		//
+		// THE CORPSE TOLERANCE IS LOAD-BEARING AND ITS WINDOW IS NOW LONG. It used to cover the single
+		// frame between a death and the automatic rebuild; deferred respawn stretches it to however long
+		// the player takes to choose. The test is unchanged because it was never a "how recently did
+		// they die" test - it asks whether the player has a character that can still play, and a corpse
+		// has never been one.
 		PlayerController playerController = GetGame().GetPlayerManager().GetPlayerController(playerId);
 		if (!playerController)
 		{
@@ -329,8 +393,20 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 
 		ResourceName prefab = GetCreationPrefab(playerId, characterPersistenceId);
 
+		// THE ONLY BRANCH THIS SPLIT ADDS. Without a chosen position this is the untouched call it has
+		// always been, which is what keeps "respawn at home" - and every non-respawn spawn - on exactly
+		// the behaviour they had before deferred respawn existed. The zero orientation matches what
+		// GetCreationPosition() itself uses for every position it picks except a logout transform.
 		vector position, yawPitchRoll;
-		GetCreationPosition(playerId, characterPersistenceId, position, yawPitchRoll);
+		if (useChosenPosition)
+		{
+			position = chosenPosition;
+			yawPitchRoll = "0 0 0";
+		}
+		else
+		{
+			GetCreationPosition(playerId, characterPersistenceId, position, yawPitchRoll);
+		}
 
 		EntitySpawnParams spawnParams();
 		spawnParams.TransformMode = ETransformMode.WORLD;
@@ -1285,10 +1361,20 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Called on the server when a player is killed. Charges the respawn cost and rebuilds a character.
+	//! Called on the server when a player is killed. Charges the respawn cost and hands the player to
+	//! the respawn screen.
 	//!
-	//! The rebuild is deferred by one frame, as the old persistence-framework base did: a new character
-	//! cannot be handed over on the same frame the old one died.
+	//! NO CHARACTER IS CREATED HERE ANY MORE. Until deferred respawn this method ended by scheduling
+	//! CreateCharacter() one frame later, which put the player back at home whether they liked it or
+	//! not. It now ends by asking them where they want to go, and BeginAwaitingRespawn() owns
+	//! everything after that. Everything before that last line is unchanged, and the ORDER is what
+	//! makes it safe to defer: the cost is charged, the stored body id is cleared, the last known
+	//! position is cleared and the gear snapshot is dropped BEFORE the wait begins, so none of them can
+	//! be affected by how long the player takes to choose or by which location they pick.
+	//!
+	//! THE COST IS CHARGED AT DEATH, NOT AT RESPAWN, and that is a decision rather than an accident.
+	//! Charging here means the fee cannot vary by destination and there is nothing for a player to game
+	//! by picking one location over another - the location choice is free, respawning is not.
 	//!
 	//! DEATH IS COMPLETE LOSS, AND THIS IS WHERE THAT IS ENFORCED. The player's record carries the
 	//! persistence id of the body they were using, and CreateCharacter() would otherwise spawn that exact
@@ -1336,7 +1422,260 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 		if (players)
 			players.ClearPlayerGearSnapshot(playerUid);
 
-		GetGame().GetCallqueue().Call(CreateCharacter, playerId, playerUid);
+		BeginAwaitingRespawn(playerId, playerUid);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Puts a killed player in front of the respawn screen instead of giving them a character.
+	//!
+	//! REPLACES A ONE-FRAME AUTOMATIC REBUILD WITH AN UNBOUNDED WAIT, and everything else in this
+	//! region exists to make that safe. The player is not spawned again until they pick somewhere, and
+	//! the only ways out of the wait are: they pick a location, they pick home, their pick has become
+	//! ineligible and falls back to home, they disconnect, something else hands them a living
+	//! character, or the world ends. Nothing counts down and nothing spawns them on their behalf.
+	//!
+	//! A CAPABILITY CHECK AT t=0, NOT A TIMEOUT. If this player's controller cannot show a respawn
+	//! screen then no amount of waiting will produce one, so that is decided here, once, at the moment
+	//! of death - and the answer is to spawn them immediately, which is exactly the behaviour this
+	//! feature replaced. A misconfigured controller prefab degrades to the old game; it does not leave
+	//! a player dead forever. Resolved through the same lookup the re-ask tick uses, so a check that
+	//! passes here is a promise the tick can keep.
+	//! \param[in] playerId The player who has just died.
+	//! \param[in] characterPersistenceId Their Overthrow persistent id.
+	protected void BeginAwaitingRespawn(int playerId, string characterPersistenceId)
+	{
+		// Idempotent. Two death events for one player would otherwise start two re-ask chains, and the
+		// player would be asked twice as often forever.
+		if (m_aAwaitingRespawn.Find(playerId) != -1)
+			return;
+
+		OVT_RespawnRequestComponent requests = FindRespawnRequests(playerId);
+		if (!requests)
+		{
+			Print("[Overthrow] Player " + playerId + " has no respawn request component - either no Overthrow controller entity exists for them, or OVT_RespawnRequestComponent is missing from Prefabs/GameMode/OVT_OverthrowController.et. Spawning them immediately instead of asking where they want to go", LogLevel.ERROR);
+
+			// THE LINE DEFERRED RESPAWN REPLACED, REPRODUCED EXACTLY, one-frame delay included. That
+			// delay is not incidental: this is reached from inside the kill handler, and a new character
+			// cannot be handed over on the same frame the old one died. Spawning synchronously here
+			// would make the degrade path behave WORSE than the behaviour it exists to fall back to.
+			GetGame().GetCallqueue().Call(CreateCharacter, playerId, characterPersistenceId);
+			return;
+		}
+
+		m_aAwaitingRespawn.Insert(playerId);
+
+		Print("[Overthrow] Player " + playerId + " is awaiting a respawn choice - no character will be created until they pick");
+
+		requests.AskShowRespawnScreen(playerId);
+
+		GetGame().GetCallqueue().CallLater(ReAskRespawnScreen, RESPAWN_REASK_MS, false, playerId, characterPersistenceId);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asks again, every RESPAWN_REASK_MS, for as long as the player is still choosing.
+	//!
+	//! HOW "NO TIMEOUT" AND "NEVER STRANDED" ARE RECONCILED. The show request is not assumed to have
+	//! arrived: it is re-sent forever, so a dropped RPC or a client whose respawn screen was not ready
+	//! when it died still ends up looking at one. What is never done is spawning the player because
+	//! time passed - the wait has no deadline, only exits.
+	//!
+	//! The chain cancels itself by not rescheduling. Nothing removes it from the call queue, and
+	//! nothing should: GetCallqueue().Remove() takes a METHOD, not an argument list, so cancelling one
+	//! player's tick that way would cancel every other player's too. The awaiting entry IS the
+	//! subscription, and one already-queued tick firing after the entry is gone is harmless by design.
+	//! \param[in] playerId The player who is still choosing.
+	//! \param[in] characterPersistenceId Their Overthrow persistent id.
+	protected void ReAskRespawnScreen(int playerId, string characterPersistenceId)
+	{
+		// 1. Not awaiting any more - they picked, they left, or an exit below already fired. This is
+		//    the normal end of the chain and is deliberately silent.
+		if (m_aAwaitingRespawn.Find(playerId) == -1)
+			return;
+
+		// 2. Gone without a disconnect event this path can see. Dropping the entry rather than leaving
+		//    it matters because runtime player ids are reused: a later joiner inheriting this number
+		//    must not inherit a claim to be spawned.
+		PlayerController playerController = GetGame().GetPlayerManager().GetPlayerController(playerId);
+		if (!playerController)
+		{
+			DropAwaitingRespawn(playerId);
+			Print("[Overthrow] Player " + playerId + " is gone while awaiting a respawn choice - dropping the awaiting entry", LogLevel.WARNING);
+			return;
+		}
+
+		// 3. Something else gave them a LIVING character - the degrade path, an admin, a future
+		//    feature. A corpse is not that: it is what they are waiting to be rid of, and treating it
+		//    as a character here would strand them permanently in the one state this whole region
+		//    exists to end.
+		IEntity controlled = playerController.GetControlledEntity();
+		if (controlled && !OVT_PlayerManagerComponent.IsCharacterDead(controlled))
+		{
+			DropAwaitingRespawn(playerId);
+			Print("[Overthrow] Player " + playerId + " has a character again by other means - they are no longer awaiting a respawn choice");
+			return;
+		}
+
+		// 4. Still dead, still connected, still choosing. Ask again and come back.
+		//
+		// A missing component here can only mean their controller entity went away while they stayed
+		// connected, which nothing in the tree does. It is loud rather than fatal: rescheduling keeps
+		// the only exit that can still spawn them open, whereas dropping the entry would strand them
+		// and spawning them would put them somewhere they never picked.
+		OVT_RespawnRequestComponent requests = FindRespawnRequests(playerId);
+		if (requests)
+			requests.AskShowRespawnScreen(playerId);
+		else
+			Print("[Overthrow] Player " + playerId + " is awaiting a respawn choice but their respawn request component has vanished - cannot show them the screen", LogLevel.WARNING);
+
+		GetGame().GetCallqueue().CallLater(ReAskRespawnScreen, RESPAWN_REASK_MS, false, playerId, characterPersistenceId);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Creates the character a player has just chosen the location for.
+	//!
+	//! The only entry point OVT_RespawnRequestComponent calls, and the only place a respawn choice
+	//! turns into a character. It is reached having already been range-checked and identity-resolved
+	//! by that component; what it adds is the one-shot claim and the position decision.
+	//!
+	//! ! IT CALLS THE FRESH-CHARACTER PATH DIRECTLY AND NEVER CreateCharacter(), deliberately. Death
+	//! has already cleared the stored body id, so the persisted-body route could not do anything
+	//! anyway - and going nowhere near it means a respawn choice can never interact with body
+	//! restoration, the pending-body-spawn set, or the spawn-request timeout.
+	//!
+	//! HOME NEEDS NO CODE HERE AND THAT IS WHY IT ALWAYS WORKS. It routes through the untouched
+	//! two-argument fresh-character path, whose position chain already handles an unsafe or unassigned
+	//! home. Home is never enumerated, never eligibility-checked and never QRF-checked, so "respawn at
+	//! home is always available, even inside an active QRF" is true by construction rather than by a
+	//! special case that could be got wrong.
+	//!
+	//! ! WHAT OK ACTUALLY PROMISES, precisely: that the claim was consumed and the untouched
+	//! fresh-character path was entered. That path returns nothing and can still fail inside itself -
+	//! the player left, or the character prefab would not spawn - and this cannot see it, so a failure
+	//! there leaves a player with no claim, no character and a client that was told OK. Deliberately
+	//! not papered over here: making the spawn path report success means threading a return value
+	//! through the method every non-respawn spawn also uses, and re-arming the claim on a guess would
+	//! flash a failure hint on the common path every time possession had not registered yet. The
+	//! residual case needs the player prefab itself to fail to spawn, which strands players at their
+	//! FIRST spawn too, by the same route, with the same ERROR line - it is not a hazard this feature
+	//! introduces.
+	//! \param[in] playerId The player who chose, resolved server-side from their controller entity.
+	//! \param[in] destination An OVT_RespawnDestination value, already range-checked by the caller.
+	//! \param[in] requestedPos The position the client named. A lookup key, never a spawn position.
+	//! \return An OVT_RespawnResult code.
+	int CompleteRespawn(int playerId, int destination, vector requestedPos)
+	{
+		if (!Replication.IsServer())
+			return OVT_RespawnResult.SPAWN_FAILED;
+
+		string characterPersistenceId = OVT_Global.GetPlayerUID(playerId);
+		if (!characterPersistenceId)
+		{
+			// Their awaiting entry is deliberately left alone: an id that cannot be resolved now may
+			// resolve on the next re-ask, and consuming the claim would take away their last exit.
+			Print("[Overthrow] Cannot complete a respawn for player " + playerId + " - no persistent UID", LogLevel.WARNING);
+			return OVT_RespawnResult.NO_PLAYER;
+		}
+
+		// THE ONE-SHOT CLAIM, AND IT IS BEFORE EVERY SPAWNING BRANCH FOR ONE REASON: this is what makes
+		// two characters for one death impossible. A duplicate click, a re-sent packet, a request that
+		// races the re-ask tick, or a request from a player who is not dead at all all arrive here,
+		// find no entry, and leave without building anything.
+		if (!DropAwaitingRespawn(playerId))
+		{
+			Print("[Overthrow] Respawn request from player " + playerId + " ignored - they are not awaiting a respawn choice", LogLevel.WARNING);
+
+			// NOT_ELIGIBLE rather than SPAWN_FAILED, because SPAWN_FAILED promises the player is still
+			// awaiting and must be re-asked - and the commonest way to get here is a second click from
+			// somebody whose first click already worked.
+			return OVT_RespawnResult.NOT_ELIGIBLE;
+		}
+
+		if (destination == OVT_RespawnDestination.HOME)
+		{
+			CreateFreshCharacter(playerId, characterPersistenceId);
+			return OVT_RespawnResult.OK;
+		}
+
+		// The client named a place; the server looks it up in its OWN enumeration and spawns at its own
+		// recorded vector. requestedPos is a key and never reaches the spawn.
+		vector resolvedPos;
+		int resolved = OVT_RespawnService.ResolveRespawnPosition(characterPersistenceId, destination, requestedPos, resolvedPos);
+		if (resolved != OVT_RespawnResult.OK)
+		{
+			// The location went ineligible between the screen drawing it and the pick arriving - the
+			// base fell, the camp was made private, a QRF started - or the vector matched nothing the
+			// server offers. Falling back to home rather than refusing is the difference between "you
+			// are somewhere you did not choose" and "you are still dead": the player is always alive at
+			// the end of this, and the result code is what tells them why they are at home.
+			Print("[Overthrow] Player " + playerId + " picked a respawn location the server does not offer - sending them home instead", LogLevel.WARNING);
+			CreateFreshCharacter(playerId, characterPersistenceId);
+			return OVT_RespawnResult.OK_FELL_BACK_HOME;
+		}
+
+		CreateFreshCharacterAt(playerId, characterPersistenceId, true, resolvedPos);
+		return OVT_RespawnResult.OK;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Consumes one player's awaiting-respawn claim.
+	//!
+	//! Find-then-Remove, the same idiom m_aPendingBodySpawns uses, so that "was this player awaiting?"
+	//! and "they are not any more" are one indivisible answer at every call site.
+	//! \param[in] playerId The player to drop.
+	//! \return True when an entry was found and removed, false when there was none.
+	protected bool DropAwaitingRespawn(int playerId)
+	{
+		int index = m_aAwaitingRespawn.Find(playerId);
+		if (index == -1)
+			return false;
+
+		m_aAwaitingRespawn.Remove(index);
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! One player's respawn request component, resolved on the server from their controller entity.
+	//!
+	//! Deliberately NOT OVT_Global.GetRespawnRequests(), which resolves the LOCAL machine's controller
+	//! and would answer with the host's own component for every player on a listen server.
+	//! \param[in] playerId The player whose component to find.
+	//! \return The component, or null when the player has no controller entity or it lacks one.
+	protected OVT_RespawnRequestComponent FindRespawnRequests(int playerId)
+	{
+		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
+		if (!players)
+			return null;
+
+		OVT_OverthrowController controller = players.GetController(playerId);
+		if (!controller)
+			return null;
+
+		return OVT_RespawnRequestComponent.Cast(controller.FindComponent(OVT_RespawnRequestComponent));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Ends a leaving player's respawn wait without spawning them.
+	//!
+	//! NO CHARACTER IS CREATED HERE, on purpose. A player who reconnects is spawned by the normal join
+	//! path, and death has already cleared both their stored body id and their last known position, so
+	//! that path puts them at home - which is where the respawn screen's guaranteed option would have
+	//! put them anyway. Building a character for somebody who is not here would leave it standing
+	//! unowned in the world.
+	//!
+	//! The entry must be dropped rather than left to lapse because runtime player ids are session
+	//! scoped and can be reused: a later joiner inheriting this number must not inherit a live claim
+	//! to be spawned.
+	//! \param[in] playerId The player who left.
+	//! \param[in] cause Why they left. Passed straight to vanilla.
+	//! \param[in] timeout Disconnect timeout. Passed straight to vanilla.
+	override void OnPlayerDisconnected_S(int playerId, KickCauseCode cause, int timeout)
+	{
+		super.OnPlayerDisconnected_S(playerId, cause, timeout);
+
+		if (!DropAwaitingRespawn(playerId))
+			return;
+
+		Print("[Overthrow] Player " + playerId + " left while awaiting a respawn choice - dropping the awaiting entry, they will spawn at home when they return");
 	}
 
 	//------------------------------------------------------------------------------------------------

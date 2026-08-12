@@ -11,6 +11,10 @@ OVT_OverthrowController {
   }
   OVT_AdminCommandsComponent "{6A7D9B2E000000F0}" {
   }
+  OVT_TravelRequestComponent "{6A7F3E5C18B24D60}" {
+  }
+  OVT_RespawnRequestComponent "{6A83D5A0000000B0}" {
+  }
   RplComponent "{65C4B2D3DE955867}" {
   }
  }

@@ -45,6 +45,30 @@ GenericEntity : "{160E4E4110803F26}Prefabs/Structures/Military/Flags/FlagPole_02
     }
    }
   }
+  OVT_SpawnPointComponent "{65D69CEE44BDDBA6}" {
+   m_aPoints {
+    PointInfo "{65D69CEE407FB269}" {
+     Offset 0 0 2
+    }
+    PointInfo "{65D69CEE4985BB3B}" {
+     Offset 0 0 -2
+    }
+    PointInfo "{65D69CEE5B288768}" {
+     Offset 2 0 0
+    }
+    PointInfo "{65D69CEE268D1CFB}" {
+     Offset -2 0 0
+    }
+   }
+   m_aVehiclePoints {
+    PointInfo "{65D6B1843FB6C4C5}" {
+     Offset -5 0 0
+    }
+    PointInfo "{65D6B18401CE9B1F}" {
+     Offset 5 0 0
+    }
+   }
+  }
   SCR_FactionAffiliationComponent "{5E66A8EA8F5BA794}" {
   }
   SlotManagerComponent "{55DAE04E55ECE7FA}" {

@@ -337,6 +337,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_iThreat = threat;
 		m_bDistributeInitial = false;
 
+		array<ref OVT_BaseData> restoredBases = new array<ref OVT_BaseData>();
 		if (bases)
 		{
 			foreach (OVT_PersistedBase baseRecord : bases)
@@ -361,9 +362,29 @@ class OVT_OccupyingFactionManager: OVT_Component
 				ApplyPersistedBaseUpgrades(base, baseRecord);
 				ApplyPersistedBaseSlots(base, baseRecord);
 				ApplyPersistedBaseGarrison(base, baseRecord);
+
+				restoredBases.Insert(base);
 			}
 		}
 
+		// A base with no save record was added to the map after the save was written. NewGameStart
+		// never runs on a continue, and discovery stamped its faction before the campaign's real
+		// occupying faction key was applied above - so it is handed to the occupying faction here,
+		// or it would never garrison or spend resources as the occupying faction.
+		if (config)
+		{
+			int occupyingBaseFaction = config.GetOccupyingFactionIndex();
+			foreach (OVT_BaseData base : m_Bases)
+			{
+				if (!base || restoredBases.Contains(base))
+					continue;
+
+				Print(string.Format("[Overthrow] Base at %1 is not in the save - handing it to the occupying faction", base.location.ToString()));
+				base.faction = occupyingBaseFaction;
+			}
+		}
+
+		array<ref OVT_RadioTowerData> restoredTowers = new array<ref OVT_RadioTowerData>();
 		if (towers)
 		{
 			foreach (OVT_PersistedRadioTower towerRecord : towers)
@@ -375,12 +396,39 @@ class OVT_OccupyingFactionManager: OVT_Component
 				if (!tower)
 					continue;
 
-				tower.faction = towerRecord.faction;
+				int towerFaction = towerRecord.faction;
+				if (towerFaction < 0)
+				{
+					Print(string.Format("[Overthrow] Saved radio tower at %1 has no faction - handing it to the occupying faction", towerRecord.location.ToString()), LogLevel.WARNING);
+					if (config)
+						towerFaction = config.GetOccupyingFactionIndex();
+				}
+
+				tower.faction = towerFaction;
 
 				// A tower that was sabotaged when the game was saved comes back still off the air,
 				// with the time it had left. Version 1 payloads carry 0 here, which restores the
 				// pre-sabotage behaviour of every tower being up on load.
 				tower.SetDisabledRemaining(towerRecord.disabledRemaining);
+
+				restoredTowers.Insert(tower);
+			}
+		}
+
+		// A tower with no save record was added to the map after the save was written. NewGameStart
+		// never runs on a continue, and discovery stamped its faction before the campaign's real
+		// occupying faction key was applied above - so it is handed to the occupying faction here,
+		// or CheckRadioTowers would skip it forever and it would never garrison.
+		if (config)
+		{
+			int occupyingFactionIndex = config.GetOccupyingFactionIndex();
+			foreach (OVT_RadioTowerData tower : m_RadioTowers)
+			{
+				if (!tower || restoredTowers.Contains(tower))
+					continue;
+
+				Print(string.Format("[Overthrow] Radio tower at %1 is not in the save - handing it to the occupying faction", tower.location.ToString()));
+				tower.faction = occupyingFactionIndex;
 			}
 		}
 	}

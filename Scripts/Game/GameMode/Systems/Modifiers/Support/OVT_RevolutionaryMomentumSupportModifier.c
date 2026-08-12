@@ -1,7 +1,8 @@
 class OVT_RevolutionaryMomentumSupportModifier : OVT_SupportModifier
 {
-	protected const float MOMENTUM_RANGE = 2000.0; // Towns within 2km of resistance-controlled towns
-	
+	// The 2 km reach now lives on OVT_InfluenceRules.MOMENTUM_RANGE, shared with the map layer that
+	// draws it. Compile-time constant either way - nothing about this crosses the wire.
+
 	override void OnPostInit()
 	{
 		// Listen for town control changes
@@ -40,7 +41,7 @@ class OVT_RevolutionaryMomentumSupportModifier : OVT_SupportModifier
 				continue;
 				
 			// Skip if this town is already resistance-controlled
-			if (town.faction == playerFactionIndex)
+			if (!OVT_InfluenceRules.TownQualifiesForMomentum(town.faction, playerFactionIndex))
 				continue;
 				
 			// Check if there are any nearby resistance-controlled towns
@@ -55,9 +56,10 @@ class OVT_RevolutionaryMomentumSupportModifier : OVT_SupportModifier
 				if (otherTown.faction == playerFactionIndex)
 				{
 					// Check distance
-					float distance = vector.Distance(town.location, otherTown.location);
-					if (distance <= MOMENTUM_RANGE)
+					if (OVT_InfluenceRules.IsMomentumSource(town.location, otherTown.location))
 					{
+						// One qualifying neighbour is enough: the campaign collapses every source
+						// into the single modifier record this town can carry
 						hasNearbyResistanceTown = true;
 						break;
 					}

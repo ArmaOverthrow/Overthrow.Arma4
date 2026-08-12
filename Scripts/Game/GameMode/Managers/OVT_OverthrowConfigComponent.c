@@ -549,7 +549,13 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	//! functions adjacent and edit them together — and bump this constant whenever a field is
 	//! added, removed or reordered, so a mismatched client fails loudly at connect instead of
 	//! silently reading shifted garbage (BUG-078).
-	protected const int CONFIG_STREAM_VERSION = 1;
+	//!
+	//! Version 2 appended radioTowerRange and baseSupportRange to the difficulty block. Both are
+	//! read client-side by the map influence overlay, which draws a source's reach and decides
+	//! which locations are in range of it. Without them a client falls back to whatever difficulty
+	//! preset its game-mode prefab instantiated m_Difficulty from, which agrees with the server at
+	//! exactly one difficulty and silently invents or omits influence edges at every other.
+	protected const int CONFIG_STREAM_VERSION = 2;
 
 	override bool RplSave(ScriptBitWriter writer)
 	{
@@ -575,6 +581,8 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		writer.WriteInt(m_Difficulty.fastTravelCost);
 		writer.WriteInt(m_Difficulty.QRFPointsToWin);
 		writer.WriteFloat(m_Difficulty.disguiseDetectionDistance);
+		writer.WriteFloat(m_Difficulty.radioTowerRange);
+		writer.WriteFloat(m_Difficulty.baseSupportRange);
 
 		//Send server config options
 		writer.WriteBool(m_ConfigFile.mobileFOBOfficersOnly);	
@@ -657,6 +665,12 @@ class OVT_OverthrowConfigComponent: OVT_Component
 
 		if (!reader.ReadFloat(f)) return false;
 		m_Difficulty.disguiseDetectionDistance = f;
+
+		if (!reader.ReadFloat(f)) return false;
+		m_Difficulty.radioTowerRange = f;
+
+		if (!reader.ReadFloat(f)) return false;
+		m_Difficulty.baseSupportRange = f;
 
 		//Receive server config options
 		if (!reader.ReadBool(b)) return false;

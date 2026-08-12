@@ -176,7 +176,7 @@ None of the 9 `RpcDo_*` handlers bounds-check `m_Towns[townId]`; the `RpcAsk_*` 
 ### Internal Dependencies
 - **towns/stability + towns/support**: the manager owns/ticks both systems and hosts their entire add/remove/RPC/persistence transport (this doc owns the transport; those docs own the semantics)
 - **towns/gun-dealers**: controller spawns dealers; `gunDealerPosition` on the town record
-- **towns/map-info**: reads records + modifier lists client-side
+- **`map` epic** (formerly `towns/map-info`, archived 2026-08-10): reads records + modifier lists client-side
 - **economy**: shops keyed by town id; tax/donation/stock/NPC-buying formulas read population/stability/support
 - **occupying**: control-change threat, QRF town selection + controller geometry, threat scoring, town patrols
 - **jobs**, **resistance** (supporter draw-down), **deployments**, **real-estate** (starting town, ignore list), **recruits** (hometowns), **undercover** (areaHeat)

@@ -1,102 +1,107 @@
 ImageSetClass {
- RefSize 784 393
+ RefSize 784 522
  Textures {
-  ImageSetTextureClass {
+  ImageSetTextureClass "{6A12E8AE457B3F72}" {
    screenSize FHD
-   size 784 393
+   size 784 522
    path "{B2EDB8AD2EA10AD3}UI/Textures/Map/overthrow_mapicons_atlas.edds"
   }
  }
  Images {
   ImageSetDefClass house {
-   Name "house"
    Pos 2 2
    Size 128 128
-   Flags 0
+   Flags 0 0
   }
   ImageSetDefClass gundealer {
-   Name "gundealer"
    Pos 132 2
    Size 128 128
-   Flags 0
+   Flags 0 0
   }
   ImageSetDefClass shop {
-   Name "shop"
    Pos 262 2
    Size 128 128
-   Flags 0
+   Flags 0 0
   }
   ImageSetDefClass electronics {
-   Name "electronics"
    Pos 392 2
    Size 128 128
-   Flags 0
+   Flags 0 0
   }
   ImageSetDefClass pharmacy {
-   Name "pharmacy"
    Pos 522 2
    Size 128 128
-   Flags 0
+   Flags 0 0
   }
   ImageSetDefClass clothes {
-   Name "clothes"
    Pos 652 2
    Size 128 128
-   Flags 0
+   Flags 0 0
   }
   ImageSetDefClass vehicles {
-   Name "vehicles"
    Pos 2 132
    Size 128 128
-   Flags 0
+   Flags 0 0
   }
   ImageSetDefClass vehicle {
-   Name "vehicle"
    Pos 132 132
    Size 128 128
-   Flags 0
+   Flags 0 0
   }
   ImageSetDefClass fob {
-   Name "fob"
    Pos 262 132
    Size 128 128
-   Flags 0
+   Flags 0 0
   }
   ImageSetDefClass waypoint {
-   Name "waypoint"
    Pos 392 132
    Size 128 128
-   Flags 0
+   Flags 0 0
   }
   ImageSetDefClass camp {
-   Name "camp"
    Pos 522 132
    Size 128 128
-   Flags 0
+   Flags 0 0
   }
   ImageSetDefClass warehouse {
-   Name "warehouse"
    Pos 652 132
    Size 128 128
-   Flags 0
+   Flags 0 0
   }
   ImageSetDefClass port {
-   Name "port"
    Pos 2 262
    Size 128 128
-   Flags 0
+   Flags 0 0
   }
   ImageSetDefClass tower {
-   Name "tower"
    Pos 132 262
    Size 128 128
-   Flags 0
+   Flags 0 0
   }
   ImageSetDefClass fob_priority {
-   Name "fob_priority"
    Pos 262 262
    Size 128 128
-   Flags 0
+   Flags 0 0
+  }
+  ImageSetDefClass village {
+   Pos 392 262
+   Size 128 128
+   Flags 0 0
+  }
+  ImageSetDefClass town {
+   Pos 522 262
+   Size 128 128
+   Flags 0 0
+  }
+  ImageSetDefClass city {
+   Pos 652 262
+   Size 128 128
+   Flags 0 0
+  }
+  ImageSetDefClass bus {
+   Pos 2 392
+   Size 128 128
+   Flags 0 0
   }
  }
 }

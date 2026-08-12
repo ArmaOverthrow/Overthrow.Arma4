@@ -1,0 +1,107 @@
+SizeLayoutWidgetClass {
+ Name "MapInfoShop"
+ Slot FrameWidgetSlot "{65D0CCF71218D728}" {
+  OffsetLeft 0
+  OffsetTop 0
+  SizeX 240
+  OffsetRight -240
+  SizeY 240
+  OffsetBottom -240
+  SizeToContent 1
+ }
+ AllowWidthOverride 1
+ WidthOverride 260
+ AllowMinDesiredWidth 1
+ MinDesiredWidth 260
+ {
+  VerticalLayoutWidgetClass "{6A7E1C4D00000051}" {
+   Name "ShopInfoLayout"
+   Slot AlignableSlot "{65D0CCEAFD4CFF1E}" {
+    HorizontalAlign 3
+    VerticalAlign 3
+    Padding 10 6 10 10
+   }
+   {
+    VerticalLayoutWidgetClass "{6A7E1C4D00000052}" {
+     Name "Rows"
+     Slot LayoutSlot "{599D5970B9AE5E6C}" {
+      HorizontalAlign 3
+     }
+    }
+    OverlayWidgetClass "{6A7E1C4D00000053}" {
+     Name "Badge"
+     Slot LayoutSlot "{599D5970B9AE5E6C}" {
+      HorizontalAlign 3
+      Padding 0 0 0 6
+     }
+     "Is Visible" 0
+     {
+      PanelWidgetClass "{6A7E1C4D00000054}" {
+       Name "BadgeBackground"
+       Slot OverlayWidgetSlot "{65D0CCE0E7CBE8AB}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       Color 0.0471 0.0471 0.0471 1
+       style full
+      }
+      HorizontalLayoutWidgetClass "{6A7E1C4D00000055}" {
+       Name "BadgeLayout"
+       Slot OverlayWidgetSlot "{65D6C329901EF0D0}" {
+        Padding 6 5 6 5
+       }
+       {
+        ImageWidgetClass "{6A7E1C4D00000056}" {
+         Name "BadgeIcon"
+         Slot LayoutSlot "{599D5971CDC4D980}" {
+          VerticalAlign 2
+          Padding 0 0 6 0
+         }
+         Color 1 1 1 1
+         Size 20 20
+         "Blend Mode" Blend
+        }
+        TextWidgetClass "{6A7E1C4D00000057}" {
+         Name "BadgeText"
+         Slot LayoutSlot "{599D5973F64E4A59}" {
+          VerticalAlign 2
+          SizeMode Fill
+         }
+         Color 1 1 1 1
+         Text "#OVT-Map_Shop_Remote"
+         "Font Size" 11
+         "Min Font Size" 11
+         "Horizontal Alignment" Left
+         "Vertical Alignment" Center
+         Wrap 1
+        }
+       }
+      }
+     }
+    }
+    TextWidgetClass "{6A7E1C4D00000058}" {
+     Name "SectionHeader"
+     Slot LayoutSlot "{599D5970B9AE5E6C}" {
+      Padding 0 2 0 5
+     }
+     "Is Visible" 0
+     Color 0.761 0.392 0.08 1
+     Text "#OVT-Map_Shop_LocalSupply"
+     "Font Size" 11
+     "Min Font Size" 11
+     "Horizontal Alignment" Left
+     "Vertical Alignment" Center
+     FontProperties FontProperties "{6A7E1C4D0000005A}" {
+      Font "{EABA4FE9D014CCEF}UI/Fonts/RobotoCondensed/RobotoCondensed_Bold.fnt"
+     }
+    }
+    VerticalLayoutWidgetClass "{6A7E1C4D00000059}" {
+     Name "ScarcityRows"
+     Slot LayoutSlot "{599D5970B9AE5E6C}" {
+      HorizontalAlign 3
+     }
+    }
+   }
+  }
+ }
+}

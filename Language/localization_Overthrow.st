@@ -128,6 +128,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "CrioUA"
   }
+  CustomStringTableItem "{6A18B7BFD9B3DDC7}" {
+   Id "OVT-Base_MilitaryHospital"
+   Target_en_us "Military Hospital"
+   Modified 1780015970
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{6468E232E3F6812C}" {
    Id "OVT-Base_StPhillipe"
    Target_en_us "St Phillipe Base"
@@ -709,6 +716,27 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{65D6C329AA15E1D7}" {
+   Id "OVT-CannotFastTravelEnemyBase"
+   Target_en_us "You cannot fast travel to enemy bases"
+   Modified 1708574797
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{6A88000000000001}" {
+   Id "OVT-CannotFastTravelNotYourHouse"
+   Target_en_us "You cannot fast travel to a house you do not own or rent"
+   Modified 1786492800
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{6A88000000000002}" {
+   Id "OVT-CannotFastTravelPrivateCamp"
+   Target_en_us "You cannot fast travel to someone else's private camp"
+   Modified 1786492800
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59A49A9B02ABC32B}" {
    Id "OVT-CannotFastTravelThere"
    Target_en_us "You cannot fast travel there. Must be near an owned house, camp, FOB or controlled base"
@@ -865,6 +893,13 @@ StringTable {
    LastChanged "parkj_c3c9hji"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{65D0CCE5C1759927}" {
+   Id "OVT-City"
+   Target_en_us "City"
+   Modified 1708198306
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{5D86A310C893DBE0}" {
    Id "OVT-ContainerProgress"
@@ -1700,7 +1735,7 @@ StringTable {
   }
   CustomStringTableItem "{5992D5041850CA26}" {
    Id "OVT-FieldManual_FastTravel_Text"
-   Target_en_us "You must have a map in your inventory to use \"Fast Travel\". The map will open and you can click on any owned house, camp, FOB or base that the resistance currently controls to instantly travel there. You will be charged a small fee for this service according to the difficulty level."
+   Target_en_us "Open the map and select a location you can travel to: a house you own or rent, your own camp or any public camp, a FOB, or a base the resistance controls. Its info panel has a travel button showing the fare. Fast travel costs the distance in kilometres multiplied by the fast travel price from the difficulty settings, charged for a minimum of one kilometre. Recruits within 50 metres travel with you by default and each one pays a full fare; the panel has a toggle to leave them behind. You cannot fast travel while you are wanted, to somewhere closer than the minimum travel distance, or as a passenger in a vehicle - only the driver takes the vehicle along - and a QRF in progress can block it, depending on the difficulty settings. For bus travel, use \"Catch a bus\" at a bus stop and pick another bus stop on the map: the bus fare has no minimum distance, and you must be on foot."
    Target_fr_fr "Vous devez avoir une carte dans votre inventaire pour utiliser le \"Déplacement Rapide\". La carte s'ouvrira et vous pourrez cliquer sur n'importe quelle Maison, Camp, Avant poste ou base que vous ou la résistance possédez/controllez pour vous y déplacer. Selon la difficulé, cela peut vous coûter de l'argent."
    Target_ru_ru "Вы должны иметь карту в инвентаре для использования \"Быстрого перемещения\". Откроется карта и вы можете нажать на любой купленый дом, построеный лагерь, FOB или захваченную базу. Вы заплатите небольое колличество денег за эту услугу в зависимости от уровня сложности."
    Target_ko_kr "빠른 이동을 사용하려면 인벤토리에 지도가 있어야 합니다. 지도가 열리면 소유한 집, 캠프, 전진 기지(FOB), 또는 저항군이 현재 점령한 기지를 클릭하여 즉시 이동할 수 있습니다. 이 기능을 이용 시 난이도에 따라 소량의 비용이 발생합니다."
@@ -2207,9 +2242,60 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A86D5E100000002}" {
+   Id "OVT-FieldManual_MapInfluence_Head"
+   Target_en_us "Influence"
+   Comment "Field Manual - section header inside The Map and Fast Travel page, above the two paragraphs on the influence overlay. One word, title case. No rich-text markup. Matches the map layer name #OVT-Map_Layer_Influence."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786320000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A86D5E100000003}" {
+   Id "OVT-FieldManual_MapInfluence_Text"
+   Target_en_us "Selecting a location on the map, either by hovering over its marker or by clicking to pin its info panel open, draws dashed lines to the other locations it stands in an influence relationship with. Select a town and lines run in from the radio towers and the military bases whose reach covers it, along with the revolutionary momentum passing between it and any town close enough, which runs from a town the resistance holds to an occupied one nearby. Select a radio tower or a military base and a line runs out to each town inside its reach, together with a dashed ring marking how far that reach goes; the ring is an outline rather than a filled disc, so the map inside it stays readable. Selecting anything else, a house, a shop, a forward base, a vehicle, a bus stop, draws nothing, since those neither project influence nor receive it. Every line carries the colour of the faction exerting the influence, the owner of the tower or the base, or the town lending the momentum, which is the same colour that location's own marker is drawn in."
+   Comment "Field Manual - first paragraph of the Influence section on The Map and Fast Travel page. Reference voice: describes, does not instruct. Five sentences, no rich-text markup. FACT-CHECKED 2026-08-12 for map/influence-overlay, symbols only. Sentence 1: OVT_MapInfluenceLayer.EmitFrame reads OVT_OverthrowMapUI.GetPanelLocation, which is the panel's own location and is set by ShowLocationInfo on both the hover and the m_bSelectionPinned click paths (settled decision D2). Sentence 2: OVT_MapInfluenceLayer.BuildTownSelectionEdges - the tower and base loops over OVT_OccupyingFactionManager.m_RadioTowers and m_Bases gated on OVT_InfluenceRules.IsProximitySource, then the momentum loop gated on IsMomentumSource plus TownQualifiesForMomentum in both directions, so a momentum edge always runs player-held town to non-player-held town. Sentence 3: BuildTowerSelectionEdges and BuildBaseSelectionEdges set m_vRingCentre/m_fRingRadius/m_iRingFaction and call AddEdgesToTownsInRange; EmitRing draws alternating open arcs with LineDrawCommand, explicitly not OVT_MapCanvasLayer.DrawCircle's filled PolygonDrawCommand (settled decision D4). Sentence 4: BuildEdges dispatches only on OVT_MapLocationTown, OVT_MapLocationRadioTower and OVT_MapLocationBase; every other type falls through and derives nothing. Sentence 5: EmitEdge and EmitRing both colour through OVT_MapLocationType.GetFactionArgbByIndex on the SOURCE faction (edge.m_iSourceFaction, m_iRingFaction), which unpacks the same GetFactionColorByIndex the markers use through GetIconColor. NOTE the overlay carries NO magnitude or strength channel and covers only the three SUPPORT modifiers that have a second location - it must never be described as showing influence strength, as touching stability, as revealing anything the location panels do not already show, or as affecting the campaign."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786320000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A86D5E100000004}" {
+   Id "OVT-FieldManual_MapInfluence_Text2"
+   Target_en_us "A line drawn bright, in long dashes, is one the campaign is currently applying, and the town it reaches lists it on its info panel as Nearby Radio Tower, Nearby Base or Revolutionary Momentum. A line drawn dim, in shorter and sparser dashes, means the relationship is there but the campaign is not applying it. Two things cause that today, and neither of them is the whole of it. One is an enemy source outweighing a friendly one of the same kind: a single occupying tower or base within reach beats any number of friendly ones, so a town can sit inside a friendly tower's reach and still carry the negative entry. The other is a sabotaged radio tower, which broadcasts for nobody while it is off the air. The overlay puts relationships the location panels already list into one picture rather than uncovering anything new, and it changes nothing in the campaign; it has its own row, Influence, in the map filter panel, remembered against your profile in the same way as the other overlays."
+   Comment "Field Manual - second paragraph of the Influence section on The Map and Fast Travel page. This paragraph is the load-bearing one: the dim class is defined by the GENERAL rule (implementation.md K3), and the two causes are named as EXAMPLES only - never rewrite them into the definition. Reference voice: describes, does not instruct. Six sentences, no rich-text markup. FACT-CHECKED 2026-08-12 for map/influence-overlay, symbols only. Sentences 1-2: OVT_MapInfluenceLayer.AddEdge sets ACTIVE only when TownHasSupportModifier finds the modifier index in the target town's replicated supportModifiers list, otherwise SUPPRESSED (the cross-check, implementation.md K2); ResolveStyle pairs ACTIVE with m_iActiveAlpha 220 and dash 14 / gap 10, SUPPRESSED with m_iSuppressedAlpha 70 and dash 6 / gap 14 - both classes are DASHED, which is why the wording is 'bright, in long dashes' and not 'solid'. The three panel names are the titles of NearbyRadioTowerPositive/Negative (#OVT-StabilityMod_NearbyTower 'Nearby Radio Tower'), NearbyBasePositive/Negative (#OVT-Modifier_NearbyBase 'Nearby Base') and RevolutionaryMomentum (#OVT-Modifier_RevolutionaryMomentum) in Configs/Modifiers/supportModifiers.conf, rendered by OVT_MapLocationTown.SetupModifierContainer on SupportModifiersContainer. Sentence 4: OVT_InfluenceRules.ResolveProximity returns NEGATIVE whenever hasEnemy, whatever hasFriendly says. Sentence 5: OVT_TownManagerComponent.CheckUpdateModifiers removes NearbyRadioTower* for a tower that is off the air, so the geometry still qualifies while the modifier is gone; the layer never asks a tower whether it is sabotaged. Sentence 6: the layer is a read-only projection with no RplProp, no Rpc and no persistence, and its toggle row comes from OVT_MapInfluenceLayer's m_sLayerId 'influence' and m_sDisplayName #OVT-Map_Layer_Influence in Configs/Map/MapOverthrow.conf via OVT_MapCanvasLayer.SetLayerVisible and the per-profile OVT_MapLayerPrefsStore."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786320000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{5992D5044118B4C5}" {
    Id "OVT-FieldManual_MapInfo_Text"
-   Target_en_us "You must have a map in your inventory to use \"Map Info\". Clicking on this in the main menu will open the map, then you can click anywhere on the map to show info about that location, including any intel known about the area."
+   Target_en_us "You must have a map in your inventory to open it with <color rgba='226,168,79,255'><action name=\"GadgetMap\"/></color>. Overthrow marks towns, bases, FOBs, camps, houses, shops, gun dealers, warehouses, ports, radio towers, bus stops, your vehicles and your waypoints on it. Move the map cursor over a marker to show an info panel about that location, and click the marker to keep the panel pinned open. Clicking an empty part of the map unpins it again."
    Target_fr_fr "Vous devez avoir une carte dans votre inventaire pour utiliser \"Infos Carte\". La carte s'ouvrira lorsque vous cliquerez, puis vous pourrez sélectionner un endroit sur la carte pour voir toutes les informations connues à son sujet."
    Target_ru_ru "Вы должны иметь карту в инвентаре для использования \"Информации о карте\". Нажав на эту  кнопку из главного меню, в открывшейся карте, вы  нажать на любую точку на карте, чтобы посмотреть информацию об этой локации, включая разведданые известные об этой точке."
    Target_ko_kr "\"지도 정보\"를 사용하려면 인벤토리에 지도가 있어야 합니다. 메인 메뉴에서 이 항목을 클릭하면 지도가 열리고, 지도 어느 곳이나 클릭하면 해당 위치에 대한 정보와 알려진 정보(information)를 확인할 수 있습니다."
@@ -2226,6 +2312,108 @@ StringTable {
    Modified 1706583653
    Author "Aaron Static"
    LastChanged "parkj_c3c9hji"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E000000080}" {
+   Id "OVT-FieldManual_MapLayers_Head"
+   Target_en_us "Filtering the Map"
+   Comment "Field Manual - section header inside The Map and Fast Travel page, above the two paragraphs on the map layer filter panel. Three words, title case. No rich-text markup. Matches the in-game panel title #OVT-Map_Layers_Title."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786320000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E000000081}" {
+   Id "OVT-FieldManual_MapLayers_Text"
+   Target_en_us "A filter entry on the strip of icons down the left of the map opens a panel of on and off rows. Every category of marker has one, from towns and bases down to houses, bus stops and your own vehicles, and so does each overlay drawn beneath them, the territory shading and the restricted area rings. Player markers have a row of their own on difficulty settings that draw them. Clearing a row hides that category straight away, with the map still open, and ticking it again brings it back. Everything starts switched on, and a category left on still keeps its own zoom threshold, so the smaller markers still appear only as you zoom in. The panel can be reached and worked with a controller as well as with a mouse."
+   Comment "Field Manual - first paragraph of the Filtering the Map section on The Map and Fast Travel page. Reference voice: describes, does not instruct. Six sentences, no rich-text markup. FACT-CHECKED 2026-08-11 for map/map-layers, symbols only per epic rule K-9. Sentence 1: OVT_MapLayersUI.Init registers the entry through SCR_MapToolMenuUI.RegisterToolMenuEntry with the m_sToolMenuIcon quad 'filters', and vanilla MapMenu.layout anchors ToolMenuContainer top-left. Sentence 2: OVT_MapLayersUI.BuildLocationTypeRows over OVT_OverthrowMapUI.GetLocationTypes (the 14 types in Configs/Map/OverthrowMap.conf) and BuildCanvasLayerRows over OVT_MapCanvasCompositor.GetLayers (OVT_MapTerritoryLayer m_sLayerId 'territory' and OVT_MapRestrictedAreas m_sLayerId 'restricted' in Configs/Map/MapOverthrow.conf; OVT_MapThreatGrid ships m_bDisableModule 1 and never registers, so it has no row). Sentence 3: OVT_MapLayersUI.BuildPlayerRow, gated on OVT_MapPlayerLocation.IsAvailableThisSession, which is false when the difficulty preset has showPlayerOnMap off. Sentence 4: OVT_MapLayersUI.OnRowToggled calls ApplyOne before anything else, which routes to OVT_MapLocationType.SetPlayerVisible plus OVT_OverthrowMapUI.RefreshAllVisibility, or to OVT_MapCanvasLayer.SetLayerVisible. Sentence 5: OVT_MapLocationType.m_bPlayerVisible defaults true and OVT_MapLayerPrefsStore.IsVisible treats an absent key as visible; the zoom gate is the GetEffectiveVisibilityZoom test that OVT_MapLocationElement.SetVisible still applies after the player-visibility gate. Sentence 6: OverthrowMapLayersContext in Configs/System/chimeraInputCommon.conf, renewed per frame by OVT_MapLayersUI.ActivateRowNavigationContext while the panel is open. NOTE this panel only decides what is DRAWN for this player - it must never be described as revealing, hiding or changing anything in the campaign itself."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786320000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E000000082}" {
+   Id "OVT-FieldManual_MapLayers_Text2"
+   Target_en_us "What you hide is remembered against your game profile rather than against a campaign, so the same choices are waiting the next time you open the map, in a later session, and in any campaign or server you play in. Nothing in the campaign itself changes: the filter only decides what is drawn for you, and everyone else sees whatever they have chosen for themselves."
+   Comment "Field Manual - second paragraph of the Filtering the Map section on The Map and Fast Travel page. Reference voice: describes, does not instruct. Two sentences, no rich-text markup. FACT-CHECKED 2026-08-11 for map/map-layers, symbols only per epic rule K-9. Sentence 1: OVT_MapLayerSettingsAccessor reads and writes OVT_MapLayerSettings, a ModuleGameSettings block on the engine's user settings, which is per profile and carries no campaign or world identity; OVT_MapLayersUI.EnsurePrefsLoaded loads it on the first map open and FlushPrefs writes it at panel close and map close. This is settled decision D6 of docs/features/map/map-layers. Sentence 2: the feature's boundary audit found no RplProp, no RplRpc, no Rpc call and no EPF in any new or changed file, and the only mutating calls added are SetVisible, SetMarkersVisible and SetPlayerVisible on client-side UI objects. NOTE do not describe this as saving with the campaign - per profile rather than per campaign is the user-visible consequence this paragraph exists to state."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786320000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000167}" {
+   Id "OVT-FieldManual_MapTerritory_Head"
+   Target_en_us "Territory"
+   Comment "Field Manual - section header inside The Map and Fast Travel page, above the two paragraphs on the territory shading. One word, title case. No rich-text markup. Matches the map layer name #OVT-Map_Layer_Territory."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786320000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000168}" {
+   Id "OVT-FieldManual_MapTerritory_Text"
+   Target_en_us "The map shades the ground the occupying faction still holds, in that faction's own colour. Ground the resistance has taken is left blank, so the shading recedes as a campaign goes on and a fully liberated island draws none of it. The regions are worked out from towns, military bases, radio towers and resistance FOBs, and the bigger a site is the further its ground reaches: a base spreads further than a town, and a capital further than a village. Territory stops at the coast, though rivers and inland lakes do not divide it."
+   Comment "Field Manual - first paragraph of the Territory section on The Map and Fast Travel page. Reference voice: describes, does not instruct. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-11 for map/territory-overlay. Sentence 1: OVT_MapTerritoryLayer.c:127-128 (m_bOnlyShowOccupying defaults 1) and ResolveFactionArgb:1641-1656, which reads OVT_MapLocationType.GetFactionColorByIndex:469-483 - the same Faction.GetFactionColor() the markers use through GetIconColor:437-452. Sentence 2: OVT_TerritorySolver.IsEmittedCell:1645-1657 plus OVT_MapTerritoryLayer.c:801-807. Sentence 3: CollectTowns/CollectBases/CollectRadioTowers/CollectFOBs:446-449, weights in Configs/Map/MapOverthrow.conf:8-23 (base 1.6, town 1, radiotower 0.7, fob 0.55), town size factors OVT_MapTerritoryLayer.c:169-172 applied at :574, and the weighted ownership test OVT_TerritorySolver.OwnsPoint:234. Sentence 4: OVT_MapTerritoryLayer.c:80-81 and OVT_TerritorySolver.IsLandAt:187-215, which compares terrain surface against OCEAN height so a river or lake cannot cut a region. NOTE the overlay only DISPLAYS control that already exists - it must never be described as affecting income, stability, spawns or AI."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786320000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3B000000000169}" {
+   Id "OVT-FieldManual_MapTerritory_Text2"
+   Target_en_us "Where occupied ground meets ground the resistance holds, the edge carries a band; a coastline carries none. A region drawn with diagonal hatching is contested: the occupier still holds it, but half or more of the town's population backs the resistance, counted as the same support figure the town's info panel shows. Only towns can read that way, since bases, radio towers and FOBs have no population to measure. The shading re-reads who holds what every few seconds, so ground changing hands appears without closing the map."
+   Comment "Field Manual - second paragraph of the Territory section on The Map and Fast Travel page. Reference voice: describes, does not instruct. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-11 for map/territory-overlay. Sentence 1: OVT_MapTerritoryLayer.EmitBands:1296-1301 and BuildContours:891-892 (water has no owner, so a coastline is never a frontier) over OVT_TerritorySolver.IsFrontierSide:1611-1624. Sentence 2: contested hatch OVT_MapTerritoryLayer.c:111-112 applied at :1225-1228, threshold m_fContestedSupportThreshold 0.5 at :99-100 evaluated by OVT_TerritorySolver.IsContestedCell (supportFraction >= threshold, occupier-held only), and ResolveTownSupportFraction:620-631 computing (support * 100.0) / population, the same expression the town info panel prints in OVT_MapLocationTown.c:82-83. Sentence 3: CollectBases:505, CollectRadioTowers:525 and CollectFOBs:553 all pass OVT_TerritorySite.SUPPORT_NONE, which IsContestedCell rejects. Sentence 4: m_fRefreshInterval defaults 5 at :133-134, Update:410-423 and RefreshTick:965-980 re-read faction and support with the map still open. NOTE the overlay only DISPLAYS control that already exists - it must never be described as affecting income, stability, spawns or AI."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786320000
+   Author "Claude"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
@@ -3461,6 +3649,13 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{65D6C32BD9BC2121}" {
+   Id "OVT-House"
+   Target_en_us "House"
+   Modified 1708573829
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5D5AD8A5702C6A81}" {
    Id "OVT-Import"
    Target_en_us "Import"
@@ -3539,7 +3734,7 @@ StringTable {
    "У вас є машина, припаркована у вашому гаражі, а пістолет у ваших штанях. Ворог вважає вас цивільним, якщо вони не бачать у вас зброї, і не стрілятимуть у вас, тому будьте обережні, споряджаючи зброю навколо них. Зірки з’являться у верхньому правому куті, якщо вас \"розшукує\" ворог."\
    ""\
    "Для отримання додаткової інформації про функції та ігровий процес Повалення просто подивіться на \"Польовий посібник\""
-   Comment "RETIRED 2026-08-09 by the new-player-experience/first-spawn feature. No code references this string any more: the legacy 20-second corner hint in OVT_OverthrowGameMode.OnPlayerSpawnedLocal was deleted together with its m_aHintedPlayers session-only dedup set. REPLACED BY the four-page welcome-intro / welcome-nohome modal sequence (Configs/Tutorials/proofWelcome.conf and welcomeNohome.conf), delivered on the PLAYER_SPAWNED trigger and shown once per machine instead of once per session. The item and its six translations are KEPT rather than deleted (decision D11): deleting would discard translator work and churn the Workbench-generated .lang.conf exports, while an unreferenced item costs nothing at runtime. DO NOT REVIVE THIS TEXT. Three of its own claims were or became false: (1) 'a handgun is in your pants' is false on Extreme and Insane, whose startingItems is the R148 radio alone, read at OVT_SpawnLogic.c:1177; (2) 'a car parked in your garage' is wrong about where the car goes, the code parks it in the house's parking spot or failing that at a kerb within 20 m (OVT_VehicleManagerComponent.c:169-191); (3) 'a set of tutorials in the Jobs section' was removed on 2026-08-09 by the new-player-experience/starter-jobs-retirement feature - the five tutorial starter jobs and their Configs/Jobs/ files no longer exist, and the seven remaining jobs are ordinary gameplay jobs, not tutorials. The companion title item OVT-Overthrow is retired at the same time and kept for the same reason."
+   Comment ""
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -3827,7 +4022,7 @@ StringTable {
    Target_ko_kr "튜토리얼 - 총기 딜러 찾기"
    Target_zh_cn "教程 - 寻找军火商"
    Target_uk_ua "Знайти торговця зброєю"
-   Comment "RETIRED 2026-08-09 by the new-player-experience/starter-jobs-retirement feature. Jobs-menu TITLE of the retired starter job findGunDealer. Configs/Jobs/findGunDealer.conf and its registration in Prefabs/GameMode/OVT_OverthrowGameMode.et were deleted in the same change, so nothing in the shipped build reads this key any more. REPLACED BY the tutorial entry shops-first-gun-dealer (Configs/Tutorials/shopsFirstGunDealer.conf), with map-first-open (Configs/Tutorials/mapFirstOpen.conf) covering where dealers are: OVT_MapIcons.c:111 TryCreateGunDealerIcon draws every gun dealer with a dedicated gundealer sprite and no discovery gate. Reason for retirement: redundancy against the shipped tutorial entries, plus the new-player-experience epic's binding constraint - a job assigns a directed goal and drops a marker on one named instance, which is exactly the shape that epic exists to replace. It does NOT close BUG-037 or BUG-040: both were fixed in place on 2026-08-03 and were already closed before this feature began. KEPT rather than deleted (decision D9, following the new-player-experience/first-spawn D11 precedent): six languages of translation exist across these ten items, deleting from the .st master churns the Workbench-generated localization_Overthrow.<lang>.conf runtime exports that are regenerated by hand, and an unreferenced item costs nothing at runtime. DO NOT REVIVE."
+   Comment ""
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -3861,7 +4056,7 @@ StringTable {
    Target_uk_ua "Торговці зброєю розташовані у великих містах. Це незалежні торговці, які зберігають зброю та інші незаконні предмети."\
    ""\
    "Зверніться до найближчого дилера зброї, щоб дізнатися, які предмети є в наявності."
-   Comment "RETIRED 2026-08-09 by the new-player-experience/starter-jobs-retirement feature. Jobs-menu DESCRIPTION body of the retired starter job findGunDealer. Configs/Jobs/findGunDealer.conf and its registration in Prefabs/GameMode/OVT_OverthrowGameMode.et were deleted in the same change, so nothing in the shipped build reads this key any more. REPLACED BY the tutorial entry shops-first-gun-dealer (Configs/Tutorials/shopsFirstGunDealer.conf), which is triggered by a PLAYER_TRANSACTION filtered to SHOP_GUNDEALER. Reason for retirement: redundancy against the shipped tutorial entries, plus the new-player-experience epic's binding constraint - a job assigns a directed goal and drops a marker on one named instance, which is exactly the shape that epic exists to replace. It does NOT close BUG-037 or BUG-040: both were fixed in place on 2026-08-03 and were already closed before this feature began. KEPT rather than deleted (decision D9, following the new-player-experience/first-spawn D11 precedent): six languages of translation exist across these ten items, deleting from the .st master churns the Workbench-generated localization_Overthrow.<lang>.conf runtime exports that are regenerated by hand, and an unreferenced item costs nothing at runtime. DO NOT REVIVE."
+   Comment ""
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -3882,7 +4077,7 @@ StringTable {
    Target_ko_kr "튜토리얼 - 상점 찾기"
    Target_zh_cn "教程 - 寻找商店"
    Target_uk_ua "Знайти магазин"
-   Comment "RETIRED 2026-08-09 by the new-player-experience/starter-jobs-retirement feature. Jobs-menu TITLE of the retired starter job findShop. Configs/Jobs/findShop.conf and its registration in Prefabs/GameMode/OVT_OverthrowGameMode.et were deleted in the same change, so nothing in the shipped build reads this key any more. REPLACED BY the tutorial entries economy-first-buy (Configs/Tutorials/proofFirstBuy.conf) and map-first-open (Configs/Tutorials/mapFirstOpen.conf): OVT_MapIcons.c:137 TryCreateShopIcon draws every registered shop with a per-type sprite and no discovery gate. Reason for retirement: redundancy against the shipped tutorial entries, plus the new-player-experience epic's binding constraint - a job assigns a directed goal and drops a marker on one named instance, which is exactly the shape that epic exists to replace. It does NOT close BUG-037 or BUG-040: both were fixed in place on 2026-08-03 and were already closed before this feature began. KEPT rather than deleted (decision D9, following the new-player-experience/first-spawn D11 precedent): six languages of translation exist across these ten items, deleting from the .st master churns the Workbench-generated localization_Overthrow.<lang>.conf runtime exports that are regenerated by hand, and an unreferenced item costs nothing at runtime. DO NOT REVIVE."
+   Comment ""
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -3914,7 +4109,7 @@ StringTable {
    Target_uk_ua "У багатьох населених пунктах на карті є різні магазини, де можна придбати легальні речі. Вони позначаються на карті різними значками, що представляють тип магазину."\
    ""\
    "Відвідайте найближчий магазин і подивіться, які товари там є, виконавши дію на касовому апараті."
-   Comment "RETIRED 2026-08-09 by the new-player-experience/starter-jobs-retirement feature. Jobs-menu DESCRIPTION body of the retired starter job findShop. Configs/Jobs/findShop.conf and its registration in Prefabs/GameMode/OVT_OverthrowGameMode.et were deleted in the same change, so nothing in the shipped build reads this key any more. REPLACED BY the tutorial entry economy-first-buy (Configs/Tutorials/proofFirstBuy.conf), with map-first-open covering where shops are. Reason for retirement: redundancy against the shipped tutorial entries, plus the new-player-experience epic's binding constraint - a job assigns a directed goal and drops a marker on one named instance, which is exactly the shape that epic exists to replace. It does NOT close BUG-037 or BUG-040: both were fixed in place on 2026-08-03 and were already closed before this feature began. KEPT rather than deleted (decision D9, following the new-player-experience/first-spawn D11 precedent): six languages of translation exist across these ten items, deleting from the .st master churns the Workbench-generated localization_Overthrow.<lang>.conf runtime exports that are regenerated by hand, and an unreferenced item costs nothing at runtime. DO NOT REVIVE."
+   Comment ""
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -3987,7 +4182,6 @@ StringTable {
    Id "OVT-Job_PlaceCamp"
    Target_en_us "Tutorial - Place a camp"
    Target_uk_ua "Навчання - Розмістіть табір"
-   Comment "RETIRED 2026-08-09 by the new-player-experience/starter-jobs-retirement feature. Jobs-menu TITLE of the retired starter job placeACamp. Configs/Jobs/placeACamp.conf and its registration in Prefabs/GameMode/OVT_OverthrowGameMode.et were deleted in the same change, so nothing in the shipped build reads this key any more. REPLACED BY the tutorial entry place-first-placeable (Configs/Tutorials/placeFirstPlaceable.conf), whose trigger is unfiltered and whose body names the camp as the top of the placeable range. Reason for retirement: redundancy against the shipped tutorial entries, plus the new-player-experience epic's binding constraint - a job assigns a directed goal and drops a marker on one named instance, which is exactly the shape that epic exists to replace. It does NOT close BUG-037 or BUG-040: both were fixed in place on 2026-08-03 and were already closed before this feature began. KEPT rather than deleted (decision D9, following the new-player-experience/first-spawn D11 precedent): six languages of translation exist across these ten items, deleting from the .st master churns the Workbench-generated localization_Overthrow.<lang>.conf runtime exports that are regenerated by hand, and an unreferenced item costs nothing at runtime. DO NOT REVIVE."
    Modified 1716475214
    Author "Aaron Static"
    LastChanged "CrioUA"
@@ -4016,7 +4210,6 @@ StringTable {
    "Ви також можете встановити табір як \"домашній\", щоб відроджуватися там після смерті."\
    ""\
    "Щоб розмістити табір, відкрийте меню Overthrow і виберіть \"Розмістити\". Встановіть його у корисному місці, щоб легко повертатися до зони, де ви зараз дієте, або де залишили свій транспорт."
-   Comment "RETIRED 2026-08-09 by the new-player-experience/starter-jobs-retirement feature. Jobs-menu DESCRIPTION body of the retired starter job placeACamp. Configs/Jobs/placeACamp.conf and its registration in Prefabs/GameMode/OVT_OverthrowGameMode.et were deleted in the same change, so nothing in the shipped build reads this key any more. REPLACED BY the tutorial entry place-first-placeable (Configs/Tutorials/placeFirstPlaceable.conf) and its Learn more link to the Field Manual Camps page (#OVT-FieldManual_Camps_Title), which carry the camp material this body held. Reason for retirement: redundancy against the shipped tutorial entries, plus the new-player-experience epic's binding constraint - a job assigns a directed goal and drops a marker on one named instance, which is exactly the shape that epic exists to replace. It does NOT close BUG-037 or BUG-040: both were fixed in place on 2026-08-03 and were already closed before this feature began. KEPT rather than deleted (decision D9, following the new-player-experience/first-spawn D11 precedent): six languages of translation exist across these ten items, deleting from the .st master churns the Workbench-generated localization_Overthrow.<lang>.conf runtime exports that are regenerated by hand, and an unreferenced item costs nothing at runtime. DO NOT REVIVE."
    Modified 1716475188
    Author "Aaron Static"
    LastChanged "CrioUA"
@@ -4025,7 +4218,6 @@ StringTable {
    Id "OVT-Job_PlaceEquipmentBox"
    Target_en_us "Tutorial - Place an Equipment Box"
    Target_uk_ua "Навчання - Розмістіть ящик із екіпіруванням"
-   Comment "RETIRED 2026-08-09 by the new-player-experience/starter-jobs-retirement feature. Jobs-menu TITLE of the retired starter job placeEquipmentBox. Configs/Jobs/placeEquipmentBox.conf and its registration in Prefabs/GameMode/OVT_OverthrowGameMode.et were deleted in the same change, so nothing in the shipped build reads this key any more. REPLACED BY the tutorial entry place-first-placeable (Configs/Tutorials/placeFirstPlaceable.conf), whose unfiltered PLAYER_PLACE trigger is strictly broader than this job's single Ammobox placeable. Reason for retirement: redundancy against the shipped tutorial entries, plus the new-player-experience epic's binding constraint - a job assigns a directed goal and drops a marker on one named instance, which is exactly the shape that epic exists to replace. It does NOT close BUG-037 or BUG-040: both were fixed in place on 2026-08-03 and were already closed before this feature began. KEPT rather than deleted (decision D9, following the new-player-experience/first-spawn D11 precedent): six languages of translation exist across these ten items, deleting from the .st master churns the Workbench-generated localization_Overthrow.<lang>.conf runtime exports that are regenerated by hand, and an unreferenced item costs nothing at runtime. DO NOT REVIVE."
    Modified 1716475027
    Author "Aaron Static"
    LastChanged "CrioUA"
@@ -4052,7 +4244,6 @@ StringTable {
    "- Зберігати ваш поточний комплект спорядження та застосовувати його до себе або рекрутів поблизу"\
    ""\
    "Використайте опцію \"Розмістити\" в меню Overthrow, щоб встановити його у вашому будинку, таборі, на FOB або базі."
-   Comment "RETIRED 2026-08-09 by the new-player-experience/starter-jobs-retirement feature. Jobs-menu DESCRIPTION body of the retired starter job placeEquipmentBox. Configs/Jobs/placeEquipmentBox.conf and its registration in Prefabs/GameMode/OVT_OverthrowGameMode.et were deleted in the same change, so nothing in the shipped build reads this key any more. REPLACED BY the tutorial entry place-first-placeable (Configs/Tutorials/placeFirstPlaceable.conf). Reason for retirement: redundancy against the shipped tutorial entries, plus the new-player-experience epic's binding constraint - a job assigns a directed goal and drops a marker on one named instance, which is exactly the shape that epic exists to replace. It does NOT close BUG-037 or BUG-040: both were fixed in place on 2026-08-03 and were already closed before this feature began. KEPT rather than deleted (decision D9, following the new-player-experience/first-spawn D11 precedent): six languages of translation exist across these ten items, deleting from the .st master churns the Workbench-generated localization_Overthrow.<lang>.conf runtime exports that are regenerated by hand, and an unreferenced item costs nothing at runtime. DO NOT REVIVE."
    Modified 1716474987
    Author "Aaron Static"
    LastChanged "CrioUA"
@@ -4161,7 +4352,6 @@ StringTable {
    Id "OVT-Job_RecruitACivilian"
    Target_en_us "Tutorial - Recruit a civilian"
    Target_uk_ua "Навчання - Рекрутируйте цивільного"
-   Comment "RETIRED 2026-08-09 by the new-player-experience/starter-jobs-retirement feature. Jobs-menu TITLE of the retired starter job recruitACivilian. Configs/Jobs/recruitACivilian.conf and its registration in Prefabs/GameMode/OVT_OverthrowGameMode.et were deleted in the same change, so nothing in the shipped build reads this key any more. REPLACED BY the tutorial entry recruits-first-recruit (Configs/Tutorials/recruitsFirstRecruit.conf). One accepted residual gap: that entry fires on the first recruit GAINED, not on the recruit option becoming available, so nothing announces that recruiting is possible beforehand (decision D13). Reason for retirement: redundancy against the shipped tutorial entries, plus the new-player-experience epic's binding constraint - a job assigns a directed goal and drops a marker on one named instance, which is exactly the shape that epic exists to replace. It does NOT close BUG-037 or BUG-040: both were fixed in place on 2026-08-03 and were already closed before this feature began. KEPT rather than deleted (decision D9, following the new-player-experience/first-spawn D11 precedent): six languages of translation exist across these ten items, deleting from the .st master churns the Workbench-generated localization_Overthrow.<lang>.conf runtime exports that are regenerated by hand, and an unreferenced item costs nothing at runtime. DO NOT REVIVE."
    Modified 1716474803
    Author "Aaron Static"
    LastChanged "CrioUA"
@@ -4182,7 +4372,6 @@ StringTable {
    "2. Побудуйте \"Рекрутинговий Намет\" на FOB"\
    ""\
    "Після рекрутингу ви можете командувати ними використовуючи \"Командне Меню\" with <color rgba='226,168,79,255'><action name=\"OpenCommandMenu\"/></color>"
-   Comment "RETIRED 2026-08-09 by the new-player-experience/starter-jobs-retirement feature. Jobs-menu DESCRIPTION body of the retired starter job recruitACivilian. Configs/Jobs/recruitACivilian.conf and its registration in Prefabs/GameMode/OVT_OverthrowGameMode.et were deleted in the same change, so nothing in the shipped build reads this key any more. REPLACED BY the tutorial entry recruits-first-recruit (Configs/Tutorials/recruitsFirstRecruit.conf), whose body covers both recruiting routes and the command menu. Reason for retirement: redundancy against the shipped tutorial entries, plus the new-player-experience epic's binding constraint - a job assigns a directed goal and drops a marker on one named instance, which is exactly the shape that epic exists to replace. It does NOT close BUG-037 or BUG-040: both were fixed in place on 2026-08-03 and were already closed before this feature began. KEPT rather than deleted (decision D9, following the new-player-experience/first-spawn D11 precedent): six languages of translation exist across these ten items, deleting from the .st master churns the Workbench-generated localization_Overthrow.<lang>.conf runtime exports that are regenerated by hand, and an unreferenced item costs nothing at runtime. DO NOT REVIVE."
    Modified 1716474680
    Author "Aaron Static"
    LastChanged "CrioUA"
@@ -5227,6 +5416,935 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A7E1C40A9B33003}" {
+   Id "OVT-Map_BringRecruits"
+   Target_en_us "Bring recruits %1 (+$%2)"
+   Comment "Map info panel - recruit opt-out toggle, ON state. %1 is the number of recruits within travel radius, %2 is the extra fare they add"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D0000003E}" {
+   Id "OVT-Map_BusStop_Desc"
+   Target_en_us "Catch a bus here to travel to another bus stop. The fare rises with distance."
+   Comment "Map info panel line for a bus stop - explains bus travel and that the ticket price scales with distance"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E000000045}" {
+   Id "OVT-Map_Category_Bases"
+   Target_en_us "Bases"
+   Comment "Category name in the map layer-filter panel - the row that switches military base markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. Covers bases held by either side. The singular form shown on the info panel is the separate key #OVT-MilitaryBase and should stay consistent with this one."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E00000004E}" {
+   Id "OVT-Map_Category_BusStops"
+   Target_en_us "Bus Stops"
+   Comment "Category name in the map layer-filter panel - the row that switches bus stop markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. These are the stops the island bus service runs between."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E000000049}" {
+   Id "OVT-Map_Category_Camps"
+   Target_en_us "Camps"
+   Comment "Category name in the map layer-filter panel - the row that switches camp markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. The singular form shown on the info panel is the separate key #OVT-Place_Camp and should stay consistent with this one."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E000000047}" {
+   Id "OVT-Map_Category_FOBs"
+   Target_en_us "FOBs"
+   Comment "Category name in the map layer-filter panel - the row that switches Forward Operating Base markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. FOB is an established military abbreviation and is used as such throughout the game; the expanded singular form is the separate key #OVT-Place_FOB. If the abbreviation is not used in your language, prefer the local abbreviation over a long expansion - this is a narrow row label."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E00000004C}" {
+   Id "OVT-Map_Category_GunDealers"
+   Target_en_us "Gun Dealers"
+   Comment "Category name in the map layer-filter panel - the row that switches gun dealer markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. Gun dealers are a category of their own, separate from the general Shops row. The singular form shown on the info panel is the separate key #OVT-GunDealer and should stay consistent with this one."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E00000004A}" {
+   Id "OVT-Map_Category_Houses"
+   Target_en_us "Houses"
+   Comment "Category name in the map layer-filter panel - the row that switches house markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. The singular form shown on the info panel is the separate key #OVT-House and should stay consistent with this one."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E000000050}" {
+   Id "OVT-Map_Category_POIs"
+   Target_en_us "Points of Interest"
+   Comment "Category name in the map layer-filter panel - the row that switches point-of-interest markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. It is the catch-all category for notable places that are not one of the named categories in the same list, so keep it broad. This is the longest label in the panel; if your language has an established abbreviation, prefer it."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E000000048}" {
+   Id "OVT-Map_Category_Ports"
+   Target_en_us "Ports"
+   Comment "Category name in the map layer-filter panel - the row that switches port markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. The singular form shown on the info panel is the separate key #OVT-Port and should stay consistent with this one."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E000000046}" {
+   Id "OVT-Map_Category_RadioTowers"
+   Target_en_us "Radio Towers"
+   Comment "Category name in the map layer-filter panel - the row that switches radio tower markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. The singular form shown on the info panel is the separate key #OVT-RadioTower and should stay consistent with this one."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E00000004B}" {
+   Id "OVT-Map_Category_Shops"
+   Target_en_us "Shops"
+   Comment "Category name in the map layer-filter panel - the row that switches shop markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. One row covers every kind of shop at once (general, pharmacy, clothing, electronics and vehicle), so it needs the broad word rather than any one shop kind. The singular form shown on the info panel is the separate key #OVT-Shop."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E000000044}" {
+   Id "OVT-Map_Category_Towns"
+   Target_en_us "Towns"
+   Comment "Category name in the map layer-filter panel - the row that switches town markers on and off. PLURAL and title case: every row in this list names a CATEGORY of marker, never one place. This one covers villages, towns and cities alike, which is why it is the general word rather than a size. The singular form shown on the info panel is a separate string."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E00000004F}" {
+   Id "OVT-Map_Category_Vehicles"
+   Target_en_us "Vehicles"
+   Comment "Category name in the map layer-filter panel - the row that switches vehicle markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. The markers it controls are the ones for vehicles the player themselves owns, so the word should not suggest all traffic on the island."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E00000004D}" {
+   Id "OVT-Map_Category_Warehouses"
+   Target_en_us "Warehouses"
+   Comment "Category name in the map layer-filter panel - the row that switches warehouse markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. The singular form shown on the info panel is the separate key #OVT-Warehouse and should stay consistent with this one."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E000000051}" {
+   Id "OVT-Map_Category_Waypoints"
+   Target_en_us "Waypoints"
+   Comment "Category name in the map layer-filter panel - the row that switches waypoint markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. A waypoint here is a destination the player has set for themselves - the current job and the recruit rally point each have one - not a route or a navigation aid."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C40A9B33006}" {
+   Id "OVT-Map_ClosePanel"
+   Target_en_us "Close"
+   Comment "Map info panel - button that dismisses the panel for the clicked location"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000049}" {
+   Id "OVT-Map_GunDealer_Available"
+   Target_en_us "Available here"
+   Comment "Map gun dealer info panel - heading above the heavy weapons this dealer is carrying. Present tense on purpose: the selection is re-rolled every time the campaign loads, so it must not read as permanent."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D0000004E}" {
+   Id "OVT-Map_GunDealer_Launcher"
+   Target_en_us "Launcher"
+   Comment "Map gun dealer info panel - weapon kind caption beside a weapon name. Keep short, it shares a narrow row with the weapon's own name."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D0000004D}" {
+   Id "OVT-Map_GunDealer_MachineGun"
+   Target_en_us "Machine gun"
+   Comment "Map gun dealer info panel - weapon kind caption beside a weapon name. Keep short, it shares a narrow row with the weapon's own name."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D0000004A}" {
+   Id "OVT-Map_GunDealer_None"
+   Target_en_us "No heavy weapons in stock right now."
+   Comment "Map gun dealer info panel - shown when the dealer is carrying no rifle, sniper rifle, machine gun or launcher"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D0000004B}" {
+   Id "OVT-Map_GunDealer_Rifle"
+   Target_en_us "Rifle"
+   Comment "Map gun dealer info panel - weapon kind caption beside a weapon name. Keep short, it shares a narrow row with the weapon's own name."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D0000004C}" {
+   Id "OVT-Map_GunDealer_Sniper"
+   Target_en_us "Sniper"
+   Comment "Map gun dealer info panel - weapon kind caption beside a weapon name. Keep short, it shares a narrow row with the weapon's own name."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D0000003A}" {
+   Id "OVT-Map_House_Home"
+   Target_en_us "Home"
+   Comment "Map info panel row value - this house is the player's registered home and respawn point"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E000000F0}" {
+   Id "OVT-Map_JobWaypoint"
+   Target_en_us "Job Waypoint"
+   Comment "Map marker label for the waypoint placed by Show On Map in the Jobs menu"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754784000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A86D5E100000001}" {
+   Id "OVT-Map_Layer_Influence"
+   Target_en_us "Influence"
+   Comment "Map overlay layer name in the map layer-toggle list. Names the overlay that draws lines between a selected location and the other locations exerting influence on it - a radio tower or military base depressing a town's support, or a player-held town lending momentum to its neighbours. One or two words - it is a row label in a short list."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E000000043}" {
+   Id "OVT-Map_Layer_Players"
+   Target_en_us "Players"
+   Comment "Row label in the map layer-filter panel for the markers showing where each player is standing. Plural, title case, one word. It sits under the Overlays header rather than with the marker categories because it is not one of the configured location types. The row is left out entirely on difficulty presets that do not show players on the map, so this string never labels a disabled control."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A84D5E100000002}" {
+   Id "OVT-Map_Layer_Restricted"
+   Target_en_us "Restricted Areas"
+   Comment "Map overlay layer name in the map layer-toggle list. Names the circles showing where a FOB cannot be deployed because of a nearby base or radio tower. One or two words - it is a row label in a short list."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A84D5E100000001}" {
+   Id "OVT-Map_Layer_Territory"
+   Target_en_us "Territory"
+   Comment "Map overlay layer name in the map layer-toggle list. Names the faction-coloured territory overlay drawn beneath the map markers. One or two words - it is a row label in a short list."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E000000042}" {
+   Id "OVT-Map_Layers_Markers"
+   Target_en_us "Markers"
+   Comment "Section header inside the map layer-filter panel. It heads the rows for the individual categories of map icon - towns, bases, houses and so on. One word, title case. Contrasts with the Overlays header (#OVT-Map_Layers_Overlays) in the same panel, so the two should read as a clear pair."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E000000041}" {
+   Id "OVT-Map_Layers_Overlays"
+   Target_en_us "Overlays"
+   Comment "Section header inside the map layer-filter panel. It heads the rows for things drawn across the map rather than as individual markers - the faction territory shading and the restricted-area rings - plus the player-position row. One word, title case. Contrasts with the Markers header (#OVT-Map_Layers_Markers) in the same panel, so the two should read as a clear pair."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A85D1E000000040}" {
+   Id "OVT-Map_Layers_Title"
+   Target_en_us "Map Layers"
+   Comment "Title at the top of the map layer-filter panel - the panel docked beside the tool icon strip on the left of the fullscreen map, which lets a player choose which categories of marker and which map overlays are drawn. Two words, title case. Keep it short: the panel is a narrow fixed-width column."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C40A9B33004}" {
+   Id "OVT-Map_LeaveRecruits"
+   Target_en_us "Leave recruits behind %1"
+   Comment "Map info panel - recruit opt-out toggle, OFF state. %1 is the number of recruits within travel radius"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D0000003C}" {
+   Id "OVT-Map_Port_Desc"
+   Target_en_us "Imported goods can be bought here in bulk."
+   Comment "Map info panel line for a port - one of two sentences explaining what a port is for"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D0000003D}" {
+   Id "OVT-Map_Port_Prices"
+   Target_en_us "Shops closer to a port sell goods more cheaply."
+   Comment "Map info panel line for a port - explains that shop prices rise with distance from the nearest port"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E000000F1}" {
+   Id "OVT-Map_RecruitWaypoint"
+   Target_en_us "Recruit Waypoint"
+   Comment "Map marker label for the waypoint placed by Show On Map in the Recruits menu"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754784000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000034}" {
+   Id "OVT-Map_Row_Access"
+   Target_en_us "Access"
+   Comment "Map info panel row label - whether a camp may be used by everyone or only by its owner"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000037}" {
+   Id "OVT-Map_Row_Contents"
+   Target_en_us "Contents"
+   Comment "Map info panel row label - heading above the list of items stored in a warehouse"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000038}" {
+   Id "OVT-Map_Row_Empty"
+   Target_en_us "Empty"
+   Comment "Map info panel row value - this warehouse is storing nothing"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000033}" {
+   Id "OVT-Map_Row_No"
+   Target_en_us "No"
+   Comment "Map info panel row value - negative answer to a yes/no row such as Priority"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000031}" {
+   Id "OVT-Map_Row_Priority"
+   Target_en_us "Priority"
+   Comment "Map info panel row label - whether this FOB is the resistance's designated priority FOB"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000035}" {
+   Id "OVT-Map_Row_Private"
+   Target_en_us "Private"
+   Comment "Map info panel row value - this camp can only be used by the player who placed it"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000036}" {
+   Id "OVT-Map_Row_Public"
+   Target_en_us "Public"
+   Comment "Map info panel row value - this camp can be used by any player"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000039}" {
+   Id "OVT-Map_Row_Renter"
+   Target_en_us "Renter"
+   Comment "Map info panel row label - the player currently renting this warehouse"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000030}" {
+   Id "OVT-Map_Row_Status"
+   Target_en_us "Status"
+   Comment "Map info panel row label - ownership state of a house or warehouse (Home / Owned / Rented)"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000032}" {
+   Id "OVT-Map_Row_Yes"
+   Target_en_us "Yes"
+   Comment "Map info panel row value - affirmative answer to a yes/no row such as Priority"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000041}" {
+   Id "OVT-Map_Shop_LocalSupply"
+   Target_en_us "Local supply"
+   Comment "Map shop info panel - heading above the list of items that are unusually cheap or unusually dear in this town"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000047}" {
+   Id "OVT-Map_Shop_NoStock"
+   Target_en_us "Nothing in stock right now."
+   Comment "Map shop info panel - shown when a shop has no items at all in stock"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000048}" {
+   Id "OVT-Map_Shop_NothingUnusual"
+   Target_en_us "Nothing unusually cheap or dear right now."
+   Comment "Map shop info panel - shown when a shop has stock but no item is far enough from normal to earn a caret"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000045}" {
+   Id "OVT-Map_Shop_Remote"
+   Target_en_us "Far from a port - everything here costs more to bring in."
+   Comment "Map shop info panel - badge shown when a shop is a long way from the nearest port, which raises every price at that shop. No figure is quoted on purpose."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000042}" {
+   Id "OVT-Map_Shop_TownWide"
+   Target_en_us "Stock is pooled across every shop in this town."
+   Comment "Map shop info panel - explains that the cheap/dear signal is a town-wide one, so two shops in the same town read identically. Must not imply this shop sets its own prices."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000046}" {
+   Id "OVT-Map_Shop_VehicleFlat"
+   Target_en_us "Vehicles cost the same wherever you buy them."
+   Comment "Map shop info panel - the only line a vehicle shop shows. Vehicle prices carry neither the local-supply nor the distance-to-port adjustment, so there is nothing to compare."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D0000003B}" {
+   Id "OVT-Map_Vehicle"
+   Target_en_us "Vehicle"
+   Comment "Map info panel row label - the model name of the player's vehicle shown by this marker"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D0000003F}" {
+   Id "OVT-Map_Waypoint_JobDesc"
+   Target_en_us "Marked from the Jobs menu."
+   Comment "Map info panel line for a waypoint - says this marker was placed by Show On Map in the Jobs menu"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C4D00000040}" {
+   Id "OVT-Map_Waypoint_RecruitDesc"
+   Target_en_us "Marked from the Recruits menu."
+   Comment "Map info panel line for a waypoint - says this marker was placed by Show On Map in the Recruits menu"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{59A6ED9A0E302C5E}" {
    Id "OVT-MedicalSupplies"
    Target_en_us "Medical Supplies"
@@ -5292,6 +6410,13 @@ StringTable {
    LastChanged "parkj_c3c9hji"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{65D3388219BB413F}" {
+   Id "OVT-MilitaryBase"
+   Target_en_us "Military Base"
+   Modified 1708346911
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{65C4B2C28934AFF0}" {
    Id "OVT-MobileFOB"
@@ -5530,6 +6655,40 @@ StringTable {
    Modified 1684559858
    Author "Claude Code"
    LastChanged "Claude Code"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E000000F6}" {
+   Id "OVT-Msg-AdminCommandRefused"
+   Target_en_us "This command requires server admin rights"
+   Comment "Shown when a non-admin player tries an admin chat command such as /givemoney"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754784000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E000000F5}" {
+   Id "OVT-Msg-AdminFundsAdded"
+   Target_en_us "Admin: $%1 added to your account"
+   Comment "Confirmation to a server admin who used the /givemoney chat command - %1 is the amount added"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1754784000
+   Author "Claude"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
@@ -6692,6 +7851,21 @@ StringTable {
    Modified 1706586386
    Author "Aaron Static"
    LastChanged "parkj_c3c9hji"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C40A9B33001}" {
+   Id "OVT-NotAtBusStop"
+   Target_en_us "You must be at a bus stop to catch a bus"
+   Comment ""
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -7991,6 +9165,13 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{65DAD69E45B60D49}" {
+   Id "OVT-RadioTower"
+   Target_en_us "Radio Tower"
+   Modified 1708845495
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{6A7E1A2D00000009}" {
    Id "OVT-RealEstate_AlreadyHome"
    Target_en_us "This is already your home"
@@ -8453,6 +9634,13 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{65D6C32968AF3759}" {
+   Id "OVT-Rented"
+   Target_en_us "Rented"
+   Modified 1708574432
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5D342475BAF79297}" {
    Id "OVT-RentIncome"
    Target_en_us "Rent Income"
@@ -8647,6 +9835,171 @@ StringTable {
    Modified 1706587501
    Author "Aaron Static"
    LastChanged "parkj_c3c9hji"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A83D5A0000000C3}" {
+   Id "OVT-Respawn_AtHome"
+   Target_en_us "Respawn at Home"
+   Comment "Respawn screen - button that always works, needs no map selection and ignores every eligibility rule"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A83D5A0000000C5}" {
+   Id "OVT-Respawn_EnemyBase"
+   Target_en_us "This base is held by the occupying faction"
+   Comment "Respawn screen - why an enemy-held base cannot be respawned at"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A83D5A0000000CA}" {
+   Id "OVT-Respawn_Failed"
+   Target_en_us "The respawn could not be completed. Try again."
+   Comment "Respawn screen - the server could not complete the spawn; the screen stays up so the player can pick again"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A83D5A0000000C4}" {
+   Id "OVT-Respawn_FellBackHome"
+   Target_en_us "That location was no longer available. You respawned at home."
+   Comment "Respawn screen - the chosen location stopped being eligible before the server got the request; the player spawned at home instead"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A83D5A0000000C2}" {
+   Id "OVT-Respawn_Here"
+   Target_en_us "Respawn Here"
+   Comment "Respawn screen - button on a selected map location's info panel, spawns the player there"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A83D5A0000000C1}" {
+   Id "OVT-Respawn_Hint"
+   Target_en_us "Choose where to respawn"
+   Comment "Respawn screen - status line under the title, shown until the server answers a request"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A83D5A0000000C9}" {
+   Id "OVT-Respawn_NotEligible"
+   Target_en_us "You cannot respawn there"
+   Comment "Respawn screen - generic refusal when the server does not agree the player may spawn at the requested place"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A83D5A0000000C7}" {
+   Id "OVT-Respawn_NotYourHouse"
+   Target_en_us "You do not own or rent this house"
+   Comment "Respawn screen - why a house the player has no tenure in cannot be respawned at"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A83D5A0000000C6}" {
+   Id "OVT-Respawn_PrivateCamp"
+   Target_en_us "This camp is private"
+   Comment "Respawn screen - why another player's private camp cannot be respawned at"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A83D5A0000000C8}" {
+   Id "OVT-Respawn_QRF"
+   Target_en_us "There is fighting at this location"
+   Comment "Respawn screen - why a location inside an active QRF cannot be respawned at"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A83D5A0000000C0}" {
+   Id "OVT-Respawn_Title"
+   Target_en_us "Respawn"
+   Comment "Respawn screen - title bar over the map a killed player chooses their spawn point on"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -9073,6 +10426,34 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{65D33887DE0307AF}" {
+   Id "OVT-Shop_Clothing"
+   Target_en_us "Clothing Store"
+   Modified 1708348644
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{65D33887F4A3A3CD}" {
+   Id "OVT-Shop_Drug"
+   Target_en_us "Drug Store"
+   Modified 1708348578
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{65D338878CA73F35}" {
+   Id "OVT-Shop_Equipment"
+   Target_en_us "Equipment Store"
+   Modified 1708350540
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{65D33887028D6F64}" {
+   Id "OVT-Shop_General"
+   Target_en_us "General Store"
+   Modified 1708348496
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{599070D91BB49BFF}" {
    Id "OVT-Shop_InStock"
    Target_en_us "In Stock"
@@ -9335,6 +10716,13 @@ StringTable {
    LastChanged "Claude"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{65D3388630BD8913}" {
+   Id "OVT-Shop_Vehicle"
+   Target_en_us "Vehicle Store"
+   Modified 1708348931
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{6A7C4E1E0000000E}" {
    Id "OVT-ShopCategory_All"
@@ -10460,6 +11848,13 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{65D0CCE5C784D4F8}" {
+   Id "OVT-Town"
+   Target_en_us "Town"
+   Modified 1708198297
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{6A7D9B2E00000001}" {
    Id "OVT-TownModifierLimit"
    Target_en_us "This town already has the maximum number of these"
@@ -10474,6 +11869,36 @@ StringTable {
    Modified 1754265600
    Author "Claude"
    LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C40A9B33002}" {
+   Id "OVT-Travelled"
+   Target_en_us "Travelled"
+   Comment "Fast travel/bus - shown after a successful trip that cost nothing. The paid variant is OVT-TravelWithFare"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7E1C40A9B33005}" {
+   Id "OVT-TravelWithFare"
+   Target_en_us "%1 ($%2)"
+   Comment "Fast travel/bus - a label with its fare. %1 is the label (\"Fast Travel\", \"Catch a bus\", \"Travelled\"), %2 is the amount of money"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -10700,8 +12125,8 @@ StringTable {
   }
   CustomStringTableItem "{6B3C000000000106}" {
    Id "OVT-Tutorial_MapFirstOpen_Body"
-   Target_en_us "The map marks the buildings and vehicles you own, the camps and FOBs the resistance has placed, and the shops, gun dealers and ports available for import. You must be carrying a map item in your inventory for it to open, so don't lose it!"
-   Comment "Body of the 'map-first-open' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. Sandbox tone rule: describes the system, never instructs, and assumes nothing about what the player did before. FACT-CHECKED 2026-08-09 for tutorial-content Phase 1. Sentence 1: OVT_MapIcons.c OnMapOpen (owned houses :472, warehouses :573, gun dealers via TryCreateGunDealerIcon:111, camps :641, FOBs :664, shops via TryCreateShopIcon:137, ports via TryCreatePortIcon:184, owned vehicles :710). Sentence 2: OVT_MapContext.c ShowMap:135-146 requires an SCR_MapGadgetComponent, and both EnableMapInfo:152-158 and EnableFastTravel:277-285 show the 'MustHaveMap' notification and return when it is absent. Compresses #OVT-FieldManual_MapAndTravel_Text."
+   Target_en_us "The map marks the buildings and vehicles you own, the camps and FOBs the resistance has placed, and the shops, gun dealers and ports available for import. Shading over the terrain shows the ground the occupying faction still holds, and it clears from anywhere the resistance takes. The filter on the strip of icons down the left opens a panel with an on and off row for each kind of marker and each overlay. You must be carrying a map item in your inventory for it to open, so don't lose it!"
+   Comment "Body of the 'map-first-open' tutorial tip (single page, HUD popup, wraps inside a 460px panel - keep it to four short sentences). No rich-text markup. Sandbox tone rule: describes the system, never instructs, and assumes nothing about what the player did before. FACT-CHECKED 2026-08-09 for tutorial-content Phase 1. Sentence 1: OVT_MapIcons.c OnMapOpen (owned houses :472, warehouses :573, gun dealers via TryCreateGunDealerIcon:111, camps :641, FOBs :664, shops via TryCreateShopIcon:137, ports via TryCreatePortIcon:184, owned vehicles :710). Sentence 3: OVT_MapContext.c ShowMap:135-146 requires an SCR_MapGadgetComponent, and both EnableMapInfo:152-158 and EnableFastTravel:277-285 show the 'MustHaveMap' notification and return when it is absent. Sentence 2 ADDED 2026-08-11 for map/territory-overlay and fact-checked then: OVT_MapTerritoryLayer.c:127-128 (m_bOnlyShowOccupying defaults 1) and OVT_TerritorySolver.c IsEmittedCell:1645-1657 draw only ground whose owning site's faction is the occupying faction, and OVT_MapTerritoryLayer.c:801-807 gives every other site's ground no appearance at all, so liberated ground renders blank. Compresses #OVT-FieldManual_MapAndTravel_Text and #OVT-FieldManual_MapTerritory_Text. Sentence 3 ADDED 2026-08-11 for map/map-layers and fact-checked then, symbols only per epic rule K-9: OVT_MapLayersUI.Init registers the tool menu entry through SCR_MapToolMenuUI.RegisterToolMenuEntry using the m_sToolMenuIcon quad 'filters', vanilla MapMenu.layout anchors ToolMenuContainer top-left, and TogglePanel shows the panel whose rows come from BuildCanvasLayerRows, BuildPlayerRow and BuildLocationTypeRows. Longer form in #OVT-FieldManual_MapLayers_Text."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -11193,6 +12618,13 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{65D6C32A9AAF1AD1}" {
+   Id "OVT-Unowned"
+   Target_en_us "Unowned"
+   Modified 1708574401
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{59CF196279F7E5EB}" {
    Id "OVT-Upgrades"
    Target_en_us "Upgrades"
@@ -11346,6 +12778,13 @@ StringTable {
    LastChanged "parkj_c3c9hji"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{65D0CCE5FBF5456C}" {
+   Id "OVT-Village"
+   Target_en_us "Village"
+   Modified 1708198289
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{5D48A6A90A8A2177}" {
    Id "OVT-Warehouse"

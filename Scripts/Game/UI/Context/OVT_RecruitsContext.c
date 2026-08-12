@@ -486,7 +486,9 @@ class OVT_RecruitsContext : OVT_UIContext
 			OVT_JobManagerComponent jobManager = OVT_Global.GetJobs();
 			if (jobManager)
 			{
-				jobManager.m_vCurrentWaypoint = pos;
+				// Recruit waypoints have their own slot: writing m_vCurrentWaypoint here used to clobber
+				// the job waypoint the Jobs menu had set (implementation.md G2).
+				jobManager.m_vRecruitWaypoint = pos;
 			}
 		}
 		

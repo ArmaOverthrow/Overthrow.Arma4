@@ -1,6 +1,25 @@
 GenericEntity : "{CD0BE5C399B0752F}Prefabs/Structures/Signs/Signs_Base.et" {
  ID "50D67C36F4200F97"
  components {
+  OVT_MapMarkerComponent "{6A7E1C4D00000011}" {
+   m_eCategory BUS_STOP
+  }
+  OVT_SpawnPointComponent "{6A144B524E4B1651}" {
+   m_aPoints {
+    PointInfo "{6A144B52A0237475}" {
+     Offset 1 0 0
+    }
+    PointInfo "{6A144B52AAF6950C}" {
+     Offset 0 0 1
+    }
+    PointInfo "{6A144B52B1238F6E}" {
+     Offset -1 0 0
+    }
+    PointInfo "{6A144B52BC6D761A}" {
+     Offset 0 0 -1
+    }
+   }
+  }
   SCR_DestructionMultiPhaseComponent "{5496C1EF00137501}" {
    EnableDamage 0
   }

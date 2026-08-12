@@ -40,8 +40,7 @@ Not a choice — Enfusion runs EnforceScript and nothing else. It is a staticall
 | Build / IDE | Arma Reforger Tools — Workbench | The only supported toolchain; compiles and hot-reloads scripts |
 | Project file | `addon.gproj` | Declares GUID `59B657D731E2A11D`, dependencies, script defines, localization tables |
 | Replication | Enfusion `Replication` / `RplComponent` | Engine-native; the only way to reach clients |
-| Persistence (current) | EPF — Enfusion Persistence Framework | Mature third-party save system; predates first-party persistence |
-| Persistence (target) | Reforger vanilla persistence | Native C++, console-safe, less custom serialization — migration in progress |
+| Persistence | Reforger vanilla (first-party) persistence | Native C++, console-safe, less custom serialization. **Migrated off EPF 2026-08-02** |
 | Config format | Enfusion `.conf` resources | Editable in Workbench; retunable by servers without recompiling |
 | Localization | `Language/localization_Overthrow.st` | 6+ locales: en-us, ru-ru, uk-ua, fr-fr, ko-kr, … |
 | Distribution | Arma Reforger Workshop (`59B657D731E2A11D`) | Where players actually get it |
@@ -51,13 +50,13 @@ Not a choice — Enfusion runs EnforceScript and nothing else. It is a staticall
 | GUID | Addon |
 |------|-------|
 | `58D0FB3206B6F859` | Arma Reforger base data |
-| `5D6EBC81EB1842EF` | Enfusion Persistence Framework (EPF) |
+
+That is the **only** declared dependency. EPF (`5D6EBC81EB1842EF`) and EDF were removed by the persistence migration on 2026-08-02.
 
 Reference trees used during development (read-only, not vendored):
 
-- `/mnt/n/Projects/Arma 4/ArmaReforger` — all base game scripts, configs and UI layouts
-- `/mnt/n/Projects/Arma 4/EnfusionPersistenceFramework` — EPF source
-- `/mnt/n/Projects/Arma 4/EnfusionDatabaseFramework` — EDF, EPF's database dependency
+- `/mnt/n/Projects/Arma 4/ArmaReforger` — all base game scripts, configs and UI layouts (includes `scripts/Game/Plugins/Persistence/`, the persistence reference)
+- ⚠️ `/mnt/n/Projects/Arma 4/EnfusionPersistenceFramework` and `/mnt/n/Projects/Arma 4/EnfusionDatabaseFramework` may still exist on disk but are **no longer used** — do not consult them for current patterns
 
 `update-arma-scripts.ps1` refreshes the Reforger reference tree from the Steam install.
 
@@ -109,7 +108,7 @@ Overthrow.Arma4/
 ├── Scripts/Game/               # All EnforceScript (~246 .c files)
 │   ├── GameMode/               # Game mode entity, managers, save data, systems
 │   │   ├── Managers/           # Singleton manager components (see §5)
-│   │   ├── Persistence/        # EPF SaveData classes + components
+│   │   ├── Persistence/        # (see Scripts/Game/Persistence/Serializers/ for save code)
 │   │   ├── SaveData/           # Loadout save data
 │   │   ├── Systems/            # Town modifiers, jobs, skill effects
 │   │   ├── Deployments/, Events/, Placeables/
@@ -286,19 +285,30 @@ A player joining a running server must receive current state, not the state at m
 
 ## 7. Persistence
 
-### Current: EPF
+### Reforger vanilla (first-party) persistence — shipped 2026-08-02
 
-Persistence is currently built on the Enfusion Persistence Framework. Components that persist state have a paired SaveData class extending `EPF_ComponentSaveDataClass` (e.g. `OVT_TownSaveData`, `OVT_BuildingSaveData`, `OVT_BaseUpgradeSaveData`, `OVT_PlaceableSaveData`, `OVT_LoadoutManagerSaveData`), coordinated by `OVT_PersistenceManagerComponent`. EPF writes to disk, which consoles do not permit — hence `#ifdef PLATFORM_CONSOLE` guards around EPF usage.
+Persistence is built on Reforger's own system. **EPF is retired**: zero `EPF_` references in `Scripts/`, EPF/EDF removed as dependencies, and the `#ifdef PLATFORM_CONSOLE` carve-outs deleted (the vanilla system handles console storage internally).
 
-Roughly 59 script files currently reference `EPF_`.
+Two layers, deliberately not conflated:
 
-### Target: Reforger vanilla persistence
+1. **`PersistenceSystem` / `SCR_PersistenceSystem`** — a server-only `WorldSystem` that tracks instances and serializes them. Config-driven.
+2. **`SaveGameManager`** — the engine singleton owning save *points* and load/restart transitions. Wrapped by `OVT_PersistenceManagerComponent` (`SaveGame()` → `RequestSavePoint(ESaveGameType.MANUAL)`).
 
-Reforger now ships first-party persistence, and Overthrow is migrating to it wholesale. The goals are native C++ save/load performance, far less custom serialization boilerplate, console support without platform carve-outs, and the `WhenAvailable` pattern for async entity references. `Scripts/Game/Persistence/Serializers/` (`Components/`, `Entities/`, `States/`) is the target structure.
+**Serializers, not SaveData classes.** State is persisted by `ScriptedComponentSerializer` / `ScriptedEntitySerializer` / `ScriptedStateSerializer` subclasses under `Scripts/Game/Persistence/Serializers/` (`Components/`, `Entities/`), overriding `GetTargetType()`, `Serialize(owner, component, SaveContext)` and `Deserialize(owner, component, LoadContext)`. 16 component serializers ship today.
 
-**This is an explicit breaking change**: existing saves will not be migrated, and it is being done big-bang rather than dual-running both systems. Full scope, file-by-file, in `docs/features/core/persistence/`.
+**Binding is config, not script.** A serializer is bound by an entry in `Configs/Systems/Persistence/Overthrow.conf` (which inherits vanilla `Common.conf`); one that compiles but is not listed there is silently never called. There is no per-serializer registration API. ⚠️ Scripted config *rules* are dead code — the engine never calls a scripted `IsMatch()`; use `GetConfig`/`SetConfig` (BUG-018).
 
-**The migration has a machine-checkable acceptance gate.** `OVT_TEST_PersistenceRoundTripSuite` (§10, tier D') mutates state through Overthrow's public manager API, saves, reloads and reads it back — no EPF type, no vanilla persistence type and no `SaveData` class appears in any assertion, so the suite survives the migration unchanged and cannot report it as a regression by construction. Run it as `.scripts/reset_save.sh --profile OverthrowCI` then `tools/run-tests.sh OVT_TEST_PersistenceRoundTripSuite`: it exits **1** today with `Persistence capability absent: SaveGame() produced no save…`, and **exit 0 is the migration's definition of done**. It is quarantined out of every group target until then. Note the branch state that makes this necessary: on `vanilla-persistence` there is currently **no working save path in either system** — `OVT_PersistenceManagerComponent.SaveGame()` is a stub and re-parenting its component class away from EPF means EPF never initialises either.
+**Format.** Binary contexts are positional — write order must equal read order — and `version` is written first so an older payload still loads (`if (version < 1) return true;`).
+
+**Spawned entities must be tracked.** Buildables and placeables have no authored world instance, so their configuration carries `SelfSpawn` and the spawn site calls `OVT_PersistenceTracking.Track()`. Component state alone restores nothing.
+
+**Reservation model.** A released record does not outlive its entity (BUG-086), so offline player bodies, locked vehicles and recruit bodies are kept alive, tracked and hidden in place rather than saved-and-released — see `OVT_PersistenceReservation.c`.
+
+⚠️ **Breaking:** EPF-era saves are dead, with no converter.
+
+API truth, with file:line citations against retail 1.7.0.54: `docs/features/core/persistence/vanilla-api-reference.md`.
+
+**The migration's acceptance gate passed.** `OVT_TEST_PersistenceRoundTripSuite` (§10) mutates state through Overthrow's public manager API, saves, reloads and reads it back — no persistence API type appears in any assertion, so it could not report the backend change as a regression by construction. It **flipped exit 1 → 0 on 2026-08-02** and is now de-quarantined and part of the All group. ⚠️ It covers save→dirty→**in-session re-apply**, not the true quit-and-continue path: `SaveGameManager.Load`'s world transition restarts the autotest harness, so restart/continue remains manual play-testing.
 
 ### What Persists
 
@@ -407,9 +417,9 @@ Weight testing accordingly: the suites are a floor, not a substitute.
 
 This epic supersedes the persistence migration in priority. The reasoning: the migration is a big-bang, breaking rewrite of every persisted system, and there is currently no way to verify it beyond manual restart testing. Building the test harness first turned that migration from unverifiable into gated. `test-coverage` (complete, 2026-08-02) wrote the behaviour-level persistence tests; because this branch has no working save path in *either* system, the same-session suite ships green and the save/reload suite ships quarantined and red, with its flip to exit 0 as the migration's acceptance criterion (§7).
 
-**Paused: `core/persistence`** — migrating the persistence layer from EPF to Reforger's native system. Big-bang, breaking, no save migration. Not abandoned; resumes once the test harness can validate it. See `docs/features/core/persistence/`.
+**Shipped: `core/persistence`** — the EPF → vanilla persistence migration completed **2026-08-02** (53/53 tasks; SP and MP/dedicated play-tests green; every linked bug closed, including post-ship BUG-104). Big-bang and breaking: EPF-era saves are dead with no converter. See `docs/features/core/persistence/` and §7.
 
-**Branch policy:** `main` is under a **bugfix-only code freeze** until the persistence migration lands. All feature work — including this epic — happens on the `vanilla-persistence` branch.
+**Branch policy:** the bugfix-only freeze on `main` was lifted once the persistence migration landed; `main` is open again.
 
 ---
 

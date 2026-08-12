@@ -1,0 +1,248 @@
+FrameWidgetClass {
+ Name "rootFrame"
+ Slot FrameWidgetSlot "{65D0CCFD24DDB1F0}" {
+  OffsetLeft 0
+  OffsetTop 0
+  SizeX 400
+  OffsetRight -400
+  SizeY 800
+  OffsetBottom -800
+  SizeToContent 1
+ }
+ "Z Order" 9999
+ Clipping False
+ {
+  SizeLayoutWidgetClass "{OVT_InfoContainer}" {
+   Name "InfoContainer"
+   Slot FrameWidgetSlot "{OVT_InfoContainerSlot}" {
+    Anchor 0 0 0 0
+    PositionX 0
+    OffsetLeft 0
+    PositionY 0
+    OffsetTop 0
+    SizeX 300
+    OffsetRight -300
+    SizeY 400
+    OffsetBottom -400
+    Alignment -0.05 0
+    SizeToContent 1
+   }
+   AllowWidthOverride 1
+   WidthOverride 260
+   HeightOverride 0
+   AllowMinDesiredWidth 1
+   MinDesiredWidth 260
+   MinDesiredHeight 200
+   AllowMaxDesiredWidth 1
+   MaxDesiredWidth 400
+   AllowMaxDesiredHeight 1
+   MaxDesiredHeight 800
+   {
+    OverlayWidgetClass "{OVT_InfoOverlay}" {
+     Name "InfoOverlay"
+     Slot AlignableSlot "{OVT_InfoOverlaySlot}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+     }
+     {
+      ImageWidgetClass "{65D33899A2B04849}" {
+       Name "Image0"
+       Slot OverlayWidgetSlot "{65D33899A2B04807}" {
+        HorizontalAlign 0
+        VerticalAlign 0
+        Padding -16 15 0 0
+       }
+       Pivot 1 0.5
+       Texture "{8479B3B5347DF5CF}UI/Imagesets/MilitarySymbol/ID_D.imageset"
+       Image "Hostile_Land_Bcg"
+       Size 32 32
+      }
+      PanelWidgetClass "{OVT_InfoBackground}" {
+       Name "InfoBackground"
+       Slot AlignableSlot "{OVT_InfoBackgroundSlot}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       "Z Order" 0
+       Color 0.0314 0.0314 0.0314 1
+       style full
+      }
+      VerticalLayoutWidgetClass "{OVT_MainLayout}" {
+       Name "MainLayout"
+       Slot AlignableSlot "{OVT_MainLayoutSlot}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       "Z Order" 1
+       {
+        OverlayWidgetClass "{65D0CCECA254771D}" {
+         Name "Header"
+         Slot LayoutSlot "{65D0CCECA25477E7}" {
+         }
+         {
+          ImageWidgetClass "{65D0CCEC8F7DCD84}" {
+           Name "HeaderBG"
+           Slot OverlayWidgetSlot "{65D0CCE2F201932C}" {
+            HorizontalAlign 3
+            VerticalAlign 3
+           }
+           Color 0.0252 0.0252 0.0252 1
+           Texture "{7DE73FC8A57B6A2D}UI/Textures/QuickMenu/backgroundNoise.edds"
+           Size 32 32
+           Tiling Wrap
+          }
+          VerticalLayoutWidgetClass "{65D0CCED27B12A78}" {
+           Name "VerticalLayout0"
+           Slot OverlayWidgetSlot "{65D0CCED27B12A40}" {
+            HorizontalAlign 3
+            VerticalAlign 3
+            Padding 10 10 10 10
+           }
+           {
+            TextWidgetClass "{OVT_LocationName}" {
+             Name "LocationName"
+             Slot LayoutSlot "{OVT_LocationNameSlot}" {
+              Padding 0 0 0 6
+             }
+             Color 1 1 1 1
+             Text "Location Name"
+             "Font Size" 16
+             "Min Font Size" 14
+             "Horizontal Alignment" Left
+             "Vertical Alignment" Center
+             FontProperties FontProperties "{65D0CCE260143650}" {
+              Bold 1
+             }
+            }
+            TextWidgetClass "{OVT_LocationType}" {
+             Name "LocationType"
+             Slot LayoutSlot "{OVT_LocationTypeSlot}" {
+              Padding 0 0 0 4
+             }
+             Color 0.8 0.8 0.8 1
+             Text "Location Type"
+             "Font Size" 10
+             "Min Font Size" 10
+             "Horizontal Alignment" Left
+             "Vertical Alignment" Center
+            }
+            TextWidgetClass "{OVT_Distance}" {
+             Name "Distance"
+             Slot LayoutSlot "{65D0CCE2F20192B6}" {
+              Padding 0 0 0 4
+             }
+             Color 0.9 0.9 0.9 1
+             Text "Distance: 1.2 km"
+             "Font Size" 10
+             "Min Font Size" 10
+             "Horizontal Alignment" Left
+             "Vertical Alignment" Center
+            }
+            TextWidgetClass "{OVT_Owner}" {
+             Name "Owner"
+             Slot LayoutSlot "{OVT_OwnerSlot}" {
+             }
+             "Is Visible" 0
+             Color 0.8 0.8 1 1
+             Text "Owner: Player Name"
+             "Font Size" 10
+             "Min Font Size" 10
+             "Horizontal Alignment" Left
+             "Vertical Alignment" Center
+            }
+           }
+          }
+         }
+        }
+        FrameWidgetClass "{OVT_ContentSlot}" {
+         Name "ContentSlot"
+         Slot LayoutSlot "{OVT_ContentSlotSlot}" {
+         }
+         Clipping False
+         {
+          SizeLayoutWidgetClass "{65D0CCE0C5D5DCF1}" : "{4DD35ACC1CB7006F}UI/Layouts/Map/LocationTypes/OVT_MapInfoTown.layout" {
+           Name "TownInfo0"
+           Slot FrameWidgetSlot "{65D0CCF71218D728}" {
+            Anchor 0 0 0 0
+            PositionX 0
+            OffsetLeft 0
+            PositionY 0
+            OffsetTop 0
+            SizeX 250
+            OffsetRight -250
+            SizeY 250
+            OffsetBottom -250
+           }
+           "Is Visible" 0
+           WidthOverride 260
+           {
+            VerticalLayoutWidgetClass "{65D0CCEA1C3DC82A}" {
+             Prefab "{65D0CCEA1C3DC82A}"
+             Slot AlignableSlot "{65D0CCEAFD4CFF1E}" {
+              Padding 0 5 0 0
+             }
+            }
+           }
+          }
+         }
+        }
+        ButtonWidgetClass "{65D68683691EF233}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+         Name "FastTravelButton"
+         Slot LayoutSlot "{56EEDE01982D053A}" {
+          Padding 0 0 0 0
+         }
+         "Is Visible" 0
+         components {
+          SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+           m_sActionName "OverthrowFastTravel"
+           m_sLabel "#OVT-MainMenu_FastTravel"
+          }
+         }
+        }
+        ButtonWidgetClass "{6A7E1C40A9B33010}" : "{CB8563509DEF3E0E}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButtonSmall.layout" {
+         Name "BringRecruitsButton"
+         Slot LayoutSlot "{56EEDE01982D053A}" {
+          Padding 0 0 0 0
+         }
+         "Is Visible" 0
+         components {
+          SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+           m_sActionName "OverthrowToggleRecruits"
+           m_sLabel "#OVT-Map_BringRecruits"
+          }
+         }
+        }
+        ButtonWidgetClass "{6A7E1C4D00000060}" : "{CB8563509DEF3E0E}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButtonSmall.layout" {
+         Name "CloseButton"
+         Slot LayoutSlot "{56EEDE01982D053A}" {
+          Padding 0 0 0 0
+         }
+         "Is Visible" 0
+         components {
+          SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+           m_sActionName "OverthrowCloseInfoPanel"
+           m_sLabel "#OVT-Map_ClosePanel"
+          }
+         }
+        }
+        TextWidgetClass "{OVT_FastTravelReason}" {
+         Name "FastTravelReason"
+         Slot LayoutSlot "{OVT_FastTravelReasonSlot}" {
+          Padding 0 0 0 5
+         }
+         "Is Visible" 0
+         Color 1 0.4 0.4 1
+         Text "Cannot fast travel here"
+         "Font Size" 14
+         "Min Font Size" 14
+         "Horizontal Alignment" Center
+         "Vertical Alignment" Center
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

@@ -270,8 +270,7 @@ class OVT_TownManagerComponent: OVT_Component
 			bool hasFriendlyTower = false;
 			foreach(OVT_RadioTowerData tower : of.m_RadioTowers)
 			{
-				float dist = vector.Distance(town.location, tower.location);
-				if(dist < OVT_Global.GetConfig().m_Difficulty.radioTowerRange)
+				if(OVT_InfluenceRules.IsProximitySource(town.location, tower.location, OVT_Global.GetConfig().m_Difficulty.radioTowerRange))
 				{
 					//Sabotaged towers broadcast nothing for either side
 					if(tower.IsDisabled()) continue;
@@ -284,18 +283,21 @@ class OVT_TownManagerComponent: OVT_Component
 				}
 			}
 
-			if(hasEnemyTower)
+			//The rule set resolves which polarity wins; the add/remove policy stays here
+			OVT_InfluencePolarity towerPolarity = OVT_InfluenceRules.ResolveProximity(hasEnemyTower, hasFriendlyTower);
+
+			if(towerPolarity == OVT_InfluencePolarity.NEGATIVE)
 			{
-				RemoveSupportModifierByName(townID, "NearbyRadioTowerPositive");
-				TryAddSupportModifierByName(townID, "NearbyRadioTowerNegative");
-			}else if(hasFriendlyTower)
+				RemoveSupportModifierByName(townID, OVT_InfluenceRules.ModifierNameFor(OVT_InfluenceSourceKind.RADIO_TOWER, OVT_InfluencePolarity.POSITIVE));
+				TryAddSupportModifierByName(townID, OVT_InfluenceRules.ModifierNameFor(OVT_InfluenceSourceKind.RADIO_TOWER, OVT_InfluencePolarity.NEGATIVE));
+			}else if(towerPolarity == OVT_InfluencePolarity.POSITIVE)
 			{
-				RemoveSupportModifierByName(townID, "NearbyRadioTowerNegative");
-				TryAddSupportModifierByName(townID, "NearbyRadioTowerPositive");
+				RemoveSupportModifierByName(townID, OVT_InfluenceRules.ModifierNameFor(OVT_InfluenceSourceKind.RADIO_TOWER, OVT_InfluencePolarity.NEGATIVE));
+				TryAddSupportModifierByName(townID, OVT_InfluenceRules.ModifierNameFor(OVT_InfluenceSourceKind.RADIO_TOWER, OVT_InfluencePolarity.POSITIVE));
 			}else{
 				//No tower on the air in range (sabotage) - the permanent proximity modifiers must go
-				RemoveSupportModifierByName(townID, "NearbyRadioTowerNegative");
-				RemoveSupportModifierByName(townID, "NearbyRadioTowerPositive");
+				RemoveSupportModifierByName(townID, OVT_InfluenceRules.ModifierNameFor(OVT_InfluenceSourceKind.RADIO_TOWER, OVT_InfluencePolarity.NEGATIVE));
+				RemoveSupportModifierByName(townID, OVT_InfluenceRules.ModifierNameFor(OVT_InfluenceSourceKind.RADIO_TOWER, OVT_InfluencePolarity.POSITIVE));
 			}
 			
 			bool hasEnemyBase = false;
@@ -303,8 +305,7 @@ class OVT_TownManagerComponent: OVT_Component
 			
 			foreach(OVT_BaseData base : of.m_Bases)
 			{				
-				float dist = vector.Distance(town.location, base.location);
-				if(dist < OVT_Global.GetConfig().m_Difficulty.baseSupportRange)
+				if(OVT_InfluenceRules.IsProximitySource(town.location, base.location, OVT_Global.GetConfig().m_Difficulty.baseSupportRange))
 				{
 					if(base.IsOccupyingFaction())
 					{
@@ -315,14 +316,16 @@ class OVT_TownManagerComponent: OVT_Component
 				}
 			}
 			
-			if(hasEnemyBase)
+			OVT_InfluencePolarity basePolarity = OVT_InfluenceRules.ResolveProximity(hasEnemyBase, hasFriendlyBase);
+
+			if(basePolarity == OVT_InfluencePolarity.NEGATIVE)
 			{
-				RemoveSupportModifierByName(townID, "NearbyBasePositive");
-				TryAddSupportModifierByName(townID, "NearbyBaseNegative");
-			}else if(hasFriendlyBase)
+				RemoveSupportModifierByName(townID, OVT_InfluenceRules.ModifierNameFor(OVT_InfluenceSourceKind.MILITARY_BASE, OVT_InfluencePolarity.POSITIVE));
+				TryAddSupportModifierByName(townID, OVT_InfluenceRules.ModifierNameFor(OVT_InfluenceSourceKind.MILITARY_BASE, OVT_InfluencePolarity.NEGATIVE));
+			}else if(basePolarity == OVT_InfluencePolarity.POSITIVE)
 			{
-				RemoveSupportModifierByName(townID, "NearbyBaseNegative");
-				TryAddSupportModifierByName(townID, "NearbyBasePositive");
+				RemoveSupportModifierByName(townID, OVT_InfluenceRules.ModifierNameFor(OVT_InfluenceSourceKind.MILITARY_BASE, OVT_InfluencePolarity.NEGATIVE));
+				TryAddSupportModifierByName(townID, OVT_InfluenceRules.ModifierNameFor(OVT_InfluenceSourceKind.MILITARY_BASE, OVT_InfluencePolarity.POSITIVE));
 			}	
 			
 			if(recalc) RecalculateStability(townID);
@@ -875,19 +878,6 @@ class OVT_TownManagerComponent: OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Finds the nearest bus stop map marker entity within a radius (15m) of a position.
-	//! \param pos The position vector to search around
-	//! \return The SCR_MapDescriptorComponent of the nearest bus stop marker, or null if none found
-	SCR_MapDescriptorComponent GetNearestBusStop(vector pos)
-	{	
-		m_EntitySearched = null;	
-		GetGame().GetWorld().QueryEntitiesBySphere(pos, 15, null, FindBusStop, EQueryEntitiesFlags.STATIC);
-		if(!m_EntitySearched) return null;
-		
-		return SCR_MapDescriptorComponent.Cast(m_EntitySearched.FindComponent(SCR_MapDescriptorComponent));
-	}
-	
-	//------------------------------------------------------------------------------------------------
 	//! Fills an array with references to all towns located within a specified distance from a position.
 	//! \param pos The center position vector for the search
 	//! \param maxDistance The maximum distance (radius) to search within
@@ -1189,29 +1179,6 @@ class OVT_TownManagerComponent: OVT_Component
 		return false;		
 	}
 	
-	//------------------------------------------------------------------------------------------------
-	//! Query filter function used by GetNearestBusStop.
-	//! Checks if an entity is a bus stop map marker and stores it if found.
-	//! \param entity The entity to check
-	//! \return false once a marker is found to stop the query, true otherwise
-	protected bool FindBusStop(IEntity entity) 
-	{		
-		bool got = false;
-		MapDescriptorComponent mapdesc = MapDescriptorComponent.Cast(entity.FindComponent(MapDescriptorComponent));
-		if (mapdesc){	
-			int type = mapdesc.GetBaseType();
-			if(type == EMapDescriptorType.MDT_BUSSTOP) got = true;
-		}
-		
-		if(got)
-		{
-			m_EntitySearched = entity;
-		}
-				
-		return false;		
-	}
-	
-
 	//------------------------------------------------------------------------------------------------
 	//! Removes a specified number of supporters and population from the town nearest to a position.
 	//! Synchronizes changes via RPC.

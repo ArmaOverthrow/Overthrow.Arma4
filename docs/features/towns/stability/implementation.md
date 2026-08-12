@@ -164,7 +164,7 @@ Persistence: parallel id/timer arrays per town; on load ids `< 0` or `≥ config
 - **towns/support**: shares the entire framework; cross-feeds both ways (discontent reads stability < 30, random stability reads support% < 50)
 - **towns/gun-dealers** + **economy**: transaction events (BlackMarket/StrongEconomy), tax/donation/stock/NPC-buying consumers
 - **occupying**: AI-death event, QRF RecentBattle + battle resolution, patrol deployments feeding PatrolHarassment, threat scoring prefers low stability, deployment min/max stability gates (upstream hazard: BUG-028's deployment leak eventually starves PatrolHarassment)
-- **towns/map-info**: renders the replicated chips (unguarded config indexing client-side)
+- **`map` epic** (formerly `towns/map-info`, archived 2026-08-10): renders the replicated chips (config indexing still unbounded client-side — now `OVT_MapLocationTown.c:272`)
 - **core/persistence**: serializer + recompute-on-load invariant
 
 ### External Dependencies

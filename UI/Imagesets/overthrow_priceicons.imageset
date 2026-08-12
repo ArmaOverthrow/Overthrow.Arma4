@@ -1,0 +1,42 @@
+ImageSetClass {
+ RefSize 200 134
+ Textures {
+  ImageSetTextureClass "{6A12E8A8158B2322}" {
+   screenSize FHD
+   size 1 1
+   path "{81DD0450557866BE}UI/Textures/Map/overthrow_priceicons_atlas.edds"
+  }
+ }
+ Images {
+  ImageSetDefClass up_1 {
+   Pos 2 2
+   Size 64 64
+   Flags 0 0
+  }
+  ImageSetDefClass up_2 {
+   Pos 68 2
+   Size 64 64
+   Flags 0 0
+  }
+  ImageSetDefClass up_3 {
+   Pos 134 2
+   Size 64 64
+   Flags 0 0
+  }
+  ImageSetDefClass down_1 {
+   Pos 2 68
+   Size 64 64
+   Flags 0 0
+  }
+  ImageSetDefClass down_2 {
+   Pos 68 68
+   Size 64 64
+   Flags 0 0
+  }
+  ImageSetDefClass down_3 {
+   Pos 134 68
+   Size 64 64
+   Flags 0 0
+  }
+ }
+}
