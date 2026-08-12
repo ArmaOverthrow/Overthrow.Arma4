@@ -1504,6 +1504,14 @@ class OVT_RecruitManagerComponent : OVT_Component
 		// Set recruit faction to match player faction before adding to group
 		SetRecruitFaction(playerPersistentId, recruitEntity);
 
+		// The prefab's m_eAISkillDefault is authoritative for recruits. Vanilla's
+		// SCR_AICombatComponentSerializer restores the SAVED skill over it on load, so a body from
+		// a save predating a prefab skill change keeps the old value forever (and re-saves it) -
+		// which made skill tuning appear to do nothing on existing recruits.
+		SCR_AICombatComponent combatComponent = SCR_AICombatComponent.Cast(recruitEntity.FindComponent(SCR_AICombatComponent));
+		if (combatComponent)
+			combatComponent.ResetAISkill();
+
 		// Add to player's group
 		AddRecruitToPlayerGroup(playerPersistentId, recruitEntity);
 
