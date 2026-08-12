@@ -1,8 +1,8 @@
 # Base Upgrades - Context & Decisions
 
-**Last Updated:** 2026-08-02
-**Current Phase:** Retrospective Documentation
-**Status:** ✅ Documented (Existing Feature)
+**Last Updated:** 2026-08-13
+**Current Phase:** Enhancements
+**Status:** ✅ Documented (Existing Feature) + enhancements landing
 
 ---
 
@@ -23,8 +23,9 @@
 ## Key Files
 
 - `Scripts/Game/Controllers/OccupyingFaction/BaseUpgrades/` — 11 classes (`OVT_BaseUpgrade` base, `OVT_BasePatrolUpgrade` proxying parent, `OVT_SlottedBaseUpgrade`, 8 concrete; `OVT_BaseUpgradeTownPatrol` is dead)
-- `Scripts/Game/Controllers/OccupyingFaction/OVT_BaseControllerComponent.c` — registration (`m_aBaseUpgrades` attribute), slot discovery, priority scheduler (`SpendResources`), `FindUpgrade` persistence key
-- `Prefabs/Controllers/OVT_BaseController.et` — the ONLY place upgrades are instantiated (9 entries with priorities/allocations)
+- `Scripts/Game/Controllers/OccupyingFaction/OVT_BaseControllerComponent.c` — `m_BaseUpgradesConfig` config reference (runtime `m_aBaseUpgrades` populated in `InitializeBase`), slot discovery, priority scheduler (`SpendResources`), `FindUpgrade` persistence key
+- `Configs/BaseUpgrades/overthrowBaseUpgrades.conf` — the upgrade list (10 entries with priorities/allocations); `OVT_BaseUpgradesConfig` class in `Scripts/Game/Configuration/`
+- `Prefabs/Controllers/OVT_BaseController.et` — points `m_BaseUpgradesConfig` at the conf (a base instance can still delta-override it per-base)
 - `Configs/Factions/*_OverthrowData.conf` — composition tags (SmallBunker/AmmoCache/MGNest) and costs
 - `Scripts/Game/Persistence/Serializers/Components/OVT_OccupyingFactionManagerSerializer.c` — persistence envelope (upgrades ride inside the base records)
 
@@ -32,7 +33,8 @@
 
 ## Important Decisions
 
-- **Config objects, not components:** upgrades are `ScriptAndConfig` subclasses in a prefab attribute array — server-only, no own replication, hand-managed timers.
+- **Config objects, not components:** upgrades are `ScriptAndConfig` subclasses — server-only, no own replication, hand-managed timers.
+- **Upgrade list lives in a config, not the prefab (2026-08-13):** `OVT_BaseControllerComponent.m_BaseUpgradesConfig` references `Configs/BaseUpgrades/overthrowBaseUpgrades.conf` (deployment-registry pattern). The old inline `m_aBaseUpgrades` prefab attribute is gone; the member survives as a runtime array filled from the config in `InitializeBase`, so the serializer/`FindUpgrade` contracts are untouched. Per-base customization = delta the config object on a base instance; modders can override the conf or point bases at their own.
 - **Value-banked proxying:** out-of-range groups convert to `m_iProxedResources` + replay lists; `GetResources()` = live + banked, which is what allocation targets measure against.
 - **Replay persistence with one exception:** upgrade state replays on load (AI never persisted — self-spawn disabled in `Overthrow.conf`); only slotted compositions are entity-tracked via `OVT_PersistenceTracking.Track` (the `SpawnInSlot` comment documents the EPF migration).
 - **Priority scheduling:** manager hands the base resources; controller loops priority 1..19 with threat gates; `-1` allocation = spend recklessly.

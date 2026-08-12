@@ -40,6 +40,14 @@ All original implementation tasks have been completed. This feature was document
 - [x] ✅ Registered on `OVT_BaseController.et` (priority 2, allocation -1)
 - [ ] 🎮 Play-test: place `OVT_SniperPosition` markers near a base in Workbench, verify team spawns facing the arrow, engages, proxies, and persists
 
+### Upgrade list moved from prefab to config (2026-08-13)
+
+- [x] ✅ `OVT_BaseUpgradesConfig` (`Scripts/Game/Configuration/`) + `Configs/BaseUpgrades/overthrowBaseUpgrades.conf` `{0756DED5D4018095}` — holds the 10-entry upgrade array exactly as it stood on the prefab
+- [x] ✅ `OVT_BaseControllerComponent.m_BaseUpgradesConfig` replaces the inline `m_aBaseUpgrades` attribute; `m_aBaseUpgrades` is now a runtime array populated from the config in `InitializeBase` (null-guarded in `UpdateUpgrades`/`FindUpgrade`/`SpendResources`), so the serializer and `FindUpgrade` contracts are unchanged
+- [x] ✅ `OVT_BaseController.et` references the conf (deployment-registry pattern) — per-base customization = delta the config object on a base instance; modders override the conf or point a base at their own
+- [x] ✅ New Campaign-tier case `OVT_TEST_Campaign_BaseUpgrades_ConfigLoaded` — asserts the prefab→conf reference resolves AND `InitializeBase` populates the runtime list; proven able to fail by removing the conf reference from the prefab (red on the wiring assertion), then reverted
+- [x] ✅ Compile clean, All group 142/142
+
 ## Future Enhancements
 
 See `implementation.md` Future Enhancements. Headline items: fix the resource-accounting cluster (dead clamp, proxied-bank inflation, counter drift), make checkpoints survive load, set `m_Spawned` on composition deserialize, delete the dead TownPatrol class, decide the deployments migration's fate.

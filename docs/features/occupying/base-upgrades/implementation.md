@@ -48,7 +48,7 @@ Class hierarchy (all extend `ScriptAndConfig` — config objects, server-only, o
     - `OVT_SlottedBaseUpgrade` — slot selection + composition spawning + persistence tracking:
       - `OVT_BaseUpgradeComposition` ×3 tags — SmallBunker (prio 4), AmmoCache, MGNest (prio 1); fills ammo boxes, crews turrets.
 
-Registration: **only** in `Prefabs/Controllers/OVT_BaseController.et` (9 entries). World base instances in `bases.layer` never override the upgrade list.
+Registration: `Configs/BaseUpgrades/overthrowBaseUpgrades.conf` (10 entries), referenced by `OVT_BaseControllerComponent.m_BaseUpgradesConfig` on `Prefabs/Controllers/OVT_BaseController.et` (moved off the prefab 2026-08-13 for per-base/modder customization). World base instances in `bases.layer` never override the upgrade list, but now can by delta-overriding the config object.
 
 ### Data Flow
 - **Funding:** `OVT_OccupyingFactionManager` calls `base.SpendResources(resources, threat)` at campaign start (`DistributeInitialResources`) and every 6-hour tick. The controller loops priority 1..19, skipping upgrades gated by `m_iMinimumThreat`; allocation-capped upgrades spend to `m_iResourceAllocation × baseResourceCost`, `-1` spends the remainder.

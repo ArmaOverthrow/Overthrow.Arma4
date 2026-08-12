@@ -1708,7 +1708,9 @@ class OVT_PlayerCommsComponent: OVT_Component
 		
 		if (inventoryManager)
 		{
-			// Set up close listener on the client side
+			// Set up close listener on the client side (one-shot - removed again in the handler,
+			// otherwise every Open Inventory stacks another subscription)
+			m_PossessedInventoryManager = inventoryManager;
 			inventoryManager.m_OnInventoryOpenInvoker.Insert(OnClientInventoryStateChanged);
 			inventoryManager.OpenInventory();
 		}
@@ -1717,28 +1719,45 @@ class OVT_PlayerCommsComponent: OVT_Component
 			Print("[OVT_PlayerCommsComponent] Client: No inventory manager found", LogLevel.ERROR);
 		}
 	}
-	
+
+	//! The possessed recruit's inventory manager while an Open Inventory session is live (client)
+	protected SCR_InventoryStorageManagerComponent m_PossessedInventoryManager;
+
 	//! Client-side inventory state change handler
 	protected void OnClientInventoryStateChanged(bool isOpen)
 	{
 		Print(string.Format("[OVT_PlayerCommsComponent] Client: Inventory state changed - isOpen: %1", isOpen), LogLevel.NORMAL);
-		
+
 		// When inventory closes on client, notify server to restore possession
 		if (!isOpen)
 		{
 			Print("[OVT_PlayerCommsComponent] Client: Inventory closed, requesting possession restore", LogLevel.NORMAL);
-			
-			// Get the player controller which maintains authority
-			SCR_PlayerController playerController = SCR_PlayerController.Cast(GetGame().GetPlayerController());
-			if (playerController)
+
+			if (m_PossessedInventoryManager)
 			{
-				// Use the player controller's method which can send RPCs even when possessed
-				playerController.RequestRestorePossession();
+				m_PossessedInventoryManager.m_OnInventoryOpenInvoker.Remove(OnClientInventoryStateChanged);
+				m_PossessedInventoryManager = null;
 			}
-			else
-			{
-				Print("[OVT_PlayerCommsComponent] Client: Could not get player controller", LogLevel.ERROR);
-			}
+
+			// The close event fires at menu-teardown START; unpossessing under a still-live menu
+			// is what leaves the recruit's facing pinned forever (BUG-147 - a vanilla GM
+			// possess/release with no menu open is clean). Let the menu finish dying first.
+			GetGame().GetCallqueue().CallLater(RequestRestorePossessionDeferred, 300, false);
+		}
+	}
+
+	//! Restore possession only after the inventory menu has fully torn down (BUG-147)
+	protected void RequestRestorePossessionDeferred()
+	{
+		SCR_PlayerController playerController = SCR_PlayerController.Cast(GetGame().GetPlayerController());
+		if (playerController)
+		{
+			// Use the player controller's method which can send RPCs even when possessed
+			playerController.RequestRestorePossession();
+		}
+		else
+		{
+			Print("[OVT_PlayerCommsComponent] Client: Could not get player controller", LogLevel.ERROR);
 		}
 	}
 	
@@ -1765,10 +1784,14 @@ class OVT_PlayerCommsComponent: OVT_Component
 		
 		IEntity currentPossessed = playerController.GetControlledEntity();
 		Print(string.Format("[OVT_PlayerCommsComponent] Current possessed entity: %1", currentPossessed), LogLevel.NORMAL);
-		
+
 		// Restore possession to null (back to original entity)
 		playerController.SetPossessedEntity(null);
-		
+
+		// Same as SCR_PlayerController.RpcAsk_RestorePossessionOVT: clear the player-left aiming
+		// state or the AI walks backwards staring at one direction forever (BUG-147)
+		OVT_Global.ResetAIAimState(currentPossessed);
+
 		IEntity restoredEntity = playerController.GetControlledEntity();
 		Print(string.Format("[OVT_PlayerCommsComponent] Restored to entity: %1", restoredEntity), LogLevel.NORMAL);
 	}

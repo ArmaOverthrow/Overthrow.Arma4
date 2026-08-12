@@ -687,6 +687,48 @@ class OVT_Global : Managed
 		return entity;
 	}
 	
+	//! Clear the aiming state a player leaves on a character after possessing it (BUG-147).
+	//! Releasing a possessed AI never resets the player-driven aim, which pins the character's
+	//! body yaw forever - the AI's only aim-stop lives in LookAction.bt and never fires for an
+	//! aim it did not start, so the recruit walks backwards staring at wherever the player last
+	//! looked. Server-side, call after SetPossessedEntity(null) with the ex-possessed entity.
+	static void ResetAIAimState(IEntity character)
+	{
+		if (!character)
+			return;
+
+		SCR_CharacterControllerComponent controller = SCR_CharacterControllerComponent.Cast(character.FindComponent(SCR_CharacterControllerComponent));
+		if (controller)
+		{
+			controller.SetWeaponRaised(false);
+			controller.SetForcedFreeLook(false);
+			controller.ResetPersistentStates(true, true);
+
+			AimingComponent aiming = controller.GetAimingComponent();
+			if (aiming)
+			{
+				aiming.SetAimingRotationWanted(vector.Zero);
+				aiming.SetAimingRotation(vector.Zero);
+			}
+		}
+
+		// Reset the AI-side look bookkeeping too, so the next look request starts clean
+		AIControlComponent aiControl = AIControlComponent.Cast(character.FindComponent(AIControlComponent));
+		if (aiControl)
+		{
+			AIAgent agent = aiControl.GetAIAgent();
+			if (agent)
+			{
+				SCR_AIUtilityComponent utility = SCR_AIUtilityComponent.Cast(agent.FindComponent(SCR_AIUtilityComponent));
+				if (utility && utility.m_LookAction)
+				{
+					utility.m_LookAction.Cancel();
+					utility.m_LookAction.Complete();
+				}
+			}
+		}
+	}
+
 	//! Spawn a character entity directly without creating a group
 	static SCR_ChimeraCharacter SpawnCharacterEntity(ResourceName prefab, vector origin, vector orientation = "0 0 0")
 	{

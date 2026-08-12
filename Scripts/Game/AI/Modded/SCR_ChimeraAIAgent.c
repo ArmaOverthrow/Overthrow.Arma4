@@ -25,22 +25,26 @@ modded class SCR_ChimeraAIAgent : ChimeraAIAgent
 		string playerFactionKey = config.m_sPlayerFaction;
 		string myFactionKey = myFaction.GetFactionKey();
 		
-		// Check if I'm a recruit (in player faction) who should appear as civilian when not wanted
+		// Check if I'm a recruit (in player faction) who should appear as civilian when not wanted.
+		// An ARMED recruit is openly a combatant and uses normal faction logic - without this gate
+		// a never-wanted recruit is a hard-coded pacifist who cannot construct an attack behavior
+		// against anyone (BUG-146), and a recruit only becomes wanted by fighting, which this
+		// branch used to prevent - a deadlock that made armed recruits useless in combat.
 		if (myFactionKey == playerFactionKey)
 		{
 			OVT_PlayerWantedComponent myWantedComp = OVT_PlayerWantedComponent.Cast(GetControlledEntity().FindComponent(OVT_PlayerWantedComponent));
-			if (myWantedComp && myWantedComp.GetWantedLevel() < 1)
+			if (myWantedComp && myWantedComp.GetWantedLevel() < 1 && !myWantedComp.HasAnyWeapon())
 			{
-				// I'm a recruit appearing as civilian - I should not perceive any factions as enemies
-				// This prevents recruits from being afraid of occupying forces when not wanted
-				// Only exception is if target also has wanted component and is wanted
+				// I'm an unarmed recruit appearing as civilian - I should not perceive any factions
+				// as enemies. This prevents recruits from being afraid of occupying forces when not
+				// wanted. Only exception is if target also has wanted component and is wanted
 				OVT_PlayerWantedComponent targetWantedComp = OVT_PlayerWantedComponent.Cast(entity.FindComponent(OVT_PlayerWantedComponent));
 				if (targetWantedComp)
 				{
 					// Target is also a player/recruit - check if they're wanted
 					return targetWantedComp.GetWantedLevel() >= 1;
 				}
-				
+
 				// Target is not a player/recruit, but I'm appearing as civilian, so no one is enemy to me
 				return false;
 			}
@@ -87,13 +91,14 @@ modded class SCR_ChimeraAIAgent : ChimeraAIAgent
 		string playerFactionKey = config.m_sPlayerFaction;
 		string myFactionKey = myFaction.GetFactionKey();
 		
-		// Check if I'm a recruit (in player faction) who should appear as civilian when not wanted
+		// Check if I'm a recruit (in player faction) who should appear as civilian when not wanted.
+		// Same armed-combatant gate as IsPerceivedEnemy above (BUG-146).
 		if (myFactionKey == playerFactionKey)
 		{
 			OVT_PlayerWantedComponent myWantedComp = OVT_PlayerWantedComponent.Cast(GetControlledEntity().FindComponent(OVT_PlayerWantedComponent));
-			if (myWantedComp && myWantedComp.GetWantedLevel() < 1)
+			if (myWantedComp && myWantedComp.GetWantedLevel() < 1 && !myWantedComp.HasAnyWeapon())
 			{
-				// I'm a recruit appearing as civilian - no faction should be enemy to me
+				// I'm an unarmed recruit appearing as civilian - no faction should be enemy to me
 				// This prevents retreat behaviors from being triggered
 				return false;
 			}

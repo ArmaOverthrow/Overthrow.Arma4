@@ -81,6 +81,32 @@ modded class SCR_AIGroup
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Vanilla never gives the commanding slave group a faction (CreatePlayableGroup sets only the
+	//! master's), and an Overthrow master is CIV anyway because players are registered civilian
+	//! (OVT_SpawnLogic.SetCivilianFaction). A faction-less group fails
+	//! SCR_AIGroupUtilityComponent.IsMilitary(), so the group brain - perception clusters, danger
+	//! sharing, combat-mode evaluation - never runs for recruit squads. Slave groups only ever hold
+	//! AI (recruits), so stamp them with the resistance faction; SetFaction also re-asserts the
+	//! affiliation on every current member (BUG-146).
+	override void SetSlave(SCR_AIGroup group)
+	{
+		super.SetSlave(group);
+
+		if (!Replication.IsServer())
+			return;
+		if (!group || group.GetFaction())
+			return;
+
+		OVT_OverthrowConfigComponent config = OVT_OverthrowConfigComponent.GetInstance();
+		if (!config)
+			return;
+
+		Faction faction = GetGame().GetFactionManager().GetFactionByKey(config.m_sPlayerFaction);
+		if (faction)
+			group.SetFaction(faction);
+	}
+
+	//------------------------------------------------------------------------------------------------
 	override void AddWaypointsDynamic(out array<IEntity> entityInstanceList, array<ref SCR_WaypointPrefabLocation> prefabs)
 	{
 		super.AddWaypointsDynamic(entityInstanceList, prefabs);

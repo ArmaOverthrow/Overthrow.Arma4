@@ -1674,51 +1674,22 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//! Set recruit faction to match player faction
 	protected void SetRecruitFaction(string playerPersistentId, IEntity recruitEntity)
 	{
-		// Find player by persistent ID
-		OVT_PlayerManagerComponent playerManager = OVT_Global.GetPlayers();
-		if (!playerManager)
-			return;
-			
-		int playerId = playerManager.GetPlayerIDFromPersistentID(playerPersistentId);
-		if (playerId == 0)
-		{
-			Print("[Overthrow] Player not online for faction setting: " + playerPersistentId);
-			return;
-		}
-		
-		// Get player faction
-		SCR_FactionManager factionManager = SCR_FactionManager.Cast(GetGame().GetFactionManager());
-		if (!factionManager)
-		{
-			Print("[Overthrow] No faction manager available");
-			return;
-		}
-		
-		Faction playerFaction = factionManager.GetPlayerFaction(playerId);
-		if (!playerFaction)
-		{
-			Print("[Overthrow] No player faction found for ID: " + playerId);
-			return;
-		}
-		
-		// Get recruit's current faction
+		// Always the configured resistance faction, never vanilla's per-player faction registry:
+		// Overthrow players don't go through vanilla faction selection, so
+		// SCR_FactionManager.GetPlayerFaction() returns null or CIV - the old guard compared
+		// against that and silently left recruits affiliated CIV, which is friendly to every
+		// faction, so recruits never classified anyone as an enemy and never fought (BUG-146)
 		SCR_CharacterFactionAffiliationComponent recruitFactionComp = SCR_CharacterFactionAffiliationComponent.Cast(
 			recruitEntity.FindComponent(SCR_CharacterFactionAffiliationComponent)
 		);
-		
+
 		if (!recruitFactionComp)
 		{
 			Print("[Overthrow] No character faction component found on recruit");
 			return;
 		}
-		
-		Faction currentFaction = recruitFactionComp.GetAffiliatedFaction();
-		
-		// Set recruit faction to match player
-		if (currentFaction != playerFaction)
-		{
-			recruitFactionComp.SetAffiliatedFactionByKey(OVT_Global.GetConfig().GetPlayerFaction().GetFactionKey());
-		}
+
+		recruitFactionComp.SetAffiliatedFactionByKey(OVT_Global.GetConfig().m_sPlayerFaction);
 	}
 	
 	//------------------------------------------------------------------------------------------------

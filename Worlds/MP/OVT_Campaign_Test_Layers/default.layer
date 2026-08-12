@@ -123,6 +123,14 @@ SCR_DestructibleBuildingEntity : "{38A5F3E4578087AB}Prefabs/Structures/Houses/To
  coords 241.413 0.001 118.064
  angles 0 -91.024 0
 }
+$grp GenericEntity : "{3CD4A789AFF69FFA}Prefabs/Props/Military/AmmoBoxes/OVT_AmmoBox_Dev.et" {
+ {
+  coords 226.713 1 203.119
+ }
+ {
+  coords 239.287 1 46.177
+ }
+}
 GenericEntity : "{3E4C223A92230572}Prefabs/Props/Military/Sandbags/Sandbag_01_long_high_base.et" {
  coords 27.157 1 129.144
  angles 0 110.354 0

@@ -212,9 +212,32 @@ class OVT_PlayerWantedComponent: OVT_Component
 	{
 		if (!m_Weapon)
 			return false;
-			
+
 		BaseWeaponComponent weapon = m_Weapon.GetCurrentWeapon();
 		return weapon != null;
+	}
+
+	//! Check if this character owns any weapon at all (in hands OR slung in a weapon slot).
+	//! IsVisiblyArmed() only sees the weapon currently in hands - an AI recruit with a rifle on
+	//! their back reads as unarmed there, which is the wrong signal for combat-capability (BUG-146)
+	bool HasAnyWeapon()
+	{
+		if (!m_Weapon)
+			return false;
+
+		BaseWeaponComponent weapon = m_Weapon.GetCurrentWeapon();
+		if (weapon)
+			return true;
+
+		array<WeaponSlotComponent> slots = {};
+		m_Weapon.GetWeaponsSlots(slots);
+		foreach (WeaponSlotComponent slot : slots)
+		{
+			if (slot.GetWeaponEntity())
+				return true;
+		}
+
+		return false;
 	}
 	
 	//------------------------------------------------------------------------------------------------

@@ -2,12 +2,10 @@ GenericEntity : "{71BD5B9F53DF8CF6}Prefabs/Props/Military/AmmoBoxes/OVT_AmmoBox_
  ID "5992E2EECFF48DDE"
  components {
   SCR_InventoryStorageManagerComponent "{59A45C644081E9DF}" {
-   InitialInventoryItems {
-    ItemsInitConfigurationItem "{65AB2E787087391E}" {
-     PrefabsToSpawn {
-      "{FA5C25BF66A53DCF}Prefabs/Weapons/Rifles/AK74/Rifle_AK74.et" "{FA5C25BF66A53DCF}Prefabs/Weapons/Rifles/AK74/Rifle_AK74.et" "{FA5C25BF66A53DCF}Prefabs/Weapons/Rifles/AK74/Rifle_AK74.et" "{FA5C25BF66A53DCF}Prefabs/Weapons/Rifles/AK74/Rifle_AK74.et" "{FA5C25BF66A53DCF}Prefabs/Weapons/Rifles/AK74/Rifle_AK74.et" "{FA5C25BF66A53DCF}Prefabs/Weapons/Rifles/AK74/Rifle_AK74.et" "{FA5C25BF66A53DCF}Prefabs/Weapons/Rifles/AK74/Rifle_AK74.et" "{2FBCA0A7CEDDE7B0}Prefabs/Weapons/Ammo/Ammo_762x39_Ball_57N231.et" "{2FBCA0A7CEDDE7B0}Prefabs/Weapons/Ammo/Ammo_762x39_Ball_57N231.et" "{2FBCA0A7CEDDE7B0}Prefabs/Weapons/Ammo/Ammo_762x39_Ball_57N231.et" "{2FBCA0A7CEDDE7B0}Prefabs/Weapons/Ammo/Ammo_762x39_Ball_57N231.et" "{2FBCA0A7CEDDE7B0}Prefabs/Weapons/Ammo/Ammo_762x39_Ball_57N231.et" "{2FBCA0A7CEDDE7B0}Prefabs/Weapons/Ammo/Ammo_762x39_Ball_57N231.et" "{2FBCA0A7CEDDE7B0}Prefabs/Weapons/Ammo/Ammo_762x39_Ball_57N231.et" "{2FBCA0A7CEDDE7B0}Prefabs/Weapons/Ammo/Ammo_762x39_Ball_57N231.et"
-     }
-    }
+  }
+  OVT_DevAmmoBoxComponent "{6A8F1E2D4C5B090A}" {
+   m_aItems {
+    "{FA5C25BF66A53DCF}Prefabs/Weapons/Rifles/AK74/Rifle_AK74.et" "{FA5C25BF66A53DCF}Prefabs/Weapons/Rifles/AK74/Rifle_AK74.et" "{FA5C25BF66A53DCF}Prefabs/Weapons/Rifles/AK74/Rifle_AK74.et" "{FA5C25BF66A53DCF}Prefabs/Weapons/Rifles/AK74/Rifle_AK74.et" "{0A84AA5A3884176F}Prefabs/Weapons/Magazines/Magazine_545x39_AK_30rnd_Last_5Tracer.et" "{0A84AA5A3884176F}Prefabs/Weapons/Magazines/Magazine_545x39_AK_30rnd_Last_5Tracer.et" "{0A84AA5A3884176F}Prefabs/Weapons/Magazines/Magazine_545x39_AK_30rnd_Last_5Tracer.et" "{0A84AA5A3884176F}Prefabs/Weapons/Magazines/Magazine_545x39_AK_30rnd_Last_5Tracer.et" "{0A84AA5A3884176F}Prefabs/Weapons/Magazines/Magazine_545x39_AK_30rnd_Last_5Tracer.et" "{0A84AA5A3884176F}Prefabs/Weapons/Magazines/Magazine_545x39_AK_30rnd_Last_5Tracer.et" "{0A84AA5A3884176F}Prefabs/Weapons/Magazines/Magazine_545x39_AK_30rnd_Last_5Tracer.et" "{0A84AA5A3884176F}Prefabs/Weapons/Magazines/Magazine_545x39_AK_30rnd_Last_5Tracer.et" "{0A84AA5A3884176F}Prefabs/Weapons/Magazines/Magazine_545x39_AK_30rnd_Last_5Tracer.et" "{0A84AA5A3884176F}Prefabs/Weapons/Magazines/Magazine_545x39_AK_30rnd_Last_5Tracer.et" "{0A84AA5A3884176F}Prefabs/Weapons/Magazines/Magazine_545x39_AK_30rnd_Last_5Tracer.et" "{0A84AA5A3884176F}Prefabs/Weapons/Magazines/Magazine_545x39_AK_30rnd_Last_5Tracer.et"
    }
   }
  }
