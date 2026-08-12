@@ -14,18 +14,24 @@ SCR_DestructibleBuildingEntity : "{00FD2B4A0BDEC271}Prefabs/Structures/Commercia
   }
  }
  coords 4675.39 0 11105.521
- angleY 89.979
+ angles 0 89.979 0
+}
+$grp StaticModelEntity : "{68CA807F237FFB7A}Prefabs/Structures/Infrastructure/Towers/TransmitterTower_01/TransmitterTower_01_base.et" {
+ {
+  coords 4301.021 70.942 8550.3
+ }
+ {
+  coords 6156.306 128.801 5252.812
+ }
 }
 GenericEntity Poster_Join_v2_65C296D9E75A0EB6 : "{A1277C7EA79FBA1E}Prefabs/Props/Posters/Poster_Join_v2.et" {
  coords 2905.426 9.422 2180.169
- angleY 90.062
+ angles 0 90.062 0
  scale 1
 }
 GenericEntity Poster_Resist_v1_65C296D9314FA1F0 : "{A3F34DF44939D26E}Prefabs/Props/Posters/Poster_Resist_v1.et" {
- components {
- }
  coords 2905.42 8.956 2179.967
- angleY 90.506
+ angles 0 90.506 0
  scale 1
 }
 StaticModelEntity : "{CF1FFB7BAA1A0769}Prefabs/Structures/Military/Camps/HelipadImprovised_01/HelipadImprovised_US_01.et" {

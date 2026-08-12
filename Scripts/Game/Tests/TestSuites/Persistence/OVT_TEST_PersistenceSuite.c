@@ -1347,3 +1347,225 @@ class OVT_TEST_Persistence_RecruitDespawnReservesBody : SCR_AutotestCaseBase
 		return true;
 	}
 }
+
+//------------------------------------------------------------------------------------------------
+//! A radio tower the save has no record for is handed to the occupying faction on load.
+//!
+//! WHY. Towers are world-derived: a map update can add towers that existing saves know nothing
+//! about. NewGameStart() never runs on a continue, and discovery stamps tower factions before the
+//! save's real occupying faction key is applied, so an unmatched tower used to keep whatever index
+//! discovery guessed - and a tower that is not IsOccupyingFaction() never garrisons (CheckRadioTowers
+//! skips it). This case drives ApplyPersistedOccupyingFaction(), the exact seam the serializer calls.
+//!
+//! TWO SCENARIOS, ONE CASE. First: the tower is dirtied to faction -1 and the apply is given an
+//! EMPTY tower-record list (a save written before the tower existed) - the tower must come back
+//! occupying. Second: the apply is given a record AT the tower's location carrying the player
+//! faction (a legitimately captured tower) - the sweep must NOT trample it back to occupying.
+//!
+//! ANTI-VACUOUS: the dirty step sets a faction the campaign start never produces (-1), so an
+//! occupying faction afterwards can only have come from the code under test. Live resources/threat
+//! are read first and passed straight back through, so the apply mutates nothing else.
+//!
+//! CAN-FAIL: proven red 2026-08-13 against the pre-fix ApplyPersistedOccupyingFaction (unmatched
+//! towers were simply never visited): "expected occupying faction ..., it is -1".
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceSuite, timeoutS: 30)]
+class OVT_TEST_Persistence_NewRadioTower_DefaultsToOccupyingFaction : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		if (!occupying)
+		{
+			SetResultFailure("OVT_Global.GetOccupyingFaction() is null");
+			return true;
+		}
+
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!config)
+		{
+			SetResultFailure("OVT_Global.GetConfig() is null");
+			return true;
+		}
+
+		int occupyingFaction = config.GetOccupyingFactionIndex();
+		int playerFaction = config.GetPlayerFactionIndex();
+		if (occupyingFaction < 0 || playerFaction < 0)
+		{
+			SetResultFailure("The config could not resolve both faction indices (player %1, occupying %2)",
+				playerFaction.ToString(), occupyingFaction.ToString());
+			return true;
+		}
+
+		OVT_RadioTowerData tower;
+		foreach (OVT_RadioTowerData candidate : occupying.m_RadioTowers)
+		{
+			if (candidate)
+			{
+				tower = candidate;
+				break;
+			}
+		}
+
+		if (!tower)
+		{
+			SetResultFailure("The test world handed out no radio tower");
+			return true;
+		}
+
+		int factionBefore = tower.faction;
+		int resources = occupying.m_iResources;
+		float threat = occupying.m_iThreat;
+
+		// Scenario 1: the save was written before this tower existed - no record for it at all.
+		tower.faction = -1;
+		array<ref OVT_PersistedRadioTower> noRecords = new array<ref OVT_PersistedRadioTower>();
+		occupying.ApplyPersistedOccupyingFaction(config.m_sOccupyingFaction, resources, threat, null, noRecords);
+
+		if (tower.faction != occupyingFaction)
+		{
+			SetResultFailure("A tower absent from the save was not handed to the occupying faction: expected occupying faction %1, it is %2",
+				occupyingFaction.ToString(), tower.faction.ToString());
+			tower.faction = factionBefore;
+			return true;
+		}
+
+		// Scenario 2: the save DOES know the tower, as player-captured - the sweep must not trample it.
+		array<ref OVT_PersistedRadioTower> capturedRecords = new array<ref OVT_PersistedRadioTower>();
+		OVT_PersistedRadioTower record = new OVT_PersistedRadioTower();
+		record.location = tower.location;
+		record.faction = playerFaction;
+		record.disabledRemaining = 0;
+		capturedRecords.Insert(record);
+		occupying.ApplyPersistedOccupyingFaction(config.m_sOccupyingFaction, resources, threat, null, capturedRecords);
+
+		if (tower.faction != playerFaction)
+		{
+			SetResultFailure("A player-captured tower with a save record was trampled: expected player faction %1, it is %2",
+				playerFaction.ToString(), tower.faction.ToString());
+			tower.faction = factionBefore;
+			return true;
+		}
+
+		// Restore whatever the campaign start left the tower on.
+		tower.faction = factionBefore;
+
+		PrintFormat("New-tower default round-trip: unmatched tower -> occupying %1, recorded capture kept player %2",
+			occupyingFaction.ToString(), playerFaction.ToString());
+		SetResultSuccess();
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A base the save has no record for is handed to the occupying faction on load.
+//!
+//! WHY. The exact same gap the towers case above guards, on the bases side: bases are world-derived
+//! (flagpole prefabs in bases.layer), so a map update can add one that existing saves know nothing
+//! about. NewGameStart() never runs on a continue, and discovery stamps base factions before the
+//! save's real occupying faction key is applied, so an unmatched base used to keep whatever index
+//! discovery guessed - and never garrisoned or spent resources as the occupying faction.
+//!
+//! TWO SCENARIOS, ONE CASE. First: the base is dirtied to faction -1 and the apply is given an
+//! EMPTY base-record list (a save written before the base existed) - the base must come back
+//! occupying. Second: the apply is given a record AT the base's location carrying the player
+//! faction (a legitimately captured base) - the sweep must NOT trample it back to occupying.
+//!
+//! SIDE EFFECT, ACCEPTED. Applying the scenario-2 record clears the base's persisted-data lists
+//! (upgrades/slots/garrison records). Those lists are rebuilt from the LIVE controller at save time
+//! and are empty during a test-world session anyway (garrisons are never populated here), so
+//! nothing downstream reads what this case clears.
+//!
+//! CAN-FAIL: proven red 2026-08-13 against the pre-fix ApplyPersistedOccupyingFaction (unmatched
+//! bases were simply never visited): "expected occupying faction ..., it is -1".
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceSuite, timeoutS: 30)]
+class OVT_TEST_Persistence_NewBase_DefaultsToOccupyingFaction : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[Step(EStage.Main)]
+	bool Execute()
+	{
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		if (!occupying)
+		{
+			SetResultFailure("OVT_Global.GetOccupyingFaction() is null");
+			return true;
+		}
+
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!config)
+		{
+			SetResultFailure("OVT_Global.GetConfig() is null");
+			return true;
+		}
+
+		int occupyingFaction = config.GetOccupyingFactionIndex();
+		int playerFaction = config.GetPlayerFactionIndex();
+		if (occupyingFaction < 0 || playerFaction < 0)
+		{
+			SetResultFailure("The config could not resolve both faction indices (player %1, occupying %2)",
+				playerFaction.ToString(), occupyingFaction.ToString());
+			return true;
+		}
+
+		OVT_BaseData base;
+		foreach (OVT_BaseData candidate : occupying.m_Bases)
+		{
+			if (candidate)
+			{
+				base = candidate;
+				break;
+			}
+		}
+
+		if (!base)
+		{
+			SetResultFailure("The test world handed out no base");
+			return true;
+		}
+
+		int factionBefore = base.faction;
+		int resources = occupying.m_iResources;
+		float threat = occupying.m_iThreat;
+
+		// Scenario 1: the save was written before this base existed - no record for it at all.
+		base.faction = -1;
+		array<ref OVT_PersistedBase> noRecords = new array<ref OVT_PersistedBase>();
+		occupying.ApplyPersistedOccupyingFaction(config.m_sOccupyingFaction, resources, threat, noRecords, null);
+
+		if (base.faction != occupyingFaction)
+		{
+			SetResultFailure("A base absent from the save was not handed to the occupying faction: expected occupying faction %1, it is %2",
+				occupyingFaction.ToString(), base.faction.ToString());
+			base.faction = factionBefore;
+			return true;
+		}
+
+		// Scenario 2: the save DOES know the base, as player-captured - the sweep must not trample it.
+		array<ref OVT_PersistedBase> capturedRecords = new array<ref OVT_PersistedBase>();
+		OVT_PersistedBase record = new OVT_PersistedBase();
+		record.location = base.location;
+		record.faction = playerFaction;
+		capturedRecords.Insert(record);
+		occupying.ApplyPersistedOccupyingFaction(config.m_sOccupyingFaction, resources, threat, capturedRecords, null);
+
+		if (base.faction != playerFaction)
+		{
+			SetResultFailure("A player-captured base with a save record was trampled: expected player faction %1, it is %2",
+				playerFaction.ToString(), base.faction.ToString());
+			base.faction = factionBefore;
+			return true;
+		}
+
+		// Restore whatever the campaign start left the base on.
+		base.faction = factionBefore;
+
+		PrintFormat("New-base default round-trip: unmatched base -> occupying %1, recorded capture kept player %2",
+			occupyingFaction.ToString(), playerFaction.ToString());
+		SetResultSuccess();
+		return true;
+	}
+}

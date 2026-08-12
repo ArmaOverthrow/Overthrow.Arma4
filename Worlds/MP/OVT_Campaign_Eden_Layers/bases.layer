@@ -3,6 +3,7 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
   components {
    OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
     m_sName "#OVT-Base_Levie"
+    m_fStartingResourcesMultiplier 1.2
     m_iAttackDistanceMax 750
     m_iAttackPreferredDirection 201
     m_iAttackDirectionVariance 55
@@ -92,7 +93,7 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
     m_iAttackDirectionVariance 60
    }
   }
-  Flags 1027
+  Flags 0x403 0
   coords 5841.275 4.563 9794.273
  }
  OVT_Base_Erquy {
@@ -105,5 +106,17 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
    }
   }
   coords 10633.771 2.343 11841.762
+ }
+ OVT_Base_MilitaryHospital {
+  components {
+   OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
+    m_sName "#OVT-Base_MilitaryHospital"
+    m_fStartingResourcesMultiplier 0.8
+    m_iAttackDistanceMin 375
+    m_iAttackPreferredDirection 108
+    m_iAttackDirectionVariance 55
+   }
+  }
+  coords 3895.992 15.301 8438.691
  }
 }

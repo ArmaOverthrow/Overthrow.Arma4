@@ -4,8 +4,7 @@ SCR_SiteSlotEntity : "{4B1C4BDDF6683101}PrefabsEditable/Slots/Flat/E_SlotFlatMed
   StaticModelEntity {
    ID "52E8C3643526D54D"
    coords 0 0.328 0
-   angleX -0.174
-   angleZ -1.069
+   angles -0.174 0 -1.069
   }
  }
 }
@@ -16,8 +15,7 @@ $grp SCR_SiteSlotEntity : "{588A3DAF0296B0C1}PrefabsEditable/Slots/Flat/E_SlotFl
    StaticModelEntity {
     ID "52E8C3643526D54D"
     coords 0 -0.083 0
-    angleX 1.087
-    angleZ -3.78
+    angles 1.087 0 -3.78
    }
   }
  }
@@ -36,8 +34,7 @@ $grp SCR_SiteSlotEntity : "{588A3DAF0296B0C1}PrefabsEditable/Slots/Flat/E_SlotFl
    StaticModelEntity {
     ID "52E8C3643526D54D"
     coords 0 0.202 0
-    angleX -0.977
-    angleZ -2.546
+    angles -0.977 0 -2.546
    }
   }
  }
@@ -47,8 +44,7 @@ $grp SCR_SiteSlotEntity : "{588A3DAF0296B0C1}PrefabsEditable/Slots/Flat/E_SlotFl
    StaticModelEntity {
     ID "52E8C3643526D54D"
     coords 0 -0.056 0
-    angleX -3.409
-    angleZ -3.842
+    angles -3.409 0 -3.842
    }
   }
  }
@@ -58,8 +54,7 @@ $grp SCR_SiteSlotEntity : "{588A3DAF0296B0C1}PrefabsEditable/Slots/Flat/E_SlotFl
    StaticModelEntity {
     ID "52E8C3643526D54D"
     coords 0 0.106 0
-    angleX -1.295
-    angleZ 0.057
+    angles -1.295 0 0.057
    }
   }
  }
@@ -69,8 +64,7 @@ $grp SCR_SiteSlotEntity : "{588A3DAF0296B0C1}PrefabsEditable/Slots/Flat/E_SlotFl
    StaticModelEntity {
     ID "52E8C3643526D54D"
     coords 0 -0.849 0
-    angleX 2.802
-    angleZ 0.674
+    angles 2.802 0 0.674
    }
   }
  }
@@ -81,78 +75,72 @@ $grp SCR_SiteSlotEntity : "{588A3DAF0296B0C1}PrefabsEditable/Slots/Flat/E_SlotFl
 $grp OVT_VehiclePatrolSpawn : "{5BF1F972169C6923}Prefabs/GameMode/OVT_VehiclePatrolSpawn.et" {
  {
   coords 7528.287 165.329 4359.783
-  angleY 14.567
+  angles 0 14.567 0
  }
  {
   coords 7529.124 2.465 6682.219
-  angleY -110.263
+  angles 0 -110.263 0
  }
  {
   coords 7621.615 14.731 8075.547
-  angleX 3.936
-  angleY -50.302
+  angles 3.936 -50.302 0
  }
  {
   coords 5837.209 4.692 9829.325
-  angleY 0
+  angles 0 0 0
  }
  {
   coords 4902.17 28.594 11934.025
-  angleY -179.346
+  angles 0 -179.346 0
  }
  {
   coords 3919.369 13.509 8531.628
-  angleY 10.974
+  angles 0 10.974 0
  }
  {
   coords 1047.657 4.461 5985.828
-  angleX 4.745
-  angleY 151.335
+  angles 4.745 151.335 0
  }
  {
   coords 5155.654 40.368 10437.859
-  angleY -125.868
+  angles 0 -125.868 0
  }
  {
   coords 9291.382 191.129 1153.784
-  angleX -1.625
-  angleY -179.312
+  angles -1.625 -179.312 0
  }
 }
 $grp SCR_SiteSlotEntity : "{F4066B8425BEC47C}PrefabsEditable/Slots/Road/E_SlotRoadMedium.et" {
  {
   coords 3918.89 13.609 8518.963
-  angleY 4.394
+  angles 0 4.394 0
   {
    StaticModelEntity {
     ID "52E8C3643526D54D"
     coords 0 0.158 0
-    angleX -1.607
-    angleZ 0.042
+    angles -1.607 0 0.042
    }
   }
  }
  {
   coords 1042.323 3.486 5997.963
-  angleY 161.812
+  angles 0 161.812 0
   {
    StaticModelEntity {
     ID "52E8C3643526D54D"
     coords 0 0.026 0
-    angleX 3.253
-    angleZ -0.058
+    angles 3.253 0 -0.058
    }
   }
  }
  {
   coords 9300.84 180.467 1094.637
-  angleY -170.522
+  angles 0 -170.522 0
   {
    StaticModelEntity {
     ID "52E8C3643526D54D"
     coords 0 3.753 0
-    angleX -4.007
-    angleZ 2.214
+    angles -4.007 0 2.214
    }
   }
  }
@@ -160,11 +148,11 @@ $grp SCR_SiteSlotEntity : "{F4066B8425BEC47C}PrefabsEditable/Slots/Road/E_SlotRo
 $grp SCR_DestructibleBuildingEntity : "{FBCE1861B987EA68}Prefabs/Structures/Military/Houses/GuardTower_01/GuardTower_01.et" {
  {
   coords 1027.589 0.001 6021.835
-  angleY 135.797
+  angles 0 135.797 0
  }
  {
   coords 9266.643 0.07 1160.767
-  angleY 86.665
+  angles 0 86.665 0
  }
  {
   coords 5827.649 0 9831.581
@@ -174,10 +162,10 @@ $grp SCR_DestructibleBuildingEntity : "{FBCE1861B987EA68}Prefabs/Structures/Mili
  }
  {
   coords 5853.244 0 9668.791
-  angleY -158.014
+  angles 0 -158.014 0
  }
  {
   coords 5926.57 0.001 9703.16
-  angleY 128.48
+  angles 0 128.48 0
  }
 }
