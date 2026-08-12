@@ -41,6 +41,13 @@
 
 ## Gotchas & Learnings
 
+- **AI cannot climb ladders — vanilla teleports.** The engine ships `NavmeshLadderLink` (GuardTower_01 carries one) but there is zero script-side AI ladder support (no behavior, no BT node). Vanilla's own elevated-post mechanism (`SCR_AIAllocateActionsForDefendActivity.OccupySA`, used by FastInit defend waypoints in Combat Ops) teleports the AI onto the post, reserves it, then issues PerformAction. Tower guards now copy the teleport (2026-08-13).
+- **GuardTower_01's authored CoverPost is unusable: the cabin glass blinds AI.** Perception LOS traces (and the wanted system's eye) fail through the intact window glass, so a guard at the authored post never acquires a target — and the smart action itself has no fire path anyway. The working design stands the guard on the open-air walkway (+1.5 m forward of the post, tower-local) with **no waypoint**: an idle group keeps full threat/attack reactions, which is the configuration that actually engages (verified in play 2026-08-13).
+- **`GetActionOffset()` is LOCAL space** — rotate by the owner's world transform (`mat[3] + offset.Multiply3(mat)`, per `SCR_AIGetSmartActionSentinelParams`). Two vanilla call sites get this wrong; don't copy `OccupySA`'s unrotated math.
+- **`SCR_AIGroup` member spawning is frame-deferred AND navmesh-snapped** — you can never position a member synchronously after spawning a group; hook `GetOnAgentAdded()`.
+- **Smart-action reservations leak on entity deletion** — `ReserveAction` only auto-releases on action end or user death; deleting a proxied guard without `ReleaseAction()` blocks the post forever.
+- **`SA_CoverPost.bt` degrades gracefully** (move wrapped in ForceNodeResult Success — the AI poses wherever it stands, which is why guards used to "work" at ground level); `SA_ObservationPost.bt` hard-fails instead.
+
 - **The allocation clamp is dead** (`OVT_BaseControllerComponent.c:294-301`) — upgrades can overspend the pool; combined with core's dead per-base split, OF spending behaves nothing like its tuning.
 - **`DefensePosition`/`TowerGuard` never clear `m_iProxedResources`** after re-spending — unbounded inflation, permanently negative allocation math.
 - **Checkpoints are the persistence blind spot:** compositions untracked + no `Serialize` override + slots restored as filled → after load, guards return, compositions don't, slots blocked forever.
