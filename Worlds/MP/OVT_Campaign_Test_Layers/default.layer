@@ -123,6 +123,10 @@ SCR_DestructibleBuildingEntity : "{38A5F3E4578087AB}Prefabs/Structures/Houses/To
  coords 241.413 0.001 118.064
  angles 0 -91.024 0
 }
+GenericEntity : "{3E4C223A92230572}Prefabs/Props/Military/Sandbags/Sandbag_01_long_high_base.et" {
+ coords 27.157 1 129.144
+ angles 0 110.354 0
+}
 SCR_SiteSlotEntity : "{4B1C4BDDF6683101}PrefabsEditable/Slots/Flat/E_SlotFlatMedium.et" {
  coords 30 1.001 70
  {
@@ -206,11 +210,79 @@ GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.et" {
    m_iAttackDistanceMax 150
    m_iAttackPreferredDirection 90
   }
+  OVT_SpawnPointComponent "{65D69CEE44BDDBA6}" {
+   m_aPoints {
+    PointInfo "{65D69CEE407FB269}" {
+     Offset 0 0 2
+    }
+    PointInfo "{65D69CEE4985BB3B}" {
+     Offset 0 0 -2
+    }
+    PointInfo "{65D69CEE5B288768}" {
+     Offset 2 0 0
+    }
+    PointInfo "{65D69CEE268D1CFB}" {
+     Offset -2 0 0
+    }
+   }
+   m_aVehiclePoints {
+    PointInfo "{65D6B1843FB6C4C5}" {
+     Offset -5 0 0
+    }
+    PointInfo "{65D6B18401CE9B1F}" {
+     Offset 5 0 0
+    }
+   }
+  }
   SCR_FactionAffiliationComponent "{5E66A8EA8F5BA794}" {
    "faction affiliation" "USSR"
   }
+  SlotManagerComponent "{55DAE04E55ECE7FA}" {
+   Slots {
+    EntitySlotInfo Flag {
+     Prefab "{CB81BF6576E682D3}Prefabs/Props/Fabric/Flags/Flag_1_2_USSR_01.et"
+    }
+   }
+  }
+  ActionsManagerComponent "{5E66A8E424754565}" {
+   ActionContexts {
+    UserActionContext "{5E66A8E424754560}" {
+     ContextName "default"
+     Position PointInfo "{5E66A8E42475456C}" {
+      Offset 0 1.8 0
+     }
+     Radius 0.65
+    }
+   }
+   additionalActions {
+    OVT_SetHomeAction "{5E66A8E424754568}" {
+     ParentContextList +{
+     }
+     UIInfo UIInfo "{5E66A8E424754557}" {
+      Name "#OVT-SetHome"
+     }
+    }
+    OVT_ManageBaseAction "{5E66A8E424754555}" {
+     ParentContextList +{
+     }
+     "Sort Priority" 1
+    }
+    OVT_CaptureBaseAction "{59B4D7D0139E23F0}" {
+     ParentContextList +{
+     }
+     UIInfo UIInfo "{59B4D7D0104F7FA4}" {
+      Name "#OVT-CaptureBase"
+     }
+     Duration 15
+    }
+   }
+  }
  }
  coords 55.331 1 128.241
+}
+OVT_SniperPosition : "{6A8F1E2D4C5B0901}Prefabs/GameMode/OVT_SniperPosition.et" {
+ coords 24.733 1 129.747
+ angles 0 108.183 0
 }
 GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.et" {
  components {

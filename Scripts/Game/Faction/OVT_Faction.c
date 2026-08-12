@@ -337,8 +337,8 @@ class OVT_Faction
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (Sniper)", params: "et", category: "Faction Groups")]
 	ResourceName m_aGroupSniperPrefab;
 	
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (Sniper)", params: "et", category: "Faction Groups")]
-	ResourceName m_aGroupSniper2Prefab;
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (Sniper Team - spotter + sniper)", params: "et", category: "Faction Groups")]
+	ResourceName m_aGroupSniperTeamPrefab;
 	
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (MG)", params: "et", category: "Faction Groups")]
 	ResourceName m_aGroupMGPrefab;

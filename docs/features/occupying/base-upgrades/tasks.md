@@ -32,6 +32,14 @@ All original implementation tasks have been completed. This feature was document
 - [ ] 🎮 Still to verify in play: proxy despawn/respawn cycle and save/load of tower guards
 - [ ] 💡 Optional: sniper accuracy is poor — tune the sharpshooter character's AI aiming skill if guards should be more lethal
 
+### Curated sniper positions (2026-08-13)
+
+- [x] ✅ `OVT_SniperPositionComponent` — marker component with per-position `m_iMinimumThreat`; `OVT_SniperPosition` marker entity (Workbench facing arrow) + `Prefabs/GameMode/OVT_SniperPosition.et` (GUID `6A8F1E2D4C5B0901`)
+- [x] ✅ `OVT_BaseUpgradeSniperPosition` — finds markers in base range, spawns a 2-man spotter+sniper team, teleports both onto the marker (spotter 1.2 m beside), facing the marker's forward; no waypoint; banked-value persistence (all per the tower-guard learnings)
+- [x] ✅ Renamed dead `OVT_Faction.m_aGroupSniper2Prefab` → `m_aGroupSniperTeamPrefab`; US uses vanilla `Group_US_SniperTeam` (Spotter+Sniper), USSR got new `OVT_Group_USSR_SniperTeam.et` (Scout+Sharpshooter, GUID `6A8F1E2D4C5B0902`) — no vanilla USSR team exists
+- [x] ✅ Registered on `OVT_BaseController.et` (priority 2, allocation -1)
+- [ ] 🎮 Play-test: place `OVT_SniperPosition` markers near a base in Workbench, verify team spawns facing the arrow, engages, proxies, and persists
+
 ## Future Enhancements
 
 See `implementation.md` Future Enhancements. Headline items: fix the resource-accounting cluster (dead clamp, proxied-bank inflation, counter drift), make checkpoints survive load, set `m_Spawned` on composition deserialize, delete the dead TownPatrol class, decide the deployments migration's fate.

@@ -1,0 +1,8 @@
+OVT_SniperPosition {
+ ID "0000000000000001"
+ Flags 1027
+ components {
+  OVT_SniperPositionComponent "{6A8F1E2D4C5B0904}" {
+  }
+ }
+}

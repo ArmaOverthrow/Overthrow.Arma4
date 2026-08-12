@@ -24,6 +24,79 @@ $grp StaticModelEntity : "{68CA807F237FFB7A}Prefabs/Structures/Infrastructure/To
   coords 6156.306 128.801 5252.812
  }
 }
+$grp OVT_SniperPosition : "{6A8F1E2D4C5B0901}Prefabs/GameMode/OVT_SniperPosition.et" {
+ {
+  coords 7534.409 199.324 4049.815
+ }
+ {
+  coords 7657.448 179.472 4338.056
+  angles 0 -113.585 0
+ }
+ {
+  coords 7546.455 26.895 8174.189
+  angles 0 126.004 0
+ }
+ {
+  coords 4068.317 45.077 8469.156
+  angles 0 -93.991 0
+ }
+ {
+  coords 1071.807 10.29 6014.629
+  angles 0 -70.357 0
+ }
+ {
+  coords 7468.428 172.085 4272.771
+  angles 0 11.01 0
+ }
+ {
+  coords 7472.596 172.085 4258.832
+  angles 0 137.686 0
+ }
+ {
+  coords 9320.821 229.213 1163.152
+  angles 0 86.508 0
+ }
+ {
+  coords 9315.745 229.194 1163.123
+  angles 0 -94.198 0
+ }
+ {
+  coords 7437.053 15.342 6684.985
+  angles 0 -76.659 0
+ }
+ {
+  coords 7445.498 15.342 6689.327
+  angles 0 8.904 0
+ }
+ {
+  coords 7438.61 15.342 6675.813
+  angles 0 -173.786 0
+ }
+ {
+  coords 5820.295 19.759 9786.697
+  angles 0 87.326 0
+ }
+ {
+  coords 4921.617 37.926 11796.799
+  angles 0 -90.695 0
+ }
+ {
+  coords 4929.243 37.926 11796.453
+  angles 0 86.156 0
+ }
+ {
+  coords 4931.943 36.291 11831.709
+  angles 0 -93.187 0
+ }
+ {
+  coords 4942.793 36.291 11828.703
+  angles 0 163.684 0
+ }
+ {
+  coords 10650.321 17.208 11878.367
+  angles 0 -167.164 0
+ }
+}
 GenericEntity Poster_Join_v2_65C296D9E75A0EB6 : "{A1277C7EA79FBA1E}Prefabs/Props/Posters/Poster_Join_v2.et" {
  coords 2905.426 9.422 2180.169
  angles 0 90.062 0
