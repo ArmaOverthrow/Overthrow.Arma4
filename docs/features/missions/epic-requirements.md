@@ -40,3 +40,24 @@ Also a stretch goal, but a very simple dialog system could be created to allow N
 
 Recruits:
 Post MVP as well. Missions may assign temporary or even permanent recruits to a player. For example "rescue" missions where you go somewhere to pick someone up, they join your group as a recruit so you can give them orders, put them in vehicles etc. Depending on the mission defined that recruit either leaves your group once you deliver them to another location or stays in your group and becomes a fully fledged member
+
+---
+
+## Planned Features
+
+The features that make up this epic, in intended **build order** (scoped 2026-08-13 via `/plan-epic missions`; each has its own `requirements.md` consumed by `/plan-feature missions/<feature>`):
+
+1. **framework** — Core mission runtime: branching config schema, server-authoritative instance state machine, participant tracking, reward modules + distribution policies, world-placed mission items, replication + persistence — foundational; everything else consumes it. Rewards/distribution are core co-op semantics and belong here.
+2. **mission-ui** — Mission list/detail menu, accept/join/abandon, automatic participant map waypoints, notifications — the first playable vertical slice that proves the framework end-to-end.
+3. **mvp-missions** — Job-parity mission configs (the 7 shipped jobs) + showcase branching/co-op missions, **and the full teardown of the legacy Jobs system** — parity and removal are verified together; this is the release gate.
+4. **resistance-missions** — Officer-created missions: authoring UI from config templates, resistance-fund escrow, group/open assignment, per-kill rewards, MP-only — built after the module system is proven.
+5. **recruit-missions** — Post-MVP: missions granting temporary/permanent recruits (rescue missions).
+6. **dialog** — Stretch: simple text-only Q&A dialog module for mission NPCs.
+7. **authoring-tools** — Stretch: Workbench authoring tooling, possibly leveraging the behavior-tree node editor.
+
+## Out of Scope
+
+- A full in-game mission editor — officer-created missions are assembled from pre-authored config templates only.
+- XP rewards on top of normal gameplay XP for resistance missions (exploit vector — stated above).
+- The Intel system itself — separate future epic (GH issue #11); this epic only provides the hook seams.
+- Migration of in-flight legacy jobs into missions — old job save payloads are simply orphaned (benign) when the jobs serializer is removed.

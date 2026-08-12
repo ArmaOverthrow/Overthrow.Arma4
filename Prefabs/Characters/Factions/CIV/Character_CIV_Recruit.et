@@ -1,6 +1,13 @@
 SCR_ChimeraCharacter : "{99F600AD4C6BA6A4}Prefabs/Characters/Factions/CIV/Character_CIV_base.et" {
  ID "520EC961A090B1EE"
  components {
+  ChimeraAIControlComponent "{520EA1D2DB109F34}" {
+   components {
+    SCR_AICombatComponent "{55A2C9BE343B2EA1}" {
+     m_eAISkillDefault EXPERT
+    }
+   }
+  }
   OVT_PlayerOwnerComponent "{65EE39558CBDEB47}" {
   }
   OVT_PlayerWantedComponent "{65A2A8A715A0DB47}" {
