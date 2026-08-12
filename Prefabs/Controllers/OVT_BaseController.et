@@ -2,51 +2,7 @@ GenericEntity : "{160E4E4110803F26}Prefabs/Structures/Military/Flags/FlagPole_02
  ID "59845E6E8A2A6A0B"
  components {
   OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
-   m_aBaseUpgrades {
-    OVT_BaseUpgradeDefensePatrol "{599083983B065EC0}" {
-     m_iResourceAllocation 6
-    }
-    OVT_BaseUpgradeDefensePosition "{5DB876561AD51C3C}" {
-     m_iResourceAllocation -1
-     m_iPriority 2
-    }
-    OVT_BaseUpgradeTowerGuard "{599083983840DDC7}" {
-     m_iResourceAllocation -1
-     m_iPriority 2
-    }
-    OVT_BaseUpgradeSniperPosition "{6A8F1E2D4C5B0903}" {
-     m_iResourceAllocation -1
-     m_iPriority 2
-    }
-    OVT_BaseUpgradeParkedVehicles "{59A69ED8D05CE286}" {
-     m_iResourceAllocation 9
-     m_iPriority 10
-     m_iNumberOfCars 0
-     m_iNumberOfTrucks 1
-    }
-    OVT_BaseUpgradeCheckpoints "{59A02C08E74AD5ED}" {
-     m_iResourceAllocation -1
-     m_iPriority 3
-    }
-    OVT_BaseUpgradeComposition "{59B2CEF74CC156C7}" {
-     m_iResourceAllocation -1
-     m_iPriority 4
-     m_sCompositionTag "SmallBunker"
-    }
-    OVT_BaseUpgradeComposition "{59B2D5C4B07D72C7}" {
-     m_iResourceAllocation -1
-     m_bDeactivate 0
-     m_sCompositionTag "AmmoCache"
-    }
-    OVT_BaseUpgradeComposition "{5DB4E4D2689FCFC2}" {
-     m_iResourceAllocation -1
-     m_bDeactivate 0
-     m_sCompositionTag "MGNest"
-    }
-    OVT_BaseUpgradeSpecops "{59C6CB0B8B96FCF2}" {
-     m_iPriority 3
-     m_bDeactivate 0
-    }
+   m_BaseUpgradesConfig OVT_BaseUpgradesConfig "{B67368CBF1D3C5D0}" : "{0756DED5D4018095}Configs/BaseUpgrades/overthrowBaseUpgrades.conf" {
    }
   }
   OVT_SpawnPointComponent "{65D69CEE44BDDBA6}" {

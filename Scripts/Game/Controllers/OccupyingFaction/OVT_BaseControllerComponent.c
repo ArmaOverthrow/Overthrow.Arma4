@@ -10,7 +10,10 @@ class OVT_BaseControllerComponent: OVT_Component
 	[Attribute(defvalue: "1", UIWidgets.EditBox, desc: "Initial Resource Multiplier")]
 	float m_fStartingResourcesMultiplier;
 
-	[Attribute("", UIWidgets.Object)]
+	[Attribute("", UIWidgets.Object, desc: "Config defining the upgrades this base spends resources on")]
+	ref OVT_BaseUpgradesConfig m_BaseUpgradesConfig;
+
+	//! Runtime upgrade list, populated from m_BaseUpgradesConfig in InitializeBase
 	ref array<ref OVT_BaseUpgrade> m_aBaseUpgrades;
 	
 	[Attribute("400", UIWidgets.Slider, "Minimum distance to spawn QRF", "50 1000 25")]
@@ -78,6 +81,7 @@ class OVT_BaseControllerComponent: OVT_Component
 
 	protected void UpdateUpgrades()
 	{
+		if(!m_aBaseUpgrades) return;
 		if(!IsOccupyingFaction()) return;
 
 		foreach(OVT_BaseUpgrade upgrade : m_aBaseUpgrades)
@@ -168,6 +172,15 @@ class OVT_BaseControllerComponent: OVT_Component
 		FindSlots();
 		FindParking();
 
+		m_aBaseUpgrades = new array<ref OVT_BaseUpgrade>;
+		if(m_BaseUpgradesConfig && m_BaseUpgradesConfig.m_aBaseUpgrades)
+		{
+			foreach(OVT_BaseUpgrade upgrade : m_BaseUpgradesConfig.m_aBaseUpgrades)
+			{
+				m_aBaseUpgrades.Insert(upgrade);
+			}
+		}
+
 		foreach(OVT_BaseUpgrade upgrade : m_aBaseUpgrades)
 		{
 			upgrade.Init(this, m_occupyingFactionManager, OVT_Global.GetConfig());
@@ -177,6 +190,7 @@ class OVT_BaseControllerComponent: OVT_Component
 
 	OVT_BaseUpgrade FindUpgrade(string type, string tag = "")
 	{
+		if(!m_aBaseUpgrades) return null;
 		foreach(OVT_BaseUpgrade upgrade : m_aBaseUpgrades)
 		{
 			if(tag != "")
@@ -280,6 +294,7 @@ class OVT_BaseControllerComponent: OVT_Component
 
 	int SpendResources(int resources, float threat = 0)
 	{
+		if(!m_aBaseUpgrades) return 0;
 		int spent = 0;
 
 		for(int priority = 1; priority < 20; priority++)
