@@ -33,13 +33,13 @@ class OVT_TEST_Campaign_ShopCivilianStock : SCR_AutotestCaseBase
 	protected int m_iPolls;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
 		if (!economy)
 		{
-			SetResultFailure("OVT_Global.GetEconomy() is null");
+			SetFailure("OVT_Global.GetEconomy() is null");
 			return true;
 		}
 
@@ -53,7 +53,7 @@ class OVT_TEST_Campaign_ShopCivilianStock : SCR_AutotestCaseBase
 			m_iPolls += 1;
 			if (m_iPolls > MAX_POLLS)
 			{
-				SetResultFailure("No EQUIPMENT/SUPPORT_STATION entries found in the entity catalog within %1 polls - the catalog is empty, so this case has no subjects and would pass vacuously",
+				SetFailure("No EQUIPMENT/SUPPORT_STATION entries found in the entity catalog within %1 polls - the catalog is empty, so this case has no subjects and would pass vacuously",
 					m_iPolls.ToString());
 				return true;
 			}
@@ -64,18 +64,17 @@ class OVT_TEST_Campaign_ShopCivilianStock : SCR_AutotestCaseBase
 		string problem = CheckNoDeployablesAtElectronics(economy, deployables);
 		if (problem != "")
 		{
-			SetResultFailure(problem);
+			SetFailure(problem);
 			return true;
 		}
 
 		problem = CheckElectronicsStillSellsSomething(economy);
 		if (problem != "")
 		{
-			SetResultFailure(problem);
+			SetFailure(problem);
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 

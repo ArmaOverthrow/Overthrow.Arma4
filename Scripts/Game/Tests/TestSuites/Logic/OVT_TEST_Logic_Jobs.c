@@ -38,7 +38,7 @@
 class OVT_TEST_Logic_Jobs_TownSupportCondition_MinMaxAndUnset : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_TownData fullSupportTown = OVT_TEST_LogicFixture.MakeTown(50, 50);   // reads as 100
@@ -51,13 +51,13 @@ class OVT_TEST_Logic_Jobs_TownSupportCondition_MinMaxAndUnset : SCR_AutotestCase
 
 		if (!unset.ShouldStart(fullSupportTown, null, -1))
 		{
-			SetResultFailure("An unconstrained OVT_TownSupportJobCondition refused a town at 100 support");
+			SetFailure("An unconstrained OVT_TownSupportJobCondition refused a town at 100 support");
 			return true;
 		}
 
 		if (!unset.ShouldStart(noSupportTown, null, -1))
 		{
-			SetResultFailure("An unconstrained OVT_TownSupportJobCondition refused a town at 0 support");
+			SetFailure("An unconstrained OVT_TownSupportJobCondition refused a town at 0 support");
 			return true;
 		}
 
@@ -68,13 +68,13 @@ class OVT_TEST_Logic_Jobs_TownSupportCondition_MinMaxAndUnset : SCR_AutotestCase
 
 		if (!minimum.ShouldStart(fullSupportTown, null, -1))
 		{
-			SetResultFailure("m_iMinSupport 50 refused a town at 100 support");
+			SetFailure("m_iMinSupport 50 refused a town at 100 support");
 			return true;
 		}
 
 		if (minimum.ShouldStart(noSupportTown, null, -1))
 		{
-			SetResultFailure("m_iMinSupport 50 accepted a town at 0 support");
+			SetFailure("m_iMinSupport 50 accepted a town at 0 support");
 			return true;
 		}
 
@@ -85,13 +85,13 @@ class OVT_TEST_Logic_Jobs_TownSupportCondition_MinMaxAndUnset : SCR_AutotestCase
 
 		if (!maximum.ShouldStart(noSupportTown, null, -1))
 		{
-			SetResultFailure("m_iMaxSupport 50 refused a town at 0 support");
+			SetFailure("m_iMaxSupport 50 refused a town at 0 support");
 			return true;
 		}
 
 		if (maximum.ShouldStart(fullSupportTown, null, -1))
 		{
-			SetResultFailure("m_iMaxSupport 50 accepted a town at 100 support");
+			SetFailure("m_iMaxSupport 50 accepted a town at 100 support");
 			return true;
 		}
 
@@ -102,19 +102,18 @@ class OVT_TEST_Logic_Jobs_TownSupportCondition_MinMaxAndUnset : SCR_AutotestCase
 
 		if (!window.ShouldStart(noSupportTown, null, -1))
 		{
-			SetResultFailure("A [0, 100] window refused a town sitting exactly on its minimum");
+			SetFailure("A [0, 100] window refused a town sitting exactly on its minimum");
 			return true;
 		}
 
 		if (!window.ShouldStart(fullSupportTown, null, -1))
 		{
-			SetResultFailure("A [0, 100] window refused a town sitting exactly on its maximum");
+			SetFailure("A [0, 100] window refused a town sitting exactly on its maximum");
 			return true;
 		}
 
 		Print("Town support condition: unset passes both, min blocks the low town, max blocks the high town, bounds are inclusive");
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -130,7 +129,7 @@ class OVT_TEST_Logic_Jobs_TownSupportCondition_MinMaxAndUnset : SCR_AutotestCase
 class OVT_TEST_Logic_Jobs_DealerCondition_SetAndUnset : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_TownHasDealerJobCondition condition = new OVT_TownHasDealerJobCondition();
@@ -139,20 +138,19 @@ class OVT_TEST_Logic_Jobs_DealerCondition_SetAndUnset : SCR_AutotestCaseBase
 
 		if (condition.ShouldStart(town, null, -1))
 		{
-			SetResultFailure("OVT_TownHasDealerJobCondition reported a dealer in a town whose gunDealerPosition is the zero vector");
+			SetFailure("OVT_TownHasDealerJobCondition reported a dealer in a town whose gunDealerPosition is the zero vector");
 			return true;
 		}
 
 		town.gunDealerPosition = "150 0 250";
 		if (!condition.ShouldStart(town, null, -1))
 		{
-			SetResultFailure("OVT_TownHasDealerJobCondition reported no dealer in a town whose gunDealerPosition is %1", town.gunDealerPosition.ToString());
+			SetFailure("OVT_TownHasDealerJobCondition reported no dealer in a town whose gunDealerPosition is %1", town.gunDealerPosition.ToString());
 			return true;
 		}
 
 		Print("Dealer condition: zero vector -> no dealer, real position -> dealer");
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -172,7 +170,7 @@ class OVT_TEST_Logic_Jobs_DealerCondition_SetAndUnset : SCR_AutotestCaseBase
 class OVT_TEST_Logic_Jobs_DealerCondition_XZeroPlaneIsStillADealer : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_TownHasDealerJobCondition condition = new OVT_TownHasDealerJobCondition();
@@ -184,7 +182,7 @@ class OVT_TEST_Logic_Jobs_DealerCondition_XZeroPlaneIsStillADealer : SCR_Autotes
 		town.gunDealerPosition = "0 0 500";
 		if (!condition.ShouldStart(town, null, -1))
 		{
-			SetResultFailure("BUG-005 REGRESSED: OVT_TownHasDealerJobCondition reported no dealer at %1 - a set position with X exactly 0 must read as a dealer", town.gunDealerPosition.ToString());
+			SetFailure("BUG-005 REGRESSED: OVT_TownHasDealerJobCondition reported no dealer at %1 - a set position with X exactly 0 must read as a dealer", town.gunDealerPosition.ToString());
 			return true;
 		}
 
@@ -192,13 +190,12 @@ class OVT_TEST_Logic_Jobs_DealerCondition_XZeroPlaneIsStillADealer : SCR_Autotes
 		town.gunDealerPosition = "1 0 500";
 		if (!condition.ShouldStart(town, null, -1))
 		{
-			SetResultFailure("OVT_TownHasDealerJobCondition reported no dealer at %1", town.gunDealerPosition.ToString());
+			SetFailure("OVT_TownHasDealerJobCondition reported no dealer at %1", town.gunDealerPosition.ToString());
 			return true;
 		}
 
 		Print("Dealer condition: a set position is a dealer regardless of which axes are zero");
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -229,7 +226,7 @@ class OVT_TEST_Logic_Jobs_DealerCondition_XZeroPlaneIsStillADealer : SCR_Autotes
 class OVT_TEST_Logic_Jobs_RandomCondition_DeterministicEdges : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		// Population 100, stability 100, support 100 % - no factor applies to this town, so the
@@ -239,21 +236,21 @@ class OVT_TEST_Logic_Jobs_RandomCondition_DeterministicEdges : SCR_AutotestCaseB
 		OVT_RandomJobCondition never = MakeCondition(0, 1, 1, 1);
 		if (never.ShouldStart(healthyTown, null, -1))
 		{
-			SetResultFailure("OVT_RandomJobCondition with m_fChance 0 started a job - the roll is never negative, so this can never be beaten");
+			SetFailure("OVT_RandomJobCondition with m_fChance 0 started a job - the roll is never negative, so this can never be beaten");
 			return true;
 		}
 
 		OVT_RandomJobCondition always = MakeCondition(100, 1, 1, 1);
 		if (!always.ShouldStart(healthyTown, null, -1))
 		{
-			SetResultFailure("OVT_RandomJobCondition with m_fChance 100 refused to start a job");
+			SetFailure("OVT_RandomJobCondition with m_fChance 100 refused to start a job");
 			return true;
 		}
 
 		OVT_RandomJobCondition beyond = MakeCondition(200, 1, 1, 1);
 		if (!beyond.ShouldStart(healthyTown, null, -1))
 		{
-			SetResultFailure("OVT_RandomJobCondition with a chance beyond the roll's range refused to start a job");
+			SetFailure("OVT_RandomJobCondition with a chance beyond the roll's range refused to start a job");
 			return true;
 		}
 
@@ -263,13 +260,13 @@ class OVT_TEST_Logic_Jobs_RandomCondition_DeterministicEdges : SCR_AutotestCaseB
 		OVT_RandomJobCondition populationGated = MakeCondition(200, 0, 1, 1);
 		if (populationGated.ShouldStart(smallTown, null, -1))
 		{
-			SetResultFailure("A zero low-population factor did not suppress a certain job in a town of 10 civilians");
+			SetFailure("A zero low-population factor did not suppress a certain job in a town of 10 civilians");
 			return true;
 		}
 
 		if (!populationGated.ShouldStart(healthyTown, null, -1))
 		{
-			SetResultFailure("The low-population factor was applied to a town of 100 civilians, which is not below the 50 threshold");
+			SetFailure("The low-population factor was applied to a town of 100 civilians, which is not below the 50 threshold");
 			return true;
 		}
 
@@ -278,7 +275,7 @@ class OVT_TEST_Logic_Jobs_RandomCondition_DeterministicEdges : SCR_AutotestCaseB
 		OVT_RandomJobCondition stabilityGated = MakeCondition(200, 1, 0, 1);
 		if (stabilityGated.ShouldStart(unstableTown, null, -1))
 		{
-			SetResultFailure("A zero low-stability factor did not suppress a certain job in a town at 40 stability");
+			SetFailure("A zero low-stability factor did not suppress a certain job in a town at 40 stability");
 			return true;
 		}
 
@@ -287,13 +284,12 @@ class OVT_TEST_Logic_Jobs_RandomCondition_DeterministicEdges : SCR_AutotestCaseB
 		OVT_RandomJobCondition supportGated = MakeCondition(200, 1, 1, 0);
 		if (supportGated.ShouldStart(unsupportiveTown, null, -1))
 		{
-			SetResultFailure("A zero low-support factor did not suppress a certain job in a town at 0 support");
+			SetFailure("A zero low-support factor did not suppress a certain job in a town at 0 support");
 			return true;
 		}
 
 		Print("Random condition: chance 0 never starts, chance 100 and 200 always start, each low-X factor gates its own condition");
 
-		SetResultSuccess();
 		return true;
 	}
 
@@ -388,7 +384,7 @@ class OVT_TEST_Logic_Jobs_LegacyIndexMapping : SCR_AutotestCaseBase
 	static const string UNKNOWN_ID = "not-a-job-that-ever-existed";
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		// ---- 0. This case's own literals are internally consistent -------------------------------
@@ -397,7 +393,7 @@ class OVT_TEST_Logic_Jobs_LegacyIndexMapping : SCR_AutotestCaseBase
 		string selfCheck = CheckOwnLiterals();
 		if (selfCheck != "")
 		{
-			SetResultFailure(selfCheck);
+			SetFailure(selfCheck);
 			return true;
 		}
 
@@ -407,7 +403,7 @@ class OVT_TEST_Logic_Jobs_LegacyIndexMapping : SCR_AutotestCaseBase
 			string actual = OVT_JobManagerSerializer.LegacyIdForIndex(index);
 			if (actual != EXPECTED_V1_IDS[index])
 			{
-				SetResultFailure("The frozen version 1 job table is WRONG at index %1: it says '%2', but that index named '%3'. Every campaign saved before the stable-id migration would restore that job onto the wrong job - same stage index, different reward, wrong lifetime counters, and no error anywhere. The table is history and must never be edited: put it back.",
+				SetFailure("The frozen version 1 job table is WRONG at index %1: it says '%2', but that index named '%3'. Every campaign saved before the stable-id migration would restore that job onto the wrong job - same stage index, different reward, wrong lifetime counters, and no error anywhere. The table is history and must never be edited: put it back.",
 					index.ToString(), actual, EXPECTED_V1_IDS[index]);
 				return true;
 			}
@@ -433,7 +429,7 @@ class OVT_TEST_Logic_Jobs_LegacyIndexMapping : SCR_AutotestCaseBase
 		{
 			if (!OVT_JobManagerSerializer.IsRetiredLegacyId(retiredId))
 			{
-				SetResultFailure("'%1' is one of the five retired starter jobs but IsRetiredLegacyId() says it is not. Its saved board entries and lifetime counters would be carried forward instead of dropped, and it no longer exists.", retiredId);
+				SetFailure("'%1' is one of the five retired starter jobs but IsRetiredLegacyId() says it is not. Its saved board entries and lifetime counters would be carried forward instead of dropped, and it no longer exists.", retiredId);
 				return true;
 			}
 		}
@@ -443,7 +439,7 @@ class OVT_TEST_Logic_Jobs_LegacyIndexMapping : SCR_AutotestCaseBase
 		{
 			if (OVT_JobManagerSerializer.IsRetiredLegacyId(survivingId))
 			{
-				SetResultFailure("'%1' is a job that still exists but IsRetiredLegacyId() says it was retired. Every saved board entry and lifetime counter naming it would be DROPPED on the next load, with a log line claiming the job no longer exists.", survivingId);
+				SetFailure("'%1' is a job that still exists but IsRetiredLegacyId() says it was retired. Every saved board entry and lifetime counter naming it would be DROPPED on the next load, with a log line claiming the job no longer exists.", survivingId);
 				return true;
 			}
 		}
@@ -454,19 +450,18 @@ class OVT_TEST_Logic_Jobs_LegacyIndexMapping : SCR_AutotestCaseBase
 		// about a starter job that has nothing to do with what actually happened.
 		if (OVT_JobManagerSerializer.IsRetiredLegacyId(""))
 		{
-			SetResultFailure("IsRetiredLegacyId() reports the EMPTY id as retired. An empty id is not an id at all and must not be attributed to one of the five removed jobs.");
+			SetFailure("IsRetiredLegacyId() reports the EMPTY id as retired. An empty id is not an id at all and must not be attributed to one of the five removed jobs.");
 			return true;
 		}
 
 		if (OVT_JobManagerSerializer.IsRetiredLegacyId(UNKNOWN_ID))
 		{
-			SetResultFailure("IsRetiredLegacyId() reports the unknown id '%1' as retired. Only the five removed starter jobs may answer true.", UNKNOWN_ID);
+			SetFailure("IsRetiredLegacyId() reports the unknown id '%1' as retired. Only the five removed starter jobs may answer true.", UNKNOWN_ID);
 			return true;
 		}
 
 		Print("Legacy v1 job table: all 12 indices map to their own ids, -1/12/±999 map to nothing, exactly the 5 retired ids are retired and none of the 7 survivors is");
 
-		SetResultSuccess();
 		return true;
 	}
 
@@ -518,7 +513,7 @@ class OVT_TEST_Logic_Jobs_LegacyIndexMapping : SCR_AutotestCaseBase
 		if (actual == "")
 			return true;
 
-		SetResultFailure("Legacy index %1 is outside the twelve-entry version 1 job list but resolved to '%2'. An out-of-range index must resolve to nothing so the record is dropped and logged, never attached to a job it did not name.",
+		SetFailure("Legacy index %1 is outside the twelve-entry version 1 job list but resolved to '%2'. An out-of-range index must resolve to nothing so the record is dropped and logged, never attached to a job it did not name.",
 			index.ToString(), actual);
 		return false;
 	}

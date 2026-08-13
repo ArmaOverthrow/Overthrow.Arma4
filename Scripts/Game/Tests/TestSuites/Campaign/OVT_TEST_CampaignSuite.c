@@ -74,38 +74,38 @@ class OVT_TEST_CampaignSuite : OVT_TEST_SuiteBase
 class OVT_TEST_Campaign_GameMode_IsStartedAndInitialized : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_OverthrowGameMode mode = OVT_Global.GetOverthrow();
 		if (!mode)
 		{
-			SetResultFailure("OVT_Global.GetOverthrow() is null in a campaign-tier case");
+			SetFailure("OVT_Global.GetOverthrow() is null in a campaign-tier case");
 			return true;
 		}
 
 		if (!mode.HasGameStarted())
 		{
-			SetResultFailure("HasGameStarted() is false after the suite's campaign-start Setup step");
+			SetFailure("HasGameStarted() is false after the suite's campaign-start Setup step");
 			return true;
 		}
 
 		if (!mode.IsInitialized())
 		{
-			SetResultFailure("IsInitialized() is false although HasGameStarted() is true - DoStartGame() did not run to completion");
+			SetFailure("IsInitialized() is false although HasGameStarted() is true - DoStartGame() did not run to completion");
 			return true;
 		}
 
 		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
 		if (!difficulty)
 		{
-			SetResultFailure("OVT_Global.GetDifficulty() is null after the campaign started");
+			SetFailure("OVT_Global.GetDifficulty() is null after the campaign started");
 			return true;
 		}
 
 		if (difficulty.name != OVT_TEST_SuiteBase.CAMPAIGN_DIFFICULTY_PRESET)
 		{
-			SetResultFailure("The campaign is running on difficulty preset '%1', expected '%2' - the suite base's by-name selection did not take effect",
+			SetFailure("The campaign is running on difficulty preset '%1', expected '%2' - the suite base's by-name selection did not take effect",
 				difficulty.name, OVT_TEST_SuiteBase.CAMPAIGN_DIFFICULTY_PRESET);
 			return true;
 		}
@@ -113,7 +113,6 @@ class OVT_TEST_Campaign_GameMode_IsStartedAndInitialized : SCR_AutotestCaseBase
 		PrintFormat("Campaign started: HasGameStarted and IsInitialized true, difficulty '%1', starting cash %2",
 			difficulty.name, difficulty.startingCash.ToString());
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -147,26 +146,26 @@ class OVT_TEST_Campaign_Towns_AreActivated : SCR_AutotestCaseBase
 	protected int m_iPolls;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 		if (!towns)
 		{
-			SetResultFailure("OVT_Global.GetTowns() is null");
+			SetFailure("OVT_Global.GetTowns() is null");
 			return true;
 		}
 
 		array<ref OVT_TownData> townList = towns.GetTowns();
 		if (!townList || townList.Count() < 1)
 		{
-			SetResultFailure("No towns are registered, so none can have been activated");
+			SetFailure("No towns are registered, so none can have been activated");
 			return true;
 		}
 
 		if (towns.m_TownControllers.Count() < 1)
 		{
-			SetResultFailure("No town controllers are registered, so PostGameStart() had nothing to activate");
+			SetFailure("No town controllers are registered, so PostGameStart() had nothing to activate");
 			return true;
 		}
 
@@ -175,14 +174,13 @@ class OVT_TEST_Campaign_Towns_AreActivated : SCR_AutotestCaseBase
 		{
 			PrintFormat("Towns activated: %1 of %2 have a gun dealer recorded after %3 poll(s)",
 				activated.ToString(), townList.Count().ToString(), m_iPolls.ToString());
-			SetResultSuccess();
 			return true;
 		}
 
 		m_iPolls += 1;
 		if (m_iPolls > MAX_POLLS)
 		{
-			SetResultFailure("No town was activated within %1 polls: %2 town(s) and %3 town controller(s) are registered, but no town has a gun dealer position recorded",
+			SetFailure("No town was activated within %1 polls: %2 town(s) and %3 town controller(s) are registered, but no town has a gun dealer position recorded",
 				m_iPolls.ToString(), townList.Count().ToString(), towns.m_TownControllers.Count().ToString());
 			return true;
 		}

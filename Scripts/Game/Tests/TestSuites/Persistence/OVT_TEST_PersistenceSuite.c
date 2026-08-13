@@ -110,13 +110,13 @@ class OVT_TEST_Persistence_PlayerMoney_RoundTrips : SCR_AutotestCaseBase
 	static const int TAKE_AMOUNT = 5000;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
 		if (!economy)
 		{
-			SetResultFailure("OVT_Global.GetEconomy() is null");
+			SetFailure("OVT_Global.GetEconomy() is null");
 			return true;
 		}
 
@@ -124,14 +124,14 @@ class OVT_TEST_Persistence_PlayerMoney_RoundTrips : SCR_AutotestCaseBase
 		string persId = OVT_TEST_PersistenceSubject.ResolveLocalPersistentId(diagnostic);
 		if (persId == "")
 		{
-			SetResultFailure("Cannot resolve the persistent player ID: %1", diagnostic);
+			SetFailure("Cannot resolve the persistent player ID: %1", diagnostic);
 			return true;
 		}
 
 		int playerId = OVT_TEST_PersistenceSubject.ResolveLocalPlayerId(diagnostic);
 		if (playerId < 1)
 		{
-			SetResultFailure("Cannot resolve the runtime player ID: %1", diagnostic);
+			SetFailure("Cannot resolve the runtime player ID: %1", diagnostic);
 			return true;
 		}
 
@@ -142,14 +142,14 @@ class OVT_TEST_Persistence_PlayerMoney_RoundTrips : SCR_AutotestCaseBase
 		int afterAdd = economy.GetPlayerMoney(persId);
 		if (afterAdd != before + ADD_AMOUNT)
 		{
-			SetResultFailure("AddPlayerMoney(%1) did not stick: money was %2, is now %3",
+			SetFailure("AddPlayerMoney(%1) did not stick: money was %2, is now %3",
 				ADD_AMOUNT.ToString(), before.ToString(), afterAdd.ToString());
 			return true;
 		}
 
 		if (!economy.PlayerHasMoney(persId, afterAdd))
 		{
-			SetResultFailure("PlayerHasMoney() disagrees with GetPlayerMoney() at %1", afterAdd.ToString());
+			SetFailure("PlayerHasMoney() disagrees with GetPlayerMoney() at %1", afterAdd.ToString());
 			return true;
 		}
 
@@ -157,7 +157,7 @@ class OVT_TEST_Persistence_PlayerMoney_RoundTrips : SCR_AutotestCaseBase
 		int afterTake = economy.GetPlayerMoney(persId);
 		if (afterTake != afterAdd - TAKE_AMOUNT)
 		{
-			SetResultFailure("TakePlayerMoney(%1) did not stick: money was %2, is now %3",
+			SetFailure("TakePlayerMoney(%1) did not stick: money was %2, is now %3",
 				TAKE_AMOUNT.ToString(), afterAdd.ToString(), afterTake.ToString());
 			return true;
 		}
@@ -167,13 +167,12 @@ class OVT_TEST_Persistence_PlayerMoney_RoundTrips : SCR_AutotestCaseBase
 		int restored = economy.GetPlayerMoney(persId);
 		if (restored != before)
 		{
-			SetResultFailure("Money did not return to its starting value: expected %1, got %2",
+			SetFailure("Money did not return to its starting value: expected %1, got %2",
 				before.ToString(), restored.ToString());
 			return true;
 		}
 
 		PrintFormat("Player money round-trip: %1 -> %2 -> %3", before.ToString(), afterAdd.ToString(), restored.ToString());
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -197,20 +196,20 @@ class OVT_TEST_Persistence_PlayerSkills_RoundTrip : SCR_AutotestCaseBase
 	static const int XP_AMOUNT = 400;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_SkillManagerComponent skills = OVT_Global.GetSkills();
 		if (!skills)
 		{
-			SetResultFailure("OVT_Global.GetSkills() is null");
+			SetFailure("OVT_Global.GetSkills() is null");
 			return true;
 		}
 
 		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
 		if (!players)
 		{
-			SetResultFailure("OVT_Global.GetPlayers() is null");
+			SetFailure("OVT_Global.GetPlayers() is null");
 			return true;
 		}
 
@@ -218,21 +217,21 @@ class OVT_TEST_Persistence_PlayerSkills_RoundTrip : SCR_AutotestCaseBase
 		string persId = OVT_TEST_PersistenceSubject.ResolveLocalPersistentId(diagnostic);
 		if (persId == "")
 		{
-			SetResultFailure("Cannot resolve the persistent player ID: %1", diagnostic);
+			SetFailure("Cannot resolve the persistent player ID: %1", diagnostic);
 			return true;
 		}
 
 		int playerId = OVT_TEST_PersistenceSubject.ResolveLocalPlayerId(diagnostic);
 		if (playerId < 1)
 		{
-			SetResultFailure("Cannot resolve the runtime player ID: %1", diagnostic);
+			SetFailure("Cannot resolve the runtime player ID: %1", diagnostic);
 			return true;
 		}
 
 		OVT_PlayerData player = players.GetPlayer(persId);
 		if (!player)
 		{
-			SetResultFailure("The player manager has no record for persistent ID %1", persId);
+			SetFailure("The player manager has no record for persistent ID %1", persId);
 			return true;
 		}
 
@@ -247,13 +246,13 @@ class OVT_TEST_Persistence_PlayerSkills_RoundTrip : SCR_AutotestCaseBase
 		OVT_PlayerData afterGive = players.GetPlayer(persId);
 		if (!afterGive)
 		{
-			SetResultFailure("The player manager lost the record for persistent ID %1 after GiveXP()", persId);
+			SetFailure("The player manager lost the record for persistent ID %1 after GiveXP()", persId);
 			return true;
 		}
 
 		if (afterGive.xp != xpBefore + XP_AMOUNT)
 		{
-			SetResultFailure("GiveXP(%1) did not stick: xp was %2, is now %3",
+			SetFailure("GiveXP(%1) did not stick: xp was %2, is now %3",
 				XP_AMOUNT.ToString(), xpBefore.ToString(), afterGive.xp.ToString());
 			return true;
 		}
@@ -261,7 +260,7 @@ class OVT_TEST_Persistence_PlayerSkills_RoundTrip : SCR_AutotestCaseBase
 		int levelAfter = afterGive.GetLevel();
 		if (levelAfter < levelBefore)
 		{
-			SetResultFailure("Level went backwards after gaining XP: was %1, is now %2",
+			SetFailure("Level went backwards after gaining XP: was %1, is now %2",
 				levelBefore.ToString(), levelAfter.ToString());
 			return true;
 		}
@@ -271,14 +270,14 @@ class OVT_TEST_Persistence_PlayerSkills_RoundTrip : SCR_AutotestCaseBase
 		OVT_PlayerData afterTake = players.GetPlayer(persId);
 		if (!afterTake)
 		{
-			SetResultFailure("The player manager lost the record for persistent ID %1 after TakeXP()", persId);
+			SetFailure("The player manager lost the record for persistent ID %1 after TakeXP()", persId);
 			return true;
 		}
 
 		int xpRestored = afterTake.xp;
 		if (xpRestored != xpBefore)
 		{
-			SetResultFailure("TakeXP(%1) did not return xp to its starting value: expected %2, got %3",
+			SetFailure("TakeXP(%1) did not return xp to its starting value: expected %2, got %3",
 				XP_AMOUNT.ToString(), xpBefore.ToString(), xpRestored.ToString());
 			return true;
 		}
@@ -287,14 +286,14 @@ class OVT_TEST_Persistence_PlayerSkills_RoundTrip : SCR_AutotestCaseBase
 		string skillKey = OVT_TEST_PersistenceSubject.ResolveFirstSkillKey(diagnostic);
 		if (skillKey == "")
 		{
-			SetResultFailure("Cannot resolve a skill to exercise: %1", diagnostic);
+			SetFailure("Cannot resolve a skill to exercise: %1", diagnostic);
 			return true;
 		}
 
 		OVT_PlayerData beforeSkill = players.GetPlayer(persId);
 		if (!beforeSkill)
 		{
-			SetResultFailure("The player manager lost the record for persistent ID %1 before the skill mutation", persId);
+			SetFailure("The player manager lost the record for persistent ID %1 before the skill mutation", persId);
 			return true;
 		}
 
@@ -318,7 +317,7 @@ class OVT_TEST_Persistence_PlayerSkills_RoundTrip : SCR_AutotestCaseBase
 		int skillAfter = OVT_TEST_PersistenceSubject.GetPlayerSkillLevel(persId, skillKey);
 		if (skillAfter != skillBefore + 1)
 		{
-			SetResultFailure("AddSkillLevel('%1') did not stick: level was %2, is now %3",
+			SetFailure("AddSkillLevel('%1') did not stick: level was %2, is now %3",
 				skillKey, skillBefore.ToString(), skillAfter.ToString());
 			return true;
 		}
@@ -326,14 +325,14 @@ class OVT_TEST_Persistence_PlayerSkills_RoundTrip : SCR_AutotestCaseBase
 		OVT_PlayerData afterSkill = players.GetPlayer(persId);
 		if (!afterSkill)
 		{
-			SetResultFailure("The player manager lost the record for persistent ID %1 after AddSkillLevel()", persId);
+			SetFailure("The player manager lost the record for persistent ID %1 after AddSkillLevel()", persId);
 			return true;
 		}
 
 		int countAfter = afterSkill.CountSkills();
 		if (countAfter != countBefore + 1)
 		{
-			SetResultFailure("CountSkills() did not follow the added level: was %1, is now %2",
+			SetFailure("CountSkills() did not follow the added level: was %1, is now %2",
 				countBefore.ToString(), countAfter.ToString());
 			return true;
 		}
@@ -347,7 +346,6 @@ class OVT_TEST_Persistence_PlayerSkills_RoundTrip : SCR_AutotestCaseBase
 		// LogLevel (findings.md, Phase 3 observations). Split the message rather than widen the call.
 		PrintFormat("Player skills round-trip: xp %1 (+%2 and back)", xpRestored.ToString(), XP_AMOUNT.ToString());
 		PrintFormat("Player skills round-trip: skill '%1' level %2", skillKey, skillAfter.ToString());
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -365,13 +363,13 @@ class OVT_TEST_Persistence_PlayerSkills_RoundTrip : SCR_AutotestCaseBase
 class OVT_TEST_Persistence_RealEstateOwnership_RoundTrips : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_RealEstateManagerComponent realEstate = OVT_Global.GetRealEstate();
 		if (!realEstate)
 		{
-			SetResultFailure("OVT_Global.GetRealEstate() is null");
+			SetFailure("OVT_Global.GetRealEstate() is null");
 			return true;
 		}
 
@@ -379,20 +377,20 @@ class OVT_TEST_Persistence_RealEstateOwnership_RoundTrips : SCR_AutotestCaseBase
 		string persId = OVT_TEST_PersistenceSubject.ResolveLocalPersistentId(diagnostic);
 		if (persId == "")
 		{
-			SetResultFailure("Cannot resolve the persistent player ID: %1", diagnostic);
+			SetFailure("Cannot resolve the persistent player ID: %1", diagnostic);
 			return true;
 		}
 
 		IEntity building = OVT_TEST_PersistenceSubject.ResolveUnownedBuilding(diagnostic);
 		if (!building)
 		{
-			SetResultFailure("Cannot resolve a building to own: %1", diagnostic);
+			SetFailure("Cannot resolve a building to own: %1", diagnostic);
 			return true;
 		}
 
 		if (realEstate.GetOwnerID(building) != "")
 		{
-			SetResultFailure("The building picked as an unowned subject is already owned by '%1'",
+			SetFailure("The building picked as an unowned subject is already owned by '%1'",
 				realEstate.GetOwnerID(building));
 			return true;
 		}
@@ -402,20 +400,20 @@ class OVT_TEST_Persistence_RealEstateOwnership_RoundTrips : SCR_AutotestCaseBase
 		string ownerAfterSet = realEstate.GetOwnerID(building);
 		if (ownerAfterSet != persId)
 		{
-			SetResultFailure("SetOwnerPersistentId() did not stick: GetOwnerID() returned '%1', expected '%2'",
+			SetFailure("SetOwnerPersistentId() did not stick: GetOwnerID() returned '%1', expected '%2'",
 				ownerAfterSet, persId);
 			return true;
 		}
 
 		if (!realEstate.IsOwner(persId, building.GetID()))
 		{
-			SetResultFailure("IsOwner() says the player does not own the building GetOwnerID() says they own");
+			SetFailure("IsOwner() says the player does not own the building GetOwnerID() says they own");
 			return true;
 		}
 
 		if (!realEstate.IsOwned(building.GetID()))
 		{
-			SetResultFailure("IsOwned() says the building is unowned immediately after it was given an owner");
+			SetFailure("IsOwned() says the building is unowned immediately after it was given an owner");
 			return true;
 		}
 
@@ -425,19 +423,18 @@ class OVT_TEST_Persistence_RealEstateOwnership_RoundTrips : SCR_AutotestCaseBase
 		string ownerAfterRemove = realEstate.GetOwnerID(building);
 		if (ownerAfterRemove != "")
 		{
-			SetResultFailure("Removing the owner did not stick: GetOwnerID() still returns '%1'", ownerAfterRemove);
+			SetFailure("Removing the owner did not stick: GetOwnerID() still returns '%1'", ownerAfterRemove);
 			return true;
 		}
 
 		if (realEstate.IsOwner(persId, building.GetID()))
 		{
-			SetResultFailure("IsOwner() still reports ownership after the owner was removed");
+			SetFailure("IsOwner() still reports ownership after the owner was removed");
 			return true;
 		}
 
 		PrintFormat("Real estate ownership round-trip at %1 for '%2'",
 			building.GetOrigin().ToString(), persId);
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -472,13 +469,13 @@ class OVT_TEST_Persistence_RealEstateTransfer_ClearsPreviousOwner : SCR_Autotest
 	static const string OWNER_B = "AUTOTEST-BUG003-OWNER-B";
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_RealEstateManagerComponent realEstate = OVT_Global.GetRealEstate();
 		if (!realEstate)
 		{
-			SetResultFailure("OVT_Global.GetRealEstate() is null");
+			SetFailure("OVT_Global.GetRealEstate() is null");
 			return true;
 		}
 
@@ -486,14 +483,14 @@ class OVT_TEST_Persistence_RealEstateTransfer_ClearsPreviousOwner : SCR_Autotest
 		IEntity building = OVT_TEST_PersistenceSubject.ResolveUnownedBuilding(diagnostic);
 		if (!building)
 		{
-			SetResultFailure("Cannot resolve a building to transfer: %1", diagnostic);
+			SetFailure("Cannot resolve a building to transfer: %1", diagnostic);
 			return true;
 		}
 
 		realEstate.SetOwnerPersistentId(OWNER_A, building);
 		if (!realEstate.IsOwner(OWNER_A, building.GetID()))
 		{
-			SetResultFailure("Precondition failed: the first owner does not own the building it was just given");
+			SetFailure("Precondition failed: the first owner does not own the building it was just given");
 			return true;
 		}
 
@@ -504,20 +501,20 @@ class OVT_TEST_Persistence_RealEstateTransfer_ClearsPreviousOwner : SCR_Autotest
 		string ownerAfterTransfer = realEstate.GetOwnerID(building);
 		if (ownerAfterTransfer != OWNER_B)
 		{
-			SetResultFailure("The transfer did not stick: GetOwnerID() returned '%1', expected '%2'",
+			SetFailure("The transfer did not stick: GetOwnerID() returned '%1', expected '%2'",
 				ownerAfterTransfer, OWNER_B);
 			return true;
 		}
 
 		if (!realEstate.IsOwner(OWNER_B, building.GetID()))
 		{
-			SetResultFailure("IsOwner() denies the new owner the building GetOwnerID() says they own");
+			SetFailure("IsOwner() denies the new owner the building GetOwnerID() says they own");
 			return true;
 		}
 
 		if (realEstate.IsOwner(OWNER_A, building.GetID()))
 		{
-			SetResultFailure("BUG-003: IsOwner() still reports the PREVIOUS owner after a transfer - the old owner's owned-position list was never cleaned");
+			SetFailure("BUG-003: IsOwner() still reports the PREVIOUS owner after a transfer - the old owner's owned-position list was never cleaned");
 			return true;
 		}
 
@@ -527,13 +524,12 @@ class OVT_TEST_Persistence_RealEstateTransfer_ClearsPreviousOwner : SCR_Autotest
 
 		if (realEstate.IsOwned(building.GetID()))
 		{
-			SetResultFailure("BUG-003: IsOwned() still finds an owner after the current owner was removed - a stale list entry from before the transfer survives");
+			SetFailure("BUG-003: IsOwned() still finds an owner after the current owner was removed - a stale list entry from before the transfer survives");
 			return true;
 		}
 
 		PrintFormat("Ownership transfer at %1: previous owner cleared, new owner sole claimant, removal total",
 			building.GetOrigin().ToString());
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -561,13 +557,13 @@ class OVT_TEST_Persistence_Recruits_RoundTrip : SCR_AutotestCaseBase
 	static const int RECRUIT_XP = 400;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_RecruitManagerComponent recruits = OVT_Global.GetRecruits();
 		if (!recruits)
 		{
-			SetResultFailure("OVT_Global.GetRecruits() is null");
+			SetFailure("OVT_Global.GetRecruits() is null");
 			return true;
 		}
 
@@ -575,34 +571,34 @@ class OVT_TEST_Persistence_Recruits_RoundTrip : SCR_AutotestCaseBase
 		string persId = OVT_TEST_PersistenceSubject.ResolveLocalPersistentId(diagnostic);
 		if (persId == "")
 		{
-			SetResultFailure("Cannot resolve the persistent player ID: %1", diagnostic);
+			SetFailure("Cannot resolve the persistent player ID: %1", diagnostic);
 			return true;
 		}
 
 		IEntity subject = OVT_TEST_PersistenceSubject.ResolveRecruitSubjectEntity(diagnostic);
 		if (!subject)
 		{
-			SetResultFailure("Cannot resolve an entity to attach a recruit to: %1", diagnostic);
+			SetFailure("Cannot resolve an entity to attach a recruit to: %1", diagnostic);
 			return true;
 		}
 
 		int countBefore = recruits.GetRecruitCount(persId);
 		if (!recruits.CanRecruit(persId))
 		{
-			SetResultFailure("CanRecruit() is false with only %1 recruit(s) owned", countBefore.ToString());
+			SetFailure("CanRecruit() is false with only %1 recruit(s) owned", countBefore.ToString());
 			return true;
 		}
 
 		string recruitId = recruits.AddRecruit(persId, subject, RECRUIT_NAME);
 		if (recruitId == "")
 		{
-			SetResultFailure("AddRecruit() returned no recruit ID");
+			SetFailure("AddRecruit() returned no recruit ID");
 			return true;
 		}
 
 		if (recruits.GetRecruitCount(persId) != countBefore + 1)
 		{
-			SetResultFailure("Recruit count did not follow AddRecruit(): was %1, is now %2",
+			SetFailure("Recruit count did not follow AddRecruit(): was %1, is now %2",
 				countBefore.ToString(), recruits.GetRecruitCount(persId).ToString());
 			return true;
 		}
@@ -610,27 +606,27 @@ class OVT_TEST_Persistence_Recruits_RoundTrip : SCR_AutotestCaseBase
 		OVT_RecruitData recruit = recruits.GetRecruit(recruitId);
 		if (!recruit)
 		{
-			SetResultFailure("GetRecruit('%1') returned nothing for the ID AddRecruit() just handed out", recruitId);
+			SetFailure("GetRecruit('%1') returned nothing for the ID AddRecruit() just handed out", recruitId);
 			return true;
 		}
 
 		if (recruit.m_sOwnerPersistentId != persId)
 		{
-			SetResultFailure("The recruit is attributed to '%1', expected '%2'",
+			SetFailure("The recruit is attributed to '%1', expected '%2'",
 				recruit.m_sOwnerPersistentId, persId);
 			return true;
 		}
 
 		if (recruit.GetName() != RECRUIT_NAME)
 		{
-			SetResultFailure("The recruit's name is '%1', expected '%2'", recruit.GetName(), RECRUIT_NAME);
+			SetFailure("The recruit's name is '%1', expected '%2'", recruit.GetName(), RECRUIT_NAME);
 			return true;
 		}
 
 		array<ref OVT_RecruitData> ownedRecruits = recruits.GetPlayerRecruits(persId);
 		if (!ownedRecruits || ownedRecruits.Count() != countBefore + 1)
 		{
-			SetResultFailure("GetPlayerRecruits() disagrees with GetRecruitCount() after AddRecruit()");
+			SetFailure("GetPlayerRecruits() disagrees with GetRecruitCount() after AddRecruit()");
 			return true;
 		}
 
@@ -640,20 +636,20 @@ class OVT_TEST_Persistence_Recruits_RoundTrip : SCR_AutotestCaseBase
 		OVT_RecruitData afterXp = recruits.GetRecruit(recruitId);
 		if (!afterXp)
 		{
-			SetResultFailure("GetRecruit('%1') returned nothing after AddRecruitXP()", recruitId);
+			SetFailure("GetRecruit('%1') returned nothing after AddRecruitXP()", recruitId);
 			return true;
 		}
 
 		if (afterXp.m_iXP != xpBefore + RECRUIT_XP)
 		{
-			SetResultFailure("AddRecruitXP(%1) did not stick: xp was %2, is now %3",
+			SetFailure("AddRecruitXP(%1) did not stick: xp was %2, is now %3",
 				RECRUIT_XP.ToString(), xpBefore.ToString(), afterXp.m_iXP.ToString());
 			return true;
 		}
 
 		if (afterXp.m_iLevel != afterXp.GetLevel())
 		{
-			SetResultFailure("The recruit's cached level %1 disagrees with its computed level %2",
+			SetFailure("The recruit's cached level %1 disagrees with its computed level %2",
 				afterXp.m_iLevel.ToString(), afterXp.GetLevel().ToString());
 			return true;
 		}
@@ -662,19 +658,18 @@ class OVT_TEST_Persistence_Recruits_RoundTrip : SCR_AutotestCaseBase
 
 		if (recruits.GetRecruit(recruitId))
 		{
-			SetResultFailure("GetRecruit('%1') still returns a record after RemoveRecruit()", recruitId);
+			SetFailure("GetRecruit('%1') still returns a record after RemoveRecruit()", recruitId);
 			return true;
 		}
 
 		if (recruits.GetRecruitCount(persId) != countBefore)
 		{
-			SetResultFailure("Recruit count did not return to %1 after RemoveRecruit(): it is %2",
+			SetFailure("Recruit count did not return to %1 after RemoveRecruit(): it is %2",
 				countBefore.ToString(), recruits.GetRecruitCount(persId).ToString());
 			return true;
 		}
 
 		PrintFormat("Recruit round-trip: '%1' xp %2, removed cleanly", recruitId, afterXp.m_iXP.ToString());
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -690,20 +685,20 @@ class OVT_TEST_Persistence_Recruits_RoundTrip : SCR_AutotestCaseBase
 class OVT_TEST_Persistence_TownControl_RoundTrips : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 		if (!towns)
 		{
-			SetResultFailure("OVT_Global.GetTowns() is null");
+			SetFailure("OVT_Global.GetTowns() is null");
 			return true;
 		}
 
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
 		if (!config)
 		{
-			SetResultFailure("OVT_Global.GetConfig() is null");
+			SetFailure("OVT_Global.GetConfig() is null");
 			return true;
 		}
 
@@ -712,7 +707,7 @@ class OVT_TEST_Persistence_TownControl_RoundTrips : SCR_AutotestCaseBase
 		OVT_TownData town = OVT_TEST_PersistenceSubject.ResolveFirstTown(townId, diagnostic);
 		if (!town)
 		{
-			SetResultFailure("Cannot resolve a town: %1", diagnostic);
+			SetFailure("Cannot resolve a town: %1", diagnostic);
 			return true;
 		}
 
@@ -720,7 +715,7 @@ class OVT_TEST_Persistence_TownControl_RoundTrips : SCR_AutotestCaseBase
 		int occupyingFaction = config.GetOccupyingFactionIndex();
 		if (playerFaction < 0 || occupyingFaction < 0)
 		{
-			SetResultFailure("The config could not resolve both faction indices (player %1, occupying %2)",
+			SetFailure("The config could not resolve both faction indices (player %1, occupying %2)",
 				playerFaction.ToString(), occupyingFaction.ToString());
 			return true;
 		}
@@ -730,28 +725,28 @@ class OVT_TEST_Persistence_TownControl_RoundTrips : SCR_AutotestCaseBase
 		towns.ChangeTownControl(town, playerFaction);
 		if (towns.GetTown(townId).faction != playerFaction)
 		{
-			SetResultFailure("ChangeTownControl(player) did not stick: town faction is %1, expected %2",
+			SetFailure("ChangeTownControl(player) did not stick: town faction is %1, expected %2",
 				towns.GetTown(townId).faction.ToString(), playerFaction.ToString());
 			return true;
 		}
 
 		if (towns.GetTown(townId).IsOccupyingFaction())
 		{
-			SetResultFailure("IsOccupyingFaction() is true for a town just given to the player faction");
+			SetFailure("IsOccupyingFaction() is true for a town just given to the player faction");
 			return true;
 		}
 
 		towns.ChangeTownControl(town, occupyingFaction);
 		if (towns.GetTown(townId).faction != occupyingFaction)
 		{
-			SetResultFailure("ChangeTownControl(occupying) did not stick: town faction is %1, expected %2",
+			SetFailure("ChangeTownControl(occupying) did not stick: town faction is %1, expected %2",
 				towns.GetTown(townId).faction.ToString(), occupyingFaction.ToString());
 			return true;
 		}
 
 		if (!towns.GetTown(townId).IsOccupyingFaction())
 		{
-			SetResultFailure("IsOccupyingFaction() is false for a town just given to the occupying faction");
+			SetFailure("IsOccupyingFaction() is false for a town just given to the occupying faction");
 			return true;
 		}
 
@@ -759,14 +754,13 @@ class OVT_TEST_Persistence_TownControl_RoundTrips : SCR_AutotestCaseBase
 		towns.ChangeTownControl(town, factionBefore);
 		if (towns.GetTown(townId).faction != factionBefore)
 		{
-			SetResultFailure("Town control did not return to its starting faction %1: it is %2",
+			SetFailure("Town control did not return to its starting faction %1: it is %2",
 				factionBefore.ToString(), towns.GetTown(townId).faction.ToString());
 			return true;
 		}
 
 		PrintFormat("Town control round-trip on town %1: %2 -> player -> occupying -> %3",
 			townId.ToString(), factionBefore.ToString(), towns.GetTown(townId).faction.ToString());
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -792,13 +786,13 @@ class OVT_TEST_Persistence_TownPopulation_RoundTrips : SCR_AutotestCaseBase
 	static const int DELTA = 5;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 		if (!towns)
 		{
-			SetResultFailure("OVT_Global.GetTowns() is null");
+			SetFailure("OVT_Global.GetTowns() is null");
 			return true;
 		}
 
@@ -807,7 +801,7 @@ class OVT_TEST_Persistence_TownPopulation_RoundTrips : SCR_AutotestCaseBase
 		OVT_TownData town = OVT_TEST_PersistenceSubject.ResolveFirstTown(townId, diagnostic);
 		if (!town)
 		{
-			SetResultFailure("Cannot resolve a town: %1", diagnostic);
+			SetFailure("Cannot resolve a town: %1", diagnostic);
 			return true;
 		}
 
@@ -816,7 +810,7 @@ class OVT_TEST_Persistence_TownPopulation_RoundTrips : SCR_AutotestCaseBase
 
 		if (populationBefore <= DELTA)
 		{
-			SetResultFailure("Town %1 has only %2 population - too few to exercise the supporter seam",
+			SetFailure("Town %1 has only %2 population - too few to exercise the supporter seam",
 				townId.ToString(), populationBefore.ToString());
 			return true;
 		}
@@ -825,14 +819,14 @@ class OVT_TEST_Persistence_TownPopulation_RoundTrips : SCR_AutotestCaseBase
 		towns.AddSupport(town.location, DELTA);
 		if (towns.GetTown(townId).support != supportBefore + DELTA)
 		{
-			SetResultFailure("AddSupport(%1) did not stick: support was %2, is now %3",
+			SetFailure("AddSupport(%1) did not stick: support was %2, is now %3",
 				DELTA.ToString(), supportBefore.ToString(), towns.GetTown(townId).support.ToString());
 			return true;
 		}
 
 		if (!towns.NearestTownHasSupporters(town.location, DELTA))
 		{
-			SetResultFailure("NearestTownHasSupporters(%1) is false right after AddSupport(%1)", DELTA.ToString());
+			SetFailure("NearestTownHasSupporters(%1) is false right after AddSupport(%1)", DELTA.ToString());
 			return true;
 		}
 
@@ -841,7 +835,7 @@ class OVT_TEST_Persistence_TownPopulation_RoundTrips : SCR_AutotestCaseBase
 		int populationAfter = towns.GetTown(townId).population;
 		if (populationAfter != populationBefore - DELTA)
 		{
-			SetResultFailure("TakeSupportersFromNearestTown(%1) did not move population: was %2, is now %3",
+			SetFailure("TakeSupportersFromNearestTown(%1) did not move population: was %2, is now %3",
 				DELTA.ToString(), populationBefore.ToString(), populationAfter.ToString());
 			return true;
 		}
@@ -849,7 +843,7 @@ class OVT_TEST_Persistence_TownPopulation_RoundTrips : SCR_AutotestCaseBase
 		int supportAfter = towns.GetTown(townId).support;
 		if (supportAfter != supportBefore)
 		{
-			SetResultFailure("Taking supporters did not return support to %1: it is %2",
+			SetFailure("Taking supporters did not return support to %1: it is %2",
 				supportBefore.ToString(), supportAfter.ToString());
 			return true;
 		}
@@ -857,7 +851,6 @@ class OVT_TEST_Persistence_TownPopulation_RoundTrips : SCR_AutotestCaseBase
 		PrintFormat("Town population round-trip on town %1: %2 -> %3",
 			townId.ToString(), populationBefore.ToString(), populationAfter.ToString());
 		PrintFormat("Town population round-trip: support restored to %1", supportAfter.ToString());
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -886,13 +879,13 @@ class OVT_TEST_Persistence_TownPopulation_RoundTrips : SCR_AutotestCaseBase
 class OVT_TEST_Persistence_TownStability_RoundTrips : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 		if (!towns)
 		{
-			SetResultFailure("OVT_Global.GetTowns() is null");
+			SetFailure("OVT_Global.GetTowns() is null");
 			return true;
 		}
 
@@ -901,21 +894,21 @@ class OVT_TEST_Persistence_TownStability_RoundTrips : SCR_AutotestCaseBase
 		OVT_TownData town = OVT_TEST_PersistenceSubject.ResolveFirstTown(townId, diagnostic);
 		if (!town)
 		{
-			SetResultFailure("Cannot resolve a town: %1", diagnostic);
+			SetFailure("Cannot resolve a town: %1", diagnostic);
 			return true;
 		}
 
 		OVT_TownModifierSystem system = towns.GetModifierSystem(OVT_TownStabilityModifierSystem);
 		if (!system || !system.m_Config || !system.m_Config.m_aModifiers)
 		{
-			SetResultFailure("The town manager has no stability modifier system with a loaded config");
+			SetFailure("The town manager has no stability modifier system with a loaded config");
 			return true;
 		}
 
 		int modifierIndex = FindNegativeModifierIndex(system);
 		if (modifierIndex < 0)
 		{
-			SetResultFailure("No stability modifier has a negative base effect - nothing that can move stability down from its maximum");
+			SetFailure("No stability modifier has a negative base effect - nothing that can move stability down from its maximum");
 			return true;
 		}
 
@@ -924,14 +917,14 @@ class OVT_TEST_Persistence_TownStability_RoundTrips : SCR_AutotestCaseBase
 
 		if (!towns.TryAddStabilityModifier(townId, modifierIndex))
 		{
-			SetResultFailure("TryAddStabilityModifier(%1) refused to add a modifier to a town that has %2",
+			SetFailure("TryAddStabilityModifier(%1) refused to add a modifier to a town that has %2",
 				modifierIndex.ToString(), modifiersBefore.ToString());
 			return true;
 		}
 
 		if (town.stabilityModifiers.Count() != modifiersBefore + 1)
 		{
-			SetResultFailure("The modifier did not stick: town had %1 stability modifiers, now has %2",
+			SetFailure("The modifier did not stick: town had %1 stability modifiers, now has %2",
 				modifiersBefore.ToString(), town.stabilityModifiers.Count().ToString());
 			return true;
 		}
@@ -942,14 +935,14 @@ class OVT_TEST_Persistence_TownStability_RoundTrips : SCR_AutotestCaseBase
 		int expected = system.Recalculate(towns.GetTown(townId).stabilityModifiers);
 		if (afterAdd != expected)
 		{
-			SetResultFailure("Stored stability %1 disagrees with the modifier system's recalculation %2",
+			SetFailure("Stored stability %1 disagrees with the modifier system's recalculation %2",
 				afterAdd.ToString(), expected.ToString());
 			return true;
 		}
 
 		if (afterAdd >= stabilityBefore)
 		{
-			SetResultFailure("A negative stability modifier did not lower stability: was %1, is now %2",
+			SetFailure("A negative stability modifier did not lower stability: was %1, is now %2",
 				stabilityBefore.ToString(), afterAdd.ToString());
 			return true;
 		}
@@ -963,7 +956,7 @@ class OVT_TEST_Persistence_TownStability_RoundTrips : SCR_AutotestCaseBase
 		array<ref OVT_TownData> townList = towns.GetTowns();
 		if (!townList || townList.Count() <= townId || townList[townId].stability != afterAdd)
 		{
-			SetResultFailure("GetTowns() does not show the stability GetTown() reports (%1)", afterAdd.ToString());
+			SetFailure("GetTowns() does not show the stability GetTown() reports (%1)", afterAdd.ToString());
 			return true;
 		}
 
@@ -971,7 +964,7 @@ class OVT_TEST_Persistence_TownStability_RoundTrips : SCR_AutotestCaseBase
 
 		if (town.stabilityModifiers.Count() != modifiersBefore)
 		{
-			SetResultFailure("Removing the modifier did not stick: town has %1 stability modifiers, expected %2",
+			SetFailure("Removing the modifier did not stick: town has %1 stability modifiers, expected %2",
 				town.stabilityModifiers.Count().ToString(), modifiersBefore.ToString());
 			return true;
 		}
@@ -979,14 +972,13 @@ class OVT_TEST_Persistence_TownStability_RoundTrips : SCR_AutotestCaseBase
 		int afterRemove = towns.GetTown(townId).stability;
 		if (afterRemove != stabilityBefore)
 		{
-			SetResultFailure("Stability did not return to its starting value: was %1, is now %2",
+			SetFailure("Stability did not return to its starting value: was %1, is now %2",
 				stabilityBefore.ToString(), afterRemove.ToString());
 			return true;
 		}
 
 		PrintFormat("Town stability round-trip on town %1: %2 -> %3 -> %2",
 			townId.ToString(), stabilityBefore.ToString(), afterAdd.ToString());
-		SetResultSuccess();
 		return true;
 	}
 
@@ -1027,13 +1019,13 @@ class OVT_TEST_Persistence_TownSupport_RoundTrips : SCR_AutotestCaseBase
 	static const int DELTA = 7;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 		if (!towns)
 		{
-			SetResultFailure("OVT_Global.GetTowns() is null");
+			SetFailure("OVT_Global.GetTowns() is null");
 			return true;
 		}
 
@@ -1042,7 +1034,7 @@ class OVT_TEST_Persistence_TownSupport_RoundTrips : SCR_AutotestCaseBase
 		OVT_TownData town = OVT_TEST_PersistenceSubject.ResolveFirstTown(townId, diagnostic);
 		if (!town)
 		{
-			SetResultFailure("Cannot resolve a town: %1", diagnostic);
+			SetFailure("Cannot resolve a town: %1", diagnostic);
 			return true;
 		}
 
@@ -1052,7 +1044,7 @@ class OVT_TEST_Persistence_TownSupport_RoundTrips : SCR_AutotestCaseBase
 		int afterAdd = towns.GetTown(townId).support;
 		if (afterAdd != supportBefore + DELTA)
 		{
-			SetResultFailure("AddSupport(%1) did not stick: support was %2, is now %3",
+			SetFailure("AddSupport(%1) did not stick: support was %2, is now %3",
 				DELTA.ToString(), supportBefore.ToString(), afterAdd.ToString());
 			return true;
 		}
@@ -1061,7 +1053,7 @@ class OVT_TEST_Persistence_TownSupport_RoundTrips : SCR_AutotestCaseBase
 		int afterReset = towns.GetTown(townId).support;
 		if (afterReset != 0)
 		{
-			SetResultFailure("ResetSupport() left support at %1, expected 0", afterReset.ToString());
+			SetFailure("ResetSupport() left support at %1, expected 0", afterReset.ToString());
 			return true;
 		}
 
@@ -1070,14 +1062,13 @@ class OVT_TEST_Persistence_TownSupport_RoundTrips : SCR_AutotestCaseBase
 		int restored = towns.GetTown(townId).support;
 		if (restored != supportBefore)
 		{
-			SetResultFailure("Support did not return to its starting value %1: it is %2",
+			SetFailure("Support did not return to its starting value %1: it is %2",
 				supportBefore.ToString(), restored.ToString());
 			return true;
 		}
 
 		PrintFormat("Town support round-trip on town %1: %2 -> %3 -> 0 -> %2",
 			townId.ToString(), supportBefore.ToString(), afterAdd.ToString());
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -1107,13 +1098,13 @@ class OVT_TEST_Persistence_RecruitRemoval_ClearsEntityLookups : SCR_AutotestCase
 	static const string RECRUIT_NAME = "Autotest Lookup Leak Recruit";
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_RecruitManagerComponent recruits = OVT_Global.GetRecruits();
 		if (!recruits)
 		{
-			SetResultFailure("OVT_Global.GetRecruits() is null");
+			SetFailure("OVT_Global.GetRecruits() is null");
 			return true;
 		}
 
@@ -1121,21 +1112,21 @@ class OVT_TEST_Persistence_RecruitRemoval_ClearsEntityLookups : SCR_AutotestCase
 		string persId = OVT_TEST_PersistenceSubject.ResolveLocalPersistentId(diagnostic);
 		if (persId == "")
 		{
-			SetResultFailure("Cannot resolve the persistent player ID: %1", diagnostic);
+			SetFailure("Cannot resolve the persistent player ID: %1", diagnostic);
 			return true;
 		}
 
 		IEntity subject = OVT_TEST_PersistenceSubject.ResolveRecruitSubjectEntity(diagnostic);
 		if (!subject)
 		{
-			SetResultFailure("Cannot resolve an entity to attach a recruit to: %1", diagnostic);
+			SetFailure("Cannot resolve an entity to attach a recruit to: %1", diagnostic);
 			return true;
 		}
 
 		string recruitId = recruits.AddRecruit(persId, subject, RECRUIT_NAME);
 		if (recruitId == "")
 		{
-			SetResultFailure("AddRecruit() returned no recruit ID");
+			SetFailure("AddRecruit() returned no recruit ID");
 			return true;
 		}
 
@@ -1143,7 +1134,7 @@ class OVT_TEST_Persistence_RecruitRemoval_ClearsEntityLookups : SCR_AutotestCase
 		OVT_RecruitData mapped = recruits.GetRecruitFromEntity(subject);
 		if (!mapped || mapped.m_sRecruitId != recruitId)
 		{
-			SetResultFailure("GetRecruitFromEntity() does not resolve the recruit that was just attached to the entity");
+			SetFailure("GetRecruitFromEntity() does not resolve the recruit that was just attached to the entity");
 			return true;
 		}
 
@@ -1151,7 +1142,7 @@ class OVT_TEST_Persistence_RecruitRemoval_ClearsEntityLookups : SCR_AutotestCase
 
 		if (recruits.GetRecruit(recruitId))
 		{
-			SetResultFailure("GetRecruit() still returns a record for a removed recruit");
+			SetFailure("GetRecruit() still returns a record for a removed recruit");
 			return true;
 		}
 
@@ -1159,7 +1150,7 @@ class OVT_TEST_Persistence_RecruitRemoval_ClearsEntityLookups : SCR_AutotestCase
 		{
 			if (mappedRecruitId == recruitId)
 			{
-				SetResultFailure("BUG-004: m_mEntityToRecruit still maps an entity to removed recruit '%1' - RemoveRecruit() leaked the entity lookup", recruitId);
+				SetFailure("BUG-004: m_mEntityToRecruit still maps an entity to removed recruit '%1' - RemoveRecruit() leaked the entity lookup", recruitId);
 				return true;
 			}
 		}
@@ -1168,13 +1159,12 @@ class OVT_TEST_Persistence_RecruitRemoval_ClearsEntityLookups : SCR_AutotestCase
 		{
 			if (mappedRplRecruitId == recruitId)
 			{
-				SetResultFailure("BUG-004: m_mRplIdToRecruit still maps a replication id to removed recruit '%1' - RemoveRecruit() leaked the replication lookup", recruitId);
+				SetFailure("BUG-004: m_mRplIdToRecruit still maps a replication id to removed recruit '%1' - RemoveRecruit() leaked the replication lookup", recruitId);
 				return true;
 			}
 		}
 
 		PrintFormat("Recruit removal left no stale lookups for '%1'", recruitId);
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -1215,7 +1205,7 @@ class OVT_TEST_Persistence_RecruitDespawnReservesBody : SCR_AutotestCaseBase
 	protected string m_sRecruitId;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		if (m_iPhase == 0)
@@ -1232,28 +1222,28 @@ class OVT_TEST_Persistence_RecruitDespawnReservesBody : SCR_AutotestCaseBase
 		OVT_RecruitManagerComponent recruits = OVT_RecruitManagerComponent.GetInstance();
 		if (!recruits || recruits.m_sRecruitPrefab.IsEmpty())
 		{
-			SetResultFailure("The recruit manager has no character prefab to spawn a body from");
+			SetFailure("The recruit manager has no character prefab to spawn a body from");
 			return true;
 		}
 
 		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 		if (!towns || towns.m_Towns.Count() < 1)
 		{
-			SetResultFailure("No towns are registered - nowhere sensible to spawn the body");
+			SetFailure("No towns are registered - nowhere sensible to spawn the body");
 			return true;
 		}
 
 		m_Body = OVT_Global.SpawnEntityPrefab(recruits.m_sRecruitPrefab, towns.m_Towns[0].location);
 		if (!m_Body)
 		{
-			SetResultFailure("SpawnEntityPrefab() produced no character from the recruit prefab");
+			SetFailure("SpawnEntityPrefab() produced no character from the recruit prefab");
 			return true;
 		}
 
 		m_sRecruitId = recruits.AddRecruit(TEST_OWNER_UID, m_Body);
 		if (m_sRecruitId.IsEmpty())
 		{
-			SetResultFailure("AddRecruit() returned no recruit ID for the spawned body");
+			SetFailure("AddRecruit() returned no recruit ID for the spawned body");
 			return FinishAndCleanUp();
 		}
 
@@ -1276,7 +1266,7 @@ class OVT_TEST_Persistence_RecruitDespawnReservesBody : SCR_AutotestCaseBase
 		{
 			if (m_iPolls > MAX_POLLS)
 			{
-				SetResultFailure("The recruit body was never persistence-tracked (%1 polls) - registration is not running, so the despawn cannot be asserted", m_iPolls.ToString());
+				SetFailure("The recruit body was never persistence-tracked (%1 polls) - registration is not running, so the despawn cannot be asserted", m_iPolls.ToString());
 				return FinishAndCleanUp();
 			}
 			return false;
@@ -1288,43 +1278,42 @@ class OVT_TEST_Persistence_RecruitDespawnReservesBody : SCR_AutotestCaseBase
 		OVT_RecruitData recruit = recruits.GetRecruit(m_sRecruitId);
 		if (!recruit)
 		{
-			SetResultFailure("The recruit record vanished across DespawnPlayerRecruits() - despawn must park the body, never drop the record");
+			SetFailure("The recruit record vanished across DespawnPlayerRecruits() - despawn must park the body, never drop the record");
 			return FinishAndCleanUp();
 		}
 
 		IEntity bodyAfter = recruits.FindRecruitEntity(m_sRecruitId);
 		if (!bodyAfter)
 		{
-			SetResultFailure("The body entity was destroyed (or its mapping dropped) by DespawnPlayerRecruits() - that is the save-and-release path BUG-086 proved loses the gear within minutes");
+			SetFailure("The body entity was destroyed (or its mapping dropped) by DespawnPlayerRecruits() - that is the save-and-release path BUG-086 proved loses the gear within minutes");
 			return FinishAndCleanUp();
 		}
 
 		if (!OVT_PersistenceTracking.IsTracked(bodyAfter))
 		{
-			SetResultFailure("The despawned body is no longer persistence-tracked - an untracked body writes no record at the next save and the recruit's gear cannot survive a restart");
+			SetFailure("The despawned body is no longer persistence-tracked - an untracked body writes no record at the next save and the recruit's gear cannot survive a restart");
 			return FinishAndCleanUp();
 		}
 
 		if (!OVT_PersistenceReservation.IsReserved(bodyAfter))
 		{
-			SetResultFailure("The despawned body is not reserved - an offline owner's recruit left visible and traceable is a free supply crate");
+			SetFailure("The despawned body is not reserved - an offline owner's recruit left visible and traceable is a free supply crate");
 			return FinishAndCleanUp();
 		}
 
 		if (recruit.m_sBodyPersistenceId.IsEmpty())
 		{
-			SetResultFailure("The record holds no body persistence id after the despawn - the post-restart respawn would have nothing to ask for and would fall back to a fresh civilian body");
+			SetFailure("The record holds no body persistence id after the despawn - the post-restart respawn would have nothing to ask for and would fall back to a fresh civilian body");
 			return FinishAndCleanUp();
 		}
 
 		if (recruit.m_bIsOnline)
 		{
-			SetResultFailure("The recruit is still marked online after DespawnPlayerRecruits()");
+			SetFailure("The recruit is still marked online after DespawnPlayerRecruits()");
 			return FinishAndCleanUp();
 		}
 
 		PrintFormat("Recruit despawn reserved the body - alive, tracked, hidden, id %1 (settled after %2 poll(s))", recruit.m_sBodyPersistenceId, m_iPolls.ToString());
-		SetResultSuccess();
 		return FinishAndCleanUp();
 	}
 
@@ -1373,20 +1362,20 @@ class OVT_TEST_Persistence_RecruitDespawnReservesBody : SCR_AutotestCaseBase
 class OVT_TEST_Persistence_NewRadioTower_DefaultsToOccupyingFaction : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
 		if (!occupying)
 		{
-			SetResultFailure("OVT_Global.GetOccupyingFaction() is null");
+			SetFailure("OVT_Global.GetOccupyingFaction() is null");
 			return true;
 		}
 
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
 		if (!config)
 		{
-			SetResultFailure("OVT_Global.GetConfig() is null");
+			SetFailure("OVT_Global.GetConfig() is null");
 			return true;
 		}
 
@@ -1394,7 +1383,7 @@ class OVT_TEST_Persistence_NewRadioTower_DefaultsToOccupyingFaction : SCR_Autote
 		int playerFaction = config.GetPlayerFactionIndex();
 		if (occupyingFaction < 0 || playerFaction < 0)
 		{
-			SetResultFailure("The config could not resolve both faction indices (player %1, occupying %2)",
+			SetFailure("The config could not resolve both faction indices (player %1, occupying %2)",
 				playerFaction.ToString(), occupyingFaction.ToString());
 			return true;
 		}
@@ -1411,7 +1400,7 @@ class OVT_TEST_Persistence_NewRadioTower_DefaultsToOccupyingFaction : SCR_Autote
 
 		if (!tower)
 		{
-			SetResultFailure("The test world handed out no radio tower");
+			SetFailure("The test world handed out no radio tower");
 			return true;
 		}
 
@@ -1426,7 +1415,7 @@ class OVT_TEST_Persistence_NewRadioTower_DefaultsToOccupyingFaction : SCR_Autote
 
 		if (tower.faction != occupyingFaction)
 		{
-			SetResultFailure("A tower absent from the save was not handed to the occupying faction: expected occupying faction %1, it is %2",
+			SetFailure("A tower absent from the save was not handed to the occupying faction: expected occupying faction %1, it is %2",
 				occupyingFaction.ToString(), tower.faction.ToString());
 			tower.faction = factionBefore;
 			return true;
@@ -1443,7 +1432,7 @@ class OVT_TEST_Persistence_NewRadioTower_DefaultsToOccupyingFaction : SCR_Autote
 
 		if (tower.faction != playerFaction)
 		{
-			SetResultFailure("A player-captured tower with a save record was trampled: expected player faction %1, it is %2",
+			SetFailure("A player-captured tower with a save record was trampled: expected player faction %1, it is %2",
 				playerFaction.ToString(), tower.faction.ToString());
 			tower.faction = factionBefore;
 			return true;
@@ -1454,7 +1443,6 @@ class OVT_TEST_Persistence_NewRadioTower_DefaultsToOccupyingFaction : SCR_Autote
 
 		PrintFormat("New-tower default round-trip: unmatched tower -> occupying %1, recorded capture kept player %2",
 			occupyingFaction.ToString(), playerFaction.ToString());
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -1485,20 +1473,20 @@ class OVT_TEST_Persistence_NewRadioTower_DefaultsToOccupyingFaction : SCR_Autote
 class OVT_TEST_Persistence_NewBase_DefaultsToOccupyingFaction : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
 		if (!occupying)
 		{
-			SetResultFailure("OVT_Global.GetOccupyingFaction() is null");
+			SetFailure("OVT_Global.GetOccupyingFaction() is null");
 			return true;
 		}
 
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
 		if (!config)
 		{
-			SetResultFailure("OVT_Global.GetConfig() is null");
+			SetFailure("OVT_Global.GetConfig() is null");
 			return true;
 		}
 
@@ -1506,7 +1494,7 @@ class OVT_TEST_Persistence_NewBase_DefaultsToOccupyingFaction : SCR_AutotestCase
 		int playerFaction = config.GetPlayerFactionIndex();
 		if (occupyingFaction < 0 || playerFaction < 0)
 		{
-			SetResultFailure("The config could not resolve both faction indices (player %1, occupying %2)",
+			SetFailure("The config could not resolve both faction indices (player %1, occupying %2)",
 				playerFaction.ToString(), occupyingFaction.ToString());
 			return true;
 		}
@@ -1523,7 +1511,7 @@ class OVT_TEST_Persistence_NewBase_DefaultsToOccupyingFaction : SCR_AutotestCase
 
 		if (!base)
 		{
-			SetResultFailure("The test world handed out no base");
+			SetFailure("The test world handed out no base");
 			return true;
 		}
 
@@ -1538,7 +1526,7 @@ class OVT_TEST_Persistence_NewBase_DefaultsToOccupyingFaction : SCR_AutotestCase
 
 		if (base.faction != occupyingFaction)
 		{
-			SetResultFailure("A base absent from the save was not handed to the occupying faction: expected occupying faction %1, it is %2",
+			SetFailure("A base absent from the save was not handed to the occupying faction: expected occupying faction %1, it is %2",
 				occupyingFaction.ToString(), base.faction.ToString());
 			base.faction = factionBefore;
 			return true;
@@ -1554,7 +1542,7 @@ class OVT_TEST_Persistence_NewBase_DefaultsToOccupyingFaction : SCR_AutotestCase
 
 		if (base.faction != playerFaction)
 		{
-			SetResultFailure("A player-captured base with a save record was trampled: expected player faction %1, it is %2",
+			SetFailure("A player-captured base with a save record was trampled: expected player faction %1, it is %2",
 				playerFaction.ToString(), base.faction.ToString());
 			base.faction = factionBefore;
 			return true;
@@ -1565,7 +1553,6 @@ class OVT_TEST_Persistence_NewBase_DefaultsToOccupyingFaction : SCR_AutotestCase
 
 		PrintFormat("New-base default round-trip: unmatched base -> occupying %1, recorded capture kept player %2",
 			occupyingFaction.ToString(), playerFaction.ToString());
-		SetResultSuccess();
 		return true;
 	}
 }

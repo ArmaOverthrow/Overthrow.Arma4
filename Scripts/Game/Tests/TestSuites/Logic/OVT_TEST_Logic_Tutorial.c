@@ -34,7 +34,7 @@
 class OVT_TEST_Logic_Tutorial_TriggerMatching : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		// --- BARE TRIGGER: event alone decides, because both sentinels are at their "unset" value.
@@ -42,27 +42,27 @@ class OVT_TEST_Logic_Tutorial_TriggerMatching : SCR_AutotestCaseBase
 
 		if (!bare.Matches(MakeContext(OVT_TutorialEvent.PLAYER_BUY, 0, "")))
 		{
-			SetResultFailure("A trigger with no threshold and no filter refused its own event");
+			SetFailure("A trigger with no threshold and no filter refused its own event");
 			return true;
 		}
 
 		// A payload it declared no interest in must not change its mind either way.
 		if (!bare.Matches(MakeContext(OVT_TutorialEvent.PLAYER_BUY, 99999, "anything at all")))
 		{
-			SetResultFailure("A trigger with no threshold and no filter refused its own event when the event carried a payload");
+			SetFailure("A trigger with no threshold and no filter refused its own event when the event carried a payload");
 			return true;
 		}
 
 		if (bare.Matches(MakeContext(OVT_TutorialEvent.PLAYER_SELL, 0, "")))
 		{
-			SetResultFailure("A PLAYER_BUY trigger matched a PLAYER_SELL event");
+			SetFailure("A PLAYER_BUY trigger matched a PLAYER_SELL event");
 			return true;
 		}
 
 		// A null occurrence is not a match and is not a crash: the client-local hooks can produce one.
 		if (bare.Matches(null))
 		{
-			SetResultFailure("A trigger matched a null event context");
+			SetFailure("A trigger matched a null event context");
 			return true;
 		}
 
@@ -71,25 +71,25 @@ class OVT_TEST_Logic_Tutorial_TriggerMatching : SCR_AutotestCaseBase
 
 		if (threshold.Matches(MakeContext(OVT_TutorialEvent.PLAYER_BUY, 499, "")))
 		{
-			SetResultFailure("A minimum of 500 matched a value of 499");
+			SetFailure("A minimum of 500 matched a value of 499");
 			return true;
 		}
 
 		if (!threshold.Matches(MakeContext(OVT_TutorialEvent.PLAYER_BUY, 500, "")))
 		{
-			SetResultFailure("A minimum of 500 rejected a value of exactly 500; the threshold must be inclusive");
+			SetFailure("A minimum of 500 rejected a value of exactly 500; the threshold must be inclusive");
 			return true;
 		}
 
 		if (!threshold.Matches(MakeContext(OVT_TutorialEvent.PLAYER_BUY, 501, "")))
 		{
-			SetResultFailure("A minimum of 500 rejected a value of 501");
+			SetFailure("A minimum of 500 rejected a value of 501");
 			return true;
 		}
 
 		if (threshold.Matches(MakeContext(OVT_TutorialEvent.PLAYER_BUY, 0, "")))
 		{
-			SetResultFailure("A minimum of 500 matched an event carrying no value at all");
+			SetFailure("A minimum of 500 matched an event carrying no value at all");
 			return true;
 		}
 
@@ -98,25 +98,25 @@ class OVT_TEST_Logic_Tutorial_TriggerMatching : SCR_AutotestCaseBase
 
 		if (!filtered.Matches(MakeContext(OVT_TutorialEvent.PLAYER_PLACE, 0, "OVT_Camp")))
 		{
-			SetResultFailure("A filter of 'OVT_Camp' rejected the exact string 'OVT_Camp'");
+			SetFailure("A filter of 'OVT_Camp' rejected the exact string 'OVT_Camp'");
 			return true;
 		}
 
 		if (filtered.Matches(MakeContext(OVT_TutorialEvent.PLAYER_PLACE, 0, "ovt_camp")))
 		{
-			SetResultFailure("A filter of 'OVT_Camp' matched 'ovt_camp'; the comparison must be case-sensitive");
+			SetFailure("A filter of 'OVT_Camp' matched 'ovt_camp'; the comparison must be case-sensitive");
 			return true;
 		}
 
 		if (filtered.Matches(MakeContext(OVT_TutorialEvent.PLAYER_PLACE, 0, "OVT_CampSmall")))
 		{
-			SetResultFailure("A filter of 'OVT_Camp' matched 'OVT_CampSmall'; the comparison must be exact, not a prefix");
+			SetFailure("A filter of 'OVT_Camp' matched 'OVT_CampSmall'; the comparison must be exact, not a prefix");
 			return true;
 		}
 
 		if (filtered.Matches(MakeContext(OVT_TutorialEvent.PLAYER_PLACE, 0, "")))
 		{
-			SetResultFailure("A filter of 'OVT_Camp' matched an event carrying no filter");
+			SetFailure("A filter of 'OVT_Camp' matched an event carrying no filter");
 			return true;
 		}
 
@@ -126,7 +126,7 @@ class OVT_TEST_Logic_Tutorial_TriggerMatching : SCR_AutotestCaseBase
 
 		if (!unfiltered.Matches(MakeContext(OVT_TutorialEvent.PLAYER_PLACE, 0, "OVT_Camp")))
 		{
-			SetResultFailure("A trigger with no filter rejected an event that carried one");
+			SetFailure("A trigger with no filter rejected an event that carried one");
 			return true;
 		}
 
@@ -135,31 +135,30 @@ class OVT_TEST_Logic_Tutorial_TriggerMatching : SCR_AutotestCaseBase
 
 		if (!both.Matches(MakeContext(OVT_TutorialEvent.PLAYER_TRANSACTION, 100, "SHOP_GENERAL")))
 		{
-			SetResultFailure("A trigger with both a threshold and a filter rejected an event satisfying both");
+			SetFailure("A trigger with both a threshold and a filter rejected an event satisfying both");
 			return true;
 		}
 
 		if (both.Matches(MakeContext(OVT_TutorialEvent.PLAYER_BUY, 100, "SHOP_GENERAL")))
 		{
-			SetResultFailure("A PLAYER_TRANSACTION trigger matched a PLAYER_BUY event that satisfied its threshold and filter");
+			SetFailure("A PLAYER_TRANSACTION trigger matched a PLAYER_BUY event that satisfied its threshold and filter");
 			return true;
 		}
 
 		if (both.Matches(MakeContext(OVT_TutorialEvent.PLAYER_TRANSACTION, 100, "SHOP_GUNDEALER")))
 		{
-			SetResultFailure("A trigger with both conditions matched when only the threshold was satisfied");
+			SetFailure("A trigger with both conditions matched when only the threshold was satisfied");
 			return true;
 		}
 
 		if (both.Matches(MakeContext(OVT_TutorialEvent.PLAYER_TRANSACTION, 99, "SHOP_GENERAL")))
 		{
-			SetResultFailure("A trigger with both conditions matched when only the filter was satisfied");
+			SetFailure("A trigger with both conditions matched when only the filter was satisfied");
 			return true;
 		}
 
 		Print("Tutorial triggers: 0 means no threshold and \"\" means no filter, a real threshold accepts an equal value, a real filter is exact and case-sensitive, and the wrong event never matches");
 
-		SetResultSuccess();
 		return true;
 	}
 
@@ -210,7 +209,7 @@ class OVT_TEST_Logic_Tutorial_TriggerMatching : SCR_AutotestCaseBase
 class OVT_TEST_Logic_Tutorial_MatcherSelectsAndOrders : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		array<ref OVT_TutorialEntryConfig> entries = new array<ref OVT_TutorialEntryConfig>();
@@ -243,7 +242,7 @@ class OVT_TEST_Logic_Tutorial_MatcherSelectsAndOrders : SCR_AutotestCaseBase
 
 		if (ids.Count() != expected.Count())
 		{
-			SetResultFailure("FindMatches returned %1, expected %2",
+			SetFailure("FindMatches returned %1, expected %2",
 				JoinIds(ids), JoinIds(expected));
 			return true;
 		}
@@ -252,7 +251,7 @@ class OVT_TEST_Logic_Tutorial_MatcherSelectsAndOrders : SCR_AutotestCaseBase
 		{
 			if (ids.Get(i) != expected.Get(i))
 			{
-				SetResultFailure("FindMatches came out as %1, expected %2 (first difference at position %3)",
+				SetFailure("FindMatches came out as %1, expected %2 (first difference at position %3)",
 					JoinIds(ids), JoinIds(expected), i.ToString());
 				return true;
 			}
@@ -263,7 +262,7 @@ class OVT_TEST_Logic_Tutorial_MatcherSelectsAndOrders : SCR_AutotestCaseBase
 
 		if (ids.Count() != expected.Count())
 		{
-			SetResultFailure("A second FindMatches into the same buffer returned %1 ids, expected %2; the buffer was not cleared",
+			SetFailure("A second FindMatches into the same buffer returned %1 ids, expected %2; the buffer was not cleared",
 				ids.Count().ToString(), expected.Count().ToString());
 			return true;
 		}
@@ -274,13 +273,13 @@ class OVT_TEST_Logic_Tutorial_MatcherSelectsAndOrders : SCR_AutotestCaseBase
 
 		if (!none)
 		{
-			SetResultFailure("FindMatches nulled the result array when nothing matched");
+			SetFailure("FindMatches nulled the result array when nothing matched");
 			return true;
 		}
 
 		if (none.Count() != 0)
 		{
-			SetResultFailure("An event nothing is bound to matched %1 entries (%2), expected none",
+			SetFailure("An event nothing is bound to matched %1 entries (%2), expected none",
 				none.Count().ToString(), JoinIds(none));
 			return true;
 		}
@@ -292,19 +291,19 @@ class OVT_TEST_Logic_Tutorial_MatcherSelectsAndOrders : SCR_AutotestCaseBase
 
 		if (!big.Contains("expensive"))
 		{
-			SetResultFailure("A 5000 buy did not fire the entry with a 5000 threshold. Result: %1", JoinIds(big));
+			SetFailure("A 5000 buy did not fire the entry with a 5000 threshold. Result: %1", JoinIds(big));
 			return true;
 		}
 
 		if (big.Get(0) != "expensive")
 		{
-			SetResultFailure("The priority-1000 entry came out at position 0 as '%1', expected 'expensive'", big.Get(0));
+			SetFailure("The priority-1000 entry came out at position 0 as '%1', expected 'expensive'", big.Get(0));
 			return true;
 		}
 
 		if (big.Contains("retired"))
 		{
-			SetResultFailure("A retired (m_bEnabled 0) entry fired");
+			SetFailure("A retired (m_bEnabled 0) entry fired");
 			return true;
 		}
 
@@ -314,7 +313,7 @@ class OVT_TEST_Logic_Tutorial_MatcherSelectsAndOrders : SCR_AutotestCaseBase
 
 		if (!nullEntries || nullEntries.Count() != 0)
 		{
-			SetResultFailure("A null entry list did not produce an empty result");
+			SetFailure("A null entry list did not produce an empty result");
 			return true;
 		}
 
@@ -323,13 +322,12 @@ class OVT_TEST_Logic_Tutorial_MatcherSelectsAndOrders : SCR_AutotestCaseBase
 
 		if (!nullCtx || nullCtx.Count() != 0)
 		{
-			SetResultFailure("A null event context did not produce an empty result");
+			SetFailure("A null event context did not produce an empty result");
 			return true;
 		}
 
 		Print("Tutorial matcher: enabled entries with any matching trigger, each returned exactly once, ordered by descending priority then declaration order, and no match gives an empty array");
 
-		SetResultSuccess();
 		return true;
 	}
 
@@ -431,7 +429,7 @@ class OVT_TEST_Logic_Tutorial_MatcherSelectsAndOrders : SCR_AutotestCaseBase
 class OVT_TEST_Logic_Tutorial_QueueOrdering : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_TutorialQueue queue = new OVT_TutorialQueue();
@@ -442,19 +440,19 @@ class OVT_TEST_Logic_Tutorial_QueueOrdering : SCR_AutotestCaseBase
 
 		if (queue.TryDequeue(dequeued))
 		{
-			SetResultFailure("TryDequeue on an empty queue reported success");
+			SetFailure("TryDequeue on an empty queue reported success");
 			return true;
 		}
 
 		if (dequeued != "SENTINEL")
 		{
-			SetResultFailure("TryDequeue on an empty queue overwrote the out param with '%1'", dequeued);
+			SetFailure("TryDequeue on an empty queue overwrote the out param with '%1'", dequeued);
 			return true;
 		}
 
 		if (queue.Count() != 0)
 		{
-			SetResultFailure("A fresh queue reported %1 entries, expected 0", queue.Count().ToString());
+			SetFailure("A fresh queue reported %1 entries, expected 0", queue.Count().ToString());
 			return true;
 		}
 
@@ -463,13 +461,13 @@ class OVT_TEST_Logic_Tutorial_QueueOrdering : SCR_AutotestCaseBase
 
 		if (queue.TryPeek(peeked))
 		{
-			SetResultFailure("TryPeek on an empty queue reported success");
+			SetFailure("TryPeek on an empty queue reported success");
 			return true;
 		}
 
 		if (peeked != "SENTINEL")
 		{
-			SetResultFailure("TryPeek on an empty queue overwrote the out param with '%1'", peeked);
+			SetFailure("TryPeek on an empty queue overwrote the out param with '%1'", peeked);
 			return true;
 		}
 
@@ -482,7 +480,7 @@ class OVT_TEST_Logic_Tutorial_QueueOrdering : SCR_AutotestCaseBase
 
 		if (queue.Count() != 5)
 		{
-			SetResultFailure("After five distinct enqueues the queue held %1 entries, expected 5", queue.Count().ToString());
+			SetFailure("After five distinct enqueues the queue held %1 entries, expected 5", queue.Count().ToString());
 			return true;
 		}
 
@@ -490,31 +488,31 @@ class OVT_TEST_Logic_Tutorial_QueueOrdering : SCR_AutotestCaseBase
 		// held back, so a peek that consumed or reordered would silently drop tips.
 		if (!queue.TryPeek(peeked) || peeked != "high-first")
 		{
-			SetResultFailure("TryPeek gave '%1', expected 'high-first'", peeked);
+			SetFailure("TryPeek gave '%1', expected 'high-first'", peeked);
 			return true;
 		}
 
 		if (queue.Count() != 5)
 		{
-			SetResultFailure("TryPeek left %1 entries, expected all 5 - a peek must not consume", queue.Count().ToString());
+			SetFailure("TryPeek left %1 entries, expected all 5 - a peek must not consume", queue.Count().ToString());
 			return true;
 		}
 
 		if (!queue.TryPeek(peeked) || peeked != "high-first")
 		{
-			SetResultFailure("A second TryPeek gave '%1', expected 'high-first' again", peeked);
+			SetFailure("A second TryPeek gave '%1', expected 'high-first' again", peeked);
 			return true;
 		}
 
 		if (!queue.Contains("mid"))
 		{
-			SetResultFailure("Contains() did not find an id that had just been enqueued");
+			SetFailure("Contains() did not find an id that had just been enqueued");
 			return true;
 		}
 
 		if (queue.Contains("never-enqueued"))
 		{
-			SetResultFailure("Contains() found an id that was never enqueued");
+			SetFailure("Contains() found an id that was never enqueued");
 			return true;
 		}
 
@@ -524,14 +522,14 @@ class OVT_TEST_Logic_Tutorial_QueueOrdering : SCR_AutotestCaseBase
 		{
 			if (!queue.TryDequeue(dequeued))
 			{
-				SetResultFailure("TryDequeue failed at position %1 with %2 entries still expected",
+				SetFailure("TryDequeue failed at position %1 with %2 entries still expected",
 					i.ToString(), (expected.Count() - i).ToString());
 				return true;
 			}
 
 			if (dequeued != expected.Get(i))
 			{
-				SetResultFailure("Dequeue %1 gave '%2', expected '%3' (priority first, then arrival order within a priority)",
+				SetFailure("Dequeue %1 gave '%2', expected '%3' (priority first, then arrival order within a priority)",
 					i.ToString(), dequeued, expected.Get(i));
 				return true;
 			}
@@ -539,7 +537,7 @@ class OVT_TEST_Logic_Tutorial_QueueOrdering : SCR_AutotestCaseBase
 
 		if (queue.Count() != 0)
 		{
-			SetResultFailure("After draining, the queue reported %1 entries, expected 0", queue.Count().ToString());
+			SetFailure("After draining, the queue reported %1 entries, expected 0", queue.Count().ToString());
 			return true;
 		}
 
@@ -551,33 +549,33 @@ class OVT_TEST_Logic_Tutorial_QueueOrdering : SCR_AutotestCaseBase
 
 		if (dupes.Enqueue("a", 0))
 		{
-			SetResultFailure("Enqueueing an already-queued id reported success");
+			SetFailure("Enqueueing an already-queued id reported success");
 			return true;
 		}
 
 		if (dupes.Enqueue("a", 999))
 		{
-			SetResultFailure("Enqueueing an already-queued id at a higher priority reported success");
+			SetFailure("Enqueueing an already-queued id at a higher priority reported success");
 			return true;
 		}
 
 		if (dupes.Count() != 2)
 		{
-			SetResultFailure("After two duplicate enqueues the queue held %1 entries, expected 2", dupes.Count().ToString());
+			SetFailure("After two duplicate enqueues the queue held %1 entries, expected 2", dupes.Count().ToString());
 			return true;
 		}
 
 		dupes.TryDequeue(dequeued);
 		if (dequeued != "a")
 		{
-			SetResultFailure("The duplicate enqueue reordered the queue: head is '%1', expected 'a'", dequeued);
+			SetFailure("The duplicate enqueue reordered the queue: head is '%1', expected 'a'", dequeued);
 			return true;
 		}
 
 		// An empty id is refused outright rather than queued as a blank tip.
 		if (dupes.Enqueue("", 0))
 		{
-			SetResultFailure("Enqueueing an empty id reported success");
+			SetFailure("Enqueueing an empty id reported success");
 			return true;
 		}
 
@@ -588,7 +586,7 @@ class OVT_TEST_Logic_Tutorial_QueueOrdering : SCR_AutotestCaseBase
 		{
 			if (!capped.Enqueue("fill-" + f.ToString(), 0))
 			{
-				SetResultFailure("Filling to the cap failed at entry %1 of %2",
+				SetFailure("Filling to the cap failed at entry %1 of %2",
 					f.ToString(), OVT_TutorialQueue.MAX_QUEUE.ToString());
 				return true;
 			}
@@ -596,46 +594,46 @@ class OVT_TEST_Logic_Tutorial_QueueOrdering : SCR_AutotestCaseBase
 
 		if (capped.Count() != OVT_TutorialQueue.MAX_QUEUE)
 		{
-			SetResultFailure("A queue filled to the cap holds %1 entries, expected %2",
+			SetFailure("A queue filled to the cap holds %1 entries, expected %2",
 				capped.Count().ToString(), OVT_TutorialQueue.MAX_QUEUE.ToString());
 			return true;
 		}
 
 		if (capped.GetDroppedCount() != 0)
 		{
-			SetResultFailure("Filling exactly to the cap already counted %1 drops, expected 0", capped.GetDroppedCount().ToString());
+			SetFailure("Filling exactly to the cap already counted %1 drops, expected 0", capped.GetDroppedCount().ToString());
 			return true;
 		}
 
 		// A high priority does not buy a way past the cap - it would otherwise evict by the back door.
 		if (capped.Enqueue("overflow", 9999))
 		{
-			SetResultFailure("An enqueue past the cap reported success");
+			SetFailure("An enqueue past the cap reported success");
 			return true;
 		}
 
 		if (capped.Count() != OVT_TutorialQueue.MAX_QUEUE)
 		{
-			SetResultFailure("After an over-cap enqueue the queue holds %1 entries, expected %2",
+			SetFailure("After an over-cap enqueue the queue holds %1 entries, expected %2",
 				capped.Count().ToString(), OVT_TutorialQueue.MAX_QUEUE.ToString());
 			return true;
 		}
 
 		if (capped.Contains("overflow"))
 		{
-			SetResultFailure("The over-cap entry got into the queue anyway");
+			SetFailure("The over-cap entry got into the queue anyway");
 			return true;
 		}
 
 		if (!capped.Contains("fill-0"))
 		{
-			SetResultFailure("The over-cap enqueue displaced the entry that was already at the head");
+			SetFailure("The over-cap enqueue displaced the entry that was already at the head");
 			return true;
 		}
 
 		if (capped.GetDroppedCount() != 1)
 		{
-			SetResultFailure("One over-cap enqueue counted %1 drops, expected 1", capped.GetDroppedCount().ToString());
+			SetFailure("One over-cap enqueue counted %1 drops, expected 1", capped.GetDroppedCount().ToString());
 			return true;
 		}
 
@@ -643,7 +641,7 @@ class OVT_TEST_Logic_Tutorial_QueueOrdering : SCR_AutotestCaseBase
 
 		if (capped.GetDroppedCount() != 2)
 		{
-			SetResultFailure("Two over-cap enqueues counted %1 drops, expected 2", capped.GetDroppedCount().ToString());
+			SetFailure("Two over-cap enqueues counted %1 drops, expected 2", capped.GetDroppedCount().ToString());
 			return true;
 		}
 
@@ -651,7 +649,7 @@ class OVT_TEST_Logic_Tutorial_QueueOrdering : SCR_AutotestCaseBase
 		capped.TryDequeue(dequeued);
 		if (dequeued != "fill-0")
 		{
-			SetResultFailure("After two over-cap enqueues the head is '%1', expected the original 'fill-0'", dequeued);
+			SetFailure("After two over-cap enqueues the head is '%1', expected the original 'fill-0'", dequeued);
 			return true;
 		}
 
@@ -660,20 +658,19 @@ class OVT_TEST_Logic_Tutorial_QueueOrdering : SCR_AutotestCaseBase
 
 		if (capped.Count() != 0)
 		{
-			SetResultFailure("Clear() left %1 entries", capped.Count().ToString());
+			SetFailure("Clear() left %1 entries", capped.Count().ToString());
 			return true;
 		}
 
 		if (capped.GetDroppedCount() != 2)
 		{
-			SetResultFailure("Clear() reset the drop count to %1; it is a session diagnostic, not queue state",
+			SetFailure("Clear() reset the drop count to %1; it is a session diagnostic, not queue state",
 				capped.GetDroppedCount().ToString());
 			return true;
 		}
 
 		Print("Tutorial queue: highest priority out first with FIFO inside a priority band, duplicates are a no-op, an empty dequeue writes nothing, and over-cap enqueues are dropped and counted without displacing anything");
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -689,7 +686,7 @@ class OVT_TEST_Logic_Tutorial_QueueOrdering : SCR_AutotestCaseBase
 class OVT_TEST_Logic_Tutorial_GatePredicate : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		// Argument order: tipsDisabled, alreadyShowing, blockingUiOpen, playerAlive.
@@ -697,32 +694,32 @@ class OVT_TEST_Logic_Tutorial_GatePredicate : SCR_AutotestCaseBase
 		// --- ALL CLEAR is the only true.
 		if (!OVT_TutorialGate.CanShowNow(false, false, false, true))
 		{
-			SetResultFailure("The gate refused a popup with tips enabled, nothing showing, no blocking UI and the player alive");
+			SetFailure("The gate refused a popup with tips enabled, nothing showing, no blocking UI and the player alive");
 			return true;
 		}
 
 		// --- EACH VETO ALONE, with the other three clear.
 		if (OVT_TutorialGate.CanShowNow(true, false, false, true))
 		{
-			SetResultFailure("The gate allowed a popup while tips are disabled");
+			SetFailure("The gate allowed a popup while tips are disabled");
 			return true;
 		}
 
 		if (OVT_TutorialGate.CanShowNow(false, true, false, true))
 		{
-			SetResultFailure("The gate allowed a second popup while one is already showing");
+			SetFailure("The gate allowed a second popup while one is already showing");
 			return true;
 		}
 
 		if (OVT_TutorialGate.CanShowNow(false, false, true, true))
 		{
-			SetResultFailure("The gate allowed a popup while a blocking UI (menu, context or the map) is open");
+			SetFailure("The gate allowed a popup while a blocking UI (menu, context or the map) is open");
 			return true;
 		}
 
 		if (OVT_TutorialGate.CanShowNow(false, false, false, false))
 		{
-			SetResultFailure("The gate allowed a popup while the player is dead");
+			SetFailure("The gate allowed a popup while the player is dead");
 			return true;
 		}
 
@@ -730,7 +727,7 @@ class OVT_TEST_Logic_Tutorial_GatePredicate : SCR_AutotestCaseBase
 		// A tip about the screen the player is looking at is shown ON it rather than after it closes.
 		if (!OVT_TutorialGate.CanShowNow(false, false, true, true, true))
 		{
-			SetResultFailure("The gate held back a show-over-UI entry while a blocking UI was open - that entry exists to be drawn on top of it");
+			SetFailure("The gate held back a show-over-UI entry while a blocking UI was open - that entry exists to be drawn on top of it");
 			return true;
 		}
 
@@ -738,44 +735,43 @@ class OVT_TEST_Logic_Tutorial_GatePredicate : SCR_AutotestCaseBase
 		// the waiver set, or a tip about the map could appear over the death screen with tips off.
 		if (OVT_TutorialGate.CanShowNow(true, false, true, true, true))
 		{
-			SetResultFailure("A show-over-UI entry was allowed while tips are disabled");
+			SetFailure("A show-over-UI entry was allowed while tips are disabled");
 			return true;
 		}
 
 		if (OVT_TutorialGate.CanShowNow(false, true, true, true, true))
 		{
-			SetResultFailure("A show-over-UI entry was allowed on top of a popup that is already showing");
+			SetFailure("A show-over-UI entry was allowed on top of a popup that is already showing");
 			return true;
 		}
 
 		if (OVT_TutorialGate.CanShowNow(false, false, true, false, true))
 		{
-			SetResultFailure("A show-over-UI entry was allowed while the player is dead");
+			SetFailure("A show-over-UI entry was allowed while the player is dead");
 			return true;
 		}
 
 		// --- COMBINATIONS: any veto still vetoes, and everything wrong is still false.
 		if (OVT_TutorialGate.CanShowNow(true, true, true, false))
 		{
-			SetResultFailure("The gate allowed a popup with all four conditions against it");
+			SetFailure("The gate allowed a popup with all four conditions against it");
 			return true;
 		}
 
 		if (OVT_TutorialGate.CanShowNow(false, true, true, true))
 		{
-			SetResultFailure("The gate allowed a popup while both showing and blocked");
+			SetFailure("The gate allowed a popup while both showing and blocked");
 			return true;
 		}
 
 		if (OVT_TutorialGate.CanShowNow(true, false, false, false))
 		{
-			SetResultFailure("The gate allowed a popup while tips are disabled and the player is dead");
+			SetFailure("The gate allowed a popup while tips are disabled and the player is dead");
 			return true;
 		}
 
 		Print("Tutorial gate: shows only with tips enabled, nothing on screen, no blocking UI and the player alive - each of the four vetoes proven in isolation");
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -796,27 +792,27 @@ class OVT_TEST_Logic_Tutorial_GatePredicate : SCR_AutotestCaseBase
 class OVT_TEST_Logic_Tutorial_SeenStore : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_TutorialSeenStore store = new OVT_TutorialSeenStore();
 
 		if (store.Count() != 0)
 		{
-			SetResultFailure("A fresh store remembers %1 ids, expected 0", store.Count().ToString());
+			SetFailure("A fresh store remembers %1 ids, expected 0", store.Count().ToString());
 			return true;
 		}
 
 		if (store.GetVersion() != OVT_TutorialSeenStore.CURRENT_VERSION)
 		{
-			SetResultFailure("A fresh store is at version %1, expected %2",
+			SetFailure("A fresh store is at version %1, expected %2",
 				store.GetVersion().ToString(), OVT_TutorialSeenStore.CURRENT_VERSION.ToString());
 			return true;
 		}
 
 		if (store.HasSeen("economy-first-buy"))
 		{
-			SetResultFailure("A fresh store claims to have seen an id");
+			SetFailure("A fresh store claims to have seen an id");
 			return true;
 		}
 
@@ -825,25 +821,25 @@ class OVT_TEST_Logic_Tutorial_SeenStore : SCR_AutotestCaseBase
 
 		if (!store.HasSeen("economy-first-buy"))
 		{
-			SetResultFailure("An id that was just marked seen was not found");
+			SetFailure("An id that was just marked seen was not found");
 			return true;
 		}
 
 		if (store.HasSeen("Economy-First-Buy"))
 		{
-			SetResultFailure("HasSeen matched a different casing; the lookup must be exact");
+			SetFailure("HasSeen matched a different casing; the lookup must be exact");
 			return true;
 		}
 
 		if (store.HasSeen("economy-first"))
 		{
-			SetResultFailure("HasSeen matched a prefix of a stored id; the lookup must be exact");
+			SetFailure("HasSeen matched a prefix of a stored id; the lookup must be exact");
 			return true;
 		}
 
 		if (store.HasSeen(""))
 		{
-			SetResultFailure("HasSeen('') reported true");
+			SetFailure("HasSeen('') reported true");
 			return true;
 		}
 
@@ -853,7 +849,7 @@ class OVT_TEST_Logic_Tutorial_SeenStore : SCR_AutotestCaseBase
 
 		if (store.Count() != 1)
 		{
-			SetResultFailure("Marking the same id three times left %1 ids, expected 1", store.Count().ToString());
+			SetFailure("Marking the same id three times left %1 ids, expected 1", store.Count().ToString());
 			return true;
 		}
 
@@ -862,7 +858,7 @@ class OVT_TEST_Logic_Tutorial_SeenStore : SCR_AutotestCaseBase
 
 		if (store.Count() != 1)
 		{
-			SetResultFailure("Marking an empty id left %1 ids, expected 1", store.Count().ToString());
+			SetFailure("Marking an empty id left %1 ids, expected 1", store.Count().ToString());
 			return true;
 		}
 
@@ -875,13 +871,13 @@ class OVT_TEST_Logic_Tutorial_SeenStore : SCR_AutotestCaseBase
 
 		if (written.Count() != 3)
 		{
-			SetResultFailure("WriteTo emitted %1 ids for a store of 3", written.Count().ToString());
+			SetFailure("WriteTo emitted %1 ids for a store of 3", written.Count().ToString());
 			return true;
 		}
 
 		if (!written.Contains("economy-first-buy") || !written.Contains("welcome-intro") || !written.Contains("place-first-camp"))
 		{
-			SetResultFailure("WriteTo lost an id: got %1", JoinIds(written));
+			SetFailure("WriteTo lost an id: got %1", JoinIds(written));
 			return true;
 		}
 
@@ -892,7 +888,7 @@ class OVT_TEST_Logic_Tutorial_SeenStore : SCR_AutotestCaseBase
 			{
 				if (written.Get(d) == written.Get(e))
 				{
-					SetResultFailure("WriteTo emitted '%1' twice: %2", written.Get(d), JoinIds(written));
+					SetFailure("WriteTo emitted '%1' twice: %2", written.Get(d), JoinIds(written));
 					return true;
 				}
 			}
@@ -903,13 +899,13 @@ class OVT_TEST_Logic_Tutorial_SeenStore : SCR_AutotestCaseBase
 
 		if (reloaded.Count() != 3)
 		{
-			SetResultFailure("A reloaded store holds %1 ids, expected 3", reloaded.Count().ToString());
+			SetFailure("A reloaded store holds %1 ids, expected 3", reloaded.Count().ToString());
 			return true;
 		}
 
 		if (!reloaded.HasSeen("economy-first-buy") || !reloaded.HasSeen("welcome-intro") || !reloaded.HasSeen("place-first-camp"))
 		{
-			SetResultFailure("A reloaded store lost an id");
+			SetFailure("A reloaded store lost an id");
 			return true;
 		}
 
@@ -920,7 +916,7 @@ class OVT_TEST_Logic_Tutorial_SeenStore : SCR_AutotestCaseBase
 
 		if (rewritten.Count() != written.Count())
 		{
-			SetResultFailure("A second round trip emitted %1 ids, expected %2", rewritten.Count().ToString(), written.Count().ToString());
+			SetFailure("A second round trip emitted %1 ids, expected %2", rewritten.Count().ToString(), written.Count().ToString());
 			return true;
 		}
 
@@ -928,7 +924,7 @@ class OVT_TEST_Logic_Tutorial_SeenStore : SCR_AutotestCaseBase
 		{
 			if (rewritten.Get(r) != written.Get(r))
 			{
-				SetResultFailure("The round trip is not stable: position %1 was '%2' and is now '%3'",
+				SetFailure("The round trip is not stable: position %1 was '%2' and is now '%3'",
 					r.ToString(), written.Get(r), rewritten.Get(r));
 				return true;
 			}
@@ -941,7 +937,7 @@ class OVT_TEST_Logic_Tutorial_SeenStore : SCR_AutotestCaseBase
 
 		if (replaced.HasSeen("stale-id"))
 		{
-			SetResultFailure("LoadFrom merged into the existing set instead of replacing it");
+			SetFailure("LoadFrom merged into the existing set instead of replacing it");
 			return true;
 		}
 
@@ -951,7 +947,7 @@ class OVT_TEST_Logic_Tutorial_SeenStore : SCR_AutotestCaseBase
 
 		if (nulled.Count() != 0)
 		{
-			SetResultFailure("LoadFrom(null) left %1 ids, expected 0", nulled.Count().ToString());
+			SetFailure("LoadFrom(null) left %1 ids, expected 0", nulled.Count().ToString());
 			return true;
 		}
 
@@ -961,13 +957,13 @@ class OVT_TEST_Logic_Tutorial_SeenStore : SCR_AutotestCaseBase
 
 		if (mismatched.Count() != 0)
 		{
-			SetResultFailure("A store loaded at the wrong version kept %1 ids, expected 0", mismatched.Count().ToString());
+			SetFailure("A store loaded at the wrong version kept %1 ids, expected 0", mismatched.Count().ToString());
 			return true;
 		}
 
 		if (mismatched.GetVersion() != OVT_TutorialSeenStore.CURRENT_VERSION)
 		{
-			SetResultFailure("After a version mismatch the store is at version %1, expected to be rewritten at %2",
+			SetFailure("After a version mismatch the store is at version %1, expected to be rewritten at %2",
 				mismatched.GetVersion().ToString(), OVT_TutorialSeenStore.CURRENT_VERSION.ToString());
 			return true;
 		}
@@ -977,7 +973,7 @@ class OVT_TEST_Logic_Tutorial_SeenStore : SCR_AutotestCaseBase
 
 		if (!mismatched.HasSeen("after-reset"))
 		{
-			SetResultFailure("A store cleared by a version mismatch would not accept a new id");
+			SetFailure("A store cleared by a version mismatch would not accept a new id");
 			return true;
 		}
 
@@ -991,26 +987,26 @@ class OVT_TEST_Logic_Tutorial_SeenStore : SCR_AutotestCaseBase
 
 		if (capped.Count() != OVT_TutorialSeenStore.MAX_SEEN)
 		{
-			SetResultFailure("Filling to the cap left %1 ids, expected %2",
+			SetFailure("Filling to the cap left %1 ids, expected %2",
 				capped.Count().ToString(), OVT_TutorialSeenStore.MAX_SEEN.ToString());
 			return true;
 		}
 
 		if (capped.MarkSeen("one-too-many"))
 		{
-			SetResultFailure("MarkSeen past the cap reported success");
+			SetFailure("MarkSeen past the cap reported success");
 			return true;
 		}
 
 		if (capped.HasSeen("one-too-many"))
 		{
-			SetResultFailure("An id refused by the cap is remembered anyway");
+			SetFailure("An id refused by the cap is remembered anyway");
 			return true;
 		}
 
 		if (capped.Count() != OVT_TutorialSeenStore.MAX_SEEN)
 		{
-			SetResultFailure("After a refused id the store holds %1 ids, expected %2",
+			SetFailure("After a refused id the store holds %1 ids, expected %2",
 				capped.Count().ToString(), OVT_TutorialSeenStore.MAX_SEEN.ToString());
 			return true;
 		}
@@ -1019,7 +1015,7 @@ class OVT_TEST_Logic_Tutorial_SeenStore : SCR_AutotestCaseBase
 		// "refuses" from "evicts", and evicting would re-show a tip the player already dismissed.
 		if (!capped.HasSeen("id-0") || !capped.HasSeen("id-" + (OVT_TutorialSeenStore.MAX_SEEN - 1).ToString()))
 		{
-			SetResultFailure("The cap dropped an existing id to make room for a refused one");
+			SetFailure("The cap dropped an existing id to make room for a refused one");
 			return true;
 		}
 
@@ -1027,13 +1023,12 @@ class OVT_TEST_Logic_Tutorial_SeenStore : SCR_AutotestCaseBase
 		// already-seen entry is not reported as a failure.
 		if (!capped.MarkSeen("id-0"))
 		{
-			SetResultFailure("Re-marking an id already present in a full store reported failure");
+			SetFailure("Re-marking an id already present in a full store reported failure");
 			return true;
 		}
 
 		Print("Tutorial seen store: exact-match lookup, idempotent marking, a stable lossless round trip through plain arrays, a version mismatch that clears and rewrites, and a 512 cap that refuses new ids without dropping old ones");
 
-		SetResultSuccess();
 		return true;
 	}
 
@@ -1093,7 +1088,7 @@ class OVT_TEST_Logic_Tutorial_SpawnContextSelectsOneWelcome : SCR_AutotestCaseBa
 	protected static const string NOHOUSE_CONTEXT = "nohouse";
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		array<ref OVT_TutorialEntryConfig> entries = new array<ref OVT_TutorialEntryConfig>();
@@ -1108,14 +1103,14 @@ class OVT_TEST_Logic_Tutorial_SpawnContextSelectsOneWelcome : SCR_AutotestCaseBa
 
 		if (house.Count() != 1)
 		{
-			SetResultFailure("A '%1' spawn context selected %2 welcome(s) %3, expected exactly one. A player must read one welcome, never two and never none.",
+			SetFailure("A '%1' spawn context selected %2 welcome(s) %3, expected exactly one. A player must read one welcome, never two and never none.",
 				HOUSE_CONTEXT, house.Count().ToString(), JoinIds(house));
 			return true;
 		}
 
 		if (house.Get(0) != HOUSE_ID)
 		{
-			SetResultFailure("A '%1' spawn context selected '%2', expected '%3' - the player who was given a house would read the houseless page",
+			SetFailure("A '%1' spawn context selected '%2', expected '%3' - the player who was given a house would read the houseless page",
 				HOUSE_CONTEXT, house.Get(0), HOUSE_ID);
 			return true;
 		}
@@ -1126,14 +1121,14 @@ class OVT_TEST_Logic_Tutorial_SpawnContextSelectsOneWelcome : SCR_AutotestCaseBa
 
 		if (nohouse.Count() != 1)
 		{
-			SetResultFailure("A '%1' spawn context selected %2 welcome(s) %3, expected exactly one",
+			SetFailure("A '%1' spawn context selected %2 welcome(s) %3, expected exactly one",
 				NOHOUSE_CONTEXT, nohouse.Count().ToString(), JoinIds(nohouse));
 			return true;
 		}
 
 		if (nohouse.Get(0) != NOHOUSE_ID)
 		{
-			SetResultFailure("A '%1' spawn context selected '%2', expected '%3' - the player who spawned at a bus stop with no house and no car would read a page telling them they own a house and a car, which is the exact failure this feature exists to prevent",
+			SetFailure("A '%1' spawn context selected '%2', expected '%3' - the player who spawned at a bus stop with no house and no car would read a page telling them they own a house and a car, which is the exact failure this feature exists to prevent",
 				NOHOUSE_CONTEXT, nohouse.Get(0), NOHOUSE_ID);
 			return true;
 		}
@@ -1145,7 +1140,7 @@ class OVT_TEST_Logic_Tutorial_SpawnContextSelectsOneWelcome : SCR_AutotestCaseBa
 
 		if (empty.Count() != 0)
 		{
-			SetResultFailure("An EMPTY spawn context selected %1 welcome(s) %2, expected none. An empty context matches no filtered trigger, which is why the client-side default must be '%3' and never \"\": with \"\" the player sees NO welcome at all rather than the wrong page.",
+			SetFailure("An EMPTY spawn context selected %1 welcome(s) %2, expected none. An empty context matches no filtered trigger, which is why the client-side default must be '%3' and never \"\": with \"\" the player sees NO welcome at all rather than the wrong page.",
 				empty.Count().ToString(), JoinIds(empty), HOUSE_CONTEXT);
 			return true;
 		}
@@ -1156,7 +1151,7 @@ class OVT_TEST_Logic_Tutorial_SpawnContextSelectsOneWelcome : SCR_AutotestCaseBa
 
 		if (typo.Count() != 0)
 		{
-			SetResultFailure("A spawn context of 'House' selected %1 welcome(s) %2; the filter comparison must be exact and case-sensitive",
+			SetFailure("A spawn context of 'House' selected %1 welcome(s) %2; the filter comparison must be exact and case-sensitive",
 				typo.Count().ToString(), JoinIds(typo));
 			return true;
 		}
@@ -1168,14 +1163,13 @@ class OVT_TEST_Logic_Tutorial_SpawnContextSelectsOneWelcome : SCR_AutotestCaseBa
 
 		if (otherEvent.Count() != 0)
 		{
-			SetResultFailure("A non-spawn event carrying the '%1' filter selected %2 welcome(s) %3, expected none",
+			SetFailure("A non-spawn event carrying the '%1' filter selected %2 welcome(s) %3, expected none",
 				HOUSE_CONTEXT, otherEvent.Count().ToString(), JoinIds(otherEvent));
 			return true;
 		}
 
 		Print("Tutorial spawn context: 'house' selects welcome-intro alone, 'nohouse' selects welcome-nohome alone, and an EMPTY context selects neither - which is why the client-side default is 'house' and never \"\"");
 
-		SetResultSuccess();
 		return true;
 	}
 

@@ -34,20 +34,20 @@
 class OVT_TEST_Logic_TravelFares : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		// --- WHICH VERB GETS THE FLOOR. Everything below asserts what the floor DOES; these two assert
 		// who it is applied TO, which is the half no fare assertion can reach.
 		if (!OVT_FastTravelService.VerbUsesKmFloor(OVT_TravelVerb.FAST_TRAVEL))
 		{
-			SetResultFailure("Fast travel must be charged at a one-kilometre minimum, but VerbUsesKmFloor(FAST_TRAVEL) returned false");
+			SetFailure("Fast travel must be charged at a one-kilometre minimum, but VerbUsesKmFloor(FAST_TRAVEL) returned false");
 			return true;
 		}
 
 		if (OVT_FastTravelService.VerbUsesKmFloor(OVT_TravelVerb.BUS))
 		{
-			SetResultFailure("A bus fare must be strictly pro rata, but VerbUsesKmFloor(BUS) returned true");
+			SetFailure("A bus fare must be strictly pro rata, but VerbUsesKmFloor(BUS) returned true");
 			return true;
 		}
 
@@ -57,14 +57,14 @@ class OVT_TEST_Logic_TravelFares : SCR_AutotestCaseBase
 		int flooredZero = OVT_FastTravelService.ComputeFare(0, 100, OVT_FastTravelService.VerbUsesKmFloor(OVT_TravelVerb.FAST_TRAVEL), 0);
 		if (flooredZero != 100)
 		{
-			SetResultFailure("A zero-distance trip priced with the FAST_TRAVEL floor cost %1, expected one full unit of 100", flooredZero.ToString());
+			SetFailure("A zero-distance trip priced with the FAST_TRAVEL floor cost %1, expected one full unit of 100", flooredZero.ToString());
 			return true;
 		}
 
 		int unflooredZero = OVT_FastTravelService.ComputeFare(0, 100, OVT_FastTravelService.VerbUsesKmFloor(OVT_TravelVerb.BUS), 0);
 		if (unflooredZero != 0)
 		{
-			SetResultFailure("A zero-distance trip priced with the BUS floor setting cost %1, expected 0", unflooredZero.ToString());
+			SetFailure("A zero-distance trip priced with the BUS floor setting cost %1, expected 0", unflooredZero.ToString());
 			return true;
 		}
 
@@ -151,7 +151,7 @@ class OVT_TEST_Logic_TravelFares : SCR_AutotestCaseBase
 		int partyOfThree = OVT_FastTravelService.ComputeFare(1500, 1, false, 2);
 		if (partyOfThree != soloRounded * 3)
 		{
-			SetResultFailure("A party of three paid %1 for a trip whose solo fare is %2; rounding must happen before the recruit multiplier, giving %3",
+			SetFailure("A party of three paid %1 for a trip whose solo fare is %2; rounding must happen before the recruit multiplier, giving %3",
 				partyOfThree.ToString(), soloRounded.ToString(), (soloRounded * 3).ToString());
 			return true;
 		}
@@ -174,7 +174,6 @@ class OVT_TEST_Logic_TravelFares : SCR_AutotestCaseBase
 
 		Print("Travel fares: VerbUsesKmFloor puts the 1 km floor on fast travel and not on buses, a 0 m trip costs one unit with the floor and nothing without, the recruit multiplier is exactly (1 + N), and rounding is Math.Round applied before the multiplier");
 
-		SetResultSuccess();
 		return true;
 	}
 
@@ -199,7 +198,7 @@ class OVT_TEST_Logic_TravelFares : SCR_AutotestCaseBase
 		string trip = distMeters.ToString() + " m at " + unitPrice.ToString() + "/km, floor "
 			+ applyKmFloor.ToString() + ", " + recruitCount.ToString() + " recruits";
 
-		SetResultFailure("%1 (%2) cost %3, expected " + expected.ToString(), label, trip, actual.ToString());
+		SetFailure("%1 (%2) cost %3, expected " + expected.ToString(), label, trip, actual.ToString());
 
 		return false;
 	}
@@ -227,7 +226,7 @@ class OVT_TEST_Logic_TravelFares : SCR_AutotestCaseBase
 			string trip = distMeters.ToString() + " m at " + unitPrice.ToString() + "/km, floor "
 				+ applyKmFloor.ToString();
 
-			SetResultFailure("A trip (%1) with %2 recruits cost %3; " + (1 + count).ToString()
+			SetFailure("A trip (%1) with %2 recruits cost %3; " + (1 + count).ToString()
 				+ " solo fares of " + solo.ToString() + " is " + expected.ToString(),
 				trip, count.ToString(), actual.ToString());
 
@@ -255,7 +254,7 @@ class OVT_TEST_Logic_TravelFares : SCR_AutotestCaseBase
 		string trip = distMeters.ToString() + " m at " + unitPrice.ToString() + "/km, floor "
 			+ applyKmFloor.ToString();
 
-		SetResultFailure("A trip (%1) cost %2; Math.Round of the kilometre term is %3",
+		SetFailure("A trip (%1) cost %2; Math.Round of the kilometre term is %3",
 			trip, actual.ToString(), expected.ToString());
 
 		return false;

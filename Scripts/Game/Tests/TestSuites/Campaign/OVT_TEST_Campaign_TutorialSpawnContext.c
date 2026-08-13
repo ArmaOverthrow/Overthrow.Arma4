@@ -30,26 +30,26 @@
 class OVT_TEST_Campaign_Tutorial_SpawnContextIsAuthored : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_OverthrowGameMode mode = OVT_Global.GetOverthrow();
 		if (!mode)
 		{
-			SetResultFailure("OVT_Global.GetOverthrow() is null in a campaign-tier case");
+			SetFailure("OVT_Global.GetOverthrow() is null in a campaign-tier case");
 			return true;
 		}
 
 		if (!mode.HasGameStarted())
 		{
-			SetResultFailure("HasGameStarted() is false in a campaign-tier case - see OVT_TEST_Campaign_GameMode_IsStartedAndInitialized");
+			SetFailure("HasGameStarted() is false in a campaign-tier case - see OVT_TEST_Campaign_GameMode_IsStartedAndInitialized");
 			return true;
 		}
 
 		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
 		if (!players)
 		{
-			SetResultFailure("OVT_Global.GetPlayers() is null - see OVT_TEST_Init_Globals_ManagersResolve");
+			SetFailure("OVT_Global.GetPlayers() is null - see OVT_TEST_Init_Globals_ManagersResolve");
 			return true;
 		}
 
@@ -58,7 +58,7 @@ class OVT_TEST_Campaign_Tutorial_SpawnContextIsAuthored : SCR_AutotestCaseBase
 		GetGame().GetPlayerManager().GetPlayers(connected);
 		if (connected.IsEmpty())
 		{
-			SetResultFailure("No player is connected - the autotest client normally spawns a local player (playerId 1), so player preparation never ran for anybody and this case cannot measure anything");
+			SetFailure("No player is connected - the autotest client normally spawns a local player (playerId 1), so player preparation never ran for anybody and this case cannot measure anything");
 			return true;
 		}
 
@@ -67,7 +67,7 @@ class OVT_TEST_Campaign_Tutorial_SpawnContextIsAuthored : SCR_AutotestCaseBase
 		string persistentId = players.GetPersistentIDFromPlayerID(playerId);
 		if (persistentId == "")
 		{
-			SetResultFailure("The player manager has no persistent ID for playerId %1, so SetupPlayer never ran and player preparation cannot have authored a spawn context", playerId.ToString());
+			SetFailure("The player manager has no persistent ID for playerId %1, so SetupPlayer never ran and player preparation cannot have authored a spawn context", playerId.ToString());
 			return true;
 		}
 
@@ -75,7 +75,7 @@ class OVT_TEST_Campaign_Tutorial_SpawnContextIsAuthored : SCR_AutotestCaseBase
 		// would be honest rather than a defect, and this case would be reporting the wrong failure.
 		if (!mode.m_aInitializedPlayers || !mode.m_aInitializedPlayers.Contains(persistentId))
 		{
-			SetResultFailure("Player %1 is not in the game mode's finalized set, so FinalizePlayerPreparation never completed for them. The campaign start should have finalized every connected player - see OVT_TEST_Campaign_ContinuePlayerIdMapping.", persistentId);
+			SetFailure("Player %1 is not in the game mode's finalized set, so FinalizePlayerPreparation never completed for them. The campaign start should have finalized every connected player - see OVT_TEST_Campaign_ContinuePlayerIdMapping.", persistentId);
 			return true;
 		}
 
@@ -84,20 +84,19 @@ class OVT_TEST_Campaign_Tutorial_SpawnContextIsAuthored : SCR_AutotestCaseBase
 		if (context == OVT_TutorialComponent.SPAWN_CONTEXT_HOUSE || context == OVT_TutorialComponent.SPAWN_CONTEXT_NOHOUSE)
 		{
 			PrintFormat("The campaign start authored a spawn context of '%1' for the finalized local player, so FinalizePlayerPreparation ran the branch that decides which welcome they read", context);
-			SetResultSuccess();
 			return true;
 		}
 
 		if (context == "")
 		{
-			SetResultFailure("Player %1 was finalized by the campaign start but has NO spawn context ('' - unknown). FinalizePlayerPreparation took one of its two branches and neither recorded what the player was given, so nothing on the server can answer which welcome they should read, and every client falls back to the house page - including a player who spawned at a bus stop with no house and no car. Check that both branches of FinalizePlayerPreparation still call SetPlayerSpawnContext (the fallback branch with '%2', the home branch with '%3').",
+			SetFailure("Player %1 was finalized by the campaign start but has NO spawn context ('' - unknown). FinalizePlayerPreparation took one of its two branches and neither recorded what the player was given, so nothing on the server can answer which welcome they should read, and every client falls back to the house page - including a player who spawned at a bus stop with no house and no car. Check that both branches of FinalizePlayerPreparation still call SetPlayerSpawnContext (the fallback branch with '%2', the home branch with '%3').",
 				persistentId, OVT_TutorialComponent.SPAWN_CONTEXT_NOHOUSE, OVT_TutorialComponent.SPAWN_CONTEXT_HOUSE);
 			return true;
 		}
 
 		string known = "'" + OVT_TutorialComponent.SPAWN_CONTEXT_HOUSE + "' nor '" + OVT_TutorialComponent.SPAWN_CONTEXT_NOHOUSE + "'";
 
-		SetResultFailure("Player %1 has a spawn context of '%2', which is neither %3. The value is dispatched into the PLAYER_SPAWNED tutorial event as its filter, so an unrecognised context matches NO welcome entry at all and the player sees nothing.",
+		SetFailure("Player %1 has a spawn context of '%2', which is neither %3. The value is dispatched into the PLAYER_SPAWNED tutorial event as its filter, so an unrecognised context matches NO welcome entry at all and the player sees nothing.",
 			persistentId, context, known);
 		return true;
 	}

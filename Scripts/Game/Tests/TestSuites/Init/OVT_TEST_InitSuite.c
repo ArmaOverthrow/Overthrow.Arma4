@@ -35,19 +35,18 @@ class OVT_TEST_InitSuite : OVT_TEST_SuiteBase
 class OVT_TEST_Init_Globals_ManagersResolve : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		string firstNull = FindFirstNullGetter();
 
 		if (firstNull != "")
 		{
-			SetResultFailure("OVT_Global getter returned null: %1 - the game mode is missing that manager component", firstNull);
+			SetFailure("OVT_Global getter returned null: %1 - the game mode is missing that manager component", firstNull);
 			return true;
 		}
 
 		Print("Every non-player OVT_Global getter resolved");
-		SetResultSuccess();
 		return true;
 	}
 
@@ -94,53 +93,52 @@ class OVT_TEST_Init_Globals_ManagersResolve : SCR_AutotestCaseBase
 class OVT_TEST_Init_Towns_ArePopulated : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 		if (!towns)
 		{
-			SetResultFailure("OVT_Global.GetTowns() is null");
+			SetFailure("OVT_Global.GetTowns() is null");
 			return true;
 		}
 
 		array<ref OVT_TownData> townList = towns.GetTowns();
 		if (!townList)
 		{
-			SetResultFailure("OVT_TownManagerComponent.GetTowns() returned a null array");
+			SetFailure("OVT_TownManagerComponent.GetTowns() returned a null array");
 			return true;
 		}
 
 		// >= 1, never a magic count - the test world has exactly one town.
 		if (townList.Count() < 1)
 		{
-			SetResultFailure("No towns registered: OVT_TownManagerComponent.GetTowns().Count() = %1", townList.Count().ToString());
+			SetFailure("No towns registered: OVT_TownManagerComponent.GetTowns().Count() = %1", townList.Count().ToString());
 			return true;
 		}
 
 		OVT_TownData town = townList[0];
 		if (!town)
 		{
-			SetResultFailure("Town 0 is null");
+			SetFailure("Town 0 is null");
 			return true;
 		}
 
 		if (town.population <= 0)
 		{
-			SetResultFailure("Town 0 has no population: %1", town.population.ToString());
+			SetFailure("Town 0 has no population: %1", town.population.ToString());
 			return true;
 		}
 
 		if (town.location == vector.Zero)
 		{
-			SetResultFailure("Town 0 has no location (vector.Zero)");
+			SetFailure("Town 0 has no location (vector.Zero)");
 			return true;
 		}
 
 		PrintFormat("Towns registered: %1, town 0 population %2 at %3",
 			townList.Count().ToString(), town.population.ToString(), town.location.ToString());
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -157,33 +155,33 @@ class OVT_TEST_Init_Towns_ArePopulated : SCR_AutotestCaseBase
 class OVT_TEST_Init_Controllers_AreRegistered : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 		if (!towns)
 		{
-			SetResultFailure("OVT_Global.GetTowns() is null");
+			SetFailure("OVT_Global.GetTowns() is null");
 			return true;
 		}
 
 		if (towns.m_TownControllers.Count() < 1)
 		{
-			SetResultFailure("No town controllers registered: m_TownControllers.Count() = %1", towns.m_TownControllers.Count().ToString());
+			SetFailure("No town controllers registered: m_TownControllers.Count() = %1", towns.m_TownControllers.Count().ToString());
 			return true;
 		}
 
 		IEntity townEntity = GetGame().GetWorld().FindEntityByID(towns.m_TownControllers[0]);
 		if (!townEntity)
 		{
-			SetResultFailure("Town controller 0 is registered but its entity ID no longer resolves in the world");
+			SetFailure("Town controller 0 is registered but its entity ID no longer resolves in the world");
 			return true;
 		}
 
 		OVT_TownControllerComponent townController = OVT_TownControllerComponent.Cast(townEntity.FindComponent(OVT_TownControllerComponent));
 		if (!townController)
 		{
-			SetResultFailure("Registered town controller entity has no OVT_TownControllerComponent");
+			SetFailure("Registered town controller entity has no OVT_TownControllerComponent");
 			return true;
 		}
 
@@ -191,34 +189,34 @@ class OVT_TEST_Init_Controllers_AreRegistered : SCR_AutotestCaseBase
 		OVT_TownData town = towns.GetNearestTown(townEntity.GetOrigin());
 		if (!town)
 		{
-			SetResultFailure("GetNearestTown() found no town at the town controller's position %1", townEntity.GetOrigin().ToString());
+			SetFailure("GetNearestTown() found no town at the town controller's position %1", townEntity.GetOrigin().ToString());
 			return true;
 		}
 
 		int townId = towns.GetTownID(town);
 		if (townId < 0)
 		{
-			SetResultFailure("The town at the town controller's position is not in m_Towns (GetTownID returned %1)", townId.ToString());
+			SetFailure("The town at the town controller's position is not in m_Towns (GetTownID returned %1)", townId.ToString());
 			return true;
 		}
 
 		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
 		if (!occupying)
 		{
-			SetResultFailure("OVT_Global.GetOccupyingFaction() is null");
+			SetFailure("OVT_Global.GetOccupyingFaction() is null");
 			return true;
 		}
 
 		if (occupying.m_Bases.Count() < 1)
 		{
-			SetResultFailure("No bases registered: m_Bases.Count() = %1", occupying.m_Bases.Count().ToString());
+			SetFailure("No bases registered: m_Bases.Count() = %1", occupying.m_Bases.Count().ToString());
 			return true;
 		}
 
 		OVT_BaseControllerComponent baseController = occupying.GetBaseByIndex(0);
 		if (!baseController)
 		{
-			SetResultFailure("Base 0 is registered but GetBaseByIndex(0) resolved no OVT_BaseControllerComponent");
+			SetFailure("Base 0 is registered but GetBaseByIndex(0) resolved no OVT_BaseControllerComponent");
 			return true;
 		}
 
@@ -226,7 +224,6 @@ class OVT_TEST_Init_Controllers_AreRegistered : SCR_AutotestCaseBase
 			towns.m_TownControllers.Count().ToString(), townController.m_sName, townId.ToString());
 		PrintFormat("Bases registered: %1", occupying.m_Bases.Count().ToString());
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -250,13 +247,13 @@ class OVT_TEST_Init_Controllers_AreRegistered : SCR_AutotestCaseBase
 class OVT_TEST_Init_Towns_GetNearestTownInRange_ReturnsNearest : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 		if (!towns)
 		{
-			SetResultFailure("OVT_Global.GetTowns() is null");
+			SetFailure("OVT_Global.GetTowns() is null");
 			return true;
 		}
 
@@ -284,25 +281,24 @@ class OVT_TEST_Init_Towns_GetNearestTownInRange_ReturnsNearest : SCR_AutotestCas
 
 		if (overlapResult == farTown)
 		{
-			SetResultFailure("GetNearestTownInRange() returned the farther town because it precedes the nearer one in m_Towns (BUG-062 first-match regression)");
+			SetFailure("GetNearestTownInRange() returned the farther town because it precedes the nearer one in m_Towns (BUG-062 first-match regression)");
 			return true;
 		}
 
 		if (overlapResult != nearTown)
 		{
-			SetResultFailure("GetNearestTownInRange() did not return the nearer of two overlapping in-range towns");
+			SetFailure("GetNearestTownInRange() did not return the nearer of two overlapping in-range towns");
 			return true;
 		}
 
 		if (outOfRangeResult)
 		{
-			SetResultFailure("GetNearestTownInRange() returned a town for a probe outside every town's range");
+			SetFailure("GetNearestTownInRange() returned a town for a probe outside every town's range");
 			return true;
 		}
 
 		PrintFormat("GetNearestTownInRange: nearest of 2 overlapping villages returned, out-of-range probe returned null (village range %1)", range.ToString());
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -331,13 +327,13 @@ class OVT_TEST_Init_Towns_GetNearestTownInRange_ReturnsNearest : SCR_AutotestCas
 class OVT_TEST_Init_Persistence_SystemIsOnline : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		SCR_PersistenceSystem persistence = SCR_PersistenceSystem.GetScriptedInstance();
 		if (!persistence)
 		{
-			SetResultFailure("SCR_PersistenceSystem.GetScriptedInstance() is null - the persistence system is not registered for this world. Check the SCR_PersistenceSystem entry in Configs/Systems/ChimeraSystemsConfig.conf.");
+			SetFailure("SCR_PersistenceSystem.GetScriptedInstance() is null - the persistence system is not registered for this world. Check the SCR_PersistenceSystem entry in Configs/Systems/ChimeraSystemsConfig.conf.");
 			return true;
 		}
 
@@ -345,19 +341,18 @@ class OVT_TEST_Init_Persistence_SystemIsOnline : SCR_AutotestCaseBase
 
 		if (state == EPersistenceSystemState.FAILURE)
 		{
-			SetResultFailure("Persistence system state is FAILURE - its config could not be loaded. Check Configs/Systems/Persistence/Overthrow.conf and the GUID it inherits.");
+			SetFailure("Persistence system state is FAILURE - its config could not be loaded. Check Configs/Systems/Persistence/Overthrow.conf and the GUID it inherits.");
 			return true;
 		}
 
 		if (state != EPersistenceSystemState.ACTIVE)
 		{
-			SetResultFailure("Persistence system state is %1, expected ACTIVE. INIT and SETUP mean the world load has not finished setting persistence up.",
+			SetFailure("Persistence system state is %1, expected ACTIVE. INIT and SETUP mean the world load has not finished setting persistence up.",
 				typename.EnumToString(EPersistenceSystemState, state));
 			return true;
 		}
 
 		PrintFormat("Persistence system online, state %1", typename.EnumToString(EPersistenceSystemState, state));
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -386,13 +381,13 @@ class OVT_TEST_Init_Persistence_OverthrowConfigLoaded : SCR_AutotestCaseBase
 	static const string OVERTHROW_COLLECTION = "Overthrow";
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		SCR_PersistenceSystem persistence = SCR_PersistenceSystem.GetScriptedInstance();
 		if (!persistence)
 		{
-			SetResultFailure("SCR_PersistenceSystem.GetScriptedInstance() is null - see OVT_TEST_Init_Persistence_SystemIsOnline for the wiring this depends on.");
+			SetFailure("SCR_PersistenceSystem.GetScriptedInstance() is null - see OVT_TEST_Init_Persistence_SystemIsOnline for the wiring this depends on.");
 			return true;
 		}
 
@@ -401,19 +396,18 @@ class OVT_TEST_Init_Persistence_OverthrowConfigLoaded : SCR_AutotestCaseBase
 		PersistenceCollection vanillaCollection = persistence.FindCollection("Character");
 		if (!vanillaCollection)
 		{
-			SetResultFailure("FindCollection('Character') is null - the loaded persistence config does not even contain vanilla Common.conf's collections, so no config comparison is meaningful.");
+			SetFailure("FindCollection('Character') is null - the loaded persistence config does not even contain vanilla Common.conf's collections, so no config comparison is meaningful.");
 			return true;
 		}
 
 		PersistenceCollection overthrowCollection = persistence.FindCollection(OVERTHROW_COLLECTION);
 		if (!overthrowCollection)
 		{
-			SetResultFailure("FindCollection('%1') is null - the live persistence system is NOT running Configs/Systems/Persistence/Overthrow.conf. Check that the SCR_PersistenceSystem entry in Configs/Systems/ChimeraSystemsConfig.conf is the one this world's SystemSettings chain resolves.", OVERTHROW_COLLECTION);
+			SetFailure("FindCollection('%1') is null - the live persistence system is NOT running Configs/Systems/Persistence/Overthrow.conf. Check that the SCR_PersistenceSystem entry in Configs/Systems/ChimeraSystemsConfig.conf is the one this world's SystemSettings chain resolves.", OVERTHROW_COLLECTION);
 			return true;
 		}
 
 		PrintFormat("Overthrow persistence config in force (collection '%1' resolved)", OVERTHROW_COLLECTION);
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -447,20 +441,20 @@ class OVT_TEST_Init_Economy_PriceAndDemandSeams : SCR_AutotestCaseBase
 	static const int PROBE_DEMAND = 7;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
 		if (!economy)
 		{
-			SetResultFailure("OVT_Global.GetEconomy() is null");
+			SetFailure("OVT_Global.GetEconomy() is null");
 			return true;
 		}
 
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
 		if (!config)
 		{
-			SetResultFailure("OVT_Global.GetConfig() is null");
+			SetFailure("OVT_Global.GetConfig() is null");
 			return true;
 		}
 
@@ -468,14 +462,14 @@ class OVT_TEST_Init_Economy_PriceAndDemandSeams : SCR_AutotestCaseBase
 		int unknownPrice = economy.GetPrice(PROBE_UNKNOWN_ITEM_ID);
 		if (unknownPrice != 500)
 		{
-			SetResultFailure("GetPrice() on an unknown id returned %1, expected the documented default 500", unknownPrice.ToString());
+			SetFailure("GetPrice() on an unknown id returned %1, expected the documented default 500", unknownPrice.ToString());
 			return true;
 		}
 
 		int unknownDemand = economy.GetDemand(PROBE_UNKNOWN_ITEM_ID);
 		if (unknownDemand != 5)
 		{
-			SetResultFailure("GetDemand() on an unknown id returned %1, expected the documented default 5", unknownDemand.ToString());
+			SetFailure("GetDemand() on an unknown id returned %1, expected the documented default 5", unknownDemand.ToString());
 			return true;
 		}
 
@@ -484,7 +478,7 @@ class OVT_TEST_Init_Economy_PriceAndDemandSeams : SCR_AutotestCaseBase
 		int readPrice = economy.GetPrice(PROBE_ITEM_ID);
 		if (readPrice != PROBE_PRICE)
 		{
-			SetResultFailure("SetPrice(%1) then GetPrice() returned %2", PROBE_PRICE.ToString(), readPrice.ToString());
+			SetFailure("SetPrice(%1) then GetPrice() returned %2", PROBE_PRICE.ToString(), readPrice.ToString());
 			return true;
 		}
 
@@ -493,7 +487,7 @@ class OVT_TEST_Init_Economy_PriceAndDemandSeams : SCR_AutotestCaseBase
 		int readDemand = economy.GetDemand(PROBE_ITEM_ID);
 		if (readDemand != PROBE_DEMAND)
 		{
-			SetResultFailure("SetDemand(%1) then GetDemand() returned %2", PROBE_DEMAND.ToString(), readDemand.ToString());
+			SetFailure("SetDemand(%1) then GetDemand() returned %2", PROBE_DEMAND.ToString(), readDemand.ToString());
 			return true;
 		}
 
@@ -504,14 +498,14 @@ class OVT_TEST_Init_Economy_PriceAndDemandSeams : SCR_AutotestCaseBase
 
 		if (buyPrice != expectedBuyPrice)
 		{
-			SetResultFailure("GetBuyPrice() returned %1, expected %2 (base %3 plus m_fShopProfitMargin)",
+			SetFailure("GetBuyPrice() returned %1, expected %2 (base %3 plus m_fShopProfitMargin)",
 				buyPrice.ToString(), expectedBuyPrice.ToString(), PROBE_PRICE.ToString());
 			return true;
 		}
 
 		if (buyPrice <= PROBE_PRICE)
 		{
-			SetResultFailure("GetBuyPrice() %1 is not above the base price %2 - the shop margin is not being applied",
+			SetFailure("GetBuyPrice() %1 is not above the base price %2 - the shop margin is not being applied",
 				buyPrice.ToString(), PROBE_PRICE.ToString());
 			return true;
 		}
@@ -519,7 +513,6 @@ class OVT_TEST_Init_Economy_PriceAndDemandSeams : SCR_AutotestCaseBase
 		PrintFormat("Economy seams: price %1, demand %2, buy price %3",
 			readPrice.ToString(), readDemand.ToString(), buyPrice.ToString());
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -574,7 +567,7 @@ class OVT_TEST_Init_Persistence_CharacterConfigNeverSelfSpawns : SCR_AutotestCas
 	protected IEntity m_Character;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		if (m_iPhase == 0)
@@ -595,28 +588,28 @@ class OVT_TEST_Init_Persistence_CharacterConfigNeverSelfSpawns : SCR_AutotestCas
 		SCR_PersistenceSystem persistence = SCR_PersistenceSystem.GetScriptedInstance();
 		if (!persistence)
 		{
-			SetResultFailure("SCR_PersistenceSystem.GetScriptedInstance() is null - see OVT_TEST_Init_Persistence_SystemIsOnline.");
+			SetFailure("SCR_PersistenceSystem.GetScriptedInstance() is null - see OVT_TEST_Init_Persistence_SystemIsOnline.");
 			return true;
 		}
 
 		OVT_RecruitManagerComponent recruits = OVT_RecruitManagerComponent.GetInstance();
 		if (!recruits || recruits.m_sRecruitPrefab.IsEmpty())
 		{
-			SetResultFailure("The recruit manager has no character prefab to spawn a subject from");
+			SetFailure("The recruit manager has no character prefab to spawn a subject from");
 			return true;
 		}
 
 		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 		if (!towns || towns.m_Towns.Count() < 1)
 		{
-			SetResultFailure("No towns are registered - nowhere sensible to spawn the subject character");
+			SetFailure("No towns are registered - nowhere sensible to spawn the subject character");
 			return true;
 		}
 
 		m_Character = OVT_Global.SpawnEntityPrefab(recruits.m_sRecruitPrefab, towns.m_Towns[0].location);
 		if (!m_Character)
 		{
-			SetResultFailure("SpawnEntityPrefab() produced no character from the civilian prefab");
+			SetFailure("SpawnEntityPrefab() produced no character from the civilian prefab");
 			return true;
 		}
 
@@ -632,7 +625,7 @@ class OVT_TEST_Init_Persistence_CharacterConfigNeverSelfSpawns : SCR_AutotestCas
 		SCR_PersistenceSystem persistence = SCR_PersistenceSystem.GetScriptedInstance();
 		if (!persistence || !m_Character)
 		{
-			SetResultFailure("The persistence system or the subject character disappeared while waiting for tracking");
+			SetFailure("The persistence system or the subject character disappeared while waiting for tracking");
 			return FinishAndCleanUp();
 		}
 
@@ -641,7 +634,7 @@ class OVT_TEST_Init_Persistence_CharacterConfigNeverSelfSpawns : SCR_AutotestCas
 			m_iTrackingPolls += 1;
 			if (m_iTrackingPolls > MAX_TRACKING_POLLS)
 			{
-				SetResultFailure("The spawned character was never tracked (%1 polls) - Character_Base.et no longer carries the native Persistence component, so no character (dead or alive) is ever saved", m_iTrackingPolls.ToString());
+				SetFailure("The spawned character was never tracked (%1 polls) - Character_Base.et no longer carries the native Persistence component, so no character (dead or alive) is ever saved", m_iTrackingPolls.ToString());
 				return FinishAndCleanUp();
 			}
 
@@ -651,7 +644,7 @@ class OVT_TEST_Init_Persistence_CharacterConfigNeverSelfSpawns : SCR_AutotestCas
 		EntityPersistenceConfig aliveConfig = EntityPersistenceConfig.Cast(persistence.GetConfig(m_Character));
 		if (!aliveConfig)
 		{
-			SetResultFailure("GetConfig() handed back no entity config for a tracked live character");
+			SetFailure("GetConfig() handed back no entity config for a tracked live character");
 			return FinishAndCleanUp();
 		}
 
@@ -659,14 +652,14 @@ class OVT_TEST_Init_Persistence_CharacterConfigNeverSelfSpawns : SCR_AutotestCas
 		// self-spawns on load is doubled AI for every garrison Overthrow rebuilds itself.
 		if (aliveConfig.m_bSelfSpawn)
 		{
-			SetResultFailure("A LIVE character's matched persistence config already self-spawns - the corpse rule (or a config edit) is matching the living, which doubles every AI on load");
+			SetFailure("A LIVE character's matched persistence config already self-spawns - the corpse rule (or a config edit) is matching the living, which doubles every AI on load");
 			return FinishAndCleanUp();
 		}
 
 		ChimeraCharacter character = ChimeraCharacter.Cast(m_Character);
 		if (!character || !character.GetCharacterController())
 		{
-			SetResultFailure("The spawned recruit is not a character with a controller - it cannot be killed, so the corpse re-match cannot be exercised");
+			SetFailure("The spawned recruit is not a character with a controller - it cannot be killed, so the corpse re-match cannot be exercised");
 			return FinishAndCleanUp();
 		}
 
@@ -686,7 +679,7 @@ class OVT_TEST_Init_Persistence_CharacterConfigNeverSelfSpawns : SCR_AutotestCas
 		SCR_PersistenceSystem persistence = SCR_PersistenceSystem.GetScriptedInstance();
 		if (!persistence || !m_Character)
 		{
-			SetResultFailure("The persistence system or the corpse disappeared before the corpse config could be read");
+			SetFailure("The persistence system or the corpse disappeared before the corpse config could be read");
 			return FinishAndCleanUp();
 		}
 
@@ -698,7 +691,7 @@ class OVT_TEST_Init_Persistence_CharacterConfigNeverSelfSpawns : SCR_AutotestCas
 			m_iRematchPolls += 1;
 			if (m_iRematchPolls > MAX_REMATCH_POLLS)
 			{
-				SetResultFailure("ForceDeath() was called but the character controller never reported the character dead (%1 polls) - the corpse half of this case could not be exercised at all",
+				SetFailure("ForceDeath() was called but the character controller never reported the character dead (%1 polls) - the corpse half of this case could not be exercised at all",
 					m_iRematchPolls.ToString());
 				return FinishAndCleanUp();
 			}
@@ -711,12 +704,11 @@ class OVT_TEST_Init_Persistence_CharacterConfigNeverSelfSpawns : SCR_AutotestCas
 		EntityPersistenceConfig corpseConfig = EntityPersistenceConfig.Cast(persistence.GetConfig(m_Character));
 		if (corpseConfig && corpseConfig.m_bSelfSpawn)
 		{
-			SetResultFailure("A dead character's persistence config self-spawns. Something re-introduced PersistenceSystem.SetConfig() on the kill path (OVT_PersistenceTracking.MarkForSelfSpawn): a scripted config is serialized with an EMPTY store name, so the loader rejects the record with \"Unable to locate configuruation ''\" and the corpse never comes back - it only poisons the save. See BUG-018.");
+			SetFailure("A dead character's persistence config self-spawns. Something re-introduced PersistenceSystem.SetConfig() on the kill path (OVT_PersistenceTracking.MarkForSelfSpawn): a scripted config is serialized with an EMPTY store name, so the loader rejects the record with \"Unable to locate configuruation ''\" and the corpse never comes back - it only poisons the save. See BUG-018.");
 			return FinishAndCleanUp();
 		}
 
 		PrintFormat("Character config never self-spawns: verified alive, and verified dead after %1 poll(s)", m_iRematchPolls.ToString());
-		SetResultSuccess();
 		return FinishAndCleanUp();
 	}
 
@@ -761,13 +753,13 @@ class OVT_TEST_Init_Persistence_PlayerCharacterConfigSelfSpawns : SCR_AutotestCa
 	protected int m_iPolls;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		SCR_PersistenceSystem persistence = SCR_PersistenceSystem.GetScriptedInstance();
 		if (!persistence)
 		{
-			SetResultFailure("SCR_PersistenceSystem.GetScriptedInstance() is null - see OVT_TEST_Init_Persistence_SystemIsOnline.");
+			SetFailure("SCR_PersistenceSystem.GetScriptedInstance() is null - see OVT_TEST_Init_Persistence_SystemIsOnline.");
 			return true;
 		}
 
@@ -783,7 +775,7 @@ class OVT_TEST_Init_Persistence_PlayerCharacterConfigSelfSpawns : SCR_AutotestCa
 			m_iPolls += 1;
 			if (m_iPolls > MAX_POLLS)
 			{
-				SetResultFailure("No tracked player-controlled character appeared in %1 polls, so the configuration the engine matches to a player body could not be read", m_iPolls.ToString());
+				SetFailure("No tracked player-controlled character appeared in %1 polls, so the configuration the engine matches to a player body could not be read", m_iPolls.ToString());
 				return true;
 			}
 
@@ -793,18 +785,17 @@ class OVT_TEST_Init_Persistence_PlayerCharacterConfigSelfSpawns : SCR_AutotestCa
 		EntityPersistenceConfig config = EntityPersistenceConfig.Cast(persistence.GetConfig(body));
 		if (!config)
 		{
-			SetResultFailure("GetConfig() handed back no entity config for a tracked player character");
+			SetFailure("GetConfig() handed back no entity config for a tracked player character");
 			return true;
 		}
 
 		if (!config.m_bSelfSpawn)
 		{
-			SetResultFailure("The player character's matched persistence config does NOT self-spawn. The {64ECE6462993EA13} override in the Player group of Overthrow.conf is not reaching the config the engine matched. A player who logs out will come back as a fresh civilian with their gear gone, because their stored body record is dropped at load.");
+			SetFailure("The player character's matched persistence config does NOT self-spawn. The {64ECE6462993EA13} override in the Player group of Overthrow.conf is not reaching the config the engine matched. A player who logs out will come back as a fresh civilian with their gear gone, because their stored body record is dropped at load.");
 			return true;
 		}
 
 		PrintFormat("Player character config self-spawns (matched after %1 poll(s)) - a stored body survives a restart", m_iPolls.ToString());
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -829,25 +820,24 @@ class OVT_TEST_Init_Persistence_PlayerCharacterConfigSelfSpawns : SCR_AutotestCa
 class OVT_TEST_Init_Persistence_ReconnectComponentClaimsLeavingBodies : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		SCR_ReconnectComponent reconnect = SCR_ReconnectComponent.GetInstance();
 		if (!reconnect)
 		{
-			SetResultFailure("There is no reconnect component on the game mode. Prefabs/GameMode/OVT_OverthrowGameMode.et has lost its OVT_ReconnectComponent entry, so SCR_BaseGameMode.OnPlayerDisconnected will DELETE every disconnecting player's body - see BUG-086.");
+			SetFailure("There is no reconnect component on the game mode. Prefabs/GameMode/OVT_OverthrowGameMode.et has lost its OVT_ReconnectComponent entry, so SCR_BaseGameMode.OnPlayerDisconnected will DELETE every disconnecting player's body - see BUG-086.");
 			return true;
 		}
 
 		if (!OVT_ReconnectComponent.Cast(reconnect))
 		{
-			SetResultFailure("The game mode's reconnect component is vanilla's %1, not OVT_ReconnectComponent. Vanilla only reserves a body for connection drops and only for its timeout, so a clean quit still destroys it.",
+			SetFailure("The game mode's reconnect component is vanilla's %1, not OVT_ReconnectComponent. Vanilla only reserves a body for connection drops and only for its timeout, so a clean quit still destroys it.",
 				reconnect.Type().ToString());
 			return true;
 		}
 
 		Print("Overthrow's reconnect component is live - a disconnecting player's body is claimed, not deleted");
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -881,7 +871,7 @@ class OVT_TEST_Init_Persistence_ReservationHidesACharacterReversibly : SCR_Autot
 	protected IEntity m_Character;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		if (m_iPhase == 0)
@@ -899,21 +889,21 @@ class OVT_TEST_Init_Persistence_ReservationHidesACharacterReversibly : SCR_Autot
 		OVT_RecruitManagerComponent recruits = OVT_RecruitManagerComponent.GetInstance();
 		if (!recruits || recruits.m_sRecruitPrefab.IsEmpty())
 		{
-			SetResultFailure("The recruit manager has no character prefab to spawn a subject from");
+			SetFailure("The recruit manager has no character prefab to spawn a subject from");
 			return true;
 		}
 
 		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 		if (!towns || towns.m_Towns.Count() < 1)
 		{
-			SetResultFailure("No towns are registered - nowhere sensible to spawn the subject character");
+			SetFailure("No towns are registered - nowhere sensible to spawn the subject character");
 			return true;
 		}
 
 		m_Character = OVT_Global.SpawnEntityPrefab(recruits.m_sRecruitPrefab, towns.m_Towns[0].location);
 		if (!m_Character)
 		{
-			SetResultFailure("SpawnEntityPrefab() produced no character from the civilian prefab");
+			SetFailure("SpawnEntityPrefab() produced no character from the civilian prefab");
 			return true;
 		}
 
@@ -928,7 +918,7 @@ class OVT_TEST_Init_Persistence_ReservationHidesACharacterReversibly : SCR_Autot
 	{
 		if (!m_Character)
 		{
-			SetResultFailure("The subject character disappeared before it could be reserved");
+			SetFailure("The subject character disappeared before it could be reserved");
 			return FinishAndCleanUp();
 		}
 
@@ -937,7 +927,7 @@ class OVT_TEST_Init_Persistence_ReservationHidesACharacterReversibly : SCR_Autot
 			m_iTrackingPolls += 1;
 			if (m_iTrackingPolls > MAX_TRACKING_POLLS)
 			{
-				SetResultFailure("The spawned character was never tracked (%1 polls) - a body that is not tracked cannot be reserved in the first place", m_iTrackingPolls.ToString());
+				SetFailure("The spawned character was never tracked (%1 polls) - a body that is not tracked cannot be reserved in the first place", m_iTrackingPolls.ToString());
 				return FinishAndCleanUp();
 			}
 
@@ -946,13 +936,13 @@ class OVT_TEST_Init_Persistence_ReservationHidesACharacterReversibly : SCR_Autot
 
 		if (OVT_PersistenceReservation.IsReserved(m_Character))
 		{
-			SetResultFailure("A freshly spawned character already reports reserved - IsReserved() is not reading the flag it claims to, so every assertion below would pass vacuously");
+			SetFailure("A freshly spawned character already reports reserved - IsReserved() is not reading the flag it claims to, so every assertion below would pass vacuously");
 			return FinishAndCleanUp();
 		}
 
 		if (!OVT_PersistenceReservation.Reserve(m_Character))
 		{
-			SetResultFailure("Reserve() refused a tracked, live character");
+			SetFailure("Reserve() refused a tracked, live character");
 			return FinishAndCleanUp();
 		}
 
@@ -960,37 +950,37 @@ class OVT_TEST_Init_Persistence_ReservationHidesACharacterReversibly : SCR_Autot
 
 		if (reservedFlags & EntityFlags.VISIBLE)
 		{
-			SetResultFailure("Reserve() left the character VISIBLE. ClearFlags does not take on a ChimeraCharacter, so an offline player's body stays in play - see OVT_PersistenceReservation.");
+			SetFailure("Reserve() left the character VISIBLE. ClearFlags does not take on a ChimeraCharacter, so an offline player's body stays in play - see OVT_PersistenceReservation.");
 			return FinishAndCleanUp();
 		}
 
 		if (reservedFlags & EntityFlags.TRACEABLE)
 		{
-			SetResultFailure("Reserve() left the character TRACEABLE - an offline player's body can still be shot and seen by AI, which is the whole thing hiding it is meant to prevent");
+			SetFailure("Reserve() left the character TRACEABLE - an offline player's body can still be shot and seen by AI, which is the whole thing hiding it is meant to prevent");
 			return FinishAndCleanUp();
 		}
 
 		if (reservedFlags & EntityFlags.ACTIVE)
 		{
-			SetResultFailure("Reserve() left the character ACTIVE - a reserved body keeps simulating, and every offline player costs a full character tick forever");
+			SetFailure("Reserve() left the character ACTIVE - a reserved body keeps simulating, and every offline player costs a full character tick forever");
 			return FinishAndCleanUp();
 		}
 
 		if (!OVT_PersistenceTracking.IsTracked(m_Character))
 		{
-			SetResultFailure("Reserving the character released its persistence tracking. A reserved body MUST stay tracked - an untracked one is absent from the next save point and gone after a restart, which is BUG-086 all over again.");
+			SetFailure("Reserving the character released its persistence tracking. A reserved body MUST stay tracked - an untracked one is absent from the next save point and gone after a restart, which is BUG-086 all over again.");
 			return FinishAndCleanUp();
 		}
 
 		if (!GetGame().GetWorld().FindEntityByID(m_Character.GetID()))
 		{
-			SetResultFailure("Reserving the character removed it from the world - it must be hidden in place, not despawned");
+			SetFailure("Reserving the character removed it from the world - it must be hidden in place, not despawned");
 			return FinishAndCleanUp();
 		}
 
 		if (!OVT_PersistenceReservation.Release(m_Character))
 		{
-			SetResultFailure("Release() refused a reserved character");
+			SetFailure("Release() refused a reserved character");
 			return FinishAndCleanUp();
 		}
 
@@ -998,19 +988,18 @@ class OVT_TEST_Init_Persistence_ReservationHidesACharacterReversibly : SCR_Autot
 
 		if (!(releasedFlags & EntityFlags.VISIBLE) || !(releasedFlags & EntityFlags.TRACEABLE) || !(releasedFlags & EntityFlags.ACTIVE))
 		{
-			SetResultFailure("Release() did not put the character back in play: flags %1 (expected VISIBLE, TRACEABLE and ACTIVE all set). A returning player would be handed an invisible, untraceable, frozen body.",
+			SetFailure("Release() did not put the character back in play: flags %1 (expected VISIBLE, TRACEABLE and ACTIVE all set). A returning player would be handed an invisible, untraceable, frozen body.",
 				releasedFlags.ToString());
 			return FinishAndCleanUp();
 		}
 
 		if (OVT_PersistenceReservation.IsReserved(m_Character))
 		{
-			SetResultFailure("The character still reports reserved after Release()");
+			SetFailure("The character still reports reserved after Release()");
 			return FinishAndCleanUp();
 		}
 
 		PrintFormat("Reservation round trip on a live character: hidden, untraceable, inactive, still tracked, and fully restored (tracked after %1 poll(s))", m_iTrackingPolls.ToString());
-		SetResultSuccess();
 		return FinishAndCleanUp();
 	}
 
@@ -1078,7 +1067,7 @@ class OVT_TEST_Init_Loadout_NestedItemsSurviveApply : SCR_AutotestCaseBase
 	protected string m_sNestedPrefab;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		if (m_iPhase == 0)
@@ -1099,14 +1088,14 @@ class OVT_TEST_Init_Loadout_NestedItemsSurviveApply : SCR_AutotestCaseBase
 		OVT_RecruitManagerComponent recruits = OVT_RecruitManagerComponent.GetInstance();
 		if (!recruits || recruits.m_sRecruitPrefab.IsEmpty())
 		{
-			SetResultFailure("The recruit manager has no character prefab to spawn loadout subjects from");
+			SetFailure("The recruit manager has no character prefab to spawn loadout subjects from");
 			return true;
 		}
 
 		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 		if (!towns || towns.m_Towns.Count() < 1)
 		{
-			SetResultFailure("No towns are registered - nowhere sensible to spawn the subject characters");
+			SetFailure("No towns are registered - nowhere sensible to spawn the subject characters");
 			return true;
 		}
 
@@ -1117,7 +1106,7 @@ class OVT_TEST_Init_Loadout_NestedItemsSurviveApply : SCR_AutotestCaseBase
 
 		if (!m_SourceCharacter || !m_TargetCharacter)
 		{
-			SetResultFailure("SpawnEntityPrefab() produced no character from the civilian prefab");
+			SetFailure("SpawnEntityPrefab() produced no character from the civilian prefab");
 			return FinishAndCleanUp();
 		}
 
@@ -1139,7 +1128,7 @@ class OVT_TEST_Init_Loadout_NestedItemsSurviveApply : SCR_AutotestCaseBase
 			m_iPolls += 1;
 			if (m_iPolls > MAX_INVENTORY_POLLS)
 			{
-				SetResultFailure("The spawned characters never came up with inventory storages (%1 polls) - nothing about a loadout can be measured without them", m_iPolls.ToString());
+				SetFailure("The spawned characters never came up with inventory storages (%1 polls) - nothing about a loadout can be measured without them", m_iPolls.ToString());
 				return FinishAndCleanUp();
 			}
 
@@ -1151,7 +1140,7 @@ class OVT_TEST_Init_Loadout_NestedItemsSurviveApply : SCR_AutotestCaseBase
 		IEntity container = ResolveContainer(sourceManager, diagnostic);
 		if (!container)
 		{
-			SetResultFailure("%1", diagnostic);
+			SetFailure("%1", diagnostic);
 			return FinishAndCleanUp();
 		}
 
@@ -1160,7 +1149,7 @@ class OVT_TEST_Init_Loadout_NestedItemsSurviveApply : SCR_AutotestCaseBase
 		IEntity nested = StockContainer(sourceManager, containerStorage, diagnostic);
 		if (!nested)
 		{
-			SetResultFailure("%1", diagnostic);
+			SetFailure("%1", diagnostic);
 			return FinishAndCleanUp();
 		}
 
@@ -1169,7 +1158,7 @@ class OVT_TEST_Init_Loadout_NestedItemsSurviveApply : SCR_AutotestCaseBase
 
 		if (m_sContainerPrefab.IsEmpty() || m_sNestedPrefab.IsEmpty())
 		{
-			SetResultFailure("Could not read back a prefab name for the container or its contents - the assertion below would have nothing to match on");
+			SetFailure("Could not read back a prefab name for the container or its contents - the assertion below would have nothing to match on");
 			return FinishAndCleanUp();
 		}
 
@@ -1186,7 +1175,7 @@ class OVT_TEST_Init_Loadout_NestedItemsSurviveApply : SCR_AutotestCaseBase
 		OVT_LoadoutManagerComponent loadouts = OVT_Global.GetLoadouts();
 		if (!loadouts)
 		{
-			SetResultFailure("OVT_Global.GetLoadouts() is null - no loadout manager on the game mode");
+			SetFailure("OVT_Global.GetLoadouts() is null - no loadout manager on the game mode");
 			return FinishAndCleanUp();
 		}
 
@@ -1195,7 +1184,7 @@ class OVT_TEST_Init_Loadout_NestedItemsSurviveApply : SCR_AutotestCaseBase
 		OVT_PlayerLoadout saved = loadouts.GetLoadout(TEST_PLAYER_ID, TEST_LOADOUT_NAME);
 		if (!saved)
 		{
-			SetResultFailure("SaveLoadout() stored nothing for the source character - the apply half cannot be measured");
+			SetFailure("SaveLoadout() stored nothing for the source character - the apply half cannot be measured");
 			return FinishAndCleanUp();
 		}
 
@@ -1204,14 +1193,14 @@ class OVT_TEST_Init_Loadout_NestedItemsSurviveApply : SCR_AutotestCaseBase
 		// if the container's contents were never recorded, there is nothing for apply to restore.
 		if (!ExtractedNesting(saved))
 		{
-			SetResultFailure("The saved loadout does not record %1 inside %2 - extraction dropped the nesting, so the apply assertion below would be vacuous",
+			SetFailure("The saved loadout does not record %1 inside %2 - extraction dropped the nesting, so the apply assertion below would be vacuous",
 				m_sNestedPrefab, m_sContainerPrefab);
 			return FinishAndCleanUp();
 		}
 
 		if (!loadouts.ApplyLoadoutToEntity(saved, m_TargetCharacter))
 		{
-			SetResultFailure("ApplyLoadoutToEntity() reported failure applying the saved loadout to a fresh character");
+			SetFailure("ApplyLoadoutToEntity() reported failure applying the saved loadout to a fresh character");
 			return FinishAndCleanUp();
 		}
 
@@ -1219,18 +1208,17 @@ class OVT_TEST_Init_Loadout_NestedItemsSurviveApply : SCR_AutotestCaseBase
 		if (FindNestedOnTarget(containerArrived))
 		{
 			PrintFormat("Loadout round trip kept container contents: %1 arrived inside %2 on a fresh character", m_sNestedPrefab, m_sContainerPrefab);
-			SetResultSuccess();
 			return FinishAndCleanUp();
 		}
 
 		if (!containerArrived)
 		{
-			SetResultFailure("The container %1 itself never arrived on the target character - the loadout apply failed further up than the nested-item path this case is about",
+			SetFailure("The container %1 itself never arrived on the target character - the loadout apply failed further up than the nested-item path this case is about",
 				m_sContainerPrefab);
 			return FinishAndCleanUp();
 		}
 
-		SetResultFailure("%1 is not inside the applied container %2 - the container came back EMPTY. Nested items are inserted through the OWNER's storage manager against the container's own storage; a manager looked up on the container itself is always null for clothing and backpacks, and every item is then deleted (BUG-085).",
+		SetFailure("%1 is not inside the applied container %2 - the container came back EMPTY. Nested items are inserted through the OWNER's storage manager against the container's own storage; a manager looked up on the container itself is always null for clothing and backpacks, and every item is then deleted (BUG-085).",
 			m_sNestedPrefab, m_sContainerPrefab);
 		return FinishAndCleanUp();
 	}
@@ -1504,27 +1492,27 @@ class OVT_TEST_Init_PlayerGroups_ManagerResolves : SCR_AutotestCaseBase
 	static const int NOT_A_PLAYER_ID = -1;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_PlayerGroupManagerComponent manager = OVT_PlayerGroupManagerComponent.GetInstance();
 		if (!manager)
 		{
-			SetResultFailure("OVT_PlayerGroupManagerComponent.GetInstance() is null - Prefabs/GameMode/OVT_OverthrowGameMode.et has lost its OVT_PlayerGroupManagerComponent entry. Nothing gives a spawning player a group, and nothing puts a player back in one when they leave a group: no AI commanding, no group indicator, no recruits (BUG-088's symptom set).");
+			SetFailure("OVT_PlayerGroupManagerComponent.GetInstance() is null - Prefabs/GameMode/OVT_OverthrowGameMode.et has lost its OVT_PlayerGroupManagerComponent entry. Nothing gives a spawning player a group, and nothing puts a player back in one when they leave a group: no AI commanding, no group indicator, no recruits (BUG-088's symptom set).");
 			return true;
 		}
 
 		BaseGameMode gameMode = GetGame().GetGameMode();
 		if (!gameMode)
 		{
-			SetResultFailure("GetGame().GetGameMode() is null - there is no game mode to carry the manager");
+			SetFailure("GetGame().GetGameMode() is null - there is no game mode to carry the manager");
 			return true;
 		}
 
 		OVT_PlayerGroupManagerComponent onGameMode = OVT_PlayerGroupManagerComponent.Cast(gameMode.FindComponent(OVT_PlayerGroupManagerComponent));
 		if (onGameMode != manager)
 		{
-			SetResultFailure("OVT_PlayerGroupManagerComponent.GetInstance() is not the component on this world's game mode - s_Instance is stale, so every caller is talking to a manager that is not wired to anything");
+			SetFailure("OVT_PlayerGroupManagerComponent.GetInstance() is not the component on this world's game mode - s_Instance is stale, so every caller is talking to a manager that is not wired to anything");
 			return true;
 		}
 
@@ -1532,13 +1520,12 @@ class OVT_TEST_Init_PlayerGroups_ManagerResolves : SCR_AutotestCaseBase
 		int refused = manager.EnsureOwnGroup(NOT_A_PLAYER_ID);
 		if (refused != -1)
 		{
-			SetResultFailure("EnsureOwnGroup(%1) returned %2 instead of -1 - the manager creates groups for ids that have no player controller, which fills the faction's group list with stray leaderless groups and exhausts its radio frequencies",
+			SetFailure("EnsureOwnGroup(%1) returned %2 instead of -1 - the manager creates groups for ids that have no player controller, which fills the faction's group list with stray leaderless groups and exhausts its radio frequencies",
 				NOT_A_PLAYER_ID.ToString(), refused.ToString());
 			return true;
 		}
 
 		Print("Player-group manager is live on the game mode and refuses a player id with no controller");
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -1579,7 +1566,7 @@ class OVT_TEST_Init_Persistence_TransientAINotTracked : SCR_AutotestCaseBase
 	protected IEntity m_Control;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		if (m_iPhase == 0)
@@ -1596,7 +1583,7 @@ class OVT_TEST_Init_Persistence_TransientAINotTracked : SCR_AutotestCaseBase
 		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 		if (!towns || towns.m_Towns.Count() < 1)
 		{
-			SetResultFailure("No towns are registered - nowhere sensible to spawn the subjects");
+			SetFailure("No towns are registered - nowhere sensible to spawn the subjects");
 			return true;
 		}
 		vector location = towns.m_Towns[0].location;
@@ -1604,7 +1591,7 @@ class OVT_TEST_Init_Persistence_TransientAINotTracked : SCR_AutotestCaseBase
 		OVT_Faction faction = OVT_Global.GetConfig().GetOccupyingFaction();
 		if (!faction)
 		{
-			SetResultFailure("No occupying faction is configured - no group prefab to spawn");
+			SetFailure("No occupying faction is configured - no group prefab to spawn");
 			return true;
 		}
 
@@ -1618,14 +1605,14 @@ class OVT_TEST_Init_Persistence_TransientAINotTracked : SCR_AutotestCaseBase
 
 		if (groupPrefab.IsEmpty())
 		{
-			SetResultFailure("The occupying faction has no group prefabs in any slot list - nothing to spawn a garrison from");
+			SetFailure("The occupying faction has no group prefabs in any slot list - nothing to spawn a garrison from");
 			return true;
 		}
 
 		SCR_AIGroup group = SCR_AIGroup.Cast(OVT_Global.SpawnEntityPrefab(groupPrefab, location));
 		if (!group)
 		{
-			SetResultFailure("The occupying faction's group prefab did not produce an SCR_AIGroup");
+			SetFailure("The occupying faction's group prefab did not produce an SCR_AIGroup");
 			return true;
 		}
 		m_Group = group;
@@ -1637,21 +1624,21 @@ class OVT_TEST_Init_Persistence_TransientAINotTracked : SCR_AutotestCaseBase
 		m_Waypoint = OVT_Global.GetConfig().SpawnPatrolWaypoint(location);
 		if (!m_Waypoint)
 		{
-			SetResultFailure("SpawnPatrolWaypoint() produced no waypoint");
+			SetFailure("SpawnPatrolWaypoint() produced no waypoint");
 			return FinishAndCleanUp();
 		}
 
 		OVT_RecruitManagerComponent recruits = OVT_RecruitManagerComponent.GetInstance();
 		if (!recruits || recruits.m_sRecruitPrefab.IsEmpty())
 		{
-			SetResultFailure("The recruit manager has no character prefab to spawn the tracked control from");
+			SetFailure("The recruit manager has no character prefab to spawn the tracked control from");
 			return FinishAndCleanUp();
 		}
 
 		m_Control = OVT_Global.SpawnEntityPrefab(recruits.m_sRecruitPrefab, location);
 		if (!m_Control)
 		{
-			SetResultFailure("SpawnEntityPrefab() produced no control character from the civilian prefab");
+			SetFailure("SpawnEntityPrefab() produced no control character from the civilian prefab");
 			return FinishAndCleanUp();
 		}
 
@@ -1673,7 +1660,7 @@ class OVT_TEST_Init_Persistence_TransientAINotTracked : SCR_AutotestCaseBase
 		{
 			if (m_iPolls > MAX_POLLS)
 			{
-				SetResultFailure("The spawned group never produced a member (%1 polls) - the member half of this case cannot be asserted", m_iPolls.ToString());
+				SetFailure("The spawned group never produced a member (%1 polls) - the member half of this case cannot be asserted", m_iPolls.ToString());
 				return FinishAndCleanUp();
 			}
 			return false;
@@ -1685,7 +1672,7 @@ class OVT_TEST_Init_Persistence_TransientAINotTracked : SCR_AutotestCaseBase
 		{
 			if (m_iPolls > MAX_POLLS)
 			{
-				SetResultFailure("The control character was never tracked (%1 polls) - registration is not running, so the untracked AI below proves nothing", m_iPolls.ToString());
+				SetFailure("The control character was never tracked (%1 polls) - registration is not running, so the untracked AI below proves nothing", m_iPolls.ToString());
 				return FinishAndCleanUp();
 			}
 			return false;
@@ -1695,13 +1682,12 @@ class OVT_TEST_Init_Persistence_TransientAINotTracked : SCR_AutotestCaseBase
 		if (stillTracked.IsEmpty())
 		{
 			PrintFormat("Rebuild-on-boot AI is untracked while a directly spawned character is tracked (settled after %1 poll(s))", m_iPolls.ToString());
-			SetResultSuccess();
 			return FinishAndCleanUp();
 		}
 
 		if (m_iPolls > MAX_POLLS)
 		{
-			SetResultFailure("%1 is still persistence-tracked after %2 polls - it will write a record on the next save that no later session can ever claim or delete, which is BUG-118's unbounded save growth", stillTracked, m_iPolls.ToString());
+			SetFailure("%1 is still persistence-tracked after %2 polls - it will write a record on the next save that no later session can ever claim or delete, which is BUG-118's unbounded save growth", stillTracked, m_iPolls.ToString());
 			return FinishAndCleanUp();
 		}
 
@@ -1814,7 +1800,7 @@ class OVT_TEST_Init_Persistence_RecruitedTransientCharacterIsRetracked : SCR_Aut
 	protected string m_sRecruitId;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		if (m_iPhase == 0)
@@ -1834,7 +1820,7 @@ class OVT_TEST_Init_Persistence_RecruitedTransientCharacterIsRetracked : SCR_Aut
 		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 		if (!towns || towns.m_Towns.Count() < 1)
 		{
-			SetResultFailure("No towns are registered - nowhere sensible to spawn the subjects");
+			SetFailure("No towns are registered - nowhere sensible to spawn the subjects");
 			return true;
 		}
 		vector location = towns.m_Towns[0].location;
@@ -1842,7 +1828,7 @@ class OVT_TEST_Init_Persistence_RecruitedTransientCharacterIsRetracked : SCR_Aut
 		OVT_Faction faction = OVT_Global.GetConfig().GetOccupyingFaction();
 		if (!faction)
 		{
-			SetResultFailure("No occupying faction is configured - no group prefab to spawn");
+			SetFailure("No occupying faction is configured - no group prefab to spawn");
 			return true;
 		}
 
@@ -1856,14 +1842,14 @@ class OVT_TEST_Init_Persistence_RecruitedTransientCharacterIsRetracked : SCR_Aut
 
 		if (groupPrefab.IsEmpty())
 		{
-			SetResultFailure("The occupying faction has no group prefabs in any slot list - nothing to spawn a group from");
+			SetFailure("The occupying faction has no group prefabs in any slot list - nothing to spawn a group from");
 			return true;
 		}
 
 		SCR_AIGroup group = SCR_AIGroup.Cast(OVT_Global.SpawnEntityPrefab(groupPrefab, location));
 		if (!group)
 		{
-			SetResultFailure("The occupying faction's group prefab did not produce an SCR_AIGroup");
+			SetFailure("The occupying faction's group prefab did not produce an SCR_AIGroup");
 			return true;
 		}
 		m_Group = group;
@@ -1871,14 +1857,14 @@ class OVT_TEST_Init_Persistence_RecruitedTransientCharacterIsRetracked : SCR_Aut
 		OVT_RecruitManagerComponent recruits = OVT_RecruitManagerComponent.GetInstance();
 		if (!recruits || recruits.m_sRecruitPrefab.IsEmpty())
 		{
-			SetResultFailure("The recruit manager has no character prefab to spawn the tracked control from");
+			SetFailure("The recruit manager has no character prefab to spawn the tracked control from");
 			return FinishAndCleanUp();
 		}
 
 		m_Control = OVT_Global.SpawnEntityPrefab(recruits.m_sRecruitPrefab, location);
 		if (!m_Control)
 		{
-			SetResultFailure("SpawnEntityPrefab() produced no control character from the civilian prefab");
+			SetFailure("SpawnEntityPrefab() produced no control character from the civilian prefab");
 			return FinishAndCleanUp();
 		}
 
@@ -1913,7 +1899,7 @@ class OVT_TEST_Init_Persistence_RecruitedTransientCharacterIsRetracked : SCR_Aut
 		{
 			if (m_iPolls > MAX_POLLS)
 			{
-				SetResultFailure("No untracked group member alongside a tracked control after %1 polls - the precondition (BUG-118 untracking settled, registration running) never held", m_iPolls.ToString());
+				SetFailure("No untracked group member alongside a tracked control after %1 polls - the precondition (BUG-118 untracking settled, registration running) never held", m_iPolls.ToString());
 				return FinishAndCleanUp();
 			}
 			return false;
@@ -1923,7 +1909,7 @@ class OVT_TEST_Init_Persistence_RecruitedTransientCharacterIsRetracked : SCR_Aut
 		m_sRecruitId = recruits.AddRecruit(TEST_OWNER_UID, m_Member);
 		if (m_sRecruitId.IsEmpty())
 		{
-			SetResultFailure("AddRecruit() returned no recruit ID for the untracked group member");
+			SetFailure("AddRecruit() returned no recruit ID for the untracked group member");
 			return FinishAndCleanUp();
 		}
 
@@ -1942,13 +1928,12 @@ class OVT_TEST_Init_Persistence_RecruitedTransientCharacterIsRetracked : SCR_Aut
 		if (OVT_PersistenceTracking.IsTracked(m_Member))
 		{
 			PrintFormat("Recruiting an untracked group-spawned character put its body back under persistence tracking (settled after %1 poll(s))", m_iPolls.ToString());
-			SetResultSuccess();
 			return FinishAndCleanUp();
 		}
 
 		if (m_iPolls > MAX_POLLS)
 		{
-			SetResultFailure("The recruited body is still untracked after %1 polls - it will never reach a save, its record keeps an empty body id, and the recruit's gear cannot survive a despawn or restart (BUG-131)", m_iPolls.ToString());
+			SetFailure("The recruited body is still untracked after %1 polls - it will never reach a save, its record keeps an empty body id, and the recruit's gear cannot survive a despawn or restart (BUG-131)", m_iPolls.ToString());
 			return FinishAndCleanUp();
 		}
 
@@ -2048,7 +2033,7 @@ class OVT_TEST_Init_MapMarkers_BusStopRegisters : SCR_AutotestCaseBase
 	protected vector m_vSignPos;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		if (m_iPhase == 0)
@@ -2065,14 +2050,14 @@ class OVT_TEST_Init_MapMarkers_BusStopRegisters : SCR_AutotestCaseBase
 	{
 		if (!OVT_Global.GetMapMarkers())
 		{
-			SetResultFailure("OVT_Global.GetMapMarkers() is null - Prefabs/GameMode/OVT_OverthrowGameMode.et has lost its OVT_MapMarkerManagerComponent entry, so no map marker of any kind can be registered");
+			SetFailure("OVT_Global.GetMapMarkers() is null - Prefabs/GameMode/OVT_OverthrowGameMode.et has lost its OVT_MapMarkerManagerComponent entry, so no map marker of any kind can be registered");
 			return true;
 		}
 
 		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 		if (!towns || towns.m_Towns.Count() < 1)
 		{
-			SetResultFailure("No towns are registered - nowhere sensible to spawn the subject sign");
+			SetFailure("No towns are registered - nowhere sensible to spawn the subject sign");
 			return true;
 		}
 
@@ -2082,7 +2067,7 @@ class OVT_TEST_Init_MapMarkers_BusStopRegisters : SCR_AutotestCaseBase
 		m_Sign = OVT_Global.SpawnEntityPrefab(BUS_STOP_PREFAB, m_vSignPos);
 		if (!m_Sign)
 		{
-			SetResultFailure("SpawnEntityPrefab() produced no entity from %1", BUS_STOP_PREFAB);
+			SetFailure("SpawnEntityPrefab() produced no entity from %1", BUS_STOP_PREFAB);
 			return true;
 		}
 
@@ -2093,13 +2078,13 @@ class OVT_TEST_Init_MapMarkers_BusStopRegisters : SCR_AutotestCaseBase
 		OVT_MapMarkerComponent marker = OVT_MapMarkerComponent.Cast(m_Sign.FindComponent(OVT_MapMarkerComponent));
 		if (!marker)
 		{
-			SetResultFailure("A spawned bus stop has no OVT_MapMarkerComponent. Prefabs/Structures/Signs/Traffic/SignBusStop_01.et has lost its marker block, so NO bus stop in any world is discoverable: the map draws none and bus travel refuses everywhere with '#OVT-NotAtBusStop'.");
+			SetFailure("A spawned bus stop has no OVT_MapMarkerComponent. Prefabs/Structures/Signs/Traffic/SignBusStop_01.et has lost its marker block, so NO bus stop in any world is discoverable: the map draws none and bus travel refuses everywhere with '#OVT-NotAtBusStop'.");
 			return FinishAndCleanUp();
 		}
 
 		if (marker.GetCategory() != OVT_MapMarkerCategory.BUS_STOP)
 		{
-			SetResultFailure("The bus stop's marker is filed under category %1, not BUS_STOP - the bus-stop location type queries BUS_STOP and would find nothing",
+			SetFailure("The bus stop's marker is filed under category %1, not BUS_STOP - the bus-stop location type queries BUS_STOP and would find nothing",
 				typename.EnumToString(OVT_MapMarkerCategory, marker.GetCategory()));
 			return FinishAndCleanUp();
 		}
@@ -2116,14 +2101,14 @@ class OVT_TEST_Init_MapMarkers_BusStopRegisters : SCR_AutotestCaseBase
 		OVT_MapMarkerManagerComponent markers = OVT_Global.GetMapMarkers();
 		if (!markers || !m_Sign)
 		{
-			SetResultFailure("The marker registry or the subject sign disappeared while waiting for registration");
+			SetFailure("The marker registry or the subject sign disappeared while waiting for registration");
 			return FinishAndCleanUp();
 		}
 
 		OVT_MapMarkerComponent marker = OVT_MapMarkerComponent.Cast(m_Sign.FindComponent(OVT_MapMarkerComponent));
 		if (!marker)
 		{
-			SetResultFailure("The subject sign lost its marker component between phases");
+			SetFailure("The subject sign lost its marker component between phases");
 			return FinishAndCleanUp();
 		}
 
@@ -2133,7 +2118,7 @@ class OVT_TEST_Init_MapMarkers_BusStopRegisters : SCR_AutotestCaseBase
 			m_iPolls += 1;
 			if (m_iPolls > MAX_REGISTER_POLLS)
 			{
-				SetResultFailure("A spawned bus stop never registered itself (%1 polls). OVT_MapMarkerComponent.OnPostInit no longer reaches OVT_MapMarkerManagerComponent.RegisterMarker, so every marker that appears after the world scan - every player-built one - is invisible on the map.",
+				SetFailure("A spawned bus stop never registered itself (%1 polls). OVT_MapMarkerComponent.OnPostInit no longer reaches OVT_MapMarkerManagerComponent.RegisterMarker, so every marker that appears after the world scan - every player-built one - is invisible on the map.",
 					m_iPolls.ToString());
 				return FinishAndCleanUp();
 			}
@@ -2147,7 +2132,7 @@ class OVT_TEST_Init_MapMarkers_BusStopRegisters : SCR_AutotestCaseBase
 		markers.RegisterMarker(marker);
 		if (markers.GetMarkerCount() != beforeCount)
 		{
-			SetResultFailure("RegisterMarker() is not idempotent: count went %1 -> %2 on a re-register. The world scan and component self-registration both run over the same markers, so every world-placed marker would be listed twice.",
+			SetFailure("RegisterMarker() is not idempotent: count went %1 -> %2 on a re-register. The world scan and component self-registration both run over the same markers, so every world-placed marker would be listed twice.",
 				beforeCount.ToString(), markers.GetMarkerCount().ToString());
 			return FinishAndCleanUp();
 		}
@@ -2155,7 +2140,7 @@ class OVT_TEST_Init_MapMarkers_BusStopRegisters : SCR_AutotestCaseBase
 		// The bus-travel lookup itself, at the radius OVT_FastTravelService.IsAtBusStop uses.
 		if (markers.GetNearestMarker(m_vSignPos, OVT_MapMarkerCategory.BUS_STOP, BUS_TRAVEL_RADIUS) != marker)
 		{
-			SetResultFailure("GetNearestMarker() did not return the registered bus stop standing at the probe position - the lookup OVT_FastTravelService.IsAtBusStop makes for bus travel is broken");
+			SetFailure("GetNearestMarker() did not return the registered bus stop standing at the probe position - the lookup OVT_FastTravelService.IsAtBusStop makes for bus travel is broken");
 			return FinishAndCleanUp();
 		}
 
@@ -2163,14 +2148,14 @@ class OVT_TEST_Init_MapMarkers_BusStopRegisters : SCR_AutotestCaseBase
 		// ("#OVT-NotAtBusStop") never fires.
 		if (markers.GetNearestMarker(m_vSignPos + Vector(0, 0, BUS_TRAVEL_RADIUS * 20), OVT_MapMarkerCategory.BUS_STOP, BUS_TRAVEL_RADIUS))
 		{
-			SetResultFailure("GetNearestMarker() returned a bus stop for a probe far outside the radius - bus travel would accept a click anywhere on the map");
+			SetFailure("GetNearestMarker() returned a bus stop for a probe far outside the radius - bus travel would accept a click anywhere on the map");
 			return FinishAndCleanUp();
 		}
 
 		// Wrong category must not match, or POI and bus-stop markers would draw as each other.
 		if (markers.GetNearestMarker(m_vSignPos, OVT_MapMarkerCategory.POI, BUS_TRAVEL_RADIUS))
 		{
-			SetResultFailure("GetNearestMarker() returned a BUS_STOP marker when asked for a POI - the category filter is not applied");
+			SetFailure("GetNearestMarker() returned a BUS_STOP marker when asked for a POI - the category filter is not applied");
 			return FinishAndCleanUp();
 		}
 
@@ -2179,14 +2164,13 @@ class OVT_TEST_Init_MapMarkers_BusStopRegisters : SCR_AutotestCaseBase
 
 		if (markers.GetNearestMarker(m_vSignPos, OVT_MapMarkerCategory.BUS_STOP, BUS_TRAVEL_RADIUS))
 		{
-			SetResultFailure("A destroyed bus stop is still in the registry - OVT_MapMarkerComponent.OnDelete no longer unregisters, so the map keeps drawing markers for entities that are gone");
+			SetFailure("A destroyed bus stop is still in the registry - OVT_MapMarkerComponent.OnDelete no longer unregisters, so the map keeps drawing markers for entities that are gone");
 			return FinishAndCleanUp();
 		}
 
 		PrintFormat("Bus-stop marker round trip: registered after %1 poll(s), idempotent, found at %2 m and refused beyond it, and unregistered on delete",
 			m_iPolls.ToString(), BUS_TRAVEL_RADIUS.ToString());
 
-		SetResultSuccess();
 		return FinishAndCleanUp();
 	}
 
@@ -2208,39 +2192,38 @@ class OVT_TEST_Init_MapMarkers_BusStopRegisters : SCR_AutotestCaseBase
 class OVT_TEST_Init_Tutorial_ManagerResolvesAndLoadsEntries : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_TutorialManagerComponent manager = OVT_Global.GetTutorialManager();
 		if (!manager)
 		{
-			SetResultFailure("OVT_Global.GetTutorialManager() is null - Prefabs/GameMode/OVT_OverthrowGameMode.et has lost its OVT_TutorialManagerComponent entry. Nothing subscribes to any trigger invoker and no tutorial can ever fire, silently.");
+			SetFailure("OVT_Global.GetTutorialManager() is null - Prefabs/GameMode/OVT_OverthrowGameMode.et has lost its OVT_TutorialManagerComponent entry. Nothing subscribes to any trigger invoker and no tutorial can ever fire, silently.");
 			return true;
 		}
 
 		array<ref OVT_TutorialEntryConfig> entries = manager.GetEntries();
 		if (!entries)
 		{
-			SetResultFailure("OVT_TutorialManagerComponent.GetEntries() returned a null array - m_aEntries was never authored on the game mode prefab");
+			SetFailure("OVT_TutorialManagerComponent.GetEntries() returned a null array - m_aEntries was never authored on the game mode prefab");
 			return true;
 		}
 
 		// >= 1, never a magic count: the proof entry is one today and tutorial-content adds more.
 		if (entries.Count() < 1)
 		{
-			SetResultFailure("No tutorial entries registered: m_aEntries on the game mode prefab is empty, so the tutorial framework has nothing to deliver");
+			SetFailure("No tutorial entries registered: m_aEntries on the game mode prefab is empty, so the tutorial framework has nothing to deliver");
 			return true;
 		}
 
 		string shapeError = FindFirstShapeError(entries);
 		if (shapeError != "")
 		{
-			SetResultFailure("%1", shapeError);
+			SetFailure("%1", shapeError);
 			return true;
 		}
 
 		Print("Tutorial manager is live with " + entries.Count().ToString() + " structurally valid entries");
-		SetResultSuccess();
 		return true;
 	}
 
@@ -2428,19 +2411,18 @@ class OVT_TEST_Init_Tutorial_ManagerResolvesAndLoadsEntries : SCR_AutotestCaseBa
 class OVT_TEST_Init_Tutorial_InvokerSeamsExist : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		string missing = FindFirstMissingInvoker();
 
 		if (missing != "")
 		{
-			SetResultFailure("Tutorial trigger seam missing: %1. OVT_TutorialManagerComponent subscribes to it in SubscribeToInvokers(); with it gone that trigger silently never fires again.", missing);
+			SetFailure("Tutorial trigger seam missing: %1. OVT_TutorialManagerComponent subscribes to it in SubscribeToInvokers(); with it gone that trigger silently never fires again.", missing);
 			return true;
 		}
 
 		Print("Every catalogued tutorial trigger invoker is present and allocated");
-		SetResultSuccess();
 		return true;
 	}
 
@@ -2508,7 +2490,7 @@ class OVT_TEST_Init_Tutorial_SettingsStoreRoundTrips : SCR_AutotestCaseBase
 	protected string m_sFailure;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		// Phase 1: write and read the record back. Returning false asks the harness for another frame.
@@ -2538,12 +2520,11 @@ class OVT_TEST_Init_Tutorial_SettingsStoreRoundTrips : SCR_AutotestCaseBase
 
 		if (m_sFailure != "")
 		{
-			SetResultFailure("%1", m_sFailure);
+			SetFailure("%1", m_sFailure);
 			return true;
 		}
 
 		Print("Tutorial settings store round-tripped two ids and the tips flag through the engine user-settings container, and the profile was restored");
-		SetResultSuccess();
 		return true;
 	}
 
@@ -2646,13 +2627,13 @@ class OVT_TEST_Init_FieldManual_DeltaMergesAndLinksResolve : SCR_AutotestCaseBas
 	static const string OVERTHROW_ENTRY_TITLE_PREFIX = "#OVT-FieldManual_";
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		SCR_FieldManualConfigRoot root = SCR_FieldManualConfigLoader.LoadConfigRoot(FIELD_MANUAL_ROOT);
 		if (!root)
 		{
-			SetResultFailure("SCR_FieldManualConfigLoader.LoadConfigRoot() returned null for the field-manual root. SCR_FieldManualUI.OnMenuOpen closes itself when this happens, so the Field Manual would not open at all.");
+			SetFailure("SCR_FieldManualConfigLoader.LoadConfigRoot() returned null for the field-manual root. SCR_FieldManualUI.OnMenuOpen closes itself when this happens, so the Field Manual would not open at all.");
 			return true;
 		}
 
@@ -2662,40 +2643,39 @@ class OVT_TEST_Init_FieldManual_DeltaMergesAndLinksResolve : SCR_AutotestCaseBas
 		string failure = FindFirstMergeFault(root);
 		if (failure != "")
 		{
-			SetResultFailure("%1", failure);
+			SetFailure("%1", failure);
 			return true;
 		}
 
 		failure = FindFirstContentlessOverthrowEntry(root);
 		if (failure != "")
 		{
-			SetResultFailure("%1", failure);
+			SetFailure("%1", failure);
 			return true;
 		}
 
 		failure = FindFirstMissingOverthrowSubCategory(root);
 		if (failure != "")
 		{
-			SetResultFailure("%1", failure);
+			SetFailure("%1", failure);
 			return true;
 		}
 
 		failure = FindFirstDuplicateOverthrowEntryTitle(root);
 		if (failure != "")
 		{
-			SetResultFailure("%1", failure);
+			SetFailure("%1", failure);
 			return true;
 		}
 
 		failure = FindFirstBrokenTutorialLink(root);
 		if (failure != "")
 		{
-			SetResultFailure("%1", failure);
+			SetFailure("%1", failure);
 			return true;
 		}
 
 		Print("Field-manual same-GUID override merged as a delta, and every tutorial deep link resolves");
-		SetResultSuccess();
 		return true;
 	}
 
@@ -3065,7 +3045,7 @@ class OVT_TEST_Init_Tutorial_ResetRestoresTips : SCR_AutotestCaseBase
 	protected string m_sFailure;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		if (m_iPhase == 0)
@@ -3091,12 +3071,11 @@ class OVT_TEST_Init_Tutorial_ResetRestoresTips : SCR_AutotestCaseBase
 
 		if (m_sFailure != "")
 		{
-			SetResultFailure("%1", m_sFailure);
+			SetFailure("%1", m_sFailure);
 			return true;
 		}
 
 		Print("Tutorial reset cleared a seeded seen id and re-enabled tips through the engine user-settings container, and the profile was restored");
-		SetResultSuccess();
 		return true;
 	}
 
@@ -3238,20 +3217,20 @@ class OVT_TEST_Init_Jobs_StableIdsAreUniqueAndResolve : SCR_AutotestCaseBase
 	static const string LEGAL_ID_CHARACTERS = "abcdefghijklmnopqrstuvwxyz-";
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_JobManagerComponent jobs = OVT_Global.GetJobs();
 		if (!jobs)
 		{
-			SetResultFailure("OVT_Global.GetJobs() is null - see OVT_TEST_Init_Globals_ManagersResolve for the wiring this depends on.");
+			SetFailure("OVT_Global.GetJobs() is null - see OVT_TEST_Init_Globals_ManagersResolve for the wiring this depends on.");
 			return true;
 		}
 
 		int configCount = jobs.GetJobConfigCount();
 		if (configCount < 1)
 		{
-			SetResultFailure("The job manager has no job configs at all (GetJobConfigCount() = %1) - m_aJobConfigs on Prefabs/GameMode/OVT_OverthrowGameMode.et is empty, so every assertion below would pass vacuously", configCount.ToString());
+			SetFailure("The job manager has no job configs at all (GetJobConfigCount() = %1) - m_aJobConfigs on Prefabs/GameMode/OVT_OverthrowGameMode.et is empty, so every assertion below would pass vacuously", configCount.ToString());
 			return true;
 		}
 
@@ -3261,14 +3240,13 @@ class OVT_TEST_Init_Jobs_StableIdsAreUniqueAndResolve : SCR_AutotestCaseBase
 
 		if (failure != "")
 		{
-			SetResultFailure("%1", failure);
+			SetFailure("%1", failure);
 			return true;
 		}
 
 		PrintFormat("Job stable ids: %1 configs, all non-empty, lowercase-kebab, unique and index<->id round-tripping; %2 surviving legacy ids resolve; retired-ids-deleted switch is %3",
 			configCount.ToString(), SURVIVING_LEGACY_IDS.Count().ToString(), RETIRED_IDS_ARE_DELETED.ToString());
 
-		SetResultSuccess();
 		return true;
 	}
 

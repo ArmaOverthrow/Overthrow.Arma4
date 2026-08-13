@@ -817,7 +817,7 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 				persistence.ReloadConfig(newEntity);
 		}
 
-		ApplyPendingPosession(playerId);
+		ApplyPendingPossession(playerId);
 
 		// EVERY route that gives a player a body arrives here - fresh creation (HandoverToPlayer calls
 		// this explicitly), the restored-body route, the death respawn, and vanilla's reconnect

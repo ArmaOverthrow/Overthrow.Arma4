@@ -44,7 +44,7 @@ class OVT_TEST_Logic_MapFactionPalette : SCR_AutotestCaseBase
 	protected static const int PROBE_ALPHA = 137;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		// A script-constructed palette, i.e. the GetDefault path: no config supplied any attribute, so
@@ -58,20 +58,20 @@ class OVT_TEST_Logic_MapFactionPalette : SCR_AutotestCaseBase
 		// --- THE ROLE PATH ALWAYS ANSWERS. It has no caller-side fallback.
 		if (!occupying || !resistance || !supporting)
 		{
-			SetResultFailure("A campaign role resolved to a null colour - the role path has no caller-side fallback, so every one of the three must answer");
+			SetFailure("A campaign role resolved to a null colour - the role path has no caller-side fallback, so every one of the three must answer");
 			return true;
 		}
 
 		// --- THE ROLES ARE DISTINGUISHABLE.
 		if (SameColor(occupying, resistance))
 		{
-			SetResultFailure("The occupying and resistance roles resolved to the same colour - a map whose sides share a colour cannot be read");
+			SetFailure("The occupying and resistance roles resolved to the same colour - a map whose sides share a colour cannot be read");
 			return true;
 		}
 
 		if (SameColor(occupying, supporting) || SameColor(resistance, supporting))
 		{
-			SetResultFailure("The supporting role shares a colour with the occupying or resistance role");
+			SetFailure("The supporting role shares a colour with the occupying or resistance role");
 			return true;
 		}
 
@@ -80,7 +80,7 @@ class OVT_TEST_Logic_MapFactionPalette : SCR_AutotestCaseBase
 		// this assertion world-free.
 		if (palette.GetColorForFactionIndex(-1))
 		{
-			SetResultFailure("An unroled faction index resolved to a colour - the three marker overrides supply their own unknown colour (town black, base and tower white) and depend on getting null here");
+			SetFailure("An unroled faction index resolved to a colour - the three marker overrides supply their own unknown colour (town black, base and tower white) and depend on getting null here");
 			return true;
 		}
 
@@ -92,7 +92,7 @@ class OVT_TEST_Logic_MapFactionPalette : SCR_AutotestCaseBase
 
 		if (alpha != PROBE_ALPHA)
 		{
-			SetResultFailure("GetArgb packed alpha %1 where the caller asked for %2 - alpha carries contested-versus-held, in-effect-versus-suppressed and restricted-versus-friendly, and the palette must never supply it", alpha.ToString(), PROBE_ALPHA.ToString());
+			SetFailure("GetArgb packed alpha %1 where the caller asked for %2 - alpha carries contested-versus-held, in-effect-versus-suppressed and restricted-versus-friendly, and the palette must never supply it", alpha.ToString(), PROBE_ALPHA.ToString());
 			return true;
 		}
 
@@ -100,7 +100,7 @@ class OVT_TEST_Logic_MapFactionPalette : SCR_AutotestCaseBase
 		// so a fallback that silently picked the occupier would be caught.
 		if (red != 255 || green != 255 || blue != 255)
 		{
-			SetResultFailure("The unroled fallback packed RGB %1 %2 %3 rather than white - a hue there would read as a faction that may not be there", red.ToString(), green.ToString(), blue.ToString());
+			SetFailure("The unroled fallback packed RGB %1 %2 %3 rather than white - a hue there would read as a faction that may not be there", red.ToString(), green.ToString(), blue.ToString());
 			return true;
 		}
 
@@ -108,14 +108,14 @@ class OVT_TEST_Logic_MapFactionPalette : SCR_AutotestCaseBase
 		Color.UnpackInt(palette.GetArgb(-1, 300), alpha, red, green, blue);
 		if (alpha != 255)
 		{
-			SetResultFailure("An alpha of 300 packed as %1 rather than clamping to 255", alpha.ToString());
+			SetFailure("An alpha of 300 packed as %1 rather than clamping to 255", alpha.ToString());
 			return true;
 		}
 
 		Color.UnpackInt(palette.GetArgb(-1, -5), alpha, red, green, blue);
 		if (alpha != 0)
 		{
-			SetResultFailure("An alpha of -5 packed as %1 rather than clamping to 0", alpha.ToString());
+			SetFailure("An alpha of -5 packed as %1 rather than clamping to 0", alpha.ToString());
 			return true;
 		}
 
@@ -125,17 +125,16 @@ class OVT_TEST_Logic_MapFactionPalette : SCR_AutotestCaseBase
 
 		if (alpha != PROBE_ALPHA)
 		{
-			SetResultFailure("GetArgbForRole packed alpha %1 where the caller asked for %2", alpha.ToString(), PROBE_ALPHA.ToString());
+			SetFailure("GetArgbForRole packed alpha %1 where the caller asked for %2", alpha.ToString(), PROBE_ALPHA.ToString());
 			return true;
 		}
 
 		if (red != Math.ClampInt(Math.Round(occupying.R() * 255), 0, 255) || green != Math.ClampInt(Math.Round(occupying.G() * 255), 0, 255) || blue != Math.ClampInt(Math.Round(occupying.B() * 255), 0, 255))
 		{
-			SetResultFailure("GetArgbForRole packed RGB %1 %2 %3, which is not the occupying role's own colour", red.ToString(), green.ToString(), blue.ToString());
+			SetFailure("GetArgbForRole packed RGB %1 %2 %3, which is not the occupying role's own colour", red.ToString(), green.ToString(), blue.ToString());
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 

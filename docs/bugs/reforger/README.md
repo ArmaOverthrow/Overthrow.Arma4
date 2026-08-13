@@ -28,6 +28,8 @@ is RFG-006, which blocks modders from overriding it.
 | [RFG-007](RFG-007.md) | `RequestSpawn` on a live record retries forever; batch requests can wedge all saves for the session | major | [ARMD-15](https://report.bistudio.com/projects/arma-reforger/reforger-modding/ARMD-15) |
 | [RFG-008](RFG-008.md) | GetIn/RemoveCasualty missing the same-faction guard the door/handbrake actions have | minor | [ARMD-16](https://report.bistudio.com/projects/arma-reforger/reforger-modding/ARMD-16) |
 | [RFG-009](RFG-009.md) | `Rpc()` arity/type mismatch compiles clean and fails silently at runtime | minor (QoL) | [ARMD-17](https://report.bistudio.com/projects/arma-reforger/reforger-modding/ARMD-17) |
+| [RFG-010](RFG-010.md) | Unarmed AI in formation move walks backwards persistently | minor | withdrawn — not a vanilla bug (Overthrow-side, fixed as BUG-147) |
+| [RFG-011](RFG-011.md) | 1.8: persistence `Common.conf`/`Mission.conf` broken as inheritance bases — new BuildableComposition config never connected to a collection, persistence system fails to init | major | draft |
 | [RFG-010](RFG-010.md) | Unarmed AI in a formation move walks backwards persistently — **withdrawn: not a vanilla bug** (trigger was Overthrow's unpossess-under-live-inventory-menu; vanilla GM possess/release is clean) | minor | *(withdrawn, never submitted)* |
 
 ## Considered and NOT written up (with reasons)

@@ -20,7 +20,7 @@ class OVT_TEST_Smoke_HarnessRuns : SCR_AutotestCaseBase
 	protected int m_iTickCount;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Setup)]
+	[TestStep(TestStage.Setup)]
 	void Setup()
 	{
 		m_iTickCount = 0;
@@ -28,7 +28,7 @@ class OVT_TEST_Smoke_HarnessRuns : SCR_AutotestCaseBase
 
 	//------------------------------------------------------------------------------------------------
 	//! Runs for several ticks to exercise the framework's re-run (bool step) pattern.
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		m_iTickCount += 1;
@@ -54,12 +54,11 @@ class OVT_TEST_Smoke_HarnessRuns : SCR_AutotestCaseBase
 		bool hasTownManager = (townManager != null);
 		PrintFormat("Diagnostic (log only): OVT_Global.GetTowns() non-null = %1", hasTownManager.ToString());
 
-		SetResultSuccess();
 		return true; // finish the test
 	}
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.TearDown)]
+	[TestStep(TestStage.TearDown)]
 	void TearDown()
 	{
 		Print("Smoke test teardown complete");

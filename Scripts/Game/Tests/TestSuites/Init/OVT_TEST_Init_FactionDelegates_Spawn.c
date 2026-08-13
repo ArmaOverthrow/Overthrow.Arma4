@@ -26,41 +26,40 @@
 class OVT_TEST_Init_FactionDelegates_Spawn : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		FactionManager factionManager = GetGame().GetFactionManager();
 		if (!factionManager)
 		{
-			SetResultFailure("GetGame().GetFactionManager() is null at world load");
+			SetFailure("GetGame().GetFactionManager() is null at world load");
 			return true;
 		}
 
 		int factionCount = factionManager.GetFactionsCount();
 		if (factionCount < 1)
 		{
-			SetResultFailure("The faction manager holds no factions, so delegate coverage cannot be asserted");
+			SetFailure("The faction manager holds no factions, so delegate coverage cannot be asserted");
 			return true;
 		}
 
 		SCR_DelegateFactionManagerComponent delegates = SCR_DelegateFactionManagerComponent.GetInstance();
 		if (!delegates)
 		{
-			SetResultFailure("SCR_DelegateFactionManagerComponent.GetInstance() is null - the faction manager prefab is missing the component, so faction relations never reach clients (BUG-132)");
+			SetFailure("SCR_DelegateFactionManagerComponent.GetInstance() is null - the faction manager prefab is missing the component, so faction relations never reach clients (BUG-132)");
 			return true;
 		}
 
 		int delegateCount = delegates.GetFactionDelegateCount();
 		if (delegateCount != factionCount)
 		{
-			SetResultFailure("%1 faction delegate(s) exist for %2 faction(s) - every uncovered faction's relations are invisible to clients (BUG-132)",
+			SetFailure("%1 faction delegate(s) exist for %2 faction(s) - every uncovered faction's relations are invisible to clients (BUG-132)",
 				delegateCount.ToString(), factionCount.ToString());
 			return true;
 		}
 
 		PrintFormat("Faction delegates present: %1 delegate(s) for %2 faction(s)",
 			delegateCount.ToString(), factionCount.ToString());
-		SetResultSuccess();
 		return true;
 	}
 }

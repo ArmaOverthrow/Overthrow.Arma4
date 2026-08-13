@@ -16,10 +16,10 @@ class OVT_TEST_MetaSuite : OVT_TEST_SuiteBase
 class OVT_TEST_Meta_AlwaysFails : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
-		SetResultFailure("Deliberate failure: proves the harness reports red");
+		SetFailure("Deliberate failure: proves the harness reports red");
 		return true;
 	}
 }

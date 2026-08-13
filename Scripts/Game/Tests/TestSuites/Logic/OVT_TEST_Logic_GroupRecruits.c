@@ -99,27 +99,27 @@ class OVT_TEST_GroupRecruitsFixture
 class OVT_TEST_Logic_GroupRecruits_AiBudgetArithmetic : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		// --- ProjectSlaveAiCount is a sum.
 		if (OVT_GroupRecruitTransfer.ProjectSlaveAiCount(0, 0) != 0)
 		{
-			SetResultFailure("ProjectSlaveAiCount(0, 0) returned %1, expected 0",
+			SetFailure("ProjectSlaveAiCount(0, 0) returned %1, expected 0",
 				OVT_GroupRecruitTransfer.ProjectSlaveAiCount(0, 0).ToString());
 			return true;
 		}
 
 		if (OVT_GroupRecruitTransfer.ProjectSlaveAiCount(3, 2) != 5)
 		{
-			SetResultFailure("ProjectSlaveAiCount(3, 2) returned %1, expected 5",
+			SetFailure("ProjectSlaveAiCount(3, 2) returned %1, expected 5",
 				OVT_GroupRecruitTransfer.ProjectSlaveAiCount(3, 2).ToString());
 			return true;
 		}
 
 		if (OVT_GroupRecruitTransfer.ProjectSlaveAiCount(16, 0) != 16)
 		{
-			SetResultFailure("ProjectSlaveAiCount(16, 0) returned %1, expected 16",
+			SetFailure("ProjectSlaveAiCount(16, 0) returned %1, expected 16",
 				OVT_GroupRecruitTransfer.ProjectSlaveAiCount(16, 0).ToString());
 			return true;
 		}
@@ -128,14 +128,14 @@ class OVT_TEST_Logic_GroupRecruits_AiBudgetArithmetic : SCR_AutotestCaseBase
 		// dragging the projection below what is already in the group.
 		if (OVT_GroupRecruitTransfer.ProjectSlaveAiCount(-1, 4) != 4)
 		{
-			SetResultFailure("ProjectSlaveAiCount(-1, 4) returned %1, expected 4 (a negative current count contributes 0)",
+			SetFailure("ProjectSlaveAiCount(-1, 4) returned %1, expected 4 (a negative current count contributes 0)",
 				OVT_GroupRecruitTransfer.ProjectSlaveAiCount(-1, 4).ToString());
 			return true;
 		}
 
 		if (OVT_GroupRecruitTransfer.ProjectSlaveAiCount(4, -1) != 4)
 		{
-			SetResultFailure("ProjectSlaveAiCount(4, -1) returned %1, expected 4 (a negative incoming count contributes 0)",
+			SetFailure("ProjectSlaveAiCount(4, -1) returned %1, expected 4 (a negative incoming count contributes 0)",
 				OVT_GroupRecruitTransfer.ProjectSlaveAiCount(4, -1).ToString());
 			return true;
 		}
@@ -143,38 +143,38 @@ class OVT_TEST_Logic_GroupRecruits_AiBudgetArithmetic : SCR_AutotestCaseBase
 		// --- budget <= 0 means "no budget configured" and never trips.
 		if (OVT_GroupRecruitTransfer.ExceedsAiBudget(96, 0))
 		{
-			SetResultFailure("ExceedsAiBudget(96, 0) returned true - a budget of 0 must mean DISABLED, not 'refuse everything'");
+			SetFailure("ExceedsAiBudget(96, 0) returned true - a budget of 0 must mean DISABLED, not 'refuse everything'");
 			return true;
 		}
 
 		if (OVT_GroupRecruitTransfer.ExceedsAiBudget(96, -1))
 		{
-			SetResultFailure("ExceedsAiBudget(96, -1) returned true - a negative budget must mean DISABLED");
+			SetFailure("ExceedsAiBudget(96, -1) returned true - a negative budget must mean DISABLED");
 			return true;
 		}
 
 		if (OVT_GroupRecruitTransfer.ExceedsAiBudget(0, 0))
 		{
-			SetResultFailure("ExceedsAiBudget(0, 0) returned true - a disabled budget never trips");
+			SetFailure("ExceedsAiBudget(0, 0) returned true - a disabled budget never trips");
 			return true;
 		}
 
 		// --- With a budget configured, the boundary is strictly above.
 		if (OVT_GroupRecruitTransfer.ExceedsAiBudget(9, 10))
 		{
-			SetResultFailure("ExceedsAiBudget(9, 10) returned true - 9 is under the budget");
+			SetFailure("ExceedsAiBudget(9, 10) returned true - 9 is under the budget");
 			return true;
 		}
 
 		if (OVT_GroupRecruitTransfer.ExceedsAiBudget(10, 10))
 		{
-			SetResultFailure("ExceedsAiBudget(10, 10) returned true - sitting exactly ON the budget is not exceeding it");
+			SetFailure("ExceedsAiBudget(10, 10) returned true - sitting exactly ON the budget is not exceeding it");
 			return true;
 		}
 
 		if (!OVT_GroupRecruitTransfer.ExceedsAiBudget(11, 10))
 		{
-			SetResultFailure("ExceedsAiBudget(11, 10) returned false - 11 is over the budget");
+			SetFailure("ExceedsAiBudget(11, 10) returned false - 11 is over the budget");
 			return true;
 		}
 
@@ -182,25 +182,24 @@ class OVT_TEST_Logic_GroupRecruits_AiBudgetArithmetic : SCR_AutotestCaseBase
 		int projected = OVT_GroupRecruitTransfer.ProjectSlaveAiCount(80, 16);
 		if (projected != 96)
 		{
-			SetResultFailure("ProjectSlaveAiCount(80, 16) returned %1, expected 96", projected.ToString());
+			SetFailure("ProjectSlaveAiCount(80, 16) returned %1, expected 96", projected.ToString());
 			return true;
 		}
 
 		if (!OVT_GroupRecruitTransfer.ExceedsAiBudget(projected, 64))
 		{
-			SetResultFailure("A projection of 96 did not exceed a budget of 64");
+			SetFailure("A projection of 96 did not exceed a budget of 64");
 			return true;
 		}
 
 		if (OVT_GroupRecruitTransfer.ExceedsAiBudget(projected, 0))
 		{
-			SetResultFailure("A projection of 96 tripped a DISABLED budget");
+			SetFailure("A projection of 96 tripped a DISABLED budget");
 			return true;
 		}
 
 		Print("AI budget: projection is a clamped sum, budget <= 0 is disabled, the boundary is strictly above");
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -217,7 +216,7 @@ class OVT_TEST_Logic_GroupRecruits_AiBudgetArithmetic : SCR_AutotestCaseBase
 class OVT_TEST_Logic_GroupRecruits_EmptyOwnerTransfersNothing : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		array<ref OVT_RecruitData> roster = new array<ref OVT_RecruitData>();
@@ -228,25 +227,24 @@ class OVT_TEST_Logic_GroupRecruits_EmptyOwnerTransfersNothing : SCR_AutotestCase
 
 		if (!transferable)
 		{
-			SetResultFailure("SelectTransferable() returned null for an owner with no recruits - it must return an empty list, the caller iterates it directly");
+			SetFailure("SelectTransferable() returned null for an owner with no recruits - it must return an empty list, the caller iterates it directly");
 			return true;
 		}
 
 		if (transferable.Count() != 0)
 		{
-			SetResultFailure("An owner with no recruits transferred %1 recruits, expected 0", transferable.Count().ToString());
+			SetFailure("An owner with no recruits transferred %1 recruits, expected 0", transferable.Count().ToString());
 			return true;
 		}
 
 		if (skippedOffline != 0)
 		{
-			SetResultFailure("An owner with no recruits reported %1 skipped-offline recruits, expected 0", skippedOffline.ToString());
+			SetFailure("An owner with no recruits reported %1 skipped-offline recruits, expected 0", skippedOffline.ToString());
 			return true;
 		}
 
 		Print("Empty owner: empty transfer list, 0 skipped");
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -263,7 +261,7 @@ class OVT_TEST_Logic_GroupRecruits_EmptyOwnerTransfersNothing : SCR_AutotestCase
 class OVT_TEST_Logic_GroupRecruits_MixedOnlineOfflineRecruits : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		// Deliberately interleaved, so a filter that returned a contiguous slice would fail.
@@ -280,20 +278,20 @@ class OVT_TEST_Logic_GroupRecruits_MixedOnlineOfflineRecruits : SCR_AutotestCase
 
 		if (transferable.Count() != 2)
 		{
-			SetResultFailure("A roster of 2 online and 3 offline recruits transferred %1, expected 2", transferable.Count().ToString());
+			SetFailure("A roster of 2 online and 3 offline recruits transferred %1, expected 2", transferable.Count().ToString());
 			return true;
 		}
 
 		if (transferable[0] != "recruit-online-a" || transferable[1] != "recruit-online-b")
 		{
-			SetResultFailure("The transferred ids were %1, %2 - expected recruit-online-a, recruit-online-b",
+			SetFailure("The transferred ids were %1, %2 - expected recruit-online-a, recruit-online-b",
 				transferable[0], transferable[1]);
 			return true;
 		}
 
 		if (skippedOffline != 3)
 		{
-			SetResultFailure("A roster with 3 bodyless recruits reported %1 skipped, expected 3", skippedOffline.ToString());
+			SetFailure("A roster with 3 bodyless recruits reported %1 skipped, expected 3", skippedOffline.ToString());
 			return true;
 		}
 
@@ -308,19 +306,18 @@ class OVT_TEST_Logic_GroupRecruits_MixedOnlineOfflineRecruits : SCR_AutotestCase
 
 		if (nothing.Count() != 0)
 		{
-			SetResultFailure("A roster with no bodies transferred %1 recruits, expected 0", nothing.Count().ToString());
+			SetFailure("A roster with no bodies transferred %1 recruits, expected 0", nothing.Count().ToString());
 			return true;
 		}
 
 		if (allOfflineSkipped != 2)
 		{
-			SetResultFailure("A roster of 2 bodyless recruits reported %1 skipped, expected 2", allOfflineSkipped.ToString());
+			SetFailure("A roster of 2 bodyless recruits reported %1 skipped, expected 2", allOfflineSkipped.ToString());
 			return true;
 		}
 
 		PrintFormat("Mixed roster: %1 of 5 recruits follow, %2 skipped for having no body", transferable.Count().ToString(), skippedOffline.ToString());
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -342,7 +339,7 @@ class OVT_TEST_Logic_GroupRecruits_MixedOnlineOfflineRecruits : SCR_AutotestCase
 class OVT_TEST_Logic_GroupRecruits_OfflineOwnerTransfersNothing : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		array<ref OVT_RecruitData> roster = OVT_TEST_GroupRecruitsFixture.MakeRoster({
@@ -357,7 +354,7 @@ class OVT_TEST_Logic_GroupRecruits_OfflineOwnerTransfersNothing : SCR_AutotestCa
 		array<string> withOwner = OVT_GroupRecruitTransfer.SelectTransferable(roster, true, onlineSkipped);
 		if (withOwner.Count() != 3)
 		{
-			SetResultFailure("Control: with the owner present, %1 of 3 online recruits were transferable, expected 3", withOwner.Count().ToString());
+			SetFailure("Control: with the owner present, %1 of 3 online recruits were transferable, expected 3", withOwner.Count().ToString());
 			return true;
 		}
 
@@ -367,19 +364,19 @@ class OVT_TEST_Logic_GroupRecruits_OfflineOwnerTransfersNothing : SCR_AutotestCa
 
 		if (!transferable)
 		{
-			SetResultFailure("SelectTransferable() returned null for an offline owner - it must return an empty list");
+			SetFailure("SelectTransferable() returned null for an offline owner - it must return an empty list");
 			return true;
 		}
 
 		if (transferable.Count() != 0)
 		{
-			SetResultFailure("An OFFLINE owner transferred %1 recruits, expected 0 - a departed player's AI must not be commandable by anybody", transferable.Count().ToString());
+			SetFailure("An OFFLINE owner transferred %1 recruits, expected 0 - a departed player's AI must not be commandable by anybody", transferable.Count().ToString());
 			return true;
 		}
 
 		if (skippedOffline != 0)
 		{
-			SetResultFailure("An offline owner reported %1 skipped-OFFLINE recruits, expected 0 - the counter describes recruits without bodies, and none was examined", skippedOffline.ToString());
+			SetFailure("An offline owner reported %1 skipped-OFFLINE recruits, expected 0 - the counter describes recruits without bodies, and none was examined", skippedOffline.ToString());
 			return true;
 		}
 
@@ -394,14 +391,13 @@ class OVT_TEST_Logic_GroupRecruits_OfflineOwnerTransfersNothing : SCR_AutotestCa
 
 		if (mixed.Count() != 0 || mixedSkipped != 0)
 		{
-			SetResultFailure("An offline owner with a mixed roster transferred %1 recruits and reported %2 skipped, expected 0 and 0",
+			SetFailure("An offline owner with a mixed roster transferred %1 recruits and reported %2 skipped, expected 0 and 0",
 				mixed.Count().ToString(), mixedSkipped.ToString());
 			return true;
 		}
 
 		Print("Offline owner: 3 recruits with bodies, 0 transferable, 0 counted as skipped-offline");
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -417,7 +413,7 @@ class OVT_TEST_Logic_GroupRecruits_OfflineOwnerTransfersNothing : SCR_AutotestCa
 class OVT_TEST_Logic_GroupRecruits_OnlineRecruitsFollowInTableOrder : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		// Ids chosen so that alphabetical order is NOT table order - a helper that sorted, or that
@@ -434,7 +430,7 @@ class OVT_TEST_Logic_GroupRecruits_OnlineRecruitsFollowInTableOrder : SCR_Autote
 
 		if (transferable.Count() != 4)
 		{
-			SetResultFailure("4 online recruits with an online owner produced %1 transferable ids, expected 4", transferable.Count().ToString());
+			SetFailure("4 online recruits with an online owner produced %1 transferable ids, expected 4", transferable.Count().ToString());
 			return true;
 		}
 
@@ -443,14 +439,14 @@ class OVT_TEST_Logic_GroupRecruits_OnlineRecruitsFollowInTableOrder : SCR_Autote
 		{
 			if (transferable[i] != expected[i])
 			{
-				SetResultFailure("Transfer order broke at index %1: got %2, expected %3", i.ToString(), transferable[i], expected[i]);
+				SetFailure("Transfer order broke at index %1: got %2, expected %3", i.ToString(), transferable[i], expected[i]);
 				return true;
 			}
 		}
 
 		if (skippedOffline != 0)
 		{
-			SetResultFailure("A roster where every recruit has a body reported %1 skipped, expected 0", skippedOffline.ToString());
+			SetFailure("A roster where every recruit has a body reported %1 skipped, expected 0", skippedOffline.ToString());
 			return true;
 		}
 
@@ -459,13 +455,12 @@ class OVT_TEST_Logic_GroupRecruits_OnlineRecruitsFollowInTableOrder : SCR_Autote
 		transferable.Clear();
 		if (roster.Count() != 4)
 		{
-			SetResultFailure("Clearing the returned id list changed the owner's roster to %1 records - SelectTransferable must return a fresh list", roster.Count().ToString());
+			SetFailure("Clearing the returned id list changed the owner's roster to %1 records - SelectTransferable must return a fresh list", roster.Count().ToString());
 			return true;
 		}
 
 		Print("Online owner, 4 online recruits: all 4 follow, in table order, as a fresh list");
 
-		SetResultSuccess();
 		return true;
 	}
 }

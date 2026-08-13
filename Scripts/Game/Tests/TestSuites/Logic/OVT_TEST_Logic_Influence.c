@@ -80,7 +80,7 @@ class OVT_TEST_Logic_Influence_ProximityInRange : SCR_AutotestCaseBase
 	protected static const float RANGE = 1000;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		vector town = Vector(0, 0, 0);
@@ -88,32 +88,31 @@ class OVT_TEST_Logic_Influence_ProximityInRange : SCR_AutotestCaseBase
 		// One metre inside. Flat, so this case says nothing about the height component either way.
 		if (!OVT_InfluenceRules.IsProximitySource(town, Vector(999, 0, 0), RANGE))
 		{
-			SetResultFailure("A source 999 m from a town did not reach it at a range of %1 m; every tower and base would stop influencing anything", RANGE.ToString());
+			SetFailure("A source 999 m from a town did not reach it at a range of %1 m; every tower and base would stop influencing anything", RANGE.ToString());
 			return true;
 		}
 
 		// Comfortably inside, so a fault at the boundary cannot be what turned this green.
 		if (!OVT_InfluenceRules.IsProximitySource(town, Vector(500, 0, 0), RANGE))
 		{
-			SetResultFailure("A source halfway to the range boundary did not reach the town");
+			SetFailure("A source halfway to the range boundary did not reach the town");
 			return true;
 		}
 
 		// And the range argument is actually consulted rather than ignored.
 		if (OVT_InfluenceRules.IsProximitySource(town, Vector(1500, 0, 0), RANGE))
 		{
-			SetResultFailure("A source 1500 m from a town reached it at a range of %1 m; the range argument is not bounding anything", RANGE.ToString());
+			SetFailure("A source 1500 m from a town reached it at a range of %1 m; the range argument is not bounding anything", RANGE.ToString());
 			return true;
 		}
 
 		// The same pair at a wider range does reach, which is the other half of "the argument matters".
 		if (!OVT_InfluenceRules.IsProximitySource(town, Vector(1500, 0, 0), 2000))
 		{
-			SetResultFailure("A source 1500 m from a town did not reach it at a range of 2000 m");
+			SetFailure("A source 1500 m from a town did not reach it at a range of 2000 m");
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -142,14 +141,14 @@ class OVT_TEST_Logic_Influence_ProximityAtRange : SCR_AutotestCaseBase
 	protected static const float RANGE = 1500;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		vector town = Vector(0, 0, 0);
 
 		if (OVT_InfluenceRules.IsProximitySource(town, Vector(1500, 0, 0), RANGE))
 		{
-			SetResultFailure("A source sitting exactly %1 m away reached a town at a range of %1 m; the proximity range is an open interval and the campaign's comparison is strict", RANGE.ToString());
+			SetFailure("A source sitting exactly %1 m away reached a town at a range of %1 m; the proximity range is an open interval and the campaign's comparison is strict", RANGE.ToString());
 			return true;
 		}
 
@@ -157,11 +156,10 @@ class OVT_TEST_Logic_Influence_ProximityAtRange : SCR_AutotestCaseBase
 		// answered false would pass the assertion above.
 		if (!OVT_InfluenceRules.IsProximitySource(town, Vector(1499, 0, 0), RANGE))
 		{
-			SetResultFailure("A source one metre inside the boundary did not reach the town; the boundary has moved rather than being strict");
+			SetFailure("A source one metre inside the boundary did not reach the town; the boundary has moved rather than being strict");
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -190,7 +188,7 @@ class OVT_TEST_Logic_Influence_ProximityIsThreeDimensional : SCR_AutotestCaseBas
 	protected static const float HEIGHT = 600;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		vector town = Vector(0, 0, 0);
@@ -199,13 +197,13 @@ class OVT_TEST_Logic_Influence_ProximityIsThreeDimensional : SCR_AutotestCaseBas
 		// blamed on the horizontal distance.
 		if (!OVT_InfluenceRules.IsProximitySource(town, Vector(HORIZONTAL, 0, 0), RANGE))
 		{
-			SetResultFailure("A source %1 m away at ground level did not reach a town at a range of %2 m; the control for this case is broken and it can no longer say anything about height", HORIZONTAL.ToString(), RANGE.ToString());
+			SetFailure("A source %1 m away at ground level did not reach a town at a range of %2 m; the control for this case is broken and it can no longer say anything about height", HORIZONTAL.ToString(), RANGE.ToString());
 			return true;
 		}
 
 		if (OVT_InfluenceRules.IsProximitySource(town, Vector(HORIZONTAL, HEIGHT, 0), RANGE))
 		{
-			SetResultFailure("A source %1 m away across the ground and %2 m above the town reached it at a range of %3 m; that is 1081 m in three dimensions, so the distance is being measured on the map rather than in the world", HORIZONTAL.ToString(), HEIGHT.ToString(), RANGE.ToString());
+			SetFailure("A source %1 m away across the ground and %2 m above the town reached it at a range of %3 m; that is 1081 m in three dimensions, so the distance is being measured on the map rather than in the world", HORIZONTAL.ToString(), HEIGHT.ToString(), RANGE.ToString());
 			return true;
 		}
 
@@ -213,11 +211,10 @@ class OVT_TEST_Logic_Influence_ProximityIsThreeDimensional : SCR_AutotestCaseBas
 		// as a special case.
 		if (OVT_InfluenceRules.IsProximitySource(town, Vector(HORIZONTAL, -HEIGHT, 0), RANGE))
 		{
-			SetResultFailure("A source %1 m away across the ground and %2 m BELOW the town reached it at a range of %3 m; height must count whichever way it goes", HORIZONTAL.ToString(), HEIGHT.ToString(), RANGE.ToString());
+			SetFailure("A source %1 m away across the ground and %2 m BELOW the town reached it at a range of %3 m; height must count whichever way it goes", HORIZONTAL.ToString(), HEIGHT.ToString(), RANGE.ToString());
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -242,13 +239,13 @@ class OVT_TEST_Logic_Influence_ProximityIsThreeDimensional : SCR_AutotestCaseBas
 class OVT_TEST_Logic_Influence_MomentumAtRange : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		// --- THE BOUNDARY ITSELF. Inclusive: a town sitting exactly at the reach is inside it.
 		if (!OVT_InfluenceRules.IsWithinMomentumRange(2000))
 		{
-			SetResultFailure("A separation of exactly 2000 m was outside the momentum reach; the momentum comparison is INCLUSIVE, unlike the strict proximity one, and that asymmetry is what these two cases exist to hold apart");
+			SetFailure("A separation of exactly 2000 m was outside the momentum reach; the momentum comparison is INCLUSIVE, unlike the strict proximity one, and that asymmetry is what these two cases exist to hold apart");
 			return true;
 		}
 
@@ -256,7 +253,7 @@ class OVT_TEST_Logic_Influence_MomentumAtRange : SCR_AutotestCaseBase
 		// everything and still satisfy the assertion above.
 		if (OVT_InfluenceRules.IsWithinMomentumRange(2000.5))
 		{
-			SetResultFailure("A separation of 2000.5 m was inside the momentum reach; the reach is 2000 m");
+			SetFailure("A separation of 2000.5 m was inside the momentum reach; the reach is 2000 m");
 			return true;
 		}
 
@@ -266,17 +263,16 @@ class OVT_TEST_Logic_Influence_MomentumAtRange : SCR_AutotestCaseBase
 
 		if (!OVT_InfluenceRules.IsMomentumSource(town, Vector(1999, 0, 0)))
 		{
-			SetResultFailure("A player-held town 1999 m away lent no momentum");
+			SetFailure("A player-held town 1999 m away lent no momentum");
 			return true;
 		}
 
 		if (OVT_InfluenceRules.IsMomentumSource(town, Vector(2001, 0, 0)))
 		{
-			SetResultFailure("A player-held town 2001 m away lent momentum; the reach is 2000 m and nothing outside it may qualify");
+			SetFailure("A player-held town 2001 m away lent momentum; the reach is 2000 m and nothing outside it may qualify");
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -299,14 +295,14 @@ class OVT_TEST_Logic_Influence_MomentumAtRange : SCR_AutotestCaseBase
 class OVT_TEST_Logic_Influence_EnemyWinsOverFriendly : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_InfluencePolarity contested = OVT_InfluenceRules.ResolveProximity(true, true);
 
 		if (contested != OVT_InfluencePolarity.NEGATIVE)
 		{
-			SetResultFailure("A town with BOTH an enemy and a friendly source of the same kind in range resolved to %1, expected NEGATIVE; an enemy source out-weighs any number of friendly ones", OVT_TEST_Logic_InfluenceFixture.PolarityName(contested));
+			SetFailure("A town with BOTH an enemy and a friendly source of the same kind in range resolved to %1, expected NEGATIVE; an enemy source out-weighs any number of friendly ones", OVT_TEST_Logic_InfluenceFixture.PolarityName(contested));
 			return true;
 		}
 
@@ -316,7 +312,7 @@ class OVT_TEST_Logic_Influence_EnemyWinsOverFriendly : SCR_AutotestCaseBase
 
 		if (enemyOnly != OVT_InfluencePolarity.NEGATIVE)
 		{
-			SetResultFailure("A town with only an enemy source in range resolved to %1, expected NEGATIVE", OVT_TEST_Logic_InfluenceFixture.PolarityName(enemyOnly));
+			SetFailure("A town with only an enemy source in range resolved to %1, expected NEGATIVE", OVT_TEST_Logic_InfluenceFixture.PolarityName(enemyOnly));
 			return true;
 		}
 
@@ -324,11 +320,10 @@ class OVT_TEST_Logic_Influence_EnemyWinsOverFriendly : SCR_AutotestCaseBase
 		// happens to share its name.
 		if (contested != OVT_InfluenceRules.PolarityForSource(true))
 		{
-			SetResultFailure("The contested outcome %1 is not the polarity an occupier-held source produces on its own (%2); 'the enemy wins' must mean the enemy's own answer is taken", OVT_TEST_Logic_InfluenceFixture.PolarityName(contested), OVT_TEST_Logic_InfluenceFixture.PolarityName(OVT_InfluenceRules.PolarityForSource(true)));
+			SetFailure("The contested outcome %1 is not the polarity an occupier-held source produces on its own (%2); 'the enemy wins' must mean the enemy's own answer is taken", OVT_TEST_Logic_InfluenceFixture.PolarityName(contested), OVT_TEST_Logic_InfluenceFixture.PolarityName(OVT_InfluenceRules.PolarityForSource(true)));
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -346,14 +341,14 @@ class OVT_TEST_Logic_Influence_EnemyWinsOverFriendly : SCR_AutotestCaseBase
 class OVT_TEST_Logic_Influence_ResolveFriendlyAndNone : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_InfluencePolarity friendly = OVT_InfluenceRules.ResolveProximity(false, true);
 
 		if (friendly != OVT_InfluencePolarity.POSITIVE)
 		{
-			SetResultFailure("A town with only a friendly source in range resolved to %1, expected POSITIVE", OVT_TEST_Logic_InfluenceFixture.PolarityName(friendly));
+			SetFailure("A town with only a friendly source in range resolved to %1, expected POSITIVE", OVT_TEST_Logic_InfluenceFixture.PolarityName(friendly));
 			return true;
 		}
 
@@ -361,11 +356,10 @@ class OVT_TEST_Logic_Influence_ResolveFriendlyAndNone : SCR_AutotestCaseBase
 
 		if (nothing != OVT_InfluencePolarity.NONE)
 		{
-			SetResultFailure("A town with no source of this kind in range resolved to %1, expected NONE; NONE is what tells the campaign to REMOVE the modifier, and a sabotaged tower produces it", OVT_TEST_Logic_InfluenceFixture.PolarityName(nothing));
+			SetFailure("A town with no source of this kind in range resolved to %1, expected NONE; NONE is what tells the campaign to REMOVE the modifier, and a sabotaged tower produces it", OVT_TEST_Logic_InfluenceFixture.PolarityName(nothing));
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -381,14 +375,14 @@ class OVT_TEST_Logic_Influence_ResolveFriendlyAndNone : SCR_AutotestCaseBase
 class OVT_TEST_Logic_Influence_PolarityForSource : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_InfluencePolarity occupier = OVT_InfluenceRules.PolarityForSource(true);
 
 		if (occupier != OVT_InfluencePolarity.NEGATIVE)
 		{
-			SetResultFailure("An occupier-held source produced %1, expected NEGATIVE; occupation depresses a town's support", OVT_TEST_Logic_InfluenceFixture.PolarityName(occupier));
+			SetFailure("An occupier-held source produced %1, expected NEGATIVE; occupation depresses a town's support", OVT_TEST_Logic_InfluenceFixture.PolarityName(occupier));
 			return true;
 		}
 
@@ -396,18 +390,17 @@ class OVT_TEST_Logic_Influence_PolarityForSource : SCR_AutotestCaseBase
 
 		if (resistance != OVT_InfluencePolarity.POSITIVE)
 		{
-			SetResultFailure("A source NOT held by the occupying faction produced %1, expected POSITIVE", OVT_TEST_Logic_InfluenceFixture.PolarityName(resistance));
+			SetFailure("A source NOT held by the occupying faction produced %1, expected POSITIVE", OVT_TEST_Logic_InfluenceFixture.PolarityName(resistance));
 			return true;
 		}
 
 		// The two answers must differ, which is the property that survives a later third polarity.
 		if (occupier == resistance)
 		{
-			SetResultFailure("An occupier-held source and a resistance-held source produced the same polarity %1; the sign of influence would carry no information at all", OVT_TEST_Logic_InfluenceFixture.PolarityName(occupier));
+			SetFailure("An occupier-held source and a resistance-held source produced the same polarity %1; the sign of influence would carry no information at all", OVT_TEST_Logic_InfluenceFixture.PolarityName(occupier));
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -429,7 +422,7 @@ class OVT_TEST_Logic_Influence_PolarityForSource : SCR_AutotestCaseBase
 class OVT_TEST_Logic_Influence_ModifierNames : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		if (!Expect(OVT_InfluenceSourceKind.RADIO_TOWER, OVT_InfluencePolarity.NEGATIVE, "NearbyRadioTowerNegative", "a town in reach of an enemy radio tower"))
@@ -480,12 +473,11 @@ class OVT_TEST_Logic_Influence_ModifierNames : SCR_AutotestCaseBase
 				if (names.Get(i) != names.Get(j))
 					continue;
 
-				SetResultFailure("Two different source/polarity pairs both map to '%1'; each of the five modifiers must be addressable on its own", names.Get(i));
+				SetFailure("Two different source/polarity pairs both map to '%1'; each of the five modifiers must be addressable on its own", names.Get(i));
 				return true;
 			}
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 
@@ -503,7 +495,7 @@ class OVT_TEST_Logic_Influence_ModifierNames : SCR_AutotestCaseBase
 		if (actual == expected)
 			return true;
 
-		SetResultFailure("The modifier for %1 is '%2', expected '%3'. These names are resolved against the modifier config at runtime, so a mismatch does not error - the campaign silently stops applying it", situation, actual, expected);
+		SetFailure("The modifier for %1 is '%2', expected '%3'. These names are resolved against the modifier config at runtime, so a mismatch does not error - the campaign silently stops applying it", situation, actual, expected);
 		return false;
 	}
 
@@ -520,7 +512,7 @@ class OVT_TEST_Logic_Influence_ModifierNames : SCR_AutotestCaseBase
 		if (actual == string.Empty)
 			return true;
 
-		SetResultFailure("A source/polarity pair that has no modifier (%1) returned '%2'; inventing a name here would have the campaign apply a modifier nothing authored", reason, actual);
+		SetFailure("A source/polarity pair that has no modifier (%1) returned '%2'; inventing a name here would have the campaign apply a modifier nothing authored", reason, actual);
 		return false;
 	}
 }
@@ -543,18 +535,18 @@ class OVT_TEST_Logic_Influence_MomentumTargetQualifies : SCR_AutotestCaseBase
 	protected static const int OCCUPIER_FACTION = 1;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		if (OVT_InfluenceRules.TownQualifiesForMomentum(PLAYER_FACTION, PLAYER_FACTION))
 		{
-			SetResultFailure("A town already held by the player qualified as a momentum TARGET; a town that has come across has nothing left to be pulled toward");
+			SetFailure("A town already held by the player qualified as a momentum TARGET; a town that has come across has nothing left to be pulled toward");
 			return true;
 		}
 
 		if (!OVT_InfluenceRules.TownQualifiesForMomentum(OCCUPIER_FACTION, PLAYER_FACTION))
 		{
-			SetResultFailure("A town held by faction %1 did not qualify as a momentum target for player faction %2; momentum would never be applied to anything", OCCUPIER_FACTION.ToString(), PLAYER_FACTION.ToString());
+			SetFailure("A town held by faction %1 did not qualify as a momentum target for player faction %2; momentum would never be applied to anything", OCCUPIER_FACTION.ToString(), PLAYER_FACTION.ToString());
 			return true;
 		}
 
@@ -562,11 +554,10 @@ class OVT_TEST_Logic_Influence_MomentumTargetQualifies : SCR_AutotestCaseBase
 		// "not the player's" rather than "the occupier's".
 		if (!OVT_InfluenceRules.TownQualifiesForMomentum(0, PLAYER_FACTION))
 		{
-			SetResultFailure("A town held by a third faction did not qualify as a momentum target; the rule is 'not the player's', not 'the occupier's'");
+			SetFailure("A town held by a third faction did not qualify as a momentum target; the rule is 'not the player's', not 'the occupier's'");
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -587,16 +578,15 @@ class OVT_TEST_Logic_Influence_MomentumRangeConstant : SCR_AutotestCaseBase
 	protected static const float EXPECTED_RANGE = 2000;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		if (!OVT_TEST_LogicFixture.FloatEquals(OVT_InfluenceRules.MOMENTUM_RANGE, EXPECTED_RANGE))
 		{
-			SetResultFailure("The momentum reach is %1 m, expected %2 m; it moved out of a per-class constant and every town pair within the difference would gain or lose a support modifier", OVT_InfluenceRules.MOMENTUM_RANGE.ToString(), EXPECTED_RANGE.ToString());
+			SetFailure("The momentum reach is %1 m, expected %2 m; it moved out of a per-class constant and every town pair within the difference would gain or lose a support modifier", OVT_InfluenceRules.MOMENTUM_RANGE.ToString(), EXPECTED_RANGE.ToString());
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }

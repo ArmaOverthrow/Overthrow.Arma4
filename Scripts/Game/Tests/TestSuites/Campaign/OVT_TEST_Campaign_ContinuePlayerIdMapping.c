@@ -44,13 +44,13 @@ class OVT_TEST_Campaign_ContinuePlayerIdMapping : SCR_AutotestCaseBase
 	static const int PROBE_MONEY = 987654;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_OverthrowGameMode mode = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
 		if (!mode)
 		{
-			SetResultFailure("The running game mode is not an OVT_OverthrowGameMode");
+			SetFailure("The running game mode is not an OVT_OverthrowGameMode");
 			return true;
 		}
 
@@ -58,7 +58,7 @@ class OVT_TEST_Campaign_ContinuePlayerIdMapping : SCR_AutotestCaseBase
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
 		if (!players || !economy)
 		{
-			SetResultFailure("OVT_Global.GetPlayers() or GetEconomy() is null - see OVT_TEST_Init_Globals_ManagersResolve");
+			SetFailure("OVT_Global.GetPlayers() or GetEconomy() is null - see OVT_TEST_Init_Globals_ManagersResolve");
 			return true;
 		}
 
@@ -66,7 +66,7 @@ class OVT_TEST_Campaign_ContinuePlayerIdMapping : SCR_AutotestCaseBase
 		GetGame().GetPlayerManager().GetPlayers(connected);
 		if (connected.IsEmpty())
 		{
-			SetResultFailure("No player is connected - the autotest client normally spawns a local player (playerId 1), and this case is about a CONNECTED player surviving a continue");
+			SetFailure("No player is connected - the autotest client normally spawns a local player (playerId 1), and this case is about a CONNECTED player surviving a continue");
 			return true;
 		}
 
@@ -75,14 +75,14 @@ class OVT_TEST_Campaign_ContinuePlayerIdMapping : SCR_AutotestCaseBase
 		string persId = players.GetPersistentIDFromPlayerID(playerId);
 		if (persId == "")
 		{
-			SetResultFailure("The player manager already has no persistent ID for playerId %1 before this case touched anything - SetupPlayer never ran for the connected player", playerId.ToString());
+			SetFailure("The player manager already has no persistent ID for playerId %1 before this case touched anything - SetupPlayer never ran for the connected player", playerId.ToString());
 			return true;
 		}
 
 		OVT_PlayerData record = players.GetPlayer(persId);
 		if (!record)
 		{
-			SetResultFailure("No OVT_PlayerData record for persistent ID %1", persId);
+			SetFailure("No OVT_PlayerData record for persistent ID %1", persId);
 			return true;
 		}
 
@@ -91,7 +91,7 @@ class OVT_TEST_Campaign_ContinuePlayerIdMapping : SCR_AutotestCaseBase
 		// with a house, a car and a cash grant that later cases would inherit.
 		if (!mode.m_aInitializedPlayers || !mode.m_aInitializedPlayers.Contains(persId))
 		{
-			SetResultFailure("Player %1 is not in the game mode's finalized set, so calling PrepareConnectedPlayers() here would assign a home, spawn a starting car and grant starting cash into a shared campaign. The campaign start should have finalized them.", persId);
+			SetFailure("Player %1 is not in the game mode's finalized set, so calling PrepareConnectedPlayers() here would assign a home, spawn a starting car and grant starting cash into a shared campaign. The campaign start should have finalized them.", persId);
 			return true;
 		}
 
@@ -104,7 +104,7 @@ class OVT_TEST_Campaign_ContinuePlayerIdMapping : SCR_AutotestCaseBase
 		if (mapped != PROBE_MONEY)
 		{
 			record.money = originalMoney;
-			SetResultFailure("With the mapping intact, the balance read back as %1 instead of the probe %2 - this case cannot measure the mapping through a read path that is already broken", mapped.ToString(), PROBE_MONEY.ToString());
+			SetFailure("With the mapping intact, the balance read back as %1 instead of the probe %2 - this case cannot measure the mapping through a read path that is already broken", mapped.ToString(), PROBE_MONEY.ToString());
 			return true;
 		}
 
@@ -114,7 +114,7 @@ class OVT_TEST_Campaign_ContinuePlayerIdMapping : SCR_AutotestCaseBase
 		if (players.GetPersistentIDFromPlayerID(playerId) != "")
 		{
 			record.money = originalMoney;
-			SetResultFailure("ClearPlayerIdMappings() left a mapping in place for playerId %1, so the continued-session state this case is about was never reproduced", playerId.ToString());
+			SetFailure("ClearPlayerIdMappings() left a mapping in place for playerId %1, so the continued-session state this case is about was never reproduced", playerId.ToString());
 			return true;
 		}
 
@@ -124,7 +124,7 @@ class OVT_TEST_Campaign_ContinuePlayerIdMapping : SCR_AutotestCaseBase
 		{
 			players.SetupPlayer(playerId, persId);
 			record.money = originalMoney;
-			SetResultFailure("An unmapped player's balance read back as %1 rather than 0, so this case would prove nothing about the repair below", unmapped.ToString());
+			SetFailure("An unmapped player's balance read back as %1 rather than 0, so this case would prove nothing about the repair below", unmapped.ToString());
 			return true;
 		}
 
@@ -137,7 +137,7 @@ class OVT_TEST_Campaign_ContinuePlayerIdMapping : SCR_AutotestCaseBase
 			players.SetupPlayer(playerId, persId);
 			record.money = originalMoney;
 
-			SetResultFailure("PrepareConnectedPlayers() did NOT restore the session ID mapping for playerId %1 (got '%2', expected '%3'). After a Continue this is the whole session's state: the HUD shows $0 for a player whose record holds their real balance, every playerId-keyed lookup misses, and no OVT_OverthrowController is ever spawned for them.",
+			SetFailure("PrepareConnectedPlayers() did NOT restore the session ID mapping for playerId %1 (got '%2', expected '%3'). After a Continue this is the whole session's state: the HUD shows $0 for a player whose record holds their real balance, every playerId-keyed lookup misses, and no OVT_OverthrowController is ever spawned for them.",
 				playerId.ToString(), remapped, persId);
 			return true;
 		}
@@ -150,13 +150,13 @@ class OVT_TEST_Campaign_ContinuePlayerIdMapping : SCR_AutotestCaseBase
 
 		if (repaired != PROBE_MONEY)
 		{
-			SetResultFailure("The mapping came back but the balance read through it is %1, not the probe %2", repaired.ToString(), PROBE_MONEY.ToString());
+			SetFailure("The mapping came back but the balance read through it is %1, not the probe %2", repaired.ToString(), PROBE_MONEY.ToString());
 			return true;
 		}
 
 		if (reverseId != playerId)
 		{
-			SetResultFailure("The reverse mapping was not restored: GetPlayerIDFromPersistentID('%1') answered %2, expected %3", persId, reverseId.ToString(), playerId.ToString());
+			SetFailure("The reverse mapping was not restored: GetPlayerIDFromPersistentID('%1') answered %2, expected %3", persId, reverseId.ToString(), playerId.ToString());
 			return true;
 		}
 
@@ -164,12 +164,11 @@ class OVT_TEST_Campaign_ContinuePlayerIdMapping : SCR_AutotestCaseBase
 		// cash to a record whose initialized flag is false, and the repair must not open that path.
 		if (moneyAfter != PROBE_MONEY)
 		{
-			SetResultFailure("The repair changed the player's balance from %1 to %2 - a continued campaign re-ran new-player preparation", PROBE_MONEY.ToString(), moneyAfter.ToString());
+			SetFailure("The repair changed the player's balance from %1 to %2 - a continued campaign re-ran new-player preparation", PROBE_MONEY.ToString(), moneyAfter.ToString());
 			return true;
 		}
 
 		PrintFormat("A connected player with no session ID mapping was remapped to %1 and their balance reads back through it", persId);
-		SetResultSuccess();
 		return true;
 	}
 

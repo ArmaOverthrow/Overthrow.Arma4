@@ -34,20 +34,20 @@
 class OVT_TEST_Logic_MapLayerPrefs_HiddenSet : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_MapLayerPrefsStore store = new OVT_MapLayerPrefsStore();
 
 		if (store.Count() != 0)
 		{
-			SetResultFailure("A fresh store hides %1 keys, expected 0", store.Count().ToString());
+			SetFailure("A fresh store hides %1 keys, expected 0", store.Count().ToString());
 			return true;
 		}
 
 		if (store.GetVersion() != OVT_MapLayerPrefsStore.CURRENT_VERSION)
 		{
-			SetResultFailure("A fresh store is at version %1, expected %2",
+			SetFailure("A fresh store is at version %1, expected %2",
 				store.GetVersion().ToString(), OVT_MapLayerPrefsStore.CURRENT_VERSION.ToString());
 			return true;
 		}
@@ -60,26 +60,26 @@ class OVT_TEST_Logic_MapLayerPrefs_HiddenSet : SCR_AutotestCaseBase
 		// type or layer added by a later version needs no migration to default on.
 		if (!store.IsVisible(houses))
 		{
-			SetResultFailure("A key that was never hidden reported as hidden; absent must mean visible, or every marker vanishes for a player who has never opened the panel");
+			SetFailure("A key that was never hidden reported as hidden; absent must mean visible, or every marker vanishes for a player who has never opened the panel");
 			return true;
 		}
 
 		if (!store.IsVisible(territory))
 		{
-			SetResultFailure("A layer key that was never hidden reported as hidden");
+			SetFailure("A layer key that was never hidden reported as hidden");
 			return true;
 		}
 
 		if (!store.IsVisible("type:OVT_MapLocationNeverHeardOf"))
 		{
-			SetResultFailure("A key from a type this store has never seen reported as hidden; a later version must be able to add a type without a migration");
+			SetFailure("A key from a type this store has never seen reported as hidden; a later version must be able to add a type without a migration");
 			return true;
 		}
 
 		// An empty key is not a thing that can be hidden, and asking about one is not a trap.
 		if (!store.IsVisible(""))
 		{
-			SetResultFailure("IsVisible('') reported hidden");
+			SetFailure("IsVisible('') reported hidden");
 			return true;
 		}
 
@@ -88,32 +88,32 @@ class OVT_TEST_Logic_MapLayerPrefs_HiddenSet : SCR_AutotestCaseBase
 
 		if (store.IsVisible(houses))
 		{
-			SetResultFailure("A key that was just hidden reported as visible");
+			SetFailure("A key that was just hidden reported as visible");
 			return true;
 		}
 
 		if (store.Count() != 1)
 		{
-			SetResultFailure("After hiding one key the store holds %1, expected 1", store.Count().ToString());
+			SetFailure("After hiding one key the store holds %1, expected 1", store.Count().ToString());
 			return true;
 		}
 
 		// Hiding one thing hides ONLY that thing.
 		if (!store.IsVisible(territory))
 		{
-			SetResultFailure("Hiding a location type also hid an unrelated canvas layer");
+			SetFailure("Hiding a location type also hid an unrelated canvas layer");
 			return true;
 		}
 
 		if (!store.IsVisible("type:OVT_MapLocationHous"))
 		{
-			SetResultFailure("A prefix of a hidden key reported as hidden; the lookup must be exact");
+			SetFailure("A prefix of a hidden key reported as hidden; the lookup must be exact");
 			return true;
 		}
 
 		if (!store.IsVisible("TYPE:OVT_MAPLOCATIONHOUSE"))
 		{
-			SetResultFailure("A differently-cased key reported as hidden; the lookup must be case-sensitive");
+			SetFailure("A differently-cased key reported as hidden; the lookup must be case-sensitive");
 			return true;
 		}
 
@@ -124,7 +124,7 @@ class OVT_TEST_Logic_MapLayerPrefs_HiddenSet : SCR_AutotestCaseBase
 
 		if (store.Count() != 1)
 		{
-			SetResultFailure("Hiding the same key three times left %1 keys, expected 1", store.Count().ToString());
+			SetFailure("Hiding the same key three times left %1 keys, expected 1", store.Count().ToString());
 			return true;
 		}
 
@@ -132,13 +132,13 @@ class OVT_TEST_Logic_MapLayerPrefs_HiddenSet : SCR_AutotestCaseBase
 
 		if (store.Count() != 1)
 		{
-			SetResultFailure("Showing a key that was never hidden left %1 keys, expected 1", store.Count().ToString());
+			SetFailure("Showing a key that was never hidden left %1 keys, expected 1", store.Count().ToString());
 			return true;
 		}
 
 		if (!store.IsVisible(territory))
 		{
-			SetResultFailure("Showing a key that was never hidden made it hidden");
+			SetFailure("Showing a key that was never hidden made it hidden");
 			return true;
 		}
 
@@ -146,13 +146,13 @@ class OVT_TEST_Logic_MapLayerPrefs_HiddenSet : SCR_AutotestCaseBase
 
 		if (!store.IsVisible(houses))
 		{
-			SetResultFailure("A key that was shown again reported as hidden");
+			SetFailure("A key that was shown again reported as hidden");
 			return true;
 		}
 
 		if (store.Count() != 0)
 		{
-			SetResultFailure("After showing the only hidden key the store holds %1, expected 0", store.Count().ToString());
+			SetFailure("After showing the only hidden key the store holds %1, expected 0", store.Count().ToString());
 			return true;
 		}
 
@@ -160,7 +160,7 @@ class OVT_TEST_Logic_MapLayerPrefs_HiddenSet : SCR_AutotestCaseBase
 
 		if (store.Count() != 0)
 		{
-			SetResultFailure("Showing an already-visible key left %1 keys, expected 0", store.Count().ToString());
+			SetFailure("Showing an already-visible key left %1 keys, expected 0", store.Count().ToString());
 			return true;
 		}
 
@@ -169,7 +169,7 @@ class OVT_TEST_Logic_MapLayerPrefs_HiddenSet : SCR_AutotestCaseBase
 
 		if (store.Count() != 0)
 		{
-			SetResultFailure("Hiding an empty key left %1 keys, expected 0", store.Count().ToString());
+			SetFailure("Hiding an empty key left %1 keys, expected 0", store.Count().ToString());
 			return true;
 		}
 
@@ -188,19 +188,19 @@ class OVT_TEST_Logic_MapLayerPrefs_HiddenSet : SCR_AutotestCaseBase
 
 		if (written.Count() != 3)
 		{
-			SetResultFailure("WriteTo emitted %1 keys for a store of 3: %2", written.Count().ToString(), JoinKeys(written));
+			SetFailure("WriteTo emitted %1 keys for a store of 3: %2", written.Count().ToString(), JoinKeys(written));
 			return true;
 		}
 
 		if (written.Contains("layer:stale-never-hidden") || written.Contains("type:OVT_MapLocationStale"))
 		{
-			SetResultFailure("WriteTo left a stale key in a reused buffer: %1", JoinKeys(written));
+			SetFailure("WriteTo left a stale key in a reused buffer: %1", JoinKeys(written));
 			return true;
 		}
 
 		if (!written.Contains(houses) || !written.Contains(territory) || !written.Contains("layer:restricted"))
 		{
-			SetResultFailure("WriteTo lost a hidden key: got %1", JoinKeys(written));
+			SetFailure("WriteTo lost a hidden key: got %1", JoinKeys(written));
 			return true;
 		}
 
@@ -210,7 +210,7 @@ class OVT_TEST_Logic_MapLayerPrefs_HiddenSet : SCR_AutotestCaseBase
 			{
 				if (written.Get(d) == written.Get(e))
 				{
-					SetResultFailure("WriteTo emitted '%1' twice: %2", written.Get(d), JoinKeys(written));
+					SetFailure("WriteTo emitted '%1' twice: %2", written.Get(d), JoinKeys(written));
 					return true;
 				}
 			}
@@ -221,20 +221,20 @@ class OVT_TEST_Logic_MapLayerPrefs_HiddenSet : SCR_AutotestCaseBase
 
 		if (reloaded.Count() != 3)
 		{
-			SetResultFailure("A reloaded store hides %1 keys, expected 3", reloaded.Count().ToString());
+			SetFailure("A reloaded store hides %1 keys, expected 3", reloaded.Count().ToString());
 			return true;
 		}
 
 		if (reloaded.IsVisible(houses) || reloaded.IsVisible(territory) || reloaded.IsVisible("layer:restricted"))
 		{
-			SetResultFailure("A reloaded store lost a hidden key");
+			SetFailure("A reloaded store lost a hidden key");
 			return true;
 		}
 
 		// Everything else is still visible - a reload must not turn the map off.
 		if (!reloaded.IsVisible("type:OVT_MapLocationTown"))
 		{
-			SetResultFailure("A reloaded store hid a key that was never in the list");
+			SetFailure("A reloaded store hid a key that was never in the list");
 			return true;
 		}
 
@@ -244,7 +244,7 @@ class OVT_TEST_Logic_MapLayerPrefs_HiddenSet : SCR_AutotestCaseBase
 
 		if (rewritten.Count() != written.Count())
 		{
-			SetResultFailure("A second round trip emitted %1 keys, expected %2",
+			SetFailure("A second round trip emitted %1 keys, expected %2",
 				rewritten.Count().ToString(), written.Count().ToString());
 			return true;
 		}
@@ -253,7 +253,7 @@ class OVT_TEST_Logic_MapLayerPrefs_HiddenSet : SCR_AutotestCaseBase
 		{
 			if (rewritten.Get(r) != written.Get(r))
 			{
-				SetResultFailure("The round trip is not stable: position %1 was '%2' and is now '%3'",
+				SetFailure("The round trip is not stable: position %1 was '%2' and is now '%3'",
 					r.ToString(), written.Get(r), rewritten.Get(r));
 				return true;
 			}
@@ -266,7 +266,7 @@ class OVT_TEST_Logic_MapLayerPrefs_HiddenSet : SCR_AutotestCaseBase
 
 		if (!replaced.IsVisible("layer:stale"))
 		{
-			SetResultFailure("LoadFrom merged into the existing set instead of replacing it");
+			SetFailure("LoadFrom merged into the existing set instead of replacing it");
 			return true;
 		}
 
@@ -278,13 +278,13 @@ class OVT_TEST_Logic_MapLayerPrefs_HiddenSet : SCR_AutotestCaseBase
 
 		if (nulled.Count() != 0)
 		{
-			SetResultFailure("LoadFrom(null) left %1 keys, expected 0", nulled.Count().ToString());
+			SetFailure("LoadFrom(null) left %1 keys, expected 0", nulled.Count().ToString());
 			return true;
 		}
 
 		if (!nulled.IsVisible("layer:stale"))
 		{
-			SetResultFailure("LoadFrom(null) left a key hidden");
+			SetFailure("LoadFrom(null) left a key hidden");
 			return true;
 		}
 
@@ -295,14 +295,14 @@ class OVT_TEST_Logic_MapLayerPrefs_HiddenSet : SCR_AutotestCaseBase
 
 		if (mismatched.Count() != 0)
 		{
-			SetResultFailure("A store loaded at version %1 kept %2 keys, expected 0 - a mismatched version must discard rather than half-load",
+			SetFailure("A store loaded at version %1 kept %2 keys, expected 0 - a mismatched version must discard rather than half-load",
 				(OVT_MapLayerPrefsStore.CURRENT_VERSION + 1).ToString(), mismatched.Count().ToString());
 			return true;
 		}
 
 		if (!mismatched.IsVisible(houses))
 		{
-			SetResultFailure("A store loaded at a mismatched version imported a hidden key anyway");
+			SetFailure("A store loaded at a mismatched version imported a hidden key anyway");
 			return true;
 		}
 
@@ -313,13 +313,13 @@ class OVT_TEST_Logic_MapLayerPrefs_HiddenSet : SCR_AutotestCaseBase
 
 		if (zeroVersion.Count() != 0)
 		{
-			SetResultFailure("A store loaded at version 0 kept %1 keys, expected 0", zeroVersion.Count().ToString());
+			SetFailure("A store loaded at version 0 kept %1 keys, expected 0", zeroVersion.Count().ToString());
 			return true;
 		}
 
 		if (mismatched.GetVersion() != OVT_MapLayerPrefsStore.CURRENT_VERSION)
 		{
-			SetResultFailure("After a version mismatch the store is at version %1, expected to be rewritten at %2",
+			SetFailure("After a version mismatch the store is at version %1, expected to be rewritten at %2",
 				mismatched.GetVersion().ToString(), OVT_MapLayerPrefsStore.CURRENT_VERSION.ToString());
 			return true;
 		}
@@ -329,7 +329,7 @@ class OVT_TEST_Logic_MapLayerPrefs_HiddenSet : SCR_AutotestCaseBase
 
 		if (mismatched.IsVisible(houses))
 		{
-			SetResultFailure("A store cleared by a version mismatch would not accept a new hidden key");
+			SetFailure("A store cleared by a version mismatch would not accept a new hidden key");
 			return true;
 		}
 
@@ -338,13 +338,13 @@ class OVT_TEST_Logic_MapLayerPrefs_HiddenSet : SCR_AutotestCaseBase
 
 		if (mismatched.Count() != 0)
 		{
-			SetResultFailure("Clear() left %1 keys", mismatched.Count().ToString());
+			SetFailure("Clear() left %1 keys", mismatched.Count().ToString());
 			return true;
 		}
 
 		if (!mismatched.IsVisible(houses))
 		{
-			SetResultFailure("Clear() left a key hidden");
+			SetFailure("Clear() left a key hidden");
 			return true;
 		}
 
@@ -358,7 +358,7 @@ class OVT_TEST_Logic_MapLayerPrefs_HiddenSet : SCR_AutotestCaseBase
 
 		if (capped.Count() != OVT_MapLayerPrefsStore.MAX_HIDDEN)
 		{
-			SetResultFailure("Filling to the cap left %1 keys, expected %2",
+			SetFailure("Filling to the cap left %1 keys, expected %2",
 				capped.Count().ToString(), OVT_MapLayerPrefsStore.MAX_HIDDEN.ToString());
 			return true;
 		}
@@ -367,14 +367,14 @@ class OVT_TEST_Logic_MapLayerPrefs_HiddenSet : SCR_AutotestCaseBase
 
 		if (capped.Count() != OVT_MapLayerPrefsStore.MAX_HIDDEN)
 		{
-			SetResultFailure("After an over-cap hide the store holds %1 keys, expected %2",
+			SetFailure("After an over-cap hide the store holds %1 keys, expected %2",
 				capped.Count().ToString(), OVT_MapLayerPrefsStore.MAX_HIDDEN.ToString());
 			return true;
 		}
 
 		if (!capped.IsVisible("type:OneTooMany"))
 		{
-			SetResultFailure("A key refused by the cap was hidden anyway");
+			SetFailure("A key refused by the cap was hidden anyway");
 			return true;
 		}
 
@@ -382,7 +382,7 @@ class OVT_TEST_Logic_MapLayerPrefs_HiddenSet : SCR_AutotestCaseBase
 		// layer the player deliberately turned off.
 		if (capped.IsVisible("type:Filler0") || capped.IsVisible("type:Filler" + (OVT_MapLayerPrefsStore.MAX_HIDDEN - 1).ToString()))
 		{
-			SetResultFailure("The cap dropped an existing key to make room for a refused one");
+			SetFailure("The cap dropped an existing key to make room for a refused one");
 			return true;
 		}
 
@@ -391,14 +391,13 @@ class OVT_TEST_Logic_MapLayerPrefs_HiddenSet : SCR_AutotestCaseBase
 
 		if (capped.Count() != OVT_MapLayerPrefsStore.MAX_HIDDEN - 1)
 		{
-			SetResultFailure("Showing a key in a full store left %1 keys, expected %2",
+			SetFailure("Showing a key in a full store left %1 keys, expected %2",
 				capped.Count().ToString(), (OVT_MapLayerPrefsStore.MAX_HIDDEN - 1).ToString());
 			return true;
 		}
 
 		Print("Map layer prefs: absent means visible, hide and show are both idempotent, an empty key is refused, a mismatched version discards rather than half-loading, a null list is an empty list, and WriteTo clears a reused buffer before writing exactly the hidden set");
 
-		SetResultSuccess();
 		return true;
 	}
 
@@ -445,7 +444,7 @@ class OVT_TEST_Logic_MapLayerPrefs_KeyNamespaces : SCR_AutotestCaseBase
 	protected static const string COLLIDING_NAME = "territory";
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		string typeKey = OVT_MapLayerPrefsStore.TypeKey(COLLIDING_NAME);
@@ -455,35 +454,35 @@ class OVT_TEST_Logic_MapLayerPrefs_KeyNamespaces : SCR_AutotestCaseBase
 		// spaces overlap in the first place.
 		if (typeKey == COLLIDING_NAME)
 		{
-			SetResultFailure("TypeKey('%1') returned the bare name; a preference key must be namespaced or a class name and a layer id can address the same record",
+			SetFailure("TypeKey('%1') returned the bare name; a preference key must be namespaced or a class name and a layer id can address the same record",
 				COLLIDING_NAME);
 			return true;
 		}
 
 		if (layerKey == COLLIDING_NAME)
 		{
-			SetResultFailure("LayerKey('%1') returned the bare name; a preference key must be namespaced or a layer id and a class name can address the same record",
+			SetFailure("LayerKey('%1') returned the bare name; a preference key must be namespaced or a layer id and a class name can address the same record",
 				COLLIDING_NAME);
 			return true;
 		}
 
 		if (typeKey != OVT_MapLayerPrefsStore.TYPE_PREFIX + COLLIDING_NAME)
 		{
-			SetResultFailure("TypeKey('%1') gave '%2', expected '%3'",
+			SetFailure("TypeKey('%1') gave '%2', expected '%3'",
 				COLLIDING_NAME, typeKey, OVT_MapLayerPrefsStore.TYPE_PREFIX + COLLIDING_NAME);
 			return true;
 		}
 
 		if (layerKey != OVT_MapLayerPrefsStore.LAYER_PREFIX + COLLIDING_NAME)
 		{
-			SetResultFailure("LayerKey('%1') gave '%2', expected '%3'",
+			SetFailure("LayerKey('%1') gave '%2', expected '%3'",
 				COLLIDING_NAME, layerKey, OVT_MapLayerPrefsStore.LAYER_PREFIX + COLLIDING_NAME);
 			return true;
 		}
 
 		if (typeKey == layerKey)
 		{
-			SetResultFailure("A location type and a canvas layer both named '%1' produced the same key '%2'",
+			SetFailure("A location type and a canvas layer both named '%1' produced the same key '%2'",
 				COLLIDING_NAME, typeKey);
 			return true;
 		}
@@ -492,13 +491,13 @@ class OVT_TEST_Logic_MapLayerPrefs_KeyNamespaces : SCR_AutotestCaseBase
 		// nameless under one shared record.
 		if (OVT_MapLayerPrefsStore.TypeKey("") != "")
 		{
-			SetResultFailure("TypeKey('') gave '%1', expected an empty key", OVT_MapLayerPrefsStore.TypeKey(""));
+			SetFailure("TypeKey('') gave '%1', expected an empty key", OVT_MapLayerPrefsStore.TypeKey(""));
 			return true;
 		}
 
 		if (OVT_MapLayerPrefsStore.LayerKey("") != "")
 		{
-			SetResultFailure("LayerKey('') gave '%1', expected an empty key", OVT_MapLayerPrefsStore.LayerKey(""));
+			SetFailure("LayerKey('') gave '%1', expected an empty key", OVT_MapLayerPrefsStore.LayerKey(""));
 			return true;
 		}
 
@@ -508,20 +507,20 @@ class OVT_TEST_Logic_MapLayerPrefs_KeyNamespaces : SCR_AutotestCaseBase
 
 		if (store.IsVisible(layerKey))
 		{
-			SetResultFailure("The layer key '%1' was hidden and reported visible", layerKey);
+			SetFailure("The layer key '%1' was hidden and reported visible", layerKey);
 			return true;
 		}
 
 		if (!store.IsVisible(typeKey))
 		{
-			SetResultFailure("Hiding the canvas layer '%1' also hid the location type of the same name; the two id spaces must not share a preference",
+			SetFailure("Hiding the canvas layer '%1' also hid the location type of the same name; the two id spaces must not share a preference",
 				COLLIDING_NAME);
 			return true;
 		}
 
 		if (store.Count() != 1)
 		{
-			SetResultFailure("Hiding one of two same-named keys left %1 keys, expected 1", store.Count().ToString());
+			SetFailure("Hiding one of two same-named keys left %1 keys, expected 1", store.Count().ToString());
 			return true;
 		}
 
@@ -532,13 +531,13 @@ class OVT_TEST_Logic_MapLayerPrefs_KeyNamespaces : SCR_AutotestCaseBase
 
 		if (mirror.IsVisible(typeKey))
 		{
-			SetResultFailure("The type key '%1' was hidden and reported visible", typeKey);
+			SetFailure("The type key '%1' was hidden and reported visible", typeKey);
 			return true;
 		}
 
 		if (!mirror.IsVisible(layerKey))
 		{
-			SetResultFailure("Hiding the location type '%1' also hid the canvas layer of the same name",
+			SetFailure("Hiding the location type '%1' also hid the canvas layer of the same name",
 				COLLIDING_NAME);
 			return true;
 		}
@@ -551,7 +550,7 @@ class OVT_TEST_Logic_MapLayerPrefs_KeyNamespaces : SCR_AutotestCaseBase
 
 		if (both.Count() != 2)
 		{
-			SetResultFailure("Hiding a location type and a canvas layer that share the name '%1' produced %2 record(s), expected 2",
+			SetFailure("Hiding a location type and a canvas layer that share the name '%1' produced %2 record(s), expected 2",
 				COLLIDING_NAME, both.Count().ToString());
 			return true;
 		}
@@ -560,14 +559,14 @@ class OVT_TEST_Logic_MapLayerPrefs_KeyNamespaces : SCR_AutotestCaseBase
 
 		if (both.IsVisible(typeKey))
 		{
-			SetResultFailure("Showing the canvas layer '%1' also showed the location type of the same name",
+			SetFailure("Showing the canvas layer '%1' also showed the location type of the same name",
 				COLLIDING_NAME);
 			return true;
 		}
 
 		if (!both.IsVisible(layerKey))
 		{
-			SetResultFailure("The canvas layer '%1' was shown again and reported hidden", COLLIDING_NAME);
+			SetFailure("The canvas layer '%1' was shown again and reported hidden", COLLIDING_NAME);
 			return true;
 		}
 
@@ -578,7 +577,7 @@ class OVT_TEST_Logic_MapLayerPrefs_KeyNamespaces : SCR_AutotestCaseBase
 
 		if (houses == towns)
 		{
-			SetResultFailure("Two different location types produced the same key '%1'", houses);
+			SetFailure("Two different location types produced the same key '%1'", houses);
 			return true;
 		}
 
@@ -587,13 +586,12 @@ class OVT_TEST_Logic_MapLayerPrefs_KeyNamespaces : SCR_AutotestCaseBase
 
 		if (!types.IsVisible(towns))
 		{
-			SetResultFailure("Hiding one location type hid another");
+			SetFailure("Hiding one location type hid another");
 			return true;
 		}
 
 		Print("Map layer prefs keys: TypeKey and LayerKey namespace their argument, an empty name gives an empty key, and a location type and a canvas layer sharing the bare name 'territory' hold two independent preferences");
 
-		SetResultSuccess();
 		return true;
 	}
 }

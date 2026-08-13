@@ -31,20 +31,20 @@ class OVT_TEST_Campaign_Economy_ShopsInitialise : SCR_AutotestCaseBase
 	protected int m_iPolls;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
 		if (!economy)
 		{
-			SetResultFailure("OVT_Global.GetEconomy() is null");
+			SetFailure("OVT_Global.GetEconomy() is null");
 			return true;
 		}
 
 		array<RplId> shops = economy.GetAllShops();
 		if (!shops || shops.Count() < 1)
 		{
-			SetResultFailure("No shops are registered with the economy manager, so none can be stocked");
+			SetFailure("No shops are registered with the economy manager, so none can be stocked");
 			return true;
 		}
 
@@ -72,7 +72,7 @@ class OVT_TEST_Campaign_Economy_ShopsInitialise : SCR_AutotestCaseBase
 
 		if (resolvedShops < 1)
 		{
-			SetResultFailure("%1 shop id(s) are registered but none of them resolves to a shop component", shops.Count().ToString());
+			SetFailure("%1 shop id(s) are registered but none of them resolves to a shop component", shops.Count().ToString());
 			return true;
 		}
 
@@ -81,14 +81,13 @@ class OVT_TEST_Campaign_Economy_ShopsInitialise : SCR_AutotestCaseBase
 			PrintFormat("Shops initialised after %1 poll(s): %2 of %3 registered shops hold stock",
 				m_iPolls.ToString(), stockedShops.ToString(), shops.Count().ToString());
 			PrintFormat("Total stock entries across all shops: %1", stockEntries.ToString());
-			SetResultSuccess();
 			return true;
 		}
 
 		m_iPolls += 1;
 		if (m_iPolls > MAX_POLLS)
 		{
-			SetResultFailure("No shop was stocked within %1 polls: %2 shop id(s) registered, %3 resolved to a component, none holds a single inventory entry",
+			SetFailure("No shop was stocked within %1 polls: %2 shop id(s) registered, %3 resolved to a component, none holds a single inventory entry",
 				m_iPolls.ToString(), shops.Count().ToString(), resolvedShops.ToString());
 			return true;
 		}
@@ -136,7 +135,7 @@ class OVT_TEST_Campaign_Economy_IncomeMatchesTownState : SCR_AutotestCaseBase
 	static const int SUPPORT_DELTA = 8;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
@@ -145,28 +144,28 @@ class OVT_TEST_Campaign_Economy_IncomeMatchesTownState : SCR_AutotestCaseBase
 
 		if (!economy || !towns || !config)
 		{
-			SetResultFailure("A manager needed by this case is null (economy, towns or config)");
+			SetFailure("A manager needed by this case is null (economy, towns or config)");
 			return true;
 		}
 
 		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
 		if (!difficulty)
 		{
-			SetResultFailure("OVT_Global.GetDifficulty() is null - the income formulas have no coefficients");
+			SetFailure("OVT_Global.GetDifficulty() is null - the income formulas have no coefficients");
 			return true;
 		}
 
 		array<ref OVT_TownData> townList = towns.GetTowns();
 		if (!townList || townList.Count() < 1)
 		{
-			SetResultFailure("No towns are registered, so there is no income to calculate");
+			SetFailure("No towns are registered, so there is no income to calculate");
 			return true;
 		}
 
 		OVT_TownData town = townList[0];
 		if (!town)
 		{
-			SetResultFailure("Town 0 is null");
+			SetFailure("Town 0 is null");
 			return true;
 		}
 
@@ -184,11 +183,10 @@ class OVT_TEST_Campaign_Economy_IncomeMatchesTownState : SCR_AutotestCaseBase
 
 		if (problem != "")
 		{
-			SetResultFailure(problem);
+			SetFailure(problem);
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 
@@ -487,14 +485,14 @@ class OVT_TEST_Campaign_Economy_ScarcityPriceGradient : SCR_AutotestCaseBase
 	static const int PROBE_DEMAND = 20;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
 		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 		if (!economy || !towns)
 		{
-			SetResultFailure("A manager needed by this case is null (economy or towns)");
+			SetFailure("A manager needed by this case is null (economy or towns)");
 			return true;
 		}
 
@@ -540,14 +538,14 @@ class OVT_TEST_Campaign_Economy_ScarcityPriceGradient : SCR_AutotestCaseBase
 
 		if (!shop)
 		{
-			SetResultFailure("No registered shop is visible to its own nearest town's stock count, so the scarcity term cannot be probed");
+			SetFailure("No registered shop is visible to its own nearest town's stock count, so the scarcity term cannot be probed");
 			return true;
 		}
 
 		int maxStock = economy.GetTownMaxStock(townId, PROBE_ITEM_ID);
 		if (maxStock < 4)
 		{
-			SetResultFailure(string.Format("GetTownMaxStock() is %1 for the probe item at demand %2, too small to hold three distinct interior stock levels", maxStock, PROBE_DEMAND));
+			SetFailure(string.Format("GetTownMaxStock() is %1 for the probe item at demand %2, too small to hold three distinct interior stock levels", maxStock, PROBE_DEMAND));
 			return true;
 		}
 
@@ -558,11 +556,10 @@ class OVT_TEST_Campaign_Economy_ScarcityPriceGradient : SCR_AutotestCaseBase
 
 		if (problem != "")
 		{
-			SetResultFailure(problem);
+			SetFailure(problem);
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 
@@ -634,14 +631,14 @@ class OVT_TEST_Campaign_Economy_SellPriceStockOffset : SCR_AutotestCaseBase
 	static const int PROBE_DEMAND = 20;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
 		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 		if (!economy || !towns)
 		{
-			SetResultFailure("A manager needed by this case is null (economy or towns)");
+			SetFailure("A manager needed by this case is null (economy or towns)");
 			return true;
 		}
 
@@ -684,14 +681,14 @@ class OVT_TEST_Campaign_Economy_SellPriceStockOffset : SCR_AutotestCaseBase
 
 		if (!shop)
 		{
-			SetResultFailure("No registered shop is visible to its own nearest town's stock count, so the offset seam cannot be probed");
+			SetFailure("No registered shop is visible to its own nearest town's stock count, so the offset seam cannot be probed");
 			return true;
 		}
 
 		int maxStock = economy.GetTownMaxStock(townId, PROBE_ITEM_ID);
 		if (maxStock < 4)
 		{
-			SetResultFailure(string.Format("GetTownMaxStock() is %1 for the probe item at demand %2, too small to leave room for an offset", maxStock, PROBE_DEMAND));
+			SetFailure(string.Format("GetTownMaxStock() is %1 for the probe item at demand %2, too small to leave room for an offset", maxStock, PROBE_DEMAND));
 			return true;
 		}
 
@@ -714,20 +711,20 @@ class OVT_TEST_Campaign_Economy_SellPriceStockOffset : SCR_AutotestCaseBase
 
 		if (offsetZeroAtLow != plainAtLow)
 		{
-			SetResultFailure(string.Format("Offset 0 priced %1 but the plain sell price is %2 - the two paths have drifted", offsetZeroAtLow, plainAtLow));
+			SetFailure(string.Format("Offset 0 priced %1 but the plain sell price is %2 - the two paths have drifted", offsetZeroAtLow, plainAtLow));
 			return true;
 		}
 
 		if (offsetToHigh != plainAtHigh)
 		{
-			SetResultFailure(string.Format("Offset %1 over stock %2 priced %3, but physically stocking %4 prices %5 - hypothetical and physical stock disagree",
+			SetFailure(string.Format("Offset %1 over stock %2 priced %3, but physically stocking %4 prices %5 - hypothetical and physical stock disagree",
 				high - low, low, offsetToHigh, high, plainAtHigh));
 			return true;
 		}
 
 		if (offsetToHigh >= plainAtLow)
 		{
-			SetResultFailure(string.Format("Offsetting stock from %1 to %2 did not lower the price (%3 -> %4), so a bulk sale would not ride the scarcity curve",
+			SetFailure(string.Format("Offsetting stock from %1 to %2 did not lower the price (%3 -> %4), so a bulk sale would not ride the scarcity curve",
 				low, high, plainAtLow, offsetToHigh));
 			return true;
 		}
@@ -735,7 +732,6 @@ class OVT_TEST_Campaign_Economy_SellPriceStockOffset : SCR_AutotestCaseBase
 		Print(string.Format("Offset seam at max stock %1: plain %2 at stock %3, offset(%4) %5 == plain %6 at stock %7",
 			maxStock, plainAtLow, low, high - low, offsetToHigh, plainAtHigh, high));
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -767,14 +763,14 @@ class OVT_TEST_Campaign_Economy_TownBuyCap : SCR_AutotestCaseBase
 	static const int PROBE_DEMAND = 20;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
 		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 		if (!economy || !towns)
 		{
-			SetResultFailure("A manager needed by this case is null (economy or towns)");
+			SetFailure("A manager needed by this case is null (economy or towns)");
 			return true;
 		}
 
@@ -813,14 +809,14 @@ class OVT_TEST_Campaign_Economy_TownBuyCap : SCR_AutotestCaseBase
 
 		if (!shop)
 		{
-			SetResultFailure("No registered shop is visible to its own nearest town's stock count, so the buy cap cannot be probed");
+			SetFailure("No registered shop is visible to its own nearest town's stock count, so the buy cap cannot be probed");
 			return true;
 		}
 
 		int maxStock = economy.GetTownMaxStock(townId, PROBE_ITEM_ID);
 		if (maxStock < 2)
 		{
-			SetResultFailure(string.Format("GetTownMaxStock() is %1 for the probe item at demand %2, too small to place stock below the cap", maxStock, PROBE_DEMAND));
+			SetFailure(string.Format("GetTownMaxStock() is %1 for the probe item at demand %2, too small to place stock below the cap", maxStock, PROBE_DEMAND));
 			return true;
 		}
 
@@ -844,32 +840,31 @@ class OVT_TEST_Campaign_Economy_TownBuyCap : SCR_AutotestCaseBase
 
 		if (!absorbsBelowCap)
 		{
-			SetResultFailure(string.Format("Town refused a unit at stock %1 with the cap at %2 - the cap fires a unit early", cap - 1, cap));
+			SetFailure(string.Format("Town refused a unit at stock %1 with the cap at %2 - the cap fires a unit early", cap - 1, cap));
 			return true;
 		}
 
 		if (absorbsAtCap)
 		{
-			SetResultFailure(string.Format("Town absorbed a unit at stock %1 with the cap at %2 - the cap never fires", cap, cap));
+			SetFailure(string.Format("Town absorbed a unit at stock %1 with the cap at %2 - the cap never fires", cap, cap));
 			return true;
 		}
 
 		if (!absorbsWithExtraBelow)
 		{
-			SetResultFailure(string.Format("Town refused with stock %1 and %2 extra units against a cap of %3 - extras are over-counted", maxStock, cap - maxStock - 1, cap));
+			SetFailure(string.Format("Town refused with stock %1 and %2 extra units against a cap of %3 - extras are over-counted", maxStock, cap - maxStock - 1, cap));
 			return true;
 		}
 
 		if (absorbsWithExtraAt)
 		{
-			SetResultFailure(string.Format("Town absorbed with stock %1 and %2 extra units against a cap of %3 - extras are not counted, so one Sell All can blow through the cap", maxStock, cap - maxStock, cap));
+			SetFailure(string.Format("Town absorbed with stock %1 and %2 extra units against a cap of %3 - extras are not counted, so one Sell All can blow through the cap", maxStock, cap - maxStock, cap));
 			return true;
 		}
 
 		Print(string.Format("Buy cap at %1 (max stock %2 x %3): boundary and extra-unit accounting both flip where expected",
 			cap, maxStock, OVT_EconomyManagerComponent.TOWN_STOCK_BUY_CAP_MULTIPLIER));
 
-		SetResultSuccess();
 		return true;
 	}
 }

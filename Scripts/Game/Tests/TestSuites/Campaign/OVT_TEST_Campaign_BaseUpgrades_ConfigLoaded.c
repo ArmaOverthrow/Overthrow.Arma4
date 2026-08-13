@@ -33,26 +33,26 @@ class OVT_TEST_Campaign_BaseUpgrades_ConfigLoaded : SCR_AutotestCaseBase
 	protected int m_iPolls;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
 		if (!occupying)
 		{
-			SetResultFailure("OVT_Global.GetOccupyingFaction() is null");
+			SetFailure("OVT_Global.GetOccupyingFaction() is null");
 			return true;
 		}
 
 		if (occupying.m_Bases.Count() < 1)
 		{
-			SetResultFailure("No bases registered: m_Bases.Count() = %1", occupying.m_Bases.Count().ToString());
+			SetFailure("No bases registered: m_Bases.Count() = %1", occupying.m_Bases.Count().ToString());
 			return true;
 		}
 
 		OVT_BaseControllerComponent baseController = occupying.GetBaseByIndex(0);
 		if (!baseController)
 		{
-			SetResultFailure("Base 0 is registered but GetBaseByIndex(0) resolved no OVT_BaseControllerComponent");
+			SetFailure("Base 0 is registered but GetBaseByIndex(0) resolved no OVT_BaseControllerComponent");
 			return true;
 		}
 
@@ -60,7 +60,7 @@ class OVT_TEST_Campaign_BaseUpgrades_ConfigLoaded : SCR_AutotestCaseBase
 		// This is attribute deserialization, not init timing - null here never heals, so fail now.
 		if (!baseController.m_BaseUpgradesConfig)
 		{
-			SetResultFailure("m_BaseUpgradesConfig is null - the prefab's reference to Configs/BaseUpgrades/overthrowBaseUpgrades.conf did not resolve");
+			SetFailure("m_BaseUpgradesConfig is null - the prefab's reference to Configs/BaseUpgrades/overthrowBaseUpgrades.conf did not resolve");
 			return true;
 		}
 
@@ -69,7 +69,6 @@ class OVT_TEST_Campaign_BaseUpgrades_ConfigLoaded : SCR_AutotestCaseBase
 		{
 			PrintFormat("Base upgrades populated from config: %1 upgrade(s) after %2 poll(s)",
 				baseController.m_aBaseUpgrades.Count().ToString(), m_iPolls.ToString());
-			SetResultSuccess();
 			return true;
 		}
 
@@ -79,7 +78,7 @@ class OVT_TEST_Campaign_BaseUpgrades_ConfigLoaded : SCR_AutotestCaseBase
 			string listState = "null";
 			if (baseController.m_aBaseUpgrades)
 				listState = baseController.m_aBaseUpgrades.Count().ToString() + " entries";
-			SetResultFailure("m_aBaseUpgrades never populated within %1 polls (config resolved with %2 entries, runtime list: %3) - InitializeBase() did not copy the config",
+			SetFailure("m_aBaseUpgrades never populated within %1 polls (config resolved with %2 entries, runtime list: %3) - InitializeBase() did not copy the config",
 				m_iPolls.ToString(), baseController.m_BaseUpgradesConfig.m_aBaseUpgrades.Count().ToString(), listState);
 			return true;
 		}

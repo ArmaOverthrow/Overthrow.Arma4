@@ -29,7 +29,7 @@
 class OVT_TEST_Logic_ShopUX_CategoryMapping : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		// --- MODE BEATS TYPE. Same type, three modes, three tabs.
@@ -122,7 +122,7 @@ class OVT_TEST_Logic_ShopUX_CategoryMapping : SCR_AutotestCaseBase
 		// An item with no arsenal data at all is not a browse category question - it is the fallback.
 		if (OVT_ShopCategoryHelper.GetCategoryForUncatalogued() != OVT_ShopCategory.OTHER)
 		{
-			SetResultFailure("An uncatalogued item mapped to %1, expected OTHER",
+			SetFailure("An uncatalogued item mapped to %1, expected OTHER",
 				typename.EnumToString(OVT_ShopCategory, OVT_ShopCategoryHelper.GetCategoryForUncatalogued()));
 			return true;
 		}
@@ -133,20 +133,20 @@ class OVT_TEST_Logic_ShopUX_CategoryMapping : SCR_AutotestCaseBase
 
 		if (order.Count() != 9)
 		{
-			SetResultFailure("GetDisplayOrder() returned %1 categories, expected 9", order.Count().ToString());
+			SetFailure("GetDisplayOrder() returned %1 categories, expected 9", order.Count().ToString());
 			return true;
 		}
 
 		if (order.Get(0) != OVT_ShopCategory.ALL)
 		{
-			SetResultFailure("GetDisplayOrder() starts with %1, expected ALL",
+			SetFailure("GetDisplayOrder() starts with %1, expected ALL",
 				typename.EnumToString(OVT_ShopCategory, order.Get(0)));
 			return true;
 		}
 
 		if (order.Get(order.Count() - 1) != OVT_ShopCategory.OTHER)
 		{
-			SetResultFailure("GetDisplayOrder() ends with %1, expected OTHER",
+			SetFailure("GetDisplayOrder() ends with %1, expected OTHER",
 				typename.EnumToString(OVT_ShopCategory, order.Get(order.Count() - 1)));
 			return true;
 		}
@@ -159,14 +159,14 @@ class OVT_TEST_Logic_ShopUX_CategoryMapping : SCR_AutotestCaseBase
 
 			if (key == "" || !key.StartsWith("#OVT-"))
 			{
-				SetResultFailure("Category %1 has label key '%2', which is not an #OVT- key",
+				SetFailure("Category %1 has label key '%2', which is not an #OVT- key",
 					typename.EnumToString(OVT_ShopCategory, category), key);
 				return true;
 			}
 
 			if (seenKeys.Contains(key))
 			{
-				SetResultFailure("Label key '%1' is used by more than one category", key);
+				SetFailure("Label key '%1' is used by more than one category", key);
 				return true;
 			}
 
@@ -175,7 +175,6 @@ class OVT_TEST_Logic_ShopUX_CategoryMapping : SCR_AutotestCaseBase
 
 		Print("Shop categories: mode beats type (RIFLE maps to AMMUNITION / WEAPONS / ATTACHMENTS by mode), full table as specified, ALL first and OTHER last");
 
-		SetResultSuccess();
 		return true;
 	}
 
@@ -193,7 +192,7 @@ class OVT_TEST_Logic_ShopUX_CategoryMapping : SCR_AutotestCaseBase
 		if (actual == expected)
 			return true;
 
-		SetResultFailure("%1 mapped to %2, expected %3", label,
+		SetFailure("%1 mapped to %2, expected %3", label,
 			typename.EnumToString(OVT_ShopCategory, actual),
 			typename.EnumToString(OVT_ShopCategory, expected));
 
@@ -217,7 +216,7 @@ class OVT_TEST_Logic_ShopUX_CategoryMapping : SCR_AutotestCaseBase
 class OVT_TEST_Logic_ShopUX_BrowserModelSortAndFilter : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_ShopBrowserModel model = new OVT_ShopBrowserModel();
@@ -231,7 +230,7 @@ class OVT_TEST_Logic_ShopUX_BrowserModelSortAndFilter : SCR_AutotestCaseBase
 
 		if (model.Count() != 5)
 		{
-			SetResultFailure("The model holds %1 rows after five Add() calls, expected 5", model.Count().ToString());
+			SetFailure("The model holds %1 rows after five Add() calls, expected 5", model.Count().ToString());
 			return true;
 		}
 
@@ -247,7 +246,7 @@ class OVT_TEST_Logic_ShopUX_BrowserModelSortAndFilter : SCR_AutotestCaseBase
 		{
 			if (sorted.Get(i).m_iResourceId != expectedIds.Get(i))
 			{
-				SetResultFailure("After sorting, position %1 holds id %2, expected id %3",
+				SetFailure("After sorting, position %1 holds id %2, expected id %3",
 					i.ToString(), sorted.Get(i).m_iResourceId.ToString(), expectedIds.Get(i).ToString());
 				return true;
 			}
@@ -259,7 +258,7 @@ class OVT_TEST_Logic_ShopUX_BrowserModelSortAndFilter : SCR_AutotestCaseBase
 
 		if (ammo.Count() != 2)
 		{
-			SetResultFailure("Filtering by AMMUNITION returned %1 rows, expected 2", ammo.Count().ToString());
+			SetFailure("Filtering by AMMUNITION returned %1 rows, expected 2", ammo.Count().ToString());
 			return true;
 		}
 
@@ -267,7 +266,7 @@ class OVT_TEST_Logic_ShopUX_BrowserModelSortAndFilter : SCR_AutotestCaseBase
 		{
 			if (item.m_eCategory != OVT_ShopCategory.AMMUNITION)
 			{
-				SetResultFailure("Filtering by AMMUNITION returned '%1', which is %2",
+				SetFailure("Filtering by AMMUNITION returned '%1', which is %2",
 					item.m_sDisplayName, typename.EnumToString(OVT_ShopCategory, item.m_eCategory));
 				return true;
 			}
@@ -278,7 +277,7 @@ class OVT_TEST_Logic_ShopUX_BrowserModelSortAndFilter : SCR_AutotestCaseBase
 
 		if (everything.Count() != 5)
 		{
-			SetResultFailure("Filtering by ALL returned %1 rows, expected all 5", everything.Count().ToString());
+			SetFailure("Filtering by ALL returned %1 rows, expected all 5", everything.Count().ToString());
 			return true;
 		}
 
@@ -288,7 +287,7 @@ class OVT_TEST_Logic_ShopUX_BrowserModelSortAndFilter : SCR_AutotestCaseBase
 
 		if (medical.Count() != 0)
 		{
-			SetResultFailure("Filtering by MEDICAL returned %1 rows, expected 0", medical.Count().ToString());
+			SetFailure("Filtering by MEDICAL returned %1 rows, expected 0", medical.Count().ToString());
 			return true;
 		}
 
@@ -300,7 +299,7 @@ class OVT_TEST_Logic_ShopUX_BrowserModelSortAndFilter : SCR_AutotestCaseBase
 
 		if (populated.Count() != expectedCategories.Count())
 		{
-			SetResultFailure("GetPopulatedCategories() returned %1 categories, expected %2",
+			SetFailure("GetPopulatedCategories() returned %1 categories, expected %2",
 				populated.Count().ToString(), expectedCategories.Count().ToString());
 			return true;
 		}
@@ -309,7 +308,7 @@ class OVT_TEST_Logic_ShopUX_BrowserModelSortAndFilter : SCR_AutotestCaseBase
 		{
 			if (populated.Get(c) != expectedCategories.Get(c))
 			{
-				SetResultFailure("GetPopulatedCategories() position %1 is %2, expected %3", c.ToString(),
+				SetFailure("GetPopulatedCategories() position %1 is %2, expected %3", c.ToString(),
 					typename.EnumToString(OVT_ShopCategory, populated.Get(c)),
 					typename.EnumToString(OVT_ShopCategory, expectedCategories.Get(c)));
 				return true;
@@ -318,19 +317,18 @@ class OVT_TEST_Logic_ShopUX_BrowserModelSortAndFilter : SCR_AutotestCaseBase
 
 		if (populated.Contains(OVT_ShopCategory.ALL))
 		{
-			SetResultFailure("GetPopulatedCategories() included ALL, which is the menu's own permanent tab");
+			SetFailure("GetPopulatedCategories() included ALL, which is the menu's own permanent tab");
 			return true;
 		}
 
 		if (populated.Contains(OVT_ShopCategory.MEDICAL) || populated.Contains(OVT_ShopCategory.GEAR))
 		{
-			SetResultFailure("GetPopulatedCategories() included a category with no rows in it");
+			SetFailure("GetPopulatedCategories() included a category with no rows in it");
 			return true;
 		}
 
 		Print("Shop browser model: case-insensitive stable alphabetical order, category filtering, ALL returns everything, empty categories earn no tab");
 
-		SetResultSuccess();
 		return true;
 	}
 
@@ -370,7 +368,7 @@ class OVT_TEST_Logic_ShopUX_BrowserModelSortAndFilter : SCR_AutotestCaseBase
 class OVT_TEST_Logic_ShopUX_Pagination : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		int PER_PAGE = 15;
@@ -378,58 +376,58 @@ class OVT_TEST_Logic_ShopUX_Pagination : SCR_AutotestCaseBase
 		// --- THE BUG-024 NUMBERS, straight off the arithmetic.
 		if (OVT_ShopBrowserModel.GetPageCount(57, PER_PAGE) != 4)
 		{
-			SetResultFailure("BUG-024: 57 items at 15 per page reported %1 pages, expected 4 (integer division gives the broken 3)",
+			SetFailure("BUG-024: 57 items at 15 per page reported %1 pages, expected 4 (integer division gives the broken 3)",
 				OVT_ShopBrowserModel.GetPageCount(57, PER_PAGE).ToString());
 			return true;
 		}
 
 		if (OVT_ShopBrowserModel.GetPageCount(3, PER_PAGE) != 1)
 		{
-			SetResultFailure("3 items at 15 per page reported %1 pages, expected 1", OVT_ShopBrowserModel.GetPageCount(3, PER_PAGE).ToString());
+			SetFailure("3 items at 15 per page reported %1 pages, expected 1", OVT_ShopBrowserModel.GetPageCount(3, PER_PAGE).ToString());
 			return true;
 		}
 
 		if (OVT_ShopBrowserModel.GetPageCount(0, PER_PAGE) != 1)
 		{
-			SetResultFailure("An empty shop reported %1 pages, expected 1 (the label must never read 1/0)",
+			SetFailure("An empty shop reported %1 pages, expected 1 (the label must never read 1/0)",
 				OVT_ShopBrowserModel.GetPageCount(0, PER_PAGE).ToString());
 			return true;
 		}
 
 		if (OVT_ShopBrowserModel.GetPageCount(15, PER_PAGE) != 1)
 		{
-			SetResultFailure("Exactly one full page reported %1 pages, expected 1", OVT_ShopBrowserModel.GetPageCount(15, PER_PAGE).ToString());
+			SetFailure("Exactly one full page reported %1 pages, expected 1", OVT_ShopBrowserModel.GetPageCount(15, PER_PAGE).ToString());
 			return true;
 		}
 
 		if (OVT_ShopBrowserModel.GetPageCount(16, PER_PAGE) != 2)
 		{
-			SetResultFailure("One item past a full page reported %1 pages, expected 2", OVT_ShopBrowserModel.GetPageCount(16, PER_PAGE).ToString());
+			SetFailure("One item past a full page reported %1 pages, expected 2", OVT_ShopBrowserModel.GetPageCount(16, PER_PAGE).ToString());
 			return true;
 		}
 
 		// --- PAGE INDEX CLAMPS AT BOTH ENDS.
 		if (OVT_ShopBrowserModel.ClampPage(-1, 4) != 0)
 		{
-			SetResultFailure("Prev on the first page produced page %1, expected 0", OVT_ShopBrowserModel.ClampPage(-1, 4).ToString());
+			SetFailure("Prev on the first page produced page %1, expected 0", OVT_ShopBrowserModel.ClampPage(-1, 4).ToString());
 			return true;
 		}
 
 		if (OVT_ShopBrowserModel.ClampPage(9, 4) != 3)
 		{
-			SetResultFailure("Next on the last page produced page %1, expected 3", OVT_ShopBrowserModel.ClampPage(9, 4).ToString());
+			SetFailure("Next on the last page produced page %1, expected 3", OVT_ShopBrowserModel.ClampPage(9, 4).ToString());
 			return true;
 		}
 
 		if (OVT_ShopBrowserModel.ClampPage(2, 4) != 2)
 		{
-			SetResultFailure("An in-range page was moved to %1, expected 2", OVT_ShopBrowserModel.ClampPage(2, 4).ToString());
+			SetFailure("An in-range page was moved to %1, expected 2", OVT_ShopBrowserModel.ClampPage(2, 4).ToString());
 			return true;
 		}
 
 		if (OVT_ShopBrowserModel.ClampPage(0, 0) != 0)
 		{
-			SetResultFailure("Clamping against a zero page count produced %1, expected 0", OVT_ShopBrowserModel.ClampPage(0, 0).ToString());
+			SetFailure("Clamping against a zero page count produced %1, expected 0", OVT_ShopBrowserModel.ClampPage(0, 0).ToString());
 			return true;
 		}
 
@@ -445,7 +443,7 @@ class OVT_TEST_Logic_ShopUX_Pagination : SCR_AutotestCaseBase
 		model.GetPageItems(OVT_ShopCategory.ALL, 0, PER_PAGE, page);
 		if (page.Count() != 15 || page.Get(0).m_iResourceId != 1 || page.Get(14).m_iResourceId != 15)
 		{
-			SetResultFailure("Page 1 held %1 rows starting at id %2, expected 15 rows starting at id 1",
+			SetFailure("Page 1 held %1 rows starting at id %2, expected 15 rows starting at id 1",
 				page.Count().ToString(), page.Get(0).m_iResourceId.ToString());
 			return true;
 		}
@@ -454,13 +452,13 @@ class OVT_TEST_Logic_ShopUX_Pagination : SCR_AutotestCaseBase
 		model.GetPageItems(OVT_ShopCategory.ALL, 3, PER_PAGE, page);
 		if (page.Count() != 12)
 		{
-			SetResultFailure("BUG-024: the last page held %1 rows, expected the remaining 12", page.Count().ToString());
+			SetFailure("BUG-024: the last page held %1 rows, expected the remaining 12", page.Count().ToString());
 			return true;
 		}
 
 		if (page.Get(0).m_iResourceId != 46 || page.Get(11).m_iResourceId != 57)
 		{
-			SetResultFailure("The last page ran from id %1 to id %2, expected 46 to 57",
+			SetFailure("The last page ran from id %1 to id %2, expected 46 to 57",
 				page.Get(0).m_iResourceId.ToString(), page.Get(11).m_iResourceId.ToString());
 			return true;
 		}
@@ -469,7 +467,7 @@ class OVT_TEST_Logic_ShopUX_Pagination : SCR_AutotestCaseBase
 		model.GetPageItems(OVT_ShopCategory.ALL, 99, PER_PAGE, page);
 		if (page.Count() != 12 || page.Get(0).m_iResourceId != 46)
 		{
-			SetResultFailure("Asking for page 99 returned %1 rows starting at id %2, expected the clamped last page (12 rows from id 46)",
+			SetFailure("Asking for page 99 returned %1 rows starting at id %2, expected the clamped last page (12 rows from id 46)",
 				page.Count().ToString(), page.Get(0).m_iResourceId.ToString());
 			return true;
 		}
@@ -477,7 +475,7 @@ class OVT_TEST_Logic_ShopUX_Pagination : SCR_AutotestCaseBase
 		model.GetPageItems(OVT_ShopCategory.ALL, -5, PER_PAGE, page);
 		if (page.Count() != 15 || page.Get(0).m_iResourceId != 1)
 		{
-			SetResultFailure("Asking for page -5 returned %1 rows starting at id %2, expected the clamped first page (15 rows from id 1)",
+			SetFailure("Asking for page -5 returned %1 rows starting at id %2, expected the clamped first page (15 rows from id 1)",
 				page.Count().ToString(), page.Get(0).m_iResourceId.ToString());
 			return true;
 		}
@@ -486,7 +484,7 @@ class OVT_TEST_Logic_ShopUX_Pagination : SCR_AutotestCaseBase
 		model.GetPageItems(OVT_ShopCategory.MEDICAL, 2, PER_PAGE, page);
 		if (page.Count() != 0)
 		{
-			SetResultFailure("An empty category returned %1 rows on page 3, expected 0", page.Count().ToString());
+			SetFailure("An empty category returned %1 rows on page 3, expected 0", page.Count().ToString());
 			return true;
 		}
 
@@ -495,7 +493,7 @@ class OVT_TEST_Logic_ShopUX_Pagination : SCR_AutotestCaseBase
 		emptyModel.GetPageItems(OVT_ShopCategory.ALL, 0, PER_PAGE, page);
 		if (page.Count() != 0)
 		{
-			SetResultFailure("An empty model returned %1 rows, expected 0", page.Count().ToString());
+			SetFailure("An empty model returned %1 rows, expected 0", page.Count().ToString());
 			return true;
 		}
 
@@ -513,14 +511,13 @@ class OVT_TEST_Logic_ShopUX_Pagination : SCR_AutotestCaseBase
 		mixed.GetPageItems(OVT_ShopCategory.AMMUNITION, 1, PER_PAGE, page);
 		if (page.Count() != 5 || page.Get(0).m_iResourceId != 16)
 		{
-			SetResultFailure("The ammunition tab's second page held %1 rows starting at id %2, expected 5 rows from id 16",
+			SetFailure("The ammunition tab's second page held %1 rows starting at id %2, expected 5 rows from id 16",
 				page.Count().ToString(), page.Get(0).m_iResourceId.ToString());
 			return true;
 		}
 
 		Print("Pagination (BUG-024 pinned): 57/15 = 4 pages with a 12-item last page, 3 and 0 items give 1 page, page index clamps at both ends, slices stay in range");
 
-		SetResultSuccess();
 		return true;
 	}
 
@@ -556,51 +553,51 @@ class OVT_TEST_Logic_ShopUX_Pagination : SCR_AutotestCaseBase
 class OVT_TEST_Logic_ShopUX_SellRules : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		// --- ORDINARY TOWN SHOPS BUY.
 		if (!OVT_ShopSellRules.ShopBuysFromPlayers(OVT_ShopType.SHOP_GENERAL, false, 0.5))
 		{
-			SetResultFailure("A general store refused to buy from players");
+			SetFailure("A general store refused to buy from players");
 			return true;
 		}
 
 		if (!OVT_ShopSellRules.ShopBuysFromPlayers(OVT_ShopType.SHOP_CLOTHES, false, 0))
 		{
-			SetResultFailure("A clothes shop refused to buy from players (the gun dealer multiplier must not apply to it)");
+			SetFailure("A clothes shop refused to buy from players (the gun dealer multiplier must not apply to it)");
 			return true;
 		}
 
 		// --- VEHICLE AND PROCUREMENT SHOPS NEVER BUY.
 		if (OVT_ShopSellRules.ShopBuysFromPlayers(OVT_ShopType.SHOP_VEHICLE, false, 1.0))
 		{
-			SetResultFailure("A vehicle shop offered to buy from players");
+			SetFailure("A vehicle shop offered to buy from players");
 			return true;
 		}
 
 		if (OVT_ShopSellRules.ShopBuysFromPlayers(OVT_ShopType.SHOP_GENERAL, true, 1.0))
 		{
-			SetResultFailure("A procurement shop offered to buy from players");
+			SetFailure("A procurement shop offered to buy from players");
 			return true;
 		}
 
 		if (OVT_ShopSellRules.ShopBuysFromPlayers(OVT_ShopType.SHOP_GUNDEALER, true, 1.0))
 		{
-			SetResultFailure("A procurement gun dealer offered to buy from players; procurement outranks shop type");
+			SetFailure("A procurement gun dealer offered to buy from players; procurement outranks shop type");
 			return true;
 		}
 
 		// --- A GUN DEALER BUYS IFF THE MULTIPLIER IS ABOVE ZERO.
 		if (!OVT_ShopSellRules.ShopBuysFromPlayers(OVT_ShopType.SHOP_GUNDEALER, false, 0.6))
 		{
-			SetResultFailure("A gun dealer with a 0.6 multiplier refused to buy");
+			SetFailure("A gun dealer with a 0.6 multiplier refused to buy");
 			return true;
 		}
 
 		if (OVT_ShopSellRules.ShopBuysFromPlayers(OVT_ShopType.SHOP_GUNDEALER, false, 0))
 		{
-			SetResultFailure("A gun dealer with a zero multiplier offered to buy; the config value must disable the sell path");
+			SetFailure("A gun dealer with a zero multiplier offered to buy; the config value must disable the sell path");
 			return true;
 		}
 
@@ -608,45 +605,45 @@ class OVT_TEST_Logic_ShopUX_SellRules : SCR_AutotestCaseBase
 		float dealerRate = OVT_ShopSellRules.GetSellMultiplier(OVT_ShopType.SHOP_GUNDEALER, 0.6);
 		if (!OVT_TEST_LogicFixture.FloatEquals(dealerRate, 0.6))
 		{
-			SetResultFailure("A gun dealer's sell multiplier came back as %1, expected 0.6", dealerRate.ToString());
+			SetFailure("A gun dealer's sell multiplier came back as %1, expected 0.6", dealerRate.ToString());
 			return true;
 		}
 
 		float townRate = OVT_ShopSellRules.GetSellMultiplier(OVT_ShopType.SHOP_GENERAL, 0.6);
 		if (!OVT_TEST_LogicFixture.FloatEquals(townRate, 1.0))
 		{
-			SetResultFailure("A general store's sell multiplier came back as %1, expected 1.0 (the gun dealer rate leaked)", townRate.ToString());
+			SetFailure("A general store's sell multiplier came back as %1, expected 1.0 (the gun dealer rate leaked)", townRate.ToString());
 			return true;
 		}
 
 		// --- PER-ITEM ELIGIBILITY.
 		if (!OVT_ShopSellRules.CanSellItem(false, true, 120))
 		{
-			SetResultFailure("An unequipped, priced item at a buying shop could not be sold");
+			SetFailure("An unequipped, priced item at a buying shop could not be sold");
 			return true;
 		}
 
 		if (OVT_ShopSellRules.CanSellItem(true, true, 120))
 		{
-			SetResultFailure("An EQUIPPED item was sellable");
+			SetFailure("An EQUIPPED item was sellable");
 			return true;
 		}
 
 		if (OVT_ShopSellRules.CanSellItem(false, false, 120))
 		{
-			SetResultFailure("An item was sellable at a shop that does not buy it");
+			SetFailure("An item was sellable at a shop that does not buy it");
 			return true;
 		}
 
 		if (OVT_ShopSellRules.CanSellItem(false, true, 0))
 		{
-			SetResultFailure("A worthless item (price 0) was sellable");
+			SetFailure("A worthless item (price 0) was sellable");
 			return true;
 		}
 
 		if (OVT_ShopSellRules.CanSellItem(false, true, -50))
 		{
-			SetResultFailure("An item with a negative price was sellable");
+			SetFailure("An item with a negative price was sellable");
 			return true;
 		}
 
@@ -654,7 +651,7 @@ class OVT_TEST_Logic_ShopUX_SellRules : SCR_AutotestCaseBase
 		string sellableReason = OVT_ShopSellRules.GetBlockReasonKey(false, true, 120);
 		if (sellableReason != "")
 		{
-			SetResultFailure("A sellable item reported the block reason '%1', expected none", sellableReason);
+			SetFailure("A sellable item reported the block reason '%1', expected none", sellableReason);
 			return true;
 		}
 
@@ -664,21 +661,20 @@ class OVT_TEST_Logic_ShopUX_SellRules : SCR_AutotestCaseBase
 
 		if (!IsReasonKey(equippedReason) || !IsReasonKey(notBoughtReason) || !IsReasonKey(worthlessReason))
 		{
-			SetResultFailure("A blocked item reported a non-#OVT- reason: equipped '%1', not-bought '%2', worthless '%3'",
+			SetFailure("A blocked item reported a non-#OVT- reason: equipped '%1', not-bought '%2', worthless '%3'",
 				equippedReason, notBoughtReason, worthlessReason);
 			return true;
 		}
 
 		if (equippedReason == notBoughtReason || equippedReason == worthlessReason || notBoughtReason == worthlessReason)
 		{
-			SetResultFailure("Two blocked cases share a reason key: equipped '%1', not-bought '%2', worthless '%3'",
+			SetFailure("Two blocked cases share a reason key: equipped '%1', not-bought '%2', worthless '%3'",
 				equippedReason, notBoughtReason, worthlessReason);
 			return true;
 		}
 
 		Print("Sell rules: vehicle and procurement shops never buy, a gun dealer buys iff its multiplier is above zero and only it applies one, and each blocked case names its own reason");
 
-		SetResultSuccess();
 		return true;
 	}
 
@@ -709,67 +705,67 @@ class OVT_TEST_Logic_ShopUX_SellRules : SCR_AutotestCaseBase
 class OVT_TEST_Logic_ShopUX_MoneyFormatAndDelta : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		// --- FORMATTING.
 		if (OVT_MoneyFormat.FormatMoney(12500) != "$12,500")
 		{
-			SetResultFailure("FormatMoney(12500) returned '%1', expected '$12,500'", OVT_MoneyFormat.FormatMoney(12500));
+			SetFailure("FormatMoney(12500) returned '%1', expected '$12,500'", OVT_MoneyFormat.FormatMoney(12500));
 			return true;
 		}
 
 		if (OVT_MoneyFormat.FormatMoney(0) != "$0")
 		{
-			SetResultFailure("FormatMoney(0) returned '%1', expected '$0'", OVT_MoneyFormat.FormatMoney(0));
+			SetFailure("FormatMoney(0) returned '%1', expected '$0'", OVT_MoneyFormat.FormatMoney(0));
 			return true;
 		}
 
 		if (OVT_MoneyFormat.FormatMoney(999) != "$999")
 		{
-			SetResultFailure("FormatMoney(999) returned '%1', expected '$999' with no separator", OVT_MoneyFormat.FormatMoney(999));
+			SetFailure("FormatMoney(999) returned '%1', expected '$999' with no separator", OVT_MoneyFormat.FormatMoney(999));
 			return true;
 		}
 
 		if (OVT_MoneyFormat.FormatMoney(1000) != "$1,000")
 		{
-			SetResultFailure("FormatMoney(1000) returned '%1', expected '$1,000'", OVT_MoneyFormat.FormatMoney(1000));
+			SetFailure("FormatMoney(1000) returned '%1', expected '$1,000'", OVT_MoneyFormat.FormatMoney(1000));
 			return true;
 		}
 
 		if (OVT_MoneyFormat.FormatMoney(-150) != "-$150")
 		{
-			SetResultFailure("FormatMoney(-150) returned '%1', expected '-$150' (the sign goes outside the symbol)", OVT_MoneyFormat.FormatMoney(-150));
+			SetFailure("FormatMoney(-150) returned '%1', expected '-$150' (the sign goes outside the symbol)", OVT_MoneyFormat.FormatMoney(-150));
 			return true;
 		}
 
 		if (OVT_MoneyFormat.FormatMoney(-1234567) != "-$1,234,567")
 		{
-			SetResultFailure("FormatMoney(-1234567) returned '%1', expected '-$1,234,567'", OVT_MoneyFormat.FormatMoney(-1234567));
+			SetFailure("FormatMoney(-1234567) returned '%1', expected '-$1,234,567'", OVT_MoneyFormat.FormatMoney(-1234567));
 			return true;
 		}
 
 		if (OVT_MoneyFormat.FormatMoney(1000000) != "$1,000,000")
 		{
-			SetResultFailure("FormatMoney(1000000) returned '%1', expected '$1,000,000'", OVT_MoneyFormat.FormatMoney(1000000));
+			SetFailure("FormatMoney(1000000) returned '%1', expected '$1,000,000'", OVT_MoneyFormat.FormatMoney(1000000));
 			return true;
 		}
 
 		if (OVT_MoneyFormat.FormatDelta(500) != "+$500")
 		{
-			SetResultFailure("FormatDelta(500) returned '%1', expected '+$500'", OVT_MoneyFormat.FormatDelta(500));
+			SetFailure("FormatDelta(500) returned '%1', expected '+$500'", OVT_MoneyFormat.FormatDelta(500));
 			return true;
 		}
 
 		if (OVT_MoneyFormat.FormatDelta(-150) != "-$150")
 		{
-			SetResultFailure("FormatDelta(-150) returned '%1', expected '-$150'", OVT_MoneyFormat.FormatDelta(-150));
+			SetFailure("FormatDelta(-150) returned '%1', expected '-$150'", OVT_MoneyFormat.FormatDelta(-150));
 			return true;
 		}
 
 		if (OVT_MoneyFormat.FormatDelta(0) != "")
 		{
-			SetResultFailure("FormatDelta(0) returned '%1', expected an empty string", OVT_MoneyFormat.FormatDelta(0));
+			SetFailure("FormatDelta(0) returned '%1', expected an empty string", OVT_MoneyFormat.FormatDelta(0));
 			return true;
 		}
 
@@ -781,7 +777,7 @@ class OVT_TEST_Logic_ShopUX_MoneyFormatAndDelta : SCR_AutotestCaseBase
 		tracker.Update(1000, 0.1);
 		if (tracker.IsVisible() || tracker.GetDelta() != 0 || tracker.GetText() != "")
 		{
-			SetResultFailure("The first observation produced a delta of %1 ('%2'), expected nothing at all",
+			SetFailure("The first observation produced a delta of %1 ('%2'), expected nothing at all",
 				tracker.GetDelta().ToString(), tracker.GetText());
 			return true;
 		}
@@ -790,7 +786,7 @@ class OVT_TEST_Logic_ShopUX_MoneyFormatAndDelta : SCR_AutotestCaseBase
 		tracker.Update(1500, 0.1);
 		if (tracker.GetDelta() != 500 || !tracker.IsVisible() || tracker.GetText() != "+$500")
 		{
-			SetResultFailure("After a 500 gain the ticker read %1 ('%2'), expected 500 / '+$500'",
+			SetFailure("After a 500 gain the ticker read %1 ('%2'), expected 500 / '+$500'",
 				tracker.GetDelta().ToString(), tracker.GetText());
 			return true;
 		}
@@ -799,7 +795,7 @@ class OVT_TEST_Logic_ShopUX_MoneyFormatAndDelta : SCR_AutotestCaseBase
 		tracker.Update(1500, 3.5);
 		if (!tracker.IsVisible())
 		{
-			SetResultFailure("The ticker cleared after 3.5 s of a 4 s timeout");
+			SetFailure("The ticker cleared after 3.5 s of a 4 s timeout");
 			return true;
 		}
 
@@ -807,7 +803,7 @@ class OVT_TEST_Logic_ShopUX_MoneyFormatAndDelta : SCR_AutotestCaseBase
 		tracker.Update(1200, 0.1);
 		if (tracker.GetDelta() != 200 || tracker.GetText() != "+$200")
 		{
-			SetResultFailure("A 500 gain followed by a 300 loss read %1 ('%2'), expected 200 / '+$200'",
+			SetFailure("A 500 gain followed by a 300 loss read %1 ('%2'), expected 200 / '+$200'",
 				tracker.GetDelta().ToString(), tracker.GetText());
 			return true;
 		}
@@ -817,13 +813,13 @@ class OVT_TEST_Logic_ShopUX_MoneyFormatAndDelta : SCR_AutotestCaseBase
 		tracker.Update(1200, 3.5);
 		if (!tracker.IsVisible())
 		{
-			SetResultFailure("The ticker cleared 3.5 s after the second change; the change did not restart the countdown");
+			SetFailure("The ticker cleared 3.5 s after the second change; the change did not restart the countdown");
 			return true;
 		}
 
 		if (tracker.GetDelta() != 200)
 		{
-			SetResultFailure("The accumulated delta drifted to %1 while merely waiting, expected 200", tracker.GetDelta().ToString());
+			SetFailure("The accumulated delta drifted to %1 while merely waiting, expected 200", tracker.GetDelta().ToString());
 			return true;
 		}
 
@@ -831,7 +827,7 @@ class OVT_TEST_Logic_ShopUX_MoneyFormatAndDelta : SCR_AutotestCaseBase
 		tracker.Update(1200, 1.0);
 		if (tracker.IsVisible() || tracker.GetDelta() != 0 || tracker.GetText() != "")
 		{
-			SetResultFailure("The ticker survived its timeout with delta %1 ('%2'), expected 0 and hidden",
+			SetFailure("The ticker survived its timeout with delta %1 ('%2'), expected 0 and hidden",
 				tracker.GetDelta().ToString(), tracker.GetText());
 			return true;
 		}
@@ -840,14 +836,13 @@ class OVT_TEST_Logic_ShopUX_MoneyFormatAndDelta : SCR_AutotestCaseBase
 		tracker.Update(1050, 0.1);
 		if (tracker.GetDelta() != -150 || !tracker.IsVisible() || tracker.GetText() != "-$150")
 		{
-			SetResultFailure("After clearing, a 150 loss read %1 ('%2'), expected -150 / '-$150'",
+			SetFailure("After clearing, a 150 loss read %1 ('%2'), expected -150 / '-$150'",
 				tracker.GetDelta().ToString(), tracker.GetText());
 			return true;
 		}
 
 		Print("Money: thousands grouping with zero/negative/large values, and a ticker that seeds silently, accumulates, restarts its countdown on every change and clears after the timeout");
 
-		SetResultSuccess();
 		return true;
 	}
 }

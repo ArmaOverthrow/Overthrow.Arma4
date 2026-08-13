@@ -77,7 +77,7 @@ class OVT_TEST_SuiteBase : SCR_AutotestSuiteBase
 	//!  - IsInitialized() as the completion condition. It is true in the same frame today; the poll
 	//!    survives a future async change at no cost.
 	//! \return True when the campaign is initialized (or the suite did not opt in), false to poll again.
-	[Step(EStage.Setup)]
+	[TestStep(TestStage.Setup)]
 	bool Setup_StartCampaign()
 	{
 		if (!RequiresStartedCampaign())
@@ -86,7 +86,7 @@ class OVT_TEST_SuiteBase : SCR_AutotestSuiteBase
 		OVT_OverthrowGameMode mode = OVT_Global.GetOverthrow();
 		if (!mode)
 		{
-			SetResult(SCR_AutotestResult.AsFailure("Campaign start failed: no OVT_OverthrowGameMode in the loaded world"));
+			SetFailure(SCR_AutotestFailure.Create("Campaign start failed: no OVT_OverthrowGameMode in the loaded world"));
 			return true;
 		}
 
@@ -95,14 +95,14 @@ class OVT_TEST_SuiteBase : SCR_AutotestSuiteBase
 			OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
 			if (!config)
 			{
-				SetResult(SCR_AutotestResult.AsFailure("Campaign start failed: no OVT_OverthrowConfigComponent on the game mode"));
+				SetFailure(SCR_AutotestFailure.Create("Campaign start failed: no OVT_OverthrowConfigComponent on the game mode"));
 				return true;
 			}
 
 			OVT_DifficultySettings preset = FindDifficultyPreset(config, CAMPAIGN_DIFFICULTY_PRESET);
 			if (!preset)
 			{
-				SetResult(SCR_AutotestResult.AsFailure("Campaign start failed: no difficulty preset named '%1' in m_aDifficultyPresets", CAMPAIGN_DIFFICULTY_PRESET));
+				SetFailure(SCR_AutotestFailure.Create("Campaign start failed: no difficulty preset named '%1' in m_aDifficultyPresets", CAMPAIGN_DIFFICULTY_PRESET));
 				return true;
 			}
 
@@ -128,7 +128,7 @@ class OVT_TEST_SuiteBase : SCR_AutotestSuiteBase
 		m_iStartPolls += 1;
 		if (m_iStartPolls > MAX_START_POLLS)
 		{
-			SetResult(SCR_AutotestResult.AsFailure("Campaign start failed: IsInitialized() still false after %1 polls (HasGameStarted = %2)",
+			SetFailure(SCR_AutotestFailure.Create("Campaign start failed: IsInitialized() still false after %1 polls (HasGameStarted = %2)",
 				m_iStartPolls.ToString(), mode.HasGameStarted().ToString()));
 			return true;
 		}

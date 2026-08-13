@@ -26,7 +26,7 @@
 class OVT_TEST_Logic_MapPriceBands : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		// --- THE SCARCITY TERM, against the arithmetic it mirrors:
@@ -106,21 +106,21 @@ class OVT_TEST_Logic_MapPriceBands : SCR_AutotestCaseBase
 		// composition of GetScarcityPercent and GetScarcityLevel is pinned as well as each half.
 		if (OVT_MapShopPriceBands.GetScarcityLevelForStock(0, 10) != OVT_MapPriceLevel.UP_3)
 		{
-			SetResultFailure("A sold-out item banded as %1, expected three carets up",
+			SetFailure("A sold-out item banded as %1, expected three carets up",
 				typename.EnumToString(OVT_MapPriceLevel, OVT_MapShopPriceBands.GetScarcityLevelForStock(0, 10)));
 			return true;
 		}
 
 		if (OVT_MapShopPriceBands.GetScarcityLevelForStock(10, 10) != OVT_MapPriceLevel.NEUTRAL)
 		{
-			SetResultFailure("An item at exactly the town's capacity banded as %1, expected neutral",
+			SetFailure("An item at exactly the town's capacity banded as %1, expected neutral",
 				typename.EnumToString(OVT_MapPriceLevel, OVT_MapShopPriceBands.GetScarcityLevelForStock(10, 10)));
 			return true;
 		}
 
 		if (OVT_MapShopPriceBands.GetScarcityLevelForStock(20, 10) != OVT_MapPriceLevel.DOWN_3)
 		{
-			SetResultFailure("A town glutted to twice capacity banded as %1, expected three carets down",
+			SetFailure("A town glutted to twice capacity banded as %1, expected three carets down",
 				typename.EnumToString(OVT_MapPriceLevel, OVT_MapShopPriceBands.GetScarcityLevelForStock(20, 10)));
 			return true;
 		}
@@ -130,27 +130,27 @@ class OVT_TEST_Logic_MapPriceBands : SCR_AutotestCaseBase
 		// rule while neutral keeps yielding an empty quad name and an empty caption.
 		if (!OVT_MapShopPriceBands.IsNeutral(OVT_MapPriceLevel.NEUTRAL))
 		{
-			SetResultFailure("IsNeutral() did not recognise the neutral band");
+			SetFailure("IsNeutral() did not recognise the neutral band");
 			return true;
 		}
 
 		if (OVT_MapShopPriceBands.GetCaretIcon(OVT_MapPriceLevel.NEUTRAL) != "")
 		{
-			SetResultFailure("The neutral band asked for the glyph '%1'; it must ask for none",
+			SetFailure("The neutral band asked for the glyph '%1'; it must ask for none",
 				OVT_MapShopPriceBands.GetCaretIcon(OVT_MapPriceLevel.NEUTRAL));
 			return true;
 		}
 
 		if (OVT_MapShopPriceBands.GetMagnitude(OVT_MapPriceLevel.NEUTRAL) != 0)
 		{
-			SetResultFailure("The neutral band claimed %1 carets, expected 0",
+			SetFailure("The neutral band claimed %1 carets, expected 0",
 				OVT_MapShopPriceBands.GetMagnitude(OVT_MapPriceLevel.NEUTRAL).ToString());
 			return true;
 		}
 
 		if (OVT_MapShopPriceBands.IsUp(OVT_MapPriceLevel.NEUTRAL) || OVT_MapShopPriceBands.IsDown(OVT_MapPriceLevel.NEUTRAL))
 		{
-			SetResultFailure("The neutral band claimed a direction");
+			SetFailure("The neutral band claimed a direction");
 			return true;
 		}
 
@@ -168,13 +168,13 @@ class OVT_TEST_Logic_MapPriceBands : SCR_AutotestCaseBase
 
 			if (glyph == "")
 			{
-				SetResultFailure("Band %1 asked for no glyph", typename.EnumToString(OVT_MapPriceLevel, level));
+				SetFailure("Band %1 asked for no glyph", typename.EnumToString(OVT_MapPriceLevel, level));
 				return true;
 			}
 
 			if (seenGlyphs.Contains(glyph))
 			{
-				SetResultFailure("Glyph '%1' is used by more than one band", glyph);
+				SetFailure("Glyph '%1' is used by more than one band", glyph);
 				return true;
 			}
 
@@ -182,14 +182,14 @@ class OVT_TEST_Logic_MapPriceBands : SCR_AutotestCaseBase
 
 			if (OVT_MapShopPriceBands.IsUp(level) == OVT_MapShopPriceBands.IsDown(level))
 			{
-				SetResultFailure("Band %1 is neither, or both, of up and down", typename.EnumToString(OVT_MapPriceLevel, level));
+				SetFailure("Band %1 is neither, or both, of up and down", typename.EnumToString(OVT_MapPriceLevel, level));
 				return true;
 			}
 
 			int magnitude = OVT_MapShopPriceBands.GetMagnitude(level);
 			if (magnitude < 1 || magnitude > 3)
 			{
-				SetResultFailure("Band %1 claimed %2 carets, expected 1 to 3",
+				SetFailure("Band %1 claimed %2 carets, expected 1 to 3",
 					typename.EnumToString(OVT_MapPriceLevel, level), magnitude.ToString());
 				return true;
 			}
@@ -248,13 +248,12 @@ class OVT_TEST_Logic_MapPriceBands : SCR_AutotestCaseBase
 		// The badge never reads as a discount: the remoteness term only ever raises a price.
 		if (OVT_MapShopPriceBands.IsDown(OVT_MapShopPriceBands.GetRemotenessLevel(12000)))
 		{
-			SetResultFailure("A remote shop banded as cheaper; distance to port only ever raises prices");
+			SetFailure("A remote shop banded as cheaper; distance to port only ever raises prices");
 			return true;
 		}
 
 		Print("Map price bands: scarcity mirrors the economy's arithmetic including its capacity clamp, every band boundary falls to the less extreme band, the neutral band draws no glyph and no caption, and a negative port distance hides the badge instead of banding as a discount");
 
-		SetResultSuccess();
 		return true;
 	}
 
@@ -272,7 +271,7 @@ class OVT_TEST_Logic_MapPriceBands : SCR_AutotestCaseBase
 		if (OVT_TEST_LogicFixture.FloatEquals(actual, expected))
 			return true;
 
-		SetResultFailure("%1 produced a scarcity term of %2, expected %3", label, actual.ToString(), expected.ToString());
+		SetFailure("%1 produced a scarcity term of %2, expected %3", label, actual.ToString(), expected.ToString());
 		return false;
 	}
 
@@ -289,7 +288,7 @@ class OVT_TEST_Logic_MapPriceBands : SCR_AutotestCaseBase
 		if (actual == expected)
 			return true;
 
-		SetResultFailure(label + " (%1) banded as %2, expected %3", scarcityPercent.ToString(),
+		SetFailure(label + " (%1) banded as %2, expected %3", scarcityPercent.ToString(),
 			typename.EnumToString(OVT_MapPriceLevel, actual),
 			typename.EnumToString(OVT_MapPriceLevel, expected));
 
@@ -309,7 +308,7 @@ class OVT_TEST_Logic_MapPriceBands : SCR_AutotestCaseBase
 		if (actual == expected)
 			return true;
 
-		SetResultFailure(label + " (%1 m) banded as %2, expected %3", distanceToPort.ToString(),
+		SetFailure(label + " (%1 m) banded as %2, expected %3", distanceToPort.ToString(),
 			typename.EnumToString(OVT_MapPriceLevel, actual),
 			typename.EnumToString(OVT_MapPriceLevel, expected));
 
@@ -328,7 +327,7 @@ class OVT_TEST_Logic_MapPriceBands : SCR_AutotestCaseBase
 		if (actual == expected)
 			return true;
 
-		SetResultFailure("Band %1 asked for glyph '%2', expected '%3'",
+		SetFailure("Band %1 asked for glyph '%2', expected '%3'",
 			typename.EnumToString(OVT_MapPriceLevel, level), actual, expected);
 
 		return false;

@@ -426,36 +426,35 @@ class OVT_TEST_Logic_TerritoryCoastSolver : OVT_TerritorySolver
 class OVT_TEST_Logic_Territory_LandPredicate : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		if (!OVT_TerritorySolver.IsLand(10, 0, 0.5))
 		{
-			SetResultFailure("Terrain ten metres above sea level was treated as water; no region would reach any coast");
+			SetFailure("Terrain ten metres above sea level was treated as water; no region would reach any coast");
 			return true;
 		}
 
 		if (OVT_TerritorySolver.IsLand(-3, 0, 0.5))
 		{
-			SetResultFailure("Seabed three metres BELOW sea level was treated as land; territory would extend into open sea");
+			SetFailure("Seabed three metres BELOW sea level was treated as land; territory would extend into open sea");
 			return true;
 		}
 
 		// Exactly on the margin. The comparison is strict, so this is water.
 		if (OVT_TerritorySolver.IsLand(0.5, 0, 0.5))
 		{
-			SetResultFailure("Terrain sitting EXACTLY on the shoreline margin was treated as land; the margin bounds nothing");
+			SetFailure("Terrain sitting EXACTLY on the shoreline margin was treated as land; the margin bounds nothing");
 			return true;
 		}
 
 		// And the margin must actually participate: a metre of surface clears a half-metre margin.
 		if (!OVT_TerritorySolver.IsLand(1, 0, 0.5))
 		{
-			SetResultFailure("Terrain clearing the shoreline margin was treated as water");
+			SetFailure("Terrain clearing the shoreline margin was treated as water");
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -475,7 +474,7 @@ class OVT_TEST_Logic_Territory_LandPredicate : SCR_AutotestCaseBase
 class OVT_TEST_Logic_Territory_OwnsEqualWeights : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		array<ref OVT_TerritorySite> sites = new array<ref OVT_TerritorySite>();
@@ -485,14 +484,14 @@ class OVT_TEST_Logic_Territory_OwnsEqualWeights : SCR_AutotestCaseBase
 		int owner = OVT_TerritorySolver.OwnsPoint(Vector(490, 0, 0), sites);
 		if (owner != 0)
 		{
-			SetResultFailure("A point 490 m from an equal-weight site and 510 m from its rival was owned by site %1, not the nearer one", owner.ToString());
+			SetFailure("A point 490 m from an equal-weight site and 510 m from its rival was owned by site %1, not the nearer one", owner.ToString());
 			return true;
 		}
 
 		owner = OVT_TerritorySolver.OwnsPoint(Vector(510, 0, 0), sites);
 		if (owner != 1)
 		{
-			SetResultFailure("A point past the midpoint between two equal-weight sites was owned by site %1, not the nearer one", owner.ToString());
+			SetFailure("A point past the midpoint between two equal-weight sites was owned by site %1, not the nearer one", owner.ToString());
 			return true;
 		}
 
@@ -505,17 +504,16 @@ class OVT_TEST_Logic_Territory_OwnsEqualWeights : SCR_AutotestCaseBase
 
 		if (grid.OwnerAt(9, 0) != 0)
 		{
-			SetResultFailure("The square whose centre sits 450 m from the first site was owned by site %1, not by the site it is nearest", grid.OwnerAt(9, 0).ToString());
+			SetFailure("The square whose centre sits 450 m from the first site was owned by site %1, not by the site it is nearest", grid.OwnerAt(9, 0).ToString());
 			return true;
 		}
 
 		if (grid.OwnerAt(10, 0) != 1)
 		{
-			SetResultFailure("The square whose centre sits past the midpoint was owned by site %1; the boundary is not where the ownership test puts it", grid.OwnerAt(10, 0).ToString());
+			SetFailure("The square whose centre sits past the midpoint was owned by site %1; the boundary is not where the ownership test puts it", grid.OwnerAt(10, 0).ToString());
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -536,7 +534,7 @@ class OVT_TEST_Logic_Territory_OwnsEqualWeights : SCR_AutotestCaseBase
 class OVT_TEST_Logic_Territory_OwnsWeighted : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		array<ref OVT_TerritorySite> sites = new array<ref OVT_TerritorySite>();
@@ -549,14 +547,14 @@ class OVT_TEST_Logic_Territory_OwnsWeighted : SCR_AutotestCaseBase
 		int owner = OVT_TerritorySolver.OwnsPoint(Vector(590, 0, 0), sites);
 		if (owner != 0)
 		{
-			SetResultFailure("A point 590 m from a weight-2 site and 310 m from a weight-1 rival was owned by site %1; the weight division is not being applied", owner.ToString());
+			SetFailure("A point 590 m from a weight-2 site and 310 m from a weight-1 rival was owned by site %1; the weight division is not being applied", owner.ToString());
 			return true;
 		}
 
 		owner = OVT_TerritorySolver.OwnsPoint(Vector(610, 0, 0), sites);
 		if (owner != 1)
 		{
-			SetResultFailure("A point past the weighted boundary was owned by site %1, not the weak site whose territory it is", owner.ToString());
+			SetFailure("A point past the weighted boundary was owned by site %1, not the weak site whose territory it is", owner.ToString());
 			return true;
 		}
 
@@ -569,17 +567,16 @@ class OVT_TEST_Logic_Territory_OwnsWeighted : SCR_AutotestCaseBase
 
 		if (grid.OwnerAt(10, 0) != 0)
 		{
-			SetResultFailure("The square 550 m from a weight-2 site was owned by site %1; at the midpoint rule it would change hands here, which is the unweighted answer", grid.OwnerAt(10, 0).ToString());
+			SetFailure("The square 550 m from a weight-2 site was owned by site %1; at the midpoint rule it would change hands here, which is the unweighted answer", grid.OwnerAt(10, 0).ToString());
 			return true;
 		}
 
 		if (grid.OwnerAt(11, 0) != 1)
 		{
-			SetResultFailure("The square 650 m from a weight-2 site was owned by site %1; the weighted boundary sits at 600 m and this square is past it", grid.OwnerAt(11, 0).ToString());
+			SetFailure("The square 650 m from a weight-2 site was owned by site %1; the weighted boundary sits at 600 m and this square is past it", grid.OwnerAt(11, 0).ToString());
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -599,7 +596,7 @@ class OVT_TEST_Logic_Territory_OwnsWeighted : SCR_AutotestCaseBase
 class OVT_TEST_Logic_Territory_IsolatedSite : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		array<ref OVT_TerritorySite> sites = new array<ref OVT_TerritorySite>();
@@ -612,7 +609,7 @@ class OVT_TEST_Logic_Territory_IsolatedSite : SCR_AutotestCaseBase
 
 		if (grid.m_iCols != 20 || grid.m_iRows != 20)
 		{
-			SetResultFailure("A 2000 m extent at 100 m squares produced %1 x %2 squares instead of 20 x 20", grid.m_iCols.ToString(), grid.m_iRows.ToString());
+			SetFailure("A 2000 m extent at 100 m squares produced %1 x %2 squares instead of 20 x 20", grid.m_iCols.ToString(), grid.m_iRows.ToString());
 			return true;
 		}
 
@@ -623,12 +620,11 @@ class OVT_TEST_Logic_Territory_IsolatedSite : SCR_AutotestCaseBase
 				if (grid.OwnerAt(c, r) == 0)
 					continue;
 
-				SetResultFailure("Square %1 was unowned with a single site on an all-land world; territory has no maximum influence radius and nothing may reintroduce one", (r * grid.m_iCols + c).ToString());
+				SetFailure("Square %1 was unowned with a single site on an all-land world; territory has no maximum influence radius and nothing may reintroduce one", (r * grid.m_iCols + c).ToString());
 				return true;
 			}
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -654,7 +650,7 @@ class OVT_TEST_Logic_Territory_CoastStop : SCR_AutotestCaseBase
 	static const int FIRST_WATER_ROW = 5;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		array<ref OVT_TerritorySite> sites = new array<ref OVT_TerritorySite>();
@@ -668,13 +664,13 @@ class OVT_TEST_Logic_Territory_CoastStop : SCR_AutotestCaseBase
 
 		if (grid.OwnerAt(0, LAST_LAND_ROW) != 0)
 		{
-			SetResultFailure("The last square before the shore was unowned; the coast test is rejecting land and the overlay would stop short of every beach");
+			SetFailure("The last square before the shore was unowned; the coast test is rejecting land and the overlay would stop short of every beach");
 			return true;
 		}
 
 		if (grid.OwnerAt(0, FIRST_WATER_ROW) != -1)
 		{
-			SetResultFailure("A square in open sea was owned by site %1; territory would be drawn over the water", grid.OwnerAt(0, FIRST_WATER_ROW).ToString());
+			SetFailure("A square in open sea was owned by site %1; territory would be drawn over the water", grid.OwnerAt(0, FIRST_WATER_ROW).ToString());
 			return true;
 		}
 
@@ -686,11 +682,10 @@ class OVT_TEST_Logic_Territory_CoastStop : SCR_AutotestCaseBase
 
 		if (unclipped.OwnerAt(0, FIRST_WATER_ROW) != 0)
 		{
-			SetResultFailure("With coast clipping switched off, the sea square was still unowned; the land test is being consulted when it was told not to be");
+			SetFailure("With coast clipping switched off, the sea square was still unowned; the land test is being consulted when it was told not to be");
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -713,7 +708,7 @@ class OVT_TEST_Logic_Territory_CoastStop : SCR_AutotestCaseBase
 class OVT_TEST_Logic_Territory_GridIndexing : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		array<ref OVT_TerritorySite> sites = new array<ref OVT_TerritorySite>();
@@ -729,19 +724,19 @@ class OVT_TEST_Logic_Territory_GridIndexing : SCR_AutotestCaseBase
 
 		if (grid.m_iCols != 11)
 		{
-			SetResultFailure("A 1050 m span at 100 m squares produced %1 columns instead of 11; the partial column at the far edge was dropped and that strip of the map is never classified", grid.m_iCols.ToString());
+			SetFailure("A 1050 m span at 100 m squares produced %1 columns instead of 11; the partial column at the far edge was dropped and that strip of the map is never classified", grid.m_iCols.ToString());
 			return true;
 		}
 
 		if (grid.m_iRows != 20)
 		{
-			SetResultFailure("A 2000 m span at 100 m squares produced %1 rows instead of 20", grid.m_iRows.ToString());
+			SetFailure("A 2000 m span at 100 m squares produced %1 rows instead of 20", grid.m_iRows.ToString());
 			return true;
 		}
 
 		if (grid.m_aOwner.Count() != grid.m_iCols * grid.m_iRows)
 		{
-			SetResultFailure("The grid declared %1 squares but stored %2 owners; every index into it past the shorter of the two is a lie", (grid.m_iCols * grid.m_iRows).ToString(), grid.m_aOwner.Count().ToString());
+			SetFailure("The grid declared %1 squares but stored %2 owners; every index into it past the shorter of the two is a lie", (grid.m_iCols * grid.m_iRows).ToString(), grid.m_aOwner.Count().ToString());
 			return true;
 		}
 
@@ -750,13 +745,13 @@ class OVT_TEST_Logic_Territory_GridIndexing : SCR_AutotestCaseBase
 		// so the two have to agree.
 		if (!OVT_TEST_Logic_TerritoryFixture.Near(grid.EdgeX(0), 0) || !OVT_TEST_Logic_TerritoryFixture.Near(grid.CentreX(0), 50) || !OVT_TEST_Logic_TerritoryFixture.Near(grid.EdgeX(1), 100))
 		{
-			SetResultFailure("Square 0 reported low edge %1 and centre %2; a centre must sit half a square inside its own low edge", grid.EdgeX(0).ToString(), grid.CentreX(0).ToString());
+			SetFailure("Square 0 reported low edge %1 and centre %2; a centre must sit half a square inside its own low edge", grid.EdgeX(0).ToString(), grid.CentreX(0).ToString());
 			return true;
 		}
 
 		if (!OVT_TEST_Logic_TerritoryFixture.Near(grid.EdgeZ(20), 2000))
 		{
-			SetResultFailure("The high edge of the last row came out at %1 instead of 2000; the fill would stop short of the world", grid.EdgeZ(20).ToString());
+			SetFailure("The high edge of the last row came out at %1 instead of 2000; the fill would stop short of the world", grid.EdgeZ(20).ToString());
 			return true;
 		}
 
@@ -764,7 +759,7 @@ class OVT_TEST_Logic_Territory_GridIndexing : SCR_AutotestCaseBase
 		// every edge so a region touching the edge of the world still closes into a loop.
 		if (grid.OwnerAt(-1, 0) != -1 || grid.OwnerAt(11, 0) != -1 || grid.OwnerAt(0, 20) != -1)
 		{
-			SetResultFailure("A square outside the grid reported an owner; the border tracer reads one square past every edge and would close a region against ground that does not exist");
+			SetFailure("A square outside the grid reported an owner; the border tracer reads one square past every edge and would close a region against ground that does not exist");
 			return true;
 		}
 
@@ -778,17 +773,16 @@ class OVT_TEST_Logic_Territory_GridIndexing : SCR_AutotestCaseBase
 
 		if (coarse.CellCount() > OVT_TerritorySolver.MAX_GRID_CELLS)
 		{
-			SetResultFailure("A 1 m square size over a 600 m world produced %1 squares, past the %2 ceiling; a mistyped cell size must cost resolution, never a hung client", coarse.CellCount().ToString(), OVT_TerritorySolver.MAX_GRID_CELLS.ToString());
+			SetFailure("A 1 m square size over a 600 m world produced %1 squares, past the %2 ceiling; a mistyped cell size must cost resolution, never a hung client", coarse.CellCount().ToString(), OVT_TerritorySolver.MAX_GRID_CELLS.ToString());
 			return true;
 		}
 
 		if (coarse.m_fCellSize <= 1)
 		{
-			SetResultFailure("The grid stayed at a %1 m square size while claiming to be under the ceiling; whatever it actually built at is what the log has to report", coarse.m_fCellSize.ToString());
+			SetFailure("The grid stayed at a %1 m square size while claiming to be under the ceiling; whatever it actually built at is what the log has to report", coarse.m_fCellSize.ToString());
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -809,7 +803,7 @@ class OVT_TEST_Logic_Territory_GridIndexing : SCR_AutotestCaseBase
 class OVT_TEST_Logic_Territory_RunMerging : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		// One row: two sites of one appearance, two of another, a water square, then more of the
@@ -836,25 +830,25 @@ class OVT_TEST_Logic_Territory_RunMerging : SCR_AutotestCaseBase
 
 		if (rects.Count() != 3)
 		{
-			SetResultFailure("Eight squares merged into %1 runs instead of 3; expected columns 0-3 as one appearance, 4-5 as another, and 7 alone past the water", rects.Count().ToString());
+			SetFailure("Eight squares merged into %1 runs instead of 3; expected columns 0-3 as one appearance, 4-5 as another, and 7 alone past the water", rects.Count().ToString());
 			return true;
 		}
 
 		if (rects[0].m_iCol0 != 0 || rects[0].m_iCol1 != 3)
 		{
-			SetResultFailure("The first run covered columns %1 to %2 instead of 0 to 3; two neighbouring sites of one appearance must merge into a single quad", rects[0].m_iCol0.ToString(), rects[0].m_iCol1.ToString());
+			SetFailure("The first run covered columns %1 to %2 instead of 0 to 3; two neighbouring sites of one appearance must merge into a single quad", rects[0].m_iCol0.ToString(), rects[0].m_iCol1.ToString());
 			return true;
 		}
 
 		if (rects[1].m_iCol0 != 4 || rects[1].m_iCol1 != 5)
 		{
-			SetResultFailure("The second run covered columns %1 to %2 instead of 4 to 5; a change of appearance must break a run even when the ground is continuous", rects[1].m_iCol0.ToString(), rects[1].m_iCol1.ToString());
+			SetFailure("The second run covered columns %1 to %2 instead of 4 to 5; a change of appearance must break a run even when the ground is continuous", rects[1].m_iCol0.ToString(), rects[1].m_iCol1.ToString());
 			return true;
 		}
 
 		if (rects[2].m_iCol0 != 7 || rects[2].m_iCol1 != 7)
 		{
-			SetResultFailure("The third run covered columns %1 to %2 instead of column 7 alone; a water square must break a run rather than be painted over", rects[2].m_iCol0.ToString(), rects[2].m_iCol1.ToString());
+			SetFailure("The third run covered columns %1 to %2 instead of column 7 alone; a water square must break a run rather than be painted over", rects[2].m_iCol0.ToString(), rects[2].m_iCol1.ToString());
 			return true;
 		}
 
@@ -869,17 +863,16 @@ class OVT_TEST_Logic_Territory_RunMerging : SCR_AutotestCaseBase
 
 		if (rects.Count() != 1)
 		{
-			SetResultFailure("With one site's appearance suppressed the merger produced %1 runs instead of 1; ground owned by a site that is not drawn must produce no quad at all", rects.Count().ToString());
+			SetFailure("With one site's appearance suppressed the merger produced %1 runs instead of 1; ground owned by a site that is not drawn must produce no quad at all", rects.Count().ToString());
 			return true;
 		}
 
 		if (rects[0].m_iCol1 != 3)
 		{
-			SetResultFailure("The surviving run reached column %1 instead of 3; suppressing a site must remove its ground, not hand it to its neighbour", rects[0].m_iCol1.ToString());
+			SetFailure("The surviving run reached column %1 instead of 3; suppressing a site must remove its ground, not hand it to its neighbour", rects[0].m_iCol1.ToString());
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -929,7 +922,7 @@ class OVT_TEST_Logic_Territory_FillTiling : SCR_AutotestCaseBase
 	}
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_TerritoryGrid grid = OVT_TEST_Logic_TerritoryFixture.MakeGrid(6, 5, 100, MakeRaggedField());
@@ -945,7 +938,7 @@ class OVT_TEST_Logic_Territory_FillTiling : SCR_AutotestCaseBase
 
 		if (!OVT_TEST_Logic_TerritoryFixture.CoversExactlyOnce(grid, appearance, flat, failure))
 		{
-			SetResultFailure("Without the vertical merge the fill did not tile the drawn ground: %1. A square covered twice is the dark hairline and a square covered zero times is the pale seam", failure);
+			SetFailure("Without the vertical merge the fill did not tile the drawn ground: %1. A square covered twice is the dark hairline and a square covered zero times is the pale seam", failure);
 			return true;
 		}
 
@@ -954,13 +947,13 @@ class OVT_TEST_Logic_Territory_FillTiling : SCR_AutotestCaseBase
 
 		if (!OVT_TEST_Logic_TerritoryFixture.CoversExactlyOnce(grid, appearance, merged, failure))
 		{
-			SetResultFailure("WITH the vertical merge the fill no longer tiled the drawn ground: %1. The merge is a pure optimisation and may not move one square of geometry", failure);
+			SetFailure("WITH the vertical merge the fill no longer tiled the drawn ground: %1. The merge is a pure optimisation and may not move one square of geometry", failure);
 			return true;
 		}
 
 		if (runCount != flat.Count())
 		{
-			SetResultFailure("The merger reported %1 runs before merging but produced %2 unmerged rectangles; the number the solve log prints has to be the number that existed", runCount.ToString(), flat.Count().ToString());
+			SetFailure("The merger reported %1 runs before merging but produced %2 unmerged rectangles; the number the solve log prints has to be the number that existed", runCount.ToString(), flat.Count().ToString());
 			return true;
 		}
 
@@ -968,11 +961,10 @@ class OVT_TEST_Logic_Territory_FillTiling : SCR_AutotestCaseBase
 		// has to collapse - a merge that is always correct and never fires is dead code.
 		if (merged.Count() >= flat.Count())
 		{
-			SetResultFailure("The vertical merge produced %1 rectangles from %2 runs; two identical rows sit in this field and at least one pair must collapse", merged.Count().ToString(), flat.Count().ToString());
+			SetFailure("The vertical merge produced %1 rectangles from %2 runs; two identical rows sit in this field and at least one pair must collapse", merged.Count().ToString(), flat.Count().ToString());
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -998,7 +990,7 @@ class OVT_TEST_Logic_Territory_ContourTrace : SCR_AutotestCaseBase
 	static const float EXPECTED_AREA = 35000;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		array<int> owners = new array<int>();
@@ -1027,7 +1019,7 @@ class OVT_TEST_Logic_Territory_ContourTrace : SCR_AutotestCaseBase
 
 		if (contours.Count() != 1)
 		{
-			SetResultFailure("A single connected region produced %1 border loops instead of 1; a tracer that cannot close a loop leaves dangling chains that draw as nothing", contours.Count().ToString());
+			SetFailure("A single connected region produced %1 border loops instead of 1; a tracer that cannot close a loop leaves dangling chains that draw as nothing", contours.Count().ToString());
 			return true;
 		}
 
@@ -1035,13 +1027,13 @@ class OVT_TEST_Logic_Territory_ContourTrace : SCR_AutotestCaseBase
 
 		if (contour.m_aX.Count() != 8)
 		{
-			SetResultFailure("The border of a two-by-two block came out with %1 points instead of 8; it is traced between square CENTRES, so the four corners are cut", contour.m_aX.Count().ToString());
+			SetFailure("The border of a two-by-two block came out with %1 points instead of 8; it is traced between square CENTRES, so the four corners are cut", contour.m_aX.Count().ToString());
 			return true;
 		}
 
 		if (contour.m_aFrontier.Count() != contour.m_aX.Count())
 		{
-			SetResultFailure("A contour carried %1 points and %2 segment flags; the two must be parallel or the band is drawn against the wrong stretch of border", contour.m_aX.Count().ToString(), contour.m_aFrontier.Count().ToString());
+			SetFailure("A contour carried %1 points and %2 segment flags; the two must be parallel or the band is drawn against the wrong stretch of border", contour.m_aX.Count().ToString(), contour.m_aFrontier.Count().ToString());
 			return true;
 		}
 
@@ -1049,13 +1041,13 @@ class OVT_TEST_Logic_Territory_ContourTrace : SCR_AutotestCaseBase
 
 		if (area <= 0)
 		{
-			SetResultFailure("The border of a region came out with signed area %1; it must wind so the region is on the LEFT, or every neutral band offsets outward onto the neighbour's ground", area.ToString());
+			SetFailure("The border of a region came out with signed area %1; it must wind so the region is on the LEFT, or every neutral band offsets outward onto the neighbour's ground", area.ToString());
 			return true;
 		}
 
 		if (Math.AbsFloat(area - EXPECTED_AREA) > 100)
 		{
-			SetResultFailure("The traced border enclosed %1 square metres instead of %2; the loop is not following the edges between square centres", area.ToString(), EXPECTED_AREA.ToString());
+			SetFailure("The traced border enclosed %1 square metres instead of %2; the loop is not following the edges between square centres", area.ToString(), EXPECTED_AREA.ToString());
 			return true;
 		}
 
@@ -1075,11 +1067,10 @@ class OVT_TEST_Logic_Territory_ContourTrace : SCR_AutotestCaseBase
 			if (Math.Sqrt(dx * dx + dz * dz) <= 150)
 				continue;
 
-			SetResultFailure("Border segment %1 jumped %2 m, further than one square's diagonal; the loop is joining nodes that are not neighbours", i.ToString(), Math.Sqrt(dx * dx + dz * dz).ToString());
+			SetFailure("Border segment %1 jumped %2 m, further than one square's diagonal; the loop is joining nodes that are not neighbours", i.ToString(), Math.Sqrt(dx * dx + dz * dz).ToString());
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -1121,7 +1112,7 @@ class OVT_TEST_Logic_Territory_ContourTopology : SCR_AutotestCaseBase
 	static const float EXPECTED_BLOCK_AREA = 35000;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		// A five-by-five region with the middle square missing.
@@ -1149,7 +1140,7 @@ class OVT_TEST_Logic_Territory_ContourTopology : SCR_AutotestCaseBase
 
 		if (contours.Count() != 2)
 		{
-			SetResultFailure("A region with one hole in it produced %1 border loops instead of 2; a tracer that misses an inner boundary fills the lake in", contours.Count().ToString());
+			SetFailure("A region with one hole in it produced %1 border loops instead of 2; a tracer that misses an inner boundary fills the lake in", contours.Count().ToString());
 			return true;
 		}
 
@@ -1172,31 +1163,31 @@ class OVT_TEST_Logic_Territory_ContourTopology : SCR_AutotestCaseBase
 		// that away and an open chain along the other two sides comes back looking entirely plausible.
 		if (outerPoints != EXPECTED_OUTER_POINTS)
 		{
-			SetResultFailure("The outer boundary of a region filling its whole grid came out with %1 points instead of %2; the tracer has to read one square OUTSIDE the grid or a region touching the edge of the world never closes", outerPoints.ToString(), EXPECTED_OUTER_POINTS.ToString());
+			SetFailure("The outer boundary of a region filling its whole grid came out with %1 points instead of %2; the tracer has to read one square OUTSIDE the grid or a region touching the edge of the world never closes", outerPoints.ToString(), EXPECTED_OUTER_POINTS.ToString());
 			return true;
 		}
 
 		if (Math.AbsFloat(outer - EXPECTED_OUTER_AREA) > 200)
 		{
-			SetResultFailure("The outer boundary enclosed %1 square metres instead of %2; a partial loop still encloses an area and still leaves the hole looking perfect, so this number is what catches it", outer.ToString(), EXPECTED_OUTER_AREA.ToString());
+			SetFailure("The outer boundary enclosed %1 square metres instead of %2; a partial loop still encloses an area and still leaves the hole looking perfect, so this number is what catches it", outer.ToString(), EXPECTED_OUTER_AREA.ToString());
 			return true;
 		}
 
 		if (outer <= 0)
 		{
-			SetResultFailure("The OUTER boundary of a holed region wound the wrong way, signed area %1", outer.ToString());
+			SetFailure("The OUTER boundary of a holed region wound the wrong way, signed area %1", outer.ToString());
 			return true;
 		}
 
 		if (inner >= 0)
 		{
-			SetResultFailure("The boundary of a HOLE wound the same way as the outer boundary, signed area %1; a hole and an island have to be distinguishable or the fill and the border disagree about which is which", inner.ToString());
+			SetFailure("The boundary of a HOLE wound the same way as the outer boundary, signed area %1; a hole and an island have to be distinguishable or the fill and the border disagree about which is which", inner.ToString());
 			return true;
 		}
 
 		if (Math.AbsFloat(Math.AbsFloat(inner) - EXPECTED_HOLE_AREA) > 100)
 		{
-			SetResultFailure("The hole's boundary enclosed %1 square metres instead of %2", Math.AbsFloat(inner).ToString(), EXPECTED_HOLE_AREA.ToString());
+			SetFailure("The hole's boundary enclosed %1 square metres instead of %2", Math.AbsFloat(inner).ToString(), EXPECTED_HOLE_AREA.ToString());
 			return true;
 		}
 
@@ -1222,13 +1213,13 @@ class OVT_TEST_Logic_Territory_ContourTopology : SCR_AutotestCaseBase
 
 		if (contours.Count() != 2)
 		{
-			SetResultFailure("Two disjoint blocks of one faction produced %1 border loops instead of 2; joining them would draw a border across open sea", contours.Count().ToString());
+			SetFailure("Two disjoint blocks of one faction produced %1 border loops instead of 2; joining them would draw a border across open sea", contours.Count().ToString());
 			return true;
 		}
 
 		if (OVT_TEST_Logic_TerritoryFixture.SignedArea(contours[0]) <= 0 || OVT_TEST_Logic_TerritoryFixture.SignedArea(contours[1]) <= 0)
 		{
-			SetResultFailure("One of two disjoint regions was traced as though it were a hole; both are outer boundaries and both must wind the same way");
+			SetFailure("One of two disjoint regions was traced as though it were a hole; both are outer boundaries and both must wind the same way");
 			return true;
 		}
 
@@ -1236,11 +1227,10 @@ class OVT_TEST_Logic_Territory_ContourTopology : SCR_AutotestCaseBase
 		// same overscan question again; the other is interior and is the control.
 		if (Math.AbsFloat(OVT_TEST_Logic_TerritoryFixture.SignedArea(contours[0]) - EXPECTED_BLOCK_AREA) > 200 || Math.AbsFloat(OVT_TEST_Logic_TerritoryFixture.SignedArea(contours[1]) - EXPECTED_BLOCK_AREA) > 200)
 		{
-			SetResultFailure("Two identical blocks traced to %1 and %2 square metres instead of %3 each; the one in the corner of the grid needs the tracer to look outside it", OVT_TEST_Logic_TerritoryFixture.SignedArea(contours[0]).ToString(), OVT_TEST_Logic_TerritoryFixture.SignedArea(contours[1]).ToString(), EXPECTED_BLOCK_AREA.ToString());
+			SetFailure("Two identical blocks traced to %1 and %2 square metres instead of %3 each; the one in the corner of the grid needs the tracer to look outside it", OVT_TEST_Logic_TerritoryFixture.SignedArea(contours[0]).ToString(), OVT_TEST_Logic_TerritoryFixture.SignedArea(contours[1]).ToString(), EXPECTED_BLOCK_AREA.ToString());
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -1288,7 +1278,7 @@ class OVT_TEST_Logic_Territory_ChaikinSmoothing : SCR_AutotestCaseBase
 	}
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_TerritoryContour contour = MakeSquare();
@@ -1297,7 +1287,7 @@ class OVT_TEST_Logic_Territory_ChaikinSmoothing : SCR_AutotestCaseBase
 
 		if (contour.m_aX.Count() != 8)
 		{
-			SetResultFailure("One smoothing pass over a four-point border produced %1 points instead of 8; each pass replaces every point with two and that doubling is also what it costs to draw", contour.m_aX.Count().ToString());
+			SetFailure("One smoothing pass over a four-point border produced %1 points instead of 8; each pass replaces every point with two and that doubling is also what it costs to draw", contour.m_aX.Count().ToString());
 			return true;
 		}
 
@@ -1306,7 +1296,7 @@ class OVT_TEST_Logic_Territory_ChaikinSmoothing : SCR_AutotestCaseBase
 		// its corners entirely rather than round them.
 		if (!OVT_TEST_Logic_TerritoryFixture.Near(contour.m_aX[0], 100) || !OVT_TEST_Logic_TerritoryFixture.Near(contour.m_aX[1], 300))
 		{
-			SetResultFailure("Corner cutting put the first two points at %1 and %2 instead of 100 and 300; the quarter weights are what round a corner rather than collapse it", contour.m_aX[0].ToString(), contour.m_aX[1].ToString());
+			SetFailure("Corner cutting put the first two points at %1 and %2 instead of 100 and 300; the quarter weights are what round a corner rather than collapse it", contour.m_aX[0].ToString(), contour.m_aX[1].ToString());
 			return true;
 		}
 
@@ -1317,7 +1307,7 @@ class OVT_TEST_Logic_Territory_ChaikinSmoothing : SCR_AutotestCaseBase
 			if (contour.m_aX[i] >= -1 && contour.m_aX[i] <= 401 && contour.m_aZ[i] >= -1 && contour.m_aZ[i] <= 401)
 				continue;
 
-			SetResultFailure("Smoothing moved a border point to %1, %2, outside the outline it started from; corner cutting may only ever cut inward", contour.m_aX[i].ToString(), contour.m_aZ[i].ToString());
+			SetFailure("Smoothing moved a border point to %1, %2, outside the outline it started from; corner cutting may only ever cut inward", contour.m_aX[i].ToString(), contour.m_aZ[i].ToString());
 			return true;
 		}
 
@@ -1326,29 +1316,28 @@ class OVT_TEST_Logic_Territory_ChaikinSmoothing : SCR_AutotestCaseBase
 		// corner 2-3 (no), inside 3 (no), corner 3-0 (no).
 		if (!contour.m_aFrontier[0])
 		{
-			SetResultFailure("A new segment lying INSIDE an old frontier segment lost its classification; the band would break up along a border that has not changed");
+			SetFailure("A new segment lying INSIDE an old frontier segment lost its classification; the band would break up along a border that has not changed");
 			return true;
 		}
 
 		if (contour.m_aFrontier[1])
 		{
-			SetResultFailure("A new segment spanning the CORNER between a frontier and a non-frontier was classified as a frontier; a band would turn the corner from a real border onto a coastline");
+			SetFailure("A new segment spanning the CORNER between a frontier and a non-frontier was classified as a frontier; a band would turn the corner from a real border onto a coastline");
 			return true;
 		}
 
 		if (!contour.m_aFrontier[4])
 		{
-			SetResultFailure("The second frontier segment lost its classification after smoothing");
+			SetFailure("The second frontier segment lost its classification after smoothing");
 			return true;
 		}
 
 		if (contour.m_aFrontier[2] || contour.m_aFrontier[3] || contour.m_aFrontier[5] || contour.m_aFrontier[6] || contour.m_aFrontier[7])
 		{
-			SetResultFailure("Smoothing spread the frontier classification onto segments whose old segments were not frontiers; the neutral band would grow with every pass");
+			SetFailure("Smoothing spread the frontier classification onto segments whose old segments were not frontiers; the neutral band would grow with every pass");
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -1388,7 +1377,7 @@ class OVT_TEST_Logic_Territory_ChaikinPassesZero : SCR_AutotestCaseBase
 	}
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_TerritoryContour contour = MakeTriangle();
@@ -1397,13 +1386,13 @@ class OVT_TEST_Logic_Territory_ChaikinPassesZero : SCR_AutotestCaseBase
 
 		if (contour.m_aX.Count() != 3)
 		{
-			SetResultFailure("Zero smoothing passes changed a three-point border into %1 points; the raw staircase is a legitimate configuration and must be reachable", contour.m_aX.Count().ToString());
+			SetFailure("Zero smoothing passes changed a three-point border into %1 points; the raw staircase is a legitimate configuration and must be reachable", contour.m_aX.Count().ToString());
 			return true;
 		}
 
 		if (!OVT_TEST_Logic_TerritoryFixture.Near(contour.m_aX[1], 300) || !OVT_TEST_Logic_TerritoryFixture.Near(contour.m_aZ[2], 300))
 		{
-			SetResultFailure("Zero smoothing passes moved a border point to %1, %2; nothing may be smoothed when nothing was asked for", contour.m_aX[1].ToString(), contour.m_aZ[2].ToString());
+			SetFailure("Zero smoothing passes moved a border point to %1, %2; nothing may be smoothed when nothing was asked for", contour.m_aX[1].ToString(), contour.m_aZ[2].ToString());
 			return true;
 		}
 
@@ -1413,7 +1402,7 @@ class OVT_TEST_Logic_Territory_ChaikinPassesZero : SCR_AutotestCaseBase
 
 		if (contour.m_aX.Count() != 3)
 		{
-			SetResultFailure("A NEGATIVE smoothing pass count produced %1 points; it has to mean the same as zero", contour.m_aX.Count().ToString());
+			SetFailure("A NEGATIVE smoothing pass count produced %1 points; it has to mean the same as zero", contour.m_aX.Count().ToString());
 			return true;
 		}
 
@@ -1423,11 +1412,10 @@ class OVT_TEST_Logic_Territory_ChaikinPassesZero : SCR_AutotestCaseBase
 
 		if (contour.m_aX.Count() != 6)
 		{
-			SetResultFailure("One smoothing pass over a three-point border produced %1 points instead of 6; smoothing that never runs would satisfy every other assertion in this case", contour.m_aX.Count().ToString());
+			SetFailure("One smoothing pass over a three-point border produced %1 points instead of 6; smoothing that never runs would satisfy every other assertion in this case", contour.m_aX.Count().ToString());
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -1453,7 +1441,7 @@ class OVT_TEST_Logic_Territory_FrontierSide : SCR_AutotestCaseBase
 	static const int OTHER_FACTION = 1;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		array<ref OVT_TerritorySite> sites = new array<ref OVT_TerritorySite>();
@@ -1463,20 +1451,20 @@ class OVT_TEST_Logic_Territory_FrontierSide : SCR_AutotestCaseBase
 
 		if (OVT_TerritorySolver.IsFrontierSide(1, OWN_FACTION, sites))
 		{
-			SetResultFailure("Ground held by a SAME-FACTION neighbour was classified as a frontier; a neutral band would be drawn between two regions of one faction, which is exactly the defect this case exists for");
+			SetFailure("Ground held by a SAME-FACTION neighbour was classified as a frontier; a neutral band would be drawn between two regions of one faction, which is exactly the defect this case exists for");
 			return true;
 		}
 
 		if (!OVT_TerritorySolver.IsFrontierSide(2, OWN_FACTION, sites))
 		{
-			SetResultFailure("Ground held by a DIFFERENT faction was NOT classified as a frontier; real borders would lose their band and the overlay would stop showing where the war is");
+			SetFailure("Ground held by a DIFFERENT faction was NOT classified as a frontier; real borders would lose their band and the overlay would stop showing where the war is");
 			return true;
 		}
 
 		// WATER. Nobody owns the sea, so a shoreline is nobody's frontier.
 		if (OVT_TerritorySolver.IsFrontierSide(-1, OWN_FACTION, sites))
 		{
-			SetResultFailure("WATER on the far side of a border was classified as a frontier; every coastline on the map would be banded as though an enemy were standing in the sea");
+			SetFailure("WATER on the far side of a border was classified as a frontier; every coastline on the map would be banded as though an enemy were standing in the sea");
 			return true;
 		}
 
@@ -1484,7 +1472,7 @@ class OVT_TEST_Logic_Territory_FrontierSide : SCR_AutotestCaseBase
 		// an invented border.
 		if (OVT_TerritorySolver.IsFrontierSide(99, OWN_FACTION, sites))
 		{
-			SetResultFailure("An out-of-range owner index was classified as a frontier; unnameable ground must produce no band rather than an invented one");
+			SetFailure("An out-of-range owner index was classified as a frontier; unnameable ground must produce no band rather than an invented one");
 			return true;
 		}
 
@@ -1492,11 +1480,10 @@ class OVT_TEST_Logic_Territory_FrontierSide : SCR_AutotestCaseBase
 		// of whichever region happens to be traced first.
 		if (!OVT_TerritorySolver.IsFrontierSide(0, OTHER_FACTION, sites))
 		{
-			SetResultFailure("The same border was not a frontier from the other faction's side; a border would be banded on one side only");
+			SetFailure("The same border was not a frontier from the other faction's side; a border would be banded on one side only");
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -1577,7 +1564,7 @@ class OVT_TEST_Logic_Territory_ContourFrontierSides : SCR_AutotestCaseBase
 	}
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_TerritoryGrid grid = OVT_TEST_Logic_TerritoryFixture.MakeGrid(6, 4, 100, MakeFrontField());
@@ -1600,13 +1587,13 @@ class OVT_TEST_Logic_Territory_ContourFrontierSides : SCR_AutotestCaseBase
 
 		if (contours.Count() != 1)
 		{
-			SetResultFailure("The occupier's two-by-two block produced %1 border loops instead of 1", contours.Count().ToString());
+			SetFailure("The occupier's two-by-two block produced %1 border loops instead of 1", contours.Count().ToString());
 			return true;
 		}
 
 		if (contours[0].m_aFrontier.Count() != 8)
 		{
-			SetResultFailure("The border came out with %1 segments instead of 8", contours[0].m_aFrontier.Count().ToString());
+			SetFailure("The border came out with %1 segments instead of 8", contours[0].m_aFrontier.Count().ToString());
 			return true;
 		}
 
@@ -1614,7 +1601,7 @@ class OVT_TEST_Logic_Territory_ContourFrontierSides : SCR_AutotestCaseBase
 
 		if (banded != 1)
 		{
-			SetResultFailure("%1 of 8 border segments were banded instead of 1; three sides of this region are open sea and a coastline is nobody's frontier", banded.ToString());
+			SetFailure("%1 of 8 border segments were banded instead of 1; three sides of this region are open sea and a coastline is nobody's frontier", banded.ToString());
 			return true;
 		}
 
@@ -1634,7 +1621,7 @@ class OVT_TEST_Logic_Territory_ContourFrontierSides : SCR_AutotestCaseBase
 			if (OVT_TEST_Logic_TerritoryFixture.Near(contours[0].m_aX[i], 300) && OVT_TEST_Logic_TerritoryFixture.Near(contours[0].m_aX[j], 300))
 				break;
 
-			SetResultFailure("The banded segment ran from x=%1 to x=%2, not along the shared boundary at x=300; the band is on a coastline", contours[0].m_aX[i].ToString(), contours[0].m_aX[j].ToString());
+			SetFailure("The banded segment ran from x=%1 to x=%2, not along the shared boundary at x=300; the band is on a coastline", contours[0].m_aX[i].ToString(), contours[0].m_aX[j].ToString());
 			return true;
 		}
 
@@ -1653,11 +1640,10 @@ class OVT_TEST_Logic_Territory_ContourFrontierSides : SCR_AutotestCaseBase
 
 		if (CountFrontierSegments(contours) != 1)
 		{
-			SetResultFailure("The same frontier was banded %1 times from the OTHER faction's side instead of once; a border must read the same whichever region is traced", CountFrontierSegments(contours).ToString());
+			SetFailure("The same frontier was banded %1 times from the OTHER faction's side instead of once; a border must read the same whichever region is traced", CountFrontierSegments(contours).ToString());
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -1695,7 +1681,7 @@ class OVT_TEST_Logic_Territory_FrontierSpans : SCR_AutotestCaseBase
 	}
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		array<int> spanStart = new array<int>();
@@ -1706,7 +1692,7 @@ class OVT_TEST_Logic_Territory_FrontierSpans : SCR_AutotestCaseBase
 
 		if (spanStart.Count() != 2)
 		{
-			SetResultFailure("Two separated runs of frontier came out as %1 spans instead of 2", spanStart.Count().ToString());
+			SetFailure("Two separated runs of frontier came out as %1 spans instead of 2", spanStart.Count().ToString());
 			return true;
 		}
 
@@ -1718,19 +1704,19 @@ class OVT_TEST_Logic_Territory_FrontierSpans : SCR_AutotestCaseBase
 
 		if (spanStart.Count() != 1)
 		{
-			SetResultFailure("A frontier run that WRAPS past index zero came out as %1 spans instead of 1; the band would be drawn as two pieces with a notch where they meet", spanStart.Count().ToString());
+			SetFailure("A frontier run that WRAPS past index zero came out as %1 spans instead of 1; the band would be drawn as two pieces with a notch where they meet", spanStart.Count().ToString());
 			return true;
 		}
 
 		if (spanLength[0] != 3)
 		{
-			SetResultFailure("The wrapping run was %1 segments long instead of 3", spanLength[0].ToString());
+			SetFailure("The wrapping run was %1 segments long instead of 3", spanLength[0].ToString());
 			return true;
 		}
 
 		if (spanStart[0] != 3)
 		{
-			SetResultFailure("The wrapping run started at segment %1 instead of 3; it has to start where the run does, not where the array does", spanStart[0].ToString());
+			SetFailure("The wrapping run started at segment %1 instead of 3; it has to start where the run does, not where the array does", spanStart[0].ToString());
 			return true;
 		}
 
@@ -1740,7 +1726,7 @@ class OVT_TEST_Logic_Territory_FrontierSpans : SCR_AutotestCaseBase
 
 		if (spanStart.Count() != 1 || spanLength[0] != 3)
 		{
-			SetResultFailure("A border that is a frontier all the way round came out as %1 spans; it is one closed strip", spanStart.Count().ToString());
+			SetFailure("A border that is a frontier all the way round came out as %1 spans; it is one closed strip", spanStart.Count().ToString());
 			return true;
 		}
 
@@ -1749,11 +1735,10 @@ class OVT_TEST_Logic_Territory_FrontierSpans : SCR_AutotestCaseBase
 
 		if (!spanStart.IsEmpty())
 		{
-			SetResultFailure("A border with no frontier on it produced %1 spans; a coastline gets no band at all", spanStart.Count().ToString());
+			SetFailure("A border with no frontier on it produced %1 spans; a coastline gets no band at all", spanStart.Count().ToString());
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -1790,7 +1775,7 @@ class OVT_TEST_Logic_Territory_OccupierOnlyEmit : SCR_AutotestCaseBase
 	static const int FIRST_RESISTANCE_COLUMN = 10;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		array<ref OVT_TerritorySite> sites = new array<ref OVT_TerritorySite>();
@@ -1806,13 +1791,13 @@ class OVT_TEST_Logic_Territory_OccupierOnlyEmit : SCR_AutotestCaseBase
 		// intends to draw it.
 		if (grid.OwnerAt(FIRST_RESISTANCE_COLUMN, 0) != 1)
 		{
-			SetResultFailure("The square past the midpoint was owned by site %1 rather than the LIBERATED site; a site that is not drawn must still compete, or occupier colour floods the ground the player has liberated", grid.OwnerAt(FIRST_RESISTANCE_COLUMN, 0).ToString());
+			SetFailure("The square past the midpoint was owned by site %1 rather than the LIBERATED site; a site that is not drawn must still compete, or occupier colour floods the ground the player has liberated", grid.OwnerAt(FIRST_RESISTANCE_COLUMN, 0).ToString());
 			return true;
 		}
 
 		if (grid.OwnerAt(LAST_OCCUPIER_COLUMN, 0) != 0)
 		{
-			SetResultFailure("The square before the midpoint was owned by site %1 rather than the occupier; the boundary has moved", grid.OwnerAt(LAST_OCCUPIER_COLUMN, 0).ToString());
+			SetFailure("The square before the midpoint was owned by site %1 rather than the occupier; the boundary has moved", grid.OwnerAt(LAST_OCCUPIER_COLUMN, 0).ToString());
 			return true;
 		}
 
@@ -1827,7 +1812,7 @@ class OVT_TEST_Logic_Territory_OccupierOnlyEmit : SCR_AutotestCaseBase
 
 		if (rects.IsEmpty())
 		{
-			SetResultFailure("With one of two factions drawn the fill was empty; the occupier's own ground has to be drawn or the overlay says the campaign is over");
+			SetFailure("With one of two factions drawn the fill was empty; the occupier's own ground has to be drawn or the overlay says the campaign is over");
 			return true;
 		}
 
@@ -1836,7 +1821,7 @@ class OVT_TEST_Logic_Territory_OccupierOnlyEmit : SCR_AutotestCaseBase
 			if (rect.m_iCol1 <= LAST_OCCUPIER_COLUMN)
 				continue;
 
-			SetResultFailure("A drawn rectangle reached column %1, past the boundary at column %2; occupier colour is covering liberated ground", rect.m_iCol1.ToString(), LAST_OCCUPIER_COLUMN.ToString());
+			SetFailure("A drawn rectangle reached column %1, past the boundary at column %2; occupier colour is covering liberated ground", rect.m_iCol1.ToString(), LAST_OCCUPIER_COLUMN.ToString());
 			return true;
 		}
 
@@ -1850,20 +1835,20 @@ class OVT_TEST_Logic_Territory_OccupierOnlyEmit : SCR_AutotestCaseBase
 
 		if (!reachedBoundary)
 		{
-			SetResultFailure("No drawn rectangle reached the boundary column; the occupier's fill is stopping short of ground it holds");
+			SetFailure("No drawn rectangle reached the boundary column; the occupier's fill is stopping short of ground it holds");
 			return true;
 		}
 
 		// THE CLASSIFICATION. Occupier drawn, everybody else not.
 		if (!OVT_TerritorySolver.IsEmittedCell(OCCUPIER_FACTION, OCCUPIER_FACTION, true))
 		{
-			SetResultFailure("An OCCUPIER-held region was not drawn; with the filter on, occupier ground is the only thing the overlay shows and the map would be blank");
+			SetFailure("An OCCUPIER-held region was not drawn; with the filter on, occupier ground is the only thing the overlay shows and the map would be blank");
 			return true;
 		}
 
 		if (OVT_TerritorySolver.IsEmittedCell(RESISTANCE_FACTION, OCCUPIER_FACTION, true))
 		{
-			SetResultFailure("A LIBERATED region was drawn anyway; the overlay is supposed to answer how much the occupier still holds, and liberated ground reads as clean map");
+			SetFailure("A LIBERATED region was drawn anyway; the overlay is supposed to answer how much the occupier still holds, and liberated ground reads as clean map");
 			return true;
 		}
 
@@ -1871,7 +1856,7 @@ class OVT_TEST_Logic_Territory_OccupierOnlyEmit : SCR_AutotestCaseBase
 		// value away.
 		if (!OVT_TerritorySolver.IsEmittedCell(RESISTANCE_FACTION, OCCUPIER_FACTION, false))
 		{
-			SetResultFailure("With the occupier-only filter switched OFF, a liberated region was still hidden; the flag is the only thing that may suppress a region");
+			SetFailure("With the occupier-only filter switched OFF, a liberated region was still hidden; the flag is the only thing that may suppress a region");
 			return true;
 		}
 
@@ -1879,18 +1864,17 @@ class OVT_TEST_Logic_Territory_OccupierOnlyEmit : SCR_AutotestCaseBase
 		// this feature's least visible failure.
 		if (!OVT_TerritorySolver.IsEmittedCell(RESISTANCE_FACTION, -1, true))
 		{
-			SetResultFailure("With the occupying faction unresolvable, the overlay drew nothing; an unknown occupier must degrade to drawing every faction, not to an empty map");
+			SetFailure("With the occupying faction unresolvable, the overlay drew nothing; an unknown occupier must degrade to drawing every faction, not to an empty map");
 			return true;
 		}
 
 		// THE BAND FOLLOWS THE FILL. The occupier's boundary with liberated ground is a real frontier.
 		if (!OVT_TerritorySolver.IsFrontierSide(1, OCCUPIER_FACTION, sites))
 		{
-			SetResultFailure("The edge of occupier control against liberated ground was not classified as a frontier; the one boundary the player is watching would lose its band");
+			SetFailure("The edge of occupier control against liberated ground was not classified as a frontier; the one boundary the player is watching would lose its band");
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -1932,34 +1916,34 @@ class OVT_TEST_Logic_Territory_ContestedSupport : SCR_AutotestCaseBase
 	static const float NONSENSE_THRESHOLD = -2;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		// Occupier-held and the town has gone over: contested.
 		if (!OVT_TerritorySolver.IsContestedCell(OCCUPIER_FACTION, OCCUPIER_FACTION, 0.6, THRESHOLD))
 		{
-			SetResultFailure("An occupier-held town with 60%% support was not contested; the mark exists to show where the occupier's grip is going");
+			SetFailure("An occupier-held town with 60%% support was not contested; the mark exists to show where the occupier's grip is going");
 			return true;
 		}
 
 		// Occupier-held and the town is still with them: not contested.
 		if (OVT_TerritorySolver.IsContestedCell(OCCUPIER_FACTION, OCCUPIER_FACTION, 0.4, THRESHOLD))
 		{
-			SetResultFailure("An occupier-held town with 40%% support was marked contested; below the threshold the region is simply held");
+			SetFailure("An occupier-held town with 40%% support was marked contested; below the threshold the region is simply held");
 			return true;
 		}
 
 		// EXACTLY ON THE THRESHOLD is contested. The comparison is inclusive, so half a town counts.
 		if (!OVT_TerritorySolver.IsContestedCell(OCCUPIER_FACTION, OCCUPIER_FACTION, THRESHOLD, THRESHOLD))
 		{
-			SetResultFailure("A town sitting EXACTLY on the support threshold was not contested; the threshold is inclusive and this is the only assertion that says which side it falls on");
+			SetFailure("A town sitting EXACTLY on the support threshold was not contested; the threshold is inclusive and this is the only assertion that says which side it falls on");
 			return true;
 		}
 
 		// A LIBERATED town is not contested however much support it has - it is not even drawn.
 		if (OVT_TerritorySolver.IsContestedCell(RESISTANCE_FACTION, OCCUPIER_FACTION, 0.9, THRESHOLD))
 		{
-			SetResultFailure("A LIBERATED town was marked contested; contested is a statement about ground the OCCUPIER still holds, and a liberated region draws nothing at all");
+			SetFailure("A LIBERATED town was marked contested; contested is a statement about ground the OCCUPIER still holds, and a liberated region draws nothing at all");
 			return true;
 		}
 
@@ -1968,24 +1952,23 @@ class OVT_TEST_Logic_Territory_ContestedSupport : SCR_AutotestCaseBase
 		// that into "fully supported".
 		if (OVT_TerritorySolver.IsContestedCell(OCCUPIER_FACTION, OCCUPIER_FACTION, OVT_TerritorySite.SUPPORT_NONE, NONSENSE_THRESHOLD))
 		{
-			SetResultFailure("A military site with NO support figure was marked contested; SUPPORT_NONE is a state, not a value, and comparing it as data lights up every base on the map the moment the threshold is mistyped");
+			SetFailure("A military site with NO support figure was marked contested; SUPPORT_NONE is a state, not a value, and comparing it as data lights up every base on the map the moment the threshold is mistyped");
 			return true;
 		}
 
 		if (!OVT_TerritorySolver.IsContestedCell(OCCUPIER_FACTION, OCCUPIER_FACTION, 0, 0))
 		{
-			SetResultFailure("A town with zero support was not contested at a zero threshold; the sentinel rejection must not have swallowed real data alongside it");
+			SetFailure("A town with zero support was not contested at a zero threshold; the sentinel rejection must not have swallowed real data alongside it");
 			return true;
 		}
 
 		// An unknown occupier marks nothing, and must not match a cell whose faction is also unresolved.
 		if (OVT_TerritorySolver.IsContestedCell(-1, -1, 1.0, THRESHOLD))
 		{
-			SetResultFailure("With the occupying faction unresolvable, a region with unknown control was marked contested; two unknowns comparing equal is not a match");
+			SetFailure("With the occupying faction unresolvable, a region with unknown control was marked contested; two unknowns comparing equal is not a match");
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -2019,7 +2002,7 @@ class OVT_TEST_Logic_Territory_ScanlineSpans : SCR_AutotestCaseBase
 	static const float ASSERT_ROW = 100;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		array<ref OVT_TerritoryContour> contours = new array<ref OVT_TerritoryContour>();
@@ -2034,13 +2017,13 @@ class OVT_TEST_Logic_Territory_ScanlineSpans : SCR_AutotestCaseBase
 
 		if (row.Count() != 1)
 		{
-			SetResultFailure("A scan row across a simple convex region produced %1 spans instead of 1; two crossings pair into exactly one inside", row.Count().ToString());
+			SetFailure("A scan row across a simple convex region produced %1 spans instead of 1; two crossings pair into exactly one inside", row.Count().ToString());
 			return true;
 		}
 
 		if (!OVT_TEST_Logic_TerritoryFixture.Near(row[0].m_fTopLeftX, 0) || !OVT_TEST_Logic_TerritoryFixture.Near(row[0].m_fTopRightX, 400))
 		{
-			SetResultFailure("The span ran from %1 to %2 instead of 0 to 400; it is not taking its edges from where the contour actually crosses the row", row[0].m_fTopLeftX.ToString(), row[0].m_fTopRightX.ToString());
+			SetFailure("The span ran from %1 to %2 instead of 0 to 400; it is not taking its edges from where the contour actually crosses the row", row[0].m_fTopLeftX.ToString(), row[0].m_fTopRightX.ToString());
 			return true;
 		}
 
@@ -2058,19 +2041,19 @@ class OVT_TEST_Logic_Territory_ScanlineSpans : SCR_AutotestCaseBase
 
 		if (row.Count() != 2)
 		{
-			SetResultFailure("A scan row across a region with a HOLE produced %1 spans instead of 2; four crossings pair into an inside, a hole and an inside, and a decomposition that fills the middle one paints over ground the player has liberated", row.Count().ToString());
+			SetFailure("A scan row across a region with a HOLE produced %1 spans instead of 2; four crossings pair into an inside, a hole and an inside, and a decomposition that fills the middle one paints over ground the player has liberated", row.Count().ToString());
 			return true;
 		}
 
 		if (!OVT_TEST_Logic_TerritoryFixture.Near(row[0].m_fTopRightX, 150) || !OVT_TEST_Logic_TerritoryFixture.Near(row[1].m_fTopLeftX, 250))
 		{
-			SetResultFailure("The two spans either side of the hole ended at %1 and began at %2 instead of 150 and 250; the hole is not where the contour puts it", row[0].m_fTopRightX.ToString(), row[1].m_fTopLeftX.ToString());
+			SetFailure("The two spans either side of the hole ended at %1 and began at %2 instead of 150 and 250; the hole is not where the contour puts it", row[0].m_fTopRightX.ToString(), row[1].m_fTopLeftX.ToString());
 			return true;
 		}
 
 		if (row[0].m_fTopRightX > row[1].m_fTopLeftX)
 		{
-			SetResultFailure("The two spans of one row overlapped; even-odd pairing produces disjoint insides and two fills compositing over each other is the dark hairline this representation exists to make impossible");
+			SetFailure("The two spans of one row overlapped; even-odd pairing produces disjoint insides and two fills compositing over each other is the dark hairline this representation exists to make impossible");
 			return true;
 		}
 
@@ -2087,13 +2070,13 @@ class OVT_TEST_Logic_Territory_ScanlineSpans : SCR_AutotestCaseBase
 
 		if (row.Count() != 2)
 		{
-			SetResultFailure("A scan row across TWO DISJOINT regions produced %1 spans instead of 2; joining them would fill the strait between two islands", row.Count().ToString());
+			SetFailure("A scan row across TWO DISJOINT regions produced %1 spans instead of 2; joining them would fill the strait between two islands", row.Count().ToString());
 			return true;
 		}
 
 		if (!OVT_TEST_Logic_TerritoryFixture.Near(row[0].m_fTopRightX, 100) || !OVT_TEST_Logic_TerritoryFixture.Near(row[1].m_fTopLeftX, 300))
 		{
-			SetResultFailure("The two disjoint spans ended at %1 and began at %2 instead of 100 and 300", row[0].m_fTopRightX.ToString(), row[1].m_fTopLeftX.ToString());
+			SetFailure("The two disjoint spans ended at %1 and began at %2 instead of 100 and 300", row[0].m_fTopRightX.ToString(), row[1].m_fTopLeftX.ToString());
 			return true;
 		}
 
@@ -2111,17 +2094,16 @@ class OVT_TEST_Logic_Territory_ScanlineSpans : SCR_AutotestCaseBase
 
 		if (row.Count() != 1)
 		{
-			SetResultFailure("Cutting appearance 0 produced %1 spans instead of 1; a contour belonging to another appearance was treated as part of this region, so one wash would be drawn over ground that belongs to the other", row.Count().ToString());
+			SetFailure("Cutting appearance 0 produced %1 spans instead of 1; a contour belonging to another appearance was treated as part of this region, so one wash would be drawn over ground that belongs to the other", row.Count().ToString());
 			return true;
 		}
 
 		if (row[0].m_iKey != 0)
 		{
-			SetResultFailure("A trapezoid came out carrying appearance key %1 instead of 0; the fill and the border it was cut from have to agree about which table they index", row[0].m_iKey.ToString());
+			SetFailure("A trapezoid came out carrying appearance key %1 instead of 0; the fill and the border it was cut from have to agree about which table they index", row[0].m_iKey.ToString());
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -2172,7 +2154,7 @@ class OVT_TEST_Logic_Territory_ScanlineTrapezoids : SCR_AutotestCaseBase
 	}
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		array<ref OVT_TerritoryContour> contours = new array<ref OVT_TerritoryContour>();
@@ -2186,7 +2168,7 @@ class OVT_TEST_Logic_Territory_ScanlineTrapezoids : SCR_AutotestCaseBase
 
 		if (row.Count() != 1)
 		{
-			SetResultFailure("The row from z=100 to z=200 produced %1 spans instead of 1", row.Count().ToString());
+			SetFailure("The row from z=100 to z=200 produced %1 spans instead of 1", row.Count().ToString());
 			return true;
 		}
 
@@ -2197,19 +2179,19 @@ class OVT_TEST_Logic_Territory_ScanlineTrapezoids : SCR_AutotestCaseBase
 		// which is a wider rectangle.
 		if (!OVT_TEST_Logic_TerritoryFixture.Near(middle.m_fTopRightX, 125))
 		{
-			SetResultFailure("The top of the row met the slanted border at x=%1 instead of 125; the trapezoid is not taking its corner from the contour", middle.m_fTopRightX.ToString());
+			SetFailure("The top of the row met the slanted border at x=%1 instead of 125; the trapezoid is not taking its corner from the contour", middle.m_fTopRightX.ToString());
 			return true;
 		}
 
 		if (!OVT_TEST_Logic_TerritoryFixture.Near(middle.m_fBottomRightX, 150))
 		{
-			SetResultFailure("The bottom of the row met the slanted border at x=%1 instead of 150; the trapezoid is not taking its corner from the contour", middle.m_fBottomRightX.ToString());
+			SetFailure("The bottom of the row met the slanted border at x=%1 instead of 150; the trapezoid is not taking its corner from the contour", middle.m_fBottomRightX.ToString());
 			return true;
 		}
 
 		if (OVT_TEST_Logic_TerritoryFixture.Near(middle.m_fTopRightX, middle.m_fBottomRightX))
 		{
-			SetResultFailure("The row's two right corners came out at the same x, %1; a slanted border filled with a straight-sided quad is a rectangle, and a stack of rectangles is the staircase this replaced", middle.m_fTopRightX.ToString());
+			SetFailure("The row's two right corners came out at the same x, %1; a slanted border filled with a straight-sided quad is a rectangle, and a stack of rectangles is the staircase this replaced", middle.m_fTopRightX.ToString());
 			return true;
 		}
 
@@ -2217,7 +2199,7 @@ class OVT_TEST_Logic_Territory_ScanlineTrapezoids : SCR_AutotestCaseBase
 		// something the decomposition adds.
 		if (!OVT_TEST_Logic_TerritoryFixture.Near(middle.m_fTopLeftX, 0) || !OVT_TEST_Logic_TerritoryFixture.Near(middle.m_fBottomLeftX, 0))
 		{
-			SetResultFailure("The straight left edge came out at %1 and %2 instead of 0 at both; only the contour may decide where an edge goes", middle.m_fTopLeftX.ToString(), middle.m_fBottomLeftX.ToString());
+			SetFailure("The straight left edge came out at %1 and %2 instead of 0 at both; only the contour may decide where an edge goes", middle.m_fTopLeftX.ToString(), middle.m_fBottomLeftX.ToString());
 			return true;
 		}
 
@@ -2228,13 +2210,13 @@ class OVT_TEST_Logic_Territory_ScanlineTrapezoids : SCR_AutotestCaseBase
 
 		if (above.Count() != 1)
 		{
-			SetResultFailure("The row from z=0 to z=100 produced %1 spans instead of 1", above.Count().ToString());
+			SetFailure("The row from z=0 to z=100 produced %1 spans instead of 1", above.Count().ToString());
 			return true;
 		}
 
 		if (Math.AbsFloat(above[0].m_fBottomRightX - middle.m_fTopRightX) > 0.001 || Math.AbsFloat(above[0].m_fBottomLeftX - middle.m_fTopLeftX) > 0.001)
 		{
-			SetResultFailure("The bottom of one row sat at %1 while the top of the next sat at %2; a row seam has to be the SAME crossing carried forward, not a second computation of it", above[0].m_fBottomRightX.ToString(), middle.m_fTopRightX.ToString());
+			SetFailure("The bottom of one row sat at %1 while the top of the next sat at %2; a row seam has to be the SAME crossing carried forward, not a second computation of it", above[0].m_fBottomRightX.ToString(), middle.m_fTopRightX.ToString());
 			return true;
 		}
 
@@ -2244,11 +2226,10 @@ class OVT_TEST_Logic_Territory_ScanlineTrapezoids : SCR_AutotestCaseBase
 
 		if (Math.AbsFloat(area - EXPECTED_AREA) > AREA_TOLERANCE)
 		{
-			SetResultFailure("The fill covered %1 square metres against the shape's own %2; a fill that stepped each row to one of its edges would come out at 55000, which is what this number exists to catch", area.ToString(), EXPECTED_AREA.ToString());
+			SetFailure("The fill covered %1 square metres against the shape's own %2; a fill that stepped each row to one of its edges would come out at 55000, which is what this number exists to catch", area.ToString(), EXPECTED_AREA.ToString());
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -2272,7 +2253,7 @@ class OVT_TEST_Logic_Territory_ScanlineTrapezoids : SCR_AutotestCaseBase
 class OVT_TEST_Logic_Territory_GridOriginSnap : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		array<ref OVT_TerritorySite> sites = new array<ref OVT_TerritorySite>();
@@ -2287,13 +2268,13 @@ class OVT_TEST_Logic_Territory_GridOriginSnap : SCR_AutotestCaseBase
 
 		if (!OVT_TEST_Logic_TerritoryFixture.IsMultipleOf(grid.m_fOriginX, grid.m_fCellSize) || !OVT_TEST_Logic_TerritoryFixture.IsMultipleOf(grid.m_fOriginZ, grid.m_fCellSize))
 		{
-			SetResultFailure("The grid started at %1, %2 with %3 m squares; neither is a whole multiple of the square size, so every square edge on the map sits beside the game's own grid lines instead of on them", grid.m_fOriginX.ToString(), grid.m_fOriginZ.ToString(), grid.m_fCellSize.ToString());
+			SetFailure("The grid started at %1, %2 with %3 m squares; neither is a whole multiple of the square size, so every square edge on the map sits beside the game's own grid lines instead of on them", grid.m_fOriginX.ToString(), grid.m_fOriginZ.ToString(), grid.m_fCellSize.ToString());
 			return true;
 		}
 
 		if (!OVT_TEST_Logic_TerritoryFixture.Near(grid.m_fOriginX, -1300) || !OVT_TEST_Logic_TerritoryFixture.Near(grid.m_fOriginZ, -600))
 		{
-			SetResultFailure("The grid started at %1, %2 instead of -1300, -600; the snap has to round DOWN, or the strip of world between the bound box and the first square is never classified", grid.m_fOriginX.ToString(), grid.m_fOriginZ.ToString());
+			SetFailure("The grid started at %1, %2 instead of -1300, -600; the snap has to round DOWN, or the strip of world between the bound box and the first square is never classified", grid.m_fOriginX.ToString(), grid.m_fOriginZ.ToString());
 			return true;
 		}
 
@@ -2301,13 +2282,13 @@ class OVT_TEST_Logic_Territory_GridOriginSnap : SCR_AutotestCaseBase
 		// leave the far edge of the world unclassified, which reads as a coastline that is not there.
 		if (grid.EdgeX(0) > -1234 || grid.EdgeZ(0) > -567)
 		{
-			SetResultFailure("The first square started at %1, %2, inside the requested extent; snapping may only ever move the origin outward", grid.EdgeX(0).ToString(), grid.EdgeZ(0).ToString());
+			SetFailure("The first square started at %1, %2, inside the requested extent; snapping may only ever move the origin outward", grid.EdgeX(0).ToString(), grid.EdgeZ(0).ToString());
 			return true;
 		}
 
 		if (grid.EdgeX(grid.m_iCols) < 1000 || grid.EdgeZ(grid.m_iRows) < 1000)
 		{
-			SetResultFailure("The grid ended at %1, %2, short of the requested 1000, 1000; snapping the origin down must not cost the far edge of the world", grid.EdgeX(grid.m_iCols).ToString(), grid.EdgeZ(grid.m_iRows).ToString());
+			SetFailure("The grid ended at %1, %2, short of the requested 1000, 1000; snapping the origin down must not cost the far edge of the world", grid.EdgeX(grid.m_iCols).ToString(), grid.EdgeZ(grid.m_iRows).ToString());
 			return true;
 		}
 
@@ -2319,7 +2300,7 @@ class OVT_TEST_Logic_Territory_GridOriginSnap : SCR_AutotestCaseBase
 
 		if (!OVT_TEST_Logic_TerritoryFixture.Near(positive.m_fOriginX, 100) || !OVT_TEST_Logic_TerritoryFixture.Near(positive.m_fOriginZ, 200))
 		{
-			SetResultFailure("A bound box starting at 150, 250 produced a grid origin of %1, %2 instead of 100, 200", positive.m_fOriginX.ToString(), positive.m_fOriginZ.ToString());
+			SetFailure("A bound box starting at 150, 250 produced a grid origin of %1, %2 instead of 100, 200", positive.m_fOriginX.ToString(), positive.m_fOriginZ.ToString());
 			return true;
 		}
 
@@ -2333,17 +2314,16 @@ class OVT_TEST_Logic_Territory_GridOriginSnap : SCR_AutotestCaseBase
 
 		if (coarse.m_fCellSize <= 1)
 		{
-			SetResultFailure("The square-count ceiling did not grow a 1 m square size over a 600 m world; this half of the case has nothing to assert against", coarse.m_fCellSize.ToString());
+			SetFailure("The square-count ceiling did not grow a 1 m square size over a 600 m world; this half of the case has nothing to assert against", coarse.m_fCellSize.ToString());
 			return true;
 		}
 
 		if (!OVT_TEST_Logic_TerritoryFixture.IsMultipleOf(coarse.m_fOriginX, coarse.m_fCellSize))
 		{
-			SetResultFailure("After the ceiling grew the squares to %1 m the grid still started at %2, which is not a multiple of them; the origin has to be snapped to the size the grid was BUILT at, not the one that was configured", coarse.m_fCellSize.ToString(), coarse.m_fOriginX.ToString());
+			SetFailure("After the ceiling grew the squares to %1 m the grid still started at %2, which is not a multiple of them; the origin has to be snapped to the size the grid was BUILT at, not the one that was configured", coarse.m_fCellSize.ToString(), coarse.m_fOriginX.ToString());
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }

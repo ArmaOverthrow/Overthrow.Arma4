@@ -3,7 +3,7 @@
 class OVT_OpenInventoryCommand : SCR_BaseGroupCommand
 {
     //------------------------------------------------------------------------------------------------
-    override bool Execute(IEntity cursorTarget, IEntity target, vector targetPosition, int playerID, bool isClient)
+    override bool Execute(IEntity cursorTarget, IEntity groupEnt, vector targetPosition, int playerID, bool isClient)
     {
 		if (isClient)
 		{
@@ -11,7 +11,7 @@ class OVT_OpenInventoryCommand : SCR_BaseGroupCommand
 			return true;
 		}	
 		
-        if (!target && !cursorTarget)
+        if (!groupEnt && !cursorTarget)
             return false;
         
         SCR_PlayerController playerController = SCR_PlayerController.Cast(GetGame().GetPlayerManager().GetPlayerController(playerID));

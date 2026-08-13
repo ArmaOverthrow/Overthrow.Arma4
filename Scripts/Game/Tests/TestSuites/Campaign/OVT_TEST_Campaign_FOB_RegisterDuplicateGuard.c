@@ -29,13 +29,13 @@ class OVT_TEST_Campaign_FOB_RegisterDuplicateGuard : SCR_AutotestCaseBase
 	static const vector TEST_POS = "4000 0 4000";
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_ResistanceFactionManager resistance = OVT_Global.GetResistanceFaction();
 		if (!resistance)
 		{
-			SetResultFailure("OVT_Global.GetResistanceFaction() is null in a campaign-tier case");
+			SetFailure("OVT_Global.GetResistanceFaction() is null in a campaign-tier case");
 			return true;
 		}
 
@@ -44,7 +44,7 @@ class OVT_TEST_Campaign_FOB_RegisterDuplicateGuard : SCR_AutotestCaseBase
 		if (!markerA || !markerB)
 		{
 			Cleanup(resistance, markerA, markerB);
-			SetResultFailure("Could not spawn the marker entities the case registers as FOBs");
+			SetFailure("Could not spawn the marker entities the case registers as FOBs");
 			return true;
 		}
 
@@ -61,21 +61,20 @@ class OVT_TEST_Campaign_FOB_RegisterDuplicateGuard : SCR_AutotestCaseBase
 
 		if (afterFirst != baseline + 1)
 		{
-			SetResultFailure("First registration at an empty spot inserted %1 record(s), expected exactly 1",
+			SetFailure("First registration at an empty spot inserted %1 record(s), expected exactly 1",
 				(afterFirst - baseline).ToString());
 			return true;
 		}
 
 		if (afterSecond != afterFirst)
 		{
-			SetResultFailure("Second registration 5 m away minted a duplicate record (%1 new records for one spot)",
+			SetFailure("Second registration 5 m away minted a duplicate record (%1 new records for one spot)",
 				(afterSecond - baseline).ToString());
 			return true;
 		}
 
 		PrintFormat("RegisterFOB duplicate guard held: 2 registrations 5 m apart produced 1 record (baseline %1)",
 			baseline.ToString());
-		SetResultSuccess();
 		return true;
 	}
 

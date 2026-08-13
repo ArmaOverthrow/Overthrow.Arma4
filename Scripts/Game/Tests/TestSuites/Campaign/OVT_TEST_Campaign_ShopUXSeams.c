@@ -46,20 +46,20 @@ class OVT_TEST_Campaign_ShopUXSeams : SCR_AutotestCaseBase
 	protected int m_iPolls;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
 		if (!economy)
 		{
-			SetResultFailure("OVT_Global.GetEconomy() is null");
+			SetFailure("OVT_Global.GetEconomy() is null");
 			return true;
 		}
 
 		array<RplId> shops = economy.GetAllShops();
 		if (!shops || shops.Count() < 1)
 		{
-			SetResultFailure("No shops are registered with the economy manager, so none of these seams can be exercised");
+			SetFailure("No shops are registered with the economy manager, so none of these seams can be exercised");
 			return true;
 		}
 
@@ -69,7 +69,7 @@ class OVT_TEST_Campaign_ShopUXSeams : SCR_AutotestCaseBase
 			m_iPolls += 1;
 			if (m_iPolls > MAX_POLLS)
 			{
-				SetResultFailure("No registered shop held any stock within %1 polls, so the category and sold-at caches have nothing real to answer about (%2 shop id(s) registered)",
+				SetFailure("No registered shop held any stock within %1 polls, so the category and sold-at caches have nothing real to answer about (%2 shop id(s) registered)",
 					m_iPolls.ToString(), shops.Count().ToString());
 				return true;
 			}
@@ -80,25 +80,24 @@ class OVT_TEST_Campaign_ShopUXSeams : SCR_AutotestCaseBase
 		string problem = CheckNearestShop(economy, stockedShop);
 		if (problem != "")
 		{
-			SetResultFailure(problem);
+			SetFailure(problem);
 			return true;
 		}
 
 		problem = CheckCategoryCache(economy, stockedShop);
 		if (problem != "")
 		{
-			SetResultFailure(problem);
+			SetFailure(problem);
 			return true;
 		}
 
 		problem = CheckSoldAtShopAgreement(economy, shops);
 		if (problem != "")
 		{
-			SetResultFailure(problem);
+			SetFailure(problem);
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 

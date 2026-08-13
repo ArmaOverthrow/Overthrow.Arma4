@@ -461,7 +461,7 @@ class OVT_TEST_PersistenceRoundTrip_Capability_SaveGameProducesASave : SCR_Autot
 	protected int m_iSaveBaseline;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
@@ -469,7 +469,7 @@ class OVT_TEST_PersistenceRoundTrip_Capability_SaveGameProducesASave : SCR_Autot
 			string fresh = OVT_TEST_PersistenceRoundTripGate.RequireFreshSession();
 			if (fresh != "")
 			{
-				SetResultFailure(fresh);
+				SetFailure(fresh);
 				return true;
 			}
 
@@ -478,7 +478,7 @@ class OVT_TEST_PersistenceRoundTrip_Capability_SaveGameProducesASave : SCR_Autot
 			string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
 			if (trigger != "")
 			{
-				SetResultFailure(trigger);
+				SetFailure(trigger);
 				return true;
 			}
 
@@ -490,7 +490,7 @@ class OVT_TEST_PersistenceRoundTrip_Capability_SaveGameProducesASave : SCR_Autot
 		int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
 		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
 		{
-			SetResultFailure(saveDiagnostic);
+			SetFailure(saveDiagnostic);
 			return true;
 		}
 
@@ -499,7 +499,7 @@ class OVT_TEST_PersistenceRoundTrip_Capability_SaveGameProducesASave : SCR_Autot
 			m_iSavePolls += 1;
 			if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
 			{
-				SetResultFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+				SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
 				return true;
 			}
 
@@ -507,7 +507,6 @@ class OVT_TEST_PersistenceRoundTrip_Capability_SaveGameProducesASave : SCR_Autot
 		}
 
 		PrintFormat("Persistence capability present: SaveGame() produced a save after %1 poll(s)", m_iSavePolls.ToString());
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -535,7 +534,7 @@ class OVT_TEST_PersistenceRoundTrip_PlayerMoney_SurvivesSaveAndReload : SCR_Auto
 	protected int m_iPlayerId;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
@@ -543,7 +542,7 @@ class OVT_TEST_PersistenceRoundTrip_PlayerMoney_SurvivesSaveAndReload : SCR_Auto
 			OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
 			if (!economy)
 			{
-				SetResultFailure("OVT_Global.GetEconomy() is null");
+				SetFailure("OVT_Global.GetEconomy() is null");
 				return true;
 			}
 
@@ -551,14 +550,14 @@ class OVT_TEST_PersistenceRoundTrip_PlayerMoney_SurvivesSaveAndReload : SCR_Auto
 			m_sPersId = OVT_TEST_PersistenceSubject.ResolveLocalPersistentId(diagnostic);
 			if (m_sPersId == "")
 			{
-				SetResultFailure("Cannot resolve the persistent player ID: %1", diagnostic);
+				SetFailure("Cannot resolve the persistent player ID: %1", diagnostic);
 				return true;
 			}
 
 			m_iPlayerId = OVT_TEST_PersistenceSubject.ResolveLocalPlayerId(diagnostic);
 			if (m_iPlayerId < 1)
 			{
-				SetResultFailure("Cannot resolve the runtime player ID: %1", diagnostic);
+				SetFailure("Cannot resolve the runtime player ID: %1", diagnostic);
 				return true;
 			}
 
@@ -571,7 +570,7 @@ class OVT_TEST_PersistenceRoundTrip_PlayerMoney_SurvivesSaveAndReload : SCR_Auto
 			string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
 			if (trigger != "")
 			{
-				SetResultFailure(trigger);
+				SetFailure(trigger);
 				return true;
 			}
 
@@ -585,7 +584,7 @@ class OVT_TEST_PersistenceRoundTrip_PlayerMoney_SurvivesSaveAndReload : SCR_Auto
 			int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
 			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
 			{
-				SetResultFailure(saveDiagnostic);
+				SetFailure(saveDiagnostic);
 				return true;
 			}
 
@@ -594,7 +593,7 @@ class OVT_TEST_PersistenceRoundTrip_PlayerMoney_SurvivesSaveAndReload : SCR_Auto
 				m_iSavePolls += 1;
 				if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
 				{
-					SetResultFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+					SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
 					return true;
 				}
 
@@ -610,7 +609,7 @@ class OVT_TEST_PersistenceRoundTrip_PlayerMoney_SurvivesSaveAndReload : SCR_Auto
 			OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
 			if (!economy)
 			{
-				SetResultFailure("OVT_Global.GetEconomy() is null before the reload");
+				SetFailure("OVT_Global.GetEconomy() is null before the reload");
 				return true;
 			}
 
@@ -620,7 +619,7 @@ class OVT_TEST_PersistenceRoundTrip_PlayerMoney_SurvivesSaveAndReload : SCR_Auto
 			string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
 			if (reload != "")
 			{
-				SetResultFailure(reload);
+				SetFailure(reload);
 				return true;
 			}
 
@@ -635,7 +634,7 @@ class OVT_TEST_PersistenceRoundTrip_PlayerMoney_SurvivesSaveAndReload : SCR_Auto
 				m_iReloadPolls += 1;
 				if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
 				{
-					SetResultFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+					SetFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
 					return true;
 				}
 
@@ -649,26 +648,25 @@ class OVT_TEST_PersistenceRoundTrip_PlayerMoney_SurvivesSaveAndReload : SCR_Auto
 		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
 		if (restored != "")
 		{
-			SetResultFailure(restored);
+			SetFailure(restored);
 			return true;
 		}
 
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
 		if (!economy)
 		{
-			SetResultFailure("OVT_Global.GetEconomy() is null after the reload");
+			SetFailure("OVT_Global.GetEconomy() is null after the reload");
 			return true;
 		}
 
 		int money = economy.GetPlayerMoney(m_sPersId);
 		if (money != SAVED_MONEY)
 		{
-			SetResultFailure("Money did not survive the round trip: saved %1, read back %2 (dirty value was %3)",
+			SetFailure("Money did not survive the round trip: saved %1, read back %2 (dirty value was %3)",
 				SAVED_MONEY.ToString(), money.ToString(), DIRTY_MONEY.ToString());
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -695,7 +693,7 @@ class OVT_TEST_PersistenceRoundTrip_PlayerSkills_SurvivesSaveAndReload : SCR_Aut
 	protected int m_iSavedSkillLevel;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
@@ -704,7 +702,7 @@ class OVT_TEST_PersistenceRoundTrip_PlayerSkills_SurvivesSaveAndReload : SCR_Aut
 			OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
 			if (!skills || !players)
 			{
-				SetResultFailure("The skill manager or the player manager is null");
+				SetFailure("The skill manager or the player manager is null");
 				return true;
 			}
 
@@ -712,21 +710,21 @@ class OVT_TEST_PersistenceRoundTrip_PlayerSkills_SurvivesSaveAndReload : SCR_Aut
 			m_sPersId = OVT_TEST_PersistenceSubject.ResolveLocalPersistentId(diagnostic);
 			if (m_sPersId == "")
 			{
-				SetResultFailure("Cannot resolve the persistent player ID: %1", diagnostic);
+				SetFailure("Cannot resolve the persistent player ID: %1", diagnostic);
 				return true;
 			}
 
 			m_iPlayerId = OVT_TEST_PersistenceSubject.ResolveLocalPlayerId(diagnostic);
 			if (m_iPlayerId < 1)
 			{
-				SetResultFailure("Cannot resolve the runtime player ID: %1", diagnostic);
+				SetFailure("Cannot resolve the runtime player ID: %1", diagnostic);
 				return true;
 			}
 
 			m_sSkillKey = OVT_TEST_PersistenceSubject.ResolveFirstSkillKey(diagnostic);
 			if (m_sSkillKey == "")
 			{
-				SetResultFailure("Cannot resolve a skill to exercise: %1", diagnostic);
+				SetFailure("Cannot resolve a skill to exercise: %1", diagnostic);
 				return true;
 			}
 
@@ -739,7 +737,7 @@ class OVT_TEST_PersistenceRoundTrip_PlayerSkills_SurvivesSaveAndReload : SCR_Aut
 			string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
 			if (trigger != "")
 			{
-				SetResultFailure(trigger);
+				SetFailure(trigger);
 				return true;
 			}
 
@@ -753,7 +751,7 @@ class OVT_TEST_PersistenceRoundTrip_PlayerSkills_SurvivesSaveAndReload : SCR_Aut
 			int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
 			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
 			{
-				SetResultFailure(saveDiagnostic);
+				SetFailure(saveDiagnostic);
 				return true;
 			}
 
@@ -762,7 +760,7 @@ class OVT_TEST_PersistenceRoundTrip_PlayerSkills_SurvivesSaveAndReload : SCR_Aut
 				m_iSavePolls += 1;
 				if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
 				{
-					SetResultFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+					SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
 					return true;
 				}
 
@@ -778,7 +776,7 @@ class OVT_TEST_PersistenceRoundTrip_PlayerSkills_SurvivesSaveAndReload : SCR_Aut
 			OVT_SkillManagerComponent skills = OVT_Global.GetSkills();
 			if (!skills)
 			{
-				SetResultFailure("OVT_Global.GetSkills() is null before the reload");
+				SetFailure("OVT_Global.GetSkills() is null before the reload");
 				return true;
 			}
 
@@ -788,7 +786,7 @@ class OVT_TEST_PersistenceRoundTrip_PlayerSkills_SurvivesSaveAndReload : SCR_Aut
 			string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
 			if (reload != "")
 			{
-				SetResultFailure(reload);
+				SetFailure(reload);
 				return true;
 			}
 
@@ -803,7 +801,7 @@ class OVT_TEST_PersistenceRoundTrip_PlayerSkills_SurvivesSaveAndReload : SCR_Aut
 				m_iReloadPolls += 1;
 				if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
 				{
-					SetResultFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+					SetFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
 					return true;
 				}
 
@@ -817,27 +815,27 @@ class OVT_TEST_PersistenceRoundTrip_PlayerSkills_SurvivesSaveAndReload : SCR_Aut
 		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
 		if (restored != "")
 		{
-			SetResultFailure(restored);
+			SetFailure(restored);
 			return true;
 		}
 
 		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
 		if (!players)
 		{
-			SetResultFailure("OVT_Global.GetPlayers() is null after the reload");
+			SetFailure("OVT_Global.GetPlayers() is null after the reload");
 			return true;
 		}
 
 		OVT_PlayerData player = players.GetPlayer(m_sPersId);
 		if (!player)
 		{
-			SetResultFailure("The reloaded session has no player record for '%1'", m_sPersId);
+			SetFailure("The reloaded session has no player record for '%1'", m_sPersId);
 			return true;
 		}
 
 		if (player.xp != SAVED_XP)
 		{
-			SetResultFailure("XP did not survive the round trip: saved %1, read back %2",
+			SetFailure("XP did not survive the round trip: saved %1, read back %2",
 				SAVED_XP.ToString(), player.xp.ToString());
 			return true;
 		}
@@ -845,12 +843,11 @@ class OVT_TEST_PersistenceRoundTrip_PlayerSkills_SurvivesSaveAndReload : SCR_Aut
 		int skillLevel = OVT_TEST_PersistenceSubject.GetPlayerSkillLevel(m_sPersId, m_sSkillKey);
 		if (skillLevel != m_iSavedSkillLevel)
 		{
-			SetResultFailure("Skill '%1' did not survive the round trip: saved level %2, read back %3",
+			SetFailure("Skill '%1' did not survive the round trip: saved level %2, read back %3",
 				m_sSkillKey, m_iSavedSkillLevel.ToString(), skillLevel.ToString());
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -873,7 +870,7 @@ class OVT_TEST_PersistenceRoundTrip_RealEstateOwnership_SurvivesSaveAndReload : 
 	protected IEntity m_Building;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
@@ -881,7 +878,7 @@ class OVT_TEST_PersistenceRoundTrip_RealEstateOwnership_SurvivesSaveAndReload : 
 			OVT_RealEstateManagerComponent realEstate = OVT_Global.GetRealEstate();
 			if (!realEstate)
 			{
-				SetResultFailure("OVT_Global.GetRealEstate() is null");
+				SetFailure("OVT_Global.GetRealEstate() is null");
 				return true;
 			}
 
@@ -889,14 +886,14 @@ class OVT_TEST_PersistenceRoundTrip_RealEstateOwnership_SurvivesSaveAndReload : 
 			m_sPersId = OVT_TEST_PersistenceSubject.ResolveLocalPersistentId(diagnostic);
 			if (m_sPersId == "")
 			{
-				SetResultFailure("Cannot resolve the persistent player ID: %1", diagnostic);
+				SetFailure("Cannot resolve the persistent player ID: %1", diagnostic);
 				return true;
 			}
 
 			m_Building = OVT_TEST_PersistenceSubject.ResolveUnownedBuilding(diagnostic);
 			if (!m_Building)
 			{
-				SetResultFailure("Cannot resolve a building to own: %1", diagnostic);
+				SetFailure("Cannot resolve a building to own: %1", diagnostic);
 				return true;
 			}
 
@@ -910,7 +907,7 @@ class OVT_TEST_PersistenceRoundTrip_RealEstateOwnership_SurvivesSaveAndReload : 
 			string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
 			if (trigger != "")
 			{
-				SetResultFailure(trigger);
+				SetFailure(trigger);
 				return true;
 			}
 
@@ -924,7 +921,7 @@ class OVT_TEST_PersistenceRoundTrip_RealEstateOwnership_SurvivesSaveAndReload : 
 			int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
 			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
 			{
-				SetResultFailure(saveDiagnostic);
+				SetFailure(saveDiagnostic);
 				return true;
 			}
 
@@ -933,7 +930,7 @@ class OVT_TEST_PersistenceRoundTrip_RealEstateOwnership_SurvivesSaveAndReload : 
 				m_iSavePolls += 1;
 				if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
 				{
-					SetResultFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+					SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
 					return true;
 				}
 
@@ -949,13 +946,13 @@ class OVT_TEST_PersistenceRoundTrip_RealEstateOwnership_SurvivesSaveAndReload : 
 			OVT_RealEstateManagerComponent realEstate = OVT_Global.GetRealEstate();
 			if (!realEstate)
 			{
-				SetResultFailure("OVT_Global.GetRealEstate() is null before the reload");
+				SetFailure("OVT_Global.GetRealEstate() is null before the reload");
 				return true;
 			}
 
 			if (!m_Building)
 			{
-				SetResultFailure("The building resolved before the save no longer exists at %1", m_vBuildingPos.ToString());
+				SetFailure("The building resolved before the save no longer exists at %1", m_vBuildingPos.ToString());
 				return true;
 			}
 
@@ -966,7 +963,7 @@ class OVT_TEST_PersistenceRoundTrip_RealEstateOwnership_SurvivesSaveAndReload : 
 			string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
 			if (reload != "")
 			{
-				SetResultFailure(reload);
+				SetFailure(reload);
 				return true;
 			}
 
@@ -981,7 +978,7 @@ class OVT_TEST_PersistenceRoundTrip_RealEstateOwnership_SurvivesSaveAndReload : 
 				m_iReloadPolls += 1;
 				if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
 				{
-					SetResultFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+					SetFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
 					return true;
 				}
 
@@ -995,26 +992,25 @@ class OVT_TEST_PersistenceRoundTrip_RealEstateOwnership_SurvivesSaveAndReload : 
 		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
 		if (restored != "")
 		{
-			SetResultFailure(restored);
+			SetFailure(restored);
 			return true;
 		}
 
 		OVT_RealEstateManagerComponent realEstate = OVT_Global.GetRealEstate();
 		if (!realEstate)
 		{
-			SetResultFailure("OVT_Global.GetRealEstate() is null after the reload");
+			SetFailure("OVT_Global.GetRealEstate() is null after the reload");
 			return true;
 		}
 
 		string owner = realEstate.GetOwnerIDFromPos(m_vBuildingPos);
 		if (owner != m_sPersId)
 		{
-			SetResultFailure("Ownership did not survive the round trip at %1: owner is '%2', expected '%3'",
+			SetFailure("Ownership did not survive the round trip at %1: owner is '%2', expected '%3'",
 				m_vBuildingPos.ToString(), owner, m_sPersId);
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -1039,7 +1035,7 @@ class OVT_TEST_PersistenceRoundTrip_Recruits_SurvivesSaveAndReload : SCR_Autotes
 	protected string m_sRecruitId;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
@@ -1047,7 +1043,7 @@ class OVT_TEST_PersistenceRoundTrip_Recruits_SurvivesSaveAndReload : SCR_Autotes
 			OVT_RecruitManagerComponent recruits = OVT_Global.GetRecruits();
 			if (!recruits)
 			{
-				SetResultFailure("OVT_Global.GetRecruits() is null");
+				SetFailure("OVT_Global.GetRecruits() is null");
 				return true;
 			}
 
@@ -1055,21 +1051,21 @@ class OVT_TEST_PersistenceRoundTrip_Recruits_SurvivesSaveAndReload : SCR_Autotes
 			m_sPersId = OVT_TEST_PersistenceSubject.ResolveLocalPersistentId(diagnostic);
 			if (m_sPersId == "")
 			{
-				SetResultFailure("Cannot resolve the persistent player ID: %1", diagnostic);
+				SetFailure("Cannot resolve the persistent player ID: %1", diagnostic);
 				return true;
 			}
 
 			IEntity subject = OVT_TEST_PersistenceSubject.ResolveRecruitSubjectEntity(diagnostic);
 			if (!subject)
 			{
-				SetResultFailure("Cannot resolve an entity to attach a recruit to: %1", diagnostic);
+				SetFailure("Cannot resolve an entity to attach a recruit to: %1", diagnostic);
 				return true;
 			}
 
 			m_sRecruitId = recruits.AddRecruit(m_sPersId, subject, RECRUIT_NAME);
 			if (m_sRecruitId == "")
 			{
-				SetResultFailure("AddRecruit() returned no recruit ID");
+				SetFailure("AddRecruit() returned no recruit ID");
 				return true;
 			}
 
@@ -1080,7 +1076,7 @@ class OVT_TEST_PersistenceRoundTrip_Recruits_SurvivesSaveAndReload : SCR_Autotes
 			string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
 			if (trigger != "")
 			{
-				SetResultFailure(trigger);
+				SetFailure(trigger);
 				return true;
 			}
 
@@ -1094,7 +1090,7 @@ class OVT_TEST_PersistenceRoundTrip_Recruits_SurvivesSaveAndReload : SCR_Autotes
 			int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
 			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
 			{
-				SetResultFailure(saveDiagnostic);
+				SetFailure(saveDiagnostic);
 				return true;
 			}
 
@@ -1103,7 +1099,7 @@ class OVT_TEST_PersistenceRoundTrip_Recruits_SurvivesSaveAndReload : SCR_Autotes
 				m_iSavePolls += 1;
 				if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
 				{
-					SetResultFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+					SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
 					return true;
 				}
 
@@ -1119,7 +1115,7 @@ class OVT_TEST_PersistenceRoundTrip_Recruits_SurvivesSaveAndReload : SCR_Autotes
 			OVT_RecruitManagerComponent recruits = OVT_Global.GetRecruits();
 			if (!recruits)
 			{
-				SetResultFailure("OVT_Global.GetRecruits() is null before the reload");
+				SetFailure("OVT_Global.GetRecruits() is null before the reload");
 				return true;
 			}
 
@@ -1129,7 +1125,7 @@ class OVT_TEST_PersistenceRoundTrip_Recruits_SurvivesSaveAndReload : SCR_Autotes
 			string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
 			if (reload != "")
 			{
-				SetResultFailure(reload);
+				SetFailure(reload);
 				return true;
 			}
 
@@ -1144,7 +1140,7 @@ class OVT_TEST_PersistenceRoundTrip_Recruits_SurvivesSaveAndReload : SCR_Autotes
 				m_iReloadPolls += 1;
 				if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
 				{
-					SetResultFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+					SetFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
 					return true;
 				}
 
@@ -1158,39 +1154,38 @@ class OVT_TEST_PersistenceRoundTrip_Recruits_SurvivesSaveAndReload : SCR_Autotes
 		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
 		if (restored != "")
 		{
-			SetResultFailure(restored);
+			SetFailure(restored);
 			return true;
 		}
 
 		OVT_RecruitManagerComponent recruits = OVT_Global.GetRecruits();
 		if (!recruits)
 		{
-			SetResultFailure("OVT_Global.GetRecruits() is null after the reload");
+			SetFailure("OVT_Global.GetRecruits() is null after the reload");
 			return true;
 		}
 
 		OVT_RecruitData recruit = recruits.GetRecruit(m_sRecruitId);
 		if (!recruit)
 		{
-			SetResultFailure("Recruit '%1' did not survive the round trip - the reloaded session does not have it", m_sRecruitId);
+			SetFailure("Recruit '%1' did not survive the round trip - the reloaded session does not have it", m_sRecruitId);
 			return true;
 		}
 
 		if (recruit.m_iXP != SAVED_XP)
 		{
-			SetResultFailure("Recruit XP did not survive the round trip: saved %1, read back %2",
+			SetFailure("Recruit XP did not survive the round trip: saved %1, read back %2",
 				SAVED_XP.ToString(), recruit.m_iXP.ToString());
 			return true;
 		}
 
 		if (recruit.GetName() != RECRUIT_NAME)
 		{
-			SetResultFailure("Recruit name did not survive the round trip: expected '%1', read back '%2'",
+			SetFailure("Recruit name did not survive the round trip: expected '%1', read back '%2'",
 				RECRUIT_NAME, recruit.GetName());
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -1209,7 +1204,7 @@ class OVT_TEST_PersistenceRoundTrip_TownControl_SurvivesSaveAndReload : SCR_Auto
 	protected int m_iSavedFaction;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
@@ -1218,7 +1213,7 @@ class OVT_TEST_PersistenceRoundTrip_TownControl_SurvivesSaveAndReload : SCR_Auto
 			OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
 			if (!towns || !config)
 			{
-				SetResultFailure("The town manager or the config component is null");
+				SetFailure("The town manager or the config component is null");
 				return true;
 			}
 
@@ -1226,7 +1221,7 @@ class OVT_TEST_PersistenceRoundTrip_TownControl_SurvivesSaveAndReload : SCR_Auto
 			OVT_TownData town = OVT_TEST_PersistenceSubject.ResolveFirstTown(m_iTownId, diagnostic);
 			if (!town)
 			{
-				SetResultFailure("Cannot resolve a town: %1", diagnostic);
+				SetFailure("Cannot resolve a town: %1", diagnostic);
 				return true;
 			}
 
@@ -1239,7 +1234,7 @@ class OVT_TEST_PersistenceRoundTrip_TownControl_SurvivesSaveAndReload : SCR_Auto
 			string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
 			if (trigger != "")
 			{
-				SetResultFailure(trigger);
+				SetFailure(trigger);
 				return true;
 			}
 
@@ -1253,7 +1248,7 @@ class OVT_TEST_PersistenceRoundTrip_TownControl_SurvivesSaveAndReload : SCR_Auto
 			int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
 			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
 			{
-				SetResultFailure(saveDiagnostic);
+				SetFailure(saveDiagnostic);
 				return true;
 			}
 
@@ -1262,7 +1257,7 @@ class OVT_TEST_PersistenceRoundTrip_TownControl_SurvivesSaveAndReload : SCR_Auto
 				m_iSavePolls += 1;
 				if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
 				{
-					SetResultFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+					SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
 					return true;
 				}
 
@@ -1279,14 +1274,14 @@ class OVT_TEST_PersistenceRoundTrip_TownControl_SurvivesSaveAndReload : SCR_Auto
 			OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
 			if (!towns || !config)
 			{
-				SetResultFailure("The town manager or the config component is null before the reload");
+				SetFailure("The town manager or the config component is null before the reload");
 				return true;
 			}
 
 			OVT_TownData town = towns.GetTown(m_iTownId);
 			if (!town)
 			{
-				SetResultFailure("The town manager stopped handing out town %1 before the reload", m_iTownId.ToString());
+				SetFailure("The town manager stopped handing out town %1 before the reload", m_iTownId.ToString());
 				return true;
 			}
 
@@ -1296,7 +1291,7 @@ class OVT_TEST_PersistenceRoundTrip_TownControl_SurvivesSaveAndReload : SCR_Auto
 			string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
 			if (reload != "")
 			{
-				SetResultFailure(reload);
+				SetFailure(reload);
 				return true;
 			}
 
@@ -1311,7 +1306,7 @@ class OVT_TEST_PersistenceRoundTrip_TownControl_SurvivesSaveAndReload : SCR_Auto
 				m_iReloadPolls += 1;
 				if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
 				{
-					SetResultFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+					SetFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
 					return true;
 				}
 
@@ -1325,32 +1320,31 @@ class OVT_TEST_PersistenceRoundTrip_TownControl_SurvivesSaveAndReload : SCR_Auto
 		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
 		if (restored != "")
 		{
-			SetResultFailure(restored);
+			SetFailure(restored);
 			return true;
 		}
 
 		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 		if (!towns)
 		{
-			SetResultFailure("OVT_Global.GetTowns() is null after the reload");
+			SetFailure("OVT_Global.GetTowns() is null after the reload");
 			return true;
 		}
 
 		OVT_TownData town = towns.GetTown(m_iTownId);
 		if (!town)
 		{
-			SetResultFailure("The reloaded session has no town %1", m_iTownId.ToString());
+			SetFailure("The reloaded session has no town %1", m_iTownId.ToString());
 			return true;
 		}
 
 		if (town.faction != m_iSavedFaction)
 		{
-			SetResultFailure("Town control did not survive the round trip: saved faction %1, read back %2",
+			SetFailure("Town control did not survive the round trip: saved faction %1, read back %2",
 				m_iSavedFaction.ToString(), town.faction.ToString());
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -1378,7 +1372,7 @@ class OVT_TEST_PersistenceRoundTrip_TownPopulation_SurvivesSaveAndReload : SCR_A
 	protected int m_iSavedPopulation;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
@@ -1386,7 +1380,7 @@ class OVT_TEST_PersistenceRoundTrip_TownPopulation_SurvivesSaveAndReload : SCR_A
 			OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 			if (!towns)
 			{
-				SetResultFailure("OVT_Global.GetTowns() is null");
+				SetFailure("OVT_Global.GetTowns() is null");
 				return true;
 			}
 
@@ -1394,7 +1388,7 @@ class OVT_TEST_PersistenceRoundTrip_TownPopulation_SurvivesSaveAndReload : SCR_A
 			OVT_TownData town = OVT_TEST_PersistenceSubject.ResolveFirstTown(m_iTownId, diagnostic);
 			if (!town)
 			{
-				SetResultFailure("Cannot resolve a town: %1", diagnostic);
+				SetFailure("Cannot resolve a town: %1", diagnostic);
 				return true;
 			}
 
@@ -1404,7 +1398,7 @@ class OVT_TEST_PersistenceRoundTrip_TownPopulation_SurvivesSaveAndReload : SCR_A
 			OVT_TownData afterTake = towns.GetTown(m_iTownId);
 			if (!afterTake)
 			{
-				SetResultFailure("The town manager stopped handing out town %1 after taking supporters",
+				SetFailure("The town manager stopped handing out town %1 after taking supporters",
 					m_iTownId.ToString());
 				return true;
 			}
@@ -1416,7 +1410,7 @@ class OVT_TEST_PersistenceRoundTrip_TownPopulation_SurvivesSaveAndReload : SCR_A
 			string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
 			if (trigger != "")
 			{
-				SetResultFailure(trigger);
+				SetFailure(trigger);
 				return true;
 			}
 
@@ -1430,7 +1424,7 @@ class OVT_TEST_PersistenceRoundTrip_TownPopulation_SurvivesSaveAndReload : SCR_A
 			int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
 			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
 			{
-				SetResultFailure(saveDiagnostic);
+				SetFailure(saveDiagnostic);
 				return true;
 			}
 
@@ -1439,7 +1433,7 @@ class OVT_TEST_PersistenceRoundTrip_TownPopulation_SurvivesSaveAndReload : SCR_A
 				m_iSavePolls += 1;
 				if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
 				{
-					SetResultFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+					SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
 					return true;
 				}
 
@@ -1455,14 +1449,14 @@ class OVT_TEST_PersistenceRoundTrip_TownPopulation_SurvivesSaveAndReload : SCR_A
 			OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 			if (!towns)
 			{
-				SetResultFailure("OVT_Global.GetTowns() is null before the reload");
+				SetFailure("OVT_Global.GetTowns() is null before the reload");
 				return true;
 			}
 
 			OVT_TownData town = towns.GetTown(m_iTownId);
 			if (!town)
 			{
-				SetResultFailure("The town manager stopped handing out town %1 before the reload", m_iTownId.ToString());
+				SetFailure("The town manager stopped handing out town %1 before the reload", m_iTownId.ToString());
 				return true;
 			}
 
@@ -1472,7 +1466,7 @@ class OVT_TEST_PersistenceRoundTrip_TownPopulation_SurvivesSaveAndReload : SCR_A
 			string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
 			if (reload != "")
 			{
-				SetResultFailure(reload);
+				SetFailure(reload);
 				return true;
 			}
 
@@ -1487,7 +1481,7 @@ class OVT_TEST_PersistenceRoundTrip_TownPopulation_SurvivesSaveAndReload : SCR_A
 				m_iReloadPolls += 1;
 				if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
 				{
-					SetResultFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+					SetFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
 					return true;
 				}
 
@@ -1501,32 +1495,31 @@ class OVT_TEST_PersistenceRoundTrip_TownPopulation_SurvivesSaveAndReload : SCR_A
 		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
 		if (restored != "")
 		{
-			SetResultFailure(restored);
+			SetFailure(restored);
 			return true;
 		}
 
 		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 		if (!towns)
 		{
-			SetResultFailure("OVT_Global.GetTowns() is null after the reload");
+			SetFailure("OVT_Global.GetTowns() is null after the reload");
 			return true;
 		}
 
 		OVT_TownData town = towns.GetTown(m_iTownId);
 		if (!town)
 		{
-			SetResultFailure("The reloaded session has no town %1", m_iTownId.ToString());
+			SetFailure("The reloaded session has no town %1", m_iTownId.ToString());
 			return true;
 		}
 
 		if (town.population != m_iSavedPopulation)
 		{
-			SetResultFailure("Town population did not survive the round trip: saved %1, read back %2",
+			SetFailure("Town population did not survive the round trip: saved %1, read back %2",
 				m_iSavedPopulation.ToString(), town.population.ToString());
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -1575,7 +1568,7 @@ class OVT_TEST_PersistenceRoundTrip_TownStability_SurvivesSaveAndReload : SCR_Au
 	protected int m_iDirtyStability;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
@@ -1583,7 +1576,7 @@ class OVT_TEST_PersistenceRoundTrip_TownStability_SurvivesSaveAndReload : SCR_Au
 			OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 			if (!towns)
 			{
-				SetResultFailure("OVT_Global.GetTowns() is null");
+				SetFailure("OVT_Global.GetTowns() is null");
 				return true;
 			}
 
@@ -1591,21 +1584,21 @@ class OVT_TEST_PersistenceRoundTrip_TownStability_SurvivesSaveAndReload : SCR_Au
 			OVT_TownData town = OVT_TEST_PersistenceSubject.ResolveFirstTown(m_iTownId, diagnostic);
 			if (!town)
 			{
-				SetResultFailure("Cannot resolve a town: %1", diagnostic);
+				SetFailure("Cannot resolve a town: %1", diagnostic);
 				return true;
 			}
 
 			OVT_TownModifierSystem system = towns.GetModifierSystem(OVT_TownStabilityModifierSystem);
 			if (!system || !system.m_Config || !system.m_Config.m_aModifiers)
 			{
-				SetResultFailure("The town manager has no stability modifier system with a loaded config");
+				SetFailure("The town manager has no stability modifier system with a loaded config");
 				return true;
 			}
 
 			m_iModifierIndex = FindNegativeModifierIndex(system);
 			if (m_iModifierIndex < 0)
 			{
-				SetResultFailure("No stability modifier has a negative base effect - nothing that can move stability down from its maximum");
+				SetFailure("No stability modifier has a negative base effect - nothing that can move stability down from its maximum");
 				return true;
 			}
 
@@ -1613,7 +1606,7 @@ class OVT_TEST_PersistenceRoundTrip_TownStability_SurvivesSaveAndReload : SCR_Au
 
 			if (!towns.TryAddStabilityModifier(m_iTownId, m_iModifierIndex))
 			{
-				SetResultFailure("TryAddStabilityModifier(%1) refused to add a modifier to town %2",
+				SetFailure("TryAddStabilityModifier(%1) refused to add a modifier to town %2",
 					m_iModifierIndex.ToString(), m_iTownId.ToString());
 				return true;
 			}
@@ -1621,7 +1614,7 @@ class OVT_TEST_PersistenceRoundTrip_TownStability_SurvivesSaveAndReload : SCR_Au
 			OVT_TownData afterAdd = towns.GetTown(m_iTownId);
 			if (!afterAdd)
 			{
-				SetResultFailure("The town manager stopped handing out town %1 after the modifier was added",
+				SetFailure("The town manager stopped handing out town %1 after the modifier was added",
 					m_iTownId.ToString());
 				return true;
 			}
@@ -1630,14 +1623,14 @@ class OVT_TEST_PersistenceRoundTrip_TownStability_SurvivesSaveAndReload : SCR_Au
 			m_iSavedStability = system.Recalculate(afterAdd.stabilityModifiers);
 			if (afterAdd.stability != m_iSavedStability)
 			{
-				SetResultFailure("Stored stability %1 disagrees with the modifier system's recalculation %2 before the save",
+				SetFailure("Stored stability %1 disagrees with the modifier system's recalculation %2 before the save",
 					afterAdd.stability.ToString(), m_iSavedStability.ToString());
 				return true;
 			}
 
 			if (m_iSavedStability >= stabilityBefore)
 			{
-				SetResultFailure("A negative stability modifier did not lower stability: was %1, is now %2 - there would be nothing for a reload to restore",
+				SetFailure("A negative stability modifier did not lower stability: was %1, is now %2 - there would be nothing for a reload to restore",
 					stabilityBefore.ToString(), m_iSavedStability.ToString());
 				return true;
 			}
@@ -1647,7 +1640,7 @@ class OVT_TEST_PersistenceRoundTrip_TownStability_SurvivesSaveAndReload : SCR_Au
 			string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
 			if (trigger != "")
 			{
-				SetResultFailure(trigger);
+				SetFailure(trigger);
 				return true;
 			}
 
@@ -1661,7 +1654,7 @@ class OVT_TEST_PersistenceRoundTrip_TownStability_SurvivesSaveAndReload : SCR_Au
 			int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
 			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
 			{
-				SetResultFailure(saveDiagnostic);
+				SetFailure(saveDiagnostic);
 				return true;
 			}
 
@@ -1670,7 +1663,7 @@ class OVT_TEST_PersistenceRoundTrip_TownStability_SurvivesSaveAndReload : SCR_Au
 				m_iSavePolls += 1;
 				if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
 				{
-					SetResultFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+					SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
 					return true;
 				}
 
@@ -1686,7 +1679,7 @@ class OVT_TEST_PersistenceRoundTrip_TownStability_SurvivesSaveAndReload : SCR_Au
 			OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 			if (!towns)
 			{
-				SetResultFailure("OVT_Global.GetTowns() is null before the reload");
+				SetFailure("OVT_Global.GetTowns() is null before the reload");
 				return true;
 			}
 
@@ -1697,7 +1690,7 @@ class OVT_TEST_PersistenceRoundTrip_TownStability_SurvivesSaveAndReload : SCR_Au
 			OVT_TownData afterRemove = towns.GetTown(m_iTownId);
 			if (!afterRemove)
 			{
-				SetResultFailure("The town manager stopped handing out town %1 after the modifier was removed",
+				SetFailure("The town manager stopped handing out town %1 after the modifier was removed",
 					m_iTownId.ToString());
 				return true;
 			}
@@ -1705,7 +1698,7 @@ class OVT_TEST_PersistenceRoundTrip_TownStability_SurvivesSaveAndReload : SCR_Au
 			m_iDirtyStability = afterRemove.stability;
 			if (m_iDirtyStability == m_iSavedStability)
 			{
-				SetResultFailure("Removing the modifier left stability at the saved value %1 - the reload would have nothing to prove",
+				SetFailure("Removing the modifier left stability at the saved value %1 - the reload would have nothing to prove",
 					m_iSavedStability.ToString());
 				return true;
 			}
@@ -1713,7 +1706,7 @@ class OVT_TEST_PersistenceRoundTrip_TownStability_SurvivesSaveAndReload : SCR_Au
 			string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
 			if (reload != "")
 			{
-				SetResultFailure(reload);
+				SetFailure(reload);
 				return true;
 			}
 
@@ -1728,7 +1721,7 @@ class OVT_TEST_PersistenceRoundTrip_TownStability_SurvivesSaveAndReload : SCR_Au
 				m_iReloadPolls += 1;
 				if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
 				{
-					SetResultFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+					SetFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
 					return true;
 				}
 
@@ -1742,32 +1735,31 @@ class OVT_TEST_PersistenceRoundTrip_TownStability_SurvivesSaveAndReload : SCR_Au
 		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
 		if (restored != "")
 		{
-			SetResultFailure(restored);
+			SetFailure(restored);
 			return true;
 		}
 
 		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 		if (!towns)
 		{
-			SetResultFailure("OVT_Global.GetTowns() is null after the reload");
+			SetFailure("OVT_Global.GetTowns() is null after the reload");
 			return true;
 		}
 
 		OVT_TownData town = towns.GetTown(m_iTownId);
 		if (!town)
 		{
-			SetResultFailure("The reloaded session has no town %1", m_iTownId.ToString());
+			SetFailure("The reloaded session has no town %1", m_iTownId.ToString());
 			return true;
 		}
 
 		if (town.stability != m_iSavedStability)
 		{
-			SetResultFailure("Town stability did not survive the round trip: saved %1, read back %2 (dirty value was %3)",
+			SetFailure("Town stability did not survive the round trip: saved %1, read back %2 (dirty value was %3)",
 				m_iSavedStability.ToString(), town.stability.ToString(), m_iDirtyStability.ToString());
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 
@@ -1807,7 +1799,7 @@ class OVT_TEST_PersistenceRoundTrip_TownSupport_SurvivesSaveAndReload : SCR_Auto
 	protected int m_iSavedSupport;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
@@ -1815,7 +1807,7 @@ class OVT_TEST_PersistenceRoundTrip_TownSupport_SurvivesSaveAndReload : SCR_Auto
 			OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 			if (!towns)
 			{
-				SetResultFailure("OVT_Global.GetTowns() is null");
+				SetFailure("OVT_Global.GetTowns() is null");
 				return true;
 			}
 
@@ -1823,7 +1815,7 @@ class OVT_TEST_PersistenceRoundTrip_TownSupport_SurvivesSaveAndReload : SCR_Auto
 			OVT_TownData town = OVT_TEST_PersistenceSubject.ResolveFirstTown(m_iTownId, diagnostic);
 			if (!town)
 			{
-				SetResultFailure("Cannot resolve a town: %1", diagnostic);
+				SetFailure("Cannot resolve a town: %1", diagnostic);
 				return true;
 			}
 
@@ -1832,7 +1824,7 @@ class OVT_TEST_PersistenceRoundTrip_TownSupport_SurvivesSaveAndReload : SCR_Auto
 			OVT_TownData afterAdd = towns.GetTown(m_iTownId);
 			if (!afterAdd)
 			{
-				SetResultFailure("The town manager stopped handing out town %1 after AddSupport()",
+				SetFailure("The town manager stopped handing out town %1 after AddSupport()",
 					m_iTownId.ToString());
 				return true;
 			}
@@ -1844,7 +1836,7 @@ class OVT_TEST_PersistenceRoundTrip_TownSupport_SurvivesSaveAndReload : SCR_Auto
 			string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
 			if (trigger != "")
 			{
-				SetResultFailure(trigger);
+				SetFailure(trigger);
 				return true;
 			}
 
@@ -1858,7 +1850,7 @@ class OVT_TEST_PersistenceRoundTrip_TownSupport_SurvivesSaveAndReload : SCR_Auto
 			int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
 			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
 			{
-				SetResultFailure(saveDiagnostic);
+				SetFailure(saveDiagnostic);
 				return true;
 			}
 
@@ -1867,7 +1859,7 @@ class OVT_TEST_PersistenceRoundTrip_TownSupport_SurvivesSaveAndReload : SCR_Auto
 				m_iSavePolls += 1;
 				if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
 				{
-					SetResultFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+					SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
 					return true;
 				}
 
@@ -1883,14 +1875,14 @@ class OVT_TEST_PersistenceRoundTrip_TownSupport_SurvivesSaveAndReload : SCR_Auto
 			OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 			if (!towns)
 			{
-				SetResultFailure("OVT_Global.GetTowns() is null before the reload");
+				SetFailure("OVT_Global.GetTowns() is null before the reload");
 				return true;
 			}
 
 			OVT_TownData town = towns.GetTown(m_iTownId);
 			if (!town)
 			{
-				SetResultFailure("The town manager stopped handing out town %1 before the reload", m_iTownId.ToString());
+				SetFailure("The town manager stopped handing out town %1 before the reload", m_iTownId.ToString());
 				return true;
 			}
 
@@ -1900,7 +1892,7 @@ class OVT_TEST_PersistenceRoundTrip_TownSupport_SurvivesSaveAndReload : SCR_Auto
 			string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
 			if (reload != "")
 			{
-				SetResultFailure(reload);
+				SetFailure(reload);
 				return true;
 			}
 
@@ -1915,7 +1907,7 @@ class OVT_TEST_PersistenceRoundTrip_TownSupport_SurvivesSaveAndReload : SCR_Auto
 				m_iReloadPolls += 1;
 				if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
 				{
-					SetResultFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+					SetFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
 					return true;
 				}
 
@@ -1929,32 +1921,31 @@ class OVT_TEST_PersistenceRoundTrip_TownSupport_SurvivesSaveAndReload : SCR_Auto
 		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
 		if (restored != "")
 		{
-			SetResultFailure(restored);
+			SetFailure(restored);
 			return true;
 		}
 
 		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 		if (!towns)
 		{
-			SetResultFailure("OVT_Global.GetTowns() is null after the reload");
+			SetFailure("OVT_Global.GetTowns() is null after the reload");
 			return true;
 		}
 
 		OVT_TownData town = towns.GetTown(m_iTownId);
 		if (!town)
 		{
-			SetResultFailure("The reloaded session has no town %1", m_iTownId.ToString());
+			SetFailure("The reloaded session has no town %1", m_iTownId.ToString());
 			return true;
 		}
 
 		if (town.support != m_iSavedSupport)
 		{
-			SetResultFailure("Town support did not survive the round trip: saved %1, read back %2",
+			SetFailure("Town support did not survive the round trip: saved %1, read back %2",
 				m_iSavedSupport.ToString(), town.support.ToString());
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -2071,7 +2062,7 @@ class OVT_TEST_PersistenceRoundTrip_VehicleReserveRelease_KeepsOwnerAndContents 
 	protected EntityID m_OldEntityId;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		if (m_iPhase == PHASE_SPAWN)
@@ -2103,7 +2094,7 @@ class OVT_TEST_PersistenceRoundTrip_VehicleReserveRelease_KeepsOwnerAndContents 
 		OVT_VehicleManagerComponent vehicles = OVT_Global.GetVehicles();
 		if (!vehicles)
 		{
-			SetResultFailure("OVT_Global.GetVehicles() is null - no vehicle manager on the game mode");
+			SetFailure("OVT_Global.GetVehicles() is null - no vehicle manager on the game mode");
 			return true;
 		}
 
@@ -2111,21 +2102,21 @@ class OVT_TEST_PersistenceRoundTrip_VehicleReserveRelease_KeepsOwnerAndContents 
 		m_sPersId = OVT_TEST_PersistenceSubject.ResolveLocalPersistentId(diagnostic);
 		if (m_sPersId == "")
 		{
-			SetResultFailure("Cannot resolve the persistent player ID: %1", diagnostic);
+			SetFailure("Cannot resolve the persistent player ID: %1", diagnostic);
 			return true;
 		}
 
 		ResourceName prefab;
 		if (!OVT_TEST_PersistenceSubject.ResolveOwnableVehiclePrefab(prefab, diagnostic))
 		{
-			SetResultFailure("Cannot resolve a vehicle to spawn: %1", diagnostic);
+			SetFailure("Cannot resolve a vehicle to spawn: %1", diagnostic);
 			return true;
 		}
 
 		vector position;
 		if (!OVT_TEST_PersistenceSubject.ResolveVehicleSpawnPosition(position, diagnostic))
 		{
-			SetResultFailure("Cannot resolve somewhere to put a vehicle: %1", diagnostic);
+			SetFailure("Cannot resolve somewhere to put a vehicle: %1", diagnostic);
 			return true;
 		}
 
@@ -2139,7 +2130,7 @@ class OVT_TEST_PersistenceRoundTrip_VehicleReserveRelease_KeepsOwnerAndContents 
 		m_Vehicle = vehicles.SpawnVehicleMatrix(prefab, mat, m_sPersId);
 		if (!m_Vehicle)
 		{
-			SetResultFailure("SpawnVehicleMatrix() produced no vehicle at %1", position.ToString());
+			SetFailure("SpawnVehicleMatrix() produced no vehicle at %1", position.ToString());
 			return true;
 		}
 
@@ -2150,7 +2141,7 @@ class OVT_TEST_PersistenceRoundTrip_VehicleReserveRelease_KeepsOwnerAndContents 
 		);
 		if (!ownerComp)
 		{
-			SetResultFailure("The spawned vehicle has no OVT_PlayerOwnerComponent - it can be neither owned nor locked, so there is nothing to round-trip");
+			SetFailure("The spawned vehicle has no OVT_PlayerOwnerComponent - it can be neither owned nor locked, so there is nothing to round-trip");
 			return true;
 		}
 
@@ -2170,13 +2161,13 @@ class OVT_TEST_PersistenceRoundTrip_VehicleReserveRelease_KeepsOwnerAndContents 
 		OVT_VehicleManagerComponent vehicles = OVT_Global.GetVehicles();
 		if (!vehicles)
 		{
-			SetResultFailure("OVT_Global.GetVehicles() is null while waiting for the vehicle to be registered");
+			SetFailure("OVT_Global.GetVehicles() is null while waiting for the vehicle to be registered");
 			return true;
 		}
 
 		if (!m_Vehicle)
 		{
-			SetResultFailure("The spawned vehicle disappeared before the manager registered it");
+			SetFailure("The spawned vehicle disappeared before the manager registered it");
 			return true;
 		}
 
@@ -2191,7 +2182,7 @@ class OVT_TEST_PersistenceRoundTrip_VehicleReserveRelease_KeepsOwnerAndContents 
 		if (m_iRegistrationPolls > MAX_REGISTRATION_POLLS)
 		{
 			array<string> registered = vehicles.GetPlayerVehicleIds(m_sPersId);
-			SetResultFailure("The vehicle manager never registered the vehicle it spawned for '%1' (%2 id(s) registered to that player) - it has no persistent identity to fetch it back by",
+			SetFailure("The vehicle manager never registered the vehicle it spawned for '%1' (%2 id(s) registered to that player) - it has no persistent identity to fetch it back by",
 				m_sPersId, registered.Count().ToString());
 			return true;
 		}
@@ -2207,19 +2198,19 @@ class OVT_TEST_PersistenceRoundTrip_VehicleReserveRelease_KeepsOwnerAndContents 
 		OVT_VehicleManagerComponent vehicles = OVT_Global.GetVehicles();
 		if (!vehicles)
 		{
-			SetResultFailure("OVT_Global.GetVehicles() is null before the despawn");
+			SetFailure("OVT_Global.GetVehicles() is null before the despawn");
 			return true;
 		}
 
 		if (!m_Vehicle)
 		{
-			SetResultFailure("The registered vehicle disappeared before it could be despawned");
+			SetFailure("The registered vehicle disappeared before it could be despawned");
 			return true;
 		}
 
 		if (!IsRegistered(vehicles, m_sPersId, m_sVehicleId))
 		{
-			SetResultFailure("Vehicle %1 is no longer registered to '%2' before the despawn", m_sVehicleId, m_sPersId);
+			SetFailure("Vehicle %1 is no longer registered to '%2' before the despawn", m_sVehicleId, m_sPersId);
 			return true;
 		}
 
@@ -2260,14 +2251,14 @@ class OVT_TEST_PersistenceRoundTrip_VehicleReserveRelease_KeepsOwnerAndContents 
 		OVT_VehicleManagerComponent vehicles = OVT_Global.GetVehicles();
 		if (!vehicles)
 		{
-			SetResultFailure("OVT_Global.GetVehicles() is null while waiting for the despawn");
+			SetFailure("OVT_Global.GetVehicles() is null while waiting for the despawn");
 			return true;
 		}
 
 		IEntity reserved = GetGame().GetWorld().FindEntityByID(m_OldEntityId);
 		if (!reserved)
 		{
-			SetResultFailure("The despawn DELETED vehicle %1 - it must be hidden in place, because a destroyed vehicle can only ever come back rebuilt, without its contents",
+			SetFailure("The despawn DELETED vehicle %1 - it must be hidden in place, because a destroyed vehicle can only ever come back rebuilt, without its contents",
 				m_sVehicleId);
 			return true;
 		}
@@ -2277,7 +2268,7 @@ class OVT_TEST_PersistenceRoundTrip_VehicleReserveRelease_KeepsOwnerAndContents 
 			m_iDespawnPolls += 1;
 			if (m_iDespawnPolls > MAX_DESPAWN_POLLS)
 			{
-				SetResultFailure("The despawn left vehicle %1 in play after %2 polls - there would be nothing for the respawn to prove",
+				SetFailure("The despawn left vehicle %1 in play after %2 polls - there would be nothing for the respawn to prove",
 					m_sVehicleId, m_iDespawnPolls.ToString());
 				return true;
 			}
@@ -2290,7 +2281,7 @@ class OVT_TEST_PersistenceRoundTrip_VehicleReserveRelease_KeepsOwnerAndContents 
 		// the reservation model exists to remove.
 		if (!OVT_PersistenceTracking.IsTracked(reserved))
 		{
-			SetResultFailure("The despawn released tracking on vehicle %1 - a reserved vehicle must stay tracked or it will not be in the next save point",
+			SetFailure("The despawn released tracking on vehicle %1 - a reserved vehicle must stay tracked or it will not be in the next save point",
 				m_sVehicleId);
 			return true;
 		}
@@ -2298,14 +2289,14 @@ class OVT_TEST_PersistenceRoundTrip_VehicleReserveRelease_KeepsOwnerAndContents 
 		// The manager must still know where the instance is, or the respawn cannot find it to un-hide.
 		if (!vehicles.FindVehicleEntity(m_sVehicleId))
 		{
-			SetResultFailure("The despawn dropped the live-instance mapping for vehicle %1 - the respawn would ask storage for a vehicle that is standing right there", m_sVehicleId);
+			SetFailure("The despawn dropped the live-instance mapping for vehicle %1 - the respawn would ask storage for a vehicle that is standing right there", m_sVehicleId);
 			return true;
 		}
 
 		// Without this the vehicle could never be asked for again, in this session or any other.
 		if (!IsRegistered(vehicles, m_sPersId, m_sVehicleId))
 		{
-			SetResultFailure("The despawn dropped the registration for vehicle %1 - a reserved vehicle whose id is forgotten can never be released again", m_sVehicleId);
+			SetFailure("The despawn dropped the registration for vehicle %1 - a reserved vehicle whose id is forgotten can never be released again", m_sVehicleId);
 			return true;
 		}
 
@@ -2321,7 +2312,7 @@ class OVT_TEST_PersistenceRoundTrip_VehicleReserveRelease_KeepsOwnerAndContents 
 		OVT_VehicleManagerComponent vehicles = OVT_Global.GetVehicles();
 		if (!vehicles)
 		{
-			SetResultFailure("OVT_Global.GetVehicles() is null before the respawn");
+			SetFailure("OVT_Global.GetVehicles() is null before the respawn");
 			return true;
 		}
 
@@ -2339,7 +2330,7 @@ class OVT_TEST_PersistenceRoundTrip_VehicleReserveRelease_KeepsOwnerAndContents 
 		OVT_VehicleManagerComponent vehicles = OVT_Global.GetVehicles();
 		if (!vehicles)
 		{
-			SetResultFailure("OVT_Global.GetVehicles() is null while waiting for the respawn");
+			SetFailure("OVT_Global.GetVehicles() is null while waiting for the respawn");
 			return true;
 		}
 
@@ -2364,7 +2355,7 @@ class OVT_TEST_PersistenceRoundTrip_VehicleReserveRelease_KeepsOwnerAndContents 
 					reason = "the manager reported nothing at all - RespawnPlayerVehicles() never asked for it";
 			}
 
-			SetResultFailure("Vehicle %1 never came back after RespawnPlayerVehicles(): %2", m_sVehicleId, reason);
+			SetFailure("Vehicle %1 never came back after RespawnPlayerVehicles(): %2", m_sVehicleId, reason);
 			return true;
 		}
 
@@ -2379,20 +2370,20 @@ class OVT_TEST_PersistenceRoundTrip_VehicleReserveRelease_KeepsOwnerAndContents 
 		OVT_VehicleManagerComponent vehicles = OVT_Global.GetVehicles();
 		if (!vehicles)
 		{
-			SetResultFailure("OVT_Global.GetVehicles() is null after the respawn");
+			SetFailure("OVT_Global.GetVehicles() is null after the respawn");
 			return true;
 		}
 
 		IEntity restored = vehicles.FindVehicleEntity(m_sVehicleId);
 		if (!restored)
 		{
-			SetResultFailure("Vehicle %1 was in the world one poll ago and is gone again", m_sVehicleId);
+			SetFailure("Vehicle %1 was in the world one poll ago and is gone again", m_sVehicleId);
 			return true;
 		}
 
 		if (!Vehicle.Cast(restored))
 		{
-			SetResultFailure("What came back under vehicle id %1 is not a vehicle", m_sVehicleId);
+			SetFailure("What came back under vehicle id %1 is not a vehicle", m_sVehicleId);
 			return true;
 		}
 
@@ -2401,7 +2392,7 @@ class OVT_TEST_PersistenceRoundTrip_VehicleReserveRelease_KeepsOwnerAndContents 
 		// other assertion in this method and still have lost the cargo.
 		if (restored.GetID() != m_OldEntityId)
 		{
-			SetResultFailure("Vehicle %1 came back as a DIFFERENT instance - it was rebuilt, not released, and whatever was inside it is gone", m_sVehicleId);
+			SetFailure("Vehicle %1 came back as a DIFFERENT instance - it was rebuilt, not released, and whatever was inside it is gone", m_sVehicleId);
 			return true;
 		}
 
@@ -2410,7 +2401,7 @@ class OVT_TEST_PersistenceRoundTrip_VehicleReserveRelease_KeepsOwnerAndContents 
 		string managerOwner = vehicles.GetOwnerID(restored);
 		if (managerOwner != m_sPersId)
 		{
-			SetResultFailure("The restored vehicle is not registered to its owner: manager reports '%1', expected '%2'",
+			SetFailure("The restored vehicle is not registered to its owner: manager reports '%1', expected '%2'",
 				managerOwner, m_sPersId);
 			return true;
 		}
@@ -2420,13 +2411,13 @@ class OVT_TEST_PersistenceRoundTrip_VehicleReserveRelease_KeepsOwnerAndContents 
 		);
 		if (!ownerComp)
 		{
-			SetResultFailure("The restored vehicle has no OVT_PlayerOwnerComponent - its ownership record cannot have been applied");
+			SetFailure("The restored vehicle has no OVT_PlayerOwnerComponent - its ownership record cannot have been applied");
 			return true;
 		}
 
 		if (ownerComp.GetPlayerOwnerUid() != m_sPersId)
 		{
-			SetResultFailure("Vehicle ownership did not survive the round trip: the restored vehicle belongs to '%1', expected '%2'",
+			SetFailure("Vehicle ownership did not survive the round trip: the restored vehicle belongs to '%1', expected '%2'",
 				ownerComp.GetPlayerOwnerUid(), m_sPersId);
 			return true;
 		}
@@ -2434,7 +2425,7 @@ class OVT_TEST_PersistenceRoundTrip_VehicleReserveRelease_KeepsOwnerAndContents 
 		// Nothing outside the vehicle's own stored record knows it was locked.
 		if (!ownerComp.IsLocked())
 		{
-			SetResultFailure("Vehicle lock state did not survive the round trip: vehicle %1 came back unlocked", m_sVehicleId);
+			SetFailure("Vehicle lock state did not survive the round trip: vehicle %1 came back unlocked", m_sVehicleId);
 			return true;
 		}
 
@@ -2443,7 +2434,7 @@ class OVT_TEST_PersistenceRoundTrip_VehicleReserveRelease_KeepsOwnerAndContents 
 		if (distance > POSITION_TOLERANCE_M)
 		{
 			string distanceText = string.Format("%1", distance);
-			SetResultFailure("The restored vehicle is not where it was released: %1 m away from %2, tolerance %3 m",
+			SetFailure("The restored vehicle is not where it was released: %1 m away from %2, tolerance %3 m",
 				distanceText, m_vSavedPosition.ToString(), string.Format("%1", POSITION_TOLERANCE_M));
 			return true;
 		}
@@ -2455,7 +2446,7 @@ class OVT_TEST_PersistenceRoundTrip_VehicleReserveRelease_KeepsOwnerAndContents 
 			);
 			if (!fuel)
 			{
-				SetResultFailure("The restored vehicle has no fuel manager, but the one that was released had one");
+				SetFailure("The restored vehicle has no fuel manager, but the one that was released had one");
 				return true;
 			}
 
@@ -2481,7 +2472,6 @@ class OVT_TEST_PersistenceRoundTrip_VehicleReserveRelease_KeepsOwnerAndContents 
 		PrintFormat("Vehicle %1 survived despawn and respawn: owner intact, locked, %2 m from where it was released",
 			m_sVehicleId, string.Format("%1", distance));
 
-		SetResultSuccess();
 		return true;
 	}
 
@@ -2561,7 +2551,7 @@ class OVT_TEST_PersistenceRoundTrip_TowerSabotage_SurvivesSaveAndReload : SCR_Au
 	protected vector m_vTowerLocation;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
@@ -2569,14 +2559,14 @@ class OVT_TEST_PersistenceRoundTrip_TowerSabotage_SurvivesSaveAndReload : SCR_Au
 			OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
 			if (!occupying)
 			{
-				SetResultFailure("OVT_Global.GetOccupyingFaction() is null");
+				SetFailure("OVT_Global.GetOccupyingFaction() is null");
 				return true;
 			}
 
 			OVT_RadioTowerData tower = FirstTower(occupying);
 			if (!tower)
 			{
-				SetResultFailure("The test world handed out no radio tower to sabotage");
+				SetFailure("The test world handed out no radio tower to sabotage");
 				return true;
 			}
 
@@ -2590,7 +2580,7 @@ class OVT_TEST_PersistenceRoundTrip_TowerSabotage_SurvivesSaveAndReload : SCR_Au
 			string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
 			if (trigger != "")
 			{
-				SetResultFailure(trigger);
+				SetFailure(trigger);
 				return true;
 			}
 
@@ -2604,7 +2594,7 @@ class OVT_TEST_PersistenceRoundTrip_TowerSabotage_SurvivesSaveAndReload : SCR_Au
 			int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
 			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
 			{
-				SetResultFailure(saveDiagnostic);
+				SetFailure(saveDiagnostic);
 				return true;
 			}
 
@@ -2613,7 +2603,7 @@ class OVT_TEST_PersistenceRoundTrip_TowerSabotage_SurvivesSaveAndReload : SCR_Au
 				m_iSavePolls += 1;
 				if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
 				{
-					SetResultFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+					SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
 					return true;
 				}
 
@@ -2629,14 +2619,14 @@ class OVT_TEST_PersistenceRoundTrip_TowerSabotage_SurvivesSaveAndReload : SCR_Au
 			OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
 			if (!occupying)
 			{
-				SetResultFailure("OVT_Global.GetOccupyingFaction() is null before the reload");
+				SetFailure("OVT_Global.GetOccupyingFaction() is null before the reload");
 				return true;
 			}
 
 			OVT_RadioTowerData tower = occupying.GetNearestRadioTower(m_vTowerLocation);
 			if (!tower)
 			{
-				SetResultFailure("The occupying faction stopped handing out the tower at %1 before the reload", m_vTowerLocation.ToString());
+				SetFailure("The occupying faction stopped handing out the tower at %1 before the reload", m_vTowerLocation.ToString());
 				return true;
 			}
 
@@ -2648,7 +2638,7 @@ class OVT_TEST_PersistenceRoundTrip_TowerSabotage_SurvivesSaveAndReload : SCR_Au
 			string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
 			if (reload != "")
 			{
-				SetResultFailure(reload);
+				SetFailure(reload);
 				return true;
 			}
 
@@ -2663,7 +2653,7 @@ class OVT_TEST_PersistenceRoundTrip_TowerSabotage_SurvivesSaveAndReload : SCR_Au
 				m_iReloadPolls += 1;
 				if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
 				{
-					SetResultFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+					SetFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
 					return true;
 				}
 
@@ -2677,46 +2667,45 @@ class OVT_TEST_PersistenceRoundTrip_TowerSabotage_SurvivesSaveAndReload : SCR_Au
 		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
 		if (restored != "")
 		{
-			SetResultFailure(restored);
+			SetFailure(restored);
 			return true;
 		}
 
 		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
 		if (!occupying)
 		{
-			SetResultFailure("OVT_Global.GetOccupyingFaction() is null after the reload");
+			SetFailure("OVT_Global.GetOccupyingFaction() is null after the reload");
 			return true;
 		}
 
 		OVT_RadioTowerData tower = occupying.GetNearestRadioTower(m_vTowerLocation);
 		if (!tower)
 		{
-			SetResultFailure("The reloaded session has no radio tower at %1", m_vTowerLocation.ToString());
+			SetFailure("The reloaded session has no radio tower at %1", m_vTowerLocation.ToString());
 			return true;
 		}
 
 		if (tower.disabledRemaining <= 0)
 		{
-			SetResultFailure("The sabotage did not survive the round trip: the tower came back on the air (%1 seconds left)",
+			SetFailure("The sabotage did not survive the round trip: the tower came back on the air (%1 seconds left)",
 				tower.disabledRemaining.ToString());
 			return true;
 		}
 
 		if (tower.disabledRemaining < MIN_RESTORED_SECONDS)
 		{
-			SetResultFailure("The restored sabotage timer is too low to be the saved one: expected more than %1 seconds, read back %2",
+			SetFailure("The restored sabotage timer is too low to be the saved one: expected more than %1 seconds, read back %2",
 				MIN_RESTORED_SECONDS.ToString(), tower.disabledRemaining.ToString());
 			return true;
 		}
 
 		if (tower.disabledRemaining > SABOTAGE_SECONDS)
 		{
-			SetResultFailure("The restored sabotage timer is higher than the one saved: sabotaged for %1 seconds, read back %2",
+			SetFailure("The restored sabotage timer is higher than the one saved: sabotaged for %1 seconds, read back %2",
 				SABOTAGE_SECONDS.ToString(), tower.disabledRemaining.ToString());
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 
@@ -2782,7 +2771,7 @@ class OVT_TEST_PersistenceRoundTrip_PlayerLastKnownPosition_SurvivesSaveAndReloa
 	protected string m_sPersId;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
@@ -2791,28 +2780,28 @@ class OVT_TEST_PersistenceRoundTrip_PlayerLastKnownPosition_SurvivesSaveAndReloa
 			m_sPersId = OVT_TEST_PersistenceSubject.ResolveLocalPersistentId(diagnostic);
 			if (m_sPersId == "")
 			{
-				SetResultFailure("Cannot resolve the persistent player ID: %1", diagnostic);
+				SetFailure("Cannot resolve the persistent player ID: %1", diagnostic);
 				return true;
 			}
 
 			OVT_PlayerData player = OVT_PlayerData.Get(m_sPersId);
 			if (!player)
 			{
-				SetResultFailure("OVT_PlayerData.Get() returned no record for the local player");
+				SetFailure("OVT_PlayerData.Get() returned no record for the local player");
 				return true;
 			}
 
 			int playerId = OVT_TEST_PersistenceSubject.ResolveLocalPlayerId(diagnostic);
 			if (playerId < 1)
 			{
-				SetResultFailure("Cannot resolve the runtime player ID: %1", diagnostic);
+				SetFailure("Cannot resolve the runtime player ID: %1", diagnostic);
 				return true;
 			}
 
 			IEntity body = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
 			if (!body)
 			{
-				SetResultFailure("The local player has no controlled entity, so there is no body position for the pre-save capture to record");
+				SetFailure("The local player has no controlled entity, so there is no body position for the pre-save capture to record");
 				return true;
 			}
 
@@ -2827,7 +2816,7 @@ class OVT_TEST_PersistenceRoundTrip_PlayerLastKnownPosition_SurvivesSaveAndReloa
 			string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
 			if (trigger != "")
 			{
-				SetResultFailure(trigger);
+				SetFailure(trigger);
 				return true;
 			}
 
@@ -2841,7 +2830,7 @@ class OVT_TEST_PersistenceRoundTrip_PlayerLastKnownPosition_SurvivesSaveAndReloa
 			int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
 			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
 			{
-				SetResultFailure(saveDiagnostic);
+				SetFailure(saveDiagnostic);
 				return true;
 			}
 
@@ -2850,7 +2839,7 @@ class OVT_TEST_PersistenceRoundTrip_PlayerLastKnownPosition_SurvivesSaveAndReloa
 				m_iSavePolls += 1;
 				if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
 				{
-					SetResultFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+					SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
 					return true;
 				}
 
@@ -2866,7 +2855,7 @@ class OVT_TEST_PersistenceRoundTrip_PlayerLastKnownPosition_SurvivesSaveAndReloa
 			OVT_PlayerData player = OVT_PlayerData.Get(m_sPersId);
 			if (!player)
 			{
-				SetResultFailure("The local player record disappeared before the reload");
+				SetFailure("The local player record disappeared before the reload");
 				return true;
 			}
 
@@ -2877,7 +2866,7 @@ class OVT_TEST_PersistenceRoundTrip_PlayerLastKnownPosition_SurvivesSaveAndReloa
 			string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
 			if (reload != "")
 			{
-				SetResultFailure(reload);
+				SetFailure(reload);
 				return true;
 			}
 
@@ -2892,7 +2881,7 @@ class OVT_TEST_PersistenceRoundTrip_PlayerLastKnownPosition_SurvivesSaveAndReloa
 				m_iReloadPolls += 1;
 				if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
 				{
-					SetResultFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+					SetFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
 					return true;
 				}
 
@@ -2906,27 +2895,27 @@ class OVT_TEST_PersistenceRoundTrip_PlayerLastKnownPosition_SurvivesSaveAndReloa
 		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
 		if (restored != "")
 		{
-			SetResultFailure(restored);
+			SetFailure(restored);
 			return true;
 		}
 
 		OVT_PlayerData player = OVT_PlayerData.Get(m_sPersId);
 		if (!player)
 		{
-			SetResultFailure("OVT_PlayerData.Get() returned no record for the local player after the reload");
+			SetFailure("OVT_PlayerData.Get() returned no record for the local player after the reload");
 			return true;
 		}
 
 		if (player.m_vLastKnownPosition == vector.Zero)
 		{
-			SetResultFailure("The last known position came back as the zero vector - either the pre-save capture (OVT_PlayerManagerComponent.SyncPlayerBodyIds) did not run, or OVT_PlayerManagerSerializer is not carrying it. A player whose stored body cannot be found would be rebuilt at their home instead of where they logged out.");
+			SetFailure("The last known position came back as the zero vector - either the pre-save capture (OVT_PlayerManagerComponent.SyncPlayerBodyIds) did not run, or OVT_PlayerManagerSerializer is not carrying it. A player whose stored body cannot be found would be rebuilt at their home instead of where they logged out.");
 			return true;
 		}
 
 		float drift = vector.Distance(player.m_vLastKnownPosition, m_vExpected);
 		if (drift > POSITION_TOLERANCE)
 		{
-			SetResultFailure("The last known position came back as somewhere else: the body was at %1 when the save was taken, the record says %2 (%3 m away)",
+			SetFailure("The last known position came back as somewhere else: the body was at %1 when the save was taken, the record says %2 (%3 m away)",
 				m_vExpected.ToString(), player.m_vLastKnownPosition.ToString(), drift.ToString());
 			return true;
 		}
@@ -2934,7 +2923,6 @@ class OVT_TEST_PersistenceRoundTrip_PlayerLastKnownPosition_SurvivesSaveAndReloa
 		PrintFormat("Last known position round-tripped: body at %1, restored %2, facing %3",
 			m_vExpected.ToString(), player.m_vLastKnownPosition.ToString(), player.m_vLastKnownAngles.ToString());
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -2975,7 +2963,7 @@ class OVT_TEST_PersistenceRoundTrip_VehicleRegistry_SurvivesSaveAndReload : SCR_
 	protected string m_sPersId;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
@@ -2984,14 +2972,14 @@ class OVT_TEST_PersistenceRoundTrip_VehicleRegistry_SurvivesSaveAndReload : SCR_
 			m_sPersId = OVT_TEST_PersistenceSubject.ResolveLocalPersistentId(diagnostic);
 			if (m_sPersId == "")
 			{
-				SetResultFailure("Cannot resolve the persistent player ID: %1", diagnostic);
+				SetFailure("Cannot resolve the persistent player ID: %1", diagnostic);
 				return true;
 			}
 
 			OVT_VehicleManagerComponent vehicles = OVT_VehicleManagerComponent.GetInstance();
 			if (!vehicles)
 			{
-				SetResultFailure("OVT_VehicleManagerComponent.GetInstance() is null");
+				SetFailure("OVT_VehicleManagerComponent.GetInstance() is null");
 				return true;
 			}
 
@@ -3012,7 +3000,7 @@ class OVT_TEST_PersistenceRoundTrip_VehicleRegistry_SurvivesSaveAndReload : SCR_
 			string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
 			if (trigger != "")
 			{
-				SetResultFailure(trigger);
+				SetFailure(trigger);
 				return true;
 			}
 
@@ -3026,7 +3014,7 @@ class OVT_TEST_PersistenceRoundTrip_VehicleRegistry_SurvivesSaveAndReload : SCR_
 			int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
 			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
 			{
-				SetResultFailure(saveDiagnostic);
+				SetFailure(saveDiagnostic);
 				return true;
 			}
 
@@ -3035,7 +3023,7 @@ class OVT_TEST_PersistenceRoundTrip_VehicleRegistry_SurvivesSaveAndReload : SCR_
 				m_iSavePolls += 1;
 				if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
 				{
-					SetResultFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+					SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
 					return true;
 				}
 
@@ -3051,7 +3039,7 @@ class OVT_TEST_PersistenceRoundTrip_VehicleRegistry_SurvivesSaveAndReload : SCR_
 			OVT_VehicleManagerComponent vehicles = OVT_VehicleManagerComponent.GetInstance();
 			if (!vehicles || !vehicles.GetVehicleRecords())
 			{
-				SetResultFailure("The vehicle manager or its registry disappeared before the reload");
+				SetFailure("The vehicle manager or its registry disappeared before the reload");
 				return true;
 			}
 
@@ -3061,7 +3049,7 @@ class OVT_TEST_PersistenceRoundTrip_VehicleRegistry_SurvivesSaveAndReload : SCR_
 			string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
 			if (reload != "")
 			{
-				SetResultFailure(reload);
+				SetFailure(reload);
 				return true;
 			}
 
@@ -3076,7 +3064,7 @@ class OVT_TEST_PersistenceRoundTrip_VehicleRegistry_SurvivesSaveAndReload : SCR_
 				m_iReloadPolls += 1;
 				if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
 				{
-					SetResultFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+					SetFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
 					return true;
 				}
 
@@ -3090,21 +3078,21 @@ class OVT_TEST_PersistenceRoundTrip_VehicleRegistry_SurvivesSaveAndReload : SCR_
 		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
 		if (restored != "")
 		{
-			SetResultFailure(restored);
+			SetFailure(restored);
 			return true;
 		}
 
 		OVT_VehicleManagerComponent vehicles = OVT_VehicleManagerComponent.GetInstance();
 		if (!vehicles)
 		{
-			SetResultFailure("OVT_VehicleManagerComponent.GetInstance() is null after the reload");
+			SetFailure("OVT_VehicleManagerComponent.GetInstance() is null after the reload");
 			return true;
 		}
 
 		map<string, ref OVT_PersistedPlayerVehicle> live = vehicles.GetVehicleRecords();
 		if (!live || !live.Contains(SAVED_VEHICLE_ID))
 		{
-			SetResultFailure("The vehicle registration did not survive the round trip - id %1 is not registered after the reload. A vehicle despawned while its owner was offline would be unrecoverable after a server restart.",
+			SetFailure("The vehicle registration did not survive the round trip - id %1 is not registered after the reload. A vehicle despawned while its owner was offline would be unrecoverable after a server restart.",
 				SAVED_VEHICLE_ID);
 			return true;
 		}
@@ -3112,13 +3100,13 @@ class OVT_TEST_PersistenceRoundTrip_VehicleRegistry_SurvivesSaveAndReload : SCR_
 		OVT_PersistedPlayerVehicle record = live[SAVED_VEHICLE_ID];
 		if (!record)
 		{
-			SetResultFailure("The registry holds id %1 but the record behind it is null", SAVED_VEHICLE_ID);
+			SetFailure("The registry holds id %1 but the record behind it is null", SAVED_VEHICLE_ID);
 			return true;
 		}
 
 		if (record.ownerUid != m_sPersId)
 		{
-			SetResultFailure("The vehicle came back registered to the wrong owner: saved %1, read back %2",
+			SetFailure("The vehicle came back registered to the wrong owner: saved %1, read back %2",
 				m_sPersId, record.ownerUid);
 			return true;
 		}
@@ -3128,20 +3116,20 @@ class OVT_TEST_PersistenceRoundTrip_VehicleRegistry_SurvivesSaveAndReload : SCR_
 		// player's locked car comes back open.
 		if (record.prefab != SAVED_PREFAB)
 		{
-			SetResultFailure("The rebuild prefab did not survive: saved %1, read back %2", SAVED_PREFAB, record.prefab);
+			SetFailure("The rebuild prefab did not survive: saved %1, read back %2", SAVED_PREFAB, record.prefab);
 			return true;
 		}
 
 		if (record.position != SAVED_POSITION)
 		{
-			SetResultFailure("The parked position did not survive: saved %1, read back %2",
+			SetFailure("The parked position did not survive: saved %1, read back %2",
 				SAVED_POSITION.ToString(), record.position.ToString());
 			return true;
 		}
 
 		if (!record.locked)
 		{
-			SetResultFailure("The lock state did not survive: the vehicle was saved locked and came back unlocked");
+			SetFailure("The lock state did not survive: the vehicle was saved locked and came back unlocked");
 			return true;
 		}
 
@@ -3150,12 +3138,11 @@ class OVT_TEST_PersistenceRoundTrip_VehicleRegistry_SurvivesSaveAndReload : SCR_
 		array<string> ids = vehicles.GetPlayerVehicleIds(m_sPersId);
 		if (!ids || ids.Find(SAVED_VEHICLE_ID) == -1)
 		{
-			SetResultFailure("The record came back but the owner index did not: RespawnPlayerVehicles() iterates GetPlayerVehicleIds(), which does not list %1",
+			SetFailure("The record came back but the owner index did not: RespawnPlayerVehicles() iterates GetPlayerVehicleIds(), which does not list %1",
 				SAVED_VEHICLE_ID);
 			return true;
 		}
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -3278,7 +3265,7 @@ class OVT_TEST_PersistenceRoundTrip_JobBoard_SurvivesSaveAndReload : SCR_Autotes
 	protected int m_iTownId;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
@@ -3310,7 +3297,7 @@ class OVT_TEST_PersistenceRoundTrip_JobBoard_SurvivesSaveAndReload : SCR_Autotes
 		OVT_JobManagerComponent jobs = OVT_Global.GetJobs();
 		if (!jobs)
 		{
-			SetResultFailure("OVT_Global.GetJobs() is null");
+			SetFailure("OVT_Global.GetJobs() is null");
 			return true;
 		}
 
@@ -3318,7 +3305,7 @@ class OVT_TEST_PersistenceRoundTrip_JobBoard_SurvivesSaveAndReload : SCR_Autotes
 		OVT_TownData town = OVT_TEST_PersistenceSubject.ResolveFirstTown(m_iTownId, diagnostic);
 		if (!town)
 		{
-			SetResultFailure("Cannot resolve a town for the town-scoped jobs: %1", diagnostic);
+			SetFailure("Cannot resolve a town for the town-scoped jobs: %1", diagnostic);
 			return true;
 		}
 
@@ -3327,14 +3314,14 @@ class OVT_TEST_PersistenceRoundTrip_JobBoard_SurvivesSaveAndReload : SCR_Autotes
 		int indexC = jobs.FindJobIndexById(JOB_ID_C);
 		if (indexA < 0 || indexB < 0 || indexC < 0)
 		{
-			SetResultFailure(string.Format("A job this case seeds is not configured: '%1' -> %2, '%3' -> %4, '%5' -> %6. Every one of these is a surviving job and must resolve.",
+			SetFailure(string.Format("A job this case seeds is not configured: '%1' -> %2, '%3' -> %4, '%5' -> %6. Every one of these is a surviving job and must resolve.",
 				JOB_ID_A, indexA.ToString(), JOB_ID_B, indexB.ToString(), JOB_ID_C, indexC.ToString()));
 			return true;
 		}
 
 		if (!jobs.m_aJobs || !jobs.m_aJobCounts || !jobs.m_mPlayerJobCounts)
 		{
-			SetResultFailure("The job manager's board or counter maps are null - it was never initialised");
+			SetFailure("The job manager's board or counter maps are null - it was never initialised");
 			return true;
 		}
 
@@ -3389,7 +3376,7 @@ class OVT_TEST_PersistenceRoundTrip_JobBoard_SurvivesSaveAndReload : SCR_Autotes
 		string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
 		if (trigger != "")
 		{
-			SetResultFailure(trigger);
+			SetFailure(trigger);
 			return true;
 		}
 
@@ -3406,7 +3393,7 @@ class OVT_TEST_PersistenceRoundTrip_JobBoard_SurvivesSaveAndReload : SCR_Autotes
 		int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
 		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
 		{
-			SetResultFailure(saveDiagnostic);
+			SetFailure(saveDiagnostic);
 			return true;
 		}
 
@@ -3415,7 +3402,7 @@ class OVT_TEST_PersistenceRoundTrip_JobBoard_SurvivesSaveAndReload : SCR_Autotes
 			m_iSavePolls += 1;
 			if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
 			{
-				SetResultFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+				SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
 				return true;
 			}
 
@@ -3438,7 +3425,7 @@ class OVT_TEST_PersistenceRoundTrip_JobBoard_SurvivesSaveAndReload : SCR_Autotes
 		OVT_JobManagerComponent jobs = OVT_Global.GetJobs();
 		if (!jobs || !jobs.m_aJobs || !jobs.m_aJobCounts || !jobs.m_mPlayerJobCounts)
 		{
-			SetResultFailure("The job manager or one of its collections is null before the reload");
+			SetFailure("The job manager or one of its collections is null before the reload");
 			return true;
 		}
 
@@ -3451,7 +3438,7 @@ class OVT_TEST_PersistenceRoundTrip_JobBoard_SurvivesSaveAndReload : SCR_Autotes
 		OVT_Job jobC = FindMarkedJob(jobs, 3);
 		if (!jobA || !jobB || !jobC)
 		{
-			SetResultFailure("A seeded job disappeared from the board between the seed and the save - nothing in the manager should be able to remove these (see this case's header)");
+			SetFailure("A seeded job disappeared from the board between the seed and the save - nothing in the manager should be able to remove these (see this case's header)");
 			return true;
 		}
 
@@ -3470,7 +3457,7 @@ class OVT_TEST_PersistenceRoundTrip_JobBoard_SurvivesSaveAndReload : SCR_Autotes
 		string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
 		if (reload != "")
 		{
-			SetResultFailure(reload);
+			SetFailure(reload);
 			return true;
 		}
 
@@ -3488,7 +3475,7 @@ class OVT_TEST_PersistenceRoundTrip_JobBoard_SurvivesSaveAndReload : SCR_Autotes
 			m_iReloadPolls += 1;
 			if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
 			{
-				SetResultFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+				SetFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
 				return true;
 			}
 
@@ -3507,14 +3494,14 @@ class OVT_TEST_PersistenceRoundTrip_JobBoard_SurvivesSaveAndReload : SCR_Autotes
 		string failure = CheckEverythingCameBack("after the reload");
 		if (failure != "")
 		{
-			SetResultFailure(failure);
+			SetFailure(failure);
 			return true;
 		}
 
 		string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
 		if (reload != "")
 		{
-			SetResultFailure(reload);
+			SetFailure(reload);
 			return true;
 		}
 
@@ -3532,7 +3519,7 @@ class OVT_TEST_PersistenceRoundTrip_JobBoard_SurvivesSaveAndReload : SCR_Autotes
 			m_iSecondReloadPolls += 1;
 			if (m_iSecondReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
 			{
-				SetResultFailure("The second re-application never completed after %1 polls", m_iSecondReloadPolls.ToString());
+				SetFailure("The second re-application never completed after %1 polls", m_iSecondReloadPolls.ToString());
 				return true;
 			}
 
@@ -3551,13 +3538,12 @@ class OVT_TEST_PersistenceRoundTrip_JobBoard_SurvivesSaveAndReload : SCR_Autotes
 		string failure = CheckEverythingCameBack("after the SAME payload was applied a second time");
 		if (failure != "")
 		{
-			SetResultFailure(failure);
+			SetFailure(failure);
 			return true;
 		}
 
 		Print("Job board round trip: 3 records back on their own configs with stage, owner, location and declines intact; both counter maps intact; a second application of the same payload changed nothing");
 
-		SetResultSuccess();
 		return true;
 	}
 

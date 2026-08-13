@@ -36,19 +36,19 @@ class OVT_TEST_Campaign_Tutorial_SpawnTriggerSurvivesCampaignStart : SCR_Autotes
 	protected int m_iPolls;
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_OverthrowGameMode mode = OVT_Global.GetOverthrow();
 		if (!mode)
 		{
-			SetResultFailure("OVT_Global.GetOverthrow() is null in a campaign-tier case");
+			SetFailure("OVT_Global.GetOverthrow() is null in a campaign-tier case");
 			return true;
 		}
 
 		if (!mode.HasGameStarted())
 		{
-			SetResultFailure("HasGameStarted() is false in a campaign-tier case - see OVT_TEST_Campaign_GameMode_IsStartedAndInitialized");
+			SetFailure("HasGameStarted() is false in a campaign-tier case - see OVT_TEST_Campaign_GameMode_IsStartedAndInitialized");
 			return true;
 		}
 
@@ -57,27 +57,26 @@ class OVT_TEST_Campaign_Tutorial_SpawnTriggerSurvivesCampaignStart : SCR_Autotes
 		// case would pass vacuously forever.
 		if (!HasLocalPlayerCharacter())
 		{
-			SetResultFailure("No local player character is possessed in the test world, so the client-local PLAYER_SPAWNED trigger is not owed to anybody and this case cannot measure anything");
+			SetFailure("No local player character is possessed in the test world, so the client-local PLAYER_SPAWNED trigger is not owed to anybody and this case cannot measure anything");
 			return true;
 		}
 
 		if (!OVT_Global.GetTutorials())
 		{
-			SetResultFailure("The local player has no OVT_TutorialComponent - OVT_Global.GetTutorials() is null, so there is nothing on this machine that could receive a client-local trigger. Check Prefabs/GameMode/OVT_OverthrowController.et still carries the component");
+			SetFailure("The local player has no OVT_TutorialComponent - OVT_Global.GetTutorials() is null, so there is nothing on this machine that could receive a client-local trigger. Check Prefabs/GameMode/OVT_OverthrowController.et still carries the component");
 			return true;
 		}
 
 		if (mode.HasDeliveredSpawnTutorialTrigger())
 		{
 			PrintFormat("PLAYER_SPAWNED was delivered to the local tutorial pipeline after %1 poll(s), although the local player was possessed before the campaign started", m_iPolls.ToString());
-			SetResultSuccess();
 			return true;
 		}
 
 		m_iPolls += 1;
 		if (m_iPolls > MAX_POLLS)
 		{
-			SetResultFailure("The local player was possessed BEFORE the campaign started (the new-campaign order: OVT_SpawnLogic.DoSpawn_S possesses, Start Game follows) and the PLAYER_SPAWNED tutorial trigger was still never delivered after %1 polls. welcome-intro - and every other PLAYER_SPAWNED entry - can never appear for a player who started the campaign. The push is owed from OnPlayerSpawnedLocal and must be re-tried once the campaign is actually running.",
+			SetFailure("The local player was possessed BEFORE the campaign started (the new-campaign order: OVT_SpawnLogic.DoSpawn_S possesses, Start Game follows) and the PLAYER_SPAWNED tutorial trigger was still never delivered after %1 polls. welcome-intro - and every other PLAYER_SPAWNED entry - can never appear for a player who started the campaign. The push is owed from OnPlayerSpawnedLocal and must be re-tried once the campaign is actually running.",
 				m_iPolls.ToString());
 			return true;
 		}

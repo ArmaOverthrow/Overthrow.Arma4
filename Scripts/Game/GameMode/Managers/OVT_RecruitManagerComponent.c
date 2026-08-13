@@ -1790,7 +1790,9 @@ class OVT_RecruitManagerComponent : OVT_Component
 		// ladder, no dependency on the owner's client being responsive. AddAIToSlaveGroup
 		// broadcasts membership itself (AskAddAiMemberToGroup -> RPC_DoAddAIMemberToGroup), so
 		// every machine still learns the recruit is a group member.
-		groupController.AddAIToSlaveGroup(recruitEntity, group);
+		SCR_ChimeraCharacter recruitCharacter = SCR_ChimeraCharacter.Cast(recruitEntity);
+		if (recruitCharacter)
+			groupController.AddAIToSlaveGroup(recruitCharacter, group);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1874,7 +1876,11 @@ class OVT_RecruitManagerComponent : OVT_Component
 			// slaveGroup.AddAgentFromControlledEntity() plus AskAddAiMemberToGroup(), and the latter
 			// broadcasts membership to every machine itself
 			// (Groups/SCR_PlayerControllerGroupComponent.c:1470-1495).
-			groupController.AddAIToSlaveGroup(recruitEntity, targetGroup);
+			SCR_ChimeraCharacter recruitCharacter = SCR_ChimeraCharacter.Cast(recruitEntity);
+			if (!recruitCharacter)
+				continue;
+
+			groupController.AddAIToSlaveGroup(recruitCharacter, targetGroup);
 			moved++;
 		}
 

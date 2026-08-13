@@ -47,7 +47,7 @@ class OVT_TEST_Logic_TravelDestination : SCR_AutotestCaseBase
 	protected static const vector CANDIDATE_B = "1500 0 1000";
 
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		vector matched;
@@ -56,14 +56,14 @@ class OVT_TEST_Logic_TravelDestination : SCR_AutotestCaseBase
 		array<vector> empty = new array<vector>();
 		if (OVT_FastTravelService.MatchesAnyPosition(empty, CANDIDATE_A, matched))
 		{
-			SetResultFailure("An empty candidate set matched a destination - a server with no enumerated locations must refuse every trip, not permit every trip");
+			SetFailure("An empty candidate set matched a destination - a server with no enumerated locations must refuse every trip, not permit every trip");
 			return true;
 		}
 
 		// And it must not leave a stale vector behind for a caller that ignores the bool.
 		if (matched != vector.Zero)
 		{
-			SetResultFailure("A refused match returned %1 rather than vector.Zero", matched.ToString());
+			SetFailure("A refused match returned %1 rather than vector.Zero", matched.ToString());
 			return true;
 		}
 
@@ -116,19 +116,19 @@ class OVT_TEST_Logic_TravelDestination : SCR_AutotestCaseBase
 		offset[0] = offset[0] + (tol * 0.5);
 		if (!OVT_FastTravelService.MatchesAnyPosition(candidates, offset, matched))
 		{
-			SetResultFailure("A target half a tolerance from CANDIDATE_B did not match");
+			SetFailure("A target half a tolerance from CANDIDATE_B did not match");
 			return true;
 		}
 
 		if (matched == offset)
 		{
-			SetResultFailure("MatchesAnyPosition returned the CALLER's vector %1 - it must return the server's own candidate, or a client can nudge its arrival point anywhere within the tolerance", matched.ToString());
+			SetFailure("MatchesAnyPosition returned the CALLER's vector %1 - it must return the server's own candidate, or a client can nudge its arrival point anywhere within the tolerance", matched.ToString());
 			return true;
 		}
 
 		if (matched != CANDIDATE_B)
 		{
-			SetResultFailure("A near miss on CANDIDATE_B resolved to %1, expected %2", matched.ToString(), CANDIDATE_B.ToString());
+			SetFailure("A near miss on CANDIDATE_B resolved to %1, expected %2", matched.ToString(), CANDIDATE_B.ToString());
 			return true;
 		}
 
@@ -140,7 +140,6 @@ class OVT_TEST_Logic_TravelDestination : SCR_AutotestCaseBase
 		if (!ExpectMatch(overlapping, CANDIDATE_A, CANDIDATE_A, "two identical candidates"))
 			return true;
 
-		SetResultSuccess();
 		return true;
 	}
 
@@ -158,13 +157,13 @@ class OVT_TEST_Logic_TravelDestination : SCR_AutotestCaseBase
 		vector matched;
 		if (!OVT_FastTravelService.MatchesAnyPosition(candidates, target, matched))
 		{
-			SetResultFailure("%1 was refused, expected a match", what);
+			SetFailure("%1 was refused, expected a match", what);
 			return false;
 		}
 
 		if (matched != expected)
 		{
-			SetResultFailure("%1 resolved to %2, expected the server's candidate %3", what, matched.ToString(), expected.ToString());
+			SetFailure("%1 resolved to %2, expected the server's candidate %3", what, matched.ToString(), expected.ToString());
 			return false;
 		}
 
@@ -182,13 +181,13 @@ class OVT_TEST_Logic_TravelDestination : SCR_AutotestCaseBase
 		vector matched;
 		if (OVT_FastTravelService.MatchesAnyPosition(candidates, target, matched))
 		{
-			SetResultFailure("%1 matched and resolved to %2, expected a refusal", what, matched.ToString());
+			SetFailure("%1 matched and resolved to %2, expected a refusal", what, matched.ToString());
 			return false;
 		}
 
 		if (matched != vector.Zero)
 		{
-			SetResultFailure("%1 was refused but left %2 behind rather than vector.Zero", what, matched.ToString());
+			SetFailure("%1 was refused but left %2 behind rather than vector.Zero", what, matched.ToString());
 			return false;
 		}
 

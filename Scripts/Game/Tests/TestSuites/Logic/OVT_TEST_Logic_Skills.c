@@ -34,21 +34,21 @@
 class OVT_TEST_Logic_Skills_EffectsWriteOnlyTheirOwnField : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		// A fresh record starts at the neutral values every effect is measured against.
 		OVT_PlayerData fresh = new OVT_PlayerData();
 		if (!OVT_TEST_LogicFixture.FloatEquals(fresh.priceMultiplier, 1) || !OVT_TEST_LogicFixture.FloatEquals(fresh.stealthMultiplier, 1))
 		{
-			SetResultFailure("A fresh player record starts at priceMultiplier %1 / stealthMultiplier %2, expected 1 / 1",
+			SetFailure("A fresh player record starts at priceMultiplier %1 / stealthMultiplier %2, expected 1 / 1",
 				fresh.priceMultiplier.ToString(), fresh.stealthMultiplier.ToString());
 			return true;
 		}
 
 		if (!OVT_TEST_LogicFixture.FloatEquals(fresh.diplomacy, 0.1))
 		{
-			SetResultFailure("A fresh player record starts at diplomacy %1, expected 0.1", fresh.diplomacy.ToString());
+			SetFailure("A fresh player record starts at diplomacy %1, expected 0.1", fresh.diplomacy.ToString());
 			return true;
 		}
 
@@ -60,14 +60,14 @@ class OVT_TEST_Logic_Skills_EffectsWriteOnlyTheirOwnField : SCR_AutotestCaseBase
 
 		if (!OVT_TEST_LogicFixture.FloatEquals(trader.priceMultiplier, 0.75))
 		{
-			SetResultFailure("A 0.25 trade discount left priceMultiplier at %1, expected 0.75", trader.priceMultiplier.ToString());
+			SetFailure("A 0.25 trade discount left priceMultiplier at %1, expected 0.75", trader.priceMultiplier.ToString());
 			return true;
 		}
 
 		string traderSpill = FindSpill(trader, true, false, false, false);
 		if (traderSpill != "")
 		{
-			SetResultFailure("The trade discount effect also wrote %1", traderSpill);
+			SetFailure("The trade discount effect also wrote %1", traderSpill);
 			return true;
 		}
 
@@ -81,14 +81,14 @@ class OVT_TEST_Logic_Skills_EffectsWriteOnlyTheirOwnField : SCR_AutotestCaseBase
 
 		if (!OVT_TEST_LogicFixture.FloatEquals(sneak.stealthMultiplier, 0.6))
 		{
-			SetResultFailure("A 0.4 distance multiplier left stealthMultiplier at %1, expected 0.6", sneak.stealthMultiplier.ToString());
+			SetFailure("A 0.4 distance multiplier left stealthMultiplier at %1, expected 0.6", sneak.stealthMultiplier.ToString());
 			return true;
 		}
 
 		string sneakSpill = FindSpill(sneak, false, true, false, false);
 		if (sneakSpill != "")
 		{
-			SetResultFailure("The stealth effect also wrote %1", sneakSpill);
+			SetFailure("The stealth effect also wrote %1", sneakSpill);
 			return true;
 		}
 
@@ -96,7 +96,7 @@ class OVT_TEST_Logic_Skills_EffectsWriteOnlyTheirOwnField : SCR_AutotestCaseBase
 		// the player record at all - they are pulled by the detection code when it needs them.
 		if (!OVT_TEST_LogicFixture.FloatEquals(stealth.GetDetectionTimeBonus(), 0.3) || !OVT_TEST_LogicFixture.FloatEquals(stealth.GetDisguiseBonus(), 0.2))
 		{
-			SetResultFailure("Stealth accessors returned detection %1 / disguise %2, expected 0.3 / 0.2",
+			SetFailure("Stealth accessors returned detection %1 / disguise %2, expected 0.3 / 0.2",
 				stealth.GetDetectionTimeBonus().ToString(), stealth.GetDisguiseBonus().ToString());
 			return true;
 		}
@@ -110,14 +110,14 @@ class OVT_TEST_Logic_Skills_EffectsWriteOnlyTheirOwnField : SCR_AutotestCaseBase
 
 		if (!OVT_TEST_LogicFixture.FloatEquals(diplomat.diplomacy, 0.35))
 		{
-			SetResultFailure("A 0.35 support chance left diplomacy at %1, expected 0.35", diplomat.diplomacy.ToString());
+			SetFailure("A 0.35 support chance left diplomacy at %1, expected 0.35", diplomat.diplomacy.ToString());
 			return true;
 		}
 
 		string diplomatSpill = FindSpill(diplomat, false, false, true, false);
 		if (diplomatSpill != "")
 		{
-			SetResultFailure("The support effect also wrote %1", diplomatSpill);
+			SetFailure("The support effect also wrote %1", diplomatSpill);
 			return true;
 		}
 
@@ -130,20 +130,19 @@ class OVT_TEST_Logic_Skills_EffectsWriteOnlyTheirOwnField : SCR_AutotestCaseBase
 
 		if (!officer.HasPermission("OVT_TEST_PERMISSION"))
 		{
-			SetResultFailure("The permission effect did not grant OVT_TEST_PERMISSION");
+			SetFailure("The permission effect did not grant OVT_TEST_PERMISSION");
 			return true;
 		}
 
 		string officerSpill = FindSpill(officer, false, false, false, true);
 		if (officerSpill != "")
 		{
-			SetResultFailure("The permission effect also wrote %1", officerSpill);
+			SetFailure("The permission effect also wrote %1", officerSpill);
 			return true;
 		}
 
 		Print("Skill effects: trade -> priceMultiplier, stealth -> stealthMultiplier, support -> diplomacy, permission -> permissions; no cross-writes");
 
-		SetResultSuccess();
 		return true;
 	}
 
@@ -186,7 +185,7 @@ class OVT_TEST_Logic_Skills_EffectsWriteOnlyTheirOwnField : SCR_AutotestCaseBase
 class OVT_TEST_Logic_Skills_GivePermissionIsIdempotent : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_PlayerData player = new OVT_PlayerData();
@@ -197,7 +196,7 @@ class OVT_TEST_Logic_Skills_GivePermissionIsIdempotent : SCR_AutotestCaseBase
 
 		if (player.HasPermission("OVT_TEST_PERMISSION"))
 		{
-			SetResultFailure("A fresh player record already holds OVT_TEST_PERMISSION");
+			SetFailure("A fresh player record already holds OVT_TEST_PERMISSION");
 			return true;
 		}
 
@@ -207,13 +206,13 @@ class OVT_TEST_Logic_Skills_GivePermissionIsIdempotent : SCR_AutotestCaseBase
 
 		if (!player.HasPermission("OVT_TEST_PERMISSION"))
 		{
-			SetResultFailure("OVT_TEST_PERMISSION was not granted at all");
+			SetFailure("OVT_TEST_PERMISSION was not granted at all");
 			return true;
 		}
 
 		if (player.permissions.Count() != 1)
 		{
-			SetResultFailure("Applying the same permission effect three times left %1 permissions, expected 1", player.permissions.Count().ToString());
+			SetFailure("Applying the same permission effect three times left %1 permissions, expected 1", player.permissions.Count().ToString());
 			return true;
 		}
 
@@ -225,25 +224,24 @@ class OVT_TEST_Logic_Skills_GivePermissionIsIdempotent : SCR_AutotestCaseBase
 
 		if (player.permissions.Count() != 2)
 		{
-			SetResultFailure("Granting a second, different permission left %1 permissions, expected 2", player.permissions.Count().ToString());
+			SetFailure("Granting a second, different permission left %1 permissions, expected 2", player.permissions.Count().ToString());
 			return true;
 		}
 
 		if (!player.HasPermission("OVT_TEST_PERMISSION") || !player.HasPermission("OVT_TEST_OTHER_PERMISSION"))
 		{
-			SetResultFailure("One of the two granted permissions is missing after granting the second");
+			SetFailure("One of the two granted permissions is missing after granting the second");
 			return true;
 		}
 
 		if (player.HasPermission("OVT_TEST_NEVER_GRANTED"))
 		{
-			SetResultFailure("HasPermission() reported a permission that was never granted");
+			SetFailure("HasPermission() reported a permission that was never granted");
 			return true;
 		}
 
 		Print("GivePermission: three applications leave one entry, a second permission adds a second entry");
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -261,7 +259,7 @@ class OVT_TEST_Logic_Skills_GivePermissionIsIdempotent : SCR_AutotestCaseBase
 class OVT_TEST_Logic_Player_LevelAccessors : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_PlayerData player = new OVT_PlayerData();
@@ -274,39 +272,39 @@ class OVT_TEST_Logic_Player_LevelAccessors : SCR_AutotestCaseBase
 		// A brand-new player is level 1 with no xp.
 		if (!OVT_TEST_LogicFixture.FloatEquals(player.GetRawLevel(), 1))
 		{
-			SetResultFailure("GetRawLevel() with 0 xp returned %1, expected 1", player.GetRawLevel().ToString());
+			SetFailure("GetRawLevel() with 0 xp returned %1, expected 1", player.GetRawLevel().ToString());
 			return true;
 		}
 
 		if (player.GetLevel() != 1)
 		{
-			SetResultFailure("GetLevel() with 0 xp returned %1, expected 1", player.GetLevel().ToString());
+			SetFailure("GetLevel() with 0 xp returned %1, expected 1", player.GetLevel().ToString());
 			return true;
 		}
 
 		// The thresholds are the inverse of the curve: level n + 1 is reached at (n / 0.1)^2 xp.
 		if (player.GetLevelXP(0) != 0)
 		{
-			SetResultFailure("GetLevelXP(0) returned %1, expected 0", player.GetLevelXP(0).ToString());
+			SetFailure("GetLevelXP(0) returned %1, expected 0", player.GetLevelXP(0).ToString());
 			return true;
 		}
 
 		if (player.GetLevelXP(1) != 100)
 		{
-			SetResultFailure("GetLevelXP(1) returned %1, expected 100", player.GetLevelXP(1).ToString());
+			SetFailure("GetLevelXP(1) returned %1, expected 100", player.GetLevelXP(1).ToString());
 			return true;
 		}
 
 		if (player.GetLevelXP(2) != 400)
 		{
-			SetResultFailure("GetLevelXP(2) returned %1, expected 400", player.GetLevelXP(2).ToString());
+			SetFailure("GetLevelXP(2) returned %1, expected 400", player.GetLevelXP(2).ToString());
 			return true;
 		}
 
 		// GetNextLevelXP() is the threshold of the level the player is currently on.
 		if (player.GetNextLevelXP() != 100)
 		{
-			SetResultFailure("GetNextLevelXP() at 0 xp returned %1, expected 100", player.GetNextLevelXP().ToString());
+			SetFailure("GetNextLevelXP() at 0 xp returned %1, expected 100", player.GetNextLevelXP().ToString());
 			return true;
 		}
 
@@ -314,33 +312,33 @@ class OVT_TEST_Logic_Player_LevelAccessors : SCR_AutotestCaseBase
 		player.xp = 150;
 		if (player.GetLevel() != 2)
 		{
-			SetResultFailure("GetLevel() with 150 xp returned %1, expected 2", player.GetLevel().ToString());
+			SetFailure("GetLevel() with 150 xp returned %1, expected 2", player.GetLevel().ToString());
 			return true;
 		}
 
 		if (!OVT_TEST_LogicFixture.FloatEquals(player.GetRawLevel(), 1 + (0.1 * Math.Sqrt(150))))
 		{
-			SetResultFailure("GetRawLevel() with 150 xp returned %1, which is not 1 + 0.1 * sqrt(150)", player.GetRawLevel().ToString());
+			SetFailure("GetRawLevel() with 150 xp returned %1, which is not 1 + 0.1 * sqrt(150)", player.GetRawLevel().ToString());
 			return true;
 		}
 
 		if (player.GetNextLevelXP() != 400)
 		{
-			SetResultFailure("GetNextLevelXP() at 150 xp (level 2) returned %1, expected 400", player.GetNextLevelXP().ToString());
+			SetFailure("GetNextLevelXP() at 150 xp (level 2) returned %1, expected 400", player.GetNextLevelXP().ToString());
 			return true;
 		}
 
 		player.xp = 500;
 		if (player.GetLevel() != 3)
 		{
-			SetResultFailure("GetLevel() with 500 xp returned %1, expected 3", player.GetLevel().ToString());
+			SetFailure("GetLevel() with 500 xp returned %1, expected 3", player.GetLevel().ToString());
 			return true;
 		}
 
 		// CountSkills sums the LEVELS held across every skill, not the number of skills.
 		if (player.CountSkills() != 0)
 		{
-			SetResultFailure("CountSkills() on a player with no skills returned %1, expected 0", player.CountSkills().ToString());
+			SetFailure("CountSkills() on a player with no skills returned %1, expected 0", player.CountSkills().ToString());
 			return true;
 		}
 
@@ -349,13 +347,12 @@ class OVT_TEST_Logic_Player_LevelAccessors : SCR_AutotestCaseBase
 
 		if (player.CountSkills() != 5)
 		{
-			SetResultFailure("CountSkills() with skill levels 2 and 3 returned %1, expected 5", player.CountSkills().ToString());
+			SetFailure("CountSkills() with skill levels 2 and 3 returned %1, expected 5", player.CountSkills().ToString());
 			return true;
 		}
 
 		Print("Level accessors: curve, thresholds and skill count all as specified");
 
-		SetResultSuccess();
 		return true;
 	}
 }
@@ -382,7 +379,7 @@ class OVT_TEST_Logic_Player_LevelAccessors : SCR_AutotestCaseBase
 class OVT_TEST_Logic_Player_LevelProgress_IsFractionalWithinTheLevel : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
-	[Step(EStage.Main)]
+	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_PlayerData player = new OVT_PlayerData();
@@ -391,7 +388,7 @@ class OVT_TEST_Logic_Player_LevelProgress_IsFractionalWithinTheLevel : SCR_Autot
 		player.xp = 0;
 		if (!OVT_TEST_LogicFixture.FloatEquals(player.GetLevelProgress(), 0))
 		{
-			SetResultFailure("GetLevelProgress() at 0 xp returned %1, expected 0", player.GetLevelProgress().ToString());
+			SetFailure("GetLevelProgress() at 0 xp returned %1, expected 0", player.GetLevelProgress().ToString());
 			return true;
 		}
 
@@ -400,14 +397,14 @@ class OVT_TEST_Logic_Player_LevelProgress_IsFractionalWithinTheLevel : SCR_Autot
 		float halfway = ExpectedProgress(player);
 		if (!OVT_TEST_LogicFixture.FloatEquals(player.GetLevelProgress(), halfway))
 		{
-			SetResultFailure("GetLevelProgress() at 50 xp returned %1, expected %2",
+			SetFailure("GetLevelProgress() at 50 xp returned %1, expected %2",
 				player.GetLevelProgress().ToString(), halfway.ToString());
 			return true;
 		}
 
 		if (!OVT_TEST_LogicFixture.FloatEquals(halfway, 0.5))
 		{
-			SetResultFailure("The level curve moved: 50 xp is now %1 of the way through level 1, not 0.5", halfway.ToString());
+			SetFailure("The level curve moved: 50 xp is now %1 of the way through level 1, not 0.5", halfway.ToString());
 			return true;
 		}
 
@@ -416,7 +413,7 @@ class OVT_TEST_Logic_Player_LevelProgress_IsFractionalWithinTheLevel : SCR_Autot
 		float deepIntoLevel = ExpectedProgress(player);
 		if (!OVT_TEST_LogicFixture.FloatEquals(player.GetLevelProgress(), deepIntoLevel))
 		{
-			SetResultFailure("GetLevelProgress() at 350 xp returned %1, expected %2",
+			SetFailure("GetLevelProgress() at 350 xp returned %1, expected %2",
 				player.GetLevelProgress().ToString(), deepIntoLevel.ToString());
 			return true;
 		}
@@ -426,14 +423,14 @@ class OVT_TEST_Logic_Player_LevelProgress_IsFractionalWithinTheLevel : SCR_Autot
 		float almostThere = player.GetLevelProgress();
 		if (!OVT_TEST_LogicFixture.FloatEquals(almostThere, ExpectedProgress(player)))
 		{
-			SetResultFailure("GetLevelProgress() at 399 xp returned %1, expected %2",
+			SetFailure("GetLevelProgress() at 399 xp returned %1, expected %2",
 				almostThere.ToString(), ExpectedProgress(player).ToString());
 			return true;
 		}
 
 		if (almostThere >= 1 || almostThere <= deepIntoLevel)
 		{
-			SetResultFailure("Progress did not rise with xp inside a level: 350 xp gave %1 and 399 xp gave %2, and the latter must be between the former and 1",
+			SetFailure("Progress did not rise with xp inside a level: 350 xp gave %1 and 399 xp gave %2, and the latter must be between the former and 1",
 				deepIntoLevel.ToString(), almostThere.ToString());
 			return true;
 		}
@@ -441,7 +438,6 @@ class OVT_TEST_Logic_Player_LevelProgress_IsFractionalWithinTheLevel : SCR_Autot
 		PrintFormat("Level progress: 50 xp -> %1, 350 xp -> %2, 399 xp -> %3",
 			halfway.ToString(), deepIntoLevel.ToString(), almostThere.ToString());
 
-		SetResultSuccess();
 		return true;
 	}
 
