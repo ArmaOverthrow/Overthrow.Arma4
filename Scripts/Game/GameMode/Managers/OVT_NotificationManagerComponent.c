@@ -26,35 +26,6 @@ class OVT_NotificationData : Managed
 }
 
 //------------------------------------------------------------------------------------------------
-//! Handles callbacks for Discord webhook REST API calls.
-sealed class OVT_DiscordWebhookCallback : RestCallback
-{
-	//------------------------------------------------------------------------------------------------
-	//! Called when the REST API call is successful.
-	//! \param data The response data from the server.
-	//! \param dataSize The size of the response data.
-	override void OnSuccess(string data, int dataSize)
-	{
-		Print("Web Hook Success");
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	//! Called when the REST API call encounters an error.
-	//! \param errorCode The error code returned by the API.
-	override void OnError(int errorCode)
-	{
-		Print("Web Hook Error: " + errorCode.ToString());
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Called when the REST API call times out.
-	override void OnTimeout()
-	{
-		Print("Web Hook Timeout");
-	}
-}
-
-//------------------------------------------------------------------------------------------------
 //! Manages sending and displaying notifications to players and external systems like Discord.
 //! Handles both in-game text notifications and external webhook posts.
 class OVT_NotificationManagerComponent: OVT_Component
@@ -148,8 +119,30 @@ class OVT_NotificationManagerComponent: OVT_Component
 		if(config.m_ConfigFile && config.m_ConfigFile.discordWebHookURL.StartsWith("http"))
 		{
 			RestContext context = GetGame().GetRestApi().GetContext(config.m_ConfigFile.discordWebHookURL);
-			int result = context.POST(new OVT_DiscordWebhookCallback(),"","content="+localized);
-		}		
+			RestCallback callback = new RestCallback();
+			callback.SetOnSuccess(OnWebhookSuccess);
+			callback.SetOnError(OnWebhookError);
+			int result = context.POST(callback,"","content="+localized);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Called when a Discord webhook REST API call is successful.
+	protected void OnWebhookSuccess(RestCallback cb)
+	{
+		Print("Web Hook Success");
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Called when a Discord webhook REST API call fails or times out.
+	protected void OnWebhookError(RestCallback cb)
+	{
+		if (cb.GetRestResult() == ERestResult.EREST_ERROR_TIMEOUT)
+		{
+			Print("Web Hook Timeout");
+			return;
+		}
+		Print("Web Hook Error: " + typename.EnumToString(ERestResult, cb.GetRestResult()));
 	}
 	
 	//------------------------------------------------------------------------------------------------

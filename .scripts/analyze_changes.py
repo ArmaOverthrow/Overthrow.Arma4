@@ -2,12 +2,17 @@
 
 import json
 import os
+import sys
 from pathlib import Path
 
-def analyze_detailed_changes():
+DEFAULT_RESULTS = Path(__file__).resolve().parent.parent / ".tmp" / "reforger-compare" / "version_comparison_results.json"
+
+def analyze_detailed_changes(results_path=None):
     """Analyze the comparison results in detail"""
-    
-    with open('version_comparison_results.json', 'r') as f:
+
+    if results_path is None:
+        results_path = DEFAULT_RESULTS
+    with open(results_path, 'r') as f:
         data = json.load(f)
     
     print("="*60)
@@ -89,4 +94,7 @@ def analyze_detailed_changes():
                 print(f"    - {f.split('/')[-1]}")
 
 if __name__ == "__main__":
-    analyze_detailed_changes()
+    path = None
+    if len(sys.argv) > 1:
+        path = sys.argv[1]
+    analyze_detailed_changes(path)

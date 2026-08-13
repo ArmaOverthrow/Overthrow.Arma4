@@ -1672,7 +1672,7 @@ class OVT_PlayerCommsComponent: OVT_Component
 		playerController.SetPossessedEntity(targetEntity);
 		
 		// Notify the specific client to open inventory
-		RplId playerControllerId = Replication.FindId(playerController);
+		RplId playerControllerId = Replication.FindItemId(playerController);
 		RpcDo_OpenInventory(targetEntityId, playerId, playerControllerId);
 		Rpc(RpcDo_OpenInventory, targetEntityId, playerId, playerControllerId);
 	}

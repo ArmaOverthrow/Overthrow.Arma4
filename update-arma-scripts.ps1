@@ -2,7 +2,10 @@
 # This script extracts .pak files from Arma Reforger and copies the needed files to the project
 
 param(
-    [switch]$SkipExtraction = $false
+    [switch]$SkipExtraction = $false,
+    # Human-readable version label (e.g. "1.8.0") recorded in the tree's .version.json
+    # and used to name the archive folder when this version is later superseded.
+    [string]$VersionLabel = ""
 )
 
 # Paths configuration
@@ -10,6 +13,9 @@ $pakEntpackerExe = "N:\Temp\PakEntpacker\PakEntpacker.exe"
 $armaReforgerAddons = "N:\Program Files (x86)\Steam\steamapps\common\Arma Reforger\addons"
 $targetPath = "N:\Projects\Arma 4\ArmaReforger"
 $tempExtractPath = "N:\Temp\ArmaReforgerExtract"
+$versionsPath = "N:\Projects\Arma 4\ArmaReforger.versions"
+$appManifest = "N:\Program Files (x86)\Steam\steamapps\appmanifest_1874880.acf"
+$markerName = ".version.json"
 
 # Directories to copy (source pak dir -> folders to copy)
 # Format: "addonDir/extractedFolder" = @("folder1", "folder2", ...)
@@ -38,6 +44,20 @@ if (-not (Test-Path $armaReforgerAddons)) {
     Write-Host "ERROR: Arma Reforger addons directory not found at: $armaReforgerAddons" -ForegroundColor Red
     exit 1
 }
+
+# Read the installed build id from the Steam app manifest (changes on every game update)
+$newBuildId = $null
+if (Test-Path $appManifest) {
+    $manifestContent = Get-Content $appManifest -Raw
+    if ($manifestContent -match '"buildid"\s+"(\d+)"') {
+        $newBuildId = $Matches[1]
+        Write-Host "Installed Arma Reforger build id: $newBuildId" -ForegroundColor Gray
+    }
+}
+if (-not $newBuildId) {
+    Write-Host "WARNING: Could not read buildid from $appManifest - version tracking will be incomplete" -ForegroundColor Yellow
+}
+Write-Host ""
 
 # Extract .pak files
 if (-not $SkipExtraction) {
@@ -123,12 +143,48 @@ if (-not $SkipExtraction) {
     Write-Host ""
 }
 
-# Clean target directory
-Write-Host "Step 2: Cleaning target directory..." -ForegroundColor Yellow
+# Archive or clean target directory
+Write-Host "Step 2: Archiving/cleaning target directory..." -ForegroundColor Yellow
 if (Test-Path $targetPath) {
-    Write-Host "  Removing old files from: $targetPath" -ForegroundColor Gray
-    Remove-Item -Path $targetPath -Recurse -Force -ErrorAction Stop
-    Write-Host "  Old files removed!" -ForegroundColor Green
+    $oldMarkerPath = Join-Path $targetPath $markerName
+    $oldMarker = $null
+    if (Test-Path $oldMarkerPath) {
+        try {
+            $oldMarker = Get-Content $oldMarkerPath -Raw | ConvertFrom-Json
+        } catch {
+            Write-Host "  WARNING: Could not parse existing $markerName - treating tree as unlabeled" -ForegroundColor Yellow
+        }
+    }
+
+    $sameBuild = $oldMarker -and $newBuildId -and ($oldMarker.buildId -eq $newBuildId)
+
+    if ($sameBuild) {
+        # Re-extraction of the same game build: replace in place, no archive
+        Write-Host "  Same build ($newBuildId) already extracted - replacing in place (no archive)" -ForegroundColor Gray
+        Remove-Item -Path $targetPath -Recurse -Force -ErrorAction Stop
+        Write-Host "  Old files removed!" -ForegroundColor Green
+    } else {
+        # New game build (or unversioned tree): keep the old tree as a version archive
+        if ($oldMarker -and $oldMarker.label) {
+            $archiveName = $oldMarker.label
+        } elseif ($oldMarker -and $oldMarker.buildId) {
+            $archiveName = "build-$($oldMarker.buildId)"
+        } else {
+            $archiveName = "unlabeled-" + (Get-Item $targetPath).LastWriteTime.ToString('yyyy-MM-dd')
+        }
+        $archiveName = $archiveName -replace '[^\w\.\-]', '_'
+        $archivePath = Join-Path $versionsPath $archiveName
+        if (Test-Path $archivePath) {
+            $archivePath = "$archivePath-" + (Get-Date -Format 'yyyyMMdd-HHmmss')
+        }
+
+        if (-not (Test-Path $versionsPath)) {
+            New-Item -Path $versionsPath -ItemType Directory -Force | Out-Null
+        }
+        Write-Host "  Archiving previous version to: $archivePath" -ForegroundColor Gray
+        Move-Item -Path $targetPath -Destination $archivePath -Force -ErrorAction Stop
+        Write-Host "  Previous version archived!" -ForegroundColor Green
+    }
 } else {
     Write-Host "  Target directory doesn't exist yet" -ForegroundColor Gray
 }
@@ -191,6 +247,30 @@ foreach ($entry in $extractionMap.GetEnumerator()) {
     }
 }
 
+# Write version marker into the freshly extracted tree
+Write-Host "Step 4: Writing version marker..." -ForegroundColor Yellow
+if (Test-Path $targetPath) {
+    if (-not $VersionLabel) {
+        if ($newBuildId) {
+            $VersionLabel = "build-$newBuildId"
+        } else {
+            $VersionLabel = "unlabeled-" + (Get-Date -Format 'yyyy-MM-dd')
+        }
+    }
+    $marker = [ordered]@{
+        buildId   = $newBuildId
+        label     = $VersionLabel
+        extracted = (Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
+        source    = $armaReforgerAddons
+    }
+    $markerPath = Join-Path $targetPath $markerName
+    $marker | ConvertTo-Json | Set-Content -Path $markerPath -Encoding UTF8
+    Write-Host "  Wrote $markerPath (label: $VersionLabel, build: $newBuildId)" -ForegroundColor Green
+} else {
+    Write-Host "  WARNING: Target directory missing - nothing extracted?" -ForegroundColor Yellow
+}
+Write-Host ""
+
 # Summary
 Write-Host "==================================================" -ForegroundColor Cyan
 Write-Host "Summary" -ForegroundColor Cyan
@@ -200,5 +280,5 @@ if ($totalFailed -gt 0) {
     Write-Host "Folders failed/not found: $totalFailed" -ForegroundColor Yellow
 }
 Write-Host ""
-Write-Host "Update complete! ArmaReforger scripts are now at version: $(Get-Date -Format 'yyyy-MM-dd')" -ForegroundColor Green
+Write-Host "Update complete! ArmaReforger reference tree is now: $VersionLabel (build $newBuildId)" -ForegroundColor Green
 Write-Host ""

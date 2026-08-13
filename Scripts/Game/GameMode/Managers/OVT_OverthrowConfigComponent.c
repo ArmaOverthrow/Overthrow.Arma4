@@ -206,7 +206,7 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		return true;
 #endif
 
-		SCR_JsonLoadContext configLoadContext = new SCR_JsonLoadContext();
+		JsonLoadContext configLoadContext = new JsonLoadContext();
 
 		if (!FileIO.FileExists( m_sConfigFilePath ))
 		{
@@ -235,7 +235,7 @@ class OVT_OverthrowConfigComponent: OVT_Component
 #ifdef PLATFORM_CONSOLE
 		return true;
 #endif
-		SCR_JsonSaveContext configSaveContext = new SCR_JsonSaveContext();
+		JsonSaveContext configSaveContext = new JsonSaveContext();
 		configSaveContext.WriteValue("", m_ConfigFile);
 
 		if (!configSaveContext.SaveToFile( m_sConfigFilePath ))
