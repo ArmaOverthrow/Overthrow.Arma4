@@ -6,7 +6,7 @@ GenericEntity : "{647BA609E129CC85}Prefabs/Props/Military/AmmoBoxes/FIA/Equipmen
   }
   OVT_PlayerOwnerComponent "{5E68F65911AA6ADA}" {
   }
-  RplComponent "{5624A88DC2D9928D}" {
+  RplComponent "{5476B36C54387F41}" {
    Enabled 1
   }
   SCR_EditableEntityComponent "{65B90A24B6E114CC}" {
@@ -16,7 +16,8 @@ GenericEntity : "{647BA609E129CC85}Prefabs/Props/Military/AmmoBoxes/FIA/Equipmen
    }
    m_Flags PLACEABLE
   }
-  ActionsManagerComponent "{5992E2EE5A9EEC18}" {
+  ActionsManagerComponent "{5476B36C403D4CC0}" {
+   Enabled 1
    additionalActions {
     OVT_LockVehicleAction "{5E68F659EC7AD454}" {
      ParentContextList {
@@ -66,6 +67,26 @@ GenericEntity : "{647BA609E129CC85}Prefabs/Props/Military/AmmoBoxes/FIA/Equipmen
      "Sort Priority" 10
     }
    }
+  }
+  SCR_UniversalInventoryStorageComponent "{5476A2F100DF4EFF}" {
+   Enabled 1
+   Attributes SCR_ItemAttributeCollection "{5992E2EDD04C359E}" {
+    ItemDisplayName UIInfo "{5992E2EDDE65CA48}" {
+     Name "#AR-Ammobox_Name"
+     Description "#AR-Ammobox_Name"
+    }
+    m_Size SLOT_3x3
+   }
+   UseCapacityCoefficient 0
+   MaxCumulativeVolume 3000000
+   m_fMaxWeight 30000
+  }
+  SimpleSoundComponent "{59A45C66864BF068}" {
+   Filenames {
+    "{E3471FB527172D41}Sounds/Inventory_Sounds.acp"
+   }
+  }
+  SCR_InventoryStorageManagerComponent "{59A45C644081E9DF}" {
   }
  }
 }
