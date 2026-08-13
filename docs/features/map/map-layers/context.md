@@ -1,8 +1,8 @@
 # Map Layers & Legend - Context & Decisions
 
-**Last Updated:** 2026-08-11
-**Current Phase:** ALL build phases complete (0–8 + 4b) — next is **Phase 7, the user-driven verification gate**
-**Status:** 🟡 Code-complete (Phases 0–8 + 4b) and **entirely unobserved**
+**Last Updated:** 2026-08-13
+**Current Phase:** Phase 7 discharged 2026-08-13 (SP + gamepad + persistence + 4b probes, all green) — **only the two-client MP rows (I-2 … I-4) remain**
+**Status:** 🟢 Built and play-tested green in SP and on gamepad; MP isolation (I-2 … I-4) still unobserved
 
 ---
 
@@ -13,13 +13,17 @@
 - ✅ **Phase 0 — baselines re-measured, not quoted** (2026-08-11, HEAD `ecf1a696`, tree clean but for this feature's own untracked docs): compile **exit 0 / 5988 files / Game module / 5 s**, Fast **87 / 35 s**, All **125 / 39 s**, highest bug id **BUG-145**, `{6A85…}` GUID series confirmed **zero hits** across the tree. Every one of these matches `implementation.md` §5 Phase 0 exactly — the plan's baselines were real measurements and are still current
 
 - ✅ **Phases 1, 2, 3, 4, 4b, 5 and 6 all DONE** — see the session notes at the foot of this file. Final gate state: compile **exit 0 / 5994 files**, Fast **89**, All **127**
-- ✅ **Phase 6 (2026-08-11)** — boundary greps clean and recorded verbatim below; the two `map/core` contract tables and the layout↔code table written; `epic-overview.md` updated; **F1 – F6** written up for filing from **BUG-146** onward
+- ✅ **Phase 6 (2026-08-11)** — boundary greps clean and recorded verbatim below; the two `map/core` contract tables and the layout↔code table written; `epic-overview.md` updated; **F1 – F6** written up for filing from **BUG-146** onward *(actually filed 2026-08-13 as BUG-149…155 — 146…148 were taken)*
+
+- ✅ **Phase 7 discharged 2026-08-13 — the user ran the SP, gamepad, persistence and Phase-4b probe passes and reported all green**, including the two load-bearing rows: **P1** (the same-GUID tool-menu delta renders — D2's fallback was the right call) and **Q-1** (the full pad round trip works). Two observations transcribed: **A on a focused row does nothing** (so `MenuLeft` stays load-bearing), and **D-pad Left unticks the focused row AND leaves the panel** — worse than 4b predicted, filed as **F7** in `tasks.md`. F-11 ticking also means the six localization exports were regenerated
 
 **What's Next:**
 
-- 🔴 **Phase 7 — the verification gate.** This is the feature's **only** evidence: nothing it draws, binds or persists has ever been executed. Two of its rows are load-bearing rather than confirmatory — **P1** (D2 found vanilla's tool menu genuinely absent and added it back unseen) and **Q-1** (the gamepad round trip, which `requirements.md` says the feature is worse than useless without)
+- 🔴 **The two-client MP rows I-2 … I-4 are the feature's last open evidence** — per-profile preference isolation, JIP, and the all-rows-on parity check. They were explicitly not part of the 2026-08-13 session
+- ✅ ~~File F1 – F7 as bugs~~ — **filed 2026-08-13 as BUG-149 … BUG-155** (BUG-146…148 were already taken by parallel sessions). F7 = BUG-155 is the only one found by observation rather than code reading; the mapping table is in `findings.md`
+- **Retest the marker hover hitbox** — the gamepad pass surfaced hard-to-hover markers; fixed same-day at epic level (see the 2026-08-13 session note), but the fix's second iteration is unobserved
 - ✅ **Phase 8 (`help-docs-sync`) is DONE** — and its most valuable output is what it **refused** to write. It cut five claims rather than ship them unverified: the **entire gamepad walkthrough** (the plan's P4 round trip is known-wrong at the D-pad-Left step since D4), the left-stick and character-movement consequences (hand-derived, unobserved), the journal/task-list exclusivity behaviour (unresolved until P1 says whether Overthrow's `m_aUIComponents` merges or replaces), K15's crash-with-panel-open caveat, and §3.3's hidden-is-cheaper property. 3 new `.st` ids (`{6A85D1E000000080}`–`{…0082}`), a Field Manual section, one edited tutorial sentence, and three wiki pages — each resolved **by slug and confirmed with `wikijs_get_page`**, never by search, which did return a wrong pageId exactly as the known hazard predicts
-- ⚠️ **The user must regenerate the six localization exports in Workbench** — this feature now has **21** pending ids (18 from Phase 3 + 3 from Phase 8). Until then the panel and the new Field Manual section render raw `#OVT-` keys. Expected, not a defect, and deliberately not worked around by hardcoding literals
+- ✅ ~~The user must regenerate the six localization exports in Workbench~~ — **discharged by 2026-08-13**: F-11 passed (all ids render as English), which is only possible with the exports regenerated
 
 **Blockers:**
 
@@ -519,7 +523,7 @@ introduced into any shipped code comment by this feature.**
   layout ↔ code name table** (13 resolved names + 7 structural names script never resolves).
 - `docs/features/map/epic-overview.md` — feature 7's row, the feature-8-is-unblocked note, a new rollup
   bullet, the header status line, the one-line master summary, and a sentence on the `file:line` debt item.
-- The findings (**F1 – F6**) are written up in full for filing as **BUG-146** onward.
+- The findings (**F1 – F6**) are written up in full for filing as **BUG-146** onward. *(Actually filed 2026-08-13, with F7, as BUG-149…155.)*
 
 ### The layout ↔ code table was verified against source, not transcribed — and it moved
 
@@ -546,6 +550,43 @@ what the docs had implied:
   demonstrating itself inside a single feature, in under a day** — the findings write-up names symbols only.
 - **`ZoomInOnPlayer` has exactly one tree-wide hit, its own declaration** — F1's "zero callers" claim
   re-verified rather than inherited.
+
+---
+
+## Session Note — 2026-08-13 — Phase 7 discharged (MP rows excepted) + hover-hitbox finding fixed at epic level
+
+**Phase 7:** the user ran the SP/Workbench pass (row 5, F-1 … F-11), the persistence pass (row 8), the
+gamepad pass (Q-1, Q-2), the folded-in spike questions (P1 – P4) and all eleven Phase-4b probe rows, and
+reported **all green**. Scope honesty is recorded in `tasks.md`'s Phase 7 note: the rows were confirmed as
+a block, with two observations transcribed individually — **A on a focused row does nothing** (the
+expected outcome; `MenuLeft` stays load-bearing) and **D-pad Left unticks the focused row AND leaves the
+panel** (worse than 4b's prediction, which expected only the untick; filed as **F7**). The **two-client MP
+rows I-2 … I-4 were not part of the session and stay open** — they are now this feature's only unobserved
+surface.
+
+**The one non-green finding was not this feature's:** moving the map cursor with the left stick is
+imprecise enough that hovering the 12–32 px Overthrow markers is hard. **It took three iterations the
+same day, and the first two are recorded so nobody retries them** (full write-up in `map/core`'s
+context file, which owns the changed code):
+
+1. ❌ An invisible hit widget sized to **overflow** the icon box (center-aligned child keeps its desired
+   size) — compiled, looked right, did nothing: **the engine does not trace hover outside a parent's
+   arranged bounds**. Play-test-caught ("hover only works directly over the icon and its square").
+2. ❌ Growing `IconContainer` and padding the visuals back in — kept the hit surface inside bounds by
+   construction and **collapsed every icon to a slim white sliver**: the element's outer `SizeLayout0`
+   hard-caps content at 32×60, so the growth clamped and the inward padding consumed what remained.
+   Play-test-caught immediately.
+3. ✅ **Shipped: a cursor-proximity hover magnet, no widget sizing at all.** The layout and
+   `OVT_MapLocationType` were restored byte-identical to HEAD; `OVT_OverthrowMapUI.TickHoverMagnet`
+   hovers the nearest visible marker within `OVT_OverthrowMapConfig.m_fHoverRadius` (default **32**
+   reference px, tweakable on `Configs/Map/OverthrowMap.conf`, 0 disables) of the cursor's world
+   position — vanilla's own descriptor-selection model, working identically for the pad's virtual
+   cursor. Element guards keep the magnet and real widget events from double-firing.
+
+Gates after iteration 3: compile **exit 0 / 6007 files**, Fast **101** — both moved from this feature's
+Phase 7 baselines (5994 / 89) because parallel sessions have committed since; re-measured, not quoted.
+⚠️ **Iteration 3 is unobserved** — the user should retest hover with the pad (markers should light up
+within ~32 px of the cursor, nearest wins) and tune `m_fHoverRadius` to taste.
 
 ---
 

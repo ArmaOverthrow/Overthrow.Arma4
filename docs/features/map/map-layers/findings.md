@@ -1,8 +1,17 @@
 # Map Layers & Legend — Incidental Findings
 
-**Raised by:** `map/map-layers` Phases 3, 4b and 6, 2026-08-11
-**Status:** 🔴 **None of these is fixed.** They are for the user to file as bugs.
-**Highest allocated bug id at the time of writing:** **BUG-145** — so these file as BUG-146 onward.
+**Raised by:** `map/map-layers` Phases 3, 4b and 6 (2026-08-11) + the Phase 7 gamepad pass (F7, 2026-08-13)
+**Status:** ✅ **All filed as bugs 2026-08-13 — F1…F7 = BUG-149 … BUG-155.** (The write-ups predicted BUG-146 onward, but parallel sessions had taken BUG-146…148 by filing time — the re-check-the-highest-id rule in action.) None is fixed; the bug files are the tracking authority from here.
+
+| Finding | Bug | linkedFeature |
+|---|---|---|
+| F1 vestigial tool-menu entry | BUG-149 | map/core |
+| F2 five raw-English display names | BUG-150 | map/core |
+| F3 SetOpacity(0) never restored + stale m_Widgets | BUG-151 | map/core |
+| F4 unguarded config deref in OnMapOpen | BUG-152 | map/core |
+| F5 four duplicate .st GUIDs | BUG-153 | dev-ops |
+| F6 info-panel close button likely pad-dead | BUG-154 | map/core |
+| F7 D-pad Left unticks + exits the panel | BUG-155 | map/map-layers |
 
 > **None of these findings was introduced by `map/map-layers`.** Every one is either pre-existing at `HEAD`
 > or a property of a file this feature merely passed through. They are recorded because they were found, not
@@ -209,6 +218,24 @@ so the resolution is not certain from the config alone.
 **Suggested severity: Medium** — a shipped, play-test-approved affordance that is probably unusable on the
 platform the epic explicitly cares about, and invisible to the automated checker that exists to catch
 precisely this.
+
+---
+
+## F7 — D-pad Left on a focused row unticks it AND leaves the panel (found by the Phase 7 gamepad pass, 2026-08-13)
+
+**Symptom.** With the panel open and a row focused, D-pad Left unticks the row **and** leaves the panel, so
+every layer switched off costs a re-entry through the tool strip. Phase 4b predicted the untick half (the
+`MenuLeft` shadow over `MapToolMenuFocus`); the panel-exit half was not predicted and is undiagnosed —
+either both actions fire despite the priority-70 context, or the toolbox's `MenuLeft` handling moves focus
+out of the row list. The same session closed the easy fix: **A on a focused row does nothing**, so
+`MenuLeft` is load-bearing for unticking and cannot simply be dropped.
+
+**Suggested fix shape.** A `MenuSelect` listener on `OVT_MapLayerRowComponent` so A toggles the focused row
+(through the existing owner callback, never a second state path); then `MenuLeft`/`MenuRight` become
+droppable, un-shadowing `MapToolMenuFocus` so D-pad Left returns to the strip cleanly. Diagnose the
+panel-exit half first.
+
+**The only F-series finding found by observation rather than code reading.** Filed as **BUG-155**.
 
 ---
 

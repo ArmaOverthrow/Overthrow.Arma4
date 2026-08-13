@@ -5431,6 +5431,23 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A8B150000000001}" {
+   Id "OVT-Map_BusStop"
+   Target_en_us "Bus Stop"
+   Comment "Map info panel type line for a bus stop marker. SINGULAR: names one place. The plural category row in the layer-filter panel is the separate key #OVT-Map_Category_BusStops and should stay consistent with this one."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755043200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6A7E1C4D0000003E}" {
    Id "OVT-Map_BusStop_Desc"
    Target_en_us "Catch a bus here to travel to another bus stop. The fare rises with distance."
@@ -5971,6 +5988,23 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A8B150000000002}" {
+   Id "OVT-Map_POI"
+   Target_en_us "Point of Interest"
+   Comment "Map info panel type line for a point-of-interest marker. SINGULAR: names one place. The plural category row in the layer-filter panel is the separate key #OVT-Map_Category_POIs and should stay consistent with this one."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755043200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6A7E1C4D0000003C}" {
    Id "OVT-Map_Port_Desc"
    Target_en_us "Imported goods can be bought here in bulk."
@@ -6297,7 +6331,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C4D0000003B}" {
    Id "OVT-Map_Vehicle"
    Target_en_us "Vehicle"
-   Comment "Map info panel row label - the model name of the player's vehicle shown by this marker"
+   Comment "Map info panel row label - the model name of the player's vehicle shown by this marker. Also the SINGULAR type line for a vehicle marker on the info panel; the plural category row is the separate key #OVT-Map_Category_Vehicles and should stay consistent with this one."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -6306,6 +6340,23 @@ StringTable {
    NonTranslatable 0
    MaxLength 0
    Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8B150000000003}" {
+   Id "OVT-Map_Waypoint"
+   Target_en_us "Waypoint"
+   Comment "Map info panel type line for a player-placed waypoint marker. SINGULAR: names one marker. The plural category row in the layer-filter panel is the separate key #OVT-Map_Category_Waypoints and should stay consistent with this one."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755043200
    Author "Claude"
    LastChanged "Claude"
    ImageLink ""

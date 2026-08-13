@@ -3,6 +3,9 @@ class OVT_OverthrowMapConfig
 {
 	[Attribute("", UIWidgets.Object, "Overthrow Map Location Types")]
 	ref array<ref OVT_MapLocationType> m_aLocationTypes;
+
+	[Attribute(defvalue: "32", desc: "Screen-space radius (reference px) around a marker's centre within which the map cursor hovers it - the nearest marker within the radius wins. Exists because a 12-24 px icon is a hard target for the map cursor on a gamepad stick. 0 disables the magnet, leaving only direct widget hover.")]
+	float m_fHoverRadius;
 }
 
 //! Main Overthrow map UI component that manages all interactive map elements
@@ -38,6 +41,11 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 	
 	//! Currently pinned element (for persistent info)
 	protected ref OVT_MapLocationElement m_PinnedElement;
+
+	//! The element the hover magnet currently claims (see TickHoverMagnet). Tracked separately from
+	//! m_HoveredElement so the element-side OnMouseLeave guard can tell a widget-driven mouse-out -
+	//! which must NOT end a hover the magnet still holds - from the magnet genuinely releasing it.
+	protected ref OVT_MapLocationElement m_MagnetElement;
 
 	//! Seconds remaining until each opted-in location type is re-populated, keyed by type class name.
 	//!
@@ -251,6 +259,7 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 		// path would then price and request a trip to it. Every other selection field is already cleared
 		// by ForceHideLocationInfo above; this one was the odd one out.
 		m_HoveredElement = null;
+		m_MagnetElement = null;
 	}
 	
 	override void UpdateIcons()
@@ -436,6 +445,9 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 			if (m_HoveredElement == element)
 				m_HoveredElement = null;
 
+			if (m_MagnetElement == element)
+				m_MagnetElement = null;
+
 			if (m_PinnedElement == element)
 			{
 				m_PinnedElement = null;
@@ -460,6 +472,93 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 		super.Update(timeSlice);
 
 		TickRefresh(timeSlice);
+		TickHoverMagnet();
+	}
+
+	//! Hover the nearest visible marker within the configured screen radius of the map cursor.
+	//!
+	//! THE HOVER MAGNET. Widget hover only fires with the cursor inside a marker's 12-32 px icon box,
+	//! which is a hard target with a gamepad stick - and the widget tree cannot be used to enlarge the
+	//! target: the engine neither traces hover outside a parent's arranged rect nor tolerates this
+	//! element's outer size overrides growing (two failed attempts, recorded in map/core's context
+	//! file). So the container does it in script: the same nearest-within-radius model vanilla's
+	//! cursor module uses for map-descriptor selection, driven per frame from the cursor's world
+	//! position - which the gamepad's virtual cursor updates too, so the pad gets the same assist.
+	//!
+	//! Transitions are routed through the elements' own OnMouseEnter/OnMouseLeave so there is exactly
+	//! ONE hover code path; the element-side guards are what keep the widget-driven events and the
+	//! magnet from double-firing or stomping each other.
+	protected void TickHoverMagnet()
+	{
+		if (!m_MapEntity)
+			return;
+
+		OVT_MapLocationElement best;
+		float bestDist;
+
+		float radiusPx = GetHoverRadius();
+		float zoom = m_MapEntity.GetCurrentZoom();
+
+		float cursorX, cursorZ;
+		m_MapEntity.GetMapCursorWorldPosition(cursorX, cursorZ);
+
+		if (radiusPx > 0 && zoom > 0)
+		{
+			// Screen px -> world metres, the same conversion the cursor module's selection circle uses
+			float radiusWorld = radiusPx / zoom;
+
+			foreach (Widget widget, SCR_MapUIElement icon : m_mIcons)
+			{
+				OVT_MapLocationElement element = OVT_MapLocationElement.Cast(icon);
+				if (!element)
+					continue;
+
+				// The root widget's visibility carries the final gated answer (zoom threshold, layer
+				// filter, per-record ShouldShowLocation) - a hidden marker must never be hoverable
+				Widget root = element.GetRoot();
+				if (!root || !root.IsVisible())
+					continue;
+
+				vector pos = element.GetPos();
+				float dx = pos[0] - cursorX;
+				float dz = pos[2] - cursorZ;
+				float dist = Math.Sqrt(dx * dx + dz * dz);
+				if (dist > radiusWorld)
+					continue;
+
+				if (!best || dist < bestDist)
+				{
+					best = element;
+					bestDist = dist;
+				}
+			}
+		}
+
+		// Never hover markers under the layer-filter panel - walking its rows would otherwise pop
+		// location panels for whatever sits beneath it. The info panel is deliberately NOT tested
+		// here: suppressing hover under it would hide the panel, un-suppress next frame and flicker,
+		// and keeping the hover while the cursor crosses the panel is what lets the cursor reach the
+		// panel's own buttons with the panel still open.
+		if (best)
+		{
+			Widget layersPanel = GetLayersPanelWidget();
+			if (layersPanel && IsSelectionInsideWidget(layersPanel, Vector(cursorX, 0, cursorZ)))
+				best = null;
+		}
+
+		if (best == m_MagnetElement)
+			return;
+
+		// Reassign the claim FIRST: the released element's OnMouseLeave guard checks GetMagnetElement,
+		// and must see the magnet no longer holds it for the leave path to run at all.
+		OVT_MapLocationElement previous = m_MagnetElement;
+		m_MagnetElement = best;
+
+		if (previous)
+			previous.OnMouseLeave(null, null, 0, 0);
+
+		if (best)
+			best.OnMouseEnter(null, 0, 0);
 	}
 
 	//! Count down each opted-in type's refresh timer and refresh the ones that come due.
@@ -888,6 +987,23 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 	OVT_MapLocationElement GetHoveredElement()
 	{
 		return m_HoveredElement;
+	}
+
+	//! The hover magnet's screen-space radius, from the map config.
+	//! \return Radius in reference px; 0 (magnet disabled) when no config is bound
+	float GetHoverRadius()
+	{
+		if (!m_Config)
+			return 0;
+
+		return m_Config.m_fHoverRadius;
+	}
+
+	//! The element the hover magnet currently claims, consumed by OVT_MapLocationElement.OnMouseLeave.
+	//! \return The claimed element, or null when the cursor is not within the magnet radius of any
+	OVT_MapLocationElement GetMagnetElement()
+	{
+		return m_MagnetElement;
 	}
 
 	//! Setup base location info (name, distance, etc.)

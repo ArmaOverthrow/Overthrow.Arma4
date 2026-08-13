@@ -1,7 +1,7 @@
 # Map Layers & Legend - Task Checklist
 
-**Last Updated:** 2026-08-11
-**Progress:** 70/112 tasks complete (62%) — **all 9 build phases done; Phase 7's user-driven gate is what remains**
+**Last Updated:** 2026-08-13
+**Progress:** 100/112 tasks complete (89%) — **Phase 7's SP, gamepad, persistence and Phase-4b probe rows all discharged by the user 2026-08-13; only the two-client MP rows (I-2 … I-4) remain**
 
 > Generated from `implementation.md` §5 by `/start-feature map/map-layers`.
 >
@@ -146,12 +146,19 @@
 - [x] Write the **three new `OVT_MapLocationType` contract rows** (§3.7) into `docs/features/map/core/context.md` — `m_sCategoryName`, `GetCategoryName()`, and `m_bPlayerVisible`/`SetPlayerVisible`/`IsPlayerVisible` with its 🔴 _this is not campaign visibility_ note
 - [x] Record the **"no rows added to the canvas-layer contract"** note (a contract that needed nothing added when its first consumer arrived is worth saying out loud) and the **`OVT_MapPlayerLocation` exception** (K5) beneath that table
 - [x] Add the **layout ↔ code name table** (§3.6) to the same file, following the two tables already there
-- [x] Findings **F1 – F6** written up in full (symptom, symbol, why not fixed here, suggested severity) for the user to file from **BUG-146** onward — **none fixed here**. Originally scoped as F1–F3: (vestigial `m_ToolMenuEntry`/`ZoomInOnPlayer`; 5 of 14 `m_sDisplayName` values are raw English literals; `OVT_MapPlayerLocation.Update`'s never-restored `SetOpacity(0)` and uncleared `m_Widgets`)
+- [x] Findings **F1 – F6** written up in full (symptom, symbol, why not fixed here, suggested severity) for the user to file from **BUG-146** onward *(actually filed 2026-08-13 as BUG-149…155)* — **none fixed here**. Originally scoped as F1–F3: (vestigial `m_ToolMenuEntry`/`ZoomInOnPlayer`; 5 of 14 `m_sDisplayName` values are raw English literals; `OVT_MapPlayerLocation.Update`'s never-restored `SetOpacity(0)` and uncleared `m_Widgets`)
 - [x] Gate: compile **exit 0**, Fast **89**, All **127** — all unchanged; this is a docs-and-audit phase and **any movement is a finding**. ❌ No `file:line` pointers in shipped code comments (epic K-9)
 
 ---
 
-## Phase 7 — 🔴 Verification gate — **user-driven, no agent** (4/37 complete)
+## Phase 7 — 🔴 Verification gate — **user-driven, no agent** (34/37 complete)
+
+> ✅ **Discharged 2026-08-13 by the user's play-test session, all green**, with two specific observations
+> transcribed below (A-on-row, D-pad Left) and one finding fixed the same day at epic level (marker hover
+> hitbox — see the session note in `context.md`). ⚠️ **Scope honesty:** the SP, persistence, gamepad and
+> Phase-4b rows below were confirmed as a block by the user ("all ticks on everything"), with only the two
+> named observations transcribed individually. **The two-client MP rows (I-2 … I-4) were NOT part of the
+> session and remain open.**
 
 > ⚠️ **Warn the user before launching anything** — `tools/launch-game.sh` opens a window on their desktop
 > and can orphan. Always pass `--timeout 3600`.
@@ -169,24 +176,24 @@
 
 **Workbench + single-player pass (human)**
 
-- [ ] 5. **Workbench clean load** — no unresolved-resource or GUID errors. The **only** gate in the project that can see a dangling GUID in a new `.layout`/`.meta`. ⚠️ The orphaned `OVT_MapThreatGrid` `.meta` (`{B8F4C6A8C9D3E4F1}`) is **pre-existing, not this feature's**
-- [ ] **F-1** The tool-menu icon strip is on the left of the fullscreen map and carries an Overthrow entry with a filter glyph, above the ruler/compass/watch tools
-- [ ] **F-2** Clicking it opens a docked panel titled "Map Layers"; clicking again closes it. Opening the journal or task list closes the layers panel, and vice versa (K12 exclusivity)
-- [ ] **F-3** **Seventeen rows, no more and no fewer** — 14 location types (Towns, Bases, Radio Towers, FOBs, Ports, Camps, Houses, Shops, Gun Dealers, Warehouses, Bus Stops, Vehicles, Points of Interest, Waypoints) + Territory + Restricted Areas + Players. **No blank row, no duplicate, and no row for the disabled threat grid**
-- [ ] **F-4** Every location-type row shows that type's map icon and a plural name; overlay/player rows show a name and no icon. Nothing reads as a raw _editor_ string
-- [ ] **F-5** Every toggle works **within one frame** — territory shading, restriction rings and player markers all respond; turning a row back on returns it
-- [ ] **F-6** With an info panel **pinned**, toggle three unrelated rows: the pin survives, the panel stays open, no marker flickers or moves, the map does not re-centre (K14)
-- [ ] **F-7** 🔴 Hide **Towns** (5 s refresh) and **Vehicles** (2 s refresh), leave the map open **30 s** — neither reappears. This is the R8/BUG-136 interaction
-- [ ] **F-8** On a profile that has never opened the panel the map looks exactly as it did before this feature and every row reads on (D3)
-- [ ] **F-9** Hide Houses and Territory → close/reopen the map → still hidden → quit to the main menu, rejoin → still hidden → re-enable both, close/reopen → both back
-- [ ] **F-10** The panel sits beside the icon strip and never covers the centre of the map; markers outside its footprint still hover, pin and offer travel
-- [ ] **F-11** ⚠️ **After the user regenerates the six exports in Workbench**, all 18 new ids render as English with no `#OVT-` key visible. Raw keys **before** the regeneration are expected, not a defect, and were **not** worked around by hardcoding literals
-- [ ] 8. **Persistence pass** — F-9 including a full quit to the main menu **and** a full game relaunch; the preferences must still be there
+- [x] ✅ 5. **Workbench clean load** — no unresolved-resource or GUID errors. The **only** gate in the project that can see a dangling GUID in a new `.layout`/`.meta`. ⚠️ The orphaned `OVT_MapThreatGrid` `.meta` (`{B8F4C6A8C9D3E4F1}`) is **pre-existing, not this feature's**
+- [x] ✅ **F-1** The tool-menu icon strip is on the left of the fullscreen map and carries an Overthrow entry with a filter glyph, above the ruler/compass/watch tools
+- [x] ✅ **F-2** Clicking it opens a docked panel titled "Map Layers"; clicking again closes it. Opening the journal or task list closes the layers panel, and vice versa (K12 exclusivity)
+- [x] ✅ **F-3** **Seventeen rows, no more and no fewer** — 14 location types (Towns, Bases, Radio Towers, FOBs, Ports, Camps, Houses, Shops, Gun Dealers, Warehouses, Bus Stops, Vehicles, Points of Interest, Waypoints) + Territory + Restricted Areas + Players. **No blank row, no duplicate, and no row for the disabled threat grid**
+- [x] ✅ **F-4** Every location-type row shows that type's map icon and a plural name; overlay/player rows show a name and no icon. Nothing reads as a raw _editor_ string
+- [x] ✅ **F-5** Every toggle works **within one frame** — territory shading, restriction rings and player markers all respond; turning a row back on returns it
+- [x] ✅ **F-6** With an info panel **pinned**, toggle three unrelated rows: the pin survives, the panel stays open, no marker flickers or moves, the map does not re-centre (K14)
+- [x] ✅ **F-7** 🔴 Hide **Towns** (5 s refresh) and **Vehicles** (2 s refresh), leave the map open **30 s** — neither reappears. This is the R8/BUG-136 interaction
+- [x] ✅ **F-8** On a profile that has never opened the panel the map looks exactly as it did before this feature and every row reads on (D3)
+- [x] ✅ **F-9** Hide Houses and Territory → close/reopen the map → still hidden → quit to the main menu, rejoin → still hidden → re-enable both, close/reopen → both back
+- [x] ✅ **F-10** The panel sits beside the icon strip and never covers the centre of the map; markers outside its footprint still hover, pin and offer travel
+- [x] ✅ **F-11** ⚠️ **After the user regenerates the six exports in Workbench**, all 18 new ids render as English with no `#OVT-` key visible. Raw keys **before** the regeneration are expected, not a defect, and were **not** worked around by hardcoding literals
+- [x] ✅ 8. **Persistence pass** — F-9 including a full quit to the main menu **and** a full game relaunch; the preferences must still be there
 
 **Gamepad pass (human, no mouse touched)**
 
-- [ ] **Q-1** 🔴 The full round trip: open the map → **D-pad Left** → tool menu focused → **D-pad Up/Down** → the entry → **A** → the panel opens **with focus already on the first row** → D-pad Up/Down walks every row **with a visible focus highlight** → **A** toggles and the map responds → D-pad Left returns to the strip → **A** closes the panel
-- [ ] **Q-2** With 17 rows the list is fully reachable on a 1080p screen, by pad **and** by mouse wheel
+- [x] ✅ **Q-1** 🔴 The full round trip: open the map → **D-pad Left** → tool menu focused → **D-pad Up/Down** → the entry → **A** → the panel opens **with focus already on the first row** → D-pad Up/Down walks every row **with a visible focus highlight** → **A** toggles and the map responds → D-pad Left returns to the strip → **A** closes the panel
+- [x] ✅ **Q-2** With 17 rows the list is fully reachable on a 1080p screen, by pad **and** by mouse wheel
 
 **Two-client MP pass (human — ⚠️ warn first; each client opens a window and can orphan)**
 
@@ -196,24 +203,24 @@
 
 **Phase 1's spike questions, folded in**
 
-- [ ] **P1** Does vanilla's tool menu actually exist on Overthrow's map? Record yes/no and which fallback (if any) was needed
-- [ ] **P2** Does the entry appear, in the right place, with a legible glyph? Confirm the sort position relative to journal/tasks and that **`"filters"` reads as a filter control at 64 px** (it is an `[Attribute]` — swapping it is a config change, K6)
-- [ ] **P3** Does the panel dock beside the icon strip rather than over the middle of the map?
-- [ ] **P4** ⚠️ **THE PLAN'S EXPECTATION HERE IS NOW WRONG BY CONSTRUCTION — do not test against it.** The plan predicted "the left stick still pans the map, expected yes", and called the opposite "the one finding that would force a redesign". Phase 4b's context (**D4**, user-approved) binds `MenuUp`/`MenuDown` to `left_thumb_vertical±` and `MenuLeft`/`MenuRight` to `left_thumb_horizontal±` at priority 70, **above** `MapPanVGamepad`/`MapPanHGamepad` at 50. So the left stick **will** walk and toggle rows and **will not** pan the map while the panel is open. That is the direct price of the approved fix, not a redesign trigger. **Record the actual behaviour either way**
+- [x] ✅ **P1** Does vanilla's tool menu actually exist on Overthrow's map? Record yes/no and which fallback (if any) was needed
+- [x] ✅ **P2** Does the entry appear, in the right place, with a legible glyph? Confirm the sort position relative to journal/tasks and that **`"filters"` reads as a filter control at 64 px** (it is an `[Attribute]` — swapping it is a config change, K6)
+- [x] ✅ **P3** Does the panel dock beside the icon strip rather than over the middle of the map?
+- [x] ✅ **P4** ⚠️ **THE PLAN'S EXPECTATION HERE IS NOW WRONG BY CONSTRUCTION — do not test against it.** The plan predicted "the left stick still pans the map, expected yes", and called the opposite "the one finding that would force a redesign". Phase 4b's context (**D4**, user-approved) binds `MenuUp`/`MenuDown` to `left_thumb_vertical±` and `MenuLeft`/`MenuRight` to `left_thumb_horizontal±` at priority 70, **above** `MapPanVGamepad`/`MapPanHGamepad` at 50. So the left stick **will** walk and toggle rows and **will not** pan the map while the panel is open. That is the direct price of the approved fix, not a redesign trigger. **Record the actual behaviour either way**
 
 **Phase 4b's own consequences — hand-derived from reading the base config, entirely untested (⚠️ the conflict checker is cross-context-blind, so none of this is machine-verified):**
 
-- [ ] 🔴 **`pad_left` is shadowed — this is the sharp edge.** `MapToolMenuFocus` (D-pad Left) is the **only** pad route to the tool strip, and while the panel is open the new context takes it. **D-pad Left will untick the focused row instead of returning to the strip.** `MenuLeft` was included deliberately: `SCR_ToolboxComponent` registers listeners for `MenuLeft`/`MenuRight` only, and with `m_bCycleMode` false, stepping YES→NO is **`MenuLeft` alone** — so **without it a pad could turn layers on but never off**, i.e. a filter panel that cannot filter. Vanilla accepts the identical shadow in `MapMarkerEditContext`
-- [ ] **Press A on a focused row.** Expected: **nothing** (the toolbox does not listen to `MenuSelect` without multiselect). ⚠️ **If A _does_ toggle, say so — that is the good outcome**: it would mean `MenuLeft` is droppable and `pad_left` reclaimable for returning to the strip
-- [ ] 🔴 **Press A on the tool entry and watch the first row** — if it toggles instantly, the one-frame grace delay (copied from `SCR_MapMarkersUI`, which needs it for the same reason: the click that opens the panel is **A**, and this context puts `MenuSelect` on **A**) is insufficient and needs a second frame
-- [ ] **B still closes the map** from inside the panel. `MenuBack` was **deliberately excluded** so `MapEscape` (`gamepad0:b`, priority 55) survives as the pad escape hatch
-- [ ] **Close the panel, then D-pad Left** — the tool strip must be reachable again **within one frame**. `ActivateContext`'s default duration is a **single-frame lease**, so not renewing it _is_ the entire teardown; this row is the proof it releases
-- [ ] **Panel closed: D-pad Up/Down/Left** — the map's compass/watch/pencil/protractor shortcuts and `MapToolMenuFocus` must all behave **exactly as before**. This is the proof the context does not leak
-- [ ] **Keyboard with the panel open** — W/A/S/D and the arrows walk/toggle rows, and **the character stops moving**. Consistent with all 20 other Overthrow menus, but **new for the map**. Confirm that reads as acceptable rather than as a bug
-- [ ] **If D-pad focus is dead entirely, the context is not going live — check `Flags`.** Shipped value is `Flags 0x26 0`, copied verbatim from vanilla's `TaskListMapContext`. First alternative: `Flags 4` (this mod's own norm for all 20 contexts; `OverthrowRespawnContext` proves it works over an open map). Second: `Flags 0xc 0` (`MapMarkerEditContext`, the structural twin)
-- [ ] **Failure mode to watch: panel open, focus lost, pad stranded.** The context activates on _panel visibility_, not on focus — so the actions stay live while nothing listens, and `pad_left` still will not reach the strip. One-line fix if seen: additionally require the focused widget to be inside the panel before activating
-- [ ] **R5 check** — open and close the map **three times** and count the tool-menu entries. More than one means the registration drifted out of `Init()` (K7)
-- [ ] 10. Record **every** observation in `context.md`, including the ones that passed
+- [x] ✅ 🔴 **`pad_left` is shadowed — this is the sharp edge.** `MapToolMenuFocus` (D-pad Left) is the **only** pad route to the tool strip, and while the panel is open the new context takes it. **D-pad Left will untick the focused row instead of returning to the strip.** `MenuLeft` was included deliberately: `SCR_ToolboxComponent` registers listeners for `MenuLeft`/`MenuRight` only, and with `m_bCycleMode` false, stepping YES→NO is **`MenuLeft` alone** — so **without it a pad could turn layers on but never off**, i.e. a filter panel that cannot filter. Vanilla accepts the identical shadow in `MapMarkerEditContext` → **OBSERVED 2026-08-13, and worse than predicted: D-pad Left unticks the focused row AND leaves the panel**, so every untick costs a re-entry into the panel. Recorded as **F7** below, filed as **BUG-155**
+- [x] ✅ **Press A on a focused row.** Expected: **nothing** (the toolbox does not listen to `MenuSelect` without multiselect). ⚠️ **If A _does_ toggle, say so — that is the good outcome**: it would mean `MenuLeft` is droppable and `pad_left` reclaimable for returning to the strip → **OBSERVED 2026-08-13: A did nothing.** `MenuLeft` stays load-bearing and `pad_left` is not reclaimable this way — any fix for F7 has to come from somewhere else (e.g. a custom `MenuSelect` listener on the row component)
+- [x] ✅ 🔴 **Press A on the tool entry and watch the first row** — if it toggles instantly, the one-frame grace delay (copied from `SCR_MapMarkersUI`, which needs it for the same reason: the click that opens the panel is **A**, and this context puts `MenuSelect` on **A**) is insufficient and needs a second frame
+- [x] ✅ **B still closes the map** from inside the panel. `MenuBack` was **deliberately excluded** so `MapEscape` (`gamepad0:b`, priority 55) survives as the pad escape hatch
+- [x] ✅ **Close the panel, then D-pad Left** — the tool strip must be reachable again **within one frame**. `ActivateContext`'s default duration is a **single-frame lease**, so not renewing it _is_ the entire teardown; this row is the proof it releases
+- [x] ✅ **Panel closed: D-pad Up/Down/Left** — the map's compass/watch/pencil/protractor shortcuts and `MapToolMenuFocus` must all behave **exactly as before**. This is the proof the context does not leak
+- [x] ✅ **Keyboard with the panel open** — W/A/S/D and the arrows walk/toggle rows, and **the character stops moving**. Consistent with all 20 other Overthrow menus, but **new for the map**. Confirm that reads as acceptable rather than as a bug
+- [x] ✅ **If D-pad focus is dead entirely, the context is not going live — check `Flags`.** Shipped value is `Flags 0x26 0`, copied verbatim from vanilla's `TaskListMapContext`. First alternative: `Flags 4` (this mod's own norm for all 20 contexts; `OverthrowRespawnContext` proves it works over an open map). Second: `Flags 0xc 0` (`MapMarkerEditContext`, the structural twin)
+- [x] ✅ **Failure mode to watch: panel open, focus lost, pad stranded.** The context activates on _panel visibility_, not on focus — so the actions stay live while nothing listens, and `pad_left` still will not reach the strip. One-line fix if seen: additionally require the focused widget to be inside the panel before activating
+- [x] ✅ **R5 check** — open and close the map **three times** and count the tool-menu entries. More than one means the registration drifted out of `Init()` (K7)
+- [x] ✅ 10. Record **every** observation in `context.md`, including the ones that passed
 
 ---
 
@@ -232,19 +239,20 @@
 
 ## Bugs & Issues
 
-**Active Bugs:** none filed against this feature yet.
+**Active Bugs:** **BUG-155** (F7 — D-pad Left unticks + exits the panel; found by the Phase 7 gamepad pass).
 
-**Incidental findings — written up by Phase 6 (2026-08-11) and NOT fixed. Still to be filed as bugs in `docs/bugs/` by the user, from BUG-146 onward:**
+**Incidental findings — written up by Phase 6 (2026-08-11) and NOT fixed. ✅ All filed 2026-08-13 as BUG-149 … BUG-155** (BUG-146…148 were already taken by parallel sessions — the predicted "from BUG-146" was stale by filing time):
 
-- [ ] 🐛 **F1** — `OVT_MapPlayerLocation` carries a vestigial `SCR_MapToolEntry m_ToolMenuEntry` that is **never assigned**, an empty `Init()`, and a `ZoomInOnPlayer()` with **zero callers** (grep-verified). The user should decide: delete, or wire it to a second tool-menu entry — it looks like it was meant to be one
-- [ ] 🐛 **F2** — **5 of 14 `m_sDisplayName` values are raw English literals** (Town, Bus Stop, Vehicle, Point of Interest, Waypoint in `Configs/Map/OverthrowMap.conf`; ⚠️ the line numbers this row used to cite were already stale by Phase 6 — Phase 3's own 14 `m_sCategoryName` additions shifted them, which is epic rule K-9 demonstrating itself inside one feature in under a day) and render untranslated in the info panel **today**, independently of this feature
-- [ ] 🐛 **F3** — `OVT_MapPlayerLocation.Update()` sets `SetOpacity(0)` for a player with no controlled entity and **never restores it**, and `m_Widgets` is not cleared on map close, so it can hold refs to destroyed widgets
+- [x] ✅ 🐛 **F1 → filed as BUG-149 (2026-08-13)** — `OVT_MapPlayerLocation` carries a vestigial `SCR_MapToolEntry m_ToolMenuEntry` that is **never assigned**, an empty `Init()`, and a `ZoomInOnPlayer()` with **zero callers** (grep-verified). The user should decide: delete, or wire it to a second tool-menu entry — it looks like it was meant to be one
+- [x] ✅ 🐛 **F2 → filed as BUG-150 (2026-08-13)** — **5 of 14 `m_sDisplayName` values are raw English literals** (Town, Bus Stop, Vehicle, Point of Interest, Waypoint in `Configs/Map/OverthrowMap.conf`; ⚠️ the line numbers this row used to cite were already stale by Phase 6 — Phase 3's own 14 `m_sCategoryName` additions shifted them, which is epic rule K-9 demonstrating itself inside one feature in under a day) and render untranslated in the info panel **today**, independently of this feature
+- [x] ✅ 🐛 **F3 → filed as BUG-151 (2026-08-13)** — `OVT_MapPlayerLocation.Update()` sets `SetOpacity(0)` for a player with no controlled entity and **never restores it**, and `m_Widgets` is not cleared on map close, so it can hold refs to destroyed widgets
 
 **Found during the build (not in the plan) — also file in Phase 6:**
 
-- [ ] 🐛 **F4** — `OVT_MapPlayerLocation.OnMapOpen` dereferences `OVT_Global.GetConfig().m_Difficulty.showPlayerOnMap` with **no null check on the config**. Found in Phase 3 and deliberately not fixed, under the same "leave the class otherwise exactly as-is" rule that preserves F1
-- [ ] 🐛 **F5** — `Language/localization_Overthrow.st` carries **4 duplicate `CustomStringTableItem` GUIDs**: `{5D5C558A6E391A20}`, `{5D86A310C893DBDE}`, `{5D86A310C893DBDF}`, `{A1B2C3D4E5F60003}`. **Verified pre-existing at HEAD**, not introduced by this feature. Zero duplicate `Id`s, which is why nothing has broken yet
-- [ ] 🐛 **F6** — 🔴 **Pre-existing cross-context input collision, found in Phase 4b.** `map/core`'s `OverthrowCloseInfoPanel` binds `gamepad0:b` and is added to `MapContext`, which vanilla declares at **Priority 50**; vanilla's `GadgetMapContext` sits at **Priority 55** and its `MapEscape` also binds `gamepad0:b`. Higher priority wins, so on a pad **B** very likely closes the _map_ and never reaches the info panel's close button — leaving that affordance keyboard-only. Invisible to `check-input-conflicts.py` because the collision is **cross-context** (and `MapEscape` is one of the base game's ~197 inline actions the checker cannot see). Confirm on a pad before designing a fix
+- [x] ✅ 🐛 **F4 → filed as BUG-152 (2026-08-13)** — `OVT_MapPlayerLocation.OnMapOpen` dereferences `OVT_Global.GetConfig().m_Difficulty.showPlayerOnMap` with **no null check on the config**. Found in Phase 3 and deliberately not fixed, under the same "leave the class otherwise exactly as-is" rule that preserves F1
+- [x] ✅ 🐛 **F5 → filed as BUG-153 (2026-08-13)** — `Language/localization_Overthrow.st` carries **4 duplicate `CustomStringTableItem` GUIDs**: `{5D5C558A6E391A20}`, `{5D86A310C893DBDE}`, `{5D86A310C893DBDF}`, `{A1B2C3D4E5F60003}`. **Verified pre-existing at HEAD**, not introduced by this feature. Zero duplicate `Id`s, which is why nothing has broken yet
+- [x] ✅ 🐛 **F6 → filed as BUG-154 (2026-08-13)** — 🔴 **Pre-existing cross-context input collision, found in Phase 4b.** `map/core`'s `OverthrowCloseInfoPanel` binds `gamepad0:b` and is added to `MapContext`, which vanilla declares at **Priority 50**; vanilla's `GadgetMapContext` sits at **Priority 55** and its `MapEscape` also binds `gamepad0:b`. Higher priority wins, so on a pad **B** very likely closes the _map_ and never reaches the info panel's close button — leaving that affordance keyboard-only. Invisible to `check-input-conflicts.py` because the collision is **cross-context** (and `MapEscape` is one of the base game's ~197 inline actions the checker cannot see). Confirm on a pad before designing a fix
+- [x] ✅ 🐛 **F7 → filed as BUG-155 (2026-08-13)** — 🔴 **Found by the Phase 7 gamepad pass (2026-08-13): D-pad Left on a focused row unticks it AND leaves the panel**, so turning a layer off costs a full re-entry per row. Phase 4b predicted the untick-instead-of-return half (the `MenuLeft` shadow over `MapToolMenuFocus`); the panel-exit half was not predicted — both actions appear to fire despite the priority-70 context, or the toolbox's own `MenuLeft` handling moves focus out of the row list. The A-button probe closed the easy fix: **A does nothing on a focused row**, so `MenuLeft` cannot simply be dropped. A real fix likely needs a custom `MenuSelect` listener on `OVT_MapLayerRowComponent` (making A toggle), after which `MenuLeft` becomes droppable and D-pad Left returns to the strip cleanly
 
 ---
 

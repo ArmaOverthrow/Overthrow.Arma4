@@ -123,8 +123,13 @@ class OVT_MapLocationElement : SCR_MapUIElement
 	{
 		if (!m_bVisible || !m_LocationData || !m_LocationType)
 			return false;
-		
-		
+
+		// Already hovered: the container's hover magnet and the real widget event both route through
+		// here, and whichever arrives second must not unpin, re-show the panel or replay the sound
+		if (m_bIsHovered)
+			return false;
+
+
 		// Show info panel like campaign map does
 		if (m_ParentMapUI)
 		{
@@ -149,19 +154,26 @@ class OVT_MapLocationElement : SCR_MapUIElement
 	{
 		if (!m_bVisible)
 			return false;
-		
-		
-		// Clear hover state and hide info panel when leaving
-		if (m_ParentMapUI)
+
+		// The widget event fires the moment the cursor exits the icon box, but while the container's
+		// hover magnet still claims this element the hover must survive - the magnet's release (which
+		// re-enters here with the claim already reassigned) is what actually ends it
+		if (m_ParentMapUI && m_ParentMapUI.GetMagnetElement() == this)
+			return false;
+
+		// Clear hover state and hide info panel when leaving - but only while this element still OWNS
+		// the container hover: a stale leave arriving after another element already took the hover
+		// must not stomp the newer element's panel
+		if (m_ParentMapUI && m_ParentMapUI.GetHoveredElement() == this)
 		{
 			m_ParentMapUI.SetHoveredElement(null);
 			m_ParentMapUI.HideLocationInfo();
 		}
-		
+
 		// Hide hover effects
 		m_bIsHovered = false;
 		ShowHoverEffects(false);
-		
+
 		return false;
 	}
 	

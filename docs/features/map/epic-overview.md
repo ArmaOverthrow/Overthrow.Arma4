@@ -143,7 +143,8 @@ How this epic is represented in the project's master `docs/overview.md` (one row
   record that `m_bPlayerVisible` is a **presentation preference, never campaign visibility** — the intel
   epic must not reuse the field), the confirmation that `territory-overlay`'s layer contract needed **zero**
   extension when its first consumer arrived, feature 8's unblocked shape, and six incidental findings
-  (F1–F6) awaiting filing from **BUG-146** onward — **F6 being a pre-existing gamepad input collision that
+  (F1–F6) — **filed 2026-08-13 with the new F7 as BUG-149 … BUG-155** (BUG-146…148 were taken by parallel
+  sessions before filing) — **F6/BUG-154 being a pre-existing gamepad input collision that
   probably makes `map/core`'s own info-panel close button pad-dead**, invisible to the repo's conflict
   checker because it is cross-context.
 - **Stretch goal 9 was built AND closed on 2026-08-12 — the first feature in this epic planned, built and

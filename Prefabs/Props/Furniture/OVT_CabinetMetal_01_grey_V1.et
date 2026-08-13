@@ -1,0 +1,71 @@
+GenericEntity : "{17F3181D0DAC27FC}Prefabs/Props/Furniture/CabinetMetal_01_grey_V1.et" {
+ ID "F0DBA538AC2A0552"
+ components {
+  OVT_PlaceableComponent "{5E68F65911AA6ADB}" {
+   m_sPlaceableType "Ammobox"
+  }
+  OVT_PlayerOwnerComponent "{5E68F65911AA6ADA}" {
+  }
+  RplComponent "{5624A88DC2D9928D}" {
+   Enabled 1
+  }
+  SCR_EditableEntityComponent "{65B90A24B6E114CC}" {
+   m_UIInfo SCR_EditableEntityUIInfo "{65B90A2B75ED14CD}" {
+    Name "#OVT-Place_AmmoBox"
+    Description "#OVT-Place_AmmoBox_Description"
+   }
+   m_Flags PLACEABLE
+  }
+  ActionsManagerComponent "{5992E2EE5A9EEC18}" {
+   additionalActions {
+    OVT_LockVehicleAction "{5E68F659EC7AD454}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{5E68F659D0C31843}" {
+      Name "#OVT-Lock"
+     }
+     Duration 2
+     "Sort Priority" 3
+    }
+    OVT_UnlockVehicleAction "{5E68F659C4A0738B}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{5E68F659D930AA91}" {
+      Name "#OVT-Unlock"
+     }
+     Duration 2
+     "Sort Priority" 3
+    }
+    OVT_SaveLoadoutAction "{65AAD8FBBD7A1271}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{65AAD8FBBB0D0A0D}" {
+      Name "#OVT-SaveLoadout"
+     }
+     "Sort Priority" 8
+    }
+    OVT_LoadLoadoutAction "{65AAD8FBAFA059CF}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{65AAD8FBACC8F44F}" {
+      Name "#OVT-LoadLoadout"
+     }
+     "Sort Priority" 9
+    }
+    OVT_SaveOfficerLoadoutAction "{65AAD8FB97F659E8}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{65AAD8FB9345FFA7}" {
+      Name "#OVT-SaveOfficerLoadout"
+     }
+     "Sort Priority" 10
+    }
+   }
+  }
+ }
+}
