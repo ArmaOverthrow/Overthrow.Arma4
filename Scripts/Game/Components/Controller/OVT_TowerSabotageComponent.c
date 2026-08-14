@@ -35,29 +35,73 @@ class OVT_TowerSabotageComponent : OVT_ControllerRequestComponent
 		}
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! Server: take the tower nearest the claimed position off the air.
+	//!
+	//! The client's towerPos is a HINT, never an authority: the server re-resolves the nearest recorded
+	//! tower from its own registry and then measures the CALLER'S CHARACTER against that record's
+	//! position, so a crafted vector can only ever name a real tower the caller is already standing at.
+	//! Every refusal is logged (Q9) - a sabotage that silently did nothing was indistinguishable from a
+	//! dropped packet, which is exactly how the listen-host routing defect (P10-3) survived unnoticed.
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_SabotageTower(vector towerPos)
 	{
+		if(!Replication.IsServer()) return;
+
 		int playerId = ResolveOwningPlayerId();
-		if(playerId <= 0) return;
+		if(playerId <= 0)
+		{
+			RejectSabotage(playerId, "could not resolve the requesting player");
+			return;
+		}
 
 		IEntity character = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
-		if(!character) return;
+		if(!character)
+		{
+			RejectSabotage(playerId, "the caller has no controlled character");
+			return;
+		}
 
 		OVT_OccupyingFactionManager of = OVT_Global.GetOccupyingFaction();
 		if(!of) return;
 
 		OVT_RadioTowerData tower = of.GetNearestRadioTower(towerPos);
-		if(!tower || !tower.IsOccupyingFaction() || tower.IsDisabled()) return;
+		if(!tower || !tower.IsOccupyingFaction())
+		{
+			RejectSabotage(playerId, "no occupying-faction radio tower at the claimed position");
+			return;
+		}
 
-		if(vector.Distance(character.GetOrigin(), tower.location) > SABOTAGE_MAX_DISTANCE) return;
+		if(tower.IsDisabled())
+		{
+			RejectSabotage(playerId, "the tower is already off the air");
+			return;
+		}
 
-		of.SetRadioTowerDisabled(tower, OVT_Global.GetConfig().m_Difficulty.radioTowerSabotageTime);
+		if(vector.Distance(character.GetOrigin(), tower.location) > SABOTAGE_MAX_DISTANCE)
+		{
+			RejectSabotage(playerId, "the caller is not at the tower");
+			return;
+		}
+
+		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
+		if(!difficulty) return;
+
+		of.SetRadioTowerDisabled(tower, difficulty.radioTowerSabotageTime);
 
 		// Sabotage is illegal - being seen doing it makes you wanted (same seen-gate as looting/posters)
 		OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(character.FindComponent(OVT_PlayerWantedComponent));
 		if(wanted)
 			wanted.OnIllegalActionSeen("WantedSabotage");
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Logs a refused sabotage with its reason (quality bar Q9).
+	//! \param[in] playerId The rejected player, or -1 when even that could not be resolved.
+	//! \param[in] reason Why.
+	protected void RejectSabotage(int playerId, string reason)
+	{
+		Print(string.Format("[OVT_TowerSabotageComponent] Rejected sabotage request from player %1: %2", playerId.ToString(), reason), LogLevel.WARNING);
 	}
 
 }

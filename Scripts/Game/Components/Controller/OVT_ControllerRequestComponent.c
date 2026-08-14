@@ -24,7 +24,11 @@ class OVT_ControllerRequestComponentClass : OVT_ComponentClass {};
 //! WHAT DOES NOT EXTEND THIS: OVT_BaseServerProgressComponent and its subclasses. Progress reporting
 //! is a separate axis with its own owner test (IsLocalPlayerOwner(), which asks the player-manager map
 //! rather than comparing ids), and EnforceScript has no multiple inheritance to combine them. That
-//! hierarchy is deliberately left alone.
+//! hierarchy is deliberately left alone - but it still needs the identity rule and the vehicle rule, so
+//! both are also published as STATICS below and the instance methods delegate to them. One body, two
+//! hierarchies: OVT_ContainerTransferComponent (the only progress subclass) calls
+//! OVT_ControllerRequestComponent.ResolveOwningPlayerIdFor(GetOwner()) rather than carrying a copy,
+//! because copies of exactly these two methods are what T1.6 spent two sessions deleting.
 //------------------------------------------------------------------------------------------------
 class OVT_ControllerRequestComponent : OVT_Component
 {
@@ -41,7 +45,22 @@ class OVT_ControllerRequestComponent : OVT_Component
 	//! \return Runtime player id, or -1.
 	protected int ResolveOwningPlayerId()
 	{
-		OVT_OverthrowController owner = OVT_OverthrowController.Cast(GetOwner());
+		return OVT_ControllerRequestComponent.ResolveOwningPlayerIdFor(GetOwner());
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! ResolveOwningPlayerId() for a caller that cannot inherit this base.
+	//!
+	//! THE ONE BODY of the identity rule. It is a static only so OVT_BaseServerProgressComponent's
+	//! hierarchy can reach it (EnforceScript has no multiple inheritance); every class that CAN inherit
+	//! must use the instance method above, because passing GetOwner() in at each call site is precisely
+	//! the ceremony this base exists to remove.
+	//! \param[in] controllerEntity The entity the request arrived on. Anything that is not an
+	//! OVT_OverthrowController answers -1.
+	//! \return Runtime player id, or -1.
+	static int ResolveOwningPlayerIdFor(IEntity controllerEntity)
+	{
+		OVT_OverthrowController owner = OVT_OverthrowController.Cast(controllerEntity);
 		if(!owner) return -1;
 
 		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
@@ -128,6 +147,21 @@ class OVT_ControllerRequestComponent : OVT_Component
 	//! \param[in] vehicle The vehicle.
 	//! \return True when the player may use this vehicle.
 	protected bool PlayerMayUseVehicle(int playerId, IEntity vehicle)
+	{
+		return OVT_ControllerRequestComponent.PlayerMayUseVehicleFor(playerId, vehicle);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! PlayerMayUseVehicle() for a caller that cannot inherit this base - see ResolveOwningPlayerIdFor
+	//! for why the static form exists at all.
+	//!
+	//! Works on ANY entity, not only vehicles: an entity with no OVT_PlayerOwnerComponent (a supply box,
+	//! a crate, a deployed FOB that nobody has claimed) has no lock to answer to and is fair game. That
+	//! is what lets the container-transfer seam apply one rule to both ends of a transfer.
+	//! \param[in] playerId The requesting player's runtime id.
+	//! \param[in] vehicle The vehicle or container.
+	//! \return True when the player may use it.
+	static bool PlayerMayUseVehicleFor(int playerId, IEntity vehicle)
 	{
 		if(!vehicle) return false;
 

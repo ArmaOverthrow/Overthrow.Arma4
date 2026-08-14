@@ -781,3 +781,135 @@ boundary to marshal a controller component's handler.
 - `OVT_TravelRequestComponent`, `OVT_RespawnRequestComponent`, `OVT_TowerSabotageComponent` now extend `OVT_ControllerRequestComponent` (Class decls re-parented too); their byte-identical private `ResolveOwningPlayerId()` copies deleted. Exactly ONE definition remains, on the base.
 - Safe now because the deferral reason (play-test surface) was discharged by the green 21-step pass; the Init suite re-proves all three still resolve off the controller under the new hierarchy.
 - Gates: compile 0, Fast 112, All 154. Remaining tech debt: only the validation audit of the 7 pre-migration components.
+
+---
+
+## Pre-migration component validation audit (2026-08-14)
+
+**The last tech-debt item of this feature, and the one P10 named but could not do.** P2–P8 audited what
+they *moved*; P10's sweep audited `Rpc()` arity and routing across the whole folder (which is how it
+found the `OVT_TowerSabotageComponent` listen-host defect). **Nobody had diffed the seven pre-existing
+components' *validation* against anything.** This pass does that, handler by handler, against the §3.4
+ladder (IsServer → shape → `ResolveOwningPlayerId` → resolve RplIds → ownership/proximity/faction/
+affordability → delegate) and against §6 Q4/Q5/Q9.
+
+**Scope: 13 `RplRcver.Server` handlers** across the seven components, plus the shared progress base.
+`OVT_TutorialComponent` has none (both its RPCs are `RplRcver.Owner`), and neither does
+`OVT_BaseServerProgressComponent`.
+
+### The table
+
+| Component | Handler | Caller identity | Shape | Entity resolution | Ownership / proximity / permission | Rejection observable (Q9) | Verdict |
+|---|---|---|---|---|---|---|---|
+| `OVT_ContainerTransferComponent` | `RpcAsk_TransferStorage` | **was: none** → controller | n/a | was: none → both RplIds + null bail | **was: none** → 30 m to both ends + `PlayerMayUseVehicleFor` on both | was: silent → WARNING + conditional error channel | **DEFECT-fixed (BUG-166)** |
+| " | `RpcAsk_TransferStorageForDeployment` | **was: none** → controller | n/a | was: none → both + null bail | **was: none** → same pair | same | **DEFECT-fixed (BUG-166)** — also caller-less |
+| " | `RpcAsk_CollectContainers` | **was: none** → controller | **was: none** → `radius` ≤ 100 m | was: vehicle only → + caller-at-`pos` | **was: none** → 30 m to vehicle **and** to the client-supplied centre + may-use | same | **DEFECT-fixed (BUG-166)** — also caller-less |
+| " | `RpcAsk_TransferToWarehouse` | **was: none** → controller | n/a | was: none → source + null bail | **was: none** → 30 m + may-use | same | **DEFECT-fixed (BUG-166)** |
+| " | `RpcAsk_UndeployFOB` | **was: none** → controller | n/a | both, was already null-bailed | **was: none** → 30 m to both + may-use on both | same | **DEFECT-fixed (BUG-166)** |
+| " | `RpcAsk_LootBattlefield` | **was: none** → controller | **was: none** → `searchRadius` ≤ 50 m | vehicle, was already null-bailed | **was: none** → 30 m + may-use | same | **DEFECT-fixed (BUG-166)** |
+| `OVT_ShopTransactionComponent` | `RpcAsk_SellItems` | controller ✓ | `quantity != 0`, `>= -1`, `IsValidResourceId` ✓ | shop via RplId + null bail ✓ | 30 m ✓, `ShopBuysHere` ✓, server-derived price ✓, unequipped-only scan ✓ | `SendSellResult` enum per reason ✓ | **conforming** (the §3.4 template itself) |
+| " | `RpcAsk_SellVehicleCargo` | controller ✓ | n/a (no client numbers) | vehicle + shop, both null-bailed ✓ | 15 m to vehicle, 30 m vehicle→shop, `PlayerMayUseVehicle`, no pilot seated ✓ | `SendSellResult` ✓ | **conforming** |
+| " | `RpcAsk_BuyItems` | controller ✓ | `1..MAX_BUY_QUANTITY`, `IsValidResourceId` ✓ | shop + `GetOwner()` null-bail ✓ | 30 m ✓, server-derived price + affordability ✓, charge-what-was-delivered ✓ | purchase-failure / partial notifications ✓ | **conforming** (P4's own work) |
+| `OVT_TutorialComponent` | — | — | — | — | — | — | **conforming — no client→server surface at all** (2 × `RplRcver.Owner`) |
+| `OVT_AdminCommandsComponent` | `RpcAsk_GiveMoney` | controller ✓ | `amount > 0`, clamped to `GIVE_MONEY_MAX` ✓ | n/a | **`SCR_Global.IsAdmin(playerId)` — the engine's own role flags for that connection**, server-side ✓ | refusal notification + WARNING + audit line on success ✓ | **conforming** |
+| `OVT_TravelRequestComponent` | `RpcAsk_Travel` | controller ✓ | unknown verb refused outright ✓ | n/a (positions, not entities) | `ValidateTravel` (distance/wanted/QRF/bus) + **destination re-resolved from the server's own enumeration and `targetPos` reassigned** + charge only after a successful teleport ✓ | arrival + result Print pair, owner-routed reason hint ✓ | **conforming — holds after the BUG-163/165 merge** (both changed *where* the trip lands, not what is checked) |
+| `OVT_RespawnRequestComponent` | `RpcAsk_Respawn` | controller ✓ | out-of-range destination refused, never defaulted ✓ | n/a | claim-consuming `OVT_SpawnLogic.CompleteRespawn` (a duplicate/late/alive ask finds no claim); client vector is a lookup key, never a spawn position ✓ | every outcome reported incl. OK ✓ | **conforming** |
+| `OVT_TowerSabotageComponent` | `RpcAsk_SabotageTower` | controller ✓ | n/a | tower re-resolved from the server registry; client `towerPos` is a hint ✓ | occupying-faction ✓, not already disabled ✓, 25 m ✓ | **was: 5 silent bare returns** → WARNING per reason | **hardened** (+ the missing `IsServer` guard, Q5) |
+| `OVT_BaseServerProgressComponent` | — | — | — | — | — | — | **conforming — no client→server surface** (4 × `RplRcver.Owner`) |
+
+**Q4 (no identity in the payload): clean.** No handler on any of the seven takes a `playerId`,
+`persistentId`, `senderId` or `promoterId`. **Q5: clean after this pass** — all 13 now open with
+`if(!Replication.IsServer()) return;` (`RpcAsk_SabotageTower` was the one exception and relied on
+`ResolveOwningPlayerId()` answering −1 on a client, which is true but is not the contract).
+
+### A1: the container component was the whole finding, and it is the oldest code in the folder
+
+Six handlers, one shape: `IsServer` and nothing else. No caller resolution at all, which is what makes
+every other check impossible — you cannot test proximity or ownership without knowing who asked. Filed
+as **`docs/bugs/BUG-166.md`** (open, high, code-derived) and fixed in place: 30 m to both ends of every
+transfer, the shared lock rule on both ends, bounded radii, and a named rejection. The exploit it closes
+is "empty another player's locked truck from anywhere on the map, in one packet"; the DoS it closes is
+an unbounded client-chosen sphere-query radius on the server.
+
+### A2: the fix had to reuse the two rules WITHOUT copying them, and that shaped the change
+
+`OVT_ContainerTransferComponent` extends `OVT_BaseServerProgressComponent` for the progress plumbing and
+EnforceScript has no multiple inheritance, so it cannot inherit `OVT_ControllerRequestComponent` — the
+exact case that base's own header calls out. Adding a private `ResolveOwningPlayerId()` copy would have
+recreated, on the same day, the duplication the post-completion fold had just finished deleting. So both
+rules gained **static forms** on the base (`ResolveOwningPlayerIdFor(IEntity)`,
+`PlayerMayUseVehicleFor(int, IEntity)`) and the protected instance methods now delegate to them. One
+body each; the 17 inheriting components see no API change. `PlayerMayUseVehicleFor`'s doc was widened to
+say what was already true — an entity with no `OVT_PlayerOwnerComponent` passes — because the container
+seam applies it to crates as well as trucks.
+
+### A3: the rejection channel is deliberately two-part, and the second part is for the SERVER
+
+A refused container transfer logs at WARNING (that is the Q9 evidence) **and** calls
+`SendOperationError()` — but only while no operation is running. Not for the player:
+`OVT_ProgressInfo` only makes its widget visible from `OnProgressStart`, and every rejection happens
+before `StartOperation`, so nothing is drawn either way. It is for
+`OVT_ResistanceFactionManager`, which latches `m_pCurrentDeploymentSource`/`Target` for the duration of a
+FOB operation and clears that latch from `m_OnOperationError`. A silent refusal on the FOB path would
+have wedged FOB deploys for **every** player until the session ended — the audit's own fix creating a
+worse bug than the one it closed. The `!m_bIsRunning` condition is the other half: while a legitimate
+transfer is in flight, an unrelated rejection must not cancel its bookkeeping.
+
+### A4: the FOB paths were traced before the gates were written, not after
+
+`RpcAsk_TransferStorage` and `RpcAsk_UndeployFOB` are also called **server-side** by
+`OVT_ResistanceFactionManager.DeployFOB` / `UndeployFOB`, on the acting player's own controller. Every
+gate added is therefore one the FOB seam has already applied to the same player and the same vehicle
+(`RpcAsk_DeployFOB`: 15 m + `PlayerMayUseVehicle`), and the second vehicle in both flows is spawned by
+`OVT_VehicleManagerComponent.SpawnVehicleMatrix`, which sets an owner but **never** `SetLocked(true)`
+(only `SpawnStartingCar` does, afterwards) — so a freshly spawned FOB or truck always passes the lock
+rule. 30 m rather than 15 m because the load/unload actions legitimately put the two ends 15 m apart
+with the caller at one of them.
+
+### A5: the storage user actions already run on ONE machine, so rejections are attributable
+
+Checked before deciding whether the fix needed a `HasLocalEffectOnlyScript()` change:
+`OVT_LoadStorageAction` / `OVT_UnloadStorageAction` do not declare local-effect-only, so the engine
+broadcasts `PerformAction` to every machine — but `SCR_InventoryAction.PerformAction` opens with
+`if (!CanBePerformedScript(pUserEntity)) return;`, and that predicate ends in `genericRpl.IsOwner()` on
+the **user's character**, which is true on exactly one machine. Bystanders and the dedicated server
+therefore return before reaching the seam, there are no duplicate requests to refuse, and no action file
+needed touching. (`OVT_LootIntoVehicleAction` is explicitly `HasLocalEffectOnlyScript() == true`.)
+
+### A6: what was deliberately NOT fixed
+
+- **No server-side `IsAvailable()` latch on the container handlers.** A modified client can still start
+  several concurrent operations on its own controller. Rejected as a fix because a `m_bIsRunning` that
+  ever fails to clear would permanently break that player's transfers for the session — a worse failure
+  than the bounded extra work it prevents — and the FOB manager already tests `IsAvailable()`
+  server-side before it latches anything. Accepted debt.
+- **The two caller-less endpoints were validated, not deleted.** `TransferStorageForDeployment` and
+  `CollectContainers` have zero callers under `Scripts/`. §3.7/D6 would delete them; deleting public
+  entry points is outside an audit's remit, so both carry a "caller-less, deletion candidate" note
+  instead. Accepted debt.
+- **`RpcAsk_TransferToWarehouse` does not test warehouse accessibility** (private/owned/rented).
+  `OVT_VehicleMenuContext.PutInWarehouse` does not either — only the *take* direction does — so adding
+  it would refuse deposits the menu currently offers. Gameplay change, G6 forbids.
+- **`deleteEmpty` is passed into `OVT_StorageOperationConfig`'s `skipWeaponsOnGround` slot** in both
+  transfer handlers (the comment next to it says so). A pre-existing parameter mix-up, not a validation
+  hole; correcting it would change what gets transferred. Recorded, untouched.
+- **`OVT_TravelRequestComponent.SendTravelResult` and `OVT_RespawnRequestComponent.SendRespawnResult`
+  open-code `ShouldRespondLocally()`** (`playerId > 0 && playerId == GetLocalPlayerId()`) even though
+  both now inherit it after today's fold. Byte-identical predicate, pure tidiness; left alone because
+  the tree is in a just-play-tested state. Accepted debt.
+- **`OVT_BaseServerProgressComponent`'s four `RplRcver.Owner` handlers are public**, not `protected` as
+  the migrated components' idiom has them. They mutate only client-side display state. Accepted debt.
+
+**One tightening is worth watching in the play-test:** Loot Into Vehicle at *another player's locked*
+truck is now refused. That is a put, not a take, so it is the weakest of the six lock gates — it is in
+because `RpcAsk_TakeFromWarehouseToVehicle` (P3) already applies the same rule to a receiving vehicle
+and one shared rule beats five per-path exceptions. If a legitimate co-op loot is refused, relax that
+single call site to proximity-only; do not take the rule out of `CallerMayReach`.
+
+### A7: gates
+
+compile-check **exit 0** (6059 files, 6 s) · Fast `{6A6E29FF47ECB840}` **112** exit 0 (43 s) · All
+`{6A6E2A002F53A581}` **154** exit 0 (47 s) — no flakes, both green first attempt. **No `Rpc()` signature
+changed**, so the arity table above stays valid; the seven `Rpc(Rpc…)` calls in the two edited files were
+re-checked against their handlers and their direct twins anyway (3/3, 3/3, 3/3, 1/1, 2/2, 2/2, 1/1).
+`git diff --stat Language/ Configs/ Prefabs/ Scripts/Game/Persistence/` is empty.
