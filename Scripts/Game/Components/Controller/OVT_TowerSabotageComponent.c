@@ -16,9 +16,17 @@ class OVT_TowerSabotageComponent : OVT_Component
 	//! How far the saboteur may be from the tower when the action completes (action radius + slack)
 	protected const float SABOTAGE_MAX_DISTANCE = 25;
 
+	//------------------------------------------------------------------------------------------------
+	//! The authority never loops an RplRcver.Server RPC back to itself, so a listen host / SP player
+	//! sending this request would be sending it into a void - the sabotage hold completed and nothing
+	//! happened at all (BUG-164). The handler is already server-side, so run it in place instead.
+	//! \param[in] towerPos Origin of the tower entity the action was performed on.
 	void RequestSabotage(vector towerPos)
 	{
-		Rpc(RpcAsk_SabotageTower, towerPos);
+		if(Replication.IsServer())
+			RpcAsk_SabotageTower(towerPos);
+		else
+			Rpc(RpcAsk_SabotageTower, towerPos);
 	}
 
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]

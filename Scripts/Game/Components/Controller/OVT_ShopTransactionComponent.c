@@ -600,8 +600,10 @@ class OVT_ShopTransactionComponent : OVT_Component
 	//! Adds the sold items back to the shop's stock and broadcasts each changed row.
 	//!
 	//! Mutates and streams directly, exactly as the legacy sell path did by calling its own
-	//! RpcAsk_AddToInventory handler in-process: OVT_ShopComponent.AddToInventory routes through a
-	//! client->server ask on the legacy comms component, which is not a server-side call path.
+	//! RpcAsk_AddToInventory handler in-process. OVT_ShopComponent.AddToInventory still routes
+	//! through the legacy comms component, which as of BUG-164 does branch on Replication.IsServer()
+	//! and so would work here too - this stays direct because it is one hop shorter, not because
+	//! the other path is broken.
 	//! \param[in] shop The shop to restock.
 	//! \param[in] collated Resource id -> number actually taken from the seller.
 	protected void RestockShop(OVT_ShopComponent shop, map<int, int> collated)

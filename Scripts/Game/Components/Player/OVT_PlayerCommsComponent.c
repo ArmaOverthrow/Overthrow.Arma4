@@ -22,9 +22,24 @@ class OVT_PlayerCommsComponent: OVT_Component
 		return m_OnSaveResult;
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! True when this instance is the authority's own copy of the component, i.e. the request came
+	//! from local server-side code rather than over the wire. Remote clients always reach the copy
+	//! that sits on their own character (see OVT_Global.GetServer), so a character owner means the
+	//! reply has to go out over the wire; the game mode's copy means the requester is right here and
+	//! an RplRcver.Owner Rpc would be dropped (BUG-090 family).
+	protected bool IsLocalServerRequest()
+	{
+		if(!Replication.IsServer()) return false;
+		return !ChimeraCharacter.Cast(GetOwner());
+	}
+
 	void RequestSave()
 	{
-		Rpc(RpcAsk_RequestSave);
+		if(Replication.IsServer())
+			RpcAsk_RequestSave();
+		else
+			Rpc(RpcAsk_RequestSave);
 	}
 
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -33,14 +48,20 @@ class OVT_PlayerCommsComponent: OVT_Component
 		OVT_OverthrowGameMode overthrow = OVT_OverthrowGameMode.Cast(GetGame().GetGameMode());
 		if(!overthrow)
 		{
-			Rpc(RpcDo_SaveResult, false);
+			if(IsLocalServerRequest())
+				RpcDo_SaveResult(false);
+			else
+				Rpc(RpcDo_SaveResult, false);
 			return;
 		}
 
 		OVT_PersistenceManagerComponent persistence = overthrow.GetPersistence();
 		if(!persistence)
 		{
-			Rpc(RpcDo_SaveResult, false);
+			if(IsLocalServerRequest())
+				RpcDo_SaveResult(false);
+			else
+				Rpc(RpcDo_SaveResult, false);
 			return;
 		}
 
@@ -64,7 +85,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 				persistence.GetOnSaveFinished().Remove(OnServerSaveFinished);
 		}
 
-		Rpc(RpcDo_SaveResult, success);
+		if(IsLocalServerRequest())
+			RpcDo_SaveResult(success);
+		else
+			Rpc(RpcDo_SaveResult, success);
 	}
 
 	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
@@ -73,15 +97,20 @@ class OVT_PlayerCommsComponent: OVT_Component
 		m_OnSaveResult.Invoke(success);
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! Server-side helper for the economy handlers below. This used to Rpc() an RplRcver.Server
+	//! endpoint, but every caller is itself an RplRcver.Server handler and therefore already on the
+	//! authority - the engine never loops an RPC back to its sender, so PlayerDonated /
+	//! PlayerSentFunds / PlayerSentMoney had never once reached a screen (BUG-162). The notification
+	//! manager fans out to the right clients on its own, so the authority just calls it directly.
+	//! The old RpcAsk_SendNotification endpoint is gone with it: it had no client caller and let any
+	//! client show any notification, with any substitutions, to any playerId.
 	void SendNotification(string tag, int playerId = -1, string param1 = "", string param2="", string param3="")
 	{
-		Rpc(RpcAsk_SendNotification, tag, playerId, param1, param2, param3);
-	}
-	
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	void RpcAsk_SendNotification(string tag, int playerId, string param1, string param2, string param3)
-	{
-		OVT_Global.GetNotify().SendTextNotification(tag,playerId,param1,param2,param3);
+		if(!Replication.IsServer()) return;
+		OVT_NotificationManagerComponent notify = OVT_Global.GetNotify();
+		if(!notify) return;
+		notify.SendTextNotification(tag, playerId, param1, param2, param3);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -172,7 +201,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	
 	void BuySkill(int playerId, string key)
 	{
-		Rpc(RpcAsk_BuySkill, playerId, key);
+		if(Replication.IsServer())
+			RpcAsk_BuySkill(playerId, key);
+		else
+			Rpc(RpcAsk_BuySkill, playerId, key);
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -186,7 +218,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	
 	void StartBaseCapture(vector loc)
 	{		
-		Rpc(RpcAsk_StartBaseCapture, loc);
+		if(Replication.IsServer())
+			RpcAsk_StartBaseCapture(loc);
+		else
+			Rpc(RpcAsk_StartBaseCapture, loc);
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -218,7 +253,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	
 	void InstantCaptureBase(vector loc, int playerId)
 	{
-		Rpc(RpcAsk_InstantCaptureBase, loc, playerId);
+		if(Replication.IsServer())
+			RpcAsk_InstantCaptureBase(loc, playerId);
+		else
+			Rpc(RpcAsk_InstantCaptureBase, loc, playerId);
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -254,7 +292,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	void DeliverMedicalSupplies(IEntity vehicle)
 	{
 		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
-		Rpc(RpcAsk_DeliverMedicalSupplies, rpl.Id());
+		if(Replication.IsServer())
+			RpcAsk_DeliverMedicalSupplies(rpl.Id());
+		else
+			Rpc(RpcAsk_DeliverMedicalSupplies, rpl.Id());
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -327,7 +368,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	{
 		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
 		if(!rpl) return;
-		Rpc(RpcAsk_SetVehicleLock, rpl.Id(), locked);
+		if(Replication.IsServer())
+			RpcAsk_SetVehicleLock(rpl.Id(), locked);
+		else
+			Rpc(RpcAsk_SetVehicleLock, rpl.Id(), locked);
 	}
 
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -363,7 +407,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	{
 		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
 		if(!rpl) return;
-		Rpc(RpcAsk_ClaimUnownedVehicle, rpl.Id(), playerId);
+		if(Replication.IsServer())
+			RpcAsk_ClaimUnownedVehicle(rpl.Id(), playerId);
+		else
+			Rpc(RpcAsk_ClaimUnownedVehicle, rpl.Id(), playerId);
 	}
 
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -407,7 +454,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	
 	void SetHome(int playerId)
 	{		
-		Rpc(RpcAsk_SetHome, playerId);
+		if(Replication.IsServer())
+			RpcAsk_SetHome(playerId);
+		else
+			Rpc(RpcAsk_SetHome, playerId);
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -422,7 +472,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	void SetBuildingHome(int playerId, IEntity building)
 	{		
 		RplComponent rpl = RplComponent.Cast(building.FindComponent(RplComponent));
-		Rpc(RpcAsk_SetBuildingHome, playerId, rpl.Id());
+		if(Replication.IsServer())
+			RpcAsk_SetBuildingHome(playerId, rpl.Id());
+		else
+			Rpc(RpcAsk_SetBuildingHome, playerId, rpl.Id());
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -436,7 +489,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	
 	void BuyBuilding(int playerId, bool useResistanceFunds)
 	{
-		Rpc(RpcAsk_BuyBuilding, playerId, useResistanceFunds);
+		if(Replication.IsServer())
+			RpcAsk_BuyBuilding(playerId, useResistanceFunds);
+		else
+			Rpc(RpcAsk_BuyBuilding, playerId, useResistanceFunds);
 	}
 
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -472,7 +528,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 
 	void SellBuilding(int playerId, bool useResistanceFunds)
 	{
-		Rpc(RpcAsk_SellBuilding, playerId, useResistanceFunds);
+		if(Replication.IsServer())
+			RpcAsk_SellBuilding(playerId, useResistanceFunds);
+		else
+			Rpc(RpcAsk_SellBuilding, playerId, useResistanceFunds);
 	}
 
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -507,7 +566,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 
 	void RentBuilding(int playerId, bool useResistanceFunds)
 	{
-		Rpc(RpcAsk_RentBuilding, playerId, useResistanceFunds);
+		if(Replication.IsServer())
+			RpcAsk_RentBuilding(playerId, useResistanceFunds);
+		else
+			Rpc(RpcAsk_RentBuilding, playerId, useResistanceFunds);
 	}
 
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -555,7 +617,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 
 	void StopRentingBuilding(int playerId, bool useResistanceFunds)
 	{
-		Rpc(RpcAsk_StopRentingBuilding, playerId, useResistanceFunds);
+		if(Replication.IsServer())
+			RpcAsk_StopRentingBuilding(playerId, useResistanceFunds);
+		else
+			Rpc(RpcAsk_StopRentingBuilding, playerId, useResistanceFunds);
 	}
 
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -588,7 +653,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	void Buy(OVT_ShopComponent shop, int id, int num, int playerId)
 	{
 		RplComponent rpl = RplComponent.Cast(shop.GetOwner().FindComponent(RplComponent));
-		Rpc(RpcAsk_Buy, rpl.Id(), id, num, playerId);
+		if(Replication.IsServer())
+			RpcAsk_Buy(rpl.Id(), id, num, playerId);
+		else
+			Rpc(RpcAsk_Buy, rpl.Id(), id, num, playerId);
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -683,8 +751,12 @@ class OVT_PlayerCommsComponent: OVT_Component
 		{
 			// Take money for successful purchases only
 			int actualCost = successfulPurchases * unitCost;
-			Rpc(RpcAsk_TakePlayerMoney, playerId, actualCost);
-			Rpc(RpcAsk_TakeFromInventory, shopId, id, successfulPurchases);
+			// Direct calls, not Rpc(): this handler already runs on the authority, and an
+			// RplRcver.Server RPC sent by the authority is delivered to nobody - which is why
+			// items used to be free and stock never decremented (BUG-161). RpcAsk_BuyVehicle
+			// has always called the identical pair directly.
+			RpcAsk_TakePlayerMoney(playerId, actualCost);
+			RpcAsk_TakeFromInventory(shopId, id, successfulPurchases);
 			economy.m_OnPlayerBuy.Invoke(playerId, actualCost);
 			
 			// Trigger transaction event
@@ -721,7 +793,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 		if(!dealer) return;
 		RplComponent rpl = RplComponent.Cast(dealer.FindComponent(RplComponent));
 		if(!rpl) return;
-		Rpc(RpcAsk_SellDrugs, playerId, rpl.Id());
+		if(Replication.IsServer())
+			RpcAsk_SellDrugs(playerId, rpl.Id());
+		else
+			Rpc(RpcAsk_SellDrugs, playerId, rpl.Id());
 	}
 
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -765,7 +840,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
 		if(!rpl) return;
 
-		Rpc(RpcAsk_ImportToVehicle, id, qty, rpl.Id(), playerId)
+		if(Replication.IsServer())
+			RpcAsk_ImportToVehicle(id, qty, rpl.Id(), playerId);
+		else
+			Rpc(RpcAsk_ImportToVehicle, id, qty, rpl.Id(), playerId);
 	}
 	
 	//! How far the importing player and the receiving vehicle may be from a port before the server
@@ -862,7 +940,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	void BuyVehicle(OVT_ShopComponent shop, int id, int playerId)
 	{
 		RplComponent rpl = RplComponent.Cast(shop.GetOwner().FindComponent(RplComponent));
-		Rpc(RpcAsk_BuyVehicle, rpl.Id(), id, playerId);
+		if(Replication.IsServer())
+			RpcAsk_BuyVehicle(rpl.Id(), id, playerId);
+		else
+			Rpc(RpcAsk_BuyVehicle, rpl.Id(), id, playerId);
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -921,7 +1002,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	{
 		num = Math.Round(num);
 		RplComponent rpl = RplComponent.Cast(shop.GetOwner().FindComponent(RplComponent));
-		Rpc(RpcAsk_AddToInventory, rpl.Id(), id, num);
+		if(Replication.IsServer())
+			RpcAsk_AddToInventory(rpl.Id(), id, num);
+		else
+			Rpc(RpcAsk_AddToInventory, rpl.Id(), id, num);
 	}
 		
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -944,7 +1028,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	void TakeFromShopInventory(OVT_ShopComponent shop, RplId id, int num)
 	{
 		RplComponent rpl = RplComponent.Cast(shop.GetOwner().FindComponent(RplComponent));
-		Rpc(RpcAsk_TakeFromInventory, rpl.Id(), id, num);
+		if(Replication.IsServer())
+			RpcAsk_TakeFromInventory(rpl.Id(), id, num);
+		else
+			Rpc(RpcAsk_TakeFromInventory, rpl.Id(), id, num);
 	}	
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -991,7 +1078,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	//! The balance check, debit and credit all happen on the server.
 	void DonateToResistance(int playerId, int amount)
 	{
-		Rpc(RpcAsk_DonateToResistance, playerId, amount);
+		if(Replication.IsServer())
+			RpcAsk_DonateToResistance(playerId, amount);
+		else
+			Rpc(RpcAsk_DonateToResistance, playerId, amount);
 	}
 
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -1014,7 +1104,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	//! all validated on the server, where the debit and credit both happen.
 	void SendResistanceFunds(int fromPlayerId, int toPlayerId, int amount)
 	{
-		Rpc(RpcAsk_SendResistanceFunds, fromPlayerId, toPlayerId, amount);
+		if(Replication.IsServer())
+			RpcAsk_SendResistanceFunds(fromPlayerId, toPlayerId, amount);
+		else
+			Rpc(RpcAsk_SendResistanceFunds, fromPlayerId, toPlayerId, amount);
 	}
 
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -1040,7 +1133,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	//! checked there, where the debit and credit both happen.
 	void SendMoneyToPlayer(int fromPlayerId, int toPlayerId, int amount)
 	{
-		Rpc(RpcAsk_SendMoneyToPlayer, fromPlayerId, toPlayerId, amount);
+		if(Replication.IsServer())
+			RpcAsk_SendMoneyToPlayer(fromPlayerId, toPlayerId, amount);
+		else
+			Rpc(RpcAsk_SendMoneyToPlayer, fromPlayerId, toPlayerId, amount);
 	}
 
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -1067,7 +1163,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 		//Stop money glitch
 		if(takingMoney) return;
 		takingMoney = true;
-		Rpc(RpcAsk_TakePlayerMoney, playerId, amount);
+		if(Replication.IsServer())
+			RpcAsk_TakePlayerMoney(playerId, amount);
+		else
+			Rpc(RpcAsk_TakePlayerMoney, playerId, amount);
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -1078,7 +1177,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 		if(amount > 0)
 			OVT_Global.GetEconomy().DoTakePlayerMoney(playerId, amount);
 		// Always reply, or the sender's takingMoney latch never clears
-		Rpc(RpcDo_DoneTakingMoney);
+		if(IsLocalServerRequest())
+			RpcDo_DoneTakingMoney();
+		else
+			Rpc(RpcDo_DoneTakingMoney);
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
@@ -1089,7 +1191,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	
 	void SetResistanceTax(float amount)
 	{
-		Rpc(RpcAsk_SetResistanceTax, amount);
+		if(Replication.IsServer())
+			RpcAsk_SetResistanceTax(amount);
+		else
+			Rpc(RpcAsk_SetResistanceTax, amount);
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -1107,7 +1212,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	//PLACING
 	void PlaceItem(int placeableIndex, int prefabIndex, vector pos, vector angles, int playerId)
 	{
-		Rpc(RpcAsk_PlaceItem, placeableIndex, prefabIndex, pos, angles, playerId);
+		if(Replication.IsServer())
+			RpcAsk_PlaceItem(placeableIndex, prefabIndex, pos, angles, playerId);
+		else
+			Rpc(RpcAsk_PlaceItem, placeableIndex, prefabIndex, pos, angles, playerId);
 	}
 
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -1119,7 +1227,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 
 	void RemovePlacedItem(RplId entityId, int playerId)
 	{
-		Rpc(RpcAsk_RemovePlacedItem, entityId, playerId);
+		if(Replication.IsServer())
+			RpcAsk_RemovePlacedItem(entityId, playerId);
+		else
+			Rpc(RpcAsk_RemovePlacedItem, entityId, playerId);
 	}
 
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -1132,7 +1243,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	//BUILDING
 	void BuildItem(int buildableIndex, int prefabIndex, vector pos, vector angles, int playerId)
 	{
-		Rpc(RpcAsk_BuildItem, buildableIndex, prefabIndex, pos, angles, playerId);
+		if(Replication.IsServer())
+			RpcAsk_BuildItem(buildableIndex, prefabIndex, pos, angles, playerId);
+		else
+			Rpc(RpcAsk_BuildItem, buildableIndex, prefabIndex, pos, angles, playerId);
 	}
 
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -1149,7 +1263,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	//! the promotee's persisted record learn about it.
 	void AddOfficer(int playerId)
 	{
-		Rpc(RpcAsk_AddOfficer, playerId, SCR_PlayerController.GetLocalPlayerId());
+		if(Replication.IsServer())
+			RpcAsk_AddOfficer(playerId, SCR_PlayerController.GetLocalPlayerId());
+		else
+			Rpc(RpcAsk_AddOfficer, playerId, SCR_PlayerController.GetLocalPlayerId());
 	}
 
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -1173,7 +1290,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 		OVT_Faction faction = OVT_Global.GetConfig().GetPlayerFaction();
 		int index = faction.m_aGroupPrefabSlots.Find(res);
 		if(index == -1) return;
-		Rpc(RpcAsk_AddGarrison, base.id, index, SCR_PlayerController.GetLocalPlayerId());
+		if(Replication.IsServer())
+			RpcAsk_AddGarrison(base.id, index, SCR_PlayerController.GetLocalPlayerId());
+		else
+			Rpc(RpcAsk_AddGarrison, base.id, index, SCR_PlayerController.GetLocalPlayerId());
 	}
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_AddGarrison(int baseId, int prefabIndex, int playerId)
@@ -1187,7 +1307,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 		OVT_Faction faction = OVT_Global.GetConfig().GetPlayerFaction();
 		int index = faction.m_aGroupPrefabSlots.Find(res);
 		if(index == -1) return;
-		Rpc(RpcAsk_AddGarrisonCamp, base.location, index, SCR_PlayerController.GetLocalPlayerId());
+		if(Replication.IsServer())
+			RpcAsk_AddGarrisonCamp(base.location, index, SCR_PlayerController.GetLocalPlayerId());
+		else
+			Rpc(RpcAsk_AddGarrisonCamp, base.location, index, SCR_PlayerController.GetLocalPlayerId());
 	}
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_AddGarrisonCamp(vector pos, int prefabIndex, int playerId)
@@ -1206,7 +1329,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 		OVT_Faction faction = OVT_Global.GetConfig().GetPlayerFaction();
 		int index = faction.m_aGroupPrefabSlots.Find(res);
 		if(index == -1) return;
-		Rpc(RpcAsk_AddGarrisonFOB, base.location, index, SCR_PlayerController.GetLocalPlayerId());
+		if(Replication.IsServer())
+			RpcAsk_AddGarrisonFOB(base.location, index, SCR_PlayerController.GetLocalPlayerId());
+		else
+			Rpc(RpcAsk_AddGarrisonFOB, base.location, index, SCR_PlayerController.GetLocalPlayerId());
 	}
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_AddGarrisonFOB(vector pos, int prefabIndex, int playerId)
@@ -1228,7 +1354,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 		IEntity playerEntity = SCR_PlayerController.GetLocalControlledEntity();
 		int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(playerEntity);
 		
-		Rpc(RpcAsk_DeployFOB, rpl.Id(), playerId);
+		if(Replication.IsServer())
+			RpcAsk_DeployFOB(rpl.Id(), playerId);
+		else
+			Rpc(RpcAsk_DeployFOB, rpl.Id(), playerId);
 	}	
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -1247,7 +1376,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 		IEntity playerEntity = SCR_PlayerController.GetLocalControlledEntity();
 		int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(playerEntity);
 		
-		Rpc(RpcAsk_UndeployFOB, rpl.Id(), playerId);
+		if(Replication.IsServer())
+			RpcAsk_UndeployFOB(rpl.Id(), playerId);
+		else
+			Rpc(RpcAsk_UndeployFOB, rpl.Id(), playerId);
 	}	
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -1262,7 +1394,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 		int id = OVT_Global.GetEconomy().GetInventoryId(upgrade.m_pUpgradePrefab);
 		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
 		
-		Rpc(RpcAsk_UpgradeVehicle, rpl.Id(), id);
+		if(Replication.IsServer())
+			RpcAsk_UpgradeVehicle(rpl.Id(), id);
+		else
+			Rpc(RpcAsk_UpgradeVehicle, rpl.Id(), id);
 	}	
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -1275,7 +1410,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	{		
 		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
 		
-		Rpc(RpcAsk_RepairVehicle, rpl.Id());
+		if(Replication.IsServer())
+			RpcAsk_RepairVehicle(rpl.Id());
+		else
+			Rpc(RpcAsk_RepairVehicle, rpl.Id());
 	}	
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -1288,7 +1426,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	{		
 		RplComponent rpl = RplComponent.Cast(civilian.FindComponent(RplComponent));
 		
-		Rpc(RpcAsk_RecruitCivilian, rpl.Id(), playerId);
+		if(Replication.IsServer())
+			RpcAsk_RecruitCivilian(rpl.Id(), playerId);
+		else
+			Rpc(RpcAsk_RecruitCivilian, rpl.Id(), playerId);
 	}	
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -1335,7 +1476,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	
 	void RecruitFromTent(vector tentPos, int playerId)
 	{		
-		Rpc(RpcAsk_RecruitFromTent, tentPos, playerId);
+		if(Replication.IsServer())
+			RpcAsk_RecruitFromTent(tentPos, playerId);
+		else
+			Rpc(RpcAsk_RecruitFromTent, tentPos, playerId);
 	}	
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -1389,7 +1533,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	//WAREHOUSES
 	void AddToWarehouse(int warehouseId, string id, int count)
 	{
-		Rpc(RpcAsk_AddToWarehouse, warehouseId, id, count);
+		if(Replication.IsServer())
+			RpcAsk_AddToWarehouse(warehouseId, id, count);
+		else
+			Rpc(RpcAsk_AddToWarehouse, warehouseId, id, count);
 	}	
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -1400,7 +1547,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	
 	void TakeFromWarehouse(int warehouseId, string id, int count)
 	{
-		Rpc(RpcAsk_TakeFromWarehouse, warehouseId, id, count);
+		if(Replication.IsServer())
+			RpcAsk_TakeFromWarehouse(warehouseId, id, count);
+		else
+			Rpc(RpcAsk_TakeFromWarehouse, warehouseId, id, count);
 	}	
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -1412,7 +1562,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	void TakeFromWarehouseToVehicle(int warehouseId, string id, int qty, IEntity vehicle)	
 	{
 		RplComponent rpl = RplComponent.Cast(vehicle.FindComponent(RplComponent));
-		Rpc(RpcAsk_TakeFromWarehouseToVehicle, warehouseId, id, qty, rpl.Id());
+		if(Replication.IsServer())
+			RpcAsk_TakeFromWarehouseToVehicle(warehouseId, id, qty, rpl.Id());
+		else
+			Rpc(RpcAsk_TakeFromWarehouseToVehicle, warehouseId, id, qty, rpl.Id());
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -1427,7 +1580,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	//JOBS
 	void AcceptJob(OVT_Job job, int playerId)	
 	{		
-		Rpc(RpcAsk_AcceptJob, job.jobIndex, job.townId, job.baseId, playerId);
+		if(Replication.IsServer())
+			RpcAsk_AcceptJob(job.jobIndex, job.townId, job.baseId, playerId);
+		else
+			Rpc(RpcAsk_AcceptJob, job.jobIndex, job.townId, job.baseId, playerId);
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -1454,7 +1610,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	}
 	void DeclineJob(OVT_Job job, int playerId)	
 	{		
-		Rpc(RpcAsk_DeclineJob, job.jobIndex, job.townId, job.baseId, playerId);
+		if(Replication.IsServer())
+			RpcAsk_DeclineJob(job.jobIndex, job.townId, job.baseId, playerId);
+		else
+			Rpc(RpcAsk_DeclineJob, job.jobIndex, job.townId, job.baseId, playerId);
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -1489,7 +1648,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	//! Save a loadout for a player
 	void SaveLoadout(string playerId, string loadoutName, string description = "", bool isOfficerTemplate = false)
 	{
-		Rpc(RpcAsk_SaveLoadout, playerId, loadoutName, description, isOfficerTemplate);
+		if(Replication.IsServer())
+			RpcAsk_SaveLoadout(playerId, loadoutName, description, isOfficerTemplate);
+		else
+			Rpc(RpcAsk_SaveLoadout, playerId, loadoutName, description, isOfficerTemplate);
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -1545,7 +1707,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 			return;
 		}
 		
-		Rpc(RpcAsk_LoadLoadoutFromBox, playerId, loadoutName, equipmentBoxRpl.Id(), targetEntityRpl.Id());
+		if(Replication.IsServer())
+			RpcAsk_LoadLoadoutFromBox(playerId, loadoutName, equipmentBoxRpl.Id(), targetEntityRpl.Id());
+		else
+			Rpc(RpcAsk_LoadLoadoutFromBox, playerId, loadoutName, equipmentBoxRpl.Id(), targetEntityRpl.Id());
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -1606,7 +1771,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	//! Delete a loadout (client to server)
 	void DeleteLoadout(string playerId, string loadoutName, bool isOfficerTemplate = false)
 	{
-		Rpc(RpcAsk_DeleteLoadout, playerId, loadoutName, isOfficerTemplate);
+		if(Replication.IsServer())
+			RpcAsk_DeleteLoadout(playerId, loadoutName, isOfficerTemplate);
+		else
+			Rpc(RpcAsk_DeleteLoadout, playerId, loadoutName, isOfficerTemplate);
 	}
 	
 	//! Server-side RPC handler for deleting loadouts
@@ -1637,7 +1805,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 			return;
 		}
 		
-		Rpc(RpcAsk_SetPossessedEntityAndOpenInventory, playerId, rpl.Id());
+		if(Replication.IsServer())
+			RpcAsk_SetPossessedEntityAndOpenInventory(playerId, rpl.Id());
+		else
+			Rpc(RpcAsk_SetPossessedEntityAndOpenInventory, playerId, rpl.Id());
 	}
 	
 	//! Server-side RPC handler for setting possessed entity and notifying client
@@ -1764,7 +1935,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	//! Restore possessed entity on server and notify client inventory closed
 	void RestorePossessedEntity(int playerId)
 	{
-		Rpc(RpcAsk_RestorePossessedEntity, playerId);
+		if(Replication.IsServer())
+			RpcAsk_RestorePossessedEntity(playerId);
+		else
+			Rpc(RpcAsk_RestorePossessedEntity, playerId);
 	}
 	
 	//! Server-side RPC handler for restoring possessed entity
@@ -1799,7 +1973,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	//! Request recruit rename from client
 	void RenameRecruit(string recruitId, string newName)
 	{
-		Rpc(RpcAsk_RenameRecruit, recruitId, newName);
+		if(Replication.IsServer())
+			RpcAsk_RenameRecruit(recruitId, newName);
+		else
+			Rpc(RpcAsk_RenameRecruit, recruitId, newName);
 	}
 
 	//! Server-side RPC handler for recruit rename requests. Validates ownership and applies the
@@ -1830,7 +2007,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	//! Request recruit dismissal from client
 	void DismissRecruit(string recruitId)
 	{
-		Rpc(RpcAsk_DismissRecruit, recruitId);
+		if(Replication.IsServer())
+			RpcAsk_DismissRecruit(recruitId);
+		else
+			Rpc(RpcAsk_DismissRecruit, recruitId);
 	}
 	
 	//! Server-side RPC handler for recruit dismissal requests
@@ -1880,7 +2060,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 	
 	void SetCampPrivacy(OVT_CampData camp, bool isPrivate)
 	{
-		Rpc(RpcAsk_SetCampPrivacy, camp.location, isPrivate);
+		if(Replication.IsServer())
+			RpcAsk_SetCampPrivacy(camp.location, isPrivate);
+		else
+			Rpc(RpcAsk_SetCampPrivacy, camp.location, isPrivate);
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -1920,7 +2103,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 					RplComponent rpl = RplComponent.Cast(entity.FindComponent(RplComponent));
 					if (rpl)
 					{
-						Rpc(RpcAsk_DeleteCamp, rpl.Id(), m_vDeleteCampLocation);
+						if(Replication.IsServer())
+							RpcAsk_DeleteCamp(rpl.Id(), m_vDeleteCampLocation);
+						else
+							Rpc(RpcAsk_DeleteCamp, rpl.Id(), m_vDeleteCampLocation);
 						return true; // Found the camp, stop searching
 					}
 				}
@@ -1943,7 +2129,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 		RplComponent rpl = RplComponent.Cast(fobEntity.FindComponent(RplComponent));
 		if (!rpl) return;
 		
-		Rpc(RpcAsk_SetPriorityFOB, rpl.Id());
+		if(Replication.IsServer())
+			RpcAsk_SetPriorityFOB(rpl.Id());
+		else
+			Rpc(RpcAsk_SetPriorityFOB, rpl.Id());
 	}
 	
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]

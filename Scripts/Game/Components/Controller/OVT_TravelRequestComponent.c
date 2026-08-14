@@ -173,7 +173,9 @@ class OVT_TravelRequestComponent : OVT_Component
 		}
 
 		// 7
-		vector dest = ResolveDestination(actor, targetPos);
+		vector destAngles;
+		bool destOriented;
+		vector dest = ResolveDestination(actor, targetPos, destAngles, destOriented);
 
 		// 8 - while the actor is still standing at originPos. Measured to targetPos, not to dest, so
 		// the charged fare is the one the panel displayed rather than one nudged by the safe-spawn
@@ -187,6 +189,13 @@ class OVT_TravelRequestComponent : OVT_Component
 			SendTravelResult(playerId, OVT_TravelResult.TELEPORT_FAILED, 0);
 			return;
 		}
+
+		// 9b - TeleportPlayer sets POSITION only: it copies the vehicle's existing world transform and
+		// overwrites the translation (Functions.c:1658-1661), so a car that arrives on a road arrives
+		// pointing whichever way it was pointing when the player opened the map. Turning it to face the
+		// way the arrival spot expects has to be a second, separate step (BUG-165).
+		if(destOriented)
+			OrientVehicle(actor, destAngles);
 
 		// 10 - only now, and only what was actually taken is reported. The debit is deliberately NOT
 		// folded into the condition of an && : a side effect inside a boolean expression is the kind of
@@ -281,33 +290,72 @@ class OVT_TravelRequestComponent : OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Where the player actually arrives.
+	//! Where the player actually arrives, and which way they should be pointing when they get there.
 	//!
 	//! A driver takes the vehicle along - vanilla's TeleportPlayer teleports the VEHICLE when the
-	//! player is in one (Functions.c:1657-1663) - so a driver needs a vehicle-sized clear spot. The
-	//! returned angles are deliberately discarded, exactly as the legacy path discarded them
-	//! (OVT_FastTravelService.ExecuteFastTravel pre-Phase 2): TeleportPlayer sets position only.
+	//! player is in one (Functions.c:1657-1663) - so a driver needs a vehicle-sized clear spot.
 	//!
-	//! FindSafeVehicleSpawnPosition's bool return reports only whether a parking spot was found; the
-	//! out position is filled either way (OVT_Global.c:450-453), which is why it is not checked.
+	//! THE ANGLES ARE NO LONGER DISCARDED (BUG-165). They used to be, on the reasoning that
+	//! TeleportPlayer sets position only - which is true, and is exactly why throwing them away left a
+	//! car that fast-travelled onto a road sitting across it. FindSafeVehicleSpawnPosition's bool return
+	//! now means \"the arrival spot has an opinion about facing\": a parking spot, an authored vehicle
+	//! point, a road, or a ring position all say true, and only the crude random fallback says false.
 	//!
 	//! Passengers never reach here - ValidateTravel already refused them with MUST_BE_DRIVER, and a bus
 	//! passenger with MUST_EXIT_VEHICLE - but the pilot test is re-derived rather than inferred from
 	//! that, so this stays correct if the rule order ever changes.
 	//! \param[in] actor The travelling player's controlled entity.
 	//! \param[in] targetPos The requested destination.
+	//! \param[out] angles Yaw/pitch/roll the vehicle should end up at. Meaningless unless oriented is true.
+	//! \param[out] oriented True when the arrival spot named a facing worth applying.
 	//! \return A safe arrival position.
-	protected vector ResolveDestination(IEntity actor, vector targetPos)
+	protected vector ResolveDestination(IEntity actor, vector targetPos, out vector angles, out bool oriented)
 	{
+		angles = "0 0 0";
+		oriented = false;
+
 		if(OVT_FastTravelService.IsVehicleDriver(actor))
 		{
 			vector vehiclePos;
 			vector vehicleAngles;
-			OVT_Global.FindSafeVehicleSpawnPosition(targetPos, vehiclePos, vehicleAngles);
+			oriented = OVT_Global.FindSafeVehicleSpawnPosition(targetPos, vehiclePos, vehicleAngles);
+			angles = vehicleAngles;
 			return vehiclePos;
 		}
 
 		return OVT_Global.FindSafeSpawnPosition(targetPos);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Turn the travelled vehicle to the facing its arrival spot asked for. SERVER-side, after the move.
+	//!
+	//! Same tail as vanilla's TeleportPlayer (Functions.c:1658-1670): build the transform, prefer
+	//! BaseGameEntity.Teleport over SetWorldTransform so the engine's own teleport bookkeeping runs, and
+	//! keep the position the teleport already established - only the rotation is being changed here.
+	//!
+	//! Silently does nothing when the actor turns out not to be in a vehicle after all, which is the right
+	//! answer rather than an error: the trip has already happened and succeeded.
+	//! \param[in] actor The travelling player's controlled entity.
+	//! \param[in] angles Yaw/pitch/roll to face.
+	protected void OrientVehicle(IEntity actor, vector angles)
+	{
+		SCR_CompartmentAccessComponent compartmentAccess = SCR_CompartmentAccessComponent.Cast(actor.FindComponent(SCR_CompartmentAccessComponent));
+		if(!compartmentAccess) return;
+
+		IEntity vehicle = compartmentAccess.GetVehicle();
+		if(!vehicle) return;
+
+		vector transform[4];
+		Math3D.AnglesToMatrix(angles, transform);
+		transform[3] = vehicle.GetOrigin();
+
+		BaseGameEntity baseGameEntity = BaseGameEntity.Cast(vehicle);
+		if(baseGameEntity)
+		{
+			baseGameEntity.Teleport(transform);
+		}else{
+			vehicle.SetWorldTransform(transform);
+		}
 	}
 
 	//------------------------------------------------------------------------------------------------

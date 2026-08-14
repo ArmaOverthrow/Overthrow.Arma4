@@ -532,10 +532,195 @@ class OVT_Global : Managed
 			}
 		}
 		
-		// Final fallback to regular safe spawn position with default angles
-		position = FindSafeSpawnPosition(pos, "-1.5 0 -3", "1.5 2.5 3", skipSpawnPointSearch);
+		// Nothing authored here. Put the vehicle on the nearest road, facing the way traffic runs, so it
+		// arrives somewhere it can be driven away from (BUG-165). Skipped along with the other spatial
+		// queries when the caller asked for the cheap path.
+		if (!skipSpawnPointSearch)
+		{
+			if (FindNearestRoadSpawn(pos, ROAD_SPAWN_MAX_DISTANCE, position, angles))
+				return true;
+
+			// No road worth walking back from. Ring out around the destination instead - near it, but
+			// deliberately NOT on it.
+			if (FindVehicleSpawnNear(pos, position, angles))
+				return true;
+		}
+
+		// Final fallback. skipSpawnPointSearch is forced TRUE here, and that is the BUG-165 fix rather
+		// than a tidy-up: passing the caller's flag through let this land on a CHARACTER spawn point.
+		// FindSafeSpawnPosition's spawn-point branch returns the closest OVT_SpawnPointComponent's
+		// pedestrian point and never looks at the box it was handed, so a camp - which authors four
+		// character points and no vehicle points - parked the car 2 m from the tent centre, on top of it.
+		position = FindSafeSpawnPosition(pos, "-1.5 0 -3", "1.5 2.5 3", true);
 		angles = "0 0 0";
 		return false; // Indicates fallback was used
+	}
+
+	//! How far Overthrow will reach for a road to put a fast-travelled vehicle on.
+	//!
+	//! A vehicle wants to arrive somewhere it can drive away from, but it must still arrive at the place
+	//! the player asked for. Past this the road belongs to somewhere else and the trip would end in a long
+	//! walk back, which is worse than an awkward park.
+	static const float ROAD_SPAWN_MAX_DISTANCE = 200.0;
+
+	//------------------------------------------------------------------------------------------------
+	//! The nearest road position to a point, and the direction traffic runs along it.
+	//!
+	//! Unlike FindNearestRoad, which answers a position only, this also derives the road's HEADING from
+	//! the polyline segment nearest the point, so a vehicle can be set down pointing along the road
+	//! instead of across it.
+	//!
+	//! Fails closed on everything: no AI world, no road manager, a negative query result, a road with
+	//! fewer than two points, or a degenerate segment all return false and leave the caller on its own
+	//! fallback. None of this is play-tested engine API with a vanilla call site to copy, so it is written
+	//! to give up rather than to guess.
+	//! \param[in] center Position to search from.
+	//! \param[in] maxDistance Give up beyond this many metres.
+	//! \param[out] position A point ON the road, at ground height.
+	//! \param[out] angles Yaw/pitch/roll pointing along the direction of travel.
+	//! \return True when a road was found within maxDistance.
+	static bool FindNearestRoadSpawn(vector center, float maxDistance, out vector position, out vector angles)
+	{
+		position = center;
+		angles = "0 0 0";
+
+		SCR_AIWorld aiWorld = SCR_AIWorld.Cast(GetGame().GetAIWorld());
+		if (!aiWorld)
+			return false;
+
+		RoadNetworkManager roadManager = aiWorld.GetRoadNetworkManager();
+		if (!roadManager)
+			return false;
+
+		BaseRoad foundRoad;
+		float distance;
+		if (roadManager.GetClosestRoad(center, foundRoad, distance, false) < 0)
+			return false;
+
+		if (!foundRoad || distance > maxDistance)
+			return false;
+
+		array<vector> points = {};
+		foundRoad.GetPoints(points);
+
+		// A direction needs a segment, not a vertex.
+		if (points.Count() < 2)
+			return false;
+
+		int closestIndex = 0;
+		float closestDistance = 999999;
+		for (int i = 0; i < points.Count(); i++)
+		{
+			float pointDistance = vector.Distance(points[i], center);
+			if (pointDistance < closestDistance)
+			{
+				closestDistance = pointDistance;
+				closestIndex = i;
+			}
+		}
+
+		// The segment leaving the closest vertex, or the one arriving at it when that vertex is the end.
+		vector segStart = points[closestIndex];
+		vector segEnd;
+		if (closestIndex + 1 < points.Count())
+		{
+			segEnd = points[closestIndex + 1];
+		}
+		else
+		{
+			segStart = points[closestIndex - 1];
+			segEnd = points[closestIndex];
+		}
+
+		// Flattened: a vehicle's heading is a compass bearing, and the road's slope is the terrain's job.
+		vector direction = segEnd - segStart;
+		direction[1] = 0;
+		if (direction.Length() < 0.01)
+			return false;
+
+		direction.Normalize();
+
+		// Project the destination onto the segment so the vehicle lands at the point of the road NEAREST
+		// the place the player asked for, rather than at whichever polyline vertex happened to be closest.
+		float segmentLength = vector.Distance(segStart, segEnd);
+		float along = vector.Dot(center - segStart, direction);
+		if (along < 0)
+			along = 0;
+
+		if (along > segmentLength)
+			along = segmentLength;
+
+		position = segStart + (direction * along);
+		position[1] = GetGame().GetWorld().GetSurfaceY(position[0], position[2]);
+
+		vector roadMat[4];
+		Math3D.DirectionAndUpMatrix(direction, vector.Up, roadMat);
+		angles = Math3D.MatrixToAngles(roadMat);
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A vehicle-sized clear spot in a ring AROUND a position - near it, deliberately not on it.
+	//!
+	//! The last resort before the crude random search, and the reason it exists: FindSafeSpawnPosition
+	//! only ever samples a 2 m sphere centred on the destination, which for a camp or any other placed
+	//! structure means "inside the thing you travelled to". This starts outside the footprint and works
+	//! outward, testing a vehicle-sized box at each candidate.
+	//!
+	//! The vehicle faces AWAY from the centre, so it is pointing at open ground rather than at whatever
+	//! it just arrived next to.
+	//! \param[in] center The position travelled to.
+	//! \param[out] position A clear vehicle-sized spot, at ground height.
+	//! \param[out] angles Yaw/pitch/roll facing away from centre.
+	//! \return True when a clear spot was found.
+	static bool FindVehicleSpawnNear(vector center, out vector position, out vector angles)
+	{
+		position = center;
+		angles = "0 0 0";
+
+		BaseWorld world = GetGame().GetWorld();
+		if (!world)
+			return false;
+
+		// Start clear of a camp's footprint and widen. Eight bearings is enough to find a gap without
+		// turning an arrival into a spatial query storm.
+		array<float> radii = {8.0, 12.0, 16.0, 22.0};
+
+		foreach (float radius : radii)
+		{
+			for (int i = 0; i < 8; i++)
+			{
+				float angle = i * 45.0 * Math.DEG2RAD;
+				vector offset = Vector(Math.Sin(angle) * radius, 0, Math.Cos(angle) * radius);
+
+				vector candidate = center + offset;
+				candidate[1] = world.GetSurfaceY(candidate[0], candidate[2]);
+
+				TraceBox trace = new TraceBox;
+				trace.Flags = TraceFlags.ENTS;
+				trace.Start = candidate;
+				trace.Mins = "-1.5 0 -3";
+				trace.Maxs = "1.5 2.5 3";
+
+				if (world.TracePosition(trace, null) < 0)
+					continue; // collision, try the next bearing
+
+				position = candidate;
+
+				vector facing = offset;
+				facing[1] = 0;
+				facing.Normalize();
+
+				vector faceMat[4];
+				Math3D.DirectionAndUpMatrix(facing, vector.Up, faceMat);
+				angles = Math3D.MatrixToAngles(faceMat);
+
+				return true;
+			}
+		}
+
+		return false;
 	}
 	
 	//! Filter function to find entities with parking or vehicle spawn point components
