@@ -498,7 +498,37 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 		OVT_ResistanceFactionManager resistance = OVT_Global.GetResistanceFaction();
 		if (!resistance)
 			return false;
-		return prefab == resistance.m_pMobileFOBPrefab || prefab == resistance.m_pMobileFOBDeployedPrefab;
+		return prefab == resistance.m_pMobileFOBPrefab || IsDeployedFOBPrefab(prefab);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether a vehicle is a DEPLOYED FOB specifically - not the drivable truck it came from.
+	//!
+	//! Deploying spawns the deployed prefab through SpawnVehicleMatrix carrying the truck's owner
+	//! (OVT_ResistanceFactionManager.DeployFOB), so a deployed FOB is a registered owned vehicle and
+	//! anything enumerating a player's vehicles will find it. It is a structure at that point: it has
+	//! its own OVT_FOBData record and its own map marker, and the vehicle it used to be is gone. The
+	//! narrower test exists because the two halves are not interchangeable - the undeployed truck IS
+	//! an ordinary owned vehicle and must keep being treated as one.
+	//! \param[in] vehicle The vehicle to test.
+	bool IsDeployedFOB(IEntity vehicle)
+	{
+		if (!vehicle)
+			return false;
+		return IsDeployedFOBPrefab(OVT_Global.GetPrefabName(vehicle));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Prefab-name form of IsDeployedFOB, for registry records whose instance no longer exists.
+	//! \param[in] prefab The prefab resource to test.
+	bool IsDeployedFOBPrefab(ResourceName prefab)
+	{
+		if (prefab.IsEmpty())
+			return false;
+		OVT_ResistanceFactionManager resistance = OVT_Global.GetResistanceFaction();
+		if (!resistance)
+			return false;
+		return prefab == resistance.m_pMobileFOBDeployedPrefab;
 	}
 	
 	//------------------------------------------------------------------------------------------------
