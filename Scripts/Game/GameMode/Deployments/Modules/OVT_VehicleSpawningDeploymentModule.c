@@ -226,6 +226,9 @@ class OVT_VehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 				SCR_AIGroup crewGroup = SpawnCrewForVehicle(vehicle, crewPrefab, factionIndex);
 				if (crewGroup)
 					m_aSpawnedGroups.Insert(crewGroup);
+				// GM group registry: vehicle crews are this deployment's groups too. Tagged
+				// unconditionally - Tag() no-ops on a null group.
+				OVT_GMGroupRegistry.Tag(crewGroup, OVT_EGroupOrigin.DEPLOYMENT, -1, m_ParentDeployment.GetDeploymentName());
 			}
 			
 			Print(string.Format("Spawned vehicle %1 (%2) at %3", i + 1, m_sVehicleType, spawnPos.ToString()), LogLevel.VERBOSE);

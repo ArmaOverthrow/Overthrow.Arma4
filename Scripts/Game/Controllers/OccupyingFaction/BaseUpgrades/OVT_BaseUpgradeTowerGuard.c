@@ -162,6 +162,8 @@ class OVT_BaseUpgradeTowerGuard : OVT_BasePatrolUpgrade
 
 		m_Groups.Insert(group.GetID());
 		m_TowerGuards[towerID] = group.GetID();
+		// GM group registry: this guard mans a tower belonging to this base.
+		OVT_GMGroupRegistry.Tag(group, OVT_EGroupOrigin.TOWER_GUARD, GetBaseOriginIndex(), ClassName());
 
 		return true;
 	}

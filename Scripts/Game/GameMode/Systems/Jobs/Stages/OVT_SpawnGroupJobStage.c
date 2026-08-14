@@ -35,11 +35,36 @@ class OVT_SpawnGroupJobStage : OVT_JobStage
 			config.GivePatrolWaypoints(group, m_PatrolType, job.location);
 		}
 		
+		// GM group registry. Index -1: a job's town/base ids live on the job record, which is
+		// already replicated; the reason string carries the job's stable identity instead.
+		OVT_GMGroupRegistry.Tag(entity, OVT_EGroupOrigin.JOB, -1, GetJobOriginReason(job));
+		
 		if(m_bSetAsJobIdentity)
 		{
 			RplComponent rpl = RplComponent.Cast(entity.FindComponent(RplComponent));		
 			job.entity = rpl.Id();
 		}		
 		return false;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Stable identity of the job config that owns this stage, for the GM group registry.
+	//!
+	//! Every dereference is guarded and the fallback is a constant: this runs inside a spawn path
+	//! whose behaviour must not change, so it must be incapable of throwing.
+	//! \param[in] job The job being started.
+	//! \return The config's m_sId, or "Job" when it cannot be resolved.
+	protected string GetJobOriginReason(OVT_Job job)
+	{
+		if(!job) return "Job";
+		
+		OVT_JobManagerComponent jobs = OVT_Global.GetJobs();
+		if(!jobs) return "Job";
+		if(job.jobIndex < 0 || job.jobIndex >= jobs.GetJobConfigCount()) return "Job";
+		
+		OVT_JobConfig jobConfig = jobs.GetConfig(job.jobIndex);
+		if(!jobConfig) return "Job";
+		
+		return jobConfig.m_sId;
 	}
 }

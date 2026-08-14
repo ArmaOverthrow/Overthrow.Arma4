@@ -125,6 +125,10 @@ class OVT_BasePatrolUpgrade : OVT_BaseUpgrade
 		if(!group) return 0;
 
 		m_Groups.Insert(group.GetID());
+		// GM group registry. ClassName() resolves to the CONCRETE subclass, so this one insertion
+		// covers every OVT_BasePatrolUpgrade descendant that spawns through BuyPatrol - and both the
+		// initial spawn and the re-spawn from m_ProxiedGroups, which routes back through here.
+		OVT_GMGroupRegistry.Tag(group, OVT_EGroupOrigin.BASE_PATROL, GetBaseOriginIndex(), ClassName());
 		
 		SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
 		

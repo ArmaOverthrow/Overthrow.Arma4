@@ -423,6 +423,8 @@ class OVT_ResistanceFactionManager: OVT_Component
 					continue;
 				}
 				fob.garrisonEntities.Insert(group.GetID());
+				// GM group registry: restored from the save's camp garrison list.
+				OVT_GMGroupRegistry.Tag(group, OVT_EGroupOrigin.CAMP_GARRISON, m_Camps.Find(fob), "Restored");
 			}
 		}
 		foreach(OVT_FOBData fob : m_FOBs)
@@ -436,6 +438,8 @@ class OVT_ResistanceFactionManager: OVT_Component
 					continue;
 				}
 				fob.garrisonEntities.Insert(group.GetID());
+				// GM group registry: restored from the save's FOB garrison list.
+				OVT_GMGroupRegistry.Tag(group, OVT_EGroupOrigin.FOB_GARRISON, m_FOBs.Find(fob), "Restored");
 			}
 		}
 	}
@@ -949,6 +953,8 @@ class OVT_ResistanceFactionManager: OVT_Component
 		}
 
 		base.garrisonEntities.Insert(group.GetID());
+		// GM group registry: baseId IS the positional index into m_Bases (see the bounds check above).
+		OVT_GMGroupRegistry.Tag(group, OVT_EGroupOrigin.BASE_GARRISON, baseId, "AddGarrison");
 
 		if(takeSupporters)
 		{
@@ -980,6 +986,9 @@ class OVT_ResistanceFactionManager: OVT_Component
 		}
 
 		fob.garrisonEntities.Insert(group.GetID());
+		// GM group registry: the camp's index in m_Camps, resolved here rather than read off
+		// OVT_CampData.id, which is only re-derived on the load path.
+		OVT_GMGroupRegistry.Tag(group, OVT_EGroupOrigin.CAMP_GARRISON, m_Camps.Find(fob), "AddGarrisonCamp");
 
 		if(takeSupporters)
 		{
@@ -1011,6 +1020,9 @@ class OVT_ResistanceFactionManager: OVT_Component
 		}
 
 		fob.garrisonEntities.Insert(group.GetID());
+		// GM group registry: the FOB's index in m_FOBs, resolved here rather than read off
+		// OVT_FOBData.id, which is only re-derived on the load path.
+		OVT_GMGroupRegistry.Tag(group, OVT_EGroupOrigin.FOB_GARRISON, m_FOBs.Find(fob), "AddGarrisonFOB");
 
 		if(takeSupporters)
 		{

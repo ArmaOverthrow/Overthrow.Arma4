@@ -184,6 +184,9 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 			{
 				m_aSpawnedGroups.Insert(group);
 				m_iSpawnedCount++;
+				// GM group registry. Index -1: a deployment has no base or town id, and its position
+				// is resolved from the record's RplId by whoever renders it.
+				OVT_GMGroupRegistry.Tag(group, OVT_EGroupOrigin.DEPLOYMENT, -1, m_ParentDeployment.GetDeploymentName());
 				
 				Print(string.Format("Spawned infantry group %1 (%2) at %3", i + 1, m_sGroupType, spawnPos.ToString()), LogLevel.VERBOSE);
 			}
@@ -378,6 +381,9 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 			{
 				m_aSpawnedGroups.Insert(group);
 				successfulSpawns++;
+				// GM group registry: same origin as the initial spawn - a reinforcement is still this
+				// deployment's group, and the record carries no spawn-wave distinction.
+				OVT_GMGroupRegistry.Tag(group, OVT_EGroupOrigin.DEPLOYMENT, -1, m_ParentDeployment.GetDeploymentName());
 				Print(string.Format("Reinforcement group (%1) spawned at %2", m_sGroupType, spawnPos.ToString()), LogLevel.NORMAL);
 			}
 		}

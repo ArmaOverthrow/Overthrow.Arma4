@@ -137,6 +137,9 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		m_Groups.Insert(group.GetID());
 		m_Patrols[townID] = group.GetID();
 		m_SpottedPatrols[townID] = false;
+		// GM group registry: indexed by TOWN, not by base - this patrol is sent to a town, and
+		// "which town" is the only answer a GM wants from it.
+		OVT_GMGroupRegistry.Tag(group, OVT_EGroupOrigin.TOWN_PATROL, townID, ClassName());
 		
 		SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
 		

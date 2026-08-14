@@ -35,6 +35,8 @@ OVT_OverthrowController {
   }
   OVT_CampaignRequestComponent "{6AFB9FC82D7B61E5}" {
   }
+  OVT_GMRequestComponent "{6B07B0D93E8C72F6}" {
+  }
   RplComponent "{65C4B2D3DE955867}" {
   }
  }

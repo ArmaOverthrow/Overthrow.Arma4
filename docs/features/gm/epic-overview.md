@@ -1,7 +1,7 @@
 # GM - Epic Overview
 
 **Epic:** gm
-**Status:** 🔵 Planned
+**Status:** 🟡 In Progress (1/5 features built)
 **Last Updated:** 2026-08-14
 
 > **This file is the epic marker.** Its presence in `docs/features/gm/` is what tells every Beast Mode command (and future Web App / Discord clients) that this folder is an **epic**, not a plain feature. Keep it present and keep the required sections below filled in. It is the epic's equivalent of the project's `docs/overview.md`, scoped to this epic. The master `docs/overview.md` tracks this epic as a **single row**; the per-feature detail lives **here**.
@@ -22,7 +22,7 @@ The constituent features of this epic, in build order. Each feature is a subfold
 
 | # | Feature | Status | Tasks | Description |
 |---|---------|--------|-------|-------------|
-| 1 | gm-state | Planned | — | Shared read-only replication seam streaming Overthrow campaign state (threat, OF resources, countdowns, funds, per-entity detail) to authorized GM clients |
+| 1 | gm-state | ✅ Built (MP verify owed) | 24/26 | Shared read-only replication seam streaming Overthrow campaign state (threat, OF resources, countdowns, funds, per-entity detail) to authorized GM clients |
 | 2 | overthrow-panel | Planned | — | New GM UI panel (above the settings panel, bottom-left, Overthrow logo) showing campaign-wide info and selected-icon detail |
 | 3 | hud-icons | Planned | — | Extend/add GM HUD icons for towns, bases, groups and players; clicking shows Overthrow detail (support/stability, garrison/resources, group origin & purpose, player money/level) |
 | 4 | waypoint-viz | Planned | — | Read-only visualization of Overthrow-generated AI waypoints in GM view (own implementation; not the E_ waypoint set) |
@@ -62,14 +62,26 @@ The constituent features of this epic, in build order. Each feature is a subfold
 
 ## Tech Debt / Findings
 
-- (none yet — `/review-epic` will surface cross-feature integration issues and per-feature tech debt here)
+- **Pre-existing group-cleanup defects in the `occupying` epic's systems** (found by gm-state planning, routed
+  around by its tag-and-sweep registry — **not gm-state's debt**): QRF groups are never deleted
+  (`OVT_QRFControllerComponent.m_Groups` filled, drained nowhere; only the controller entity is deleted);
+  `OVT_EntitySpawningAPI.CleanupGroup` deletes a group's soldiers but not the group entity; camp/FOB removal
+  never touches `garrisonEntities`; six resistance-garrison rollback paths spawn-then-delete untracked groups.
+  These belong to the `occupying` epic to fix.
+- **Help-docs hand-off:** gm-state ships zero visible surface (a transport with no renderer), so it carries no
+  help/wiki phase. **`overthrow-panel` — the epic's first visible feature — must carry the `help-docs-sync`
+  phase** covering the whole Phase 1 GM experience.
+- **gm-state deferred payloads (deliberate, additive later):** per-upgrade *positions* (gm-map adds when its
+  icon layer needs them); deployment threat-level (no live field exists — `OVT_DeploymentComponent.m_fThreatLevel`
+  is frozen at spawn time, `OVT_DeploymentConfig.m_iMinimumThreatLevel` is a spawn precondition; a gm-map
+  extension must choose deliberately); civilian group records (record-budget dominance).
 
 ---
 
 ## Master Overview Rollup
 
-- **Rollup status:** Planned (0/5 features)
-- **One-line summary for master:** Game Master tooling for server owners — Phase 1 gives GMs read-only campaign inspection (Overthrow panel, HUD icons, waypoint viz, GM map layers) ahead of later management and cleanup phases.
+- **Rollup status:** In Progress (1/5 features — gm-state built, MP verify owed)
+- **One-line summary for master:** Game Master tooling for server owners — Phase 1 gives GMs read-only campaign inspection (Overthrow panel, HUD icons, waypoint viz, GM map layers) ahead of later management and cleanup phases; the gm-state data seam is built and awaiting MP play-test.
 
 ---
 

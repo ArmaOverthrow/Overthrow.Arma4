@@ -381,6 +381,10 @@ class OVT_QRFControllerComponent: OVT_Component
 				
 		SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
 		m_Groups.Insert(group.GetID());
+		// GM group registry. Index -1 on purpose: the base or town this QRF is answering for lives
+		// on the occupying faction manager (m_iCurrentQRFBase / m_iCurrentQRFTown), not here, and
+		// both are already replicated to every client.
+		OVT_GMGroupRegistry.Tag(group, OVT_EGroupOrigin.QRF, -1, "QRF");
 		
 		ScheduleWaypoint(targetPos,5,aigroup,"Scout");
 		ScheduleWaypoint(targetPos,15,aigroup,"Scout");

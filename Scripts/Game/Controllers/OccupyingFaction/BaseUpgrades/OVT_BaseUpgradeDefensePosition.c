@@ -98,6 +98,8 @@ class OVT_BaseUpgradeDefensePosition : OVT_BasePatrolUpgrade
 		
 		m_Groups.Insert(group.GetID());
 		m_Guards[id] = group.GetID();
+		// GM group registry: this guard belongs to a defend position on this base.
+		OVT_GMGroupRegistry.Tag(group, OVT_EGroupOrigin.BASE_DEFENCE, GetBaseOriginIndex(), ClassName());
 		
 		return true;
 	}

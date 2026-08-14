@@ -58,6 +58,31 @@ class OVT_BaseUpgrade : ScriptAndConfig
 		OVT_Faction faction = OVT_Global.GetConfig().GetOccupyingFaction();
 		return faction.GetCompositionConfig(tag);
 	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Positional index of this upgrade's base in OVT_OccupyingFactionManager.m_Bases, for the GM
+	//! group registry. That index - not OVT_BaseData.id - is the join key clients already receive
+	//! through the occupying faction's JIP stream, so it is what a GM record must carry.
+	//!
+	//! Every dereference is guarded and -1 means "not resolvable". This is called from inside spawn
+	//! paths whose behaviour must not change, so it must be incapable of throwing.
+	//! \return The base index, or -1.
+	protected int GetBaseOriginIndex()
+	{
+		if (!m_BaseController) return -1;
+
+		OVT_OccupyingFactionManager occupying = m_occupyingFactionManager;
+		if (!occupying) occupying = OVT_Global.GetOccupyingFaction();
+		if (!occupying) return -1;
+
+		IEntity owner = m_BaseController.GetOwner();
+		if (!owner) return -1;
+
+		OVT_BaseData data = occupying.GetNearestBase(owner.GetOrigin());
+		if (!data) return -1;
+
+		return occupying.GetBaseIndex(data);
+	}
 	
 	OVT_BaseUpgradeData Serialize()
 	{

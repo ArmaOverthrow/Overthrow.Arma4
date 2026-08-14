@@ -559,6 +559,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 					{
 						IEntity group = OVT_Global.SpawnEntityPrefab(faction.m_aTowerDefensePatrolPrefab, pos);
 						tower.garrison.Insert(group.GetID());
+						// GM group registry: keyed on the tower that produced it.
+						OVT_GMGroupRegistry.Tag(group, OVT_EGroupOrigin.RADIO_TOWER_GARRISON, tower.id, "RadioTower");
 						SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
 						AIWaypoint wp = OVT_Global.GetConfig().SpawnDefendWaypoint(pos);
 						aigroup.AddWaypoint(wp);
@@ -773,6 +775,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 					IEntity garrison = OVT_Global.GetResistanceFaction().SpawnGarrison(data, res);
 					if(garrison)
 						data.garrisonEntities.Insert(garrison.GetID());
+					// GM group registry: `index` is the positional index into m_Bases, which is the base
+					// join key clients already receive through JIP.
+					OVT_GMGroupRegistry.Tag(garrison, OVT_EGroupOrigin.BASE_GARRISON, index, "Restored");
 				}
 			}
 		}
@@ -1128,6 +1133,13 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 	int GetThreatLevel() {return m_iThreat;}
 
+	//------------------------------------------------------------------------------------------------
+	//! Current campaign threat at full precision.
+	//! m_iThreat is a float; GetThreatLevel() declares int and therefore TRUNCATES, showing 3 where
+	//! the campaign actually holds 3.87. Use this accessor anywhere the fractional part matters.
+	//! \return The threat value, unrounded.
+	float GetThreatFloat() {return m_iThreat;}
+
 	int GetBaseThreat(OVT_BaseData base)
 	{
 		return GetThreatByLocation(base.location);
@@ -1434,29 +1446,15 @@ class OVT_OccupyingFactionManager: OVT_Component
 	{
 		Print("[Overthrow.OccupyingFactionManager] Gaining Resources");
 		Print("[Overthrow.OccupyingFactionManager] Current Threat: " + m_iThreat.ToString());
-		float threatFactor = m_iThreat / 1000;
-		if(threatFactor > 4) threatFactor = 4;
-		int newResources = m_Config.m_Difficulty.baseResourcesPerTick + (m_Config.m_Difficulty.resourcesPerTick * threatFactor);
-
 		int numPlayersOnline = GetGame().GetPlayerManager().GetPlayerCount();
 
-		//Scale resources by number of players online
-		if(numPlayersOnline > 32)
-		{
-			newResources *= 6;
-		}else if(numPlayersOnline > 24)
-		{
-			newResources *= 5;
-		}else if(numPlayersOnline > 16)
-		{
-			newResources *= 4;
-		}else if(numPlayersOnline > 8)
-		{
-			newResources *= 3;
-		}else if(numPlayersOnline > 4)
-		{
-			newResources *= 2;
-		}
+		// The arithmetic lives in OVT_GMSchedule so that a read-only consumer (the Game Master state
+		// seam) can predict this tick's amount without calling this method, which accumulates it.
+		int newResources = OVT_GMSchedule.PredictResourceGain(
+			m_Config.m_Difficulty.baseResourcesPerTick,
+			m_Config.m_Difficulty.resourcesPerTick,
+			m_iThreat,
+			numPlayersOnline);
 
 		m_iResources += newResources;
 

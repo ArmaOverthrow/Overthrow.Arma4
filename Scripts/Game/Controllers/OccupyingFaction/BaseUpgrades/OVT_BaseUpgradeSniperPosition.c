@@ -150,6 +150,8 @@ class OVT_BaseUpgradeSniperPosition : OVT_BasePatrolUpgrade
 
 		m_Groups.Insert(group.GetID());
 		m_PositionGuards[positionID] = group.GetID();
+		// GM group registry: this team mans a curated sniper position on this base.
+		OVT_GMGroupRegistry.Tag(group, OVT_EGroupOrigin.BASE_SNIPER, GetBaseOriginIndex(), ClassName());
 
 		return true;
 	}
