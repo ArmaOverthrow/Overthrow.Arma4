@@ -425,15 +425,28 @@ class OVT_LoadoutsContext : OVT_UIContext
 		UpdateRecruitButtonVisibility();
 	}
 	
+	//! How far from the equipment box a recruit may stand and still be offered in the list.
+	//!
+	//! MEASURED FROM THE BOX, NOT THE PLAYER, because that is what the server checks:
+	//! OVT_PlayerCommsComponent.RpcAsk_LoadLoadoutFromBox refuses any target further than its own
+	//! LOADOUT_BOX_MAX_DISTANCE (20 m) from the box, and it refuses SILENTLY - no notification, no
+	//! result. Listing a recruit the server will then ignore is worse than not listing them, so this
+	//! stays under that ceiling, with the remaining metres left as slack for a recruit wandering
+	//! during the time the menu is open.
+	protected const float RECRUIT_SEARCH_RADIUS = 15.0;
+
 	protected void DiscoverNearbyRecruits()
 	{
 		if (!m_Owner)
 			return;
-		
-		vector playerPos = m_Owner.GetOrigin();
-		float searchRadius = 5.0;
-		
-		GetGame().GetWorld().QueryEntitiesBySphere(playerPos, searchRadius, null, FilterRecruitEntities, EQueryEntitiesFlags.ALL);
+
+		// The player is themselves within interaction range of the box, so their position is a sound
+		// fallback for the frame before SetEquipmentBox has run.
+		vector searchCenter = m_Owner.GetOrigin();
+		if (m_EquipmentBox)
+			searchCenter = m_EquipmentBox.GetOrigin();
+
+		GetGame().GetWorld().QueryEntitiesBySphere(searchCenter, RECRUIT_SEARCH_RADIUS, null, FilterRecruitEntities, EQueryEntitiesFlags.ALL);
 	}
 	
 	protected bool FilterRecruitEntities(IEntity entity)
