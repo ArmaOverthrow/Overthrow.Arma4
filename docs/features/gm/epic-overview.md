@@ -69,8 +69,9 @@ The constituent features of this epic, in build order. Each feature is a subfold
   never touches `garrisonEntities`; six resistance-garrison rollback paths spawn-then-delete untracked groups.
   These belong to the `occupying` epic to fix.
 - **Help-docs hand-off:** gm-state ships zero visible surface (a transport with no renderer), so it carries no
-  help/wiki phase. **`overthrow-panel` — the epic's first visible feature — must carry the `help-docs-sync`
-  phase** covering the whole Phase 1 GM experience.
+  help/wiki phase. **Decision 2026-08-14 (overthrow-panel planning): all Phase 1 help/wiki docs are deferred to
+  epic end — one consolidated `help-docs-sync` pass after `gm-map` completes Phase 1**, covering the whole GM
+  experience at once. overthrow-panel ships without a help phase; do not re-add one to intermediate features.
 - **gm-state deferred payloads (deliberate, additive later):** per-upgrade *positions* (gm-map adds when its
   icon layer needs them); deployment threat-level (no live field exists — `OVT_DeploymentComponent.m_fThreatLevel`
   is frozen at spawn time, `OVT_DeploymentConfig.m_iMinimumThreatLevel` is a spawn precondition; a gm-map
