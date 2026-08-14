@@ -66,11 +66,34 @@ Advanced agents use more tokens but I recommend it here. Options:
 
 Respect the user's choice. If they decline, use the standard agent. If they'd rather drive it phase-by-phase at the advanced tier, point them at `/proceed-advanced` (forces advanced agents, one phase at a time).
 
+### The post-phase test gate (orchestrator only)
+
+After the agent reports a phase complete, **you** run the regression gate in the main thread — never the
+subagent, and never mid-phase. Read `.claude/test-policy.md`; it is the single source of truth. The short
+version:
+
+- Every implementation-agent prompt must carry, verbatim: *"Do not run `tools/run-tests.sh`. Your gate is
+  `tools/compile-check.sh` exit 0 — I run the test suites myself after the phase completes."*
+- `tools/compile-check.sh` is headless and free — run it as often as you like.
+- `tools/run-tests.sh` **launches a real Reforger client that steals the user's desktop focus for ~15–20 s**.
+  One run per completed phase, announced before it launches. **Fast group** (`{6A6E29FF47ECB840}`) by default;
+  **All** (`{6A6E2A002F53A581}`) only if the phase touched campaign, economy or persistence state.
+- **Skip the run entirely** — and say you skipped it, in one line — when the phase was docs, `.layout`,
+  prefab, `.conf` or localization only. The suites assert nothing about those, and UI is uncovered outright.
+- **Defer it** if the user may be in-game: a `launch-server.sh`/`launch-game.sh` session from this
+  conversation still running, or the user said they were play-testing. Report the gate as pending.
+- **On red:** the suites are deterministic (`maxAttempts` is banned), so never re-run hoping it passes. Read
+  the case names and `.tmp/run-tests/` artifacts, then fix it yourself here or re-engage the agent with the
+  failing case names — **the "always use agents" rule below is about implementing phases, not about repairing
+  a gate.** Re-run once. Still red → stop and report. Exit 2 is *no verdict*, never a pass.
+
 Important Notes:
 **DO NOT** Implement the tasks yourself, always use agents
 **DO NOT** Spawn parallel agents, use one agent at a time
 **DO NOT** Ask agents to implement more than one phase at a time
 **DO** Choose the best agent for the current task/phase
+**DO NOT** Let a subagent run `tools/run-tests.sh` — the gate is yours, once, after the phase
+**DO** Run the post-phase test gate yourself per `.claude/test-policy.md` (or state that you skipped/deferred it, and why)
 **DO** Determine if frontend testing and verification is required by the user before moving on to the next phase, if not, you may continue by spawning another agent
 **DO** Update `tasks.md` and `context.md` between each phase if the agent has not done it already
 
@@ -147,6 +170,7 @@ If the user hasn't intervened, proceed to the next fix automatically for LOW/MED
 **DO** Choose the best agent for the current task — standard (opus, medium effort) by default, advanced (opus, max effort) for major/integration-heavy/high-risk phases
 **DO** Ask the user before switching to an advanced agent, naming the specific reasons and noting the higher token cost
 **DO** Determine if frontend testing and verification is required
+**DO** Keep `tools/run-tests.sh` to the orchestrator, once per completed phase — never in planning, never in a subagent (`.claude/test-policy.md`)
 **DO** Update documentation between each step
 **DO** Group related code review fixes that touch the same file
 **DO** Point the user at `/proceed-advanced` if they want to force advanced agents one phase at a time

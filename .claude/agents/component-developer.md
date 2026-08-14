@@ -466,7 +466,8 @@ TESTING PROCEDURE:
 ### Workbench Workflow
 
 - Verify compilation yourself: run `tools/compile-check.sh` (exit 0 clean / 1 errors as `file:line: message` on stdout; see `tools/README.md`)
-- Autotests available: `tools/run-tests.sh` (exit 0 pass / 1 fail / 2 indeterminate / 124 timeout); suites live in `Scripts/Game/Tests/` — see the `workbench-workflow` skill for authoring
+- ❌ **Do NOT run `tools/run-tests.sh`.** Your gate is `compile-check.sh` exit 0 — the orchestrator runs the suites itself once the whole phase is done. The suites launch a Reforger client that steals the user's desktop focus, so one run per phase, not one per agent. See `.claude/test-policy.md`
+- ✅ **Do write tests.** If your change is assertable in the test world, add or extend a case in the right tier under `Scripts/Game/Tests/` (see the `workbench-workflow` skill for authoring) and say so in your report — authoring is yours, running is not
 - Coverage is a spine, not the surface: 30 assertions over pure logic, manager init, started-campaign state and same-session persistence. **JIP/multiplayer, UI, performance and save/reload are uncovered**, so still provide specific manual test procedures for those
 - User reports runtime errors and play-test results; compile errors are yours to catch
 

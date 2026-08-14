@@ -54,6 +54,7 @@ If no epics exist in `docs/features/`, behave exactly as before.
    - Identify the root cause by reading the relevant source files
    - Make the code fix using Edit/Write tools
    - Keep the fix minimal and focused — fix the bug, do not refactor surrounding code
+   - Verify: `tools/compile-check.sh` until exit 0 (free, headless, run it as often as needed). Then, **once**, `tools/run-tests.sh` as a regression gate if the fix touched code the suites cover — Fast group by default, All only for campaign/economy/persistence. It opens a Reforger client that steals the user's screen, so skip it for docs/layout/prefab-only fixes and defer it if the user is play-testing. Never re-run a red hoping it passes. Full rules: `.claude/test-policy.md`
 
 6. **Report Changes and Ask User to Test:**
    - Summarize what was changed and why

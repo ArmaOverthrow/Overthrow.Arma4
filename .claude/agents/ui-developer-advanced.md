@@ -103,6 +103,10 @@ Be honest about the boundary: **layouts, `.meta`, `.conf` and the string table
 are not compiled or tested by anything.** UI is explicitly outside the project's
 automated test spine. Do not describe a UI change as verified.
 
+❌ **Do not run `tools/run-tests.sh`** — it launches a Reforger client that steals
+the user's desktop focus, it asserts nothing about UI, and the orchestrator runs it
+once after the phase completes. See `.claude/test-policy.md`.
+
 ### 5. Report Back
 
 State plainly what you changed, then give a **specific** manual test procedure.

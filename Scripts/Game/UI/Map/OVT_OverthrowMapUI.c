@@ -1166,8 +1166,12 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 		// never grows a second local-entity resolution of its own.
 		IEntity actor = OVT_FastTravelService.GetLocalActor();
 
+		// Zero while the player is driving, and the toggle below is hidden as a consequence: a driver's
+		// trip moves the vehicle, so everyone sitting in it comes along for free and there is nothing for
+		// the player to decide (BUG-163). The same predicate suppresses the server's recruit gathering, so
+		// the fare priced here is the fare charged there.
 		int recruitCount = 0;
-		if (actor && playerID != "")
+		if (actor && playerID != "" && !OVT_FastTravelService.VehicleCarriesOccupants(verb, actor))
 			recruitCount = OVT_FastTravelService.CountRecruitsInRadius(playerID, actor.GetOrigin());
 
 		// The count the fare is priced at: zero when the player has opted out, the live count when not.

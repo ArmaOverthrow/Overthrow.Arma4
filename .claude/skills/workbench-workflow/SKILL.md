@@ -25,7 +25,7 @@ Use this skill when:
 ## Quick Reference
 
 ### Testing Guidelines
-Two automated gates you run yourself: `tools/compile-check.sh` (compiles all EnforceScript, ~5s) and `tools/run-tests.sh` (runs Overthrow's autotests in the real game client, ~15-19s). **Coverage is a spine, not the surface** — 30 assertions across four tiers (pure logic, manager init, started campaign, same-session persistence), reachable as one command. **Not covered at all: JIP/multiplayer (the most common regression class — it needs two client processes), UI, performance, AI movement, and the save/reload round-trip (written but gated behind the persistence migration).** Everything in that second list is still verified by manual Workbench play-testing; be specific about what the user should test and how.
+Two automated gates — but they cost very different things. `tools/compile-check.sh` (compiles all EnforceScript, ~5s, headless) is **free: run it constantly**. `tools/run-tests.sh` (runs Overthrow's autotests in the real game client, ~15-19s) **launches a Reforger window that steals the user's desktop focus**, so it is a **scarce, deliberate regression gate: orchestrator-only, once after a phase or fix is complete, never during planning, never inside a subagent** — see `.claude/test-policy.md`. **Coverage is a spine, not the surface** — 30 assertions across four tiers (pure logic, manager init, started campaign, same-session persistence), reachable as one command. **Not covered at all: JIP/multiplayer (the most common regression class — it needs two client processes), UI, performance, AI movement, and the save/reload round-trip (written but gated behind the persistence migration).** Everything in that second list is still verified by manual Workbench play-testing; be specific about what the user should test and how.
 
 **See:** `testing-guidelines.md` for manual test procedures · "Writing Autotests" below for automated ones
 
@@ -49,12 +49,12 @@ Prefabs edited in Workbench, layouts in UI editor, configs in text editor. Save 
 ## Critical Constraints
 
 - ✅ **Automated compile check** - Run `tools/compile-check.sh` after code changes; do not ask the user to compile for you (see `tools/README.md`)
-- ✅ **Automated tests** - Run `tools/run-tests.sh "{6A6E29FF47ECB840}"` (Fast) after code changes that touch tested areas (see `tools/README.md`)
+- ⚠️ **Automated tests are a scarce gate** - `tools/run-tests.sh "{6A6E29FF47ECB840}"` (Fast) opens a Reforger client that steals focus. Run it **once, in the main thread, after a phase or fix is complete** and only if the change touches tested areas — never to take a baseline, never from a subagent, never mid-change. Full rules: `.claude/test-policy.md` · contract: `tools/README.md`
 - ⚠️ **Coverage is a spine, not the surface** - 30 assertions over logic, init, campaign and same-session persistence. **JIP/multiplayer, UI, performance and save/reload are NOT covered** and are still manual play-testing
 - ⚠️ **Extend the suites when you can** - If a change is assertable in the test world, add a case to the right tier rather than writing only a manual procedure
 - ❌ **No interactive debugger** - Use Print() for debug output
 - ✅ **Be specific** - Tell user exactly what to test
-- ✅ **Test incrementally** - Small changes, compile-check often
+- ✅ **Test incrementally** - Small changes, compile-check often (compile-check, *not* the suites)
 - ⚠️ **Workbench can crash** - Save frequently
 - ✅ **Check console** - Runtime errors show in Workbench console
 - ⚠️ **Play mode testing** - Always test in play mode, not just edit mode
@@ -69,7 +69,7 @@ Prefabs edited in Workbench, layouts in UI editor, configs in text editor. Save 
 2. **Run `tools/compile-check.sh`** yourself (~5s warm)
 3. **Fix errors** from the parsed `file:line: message` output
 4. **Repeat** until exit 0
-5. **Run `tools/run-tests.sh "{6A6E29FF47ECB840}"`** (Fast, ~16s) — or the All group if you touched campaign or persistence state
+5. **Run `tools/run-tests.sh "{6A6E29FF47ECB840}"` once, at the end** (Fast, ~16s) — or the All group if you touched campaign, economy or persistence state. Not after every edit in step 2–4: this opens a Reforger client and takes the user's screen. Skip it altogether for docs/layout/prefab/localization-only work, and defer it if the user is play-testing (`.claude/test-policy.md`)
 6. **User tests** in Workbench play mode
 7. **User reports** bugs/runtime issues (debug prints, console errors)
 8. **Fix issues**
@@ -77,7 +77,7 @@ Prefabs edited in Workbench, layouts in UI editor, configs in text editor. Save 
 
 ### Testing Cycle
 
-1. **Automated where possible** - If the behaviour is assertable from a test world, add a case to the right tier (see "Writing Autotests") and prove it with `tools/run-tests.sh`. Prove it can fail, too — perturb the thing it covers, see exit 1, revert
+1. **Automated where possible** - If the behaviour is assertable from a test world, add a case to the right tier (see "Writing Autotests"). Authoring the case is always worth it. **Proving it** — running it green, then perturbing the thing it covers to see exit 1, then reverting — is the one situation where several runs in a row are justified, because you are testing the test. Batch that proof into a single sitting rather than spreading it across the session
 2. **Define a manual test procedure** for everything the suites do not cover — JIP/multiplayer, UI, performance, AI movement, and anything needing a real save/reload
 3. **User follows procedure** in Workbench play mode
 4. **User reports results** - What worked, what didn't
@@ -140,6 +140,11 @@ Also available: `tools/launch-game.sh` launches the game client with Overthrow l
 ---
 
 ## Running the Autotests
+
+> **Before you run anything:** this command opens a real Reforger client and takes the user's screen for
+> ~15–20 s. It is the orchestrator's gate, spent once after a phase or fix is complete — not a baseline, not
+> a subagent's job, not a progress check. `.claude/test-policy.md` has the full rules; if you are not sure
+> you are allowed to run it, you are not.
 
 ```bash
 tools/run-tests.sh "{6A6E29FF47ECB840}"       # Fast group  — Logic + Init, 18 cases, ~16 s

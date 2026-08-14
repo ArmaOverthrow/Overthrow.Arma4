@@ -41,7 +41,9 @@ class OVT_TravelRequestComponent : OVT_Component
 	//! \param[in] targetPos Destination in world space. Advisory - the server re-derives the actual
 	//! arrival point and re-validates the trip against its own view of the world.
 	//! \param[in] bringRecruits True to bring the player's nearby recruits, which also multiplies the
-	//! fare. The server takes its own recruit list; this flag only says whether to take one at all.
+	//! fare. The server takes its own recruit list; this flag only says whether to take one at all - and
+	//! it is ignored entirely when the player is driving, because the vehicle carries its occupants for
+	//! free and gathering anyone would break them (BUG-163).
 	void RequestTravel(int verb, vector targetPos, bool bringRecruits)
 	{
 		if(Replication.IsServer())
@@ -120,8 +122,17 @@ class OVT_TravelRequestComponent : OVT_Component
 		// 4 - captured before anything moves
 		vector originPos = actor.GetOrigin();
 
-		// 5 - ONE list, for both the fare and the teleport
-		array<IEntity> recruits = ResolveTravellingRecruits(playerId, originPos, bringRecruits);
+		// 5 - ONE list, for both the fare and the teleport.
+		//
+		// A driver's trip moves the VEHICLE (vanilla TeleportPlayer, Functions.c:1649-1656), which brings
+		// everyone sitting in it at no cost and with nothing of ours involved - so it gathers no recruits
+		// at all (BUG-163). Gathering them meant the ring placement below called SetOrigin on recruits who
+		// were still occupying a compartment, which threw them off the map, and charged a per-recruit fare
+		// for seats they were already in. The client's panel suppresses the toggle through the same
+		// predicate, so the fare it displays is the fare charged here.
+		bool gatherRecruits = bringRecruits && !OVT_FastTravelService.VehicleCarriesOccupants(verb, actor);
+
+		array<IEntity> recruits = ResolveTravellingRecruits(playerId, originPos, gatherRecruits);
 		int recruitCount = recruits.Count();
 
 		// 6
@@ -162,7 +173,9 @@ class OVT_TravelRequestComponent : OVT_Component
 		}
 
 		// 7
-		vector dest = ResolveDestination(actor, targetPos);
+		vector destAngles;
+		bool destOriented;
+		vector dest = ResolveDestination(actor, targetPos, destAngles, destOriented);
 
 		// 8 - while the actor is still standing at originPos. Measured to targetPos, not to dest, so
 		// the charged fare is the one the panel displayed rather than one nudged by the safe-spawn
@@ -176,6 +189,13 @@ class OVT_TravelRequestComponent : OVT_Component
 			SendTravelResult(playerId, OVT_TravelResult.TELEPORT_FAILED, 0);
 			return;
 		}
+
+		// 9b - TeleportPlayer sets POSITION only: it copies the vehicle's existing world transform and
+		// overwrites the translation (Functions.c:1658-1661), so a car that arrives on a road arrives
+		// pointing whichever way it was pointing when the player opened the map. Turning it to face the
+		// way the arrival spot expects has to be a second, separate step (BUG-165).
+		if(destOriented)
+			OrientVehicle(actor, destAngles);
 
 		// 10 - only now, and only what was actually taken is reported. The debit is deliberately NOT
 		// folded into the condition of an && : a side effect inside a boolean expression is the kind of
@@ -270,29 +290,36 @@ class OVT_TravelRequestComponent : OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Where the player actually arrives.
+	//! Where the player actually arrives, and which way they should be pointing when they get there.
 	//!
 	//! A driver takes the vehicle along - vanilla's TeleportPlayer teleports the VEHICLE when the
-	//! player is in one (Functions.c:1657-1663) - so a driver needs a vehicle-sized clear spot. The
-	//! returned angles are deliberately discarded, exactly as the legacy path discarded them
-	//! (OVT_FastTravelService.ExecuteFastTravel pre-Phase 2): TeleportPlayer sets position only.
+	//! player is in one (Functions.c:1657-1663) - so a driver needs a vehicle-sized clear spot.
 	//!
-	//! FindSafeVehicleSpawnPosition's bool return reports only whether a parking spot was found; the
-	//! out position is filled either way (OVT_Global.c:450-453), which is why it is not checked.
+	//! THE ANGLES ARE NO LONGER DISCARDED (BUG-165). They used to be, on the reasoning that
+	//! TeleportPlayer sets position only - which is true, and is exactly why throwing them away left a
+	//! car that fast-travelled onto a road sitting across it. FindSafeVehicleSpawnPosition's bool return
+	//! now means \"the arrival spot has an opinion about facing\": a parking spot, an authored vehicle
+	//! point, a road, or a ring position all say true, and only the crude random fallback says false.
 	//!
 	//! Passengers never reach here - ValidateTravel already refused them with MUST_BE_DRIVER, and a bus
 	//! passenger with MUST_EXIT_VEHICLE - but the pilot test is re-derived rather than inferred from
 	//! that, so this stays correct if the rule order ever changes.
 	//! \param[in] actor The travelling player's controlled entity.
 	//! \param[in] targetPos The requested destination.
+	//! \param[out] angles Yaw/pitch/roll the vehicle should end up at. Meaningless unless oriented is true.
+	//! \param[out] oriented True when the arrival spot named a facing worth applying.
 	//! \return A safe arrival position.
-	protected vector ResolveDestination(IEntity actor, vector targetPos)
+	protected vector ResolveDestination(IEntity actor, vector targetPos, out vector angles, out bool oriented)
 	{
-		if(IsVehicleDriver(actor))
+		angles = "0 0 0";
+		oriented = false;
+
+		if(OVT_FastTravelService.IsVehicleDriver(actor))
 		{
 			vector vehiclePos;
 			vector vehicleAngles;
-			OVT_WorldUtils.FindSafeVehicleSpawnPosition(targetPos, vehiclePos, vehicleAngles);
+			oriented = OVT_WorldUtils.FindSafeVehicleSpawnPosition(targetPos, vehiclePos, vehicleAngles);
+			angles = vehicleAngles;
 			return vehiclePos;
 		}
 
@@ -300,22 +327,35 @@ class OVT_TravelRequestComponent : OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Whether the actor is in a vehicle's pilot seat. Same three steps, same null guards, as
-	//! OVT_FastTravelService.ValidateTravel's in-vehicle rule.
+	//! Turn the travelled vehicle to the facing its arrival spot asked for. SERVER-side, after the move.
+	//!
+	//! Same tail as vanilla's TeleportPlayer (Functions.c:1658-1670): build the transform, prefer
+	//! BaseGameEntity.Teleport over SetWorldTransform so the engine's own teleport bookkeeping runs, and
+	//! keep the position the teleport already established - only the rotation is being changed here.
+	//!
+	//! Silently does nothing when the actor turns out not to be in a vehicle after all, which is the right
+	//! answer rather than an error: the trip has already happened and succeeded.
 	//! \param[in] actor The travelling player's controlled entity.
-	//! \return True only for a driver; false on foot and false for a passenger.
-	protected bool IsVehicleDriver(IEntity actor)
+	//! \param[in] angles Yaw/pitch/roll to face.
+	protected void OrientVehicle(IEntity actor, vector angles)
 	{
-		ChimeraCharacter character = ChimeraCharacter.Cast(actor);
-		if(!character || !character.IsInVehicle()) return false;
+		SCR_CompartmentAccessComponent compartmentAccess = SCR_CompartmentAccessComponent.Cast(actor.FindComponent(SCR_CompartmentAccessComponent));
+		if(!compartmentAccess) return;
 
-		CompartmentAccessComponent compartmentAccess = character.GetCompartmentAccessComponent();
-		if(!compartmentAccess) return false;
+		IEntity vehicle = compartmentAccess.GetVehicle();
+		if(!vehicle) return;
 
-		BaseCompartmentSlot slot = compartmentAccess.GetCompartment();
-		if(!slot) return false;
+		vector transform[4];
+		Math3D.AnglesToMatrix(angles, transform);
+		transform[3] = vehicle.GetOrigin();
 
-		return slot.GetType() == ECompartmentType.PILOT;
+		BaseGameEntity baseGameEntity = BaseGameEntity.Cast(vehicle);
+		if(baseGameEntity)
+		{
+			baseGameEntity.Teleport(transform);
+		}else{
+			vehicle.SetWorldTransform(transform);
+		}
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -339,6 +379,16 @@ class OVT_TravelRequestComponent : OVT_Component
 			if (!recruitEntity)
 				continue;
 
+			// NEVER SetOrigin a recruit who is sitting in a vehicle (BUG-163). A compartment occupant is
+			// attached to the vehicle, so writing a world position onto it does not move it to that world
+			// position - it throws the recruit somewhere unrecoverable while the compartment still believes
+			// it is seated, which is what made them vanish and put their "Show on Map" marker in the ocean.
+			// A driver's own trip no longer reaches here at all (step 5 gathers nobody), so this only fires
+			// for a recruit parked in some OTHER vehicle during an on-foot trip: they keep their seat and are
+			// left behind, which is recoverable, rather than being deleted in place, which is not.
+			if (IsInCompartment(recruitEntity))
+				continue;
+
 			// Calculate offset position in a circle around the player destination
 			float angle = (recruitIndex * 360.0 / recruits.Count()) * Math.DEG2RAD;
 			float radius = 3.0 + (recruitIndex * 0.5); // Start at 3m and expand outward
@@ -352,6 +402,22 @@ class OVT_TravelRequestComponent : OVT_Component
 			recruitEntity.SetOrigin(recruitPos);
 			recruitIndex++;
 		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether an entity is currently occupying a vehicle compartment - any seat, not just the pilot's.
+	//!
+	//! Distinct from OVT_FastTravelService.IsVehicleDriver, which asks whether the TRAVELLING PLAYER takes
+	//! their vehicle along. This asks whether an entity may be moved by writing its origin, and any seat
+	//! at all is disqualifying.
+	//! \param[in] entity The entity to test.
+	//! \return True when the entity is seated in a vehicle.
+	protected bool IsInCompartment(IEntity entity)
+	{
+		CompartmentAccessComponent compartmentAccess = CompartmentAccessComponent.Cast(entity.FindComponent(CompartmentAccessComponent));
+		if(!compartmentAccess) return false;
+
+		return compartmentAccess.IsInCompartment();
 	}
 
 	//------------------------------------------------------------------------------------------------

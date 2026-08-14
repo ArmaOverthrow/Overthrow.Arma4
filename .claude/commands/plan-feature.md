@@ -17,6 +17,19 @@ If no epics exist in `docs/features/`, behave exactly as before.
 
 `.claude/epic-resolution.md` is the single source of truth for epic detection and resolution. When the target is a feature inside an epic (resolved via `<epic>/<feature>` or fuzzy fallback), load that epic's context per §4 before planning and pass it into the solution-architect prompt (see Step 3 and Step 7). This command's body is the planning workflow; it does **not** re-specify those rules.
 
+## Test-run policy
+
+❌ **Planning never runs the test suites.** Neither this command nor the solution-architect may invoke
+`tools/run-tests.sh` — not to establish a baseline, not to "check the tree is green" before planning, not
+at any point. The suites launch a real Reforger client that steals the user's desktop focus, and a
+pre-implementation baseline is worthless anyway: concurrent bugfix sessions and other features will change
+this tree between the plan and its implementation. Reading the test tree, and *planning* which tier a phase
+should extend, is encouraged. Running it is the orchestrator's job, after implementation. Full rules:
+`.claude/test-policy.md`.
+
+Compilation is different — `tools/compile-check.sh` is headless and cheap, so use it freely if planning
+involves touching code.
+
 ## Process
 
 ### 1. Parse Arguments
