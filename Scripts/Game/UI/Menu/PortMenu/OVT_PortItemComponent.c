@@ -31,7 +31,7 @@ class OVT_PortItemComponent : SCR_ScriptedWidgetComponent
 		img.SetResolutionScale(1, 1);
 		manager.SetPreviewItemFromPrefab(img, res);		
 		
-		UIInfo info = OVT_Global.GetItemUIInfo(res);
+		UIInfo info = OVT_PrefabUtils.GetItemUIInfo(res);
 		if(info)
 		{
 			text.SetText(info.GetName());

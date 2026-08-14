@@ -1445,7 +1445,7 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 		HideLocationInfo();
 		HideMap();
 
-		OVT_TravelRequestComponent travel = OVT_Global.GetTravelRequests();
+		OVT_TravelRequestComponent travel = OVT_ControllerComponent<OVT_TravelRequestComponent>.Get();
 		if (!travel)
 		{
 			// R2: a component that exists in script but not on OVT_OverthrowController.et is a silent

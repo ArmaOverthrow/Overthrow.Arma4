@@ -10,8 +10,8 @@ The vertical slice that proves the layer: the deployments framework's three ship
 ## Requirements
 
 - **Deployments delegate group lifecycle:** deployment spawning modules create and own virtual groups through the core API instead of direct spawning + proximity toggling. The deployment marker entity remains the durable record for deployment-level state (config, faction, invested resources, eliminated flag); virtualization owns group-level state (members, position, waypoints) — one system per concern, no double bookkeeping.
-- All three shipped deployment configs run on virtualization, including **per-member dead-stay-dead** across despawn/respawn and save/load, and reinforcement rebuying through the same API.
-- The **40 m stolen-vehicle rule** is preserved: vehicles taken by players survive group despawn.
+- All three shipped deployment configs run on virtualization, including **per-member dead-stay-dead** across despawn/respawn and save/load (slot-accurate survivor truth per the 2026-08-14 core replan — a group that lost 3 comes back with exactly its survivors, roles preserved; wiped groups never return), and reinforcement rebuying through the same API.
+- The **stolen-vehicle guarantee** is preserved: vehicles taken by players survive group despawn — in the 1.8 model this rides the engine's held-member protection (`SCR_AIGroup.HasHeldMember`), which supersedes the old branch's 40 m rule; verify rather than rebuild.
 - **Radio-tower garrisons** become virtualization consumers; the ad-hoc spawn/despawn code in `OVT_OccupyingFactionManager` is removed.
 - The towns epic's `OVT_PatrolHarassmentStabilityModifier` (the only external consumer of deployment state) keeps working throughout.
 - **Existing campaign saves survive:** a save from before this feature loads with patrols and garrisons re-established on the new layer (re-created from config where per-group state didn't previously exist) rather than vanished or duplicated.

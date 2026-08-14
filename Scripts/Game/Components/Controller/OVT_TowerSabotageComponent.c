@@ -3,8 +3,8 @@ class OVT_TowerSabotageComponentClass : OVT_ComponentClass {};
 
 //------------------------------------------------------------------------------------------------
 //! Client->server relay for sabotaging occupying-faction radio towers, on the per-player
-//! OVT_OverthrowController entity (project rule: no new client->server RPCs on
-//! OVT_PlayerCommsComponent). The server validates everything itself: tower existence, ownership,
+//! OVT_OverthrowController entity (project rule: every client->server RPC lives on a controller
+//! component). The server validates everything itself: tower existence, ownership,
 //! current disabled state, and the saboteur's distance to the tower - never trusting the client.
 //!
 //! A successful sabotage takes the tower off the air for
@@ -16,9 +16,23 @@ class OVT_TowerSabotageComponent : OVT_Component
 	//! How far the saboteur may be from the tower when the action completes (action radius + slack)
 	protected const float SABOTAGE_MAX_DISTANCE = 25;
 
+	//------------------------------------------------------------------------------------------------
+	//! Asks the server to sabotage the tower nearest towerPos.
+	//!
+	//! BRANCHES ON Replication.IsServer(), AND MUST. Until the Phase 10 arity audit of the controller
+	//! migration this was an unconditional Rpc() to an RplRcver.Server handler - and an RplRcver.Server
+	//! RPC marshalled BY the authority is delivered to nobody, so on a LISTEN-SERVER HOST sabotaging a
+	//! radio tower did nothing at all: no disable, no wanted level, no error. Same class of defect as
+	//! the ten handlers migrated in P2-P8 (see P2-5 in that feature's context.md).
+	//! \param[in] towerPos Client's idea of where the tower is; the server re-resolves the nearest one.
 	void RequestSabotage(vector towerPos)
 	{
-		Rpc(RpcAsk_SabotageTower, towerPos);
+		if(Replication.IsServer())
+		{
+			RpcAsk_SabotageTower(towerPos);
+		}else{
+			Rpc(RpcAsk_SabotageTower, towerPos);
+		}
 	}
 
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]

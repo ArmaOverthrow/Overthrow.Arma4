@@ -98,7 +98,9 @@ class OVT_BaseMenuContext : OVT_UIContext
 		}
 		
 		// The server charges for the garrison after validating - see OVT_ResistanceFactionManager.ChargeForGarrison
-		OVT_Global.GetServer().AddGarrison(m_Base, uiinfo.resource);
+		OVT_ResistanceRequestComponent requests = OVT_ControllerComponent<OVT_ResistanceRequestComponent>.Get();
+		if(!requests) return;
+		requests.AddGarrison(m_Base, uiinfo.resource);
 	}
 	
 	protected void UpdateInfo()

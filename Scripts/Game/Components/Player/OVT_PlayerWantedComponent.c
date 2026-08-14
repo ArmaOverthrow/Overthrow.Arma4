@@ -361,9 +361,9 @@ class OVT_PlayerWantedComponent: OVT_Component
 		if(rpl && !rpl.IsMaster())
 		{
 			// Wanted state is server-authoritative — relay our local loot action (BUG-073)
-			OVT_PlayerCommsComponent comms = OVT_Global.GetServer();
-			if(comms)
-				comms.RequestLootWantedCheck();
+			OVT_CampaignRequestComponent campaign = OVT_ControllerComponent<OVT_CampaignRequestComponent>.Get();
+			if(campaign)
+				campaign.RequestLootWantedCheck();
 			return;
 		}
 

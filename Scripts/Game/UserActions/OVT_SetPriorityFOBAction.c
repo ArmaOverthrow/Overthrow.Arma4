@@ -4,7 +4,10 @@ class OVT_SetPriorityFOBAction : ScriptedUserAction
 	//---------------------------------------------------------
  	override void PerformAction(IEntity pOwnerEntity, IEntity pUserEntity) 
  	{
-		OVT_Global.GetServer().SetPriorityFOB(pOwnerEntity);
+		OVT_FOBRequestComponent requests = OVT_ControllerComponent<OVT_FOBRequestComponent>.Get();
+		if(!requests) return;
+
+		requests.SetPriorityFOB(pOwnerEntity);
  	}
 		
 	override bool GetActionNameScript(out string outName)

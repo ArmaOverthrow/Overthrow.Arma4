@@ -7,10 +7,11 @@ class OVT_RespawnRequestComponentClass : OVT_ComponentClass {};
 //! Copied from OVT_TravelRequestComponent including its discipline: the RplRcver.Server ask /
 //! RplRcver.Owner result split, ResolveOwningPlayerId, the listen-server short-circuits, and the
 //! arrival/result Print pair that lets a play-test tell "the request never left the client" from
-//! "a rule refused". Project rule (overthrow-controller.md): no new client->server RPCs go on
-//! OVT_PlayerCommsComponent, which is deprecated - map/legacy-retirement deleted four unvalidated
-//! RPCs from it, one of them a two-line unpaid teleport to an arbitrary vector callable by any
-//! client. That defect is the reason this class exists here instead of there.
+//! "a rule refused". Project rule (overthrow-controller.md): every client->server RPC lives on a
+//! controller component like this one; the legacy comms monolith was deleted in Phase 10. Before that,
+//! map/legacy-retirement had already deleted four unvalidated RPCs from it, one of them a two-line
+//! unpaid teleport to an arbitrary vector callable by any client. That defect is the reason this class
+//! exists here instead of there.
 //!
 //! THE RULE BOTH VERBS NOW FOLLOW: a client-sent vector is validated against the server's OWN
 //! enumeration and the move then uses the SERVER's recorded vector. The client names a place; it does

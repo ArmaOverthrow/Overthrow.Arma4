@@ -15,6 +15,26 @@ OVT_OverthrowController {
   }
   OVT_RespawnRequestComponent "{6A83D5A0000000B0}" {
   }
+  OVT_VehicleRequestComponent "{6A8F2C7D4E13A590}" {
+  }
+  OVT_RealEstateRequestComponent "{6A9B3E14C27D08F6}" {
+  }
+  OVT_EconomyRequestComponent "{6AA7D8B502E4193C}" {
+  }
+  OVT_ResistanceRequestComponent "{6AB3E9C61FD5720A}" {
+  }
+  OVT_FOBRequestComponent "{6ABF4A73D8261E95}" {
+  }
+  OVT_RecruitRequestComponent "{6ACB5B84E9372FA1}" {
+  }
+  OVT_LoadoutRequestComponent "{6AD76C95FA483EB2}" {
+  }
+  OVT_PossessionRequestComponent "{6AE37DA60B594FC3}" {
+  }
+  OVT_JobRequestComponent "{6AEF8EB71C6A50D4}" {
+  }
+  OVT_CampaignRequestComponent "{6AFB9FC82D7B61E5}" {
+  }
   RplComponent "{65C4B2D3DE955867}" {
   }
  }

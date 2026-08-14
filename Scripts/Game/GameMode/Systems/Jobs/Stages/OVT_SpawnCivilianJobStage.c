@@ -28,7 +28,7 @@ class OVT_SpawnCivilianJobStage : OVT_JobStage
 		vector spawnPosition = job.location;
 
 		//! Job civilians spawn in bulk, so skip the spawn-point sphere query and just find safe ground
-		spawnPosition = OVT_Global.FindSafeSpawnPosition(spawnPosition, "-0.5 0 -0.5", "0.5 2 0.5", true);
+		spawnPosition = OVT_WorldUtils.FindSafeSpawnPosition(spawnPosition, "-0.5 0 -0.5", "0.5 2 0.5", true);
 
 		IEntity entity = OVT_Global.SpawnEntityPrefab(m_pPrefab, spawnPosition);
 		if(!entity)

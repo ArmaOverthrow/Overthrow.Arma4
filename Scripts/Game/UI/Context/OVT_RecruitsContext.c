@@ -380,11 +380,11 @@ class OVT_RecruitsContext : OVT_UIContext
 		if (!m_SelectedRecruit)
 			return;
 			
-		// Request dismissal from server via player comms component
-		OVT_PlayerCommsComponent comms = OVT_Global.GetServer();
-		if (comms)
+		// Ask the server - it validates that this recruit is ours before deleting anything
+		OVT_RecruitRequestComponent recruitRequests = OVT_ControllerComponent<OVT_RecruitRequestComponent>.Get();
+		if (recruitRequests)
 		{
-			comms.DismissRecruit(m_SelectedRecruit.m_sRecruitId);
+			recruitRequests.DismissRecruit(m_SelectedRecruit.m_sRecruitId);
 		}
 		
 		// Clear UI selection (the actual recruit removal will be handled when server broadcasts)
@@ -449,7 +449,15 @@ class OVT_RecruitsContext : OVT_UIContext
 		}
 
 		// Ask the server - it validates ownership, renames the authoritative record and broadcasts
-		OVT_Global.GetServer().RenameRecruit(m_CurrentRenamingRecruit.m_sRecruitId, newName);
+		OVT_RecruitRequestComponent recruitRequests = OVT_ControllerComponent<OVT_RecruitRequestComponent>.Get();
+		if (!recruitRequests)
+		{
+			m_CurrentRenamingRecruit = null;
+			m_RenameDialog = null;
+			return;
+		}
+
+		recruitRequests.RenameRecruit(m_CurrentRenamingRecruit.m_sRecruitId, newName);
 
 		// Apply to the local replica too so the UI updates immediately (the broadcast confirms it)
 		m_RecruitManager.RenameRecruit(m_CurrentRenamingRecruit.m_sRecruitId, newName);

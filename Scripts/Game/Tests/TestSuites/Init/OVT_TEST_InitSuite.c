@@ -27,9 +27,10 @@ class OVT_TEST_InitSuite : OVT_TEST_SuiteBase
 //------------------------------------------------------------------------------------------------
 //! Every OVT_Global manager getter that does not need a local player returns a live object.
 //!
-//! Deliberately EXCLUDES GetServer(), GetUI(), GetController() and GetContainerTransfer(): all four
-//! dereference SCR_PlayerController.GetLocalControlledEntity(), which is not what this tier is
-//! about, and GetServer()/GetUI() do it without a null check.
+//! Deliberately EXCLUDES GetUI(), GetController() and every controller component (reached with
+//! OVT_ControllerComponent<T>.Get()): they all depend on a LOCAL PLAYER, which is a different
+//! question from "is the game mode carrying its managers".
+//! The controller seam has its own case - OVT_TEST_Init_Controller_ComponentsResolve.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Globals_ManagersResolve : SCR_AutotestCaseBase

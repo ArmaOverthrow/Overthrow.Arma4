@@ -143,7 +143,7 @@ class OVT_TutorialContext : OVT_UIContext
 			return;
 		}
 
-		OVT_TutorialComponent tutorials = OVT_Global.GetTutorials();
+		OVT_TutorialComponent tutorials = OVT_ControllerComponent<OVT_TutorialComponent>.Get();
 		if (tutorials && tutorials.m_OnShowTutorial)
 		{
 			m_Tutorials = tutorials;
@@ -297,7 +297,7 @@ class OVT_TutorialContext : OVT_UIContext
 		if (m_Tutorials)
 			return m_Tutorials;
 
-		return OVT_Global.GetTutorials();
+		return OVT_ControllerComponent<OVT_TutorialComponent>.Get();
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -715,7 +715,7 @@ class OVT_TutorialContext : OVT_UIContext
 	{
 		OVT_TutorialComponent tutorials = m_Tutorials;
 		if (!tutorials)
-			tutorials = OVT_Global.GetTutorials();
+			tutorials = OVT_ControllerComponent<OVT_TutorialComponent>.Get();
 
 		if (tutorials)
 			tutorials.SetTipsDisabled(true);
@@ -816,7 +816,7 @@ class OVT_TutorialContext : OVT_UIContext
 	{
 		OVT_TutorialComponent tutorials = m_Tutorials;
 		if (!tutorials)
-			tutorials = OVT_Global.GetTutorials();
+			tutorials = OVT_ControllerComponent<OVT_TutorialComponent>.Get();
 
 		if (!tutorials)
 			return;

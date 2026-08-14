@@ -1,5 +1,5 @@
 [ComponentEditorProps(category: "Overthrow/Components/Controller", description: "Server-authoritative admin chat commands for one player")]
-class OVT_AdminCommandsComponentClass : OVT_ComponentClass {};
+class OVT_AdminCommandsComponentClass : OVT_ControllerRequestComponentClass {};
 
 //------------------------------------------------------------------------------------------------
 //! Server-authoritative admin commands, on the per-player OVT_OverthrowController entity.
@@ -10,49 +10,85 @@ class OVT_AdminCommandsComponentClass : OVT_ComponentClass {};
 //! saved (BUG-116: vanilla's Arsenal.conf has no storage serializer; anything players put in a GM
 //! arsenal box silently vanishes on every restart).
 //!
-//! Project rule (overthrow-controller.md): new client->server operations live here, never on the
-//! legacy OVT_PlayerCommsComponent.
+//! Project rule (overthrow-controller.md): new client->server operations live here, on a controller
+//! component - the legacy comms monolith they used to ride was deleted in Phase 10.
 //!
 //! AUTHORITY MODEL. The chat command is registered on every client (the chat manager is a global
 //! game core and command registration is not a permission), but the ONLY gate that matters is on
 //! the server: SCR_Global.IsAdmin() against the engine's own role flags for the calling
 //! connection. A modified client can send the RPC; it cannot make itself an admin.
 //------------------------------------------------------------------------------------------------
-class OVT_AdminCommandsComponent : OVT_Component
+class OVT_AdminCommandsComponent : OVT_ControllerRequestComponent
 {
 	//! Upper bound per command invocation. Not a security boundary (admins can repeat the command);
 	//! it exists so a typo cannot overflow the int economy or produce a nonsense balance.
 	protected const int GIVE_MONEY_MAX = 1000000;
 
+	//! Whether this component has already put its callbacks into the chat command invokers.
+	//!
+	//! REQUIRED, NOT DEFENSIVE. Its caller fires once per ownership ASSIGNMENT, not once per player:
+	//! OVT_PlayerManagerComponent.SetupPlayer() re-assigns on the already-mapped branch, so a reconnect
+	//! or a Continue calls this a second time (see OVT_OverthrowController.RpcDo_NotifyOwnerAssignment).
+	//! ChatCommandInvoker is a ScriptInvoker: a second Insert() of the same method is a second
+	//! subscription, so "/givemoney 500" after a reconnect paid out twice and printed two audit lines.
+	protected bool m_bChatCommandsRegistered;
+
 	//------------------------------------------------------------------------------------------------
 	//! Registers this component's chat commands on the owning client. Called from
-	//! OVT_OverthrowController.RpcDo_NotifyOwnerAssignment, which runs exactly once on the client
-	//! that owns this controller - the one place that is both client-side and unambiguous about
-	//! WHICH controller belongs to the local player.
+	//! OVT_OverthrowController.RpcDo_NotifyOwnerAssignment - the one place that is both client-side and
+	//! unambiguous about WHICH controller belongs to the local player.
+	//!
+	//! IDEMPOTENT BY CONTRACT, BY TWO INDEPENDENT MECHANISMS. Calling it twice registers ONE set of
+	//! commands: the guard flag turns the second call into a no-op, and every subscription below is
+	//! Remove()-then-Insert() so even a future edit that loses the flag cannot double-subscribe. Both,
+	//! because the failure this prevents is silent - a doubly-registered "/givemoney 500" pays out
+	//! $1000 and nothing anywhere says why.
+	//!
+	//! The flag is set only AFTER the chat manager resolves, so a call made before the chat panels
+	//! exist is retried by the next ownership assignment rather than silently marked done.
+	//! (chat.GetCommandInvoker() itself never answers null for a non-empty name - it creates the
+	//! invoker on demand - so a null chat manager is the only way this bails.)
 	void RegisterChatCommands()
 	{
+		if (m_bChatCommandsRegistered)
+			return;
+
 		SCR_ChatPanelManager chat = SCR_ChatPanelManager.GetInstance();
 		if (!chat)
 			return;
+
+		m_bChatCommandsRegistered = true;
 
 		// "/give-money" is the documented form (announced to server admins); the unhyphenated
 		// variant is accepted because it is the obvious mistyping.
 		ChatCommandInvoker invoker = chat.GetCommandInvoker("give-money");
 		if (invoker)
+		{
+			invoker.Remove(OnGiveMoneyCommand);
 			invoker.Insert(OnGiveMoneyCommand);
+		}
 
 		invoker = chat.GetCommandInvoker("givemoney");
 		if (invoker)
+		{
+			invoker.Remove(OnGiveMoneyCommand);
 			invoker.Insert(OnGiveMoneyCommand);
+		}
 
 		// Debug affordance for map/respawn, kept deliberately - see OnRespawnScreenCommand.
 		invoker = chat.GetCommandInvoker("respawn-screen");
 		if (invoker)
+		{
+			invoker.Remove(OnRespawnScreenCommand);
 			invoker.Insert(OnRespawnScreenCommand);
+		}
 
 		invoker = chat.GetCommandInvoker("respawnscreen");
 		if (invoker)
+		{
+			invoker.Remove(OnRespawnScreenCommand);
 			invoker.Insert(OnRespawnScreenCommand);
+		}
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -175,34 +211,5 @@ class OVT_AdminCommandsComponent : OVT_Component
 
 		if (notify)
 			notify.SendTextNotification("AdminFundsAdded", playerId, amount.ToString());
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! The player id owning this controller, resolved server-side (same pattern as
-	//! OVT_ShopTransactionComponent - the RPC caller is implied by which controller instance ran it).
-	protected int ResolveOwningPlayerId()
-	{
-		OVT_OverthrowController owner = OVT_OverthrowController.Cast(GetOwner());
-		if (!owner)
-			return -1;
-
-		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
-		if (!players)
-			return -1;
-
-		PlayerManager playerManager = GetGame().GetPlayerManager();
-		if (!playerManager)
-			return -1;
-
-		array<int> playerIds = {};
-		playerManager.GetPlayers(playerIds);
-
-		foreach (int playerId : playerIds)
-		{
-			if (players.GetController(playerId) == owner)
-				return playerId;
-		}
-
-		return -1;
 	}
 }

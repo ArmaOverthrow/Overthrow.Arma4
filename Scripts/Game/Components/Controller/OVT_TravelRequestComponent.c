@@ -5,11 +5,11 @@ class OVT_TravelRequestComponentClass : OVT_ComponentClass {};
 //! Server-authoritative travel, on the per-player OVT_OverthrowController entity.
 //!
 //! Replaces OVT_FastTravelService.ExecuteFastTravel, which teleported on the CALLING machine and
-//! debited money on the CLIENT (findings F1/F2), and the legacy
-//! OVT_PlayerCommsComponent.RpcAsk_RequestFastTravel, which was ResolveSenderPlayerId + TeleportPlayer
+//! debited money on the CLIENT (findings F1/F2), and the legacy comms monolith's
+//! RpcAsk_RequestFastTravel, which was ResolveSenderPlayerId + TeleportPlayer
 //! with no eligibility check, no distance check and no payment - any client could teleport itself
-//! anywhere, for free (finding N2). Project rule (overthrow-controller.md): no new client->server RPCs
-//! go on OVT_PlayerCommsComponent.
+//! anywhere, for free (finding N2). Project rule (overthrow-controller.md): every client->server RPC
+//! lives on a controller component like this one.
 //!
 //! Extends plain OVT_Component rather than OVT_BaseServerProgressComponent (implementation plan §5
 //! Phase 2): a trip completes inside one frame, so a progress dialog would only flash, and the result
@@ -292,11 +292,11 @@ class OVT_TravelRequestComponent : OVT_Component
 		{
 			vector vehiclePos;
 			vector vehicleAngles;
-			OVT_Global.FindSafeVehicleSpawnPosition(targetPos, vehiclePos, vehicleAngles);
+			OVT_WorldUtils.FindSafeVehicleSpawnPosition(targetPos, vehiclePos, vehicleAngles);
 			return vehiclePos;
 		}
 
-		return OVT_Global.FindSafeSpawnPosition(targetPos);
+		return OVT_WorldUtils.FindSafeSpawnPosition(targetPos);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -321,7 +321,7 @@ class OVT_TravelRequestComponent : OVT_Component
 	//------------------------------------------------------------------------------------------------
 	//! Places the travelling recruits in a ring around the arrival point.
 	//!
-	//! Lifted verbatim from the legacy OVT_PlayerCommsComponent.RpcAsk_RequestFastTravelWithRecruits
+	//! Lifted verbatim from the legacy comms monolith's RpcAsk_RequestFastTravelWithRecruits
 	//! (deleted in map/legacy-retirement), which was the only implementation of this that had ever run
 	//! before this one, and whose behaviour this reproduces exactly: angle i x 360/count, radius 3 m
 	//! growing 0.5 m per recruit, and FindSafeSpawnPosition with skipSpawnPointSearch = true (the
@@ -346,7 +346,7 @@ class OVT_TravelRequestComponent : OVT_Component
 			vector recruitPos = destPos + offset;
 
 			// Find a safe position near the calculated spot (skip spawn point search for performance with multiple recruits)
-			recruitPos = OVT_Global.FindSafeSpawnPosition(recruitPos, "-0.5 0 -0.5", "0.5 2 0.5", true);
+			recruitPos = OVT_WorldUtils.FindSafeSpawnPosition(recruitPos, "-0.5 0 -0.5", "0.5 2 0.5", true);
 
 			// Teleport the recruit
 			recruitEntity.SetOrigin(recruitPos);

@@ -134,7 +134,9 @@ class OVT_JobManagerComponent: OVT_Component
 		job.owner = persId;
 		if(!Replication.IsServer())
 		{
-			OVT_Global.GetServer().AcceptJob(job, playerId);
+			OVT_JobRequestComponent jobRequests = OVT_ControllerComponent<OVT_JobRequestComponent>.Get();
+			if(jobRequests)
+				jobRequests.AcceptJob(job);
 		}else{
 			StreamJobUpdate(job); // Directly stream update if on server
 		}
@@ -169,7 +171,9 @@ class OVT_JobManagerComponent: OVT_Component
 		}
 		if(!Replication.IsServer())
 		{
-			OVT_Global.GetServer().DeclineJob(job, playerId);
+			OVT_JobRequestComponent jobRequests = OVT_ControllerComponent<OVT_JobRequestComponent>.Get();
+			if(jobRequests)
+				jobRequests.DeclineJob(job);
 		}
 	}
 

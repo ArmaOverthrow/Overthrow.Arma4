@@ -523,7 +523,7 @@ class OVT_OverthrowConfigComponent: OVT_Component
 			for(int i=0; i< 4; i++)
 			{
 				vector pos = center + (Vector(0,angle,0).AnglesToVector() * dist);
-				vector roadPos = OVT_Global.FindNearestRoad(pos);
+				vector roadPos = OVT_WorldUtils.FindNearestRoad(pos);
 
 				AIWaypoint wp = SpawnPatrolWaypoint(roadPos);
 				queueOfWaypoints.Insert(wp);

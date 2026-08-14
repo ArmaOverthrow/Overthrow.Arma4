@@ -147,8 +147,6 @@ OVT_OverthrowGameMode {
   }
   OVT_PersistenceManagerComponent "{5D7009B844876186}" {
   }
-  OVT_PlayerCommsComponent "{5D7ACE1228D77F40}" {
-  }
   OVT_PlayerGroupManagerComponent "{6A7D9B2E00000080}" {
   }
   OVT_PlayerManagerComponent "{599AA74940529C1C}" {

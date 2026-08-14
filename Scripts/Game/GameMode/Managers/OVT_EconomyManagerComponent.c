@@ -1033,8 +1033,8 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	//------------------------------------------------------------------------------------------------
 	//! Adds money to a player's account. Server-only: money grants must originate on the server, so
-	//! calls from clients are ignored (clients go through a validated ask on OVT_PlayerCommsComponent,
-	//! e.g. SendResistanceFunds / SendMoneyToPlayer).
+	//! calls from clients are ignored (clients go through a validated ask on
+	//! OVT_EconomyRequestComponent, e.g. SendResistanceFunds / SendMoneyToPlayer).
 	//! \param[in] playerId The runtime Player ID.
 	//! \param[in] amount The amount of money to add.
 	//! \param[in] doEvent If true, invokes the m_OnPlayerSell event.
@@ -1070,7 +1070,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	//------------------------------------------------------------------------------------------------
 	//! Adds money to the resistance faction's funds. Server-only: calls from clients are ignored
-	//! (clients go through a validated ask on OVT_PlayerCommsComponent, e.g. DonateToResistance).
+	//! (clients go through a validated ask on OVT_EconomyRequestComponent, e.g. DonateToResistance).
 	//! \param[in] amount The amount of money to add.
 	void AddResistanceMoney(int amount)
 	{
@@ -1093,7 +1093,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	//------------------------------------------------------------------------------------------------
 	//! Takes money from the resistance faction's funds. Server-only: calls from clients are ignored
-	//! (clients go through a validated ask on OVT_PlayerCommsComponent, e.g. SendResistanceFunds).
+	//! (clients go through a validated ask on OVT_EconomyRequestComponent, e.g. SendResistanceFunds).
 	//! \param[in] amount The amount of money to take.
 	void TakeResistanceMoney(int amount)
 	{
@@ -1124,7 +1124,10 @@ class OVT_EconomyManagerComponent: OVT_Component
 			DoSetResistanceTax(amount);
 			return;
 		}
-		OVT_Global.GetServer().SetResistanceTax(amount);		
+		OVT_EconomyRequestComponent economyRequests = OVT_ControllerComponent<OVT_EconomyRequestComponent>.Get();
+		if(!economyRequests) return;
+
+		economyRequests.SetResistanceTax(amount);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -1157,7 +1160,13 @@ class OVT_EconomyManagerComponent: OVT_Component
 			DoTakePlayerMoney(playerId, amount);
 			return;
 		}
-		OVT_Global.GetServer().TakePlayerMoney(playerId, amount);	
+		// The debited player is resolved server-side from the controller entity the request arrives on,
+		// so playerId is not sent - a client can only ever debit itself, which is what
+		// ResolveSenderPlayerId already enforced on the legacy seam (controller migration G3/D3).
+		OVT_EconomyRequestComponent economyRequests = OVT_ControllerComponent<OVT_EconomyRequestComponent>.Get();
+		if(!economyRequests) return;
+
+		economyRequests.TakePlayerMoney(amount);
 	}
 	
 	//------------------------------------------------------------------------------------------------

@@ -84,11 +84,14 @@ class OVT_FOBMenuContext : OVT_UIContext
 		
 		// The server charges for the garrison after validating - taking money here as well would
 		// charge the player twice (or charge them for a purchase the server rejects)
+		OVT_FOBRequestComponent requests = OVT_ControllerComponent<OVT_FOBRequestComponent>.Get();
+		if(!requests) return;
+
 		if(m_FOB)
 		{
-			OVT_Global.GetServer().AddGarrisonFOB(m_FOB, uiinfo.resource);
+			requests.AddGarrisonFOB(m_FOB, uiinfo.resource);
 		}else{
-			OVT_Global.GetServer().AddGarrisonCamp(m_Camp, uiinfo.resource);
+			requests.AddGarrisonCamp(m_Camp, uiinfo.resource);
 		}
 		
 	}

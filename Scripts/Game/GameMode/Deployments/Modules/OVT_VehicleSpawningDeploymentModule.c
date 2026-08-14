@@ -410,7 +410,7 @@ class OVT_VehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 		}
 		
 		// Fall back to finding a random road position
-		return OVT_Global.FindNearestRoad(center);
+		return OVT_WorldUtils.FindNearestRoad(center);
 	}
 	
 	//------------------------------------------------------------------------------------------------

@@ -1147,7 +1147,7 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 			{
 				if(town && IsSpawnLocationSafe(town.location))
 				{
-					vector safeSpawn = OVT_Global.FindSafeSpawnPosition(town.location);
+					vector safeSpawn = OVT_WorldUtils.FindSafeSpawnPosition(town.location);
 					// Update their home to this safe town
 					if(updateHome && realEstate)
 						realEstate.SetHomePos(playerId, safeSpawn);
@@ -1636,8 +1636,9 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 	//------------------------------------------------------------------------------------------------
 	//! One player's respawn request component, resolved on the server from their controller entity.
 	//!
-	//! Deliberately NOT OVT_Global.GetRespawnRequests(), which resolves the LOCAL machine's controller
-	//! and would answer with the host's own component for every player on a listen server.
+	//! Deliberately NOT OVT_ControllerComponent<OVT_RespawnRequestComponent>.Get(), which resolves the
+	//! LOCAL machine's controller and would answer with the host's own component for every player on a
+	//! listen server.
 	//! \param[in] playerId The player whose component to find.
 	//! \return The component, or null when the player has no controller entity or it lacks one.
 	protected OVT_RespawnRequestComponent FindRespawnRequests(int playerId)

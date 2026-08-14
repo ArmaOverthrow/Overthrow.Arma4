@@ -11,7 +11,7 @@ class OVT_SabotageTowerAction : ScriptedUserAction
 {
  	override void PerformAction(IEntity pOwnerEntity, IEntity pUserEntity)
  	{
-		OVT_TowerSabotageComponent sabotage = OVT_Global.GetTowerSabotage();
+		OVT_TowerSabotageComponent sabotage = OVT_ControllerComponent<OVT_TowerSabotageComponent>.Get();
 		if(!sabotage) return;
 
 		sabotage.RequestSabotage(pOwnerEntity.GetOrigin());

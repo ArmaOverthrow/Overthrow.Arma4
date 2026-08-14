@@ -8,7 +8,14 @@ class OVT_LockVehicleAction : ScriptedUserAction
 		OVT_PlayerOwnerComponent playerowner = OVT_ComponentFinder<OVT_PlayerOwnerComponent>.Find(GetOwner());
 		if(playerowner)
 		{
-			OVT_Global.GetServer().SetVehicleLock(GetOwner(), true);
+			// HasLocalEffectOnlyScript() is true, so this runs ONLY on the performing player's machine -
+			// the local controller is always the right seam. Null-guarded because the accessor answers
+			// null before ownership assignment (and forever on a dedicated server, which never performs
+			// a user action). On a listen host this now works at all: the legacy path sent an
+			// RplRcver.Server Rpc from the authority, which is delivered to nobody.
+			OVT_VehicleRequestComponent vehicles = OVT_ControllerComponent<OVT_VehicleRequestComponent>.Get();
+			if(vehicles)
+				vehicles.SetVehicleLock(GetOwner(), true);
 		}
  	}
 	

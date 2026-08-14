@@ -127,7 +127,7 @@ class OVT_VehicleMenuContext : OVT_UIContext
 			return;
 		}
 		
-		OVT_ContainerTransferComponent transfer = OVT_Global.GetContainerTransfer();
+		OVT_ContainerTransferComponent transfer = OVT_ControllerComponent<OVT_ContainerTransferComponent>.Get();
 		if (transfer && transfer.IsAvailable())
 		{
 			transfer.TransferToWarehouse(nearestVeh);

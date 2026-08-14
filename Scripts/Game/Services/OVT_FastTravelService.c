@@ -478,6 +478,7 @@ class OVT_FastTravelService
 	// DELETED in map/fast-travel Phase 2: ExecuteFastTravel. It teleported on the calling machine and
 	// debited money on the client (findings F1/F2). Execution, payment and the recruit ring now live in
 	// OVT_TravelRequestComponent on OVT_OverthrowController, reached through
-	// OVT_Global.GetTravelRequests().RequestTravel(verb, targetPos, bringRecruits). Nothing in this
-	// service teleports or moves money any more; it decides and it prices, on both machines.
+	// OVT_ControllerComponent<OVT_TravelRequestComponent>.Get().RequestTravel(verb, targetPos,
+	// bringRecruits). Nothing in this service teleports or moves money any more; it decides and it
+	// prices, on both machines.
 }

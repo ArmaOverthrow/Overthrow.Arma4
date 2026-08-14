@@ -243,7 +243,7 @@ class OVT_WarehouseContext : OVT_UIContext
 
 		string name = "";
 
-		UIInfo info = OVT_Global.GetItemUIInfo(res);
+		UIInfo info = OVT_PrefabUtils.GetItemUIInfo(res);
 		if(info) name = info.GetName();
 
 		if(name == "") name = res;
@@ -268,7 +268,7 @@ class OVT_WarehouseContext : OVT_UIContext
 		TextWidget desc = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedDescription"));
 		if(img) img.SetResolutionScale(1, 1);
 
-		UIInfo info = OVT_Global.GetItemUIInfo(res);
+		UIInfo info = OVT_PrefabUtils.GetItemUIInfo(res);
 		if(info)
 		{
 			if(typeName) typeName.SetText(info.GetName());
@@ -330,7 +330,10 @@ class OVT_WarehouseContext : OVT_UIContext
 		IEntity entity = compartment.GetVehicle();
 		if(!entity) return;
 
-		OVT_Global.GetServer().TakeFromWarehouseToVehicle(m_Warehouse.id, m_SelectedResourceName, qty, entity);
+		OVT_RealEstateRequestComponent realEstateRequests = OVT_ControllerComponent<OVT_RealEstateRequestComponent>.Get();
+		if(!realEstateRequests) return;
+
+		realEstateRequests.TakeFromWarehouseToVehicle(m_Warehouse.id, m_SelectedResourceName, qty, entity);
 	}
 
 	void TakeOne(Widget src, float value = 1, EActionTrigger reason = EActionTrigger.DOWN)

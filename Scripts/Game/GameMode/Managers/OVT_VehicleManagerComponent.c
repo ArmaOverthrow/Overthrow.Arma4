@@ -321,7 +321,7 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 	
 	IEntity SpawnVehicleMatrix(ResourceName prefab, vector mat[4], string ownerId = "")
 	{		
-		IEntity ent = OVT_Global.SpawnEntityPrefabMatrix(prefab, mat);
+		IEntity ent = OVT_WorldUtils.SpawnEntityPrefabMatrix(prefab, mat);
 		if(!ent)
 		{
 			Print("Failure to spawn vehicle");
@@ -1280,7 +1280,7 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 			}
 		}
 
-		IEntity vehicle = OVT_Global.SpawnEntityPrefabMatrix(prefab, mat);
+		IEntity vehicle = OVT_WorldUtils.SpawnEntityPrefabMatrix(prefab, mat);
 		if (!vehicle)
 			return false;
 

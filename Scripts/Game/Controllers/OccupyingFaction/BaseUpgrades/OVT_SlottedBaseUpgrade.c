@@ -119,7 +119,7 @@ class OVT_SlottedBaseUpgrade : OVT_BasePatrolUpgrade
 	{
 		vector mat[4];
 		slot.GetTransform(mat);
-		IEntity ent = OVT_Global.SpawnEntityPrefabMatrix(res, mat);
+		IEntity ent = OVT_WorldUtils.SpawnEntityPrefabMatrix(res, mat);
 
 		// Include the composition in save points. The manager-level save
 		// (OVT_OccupyingFactionManagerSerializer) restores which upgrades a base bought and which

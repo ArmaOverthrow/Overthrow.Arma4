@@ -62,7 +62,7 @@ class OVT_BaseUpgradeCheckpoints : OVT_BasePatrolUpgrade
 	{
 		vector mat[4];
 		slot.GetTransform(mat);
-		IEntity ent = OVT_Global.SpawnEntityPrefabMatrix(res, mat);
+		IEntity ent = OVT_WorldUtils.SpawnEntityPrefabMatrix(res, mat);
 
 		// Include the checkpoint composition in save points, like OVT_SlottedBaseUpgrade.SpawnInSlot.
 		// The manager save restores m_aSlotsFilled, so without tracking the structures vanish on

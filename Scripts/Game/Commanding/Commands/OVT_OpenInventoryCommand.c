@@ -3,37 +3,70 @@
 class OVT_OpenInventoryCommand : SCR_BaseGroupCommand
 {
     //------------------------------------------------------------------------------------------------
+    //! THE COMMANDING PLAYER'S OWN MACHINE SENDS THE REQUEST, AND ONLY IT.
+    //!
+    //! This command is broadcast: SCR_CommandingManagerComponent.RPC_DoExecuteCommand is RplRcver.Broadcast
+    //! and calls Execute() on EVERY machine, passing isClient = rplComp.IsProxy() - true on every client,
+    //! false on the authority. It used to run its whole body only where isClient was false, i.e. on the
+    //! server, and reach the legacy comms monolith's server-side copy from there: an RplRcver.Server
+    //! Rpc() marshalled BY the authority, the pattern this migration has found unreliable at best
+    //! everywhere else (P2-5, BUG-161/BUG-162).
+    //!
+    //! The controller seam cannot be reached that way at all. OVT_ControllerComponent<T>.Get() resolves
+    //! the LOCAL player's controller - null on a dedicated server - and the server resolves who asked from
+    //! the controller entity the request arrives on, so the request has to originate on the requesting
+    //! player's own machine. `playerID == GetLocalPlayerId()` is true on exactly one machine in every
+    //! topology:
+    //!   - dedicated server + remote commander -> the commander's client (isClient true); the server's
+    //!     own local player id is 0, so the authority pass never fires;
+    //!   - listen host commanding -> the host, on the authority pass (its client pass never runs, because
+    //!     the host is the master and isClient is false there);
+    //!   - every other machine -> false, and nothing is sent.
+    //! \param[in] cursorTarget The character under the commander's cursor.
+    //! \param[in] groupEnt The commanded group.
+    //! \param[in] targetPosition Unused by this command.
+    //! \param[in] playerID The COMMANDING player's runtime id (not necessarily this machine's player).
+    //! \param[in] isClient True on a proxy (client), false on the authority.
+    //! \return True when the command counts as executed on this machine.
     override bool Execute(IEntity cursorTarget, IEntity groupEnt, vector targetPosition, int playerID, bool isClient)
     {
-		if (isClient)
+		if (playerID != SCR_PlayerController.GetLocalPlayerId())
 		{
 			//place to place a logic that would be executed for other players
 			return true;
-		}	
-		
+		}
+
         if (!groupEnt && !cursorTarget)
             return false;
-        
-        SCR_PlayerController playerController = SCR_PlayerController.Cast(GetGame().GetPlayerManager().GetPlayerController(playerID));
+
+        SCR_PlayerController playerController = SCR_PlayerController.Cast(GetGame().GetPlayerController());
 		if (!playerController)
 			return false;
-		
+
 		SCR_PlayerControllerGroupComponent groupController = SCR_PlayerControllerGroupComponent.Cast(playerController.FindComponent(SCR_PlayerControllerGroupComponent));
 		if (!groupController)
 			return false;
-		
+
 		SCR_ChimeraCharacter character = SCR_ChimeraCharacter.Cast(cursorTarget);
 		if (!character)
 			return false;
-		
+
 		IEntity playerEntity = playerController.GetMainEntity();
 		if(!playerEntity)
 			return false;
-            
+
         return OpenCharacterInventory(playerEntity, character);
     }
         
     //------------------------------------------------------------------------------------------------
+    //! Sends the possess-and-open request for the LOCAL player (see Execute for why only they get here).
+    //!
+    //! Every check below is now ADVISORY (plan §3.4): the server re-derives ownership, life state and
+    //! proximity in OVT_PossessionRequestComponent.RpcAsk_SetPossessedEntityAndOpenInventory, because
+    //! before this phase the request had no server-side validation of any kind.
+    //! \param[in] playerEntity The local player's own body (GetMainEntity, so it survives possession).
+    //! \param[in] targetCharacter The recruit to possess.
+    //! \return True when the request was sent.
     bool OpenCharacterInventory(IEntity playerEntity, SCR_ChimeraCharacter targetCharacter)
     {
         // Get target's inventory manager
@@ -70,19 +103,17 @@ class OVT_OpenInventoryCommand : SCR_BaseGroupCommand
             }
         }
 		
-		int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(playerEntity);
-        
-        // Use RPC to set possessed entity on server and open inventory on client
-        OVT_PlayerCommsComponent comms = OVT_Global.GetServer();
-        if (!comms)
+        // Ask the server, through THIS player's own controller seam, to possess the recruit and tell
+        // this client to open its inventory. No player id is sent: the server resolves the caller from
+        // the controller entity the request arrives on.
+        OVT_PossessionRequestComponent possession = OVT_ControllerComponent<OVT_PossessionRequestComponent>.Get();
+        if (!possession)
             return false;
-        
-        // Note: We don't set up inventory listener here because this runs on server
-        // The client will handle inventory close detection
-        
-        // Call RPC to possess on server and open inventory on client
-        comms.SetPossessedEntityAndOpenInventory(playerId, targetCharacter);
-        
+
+        // The inventory-close listener is armed by OVT_PossessionRequestComponent.RpcDo_OpenInventory,
+        // i.e. only once the server has actually granted possession - never here on speculation.
+        possession.OpenPossessedInventory(targetCharacter);
+
         return true;
     }
     

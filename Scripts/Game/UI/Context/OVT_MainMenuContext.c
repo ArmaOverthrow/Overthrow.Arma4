@@ -10,10 +10,10 @@ class OVT_MainMenuContext : OVT_UIContext
 	OVT_MainMenuContextOverrideComponent m_FoundOverride;
 	protected float m_fFoundRange = -1;
 
-	//! Comms component this menu subscribed to for a pending save result.
-	//! Cached rather than re-resolved: OVT_Global.GetServer() dereferences the local controlled
-	//! entity without a null check, and the result can arrive after a respawn.
-	protected OVT_PlayerCommsComponent m_SaveRequestComms;
+	//! Campaign request component this menu subscribed to for a pending save result.
+	//! Cached rather than re-resolved: the controller seam can answer differently later in the session
+	//! (a respawn or a reconnect re-assigns the controller), and the result can arrive after one.
+	protected OVT_CampaignRequestComponent m_SaveRequestComms;
 		
 	override void PostInit()
 	{		
@@ -292,7 +292,7 @@ class OVT_MainMenuContext : OVT_UIContext
 			return;
 		}
 
-		OVT_PlayerCommsComponent comms = OVT_Global.GetServer();
+		OVT_CampaignRequestComponent comms = OVT_ControllerComponent<OVT_CampaignRequestComponent>.Get();
 		if(!comms)
 		{
 			ShowSaveResult(false);

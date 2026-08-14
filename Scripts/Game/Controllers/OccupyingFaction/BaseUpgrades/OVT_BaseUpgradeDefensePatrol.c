@@ -10,7 +10,7 @@ class OVT_BaseUpgradeDefensePatrol : OVT_BasePatrolUpgrade
 			
 		for(int i=0; i< 4; i++)
 		{
-			vector randompos = OVT_Global.GetRandomNonOceanPositionNear(m_BaseController.GetOwner().GetOrigin(), OVT_Global.GetConfig().m_Difficulty.baseRange);			
+			vector randompos = OVT_WorldUtils.GetRandomNonOceanPositionNear(m_BaseController.GetOwner().GetOrigin(), OVT_Global.GetConfig().m_Difficulty.baseRange);			
 			AIWaypoint wp = OVT_Global.GetConfig().SpawnPatrolWaypoint(randompos);
 			if(i==0) firstWP = wp;
 			queueOfWaypoints.Insert(wp);
@@ -51,7 +51,7 @@ class OVT_BaseUpgradeDefensePatrol : OVT_BasePatrolUpgrade
 
 			m_iProxedResources += newres;
 			m_ProxiedGroups.Insert(res);
-			vector spawnpos = OVT_Global.GetRandomNonOceanPositionNear(m_BaseController.GetOwner().GetOrigin(), 50);
+			vector spawnpos = OVT_WorldUtils.GetRandomNonOceanPositionNear(m_BaseController.GetOwner().GetOrigin(), 50);
 			m_ProxiedPositions.Insert(spawnpos);
 
 			spent += newres;

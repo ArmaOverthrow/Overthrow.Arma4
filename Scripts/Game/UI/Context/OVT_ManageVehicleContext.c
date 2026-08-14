@@ -128,27 +128,40 @@ class OVT_ManageVehicleContext : OVT_UIContext
 		if(!m_Vehicle) return;
 		
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		if(!economy) return;
+
+		// ADVISORY ONLY (implementation plan §3.4). The server re-derives the price from the same
+		// upgrade config and refuses the request if the player cannot pay; this check exists so the
+		// menu can say why nothing happened.
 		if(!economy.LocalPlayerHasMoney(m_SelectedUpgrade.m_iCost))
 		{
 			CloseLayout();
 			ShowHint("#OVT-CannotAfford");
 			return;
 		}
-		
-		economy.TakeLocalPlayerMoney(m_SelectedUpgrade.m_iCost);
-		
-		OVT_Global.GetServer().UpgradeVehicle(m_Vehicle, m_SelectedUpgrade);
-		CloseLayout();	
-		ShowHint("#OVT-VehicleUpgraded");	
+
+		// The debit used to happen HERE, through economy.TakeLocalPlayerMoney(), i.e. as a second and
+		// completely independent client->server request. It now happens inside RpcAsk_UpgradeVehicle,
+		// in the same handler that performs the upgrade - otherwise the server's new affordability
+		// check would race its own debit and refuse the upgrade it had just charged for.
+		OVT_VehicleRequestComponent vehicles = OVT_ControllerComponent<OVT_VehicleRequestComponent>.Get();
+		if(!vehicles) return;
+
+		vehicles.UpgradeVehicle(m_Vehicle, m_SelectedUpgrade);
+		CloseLayout();
+		ShowHint("#OVT-VehicleUpgraded");
 	}
-	
+
 	void Repair()
 	{
 		if(!m_Vehicle) return;
-		
-		OVT_Global.GetServer().RepairVehicle(m_Vehicle);
-		CloseLayout();	
-		ShowHint("#OVT-VehicleRepaired");		
+
+		OVT_VehicleRequestComponent vehicles = OVT_ControllerComponent<OVT_VehicleRequestComponent>.Get();
+		if(!vehicles) return;
+
+		vehicles.RepairVehicle(m_Vehicle);
+		CloseLayout();
+		ShowHint("#OVT-VehicleRepaired");
 	}
 	
 	override void SelectItem(ResourceName res)

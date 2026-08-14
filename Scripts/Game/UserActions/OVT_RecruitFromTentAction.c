@@ -51,9 +51,13 @@ class OVT_RecruitFromTentAction : ScriptedUserAction
 			return;
 		}
 
-		// Call server to handle the actual recruitment
-		OVT_Global.GetServer().RecruitFromTent(tentPos, playerId);
-		
+		// Ask the server - it re-validates the cap, supporters, proximity and funds, and takes the money
+		OVT_RecruitRequestComponent recruitRequests = OVT_ControllerComponent<OVT_RecruitRequestComponent>.Get();
+		if (!recruitRequests)
+			return;
+
+		recruitRequests.RecruitFromTent(tentPos);
+
 		SCR_HintManagerComponent.ShowHint(m_RecruitedFromTentHint);
  	}
 	

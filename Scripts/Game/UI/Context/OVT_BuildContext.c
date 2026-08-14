@@ -542,7 +542,9 @@ class OVT_BuildContext : OVT_UIContext
 			vector angles = Math3D.MatrixToAngles(mat);
 			int buildableIndex = m_Resistance.m_BuildablesConfig.m_aBuildables.Find(m_Buildable);
 			int prefabIndex = m_Buildable.m_aPrefabs.Find(m_pBuildingPrefab);
-			OVT_Global.GetServer().BuildItem(buildableIndex, prefabIndex, mat[3], angles, m_iPlayerID);
+			OVT_ResistanceRequestComponent requests = OVT_ControllerComponent<OVT_ResistanceRequestComponent>.Get();
+			if(!requests) return;
+			requests.BuildItem(buildableIndex, prefabIndex, mat[3], angles);
 
 			// The server charges inside BuildItem() after validating - no client-side payment
 			SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.CLICK);
@@ -761,7 +763,9 @@ class OVT_BuildContext : OVT_UIContext
 				if(buildableComp && rpl && CanRemoveItem(buildableComp))
 				{
 					// Send removal request to server (RplId - EntityID is not valid across the network)
-					OVT_Global.GetServer().RemovePlacedItem(rpl.Id(), m_iPlayerID);
+					OVT_ResistanceRequestComponent requests = OVT_ControllerComponent<OVT_ResistanceRequestComponent>.Get();
+					if(!requests) return;
+					requests.RemovePlacedItem(rpl.Id());
 					ShowHint("#OVT-ItemRemoved");
 					SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.CLICK);
 				}

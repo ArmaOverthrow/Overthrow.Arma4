@@ -40,7 +40,7 @@ Central static class providing easy access to all manager singletons. Use OVT_Gl
 **See:** `global-access.md` for access patterns
 
 ### OVT_OverthrowController
-New modular architecture for client-server communication. Each player owns a controller entity with specialized components. Replaces legacy OVT_PlayerCommsComponent. Built-in progress tracking support.
+The modular architecture for client-server communication, and since 2026-08-14 the ONLY one. Each player owns a controller entity carrying 17 specialized components, reached with `OVT_ControllerComponent<T>.Get()`. The legacy comms monolith it replaced is deleted. Built-in progress tracking support.
 
 **See:** `overthrow-controller.md` for complete pattern
 

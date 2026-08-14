@@ -205,7 +205,9 @@ class OVT_ResistanceMenuContext : OVT_UIContext
 
 		// Promotion must round-trip through the server - the manager's AddOfficer broadcast is
 		// dropped when called from a client
-		OVT_Global.GetServer().AddOfficer(data.playerId);
+		OVT_ResistanceRequestComponent requests = OVT_ControllerComponent<OVT_ResistanceRequestComponent>.Get();
+		if(!requests) return;
+		requests.AddOfficer(data.playerId);
 	}
 	
 	protected void DonateFunds()
@@ -220,7 +222,10 @@ class OVT_ResistanceMenuContext : OVT_UIContext
 		}
 		if(amount <= 0) return;		
 				
-		OVT_Global.GetServer().DonateToResistance(localId, amount);
+		OVT_EconomyRequestComponent economyRequests = OVT_ControllerComponent<OVT_EconomyRequestComponent>.Get();
+		if(!economyRequests) return;
+
+		economyRequests.DonateToResistance(amount);
 	}
 	
 	protected void SendFunds()
@@ -234,7 +239,10 @@ class OVT_ResistanceMenuContext : OVT_UIContext
 		if(amount <= 0) return;
 		
 		OVT_ResistancePlayerData data = OVT_ResistancePlayerData.Cast(m_PlayerSpin.GetCurrentItemData());
-		OVT_Global.GetServer().SendResistanceFunds(SCR_PlayerController.GetLocalPlayerId(), data.playerId, amount);
+		OVT_EconomyRequestComponent economyRequests = OVT_ControllerComponent<OVT_EconomyRequestComponent>.Get();
+		if(!economyRequests) return;
+
+		economyRequests.SendResistanceFunds(data.playerId, amount);
 	}
 	
 	protected void SendMoney()
@@ -253,6 +261,9 @@ class OVT_ResistanceMenuContext : OVT_UIContext
 		
 		if(data.playerId == SCR_PlayerController.GetLocalPlayerId()) return;
 
-		OVT_Global.GetServer().SendMoneyToPlayer(localId, data.playerId, amount);
+		OVT_EconomyRequestComponent economyRequests = OVT_ControllerComponent<OVT_EconomyRequestComponent>.Get();
+		if(!economyRequests) return;
+
+		economyRequests.SendMoneyToPlayer(data.playerId, amount);
 	}
 }

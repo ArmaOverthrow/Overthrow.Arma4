@@ -503,7 +503,10 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 			DoAddToWarehouse(warehouse.id, res, count);
 			return;
 		}
-		OVT_Global.GetServer().AddToWarehouse(warehouse.id, res, count);
+		OVT_RealEstateRequestComponent realEstateRequests = OVT_ControllerComponent<OVT_RealEstateRequestComponent>.Get();
+		if(!realEstateRequests) return;
+
+		realEstateRequests.AddToWarehouse(warehouse.id, res, count);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -537,7 +540,10 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 			DoTakeFromWarehouse(warehouse.id, res, count);
 			return;
 		}
-		OVT_Global.GetServer().TakeFromWarehouse(warehouse.id, res, count);
+		OVT_RealEstateRequestComponent realEstateRequests = OVT_ControllerComponent<OVT_RealEstateRequestComponent>.Get();
+		if(!realEstateRequests) return;
+
+		realEstateRequests.TakeFromWarehouse(warehouse.id, res, count);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -558,7 +564,116 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		// Host side of the same event - see DoAddToWarehouse.
 		if(m_OnWarehouseInventoryChanged) m_OnWarehouseInventoryChanged.Invoke(warehouseId, id, warehouse.inventory[id]);
 	}
-	
+
+	//------------------------------------------------------------------------------------------------
+	//! SERVER ONLY. Empties a container's storage into the warehouse nearest to it, item by item.
+	//!
+	//! Moved here from OVT_Global.TransferToWarehouse() by the controller migration (plan §4/T3.x, G8):
+	//! it mutates warehouse state and deletes world entities, which is manager work, and the static
+	//! locator is not a place gameplay logic belongs. Behaviour is carried verbatim apart from a null
+	//! guard on the RplComponent cast, which the static version dereferenced blind.
+	//!
+	//! DELETE-THEN-COUNT, DELIBERATELY: an item is only credited to the warehouse once TryDeleteItem has
+	//! actually removed it, so a partial failure can never mint stock that still exists in the world.
+	//! \param[in] from RplId of the source container/vehicle.
+	void TransferToWarehouse(RplId from)
+	{
+		RplComponent fromRpl = RplComponent.Cast(Replication.FindItem(from));
+		if(!fromRpl) return;
+
+		IEntity fromEntity = fromRpl.GetEntity();
+		if(!fromEntity) return;
+
+		InventoryStorageManagerComponent fromStorage = InventoryStorageManagerComponent.Cast(fromEntity.FindComponent(InventoryStorageManagerComponent));
+		if(!fromStorage) return;
+
+		OVT_WarehouseData warehouse = GetNearestWarehouse(fromEntity.GetOrigin(), 50);
+		if(!warehouse) return;
+
+		array<IEntity> items = new array<IEntity>;
+		fromStorage.GetItems(items);
+		if(items.Count() == 0) return;
+
+		map<ResourceName,int> collated = new map<ResourceName,int>;
+
+		foreach(IEntity item : items)
+		{
+			if(!item) continue;
+			ResourceName res = OVT_Global.GetPrefabName(item);
+			if(fromStorage.TryDeleteItem(item))
+			{
+				if(!collated.Contains(res)) collated[res] = 0;
+				collated[res] = collated[res] + 1;
+			}
+		}
+
+		for(int i=0; i<collated.Count(); i++)
+		{
+			ResourceName res = collated.GetKey(i);
+			AddToWarehouse(warehouse, res, collated[res]);
+		}
+
+		// Play sound if one is defined
+		SimpleSoundComponent simpleSoundComp = SimpleSoundComponent.Cast(fromEntity.FindComponent(SimpleSoundComponent));
+		if (simpleSoundComp)
+		{
+			vector mat[4];
+			fromEntity.GetWorldTransform(mat);
+
+			simpleSoundComp.SetTransformation(mat);
+			simpleSoundComp.PlayStr("LOAD_VEHICLE");
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! SERVER ONLY. Spawns up to qty of a resource out of a warehouse and into a vehicle's cargo.
+	//!
+	//! Moved here from OVT_Global.TakeFromWarehouseToVehicle() alongside TransferToWarehouse() (plan
+	//! §4/T3.x). Carried verbatim apart from a null guard on the RplComponent cast and a warehouse-id
+	//! range guard - the static version indexed m_aWarehouses directly and relied on its single caller
+	//! having checked the range first.
+	//!
+	//! SPAWN-THEN-DEBIT: the warehouse is only charged for what actually fitted in the vehicle, so a full
+	//! cargo bay costs nothing rather than deleting stock into nowhere.
+	//! \param[in] warehouseId Index into m_aWarehouses.
+	//! \param[in] id ResourceName string of the item.
+	//! \param[in] qty Requested amount; clamped to what the warehouse holds.
+	//! \param[in] from RplId of the receiving vehicle/container.
+	void TakeFromWarehouseToVehicle(int warehouseId, string id, int qty, RplId from)
+	{
+		if(qty <= 0) return;
+		if(!m_aWarehouses) return;
+		if(warehouseId < 0 || warehouseId >= m_aWarehouses.Count()) return;
+
+		RplComponent fromRpl = RplComponent.Cast(Replication.FindItem(from));
+		if(!fromRpl) return;
+
+		IEntity fromEntity = fromRpl.GetEntity();
+		if(!fromEntity) return;
+
+		InventoryStorageManagerComponent fromStorage = InventoryStorageManagerComponent.Cast(fromEntity.FindComponent(InventoryStorageManagerComponent));
+		if(!fromStorage) return;
+
+		OVT_WarehouseData warehouse = m_aWarehouses[warehouseId];
+		if(!warehouse) return;
+
+		if(!warehouse.inventory.Contains(id)) return;
+		if(warehouse.inventory[id] < qty) qty = warehouse.inventory[id];
+		if(qty <= 0) return;
+
+		int actual = 0;
+
+		for(int i = 0; i < qty; i++)
+		{
+			if(fromStorage.TrySpawnPrefabToStorage(id))
+			{
+				actual++;
+			}
+		}
+
+		TakeFromWarehouse(warehouse, id, actual);
+	}
+
 	//------------------------------------------------------------------------------------------------
 	//! Sets the home spawn location for a player based on a building entity. Uses OVT_SpawnPointComponent if available.
 	//! Replicates the change to clients.
@@ -928,7 +1043,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		if(playerId != localId) return;
 		
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
-		vector spawn = OVT_Global.FindSafeSpawnPosition(OVT_Global.GetRealEstate().GetHome(persId));
+		vector spawn = OVT_WorldUtils.FindSafeSpawnPosition(OVT_Global.GetRealEstate().GetHome(persId));
 		SCR_Global.TeleportPlayer(localId, spawn);
 	}
 	

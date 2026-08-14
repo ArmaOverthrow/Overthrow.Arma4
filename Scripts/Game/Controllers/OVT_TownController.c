@@ -151,14 +151,14 @@ class OVT_TownControllerComponent: OVT_Component
 
 	protected void SpawnCivilian()
 	{
-		vector spawnPosition = OVT_Global.GetRandomNonOceanPositionNear(m_Town.location, m_iTownRange);
+		vector spawnPosition = OVT_WorldUtils.GetRandomNonOceanPositionNear(m_Town.location, m_iTownRange);
 
-		vector targetPos = OVT_Global.GetRandomNonOceanPositionNear(m_Town.location, m_iTownRange);
-		targetPos = OVT_Global.FindNearestRoad(targetPos);
+		vector targetPos = OVT_WorldUtils.GetRandomNonOceanPositionNear(m_Town.location, m_iTownRange);
+		targetPos = OVT_WorldUtils.FindNearestRoad(targetPos);
 		
 		BaseWorld world = GetGame().GetWorld();
 
-		spawnPosition = OVT_Global.FindNearestRoad(spawnPosition);
+		spawnPosition = OVT_WorldUtils.FindNearestRoad(spawnPosition);
 		IEntity civ = OVT_Global.SpawnEntityPrefab(OVT_Global.GetConfig().m_pCivilianPrefab, spawnPosition);
 
 		EntityID civId = civ.GetID();
@@ -166,7 +166,7 @@ class OVT_TownControllerComponent: OVT_Component
 		m_aCivilians.Insert(civId);
 
 		SCR_AIGroup aigroup = SCR_AIGroup.Cast(civ);
-		aigroup.GetOnAgentAdded().Insert(OVT_Global.RandomizeCivilianClothes);
+		aigroup.GetOnAgentAdded().Insert(OVT_LoadoutUtils.RandomizeCivilianClothes);
 		aigroup.GetOnAgentAdded().Insert(DisableCivilianWantedSystem);
 		
 		array<AIWaypoint> queueOfWaypoints = new array<AIWaypoint>();
@@ -246,7 +246,7 @@ class OVT_TownControllerComponent: OVT_Component
 				{
 					spawnPosition = spawnPoint.GetSpawnPoint();
 				}else{
-					spawnPosition = OVT_Global.FindSafeSpawnPosition(entity.GetOrigin());
+					spawnPosition = OVT_WorldUtils.FindSafeSpawnPosition(entity.GetOrigin());
 				}
 			}else{
 				IEntity house = m_TownManager.GetRandomUnownedHouseInTown(m_Town);
@@ -257,7 +257,7 @@ class OVT_TownControllerComponent: OVT_Component
 					{
 						spawnPosition = spawnPoint.GetSpawnPoint();
 					}else{
-						spawnPosition = OVT_Global.FindSafeSpawnPosition(house.GetOrigin());
+						spawnPosition = OVT_WorldUtils.FindSafeSpawnPosition(house.GetOrigin());
 					}
 				}else{
 					Print("[Overthrow] No gun dealer locations found in town: " + m_sName);

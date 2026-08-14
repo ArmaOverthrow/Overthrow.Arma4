@@ -457,7 +457,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 	{
 		// Server-only: the broadcast below is dropped when sent from a client, which would leave
 		// the promotion applied on the caller's screen alone. Clients go through
-		// OVT_PlayerCommsComponent.AddOfficer.
+		// OVT_ResistanceRequestComponent.AddOfficer.
 		if (!Replication.IsServer()) return;
 		RpcDo_AddOfficer(playerId);
 		Rpc(RpcDo_AddOfficer, playerId);
@@ -701,7 +701,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		Math3D.AnglesToMatrix(angles, mat);
 		mat[3] = pos;
 		
-		IEntity entity = OVT_Global.SpawnEntityPrefabMatrix(res, mat);
+		IEntity entity = OVT_WorldUtils.SpawnEntityPrefabMatrix(res, mat);
 		
 		// Check for OVT_PlaceableComponent and warn if missing
 		OVT_PlaceableComponent placeableComp = OVT_PlaceableComponent.Cast(entity.FindComponent(OVT_PlaceableComponent));
@@ -812,7 +812,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		Math3D.AnglesToMatrix(angles, mat);
 		mat[3] = pos;
 
-		IEntity entity = OVT_Global.SpawnEntityPrefabMatrix(res, mat);
+		IEntity entity = OVT_WorldUtils.SpawnEntityPrefabMatrix(res, mat);
 
 		// Check for OVT_BuildableComponent and warn if missing
 		OVT_BuildableComponent buildableComp = OVT_BuildableComponent.Cast(entity.FindComponent(OVT_BuildableComponent));

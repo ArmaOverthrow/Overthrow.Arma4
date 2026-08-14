@@ -307,7 +307,7 @@ class OVT_RespawnContext : OVT_UIContext
 	//! the player looking at a map they can press again, not at nothing.
 	protected void OnRespawnHomeActivated()
 	{
-		OVT_RespawnRequestComponent respawn = OVT_Global.GetRespawnRequests();
+		OVT_RespawnRequestComponent respawn = OVT_ControllerComponent<OVT_RespawnRequestComponent>.Get();
 		if (!respawn)
 		{
 			// A component that exists in script but not on OVT_OverthrowController.et is a silent

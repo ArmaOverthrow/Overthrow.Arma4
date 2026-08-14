@@ -32,7 +32,7 @@ class OVT_ContainerTransferCallback : OVT_StorageProgressCallback
 
 //------------------------------------------------------------------------------------------------
 //! Component that handles all container transfer operations with progress tracking.
-//! Replaces container transfer functionality from OVT_PlayerCommsComponent.
+//! Replaced the container transfer functionality on the legacy comms monolith (deleted in Phase 10).
 class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 {
 	protected ref OVT_ContainerTransferCallback m_Callback;
@@ -217,8 +217,11 @@ class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 		// Start the operation
 		StartOperation("#OVT-Progress-TransferringToWarehouse");
 		
-		// This uses the existing warehouse transfer logic which is instant
-		OVT_Global.TransferToWarehouse(fromId);
+		// This uses the existing warehouse transfer logic which is instant.
+		// Lives on the real estate manager since P3 of the controller migration - it was a static on
+		// OVT_Global, which is a locator, not a place for warehouse mutation.
+		OVT_RealEstateManagerComponent realEstate = OVT_Global.GetRealEstate();
+		if(realEstate) realEstate.TransferToWarehouse(fromId);
 		
 		// Send completion immediately as warehouse transfers are instant
 		SendOperationComplete(1, 0);

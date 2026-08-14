@@ -204,7 +204,7 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 		vector spawnPos = center + offset;
 		
 		//Find nearest road
-		vector roadPos = OVT_Global.FindNearestRoad(spawnPos);
+		vector roadPos = OVT_WorldUtils.FindNearestRoad(spawnPos);
 				
 		return roadPos;
 	}

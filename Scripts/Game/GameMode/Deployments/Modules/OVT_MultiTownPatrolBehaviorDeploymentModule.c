@@ -357,7 +357,7 @@ class OVT_MultiTownPatrolBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMo
 		if (!config)
 			return null;
 		
-		vector roadPos = OVT_Global.FindNearestRoad(m_vStartPosition);
+		vector roadPos = OVT_WorldUtils.FindNearestRoad(m_vStartPosition);
 			
 		AIWaypoint waypoint = config.SpawnPatrolWaypoint(roadPos);
 		if (!waypoint)
@@ -376,7 +376,7 @@ class OVT_MultiTownPatrolBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMo
 			return vector.Zero;
 			
 		// Try to find a road position near town center
-		vector roadPos = OVT_Global.FindNearestRoad(town.location);
+		vector roadPos = OVT_WorldUtils.FindNearestRoad(town.location);
 		if (vector.Distance(roadPos, town.location) < 200)
 			return roadPos;
 			

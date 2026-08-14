@@ -8,7 +8,11 @@ class OVT_UnlockVehicleAction : ScriptedUserAction
 		OVT_PlayerOwnerComponent playerowner = OVT_ComponentFinder<OVT_PlayerOwnerComponent>.Find(GetOwner());
 		if(playerowner)
 		{
-			OVT_Global.GetServer().SetVehicleLock(GetOwner(), false);
+			// See OVT_LockVehicleAction: local-effect-only action, so this is always the performing
+			// player's own controller seam, and the null guard covers pre-assignment.
+			OVT_VehicleRequestComponent vehicles = OVT_ControllerComponent<OVT_VehicleRequestComponent>.Get();
+			if(vehicles)
+				vehicles.SetVehicleLock(GetOwner(), false);
 		}
  	}
 	

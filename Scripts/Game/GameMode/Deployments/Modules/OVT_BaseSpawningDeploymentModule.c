@@ -31,7 +31,7 @@ class OVT_BaseSpawningDeploymentModule : OVT_BaseDeploymentModule
 		mat[3] = position;
 		
 		// Spawn through unified API (TODO: create unified spawning API)
-		IEntity entity = OVT_Global.SpawnEntityPrefabMatrix(prefab, mat);
+		IEntity entity = OVT_WorldUtils.SpawnEntityPrefabMatrix(prefab, mat);
 		if (entity)
 		{
 			m_aSpawnedEntities.Insert(entity.GetID());

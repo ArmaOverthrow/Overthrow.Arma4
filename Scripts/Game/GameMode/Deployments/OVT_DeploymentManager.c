@@ -748,7 +748,7 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		mat[3] = position;
 		
 		// Spawn deployment entity
-		IEntity deploymentEntity = OVT_Global.SpawnEntityPrefabMatrix(deploymentPrefab.GetResource().GetResourceName(), mat);
+		IEntity deploymentEntity = OVT_WorldUtils.SpawnEntityPrefabMatrix(deploymentPrefab.GetResource().GetResourceName(), mat);
 		if (!deploymentEntity)
 		{
 			Print("Failed to spawn deployment entity", LogLevel.ERROR);

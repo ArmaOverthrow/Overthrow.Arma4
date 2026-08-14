@@ -1245,7 +1245,14 @@ class OVT_OccupyingFactionManager: OVT_Component
 			|| time.m_iMinutes == 30
 			|| time.m_iMinutes == 45)
 		{
-			int threatReduce = Math.Ceil((float)m_iThreat * OVT_Global.GetDifficulty().threatReductionFactor);
+			// OVT_Global.GetDifficulty() is null-guarded now (it returns null instead of a VME before
+			// the config exists), so the dereference has to be guarded here too. No difficulty means no
+			// threat reduction this tick - fail closed rather than crash the campaign tick.
+			int threatReduce = 0;
+			OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
+			if(difficulty)
+				threatReduce = Math.Ceil((float)m_iThreat * difficulty.threatReductionFactor);
+
 			m_iThreat -= threatReduce;
 			if(m_iThreat < 0) m_iThreat = 0;
 			

@@ -310,7 +310,10 @@ class OVT_RealEstateContext : OVT_UIContext
 				return;
 			}
 
-			OVT_Global.GetServer().BuyBuilding(m_iPlayerID, false);
+			OVT_RealEstateRequestComponent realEstateRequests = OVT_ControllerComponent<OVT_RealEstateRequestComponent>.Get();
+			if(!realEstateRequests) return;
+
+			realEstateRequests.BuyBuilding(false);
 		}else if(account == 1)
 		{
 			if(!m_Economy.ResistanceHasMoney(cost))
@@ -319,7 +322,10 @@ class OVT_RealEstateContext : OVT_UIContext
 				return;
 			}
 
-			OVT_Global.GetServer().BuyBuilding(m_iPlayerID, true);
+			OVT_RealEstateRequestComponent realEstateRequests = OVT_ControllerComponent<OVT_RealEstateRequestComponent>.Get();
+			if(!realEstateRequests) return;
+
+			realEstateRequests.BuyBuilding(true);
 		}
 
 		// Optimistic: BuyBuilding is an asynchronous ask, so this redraw still shows the pre-ask
@@ -364,7 +370,10 @@ class OVT_RealEstateContext : OVT_UIContext
 			return;
 		}
 
-		OVT_Global.GetServer().SellBuilding(m_iPlayerID, account == 1);
+		OVT_RealEstateRequestComponent realEstateRequests = OVT_ControllerComponent<OVT_RealEstateRequestComponent>.Get();
+		if(!realEstateRequests) return;
+
+		realEstateRequests.SellBuilding(account == 1);
 
 		// Optimistic - see Buy().
 		Refresh();
@@ -420,7 +429,10 @@ class OVT_RealEstateContext : OVT_UIContext
 			}
 		}
 
-		OVT_Global.GetServer().RentBuilding(m_iPlayerID, account == 1);
+		OVT_RealEstateRequestComponent realEstateRequests = OVT_ControllerComponent<OVT_RealEstateRequestComponent>.Get();
+		if(!realEstateRequests) return;
+
+		realEstateRequests.RentBuilding(account == 1);
 
 		// Optimistic - see Buy().
 		Refresh();
@@ -450,7 +462,10 @@ class OVT_RealEstateContext : OVT_UIContext
 			return;
 		}
 
-		OVT_Global.GetServer().StopRentingBuilding(m_iPlayerID, account == 1);
+		OVT_RealEstateRequestComponent realEstateRequests = OVT_ControllerComponent<OVT_RealEstateRequestComponent>.Get();
+		if(!realEstateRequests) return;
+
+		realEstateRequests.StopRentingBuilding(account == 1);
 
 		// Optimistic - see Buy().
 		Refresh();
@@ -477,7 +492,10 @@ class OVT_RealEstateContext : OVT_UIContext
 			return;
 		}
 
-		OVT_Global.GetServer().SetHome(m_iPlayerID);
+		OVT_RealEstateRequestComponent realEstateRequests = OVT_ControllerComponent<OVT_RealEstateRequestComponent>.Get();
+		if(!realEstateRequests) return;
+
+		realEstateRequests.SetHome();
 
 		// Optimistic - see Buy().
 		Refresh();

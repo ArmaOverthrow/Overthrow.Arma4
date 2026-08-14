@@ -185,7 +185,7 @@ class OVT_PortContext : OVT_UIContext
 
 		string name = "";
 
-		UIInfo info = OVT_Global.GetItemUIInfo(res);
+		UIInfo info = OVT_PrefabUtils.GetItemUIInfo(res);
 		if(info) name = info.GetName();
 
 		if(name == "") name = res;
@@ -208,7 +208,7 @@ class OVT_PortContext : OVT_UIContext
 		TextWidget desc = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedDescription"));
 		img.SetResolutionScale(1, 1);
 		
-		UIInfo info = OVT_Global.GetItemUIInfo(res);
+		UIInfo info = OVT_PrefabUtils.GetItemUIInfo(res);
 		if(info)
 		{
 			typeName.SetText(info.GetName());
@@ -246,9 +246,13 @@ class OVT_PortContext : OVT_UIContext
 			
 		IEntity entity = compartment.GetVehicle();
 		if(entity)
-		{	
-			OVT_Global.GetServer().ImportToVehicle(m_SelectedResource, qty, entity, m_iPlayerID);
-		}		
+		{
+			// The importing player is no longer named in the request - the server takes it from the
+			// controller the request arrives on.
+			OVT_VehicleRequestComponent vehicles = OVT_ControllerComponent<OVT_VehicleRequestComponent>.Get();
+			if(vehicles)
+				vehicles.ImportToVehicle(m_SelectedResource, qty, entity);
+		}
 	}	
 	
 	void BuyTen(Widget src, float value = 1, EActionTrigger reason = EActionTrigger.DOWN)

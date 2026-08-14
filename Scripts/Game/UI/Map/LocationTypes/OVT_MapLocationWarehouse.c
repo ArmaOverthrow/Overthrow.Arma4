@@ -266,7 +266,7 @@ class OVT_MapLocationWarehouse : OVT_MapLocationType
 
 		string name = "";
 
-		UIInfo info = OVT_Global.GetItemUIInfo(res);
+		UIInfo info = OVT_PrefabUtils.GetItemUIInfo(res);
 		if (info)
 			name = info.GetName();
 

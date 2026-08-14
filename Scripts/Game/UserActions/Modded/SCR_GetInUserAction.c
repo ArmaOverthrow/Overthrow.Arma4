@@ -29,15 +29,13 @@ modded class SCR_GetInUserAction : SCR_CompartmentUserAction
 				string ownerUid = playerowner.GetPlayerOwnerUid();
 				if(ownerUid == "")
 				{
-					// Get the player ID and request ownership on server
-					int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(pUserEntity);
-					if (playerId > 0)
+					// Request ownership on the server. The claimant is no longer named in the request:
+					// the server derives it from the controller the request arrives on, which is also
+					// why the local player id is not looked up here any more.
+					OVT_VehicleRequestComponent vehicles = OVT_ControllerComponent<OVT_VehicleRequestComponent>.Get();
+					if (vehicles)
 					{
-						OVT_PlayerCommsComponent comms = OVT_Global.GetServer();
-						if (comms)
-						{
-							comms.ClaimUnownedVehicle(pOwnerEntity, playerId);
-						}
+						vehicles.ClaimUnownedVehicle(pOwnerEntity);
 					}
 				}
 			}

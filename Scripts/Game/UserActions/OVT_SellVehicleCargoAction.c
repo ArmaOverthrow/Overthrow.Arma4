@@ -9,8 +9,9 @@
 //! the gates below exist so the action does not offer a sale the server would refuse.
 //!
 //! Local-effect-only: the client wrapper resolves the LOCAL player's controller entity
-//! (OVT_Global.GetShopTransactions), so PerformAction must run on the machine that clicked. A
-//! server-executed PerformAction would find no local controller on a dedicated server.
+//! (OVT_ControllerComponent<OVT_ShopTransactionComponent>.Get()), so PerformAction must run on the
+//! machine that clicked. A server-executed PerformAction would find no local controller on a
+//! dedicated server.
 //------------------------------------------------------------------------------------------------
 class OVT_SellVehicleCargoAction : ScriptedUserAction
 {
@@ -51,7 +52,7 @@ class OVT_SellVehicleCargoAction : ScriptedUserAction
 			return;
 		}
 
-		OVT_ShopTransactionComponent transactions = OVT_Global.GetShopTransactions();
+		OVT_ShopTransactionComponent transactions = OVT_ControllerComponent<OVT_ShopTransactionComponent>.Get();
 		if(!transactions) return;
 
 		SubscribeSellResult(transactions);

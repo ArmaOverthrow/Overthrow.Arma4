@@ -7,8 +7,11 @@ class OVT_SetHomeAction : ScriptedUserAction
 		if (!CanBePerformedScript(pUserEntity))
 		 	return;
 		
-		OVT_Global.GetServer().SetHome(SCR_PlayerController.GetLocalPlayerId());
-				
+		OVT_RealEstateRequestComponent realEstateRequests = OVT_ControllerComponent<OVT_RealEstateRequestComponent>.Get();
+		if(!realEstateRequests) return;
+
+		realEstateRequests.SetHome();
+
 		SCR_HintManagerComponent.ShowCustomHint("#OVT-HomeSet", "", 4);
  	}
 		

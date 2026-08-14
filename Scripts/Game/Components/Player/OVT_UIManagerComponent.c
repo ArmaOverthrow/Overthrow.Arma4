@@ -12,8 +12,9 @@ class OVT_UIManagerComponent: OVT_Component
 	//! The local player's tutorial pipeline, resolved lazily and dropped the moment this character
 	//! stops being controlled.
 	//!
-	//! Cached because EOnFrame asks it a question every frame and OVT_Global.GetTutorials() is four
-	//! lookups deep (controlled entity -> player id -> controller -> component). Dropped in
+	//! Cached because EOnFrame asks it a question every frame and
+	//! OVT_ControllerComponent<OVT_TutorialComponent>.Get() is four lookups deep
+	//! (controlled entity -> player id -> controller -> component). Dropped in
 	//! AfterControlledByPlayer rather than held for the component's lifetime: the controller is a
 	//! DIFFERENT entity with its own lifetime, and a reference to a component on a deleted entity is
 	//! the shape of bug that OVT_TutorialManagerComponent's missing OnDelete already cost this feature
@@ -134,7 +135,7 @@ class OVT_UIManagerComponent: OVT_Component
 		OVT_TutorialComponent tutorials = m_Tutorials;
 		if (!tutorials)
 		{
-			tutorials = OVT_Global.GetTutorials();
+			tutorials = OVT_ControllerComponent<OVT_TutorialComponent>.Get();
 			if (!tutorials)
 				return;
 

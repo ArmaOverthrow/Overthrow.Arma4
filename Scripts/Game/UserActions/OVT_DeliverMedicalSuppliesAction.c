@@ -50,9 +50,14 @@ class OVT_DeliverMedicalSuppliesAction : ScriptedUserAction
 			return;
 		}
 		
+		// Guard the seam BEFORE the success hint: an unavailable controller (dedicated client before owner
+		// assignment) must not tell the player their supplies were delivered (P6-5).
+		OVT_CampaignRequestComponent campaign = OVT_ControllerComponent<OVT_CampaignRequestComponent>.Get();
+		if(!campaign) return;
+
 		SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-MedicalSuppliesDelivered $" + cost.ToString());
-		
-		OVT_Global.GetServer().DeliverMedicalSupplies(pOwnerEntity);
+
+		campaign.DeliverMedicalSupplies(pOwnerEntity);
 	}
 	
 	override bool HasLocalEffectOnlyScript() { return true; };

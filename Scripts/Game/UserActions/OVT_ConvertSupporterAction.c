@@ -7,7 +7,9 @@ class OVT_ConvertSupporterAction : OVT_BaseCivilianUserAction
 		RplComponent rpl = RplComponent.Cast(pOwnerEntity.FindComponent(RplComponent));
 		if(rpl)
 		{
-			OVT_Global.GetServer().ConvertSupporter(rpl.Id());
+			OVT_ResistanceRequestComponent requests = OVT_ControllerComponent<OVT_ResistanceRequestComponent>.Get();
+			if(requests)
+				requests.ConvertSupporter(rpl.Id());
 		}
 
 		MarkAsPerformed();

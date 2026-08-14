@@ -19,7 +19,7 @@ All original implementation tasks have been completed. This feature was document
 
 ## Future Enhancements
 
-See `implementation.md` Future Enhancements — headline item: complete the controller migration off `OVT_PlayerCommsComponent` (57 RPCs).
+See `implementation.md` Future Enhancements. ~~Headline item: complete the controller migration off `OVT_PlayerCommsComponent` (57 RPCs).~~ **Done 2026-08-14** by `core/controller-migration` — the monolith is deleted and all 17 controller components live on `OVT_OverthrowController`. The remaining items are the manager registry, the `EOnFrame` null guards and the difficulty-override ordering.
 
 ---
 

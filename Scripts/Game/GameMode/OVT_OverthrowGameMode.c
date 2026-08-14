@@ -675,14 +675,15 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			DiagMenu.SetValue(252,0);
 		}
 
+#ifdef WORKBENCH
 		if(DiagMenu.GetValue(254))
 		{
 			vector origin = SCR_PlayerController.GetLocalControlledEntity().GetOrigin();
-			int playerId = SCR_PlayerController.GetLocalPlayerId();
 
-			OVT_Global.GetServer().InstantCaptureBase(origin, playerId);
+			InstantCaptureBase(origin);
 			DiagMenu.SetValue(254,0);
 		}
+#endif
 
 		if(DiagMenu.GetValue(255))
 		{
@@ -716,6 +717,46 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			}
 		}
 	}
+
+#ifdef WORKBENCH
+	//------------------------------------------------------------------------------------------------
+	//! DEBUG CHEAT (DiagMenu 254): instantly flip the nearest base to whichever faction does not hold it.
+	//!
+	//! WHY THIS IS A PLAIN METHOD AND NOT AN RPC. It used to be the legacy comms monolith's
+	//! RpcAsk_InstantCaptureBase, an RplRcver.Server endpoint whose ONLY gate was the client-side DiagMenu
+	//! read above - i.e. any modified client could flip any base, and the #ifdef WORKBENCH inside the
+	//! handler was the only thing keeping that out of release builds (BUG-025). Its one caller is the
+	//! DiagMenu block in EOnFrame, which is already running here on the authority, so P8 of the controller
+	//! migration deleted the network endpoint outright rather than moving it to the controller seam
+	//! (implementation.md §4 Phase 8). The whole method - and its call site - is compiled out of release.
+	//! \param[in] loc Position to find the nearest base to.
+	protected void InstantCaptureBase(vector loc)
+	{
+		if (!Replication.IsServer()) return;
+
+		OVT_OccupyingFactionManager of = OVT_Global.GetOccupyingFaction();
+		if (!of) return;
+
+		OVT_BaseData data = of.GetNearestBase(loc);
+		if (!data) return;
+
+		OVT_BaseControllerComponent base = of.GetBase(data.entId);
+		if (!base) return;
+
+		// Whoever does not hold it, takes it.
+		int winningFactionIndex;
+		if (base.IsOccupyingFaction())
+		{
+			winningFactionIndex = OVT_Global.GetConfig().GetPlayerFactionIndex();
+		}
+		else
+		{
+			winningFactionIndex = OVT_Global.GetConfig().GetOccupyingFactionIndex();
+		}
+
+		of.ChangeBaseControl(base, winningFactionIndex);
+	}
+#endif
 
 	//------------------------------------------------------------------------------------------------
 	//! Last chance to write live world facts back into the manager records a save point will carry.
@@ -1574,8 +1615,9 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	//! WHY A RETRY AT ALL: this runs off a 0 ms CallLater in OVT_UIManagerComponent, and the local
 	//! player's OVT_OverthrowController is registered by an ASYNC RpcDo_NotifyOwnerAssignment. On a
 	//! first spawn - and especially on a join - the spawn can beat the assignment, leaving
-	//! OVT_Global.GetTutorials() null and the trigger silently dropped. That is safe but it is a
-	//! RACE, and the welcome tip is the one entry a player is guaranteed to notice missing.
+	//! OVT_ControllerComponent<OVT_TutorialComponent>.Get() null and the trigger silently dropped.
+	//! That is safe but it is a RACE, and the welcome tip is the one entry a player is guaranteed to
+	//! notice missing.
 	//!
 	//! WHY IT IS BOUNDED AND SILENT: a dropped tip is acceptable; a script error or a timer that
 	//! never stops is not. TUTORIAL_SPAWN_PUSH_ATTEMPTS x TUTORIAL_SPAWN_PUSH_RETRY_MS is a hard

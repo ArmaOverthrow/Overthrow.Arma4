@@ -98,7 +98,7 @@ class OVT_EntitySpawningAPI : Managed
 			return null;
 			
 		// Find a safe spawn position (skip spawn point search for AI performance)
-		vector safePosition = OVT_Global.FindSafeSpawnPosition(position, "-0.5 0 -0.5", "0.5 2 0.5", true);
+		vector safePosition = OVT_WorldUtils.FindSafeSpawnPosition(position, "-0.5 0 -0.5", "0.5 2 0.5", true);
 		
 		// Create spawn parameters
 		EntitySpawnParams spawnParams();
@@ -331,7 +331,7 @@ class OVT_EntitySpawningAPI : Managed
 		{
 			AIAgent agent = AIAgent.Cast(soldier.FindComponent(AIAgent));
 			if (agent)
-				OVT_Global.RandomizeCivilianClothes(agent);
+				OVT_LoadoutUtils.RandomizeCivilianClothes(agent);
 		}
 	}
 	

@@ -432,7 +432,7 @@ class OVT_QRFControllerComponent: OVT_Component
 	        targetZone = s_AIRandomGenerator.GenerateRandomPointInRadius(0, searchRadius, origin);
 	
 	        // Check if the position is not in the ocean
-	        if (!OVT_Global.IsOceanAtPosition(targetZone))
+	        if (!OVT_WorldUtils.IsOceanAtPosition(targetZone))
 	        {
 	            Print("[Debug] Found valid target zone: " + targetZone);
 				m_vGoodTargetPos = targetZone;
@@ -472,7 +472,7 @@ class OVT_QRFControllerComponent: OVT_Component
 	        attempts++;
 				
 	        // Ensure the position is not in the ocean
-	        if (!OVT_Global.IsOceanAtPosition(checkpos))
+	        if (!OVT_WorldUtils.IsOceanAtPosition(checkpos))
 	        {
 				safepos = checkpos;
 	            // Check for a clear landing zone (10x10x10)

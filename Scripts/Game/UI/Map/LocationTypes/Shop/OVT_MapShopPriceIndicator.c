@@ -773,7 +773,7 @@ class OVT_MapShopPriceIndicator
 
 		string name = "";
 
-		UIInfo info = OVT_Global.GetItemUIInfo(prefab);
+		UIInfo info = OVT_PrefabUtils.GetItemUIInfo(prefab);
 		if (info)
 			name = info.GetName();
 

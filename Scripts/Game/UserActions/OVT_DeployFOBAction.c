@@ -4,7 +4,10 @@ class OVT_DeployFOBAction : ScriptedUserAction
 	//---------------------------------------------------------
  	override void PerformAction(IEntity pOwnerEntity, IEntity pUserEntity) 
  	{
-		OVT_Global.GetServer().DeployFOB(pOwnerEntity.GetParent());
+		OVT_FOBRequestComponent requests = OVT_ControllerComponent<OVT_FOBRequestComponent>.Get();
+		if(!requests) return;
+
+		requests.DeployFOB(pOwnerEntity.GetParent());
  	}
 		
 	override bool GetActionNameScript(out string outName)

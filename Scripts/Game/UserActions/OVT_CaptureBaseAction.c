@@ -11,7 +11,12 @@ class OVT_CaptureBaseAction : ScriptedUserAction
 		
 		if(base && base.IsOccupyingFaction())
 		{
-			OVT_Global.GetServer().StartBaseCapture(base.location);
+			// The server takes the capture position from the caller's own character (BUG-025), so no
+			// position is sent - this action only has to say "I am asking".
+			OVT_CampaignRequestComponent campaign = OVT_ControllerComponent<OVT_CampaignRequestComponent>.Get();
+			if(!campaign) return;
+
+			campaign.StartBaseCapture();
 		}
  	}
 	

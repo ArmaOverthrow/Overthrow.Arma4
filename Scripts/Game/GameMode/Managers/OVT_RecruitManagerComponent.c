@@ -775,11 +775,11 @@ class OVT_RecruitManagerComponent : OVT_Component
 		}
 		
 		// Spawn the recruit character directly (no group)
-		SCR_ChimeraCharacter recruitEntity = OVT_Global.SpawnCharacterEntity(m_sRecruitPrefab, position, orientation);
+		SCR_ChimeraCharacter recruitEntity = OVT_WorldUtils.SpawnCharacterEntity(m_sRecruitPrefab, position, orientation);
 		if (!recruitEntity)
 			return null;
 				
-		OVT_Global.ApplyCivilianLoadout(recruitEntity);
+		OVT_LoadoutUtils.ApplyCivilianLoadout(recruitEntity);
 		
 		// Activate AI for the spawned recruit
 		AIControlComponent aiControl = AIControlComponent.Cast(recruitEntity.FindComponent(AIControlComponent));

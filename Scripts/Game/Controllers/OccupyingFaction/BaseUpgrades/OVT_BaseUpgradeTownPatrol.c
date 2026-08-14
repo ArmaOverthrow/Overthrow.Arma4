@@ -124,7 +124,7 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 		BaseWorld world = GetGame().GetWorld();
 		
 		vector pos = m_BaseController.GetOwner().GetOrigin();
-		pos = OVT_Global.GetRandomNonOceanPositionNear(pos, 15);
+		pos = OVT_WorldUtils.GetRandomNonOceanPositionNear(pos, 15);
 		
 		float surfaceY = world.GetSurfaceY(pos[0], pos[2]);
 		if (pos[1] < surfaceY)
@@ -158,11 +158,11 @@ class OVT_BaseUpgradeTownPatrol : OVT_BasePatrolUpgrade
 							
 		aigroup.AddWaypoint(OVT_Global.GetConfig().SpawnPatrolWaypoint(town.location));			
 				
-		vector pos = OVT_Global.GetRandomNonOceanPositionNear(town.location, 250);
+		vector pos = OVT_WorldUtils.GetRandomNonOceanPositionNear(town.location, 250);
 		aigroup.AddWaypoint(OVT_Global.GetConfig().SpawnSearchAndDestroyWaypoint(pos));			
 		aigroup.AddWaypoint(OVT_Global.GetConfig().SpawnWaitWaypoint(pos, s_AIRandomGenerator.RandFloatXY(15, 50)));								
 		
-		pos = OVT_Global.GetRandomNonOceanPositionNear(town.location, 250);
+		pos = OVT_WorldUtils.GetRandomNonOceanPositionNear(town.location, 250);
 		aigroup.AddWaypoint(OVT_Global.GetConfig().SpawnSearchAndDestroyWaypoint(pos));			
 		aigroup.AddWaypoint(OVT_Global.GetConfig().SpawnWaitWaypoint(pos, s_AIRandomGenerator.RandFloatXY(15, 50)));								
 		
