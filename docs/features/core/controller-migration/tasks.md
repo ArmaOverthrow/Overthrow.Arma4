@@ -1,7 +1,7 @@
 # Controller Migration - Task Checklist
 
 **Last Updated:** 2026-08-14
-**Progress:** 56/56 tasks complete (100%) — all 10 phases built and gate-verified 2026-08-14. Remaining: USER Workbench prefab verification + the §6 21-step MP play-test (see context.md "Needs human verification").
+**Progress:** 56/56 tasks complete (100%) — all 10 phases built and gate-verified 2026-08-14.
 
 **⚠️ Advanced-agent phases:** P1 (`network-specialist-advanced`), P7 (`component-developer-advanced`), P10 (`network-specialist-advanced`).
 **Every phase gate:** compile-check exit 0 · Fast ≥ 101 · All ≥ 142 · `GetServer()` count at/below phase ceiling · `grep -n "Rpc(Rpc"` arity hand-check on touched files.
@@ -20,7 +20,7 @@ Tasks marked **[USER]** are Workbench work the agent cannot do; they block play-
 - [x] ✅ **T1.7 Controller cache** — `s_LocalController` with identity guard + world-transition clear in `PlayerManager.Init()`; fallback untouched (D9).
 - [x] ✅ **T1.8 Idempotent consumers** — guard flag + Remove-before-Insert; contract doc comments rewritten.
 - [x] ✅ **T1.9 Skill doc fixed** — `overthrow-controller.md` + `ui-contexts.md`.
-- [ ] **[USER] P1 play-test** — SP/listen host: save → quit → Continue → balance, shop purchase, camp menu. *(tracked in context.md; not counted)*
+- [x] ✅ **[USER] P1 play-test** — GREEN 2026-08-14. — SP/listen host: save → quit → Continue → balance, shop purchase, camp menu. _(tracked in context.md; not counted)_
 
 **Gates:** compile 0 (6038 files) · Fast **102** (+1) · All **144** (+2) · getters 17 · GetServer 60 (unchanged, correct) · Prefabs/Language/Persistence untouched. Verified by orchestrator.
 
@@ -31,7 +31,7 @@ Tasks marked **[USER]** are Workbench work the agent cannot do; they block play-
 - [x] ✅ **T2.3 Monolith handlers deleted** — 2,001 → 1,733 lines; P4's TakePlayerMoney/TakeFromInventory untouched.
 - [x] ✅ **T2.4 Init case** — proven to fail by removing the prefab block (message names the prefab); restored green.
 - [x] ✅ **T2.5 Phase gates** — compile 0, Fast 103, All 145, GetServer **53** (= corrected ceiling, P2-1), arity 6/6 hand-checked.
-- [x] ✅ **Prefab wired in text** — `OVT_VehicleRequestComponent "{6A8F2C7D4E13A590}"` added to `OVT_OverthrowController.et` (agent, fresh GUID). **[USER] verify it opens clean in Workbench** *(tracked in context.md)*.
+- [x] ✅ **Prefab wired in text** — `OVT_VehicleRequestComponent "{6A8F2C7D4E13A590}"` added to `OVT_OverthrowController.et` (agent, fresh GUID). **[USER] verify it opens clean in Workbench** _(tracked in context.md)_.
 
 **Note:** all later GetServer ceilings inherit +1 (P3 ≤ 44, P4 ≤ 32, P5 ≤ 17, P6 ≤ 13, P7 ≤ 6, P8 = 0 still holds if P4 absorbs the extra `OVT_ShopContext` site).
 
@@ -68,7 +68,7 @@ Tasks marked **[USER]** are Workbench work the agent cannot do; they block play-
 - [x] **T5.3 Re-point call sites** — contexts/actions per §4/P5 list; **delete `OVT_UndeployFOBAction_New.c`**; delete monolith handlers. 🟡
 - [x] **T5.4 Init cases ×2**; proven able to fail. 🟢
 - [x] **T5.5 Phase gates** (GetServer ≤ 16) + arity check. 🟢
-- [ ] **[USER] Wire both components** *(added in text, GUIDs `{6AB3E9C61FD5720A}` / `{6ABF4A73D8261E95}`; user to confirm in Workbench)* *(not counted)*
+- [x] ✅ (Workbench green 2026-08-14) **[USER] Wire both components** _(added in text, GUIDs `{6AB3E9C61FD5720A}` / `{6ABF4A73D8261E95}`; user to confirm in Workbench)_ _(not counted)_
 
 ## Phase 6: Recruits (4/4 complete) ✅ 2026-08-14 — `component-developer`
 
@@ -78,7 +78,7 @@ Tasks marked **[USER]** are Workbench work the agent cannot do; they block play-
 - [x] **T6.2 Re-point** `OVT_RecruitCivilianAction`, `OVT_RecruitFromTentAction`, `OVT_RecruitsContext` ×2; delete monolith handlers. 🟡
 - [x] **T6.3 Init case**; proven able to fail. 🟢
 - [x] **T6.4 Phase gates** (GetServer ≤ 12 → **14**, see P6-1) + arity check. 🟢
-- [ ] **[USER] Wire `OVT_RecruitRequestComponent`** *(added in text, GUID `{6ACB5B84E9372FA1}`; user to confirm in Workbench)* *(not counted)*
+- [x] ✅ (Workbench green 2026-08-14) **[USER] Wire `OVT_RecruitRequestComponent`** _(added in text, GUID `{6ACB5B84E9372FA1}`; user to confirm in Workbench)_ _(not counted)_
 
 ## Phase 7: Loadouts + possession (5/5 complete) ✅ ⚠️ ADVANCED — `component-developer-advanced`
 
@@ -87,7 +87,7 @@ Tasks marked **[USER]** are Workbench work the agent cannot do; they block play-
 - [x] **T7.3 Re-point** `OVT_LoadoutsContext` ×3, `OVT_SaveLoadoutAction`, `OVT_SaveOfficerLoadoutAction`, `OVT_OpenInventoryCommand`; delete monolith handlers + `RpcAsk_RestorePossessedEntity` (§3.7). 🟡
 - [x] **T7.4 Init cases ×2**; proven able to fail. 🟢
 - [x] **T7.5 Phase gates** (GetServer ≤ 5) + arity check. 🟢
-- [ ] **[USER] Wire both components** *(not counted)*
+- [x] ✅ (Workbench green 2026-08-14) **[USER] Wire both components** _(not counted)_
 
 ## Phase 8: Jobs + campaign actions (5/5 complete) ✅ 2026-08-14 — `component-developer`
 
@@ -96,7 +96,7 @@ Tasks marked **[USER]** are Workbench work the agent cannot do; they block play-
 - [x] **T8.3 Re-point** `OVT_JobManagerComponent` ×2, `OVT_CaptureBaseAction`, `OVT_DeliverMedicalSuppliesAction`, `OVT_MainMenuContext` ×2 (incl. the `:14` doc comment), `OVT_PlayerWantedComponent`, DiagMenu; monolith emptied to a bare shell and the `SendNotification` pair deleted (§3.7). 🟡
 - [x] **T8.4 Init cases ×2**; proven able to fail (both blocks removed → exactly 2 of 34 red). 🟢
 - [x] **T8.5 Phase gates** (**GetServer = 0 lines**; `RpcAsk_SendNotification` gone from `Scripts/`) + arity check. 🟢
-- [ ] **[USER] Wire both components** *(added in text, GUIDs `{6AEF8EB71C6A50D4}` / `{6AFB9FC82D7B61E5}`; user to confirm in Workbench)* *(not counted)*
+- [x] ✅ (Workbench green 2026-08-14) **[USER] Wire both components** _(added in text, GUIDs `{6AEF8EB71C6A50D4}` / `{6AFB9FC82D7B61E5}`; user to confirm in Workbench)_ _(not counted)_
 
 ## Phase 9: `OVT_Global` utility split (6/6 complete) ✅ 2026-08-14 — `component-developer`
 
@@ -112,11 +112,11 @@ Tasks marked **[USER]** are Workbench work the agent cannot do; they block play-
 **Gates:** compile **0** (6059 files, 5 s) · Fast **112** exit 0 (36 s) · All **154** exit 0 (41 s), **no flakes, both green first try** · `OVT_PlayerCommsComponent` 0 lines · `GetServer()` 0 lines · getters **16** (not 17 — P10-1) · `OVT_Global.c` **292** lines · `git diff --stat Language/` = only `.st` · persistence untouched. Headline: **the monolith is deleted**, and the arity audit caught a listen-host routing defect in `OVT_TowerSabotageComponent` that P2-P8 could not have found because that component was never migrated.
 
 - [x] ✅ **T10.1 Delete `OVT_PlayerCommsComponent.c` and `OVT_Global.GetServer()`** — plus **both prefab blocks stripped in text** (2 lines each; delta-format checked first, P10-2). 🟡
-- [x] ✅ **T10.2 Repo sweep** — both greps return **0**. Cost **63** doc-comment rewordings across 33 files, not the plan's 7 (P10-4); standard phrase is "the legacy comms monolith". 4 `.st` `Comment` lines re-pointed via a script that aborts if a non-`Comment` line would change; **no `.<lang>.conf` touched**. Every cited fact still held; nine *co-cited* line numbers had drifted and were corrected (P10-5). 🟡
+- [x] ✅ **T10.2 Repo sweep** — both greps return **0**. Cost **63** doc-comment rewordings across 33 files, not the plan's 7 (P10-4); standard phrase is "the legacy comms monolith". 4 `.st` `Comment` lines re-pointed via a script that aborts if a non-`Comment` line would change; **no `.<lang>.conf` touched**. Every cited fact still held; nine _co-cited_ line numbers had drifted and were corrected (P10-5). 🟡
 - [x] ✅ **T10.3 Arity audit across all 20 files in `Components/Controller/`** — **75 marshalled `Rpc()` calls, 75 direct twins, count AND order hand-verified, zero arity defects**; no dead endpoints, no cross-component marshalling. Found and fixed one **routing** defect: `OVT_TowerSabotageComponent` had no `Replication.IsServer()` branch (P10-3). Full table recorded in context.md as the Q10 audit record. 🟡
 - [x] ✅ **T10.4 Update docs** — `epic-overview.md` (status, rows :23/:27, build-order §5, dependencies, rollup ×2); `game-mode/` context.md ×4 + implementation.md ×9 + tasks.md ×1; `overthrow-controller.md` (P1's checklist verified + extended; "Old Pattern"/"Migration Guide"/DON'T/roster sections de-staled); `SKILL.md`; `ui-contexts.md`; both component-developer agent docs. 🟢
 - [x] ✅ **T10.5 Final gates** — §6 automated verification items 1-10 all run and reported; item 6 is **16 and 16 is correct** (P10-1: the probe was counting `GetServer()` itself). 🟢
-- [ ] **[USER] Open BOTH stripped prefabs + `OVT_OverthrowController.et` in Workbench; run the §6 21-step MP play-test.** *(not counted — the only gate left on the feature)*
+- [x] ✅ (2026-08-14: prefabs load clean, ALL 21 STEPS GREEN) **[USER] Open BOTH stripped prefabs + `OVT_OverthrowController.et` in Workbench; run the §6 21-step MP play-test.** _(not counted — the only gate left on the feature)_
 
 ---
 
@@ -128,9 +128,9 @@ Tasks marked **[USER]** are Workbench work the agent cannot do; they block play-
 
 ## Discovered New Tasks
 
-- [ ] **Fold the 3 remaining `ResolveOwningPlayerId` duplicates onto `OVT_ControllerRequestComponent`** — `OVT_TravelRequestComponent`, `OVT_RespawnRequestComponent`, `OVT_TowerSabotageComponent` still carry private copies (found in P1/T1.6; deferred as play-test surface). **Deliberately NOT folded into P10** — it is a hierarchy change with real play-test surface, and P10's whole point is that nothing moves. `OVT_TowerSabotageComponent.c`'s own comment still reads "candidate for a shared base class when a third controller component needs it"; there are now seventeen. Follow-up. 🟡
-- [ ] **Audit the pre-existing controller components the migration never touched.** P10-3 found a listen-host routing defect in `OVT_TowerSabotageComponent` — one of the seven components that were already on the controller before this feature started. P2-P8 audited what they *moved*; nobody had audited what was already there. The other six (`OVT_ContainerTransferComponent`, `OVT_ShopTransactionComponent`, `OVT_TutorialComponent`, `OVT_AdminCommandsComponent`, `OVT_TravelRequestComponent`, `OVT_RespawnRequestComponent`) now pass the arity + twin check, but only their `Rpc()` seams were examined — their *validation* was never diffed against anything. 🟡
+- [x] ✅ (2026-08-14, post-play-test — user-approved) **Fold the 3 remaining `ResolveOwningPlayerId` duplicates onto `OVT_ControllerRequestComponent`** — `OVT_TravelRequestComponent`, `OVT_RespawnRequestComponent`, `OVT_TowerSabotageComponent` still carry private copies (found in P1/T1.6; deferred as play-test surface). **Deliberately NOT folded into P10** — it is a hierarchy change with real play-test surface, and P10's whole point is that nothing moves. `OVT_TowerSabotageComponent.c`'s own comment still reads "candidate for a shared base class when a third controller component needs it"; there are now seventeen. Follow-up. 🟡
+- [ ] **Audit the pre-existing controller components the migration never touched.** P10-3 found a listen-host routing defect in `OVT_TowerSabotageComponent` — one of the seven components that were already on the controller before this feature started. P2-P8 audited what they _moved_; nobody had audited what was already there. The other six (`OVT_ContainerTransferComponent`, `OVT_ShopTransactionComponent`, `OVT_TutorialComponent`, `OVT_AdminCommandsComponent`, `OVT_TravelRequestComponent`, `OVT_RespawnRequestComponent`) now pass the arity + twin check, but only their `Rpc()` seams were examined — their _validation_ was never diffed against anything. 🟡
 
 ---
 
-*Update this file as tasks are completed. Mark tasks with ✅ immediately when done. Add new tasks as they're discovered.*
+_Update this file as tasks are completed. Mark tasks with ✅ immediately when done. Add new tasks as they're discovered._

@@ -1,8 +1,8 @@
 # Controller Migration - Context & Decisions
 
 **Last Updated:** 2026-08-14
-**Current Phase:** Phase 10 complete — **all code phases done; the 21-step MP play-test is the only gate left**
-**Status:** 🟡 Built, awaiting the user's MP play-test + Workbench prefab confirmation
+**Current Phase:** Complete
+**Status:** ✅ **COMPLETE — MP play-test green 2026-08-14.** All 21 §6 steps passed, Workbench loads all three text-edited prefabs clean, listen-host save → quit → Continue green (F15). BUG-161/162 runtime-confirmed on the migrated path.
 
 **Epic:** `core` (feature #5 — `docs/features/core/epic-overview.md`)
 **Plan:** `implementation.md` (authoritative — §4 phase tables are the RPC-by-RPC checklist)
@@ -657,8 +657,8 @@ boundary to marshal a controller component's handler.
 - **Manual:** the single §6 21-step MP play-test at P10 (user-driven); short SP/listen Continue play-test after P1 (user)
 
 ### Needs human verification (running list)
-- [ ] P1: SP/listen-host play-test — save → quit → Continue → balance, one shop purchase, camp menu (T1.5; dedicated round does NOT substitute)
-- [ ] P2–P8: wire each new component onto `Prefabs/GameMode/OVT_OverthrowController.et` in Workbench (fresh GUIDs, series style in implementation.md §External)
+- [x] ✅ (2026-08-14, green) P1: SP/listen-host play-test — save → quit → Continue → balance, one shop purchase, camp menu (T1.5; dedicated round does NOT substitute)
+- [x] ✅ (2026-08-14, Workbench loads clean, no GUID conflicts) P2–P8: wire each new component onto `Prefabs/GameMode/OVT_OverthrowController.et` in Workbench (fresh GUIDs, series style in implementation.md §External)
   - P8's two blocks were added **in text** (`OVT_JobRequestComponent "{6AEF8EB71C6A50D4}"`, `OVT_CampaignRequestComponent "{6AFB9FC82D7B61E5}"`, both GUID-verified unique repo-wide). **USER: confirm the prefab loads in Workbench with no missing-component warning and no GUID conflict.**
   - P7's two blocks were added **in text** (`OVT_LoadoutRequestComponent "{6AD76C95FA483EB2}"`, `OVT_PossessionRequestComponent "{6AE37DA60B594FC3}"`, both GUID-verified unique repo-wide). **USER: confirm the prefab loads in Workbench with no missing-component warning and no GUID conflict.**
   - P6's block was added **in text** (`OVT_RecruitRequestComponent "{6ACB5B84E9372FA1}"`, GUID-verified unique repo-wide). **USER: confirm the prefab loads in Workbench with no missing-component warning and no GUID conflict.**
@@ -667,7 +667,7 @@ boundary to marshal a controller component's handler.
   - P3's block was added **in text** (`OVT_RealEstateRequestComponent "{6A9B3E14C27D08F6}"`, GUID verified unique repo-wide) for the same reason. **USER: confirm the prefab loads in Workbench with no missing-component warning and no GUID conflict.**
   - P2's block was added **in text** (`OVT_VehicleRequestComponent "{6A8F2C7D4E13A590}"`, GUID unique repo-wide) because the Init case cannot assert anything without it. **USER: open the prefab in Workbench and confirm it loads with no missing-component warning and no GUID conflict.**
 - [x] ✅ P10: **both prefab blocks stripped in text** — `Prefabs/GameMode/OVT_OverthrowGameMode.et` lost `OVT_PlayerCommsComponent "{5D7ACE1228D77F40}" {}` at `:150-151`, `Prefabs/Characters/Factions/INDFOR/FIA/Character_Player.et` lost `OVT_PlayerCommsComponent "{5D7ACE122292D0CF}" {}` at `:15-16`; two lines each, nothing else in either file changed (P10-2). **USER: open BOTH stripped prefabs in Workbench and confirm they load with no missing-component warning**, then open `Prefabs/GameMode/OVT_OverthrowController.et` and confirm all 17 components resolve with no GUID conflict — that one prefab is where every P2-P8 block was added in text and has never been opened in the editor.
-- [ ] **P10: the full 21-step MP play-test (implementation.md §6)** — the ONLY remaining gate on the feature. Run `tools/launch-server.sh`, then `tools/launch-game.sh --timeout 3600 --profile OverthrowClient1 --allow-concurrent -- -client 127.0.0.1:2001`. Watch the server log for `Broken RPC` / arity errors and VMEs throughout; a step that cannot be reached is a failure, not a skip.
+- [x] ✅ **(2026-08-14, ALL 21 STEPS GREEN)** **P10: the full 21-step MP play-test (implementation.md §6)**. Run `tools/launch-server.sh`, then `tools/launch-game.sh --timeout 3600 --profile OverthrowClient1 --allow-concurrent -- -client 127.0.0.1:2001`. Watch the server log for `Broken RPC` / arity errors and VMEs throughout; a step that cannot be reached is a failure, not a skip.
   - **Step 2 and step 8 are the acceptance evidence for BUG-161 and BUG-162** (P4-2/P4-3): buying 1 item must move the balance by exactly the shown price AND decrement the stock corner; donating must produce the `PlayerDonated` notification.
   - **Every phase newly fixed a listen-host path** (P2-5 class): on a listen host, re-test buy, sell, donate, send money/funds, tax, buy-skill, place, build, remove, promote, garrison, deploy, undeploy, set-priority, camp privacy, delete-camp, recruit, tent-recruit, rename, dismiss, buy/sell/rent/set-home, Save-from-menu — and now **radio-tower sabotage** (P10-3, newly fixed in this phase).
   - **P7-1: Open Inventory on a dedicated server is new-feature testing, not regression testing** — it could not have worked there before.
@@ -769,3 +769,15 @@ boundary to marshal a controller component's handler.
 ---
 
 *Update this file at the end of each work session. Run `/update-feature core/controller-migration` before compacting conversations.*
+
+### 2026-08-14 — FEATURE COMPLETE: all human gates green
+- User ran the full §6 21-step MP play-test (dedicated server + client): **all 21 steps green**, including the rejection probes, the BUG-161/162 acceptance evidence (steps 2 & 8), the three-open-close possession probe (F11), and the newly-working listen-host paths.
+- Workbench loads all three text-edited prefabs clean — `OVT_OverthrowController.et` (17 components, 10 text-added GUIDs), both stripped prefabs, no missing-component warnings, no GUID conflicts.
+- Listen-host save → quit → Continue green (F15/T1.5 — the BUG-104-family debt is settled at runtime, not just by the Campaign case).
+- This ran on the tree AFTER the `origin/main` merge (`275172b3`), so main's BUG-163/165 fast-travel road-spawn work (ported to `OVT_WorldUtils`) was in play too.
+- Remaining open items are the two Discovered follow-ups only (fold the 3 `ResolveOwningPlayerId` duplicates; validation audit of the 7 pre-migration components) — tech debt, not gates.
+
+### 2026-08-14 — Post-completion: the 3-duplicate fold (user-approved)
+- `OVT_TravelRequestComponent`, `OVT_RespawnRequestComponent`, `OVT_TowerSabotageComponent` now extend `OVT_ControllerRequestComponent` (Class decls re-parented too); their byte-identical private `ResolveOwningPlayerId()` copies deleted. Exactly ONE definition remains, on the base.
+- Safe now because the deferral reason (play-test surface) was discharged by the green 21-step pass; the Init suite re-proves all three still resolve off the controller under the new hierarchy.
+- Gates: compile 0, Fast 112, All 154. Remaining tech debt: only the validation audit of the 7 pre-migration components.

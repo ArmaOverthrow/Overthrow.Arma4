@@ -1,5 +1,5 @@
 [ComponentEditorProps(category: "Overthrow/Components/Controller", description: "Client->server relay for radio tower sabotage")]
-class OVT_TowerSabotageComponentClass : OVT_ComponentClass {};
+class OVT_TowerSabotageComponentClass : OVT_ControllerRequestComponentClass {};
 
 //------------------------------------------------------------------------------------------------
 //! Client->server relay for sabotaging occupying-faction radio towers, on the per-player
@@ -11,7 +11,7 @@ class OVT_TowerSabotageComponentClass : OVT_ComponentClass {};
 //! OVT_DifficultySettings.radioTowerSabotageTime seconds (see OVT_RadioTowerData.disabledRemaining)
 //! and, if the saboteur is currently seen, makes them wanted (OVT_PlayerWantedComponent).
 //------------------------------------------------------------------------------------------------
-class OVT_TowerSabotageComponent : OVT_Component
+class OVT_TowerSabotageComponent : OVT_ControllerRequestComponent
 {
 	//! How far the saboteur may be from the tower when the action completes (action radius + slack)
 	protected const float SABOTAGE_MAX_DISTANCE = 25;
@@ -60,28 +60,4 @@ class OVT_TowerSabotageComponent : OVT_Component
 			wanted.OnIllegalActionSeen("WantedSabotage");
 	}
 
-	//! Same owner resolution as OVT_ShopTransactionComponent - candidate for a shared base class
-	//! when a third controller component needs it
-	protected int ResolveOwningPlayerId()
-	{
-		OVT_OverthrowController owner = OVT_OverthrowController.Cast(GetOwner());
-		if(!owner) return -1;
-
-		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
-		if(!players) return -1;
-
-		PlayerManager playerManager = GetGame().GetPlayerManager();
-		if(!playerManager) return -1;
-
-		array<int> playerIds = {};
-		playerManager.GetPlayers(playerIds);
-
-		foreach(int playerId : playerIds)
-		{
-			OVT_OverthrowController controller = players.GetController(playerId);
-			if(controller == owner) return playerId;
-		}
-
-		return -1;
-	}
 }
