@@ -171,7 +171,12 @@ class OVT_PlayerWantedComponent: OVT_Component
 	// server-side damage manager, so it must replicate (BUG-073)
 	[RplProp()]
 	protected bool m_bIsDisguised = false;
-	
+
+	// Server-only: InitPlayerOutfitFaction_S broadcasts an RPC on every call, and an outfit with
+	// no faction-scored items (the default civilian state) keeps outfitCount at 0 forever, so the
+	// tick must only request the initial calculation once (BUG-168)
+	protected bool m_bOutfitFactionInitDone = false;
+
 	bool IsDisguisedAsOccupying()
 	{
 		return m_bIsDisguised;
@@ -515,10 +520,15 @@ class OVT_PlayerWantedComponent: OVT_Component
 			map<Faction, int> outfitValues = new map<Faction, int>();
 			int outfitCount = m_CharacterFaction.GetCharacterOutfitValues(outfitValues);
 			
-			// Force initial outfit calculation on first run
-			if (outfitCount == 0)
+			// Force initial outfit calculation on first run (BUG-168). Waits for the manager:
+			// initializing without it leaves the affiliation component permanently unscored
+			if (!m_bOutfitFactionInitDone && SCR_PerceivedFactionManagerComponent.GetInstance())
 			{
-				m_CharacterFaction.InitPlayerOutfitFaction_S();
+				m_bOutfitFactionInitDone = true;
+				if (outfitCount == 0)
+				{
+					m_CharacterFaction.InitPlayerOutfitFaction_S();
+				}
 			}
 						
 			if (perceivedFaction)

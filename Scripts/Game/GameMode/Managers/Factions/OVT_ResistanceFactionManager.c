@@ -749,10 +749,13 @@ class OVT_ResistanceFactionManager: OVT_Component
 		}
 
 		economy.TakePlayerMoney(playerId, cost);
-		
-		SCR_AIWorld aiworld = SCR_AIWorld.Cast(GetGame().GetAIWorld());
-		aiworld.RequestNavmeshRebuildEntity(entity);
-		
+
+		// Immediate, not queued: the player is standing here and expects their squad to path around
+		// the thing that just appeared. The null-guarded helper also protects everything below it -
+		// the inline SCR_AIWorld cast this replaced had no guard, so a null AI world would have
+		// VM-errored out of PlaceItem() before ownership stamping and OVT_PersistenceTracking.Track().
+		OVT_NavmeshRebuild.RebuildNow(entity);
+
 		m_OnPlace.Invoke(entity, placeable, playerId);
 		
 		OVT_PlayerOwnerComponent playerowner = OVT_ComponentFinder<OVT_PlayerOwnerComponent>.Find(entity);
@@ -848,8 +851,8 @@ class OVT_ResistanceFactionManager: OVT_Component
 		// Charge server-side - the client no longer pays via the generic money RPC
 		economy.TakePlayerMoney(playerId, cost);
 
-		SCR_AIWorld aiworld = SCR_AIWorld.Cast(GetGame().GetAIWorld());
-		aiworld.RequestNavmeshRebuildEntity(entity);
+		// Immediate - see the matching call in PlaceItem().
+		OVT_NavmeshRebuild.RebuildNow(entity);
 
 		m_OnBuild.Invoke(entity, buildable, playerId);
 
@@ -885,7 +888,12 @@ class OVT_ResistanceFactionManager: OVT_Component
 		
 		// Only allow removal if player is owner or officer
 		if(ownerUid != playerUid && !isOfficer) return;
-		
+
+		// Capture the hole this object carved BEFORE it stops existing - Queue() measures at call
+		// time and rebuilds a second later, which is the only ordering that works. Without it the
+		// navmesh keeps the carve forever and the AI refuses to cross ground that is now empty.
+		OVT_NavmeshRebuild.Queue(entity);
+
 		// Delete the entity
 		SCR_EntityHelper.DeleteEntityAndChildren(entity);
 	}
@@ -1415,6 +1423,8 @@ class OVT_ResistanceFactionManager: OVT_Component
 				IEntity campEntity = rpl.GetEntity();
 				if (campEntity)
 				{
+					// Before the delete - see RemovePlacedItem().
+					OVT_NavmeshRebuild.Queue(campEntity);
 					SCR_EntityHelper.DeleteEntityAndChildren(campEntity);
 				}
 			}
@@ -1574,6 +1584,9 @@ class OVT_ResistanceFactionManager: OVT_Component
 			IEntity entity = GetGame().GetWorld().FindEntityByID(entityId);
 			if (entity)
 			{
+				// Queued before each delete, so a whole camp's worth of carves is measured while the
+				// objects still stand and re-issued as one merged batch once they are gone.
+				OVT_NavmeshRebuild.Queue(entity);
 				SCR_EntityHelper.DeleteEntityAndChildren(entity);
 			}
 		}
@@ -1658,6 +1671,8 @@ class OVT_ResistanceFactionManager: OVT_Component
 		{
 			if (entity)
 			{
+				// Before each delete - see CleanupCampObjects().
+				OVT_NavmeshRebuild.Queue(entity);
 				SCR_EntityHelper.DeleteEntityAndChildren(entity);
 				deletedCount++;
 			}

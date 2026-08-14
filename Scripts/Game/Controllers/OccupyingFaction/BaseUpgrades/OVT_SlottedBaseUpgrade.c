@@ -88,9 +88,11 @@ class OVT_SlottedBaseUpgrade : OVT_BasePatrolUpgrade
 		IEntity spawn = SpawnInSlot(slot, comp.m_aPrefabs.GetRandomElement());
 		if(!spawn) return null;
 		
-		SCR_AIWorld aiworld = SCR_AIWorld.Cast(GetGame().GetAIWorld());
-		aiworld.RequestNavmeshRebuildEntity(spawn);
-		
+		// Guarded helper rather than an inline cast: a null AI world here would have VM-errored out
+		// before the slot was registered, leaving the composition spawned but the slot still free.
+		OVT_NavmeshRebuild.RebuildNow(spawn);
+
+
 		m_Spawned = spawn.GetID();
 		RegisterFilledSlot(slot);
 		

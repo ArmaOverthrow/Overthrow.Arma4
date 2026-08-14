@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{6B4C000000000001}Prefabs/Groups/INDFOR/OVT_Group_InactiveRecruits.et"
+ Configurations {
+  EntityTemplateResourceClass PC {
+  }
+  EntityTemplateResourceClass XBOX_ONE : PC {
+  }
+  EntityTemplateResourceClass XBOX_SERIES : PC {
+  }
+  EntityTemplateResourceClass PS4 : PC {
+  }
+  EntityTemplateResourceClass HEADLESS : PC {
+  }
+ }
+}

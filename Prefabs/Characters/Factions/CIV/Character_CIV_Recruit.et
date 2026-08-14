@@ -12,5 +12,41 @@ SCR_ChimeraCharacter : "{99F600AD4C6BA6A4}Prefabs/Characters/Factions/CIV/Charac
   }
   OVT_PlayerWantedComponent "{65A2A8A715A0DB47}" {
   }
+  ActionsManagerComponent "{520EA1D2F659CE02}" {
+   ActionContexts {
+    UserActionContext "{520EA1D2F659CE17}" {
+     Radius 2
+    }
+   }
+   additionalActions {
+    OVT_SetRecruitInactiveAction "{6B4C000000000010}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{6B4C000000000011}" {
+      Name "Tell to Hold Position"
+     }
+     Duration 3
+    }
+    OVT_SetRecruitActiveAction "{6B4C000000000012}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{6B4C000000000013}" {
+      Name "Tell to Follow Me"
+     }
+     Duration 2
+    }
+    OVT_SwapLoadoutWithRecruitAction "{6B4C000000000004}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{6B4C000000000005}" {
+      Name "Swap Gear"
+     }
+     Duration 5
+    }
+   }
+  }
  }
 }

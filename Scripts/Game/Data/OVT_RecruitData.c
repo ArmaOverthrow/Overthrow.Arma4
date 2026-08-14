@@ -45,7 +45,21 @@ class OVT_RecruitData : Managed
 
 	//! Whether the recruit entity is currently spawned in the world
 	bool m_bIsOnline = false;
-	
+
+	//! Whether this recruit is INACTIVE: owned by the player, but deliberately taken OUT of the owner's
+	//! group to hold the position where it stands. An inactive recruit is still owned, still counts
+	//! against the per-player recruit cap, is still persisted and is still respawned with its owner.
+	//!
+	//! THIS IS NOT m_bIsOnline. That flag is about having a BODY in the world - a fact about this
+	//! session, decided by the spawn/despawn path. This one is about SQUAD MEMBERSHIP - a campaign fact
+	//! the player chose, which outlives the body. The four combinations are all reachable and all mean
+	//! different things, so neither may ever be read as a proxy for the other.
+	//!
+	//! SERVER-AUTHORITATIVE. Clients receive it through the JIP payload
+	//! (OVT_RecruitManagerComponent.RplSave/RplLoad) and, for live changes, through the dedicated
+	//! broadcast RPC RpcDo_RecruitActiveStateChanged. A client never writes it.
+	bool m_bInactive = false;
+
 	//! ID of the town where this recruit was hired from
 	int m_iTownId = -1;
 	

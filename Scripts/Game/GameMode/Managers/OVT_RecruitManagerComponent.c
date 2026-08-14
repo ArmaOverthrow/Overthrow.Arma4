@@ -13,7 +13,16 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//! Prefab to use for spawning recruit bodies (both new recruits and restored ones)
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Recruit Character Prefab", params: "et")]
 	ResourceName m_sRecruitPrefab;
-	
+
+	//! Empty, non-playable, delete-when-empty AI group that INACTIVE recruits are parked in.
+	//!
+	//! One is spawned per cluster of parked recruits and destroyed by vanilla when its last member
+	//! leaves - see PlaceRecruitInInactiveGroup(). It must carry OVT_InactiveRecruitGroupComponent
+	//! or the manager will refuse to use it: that component is the only way a group is recognised as
+	//! one of ours, and it is what deletes the group's defend waypoint.
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Inactive Recruit Group Prefab", params: "et")]
+	ResourceName m_sInactiveGroupPrefab;
+
 	//! Singleton instance
 	static OVT_RecruitManagerComponent s_Instance;
 	
@@ -69,6 +78,16 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//! How long to wait for a spawn request to answer before giving the recruit a fresh body (ms).
 	static const int BODY_SPAWN_TIMEOUT_MS = 15000;
 
+	//! How often the server re-reads every online owner's recruits and pushes status to that owner.
+	//!
+	//! TEN SECONDS IS A DELIBERATE FLOOR, NOT A GUESS. At the 16-recruit cap this is 1.6 owner-
+	//! targeted RPCs per second per player, which is negligible; the reason not to go faster is the
+	//! READ, not the send - each recruit costs a weapon-slot walk and an inventory magazine query.
+	//! Nothing in this feature needs sub-second accuracy: the map marker and the roster row show
+	//! "does this recruit have a gun and bullets", which changes on the scale of a firefight, not a
+	//! frame.
+	static const int STATUS_SYNC_INTERVAL_MS = 10000;
+
 	//! Event fired when a recruit is added
 	ref ScriptInvoker m_OnRecruitAdded = new ScriptInvoker();
 	
@@ -77,6 +96,15 @@ class OVT_RecruitManagerComponent : OVT_Component
 	
 	//! Event fired when a recruit gains XP
 	ref ScriptInvoker m_OnRecruitXPGained = new ScriptInvoker();
+
+	//! Event fired when a recruit is parked or brought back into its owner's squad.
+	//! Invoked with (OVT_RecruitData recruit, bool inactive).
+	//!
+	//! FIRED FROM BOTH SIDES OF THE WIRE, exactly once per machine: on the server (and the listen
+	//! host) from SetRecruitInactive after the record is written, and on a remote client from
+	//! RpcDo_RecruitActiveStateChanged. The RPC handler self-guards on RplMode.Client, so a listen
+	//! host does not get it twice.
+	ref ScriptInvoker m_OnRecruitActiveStateChanged = new ScriptInvoker();
 	
 	//------------------------------------------------------------------------------------------------
 	//! Get singleton instance
@@ -154,6 +182,13 @@ class OVT_RecruitManagerComponent : OVT_Component
 		
 		// Start offline timer processing
 		GetGame().GetCallqueue().CallLater(ProcessOfflineTimers, 1000, true);
+
+		// Start the recruit status push. Started UNCONDITIONALLY and guarded inside the tick rather
+		// than guarded here: Replication.IsServer() at EOnInit time is not something this component
+		// has ever depended on, and a timer that starts and then refuses to do anything costs one
+		// null-ish branch every ten seconds on a client, while a timer that never starts because the
+		// guard read false too early would cost the whole feature with no symptom.
+		GetGame().GetCallqueue().CallLater(SweepRecruitStatus, STATUS_SYNC_INTERVAL_MS, true);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -193,6 +228,49 @@ class OVT_RecruitManagerComponent : OVT_Component
 		return recruits;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Whether a recruit is currently INACTIVE - owned, but out of its owner's group holding position.
+	//!
+	//! STATE ONLY. This reads the record and nothing else; it says nothing about whether the recruit
+	//! has a body (m_bIsOnline) or where that body is. An unknown recruit id is ACTIVE rather than an
+	//! error, because every caller of this is a display or a filter and "not inactive" is the safe
+	//! answer for something that does not exist.
+	//! \param[in] recruitId The recruit to look up.
+	//! \return True when the record exists and is marked inactive.
+	bool IsRecruitInactive(string recruitId)
+	{
+		OVT_RecruitData recruit = GetRecruit(recruitId);
+		if (!recruit)
+			return false;
+
+		return recruit.m_bInactive;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A player's recruits filtered by active/inactive state, in table order.
+	//!
+	//! The two halves of GetPlayerRecruits(), so that a caller that wants one section of the roster
+	//! does not have to re-implement the filter. Table order is preserved: it is what makes a roster
+	//! screen and a failing play-test agree on which recruit is "the third one".
+	//! \param[in] persId Owning player's persistent id.
+	//! \param[in] inactive True for the inactive half, false for the active half.
+	//! \return A fresh list, empty when the player owns no recruits in that state. Never null.
+	array<ref OVT_RecruitData> GetPlayerRecruitsByState(string persId, bool inactive)
+	{
+		array<ref OVT_RecruitData> filtered = new array<ref OVT_RecruitData>;
+
+		// NOT named `owned`: that is a reserved EnforceScript keyword and the compile error it produces
+		// ("Expected name, not a keyword") names the line, not the identifier.
+		array<ref OVT_RecruitData> ownedRecruits = GetPlayerRecruits(persId);
+		foreach (OVT_RecruitData recruit : ownedRecruits)
+		{
+			if (recruit.m_bInactive == inactive)
+				filtered.Insert(recruit);
+		}
+
+		return filtered;
+	}
+
 	//------------------------------------------------------------------------------------------------
 	//! Get recruit data by ID
 	OVT_RecruitData GetRecruit(string recruitId)
@@ -243,20 +321,37 @@ class OVT_RecruitManagerComponent : OVT_Component
 	
 	//------------------------------------------------------------------------------------------------
 	//! Get recruits owned by a player within a specified radius of a position
-	array<ref OVT_RecruitData> GetPlayerRecruitsInRadius(string playerPersistentId, vector position, float radius)
+	//!
+	//! The RECORD-shaped twin of GetPlayerRecruitEntitiesInRadius(), and it takes the same option for
+	//! the same reason: the fast-travel fare is previewed on the CLIENT from this method and charged on
+	//! the SERVER from that one, so if only one of them dropped parked recruits the panel would price a
+	//! squad the server does not gather - exactly the client/server drift OVT_FastTravelService exists
+	//! to prevent. Safe on a client: m_bInactive arrives with the JIP payload and is kept current by
+	//! RpcDo_RecruitActiveStateChanged.
+	//!
+	//! \param[in] playerPersistentId The owning player.
+	//! \param[in] position Centre of the search.
+	//! \param[in] radius Search radius in metres.
+	//! \param[in] excludeInactive Leave PARKED recruits out of the answer. Defaults to false, so an
+	//!            existing caller keeps the answer it always had.
+	//! \return The matching records. Never null.
+	array<ref OVT_RecruitData> GetPlayerRecruitsInRadius(string playerPersistentId, vector position, float radius, bool excludeInactive = false)
 	{
 		array<ref OVT_RecruitData> nearbyRecruits = new array<ref OVT_RecruitData>;
-		
+
 		if (!m_mRecruitsByOwner.Contains(playerPersistentId))
 			return nearbyRecruits;
-			
+
 		array<string> recruitIds = m_mRecruitsByOwner[playerPersistentId];
 		foreach (string recruitId : recruitIds)
 		{
 			OVT_RecruitData recruit = m_mRecruits[recruitId];
 			if (!recruit || !recruit.m_bIsOnline)
 				continue;
-				
+
+			if (excludeInactive && recruit.m_bInactive)
+				continue;
+
 			// Find the recruit entity to get current position
 			IEntity recruitEntity = FindRecruitEntity(recruitId);
 			if (!recruitEntity)
@@ -275,20 +370,34 @@ class OVT_RecruitManagerComponent : OVT_Component
 	
 	//------------------------------------------------------------------------------------------------
 	//! Get recruit entities owned by a player within a specified radius of a position
-	array<IEntity> GetPlayerRecruitEntitiesInRadius(string playerPersistentId, vector position, float radius)
+	//!
+	//! \param[in] playerPersistentId The owning player.
+	//! \param[in] position Centre of the search.
+	//! \param[in] radius Search radius in metres.
+	//! \param[in] excludeInactive Leave PARKED recruits out of the answer. Defaults to false because
+	//!            the majority of callers - the loadouts screen, for one - are asking "which of my
+	//!            recruits am I standing next to", and an inactive recruit beside you is still
+	//!            equippable. Fast travel passes TRUE: a parked recruit is parked precisely so that it
+	//!            stays where it is, and dragging a garrison along would be the opposite of the order
+	//!            the player gave it.
+	//! \return The matching bodies. Never null.
+	array<IEntity> GetPlayerRecruitEntitiesInRadius(string playerPersistentId, vector position, float radius, bool excludeInactive = false)
 	{
 		array<IEntity> nearbyRecruitEntities = new array<IEntity>;
-		
+
 		if (!m_mRecruitsByOwner.Contains(playerPersistentId))
 			return nearbyRecruitEntities;
-			
+
 		array<string> recruitIds = m_mRecruitsByOwner[playerPersistentId];
 		foreach (string recruitId : recruitIds)
 		{
 			OVT_RecruitData recruit = m_mRecruits[recruitId];
 			if (!recruit || !recruit.m_bIsOnline)
 				continue;
-				
+
+			if (excludeInactive && recruit.m_bInactive)
+				continue;
+
 			// Find the recruit entity to get current position
 			IEntity recruitEntity = FindRecruitEntity(recruitId);
 			if (!recruitEntity)
@@ -319,6 +428,9 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//! left alone: on a real load the record is brand new and takes the stored id; when saved data is
 	//! re-applied to a RUNNING campaign the live record already points at the body standing in the
 	//! world, and that is the more current fact.
+	//!
+	//! THE INACTIVE FLAG IS ADOPTED UNCONDITIONALLY, because unlike the two exceptions above it is a
+	//! campaign fact rather than a session fact - see the comment at the assignment.
 	//!
 	//! NO RPC. Clients receive the whole table through RplSave/RplLoad instead - see the serializer.
 	//!
@@ -364,6 +476,15 @@ class OVT_RecruitManagerComponent : OVT_Component
 			recruit.m_fTrainingCompleteTime = record.trainingCompleteTime;
 			recruit.m_vLastKnownPosition = record.lastKnownPosition;
 			recruit.m_iTownId = record.townId;
+
+			// ADOPTED UNCONDITIONALLY, like every other record field and unlike m_bIsOnline. Inactive
+			// is a campaign fact the player chose - the same kind of thing as m_bIsTraining - not a
+			// fact about this session, so the saved state is the one being restored and the live value
+			// is what is being replaced. That is what the idempotency contract asks for: re-applying
+			// saved data to a running campaign must reproduce the SAVED state of everything the save
+			// describes, and only session-only facts (the online flag, the entity mapping, a live body
+			// id) are protected from it.
+			recruit.m_bInactive = record.inactive;
 
 			if (recruit.m_sBodyPersistenceId == "")
 				recruit.m_sBodyPersistenceId = record.bodyPersistenceId;
@@ -708,9 +829,18 @@ class OVT_RecruitManagerComponent : OVT_Component
 		if (!faction)
 			return;
 			
-		// Only award XP for killing occupying faction members
+		// Only award XP for killing occupying faction members.
+		//
+		// BUG-107. This used to test against the hardcoded keys "US" and "USSR", which is the pair of
+		// factions that HAPPEN to be the shipping choices - so a campaign configured with any other
+		// occupier awarded recruits no XP at all, silently. The occupier is a config value; ask the
+		// config. Precedent: SCR_CharacterDamageManagerComponent.c:91.
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!config)
+			return;
+
 		string factionKey = faction.GetFactionKey();
-		if (factionKey != "US" && factionKey != "USSR")
+		if (factionKey != config.m_sOccupyingFaction)
 			return;
 			
 		// Award XP
@@ -1026,14 +1156,14 @@ class OVT_RecruitManagerComponent : OVT_Component
 
 			// A body already in the world is either still in play (quick reconnect, the offline
 			// timer never fired) or reserved - hidden in place since the owner left. Either way it
-			// is the same character carrying the same inventory, so wake it and put it back under
-			// command; no storage round trip is involved.
+			// is the same character carrying the same inventory, so wake it and put it back where
+			// the record says it belongs; no storage round trip is involved.
 			IEntity existingEntity = FindRecruitEntity(recruitId);
 			if (existingEntity)
 			{
-				Print("[Overthrow] Recruit " + recruitId + " already in world, adding to group");
+				Print("[Overthrow] Recruit " + recruitId + " already in world, placing it");
 				UnreserveRecruitBody(recruit, existingEntity);
-				AddRecruitToPlayerGroup(playerPersistentId, existingEntity);
+				PlaceRecruitInWorld(playerPersistentId, recruit, existingEntity);
 				BroadcastRecruitUpdate(recruit);
 				continue;
 			}
@@ -1448,10 +1578,14 @@ class OVT_RecruitManagerComponent : OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Links a body to its recruit record and puts it back under the owner's command.
+	//! Links a body to its recruit record and puts it where the record says it belongs.
 	//!
 	//! Used by BOTH routes - a body restored from storage and a fresh one off the prefab - so everything
 	//! here has to be safe to re-apply to a character that already has the right values.
+	//!
+	//! WHERE THE BODY ENDS UP IS PlaceRecruitInWorld()'s decision, not this method's: an ACTIVE recruit
+	//! goes into its owner's squad, an INACTIVE one into a parked group holding position. This is one of
+	//! the only two call sites of that fork.
 	//! \param[in] playerPersistentId The owning player.
 	//! \param[in] recruit The record this body belongs to.
 	//! \param[in] recruitEntity The body.
@@ -1512,8 +1646,8 @@ class OVT_RecruitManagerComponent : OVT_Component
 		if (combatComponent)
 			combatComponent.ResetAISkill();
 
-		// Add to player's group
-		AddRecruitToPlayerGroup(playerPersistentId, recruitEntity);
+		// Into the owner's squad, or into a parked group if the record says this recruit is inactive
+		PlaceRecruitInWorld(playerPersistentId, recruit, recruitEntity);
 
 		// Broadcast updated recruit status to all clients
 		BroadcastRecruitUpdate(recruit);
@@ -1571,7 +1705,164 @@ class OVT_RecruitManagerComponent : OVT_Component
 			m_mEntityToRecruit.Remove(staleId);
 		}
 	}
-	
+
+	//------------------------------------------------------------------------------------------------
+	//! Reads a live recruit body's fighting condition into the status mask its owner is shown.
+	//!
+	//! READS ONLY. Nothing here writes to the entity, the record or the world; every value is
+	//! measured and handed to OVT_RecruitStatus.Derive(), which owns the packing. That split is what
+	//! lets Tier A pin the meaning of the mask while this half - which needs a body, an inventory and
+	//! a damage manager - stays play-test territory.
+	//!
+	//! WEAPONS ARE READ FROM EVERY SLOT, NOT FROM THE HANDS. A slung rifle or a holstered pistol
+	//! lives in the weapon manager's slots and is invisible to an in-hands read, so a recruit walking
+	//! with its rifle on its back would report UNARMED - the same trap ExtractEquippedItems() exists
+	//! to avoid (BUG-044).
+	//!
+	//! WHAT "HAS AMMO" MEANS HERE: the recruit can either fire right now (a muzzle reports rounds,
+	//! which includes a chambered one) or reload (the inventory holds a magazine that fits one of the
+	//! weapons it is carrying). Both halves are needed and neither alone is honest - a full rifle
+	//! with no spares is armed and dangerous, and an empty rifle with four magazines in the vest is
+	//! not "out of ammo" in any sense a player would recognise. The reload half is the engine's own
+	//! GetMagazineCountByWeapon(), the same query vanilla's AI uses to decide whether it can resupply
+	//! (SCR_AICombatComponent.c:530), so magazine-well compatibility is the engine's answer and not a
+	//! hand-rolled one.
+	//! \param[in] recruitEntity The live body to measure. Null is a mask of 0.
+	//! \return A mask of OVT_RecruitStatus flags.
+	protected int ReadRecruitStatus(IEntity recruitEntity)
+	{
+		if (!recruitEntity)
+			return 0;
+
+		bool armed = false;
+		bool hasAmmo = false;
+
+		BaseWeaponManagerComponent weaponManager = BaseWeaponManagerComponent.Cast(recruitEntity.FindComponent(BaseWeaponManagerComponent));
+		if (weaponManager)
+		{
+			// The inventory manager is resolved once for the whole weapon walk, and its absence is
+			// survivable: a recruit with no inventory manager can still report loaded rounds.
+			InventoryStorageManagerComponent inventory = InventoryStorageManagerComponent.Cast(recruitEntity.FindComponent(InventoryStorageManagerComponent));
+
+			array<WeaponSlotComponent> weaponSlots = new array<WeaponSlotComponent>();
+			weaponManager.GetWeaponsSlots(weaponSlots);
+
+			foreach (WeaponSlotComponent slot : weaponSlots)
+			{
+				if (!slot)
+					continue;
+
+				IEntity weaponEntity = slot.GetWeaponEntity();
+				if (!weaponEntity)
+					continue;
+
+				armed = true;
+
+				// Once something can be fired there is nothing left to learn from the other slots.
+				if (hasAmmo)
+					continue;
+
+				BaseWeaponComponent weapon = BaseWeaponComponent.Cast(weaponEntity.FindComponent(BaseWeaponComponent));
+				if (!weapon)
+					continue;
+
+				BaseMuzzleComponent muzzle = weapon.GetCurrentMuzzle();
+				if (muzzle && muzzle.GetAmmoCount() > 0)
+				{
+					hasAmmo = true;
+					continue;
+				}
+
+				if (inventory && inventory.GetMagazineCountByWeapon(weapon) > 0)
+					hasAmmo = true;
+			}
+		}
+
+		// Same two reads the roster row already makes (OVT_RecruitListEntryHandler.PopulateFromEntity),
+		// kept in step with it deliberately: two screens describing one recruit differently is worse
+		// than either being slightly coarse.
+		bool wounded = false;
+		SCR_CharacterDamageManagerComponent damageManager = SCR_CharacterDamageManagerComponent.Cast(recruitEntity.FindComponent(SCR_CharacterDamageManagerComponent));
+		if (damageManager)
+			wounded = damageManager.GetState() != EDamageState.UNDAMAGED;
+
+		bool unconscious = false;
+		CharacterControllerComponent characterController = CharacterControllerComponent.Cast(recruitEntity.FindComponent(CharacterControllerComponent));
+		if (characterController)
+			unconscious = characterController.IsUnconscious();
+
+		return OVT_RecruitStatus.Derive(armed, hasAmmo, wounded, unconscious);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! SERVER: every STATUS_SYNC_INTERVAL_MS, tell each ONLINE owner where its recruits are and what
+	//! condition they are in.
+	//!
+	//! WHY A PUSH AND NOT A CLIENT-SIDE READ. A parked recruit is by definition somewhere its owner
+	//! is not, so its entity is not streamed to that client and a client-side read would report every
+	//! distant recruit as unarmed (decision D11). The server is the only machine that can see all of
+	//! them, and one source keeps the map tag and the roster row from disagreeing.
+	//!
+	//! ! IT MUST NEVER CALL SyncRecruitPositions(). That method also materialises each body's
+	//! PERSISTENCE id and writes to storage - save-point work, done before a save and on disconnect,
+	//! not tick work. Doing it every ten seconds would put the persistence system on a timer for no
+	//! gain. This sweep writes m_vLastKnownPosition and nothing else, which is the half that costs
+	//! nothing and which the inactive-group clustering reads (OVT_RecruitInactiveGrouping rule 4).
+	//!
+	//! THE OWNER LIST IS SNAPSHOTTED FIRST. Sending an RPC can reach code that removes a recruit -
+	//! and a removal can empty an owner's list, which drops the owner's key from m_mRecruitsByOwner -
+	//! so walking that map live would be mutating it mid-iteration. GetPlayerRecruits() returns a
+	//! fresh array for the same reason.
+	//!
+	//! Skipped, in this order and each for a different reason: an owner with no controller is offline
+	//! or still connecting and has nobody to tell; an owner whose controller carries no command
+	//! component predates the prefab wiring and would be a silent no-op; a recruit with no body has
+	//! nothing to measure and its last known position is already the best answer anyone has.
+	protected void SweepRecruitStatus()
+	{
+		if (!Replication.IsServer())
+			return;
+
+		if (!m_mRecruitsByOwner || m_mRecruitsByOwner.IsEmpty())
+			return;
+
+		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
+		if (!players)
+			return;
+
+		array<string> ownerIds = {};
+		for (int i = 0; i < m_mRecruitsByOwner.Count(); i++)
+		{
+			ownerIds.Insert(m_mRecruitsByOwner.GetKey(i));
+		}
+
+		foreach (string ownerId : ownerIds)
+		{
+			OVT_OverthrowController controller = players.GetController(ownerId);
+			if (!controller)
+				continue;
+
+			OVT_RecruitCommandComponent commands = OVT_RecruitCommandComponent.Cast(controller.FindComponent(OVT_RecruitCommandComponent));
+			if (!commands)
+				continue;
+
+			array<ref OVT_RecruitData> ownedRecruits = GetPlayerRecruits(ownerId);
+			foreach (OVT_RecruitData recruit : ownedRecruits)
+			{
+				if (!recruit || !recruit.m_bIsOnline)
+					continue;
+
+				IEntity recruitEntity = FindRecruitEntity(recruit.m_sRecruitId);
+				if (!recruitEntity)
+					continue;
+
+				recruit.m_vLastKnownPosition = recruitEntity.GetOrigin();
+
+				commands.SendRecruitStatus(recruit.m_sRecruitId, recruit.m_vLastKnownPosition, ReadRecruitStatus(recruitEntity));
+			}
+		}
+	}
+
 	//------------------------------------------------------------------------------------------------
 	//! Process offline timers for recruit despawning
 	protected void ProcessOfflineTimers()
@@ -1645,25 +1936,42 @@ class OVT_RecruitManagerComponent : OVT_Component
 	
 	//------------------------------------------------------------------------------------------------
 	//! Find recruit entity by persistent ID
+	//!
+	//! STALE MAPPINGS ARE COLLECTED, THEN REMOVED. Removing from m_mEntityToRecruit inside the foreach
+	//! over that same map invalidates the iteration - the same hazard SyncRecruitPositions() documents
+	//! and avoids the same way. The pruning behaviour itself is unchanged and callers that snapshot
+	//! before calling this (RemoveRecruitsFromGroup, MoveRecruitsToGroup) still need to.
 	IEntity FindRecruitEntity(string recruitId)
 	{
 		// On server, use entity ID mapping
 		if (Replication.IsServer())
 		{
+			IEntity found;
+			array<EntityID> staleEntities = {};
+
 			foreach (EntityID entityId, string mappedRecruitId : m_mEntityToRecruit)
 			{
-				if (mappedRecruitId == recruitId)
+				if (mappedRecruitId != recruitId)
+					continue;
+
+				IEntity entity = GetGame().GetWorld().FindEntityByID(entityId);
+				if (entity)
 				{
-					IEntity entity = GetGame().GetWorld().FindEntityByID(entityId);
-					if (entity)
-						return entity;
-					else
-						m_mEntityToRecruit.Remove(entityId); // Clean up stale mapping
+					found = entity;
+					break;
 				}
+
+				staleEntities.Insert(entityId); // Clean up stale mapping, after the loop
 			}
-			return null;
+
+			foreach (EntityID staleId : staleEntities)
+			{
+				m_mEntityToRecruit.Remove(staleId);
+			}
+
+			return found;
 		}
-		
+
 		// On client, use replication ID mapping
 		foreach (RplId rplId, string mappedRecruitId : m_mRplIdToRecruit)
 		{
@@ -1796,6 +2104,457 @@ class OVT_RecruitManagerComponent : OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Where a recruit's body goes when it arrives in the world: the owner's squad, or a parked group.
+	//!
+	//! THE ONE FORK. Both places that put a recruit body under command call this and nothing else -
+	//! AttachRecruitBody() (a body just spawned or just restored from storage) and the already-in-world
+	//! branch of RespawnPlayerRecruits() (a reserved body being woken). Everything else about the
+	//! reservation and respawn flow is untouched by the inactive feature on purpose: that code is what
+	//! BUG-130/131 fixed, and it is the most carefully engineered path in the recruits feature.
+	//!
+	//! RECONSTRUCTED CLUSTERS ARE APPROXIMATE, BY DESIGN. Bodies come back at their stored positions,
+	//! so recruits that were within the cluster radius of each other when parked re-cluster into
+	//! roughly the same groups - but only roughly, because the spawn requests are asynchronous and the
+	//! grouping depends on the order the bodies arrive. That is accepted (decision D8, risk R4): the
+	//! group has no identity a player can observe, and positions and behaviour are unchanged either
+	//! way. It is written down here so nobody later reports it as a bug.
+	//!
+	//! \param[in] playerPersistentId The owning player.
+	//! \param[in] recruit The record, whose m_bInactive decides the fork.
+	//! \param[in] recruitEntity The body being placed.
+	protected void PlaceRecruitInWorld(string playerPersistentId, notnull OVT_RecruitData recruit, notnull IEntity recruitEntity)
+	{
+		if (recruit.m_bInactive)
+		{
+			if (PlaceRecruitInInactiveGroup(recruit, recruitEntity))
+				return;
+
+			// A RECRUIT IS NEVER LEFT IN NO GROUP. The flag is deliberately NOT cleared here: the
+			// player's choice survives a failure to honour it, and the roster disagreeing with the
+			// world is a symptom of the error the placement has already logged - not something to hide
+			// by quietly rewriting the record.
+			Print("[Overthrow] Recruit " + recruit.m_sRecruitId + " is marked inactive but could not be parked - putting it in its owner's group for now", LogLevel.WARNING);
+		}
+
+		AddRecruitToPlayerGroup(playerPersistentId, recruitEntity);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Makes a recruit inactive (parked, holding position) or active (back in its owner's squad).
+	//!
+	//! THE ONE SERVER ENTRY POINT for this state. Every route a player can take - the held action on
+	//! the body, the roster button - arrives here, so there is exactly one place that decides what a
+	//! transition consists of, one place that writes the flag, and one place that tells the clients.
+	//!
+	//! IT VALIDATES, IT DOES NOT TRUST. The caller supplies a recruit id and a desired state and
+	//! nothing else; existence, liveness and "is this even a change" are all re-derived here. A request
+	//! for the state a recruit is already in is REFUSED rather than re-run, because re-running a
+	//! deactivation would pull the recruit out of the inactive group it is already in and build it a
+	//! second one. (Ownership is re-checked by the caller that knows who is asking - Phase 3's
+	//! controller component - because this method is also driven by paths where nobody is asking.)
+	//!
+	//! THE FLAG IS WRITTEN LAST, AND ONLY ON SUCCESS. If the world half of the transition fails, the
+	//! record still says what is actually true, so the roster, the map and the save all stay honest and
+	//! the player can simply try again.
+	//!
+	//! \param[in] recruitId The recruit to change.
+	//! \param[in] inactive True to park it, false to bring it back into the squad.
+	//! \return True when the state actually changed.
+	bool SetRecruitInactive(string recruitId, bool inactive)
+	{
+		if (!Replication.IsServer())
+			return false;
+
+		OVT_RecruitData recruit = GetRecruit(recruitId);
+		if (!recruit)
+		{
+			Print("[Overthrow] SetRecruitInactive: no such recruit " + recruitId, LogLevel.WARNING);
+			return false;
+		}
+
+		if (recruit.m_bInactive == inactive)
+			return false;
+
+		IEntity recruitEntity = FindRecruitEntity(recruitId);
+		if (!recruitEntity)
+		{
+			// Nothing to move. This state is about where a BODY stands, so a recruit that has none
+			// cannot be parked or unparked - the respawn fork honours whatever the record says when the
+			// body eventually comes back.
+			Print("[Overthrow] SetRecruitInactive: recruit " + recruitId + " has no body in the world", LogLevel.WARNING);
+			return false;
+		}
+
+		if (inactive)
+		{
+			if (!DeactivateRecruit(recruit, recruitEntity))
+				return false;
+		}
+		else
+		{
+			if (!ReactivateRecruit(recruit, recruitEntity))
+				return false;
+		}
+
+		recruit.m_bInactive = inactive;
+		BroadcastRecruitActiveState(recruit);
+		m_OnRecruitActiveStateChanged.Invoke(recruit, inactive);
+
+		Print("[Overthrow] Recruit " + recruitId + " is now " + DescribeInactiveState(inactive), LogLevel.NORMAL);
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! "INACTIVE" or "ACTIVE" in words, for a log line.
+	//!
+	//! A method rather than an inline conditional because EnforceScript has no ternary operator, and a
+	//! four-line if/else inside a Print() call buries the thing being logged.
+	//! \param[in] inactive The state to describe.
+	//! \return The label.
+	protected string DescribeInactiveState(bool inactive)
+	{
+		if (inactive)
+			return "INACTIVE (parked, holding position)";
+
+		return "ACTIVE (back in its owner's group)";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The world half of parking a recruit: out of the owner's slave group, into an inactive one.
+	//!
+	//! The slave-group exit is PlaceRecruitInInactiveGroup()'s, not this method's - see its header for
+	//! why it has to own the exit. What lives here is the half that only the deliberate transition
+	//! wants: the ROLLBACK.
+	//!
+	//! \param[in] recruit The record being parked.
+	//! \param[in] recruitEntity Its body.
+	//! \return True when the recruit is now in an inactive group.
+	protected bool DeactivateRecruit(notnull OVT_RecruitData recruit, notnull IEntity recruitEntity)
+	{
+		if (PlaceRecruitInInactiveGroup(recruit, recruitEntity))
+			return true;
+
+		// The body may now be in NO group at all - the exit ran and the placement did not. Put it back
+		// where it came from rather than leaving live AI with nobody commanding it, and refuse the
+		// transition: the record is never written, so nothing downstream comes to believe this recruit
+		// is parked. (This is the ONE place a failed placement can be undone; the respawn fork cannot
+		// roll anything back, because there is nowhere the body came from.)
+		Print("[Overthrow] Recruit " + recruit.m_sRecruitId + " could not be parked - returning it to its owner's group", LogLevel.WARNING);
+		AddRecruitToPlayerGroup(recruit.m_sOwnerPersistentId, recruitEntity);
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The world half of bringing a parked recruit back: out of the inactive group, into the squad.
+	//!
+	//! A recruit that turns out NOT to be in one of our groups is still reactivated. That is a
+	//! legitimate state, not an error: an owner who disconnects has their recruits' AI deactivated
+	//! (ReserveRecruitBody), which can empty the inactive group and let vanilla destroy it, and the
+	//! group is derived state that is rebuilt on their return.
+	//!
+	//! \param[in] recruit The record being reactivated.
+	//! \param[in] recruitEntity Its body.
+	//! \return True - reactivation is not refused. A recruit that could not be put into its owner's
+	//!         group is reported and left ACTIVE, which is honest and self-heals on the next group
+	//!         membership change (MoveRecruitsToGroup takes every online, active recruit).
+	protected bool ReactivateRecruit(notnull OVT_RecruitData recruit, notnull IEntity recruitEntity)
+	{
+		RemoveRecruitFromInactiveGroup(recruitEntity);
+
+		AddRecruitToPlayerGroup(recruit.m_sOwnerPersistentId, recruitEntity);
+
+		if (!FindRecruitParentGroup(recruitEntity))
+			Print("[Overthrow] Recruit " + recruit.m_sRecruitId + " was reactivated but ended up in no group - is its owner in one?", LogLevel.WARNING);
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Puts a recruit's body into an INACTIVE group: the nearest owned one, or a brand new one.
+	//!
+	//! ==========================================================================================
+	//! TWO THINGS MUST NEVER BE DONE TO THE GROUP THIS CREATES:
+	//!
+	//!  1. NEVER CHANGE THIS GROUP'S LIFECYCLE POLICY. It is left at the default, Manual, and
+	//!     SCR_AIGroup.EOnFrame (Entities/SCR_AIGroup.c:313-318) only runs the proximity accumulator
+	//!     for groups whose policy is ProximityDriven - so a Manual group is never proximity-despawned.
+	//!     A proximity-driven inactive group would DELETE THE RECRUIT BODIES at 800 m, which is the
+	//!     whole feature gone (risk R2).
+	//!  2. NEVER ROUTE THIS GROUP THROUGH THE SPAWNING API'S CLEANUP HELPERS. They delete every member
+	//!     soldier of the group they are handed (OVT_EntitySpawningAPI.c:379-400) - and the members of
+	//!     this one are the player's recruits.
+	//! ==========================================================================================
+	//!
+	//! CLUSTERING, IN TWO HALVES. Which records could be hosting a nearby group is decided by the pure
+	//! OVT_RecruitInactiveGrouping.SelectClusterCandidates(); resolving those ids to bodies, asking
+	//! each body's parent group whether it is one of ours, and taking the first that is, happens here,
+	//! because only that half needs the world. First suitable host wins (decision D10), which keeps the
+	//! outcome deterministic and therefore reproducible in a failing play-test.
+	//!
+	//! IT OWNS THE EXIT FROM WHATEVER GROUP THE BODY IS IN, and it has to, because a body can reach it
+	//! ALREADY PARENTED by two different routes: the deactivate transition (it is standing in its
+	//! owner's slave group) and the respawn fork (a reserved body was only ever DeactivateAI'd, not
+	//! removed from anything, so a returning owner's parked recruit can still be a member of the group
+	//! it was parked in). AddAIEntityToGroup refuses to move an already-parented agent
+	//! (Entities/SCR_AIGroup.c:1930-1932), so leaving that to the callers would make the outcome depend
+	//! on which of them remembered - and on an engine behaviour (does DeactivateAI unparent?) that is
+	//! not worth depending on either way.
+	//!
+	//! \param[in] recruit The record being parked. Its last known position is refreshed here.
+	//! \param[in] recruitEntity Its body, wherever it currently is.
+	//! \return True when the body is in an inactive group.
+	protected bool PlaceRecruitInInactiveGroup(notnull OVT_RecruitData recruit, notnull IEntity recruitEntity)
+	{
+		vector position = recruitEntity.GetOrigin();
+
+		// The record's position IS the clustering input for the NEXT recruit parked near this one
+		// (OVT_RecruitInactiveGrouping rule 4), and until Phase 4's status sweep lands nothing else
+		// refreshes it between a body being placed and a save point. Writing it here is what makes
+		// "park two recruits side by side" cluster them even when both have walked a long way since
+		// their bodies were spawned.
+		recruit.m_vLastKnownPosition = position;
+
+		SCR_AIGroup currentGroup = FindRecruitParentGroup(recruitEntity);
+
+		// ALREADY PARKED. Idempotent on purpose - the respawn fork re-runs for a body that never left
+		// its inactive group, and "put it back where it already is" must be a no-op rather than a
+		// second group. Re-clustering it would also be wrong: the group it is in is by definition a
+		// group of its owner's parked recruits at this spot.
+		if (currentGroup && OVT_InactiveRecruitGroupComponent.Cast(currentGroup.FindComponent(OVT_InactiveRecruitGroupComponent)))
+			return true;
+
+		// Any OTHER group has to be left through the full exit, which also broadcasts the membership
+		// change - a bare RemoveAgent would leave the recruit showing in the owner's group UI on every
+		// client forever.
+		if (currentGroup)
+		{
+			SCR_GroupsManagerComponent groupsManager = SCR_GroupsManagerComponent.GetInstance();
+			if (groupsManager)
+				RemoveRecruitFromSlaveGroup(recruitEntity, currentGroup, groupsManager);
+		}
+
+		SCR_AIGroup hostGroup = FindInactiveClusterHost(recruit, position);
+		if (hostGroup)
+		{
+			if (AddRecruitAgentToGroup(hostGroup, recruitEntity))
+			{
+				Print("[Overthrow] Recruit " + recruit.m_sRecruitId + " joined a nearby inactive group (" + hostGroup.GetAgentsCount().ToString() + " parked there now)", LogLevel.NORMAL);
+				return true;
+			}
+
+			// A group of its own is a better answer than no group: the recruit is out of its owner's
+			// squad either way, and it is the group that carries the defend order.
+			Print("[Overthrow] Recruit " + recruit.m_sRecruitId + " could not join the nearby inactive group - giving it one of its own", LogLevel.WARNING);
+		}
+
+		return CreateInactiveGroupFor(recruit, recruitEntity, position);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Spawns one inactive-recruit group, dresses it, and puts the first recruit in it.
+	//!
+	//! Everything that makes the group usable happens while it is still EMPTY, because SetFaction()
+	//! rewrites the faction affiliation of every agent already in a group
+	//! (Entities/SCR_AIGroup.c:2112-2120), and the defend waypoint should be waiting for the first
+	//! member rather than arriving after it.
+	//!
+	//! The prohibitions in PlaceRecruitInInactiveGroup()'s header apply to the group built here.
+	//!
+	//! \param[in] recruit The record being parked.
+	//! \param[in] recruitEntity Its body.
+	//! \param[in] position Where to build the group and aim its defend waypoint.
+	//! \return True when the group exists and holds this recruit. On false NOTHING is left behind.
+	protected bool CreateInactiveGroupFor(notnull OVT_RecruitData recruit, notnull IEntity recruitEntity, vector position)
+	{
+		if (m_sInactiveGroupPrefab.IsEmpty())
+		{
+			Print("[Overthrow] No inactive-recruit group prefab is set on the recruit manager - recruit " + recruit.m_sRecruitId + " cannot be parked", LogLevel.ERROR);
+			return false;
+		}
+
+		IEntity groupEntity = OVT_Global.SpawnEntityPrefab(m_sInactiveGroupPrefab, position);
+		SCR_AIGroup group = SCR_AIGroup.Cast(groupEntity);
+		if (!group)
+		{
+			if (groupEntity)
+				SCR_EntityHelper.DeleteEntityAndChildren(groupEntity);
+
+			Print("[Overthrow] The inactive-recruit group prefab did not produce an SCR_AIGroup - recruit " + recruit.m_sRecruitId + " cannot be parked", LogLevel.ERROR);
+			return false;
+		}
+
+		OVT_InactiveRecruitGroupComponent marker = OVT_InactiveRecruitGroupComponent.Cast(group.FindComponent(OVT_InactiveRecruitGroupComponent));
+		if (!marker)
+		{
+			// REFUSED, NOT TOLERATED. Without the marker this group could never be recognised as a
+			// cluster host again, and nothing would ever delete its defend waypoint - so a prefab
+			// missing the component would silently leak one group and one waypoint per parked recruit.
+			SCR_EntityHelper.DeleteEntityAndChildren(group);
+			Print("[Overthrow] The inactive-recruit group prefab has no OVT_InactiveRecruitGroupComponent - recruit " + recruit.m_sRecruitId + " cannot be parked", LogLevel.ERROR);
+			return false;
+		}
+
+		marker.SetOwnerPersistentId(recruit.m_sOwnerPersistentId);
+
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (config)
+		{
+			// The same faction the recruit bodies themselves carry (SetRecruitFaction), so the group and
+			// its members agree about who they are.
+			FactionManager factionManager = GetGame().GetFactionManager();
+			if (factionManager)
+			{
+				Faction playerFaction = factionManager.GetFactionByKey(config.m_sPlayerFaction);
+				if (playerFaction)
+					group.SetFaction(playerFaction);
+			}
+
+			// Defend in place (decision D9) - the mod's own garrison precedent, verbatim
+			// (OVT_ResistanceFactionManager.c:1036-1049).
+			AIWaypoint waypoint = config.SpawnDefendWaypoint(position);
+			if (waypoint)
+			{
+				group.AddWaypoint(waypoint);
+
+				// Handing it to the marker is what deletes it when the group dies. AddWaypoint() does
+				// NOT take ownership: vanilla destroys the waypoints IT spawned explicitly
+				// (SCR_AIGroup.DestroyEntities :1871-1886), and this group is destroyed by vanilla's
+				// delete-when-empty far more often than by anything here.
+				marker.SetWaypoint(waypoint);
+			}
+		}
+
+		// SESSION-SCOPED BY CONSTRUCTION (decision D7, BUG-118). The grouping is rebuilt from the
+		// recruit records on the next boot, so a persistence record for one of these groups would be a
+		// permanent orphan. Same rule, and the same call, every waypoint Overthrow spawns already gets
+		// (OVT_Global.SpawnEntityPrefab).
+		OVT_PersistenceManagerComponent.UntrackTransient(groupEntity);
+
+		if (!AddRecruitAgentToGroup(group, recruitEntity) || group.GetAgentsCount() < 1)
+		{
+			// VANILLA WILL NOT CLEAN THIS UP. m_bDeleteWhenEmpty deletes a group whose last member
+			// LEAVES; its own attribute description says it will "*not* delete the group when it starts
+			// empty" (Entities/SCR_AIGroup.c:95-97), and OnEmpty() is only raised by a removal. A group
+			// that never received its first agent is therefore ours to destroy, here, or it stands in
+			// the world with a defend waypoint and nobody in it for the rest of the session.
+			Print("[Overthrow] Recruit " + recruit.m_sRecruitId + " could not be added to its new inactive group - deleting the group", LogLevel.WARNING);
+			SCR_EntityHelper.DeleteEntityAndChildren(group);
+			return false;
+		}
+
+		Print("[Overthrow] Recruit " + recruit.m_sRecruitId + " parked in a new inactive group at " + position.ToString(), LogLevel.NORMAL);
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! An inactive group near a spot that one of this owner's OTHER parked recruits is already in.
+	//!
+	//! The candidate ids come from the pure selector; this walks them in table order and returns the
+	//! first whose body is actually in a group carrying our marker component. A candidate whose body
+	//! has gone, or who turns out not to be in one of our groups after all, is skipped rather than
+	//! treated as an error - the records and the world are allowed to be a frame apart.
+	//!
+	//! \param[in] recruit The recruit being placed - excluded from its own candidate list.
+	//! \param[in] position Where it is standing.
+	//! \return A group to join, or null when one must be created.
+	protected SCR_AIGroup FindInactiveClusterHost(notnull OVT_RecruitData recruit, vector position)
+	{
+		// SelectClusterCandidates returns a FRESH array, which is also the snapshot the loop below
+		// needs: FindRecruitEntity() prunes stale entries from m_mEntityToRecruit as it walks, so
+		// iterating a live manager collection while calling it is a known hazard. Nothing here iterates
+		// a collection this manager owns.
+		array<string> candidates = OVT_RecruitInactiveGrouping.SelectClusterCandidates(
+			GetPlayerRecruits(recruit.m_sOwnerPersistentId),
+			recruit.m_sRecruitId,
+			position,
+			OVT_RecruitInactiveGrouping.DEFAULT_CLUSTER_RADIUS);
+
+		foreach (string candidateId : candidates)
+		{
+			IEntity candidateEntity = FindRecruitEntity(candidateId);
+			if (!candidateEntity)
+				continue;
+
+			SCR_AIGroup candidateGroup = FindRecruitParentGroup(candidateEntity);
+			if (!candidateGroup)
+				continue;
+
+			if (!OVT_InactiveRecruitGroupComponent.Cast(candidateGroup.FindComponent(OVT_InactiveRecruitGroupComponent)))
+				continue;
+
+			return candidateGroup;
+		}
+
+		return null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Takes a recruit's body out of the inactive group it is in, if it is in one.
+	//!
+	//! THE GROUP IS NOT DELETED HERE, EVER. If that was its last member, vanilla's OnEmpty() has
+	//! already queued the deletion for the next frame (Entities/SCR_AIGroup.c:2442-2455), and the
+	//! defend waypoint goes with it through OVT_InactiveRecruitGroupComponent.OnDelete(). Deleting it
+	//! here as well would be a double delete of an entity vanilla is still holding a pointer to.
+	//!
+	//! \param[in] recruitEntity The body to pull out.
+	//! \return True when it was in one of our groups and has now left it.
+	protected bool RemoveRecruitFromInactiveGroup(notnull IEntity recruitEntity)
+	{
+		SCR_AIGroup parentGroup = FindRecruitParentGroup(recruitEntity);
+		if (!parentGroup)
+			return false;
+
+		if (!OVT_InactiveRecruitGroupComponent.Cast(parentGroup.FindComponent(OVT_InactiveRecruitGroupComponent)))
+			return false;
+
+		parentGroup.RemoveAgentFromControlledEntity(recruitEntity);
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Adds a recruit's agent to a group and CONFIRMS it arrived.
+	//!
+	//! AddAIEntityToGroup RETURNS TRUE WITHOUT MOVING an agent that already belongs to a group -
+	//! "Add to group only if some other system wasn't faster" (Entities/SCR_AIGroup.c:1930-1932) - so
+	//! its return value alone cannot tell "joined" apart from "was already somewhere else". The agent
+	//! hierarchy is the only honest confirmation, and the create-then-fail guard depends on it.
+	//!
+	//! \param[in] group The group to join.
+	//! \param[in] recruitEntity The body.
+	//! \return True only when the recruit's agent's parent group IS this group afterwards.
+	protected bool AddRecruitAgentToGroup(notnull SCR_AIGroup group, notnull IEntity recruitEntity)
+	{
+		if (!group.AddAIEntityToGroup(recruitEntity))
+			return false;
+
+		return FindRecruitParentGroup(recruitEntity) == group;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The AI group a recruit's body currently belongs to, straight from the agent hierarchy.
+	//!
+	//! The engine's hierarchy is the authority on where an agent is - not the replicated m_aAIMembers
+	//! list, which is bookkeeping for the UI and can be a frame behind.
+	//! \param[in] recruitEntity The body.
+	//! \return Its parent group, or null when it has no agent or is in no group.
+	protected SCR_AIGroup FindRecruitParentGroup(notnull IEntity recruitEntity)
+	{
+		AIControlComponent aiControl = AIControlComponent.Cast(recruitEntity.FindComponent(AIControlComponent));
+		if (!aiControl)
+			return null;
+
+		AIAgent agent = aiControl.GetAIAgent();
+		if (!agent)
+			return null;
+
+		return SCR_AIGroup.Cast(agent.GetParentGroup());
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Moves every one of an owner's LIVE recruits into another group's slave group. SERVER ONLY.
 	//!
 	//! This is the "recruits follow their owner IN" half of the reactor
@@ -1831,12 +2590,13 @@ class OVT_RecruitManagerComponent : OVT_Component
 		// iterating a live manager collection while calling it is a known hazard (task T6.7). Nothing
 		// here iterates a collection this manager owns.
 		int skippedOffline = 0;
-		array<string> recruitIds = OVT_GroupRecruitTransfer.SelectTransferable(GetPlayerRecruits(ownerPersistentId), ownerOnline, skippedOffline);
+		int skippedInactive = 0;
+		array<string> recruitIds = OVT_GroupRecruitTransfer.SelectTransferable(GetPlayerRecruits(ownerPersistentId), ownerOnline, skippedOffline, skippedInactive);
 
 		if (recruitIds.IsEmpty())
 		{
-			if (skippedOffline > 0)
-				Print("[Overthrow] MoveRecruitsToGroup: none of " + ownerPersistentId + "'s recruits followed them into group " + targetGroup.GetGroupID() + " (" + skippedOffline + " have no body in the world)", LogLevel.NORMAL);
+			if (skippedOffline > 0 || skippedInactive > 0)
+				Print("[Overthrow] MoveRecruitsToGroup: none of " + ownerPersistentId + "'s recruits followed them into group " + targetGroup.GetGroupID() + " (" + skippedOffline + " have no body in the world, " + skippedInactive + " are parked)", LogLevel.NORMAL);
 
 			return 0;
 		}
@@ -1884,7 +2644,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 			moved++;
 		}
 
-		Print("[Overthrow] Moved " + moved + " of " + ownerPersistentId + "'s recruits into group " + targetGroup.GetGroupID() + " (" + skippedOffline + " skipped, no body in the world)", LogLevel.NORMAL);
+		Print("[Overthrow] Moved " + moved + " of " + ownerPersistentId + "'s recruits into group " + targetGroup.GetGroupID() + " (" + skippedOffline + " skipped for having no body in the world, " + skippedInactive + " skipped for being parked)", LogLevel.NORMAL);
 
 		return moved;
 	}
@@ -1908,13 +2668,12 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//! IT DELIBERATELY NEEDS NO PLAYER CONTROLLER. The move-IN half calls
 	//! SCR_PlayerControllerGroupComponent.AddAIToSlaveGroup on the owner's controller, but the move-OUT
 	//! half must keep working for an owner who no longer HAS one - a disconnect is a removal, and it is
-	//! the removal where leaving recruits behind is worst. Vanilla's mirror
-	//! (SCR_PlayerControllerGroupComponent.RemoveAiFromSlaveGroup,
-	//! Groups/SCR_PlayerControllerGroupComponent.c:1526-1552) reads nothing off the component it is
-	//! called on, so the four steps below are that method inlined, minus the dependency:
-	//! Deactivate-the-slave-when-the-last-AI-leaves, RemoveAgentFromControlledEntity, then
-	//! AskRemoveAiMemberFromGroup (:1557), which broadcasts RPC_DoRemoveAIMemberFromGroup to every
-	//! machine. Keep this in step with that method when Reforger updates (checklist R10).
+	//! the removal where leaving recruits behind is worst.
+	//!
+	//! THE PER-RECRUIT EXIT ITSELF LIVES IN RemoveRecruitFromSlaveGroup(), which this loop calls once
+	//! per recruit. It was extracted so that the inactive-recruit path performs the identical sequence
+	//! rather than a second, drifting copy of it; the "keep in step with vanilla" note travels with the
+	//! sequence, on that method.
 	//!
 	//! \param[in] ownerPersistentId The recruits' owner.
 	//! \param[in] exGroup The MASTER group being left - recruits are pulled out of its slave.
@@ -1937,14 +2696,13 @@ class OVT_RecruitManagerComponent : OVT_Component
 		if (!groupsManager)
 			return;
 
-		RplComponent slaveRplComponent = RplComponent.Cast(slaveGroup.FindComponent(RplComponent));
-		if (!slaveRplComponent)
+		// Cheap early bail with a diagnostic that names the group and the owner - the per-recruit exit
+		// below re-resolves this and can only report per recruit.
+		if (!RplComponent.Cast(slaveGroup.FindComponent(RplComponent)))
 		{
 			Print("[Overthrow] RemoveRecruitsFromGroup: the slave group of group " + exGroup.GetGroupID() + " has no RplComponent - " + ownerPersistentId + "'s recruits cannot be removed from it", LogLevel.WARNING);
 			return;
 		}
-
-		RplId slaveRplId = slaveRplComponent.Id();
 
 		// SNAPSHOT before iterating: FindRecruitEntity() prunes stale entries from m_mEntityToRecruit as
 		// it walks, and the removal reaches back into vanilla group state. Neither may run while this
@@ -1962,40 +2720,80 @@ class OVT_RecruitManagerComponent : OVT_Component
 			if (!recruitEntity)
 				continue;
 
-			AIControlComponent aiControl = AIControlComponent.Cast(recruitEntity.FindComponent(AIControlComponent));
-			if (!aiControl)
-				continue;
-
-			AIAgent agent = aiControl.GetAIAgent();
-			if (!agent)
-				continue;
-
-			// Only pull the ones that are ACTUALLY in this group's slave. A recruit whose body exists
-			// but who was never placed (its owner was mid-respawn, say) has no business being handed to
-			// RemoveAgent, and the engine's agent hierarchy is the authority on that - not the
-			// replicated m_aAIMembers list, which is bookkeeping for the UI.
-			if (SCR_AIGroup.Cast(agent.GetParentGroup()) != slaveGroup)
-				continue;
-
-			RplComponent characterRplComponent = RplComponent.Cast(recruitEntity.FindComponent(RplComponent));
-			if (!characterRplComponent)
-			{
-				Print("[Overthrow] RemoveRecruitsFromGroup: recruit " + recruitId + " has no RplComponent - left in group " + exGroup.GetGroupID() + "'s slave group", LogLevel.WARNING);
-				continue;
-			}
-
-			// Vanilla deactivates the slave group as its LAST AI leaves (:1536-1537), which is what stops
-			// an empty slave group being ticked. AddAIToSlaveGroup re-activates it (:1480-1481), so this
-			// round-trips for a group that later gains recruits again.
-			if (slaveGroup.GetAgentsCount() == 1)
-				slaveGroup.Deactivate();
-
-			slaveGroup.RemoveAgentFromControlledEntity(recruitEntity);
-			groupsManager.AskRemoveAiMemberFromGroup(slaveRplId, characterRplComponent.Id());
-			removed++;
+			if (RemoveRecruitFromSlaveGroup(recruitEntity, slaveGroup, groupsManager))
+				removed++;
 		}
 
 		Print("[Overthrow] Pulled " + removed + " of " + ownerPersistentId + "'s recruits out of group " + exGroup.GetGroupID() + "'s slave group", LogLevel.NORMAL);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Takes ONE recruit out of ONE slave group - the whole four-step exit, in one place.
+	//!
+	//! THE SINGLE IMPLEMENTATION OF THE EXIT. Two callers need it: the group reactor pulling a whole
+	//! squad out when its owner leaves a group (RemoveRecruitsFromGroup), and the parking path taking
+	//! one recruit out of wherever it is (PlaceRecruitInInactiveGroup). They must not drift apart,
+	//! because the sequence is not obvious and getting it wrong strands AI in a leaked group rather
+	//! than failing visibly.
+	//!
+	//! IT DELIBERATELY NEEDS NO PLAYER CONTROLLER. Vanilla's mirror
+	//! (SCR_PlayerControllerGroupComponent.RemoveAiFromSlaveGroup,
+	//! Groups/SCR_PlayerControllerGroupComponent.c:1526-1552) reads nothing off the component it is
+	//! called on, so this is that method inlined, minus the dependency - which is what keeps it working
+	//! for an owner who has already disconnected. The three steps it inlines are
+	//! Deactivate-the-slave-when-the-last-AI-leaves (:1536-1537), RemoveAgentFromControlledEntity, then
+	//! AskRemoveAiMemberFromGroup (:1557), which broadcasts RPC_DoRemoveAIMemberFromGroup to every
+	//! machine. KEEP IT IN STEP WITH THAT METHOD when Reforger updates (recruits checklist R10).
+	//!
+	//! THE PARENT-GROUP CHECK IS NOT A FORMALITY. A recruit whose body exists but who was never
+	//! placed (its owner was mid-respawn, say) has no business being handed to RemoveAgent, and the
+	//! engine's agent hierarchy is the authority on where it is - not the replicated m_aAIMembers
+	//! list, which is bookkeeping for the UI.
+	//!
+	//! \param[in] recruitEntity The recruit's body.
+	//! \param[in] slaveGroup The slave group it should be leaving.
+	//! \param[in] groupsManager The groups manager, used to broadcast the membership change.
+	//! \return True when this recruit was actually in that slave group and has now left it.
+	protected bool RemoveRecruitFromSlaveGroup(IEntity recruitEntity, SCR_AIGroup slaveGroup, SCR_GroupsManagerComponent groupsManager)
+	{
+		if (!recruitEntity || !slaveGroup || !groupsManager)
+			return false;
+
+		AIControlComponent aiControl = AIControlComponent.Cast(recruitEntity.FindComponent(AIControlComponent));
+		if (!aiControl)
+			return false;
+
+		AIAgent agent = aiControl.GetAIAgent();
+		if (!agent)
+			return false;
+
+		if (SCR_AIGroup.Cast(agent.GetParentGroup()) != slaveGroup)
+			return false;
+
+		RplComponent characterRplComponent = RplComponent.Cast(recruitEntity.FindComponent(RplComponent));
+		if (!characterRplComponent)
+		{
+			Print("[Overthrow] RemoveRecruitFromSlaveGroup: recruit body " + recruitEntity + " has no RplComponent - left in the slave group", LogLevel.WARNING);
+			return false;
+		}
+
+		RplComponent slaveRplComponent = RplComponent.Cast(slaveGroup.FindComponent(RplComponent));
+		if (!slaveRplComponent)
+		{
+			Print("[Overthrow] RemoveRecruitFromSlaveGroup: slave group " + slaveGroup.GetGroupID() + " has no RplComponent - the recruit cannot be removed from it", LogLevel.WARNING);
+			return false;
+		}
+
+		// Vanilla deactivates the slave group as its LAST AI leaves (:1536-1537), which is what stops
+		// an empty slave group being ticked. AddAIToSlaveGroup re-activates it (:1480-1481), so this
+		// round-trips for a group that later gains recruits again.
+		if (slaveGroup.GetAgentsCount() == 1)
+			slaveGroup.Deactivate();
+
+		slaveGroup.RemoveAgentFromControlledEntity(recruitEntity);
+		groupsManager.AskRemoveAiMemberFromGroup(slaveRplComponent.Id(), characterRplComponent.Id());
+
+		return true;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -2084,8 +2882,14 @@ class OVT_RecruitManagerComponent : OVT_Component
 				writer.WriteString(skillName);
 				writer.WriteInt(skillLevel);
 			}
+
+			// APPENDED LAST, and it must stay last. The JIP payload is positional: RplLoad reads these
+			// fields back in exactly this order, so a new field may only ever go on the end of the
+			// per-recruit block. Both sides of this wire ship together, so there is no version to
+			// negotiate - the order IS the format.
+			writer.WriteBool(recruit.m_bInactive);
 		}
-		
+
 		return true;
 	}
 	
@@ -2155,7 +2959,12 @@ class OVT_RecruitManagerComponent : OVT_Component
 				if (!reader.ReadInt(skillLevel)) return false;
 				recruit.m_mSkills[skillName] = skillLevel;
 			}
-			
+
+			// LAST in the per-recruit block, matching RplSave. Read order must equal write order.
+			bool isInactive;
+			if (!reader.ReadBool(isInactive)) return false;
+			recruit.m_bInactive = isInactive;
+
 			// Add to collections
 			m_mRecruits[recruitId] = recruit;
 			
@@ -2319,6 +3128,48 @@ class OVT_RecruitManagerComponent : OVT_Component
 			recruit.m_iXP, recruit.m_iKills, recruit.m_iLevel, recruit.m_vLastKnownPosition, recruitRplId);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Broadcast one recruit's ACTIVE/INACTIVE state to all clients (server only).
+	//!
+	//! A DEDICATED RPC ON PURPOSE. The obvious alternative - one more parameter on
+	//! RpcDo_RecruitUpdated - is not available: that handler is already at the 8-parameter limit noted
+	//! at its call site, Rpc() has an untyped variadic prototype, and a wrong arity therefore compiles
+	//! perfectly cleanly and then dies silently at the wire (the BUG-090 failure mode). Two scalars of
+	//! proven types cost nothing and cannot be got wrong that way.
+	//! \param[in] recruit The record whose state has just changed. Ignored when null.
+	void BroadcastRecruitActiveState(OVT_RecruitData recruit)
+	{
+		if (!recruit)
+			return;
+
+		Rpc(RpcDo_RecruitActiveStateChanged, recruit.m_sRecruitId, recruit.m_bInactive);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! RPC method to handle a recruit's active/inactive state change on clients.
+	//! \param[in] recruitId The recruit that changed.
+	//! \param[in] inactive The new state: true means out of the owner's group, holding position.
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_RecruitActiveStateChanged(string recruitId, bool inactive)
+	{
+		// Only process on clients, not the server (server already handled it)
+		if (RplSession.Mode() != RplMode.Client)
+			return;
+
+		// Nothing is created here. A client that has never heard of this recruit has no record to
+		// carry the flag onto, and will get the state with the record itself - through the JIP payload
+		// or through RpcDo_RecruitCreated.
+		OVT_RecruitData recruit = m_mRecruits.Get(recruitId);
+		if (!recruit)
+			return;
+
+		recruit.m_bInactive = inactive;
+
+		// Client-side listeners (the roster screen, the map layer) redraw from here. The server fires
+		// the same invoker from SetRecruitInactive, so both sides see the change exactly once.
+		m_OnRecruitActiveStateChanged.Invoke(recruit, inactive);
+	}
+
 	//------------------------------------------------------------------------------------------------
 	//! RPC method to handle recruit creation on clients
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]

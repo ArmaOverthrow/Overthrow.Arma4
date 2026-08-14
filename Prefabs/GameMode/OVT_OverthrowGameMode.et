@@ -159,6 +159,7 @@ OVT_OverthrowGameMode {
   }
   OVT_RecruitManagerComponent "{65A26826DE2960D9}" {
    m_sRecruitPrefab "{F38D366DDC666132}Prefabs/Characters/Factions/CIV/Character_CIV_Recruit.et"
+   m_sInactiveGroupPrefab "{6B4C000000000001}Prefabs/Groups/INDFOR/OVT_Group_InactiveRecruits.et"
   }
   OVT_ResistanceFactionManager "{59A49A9CD87CBC92}" {
    m_rPlaceablesConfigFile "{A4E760D069AE00F8}Configs/Resistance/placeables.conf"
@@ -231,6 +232,10 @@ OVT_OverthrowGameMode {
     OVT_TutorialEntryConfig "{6B3C000000000053}" : "{6B3C000000000050}Configs/Tutorials/skillsFirstOpen.conf" {
     }
     OVT_TutorialEntryConfig "{6B3C000000000063}" : "{6B3C000000000060}Configs/Tutorials/recruitsFirstRecruit.conf" {
+    }
+    OVT_TutorialEntryConfig "{6B4C000000000064}" : "{6B4C000000000061}Configs/Tutorials/recruitsHoldPosition.conf" {
+    }
+    OVT_TutorialEntryConfig "{6B4C000000000068}" : "{6B4C000000000065}Configs/Tutorials/recruitsSwapGear.conf" {
     }
     OVT_TutorialEntryConfig "{6B3C000000000073}" : "{6B3C000000000070}Configs/Tutorials/placeFirstPlaceable.conf" {
     }

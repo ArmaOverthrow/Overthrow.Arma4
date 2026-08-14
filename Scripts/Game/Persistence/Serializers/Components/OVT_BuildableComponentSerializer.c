@@ -67,6 +67,12 @@ class OVT_BuildableComponentSerializer : ScriptedComponentSerializer
 		if (!buildable)
 			return false;
 
+		// THE NAVMESH DOES NOT COME BACK WITH THE OBJECT - see the matching call and the full
+		// explanation in OVT_PlaceableComponentSerializer.Deserialize(). Buildables are the worse
+		// half of the problem: they are the guard towers, tents and garages an AI cannot squeeze
+		// past, where a placeable is often a sign or a poster.
+		OVT_NavmeshRebuild.Queue(owner);
+
 		// No version means no payload for this component - see OVT_TownManagerSerializer.Deserialize().
 		int version;
 		context.ReadValue("version", version);

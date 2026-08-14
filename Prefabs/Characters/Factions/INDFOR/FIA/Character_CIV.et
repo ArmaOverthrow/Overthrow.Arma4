@@ -101,6 +101,33 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
       Name "#OVT-ConvertSupporter"
      }
     }
+    OVT_SetRecruitInactiveAction "{6B4C000000000018}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{6B4C000000000019}" {
+      Name "Tell to Hold Position"
+     }
+     Duration 3
+    }
+    OVT_SetRecruitActiveAction "{6B4C00000000001A}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{6B4C00000000001B}" {
+      Name "Tell to Follow Me"
+     }
+     Duration 2
+    }
+    OVT_SwapLoadoutWithRecruitAction "{6B4C000000000008}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{6B4C000000000009}" {
+      Name "Swap Gear"
+     }
+     Duration 5
+    }
    }
   }
  }

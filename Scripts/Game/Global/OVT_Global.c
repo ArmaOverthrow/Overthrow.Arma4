@@ -189,6 +189,22 @@ class OVT_Global : Managed
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Convenience method to get the recruit command relay component
+	//!
+	//! CLIENT-ONLY, like every other accessor built on GetController(), and null until
+	//! OVT_OverthrowController.RpcDo_NotifyOwnerAssignment has registered this player's controller -
+	//! an ASYNC step, so a caller that runs on the first frame of a spawn or a join can legitimately
+	//! see null here and must guard rather than assume. Null forever on a dedicated server.
+	//! \return Recruit command component or null
+	static OVT_RecruitCommandComponent GetRecruitCommands()
+	{
+		OVT_OverthrowController controller = GetController();
+		if (!controller) return null;
+
+		return OVT_RecruitCommandComponent.Cast(controller.FindComponent(OVT_RecruitCommandComponent));
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Convenience method to get the local player's tutorial delivery component
 	//!
 	//! Null until OVT_OverthrowController.RpcDo_NotifyOwnerAssignment has registered the controller,

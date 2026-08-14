@@ -1017,6 +1017,23 @@ class OVT_TEST_PersistenceRoundTrip_RealEstateOwnership_SurvivesSaveAndReload : 
 
 //------------------------------------------------------------------------------------------------
 //! A recruit record survives a save and a reload.
+//!
+//! THE INACTIVE FLAG IS PART OF THAT RECORD (recruit-ux Phase 1, T1.9). The recruit is deactivated
+//! before the save, so the assertion after the reload covers the whole serializer v3 chain - the
+//! write in Serialize(), the field's position at the end of the record, the read back, and
+//! ApplyPersistedRecruits() adopting it onto the restored record. A recruit that came back ACTIVE
+//! after being parked would walk back into its owner's squad on load, which is exactly the failure
+//! this case exists to catch and which no compile check can see.
+//!
+//! PROVEN ABLE TO FAIL (by deliberate fault + compile-check, since this tier is the orchestrator's to
+//! run):
+//!   a. `record.inactive = recruit.m_bInactive;` deleted from OVT_RecruitManagerSerializer.Serialize()
+//!      -> the restored record carries false and the case fails on "the inactive flag did not survive".
+//!   b. `recruit.m_bInactive = record.inactive;` deleted from ApplyPersistedRecruits() -> same
+//!      failure, from the read half instead of the write half.
+//!   Both faults were injected and the whole tree recompiled clean - a positional binary format has
+//!   no other gate - and both were then reverted, with the tree recompiling clean again. No
+//!   maxAttempts: the phases below poll for asynchronous completion, they never retry.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_Recruits_SurvivesSaveAndReload : SCR_AutotestCaseBase
@@ -1070,6 +1087,16 @@ class OVT_TEST_PersistenceRoundTrip_Recruits_SurvivesSaveAndReload : SCR_Autotes
 			}
 
 			recruits.AddRecruitXP(m_sRecruitId, SAVED_XP);
+
+			// Park the recruit before the save. The restored record must come back INACTIVE.
+			OVT_RecruitData saved = recruits.GetRecruit(m_sRecruitId);
+			if (!saved)
+			{
+				SetFailure("GetRecruit('%1') returned nothing for the ID AddRecruit() just handed out", m_sRecruitId);
+				return true;
+			}
+
+			saved.m_bInactive = true;
 
 			m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
 
@@ -1183,6 +1210,18 @@ class OVT_TEST_PersistenceRoundTrip_Recruits_SurvivesSaveAndReload : SCR_Autotes
 		{
 			SetFailure("Recruit name did not survive the round trip: expected '%1', read back '%2'",
 				RECRUIT_NAME, recruit.GetName());
+			return true;
+		}
+
+		if (!recruit.m_bInactive)
+		{
+			SetFailure("Recruit '%1' was parked INACTIVE before the save and came back ACTIVE - the inactive flag did not survive the round trip", m_sRecruitId);
+			return true;
+		}
+
+		if (!recruits.IsRecruitInactive(m_sRecruitId))
+		{
+			SetFailure("IsRecruitInactive('%1') disagrees with the restored record, which says inactive", m_sRecruitId);
 			return true;
 		}
 

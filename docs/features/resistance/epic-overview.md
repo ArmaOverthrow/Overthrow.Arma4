@@ -1,8 +1,8 @@
 # Resistance - Epic Overview
 
 **Epic:** resistance
-**Status:** 📄 Documented (6/6 retrospective)
-**Last Updated:** 2026-08-09
+**Status:** 🟢 Active (6 documented retrospective + recruit-ux Ready for Review + vehicle-storage planned)
+**Last Updated:** 2026-08-14 22:07
 
 > **This file is the epic marker.** Its presence in `docs/features/resistance/` is what tells every Beast Mode command (and future Web App / Discord clients) that this folder is an **epic**, not a plain feature. Keep it present and keep the required sections below filled in. It is the epic's equivalent of the project's `docs/overview.md`, scoped to this epic. The master `docs/overview.md` tracks this epic as a **single row**; the per-feature detail lives **here**.
 
@@ -21,11 +21,13 @@ The constituent features of this epic. All already existed in code and were docu
 | # | Feature | Status | Tasks | Description |
 |---|---------|--------|-------|-------------|
 | 1 | core | 📄 Documented | — (retrospective) | `OVT_ResistanceFactionManager` — camps, FOB *records*, player-bought garrisons, officer facade, player faction key; JIP + idempotent vanilla-persistence serializer. Healthy persistence layer; headline remaining debt: dedicated-server-broken officer promotion (BUG-045) and residual client-trust in garrison RPC inputs (BUG-046/047 fixes landed). |
-| 2 | fob | 📄 Documented | 0/10 bugs | Mobile FOB — truck↔deployed-base prefab swap with async cargo transfer, deploy exclusion zones (server-validated + map overlay), priority FOB, fast travel, build/place zone, garrisons, set-home respawn. Discovery (2026-08-09) filed **BUG-119…128**: officer gate bypassable via the vehicle-upgrade path with client-side payment (BUG-122), undeploy area-wipes neighbours' property (BUG-124), error-path record/garrison leaks (BUG-121/125), unauthenticated priority RPC (BUG-123), zero-vector nearest-FOB queries (BUG-126), plus nameless FOBs and dropped notifications. |
+| 2 | fob | 📄 Documented | Complete (100%) | Mobile FOB — truck↔deployed-base prefab swap with async cargo transfer, deploy exclusion zones (server-validated + map overlay), priority FOB, fast travel, build/place zone, garrisons, set-home respawn. Discovery (2026-08-09) filed **BUG-119…128**: officer gate bypassable via the vehicle-upgrade path with client-side payment (BUG-122), undeploy area-wipes neighbours' property (BUG-124), error-path record/garrison leaks (BUG-121/125), unauthenticated priority RPC (BUG-123), zero-vector nearest-FOB queries (BUG-126), plus nameless FOBs and dropped notifications. |
 | 3 | building | 📄 Documented | — (retrospective) | Placement & construction — 8 placeables / 7 buildables, ghost-preview place/build UI contexts, placeable/buildable marker components + handlers, per-location item limits, server spawn pipeline, vanilla persistence. Headline debt: everything is client-validated only (BUG-048), removal mode is dedicated-server-broken twice over (BUG-049), and pagination VM-errors on one click (BUG-050). |
 | 4 | recruits | 📄 Documented | — (retrospective) | `OVT_RecruitManagerComponent` (2219 L) — persistent player-owned AI squadmates: recruit civilians/tents, XP & naming, vanilla-group command, offline body save/release + async respawn with gear, roster UI. Headline debt: unvalidated recruit RPCs (BUG-051), client-local rename (BUG-052), fast-travel leaves recruits behind after charging (BUG-053). |
 | 5 | loadouts | 📄 Documented | — (retrospective) | `OVT_LoadoutManagerComponent` (2103 L) — save/apply equipment loadouts at equipment boxes (players + recruits, officer templates); recursive item tree with slot addressing; persistence rebuilt 2026-08-02 in the vanilla-persistence migration. Headline debt: box-apply spawns the equipped weapon free (BUG-042), zero-validation RPCs (BUG-043), stowed weapons never captured (BUG-044), officer templates inert. |
 | 6 | wanted-system | 📄 Documented | — (retrospective) | `OVT_PlayerWantedComponent` (810 L) — per-character 0–4 star wanted/stealth layer: 1 Hz perception+LOS detection scan, outfit-faction disguises, combat escalation, perceived-faction override as the AI interface, stars/seen-eye/undercover HUD. Headline debt (**BUG-072…078**): FRIENDLY-bucket-only scan drops "seen" mid-firefight (BUG-072), client-authoritative wanted state with server co-writers + likely double-registered tick (BUG-073), listen-host loot event flags every seen recruit (BUG-074), invoker leak (BUG-075), plus O(N·M) world scans and zero tests. |
+| 7 | recruit-ux | 🟢 Ready for Review | 57/57 (100%) | Recruit squad management built 2026-08-14: **inactive ("holding") recruits** (park/recall via held actions + roster, self-owned delete-when-empty AI groups with 50 m clustering, serializer v3, JIP + broadcast), recruit **map marker layer** with armed/ammo badges + filter row, **sectioned roster** (flat gamepad-safe selection, capacity header, status icons, G/LT toggle), **loadout swap** (entity-transfer only — nothing spawned/deleted), help/FM/wiki synced. Rode along: BUG-107 fixed; BUG-166/167 filed. Pending: one deferred All-group test run + manual play-test checklists + localization re-export. |
+| 8 | vehicle-storage | 📋 Planned | — (requirements only) | Building-mounted vehicle storage component (store/retrieve via parking spaces) — requirements written, not yet planned. |
 
 > Reference any feature with the slash form `resistance/[feature-name]` (e.g. `/continue-feature resistance/core`). Task counts are pulled from each feature's own `tasks.md` and refreshed by `/update-epic`.
 
@@ -84,8 +86,8 @@ Cross-feature tech debt and review findings. **Populated and updated by `/review
 
 How this epic is represented in the project's master `docs/overview.md` (one row, not its children). Kept in sync by `/update-epic` and `/update-master`.
 
-- **Rollup status:** 📄 Documented (6/6 retrospective)
-- **One-line summary for master:** The player resistance faction — command layer (`core`: camps/FOB-records/garrisons/officers), the mobile `fob` (deployable truck→forward base), base `building`/placement, persistent AI `recruits`, equipment `loadouts` and the `wanted-system` — backfilled with retrospective docs. Discovery catalogued dozens of concrete issues (top 12 filed as **BUG-042…053**, several since fixed); the 2026-08-09 FOB carve-out filed ten more (**BUG-119…128**), headlined by an officer-gate bypass with client-side payment and undeploy area-cleanup destroying neighbours' property.
+- **Rollup status:** 🟢 Active — recruit-ux Ready for Review (57/57); 6 documented retrospective; vehicle-storage planned
+- **One-line summary for master:** The player resistance faction — command layer (`core`), mobile `fob`, base `building`, persistent AI `recruits`, `loadouts` and the `wanted-system` (retrospective docs), plus the new **`recruit-ux`** (built 2026-08-14, Ready for Review): inactive "holding" recruits with clustered defend groups, a recruit map layer with ammo-status badges, a sectioned gamepad-safe roster, and a whole-kit loadout swap — BUG-107 fixed en route, BUG-166/167 filed. `vehicle-storage` is planned next. Legacy discovery debt: **BUG-042…053** (several fixed) and FOB's **BUG-119…128**.
 
 ---
 

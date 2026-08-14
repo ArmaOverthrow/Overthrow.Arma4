@@ -15,6 +15,8 @@ OVT_OverthrowController {
   }
   OVT_RespawnRequestComponent "{6A83D5A0000000B0}" {
   }
+  OVT_RecruitCommandComponent "{6B4C000000000003}" {
+  }
   RplComponent "{65C4B2D3DE955867}" {
   }
  }

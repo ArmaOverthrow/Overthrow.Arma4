@@ -51,6 +51,8 @@
 - Two full `AIWorld.GetAIAgents()` walks per component per second (scan + disguise check); `QueryEntitiesBySphere` alternative sits commented out at the scan site.
 - Mobile FOB detection hardcodes the prefab GUID; `"CIV"`/`"FIA"` faction keys are hardcoded fallbacks.
 - Test coverage is zero; the pure-logic extraction candidates are the radius formula, the decay state machine, and `CheckEntity`'s level-selection rules.
+- The game mode's `SCR_PerceivedFactionManagerComponent` is set to `FULL_OUTFIT` (PR #132, 2025-07-18): perceived faction is all-or-nothing — one worn CIV-scored item (vanilla civilian shirt/trousers score CIV 40) or a missing jacket/pants slot makes it unknown, so no disguise and no inventory faction icon. Under the pre-#132 `HIGHEST_VALUE` the dominant faction won.
+- Fixed 2026-08-14: the tick's `InitPlayerOutfitFaction_S` fallback re-broadcast an RPC every second while the outfit had no faction-scored items (BUG-168), and `OVT_WantedInfo` never rebound after death, reading the corpse's wanted/disguise state until the body despawned (BUG-169).
 
 ---
 

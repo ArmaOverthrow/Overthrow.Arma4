@@ -2521,8 +2521,8 @@ StringTable {
   }
   CustomStringTableItem "{6B3B00000000014C}" {
    Id "OVT-FieldManual_Recruits_Text3"
-   Target_en_us "Recruits join your group and take orders through the ordinary group command menu, the same as any other AI subordinate. If you join another player's group your recruits go with you and that player commands them while you are there; they are still yours, and they come back under your command when you leave the group or reconnect. Recruits standing within fifty metres of you when you fast travel come along, and each one adds another fare of the same size to the trip."
-   Comment "Field Manual - Recruits page, body paragraph under the 'Orders and Groups' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_RecruitManagerComponent.RecruitCivilian:800-846 (AddRecruitToPlayerGroup puts the recruit in the owner's group), Scripts/Game/UI/Modded/SCR_GroupSubMenuBase.c:1-60 (the shipped explanation of the group model: recruits follow their owner into a joined group, the leader commands them, ownership is unchanged), and OVT_MapContext.c:25 RECRUIT_TRAVEL_RADIUS = 50 with :386-395 (cost += one fastTravelCost per nearby recruit). The fare itself is a difficulty setting and is not quoted."
+   Target_en_us "Recruits join your group and take orders through the ordinary group command menu, the same as any other AI subordinate. If you join another player's group the recruits currently following you go with you and that player commands them while you are there; they are still yours, and they come back under your command when you leave the group or reconnect. Recruits within fifty metres of you when you fast travel come along, unless they are holding position, and each one adds another fare of the same size to the trip."
+   Comment "Field Manual - Recruits page, body paragraph under the 'Orders and Groups' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_RecruitManagerComponent.RecruitCivilian:800-846 (AddRecruitToPlayerGroup puts the recruit in the owner's group), Scripts/Game/UI/Modded/SCR_GroupSubMenuBase.c:1-60 (the shipped explanation of the group model: recruits follow their owner into a joined group, the leader commands them, ownership is unchanged), and OVT_MapContext.c:25 RECRUIT_TRAVEL_RADIUS = 50 with :386-395 (cost += one fastTravelCost per nearby recruit). The fare itself is a difficulty setting and is not quoted. REVISED 2026-08-14 (recruit-ux Phase 8): recruits that are holding position are excluded from both the group transfer (OVT_GroupRecruitTransfer.c:84) and fast travel (OVT_TravelRequestComponent.c:289, OVT_FastTravelService.c:440), so the two unqualified claims were narrowed to the recruits currently following you."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -5883,6 +5883,23 @@ StringTable {
    NonTranslatable 0
    MaxLength 0
    Modified 1754870400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C00000000003F}" {
+   Id "OVT-Map_Layer_Recruits"
+   Target_en_us "Recruits"
+   Comment "Row label in the map layer-filter panel for the markers showing where each of the player's own recruits is. Plural, title case, one word - it sits directly under the Players row in the same short list. It only ever labels a live control: a player who owns no recruits gets no row at all rather than a disabled one. Covers both active recruits following the player and inactive ones parked holding position."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
    Author "Claude"
    LastChanged "Claude"
    ImageLink ""
@@ -13024,6 +13041,516 @@ StringTable {
    Modified 1706589010
    Author "Aaron Static"
    LastChanged "parkj_c3c9hji"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000020}" {
+   Id "OVT-Recruit_SetInactive"
+   Target_en_us "Tell to Hold Position"
+   Comment "Held action on an owned recruit: take it out of your squad and have it hold position"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000021}" {
+   Id "OVT-Recruit_SetActive"
+   Target_en_us "Tell to Follow Me"
+   Comment "Held action on a parked recruit: bring it back into your squad"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000022}" {
+   Id "OVT-Recruit_CannotParkInVehicle"
+   Target_en_us "Get the recruit out of the vehicle first"
+   Comment "Why a recruit sitting in a vehicle cannot be told to hold position - also the server's refusal hint"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000023}" {
+   Id "OVT-Recruit_NotYours"
+   Target_en_us "That is not one of your recruits"
+   Comment "Server refusal hint when a recruit command names a recruit the player does not own"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000024}" {
+   Id "OVT-Recruit_NoBody"
+   Target_en_us "That recruit is not here right now"
+   Comment "Server refusal hint when a recruit command targets a recruit with no body in the world"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000025}" {
+   Id "OVT-Recruit_CommandFailed"
+   Target_en_us "Could not change that recruit's orders"
+   Comment "Server refusal hint for a recruit command that failed for any other reason"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000040}" {
+   Id "OVT-Recruits_SectionActive"
+   Target_en_us "Active"
+   Comment "Recruits screen: heading over the recruits that are following you"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000041}" {
+   Id "OVT-Recruits_SectionInactive"
+   Target_en_us "Holding Position"
+   Comment "Recruits screen: heading over the recruits that have been parked and are holding position"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000042}" {
+   Id "OVT-Recruits_Capacity"
+   Target_en_us "%1 / %2 recruits"
+   Comment "Recruits screen: how many of your 16 recruit slots are used - parked recruits count too"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000043}" {
+   Id "OVT-Recruits_ToggleHold"
+   Target_en_us "Hold Position"
+   Comment "Recruits screen button: take the selected recruit out of your squad and have it hold position"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000044}" {
+   Id "OVT-Recruits_ToggleFollow"
+   Target_en_us "Follow Me"
+   Comment "Recruits screen button: bring the selected parked recruit back into your squad"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000045}" {
+   Id "OVT-Recruits_StatusHolding"
+   Target_en_us "Holding position (%1m)"
+   Comment "Recruits screen: the selected recruit is parked, with its distance from you"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000046}" {
+   Id "OVT-Recruits_StatusHoldingShort"
+   Target_en_us "Holding"
+   Comment "Recruits screen list row: this recruit is parked and holding position"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000050}" {
+   Id "OVT-Recruit_SwapLoadout"
+   Target_en_us "Swap Gear"
+   Comment "Held action on an owned active recruit: exchange your whole kit with theirs"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000051}" {
+   Id "OVT-Recruit_CannotSwapParked"
+   Target_en_us "Bring the recruit back into your squad first"
+   Comment "Why a parked recruit cannot have its gear swapped - also the server's refusal hint"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000052}" {
+   Id "OVT-Recruit_CannotSwapDown"
+   Target_en_us "The recruit has to be on their feet"
+   Comment "Why a dead or unconscious recruit cannot have its gear swapped - also the server's refusal hint"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000053}" {
+   Id "OVT-Recruit_TooFarAway"
+   Target_en_us "Get closer to the recruit"
+   Comment "Server refusal: the requesting player was not next to the recruit when the action completed"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000054}" {
+   Id "OVT-Recruit_SwapComplete"
+   Target_en_us "Kit swapped"
+   Comment "Loadout swap finished with every item exchanged. Rendered as literal English in script until the runtime exports are regenerated"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000055}" {
+   Id "OVT-Recruit_SwapPartial"
+   Target_en_us "Kit swapped: %1 items exchanged, %2 could not be"
+   Comment "Loadout swap finished with some items left behind. Assembled with counts in script, so it stays literal English until the runtime exports are regenerated"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000056}" {
+   Id "OVT-Recruit_SwapFailed"
+   Target_en_us "Nothing could be exchanged"
+   Comment "Loadout swap ran but moved nothing. Rendered as literal English in script until the runtime exports are regenerated"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000057}" {
+   Id "OVT-Tutorial_RecruitsHoldPosition_Title"
+   Target_en_us "Holding Position"
+   Comment "Title of the 'recruits-hold-position' tutorial tip, shown the first time the Manage Recruits screen is opened. Heading of a small HUD popup, so keep it to two or three words. No markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000058}" {
+   Id "OVT-Tutorial_RecruitsHoldPosition_Body"
+   Target_en_us "Recruits you own can be told to hold position, from this screen or with a held action on the recruit itself. One that is holding position leaves your group and stays where it stands, still yours and still using one of your sixteen recruit slots."
+   Comment "Body of the 'recruits-hold-position' tutorial tip (single page, HUD popup over the recruits screen - two sentences at most). No rich-text markup. Sandbox tone rule: describes the system, never instructs. FACT-CHECKED 2026-08-14 for recruit-ux Phase 8. Roster toggle: OVT_RecruitsContext ToggleActiveButton with Configs/System/chimeraInputCommon.conf:612 OverthrowRecruitsToggleActive. Held action on the body: Prefabs/Characters/Factions/CIV/Character_CIV_Recruit.et:22-30 OVT_SetRecruitInactiveAction, Duration 3. Leaves the group and holds: OVT_RecruitManagerComponent.SetRecruitInactive with PlaceRecruitInInactiveGroup:2416 (SpawnDefendWaypoint). Still owned and still counted: OVT_RecruitManagerComponent.c:11 MAX_RECRUITS_PER_PLAYER = 16 with :208 CanRecruit, which counts every owned record regardless of state."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000059}" {
+   Id "OVT-Tutorial_RecruitsSwapGear_Title"
+   Target_en_us "Swapping Gear"
+   Comment "Title of the 'recruits-swap-gear' tutorial tip, shown the first time the loadouts screen is opened. Heading of a small HUD popup, so keep it to two or three words. No markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C00000000005A}" {
+   Id "OVT-Tutorial_RecruitsSwapGear_Body"
+   Target_en_us "A recruit that is following you carries a Swap Gear action: holding it from close by exchanges your whole kit with theirs, clothing and weapons alike. The real items change hands, so nothing is created or lost; anything that will not fit is stowed instead, or at worst left on the ground."
+   Comment "Body of the 'recruits-swap-gear' tutorial tip (single page, HUD popup over the loadouts screen - two sentences at most). No rich-text markup. Sandbox tone rule: describes the system, never instructs. FACT-CHECKED 2026-08-14 for recruit-ux Phase 8. Action and name: Prefabs/Characters/Factions/CIV/Character_CIV_Recruit.et:40-48 OVT_SwapLoadoutWithRecruitAction, UIInfo Name 'Swap Gear', Duration 5. Active-only: OVT_SwapLoadoutWithRecruitAction.c:43-46. Close by: OVT_RecruitCommandComponent.c:64 SWAP_MAX_DISTANCE = 5. What moves: OVT_LoadoutSwap.BuildClothingAreaOrder:402-412 (backpack, vest, armoured vest, jacket, pants, boots, headcover, handwear) plus the weapon slots. Nothing created or destroyed: plan decision D13 with the Q9 grep proof over OVT_LoadoutSwap.c. Stowed or dropped: OVT_LoadoutSwapResult m_iRelocated and m_iDropped (OVT_LoadoutSwap.c:19-35)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C00000000005B}" {
+   Id "OVT-FieldManual_Recruits_Head5"
+   Target_en_us "Holding Position"
+   Comment "Field Manual - section header inside the Recruits page, drawn above the paragraph about parking a recruit so it holds position. Two to four words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C00000000005C}" {
+   Id "OVT-FieldManual_Recruits_Text6"
+   Target_en_us "A recruit you own can be told to hold position, with a held action on the recruit itself or with the toggle on the Manage Recruits screen. One that is holding position leaves your group and stays where it stands, defending the spot rather than wandering, and recruits left holding position within fifty metres of each other share a single group. They are still yours and still use one of your sixteen slots, they are not taken along when you fast travel, and they stay behind when you join another player's group. A recruit that is inside a vehicle cannot be told to hold position. After a save is loaded they are back where they were left, still holding position."
+   Comment "Field Manual - Recruits page, body paragraph under the 'Holding Position' header. Five sentences, no rich-text markup. FACT-CHECKED 2026-08-14 for recruit-ux Phase 8 against Prefabs/Characters/Factions/CIV/Character_CIV_Recruit.et:22-38 (the two held actions, Duration 3 and 2), OVT_RecruitsContext ToggleActiveButton, OVT_RecruitManagerComponent.SetRecruitInactive with PlaceRecruitInInactiveGroup:2416 (SpawnDefendWaypoint) and :2473 (OVT_RecruitInactiveGrouping.DEFAULT_CLUSTER_RADIUS), OVT_RecruitInactiveGrouping.c:42 = 50.0, OVT_RecruitManagerComponent.c:11 MAX_RECRUITS_PER_PLAYER = 16 with :208, OVT_TravelRequestComponent.c:289 and OVT_FastTravelService.c:440 (both pass excludeInactive true), OVT_GroupRecruitTransfer.c:84 (inactive recruits are not transferable), OVT_SetRecruitInactiveAction.c:38-42 with OVT_RecruitCommandComponent RESULT_IN_VEHICLE:85, and OVT_RecruitManagerSerializer.c:44/108/203 (version 3 carries the flag) with OVT_RecruitManagerComponent.PlaceRecruitInWorld:2125 (a restored recruit goes back to an inactive group). Positions come from m_vLastKnownPosition."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C00000000005D}" {
+   Id "OVT-FieldManual_Recruits_Head6"
+   Target_en_us "Swapping Kit"
+   Comment "Field Manual - section header inside the Recruits page, drawn above the paragraph about exchanging your loadout with a recruit's. Two to four words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C00000000005E}" {
+   Id "OVT-FieldManual_Recruits_Text7"
+   Target_en_us "A recruit that is following you carries a Swap Gear action, usable from close by, which exchanges your whole kit with theirs: clothing, armour, rucksack and weapons, together with whatever is inside them. The exchange moves the real items rather than copying them, so nothing can be created or destroyed by it. Where a piece will not fit the place it belongs, it is stowed elsewhere or, at worst, left on the ground, and the message afterwards says the swap was only partial. A recruit that is holding position does not offer the action."
+   Comment "Field Manual - Recruits page, body paragraph under the 'Swapping Kit' header. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-14 for recruit-ux Phase 8 against Prefabs/Characters/Factions/CIV/Character_CIV_Recruit.et:40-48 (OVT_SwapLoadoutWithRecruitAction, UIInfo Name 'Swap Gear', Duration 5), OVT_SwapLoadoutWithRecruitAction.c:43-46 (active recruits only) and OVT_RecruitCommandComponent.c:64 SWAP_MAX_DISTANCE = 5 with RESULT_TOO_FAR:115, OVT_LoadoutSwap.BuildClothingAreaOrder:402-412 for the clothing areas and the weapon-slot pass for weapons, plan decision D13 with the Q9 grep proof (no SpawnEntityPrefab / TryDeleteItem / DeleteEntityAndChildren / TrySpawnPrefabToStorage in OVT_LoadoutSwap.c), and OVT_LoadoutSwapResult:19-35 plus OVT-Recruit_SwapPartial for the partial-outcome message. The five-metre figure is deliberately not quoted."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C00000000005F}" {
+   Id "OVT-FieldManual_Recruits_Head7"
+   Target_en_us "Finding Your Recruits"
+   Comment "Field Manual - section header inside the Recruits page, drawn above the paragraph about the map marker layer and the sectioned roster screen. Two to four words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000060}" {
+   Id "OVT-FieldManual_Recruits_Text8"
+   Target_en_us "The map has a Recruits layer that draws a marker for each of your own recruits, at full strength for the ones following you and dimmed for the ones holding position, with a badge that shows whether a recruit is armed and whether it still has ammunition. That layer can be switched off from the map's layer panel, and the choice is remembered between sessions. The Manage Recruits screen shows the same split as Active and Holding Position sections, with a status icon on each row and a count of how many of your sixteen slots are in use."
+   Comment "Field Manual - Recruits page, body paragraph under the 'Finding Your Recruits' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-14 for recruit-ux Phase 8 against OVT_MapRecruitLocation.c (one widget per owned recruit; :24 and :295 INACTIVE_MARKER_OPACITY = 0.45 for the dimming), OVT_RecruitStatus.TagIcon:95-104 (no badge when unarmed, armed-with-ammo and armed-dry otherwise), OVT_MapLayersUI.c:65/72/763/993-1002 (the Recruits filter row and its stored preference) with OVT_MapLayerSettingsAccessor.Load/Save through EnsurePrefsLoaded:907 and FlushPrefs:925 (profile-stored, so it survives a restart), and OVT-Recruits_SectionActive / OVT-Recruits_SectionInactive / OVT-Recruits_Capacity for the roster sections and the X / 16 header. The ten-second status refresh interval is deliberately not quoted."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }

@@ -10,7 +10,7 @@
 //! engine access, so that this tier could pin it. If a future change makes that helper reach for a
 //! live component, these cases die with it and the feature loses its only automated coverage.
 //!
-//! THE TWO RULES BEING PINNED, and what breaks if either slips:
+//! THE THREE RULES BEING PINNED, and what breaks if any of them slips:
 //!   1. An OFFLINE RECRUIT has no body in the world, so there is no agent to place in anybody's slave
 //!      group. Handing its id out anyway makes the caller dereference a null entity on every group
 //!      change - and it would only ever be seen on a server where somebody had been away long enough
@@ -19,6 +19,11 @@
 //!      commanded by the leader of whatever group its owner is in, so leaving a departed player's
 //!      squad inside somebody else's group hands that player's AI to a stranger. That is a grief
 //!      vector, and it is invisible in solo play.
+//!   3. An INACTIVE (parked) RECRUIT transfers NOWHERE. It was deliberately taken out of its owner's
+//!      squad to hold the spot where it stands; joining a slave group is what "active" MEANS, so a
+//!      transfer would silently unpark it. The skip is counted SEPARATELY from the offline skip
+//!      because the two mean different things to whoever reads the server log: "2 have no body" can
+//!      be a symptom, "3 are parked" is the player getting what they asked for.
 //!
 //! LIVENESS IS AN ARGUMENT, NOT A LOOKUP. SelectTransferable() takes ownerOnline as a parameter
 //! because the caller resolves it from the engine's player manager, never from the Overthrow player
@@ -43,6 +48,22 @@
 //!   Faults 2 and 3 were run together (exit 1, 2 of 38). Every edit was reverted and the same command
 //!   exited 0 with all 38 green. No retries, no maxAttempts anywhere: these are pure functions over
 //!   hand-built records and cannot flake.
+//!
+//! RULE 3 AND ITS CASE (recruit-ux Phase 2) WERE PROVEN ABLE TO FAIL by deliberate fault injection
+//! plus tools/compile-check.sh - running a suite is the orchestrator's job, not an implementation
+//! agent's (.claude/test-policy.md). Two faults, injected and compiled SEPARATELY, because the case
+//! makes two independent claims and one fault must not be able to stand in for the other:
+//!   4. SelectTransferable's `if (recruit.m_bInactive)` skip DELETED entirely. The tree compiled
+//!      CLEAN (exit 0), which is exactly the point - a missing exclusion is not a syntax error - and
+//!      ParkedRecruitsDoNotTransfer's first assertion is then false by construction: the mixed roster
+//!      returns 4 ids instead of 2, failing on "A roster of 2 active and 2 parked recruits
+//!      transferred 4, expected 2".
+//!   5. The skip KEPT but counted into the WRONG counter (outSkippedOffline++ in place of
+//!      outSkippedInactive++). Also compiled clean. The id assertions still pass - the right recruits
+//!      still move - and the case fails on "A roster with 2 parked recruits reported 0 skipped-parked,
+//!      expected 2", with the paired "reported 2 skipped-OFFLINE recruits, expected 0" assertion right
+//!      behind it. That pair is the claim that the two counters are not one number wearing two names.
+//!   Both faults were reverted and the tree recompiled clean. No maxAttempts.
 //------------------------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------------------------
@@ -52,18 +73,22 @@
 class OVT_TEST_GroupRecruitsFixture
 {
 	//------------------------------------------------------------------------------------------------
-	//! One recruit record with only the two fields SelectTransferable() reads set explicitly.
-	//! `new` applies no [Attribute()] defvalues, so nothing here may rely on a declared default.
+	//! One recruit record with only the three fields SelectTransferable() reads set explicitly.
+	//! `new` applies no [Attribute()] defvalues, so nothing here may rely on a declared default - and
+	//! m_bInactive is written even when the caller wants the false it would have had anyway, because
+	//! the house rule is about what a case DEPENDS on, not about what happens to be true.
 	//! \param[in] recruitId The id the helper is expected to hand back.
 	//! \param[in] isOnline Whether this recruit has a body in the world.
+	//! \param[in] inactive Whether this recruit is parked out of its owner's squad.
 	//! \return The record.
-	static OVT_RecruitData MakeRecruit(string recruitId, bool isOnline)
+	static OVT_RecruitData MakeRecruit(string recruitId, bool isOnline, bool inactive = false)
 	{
 		OVT_RecruitData recruit = new OVT_RecruitData();
 		recruit.m_sRecruitId = recruitId;
 		recruit.m_sOwnerPersistentId = "OVT_TEST_OWNER";
 		recruit.m_sName = recruitId;
 		recruit.m_bIsOnline = isOnline;
+		recruit.m_bInactive = inactive;
 		return recruit;
 	}
 
@@ -221,9 +246,10 @@ class OVT_TEST_Logic_GroupRecruits_EmptyOwnerTransfersNothing : SCR_AutotestCase
 	{
 		array<ref OVT_RecruitData> roster = new array<ref OVT_RecruitData>();
 
-		// Poison value: the helper is required to WRITE this, not merely leave it alone.
+		// Poison values: the helper is required to WRITE both counters, not merely leave them alone.
 		int skippedOffline = -999;
-		array<string> transferable = OVT_GroupRecruitTransfer.SelectTransferable(roster, true, skippedOffline);
+		int skippedInactive = -999;
+		array<string> transferable = OVT_GroupRecruitTransfer.SelectTransferable(roster, true, skippedOffline, skippedInactive);
 
 		if (!transferable)
 		{
@@ -243,7 +269,13 @@ class OVT_TEST_Logic_GroupRecruits_EmptyOwnerTransfersNothing : SCR_AutotestCase
 			return true;
 		}
 
-		Print("Empty owner: empty transfer list, 0 skipped");
+		if (skippedInactive != 0)
+		{
+			SetFailure("An owner with no recruits reported %1 skipped-parked recruits, expected 0", skippedInactive.ToString());
+			return true;
+		}
+
+		Print("Empty owner: empty transfer list, 0 skipped for either reason");
 
 		return true;
 	}
@@ -274,7 +306,8 @@ class OVT_TEST_Logic_GroupRecruits_MixedOnlineOfflineRecruits : SCR_AutotestCase
 		});
 
 		int skippedOffline = -999;
-		array<string> transferable = OVT_GroupRecruitTransfer.SelectTransferable(roster, true, skippedOffline);
+		int skippedInactive = -999;
+		array<string> transferable = OVT_GroupRecruitTransfer.SelectTransferable(roster, true, skippedOffline, skippedInactive);
 
 		if (transferable.Count() != 2)
 		{
@@ -295,6 +328,12 @@ class OVT_TEST_Logic_GroupRecruits_MixedOnlineOfflineRecruits : SCR_AutotestCase
 			return true;
 		}
 
+		if (skippedInactive != 0)
+		{
+			SetFailure("A roster where nobody is parked reported %1 skipped-parked recruits, expected 0", skippedInactive.ToString());
+			return true;
+		}
+
 		// A roster where NOTHING has a body is still a well-formed empty answer with an exact count.
 		array<ref OVT_RecruitData> allOffline = OVT_TEST_GroupRecruitsFixture.MakeRoster({
 			OVT_TEST_GroupRecruitsFixture.MakeRecruit("recruit-gone-a", false),
@@ -302,7 +341,8 @@ class OVT_TEST_Logic_GroupRecruits_MixedOnlineOfflineRecruits : SCR_AutotestCase
 		});
 
 		int allOfflineSkipped = -999;
-		array<string> nothing = OVT_GroupRecruitTransfer.SelectTransferable(allOffline, true, allOfflineSkipped);
+		int allOfflineParked = -999;
+		array<string> nothing = OVT_GroupRecruitTransfer.SelectTransferable(allOffline, true, allOfflineSkipped, allOfflineParked);
 
 		if (nothing.Count() != 0)
 		{
@@ -351,7 +391,8 @@ class OVT_TEST_Logic_GroupRecruits_OfflineOwnerTransfersNothing : SCR_AutotestCa
 		// Same roster, owner present: the control. If this half ever returns anything but 3, the case
 		// below would be passing for the wrong reason.
 		int onlineSkipped = -999;
-		array<string> withOwner = OVT_GroupRecruitTransfer.SelectTransferable(roster, true, onlineSkipped);
+		int onlineParked = -999;
+		array<string> withOwner = OVT_GroupRecruitTransfer.SelectTransferable(roster, true, onlineSkipped, onlineParked);
 		if (withOwner.Count() != 3)
 		{
 			SetFailure("Control: with the owner present, %1 of 3 online recruits were transferable, expected 3", withOwner.Count().ToString());
@@ -360,7 +401,8 @@ class OVT_TEST_Logic_GroupRecruits_OfflineOwnerTransfersNothing : SCR_AutotestCa
 
 		// Owner gone. Every recruit still has a body, and none of them may move.
 		int skippedOffline = -999;
-		array<string> transferable = OVT_GroupRecruitTransfer.SelectTransferable(roster, false, skippedOffline);
+		int skippedInactive = -999;
+		array<string> transferable = OVT_GroupRecruitTransfer.SelectTransferable(roster, false, skippedOffline, skippedInactive);
 
 		if (!transferable)
 		{
@@ -380,6 +422,12 @@ class OVT_TEST_Logic_GroupRecruits_OfflineOwnerTransfersNothing : SCR_AutotestCa
 			return true;
 		}
 
+		if (skippedInactive != 0)
+		{
+			SetFailure("An offline owner reported %1 skipped-PARKED recruits, expected 0 - nothing was examined per-recruit, the whole transfer was refused", skippedInactive.ToString());
+			return true;
+		}
+
 		// An offline owner whose recruits ALSO have no bodies is the same answer, by the same route.
 		array<ref OVT_RecruitData> mixedRoster = OVT_TEST_GroupRecruitsFixture.MakeRoster({
 			OVT_TEST_GroupRecruitsFixture.MakeRecruit("recruit-online-a", true),
@@ -387,16 +435,17 @@ class OVT_TEST_Logic_GroupRecruits_OfflineOwnerTransfersNothing : SCR_AutotestCa
 		});
 
 		int mixedSkipped = -999;
-		array<string> mixed = OVT_GroupRecruitTransfer.SelectTransferable(mixedRoster, false, mixedSkipped);
+		int mixedParked = -999;
+		array<string> mixed = OVT_GroupRecruitTransfer.SelectTransferable(mixedRoster, false, mixedSkipped, mixedParked);
 
-		if (mixed.Count() != 0 || mixedSkipped != 0)
+		if (mixed.Count() != 0 || mixedSkipped != 0 || mixedParked != 0)
 		{
-			SetFailure("An offline owner with a mixed roster transferred %1 recruits and reported %2 skipped, expected 0 and 0",
-				mixed.Count().ToString(), mixedSkipped.ToString());
+			SetFailure("An offline owner with a mixed roster transferred %1 recruits and reported %2 skipped-offline, %3 skipped-parked, expected 0, 0 and 0",
+				mixed.Count().ToString(), mixedSkipped.ToString(), mixedParked.ToString());
 			return true;
 		}
 
-		Print("Offline owner: 3 recruits with bodies, 0 transferable, 0 counted as skipped-offline");
+		Print("Offline owner: 3 recruits with bodies, 0 transferable, 0 counted as skipped for either reason");
 
 		return true;
 	}
@@ -426,7 +475,8 @@ class OVT_TEST_Logic_GroupRecruits_OnlineRecruitsFollowInTableOrder : SCR_Autote
 		});
 
 		int skippedOffline = -999;
-		array<string> transferable = OVT_GroupRecruitTransfer.SelectTransferable(roster, true, skippedOffline);
+		int skippedInactive = -999;
+		array<string> transferable = OVT_GroupRecruitTransfer.SelectTransferable(roster, true, skippedOffline, skippedInactive);
 
 		if (transferable.Count() != 4)
 		{
@@ -450,6 +500,12 @@ class OVT_TEST_Logic_GroupRecruits_OnlineRecruitsFollowInTableOrder : SCR_Autote
 			return true;
 		}
 
+		if (skippedInactive != 0)
+		{
+			SetFailure("A roster where nobody is parked reported %1 skipped-parked recruits, expected 0", skippedInactive.ToString());
+			return true;
+		}
+
 		// The returned list is the caller's own snapshot, not a view onto the roster: the caller
 		// iterates it while the manager it came from prunes stale entity mappings underneath.
 		transferable.Clear();
@@ -460,6 +516,123 @@ class OVT_TEST_Logic_GroupRecruits_OnlineRecruitsFollowInTableOrder : SCR_Autote
 		}
 
 		Print("Online owner, 4 online recruits: all 4 follow, in table order, as a fresh list");
+
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A PARKED recruit does not follow its owner into anybody's group, and the reason is counted apart.
+//!
+//! THIS IS THE ONE RULE THAT IS INVISIBLE UNTIL IT IS WRONG. An inactive recruit's whole purpose is
+//! to hold the spot where it stands; if it were transferable, then simply walking up to a friend and
+//! joining their squad would silently un-park the garrison the player just set up, and it would only
+//! show as "my recruits keep wandering off" in a multiplayer session hours later.
+//!
+//! THE SECOND CLAIM IS THAT THE TWO COUNTERS ARE DIFFERENT NUMBERS. An implementation that skips
+//! parked recruits but counts them as offline passes the first assertion and fails here - and it
+//! would make the server log say a body is missing when the recruit is standing right there, which
+//! is the kind of wrong that costs an evening of the wrong investigation.
+//!
+//! THE THIRD IS THE PRECEDENCE. A recruit that is BOTH parked and bodyless is counted as OFFLINE,
+//! because "there is no agent to move" is the more fundamental fact and it was true before this rule
+//! existed. Pinned explicitly: any counting rule where the two skips overlap has to pick one, and an
+//! unpinned choice would drift the moment the filter order changed.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_LogicSuite, timeoutS: 30)]
+class OVT_TEST_Logic_GroupRecruits_ParkedRecruitsDoNotTransfer : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		// Interleaved on purpose, so a filter that returned a contiguous slice would fail. Every
+		// recruit here HAS a body: the only reason two of them stay behind is that they are parked.
+		array<ref OVT_RecruitData> roster = OVT_TEST_GroupRecruitsFixture.MakeRoster({
+			OVT_TEST_GroupRecruitsFixture.MakeRecruit("recruit-active-a", true, false),
+			OVT_TEST_GroupRecruitsFixture.MakeRecruit("recruit-parked-a", true, true),
+			OVT_TEST_GroupRecruitsFixture.MakeRecruit("recruit-active-b", true, false),
+			OVT_TEST_GroupRecruitsFixture.MakeRecruit("recruit-parked-b", true, true)
+		});
+
+		int skippedOffline = -999;
+		int skippedInactive = -999;
+		array<string> transferable = OVT_GroupRecruitTransfer.SelectTransferable(roster, true, skippedOffline, skippedInactive);
+
+		if (transferable.Count() != 2)
+		{
+			SetFailure("A roster of 2 active and 2 parked recruits transferred %1, expected 2", transferable.Count().ToString());
+			return true;
+		}
+
+		if (transferable[0] != "recruit-active-a" || transferable[1] != "recruit-active-b")
+		{
+			SetFailure("The transferred ids were %1, %2 - expected recruit-active-a, recruit-active-b",
+				transferable[0], transferable[1]);
+			return true;
+		}
+
+		if (skippedInactive != 2)
+		{
+			SetFailure("A roster with 2 parked recruits reported %1 skipped-parked, expected 2", skippedInactive.ToString());
+			return true;
+		}
+
+		if (skippedOffline != 0)
+		{
+			SetFailure("A roster with 2 parked recruits reported %1 skipped-OFFLINE recruits, expected 0 - those recruits all have bodies", skippedOffline.ToString());
+			return true;
+		}
+
+		// Precedence: bodyless beats parked, so a recruit that is both is counted once, as offline.
+		array<ref OVT_RecruitData> overlapping = OVT_TEST_GroupRecruitsFixture.MakeRoster({
+			OVT_TEST_GroupRecruitsFixture.MakeRecruit("recruit-active-c", true, false),
+			OVT_TEST_GroupRecruitsFixture.MakeRecruit("recruit-parked-and-gone", false, true)
+		});
+
+		int overlapOffline = -999;
+		int overlapParked = -999;
+		array<string> overlapTransferable = OVT_GroupRecruitTransfer.SelectTransferable(overlapping, true, overlapOffline, overlapParked);
+
+		if (overlapTransferable.Count() != 1 || overlapTransferable[0] != "recruit-active-c")
+		{
+			SetFailure("A roster of 1 active recruit and 1 parked bodyless recruit transferred %1 ids, expected just recruit-active-c", overlapTransferable.Count().ToString());
+			return true;
+		}
+
+		if (overlapOffline != 1 || overlapParked != 0)
+		{
+			SetFailure("A recruit that is BOTH parked and bodyless was counted as %1 offline and %2 parked, expected 1 and 0 - having no body is the more fundamental reason and wins",
+				overlapOffline.ToString(), overlapParked.ToString());
+			return true;
+		}
+
+		// A roster where EVERYBODY is parked is a well-formed empty answer with an exact count - this
+		// is what a player who has garrisoned their whole squad looks like.
+		array<ref OVT_RecruitData> allParked = OVT_TEST_GroupRecruitsFixture.MakeRoster({
+			OVT_TEST_GroupRecruitsFixture.MakeRecruit("recruit-parked-c", true, true),
+			OVT_TEST_GroupRecruitsFixture.MakeRecruit("recruit-parked-d", true, true),
+			OVT_TEST_GroupRecruitsFixture.MakeRecruit("recruit-parked-e", true, true)
+		});
+
+		int allParkedOffline = -999;
+		int allParkedParked = -999;
+		array<string> none = OVT_GroupRecruitTransfer.SelectTransferable(allParked, true, allParkedOffline, allParkedParked);
+
+		if (none.Count() != 0)
+		{
+			SetFailure("A fully parked roster transferred %1 recruits, expected 0", none.Count().ToString());
+			return true;
+		}
+
+		if (allParkedParked != 3 || allParkedOffline != 0)
+		{
+			SetFailure("A fully parked roster of 3 reported %1 skipped-parked and %2 skipped-offline, expected 3 and 0",
+				allParkedParked.ToString(), allParkedOffline.ToString());
+			return true;
+		}
+
+		PrintFormat("Parked recruits: %1 of 4 follow, %2 stay put, %3 counted as bodyless", transferable.Count().ToString(), skippedInactive.ToString(), skippedOffline.ToString());
 
 		return true;
 	}

@@ -116,6 +116,16 @@ FrameWidgetClass {
                  "Font Size" 18
                  "Min Font Size" 14
                 }
+                TextWidgetClass "{6B4C000000000026}" {
+                 Name "CapacityText"
+                 Slot LayoutSlot "{6B4C000000000027}" {
+                  Padding 10 0 10 5
+                 }
+                 Text "0 / 16 recruits"
+                 "Font Size" 14
+                 "Min Font Size" 12
+                 Color 0.761 0.392 0.08 1
+                }
                 ScrollLayoutWidgetClass "{59A8D26AA9F807BD}" {
                  Name "RecruitsScrollContainer"
                  Slot LayoutSlot "{59A8D25628A6B050}" {
@@ -128,6 +138,38 @@ FrameWidgetClass {
                    Slot OverlayWidgetSlot "{56EF0B1E7E5700F5}" {
                     HorizontalAlign 3
                     VerticalAlign 0
+                   }
+                   {
+                    TextWidgetClass "{6B4C000000000028}" {
+                     Name "ActiveHeader"
+                     Slot LayoutSlot "{6B4C000000000029}" {
+                      Padding 0 0 0 4
+                     }
+                     Text "Active"
+                     "Font Size" 14
+                     "Min Font Size" 12
+                     Color 0.761 0.392 0.08 1
+                    }
+                    VerticalLayoutWidgetClass "{6B4C00000000002A}" {
+                     Name "ActiveList"
+                     Slot LayoutSlot "{6B4C00000000002B}" {
+                     }
+                    }
+                    TextWidgetClass "{6B4C00000000002C}" {
+                     Name "InactiveHeader"
+                     Slot LayoutSlot "{6B4C00000000002D}" {
+                      Padding 0 12 0 4
+                     }
+                     Text "Holding Position"
+                     "Font Size" 14
+                     "Min Font Size" 12
+                     Color 0.761 0.392 0.08 1
+                    }
+                    VerticalLayoutWidgetClass "{6B4C00000000002E}" {
+                     Name "InactiveList"
+                     Slot LayoutSlot "{6B4C00000000002F}" {
+                     }
+                    }
                    }
                   }
                  }
@@ -210,9 +252,9 @@ FrameWidgetClass {
                    "Font Size" 16
                    "Min Font Size" 12
                   }
-                  HorizontalLayoutWidgetClass "{5D5C558A6E391668}" {
+                  HorizontalLayoutWidgetClass "{6B4C00000000003C}" {
                    Name "ActionButtons"
-                   Slot LayoutSlot "{5D5C558A6E391669}" {
+                   Slot LayoutSlot "{6B4C00000000003D}" {
                     Padding 10 10 10 10
                    }
                    {
@@ -243,12 +285,24 @@ FrameWidgetClass {
                     ButtonWidgetClass "{5D5C558A6E391670}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
                      Name "DismissButton"
                      Slot LayoutSlot "{56EEDE01982D053A}" {
-                      Padding 5 0 0 0
+                      Padding 5 0 5 0
                      }
                      components {
                       SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
                        m_sActionName "OverthrowRecruitsDismiss"
                        m_sLabel "#OVT-Recruits_Dismiss"
+                      }
+                     }
+                    }
+                    ButtonWidgetClass "{6B4C000000000030}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+                     Name "ToggleActiveButton"
+                     Slot LayoutSlot "{56EEDE01982D053A}" {
+                      Padding 5 0 0 0
+                     }
+                     components {
+                      SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                       m_sActionName "OverthrowRecruitsToggleActive"
+                       m_sLabel "Hold Position"
                       }
                      }
                     }

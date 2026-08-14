@@ -103,5 +103,25 @@ ImageSetClass {
    Size 128 128
    Flags 0 0
   }
+  ImageSetDefClass recruit {
+   Pos 652 2
+   Size 128 128
+   Flags 0 0
+  }
+  ImageSetDefClass recruit_ammo {
+   Pos 262 132
+   Size 128 128
+   Flags 0 0
+  }
+  ImageSetDefClass recruit_ammo_empty {
+   Pos 132 262
+   Size 128 128
+   Flags 0 0
+  }
+  ImageSetDefClass recruit_wounded {
+   Pos 522 2
+   Size 128 128
+   Flags 0 0
+  }
  }
 }

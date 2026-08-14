@@ -16,7 +16,7 @@
 //!
 //! FIELD ORDER IS THE FORMAT. Reflection writes and reads these members in declaration order, and the
 //! save context is binary, so a new field may only ever be APPENDED - never inserted, never reordered,
-//! never removed. bodyPersistenceId is the version 2 addition and therefore sits last.
+//! never removed. inactive is the version 3 addition and therefore sits last.
 //------------------------------------------------------------------------------------------------
 class OVT_PersistedRecruit
 {
@@ -37,6 +37,11 @@ class OVT_PersistedRecruit
 	//! Version 2. Persistence id of the recruit's stored BODY, so the same character - with the gear it
 	//! was carrying - can be spawned back instead of a fresh one. Empty when no body has been stored.
 	string bodyPersistenceId;
+
+	//! Version 3. Whether the recruit was left INACTIVE - owned, but out of its owner's group, holding
+	//! the position it was parked at. A campaign fact the player chose, not a fact about this session,
+	//! which is why it is stored where m_bIsOnline deliberately is not.
+	bool inactive;
 }
 
 //------------------------------------------------------------------------------------------------
@@ -75,6 +80,9 @@ class OVT_PersistedRecruit
 //! VERSION HISTORY.
 //!   1 - recruit records (identity, progression, skills, last known position, hometown)
 //!   2 - adds OVT_PersistedRecruit.bodyPersistenceId, appended after the skill arrays
+//!   3 - adds OVT_PersistedRecruit.inactive, appended after bodyPersistenceId. A version 1 or 2 save
+//!       has no inactive recruits by definition (the state did not exist), so those recruits load
+//!       back ACTIVE - see ClearInactiveFlags() below.
 //------------------------------------------------------------------------------------------------
 class OVT_RecruitManagerSerializer : ScriptedComponentSerializer
 {
@@ -97,7 +105,7 @@ class OVT_RecruitManagerSerializer : ScriptedComponentSerializer
 		if (!recruits)
 			return ESerializeResult.ERROR;
 
-		context.WriteValue("version", 2);
+		context.WriteValue("version", 3);
 
 		array<ref OVT_PersistedRecruit> records = new array<ref OVT_PersistedRecruit>();
 
@@ -134,6 +142,9 @@ class OVT_RecruitManagerSerializer : ScriptedComponentSerializer
 				// and refreshes it in SyncRecruitPositions(), which OVT_OverthrowGameMode.PreShutdownPersist
 				// runs immediately before this serializer. A codec must not go looking for the body itself.
 				record.bodyPersistenceId = recruit.m_sBodyPersistenceId;
+
+				// Version 3. Written LAST in the record, because field order is the format.
+				record.inactive = recruit.m_bInactive;
 
 				if (recruit.m_mSkills)
 				{
@@ -185,6 +196,13 @@ class OVT_RecruitManagerSerializer : ScriptedComponentSerializer
 		if (version < 2)
 			ClearBodyPersistenceIds(records);
 
+		// Same rule for the version 3 field: it is the LAST one declared, so a version 1 or 2 payload
+		// carries no data for it - and whatever the reader left there is not ours, so it is cleared
+		// rather than trusted. Every recruit from such a save comes back ACTIVE, which is the only
+		// state those versions could describe.
+		if (version < 3)
+			ClearInactiveFlags(records);
+
 		recruits.ApplyPersistedRecruits(records);
 
 		return true;
@@ -202,6 +220,21 @@ class OVT_RecruitManagerSerializer : ScriptedComponentSerializer
 		{
 			if (record)
 				record.bodyPersistenceId = "";
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Blanks the version 3 inactive flag on every record of an older payload.
+	//! \param[in] records Records just read, may be null.
+	protected void ClearInactiveFlags(array<ref OVT_PersistedRecruit> records)
+	{
+		if (!records)
+			return;
+
+		foreach (OVT_PersistedRecruit record : records)
+		{
+			if (record)
+				record.inactive = false;
 		}
 	}
 }
