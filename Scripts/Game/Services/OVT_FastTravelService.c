@@ -124,12 +124,7 @@ class OVT_FastTravelService
 			if (verb == OVT_TravelVerb.BUS)
 				return OVT_TravelResult.MUST_EXIT_VEHICLE;
 
-			CompartmentAccessComponent compartmentAccess = character.GetCompartmentAccessComponent();
-			if (!compartmentAccess)
-				return OVT_TravelResult.MUST_BE_DRIVER;
-
-			BaseCompartmentSlot slot = compartmentAccess.GetCompartment();
-			if (!slot || slot.GetType() != ECompartmentType.PILOT)
+			if (!IsVehicleDriver(actor))
 				return OVT_TravelResult.MUST_BE_DRIVER;
 		}
 
@@ -372,6 +367,57 @@ class OVT_FastTravelService
 	//------------------------------------------------------------------------------------------------
 	// SHARED LOOKUPS - safe on both machines
 	//------------------------------------------------------------------------------------------------
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether the actor is sitting in a vehicle's pilot seat.
+	//!
+	//! Load-bearing beyond the MUST_BE_DRIVER refusal: it is also the test for "the vehicle is coming
+	//! along", because vanilla's TeleportPlayer swaps the character for its vehicle before applying the
+	//! transform (Functions.c:1649-1656) and moves the whole thing with BaseGameEntity.Teleport.
+	//! \param[in] actor The acting player's controlled entity, supplied by the caller.
+	//! \return True only for a driver; false on foot and false for a passenger.
+	static bool IsVehicleDriver(IEntity actor)
+	{
+		ChimeraCharacter character = ChimeraCharacter.Cast(actor);
+		if (!character || !character.IsInVehicle())
+			return false;
+
+		CompartmentAccessComponent compartmentAccess = character.GetCompartmentAccessComponent();
+		if (!compartmentAccess)
+			return false;
+
+		BaseCompartmentSlot slot = compartmentAccess.GetCompartment();
+		if (!slot)
+			return false;
+
+		return slot.GetType() == ECompartmentType.PILOT;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether this trip moves a vehicle, and therefore carries its own occupants.
+	//!
+	//! THE FIX FOR BUG-163, and the reason it is one shared predicate rather than a test on each side:
+	//! the fare (client and server) and the recruit ring (server) must agree about whether recruits are
+	//! being carried, or the panel prices a squad the server does not gather - the same client/server
+	//! drift the whole service exists to prevent.
+	//!
+	//! WHY IT MATTERS. Teleporting a vehicle brings everyone sitting in it, for free, with no code of
+	//! ours involved. Recruits gathered by radius include the ones IN that vehicle, and the ring
+	//! placement then calls SetOrigin on entities that are still occupying a compartment - which is
+	//! what made them vanish and left their map marker pointing at nonsense. Vehicle travel therefore
+	//! gathers NO recruits at all: the occupants ride along, and anyone standing outside is left behind
+	//! rather than teleported into the ring. Nobody is charged a per-recruit fare for a seat they were
+	//! already sitting in.
+	//! \param[in] verb OVT_TravelVerb.FAST_TRAVEL or .BUS. Buses never carry vehicles (MUST_EXIT_VEHICLE).
+	//! \param[in] actor The acting player's controlled entity, supplied by the caller.
+	//! \return True when the trip is a driver's fast travel.
+	static bool VehicleCarriesOccupants(int verb, IEntity actor)
+	{
+		if (verb != OVT_TravelVerb.FAST_TRAVEL)
+			return false;
+
+		return IsVehicleDriver(actor);
+	}
 
 	//------------------------------------------------------------------------------------------------
 	//! How many of a player's recruits are close enough to travel with them.
