@@ -37,9 +37,10 @@ The **code review workflow** is used instead only when `/review-feature` was run
 1. Read `docs/features/<feature-name>/tasks.md` and `docs/features/<feature-name>/context.md` to determine the **next single phase**.
 2. Select the **advanced agent** for the work. These are the `model: opus`, max-effort agents created during setup — e.g. `frontend-dev-advanced`, `backend-dev-advanced`, `ml-dev-advanced`, `dev-advanced`. Choose the one matching the phase's domain.
    - If no matching `*-advanced` agent exists, tell the user and offer to either (a) run `/upgrade-beast-mode` to create the advanced agents, or (b) fall back to the standard agent for this phase.
-3. Spawn **one** advanced agent to implement **only that phase**. Give it full context (the relevant tasks, decisions from `context.md`, and the implementation plan section for this phase). Do NOT implement it yourself.
+3. Spawn **one** advanced agent to implement **only that phase**. Give it full context (the relevant tasks, decisions from `context.md`, and the implementation plan section for this phase). Do NOT implement it yourself. **Include this line verbatim in the prompt:** *"Do not run `tools/run-tests.sh`. Your gate is `tools/compile-check.sh` exit 0 — I run the test suites myself after the phase completes."*
 4. When the agent completes:
    - Update `tasks.md` and `context.md` if the agent did not.
+   - **Run the post-phase test gate yourself, in the main thread** — once, per `.claude/test-policy.md` (the single source of truth). `tools/compile-check.sh` is free; `tools/run-tests.sh` launches a real Reforger client that **steals the user's desktop focus for ~15–20 s**, so: Fast group by default, All only for campaign/economy/persistence phases, **skipped** (and said out loud) for docs/layout/prefab/localization-only phases, **deferred** if the user may be play-testing. On red, read the case names — never re-run hoping it passes — fix it here or send the agent back, then re-run once. Exit 2 is *no verdict*, not a pass.
    - If the phase has a frontend/UI surface, prompt the user to test before anything else.
 5. **STOP.** Report what was completed and explicitly hand back control:
 
@@ -72,4 +73,5 @@ When `code-review.md` is loaded into context, apply the same single-phase, advan
 **DO** force the `*-advanced` agent even if the phase looks routine (that is the whole point of this command)
 **DO** update `tasks.md` and `context.md` between phases if the agent has not
 **DO** prompt for user testing when a phase has a frontend/UI surface
+**DO NOT** let the agent run `tools/run-tests.sh` — the gate is yours, once, after the phase (`.claude/test-policy.md`)
 **DO** remind the user that advanced agents use more tokens, so they can choose `/proceed` for the next phase if appropriate

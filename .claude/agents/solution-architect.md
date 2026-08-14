@@ -129,7 +129,7 @@ Prefabs/
 ### Workbench Limitations
 
 - Automated compile check available: `tools/compile-check.sh` (see `tools/README.md`)
-- Autotests available: `tools/run-tests.sh` (exit 0 pass / 1 fail / 2 indeterminate / 124 timeout), suites under `Scripts/Game/Tests/`
+- ❌ **Do NOT run `tools/run-tests.sh`. Ever.** Planning never runs the suites — they launch a Reforger client that steals the user's desktop focus, and a "baseline" taken now proves nothing: concurrent bugfix sessions and other features will change this tree before your plan is implemented. Autotests exist (`tools/run-tests.sh`, suites under `Scripts/Game/Tests/`) and you should *plan* which tier a phase extends — but the running is the orchestrator's job, after implementation. See `.claude/test-policy.md`
 - Coverage is a spine, not the surface: 30 assertions over pure logic, manager init, started-campaign state and same-session persistence. **JIP/multiplayer, UI, performance and save/reload are uncovered** — plan on manual verification for those
 - Be specific about test procedures
 

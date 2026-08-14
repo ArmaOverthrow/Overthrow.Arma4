@@ -373,6 +373,8 @@ void RpcDo_PositionUpdate(vector pos) {}
 
 ## Testing Procedures
 
+Your own gate is `tools/compile-check.sh` exit 0. ❌ **Do not run `tools/run-tests.sh`** — it launches a Reforger client that steals the user's desktop focus, and the orchestrator runs it once after the phase completes (`.claude/test-policy.md`). The suites cover no multiplayer anyway; MP is exactly the class that still needs the manual procedure below.
+
 After implementing networking, provide specific test steps:
 
 ```
