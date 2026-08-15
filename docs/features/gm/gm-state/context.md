@@ -23,15 +23,17 @@
 - ✅ Phase 6: sibling consumption contract (below), epic-overview findings + help-docs hand-off, grep gates recorded
 
 **What's Next:**
-- 🟡 **Phase 5 MP play-test — PARTIALLY discharged 2026-08-15 via `overthrow-panel`:** the panel rendered
-  live campaign state on the user's own server (panel-provable items 1 and "state populates / countdowns
-  tick" confirmed; all overthrow-panel Step 2 checks passed). **Still owed (log-based, no panel can prove
-  them):** per-class record counts + build ms (`m_bDebugSnapshotTiming`), non-admin negative path (zero
-  `RpcDo_*`), JIP second-client first snapshot, stale-discard under fast poll. **Auth-path detail was not
-  captured** during the user's test — which of admin login / `-ovtGmDev` / GM role gated access remains
-  unrecorded. Note: a local `--mode dedicated` join attempt wedged twice at backend auth
-  (`authentication timeout`, reason=3) — use `--mode local` for future local GM MP tests.
-- 📋 Next: `gm/hud-icons` (consumes overthrow-panel's detail seam contract)
+- 🟡 **Phase 5 MP play-test — FURTHER discharged 2026-08-15 via `gm/hud-icons`:** the user's hud-icons
+  verification pass confirmed **JIP** (second client, base-tooltip seam data on first open) on top of the
+  earlier overthrow-panel confirmation (state populates / countdowns tick on the user's own server).
+  hud-icons' base tooltip reading real resources/garrison numbers is additional behavioural proof the
+  snapshot fan works under MP. **Still owed (log-based, nothing visual can prove them):** per-class record
+  counts + build ms (`m_bDebugSnapshotTiming`), non-admin negative path at the wire (zero `RpcDo_*` in the
+  log — the visual "no data for non-GM" state was exercised, the log was not read), stale-discard under
+  fast poll. **Auth-path detail remains uncaptured** across both features' tests — which of admin login /
+  `-ovtGmDev` / GM role gated access is still unrecorded. Note: a local `--mode dedicated` join attempt
+  wedged twice at backend auth (`authentication timeout`, reason=3) — use `--mode local` for future local
+  GM MP tests.
 
 **Blockers:**
 - None

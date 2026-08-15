@@ -1,6 +1,16 @@
 StaticModelEntity : "{BCF54BF42D61C77E}Prefabs/Structures/Core/Tower_Base.et" {
  ID "50D67C36F43527FE"
  components {
+  OVT_GMEditableCampaignComponent "{6B09A1C0E4D50007}" {
+   m_EntityType SYSTEM
+   m_UIInfo OVT_GMCampaignUIInfo "{6B09A1C0E4D50008}" {
+   }
+   m_bAutoRegister ALWAYS
+   m_vIconPos 0 25 0
+   m_fMaxDrawDistance 20000
+   m_Flags 2052
+   m_eKind RADIO_TOWER
+  }
   OVT_TowerControllerComponent "{5E0E7197564CBE64}" {
   }
   ActionsManagerComponent "{591AD559E46E5F5F}" : "{F0F464A7853E5603}Prefabs/Structures/Core/Ladder_ActionsManager.ct" {

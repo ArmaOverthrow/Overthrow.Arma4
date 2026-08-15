@@ -5,6 +5,16 @@ GenericEntity : "{160E4E4110803F26}Prefabs/Structures/Military/Flags/FlagPole_02
    m_BaseUpgradesConfig OVT_BaseUpgradesConfig "{B67368CBF1D3C5D0}" : "{0756DED5D4018095}Configs/BaseUpgrades/overthrowBaseUpgrades.conf" {
    }
   }
+  OVT_GMEditableCampaignComponent "{6B09A1C0E4D50003}" {
+   m_EntityType SYSTEM
+   m_UIInfo OVT_GMCampaignUIInfo "{6B09A1C0E4D50004}" {
+   }
+   m_bAutoRegister ALWAYS
+   m_vIconPos 0 8 0
+   m_fMaxDrawDistance 20000
+   m_Flags 2052
+   m_eKind BASE
+  }
   OVT_SpawnPointComponent "{65D69CEE44BDDBA6}" {
    m_aPoints {
     PointInfo "{65D69CEE407FB269}" {

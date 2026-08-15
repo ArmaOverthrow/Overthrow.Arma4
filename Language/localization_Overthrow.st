@@ -14128,5 +14128,149 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B09A1C0E4D50101}" {
+   Id "OVT-GMIcon_RadioTower"
+   Target_en_us "Radio Tower"
+   Comment "Game Master icon and tooltip name for an Overthrow radio tower. One or two words - it is drawn under a 48px icon in the editor viewport"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786860000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B09A1C0E4D50102}" {
+   Id "OVT-GMIcon_Base"
+   Target_en_us "Base %1"
+   Comment "Game Master icon and tooltip name for an occupying-faction base. %1 is the base index the campaign files it under, so a GM can match the icon to the base rows in the Overthrow panel. Keep it short"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786860000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B09A1C0E4D50103}" {
+   Id "OVT-GMIcon_BaseGeneric"
+   Target_en_us "Base"
+   Comment "Game Master icon name for a base whose index is not known yet (campaign data has not reached this machine). Same word as OVT-GMIcon_Base without the number"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786860000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B09A1C0E4D50104}" {
+   Id "OVT-GMIcon_Town"
+   Target_en_us "Town"
+   Comment "Game Master icon name for a town whose own name is not known yet (world still loading). The generic word for a settlement, not a specific town"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786860000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B09A1C0E4D5011D}" {
+   Id "OVT-GMIcon_Tooltip_Town"
+   Target_en_us "Support %1 - Stability %2"
+   Comment "Game Master hover tooltip for a town icon. %1 is support as an already-formatted percentage (eg 62%), %2 stability the same way - neither is a bare number, so do not add a percent sign. One line, tooltip is 276px wide"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786880000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B09A1C0E4D5011E}" {
+   Id "OVT-GMIcon_Tooltip_Base"
+   Target_en_us "%1 Resources - %2 Garrison Groups"
+   Comment "Game Master hover tooltip for a base icon. %1 is the base's resource total, %2 the number of AI groups garrisoned there (both from the gm-state store). No faction here - the vanilla tooltip already shows it below. One line, tooltip is 276px wide"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786880000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B09A1C0E4D5011F}" {
+   Id "OVT-GMIcon_Tooltip_TowerOnline"
+   Target_en_us "Online"
+   Comment "Game Master hover tooltip for a radio tower that is working normally - it is broadcasting, so the occupying faction gets its detection bonus from it"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786880000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B09A1C0E4D50120}" {
+   Id "OVT-GMIcon_Tooltip_TowerSabotaged"
+   Target_en_us "Sabotaged - %1"
+   Comment "Game Master hover tooltip for a sabotaged radio tower. %1 is the downtime left as a clock string (eg 4:12). One line, tooltip is 276px wide"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786880000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B09A1C0E4D50121}" {
+   Id "OVT-GMIcon_Tooltip_NoData"
+   Target_en_us "No campaign data yet"
+   Comment "Game Master hover tooltip shown when a town, base or radio tower record cannot be resolved yet - world still loading, or a client that has not received campaign state. Must never be empty: an empty tooltip description removes the widget"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786880000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
  }
 }

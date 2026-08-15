@@ -21,6 +21,12 @@ modded class SCR_EditModeEditorUIComponent
 	//! Overthrow's GM panel layout, anchored top-left under the EDIT-mode root.
 	protected const ResourceName PANEL_LAYOUT = "{6B08D3A17C4B0000}UI/Layouts/GM/GMPanel.layout";
 
+	// NO SELECTION-DETAIL SURFACE, ON PURPOSE (user decision 2026-08-15). A click-driven detail
+	// readout was built into the panel's detail slot and then removed the same day: it stretched the
+	// panel far past its intended footprint. Per-entity campaign state lives in the hover tooltip
+	// instead (OVT_GMCampaignUIInfo.GetDescription). The panel's empty detail seam remains for the
+	// gm epic's Phase 2 popup actions.
+
 	//------------------------------------------------------------------------------------------------
 	//! Fires once per EDIT-mode activation, one frame after the mode root is built
 	//! (MenuRootSubComponent.c:82 defers it), so the full tree exists when the panel is created.
