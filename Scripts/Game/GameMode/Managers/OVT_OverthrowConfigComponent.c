@@ -42,7 +42,12 @@ class OVT_OverthrowConfigStruct
 	float gunDealerSellPriceMultiplier;
 	float procurementMultiplier;
 	float vehiclePriceMultiplier;
-	
+	//! Gear fee multiplier for equipped tent recruits. Server-side only - see the note on
+	//! OVT_DifficultySettings.recruitLoadoutFeeMultiplier. Nothing replicates this and nothing may
+	//! start to: it is deliberately absent from RplSave/RplLoad below, which is why
+	//! CONFIG_STREAM_VERSION did not have to move for the equipped-recruit purchase (decision D18).
+	float recruitLoadoutFeeMultiplier;
+
 	void SetDefaults()
 	{
 		discordWebHookURL = "see wiki: https://github.com/ArmaOverthrow/Overthrow.Arma4/wiki/Discord-Web-Hook";
@@ -62,6 +67,7 @@ class OVT_OverthrowConfigStruct
 		gunDealerSellPriceMultiplier = 0.5;
 		procurementMultiplier = 0.8;
 		vehiclePriceMultiplier = 1.0;
+		recruitLoadoutFeeMultiplier = OVT_RecruitPurchaseRules.DEFAULT_LOADOUT_FEE_MULTIPLIER;
 	}
 }
 
@@ -202,9 +208,15 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		m_ConfigFile = new OVT_OverthrowConfigStruct();
 		m_ConfigFile.SetDefaults();
 
-#ifdef PLATFORM_CONSOLE		
+#ifdef PLATFORM_CONSOLE
 		return true;
 #endif
+
+		// Overthrow_Config.json is a dedicated-server config. Single player and listen hosts are
+		// configured through the start menu, so the file is neither read nor created there - a
+		// leftover json from running a dedicated server must not leak into a hosted game.
+		if (RplSession.Mode() != RplMode.Dedicated)
+			return true;
 
 		JsonLoadContext configLoadContext = new JsonLoadContext();
 

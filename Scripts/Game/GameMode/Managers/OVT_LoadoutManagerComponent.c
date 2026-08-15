@@ -164,6 +164,30 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		return null;
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! How many TOP-LEVEL items the last apply on this machine landed.
+	//!
+	//! Written by both apply paths (the spawning one and the box one) immediately before they return,
+	//! so it describes the apply that just finished and nothing else. It is not a running total and it
+	//! is not thread-safe against interleaved applies - read it on the line after the apply call or
+	//! not at all.
+	//!
+	//! ! TOP-LEVEL ONLY. Container contents are restored by a walk that reports nothing, so a
+	//! successful backpack counts as one no matter what is inside it.
+	//! \return Items reported as landed by the last apply.
+	int GetLastApplySuccessCount()
+	{
+		return m_iLastApplySuccessCount;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! How many TOP-LEVEL items the last apply on this machine tried to land.
+	//! \return Entries in the applied loadout's own item array.
+	int GetLastApplyTotalCount()
+	{
+		return m_iLastApplyTotalCount;
+	}
+
 	//! Apply loadout directly to entity
 	bool ApplyLoadoutToEntity(OVT_PlayerLoadout loadout, IEntity targetEntity)
 	{
@@ -470,10 +494,22 @@ class OVT_LoadoutManagerComponent: OVT_Component
 			}
 		}
 		
-			
+
 		// Apply quick slots after all items are in place
 		ApplyQuickSlots(entity, loadout);
-		
+
+		// Store result counts, exactly as the box path does at the end of ApplyEquipmentFromBox.
+		// SYMMETRY FIX: these two counters existed but were only ever written by the box path, so a
+		// caller of the SPAWNING apply had no way to learn how much of the kit arrived - it read
+		// whatever the last box apply left behind. The equipped-recruit purchase grades its outcome
+		// on exactly this (OVT_RecruitPurchaseRules.OutcomeFor), so it has to be true here too.
+		//
+		// ! TOP-LEVEL ONLY, and it cannot be otherwise: the loop above counts one success per entry of
+		// loadout.GetItems(), while ApplyNestedItemsSpawn* return void. A rucksack that arrives with
+		// half its contents counts as one success. Callers must not read these as an item census.
+		m_iLastApplySuccessCount = successCount;
+		m_iLastApplyTotalCount = totalItems;
+
 		return successCount > 0;
 	}
 	

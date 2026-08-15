@@ -56,6 +56,15 @@ class OVT_MapLocationVehicle : OVT_MapLocationType
 			if (!vehicle)
 				continue;
 
+			// A deployed FOB keeps the truck's ownership (OVT_ResistanceFactionManager.DeployFOB spawns
+			// it through SpawnVehicleMatrix with the same owner id), so it arrives here as an owned
+			// vehicle - but it already draws its own FOB marker from OVT_FOBData. Two icons on the same
+			// spot make the FOB genuinely hard to click, which is what fast travel selects. The
+			// undeployed truck is NOT filtered: that one really is a vehicle the player parks and looks
+			// for, and it has no FOB record to be found by instead.
+			if (m_Vehicles.IsDeployedFOB(vehicle))
+				continue;
+
 			OVT_MapLocationData locationData = new OVT_MapLocationData(vehicle.GetOrigin(), GetDisplayName(), ClassName());
 			locationData.m_EntityID = id;
 			locationData.SetDataString(OVT_MapDataKeys.OWNER, persId);

@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{6B4C00000000003E}UI/Layouts/Map/MapRecruitLocation.layout"
+ Configurations {
+  LayoutResourceClass PC {
+  }
+  LayoutResourceClass XBOX_ONE : PC {
+  }
+  LayoutResourceClass XBOX_SERIES : PC {
+  }
+  LayoutResourceClass PS4 : PC {
+  }
+  LayoutResourceClass HEADLESS : PC {
+  }
+ }
+}

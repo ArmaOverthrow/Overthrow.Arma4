@@ -546,6 +546,27 @@ class OVT_TEST_Persistence_RealEstateTransfer_ClearsPreviousOwner : SCR_Autotest
 //! OVT_TEST_PersistenceSubject.ResolveRecruitSubjectEntity() for why a test must not spawn a
 //! character here. The manager logs a warning about the entity lacking a persistence component; that
 //! warning comes from gameplay code, is expected, and is not a failure.
+//!
+//! THE INACTIVE HALF (recruit-ux Phase 1, T1.9). A recruit can be ACTIVE or INACTIVE - owned but out
+//! of its owner's group, holding position - and that state is a campaign fact this tier is
+//! responsible for. Three claims are added here, all through the manager's public API:
+//!   1. A freshly created recruit is ACTIVE. The state has to have a defined starting value, and
+//!      "every recruit you hire is inactive" would be an invisible, total feature failure.
+//!   2. Setting it sticks and IsRecruitInactive() agrees with the record.
+//!   3. GetPlayerRecruitsByState() splits the roster - the inactive recruit appears in the inactive
+//!      half and NOT in the active half. Both directions are asserted, because a filter that ignored
+//!      its argument would satisfy either one alone.
+//!
+//! PROVEN ABLE TO FAIL (recruit-ux Phase 1, by deliberate fault + compile-check, since this tier is
+//! the orchestrator's to run):
+//!   a. OVT_RecruitManagerComponent.IsRecruitInactive() forced to `return false;` -> claim 2 fails on
+//!      "IsRecruitInactive() disagrees with the record it reads".
+//!   b. GetPlayerRecruitsByState() with its `recruit.m_bInactive == inactive` filter deleted (every
+//!      recruit inserted) -> claim 3 fails on the active-half assertion, which then contains the
+//!      recruit that was just deactivated.
+//!   Both faults were injected and the whole tree recompiled: it compiled CLEAN, which is the point -
+//!   neither fault is catchable by anything but this case. Both were reverted and the tree recompiled
+//!   clean again. No maxAttempts - the case is deterministic state through one manager.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceSuite, timeoutS: 30)]
 class OVT_TEST_Persistence_Recruits_RoundTrip : SCR_AutotestCaseBase
@@ -652,6 +673,68 @@ class OVT_TEST_Persistence_Recruits_RoundTrip : SCR_AutotestCaseBase
 			SetFailure("The recruit's cached level %1 disagrees with its computed level %2",
 				afterXp.m_iLevel.ToString(), afterXp.GetLevel().ToString());
 			return true;
+		}
+
+		// --- Active/inactive state, through the manager's public API.
+		if (recruit.m_bInactive)
+		{
+			SetFailure("A freshly created recruit is INACTIVE - a new hire must join its owner's group");
+			return true;
+		}
+
+		if (recruits.IsRecruitInactive(recruitId))
+		{
+			SetFailure("IsRecruitInactive('%1') is true for a freshly created recruit", recruitId);
+			return true;
+		}
+
+		int activeBefore = recruits.GetPlayerRecruitsByState(persId, false).Count();
+		int inactiveBefore = recruits.GetPlayerRecruitsByState(persId, true).Count();
+
+		recruit.m_bInactive = true;
+
+		if (!recruits.IsRecruitInactive(recruitId))
+		{
+			SetFailure("IsRecruitInactive('%1') disagrees with the record it reads: the record says inactive", recruitId);
+			return true;
+		}
+
+		array<ref OVT_RecruitData> inactiveHalf = recruits.GetPlayerRecruitsByState(persId, true);
+		if (inactiveHalf.Count() != inactiveBefore + 1)
+		{
+			SetFailure("The inactive half of the roster holds %1 recruits, expected %2",
+				inactiveHalf.Count().ToString(), (inactiveBefore + 1).ToString());
+			return true;
+		}
+
+		bool foundInInactive = false;
+		foreach (OVT_RecruitData listed : inactiveHalf)
+		{
+			if (listed.m_sRecruitId == recruitId)
+				foundInInactive = true;
+		}
+
+		if (!foundInInactive)
+		{
+			SetFailure("The deactivated recruit '%1' is missing from the inactive half of the roster", recruitId);
+			return true;
+		}
+
+		array<ref OVT_RecruitData> activeHalf = recruits.GetPlayerRecruitsByState(persId, false);
+		if (activeHalf.Count() != activeBefore - 1)
+		{
+			SetFailure("The active half of the roster holds %1 recruits, expected %2",
+				activeHalf.Count().ToString(), (activeBefore - 1).ToString());
+			return true;
+		}
+
+		foreach (OVT_RecruitData stillActive : activeHalf)
+		{
+			if (stillActive.m_sRecruitId == recruitId)
+			{
+				SetFailure("The deactivated recruit '%1' is STILL in the active half of the roster", recruitId);
+				return true;
+			}
 		}
 
 		recruits.RemoveRecruit(recruitId);

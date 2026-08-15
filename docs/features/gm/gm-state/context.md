@@ -62,7 +62,7 @@
 ## Baseline (Phase 0) — 2026-08-14 16:40
 
 - `tools/compile-check.sh` → exit 0, **6059 files**, 19s
-- Highest allocated bug id: **BUG-167** (matches planning snapshot)
+- Highest allocated bug id: **BUG-167** (matches planning snapshot; that pair was renumbered BUG-172/BUG-173 in the 2026-08-15 main merge because main had claimed 166–171)
 - GUID series `{6B07…}`: **0 hits** across `Prefabs`, `Configs`, `Scripts` — candidate `{6B07B0D93E8C72F6}` free for the Phase 2 prefab block
 - Git: HEAD `f47b66a1` (same commit the plan's line numbers were verified against — citations valid); tree clean except this feature's new docs
 

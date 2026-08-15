@@ -113,23 +113,16 @@ class OVT_MapLocationTown : OVT_MapLocationType
 		}
 	}
 	
-	//! Get display name - returns the specific town type (Village, Town, City)
-	override string GetDisplayName()
-	{
-		// This will be overridden per location in GetDisplayNameForLocation
-		return m_sDisplayName;
-	}
-	
-	//! Get display name for a specific location - returns the town type
-	override string GetDisplayNameForLocation(OVT_MapLocationData location)
+	//! The info panel's type line under the town name - the specific town type (Village, Town, City)
+	override string GetLocationDescription(OVT_MapLocationData location)
 	{
 		if (!location)
 			return m_sDisplayName;
-		
+
 		string townType = location.GetDataString("townType", "");
 		if (!townType.IsEmpty())
 			return townType;
-		
+
 		return m_sDisplayName;
 	}
 	

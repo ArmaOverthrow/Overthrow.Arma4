@@ -9,13 +9,19 @@
 //! move" - is pulled out here where Tier A (OVT_TEST_LogicSuite) can pin it. Nothing in this file may
 //! ever grow a manager lookup or an entity dereference, or that coverage silently dies.
 //!
-//! THE TWO RULES IT ENCODES:
+//! THE THREE RULES IT ENCODES:
 //!   1. An OFFLINE RECRUIT has no body in the world, so there is no agent to put in anybody's slave
 //!      group. It is skipped and counted, never silently dropped.
 //!   2. An OFFLINE OWNER transfers NOTHING - not even recruits that still have bodies. A recruit is
 //!      commanded by the leader of whatever group its owner is in; leaving a departed player's squad
 //!      inside somebody else's group hands that player's AI to a stranger, which is a grief vector
 //!      (risk R9) as well as being wrong under "recruits are owned by a player, not by a group".
+//!   3. An INACTIVE RECRUIT does not follow its owner anywhere. It was deliberately taken out of the
+//!      squad to hold the spot where it stands, so following its owner into a friend's group is the
+//!      exact opposite of the order the player gave it - and it would also silently undo the parking,
+//!      because joining a slave group is what "active" MEANS. Skipped and counted SEPARATELY from the
+//!      offline skip, so the caller's log line can say WHICH reason applied: "2 have no body" and "3
+//!      are parked" are different situations and only one of them is a symptom of something wrong.
 //------------------------------------------------------------------------------------------------
 class OVT_GroupRecruitTransfer
 {
@@ -35,32 +41,49 @@ class OVT_GroupRecruitTransfer
 	//! caller iterating the result places recruits in the same order every time - which is what makes a
 	//! failing play-test reproducible.
 	//!
+	//! THE TWO COUNTERS ARE ORDERED, AND THE ORDER IS PART OF THEIR MEANING. A recruit with no body is
+	//! counted as OFFLINE even when it is also parked, because "there is no agent to move" is the more
+	//! fundamental fact and it is the one that was true before this rule existed. So the parked count
+	//! means "has a body, is deliberately staying put" - which is exactly the sentence a log line
+	//! wants.
+	//!
 	//! \param[in] ownedRecruits Every record the owner holds (as returned by GetPlayerRecruits).
 	//! \param[in] ownerOnline False when the owner has no live PlayerController.
 	//! \param[out] outSkippedOffline How many records were skipped for having no body in the world.
 	//!             ZERO when the owner is offline: nothing is examined per-recruit in that case, so
 	//!             nothing was skipped "for being offline" - the whole transfer was refused instead.
+	//! \param[out] outSkippedInactive How many records were skipped for being PARKED. Zero for an
+	//!             offline owner, for the same reason.
 	//! \return Recruit ids to move, in table order. Never null; empty is a normal answer.
-	static array<string> SelectTransferable(notnull array<ref OVT_RecruitData> ownedRecruits, bool ownerOnline, out int outSkippedOffline)
+	static array<string> SelectTransferable(notnull array<ref OVT_RecruitData> ownedRecruits, bool ownerOnline, out int outSkippedOffline, out int outSkippedInactive)
 	{
 		outSkippedOffline = 0;
+		outSkippedInactive = 0;
 
 		array<string> transferable = new array<string>();
 
 		// An offline owner transfers nothing - see rule 2 in the class header. Deliberately BEFORE the
-		// loop, so outSkippedOffline stays a statement about recruits rather than about the owner.
+		// loop, so both counters stay statements about recruits rather than about the owner.
 		if (!ownerOnline)
 			return transferable;
 
 		foreach (OVT_RecruitData recruit : ownedRecruits)
 		{
-			// A hole in the table is not an offline recruit; it is not counted as one.
+			// A hole in the table is neither an offline recruit nor a parked one; it is counted as
+			// neither.
 			if (!recruit)
 				continue;
 
 			if (!recruit.m_bIsOnline)
 			{
 				outSkippedOffline++;
+				continue;
+			}
+
+			// Rule 3: parked recruits stay parked, whoever their owner goes drinking with.
+			if (recruit.m_bInactive)
+			{
+				outSkippedInactive++;
 				continue;
 			}
 

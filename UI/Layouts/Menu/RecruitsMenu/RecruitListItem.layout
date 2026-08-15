@@ -71,6 +71,36 @@ ButtonWidgetClass {
         SizeMode Fill
        }
       }
+      HorizontalLayoutWidgetClass "{6B4C000000000031}" {
+       Name "StatusIcons"
+       Slot LayoutSlot "{6B4C000000000032}" {
+        Padding 0 0 8 0
+        VerticalAlign 1
+       }
+       {
+        ImageWidgetClass "{6B4C000000000033}" {
+         Name "ArmedIcon"
+         Slot LayoutSlot "{6B4C000000000034}" {
+          Padding 0 0 4 0
+          VerticalAlign 1
+         }
+         Texture "{C7691945DE01FB28}UI/Imagesets/overthrow_mapicons.imageset"
+         Image "recruit_ammo"
+         Size 24 24
+         "Is Visible" 0
+        }
+        ImageWidgetClass "{6B4C000000000035}" {
+         Name "WoundedIcon"
+         Slot LayoutSlot "{6B4C000000000036}" {
+          VerticalAlign 1
+         }
+         Texture "{C7691945DE01FB28}UI/Imagesets/overthrow_mapicons.imageset"
+         Image "recruit_wounded"
+         Size 24 24
+         "Is Visible" 0
+        }
+       }
+      }
       TextWidgetClass "{5D5C558A6E391690}" {
        Name "RecruitStatus"
        Slot LayoutSlot "{5D5C558A6E391691}" {

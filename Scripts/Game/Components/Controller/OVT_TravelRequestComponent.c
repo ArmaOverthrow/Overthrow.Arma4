@@ -264,11 +264,17 @@ class OVT_TravelRequestComponent : OVT_ControllerRequestComponent
 	//! what makes "pay solo, arrive with a squad" impossible by construction rather than by keeping two
 	//! paths in sync (K4/S-5). No client-supplied count reaches the fare - bringRecruits only says
 	//! whether to look at all.
+	//!
+	//! INACTIVE RECRUITS ARE EXCLUDED, AND THEREFORE NOT CHARGED FOR. A recruit is made inactive
+	//! precisely so that it stays where it is and holds that spot; taking a parked garrison along
+	//! because the player happened to fast-travel from beside it would undo the order they gave it.
+	//! Because the same list feeds the fare, a player standing in their own garrison is not billed for
+	//! passengers that are not coming.
 	//! \param[in] playerId Runtime id of the travelling player.
 	//! \param[in] originPos The player's position BEFORE the teleport.
 	//! \param[in] bringRecruits The player's opt-out choice.
-	//! \return The recruit entities within OVT_FastTravelService.RECRUIT_TRAVEL_RADIUS, or an empty
-	//! array when the player opted out or the recruit manager is unavailable.
+	//! \return The ACTIVE recruit entities within OVT_FastTravelService.RECRUIT_TRAVEL_RADIUS, or an
+	//! empty array when the player opted out or the recruit manager is unavailable.
 	protected array<IEntity> ResolveTravellingRecruits(int playerId, vector originPos, bool bringRecruits)
 	{
 		if(bringRecruits)
@@ -281,7 +287,7 @@ class OVT_TravelRequestComponent : OVT_ControllerRequestComponent
 				string persId = players.GetPersistentIDFromPlayerID(playerId);
 				if(persId != "")
 				{
-					array<IEntity> nearby = recruitManager.GetPlayerRecruitEntitiesInRadius(persId, originPos, OVT_FastTravelService.RECRUIT_TRAVEL_RADIUS);
+					array<IEntity> nearby = recruitManager.GetPlayerRecruitEntitiesInRadius(persId, originPos, OVT_FastTravelService.RECRUIT_TRAVEL_RADIUS, true);
 					if(nearby) return nearby;
 				}
 			}

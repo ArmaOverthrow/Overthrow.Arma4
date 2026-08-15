@@ -14,7 +14,7 @@ class OVT_VehiclePriceConfig
 	[Attribute(desc: "(Optional) A specific prefab to use for this vehicle (not found in an EntityCatalog)", UIWidgets.ResourcePickerThumbnail, params: "et")]
 	ResourceName prefab;
 	
-	[Attribute("50000", desc: "The cost of the vehicles found, will override any above this one")]
+	[Attribute("50000", desc: "The cost of the vehicles found. The most specific match wins (longest search string), regardless of the order of this list")]
 	int cost;
 	
 	[Attribute("5", desc: "Demand Multiplier")]

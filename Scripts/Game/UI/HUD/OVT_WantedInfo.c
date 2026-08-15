@@ -10,21 +10,29 @@ class OVT_WantedInfo : SCR_InfoDisplay {
 	// Cache widgets to avoid repeated lookups
 	protected ImageWidget m_wUndercoverIcon = null;
 	protected Widget m_wUndercoverFrame = null;
-	
+
+	// The entity the component references were resolved from. A dead player's corpse keeps its
+	// components alive, so a null check on m_Wanted alone never rebinds after respawn (BUG-169)
+	protected IEntity m_BoundCharacter = null;
+
 	protected float m_fUpdateCounter = 2;
-	
+
 	protected void InitCharacter()
 	{
-		SCR_ChimeraCharacter character = SCR_ChimeraCharacter.Cast(SCR_PlayerController.GetLocalControlledEntity());
+		m_Wanted = null;
+		m_Percieve = null;
+		m_FactionAffiliation = null;
+
+		SCR_ChimeraCharacter character = SCR_ChimeraCharacter.Cast(m_BoundCharacter);
 		if (!character)
 			return;
-				
+
 		m_Wanted = OVT_PlayerWantedComponent.Cast(character.FindComponent(OVT_PlayerWantedComponent));
 		m_Percieve = CharacterPerceivableComponent.Cast(character.FindComponent(CharacterPerceivableComponent));
 		m_FactionAffiliation = SCR_CharacterFactionAffiliationComponent.Cast(character.FindComponent(SCR_CharacterFactionAffiliationComponent));
-		
+
 		// Cache the undercover widgets
-		if (m_wRoot)
+		if (m_wRoot && !m_wUndercoverIcon)
 		{
 			m_wUndercoverFrame = m_wRoot.FindWidget("Frame0.Undercover");
 			Widget undercoverWidget = m_wRoot.FindWidget("Frame0.Undercover.UndercoverIcon");
@@ -32,12 +40,14 @@ class OVT_WantedInfo : SCR_InfoDisplay {
 				m_wUndercoverIcon = ImageWidget.Cast(undercoverWidget);
 		}
 	}
-		
+
 	private override event void UpdateValues(IEntity owner, float timeSlice)
-	{	
-		m_fUpdateCounter += timeSlice;		
-		if(!m_Wanted)
+	{
+		m_fUpdateCounter += timeSlice;
+		IEntity controlled = SCR_PlayerController.GetLocalControlledEntity();
+		if(!m_Wanted || controlled != m_BoundCharacter)
 		{
+			m_BoundCharacter = controlled;
 			InitCharacter();
 		}
 		if(m_fUpdateCounter >= 1.0)

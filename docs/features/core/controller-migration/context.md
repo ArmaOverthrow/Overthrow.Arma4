@@ -801,12 +801,12 @@ affordability → delegate) and against §6 Q4/Q5/Q9.
 
 | Component | Handler | Caller identity | Shape | Entity resolution | Ownership / proximity / permission | Rejection observable (Q9) | Verdict |
 |---|---|---|---|---|---|---|---|
-| `OVT_ContainerTransferComponent` | `RpcAsk_TransferStorage` | **was: none** → controller | n/a | was: none → both RplIds + null bail | **was: none** → 30 m to both ends + `PlayerMayUseVehicleFor` on both | was: silent → WARNING + conditional error channel | **DEFECT-fixed (BUG-166)** |
-| " | `RpcAsk_TransferStorageForDeployment` | **was: none** → controller | n/a | was: none → both + null bail | **was: none** → same pair | same | **DEFECT-fixed (BUG-166)** — also caller-less |
-| " | `RpcAsk_CollectContainers` | **was: none** → controller | **was: none** → `radius` ≤ 100 m | was: vehicle only → + caller-at-`pos` | **was: none** → 30 m to vehicle **and** to the client-supplied centre + may-use | same | **DEFECT-fixed (BUG-166)** — also caller-less |
-| " | `RpcAsk_TransferToWarehouse` | **was: none** → controller | n/a | was: none → source + null bail | **was: none** → 30 m + may-use | same | **DEFECT-fixed (BUG-166)** |
-| " | `RpcAsk_UndeployFOB` | **was: none** → controller | n/a | both, was already null-bailed | **was: none** → 30 m to both + may-use on both | same | **DEFECT-fixed (BUG-166)** |
-| " | `RpcAsk_LootBattlefield` | **was: none** → controller | **was: none** → `searchRadius` ≤ 50 m | vehicle, was already null-bailed | **was: none** → 30 m + may-use | same | **DEFECT-fixed (BUG-166)** |
+| `OVT_ContainerTransferComponent` | `RpcAsk_TransferStorage` | **was: none** → controller | n/a | was: none → both RplIds + null bail | **was: none** → 30 m to both ends + `PlayerMayUseVehicleFor` on both | was: silent → WARNING + conditional error channel | **DEFECT-fixed (BUG-172)** |
+| " | `RpcAsk_TransferStorageForDeployment` | **was: none** → controller | n/a | was: none → both + null bail | **was: none** → same pair | same | **DEFECT-fixed (BUG-172)** — also caller-less |
+| " | `RpcAsk_CollectContainers` | **was: none** → controller | **was: none** → `radius` ≤ 100 m | was: vehicle only → + caller-at-`pos` | **was: none** → 30 m to vehicle **and** to the client-supplied centre + may-use | same | **DEFECT-fixed (BUG-172)** — also caller-less |
+| " | `RpcAsk_TransferToWarehouse` | **was: none** → controller | n/a | was: none → source + null bail | **was: none** → 30 m + may-use | same | **DEFECT-fixed (BUG-172)** |
+| " | `RpcAsk_UndeployFOB` | **was: none** → controller | n/a | both, was already null-bailed | **was: none** → 30 m to both + may-use on both | same | **DEFECT-fixed (BUG-172)** |
+| " | `RpcAsk_LootBattlefield` | **was: none** → controller | **was: none** → `searchRadius` ≤ 50 m | vehicle, was already null-bailed | **was: none** → 30 m + may-use | same | **DEFECT-fixed (BUG-172)** |
 | `OVT_ShopTransactionComponent` | `RpcAsk_SellItems` | controller ✓ | `quantity != 0`, `>= -1`, `IsValidResourceId` ✓ | shop via RplId + null bail ✓ | 30 m ✓, `ShopBuysHere` ✓, server-derived price ✓, unequipped-only scan ✓ | `SendSellResult` enum per reason ✓ | **conforming** (the §3.4 template itself) |
 | " | `RpcAsk_SellVehicleCargo` | controller ✓ | n/a (no client numbers) | vehicle + shop, both null-bailed ✓ | 15 m to vehicle, 30 m vehicle→shop, `PlayerMayUseVehicle`, no pilot seated ✓ | `SendSellResult` ✓ | **conforming** |
 | " | `RpcAsk_BuyItems` | controller ✓ | `1..MAX_BUY_QUANTITY`, `IsValidResourceId` ✓ | shop + `GetOwner()` null-bail ✓ | 30 m ✓, server-derived price + affordability ✓, charge-what-was-delivered ✓ | purchase-failure / partial notifications ✓ | **conforming** (P4's own work) |
@@ -826,7 +826,7 @@ affordability → delegate) and against §6 Q4/Q5/Q9.
 
 Six handlers, one shape: `IsServer` and nothing else. No caller resolution at all, which is what makes
 every other check impossible — you cannot test proximity or ownership without knowing who asked. Filed
-as **`docs/bugs/BUG-166.md`** (open, high, code-derived) and fixed in place: 30 m to both ends of every
+as **`docs/bugs/BUG-172.md`** (open, high, code-derived) and fixed in place: 30 m to both ends of every
 transfer, the shared lock rule on both ends, bounded radii, and a named rejection. The exploit it closes
 is "empty another player's locked truck from anywhere on the map, in one packet"; the DoS it closes is
 an unbounded client-chosen sphere-query radius on the server.

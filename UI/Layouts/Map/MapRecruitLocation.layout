@@ -1,0 +1,57 @@
+FrameWidgetClass {
+ Name "rootFrame"
+ "Z Order" 9
+ Clipping False
+ {
+  SizeLayoutWidgetClass "{6B4C000000000047}" {
+   Name "ImageLayout"
+   Slot FrameWidgetSlot "{566E7A663B359583}" {
+    Anchor 0 0 0 0
+    PositionX 0
+    OffsetLeft 0
+    PositionY 0
+    OffsetTop 0
+    SizeX 44
+    OffsetRight -44
+    SizeY 44
+    OffsetBottom -44
+    Alignment 0.5 0.5
+   }
+   {
+    ImageWidgetClass "{6B4C000000000048}" {
+     Name "Image"
+     Slot AlignableSlot "{59945480BE60B0C7}" {
+      HorizontalAlign 1
+      VerticalAlign 1
+      Padding 0 0 0 0
+     }
+     Texture "{C7691945DE01FB28}UI/Imagesets/overthrow_mapicons.imageset"
+     Image "recruit"
+     Size 44 44
+     "Blend Mode" Blend
+     "Shadow Color" 0.1119 0.1119 0.1119 1
+    }
+   }
+  }
+  ImageWidgetClass "{6B4C000000000049}" {
+   Name "TagImage"
+   Slot FrameWidgetSlot "{566E7A663B359583}" {
+    Anchor 0 0 0 0
+    PositionX 15
+    OffsetLeft 0
+    PositionY -15
+    OffsetTop 0
+    SizeX 20
+    OffsetRight -20
+    SizeY 20
+    OffsetBottom -20
+    Alignment 0.5 0.5
+   }
+   "Z Order" 10
+   Texture "{C7691945DE01FB28}UI/Imagesets/overthrow_mapicons.imageset"
+   Image "recruit_ammo"
+   Size 20 20
+   "Blend Mode" Blend
+  }
+ }
+}

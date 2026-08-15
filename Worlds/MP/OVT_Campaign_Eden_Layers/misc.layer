@@ -97,6 +97,31 @@ $grp OVT_SniperPosition : "{6A8F1E2D4C5B0901}Prefabs/GameMode/OVT_SniperPosition
   angles 0 -167.164 0
  }
 }
+$grp GenericEntity : "{7FCD4E7C25D886A8}Prefabs/Structures/Signs/Traffic/SignBusStop_01.et" {
+ {
+  coords 4589.36 23.953 11124.998
+ }
+ {
+  coords 5321.033 21.219 9857.793
+  angles 0 16.976 0
+ }
+ {
+  coords 1644.91 71.838 5727.107
+  angles 0 27.39 0
+ }
+ {
+  coords 5369.786 81.563 6310.864
+  angles 0 -112.979 0
+ }
+ {
+  coords 4591.377 18.459 10696.551
+  angles 0 -99.35 0
+ }
+ {
+  coords 9700.44 22.411 1697.579
+  angles 0 41.026 0
+ }
+}
 GenericEntity Poster_Join_v2_65C296D9E75A0EB6 : "{A1277C7EA79FBA1E}Prefabs/Props/Posters/Poster_Join_v2.et" {
  coords 2905.426 9.422 2180.169
  angles 0 90.062 0

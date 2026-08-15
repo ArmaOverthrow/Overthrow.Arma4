@@ -3,13 +3,14 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
   components {
    OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
     m_sName "#OVT-Base_Levie"
-    m_fStartingResourcesMultiplier 1.2
+    m_fStartingResourcesMultiplier 1.3
     m_iAttackDistanceMax 750
     m_iAttackPreferredDirection 201
     m_iAttackDirectionVariance 55
    }
   }
-  coords 7457.223 164.562 4278.119
+  coords 7456.763 164.562 4276.977
+  angles 0 -78.33 0
  }
  OVT_Base_StPierre {
   components {

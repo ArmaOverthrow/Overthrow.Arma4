@@ -421,16 +421,23 @@ class OVT_FastTravelService
 
 	//------------------------------------------------------------------------------------------------
 	//! How many of a player's recruits are close enough to travel with them.
+	//!
+	//! PARKED (INACTIVE) RECRUITS ARE NOT COUNTED, and the exclusion has to be here as well as on the
+	//! server: this is what the map panel PRICES a trip at, and the server gathers the travellers with
+	//! the same exclusion (OVT_TravelRequestComponent.ResolveTravellingRecruits). If only one side
+	//! dropped them, a player standing in their own garrison would be quoted a fare for a squad that
+	//! is not coming - the client/server drift this whole service exists to prevent.
+	//!
 	//! \param[in] persId Persistent id of the owning player.
 	//! \param[in] originPos Position to measure from - the player's position BEFORE the teleport.
-	//! \return The recruit count, or 0 when the recruit manager is unavailable.
+	//! \return The ACTIVE recruit count, or 0 when the recruit manager is unavailable.
 	static int CountRecruitsInRadius(string persId, vector originPos)
 	{
 		OVT_RecruitManagerComponent recruitManager = OVT_Global.GetRecruits();
 		if (!recruitManager)
 			return 0;
 
-		array<ref OVT_RecruitData> nearby = recruitManager.GetPlayerRecruitsInRadius(persId, originPos, RECRUIT_TRAVEL_RADIUS);
+		array<ref OVT_RecruitData> nearby = recruitManager.GetPlayerRecruitsInRadius(persId, originPos, RECRUIT_TRAVEL_RADIUS, true);
 		if (!nearby)
 			return 0;
 

@@ -73,6 +73,18 @@ class OVT_PlaceableComponentSerializer : ScriptedComponentSerializer
 		if (!placeable)
 			return false;
 
+		// THE NAVMESH DOES NOT COME BACK WITH THE OBJECT. This entity was respawned by the
+		// persistence system (SelfSpawn, see the BINDING note above), but the navmesh loaded with the
+		// world is the BAKED one - carved before this object ever existed. Until this call the AI
+		// paths straight through whatever the player built in an earlier session and walks into it.
+		// PlaceItem() rebuilds at the moment of placement, which is the only reason the problem is
+		// invisible in the session you build in.
+		//
+		// Queued, not immediate: a save restores many of these at once and the queue merges their
+		// areas. Before the version guard on purpose - the entity is in the world and blocking
+		// pathfinding whether or not it brought a component payload with it.
+		OVT_NavmeshRebuild.Queue(owner);
+
 		// No version means no payload for this component - see OVT_TownManagerSerializer.Deserialize().
 		// Without the guard an absent payload would blank a live placeable's owner.
 		int version;

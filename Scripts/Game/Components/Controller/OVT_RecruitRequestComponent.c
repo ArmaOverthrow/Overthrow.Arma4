@@ -199,11 +199,13 @@ class OVT_RecruitRequestComponent : OVT_ControllerRequestComponent
 	//------------------------------------------------------------------------------------------------
 	//! Server: recruit a fresh civilian at a tent.
 	//!
-	//! THE ORDER OF THESE CHECKS IS LOAD-BEARING AND IS CARRIED VERBATIM. The whole transaction is
-	//! validated BEFORE anything is spawned: at the per-player cap RecruitCivilian() would bail and leave
-	//! a freshly spawned civilian standing at the tent forever, and TakeSupportersFromNearestTown()
-	//! silently no-ops when the town has no supporters (so the player would pay for nothing). If
-	//! RecruitCivilian() refuses anyway, the spawned body is deleted rather than abandoned.
+	//! The validation and the spawn live on OVT_RecruitManagerComponent (ValidateTentRecruit /
+	//! SpawnTentRecruit) so that the equipped-recruit purchase on OVT_RecruitCommandComponent shares
+	//! ONE implementation with this one - which is what makes a placement change land in both places
+	//! at once instead of having to be made twice and stay made twice (recruit-ux decision D22).
+	//! ValidateTentRecruit keeps the shipped check order (cap, then supporters, then distance), so the
+	//! refusal a player sees first is unchanged; the shared spawn ground-clamps the position and runs
+	//! it through a collision-checked box instead of the old raw fixed offset.
 	//!
 	//! Costs half the usual recruit price, and the affordability test is required for the same
 	//! clamps-at-zero reason as RpcAsk_RecruitCivilian.
@@ -225,25 +227,19 @@ class OVT_RecruitRequestComponent : OVT_ControllerRequestComponent
 		string persId = players.GetPersistentIDFromPlayerID(playerId);
 		if(persId == "") return;
 
-		// Validate the whole transaction before spawning anything: at the cap RecruitCivilian()
+		// Cap, supporters and distance-to-tent, in the shipped order - see ValidateTentRecruit().
+		// The whole transaction is validated BEFORE anything is spawned: at the cap RecruitCivilian()
 		// would bail and orphan the freshly spawned civilian, and TakeSupportersFromNearestTown
 		// silently no-ops when the town has no supporters
-		if(!recruitManager.CanRecruit(persId))
+		int refusal = recruitManager.ValidateTentRecruit(tentPos, playerId);
+		if(refusal != OVT_RecruitManagerComponent.TENT_RECRUIT_OK)
 		{
-			RejectRecruitRequest(playerId, "recruit from tent", "the caller is at their recruit cap");
-			return;
-		}
-
-		if(!townManager.NearestTownHasSupporters(tentPos))
-		{
-			RejectRecruitRequest(playerId, "recruit from tent", "the nearest town has no supporters");
-			return;
-		}
-
-		// The tent action is used standing at the tent - reject far-away positions
-		if(!CallerIsWithin(playerId, tentPos, RECRUIT_MAX_DISTANCE))
-		{
-			RejectRecruitRequest(playerId, "recruit from tent", "the caller is not at the tent");
+			if(refusal == OVT_RecruitManagerComponent.TENT_RECRUIT_AT_CAP)
+				RejectRecruitRequest(playerId, "recruit from tent", "the caller is at their recruit cap");
+			else if(refusal == OVT_RecruitManagerComponent.TENT_RECRUIT_NO_SUPPORTERS)
+				RejectRecruitRequest(playerId, "recruit from tent", "the nearest town has no supporters");
+			else if(refusal == OVT_RecruitManagerComponent.TENT_RECRUIT_TOO_FAR)
+				RejectRecruitRequest(playerId, "recruit from tent", "the caller is not at the tent");
 			return;
 		}
 
@@ -261,16 +257,10 @@ class OVT_RecruitRequestComponent : OVT_ControllerRequestComponent
 			return;
 		}
 
-		// Spawn recruit at tent location
-		SCR_ChimeraCharacter recruit = recruitManager.SpawnRecruit(tentPos + "2 0 2"); // Offset from tent
+		// Spawn recruit at the tent. This action only ever knew a position, so it passes no entity
+		// and keeps the shipped offset as its anchor. Ownership is handled inside the shared spawn.
+		SCR_ChimeraCharacter recruit = recruitManager.SpawnTentRecruit(null, tentPos, playerId);
 		if(!recruit) return;
-
-		if(!recruitManager.RecruitCivilian(recruit, playerId))
-		{
-			// Never leave an unowned civilian standing at the tent
-			SCR_EntityHelper.DeleteEntityAndChildren(recruit);
-			return;
-		}
 
 		// Costs are taken only after the recruit actually exists
 		townManager.TakeSupportersFromNearestTown(tentPos, 1);

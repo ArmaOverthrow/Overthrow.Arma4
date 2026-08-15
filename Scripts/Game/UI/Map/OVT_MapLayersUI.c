@@ -59,10 +59,14 @@ class OVT_MapLayersUI : SCR_MapUIBaseComponent
 	protected const string LABEL_MARKERS_HEADER = "#OVT-Map_Layers_Markers";
 	protected const string LABEL_PLAYERS = "#OVT-Map_Layer_Players";
 
-	//! Layer-namespaced id of the one hand-built row. OVT_MapPlayerLocation is a
-	//! SCR_MapUIBaseComponent rather than an OVT_MapCanvasLayer, so it never appears in the
-	//! compositor's layer list and cannot be enumerated with the others.
+	protected const string LABEL_RECRUITS = "#OVT-Map_Layer_Recruits";
+
+	//! Layer-namespaced ids of the two hand-built rows. OVT_MapPlayerLocation and
+	//! OVT_MapRecruitLocation are SCR_MapUIBaseComponents rather than OVT_MapCanvasLayers, so
+	//! neither ever appears in the compositor's layer list and neither can be enumerated with the
+	//! others.
 	protected const string KEY_PLAYERS = "players";
+	protected const string KEY_RECRUITS = "recruits";
 
 	//! Overthrow's row-navigation input context, declared in Configs/System/chimeraInputCommon.conf.
 	//! It re-references MenuUp / MenuDown / MenuLeft / MenuRight / MenuSelect - actions that all
@@ -645,6 +649,7 @@ class OVT_MapLayersUI : SCR_MapUIBaseComponent
 
 		BuildCanvasLayerRows(workspace);
 		BuildPlayerRow(workspace);
+		BuildRecruitRow(workspace);
 		BuildLocationTypeRows(workspace);
 	}
 
@@ -739,6 +744,33 @@ class OVT_MapLayersUI : SCR_MapUIBaseComponent
 			return;
 
 		CreateRow(workspace, m_wOverlayRows, key, LABEL_PLAYERS, string.Empty, string.Empty, playerLocation.AreMarkersVisible());
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The second hand-built row - the local player's own recruit markers.
+	//!
+	//! Same shape and same reasoning as BuildPlayerRow: OVT_MapRecruitLocation is a
+	//! SCR_MapUIBaseComponent, not an OVT_MapCanvasLayer, so it is invisible to the compositor's
+	//! list.
+	//!
+	//! A PLAYER WHO OWNS NO RECRUITS GETS NO ROW AT ALL. The layer reports itself unavailable when it
+	//! created no markers, and a toggle over an empty marker set reads as a broken control rather
+	//! than as a feature this player has not unlocked yet.
+	//! \param[in] workspace the workspace rows are created through
+	protected void BuildRecruitRow(notnull WorkspaceWidget workspace)
+	{
+		OVT_MapRecruitLocation recruitLocation = GetRecruitLocation();
+		if (!recruitLocation)
+			return;
+
+		if (!recruitLocation.IsAvailableThisSession())
+			return;
+
+		string key = OVT_MapLayerPrefsStore.LayerKey(KEY_RECRUITS);
+		if (!ClaimKey(key, LABEL_RECRUITS))
+			return;
+
+		CreateRow(workspace, m_wOverlayRows, key, LABEL_RECRUITS, string.Empty, string.Empty, recruitLocation.AreMarkersVisible());
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -924,6 +956,7 @@ class OVT_MapLayersUI : SCR_MapUIBaseComponent
 			return;
 
 		ApplyPlayerMarkerPreference();
+		ApplyRecruitMarkerPreference();
 		ApplyCanvasLayerPreferences();
 		ApplyLocationTypePreferences();
 	}
@@ -946,6 +979,24 @@ class OVT_MapLayersUI : SCR_MapUIBaseComponent
 			return;
 
 		playerLocation.SetMarkersVisible(m_PrefsStore.IsVisible(OVT_MapLayerPrefsStore.LayerKey(KEY_PLAYERS)));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The hand-built recruit-marker row's preference.
+	//!
+	//! Skipped for a session that offers no row, for the same reason ApplyPlayerMarkerPreference is:
+	//! writing a preference the player has no control over would let the value survive into a later
+	//! session that DOES draw markers.
+	protected void ApplyRecruitMarkerPreference()
+	{
+		OVT_MapRecruitLocation recruitLocation = GetRecruitLocation();
+		if (!recruitLocation)
+			return;
+
+		if (!recruitLocation.IsAvailableThisSession())
+			return;
+
+		recruitLocation.SetMarkersVisible(m_PrefsStore.IsVisible(OVT_MapLayerPrefsStore.LayerKey(KEY_RECRUITS)));
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1015,6 +1066,9 @@ class OVT_MapLayersUI : SCR_MapUIBaseComponent
 		if (ApplyPlayerMarkers(key, visible))
 			return;
 
+		if (ApplyRecruitMarkers(key, visible))
+			return;
+
 		if (ApplyCanvasLayer(key, visible))
 			return;
 
@@ -1038,6 +1092,26 @@ class OVT_MapLayersUI : SCR_MapUIBaseComponent
 			return false;
 
 		playerLocation.SetMarkersVisible(visible);
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Tested alongside the player row and before the canvas sweep, because its key also lives in the
+	//! layer namespace and would otherwise be shadowed by a sweep that will never match it.
+	//! \param[in] key namespaced preference key
+	//! \param[in] visible the new state
+	//! \return true when the key named the recruit markers
+	protected bool ApplyRecruitMarkers(string key, bool visible)
+	{
+		if (key != OVT_MapLayerPrefsStore.LayerKey(KEY_RECRUITS))
+			return false;
+
+		OVT_MapRecruitLocation recruitLocation = GetRecruitLocation();
+		if (!recruitLocation)
+			return false;
+
+		recruitLocation.SetMarkersVisible(visible);
 
 		return true;
 	}
@@ -1128,6 +1202,16 @@ class OVT_MapLayersUI : SCR_MapUIBaseComponent
 			return null;
 
 		return OVT_MapPlayerLocation.Cast(m_MapEntity.GetMapUIComponent(OVT_MapPlayerLocation));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return the recruit-marker component, or null when it is not registered in this map's config
+	protected OVT_MapRecruitLocation GetRecruitLocation()
+	{
+		if (!m_MapEntity)
+			return null;
+
+		return OVT_MapRecruitLocation.Cast(m_MapEntity.GetMapUIComponent(OVT_MapRecruitLocation));
 	}
 
 	//------------------------------------------------------------------------------------------------

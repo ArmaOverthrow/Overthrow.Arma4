@@ -171,7 +171,12 @@ class OVT_PlayerWantedComponent: OVT_Component
 	// server-side damage manager, so it must replicate (BUG-073)
 	[RplProp()]
 	protected bool m_bIsDisguised = false;
-	
+
+	// Server-only: InitPlayerOutfitFaction_S broadcasts an RPC on every call, and an outfit with
+	// no faction-scored items (the default civilian state) keeps outfitCount at 0 forever, so the
+	// tick must only request the initial calculation once (BUG-168)
+	protected bool m_bOutfitFactionInitDone = false;
+
 	bool IsDisguisedAsOccupying()
 	{
 		return m_bIsDisguised;
@@ -515,10 +520,15 @@ class OVT_PlayerWantedComponent: OVT_Component
 			map<Faction, int> outfitValues = new map<Faction, int>();
 			int outfitCount = m_CharacterFaction.GetCharacterOutfitValues(outfitValues);
 			
-			// Force initial outfit calculation on first run
-			if (outfitCount == 0)
+			// Force initial outfit calculation on first run (BUG-168). Waits for the manager:
+			// initializing without it leaves the affiliation component permanently unscored
+			if (!m_bOutfitFactionInitDone && SCR_PerceivedFactionManagerComponent.GetInstance())
 			{
-				m_CharacterFaction.InitPlayerOutfitFaction_S();
+				m_bOutfitFactionInitDone = true;
+				if (outfitCount == 0)
+				{
+					m_CharacterFaction.InitPlayerOutfitFaction_S();
+				}
 			}
 						
 			if (perceivedFaction)
@@ -649,8 +659,10 @@ class OVT_PlayerWantedComponent: OVT_Component
 			}
 		}else if(m_iWantedLevel == 1 && m_bTempSeen && !m_bIsDisguised) {
 			// Re-seen during the level-1 decay tail: escalate through the notification path
-			// and restart the decay timer instead of silently inheriting it (BUG-076)
-			string reason = "WantedHostileFaction";
+			// and restart the decay timer instead of silently inheriting it (BUG-076).
+			// Level 1 escalates on ANY sighting, so the generic reason is "you were seen" -
+			// blaming a uniform or weapon the player may not have reads as a bug (BUG-171)
+			string reason = "WantedSeen";
 			if(IsVisiblyArmed())
 				reason = "WantedWeapon";
 			SetBaseWantedLevel(2, reason);
@@ -679,11 +691,17 @@ class OVT_PlayerWantedComponent: OVT_Component
 			
 			if (isDisguised && m_iWantedLevel < 2)
 			{
-				// When disguised and not wanted, make AI perceive us as occupying faction
-				Faction occupyingFaction = factionMgr.GetFactionByKey(OVT_Global.GetConfig().m_sOccupyingFaction);
-				if (occupyingFaction)
+				// Present as CIVILIAN while disguised, never as the occupying faction. The override
+				// feeds native perception bucketing for EVERY observer, so presenting OF puts the
+				// disguised player in their own recruits' (FIA) ENEMY bucket and the native weapon
+				// target selector opens fire on them - no script gate sits on that path (BUG-170).
+				// Nothing is lost: OF AI already treat CIV as non-hostile, and the actual disguise
+				// mechanics (base-proximity immunity, the close-range blow check) key off
+				// m_bIsDisguised in this component, not off the override.
+				Faction civilianFaction = factionMgr.GetFactionByKey("CIV");
+				if (civilianFaction)
 				{
-					m_Percieve.SetPerceivedFactionOverride(occupyingFaction);
+					m_Percieve.SetPerceivedFactionOverride(civilianFaction);
 				}
 			}
 			else if(m_iWantedLevel > 1)

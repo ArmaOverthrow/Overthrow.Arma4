@@ -34,7 +34,7 @@
 ## Important Decisions
 
 - **Per-character component, no manager** — component *presence* is itself the AI's "player-aligned" marker; attaching it to a prefab changes AI friend/foe behaviour.
-- **AI interface = `SetPerceivedFactionOverride`** (disguised→OF, wanted→player faction, clean→"CIV"); real faction affiliation untouched so vehicles/compartments keep working. Side effect: wanted players leave the FRIENDLY perception bucket — the only bucket the detection scan reads.
+- **AI interface = `SetPerceivedFactionOverride`** (disguised→CIV since BUG-170 — presenting OF made recruits target the owner; wanted→player faction, clean→"CIV"); real faction affiliation untouched so vehicles/compartments keep working. Side effect: wanted players leave the FRIENDLY perception bucket — the only bucket the detection scan reads (mitigated by the BUG-072 dual-bucket scan).
 - **Owner-machine tick + RplProp broadcast** — player wanted state is effectively client-authoritative while combat escalation writes from the server; the tick likely double-registers (server+client) because ownership transfers after `OnPostInit`.
 - **Hybrid detection** — perception target lists gate, manual head→head `TraceMove` confirms, `GetVisualRecognitionFactor()` early-outs (and drives the HUD eye's opacity).
 - **Not persisted** — wanted level resets on spawn/load by design; only the never-read `areaHeat` town sink persists.
@@ -51,6 +51,9 @@
 - Two full `AIWorld.GetAIAgents()` walks per component per second (scan + disguise check); `QueryEntitiesBySphere` alternative sits commented out at the scan site.
 - Mobile FOB detection hardcodes the prefab GUID; `"CIV"`/`"FIA"` faction keys are hardcoded fallbacks.
 - Test coverage is zero; the pure-logic extraction candidates are the radius formula, the decay state machine, and `CheckEntity`'s level-selection rules.
+- The game mode's `SCR_PerceivedFactionManagerComponent` is set to `FULL_OUTFIT` (PR #132, 2025-07-18): perceived faction is all-or-nothing — one worn CIV-scored item (vanilla civilian shirt/trousers score CIV 40) or a missing jacket/pants slot makes it unknown, so no disguise and no inventory faction icon. Under the pre-#132 `HIGHEST_VALUE` the dominant faction won.
+- Fixed 2026-08-14: the tick's `InitPlayerOutfitFaction_S` fallback re-broadcast an RPC every second while the outfit had no faction-scored items (BUG-168), and `OVT_WantedInfo` never rebound after death, reading the corpse's wanted/disguise state until the body despawned (BUG-169).
+- Fixed 2026-08-15 (BUG-170): a working disguise presented the OCCUPYING faction via `SetPerceivedFactionOverride`, landing the player in their own recruits' native ENEMY perception bucket — armed recruits (fighting again since BUG-146) opened fire on their disguised owner. Disguise now presents CIV; native `AIWeaponTargetSelector` has no script seam, so the override is the only place this can be fixed. The modded `SCR_ChimeraAIAgent.IsPerceivedEnemy`/`IsEnemy` only gate the four scripted danger reactions, not target selection.
 
 ---
 
